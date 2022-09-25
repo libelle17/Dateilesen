@@ -3524,7 +3524,7 @@ Public Function TIns&(TabN$, sF$, obPS%, rq, Optional schonAbgehakt) ' ob Primär
    sql1 = "INSERT INTO `" & TabN & "` ("
    sql2 = "values("
    If obPS Then
-    Set rs = DBCn.Execute("SELECT MAX(" & sF & ") AS mprim FROM " & "`" & TabN & "`" & ";")
+    Set rs = DBCn.Execute("SELECT MAX(" & sF & ") mprim FROM " & "`" & TabN & "`" & ";")
     mprim = IIf(IsNull(rs!mprim), 0, rs!mprim) + 1
    End If
    For i = 0 To rq.Fields.COUNT - 1
