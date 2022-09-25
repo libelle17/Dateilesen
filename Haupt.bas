@@ -3763,7 +3763,7 @@ Public Function AddFileSortedByDateLastModified _
  (Collection As Collection, Item As File, _
  Optional ByVal KeyMode As KeyModeConstants = kmName) As Long
 
-  Dim nCount As Long
+  Dim nCount&
   Dim nHigh As Long
   Dim nLow As Long
   Dim nTest As Long
