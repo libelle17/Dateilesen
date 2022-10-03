@@ -9763,9 +9763,7 @@ If LVobMySQL Then
 
  Call DtbCreateQueryDef(VN, Vsql)
  vz = vz + 1
-
-
-
+    
     sql = "DROP FUNCTION IF EXISTS `qanf`"
     DBCn.Execute (sql)
     sql = "CREATE DEFINER=`praxis`@`%` FUNCTION `qanf`() RETURNS DATE" & Chr$(13) & _
@@ -9797,7 +9795,7 @@ If LVobMySQL Then
     " RETURN CONCAT(j,en,'235959');" & vbCrLf & _
 
 #End If
-
+' aktfaelle verschieden mit Therapieart
  VN = "aktfvmta"
  Vsql = _
  "SELECT CASE WHEN dicd LIKE 'E10%' THEN '1' WHEN dicd LIKE 'E11%' THEN '2' WHEN dicd = 'O24.4' THEN 'g' ELSE '-' END dtyp, i.* FROM (" & vbCrLf & _

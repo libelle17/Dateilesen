@@ -3863,7 +3863,7 @@ Function ÜbertragFormulare(lies As Lese, AccForm$, FName$, Datenbank$, MyTab$)
  Call MdB.DoCmd.OpenForm(AccForm, acDesign)
  Dim MaxHöhe&(2), aktHöhe&, Sekt%, GesHöhe& ' für die Sektionen: 0 = Haupt, 2 = Fuß
  Dim MaxWeite&, aktWeite&
-' Dim TabI() AS TabInd
+' Dim TabI() As TabInd
 ' ReDim TabI(0)
  Dim TabI%(), aktTabi%
  ReDim TabI(0)
@@ -4234,26 +4234,26 @@ Function ÜbertragFormulare(lies As Lese, AccForm$, FName$, Datenbank$, MyTab$)
  Print #309, "Attribute VB_Creatable = False"
  Print #309, "Attribute VB_PredeclaredId = True"
  Print #309, "Attribute VB_Exposed = False"
- Print #309, "Public WithEvents adoRS AS Recordset"
+ Print #309, "Public WithEvents adoRS As Recordset"
  Print #309, "Attribute adoRS.VB_VarHelpID = -1"
- Print #309, "Dim mbChangedByCode AS Boolean"
- Print #309, "Dim mvBookMark AS Variant"
- Print #309, "Dim mbEditFlag AS Boolean"
- Print #309, "Dim mbAddNewFlag AS Boolean"
- Print #309, "Public mbDataChanged AS Boolean"
+ Print #309, "Dim mbChangedByCode As Boolean"
+ Print #309, "Dim mvBookMark As Variant"
+ Print #309, "Dim mbEditFlag As Boolean"
+ Print #309, "Dim mbAddNewFlag As Boolean"
+ Print #309, "Public mbDataChanged As Boolean"
  If obDatenSätze Then
   Print #309, "Dim altsuche$, SuchStringGeändert%"
  End If
- Print #309, "Private Sub adoRS_MoveComplete(ByVal adReason AS ADODB.EventReasonEnum, ByVal pError AS ADODB.Error, adStatus AS ADODB.EventStatusEnum, ByVal pRecordset As Adodb.Recordset)"
+ Print #309, "Private Sub adoRS_MoveComplete(ByVal adReason As ADODB.EventReasonEnum, ByVal pError As ADODB.Error, adStatus As ADODB.EventStatusEnum, ByVal pRecordset As Adodb.Recordset)"
  Print #309, "  'Hierdurch wird die aktuelle Datensatzposition für diese Datensatzgruppe angezeigt"
  Print #309, "   lblStatus.Caption = CStr(adoRS.AbsolutePosition)"
  Print #309, "   Call do_Form_Current" & "_" & FName & "(Me)"
  Print #309, "End Sub 'adoRS_MoveComplete"
  Print #309, ""
- Print #309, "Private Sub adoRS_WillChangeRecord(ByVal adReason AS ADODB.EventReasonEnum, ByVal cRecords AS Long, adStatus AS ADODB.EventStatusEnum, ByVal pRecordset As Adodb.Recordset)"
+ Print #309, "Private Sub adoRS_WillChangeRecord(ByVal adReason As ADODB.EventReasonEnum, ByVal cRecords As Long, adStatus As ADODB.EventStatusEnum, ByVal pRecordset As Adodb.Recordset)"
  Print #309, "  'Hier können Sie Code zur Überprüfung einfügen"
  Print #309, "  'Dieses Ereignis wird aufgerufen, wenn die folgenden Aktionen eintreten"
- Print #309, "  Dim bCancel AS Boolean"
+ Print #309, "  Dim bCancel As Boolean"
  Print #309, "  SELECT CASE adReason"
  Print #309, "  Case adRsnAddNew"
  Print #309, "  Case adRsnClose"
@@ -4488,7 +4488,7 @@ Function ÜbertragFormulare(lies As Lese, AccForm$, FName$, Datenbank$, MyTab$)
  Print #309, " END SELECT"
  Print #309, "End Sub ' cmdPrevious_Click()"
  Print #309, ""
- Print #309, "Public Sub SetButtons(bVal AS Boolean)"
+ Print #309, "Public Sub SetButtons(bVal As Boolean)"
  Print #309, "  cmdAdd.Visible = bVal"
  Print #309, "  cmdEdit.Visible = bVal"
  Print #309, "  cmdUpdate.Visible = Not bVal"
@@ -4622,7 +4622,7 @@ weiter:
        Case 0, 1, 5, 9: ÜberS = ÜberS & ")"
        Case 2, 4: ÜberS = ÜberS & ", KeyCode As Integer, Shift As Integer)"
        Case 3: ÜberS = ÜberS & ", KeyAscii As Integer)"
-       Case 6, 7, 8: ÜberS = ÜberS & ", Button As Integer, Shift As Integer, X AS Single, Y AS Single)"
+       Case 6, 7, 8: ÜberS = ÜberS & ", Button As Integer, Shift As Integer, X As Single, Y As Single)"
       End Select
       Print #309, ÜberS
       Print #309, " SELECT CASE Index"
@@ -4706,7 +4706,7 @@ Private Function FormLoadEinschub(MyTab$, iTextB&, iCheckB&)
    Print #309, "  Call doForm_Load(Me)"
 ''   Const ConString$ = """PROVIDER=MSDASQL;driver={MySQL ODBC 3.51 Driver};server=mitte;uid=praxis;pwd=***REMOVED***;database=quelle;"""
 '   Dim SelString$
-'   Print #309, "  Dim db AS Connection"
+'   Print #309, "  Dim db As Connection"
 '   Print #309, "  SET db = New Connection"
 '   Print #309, "  db.CursorLocation = adUseClient"
 '   Call lies.dbv.cnVorb("quelle", "anamnesebogen", "Patientendaten")
@@ -4738,7 +4738,7 @@ Private Function FormLoadEinschub(MyTab$, iTextB&, iCheckB&)
 '    Print #309, "  Next"
 '   END IF
 '   IF iCheckB > 0 THEN
-'    Print #309, "  Dim oCheck AS CheckBox"
+'    Print #309, "  Dim oCheck As CheckBox"
 '    Print #309, "  'Kontrollkästchen an Datenprovider binden"
 '    Print #309, "  For Each oCheck IN Me.vCheckb"
 '    Print #309, "    SET oCheck.DataSource = adoRS"
@@ -4885,7 +4885,7 @@ Function doHilfsmittelklassifikationen(frm As Lese)
  altAusgabe = frm.Ausgabe
  Set rs = Nothing
  summe = 0
- myFrag rs, "SELECT MID(kvdt.feldinh,14) art, COUNT(0) zahl FROM (SELECT pat_id, foid, feldinh, zeitpunkt FROM `formular` f WHERE zeitpunkt > " & DatFor_k(Datum) & " AND feld = 'Medikamente' AND (feldinh LIKE '%TTR%' OR feldinh LIKE '%Sensor%' OR feldinh LIKE '%teststr%')) AS f LEFT JOIN (SELECT * FROM `formular` WHERE feld = 'KVDTVerordnenderArzt') kvdt USING (foid) LEFT JOIN `namen` n ON f.pat_id = n.pat_id WHERE kvdt.feldinh LIKE 'Gerald Schade%' GROUP BY kvdt.feldinh ORDER BY art"
+ myFrag rs, "SELECT MID(kvdt.feldinh,14) art, COUNT(0) zahl FROM (SELECT pat_id, foid, feldinh, zeitpunkt FROM `formular` f WHERE zeitpunkt > " & DatFor_k(Datum) & " AND feld = 'Medikamente' AND (feldinh LIKE '%TTR%' OR feldinh LIKE '%Sensor%' OR feldinh LIKE '%teststr%')) f LEFT JOIN (SELECT * FROM `formular` WHERE feld = 'KVDTVerordnenderArzt') kvdt USING (foid) LEFT JOIN `namen` n ON f.pat_id = n.pat_id WHERE kvdt.feldinh LIKE 'Gerald Schade%' GROUP BY kvdt.feldinh ORDER BY art"
  altAusgabe = vbCrLf & altAusgabe
  Do While Not rs.EOF
   Select Case rs!art

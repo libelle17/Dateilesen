@@ -938,11 +938,12 @@ Else ' me.private = 0 => Kassenpatienten
  "LEFT JOIN `leistungen` l ON f.fid = l.fid " & vbCrLf & _
  "LEFT JOIN `dokumente` d ON f.pat_id = d.pat_id AND DATE(d.zeitpunkt) BETWEEN fa.qanf AND fa.qend AND d.dokname LIKE '%WA %' AND NOT d.dokname LIKE '%WA -%'" & vbCrLf & _
  "LEFT JOIN `eintraege` e ON f.pat_id = e.pat_id AND DATE(e.zeitpunkt) BETWEEN fa.qanf AND fa.qend AND (e.art LIKE 'debr%' OR e.inhalt LIKE '%ebrid%' OR e.inhalt LIKE '%resekt%') " & vbCrLf & _
- "LEFT JOIN `diagnosen` di ON f.pat_id = di.pat_id AND di.icd RLIKE '^L89\.[12345]' AND obdauer = 0 AND DATE(di.diagdatum) BETWEEN fa.qanf AND fa.qend " & vbCrLf & _
+ "LEFT JOIN `diagnosen` di ON f.pat_id = di.pat_id AND di.gicd RLIKE '^L89\.[12345]' AND (obdauer<>0 OR DATE(di.diagdatum) BETWEEN fa.qanf AND fa.qend) " & vbCrLf & _
  "WHERE l.leistung IN ('97314','97324','02311') AND l.zeitpunkt BETWEEN qanf() AND qend() " & vbCrLf & _
  "GROUP BY f.fid, e.art, e.inhalt, d.dokname) " & vbCrLf & _
  "i WHERE ISNULL(i.ICD) OR i.ICD < i.Fotostadium " & vbCrLf & _
  "GROUP BY pat_id"
+ ' AND obdauer = 0
  mins(AWlf) = 7
  maxs(AWlf) = 120
  AWlf = AWlf + 1
@@ -3570,7 +3571,7 @@ sql(AWlf) = sql(AWlf) & _
             "LEFT JOIN eintraege tug ON v.pat_id = tug.pat_id AND tug.art = 'TUG'  AND tug.zeitpunkt = (SELECT MAX(zeitpunkt) FROM eintraege WHERE pat_id = v.pat_id AND art = 'TUG')" & vbCrLf & _
             "LEFT JOIN eintraege adl ON v.pat_id = adl.pat_id AND adl.art = 'ADL'  AND adl.zeitpunkt = (SELECT MAX(zeitpunkt) FROM eintraege WHERE pat_id = v.pat_id AND art = 'ADL')" & vbCrLf & _
             "LEFT JOIN diagnosen dd ON v.pat_id = dd.pat_id AND dd.icd RLIKE '^F0[0-3]|G20\.[12]|G30' AND dd.diagsicherheit NOT IN ('A','V') AND COALESCE(dd.f6010,0)=0 " & vbCrLf & _
-            "LEFT JOIN diagnosen pfld ON v.pat_id = pfld.pat_id AND pfld.icd RLIKE '^F0[0-3]|^F3|^F45\.41|^F69|^F79|^G20\.[12]|^G30\.9|^M62\.50|^R1[35]|^R26\.[38]|^R29\.6|^R32|^R4[12]|^R46\.4|^R52\.[12]|^R5[34]|^R63\.4|^R68\.8|^Z74\.[09]' AND pfld.diagsicherheit NOT IN ('A','V') AND COALESCE(pfld.f6010,0)=0 " & vbCrLf & _
+            "LEFT JOIN diagnosen pfld ON v.pat_id = pfld.pat_id AND pfld.gicd RLIKE '^F0[0-3]|^F3|^F45\.41|^F69|^F79|^G20\.[12]|^G30\.9|^M62\.50|^R1[35]|^R26\.[38]|^R29\.6|^R32|^R4[12]|^R46\.4|^R52\.[12]|^R5[34]|^R63\.4|^R68\.8|^Z74\.[09]'" & vbCrLf & _
             "LEFT JOIN leistungen l ON v.fid = l.fid  AND l.leistung = '03362' " & vbCrLf & _
             "LEFT JOIN medplan mp ON v.pat_id = mp.pat_id " & vbCrLf & _
             "AND ((mp.zeitpunkt >= (SELECT MAX(zeitpunkt) FROM medplan WHERE zeitpunkt < " & qtAnf(FristS) & " AND pat_id = f.pat_id))  OR (SELECT MAX(zeitpunkt) FROM medplan WHERE zeitpunkt < " & qtAnf(FristS) & " AND pat_id = f.pat_id) IS NULL AND mp.zeitpunkt>=" & qtAnf(FristS) & ") " & vbCrLf & _
@@ -3664,6 +3665,25 @@ sql(AWlf) = "SELECT f.pat_id, gesname(f.pat_id) Gesname, DATE(l.zeitpunkt) Tag1,
  AWlf = AWlf + 1
 
 ' 82
+#If True Then
+' aktfpkvs
+AwN(AWlf) = "Potential für Einzel- anstatt Gruppenschulungen ('97268','97274','97271') bei Gestationsdiabetes mit 1-3 Kontakten"
+sql(AWlf) = "SELECT " & vbCrLf & _
+"  IF(ROW_NUMBER() OVER (PARTITION BY f.pat_id ORDER BY l.zeitpunkt)=1,maxtha(f.pat_id),'') Tha" & vbCrLf & _
+", IF(ROW_NUMBER() OVER (PARTITION BY f.pat_id ORDER BY l.zeitpunkt)=1,dt.ityp,'') DTyp" & vbCrLf & _
+", f.pat_id " & vbCrLf & _
+", IF(ROW_NUMBER() OVER (PARTITION BY f.pat_id ORDER BY l.zeitpunkt)=1,gesname(f.pat_id),'') PName " & vbCrLf & _
+", COALESCE(l.ZeitPunkt,'') Zeitpunkt,COALESCE(l.Leistung,'') Leistung " & vbCrLf & _
+",(SELECT GROUP_CONCAT(leistung) FROM leistungen WHERE pat_id=f.pat_id AND ZeitPunkt BETWEEN qanf() AND qend() AND leistung IN (SELECT leistung FROM genehmigungen WHERE obschulung=2)) EinzLeist_aktQ " & vbCrLf & _
+",(SELECT GROUP_CONCAT(leistung) FROM leistungen WHERE pat_id=f.pat_id AND ZeitPunkt BETWEEN qanf()-INTERVAL 3 MONTH AND qend()-INTERVAL 3 MONTH AND leistung IN (SELECT leistung FROM genehmigungen WHERE obschulung=2)) EinzLeist_vorQ " & vbCrLf & _
+",f.koz, f.czp, f.Art" & vbCrLf & _
+" FROM aktfpkvs f " & vbCrLf & _
+"LEFT JOIN dtypen dt ON dt.pat_id=f.pat_id " & vbCrLf & _
+"LEFT JOIN leistungen l ON l.pat_id=f.pat_id AND l.ZeitPunkt BETWEEN qanf() AND qend() AND l.leistung IN ('97268','97274','97271') " & vbCrLf & _
+"LEFT JOIN sws s ON s.pat_id=f.pat_id AND s.voret>qanf() " & vbCrLf & _
+"WHERE NOT ISNULL(s.voret) AND NOT (ityp='-' AND ISNULL(leistung)) AND dt.ityp='g' AND f.koz BETWEEN 1 AND 3" & vbCrLf & _
+"ORDER BY f.pat_id,l.zeitpunkt;"
+#Else
 AwN(AWlf) = "Potential für Einzel- anstatt Gruppenschulungen ('97268','97274','97271') bei Schwangeren"
 sql(AWlf) = "SELECT " & vbCrLf & _
 "  IF(ROW_NUMBER() OVER (PARTITION BY f.pat_id ORDER BY l.zeitpunkt)=1,maxtha(f.pat_id),'') Tha" & vbCrLf & _
@@ -3681,6 +3701,7 @@ sql(AWlf) = "SELECT " & vbCrLf & _
 "LEFT JOIN sws s ON s.pat_id=f.pat_id AND s.voret>qanf() " & vbCrLf & _
 "WHERE NOT ISNULL(s.voret) AND NOT (ityp='-' AND ISNULL(leistung)) " & vbCrLf & _
 "ORDER BY f.pat_id,l.zeitpunkt;"
+#End If
 ' 82 ' IN 33 enthalten
 ' AwN(AWlf) = "" ' "Doppelte 03220/ 03220H"
 ' sql(AWlf) = "" ' "SELECT * FROM (" & vbCrLf & _
@@ -5189,16 +5210,22 @@ sql(AWlf) = _
 '    AwN(AWlf) = "-"
 '    sql(AWlf) = "-"
 
- AwN(AWlf) = "Übersicht Schwangere mit T1Dm oder T2Dm oder, falls >=3 Kontakte, GDM, sowie Neumanifestation Typ 1-Diabetes"
+ AwN(AWlf) = "Übersicht Schwangere mit T1Dm oder T2Dm oder, falls >=3 Kontakte, GDM, sowie Neumanifestation Typ 1-Diabetes, mit Hinblick auf Einzelschulungen"
  sql(AWlf) = _
-"SELECT f.pat_id, gesname(f.pat_id) PName,voret" & vbCrLf & _
-",IF(NOT ISNULL(sws.voret),'1',' ') obschwanger, IF(n.obneu=0,' ',n.obneu) obneu, dmtyp,f.koz,f.czp,f.Art" & vbCrLf & _
+"SELECT f.pat_id, gesname(f.pat_id) PName,COALESCE(sws.voret,'') VorET" & vbCrLf & _
+",IF(n.obneu=0,' ',n.obneu) obneu, dmtyp,COUNT(DISTINCT DATE(l.zeitpunkt)) lz" & vbCrLf & _
+",GROUP_CONCAT(DISTINCT DATE_FORMAT(l.zeitpunkt,'%e.%c.') ORDER BY l.zeitpunkt SEPARATOR '•') lzp" & vbCrLf & _
+",f.koz ,f.czp kozp,f.Art" & vbCrLf & _
 "FROM aktfpkvs f" & vbCrLf & _
+"LEFT JOIN leistungen l ON l.Pat_ID=f.pat_id AND l.leistung IN (SELECT leistung FROM genehmigungen WHERE obschulung<>0) AND l.zeitpunkt BETWEEN qanf() AND qend()" & vbCrLf & _
 "LEFT JOIN sws on sws.pat_id=f.pat_id AND sws.voret>qanf()" & vbCrLf & _
 "LEFT JOIN anb_neuman n ON n.pat_id=f.pat_id" & vbCrLf & _
-"LEFT JOIN (SELECT pat_id,IF(icd RLIKE '^E',MID(icd,3,1)+1,'g') dmtyp FROM diagnosen WHERE ((gICD RLIKE '^E1[0-4]\.' AND obdauer<>0) OR (gICD='O24.4' AND obdauer=0)) GROUP BY pat_id) d ON d.pat_id=f.pat_id" & vbCrLf & _
-"HAVING (obschwanger AND dmtyp IN ('1','2')) OR (obneu AND dmtyp='1') OR (dmtyp='g' AND koz>2)" & vbCrLf & _
-"ORDER BY f.pat_id"
+"LEFT JOIN (SELECT pat_id,IF(icd RLIKE '^E',MID(icd,3,1)+1,'g') dmtyp FROM diagnosen" & vbCrLf & _
+"           WHERE ((gICD RLIKE '^E1[0-4]\.' AND obdauer<>0) OR (gICD='O24.4' AND obdauer=0)) GROUP BY pat_id) d" & vbCrLf & _
+"           ON d.pat_id=f.pat_id" & vbCrLf & _
+"GROUP BY f.pat_id" & vbCrLf & _
+"HAVING ((VorET<>'' AND dmtyp IN ('1','2')) OR (obneu AND dmtyp='1') OR (dmtyp='g' AND koz>2)) AND lzp<>czp" & vbCrLf & _
+";"
  mins(AWlf) = 10
  maxs(AWlf) = 80
  AWlf = AWlf + 1

@@ -145,7 +145,7 @@ End Sub ' PrepPatid(Pat_id&)
 
 Private Sub Form_Load()
  Dim rlan As New Adodb.Recordset, sql$, i&
- sql = "SELECT a.lanr, a.nachname, a.vorname FROM `lanrpraxis` l LEFT JOIN `haerzte`.`arzt` a ON l.lanr=a.lanr WHERE NOT ISNULL(a.lanr) ORDER BY lanr"
+ sql = "SELECT a.lanr, a.nachname, a.vorname FROM `lanrpraxis` l LEFT JOIN `haerzte`.`arzt` a ON l.lanr=a.lanr WHERE NOT ISNULL(a.lanr) GROUP BY l.lanr ORDER BY l.lanr"
 ' myfrag rlan, "SELECT COUNT(0) zl FROM (" & sql & ")"
  myFrag rlan, sql
  If Not rlan.BOF Then
@@ -180,7 +180,7 @@ Private Sub Form_Load()
    rlan.MoveNext
   Loop
  End If
- Me.Height = Me.Option1.COUNT * 300 + 2000
+ Me.Height = MIN(Me.Option1.COUNT * 300& + 2000, 3675)
  Me.Ok.Top = Me.Height - 1000
  Me.Abbruch.Top = Me.Height - 1000
  
