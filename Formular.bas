@@ -6943,6 +6943,7 @@ Public Sub tubriefStandalone(pid&, obStumm%, Optional Zielverz$, Optional Vorlag
     End If
 '   .Documents.Add Template:="c:\turbomed\vorlagen\AccessBriefa.dot" ' replace$(replace$(An1Pfad, "$\TurboMed\Dokumente\", PCDokPfad), "^", vns)
     Dim tpl$
+neufestleg:
     Set dc = Nothing
     While dc Is Nothing
      tpl = getDokPfad("Vorlagen") & "\" & Vorlage ' \\linux1\turbomed\vorlagen\AccessBrief.dot
@@ -6963,15 +6964,20 @@ Public Sub tubriefStandalone(pid&, obStumm%, Optional Zielverz$, Optional Vorlag
 '    SET dc = .ActiveDocument
     VorDat = GetVorDat(Pat_id, obStumm)
     If nurLabor = 0 Then
-    
-    Call BMRd(dc, !ha1a, IIf(infos(0, 0) = "Herr", "Herrn", infos(0, 0)), True)
-    Call BMRd(dc, !ha2a, infos(1, 0))
-    Call BMRd(dc, !ha3a, infos(2, 0))
-    Call BMRd(dc, !ha4a, infos(3, 0))
-    Call BMRd(dc, !ha5a, infos(4, 0)) ' Faxnummer
-    Call BMRd(dc, !ha6a, infos(5, 0)) ' Anrede
-    Call BMRd(dc, !ha10a, infos(10, 0)) ' Überweiserinfos
-    Dim ii%, Index%
+On Error Resume Next
+     Dim bzahl%
+     bzahl = -1
+     bzahl = .COUNT
+On Error GoTo fehler
+     If bzahl = -1 Then GoTo neufestleg
+     Call BMRd(dc, !ha1a, IIf(infos(0, 0) = "Herr", "Herrn", infos(0, 0)), True)
+     Call BMRd(dc, !ha2a, infos(1, 0))
+     Call BMRd(dc, !ha3a, infos(2, 0))
+     Call BMRd(dc, !ha4a, infos(3, 0))
+     Call BMRd(dc, !ha5a, infos(4, 0)) ' Faxnummer
+     Call BMRd(dc, !ha6a, infos(5, 0)) ' Anrede
+     Call BMRd(dc, !ha10a, infos(10, 0)) ' Überweiserinfos
+     Dim ii%, Index%
     For ii = 1 To UBound(infos, 2)
      If infos(4, ii) <> infos(4, 0) Then
       Index = ii
@@ -7394,6 +7400,7 @@ End Select
 End Function ' fobHAimDMP(HANr$)
 
 #If mitab Then
+' in do_Form_Current_Anbog
 Sub HAlokal(rHa As Adodb.Recordset, KVNr$, Optional NaN, Optional VoN)
 #If False Then
 ' IN der örtlichen Datei nicht gefundenen Hausarzt aus der systemischen übertragen
@@ -7678,8 +7685,8 @@ Function Üw12$(Pat_id&, Üw1$()) ' Saubere Funktion zum Ermitteln der Überweisern
     End If
     If UBound(bhb) = maxFZ Then Exit Do
     
-    Dim Fertig%
-    Fertig = 0
+    Dim fertig%
+    fertig = 0
     For runde = 2 To 2
      Select Case runde
       Case 1: Feld = "AndÜw"
@@ -7688,8 +7695,8 @@ Function Üw12$(Pat_id&, Üw1$()) ' Saubere Funktion zum Ermitteln der Überweisern
 '      Case 3: Feld = "Übwvkvnr"
      End Select
      If Not IsNull(raFa.Fields(Feld)) Then
-      If raFa.Fields(Feld) <> "0000000" And LenB(raFa.Fields(Feld)) <> 0 And Not Fertig Then
-       If runde = 2 Then Fertig = True
+      If raFa.Fields(Feld) <> "0000000" And LenB(raFa.Fields(Feld)) <> 0 And Not fertig Then
+       If runde = 2 Then fertig = True
        obalt = 0
        For i = 0 To stand
         If Üw1(0, i) = raFa.Fields(Feld) Then
@@ -7937,16 +7944,16 @@ habDC:
      RestDa = 0
      Set pakt = r2.Range.paragraphs(1).Next
      Do While pakt.Range.Text <> vbCr
-      If Left(pakt.Range, 1) <> vbTab And Not IsDate(Left(pakt.Range, 8)) Then GoTo Fertig
+      If Left(pakt.Range, 1) <> vbTab And Not IsDate(Left(pakt.Range, 8)) Then GoTo fertig
       If IsDate(Left(pakt.Range, 8)) And IsNumeric(Left(pakt.Range, 8)) Then ' Ergänzung isnumeric 27.4.08 Jörger
        If CDate(Left(pakt.Range, 8)) > VorDat Then
          RestDa = True
-         GoTo Fertig
+         GoTo fertig
        End If
       End If
       Set pakt = pakt.Next
      Loop
-Fertig:
+fertig:
      On Error Resume Next
      If RestDa Then
       dc.Range(r2.Range.paragraphs(1).Range.Next.Start, pakt.Range.Start).Font.Hidden = True ' 23.10.12: pakt.range.start statt pakt.range.start-1, um Leerzeile unter Überschrift zu vermeiden
@@ -8038,7 +8045,7 @@ fehler:
  End Select
 End Function ' ArBName
 
-' nur IN tubriefstandalone
+' nur in tubriefstandalone
 Function ZwischenSpeichern(sverz, Nachname$, Vorname$, Pat_id$, infos$()) 'Optional Fax$, Optional mail$)
  Const ABv$ = "Arztbrief vom"
  Dim ABName$, FNr&
@@ -11538,7 +11545,7 @@ sql = "CREATE DEFINER=`praxis`@`%` FUNCTION `dmtypicd`(icd VARCHAR(6)) RETURNS V
 '"   AND d.diagdatum = (SELECT MAX(diagdatum) FROM diagnosen di WHERE di.pat_id = d.pat_id AND ((di.icd REGEXP '^E1[0-4]\.' ) OR (di.icd = 'O24.4' )) AND di.diagsicherheit not IN ('A','Z') AND COALESCE(di.f6010,0)=0)" & vbCrLf
 DBCn.Execute (sql)
 
-
+' würde unter diesem Namen auch in pznbdt aufgerufen
 sql = "DROP PROCEDURE IF EXISTS `fuellThaP`;"
 DBCn.Execute (sql)
 sql = "CREATE DEFINER=`praxis`@`%` PROCEDURE `quelle`.`fuellThaP`(IN inpid INT(6) UNSIGNED) " & vbCrLf & _
@@ -11606,7 +11613,7 @@ sql = sql & _
 "      ,IF(ez,ez,wglp&&ohneE) eztm -- Eintragszahl teilmodifiziert " & vbCrLf & _
 "     FROM ( " & vbCrLf & _
 "      SELECT mp.Pat_id pid,mp.MPNr MPNr,mp.Zeitpunkt Zp,mp.Medikament Med,ma.puzu<>0 pu " & vbCrLf & _
-"       ,(COALESCE(mp.mo,'')<>'')+(COALESCE(mp.mi,'')<>'')+(COALESCE(mp.nm,'')<>'')+(COALESCE(mp.ab,'')<>'')+(COALESCE(mp.zn,'')<>'')+if(glp1<>0 AND mp.Medanfang RLIKE 'OZEMPIC|TRULICITY',1,0) ez " & vbCrLf & _
+"       ,MAX((COALESCE(mp.mo,'')<>'')+(COALESCE(mp.mi,'')<>'')+(COALESCE(mp.nm,'')<>'')+(COALESCE(mp.ab,'')<>'')+(COALESCE(mp.zn,'')<>'')+if(glp1<>0 AND mp.Medanfang RLIKE 'OZEMPIC|TRULICITY',1,0)) ez " & vbCrLf & _
 "       ,glp1<>0 AND mp.MedAnfang RLIKE 'OZEMPIC|TRULICITY' wglp -- Wochen-GLP-1 " & vbCrLf & _
 "       ,pzn<>0 AND concat(mp.Bemerkung,' ',mp.Grund) NOT RLIKE 'Pause|abgesetzt|beendet|zur Zeit nicht' ohneE -- ohne Eintrag im neuen Medplan, aber vermutlich angewandt " & vbCrLf & _
 "       ,ma.glib<>0 OR ma.metf<>0 OR ma.gluci<>0 OR ma.shglin<>0 OR ma.dpp4<>0 OR ma.sglt2<>0 OR ma.sonstad<>0 oad " & vbCrLf & _
@@ -11617,6 +11624,7 @@ sql = sql & _
 "       ,mp.FeldNr,mp.absPos,mp.StByte -- zur Zeit eher überflüssige Felder " & vbCrLf & _
 "      FROM wmedplan mp LEFT JOIN medarten ma ON mp.medanfang= ma.medikament " & vbCrLf & _
 "      WHERE (@inpid=0 OR mp.pat_id=@inpid) " & vbCrLf & _
+"      GROUP BY mp.pat_id,mpnr,mp.zeitpunkt,ma.id -- z.B. versch.Toujeo-Zeilen für v. Zuckerwerte" & vbCrLf & _
 "     ) i " & vbCrLf & _
 "    ) i " & vbCrLf & _
 "   ) i GROUP BY pid,MPNr,zp -- 13.12.21: gleiche MPNr für versch. Zeitpunkte! wohl durch HB_-Import" & vbCrLf & _
@@ -12106,7 +12114,7 @@ End Select
 End Sub ' dbViewsErstellen
 
 #If True Then
-Sub LaborIns1(dc As Object, Pat_id$, nurLabor%) ' nur IN tuBriefStandalone
+Sub LaborIns1(dc As Object, Pat_id$, nurLabor%) ' nur in tuBriefStandalone
  Dim SelbstStatus%, raDatBOF%
  Dim Matr$(), MForm%(), mBreiten$(), DiffBr%, i&, j&, k&, im&
  
@@ -13472,6 +13480,8 @@ End Function
 ' Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
 'End SELECT
 'End FUNCTION ' KVÄDateiFind
+
+' in Halokal
 Function do_haakt(rHa As Adodb.Recordset)
  Dim ars As New Adodb.Recordset, aRsx As New Adodb.Recordset
 ' Call KVÄVorb

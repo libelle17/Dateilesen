@@ -835,6 +835,7 @@ Dim mbEditFlag As Boolean
 Dim mbAddNewFlag As Boolean
 Dim mbDataChanged As Boolean
 
+' nur in HausärztemitalterKVNrergänzen_Click
 Public Function Vorbereit(Umfang$)
   Set adoPrimaryRS = New Recordset
 '  adoPrimaryRS.Open "SELECT DBNr,diff,BStelle,Anrede,HAName,ort,KVNR,KVNu,LANR,Tel1,Tel2,Tel3,Tel4,Fax1,Fax1k,Fax2,Fax2k,Fax3,Fax3k,Email,ZulG,Arzttyp,GemMit,beme,DMPT2,DMPT1,Geschlecht,Titel,Vorname,Nachname,Straße,PLZ,gelöscht,seit,bis,AktZeit FROM althae ORDER BY kvnu", DBCn, adOpenStatic, adLockOptimistic
@@ -849,7 +850,7 @@ Public Function Vorbereit(Umfang$)
   Next
   mbDataChanged = False
   Vorbereit = True
-End Function ' Vorbereit(Umfang$)
+End Function ' Vorbereit
 
 Private Sub Form_Resize()
   On Error Resume Next

@@ -987,7 +987,7 @@ Public Sub Einlesen()
  Call hlese.ProgEnde
 End Sub ' EinlesenVorb_Click()
 
-' 30.3.21: nur IN Einlesen
+' 30.3.21: nur in Einlesen
 Private Sub doEinlesen(obevtlAlle%)
 ' Const obZS% = -1
  Dim Fil As File, erg%, sql$, obAktZeit%

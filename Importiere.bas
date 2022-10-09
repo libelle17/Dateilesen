@@ -589,7 +589,7 @@ End Function ' eintrhist
 '  Loop
 '  rs.Close
 'End Function
-' wird nur IN doeinlesen aufgerufen
+' wird nur in doeinlesen aufgerufen
 
 Function GesLies(frm As Lese, BDTDatei$, BDTName$, EinlAb&, EinlBis&, obLaborDirekt%, obLDneu%, obLaborQuer%, obLQneu%, obEmails%, EmDatei$)
  Dim rAdo As New Adodb.Recordset
@@ -1604,6 +1604,7 @@ Select Case MsgBox("FNr: " & FNr & ", ErrNr: " & CStr(Err.Number) + vbCrLf + "La
 End Select
 End Function ' rmeSort
 
+' ausrangiert 12.12.20
 ' s. therart_erm
 Function THAfestleg() ' IN dolies und geslies / parallel zu Therauskunft
  Dim i&, Tha$, altTha$, insart%, altinsart%, mEl As New SortierMedi, obschluß%, Grund$
@@ -2948,7 +2949,7 @@ rEiVorb:
       rDm(UBound(rDm)).art = "FD"
      End If
      If InStrB(rInhalt, "(ok") <> 0 Then
-      rDm(UBound(rDm)).Ok = True
+      rDm(UBound(rDm)).ok = True
      End If
      If InStrB(rInhalt, "ausgedruckt)") <> 0 Then
       rDm(UBound(rDm)).ausgedruckt = True
@@ -4120,7 +4121,7 @@ Function aktqanf(Optional diff%) As Date
  aktqanf = CDate("01." & mon & "." & Year(jetzt))
 End Function ' aktqanf() As Date
 
-' Aufruf nur IN GesLies(
+' Aufruf nur in GesLies(
 Function alleSpeichern(frm As Lese)
 ' rsAnam!Vorgestellt = MYDAT(Vorgestellt)
  Dim Cpt$, i&, j&
@@ -4899,7 +4900,7 @@ Function getDTyp$()
  Next i ' i = 1 To UBound(rDi)
 End Function ' getDTyp$()
 
-' nur IN alleSpeichern
+' nur in alleSpeichern
 Function MacheDiagnosen$(dmseit$) ' für AnaEintragen, MachSammelTab und DiagString
  Dim j&, k&, runde%
  On Error GoTo fehler
@@ -6531,7 +6532,7 @@ If Abkü <> "" Then
 '  raLP.Edit
  Else
 '  rLPbm = rLP.Bookmark
-  GoTo Fertig:
+  GoTo fertig:
  End If
  If raLP.EditMode = 1 Or raLP.EditMode = 2 Then
   If Not IsNull(Langtext) And Langtext <> "" Then
@@ -6543,11 +6544,11 @@ If Abkü <> "" Then
 '  rLPbm = rLP.LastModified
  End If
 End If
- GoTo Fertig
+ GoTo fertig
 test:
  MsgBox "Hier Fehler bei Einheit"
  Resume
-Fertig:
+fertig:
  raLP.Close
  Exit Function
 fehler:

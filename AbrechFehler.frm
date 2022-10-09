@@ -1328,7 +1328,7 @@ sql(AWlf) = "SELECT n.Pat_id, gesnameg(n.pat_id) Name,f.Schgr,KVNr,f.VKNr,ICD" &
   
  ' 18
  ' 15.10.14: Komb und CT noch nicht bewertet, da unsicher und z.T. falsch ausgewertet
- ' 12.10.19: maxtha braucht lang, soll nur IN Auswahl von namen berechnet werden
+ ' 12.10.19: maxtha braucht lang, soll nur in Auswahl von namen berechnet werden
  AwN(AWlf) = "Fehlende oder falsche Betreuungspauschale 97320/97310 (ICT oder CSII), 97321 (and.Therapie), 97322/97312 (Kinder) im DMP"
 sql(AWlf) = _
 "SELECT * FROM ( " & vbCrLf & _
@@ -3726,20 +3726,22 @@ sql(AWlf) = "SELECT " & vbCrLf & _
 "       AND l0.leistung IN ('03221','03221H')" & vbCrLf & _
 "       GROUP BY f.fid" & vbCrLf & _
 "       ) i WHERE Zahl>1"
-AwN(AWlf) = "Mehr Leistungen seit 9 Monaten vor Quartalsanfang als IN `genehmigungen` eingetragen"
-sql(AWlf) = "SELECT" & vbCrLf & _
-"f.pat_id, gesname(f.pat_id) PName" & vbCrLf & _
-",(SELECT COALESCE(SUM(lzahl),0) FROM leistungen WHERE leistung=l.Leistung AND pat_id=l.pat_id AND zeitpunkt BETWEEN qanf()-INTERVAL 9 MONTH AND qend()) LZahl" & vbCrLf & _
-",maxzdue MaxZ,l.Leistung" & vbCrLf & _
-",(SELECT GROUP_CONCAT(DATE_FORMAT(zeitpunkt,'%e.%c.%y')SEPARATOR'|') FROM leistungen WHERE leistung=l.Leistung AND pat_id=l.pat_id AND zeitpunkt BETWEEN qanf()-INTERVAL 9 MONTH AND qend()) LDat" & vbCrLf & _
-",g.Erklärung" & vbCrLf & _
-"FROM aktfv f" & vbCrLf & _
-"LEFT JOIN leistungen l ON l.pat_id=f.pat_id AND l.zeitpunkt BETWEEN qanf() AND qend()" & vbCrLf & _
-"LEFT JOIN genehmigungen g ON l.leistung=g.leistung" & vbCrLf & _
-"WHERE NOT ISNULL(g.MYID) AND NOT (minzdue=0 AND maxzdue=0)" & vbCrLf & _
-"GROUP BY f.pat_id, l.leistung" & vbCrLf & _
-"HAVING lzahl>maxzdue" & vbCrLf & _
+AwN(AWlf) = "Mehr Leistungen seit 9 Monaten vor Quartalsanfang als in `genehmigungen` eingetragen"
+sql(AWlf) = "SELECT i.pat_id, gesname(i.pat_id) PName,COALESCE(SUM(zl.lzahl),0) lzahl,i.maxzdue MaxZ,i.Leistung" & vbCrLf & _
+",GROUP_CONCAT(DATE_FORMAT(zl.zeitpunkt,'%e.%c.%y')SEPARATOR'|') lzdat, i.Erklärung" & vbCrLf & _
+"FROM" & vbCrLf & _
+"(SELECT f.pat_id,l.leistung,g.maxzdue,g.Erklärung" & vbCrLf & _
+" FROM aktfv f" & vbCrLf & _
+" LEFT JOIN leistungen l ON l.Pat_ID=f.pat_id AND l.zeitpunkt BETWEEN qanf() AND qend()" & vbCrLf & _
+" LEFT JOIN genehmigungen g ON g.leistung=l.leistung" & vbCrLf & _
+" WHERE NOT ISNULL(g.myid) AND NOT (minzdue=0 AND maxzdue=0)" & vbCrLf & _
+" GROUP BY f.pat_id,l.leistung) i" & vbCrLf & _
+"LEFT JOIN leistungen zl ON zl.pat_id=i.pat_id AND zl.Leistung=i.Leistung AND zl.zeitpunkt BETWEEN qanf()-INTERVAL 9 MONTH AND qend()" & vbCrLf & _
+"GROUP BY i.pat_id, i.leistung" & vbCrLf & _
+"-- HAVING lzahl>maxzdue" & vbCrLf & _
 ";"
+
+ 
  mins(AWlf) = 10
  maxs(AWlf) = 60
  AWlf = AWlf + 1

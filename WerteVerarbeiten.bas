@@ -544,6 +544,7 @@ fehler:
   Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
  End Select
 End Sub      ' DMPAusgeb0
+
 #If False Then
 Function TherapieArtEinzelnFestlegen(Pat_id&, Optional rsAna As Adodb.Recordset) ' IN TherapieArtenFestlegen und alleSpeichern
 Dim nTher$, rAF&, rAnPatID&, Anzeige$, Fanf As Date

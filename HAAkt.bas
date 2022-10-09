@@ -130,7 +130,7 @@ Select Case MsgBox("FNr: " & FNr & ", ErrNr: " & CStr(Err.Number) + vbCrLf + "La
 End Select
 End Function ' datFormZ
 
-
+' in Hausärzte_aus_Listenausgabe_Ueberweiser_einlesen_Click
 Public Sub doHAAkt(frm As Lese)
  Dim aktDatei$, HAStr$
  Dim XCon As New Adodb.Connection
@@ -140,9 +140,10 @@ Public Sub doHAAkt(frm As Lese)
  Dim rV2 As New Adodb.Recordset
  Dim rs As New Adodb.Recordset
  Dim rAF&, obüberhaupt%
- Dim ausg$
+ Dim ausg$, lauf&
  Dim F0 As File, f1 As File
  On Error GoTo fehler
+ ' 1. fetlegen, von wo die Datei Listenausgabe_Überweiser.xls gelesen wird
  userprof = Environ("userprofile")
  SetProgV
  AnamneseVerZeichnis1$ = uVerz & "Anamnese\"
@@ -168,7 +169,7 @@ Public Sub doHAAkt(frm As Lese)
  Else
   aktDatei = Verzeichnis & LÜDatei
  End If
- 
+Dim fld$
 Dim dbknr As ConDtb
 ' Dim LVobMySQL As Boolean
 #Const vordef = False
@@ -198,8 +199,7 @@ Dim dbknr As ConDtb
 gefunden:
   For Each Cpt In ccol
    If Cpt = "LINUX1" Then
-   Dim MyCn As Adodb.Connection, rdb As Adodb.Recordset, rHa As New Adodb.Recordset
-   
+   Dim MyCn As Adodb.Connection, MyCn2 As New Adodb.Connection, rdb As Adodb.Recordset, rHa As New Adodb.Recordset
    Set MyCn = New Adodb.Connection
    On Error Resume Next
    Err.Clear
@@ -231,18 +231,19 @@ gefunden:
      Set rdb = MyCn.Execute("SHOW DATABASES")
 #End If
      Do While Not rdb.EOF
-      MyCn.Execute "USE `" & rdb.Fields(0) & "`"
-      Debug.Print "USE `" & rdb.Fields(0) & "`"
+      fld = rdb.Fields(0)
+      MyCn.Execute "USE `" & fld & "`"
+      Debug.Print "USE `" & fld & "`"
       If Err.Number <> 0 Then
-'       Print #399, "Computer: " & Cpt & ", Datenbank : " & rdb.Fields(0) & ": Fehler: " & Err.Description
-       frm.Ausgeb "Computer: " & Cpt & ", Datenbank : " & rdb.Fields(0) & ": Fehler: " & Err.Description, True
+'       Print #399, "Computer: " & Cpt & ", Datenbank : " & fld & ": Fehler: " & Err.Description
+       frm.Ausgeb "Computer: " & Cpt & ", Datenbank : " & fld & ": Fehler: " & Err.Description, True
       Else
        Set rHa = Nothing
  '      rha.Open "SELECT * FROM `hae` LIMIT 1", MyCn, adOpenStatic, adLockReadOnly
-       rHa.Open "SELECT table_name FROM information_schema.`TABLES` T WHERE table_schema = '" & rdb.Fields(0) & "' AND table_name = 'hae'", MyCn, adOpenStatic, adLockReadOnly
+       rHa.Open "SELECT table_name FROM information_schema.`TABLES` T WHERE table_schema = '" & fld & "' AND table_name = 'hae'", MyCn, adOpenStatic, adLockReadOnly
  '      If Err.Number = 0 Then
        If Not rHa.BOF Then
-        KVÄDB = Left$(CnStr, Len(CnStr) - 1) & ";DATABASE=" & rdb.Fields(0) & ";"""
+        KVÄDB = Left$(CnStr, Len(CnStr) - 1) & ";DATABASE=" & fld & ";"""
         obenthalten = True
         Exit Do
        Else
@@ -252,39 +253,58 @@ gefunden:
       rdb.Move 1
      Loop
      If obenthalten Then
+      MyCn2.Open CnStr
       rdb.MoveFirst
       Dim runde&
       Do While Not rdb.EOF
        runde = runde + 1
-       Debug.Print "Runde: " & runde & ", rdb.fields(0): ", rdb.Fields(0)
-       MyCn.Execute "USE `" & rdb.Fields(0) & "`"
+       fld = rdb.Fields(0)
+       Debug.Print "Runde: " & runde & ", rdb.fields(0): ", fld
+       MyCn2.Execute "USE `" & fld & "`"
+       If Err.Number = -2147467259 Then
+        MyCn2.Close
+        MyCn2.Open
+        MyCn2.Execute "USE `" & fld & "`"
+       End If
        If Err.Number = 0 Then
+'        If fld = "quelle" Then Stop
         Set rHa = Nothing
  '       rha.Open "SELECT * FROM `anamnesebogen` LIMIT 1", MyCn, adOpenStatic, adLockReadOnly
-        rHa.Open "SELECT table_name FROM information_schema.`TABLES` T WHERE table_schema = '" & rdb.Fields(0) & "' AND table_name = 'anamnesebogen'", MyCn, adOpenStatic, adLockReadOnly
+        rHa.Open "SELECT table_name FROM information_schema.`TABLES` WHERE table_schema = '" & fld & "' AND table_name = 'anamnesebogen'", MyCn, adOpenStatic, adLockReadOnly
+        If Err.Number <> 0 Then
+         Debug.Print Error.Description
+         If Err.Number = -2147217887 Then
+          MyCn.Close
+          MyCn.Open
+          rHa.Open "SELECT table_name FROM information_schema.`TABLES` WHERE table_schema = '" & fld & "' AND table_name = 'anamnesebogen'", MyCn, adOpenStatic, adLockReadOnly
+          If Err.Number <> 0 Then
+           Debug.Print Error.Description
+          End If
+         End If
+        End If
  '       If Err.Number = 0 Then
         If Not rHa.BOF Then
          Do While Not rHa.EOF
           obüberhaupt = True
           Set QCn(UBound(QCn)) = New Adodb.Connection
           Set HCn(UBound(HCn)) = New Adodb.Connection
-          QCns(UBound(QCns)) = Left$(CnStr, Len(CnStr) - 1) & ";DATABASE=" & rdb.Fields(0) & ";"""
+          QCns(UBound(QCns)) = Left$(CnStr, Len(CnStr) - 1) & ";DATABASE=" & fld & ";"""
           HCns(UBound(HCns)) = KVÄDB
           QCn(UBound(QCn)).ConnectionString = QCns(UBound(QCns))
           HCn(UBound(HCn)).ConnectionString = KVÄDB
           QCn(UBound(QCn)).Open QCns(UBound(QCns))
           Dim zeigstr$
           If Err.Number <> 0 Then
-           zeigstr = "Computer: " & Cpt & ", Datenbank : " & rdb.Fields(0) & ": Fehler beim 1. Verbinden"
+           zeigstr = "Computer: " & Cpt & ", Datenbank : " & fld & ": Fehler beim 1. Verbinden"
            Err.Clear
           Else ' Err.Number <> 0 Then
            HCn(UBound(HCn)).Open
            If Err.Number <> 0 Then
-            zeigstr = "Computer: " & Cpt & ", Datenbank : " & rdb.Fields(0) & ": Fehler beim 2. Verbinden"
+            zeigstr = "Computer: " & Cpt & ", Datenbank : " & fld & ": Fehler beim 2. Verbinden"
             QCn(UBound(QCn)).Close
             Err.Clear
            Else ' Err.Number <> 0 Then
-            zeigstr = "Computer: " & Cpt & ", Datenbank : " & rdb.Fields(0) & ": Verbunden (Nr." & UBound(HCn) & "):" & CurDB(HCn(UBound(HCn))) & " / " & CurDB(QCn(UBound(QCn)))
+            zeigstr = "Computer: " & Cpt & ", Datenbank : " & fld & ": Verbunden (Nr." & UBound(HCn) & "):" & CurDB(HCn(UBound(HCn))) & " / " & CurDB(QCn(UBound(QCn)))
             QCn(UBound(HCn)).Close
             HCn(UBound(QCn)).Close
             ReDim Preserve HCn(UBound(HCn) + 1)
@@ -300,10 +320,10 @@ gefunden:
           rHa.MoveNext
          Loop ' Do While Not rHa.EOF
         Else ' Not rHa.BOF Then
-'        Print #399, "Computer: " & Cpt & ", Datenbank : " & rdb.Fields(0) & ": Keine geeignete Anamnesebogentabelle"
+'        Print #399, "Computer: " & Cpt & ", Datenbank : " & fld & ": Keine geeignete Anamnesebogentabelle"
          Err.Clear
         End If ' Not rHa.BOF Then
-       End If ' Err.Number = 0 Then
+       End If ' Err.Number = 0 nach use rdbfields(0) Then
        rdb.Move 1
       Loop ' While Not rdb.EOF
      Else ' obenthalten Then
@@ -608,7 +628,6 @@ gefunden:
        End If
       End If
 #End If
-      
       On Error GoTo fehler
       DoEvents
       End If ' lvobmysql
@@ -640,69 +659,69 @@ For dbknr = LBound(QCn) To UBound(QCn)
   rV2.Open "SELECT * FROM `hausaerzte` WHERE nachname = '" & rV1!name & "' AND vorname = '" & rV1!Vorname & "'", QCn(dbknr), adOpenDynamic, adLockOptimistic
   On Error GoTo fehler
   If rV2.State <> 0 Then
-  If Not rV2.EOF Then
-   If Not LVobMySQL Then On Error Resume Next
-   Call QCn(dbknr).Execute("UPDATE `" & LIUET & "` SET überschrift = '" & rV2!Überschrift & "' WHERE name = '" & rV1!name & "' AND vorname = '" & rV1!Vorname & "'", rAF)
-   If (Not IsNull(rV2!e_mail) And rV2!e_mail <> vNS) And (rV1!email = vNS Or IsNull(rV1!email)) Then
-    Call QCn(dbknr).Execute("UPDATE `" & LIUET & "` SET email = '" & rV2!e_mail & "' WHERE name = '" & rV1!name & "' AND vorname = '" & rV1!Vorname & "'", rAF)
-   End If
-   On Error GoTo fehler
+   If Not rV2.EOF Then
+    If Not LVobMySQL Then On Error Resume Next
+    Call QCn(dbknr).Execute("UPDATE `" & LIUET & "` SET überschrift = '" & rV2!Überschrift & "' WHERE name = '" & rV1!name & "' AND vorname = '" & rV1!Vorname & "'", rAF)
+    If (Not IsNull(rV2!e_mail) And rV2!e_mail <> vNS) And (rV1!email = vNS Or IsNull(rV1!email)) Then
+     Call QCn(dbknr).Execute("UPDATE `" & LIUET & "` SET email = '" & rV2!e_mail & "' WHERE name = '" & rV1!name & "' AND vorname = '" & rV1!Vorname & "'", rAF)
+    End If
+    On Error GoTo fehler
 '   Debug.Print "nicht gefunden: ", rV1!Name, rV1!vorname
-  End If
-  Do While Not rV2.EOF
-   If REPLACE$(REPLACE$(LCase(rV2!anschrift), " ", vNS), "str.", "straße") <> REPLACE$(REPLACE$(LCase(rV1!strasse & "," & rV1!plz & rV1!ort), " ", vNS), "str.", "straße") Then
-'    Debug.Print rv2!nachname, rv2!vorname, rv2!anschrift, "<>", rV1!strasse & ", " & rV1!plz & " " & rV1!ort
    End If
+   Do While Not rV2.EOF
+    If REPLACE$(REPLACE$(LCase(rV2!anschrift), " ", vNS), "str.", "straße") <> REPLACE$(REPLACE$(LCase(rV1!strasse & "," & rV1!plz & rV1!ort), " ", vNS), "str.", "straße") Then
+'    Debug.Print rv2!nachname, rv2!vorname, rv2!anschrift, "<>", rV1!strasse & ", " & rV1!plz & " " & rV1!ort
+    End If
    
-   Dim obT%, v1$, v2$
-   obT = False
-   If IsNull(rV2!telefon) + (IsNull(rV1!telefon) Or rV1!telefon = vNS) = -1 Then
-    obT = True
-   ElseIf Not IsNull(rV2!telefon) Then
-    v1 = REPLACE(REPLACE(REPLACE(rV1!telefon, " ", vNS), "/", vNS), "-", vNS)
-    If Left(v1, 1) <> "0" Then
+    Dim obT%, v1$, v2$
+    obT = False
+    If IsNull(rV2!telefon) + (IsNull(rV1!telefon) Or rV1!telefon = vNS) = -1 Then
+     obT = True
+    ElseIf Not IsNull(rV2!telefon) Then
+     v1 = REPLACE(REPLACE(REPLACE(rV1!telefon, " ", vNS), "/", vNS), "-", vNS)
+     If Left(v1, 1) <> "0" Then
       If Len(v1) < 7 Then
        v1 = aktVorw & v1
       Else
        v1 = "0" & v1
       End If
-    End If
-    v2 = REPLACE(REPLACE(REPLACE(rV2!telefon, " ", vNS), "/", vNS), "-", vNS)
-    If v1 <> v2 Then obT = True
-   End If
-   If obT Then
-    Debug.Print rV2!Nachname, rV2!Vorname, rV2!telefon, "<>", rV1!telefon
-   End If
-   
-   obT = False
-   If IsNull(rV2!telefax) + (IsNull(rV1!fax) Or rV1!fax = vNS) = -1 Then
-    obT = True
-   ElseIf Not IsNull(rV2!telefax) Then
-    v1 = REPLACE(REPLACE(REPLACE(rV1!fax, " ", vNS), "/", vNS), "-", vNS)
-    If Left(v1, 1) <> "0" Then
-     If Len(v1) < 7 Then
-      v1 = aktVorw & v1
-     Else
-      v1 = "0" & v1
      End If
+     v2 = REPLACE(REPLACE(REPLACE(rV2!telefon, " ", vNS), "/", vNS), "-", vNS)
+     If v1 <> v2 Then obT = True
     End If
-    v2 = REPLACE(REPLACE(REPLACE(rV2!telefax, " ", vNS), "/", vNS), "-", vNS)
-    If v1 <> v2 Then obT = True
-   End If
-   If obT Then
-    Debug.Print rV2!Nachname, rV2!Vorname, rV2!telefax, "<>", "'" & rV1!fax & "'"
-   End If
-   DoEvents
-   rV2.Move 1
-  Loop
-  End If
+    If obT Then
+     Debug.Print rV2!Nachname, rV2!Vorname, rV2!telefon, "<>", rV1!telefon
+    End If
+   
+    obT = False
+    If IsNull(rV2!telefax) + (IsNull(rV1!fax) Or rV1!fax = vNS) = -1 Then
+     obT = True
+    ElseIf Not IsNull(rV2!telefax) Then
+     v1 = REPLACE(REPLACE(REPLACE(rV1!fax, " ", vNS), "/", vNS), "-", vNS)
+     If Left(v1, 1) <> "0" Then
+      If Len(v1) < 7 Then
+       v1 = aktVorw & v1
+      Else
+       v1 = "0" & v1
+      End If
+     End If
+     v2 = REPLACE(REPLACE(REPLACE(rV2!telefax, " ", vNS), "/", vNS), "-", vNS)
+     If v1 <> v2 Then obT = True
+    End If
+    If obT Then
+     Debug.Print rV2!Nachname, rV2!Vorname, rV2!telefax, "<>", "'" & rV1!fax & "'"
+    End If
+    DoEvents
+    rV2.Move 1
+   Loop ' While Not rV2.EOF
+  End If ' rV2.State <> 0 Then
   rV1.Move 1
- Loop
-Call QCn(dbknr).Execute("UPDATE IGNORE " & LIUET & " l " & _
-"LEFT JOIN (SELECT * FROM faelle f GROUP BY übwvbsnr, übwr, übwlanr, üwnnr, üwnan, üwtit, üwvor, üwvsw, üwvid) f " & _
-"ON l.name = f.üwnan AND (l.vorname = concat(f.üwvor,IF(ISNULL(f.üwvsw) OR f.üwvsw='','',' '),f.üwvsw) OR l.vorname = f.üwvsw) AND l.titelt = f.üwtit " & _
-"SET l.kvnr= REPLACE(f.übwvkvnr,' ',''),l.ursp=CONCAT(l.ursp,'+faelle.übwvknr') WHERE REPLACE(übwvkvnr,' ','')<>''" & _
-"", rAF) '"WHERE kvnr='' AND REPLACE(übwvkvnr,' ','')<>'' AND NOT ISNULL(übwvkvnr);", rAF)
+ Loop ' While Not rV1.EOF
+ Call QCn(dbknr).Execute("UPDATE IGNORE " & LIUET & " l " & _
+ "LEFT JOIN (SELECT * FROM faelle f GROUP BY übwvbsnr, übwr, übwlanr, üwnnr, üwnan, üwtit, üwvor, üwvsw, üwvid) f " & _
+ "ON l.name = f.üwnan AND (l.vorname = concat(f.üwvor,IF(ISNULL(f.üwvsw) OR f.üwvsw='','',' '),f.üwvsw) OR l.vorname = f.üwvsw) AND l.titelt = f.üwtit " & _
+ "SET l.kvnr= REPLACE(f.übwvkvnr,' ',''),l.ursp=CONCAT(l.ursp,'+faelle.übwvknr') WHERE REPLACE(übwvkvnr,' ','')<>''" & _
+ "", rAF) '"WHERE kvnr='' AND REPLACE(übwvkvnr,' ','')<>'' AND NOT ISNULL(übwvkvnr);", rAF)
  sql = "UPDATE " & LIUET & " SET anrede = 'Frau' WHERE vorname IN ('Andrea','Alexandra','Angelika','Anke','Anne','Annett','Annette','Astrid','Barbara','Bibiana','Birgit','Carolin','Christina','Christine','Dagmar','Dorothea','Edith','Elke','Eva','Gabriele','Gerlinde','Gesche','Gisela','Heidi','Heidrun','Ingrid','Isabella','Jana','Julia','Jutta','Katharina','Katrin','Kirsten','Kristina','Laima','Margot','Maria','Marianne','Marion','Mirjana','Monica','Nicole','Nina','Oana','Oskana','Rabia','Rita','Sabine','Silke','Sonja','Susanne','Swantje','Swetlana','Theodora','Tina','Ursula','Ute','Viktoria','Yvonne')"
  QCn(dbknr).Execute sql, rAF
  sql = "UPDATE " & LIUET & " SET anrede = 'Herrn' WHERE vorname IN ('Andreas','Axel','Bernhard','Christian','Christoph','Clemens','Dieter','Edgar','Elmer','Ernst','Ernst-Ulrich','Franz','Franz Egid','Günther','Guido','Hans','Hans-Hermann','Hans-Joachim','Hans-Jürgen','Heribert','Herrmann','Holger','Ioannis','Joachim','Johann','Johann de','Johannes','Karl','Ludwig','Malte','Mario','Meinrad','Nikolaus','Nikolaus von','Olaf','Peter','Rainer','Ramon','Reinhold','Roman','Rudolf','Rüdiger','Stefan','Theodor','Thomas','Ulrich','Volker','Wolf-Dieter','Wolfgang','Yves')"
@@ -712,10 +731,10 @@ Call QCn(dbknr).Execute("UPDATE IGNORE " & LIUET & " l " & _
  QCn(dbknr).Execute "DROP TABLE " & LIUEZ, rAF
  On Error GoTo fehler
  QCn(dbknr).Execute "CREATE TABLE " & LIUEZ & " LIKE " & LIUET, rAF
- QCn(dbknr).Execute "INSERT INTO " & LIUEZ & " SELECT * FROM " & LIUET & " l GROUP BY kvnr, name, vorname, plz,ort, telefon, tel1,fax, tel2, email, dmpt2, dmpt1, geschlecht"
- QCn(dbknr).Execute "DROP TABLE " & LIUET
- QCn(dbknr).Execute "ALTER TABLE " & LIUEZ & " ADD COLUMN kvnri INTEGER(20) AS (CAST(REPLACE(kvnr,' ','') As Integer));"
- QCn(dbknr).Execute "ALTER TABLE " & LIUEZ & " ADD INDEX kvnr(kvnri) USING BTREE;"
+ QCn(dbknr).Execute "INSERT INTO " & LIUEZ & " SELECT * FROM " & LIUET & " l GROUP BY kvnr, name, vorname, plz,ort, telefon, tel1,fax, tel2, email, dmpt2, dmpt1, geschlecht", rAF
+ QCn(dbknr).Execute "DROP TABLE " & LIUET, rAF
+ QCn(dbknr).Execute "ALTER TABLE " & LIUEZ & " ADD COLUMN kvnri INTEGER(20) AS (CAST(REPLACE(kvnr,' ','') As Integer));", rAF
+ QCn(dbknr).Execute "ALTER TABLE " & LIUEZ & " ADD INDEX kvnr(kvnri) USING BTREE;", rAF
  QCn(dbknr).Close
  HCn(dbknr).Close
 Next dbknr
@@ -737,6 +756,11 @@ fehler:
 #Else
  AnwPfad = App.path
 #End If
+If Err.Number = -2147467259 And lauf < 200 Then
+ lauf = lauf + 1
+ Sleep 1000
+ Resume
+End If
 Select Case MsgBox("FNr: " + CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler IN main/" + AnwPfad)
  Case vbAbort: Call MsgBox("Höre auf"): End
  Case vbRetry: Call MsgBox("Versuche nochmal"): Resume

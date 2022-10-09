@@ -955,15 +955,691 @@ Attribute dbv.VB_VarHelpID = -1
 Public obRueck%
 'Public WithEvents qdb AS QuelleDBC
 
-'Public EinlAb&
-Private Sub TestFos_Click()
+' Datei -> Datenbankverbindung Patientendaten
+Private Sub Datenbankverbindung_Click()
+' Call dbv.rücksetzBedTbl
+' Call dbv.setzBedTbl("anamnesebogen")
+' dbv.Show 1
+' SET cn = Nothing
+' cn.Open dbv.CnStr
+ Call dbv.Auswahl("", "anamnesebogen", "Patientendaten")
+ obStart = True
+ If InStrB(UCase$(dbv.CnStr), "MYSQL") > 0 Then
+  Me.obMySQL = True
+  Me.obAcc = False
+ Else
+  Me.obMySQL = False
+  Me.obAcc = True
+ End If
+ obStart = False
+' Unload Me
+' Me.Show
+End Sub ' Datenbankverbindung_Click
+
+' Datei -> Beenden
+Private Sub Beenden_Click(Index As Integer)
+'#If False THEN
+' IF ProgrammLauf(-1) OR DBCn.State = 0 THEN ' Wenn Programm schon gestoppt war, dann abbrechen, sonst stoppen
+'#END IF
+ If Not ProgLäuft Or DBCn.State = 0 Then
+  Unload Me
+  End
+ End If
+End Sub ' Beenden_Click
+
+' Funktionen für Arzthelferin und Arzt -> Einlesen
+Private Sub Datenbank_Click()
+ Screen.MousePointer = vbHourglass
+ dlg.BDTDatei = getLDatei(dlg.BDTDatei, "*.bdt")
+ dlg.Show
+ Screen.MousePointer = vbDefault
+End Sub ' Datenbank_Click
+
+#If False Then
+Private Sub Zurücksetzen_Click() ' nicht sichtbar: "Datei -> &Zurücksetzen des Programmlaufs"
+ Call ProgrammLauf(-1) ' falls es fälschlich auf 0 steht: 0 = Programm läuft, -1 = nicht
+ Dim ctl As Control
+ For Each ctl In Me.Controls
+  If ctl.name Like "*inlesen*" Then ctl.Enabled = True
+ Next ctl
+ Me.Zurücksetzen.Enabled = False
+End Sub ' Zurücksetzen_Click
+#End If
+
+' Funktionen für Arzthelferin und Arzt -> Abbrechen (vor Speichern eines Patienten)
+Private Sub Abbrechen_Click()
+'#If False THEN
+' MsgBox "Stopp Programm gleich"
+' Call ProgrammLauf(-1) ' Programm stoppen
+'#END IF
+ BrichAb = True
+End Sub ' Abbrechen_Click
+
+' Funktionen für Arzthelferin und Arzt -> Labor eintragen
+Private Sub LaborEintragen_Click()
+ Call ProgStart
+' SET ple3.hlese = Me
+' SET ple2.hlese = Me
+ Set ple.hlese = Me
+ ple.Caption = "Laborwerte eintragen"
+ ple.Show
+ Call ProgEnde
+End Sub ' LaborEintragen_Click
+
+' Funktionen für Arzthelferin und Arzt -> Falsch abgehakte Dokumente ungültig stempeln
+Public Sub FalschAbgehakteUngueltig_Click()
+ Dim rAF&, zwg&, zug&, rs As New Adodb.Recordset, rl As New Adodb.Recordset
+ Call ProgStart
+ Me.Ausgeb "FalschAbgehakteUngültig ...", False
+ myFrag rs, "SELECT --abgehakt ab, --ungueltig ug, pat_id, d.dokpfad, quelldatum qd FROM `dokumente abgehakt` da INNER JOIN `dokumente` d ON da.dokpfad = d.dokpfad"
+ Do While Not rs.EOF
+  Set rl = Nothing
+  myFrag rl, "SELECT pat_id FROM `laborneu` WHERE pat_id = " & rs!Pat_id & " AND " & SelDatum("zeitpunkt", rs!qd)
+  If rl.EOF And rs!ug <> 1 Then
+   DBCn.Execute "UPDATE `dokumente abgehakt` SET ungueltig = 1 WHERE dokpfad = '" & doUmwfSQL(rs!DokPfad, lies.obMySQL) & "'", rAF
+   zug = zug + rAF
+   If rAF = 0 Then
+    MsgBox "Fehler beim Auffinden von " & doUmwfSQL(rs!DokPfad, lies.obMySQL) & " IN `dokumente abgehakt` (Orginaldokpfad: " & rs!DokPfad & ")"
+   End If
+  ElseIf Not rl.EOF And rs!ug <> 0 Then
+   DBCn.Execute "UPDATE `dokumente abgehakt` SET ungueltig = 0 WHERE dokpfad = '" & doUmwfSQL(rs!DokPfad, lies.obMySQL) & "'", rAF
+   zwg = zwg + rAF
+   If rAF = 0 Then
+    MsgBox "Fehler beim Auffinden von " & doUmwfSQL(rs!DokPfad, lies.obMySQL) & " IN `dokumente abgehakt` (Orginaldokpfad: " & rs!DokPfad & ")"
+   End If
+  End If
+  rs.Move 1
+ Loop
+ Ausgeb zwg & " Dokumente wieder gültig gestempelt", True
+ Ausgeb zug & " Dokumente ungültig gestempelt", True
+End Sub ' FalschAbgehakteUngueltig_Click
+
+' Funktionen für Arzthelferin und Arzt -> Falsche Diabetesdiagnosen
+Private Sub FalscheDiabetesdiagnosen_Click()
+ Dim rs As New Adodb.Recordset
+ ' diagsicherheit unf f6010 IN aktfaelle.icd schon eingebaut
+ myFrag rs, "SELECT f.pat_id, dmpklass, f.icd FROM `aktfaellev` f LEFT JOIN `namen` n ON f.pat_id = n.pat_id WHERE not (f.icd RLIKE '^E1[01]\.|O24\.'"
+ TabAusgeb rs, Me, , , , , , , "Falsche Diabetesdiagnosen (E12, E13, E14; bitte nach Medikation, Anammnese, Antikörpern einordnen, ggf. z.B. 'Diabetes mellitus (sekundär) [E10.91]'"
+End Sub ' FalscheDiabetesdiagnosen_Click
+
+' Funktionen für Arzthelferin und Arzt -> DMP-Teilnahme der Hausärzte korrigieren
+Private Sub DMPHAKorr_Click()
+ Call ProgStart
+ Set pal = Nothing
+ pal.PLArt = artHA
+ Set pal.hlese = Me
+ Me.Hide
+ pal.Show
+ Call ProgEnde
+End Sub ' DMPHAKorr_Click
+
+' Funktionen für Arzthelferin und Arzt -> Motivationsgesprächskandidaten
+Private Sub Motivationsgesprächskandidaten_Click()
+' Dim rv As New ADODB.Recordset, rs As New ADODB.Recordset, i&, ausg$, TA1$, SpMax%(5), fristS$, sql$
+ Dim rs As New Adodb.Recordset, SpMax%(5), sql$
+
+ Call ProgStart
+' myfrag rv, "SHOW CREATE VIEW `aktfv`"
+' fristS = rv.Fields(1)
+' SET rv = Nothing
+' fristS = Mid(fristS, InStr(fristS, "INTERVAL ") + 9)
+' fristS = Left$(fristS, InStr(fristS, " ") - 1)
+' IF Not IsNumeric(fristS) THEN
+'  MsgBox "Ungeeignete Abfrage `aktfv`, evtl. erst Views erstellen"
+'  Exit Sub
+' END IF
+
+ SpMax(1) = 32
+ SpMax(5) = 300
+' Const Schulungsleistungen$ = "(leistung LIKE '972%' OR leistung LIKE '922%' OR Leistung='92282' OR Leistung='92278' OR Leistung='92281' OR Leistung='92277') AND NOT leistung IN ('97272','97276','97277')"
+' Print #325, "Lfdnr. Pat_id Name                          ICD"
+' myfrag rs, "SELECT f.pat_id,gesname, icd FROM `aktfv` f LEFT JOIN `diagnosen` d ON f.pat_id = d.pat_id AND icd REGEXP '^E1[0-4]' AND diagsicherheit <> 'A' LEFT JOIN leistungen l ON f.pat_id = l.pat_id AND (leistung LIKE '972%' OR leistung LIKE '922%' OR leistung = '92282' OR leistung = '92278') AND NOT leistung IN ('97272','97276','97277') AND YEAR(zeitpunkt) = YEAR(SUBDATE(NOW(),INTERVAL 20 DAY)) AND adddate(zeitpunkt,INTERVAL 365 DAY) > now() WHERE NOT ISNULL(id1) AND ISNULL(leistung) GROUP BY f.pat_id"
+' sql = "SELECT f.pat_id AS Pat_ID,gesname AS Name, ICD, DATE(e.zeitpunkt) AS Zeitpunkt, e.art AS Art, e.inhalt AS Inhalt FROM `aktfv` f LEFT JOIN `diagnosen` d ON f.pat_id = d.pat_id AND icd REGEXP '^E1[0-4]|^O24' AND diagsicherheit <> 'A' LEFT JOIN leistungen l ON f.pat_id = l.pat_id AND (leistung LIKE '972%' OR leistung LIKE '922%' OR leistung = '92282' OR leistung = '92278') AND NOT leistung IN ('97272','97276','97277') AND YEAR(zeitpunkt) = YEAR(SUBDATE(NOW(),INTERVAL " & FristS & " DAY)) " & _
+         "and adddate(zeitpunkt,INTERVAL 365 DAY) > now() LEFT JOIN `eintraege` e ON f.pat_id = e.pat_id AND e.art IN ('andm','wr','tk','gs') AND e.zeitpunkt BETWEEN str_to_date(CONCAT(YEAR(SUBDATE(NOW(),INTERVAL " & FristS & " DAY)),'/',((month(SUBDATE(NOW(),INTERVAL " & FristS & " DAY))-1) div 3)*3+1,'/1'),'%Y/%m/%d') AND SUBDATE(adddate(str_to_date(CONCAT(YEAR(SUBDATE(NOW(),INTERVAL " & FristS & " DAY)),'/',((month(SUBDATE(NOW(),INTERVAL 20 DAY))-1) div 3)*3+1,'/1'),'%Y/%m/%d'),INTERVAL 3 MONTH),INTERVAL 1 DAY) WHERE NOT ISNULL(id1) AND ISNULL(l.leistung) GROUP BY f.pat_id, art, zeitpunkt"
+' ' folgendes nach "and " & Schulungsleistungen & " auskommentiert 10.4.12: " AND YEAR(zeitpunkt) = YEAR(SUBDATE(NOW(),INTERVAL " & FristS & " DAY)) " & \_
+ sql = motsql()
+ myFrag rs, sql
+Call TabAusgeb(rs, Me, , , , , SpMax, True, "Kandidaten f.neue Motivationsziffern (92278(T2DM), 92282(T1DM))")
+' Open DatNam For Output AS #325
+' Print #325, TA1
+' i = 0
+' Do While Not rs.EOF
+'  i = i + 1
+'  ausg = Right("    " & i, 4) & " " & Right("     " & rs!Pat_id, 5) & " " & LEFT(rs!GesName & Space$(30), 30) & " " & rs!ICD
+'  Print #325, ausg
+'  rs.Move 1
+' Loop
+' Close #325
+' MsgBox "Fertig!"
+' Call ProgEnde
+' zeigan DatNam
+End Sub ' Sub Motivationsgesprächskandidaten_Click
+
+' Funktionen für Arzthelferin und Arzt -> Quartalsstatistik zu Leistung, z.B. 03355
+Private Sub Statistik_03355_Click()
+ Dim sql$, rs As New Adodb.Recordset
+ Dim Leistung$
+ Leistung = InputBox("Leistung: ", "Rückfrage", "03355")
+ sql = "SELECT COUNT(0) `Zahl 03355`, Quartal FROM leistungen LEFT JOIN faelle f USING (fid) WHERE leistung='" & Leistung & "' GROUP BY f.quartal ORDER BY mid(quartal,2) DESC,quartal DESC"
+ myFrag rs, sql
+ TabAusgeb rs, Me, , , , , , , , , , , "Quartalsstatistik zu Leistung " & Leistung
+End Sub ' Statistik_03355_Click
+
+' Funktionen für Arzthelferin und Arzt -> Statistiken zu 03230 -> 03230-Zahl nach Patient ab 3
+Private Sub Statistik_zu_03230nachPatient_Click()
+ Const Zahl% = 3
+ Dim rs As New Adodb.Recordset
+ myFrag rs, "SELECT f.pat_id, gesname(f.pat_id) PName, DATE(zeitpunkt) Tag, CASE WHEN l.lanrid=1 THEN 'gs' WHEN l.lanrid=2 THEN 'tk' END Arzt, SUM(lzahl) Zahl " & vbCrLf & _
+         "FROM aktfv f LEFT JOIN leistungen l ON l.pat_id=f.pat_id AND l.zeitpunkt BETWEEN qanf() AND qend()" & vbCrLf & _
+         "WHERE leistung='03230' GROUP BY f.pat_id HAVING SUM(lzahl)>= " & Zahl & ";"
+ TabAusgeb rs, Me, , , , , , , "03230 nach Patient ab " & Zahl & " Leistungen", 1
+End Sub ' Statistik_zu_03230nachPatient_Click
+
+' Funktionen für Arzthelferin und Arzt -> Statistiken zu 03230 -> 03230-Zahl nach Tag
+Private Sub Statistik_zu_03230nachTag_Click()
+ Dim rs As New Adodb.Recordset
+ myFrag rs, "SELECT f.pat_id, gesname(f.pat_id) PName, DATE(zeitpunkt) Tag, sum(lzahl) Zahl, ROUND(sum(lzahl)/6,1) Stunden" & vbCrLf & _
+         "FROM aktfv f LEFT JOIN leistungen l ON f.pat_id=l.pat_id AND l.zeitpunkt BETWEEN qanf() AND qend()" & vbCrLf & _
+         "WHERE leistung='03230' GROUP BY DATE(zeitpunkt) ORDER BY DATE(zeitpunkt);"
+ TabAusgeb rs, Me, , , , , , , "03230 nach Tag ", 1
+End Sub ' Statistik_zu_03230nachTag_Click
+
+' Funktionen für Arzthelferin und Arzt -> Statistiken zu 03230 -> 03230-Zahl nach Tag und Arzt
+Private Sub Statistik_zu_03230nachTagundArzt_Click()
+ Dim rs As New Adodb.Recordset
+ myFrag rs, "SELECT f.pat_id, gesname(f.pat_id) PName, DATE(zeitpunkt) Tag, CASE WHEN l.lanrid=1 THEN 'gs' WHEN l.lanrid=2 THEN 'tk' END Arzt, sum(lzahl) Zahl, ROUND(sum(lzahl)/6,1) Stunden" & vbCrLf & _
+         "FROM aktfv f LEFT JOIN leistungen l ON f.pat_id=l.pat_id AND l.zeitpunkt BETWEEN qanf() AND qend()" & vbCrLf & _
+         "WHERE leistung='03230' GROUP BY DATE(zeitpunkt),l.lanrid ORDER BY DATE(zeitpunkt);"
+ TabAusgeb rs, Me, , , , , , , "03230 nach Tag und Arzt", 1
+End Sub ' Statistik_zu_03230nachTagundArzt_Click
+
+' Funktionen für Arzthelferin und Arzt -> Statistiken zu 03230 -> 03230-Zahl nach Arzt
+Private Sub Statistik_zu_03230nachArzt_Click()
+ Dim rs As New Adodb.Recordset
+ myFrag rs, "SELECT CASE WHEN l.lanrid=1 THEN 'gs' WHEN l.lanrid=2 THEN 'tk' END Arzt, sum(lzahl) Zahl, ROUND(sum(lzahl)/6,1) Stunden " & vbCrLf & _
+         "FROM aktfv f LEFT JOIN leistungen l ON f.pat_id=l.pat_id AND l.zeitpunkt BETWEEN qanf() AND qend()" & vbCrLf & _
+         "WHERE leistung='03230' GROUP BY l.lanrid WITH ROLLUP;"
+ TabAusgeb rs, Me, , , , , , , "03230 nach Arzt", 1
+End Sub ' Statistik_zu_03230nachArzt_Click
+
+' Funktionen für Arzthelferin und Arzt -> Abrechnungsfehler
+Private Sub Abrechnungsfehler_Click()
+ Dim AbrF As New AbrechFehler
+ AbrF.Show
+ Set AbrF = Nothing
+End Sub ' Abrechnungsfehler_Click
+
+' 24.5.14 hier zu arbeiten
+' Funktionen für Arzthelferin und Arzt -> Niereninsuffizienzpauschalendiabetiker
+Private Sub Niereninsuffizienzpauschalendiabetiker_Click()
+Dim rs As New Adodb.Recordset, rsa As New Adodb.Recordset, sql$, sqla$, gesZ%, pz%, nz%, obNP%, maxAlb#, aktAlb#
+DBCn.Execute ("DROP TABLE IF EXISTS `ni_abr`")
+DBCn.Execute ("CREATE TABLE `quelle`.`ni_abr`(`id` int(11) NOT NULL AUTO_INCREMENT key,`pat_id` int(10),DmICD varchar(8),maxHbA1c FLOAT, maxGluc FLOAT, eGFR FLOAT, npICD varchar(8), niICD varchar(8), pZ int(3), nZ int(3), gesZ int(3), minDat date, maxAlb decimal(8,2), kasse varchar(20))")
+sql = "SELECT f.pat_id, d.icd DmICD, IF(xh.max1>xh.max2,xh.max1, xh.max2) maxHbA1c, IF(xg.max1>xg.max2,xg.max1, xg.max2) maxGluc, _lGFR(f.pat_id) eGFR, dn.icd npICD, di.icd niICD, LEFT(k.name,20) Kasse " & _
+        "FROM aktfvs v " & _
+        "LEFT JOIN kassenliste k ON v.vknr=k.vknr AND v.ik=k.ik" & _
+        "LEFT JOIN faelle f ON v.fid = f.fid " & _
+        "LEFT JOIN diagnosen d ON f.pat_id = d.pat_id AND d.gicd RLIKE '^E1[0-4]\.' " & _
+        "LEFT JOIN diagnosen dn ON f.pat_id = dn.pat_id AND dn.gicd LIKE 'N08.3%' " & _
+        "LEFT JOIN diagnosen di ON f.pat_id = di.pat_id AND di.gicd LIKE 'N18%' " & _
+        "LEFT JOIN _maxHbA1c xh ON f.pat_id = xh.pat_id " & _
+        "LEFT JOIN _maxGluc xg ON f.pat_id = xg.pat_id " & _
+        "WHERE k.kateg IN ('AOK','EK') AND (NOT ISNULL(d.icd) OR xh.max1>=6.5 OR xh.max2>= 6.5 OR xg.max1>=200 OR xg.max2>=200) AND _lGFR(f.pat_id)>59 " & _
+        "AND (ISNULL(dn.icd) OR ISNULL(di.icd) OR (_lGFR(f.pat_id)<90 AND di.icd<>'N18.2') OR (_lGFR(f.pat_id)>=90 AND di.icd<>'N18.1')) " & _
+        "GROUP BY f.pat_id"
+myFrag rs, sql
+If Not rs.BOF Then
+ Do While Not rs.EOF
+    gesZ = 0: pz = 0: nz = 0: obNP = 0: maxAlb = 0
+'  sqla = LabEPatS(AlbCre, rs!Pat_id)
+    Set rsa = Nothing
+'   myfrag rsa, sqla
+    Dim lwZahl&, aktlwx&
+    Dim Lab() As labtyp
+    Set rsa = hollabor(rs!Pat_id, "", 0, 0, 0, lwZahl)
+    If Not rsa.BOF And lwZahl Then
+     ReDim Lab(lwZahl)
+     aktlwx = 0
+     Do While Not rsa.EOF
+      Lab(aktlwx).Abkü = rsa!Abkü
+      Lab(aktlwx).WertSg = rsa!Wert
+      Lab(aktlwx).Einheit = rsa!Einheit
+      Lab(aktlwx).Zp = rsa!Zeitpunkt
+      aktlwx = aktlwx + 1
+      rsa.MoveNext
+     Loop
+     If lwZahl Then
+      Dim Zp As Date
+      For aktlwx = 0 To lwZahl
+       If obLabI(LA_AlbCre, Lab(aktlwx)) Then
+   
+'   IF Not rsa.BOF THEN
+'    Do While Not rsa.EOF
+'     Debug.Print rs!Pat_id, rsa.Fields(0), rsa.Fields(1)
+        gesZ = gesZ + 1
+        Zp = Lab(aktlwx).Zp
+        aktAlb = MachNumerisch(Lab(aktlwx).WertSg) 'rsa!wert)
+        If aktAlb > maxAlb Then maxAlb = aktAlb
+        If aktAlb >= 20 Then pz = pz + 1 Else nz = nz + 1
+        If pz > 1 And Not (nz >= pz + pz) Then obNP = 1: Exit For ' Do
+'     rsa.MoveNext
+'    Loop
+'   END IF
+       End If ' IF obLabI(LA_AlbCre, lab(aktlwx)) THEN
+      Next aktlwx
+'  sqla = "SELECT DATE(zeitpunkt) zp, IF(ISNULL(wert),IF(ISNULL(kommentar),'',kommentar),wert) Wert FROM `laborneu` ln LEFT JOIN laborkommentar lk ON ln.kommentarvw = lk.kommentarvw WHERE ((abkü IN ('ALBCRE','ALBKRE','ALBQ','ALBUM','ALBUP') AND einheit LIKE 'mg/g %') OR (abkü IN ('ALBU','ALBUMU') AND (einheit = 'mg/l' OR einheit = ''))) AND pat_id = 262 UNION SELECT DATE(u.eingang) zp, IF(ISNULL(w.wert),IF(ISNULL(w.kommentar),'',w.kommentar),w.wert) Wert FROM `laborxus` u LEFT JOIN laborxwert w ON u.refnr = w.refnr WHERE ((abkü IN ('ALBCRE','ALBKRE','ALBQ','ALBUM','ALBUP') AND einheit LIKE 'mg/g %') OR (abkü IN ('ALBU','ALBUMU') AND (einheit = 'mg/l' OR einheit = ''))) AND pat_id = 262 GROUP BY zp ORDER BY zp DESC;"
+      If obNP Then
+       DBCn.Execute ("INSERT INTO ni_abr(pat_id,DmICD,maxHbA1c,maxGluc,eGFR,npICD,niICD,pZ,nZ,gesZ,minDat,maxAlb,kasse) VALUES(" & rs!Pat_id & ",'" & rs!DmICD & "','" & REPLACE$(IIf(IsNull(rs!maxHbA1c), 0, rs!maxHbA1c), ",", ".") & "','" & REPLACE(IIf(IsNull(rs!maxGluc), "0", rs!maxGluc), ",", ".") & "','" & REPLACE(rs!eGFR, ",", ".") & "','" & IIf(IsNull(rs!npICD), "", rs!npICD) & "','" & IIf(IsNull(rs!niICD), "", rs!niICD) & "'," & pz & "," & nz & "," & gesZ & "," & Format(Zp, "YYYYMMDD") & "," & REPLACE$(maxAlb, ",", ".") & ",'" & rs!Kasse & "')")
+      End If ' obNP
+     End If ' lwzahl
+    End If ' not rsa.BOF
+    rs.MoveNext
+ Loop ' Do While Not rs.EOF
+End If ' IF Not rs.BOF THEN
+Set rs = Nothing
+sql = "SELECT pat_id, gesnameg(pat_id) Name, DmICD, eGFR, IF(dmicd not IN ('E10.20','E10.21','E11.20','E11.21','E13.20','E13.21','E10.72','E10.73','E11.72','E11.73','E13.72','E13.73'),CONCAT('E1',mid(dmicd,3,1),'.',IF(mid(dmicd,5,1) IN ('9','2'),'2','7'),IF(mid(dmicd,6,1) IN ('1','3','5'),IF(mid(dmicd,5,1) IN ('9','2'),'1','3'),IF(mid(dmicd,5,1) IN ('9','2'),'0','2')),IF(mid(dmicd,5,1)='7','  dazu',CONCAT('  statt ',dmicd))),'') fICD, IF(npicd='','N08.3 dazu','') fNP " & _
+      ",IF(eGFR<90 AND niICD<>'N18.2',CONCAT('N18.2 ',IF(niICD='','dazu',CONCAT('statt ',niicd))),CONCAT('N18.1 ',IF(niICD='','dazu',CONCAT('statt ',niicd)))) fNI, kasse " & _
+      "FROM ni_abr"
+myFrag rs, sql
+TabAusgeb rs, Me, , , , , , , "Korrekturbedarf für AOK-Vergütung Nephropathiekodierung", 1
+End Sub ' Niereninsuffizienzpauschalendiabetiker_Click
+
+' Funktionen für Arzthelferin und Arzt -> Patientenlaufzettel
+Private Sub Patientenlaufzettel_mit_Rueckmeldung_Click()
+ Call doPatientenlaufzettel(, obphp:=True)
+End Sub ' Patientenlaufzettel_mit_Rueckmeldung_Click
+
+' Funktionen für Arzthelferin und Arzt -> Patientenlaufzettel einzeln
+Private Sub Plzeinzeln_mr_Click()
+ Call ProgStart
+ Aktion = Patientenlaufzetteleinzeln
+ Set pataw.hlese = Me
+ pataw.obRueck = True ' für PLZ-Knopf
+ obRueck = True ' für OK-Knopf
+ pataw.ZeilenzahlL.Visible = True
+ pataw.Zeilenzahl.Visible = True
+ pataw.Show
+ Call ProgEnde
+' Call doPLZeinzeln
+End Sub ' Plzeinzeln_mr_Click
+
+' Funktionen für Arzthelferin und Arzt -> Patientenlaufzettel alt (1. Vorkommen)
+Private Sub Patientenlaufzettel_Click()
+ Call doPatientenlaufzettel
+End Sub ' Patientenlaufzettel_Click
+
+' Funktionen für Arzthelferin und Arzt -> Patientenlaufzettel alt (2. Vorkommen)
+Private Sub PLZeinzeln_Click()
+ Call ProgStart
+ Aktion = Patientenlaufzetteleinzeln
+ Set pataw.hlese = Me
+ pataw.obRueck = False
+ obRueck = False
+ pataw.ZeilenzahlL.Visible = True
+ pataw.Zeilenzahl.Visible = True
+ pataw.Show
+ Call ProgEnde
+' Call doPLZeinzeln
+End Sub ' PLZeinzeln_Click
+
+' Funktionen für Arzthelferin und Arzt -> Patientenlaufzettel aus zuplz.txt
+Private Sub Patientenlaufzettel_aus_zuplz_Click()
+Const dname$ = "p:\Abrechnung\zuplz.txt"
+Dim sLine$, pid$
+Open dname For Input As #1
+While Not EOF(1)
+  Line Input #1, sLine
+  pid = LTrim(sLine)
+  If (InStr(pid, " ")) Then pid = Left$(pid, InStr(pid, " ") - 1)
+  If (InStr(pid, ",")) Then pid = Left$(pid, InStr(pid, ",") - 1)
+  Debug.Print pid
+  If IsNumeric(pid) Then
+    dodoPLZ pid, plzVz, Now, Now - Int(Now), True, ""
+  End If ' IsNumeric(pid) Then
+Wend ' Not EOF(1)
+Close #1
+End Sub ' Patientenlaufzettel_aus_zuplz_Click
+
+' Funktionen für Arzthelferin und Arzt -> DMP-Brief einzeln
+Private Sub DMPBriefEinzeln_Click()
+ Call ProgStart
+ Aktion = DMPZettel
+ Set pataw.hlese = Me
+ pataw.ZeilenzahlL.Visible = True
+ pataw.Zeilenzahl.Visible = True
+ pataw.Show
+ Call ProgEnde
+' Call doPLZeinzeln
+End Sub ' DMPBriefEinzeln_Click
+
+' Funktionen für Arzthelferin und Arzt -> Wiedereinbestellungen DMP
+Private Sub WiedereinbestellungenDMP_Click()
+' wegen falsch eingetragener Fremdlabore gestrichen: AND einheit = '%'
+ Dim rs As New Adodb.Recordset, sql$
+ 'sql = "SELECT * FROM (SELECT f.quartal `Schein`, n.pat_id Pat_ID, CONCAT(CONCAT_WS(',*',CONCAT_WS(',',n.nachname, n.vorname),DATE_FORMAT(n.gebdat,'%y')),', T: ',CONCAT_WS(',',n.privattel,n.privattel_2,n.privatmobil)) Name, REPLACE(REPLACE(REPLACE(notiz,char(13),' '),char(10),''),'DMP ','') `DMP-Notiz`, DATE_FORMAT(dokudatum,'%d.%m.%y') DMPDoku, IF(dokudatum > SUBDATE(CONCAT(YEAR(NOW()),'-',((month(NOW())-1) div 3)*3+1,'-1'),INTERVAL 3 MONTH),'',IF(dokudatum > SUBDATE(CONCAT(YEAR(NOW()),'-',((month(NOW())-1) div 3)*3+1,'-1'),INTERVAL 6 MONTH),'!','-')) fri, a1c.wert HbA1c, DATE_FORMAT(a1c.zp,'%d.%m.%y') `HbA1c-Zpkt`, IF(a1c.zp > SUBDATE(CONCAT(YEAR(NOW()),'-',((month(NOW())-1) div 3)*3+1,'-1'),INTERVAL 0 MONTH),'',IF(a1c.zp > SUBDATE(CONCAT(YEAR(NOW()),'-',((month(NOW())-1) div 3)*3+1,'-1'),INTERVAL 3 MONTH),'!','!!')) alt FROM `namen` n LEFT JOIN `aktfvs` af ON n.pat_id = af.pat_id LEFT JOIN `faelle` f ON n.pat_id = f.pat_id " & _
+ "LEFT JOIN `dmpreihe` dr ON dr.pat_id = n.pat_id  AND (dr.Abk LIKE 'eDMPDM%' OR dr.Abk LIKE 'DMPDTYP%') LEFT JOIN (SELECT pat_id, zeitpunkt zp, wert FROM labor1a ln WHERE abkü RLIKE 'hba[c1]' AND ln.wert < 22 UNION SELECT 2a.pat_id, 2a.zeitpunkt zp, 2a.wert FROM labor2a 2a WHERE abkü RLIKE 'hba[c1]' AND 2a.wert < 22 ORDER BY pat_id,zp DESC) a1c ON n.pat_id = a1c.pat_id LEFT JOIN `anamnesebogen` a ON a.pat_id = n.pat_id WHERE a.tkz = 0 AND (instr(notiz,'DMP hier')> 0 OR dmpklass = 3) AND ISNULL(af.vknr) AND dokudatum > SUBDATE(NOW(),INTERVAL 9 MONTH) ORDER BY n.pat_id, mid(f.quartal,2) DESC, f.quartal DESC, dokudatum DESC, a1c.zp DESC) i GROUP BY pat_id ORDER BY mid(`Schein`,2) DESC, `Schein` DESC, name;"
+ sql = _
+"  SELECT" & vbCrLf & _
+"   f.quartal `Schein`, f.Pat_ID" & vbCrLf & _
+"   , CONCAT(" & vbCrLf & _
+"     gesname(f.pat_id),', ',patalter(f.pat_id),'a, T: '" & vbCrLf & _
+"      ,CONCAT_WS(',',n.privattel,n.privattel_2,n.privatmobil)) NAME" & vbCrLf & _
+"    , DATE_FORMAT(dokudatum,'%d.%m.%y') DMPDoku" & vbCrLf & _
+"    , IF(dokudatum > SUBDATE(CONCAT(YEAR(NOW()),'-',((MONTH(NOW())-1) DIV 3)*3+1,'-1'),INTERVAL 3 MONTH),'',IF(dokudatum > SUBDATE(CONCAT(YEAR(NOW()),'-',((MONTH(NOW())-1) DIV 3)*3+1,'-1'),INTERVAL 6 MONTH),'!','-')) fri" & vbCrLf & _
+"    , h.letzter HbA1c" & vbCrLf & _
+"    , DATE_FORMAT(h.lzp,'%d.%m.%y') `HbA1c-Zpkt`" & vbCrLf & _
+"    , IF(h.lzp > SUBDATE(CONCAT(YEAR(NOW()),'-',((MONTH(NOW())-1) DIV 3)*3+1,'-1'),INTERVAL 0 MONTH),'',IF(h.lzp > SUBDATE(CONCAT(YEAR(NOW()),'-',((MONTH(NOW())-1) DIV 3)*3+1,'-1'),INTERVAL 3 MONTH),'!','!!')) alt" & vbCrLf & _
+"   , REPLACE(REPLACE(COALESCE(GROUP_CONCAT(CONCAT(DATE_FORMAT(zp,' %d.%m.%y '), LEFT(raum,3),' ',LEFT(zusatz,15)) ORDER BY zp SEPARATOR ', ' LIMIT 10),''),CHR(10),''),CHR(13),'') Termin" & vbCrLf & _
+"  FROM namen n" & vbCrLf & _
+"  LEFT JOIN (SELECT f.*,ROW_NUMBER() OVER(PARTITION BY pat_id ORDER BY bhfb DESC) fzn FROM faelle f" & vbCrLf & _
+"            )  f   ON f.Pat_ID=n.pat_id AND fzn=1" & vbCrLf & _
+"  LEFT JOIN (SELECT dr.*,ROW_NUMBER() OVER(PARTITION BY pat_id ORDER BY dokudatum DESC) zn FROM dmpreihe dr" & vbCrLf & _
+"              WHERE dr.dokudatum>NOW()-INTERVAL 9 MONTH AND dr.Abk RLIKE '^eDMPDM|^DMPDTYP'" & vbCrLf & _
+"            ) dr ON dr.pat_id=n.pat_id AND dr.zn=1" & vbCrLf & _
+"  LEFT JOIN lHbA1c h ON h.pat_id=n.pat_id" & vbCrLf & _
+"  LEFT JOIN `anamnesebogen` a ON a.pat_id=n.pat_id" & vbCrLf & _
+"  LEFT JOIN (SELECT ROW_NUMBER() OVER(PARTITION BY pid ORDER BY zp) rn, t.* FROM termine t" & vbCrLf & _
+"              WHERE zp>=date(NOW()) group BY t.pid,DATE(t.zp),t.raum,t.zusatz) t ON t.pid=n.pat_id AND rn<10" & vbCrLf & _
+"  WHERE a.Tkz = 0 AND n.dmpklass = 3 AND f.BhFB < QAnf() AND NOT ISNULL(dr.DokuDatum)" & vbCrLf & _
+"  GROUP BY n.Pat_ID" & vbCrLf & _
+"  ORDER BY MID(f.quartal,2) DESC, f.quartal DESC, n.nachNAME, n.vorname;"
+' "     CONVERT(gesname(f.pat_id) USING LATIN1),', ',patalter(f.pat_id),'a, T: '" & vbCrLf & _
+
+ myFrag rs, sql
+ TabAusgeb rs, Me, True, , , , Array(0, 0, 55, 25, 0, 3, 0, 0, 100), True, "DMP-Wiedereinbestellungen"
+End Sub ' WiedereinbestellungenDMP_Click
+
+#If False Then
+Private Sub WiedereinbestellungenDMP_Click()
+ Dim sql$, Zp$, obDruck%, AusgStr$, grenze As Date
+ Dim r1 As New Adodb.Recordset
+ Dim r2 As New Adodb.Recordset
+ Dim WDatei$
+ On Error GoTo fehler
+' SELECT Wert,Zeitpunkt FROM (SELECT Pat_ID, ZeitPunkt, FertigStGrad, AbKü, LangText,Wert, Einheit, Kommentar,"" AS NB FROM (SELECT n.Pat_ID AS Pat_ID,n.ZeitPunkt AS ZeitPunkt,n.FertigStGrad AS FertigStGrad,n.Abkü AS Abkü,l.Langtext AS Langtext,n.Wert AS Wert,n.Einheit AS Einheit,k.Kommentar AS Kommentar,n.AbsPos AS AbsPos,n.AktZeit AS AktZeit FROM (`laborlangtext` l INNER JOIN (laborkommentar k INNER JOIN `laborneu` n ON ((k.KommentarVW = n.KommentarVW))) ON ((l.LangtextVW = n.LangtextVW))) WHERE pat_id = 105) AS labor UNION SELECT Pat_ID, Eingang AS zeitpunkt, BefArt AS FertigStGrad, Abkü, langname AS Langtext, Wert, Einheit, Kommentar, Normbereich AS NB FROM `laborxus` LEFT JOIN laborxwert ON laborxus.RefNr=laborxwert.RefNr WHERE pat_id = 105 AND NOT EXISTS (SELECT * FROM `laborneu` WHERE pat_id = 105 AND abkü = laborxwert.Abkü AND wert = laborxwert.wert AND zeitpunkt > laborxus.Eingang -3 AND zeitpunkt < laborxus.Eingang+6)) AS sql1 WHERE abkü = "HBA1C" ORDER BY zeitpunkt desc
+ Call ProgStart
+ grenze = QAnf(ZQuart(Now() - 90)) 'CDate("1.4.08")
+ WDatei$ = pVerz & "Wiedereinbestellungen " & Format(Now, "d.m.yy hh.mm") & ".txt"
+ Open WDatei For Output As #339
+ Print #339, Right$(Space$(4) & "Pat_ID", 4) & " " & Left("Nachname" & Space$(15), 15) & " " & Left("Vorname" & Space$(9), 9) & " 'X'= DMP hier (Notiz-Eintrag / Versicherung)        letzter Fallbeginn  letztes HbA1c"
+ Print #339, String$(110, "_")
+ 'r1.Open "SELECT pat_id, notiz FROM `namen` na WHERE notiz LIKE '%hier%'", dbv.wCn, adOpenStatic, adLockReadOnly
+ 'SELECT pat_id, notiz FROM `namen` na JOIN (SELECT pat_id FROM `dmpreihe` dr UNION SELECT pat_id FROM `namen` na WHERE notiz LIKE '%hier%' ORDER BY pat_id) AS innen USING (pat_id)
+ 'r1.Open "SELECT pat_id, na.nachname, na.vorname, lf.bhfb, notiz,rname FROM `namen` na JOIN (SELECT pat_id FROM `dmpreihe` dr " & _
+         "WHERE dokudatum > adddate(NOW(),-365) UNION SELECT pat_id FROM _lfaelle f LEFT JOIN `diagnosen` d " & _
+         "using (pat_id) WHERE icd LIKE 'E1%' AND NOT icd LIKE 'E16%' AND diagsicherheit <> 'A'  AND " & _
+         "bhfb > adddate(NOW(),-180) ORDER BY pat_id) AS innen USING (pat_id) " & _
+         "join lfaellev lf USING (pat_id) " & _
+         "join `kassenliste` k ON k.ik = lf.ik " & _
+         "join `anamnesebogen` an USING (pat_id) WHERE tkz=0 GROUP BY pat_id", dbv.wCn, adOpenStatic, adLockReadOnly '  ... UNION SELECT pat_id FROM `namen` na WHERE notiz LIKE '%hier%'
+ r1.Open "SELECT pat_id, na.nachname, na.vorname, na.dmpklass, na.dmpbeg, lf.bhfb, notiz,rname FROM `namen` na JOIN (SELECT pat_id FROM `dmpreihe` dr WHERE dokudatum > adddate(NOW(),-365)  AND (dr.Abk LIKE 'eDMPDM%' OR dr.Abk LIKE 'DMPDTYP%') UNION SELECT pid pat_id FROM _lfaelle f LEFT JOIN `diagnosen` d ON d.pat_id = f.pid WHERE gicd REGEXP '^E1[0-4]\.' AND mbhfb > adddate(NOW(),-180) ORDER BY pat_id) innen USING (pat_id) JOIN lfaellev lf USING (pat_id) JOIN `kassenliste` k ON k.ik = lf.ik JOIN `anamnesebogen` an USING (pat_id) WHERE tkz=0 GROUP BY pat_id", dbv.wCn, adOpenStatic, adLockReadOnly  '  ... UNION SELECT pat_id FROM `namen` na WHERE notiz LIKE '%hier%'
+ Do While Not r1.EOF
+'  IF obhierdmp(r1!notiz) THEN
+   Set r2 = Nothing
+   ' wegen falscher Fremdlabore gestrichen: einheit = '%'
+'   r2.Open "SELECT * FROM (SELECT * FROM `labor2a` WHERE pat_id = " & r1!Pat_id & " AND abkü RLIKE '^hba[1c]' AND CAST(wert AS decimal) < 22 UNION SELECT * FROM `labor1a` WHERE pat_id = " & r1!Pat_id & " AND abkü RLIKE '^hba[1c]' AND CAST(wert AS decimal) < 22) i GROUP BY pat_id,zeitpunkt,abkü,wert,einheit,nb ORDER BY zeitpunkt DESC LIMIT 1", dbv.wCn, adOpenStatic, adLockReadOnly
+   Set r2 = hollabor(r1!Pat_id, "HBA[1C]", 0, 22)
+   Zp = vNS
+   obDruck = True
+   If Not r2.EOF Then
+    Zp = r2!Zeitpunkt & " " & Right$(Space$(3) & r2!Wert, 3)
+    If r2!Zeitpunkt >= grenze Then obDruck = False
+   End If
+   If obDruck Then
+'    AusgStr = Right$(Space$(4) & r1!Pat_id, 4) & " " & LEFT(r1!Nachname & Space$(15), 15) & " " & LEFT(r1!Vorname & Space$(11), 11) & "   " & IIf(obhierdmp(r1!Notiz), "X", " ") & " (" & LEFT(IIf(ISNULL(r1!Notiz) OR LenB(r1!Notiz) = 0, r1!rname, replace$(replace$(r1!Notiz, vbCr, ""), vbLf, "")) & ")" & Space$(42), 42) & " " & LEFT(r1!BhFB & Space$(10), 10) & " " & Zp
+    AusgStr = Right$(Space$(4) & r1!Pat_id, 4) & " " & Left(r1!Nachname & Space$(15), 15) & " " & Left(r1!Vorname & Space$(11), 11) & "   " & IIf(r1!dmpklass = 3, "X", " ") & " (" & Left(IIf(IsNull(r1!Notiz) Or LenB(r1!Notiz) = 0, r1!rname, REPLACE$(REPLACE$(r1!Notiz, vbCr, ""), vbLf, "")) & ")" & Space$(42), 42) & " " & Left(r1!BhFB & Space$(10), 10) & " " & Zp
+    Debug.Print AusgStr
+    Me.Ausgeb AusgStr & vbCrLf & altAusgabe, True
+    Print #339, AusgStr
+    Print #339, String$(110, "_")
+   End If
+'  END IF
+  r1.Move 1
+ Loop
+ Close #339
+ zeigan WDatei, vbNormalFocus
+ Exit Sub
+fehler:
+ Dim AnwPfad$
+#If VBA6 Then
+ AnwPfad = CurrentDb.name
+#Else
+ AnwPfad = App.path
+#End If
+Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler IN WiedereinbestellungenDMP_Click/" + AnwPfad)
+ Case vbAbort: Call MsgBox("Höre auf"): ProgEnde
+ Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
+ Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
+End Select
+End Sub ' WiedereinbestellungenDMP_Click
+#End If
+
+' Funktionen für Arzthelferin und Arzt -> Hausärzte aus Listenausgabe_Ueberweiser einlesen
+Private Sub Hausärzte_aus_Listenausgabe_Ueberweiser_einlesen_Click()
+ Call doHAAkt(Me)
+End Sub ' Hausärzte_aus_Listenausgabe_Ueberweiser_einlesen_Click
+
+' Funktionen für Arzthelferin und Arzt -> Hausärzte mit alter KV-Nr ergänzen
+Private Sub HausärztemitalterKVNrergänzen_Click()
+ Dim fha As New frmalthae, rAF&, rs As New Adodb.Recordset
+ ' erst mal die leeren KV-Nummern einfügen
+ InsKorr DBCn, DBCnS, "INSERT INTO `althae` (kvnu,kvnr) SELECT kvnu, kvnr FROM (SELECT n.kvnr kvnu, LEFT(n.kvnr,2),'/',right(n.kvnr,5) kvnr, HAName hHA, CONCAT_WS(', ',l.name, l.vorname) lHA FROM `aktfvs` f LEFT JOIN `namen` n ON f.pat_id = n.pat_id LEFT JOIN `aktlue` l ON n.kvnr = l.kvnro LEFT JOIN althae h ON n.kvnr = h.kvnu GROUP BY n.pat_id) innen WHERE (ISNULL(lha) OR lha='') AND (ISNULL(hha) OR hha='') AND kvnu <> '' AND NOT EXISTS (SELECT kvnu FROM althae WHERE kvnu = innen.kvnu)", rAF
+' SET fha.datprimaryRS = n
+' Call fha.vorbereit
+ DBCn.Execute "SET GROUP_CONCAT_MAX_LEN = 70"
+ myFrag rs, "SELECT GROUP_CONCAT(kvnu) nrn FROM (SELECT n.kvnr kvnu, HAName hHA, CONCAT_WS(', ',l.name, l.vorname) lHA FROM `aktfvs` f LEFT JOIN `namen` n ON f.pat_id = n.pat_id LEFT JOIN `aktlue` l ON n.kvnr = l.kvnro LEFT JOIN althae h ON n.kvnr = h.kvnu GROUP BY n.pat_id) innen WHERE (ISNULL(lha) OR lha='') AND (ISNULL(hha) OR hha='') AND kvnu <> ''"
+ If LenB(rs!nrn) <> 0 Then
+  If fha.Vorbereit(rs!nrn) Then
+   fha.Show
+   Exit Sub
+  End If
+ End If ' LenB(rs!nrn) <> 0 Then
+ MsgBox "Keine Datensätze zu editieren!"
+ Exit Sub
+End Sub ' HausärztemitalterKVNrergänzen_Click
+
+' Funktionen für Arzthelferin und Arzt -> Patientenliste für Hausarztmodell
+Private Sub PatientenlistefürHausarztmodell_Click()
+ Dim rs As New Adodb.Recordset
+ myFrag rs, "SELECT n.kvnr `KV-Nr.HA`, IF(l.name <> '' OR l.vorname <> '' AND NOT ISNULL(l.name),CONCAT_WS(',',l.name, LEFT(l.vorname,1), CONCAT(IF(l.telefon<>'','T.',''),l.telefon)), IF(h.nachname <> '' AND NOT ISNULL(h.nachname),CONCAT_WS(',',h.nachname,LEFT(h.vorname,1),CONCAT(IF(h.tel1<>'','T.',''),h.tel1)),'?')) Hausarzt, n.pat_id Pat_ID, CONCAT_WS(',*',CONCAT_WS(',', n.nachname, n.vorname),DATE_FORMAT(gebdat,'%d.%m.%y')) Patient, mid(n.notiz,instr(n.notiz,'HM '),IF(instr(n.notiz,'PG ')<>0,instr(n.notiz,'PG ')-2-instr(n.notiz,'HM '),length(n.notiz))) Hausarztmodell FROM `aktfvs` f LEFT JOIN `namen` n ON f.pat_id = n.pat_id LEFT JOIN `aktlue` l ON n.kvnr = l.kvnro LEFT JOIN althae h ON n.kvnr = h.kvnu GROUP BY pat_id ORDER BY n.kvnr, patient"
+ TabAusgeb rs, Me, True, , , , , True, "PatientenlisteFürHausarztmodell"
+End Sub ' PatientenlistefürHausarztmodell_Click
+
+' Funktionen für Arzthelferin und Arzt -> Patientenliste für Vollpauschale
+Private Sub PatientenlistefürVollpauschale_Click()
+ Dim rs As New Adodb.Recordset
+#If ebmalt Then
+ myFrag rs, "SELECT f.pat_id, CONCAT_WS(',', f.nachname, f.vorname) Pat, vpau, f.übwlanr, CONCAT_WS(',',arzt.nachname,arzt.vorname) ÜW, IF(nlart.niederlassungsart='Hausarzt','h',LEFT(nlart.niederlassungsart,1)) NLArt, arzt2.lanr LANR2, CONCAT_WS(',',arzt2.nachname,arzt2.vorname) ÜW2, IF(nlart2.niederlassungsart='Hausarzt','h',LEFT(nlart2.niederlassungsart,1)) nlart2 FROM (`aktfvs` JOIN `faelle` f ON `aktfvs`.fid = f.fid AND f.schgr BETWEEN 20 AND 29) LEFT JOIN (" & HADBName & ".arzt JOIN " & HADBName & ".nlart ON arzt.nlart_id = nlart.idnlart LEFT JOIN (" & HADBName & ".arzt_has_bs ahb LEFT JOIN " & HADBName & ".arzt_has_bs ahb2 ON ahb.bs_id = ahb2.bs_id AND ahb.arzt_id <> ahb2.arzt_id JOIN  (" & HADBName & ".arzt arzt2 JOIN " & HADBName & ".nlart nlart2 ON arzt2.nlart_id = nlart2.idnlart) ON ahb2.arzt_id = arzt2.idarzt   ) ON arzt.idarzt = ahb.arzt_id AND nlart2.Niederlassungsart = 'Facharzt' AND nlart.niederlassungsart = 'Hausarzt') ON übwlanr = arzt.lanr" & _
+         " LEFT JOIN (SELECT `aktfvs`.pat_id, leistung vpau FROM `aktfvs` JOIN `leistungen` l ON `aktfvs`.fid = l.fid AND (leistung LIKE '031%' OR leistung LIKE '01210')) vpau ON f.pat_id = vpau.pat_id WHERE nlart.niederlassungsart = 'Facharzt' OR ISNULL(nlart.niederlassungsart) OR NOT ISNULL(arzt2.lanr) GROUP BY pat_id"
+#Else
+ myFrag rs, "SELECT f.pat_id, CONCAT_WS(',', f.nachname, f.vorname) Pat, vpau, f.übwlanr, CONCAT_WS(',',arzt.nachname,arzt.vorname) ÜW, IF(nlart.niederlassungsart='Hausarzt','h',LEFT(nlart.niederlassungsart,1)) NLArt, arzt2.lanr LANR2, CONCAT_WS(',',arzt2.nachname,arzt2.vorname) ÜW2, IF(nlart2.niederlassungsart='Hausarzt','h',LEFT(nlart2.niederlassungsart,1)) nlart2 FROM (`aktfvs` JOIN `faelle` f ON `aktfvs`.fid = f.fid AND f.schgr BETWEEN 20 AND 29) LEFT JOIN (" & HADBName & ".arzt JOIN " & HADBName & ".nlart ON arzt.nlart_id = nlart.idnlart LEFT JOIN (" & HADBName & ".arzt_has_bs ahb LEFT JOIN " & HADBName & ".arzt_has_bs ahb2 ON ahb.bs_id = ahb2.bs_id AND ahb.arzt_id <> ahb2.arzt_id JOIN  (" & HADBName & ".arzt arzt2 JOIN " & HADBName & ".nlart nlart2 ON arzt2.nlart_id = nlart2.idnlart) ON ahb2.arzt_id = arzt2.idarzt   ) ON arzt.idarzt = ahb.arzt_id AND nlart2.Niederlassungsart = 'Facharzt' AND nlart.niederlassungsart = 'Hausarzt') ON übwlanr = arzt.lanr" & _
+         " LEFT JOIN (SELECT `aktfvs`.pat_id, leistung vpau FROM `aktfvs` JOIN `leistungen` l ON `aktfvs`.fid = l.fid AND (leistung RLIKE '^030[12]' OR leistung LIKE '01210')) vpau ON f.pat_id = vpau.pat_id WHERE nlart.niederlassungsart = 'Facharzt' OR ISNULL(nlart.niederlassungsart) OR NOT ISNULL(arzt2.lanr) GROUP BY pat_id"
+#End If
+ TabAusgeb rs, Me, True, , , , , True, "PatientenlisteFürVollpauschale"
+End Sub ' PatientenlistefürVollpauschale_Click
+
+' Funktionen für Arzthelferin und Arzt -> Dokumentnamenprüfung
+Private Sub Dokumentnamenprüfung_Click()
+ Dim sql$, rs As New Adodb.Recordset
+ sql = "SELECT b.pat_id, b.zeitpunkt, CONCAT(n.nachname, ', ',n.vorname) Name,  b.name Dokname " & _
+       "FROM briefe b LEFT JOIN namen n ON b.pat_id = n.pat_id " & _
+       "WHERE ((zuuml(b.name) NOT LIKE CONCAT('%',zuuml(n.nachname),'%') " & _
+       "and zuuml(CONCAT('ZZZ',b.name)) NOT LIKE CONCAT('%',zuuml(n.nachname),'%')) " & _
+       "or zuuml(b.name) NOT LIKE CONCAT('%',zuuml(n.vorname),'%')) " & _
+       "and not b.name IN ('GDT Import Datei') AND NOT b.name LIKE 'Brief an %' AND b.name<>'CGM BMP gedruckt' ORDER BY b.pat_id DESC;"
+ myFrag rs, sql
+ TabAusgeb rs, Me, True, , , , , , , , , , "Dokumentnamenprüfung"
+End Sub ' Dokumentnamenprüfung_Click
+
+' Funktionen für Arzthelferin und Arzt -> Patienten mit uns als Hausarzt (vorher fehlende Hausärzte ergänzen!)
+Private Sub FehlendeHausaerzte_Click()
+'SELECT DISTINCT `namen`.pat_id, `namen`.nachname, `namen`.vorname FROM quelle.`namen` LEFT JOIN quelle.faelle ON faelle.pat_id = `namen`.pat_id WHERE (`namen`.kvnr = "" OR ISNULL(`namen`.kvnr)) AND faelle.schgr = 24 ORDER BY pat_id DESC;
+ Call ProgStart
+ Call doLdFH(Me)
+ Call ProgEnde
+End Sub ' FehlendeHausaerzte_Click
+
+' Funktionen für Arzthelferin und Arzt -> fehlende Überweisungsscheine
+Private Sub FehlendeÜberweisungsscheine_Click()
+ Call ProgStart
+ Call doFÜwS(Me)
+ Call ProgEnde
+End Sub ' FehlendeÜberweisungsscheine_Click
+
+' 102
+' Funktionen für Arzthelferin und Arzt -> falsche Karteikarteneinträge
+Private Sub FalscheKarteikarteneinträge_Click()
+ Dim rs As New Adodb.Recordset
+ myFrag rs, AuffArtSql
+ TabAusgeb rs, Me, True, , , , , , "Falsche_Karteikarteneinträge"
+ Exit Sub ' FalscheKarteikarteneinträge_Click
+
+#If False Then
+ Dim ErgDat$
+ ErgDat$ = pVerz & "FalscheKarteikarteneinträge.txt"
+ Dim altArt$
  Dim rs As New Adodb.Recordset
  Call ProgStart
- myFrag rs, "SELECT medikament, Urä, Ostp FROM `medarten` WHERE medikament = 'FOSAVANCE'"
- Debug.Print rs!Medikament, rs!urä, rs!ostp
- Call ProgEnde
-End Sub ' TestFos_Click()
+ Open ErgDat For Output As #327
+ Print #327, "Falsche karteikarteneinträge vom " & Now() & ":"
+ rs.Open "SELECT pat_id,zeitpunkt,art,inhalt FROM `eintraege` WHERE art not IN (" & artSpezEintr & "," & artSpezUS & "," & artSpezSonst & ") ORDER BY art, pat_id, zeitpunkt", DBCn
+ Do While Not rs.EOF
+  If rs!art <> altArt Then
+   Print #327, String$(80, "_")
+   altArt = rs!art
+  End If
+  Print #327, Right$(Space$(4) & rs!Pat_id, 4) & "|" & Left$(rs!Zeitpunkt & Space$(19), 19) & "|" & Left$(rs!art & Space$(10), 10) & "|" & Left$(rs!Inhalt, 50)
+  rs.Move 1
+ Loop
+ Close #327
+' zeigan ergdat
+ Call GetWord
+ With Wapp
+   .Visible = True
+   .WindowState = wdWindowStateMaximize
+   .documents.Open ErgDat
+   .activedocument.Range.Font.size = 9
+   .Activate
+ End With
+#End If
+End Sub ' FalscheKarteikarteneinträge_Click
 
+' Funktionen für Arzthelferin und Arzt -> verhunzte Fotos einfärben
+Private Sub VerhunzteFotosEinfärben_Click() ' zu knapp gespeicherte Fotos nochmal verbessern
+Dim rDok As New Adodb.Recordset, IViewPfad$, KStr$, FPfad$, FNam$, DokPfad$, erg$, eingefärbt&
+ Dim rsFiP As New Adodb.Recordset, Nam$, namspl$(), j&, sql$, nr&, altnam$, neunam$
+ Dim fold As Folder, Fil As File
+ Dim APfad$
+ Dim DokName$
+ ProgStart
+ APfad = pügVerz & "VerhunzteFotosEinfärbenProt_" & Year(Now()) & "_" & Month(Now()) & "_" & Day(Now()) & "_" & Hour(Now()) & "_" & Minute(Now()) & ".txt"
+ Open APfad For Output As #311
+ Close #311
+ zeigan APfad
+ IViewPfad = getIViewPfad() ' Environ("ProgramFiles") & "\irfanview\i_view32.exe
+ getDokPfad
+ For Each Fil In FSO.GetFolder(pVerz & "eingelesen\" & Year(Now() - 7)).Files ' "eingelesen\2010").Files ' "eingelesen\" & YEAR(NOW() - 7)).Files
+  If Fil.name Like "*Foto*.jpg" Then
+   If Fil.size < 70000 Then
+    Nam = Left$(Fil.name, Len(Fil.name) - 4)
+    SplitNeu Nam, "_", namspl
+    If UBound(namspl) > 0 Then
+     If IsNumeric(namspl(UBound(namspl))) Then
+     Nam = namspl(0)
+     For j = 1 To UBound(namspl) - 1
+      Nam = Nam & namspl(j)
+     Next j
+     End If
+    End If
+    If InStrB(Nam, "'") > 0 Then Nam = REPLACE$(Nam, "'", "''")
+    sql = "SELECT * FROM `fotosinp`.`jpg` WHERE neuername LIKE '" & Nam & "%'"
+    Set rsFiP = Nothing
+    myFrag rsFiP, sql
+    If rsFiP.BOF Then
+     Open APfad For Append As #311
+     Print #311, "Fehlt IN fotosinp: " & Fil.size & " " & Fil.path
+     Close #311
+    Else ' IF Not IsNumeric(rsFiP!compression) OR rsFiP!compression < 20 THEN
+     nr = nr + 1
+     Me.Ausgeb nr & ": " & rsFiP!tpfad, 0
+     If FSO.FileExists(rsFiP!tpfad) Then
+      Set rDok = Nothing
+nochmal:
+      DokName = REPLACE$(REPLACE$(Nam, " ", "%"), "Wärmflasch,", "Wärmflasche,") & "%'"
+      sql = "SELECT * FROM `dokumente` WHERE dokname LIKE '" & DokName
+      myFrag rDok, sql
+      If rDok.BOF Then
+       Open APfad For Append As #311
+       Print #311, "Fehlt IN Tabelle `dokumente`: '" & DokName & "'"
+       Close #311
+       Set rDok = Nothing
+'       GoTo nochmal
+      Else
+       FPfad = Fil.path
+       FNam = Fil.name
+'       KStr = "cmd /c ren """ & FPfad & """ """ & FPfad & "_kaputt"""
+'       erg = Shell(KStr, vbNormalFocus)
+       If FSO.FileExists(FPfad & "_kaputt") Then Kill FPfad & "_kaputt"
+       Name FPfad As FPfad & "_kaputt"
+       KStr = IViewPfad & " """ & rsFiP!tpfad & """ /convert=""" & FPfad & """ /jpgq=30 " & IIf(rsFiP!helligkeit <> 90, " /bright=" & rsFiP!helligkeit, vNS) & IIf(rsFiP!kontrast <> 90, " /contrast=" & rsFiP!kontrast, vNS)
+       erg = Shell(KStr, vbNormalFocus)
+       If FSO.FileExists(FPfad) Then
+        If FSO.GetFile(FPfad).size >= FSO.GetFile(FPfad & "_kaputt").size * 0.5 Then ' 21.8.21 statt FileLen
+         Kill FPfad & "_kaputt"
+        Else
+         Open APfad For Append As #311
+         Print #311, "'" & FPfad & "' nicht mindestens doppelt so groß wie '" & FPfad & "_kaputt':" & vbCrLf & "(" & FSO.GetFile(FPfad).size & " vs. " & FSO.GetFile(FPfad).size & "_kaputt)" ' 21.8.21 statt Filelen
+         Close #311
+        End If
+       Else
+        Open APfad For Append As #311
+        Print #311, "'" & FPfad & "' existiert nicht."
+        Close #311
+       End If
+       Do While Not rDok.EOF
+        DokPfad = REPLACE$(LCase$(rDok!DokPfad), "$\turbomed\dokumente", PcDokPfad)
+        If FSO.FileExists(DokPfad) Then
+'        KStr = "cmd /c ren """ & DokPfad & """ """ & DokPfad & "_kaputt"""
+'        Shell KStr, vbNormalFocus
+         Name DokPfad As DokPfad & "_kaputt"
+'        KStr = "xcopy """ & FPfad & """ """ & DokPfad & """ /y /h /r /k /c"
+'        erg = Shell(KStr, vbNormalFocus)
+         FileCopy FPfad, DokPfad
+         If FSO.FileExists(DokPfad) Then
+          If FSO.GetFile(DokPfad).size >= FSO.GetFile(DokPfad & "_kaputt").size * 0.5 Then ' 21.8.21 statt FileLen
+           Kill DokPfad & "_kaputt"
+           eingefärbt = eingefärbt + 1
+          Else
+           Open APfad For Append As #311
+           Print #311, "'" & DokPfad & "' nicht größer als '" & DokPfad & "_kaputt':" & vbCrLf & "(" & FSO.GetFile(DokPfad).size & " vs. " & FSO.GetFile(DokPfad).size & "_kaputt)" ' 21.8.21 statt FileLen
+           Close #311
+          End If
+         Else
+          Open APfad For Append As #311
+          Print #311, "'" & DokPfad & "' existiert nach `Filecopy '" & FPfad & "' '" & DokPfad & "'` nicht."
+          Close #311
+         End If
+        Else
+         Open APfad For Append As #311
+         Print #311, "'" & DokPfad & "' existiert von Haus aus nicht."
+         Close #311
+        End If
+        rDok.MoveNext
+       Loop
+      End If
+     Else
+      Open APfad For Append As #311
+      Print #311, "Die IN `fotosinp` zu `neuername` '" & Nam & "' genannte Datei '" & rsFiP!tpfad & "' existiert nicht."
+      Close #311
+     End If
+    End If
+   End If
+  End If
+ Next Fil
+ MsgBox "Fertig mit VerhunzteFotosEinfärben: " & eingefärbt & " Fotos eingefärbt"
+End Sub ' VerhunzteFotosEinfärben_Click
+
+' Funktionen für Arzthelferin und Arzt -> Anwaltsunterlagen für Pat. zusammenstellen
 Private Sub Anwaltsunterlagen_für_Pat_zusammenstellen_Click()
  Call ProgStart
  Aktion = Anwalt
@@ -975,23 +1651,54 @@ Private Sub Anwaltsunterlagen_für_Pat_zusammenstellen_Click()
  pataw.Show
  Call ProgEnde
 ' Call doPLZeinzeln
-End Sub ' Anwaltsunterlagen_für_Pat_zusammenstellen_Click()
+End Sub ' Anwaltsunterlagen_für_Pat_zusammenstellen_Click
 
+' Funktionen für Arzthelferin und Arzt -> Sonderpatienten anzeigen
+Private Sub SonderpatientenAnzeigen_Click()
+ Dim rs As New Adodb.Recordset
+ Static spa As New Sonderpatientauswahl
+ Set spa.aufRufer = Me
+ spa.Show 1
+ myFrag rs, "SELECT Zeitpunkt,Art,Inhalt FROM `eintraege` WHERE pat_id = " & SpPat_id & " ORDER BY zeitpunkt DESC"
+ TabAusgeb rs, Me, , , , , , , "Einträge für " & SpName
+End Sub ' SonderpatientenAnzeigen_Click
 
-Private Sub Covid_Impfliste_Click()
- Dim sql$, rs As New Adodb.Recordset
- sql = "SELECT Inhalt, concat(nachNAME,', ',vorname) NAME" & vbCrLf & _
-  ",LEFT(CONCAT(COALESCE((SELECT titel FROM desktop WHERE pat_id=i.pat_id AND iconPath RLIKE 'Raum5'),''),SPACE(15)),15) Notiz," & vbCrLf & _
-  "CONCAT('->',Privattel) Tel" & vbCrLf & _
-  ",IF(privatmobil='',concat('->',Privattel_2),concat('->',Privatmobil,IF(privattel_2='','',CONCAT(',',privattel_2)))) `Tel2/Mobil`" & vbCrLf & _
-  "FROM (SELECT LEFT(inhalt,instr(inhalt,' ')) pat_id, inhalt" & vbCrLf & _
-  "       FROM eintraege WHERE pat_id=(SELECT pat_id FROM namen WHERE Nachname='Covid')) i " & vbCrLf & _
-  "LEFT JOIN namen USING (pat_id)" & vbCrLf & _
-  "WHERE NOT ISNULL(lfdnr)" & vbCrLf & _
-  "ORDER BY gebdat;"
- myFrag rs, sql
- TabAusgeb rs, Me, True, , , , , , "Covid19-Liste.csv", , , , "Covid-Impfliste, mit 'Raum5' für Notizen", , 0
-End Sub ' Covid_Impfliste_Click()
+' Funktionen für Arzthelferin und Arzt -> Hausarzt anzeigen
+Private Sub Hausarzt_anzeigen_Click()
+ Call ProgStart
+ Set haanz = Nothing
+ Set haanz.hlese = Me
+ haanz.Show
+End Sub ' Hausarzt_anzeigen_Click
+
+' ... für &Arzt
+
+#If mitab Then
+' ...für Arzt -> Anamnesebogen (Diagnosen eingeben)
+Private Sub ÜbertragenenAnamnesebogen_Click()
+ anBogÜ.Show
+End Sub ' ÜbertragenenAnamnesebogen_Click
+#End If
+
+' nicht sichtbar: ...für Arzt -> Anamnesebogen experimentell
+'Private Sub Anamnesebogen_Click()
+' anb.Show
+'End Sub
+
+' ...für Arzt -> Diabetes-Quartalsdiagnosen in Dauerdiagnosen umwandeln (manuell)
+Private Sub DiabetesQuartalsdiagnosenInDauerdiagnosenUmwandeln_Click()
+ Dim rs As New Adodb.Recordset
+ myFrag rs, "SELECT d.Pat_Id, GesNameG(d.pat_id) GesName, d.DiagDatum, d.ICD FROM faelle f LEFT JOIN diagnosen d ON f.fid = d.fid LEFT JOIN diagnosen dd ON f.pat_id = dd.pat_id AND dd.gicd RLIKE '^E1[0-4]\.' AND dd.obdauer<>0 WHERE quartal = """ & ZQuart(Now - Verspätung) & """ AND d.gicd RLIKE '^E1[0-4]\.' AND d.obdauer = 0 AND ISNULL(dd.pat_ID) ORDER BY d.pat_id"
+ TabAusgeb rs, Me, , , , , , , "Diabetes-Quartalsdiagnosen IN Dauerdiagnosen umwandeln (manuell)", 1
+End Sub ' DiabetesQuartalsdiagnosenInDauerdiagnosenUmwandeln_Click
+
+' 5.7.10: jetzt nicht mehr nötig, in PatListe integriert
+' nicht sichtbar: ...für Arzt -> Alle &DMP-Dokumente an Hausärzte in p:\zufaxen erstellen
+'Private Sub DMPSend_Click()
+' Call ProgStart
+' Call alleDMPs(Me)
+' Call ProgEnde
+'End Sub ' DMPSend_Click
 
 ' ...für Arzt -> DMP-Dokumente an HA-Nachweis
 Private Sub DMP_Dokumente_an_HA_Nachweis_Click() ' s.DMPFüll
@@ -1008,64 +1715,9 @@ Private Sub DMP_Dokumente_an_HA_Nachweis_Click() ' s.DMPFüll
        "LEFT JOIN `desktop` dt ON n.pat_id = dt.pat_id AND dt.titel LIKE '%kein%bericht%' " & vbCrLf & _
        "GROUP BY f0.pat_id;"
 '       "WHERE ISNULL(dt.titel) AND n.dmpklass = 2 AND f.icd RLIKE '^E1[0-4]\.' AND h.kvnr<>'' " & vbCrLf & _
-
  myFrag rs, sql
  TabAusgeb rs, Me, True, , , , , , , , , , "DMP_Dokumente_an_HA_Nachweis_Click (DMP-Klass 2=relevant)"
-End Sub ' DMP_Dokumente_an_HA_Nachweis_Click()
-
-' Funktionen für Arzthelferin und Arzt -> DMP-Teilnahme der Hausärzte korrigieren
-Private Sub DMPHAKorr_Click()
- Call ProgStart
- Set pal = Nothing
- pal.PLArt = artHA
- Set pal.hlese = Me
- Me.Hide
- pal.Show
- Call ProgEnde
-End Sub ' DMPHAKorr_Click()
-
-' ...für Arzt -> alle DMP-Dokumente an Hausärzte faxen
-Private Sub AlleDMPanHA_Click() ' Alle DMP-Dokumente an Hausärzte faxen
-#If False Then
- Dim pad As New PatListe
- pad.PLArt = artDMP
- Set pad.hlese = Me
- pad.Show
-#Else
- Call ProgStart
- Set pal = Nothing
- pal.PLArt = artDMP
- Set pal.hlese = Me
- Me.Hide
- pal.Show
- Call ProgEnde
-#End If
-End Sub ' AlleDMPanHA_Click()
-
-Function FileJoin&(strFile1$, strFile2$)
-    Dim b() As Byte
-    Dim nFileNum%
-    Dim lFileLen&
-    nFileNum = FreeFile
-    Open strFile1 For Binary Access Read As nFileNum
-        b() = InputB(LOF(nFileNum), nFileNum)
-    Close nFileNum
-    nFileNum = FreeFile
-    lFileLen = FSO.GetFile(strFile2).size ' 21.8.21 statt Filelen
-    Open strFile2 For Binary Access Write As nFileNum
-        Put nFileNum, (lFileLen + 1), b()
-    Close nFileNum
-    FileJoin = lFileLen
-End Function ' FileJoin
-
-Function umlweg$(q$)
-' IF InStrB(q, "Ü") OR InStrB(q, "ß") THEN Stop
- umlweg = REPLACE$(REPLACE$(REPLACE$(REPLACE$(REPLACE$(REPLACE$(REPLACE$(q, "ä", "\'e4"), "Ä", "\'c4"), "ö", "\'f6"), "Ö", "\'d6"), "ü", "\'fc"), "Ü", "\'dc"), "ß", "\'df")
-End Function ' umlweg$(q$)
-
-Private Sub Hausärzte_aus_Listenausgabe_Ueberweiser_einlesen_Click()
- Call doHAAkt(Me)
-End Sub ' Hausärzte_aus_Listenausgabe_Ueberweiser_einlesen_Click()
+End Sub ' DMP_Dokumente_an_HA_Nachweis_Click
 
 ' ...für Arzt -> Kontrolllisten für DMP HA
 Private Sub Kontrolllisten_für_DMP_HA_Click()
@@ -1129,8 +1781,976 @@ w1:
  Loop
  syscmd 5
  MsgBox "Fertig mit DMP-Rückfragen IN Verzeichnis " & ZielVz
-End Sub ' Kontrolllisten_für_DMP_HA_Click()
+End Sub ' Kontrolllisten_für_DMP_HA_Click
 
+' ...für Arzt -> Unverwertbare DMP-Einträge
+Private Sub UnverwertbareDMPEinträge_Click() ' Unverwertbare DMP-Einträge
+ Dim rs As New Adodb.Recordset, rez As New Adodb.Recordset, Pat_id&, AusgStr$, TA1$, STA1$(), i&
+ Dim SpMin%(2)
+ SpMin%(0) = 6
+ Call ProgStart
+' Open DatNam For Output AS #327
+ myFrag rs, "SELECT pat_id, dmpklass, dmpbeg,dmpkhkklass, DMPKHKBeg, DMPCopdKlass, DmpCOPDBeg, DMPABKlass, DMPABBeg, REPLACE(notiz,CONCAT(char(13),char(10)),0) Notiz FROM `namen` WHERE notiz LIKE '%dmp%' AND NOT notiz = CONCAT('DMP NEIN',char(13),char(10)) ORDER BY pat_id DESC"
+ TabAusgeb rs, Me, True, , , , , , "Unverwertbare DMP-Einträge"
+End Sub ' UnverwertbareDMPEinträge_Click ' Unverwertbare DMP-Einträge
+
+' ...für Arzt -> DMP hier Liste
+Private Sub DMPhierListe_Click()
+ Call ProgStart
+ Set pal.hlese = Me
+ Set pal = Nothing
+ pal.PLArt = artPat
+ Me.Hide
+ pal.Show
+ Call ProgEnde
+End Sub ' DMPhierListe_Click
+
+' ...für Arzt -> DMP hier Liste ohne Pat.mit Terminen
+Private Sub DMPhierListeoT_Click()
+ Call ProgStart
+ Set pal.hlese = Me
+ Set pal = Nothing
+ pal.PLArt = artPat
+ pal.ohneTermine = True
+ Me.Hide
+ pal.Show
+ Call ProgEnde
+End Sub ' DMPhierListe_Click
+
+' ...für Arzt -> DMP KHK Asthma
+Private Sub DMPKHKAsthma_Click()
+ Dim rs As New Adodb.Recordset
+ Dim sql$
+ Call ProgStart
+ sql = "SELECT n.pat_id,gesnameg(n.pat_id), f.form_abk, f.zeitpunkt " & vbCrLf & _
+       "FROM `namen` n " & vbCrLf & _
+       "LEFT JOIN `formular` f ON n.pat_id = f.pat_id " & vbCrLf & _
+       "WHERE ((form_abk LIKE 'dmpkhk%' OR form_abk LIKE 'dmpab%' OR form_abk LIKE 'dmpcopd%') " & vbCrLf & _
+       "   OR (form_abk LIKE 'edmp%' AND feld = 'Einschreibung' AND Feldnr IN (2,3,4))) " & vbCrLf & _
+       "   AND f.zeitpunkt > SUBDATE(NOW(),INTERVAL 365 DAY) " & vbCrLf & _
+       "GROUP BY n.pat_id,form_abk, DATE(zeitpunkt)"
+ DBCn.Execute "SET GROUP_CONCAT_MAX_LEN = 70"
+ myFrag rs, sql
+ TabAusgeb rs, Me, , , , , , , "DMP KHK Asthma " & Format(Now(), "dd.mm.YYYY")
+End Sub ' DMPKHKAsthma_Click
+
+' ...für Arzt -> Duplex Kontrollieren
+Private Sub DuplexKontrollieren_Click()
+ Call ProgStart
+ Call doDuplexkontrollieren
+ Call ProgEnde
+End Sub ' DuplexKontrollieren_Click
+
+' ...für Arzt -> Hausärzte mit DMP-Patienten
+Private Sub HausärztemitDMPPatienten_Click()
+ Dim sql$, rs As New Adodb.Recordset
+ sql = "SELECT CONCAT(LEFT(CONCAT(h.kvnr,'        '),8),'| '," & vbCrLf & _
+       "left(CONCAT(h.titelt,h.Name,' ',h.Vorname,'                           '),36),'|'," & vbCrLf & _
+       "right(CONCAT('                      ',fax),21),' | '," & vbCrLf & _
+       "left(CONCAT(h.ort,', ',strasse,', ',fachgruppe,'                            '),46),'|') feld" & vbCrLf & _
+       "FROM faelle f" & vbCrLf & _
+ "LEFT JOIN namen n USING (pat_id) " & vbCrLf & _
+ "LEFT JOIN liuez h ON CAST(n.getha0 As Integer) = h.kvnri " & vbCrLf & _
+ "WHERE bhfb > SUBDATE(NOW(),INTERVAL 1 YEAR) AND n.dmpklass=2 AND getha0<>0 AND instr(fachgruppe,'Diabet')=0 " & vbCrLf & _
+ "GROUP BY h.fax;"
+ myFrag rs, sql
+ TabAusgeb rs, Me, , , True, , , , "HA-DMP.txt", , , , "Hausaerzte mit Patienten im DMP"
+End Sub ' HausärztemitDMPPatienten_Click
+
+' ...für Arzt -> DMP-Brief-Leistungs-Doku
+Private Sub DMPLeiDok_Click()
+ Call ProgStart
+ Call alleDMPLeiDok(Me, 1)
+ Call alleDMPLeiDok(Me, 2)
+' Call ProgEnde
+End Sub ' DMPLeiDok_Click
+
+' ...für Arzt -> Porto abrechnen
+Private Sub doPorto_Click()
+ Call ProgStart
+ Call dodoPorto
+ Call ProgEnde
+End Sub ' doPorto_Click
+
+' ...für Arzt -> Leistungen zu Arztbriefen bei Kassenpatienten in u:\tmimport\ dokumentieren
+Private Sub BriefeLeiDok_Click()
+ Call ProgStart
+ Call tuBriefeLeiDok(Me)
+ Call ProgEnde
+End Sub ' BriefeLeiDok_Click
+
+' ...für Arzt -> Pathologische Laborwerte anschauen
+Private Sub PathLabAnschau_Click()
+ Dim ePL As New PathLabForm
+ Set ePL.eLese = Me
+ ePL.Show
+End Sub ' PathLabAnschau_Click
+
+' ...für Arzt -> Vorhandene Briefe korrigieren
+Private Sub VorhandeneBriefe_Click()
+ Dim ergZ&
+ Call ProgStart
+ ergZ = doVorhandene
+ Me.Ausgeb "Fertig mit Auswechseln der Vorhandenen: " & ergZ & IIf(BrichAb, ",5", "") & " Briefe bearbeitet. ", True
+ Call ProgEnde
+ Exit Sub
+fehler:
+ Dim AnwPfad$
+#If VBA6 Then
+ AnwPfad = CurrentDb.name
+#Else
+ AnwPfad = App.path
+#End If
+Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler IN VorhandeneBriefe/" + AnwPfad)
+ Case vbAbort: Call MsgBox("Höre auf"): ProgEnde
+ Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
+ Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
+End Select
+End Sub ' VorhandeneBriefe_Click
+
+' ...für Arzt -> Briefe zu Patienten, deren erster Brief schon > 1a her ist
+Private Sub doFollowUp_Click() ' &Briefe zu Patienten, deren erster Brief schon > 1a her ist
+ Call ProgStart
+ Call dodoFollowUp(Me)
+ Call ProgEnde
+End Sub ' doFollowUp_Click
+
+' ...für Arzt -> Briefe zu Pat., zu denen bisher noch kein Brief geschrieben wurde
+Private Sub UngeschriebeneBriefe_Click()
+ Call ProgStart
+ Call doUngeschriebeneBriefe(Me)
+ Call ProgEnde
+End Sub ' UngeschriebeneBriefe_Click
+
+' ...für Arzt -> Restliche Briefe für aktuelles Quartal schreiben
+Private Sub RestlicheBriefe_Click()
+ Call ProgStart
+ Aktion = RestlicheBriefe
+ Set pataw.hlese = Me
+ pataw.Show
+' Aktion = nix
+ Call ProgEnde
+End Sub ' RestlicheBriefe_Click
+
+' ...für Arzt -> Briefe zu Patienten mit Berichtspflicht schreiben
+Private Sub BriefeBerichtspflicht_Click()
+ Call doBriefeBerichtspflicht
+End Sub ' BriefeBerichtspflicht_Click
+
+' ...für Arzt -> "Briefe zu Pat_ID-Liste aus Datei schreiben
+Private Sub BriefeZuListeSchreiben_Click()
+ Dim bzl As New Lade
+ bzl.FenArt = 1
+ bzl.Show
+End Sub ' BriefeZuListeSchreiben_Click
+
+' ...für Arzt -> Brief schreiben
+Private Sub BriefSchreiben_Click() ' Brief schreiben
+ Call ProgStart
+ Aktion = Briefschreiben
+ Set pataw.hlese = Me
+ pataw.briefneu = False
+ pataw.Show
+' Aktion = nix
+ Call ProgEnde
+End Sub ' BriefSchreiben_Click
+
+' ...für Arzt -> "Brief schreiben neu
+Private Sub Briefschreibenneu_Click()
+ Call ProgStart
+ Aktion = Briefschreiben
+ Set pataw.hlese = Me
+ pataw.briefneu = True
+ pataw.Show
+' Aktion = nix
+ Call ProgEnde
+End Sub ' Briefschreibenneu_Click
+
+' ...für Arzt -> Brief zu letztem Import schreiben
+Private Sub BriefImport_Click()
+ Call tubriefStandalone(CStr(lzPID), 0, , Me.pataw.Vorlage)
+End Sub ' Sub BriefImport_Click
+
+' ...für Arzt -> Brief ohne Maske schreiben
+Private Sub BriefOhneMaske_Click()
+ Dim erg$
+ erg = InputBox("Bitte Pat_ID eingeben:")
+ If IsNumeric(erg) Then
+  Call tubriefStandalone(CLng(erg), 0)
+ End If
+End Sub  ' BriefOhneMaske_Click
+
+' ...für Arzt -> Liste der fehlenden Dokumente
+Private Sub ListeDerFehlendenDokumente_Click()
+ Call ProgStart
+ Call doLdFD
+ Call ProgEnde
+End Sub ' ListeDerFehlendenDokumente_Click
+
+' ...für Arzt -> Nach&zuholende Laborimporte
+Private Sub NachzuholendeLaborimporte_Click()
+ Dim rs As Adodb.Recordset, lfdnr&
+ Open snst.DateiNachzuholen For Output As #301
+ Call ProgStart
+ Set rs = DBCn.Execute("SELECT DISTINCT pfad,lwerte,laborxus.pat_id,eingang,auftragsnummer, `namen`.nachname, `namen`.vorname, laborxus.refnr FROM (`laborxus` LEFT JOIN laborxeingel ON laborxus.datid = laborxeingel.datid) LEFT JOIN `namen` ON laborxus.pat_id = `namen`.pat_id WHERE afn = 0 AND zdip = 0 AND NOT laborxus.pat_id = 0 AND zdüp>0 ORDER BY refnr;")
+ If Not rs.BOF Then
+  lfdnr = 1
+  Do While Not rs.EOF
+   Print #301, Right$("   " & lfdnr, 3) & ": Pat: " & Right$("   " & rs!Pat_id, 4) & " Auftrag: " & Right$("       " & rs!Auftragsnummer, 11) & " " & rs!Eingang & " " & IIf(Len(rs!Pfad) < 50, Right$(Space$(50) & rs!Pfad, 50), rs!Pfad) & " (Pat: " & rs!Nachname & ", " & rs!Vorname & " Werte: " & Trim$(rs!LWerte) & ")"
+'   Print #301, lfdnr & ": Pat: " & rs!Pat_id & " (" & rs!Nachname & ", " & rs!Vorname & "), für: " & rs!Eingang & ", Auftragsnummer: " & rs!Auftragsnummer & " (Werte: " & rs!LWerte & ")"
+'   Print #301, "   dann importieren: " & rs!Pfad
+   lfdnr = lfdnr + 1
+   rs.Move 1
+  Loop
+ End If
+ Close #301
+ Call Shell("notepad " + snst.DateiNachzuholen, vbNormalFocus)
+ Call ProgEnde
+End Sub ' NachzuholendeLaborimporte_Click
+
+' ...für Arzt -> Banksachen
+
+' ...für Arzt -> Banksachen -> Lfd.Kosten
+Private Sub LfdKosten_Click()
+ Dim pwd$
+ pwd = InputBox("Bitte M-Net-Kennwort eingeben", "Rückfrage")
+ If pwd <> "17raga" Then Exit Sub
+ Dim rs As New Adodb.Recordset
+ myFrag rs, "SELECT COUNT(0) zahl, LEFT(CAST(buchungstag AS char),7) Monat, ROUND(SUM(betrag)) `Kosten` FROM `konten`.`girokonten` g WHERE kontonummer = '7710127' AND betrag < 0 AND CONCAT(`verwendungszweckzeile 1`,`verwendungszweckzeile 2`) NOT LIKE '%Fehlüberweisung%' AND NOT (`begünstigter/Absender - Kontonummer` IN ('0297626808', '0006097316','0230113763','2000573363') OR `verwendungszweckzeile 1`like 'entnahme%') GROUP BY LEFT(buchungstag,7) ORDER BY buchungstag DESC"
+ TabAusgeb rs, Me, , , , , , , "Laufende Kosten der Praxis"
+End Sub ' LfdKosten_Click
+
+' ...für Arzt -> Banksachen -> Lfd.Kosten mit &Betrag
+Private Sub LfdKostenMitBetrag_Click()
+ Dim pwd$
+ pwd = InputBox("Bitte M-Net-Kennwort eingeben", "Rückfrage")
+ If pwd <> "17raga" Then Exit Sub
+ Dim rs As New Adodb.Recordset
+ myFrag rs, "SELECT COUNT(0) zahl, LEFT(CAST(buchungstag AS char),7) Monat, Buchungstag, ROUND(SUM(betrag)) `Kosten`, CONCAT(`verwendungszweckzeile 1`, `verwendungszweckzeile 2`, `verwendungszweckzeile 3`, `verwendungszweckzeile 4`, `verwendungszweckzeile 5`, `verwendungszweckzeile 6`) Verwendungszweck, Myid, EingID, Buchungstext, Kategorie, Unterkategorie, Textschlüssel, `Begünstigter/Absender - Name` Begünstigter, `Begünstigter/Absender - Bankleitzahl` BLZ, `Begünstigter/Absender - Kontonummer` Kto, Wertstellungstag FROM `konten`.`girokonten` g WHERE kontonummer = '7710127' AND betrag < 0 AND CONCAT(`verwendungszweckzeile 1`,`verwendungszweckzeile 2`) NOT LIKE '%Fehlüberweisung%' AND NOT (`begünstigter/Absender - Kontonummer` IN ('0297626808', '0006097316','0230113763','2000573363') OR `verwendungszweckzeile 1`like 'entnahme%') GROUP BY myid ORDER BY LEFT(buchungstag,7) DESC, kosten"
+ TabAusgeb rs, Me, , , , , , , "Laufende Kosten der Praxis nach Monat und Betrag"
+End Sub ' LfdKostenMitBetrag_Click
+
+' ...für Arzt -> Banksachen -> KV-Überw
+Private Sub KVÜberw_Click()
+ Dim pwd$
+ pwd = InputBox("Bitte M-Net-Kennwort eingeben", "Rückfrage")
+ If pwd <> "17raga" Then Exit Sub
+ Dim rs As New Adodb.Recordset
+ myFrag rs, "SELECT LEFT(CAST(buchungstag AS char),10) Buchungstag, ROUND(SUM(betrag)) `Einnahme`, CONCAT(`verwendungszweckzeile 1`, `verwendungszweckzeile 2`, `verwendungszweckzeile 3`, `verwendungszweckzeile 4`, `verwendungszweckzeile 5`, `verwendungszweckzeile 6`) Verwendungszweck, Myid, EingID, Buchungstext, Kategorie, Unterkategorie, Textschlüssel, `Begünstigter/Absender - Name` Begünstigter, `Begünstigter/Absender - Bankleitzahl` BLZ, `Begünstigter/Absender - Kontonummer` Kto, Wertstellungstag FROM `konten`.`girokonten` g WHERE kontonummer = '7710127' AND betrag > 0 AND CONCAT(`verwendungszweckzeile 1`,`verwendungszweckzeile 2`) NOT LIKE '%Fehlüberweisung%' AND NOT (`begünstigter/Absender - Kontonummer` IN ('0297626808', '0006097316','0230113763','2000573363')  OR `verwendungszweckzeile 1`like 'entnahme%') AND `begünstigter/absender - name` LIKE 'kvb oberbay%' GROUP BY myid ORDER BY buchungstag DESC"
+ TabAusgeb rs, Me, , , , , , , "KV-Überweisungen"
+End Sub ' KVÜberw_Click
+
+' ...für Arzt -> Banksachen -> Lfd.Kosten &Eigenbetrieb
+Private Sub LfdKostenEigenbetrieb_Click()
+ Dim pwd$
+ pwd = InputBox("Bitte M-Net-Kennwort eingeben", "Rückfrage")
+ If pwd <> "17raga" Then Exit Sub
+ Dim rs As New Adodb.Recordset
+ myFrag rs, "SELECT COUNT(0) zahl, LEFT(CAST(buchungstag AS char),7) Monat, ROUND(SUM(betrag)) `Kosten` FROM `konten`.`girokonten` g WHERE kontonummer = '6097316' AND betrag < 0 AND CONCAT(`verwendungszweckzeile 1`,`verwendungszweckzeile 2`) NOT LIKE '%Fehlüberweisung%' AND NOT (`begünstigter/Absender - Kontonummer` IN ('0297626808', '0006097316','0230113763','2000573363') OR `verwendungszweckzeile 1`like 'entnahme%'  OR `verwendungszweckzeile 1`like '%aufbank%') GROUP BY LEFT(buchungstag,7) ORDER BY buchungstag DESC"
+ TabAusgeb rs, Me, , , , , , , "Laufende Kosten Eigenbetrieb"
+End Sub ' LfdKostenEigenbetrieb_Click
+
+' ...für Arzt -> Banksachen -> Lfd.Kosten &Eigenbetr.m.Betrag
+Private Sub LfdKostenEigenbetrmBetrag_Click()
+ Dim pwd$
+ pwd = InputBox("Bitte M-Net-Kennwort eingeben", "Rückfrage")
+ If pwd <> "17raga" Then Exit Sub
+ Dim rs As New Adodb.Recordset
+ myFrag rs, "SELECT COUNT(0) zahl, LEFT(CAST(buchungstag AS char),7) Monat, LEFT(CAST(buchungstag AS char),10) Buchungstag, ROUND(SUM(betrag)) `Kosten`, CONCAT(`verwendungszweckzeile 1`, `verwendungszweckzeile 2`, `verwendungszweckzeile 3`, `verwendungszweckzeile 4`, `verwendungszweckzeile 5`, `verwendungszweckzeile 6`) Verwendungszweck, Myid, EingID, Buchungstext, Kategorie, Unterkategorie, Textschlüssel, `Begünstigter/Absender - Name` Begünstigter, `Begünstigter/Absender - Bankleitzahl` BLZ, `Begünstigter/Absender - Kontonummer` Kto, Wertstellungstag FROM `konten`.`girokonten` g WHERE kontonummer = '6097316' AND betrag < 0 AND CONCAT(`verwendungszweckzeile 1`,`verwendungszweckzeile 2`) NOT LIKE _utf8'%Fehlüberweisung%' AND NOT (`begünstigter/Absender - Kontonummer` IN ('0297626808', '0006097316','0230113763','2000573363') OR `verwendungszweckzeile 1`like 'entnahme%' OR `verwendungszweckzeile 1`like '%aufbank%') GROUP BY myid ORDER BY LEFT(buchungstag,7) DESC, kosten"
+ TabAusgeb rs, Me, , , , , , , "Laufende Kosten Eigenbetrieb mit Betrag"
+End Sub ' LfdKostenEigenbetrmBetrag_Click
+
+' ...für Arzt -> Banksachen -> Lfd.Kosten PGiro
+Private Sub LfdKostenPGiro_Click()
+ Dim pwd$
+ pwd = InputBox("Bitte M-Net-Kennwort eingeben", "Rückfrage")
+ If pwd <> "17raga" Then Exit Sub
+ Dim rs As New Adodb.Recordset
+ myFrag rs, "SELECT COUNT(0) zahl, LEFT(CAST(buchungstag AS char),7) Monat, LEFT(CAST(buchungstag AS char),10) Buchungstag, ROUND(SUM(betrag)) `Kosten`, CONCAT(`verwendungszweckzeile 1`, `verwendungszweckzeile 2`, `verwendungszweckzeile 3`, `verwendungszweckzeile 4`, `verwendungszweckzeile 5`, `verwendungszweckzeile 6`) Verwendungszweck, Myid, EingID, Buchungstext, Kategorie, Unterkategorie, Textschlüssel, `Begünstigter/Absender - Name` Begünstigter, `Begünstigter/Absender - Bankleitzahl` BLZ, `Begünstigter/Absender - Kontonummer` Kto, Wertstellungstag FROM `konten`.`girokonten` g WHERE kontonummer = '297626808' AND betrag < 0 AND CONCAT(`verwendungszweckzeile 1`,`verwendungszweckzeile 2`) NOT LIKE _utf8'%Fehlüberweisung%' AND NOT (`begünstigter/Absender - Kontonummer` IN ('0297626808', '0006097316','0230113763','2000573363') OR `verwendungszweckzeile 1`like 'entnahme%' OR `verwendungszweckzeile 1`like '%aufbank%') GROUP BY myid ORDER BY LEFT(buchungstag,7) DESC, kosten"
+ TabAusgeb rs, Me, , , , , , , "Laufende Kosten PGiro"
+End Sub ' LfdKostenPGiro_Click
+
+' ...für Arzt -> Banksachen -> Lfd.Kosten PGiro mit Betrag
+Private Sub LfdKostenPGiromBetrag_Click()
+ Dim pwd$
+ pwd = InputBox("Bitte M-Net-Kennwort eingeben", "Rückfrage")
+ If pwd <> "17raga" Then Exit Sub
+ Dim rs As New Adodb.Recordset
+ myFrag rs, "SELECT COUNT(0) zahl, LEFT(CAST(buchungstag AS char),7) Monat, Buchungstag, ROUND(SUM(betrag)) `Kosten`, CONCAT(`verwendungszweckzeile 1`, `verwendungszweckzeile 2`, `verwendungszweckzeile 3`, `verwendungszweckzeile 4`, `verwendungszweckzeile 5`, `verwendungszweckzeile 6`) Verwendungszweck, Myid, EingID, Buchungstext, Kategorie, Unterkategorie, Textschlüssel, `Begünstigter/Absender - Name` Begünstigter, `Begünstigter/Absender - Bankleitzahl` BLZ, `Begünstigter/Absender - Kontonummer` Kto, Wertstellungstag FROM `konten`.`girokonten` g WHERE kontonummer = '297626808' AND betrag < 0 AND CONCAT(`verwendungszweckzeile 1`,`verwendungszweckzeile 2`) NOT LIKE '%Fehlüberweisung%' AND NOT (`begünstigter/Absender - Kontonummer` IN ('0297626808', '0006097316','0230113763','2000573363') OR `verwendungszweckzeile 1`like 'entnahme%') GROUP BY myid ORDER BY LEFT(buchungstag,7) DESC, kosten"
+ TabAusgeb rs, Me, , , , , , , "Laufende Kosten PGiro mit Betrag"
+End Sub ' LfdKostenPGiromBetrag_Click
+
+
+' ...für Arzt -> Faxnachweis
+Private Sub Faxnachweis_Click()
+ Dim sql$, rs As New Adodb.Recordset
+ sql = "SELECT docname, rcname, rcfax, transe, gesname(o.pid) Name, o.pid, submid FROM faxeinp.outa o LEFT JOIN namen n ON o.pid = n.pat_id WHERE erfolg<>'0' ORDER BY transe DESC LIMIT 2500"
+ myFrag rs, sql
+ TabAusgeb rs, Me, , , , , , , , , , , "Nachweis übermittelter Faxe"
+End Sub ' Faxnachweis_Click
+
+' ...für Arzt -> Faxwarteschlange
+Private Sub Faxwarteschlange_Click()
+ Dim sql$, rs As New Adodb.Recordset
+ sql = "SELECT cdateidatum,original, telnr FROM faxeinp.spool s ORDER BY cdateizeit DESC"
+ myFrag rs, sql
+ TabAusgeb rs, Me, , , , , , , , , , , "Faxwarteschlange auf linux1 (Fritzcard)"
+End Sub ' Faxwarteschlange_Click
+
+' ...für Arzt -> Faxe gescheitert
+Private Sub Faxe_gescheitert_Click()
+ Dim sql$, rs As New Adodb.Recordset
+ sql = "SELECT docname, rcname, rcfax, transe, gesname(o.pid) Name, o.pid, submid FROM faxeinp.outa o LEFT JOIN namen n ON o.pid = n.pat_id WHERE erfolg='0' ORDER BY transe DESC LIMIT 2500"
+' sql = "SELECT titel, submt, submid, docname,fsize,rcfax, rcname,transe, pid FROM faxeinp.outf o ORDER BY submt DESC"
+ myFrag rs, sql
+ TabAusgeb rs, Me, , , , , , , , , , , "Faxe gescheitert auf linux1 (Fritzcard)"
+End Sub ' Faxe_gescheitert_Click
+
+' ...für Arzt -> Pat. löschen
+Private Sub Pat_loeschen_Click()
+ Dim Pat_id&, erg&, rAF&, ergeb$
+ Pat_id = InputBox("Welchen Patienten wollen Sie löschen?")
+ Dim rsPat As New Adodb.Recordset
+ myFrag rsPat, "SELECT gesname(" & Pat_id & ")"
+ If Not rsPat.BOF() Then
+  erg = MsgBox("Wollen Sie wirklich den Patienten `" & Pat_id & " (" & rsPat.Fields(0) & ")` löschen?", vbYesNo)
+  If erg = vbYes Then
+   Dim Tb, tbn
+   tbn = Array("namen", "faelle", "au", "briefe", "diagnosen", "dokumente", "eintraege", "forminhkopf", "kheinweis", "lbanforderungen", "laborneu", "leistungen", "medplan", "rezepteintraege", "rr", "kvnrue", "dmpreihe", "therarten", "desktop", "usdm", "fuss", "ulcus")
+   For Each Tb In tbn
+    DBCn.Execute "DELETE FROM `" & Tb & "` WHERE PAT_ID = " & Pat_id, rAF
+    ergeb = ergeb & vbCrLf & rAF & " Sätze aus `" & Tb & "` gelöscht."
+   Next
+   MsgBox ergeb
+   Debug.Print ergeb
+  End If
+ End If ' Not rsPat.BOF() Then
+End Sub ' Pat_loeschen_Click
+
+' ...für Arzt -> Gefaxte Briefe anzeigen
+Private Sub GefaxteBriefeAnzeigen_Click()
+ Call ProgStart
+ Aktion = GefaxteAnzeigen
+ Set pataw.hlese = Me
+ pataw.Show
+End Sub ' GefaxteBriefeAnzeigen_Click
+
+' ...für Arzt -> Patientenlaufzettel für alle Pat.mit best. Medikament
+Private Sub PLZfuerMedikament_Click()
+ Dim Med$ ', plzverzalt$
+ Dim plzVerz$
+ Dim rs As New Adodb.Recordset
+ Med = InputBox("Bitte Medikamentenname eingeben", "Medikamentenname", "Forxiga")
+ If Med <> "" Then
+'  plzverzalt = plzVerz
+  plzVerz = plzVz & Med & "\"
+  MkDir plzVerz
+  myFrag rs, "SELECT DISTINCT pat_id FROM medplan WHERE medikament LIKE '" & Med & "%' ORDER BY pat_id DESC"
+  If Not rs.BOF Then
+   Do While Not rs.EOF
+    dodoPLZ rs!Pat_id, plzVz
+    rs.MoveNext
+   Loop
+  End If
+'  plzVerz = plzverzalt
+ End If
+ Ausgeb "Fertig mit PLZ für " & Med, 1
+End Sub ' PLZfuerMedikament_Click
+
+' ...für Arzt -> Verdächtige Überweiser
+Private Sub VerdächtigeÜberweiser_Click()
+ Call ProgStart
+ Call doVerdächtigeÜberweiser
+End Sub ' VerdächtigeÜberweiser_Click
+
+' ...für Arzt -> Doppelte Diagnosen ermitteln
+Private Sub DoppelteDiagnosen_Click()
+ Dim rs As New Adodb.Recordset, DatNam$, i&
+ DatNam = pVerz & "DoppelteDiagnosen " & Format$(Now, "dd.mm.yy hh.mm.ss") & ".txt"
+ Open DatNam For Output As #327
+ Print #327, "Nr. Zahl Pat_id Name                        ICD Sicherheit -Seite -text"
+ Call ProgStart
+ myFrag rs, "SELECT * FROM (SELECT COUNT(0) ct, pat_id, icd, gesnameg(pat_id) GesName, diagsicherheit si, diagtext tx, diagseite se FROM `diagnosen` WHERE obdauer <> 0 GROUP BY pat_id, icd, diagsicherheit, diagseite) AS i WHERE ct > 1 ORDER BY pat_id DESC"
+ i = 0
+ Do While Not rs.EOF
+  i = i + 1
+  Print #327, Right("    " & i, 4) & " " & Left$(rs!ct & "  ", 2) & " " & Right$("     " & rs!Pat_id, 5) & " " & Left$(rs!GesName & Space$(30), 30) & " " & Left$(rs!ICD & "      ", 6) & " " & rs!SI & " " & rs!SE & " " & Left$(rs!tx & Space$(50), 50)
+  rs.Move 1
+ Loop
+ Print #327, "Fertig!"
+ Debug.Print "Fertig!"
+ Close #327
+ Call ProgEnde
+ zeigan DatNam
+End Sub ' DoppelteDiagnosen_Click
+
+' ...für Arzt -> KassenEditieren (Rabattverträge etc.)
+Private Sub KassenEditieren_Click()
+ Dim ked As New KassenEditieren, i&, rs As New Adodb.Recordset, DBName$
+ ProgStart
+ DBName = DefDB(DBCn)
+ rs.Open "SELECT column_name cn, data_type dt, column_type ct, column_comment cc FROM information_schema.`COLUMNS` C WHERE table_schema = '" & DBName & "' AND table_name = 'kassenliste' AND column_type LIKE 'tinyint(1)%'", DBCn
+ Do While Not rs.EOF
+  Debug.Print rs!cn, rs!DT, rs!ct, rs!CC
+  ked.Check1(ked.Check1.COUNT - 1).Caption = "&" & rs!cn & " (" & rs!CC & ")"
+  ked.Check1(ked.Check1.COUNT - 1).Tag = rs!cn
+  Load ked.Check1(ked.Check1.COUNT)
+  ked.Check1(ked.Check1.COUNT - 1).Top = ked.Check1(ked.Check1.COUNT - 2).Top + 300
+  ked.Check1(ked.Check1.COUNT - 1).Visible = True
+  rs.Move 1
+ Loop
+ Unload ked.Check1(ked.Check1.COUNT - 1)
+ ked.Show
+End Sub ' KassenEditieren_Click
+
+' ...für Arzt -> Medarten editieren
+Private Sub MedartenEditieren_Click()
+ Dim mda As New Medarten
+ mda.Show
+End Sub ' MedartenEditieren_Click()
+
+' ...für Arzt -> Laborparameter zusammenfassen
+Private Sub LaborparameterZusammenfassen_Click()
+ Call ProgStart
+ Set pal = Nothing
+ pal.PLArt = artLPar
+ Set pal.hlese = Me
+ Me.Hide
+ pal.Show
+ Call ProgEnde
+End Sub ' LaborparameterZusammenfassen_Click
+
+' Statistik
+
+' Statistik -> Covid-Impfliste
+Private Sub Covid_Impfliste_Click()
+ Dim sql$, rs As New Adodb.Recordset
+ sql = "SELECT Inhalt, concat(nachNAME,', ',vorname) NAME" & vbCrLf & _
+  ",LEFT(CONCAT(COALESCE((SELECT titel FROM desktop WHERE pat_id=i.pat_id AND iconPath RLIKE 'Raum5'),''),SPACE(15)),15) Notiz," & vbCrLf & _
+  "CONCAT('->',Privattel) Tel" & vbCrLf & _
+  ",IF(privatmobil='',concat('->',Privattel_2),concat('->',Privatmobil,IF(privattel_2='','',CONCAT(',',privattel_2)))) `Tel2/Mobil`" & vbCrLf & _
+  "FROM (SELECT LEFT(inhalt,instr(inhalt,' ')) pat_id, inhalt" & vbCrLf & _
+  "       FROM eintraege WHERE pat_id=(SELECT pat_id FROM namen WHERE Nachname='Covid')) i " & vbCrLf & _
+  "LEFT JOIN namen USING (pat_id)" & vbCrLf & _
+  "WHERE NOT ISNULL(lfdnr)" & vbCrLf & _
+  "ORDER BY gebdat;"
+ myFrag rs, sql
+ TabAusgeb rs, Me, True, , , , , , "Covid19-Liste.csv", , , , "Covid-Impfliste, mit 'Raum5' für Notizen", , 0
+End Sub ' Covid_Impfliste_Click
+
+' Statistik -> Hausärzte von Pat. in der BKK
+Private Sub HausärzteBKK_Click()
+ Call ProgStart
+ Call doHABKK(Me)
+End Sub ' Sub HausärzteBKK_Click
+
+' Statistik -> Überweiserstatistik
+Private Sub Überweiserstatistik_Click()
+ Dim rs As New Adodb.Recordset, DatNam$, i&, ausg$, sql$
+ DatNam = pVerz & "Überweiserstatistik " & Format$(Now, "dd.mm.yy hh.mm.ss") & ".csv"
+ Open DatNam For Output As #326
+ Call ProgStart
+' myfrag rs, "SELECT kvnu,anrede, haname,plz,ort,tel1,tel2,fax1,fax2,zulg,arzttyp,gemmit,beme,dmpt2,dmpt1,gelöscht,ct FROM (SELECT COUNT(0) AS ct, LEFT(übwv,7) AS kvnu FROM `faelle` WHERE bhfb > " & DatFor_k(Now - 365) & " AND übwv <> '' GROUP BY übwv " & _
+   "UNION SELECT COUNT(0) AS ct, LEFT(andüw,7) AS kvnu FROM `faelle` WHERE bhfb > " & DatFor_k(Now - 365) & " AND andüw <> '' GROUP BY andüw) AS i LEFT JOIN `kvaerzte`.`hae` USING (kvnu) WHERE not gelöscht AND NOT ISNULL(kvnu) AND kvnu <> '6419153' ORDER BY ct DESC"
+' myfrag rs, "SELECT kvnu,anrede, haname,plz,ort,tel1,tel2,fax1,fax2,zulg,arzttyp,dmpt2,dmpt1 FROM (SELECT COUNT(0) AS ct, LEFT(übwv,7) AS kvnu FROM `faelle` WHERE bhfb > " & DatFor_k(Now - 365) & " AND übwv <> '' GROUP BY übwv " & _
+   "UNION SELECT COUNT(0) AS ct, LEFT(andüw,7) AS kvnu FROM `faelle` WHERE bhfb > " & DatFor_k(Now - 365) & " AND andüw <> '' GROUP BY andüw) AS i LEFT JOIN `kvaerzte`.`hae` USING (kvnu) WHERE not gelöscht AND NOT ISNULL(kvnu) AND kvnu <> '6419153' ORDER BY ct DESC"
+ sql = "SELECT ct,haname,ort,dmpt2,dmpt1,i.kvnu,lname,pat_id,bhfb FROM (SELECT COUNT(0) AS ct, übwr kvnu, GROUP_CONCAT(DISTINCT CAST(pat_id AS char)) pat_id, bhfb FROM quelle.faelle f WHERE bhfb > '2008-12-05 21:39:20' AND übwr <> '' AND übwr <> '641915300' GROUP BY kvnu) i LEFT JOIN " & HADBName & ".`hae` hae ON i.kvnu = hae.kvnu LEFT JOIN (SELECT GROUP_CONCAT(DISTINCT name) lname,kvnr FROM `aktlue` l WHERE kvnro<>'' GROUP BY kvnr) l ON i.kvnu = l.kvnr ORDER BY ct DESC;"
+ DBCn.Execute "SET GROUP_CONCAT_MAX_LEN = 70"
+ myFrag rs, sql
+ For i = 0 To rs.Fields.COUNT - 1
+  ausg = ausg & """" & rs.Fields(i).name & """;"
+ Next
+ ausg = Left(ausg, Len(ausg) - 1)
+ Print #326, ausg
+ Do While Not rs.EOF
+  ausg = vNS
+  For i = 0 To rs.Fields.COUNT - 1
+   ausg = ausg & """" & rs.Fields(i).Value & """;"
+  Next
+  ausg = Left(ausg, Len(ausg) - 1)
+  Print #326, ausg
+  rs.Move 1
+ Loop
+ MsgBox "Fertig!"
+ Close #326
+ Call ProgEnde
+ zeigan DatNam
+End Sub ' Überweiserstatistik_Click
+' SELECT kvnu,anrede, haname,plz,ort,tel1,tel2,fax1,fax2,zulg,arzttyp,gemmit,beme,dmpt2,dmpt1,gelöscht,ct FROM (SELECT COUNT(0) AS ct, LEFT(übwv,7) AS kvnu FROM `faelle` WHERE bhfb > '2007-09-30' AND übwv <> '' GROUP BY übwv UNION SELECT COUNT(0) AS ct, LEFT(andüw,7) AS kvnu FROM `faelle` WHERE bhfb > '2007-09-30' AND andüw <> '' GROUP BY andüw) AS i LEFT JOIN `kvaerzte`.`hae` USING (kvnu) WHERE not gelöscht AND NOT ISNULL(kvnu) AND kvnu <> '6419153' ORDER BY ct DESC;
+
+' Statistik -> &Überweiserstatistik d.letzten 2a
+Private Sub Überweiserstatistik2_Click()
+ Dim rs As New Adodb.Recordset
+ sql = "SELECT COUNT(0) `Überw.Pat.`, übwvlanr, Titel, Vorname, Name,Fachgruppe,Straße,PLZ,Ort, GROUP_CONCAT(DISTINCT pid) PIDs FROM (" & _
+          "SELECT übwvlanr, IF(ISNULL(l.titelt),f.üwtit,l.titelt) Titel," & _
+          "if(ISNULL(l.vorname),f.üwvor,l.vorname) Vorname, IF(ISNULL(l.name),f.üwnan,l.name) Name," & _
+          "if(ISNULL(l.name),'',l.fachgruppe) Fachgruppe, IF(ISNULL(l.name),'',l.strasse) Straße," & _
+          "if(ISNULL(l.name),'',l.plz) PLZ, IF(ISNULL(l.name),'',l.ort) Ort," & _
+          "GROUP_CONCAT(DISTINCT pat_id) pid, l.id lid " & _
+          "FROM faelle f " & _
+          "LEFT JOIN aktlue l ON f.üwnan = l.nameo AND f.üwvor = l.vno AND f.üwtit = l.titelto " & _
+       "WHERE BhFB > SUBDATE(NOW(), 2 * 365) " & _
+       "GROUP BY pat_id, übwvlanr) i " & _
+       "WHERE übwvlanr<>'' " & _
+       "GROUP BY lid ORDER BY COUNT(0) DESC;"
+
+ DBCn.Execute "SET GROUP_CONCAT_MAX_LEN = 70"
+ myFrag rs, sql
+ TabAusgeb rs, Me, , , , , , , "Überweiserstatistik 2a bis " & Format(Now(), "dd.mm.YYYY")
+End Sub ' Überweiserstatistik2_Click
+
+' SELECT COUNT(0),leistung FROM `leistungen` WHERE leistung IN ('97261B','92261A',
+'92292C','92292D','92292E','97268','97269','97271','97274','97278','97279','92292A','92292B','92290A','92291A') AND YEAR(zeitpunkt)= '2008' GROUP BY leistung;
+'1.7.12:
+' schul:
+' SELECT YEAR(zeitpunkt) Jahr, (month(zeitpunkt) -1) div 3 +1 Quartal, COUNT(0) Zahl FROM eintraege e WHERE art = 'schul' GROUP BY YEAR(zeitpunkt), (month(zeitpunkt) -1) div 3 +1;
+
+' Statistik -> Schulungsstatistik nach Schulungsart
+Private Sub Schulungsstatistik_Click()
+ Dim col As New Collection, el, rs As New Adodb.Recordset, ausg$, TA1$, SpMax%(5), rAF&
+ DBCn.Execute "INSERT INTO `ebm2000plus`(leistung,titel,euro) SELECT g.leistung, g.erklärung, g.wert FROM `genehmigungen` g LEFT JOIN `ebm2000plus` e ON g.leistung=e.leistung WHERE ISNULL(e.leistung)", rAF
+ myFrag rs, "SELECT leistung FROM `genehmigungen` WHERE obschulung<>0"
+ Do While Not rs.EOF
+  ausg = rs!Leistung
+  col.Add ausg
+  rs.MoveNext
+ Loop
+ Set rs = Nothing
+' col.Add "97261B"
+' col.Add "92261A"
+' col.Add "97262B"
+' col.Add "92262A"
+' col.Add "97263B"
+' col.Add "92263A"
+' col.Add "97269B"
+' col.Add "92269A"
+' col.Add "97264B"
+' col.Add "92264A"
+' col.Add "97265B"
+' col.Add "92292C"
+' col.Add "92265A"
+' col.Add "97266B"
+' col.Add "92292D"
+' col.Add "92266A"
+' col.Add "97268B"
+' col.Add "92292E"
+' col.Add "92268A"
+' col.Add "97268"
+' col.Add "92292A"
+' col.Add "97269"
+' col.Add "97271"
+' col.Add "97274"
+' col.Add "92292B"
+' col.Add "97278"
+' col.Add "92290A"
+' col.Add "97279"
+' col.Add "92291A"
+ Call ProgStart
+ 
+#If True Then
+  Dim sql As New CString, lst As New CString
+  For Each el In col:  lst.AppVar Array("'", el, "',"): Next el
+  lst.Cut (lst.length - 1)
+  sql.AppVar Array("SELECT e.Leistung,Titel,COUNT(pat_id) Zahl,CAST(GROUP_CONCAT(pat_id) AS char) Pat_IDs FROM `ebm2000plus` e LEFT JOIN `leistungen` l ON l.leistung = e.leistung AND YEAR(SUBDATE(NOW(),INTERVAL 15 DAY)) = YEAR(l.zeitpunkt) WHERE e.leistung IN (", lst.Value, ") GROUP BY e.leistung")
+  DBCn.Execute "SET GROUP_CONCAT_MAX_LEN = 70"
+  myFrag rs, sql.Value
+  SpMax(3) = 100
+  TA1 = TabAusgeb(rs, Me, , , , , SpMax, , "Schulungsstatistik")
+#Else ' True
+'  Dim DatNam$
+'  DatNam = pVerz & "Schulungsstatistik " & Format$(Now, "dd.mm.yy hh.mm.ss") & ".csv"
+'  Open DatNam For Output AS #325
+'  Print #325, "Leistung Titel                                               Anzahl IN " & YEAR(NOW() - 15)
+'  For Each el IN col
+'   SET rs = Nothing
+'   myfrag rs, "SELECT leistung,titel,(SELECT COUNT(0) FROM `leistungen` WHERE leistung = e.leistung AND YEAR(zeitpunkt) = YEAR(SUBDATE(NOW(),INTERVAL 15 DAY))) ct FROM `ebm2000plus` e WHERE leistung = '" & el & "'"
+'   IF rs.EOF THEN rs.Close: myfrag rs, "SELECT COUNT(0) ct, titel FROM `leistungen` l LEFT JOIN `ebm2000plus` e ON l.leistung = e.leistung WHERE l.leistung = '" & el & "' AND YEAR(zeitpunkt) = YEAR(SUBDATE(NOW(),INTERVAL 15 DAY))"
+''   IF el = "97278" THEN
+''    MsgBox "Stop IN Schulungsstatistik_Click:" & vbCrLf & "el = '97278'"
+''    Stop
+''   END IF
+'   ausg = Left$(el & Space(7), 7) & "(" & LEFT(rs!Titel & Space$(60), 60) & "): " & rs!ct
+'   Print #325, ausg
+'  Next el
+'  MsgBox "Fertig!"
+'  Close #325
+' zeigan datnam
+#End If ' True
+End Sub ' Schulungsstatistik_Click
+
+' Statistik -> Gruppenschulungsstatisik nach Ziffernzahl pro Quartal
+Private Sub GruppenSchulungsstatisiknachZiffernzahlproQuartal_Click()
+ Dim rs As New Adodb.Recordset
+ myFrag rs, "SELECT YEAR(zeitpunkt) Jahr, (month(zeitpunkt) -1) div 3 +1 Quartal, COUNT(0) Zahl FROM leistungen l LEFT JOIN `genehmigungen` g ON l.leistung = g.leistung WHERE  obschulung<>0  AND erklärung NOT LIKE '%Sach%' AND erklärung NOT LIKE '%material%' AND erklärung NOT LIKE '%schwang%' AND erklärung NOT LIKE '%buch%' AND erklärung NOT LIKE '%gestat%' AND g.leistung not IN ('92278','92282') GROUP BY YEAR(zeitpunkt), (month(zeitpunkt) -1) div 3 +1"
+ TabAusgeb rs, Me, , , , , , , "Gruppenschulungsstatisik nach Ziffernzahl pro Quartal"
+End Sub  ' GruppenSchulungsstatisiknachZiffernzahlproQuartal_Click
+
+' Statistik -> Sch&ulungszifferanalyse
+Private Sub Schlungsziffer_analyse_Click()
+ Dim rs As New Adodb.Recordset
+ myFrag rs, "SELECT g.Leistung, YEAR(zeitpunkt) Jahr, (month(zeitpunkt) -1) div 3 +1 Quartal, COUNT(0) Zahl, g.Erklärung, g.Wert FROM leistungen l LEFT JOIN `genehmigungen` g ON l.leistung = g.leistung WHERE  obschulung<>0 GROUP BY g.Leistung, YEAR(zeitpunkt), (month(zeitpunkt) -1) div 3 +1"
+ TabAusgeb rs, Me, , , , , , , "Schulungsziffer-Analyse"
+End Sub ' Schlungsziffer-Analyse_Click
+
+' Statistik -> Motivationsgesprächsstatistik
+Private Sub Motivationsgesprächsstatistik_Click()
+ Dim rs As New Adodb.Recordset
+ myFrag rs, "SELECT YEAR(zeitpunkt) Jahr, quarter(zeitpunkt) Quartal, COUNT(0) Zahl FROM leistungen l WHERE leistung IN ('92282','92278') GROUP BY YEAR(zeitpunkt),quarter(zeitpunkt) ORDER BY YEAR(zeitpunkt) DESC,quarter(zeitpunkt) DESC"
+ TabAusgeb rs, Me, , , , , , , "Motivationsgesprächsstatistik"
+End Sub ' Motivationsgesprächsstatistik_Click
+
+' Statistik -> Patienten mit AOK-Kriterien
+Private Sub PatientenMitAOKKriterien_Click()
+' 2 x gestrichen: AND ln.einheit = '%'
+ Dim rs As New Adodb.Recordset
+' sql = "SELECT IF (HbA1c>=7.3 OR GFR <= 40,'X','') Krit, i.* from" & _
+       "(SELECT `aktfvs`.pat_id, DATE(hba1c.zp) `HbA1c-Tag`, hba1c.wert HbA1c, DATE(krea.zp) `Krea-Tag`, krea.wert Krea, IF(REPLACE(krea.wert,',','.')=0 OR timestampdiff(year,n.gebdat,krea.zp)<=0,'-',round(186 * pow(REPLACE(krea.wert,',','.') * 1.0526,-1.154) * pow(timestampdiff(year,n.gebdat,krea.zp),-0.203)*if(geschlecht='w',0.742,1),0)) GFR  " & _
+       "FROM `aktfvs` LEFT JOIN " & _
+       "(SELECT pat_id, zeitpunkt zp, abkü, einheit, wert FROM `laborneu` WHERE abkü RLIKE '[ck]rea$|[ck]rea[^u]' AND einheit = 'mg/dl' UNION SELECT u.pat_id pat_id, u.eingang zp, w.abkü abkü, w.einheit einheit, w.wert wert FROM `laboryus` u LEFT JOIN laborywert w ON u.id = w.usid WHERE abkü RLIKE '[ck]rea$|[ck]rea[^u]' AND einheit = 'mg/dl' ORDER BY pat_id,zp DESC) krea ON `aktfvs`.pat_id = krea.pat_id LEFT JOIN `namen` n ON krea.pat_id = n.pat_id " & _
+       "LEFT JOIN (SELECT pat_id, zeitpunkt zp, wert FROM `laborneu` ln WHERE abkü RLIKE 'hba[c1]' AND CAST(wert AS decimal) < 22 UNION SELECT u.pat_id, u.eingang zp, w.wert FROM `laboryus` u LEFT JOIN laborywert w ON u.id = w.usid WHERE abkü RLIKE 'hba[c1]' AND CAST(wert AS decimal) < 22 ORDER BY pat_id,zp DESC) hba1c ON `aktfvs`.pat_id = hba1c.pat_id WHERE datediff(NOW(), hba1c.zp) <100 OR datediff(NOW(),krea.zp)<100 GROUP BY `aktfvs`.pat_id) i"
+ sql = "SELECT IF (h.letzter>=7.3 OR _lGFR(f.pat_id)<= 40,'X','') Krit, f.pat_id,h.letzter HbA1c,h.lzp HbA1cZp,k.letzter Krea, k.lzp KreaZp, _lGFR(f.pat_id) eGFR FROM " & vbCrLf & _
+       "aktfvs f LEFT JOIN lHbA1c h USING (pat_id) " & vbCrLf & _
+       "LEFT JOIN lKrea k USING (pat_id); "
+
+ myFrag rs, sql
+ TabAusgeb rs, Me, , , , , , , "PatMitAokKrit"
+End Sub ' PatientenMitAOKKriterien_Click
+
+' Statistik -> Gestationsdiabetikerinnen pro Quartal
+Private Sub GestationsdiabetikerinnenProQuartal_Click()
+ Dim rs As New Adodb.Recordset
+ myFrag rs, "SELECT Quartal, COUNT(0) Zahl FROM (SELECT f.quartal FROM faelle f LEFT JOIN diagnosen d ON f.fid = d.fid AND f.pat_id = d.pat_id WHERE d.gicd = 'O24.4' GROUP BY d.pat_id) i GROUP BY quartal ORDER BY mid(quartal,2), quartal"
+ TabAusgeb rs, Me, , , , , , , "Gestationsdiabetikerinnen pro Quartal", 0, True
+End Sub ' GestationsdiabetikerinnenProQuartal_Click
+
+' Statistik -> Gestationsdiabetikerinnen
+Private Sub Gestationsdiabetikerinnen_Click()
+' SELECT f.pat_id,f.fid, LEFT(CONCAT(a.nachname,' ',a.vorname),20) AS name, DATE_FORMAT(a.gebdat,'%d.%m.%y') AS geb, d.icd, d.diagsicherheit AS dsi, diabetestyp FROM `aktfvs` f LEFT JOIN `diagnosen` d ON f.fid = d.fid AND icd = 'O24.4' AND diagsicherheit not IN ('A','Z') LEFT JOIN `anamnesebogen` a ON f.pat_id = a.pat_id WHERE (NOT ISNULL(icd) OR a.diabetestyp = 'g');
+ Dim rs As New Adodb.Recordset, rez As New Adodb.Recordset, Pat_id&, AusgStr$, TA1$, STA1$(), i&
+ Dim SpMin%(2)
+ SpMin%(0) = 6
+ Call ProgStart
+' Open DatNam For Output AS #327
+ myFrag rs, "SELECT f.pat_id,f.fid, LEFT(CONCAT(a.nachname,' ',a.vorname),20) name, DATE_FORMAT(a.gebdat,'%d.%m.%y') AS geb, d.icd, d.diagsicherheit AS dsi, diabetestyp FROM `aktfvs` f LEFT JOIN `diagnosen` d ON f.fid = d.fid AND gicd = 'O24.4' LEFT JOIN `anamnesebogen` a ON f.pat_id = a.pat_id WHERE (NOT ISNULL(icd) OR a.diabetestyp = 'g')"
+ TabAusgeb rs, Me, True, , , , , , "Gestationsdiabetikerinnen"
+End Sub ' Gestationsdiabetikerinnen_Click
+
+' Statistik -> PLZ aus Liste (kein Insulin mehr)
+Private Sub PLZausListe_Click()
+' Dim plzverzalt$
+ Dim sql$, Zahl&, plzVerz$
+ Dim rs As New Adodb.Recordset
+ On Error GoTo fehler
+'  plzverzalt = plzVerz
+  plzVerz = plzVz & "keinInsulinmehr\"
+  On Error Resume Next
+  MkDir plzVerz
+  On Error GoTo fehler
+'  sql = "SELECT t1.pat_id, gesnameg(t1.pat_id) Name, t1.therart, COUNT(gs.art) gsz, COUNT(tk.art) tkz, t1.zp t1zp,t2.therart,t2.zp t2zp FROM therarten t1 " & _
+        "LEFT JOIN therarten t2 ON t1.pat_id = t2.pat_id AND t2.zp> t1.zp " & _
+        "LEFT JOIN eintraege gs ON t1.pat_id = gs.pat_id AND gs.art = 'gs' " & _
+        "LEFT JOIN eintraege tk ON t1.pat_id = tk.pat_id AND tk.art = 'tk' " & _
+        "WHERE NOT ISNULL(t2.zp) AND t1.therart IN ('ict','ct','Komb') AND t2.therart IN ('diät','oad') " & _
+        "AND NOT EXISTS (SELECT icd FROM diagnosen d WHERE d.pat_id = t1.pat_id AND d.icd LIKE 'E10%' AND d.diagsicherheit IN ('G',' ')) " & _
+        "GROUP BY pat_id ORDER BY t2.zp DESC; "
+' liefert auf SQL-Ebene z.T. falsche Ergebnisse für gsz und tkz (jeweils die gleiche hohe Zahl), liegt wohl am Group (müßte noch tk.id und gs.id enthalten
+  sql = "SELECT t1.pat_id, gesnameg(t1.pat_id) Name, t1.therart, " & _
+          "(SELECT COUNT(0) FROM eintraege WHERE pat_id = t1.pat_id AND art = 'gs') gsz, " & _
+          "(SELECT COUNT(0) FROM eintraege WHERE pat_id = t1.pat_id AND art = 'tk') tkz, " & _
+          "t1.zp t1zp,t2.therart,t2.zp t2zp FROM therarten t1 " & _
+        "LEFT JOIN therarten t2 ON t1.pat_id = t2.pat_id AND t2.zp> t1.zp " & _
+        "WHERE NOT ISNULL(t2.zp) AND t1.therart IN ('ict','ct','Komb') AND t2.therart IN ('diät','oad') " & _
+        "AND NOT EXISTS (SELECT icd FROM diagnosen d WHERE d.pat_id = t1.pat_id AND d.gicd LIKE 'E10%' " & _
+        "GROUP BY pat_id ORDER BY t2.zp DESC, t2.MPNr desc; "
+  myFrag rs, sql
+  If Not rs.BOF Then
+   Do While Not rs.EOF
+    Zahl = Zahl + 1
+    dodoPLZ rs!Pat_id, plzVz, , , , rs!T1Zp & " - " & rs!T2Zp & " (gs " & rs!gsz & ", tk " & rs!Tkz & ")", 0
+    rs.MoveNext
+   Loop
+  End If
+'  plzVerz = plzverzalt
+ Ausgeb "Fertig mit PLZ für " & Zahl & " Patienten mit keinem Insulin mehr", 1
+ Exit Sub
+fehler:
+ Dim AnwPfad$
+#If VBA6 Then
+ AnwPfad = CurrentDb.name
+#Else
+ AnwPfad = App.path
+#End If
+ Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler IN PLZausListe_Click/" + AnwPfad)
+  Case vbAbort: Call MsgBox("Höre auf"): ProgEnde
+  Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
+  Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
+ End Select
+End Sub ' PLZausListe_Click
+
+' Statistik -> Pioglitazon-Rezepte ab 1.4.11
+Private Sub PioglitazonRezepte_Click() ' Pioglitazon-Rezepte ab 1.4.11
+ Dim rs As New Adodb.Recordset
+ myFrag rs, "SELECT r.pat_id, r.zeitpunkt, r.medikament, f.schgr FROM `rezepteintraege` r LEFT JOIN `faelle` f ON r.fid = f.fid WHERE (medikament LIKE '%actos%' OR medikament LIKE '%competact%') AND rezklkurz<>'prp' AND zeitpunkt > '2011-03-31' AND schgr <> 90"
+ TabAusgeb rs, Me, , , , , , , "Pioglitazon-Rezepte ab 1.4.11"
+End Sub ' PioglitazonRezepte_Click
+
+' Statistik -> Diabetiker ohne Schulung letztes Jahr
+Private Sub DiabetikerOhneSchulungLetztesJahr_Click()
+ Dim rs As New Adodb.Recordset
+ sql = "SELECT f.Pat_ID, CONCAT(n.nachname,',',n.vorname) `Diabetiker von letztem Quartal ohne Schulung letztes Jahr` FROM `aktfvs` f LEFT JOIN `namen` n ON f.pat_id = n.pat_id LEFT JOIN `diagnosen` d ON f.pat_id = d.pat_id AND gicd REGEXP '^E1[0-4]|^O24' LEFT JOIN `eintraege` e ON f.pat_id = e.pat_id AND art = 'schul' AND YEAR(zeitpunkt) = YEAR(SUBDATE(NOW(),INTERVAL 25 DAY)) WHERE ISNULL(art) AND NOT ISNULL(icd) AND schgr <> 90 GROUP BY pat_id"
+ myFrag rs, sql
+ TabAusgeb rs, Me, , , , , , , "DiabetikerOhneSchulungLetztesJahr"
+End Sub ' DiabetikerOhneSchulungLetztesJahr_Click
+
+' Statistik -> Therapieartenwechsel
+Private Sub Therapieartenwechsel_Click() ' s. therart_erm
+ Dim rs As New Adodb.Recordset, sql$, altpat_id&, altTherArt$, rAF&, erg&, T1!, T2!
+ Const FristS$ = "25"
+ Call ProgStart
+ erg = MsgBox("Mit Neuauswertung der Therapiearten?", vbYesNo + vbQuestion + vbDefaultButton2, "Rückfrage")
+ If erg = vbYes Then
+  T1 = Timer
+  Ausgeb "Bitte warten", 0
+'  DBCn.Execute "CREATE TABLE IF NOT EXISTS `therarten`(id integer key auto_increment,pat_id integer, zp datetime, mpnr integer, therart varchar(7), index pat_id(pat_id))", rAF
+  DBCn.Execute "CREATE TABLE IF NOT EXISTS `therarten`(id INT(11) NOT NULL AUTO_INCREMENT,pat_id INT(11) NULL DEFAULT NULL,zp DATETIME NULL DEFAULT NULL,mpnr INT(11) NULL DEFAULT NULL,therart VARCHAR(7) NULL DEFAULT NULL COLLATE 'utf8mb4_german2_ci',insart INT(1) UNSIGNED NOT NULL DEFAULT '0' COMMENT '\'0=keines, 1=nur Mahlzeiten,2=nur Verzögerungs,3=nur Misch, 4=verschiedene',Grund VARCHAR(1000) NULL DEFAULT NULL COMMENT 'Grund/Gründe für Zuordnung' COLLATE 'utf8mb4_german2_ci',absPos INT(10) NULL DEFAULT NULL,AktZeit DATETIME NULL DEFAULT NULL,StByte INT(10) NULL DEFAULT NULL,PRIMARY KEY (id) USING BTREE,INDEX pat_id (pat_id) USING BTREE,INDEX zp (zp,mpnr) USING BTREE) COLLATE='utf8mb4_german2_ci' ENGINE = MyISAM"
+  DBCn.Execute "TRUNCATE `therarten`"
+#If Not thaalt Then
+  DBCn.Execute "call fuellThaP(0)"
+#Else
+  sql = "SELECT pat_id, zp, mpnr, IF(purez OR puzu,'CSII',IF(obict=1,'ICT',IF(insu=0,IF(oad=1,'OAD','Diät'),IF(oad=1,'Komb','CT')))) therart FROM (SELECT mpü.pat_id, mpü.zeitpunkt zp, mpü.mpnr, " & _
+        "(SELECT COUNT(0)<>0 oad FROM `medplan` mpu LEFT JOIN `medarten` ma ON mpu.medanfang = ma.medikament WHERE mpu.pat_id = mpü.pat_id AND mpu.mpnr = mpü.mpnr AND (glib<>0 OR metf<>0 OR gluci<>0 OR shglin<>0 OR glit<>0 OR dpp4<>0 OR sglt2<>0 OR sonstad<>0)) oad, " & _
+        "(SELECT COUNT(0)<>0 oad FROM `medplan` mpu LEFT JOIN `medarten` ma ON mpu.medanfang = ma.medikament WHERE mpu.pat_id = mpü.pat_id AND mpu.mpnr = mpü.mpnr AND (glp1<>0)) glp1, " & _
+        "(SELECT (MAX((mpu.mo<>'')+(mpu.mi<>'')+(mpu.ab<>'')+(mpu.zn<>''))>0) obict FROM `medplan` mpu LEFT JOIN `medarten` ma ON mpu.medanfang = ma.medikament WHERE mpu.pat_id = mpü.pat_id AND mpu.mpnr = mpü.mpnr AND insart =1) obict, " & _
+        "(SELECT COUNT(0)<>0 insu FROM `medplan` mpu LEFT JOIN `medarten` ma ON mpu.medanfang = ma.medikament WHERE mpu.pat_id = mpü.pat_id AND mpu.mpnr = mpü.mpnr AND (ins<>0 OR anal<>0)) insu, " & _
+        "(SELECT COUNT(0)<>0 puzu FROM `medplan` mpu LEFT JOIN `medarten` ma ON mpu.medanfang = ma.medikament WHERE mpu.pat_id = mpü.pat_id AND mpu.mpnr = mpü.mpnr AND puzu<>0) purez, " & _
+        "(SELECT COUNT(0)<> 0 FROM (((`forminhfeld` LEFT JOIN `forminhkopf` ON `forminhfeld`.foid=`forminhkopf`.foid) LEFT JOIN `formulare` ON `formulare`.formid=`forminhkopf`.form_id) LEFT JOIN `forminhaltfeld` ON `forminhfeld`.feldvw=`forminhaltfeld`.feldvw) LEFT JOIN `forminhaltfeldinh` ON `forminhfeld`.feldinhvw=`forminhaltfeldinh`.feldinhvw  WHERE form_abk IN ('lar','plar') AND feld IN ('medikament','txtmedKey') AND zeitpunkt > SUBDATE(mpü.zeitpunkt, INTERVAL 0.5 YEAR) AND pat_id = mpü.pat_id) puzu " & _
+        "(feldinh LIKE '%reservoir%' OR feldinh LIKE '%Rapid D Link%' OR feldinh LIKE '%Rap D Li%' OR feldinh LIKE '%Rapid-D Li%' OR feldinh LIKE '%TenderL%' OR feldinh LIKE '%FlexL%' OR feldinh LIKE '%Check Spirit%' OR feldinh LIKE '%Insight%' OR feldinh LIKE '%Chek Spirit%' OR feldinh LIKE '%Pumpenträg%' OR feldinh LIKE '%Kunststoffampu%' OR feldinh LIKE '%Spritzampull%' OR feldinh LIKE '%batteriefachdeckel%' OR feldinh LIKE '%H-Tron%' OR feldinh LIKE '%D-Tron%' OR feldinh LIKE '%Paradigm%' OR feldinh LIKE '%CSII%' OR feldinh LIKE '%linpumpe%' OR feldinh LIKE '%omnipod%' OR feldinh LIKE '%ypso pump%' OR " & _
+        " feldinh LIKE '%MiniMed%' OR feldinh LIKE '%640G%' OR feldinh LIKE '%CareLink%' OR Feldinh LIKE '%Mio %' OR feldinh LIKE '%Quick%set%' OR feldinh LIKE '%Silhouette%' OR feldinh LIKE '%Sure-T%' OR feldinh LIKE '%Sure T%' OR feldinh LIKE '%Paradigm%' OR feldinh LIKE '% Veo%' OR feldinh LIKE '%Animas%' OR feldinh LIKE '%Car%idge%') AND zeitpunkt > SUBDATE(mpü.zeitpunkt, INTERVAL 0.5 YEAR) AND pat_id = mpü.pat_id) puzu " & _
+        "FROM `medplan` mpü GROUP BY mpü.pat_id, mpü.mpnr, mpü.zeitpunkt) i"
+  myFrag rs, sql
+  Do While Not rs.EOF
+   If rs!Pat_id <> altpat_id Or rs!therart <> altTherArt Then
+    InsKorr DBCn, DBCnS, "INSERT INTO `therarten`(pat_id,zp,mpnr,therart) VALUES(" & rs!Pat_id & "," & DatFor_k(rs!Zp) & "," & rs!MPNr & ",'" & rs!therart & "')", rAF
+    altpat_id = rs!Pat_id
+    altTherArt = rs!therart
+   End If
+   rs.Move 1
+  Loop
+#End If
+  T2 = Timer
+  Ausgeb "Fertig mit Auffüllen der Tabelle Therapiearten, " & CStr(T2 - T1) & " Sekunden", True, True
+ End If ' erg=vbYes
+ Set rs = Nothing
+' ' LEFT JOIN `diagnosen` d ON f.pat_id = d.pat_id AND icd REGEXP '^E1[0-4]' AND diagsicherheit <> 'A'
+ sql = "SELECT a.Pat_ID, gesname(a.pat_id) Name, ICD, AufnDat, SchGr, t.zp `Beginn`,TherArt " & _
+       "FROM `aktfvs` a LEFT JOIN `diagnosen` d ON a.pat_id = d.pat_id AND gicd REGEXP '^E1[0-4]|^O24' " & _
+       "LEFT JOIN `therarten` t ON a.pat_id = t.pat_id " & _
+       "WHERE (therart ='ICT' OR therart = 'CSII') AND " & _
+       "zp BETWEEN " & lQAnfuEnd(FristS) ', 1)
+' "zp BETWEEN str_to_date(CONCAT(YEAR(SUBDATE(NOW(),INTERVAL " & fristS & " DAY)),'/',((month(SUBDATE(NOW(),INTERVAL " & fristS & " DAY))-1) div 3)*3+1,'/1'),'%Y/%m/%d') AND SUBDATE(adddate(str_to_date(CONCAT(YEAR(SUBDATE(NOW(),INTERVAL " & fristS & " DAY)),'/',((month(SUBDATE(NOW(),INTERVAL 20 DAY))-1) div 3)*3+1,'/1'),'%Y/%m/%d'),INTERVAL 3 MONTH),INTERVAL 1 DAY)"
+ myFrag rs, sql
+ Call TabAusgeb(rs, Me, , , , , , , "NeueICT")
+End Sub ' Sub Therapieartenwechsel_Click
+
+' Statistik -> HbA&1c-Statistik (dauert ...)
+Private Sub HbA1cStatistik_Click() ' HbA1c-Stastisik
+ Dim rs As New Adodb.Recordset
+ myFrag rs, "SELECT COUNT(0) Zahl, ROUND(avg(HbA1c),1) `mittl.HbA1c`, Quartal,ICD FROM (SELECT f.quartal, f.pat_id, MIN(d.icd) icd, l.letzter HbA1c FROM faelle f LEFT JOIN diagnosen d ON f.pat_id = d.pat_id AND d.gicd RLIKE '^E1[0-4]\.|^O24\.' AND obdauer <> 0 LEFT JOIN lHbA1c l ON f.pat_id = l.pat_id WHERE NOT ISNULL(icd) GROUP BY f.quartal, f.pat_id) i GROUP BY quartal, icd ORDER BY icd,mid(quartal,2),quartal"
+ TabAusgeb rs, Me, , , , , , , "HbA1c-Stastik nach Diabetes-Typ und Quartal"
+End Sub ' HbA1c-Statistik
+
+' Statistik -> Hilfsmittelklassifikationen
+Private Sub Hilfsmittelklassifikationen_Click()
+ Call ProgStart
+ Call doHilfsmittelklassifikationen(Me)
+ Call ProgEnde
+End Sub ' Hilfsmittelklassifikationen_Click
+
+' Statistik -> Einlesungen
+Private Sub Einlesungen_Click()
+ Dim sql$, rs As New Adodb.Recordset
+ sql = "SELECT COUNT(0) Zahl, n.Stbyte, MAX(pat_id) lPat, e.Zp1, e.Zp8, e.Fallzahl, e.Datei, e.DateiAend FROM namen n LEFT JOIN `eintragszahlen` e ON n.stbyte = e.stbyte GROUP BY n.stbyte ORDER BY n.stbyte DESC"
+ myFrag rs, sql
+ TabAusgeb rs, Me, , , , , , , , , , , "Einlesungen"
+End Sub ' Einlesungen_Click
+
+' Statistik -> Fallzahlstand
+Private Sub Fallzahlstand_Click()
+ Dim tage$
+ Call ProgStart
+ Do While Not IsNumeric(tage) And tage <> "-"
+  tage = InputBox("Vor wie vielen Tagen ('-' = gesamtes Quartal)?", "Rückfrage", 0)
+  If LenB(tage) = 0 Then Exit Sub
+ Loop
+ If tage <> "-" Then tage = CDbl(tage)
+ Call dofallzahlstand(Me, tage)
+ Call ProgEnde
+End Sub ' Fallzahlstand_Click
+
+' Statistik -> Wohnortstatistik
+Private Sub Wohnortstatistik_Click()
+ Dim rs As New Adodb.Recordset
+ myFrag rs, "SELECT * FROM (SELECT COUNT(0) Zahl, ROUND(COUNT(0)/(SELECT COUNT(0) FROM `aktfvs`)*100,2) Prozent, Ort, Plz FROM `aktfvs` f LEFT JOIN namen n USING (pat_id) GROUP BY plz) i ORDER BY prozent DESC"
+ TabAusgeb rs, Me, , , , , , , "Wohnortstatistik"
+End Sub ' Herkunftsstatistik_Click
+
+' Statistik -> GNR-Statistiken einlesen
+Private Sub GNR_Statistiken_einl_Click() ' GNR-Stastistiken einlesen, für GNR_Statistik und Quartalsvergleich
+ Call doGNR_Statistiken_einl_Click
+End Sub ' GNR_Statistiken_einl_Click
+
+' Statistik -> GNR-Statistik
+Private Sub GNR_Statistik_Click()
+ Dim sql$, rs As New Adodb.Recordset
+ sql = "SELECT ROUND(SUM(uwert)) wert, COUNT(z.id) ZdLstZiff," & _
+ "(SELECT COUNT(DISTINCT pat_id) FROM faelle WHERE quartal=concat(mid(qinv,5,1),LEFT(qinv,4)) AND schgr <> '90' AND NOT goäkatnr IN ('40','41') AND nachname <> 'Bereitschaftsdienst') FZahl," & _
+ "s.Datei, s.DateiDat, s.Qinv FROM GNRStat s LEFT JOIN GNRZahl z ON s.id = z.statid GROUP BY s.id ORDER BY qinv DESC"
+ myFrag rs, sql
+ TabAusgeb rs, Me, , , , , , , , , , , "GNR-Statistik"
+End Sub ' GNR_Statistik_Click
+
+' Statistik -> Quartalsvergleich
+Private Sub Quartalsvergleich_Click()
+ Dim sql$, rs As New Adodb.Recordset
+ Dim q1$, q2$, ID1$, id2$
+ q1 = InputBox("Bitte das untersuchende Quartal eingeben (yyyym)", "Eingabe 1", QuartalStr(Now() - 21, True))
+ q2 = InputBox("Bitte das Vergleichsquartal eingeben (yyyym)", "Eingabe 2", QuartalStr(Now() - 21 - 90, True))
+ Set rs = Nothing
+ myFrag rs, "SELECT id FROM GNRStat WHERE qinv = '" & q1 & "'"
+ If rs.EOF Then
+  MsgBox "kein Datensatz zu " & q1 & "gefunden!"
+  Exit Sub
+ Else
+  ID1 = rs!id
+ End If
+ Set rs = Nothing
+ myFrag rs, "SELECT id FROM GNRStat WHERE qinv = '" & q2 & "'"
+ If rs.EOF Then
+  MsgBox "kein Datensatz zu " & q2 & "gefunden!"
+  Exit Sub
+ Else
+  id2 = rs!id
+ End If
+ sql = "SELECT i.*, l.leistungstext FROM (" & _
+       "SELECT gnr, ROUND(wert1) _" & q1 & ",round(wert2) _" & q2 & ",round(wert1-wert2) Diff FROM (SELECT z1.gnr, z1.euro euro1, z1.uwert wert1, IF(ISNULL(z2.euro),0,z2.euro) euro2 , IF(ISNULL(z2.uwert),0,z2.uwert) wert2 FROM GNRZahl z1 LEFT JOIN GNRZahl z2 ON z1.gnr = z2.gnr AND z2.statid=" & id2 & " WHERE z1.statid=" & ID1 & ") i " & _
+       "UNION DISTINCT " & _
+       "SELECT gnr, ROUND(wert2) _" & q1 & ",round(wert1) _" & q2 & ",round(wert2-wert1) Diff FROM (SELECT z1.gnr, z1.euro euro1, z1.uwert wert1, IF(ISNULL(z2.euro),0,z2.euro) euro2 , IF(ISNULL(z2.uwert),0,z2.uwert) wert2 FROM GNRZahl z1 LEFT JOIN GNRZahl z2 ON z1.gnr = z2.gnr AND z2.statid=" & ID1 & " WHERE z1.statid=" & id2 & ") i " & _
+       ") i LEFT JOIN EBM2010 l ON IF(LEFT(l.ziffer,1)='0',mid(l.ziffer,2),l.ziffer) = i.gnr AND leistungstext<>'' " & _
+       "ORDER BY diff"
+ Set rs = Nothing
+ myFrag rs, sql
+ TabAusgeb rs, Me, , , , , , , "Quartalsvergleich " & q1 & " vs. " & q2, 1
+End Sub ' Quartalsvergleich_Click
+
+' Statistik -> Pumpenträgerliste
+' künftig ähnlich:
+' SELECT gesname(th.pat_id) Name, th.Pat_id, DATE_FORMAT(th.zp,'%d.%m.%Y') CSII_hier_seit, (SELECT DATE_FORMAT(MAX(bhfb),'%d.%m.%Y') FROM faelle f WHERE f.pat_id= th.pat_id) BhFB FROM therarten th LEFT JOIN anamnesebogen a ON th.pat_id = a.pat_id WHERE therart = 'CSII' AND zp = (SELECT MAX(zp) FROM therarten t WHERE t.pat_id = th.pat_id) AND tkz=0;
+Private Sub Pumpenträgerliste_Click() ' s. therart_erm
+ Dim rs As New Adodb.Recordset, rez As New Adodb.Recordset, Pat_id&, AusgStr$, DatNam$, TA1$, STA1$(), i&
+ Dim SpMin%(2)
+ SpMin%(0) = 6
+ Call ProgStart
+ DatNam = pVerz & "Pumpenträger " & Format$(Now, "dd.mm.yy hh.mm.ss") & ".txt"
+ Open DatNam For Output As #326
+ ' für Acrobat Querdruck 70%
+ myFrag rs, "SELECT a.pat_id, LEFT(CONCAT(a.nachname,',',a.vorname,IF(a.titel='','',','),a.titel,IF(a.nvorsatz='','',' '),a.nvorsatz,' (',a.anrede,')'),24) AS name, DATE_FORMAT(a.gebdat,'%d.%m.%y') AS geb, LEFT(CONCAT(`diabetes seit`,' ',a.`insulin seit`),12) AS 'D.m./Ins.', LEFT(CONCAT(IF(a.insulinpumpe=1,'+','-'),' ',a.`insulinpumpe seit`,' ',a.`insulinpumpe marke`),24) AS 'Pumpe b.Anamn./seit/Marke', LEFT(a.ther1,4) AS Ther1, LEFT(a.dmp,9) AS DMP, f.schgr AS SG, DATE_FORMAT(f.bhfb,'%d.%m.%y') AS bhfb, LEFT(CONCAT(privattel, '|',privatmobil,'|',diensttel,'|',email,'|',privatfax,'|',privattel_2),60) AS kontakt FROM `anamnesebogen` a LEFT JOIN `namen` n ON a.pat_id = n.pat_id LEFT JOIN lfaellev f ON a.pat_id = f.pat_id WHERE therakt = 'CSII' AND tkz = 0"
+ TA1 = TabAusgeb(rs, Me, True).Value
+ Print #326, TA1
+ STA1 = Split(TA1, vbCrLf)
+ Print #326, ''
+ Print #326, ''
+ i = 1
+ Do While Not rs.EOF
+ ' pumpentr
+  Set rez = Nothing
+  Pat_id = rs!Pat_id
+  ' ,'txtmedKey'
+  sql = forminhalt & " WHERE form_abk IN ('lar','plar') AND feld IN ('medikament','txtmedKey') AND " & _
+        "(feldinh LIKE '%reservoir% OR feldinh LIKE '%Rapid D Link%' OR feldinh LIKE '%Rap D Li%' OR feldinh LIKE '%Rapid-D Li%' OR feldinh LIKE '%TenderL%' OR feldinh LIKE '%FlexL%' OR feldinh LIKE '%Check Spirit%' OR feldinh LIKE '%Insight%' OR feldinh LIKE '%Chek Spirit%' OR feldinh LIKE '%Pumpenträg%' OR feldinh LIKE '%Kunststoffampu%' OR feldinh LIKE '%Spritzampull%' OR feldinh LIKE '%batteriefachdeckel%' OR feldinh LIKE '%H-Tron%' OR feldinh LIKE '%D-Tron%' OR feldinh LIKE '%Paradigm%' OR feldinh LIKE '%CSII%' OR feldinh LIKE '%linpumpe%' OR feldinh LIKE '%omnipod%' OR feldinh LIKE '%ypso pump%' OR feldinh LIKE '%MiniMed%' OR feldinh LIKE '%640G%' OR feldinh LIKE '%CareLink%' OR Feldinh LIKE '%Mio %' OR feldinh LIKE '%Quick%set%' OR feldinh LIKE '%Silhouette%' OR feldinh LIKE '%Sure-T%' OR feldinh LIKE '%Sure T%' OR feldinh LIKE '%Paradigm%' OR feldinh LIKE '% Veo%' OR feldinh LIKE '%Animas%' OR feldinh LIKE '%Car%idge%') " & _
+        "and zeitpunkt > " & DatFor_k(rs!BhFB - 640) & " AND pat_id = " & Pat_id & " ORDER BY zeitpunkt DESC LIMIT 10"
+  myFrag rez, "SELECT Pat_ID, Zeitpunkt, Feldinh FROM (" & sql & ") i"
+  Print #326, STA1(i)
+  Print #326, TabAusgeb(rEinl:=rez, AusgebFrm:=Me, obMitausgeb:=False, ohneKopfZ:=True, SpMinÜ:=SpMin).Value
+'  Do While Not rez.EOF
+'   rez.Move 1
+'  Loop
+  rs.Move 1
+  i = i + 1
+ Loop
+ Close #326
+ zeigan DatNam
+End Sub ' Pumpenträgerliste_Click
+
+' Statistik -> suchTel
+Private Sub suchTel_Click()
+ ProgStart
+ Call doSuchTel(Me)
+End Sub ' suchTel_Click
+
+' EDV
+
+' EDV -> MachTypen (Datei Typen.bas erstellen)
+Private Sub MachTypen_Click(Index%)
+ Call ProgStart
+ Call MacheTypen(Me)
+ Call ProgEnde
+End Sub ' MachTypen_Click
+
+' EDV -> MachDB
+Private Sub MachDB_Click()
+ Dim MdB As New MachDatenbank
+ MdB.Show
+ Set MdB = Nothing
+End Sub ' MachDB_Click
+
+' hierweiter
+'Public EinlAb&
+Private Sub TestFos_Click()
+ Dim rs As New Adodb.Recordset
+ Call ProgStart
+ myFrag rs, "SELECT medikament, Urä, Ostp FROM `medarten` WHERE medikament = 'FOSAVANCE'"
+ Debug.Print rs!Medikament, rs!urä, rs!ostp
+ Call ProgEnde
+End Sub ' TestFos_Click
+
+' ...für Arzt -> alle DMP-Dokumente an Hausärzte faxen
+Private Sub AlleDMPanHA_Click() ' Alle DMP-Dokumente an Hausärzte faxen
+#If False Then
+ Dim pad As New PatListe
+ pad.PLArt = artDMP
+ Set pad.hlese = Me
+ pad.Show
+#Else
+ Call ProgStart
+ Set pal = Nothing
+ pal.PLArt = artDMP
+ Set pal.hlese = Me
+ Me.Hide
+ pal.Show
+ Call ProgEnde
+#End If
+End Sub ' AlleDMPanHA_Click
+
+Function FileJoin&(strFile1$, strFile2$)
+    Dim b() As Byte
+    Dim nFileNum%
+    Dim lFileLen&
+    nFileNum = FreeFile
+    Open strFile1 For Binary Access Read As nFileNum
+        b() = InputB(LOF(nFileNum), nFileNum)
+    Close nFileNum
+    nFileNum = FreeFile
+    lFileLen = FSO.GetFile(strFile2).size ' 21.8.21 statt Filelen
+    Open strFile2 For Binary Access Write As nFileNum
+        Put nFileNum, (lFileLen + 1), b()
+    Close nFileNum
+    FileJoin = lFileLen
+End Function ' FileJoin
+
+Function umlweg$(q$)
+' IF InStrB(q, "Ü") OR InStrB(q, "ß") THEN Stop
+ umlweg = REPLACE$(REPLACE$(REPLACE$(REPLACE$(REPLACE$(REPLACE$(REPLACE$(q, "ä", "\'e4"), "Ä", "\'c4"), "ö", "\'f6"), "Ö", "\'d6"), "ü", "\'fc"), "Ü", "\'dc"), "ß", "\'df")
+End Function ' umlweg$
 
 Private Sub AlleFallzahlstände_Click()
  Dim i%, erg&
@@ -1141,27 +2761,7 @@ Private Sub AlleFallzahlstände_Click()
   Next i
  End If ' erg = vbYes THEN
  dofallzahlstand Me, "-"
-End Sub ' AlleFallzahlstände_Click()
-
-' Funktionen für Arzthelferin und Arzt -> Dokumentnamenprüfung
-Private Sub Dokumentnamenprüfung_Click()
- Dim sql$, rs As New Adodb.Recordset
- sql = "SELECT b.pat_id, b.zeitpunkt, CONCAT(n.nachname, ', ',n.vorname) Name,  b.name Dokname " & _
-       "FROM briefe b LEFT JOIN namen n ON b.pat_id = n.pat_id " & _
-       "WHERE ((zuuml(b.name) NOT LIKE CONCAT('%',zuuml(n.nachname),'%') " & _
-       "and zuuml(CONCAT('ZZZ',b.name)) NOT LIKE CONCAT('%',zuuml(n.nachname),'%')) " & _
-       "or zuuml(b.name) NOT LIKE CONCAT('%',zuuml(n.vorname),'%')) " & _
-       "and not b.name IN ('GDT Import Datei') AND NOT b.name LIKE 'Brief an %' AND b.name<>'CGM BMP gedruckt' ORDER BY b.pat_id DESC;"
- myFrag rs, sql
- TabAusgeb rs, Me, True, , , , , , , , , , "Dokumentnamenprüfung"
-End Sub ' Dokumentnamenprüfung_Click()
-
-Private Sub Einlesungen_Click()
- Dim sql$, rs As New Adodb.Recordset
- sql = "SELECT COUNT(0) Zahl, n.Stbyte, MAX(pat_id) lPat, e.Zp1, e.Zp8, e.Fallzahl, e.Datei, e.DateiAend FROM namen n LEFT JOIN `eintragszahlen` e ON n.stbyte = e.stbyte GROUP BY n.stbyte ORDER BY n.stbyte DESC"
- myFrag rs, sql
- TabAusgeb rs, Me, , , , , , , , , , , "Einlesungen"
-End Sub ' Einlesungen_Click()
+End Sub ' AlleFallzahlstände_Click
 
 Private Sub falschenLaboreintragZuPatlöschen_Click()
  Dim PIDStr$, pid&, TagStr$, Tag As Date, erg$, PName$, ltxt$, rAF&
@@ -1211,29 +2811,7 @@ Private Sub falschenLaboreintragZuPatlöschen_Click()
   Loop
   Close #59
  End If
-End Sub ' falschenLaboreintragZuPatlöschen_Click()
-
-Private Sub Faxe_gescheitert_Click()
- Dim sql$, rs As New Adodb.Recordset
- sql = "SELECT docname, rcname, rcfax, transe, gesname(o.pid) Name, o.pid, submid FROM faxeinp.outa o LEFT JOIN namen n ON o.pid = n.pat_id WHERE erfolg='0' ORDER BY transe DESC LIMIT 2500"
-' sql = "SELECT titel, submt, submid, docname,fsize,rcfax, rcname,transe, pid FROM faxeinp.outf o ORDER BY submt DESC"
- myFrag rs, sql
- TabAusgeb rs, Me, , , , , , , , , , , "Faxe gescheitert auf linux1 (Fritzcard)"
-End Sub ' Faxe_gescheitert_Click()
-
-Private Sub Faxnachweis_Click()
- Dim sql$, rs As New Adodb.Recordset
- sql = "SELECT docname, rcname, rcfax, transe, gesname(o.pid) Name, o.pid, submid FROM faxeinp.outa o LEFT JOIN namen n ON o.pid = n.pat_id WHERE erfolg<>'0' ORDER BY transe DESC LIMIT 2500"
- myFrag rs, sql
- TabAusgeb rs, Me, , , , , , , , , , , "Nachweis übermittelter Faxe"
-End Sub ' Faxnachweis_Click()
-
-Private Sub Faxwarteschlange_Click()
- Dim sql$, rs As New Adodb.Recordset
- sql = "SELECT cdateidatum,original, telnr FROM faxeinp.spool s ORDER BY cdateizeit DESC"
- myFrag rs, sql
- TabAusgeb rs, Me, , , , , , , , , , , "Faxwarteschlange auf linux1 (Fritzcard)"
-End Sub ' Faxwarteschlange_Click()
+End Sub ' falschenLaboreintragZuPatlöschen_Click
 
 Private Sub Gewichte_Click()
  Dim sql$, rs As New Adodb.Recordset, rAF&
@@ -1249,7 +2827,7 @@ Private Sub Gewichte_Click()
   rs.Move 1
  Loop
  Debug.Print "Fertig!"
-End Sub ' Gewichte_Click()
+End Sub ' Gewichte_Click
 
 Private Sub Gewichtsabnahmekandidaten_Click()
  Dim sql$, rs As New Adodb.Recordset
@@ -1271,20 +2849,8 @@ Private Sub Gewichtsabnahmekandidaten_Click()
  "ORDER BY tict.pat_id"
  myFrag rs, sql
  TabAusgeb rs, Me, , , , , , , , , , , "Gewichtsabnahmekandidaten", , 0
-End Sub ' Gewichtsabnahmekandidaten_Click()
+End Sub ' Gewichtsabnahmekandidaten_Click
 
-Private Sub GNR_Statistik_Click()
- Dim sql$, rs As New Adodb.Recordset
- sql = "SELECT ROUND(SUM(uwert)) wert, COUNT(z.id) ZdLstZiff," & _
- "(SELECT COUNT(DISTINCT pat_id) FROM faelle WHERE quartal=concat(mid(qinv,5,1),LEFT(qinv,4)) AND schgr <> '90' AND NOT goäkatnr IN ('40','41') AND nachname <> 'Bereitschaftsdienst') FZahl," & _
- "s.Datei, s.DateiDat, s.Qinv FROM GNRStat s LEFT JOIN GNRZahl z ON s.id = z.statid GROUP BY s.id ORDER BY qinv DESC"
- myFrag rs, sql
- TabAusgeb rs, Me, , , , , , , , , , , "GNR-Statistik"
-End Sub ' GNR_Statistik_Click()
-
-Private Sub GNR_Statistiken_einl_Click() ' GNR-Stastistiken einlesen, für GNR_Statistik und Quartalsvergleich
- Call doGNR_Statistiken_einl_Click
-End Sub ' GNR_Statistiken_einl_Click()
 Sub doGNR_Statistiken_einl_Click(Optional obneu = 0)
  Const XStra = "Provider=Microsoft.Jet.OLEDB.4.0;Data Source="
  Const XStrb = ";Extended Properties=""Excel 8.0;HDR=no;IMEX=1"""
@@ -1419,27 +2985,11 @@ fehler:
   Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
   Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
  End Select
-End Sub ' doGNR_Statistiken_einl_Click(Optional obneu = 0)
-
-' ...für Arzt -> Hausärzte mit DMP-Patienten
-Private Sub HausärztemitDMPPatienten_Click()
- Dim sql$, rs As New Adodb.Recordset
- sql = "SELECT CONCAT(LEFT(CONCAT(h.kvnr,'        '),8),'| '," & vbCrLf & _
-       "left(CONCAT(h.titelt,h.Name,' ',h.Vorname,'                           '),36),'|'," & vbCrLf & _
-       "right(CONCAT('                      ',fax),21),' | '," & vbCrLf & _
-       "left(CONCAT(h.ort,', ',strasse,', ',fachgruppe,'                            '),46),'|') feld" & vbCrLf & _
-       "FROM faelle f" & vbCrLf & _
- "LEFT JOIN namen n USING (pat_id) " & vbCrLf & _
- "LEFT JOIN liuez h ON CAST(n.getha0 As Integer) = h.kvnri " & vbCrLf & _
- "WHERE bhfb > SUBDATE(NOW(),INTERVAL 1 YEAR) AND n.dmpklass=2 AND getha0<>0 AND instr(fachgruppe,'Diabet')=0 " & vbCrLf & _
- "GROUP BY h.fax;"
- myFrag rs, sql
- TabAusgeb rs, Me, , , True, , , , "HA-DMP.txt", , , , "Hausaerzte mit Patienten im DMP"
-End Sub ' HausärztemitDMPPatienten_Click()
+End Sub ' doGNR_Statistiken_einl_Click
 
 Private Sub KassenLesen_Click()
  Call LiesKassen
-End Sub ' KassenLesen_Click()
+End Sub ' KassenLesen_Click
 
 Private Sub LaborLöschenAb_Click()
  Dim sql$, rs As New Adodb.Recordset, rAF&
@@ -1497,272 +3047,6 @@ Private Sub LaborLöschenAb_Click()
  DBCn.Execute "DELETE d FROM laborydat d LEFT JOIN laboryus u ON u.datid = d.datid WHERE eingang >= " & Format(Datum, "yyyymmdd"), rAF
 End Sub ' LaborLöschenAB
 
-
-' 24.5.14 hier zu arbeiten
-' Funktionen für Arzthelferin und Arzt -> Niereninsuffizienzpauschalendiabetiker
-Private Sub Niereninsuffizienzpauschalendiabetiker_Click()
-Dim rs As New Adodb.Recordset, rsa As New Adodb.Recordset, sql$, sqla$, gesZ%, pz%, nz%, obNP%, maxAlb#, aktAlb#
-DBCn.Execute ("DROP TABLE IF EXISTS `ni_abr`")
-DBCn.Execute ("CREATE TABLE `quelle`.`ni_abr`(`id` int(11) NOT NULL AUTO_INCREMENT key,`pat_id` int(10),DmICD varchar(8),maxHbA1c FLOAT, maxGluc FLOAT, eGFR FLOAT, npICD varchar(8), niICD varchar(8), pZ int(3), nZ int(3), gesZ int(3), minDat date, maxAlb decimal(8,2), kasse varchar(20))")
-sql = "SELECT f.pat_id, d.icd DmICD, IF(xh.max1>xh.max2,xh.max1, xh.max2) maxHbA1c, IF(xg.max1>xg.max2,xg.max1, xg.max2) maxGluc, _lGFR(f.pat_id) eGFR, dn.icd npICD, di.icd niICD, LEFT(k.name,20) Kasse " & _
-        "FROM aktfvs v " & _
-        "LEFT JOIN kassenliste k ON v.vknr=k.vknr AND v.ik=k.ik" & _
-        "LEFT JOIN faelle f ON v.fid = f.fid " & _
-        "LEFT JOIN diagnosen d ON f.pat_id = d.pat_id AND d.gicd RLIKE '^E1[0-4]\.' " & _
-        "LEFT JOIN diagnosen dn ON f.pat_id = dn.pat_id AND dn.gicd LIKE 'N08.3%' " & _
-        "LEFT JOIN diagnosen di ON f.pat_id = di.pat_id AND di.gicd LIKE 'N18%' " & _
-        "LEFT JOIN _maxHbA1c xh ON f.pat_id = xh.pat_id " & _
-        "LEFT JOIN _maxGluc xg ON f.pat_id = xg.pat_id " & _
-        "WHERE k.kateg IN ('AOK','EK') AND (NOT ISNULL(d.icd) OR xh.max1>=6.5 OR xh.max2>= 6.5 OR xg.max1>=200 OR xg.max2>=200) AND _lGFR(f.pat_id)>59 " & _
-        "AND (ISNULL(dn.icd) OR ISNULL(di.icd) OR (_lGFR(f.pat_id)<90 AND di.icd<>'N18.2') OR (_lGFR(f.pat_id)>=90 AND di.icd<>'N18.1')) " & _
-        "GROUP BY f.pat_id"
-myFrag rs, sql
-If Not rs.BOF Then
- Do While Not rs.EOF
-    gesZ = 0: pz = 0: nz = 0: obNP = 0: maxAlb = 0
-'  sqla = LabEPatS(AlbCre, rs!Pat_id)
-    Set rsa = Nothing
-'   myfrag rsa, sqla
-    Dim lwZahl&, aktlwx&
-    Dim Lab() As labtyp
-    Set rsa = hollabor(rs!Pat_id, "", 0, 0, 0, lwZahl)
-    If Not rsa.BOF And lwZahl Then
-     ReDim Lab(lwZahl)
-     aktlwx = 0
-     Do While Not rsa.EOF
-      Lab(aktlwx).Abkü = rsa!Abkü
-      Lab(aktlwx).WertSg = rsa!Wert
-      Lab(aktlwx).Einheit = rsa!Einheit
-      Lab(aktlwx).Zp = rsa!Zeitpunkt
-      aktlwx = aktlwx + 1
-      rsa.MoveNext
-     Loop
-     If lwZahl Then
-      Dim Zp As Date
-      For aktlwx = 0 To lwZahl
-       If obLabI(LA_AlbCre, Lab(aktlwx)) Then
-   
-'   IF Not rsa.BOF THEN
-'    Do While Not rsa.EOF
-'     Debug.Print rs!Pat_id, rsa.Fields(0), rsa.Fields(1)
-        gesZ = gesZ + 1
-        Zp = Lab(aktlwx).Zp
-        aktAlb = MachNumerisch(Lab(aktlwx).WertSg) 'rsa!wert)
-        If aktAlb > maxAlb Then maxAlb = aktAlb
-        If aktAlb >= 20 Then pz = pz + 1 Else nz = nz + 1
-        If pz > 1 And Not (nz >= pz + pz) Then obNP = 1: Exit For ' Do
-'     rsa.MoveNext
-'    Loop
-'   END IF
-       End If ' IF obLabI(LA_AlbCre, lab(aktlwx)) THEN
-      Next aktlwx
-'  sqla = "SELECT DATE(zeitpunkt) zp, IF(ISNULL(wert),IF(ISNULL(kommentar),'',kommentar),wert) Wert FROM `laborneu` ln LEFT JOIN laborkommentar lk ON ln.kommentarvw = lk.kommentarvw WHERE ((abkü IN ('ALBCRE','ALBKRE','ALBQ','ALBUM','ALBUP') AND einheit LIKE 'mg/g %') OR (abkü IN ('ALBU','ALBUMU') AND (einheit = 'mg/l' OR einheit = ''))) AND pat_id = 262 UNION SELECT DATE(u.eingang) zp, IF(ISNULL(w.wert),IF(ISNULL(w.kommentar),'',w.kommentar),w.wert) Wert FROM `laborxus` u LEFT JOIN laborxwert w ON u.refnr = w.refnr WHERE ((abkü IN ('ALBCRE','ALBKRE','ALBQ','ALBUM','ALBUP') AND einheit LIKE 'mg/g %') OR (abkü IN ('ALBU','ALBUMU') AND (einheit = 'mg/l' OR einheit = ''))) AND pat_id = 262 GROUP BY zp ORDER BY zp DESC;"
-      If obNP Then
-       DBCn.Execute ("INSERT INTO ni_abr(pat_id,DmICD,maxHbA1c,maxGluc,eGFR,npICD,niICD,pZ,nZ,gesZ,minDat,maxAlb,kasse) VALUES(" & rs!Pat_id & ",'" & rs!DmICD & "','" & REPLACE$(IIf(IsNull(rs!maxHbA1c), 0, rs!maxHbA1c), ",", ".") & "','" & REPLACE(IIf(IsNull(rs!maxGluc), "0", rs!maxGluc), ",", ".") & "','" & REPLACE(rs!eGFR, ",", ".") & "','" & IIf(IsNull(rs!npICD), "", rs!npICD) & "','" & IIf(IsNull(rs!niICD), "", rs!niICD) & "'," & pz & "," & nz & "," & gesZ & "," & Format(Zp, "YYYYMMDD") & "," & REPLACE$(maxAlb, ",", ".") & ",'" & rs!Kasse & "')")
-      End If ' obNP
-     End If ' lwzahl
-    End If ' not rsa.BOF
-    rs.MoveNext
- Loop ' Do While Not rs.EOF
-End If ' IF Not rs.BOF THEN
-Set rs = Nothing
-sql = "SELECT pat_id, gesnameg(pat_id) Name, DmICD, eGFR, IF(dmicd not IN ('E10.20','E10.21','E11.20','E11.21','E13.20','E13.21','E10.72','E10.73','E11.72','E11.73','E13.72','E13.73'),CONCAT('E1',mid(dmicd,3,1),'.',IF(mid(dmicd,5,1) IN ('9','2'),'2','7'),IF(mid(dmicd,6,1) IN ('1','3','5'),IF(mid(dmicd,5,1) IN ('9','2'),'1','3'),IF(mid(dmicd,5,1) IN ('9','2'),'0','2')),IF(mid(dmicd,5,1)='7','  dazu',CONCAT('  statt ',dmicd))),'') fICD, IF(npicd='','N08.3 dazu','') fNP " & _
-      ",IF(eGFR<90 AND niICD<>'N18.2',CONCAT('N18.2 ',IF(niICD='','dazu',CONCAT('statt ',niicd))),CONCAT('N18.1 ',IF(niICD='','dazu',CONCAT('statt ',niicd)))) fNI, kasse " & _
-      "FROM ni_abr"
-myFrag rs, sql
-TabAusgeb rs, Me, , , , , , , "Korrekturbedarf für AOK-Vergütung Nephropathiekodierung", 1
-End Sub ' Niereninsuffizienzpauschalendiabetiker_Click()
-
-Private Sub Pat_loeschen_Click()
-  Dim Pat_id&, erg&, rAF&, ergeb$
-  Pat_id = InputBox("Welchen Patienten wollen Sie löschen?")
-  Dim rsPat As New Adodb.Recordset
- myFrag rsPat, "SELECT gesname(" & Pat_id & ")"
- If Not rsPat.BOF() Then
-  erg = MsgBox("Wollen Sie wirklich den Patienten `" & Pat_id & " (" & rsPat.Fields(0) & ")` löschen?", vbYesNo)
-  If erg = vbYes Then
-   Dim Tb, tbn
-   tbn = Array("namen", "faelle", "au", "briefe", "diagnosen", "dokumente", "eintraege", "forminhkopf", "kheinweis", "lbanforderungen", "laborneu", "leistungen", "medplan", "rezepteintraege", "rr", "kvnrue", "dmpreihe", "therarten", "desktop", "usdm", "fuss", "ulcus")
-   For Each Tb In tbn
-    DBCn.Execute "DELETE FROM `" & Tb & "` WHERE PAT_ID = " & Pat_id, rAF
-    ergeb = ergeb & vbCrLf & rAF & " Sätze aus `" & Tb & "` gelöscht."
-   Next
-   MsgBox ergeb
-   Debug.Print ergeb
-  End If
- End If ' Not rsPat.BOF() Then
-End Sub ' Pat_loeschen_Click
-
-' Funktionen für Arzthelferin und Arzt -> Patientenlaufzettel aus zuplz.txt
-Private Sub Patientenlaufzettel_aus_zuplz_Click()
-Const dname$ = "p:\Abrechnung\zuplz.txt"
-Dim sLine$, pid$
-Open dname For Input As #1
-While Not EOF(1)
-  Line Input #1, sLine
-  pid = LTrim(sLine)
-  If (InStr(pid, " ")) Then pid = Left$(pid, InStr(pid, " ") - 1)
-  If (InStr(pid, ",")) Then pid = Left$(pid, InStr(pid, ",") - 1)
-  Debug.Print pid
-  If IsNumeric(pid) Then
-    dodoPLZ pid, plzVz, Now, Now - Int(Now), True, ""
-  End If ' IsNumeric(pid) Then
-Wend ' Not EOF(1)
-Close #1
-End Sub ' Patientenlaufzettel_aus_zuplz_Click()
-
-Private Sub PLZausListe_Click()
-' Dim plzverzalt$
- Dim sql$, Zahl&, plzVerz$
- Dim rs As New Adodb.Recordset
- On Error GoTo fehler
-'  plzverzalt = plzVerz
-  plzVerz = plzVz & "keinInsulinmehr\"
-  On Error Resume Next
-  MkDir plzVerz
-  On Error GoTo fehler
-'  sql = "SELECT t1.pat_id, gesnameg(t1.pat_id) Name, t1.therart, COUNT(gs.art) gsz, COUNT(tk.art) tkz, t1.zp t1zp,t2.therart,t2.zp t2zp FROM therarten t1 " & _
-        "LEFT JOIN therarten t2 ON t1.pat_id = t2.pat_id AND t2.zp> t1.zp " & _
-        "LEFT JOIN eintraege gs ON t1.pat_id = gs.pat_id AND gs.art = 'gs' " & _
-        "LEFT JOIN eintraege tk ON t1.pat_id = tk.pat_id AND tk.art = 'tk' " & _
-        "WHERE NOT ISNULL(t2.zp) AND t1.therart IN ('ict','ct','Komb') AND t2.therart IN ('diät','oad') " & _
-        "AND NOT EXISTS (SELECT icd FROM diagnosen d WHERE d.pat_id = t1.pat_id AND d.icd LIKE 'E10%' AND d.diagsicherheit IN ('G',' ')) " & _
-        "GROUP BY pat_id ORDER BY t2.zp DESC; "
-' liefert auf SQL-Ebene z.T. falsche Ergebnisse für gsz und tkz (jeweils die gleiche hohe Zahl), liegt wohl am Group (müßte noch tk.id und gs.id enthalten
-  sql = "SELECT t1.pat_id, gesnameg(t1.pat_id) Name, t1.therart, " & _
-          "(SELECT COUNT(0) FROM eintraege WHERE pat_id = t1.pat_id AND art = 'gs') gsz, " & _
-          "(SELECT COUNT(0) FROM eintraege WHERE pat_id = t1.pat_id AND art = 'tk') tkz, " & _
-          "t1.zp t1zp,t2.therart,t2.zp t2zp FROM therarten t1 " & _
-        "LEFT JOIN therarten t2 ON t1.pat_id = t2.pat_id AND t2.zp> t1.zp " & _
-        "WHERE NOT ISNULL(t2.zp) AND t1.therart IN ('ict','ct','Komb') AND t2.therart IN ('diät','oad') " & _
-        "AND NOT EXISTS (SELECT icd FROM diagnosen d WHERE d.pat_id = t1.pat_id AND d.gicd LIKE 'E10%' " & _
-        "GROUP BY pat_id ORDER BY t2.zp DESC, t2.MPNr desc; "
-  myFrag rs, sql
-  If Not rs.BOF Then
-   Do While Not rs.EOF
-    Zahl = Zahl + 1
-    dodoPLZ rs!Pat_id, plzVz, , , , rs!T1Zp & " - " & rs!T2Zp & " (gs " & rs!gsz & ", tk " & rs!Tkz & ")", 0
-    rs.MoveNext
-   Loop
-  End If
-'  plzVerz = plzverzalt
- Ausgeb "Fertig mit PLZ für " & Zahl & " Patienten mit keinem Insulin mehr", 1
- Exit Sub
-fehler:
- Dim AnwPfad$
-#If VBA6 Then
- AnwPfad = CurrentDb.name
-#Else
- AnwPfad = App.path
-#End If
- Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler IN PLZausListe_Click/" + AnwPfad)
-  Case vbAbort: Call MsgBox("Höre auf"): ProgEnde
-  Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
-  Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
- End Select
-End Sub ' PLZausListe_Click()
-
-Private Sub PLZfuerMedikament_Click()
- Dim Med$ ', plzverzalt$
- Dim plzVerz$
- Dim rs As New Adodb.Recordset
- Med = InputBox("Bitte Medikamentenname eingeben", "Medikamentenname", "Forxiga")
- If Med <> "" Then
-'  plzverzalt = plzVerz
-  plzVerz = plzVz & Med & "\"
-  MkDir plzVerz
-  myFrag rs, "SELECT DISTINCT pat_id FROM medplan WHERE medikament LIKE '" & Med & "%' ORDER BY pat_id DESC"
-  If Not rs.BOF Then
-   Do While Not rs.EOF
-    dodoPLZ rs!Pat_id, plzVz
-    rs.MoveNext
-   Loop
-  End If
-'  plzVerz = plzverzalt
- End If
- Ausgeb "Fertig mit PLZ für " & Med, 1
-End Sub ' PLZfuerMedikament_Click()
-
-Private Sub Quartalsvergleich_Click()
- Dim sql$, rs As New Adodb.Recordset
- Dim q1$, q2$, ID1$, id2$
- q1 = InputBox("Bitte das untersuchende Quartal eingeben (yyyym)", "Eingabe 1", QuartalStr(Now() - 21, True))
- q2 = InputBox("Bitte das Vergleichsquartal eingeben (yyyym)", "Eingabe 2", QuartalStr(Now() - 21 - 90, True))
- Set rs = Nothing
- myFrag rs, "SELECT id FROM GNRStat WHERE qinv = '" & q1 & "'"
- If rs.EOF Then
-  MsgBox "kein Datensatz zu " & q1 & "gefunden!"
-  Exit Sub
- Else
-  ID1 = rs!id
- End If
- Set rs = Nothing
- myFrag rs, "SELECT id FROM GNRStat WHERE qinv = '" & q2 & "'"
- If rs.EOF Then
-  MsgBox "kein Datensatz zu " & q2 & "gefunden!"
-  Exit Sub
- Else
-  id2 = rs!id
- End If
- sql = "SELECT i.*, l.leistungstext FROM (" & _
-       "SELECT gnr, ROUND(wert1) _" & q1 & ",round(wert2) _" & q2 & ",round(wert1-wert2) Diff FROM (SELECT z1.gnr, z1.euro euro1, z1.uwert wert1, IF(ISNULL(z2.euro),0,z2.euro) euro2 , IF(ISNULL(z2.uwert),0,z2.uwert) wert2 FROM GNRZahl z1 LEFT JOIN GNRZahl z2 ON z1.gnr = z2.gnr AND z2.statid=" & id2 & " WHERE z1.statid=" & ID1 & ") i " & _
-       "UNION DISTINCT " & _
-       "SELECT gnr, ROUND(wert2) _" & q1 & ",round(wert1) _" & q2 & ",round(wert2-wert1) Diff FROM (SELECT z1.gnr, z1.euro euro1, z1.uwert wert1, IF(ISNULL(z2.euro),0,z2.euro) euro2 , IF(ISNULL(z2.uwert),0,z2.uwert) wert2 FROM GNRZahl z1 LEFT JOIN GNRZahl z2 ON z1.gnr = z2.gnr AND z2.statid=" & ID1 & " WHERE z1.statid=" & id2 & ") i " & _
-       ") i LEFT JOIN EBM2010 l ON IF(LEFT(l.ziffer,1)='0',mid(l.ziffer,2),l.ziffer) = i.gnr AND leistungstext<>'' " & _
-       "ORDER BY diff"
- Set rs = Nothing
- myFrag rs, sql
- TabAusgeb rs, Me, , , , , , , "Quartalsvergleich " & q1 & " vs. " & q2, 1
-End Sub ' Quartalsvergleich_Click()
-
-' Funktionen für Arzthelferin und Arzt -> Quartalsstatistik zu Leistung, z.B. 03355
-Private Sub Statistik_03355_Click()
- Dim sql$, rs As New Adodb.Recordset
- Dim Leistung$
- Leistung = InputBox("Leistung: ", "Rückfrage", "03355")
- sql = "SELECT COUNT(0) `Zahl 03355`, Quartal FROM leistungen LEFT JOIN faelle f USING (fid) WHERE leistung='" & Leistung & "' GROUP BY f.quartal ORDER BY mid(quartal,2) DESC,quartal DESC"
- myFrag rs, sql
- TabAusgeb rs, Me, , , , , , , , , , , "Quartalsstatistik zu Leistung " & Leistung
-End Sub ' Statistik_03355_Click()
-
-Private Sub Statistik_zu_03230nachPatient_Click()
- Const Zahl% = 3
- Dim rs As New Adodb.Recordset
- myFrag rs, "SELECT f.pat_id, gesname(f.pat_id) PName, DATE(zeitpunkt) Tag, CASE WHEN l.lanrid=1 THEN 'gs' WHEN l.lanrid=2 THEN 'tk' END Arzt, sum(lzahl) Zahl " & vbCrLf & _
-         "FROM aktfv f LEFT JOIN leistungen l ON f.pat_id=l.pat_id AND l.zeitpunkt BETWEEN qanf() AND qend()" & vbCrLf & _
-         "WHERE leistung='03230' GROUP BY f.pat_id HAVING zahl=>" & Zahl & ";"
- TabAusgeb rs, Me, , , , , , , "03230 nach Patient ab " & Zahl & " Leistungen", 1
-End Sub ' Statistik_zu_03230nachPatient_Click()
-
-Private Sub Statistik_zu_03230nachTag_Click()
- Dim rs As New Adodb.Recordset
- myFrag rs, "SELECT f.pat_id, gesname(f.pat_id) PName, DATE(zeitpunkt) Tag, sum(lzahl) Zahl, ROUND(sum(lzahl)/6,1) Stunden" & vbCrLf & _
-         "FROM aktfv f LEFT JOIN leistungen l ON f.pat_id=l.pat_id AND l.zeitpunkt BETWEEN qanf() AND qend()" & vbCrLf & _
-         "WHERE leistung='03230' GROUP BY DATE(zeitpunkt) ORDER BY DATE(zeitpunkt);"
- TabAusgeb rs, Me, , , , , , , "03230 nach Tag ", 1
-End Sub ' Statistik_zu_03230nachTag_Click()
-
-Private Sub Statistik_zu_03230nachTagundArzt_Click()
- Dim rs As New Adodb.Recordset
- myFrag rs, "SELECT f.pat_id, gesname(f.pat_id) PName, DATE(zeitpunkt) Tag, CASE WHEN l.lanrid=1 THEN 'gs' WHEN l.lanrid=2 THEN 'tk' END Arzt, sum(lzahl) Zahl, ROUND(sum(lzahl)/6,1) Stunden" & vbCrLf & _
-         "FROM aktfv f LEFT JOIN leistungen l ON f.pat_id=l.pat_id AND l.zeitpunkt BETWEEN qanf() AND qend()" & vbCrLf & _
-         "WHERE leistung='03230' GROUP BY DATE(zeitpunkt),l.lanrid ORDER BY DATE(zeitpunkt);"
- TabAusgeb rs, Me, , , , , , , "03230 nach Tag und Arzt", 1
-End Sub ' Statistik_zu_03230nachTagundArzt_Click()
-
-Private Sub Statistik_zu_03230nachArzt_Click()
- Dim rs As New Adodb.Recordset
- myFrag rs, "SELECT CASE WHEN l.lanrid=1 THEN 'gs' WHEN l.lanrid=2 THEN 'tk' END Arzt, sum(lzahl) Zahl, ROUND(sum(lzahl)/6,1) Stunden " & vbCrLf & _
-         "FROM aktfv f LEFT JOIN leistungen l ON f.pat_id=l.pat_id AND l.zeitpunkt BETWEEN qanf() AND qend()" & vbCrLf & _
-         "WHERE leistung='03230' GROUP BY l.lanrid ORDER BY DATE(zeitpunkt);"
- TabAusgeb rs, Me, , , , , , , "03230 nach Arzt", 1
-End Sub ' Statistik_zu_03230nachArzt_Click()
-
-Private Sub suchTel_Click()
- ProgStart
- Call doSuchTel(Me)
-End Sub ' suchTel_Click()
-
 Private Sub testlqanf_Click()
  Dim sql$, rs As New Adodb.Recordset
  Lese.ProgStart
@@ -1782,38 +3066,7 @@ Private Sub testlqanf_Click()
  sql = "SELECT zp FROM (SELECT DATE(zeitpunkt) zp FROM eintraege WHERE zeitpunkt BETWEEN " & lQAnfuEnd(FristS) & ") i GROUP BY zp ORDER BY zp DESC"
  myFrag rs, sql
  TabAusgeb rs, Me, , , , , , , , , , , "Tage mit Einträgen dieses Quartal (FristS = " & FristS
-End Sub ' testlqanf_Click()
-
-' ...für Arzt -> Diabetes-Quartalsdiagnosen IN Dauerdiagnosen umwandeln (manuell)
-Private Sub DiabetesQuartalsdiagnosenInDauerdiagnosenUmwandeln_Click()
- Dim rs As New Adodb.Recordset
- myFrag rs, "SELECT d.Pat_Id, GesNameG(d.pat_id) GesName, d.DiagDatum, d.ICD FROM faelle f LEFT JOIN diagnosen d ON f.fid = d.fid LEFT JOIN diagnosen dd ON f.pat_id = dd.pat_id AND dd.gicd RLIKE '^E1[0-4]\.' AND dd.obdauer<>0 WHERE quartal = """ & ZQuart(Now - Verspätung) & """ AND d.gicd RLIKE '^E1[0-4]\.' AND d.obdauer = 0 AND ISNULL(dd.pat_ID) ORDER BY d.pat_id"
- TabAusgeb rs, Me, , , , , , , "Diabetes-Quartalsdiagnosen IN Dauerdiagnosen umwandeln (manuell)", 1
-End Sub ' DiabetesQuartalsdiagnosenInDauerdiagnosenUmwandeln_Click()
-
-Private Sub GestationsdiabetikerinnenProQuartal_Click()
- Dim rs As New Adodb.Recordset
- myFrag rs, "SELECT Quartal, COUNT(0) Zahl FROM (SELECT f.quartal FROM faelle f LEFT JOIN diagnosen d ON f.fid = d.fid AND f.pat_id = d.pat_id WHERE d.gicd = 'O24.4' GROUP BY d.pat_id) i GROUP BY quartal ORDER BY mid(quartal,2), quartal"
- TabAusgeb rs, Me, , , , , , , "Gestationsdiabetikerinnen pro Quartal", 0, True
-End Sub ' GestationsdiabetikerinnenProQuartal_Click()
-
-Private Sub HbA1cStatistik_Click() ' HbA1c-Stastisik
- Dim rs As New Adodb.Recordset
- myFrag rs, "SELECT COUNT(0) Zahl, ROUND(avg(HbA1c),1) `mittl.HbA1c`, Quartal,ICD FROM (SELECT f.quartal, f.pat_id, MIN(d.icd) icd, l.letzter HbA1c FROM faelle f LEFT JOIN diagnosen d ON f.pat_id = d.pat_id AND d.gicd RLIKE '^E1[0-4]\.|^O24\.' AND obdauer <> 0 LEFT JOIN lHbA1c l ON f.pat_id = l.pat_id WHERE NOT ISNULL(icd) GROUP BY f.quartal, f.pat_id) i GROUP BY quartal, icd ORDER BY icd,mid(quartal,2),quartal"
- TabAusgeb rs, Me, , , , , , , "HbA1c-Stastik nach Diabetes-Typ und Quartal"
-End Sub ' HbA1c-Statistik
-
-Private Sub Schlungsziffer_analyse_Click()
- Dim rs As New Adodb.Recordset
- myFrag rs, "SELECT g.Leistung, YEAR(zeitpunkt) Jahr, (month(zeitpunkt) -1) div 3 +1 Quartal, COUNT(0) Zahl, g.Erklärung, g.Wert FROM leistungen l LEFT JOIN `genehmigungen` g ON l.leistung = g.leistung WHERE  obschulung<>0 GROUP BY g.Leistung, YEAR(zeitpunkt), (month(zeitpunkt) -1) div 3 +1"
- TabAusgeb rs, Me, , , , , , , "Schulungsziffer-Analyse"
-End Sub ' Schlungsziffer-Analyse_Click()
-
-Private Sub GruppenSchulungsstatisiknachZiffernzahlproQuartal_Click()
- Dim rs As New Adodb.Recordset
- myFrag rs, "SELECT YEAR(zeitpunkt) Jahr, (month(zeitpunkt) -1) div 3 +1 Quartal, COUNT(0) Zahl FROM leistungen l LEFT JOIN `genehmigungen` g ON l.leistung = g.leistung WHERE  obschulung<>0  AND erklärung NOT LIKE '%Sach%' AND erklärung NOT LIKE '%material%' AND erklärung NOT LIKE '%schwang%' AND erklärung NOT LIKE '%buch%' AND erklärung NOT LIKE '%gestat%' AND g.leistung not IN ('92278','92282') GROUP BY YEAR(zeitpunkt), (month(zeitpunkt) -1) div 3 +1"
- TabAusgeb rs, Me, , , , , , , "Gruppenschulungsstatisik nach Ziffernzahl pro Quartal"
-End Sub
+End Sub ' testlqanf_Click
 
 Private Sub Schulungsziffereinzelnachweis_Click()
  Dim Ziffer$, rs As New Adodb.Recordset, spmaxü
@@ -1823,7 +3076,7 @@ Private Sub Schulungsziffereinzelnachweis_Click()
 ' ktag fehlerhaft
  myFrag rs, "SELECT DATE(zeitpunkt) Datum, COUNT(0) Zahl, GROUP_CONCAT(pat_id) Pat_id FROM leistungen WHERE leistung = '" & Ziffer & "' GROUP BY tag ORDER BY tag"
  TabAusgeb rs, Me, , , , , spmaxü, , "Ziffereinzelnachweis für Ziffer " & Ziffer
-End Sub ' Schulungsziffereinzelnachweis_Click()
+End Sub ' Schulungsziffereinzelnachweis_Click
 
 Private Sub Leistungen_zu_Patient_anzeigen_Click()
  Dim rs As New Adodb.Recordset, rsa As New Adodb.Recordset, spmaxü
@@ -1835,7 +3088,7 @@ Private Sub Leistungen_zu_Patient_anzeigen_Click()
   myFrag rsa, "SELECT * FROM namen WHERE pat_id=" & pid
   TabAusgeb rs, Me, , , , , spmaxü, , "Leistungen zu Pat. " & CStr(pid) & " (" & GesNamFn(rsa) & ")           "
  End If
-End Sub ' Leistungen_zu_Patient_anzeigen_Click()
+End Sub ' Leistungen_zu_Patient_anzeigen_Click
 
 Private Sub Therapiearten_anzeigen_Click()
  Dim rs As New Adodb.Recordset, spmaxü
@@ -1846,229 +3099,7 @@ Private Sub Therapiearten_anzeigen_Click()
   myFrag rs, "SELECT * FROM therarten WHERE pat_id=" & CStr(pid) & " ORDER BY zp DESC, mpnr DESC"
   TabAusgeb rs, Me, , , , , spmaxü, , "Therapiearten von Pat. " & CStr(pid) '& " (" & gesname(PID) & ")"
  End If
-End Sub ' Therapiearten_anzeigen_Click()
-
-'&Überweiserstatistik d.letzten 2a
-Private Sub Überweiserstatistik2_Click()
- Dim rs As New Adodb.Recordset
- sql = "SELECT COUNT(0) `Überw.Pat.`, übwvlanr, Titel, Vorname, Name,Fachgruppe,Straße,PLZ,Ort, GROUP_CONCAT(DISTINCT pid) PIDs FROM (" & _
-          "SELECT übwvlanr, IF(ISNULL(l.titelt),f.üwtit,l.titelt) Titel," & _
-          "if(ISNULL(l.vorname),f.üwvor,l.vorname) Vorname, IF(ISNULL(l.name),f.üwnan,l.name) Name," & _
-          "if(ISNULL(l.name),'',l.fachgruppe) Fachgruppe, IF(ISNULL(l.name),'',l.strasse) Straße," & _
-          "if(ISNULL(l.name),'',l.plz) PLZ, IF(ISNULL(l.name),'',l.ort) Ort," & _
-          "GROUP_CONCAT(DISTINCT pat_id) pid, l.id lid " & _
-          "FROM faelle f " & _
-          "LEFT JOIN aktlue l ON f.üwnan = l.nameo AND f.üwvor = l.vno AND f.üwtit = l.titelto " & _
-       "WHERE BhFB > SUBDATE(NOW(), 2 * 365) " & _
-       "GROUP BY pat_id, übwvlanr) i " & _
-       "WHERE übwvlanr<>'' " & _
-       "GROUP BY lid ORDER BY COUNT(0) DESC;"
-
- DBCn.Execute "SET GROUP_CONCAT_MAX_LEN = 70"
- myFrag rs, sql
- TabAusgeb rs, Me, , , , , , , "Überweiserstatistik 2a bis " & Format(Now(), "dd.mm.YYYY")
-End Sub ' Überweiserstatistik2_Click()
-
-' Funktionen für Arzthelferin und Arzt -> verhunzte Fotos einfärben
-Private Sub VerhunzteFotosEinfärben_Click() ' zu knapp gespeicherte Fotos nochmal verbessern
-Dim rDok As New Adodb.Recordset, IViewPfad$, KStr$, FPfad$, FNam$, DokPfad$, erg$, eingefärbt&
- Dim rsFiP As New Adodb.Recordset, Nam$, namspl$(), j&, sql$, nr&, altnam$, neunam$
- Dim fold As Folder, Fil As File
- Dim APfad$
- Dim DokName$
- ProgStart
- APfad = pügVerz & "VerhunzteFotosEinfärbenProt_" & Year(Now()) & "_" & Month(Now()) & "_" & Day(Now()) & "_" & Hour(Now()) & "_" & Minute(Now()) & ".txt"
- Open APfad For Output As #311
- Close #311
- zeigan APfad
- IViewPfad = getIViewPfad() ' Environ("ProgramFiles") & "\irfanview\i_view32.exe
- getDokPfad
- For Each Fil In FSO.GetFolder(pVerz & "eingelesen\" & Year(Now() - 7)).Files ' "eingelesen\2010").Files ' "eingelesen\" & YEAR(NOW() - 7)).Files
-  If Fil.name Like "*Foto*.jpg" Then
-   If Fil.size < 70000 Then
-    Nam = Left$(Fil.name, Len(Fil.name) - 4)
-    SplitNeu Nam, "_", namspl
-    If UBound(namspl) > 0 Then
-     If IsNumeric(namspl(UBound(namspl))) Then
-     Nam = namspl(0)
-     For j = 1 To UBound(namspl) - 1
-      Nam = Nam & namspl(j)
-     Next j
-     End If
-    End If
-    If InStrB(Nam, "'") > 0 Then Nam = REPLACE$(Nam, "'", "''")
-    sql = "SELECT * FROM `fotosinp`.`jpg` WHERE neuername LIKE '" & Nam & "%'"
-    Set rsFiP = Nothing
-    myFrag rsFiP, sql
-    If rsFiP.BOF Then
-     Open APfad For Append As #311
-     Print #311, "Fehlt IN fotosinp: " & Fil.size & " " & Fil.path
-     Close #311
-    Else ' IF Not IsNumeric(rsFiP!compression) OR rsFiP!compression < 20 THEN
-     nr = nr + 1
-     Me.Ausgeb nr & ": " & rsFiP!tpfad, 0
-     If FSO.FileExists(rsFiP!tpfad) Then
-      Set rDok = Nothing
-nochmal:
-      DokName = REPLACE$(REPLACE$(Nam, " ", "%"), "Wärmflasch,", "Wärmflasche,") & "%'"
-      sql = "SELECT * FROM `dokumente` WHERE dokname LIKE '" & DokName
-      myFrag rDok, sql
-      If rDok.BOF Then
-       Open APfad For Append As #311
-       Print #311, "Fehlt IN Tabelle `dokumente`: '" & DokName & "'"
-       Close #311
-       Set rDok = Nothing
-'       GoTo nochmal
-      Else
-       FPfad = Fil.path
-       FNam = Fil.name
-'       KStr = "cmd /c ren """ & FPfad & """ """ & FPfad & "_kaputt"""
-'       erg = Shell(KStr, vbNormalFocus)
-       If FSO.FileExists(FPfad & "_kaputt") Then Kill FPfad & "_kaputt"
-       Name FPfad As FPfad & "_kaputt"
-       KStr = IViewPfad & " """ & rsFiP!tpfad & """ /convert=""" & FPfad & """ /jpgq=30 " & IIf(rsFiP!helligkeit <> 90, " /bright=" & rsFiP!helligkeit, vNS) & IIf(rsFiP!kontrast <> 90, " /contrast=" & rsFiP!kontrast, vNS)
-       erg = Shell(KStr, vbNormalFocus)
-       If FSO.FileExists(FPfad) Then
-        If FSO.GetFile(FPfad).size >= FSO.GetFile(FPfad & "_kaputt").size * 0.5 Then ' 21.8.21 statt FileLen
-         Kill FPfad & "_kaputt"
-        Else
-         Open APfad For Append As #311
-         Print #311, "'" & FPfad & "' nicht mindestens doppelt so groß wie '" & FPfad & "_kaputt':" & vbCrLf & "(" & FSO.GetFile(FPfad).size & " vs. " & FSO.GetFile(FPfad).size & "_kaputt)" ' 21.8.21 statt Filelen
-         Close #311
-        End If
-       Else
-        Open APfad For Append As #311
-        Print #311, "'" & FPfad & "' existiert nicht."
-        Close #311
-       End If
-       Do While Not rDok.EOF
-        DokPfad = REPLACE$(LCase$(rDok!DokPfad), "$\turbomed\dokumente", PcDokPfad)
-        If FSO.FileExists(DokPfad) Then
-'        KStr = "cmd /c ren """ & DokPfad & """ """ & DokPfad & "_kaputt"""
-'        Shell KStr, vbNormalFocus
-         Name DokPfad As DokPfad & "_kaputt"
-'        KStr = "xcopy """ & FPfad & """ """ & DokPfad & """ /y /h /r /k /c"
-'        erg = Shell(KStr, vbNormalFocus)
-         FileCopy FPfad, DokPfad
-         If FSO.FileExists(DokPfad) Then
-          If FSO.GetFile(DokPfad).size >= FSO.GetFile(DokPfad & "_kaputt").size * 0.5 Then ' 21.8.21 statt FileLen
-           Kill DokPfad & "_kaputt"
-           eingefärbt = eingefärbt + 1
-          Else
-           Open APfad For Append As #311
-           Print #311, "'" & DokPfad & "' nicht größer als '" & DokPfad & "_kaputt':" & vbCrLf & "(" & FSO.GetFile(DokPfad).size & " vs. " & FSO.GetFile(DokPfad).size & "_kaputt)" ' 21.8.21 statt FileLen
-           Close #311
-          End If
-         Else
-          Open APfad For Append As #311
-          Print #311, "'" & DokPfad & "' existiert nach `Filecopy '" & FPfad & "' '" & DokPfad & "'` nicht."
-          Close #311
-         End If
-        Else
-         Open APfad For Append As #311
-         Print #311, "'" & DokPfad & "' existiert von Haus aus nicht."
-         Close #311
-        End If
-        rDok.MoveNext
-       Loop
-      End If
-     Else
-      Open APfad For Append As #311
-      Print #311, "Die IN `fotosinp` zu `neuername` '" & Nam & "' genannte Datei '" & rsFiP!tpfad & "' existiert nicht."
-      Close #311
-     End If
-    End If
-   End If
-  End If
- Next Fil
- MsgBox "Fertig mit VerhunzteFotosEinfärben: " & eingefärbt & " Fotos eingefärbt"
-End Sub ' VerhunzteFotosEinfärben_Click()
-
-' Funktionen für Arzthelferin und Arzt -> Falsche Diabetesdiagnosen
-Private Sub FalscheDiabetesdiagnosen_Click()
- Dim rs As New Adodb.Recordset
- ' diagsicherheit unf f6010 IN aktfaelle.icd schon eingebaut
- myFrag rs, "SELECT f.pat_id, dmpklass, f.icd FROM `aktfaellev` f LEFT JOIN `namen` n ON f.pat_id = n.pat_id WHERE not (f.icd RLIKE '^E1[01]\.|O24\.'"
- TabAusgeb rs, Me, , , , , , , "Falsche Diabetesdiagnosen (E12, E13, E14; bitte nach Medikation, Anammnese, Antikörpern einordnen, ggf. z.B. 'Diabetes mellitus (sekundär) [E10.91]'"
-End Sub ' FalscheDiabetesdiagnosen_Click()
-
-' Funktionen für Arzthelferin und Arzt -> Hausarzt anzeigen
-Private Sub Hausarzt_anzeigen_Click()
- Call ProgStart
- Set haanz = Nothing
- Set haanz.hlese = Me
- haanz.Show
-End Sub ' Hausarzt_anzeigen_Click()
-
-Private Sub KVÜberw_Click()
- Dim pwd$
- pwd = InputBox("Bitte M-Net-Kennwort eingeben", "Rückfrage")
- If pwd <> "17raga" Then Exit Sub
- Dim rs As New Adodb.Recordset
- myFrag rs, "SELECT LEFT(CAST(buchungstag AS char),10) Buchungstag, ROUND(SUM(betrag)) `Einnahme`, CONCAT(`verwendungszweckzeile 1`, `verwendungszweckzeile 2`, `verwendungszweckzeile 3`, `verwendungszweckzeile 4`, `verwendungszweckzeile 5`, `verwendungszweckzeile 6`) Verwendungszweck, Myid, EingID, Buchungstext, Kategorie, Unterkategorie, Textschlüssel, `Begünstigter/Absender - Name` Begünstigter, `Begünstigter/Absender - Bankleitzahl` BLZ, `Begünstigter/Absender - Kontonummer` Kto, Wertstellungstag FROM `konten`.`girokonten` g WHERE kontonummer = '7710127' AND betrag > 0 AND CONCAT(`verwendungszweckzeile 1`,`verwendungszweckzeile 2`) NOT LIKE '%Fehlüberweisung%' AND NOT (`begünstigter/Absender - Kontonummer` IN ('0297626808', '0006097316','0230113763','2000573363')  OR `verwendungszweckzeile 1`like 'entnahme%') AND `begünstigter/absender - name` LIKE 'kvb oberbay%' GROUP BY myid ORDER BY buchungstag DESC"
- TabAusgeb rs, Me, , , , , , , "KV-Überweisungen"
-End Sub ' KVÜberw_Click()
-
-Private Sub LfdKosten_Click()
- Dim pwd$
- pwd = InputBox("Bitte M-Net-Kennwort eingeben", "Rückfrage")
- If pwd <> "17raga" Then Exit Sub
- Dim rs As New Adodb.Recordset
- myFrag rs, "SELECT COUNT(0) zahl, LEFT(CAST(buchungstag AS char),7) Monat, ROUND(SUM(betrag)) `Kosten` FROM `konten`.`girokonten` g WHERE kontonummer = '7710127' AND betrag < 0 AND CONCAT(`verwendungszweckzeile 1`,`verwendungszweckzeile 2`) NOT LIKE '%Fehlüberweisung%' AND NOT (`begünstigter/Absender - Kontonummer` IN ('0297626808', '0006097316','0230113763','2000573363') OR `verwendungszweckzeile 1`like 'entnahme%') GROUP BY LEFT(buchungstag,7) ORDER BY buchungstag DESC"
- TabAusgeb rs, Me, , , , , , , "Laufende Kosten der Praxis"
-End Sub ' LfdKosten_Click()
-
-Private Sub LfdKostenMitBetrag_Click()
- Dim pwd$
- pwd = InputBox("Bitte M-Net-Kennwort eingeben", "Rückfrage")
- If pwd <> "17raga" Then Exit Sub
- Dim rs As New Adodb.Recordset
- myFrag rs, "SELECT COUNT(0) zahl, LEFT(CAST(buchungstag AS char),7) Monat, Buchungstag, ROUND(SUM(betrag)) `Kosten`, CONCAT(`verwendungszweckzeile 1`, `verwendungszweckzeile 2`, `verwendungszweckzeile 3`, `verwendungszweckzeile 4`, `verwendungszweckzeile 5`, `verwendungszweckzeile 6`) Verwendungszweck, Myid, EingID, Buchungstext, Kategorie, Unterkategorie, Textschlüssel, `Begünstigter/Absender - Name` Begünstigter, `Begünstigter/Absender - Bankleitzahl` BLZ, `Begünstigter/Absender - Kontonummer` Kto, Wertstellungstag FROM `konten`.`girokonten` g WHERE kontonummer = '7710127' AND betrag < 0 AND CONCAT(`verwendungszweckzeile 1`,`verwendungszweckzeile 2`) NOT LIKE '%Fehlüberweisung%' AND NOT (`begünstigter/Absender - Kontonummer` IN ('0297626808', '0006097316','0230113763','2000573363') OR `verwendungszweckzeile 1`like 'entnahme%') GROUP BY myid ORDER BY LEFT(buchungstag,7) DESC, kosten"
- TabAusgeb rs, Me, , , , , , , "Laufende Kosten der Praxis nach Monat und Betrag"
-End Sub ' LfdKostenMitBetrag_Click()
-
-Private Sub LfdKostenEigenbetrieb_Click()
- Dim pwd$
- pwd = InputBox("Bitte M-Net-Kennwort eingeben", "Rückfrage")
- If pwd <> "17raga" Then Exit Sub
- Dim rs As New Adodb.Recordset
- myFrag rs, "SELECT COUNT(0) zahl, LEFT(CAST(buchungstag AS char),7) Monat, ROUND(SUM(betrag)) `Kosten` FROM `konten`.`girokonten` g WHERE kontonummer = '6097316' AND betrag < 0 AND CONCAT(`verwendungszweckzeile 1`,`verwendungszweckzeile 2`) NOT LIKE '%Fehlüberweisung%' AND NOT (`begünstigter/Absender - Kontonummer` IN ('0297626808', '0006097316','0230113763','2000573363') OR `verwendungszweckzeile 1`like 'entnahme%'  OR `verwendungszweckzeile 1`like '%aufbank%') GROUP BY LEFT(buchungstag,7) ORDER BY buchungstag DESC"
- TabAusgeb rs, Me, , , , , , , "Laufende Kosten Eigenbetrieb"
-End Sub ' LfdKostenEigenbetrieb_Click()
-
-Private Sub LfdKostenEigenbetrmBetrag_Click()
- Dim pwd$
- pwd = InputBox("Bitte M-Net-Kennwort eingeben", "Rückfrage")
- If pwd <> "17raga" Then Exit Sub
- Dim rs As New Adodb.Recordset
- myFrag rs, "SELECT COUNT(0) zahl, LEFT(CAST(buchungstag AS char),7) Monat, LEFT(CAST(buchungstag AS char),10) Buchungstag, ROUND(SUM(betrag)) `Kosten`, CONCAT(`verwendungszweckzeile 1`, `verwendungszweckzeile 2`, `verwendungszweckzeile 3`, `verwendungszweckzeile 4`, `verwendungszweckzeile 5`, `verwendungszweckzeile 6`) Verwendungszweck, Myid, EingID, Buchungstext, Kategorie, Unterkategorie, Textschlüssel, `Begünstigter/Absender - Name` Begünstigter, `Begünstigter/Absender - Bankleitzahl` BLZ, `Begünstigter/Absender - Kontonummer` Kto, Wertstellungstag FROM `konten`.`girokonten` g WHERE kontonummer = '6097316' AND betrag < 0 AND CONCAT(`verwendungszweckzeile 1`,`verwendungszweckzeile 2`) NOT LIKE _utf8'%Fehlüberweisung%' AND NOT (`begünstigter/Absender - Kontonummer` IN ('0297626808', '0006097316','0230113763','2000573363') OR `verwendungszweckzeile 1`like 'entnahme%' OR `verwendungszweckzeile 1`like '%aufbank%') GROUP BY myid ORDER BY LEFT(buchungstag,7) DESC, kosten"
- TabAusgeb rs, Me, , , , , , , "Laufende Kosten Eigenbetrieb mit Betrag"
-End Sub ' LfdKostenEigenbetrmBetrag_Click()
-
-
-Private Sub LfdKostenPGiro_Click()
- Dim pwd$
- pwd = InputBox("Bitte M-Net-Kennwort eingeben", "Rückfrage")
- If pwd <> "17raga" Then Exit Sub
- Dim rs As New Adodb.Recordset
- myFrag rs, "SELECT COUNT(0) zahl, LEFT(CAST(buchungstag AS char),7) Monat, LEFT(CAST(buchungstag AS char),10) Buchungstag, ROUND(SUM(betrag)) `Kosten`, CONCAT(`verwendungszweckzeile 1`, `verwendungszweckzeile 2`, `verwendungszweckzeile 3`, `verwendungszweckzeile 4`, `verwendungszweckzeile 5`, `verwendungszweckzeile 6`) Verwendungszweck, Myid, EingID, Buchungstext, Kategorie, Unterkategorie, Textschlüssel, `Begünstigter/Absender - Name` Begünstigter, `Begünstigter/Absender - Bankleitzahl` BLZ, `Begünstigter/Absender - Kontonummer` Kto, Wertstellungstag FROM `konten`.`girokonten` g WHERE kontonummer = '297626808' AND betrag < 0 AND CONCAT(`verwendungszweckzeile 1`,`verwendungszweckzeile 2`) NOT LIKE _utf8'%Fehlüberweisung%' AND NOT (`begünstigter/Absender - Kontonummer` IN ('0297626808', '0006097316','0230113763','2000573363') OR `verwendungszweckzeile 1`like 'entnahme%' OR `verwendungszweckzeile 1`like '%aufbank%') GROUP BY myid ORDER BY LEFT(buchungstag,7) DESC, kosten"
- TabAusgeb rs, Me, , , , , , , "Laufende Kosten PGiro"
-End Sub ' LfdKostenPGiro_Click()
-
-Private Sub LfdKostenPGiromBetrag_Click()
- Dim pwd$
- pwd = InputBox("Bitte M-Net-Kennwort eingeben", "Rückfrage")
- If pwd <> "17raga" Then Exit Sub
- Dim rs As New Adodb.Recordset
- myFrag rs, "SELECT COUNT(0) zahl, LEFT(CAST(buchungstag AS char),7) Monat, Buchungstag, ROUND(SUM(betrag)) `Kosten`, CONCAT(`verwendungszweckzeile 1`, `verwendungszweckzeile 2`, `verwendungszweckzeile 3`, `verwendungszweckzeile 4`, `verwendungszweckzeile 5`, `verwendungszweckzeile 6`) Verwendungszweck, Myid, EingID, Buchungstext, Kategorie, Unterkategorie, Textschlüssel, `Begünstigter/Absender - Name` Begünstigter, `Begünstigter/Absender - Bankleitzahl` BLZ, `Begünstigter/Absender - Kontonummer` Kto, Wertstellungstag FROM `konten`.`girokonten` g WHERE kontonummer = '297626808' AND betrag < 0 AND CONCAT(`verwendungszweckzeile 1`,`verwendungszweckzeile 2`) NOT LIKE '%Fehlüberweisung%' AND NOT (`begünstigter/Absender - Kontonummer` IN ('0297626808', '0006097316','0230113763','2000573363') OR `verwendungszweckzeile 1`like 'entnahme%') GROUP BY myid ORDER BY LEFT(buchungstag,7) DESC, kosten"
- TabAusgeb rs, Me, , , , , , , "Laufende Kosten PGiro mit Betrag"
-End Sub ' LfdKostenPGiromBetrag_Click()
-
-Private Sub PioglitazonRezepte_Click() ' Pioglitazon-Rezepte ab 1.4.11
- Dim rs As New Adodb.Recordset
- myFrag rs, "SELECT r.pat_id, r.zeitpunkt, r.medikament, f.schgr FROM `rezepteintraege` r LEFT JOIN `faelle` f ON r.fid = f.fid WHERE (medikament LIKE '%actos%' OR medikament LIKE '%competact%') AND rezklkurz<>'prp' AND zeitpunkt > '2011-03-31' AND schgr <> 90"
- TabAusgeb rs, Me, , , , , , , "Pioglitazon-Rezepte ab 1.4.11"
-End Sub ' PioglitazonRezepte_Click() ' Pioglitazon-Rezepte ab 1.4.11
+End Sub ' Therapiearten_anzeigen_Click
 
 Private Sub Punktwerte_Click()
  Dim Str$, Zahl#, pos&, rAF&
@@ -2110,17 +3141,7 @@ Do While Not rs.EOF
  rs.MoveNext
 Loop
 MsgBox "Fertig mit Punktwerten!"
-End Sub ' Punktwerte_Click()
-
-' Funktionen für Arzthelferin und Arzt -> Sonderpatienten anzeigen
-Private Sub SonderpatientenAnzeigen_Click()
- Dim rs As New Adodb.Recordset
- Static spa As New Sonderpatientauswahl
- Set spa.aufRufer = Me
- spa.Show 1
- myFrag rs, "SELECT Zeitpunkt,Art,Inhalt FROM `eintraege` WHERE pat_id = " & SpPat_id & " ORDER BY zeitpunkt DESC"
- TabAusgeb rs, Me, , , , , , , "Einträge für " & SpName
-End Sub ' SonderpatientenAnzeigen_Click()
+End Sub ' Punktwerte_Click
 
 Private Sub Wechseln_Click()
  On Error Resume Next
@@ -2128,39 +3149,6 @@ Private Sub Wechseln_Click()
 ' IF Err.Number <> 0 THEN IF ple.geladen THEN ple.SetFocus
 End Sub ' Wechseln_Click
 
-Private Sub Wohnortstatistik_Click()
- Dim rs As New Adodb.Recordset
- myFrag rs, "SELECT * FROM (SELECT COUNT(0) Zahl, ROUND(COUNT(0)/(SELECT COUNT(0) FROM `aktfvs`)*100,2) Prozent, Ort, Plz FROM `aktfvs` f LEFT JOIN namen n USING (pat_id) GROUP BY plz) i ORDER BY prozent DESC"
- TabAusgeb rs, Me, , , , , , , "Wohnortstatistik"
-End Sub ' Herkunftsstatistik_Click()
-
-Private Sub KassenEditieren_Click()
- Dim ked As New KassenEditieren, i&, rs As New Adodb.Recordset, DBName$
- ProgStart
- DBName = DefDB(DBCn)
- rs.Open "SELECT column_name cn, data_type dt, column_type ct, column_comment cc FROM information_schema.`COLUMNS` C WHERE table_schema = '" & DBName & "' AND table_name = 'kassenliste' AND column_type LIKE 'tinyint(1)%'", DBCn
- Do While Not rs.EOF
-  Debug.Print rs!cn, rs!DT, rs!ct, rs!CC
-  ked.Check1(ked.Check1.COUNT - 1).Caption = "&" & rs!cn & " (" & rs!CC & ")"
-  ked.Check1(ked.Check1.COUNT - 1).Tag = rs!cn
-  Load ked.Check1(ked.Check1.COUNT)
-  ked.Check1(ked.Check1.COUNT - 1).Top = ked.Check1(ked.Check1.COUNT - 2).Top + 300
-  ked.Check1(ked.Check1.COUNT - 1).Visible = True
-  rs.Move 1
- Loop
- Unload ked.Check1(ked.Check1.COUNT - 1)
- ked.Show
-End Sub ' KassenEditieren_Click()
-
-Private Sub LaborparameterZusammenfassen_Click()
- Call ProgStart
- Set pal = Nothing
- pal.PLArt = artLPar
- Set pal.hlese = Me
- Me.Hide
- pal.Show
- Call ProgEnde
-End Sub ' LaborparameterZusammenfassen_Click()
 Private Sub harealNeu_Click() ' `hareal` neu aufbauen
  Dim rAF&, ohd%, od%, infos$()
  Dim i&
@@ -2302,57 +3290,7 @@ Private Sub Apothekenrezepte_Click()
  Loop
  Close #333
  MsgBox "Fertig mit Apotheke!"
-End Sub ' Apothekenrezepte_Click()
-
-'Private Sub Anamnesebogen_Click() ' nicht sichtbar: &Anamnesebogen experimentell
-' anb.Show
-'End Sub
-
-Private Sub BriefeBerichtspflicht_Click()
- Call doBriefeBerichtspflicht
-End Sub ' BriefeBerichtspflicht_Click
-
-' Brief zu Pat_id-Liste aus Datei schreiben
-Private Sub BriefeZuListeSchreiben_Click()
- Dim bzl As New Lade
- bzl.FenArt = 1
- bzl.Show
-End Sub ' BriefeZuListeSchreiben_Click
-
-' Brief ohne Maske schreiben
-Private Sub BriefOhneMaske_Click()
- Dim erg$
- erg = InputBox("Bitte Pat_ID eingeben:")
- If IsNumeric(erg) Then
-  Call tubriefStandalone(CLng(erg), 0)
- End If
-End Sub
-
-' Brief schreiben
-Private Sub BriefSchreiben_Click() ' Brief schreiben
- Call ProgStart
- Aktion = Briefschreiben
- Set pataw.hlese = Me
- pataw.briefneu = False
- pataw.Show
-' Aktion = nix
- Call ProgEnde
-End Sub ' BriefSchreiben_Click
-
-Private Sub Briefschreibenneu_Click()
- Call ProgStart
- Aktion = Briefschreiben
- Set pataw.hlese = Me
- pataw.briefneu = True
- pataw.Show
-' Aktion = nix
- Call ProgEnde
-End Sub ' Briefschreibenneu_Click()
-
-' Brief zu letztem Import schreiben
-Private Sub BriefImport_Click()
- Call tubriefStandalone(CStr(lzPID), 0, , Me.pataw.Vorlage)
-End Sub ' Sub BriefImport_Click()
+End Sub ' Apothekenrezepte_Click
 
 Private Sub calldoGenMachDB_Click()
  Dim DBn$
@@ -2362,90 +3300,28 @@ Private Sub calldoGenMachDB_Click()
   Call doMach_quelle(DBn, DBCn, DBVerb.Cpt, False)
 #End If
  End If
-End Sub ' Sub calldoGenMachDB_Click()
-
-' Datei -> Datenbankverbindung Patientendaten
-Private Sub Datenbankverbindung_Click()
-' Call dbv.rücksetzBedTbl
-' Call dbv.setzBedTbl("anamnesebogen")
-' dbv.Show 1
-' SET cn = Nothing
-' cn.Open dbv.CnStr
- Call dbv.Auswahl("", "anamnesebogen", "Patientendaten")
- obStart = True
- If InStrB(UCase$(dbv.CnStr), "MYSQL") > 0 Then
-  Me.obMySQL = True
-  Me.obAcc = False
- Else
-  Me.obMySQL = False
-  Me.obAcc = True
- End If
- obStart = False
-' Unload Me
-' Me.Show
-End Sub
-
+End Sub ' Sub calldoGenMachDB_Click
 
 Private Sub DiagnosenExportieren_Click()
  Call GesDiagExp
-End Sub ' DiagnosenExportieren_Click()
+End Sub ' DiagnosenExportieren_Click
 
 Private Sub DiagnosenExportierenTest_Click()
  Call GesDiagExp(obTest:=True)
-End Sub ' DiagnosenExportierenTest_Click()
+End Sub ' DiagnosenExportierenTest_Click
 
 Private Sub DiagnosenSortieren_Click()
  Dim pad As New PatListe
  pad.PLArt = artDiag
  Set pad.hlese = Me
  pad.Show
-End Sub ' DiagnosenSortieren_Click()
-
-' ...für Arzt -> DMP hier Liste
-Private Sub DMPhierListe_Click()
- Call ProgStart
- Set pal.hlese = Me
- Set pal = Nothing
- pal.PLArt = artPat
- Me.Hide
- pal.Show
- Call ProgEnde
-End Sub ' DMPhierListe_Click()
-
-' ...für Arzt -> DMP hier Liste ohne Pat.mit Terminen
-Private Sub DMPhierListeoT_Click()
- Call ProgStart
- Set pal.hlese = Me
- Set pal = Nothing
- pal.PLArt = artPat
- pal.ohneTermine = True
- Me.Hide
- pal.Show
- Call ProgEnde
-End Sub ' DMPhierListe_Click()
-
-' ...für Arzt -> DMP KHK Asthma
-Private Sub DMPKHKAsthma_Click()
- Dim rs As New Adodb.Recordset
- Dim sql$
- Call ProgStart
- sql = "SELECT n.pat_id,gesnameg(n.pat_id), f.form_abk, f.zeitpunkt " & vbCrLf & _
-       "FROM `namen` n " & vbCrLf & _
-       "LEFT JOIN `formular` f ON n.pat_id = f.pat_id " & vbCrLf & _
-       "WHERE ((form_abk LIKE 'dmpkhk%' OR form_abk LIKE 'dmpab%' OR form_abk LIKE 'dmpcopd%') " & vbCrLf & _
-       "   OR (form_abk LIKE 'edmp%' AND feld = 'Einschreibung' AND Feldnr IN (2,3,4))) " & vbCrLf & _
-       "   AND f.zeitpunkt > SUBDATE(NOW(),INTERVAL 365 DAY) " & vbCrLf & _
-       "GROUP BY n.pat_id,form_abk, DATE(zeitpunkt)"
- DBCn.Execute "SET GROUP_CONCAT_MAX_LEN = 70"
- myFrag rs, sql
- TabAusgeb rs, Me, , , , , , , "DMP KHK Asthma " & Format(Now(), "dd.mm.YYYY")
-End Sub ' DMPKHKAsthma_Click()
+End Sub ' DiagnosenSortieren_Click
 
 Private Sub DokPfadKorrigieren_Click() ' Dokumentpfade korrigieren
  Call ProgStart
  Call dokpfadänder(Me)
  Call ProgEnde
-End Sub ' DokPfadKorrigieren_Click()
+End Sub ' DokPfadKorrigieren_Click
 
 Private Sub DokumenteInDatenbank_Click()
  Const TMDok$ = "tmdok"
@@ -2458,7 +3334,7 @@ Private Sub DokumenteInDatenbank_Click()
  DBCn.Execute "USE `" & TMDok & "`"
  DBCn.Execute "CREATE TABLE IF NOT EXISTS `tmdok`.`Dokumente` (  `id` int(11) NOT NULL AUTO_INCREMENT,  `Pfad` varchar(255),  `Datei` varchar(255),  `Größe` int(11) DEFAULT NULL,  `geändert` datetime DEFAULT NULL,  PRIMARY KEY (`id`),  KEY `Name` (`Pfad`,`Datei`),  KEY `Größe` (`Größe`),  KEY `geändert` (`geändert`)) ENGINE=InnoDB DEFAULT CHARSET='utf8mb4' COLLATE=utf8mb4_german2_ci ROW_FORMAT=DYNAMIC"
  Call dverz(DPfad)
-End Sub ' DokumenteInDatenbank_Click()
+End Sub ' DokumenteInDatenbank_Click
 
 Private Sub dverz(DPfad$)
  Dim FSOPfad As Folder, Fil As File, SubF As Folder, rAF&
@@ -2486,7 +3362,7 @@ Private Sub DokumenteNeuAbhaken_Click()
  "using (pat_id,zeitpunkt)) AS i WHERE NOT ISNULL(pfad)", rAF
  Debug.Print "eingefügt:", rAF
  Beep 1000, 1000
-End Sub ' DokumenteNeuAbhaken_Click()
+End Sub ' DokumenteNeuAbhaken_Click
 
 Private Sub EinlesungenAnzeigen_Click()
  Dim rEinl As New Adodb.Recordset, sql$
@@ -2494,96 +3370,11 @@ Private Sub EinlesungenAnzeigen_Click()
  Call ProgStart
  myFrag rEinl, sql
  TabAusgeb rEinl, Me, True
-End Sub ' EinlesungenAnzeigen_Click()
+End Sub ' EinlesungenAnzeigen_Click
 
 Private Sub HausärzteEinlesen_Click()
  Call doHausärzteEinlesen
-End Sub ' HausärzteEinlesen_Click()
-
-' Funktionen für Arzthelferin und Arzt -> Falsch abgehakte Dokumente ungültig stempeln
-Public Sub FalschAbgehakteUngueltig_Click()
- Dim rAF&, zwg&, zug&, rs As New Adodb.Recordset, rl As New Adodb.Recordset
- Call ProgStart
- Me.Ausgeb "FalschAbgehakteUngültig ...", False
- myFrag rs, "SELECT --abgehakt ab, --ungueltig ug, pat_id, d.dokpfad, quelldatum qd FROM `dokumente abgehakt` da INNER JOIN `dokumente` d ON da.dokpfad = d.dokpfad"
- Do While Not rs.EOF
-  Set rl = Nothing
-  myFrag rl, "SELECT pat_id FROM `laborneu` WHERE pat_id = " & rs!Pat_id & " AND " & SelDatum("zeitpunkt", rs!qd)
-  If rl.EOF And rs!ug <> 1 Then
-   DBCn.Execute "UPDATE `dokumente abgehakt` SET ungueltig = 1 WHERE dokpfad = '" & doUmwfSQL(rs!DokPfad, lies.obMySQL) & "'", rAF
-   zug = zug + rAF
-   If rAF = 0 Then
-    MsgBox "Fehler beim Auffinden von " & doUmwfSQL(rs!DokPfad, lies.obMySQL) & " IN `dokumente abgehakt` (Orginaldokpfad: " & rs!DokPfad & ")"
-   End If
-  ElseIf Not rl.EOF And rs!ug <> 0 Then
-   DBCn.Execute "UPDATE `dokumente abgehakt` SET ungueltig = 0 WHERE dokpfad = '" & doUmwfSQL(rs!DokPfad, lies.obMySQL) & "'", rAF
-   zwg = zwg + rAF
-   If rAF = 0 Then
-    MsgBox "Fehler beim Auffinden von " & doUmwfSQL(rs!DokPfad, lies.obMySQL) & " IN `dokumente abgehakt` (Orginaldokpfad: " & rs!DokPfad & ")"
-   End If
-  End If
-  rs.Move 1
- Loop
- Ausgeb zwg & " Dokumente wieder gültig gestempelt", True
- Ausgeb zug & " Dokumente ungültig gestempelt", True
-End Sub ' FalschAbgehakteUngueltig_Click
-
-' 102
-' Funktionen für Arzthelferin und Arzt -> falsche Karteikarteneinträge
-Private Sub FalscheKarteikarteneinträge_Click()
- Dim rs As New Adodb.Recordset
- myFrag rs, AuffArtSql
- TabAusgeb rs, Me, True, , , , , , "Falsche_Karteikarteneinträge"
- Exit Sub ' FalscheKarteikarteneinträge_Click
-
-#If False Then
- Dim ErgDat$
- ErgDat$ = pVerz & "FalscheKarteikarteneinträge.txt"
- Dim altArt$
- Dim rs As New Adodb.Recordset
- Call ProgStart
- Open ErgDat For Output As #327
- Print #327, "Falsche karteikarteneinträge vom " & Now() & ":"
- rs.Open "SELECT pat_id,zeitpunkt,art,inhalt FROM `eintraege` WHERE art not IN (" & artSpezEintr & "," & artSpezUS & "," & artSpezSonst & ") ORDER BY art, pat_id, zeitpunkt", DBCn
- Do While Not rs.EOF
-  If rs!art <> altArt Then
-   Print #327, String$(80, "_")
-   altArt = rs!art
-  End If
-  Print #327, Right$(Space$(4) & rs!Pat_id, 4) & "|" & Left$(rs!Zeitpunkt & Space$(19), 19) & "|" & Left$(rs!art & Space$(10), 10) & "|" & Left$(rs!Inhalt, 50)
-  rs.Move 1
- Loop
- Close #327
-' zeigan ergdat
- Call GetWord
- With Wapp
-   .Visible = True
-   .WindowState = wdWindowStateMaximize
-   .documents.Open ErgDat
-   .activedocument.Range.Font.size = 9
-   .Activate
- End With
-#End If
-End Sub ' FalscheKarteikarteneinträge_Click()
-
-' Funktionen für Arzthelferin und Arzt -> Hausärzte mit alter KV-Nr ergänzen
-Private Sub HausärztemitalterKVNrergänzen_Click()
- Dim fha As New frmalthae, rAF&, rs As New Adodb.Recordset
- ' erst mal die leeren KV-Nummern einfügen
- InsKorr DBCn, DBCnS, "INSERT INTO `althae` (kvnu,kvnr) SELECT kvnu, kvnr FROM (SELECT n.kvnr kvnu, LEFT(n.kvnr,2),'/',right(n.kvnr,5) kvnr, HAName hHA, CONCAT_WS(', ',l.name, l.vorname) lHA FROM `aktfvs` f LEFT JOIN `namen` n ON f.pat_id = n.pat_id LEFT JOIN `aktlue` l ON n.kvnr = l.kvnro LEFT JOIN althae h ON n.kvnr = h.kvnu GROUP BY n.pat_id) innen WHERE (ISNULL(lha) OR lha='') AND (ISNULL(hha) OR hha='') AND kvnu <> '' AND NOT EXISTS (SELECT kvnu FROM althae WHERE kvnu = innen.kvnu)", rAF
-' SET fha.datprimaryRS = n
-' Call fha.vorbereit
- DBCn.Execute "SET GROUP_CONCAT_MAX_LEN = 70"
- myFrag rs, "SELECT GROUP_CONCAT(kvnu) nrn FROM (SELECT n.kvnr kvnu, HAName hHA, CONCAT_WS(', ',l.name, l.vorname) lHA FROM `aktfvs` f LEFT JOIN `namen` n ON f.pat_id = n.pat_id LEFT JOIN `aktlue` l ON n.kvnr = l.kvnro LEFT JOIN althae h ON n.kvnr = h.kvnu GROUP BY n.pat_id) innen WHERE (ISNULL(lha) OR lha='') AND (ISNULL(hha) OR hha='') AND kvnu <> ''"
- If LenB(rs!nrn) <> 0 Then
-  If fha.Vorbereit(rs!nrn) Then
-   fha.Show
-   Exit Sub
-  End If
- End If ' LenB(rs!nrn) <> 0 Then
- MsgBox "Keine Datensätze zu editieren!"
- Exit Sub
-End Sub ' HausärztemitalterKVNrergänzen_Click()
+End Sub ' HausärzteEinlesen_Click
 
 Private Sub korrQD_Click() ' Quelldatum für alle Dokumente korrigieren
  Dim rs As New Adodb.Recordset, nQD As Date, rAF&, rsum&
@@ -2621,7 +3412,7 @@ Private Sub korrQB_Click() ' Quelldatum für alle Briefe korrigieren
 ' Loop
  Ausgeb rsum & " Quelldaten korrigiert", True, True
  Beep 1000, 1000
-End Sub ' korrQB_Click()
+End Sub ' korrQB_Click
 
 Private Sub DokumenteAbgehaktPrüfen_Click()
  Dim rs As New Adodb.Recordset, n&, n1&
@@ -2671,366 +3462,32 @@ Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "Last
 End Select
 End Sub ' DokumenteAbgehaktPrüfen_Click
 
-Private Sub Motivationsgesprächsstatistik_Click()
- Dim rs As New Adodb.Recordset
- myFrag rs, "SELECT YEAR(zeitpunkt) Jahr, quarter(zeitpunkt) Quartal, COUNT(0) Zahl FROM leistungen l WHERE leistung IN ('92282','92278') GROUP BY YEAR(zeitpunkt),quarter(zeitpunkt) ORDER BY YEAR(zeitpunkt) DESC,quarter(zeitpunkt) DESC"
- TabAusgeb rs, Me, , , , , , , "Motivationsgesprächsstatistik"
-End Sub ' Motivationsgesprächsstatistik_Click()
-
-Private Sub PathLabAnschau_Click() ' pathologische Laborwerte anschauen
- Dim ePL As New PathLabForm
- Set ePL.eLese = Me
- ePL.Show
-End Sub ' PathLabAnschau_Click
-
-' ...für Arzt -> Unverwertbare DMP-Einträge
-Private Sub UnverwertbareDMPEinträge_Click() ' Unverwertbare DMP-Einträge
- Dim rs As New Adodb.Recordset, rez As New Adodb.Recordset, Pat_id&, AusgStr$, TA1$, STA1$(), i&
- Dim SpMin%(2)
- SpMin%(0) = 6
- Call ProgStart
-' Open DatNam For Output AS #327
- myFrag rs, "SELECT pat_id, dmpklass, dmpbeg,dmpkhkklass, DMPKHKBeg, DMPCopdKlass, DmpCOPDBeg, DMPABKlass, DMPABBeg, REPLACE(notiz,CONCAT(char(13),char(10)),0) Notiz FROM `namen` WHERE notiz LIKE '%dmp%' AND NOT notiz = CONCAT('DMP NEIN',char(13),char(10)) ORDER BY pat_id DESC"
- TabAusgeb rs, Me, True, , , , , , "Unverwertbare DMP-Einträge"
-End Sub ' UnverwertbareDMPEinträge_Click() ' Unverwertbare DMP-Einträge
-
-Private Sub Gestationsdiabetikerinnen_Click()
-' SELECT f.pat_id,f.fid, LEFT(CONCAT(a.nachname,' ',a.vorname),20) AS name, DATE_FORMAT(a.gebdat,'%d.%m.%y') AS geb, d.icd, d.diagsicherheit AS dsi, diabetestyp FROM `aktfvs` f LEFT JOIN `diagnosen` d ON f.fid = d.fid AND icd = 'O24.4' AND diagsicherheit not IN ('A','Z') LEFT JOIN `anamnesebogen` a ON f.pat_id = a.pat_id WHERE (NOT ISNULL(icd) OR a.diabetestyp = 'g');
- Dim rs As New Adodb.Recordset, rez As New Adodb.Recordset, Pat_id&, AusgStr$, TA1$, STA1$(), i&
- Dim SpMin%(2)
- SpMin%(0) = 6
- Call ProgStart
-' Open DatNam For Output AS #327
- myFrag rs, "SELECT f.pat_id,f.fid, LEFT(CONCAT(a.nachname,' ',a.vorname),20) name, DATE_FORMAT(a.gebdat,'%d.%m.%y') AS geb, d.icd, d.diagsicherheit AS dsi, diabetestyp FROM `aktfvs` f LEFT JOIN `diagnosen` d ON f.fid = d.fid AND gicd = 'O24.4' LEFT JOIN `anamnesebogen` a ON f.pat_id = a.pat_id WHERE (NOT ISNULL(icd) OR a.diabetestyp = 'g')"
- TabAusgeb rs, Me, True, , , , , , "Gestationsdiabetikerinnen"
-End Sub ' Gestationsdiabetikerinnen_Click
-
-' Funktionen für Arzthelferin und Arzt -> Patientenliste für Hausarztmodell
-Private Sub PatientenlistefürHausarztmodell_Click()
- Dim rs As New Adodb.Recordset
- myFrag rs, "SELECT n.kvnr `KV-Nr.HA`, IF(l.name <> '' OR l.vorname <> '' AND NOT ISNULL(l.name),CONCAT_WS(',',l.name, LEFT(l.vorname,1), CONCAT(IF(l.telefon<>'','T.',''),l.telefon)), IF(h.nachname <> '' AND NOT ISNULL(h.nachname),CONCAT_WS(',',h.nachname,LEFT(h.vorname,1),CONCAT(IF(h.tel1<>'','T.',''),h.tel1)),'?')) Hausarzt, n.pat_id Pat_ID, CONCAT_WS(',*',CONCAT_WS(',', n.nachname, n.vorname),DATE_FORMAT(gebdat,'%d.%m.%y')) Patient, mid(n.notiz,instr(n.notiz,'HM '),IF(instr(n.notiz,'PG ')<>0,instr(n.notiz,'PG ')-2-instr(n.notiz,'HM '),length(n.notiz))) Hausarztmodell FROM `aktfvs` f LEFT JOIN `namen` n ON f.pat_id = n.pat_id LEFT JOIN `aktlue` l ON n.kvnr = l.kvnro LEFT JOIN althae h ON n.kvnr = h.kvnu GROUP BY pat_id ORDER BY n.kvnr, patient"
- TabAusgeb rs, Me, True, , , , , True, "PatientenlisteFürHausarztmodell"
-End Sub ' PatientenlistefürHausarztmodell_Click
-
-' Funktionen für Arzthelferin und Arzt -> Patientenliste für Vollpauschale
-Private Sub PatientenlistefürVollpauschale_Click()
- Dim rs As New Adodb.Recordset
-#If ebmalt Then
- myFrag rs, "SELECT f.pat_id, CONCAT_WS(',', f.nachname, f.vorname) Pat, vpau, f.übwlanr, CONCAT_WS(',',arzt.nachname,arzt.vorname) ÜW, IF(nlart.niederlassungsart='Hausarzt','h',LEFT(nlart.niederlassungsart,1)) NLArt, arzt2.lanr LANR2, CONCAT_WS(',',arzt2.nachname,arzt2.vorname) ÜW2, IF(nlart2.niederlassungsart='Hausarzt','h',LEFT(nlart2.niederlassungsart,1)) nlart2 FROM (`aktfvs` JOIN `faelle` f ON `aktfvs`.fid = f.fid AND f.schgr BETWEEN 20 AND 29) LEFT JOIN (" & HADBName & ".arzt JOIN " & HADBName & ".nlart ON arzt.nlart_id = nlart.idnlart LEFT JOIN (" & HADBName & ".arzt_has_bs ahb LEFT JOIN " & HADBName & ".arzt_has_bs ahb2 ON ahb.bs_id = ahb2.bs_id AND ahb.arzt_id <> ahb2.arzt_id JOIN  (" & HADBName & ".arzt arzt2 JOIN " & HADBName & ".nlart nlart2 ON arzt2.nlart_id = nlart2.idnlart) ON ahb2.arzt_id = arzt2.idarzt   ) ON arzt.idarzt = ahb.arzt_id AND nlart2.Niederlassungsart = 'Facharzt' AND nlart.niederlassungsart = 'Hausarzt') ON übwlanr = arzt.lanr" & _
-         " LEFT JOIN (SELECT `aktfvs`.pat_id, leistung vpau FROM `aktfvs` JOIN `leistungen` l ON `aktfvs`.fid = l.fid AND (leistung LIKE '031%' OR leistung LIKE '01210')) vpau ON f.pat_id = vpau.pat_id WHERE nlart.niederlassungsart = 'Facharzt' OR ISNULL(nlart.niederlassungsart) OR NOT ISNULL(arzt2.lanr) GROUP BY pat_id"
-#Else
- myFrag rs, "SELECT f.pat_id, CONCAT_WS(',', f.nachname, f.vorname) Pat, vpau, f.übwlanr, CONCAT_WS(',',arzt.nachname,arzt.vorname) ÜW, IF(nlart.niederlassungsart='Hausarzt','h',LEFT(nlart.niederlassungsart,1)) NLArt, arzt2.lanr LANR2, CONCAT_WS(',',arzt2.nachname,arzt2.vorname) ÜW2, IF(nlart2.niederlassungsart='Hausarzt','h',LEFT(nlart2.niederlassungsart,1)) nlart2 FROM (`aktfvs` JOIN `faelle` f ON `aktfvs`.fid = f.fid AND f.schgr BETWEEN 20 AND 29) LEFT JOIN (" & HADBName & ".arzt JOIN " & HADBName & ".nlart ON arzt.nlart_id = nlart.idnlart LEFT JOIN (" & HADBName & ".arzt_has_bs ahb LEFT JOIN " & HADBName & ".arzt_has_bs ahb2 ON ahb.bs_id = ahb2.bs_id AND ahb.arzt_id <> ahb2.arzt_id JOIN  (" & HADBName & ".arzt arzt2 JOIN " & HADBName & ".nlart nlart2 ON arzt2.nlart_id = nlart2.idnlart) ON ahb2.arzt_id = arzt2.idarzt   ) ON arzt.idarzt = ahb.arzt_id AND nlart2.Niederlassungsart = 'Facharzt' AND nlart.niederlassungsart = 'Hausarzt') ON übwlanr = arzt.lanr" & _
-         " LEFT JOIN (SELECT `aktfvs`.pat_id, leistung vpau FROM `aktfvs` JOIN `leistungen` l ON `aktfvs`.fid = l.fid AND (leistung RLIKE '^030[12]' OR leistung LIKE '01210')) vpau ON f.pat_id = vpau.pat_id WHERE nlart.niederlassungsart = 'Facharzt' OR ISNULL(nlart.niederlassungsart) OR NOT ISNULL(arzt2.lanr) GROUP BY pat_id"
-#End If
- TabAusgeb rs, Me, True, , , , , True, "PatientenlisteFürVollpauschale"
-End Sub ' PatientenlistefürVollpauschale_Click
-
-' künftig ähnlich:
-' SELECT gesname(th.pat_id) Name, th.Pat_id, DATE_FORMAT(th.zp,'%d.%m.%Y') CSII_hier_seit, (SELECT DATE_FORMAT(MAX(bhfb),'%d.%m.%Y') FROM faelle f WHERE f.pat_id= th.pat_id) BhFB FROM therarten th LEFT JOIN anamnesebogen a ON th.pat_id = a.pat_id WHERE therart = 'CSII' AND zp = (SELECT MAX(zp) FROM therarten t WHERE t.pat_id = th.pat_id) AND tkz=0;
-Private Sub Pumpenträgerliste_Click() ' s. therart_erm
- Dim rs As New Adodb.Recordset, rez As New Adodb.Recordset, Pat_id&, AusgStr$, DatNam$, TA1$, STA1$(), i&
- Dim SpMin%(2)
- SpMin%(0) = 6
- Call ProgStart
- DatNam = pVerz & "Pumpenträger " & Format$(Now, "dd.mm.yy hh.mm.ss") & ".txt"
- Open DatNam For Output As #326
- ' für Acrobat Querdruck 70%
- myFrag rs, "SELECT a.pat_id, LEFT(CONCAT(a.nachname,',',a.vorname,IF(a.titel='','',','),a.titel,IF(a.nvorsatz='','',' '),a.nvorsatz,' (',a.anrede,')'),24) AS name, DATE_FORMAT(a.gebdat,'%d.%m.%y') AS geb, LEFT(CONCAT(`diabetes seit`,' ',a.`insulin seit`),12) AS 'D.m./Ins.', LEFT(CONCAT(IF(a.insulinpumpe=1,'+','-'),' ',a.`insulinpumpe seit`,' ',a.`insulinpumpe marke`),24) AS 'Pumpe b.Anamn./seit/Marke', LEFT(a.ther1,4) AS Ther1, LEFT(a.dmp,9) AS DMP, f.schgr AS SG, DATE_FORMAT(f.bhfb,'%d.%m.%y') AS bhfb, LEFT(CONCAT(privattel, '|',privatmobil,'|',diensttel,'|',email,'|',privatfax,'|',privattel_2),60) AS kontakt FROM `anamnesebogen` a LEFT JOIN `namen` n ON a.pat_id = n.pat_id LEFT JOIN lfaellev f ON a.pat_id = f.pat_id WHERE therakt = 'CSII' AND tkz = 0"
- TA1 = TabAusgeb(rs, Me, True).Value
- Print #326, TA1
- STA1 = Split(TA1, vbCrLf)
- Print #326, ''
- Print #326, ''
- i = 1
- Do While Not rs.EOF
- ' pumpentr
-  Set rez = Nothing
-  Pat_id = rs!Pat_id
-  ' ,'txtmedKey'
-  sql = forminhalt & " WHERE form_abk IN ('lar','plar') AND feld IN ('medikament','txtmedKey') AND " & _
-        "(feldinh LIKE '%reservoir% OR feldinh LIKE '%Rapid D Link%' OR feldinh LIKE '%Rap D Li%' OR feldinh LIKE '%Rapid-D Li%' OR feldinh LIKE '%TenderL%' OR feldinh LIKE '%FlexL%' OR feldinh LIKE '%Check Spirit%' OR feldinh LIKE '%Insight%' OR feldinh LIKE '%Chek Spirit%' OR feldinh LIKE '%Pumpenträg%' OR feldinh LIKE '%Kunststoffampu%' OR feldinh LIKE '%Spritzampull%' OR feldinh LIKE '%batteriefachdeckel%' OR feldinh LIKE '%H-Tron%' OR feldinh LIKE '%D-Tron%' OR feldinh LIKE '%Paradigm%' OR feldinh LIKE '%CSII%' OR feldinh LIKE '%linpumpe%' OR feldinh LIKE '%omnipod%' OR feldinh LIKE '%ypso pump%' OR feldinh LIKE '%MiniMed%' OR feldinh LIKE '%640G%' OR feldinh LIKE '%CareLink%' OR Feldinh LIKE '%Mio %' OR feldinh LIKE '%Quick%set%' OR feldinh LIKE '%Silhouette%' OR feldinh LIKE '%Sure-T%' OR feldinh LIKE '%Sure T%' OR feldinh LIKE '%Paradigm%' OR feldinh LIKE '% Veo%' OR feldinh LIKE '%Animas%' OR feldinh LIKE '%Car%idge%') " & _
-        "and zeitpunkt > " & DatFor_k(rs!BhFB - 640) & " AND pat_id = " & Pat_id & " ORDER BY zeitpunkt DESC LIMIT 10"
-  myFrag rez, "SELECT Pat_ID, Zeitpunkt, Feldinh FROM (" & sql & ") i"
-  Print #326, STA1(i)
-  Print #326, TabAusgeb(rEinl:=rez, AusgebFrm:=Me, obMitausgeb:=False, ohneKopfZ:=True, SpMinÜ:=SpMin).Value
-'  Do While Not rez.EOF
-'   rez.Move 1
-'  Loop
-  rs.Move 1
-  i = i + 1
- Loop
- Close #326
- zeigan DatNam
-End Sub ' Pumpenträgerliste_Click()
-
-' SELECT COUNT(0),leistung FROM `leistungen` WHERE leistung IN ('97261B','92261A',
-'92292C','92292D','92292E','97268','97269','97271','97274','97278','97279','92292A','92292B','92290A','92291A') AND YEAR(zeitpunkt)= '2008' GROUP BY leistung;
-'1.7.12:
-' schul:
-' SELECT YEAR(zeitpunkt) Jahr, (month(zeitpunkt) -1) div 3 +1 Quartal, COUNT(0) Zahl FROM eintraege e WHERE art = 'schul' GROUP BY YEAR(zeitpunkt), (month(zeitpunkt) -1) div 3 +1;
-
-Private Sub Schulungsstatistik_Click()
- Dim col As New Collection, el, rs As New Adodb.Recordset, ausg$, TA1$, SpMax%(5), rAF&
- DBCn.Execute "INSERT INTO `ebm2000plus`(leistung,titel,euro) SELECT g.leistung, g.erklärung, g.wert FROM `genehmigungen` g LEFT JOIN `ebm2000plus` e ON g.leistung=e.leistung WHERE ISNULL(e.leistung)", rAF
- myFrag rs, "SELECT leistung FROM `genehmigungen` WHERE obschulung<>0"
- Do While Not rs.EOF
-  ausg = rs!Leistung
-  col.Add ausg
-  rs.MoveNext
- Loop
- Set rs = Nothing
-' col.Add "97261B"
-' col.Add "92261A"
-' col.Add "97262B"
-' col.Add "92262A"
-' col.Add "97263B"
-' col.Add "92263A"
-' col.Add "97269B"
-' col.Add "92269A"
-' col.Add "97264B"
-' col.Add "92264A"
-' col.Add "97265B"
-' col.Add "92292C"
-' col.Add "92265A"
-' col.Add "97266B"
-' col.Add "92292D"
-' col.Add "92266A"
-' col.Add "97268B"
-' col.Add "92292E"
-' col.Add "92268A"
-' col.Add "97268"
-' col.Add "92292A"
-' col.Add "97269"
-' col.Add "97271"
-' col.Add "97274"
-' col.Add "92292B"
-' col.Add "97278"
-' col.Add "92290A"
-' col.Add "97279"
-' col.Add "92291A"
- Call ProgStart
- 
-#If True Then
-  Dim sql As New CString, lst As New CString
-  For Each el In col:  lst.AppVar Array("'", el, "',"): Next el
-  lst.Cut (lst.length - 1)
-  sql.AppVar Array("SELECT e.Leistung,Titel,COUNT(pat_id) Zahl,CAST(GROUP_CONCAT(pat_id) AS char) Pat_IDs FROM `ebm2000plus` e LEFT JOIN `leistungen` l ON l.leistung = e.leistung AND YEAR(SUBDATE(NOW(),INTERVAL 15 DAY)) = YEAR(l.zeitpunkt) WHERE e.leistung IN (", lst.Value, ") GROUP BY e.leistung")
-  DBCn.Execute "SET GROUP_CONCAT_MAX_LEN = 70"
-  myFrag rs, sql.Value
-  SpMax(3) = 100
-  TA1 = TabAusgeb(rs, Me, , , , , SpMax, , "Schulungsstatistik")
-#Else ' True
-'  Dim DatNam$
-'  DatNam = pVerz & "Schulungsstatistik " & Format$(Now, "dd.mm.yy hh.mm.ss") & ".csv"
-'  Open DatNam For Output AS #325
-'  Print #325, "Leistung Titel                                               Anzahl IN " & YEAR(NOW() - 15)
-'  For Each el IN col
-'   SET rs = Nothing
-'   myfrag rs, "SELECT leistung,titel,(SELECT COUNT(0) FROM `leistungen` WHERE leistung = e.leistung AND YEAR(zeitpunkt) = YEAR(SUBDATE(NOW(),INTERVAL 15 DAY))) ct FROM `ebm2000plus` e WHERE leistung = '" & el & "'"
-'   IF rs.EOF THEN rs.Close: myfrag rs, "SELECT COUNT(0) ct, titel FROM `leistungen` l LEFT JOIN `ebm2000plus` e ON l.leistung = e.leistung WHERE l.leistung = '" & el & "' AND YEAR(zeitpunkt) = YEAR(SUBDATE(NOW(),INTERVAL 15 DAY))"
-''   IF el = "97278" THEN
-''    MsgBox "Stop IN Schulungsstatistik_Click:" & vbCrLf & "el = '97278'"
-''    Stop
-''   END IF
-'   ausg = Left$(el & Space(7), 7) & "(" & LEFT(rs!Titel & Space$(60), 60) & "): " & rs!ct
-'   Print #325, ausg
-'  Next el
-'  MsgBox "Fertig!"
-'  Close #325
-' zeigan datnam
-#End If ' True
-End Sub ' Schulungsstatistik_Click
-Private Sub PatientenMitAOKKriterien_Click()
-' 2 x gestrichen: AND ln.einheit = '%'
- Dim rs As New Adodb.Recordset
-' sql = "SELECT IF (HbA1c>=7.3 OR GFR <= 40,'X','') Krit, i.* from" & _
-       "(SELECT `aktfvs`.pat_id, DATE(hba1c.zp) `HbA1c-Tag`, hba1c.wert HbA1c, DATE(krea.zp) `Krea-Tag`, krea.wert Krea, IF(REPLACE(krea.wert,',','.')=0 OR timestampdiff(year,n.gebdat,krea.zp)<=0,'-',round(186 * pow(REPLACE(krea.wert,',','.') * 1.0526,-1.154) * pow(timestampdiff(year,n.gebdat,krea.zp),-0.203)*if(geschlecht='w',0.742,1),0)) GFR  " & _
-       "FROM `aktfvs` LEFT JOIN " & _
-       "(SELECT pat_id, zeitpunkt zp, abkü, einheit, wert FROM `laborneu` WHERE abkü RLIKE '[ck]rea$|[ck]rea[^u]' AND einheit = 'mg/dl' UNION SELECT u.pat_id pat_id, u.eingang zp, w.abkü abkü, w.einheit einheit, w.wert wert FROM `laboryus` u LEFT JOIN laborywert w ON u.id = w.usid WHERE abkü RLIKE '[ck]rea$|[ck]rea[^u]' AND einheit = 'mg/dl' ORDER BY pat_id,zp DESC) krea ON `aktfvs`.pat_id = krea.pat_id LEFT JOIN `namen` n ON krea.pat_id = n.pat_id " & _
-       "LEFT JOIN (SELECT pat_id, zeitpunkt zp, wert FROM `laborneu` ln WHERE abkü RLIKE 'hba[c1]' AND CAST(wert AS decimal) < 22 UNION SELECT u.pat_id, u.eingang zp, w.wert FROM `laboryus` u LEFT JOIN laborywert w ON u.id = w.usid WHERE abkü RLIKE 'hba[c1]' AND CAST(wert AS decimal) < 22 ORDER BY pat_id,zp DESC) hba1c ON `aktfvs`.pat_id = hba1c.pat_id WHERE datediff(NOW(), hba1c.zp) <100 OR datediff(NOW(),krea.zp)<100 GROUP BY `aktfvs`.pat_id) i"
- sql = "SELECT IF (h.letzter>=7.3 OR _lGFR(f.pat_id)<= 40,'X','') Krit, f.pat_id,h.letzter HbA1c,h.lzp HbA1cZp,k.letzter Krea, k.lzp KreaZp, _lGFR(f.pat_id) eGFR FROM " & vbCrLf & _
-       "aktfvs f LEFT JOIN lHbA1c h USING (pat_id) " & vbCrLf & _
-       "LEFT JOIN lKrea k USING (pat_id); "
-
- myFrag rs, sql
- TabAusgeb rs, Me, , , , , , , "PatMitAokKrit"
-End Sub ' PatientenMitAOKKriterien_Click
-
 Private Sub Laborvergleich_Click()
  Dim rv As New Adodb.Recordset, rs As New Adodb.Recordset, i&, ausg$, TA1$, SpMax%(5), FristS$, sql$
  sql = "SELECT * FROM (SELECT COUNT(0) Zahl,Labor,trim(CONCAT(LEFT(CONCAT(abkü,'          '),10),LEFT(CONCAT(einheit,'            '),12),LEFT(nb,26))) `Verfahren/Einheit/   Normbereich`,Langtext, MAX(zeitpunkt) MaxEing, MIN(zeitpunkt) MinEing FROM labor2a GROUP BY abkü, einheit, nb, langtext, labor ORDER BY langtext, `Verfahren/Einheit/   Normbereich`) i;"
  myFrag rs, sql
  TA1 = TabAusgeb(rs, Me, , , , , , False, "Laborvergleich")
-End Sub ' Laborvergleich_Click()
-
-Private Sub DiabetikerOhneSchulungLetztesJahr_Click()
- Dim rs As New Adodb.Recordset
- sql = "SELECT f.Pat_ID, CONCAT(n.nachname,',',n.vorname) `Diabetiker von letztem Quartal ohne Schulung letztes Jahr` FROM `aktfvs` f LEFT JOIN `namen` n ON f.pat_id = n.pat_id LEFT JOIN `diagnosen` d ON f.pat_id = d.pat_id AND gicd REGEXP '^E1[0-4]|^O24' LEFT JOIN `eintraege` e ON f.pat_id = e.pat_id AND art = 'schul' AND YEAR(zeitpunkt) = YEAR(SUBDATE(NOW(),INTERVAL 25 DAY)) WHERE ISNULL(art) AND NOT ISNULL(icd) AND schgr <> 90 GROUP BY pat_id"
- myFrag rs, sql
- TabAusgeb rs, Me, , , , , , , "DiabetikerOhneSchulungLetztesJahr"
-End Sub ' DiabetikerOhneSchulungLetztesJahr_Click()
-
-' Funktionen für Arzthelferin und Arzt -> Motivationsgesprächskandidaten
-Private Sub Motivationsgesprächskandidaten_Click()
-' Dim rv As New ADODB.Recordset, rs As New ADODB.Recordset, i&, ausg$, TA1$, SpMax%(5), fristS$, sql$
- Dim rs As New Adodb.Recordset, SpMax%(5), sql$
-
- Call ProgStart
-' myfrag rv, "SHOW CREATE VIEW `aktfv`"
-' fristS = rv.Fields(1)
-' SET rv = Nothing
-' fristS = Mid(fristS, InStr(fristS, "INTERVAL ") + 9)
-' fristS = Left$(fristS, InStr(fristS, " ") - 1)
-' IF Not IsNumeric(fristS) THEN
-'  MsgBox "Ungeeignete Abfrage `aktfv`, evtl. erst Views erstellen"
-'  Exit Sub
-' END IF
-
- SpMax(1) = 32
- SpMax(5) = 300
-' Const Schulungsleistungen$ = "(leistung LIKE '972%' OR leistung LIKE '922%' OR Leistung='92282' OR Leistung='92278' OR Leistung='92281' OR Leistung='92277') AND NOT leistung IN ('97272','97276','97277')"
-' Print #325, "Lfdnr. Pat_id Name                          ICD"
-' myfrag rs, "SELECT f.pat_id,gesname, icd FROM `aktfv` f LEFT JOIN `diagnosen` d ON f.pat_id = d.pat_id AND icd REGEXP '^E1[0-4]' AND diagsicherheit <> 'A' LEFT JOIN leistungen l ON f.pat_id = l.pat_id AND (leistung LIKE '972%' OR leistung LIKE '922%' OR leistung = '92282' OR leistung = '92278') AND NOT leistung IN ('97272','97276','97277') AND YEAR(zeitpunkt) = YEAR(SUBDATE(NOW(),INTERVAL 20 DAY)) AND adddate(zeitpunkt,INTERVAL 365 DAY) > now() WHERE NOT ISNULL(id1) AND ISNULL(leistung) GROUP BY f.pat_id"
-' sql = "SELECT f.pat_id AS Pat_ID,gesname AS Name, ICD, DATE(e.zeitpunkt) AS Zeitpunkt, e.art AS Art, e.inhalt AS Inhalt FROM `aktfv` f LEFT JOIN `diagnosen` d ON f.pat_id = d.pat_id AND icd REGEXP '^E1[0-4]|^O24' AND diagsicherheit <> 'A' LEFT JOIN leistungen l ON f.pat_id = l.pat_id AND (leistung LIKE '972%' OR leistung LIKE '922%' OR leistung = '92282' OR leistung = '92278') AND NOT leistung IN ('97272','97276','97277') AND YEAR(zeitpunkt) = YEAR(SUBDATE(NOW(),INTERVAL " & FristS & " DAY)) " & _
-         "and adddate(zeitpunkt,INTERVAL 365 DAY) > now() LEFT JOIN `eintraege` e ON f.pat_id = e.pat_id AND e.art IN ('andm','wr','tk','gs') AND e.zeitpunkt BETWEEN str_to_date(CONCAT(YEAR(SUBDATE(NOW(),INTERVAL " & FristS & " DAY)),'/',((month(SUBDATE(NOW(),INTERVAL " & FristS & " DAY))-1) div 3)*3+1,'/1'),'%Y/%m/%d') AND SUBDATE(adddate(str_to_date(CONCAT(YEAR(SUBDATE(NOW(),INTERVAL " & FristS & " DAY)),'/',((month(SUBDATE(NOW(),INTERVAL 20 DAY))-1) div 3)*3+1,'/1'),'%Y/%m/%d'),INTERVAL 3 MONTH),INTERVAL 1 DAY) WHERE NOT ISNULL(id1) AND ISNULL(l.leistung) GROUP BY f.pat_id, art, zeitpunkt"
-' ' folgendes nach "and " & Schulungsleistungen & " auskommentiert 10.4.12: " AND YEAR(zeitpunkt) = YEAR(SUBDATE(NOW(),INTERVAL " & FristS & " DAY)) " & \_
- sql = motsql()
- myFrag rs, sql
-Call TabAusgeb(rs, Me, , , , , SpMax, True, "Kandidaten f.neue Motivationsziffern (92278(T2DM), 92282(T1DM))")
-' Open DatNam For Output AS #325
-' Print #325, TA1
-' i = 0
-' Do While Not rs.EOF
-'  i = i + 1
-'  ausg = Right("    " & i, 4) & " " & Right("     " & rs!Pat_id, 5) & " " & LEFT(rs!GesName & Space$(30), 30) & " " & rs!ICD
-'  Print #325, ausg
-'  rs.Move 1
-' Loop
-' Close #325
-' MsgBox "Fertig!"
-' Call ProgEnde
-' zeigan DatNam
-End Sub ' Sub Motivationsgesprächskandidaten_Click()
+End Sub ' Laborvergleich_Click
 
 Private Sub tabfuell_Click()
  Call TabFuellSnSh
-End Sub ' tabfuell_Click()
+End Sub ' tabfuell_Click
 
-Private Sub Therapieartenwechsel_Click() ' s. therart_erm
- Dim rs As New Adodb.Recordset, sql$, altpat_id&, altTherArt$, rAF&, erg&, T1!, T2!
- Const FristS$ = "25"
- Call ProgStart
- erg = MsgBox("Mit Neuauswertung der Therapiearten?", vbYesNo + vbQuestion + vbDefaultButton2, "Rückfrage")
- If erg = vbYes Then
-  T1 = Timer
-  Ausgeb "Bitte warten", 0
-'  DBCn.Execute "CREATE TABLE IF NOT EXISTS `therarten`(id integer key auto_increment,pat_id integer, zp datetime, mpnr integer, therart varchar(7), index pat_id(pat_id))", rAF
-  DBCn.Execute "CREATE TABLE IF NOT EXISTS `therarten`(id INT(11) NOT NULL AUTO_INCREMENT,pat_id INT(11) NULL DEFAULT NULL,zp DATETIME NULL DEFAULT NULL,mpnr INT(11) NULL DEFAULT NULL,therart VARCHAR(7) NULL DEFAULT NULL COLLATE 'utf8mb4_german2_ci',insart INT(1) UNSIGNED NOT NULL DEFAULT '0' COMMENT '\'0=keines, 1=nur Mahlzeiten,2=nur Verzögerungs,3=nur Misch, 4=verschiedene',Grund VARCHAR(1000) NULL DEFAULT NULL COMMENT 'Grund/Gründe für Zuordnung' COLLATE 'utf8mb4_german2_ci',absPos INT(10) NULL DEFAULT NULL,AktZeit DATETIME NULL DEFAULT NULL,StByte INT(10) NULL DEFAULT NULL,PRIMARY KEY (id) USING BTREE,INDEX pat_id (pat_id) USING BTREE,INDEX zp (zp,mpnr) USING BTREE) COLLATE='utf8mb4_german2_ci' ENGINE = MyISAM"
-  DBCn.Execute "TRUNCATE `therarten`"
-#If Not thaalt Then
-  DBCn.Execute "call fuellThaP(0)"
-#Else
-  sql = "SELECT pat_id, zp, mpnr, IF(purez OR puzu,'CSII',IF(obict=1,'ICT',IF(insu=0,IF(oad=1,'OAD','Diät'),IF(oad=1,'Komb','CT')))) therart FROM (SELECT mpü.pat_id, mpü.zeitpunkt zp, mpü.mpnr, " & _
-        "(SELECT COUNT(0)<>0 oad FROM `medplan` mpu LEFT JOIN `medarten` ma ON mpu.medanfang = ma.medikament WHERE mpu.pat_id = mpü.pat_id AND mpu.mpnr = mpü.mpnr AND (glib<>0 OR metf<>0 OR gluci<>0 OR shglin<>0 OR glit<>0 OR dpp4<>0 OR sglt2<>0 OR sonstad<>0)) oad, " & _
-        "(SELECT COUNT(0)<>0 oad FROM `medplan` mpu LEFT JOIN `medarten` ma ON mpu.medanfang = ma.medikament WHERE mpu.pat_id = mpü.pat_id AND mpu.mpnr = mpü.mpnr AND (glp1<>0)) glp1, " & _
-        "(SELECT (MAX((mpu.mo<>'')+(mpu.mi<>'')+(mpu.ab<>'')+(mpu.zn<>''))>0) obict FROM `medplan` mpu LEFT JOIN `medarten` ma ON mpu.medanfang = ma.medikament WHERE mpu.pat_id = mpü.pat_id AND mpu.mpnr = mpü.mpnr AND insart =1) obict, " & _
-        "(SELECT COUNT(0)<>0 insu FROM `medplan` mpu LEFT JOIN `medarten` ma ON mpu.medanfang = ma.medikament WHERE mpu.pat_id = mpü.pat_id AND mpu.mpnr = mpü.mpnr AND (ins<>0 OR anal<>0)) insu, " & _
-        "(SELECT COUNT(0)<>0 puzu FROM `medplan` mpu LEFT JOIN `medarten` ma ON mpu.medanfang = ma.medikament WHERE mpu.pat_id = mpü.pat_id AND mpu.mpnr = mpü.mpnr AND puzu<>0) purez, " & _
-        "(SELECT COUNT(0)<> 0 FROM (((`forminhfeld` LEFT JOIN `forminhkopf` ON `forminhfeld`.foid=`forminhkopf`.foid) LEFT JOIN `formulare` ON `formulare`.formid=`forminhkopf`.form_id) LEFT JOIN `forminhaltfeld` ON `forminhfeld`.feldvw=`forminhaltfeld`.feldvw) LEFT JOIN `forminhaltfeldinh` ON `forminhfeld`.feldinhvw=`forminhaltfeldinh`.feldinhvw  WHERE form_abk IN ('lar','plar') AND feld IN ('medikament','txtmedKey') AND zeitpunkt > SUBDATE(mpü.zeitpunkt, INTERVAL 0.5 YEAR) AND pat_id = mpü.pat_id) puzu " & _
-        "(feldinh LIKE '%reservoir%' OR feldinh LIKE '%Rapid D Link%' OR feldinh LIKE '%Rap D Li%' OR feldinh LIKE '%Rapid-D Li%' OR feldinh LIKE '%TenderL%' OR feldinh LIKE '%FlexL%' OR feldinh LIKE '%Check Spirit%' OR feldinh LIKE '%Insight%' OR feldinh LIKE '%Chek Spirit%' OR feldinh LIKE '%Pumpenträg%' OR feldinh LIKE '%Kunststoffampu%' OR feldinh LIKE '%Spritzampull%' OR feldinh LIKE '%batteriefachdeckel%' OR feldinh LIKE '%H-Tron%' OR feldinh LIKE '%D-Tron%' OR feldinh LIKE '%Paradigm%' OR feldinh LIKE '%CSII%' OR feldinh LIKE '%linpumpe%' OR feldinh LIKE '%omnipod%' OR feldinh LIKE '%ypso pump%' OR " & _
-        " feldinh LIKE '%MiniMed%' OR feldinh LIKE '%640G%' OR feldinh LIKE '%CareLink%' OR Feldinh LIKE '%Mio %' OR feldinh LIKE '%Quick%set%' OR feldinh LIKE '%Silhouette%' OR feldinh LIKE '%Sure-T%' OR feldinh LIKE '%Sure T%' OR feldinh LIKE '%Paradigm%' OR feldinh LIKE '% Veo%' OR feldinh LIKE '%Animas%' OR feldinh LIKE '%Car%idge%') AND zeitpunkt > SUBDATE(mpü.zeitpunkt, INTERVAL 0.5 YEAR) AND pat_id = mpü.pat_id) puzu " & _
-        "FROM `medplan` mpü GROUP BY mpü.pat_id, mpü.mpnr, mpü.zeitpunkt) i"
-  myFrag rs, sql
-  Do While Not rs.EOF
-   If rs!Pat_id <> altpat_id Or rs!therart <> altTherArt Then
-    InsKorr DBCn, DBCnS, "INSERT INTO `therarten`(pat_id,zp,mpnr,therart) VALUES(" & rs!Pat_id & "," & DatFor_k(rs!Zp) & "," & rs!MPNr & ",'" & rs!therart & "')", rAF
-    altpat_id = rs!Pat_id
-    altTherArt = rs!therart
-   End If
-   rs.Move 1
-  Loop
-#End If
-  T2 = Timer
-  Ausgeb "Fertig mit Auffüllen der Tabelle Therapiearten, " & CStr(T2 - T1) & " Sekunden", True, True
- End If ' erg=vbYes
- Set rs = Nothing
-' ' LEFT JOIN `diagnosen` d ON f.pat_id = d.pat_id AND icd REGEXP '^E1[0-4]' AND diagsicherheit <> 'A'
- sql = "SELECT a.Pat_ID, gesname(a.pat_id) Name, ICD, AufnDat, SchGr, t.zp `Beginn`,TherArt " & _
-       "FROM `aktfvs` a LEFT JOIN `diagnosen` d ON a.pat_id = d.pat_id AND gicd REGEXP '^E1[0-4]|^O24' " & _
-       "LEFT JOIN `therarten` t ON a.pat_id = t.pat_id " & _
-       "WHERE (therart ='ICT' OR therart = 'CSII') AND " & _
-       "zp BETWEEN " & lQAnfuEnd(FristS) ', 1)
-' "zp BETWEEN str_to_date(CONCAT(YEAR(SUBDATE(NOW(),INTERVAL " & fristS & " DAY)),'/',((month(SUBDATE(NOW(),INTERVAL " & fristS & " DAY))-1) div 3)*3+1,'/1'),'%Y/%m/%d') AND SUBDATE(adddate(str_to_date(CONCAT(YEAR(SUBDATE(NOW(),INTERVAL " & fristS & " DAY)),'/',((month(SUBDATE(NOW(),INTERVAL 20 DAY))-1) div 3)*3+1,'/1'),'%Y/%m/%d'),INTERVAL 3 MONTH),INTERVAL 1 DAY)"
- myFrag rs, sql
- Call TabAusgeb(rs, Me, , , , , , , "NeueICT")
-End Sub ' Sub Therapieartenwechsel_Click()
-
-Private Sub Überweiserstatistik_Click()
- Dim rs As New Adodb.Recordset, DatNam$, i&, ausg$, sql$
- DatNam = pVerz & "Überweiserstatistik " & Format$(Now, "dd.mm.yy hh.mm.ss") & ".csv"
- Open DatNam For Output As #326
- Call ProgStart
-' myfrag rs, "SELECT kvnu,anrede, haname,plz,ort,tel1,tel2,fax1,fax2,zulg,arzttyp,gemmit,beme,dmpt2,dmpt1,gelöscht,ct FROM (SELECT COUNT(0) AS ct, LEFT(übwv,7) AS kvnu FROM `faelle` WHERE bhfb > " & DatFor_k(Now - 365) & " AND übwv <> '' GROUP BY übwv " & _
-   "UNION SELECT COUNT(0) AS ct, LEFT(andüw,7) AS kvnu FROM `faelle` WHERE bhfb > " & DatFor_k(Now - 365) & " AND andüw <> '' GROUP BY andüw) AS i LEFT JOIN `kvaerzte`.`hae` USING (kvnu) WHERE not gelöscht AND NOT ISNULL(kvnu) AND kvnu <> '6419153' ORDER BY ct DESC"
-' myfrag rs, "SELECT kvnu,anrede, haname,plz,ort,tel1,tel2,fax1,fax2,zulg,arzttyp,dmpt2,dmpt1 FROM (SELECT COUNT(0) AS ct, LEFT(übwv,7) AS kvnu FROM `faelle` WHERE bhfb > " & DatFor_k(Now - 365) & " AND übwv <> '' GROUP BY übwv " & _
-   "UNION SELECT COUNT(0) AS ct, LEFT(andüw,7) AS kvnu FROM `faelle` WHERE bhfb > " & DatFor_k(Now - 365) & " AND andüw <> '' GROUP BY andüw) AS i LEFT JOIN `kvaerzte`.`hae` USING (kvnu) WHERE not gelöscht AND NOT ISNULL(kvnu) AND kvnu <> '6419153' ORDER BY ct DESC"
- sql = "SELECT ct,haname,ort,dmpt2,dmpt1,i.kvnu,lname,pat_id,bhfb FROM (SELECT COUNT(0) AS ct, übwr kvnu, GROUP_CONCAT(DISTINCT CAST(pat_id AS char)) pat_id, bhfb FROM quelle.faelle f WHERE bhfb > '2008-12-05 21:39:20' AND übwr <> '' AND übwr <> '641915300' GROUP BY kvnu) i LEFT JOIN " & HADBName & ".`hae` hae ON i.kvnu = hae.kvnu LEFT JOIN (SELECT GROUP_CONCAT(DISTINCT name) lname,kvnr FROM `aktlue` l WHERE kvnro<>'' GROUP BY kvnr) l ON i.kvnu = l.kvnr ORDER BY ct DESC;"
- DBCn.Execute "SET GROUP_CONCAT_MAX_LEN = 70"
- myFrag rs, sql
- For i = 0 To rs.Fields.COUNT - 1
-  ausg = ausg & """" & rs.Fields(i).name & """;"
- Next
- ausg = Left(ausg, Len(ausg) - 1)
- Print #326, ausg
- Do While Not rs.EOF
-  ausg = vNS
-  For i = 0 To rs.Fields.COUNT - 1
-   ausg = ausg & """" & rs.Fields(i).Value & """;"
-  Next
-  ausg = Left(ausg, Len(ausg) - 1)
-  Print #326, ausg
-  rs.Move 1
- Loop
- MsgBox "Fertig!"
- Close #326
- Call ProgEnde
- zeigan DatNam
-End Sub
-' SELECT kvnu,anrede, haname,plz,ort,tel1,tel2,fax1,fax2,zulg,arzttyp,gemmit,beme,dmpt2,dmpt1,gelöscht,ct FROM (SELECT COUNT(0) AS ct, LEFT(übwv,7) AS kvnu FROM `faelle` WHERE bhfb > '2007-09-30' AND übwv <> '' GROUP BY übwv UNION SELECT COUNT(0) AS ct, LEFT(andüw,7) AS kvnu FROM `faelle` WHERE bhfb > '2007-09-30' AND andüw <> '' GROUP BY andüw) AS i LEFT JOIN `kvaerzte`.`hae` USING (kvnu) WHERE not gelöscht AND NOT ISNULL(kvnu) AND kvnu <> '6419153' ORDER BY ct DESC;
-
-Private Sub DoppelteDiagnosen_Click()
- Dim rs As New Adodb.Recordset, DatNam$, i&
- DatNam = pVerz & "DoppelteDiagnosen " & Format$(Now, "dd.mm.yy hh.mm.ss") & ".txt"
- Open DatNam For Output As #327
- Print #327, "Nr. Zahl Pat_id Name                        ICD Sicherheit -Seite -text"
- Call ProgStart
- myFrag rs, "SELECT * FROM (SELECT COUNT(0) ct, pat_id, icd, gesnameg(pat_id) GesName, diagsicherheit si, diagtext tx, diagseite se FROM `diagnosen` WHERE obdauer <> 0 GROUP BY pat_id, icd, diagsicherheit, diagseite) AS i WHERE ct > 1 ORDER BY pat_id DESC"
- i = 0
- Do While Not rs.EOF
-  i = i + 1
-  Print #327, Right("    " & i, 4) & " " & Left$(rs!ct & "  ", 2) & " " & Right$("     " & rs!Pat_id, 5) & " " & Left$(rs!GesName & Space$(30), 30) & " " & Left$(rs!ICD & "      ", 6) & " " & rs!SI & " " & rs!SE & " " & Left$(rs!tx & Space$(50), 50)
-  rs.Move 1
- Loop
- Print #327, "Fertig!"
- Debug.Print "Fertig!"
- Close #327
- Call ProgEnde
- zeigan DatNam
-End Sub ' DoppelteDiagnosen_Click()
-
-Private Sub doppelteFAxe_Click()
+Private Sub doppelteFaxe_Click()
  Dim DatNam$
  DatNam = pVerz & "schongefaxte " & Format$(Now, "dd.mm.yy hh.mm.ss") & ".txt"
  Open DatNam For Output As #323
  Call acon(quelleT)
  Call acon(FaxT)
- Call dodoppeltefaxe(pVerz & "unkorrigiert")
+ Call dodoppelteFaxe(pVerz & "unkorrigiert")
  Print #323, "Fertig!"
  Debug.Print "Fertig!"
  Close #323
  zeigan DatNam
-End Sub ' doppeltefaxe
-Private Sub dodoppeltefaxe(V$)
+End Sub ' doppelteFaxe_Click
+
+' nur in doppelteFaxe und dodoppelteFaxe selbst
+Private Sub dodoppelteFaxe(V$)
  Static FSO As New FileSystemObject
  Dim Fil As File, pid$, pos%, buch$
  Dim rs As New Adodb.Recordset, rs1 As New Adodb.Recordset
@@ -3076,16 +3533,9 @@ Private Sub dodoppeltefaxe(V$)
  Next Fil
  Dim fld As Folder
  For Each fld In FSO.GetFolder(V).SubFolders
-  Call dodoppeltefaxe(fld.path)
+  Call dodoppelteFaxe(fld.path)
  Next fld
 End Sub ' dodoppeltefaxe
-
-' ...für Arzt -> Duplex Kontrollieren
-Private Sub DuplexKontrollieren_Click()
- Call ProgStart
- Call doDuplexkontrollieren
- Call ProgEnde
-End Sub ' DuplexKontrollieren_Click
 
 #If False Then
 Private Sub falschebriefelöschen_Click()
@@ -3137,71 +3587,30 @@ Private Sub falschebriefelöschen_Click()
   End If
  Next Fil
  Call ProgEnde
-End Sub
+End Sub ' falschebriefelöschen_Click
 #End If ' false
 
 Private Sub Excelliste_Click()
  Dim lad As New Lade
  Call lad.Show
 End Sub ' Excelliste_Click
+
 Private Sub LabortestsZuordnen_Click()
  Dim lad As New Lade
  lad.FenArt = LaborArten
  Call lad.Show
 End Sub ' LabortestsZuordnen_Click
 
-Private Sub Fallzahlstand_Click()
- Dim tage$
- Call ProgStart
- Do While Not IsNumeric(tage) And tage <> "-"
-  tage = InputBox("Vor wie vielen Tagen ('-' = gesamtes Quartal)?", "Rückfrage", 0)
-  If LenB(tage) = 0 Then Exit Sub
- Loop
- If tage <> "-" Then tage = CDbl(tage)
- Call dofallzahlstand(Me, tage)
- Call ProgEnde
-End Sub ' Fallzahlstand_Click
-
-Private Sub Hilfsmittelklassifikationen_Click()
- Call ProgStart
- Call doHilfsmittelklassifikationen(Me)
- Call ProgEnde
-End Sub ' Hilfsmittelklassifikationen_Click()
-
 Private Sub gefaxttrennen_Click()
  Call ProgStart
 ' Call dogefaxttrennen
  Call ProgEnde
-End Sub
+End Sub ' gefaxttrennen_Click
 
 Public Sub KassenkategorienBestimmen_Click()
  RufKassenKategorienBestimmen
 Forms(0).Ausgeb "Fertig mit Bestimmen der Krankenkassenkategorien!", True
-End Sub ' KassenkategorienBestimmen_Click()
-
-' Funktionen für Arzthelferin und Arzt -> Labor eintragen
-Private Sub LaborEintragen_Click()
- Call ProgStart
-' SET ple3.hlese = Me
-' SET ple2.hlese = Me
- Set ple.hlese = Me
- ple.Caption = "Laborwerte eintragen"
- ple.Show
- Call ProgEnde
-End Sub ' LaborEintragen_Click()
-
-' Funktionen für Arzthelferin und Arzt -> Abrechnungsfehler
-Private Sub Abrechnungsfehler_Click()
- Dim AbrF As New AbrechFehler
- AbrF.Show
- Set AbrF = Nothing
-End Sub ' Abrechnungsfehler_Click()
-
-Private Sub MachDB_Click()
- Dim MdB As New MachDatenbank
- MdB.Show
- Set MdB = Nothing
-End Sub ' MachDB_Click
+End Sub ' KassenkategorienBestimmen_Click
 
 Private Sub MDIForm_Activate()
  If Command = "plz" Then
@@ -3219,11 +3628,6 @@ Private Sub MDIForm_Activate()
  On Error Resume Next
  Me.dlg.Hide
 End Sub ' MDIForm_Activate()
-
-Private Sub MedartenEditieren_Click()
- Dim mda As New Medarten
- mda.Show
-End Sub ' MedartenEditieren_Click()
 
 Private Sub MyDB_Change()
  If Not obStart Then
@@ -3246,14 +3650,15 @@ End Sub ' MyDB_Change()
 
 Private Sub MyDB_Click()
  Call MyDB_Change
-End Sub ' MyDB_Click()
+End Sub ' MyDB_Click
 
 Private Sub MyDB_KeyDown(KeyCode As Integer, Shift As Integer)
  Call Key(KeyCode, Shift, Me, Me.MyDB.name)
-End Sub
+End Sub ' MyDB_KeyDown
+
 Private Sub obMySQL_KeyDown(KeyCode As Integer, Shift As Integer)
  Call Key(KeyCode, Shift, Me, Me.MyDB.name)
-End Sub
+End Sub ' obMySQL_KeyDown
 
 Private Sub MyDB_LostFocus()
  Call MyDB_Change
@@ -3273,10 +3678,13 @@ Private Sub obAcc_Click()
   Call PutReg(Me)
   If Me.Visible Then Screen.MousePointer = vbNormal
  End If
-End Sub
+End Sub ' obAcc_Click
+
 Sub machODBCAcc()
   Me.dbv.ODBC = "Microsoft Access Driver (*.mdb)"
-End Sub
+End Sub ' machODBCAcc
+
+' in: MDIForm_Load -> Haupt.holreg
 Private Sub obMySQL_Click()
  If Not obStart Then
   If Me.Visible Then Screen.MousePointer = vbHourglass
@@ -3286,83 +3694,18 @@ Private Sub obMySQL_Click()
   Call PutReg(Me)
   If Me.Visible Then Screen.MousePointer = 0
  End If
-End Sub
+End Sub ' obMySQL_Click
+
 Sub machODBCMy()
   Me.dbv.ODBC = ODBCStr()
 End Sub ' machODBCMy
-
-' Funktionen für Arzthelferin und Arzt -> Patientenlaufzettel alt (1. Vorkommen)
-Private Sub Patientenlaufzettel_Click()
- Call doPatientenlaufzettel
-End Sub ' Patientenlaufzettel_Click()
-
-' Funktionen für Arzthelferin und Arzt -> Patientenlaufzettel
-Private Sub Patientenlaufzettel_mit_Rueckmeldung_Click()
- Call doPatientenlaufzettel(, obphp:=True)
-End Sub ' Patientenlaufzettel_mit_Rueckmeldung_Click
-
-' Funktionen für Arzthelferin und Arzt -> DMP-Brief einzeln
-Private Sub DMPBriefEinzeln_Click()
- Call ProgStart
- Aktion = DMPZettel
- Set pataw.hlese = Me
- pataw.ZeilenzahlL.Visible = True
- pataw.Zeilenzahl.Visible = True
- pataw.Show
- Call ProgEnde
-' Call doPLZeinzeln
-End Sub ' DMPBriefEinzeln_Click
-
-' Funktionen für Arzthelferin und Arzt -> Patientenlaufzettel alt (2. Vorkommen)
-Private Sub PLZeinzeln_Click()
- Call ProgStart
- Aktion = Patientenlaufzetteleinzeln
- Set pataw.hlese = Me
- pataw.obRueck = False
- obRueck = False
- pataw.ZeilenzahlL.Visible = True
- pataw.Zeilenzahl.Visible = True
- pataw.Show
- Call ProgEnde
-' Call doPLZeinzeln
-End Sub ' PLZeinzeln_Click
-
-' Funktionen für Arzthelferin und Arzt -> Patientenlaufzettel einzeln
-Private Sub Plzeinzeln_mr_Click()
- Call ProgStart
- Aktion = Patientenlaufzetteleinzeln
- Set pataw.hlese = Me
- pataw.obRueck = True ' für PLZ-Knopf
- obRueck = True ' für OK-Knopf
- pataw.ZeilenzahlL.Visible = True
- pataw.Zeilenzahl.Visible = True
- pataw.Show
- Call ProgEnde
-' Call doPLZeinzeln
-End Sub ' Plzeinzeln_mr_Click
-
-' ...für Arzt -> Porto abrechnen
-Private Sub doPorto_Click()
- Call ProgStart
- Call dodoPorto
- Call ProgEnde
-End Sub ' doPorto_Click()
-
-Private Sub RestlicheBriefe_Click() ' restliche Briefe
- Call ProgStart
- Aktion = RestlicheBriefe
- Set pataw.hlese = Me
- pataw.Show
-' Aktion = nix
- Call ProgEnde
-End Sub ' RestlicheBriefe_Click() ' restliche Briefe
 
 Public Sub ZeigGefaxteAn(Pat_id&, Optional PatName$)
  Dim rs As New Adodb.Recordset
  myFrag rs, "SELECT transe `Übertragungsende`, docname `Dokumentname`, RCFax, pages `Seiten`, fsize `Größe`,Retries FROM `faxeinp`.`outa` o WHERE docname LIKE '%PID " & Pat_id & "%' ORDER BY transe DESC"
  TabAusgeb rs, Me, True, , , , , , vNS
  Me.Ausgeb "Gefaxt wurden an: " & PatName, 1
-End Sub 'ZeitGefaxteAn(Pat_id&)
+End Sub 'ZeitGefaxteAn
 
 ' aufgerufen IN patauswahl: Sub OKButton_Click()
 Public Sub los()
@@ -3386,13 +3729,6 @@ Public Sub los()
  End Select
 End Sub ' los
 
-Private Sub GefaxteBriefeAnzeigen_Click()
- Call ProgStart
- Aktion = GefaxteAnzeigen
- Set pataw.hlese = Me
- pataw.Show
-End Sub ' GefaxteBriefeAnzeigen_Click()
-
 ' Menü EDV -> DMP-String
 Sub CallDMPString_Click()
  Dim erg$
@@ -3402,7 +3738,7 @@ Sub CallDMPString_Click()
   Call doCallDMP(ByVal erg)
  End If
  Call ProgEnde
-End Sub ' CallDMPString_Click()
+End Sub ' CallDMPString_Click
 
 Private Sub DMPForts_Click()
  Static Ausw As New Adodb.Recordset
@@ -3415,7 +3751,7 @@ Private Sub DMPForts_Click()
   Ausw.Move 1
   Call doCallDMP(Ausw!Pat_id)
  End If
-End Sub ' DMPForts_Click()
+End Sub ' DMPForts_Click
 
 Sub doCallDMP(ByVal pid&)
  Dim dmpstD$, erg$, DT As DMPClass ' Dateiname
@@ -3451,33 +3787,13 @@ Private Sub CallUSDM_Click()
  rNa(0).Pat_id = erg
  Call usdmAlt(True)
  Call ProgEnde
-End Sub ' CallUSDM_Click()
+End Sub ' CallUSDM_Click
 
 'Private Sub DMPListeAnzeigen_Click()
 ' call progstart
 ' Call doDMPListeAnzeigen(Me)
 ' Call ProgEnde
 'End Sub
-
-' Funktionen für Arzthelferin und Arzt -> fehlende Überweisungsscheine
-Private Sub FehlendeÜberweisungsscheine_Click()
- Call ProgStart
- Call doFÜwS(Me)
- Call ProgEnde
-End Sub ' FehlendeÜberweisungsscheine_Click()
-
-' Funktionen für Arzthelferin und Arzt -> Patienten mit uns als Hausarzt (vorher fehlende Hausärzte ergänzen!)
-Private Sub FehlendeHausaerzte_Click()
-'SELECT DISTINCT `namen`.pat_id, `namen`.nachname, `namen`.vorname FROM quelle.`namen` LEFT JOIN quelle.faelle ON faelle.pat_id = `namen`.pat_id WHERE (`namen`.kvnr = "" OR ISNULL(`namen`.kvnr)) AND faelle.schgr = 24 ORDER BY pat_id DESC;
- Call ProgStart
- Call doLdFH(Me)
- Call ProgEnde
-End Sub ' FehlendeHausaerzte_Click()
-
-Private Sub HausärzteBKK_Click()
- Call ProgStart
- Call doHABKK(Me)
-End Sub ' Sub HausärzteBKK_Click()
 
 #If False Then
 Private Sub holLaborParameter_Click() ' nicht sichtbar: "&Laborparameter von u:\Anamnese\Quelle.mdb kopieren
@@ -3494,25 +3810,19 @@ Private Sub holEBM2000plus_Click()
  Call ProgEnde
 End Sub ' holEBM2000plus_Click
 
-Private Sub ListeDerFehlendenDokumente_Click()
- Call ProgStart
- Call doLdFD
- Call ProgEnde
-End Sub ' ListeDerFehlendenDokumente_Click()
-
 Private Sub SortierungÄndern_Click()
  Call ProgStart
  Call doSortierungÄndern0
-End Sub
+End Sub ' SortierungÄndern_Click
 
 Private Sub TabKop_Click() ' Tabelle kopieren
  Set Tü.F0 = Me
  Tü.Show
-End Sub
+End Sub ' TabKop_Click
 
 Private Sub test_Click()
  Call bittest1
-End Sub
+End Sub ' test_Click
 
 'Private Sub LaborTestLaden_Click()
 'Set labtest.dlg = Me.dlg
@@ -3546,22 +3856,13 @@ Private Sub TherapieartenFestlegen_Click() ' Therapiearten festlegen
  Loop
  Ausgeb "Fertig mit Festlegen der Therapiearten", True
  Call ProgEnde
-End Sub ' TherapieartenFestlegen_Click()
-
-#If mitab Then
-
-' ...für Arzt -> Anamnesebogen (Diagnosen eingeben)
-Private Sub ÜbertragenenAnamnesebogen_Click()
- anBogÜ.Show
-End Sub ' ÜbertragenenAnamnesebogen_Click
-#End If
+End Sub ' TherapieartenFestlegen_Click
 
 Private Sub MedklassT_Click() ' Testfunktionen
  Call ProgStart
  Call doMedklassT
  Call ProgEnde
-End Sub ' MedklassT_Click()
-
+End Sub ' MedklassT_Click
 
 'Private Sub Einlesen_Click(index As Integer)
 ' obMitAlterTab = True
@@ -3628,13 +3929,14 @@ Private Sub AnamnesebogenHolen_Click() ' nicht sichtbar: "Anamnesebogen von u:\A
  Call ProgStart
  Call holAB(Me)
  Call ProgEnde
-End Sub ' AnamnesebogenHolen_Click()
+End Sub ' AnamnesebogenHolen_Click
+
 Private Sub HAUebertrag_Click() ' nicht sichtbar: "Haus&ärzte übertragen
  Call ProgStart
 ' Call ergänzeliste
 ' Call holAllg(Me, "hausaerzte", "ID", -1)
  Call ProgEnde
-End Sub
+End Sub ' HAUebertrag_Click
 #End If
 'Function ergänzeliste()
 ' Dim rs As New ADODB.Recordset, rs2 As New ADODB.Recordset, rAF&
@@ -3677,27 +3979,6 @@ End Sub ' holMedArten_Click
 ' DMPlst.Show
 'End Sub
 
-' 5.7.10: jetzt nicht mehr nötig, IN PatListe integriert
-'Private Sub DMPSend_Click() ' nicht sichtbAR: "Alle &DMP-Dokumente an Hausärzte IN p:\zufaxen erstellen
-' Call ProgStart
-' Call alleDMPs(Me)
-' Call ProgEnde
-'End Sub ' DMPSend_Click
-
-' ...für Arzt -> DMP-Brief-Leistungs-Doku
-Private Sub DMPLeiDok_Click()
- Call ProgStart
- Call alleDMPLeiDok(Me, 1)
- Call alleDMPLeiDok(Me, 2)
-' Call ProgEnde
-End Sub ' DMPLeiDok_Click
-
-Private Sub BriefeLeiDok_Click()
- Call ProgStart
- Call tuBriefeLeiDok(Me)
- Call ProgEnde
-End Sub
-
 Private Sub FormulareÜbertragen_Click()
  Call ProgStart
  Call ÜbertragFormulare(Me, "_Medarten", "Medarten", uVerz & "zugriff.mdb", "medarten")
@@ -3705,14 +3986,14 @@ Private Sub FormulareÜbertragen_Click()
  Call ÜbertragFormulare(Me, "Anamnesebogen", "AnBog", uVerz & "zugriff.mdb", "anamnesebogen")
  Call ÜbertragFormulare(Me, "Labordokumente eP", "Labordokumente", uVerz & "zugriff.mdb", "dokumente")
  Call ProgEnde
-End Sub
+End Sub ' FormulareÜbertragen_Click
 
 #If False Then
 Private Sub KassenlisteKopieren_Click() ' nicht sichtbar: &Kassenliste von u:\Anamnese\Quelle.mdb kopieren"
  Call ProgStart
  Call holAllg(Me, "kassenliste", "ID", 0)
  Call ProgEnde
-End Sub ' KassenlisteKopieren_Click()
+End Sub ' KassenlisteKopieren_Click
 #End If
 
 #If False Then
@@ -3733,7 +4014,7 @@ Private Sub AnamnesebogenPacken_Click()
  Call ProgStart
  Call AnPack
  Call ProgEnde
-End Sub
+End Sub ' AnamnesebogenPacken_Click
 
 'Private Sub LaborAlle_Click()
 ' call progstart
@@ -3761,35 +4042,9 @@ End Sub
 ' Call ProgEnde
 'End Sub ' LaborQuerverbindenMitLöschen_Click()
 
-Private Sub MachTypen_Click(Index As Integer)
- Call ProgStart
- Call MacheTypen(Me)
- Call ProgEnde
-End Sub ' MachTypen_Click(index As Integer)
-
 Private Sub MDIForm_Terminate()
  End
 End Sub ' MDIForm_Terminate
-
-Private Sub NachzuholendeLaborimporte_Click()
- Dim rs As Adodb.Recordset, lfdnr&
- Open snst.DateiNachzuholen For Output As #301
- Call ProgStart
- Set rs = DBCn.Execute("SELECT DISTINCT pfad,lwerte,laborxus.pat_id,eingang,auftragsnummer, `namen`.nachname, `namen`.vorname, laborxus.refnr FROM (`laborxus` LEFT JOIN laborxeingel ON laborxus.datid = laborxeingel.datid) LEFT JOIN `namen` ON laborxus.pat_id = `namen`.pat_id WHERE afn = 0 AND zdip = 0 AND NOT laborxus.pat_id = 0 AND zdüp>0 ORDER BY refnr;")
- If Not rs.BOF Then
-  lfdnr = 1
-  Do While Not rs.EOF
-   Print #301, Right$("   " & lfdnr, 3) & ": Pat: " & Right$("   " & rs!Pat_id, 4) & " Auftrag: " & Right$("       " & rs!Auftragsnummer, 11) & " " & rs!Eingang & " " & IIf(Len(rs!Pfad) < 50, Right$(Space$(50) & rs!Pfad, 50), rs!Pfad) & " (Pat: " & rs!Nachname & ", " & rs!Vorname & " Werte: " & Trim$(rs!LWerte) & ")"
-'   Print #301, lfdnr & ": Pat: " & rs!Pat_id & " (" & rs!Nachname & ", " & rs!Vorname & "), für: " & rs!Eingang & ", Auftragsnummer: " & rs!Auftragsnummer & " (Werte: " & rs!LWerte & ")"
-'   Print #301, "   dann importieren: " & rs!Pfad
-   lfdnr = lfdnr + 1
-   rs.Move 1
-  Loop
- End If
- Close #301
- Call Shell("notepad " + snst.DateiNachzuholen, vbNormalFocus)
- Call ProgEnde
-End Sub ' NachzuholendeLaborimporte_Click()
 
 Private Sub Sonstige_Click()
  snst.Show
@@ -3801,6 +4056,7 @@ Private Sub Spinstr_Click()
  St2 = "noch"
  Call doSp(St1, St2)
 End Sub ' Spinstr_Click
+
 Private Sub t7_Click()
  Call ProgStart
  Call test7
@@ -3815,28 +4071,12 @@ Private Sub TabVergleich_Click()
  Call ProgEnde
 End Sub ' TabVergleich_Click
 
-Private Sub UngeschriebeneBriefe_Click() ' Briefe zu Pat., zu denen bisher noch kein Brief geschrieben wurde
- Call ProgStart
- Call doUngeschriebeneBriefe(Me)
- Call ProgEnde
-End Sub ' UngeschriebeneBriefe_Click
-
-Private Sub doFollowUp_Click() ' &Briefe zu Patienten, deren erster Brief schon > 1a her ist
- Call ProgStart
- Call dodoFollowUp(Me)
- Call ProgEnde
-End Sub ' doFollowUp_Click
-
-Private Sub VerdächtigeÜberweiser_Click()
- Call ProgStart
- Call doVerdächtigeÜberweiser
-End Sub ' VerdächtigeÜberweiser_Click
-
 Private Sub Vergleichen_Click() ' Vergleich der Datenbankstrukturen
  Call ProgStart
  Call Vergleiche(Me)
  Call ProgEnde
 End Sub ' Vergleichen_Click()
+
 Private Sub BooleanFelder_Click()
  Call ProgStart
  Call BooleanFld(Me)
@@ -3848,27 +4088,6 @@ Private Sub ADOXtet_Click()
  Call adoxtest(dlg)
  Call ProgEnde
 End Sub ' ADOXtet_Click
-
-' Funktionen für Arzthelferin und Arzt -> Abbrechen (vor Speichern eines Patienten)
-Private Sub Abbrechen_Click()
-'#If False THEN
-' MsgBox "Stopp Programm gleich"
-' Call ProgrammLauf(-1) ' Programm stoppen
-'#END IF
- BrichAb = True
-End Sub ' Abbrechen_Click
-
-' Datei -> Beenden
-Private Sub Beenden_Click(Index As Integer)
-'#If False THEN
-' IF ProgrammLauf(-1) OR DBCn.State = 0 THEN ' Wenn Programm schon gestoppt war, dann abbrechen, sonst stoppen
-'#END IF
- If Not ProgLäuft Or DBCn.State = 0 Then
-  Unload Me
-  End
- End If
-End Sub ' Beenden_Click(Index As Integer)
-
 
 Private Sub Beginn_KeyDown(KeyCode As Integer, Shift As Integer)
  Call Key(KeyCode, Shift, Me)
@@ -3935,161 +4154,40 @@ Private Sub ViewsErstellen_Click() ' ViewsErstellen
  Call doViewsErstellen
 End Sub ' ViewsErstellen_Click()
 
-Private Sub VorhandeneBriefe_Click()
- Dim ergZ&
- Call ProgStart
- ergZ = doVorhandene
- Me.Ausgeb "Fertig mit Auswechseln der Vorhandenen: " & ergZ & IIf(BrichAb, ",5", "") & " Briefe bearbeitet. ", True
- Call ProgEnde
- Exit Sub
-fehler:
- Dim AnwPfad$
-#If VBA6 Then
- AnwPfad = CurrentDb.name
-#Else
- AnwPfad = App.path
-#End If
-Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler IN VorhandeneBriefe/" + AnwPfad)
- Case vbAbort: Call MsgBox("Höre auf"): ProgEnde
- Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
- Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
-End Select
-End Sub ' VorhandeneBriefe_Click
-
-' Funktionen für Arzthelferin und Arzt -> Wiedereinbestellungen DMP
-Private Sub WiedereinbestellungenDMP_Click()
-' wegen falsch eingetragener Fremdlabore gestrichen: AND einheit = '%'
- Dim rs As New Adodb.Recordset, sql$
- 'sql = "SELECT * FROM (SELECT f.quartal `Schein`, n.pat_id Pat_ID, CONCAT(CONCAT_WS(',*',CONCAT_WS(',',n.nachname, n.vorname),DATE_FORMAT(n.gebdat,'%y')),', T: ',CONCAT_WS(',',n.privattel,n.privattel_2,n.privatmobil)) Name, REPLACE(REPLACE(REPLACE(notiz,char(13),' '),char(10),''),'DMP ','') `DMP-Notiz`, DATE_FORMAT(dokudatum,'%d.%m.%y') DMPDoku, IF(dokudatum > SUBDATE(CONCAT(YEAR(NOW()),'-',((month(NOW())-1) div 3)*3+1,'-1'),INTERVAL 3 MONTH),'',IF(dokudatum > SUBDATE(CONCAT(YEAR(NOW()),'-',((month(NOW())-1) div 3)*3+1,'-1'),INTERVAL 6 MONTH),'!','-')) fri, a1c.wert HbA1c, DATE_FORMAT(a1c.zp,'%d.%m.%y') `HbA1c-Zpkt`, IF(a1c.zp > SUBDATE(CONCAT(YEAR(NOW()),'-',((month(NOW())-1) div 3)*3+1,'-1'),INTERVAL 0 MONTH),'',IF(a1c.zp > SUBDATE(CONCAT(YEAR(NOW()),'-',((month(NOW())-1) div 3)*3+1,'-1'),INTERVAL 3 MONTH),'!','!!')) alt FROM `namen` n LEFT JOIN `aktfvs` af ON n.pat_id = af.pat_id LEFT JOIN `faelle` f ON n.pat_id = f.pat_id " & _
- "LEFT JOIN `dmpreihe` dr ON dr.pat_id = n.pat_id  AND (dr.Abk LIKE 'eDMPDM%' OR dr.Abk LIKE 'DMPDTYP%') LEFT JOIN (SELECT pat_id, zeitpunkt zp, wert FROM labor1a ln WHERE abkü RLIKE 'hba[c1]' AND ln.wert < 22 UNION SELECT 2a.pat_id, 2a.zeitpunkt zp, 2a.wert FROM labor2a 2a WHERE abkü RLIKE 'hba[c1]' AND 2a.wert < 22 ORDER BY pat_id,zp DESC) a1c ON n.pat_id = a1c.pat_id LEFT JOIN `anamnesebogen` a ON a.pat_id = n.pat_id WHERE a.tkz = 0 AND (instr(notiz,'DMP hier')> 0 OR dmpklass = 3) AND ISNULL(af.vknr) AND dokudatum > SUBDATE(NOW(),INTERVAL 9 MONTH) ORDER BY n.pat_id, mid(f.quartal,2) DESC, f.quartal DESC, dokudatum DESC, a1c.zp DESC) i GROUP BY pat_id ORDER BY mid(`Schein`,2) DESC, `Schein` DESC, name;"
- sql = _
-"  SELECT" & vbCrLf & _
-"   f.quartal `Schein`, f.Pat_ID" & vbCrLf & _
-"   , CONCAT(" & vbCrLf & _
-"     gesname(f.pat_id),', ',patalter(f.pat_id),'a, T: '" & vbCrLf & _
-"      ,CONCAT_WS(',',n.privattel,n.privattel_2,n.privatmobil)) NAME" & vbCrLf & _
-"    , DATE_FORMAT(dokudatum,'%d.%m.%y') DMPDoku" & vbCrLf & _
-"    , IF(dokudatum > SUBDATE(CONCAT(YEAR(NOW()),'-',((MONTH(NOW())-1) DIV 3)*3+1,'-1'),INTERVAL 3 MONTH),'',IF(dokudatum > SUBDATE(CONCAT(YEAR(NOW()),'-',((MONTH(NOW())-1) DIV 3)*3+1,'-1'),INTERVAL 6 MONTH),'!','-')) fri" & vbCrLf & _
-"    , h.letzter HbA1c" & vbCrLf & _
-"    , DATE_FORMAT(h.lzp,'%d.%m.%y') `HbA1c-Zpkt`" & vbCrLf & _
-"    , IF(h.lzp > SUBDATE(CONCAT(YEAR(NOW()),'-',((MONTH(NOW())-1) DIV 3)*3+1,'-1'),INTERVAL 0 MONTH),'',IF(h.lzp > SUBDATE(CONCAT(YEAR(NOW()),'-',((MONTH(NOW())-1) DIV 3)*3+1,'-1'),INTERVAL 3 MONTH),'!','!!')) alt" & vbCrLf & _
-"   , REPLACE(REPLACE(COALESCE(GROUP_CONCAT(CONCAT(DATE_FORMAT(zp,' %d.%m.%y '), LEFT(raum,3),' ',LEFT(zusatz,15)) ORDER BY zp SEPARATOR ', ' LIMIT 10),''),CHR(10),''),CHR(13),'') Termin" & vbCrLf & _
-"  FROM namen n" & vbCrLf & _
-"  LEFT JOIN (SELECT f.*,ROW_NUMBER() OVER(PARTITION BY pat_id ORDER BY bhfb DESC) fzn FROM faelle f" & vbCrLf & _
-"            )  f   ON f.Pat_ID=n.pat_id AND fzn=1" & vbCrLf & _
-"  LEFT JOIN (SELECT dr.*,ROW_NUMBER() OVER(PARTITION BY pat_id ORDER BY dokudatum DESC) zn FROM dmpreihe dr" & vbCrLf & _
-"              WHERE dr.dokudatum>NOW()-INTERVAL 9 MONTH AND dr.Abk RLIKE '^eDMPDM|^DMPDTYP'" & vbCrLf & _
-"            ) dr ON dr.pat_id=n.pat_id AND dr.zn=1" & vbCrLf & _
-"  LEFT JOIN lHbA1c h ON h.pat_id=n.pat_id" & vbCrLf & _
-"  LEFT JOIN `anamnesebogen` a ON a.pat_id=n.pat_id" & vbCrLf & _
-"  LEFT JOIN (SELECT ROW_NUMBER() OVER(PARTITION BY pid ORDER BY zp) rn, t.* FROM termine t" & vbCrLf & _
-"              WHERE zp>=date(NOW()) group BY t.pid,DATE(t.zp),t.raum,t.zusatz) t ON t.pid=n.pat_id AND rn<10" & vbCrLf & _
-"  WHERE a.Tkz = 0 AND n.dmpklass = 3 AND f.BhFB < QAnf() AND NOT ISNULL(dr.DokuDatum)" & vbCrLf & _
-"  GROUP BY n.Pat_ID" & vbCrLf & _
-"  ORDER BY MID(f.quartal,2) DESC, f.quartal DESC, n.nachNAME, n.vorname;"
-' "     CONVERT(gesname(f.pat_id) USING LATIN1),', ',patalter(f.pat_id),'a, T: '" & vbCrLf & _
-
- myFrag rs, sql
- TabAusgeb rs, Me, True, , , , Array(0, 0, 55, 25, 0, 3, 0, 0, 100), True, "DMP-Wiedereinbestellungen"
-End Sub ' WiedereinbestellungenDMP_Click()
-
-Private Sub WiedereinbestellungenDMP_Click_alt()
- Dim sql$, Zp$, obDruck%, AusgStr$, grenze As Date
- Dim r1 As New Adodb.Recordset
- Dim r2 As New Adodb.Recordset
- Dim WDatei$
- On Error GoTo fehler
-' SELECT Wert,Zeitpunkt FROM (SELECT Pat_ID, ZeitPunkt, FertigStGrad, AbKü, LangText,Wert, Einheit, Kommentar,"" AS NB FROM (SELECT n.Pat_ID AS Pat_ID,n.ZeitPunkt AS ZeitPunkt,n.FertigStGrad AS FertigStGrad,n.Abkü AS Abkü,l.Langtext AS Langtext,n.Wert AS Wert,n.Einheit AS Einheit,k.Kommentar AS Kommentar,n.AbsPos AS AbsPos,n.AktZeit AS AktZeit FROM (`laborlangtext` l INNER JOIN (laborkommentar k INNER JOIN `laborneu` n ON ((k.KommentarVW = n.KommentarVW))) ON ((l.LangtextVW = n.LangtextVW))) WHERE pat_id = 105) AS labor UNION SELECT Pat_ID, Eingang AS zeitpunkt, BefArt AS FertigStGrad, Abkü, langname AS Langtext, Wert, Einheit, Kommentar, Normbereich AS NB FROM `laborxus` LEFT JOIN laborxwert ON laborxus.RefNr=laborxwert.RefNr WHERE pat_id = 105 AND NOT EXISTS (SELECT * FROM `laborneu` WHERE pat_id = 105 AND abkü = laborxwert.Abkü AND wert = laborxwert.wert AND zeitpunkt > laborxus.Eingang -3 AND zeitpunkt < laborxus.Eingang+6)) AS sql1 WHERE abkü = "HBA1C" ORDER BY zeitpunkt desc
- Call ProgStart
- grenze = QAnf(ZQuart(Now() - 90)) 'CDate("1.4.08")
- WDatei$ = pVerz & "Wiedereinbestellungen " & Format(Now, "d.m.yy hh.mm") & ".txt"
- Open WDatei For Output As #339
- Print #339, Right$(Space$(4) & "Pat_ID", 4) & " " & Left("Nachname" & Space$(15), 15) & " " & Left("Vorname" & Space$(9), 9) & " 'X'= DMP hier (Notiz-Eintrag / Versicherung)        letzter Fallbeginn  letztes HbA1c"
- Print #339, String$(110, "_")
- 'r1.Open "SELECT pat_id, notiz FROM `namen` na WHERE notiz LIKE '%hier%'", dbv.wCn, adOpenStatic, adLockReadOnly
- 'SELECT pat_id, notiz FROM `namen` na JOIN (SELECT pat_id FROM `dmpreihe` dr UNION SELECT pat_id FROM `namen` na WHERE notiz LIKE '%hier%' ORDER BY pat_id) AS innen USING (pat_id)
- 'r1.Open "SELECT pat_id, na.nachname, na.vorname, lf.bhfb, notiz,rname FROM `namen` na JOIN (SELECT pat_id FROM `dmpreihe` dr " & _
-         "WHERE dokudatum > adddate(NOW(),-365) UNION SELECT pat_id FROM _lfaelle f LEFT JOIN `diagnosen` d " & _
-         "using (pat_id) WHERE icd LIKE 'E1%' AND NOT icd LIKE 'E16%' AND diagsicherheit <> 'A'  AND " & _
-         "bhfb > adddate(NOW(),-180) ORDER BY pat_id) AS innen USING (pat_id) " & _
-         "join lfaellev lf USING (pat_id) " & _
-         "join `kassenliste` k ON k.ik = lf.ik " & _
-         "join `anamnesebogen` an USING (pat_id) WHERE tkz=0 GROUP BY pat_id", dbv.wCn, adOpenStatic, adLockReadOnly '  ... UNION SELECT pat_id FROM `namen` na WHERE notiz LIKE '%hier%'
- r1.Open "SELECT pat_id, na.nachname, na.vorname, na.dmpklass, na.dmpbeg, lf.bhfb, notiz,rname FROM `namen` na JOIN (SELECT pat_id FROM `dmpreihe` dr WHERE dokudatum > adddate(NOW(),-365)  AND (dr.Abk LIKE 'eDMPDM%' OR dr.Abk LIKE 'DMPDTYP%') UNION SELECT pid pat_id FROM _lfaelle f LEFT JOIN `diagnosen` d ON d.pat_id = f.pid WHERE gicd REGEXP '^E1[0-4]\.' AND mbhfb > adddate(NOW(),-180) ORDER BY pat_id) innen USING (pat_id) JOIN lfaellev lf USING (pat_id) JOIN `kassenliste` k ON k.ik = lf.ik JOIN `anamnesebogen` an USING (pat_id) WHERE tkz=0 GROUP BY pat_id", dbv.wCn, adOpenStatic, adLockReadOnly  '  ... UNION SELECT pat_id FROM `namen` na WHERE notiz LIKE '%hier%'
- Do While Not r1.EOF
-'  IF obhierdmp(r1!notiz) THEN
-   Set r2 = Nothing
-   ' wegen falscher Fremdlabore gestrichen: einheit = '%'
-'   r2.Open "SELECT * FROM (SELECT * FROM `labor2a` WHERE pat_id = " & r1!Pat_id & " AND abkü RLIKE '^hba[1c]' AND CAST(wert AS decimal) < 22 UNION SELECT * FROM `labor1a` WHERE pat_id = " & r1!Pat_id & " AND abkü RLIKE '^hba[1c]' AND CAST(wert AS decimal) < 22) i GROUP BY pat_id,zeitpunkt,abkü,wert,einheit,nb ORDER BY zeitpunkt DESC LIMIT 1", dbv.wCn, adOpenStatic, adLockReadOnly
-   Set r2 = hollabor(r1!Pat_id, "HBA[1C]", 0, 22)
-   Zp = vNS
-   obDruck = True
-   If Not r2.EOF Then
-    Zp = r2!Zeitpunkt & " " & Right$(Space$(3) & r2!Wert, 3)
-    If r2!Zeitpunkt >= grenze Then obDruck = False
-   End If
-   If obDruck Then
-'    AusgStr = Right$(Space$(4) & r1!Pat_id, 4) & " " & LEFT(r1!Nachname & Space$(15), 15) & " " & LEFT(r1!Vorname & Space$(11), 11) & "   " & IIf(obhierdmp(r1!Notiz), "X", " ") & " (" & LEFT(IIf(ISNULL(r1!Notiz) OR LenB(r1!Notiz) = 0, r1!rname, replace$(replace$(r1!Notiz, vbCr, ""), vbLf, "")) & ")" & Space$(42), 42) & " " & LEFT(r1!BhFB & Space$(10), 10) & " " & Zp
-    AusgStr = Right$(Space$(4) & r1!Pat_id, 4) & " " & Left(r1!Nachname & Space$(15), 15) & " " & Left(r1!Vorname & Space$(11), 11) & "   " & IIf(r1!dmpklass = 3, "X", " ") & " (" & Left(IIf(IsNull(r1!Notiz) Or LenB(r1!Notiz) = 0, r1!rname, REPLACE$(REPLACE$(r1!Notiz, vbCr, ""), vbLf, "")) & ")" & Space$(42), 42) & " " & Left(r1!BhFB & Space$(10), 10) & " " & Zp
-    Debug.Print AusgStr
-    Me.Ausgeb AusgStr & vbCrLf & altAusgabe, True
-    Print #339, AusgStr
-    Print #339, String$(110, "_")
-   End If
-'  END IF
-  r1.Move 1
- Loop
- Close #339
- zeigan WDatei, vbNormalFocus
- Exit Sub
-fehler:
- Dim AnwPfad$
-#If VBA6 Then
- AnwPfad = CurrentDb.name
-#Else
- AnwPfad = App.path
-#End If
-Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler IN WiedereinbestellungenDMP_Click/" + AnwPfad)
- Case vbAbort: Call MsgBox("Höre auf"): ProgEnde
- Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
- Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
-End Select
-End Sub ' WiedereinbestellungenDMP_Click()
-
 Private Sub WSt0Erg_Click()
  Call ProgStart
  Call doWSt0Erg
  Call ProgEnde
-End Sub
+End Sub ' WSt0Erg_Click
 
 Private Sub ZahlEintrag_Click()
  Call Haupt.ZahlEintrag
-End Sub
+End Sub ' ZahlEintrag_Click
 
 Private Sub Zeilen_KeyDown(KeyCode As Integer, Shift As Integer)
  Call Key(KeyCode, Shift, Me)
-End Sub
+End Sub ' Zeilen_KeyDown
 
 Private Sub Ziel_Change()
  dlg.MdB = Me.Ziel
  If Me.obAcc Then
   Call dbv.cnVorb("quelle", "anamnesebogen", "Patientendaten")
  End If
-End Sub
+End Sub ' Ziel_Change
 
 Private Sub Ziel_Click()
  dlg.MdB = Me.Ziel
-End Sub
+End Sub ' Ziel_Click
 
 Private Sub Ziel_KeyDown(KeyCode As Integer, Shift As Integer)
  dlg.MdB = Me.Ziel
  Call Key(KeyCode, Shift, Me)
-End Sub
+End Sub ' Ziel_KeyDown
 
-Private Sub Picture1_KeyDown(KeyCode As Integer, Shift As Integer)
+Private Sub Picture1_KeyDown(KeyCode%, Shift%)
 ' IF KeyCode = 27 THEN End
  Call Key(KeyCode, Shift, Me)
-End Sub ' Picture1_KeyDown(KeyCode As Integer, Shift As Integer)
+End Sub ' Picture1_KeyDown
 
 Private Sub Ausgabe_KeyDown(KeyCode As Integer, Shift As Integer)
  Static obCtrl%, pa&, pe&, Zahl$
@@ -4120,25 +4218,6 @@ Private Sub Ausgabe_KeyDown(KeyCode As Integer, Shift As Integer)
  End If
 ' Debug.Print "Schlüssel: " & KeyCode & " " & Shift
 End Sub ' Ausgabe_Keydown
-
-#If False Then
-Private Sub Zurücksetzen_Click() ' nicht sichtbar: "Datei -> &Zurücksetzen des Programmlaufs"
- Call ProgrammLauf(-1) ' falls es fälschlich auf 0 steht: 0 = Programm läuft, -1 = nicht
- Dim ctl As Control
- For Each ctl In Me.Controls
-  If ctl.name Like "*inlesen*" Then ctl.Enabled = True
- Next ctl
- Me.Zurücksetzen.Enabled = False
-End Sub ' Zurücksetzen_Click
-#End If
-
-' Funktionen für Arzthelferin und Arzt -> Einlesen
-Private Sub Datenbank_Click()
- Screen.MousePointer = vbHourglass
- dlg.BDTDatei = getLDatei(dlg.BDTDatei, "*.bdt")
- dlg.Show
- Screen.MousePointer = vbDefault
-End Sub ' Datenbank_Click()
 
 Public Function PutEinstAufDB()
  Dim rs As New Adodb.Recordset
@@ -4183,6 +4262,7 @@ Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "Last
  Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
 End Select
 End Function ' PutEinstAufDB
+
 Public Function HolEinstvonDB()
  Dim rs As New Adodb.Recordset
  On Error GoTo fehler
@@ -4237,7 +4317,8 @@ Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "Last
  Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
  Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
 End Select
-End Function
+End Function ' HolEinstvonDB
+
 Public Function HolEinstFeld(rs As Adodb.Recordset, FName$, Default, ByVal Typ$, Optional lenge&)
  Dim FNr&
  On Error Resume Next
@@ -4281,7 +4362,7 @@ Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "Last
  Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
  Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
 End Select
-End Function ' HolEinstFeld(rs As Adodb.Recordset, FName$, Default, ByVal Typ$, Optional Lenge&)
+End Function ' HolEinstFeld
 
 Private Sub dbv_wCnAendern(CnStr$)
  On Error GoTo fehler
@@ -4345,6 +4426,7 @@ Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "Last
  Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
 End Select
 End Sub ' dbv_wCnAendern
+
 Private Sub Konstanten()
  Dim Cpt$
  Cpt = LCase$(CptName)
@@ -4524,7 +4606,7 @@ Public Function AbbrechDisable(frm As Lese)
    Exit For
   End If
  Next i
-End Function ' AbbrechDisable(frm As Lese)
+End Function ' AbbrechDisable
 
 Public Function ProgStart()
  If LenB(DBCnS) = 0 Then ' DBCn.ConnectionString
@@ -4557,6 +4639,7 @@ Private Sub BeendenBlend(obTrue%)
  Next i
  ProgLäuft = Not obTrue
 End Sub ' BeendenBlend
+
 Private Sub mdiForm_Resize()
  On Error Resume Next
  Picture1.Height = Me.Height - 5745 + 5055
@@ -4591,14 +4674,15 @@ Private Sub mdiForm_Resize()
  Me.GesDauer.Top = Me.ZeilenBez.Top
  Me.Fuß.Top = Picture1.Height - Me.Fuß.Height - Me.ConStri.Height
  Me.ConStri.Top = Me.Fuß.Top + Me.Fuß.Height
-End Sub ' MDIForm_Resize()
+End Sub ' MDIForm_Resize
 
 Private Sub mdiform_unload(Cancel As Integer) ' geht nur beim Anklicken des Kreuzes oben
  Call PutEinstAufDB
  Call PutReg(Me)
 ' Call Me.dbv.RegSpeichern ' Kommentar 25.9.09
  End
-End Sub ' MDIForm_Unload(Cancel As Integer)
+End Sub ' MDIForm_Unload
+
 #If False Then
 Public Function ConstrFestleg(ByVal art As ConDtb, Optional hlese As Lese)   ' dlg ist für art= 0 und 1 nötig
  On Error GoTo fehler
@@ -4654,8 +4738,7 @@ Public Function Ausgeb(Text$, obDauer%, Optional obdebug%)
  End If
  If obdebug <> 0 Then Debug.Print Text
  DoEvents
-End Function ' Ausgeb(Text$, obDauer%, Optional obdebug%)
-
+End Function ' Ausgeb
 
 Public Function LaborPfadDialog(LPBeisp$) As String
 ' IF Me.obBDT THEN
@@ -4674,7 +4757,7 @@ Public Function LaborPfadDialog(LPBeisp$) As String
    End If
   End With
 ' END IF
-End Function ' LaborPfadDialog()
+End Function ' LaborPfadDialog
 
 Private Sub FalscheDokumente_Click()
  Dim sql$, rs As New Adodb.Recordset, erg$(), dokn$, dokr$, i%, rs2 As New Adodb.Recordset, Pat_id&
@@ -4697,5 +4780,5 @@ Private Sub FalscheDokumente_Click()
   End If
   rs.MoveNext
  Loop
-End Sub
+End Sub ' FalscheDokumente_Click
 

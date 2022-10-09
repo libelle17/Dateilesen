@@ -3486,7 +3486,7 @@ Function doVerd‰chtige‹berweiser()
  rf.Open sql, DBCn
  Do While Not rf.EOF
 '   Call getHausarztAlt(Pid:=rF!Pat_id, Infos:=Infos(), obHAPrio:=False)
-   Dim rFa() As Faelle
+   Dim rFa() As faelle
    Dim rKv1() As kvnrue
    getHausarzt1 infos, rFa, rKv1, False, rf!Pat_id
    HAi = 0
