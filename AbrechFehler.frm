@@ -360,7 +360,7 @@ fehler:
 #Else
  AnwPfad = App.path
 #End If
-Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler IN form_load/" + AnwPfad)
+Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in form_load/" + AnwPfad)
  Case vbAbort: Call MsgBox("Hˆre auf"): ProgEnde
  Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
  Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
@@ -930,18 +930,18 @@ Else ' me.private = 0 => Kassenpatienten
 ' 6
  AwN(AWlf) = "Fehlende Fuﬂdiagnose trotz Leistung 97314, 97324 oder 02311"
  sql(AWlf) = _
- "SELECT Pat_id, Patient, ICD, FotoStadium, FotoSeite, Eintr_Seite, Eintr_Zeitpunkt, Art, Eintr_Inhalt FROM (" & vbCrLf & _
- "SELECT f.pat_id, gesname(f.pat_id) Patient, di.icd, REPLACE(REPLACE(GROUP_CONCAT(DISTINCT IF(INSTR(dokname,' li.')<>0,MID(dokname,INSTR(dokname,' li.')+1,2),IF(INSTR(dokname,' re.')<>0,MID(dokname,INSTR(dokname,' re.')+1,2),''))),',',''),'lire','bds') FotoSeite , GROUP_CONCAT(DISTINCT l.leistung) Leistungen, CONCAT('L89.',CAST(MAX(IF(REPLACE(MID(dokname,INSTR(dokname,'WA ')+3,1),'-','0')>2,2,REPLACE(MID(dokname,INSTR(dokname,'WA ')+3,1),'-','0')))+1 AS char),IF(INSTR(dokname,'Ferse')<>0,'7','8')) Fotostadium, IF(INSTR(e.inhalt,' bds.')<>0,' bds',IF(INSTR(e.inhalt,' li ')<>0,' li', IF(INSTR(e.inhalt,' re ')<>0,' re',''))) Eintr_Seite, d.dokname, e.zeitpunkt Eintr_Zeitpunkt, e.Art, e.inhalt Eintr_Inhalt " & vbCrLf & _
+ "SELECT Pat_id, Patient, ICD, Quelldatum, FotoStadium, FotoSeite, Eintr_Seite, Eintr_Zeitpunkt, Art, Eintr_Inhalt FROM (" & vbCrLf & _
+ "SELECT f.pat_id, gesname(f.pat_id) Patient, MAX(di.icd) ICD, REPLACE(REPLACE(GROUP_CONCAT(DISTINCT IF(INSTR(dokname,' li.')<>0,MID(dokname,INSTR(dokname,' li.')+1,2),IF(INSTR(dokname,' re.')<>0,MID(dokname,INSTR(dokname,' re.')+1,2),''))),',',''),'lire','bds') FotoSeite , GROUP_CONCAT(DISTINCT l.leistung) Leistungen, CONCAT('L89.',CAST(MAX(IF(REPLACE(MID(dokname,INSTR(dokname,'WA ')+3,1),'-','0')>2,2,REPLACE(MID(dokname,INSTR(dokname,'WA ')+3,1),'-','0')))+1 AS char),IF(INSTR(dokname,'Ferse')<>0,'7','8')) Fotostadium, IF(INSTR(e.inhalt,' bds.')<>0,' bds',IF(INSTR(e.inhalt,' li ')<>0,' li', IF(INSTR(e.inhalt,' re ')<>0,' re',''))) Eintr_Seite, d.dokname, e.zeitpunkt Eintr_Zeitpunkt, e.Art, e.inhalt Eintr_Inhalt, Quelldatum " & vbCrLf & _
  "FROM `aktf` f " & vbCrLf & _
  "LEFT JOIN `faelle` fa ON f.fid = fa.fid " & vbCrLf & _
  "LEFT JOIN `namen` n ON f.pat_id = n.pat_id " & vbCrLf & _
  "LEFT JOIN `leistungen` l ON f.fid = l.fid " & vbCrLf & _
- "LEFT JOIN `dokumente` d ON f.pat_id = d.pat_id AND DATE(d.zeitpunkt) BETWEEN fa.qanf AND fa.qend AND d.dokname LIKE '%WA %' AND NOT d.dokname LIKE '%WA -%'" & vbCrLf & _
+ "LEFT JOIN `dokumente` d ON f.pat_id = d.pat_id AND d.quelldatum BETWEEN fa.qanf AND fa.qend AND d.dokname LIKE '%WA %' AND NOT d.dokname LIKE '%WA -%'" & vbCrLf & _
  "LEFT JOIN `eintraege` e ON f.pat_id = e.pat_id AND DATE(e.zeitpunkt) BETWEEN fa.qanf AND fa.qend AND (e.art LIKE 'debr%' OR e.inhalt LIKE '%ebrid%' OR e.inhalt LIKE '%resekt%') " & vbCrLf & _
  "LEFT JOIN `diagnosen` di ON f.pat_id = di.pat_id AND di.gicd RLIKE '^L89\.[12345]' AND (obdauer<>0 OR DATE(di.diagdatum) BETWEEN fa.qanf AND fa.qend) " & vbCrLf & _
  "WHERE l.leistung IN ('97314','97324','02311') AND l.zeitpunkt BETWEEN qanf() AND qend() " & vbCrLf & _
- "GROUP BY f.fid, e.art, e.inhalt, d.dokname) " & vbCrLf & _
- "i WHERE ISNULL(i.ICD) OR i.ICD < i.Fotostadium " & vbCrLf & _
+ "GROUP BY f.fid, e.art, e.inhalt, d.dokname) i" & vbCrLf & _
+ "WHERE ISNULL(i.ICD) OR i.ICD < i.Fotostadium " & vbCrLf & _
  "GROUP BY pat_id"
  ' AND obdauer = 0
  mins(AWlf) = 7
@@ -1650,7 +1650,7 @@ sql(AWlf) = "" & _
  "(SELECT * FROM " & vbCrLf & _
  "(SELECT f.pat_id AS pat_id, gesname(f.pat_id) Name, zeitpunkt, fotostad, l.leistung AS Leistung, kateg, dmpklass, diab.icd AS DTyp FROM " & aktf & " " & vbCrLf & _
  "LEFT JOIN (SELECT fid,leistung FROM `leistungen` WHERE leistung IN ('97314','97324')) AS l ON f.fid = l.fid " & vbCrLf & _
- "LEFT JOIN (SELECT * FROM (SELECT MAX(pat_id) AS PID, MAX(MID(dokname,INSTR(dokname,""WA ""),5)) fotoStad, Quelldatum zeitpunkt FROM `dokumente` GROUP BY pat_id, zeitpunkt) AS innen WHERE " & vbCrLf & _
+ "LEFT JOIN (SELECT * FROM (SELECT MAX(pat_id) AS PID, MAX(MID(dokname,INSTR(dokname,""WA ""),5)) fotoStad, Quelldatum zeitpunkt FROM `dokumente` GROUP BY pat_id, zeitpunkt) innen WHERE " & vbCrLf & _
  "fotoStad = 'WA 0D' OR (fotostad LIKE 'WA %' AND NOT fotostad IN ('WA 1A','WA 2A') AND NOT fotostad LIKE 'WA 0%' AND NOT fotostad LIKE 'WA -%' ) " & vbCrLf & _
  ") AS dok ON f.pat_id = dok.pid " & vbCrLf & _
  "AND zeitpunkt BETWEEN " & lQAnfuEnd(FristS) & _
@@ -5839,7 +5839,7 @@ fehler:
 #Else
  AnwPfad = App.path
 #End If
-Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler IN ZeigSQL/" + AnwPfad)
+Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in ZeigSQL/" + AnwPfad)
  Case vbAbort: Call MsgBox("Hˆre auf"): ProgEnde
  Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
  Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
@@ -5880,7 +5880,7 @@ fehler:
 #Else
  AnwPfad = App.path
 #End If
-Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler IN TopAusricht/" + AnwPfad)
+Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in TopAusricht/" + AnwPfad)
  Case vbAbort: Call MsgBox("Hˆre auf"): ProgEnde
  Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
  Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
@@ -6093,7 +6093,7 @@ Private Sub tuStart_click(obauto%)
     Do While Not AbrFausg(Str(AWlf - 1) & ". " & AwN(AWlf - 1), REPLACE(dowr(sql(AWlf - 1)), vbLf, " "), AbrFlrDt, mins(AWlf - 1), maxs(AWlf - 1), ‹berschrift, obappend, AWlf - 1, obauto, angefangen, BDT)
      Dim altAWlf%
      altAWlf = AWlf
-     MsgBox "Stop IN Start_Click" & vbCrLf & "AWlf: " & AWlf
+     MsgBox "Stop in Start_Click" & vbCrLf & "AWlf: " & AWlf
      Stop
      Call ZeigSQL(obauto)
      AWlf = altAWlf
@@ -6146,7 +6146,7 @@ fehler:
 #Else
  AnwPfad = App.path
 #End If
-Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler IN QuartalF¸ll/" + AnwPfad)
+Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in QuartalF¸ll/" + AnwPfad)
  Case vbAbort: Call MsgBox("Hˆre auf"): ProgEnde
  Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
  Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
@@ -6172,7 +6172,7 @@ End Function ' QuartalF¸ll
 '#Else
 ' AnwPfad = App.Path
 '#END IF
-'SELECT CASE MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(ISNULL(Err.source), vns, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler IN ZQuart/" + AnwPfad)
+'SELECT CASE MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(ISNULL(Err.source), vns, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in ZQuart/" + AnwPfad)
 ' Case vbAbort: Call MsgBox("Hˆre auf"): Progende
 ' Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
 ' Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
@@ -6229,7 +6229,7 @@ FNr = 11
     Next r
  Exit Sub
 fehler:
- Select Case MsgBox("FNr: " & FNr & ", Err.number = " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description + vbCrLf + "Fehlerposition: " + CStr(FPos), vbAbortRetryIgnore, "Aufgefangener Fehler IN SizeColumns/" + App.path)
+ Select Case MsgBox("FNr: " & FNr & ", Err.number = " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description + vbCrLf + "Fehlerposition: " + CStr(FPos), vbAbortRetryIgnore, "Aufgefangener Fehler in SizeColumns/" + App.path)
   Case vbAbort: Call MsgBox("Hˆre auf"): ProgEnde
   Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
   Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
@@ -6385,7 +6385,7 @@ fehler:
   Set rE = Nothing
   Set rE = New Adodb.Recordset
   Set rc = Lese.dbv.wCn
-  rE.Open "SHOW errors", rc, adOpenStatic, adLockReadOnly
+  rE.Open "SHOW ERRORS", rc, adOpenStatic, adLockReadOnly
   If Not rE.EOF Then
    Print #307, rE.Fields(0) & " " & rE.Fields(1) & " " & rE.Fields(2)
    Print #307, ‹berschrAkt.Value & vbCrLf; "SQL-Fehler:" & vbCrLf & rE.Fields(0) & " " & rE.Fields(1) & " " & rE.Fields(2) & vbCrLf & sql & vbCrLf
@@ -6407,7 +6407,7 @@ fehler:
 #Else
  AnwPfad = App.path
 #End If
-Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(ErrNumber) + vbCrLf + "LastDLLError: " + CStr(ErrLastDllError) + vbCrLf + "Source: " + ErrSource + vbCrLf + "Description: " + ErrDescription, vbAbortRetryIgnore, "Aufgefangener Fehler IN AbrF_ausg/" + AnwPfad)
+Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(ErrNumber) + vbCrLf + "LastDLLError: " + CStr(ErrLastDllError) + vbCrLf + "Source: " + ErrSource + vbCrLf + "Description: " + ErrDescription, vbAbortRetryIgnore, "Aufgefangener Fehler in AbrF_ausg/" + AnwPfad)
  Case vbAbort: Call MsgBox("Hˆre auf"): ProgEnde
  Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
  Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
@@ -6498,7 +6498,7 @@ End Function ' AbrF_ausg
 '#Else
 ' AnwPfad = App.path
 '#END IF
-'SELECT CASE MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(ISNULL(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler IN do_ausg/" + AnwPfad)
+'SELECT CASE MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(ISNULL(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in do_ausg/" + AnwPfad)
 ' Case vbAbort: Call MsgBox("Hˆre auf"): Progende
 ' Case vbRetry: Call MsgBox("Versuche nochmal"): Resume: do_ausg = False: Exit Function
 ' Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
@@ -6541,7 +6541,7 @@ fehler:
 #Else
  AnwPfad = App.path
 #End If
-Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler IN doDefs/" + AnwPfad)
+Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in doDefs/" + AnwPfad)
  Case vbAbort: Call MsgBox("Hˆre auf"): ProgEnde
  Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
  Case vbIgnore: Call MsgBox("Setze fort"): Resume Next

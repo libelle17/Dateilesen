@@ -24,7 +24,7 @@ fehler:
 #Else
  AnwPfad = App.path
 #End If
- Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler IN dbtest/" + AnwPfad)
+ Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in dbtest/" + AnwPfad)
   Case vbAbort: Call MsgBox("Höre auf"): ProgEnde
   Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
   Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
@@ -41,12 +41,13 @@ Function HANrS$(HANr) ' wird z.Zt. nicht verwendet, 7.1.06
  End If
 End Function ' HANrs$
 Sub HAzählen()
- Dim HA As New Adodb.Recordset, pa As New Adodb.Recordset, ng%, Na%, FText$
+ Dim HA As New ADODB.Recordset, pa As New ADODB.Recordset, ng%, Na%, FText$
 ' SET HA = Dtb.OpenRecordset(hae, dbOpenTable)
 ' Call KVÄVorb
 '  Call acon(HaT)
  If LenB(DBCn) = 0 Or DBCn = "" Then Call acon(quelleT)
- Call HA.Open("SELECT * FROM `kvaerzte`.`hae`", DBCn, adOpenDynamic, adLockOptimistic) 'haecn
+' Call HA.Open("SELECT * FROM `kvaerzte`.`hae`", DBCn, adOpenDynamic, adLockOptimistic) 'haecn
+ myFrag HA, "SELECT zahl FROM `kvaerzte`.`hae`"
  If Not HA.BOF Then
 '  HA.MoveFirst
   While Not HA.EOF
@@ -60,14 +61,16 @@ Sub HAzählen()
  Na = 0
  FText = vNS
 ' SET pa = Dtb.OpenRecordset("Anamnesebogen", dbOpenDynaset)
- pa.Open "anamnesebogen", DBCn, adOpenDynamic, adLockOptimistic
+' pa.Open "anamnesebogen", DBCn, adOpenDynamic, adLockOptimistic
+ myFrag pa, "SELECT * FROM anamnesebogen"
  If Not pa.BOF Then
 '  pa.MoveFirst
 '  HA.index = "KVNr"
   While Not pa.EOF
  '  HA.FindFirst "KVNr = '" & pa!HANr & "'"
    Set HA = Nothing
-   Call HA.Open("SELECT * FROM `hae` WHERE kvnr = '" & Left(REPLACE$(pa!KVNr, "/", ""), 7) & "'", DBCn, adOpenDynamic, adLockOptimistic)
+'   Call HA.Open("SELECT * FROM `hae` WHERE kvnr = '" & Left(REPLACE$(pa!KVNr, "/", ""), 7) & "'", DBCn, adOpenDynamic, adLockOptimistic)
+   myFrag HA, "SELECT * FROM `hae` WHERE kvnr = '" & Left(REPLACE$(pa!KVNr, "/", ""), 7) & "'"
    If IsNull(pa!HANr) Or pa!HANr = vNS Then
     Na = Na + 1
    Else

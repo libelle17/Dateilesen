@@ -567,7 +567,7 @@ Public Function LetztLab(pid&, Abkü$, Einh$, Zp As Date) As labtyp
  On Error GoTo fehler
  ' bei neuem Patienten sein ganzes Labor einlesen
  If pid <> altPID Then
-  Dim rsl As New Adodb.Recordset ' Labor
+  Dim rsl As New ADODB.Recordset ' Labor
   Set rsl = hollabor(PatID:=pid, Abkü:="", zpkl:=0, wertkl:=0, obnachgruppe:=0, Zahl:=lwZahl)
   If Not rsl.BOF And lwZahl Then
    ReDim Lab(lwZahl)
@@ -610,7 +610,7 @@ fehler:
 #Else
  AnwPfad = App.path
 #End If
-Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler IN LetztLab/" + AnwPfad)
+Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in LetztLab/" + AnwPfad)
  Case vbAbort: Call MsgBox("Höre auf"): ProgEnde
  Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
  Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
@@ -625,7 +625,7 @@ Public Function LabPat(LA As LabArt, pid&, Optional naechster%) As labtyp
  On Error GoTo fehler
  ' bei neuem Patienten sein ganzes Labor einlesen
  If pid <> altPID Then
-  Dim rsl As New Adodb.Recordset ' Labor
+  Dim rsl As New ADODB.Recordset ' Labor
   Dim i&
   Set rsl = hollabor(pid, "", 0, 0, 0, lwZahl)
   If Not rsl.BOF And lwZahl Then
@@ -689,7 +689,7 @@ fehler:
 #Else
  AnwPfad = App.path
 #End If
-Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler IN LabPat/" + AnwPfad)
+Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in LabPat/" + AnwPfad)
  Case vbAbort: Call MsgBox("Höre auf"): ProgEnde
  Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
  Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
@@ -816,9 +816,9 @@ End Function ' obLabI%(LA AS LabArt, lt AS labtyp) ' ob Labor interessant
 ' END FUNCTION ' latinis$(artSpez$)
 
 Public Sub rrpruef()
- Dim rs As New Adodb.Recordset
+ Dim rs As New ADODB.Recordset
  Dim ad As DMPClass
- Dim raAna As New Adodb.Recordset
+ Dim raAna As New ADODB.Recordset
  Lese.ProgStart
  myFrag rs, "SELECT pat_id, gesname(pat_id) Name,(SELECT MAX(zeitpunkt)from rr WHERE pat_id=n.pat_id) rr1 FROM namen n ORDER BY pat_id DESC" ' WHERE pat_id <60050
  While Not rs.EOF
@@ -828,7 +828,8 @@ Public Sub rrpruef()
   If obAdo Then
    raAna.Open "SELECT patAlter(ana.pat_id) PAlter, ana.* FROM `anamnesebogen` ana WHERE pat_id = " & rs!Pat_id, DBCn, adOpenKeyset, adLockReadOnly
   Else
-   Call raAna.Open("SELECT patAlter(ana.pat_id) PAlter, ana.* FROM `anamnesebogen` ana WHERE pat_id = " & rs!Pat_id, DBCn, adOpenDynamic, adLockReadOnly)
+'   Call raAna.Open("SELECT patAlter(ana.pat_id) PAlter, ana.* FROM `anamnesebogen` ana WHERE pat_id = " & rs!Pat_id, DBCn, adOpenDynamic, adLockReadOnly)
+   myFrag raAna, "SELECT patAlter(ana.pat_id) PAlter, ana.* FROM `anamnesebogen` ana WHERE pat_id = " & rs!Pat_id
   End If
   ad.RRsyst = 0
   ad.RRdiast = 0
@@ -850,21 +851,21 @@ Function DMPString$(pid&, üdt As DMPClass, Optional ohneVorDMP%, Optional mitBez
 ' Dim aktDC.obglib AS AntidiabMedType, aktDC.obmetf AS Boolean, aktDC.obgluci AS Boolean, aktDC.obshglin AS Boolean, aktDC.obglit AS Boolean, aktDC.obsonstAD AS boolean, _
      aktDC.obins AS Boolean, aktDC.obanal AS Boolean, aktDC.obhmg AS Boolean, aktDC.obantihyp AS Boolean, aktDC.obthro AS Boolean
 'Dim rEi AS DAO.Recordset, rLaU AS DAO.Recordset, rKH AS DAO.Recordset
-Dim raEi As New Adodb.Recordset, raKH As New Adodb.Recordset
+Dim raEi As New ADODB.Recordset, raKH As New ADODB.Recordset
 'Dim raLau As New ADODB.Recordset, raLaum As New ADODB.Recordset
 Dim Labs As labtyp, LabSm As labtyp
-Dim rUlc As New Adodb.Recordset
-Dim rfuss As New Adodb.Recordset
-Dim rfal As New Adodb.Recordset
-Dim lapp As New Adodb.Recordset
+Dim rUlc As New ADODB.Recordset
+Dim rfuss As New ADODB.Recordset
+Dim rfal As New ADODB.Recordset
+Dim lapp As New ADODB.Recordset
 'Dim ralauSql$
 Dim aktDC As DMPClass
 'Dim rdo AS DAO.Recordset
 'Dim rado As New ADODB.Recordset
-Dim raAna As New Adodb.Recordset
-Dim raDT As New Adodb.Recordset
-Dim rs As New Adodb.Recordset
-Dim rsAnam As New Adodb.Recordset
+Dim raAna As New ADODB.Recordset
+Dim raDT As New ADODB.Recordset
+Dim rs As New ADODB.Recordset
+Dim rsAnam As New ADODB.Recordset
 Dim GesNa$
 Dim DMSchulz%, HSchulz%, SchulStr$
 Dim Tbl
@@ -883,7 +884,8 @@ If diI("E10") Then aktDC.dtyp = "1" Else If diI("E11") Then aktDC.dtyp = "2"
 If Not ohneVorDMP Then
 'fiabfr = "SELECT Pat_ID, FID, form_abk,Form_ID, ZeitPunkt, Nr, FeldNr, Feld, FeldInh, form_abk FROM (((`forminhfeld` LEFT JOIN `forminhkopf` ON `forminhfeld`.foid=`forminhkopf`.foid) LEFT JOIN `formulare` ON `formulare`.formid=`forminhkopf`.form_id) LEFT JOIN `forminhaltfeld` ON `forminhfeld`.feldvw=`forminhaltfeld`.feldvw) LEFT JOIN `forminhaltfeldinh` ON `forminhfeld`.feldinhvw=`forminhaltfeldinh`.feldinhvw WHERE form_abk LIKE ""dmpdtyp%"" AND feldinh = ""X"" AND pat_id = " & Pid & " ORDER BY zeitpunkt"
 fiabfr = "SELECT * FROM (SELECT Pat_ID, FID, form_abk, Form_ID, ZeitPunkt, Nr, FeldNr, Feld, FeldInh FROM `forminhkopf` LEFT JOIN `formulare` ON `formulare`.formid = `forminhkopf`.form_id LEFT JOIN `forminhfeld` ON `forminhfeld`.foid = `forminhkopf`.foid LEFT JOIN `forminhaltfeld` ON `forminhfeld`.feldvw=`forminhaltfeld`.feldvw LEFT JOIN `forminhaltfeldinh` ON `forminhfeld`.feldinhvw=`forminhaltfeldinh`.feldinhvw AND feldinh='X' WHERE pat_id = " & pid & " AND form_abk LIKE 'dmpdtyp%') AS i WHERE feldinh<>null ORDER BY zeitpunkt"
-raAna.Open fiabfr, DBCn, adOpenDynamic, adLockReadOnly
+'raAna.Open fiabfr, DBCn, adOpenDynamic, adLockReadOnly
+myFrag raAna, fiabfr
 Do While Not raAna.EOF
  aktDC.obVorb = True
  Select Case raAna!Feld
@@ -948,8 +950,10 @@ Else
  'Call raDT.Open("SELECT * FROM diagnosen WHERE pat_id = " & PID, DBCn, adOpenDynamic, adLockReadOnly)
  'Call raKH.Open("SELECT * FROM kheinweis WHERE pat_id = " & PID, DBCn, adOpenDynamic, adLockReadOnly)
 ' Call raAna.Open("SELECT -dialyse AS j_dialyse, a.* FROM `anamnesebogen` a WHERE pat_id = " & pid, DBCn, adOpenDynamic, adLockReadOnly)
- Call raAna.Open("SELECT patAlter(ana.pat_id) PAlter, ana.* FROM `anamnesebogen` ana WHERE pat_id = " & pid, DBCn, adOpenDynamic, adLockReadOnly)
- Call rsAnam.Open("SELECT * FROM `namen` WHERE pat_id = " & pid, DBCn, adOpenDynamic, adLockReadOnly)
+ ' Call raAna.Open("SELECT patAlter(ana.pat_id) PAlter, ana.* FROM `anamnesebogen` ana WHERE pat_id = " & pid, DBCn, adOpenDynamic, adLockReadOnly)
+ myFrag raAna, "SELECT patAlter(ana.pat_id) PAlter, ana.* FROM `anamnesebogen` ana WHERE pat_id = " & pid
+' Call rsAnam.Open("SELECT * FROM `namen` WHERE pat_id = " & pid, DBCn, adOpenDynamic, adLockReadOnly)
+ myFrag rsAnam, "SELECT * FROM `namen` WHERE pat_id = " & pid
 ' DoCmd.Save acForm, Anmnb geht leider nicht
 'If PID = 0 THEN
 ' Dim tonRunde%
@@ -1029,7 +1033,7 @@ aktDC.PrivatTel = rsAnam!PrivatTel
   aktDC.dmpHbA1cZiel = REPLACE$(rfal!dmpHbA1cZiel, ".", ",")
  End If
  If Not IsNumeric(aktDC.dmpHbA1cZiel) Then
-  Dim rHb As New Adodb.Recordset
+  Dim rHb As New ADODB.Recordset
   myFrag rHb, "SELECT REPLACE(dmphba1cziel,'.',',') FROM faelle WHERE pat_id = " & pid & " AND dmphba1cziel REGEXP '^-?[+]?[.,0-9]+$' ORDER BY bhfb DESC"
   If Not rHb.BOF Then
    aktDC.dmpHbA1cZiel = rHb.Fields(0)
@@ -1041,7 +1045,7 @@ aktDC.PrivatTel = rsAnam!PrivatTel
   aktDC.dmpEinwDM = LCase$(rfal!dmpEinwDM)
  End If
  aktDC.dmphalbj = "n" ' LCase$(rfal!dmphalbj)
- Dim rDMPh As New Adodb.Recordset
+ Dim rDMPh As New ADODB.Recordset
   myFrag rDMPh, "SELECT MAX(dmphalbj) FROM faelle f0 WHERE pat_id = " & pid & " AND bhfb = (SELECT MAX(bhfb) FROM faelle f WHERE f.pat_id = " & pid & " AND dmphalbj<>'')"
   If Not rDMPh.BOF Then If Not IsNull(rDMPh.Fields(0)) Then aktDC.dmphalbj = rDMPh.Fields(0)
  Set rDMPh = Nothing
@@ -1092,7 +1096,7 @@ With raAna
  Call TherAuskunft(CStr(pid), 0, aktDC.insz, VorDat, aktDC.obIns, aktDC.obAnal, aktDC.obGlib, aktDC.obmetf, aktDC.obGlucI, aktDC.obSHGlin, aktDC.obGlit, aktDC.obdpp4, aktDC.obglp1, aktDC.obsglt2, aktDC.obSonstAD, aktDC.obHMG, aktDC.obAntihyp, aktDC.obACEH, aktDC.obBetabl, aktDC.obThro, aktDC.obOAK, , , , aktDC.obDiur, aktDC.obAT1)
  'if mitstr THEN TabPr "Diagnosespez. Medik.: ", IIf(!`DiabetesMedikament 1` <> "" AND NOT ISNULL(!`DiabetesMedikament 1`), "ja", "nein")
  If aktDC.dtyp = "1" And Not aktDC.obIns And Not aktDC.obAnal Then ' Medikamentenplan fehlt oder keine Dosierung angegeben
-  Dim rez As New Adodb.Recordset, rezSQL$
+  Dim rez As New ADODB.Recordset, rezSQL$
   rezSQL = "SELECT * FROM (SELECT *,LEFT(medikament,instr(medikament,"" "")-1) AS medanf FROM `rezepteintraege` ) AS rez LEFT JOIN `medarten` ON rez.medanf = `medarten`.medikament WHERE rez.pat_id = 150 AND (ins OR anal) ORDER BY zeitpunkt DESC;"
 '  IF Not lies.obMySQL THEN rezSQL = replace$(rezSQL, "collate latin1_german2_ci ", vNS)
   myFrag rez, rezSQL
@@ -1256,7 +1260,8 @@ With raAna
  If Not IsNull(!Größe) Then aktDC.kgr = Round(REPLACE$(IIf(!Größe < 10, !Größe * 100, !Größe), ".", ","), 0)
  If Not IsNull(!Größe) Then If mitStr Then TabPr "Körpergröße:", CStr(!Größe) + IIf(!Größe < 10, " m", " cm")
  
- raEi.Open "SELECT * FROM `eintraege` WHERE pat_id = " & pid & " AND art = ""Gewicht"" ORDER BY zeitpunkt DESC", DBCn, adOpenDynamic, adLockReadOnly
+' raEi.Open "SELECT * FROM `eintraege` WHERE pat_id = " & pid & " AND art = ""Gewicht"" ORDER BY zeitpunkt DESC", DBCn, adOpenDynamic, adLockReadOnly
+ myFrag raEi, "SELECT * FROM `eintraege` WHERE pat_id = " & pid & " AND art = ""Gewicht"" ORDER BY zeitpunkt DESC"
  If Not raEi.EOF Then
   Dim gewi$
   gewi = Trim$(REPLACE$(REPLACE$(LCase(raEi!Inhalt), "kg", ""), ".", ","))
@@ -1471,7 +1476,7 @@ If True Then ' lwZahl
 ' raLaU.Find "Abkü IN (""CREAT"",""KRE02"", ""KREA"", ""KREA02"", ""KRES"")"
 '  IF raLau.EOF THEN
   If Labs.Abkü = "" Then
-   Dim rEintr As New Adodb.Recordset
+   Dim rEintr As New ADODB.Recordset
    myFrag rEintr, "SELECT * FROM `eintraege` WHERE art = ""urin"" AND inhalt LIKE ""%micral%"" AND Pat_ID = " & aktDC.Pat_id & " ORDER BY zeitpunkt DESC"
    If Not rEintr.EOF Then
     DMPUAlb = Mid$(rEintr!Inhalt, InStr(LCase(rEintr!Inhalt), "micral")) & " (" & Format$(rEintr!Zeitpunkt, "dd/mm/yy") & ")"
@@ -1639,7 +1644,7 @@ If True Then ' lwZahl
     If aktDC.obIns = 0 And aktDC.obAnal = 0 Then
      aktDC.inj = "0"
     Else
-     Dim rusdm As New Adodb.Recordset
+     Dim rusdm As New ADODB.Recordset
      myFrag rusdm, "SELECT spritzst FROM usdm WHERE pat_id = " & pid & " AND zeitpunkt = (SELECT MAX(zeitpunkt) FROM usdm WHERE pat_id = " & pid & " AND zeitpunkt < " & Format(DokuDat + 1, "yyyymmdd") & ")"
      If rusdm.BOF Then
       aktDC.inj = "0"
@@ -1740,11 +1745,11 @@ If Not rUlc.BOF Then aktDC.Infekt = 1
 
 If aktDC.Infekt Or aktDC.ulcus < 2 Then aktDC.NaeUs = 2
 
-Dim raltu As New Adodb.Recordset
+Dim raltu As New ADODB.Recordset
 myFrag raltu, "SELECT icd FROM diagnosen d WHERE pat_id = " & pid & " AND icd RLIKE '^L89.[234]' AND diagdatum < qanf() AND diagsicherheit<>'A' AND COALESCE(f6010,0)=0 "
 If Not raltu.BOF Then aktDC.ZnUlcus = 1
 
-Dim ranamp As New Adodb.Recordset
+Dim ranamp As New ADODB.Recordset
 myFrag ranamp, "SELECT NOT ISNULL(amputation) AND amputation not IN ('n','-','','entfällt','/','--','nn','u','.-') AND amputation NOT LIKE '?%' AND amputation not RLIKE '^n[ .]' AND amputation not RLIKE 'nein' amp FROM anamnesebogen a WHERE pat_id = " & pid
 If Not ranamp.EOF And ranamp!amp = 1 Then aktDC.ZnAmput = 1
   
@@ -1767,7 +1772,7 @@ If Not ranamp.EOF And ranamp!amp = 1 Then aktDC.ZnAmput = 1
  Dim merkmitstr%
  merkmitstr = mitStr
  If ab317 Then mitStr = 0
- Dim raFa As New Adodb.Recordset
+ Dim raFa As New ADODB.Recordset
  Dim diIsql$
  diIsql = "SELECT ICD, DiagSeite, DiagDatum FROM `diagnosen` WHERE pat_id = " & pid & " AND (icd LIKE ""M14.6%"" OR icd LIKE ""T79.%"" OR icd LIKE ""L89.%"" OR icd LIKE ""T89.%"" OR icd LIKE ""T87.4%"" OR icd LIKE ""Z44.1%"") AND diagsicherheit IN (""G"",""V"",""Z"")  AND COALESCE(f6010,0)=0 " ' M14.6 = Charcot, M14.2 = Arthorpathie
  Dim lddat As Date
@@ -1779,7 +1784,8 @@ If Not ranamp.EOF And ranamp!amp = 1 Then aktDC.ZnAmput = 1
   End If
  End If
  Set raDT = Nothing
- Call raDT.Open(diIsql, DBCn, adOpenDynamic, adLockReadOnly)
+' Call raDT.Open(diIsql, DBCn, adOpenDynamic, adLockReadOnly)
+ myFrag raDT, diIsql
  Dim obUlc%, FSauf$
  obUlc = obPosi(!Ulcera)
  If obUlc Or Not raDT.BOF Then
@@ -1840,7 +1846,8 @@ If Not ranamp.EOF And ranamp!amp = 1 Then aktDC.ZnAmput = 1
   
 '  SET rDT = aktDCb.OpenRecordset(sql) ' SET rDT = aktDCb.OpenRecordset("Diagnosen", dbOpenDynaset)
   Set raDT = Nothing
-  raDT.Open sql, DBCn, adOpenDynamic, adLockReadOnly
+'  raDT.Open sql, DBCn, adOpenDynamic, adLockReadOnly
+  myFrag raDT, sql
   Dim aktDN As DFSNiveau
 '  Dim maxAmp AS DFSNiveau
 '  Dim aktDC.msei$ ' re, li
@@ -1865,7 +1872,7 @@ If Not ranamp.EOF And ranamp!amp = 1 Then aktDC.ZnAmput = 1
 '  sql = "SELECT * FROM `" & stftdb & "`.jpg WHERE pat_id = " & CStr(PID) & " AND cstr(int(month(patdatum)/3)+1) & YEAR(patdatum) = """ & ZQuart(DokuDat) & """"
 '  SET rafot = aktDCb.OpenRecordset(sql)
   
-  Dim raFot As New Adodb.Recordset
+  Dim raFot As New ADODB.Recordset
 #If False Then
 'If lese.obMySQL THEN
 ' IF FtCn.State = 0 THEN
@@ -1876,7 +1883,8 @@ If Not ranamp.EOF And ranamp!amp = 1 Then aktDC.ZnAmput = 1
 ' raFot.Open "SELECT * FROM jpg WHERE pat_id = " & CStr(pid) & " AND cstr(int(month(patdatum)+2)/3) & YEAR(patdatum) = """ & ZQuart(DokuDat) & """", CStrAcc & StFtDB, adOpenDynamic, adLockReadOnly
 'END IF
 #Else
-  raFot.Open "SELECT dokname FROM `dokumente` WHERE pat_id = " & pid & " AND dokart = 'jpg' AND dokname LIKE '%Foto%' AND dokname LIKE '% WA%'", DBCn, adOpenDynamic, adLockReadOnly
+'  raFot.Open "SELECT dokname FROM `dokumente` WHERE pat_id = " & pid & " AND dokart = 'jpg' AND dokname LIKE '%Foto%' AND dokname LIKE '% WA%'", DBCn, adOpenDynamic, adLockReadOnly
+  myFrag raFot, "SELECT dokname FROM `dokumente` WHERE pat_id = " & pid & " AND dokart = 'jpg' AND dokname LIKE '%Foto%' AND dokname LIKE '% WA%'"
 #End If
 
   Dim maxDN As DFSNiveau, aktWA$, aktSei As DMPSeite
@@ -2011,7 +2019,8 @@ If Not ranamp.EOF And ranamp!amp = 1 Then aktDC.ZnAmput = 1
 '#END IF
 #If vorca2008 Then
   Set raDT = Nothing
-  Call raDT.Open("SELECT * FROM `diagnosen` WHERE pat_id = " & pid & " AND icd LIKE '" & "M14.6%" & "' AND diagsicherheit IN (""G"",""V"") AND COALESCE(f6010,0)=0 ", DBCn, adOpenDynamic, adLockReadOnly)
+'  Call raDT.Open("SELECT * FROM `diagnosen` WHERE pat_id = " & pid & " AND icd LIKE '" & "M14.6%" & "' AND diagsicherheit IN (""G"",""V"") AND COALESCE(f6010,0)=0 ", DBCn, adOpenDynamic, adLockReadOnly)
+  myFrag raDT, "SELECT * FROM `diagnosen` WHERE pat_id = " & pid & " AND icd LIKE '" & "M14.6%" & "' AND diagsicherheit IN (""G"",""V"") AND COALESCE(f6010,0)=0 "
   If Not raDT.BOF Then
    Dim Seite$
    If Not IsNull(raDT!DiagSeite) Then
@@ -2060,7 +2069,8 @@ If Not ranamp.EOF And ranamp!amp = 1 Then aktDC.ZnAmput = 1
   aktDC.oblaser = False
 '  rEi.Seek "=", PID
   Set raEi = Nothing
-  Call raEi.Open("SELECT * FROM `eintraege` WHERE pat_id = " & pid, DBCn, adOpenDynamic, adLockReadOnly)
+'  Call raEi.Open("SELECT * FROM `eintraege` WHERE pat_id = " & pid, DBCn, adOpenDynamic, adLockReadOnly)
+  myFrag raEi, "SELECT * FROM `eintraege` WHERE pat_id = " & pid
   If Not raEi.BOF Then
    Do
     Dim StartPosi&
@@ -2173,7 +2183,8 @@ If aktDC.dtyp = "2" Then If mitStr Then TabPr "Lasertherapie:", IIf(aktDC.oblase
   End If
   If mitStr Then TabPr "Krankenhausaufenthalte / Ketoazidosen /12 Mon:", khsStr
  Else
-  raKH.Open "SELECT * FROM kheinweis WHERE pat_id = " & pid & " AND zeitpunkt > " & DatFor_k(DokuDat - 92), DBCn, adOpenDynamic, adLockReadOnly
+'  raKH.Open "SELECT * FROM kheinweis WHERE pat_id = " & pid & " AND zeitpunkt > " & DatFor_k(DokuDat - 92), DBCn, adOpenDynamic, adLockReadOnly
+  myFrag raKH, "SELECT Zeitpunkt,Ziel FROM kheinweis WHERE pat_id = " & pid & " AND zeitpunkt > " & DatFor_k(DokuDat - 92)
   If Not raKH.EOF Then
    aktDC.khew = True
    If mitStr Then TabPr "Krankenhauseinweisung", "(am " + Format$(raKH!Zeitpunkt, "dd/mm/yy") + IIf(tfeld(raKH!Ziel) <> "nkenhauseinweisung", " nach:" + raKH!Ziel, "") + _
@@ -2181,7 +2192,7 @@ If aktDC.dtyp = "2" Then If mitStr Then TabPr "Lasertherapie:", IIf(aktDC.oblase
   End If
   Set raKH = Nothing
 ' nur ein Datensatz 2008
-  myFrag rs, "SELECT COUNT(0) AS ct FROM `eintraege` WHERE pat_id = " & pid & " AND art = 'kra' AND zeitpunkt >= " & DatFor_k(QAnf(ZQuart(DokuDat)))
+  myFrag rs, "SELECT COUNT(0) ct FROM `eintraege` WHERE pat_id = " & pid & " AND art = 'kra' AND zeitpunkt >= " & DatFor_k(QAnf(ZQuart(DokuDat)))
   aktDC.krZKK = rs!ct
   Set rs = Nothing
   If (IsNumeric(aktDC.dmpKhsA)) Then If aktDC.dmpKhsA <> 0 Then aktDC.krZKK = aktDC.dmpKhsA
@@ -2358,12 +2369,13 @@ If aktDC.dtyp = "2" Then If mitStr Then TabPr "Lasertherapie:", IIf(aktDC.oblase
  
  Dim sqls$
  sqls$ = _
- "SELECT `leistungen`.pat_id AS pat_id, `leistungen`.zeitpunkt AS zeitpunkt, ucase(`leistungen`.leistung) AS lst" & _
+ "SELECT `leistungen`.pat_id, `leistungen`.zeitpunkt, UCASE(`leistungen`.leistung) lst" & _
  " FROM `leistungen` INNER JOIN `faelle` ON `faelle`.pat_id = `leistungen`.pat_id AND `faelle`.quartal = cstr(int(month(`leistungen`.zeitpunkt)+2) / 3) & YEAR(`leistungen`.zeitpunkt) " & _
  " WHERE `faelle`.pat_id = " & CStr(pid)
  If lies.obMySQL Then sqls = REPLACE$(REPLACE$(REPLACE$(sqls, "int(", "floor("), "cstr", ""), " / ", " div ")
 ' SET lpp = aktDCb.OpenRecordset(sqls, dbOpenDynaset)
- Call lapp.Open(sqls, DBCn, adOpenDynamic, adLockReadOnly)
+' Call lapp.Open(sqls, DBCn, adOpenDynamic, adLockReadOnly)
+ myFrag lapp, sqls
  DMSchulz = 0
  HSchulz = 0
  zpd1 = Format$(DokuDat + 1, "d.m.yy")
@@ -2454,18 +2466,20 @@ If aktDC.dtyp = "2" Then If mitStr Then TabPr "Lasertherapie:", IIf(aktDC.oblase
  End If
  
  Dim AugU$, AugUDat As Date
- Dim rBr As New Adodb.Recordset
+ Dim rBr As New ADODB.Recordset
  AugU = vNS
 ' SET rdo = aktDCb.OpenRecordset("SELECT * FROM `" + QMdbAkt + "`.`dokumente` WHERE pat_id = " & CStr(Pat_id) + " AND zeitpunkt > DokuDat - 550 ORDER BY zeitpunkt DESC", dbOpenDynaset) ' 1,5 Jahre
- rBr.Open "SELECT Quelldatum,Name,Zeitpunkt FROM `briefe` WHERE pat_id = " & CStr(aktDC.Pat_id) & " AND zeitpunkt > " & DatFor_k(DokuDat - 550) & " AND name LIKE '%augen%' ORDER BY quelldatum DESC, zeitpunkt DESC", DBCn, adOpenDynamic, adLockReadOnly
+' rBr.Open "SELECT Quelldatum,Name,Zeitpunkt FROM `briefe` WHERE pat_id = " & CStr(aktDC.Pat_id) & " AND zeitpunkt > " & DatFor_k(DokuDat - 550) & " AND name LIKE '%augen%' ORDER BY quelldatum DESC, zeitpunkt DESC", DBCn, adOpenDynamic, adLockReadOnly
+ myFrag rBr, "SELECT Quelldatum,Name,Zeitpunkt FROM `briefe` WHERE pat_id = " & CStr(aktDC.Pat_id) & " AND zeitpunkt > " & DatFor_k(DokuDat - 550) & " AND name LIKE '%augen%' ORDER BY quelldatum DESC, zeitpunkt DESC"
  If Not rBr.BOF Then
   AugUDat = rBr!Quelldatum
   If AugUDat = CDate(0) Then AugUDat = DatInStr(rBr!name, Year(rBr!Zeitpunkt))
   AugU = "Befund vo" + IIf(AugUDat = CDate(0), "n " + Format$(rBr!Zeitpunkt, "yyyy"), "m " + Format$(AugUDat, "dd/mm/yy")) + " vorliegend"
   If AugUDat = CDate(0) Then AugUDat = rBr!Zeitpunkt ' dann war die letzte Untersuchung vermutlich frühestens am 1.1. des Scan-Jahres
  Else
-  Dim rAEin As New Adodb.Recordset
-  rAEin.Open "SELECT ZeitPunkt FROM eintraege WHERE pat_id = " & CStr(aktDC.Pat_id) & " AND zeitpunkt > " & DatFor_k(DokuDat - 550) & " AND art='aug' AND (NOT inhalt RLIKE 'nie|nicht|lange|länger|(kein|will|wird|macht).*Termin' OR inhalt RLIKE 'Veränd|in Ordnung') ORDER BY zeitpunkt DESC", DBCn, adOpenDynamic, adLockReadOnly
+  Dim rAEin As New ADODB.Recordset
+'  rAEin.Open "SELECT ZeitPunkt FROM eintraege WHERE pat_id = " & CStr(aktDC.Pat_id) & " AND zeitpunkt > " & DatFor_k(DokuDat - 550) & " AND art='aug' AND (NOT inhalt RLIKE 'nie|nicht|lange|länger|(kein|will|wird|macht).*Termin' OR inhalt RLIKE 'Veränd|in Ordnung') ORDER BY zeitpunkt DESC", DBCn, adOpenDynamic, adLockReadOnly
+  myFrag rAEin, "SELECT ZeitPunkt FROM eintraege WHERE pat_id = " & CStr(aktDC.Pat_id) & " AND zeitpunkt > " & DatFor_k(DokuDat - 550) & " AND art='aug' AND (NOT inhalt RLIKE 'nie|nicht|lange|länger|(kein|will|wird|macht).*Termin' OR inhalt RLIKE 'Veränd|in Ordnung') ORDER BY zeitpunkt DESC"
   If Not rAEin.BOF Then
    AugUDat = rAEin!Zeitpunkt
   End If
@@ -2480,13 +2494,14 @@ If aktDC.dtyp = "2" Then If mitStr Then TabPr "Lasertherapie:", IIf(aktDC.oblase
  End If
 ' SET rEin = aktDCb.OpenRecordset(sql)
  Set raEi = Nothing
- raEi.Open sql, DBCn, adOpenDynamic, adLockReadOnly
+' raEi.Open sql, DBCn, adOpenDynamic, adLockReadOnly
+ myFrag rAEin, sql
  Do While Not raEi.EOF
   AugU = AugU & IIf(LenB(AugU) <> 0, vbCrLf & vbTab, "") & "Eintrag am " & Format$(raEi!Zeitpunkt, "d/m/yy") & ":" + vbTab + raEi!Inhalt
   raEi.Move 1
  Loop
- Dim uebw As Adodb.Recordset 'DAO.Recordset
- Set uebw = New Adodb.Recordset '' 22.3.2012 wegen Möglichkeit Fehler
+ Dim uebw As ADODB.Recordset 'DAO.Recordset
+ Set uebw = New ADODB.Recordset '' 22.3.2012 wegen Möglichkeit Fehler
 '  fiabfr = "SELECT Pat_ID, FID, Form_ID, ZeitPunkt, Nr, FeldNr, Feld, FeldInh, form_abk FROM (((`forminhfeld` LEFT JOIN `forminhkopf` ON `forminhfeld`.foid=`forminhkopf`.foid) LEFT JOIN `formulare` ON `formulare`.formid=`forminhkopf`.form_id) LEFT JOIN `forminhaltfeld` ON `forminhfeld`.feldvw=`forminhaltfeld`.feldvw) LEFT JOIN `forminhaltfeldinh` ON `forminhfeld`.feldinhvw=`forminhaltfeldinh`.feldinhvw "
 '  Call uebw.Open(fiabfr & " WHERE pat_id = " & CStr(Pid) + " AND form_abk = ""uew"" AND feld = ""Ueberweisung_an"" AND feldinh = ""Augenheilkunde"" AND zeitpunkt > " & DatFor_k(DokuDat - 550) & " ORDER BY zeitpunkt DESC", DBCn, adOpenDynamic, adLockReadOnly)
 ' ohne Indexvorgabe Aufruf 0,4s durch Auswahl von Feldinh als Index, falls Bedingung feldinh = 'Augenheilkunde' enthalten
@@ -2551,7 +2566,7 @@ If Err.Number = -2147467259 Then ' Server has gone away ' 30.8.17 ungültiger Eig
  Call DBCnOpen
  Resume nochmal
 End If
- Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler IN DMPString/" + AnwPfad)
+ Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in DMPString/" + AnwPfad)
   Case vbAbort: Call MsgBox("Höre auf"): ProgEnde
   Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
   Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
@@ -2659,7 +2674,7 @@ fehler:
 #Else
  AnwPfad = App.path
 #End If
-Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler IN ImportFolderHerricht/" + AnwPfad)
+Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in ImportFolderHerricht/" + AnwPfad)
  Case vbAbort: Call MsgBox("Höre auf"): ProgEnde
  Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
  Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
@@ -2711,7 +2726,7 @@ End Function ' ImportFolderHerricht()
 '#Else
 ' AnwPfad = App.Path
 '#END IF
-'SELECT CASE MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(ISNULL(Err.source), vns, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler IN LeistungsExport0/" + AnwPfad)
+'SELECT CASE MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(ISNULL(Err.source), vns, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in LeistungsExport0/" + AnwPfad)
 ' Case vbAbort: Call MsgBox("Höre auf"): Progende
 ' Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
 ' Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
@@ -2720,7 +2735,7 @@ End Function ' ImportFolderHerricht()
 
 ' IN doDiagnosenExport und Leistungsexport1
 Function FallExport(BDT As BDTSchreib, Pat_id&, Datu As Date, ByRef Lanr&, Optional nurKasse%, Optional Arztnr&)
- Dim rFa As New Adodb.Recordset
+ Dim rFa As New ADODB.Recordset
  Dim op$
  On Error GoTo fehler
  myFrag rFa, "SELECT * FROM `faelle` f LEFT JOIN `lanrpraxis` l ON f.lanrid = l.id WHERE pat_id = " & Pat_id & " AND bhfb<=" & DatFor_k(Datu) & " AND (bhfe1 >= " & DatFor_k(Datu) & " OR bhfe1=18991230) " & IIf(nurKasse, " AND schgr <> '90' ", "") & " ORDER BY bhfe1"
@@ -2806,7 +2821,7 @@ fehler:
 #Else
  AnwPfad = App.path
 #End If
-Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler IN FallExport/" + AnwPfad)
+Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in FallExport/" + AnwPfad)
  Case vbAbort: Call MsgBox("Höre auf"): ProgEnde
  Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
  Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
@@ -2814,7 +2829,7 @@ End Select
 End Function ' FallExport
 
 Function LeistungsExport1(BDT As BDTSchreib, Pat_id&, Leist$, Datu As Date, Optional QUZeit$, Optional nurKasse%, Optional Arztnr&)
- Dim rNa As New Adodb.Recordset, Lanr&
+ Dim rNa As New ADODB.Recordset, Lanr&
  myFrag rNa, "SELECT * FROM `namen` WHERE pat_id = " & Pat_id
  Lese.Ausgeb "Trage Leistung " & Leist & " für Pat_ID " & Pat_id & " (" & rNa!Nachname & ", " & rNa!Vorname & ") mit Datum " & Format$(Datu, "dd.mm.yyyy") & " ein.", True
  Open pVerz & LEDatei For Append As #347
@@ -2848,7 +2863,7 @@ fehler:
 #Else
  AnwPfad = App.path
 #End If
-Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler IN LeistungsExport1/" + AnwPfad)
+Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in LeistungsExport1/" + AnwPfad)
  Case vbAbort: Call MsgBox("Höre auf"): ProgEnde
  Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
  Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
@@ -2858,7 +2873,7 @@ End Function ' LeistungsExport1
 #If False Then
 Function LeistungsExport1a(BDT As BDTSchreib, Pat_id&, Leist$, Datu As Date, Optional QUZeit$, Optional nurKasse%, Optional Arztnr%)
 ' Dim q AS DAO.Recordset
- Dim rFa As New Adodb.Recordset, rNa As New Adodb.Recordset
+ Dim rFa As New ADODB.Recordset, rNa As New ADODB.Recordset
  Dim op$
  On Error GoTo fehler
 ' SET rFa = TabÖff("faelle", "Auswahl")
@@ -2999,7 +3014,7 @@ fehler:
 #Else
  AnwPfad = App.path
 #End If
-Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler IN LeistungsExport1a/" + AnwPfad)
+Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in LeistungsExport1a/" + AnwPfad)
  Case vbAbort: Call MsgBox("Höre auf"): ProgEnde
  Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
  Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
@@ -3025,7 +3040,7 @@ Function dododoPorto(Arztnr&)
  Dim Verz$
  Verz$ = pVerz & "gefaxt\"
  Dim BDT As New BDTSchreib
- Dim rs As New Adodb.Recordset, Zahl&, Zahl1&
+ Dim rs As New ADODB.Recordset, Zahl&, Zahl1&
  Dim DateiDatum As Date
  Dim Datei$, Pidpos&, pidp2%, pid&, Datum As Date, i&
 #Const Manuell = True
@@ -3126,7 +3141,7 @@ fehler:
 #Else
  AnwPfad = App.path
 #End If
-Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler IN doPorto/" + AnwPfad)
+Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in doPorto/" + AnwPfad)
  Case vbAbort: Call MsgBox("Höre auf"): ProgEnde
  Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
  Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
@@ -3136,7 +3151,7 @@ End Function ' dodoPorto
 Function tuBriefeLeiDok(frm As Lese, Optional Arztnr&)
  On Error GoTo fehler
  Dim sql2$
- Dim rf As New Adodb.Recordset, rB As New Adodb.Recordset, rl As New Adodb.Recordset
+ Dim rf As New ADODB.Recordset, rB As New ADODB.Recordset, rl As New ADODB.Recordset
  sql1 = "SELECT MIN(bhfb) AS bfb, MIN(schgr) AS schgr, pat_id, MIN(fid) AS fid FROM `faelle` WHERE schgr IN ('21','23','24','00') AND quartal = """ & ZQuart(Now - Verspätung) & """ GROUP BY pat_id"
 ' sql1 = "SELECT f.fid AS fid, DATE(b.zeitpunkt) AS tag, b.* FROM `briefe` b LEFT JOIN `faelle` f ON b.pat_id = f.pat_id WHERE quartal = '" & ZQuart(Now - Verspätung) & "' AND schgr IN ('21','23','24','00') AND b.zeitpunkt >= " & DatFor_k(QAnf(ZQuart(NOW() - 20))) & " AND name LIKE '%.doc' AND (name LIKE '%brief%' OR name LIKE '%dmp-daten%' OR name LIKE '%nachricht an%') ORDER BY b.pat_id,b.zeitpunkt;"
 ' Call LeistungsExport0
@@ -3145,7 +3160,8 @@ Function tuBriefeLeiDok(frm As Lese, Optional Arztnr&)
 '  IF rF!Pat_id = 2155 THEN
   sql1 = "SELECT * FROM `briefe` WHERE pat_id = " & rf!Pat_id & " AND zeitpunkt >= " & DatFor_k(QAnf(ZQuart(Now() - 20))) & " AND name LIKE '%.doc' AND (name LIKE '%brief%' OR name LIKE '%nachricht an%') AND zeitpunkt >= " & DatFor_k(#10/16/2007#)
   Set rB = Nothing
-  rB.Open sql1, DBCn, adOpenDynamic, adLockReadOnly
+'  rB.Open sql1, DBCn, adOpenDynamic, adLockReadOnly
+  myFrag rB, sql1
   If Not rB.EOF Then
    Set rl = Nothing
    myFrag rl, "SELECT * FROM `leistungen` WHERE fid = " & rf!FID & " AND leistung IN ('01601')"
@@ -3178,7 +3194,7 @@ fehler:
 #Else
  AnwPfad = App.path
 #End If
-Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler IN tuBriefeLeiDok/" + AnwPfad)
+Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in tuBriefeLeiDok/" + AnwPfad)
  Case vbAbort: Call MsgBox("Höre auf"): ProgEnde
  Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
  Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
@@ -3187,7 +3203,7 @@ End Function ' tuBriefeLeiDok
 
 Function alleDMPLeiDok(frm As Lese, Optional Arztnr&)
  Dim DefDB$
- Dim rsa As New Adodb.Recordset, rMV As New Adodb.Recordset
+ Dim rsa As New ADODB.Recordset, rMV As New ADODB.Recordset
  On Error GoTo fehler
 ' sql1 = "SELECT schgr, `faelle`.bhfb AS bfb, `faelle`.Pat_id, `faelle`.nachname, `faelle`.vorname, `hae`.vorname AS hvv, `hae`.nachname AS hvn, `hae`.fax1, hausaerzte.telefax, üwnnr FROM (((`faelle` INNER JOIN `diagnosen` ON `faelle`.pat_id = `diagnosen`.pat_id) LEFT JOIN `anamnesebogen` ON `faelle`.pat_id = `anamnesebogen`.pat_id) LEFT JOIN `kvaerzte`.`hae` ON CONCAT(mid$(`faelle`.üwnnr,1,2)¡""/""¡mid$(`faelle`.üwnnr,3,5)) = `hae`.KVNR) LEFT JOIN " & DefDB & ".`hausaerzte` ON `faelle`.üwnnr = `hausaerzte`.kvnr WHERE quartal = """ & ZQuart(Now - Verspätung) & """ AND schgr IN (""24"",""23"",""21"",""00"") AND tkz = 0 ORDER BY nachname, vorname, schgr"
  sql1 = "SELECT bhfb AS bfb, schgr, pat_id FROM `faelle` WHERE schgr IN (""24"",""23"",""21"",""00"") AND quartal = """ & ZQuart(Now - Verspätung) & """ "
@@ -3199,7 +3215,8 @@ Function alleDMPLeiDok(frm As Lese, Optional Arztnr&)
  myFrag rsa, "SELECT COUNT(DISTINCT pat_id) FROM (" & sql1 & ") innen"
  frm.Ausgeb rsa.Fields(0) & " Fälle ", True
  Set rsa = Nothing
- rsa.Open sql1, DBCn, adOpenDynamic, adLockOptimistic
+' rsa.Open sql1, DBCn, adOpenDynamic, adLockOptimistic
+ myFrag rsa, sql1
  Dim FZahl&, NZahl&
  Dim AltID&
  Dim anfang%, obzutr%
@@ -3215,12 +3232,14 @@ Function alleDMPLeiDok(frm As Lese, Optional Arztnr&)
   If rsa!SchGr = "00" Then ' bei eigenen nur die im DMP, da diese vermutlich noch einen anderen Hausarzt haben
     OkSql = "SELECT * FROM ((((`forminhkopf` LEFT JOIN `formulare` ON `forminhkopf`.form_id = `formulare`.formid) LEFT JOIN `forminhfeld` ON `forminhfeld`.foid = `forminhkopf`.foid) LEFT JOIN `forminhaltfeld` ON `forminhaltfeld`.feldvw = `forminhfeld`.feldvw) LEFT JOIN `forminhaltfeldinh` ON `forminhaltfeldinh`.feldinhvw = `forminhfeld`.feldinhvw) LEFT JOIN `namen` ON `forminhkopf`.pat_id = `namen`.pat_id WHERE form_abk LIKE ""DMPDTYP" & "%" & """ AND feld LIKE """ & "%" & "datum"" AND `namen`.Pat_id = " & rsa!Pat_id & ";"
     Set rMV = Nothing
-    rMV.Open OkSql, DBCn, adOpenDynamic, adLockReadOnly
+'    rMV.Open OkSql, DBCn, adOpenDynamic, adLockReadOnly
+    myFrag rMV, OkSql
     If rMV.EOF Then obzutr = 0
   End If
   If obzutr Then
     Set rMV = Nothing
-    rMV.Open "SELECT * FROM `leistungen` WHERE pat_id = " & rsa!Pat_id & " AND leistung = 1601 AND zeitpunkt >= " & DatFor_k(QAnf(ZQuart(Now - Verspätung))) & " AND zeitpunkt < " & DatFor_k(QEnd(ZQuart(Now - Verspätung))), DBCn, adOpenDynamic, adLockReadOnly
+'    rMV.Open "SELECT * FROM `leistungen` WHERE pat_id = " & rsa!Pat_id & " AND leistung = 1601 AND zeitpunkt >= " & DatFor_k(QAnf(ZQuart(Now - Verspätung))) & " AND zeitpunkt < " & DatFor_k(QEnd(ZQuart(Now - Verspätung))), DBCn, adOpenDynamic, adLockReadOnly
+    myFrag rMV, "SELECT * FROM `leistungen` WHERE pat_id = " & rsa!Pat_id & " AND leistung = 1601 AND zeitpunkt >= " & DatFor_k(QAnf(ZQuart(Now - Verspätung))) & " AND zeitpunkt < " & DatFor_k(QEnd(ZQuart(Now - Verspätung)))
     If Not rMV.BOF Then obzutr = 0
   End If
   If obzutr Then
@@ -3255,7 +3274,7 @@ fehler:
 #Else
  AnwPfad = App.path
 #End If
-Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler IN alleDMPLeiDok/" + AnwPfad)
+Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in alleDMPLeiDok/" + AnwPfad)
  Case vbAbort: Call MsgBox("Höre auf"): ProgEnde
  Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
  Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
@@ -3328,7 +3347,7 @@ End Function ' alleDMPLeiDok
 '#Else
 ' AnwPfad = App.path
 '#END IF
-'SELECT CASE MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(ISNULL(Err.source), vns, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler IN alleDMPLeiDok1/" + AnwPfad)
+'SELECT CASE MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(ISNULL(Err.source), vns, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in alleDMPLeiDok1/" + AnwPfad)
 ' Case vbAbort: Call MsgBox("Höre auf"): Progende
 ' Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
 ' Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
@@ -3469,7 +3488,7 @@ fehler:
 #Else
  AnwPfad = App.path
 #End If
-Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler IN obhierdmpfn/" + AnwPfad)
+Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in obhierdmpfn/" + AnwPfad)
  Case vbAbort: Call MsgBox("Höre auf"): ProgEnde
  Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
  Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
@@ -3477,7 +3496,7 @@ End Select
 End Sub      ' obhierdmpfn
 
 Function doVerdächtigeÜberweiser()
- Dim sql$, rf As New Adodb.Recordset, infos$(), taskid&, HAi%, AktQ$, obverd%
+ Dim sql$, rf As New ADODB.Recordset, infos$(), taskid&, HAi%, AktQ$, obverd%
  Dim Datei$
  Datei$ = pVerz & "VerdächtigeÜberweiser.txt"
  AktQ = Left$(ZQuart(Now() - 14), 1) & Right$(ZQuart(Now() - 14), 2) ' 109
@@ -3486,7 +3505,7 @@ Function doVerdächtigeÜberweiser()
  rf.Open sql, DBCn
  Do While Not rf.EOF
 '   Call getHausarztAlt(Pid:=rF!Pat_id, Infos:=Infos(), obHAPrio:=False)
-   Dim rFa() As faelle
+   Dim rFa() As Faelle
    Dim rKv1() As kvnrue
    getHausarzt1 infos, rFa, rKv1, False, rf!Pat_id
    HAi = 0
@@ -3568,7 +3587,7 @@ End Function
 '#Else
 ' AnwPfad = App.path
 '#END IF
-'SELECT CASE MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(ISNULL(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler IN alleDMPs/" + AnwPfad)
+'SELECT CASE MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(ISNULL(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in alleDMPs/" + AnwPfad)
 ' Case vbAbort: Call MsgBox("Höre auf"): Progende
 ' Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
 ' Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
@@ -3644,7 +3663,7 @@ fehler:
 #Else
  AnwPfad = App.path
 #End If
-Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler IN einDMPs/" + AnwPfad)
+Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in einDMPs/" + AnwPfad)
  Case vbAbort: Call MsgBox("Höre auf"): ProgEnde
  Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
  Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
@@ -3652,7 +3671,7 @@ End Select
 End Function ' einDMP
 
 Function doAnwalt(Pat_id&)
- Dim rBr As New Adodb.Recordset, nr&, Datei$
+ Dim rBr As New ADODB.Recordset, nr&, Datei$
  On Error GoTo fehler
  nr = 1
  myFrag rBr, "select * from briefe where pat_id=" & Pat_id & " order by zeitpunkt"
@@ -3676,7 +3695,7 @@ fehler:
 #Else
  AnwPfad = App.path
 #End If
-Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler IN doAnwalt/" + AnwPfad)
+Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in doAnwalt/" + AnwPfad)
  Case vbAbort: Call MsgBox("Höre auf"): ProgEnde
  Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
  Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
@@ -3707,7 +3726,7 @@ fehler:
 #Else
  AnwPfad = App.path
 #End If
-Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler IN Ausgeb/" + AnwPfad)
+Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in Ausgeb/" + AnwPfad)
  Case vbAbort: Call MsgBox("Höre auf"): ProgEnde
  Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
  Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
@@ -3797,7 +3816,7 @@ End Function
 '#Else
 ' AnwPfad = App.path
 '#END IF
-'SELECT CASE MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + nz + "LastDLLError: " + CStr(Err.LastDllError) + nz + "Source: " + IIf(ISNULL(Err.source), vNS, CStr(Err.source)) + nz + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler IN TabAusgeb/" + AnwPfad)
+'SELECT CASE MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + nz + "LastDLLError: " + CStr(Err.LastDllError) + nz + "Source: " + IIf(ISNULL(Err.source), vNS, CStr(Err.source)) + nz + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in TabAusgeb/" + AnwPfad)
 ' Case vbAbort: Call MsgBox("Höre auf"): Progende
 ' Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
 ' Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
@@ -3807,20 +3826,22 @@ End Function
 Sub dodoFollowUp(frm As Lese)
  Dim infos$()
  Dim sql$, sql1$
- Dim rP As New Adodb.Recordset
- Dim rB As New Adodb.Recordset
+ Dim rP As New ADODB.Recordset
+ Dim rB As New ADODB.Recordset
  Dim Zp As Date, Quartal$
  On Error GoTo fehler
  Zp = Now - 30
  Quartal = ZQuart(Zp)
 ' ab = InputBox("Ab welchem Pat. anfangen (0 = von vorne)?", "Rückfrage", 0)
- Call rP.Open("SELECT DISTINCT f.pat_id AS pat_id FROM `faelle` f LEFT JOIN `anamnesebogen` a ON f.pat_id = a.pat_id WHERE not schgr IN ('41','42','43')  AND tkz = 0 ORDER BY f.pat_id DESC;", DBCn, adOpenDynamic, adLockReadOnly)
+' Call rP.Open("SELECT DISTINCT f.pat_id AS pat_id FROM `faelle` f LEFT JOIN `anamnesebogen` a ON f.pat_id = a.pat_id WHERE not schgr IN ('41','42','43')  AND tkz = 0 ORDER BY f.pat_id DESC;", DBCn, adOpenDynamic, adLockReadOnly)
+ myFrag rP, "SELECT DISTINCT f.pat_id AS pat_id FROM `faelle` f LEFT JOIN `anamnesebogen` a ON f.pat_id = a.pat_id WHERE not schgr IN ('41','42','43')  AND tkz = 0 ORDER BY f.pat_id DESC;"
  Do While Not rP.EOF
   Call getHausarzt(rP!Pat_id, infos())
   If infos(1, 0) <> vNS And Not infos(1, 0) Like "*Schade" Then
    Set rB = Nothing
    sql = "SELECT * FROM `briefe` WHERE pat_id = " & rP!Pat_id & " AND ((name LIKE '%Brief an %Dr%' OR name LIKE '%Arztbrief%' OR name LIKE 'Brief an HA%' OR name LIKE 'Brief an HAe%' OR name LIKE 'Brief an %') AND name NOT LIKE '%Entwurf%') ORDER BY zeitpunkt DESC"
-   Call rB.Open(sql, DBCn, adOpenDynamic, adLockReadOnly)
+'   Call rB.Open(sql, DBCn, adOpenDynamic, adLockReadOnly)
+   myFrag rB, sql
    If Not rB.BOF Then
     If DateValue(lebe(rP!Pat_id)) - rB!Zeitpunkt > 365 Then
      Call tubriefStandalone(rP!Pat_id, True)
@@ -3837,7 +3858,7 @@ fehler:
 #Else
  AnwPfad = App.path
 #End If
-Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler IN doRestlicheBriefe/" + AnwPfad)
+Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in doRestlicheBriefe/" + AnwPfad)
  Case vbAbort: Call MsgBox("Höre auf"): ProgEnde
  Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
  Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
@@ -3847,20 +3868,22 @@ End Sub ' dodoFollowUp(frm AS Lese)
 Sub doUngeschriebeneBriefe(frm As Lese)
  Dim infos$()
  Dim sql$, sql1$
- Dim rP As New Adodb.Recordset
- Dim rB As New Adodb.Recordset
+ Dim rP As New ADODB.Recordset
+ Dim rB As New ADODB.Recordset
  Dim Zp As Date, Quartal$
  On Error GoTo fehler
  Zp = Now - 30
  Quartal = ZQuart(Zp)
 ' ab = InputBox("Ab welchem Pat. anfangen (0 = von vorne)?", "Rückfrage", 0)
- Call rP.Open("SELECT DISTINCT f.pat_id AS pat_id FROM `faelle` f LEFT JOIN `anamnesebogen` a ON f.pat_id = a.pat_id WHERE not schgr IN ('41','42','43')  AND tkz = 0  ORDER BY f.pat_id DESC;", DBCn, adOpenDynamic, adLockReadOnly)
+' Call rP.Open("SELECT DISTINCT f.pat_id AS pat_id FROM `faelle` f LEFT JOIN `anamnesebogen` a ON f.pat_id = a.pat_id WHERE not schgr IN ('41','42','43')  AND tkz = 0  ORDER BY f.pat_id DESC;", DBCn, adOpenDynamic, adLockReadOnly)
+ myFrag rP, "SELECT DISTINCT f.pat_id AS pat_id FROM `faelle` f LEFT JOIN `anamnesebogen` a ON f.pat_id = a.pat_id WHERE not schgr IN ('41','42','43')  AND tkz = 0  ORDER BY f.pat_id DESC;"
  Do While Not rP.EOF
   Call getHausarzt(rP!Pat_id, infos())
   If infos(1, 0) <> vNS And Not infos(1, 0) Like "*Schade" Then
    Set rB = Nothing
    sql = "SELECT * FROM `briefe` WHERE pat_id = " & rP!Pat_id & " AND ((name LIKE '%Brief an %Dr%' OR name LIKE '%Arztbrief%' OR name LIKE 'Brief an HA%' OR name LIKE 'Brief an HAe%' OR name LIKE 'Brief an %') AND name NOT LIKE '%Entwurf%')"
-   Call rB.Open(sql, DBCn, adOpenDynamic, adLockReadOnly)
+'   Call rB.Open(sql, DBCn, adOpenDynamic, adLockReadOnly)
+   myFrag rB, sql
    If rB.BOF Then
     Call tubriefStandalone(rP!Pat_id, True)
    End If
@@ -3876,7 +3899,7 @@ fehler:
 #Else
  AnwPfad = App.path
 #End If
-Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler IN doRestlicheBriefe/" + AnwPfad)
+Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in doRestlicheBriefe/" + AnwPfad)
  Case vbAbort: Call MsgBox("Höre auf"): ProgEnde
  Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
  Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
@@ -3885,18 +3908,20 @@ End Sub ' doRestlicheBriefe
 
 Sub doRestlicheBriefe(frm As Lese, ab&)
  Dim sql$, sql1$
- Dim rP As New Adodb.Recordset
- Dim rB As New Adodb.Recordset
+ Dim rP As New ADODB.Recordset
+ Dim rB As New ADODB.Recordset
  Dim Zp As Date, Quartal$
  On Error GoTo fehler
  Zp = Now - 30
  Quartal = ZQuart(Zp)
 ' ab = InputBox("Ab welchem Pat. anfangen (0 = von vorne)?", "Rückfrage", 0)
- Call rP.Open("SELECT DISTINCT pat_id FROM `faelle` WHERE quartal = '" & Quartal & "' AND pat_id >= " & ab & " ORDER BY pat_id ", DBCn, adOpenDynamic, adLockReadOnly)
+' Call rP.Open("SELECT DISTINCT pat_id FROM `faelle` WHERE quartal = '" & Quartal & "' AND pat_id >= " & ab & " ORDER BY pat_id ", DBCn, adOpenDynamic, adLockReadOnly)
+ myFrag rP, "SELECT DISTINCT pat_id FROM `faelle` WHERE quartal = '" & Quartal & "' AND pat_id >= " & ab & " ORDER BY pat_id "
  Do While Not rP.EOF
   Set rB = Nothing
   sql = "SELECT * FROM `briefe` WHERE pat_id = " & rP!Pat_id & " AND zeitpunkt > " & DatFor_k(QAnf(Quartal)) & " AND ((name LIKE '%Brief an %Dr%' OR name LIKE '%Arztbrief%' OR name LIKE 'Brief an HA%' OR name LIKE 'Brief an HAe%') AND name NOT LIKE '%Entwurf%')"
-  Call rB.Open(sql, DBCn, adOpenDynamic, adLockReadOnly)
+'  Call rB.Open(sql, DBCn, adOpenDynamic, adLockReadOnly)
+  myFrag rB, sql
   If rB.BOF Then
    Call tubriefStandalone(rP!Pat_id, True)
   End If
@@ -3910,7 +3935,7 @@ fehler:
 #Else
  AnwPfad = App.path
 #End If
-Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler IN doRestlicheBriefe/" + AnwPfad)
+Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in doRestlicheBriefe/" + AnwPfad)
  Case vbAbort: Call MsgBox("Höre auf"): ProgEnde
  Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
  Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
@@ -3982,7 +4007,7 @@ fehler:
 #Else
  AnwPfad = App.path
 #End If
-Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler IN FaxSend/" + AnwPfad)
+Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in FaxSend/" + AnwPfad)
  Case vbAbort: Call MsgBox("Höre auf"): ProgEnde
  Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
  Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
@@ -3992,7 +4017,7 @@ End Sub ' FaxSend
 Public Function do_DMPAusgebStandAlone(Pat_id&, Optional fax1$, Optional Adressat$)
  Dim dc, VorString$, docName$, DT As DMPClass
  Dim mR1, mR2, mR3
- Dim rsAnam As New Adodb.Recordset
+ Dim rsAnam As New ADODB.Recordset
  Dim sverz$
  If fax1$ = vNS Then
   sverz = pVerz
@@ -4066,7 +4091,7 @@ vorgetword:
 '  dc.PageSetup.TopMargin = CentimetersToPoints(0.5)
 '  dc.PageSetup.BottomMargin = CentimetersToPoints(0.5)
 
-  Dim rs As New Adodb.Recordset
+  Dim rs As New ADODB.Recordset
   Set rs = Nothing
 '  sql = "SELECT `medarten`.*, `medplan`.medikament AS mmedikament,bemerkung,mo,mi,nm,ab,zn,--bbed AS j_bbed FROM `medplan` LEFT JOIN `medarten` ON `medplan`.medanfang = `medarten`.medikament WHERE `medplan`.mpnr = (SELECT MAX(mpnr) FROM `medplan` WHERE pat_id = " & Pat_id & " AND zeitpunkt = (SELECT MAX(zeitpunkt) FROM `medplan` WHERE pat_id = " & CStr(Pat_id) & ")) AND NOT ISNULL(`medplan`.medikament) AND `medplan`.medikament <> '' AND `medplan`.pat_id = " & Pat_id
 ' `medplan`.medikament AS mmedikament,mo,mi,nm,ab,zn
@@ -4163,7 +4188,7 @@ fehler:
 #Else
  AnwPfad = App.path
 #End If
-Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler IN do_DMPAusgebStandAlone/" + AnwPfad)
+Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in do_DMPAusgebStandAlone/" + AnwPfad)
  Case vbAbort: Call MsgBox("Höre auf"): ProgEnde
  Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
  Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
@@ -4221,7 +4246,7 @@ End Function ' ZQuart$(Datum As Date) ' Für Abfragen mit Fallzuordnung
 '#Else
 ' AnwPfad = App.path
 '#END IF
-'SELECT CASE MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(ISNULL(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler IN ZQuart/" + AnwPfad)
+'SELECT CASE MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(ISNULL(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in ZQuart/" + AnwPfad)
 ' Case vbAbort: Call MsgBox("Höre auf"): Progende
 ' Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
 ' Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
@@ -4253,7 +4278,7 @@ fehler:
 #Else
  AnwPfad = App.path
 #End If
-Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler IN GesNam/" + AnwPfad)
+Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in GesNam/" + AnwPfad)
  Case vbAbort: Call MsgBox("Höre auf"): ProgEnde
  Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
  Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
@@ -4270,8 +4295,8 @@ Select Case LCase(Inh)
 End Select
 End Function ' dtyp
 
-Function DSeit(rsAnam As Adodb.Recordset, Optional objahr%)
- Dim rsDS As New Adodb.Recordset
+Function DSeit(rsAnam As ADODB.Recordset, Optional objahr%)
+ Dim rsDS As New ADODB.Recordset
  On Error GoTo fehler
     If IsNull(rsAnam("Diabetes seit")) Then
       DSeit = "?"
@@ -4292,7 +4317,7 @@ fehler:
 #Else
  AnwPfad = App.path
 #End If
-Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler IN DSeit/" + AnwPfad)
+Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in DSeit/" + AnwPfad)
  Case vbAbort: Call MsgBox("Höre auf"): ProgEnde
  Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
  Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
@@ -4327,7 +4352,7 @@ Function obPosi(s) As Boolean
  End If
 End Function ' obPosi(S) AS Boolean
 Public Function neuTher()
- Dim rNa As New Adodb.Recordset
+ Dim rNa As New ADODB.Recordset
  Call Lese.ProgStart
  myFrag rNa, "SELECT pat_id,gesname(pat_id) name FROM namen"
  Do While Not rNa.EOF
@@ -4353,7 +4378,7 @@ Function TherAuskunft(ByVal Pat_id$, ByVal obanf%, Optional ByRef insz%, Optiona
  Optional ByRef obAT1%) As TherapieArt
 ' Dim rMA AS DAO.Recordset
  Dim obNIns% 'ob Normalinsulin
- Dim raMa As New Adodb.Recordset
+ Dim raMa As New ADODB.Recordset
  Dim AktMz%, medi$, rAF&
  Dim MPNr&(), MP0&, MPe&, mpz&, i&, MPNrl& ' erste und letzte, laufende MedPlan-Nummer des Quartals
  On Error GoTo fehler
@@ -4406,7 +4431,8 @@ Function TherAuskunft(ByVal Pat_id$, ByVal obanf%, Optional ByRef insz%, Optiona
     medi = GetMed(medi, 0)
 '    rMA.Seek "=", medi
     Set raMa = Nothing
-    raMa.Open "SELECT -hmg j_hmg, -hypt j_hypt, -aceh j_aceh, -betabl j_betabl, -thro j_thro, -antikoag j_antikoag, -glib j_glib, -metf j_metf, -gluci j_gluci, -shglin j_shglin, -glit j_glit, -dpp4 j_dpp4, -glp1 j_glp1, -sglt2 j_sglt2, -sonstad j_sonstad, -ins j_ins, -AnAl j_anal, -Diur j_diur, -AT1 j_at1, m.* FROM `medarten` m WHERE medikament = '" & REPLACE$(medi, "'", "''") & "'", DBCn, adOpenDynamic, adLockReadOnly
+'    raMa.Open "SELECT -hmg j_hmg, -hypt j_hypt, -aceh j_aceh, -betabl j_betabl, -thro j_thro, -antikoag j_antikoag, -glib j_glib, -metf j_metf, -gluci j_gluci, -shglin j_shglin, -glit j_glit, -dpp4 j_dpp4, -glp1 j_glp1, -sglt2 j_sglt2, -sonstad j_sonstad, -ins j_ins, -AnAl j_anal, -Diur j_diur, -AT1 j_at1, m.* FROM `medarten` m WHERE medikament = '" & REPLACE$(medi, "'", "''") & "'", DBCn, adOpenDynamic, adLockReadOnly
+    myFrag raMa, "SELECT -hmg j_hmg, -hypt j_hypt, -aceh j_aceh, -betabl j_betabl, -thro j_thro, -antikoag j_antikoag, -glib j_glib, -metf j_metf, -gluci j_gluci, -shglin j_shglin, -glit j_glit, -dpp4 j_dpp4, -glp1 j_glp1, -sglt2 j_sglt2, -sonstad j_sonstad, -ins j_ins, -AnAl j_anal, -Diur j_diur, -AT1 j_at1, m.* FROM `medarten` m WHERE medikament = '" & REPLACE$(medi, "'", "''") & "'", adOpenDynamic
     If raMa.BOF Then
      If DosH > 0 Then
 '      MsgBox "Medikament: " + Medi + " noch nicht IN Tabelle MedArten erfaßt"
@@ -4506,7 +4532,7 @@ Dim tonRunde%
 #Else
  AnwPfad = App.path
 #End If
- Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler IN TherAuskunft/" + AnwPfad)
+ Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in TherAuskunft/" + AnwPfad)
   Case vbAbort: Call MsgBox("Höre auf"): ProgEnde
   Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
   Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
@@ -4514,12 +4540,12 @@ Dim tonRunde%
 End Function ' TherAuskunft(pat_id, obanf%, insz, Optional obIns, Optional obAnal, Optional obGlib, Optional obMetf, Optional obGlucI, Optional obSHGlin, Optional obGlit, Optional obSonstAD, Optional obHMG, Optional obAntihyp, Optional obThro)
 
 Function diI%(icd_str$, Optional pid, Optional abDat As Date, Optional auchZ As Boolean, Optional Weiteres$, Optional ByRef ICD$, Optional ByRef diagdat As Date)
- Dim raDT As New Adodb.Recordset, raFa As New Adodb.Recordset
+ Dim raDT As New ADODB.Recordset, raFa As New ADODB.Recordset
  Dim diIsql$
  On Error GoTo fehler
  If Not IsMissing(pid) Then Pat_id = CLng(pid)
  If Pat_id = 0 Then
-  MsgBox "Stop IN diI durch Pat_id = 0"
+  MsgBox "Stop in diI durch Pat_id = 0"
   Stop
   Exit Function
  End If
@@ -4558,7 +4584,7 @@ fehler:
 #Else
  AnwPfad = App.path
 #End If
- Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler IN diI/" + AnwPfad)
+ Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in diI/" + AnwPfad)
   Case vbAbort: Call MsgBox("Höre auf"): ProgEnde
   Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
   Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
@@ -4567,13 +4593,13 @@ End Function 'diI(icd_str, PID) AS Boolean
 
 ' 9.9.15: Parameter nach PID eingebaut, obwohl diese bisher nicht gebraucht wurden
 Function diT%(diagtxt$, Optional pid, Optional abDat As Date, Optional auchZ As Boolean, Optional Weiteres$, Optional ByRef ICD$, Optional ByRef diagdat As Date)
- Dim raDT As New Adodb.Recordset
- Dim raFa As New Adodb.Recordset
+ Dim raDT As New ADODB.Recordset
+ Dim raFa As New ADODB.Recordset
  Dim diTsql$
  On Error GoTo fehler
  If Not IsMissing(pid) Then Pat_id = pid
  If Pat_id = 0 Then
-  MsgBox "Stop IN diT durch Pat_id = 0"
+  MsgBox "Stop in diT durch Pat_id = 0"
   Stop
   Exit Function
  End If
@@ -4614,7 +4640,7 @@ fehler:
 #Else
  AnwPfad = App.path
 #End If
- Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler IN diT/" + AnwPfad)
+ Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in diT/" + AnwPfad)
   Case vbAbort: Call MsgBox("Höre auf"): ProgEnde
   Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
   Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
@@ -4740,18 +4766,20 @@ li = Trim$(li)
 End Function ' SensSplit(SensStrg, re$, li$)
 
 ' IN Epikrise, rrpruef und DMPString
- Public Function GetPrRR$(rsAnahier As Adodb.Recordset, RRsyst%, RRdiast%, Optional obdiastkorr% = 0)
+ Public Function GetPrRR$(rsAnahier As ADODB.Recordset, RRsyst%, RRdiast%, Optional obdiastkorr% = 0)
  '  Dim rrr AS DAO.Recordset
 '  SET rrr = TabÖff("RR", "Auswahl")
 '  rrr.Seek "=", CStr(rs!Pat_id)
   On Error GoTo fehler
   GetPrRR = vNS
 '  rarr.Open "SELECT * FROM rr WHERE pat_id = " & rsAnahier!Pat_id & " ORDER BY zeitpunkt DESC", DBCn, adOpenDynamic, adLockReadOnly
-  Dim rarr As New Adodb.Recordset
-  rarr.Open "SELECT rs,rd FROM (SELECT rrsyst(rr) rs, rrdiast(rr) rd, zeitpunkt FROM rr WHERE Pat_id = " & rsAnahier!Pat_id & ") i WHERE rs<>0 AND rd<>0 ORDER BY zeitpunkt DESC", DBCn, adOpenDynamic, adLockReadOnly
+  Dim rarr As New ADODB.Recordset
+'  rarr.Open "SELECT rs,rd FROM (SELECT rrsyst(rr) rs, rrdiast(rr) rd, zeitpunkt FROM rr WHERE Pat_id = " & rsAnahier!Pat_id & ") i WHERE rs<>0 AND rd<>0 ORDER BY zeitpunkt DESC", DBCn, adOpenDynamic, adLockReadOnly
+  myFrag rarr, "SELECT rs,rd FROM (SELECT rrsyst(rr) rs, rrdiast(rr) rd, zeitpunkt FROM rr WHERE Pat_id = " & rsAnahier!Pat_id & ") i WHERE rs<>0 AND rd<>0 ORDER BY zeitpunkt DESC"
   If rarr.EOF Then
    Set rarr = Nothing
-   rarr.Open "SELECT rs,rd FROM (SELECT rrsyst(rr) rs, rrdiast(rr) rd, zeitpunkt FROM rr WHERE Pat_id = " & rsAnahier!Pat_id & ") i WHERE rs<>0 ORDER BY zeitpunkt DESC", DBCn, adOpenDynamic, adLockReadOnly
+'   rarr.Open "SELECT rs,rd FROM (SELECT rrsyst(rr) rs, rrdiast(rr) rd, zeitpunkt FROM rr WHERE Pat_id = " & rsAnahier!Pat_id & ") i WHERE rs<>0 ORDER BY zeitpunkt DESC", DBCn, adOpenDynamic, adLockReadOnly
+   myFrag rarr, "SELECT rs,rd FROM (SELECT rrsyst(rr) rs, rrdiast(rr) rd, zeitpunkt FROM rr WHERE Pat_id = " & rsAnahier!Pat_id & ") i WHERE rs<>0 ORDER BY zeitpunkt DESC"
   End If
   If Not rarr.BOF Then
    RRsyst = rarr!rs
@@ -4783,7 +4811,7 @@ fehler:
 #Else
  AnwPfad = App.path
 #End If
- Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler IN GetPrRR/" + AnwPfad)
+ Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in GetPrRR/" + AnwPfad)
   Case vbAbort: Call MsgBox("Höre auf"): ProgEnde
   Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
   Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
@@ -4792,12 +4820,13 @@ End Function ' GetPrRR
 
 #If False Then
 Function SchulzBest%(Pat_id&, zp1$, zpl$, Optional abDat)
-  Dim sqls$, lapp As New Adodb.Recordset
+  Dim sqls$, lapp As New ADODB.Recordset
   On Error GoTo fehler
   sqls$ = "SELECT * FROM `eintraege` WHERE pat_id = " & CStr(Pat_id) + " AND art = ""schul"" "
   If Not IsMissing(abDat) Then If Now > CDate("15.10.05") Then sqls = sqls + "and Zeitpunkt >= " & DatFor_k(abDat) & " "
   sqls = sqls + "ORDER BY zeitpunkt"
-  lapp.Open sqls, DBCn, adOpenDynamic, adLockReadOnly
+'  lapp.Open sqls, DBCn, adOpenDynamic, adLockReadOnly
+  myFrag lapp, sqls
   If Not lapp.BOF Then
    lapp.MoveLast
    zpl = Format$(lapp!Zeitpunkt, "dd/mm/yy")
@@ -4815,7 +4844,7 @@ fehler:
 #Else
  AnwPfad = App.path
 #End If
-Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler IN SchutzBest/" + AnwPfad)
+Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in SchutzBest/" + AnwPfad)
  Case vbAbort: Call MsgBox("Höre auf"): ProgEnde
  Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
  Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
@@ -4901,7 +4930,7 @@ Function DatInStr(teststr$, Optional Jahr) As Date
 End Function ' DatInStr(TestStr$, Optional jahr) As Date
 
 Function MedPlanAusAna(ByVal Pat_id$)
- Dim rsNa As New Adodb.Recordset, i%, j%, inkl%, k%, dosstr$, dosier$()
+ Dim rsNa As New ADODB.Recordset, i%, j%, inkl%, k%, dosstr$, dosier$()
  
 ' SET rsna = TabÖff("Anamnesebogen", "Pat_id")
  myFrag rsNa, "SELECT * FROM `anamnesebogen` WHERE pat_id = " & Pat_id
@@ -4968,7 +4997,7 @@ End Function 'MedPlanAusAna
 
 ' Wählt den ersten oder den aktuellen Medikamentenplan aus obakt = true = aktuellen, obakt = false = ersten
 Function MedPlanNr&(ByVal Pat_id$, ByVal obAkt, Optional ByVal VorDat As Date, Optional ByVal NurNr%, Optional ByVal nr&)
- Dim raFIM As New Adodb.Recordset
+ Dim raFIM As New ADODB.Recordset
  On Error GoTo fehler
 ' sql1 = "SELECT " & IIf(obAkt, "max", "min") & "(mpnr) FROM `medplan` WHERE pat_id = " + CStr(Pat_id)
 ' IF vordat <> CDate(0) THEN sql1 = sql1 + " AND zeitpunkt < " & DatFor_k(vordat + 1)
@@ -4980,7 +5009,8 @@ Function MedPlanNr&(ByVal Pat_id$, ByVal obAkt, Optional ByVal VorDat As Date, O
 '  sql1 = "SELECT " & IIf(obAkt, "max", "min") & "(mpnr) AS mpmax FROM `medplan` WHERE pat_id = " + CStr(Pat_id)
   sql1 = "SELECT " & IIf(obAkt, "max", "min") & "(mpnr) mpmax FROM medplan mp1 WHERE pat_id = " & Pat_id & " AND zeitpunkt = (SELECT " & IIf(obAkt, "max", "min") & "(zeitpunkt) FROM medplan mp0 WHERE pat_id = mp1.pat_id)"
   If VorDat <> CDate(0) Then sql1 = sql1 + " AND zeitpunkt < " & DatFor_k(VorDat + 1)
-  raFIM.Open sql1, DBCn, adOpenDynamic, adLockReadOnly
+'  raFIM.Open sql1, DBCn, adOpenDynamic, adLockReadOnly
+  myFrag raFIM, sql1
 ' IF NOT ISNULL(raFIM.Fields(0)) THEN
   If Not raFIM.BOF And Not IsNull(raFIM!mpmax) Then
    MedPlanNr = raFIM!mpmax
@@ -4991,7 +5021,8 @@ Function MedPlanNr&(ByVal Pat_id$, ByVal obAkt, Optional ByVal VorDat As Date, O
  End If
  sql1 = "SELECT * FROM `medplan` WHERE pat_id = " & Pat_id & " AND mpnr = " & MedPlanNr
  Set raFIM = Nothing
- raFIM.Open sql1, DBCn, adOpenDynamic, adLockReadOnly
+' raFIM.Open sql1, DBCn, adOpenDynamic, adLockReadOnly
+ myFrag raFIM, sql1
  ' END IF
   lBehDat = CDate(0)
   MedZahl = 0
@@ -5031,7 +5062,7 @@ Function MedPlanNr&(ByVal Pat_id$, ByVal obAkt, Optional ByVal VorDat As Date, O
 ' END IF ' NOT ISNULL
  Exit Function
 fehler:
-Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description + vbCrLf + "Fehlerposition: " + CStr(FPos), vbAbortRetryIgnore, "Aufgefangener Fehler IN MedPlanNr/" + App.path)
+Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description + vbCrLf + "Fehlerposition: " + CStr(FPos), vbAbortRetryIgnore, "Aufgefangener Fehler in MedPlanNr/" + App.path)
  Case vbAbort: Call MsgBox("Höre auf"): ProgEnde
  Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
  Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
@@ -5165,7 +5196,7 @@ fehler:
 #Else
  AnwPfad = App.path
 #End If
-Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler IN dodoRRParse/" + AnwPfad)
+Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in dodoRRParse/" + AnwPfad)
  Case vbAbort: Call MsgBox("Höre auf"): ProgEnde
  Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
  Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
@@ -5174,10 +5205,11 @@ End Function ' dodoRRParse
 #End If
 
 Function WieTabak(Pat_id&) As ZigSt
-  Dim raZig As New Adodb.Recordset
+  Dim raZig As New ADODB.Recordset
   WieTabak = doTabakSt(Pat_id)
   If Pat_id <> 0 Then
-   Call raZig.Open("SELECT * FROM `diagnosen` WHERE pat_id = " & Pat_id & " AND icd LIKE '" & "F17" & "%" & "' AND diagsicherheit IN (""G"",""V"",""Z"")  AND COALESCE(f6010,0)=0 ", DBCn, adOpenDynamic, adLockReadOnly)
+'   Call raZig.Open("SELECT * FROM `diagnosen` WHERE pat_id = " & Pat_id & " AND icd LIKE '" & "F17" & "%" & "' AND diagsicherheit IN (""G"",""V"",""Z"")  AND COALESCE(f6010,0)=0 ", DBCn, adOpenDynamic, adLockReadOnly)
+   myFrag raZig, "SELECT * FROM `diagnosen` WHERE pat_id = " & Pat_id & " AND icd LIKE '" & "F17" & "%" & "' AND diagsicherheit IN (""G"",""V"",""Z"")  AND COALESCE(f6010,0)=0 "
    If Not raZig.EOF Then
     If InStrB(raZig!DiagText, "Z.n") <> 0 Or raZig!DiagSicherheit = "Z" Then
      If WieTabak <> früher And WieTabak <> vorlangem Then WieTabak = früher
@@ -5189,7 +5221,7 @@ Function WieTabak(Pat_id&) As ZigSt
 End Function ' WieTabak
 
 Function testvergleicheT()
- Dim rs As New Adodb.Recordset, AusS$, e1 As ZigSt, E2 As ZigSt, e1W$, e2W$, Zahl&
+ Dim rs As New ADODB.Recordset, AusS$, e1 As ZigSt, E2 As ZigSt, e1W$, e2W$, Zahl&
  Call Lese.ProgStart
  Open pVerz & "tabakst.txt" For Output As #331
  myFrag rs, "SELECT d.icd, d.diagsicherheit, a.* FROM `anamnesebogen` a LEFT JOIN `diagnosen` d ON a.pat_id = d.pat_id AND d.icd LIKE 'F17%'"
@@ -5222,7 +5254,7 @@ Function testvergleicheT()
 End Function ' testvergleicheT
 
  Function doTabakSt(Pat_id&) As ZigSt
-  Dim rs As New Adodb.Recordset, tStr$
+  Dim rs As New ADODB.Recordset, tStr$
   On Error GoTo fehler
   Call Lese.ProgStart
   myFrag rs, "SELECT vorgestellt, tabakex,tabakakt,tabakbis,tabakmenge FROM `anamnesebogen` WHERE pat_id = " & Pat_id
@@ -5278,7 +5310,7 @@ fehler:
     #Else
      AnwPfad = App.path
     #End If
-    Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler IN doTabakSt/" + AnwPfad)
+    Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in doTabakSt/" + AnwPfad)
      Case vbAbort: Call MsgBox("Höre auf"): ProgEnde
      Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
      Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
@@ -5417,7 +5449,7 @@ fehler:
 #Else
  AnwPfad = App.path
 #End If
-Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler IN doTabakStAlt/" + AnwPfad)
+Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in doTabakStAlt/" + AnwPfad)
  Case vbAbort: Call MsgBox("Höre auf"): ProgEnde
  Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
  Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
@@ -5502,7 +5534,7 @@ fehler:
 #Else
  AnwPfad = App.path
 #End If
-Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler IN ZSU/" + AnwPfad)
+Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in ZSU/" + AnwPfad)
  Case vbAbort: Call MsgBox("Höre auf"): ProgEnde
  Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
  Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
@@ -5595,7 +5627,7 @@ fehler:
 #Else
  AnwPfad = App.path
 #End If
-Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler IN hollabor/" + AnwPfad)
+Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in hollabor/" + AnwPfad)
  Case vbAbort: Call MsgBox("Höre auf"): ProgEnde
  Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
  Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
@@ -5622,8 +5654,8 @@ End Function ' GetRandomNum
 'End Function
 
 ' zahl liefert die Zahl der Datensätze zurück, wenn nicht -1 übergeben wird
-Public Function hollabor(Optional PatID& = 0, Optional Abkü$ = "", Optional zpkl As Date = 0, Optional wertkl& = 0, Optional obnachgruppe% = 0, Optional ByRef Zahl& = -1, Optional Einheit$ = "", Optional gz& = -1, Optional dzz& = -1, Optional dSL As SortierListe) As Adodb.Recordset
- Static rs As New Adodb.Recordset, sql$
+Public Function hollabor(Optional PatID& = 0, Optional Abkü$ = "", Optional zpkl As Date = 0, Optional wertkl& = 0, Optional obnachgruppe% = 0, Optional ByRef Zahl& = -1, Optional Einheit$ = "", Optional gz& = -1, Optional dzz& = -1, Optional dSL As SortierListe) As ADODB.Recordset
+ Static rs As New ADODB.Recordset, sql$
  Static altPID&, altzahl&, altab$, altzpkl#, altwk&, altobng%, alteh$, altgz&, altdz&
  Dim SD As SortierDatum
  Static hdSL As New SortierListe ' dzz = datumszahl, wenn nicht nach Gruppen gruppiert (also nach Zeitpunkt sortiert)
@@ -5651,7 +5683,8 @@ Public Function hollabor(Optional PatID& = 0, Optional Abkü$ = "", Optional zpkl
   DBCn.Execute "SET @patid=" & CStr(PatID) & ",@abkue='" & Abkü & "',@einheit='" & Einheit & "',@zpkl=" & sql & ",@wertkl=" & wertkl
 ' rs.CursorLocation = adUseServer
   sql = "SELECT * FROM geslab" + IIf(obnachgruppe, " WHERE (reihe <> 999 OR ISNULL(reihe)) GROUP BY gruppe, reihe, abkü, einheit,ung,ong ORDER BY gruppe,reihe", " ORDER BY zeitpunkt DESC")
-  rs.Open sql, DBCn, adOpenDynamic, adLockReadOnly
+'  rs.Open sql, DBCn, adOpenDynamic, adLockReadOnly
+  myFrag rs, sql
 #Else
  Dim par$
  ' 4.7.20: wert statt einheit eingesetzt, da IN labor1 und labor2 offenbar verschiedene Einheiten verwendet werden, z.B. ml/min = ml/mn/1.73 m²
@@ -5713,7 +5746,7 @@ fehler:
 #Else
  AnwPfad = App.path
 #End If
-Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler IN hollabor/" + AnwPfad)
+Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in hollabor/" + AnwPfad)
  Case vbAbort: Call MsgBox("Höre auf"): ProgEnde
  Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
  Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
@@ -5721,7 +5754,7 @@ End Select
 End Function ' hollabor
 
 Public Function testlab(pid&)
- Dim rs As New Adodb.Recordset
+ Dim rs As New ADODB.Recordset
  Lese.ProgStart
 ' DBCn.Execute ("SET @patid=" & pid)
 ' myfrag rs, "SELECT * FROM geslab"
@@ -5736,7 +5769,7 @@ End Function ' testlab(pid&)
 Public Function testhl()
 ' für HAAkt z.B. geht das nicht, da es kein Lese enthält
 ' Call Lese.ProgStart
- Dim rs As Adodb.Recordset
+ Dim rs As ADODB.Recordset
  Set rs = hollabor(14, "")
 ' für HAAkt z.B. geht das nicht, da es kein Lese enthält
 ' TabAusgeb rs, Lese, True, , , , , , "Labor 14"

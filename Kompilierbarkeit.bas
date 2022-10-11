@@ -1,8 +1,8 @@
 Attribute VB_Name = "Kompilierbarkeit"
 ' aus Importiere
-Function doFAnfFuell(raFa As Adodb.Recordset, Optional obgroß%)
+Function doFAnfFuell(raFa As ADODB.Recordset, Optional obgroß%)
  Dim lpid&, aktpid&, Bm$, lAusgst As Date
- Dim raSQL As New Adodb.Recordset
+ Dim raSQL As New ADODB.Recordset
  On Error GoTo fehler
 '   raFa.Edit
    If obgroß Then
@@ -27,7 +27,8 @@ Function doFAnfFuell(raFa As Adodb.Recordset, Optional obgroß%)
      sql = sql + "ORDER BY zeitpunkt"
 '     SET raSQL = Dtb.OpenRecordset(sql)
      Set raSQL = Nothing
-     raSQL.Open sql, DBCn, adOpenDynamic, adLockReadOnly
+'     raSQL.Open sql, DBCn, adOpenDynamic, adLockReadOnly
+     myFrag raSQL, sql
      If Not raSQL.BOF Then
       If raSQL!Zeitpunkt > raFa!lVorl And Not IsNull(raFa!lVorl) And raFa!lVorl <> CDate(0) Then
        raFa!Fanf = raFa!lVorl
@@ -57,17 +58,19 @@ fehler:
 #Else
  AnwPfad = App.path
 #End If
-Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler IN doFAnfFuell/" + AnwPfad)
+Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in doFAnfFuell/" + AnwPfad)
  Case vbAbort: Call MsgBox("Höre auf"): ProgEnde
  Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
  Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
 End Select
 End Function ' doFAnfFuell
+
 Function FAnfFuell(Optional obgroß%) ' Fallanfangsfeld befüllen
- Dim raFa As New Adodb.Recordset
+ Dim raFa As New ADODB.Recordset
  On Error GoTo fehler
 ' Call dtbInit
- Call raFa.Open("faelle", DBCn, adOpenDynamic, adLockOptimistic)
+' Call raFa.Open("faelle", DBCn, adOpenDynamic, adLockOptimistic)
+ myFrag raFa, "SELECT * FROM faelle"
  If Not raFa.BOF Then
   raFa.MoveLast
   Do While Not raFa.BOF
@@ -83,7 +86,7 @@ fehler:
 #Else
  AnwPfad = App.path
 #End If
-Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler IN FAnfFuell/" + AnwPfad)
+Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in FAnfFuell/" + AnwPfad)
  Case vbAbort: Call MsgBox("Höre auf"): ProgEnde
  Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
  Case vbIgnore: Call MsgBox("Setze fort"): Resume Next

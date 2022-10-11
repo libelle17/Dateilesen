@@ -208,24 +208,24 @@ End Sub ' Austauschen_Click
 
 Private Sub C1_Click(Index As Integer)
  Me.Tabelle = LCase(REPLACE$(Me.C1(Index).Caption, "&", ""))
-End Sub
+End Sub ' C1_Click
 
 Private Sub CsQ_Click()
  Me.CnQ = F0.dbv.Auswahl("", "anamnesebogen", "Kopierquelle")
  If Me.CnQ <> "" Then Me.CsQ.Caption = F0.dbv.Constr
  zeigtabellen
-End Sub
+End Sub ' CsQ_Click
 
 Private Sub CsZ_Click()
  cnz = F0.dbv.Auswahl("", "anamnesebogen", "Kopierziel")
  If cnz <> "" Then Me.CsZ.Caption = F0.dbv.Constr
  Call TZahl(nurZiel:=True)
-End Sub
+End Sub ' CsZ_Click
 
 Private Sub Form_Activate()
  
 ' Call TZahl
-End Sub
+End Sub ' Form_Activate
 
 Private Sub Form_Load()
  CnQ = F0.dbv.cnVorb("", "anamnesebogen", "Kopierquelle")
@@ -234,7 +234,8 @@ Private Sub Form_Load()
  cnz = F0.dbv.cnVorb("", "anamnesebogen", "Kopierziel")
  If cnz <> "" Then Me.CsZ.Caption = F0.dbv.Constr
 ' Call TZahl
-End Sub
+End Sub ' Form_Load()
+
 Private Sub Form_KeyDown(KeyCode As Integer, Shift As Integer)
  On Error GoTo fehler
  Select Case KeyCode
@@ -249,14 +250,14 @@ Private Sub Form_KeyDown(KeyCode As Integer, Shift As Integer)
  End Select
  Exit Sub
 fehler:
- Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description + vbCrLf + "Fehlerposition: " + CStr(FPos), vbAbortRetryIgnore, "Aufgefangener Fehler IN Form_KeyDown/" + App.path)
+ Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description + vbCrLf + "Fehlerposition: " + CStr(FPos), vbAbortRetryIgnore, "Aufgefangener Fehler in Form_KeyDown/" + App.path)
   Case vbAbort: Call MsgBox("Höre auf"): ProgEnde
   Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
   Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
  End Select
 End Sub
 Sub zeigtabellen()
- Dim rs1 As New Adodb.Recordset, rCn As New Adodb.Connection
+ Dim rs1 As New ADODB.Recordset, rCn As New ADODB.Connection
  Dim i%, obMySQL%, altDaBa$
  Screen.MousePointer = vbHourglass
  On Error GoTo fehler
@@ -291,7 +292,7 @@ Sub zeigtabellen()
  Screen.MousePointer = vbNormal
  Exit Sub
 fehler:
-Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description + vbCrLf + "Fehlerposition: " + CStr(FPos), vbAbortRetryIgnore, "Aufgefangener Fehler IN Verbind/" + App.path)
+Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description + vbCrLf + "Fehlerposition: " + CStr(FPos), vbAbortRetryIgnore, "Aufgefangener Fehler in Verbind/" + App.path)
   Case vbAbort: Call MsgBox("Höre auf"): ProgEnde
   Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
   Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
@@ -303,8 +304,8 @@ Private Sub Form_Unload(Cancel As Integer)
 End Sub
 
 Private Sub Start_Click()
- Dim rQCn As New Adodb.Connection, rZCn As New Adodb.Connection, erg, CurCat$, Frage$
- Dim rsq As New Adodb.Recordset, InS$, AuiFd$, FListe$, rAF&
+ Dim rQCn As New ADODB.Connection, rZCn As New ADODB.Connection, erg, CurCat$, Frage$
+ Dim rsq As New ADODB.Recordset, InS$, AuiFd$, FListe$, rAF&
  On Error GoTo fehler
  rQCn.Open CnQ
  rZCn.Open cnz
@@ -354,7 +355,7 @@ fehler:
 #Else
  AnwPfad = App.path
 #End If
-Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description + vbCrLf + "Fehlerposition: " & CStr(FPos), vbAbortRetryIgnore, "Aufgefangener Fehler IN Start_Click/" & AnwPfad)
+Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description + vbCrLf + "Fehlerposition: " & CStr(FPos), vbAbortRetryIgnore, "Aufgefangener Fehler in Start_Click/" & AnwPfad)
  Case vbAbort: Call MsgBox("Höre auf"): ProgEnde
  Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
  Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
@@ -373,7 +374,7 @@ Private Sub Tabelle_Change()
 End Sub
 
 Private Function TZahl%(Optional nurZiel%)
- Dim rs As New Adodb.Recordset, i%, j%
+ Dim rs As New ADODB.Recordset, i%, j%
  TZahl = True
  If nurZiel = 0 Then ZQ = vNS
  ZZ = vNS
@@ -388,7 +389,8 @@ Private Function TZahl%(Optional nurZiel%)
    ZQ = rs!ct
    LVobMySQL = (InStrB(LCase(CnQ), "mysql") > 0)
    Set rs = Nothing
-   rs.Open "SELECT " & IIf(LVobMySQL, vNS, "top 20") & " * FROM `" & LCase(Me.Tabelle) & "` " & IIf(LVobMySQL, " LIMIT 20", ""), CnQ, adOpenDynamic, adLockReadOnly
+'   rs.Open "SELECT " & IIf(LVobMySQL, vNS, "top 20") & " * FROM `" & LCase(Me.Tabelle) & "` " & IIf(LVobMySQL, " LIMIT 20", ""), CnQ, adOpenDynamic, adLockReadOnly
+   myFrag rs, "SELECT " & IIf(LVobMySQL, vNS, "top 20") & " * FROM `" & LCase(Me.Tabelle) & "` " & IIf(LVobMySQL, " LIMIT 20", ""), adOpenDynamic, CnQ
    With Me.MSHFlexGrid1
    .Clear
    .Cols = rs.Fields.COUNT
@@ -421,7 +423,8 @@ Private Function TZahl%(Optional nurZiel%)
    ZZ = rs!ct
    LVobMySQL = (InStrB(LCase(cnz), "mysql") > 0)
    Set rs = Nothing
-   rs.Open "SELECT " & IIf(LVobMySQL, vNS, "top 20") & " * FROM `" & LCase(Me.Tabelle) & "` " & IIf(LVobMySQL, " LIMIT 20", ""), cnz, adOpenDynamic, adLockReadOnly
+'   rs.Open "SELECT " & IIf(LVobMySQL, vNS, "top 20") & " * FROM `" & LCase(Me.Tabelle) & "` " & IIf(LVobMySQL, " LIMIT 20", ""), cnz, adOpenDynamic, adLockReadOnly
+   myFrag rs, "SELECT " & IIf(LVobMySQL, vNS, "top 20") & " * FROM `" & LCase(Me.Tabelle) & "` " & IIf(LVobMySQL, " LIMIT 20", ""), adOpenDynamic, cnz
    With Me.MSHFlexGrid2
    .Clear
    .Cols = rs.Fields.COUNT
@@ -449,7 +452,7 @@ fehler:
 #Else
  AnwPfad = App.path
 #End If
-Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description + vbCrLf + "Fehlerposition: " & CStr(FPos), vbAbortRetryIgnore, "Aufgefangener Fehler IN GetAutoFeld/" & AnwPfad)
+Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description + vbCrLf + "Fehlerposition: " & CStr(FPos), vbAbortRetryIgnore, "Aufgefangener Fehler in GetAutoFeld/" & AnwPfad)
  Case vbAbort: Call MsgBox("Höre auf"): ProgEnde
  Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
  Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
@@ -464,12 +467,14 @@ Private Sub Tabelle_Click()
    nichtTZahl = False
   End If
  End If
-End Sub
-Public Function GetAutoFeld$(ZCn As Adodb.Connection, ZCnS$, TabN$, rsq, FListe$, ByRef Felder$()) ' ob Primärschlüssel
+End Sub ' Tabelle_Click
+
+Public Function GetAutoFeld$(ZCn As ADODB.Connection, ZCnS$, TabN$, rsq, FListe$, ByRef Felder$()) ' ob Primärschlüssel
 ' s. http://support.microsoft.com/kb/q195910/
 ' by mysql ggf. mit lcase(tabn) aufrufen
-   Dim rs As New Adodb.Recordset, i%
-   Call rs.Open("SELECT " & IIf(InStr(ZCnS, "Jet.OLEDB") > 0, "top 1", "") & " * FROM `" & TabN & "`" & IIf(LVobMySQL, " LIMIT 1", ""), ZCn, adOpenDynamic, adLockReadOnly)
+   Dim rs As New ADODB.Recordset, i%
+'   Call rs.Open("SELECT " & IIf(InStr(ZCnS, "Jet.OLEDB") > 0, "top 1", "") & " * FROM `" & TabN & "`" & IIf(LVobMySQL, " LIMIT 1", ""), ZCn, adOpenDynamic, adLockReadOnly)
+   myFrag rs, "SELECT " & IIf(InStr(ZCnS, "Jet.OLEDB") > 0, "top 1", "") & " * FROM `" & TabN & "`" & IIf(LVobMySQL, " LIMIT 1", ""), adOpenDynamic, ZCn
    ReDim Felder(rs.Fields.COUNT - 1)
    FListe = "("
    For i = 0 To rs.Fields.COUNT - 1
@@ -500,7 +505,7 @@ Public Function GetAutoFeld$(ZCn As Adodb.Connection, ZCnS$, TabN$, rsq, FListe$
     rs.Move 1
    Next i
    
-   Dim rsc As New Adodb.Recordset
+   Dim rsc As New ADODB.Recordset
 '   SET rSc = ZCn.OpenSchema(adSchemaIndexes, Array(Empty, Empty, Empty, Empty, TabN))
    Set rsc = ZCn.OpenSchema(adSchemaColumns, Array(Empty, Empty, TabN))
    If Err.Number <> 0 Then
@@ -529,15 +534,16 @@ fehler:
 #Else
  AnwPfad = App.path
 #End If
-Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description + vbCrLf + "Fehlerposition: " & CStr(FPos), vbAbortRetryIgnore, "Aufgefangener Fehler IN GetAutoFeld/" & AnwPfad)
+Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description + vbCrLf + "Fehlerposition: " & CStr(FPos), vbAbortRetryIgnore, "Aufgefangener Fehler in GetAutoFeld/" & AnwPfad)
  Case vbAbort: Call MsgBox("Höre auf"): ProgEnde
  Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
  Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
 End Select
-End Function
+End Function ' GetAutoFeld
 #Const turbomed = -1
+
 ' Tabelle kopieren
-Public Function TIns&(ZCn As Adodb.Connection, TabN$, rq, AuiFd$, FListe$, ByRef Felder$(), RsI%, Optional schonAbgehakt) ' AutoIncrementFeld, ob Primärschlüssel
+Public Function TIns&(ZCn As ADODB.Connection, TabN$, rq, AuiFd$, FListe$, ByRef Felder$(), RsI%, Optional schonAbgehakt) ' AutoIncrementFeld, ob Primärschlüssel
 '     Dim rs2 As New ADODB.Recordset
 '     SET rs2 = rCn.OpenSchema(adSchemaColumns, Array(Empty, Empty, lcase(rs1!table_name), Empty))
 '     Do While Not rs2.EOF
@@ -607,7 +613,7 @@ Public Function TIns&(ZCn As Adodb.Connection, TabN$, rq, AuiFd$, FListe$, ByRef
          Case adDate, adFileTime, adDBDate, adDBTime, adDBTimeStamp
 '         Case 7, 64, 133, 134, 135
            Wert = DatFor_k(rq.Fields(Felder(i)).Value)
-           If Wert = "##" Or Wert = "''" Then Err.Raise 999, , "Fehler IN TIns mit Wert = ""##"" OR wert = ""''"" IN Datumsfeld"
+           If Wert = "##" Or Wert = "''" Then Err.Raise 999, , "Fehler in TIns mit Wert = ""##"" OR wert = ""''"" IN Datumsfeld"
          Case adBSTR, adChar, adWChar, adVarChar, adLongVarChar, adVarWChar, adLongVarWChar, adEmpty, _
               adIDispatch, adVariant, adIUnknown, adGUID, adBinary, adUserDefined, adPropVariant, _
               adVarBinary, adLongVarBinary, adError, adArray
@@ -621,7 +627,7 @@ Public Function TIns&(ZCn As Adodb.Connection, TabN$, rq, AuiFd$, FListe$, ByRef
            Wert = "'" & Wert & "'"
 '           IF InStrB(Wert, "??") <> 0 THEN Stop
          Case Else
-           Err.Raise 999, , "Fehler IN TIns: Falsche Zahl an Datensätzen aktualisiert: " & TIns
+           Err.Raise 999, , "Fehler in TIns: Falsche Zahl an Datensätzen aktualisiert: " & TIns
        End Select
        sql2 = sql2 & Wert & ","
      End Select
@@ -634,7 +640,7 @@ Public Function TIns&(ZCn As Adodb.Connection, TabN$, rq, AuiFd$, FListe$, ByRef
    Dim rAF&
 '   zcn.CursorLocation = adUseClient
    Call ZCn.Execute(sql2, rAF)
-   If rAF = 0 Or (rAF <> 1 And rAF < 100 And RsI = 0) Then Err.Raise 999, , "Fehler IN TIns: Falsche Zahl an Datensätzen aktualisiert: " & rAF
+   If rAF = 0 Or (rAF <> 1 And rAF < 100 And RsI = 0) Then Err.Raise 999, , "Fehler in TIns: Falsche Zahl an Datensätzen aktualisiert: " & rAF
    If rAF <> 1 Then TIns = 1
    Exit Function
 fehler:
@@ -648,7 +654,7 @@ fehler:
 #Else
  AnwPfad = App.path
 #End If
-Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description + vbCrLf + "Fehlerposition: " & CStr(FPos), vbAbortRetryIgnore, "Aufgefangener Fehler IN TIns/" & AnwPfad)
+Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description + vbCrLf + "Fehlerposition: " & CStr(FPos), vbAbortRetryIgnore, "Aufgefangener Fehler in TIns/" & AnwPfad)
  Case vbAbort: Call MsgBox("Höre auf"): ProgEnde
  Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
  Case vbIgnore: Call MsgBox("Setze fort"): Resume Next

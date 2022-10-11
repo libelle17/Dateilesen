@@ -123,7 +123,7 @@ fehler:
 #Else
  AnwPfad = App.path
 #End If
-Select Case MsgBox("FNr: " & FNr & ", ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler IN datFormZ/" + AnwPfad)
+Select Case MsgBox("FNr: " & FNr & ", ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in datFormZ/" + AnwPfad)
  Case vbAbort: Call MsgBox("Höre auf"): ProgEnde
  Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
  Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
@@ -133,12 +133,12 @@ End Function ' datFormZ
 ' in Hausärzte_aus_Listenausgabe_Ueberweiser_einlesen_Click
 Public Sub doHAAkt(frm As Lese)
  Dim aktDatei$, HAStr$
- Dim XCon As New Adodb.Connection
- Dim rEx As New Adodb.Recordset
+ Dim XCon As New ADODB.Connection
+ Dim rEx As New ADODB.Recordset
  Dim rX As New ADOX.Catalog
- Dim rV1 As New Adodb.Recordset
- Dim rV2 As New Adodb.Recordset
- Dim rs As New Adodb.Recordset
+ Dim rV1 As New ADODB.Recordset
+ Dim rV2 As New ADODB.Recordset
+ Dim rs As New ADODB.Recordset
  Dim rAF&, obüberhaupt%
  Dim ausg$, lauf&
  Dim F0 As File, f1 As File
@@ -175,8 +175,8 @@ Dim dbknr As ConDtb
 #Const vordef = False
 #If Not vordef Then
 ' Provider=MSDASQL.1;Extended Properties="DATABASE=kvaerzte;DRIVER={MySQL ODBC 5.1 Driver};OPTION=3;PWD=***REMOVED***;PORT=0;SERVER=linux1;UID=praxis"
- Dim QCn() As Adodb.Connection
- Dim HCn() As Adodb.Connection
+ Dim QCn() As ADODB.Connection
+ Dim HCn() As ADODB.Connection
  Dim QCns$()
  Dim HCns$()
  Dim ccol As New Collection, Cpt, KVÄDB$
@@ -199,8 +199,8 @@ Dim dbknr As ConDtb
 gefunden:
   For Each Cpt In ccol
    If Cpt = "LINUX1" Then
-   Dim MyCn As Adodb.Connection, MyCn2 As New Adodb.Connection, rdb As Adodb.Recordset, rHa As New Adodb.Recordset
-   Set MyCn = New Adodb.Connection
+   Dim MyCn As ADODB.Connection, MyCn2 As New ADODB.Connection, rdb As ADODB.Recordset, rHa As New ADODB.Recordset
+   Set MyCn = New ADODB.Connection
    On Error Resume Next
    Err.Clear
    Dim Port&
@@ -209,7 +209,7 @@ gefunden:
     Dim CnStr$
     CnStr = "Provider=MSDASQL.1;Extended Properties=DRIVER={" & ODBCStr() & "};OPTION=3;PWD=***REMOVED***;PORT=" & Port & ";SERVER=" & Cpt & ";UID=praxis;"
     Set MyCn = Nothing
-    Set MyCn = New Adodb.Connection
+    Set MyCn = New ADODB.Connection
     MyCn.Open CnStr
     If Err.Number <> 0 Then
      Debug.Print "Fehler beim Öffnen der Verbindung: " & CnStr & " " & Err.Description
@@ -217,7 +217,7 @@ gefunden:
      Err.Clear
      CnStr = "DRIVER={" & ODBCStr() & "};server=" & Cpt & ";option=0;uid=praxis;pwd=***REMOVED***;"
      Set MyCn = Nothing
-     Set MyCn = New Adodb.Connection
+     Set MyCn = New ADODB.Connection
      MyCn.Open CnStr
     End If
     If Err.Number = 0 Then
@@ -286,8 +286,8 @@ gefunden:
         If Not rHa.BOF Then
          Do While Not rHa.EOF
           obüberhaupt = True
-          Set QCn(UBound(QCn)) = New Adodb.Connection
-          Set HCn(UBound(HCn)) = New Adodb.Connection
+          Set QCn(UBound(QCn)) = New ADODB.Connection
+          Set HCn(UBound(HCn)) = New ADODB.Connection
           QCns(UBound(QCns)) = Left$(CnStr, Len(CnStr) - 1) & ";DATABASE=" & fld & ";"""
           HCns(UBound(HCns)) = KVÄDB
           QCn(UBound(QCn)).ConnectionString = QCns(UBound(QCns))
@@ -366,8 +366,8 @@ gefunden:
    End If ' HCn(UBound(HCn)) Is Nothing Then
   End If ' QCn(UBound(QCn)) Is Nothing Then
 #Else
- Dim QCn(accDtb To q2Dtb) As Adodb.Connection
- Dim HCn(accDtb To q2Dtb) As Adodb.Connection
+ Dim QCn(accDtb To q2Dtb) As ADODB.Connection
+ Dim HCn(accDtb To q2Dtb) As ADODB.Connection
  Dim QCns$(accDtb To q2Dtb)
  Dim HCns$(accDtb To q2Dtb)
  If FSO.FileExists(aktDatei) Then
@@ -419,7 +419,7 @@ gefunden:
   
  Dim i%, v1sql$(5), pos%, posv%, rF0$, rF1$, ursp$
  Dim sqlakt$, f7$, f8$
- Dim HaeCon As New Adodb.Connection, rhae As New Adodb.Recordset
+ Dim HaeCon As New ADODB.Connection, rhae As New ADODB.Recordset
  Dim KVNr$, DBNr$, BStelle$, anrede$, tel1$, tel2$, tel3$, tel4$, fax1$, fax2$, fax3$, email$, zulg$, arzttyp$, gemmit$, beme$, dmpt2%, dmpt1%, geschlecht$, Titel$
  HaeCon.Open "Provider=MSDASQL.1;Extended Properties=""DATABASE=haerzte;DRIVER={" & ODBCStr() & "};OPTION=0;PWD=***REMOVED***;PORT=0;SERVER=linux1;UID=praxis"""
  
@@ -651,12 +651,14 @@ For dbknr = LBound(QCn) To UBound(QCn)
  LVobMySQL = True ' 11.10.15
  Call Zinit(LVobMySQL)
  Set rV1 = Nothing
- rV1.Open "SELECT name,vorname, MAX(strasse) strasse, MAX(plz) plz, MAX(ort) ort, MAX(telefon) telefon, MAX(fax) fax, MAX(email) email FROM `" & LIUET & "` GROUP BY name, vorname", QCn(dbknr), adOpenDynamic, adLockReadOnly
+' rV1.Open "SELECT name,vorname, MAX(strasse) strasse, MAX(plz) plz, MAX(ort) ort, MAX(telefon) telefon, MAX(fax) fax, MAX(email) email FROM `" & LIUET & "` GROUP BY name, vorname", QCn(dbknr), adOpenDynamic, adLockReadOnly
+ myFrag rV1, "SELECT name,vorname, MAX(strasse) strasse, MAX(plz) plz, MAX(ort) ort, MAX(telefon) telefon, MAX(fax) fax, MAX(email) email FROM `" & LIUET & "` GROUP BY name, vorname", adOpenDynamic, QCn(dbknr)
  Do While Not rV1.EOF
   Set rV2 = Nothing
 '  If rV1!Name = "Basin" Then Stop
   On Error Resume Next
-  rV2.Open "SELECT * FROM `hausaerzte` WHERE nachname = '" & rV1!name & "' AND vorname = '" & rV1!Vorname & "'", QCn(dbknr), adOpenDynamic, adLockOptimistic
+'  rV2.Open "SELECT * FROM `hausaerzte` WHERE nachname = '" & rV1!name & "' AND vorname = '" & rV1!Vorname & "'", QCn(dbknr), adOpenDynamic, adLockOptimistic
+  myFrag rV2, "SELECT * FROM `hausaerzte` WHERE nachname = '" & rV1!name & "' AND vorname = '" & rV1!Vorname & "'", adOpenDynamic, QCn(dbknr)
   On Error GoTo fehler
   If rV2.State <> 0 Then
    If Not rV2.EOF Then
@@ -761,7 +763,7 @@ If Err.Number = -2147467259 And lauf < 200 Then
  Sleep 1000
  Resume
 End If
-Select Case MsgBox("FNr: " + CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler IN main/" + AnwPfad)
+Select Case MsgBox("FNr: " + CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in main/" + AnwPfad)
  Case vbAbort: Call MsgBox("Höre auf"): End
  Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
  Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
@@ -801,7 +803,7 @@ End Function ' hausaerztekomprimier()
 '  Exit Sub
 'fehler:
 '  ' vermutlich ist kein WMI installiert
-' SELECT Case MsgBox("FNr: " & FNr & ", ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(ISNULL(Err.source), vbNullString, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description + vbCrLf + "Fehlerposition: " + CStr(fpos), vbAbortRetryIGNORE, "Aufgefangener Fehler IN ShowAllDomains/" + App.Path)
+' SELECT Case MsgBox("FNr: " & FNr & ", ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(ISNULL(Err.source), vbNullString, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description + vbCrLf + "Fehlerposition: " + CStr(fpos), vbAbortRetryIGNORE, "Aufgefangener Fehler in ShowAllDomains/" + App.Path)
 '  Case vbAbort: Call MsgBox("Höre auf"): End
 '  Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
 '  Case vbIGNORE: Call MsgBox("Setze fort"): Resume Next
@@ -824,7 +826,7 @@ End Function ' hausaerztekomprimier()
 '
 'fehler:
 '  ' vermutlich ist kein WMI installiert
-' SELECT Case MsgBox("FNr: " & FNr & ", ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(ISNULL(Err.source), vbNullString, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description + vbCrLf + "Fehlerposition: " + CStr(fpos), vbAbortRetryIGNORE, "Aufgefangener Fehler IN ShowAllComputers/" + App.Path)
+' SELECT Case MsgBox("FNr: " & FNr & ", ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(ISNULL(Err.source), vbNullString, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description + vbCrLf + "Fehlerposition: " + CStr(fpos), vbAbortRetryIGNORE, "Aufgefangener Fehler in ShowAllComputers/" + App.Path)
 '  Case vbAbort: Call MsgBox("Höre auf"): End
 '  Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
 '  Case vbIGNORE: Call MsgBox("Setze fort"): Resume Next
@@ -841,7 +843,7 @@ End Function ' hausaerztekomprimier()
 ' End Function
 
 Function testgetalldb()
- Dim acn() As Adodb.Connection
+ Dim acn() As ADODB.Connection
  Set fI = New FürIcon
  Set fI.dbv = New DBVerb
  Call fI.dbv.getAllDB("anamnesebogen", acn(), , , True)

@@ -24,7 +24,7 @@ Public Function LaborDirektImport(frm As Lese, absPos&, SammelInsert%, BezfSpei%
  Const debugohneSpeichern% = False
 ' Const neuVerz$ = pverz & "Biowin\Backup\neu\"
  Const ZS As Boolean = True
- Dim rs As New Adodb.Recordset, rs1 As New Adodb.Recordset
+ Dim rs As New ADODB.Recordset, rs1 As New ADODB.Recordset
  Dim repl$
  Dim fI As Files, fld As Folder, f1 As File, neuPfad$, keimz%
  Dim RefNr&
@@ -309,7 +309,8 @@ On Error GoTo fehler
 '           bmLocker = vns
 '           BmoL = vns
            If rs.State = 1 Then rs.Close
-           rs.Open "SELECT * FROM `anamnesebogen` WHERE gebdat = " & DatFor_k(rLuGebDat), DBCn, adOpenDynamic, adLockReadOnly
+'           rs.Open "SELECT * FROM `anamnesebogen` WHERE gebdat = " & DatFor_k(rLuGebDat), DBCn, adOpenDynamic, adLockReadOnly
+           myFrag rs, "SELECT * FROM `anamnesebogen` WHERE gebdat = " & DatFor_k(rLuGebDat)
            If Not rs.BOF Then
             Do
              glZoL = glZoL + 1
@@ -672,7 +673,7 @@ If InStrB(Err.Description, "Transaction level 'READ-COMMITTED'") <> 0 Then
  DBCn.Execute "SET SESSION TRANSACTION ISOLATION LEVEL REPEATABLE READ", rAF
  Resume
 End If
-Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler IN LaborDirektImport/" + AnwPfad)
+Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in LaborDirektImport/" + AnwPfad)
  Case vbAbort: Call MsgBox("Höre auf"): ProgEnde
  Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
  Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
@@ -680,14 +681,14 @@ End Select
 End Function ' LaborDirektImport
 Function LaborErgPatId(lies As Lese, Optional mitLöschen%, Optional nurRef&)
 ' Pat_IDs ergänzen
- Dim rs As New Adodb.Recordset, rs1 As New Adodb.Recordset
+ Dim rs As New ADODB.Recordset, rs1 As New ADODB.Recordset
  Const debugbit% = 0 ' liefert Analyse der Vorgänge IN uverz & "anamnese\debug.txt", spart sich dafür Datenbankänderungen
  Dim altRefnr&, i&, sqlct$
  Dim j&
  Dim sPI As SortierPat_ID
  Dim SL As New SortierListe
 ' Dim rLX AS DAO.Recordset, rLN AS DAO.Recordset, rs AS DAO.Recordset
- Dim rLX As New Adodb.Recordset, rLN As New Adodb.Recordset
+ Dim rLX As New ADODB.Recordset, rLN As New ADODB.Recordset
  Dim rLNZeitpunkt#, ZdüP%, LWerte$, GesAbk$, rAF&, laborneuAfn&, sql$, sql1$
  Dim obNeuerPat% ' Datensatz IN rLX eintragen und mit SL neu anfangen
  Dim aktDS&, VergleichTot%
@@ -745,7 +746,8 @@ nochmal:
  If debugbit Then Open lies.snst.DebugDatei For Output As #300
 ' SET rLX = DBCn.Execute(lcase(sql))
  obNeuerPat = -1 ' SL neu befüllen
- rLX.Open LCase(sql), DBCn, adOpenDynamic, adLockOptimistic
+' rLX.Open LCase(sql), DBCn, adOpenDynamic, adLockOptimistic
+ myFrag rLX, LCase$(sql)
  Do While Not rLX.EOF
   If debugbit Then
    Print #300, vbCrLf & "Überprüft wird der rLX-Datensatz:"
@@ -769,7 +771,8 @@ nochmal:
     
     Dim debugzl&
     sql = "SELECT * FROM (SELECT DISTINCT pat_id, abkü, wert, zeitpunkt, ABS(" & sqltodays & "(zeitpunkt)-" & sqltodays & "(" & DatFor_k(rLX!Eingang) & ")) AS abstand FROM `laborneu` WHERE abkü = '" & rLX!Abkü & "' AND wert = '" & rLX!Wert & "') AS innen ORDER BY abstand"
-    rLN.Open sql, DBCn, adOpenDynamic, adLockOptimistic
+'    rLN.Open sql, DBCn, adOpenDynamic, adLockOptimistic
+    myFrag rLN, sql
     If debugbit Then
      debugzl = 0
      Print #300, "Dazu wurden IN `laborneu` gefunden:"
@@ -943,7 +946,7 @@ fehler:
 #Else
  AnwPfad = App.path
 #End If
-Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler IN LaborErgPatID/" + AnwPfad)
+Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in LaborErgPatID/" + AnwPfad)
  Case vbAbort: Call MsgBox("Höre auf"): ProgEnde
  Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
  Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
@@ -953,7 +956,7 @@ End Function ' LaborErgPatID
 
 Function LöschRefNr(Optional RefNr&)
  Dim rAF&
- Dim rs As Adodb.Recordset
+ Dim rs As ADODB.Recordset
  If RefNr = 0 Then
   Set rs = DBCn.Execute("UPDATE `laborneu` SET refnr = null WHERE NOT ISNULL(refnr)", rAF)
  Else
@@ -967,7 +970,7 @@ fehler:
 #Else
  AnwPfad = App.path
 #End If
-Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler IN LöschRefNr/" + AnwPfad)
+Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in LöschRefNr/" + AnwPfad)
  Case vbAbort: Call MsgBox("Höre auf"): ProgEnde
  Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
  Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
@@ -987,7 +990,7 @@ fehler:
 #Else
  AnwPfad = App.path
 #End If
-Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler IN RBDTtoDate/" + AnwPfad)
+Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in RBDTtoDate/" + AnwPfad)
  Case vbAbort: Call MsgBox("Höre auf"): ProgEnde
  Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
  Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
@@ -1013,7 +1016,7 @@ fehler:
 #Else
  AnwPfad = App.path
 #End If
-Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler IN BDTtoDate/" + AnwPfad)
+Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in BDTtoDate/" + AnwPfad)
  Case vbAbort: Call MsgBox("Höre auf"): ProgEnde
  Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
  Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
@@ -1031,24 +1034,24 @@ Function BDTtoTime(DaT) As Date ' für BDT-Format
  End If
  Exit Function
 fehler:
-Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler IN BDTtoTime/" + App.path)
+Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in BDTtoTime/" + App.path)
  Case vbAbort: Call MsgBox("Höre auf"): ProgEnde
  Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
  Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
 End Select
 End Function ' BDTtoTime
 
-Function indIns&(cn As Adodb.Connection, CNs$, Tb$, fld$, Wert$, idFld$)
- Dim rs As New Adodb.Recordset, rAF&
+Function indIns&(Cn As ADODB.Connection, CNs$, Tb$, fld$, Wert$, idFld$)
+ Dim rs As New ADODB.Recordset, rAF&
  Dim varlen&, pos&
  Dim STyp$
  On Error GoTo fehler
  Dim sql$
  sql = "SELECT * FROM `" & Tb & "` WHERE `" & fld & "` = '" & doUmwfSQL(Wert, LVobMySQL) & "'"
- rs.Open sql, cn, adOpenStatic, adLockReadOnly
+ rs.Open sql, Cn, adOpenStatic, adLockReadOnly
  If rs.BOF Then
   Set rs = Nothing
-  rs.Open "SELECT data_type dt, character_maximum_length cml FROM information_schema.`COLUMNS` C WHERE table_schema = '" & HADBName & "' AND table_name = '" & Tb & "' AND column_name = '" & fld & "'", cn
+  rs.Open "SELECT data_type dt, character_maximum_length cml FROM information_schema.`COLUMNS` C WHERE table_schema = '" & HADBName & "' AND table_name = '" & Tb & "' AND column_name = '" & fld & "'", Cn
 '  rs.Open "SHOW FULL COLUMNS FROM `" & Tb & "` WHERE field = '" & fld & "'", cn
   If Not rs.BOF Then
    STyp = rs!DT
@@ -1060,15 +1063,15 @@ Function indIns&(cn As Adodb.Connection, CNs$, Tb$, fld$, Wert$, idFld$)
     If varlen < Len(Wert) Then
      If Len(Wert) > 767 Then
 ' hier müßte noch der Index verkürzt werden
-      cn.Execute "ALTER TABLE `" & Tb & "` modify `" & fld & "` varchar(" & Len(Wert) & ")"
+      Cn.Execute "ALTER TABLE `" & Tb & "` modify `" & fld & "` varchar(" & Len(Wert) & ")"
      Else
-      cn.Execute "ALTER TABLE `" & Tb & "` modify `" & fld & "` varchar(" & Len(Wert) & ")"
+      Cn.Execute "ALTER TABLE `" & Tb & "` modify `" & fld & "` varchar(" & Len(Wert) & ")"
      End If
     End If
    End If
   End If
-  InsKorr cn, CNs, "INSERT INTO `" & Tb & "`(`" & fld & "`) VALUES('" & doUmwfSQL(Wert, LVobMySQL) & "')", rAF
-  Set rs = cn.Execute("SELECT last_insert_id()")
+  InsKorr Cn, CNs, "INSERT INTO `" & Tb & "`(`" & fld & "`) VALUES('" & doUmwfSQL(Wert, LVobMySQL) & "')", rAF
+  Set rs = Cn.Execute("SELECT last_insert_id()")
   indIns = rs.Fields(0)
  Else
   indIns = rs.Fields(idFld)
@@ -1081,7 +1084,7 @@ fehler:
 #Else
  AnwPfad = App.path
 #End If
-Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler IN indIns/" + AnwPfad)
+Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in indIns/" + AnwPfad)
  Case vbAbort: Call MsgBox("Höre auf"): ProgEnde
  Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
  Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
@@ -1108,9 +1111,9 @@ Function löschBezügeausLaborxus(Optional RefNr&)
 End Function ' löschBezügeausLaborxus
 
 
-Function SpMod%(SpValLen%, TName, rs0 As Adodb.Recordset, Optional SpVal$) ' Spalte modifizieren
+Function SpMod%(SpValLen%, TName, rs0 As ADODB.Recordset, Optional SpVal$) ' Spalte modifizieren
 Dim ZCStr$, keinetrans%, SpName$, maxL%
-Dim rsc As New Adodb.Recordset
+Dim rsc As New ADODB.Recordset
 Dim ausgTxt$, FNr&, FText$
 On Error GoTo fehler
 SpName = rs0!COLUMN_NAME
@@ -1231,7 +1234,7 @@ fehler:
 #Else
  AnwPfad = App.path
 #End If
-Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler IN SpMod/" + AnwPfad)
+Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in SpMod/" + AnwPfad)
  Case vbAbort: Call MsgBox("Höre auf"): ProgEnde
  Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
  Case vbIgnore: Call MsgBox("Setze fort"): Resume Next

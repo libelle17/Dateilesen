@@ -4608,41 +4608,41 @@ Public PidRange$
 Dim DQStr$()
 Dim DQSQL$()
 
-Private Sub adoRS_EndOfRecordset(fMoreData As Boolean, adStatus As Adodb.EventStatusEnum, ByVal pRecordset As Adodb.Recordset)
+Private Sub adoRS_EndOfRecordset(fMoreData As Boolean, adStatus As ADODB.EventStatusEnum, ByVal pRecordset As ADODB.Recordset)
 '
 End Sub
 
-Private Sub adoRS_FetchComplete(ByVal pError As Adodb.Error, adStatus As Adodb.EventStatusEnum, ByVal pRecordset As Adodb.Recordset)
+Private Sub adoRS_FetchComplete(ByVal pError As ADODB.Error, adStatus As ADODB.EventStatusEnum, ByVal pRecordset As ADODB.Recordset)
 '
 End Sub
 
-Private Sub adoRS_FetchProgress(ByVal Progress As Long, ByVal MaxProgress As Long, adStatus As Adodb.EventStatusEnum, ByVal pRecordset As Adodb.Recordset)
+Private Sub adoRS_FetchProgress(ByVal Progress As Long, ByVal MaxProgress As Long, adStatus As ADODB.EventStatusEnum, ByVal pRecordset As ADODB.Recordset)
 '
 End Sub
 
-Private Sub adoRS_FieldChangeComplete(ByVal cFields As Long, ByVal Fields As Variant, ByVal pError As Adodb.Error, adStatus As Adodb.EventStatusEnum, ByVal pRecordset As Adodb.Recordset)
+Private Sub adoRS_FieldChangeComplete(ByVal cFields As Long, ByVal Fields As Variant, ByVal pError As ADODB.Error, adStatus As ADODB.EventStatusEnum, ByVal pRecordset As ADODB.Recordset)
 '
 End Sub ' adoRS_FieldChangeComplete
 
-Private Sub adoRS_MoveComplete(ByVal adReason As Adodb.EventReasonEnum, ByVal pError As Adodb.Error, adStatus As Adodb.EventStatusEnum, ByVal pRecordset As Adodb.Recordset)
+Private Sub adoRS_MoveComplete(ByVal adReason As ADODB.EventReasonEnum, ByVal pError As ADODB.Error, adStatus As ADODB.EventStatusEnum, ByVal pRecordset As ADODB.Recordset)
   'Hierdurch wird die aktuelle Datensatzposition für diese Datensatzgruppe angezeigt
    lblStatus.Caption = CStr(adoRS.AbsolutePosition)
    If Not Me.obStumm Then Call do_Form_Current_AnBog(Me)
 End Sub 'adoRS_MoveComplete
 
-Private Sub adoRS_RecordChangeComplete(ByVal adReason As Adodb.EventReasonEnum, ByVal cRecords As Long, ByVal pError As Adodb.Error, adStatus As Adodb.EventStatusEnum, ByVal pRecordset As Adodb.Recordset)
+Private Sub adoRS_RecordChangeComplete(ByVal adReason As ADODB.EventReasonEnum, ByVal cRecords As Long, ByVal pError As ADODB.Error, adStatus As ADODB.EventStatusEnum, ByVal pRecordset As ADODB.Recordset)
 '
 End Sub ' adoRS_RecordChangeComplete
 
-Private Sub adoRS_RecordsetChangeComplete(ByVal adReason As Adodb.EventReasonEnum, ByVal pError As Adodb.Error, adStatus As Adodb.EventStatusEnum, ByVal pRecordset As Adodb.Recordset)
+Private Sub adoRS_RecordsetChangeComplete(ByVal adReason As ADODB.EventReasonEnum, ByVal pError As ADODB.Error, adStatus As ADODB.EventStatusEnum, ByVal pRecordset As ADODB.Recordset)
 '
 End Sub
 
-Private Sub adoRS_WillChangeField(ByVal cFields As Long, ByVal Fields As Variant, adStatus As Adodb.EventStatusEnum, ByVal pRecordset As Adodb.Recordset)
+Private Sub adoRS_WillChangeField(ByVal cFields As Long, ByVal Fields As Variant, adStatus As ADODB.EventStatusEnum, ByVal pRecordset As ADODB.Recordset)
 '
 End Sub
 
-Private Sub adoRS_WillChangeRecord(ByVal adReason As Adodb.EventReasonEnum, ByVal cRecords As Long, adStatus As Adodb.EventStatusEnum, ByVal pRecordset As Adodb.Recordset)
+Private Sub adoRS_WillChangeRecord(ByVal adReason As ADODB.EventReasonEnum, ByVal cRecords As Long, adStatus As ADODB.EventStatusEnum, ByVal pRecordset As ADODB.Recordset)
   'Hier können Sie Code zur Überprüfung einfügen
   'Dieses Ereignis wird aufgerufen, wenn die folgenden Aktionen eintreten
   Dim bCancel As Boolean
@@ -4662,11 +4662,11 @@ Private Sub adoRS_WillChangeRecord(ByVal adReason As Adodb.EventReasonEnum, ByVa
   If bCancel Then adStatus = adStatusCancel
 End Sub 'adoRS_WillChangeRecord
 
-Private Sub adoRS_WillChangeRecordset(ByVal adReason As Adodb.EventReasonEnum, adStatus As Adodb.EventStatusEnum, ByVal pRecordset As Adodb.Recordset)
+Private Sub adoRS_WillChangeRecordset(ByVal adReason As ADODB.EventReasonEnum, adStatus As ADODB.EventStatusEnum, ByVal pRecordset As ADODB.Recordset)
 '
 End Sub ' adoRS_WillChangeRecordset
 
-Private Sub adoRS_WillMove(ByVal adReason As Adodb.EventReasonEnum, adStatus As Adodb.EventStatusEnum, ByVal pRecordset As Adodb.Recordset)
+Private Sub adoRS_WillMove(ByVal adReason As ADODB.EventReasonEnum, adStatus As ADODB.EventStatusEnum, ByVal pRecordset As ADODB.Recordset)
 '
 End Sub ' adoRS_WillMove
 
@@ -4689,7 +4689,7 @@ fehler:
 #Else
  AnwPfad = App.path
 #End If
- Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler IN cmdAdd_Click/" + AnwPfad)
+ Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in cmdAdd_Click/" + AnwPfad)
   Case vbAbort: Call MsgBox("Höre auf"): ProgEnde
   Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
   Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
@@ -4713,7 +4713,7 @@ fehler:
 #Else
  AnwPfad = App.path
 #End If
- Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler IN cmdDelete_Click/" + AnwPfad)
+ Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in cmdDelete_Click/" + AnwPfad)
   Case vbAbort: Call MsgBox("Höre auf"): ProgEnde
   Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
   Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
@@ -4732,7 +4732,7 @@ fehler:
 #Else
  AnwPfad = App.path
 #End If
- Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler IN cmdRefresh_Click/" + AnwPfad)
+ Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in cmdRefresh_Click/" + AnwPfad)
   Case vbAbort: Call MsgBox("Höre auf"): ProgEnde
   Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
   Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
@@ -4752,7 +4752,7 @@ fehler:
 #Else
  AnwPfad = App.path
 #End If
- Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler IN cmdEdit_Click/" + AnwPfad)
+ Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in cmdEdit_Click/" + AnwPfad)
   Case vbAbort: Call MsgBox("Höre auf"): ProgEnde
   Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
   Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
@@ -4795,7 +4795,7 @@ fehler:
 #Else
  AnwPfad = App.path
 #End If
- Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler IN cmdUpdate_Click/" + AnwPfad)
+ Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in cmdUpdate_Click/" + AnwPfad)
   Case vbAbort: Call MsgBox("Höre auf"): ProgEnde
   Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
   Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
@@ -4814,7 +4814,7 @@ Private Sub cmdFirst_Click()
   mbDataChanged = False
   Exit Sub
 fehler:
- Dim rs As New Adodb.Recordset
+ Dim rs As New ADODB.Recordset
  myFrag rs, "SELECT pat_id, gesname(pat_id) GesName  FROM `anamnesebogen` a WHERE pat_id IN (" & Me.PidRange & ") ORDER BY pat_id DESC"
  Do While rs!Pat_id >= adoRS!Pat_id And Not rs.EOF
    rs.MoveNext
@@ -4829,7 +4829,7 @@ fehler:
 #Else
  AnwPfad = App.path
 #End If
- Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler IN cmdFirst_Click/" + AnwPfad)
+ Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in cmdFirst_Click/" + AnwPfad)
   Case vbAbort: Call MsgBox("Höre auf"): ProgEnde
   Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
   Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
@@ -4844,7 +4844,7 @@ Private Sub cmdLast_Click()
   mbDataChanged = False
   Exit Sub
 fehler:
- Dim rs As New Adodb.Recordset
+ Dim rs As New ADODB.Recordset
  myFrag rs, "SELECT pat_id, GesName(Pat_id) GesName  FROM `anamnesebogen` a WHERE pat_id IN (" & Me.PidRange & ") ORDER BY pat_id DESC"
  Do While rs!Pat_id >= adoRS!Pat_id And Not rs.EOF
    rs.MoveNext
@@ -4859,7 +4859,7 @@ fehler:
 #Else
  AnwPfad = App.path
 #End If
- Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler IN cmdLast_Click/" + AnwPfad)
+ Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in cmdLast_Click/" + AnwPfad)
   Case vbAbort: Call MsgBox("Höre auf"): ProgEnde
   Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
   Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
@@ -4894,7 +4894,7 @@ einzeln:
   mbDataChanged = False
   Exit Sub
 fehler:
- Dim rs As New Adodb.Recordset
+ Dim rs As New ADODB.Recordset
 ' IF Err.Number = -2147217904 AND InStrB(Err.Description, "Parameter") <> 0 THEN
 '  rs.CursorLocation = adUseClient
 '  rs.Open anBogCS, DBCn, adOpenDynamic, adLockOptimistic
@@ -4918,17 +4918,19 @@ fehler:
 #Const SchwammDrüber = False
 #If SchwammDrüber Then
  rs.CursorLocation = adUseClient
- rs.Open anBogCS, DBCn, adOpenDynamic, adLockOptimistic
+' rs.Open anBogCS, DBCn, adOpenDynamic, adLockOptimistic
+ myFrag rs, anBogCS
  Do While rs!Pat_id > adoRS!Pat_id And Not rs.EOF
    rs.MoveNext
  Loop
  Me.obStumm = True
  adoRS.CancelUpdate
  Set adoRS = Nothing
- Set adoRS = New Adodb.Recordset
+ Set adoRS = New ADODB.Recordset
 ' adoRS.Open "SELECT *,IF(größe=0,'',gewicht/größe/größe*if(größe>3,10000,1)) AS bmi, CONCAT(nachname,' ', vorname) AS gesname  FROM `anamnesebogen` WHERE pat_id IN (" & me.PidRange & ") ORDER BY pat_id DESC", DBCn, adOpenDynamic, adLockOptimistic ' adLockReadOnly ' 7.9.09
  frm.adoRS.CursorLocation = adUseClient
- frm.adoRS.Open anBogCS, db, adOpenDynamic, adLockOptimistic
+' frm.adoRS.Open anBogCS, db, adOpenDynamic, adLockOptimistic
+ myFrag frm.adoRS, anBogCS, adOpenDynamic, db
  adoRS.Find "pat_id=" & rs!Pat_id
  ohneänd = False
 ' IF Not rs.EOF THEN
@@ -4942,7 +4944,7 @@ fehler:
 #Else
  AnwPfad = App.path
 #End If
- Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler IN cmdNext_Click/" + AnwPfad)
+ Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in cmdNext_Click/" + AnwPfad)
   Case vbAbort: Call MsgBox("Höre auf"): ProgEnde
   Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
   Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
@@ -4993,7 +4995,7 @@ fehler:
   DBCn.Open DBCnS
   Resume
  End If
- Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler IN cmdPrevious_Click/" + AnwPfad)
+ Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in cmdPrevious_Click/" + AnwPfad)
   Case vbAbort: Call MsgBox("Höre auf"): ProgEnde
   Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
   Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
@@ -5039,7 +5041,7 @@ Private Sub Suchen_Click()
 '   adoRS.MoveFirst
    adoRS.Find " Pat_id = " & Me.suche, 0, adSearchBackward, adBookmarkLast
   ElseIf Me.suche <> "" Then
-   Dim suchrs As New Adodb.Recordset
+   Dim suchrs As New ADODB.Recordset
 '   adoRS.Find "gesname LIKE '" & Me.suche & "*'", 1, adSearchForward
    Set suchrs = Nothing
    Dim namen$()
@@ -5079,7 +5081,7 @@ fehler:
 #Else
  AnwPfad = App.path
 #End If
- Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler IN Suchen_Click/" + AnwPfad)
+ Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in Suchen_Click/" + AnwPfad)
   Case vbAbort: Call MsgBox("Höre auf"): ProgEnde
   Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
   Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
@@ -6293,7 +6295,7 @@ End Sub 'Private Sub Form_Unload()
 'vorherige Werte_Bezeichnungsfeld:       vLab(44)
 
 Private Sub vCheckb_MouseMove(Index As Integer, Button As Integer, Shift As Integer, x As Single, Y As Single)
- Dim rs As New Adodb.Recordset
+ Dim rs As New ADODB.Recordset
  On Error GoTo fehler
  If LVobMySQL Then
   myFrag rs, "SELECT column_comment FROM information_schema.`COLUMNS` WHERE table_name = 'anamnesebogen' AND column_name = '" & Me.vCheckb(Index).DataField & "'"
@@ -6317,7 +6319,7 @@ fehler:
 #Else
  AnwPfad = App.path
 #End If
- Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler IN vCheckb_MouseMove/" + AnwPfad)
+ Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in vCheckb_MouseMove/" + AnwPfad)
   Case vbAbort: Call MsgBox("Höre auf"): ProgEnde
   Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
   Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
@@ -6325,7 +6327,7 @@ fehler:
 End Sub ' vbCheckb_MouseMove
 
 Private Sub vCommandB_MouseMove(Index As Integer, Button As Integer, Shift As Integer, x As Single, Y As Single)
- Dim rs As New Adodb.Recordset
+ Dim rs As New ADODB.Recordset
  On Error GoTo fehler
  If LVobMySQL Then
   myFrag rs, "SELECT column_comment FROM information_schema.`COLUMNS` WHERE table_name = 'anamnesebogen' AND column_name = '" & Me.vCommandB(Index).name & "'"
@@ -6349,7 +6351,7 @@ fehler:
 #Else
  AnwPfad = App.path
 #End If
- Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler IN vCommandB_MouseMove/" + AnwPfad)
+ Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in vCommandB_MouseMove/" + AnwPfad)
   Case vbAbort: Call MsgBox("Höre auf"): ProgEnde
   Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
   Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
@@ -6358,7 +6360,7 @@ End Sub ' vCommandB_MouseMove
 
 
 Private Sub vlab_MouseMove(Index As Integer, Button As Integer, Shift As Integer, x As Single, Y As Single)
- Dim rs As New Adodb.Recordset
+ Dim rs As New ADODB.Recordset
  If LVobMySQL Then
   myFrag rs, "SELECT column_comment FROM information_schema.`COLUMNS` WHERE table_name = 'anamnesebogen' AND column_name = '" & Me.vLab(Index).DataField & "'"
   If Not rs.EOF Then
@@ -6381,7 +6383,7 @@ fehler:
 #Else
  AnwPfad = App.path
 #End If
- Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler IN vLab_MouseMove/" + AnwPfad)
+ Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in vLab_MouseMove/" + AnwPfad)
   Case vbAbort: Call MsgBox("Höre auf"): ProgEnde
   Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
   Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
@@ -6389,7 +6391,7 @@ fehler:
 End Sub ' vlab_MouseMove
 
 Private Sub vOptionB_MouseMove(Index As Integer, Button As Integer, Shift As Integer, x As Single, Y As Single)
- Dim rs As New Adodb.Recordset
+ Dim rs As New ADODB.Recordset
  On Error GoTo fehler
  If LVobMySQL Then
   myFrag rs, "SELECT column_comment FROM information_schema.`COLUMNS` WHERE table_name = 'anamnesebogen' AND column_name = '" & Me.vOptionB(Index).DataField & "'"
@@ -6413,7 +6415,7 @@ fehler:
 #Else
  AnwPfad = App.path
 #End If
- Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler IN vOptionB_MouseMove/" + AnwPfad)
+ Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in vOptionB_MouseMove/" + AnwPfad)
   Case vbAbort: Call MsgBox("Höre auf"): ProgEnde
   Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
   Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
@@ -6421,7 +6423,7 @@ fehler:
 End Sub ' vOptionB_MouseMove
 
 Private Sub vTextB_MouseMove(Index As Integer, Button As Integer, Shift As Integer, x As Single, Y As Single)
- Dim rs As New Adodb.Recordset
+ Dim rs As New ADODB.Recordset
  On Error GoTo fehler
  If LVobMySQL Then
   myFrag rs, "SELECT column_comment FROM information_schema.`COLUMNS` WHERE table_name = 'anamnesebogen' AND column_name = '" & Me.vTextB(Index).DataField & "'"
@@ -6445,7 +6447,7 @@ fehler:
 #Else
  AnwPfad = App.path
 #End If
- Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler IN vTextB_MouseMove/" + AnwPfad)
+ Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in vTextB_MouseMove/" + AnwPfad)
   Case vbAbort: Call MsgBox("Höre auf"): ProgEnde
   Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
   Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
@@ -6466,7 +6468,7 @@ fehler:
 #Else
  AnwPfad = App.path
 #End If
- Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler IN Form_MouseMove/" + AnwPfad)
+ Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in Form_MouseMove/" + AnwPfad)
   Case vbAbort: Call MsgBox("Höre auf"): ProgEnde
   Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
   Case vbIgnore: Call MsgBox("Setze fort"): Resume Next

@@ -284,7 +284,7 @@ Public geladen%
 Public briefneu%
 
 Private Sub Angeforderte_Click(Index As Integer)
- Dim rs As New Adodb.Recordset
+ Dim rs As New ADODB.Recordset
  Dim arztbed$
 ' SELECT CASE Index
 '  Case 0: arztbed = "(e.art IN ('tk','ARCHIE2','APK') OR e.inhalt LIKE '%(tk)%')"
@@ -415,7 +415,7 @@ Private Sub PatName_KeyPress(KeyAscii As Integer)
 End Sub
 
 Private Sub Therapiearten_Click()
- Dim rs As New Adodb.Recordset, spmaxü
+ Dim rs As New ADODB.Recordset, spmaxü
  spmaxü = Array(10, 5, 200)
  If Me.Pat_id <> 0 Then
   myFrag rs, "SELECT * FROM therarten WHERE pat_id=" & CStr(Me.Pat_id) & " ORDER BY zp DESC, mpnr DESC"
@@ -440,7 +440,7 @@ End Sub ' Vorlage_GotFocus
 Private Sub HAAusw_KeyDown(KeyCode As Integer, Shift As Integer)
  Call Key(KeyCode, Shift, Me)
  If KeyCode = 13 Then
-  Dim rNaA As New Adodb.Recordset
+  Dim rNaA As New ADODB.Recordset
   Dim sql$, KVNr$
   sql = "SELECT kvnr FROM hareal WHERE adressat LIKE '%" & Me.HAAusw & "%'"
   myFrag rNaA, sql
@@ -533,7 +533,7 @@ Private Sub Form_Load()
  DoEvents
  Exit Sub
 fehler:
-Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description + vbCrLf + "Fehlerposition: " + CStr(FPos), vbAbortRetryIgnore, "Aufgefangener Fehler IN form_load/" + App.path)
+Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description + vbCrLf + "Fehlerposition: " + CStr(FPos), vbAbortRetryIgnore, "Aufgefangener Fehler in form_load/" + App.path)
  Case vbAbort: Call MsgBox("Höre auf"): ProgEnde
  Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
  Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
@@ -543,7 +543,7 @@ End Sub ' Form_Load
 ' kommt vor IN doPatNameChange, SchreibDatensatz und FDC_indvorWechsel
 Function getPat_id&(PatName$)
  Dim Spl$(), sql$
- Dim rNaA As New Adodb.Recordset
+ Dim rNaA As New ADODB.Recordset
  On Error GoTo fehler
  If IsNull(PatName) Or PatName = vNS Then
   getPat_id = -1
@@ -590,7 +590,7 @@ If InStrB(ErrDescription, "Der ODBC-Treiber unterstützt") <> 0 Then
  DBCn.Open
  Resume
 End If
-Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description + vbCrLf + "Fehlerposition: " + CStr(FPos), vbAbortRetryIgnore, "Aufgefangener Fehler IN getPat_id/" + App.path)
+Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description + vbCrLf + "Fehlerposition: " + CStr(FPos), vbAbortRetryIgnore, "Aufgefangener Fehler in getPat_id/" + App.path)
  Case vbAbort: Call MsgBox("Höre auf"): ProgEnde
  Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
  Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
@@ -607,7 +607,7 @@ altobTrans:
 ' Dim sLi As New SortierListe
  #End If
  On Error GoTo fehler
- Dim rNaA As New Adodb.Recordset
+ Dim rNaA As New ADODB.Recordset
 ' myfrag rNaA, "SELECT nachname, vorname, gebdat, pat_id FROM `namen` ORDER BY nachname, vorname, gebdat;"
  #If EinmalDB Then
  sql = "SELECT pat_id, CAST(CONCAT(CAST(nachname AS char)¡ "", ""¡ vorname¡ "",*""¡ DATE_FORMAT(gebdat,'%e.%c.%Y')¡ "" | ""¡ pat_id) AS char) AS f0, CONCAT(pat_id¡"" | ""¡ CAST(nachname AS char)¡ "", ""¡ vorname¡ "",*""¡ DATE_FORMAT(gebdat,'%e.%c.%Y')) AS f1 FROM `namen` ORDER BY nachname, vorname, gebdat;"
@@ -659,7 +659,7 @@ If Err.Number = -2147467259 Or Err.Number = -2147217887 Then ' Server has gone a
  Call DBCnOpen
  Resume
 End If
-Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description + vbCrLf + "Fehlerposition: " + CStr(FPos), vbAbortRetryIgnore, "Aufgefangener Fehler IN AuswName/" + App.path)
+Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description + vbCrLf + "Fehlerposition: " + CStr(FPos), vbAbortRetryIgnore, "Aufgefangener Fehler in AuswName/" + App.path)
  Case vbAbort: Call MsgBox("Höre auf"): ProgEnde
  Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
  Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
@@ -671,7 +671,7 @@ Function AuswPat_id(frm As PatAuswahl)
  On Error GoTo fehler
  'Dim cnADO As New ADODB.Connection
  'cnADO.Open ConStr
- Dim rNaA As New Adodb.Recordset
+ Dim rNaA As New ADODB.Recordset
 ' sql = "SELECT CONCAT(pat_id¡"" : ""¡ nachname¡ "", ""¡ vorname¡ "",*""¡ DATE_FORMAT(gebdat,'%e.%c.%Y')) AS f1 FROM `namen` ORDER BY pat_id;"
 ' IF Forms(0).obMySQL THEN
 '  sql = replace$(sql, "¡", ",")
@@ -697,7 +697,7 @@ Function AuswPat_id(frm As PatAuswahl)
  Loop
  Exit Function
 fehler:
-Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description + vbCrLf + "Fehlerposition: " + CStr(FPos), vbAbortRetryIgnore, "Aufgefangener Fehler IN Auswpat_id/" + App.path)
+Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description + vbCrLf + "Fehlerposition: " + CStr(FPos), vbAbortRetryIgnore, "Aufgefangener Fehler in Auswpat_id/" + App.path)
  Case vbAbort: Call MsgBox("Höre auf"): ProgEnde
  Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
  Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
@@ -717,7 +717,7 @@ Function AuswHA(frm As PatAuswahl)
  DoEvents
  'Dim cnADO As New ADODB.Connection
  'cnADO.Open ConStr
- Dim rHS As New Adodb.Recordset, rKVNr As New Adodb.Recordset
+ Dim rHS As New ADODB.Recordset, rKVNr As New ADODB.Recordset
  myFrag rKVNr, "SELECT DISTINCT kvnr FROM `namen` UNION SELECT DISTINCT übwr FROM `faelle`" ' DISTINCT könnte hier entfallen, ist durch UNION impliziert
  If Not Forms(0).obMySQL Then
    Call acon(HaT)
@@ -783,7 +783,7 @@ hamma:
  syscmd 5
  Exit Function
 fehler:
-Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description + vbCrLf + "Fehlerposition: " + CStr(FPos), vbAbortRetryIgnore, "Aufgefangener Fehler IN AuswHA/" + App.path)
+Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description + vbCrLf + "Fehlerposition: " + CStr(FPos), vbAbortRetryIgnore, "Aufgefangener Fehler in AuswHA/" + App.path)
  Case vbAbort: Call MsgBox("Höre auf"): ProgEnde
  Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
  Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
@@ -817,7 +817,7 @@ hamma:
  syscmd 5
  Exit Function
 fehler:
-Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description + vbCrLf + "Fehlerposition: " + CStr(FPos), vbAbortRetryIgnore, "Aufgefangener Fehler IN AuswVorlage/" + App.path)
+Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description + vbCrLf + "Fehlerposition: " + CStr(FPos), vbAbortRetryIgnore, "Aufgefangener Fehler in AuswVorlage/" + App.path)
  Case vbAbort: Call MsgBox("Höre auf"): ProgEnde
  Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
  Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
@@ -829,7 +829,7 @@ Private Sub HAAusw_Click()
 End Sub ' HAAusw_Click()
 
 Private Sub HAAusw_Change()
- Dim rNaA As New Adodb.Recordset
+ Dim rNaA As New ADODB.Recordset
  Dim sql$, KVNr$
  KVNr = Mid$(Me.HAAusw, InStr(Me.HAAusw, "KVNr") + 5, 7)
  If KVNr <> vNS Then
@@ -854,7 +854,7 @@ Private Sub HAAusw_Change()
 End If ' kvnr <> vns
 Exit Sub
 fehler:
-Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description + vbCrLf + "Fehlerposition: " + CStr(FPos), vbAbortRetryIgnore, "Aufgefangener Fehler IN HAAusw_Change/" + App.path)
+Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description + vbCrLf + "Fehlerposition: " + CStr(FPos), vbAbortRetryIgnore, "Aufgefangener Fehler in HAAusw_Change/" + App.path)
  Case vbAbort: Call MsgBox("Höre auf"): ProgEnde
  Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
  Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
@@ -866,12 +866,12 @@ Private Sub Pat_ID_Change()
 End Sub ' Pat_ID_Change()
 
 Private Sub do_Pat_ID_Change(Optional mitVorDat%)
- Dim rNaA As New Adodb.Recordset
- Dim rFaA As New Adodb.Recordset
- Dim rDi As New Adodb.Recordset
- Dim rEin As New Adodb.Recordset
+ Dim rNaA As New ADODB.Recordset
+ Dim rFaA As New ADODB.Recordset
+ Dim rDi As New ADODB.Recordset
+ Dim rEin As New ADODB.Recordset
  Dim HAStr$, obHA%
- Static rKVA As New Adodb.Recordset
+ Static rKVA As New ADODB.Recordset
  Static innen%
  Dim pos&
  If innen Then Exit Sub
@@ -912,7 +912,8 @@ Private Sub do_Pat_ID_Change(Optional mitVorDat%)
     Me.pat_idDaten = rNaA!Nachname & ", " & rNaA!Vorname + ",*" + Format$(rNaA!GebDat, "D.M.YY") + " | " + CStr(rNaA!Pat_id)
 ' Call KVÄVorb
 '    Call acon(HaT)
-    rFaA.Open "SELECT Übwr, BhfB, bhFE1, SchGr, Name, Kateg, ÜwnNr, ÜwNaN, ÜwVor FROM `faelle` LEFT JOIN (SELECT vknr, ik, kateg, name FROM `kassenliste` GROUP by ik,vknr) AS kl ON `faelle`.vknr = kl.vknr AND faelle.ik=kl.ik WHERE pat_id = " & Me.PatID & " ORDER BY bhfb DESC", DBCn, adOpenDynamic, adLockReadOnly
+'    rFaA.Open "SELECT Übwr, BhfB, bhFE1, SchGr, Name, Kateg, ÜwnNr, ÜwNaN, ÜwVor FROM `faelle` LEFT JOIN (SELECT vknr, ik, kateg, name FROM `kassenliste` GROUP by ik,vknr) AS kl ON `faelle`.vknr = kl.vknr AND faelle.ik=kl.ik WHERE pat_id = " & Me.PatID & " ORDER BY bhfb DESC", DBCn, adOpenDynamic, adLockReadOnly
+    myFrag rFaA, "SELECT Übwr, BhfB, bhFE1, SchGr, Name, Kateg, ÜwnNr, ÜwNaN, ÜwVor FROM `faelle` LEFT JOIN (SELECT vknr, ik, kateg, name FROM `kassenliste` GROUP by ik,vknr) AS kl ON `faelle`.vknr = kl.vknr AND faelle.ik=kl.ik WHERE pat_id = " & Me.PatID & " ORDER BY bhfb DESC"
     If Not rFaA.BOF Then
      Do While Not rFaA.EOF
       HAStr = vNS
@@ -981,7 +982,7 @@ Private Sub do_Pat_ID_Change(Optional mitVorDat%)
     End If
    
 '   IF LenB(Me.HAAusw) = 0 THEN
-     Dim rs As New Adodb.Recordset
+     Dim rs As New ADODB.Recordset
      myFrag rs, "SELECT transe, docname , RCFax, pages , fsize ,Retries FROM `faxeinp`.`outa` o WHERE docname RLIKE 'PID " & Pat_id & "[^0123456789]' ORDER BY transe DESC"
      If Not rs.BOF Then
       Do While Not rs.EOF
@@ -1004,7 +1005,7 @@ Private Sub do_Pat_ID_Change(Optional mitVorDat%)
      End If ' hlese.Aktion = BriefSchreiben THEN
   '   END IF ' LenB(Me.HAAusw) = 0 THEN
    End If ' rNaA.EOF
-   Dim sql$, rdesk As New Adodb.Recordset
+   Dim sql$, rdesk As New ADODB.Recordset
    sql = "SELECT (0) FROM desktop d WHERE pat_id = " & Me.Pat_id & " AND titel LIKE '%kein%Bericht%'"
    Set rdesk = Nothing
    myFrag rdesk, sql
@@ -1025,7 +1026,7 @@ fehler:
 #Else
  AnwPfad = App.path
 #End If
-Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler IN Pat_ID_Change()/" + AnwPfad)
+Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in Pat_ID_Change()/" + AnwPfad)
  Case vbAbort: Call MsgBox("Höre auf"): ProgEnde
  Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
  Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
@@ -1057,7 +1058,7 @@ Private Sub PatName_Click()
 End Sub ' PatName_Click()
 
 Private Sub PatName_Change()
- Dim rs As New Adodb.Recordset, sn$(), s1$
+ Dim rs As New ADODB.Recordset, sn$(), s1$
 ' Me.Pat_id = getPat_id(Me.PatName)
  If InStrB(Me.PatName, ",") <> 0 Or InStrB(Me.PatName, " ") <> 0 Then
   SplitNeu Me.PatName, ",", sn
