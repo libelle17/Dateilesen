@@ -4186,9 +4186,9 @@ nachFehler:
   End Select
   Select Case rsc!COLUMN_NAME
    Case "Nachname", "Vorname", "NVorsatz", "Titel"
-    Dim Cn$
-    Cn = rsc!COLUMN_NAME
-    If rsAnm.Fields(Cn).DefinedSize < Länge Then
+    Dim cn$
+    cn = rsc!COLUMN_NAME
+    If rsAnm.Fields(cn).DefinedSize < Länge Then
      Call SpMod(Länge, "anamnesebogen", rsc, Inhalt)
      GoTo anamneseanfang
     End If
@@ -5272,11 +5272,9 @@ Function DiagString$(Pat_id$, DiagTab() As CString, Optional VorDat As Date, Opt
   Else
    ICD(runde) = IIf(IsNull(rdDi!ICD), vNS, rdDi!ICD)
    obDauer(runde) = IIf(IsNull(rdDi!j_obDauer), 0, -Abs(rdDi!j_obDauer))
-   If IsNull(rdDi!DiagText) Then
-    Diag(runde) = vNS
-   Else
-    Diag(runde) = rdDi!DiagText
-   End If
+   On Error Resume Next
+   Diag(runde) = rdDi!DiagText
+   On Error GoTo fehler
    DiagAttr(runde) = IIf(IsNull(rdDi!DiagAttr), vNS, rdDi!DiagAttr)
    DiagSe(runde) = IIf(IsNull(rdDi!DiagSeite), vNS, rdDi!DiagSeite)
    DSic(runde) = IIf(IsNull(rdDi!DiagSicherheit), vNS, rdDi!DiagSicherheit)

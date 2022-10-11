@@ -1701,7 +1701,7 @@ Public Function VergleichTabAlt(frm As Lese) ' Vergleich der Datenbanktabellenfü
  Const SpBr0% = 30
  Dim aktCn As New ADODB.Connection
  Dim fld$(), i%, j%
- Dim cnA As New ADODB.Recordset, maxF%, Cn As New ADODB.Connection
+ Dim cnA As New ADODB.Recordset, maxF%, cn As New ADODB.Connection
  Dim FNr&, ausg$, Ausg0$
  Dim cat As New ADOX.Catalog
  On Error GoTo fehler
@@ -1762,14 +1762,14 @@ End Select
 End Function ' VergleichTab
 Public Function VergleichTab(frm As Lese) ' Vergleich der Datenbankfüllungen
  Const SpBr% = 20
- Dim SL As New SortierListe, sF As sFeld, cat As New ADOX.Catalog, Cn(3) As ADODB.Connection, CNs$(3)
+ Dim SL As New SortierListe, sF As sFeld, cat As New ADOX.Catalog, cn(3) As ADODB.Connection, CNs$(3)
 ' Dim aktCn As New ADODB.Connection
  Dim fld$(), i%, j%, n%, cnA As New ADODB.Recordset
 ' dim sc As New ADODB.Recordset
  Call machAbKü
  For i = 0 To 3
 '  Call frm.ConstrFestleg(i + 1, frm)
-  Set Cn(i) = acon(quelleT, i + 1)
+  Set cn(i) = acon(quelleT, i + 1)
   CNs(i) = Lese.dbv.CnStr
   cat.ActiveConnection = DBCn
   For j = 0 To cat.Tables.COUNT - 1
@@ -1784,7 +1784,7 @@ Public Function VergleichTab(frm As Lese) ' Vergleich der Datenbankfüllungen
  For i = 0 To 3
 '  Call frm.ConstrFestleg(i + 1, frm)
 '  Call acon(quelleT, i + 1)
-   SetDBCn Cn(i), CNs(i)
+   SetDBCn cn(i), CNs(i)
 '  IF i > 0 THEN
 '  IF Not cn Is Nothing THEN SET cn = Nothing 'If cn.State = 1 THEN cn.Close
 '  SET aktCn = Nothing
@@ -1844,7 +1844,7 @@ Public Function Vergleiche(frm As Lese) ' Vergleich der Datenbankstrukturen
  Const SpBr% = 34
  Dim DSo$, Prov$, DSo2$
  Dim aktCn As New ADODB.Connection
- Dim fld$(), i%, j%, n%, k%, l%, cnA As New ADODB.Recordset, maxF%, Cn As New ADODB.Connection
+ Dim fld$(), i%, j%, n%, k%, l%, cnA As New ADODB.Recordset, maxF%, cn As New ADODB.Connection
 ' dim sc As New ADODB.Recordset
  Call machAbKü
  For i = 0 To 3
@@ -3078,14 +3078,14 @@ End Function ' doWSt0Erg()
 
 Function dokpfadänder(frm As Lese)
  On Error GoTo fehler
- Dim pos%, runde%, cdTB As ConDtb, db$, fld$, rs As New ADODB.Recordset, Cn As New ADODB.Connection, altCnS$, rAF&
+ Dim pos%, runde%, cdTB As ConDtb, db$, fld$, rs As New ADODB.Recordset, cn As New ADODB.Connection, altCnS$, rAF&
 ' pu = InputBox("Ursprungsserver ohne Slashes:", "Dokpfadänder: Parametereingabe", "mitte")
 ' IF pu = "" THEN Exit Function
 ' pz = InputBox("Zielserver ohne Slashes:", "Dokpfadänder: Parametereingabe", lcase(frm.dbv.Cpt))
 ' IF pu = "" THEN Exit Function
  altCnS = DBCnS ' DBCn.ConnectionString
  For cdTB = accDtb To q2Dtb 'accDtb
-  Set Cn = acon(quelleT, cdTB)
+  Set cn = acon(quelleT, cdTB)
   For runde = 1 To 3
    Select Case runde
     Case 1: db = "dokumente": fld = "dokpfad"
@@ -3095,7 +3095,7 @@ Function dokpfadänder(frm As Lese)
    If cdTB = accDtb Then
     Set rs = Nothing
 '    rs.Open "SELECT * FROM " & "`" & db & "`" & " WHERE `" & fld & "` LIKE '%\turbomed\%' AND NOT (`" & fld & "` LIKE '$\%' AND NOT `" & fld & "` LIKE '$\\%')", Cn, adOpenDynamic, adLockOptimistic '
-    myFrag rs, "SELECT * FROM " & "`" & db & "`" & " WHERE `" & fld & "` LIKE '%\turbomed\%' AND NOT (`" & fld & "` LIKE '$\%' AND NOT `" & fld & "` LIKE '$\\%')", adOpenDynamic, Cn
+    myFrag rs, "SELECT * FROM " & "`" & db & "`" & " WHERE `" & fld & "` LIKE '%\turbomed\%' AND NOT (`" & fld & "` LIKE '$\%' AND NOT `" & fld & "` LIKE '$\\%')", adOpenDynamic, cn
     rAF = 0
     Do While Not rs.EOF
      pos = InStr(LCase(rs(fld)), "\turbomed\")
@@ -3107,7 +3107,7 @@ Function dokpfadänder(frm As Lese)
      rs.Move 1
     Loop
    Else
-    Cn.Execute "UPDATE `" & db & "` SET `" & fld & "` = CONCAT('$',mid$(replace$(`" & fld & "`, '\\\\', '\\'), instrb(lcase(replace$(`" & fld & "`,'\\\\','\\')), '\\turbomed\\'))) WHERE `" & fld & "` LIKE '%turbomed%'", rAF
+    cn.Execute "UPDATE `" & db & "` SET `" & fld & "` = CONCAT('$',mid$(replace$(`" & fld & "`, '\\\\', '\\'), instrb(lcase(replace$(`" & fld & "`,'\\\\','\\')), '\\turbomed\\'))) WHERE `" & fld & "` LIKE '%turbomed%'", rAF
    End If
    frm.Ausgeb rAF & " Datensätze IN `" & db & "` geändert auf $\turbomed", True
   Next runde
@@ -3127,20 +3127,20 @@ End Function ' dokpfadänder
 
 Function dokpfadänderAlt(frm As Lese)
  On Error GoTo fehler
- Dim pu$, pz$, runde%, cdTB As ConDtb, db$, rs As New ADODB.Recordset, Cn As New ADODB.Connection, altCnS$, rAF&
+ Dim pu$, pz$, runde%, cdTB As ConDtb, db$, rs As New ADODB.Recordset, cn As New ADODB.Connection, altCnS$, rAF&
  pu = InputBox("Ursprungsserver ohne Slashes:", "Dokpfadänder: Parametereingabe", "mitte")
  If LenB(pu) = 0 Then Exit Function
  pz = InputBox("Zielserver ohne Slashes:", "Dokpfadänder: Parametereingabe", LCase(frm.dbv.Cpt))
  If LenB(pu) = 0 Then Exit Function
  altCnS = DBCnS ' DBCn.ConnectionString
  For cdTB = accDtb To q2Dtb
-  Set Cn = acon(quelleT, cdTB)
+  Set cn = acon(quelleT, cdTB)
   For runde = 1 To 2
    If runde = 1 Then db = "dokumente" Else db = "dokumente abgehakt"
    If cdTB = accDtb Then
     Set rs = Nothing
 '    rs.Open "SELECT * FROM " & "`" & db & "`" & " WHERE dokpfad LIKE '%\\" & pu & "%'", Cn, adOpenDynamic, adLockOptimistic
-    myFrag rs, "SELECT * FROM " & "`" & db & "`" & " WHERE dokpfad LIKE '%\\" & pu & "%'", adOpenDynamic, Cn
+    myFrag rs, "SELECT * FROM " & "`" & db & "`" & " WHERE dokpfad LIKE '%\\" & pu & "%'", adOpenDynamic, cn
     rAF = 0
     Do While Not rs.EOF
      rs!DokPfad = REPLACE$(rs!DokPfad, "\\" & pu, "\\" & pz)
@@ -3148,7 +3148,7 @@ Function dokpfadänderAlt(frm As Lese)
      rAF = rAF + 1
     Loop
    Else
-    Cn.Execute "update " & "`" & db & "`" & " SET dokpfad = replace$(dokpfad,'\\" & pu & "','\\" & pz & "') WHERE dokpfad LIKE '%\\" & pu & "%'", rAF
+    cn.Execute "update " & "`" & db & "`" & " SET dokpfad = replace$(dokpfad,'\\" & pu & "','\\" & pz & "') WHERE dokpfad LIKE '%\\" & pu & "%'", rAF
    End If
    frm.Ausgeb rAF & " Datensätze IN " & "`" & db & "`" & " geändert von \\" & pu & " nach \\ " & pz & " auf " & frm.dbv.Cpt, True
   Next runde
@@ -5491,11 +5491,11 @@ End Function ' fallzahlstand
 'End Function
 
 Function test8()
- Dim Cn As New ADODB.Connection
+ Dim cn As New ADODB.Connection
 ' cn.Open "DRIVER={MySQL ODBC 5.1 Driver};database=office;server=linux1;uid=praxis;pwd=***REMOVED***;option=3"
- Cn.Open "DRIVER={" & ODBCStr & "};database=office;server=linux1;uid=praxis;pwd=***REMOVED***;option=3"
+ cn.Open "DRIVER={" & ODBCStr & "};database=office;server=linux1;uid=praxis;pwd=***REMOVED***;option=3"
  Dim rs As New ADODB.Recordset
- rs.Open "SELECT * FROM test", Cn, adOpenStatic, adLockReadOnly
+ rs.Open "SELECT * FROM test", cn, adOpenStatic, adLockReadOnly
  Do While Not rs.EOF
   Debug.Print rs!t
   rs.Move 1

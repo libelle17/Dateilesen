@@ -2184,7 +2184,7 @@ If aktDC.dtyp = "2" Then If mitStr Then TabPr "Lasertherapie:", IIf(aktDC.oblase
   If mitStr Then TabPr "Krankenhausaufenthalte / Ketoazidosen /12 Mon:", khsStr
  Else
 '  raKH.Open "SELECT * FROM kheinweis WHERE pat_id = " & pid & " AND zeitpunkt > " & DatFor_k(DokuDat - 92), DBCn, adOpenDynamic, adLockReadOnly
-  myFrag raKH, "SELECT Zeitpunkt,Ziel FROM kheinweis WHERE pat_id = " & pid & " AND zeitpunkt > " & DatFor_k(DokuDat - 92)
+  myFrag raKH, "SELECT Zeitpunkt,Ziel,Diagnose FROM kheinweis WHERE pat_id = " & pid & " AND zeitpunkt > " & DatFor_k(DokuDat - 92)
   If Not raKH.EOF Then
    aktDC.khew = True
    If mitStr Then TabPr "Krankenhauseinweisung", "(am " + Format$(raKH!Zeitpunkt, "dd/mm/yy") + IIf(tfeld(raKH!Ziel) <> "nkenhauseinweisung", " nach:" + raKH!Ziel, "") + _
@@ -2495,7 +2495,7 @@ If aktDC.dtyp = "2" Then If mitStr Then TabPr "Lasertherapie:", IIf(aktDC.oblase
 ' SET rEin = aktDCb.OpenRecordset(sql)
  Set raEi = Nothing
 ' raEi.Open sql, DBCn, adOpenDynamic, adLockReadOnly
- myFrag rAEin, sql
+ myFrag raEi, sql
  Do While Not raEi.EOF
   AugU = AugU & IIf(LenB(AugU) <> 0, vbCrLf & vbTab, "") & "Eintrag am " & Format$(raEi!Zeitpunkt, "d/m/yy") & ":" + vbTab + raEi!Inhalt
   raEi.Move 1
