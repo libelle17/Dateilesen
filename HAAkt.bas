@@ -240,7 +240,8 @@ gefunden:
       Else
        Set rHa = Nothing
  '      rha.Open "SELECT * FROM `hae` LIMIT 1", MyCn, adOpenStatic, adLockReadOnly
-       rHa.Open "SELECT table_name FROM information_schema.`TABLES` T WHERE table_schema = '" & fld & "' AND table_name = 'hae'", MyCn, adOpenStatic, adLockReadOnly
+'       rHa.Open "SELECT table_name FROM information_schema.`TABLES` T WHERE table_schema = '" & fld & "' AND table_name = 'hae'", MyCn, adOpenStatic, adLockReadOnly
+       myFrag rHa, "SELECT table_name FROM information_schema.`TABLES` T WHERE table_schema = '" & fld & "' AND table_name = 'hae'", adOpenStatic, MyCn
  '      If Err.Number = 0 Then
        If Not rHa.BOF Then
         KVÄDB = Left$(CnStr, Len(CnStr) - 1) & ";DATABASE=" & fld & ";"""
@@ -270,13 +271,15 @@ gefunden:
 '        If fld = "quelle" Then Stop
         Set rHa = Nothing
  '       rha.Open "SELECT * FROM `anamnesebogen` LIMIT 1", MyCn, adOpenStatic, adLockReadOnly
-        rHa.Open "SELECT table_name FROM information_schema.`TABLES` WHERE table_schema = '" & fld & "' AND table_name = 'anamnesebogen'", MyCn, adOpenStatic, adLockReadOnly
+'        rHa.Open "SELECT table_name FROM information_schema.`TABLES` WHERE table_schema = '" & fld & "' AND table_name = 'anamnesebogen'", MyCn, adOpenStatic, adLockReadOnly
+        myFrag rHa, "SELECT table_name FROM information_schema.`TABLES` WHERE table_schema = '" & fld & "' AND table_name = 'anamnesebogen'", adOpenStatic, MyCn
         If Err.Number <> 0 Then
          Debug.Print Error.Description
          If Err.Number = -2147217887 Then
           MyCn.Close
           MyCn.Open
-          rHa.Open "SELECT table_name FROM information_schema.`TABLES` WHERE table_schema = '" & fld & "' AND table_name = 'anamnesebogen'", MyCn, adOpenStatic, adLockReadOnly
+'          rHa.Open "SELECT table_name FROM information_schema.`TABLES` WHERE table_schema = '" & fld & "' AND table_name = 'anamnesebogen'", MyCn, adOpenStatic, adLockReadOnly
+          myFrag rHa, "SELECT table_name FROM information_schema.`TABLES` WHERE table_schema = '" & fld & "' AND table_name = 'anamnesebogen'", adOpenStatic, MyCn
           If Err.Number <> 0 Then
            Debug.Print Error.Description
           End If

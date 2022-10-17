@@ -414,6 +414,7 @@ Private Sub PatName_KeyPress(KeyAscii As Integer)
 ' Stop
 End Sub
 
+' Knopf Thererartenanz
 Private Sub Therapiearten_Click()
  Dim rs As New ADODB.Recordset, spmaxü
  spmaxü = Array(10, 5, 200)
@@ -760,7 +761,6 @@ Function AuswHA(frm As PatAuswahl)
     sql = REPLACE$(sql, "replace$(replace$(replace$(telefax,""/"",""""),""-"",""""),"" "","""")", "telefax")
    End If
    Set rHS = Nothing
-   DBCn.Execute "SET GROUP_CONCAT_MAX_LEN = 70"
    myFrag rHS, sql
    If Not rHS.BOF Then
 ' Nachname, Titel, Vorname, KVNr, Tel1, Fax1, Straße, PLZ, Ort

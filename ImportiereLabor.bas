@@ -24,7 +24,7 @@ Public Function LaborDirektImport(frm As Lese, absPos&, SammelInsert%, BezfSpei%
  Const debugohneSpeichern% = False
 ' Const neuVerz$ = pverz & "Biowin\Backup\neu\"
  Const ZS As Boolean = True
- Dim rs As New ADODB.Recordset, rs1 As New ADODB.Recordset
+ Dim rs As New Adodb.Recordset, rs1 As New Adodb.Recordset
  Dim repl$
  Dim fI As Files, fld As Folder, f1 As File, neuPfad$, keimz%
  Dim RefNr&
@@ -74,7 +74,8 @@ Public Function LaborDirektImport(frm As Lese, absPos&, SammelInsert%, BezfSpei%
 '    neuPfad = f1.Path
     obDateiNeu = 0
     For i = 1 To 2
-     Set rs = DBCn.Execute("SELECT -fertig AS j_fertig, l.* FROM laborxeingel l WHERE name = '" & f1.name & "' AND pfad = '" & doUmwfSQL(f1.path, Lese.obMySQL) & "'")
+'     Set rs = DBCn.Execute("SELECT -fertig AS j_fertig, l.* FROM laborxeingel l WHERE name = '" & f1.name & "' AND pfad = '" & doUmwfSQL(f1.path, Lese.obMySQL) & "'")
+     myFrag rs, "SELECT -fertig AS j_fertig, l.* FROM laborxeingel l WHERE name = '" & f1.name & "' AND pfad = '" & doUmwfSQL(f1.path, Lese.obMySQL) & "'"
      If rs.BOF Then
       obDateiNeu = True
      ElseIf rs!j_fertig = 0 Then
@@ -681,14 +682,14 @@ End Select
 End Function ' LaborDirektImport
 Function LaborErgPatId(lies As Lese, Optional mitLöschen%, Optional nurRef&)
 ' Pat_IDs ergänzen
- Dim rs As New ADODB.Recordset, rs1 As New ADODB.Recordset
+ Dim rs As New Adodb.Recordset, rs1 As New Adodb.Recordset
  Const debugbit% = 0 ' liefert Analyse der Vorgänge IN uverz & "anamnese\debug.txt", spart sich dafür Datenbankänderungen
  Dim altRefnr&, i&, sqlct$
  Dim j&
  Dim sPI As SortierPat_ID
  Dim SL As New SortierListe
 ' Dim rLX AS DAO.Recordset, rLN AS DAO.Recordset, rs AS DAO.Recordset
- Dim rLX As New ADODB.Recordset, rLN As New ADODB.Recordset
+ Dim rLX As New Adodb.Recordset, rLN As New Adodb.Recordset
  Dim rLNZeitpunkt#, ZdüP%, LWerte$, GesAbk$, rAF&, laborneuAfn&, sql$, sql1$
  Dim obNeuerPat% ' Datensatz IN rLX eintragen und mit SL neu anfangen
  Dim aktDS&, VergleichTot%
@@ -956,7 +957,7 @@ End Function ' LaborErgPatID
 
 Function LöschRefNr(Optional RefNr&)
  Dim rAF&
- Dim rs As ADODB.Recordset
+ Dim rs As Adodb.Recordset
  If RefNr = 0 Then
   Set rs = DBCn.Execute("UPDATE `laborneu` SET refnr = null WHERE NOT ISNULL(refnr)", rAF)
  Else
@@ -1041,17 +1042,17 @@ Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "Last
 End Select
 End Function ' BDTtoTime
 
-Function indIns&(Cn As ADODB.Connection, CNs$, Tb$, fld$, Wert$, idFld$)
- Dim rs As New ADODB.Recordset, rAF&
+Function indIns&(cn As Adodb.Connection, CNs$, Tb$, fld$, Wert$, idFld$)
+ Dim rs As New Adodb.Recordset, rAF&
  Dim varlen&, pos&
  Dim STyp$
  On Error GoTo fehler
  Dim sql$
  sql = "SELECT * FROM `" & Tb & "` WHERE `" & fld & "` = '" & doUmwfSQL(Wert, LVobMySQL) & "'"
- rs.Open sql, Cn, adOpenStatic, adLockReadOnly
+ rs.Open sql, cn, adOpenStatic, adLockReadOnly
  If rs.BOF Then
   Set rs = Nothing
-  rs.Open "SELECT data_type dt, character_maximum_length cml FROM information_schema.`COLUMNS` C WHERE table_schema = '" & HADBName & "' AND table_name = '" & Tb & "' AND column_name = '" & fld & "'", Cn
+  rs.Open "SELECT data_type dt, character_maximum_length cml FROM information_schema.`COLUMNS` C WHERE table_schema = '" & HADBName & "' AND table_name = '" & Tb & "' AND column_name = '" & fld & "'", cn
 '  rs.Open "SHOW FULL COLUMNS FROM `" & Tb & "` WHERE field = '" & fld & "'", cn
   If Not rs.BOF Then
    STyp = rs!DT
@@ -1063,15 +1064,15 @@ Function indIns&(Cn As ADODB.Connection, CNs$, Tb$, fld$, Wert$, idFld$)
     If varlen < Len(Wert) Then
      If Len(Wert) > 767 Then
 ' hier müßte noch der Index verkürzt werden
-      Cn.Execute "ALTER TABLE `" & Tb & "` modify `" & fld & "` varchar(" & Len(Wert) & ")"
+      cn.Execute "ALTER TABLE `" & Tb & "` modify `" & fld & "` varchar(" & Len(Wert) & ")"
      Else
-      Cn.Execute "ALTER TABLE `" & Tb & "` modify `" & fld & "` varchar(" & Len(Wert) & ")"
+      cn.Execute "ALTER TABLE `" & Tb & "` modify `" & fld & "` varchar(" & Len(Wert) & ")"
      End If
     End If
    End If
   End If
-  InsKorr Cn, CNs, "INSERT INTO `" & Tb & "`(`" & fld & "`) VALUES('" & doUmwfSQL(Wert, LVobMySQL) & "')", rAF
-  Set rs = Cn.Execute("SELECT last_insert_id()")
+  InsKorr cn, CNs, "INSERT INTO `" & Tb & "`(`" & fld & "`) VALUES('" & doUmwfSQL(Wert, LVobMySQL) & "')", rAF
+  Set rs = cn.Execute("SELECT last_insert_id()")
   indIns = rs.Fields(0)
  Else
   indIns = rs.Fields(idFld)
@@ -1111,9 +1112,9 @@ Function löschBezügeausLaborxus(Optional RefNr&)
 End Function ' löschBezügeausLaborxus
 
 
-Function SpMod%(SpValLen%, TName, rs0 As ADODB.Recordset, Optional SpVal$) ' Spalte modifizieren
+Function SpMod%(SpValLen%, TName, rs0 As Adodb.Recordset, Optional SpVal$) ' Spalte modifizieren
 Dim ZCStr$, keinetrans%, SpName$, maxL%
-Dim rsc As New ADODB.Recordset
+Dim rsc As New Adodb.Recordset
 Dim ausgTxt$, FNr&, FText$
 On Error GoTo fehler
 SpName = rs0!COLUMN_NAME

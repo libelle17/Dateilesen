@@ -185,7 +185,7 @@ Private Sub Form_KeyDown(KeyCode%, Shift%)
 End Sub ' Form_KeyDown(KeyCode%, Shift%)
 
 Private Sub Form_Load()
- Dim rs As New Adodb.Recordset
+ Dim rs As New ADODB.Recordset
  Me.Fachricht.Clear
  myFrag rs, "SELECT fachrichtung FROM `haerzte`.fachrichtung GROUP BY fachrichtung"
  Do While Not rs.EOF
@@ -202,7 +202,7 @@ End Sub ' Form_Unload(Cancel As Integer)
 
 
 Private Sub OK_Click()
- Dim sql0$, sql1$, ostr$, sql$, rs As New Adodb.Recordset
+ Dim sql0$, sql1$, ostr$, sql$, rs As New ADODB.Recordset
  sql0 = "SELECT CONCAT_WS(' ',IF(a.obweibl<>0,'Frau','Herr'), t.titel, a.Namenszusatz, a.vorname, CONCAT(a.Nachname,', ',GROUP_CONCAT(DISTINCT Fachrichtung))) Name, a.LANR, bs.BSNR, CONCAT_WS(' ',bs.straﬂe, CONCAT(bs.hausnr,','), bs.plz, ort) Adresse, Tel, Fax, Mail, DATE_FORMAT(a.Seit,'%e.%c.%Y') Seit FROM `haerzte`.arzt a LEFT JOIN `haerzte`.arzt_has_bs ahb ON a.idarzt = ahb.arzt_id LEFT JOIN `haerzte`.bs ON bs.idbs = ahb.bs_id LEFT JOIN `haerzte`.ort ON bs.ort_id = ort.idort LEFT JOIN `haerzte`.titel t ON a.titel_id = t.idtitel LEFT JOIN `haerzte`.arzt_has_fachrichtung ahf ON a.idarzt = ahf.arzt_id LEFT JOIN `haerzte`.fachrichtung fr ON ahf.fachrichtung_id = fr.idfachrichtung LEFT JOIN `haerzte`.tel ON bs.idbs = tel.bs_id LEFT JOIN `haerzte`.fax ON bs.idbs = fax.bs_id LEFT JOIN `haerzte`.mail ON bs.idbs = mail.bs_id WHERE nachname LIKE '" & Me.Text1(0) & "%' AND vorname LIKE '" & Me.Text1(1) & "%' "
  sql1 = "and fachrichtung LIKE '%" & Me.Fachricht & "%' " & _
        "GROUP BY lanr, REPLACE(straﬂe,'str.','straﬂe'),ort ORDER BY ort, REPLACE(straﬂe,'str.','straﬂe'), nachname"
@@ -223,7 +223,6 @@ Private Sub OK_Click()
   ostr = "and ort LIKE '" & Me.Text1(2) & "%' "
  End If
  sql = sql0 & ostr & sql1
- DBCn.Execute "SET GROUP_CONCAT_MAX_LEN = 70"
  myFrag rs, sql
  If rs.EOF Then
   MsgBox "Nix gefunden"

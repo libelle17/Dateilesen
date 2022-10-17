@@ -811,8 +811,8 @@ Else ' me.private = 0 => Kassenpatienten
   qanfS = DatFor_k(QAnf(AktQ))
   qendS = DatFor_k(QEnd(AktQ) + 1)
  Else
-  qanfS = "timestamp((CONCAT(YEAR((NOW() - INTERVAL " & FristS & " DAY))° '-'° (intacc(((month((NOW() - INTERVAL " & FristS & " DAY)) - 1) divmy 3) * 3) + 1), '-01'))) "
-  qendS = "timestamp((CONCAT(YEAR((NOW() - INTERVAL " & FristS & " DAY))°'-'°(intacc(((month((NOW() - INTERVAL " & FristS & " DAY)) - 1) divmy 3) * 3) + 1),'-01') + INTERVAL 3 MONTH)) "
+  qanfS = "TIMESTAMP((CONCAT(YEAR((NOW() - INTERVAL " & FristS & " DAY))° '-'° (intacc(((month((NOW() - INTERVAL " & FristS & " DAY)) - 1) divmy 3) * 3) + 1), '-01'))) "
+  qendS = "TIMESTAMP((CONCAT(YEAR((NOW() - INTERVAL " & FristS & " DAY))°'-'°(intacc(((month((NOW() - INTERVAL " & FristS & " DAY)) - 1) divmy 3) * 3) + 1),'-01') + INTERVAL 3 MONTH)) "
   qanfS = cmd(qanfS, InStrB(Lese.dbv.CnStr, "MySQL") = 0) ' .wCn.ConnectionString ' 28.12.08
   qendS = cmd(qendS, InStrB(Lese.dbv.CnStr, "MySQL") = 0) ' .wCn.ConnectionString ' 28.12.08
  End If ' aktfDirekt <> 0 OR  else
@@ -922,7 +922,7 @@ Else ' me.private = 0 => Kassenpatienten
  sql(AWlf) = "SELECT f.pat_id, gesname(f.pat_id) Name " & vbCrLf & _
              "FROM aktfvs f " & vbCrLf & _
              "LEFT JOIN namen n USING (pat_id) " & vbCrLf & _
-             "LEFT JOIN `diagnosen` d ON f.pat_id = d.pat_id AND d.icd RLIKE '^E1[0-4]\.' AND d.obdauer<>0 AND d.diagsicherheit IN (' ','G') AND COALESCE(d.f6010,0)=0 WHERE dmpklass IN (2,3) AND ISNULL(d.icd)"
+             "LEFT JOIN `diagnosen` d ON f.pat_id = d.pat_id AND d.gicd RLIKE '^E1[0-4]\.' AND d.obdauer<>0 WHERE ((dmpklass=2 OR (dmpklass=3 AND dmpbeg<=qend()))) AND ISNULL(d.icd)"
  mins(AWlf) = 7
  maxs(AWlf) = 30
  AWlf = AWlf + 1
@@ -1402,7 +1402,7 @@ sql(AWlf) = _
 "       LEFT JOIN diagnosen d USING (pat_id) " & vbCrLf & _
 "       LEFT JOIN leistungen l ON l.fid=f.fid AND l.leistung IN (" & BetrPausch & ") " & vbCrLf & _
 "       WHERE d.obdauer <> 0 AND d.diagsicherheit IN ('G',' ') AND COALESCE(d.f6010,0)=0 AND d.icd LIKE 'E10%' " & vbCrLf & _
-"         AND (dmpklass IN (2,3) OR kl.kateg IN ('LKK','PBe')) " & vbCrLf & _
+"         AND (((dmpklass=2 OR (dmpklass=3 AND dmpbeg<=qend()))) OR kl.kateg IN ('LKK','PBe')) " & vbCrLf & _
 "       GROUP BY l.id " & vbCrLf & _
 "     ) i " & vbCrLf & _
 ") i " & vbCrLf & _
@@ -1498,16 +1498,16 @@ sql(AWlf) = _
 ' AWlf = AWlf + 1
 
  ' 20
- ' diagsicherheit und f6010 IN aktfaellev schon eingebaut
- AwN(AWlf) = "'DMP HA'-Eintr‰ge IN Notiz bei fehlendem Nachweis der DMP-Teilnahme seitens des Hausarztes im Internet f¸r akt. Diabetestyp"
+ ' diagsicherheit und f6010 in aktfaellev schon eingebaut
+ AwN(AWlf) = "'DMP HA'-Eintr‰ge in Notiz bei fehlendem Nachweis der DMP-Teilnahme seitens des Hausarztes im Internet f¸r akt. Diabetestyp"
  sql(AWlf) = "SELECT n.pat_id, gesname(n.pat_id) Name, ICD, n.getha0 ‹WNNr, CONCAT(IF(h.anrede,'Herr','Frau'), ' ', h.adressat) Hausarzt FROM `aktfaellev` f LEFT JOIN `namen` n ON f.pat_id = n.pat_id LEFT JOIN `hareal` h ON n.getha0 = h.kvnr WHERE n.dmpklass = 2 AND f.icd RLIKE '^E1[0-4]\.' AND NOT ((dmp1<>0 AND icd RLIKE '^E1[0234]') OR (dmp2<>0 AND icd RLIKE '^E1[1234]')) ORDER BY Hausarzt, Name"
  mins(AWlf) = 7
  maxs(AWlf) = 30
  AWlf = AWlf + 1
 
  ' 21
- ' diagsicherheit und f6010 IN aktfaellev schon eingebaut
-' AwN(AWlf) = "'DMP HA'-Eintr‰ge IN Notiz bei Patienten ohne Diabetesdiagnose, bereits IN 5) eingebaut"
+ ' diagsicherheit und f6010 in aktfaellev schon eingebaut
+' AwN(AWlf) = "'DMP HA'-Eintr‰ge in Notiz bei Patienten ohne Diabetesdiagnose, bereits IN 5) eingebaut"
 ' sql(AWlf) = "SELECT n.pat_id, LEFT(CONCAT(IF(n.titel='','',CONCAT(n.titel,' ')),IF(n.nvorsatz='','',CONCAT(n.nvorsatz,' ')),n.nachname,', ',n.vorname),25) Name  FROM `aktfaellev` f LEFT JOIN `namen` n ON f.pat_id = n.pat_id LEFT JOIN `hareal` h ON n.getha0 = h.kvnr WHERE n.dmpklass = 2 AND ISNULL(f.icd)"
  AwN(AWlf) = "Motivationskandidaten ('92278','92282')"
  sql(AWlf) = motsql()
@@ -1537,13 +1537,22 @@ sql(AWlf) = _
 
  ' 22
 ' QUARTAL(lei.zeitpunkt)=aktq() hier (zumindest bei 0 Eintr‰gen) auch nicht langsamer
- AwN(AWlf) = "Falsche Pauschalenzahl (" & BetrPausch & "):"
-sql(AWlf) = _
+ AwN(AWlf) = "Potentiell falsche Pauschalenzahl (" & BetrPausch & "):"
+' sql(AWlf) = _
 "SELECT f.pat_id AS PatID, f.nachname AS Nachname, f.vorname AS Vorname, lei.ct Pauschalenzahl, IF(MinL='97333' AND MaxL='97333',2,1) Soll, MinL `Pauschale 1`, IF(MaxL=MinL,'',MaxL) `ggf. Pauschale 2` " & vbCrLf & _
 "FROM (SELECT f.pat_id, nachname, vorname, fid,schgr,go‰katnr,ik,vknr FROM `aktfv` f LEFT JOIN `namen` n ON f.pat_id = n.pat_id ORDER BY pat_id, fid DESC, schgr) AS f " & vbCrLf & _
 "LEFT JOIN (SELECT pat_id, COALESCE(SUM(lzahl),0) ct, MIN(Leistung) MinL, MAX(Leistung) MaxL, Zeitpunkt FROM `leistungen` l WHERE leistung IN (" & BetrPausch & ") GROUP BY fid) lei " & vbCrLf & _
 "ON lei.pat_id = f.pat_id AND lei.zeitpunkt BETWEEN " & lQAnfuEnd(FristS) & " " & vbCrLf & _
 "WHERE (Minl='97333' AND Maxl='97333' AND ct<>2) OR ((Minl<>'97333' OR MaxL<>'97333') AND lei.ct <> 1)"
+ sql(AWlf) = _
+ "SELECT f.pat_id, gesname(f.pat_id) PName, leistung, SUM(lzahl) LZahl, IF(l.Leistung='97333',2,1) Soll" & vbCrLf & _
+ ", (SELECT COUNT(0) FROM faelle WHERE pat_id=f.pat_id AND bhfb BETWEEN qanf() AND qend()) fallzahl" & vbCrLf & _
+ "FROM aktfv f" & vbCrLf & _
+ "LEFT JOIN leistungen l ON l.pat_id = f.pat_id AND l.leistung IN ('97310','97312','97320','97321','97322','97333')" & vbCrLf & _
+ " AND l.zeitpunkt BETWEEN qanf() AND qend()" & vbCrLf & _
+ "GROUP BY f.pat_id,leistung" & vbCrLf & _
+ "HAVING lzahl<>soll" & vbCrLf & _
+ ";"
  mins(AWlf) = 7
  maxs(AWlf) = 15
  AWlf = AWlf + 1
@@ -1612,7 +1621,7 @@ sql(AWlf) = "" & _
  " ,(SELECT COALESCE(MAX(MID(dokname,INSTR(dokname,'WA ')+3,2)),'-') FROM dokumente WHERE pat_id=f.pat_id AND dokname RLIKE 'WA [0-5]' AND zeitpunkt BETWEEN qanf() AND qend()) WFa" & vbCrLf & _
  " ,GROUP_CONCAT(DISTINCT CASE WHEN r.Medikament RLIKE 'podo' THEN 'Pod' WHEN r.Medikament RLIKE 'Orthon' THEN 'Nagel' WHEN r.Medikament RLIKE 'orthop|therapies' THEN 'Schuh' WHEN r.Medikament RLIKE 'bettu' THEN 'Bett' ELSE '' END) Rp_je" & vbCrLf & _
  " ,GROUP_CONCAT(DISTINCT CASE WHEN ra.Medikament RLIKE 'podo' THEN 'Pod' WHEN ra.Medikament RLIKE 'Orthon' THEN 'Nagel' WHEN ra.Medikament RLIKE 'orthop|therapies' THEN 'Schuh' WHEN ra.Medikament RLIKE 'bettu' THEN 'Bett' ELSE '' END) Rp_akt" & vbCrLf & _
- " ,COALESCE(GROUP_CONCAT(DISTINCT CONCAT(fu.art,':',LEFT(fu.Inhalt,4)) SEPARATOR ', '),'') Fuﬂ_akt, e.Art eArt, u.Art uArt, r.Medikament rRz, ra.Medikament raRz, d.ICD dICD, dmpKlass,Kateg" & vbCrLf & _
+ " ,COALESCE(GROUP_CONCAT(DISTINCT CONCAT(fu.art,':',LEFT(fu.Inhalt,4)) SEPARATOR ', '),'') Fuﬂ_akt, e.Art eArt, u.Art uArt, r.Medikament rRz, ra.Medikament raRz, d.ICD dICD, dmpKlass,dmpbeg,Kateg" & vbCrLf & _
  " ,COALESCE(GROUP_CONCAT(DISTINCT CONCAT(e.art,':',e.Inhalt)),'') Debr_akt" & vbCrLf & _
  " FROM aktfv f LEFT JOIN namen USING (pat_id)" & vbCrLf & _
  " LEFT JOIN eintraege e ON e.pat_id=f.pat_id AND e.zeitpunkt BETWEEN qanf() AND qend() AND (e.inhalt LIKE '%ebrid%' OR e.art LIKE 'debr%' OR (e.inhalt LIKE '%resekt%' AND NOT e.inhalt RLIKE 'Leber.*rese[ck]t|Geb‰rmutterrese|Segmentresekt|Teilresekt|Linksresekt|Totalresekt|Prostataresekt|SD-resekt|Mucosaresektion|Nachresektion|Resektion der Schild|Strumaresekt|Schilddr¸senresekt|Gallenblase[n]{0,1}resektion|Elektroresektion|wurzelresektion|Nierenresektion|Pan[ck]reas.*resektion|trumektomie|igmaresektion|Resektion Leberzyste|Resektionsbereich|Pan[ck]reaskopfresektion|Re[ck]tumrese[ck]t|Rese[ck]tion Lunge'))" & vbCrLf & _
@@ -1627,7 +1636,7 @@ sql(AWlf) = "" & _
  " GROUP BY f.pat_id" & vbCrLf & _
  ") i" & vbCrLf & _
  "LEFT JOIN leistungen l ON l.pat_id = i.pat_id AND leistung IN ('97314','97324') AND l.zeitpunkt BETWEEN qanf() AND qend()" & vbCrLf & _
- "WHERE (NOT ISNULL(eArt) OR ((Fuﬂ_akt<>'' OR NOT ISNULL(uArt)) AND (WFc RLIKE '^0D|^[12][BCD]|^[3-5]' OR Wchron RLIKE '\\.[2-5]')) OR (WFa RLIKE '^0D|^[12][BCD]|^[3-5]' OR Wakt RLIKE '\\.[2-5]')) AND NOT ISNULL(dICD) AND ISNULL(leistung) AND (dmpklass IN (2,3) OR kateg IN ('LKK','PBe'))"
+ "WHERE (NOT ISNULL(eArt) OR ((Fuﬂ_akt<>'' OR NOT ISNULL(uArt)) AND (WFc RLIKE '^0D|^[12][BCD]|^[3-5]' OR Wchron RLIKE '\\.[2-5]')) OR (WFa RLIKE '^0D|^[12][BCD]|^[3-5]' OR Wakt RLIKE '\\.[2-5]')) AND NOT ISNULL(dICD) AND ISNULL(leistung) AND (((dmpklass=2 OR (dmpklass=3 AND dmpbeg<=qend()))) OR kateg IN ('LKK','PBe'))"
 '"WHERE (NOT ISNULL(eArt) OR ((Fuﬂ_akt<>'' OR NOT ISNULL(uArt)) AND (WFc RLIKE '^0D|^[12][BCD]|^[3-5]' OR Wchron RLIKE '\\.[2-5]')) OR (WFa RLIKE '^0D|^[12][BCD]|^[3-5]' OR Wakt RLIKE '\\.[2-5]')) OR NOT ISNULL(raRz)) AND NOT ISNULL(dICD) AND ISNULL(leistung) AND (dmpklass IN (2,3) OR kateg IN ('LKK','PBe'))"
 '"WHERE (NOT ISNULL(eArt) OR ((Fuﬂ_akt<>'' OR NOT ISNULL(uArt)) AND (WFc RLIKE '^0D|^[12][BCD]|^[3-5]' OR Wchron RLIKE '\\.[2-5]')) OR (WFa RLIKE '^0D|^[12][BCD]|^[3-5]' OR Wakt RLIKE '\\.[2-5]')) OR NOT ISNULL(rRz)) AND NOT ISNULL(dICD) AND ISNULL(leistung) AND (dmpklass IN (2,3) OR kateg IN ('LKK','PBe'))"
 
@@ -1648,7 +1657,7 @@ sql(AWlf) = "" & _
  sql(AWlf) = _
  "SELECT * FROM " & vbCrLf & _
  "(SELECT * FROM " & vbCrLf & _
- "(SELECT f.pat_id AS pat_id, gesname(f.pat_id) Name, zeitpunkt, fotostad, l.leistung AS Leistung, kateg, dmpklass, diab.icd AS DTyp FROM " & aktf & " " & vbCrLf & _
+ "(SELECT f.pat_id AS pat_id, gesname(f.pat_id) Name, zeitpunkt, fotostad, l.leistung AS Leistung, kateg, dmpklass, diab.icd DTyp FROM " & aktf & " " & vbCrLf & _
  "LEFT JOIN (SELECT fid,leistung FROM `leistungen` WHERE leistung IN ('97314','97324')) AS l ON f.fid = l.fid " & vbCrLf & _
  "LEFT JOIN (SELECT * FROM (SELECT MAX(pat_id) AS PID, MAX(MID(dokname,INSTR(dokname,""WA ""),5)) fotoStad, Quelldatum zeitpunkt FROM `dokumente` GROUP BY pat_id, zeitpunkt) innen WHERE " & vbCrLf & _
  "fotoStad = 'WA 0D' OR (fotostad LIKE 'WA %' AND NOT fotostad IN ('WA 1A','WA 2A') AND NOT fotostad LIKE 'WA 0%' AND NOT fotostad LIKE 'WA -%' ) " & vbCrLf & _
@@ -1662,7 +1671,7 @@ sql(AWlf) = "" & _
  "AND NOT ISNULL(dtyp) " & vbCrLf & _
  "AND (ISNULL(leistung)) " & vbCrLf & _
  "AND kateg NOT IN ('SA','') " & vbCrLf & _
- "AND (dmpklass IN (2,3) OR kateg IN ('LKK','PBe') " & vbCrLf & _
+ "AND (((dmpklass=2 OR (dmpklass=3 AND dmpbeg<=qend()))) OR kateg IN ('LKK','PBe') " & vbCrLf & _
  "AND true "
 #ElseIf schonwiederalt Then
 ' 26 "Fehlende 97314, 97324 f¸r Fuﬂsyndrom nach Fotostadium"
@@ -1678,7 +1687,7 @@ sql(AWlf) = "" & _
  "AND NOT ISNULL(fotostad) AND fotostad<>'' AND fotostad<>'wa -.' " & vbCrLf & _
  "AND NOT ISNULL(diab.icd) " & vbCrLf & _
  "AND NOT ISNULL(kateg) AND kateg NOT IN ('SA','') " & vbCrLf & _
- "AND (dmpklass IN (2,3) OR kateg IN ('LKK','PBe')) " & vbCrLf & _
+ "AND (((dmpklass=2 OR (dmpklass=3 AND dmpbeg<=qend()))) OR kateg IN ('LKK','PBe')) " & vbCrLf & _
  "ORDER BY f.pat_id "
 #Else
   sql(AWlf) = "-"
@@ -2748,7 +2757,7 @@ sql(AWlf) = _
 " , MIN(f‹w) f‹w, P_DMP, GROUP_CONCAT(DISTINCT L_DMP SEPARATOR '/') L_DMP, MIN(fDMP) fDMP, KName " & vbCrLf & _
 "FROM ( " & vbCrLf & _
 "  SELECT f.Pat_id, gesname(f.pat_id) Name,patAlter(f.pat_id) PAlter, l.id LID, l.Zeitpunkt, l.Leistung, maxtha(f.pat_id) Therakt, g.Therarten " & vbCrLf & _
-"  , IF(therarten<>'' AND INSTR(therarten,REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(maxtha(f.pat_id),_utf8mb4'?',_utf8mb4''),_utf8mb4'GLP1ICT',_utf8mb4'ICT'),_utf8mb4'GLP1Ins',_utf8mb4'Komb'),_utf8mb4'GLP1',_utf8mb4'OAD'),_utf8mb4'Komb',IF(d.icd RLIKE '^E10',_utf8mb4'ICT',_utf8mb4'Komb')))=0 AND NOT ((d.icd = 'O24.4' AND d.diagsicherheit NOT IN ('A','Z') AND COALESCE(d.f6010,0)=0) AND l.leistung=97271),'FTh!','') fTha " & vbCrLf & _
+"  , IF(therarten<>'' AND INSTR(therarten,REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(maxtha(f.pat_id),_utf8mb4'?',_utf8mb4''),_utf8mb4'GLP1ICT',_utf8mb4'ICT'),_utf8mb4'GLP1Ins',_utf8mb4'Komb'),_utf8mb4'GLP1',_utf8mb4'OAD'),_utf8mb4'Komb',IF(d.icd RLIKE '^E10',_utf8mb4'ICT',_utf8mb4'Komb')))=0 AND NOT (d.gicd = 'O24.4' AND l.leistung=97271),'FTh!','') fTha " & vbCrLf & _
 "  , dmtypicd(d.icd) P_DTyp, GROUP_CONCAT(DISTINCT g.DTyp) DTyp, g.leistung gleistung, myid " & vbCrLf & _
 "  ,IF(k.kateg='EK','vdek',IF(k.kateg='',k.name,k.kateg)) Kasse, GROUP_CONCAT(DISTINCT g.Kassen) Kassen, IF(k.name='',k.kurzname,k.name) KName " & vbCrLf & _
 "  ,IF(l.lanr='889690003','Schade',IF(l.lanr='933284903','Kothny',l.lanr)) P_Arzt " & vbCrLf & _
@@ -2756,9 +2765,9 @@ sql(AWlf) = _
 "  ,ROUND(DATEDIFF(l.zeitpunkt,n.gebdat)/365.24) P_Alter, CAST(CONCAT(IF(von=0,'',von),'-',IF(bis=0,'',bis)) AS char) AlStuf " & vbCrLf & _
 "  ,MIN(IF(von<>0 AND (ROUND(DATEDIFF(l.zeitpunkt,n.gebdat)/365.24)<vON OR ROUND(DATEDIFF(l.zeitpunkt,n.gebdat)/365.24)>bis),'fAlter!','')) fAlter " & vbCrLf & _
 "  ,n.geschlecht, GROUP_CONCAT(DISTINCT IF(g.weibl=1,'w','wm')) L_Gsl " & vbCrLf & _
-"  ,IF(g.mit¸w>1 AND f.schgr='00' AND NOT (g.mit¸w=2 AND (n.dmpklass=3 OR k.kateg='LKK')) AND NOT n.kvnr IN ('889690003','9333284903'),'f‹w','') f‹w " & vbCrLf & _
+"  ,IF(g.mit¸w>1 AND f.schgr='00' AND NOT (g.mit¸w=2 AND ((n.dmpklass=3 AND n.dmpbeg<=qend()) OR k.kateg='LKK')) AND NOT n.kvnr IN ('889690003','9333284903'),'f‹w','') f‹w " & vbCrLf & _
 "  ,IF(n.dmpklass IN (2,3),'+','-') P_DMP,CONCAT(IF(g.dmp1=1,'T1',''),IF(g.dmp1=1 AND g.dmp2=1,'/',''),IF(g.dmp2=1,'T2','')) L_DMP " & vbCrLf & _
-"  ,IF((g.dmp1=1 OR g.dmp2=1) AND NOT n.dmpklass IN (2,3) AND NOT ((k.kateg IN ('LKK','PBe','SHV','') AND l.leistung IN ('97310','973212','97313','97314','97320','97321','97322','97323','97324')) OR (k.kateg='PBe' AND l.leistung IN ('97268','92298D','92698P','92698C','92698S','92698B','92698A','92277','92278','92267A','97267B','92268A','97268B','92266A','97266B','92265A','97265B','92269A','97269B','92264A','97264B','92263A','97263B','92262A','97262B','92261A','97261B','92281','92282','92292S','97267B','92292E','97268B','92292D','97266B','92292C','97265B','92292B','97274','92292A','97268','92711G','92710G','92711S','92710S','92710A','92711A','92710B','97269','97280','97271','97274','97267B','97280S','97276','97277','97270','92278','92281','92282','97312','97310','97320','97321','97322','97313','97323','97333'))),'fDMP','') fDMP " & vbCrLf
+"  ,IF((g.dmp1=1 OR g.dmp2=1) AND NOT ((dmpklass=2 OR (n.dmpklass=3 AND n.dmpbeg<=qend()))) AND NOT ((k.kateg IN ('LKK','PBe','SHV','') AND l.leistung IN ('97310','973212','97313','97314','97320','97321','97322','97323','97324')) OR (k.kateg='PBe' AND l.leistung IN ('97268','92298D','92698P','92698C','92698S','92698B','92698A','92277','92278','92267A','97267B','92268A','97268B','92266A','97266B','92265A','97265B','92269A','97269B','92264A','97264B','92263A','97263B','92262A','97262B','92261A','97261B','92281','92282','92292S','97267B','92292E','97268B','92292D','97266B','92292C','97265B','92292B','97274','92292A','97268','92711G','92710G','92711S','92710S','92710A','92711A','92710B','97269','97280','97271','97274','97267B','97280S','97276','97277','97270','92278','92281','92282','97312','97310','97320','97321','97322','97313','97323','97333'))),'fDMP','') fDMP " & vbCrLf
 sql(AWlf) = sql(AWlf) & _
 "FROM `aktfvs` f " & vbCrLf & _
 "LEFT JOIN `namen` n ON f.pat_id = n.pat_id " & vbCrLf & _
@@ -3046,15 +3055,27 @@ sql(AWlf) = sql(AWlf) & _
 " OR (iart IN (12,112) AND leistung IN ('89110A')) " & vbCrLf & _
 " OR (iart IN (13,113) AND leistung IN ('89133Y','89133V')) " & vbCrLf & _
 " OR (iart IN (14,114) AND leistung IN ('89201A','89201B','89201R')) " & vbCrLf & _
-" OR (iart IN (16,116) AND leistung RLIKE '^89132[VWX]') " & vbCrLf & _
-" OR (iart IN (120) AND leistung RLIKE '^88334[YI]{0,1}') " & vbCrLf & _
-" OR (iart IN (121) AND leistung RLIKE '^88333[ABVWGH]') " & vbCrLf & _
+" OR (iart IN (16,116) AND leistung RLIKE '^89132[VWX]') " & vbCrLf
+sql(AWlf) = sql(AWlf) & _
+" OR (iart IN (127) AND leistung RLIKE '^88337[ABRVWXGHK]') " & vbCrLf & _
+" OR (iart IN (121) AND leistung RLIKE '^88331[ABRVWXGHK]') " & vbCrLf & _
+" OR (iart IN (128) AND leistung RLIKE '^88338[ABRVWXGHK]') " & vbCrLf & _
 " OR (iart IN (122) AND leistung RLIKE '^88332[ABRVWXGHK]') " & vbCrLf & _
-" OR (iart IN (123) AND leistung RLIKE '^88331[ABRVWXGHK]') ) " & vbCrLf & _
+" OR (iart IN (124) AND leistung RLIKE '^88334[ABRVWXGHK]') " & vbCrLf & _
+" OR (iart IN (125) AND leistung RLIKE '^88335[ABRVWXGHK]') " & vbCrLf & _
+" OR (iart IN (126) AND leistung RLIKE '^88336[ABVWGH]') " & vbCrLf & _
+") " & vbCrLf & _
 "WHERE NOT ISNULL(inhalt) AND (schgr<>90 OR impfart(e.inhalt)=8) AND ISNULL(leistung) " & vbCrLf & _
 "AND NOT inhalt RLIKE 'Twinrix|Engerix|strova'" & vbCrLf & _
 "GROUP BY f.pat_id, iart, leistung" & vbCrLf & _
 ";"
+'    "   WHEN inh RLIKE 'Astra|Vaxzev' THEN SET erg='123';" & vbCrLf & _
+    "   WHEN inh RLIKE 'Spikevax|Moderna' THEN SET erg='122';" & vbCrLf & _
+    "   WHEN inh RLIKE 'biontech|comirnaty|corminaty|cominarty|comiarty|coirnaty|cominary|comirnary|commirnaty|comirnarty|cominaty|comitnaty' THEN IF inh RLIKE ': G' THEN SET erg='127'; ELSE SET erg='121'; END IF;" & vbCrLf & _
+    "   WHEN inh RLIKE 'Novavax' THEN SET erg='125';" & vbCrLf & _
+    "   WHEN inh RLIKE 'Valneva' THEN SET erg='126';" & vbCrLf & _
+
+
 ' 8833[12][ABRVWXGHK]|88333[ABVWGH]|88334[YI]{0,1}
  mins(AWlf) = 10
  maxs(AWlf) = 60
@@ -3989,7 +4010,7 @@ sql(AWlf) = "select pat_id, gesname(pat_id) PName, Zeitpunkt, art, Inhalt FROM e
  AWlf = AWlf + 1
  
 ' 93
-AwN(AWlf) = "Fehlende oder zu alte DMP-(Teilnahme)best‰tigung IN der Karteikarte"
+AwN(AWlf) = "Fehlende oder zu alte DMP-(Teilnahme)best‰tigung in der Karteikarte"
 sql(AWlf) = "" & vbCrLf & _
 "SELECT v.pat_id, gesnameg(v.pat_id) Name, b.zeitpunkt, b.name " & vbCrLf & _
 "FROM aktfvs v " & vbCrLf & _
@@ -5380,7 +5401,9 @@ sql(AWlf) = sql(AWlf) & _
 "       WHEN inhalt RLIKE 'Spikevax|Moderna' THEN " & vbCrLf & _
 "           CASE WHEN ob23>2 THEN '88332R' WHEN ob23=2 THEN '88332B' ELSE '88332A' END " & vbCrLf & _
 "       WHEN inhalt RLIKE 'biontech|comirnaty|corminaty|cominarty|comiarty|coirnaty|cominary|comirnary|commirnaty|comirnarty|cominaty|comitnaty' THEN " & vbCrLf & _
-"           CASE WHEN ob23>2 THEN '88331R' WHEN ob23=2 THEN '88331B' ELSE '88331A' END " & vbCrLf & _
+"           IF(inhalt RLIKE ': G'," & vbCrLf & _
+"            CASE WHEN ob23>2 THEN '88337R' WHEN ob23=2 THEN '88337B' ELSE '88337A' END," & vbCrLf & _
+"            CASE WHEN ob23>2 THEN '88331R' WHEN ob23=2 THEN '88331B' ELSE '88331A' END)" & vbCrLf & _
 "       ELSE '' END solllei " & vbCrLf
 sql(AWlf) = sql(AWlf) & _
 "FROM " & vbCrLf & _
@@ -5394,12 +5417,13 @@ sql(AWlf) = sql(AWlf) & _
 "   , COALESCE((SELECT DATE_FORMAT(diagdatum,'%d.%m.%y') FROM diagnosen WHERE pat_id=e.pat_id AND diagdatum<DATE(e.zeitpunkt) AND icd='U07.1' AND diagsicherheit IN ('G','Z',' ') AND COALESCE(f6010,0)=0 ORDER BY zeitpunkt LIMIT 1),'') znc " & vbCrLf & _
 "   , COALESCE((SELECT MAX(LEFT(fd.feldinh,1)) FROM formular fd LEFT JOIN formular f ON fd.foid=f.foid AND fd.feld='dosis' AND f.feld='impfdatum' WHERE f.pat_id=e.pat_id AND f.form_abk='covze' AND STR_TO_DATE(f.feldinh,'%d.%m.%Y')=DATE(e.zeitpunkt)),0) dnr " & vbCrLf & _
 "   FROM eintraege e" & vbCrLf & _
+"   WHERE zeitpunkt>=qanf()" & vbCrLf & _
 "  ) e" & vbCrLf & _
 " ) e" & vbCrLf & _
 "" & vbCrLf & _
 "WHERE art = 'vac' AND zeitpunkt > 20210331 AND inhalt RLIKE 'Janssen|Johnson|Astra|Vaxzev|Spikevax|Moderna|biontech|comirnaty|corminaty|cominarty|comiarty|coirnaty|cominary|comirnary|commirnaty|comirnarty|cominaty|comitnaty|novavax' " & vbCrLf & _
 "HAVING solllei <> '') i " & vbCrLf & _
-"LEFT JOIN leistungen l ON l.pat_id=i.pat_id AND DATE(l.zeitpunkt)=date(i.zeitpunkt) AND leistung RLIKE '^8833[12][ABRVWXGHK]|^88333[ABVWGH]|^88334[YI]{0,1}' " & vbCrLf & _
+"LEFT JOIN leistungen l ON l.pat_id=i.pat_id AND DATE(l.zeitpunkt)=date(i.zeitpunkt) AND leistung RLIKE '^8833[12578][ABRVWXGHK]|^88333[ABVWGH]|^88334[YI]{0,1}|^88336[ABVWGH]' " & vbCrLf & _
 "GROUP BY i.pat_id,i.zeitpunkt " & vbCrLf & _
 "HAVING solllei<>REPLACE(REPLACE(REPLACE(istlei,'X','R'),'W','B'),'V','A') OR lzahl<>1; "
 ' vacinh23 = IN der Inhaltsspalte von "vac" steht "2." oder "3.", sonst 1
@@ -5490,7 +5514,7 @@ AwN(AWlf) = "Mˆglicherweise zu Unrecht dem Bayerischen Landesinstitut f¸r Gesund
 "FROM faelle f " & vbCrLf & _
 "LEFT JOIN leistungen l ON l.fid=f.fid AND DATE(l.zeitpunkt) BETWEEN f.bhfb AND f.bhfe1 " & vbCrLf & _
 "WHERE f.VKNr = 71800 " & vbCrLf & _
-"HAVING NOT ISNULL(leistung) AND ((f.schgr = '90') = (leistung RLIKE '^88122|^8832[02345]|^8833[12][ABRVWXGHK]|^88333[ABVWGH]|^88334[YI]{0,1}|^8835[01235]|^8831[12]|^88371|^98060')) " & vbCrLf & _
+"HAVING NOT ISNULL(leistung) AND ((f.schgr = '90') = (leistung RLIKE '^88122|^8832[02345]|^8833[12578][ABRVWXGHK]|^88333[ABVWGH]|^88334[YI]{0,1}|^88336[ABVWGH]|^8835[01235]|^8831[12]|^88371|^98060')) " & vbCrLf & _
 "ORDER BY f.pat_id, zeitpunkt " & vbCrLf & _
 ";"
 ' AND f.bhfb BETWEEN qanf() AND qend()
@@ -5503,7 +5527,7 @@ AwN(AWlf) = "Mˆglicherweise unerlaubt abgerechnete Impfberatungen (88322)"
  sql(AWlf) = "" & _
  "SELECT l.pat_id,gesname(l.pat_id) PName, l.Zeitpunkt,l.Leistung, n.ZeitPunkt, n.Leistung " & vbCrLf & _
  "FROM leistungen l " & vbCrLf & _
- "LEFT JOIN leistungen n ON l.pat_id=.n.pat_id AND n.leistung RLIKE '^8833[12][ABRVWXGHK]|^88333[ABVWGH]|^88334[YI]{0,1}' " & vbCrLf & _
+ "LEFT JOIN leistungen n ON l.pat_id=.n.pat_id AND n.leistung RLIKE '^8833[12578][ABRVWXGHK]|^88333[ABVWGH]|^88334[YI]{0,1}|^88336[ABVWGH]' " & vbCrLf & _
  "AND n.ZeitPunkt BETWEEN qende(l.zeitpunkt) - INTERVAL 1 YEAR AND qende(l.zeitpunkt) + INTERVAL 3 MONTH " & vbCrLf & _
  "WHERE l.leistung='88322' AND NOT ISNULL (n.pat_id) AND l.zeitpunkt>=qanf()" & vbCrLf & _
  "GROUP BY l.id " & vbCrLf & _
@@ -5659,7 +5683,7 @@ sql(AWlf) = "SELECT f.pat_id " & vbCrLf & _
 "      AND patalter(f.pat_id) BETWEEN von AND bis " & vbCrLf & _
 "      AND (kht<>2 OR ISNULL((SELECT MAX(0) FROM diagnosen WHERE pat_id=f.pat_id AND gicd='I10.90' AND obdauer<>0))) " & vbCrLf & _
 "      AND INSTR(kassen,f.kateg)<>0 " & vbCrLf & _
-"     AND (INSTR(erkl‰rung,'DMP')=0 OR n.dmpklass IN (2,3)) " & vbCrLf & _
+"     AND (INSTR(erkl‰rung,'DMP')=0 OR ((n.dmpklass=2 OR (n.dmpklass=3 AND n.dmpbeg<=qend())))) " & vbCrLf & _
 "     AND dtyp=dt.ityp " & vbCrLf & _
 "     AND (therarten='' OR INSTR(therarten,REPLACE(maxtha(f.pat_id),_utf8mb4'GLP',_utf8mb4''))<>0) " & vbCrLf & _
 "     AND kht=2 " & vbCrLf & _
@@ -5670,7 +5694,7 @@ sql(AWlf) = sql(AWlf) & _
 "      AND patalter(f.pat_id) BETWEEN von AND bis " & vbCrLf & _
 "      AND (kht<>2 OR ISNULL((SELECT MAX(0) FROM diagnosen WHERE pat_id=f.pat_id AND gicd='I10.90' AND obdauer<>0))) " & vbCrLf & _
 "      AND INSTR(kassen,f.kateg)<>0 " & vbCrLf & _
-"     AND (INSTR(erkl‰rung,'DMP')=0 OR n.dmpklass IN (2,3)) " & vbCrLf & _
+"     AND (INSTR(erkl‰rung,'DMP')=0 OR ((n.dmpklass=2 OR (n.dmpklass=3 AND n.dmpbeg<=qend())))) " & vbCrLf & _
 "     AND dtyp=dt.ityp " & vbCrLf & _
 "     AND (therarten='' OR INSTR(therarten,REPLACE(maxtha(f.pat_id),_utf8mb4'GLP',_utf8mb4''))<>0) " & vbCrLf & _
 "     AND kht=1 " & vbCrLf & _
@@ -6039,13 +6063,13 @@ End Sub ' Start_Click()
 
 Private Sub tuStart_click(obauto%)
  Dim lfSQL$, i&, StartZeit As Date, ‹berschrift As New CString
- Static rc As New Adodb.Connection
- Dim rLF As Adodb.Recordset, rIn As Adodb.Recordset
+ Static rc As New ADODB.Connection
+ Dim rLF As ADODB.Recordset, rIn As ADODB.Recordset
  StartZeit = Now()
  If rc.State <> 1 Then
    Set rc = Lese.dbv.wCn
  End If
- Set rLF = New Adodb.Recordset
+ Set rLF = New ADODB.Recordset
  Call EinstSpeichern
  Call SQLvorZeigSQL
  Dim AbrFlrDt$, AbrAutDt$
@@ -6236,13 +6260,13 @@ fehler:
  End Select
 End Sub ' SizeColumns
 
-Public Function AbrFausg(name$, sql$, Datei$, mins%, maxs%, ‹berschrift As CString, obappend%, sqlnr%, obauto%, ByRef angefangen%, ByRef BDT As BDTSchreib) ' Abrechnungsfehler ausgeben
+Public Function AbrFausg(name$, sql$, Datei$, mins%, ByVal maxs%, ‹berschrift As CString, obappend%, sqlnr%, obauto%, ByRef angefangen%, ByRef BDT As BDTSchreib) ' Abrechnungsfehler ausgeben
  Dim ‹berschrAkt As New CString
  ‹berschrAkt = ‹berschrift
  On Error GoTo fehler
  Dim T1!
- Static rc As New Adodb.Connection
- Static rE As Adodb.Recordset
+ Static rc As New ADODB.Connection
+ Static rE As ADODB.Recordset
 #If obmitalterform Then
  Dim rD As DAO.Recordset
  If Me.AbrF.DAO Then
@@ -6253,7 +6277,7 @@ Public Function AbrFausg(name$, sql$, Datei$, mins%, maxs%, ‹berschrift As CStri
 #Else
  If True Then
 #End If
-  If rE Is Nothing Then Set rE = New Adodb.Recordset
+  If rE Is Nothing Then Set rE = New ADODB.Recordset
   If rc.State <> 1 Then
    Set rc = Lese.dbv.wCn
   End If
@@ -6275,7 +6299,6 @@ Public Function AbrFausg(name$, sql$, Datei$, mins%, maxs%, ‹berschrift As CStri
   Dim rcsql$
   On Error Resume Next
   ‹berschrAkt.AppVar Array(name)
-  rc.Execute "SET GROUP_CONCAT_MAX_LEN = " & maxs
   If InStrB(name, "Fehler bei Chronikerpauschale") <> 0 Then 'sqlnr = 33 THEN
    rc.Execute "SET @qn:=(SELECT f.quartal FROM aktfv f LEFT JOIN faelle fa USING (fid) LIMIT 1)"
    rc.Execute "SET @qe:=vorquart(@qn,1)"
@@ -6283,8 +6306,10 @@ Public Function AbrFausg(name$, sql$, Datei$, mins%, maxs%, ‹berschrift As CStri
    rc.Execute "SET @qd:=vorquart(@qn,3)"
    rc.Execute "SET @qv:=vorquart(@qn,4)"
   End If
+'  rc.Execute "SET GROUP_CONCAT_MAX_LEN = " & maxs
   Err.Clear
-  rE.Open sql, rc, adOpenStatic, adLockReadOnly ' 24.6.09: Hier ging der Kontakt zum Server verloren, evtl. Zufall
+'  rE.Open sql, rc, adOpenStatic, adLockReadOnly ' 24.6.09: Hier ging der Kontakt zum Server verloren, evtl. Zufall
+  myFrag rE, sql, adOpenStatic, rc, adLockReadOnly, maxs
   ' Listen mit (lauto)
   If obauto Then
    Dim lanrda%, leida%, ldda%, pda%, i%, Arztnr&, Zahl&, Protdat$
@@ -6383,7 +6408,7 @@ fehler:
 '  Print #307, "Last DLL-Error: ", ErrLastDllError
 '  Print #307, "Error-Description: ", ErrDescription
   Set rE = Nothing
-  Set rE = New Adodb.Recordset
+  Set rE = New ADODB.Recordset
   Set rc = Lese.dbv.wCn
   rE.Open "SHOW ERRORS", rc, adOpenStatic, adLockReadOnly
   If Not rE.EOF Then

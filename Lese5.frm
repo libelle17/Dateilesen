@@ -392,6 +392,9 @@ Begin VB.MDIForm Lese
          Begin VB.Menu Statistik_zu_03230nachArzt 
             Caption         =   "03230-Zahl nach Arzt"
          End
+         Begin VB.Menu Statistik_zu_03230_einzeln 
+            Caption         =   "03230-Zahl einzeln"
+         End
       End
       Begin VB.Menu Abrechnungsfehler 
          Caption         =   "&Abrechnungsfehler"
@@ -992,7 +995,6 @@ Private Sub Datenbank_Click()
  Screen.MousePointer = vbDefault
 End Sub ' Datenbank_Click
 
-
 #If False Then
 Private Sub Zurücksetzen_Click() ' nicht sichtbar: "Datei -> &Zurücksetzen des Programmlaufs"
  Call ProgrammLauf(-1) ' falls es fälschlich auf 0 steht: 0 = Programm läuft, -1 = nicht
@@ -1160,6 +1162,15 @@ Private Sub Statistik_zu_03230nachArzt_Click()
  TabAusgeb rs, Me, , , , , , , "03230 nach Arzt", 1
 End Sub ' Statistik_zu_03230nachArzt_Click
 
+' Statistik_zu_03230_einzeln
+Private Sub Statistik_zu_03230_einzeln_Click()
+ Dim rs As New ADODB.Recordset
+ myFrag rs, "SELECT f.pat_id, gesname(f.pat_id) PName, zeitpunkt zp, CASE WHEN l.lanrid=1 THEN 'gs' WHEN l.lanrid=2 THEN 'tk' END Arzt, lzahl " & vbCrLf & _
+         "FROM aktfv f LEFT JOIN leistungen l ON f.pat_id=l.pat_id AND l.zeitpunkt BETWEEN qanf() AND qend()" & vbCrLf & _
+         "WHERE leistung='03230' ORDER BY f.pat_id, l.zeitpunkt;"
+ TabAusgeb rs, Me, , , , , , , "03230 nach Arzt", 1
+End Sub
+
 ' Funktionen für Arzthelferin und Arzt -> Abrechnungsfehler
 Private Sub Abrechnungsfehler_Click()
  Dim AbrF As New AbrechFehler
@@ -1193,30 +1204,30 @@ If Not rs.BOF Then
     Set rsa = Nothing
 '   myfrag rsa, sqla
     Dim lwZahl&, aktlwx&
-    Dim Lab() As labtyp
+    Dim lab() As labtyp
     Set rsa = hollabor(rs!Pat_id, "", 0, 0, 0, lwZahl)
     If Not rsa.BOF And lwZahl Then
-     ReDim Lab(lwZahl)
+     ReDim lab(lwZahl)
      aktlwx = 0
      Do While Not rsa.EOF
-      Lab(aktlwx).Abkü = rsa!Abkü
-      Lab(aktlwx).WertSg = rsa!Wert
-      Lab(aktlwx).Einheit = rsa!Einheit
-      Lab(aktlwx).Zp = rsa!Zeitpunkt
+      lab(aktlwx).Abkü = rsa!Abkü
+      lab(aktlwx).WertSg = rsa!Wert
+      lab(aktlwx).Einheit = rsa!Einheit
+      lab(aktlwx).Zp = rsa!Zeitpunkt
       aktlwx = aktlwx + 1
       rsa.MoveNext
      Loop
      If lwZahl Then
       Dim Zp As Date
       For aktlwx = 0 To lwZahl
-       If obLabI(LA_AlbCre, Lab(aktlwx)) Then
+       If obLabI(LA_AlbCre, lab(aktlwx)) Then
    
 '   IF Not rsa.BOF THEN
 '    Do While Not rsa.EOF
 '     Debug.Print rs!Pat_id, rsa.Fields(0), rsa.Fields(1)
         gesZ = gesZ + 1
-        Zp = Lab(aktlwx).Zp
-        aktAlb = MachNumerisch(Lab(aktlwx).WertSg) 'rsa!wert)
+        Zp = lab(aktlwx).Zp
+        aktAlb = MachNumerisch(lab(aktlwx).WertSg) 'rsa!wert)
         If aktAlb > maxAlb Then maxAlb = aktAlb
         If aktAlb >= 20 Then pz = pz + 1 Else nz = nz + 1
         If pz > 1 And Not (nz >= pz + pz) Then obNP = 1: Exit For ' Do
@@ -1424,7 +1435,6 @@ Private Sub HausärztemitalterKVNrergänzen_Click()
  InsKorr DBCn, DBCnS, "INSERT INTO `althae` (kvnu,kvnr) SELECT kvnu, kvnr FROM (SELECT n.kvnr kvnu, LEFT(n.kvnr,2),'/',right(n.kvnr,5) kvnr, HAName hHA, CONCAT_WS(', ',l.name, l.vorname) lHA FROM `aktfvs` f LEFT JOIN `namen` n ON f.pat_id = n.pat_id LEFT JOIN `aktlue` l ON n.kvnr = l.kvnro LEFT JOIN althae h ON n.kvnr = h.kvnu GROUP BY n.pat_id) innen WHERE (ISNULL(lha) OR lha='') AND (ISNULL(hha) OR hha='') AND kvnu <> '' AND NOT EXISTS (SELECT kvnu FROM althae WHERE kvnu = innen.kvnu)", rAF
 ' SET fha.datprimaryRS = n
 ' Call fha.vorbereit
- DBCn.Execute "SET GROUP_CONCAT_MAX_LEN = 70"
  myFrag rs, "SELECT GROUP_CONCAT(kvnu) nrn FROM (SELECT n.kvnr kvnu, HAName hHA, CONCAT_WS(', ',l.name, l.vorname) lHA FROM `aktfvs` f LEFT JOIN `namen` n ON f.pat_id = n.pat_id LEFT JOIN `aktlue` l ON n.kvnr = l.kvnro LEFT JOIN althae h ON n.kvnr = h.kvnu GROUP BY n.pat_id) innen WHERE (ISNULL(lha) OR lha='') AND (ISNULL(hha) OR hha='') AND kvnu <> ''"
  If LenB(rs!nrn) <> 0 Then
   If fha.Vorbereit(rs!nrn) Then
@@ -1846,7 +1856,6 @@ Private Sub DMPKHKAsthma_Click()
        "   OR (form_abk LIKE 'edmp%' AND feld = 'Einschreibung' AND Feldnr IN (2,3,4))) " & vbCrLf & _
        "   AND f.zeitpunkt > SUBDATE(NOW(),INTERVAL 365 DAY) " & vbCrLf & _
        "GROUP BY n.pat_id,form_abk, DATE(zeitpunkt)"
- DBCn.Execute "SET GROUP_CONCAT_MAX_LEN = 70"
  myFrag rs, sql
  TabAusgeb rs, Me, , , , , , , "DMP KHK Asthma " & Format(Now(), "dd.mm.YYYY")
 End Sub ' DMPKHKAsthma_Click
@@ -2272,7 +2281,6 @@ Private Sub Überweiserstatistik_Click()
 ' myfrag rs, "SELECT kvnu,anrede, haname,plz,ort,tel1,tel2,fax1,fax2,zulg,arzttyp,dmpt2,dmpt1 FROM (SELECT COUNT(0) AS ct, LEFT(übwv,7) AS kvnu FROM `faelle` WHERE bhfb > " & DatFor_k(Now - 365) & " AND übwv <> '' GROUP BY übwv " & _
    "UNION SELECT COUNT(0) AS ct, LEFT(andüw,7) AS kvnu FROM `faelle` WHERE bhfb > " & DatFor_k(Now - 365) & " AND andüw <> '' GROUP BY andüw) AS i LEFT JOIN `kvaerzte`.`hae` USING (kvnu) WHERE not gelöscht AND NOT ISNULL(kvnu) AND kvnu <> '6419153' ORDER BY ct DESC"
  sql = "SELECT ct,haname,ort,dmpt2,dmpt1,i.kvnu,lname,pat_id,bhfb FROM (SELECT COUNT(0) AS ct, übwr kvnu, GROUP_CONCAT(DISTINCT CAST(pat_id AS char)) pat_id, bhfb FROM quelle.faelle f WHERE bhfb > '2008-12-05 21:39:20' AND übwr <> '' AND übwr <> '641915300' GROUP BY kvnu) i LEFT JOIN " & HADBName & ".`hae` hae ON i.kvnu = hae.kvnu LEFT JOIN (SELECT GROUP_CONCAT(DISTINCT name) lname,kvnr FROM `aktlue` l WHERE kvnro<>'' GROUP BY kvnr) l ON i.kvnu = l.kvnr ORDER BY ct DESC;"
- DBCn.Execute "SET GROUP_CONCAT_MAX_LEN = 70"
  myFrag rs, sql
  For i = 0 To rs.Fields.COUNT - 1
   ausg = ausg & """" & rs.Fields(i).name & """;"
@@ -2310,8 +2318,6 @@ Private Sub Überweiserstatistik2_Click()
        "GROUP BY pat_id, übwvlanr) i " & _
        "WHERE übwvlanr<>'' " & _
        "GROUP BY lid ORDER BY COUNT(0) DESC;"
-
- DBCn.Execute "SET GROUP_CONCAT_MAX_LEN = 70"
  myFrag rs, sql
  TabAusgeb rs, Me, , , , , , , "Überweiserstatistik 2a bis " & Format(Now(), "dd.mm.YYYY")
 End Sub ' Überweiserstatistik2_Click
@@ -2369,7 +2375,6 @@ Private Sub Schulungsstatistik_Click()
   For Each el In col:  lst.AppVar Array("'", el, "',"): Next el
   lst.Cut (lst.length - 1)
   sql.AppVar Array("SELECT e.Leistung,Titel,COUNT(pat_id) Zahl,CAST(GROUP_CONCAT(pat_id) AS char) Pat_IDs FROM `ebm2000plus` e LEFT JOIN `leistungen` l ON l.leistung = e.leistung AND YEAR(SUBDATE(NOW(),INTERVAL 15 DAY)) = YEAR(l.zeitpunkt) WHERE e.leistung IN (", lst.Value, ") GROUP BY e.leistung")
-  DBCn.Execute "SET GROUP_CONCAT_MAX_LEN = 70"
   myFrag rs, sql.Value
   SpMax(3) = 100
   TA1 = TabAusgeb(rs, Me, , , , , SpMax, , "Schulungsstatistik")
@@ -2414,7 +2419,6 @@ Private Sub Schulungsziffereinzelnachweis_Click()
  Dim Ziffer$, rs As New ADODB.Recordset, spmaxü
  spmaxü = Array(10, 5, 200)
  Ziffer = InputBox("Für welche Ziffer (z.b. '97268', '97274'?")
- DBCn.Execute "SET GROUP_CONCAT_MAX_LEN = 70"
 ' ktag fehlerhaft
  myFrag rs, "SELECT DATE(zeitpunkt) Datum, COUNT(0) Zahl, GROUP_CONCAT(pat_id) Pat_id FROM leistungen WHERE leistung = '" & Ziffer & "' GROUP BY tag ORDER BY tag"
  TabAusgeb rs, Me, , , , , spmaxü, , "Ziffereinzelnachweis für Ziffer " & Ziffer
@@ -2543,7 +2547,7 @@ Private Sub Therapieartenwechsel_Click() ' s. therart_erm
   DBCn.Execute "CREATE TABLE IF NOT EXISTS `therarten`(id INT(11) NOT NULL AUTO_INCREMENT,pat_id INT(11) NULL DEFAULT NULL,zp DATETIME NULL DEFAULT NULL,mpnr INT(11) NULL DEFAULT NULL,therart VARCHAR(7) NULL DEFAULT NULL COLLATE 'utf8mb4_german2_ci',insart INT(1) UNSIGNED NOT NULL DEFAULT '0' COMMENT '\'0=keines, 1=nur Mahlzeiten,2=nur Verzögerungs,3=nur Misch, 4=verschiedene',Grund VARCHAR(1000) NULL DEFAULT NULL COMMENT 'Grund/Gründe für Zuordnung' COLLATE 'utf8mb4_german2_ci',absPos INT(10) NULL DEFAULT NULL,AktZeit DATETIME NULL DEFAULT NULL,StByte INT(10) NULL DEFAULT NULL,PRIMARY KEY (id) USING BTREE,INDEX pat_id (pat_id) USING BTREE,INDEX zp (zp,mpnr) USING BTREE) COLLATE='utf8mb4_german2_ci' ENGINE = MyISAM"
   DBCn.Execute "TRUNCATE `therarten`"
 #If Not thaalt Then
-  DBCn.Execute "call fuellThaP(0)"
+  DBCn.Execute "CALL fuellThaP(0)"
 #Else
   sql = "SELECT pat_id, zp, mpnr, IF(purez OR puzu,'CSII',IF(obict=1,'ICT',IF(insu=0,IF(oad=1,'OAD','Diät'),IF(oad=1,'Komb','CT')))) therart FROM (SELECT mpü.pat_id, mpü.zeitpunkt zp, mpü.mpnr, " & _
         "(SELECT COUNT(0)<>0 oad FROM `medplan` mpu LEFT JOIN `medarten` ma ON mpu.medanfang = ma.medikament WHERE mpu.pat_id = mpü.pat_id AND mpu.mpnr = mpü.mpnr AND (glib<>0 OR metf<>0 OR gluci<>0 OR shglin<>0 OR glit<>0 OR dpp4<>0 OR sglt2<>0 OR sonstad<>0)) oad, " & _
@@ -4585,6 +4589,10 @@ End Sub ' Konstanten
 
 Private Sub mdiForm_Load()
   userprof = Environ("userprofile")
+  Dim lab$
+  On Error Resume Next
+  Me.Caption = "Patientendaten Diabetespraxis Dachau, Programm: " & App.path & "\" & App.EXEName & ".exe"
+  Me.Caption = Me.Caption & ", erstellt: " & FSO.GetFile(App.path & "\" & App.EXEName & ".exe").DateLastModified
   Dim diff#
   On Error GoTo fehler
   Call WD

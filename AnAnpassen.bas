@@ -1962,7 +1962,7 @@ Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "Last
 End Select
 End Function 'AnImp
 
-' 4.9.06: wird aufgerufen IN doTabakStAlt, do_AnImp und gkw, dodoPLZ
+' 4.9.06: wird aufgerufen in doTabakStAlt, do_AnImp und gkw, dodoPLZ
 Function MachNumerisch#(ByVal ST$, Optional erstDatum%)
  Dim nachziffer%, pos%, stor$, runde%
  On Error GoTo fehler

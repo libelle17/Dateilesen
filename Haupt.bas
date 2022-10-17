@@ -20,7 +20,7 @@ Public FPos& ' Fehlerposition
 Const TbZ1% = 26 ' 27 (therarten)
 Const TbZ2% = TbZ1 + 8
 'Public Lese1
-Public AllePat% ' alle Patienten sind IN der Datei
+Public AllePat% ' alle Patienten sind in der Datei
 Public obVorb% ' ob Formularvorbereitung
 Dim tbn$(TbZ2), Tbk$(TbZ2), noDup%(TbZ2)
 Public ZielDbS$
@@ -900,12 +900,14 @@ Function MacheTypen(frm As Lese)
  Print #257, " wdh = -1"
  Print #257, "End FUNCTION ' Tinit"
  Print #257, ""
+ Print #257, "' in AllesLösch, LabLösch"
  Print #257, "Public FUNCTION doEntleer(frm AS lese, Tbl$)"
- Print #257, " Dim rs As New ADODB.Recordset"
- Print #257, " SET rs = DBCn.Execute(""SELECT COUNT(0) AS ct FROM `"" & Tbl & ""`"")"
+ Print #257, " Dim rs As ADODB.Recordset"
+ Print #257, "' SET rs = DBCn.Execute(""SELECT COUNT(0) ct FROM `"" & Tbl & ""`"")"
+ Print #257, " myFrag rs, ""SELECT COUNT(0) ct FROM `"" & Tbl & ""`"""
  Print #257, " frm.Ausgeb ""Lösche: `"" & Tbl & ""` ("" & rs!ct & "" Datensätze)"", True"
  Print #257, " sql = sqlDeletefrom & ""`"" & Tbl & ""`"""
- Print #257, " Call DBCn.Execute(sql) ' ,,adasyncexecute"
+ Print #257, " Call DBCn.Execute(sql) ' ,,adAsyncExecute"
  Print #257, " DoEvents"
  Print #257, "End FUNCTION ' doEntleer"
  Print #257, ""
@@ -1194,11 +1196,11 @@ Function MacheTypen(frm As Lese)
 '  Print #257, " IF lese.obmysql THEN ON Error GoTo fehler ELSE ON Error Resume Next"
   Dim InsBefFld$, NobAI% ' True = es existiert ein Feld ohne AutoIncrement
   InsBefFld = doMachSQL0(tbn(i), NobAI)
-   Print #257, "' sql0 =" & IIf(Not SammelIns, " "" insert "" & sqlignore & ", "") & " ""into `" & LCase$(tbn(i)) & "`" & _
-              IIf(aktTbn = "forminhfeld" Or NobAI, InsBefFld, "") + " values"
-   Print #257, " Call csql0.AppVar(Array("" Insert "", sqlIgnore, "" INTO `" & LCase(tbn(i)) & "`" & IIf(aktTbn = "forminhfeld" Or NobAI, InsBefFld, ""), " values""))"
+   Print #257, "' sql0 =" & IIf(Not SammelIns, " "" INSERT "" & sqlignore & ", "") & " ""INTO `" & LCase$(tbn(i)) & "`" & _
+              IIf(aktTbn = "forminhfeld" Or NobAI, InsBefFld, "") + " VALUES"
+   Print #257, " Call csql0.AppVar(Array("" INSERT "", sqlIgnore, "" INTO `" & LCase(tbn(i)) & "`" & IIf(aktTbn = "forminhfeld" Or NobAI, InsBefFld, ""), " VALUES""))"
    If SammelIns Then
-    Print #257, " IF lese.obmysql THEN sql" & IIf(SammelIns, vNS, "0") & " = ""insert ignore "" & sql0 ELSE sql0 = ""insert "" & sql0"
+    Print #257, " IF lese.obmysql THEN sql" & IIf(SammelIns, vNS, "0") & " = ""INSERT IGNORE "" & sql0 ELSE sql0 = ""INSERT "" & sql0"
    End If
   Dim ianf$, iend$
   Select Case aktTbn
@@ -2384,7 +2386,7 @@ If KeyCode = 27 Then
    End If
   End If
  ElseIf KeyCode <> 16 And KeyCode <> 17 And KeyCode <> 18 Then
-  Debug.Print "KeyCode IN Haupt.Key: " & KeyCode
+  Debug.Print "KeyCode in Haupt.Key: " & KeyCode
  End If
 ' IF KeyCode = 33 THEN Call doRückwärtsCmd(frm)
 ' IF KeyCode = 34 THEN Call doVorwärtsCmd(frm) <- stellt den aktuellen Feldinhalt falsch ein!
@@ -2727,7 +2729,6 @@ Function doFÜwS(frm As Lese) ' fehlende Überweisungsscheine
  AktQ = ZQuart(Now() - Verspätung)
  sql = "SELECT n.Pat_id, gesname(n.pat_id) Name, GROUP_CONCAT(DISTINCT CAST(f.schgr AS char)) Schgr, LEFT(GROUP_CONCAT(DISTINCT CONCAT_WS(', ', l2.Name, LEFT(l2.vorname,1),l2.ort, l2.telefon)),31) Überweiser, LEFT(CONCAT_WS(', ',l.Name, LEFT(l.vorname,1),l.ort, l.telefon),31) Hausarzt FROM `aktf` f LEFT JOIN `briefe` b ON f.pat_id = b.pat_id AND b.name LIKE '%üw%' AND b.name LIKE '%" & Left(AktQ, 1) & "%' AND b.name LIKE '%" & Right(AktQ, 2) & "%' LEFT JOIN `namen` n ON f.pat_id = n.pat_id LEFT JOIN `aktlue` l ON l.kvnr = n.kvnro LEFT JOIN `faelle` f2 ON f2.fid = f.fid AND übwr <> '' LEFT JOIN `aktlue` l2 ON l2.kvnro = übwr WHERE ISNULL(b.name) AND f.schgr<>'0' GROUP BY f.pat_id"
  Dim rAb As New ADODB.Recordset
- DBCn.Execute "SET GROUP_CONCAT_MAX_LEN = 70"
 ' rAb.Open sql, DBCn, adOpenDynamic, adLockReadOnly
  myFrag rAb, sql
  TabAusgeb rAb, Lese, True, , , , , , "Fehlende Überweisungsscheine"
@@ -5131,7 +5132,7 @@ Function fzsfuell(frm As Lese, abstand&, Optional obgestern) ' Abstand: 999 => u
     
     If Not RsI.BOF Then
      Do While Not RsI.EOF
-      Select Case RsI!eart
+      Select Case RsI!eArt
        Case "gs": If RsI!dm = 0 Then s0 = RsI!Zahl Else s1 = RsI!Zahl
        Case "tk": If RsI!dm = 0 Then k0 = RsI!Zahl Else k1 = RsI!Zahl
       End Select
@@ -5209,7 +5210,7 @@ End Function ' fzsfuell(Optional obgestern)
 ' END IF
 'End FUNCTION ' nachfuell
 
-Function dofallzahlstand(frm As Lese, Optional obgestern$) ' IN GesLies und Fallzahlstand_Click
+Function dofallzahlstand(frm As Lese, Optional obgestern$) ' in GesLies und Fallzahlstand_Click
  Dim sql$, rs As New ADODB.Recordset, runde%, FNr&, rAF&
  Dim abstand&, heute As Date
  Dim csql As CString

@@ -2937,7 +2937,6 @@ Sub LabordateiAnzeig(Datei$)
     .TextMatrix(i, Pat_IDSp) = pid
     Dim rTerm As New ADODB.Recordset
     Set rTerm = Nothing
-    DBCn.Execute "SET GROUP_CONCAT_MAX_LEN = 70"
     myFrag rTerm, "SELECT TRIM(GROUP_CONCAT(CONCAT(DATE_FORMAT(zp,'%d.%m.%y'),' ',LEFT(raum,3)) ORDER BY zp SEPARATOR '  ')) term FROM termine t WHERE zp >= DATE(NOW()) AND pid = " & CStr(pid) & ";"
     If Not rTerm.BOF And Not IsNull(rTerm!term) Then
      .TextMatrix(i, terminsp) = rTerm!term
@@ -3994,7 +3993,6 @@ End Sub ' Command1_KeyDown
 Private Sub MFG_MouseMove(Button As Integer, Shift As Integer, x As Single, Y As Single)
  Dim rs As New ADODB.Recordset, obbez%
  Select Case Me.PLArt
-  
   Case artLPar
    altrow = Me.MFG.Row
    altCol = Me.MFG.col
@@ -4002,9 +4000,6 @@ Private Sub MFG_MouseMove(Button As Integer, Shift As Integer, x As Single, Y As
    Select Case Me.MFG.MouseCol
     Case parsp
      If Me.MFG.TextMatrix(Me.MFG.MouseRow, 8) = "x" Then
-      DBCn.Execute "SET GROUP_CONCAT_MAX_LEN = 70"
-      DBCn.Execute "SET GROUP_CONCAT_MAX_LEN = 70"
-      DBCn.Execute "SET GROUP_CONCAT_MAX_LEN = 70"
       myFrag rs, "SELECT bez1.abkü, bez2.abkü, CONCAT(GROUP_CONCAT(' ',IF(ISNULL(bez1.abkü),''," & vbCrLf & _
                      "CONCAT(bez1.abkü, ' [',bez1.einheit, ']'))),', '," & vbCrLf & _
                      "GROUP_CONCAT(' ',IF(ISNULL(bez2.abkü),'',CONCAT(bez2.abkü, ' [',bez2.einheit, ']')))) Zuge " & vbCrLf & _
@@ -4033,7 +4028,6 @@ Private Sub MFG_MouseMove(Button As Integer, Shift As Integer, x As Single, Y As
    Select Case Me.MFG.MouseCol
      Case namsp
 '      myfrag rs, "SELECT GROUP_CONCAT(CONCAT_WS(' ',DATE_FORMAT(diagdatum,'%d.%m.%y'), CONCAT('(',diagsicherheit,')'), diagtext, icd),char(13,10)) diag FROM `diagnosen` WHERE pat_id = " & Pat_id & " AND diagsicherheit <> 'A' ORDER BY DATE(diagdatum)"
-      DBCn.Execute "SET GROUP_CONCAT_MAX_LEN = 70"
       myFrag rs, "SELECT GROUP_CONCAT(CONCAT_WS(' ',diagsicherheit, diagtext)) diag FROM `diagnosen` d WHERE d.pat_id = " & Me.MFG.TextMatrix(MFG.MouseRow, Pat_IDSp) & " AND d.diagsicherheit <> 'A' AND COALESCE(d.f6010,0)=0 ORDER BY DATE(d.diagdatum)"
       If Not rs.BOF Then
        If Not IsNull(rs!Diag) Then
@@ -4041,7 +4035,6 @@ Private Sub MFG_MouseMove(Button As Integer, Shift As Integer, x As Single, Y As
        End If
       End If
      Case parsp
-      DBCn.Execute "SET GROUP_CONCAT_MAX_LEN = 70"
       Dim pid$, hsql$
       pid = Me.MFG.TextMatrix(MFG.MouseRow, Pat_IDSp)
       hsql = "SELECT CONCAT_WS(' ',DATE_FORMAT(zeitpunkt,'%d.%m.%y'),DATE_FORMAT(datum,'%d.%m.%y'),GROUP_CONCAT(medikament)) med FROM `wmedplan` " & vbCrLf & _

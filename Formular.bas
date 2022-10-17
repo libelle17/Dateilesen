@@ -1711,7 +1711,6 @@ Function do_Form_Current_AnBog(frm As AnBog)
 '  raLau.Move 1
 ' Loop
 #ElseIf False Then
-' DBCn.Execute "SET GROUP_CONCAT_MAX_LEN = 70"
 ' myfrag raLau, "SELECT GROUP_CONCAT(CAST(wert AS char) SEPARATOR '-') g " & vbCrLf & _
 '             "FROM (SELECT DATE(zeitpunkt) zp, ROUND(IF(ISNULL(wert),IF(ISNULL(kommentar),'',kommentar),wert)) Wert " & vbCrLf & _
 '             "FROM `laborneu` ln LEFT JOIN laborkommentar lk ON ln.kommentarvw = lk.kommentarvw " & vbCrLf & _
@@ -3428,7 +3427,6 @@ For i = 177 To 180
    Loop
   End If
 #Else
-  DBCn.Execute "SET GROUP_CONCAT_MAX_LEN = 70"
   myFrag rEintr, "SELECT REPLACE(GROUP_CONCAT(CONCAT(DATE_FORMAT(zeitpunkt,'%d.%m.%y'),'(',art,'): ',inhalt,CHAR(13),CHAR(10))),CONCAT(CHAR(13),CHAR(10),','),CONCAT(CHAR(13),CHAR(10))) i FROM `eintraege` WHERE pat_id = " & CStr(Pat_id) & " AND art IN (" & aktart & ") ORDER BY zeitpunkt DESC"
   If Not IsNull(rEintr!i) Then
    frm.vTextB(i) = rEintr!i
@@ -6237,7 +6235,6 @@ Function getHausarzt1(infos$(), rFa() As Faelle, rKv() As kvnrue, Optional obHAP
            "LEFT JOIN " & HADBName & ".titel t ON t.idtitel = a.titel_id " & _
            "LEFT JOIN " & HADBName & ".ort o ON o.idort = bs.ort_id " & _
            "WHERE LEFT(bsnr,7) = '" & Left$(übwerg(0, runde), 7) & "'"
-       DBCn.Execute "SET GROUP_CONCAT_MAX_LEN = 70"
        myFrag rListena, sql
        If Not rListena.BOF Then gefunden = True
       End If
@@ -6342,32 +6339,34 @@ Const sql0$ = "SELECT " & _
 '                  "LEFT JOIN " & hadbname & ".arzt_has_bs ahb1 ON ahb1.bs_id = bs.idbs " & _
                   "LEFT JOIN " & hadbname & ".arzt a1 ON a1.idarzt = ahb1.arzt_id AND a1.idarzt <> ahb.arzt_id "
 
-        DBCn.Execute "SET GROUP_CONCAT_MAX_LEN = 70"
         If irunde = -1 Then
-         rHa.Open sql0 & "WHERE LEFT(bsnr,7) = " & Left$(übwerg(0, runde), 7) & " AND a.nachname = '" & übwerg(1, runde) & "' AND a.vorname = '" & übwerg(2, runde) & "' AND a.obehem=0", _
+'         rHa.Open sql0 & "WHERE LEFT(bsnr,7) = " & Left$(übwerg(0, runde), 7) & " AND a.nachname = '" & übwerg(1, runde) & "' AND a.vorname = '" & übwerg(2, runde) & "' AND a.obehem=0", _
                   DBCn, adOpenStatic, adLockReadOnly 'haecn
+         myFrag rHa, sql0 & "WHERE LEFT(bsnr,7) = " & Left$(übwerg(0, runde), 7) & " AND a.nachname = '" & übwerg(1, runde) & "' AND a.vorname = '" & übwerg(2, runde) & "' AND a.obehem=0", adOpenStatic
         Else
-         myFrag rHa, "SELECT h.* FROM `kvaerzte`.`hae" & IIf(irunde = 1, "alt`", "`") & " h WHERE kvnr = '" & Left(übwerg(0, runde), 2) & "/" & Right$(übwerg(0, runde), 5) & "' AND nachname = '" & übwerg(1, runde) & "' AND vorname = '" & übwerg(2, runde) & "'" '  -dmpt1 AS j_dmpt1, -dmpt2 AS j_dmpt2, 'haecn
+         myFrag rHa, "SELECT h.* FROM `kvaerzte`.`hae" & IIf(irunde = 1, "alt`", "`") & " h WHERE kvnr = '" & Left(übwerg(0, runde), 2) & "/" & Right$(übwerg(0, runde), 5) & "' AND nachname = '" & übwerg(1, runde) & "' AND vorname = '" & übwerg(2, runde) & "'", adOpenStatic '  -dmpt1 AS j_dmpt1, -dmpt2 AS j_dmpt2, 'haecn
         End If
         If Not rHa.BOF Then If Not IsNull(rHa!kvnu) Then HACngef = True: Exit For
        End If
        If Not HACngef And übwerg(1, runde) <> vNS Then
         Set rHa = Nothing
         If irunde = -1 Then
-         rHa.Open sql0 & "WHERE LEFT(bsnr,7) = " & Left$(übwerg(0, runde), 7) & " AND a.nachname = '" & übwerg(1, runde) & "' AND a.obehem=0", _
+'         rHa.Open sql0 & "WHERE LEFT(bsnr,7) = " & Left$(übwerg(0, runde), 7) & " AND a.nachname = '" & übwerg(1, runde) & "' AND a.obehem=0", _
                   DBCn, adOpenStatic, adLockReadOnly 'haecn
+         myFrag rHa, sql0 & "WHERE LEFT(bsnr,7) = " & Left$(übwerg(0, runde), 7) & " AND a.nachname = '" & übwerg(1, runde) & "' AND a.obehem=0", adOpenStatic
         Else
-         myFrag rHa, "SELECT h.* FROM `kvaerzte`.`hae" & IIf(irunde = 1, "alt`", "`") & " h WHERE kvnr = '" & Left(übwerg(0, runde), 2) & "/" & Right$(übwerg(0, runde), 5) & "' AND nachname = '" & übwerg(1, runde) & "'" ' -dmpt1 AS j_dmpt1, -dmpt2 AS j_dmpt2, 'haecn
+         myFrag rHa, "SELECT h.* FROM `kvaerzte`.`hae" & IIf(irunde = 1, "alt`", "`") & " h WHERE kvnr = '" & Left(übwerg(0, runde), 2) & "/" & Right$(übwerg(0, runde), 5) & "' AND nachname = '" & übwerg(1, runde) & "'", adOpenStatic ' -dmpt1 AS j_dmpt1, -dmpt2 AS j_dmpt2, 'haecn
         End If
         If Not rHa.BOF Then If Not IsNull(rHa!kvnu) Then HACngef = True: Exit For
        End If
        If Not HACngef Then
         Set rHa = Nothing
         If irunde = -1 Then
-         rHa.Open sql0 & "WHERE LEFT(bsnr,7) = " & Left$(übwerg(0, runde), 7) & " AND obehem=0", _
+'         rHa.Open sql0 & "WHERE LEFT(bsnr,7) = " & Left$(übwerg(0, runde), 7) & " AND obehem=0", _
                   DBCn, adOpenStatic, adLockReadOnly 'haecn
+         myFrag rHa, sql0 & "WHERE LEFT(bsnr,7) = " & Left$(übwerg(0, runde), 7) & " AND obehem=0", adOpenStatic
         Else
-         myFrag rHa, "SELECT h.* FROM `kvaerzte`.`hae" & IIf(irunde = 1, "alt`", "`") & " h WHERE kvnr = '" & Left(übwerg(0, runde), 2) & "/" & Right$(übwerg(0, runde), 5) & "'" ' -dmpt1 AS j_dmpt1, -dmpt2 AS j_dmpt2,
+         myFrag rHa, "SELECT h.* FROM `kvaerzte`.`hae" & IIf(irunde = 1, "alt`", "`") & " h WHERE kvnr = '" & Left(übwerg(0, runde), 2) & "/" & Right$(übwerg(0, runde), 5) & "'", adOpenStatic ' -dmpt1 AS j_dmpt1, -dmpt2 AS j_dmpt2,
         End If
         If Not rHa.BOF Then If Not IsNull(rHa!kvnu) Then HACngef = True: Exit For
        End If
@@ -6380,11 +6379,11 @@ Const sql0$ = "SELECT " & _
        If Not IsNull(rHa!anrede) Then
         InfRoh(0, runde) = rHa!anrede
        End If
-       InfRoh(1, runde) = IIf(IsNull(rHa!Titel) Or LenB(rHa!Titel) = 0, "Dr.med.", rHa!Titel) & " " & IIf(IsNull(rHa!Vorname), vNS, rHa!Vorname) & " " & IIf(IsNull(rHa!Nachname), vNS, rHa!Nachname)
-       If InfRoh(2, runde) = vNS And Not IsNull(rHa.Fields(10)) Then ' straße
-        InfRoh(2, runde) = rHa.Fields(10) ' Straße
-       End If
-       If InfRoh(3, runde) = vNS Then InfRoh(3, runde) = rHa!plz & " " & rHa!ort
+       If Not IsNull(rHa!Titel) Then InfRoh(1, runde) = rHa!Titel Else InfRoh(1, runde) = "Dr.med."
+       If Not IsNull(rHa!Vorname) Then InfRoh(1, runde) = InfRoh(1, runde) & " " & rHa!Vorname
+       If Not IsNull(rHa!Nachname) Then InfRoh(1, runde) = InfRoh(1, runde) & " " & rHa!Nachname
+       If InfRoh(2, runde) = vNS And Not IsNull(rHa.Fields(10)) Then InfRoh(2, runde) = rHa.Fields(10)        ' Straße
+       If InfRoh(3, runde) = vNS Then If Not IsNull(rHa!plz) And Not IsNull(rHa!ort) Then InfRoh(3, runde) = rHa!plz & " " & rHa!ort
        If InfRoh(4, runde) = vNS And Not IsNull(rHa!fax1) Then InfRoh(4, runde) = rHa!fax1
        InfRoh(6, runde) = IIf(rHa!dmpt2 <> 0, "X", vNS)
        InfRoh(7, runde) = IIf(rHa!dmpt1 <> 0, "X", vNS)
@@ -6398,9 +6397,9 @@ Const sql0$ = "SELECT " & _
 '       SET rDMP = New ADODB.Recordset
 '       myfrag rDMP, "SELECT * FROM `kvaerzte`.`hae` WHERE kvnr = '" & LEFT(übwerg(0, runde), 2) & "/" & Right$(übwerg(0, runde), 5) & "' AND dmpt1 = 1"
 '       InfRoh(7, runde) = IIF(rDMP.BOF, vNS, "X")
-       If LenB(InfRoh(8, runde)) = 0 Then InfRoh(8, runde) = IIf(IsNull(rHa!zulg), vNS, rHa!zulg)
-       If LenB(InfRoh(9, runde)) = 0 Then InfRoh(9, runde) = IIf(IsNull(rHa!Vorname), vNS, rHa!Vorname)
-       If LenB(InfRoh(14, runde)) = 0 Then InfRoh(14, runde) = IIf(IsNull(rHa!Nachname), vNS, rHa!Nachname)
+       If LenB(InfRoh(8, runde)) = 0 Then If Not IsNull(rHa!zulg) Then InfRoh(8, runde) = rHa!zulg
+       If LenB(InfRoh(9, runde)) = 0 Then If Not IsNull(rHa!Vorname) Then InfRoh(9, runde) = rHa!Vorname
+       If LenB(InfRoh(14, runde)) = 0 Then If Not IsNull(rHa!Nachname) Then InfRoh(14, runde) = rHa!Nachname
        InfRoh(10, runde) = übwerg(3, runde)
        If LenB(InfRoh(12, runde)) = 0 Then InfRoh(12, runde) = rHa!kvnu ' Bedingung 25.10.14
        If LenB(InfRoh(13, runde)) = 0 Then If Not IsNull(rHa!tel1) Then InfRoh(13, runde) = rHa!tel1
@@ -6423,12 +6422,16 @@ Const sql0$ = "SELECT " & _
        If Not rhae.BOF Then gefunden = True
       End If
       If gefunden Then
-       If InfRoh(0, runde) = vNS Then InfRoh(0, runde) = IIf(rhae!geschlecht = "w", "Frau", "Herr")
-       If InfRoh(1, runde) = vNS Then InfRoh(1, runde) = IIf(IsNull(rhae!Titel) Or LenB(rhae!Titel) = 0, "Dr.med.", rhae!Titel) & " " & rhae!Vorname & " " & rhae!Nachname
-       If InfRoh(2, runde) = vNS Then InfRoh(2, runde) = IIf(IsNull(rhae!Straße) Or LenB(rhae!Straße) = 0, vNS, rhae!Straße)
-       If InfRoh(3, runde) = vNS Then InfRoh(3, runde) = rhae!plz & " " & rhae!ort
-       If InfRoh(9, runde) = vNS Then InfRoh(9, runde) = IIf(IsNull(rhae!Vorname) Or LenB(rhae!Vorname) = 0, vNS, rhae!Vorname)
-       If InfRoh(14, runde) = vNS Then InfRoh(14, runde) = IIf(IsNull(rhae!name) Or LenB(rhae!name) = 0, vNS, rhae!name)
+       If InfRoh(0, runde) = vNS Then If Not IsNull(rhae!geschlecht) Then InfRoh(0, runde) = IIf(rhae!geschlecht = "w", "Frau", "Herr")
+       If InfRoh(1, runde) = vNS Then
+        If Not IsNull(rHa!Titel) Then InfRoh(1, runde) = rHa!Titel Else InfRoh(1, runde) = "Dr.med."
+        If Not IsNull(rHa!Vorname) Then InfRoh(1, runde) = InfRoh(1, runde) & " " & rHa!Vorname
+        If Not IsNull(rHa!Nachname) Then InfRoh(1, runde) = InfRoh(1, runde) & " " & rHa!Nachname
+       End If
+       If InfRoh(2, runde) = vNS Then If Not IsNull(rhae!Straße) Then InfRoh(2, runde) = rhae!Straße
+       If InfRoh(3, runde) = vNS Then If Not IsNull(rhae!plz) And Not IsNull(rhae!ort) Then InfRoh(3, runde) = rhae!plz & " " & rhae!ort
+       If InfRoh(9, runde) = vNS Then If Not IsNull(rhae!Vorname) Then InfRoh(9, runde) = rhae!Vorname
+       If InfRoh(14, runde) = vNS Then If Not IsNull(rhae!name) Then InfRoh(14, runde) = rhae!name
        If InfRoh(4, runde) = vNS And Not IsNull(rhae!telefax) Then InfRoh(4, runde) = rhae!telefax
         Select Case rhae!Überschrift
          Case "L": InfRoh(5, runde) = IIf(InfRoh(0, runde) = "Frau", "Liebe", "Lieber") & " " & InfRoh(9, runde) ' nicht: rHae!Geschlecht = "w"
@@ -6437,10 +6440,10 @@ Const sql0$ = "SELECT " & _
         End Select
 '       InfRoh(6, runde) = IIF(rHae!dmpt2 <> 0, "X", vNS)
 '       InfRoh(7, runde) = IIF(rHae!dmpt1 <> 0, "X", vNS)
-       If InfRoh(8, runde) = vNS Then InfRoh(8, runde) = IIf(IsNull(rhae!zulassungsgebiet), vNS, rhae!zulassungsgebiet)
+       If InfRoh(8, runde) = vNS Then If Not IsNull(rhae!zulassungsgebiet) Then InfRoh(8, runde) = rhae!zulassungsgebiet
        InfRoh(10, runde) = übwerg(3, runde)
-       If LenB(InfRoh(12, runde)) = 0 Then InfRoh(12, runde) = rhae!KVNr
-       If LenB(InfRoh(13, runde)) = 0 Then InfRoh(13, runde) = IIf(IsNull(rhae!telefon), vNS, rhae!telefon)
+       If LenB(InfRoh(12, runde)) = 0 Then If Not IsNull(rhae!KVNr) Then InfRoh(12, runde) = rhae!KVNr
+       If LenB(InfRoh(13, runde)) = 0 Then If Not IsNull(rhae!telefon) Then InfRoh(13, runde) = rhae!telefon
       End If ' gefunden
       Dim obInsert%
       If Not gefunden Then
@@ -6463,8 +6466,11 @@ Const sql0$ = "SELECT " & _
 '       IF rHae.BOF THEN
         Dim obSchonDa%
         obSchonDa = 0
+        Dim NN$, VN$, tit$
         For irunde = 0 To UBound(hains) - 1
-         If hains(irunde).kvnu = rHa!kvnu And hains(irunde).Nachname = IIf(IsNull(rHa!Nachname), vNS, rHa!Nachname) And hains(irunde).Vorname = IIf(IsNull(rHa!Vorname), vNS, rHa!Vorname) Then
+         If Not IsNull(rHa!Nachname) Then NN = rHa!Nachname Else NN = ""
+         If Not IsNull(rHa!Vorname) Then NN = rHa!Vorname Else NN = ""
+         If hains(irunde).kvnu = rHa!kvnu And hains(irunde).Nachname = NN And hains(irunde).Vorname = VN Then
           obSchonDa = True
           Exit For
          End If
@@ -6472,19 +6478,24 @@ Const sql0$ = "SELECT " & _
         If Not obSchonDa Then
          Dim rsdop As New ADODB.Recordset
          Set rsdop = Nothing
-         myFrag rsdop, "SELECT * FROM `hausaerzte` WHERE kvnr = " & rHa!kvnu & " AND nachname = '" & IIf(IsNull(rHa!Nachname), vNS, rHa!Nachname) & "' AND vorname = '" & IIf(IsNull(rHa!Vorname), vNS, rHa!Vorname) & "'"
+         If Not IsNull(rHa!Nachname) Then NN = rHa!Nachname Else NN = ""
+         If Not IsNull(rHa!Vorname) Then VN = rHa!Vorname Else VN = ""
+         myFrag rsdop, "SELECT * FROM `hausaerzte` WHERE kvnr = " & rHa!kvnu & " AND nachname = '" & NN & "' AND vorname = '" & VN & "'"
          If Not rsdop.BOF Then GoTo korrigier
          InsKorr DBCn, DBCnS, "INSERT INTO `hausaerzte`(name, vorname, nachname, anschrift, kvnr, telefon, telefax, e_mail, zulassungsgebiet, arzttyp, " & _
          "`gemeinschaftspraxis mit`" & ", beme, geschlecht,titel,straße,ort,plz,überschrift,dmpt2,dmpt1,zahl,nichtmehr,schwerpunkt,zusatzbezeichnung,bemerkung,sprechstunden) VALUES('" & IIf(LenB(übwerg(2, runde)) = 0 And LenB(übwerg(1, runde)) <> 0, übwerg(1, runde), rHa!anrede & " " & IIf(rHa!Titel <> vNS And Not IsNull(rHa!Titel), rHa!Titel, "Dr.med.") & " " & IIf(LenB(übwerg(1, runde)) = 0, rHa!Vorname, übwerg(2, runde)) & " " & IIf(LenB(übwerg(1, runde)) = 0, rHa!Nachname, übwerg(1, runde))) & _
          "','" & IIf(LenB(übwerg(1, runde)) = 0, rHa!Vorname, übwerg(2, runde)) & "','" & IIf(LenB(übwerg(1, runde)) = 0, rHa!Nachname, übwerg(1, runde)) & "','" & rHa!Straße & ", " & rHa!plz & " " & rHa!ort & "','" & rHa!kvnu & "','" & rHa!tel1 & "','" & rHa!fax1 & "','" & rHa!email & "','" & rHa!zulg & "','" & rHa!arzttyp & "','" & rHa!gemmit & "','" & rHa!beme & "','" & IIf(rHa!anrede = "w", "Frau", "Herr") & "','" & rHa!Titel & "','" & rHa!Straße & "','" & rHa!ort & "','" & rHa!plz & "',''," & IIf(InfRoh(6, runde) = "X", "1", "0") & "," & IIf(InfRoh(7, runde) = "X", "1", "0") & ",0,0,'','','','')", rAF
          hains(UBound(hains)).kvnu = rHa!kvnu
-         hains(UBound(hains)).Nachname = IIf(IsNull(rHa!Nachname), vNS, rHa!Nachname)
-         hains(UBound(hains)).Vorname = IIf(IsNull(rHa!Vorname), vNS, rHa!Vorname)
+         If IsNull(rHa!Nachname) Then hains(UBound(hains)).Nachname = vNS Else hains(UBound(hains)).Nachname = rHa!Nachname
+         If IsNull(rHa!Vorname) Then hains(UBound(hains)).Vorname = vNS Else hains(UBound(hains)).Vorname = rHa!Vorname
          ReDim Preserve hains(UBound(hains) + 1)
         End If
       ElseIf Not rhae.BOF And Not rHa.BOF Then
-        If rhae!name <> rHa!anrede & " " & IIf(rHa!Titel <> vNS And Not IsNull(rHa!Titel), rHa!Titel, "Dr.med.") & " " & IIf(IsNull(rHa!Vorname), vNS, rHa!Vorname) & " " & IIf(IsNull(rHa!Nachname), vNS, rHa!Nachname) Or _
-           rhae!Vorname <> IIf(IsNull(rHa!Vorname), vNS, rHa!Vorname) Or rhae!Nachname <> IIf(IsNull(rHa!Nachname), vNS, rHa!Nachname) Or _
+        If Not IsNull(rHa!Nachname) Then NN = rHa!Nachname Else NN = ""
+        If Not IsNull(rHa!Vorname) Then VN = rHa!Vorname Else VN = ""
+        If Not IsNull(rHa!Titel) Then tit = rHa!Titel Else tit = "Dr.med."
+        If rhae!name <> rHa!anrede & " " & tit & " " & VN & " " & VN Or _
+           rhae!Vorname <> VN Or rhae!Nachname <> NN Or _
            rhae!anschrift <> rHa.Fields(10) & ", " & rHa!plz & " " & rHa!ort Or _
            rhae!telefon <> rHa!tel1 Or rhae!telefax <> rHa!fax1 Or rhae!e_mail <> rHa!email Or _
            rhae!zulassungsgebiet <> rHa!zulg Or rhae!arzttyp <> rHa!arzttyp Or rhae.Fields("gemeinschaftspraxis mit") <> rHa!gemmit Or rhae!beme <> rHa!beme Or _
@@ -6884,7 +6895,7 @@ Public Sub tubriefStandalone(pid&, obStumm%, Optional Zielverz$, Optional Vorlag
 '  rsNa.Seek "=", raAn!Pat_id
  myFrag rsNa, "SELECT n.*,concat(IF(geschlecht='m','Herrn','Frau'),' ',gesname(pat_id),', *',DATE_FORMAT(gebdat,'%e.%c.%y')) gname FROM `namen` n WHERE pat_id = " & Pat_id
  If rsNa.EOF Then Exit Sub
- myFrag raAn, "SELECT GesName(Pat_id) GesName, `diabetes seit` dmseit FROM `anamnesebogen` a WHERE pat_id = " & Pat_id
+ myFrag raAn, "SELECT GesName(Pat_id) GesName, `diabetes seit` dmseit FROM `anamnesebogen` a WHERE pat_id = " & Pat_id, adOpenStatic
  syscmd acSysCmdSetStatus, "Erstelle Brief für " & raAn!GesName & ": 1) Hausarzt ..."
  Dim rFa() As Faelle
 ' Dim rKv1() As kvnrue
@@ -7019,8 +7030,9 @@ On Error GoTo fehler
     End If
 'weiter:
 '    Next i
-    
-    !PVorn.Range = IIf(IsNull(rsNa!Titel), vNS, rsNa!Titel + " ") + rsNa!Vorname
+    Dim tit$
+    If IsNull(rsNa!Titel) Then tit = "" Else tit = rsNa!Titel
+    !PVorn.Range = tit & rsNa!Vorname
     !pnachn.Range = rsNa!Nachname
     !PGeb.Range = Format$(rsNa!GebDat, "d.M.YYYY")
     
@@ -7054,32 +7066,37 @@ On Error GoTo fehler
      If raFa!Fanf > lddat Then lddat = raFa!Fanf
      If raFa!ausgst > lddat Then lddat = raFa!ausgst
     End If
-    Dim iDiag As New ADODB.Recordset, licd$, ldiag$, lSicher$
+    Dim iDiag As New ADODB.Recordset, licd$, ldiag$, lSicher$, iDDiagText$, iDICD$, iDDiagSich$
 '    iDiag.Open "SELECT ICD, DiagText, DiagSicherheit FROM `diagnosen` d WHERE d.pat_id = " & Pat_id & " AND (d.obdauer <> 0 OR d.diagdatum > " & DatFor_k(lddat) & ") AND COALESCE(d.f6010,0)=0 ORDER BY icd, DiagSicherheit", DBCn, adOpenDynamic, adLockReadOnly
     myFrag iDiag, "SELECT ICD, DiagText, DiagSicherheit FROM `diagnosen` d WHERE d.pat_id = " & Pat_id & " AND (d.obdauer <> 0 OR d.diagdatum > " & DatFor_k(lddat) & ") AND COALESCE(d.f6010,0)=0 ORDER BY icd, DiagSicherheit"
     If Not iDiag.BOF Then
-     iDiag.MoveFirst
+'     iDiag.MoveFirst
      Do While Not iDiag.EOF
+       iDDiagText = iDiag!DiagText
+       iDICD = iDiag!ICD
+       iDDiagSich = iDiag!DiagSicherheit
        Dim tonRunde%
 '       MsgBox "Achtung doppelte Diagnose: " + nzw + _
               ldiag & " " & licd + nzw + _
               iDiag!DiagText & " " & iDiag!ICD
 '      Call Shell("cmd /c echo ""Achtung doppelte Diagnose"" ", vbNormalNoFocus)
-      If iDiag!ICD = licd And iDiag!DiagSicherheit = lSicher Then
+      If iDICD = licd And iDDiagSich = lSicher Then
        For tonRunde = 1 To 5
         Call Sound(WinDir + "\media\Windows XP-Standard.wav")
        Next tonRunde
-       Call meld("Pat-ID " & Pat_id & ", Achtung doppelte Diagnose: " & vbCrLf & ldiag & " " & licd & vbCrLf & iDiag!DiagText & " " & iDiag!ICD, obStumm)
-      End If
-      licd = iDiag!ICD
-      ldiag = iDiag!DiagText
-      lSicher = iDiag!DiagSicherheit
+       Call meld("Pat-ID " & Pat_id & ", Achtung doppelte Diagnose: " & vbCrLf & ldiag & " " & licd & vbCrLf & iDDiagText & " " & iDICD, obStumm)
+      End If ' iDICD = licd And iDDiagSicherheit = lSicher Then
+      licd = iDICD
+      ldiag = iDDiagText
+      lSicher = iDDiagSich
       iDiag.Move 1
-     Loop
-    End If
+     Loop ' While Not iDiag.EOF
+    End If ' Not iDiag.BOF Then
     syscmd acSysCmdSetStatus, "Erstelle Brief für " & raAn!GesName & ": 2)b) Diagnosen einfügen ..."
     Dim DiagTab() As CString
-    !Diagnosen.Range = DiagString(Pat_id, DiagTab, VorDat, obBrief:=True, dmseit:=IIf(IsNull(raAn!dmseit), 0, raAn!dmseit))
+    Dim dmseit$
+    If IsNull(raAn!dmseit) Then dmseit = "" Else dmseit = raAn!dmseit
+    !Diagnosen.Range = DiagString(Pat_id, DiagTab, VorDat, obBrief:=True, dmseit:=dmseit)
     !pdieder.Range = IIf(rsNa!geschlecht = "w", "die", "der")
     Dim behD As New CString
     behD = behDauerStr(Pat_id)
@@ -7098,7 +7115,7 @@ On Error GoTo fehler
     syscmd acSysCmdSetStatus, "Erstelle Brief für " & raAn!GesName & ": 4) Weitere Daten ..."
 '    rlAb.Open "SELECT DISTINCT quelle,Eingang,k.text kommentar FROM `laboryus` u INNER JOIN `laborybakt` b ON u.id = b.usid LEFT JOIN laboryhinw k ON b.kommid=k.id WHERE pat_id = " & pat_id & " AND NOT ISNULL(keimzahl) AND eingang > " & DatFor_k(VorDat), DBCn, adOpenDynamic, adLockReadOnly
 '    rlAb.Open "SELECT quelle,Eingang, Kommentar FROM labor2bakt WHERE pat_id = " & Pat_id & " AND NOT ISNULL(keimzahl) AND eingang > " & DatFor_k(VorDat), DBCn, adOpenDynamic, adLockReadOnly
-    myFrag rlAb, "SELECT quelle,Eingang, Kommentar FROM labor2bakt WHERE pat_id = " & Pat_id & " AND NOT ISNULL(keimzahl) AND eingang > " & DatFor_k(VorDat)
+    myFrag rlAb, "SELECT quelle,Eingang, Kommentar FROM labor2bakt WHERE pat_id = " & Pat_id & " AND NOT ISNULL(keimzahl) AND eingang > " & DatFor_k(VorDat), adOpenStatic
     Const bmUrin% = 7
     Const bmFuß% = 9
     Const bmEKG% = 13
@@ -8125,7 +8142,7 @@ Function letzteMed(dc, Pat_id$)
  sql = "SELECT `medarten`.*, `medplan`.medikament AS mmedikament,bemerkung,mo,mi,nm,ab,zn,--bbed AS j_bbed FROM `medplan` LEFT JOIN `medarten` ON `medplan`.medanfang = `medarten`.medikament WHERE `medplan`.pat_id = " & Pat_id & " AND `medplan`.mpnr = (SELECT MAX(mpnr) FROM `medplan` WHERE pat_id = " & Pat_id & " AND zeitpunkt = (SELECT MAX(zeitpunkt) FROM `medplan` WHERE pat_id = " & Pat_id & ")) AND NOT ISNULL(`medplan`.medikament) AND `medplan`.pat_id = " & Pat_id
 ' SET radat = Dtb.OpenRecordset(sql)
  Set raDat = Nothing
- myFrag raDat, "SELECT COUNT(0) AS ct FROM (" & sql & ") innen"
+ myFrag raDat, "SELECT COUNT(0) ct FROM (" & sql & ") innen"
  If Not raDat.BOF Then
    ZZ = raDat!ct
  End If
@@ -8138,19 +8155,21 @@ Function letzteMed(dc, Pat_id$)
                DefaultTableBehavior:=wdWord9TableBehavior, AutoFitBehavior:=wdAutoFitContent)
 ' raDat.MoveFirst
  runde = 2
- Dim beme$
+ Dim beme$, bemerk$
  Do While Not raDat.EOF
-  If IsNull(raDat!Bemerkung) Or raDat!Bemerkung = vNS Then
-   beme = vNS
-  Else
-   beme = " (" & raDat!Bemerkung & ")"
+  bemerk = raDat!Bemerkung
+  If bemerk <> vNS Then
+'  If IsNull(raDat!Bemerkung) Or raDat!Bemerkung = vNS Then
+'    beme = vNS
+'  Else
+   beme = " (" & bemerk & ")"
 '   dc.bookmarks!MedBemerkung.Range = raDat!Bemerkung
    If False Then
     dc.Range(Tabl.Range.END, dc.bookmarks!DMPText.Start).Font.size = 8
-    dc.Range(Tabl.Range.END, Tabl.Range.END) = REPLACE(raDat!Bemerkung, Chr(171), "½") + Chr(13) + Chr(10)
+    dc.Range(Tabl.Range.END, Tabl.Range.END) = REPLACE$(bemerk, Chr(171), "½") + Chr(13) + Chr(10)
    End If
   End If
-  Tabl.cell(runde, 1).Range = IIf(IsNull(raDat!mmedikament.Value), vNS, raDat!mmedikament.Value + beme)
+  If IsNull(raDat!mmedikament.Value) Then Tabl.cell(runde, 1) = vNS Else Tabl.cell(runde, 1) = raDat!mmedikament.Value + beme
   Tabl.cell(runde, 2).Range = IIf(IsNull(raDat!mo), vNS, REPLACE$(REPLACE$(raDat!mo, "«", "½"), "¬", "¼"))
   Tabl.cell(runde, 3).Range = IIf(IsNull(raDat!mi), vNS, REPLACE$(REPLACE$(raDat!mi, "«", "½"), "¬", "¼"))
   Tabl.cell(runde, 4).Range = IIf(IsNull(raDat!nm), vNS, REPLACE$(REPLACE$(raDat!nm, "«", "½"), "¬", "¼"))
@@ -8159,7 +8178,7 @@ Function letzteMed(dc, Pat_id$)
   Tabl.cell(runde, 7).Range = IIf(raDat!j_bBed = 0, vNS, "X")
   runde = runde + 1
   raDat.Move 1
- Loop
+ Loop ' While Not raDat.EOF
  Tabl.cell(1, 1) = "Medikament"
  Tabl.cell(1, 2) = "früh"
  Tabl.cell(1, 3) = "mittags"
@@ -8311,7 +8330,8 @@ Sub Epikrise(dc, Pat_id$, VorDat As Date, lddat As Date, obStumm%)
 '  SET rsAnam = TabÖff("Anamnesebogen", "Pat_id")
 '  rsAnam.Seek "=", Pat_id
 '  rsAnam.Open "SELECT -obmblausgeh AS j_obmblausgeh, a.* FROM `anamnesebogen` a WHERE pat_id = " & Pat_id, DBCn, adOpenStatic, adLockOptimistic
-  rsAnam.Open "SELECT IF(diabetestyp IN ('-','?',' '),dmtyp(pat_id),CONVERT(diabetestyp USING UTF8)) dmtyp, a.* FROM `anamnesebogen` a WHERE pat_id = " & Pat_id, DBCn, adOpenStatic, adLockOptimistic
+'  rsAnam.Open "SELECT IF(diabetestyp IN ('-','?',' '),dmtyp(pat_id),CONVERT(diabetestyp USING UTF8)) dmtyp, a.* FROM `anamnesebogen` a WHERE pat_id = " & Pat_id, DBCn, adOpenStatic, adLockOptimistic
+  myFrag rsAnam, "SELECT IF(diabetestyp IN ('-','?',' '),dmtyp(pat_id),CONVERT(diabetestyp USING UTF8)) dmtyp, a.* FROM `anamnesebogen` a WHERE pat_id = " & Pat_id, adOpenStatic, DBCn, adLockOptimistic
 '  SET rDT = TabÖff("Diagnosen", "DiagSuch")
 '  rNam.Seek "=", Pat_ID
   If rnam.BOF Then Exit Sub
@@ -8460,37 +8480,40 @@ w1:
 '    SET rDT = Nothing
     Set rDT = Nothing
 '    rDT.Open " SELECT Pat_id, ICD, DiagSicherheit, DiagText FROM `diagnosen` d WHERE d.pat_id = " & Pat_id & "  AND COALESCE(d.f6010,0)=0 ", DBCn, adOpenDynamic, adLockReadOnly
+    Dim DiagT$, diags$
     myFrag rDT, "SELECT Pat_id, ICD, DiagSicherheit, DiagText FROM `diagnosen` d WHERE d.pat_id = " & Pat_id & "  AND COALESCE(d.f6010,0)=0"
     If Not rDT.BOF Then
-    Do Until rDT.EOF
-      If rDT!Pat_id <> CLng(Pat_id) Then Exit Do
-      For j = 1 To BEZ
-       For k = 0 To bmaxIcd - 1
-        If IsNull(bic(j, k)) Or bic(j, k) = vNS Then GoTo w2:
-        If rDT!ICD Like bic(j, k) Then
-'         IF rDt!diagsicherheit <> "Z" THEN
-          bflag(j) = -1
-          Select Case rDT!DiagSicherheit
+     Do Until rDT.EOF
+       DiagT = rDT!DiagText
+       diags = rDT!DiagSicherheit
+       If rDT!Pat_id <> CLng(Pat_id) Then Exit Do
+       For j = 1 To BEZ
+        For k = 0 To bmaxIcd - 1
+         If IsNull(bic(j, k)) Or bic(j, k) = vNS Then GoTo w2:
+         If rDT!ICD Like bic(j, k) Then
+ '         IF rDt!diagsicherheit <> "Z" THEN
+           bflag(j) = -1
+           Select Case diags
 '           Case Null, vns, "G":  bDiagsi(j) = vns
-           Case "V":            bDiagsi(j) = "V.a. "
-           Case "Z":            bDiagsi(j) = "Z.n. "
-           Case "A":            bDiagsi(j) = "Ausschluss "
-           Case Else
-            bDiagsi(j) = vNS
-            If InStrB(rDT!DiagText, "V.a.") > 0 Then
-             bDiagsi(j) = "V.a. "
-            ElseIf InStrB(rDT!DiagText, "Z.n.") > 0 Then
-             bDiagsi(j) = "Z.n. "
-            ElseIf InStrB(rDT!DiagText, "Ausschl") > 0 Then
-             bDiagsi(j) = "Ausschluss "
-            End If
-          End Select
+            Case "V":            bDiagsi(j) = "V.a. "
+            Case "Z":            bDiagsi(j) = "Z.n. "
+            Case "A":            bDiagsi(j) = "Ausschluss "
+            Case Else
+             bDiagsi(j) = vNS
+             If InStrB(DiagT, "V.a.") > 0 Then
+              bDiagsi(j) = "V.a. "
+             ElseIf InStrB(DiagT, "Z.n.") > 0 Then
+              bDiagsi(j) = "Z.n. "
+             ElseIf InStrB(DiagT, "Ausschl") > 0 Then
+              bDiagsi(j) = "Ausschluss "
+             End If
+           End Select
 '         END IF ' rDt!diagsicherheit <> "Z" THEN
-        End If ' rDt!ICD LIKE bic(j, K) THEN
-       Next
+         End If ' rDt!ICD LIKE bic(j, K) THEN
+        Next
 w2:
-      Next j
-      rDT.MoveNext
+       Next j
+       rDT.MoveNext
      Loop
     End If
     bglz = 0
@@ -8576,9 +8599,9 @@ w2:
 #If miabrauchndenmaximalenhba1c Then
   Dim maxHbA1c!
   maxHbA1c = 0
-  For runde = 0 To UBound(Lab)
-   If obLabI(LA_HbA1c, Lab(runde)) Then
-    aktWert = MachNumerisch(Lab(runde).WertSg)
+  For runde = 0 To UBound(lab)
+   If obLabI(LA_HbA1c, lab(runde)) Then
+    aktWert = MachNumerisch(lab(runde).WertSg)
     If aktWert > maxHbA1c Then
      maxHbA1c = aktWert
     End If
@@ -8807,7 +8830,7 @@ w2:
 '  IF rsAnam!j_obMBlAusgeh <> 0 OR Not mbl.BOF THEN
   If rsAnam!obMBlAusgeh <> 0 Or Not mbl.BOF Then
    If flag(flDFS) Then
-     Epi = Epi + "Wegen des diabetischen Fußsyndroms wurde " + Akkusat + " IN der Vorbeugung weiterer Läsionen unterwiesen."
+     Epi = Epi + "Wegen des diabetischen Fußsyndroms wurde " + Akkusat + " in der Vorbeugung weiterer Läsionen unterwiesen."
    Else
     Epi = Epi + "Wegen "
     If flag(flAVK) Then Epi = Epi + "der peripheren Angiopathie "
@@ -8825,10 +8848,10 @@ w2:
     If Not flag(flAVK) And Not flag(flPNP) Then
      Epi = Epi + "der Gefahr eines diabetischen Fußsyndroms wurde "
     End If
-    Epi = Epi + Akkusat + " IN der Vorbeugung von " + IIf(flAVK Xor flPNP, "Fußl", "L") + "äsionen unterwiesen."
-   End If
+    Epi = Epi + Akkusat + " in der Vorbeugung von " + IIf(flAVK Xor flPNP, "Fußl", "L") + "äsionen unterwiesen."
+   End If ' flag(flDFS) Then else
    Epi = Epi + nzw
-  End If
+  End If ' rsAnam!obMBlAusgeh <> 0 Or Not mbl.BOF Then
   Call GetPrRR(rsAnam, RRsyst, RRdiast)
   If CLng(Pat_id) <> Pat_id Then ' dürfte nie eintreten
    MsgBox "Stop in Epikrise: " & vbCrLf & "Pat_id: " & Pat_id & "<> rsAnam!pat_id: " & CStr(rsAnam!Pat_id)
@@ -9007,8 +9030,10 @@ keineGFR:
          "and pat_id=" & Pat_id & " AND zeitpunkt>" & DatFor_k(VorDat) & vbCrLf & _
          "GROUP BY pat_id,form_id,zeitpunkt " & vbCrLf & _
          ") i GROUP BY pat_id) i"
-  DBCn.Execute "SET GROUP_CONCAT_MAX_LEN = 1000000;"
-  Epi = Epi + DBCn.Execute(sql1).Fields(0)
+'  DBCn.Execute "SET GROUP_CONCAT_MAX_LEN = 1000000;"
+'  Epi = Epi + DBCn.Execute(sql1).Fields(0)
+  Dim rs As ADODB.Recordset
+  Epi = Epi + myFrag(rs, sql1, adOpenUnspecified, Nothing, adLockReadOnly, 1000000).Fields(0)
   
 #If False Then
   sql1 = "SELECT feldinh,zeitpunkt FROM (" & forminhalt & " WHERE pat_id = " & Pat_id & ") AS forminhalt WHERE form_abk = ""uew"" AND feld = ""Ueberweisung_an"" "
@@ -9153,7 +9178,7 @@ Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "Last
 End Select
 End Sub ' Epikrise
 
-'wird aufgerufen IN Epikrise und DMPString
+'wird aufgerufen in Epikrise und DMPString
 Function ThaRang(ByRef therart$, ByRef Langtext, Optional DiabTyp$) As TherapieArt
    Select Case therart ' rsAnam.Fields("Ther" + IIF(i = 0, "1", "Akt"))
     Case "Diät", "Diät?": ThaRang = Diät: Langtext = "diätetische und physikalische Therapie"
@@ -9202,7 +9227,7 @@ Function SchulzBest%(Pat_id$, Optional zp1$, Optional zpl$, Optional abDat)
   sqls = sqls + " ORDER BY zeitpunkt"
 '  SET lpp = Dtb.OpenRecordset(sqls, dbOpenDynaset)
 '  lapp.Open sqls, DBCn, adOpenDynamic, adLockReadOnly
-  myFrag lapp, sqls
+  myFrag lapp, sqls, adOpenDynamic
   If Not lapp.BOF Then
    lapp.MoveLast
    zpl = Format$(lapp!Zeitpunkt, "dd/mm/yy")
@@ -10762,11 +10787,12 @@ sql = sql & "   SET i=i+1;" & Chr$(13) & _
     "   WHEN inh RLIKE 'masern-impf.' THEN SET erg='106';" & vbCrLf & _
     "   WHEN inh RLIKE 'engerix-b' THEN SET erg='109';" & vbCrLf & _
     "   WHEN inh RLIKE 'bexero' THEN SET erg='110';" & vbCrLf & _
-    "   WHEN inh RLIKE 'Janssen|Johnson' THEN SET erg='120';" & vbCrLf & _
-    "   WHEN inh RLIKE 'Astra|Vaxzev' THEN SET erg='121';" & vbCrLf & _
+    "   WHEN inh RLIKE 'Janssen|Johnson' THEN SET erg='124';" & vbCrLf & _
+    "   WHEN inh RLIKE 'Astra|Vaxzev' THEN SET erg='123';" & vbCrLf & _
     "   WHEN inh RLIKE 'Spikevax|Moderna' THEN SET erg='122';" & vbCrLf & _
-    "   WHEN inh RLIKE 'biontech|comirnaty|corminaty|cominarty|comiarty|coirnaty|cominary|comirnary|commirnaty|comirnarty|cominaty|comitnaty' THEN SET erg='123';" & vbCrLf & _
-    "   WHEN inh RLIKE 'Novavax' THEN SET erg='124';" & vbCrLf & _
+    "   WHEN inh RLIKE 'biontech|comirnaty|corminaty|cominarty|comiarty|coirnaty|cominary|comirnary|commirnaty|comirnarty|cominaty|comitnaty' THEN IF inh RLIKE ': G' THEN SET erg='127'; ELSE SET erg='121'; END IF;" & vbCrLf & _
+    "   WHEN inh RLIKE 'Novavax' THEN SET erg='125';" & vbCrLf & _
+    "   WHEN inh RLIKE 'Valneva' THEN SET erg='126';" & vbCrLf & _
     "   WHEN inh RLIKE 'VNR1M08G|Vit B12' THEN SET erg='199';" & vbCrLf & _
     "   ELSE SET erg='999';" & vbCrLf & _
     "  END CASE;" & vbCrLf & _
@@ -11599,9 +11625,9 @@ sql = "CREATE DEFINER=`praxis`@`%` PROCEDURE `quelle`.`fuellThaP`(IN inpid INT(6
 "BEGIN " & vbCrLf & _
 "-- RESET QUERY CACHE; " & vbCrLf & _
 "SET session GROUP_CONCAT_MAX_LEN=15000;" & vbCrLf & _
-"SET @inpid=inpid;" & vbCrLf
+"-- SET @inpid=inpid;" & vbCrLf
 sql = sql & vbCrLf & _
-"DELETE FROM therarten WHERE @inpid=0 OR pat_id=@inpid;" & vbCrLf & _
+"IF inpid=0 THEN DELETE FROM therarten; ELSE DELETE FROM therarten WHERE pat_id=inpid; END IF;" & vbCrLf & _
 "SET @vzahl = ROW_COUNT(); " & vbCrLf & _
 "INSERT INTO therarten(pat_id,zp,mpnr,therart,insart,grund,abspos,aktzeit,stbyte) " & vbCrLf & _
 "SELECT pid,zp,mpnr,thart,ia,gru,abspos,NOW(),stbyte FROM ( " & vbCrLf & _
@@ -11609,14 +11635,14 @@ sql = sql & vbCrLf & _
 "SELECT RANK() OVER (PARTITION BY pid ORDER BY zp,MPNr) rang, i.* FROM ( " & vbCrLf & _
 "  -- 1) Anamnese:" & vbCrLf & _
 "  SELECT a.pat_id pid, -1 MPNr, aufndat Zp, aufndat Bis, 'CSII' Thart, 'Anamnese: Insulinpumpe' Gru,  0 ia, n.absPos, n.StByte, 0 FeldNr FROM anamnesebogen a LEFT JOIN namen n USING (pat_id) " & vbCrLf & _
-"  WHERE insulinpumpe<>0 AND (@inpid=0 OR a.pat_id=@inpid) " & vbCrLf & _
+"  WHERE insulinpumpe<>0 AND (inpid=0 OR a.pat_id=inpid) " & vbCrLf & _
 " UNION -- 2) Rezepte für Pumpenzubehör, könnten für ein Jahr Pumpentherapie versprechen: " & vbCrLf & _
 "  SELECT Pat_id pid,-2 MPNr, zeitpunkt Zp,ADDDATE(zeitpunkt,365) bis,'CSII' Thart, feldinh Gru,f.foid ia,FID absPos,Form_id StByte, feldnr FROM formular f " & vbCrLf & _
 "  WHERE form_abk IN ('rp','lar','prp','plar') AND feld IN ('medikament','txtMedKey','VerordnungsZeile') AND feldinh RLIKE 'reservoir|rapid d link|rap d li|rapid-d li|tenderl|sure t|paradigm|veo|animas|cartridge|t-slim|t:slim|variosoft|trusteel|autosoft|ypsopump|insigh|omnipod' " & vbCrLf & _
-"  AND (@inpid=0 OR pat_id=@inpid) " & vbCrLf & _
+"  AND (inpid=0 OR pat_id=inpid) " & vbCrLf & _
 " UNION -- 3) Insulinpläne " & vbCrLf & _
 " SELECT pat_id pid,-3 MPNr,qdm zp,qdm bis,'ICT' Thart, MID(NAME,p) Gru,-2 ia,b.absPos,b.StByte,0 FROM (SELECT IF(p1>p2,p1,p2) p, b.* FROM (SELECT INSTR(b.name,'insulin') p1, INSTR(b.name,'spritz') p2, b.* FROM briefe b) b) b WHERE b.name RLIKE '(insulin|spritz).*(plan|schema|tabelle)' " & vbCrLf & _
-"  AND (@inpid=0 OR pat_id=@inpid) " & vbCrLf & _
+"  AND (inpid=0 OR pat_id=inpid) " & vbCrLf & _
 " UNION -- 4) Medikamentenplan " & vbCrLf & _
 "  SELECT Pid,MPNr,Zp,Zp bis,Thart,gru,ia,abspos,stbyte,feldnr FROM ( " & vbCrLf & _
 "   SELECT Pid,MPNr,Zp,Zp bis " & vbCrLf
@@ -11668,7 +11694,7 @@ sql = sql & _
 sql = sql & _
 "       ,mp.FeldNr,mp.absPos,mp.StByte -- zur Zeit eher überflüssige Felder " & vbCrLf & _
 "      FROM wmedplan mp LEFT JOIN medarten ma ON mp.medanfang= ma.medikament " & vbCrLf & _
-"      WHERE (@inpid=0 OR mp.pat_id=@inpid) " & vbCrLf & _
+"      WHERE (inpid=0 OR mp.pat_id=inpid) " & vbCrLf & _
 "      GROUP BY mp.pat_id,mpnr,mp.zeitpunkt,ma.id -- z.B. versch.Toujeo-Zeilen für v. Zuckerwerte" & vbCrLf & _
 "     ) i " & vbCrLf & _
 "    ) i " & vbCrLf & _
@@ -11684,7 +11710,7 @@ sql = sql & _
 "AND NOT (lia=-2 AND ia=2 AND NOT (thart<>lthart AND thart IN ('GLP1','GLP1Ins','GLP1ICT')) AND zp BETWEEN lzp AND ADDDATE(lzp,92)) " & vbCrLf & _
 "ORDER BY pid,zp,MPNr; " & vbCrLf & _
 "SELECT @vzahl vzahl, ROW_COUNT() zahl; " & vbCrLf & _
-"UPDATE anamnesebogen a SET therakt =(SELECT therart FROM therarten WHERE pat_id=a.pat_id ORDER BY zp DESC, mpnr DESC LIMIT 1) WHERE @inpid=0 OR pat_id=@inpid;"
+"UPDATE anamnesebogen a SET therakt =(SELECT therart FROM therarten WHERE pat_id=a.pat_id ORDER BY zp DESC, mpnr DESC LIMIT 1) WHERE inpid=0 OR pat_id=inpid;"
 sql = sql & "END"
 DBCn.Execute (sql)
 
@@ -13386,34 +13412,37 @@ Case Else
 #End If
  End Select
  Do While Not raVL.EOF
-  If raVL!Inhalt <> "Blutentnahme" And raVL!Inhalt <> "Blutabnahme" Then
-   aktdat = DateValue(raVL!Zeitpunkt)
+  Dim art$, Inhalt$, Zp$, Übs$
+  art = raVL!art
+  Inhalt = raVL!Inhalt
+  Zp = raVL!Zeitpunkt
+  If Inhalt <> "Blutentnahme" And Inhalt <> "Blutabnahme" Then
+   aktdat = DateValue(Zp)
    If aktdat <> lzp Then
     eintraege = eintraege + Format$(aktdat, "DD.MM.YY")
    End If
-   If LCase(krit) <> """rr""" And raVL!art = "usdm" Then
-    eintraege = eintraege + vbTab + REPLACE$(REPLACE$(raVL!Inhalt, "^", vNS) & vbCrLf, "aktuellen Blutdruck und ggf. Puls bitte extra eingeben", vNS)
+   If LCase(krit) <> """rr""" And art = "usdm" Then
+    eintraege = eintraege + vbTab + REPLACE$(REPLACE$(Inhalt, "^", vNS) & vbCrLf, "aktuellen Blutdruck und ggf. Puls bitte extra eingeben", vNS)
    Else
-    Dim Inhalt$
-    Inhalt = ""
+    Übs = ""
     Select Case raVL!art
-     Case "ulcus": Inhalt = "Ulcus: "
-     Case "wv": Inhalt = "Wundverband: "
-     Case "debr": Inhalt = "Debridement: "
-     Case "fuß": Inhalt = "Fußbefund: "
-     Case "kv": Inhalt = "Kompressionsverband: "
-     Case "fa", "fam": Inhalt = "Familienanamnese: "
-     Case "rauch": Inhalt = "Rauchanamnese: "
-     Case "bew", "beweg", "bewegung", "bewg": Inhalt = "Bewegung: "
-     Case "alko": Inhalt = "Alkoholanamnese: "
-     Case "colo": Inhalt = "Colo-/Gastroskopien: "
-     Case "aug", "augen": Inhalt = "Augen: "
-     Case "beruf": Inhalt = "Beruf: "
+     Case "ulcus": Übs = "Ulcus: "
+     Case "wv": Übs = "Wundverband: "
+     Case "debr": Übs = "Debridement: "
+     Case "fuß": Übs = "Fußbefund: "
+     Case "kv": Übs = "Kompressionsverband: "
+     Case "fa", "fam": Übs = "Familienanamnese: "
+     Case "rauch": Übs = "Rauchanamnese: "
+     Case "bew", "beweg", "bewegung", "bewg": Übs = "Bewegung: "
+     Case "alko": Übs = "Alkoholanamnese: "
+     Case "colo": Übs = "Colo-/Gastroskopien: "
+     Case "aug", "augen": Übs = "Augen: "
+     Case "beruf": Übs = "Beruf: "
     End Select
-    Inhalt = Inhalt + raVL!Inhalt
+    Inhalt = Übs & Inhalt
     eintraege = eintraege + vbTab + REPLACE$(Inhalt, "^", vNS) & vbCrLf
    End If
-   lzp = DateValue(raVL!Zeitpunkt)
+   lzp = DateValue(Zp)
   End If
   raVL.Move 1
  Loop
@@ -14332,17 +14361,19 @@ Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "Last
  Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
 End Select
 End Function ' DiagExpGesamt()
+
 Function doRückgängig()
  Dim rAF&
  InsKorr DBCn, DBCnS, "INSERT INTO `fuerdiagexp`(name,pat_id,icd,diagnose,zeitpunkt) SELECT CONCAT(nachname, ' ', vorname) AS Name, e.pat_id, icd, diagnose, übertragen FROM `diagnosen exportiert` e LEFT JOIN `namen` USING (pat_id) WHERE übertragen = (SELECT MAX(übertragen) FROM `diagnosen exportiert`)", rAF
  syscmd 4, rAF & " Diagnosen erneut vorbereitet"
 End Function ' doRückgängig()
+
 #If Not thaalt Then
 Function testthap(pid&)
 ' IF DBCn.State <> 0 THEN DBCn.Close
 ' SET DBCn = Nothing
  Lese.ProgStart
- DBCn.Execute "call fuellThaP(" & CStr(pid) & ")"
+ DBCn.Execute "CALL fuellThaP(" & CStr(pid) & ")"
  Debug.Print DBCn.Execute("SELECT COUNT(0) FROM therarten WHERE pat_id=" & CStr(pid)).Fields(0)
  Lese.ProgEnde
  Debug.Print "Fertig"
