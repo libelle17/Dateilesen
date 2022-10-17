@@ -5326,7 +5326,7 @@ End Function 'RezEintr
 Function DiagString$(Pat_id$, DiagTab() As CString, Optional VorDat As Date, Optional obBrief%, Optional dmseit$) ' für dynDiag, tubriefStandalone und dodoPLZ
  Dim runde%, rdDi As New ADODB.Recordset, sql$
  On Error GoTo fehler
- sql = "SELECT DiagSicherheit, DiagText, DiagSeite, DiagAttr, d.ICD, obdauer, COALESCE(d.f6010,0) f6010, obDauer<>0 j_obdauer,obKasse,f6011, COALESCE(diagdatum,0) DiagDatum, g1.rf,r.gi2 " & vbCrLf & _
+ sql = "SELECT DiagSicherheit, DiagText, DiagSeite, DiagAttr, d.ICD, obdauer, COALESCE(d.f6010,0) f6010, obDauer<>0 j_obdauer,obKasse,f6011, COALESCE(diagdatum,0) DiagDatum, AusnBegr, intBemerk, g1.rf,r.gi2 " & vbCrLf & _
        "FROM `diagnosen` d " & vbCrLf & _
        "LEFT JOIN `diagreihe` r ON d.icd = r.icd " & vbCrLf & _
        "LEFT JOIN `diagg1` g1 ON r.gi1 = g1.lfdnr " & vbCrLf & _
@@ -5377,8 +5377,8 @@ Function DiagString$(Pat_id$, DiagTab() As CString, Optional VorDat As Date, Opt
    DiagiBm(runde) = IIf(IsNull(rdDi!intBemerk), vNS, rdDi!intBemerk)
    diagdat(runde) = rdDi!DiagDatum
    obDauer(runde) = IIf(IsNull(rdDi!j_obDauer), 0, -Abs(rdDi!j_obDauer))
-   obKasse(runde) = IIf(IsNull(rdDi!obKasse), vNS, rdDi!obKasse)
-   f6010(runde) = IIf(IsNull(rdDi!f6010), vNS, rdDi!f6010)
+   obKasse(runde) = IIf(IsNull(rdDi!obKasse), 0, rdDi!obKasse)
+   f6010(runde) = IIf(IsNull(rdDi!f6010), 0, rdDi!f6010)
    f6011(runde) = IIf(IsNull(rdDi!f6011), vNS, rdDi!f6011)
    G1(runde) = IIf(IsNull(rdDi!rf), 0, rdDi!rf)
    G2(runde) = IIf(IsNull(rdDi!gi2), 0, rdDi!gi2)
