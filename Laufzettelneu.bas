@@ -723,11 +723,11 @@ Function UKPDS(ByRef aRisk As Risk, pid$, gbdt As Date, dmseit$, ByRef falDiabDa
 ' UKPDS-Risk bestimmen (2)
   aRisk.Female = obweibl
   Set rsDia = Nothing
-  myFrag rsDia, "SELECT (0) FROM `diagnosen` d WHERE d.pat_id = " & pid & " AND (d.icd LIKE 'I48%') AND NOT d.diagsicherheit IN ('A','Z') AND COALESCE(d.f6010,0)=0 "
+  myFrag rsDia, "SELECT 0 FROM `diagnosen` d WHERE d.pat_id = " & pid & " AND (d.gicdok LIKE 'I48%')" ' AND COALESCE(d.f6010,0)=0
   aRisk.AtrialFibrillation = Not rsDia.BOF()
   Set rsDia = Nothing
   aRisk.EthnicGroup = 1 ' 2 = Afro-Caribbean, 3 = Asian-Indian
-  myFrag rsDia, "SELECT diagsicherheit d FROM `diagnosen` d WHERE d.pat_id = " & pid & " AND (d.icd LIKE 'F17%') AND NOT d.diagsicherheit IN ('A') AND COALESCE(d.f6010,0)=0 "
+  myFrag rsDia, "SELECT diagsicherheit d FROM `diagnosen` d WHERE d.pat_id = " & pid & " AND (d.icd LIKE 'F17%') AND NOT d.diagsicherheit IN ('A')" '  AND COALESCE(d.f6010,0)=0
   If rsDia.EOF Then
    aRisk.SmokingStatus = 0
   ElseIf rsDia!d = "Z" Then
@@ -1185,7 +1185,7 @@ weiter:
 hyperton:
 #Else
   Set rsDia = Nothing
-  myFrag rsDia, "SELECT 0 FROM `diagnosen` d WHERE d.pat_id = " & Pat_id & " AND d.icd LIKE 'i10%' AND d.diagsicherheit IN ('g',' ') AND COALESCE(d.f6010,0)=0 "
+  myFrag rsDia, "SELECT 0 FROM `diagnosen` d WHERE d.pat_id = " & Pat_id & " AND d.gICDok LIKE 'i10%'" '  AND COALESCE(d.f6010,0)=0
   If rsDia.EOF Then
    If pathz(RRi) < 1 Or (npathz(RRi) > 2 And pathz(RRi) < 2) Then
     normoton = True
@@ -1913,7 +1913,7 @@ keinuzu:
   End If ' obGPT And obGOT And obTHR Then
   If obGPT And obGOT And obTHR And obAlb And üdt.bmi <> 0 Then
    Dim obDMoPG%
-   obDMoPG = DBCn.Execute("SELECT IF(EXISTS (SELECT 0 FROM diagnosen WHERE gicd RLIKE '^E1[0-4]\.|^R73\.9' AND pat_id=" & Pat_id & "),1,0)").Fields(0)
+   obDMoPG = DBCn.Execute("SELECT IF(EXISTS (SELECT 0 FROM diagnosen WHERE gICDok RLIKE '^E1[0-4]\.|^R73\.9' AND pat_id=" & Pat_id & "),1,0)").Fields(0)
    NFS = Round(-1.675 + 0.037 * Palter + 0.094 * üdt.bmi + 1.13 * obDMoPG + 0.99 * GOT / GPT - 0.013 * Thr - 0.66 * Alb * 0.1, 3)
   End If ' obGPT And obGOT And obTHR And obAlb And üdt.bmi <> 0 Then
   
@@ -1963,7 +1963,7 @@ keinuzu:
     If üdt.FEn(12) = True Or üdt.sens = pathdok Then
      MerkblattText = MerkblattText & "ICD("
      Set rsDia = Nothing
-     myFrag rsDia, "SELECT DISTINCT icd FROM `diagnosen` d WHERE pat_id = " & Pat_id & " AND (d.icd LIKE 'L89%' OR d.icd LIKE 'M14.6%' OR d.icd = 'G63.2') AND NOT d.diagsicherheit IN ('A','Z') AND COALESCE(d.f6010,0)=0 "
+     myFrag rsDia, "SELECT DISTINCT icd FROM `diagnosen` d WHERE pat_id = " & Pat_id & " AND (d.gicdok LIKE 'L89%' OR d.gicdok LIKE 'M14.6%' OR d.gicdok = 'G63.2') " ' AND COALESCE(d.f6010,0)=0
      Do While Not rsDia.EOF
       MerkblattText = MerkblattText & rsDia!ICD & ","
       rsDia.Move 1
@@ -2409,7 +2409,7 @@ keinuzu:
   If falDiabDau Then AusS.AppVar (Array("    <span class='cave'>&nbsp;bitte `Diabetes seit` im Anamnesemakro überprüfen: soll Jahreszahl oder Datum sein,&nbsp;&nbsp;</span>", vbCrLf))
 ' Barthel-Index
   Dim rsdd As New Adodb.Recordset
-  myFrag rsdd, "SELECT icd FROM diagnosen d WHERE d.pat_id = " & Pat_id & " AND (d.icd RLIKE '^F0[0123]' OR d.icd LIKE 'G20%') AND d.diagsicherheit not IN ('A','V') AND COALESCE(d.f6010,0)=0 "
+  myFrag rsdd, "SELECT icd FROM diagnosen d WHERE d.pat_id = " & Pat_id & " AND (d.gICDok RLIKE '^F0[0123]' OR d.gICDok LIKE 'G20%')" '  AND COALESCE(d.f6010,0)=0
   Dim rse As New Adodb.Recordset
   If Not rFl.EOF() Then
    If rFl!SchGr <> 90 And (Palter >= 70 Or Not rsdd.BOF) Then
@@ -2445,15 +2445,15 @@ keinuzu:
     AusS.AppVar Array("<span style= 'color:rgb(51, 153, 255);font-size:4mm'>&nbsp;DAK/KKH/HEK/TK-Unterschrift " & DAKUStr)
      
      Dim NPmd%, LUTSmd%, Apmd%, LebMd%, NiMd%
-     NPmd = DBCn.Execute("SELECT 1 FROM diagnosen WHERE COALESCE(f6010,0)=0 AND pat_id = " & Pat_id & " AND diagsicherheit IN ('g',' ') AND (icd LIKE 'E1%.4' OR icd LIKE 'G59.0%' OR icd LIKE 'G63.2%' OR icd LIKE 'G99.0%')").EOF
+     NPmd = DBCn.Execute("SELECT 1 FROM diagnosen WHERE pat_id = " & Pat_id & " AND (gICDok LIKE 'E1%.4' OR gICDok LIKE 'G59.0%' OR gICDok LIKE 'G63.2%' OR gICDok LIKE 'G99.0%')").EOF ' COALESCE(f6010,0)=0 AND
      If NPmd Then NPmd = DBCn.Execute("SELECT zeitpunkt FROM eintraege WHERE art='daknp' AND pat_id = " & Pat_id & " AND zeitpunkt >= SUBDATE(qanf(),INTERVAL 9 MONTH)").EOF
-     LUTSmd = DBCn.Execute("SELECT 0 FROM diagnosen WHERE COALESCE(f6010,0)=0 AND pat_id = " & Pat_id & " AND diagsicherheit IN ('g',' ') AND icd RLIKE '^N31\.[12]'").BOF
+     LUTSmd = DBCn.Execute("SELECT 0 FROM diagnosen WHERE pat_id = " & Pat_id & " AND gicdok RLIKE '^N31\.[12]'").BOF ' COALESCE(f6010,0)=0 AND
      If LUTSmd Then LUTSmd = DBCn.Execute("SELECT zeitpunkt FROM eintraege WHERE art='dakluts' AND pat_id = " & Pat_id & " AND zeitpunkt >= SUBDATE(qanf(),INTERVAL 9 MONTH)").EOF
-     If Palter > 50 Then Apmd = DBCn.Execute("SELECT 0 FROM diagnosen WHERE COALESCE(f6010,0)=0 AND pat_id = " & Pat_id & " AND diagsicherheit IN ('g',' ') AND (icd LIKE 'E1%.5' OR icd LIKE 'I79.2' OR icd LIKE 'I73.%')").BOF Else Apmd = 0
+     If Palter > 50 Then Apmd = DBCn.Execute("SELECT 0 FROM diagnosen WHERE pat_id = " & Pat_id & " AND gicdok LIKE '^E1.\.5|^I79.2|^I73.'").BOF Else Apmd = 0 ' COALESCE(f6010,0)=0 AND
      If Apmd Then Apmd = DBCn.Execute("SELECT zeitpunkt FROM eintraege WHERE art='dakap' AND pat_id = " & Pat_id & " AND zeitpunkt >= SUBDATE(qanf(),INTERVAL 9 MONTH)").EOF
-     LebMd = DBCn.Execute("SELECT 0 FROM diagnosen WHERE COALESCE(f6010,0)=0 AND pat_id = " & Pat_id & " AND diagsicherheit IN ('g',' ') AND (icd LIKE 'K77.8')").BOF
+     LebMd = DBCn.Execute("SELECT 0 FROM diagnosen WHERE pat_id = " & Pat_id & " AND (gicdok LIKE 'K77.8')").BOF ' COALESCE(f6010,0)=0 AND
      If LebMd Then LebMd = DBCn.Execute("SELECT zeitpunkt FROM eintraege WHERE art='sono' AND (inhalt LIKE '%Abdomen%' OR inhalt LIKE '%Bauch%') AND pat_id = " & Pat_id & " AND zeitpunkt >= SUBDATE(qanf(),INTERVAL 9 MONTH)").EOF
-     NiMd = DBCn.Execute("SELECT 0 FROM diagnosen WHERE COALESCE(f6010,0)=0 AND pat_id = " & Pat_id & " AND diagsicherheit IN ('g',' ') AND (icd LIKE 'E1%.2' OR icd LIKE 'N18%' OR icd LIKE 'N19%' OR icd LIKE 'I12.0%' OR icd LIKE 'I13.1%' OR icd LIKE 'I13.2%' OR icd RLIKE '^Z49\.[012]' OR icd LIKE 'Z99.2%')").BOF
+     NiMd = DBCn.Execute("SELECT 0 FROM diagnosen WHERE pat_id = " & Pat_id & " AND gicdok rLIKE '^E1.*\.2|^N18|^N19|^I12\.0|^I13\.1|^I13\.2|^Z49\.[012]|^Z99\.2'").BOF ' COALESCE(f6010,0)=0 AND
      If (NPmd Or LUTSmd Or Apmd Or LebMd Or NiMd) Then
       AusS.AppVar Array(IIf(NPmd, "NPMd, ", ""), IIf(LUTSmd, "LUTSMd, ", ""), IIf(Apmd, "APMd, ", ""), IIf(LebMd, "LebMd ,", ""), IIf(NiMd, "NiMd ", ""))
      End If ' NPmd OR LUTSmd OR Apmd OR Lebmd OR NiMd
@@ -2879,72 +2879,6 @@ keinuzu:
   
 ' Fettleberindices
   If NFS <> -1 Then TabZ = MAX(TabZ, 6) Else If FIB4 <> -1 Then TabZ = MAX(TabZ, 5) Else If FLI <> -1 Then TabZ = MAX(TabZ, 4)
-  
-' Diagnosen, Medikation und UKPDS Risk
-  AusS.AppVar Array("<br><table border=""1""><thead align=""left""><tr><th>Diagnosen:</th><th>ICD</th><th bgcolor=""#CCCCCC"">_</th><th>Letzte Medikation:</th><th>fr</th><th>mi</th><th>nm</th><th>ab</th><th>zn</th><th>bBed</th><th bgcolor=""#CCCCCC"">_</th><th" & IIf(obdm, " bgcolor=""#FFFF00""", "") & ">", IIf(obdm, "<span title='" & UKtip & "'</span>UKPDS RE: </th><th>KHE</th><th>fatale KHE</th><th>Apoplex</th><th>fataler Apoplex</th><th bgcolor=""#CCCCCC"">_</th>", IIf(FLI <> -1 Or FIB4 <> -1 Or NFS <> -1, "</th><th></th><th></th><th></th><th></th><th></th>", "")), "<th>Termine</th>", vbCrLf)
-  Dim medfertig%
-  If obDiagnosen Or obmed Then
-   For k = 0 To TabZ
-    AusS.AppVar Array(" <tr>", vbCrLf)
-    If obDiagnosen Then
-     If k <= UBound(DiagTab) Then
-      If Not DiagTab(k) Is Nothing Then
-       Call DiagTab(k).REPLACE(vbTab, "</th><th class='diag'>")
-       AusS.AppVar Array("  <th class='diag'>", DiagTab(k).Value, "</th>", vbCrLf)
-      End If
-     Else
-      AusS.AppVar Array("  <th></th><th></th>", vbCrLf)
-     End If
-    Else
-     AusS.AppVar Array("  <th></th><th></th>", vbCrLf)
-    End If
-    AusS.AppVar Array("  <th bgcolor=""#DDDDDD""></th>", vbCrLf)
-    
-    If obmed Then
-     If k <= UBound(mdpl) Then
-      AusS.AppVar Array("  <th class='med'>", mdpl(k).m.Medikament, "</th><th class='med'>", mdpl(k).m.mo, "</th><th class='med'>", mdpl(k).m.mi, "</th><th class='med'>", mdpl(k).m.nm, "</th><th class='med'>", mdpl(k).m.ab, "</th><th class='med'>", mdpl(k).m.Zn, "</th><th class='med'>", IIf(mdpl(k).m.bBed <> 0, "b.Bed.", vNS), "</th></span>", vbCrLf)
-     ElseIf Not medfertig Then
-      AusS.Append "  <th class='med' colspan=""7"" rowspan=""" & TabZ - k + 1 & """>"
-      AusS.Append IIf(Left(mdpl(UBound(mdpl)).m.Bemerkung, 2) = vbCrLf, REPLACE$(Mid(mdpl(UBound(mdpl)).m.Bemerkung, 2), vbCrLf, "<br>"), mdpl(UBound(mdpl)).m.Bemerkung)
-      AusS.AppVar Array("</th>", vbCrLf)
-      medfertig = True
-     End If ' k <= UBound(mdpl) Then elseif
-    End If ' obmed Then
-    AusS.AppVar Array("  <th bgcolor=""#DDDDDD""></th>", vbCrLf)
-    
-    If obdm Or FLI <> -1 Or FIB4 <> -1 Or NFS <> -1 Then
-     If (k < 3 And Not obdm) Or k = 3 Or (k = 4 And FLI = -1) Or (k = 5 And FIB4 = -1) Or (k = 6 And NFS = -1) Or k > 6 Then
-      AusS.AppVar Array("  <th></th><th></th><th></th></th><th></th><th></th>")
-     Else
-      Select Case k
-       Case 0
-        If obdm Then AusS.AppVar Array("  <th>10a Risiko</th><th>", cR, "%</th><th>", CFR, "%</th><th>", SR, "%</th><th>", SFR, "%</th>")
-       Case 1
-        If obdm Then AusS.AppVar Array("  <th><span title='Vertrauensbereich-Untergrenze'>10a VB von</span></th><th>", CL, "%</th><th>", CFL, "%</th><th>", SL, "%</th><th>", SFL, "%</th>")
-       Case 2
-        If obdm Then AusS.AppVar Array("  <th><span title='Vertrauensbereich-Obergrenze'>10a VB bis</span></th><th>", CU, "%</th><th>", CFU, "%</th><th>", SU, "%</th><th>", SFU, "%</th>")
-       Case Else
-        If k = 4 And FLI <> -1 Then
-         AusS.AppVar Array("  <th>Fettlb'ind.:</th><th></th><th", IIf(FLI < 30, "", " bgcolor=""" & IIf(FLI > 60, "yellow", "lightyellow") & """"), ">", FLI, "</th></th><th></th><th></th>")
-        ElseIf k = 5 And FIB4 <> -1 Then
-         AusS.AppVar Array("  <th>FIB-4'ind.:</th><th></th><th", IIf(FIB4 < IIf(Palter < 66, 1.3, 2), "", " bgcolor=""" & IIf(FIB4 > 3.25, "yellow", "lightyellow") & """"), ">", CStr(FIB4), "</th></th><th></th><th></th>")
-        ElseIf k = 6 And NFS <> -1 Then
-         AusS.AppVar Array("  <th>NFScore:</th><th></th><th", IIf(NFS < -1.455, "", " bgcolor=""" & IIf(NFS > 0.676, "yellow", "lightyellow") & """"), ">", CStr(NFS), "</th></th><th></th><th></th>")
-        End If
-      End Select
-     End If ' (k < 3 AND NOT obdm) OR (k = 4 And FLI = -1) OR (k = 5 And FIB4 = -1) OR (k = 6 And NFS = -1) OR k > 6 Then else
-    End If ' obdm OR FLI <> -1 OR FIB4 <> -1 OR NFS <> -1 Then
-    AusS.AppVar Array("  <th bgcolor=""#DDDDDD""></th>", vbCrLf)
-    
-    If Not rTerm.BOF And Not rTerm.EOF Then
-     AusS.AppVar Array(" <th class='term'>", Format(rTerm!Uhrzeit, "d.m.yy hh:mm") & " " & rTerm!raum & " " & rTerm!zusatz & "</th>")
-    End If
-    If Not rTerm.BOF And Not rTerm.EOF Then rTerm.MoveNext
-    
-    AusS.AppVar Array(" </tr>", vbCrLf)
-   Next k
-  End If ' obDiagnosen OR obmed Then
-  AusS.AppVar Array("</table><br>", vbCrLf)
   
 ' Hier kommt das Labor rein!
   Dim SelbstStatus%, raDatBOF%, Matr$() ' Matrix: 3. Dimension: 0 = Wert, 1 = Tip-Tool, 28.3.10

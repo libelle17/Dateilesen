@@ -24,7 +24,7 @@ Public Function LaborDirektImport(frm As Lese, absPos&, SammelInsert%, BezfSpei%
  Const debugohneSpeichern% = False
 ' Const neuVerz$ = pverz & "Biowin\Backup\neu\"
  Const ZS As Boolean = True
- Dim rs As New Adodb.Recordset, rs1 As New Adodb.Recordset
+ Dim rs As New ADODB.Recordset, rs1 As New ADODB.Recordset
  Dim repl$
  Dim fI As Files, fld As Folder, f1 As File, neuPfad$, keimz%
  Dim RefNr&
@@ -682,14 +682,14 @@ End Select
 End Function ' LaborDirektImport
 Function LaborErgPatId(lies As Lese, Optional mitLöschen%, Optional nurRef&)
 ' Pat_IDs ergänzen
- Dim rs As New Adodb.Recordset, rs1 As New Adodb.Recordset
+ Dim rs As New ADODB.Recordset, rs1 As New ADODB.Recordset
  Const debugbit% = 0 ' liefert Analyse der Vorgänge IN uverz & "anamnese\debug.txt", spart sich dafür Datenbankänderungen
  Dim altRefnr&, i&, sqlct$
  Dim j&
  Dim sPI As SortierPat_ID
  Dim SL As New SortierListe
 ' Dim rLX AS DAO.Recordset, rLN AS DAO.Recordset, rs AS DAO.Recordset
- Dim rLX As New Adodb.Recordset, rLN As New Adodb.Recordset
+ Dim rLX As New ADODB.Recordset, rLN As New ADODB.Recordset
  Dim rLNZeitpunkt#, ZdüP%, LWerte$, GesAbk$, rAF&, laborneuAfn&, sql$, sql1$
  Dim obNeuerPat% ' Datensatz IN rLX eintragen und mit SL neu anfangen
  Dim aktDS&, VergleichTot%
@@ -957,7 +957,7 @@ End Function ' LaborErgPatID
 
 Function LöschRefNr(Optional RefNr&)
  Dim rAF&
- Dim rs As Adodb.Recordset
+ Dim rs As ADODB.Recordset
  If RefNr = 0 Then
   Set rs = DBCn.Execute("UPDATE `laborneu` SET refnr = null WHERE NOT ISNULL(refnr)", rAF)
  Else
@@ -1042,8 +1042,8 @@ Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "Last
 End Select
 End Function ' BDTtoTime
 
-Function indIns&(cn As Adodb.Connection, CNs$, Tb$, fld$, Wert$, idFld$)
- Dim rs As New Adodb.Recordset, rAF&
+Function indIns&(cn As ADODB.Connection, CNs$, Tb$, fld$, Wert$, idFld$)
+ Dim rs As New ADODB.Recordset, rAF&
  Dim varlen&, pos&
  Dim STyp$
  On Error GoTo fehler
@@ -1111,10 +1111,10 @@ Function löschBezügeausLaborxus(Optional RefNr&)
                      IIf(RefNr <> 0, "WHERE refnr = " & RefNr & " and", "where") & " pat_idursp = ""L""", rAF)
 End Function ' löschBezügeausLaborxus
 
-
-Function SpMod%(SpValLen%, TName, rs0 As Adodb.Recordset, Optional SpVal$) ' Spalte modifizieren
-Dim ZCStr$, keinetrans%, SpName$, maxL%
-Dim rsc As New Adodb.Recordset
+Function SpMod%(SpValLen%, TName, rs0 As ADODB.Recordset, Optional SpVal$) ' Spalte modifizieren
+'Dim ZCStr$
+Dim keinetrans%, SpName$, maxL%
+Dim rsc As New ADODB.Recordset
 Dim ausgTxt$, FNr&, FText$
 On Error GoTo fehler
 SpName = rs0!COLUMN_NAME
@@ -1136,15 +1136,16 @@ If SpValLen > maxL And maxL > 0 Then ' longtext
   SpMod = maxL
 '  SpVal = LEFT(SpVal, maxL) ' Verkürzung
  Else
-  ZCStr = DBCnS ' DBCn.ConnectionString
+'  ZCStr = DBCnS ' DBCn.ConnectionString
   On Error Resume Next
   If obTrans <> 0 Then DBCn.CommitTrans: obTrans = 0
   keinetrans = Err.Number
   On Error GoTo fehler
-  DBCn.Close
-'  Call CnOpen(False, ZCStr)
-  'Call acon(quelleT)
-  DBCn.Open
+  Call DBCnOpen
+'  DBCn.Close
+''  Call CnOpen(False, ZCStr)
+'  'Call acon(quelleT)
+'  DBCn.Open
   If Lese.obMySQL Then Call DBCn.Execute("USE `" & Lese.MyDB & "`")
   Call ForeignNo0
   Call ForeignNo1

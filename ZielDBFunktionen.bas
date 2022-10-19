@@ -1694,7 +1694,7 @@ sql = "SELECT IF(Mid(di.icd, 5, 1)>=2,1,IF(mid(di.icd,5,1)<=1,0,IF(u.ulcera LIKE
 "FROM aktfvs f " & _
 "LEFT JOIN eintraege e ON f.pat_id = e.pat_id AND e.art='ulcus' AND e.zeitpunkt BETWEEN qanf() AND qend() " & _
 "LEFT JOIN fuss u ON f.pat_id = u.pat_id AND u.ulcera IN ('obfl','tief') AND u.zeitpunkt BETWEEN qanf() AND qend() " & _
-"LEFT JOIN diagnosen di ON f.pat_id = di.pat_id AND  di.gicd RLIKE '^L89\.[12345]' AND obdauer = 0 AND DATE(di.diagdatum) BETWEEN qanf() AND qend() " & _
+"LEFT JOIN diagnosen di ON f.pat_id = di.pat_id AND  di.gICDok RLIKE '^L89\.[12345]' AND obdauer = 0 AND DATE(di.diagdatum) BETWEEN qanf() AND qend() " & _
 "WHERE (NOT ISNULL(e.Art) OR NOT ISNULL(u.Ulcera) OR NOT ISNULL(di.ICD)) " & _
 " AND f.pat_id = " & pid & _
 " GROUP BY f.pat_id;"
@@ -1747,7 +1747,7 @@ If Not rUlc.BOF Then aktDC.Infekt = 1
 If aktDC.Infekt Or aktDC.ulcus < 2 Then aktDC.NaeUs = 2
 
 Dim raltu As New ADODB.Recordset
-myFrag raltu, "SELECT icd FROM diagnosen d WHERE pat_id = " & pid & " AND icd RLIKE '^L89.[234]' AND diagdatum < qanf() AND diagsicherheit<>'A' AND COALESCE(f6010,0)=0 "
+myFrag raltu, "SELECT icd FROM diagnosen d WHERE pat_id = " & pid & " AND icd RLIKE '^L89.[234]' AND diagdatum < qanf() AND diagsicherheit<>'A'" '  AND COALESCE(f6010,0)=0"
 If Not raltu.BOF Then aktDC.ZnUlcus = 1
 
 Dim ranamp As New ADODB.Recordset
@@ -1775,7 +1775,7 @@ If Not ranamp.EOF And ranamp!amp = 1 Then aktDC.ZnAmput = 1
  If ab317 Then mitStr = 0
  Dim raFa As New ADODB.Recordset
  Dim diIsql$
- diIsql = "SELECT ICD, DiagSeite, DiagDatum FROM `diagnosen` WHERE pat_id = " & pid & " AND (icd LIKE ""M14.6%"" OR icd LIKE ""T79.%"" OR icd LIKE ""L89.%"" OR icd LIKE ""T89.%"" OR icd LIKE ""T87.4%"" OR icd LIKE ""Z44.1%"") AND diagsicherheit IN (""G"",""V"",""Z"")  AND COALESCE(f6010,0)=0 " ' M14.6 = Charcot, M14.2 = Arthorpathie
+ diIsql = "SELECT ICD, DiagSeite, DiagDatum FROM `diagnosen` WHERE pat_id = " & pid & " AND (icd LIKE ""M14.6%"" OR icd LIKE ""T79.%"" OR icd LIKE ""L89.%"" OR icd LIKE ""T89.%"" OR icd LIKE ""T87.4%"" OR icd LIKE ""Z44.1%"") AND diagsicherheit IN (""G"",""V"",""Z"")" '  AND COALESCE(f6010,0)=0 " ' M14.6 = Charcot, M14.2 = Arthorpathie
  Dim lddat As Date
  myFrag raFa, "SELECT MAX(bhfb) AS lddat FROM `faelle` WHERE pat_id = " & pid
  If Not raFa.BOF Then
@@ -1835,13 +1835,10 @@ If Not ranamp.EOF And ranamp!amp = 1 Then aktDC.ZnAmput = 1
 '  END Enum
 
   If lies.obMySQL Then
-   sql = "SELECT * FROM `diagnosen` WHERE (obdauer <> 0 OR (obdauer = 0 AND CONCAT(((month(diagdatum)+2) div 3)¡ YEAR(diagdatum)) = '" & ZQuart(DokuDat) & "')) AND diagsicherheit<>'A' AND COALESCE(f6010,0)=0 AND pat_id = " & aktDC.Pat_id
-  Else
-   sql = "SELECT * FROM `diagnosen` WHERE (obdauer <> 0 OR (obdauer = 0 AND (int((month(diagdatum)+2) / 3) & YEAR(diagdatum)) = '" & ZQuart(DokuDat) & "')) AND diagsicherheit<>'A' AND COALESCE(f6010,0)=0 AND pat_id = " & aktDC.Pat_id
-  End If
-  If lies.obMySQL Then
+   sql = "SELECT * FROM `diagnosen` WHERE (obdauer <> 0 OR (obdauer = 0 AND CONCAT(((month(diagdatum)+2) div 3)¡ YEAR(diagdatum)) = '" & ZQuart(DokuDat) & "')) AND diagsicherheit<>'A' AND pat_id = " & aktDC.Pat_id ' AND COALESCE(f6010,0)=0
    sql = REPLACE$(sql, "¡", ",")
   Else
+   sql = "SELECT * FROM `diagnosen` WHERE (obdauer <> 0 OR (obdauer = 0 AND (int((month(diagdatum)+2) / 3) & YEAR(diagdatum)) = '" & ZQuart(DokuDat) & "')) AND diagsicherheit<>'A' AND pat_id = " & aktDC.Pat_id ' AND COALESCE(f6010,0)=0
    sql = REPLACE$(REPLACE$(sql, "concat", ""), "¡", " & ")
   End If
   
@@ -2021,7 +2018,7 @@ If Not ranamp.EOF And ranamp!amp = 1 Then aktDC.ZnAmput = 1
 #If vorca2008 Then
   Set raDT = Nothing
 '  Call raDT.Open("SELECT * FROM `diagnosen` WHERE pat_id = " & pid & " AND icd LIKE '" & "M14.6%" & "' AND diagsicherheit IN (""G"",""V"") AND COALESCE(f6010,0)=0 ", DBCn, adOpenDynamic, adLockReadOnly)
-  myFrag raDT, "SELECT * FROM `diagnosen` WHERE pat_id = " & pid & " AND icd LIKE '" & "M14.6%" & "' AND diagsicherheit IN (""G"",""V"") AND COALESCE(f6010,0)=0 "
+  myFrag raDT, "SELECT * FROM `diagnosen` WHERE pat_id = " & pid & " AND icd LIKE '" & "M14.6%" & "' AND diagsicherheit IN (""G"",""V"")" ' AND COALESCE(f6010,0)=0 "
   If Not raDT.BOF Then
    Dim Seite$
    If Not IsNull(raDT!DiagSeite) Then
@@ -2032,15 +2029,15 @@ If Not ranamp.EOF And ranamp!amp = 1 Then aktDC.ZnAmput = 1
      Case "B": aktDC.oap = gleich ' heißt hier: unbekannt
      Case Else: aktDC.oap = unbek ' heißt hier: keine
     End Select
-   Else
+   Else ' Not IsNull(raDT!DiagSeite) Then
     Seite = "ja"
     aktDC.oap = gleich
-   End If
+   End If ' Not IsNull(raDT!DiagSeite) Then else
    If mitStr Then TabPr "Osteoarthropathie ", Seite
-  Else
+  Else ' Not raDT.BOF Then
    aktDC.oap = unbek ' heißt hier: keine
    If mitStr Then TabPr "Osteoarthropathie:", "keine"
-  End If
+  End If ' Not raDT.BOF Then else
   Set raDT = Nothing
 #End If ' vorca2008
 
@@ -2563,7 +2560,6 @@ fehler:
 #End If
 If Err.Number = -2147467259 Then ' Server has gone away ' 30.8.17 ungültiger Eigenschaftswert führt zur Dauerschleife
 'If Err.Number = -2147467259 OR Err.Number = -2147217887 THEN ' Server has gone away / ungültiger Eigenschaftswert
- If DBCn.State <> 0 Then DBCn.Close
  Call DBCnOpen
  Resume nochmal
 End If
@@ -4563,7 +4559,7 @@ Function diI%(icd_str$, Optional pid, Optional abDat As Date, Optional auchZ As 
    If i = SpliZ - 1 Then icdsql = icdsql & ")" Else icdsql = icdsql & " OR "
   Next i
  End If
- diIsql = "SELECT " & IIf(lies.obMySQL, vNS, "top 1 ") & "* FROM `diagnosen` WHERE pat_id = " & Pat_id & " AND " & icdsql & " AND diagsicherheit IN ('G','V',''" & IIf(auchZ, ",'Z'", "") & ")  AND COALESCE(f6010,0)=0 " & IIf(abDat <> 0, " AND diagdatum >= " & DatFor_k(abDat), "") & IIf(LenB(Weiteres) <> 0, " AND " & Weiteres, "")
+ diIsql = "SELECT " & IIf(lies.obMySQL, vNS, "top 1 ") & "* FROM `diagnosen` WHERE pat_id = " & Pat_id & " AND " & icdsql & " AND diagsicherheit IN ('G','V',''" & IIf(auchZ, ",'Z'", "") & ") " & IIf(abDat <> 0, " AND diagdatum >= " & DatFor_k(abDat), "") & IIf(LenB(Weiteres) <> 0, " AND " & Weiteres, "") '  AND COALESCE(f6010,0)=0
  Dim lddat As Date
  myFrag raFa, "SELECT MAX(bhfb) AS lddat FROM `faelle` WHERE pat_id = " & Pat_id
  If Not raFa.BOF Then
@@ -4617,9 +4613,9 @@ Function diT%(diagtxt$, Optional pid, Optional abDat As Date, Optional auchZ As 
    If i = SpliZ - 1 Then dtxtsql = dtxtsql & ")" Else dtxtsql = dtxtsql & " OR "
   Next i
  End If
- diTsql = "SELECT " & IIf(lies.obMySQL, vNS, "top 1 ") & "* FROM `diagnosen` WHERE pat_id = " & Pat_id & " AND " & dtxtsql & " AND diagsicherheit IN ('G','V',''" & IIf(auchZ, ",'Z'", "") & ") AND COALESCE(f6010,0)=0 " & IIf(abDat <> 0, " AND diagdatum >= " & DatFor_k(abDat), "") & IIf(LenB(Weiteres) <> 0, " AND " & Weiteres, "")
+ diTsql = "SELECT " & IIf(lies.obMySQL, vNS, "top 1 ") & "* FROM `diagnosen` WHERE pat_id = " & Pat_id & " AND " & dtxtsql & " AND diagsicherheit IN ('G','V',''" & IIf(auchZ, ",'Z'", "") & ") " & IIf(abDat <> 0, " AND diagdatum >= " & DatFor_k(abDat), "") & IIf(LenB(Weiteres) <> 0, " AND " & Weiteres, "") ' AND COALESCE(f6010,0)=0
  Dim lddat As Date
- myFrag raFa, "SELECT MAX(bhfb) AS lddat FROM `faelle` WHERE pat_id = " & Pat_id
+ myFrag raFa, "SELECT MAX(bhfb) lddat FROM `faelle` WHERE pat_id = " & Pat_id
  If Not raFa.BOF Then
   If Not IsNull(raFa!lddat) Then
    lddat = raFa!lddat
@@ -5219,7 +5215,7 @@ Function WieTabak(Pat_id&) As ZigSt
   WieTabak = doTabakSt(Pat_id)
   If Pat_id <> 0 Then
 '   Call raZig.Open("SELECT * FROM `diagnosen` WHERE pat_id = " & Pat_id & " AND icd LIKE '" & "F17" & "%" & "' AND diagsicherheit IN (""G"",""V"",""Z"")  AND COALESCE(f6010,0)=0 ", DBCn, adOpenDynamic, adLockReadOnly)
-   myFrag raZig, "SELECT DiagText,DiagSicherheit FROM `diagnosen` WHERE pat_id = " & Pat_id & " AND icd LIKE '" & "F17" & "%" & "' AND diagsicherheit IN (""G"",""V"",""Z"")  AND COALESCE(f6010,0)=0 "
+   myFrag raZig, "SELECT DiagText,DiagSicherheit FROM `diagnosen` WHERE pat_id = " & Pat_id & " AND icd LIKE '" & "F17" & "%" & "' AND diagsicherheit IN (""G"",""V"",""Z"") " '  AND COALESCE(f6010,0)=0 "
    If Not raZig.EOF Then
     DiText = raZig!DiagText
     DiSich = raZig!DiagSicherheit
@@ -5228,8 +5224,8 @@ Function WieTabak(Pat_id&) As ZigSt
     Else
      WieTabak = aktuell
     End If
-   End If
-  End If
+   End If ' Not raZig.EOF Then
+  End If ' Pat_id <> 0 Then
 End Function ' WieTabak
 
 Function testvergleicheT()
@@ -5710,8 +5706,8 @@ Public Function hollabor(Optional PatID& = 0, Optional Abkü$ = "", Optional zpkl
  ' 4.7.20: wert statt einheit eingesetzt, da IN labor1 und labor2 offenbar verschiedene Einheiten verwendet werden, z.B. ml/min = ml/mn/1.73 m²
  par = IIf(obnachgruppe, " WHERE (reihe <> 999 OR ISNULL(reihe)) GROUP BY gruppe, reihe, abkü, einheit,ung,ong ORDER BY gruppe,reihe", IIf(Abkü <> "", "WHERE abkü=""" & Abkü & """" & IIf(Einheit <> "", " AND einheit =""" & Einheit & """", "") & IIf(zpkl <> 0, " AND zeitpunkt<" & Format(zpkl, "yyyymmdd"), ""), "") & " GROUP BY zeitpunkt DESC,abkü,wert ORDER BY zeitpunkt DESC")
 ' DBCn.Execute("flush tables")
+'  rs.Open "call geslabdp(" & CStr(PatID) & ",'" & par & "')", DBCn, adOpenStatic, adLockReadOnly
  myFrag rs, "call geslabdp(" & CStr(PatID) & ",'" & par & "')", CursorTp, DBCn, LockTp
- 
 #End If
  End If ' altpid<>pid
 #If langsamer Then

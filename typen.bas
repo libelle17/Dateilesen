@@ -246,13 +246,14 @@ Public type diagnosen
  DiagAttr AS string 'DiagAttr varchar '6006 Diagnosenattribut (optionale Erläuterung)
  ICD AS string 'ICD varchar '
  obDauer AS byte 'obDauer tinyint 'ob Dauerdiagnose
- obKasse AS byte 'obKasse tinyint 'ob nach Kodierrichtlinien an Kasse zu übermitteln
  intBemerk AS string 'intBemerk varchar '6009 interne Bemerkung
  absPos AS long 'absPos int 'Zeile in der BDT-Datei
  AktZeit AS date 'AktZeit datetime 'Aktualisierungszeit
  StByte AS long 'StByte int 'Ordnungsnummer der Datenübertragung
  AusnBegr AS string 'AusnBegr varchar '6008 Ausnahmebegründung
- f6010 AS byte 'f6010 tinyint '6010 Diagnose gelöscht (Karteikarteneintrag: bdd)
+ f6010 AS byte 'f6010 tinyint 'Falsch=dd-Eintrag, Wahr=bdd-Eintragurspr.: 6010 Diagnose gelöscht
+ obKasse AS byte 'obKasse tinyint 'ob nach Kodierrichtlinien an Kasse zu übermitteln
+ lKasse AS date 'lKasse datetime 'wann zuletzt Kassenübermittlung nach Kodierrichtlinien eingetragen (bd/bdd, f6010 Wahr)
  f6011 AS string 'f6011 varchar '6011 8.12.10: bisher nur """"""""TM#?""""""""
 end type
 
@@ -3225,13 +3226,14 @@ Public FUNCTION roDiZuw(i&, j&)
  roDi(i).DiagAttr = rDi(j).DiagAttr
  roDi(i).ICD = rDi(j).ICD
  roDi(i).obDauer = rDi(j).obDauer
- roDi(i).obKasse = rDi(j).obKasse
  roDi(i).intBemerk = rDi(j).intBemerk
  roDi(i).absPos = rDi(j).absPos
  roDi(i).AktZeit = rDi(j).AktZeit
  roDi(i).StByte = rDi(j).StByte
  roDi(i).AusnBegr = rDi(j).AusnBegr
  roDi(i).f6010 = rDi(j).f6010
+ roDi(i).obKasse = rDi(j).obKasse
+ roDi(i).lKasse = rDi(j).lKasse
  roDi(i).f6011 = rDi(j).f6011
 End FUNCTION ' roDiZuw
 
@@ -3246,13 +3248,14 @@ Public FUNCTION DiZUnt%(i&, j&)
  IF roDi(i).DiagAttr <> rDi(j).DiagAttr THEN gosub unter
  IF roDi(i).ICD <> rDi(j).ICD THEN gosub unter
  IF roDi(i).obDauer <> rDi(j).obDauer THEN gosub unter
- IF roDi(i).obKasse <> rDi(j).obKasse THEN gosub unter
  IF roDi(i).intBemerk <> rDi(j).intBemerk THEN gosub unter
  IF roDi(i).absPos <> rDi(j).absPos THEN gosub unter
  IF roDi(i).AktZeit <> rDi(j).AktZeit THEN gosub unter
  IF roDi(i).StByte <> rDi(j).StByte THEN gosub unter
  IF roDi(i).AusnBegr <> rDi(j).AusnBegr THEN gosub unter
  IF roDi(i).f6010 <> rDi(j).f6010 THEN gosub unter
+ IF roDi(i).obKasse <> rDi(j).obKasse THEN gosub unter
+ IF roDi(i).lKasse <> rDi(j).lKasse THEN gosub unter
  IF roDi(i).f6011 <> rDi(j).f6011 THEN gosub unter
  Exit Function
 unter:
@@ -3267,9 +3270,9 @@ Public FUNCTION diagnosenLaden()
  ReDim roDi(1)
  sql = "SELECT COALESCE(ID1,0) ID1,COALESCE(FID,0) FID,COALESCE(Pat_id,0) Pat_id,IF(DiagDatum IS NULL OR DiagDatum=0,CONVERT('18991230',DATE),DiagDatum) DiagDatum" & _
 ",COALESCE(DiagSicherheit,'') DiagSicherheit,COALESCE(DiagText,'') DiagText,COALESCE(DiagSeite,'') DiagSeite,COALESCE(DiagAttr,'') DiagAttr" & _
-",COALESCE(ICD,'') ICD,COALESCE(obDauer,0) obDauer,COALESCE(obKasse,0) obKasse,COALESCE(intBemerk,'') intBemerk" & _
-",COALESCE(absPos,0) absPos,IF(AktZeit IS NULL OR AktZeit=0,CONVERT('18991230',DATE),AktZeit) AktZeit,COALESCE(StByte,0) StByte,COALESCE(AusnBegr,'') AusnBegr" & _
-",COALESCE(f6010,0) f6010,COALESCE(f6011,'') f6011 FROM `diagnosen` WHERE Pat_ID=" & pid & " ORDER BY `DiagDatum`
+",COALESCE(ICD,'') ICD,COALESCE(obDauer,0) obDauer,COALESCE(intBemerk,'') intBemerk,COALESCE(absPos,0) absPos" & _
+",IF(AktZeit IS NULL OR AktZeit=0,CONVERT('18991230',DATE),AktZeit) AktZeit,COALESCE(StByte,0) StByte,COALESCE(AusnBegr,'') AusnBegr,COALESCE(f6010,0) f6010" & _
+",COALESCE(obKasse,0) obKasse,IF(lKasse IS NULL OR lKasse=0,CONVERT('18991230',DATE),lKasse) lKasse,COALESCE(f6011,'') f6011 FROM `diagnosen` WHERE Pat_ID=" & pid & " ORDER BY `DiagDatum`
  myfrag rs, sql
  Do While Not rs.EOF
   akt = UBound(roDi)
@@ -3283,13 +3286,14 @@ Public FUNCTION diagnosenLaden()
   roDi(akt).DiagAttr = doUmwfSQL(rs!DiagAttr, lies.obMySQL, False)
   roDi(akt).ICD = doUmwfSQL(rs!ICD, lies.obMySQL, False)
   roDi(akt).obDauer = rs!obDauer
-  roDi(akt).obKasse = rs!obKasse
   roDi(akt).intBemerk = doUmwfSQL(rs!intBemerk, lies.obMySQL, False)
   roDi(akt).absPos = rs!absPos
   roDi(akt).AktZeit = rs!AktZeit
   roDi(akt).StByte = rs!StByte
   roDi(akt).AusnBegr = doUmwfSQL(rs!AusnBegr, lies.obMySQL, False)
   roDi(akt).f6010 = rs!f6010
+  roDi(akt).obKasse = rs!obKasse
+  roDi(akt).lKasse = rs!lKasse
   roDi(akt).f6011 = doUmwfSQL(rs!f6011, lies.obMySQL, False)
   rs.MoveNext
   IF Not rs.EOF THEN ReDim Preserve roDi(UBound(roDi) + 1)
@@ -3370,11 +3374,11 @@ Public FUNCTION diagnosenSpeichern(SammelInsert%, BezfSp%)
   END IF
  END IF ' not allePat
 ' sql0 = " INSERT " & sqlignore &  "INTO `diagnosen` (FID,Pat_id,DiagDatum," & _
-     "DiagSicherheit,DiagText,DiagSeite,DiagAttr,ICD,obDauer,obKasse,intBemerk,absPos,AktZeit," & _
-     "StByte,AusnBegr,f6010,f6011) VALUES
+     "DiagSicherheit,DiagText,DiagSeite,DiagAttr,ICD,obDauer,intBemerk,absPos,AktZeit,StByte," & _
+     "AusnBegr,f6010,obKasse,lKasse,f6011) VALUES
  Call csql0.AppVar(Array(" INSERT ", sqlIgnore, " INTO `diagnosen` (FID,Pat_id,DiagDatum," & _
-     "DiagSicherheit,DiagText,DiagSeite,DiagAttr,ICD,obDauer,obKasse,intBemerk,absPos,AktZeit," & _
-     "StByte,AusnBegr,f6010,f6011)         VALUES"))
+     "DiagSicherheit,DiagText,DiagSeite,DiagAttr,ICD,obDauer,intBemerk,absPos,AktZeit,StByte," & _
+     "AusnBegr,f6010,obKasse,lKasse,f6011)               VALUES"))
  For i = 1 to ubound(rDi)
 '  rDi(i).AktZeit = now()
   rDi(i).StByte = CStr(AktByte)
@@ -3382,8 +3386,8 @@ Public FUNCTION diagnosenSpeichern(SammelInsert%, BezfSp%)
    csql.Append csql0
   END IF
   csql.AppVar Array("(" , rDi(i).FID, "," , rDi(i).Pat_id, "," , DatFor_k(rDi(i).DiagDatum), ",'" , rDi(i).DiagSicherheit, "','" , rDi(i).DiagText, "','" , rDi(i).DiagSeite, "','" , rDi(i).DiagAttr, "','" ,  _
-   rDi(i).ICD, "'," , rDi(i).obDauer, "," , rDi(i).obKasse, ",'" , rDi(i).intBemerk, "'," , rDi(i).absPos, "," , DatFor_k(rDi(i).AktZeit), "," , rDi(i).StByte, ",'" , rDi(i).AusnBegr, "'," , rDi(i).f6010, ",'" ,  _
-   rDi(i).f6011, "')")
+   rDi(i).ICD, "'," , rDi(i).obDauer, ",'" , rDi(i).intBemerk, "'," , rDi(i).absPos, "," , DatFor_k(rDi(i).AktZeit), "," , rDi(i).StByte, ",'" , rDi(i).AusnBegr, "'," , rDi(i).f6010, "," , rDi(i).obKasse, "," , DatFor_k( _
+   rDi(i).lKasse), ",'" , rDi(i).f6011, "')")
   IF SammelInsert <> 0 AND i < ubound(rDi) THEN csql.Append ","
   IF SammelInsert = 0 OR i = ubound(rDi) THEN
    Call DBCn.Execute(csql.value,rAf)', , adAsyncExecute)

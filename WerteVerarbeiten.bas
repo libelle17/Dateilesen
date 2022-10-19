@@ -18,7 +18,7 @@ Dim Pat_id&
 '  END Enum
 
 Sub werteAnzeig()
-Dim Abfr As New Adodb.Recordset
+Dim Abfr As New ADODB.Recordset
 Dim i&, runde%
 Dim bisher()
 Dim bCt%, aktbCt%
@@ -82,7 +82,7 @@ Sub werteAusGeb(Optional obStumm As Boolean = False)
 ' DoCmd.maximize
 ' ID = forms!Anamnesebogen!Pat_ID
 'END IF
-Dim rs As New Adodb.Recordset
+Dim rs As New ADODB.Recordset
 Dim DT As DMPClass
 Call Formmerk
 Call FormAufruf
@@ -141,8 +141,9 @@ fehler:
  End Select
 End Sub ' Diagnosenausgeb
 #End If
+
 Function AusgDiag$(Pat_id&, Optional ohneNotwend%)
- Dim rsNa As Adodb.Recordset
+ Dim rsNa As ADODB.Recordset
  Dim Spl$(), j%
 ' SET rsNa = TabÖff("Anamnesebogen", "Pat_ID")
  Set rsNa = Nothing
@@ -161,6 +162,7 @@ Function AusgDiag$(Pat_id&, Optional ohneNotwend%)
  End If
  rsNa.Close
 End Function ' AusDiag
+
 #If False Then
 Sub behDatAusgeb(Optional id&, Optional obAnzeig As Boolean = True)
 Dim lbehD As Date, Tbl As tabledef
@@ -205,7 +207,7 @@ End Sub ' behDatAusgeb
 Function erbe(ByVal Pat_id&) As Date
 'Static rFa AS DAO.Recordset
 'Set rFa = TabÖff("faelle", "ErstF")
-Dim rsAnam As New Adodb.Recordset
+Dim rsAnam As New ADODB.Recordset
 On Error GoTo fehler
 'Call rsAnam.Open("SELECT aufndat FROM `namen` WHERE pat_id = " & Pat_id, DBCn, adOpenDynamic, adLockOptimistic)
 myFrag rsAnam, "SELECT aufndat FROM `namen` WHERE pat_id = " & Pat_id
@@ -214,7 +216,7 @@ erbe = rsAnam!AufnDat
 If erbe > #7/1/2004# Then Exit Function
 
 Dim rFaName$
-Dim raFa As New Adodb.Recordset
+Dim raFa As New ADODB.Recordset
 'rFaName = raFa.Name
 'On Error GoTo fehler
 'If rFaName = "" THEN SET rFa = TabÖff("faelle", "Auswahl")
@@ -244,7 +246,7 @@ fehler:
  End Select
 End Function ' erbe(byVal Pat_id&) As Date
 Function lebe(ByVal Pat_id&) As Date
-Dim lbehD As Date, rLb As New Adodb.Recordset
+Dim lbehD As Date, rLb As New ADODB.Recordset
 On Error GoTo fehler
 lebe = erbe(Pat_id)
 'lbehD = Dtb.OpenRecordset("SELECT MAX(zeitpunkt) AS zp FROM `" + QmdbAkt + "`.`medplan` WHERE pat_id = " + CStr(Pat_id), dbOpenDynaset)!zp
@@ -337,7 +339,7 @@ fehler:
 End Sub ' LaborAusgeb
  
 Function LaborString$(Pat_id&)
- Dim raLw As New Adodb.Recordset, raDat As New Adodb.Recordset, ls$, raLU As New Adodb.Recordset
+ Dim raLw As New ADODB.Recordset, raDat As New ADODB.Recordset, ls$, raLU As New ADODB.Recordset
 ' zeilenzahl bestimmen
  Dim ZZ&, rz$, gschl$, Vgl$, altGruppe%, Nb$ ' Normbereich
  Dim u!, o! ' oberer und unterer Grenzwert numerisch
@@ -551,7 +553,7 @@ fehler:
 End Sub      ' DMPAusgeb0
 
 #If False Then
-Function TherapieArtEinzelnFestlegen(Pat_id&, Optional rsAna As Adodb.Recordset) ' IN TherapieArtenFestlegen und alleSpeichern
+Function TherapieArtEinzelnFestlegen(Pat_id&, Optional rsAna As ADODB.Recordset) ' IN TherapieArtenFestlegen und alleSpeichern
 Dim nTher$, rAF&, rAnPatID&, Anzeige$, Fanf As Date
 On Error Resume Next
 Fanf = rsAna!Fanf
@@ -561,7 +563,7 @@ On Error Resume Next
 rAnPatID = rsAna!Pat_id
 On Error GoTo fehler
 If rAnPatID <> Pat_id Then
- Set rsAna = New Adodb.Recordset
+ Set rsAna = New ADODB.Recordset
 ' rsAna.Open "SELECT pat_id,nachname, vorname, diabetestyp,-insulinpumpe AS j_insulinpumpe,ther1,therakt FROM `anamnesebogen` WHERE pat_id = " & Pat_id, DbCn, adOpenStatic, adLockOptimistic
  Lese.ProgStart
  rsAna.Open "SELECT pat_id,nachname, vorname, diabetestyp,insulinpumpe, ther1,therakt FROM `anamnesebogen` WHERE pat_id = " & Pat_id, DBCn, adOpenStatic, adLockOptimistic
@@ -616,7 +618,7 @@ End Function ' TherapieArtEinzelnFestlegen(Pat_id&)
 
 #If False Then
 Function testTherArt$(Optional Pat_id&, Optional obanf%)
- Dim rsNa As New Adodb.Recordset
+ Dim rsNa As New ADODB.Recordset
  Call Lese.ProgStart
  If Pat_id = 0 Then Pat_id = 748
  testTherArt = TherUmw(therart_erm(Pat_id, obanf, rsNa, CDate("17.11.04")))
@@ -753,7 +755,7 @@ Public Function bittest1()
  'SetDBCn Nothing
  DBCnS = vNS
  If LenB(DBCn) = 0 Or LenB(DBCnS) = 0 Then Call acon(quelleT)  ' DBCn.ConnectionString
- Dim rs As New Adodb.Recordset
+ Dim rs As New ADODB.Recordset
  On Error Resume Next
  myFrag rs, "SELECT Bit FROM test.test"
  If rs.State <> 0 Then
@@ -765,8 +767,8 @@ End Function ' bittest1
 
 Function bittest()
  Dim rAF&, cn$(2), dtyp$(1), i%, j%
- Dim rs As New Adodb.Recordset
- Dim Vb As New Adodb.Connection
+ Dim rs As New ADODB.Recordset
+ Dim Vb As New ADODB.Connection
  On Error GoTo fehler
  Call Lese.ProgStart
  cn(0) = "Provider=microsoft.Jet.OLEDb.4.0;Data Source=" & QmdB & ";Jet OLEDb:Engine Type=5" ' u:\anamnese\quelle.mdb
@@ -849,6 +851,7 @@ Sub AnbogVar(Optional mitpat_id%)
   End If ' Forms(i).Name = Anmnb THEN
  Next i
 End Sub ' AnbogVar(Optional mitpat_id%)
+
 Sub FormAufruf()
  On Error GoTo fehler
  syscmd acSysCmdSetStatus, "FormAufruf ..."
@@ -916,8 +919,8 @@ If obAnzeig Then zeigan ErgebDatei, vbNormalFocus
 End Sub ' do_GibwerteAus(Optional obAnzeig AS boolean = True)
 
 Function KommRep() ' Kommentare reparieren
- Dim Acc As New Adodb.Connection, MyS As New Adodb.Connection, ErrNo&
- Dim rs As New Adodb.Recordset, T1 As New Adodb.Recordset, T2 As New Adodb.Recordset, komm$
+ Dim Acc As New ADODB.Connection, MyS As New ADODB.Connection, ErrNo&
+ Dim rs As New ADODB.Recordset, T1 As New ADODB.Recordset, T2 As New ADODB.Recordset, komm$
  Dim xc As New ADOX.Catalog, xr As New ADOX.Table
  Dim xcA As New ADOX.Catalog, xrA As New ADOX.Table
  Dim lauf
@@ -1008,13 +1011,14 @@ Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "Last
  Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
  Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
 End Select
-End Function
+End Function ' KommRep
+
 Function AnReparieren() ' Ergänzt die IN den mySQL-Tabellen vermutlich bei der Spaltenbreitenanpassung verlorenen Kommentare aus u:\anamnese\quelle.mdb
 'ALTER TABLE `quelle1`.`anamnesebogen` mODIFY COLUMN `Grund für Vorstellung` VARCHAR(479) CHARACTER SET latin1 COLLATE latin1_german2_ci DEFAULT NULL COmmENT '^Grund für Vorstellung';
  Dim i&
- Dim DbA As New Adodb.Connection
- Dim dbm As New Adodb.Connection
- Dim rAn As New Adodb.Recordset
+ Dim DbA As New ADODB.Connection
+ Dim dbm As New ADODB.Connection
+ Dim rAn As New ADODB.Recordset
  Dim CStr1$
  On Error GoTo fehler
 ' Call doConstrFestleg(1, 1)
@@ -1033,7 +1037,7 @@ Function AnReparieren() ' Ergänzt die IN den mySQL-Tabellen vermutlich bei der S
   myDbx.ActiveConnection = DbA
   Set myTable = myDbx.Tables("anamnesebogen")
   For i = 0 To myTable.Columns.COUNT - 1
-   Dim rsc As New Adodb.Recordset
+   Dim rsc As New ADODB.Recordset
    Set rsc = Nothing
    Call rsc.Open("SHOW FULL COLUMNS FROM `" & Forms(0).MyDB & "`.`anamnesebogen` WHERE field = '" & rAn.Fields(i).name & "'", dbm, adOpenStatic, adLockReadOnly)
    syscmd acSysCmdSetStatus, myTable.Columns(rAn.Fields(i).name).Properties("Description")
@@ -1095,7 +1099,7 @@ On Error GoTo fehler
   myDbx.ActiveConnection = DBCn
   Set myTable = myDbx.Tables("anamnesebogen")
  End If
- Dim rAn As New Adodb.Recordset
+ Dim rAn As New ADODB.Recordset
 ' myfrag rAn, "SELECT -obbzausgew AS j_obbzausgew, -obosaufgek AS j_obosaufgek, -obpodaufgek AS j_obpodaufgek, -obmblausgeh AS j_obmblausgeh, -obschulaufgek AS j_obschulaufgek, -obdmpaufgekl AS j_obdmpaufgekl, -obmednetz AS j_obmednetz, -ob AS j_ob, -oban1eing AS j_oban1eing, -oban2eing AS j_oban2eing, -obanaeing AS j_obanaeing, -obcheck AS j_obcheck, -[Bypaß kardial] AS `j_bypass kardial` , -`bypaß peripher` AS `j_bypaß peripher`, -tkz AS j_tkz, -insulinpumpe AS j_insulinpumpe, -dialyse AS j_dialyse, a.* FROM `anamnesebogen` a WHERE pat_id = " & Pat_id
  myFrag rAn, "SELECT * FROM `anamnesebogen` WHERE pat_id = " & Pat_id, adOpenStatic
  If rAn.BOF Then GoTo schluss
@@ -1108,7 +1112,7 @@ For k = IIf(obAnzeig, 0, 7) To rAn.Fields.COUNT - 1
  On Error Resume Next
 ' Descr = Dtb.TableDefs(fld.SourceTable).Fields(fld.SourceField).Properties("Description")
  If lies.obMySQL Then
-  Dim rsc As New Adodb.Recordset
+  Dim rsc As New ADODB.Recordset
   Set rsc = Nothing
   myFrag rsc, "SHOW FULL COLUMNS FROM `anamnesebogen` WHERE field = '" & rAn.Fields(k).name & "'"
   Descr = rsc!Comment

@@ -4608,41 +4608,41 @@ Public PidRange$
 Dim DQStr$()
 Dim DQSQL$()
 
-Private Sub adoRS_EndOfRecordset(fMoreData As Boolean, adStatus As ADODB.EventStatusEnum, ByVal pRecordset As ADODB.Recordset)
+Private Sub adoRS_EndOfRecordset(fMoreData As Boolean, adStatus As Adodb.EventStatusEnum, ByVal pRecordset As Adodb.Recordset)
 '
 End Sub
 
-Private Sub adoRS_FetchComplete(ByVal pError As ADODB.Error, adStatus As ADODB.EventStatusEnum, ByVal pRecordset As ADODB.Recordset)
+Private Sub adoRS_FetchComplete(ByVal pError As Adodb.Error, adStatus As Adodb.EventStatusEnum, ByVal pRecordset As Adodb.Recordset)
 '
 End Sub
 
-Private Sub adoRS_FetchProgress(ByVal Progress As Long, ByVal MaxProgress As Long, adStatus As ADODB.EventStatusEnum, ByVal pRecordset As ADODB.Recordset)
+Private Sub adoRS_FetchProgress(ByVal Progress As Long, ByVal MaxProgress As Long, adStatus As Adodb.EventStatusEnum, ByVal pRecordset As Adodb.Recordset)
 '
 End Sub
 
-Private Sub adoRS_FieldChangeComplete(ByVal cFields As Long, ByVal Fields As Variant, ByVal pError As ADODB.Error, adStatus As ADODB.EventStatusEnum, ByVal pRecordset As ADODB.Recordset)
+Private Sub adoRS_FieldChangeComplete(ByVal cFields As Long, ByVal Fields As Variant, ByVal pError As Adodb.Error, adStatus As Adodb.EventStatusEnum, ByVal pRecordset As Adodb.Recordset)
 '
 End Sub ' adoRS_FieldChangeComplete
 
-Private Sub adoRS_MoveComplete(ByVal adReason As ADODB.EventReasonEnum, ByVal pError As ADODB.Error, adStatus As ADODB.EventStatusEnum, ByVal pRecordset As ADODB.Recordset)
+Private Sub adoRS_MoveComplete(ByVal adReason As Adodb.EventReasonEnum, ByVal pError As Adodb.Error, adStatus As Adodb.EventStatusEnum, ByVal pRecordset As Adodb.Recordset)
   'Hierdurch wird die aktuelle Datensatzposition für diese Datensatzgruppe angezeigt
    lblStatus.Caption = CStr(adoRS.AbsolutePosition)
    If Not Me.obStumm Then Call do_Form_Current_AnBog(Me)
 End Sub 'adoRS_MoveComplete
 
-Private Sub adoRS_RecordChangeComplete(ByVal adReason As ADODB.EventReasonEnum, ByVal cRecords As Long, ByVal pError As ADODB.Error, adStatus As ADODB.EventStatusEnum, ByVal pRecordset As ADODB.Recordset)
+Private Sub adoRS_RecordChangeComplete(ByVal adReason As Adodb.EventReasonEnum, ByVal cRecords As Long, ByVal pError As Adodb.Error, adStatus As Adodb.EventStatusEnum, ByVal pRecordset As Adodb.Recordset)
 '
 End Sub ' adoRS_RecordChangeComplete
 
-Private Sub adoRS_RecordsetChangeComplete(ByVal adReason As ADODB.EventReasonEnum, ByVal pError As ADODB.Error, adStatus As ADODB.EventStatusEnum, ByVal pRecordset As ADODB.Recordset)
+Private Sub adoRS_RecordsetChangeComplete(ByVal adReason As Adodb.EventReasonEnum, ByVal pError As Adodb.Error, adStatus As Adodb.EventStatusEnum, ByVal pRecordset As Adodb.Recordset)
 '
 End Sub
 
-Private Sub adoRS_WillChangeField(ByVal cFields As Long, ByVal Fields As Variant, adStatus As ADODB.EventStatusEnum, ByVal pRecordset As ADODB.Recordset)
+Private Sub adoRS_WillChangeField(ByVal cFields As Long, ByVal Fields As Variant, adStatus As Adodb.EventStatusEnum, ByVal pRecordset As Adodb.Recordset)
 '
 End Sub
 
-Private Sub adoRS_WillChangeRecord(ByVal adReason As ADODB.EventReasonEnum, ByVal cRecords As Long, adStatus As ADODB.EventStatusEnum, ByVal pRecordset As ADODB.Recordset)
+Private Sub adoRS_WillChangeRecord(ByVal adReason As Adodb.EventReasonEnum, ByVal cRecords As Long, adStatus As Adodb.EventStatusEnum, ByVal pRecordset As Adodb.Recordset)
   'Hier können Sie Code zur Überprüfung einfügen
   'Dieses Ereignis wird aufgerufen, wenn die folgenden Aktionen eintreten
   Dim bCancel As Boolean
@@ -4662,11 +4662,11 @@ Private Sub adoRS_WillChangeRecord(ByVal adReason As ADODB.EventReasonEnum, ByVa
   If bCancel Then adStatus = adStatusCancel
 End Sub 'adoRS_WillChangeRecord
 
-Private Sub adoRS_WillChangeRecordset(ByVal adReason As ADODB.EventReasonEnum, adStatus As ADODB.EventStatusEnum, ByVal pRecordset As ADODB.Recordset)
+Private Sub adoRS_WillChangeRecordset(ByVal adReason As Adodb.EventReasonEnum, adStatus As Adodb.EventStatusEnum, ByVal pRecordset As Adodb.Recordset)
 '
 End Sub ' adoRS_WillChangeRecordset
 
-Private Sub adoRS_WillMove(ByVal adReason As ADODB.EventReasonEnum, adStatus As ADODB.EventStatusEnum, ByVal pRecordset As ADODB.Recordset)
+Private Sub adoRS_WillMove(ByVal adReason As Adodb.EventReasonEnum, adStatus As Adodb.EventStatusEnum, ByVal pRecordset As Adodb.Recordset)
 '
 End Sub ' adoRS_WillMove
 
@@ -4814,13 +4814,13 @@ Private Sub cmdFirst_Click()
   mbDataChanged = False
   Exit Sub
 fehler:
- Dim rs As New ADODB.Recordset
+ Dim rs As New Adodb.Recordset
  myFrag rs, "SELECT pat_id, gesname(pat_id) GesName  FROM `anamnesebogen` a WHERE pat_id IN (" & Me.PidRange & ") ORDER BY pat_id DESC"
  Do While rs!Pat_id >= adoRS!Pat_id And Not rs.EOF
    rs.MoveNext
  Loop
  If Not rs.EOF Then
-  MsgBox "Nächster Patient: " & rs!Pat_id & ", " & rs!GesName
+  MsgBox "Nächster Patient: " & rs!Pat_id & ", " & rs!gesname
  End If
  Resume Next
  Dim AnwPfad$
@@ -4844,13 +4844,13 @@ Private Sub cmdLast_Click()
   mbDataChanged = False
   Exit Sub
 fehler:
- Dim rs As New ADODB.Recordset
+ Dim rs As New Adodb.Recordset
  myFrag rs, "SELECT pat_id, GesName(Pat_id) GesName  FROM `anamnesebogen` a WHERE pat_id IN (" & Me.PidRange & ") ORDER BY pat_id DESC"
  Do While rs!Pat_id >= adoRS!Pat_id And Not rs.EOF
    rs.MoveNext
  Loop
  If Not rs.EOF Then
-  MsgBox "Nächster Patient: " & rs!Pat_id & ", " & rs!GesName
+  MsgBox "Nächster Patient: " & rs!Pat_id & ", " & rs!gesname
  End If
  Resume Next
  Dim AnwPfad$
@@ -4894,7 +4894,7 @@ einzeln:
   mbDataChanged = False
   Exit Sub
 fehler:
- Dim rs As New ADODB.Recordset
+ Dim rs As New Adodb.Recordset
 ' IF Err.Number = -2147217904 AND InStrB(Err.Description, "Parameter") <> 0 THEN
 '  rs.CursorLocation = adUseClient
 '  rs.Open anBogCS, DBCn, adOpenDynamic, adLockOptimistic
@@ -4926,7 +4926,7 @@ fehler:
  Me.obStumm = True
  adoRS.CancelUpdate
  Set adoRS = Nothing
- Set adoRS = New ADODB.Recordset
+ Set adoRS = New Adodb.Recordset
 ' adoRS.Open "SELECT *,IF(größe=0,'',gewicht/größe/größe*if(größe>3,10000,1)) AS bmi, CONCAT(nachname,' ', vorname) AS gesname  FROM `anamnesebogen` WHERE pat_id IN (" & me.PidRange & ") ORDER BY pat_id DESC", DBCn, adOpenDynamic, adLockOptimistic ' adLockReadOnly ' 7.9.09
  frm.adoRS.CursorLocation = adUseClient
 ' frm.adoRS.Open anBogCS, db, adOpenDynamic, adLockOptimistic
@@ -4991,8 +4991,7 @@ fehler:
 '  SET DBCn = Nothing
 '  DBCn.Open dbcnSt
 '  Resume wieder
-  DBCn.Close
-  DBCn.Open DBCnS
+  Call DBCnOpen
   Resume
  End If
  Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in cmdPrevious_Click/" + AnwPfad)
@@ -5041,7 +5040,7 @@ Private Sub Suchen_Click()
 '   adoRS.MoveFirst
    adoRS.Find " Pat_id = " & Me.suche, 0, adSearchBackward, adBookmarkLast
   ElseIf Me.suche <> "" Then
-   Dim suchrs As New ADODB.Recordset
+   Dim suchrs As New Adodb.Recordset
 '   adoRS.Find "gesname LIKE '" & Me.suche & "*'", 1, adSearchForward
    Set suchrs = Nothing
    Dim namen$()
@@ -5159,7 +5158,8 @@ Private Sub AbfragenLad()
  
  
  DQStr(i) = "Kassenfälle, aktuelle, ohne Diabetesdiagnose"
- DQSQL(i) = "SELECT n.pat_id FROM namen n INNER JOIN `aktfv` af ON n.pat_id = af.pat_id WHERE NOT EXISTS (SELECT * FROM `diagnosen` d WHERE d.pat_id = af.pat_id AND (d.icd RLIKE '^E1[0-4]\.|^O24\.' AND d.diagsicherheit not IN ('A','Z') AND COALESCE(d.f6010,0)=0) ) ORDER BY vorgestellt DESC"
+ ' AND COALESCE(f6010,0)=0
+ DQSQL(i) = "SELECT n.pat_id FROM namen n INNER JOIN `aktfv` af ON n.pat_id = af.pat_id WHERE NOT EXISTS (SELECT * FROM `diagnosen` d WHERE d.pat_id = af.pat_id AND (d.gicdok RLIKE '^E1[0-4]\.|^O24\.' ) ) ORDER BY vorgestellt DESC"
  i = i + 1
 
 ' DQStr(i) = "Kassenfälle, nach vorgestellt sortiert"
@@ -6295,7 +6295,7 @@ End Sub 'Private Sub Form_Unload()
 'vorherige Werte_Bezeichnungsfeld:       vLab(44)
 
 Private Sub vCheckb_MouseMove(Index As Integer, Button As Integer, Shift As Integer, x As Single, Y As Single)
- Dim rs As New ADODB.Recordset
+ Dim rs As New Adodb.Recordset
  On Error GoTo fehler
  If LVobMySQL Then
   myFrag rs, "SELECT column_comment FROM information_schema.`COLUMNS` WHERE table_name = 'anamnesebogen' AND column_name = '" & Me.vCheckb(Index).DataField & "'"
@@ -6327,7 +6327,7 @@ fehler:
 End Sub ' vbCheckb_MouseMove
 
 Private Sub vCommandB_MouseMove(Index As Integer, Button As Integer, Shift As Integer, x As Single, Y As Single)
- Dim rs As New ADODB.Recordset
+ Dim rs As New Adodb.Recordset
  On Error GoTo fehler
  If LVobMySQL Then
   myFrag rs, "SELECT column_comment FROM information_schema.`COLUMNS` WHERE table_name = 'anamnesebogen' AND column_name = '" & Me.vCommandB(Index).name & "'"
@@ -6360,7 +6360,7 @@ End Sub ' vCommandB_MouseMove
 
 
 Private Sub vlab_MouseMove(Index As Integer, Button As Integer, Shift As Integer, x As Single, Y As Single)
- Dim rs As New ADODB.Recordset
+ Dim rs As New Adodb.Recordset
  If LVobMySQL Then
   myFrag rs, "SELECT column_comment FROM information_schema.`COLUMNS` WHERE table_name = 'anamnesebogen' AND column_name = '" & Me.vLab(Index).DataField & "'"
   If Not rs.EOF Then
@@ -6391,7 +6391,7 @@ fehler:
 End Sub ' vlab_MouseMove
 
 Private Sub vOptionB_MouseMove(Index As Integer, Button As Integer, Shift As Integer, x As Single, Y As Single)
- Dim rs As New ADODB.Recordset
+ Dim rs As New Adodb.Recordset
  On Error GoTo fehler
  If LVobMySQL Then
   myFrag rs, "SELECT column_comment FROM information_schema.`COLUMNS` WHERE table_name = 'anamnesebogen' AND column_name = '" & Me.vOptionB(Index).DataField & "'"
@@ -6423,7 +6423,7 @@ fehler:
 End Sub ' vOptionB_MouseMove
 
 Private Sub vTextB_MouseMove(Index As Integer, Button As Integer, Shift As Integer, x As Single, Y As Single)
- Dim rs As New ADODB.Recordset
+ Dim rs As New Adodb.Recordset
  On Error GoTo fehler
  If LVobMySQL Then
   myFrag rs, "SELECT column_comment FROM information_schema.`COLUMNS` WHERE table_name = 'anamnesebogen' AND column_name = '" & Me.vTextB(Index).DataField & "'"

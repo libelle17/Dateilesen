@@ -78,6 +78,8 @@ Public MdB$
 Public FxDB$
 Public WithEvents dbv As DBVerb
 Attribute dbv.VB_VarHelpID = -1
+Public opt As Optionen
+Attribute opt.VB_VarHelpID = -1
 Public FSO As New FileSystemObject
 Const RegWurzel$ = "Software\GSProducts\"
 Public RegPos$, changeStill%
@@ -135,13 +137,13 @@ fehler:
   Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
   Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
  End Select
+End Sub ' Auswahl_Click
 
-End Sub
-
+' Datei -> Datenbankverbindung Patientendaten
 Private Sub Datenbankverbindung_Click()
  Conn = dbv.Auswahl("quelle", "anamnesebogen", "Patientendaten")
  Call Me.RegSpeichern
-End Sub
+End Sub ' Datenbankverbindung_Click
 
 Private Sub Form_KeyDown(KeyCode As Integer, Shift As Integer)
  If KeyCode = 27 Then
@@ -293,8 +295,8 @@ Private Sub DateiBearbeiten_Click()
  Const XStra = "Provider=Microsoft.Jet.OLEDB.4.0;Data Source="
  Const XStrb = ";Extended Properties=""Excel 8.0;HDR=no;IMEX=1"""
  Dim rX As New ADOX.Catalog, sql$, ka%, ke%, runde%, angefangen%, obAnfang%, rAF&
- Dim XCon As New Adodb.Connection
- Dim rEx As New Adodb.Recordset, rs As New Adodb.Recordset
+ Dim XCon As New ADODB.Connection
+ Dim rEx As New ADODB.Recordset, rs As New ADODB.Recordset
  Select Case FenArt
   Case 1
    Open Me.Datei For Input As #394
@@ -329,7 +331,7 @@ Private Sub DateiBearbeiten_Click()
     Select Case FenArt
      Case 2
       Debug.Print rEx.Fields(0), rEx.Fields(1), rEx.Fields(2), rEx.Fields(3)
-      Dim rsl As New Adodb.Recordset
+      Dim rsl As New ADODB.Recordset
       Set rsl = Nothing
       myFrag rsl, "SELECT COUNT(0) ct FROM `laborparameter` WHERE abkü = '" & UmwfSQL(rEx.Fields(0)) & "' AND langtext = '" & UmwfSQL(rEx.Fields(1)) & "' AND einheit = '" & UmwfSQL(rEx.Fields(2)) & "'"
       If rsl!ct = 1 Then
@@ -403,7 +405,7 @@ End Select
 End Sub ' DateiBearbeiten_Click()
 
 Public Sub teste(Pat_id&)
- Dim rs As New Adodb.Recordset, rl As New Adodb.Recordset
+ Dim rs As New ADODB.Recordset, rl As New ADODB.Recordset
  Dim BDT As New BDTSchreib
 ' Static obstart%
  myFrag rs, "SELECT 0 FROM `faelle` f LEFT JOIN `leistungen` l ON f.fid = l.fid WHERE f.pat_id = " & Pat_id & " AND leistung IN (01600,01601) AND quartal = '42007';"
