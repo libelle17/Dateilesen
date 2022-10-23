@@ -616,14 +616,14 @@ Private Sub Form_Load()
 End Sub ' Form_Load()
 
 Public Function FrmLEinlesung()
- Dim rs As New Adodb.Recordset ', catx As New ADOX.Catalog
+ Dim rs As New ADODB.Recordset ', catx As New ADOX.Catalog
  Dim zl%
  On Error GoTo fehler
 ' Exit Function
  If LenB(DBCn) = 0 Or DBCn.State = 0 Then
 '   Call CnOpen(False, ConStr, Me.hlese)
    Call acon(quelleT)
-   If lies.obMySQL Then Call DBCn.Execute("use " & hlese.MyDB)
+   If lies.obMySQL Then Call myEFrag("USE " & hlese.MyDB)
  End If
  Me.obVglMitLetzterEinlesung = 1
  Me.obVglMitLetzterEinlesung.Enabled = False
@@ -633,13 +633,13 @@ Public Function FrmLEinlesung()
  For zl = 1 To 2
   If Not rs Is Nothing Then If rs.State = 1 Then rs.Close
 '  sql = "SELECT datei, dateiaend FROM `eintragszahlen` WHERE NOT ISNULL(datei) AND NOT ISNULL(zp3) AND (zp3 < " & DatFor_k("6.1.2007") & " OR fallzahl > 10) ORDER BY beginn DESC;"
-  sql = "SELECT SUBSTRING_INDEX(datei, '\\', -1) datei, dateiaend FROM `eintragszahlen` WHERE NOT ISNULL(datei) AND NOT ISNULL(zp3) AND fallzahl > 10 AND NOT datei LIKE '%HB_%' ORDER BY beginn DESC;" ' 4.10.20, 28.11.21
+  sql = "SELECT SUBSTRING_INDEX(datei, '\\', -1) datei, dateiaend FROM `eintragszahlen` WHERE NOT ISNULL(datei) AND NOT ISNULL(zp3) AND fallzahl > 10 AND NOT datei LIKE '%HB_%' ORDER BY beginn DESC LIMIT 30;" ' 4.10.20, 28.11.21, 22.10.22
   myFrag rs, sql
   If Err.Number = 0 Then
    Exit For
   Else
    If zl = 0 Then
-    Call DBCn.Execute("ALTER TABLE `eintragszahlen` add COLUMN `dateiaend` `datetime`" & IIf(lies.obMySQL, " after `datei`", ""))
+    Call myEFrag("ALTER TABLE `eintragszahlen` add COLUMN `dateiaend` `datetime`" & IIf(lies.obMySQL, " after `datei`", ""))
    Else
     MsgBox ("Fehler bei der Ausführung von: '" & sql & "'" & vbCrLf & "bei der Verbindung: '" & DBCn & "':" & vbCrLf & Err.Number & ": " & Err.Description)
     Exit Function
@@ -1028,7 +1028,7 @@ Private Sub doEinlesen(obevtlAlle%)
    End If
    erg = MsgBox("Wollen Sie wirklich alle " & IIf(Me.nuraktfaelle <> 0, " aktuellen ", "") & " Patienten" & IIf(obvon, " ab " & Me.Pat_IDVon, vNS) & IIf(obbis, " bis " & Me.Pat_IDBis, vNS) & " zurücksetzen?", vbYesNo)
    If erg = vbNo Then Exit Sub
-   Call DBCn.Execute(sql)
+   Call myEFrag(sql)
   End If
  End If
  Call EintragStart(Me.hlese)

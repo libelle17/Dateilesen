@@ -90,7 +90,7 @@ Call GibwerteAus(Not obStumm)
 Call DiagnosenAusgeb(AktID, Not obStumm)
 'Set rs = Tab÷ff("Anamnesebogen", "Pat_id")
 'rs.Seek "=", AktID
-rs.Open "SELECT Diabetestyp FROM `anakt` WHERE pat_id = " & CStr(AktID)
+myFrag rs, "SELECT Diabetestyp FROM `anakt` WHERE pat_id = " & CStr(AktID)
 If rs.BOF Or (Not rs.BOF And (rs!Diabetestyp = "2" Or rs!Diabetestyp = "s")) Then
  Call DMPAusgeb0(DT, CStr(AktID), Not obStumm)
 End If
@@ -404,9 +404,9 @@ Function LaborString$(Pat_id&)
  myFrag raDat, sql1
  ls = CStr(rz) & vbCrLf
 #Else
- ZZ = DBCn.Execute("call geslabkatz(" & Pat_id & ",'abk¸')")!Zahl + _
-      DBCn.Execute("call geslabkatz(" & Pat_id & ",'gruppe')")!Zahl
- rz = DBCn.Execute("call geslabkatz(" & Pat_id & ",'zeitpunkt')")!Zahl
+ ZZ = myEFrag("call geslabkatz(" & Pat_id & ",'abk¸')")!Zahl + _
+      myEFrag("call geslabkatz(" & Pat_id & ",'gruppe')")!Zahl
+ rz = myEFrag("call geslabkatz(" & Pat_id & ",'zeitpunkt')")!Zahl
  myFrag raDat, "call geslabkatg(" & Pat_id & ",'zeitpunkt')"
 #End If
  If raDat.BOF Then Exit Function
@@ -566,16 +566,16 @@ If rAnPatID <> Pat_id Then
  Set rsAna = New ADODB.Recordset
 ' rsAna.Open "SELECT pat_id,nachname, vorname, diabetestyp,-insulinpumpe AS j_insulinpumpe,ther1,therakt FROM `anamnesebogen` WHERE pat_id = " & Pat_id, DbCn, adOpenStatic, adLockOptimistic
  Lese.ProgStart
- rsAna.Open "SELECT pat_id,nachname, vorname, diabetestyp,insulinpumpe, ther1,therakt FROM `anamnesebogen` WHERE pat_id = " & Pat_id, DBCn, adOpenStatic, adLockOptimistic
+ myFrag rsAna, "SELECT pat_id,nachname, vorname, diabetestyp,insulinpumpe, ther1,therakt FROM `anamnesebogen` WHERE pat_id = " & Pat_id, adOpenStatic, DBCn, adLockOptimistic
  If rsAna.BOF Then Exit Function
-End If
+End If ' rAnPatID
 On Error GoTo fehler
 If Not rsAna.EOF Then
  nTher = TherUmw(therart_erm(Pat_id, -1, rsAna))
  If nTher <> rsAna!Ther1 Or IsNull(rsAna!Ther1) Then
   Anzeige = Pat_id & ": Ther1: " & rsAna!Ther1 & " -> " & nTher
   Call syscmd(acSysCmdSetStatus, Anzeige)
-  Call DBCn.Execute("UPDATE `anamnesebogen` SET ther1 = '" & nTher & "' WHERE pat_id = " & Pat_id, rAF)
+  Call myEFrag("UPDATE `anamnesebogen` SET ther1 = '" & nTher & "' WHERE pat_id = " & Pat_id, rAF)
   If rAF <> 1 Then
    Anzeige = "   Fehler beim Update von Ther1 bei " & Pat_id & ": rAF = " & rAF
    Call syscmd(acSysCmdSetStatus, Anzeige)
@@ -586,7 +586,7 @@ If Not rsAna.EOF Then
 '  Anzeige = Pat_id & " " & rsAna!NachName & " " & rsAna!VorName & ": TherAkt: " & rsAna!TherAkt & " -> " & nTher
   Anzeige = Pat_id & " " & ": TherAkt: " & rsAna!TherAkt & " -> " & nTher
   Call syscmd(acSysCmdSetStatus, Anzeige)
-  Call DBCn.Execute("UPDATE `anamnesebogen` SET therakt = '" & nTher & "' WHERE pat_id = " & Pat_id, rAF)
+  Call myEFrag("UPDATE `anamnesebogen` SET therakt = '" & nTher & "' WHERE pat_id = " & Pat_id, rAF)
   If rAF <> 1 Then
    Anzeige = "   Fehler beim Update von TherAkt bei " & Pat_id & ": rAF = " & rAF
    Call syscmd(acSysCmdSetStatus, Anzeige)
@@ -661,13 +661,13 @@ End Function ' testtherart$()
 '        Dim lzp As Date
 '        lzp = Now
 '        SET rlar = Nothing
-'        myfrag rlar, "SELECT MAX(bhfb) AS mbhfb FROM `faelle` WHERE pat_id = " & Pat_id
+'        myFrag rlar, "SELECT MAX(bhfb) AS mbhfb FROM `faelle` WHERE pat_id = " & Pat_id
 '        IF Not rlar.EOF THEN
 '         lzp = IIf(ISNULL(rlar!mbhfb), Now(), rlar!mbhfb)
 '        END IF
 '        SET rlar = Nothing '
 '        'txtmedKey'
-'        myfrag rlar, forminhalt & " WHERE form_abk IN ('lar','plar') AND feld IN ('medikament','txtMedKey') AND " & _
+'        myFrag rlar, forminhalt & " WHERE form_abk IN ('lar','plar') AND feld IN ('medikament','txtMedKey') AND " & _
 '        "(feldinh LIKE '%rapid d link%' OR feldinh LIKE '%rap d li%' OR feldinh LIKE '%rapid-d li%' OR feldinh LIKE '%tenderl%' OR feldinh LIKE '%flexl%' OR feldinh LIKE '%check spirit%' OR feldinh LIKE '%insight%' OR feldinh LIKE '%chek spirit%' OR feldinh LIKE '%pumpentr‰g%' OR feldinh LIKE '%kunststoffampu%' OR feldinh LIKE '%spritzampull%' OR feldinh LIKE '%batteriefachdeckel%' OR feldinh LIKE '%h-tron%' OR feldinh LIKE '%d-tron%' OR feldinh LIKE '%paradigm%' OR feldinh LIKE '%csii%' OR feldinh LIKE '%linpumpe%' OR feldinh LIKE '%omnipod%' OR Or feldinh LIKE "ypso pump" feldinh LIKE '%minimed%' OR feldinh LIKE '%640g%' OR feldinh LIKE '%carelink%' OR feldinh LIKE '%mio %' OR feldinh LIKE '%quick%set%' OR feldinh LIKE '%silhouette%' OR feldinh LIKE '%sure-t%' OR feldinh LIKE '%sure t%' OR feldinh LIKE '%paradigm%' OR feldinh LIKE '% veo%' OR feldinh LIKE '%animas%' OR feldinh LIKE '%car%idge%') " & _
 '        "and zeitpunkt > " & DatFor_k(lzp - 640) & " AND pat_id = " & Pat_id
 '
@@ -700,7 +700,7 @@ End Function ' testtherart$()
 '            Dim MittelMed$
 '            MittelMed = rmed!kurzmed
 ''            MittelMed = GetMed(rmed!Medikament, 0)
-'            myfrag rMA, "SELECT puzu,InS,Anal FROM `medarten` WHERE medikament = '" & MittelMed & "'"
+'            myFrag rMA, "SELECT puzu,InS,Anal FROM `medarten` WHERE medikament = '" & MittelMed & "'"
 '            IF Not rMA.BOF THEN
 '             IF NOT ISNULL(rMA!puzu) AND rMA!puzu THEN
 '              obRezPumpe = True
@@ -766,25 +766,25 @@ Public Function bittest1()
 End Function ' bittest1
 
 Function bittest()
- Dim rAF&, cn$(2), dtyp$(1), i%, j%
+ Dim rAF&, Cn$(2), dtyp$(1), i%, j%
  Dim rs As New ADODB.Recordset
  Dim Vb As New ADODB.Connection
  On Error GoTo fehler
  Call Lese.ProgStart
- cn(0) = "Provider=microsoft.Jet.OLEDb.4.0;Data Source=" & QmdB & ";Jet OLEDb:Engine Type=5" ' u:\anamnese\quelle.mdb
- cn(1) = "PROVIDER=MSDASQL;driver={" & ODBCStr & "};server=linux1;uid=praxis;pwd=***REMOVED***;database=quelle;"
- cn(2) = "PROVIDER=MSDASQL;driver={MySQL ODBC 3.51 Driver};server=linux1;uid=praxis;pwd=***REMOVED***;database=quelle;"
+ Cn(0) = "Provider=microsoft.Jet.OLEDb.4.0;Data Source=" & QmdB & ";Jet OLEDb:Engine Type=5" ' u:\anamnese\quelle.mdb
+ Cn(1) = "PROVIDER=MSDASQL;driver={" & ODBCStr & "};server=linux1;uid=praxis;pwd=***REMOVED***;database=quelle;"
+ Cn(2) = "PROVIDER=MSDASQL;driver={MySQL ODBC 3.51 Driver};server=linux1;uid=praxis;pwd=***REMOVED***;database=quelle;"
  dtyp(0) = "bit"
  dtyp(1) = "tinyint"
- For i = LBound(cn) To UBound(cn)
+ For i = LBound(Cn) To UBound(Cn)
   For j = LBound(dtyp) To UBound(dtyp)
-   Vb.Open cn(i)
+   Vb.Open Cn(i)
    On Error Resume Next
-   Vb.Execute ("DROP TABLE bittest")
+   myEFrag "DROP TABLE bittest", , Vb
    On Error GoTo fehler
-   Vb.Execute ("CREATE TABLE bittest (id " & IIf(InStrB(cn(i), "MySQL") <> 0, "integer(10) auto_increment", "counter primary") & " key, ob " & dtyp(j) & ")") ' bit, bit(1), tinyint(1)
-   Vb.Execute ("INSERT INTO bittest(ob) VALUES(1)")
-   Vb.Execute ("INSERT INTO bittest(ob) VALUES(0)")
+   myEFrag "CREATE TABLE bittest (id " & IIf(InStrB(Cn(i), "MySQL") <> 0, "integer(10) auto_increment", "counter primary") & " key, ob " & dtyp(j) & ")", , Vb ' bit, bit(1), tinyint(1)
+   myEFrag "INSERT INTO bittest(ob) VALUES(1)", , Vb
+   myEFrag "INSERT INTO bittest(ob) VALUES(0)", , Vb
 '   rs.Open "SELECT ob, --ob AS `minus minus ob`, id FROM bittest t", Vb, adOpenDynamic, adLockOptimistic
    myFrag rs, "SELECT ob, --ob AS `minus minus ob`, id FROM bittest t", adOpenDynamic, Vb
    Dim spezif$
@@ -800,7 +800,7 @@ Function bittest()
     rs.Move 1
    Loop
    rs.Close
-   Vb.Execute ("DROP TABLE bittest")
+   myEFrag "DROP TABLE bittest", , Vb
    Vb.Close
   Next j
  Next i
@@ -927,7 +927,7 @@ Function KommRep() ' Kommentare reparieren
  On Error GoTo fehler
  Acc.Open "Provider=microsoft.Jet.OLEDb.4.0;Data Source=" & QmdB & ";Jet OLEDb:Engine Type=5"
  MyS.Open "PROVIDER=MSDASQL;driver={" & ODBCStr & "};server=linux1;uid=praxis;pwd=***REMOVED***;database=quelle;"
- rs.Open "SHOW TABLES", MyS
+ myFrag rs, "SHOW TABLES", , MyS
  xc.ActiveConnection = MyS
  xcA.ActiveConnection = Acc
  Do While Not rs.EOF
@@ -951,8 +951,8 @@ Function KommRep() ' Kommentare reparieren
 '   ErrNo = Err.Number
    On Error GoTo fehler
     If ErrNo = 0 Then
-     Set T2 = Nothing
-     T2.Open "SHOW FULL COLUMNS FROM `" & rs.Fields(0) & "`", MyS
+     'Set T2 = Nothing
+     myFrag T2, "SHOW FULL COLUMNS FROM `" & rs.Fields(0) & "`", adOpenStatic, MyS
      Do While Not T2.EOF
       If T2!Comment = "" Then
        komm = vNS
@@ -975,17 +975,17 @@ Function KommRep() ' Kommentare reparieren
            defa = T2!Default
           End If
           valu = T2!Field.Value
-        Call MyS.Execute("ALTER TABLE `" & xr.name & "` MODIFY COLUMN `" & T2!Field.Value & " " & T2!Type.Value & " DEFAULT " & defa & IIf(IsNull(T2!collation), vNS, " COLLATE " & T2!collation) & " COMMENT '" & komm & "', ENGINE = InnoDB;", AfN)
+        Call myEFrag("ALTER TABLE `" & xr.name & "` MODIFY COLUMN `" & T2!Field.Value & " " & T2!Type.Value & " DEFAULT " & defa & IIf(IsNull(T2!collation), vNS, " COLLATE " & T2!collation) & " COMMENT '" & komm & "', ENGINE = InnoDB;", AfN, MyS)
         If Err.Number <> 0 Then
          Err.Clear
          On Error GoTo fehler
          Debug.Print xr.name, T2!Field.Value, komm
          On Error Resume Next
          Err.Clear
-         Call MyS.Execute("ALTER TABLE `" & xr.name & "` MODIFY COLUMN `" & T2!Field.Value & "` " & T2!Type.Value & " DEFAULT " & defa & IIf(IsNull(T2!collation), vNS, " COLLATE " & T2!collation) & " COMMENT '" & komm & "', ENGINE = InnoDB;", AfN)
+         Call myEFrag("ALTER TABLE `" & xr.name & "` MODIFY COLUMN `" & T2!Field.Value & "` " & T2!Type.Value & " DEFAULT " & defa & IIf(IsNull(T2!collation), vNS, " COLLATE " & T2!collation) & " COMMENT '" & komm & "', ENGINE = InnoDB;", AfN, MyS)
          If Err.Number <> 0 Then
           On Error GoTo fehler
-          Call MyS.Execute("ALTER TABLE `" & xr.name & "` MODIFY COLUMN `" & T2!Field.Value & "` " & T2!Type.Value & " DEFAULT " & defa & IIf(IsNull(T2!collation), vNS, " COLLATE " & T2!collation) & " COMMENT '" & komm & "', ENGINE = InnoDB;", AfN)
+          Call myEFrag("ALTER TABLE `" & xr.name & "` MODIFY COLUMN `" & T2!Field.Value & "` " & T2!Type.Value & " DEFAULT " & defa & IIf(IsNull(T2!collation), vNS, " COLLATE " & T2!collation) & " COMMENT '" & komm & "', ENGINE = InnoDB;", AfN, MyS)
          End If
          On Error GoTo fehler
         End If
@@ -1029,7 +1029,7 @@ Function AnReparieren() ' Erg‰nzt die IN den mySQL-Tabellen vermutlich bei der S
 '  Call doConstrFestleg(k, 1)
   CStr1 = aCStr(quelleT, k)
   Set rAn = Nothing
-  rAn.Open "SELECT * FROM `anamnesebogen`", DbA, adOpenStatic, adLockReadOnly
+  myFrag rAn, "SELECT * FROM `anamnesebogen`", adOpenStatic, DbA, adLockReadOnly
   Set dbm = Nothing
   dbm.Open CStr1
   Dim myDbx As New ADOX.Catalog
@@ -1037,12 +1037,12 @@ Function AnReparieren() ' Erg‰nzt die IN den mySQL-Tabellen vermutlich bei der S
   myDbx.ActiveConnection = DbA
   Set myTable = myDbx.Tables("anamnesebogen")
   For i = 0 To myTable.Columns.COUNT - 1
-   Dim rsc As New ADODB.Recordset
-   Set rsc = Nothing
-   Call rsc.Open("SHOW FULL COLUMNS FROM `" & Forms(0).MyDB & "`.`anamnesebogen` WHERE field = '" & rAn.Fields(i).name & "'", dbm, adOpenStatic, adLockReadOnly)
+   Dim rsc As ADODB.Recordset
+'   Set rsc = Nothing
+'   Call rsc.Open("SHOW FULL COLUMNS FROM `" & Forms(0).MyDB & "`.`anamnesebogen` WHERE field = '" & rAn.Fields(i).name & "'", dbm, adOpenStatic, adLockReadOnly)
+   myFrag rsc, "SHOW FULL COLUMNS FROM `" & Forms(0).MyDB & "`.`anamnesebogen` WHERE field = '" & rAn.Fields(i).name & "'", adOpenStatic, dbm, adLockReadOnly
    syscmd acSysCmdSetStatus, myTable.Columns(rAn.Fields(i).name).Properties("Description")
-'   Call dbm.Execute("ALTER TABLE `" & Forms(0).MyDB & "`.`anamnesebogen` modify COLUMN `" & rAn.Fields(i).Name & "` " & rsc!Type & IIf(ISNULL(rsc!collation), vns, " CHARACTER SET latin1 COLLATE " & rsc!collation) & " default " & IIf(ISNULL(rsc!Default), " null", rsc!Default) & " comment '" & myTable.Columns(rAn.Fields(i).Name).Properties("Description") & "'")
-   Call dbm.Execute("ALTER TABLE `" & Forms(0).MyDB & "`.`anamnesebogen` modify COLUMN `" & rAn.Fields(i).name & "` " & rsc!Type & IIf(IsNull(rsc!collation), vNS, " CHARACTER SET utf8mb4 COLLATE " & rsc!collation) & " default " & IIf(IsNull(rsc!Default), " null", rsc!Default) & " comment '" & rsc!Comment & "'") 'myTable.Columns(rAn.Fields(i).Name).Properties("Description") & "'")
+   Call myEFrag("ALTER TABLE `" & Forms(0).MyDB & "`.`anamnesebogen` modify COLUMN `" & rAn.Fields(i).name & "` " & rsc!Type & IIf(IsNull(rsc!collation), vNS, " CHARACTER SET utf8mb4 COLLATE " & rsc!collation) & " default " & IIf(IsNull(rsc!Default), " null", rsc!Default) & " comment '" & rsc!Comment & "'", , dbm) 'myTable.Columns(rAn.Fields(i).Name).Properties("Description") & "'")
   Next i
  Next k
 Exit Function
@@ -1100,7 +1100,7 @@ On Error GoTo fehler
   Set myTable = myDbx.Tables("anamnesebogen")
  End If
  Dim rAn As New ADODB.Recordset
-' myfrag rAn, "SELECT -obbzausgew AS j_obbzausgew, -obosaufgek AS j_obosaufgek, -obpodaufgek AS j_obpodaufgek, -obmblausgeh AS j_obmblausgeh, -obschulaufgek AS j_obschulaufgek, -obdmpaufgekl AS j_obdmpaufgekl, -obmednetz AS j_obmednetz, -ob AS j_ob, -oban1eing AS j_oban1eing, -oban2eing AS j_oban2eing, -obanaeing AS j_obanaeing, -obcheck AS j_obcheck, -[Bypaﬂ kardial] AS `j_bypass kardial` , -`bypaﬂ peripher` AS `j_bypaﬂ peripher`, -tkz AS j_tkz, -insulinpumpe AS j_insulinpumpe, -dialyse AS j_dialyse, a.* FROM `anamnesebogen` a WHERE pat_id = " & Pat_id
+' myFrag rAn, "SELECT -obbzausgew AS j_obbzausgew, -obosaufgek AS j_obosaufgek, -obpodaufgek AS j_obpodaufgek, -obmblausgeh AS j_obmblausgeh, -obschulaufgek AS j_obschulaufgek, -obdmpaufgekl AS j_obdmpaufgekl, -obmednetz AS j_obmednetz, -ob AS j_ob, -oban1eing AS j_oban1eing, -oban2eing AS j_oban2eing, -obanaeing AS j_obanaeing, -obcheck AS j_obcheck, -[Bypaﬂ kardial] AS `j_bypass kardial` , -`bypaﬂ peripher` AS `j_bypaﬂ peripher`, -tkz AS j_tkz, -insulinpumpe AS j_insulinpumpe, -dialyse AS j_dialyse, a.* FROM `anamnesebogen` a WHERE pat_id = " & Pat_id
  myFrag rAn, "SELECT * FROM `anamnesebogen` WHERE pat_id = " & Pat_id, adOpenStatic
  If rAn.BOF Then GoTo schluss
 #End If
@@ -1559,7 +1559,7 @@ te = UCase$(Left(te, 1)) + Mid$(te, 2)
 If te <> "" Then
  If Right$(te, 3) <> "." & vbCrLf Then te = Left(te, Len(te) - 2) + "." & vbCrLf
 End If
-te = te + DBCn.Execute("SELECT COALESCE(group_concat(concat(case when art LIKE 'Alk%' THEN 'Alkhol' when art LIKE 'fa%' AND art<>'fams' THEN 'Familienanamnese' when art LIKE 'rauch%' OR art LIKE 'nik%' THEN 'Tabak' end,' (',DATE_FORMAT(zeitpunkt,'%d.%m.%y'),'):','\t', Inhalt,'\n') SEPARATOR ''),'') FROM eintraege WHERE pat_id =" & Pat_id & "").Fields(0)
+te = te + myEFrag("SELECT COALESCE(group_concat(concat(case when art LIKE 'Alk%' THEN 'Alkhol' when art LIKE 'fa%' AND art<>'fams' THEN 'Familienanamnese' when art LIKE 'rauch%' OR art LIKE 'nik%' THEN 'Tabak' end,' (',DATE_FORMAT(zeitpunkt,'%d.%m.%y'),'):','\t', Inhalt,'\n') SEPARATOR ''),'') FROM eintraege WHERE pat_id =" & Pat_id & "").Fields(0)
 '  AND (art LIKE 'fa%' OR art LIKE 'rauch%' OR art LIKE 'nik%' OR art LIKE 'alk%') AND art<>'fams' ' braucht's offenbar nicht
 machwertString = te
 schluss:

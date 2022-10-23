@@ -11,7 +11,7 @@ Function dbtest()
  For i = 0 To Dtb.TableDefs.COUNT - 1
   name = Dtb.TableDefs(i).name
   On Error Resume Next
-  Set rs = Dtb.OpenRecordset(name, dbOpenTable)
+  Set rs = myFrag(Dtb, Recordset(name, dbOpenTable))
   FNr = Err.Number
   On Error GoTo fehler
   Debug.Print i, name, FNr

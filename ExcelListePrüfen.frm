@@ -292,10 +292,8 @@ End Sub ' form_load
 #End If
 
 Private Sub DateiBearbeiten_Click()
- Const XStra = "Provider=Microsoft.Jet.OLEDB.4.0;Data Source="
- Const XStrb = ";Extended Properties=""Excel 8.0;HDR=no;IMEX=1"""
- Dim rX As New ADOX.Catalog, sql$, ka%, ke%, runde%, angefangen%, obAnfang%, rAF&
- Dim XCon As New ADODB.Connection
+' Const XStra = "Provider=Microsoft.Jet.OLEDB.4.0;Data Source="
+ Dim sql$, ka%, ke%, runde%, angefangen%, obAnfang%, rAF&
  Dim rEx As New ADODB.Recordset, rs As New ADODB.Recordset
  Select Case FenArt
   Case 1
@@ -315,11 +313,7 @@ Private Sub DateiBearbeiten_Click()
 ' DBCnS = Conn
 ' SET DBCn = Nothing
 ' DBCnOpen Conn
- Set XCon = Nothing
- XCon.Open XStra & Me.Datei & XStrb
- Set rX = Nothing
- rX.ActiveConnection = XCon
- rEx.Open "`" & rX.Tables(rX.Tables.COUNT - 1).name & "`", XCon ' Hier Excel, nicht obmysql = 0!
+ xlsopen rEx, Me.Datei
  Dim kopfz%, pRoh$
  kopfz = 0
  Do While Not rEx.EOF
@@ -335,7 +329,7 @@ Private Sub DateiBearbeiten_Click()
       Set rsl = Nothing
       myFrag rsl, "SELECT COUNT(0) ct FROM `laborparameter` WHERE abkü = '" & UmwfSQL(rEx.Fields(0)) & "' AND langtext = '" & UmwfSQL(rEx.Fields(1)) & "' AND einheit = '" & UmwfSQL(rEx.Fields(2)) & "'"
       If rsl!ct = 1 Then
-       DBCn.Execute "UPDATE `laborparameter` SET labor = '" & UmwfSQL(rEx.Fields(3)) & "' WHERE abkü = '" & UmwfSQL(rEx.Fields(0)) & "' AND langtext = '" & UmwfSQL(rEx.Fields(1)) & "' AND einheit = '" & UmwfSQL(rEx.Fields(2)) & "'", rAF
+       myEFrag "UPDATE `laborparameter` SET labor = '" & UmwfSQL(rEx.Fields(3)) & "' WHERE abkü = '" & UmwfSQL(rEx.Fields(0)) & "' AND langtext = '" & UmwfSQL(rEx.Fields(1)) & "' AND einheit = '" & UmwfSQL(rEx.Fields(2)) & "'", rAF
       ElseIf rsl!ct > 1 Then
        Stop
       End If

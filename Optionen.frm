@@ -44,7 +44,7 @@ Private Sub Form_Load()
 End Sub ' Form_Load()
 
 Private Sub KReinCB_Click()
- Dim rs As Adodb.Recordset
+ Dim rs As ADODB.Recordset
  If KReinCB.Tag = "" Then
   myFrag rs, "INSERT INTO koricht(Datum,IP,ob) VALUES('" & Format(Now(), "YYYY-MM-DD hh:mm:ss") & "','" & CptName & "','" & KReinCB & "')"
   KRein = KReinCB

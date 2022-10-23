@@ -239,12 +239,12 @@ Public type diagnosen
  ID1 AS long 'ID1 int '
  FID AS long 'FID int 'Fall-Bezug
  Pat_id AS long 'Pat_id int 'Bezug auf Anamneseblattt
- DiagDatum AS date 'DiagDatum datetime '
- DiagSicherheit AS string 'DiagSicherheit varchar '6003
- DiagText AS string 'DiagText longtext '
- DiagSeite AS string 'DiagSeite varchar '6004
+ DiagDatum AS date 'DiagDatum datetime '5999 Datum, 6301 Uhrzeit
+ DiagSicherheit AS string 'DiagSicherheit varchar '3674, 6003 akut
+ DiagText AS string 'DiagText longtext '3650 Dauer, 6000 akut
+ DiagSeite AS string 'DiagSeite varchar '3675, 6004 akut
  DiagAttr AS string 'DiagAttr varchar '6006 Diagnosenattribut (optionale Erläuterung)
- ICD AS string 'ICD varchar '
+ ICD AS string 'ICD varchar '3673, 6001 akut
  obDauer AS byte 'obDauer tinyint 'ob Dauerdiagnose
  intBemerk AS string 'intBemerk varchar '6009 interne Bemerkung
  absPos AS long 'absPos int 'Zeile in der BDT-Datei
@@ -1134,11 +1134,11 @@ End FUNCTION ' Tinit
 ' in AllesLösch, LabLösch
 Public FUNCTION doEntleer(frm AS lese, Tbl$)
  Dim rs As ADODB.Recordset
-' SET rs = DBCn.Execute("SELECT COUNT(0) ct FROM `" & Tbl & "`")
+' SET rs = myefrag("SELECT COUNT(0) ct FROM `" & Tbl & "`")
  myFrag rs, "SELECT COUNT(0) ct FROM `" & Tbl & "`"
  frm.Ausgeb "Lösche: `" & Tbl & "` (" & rs!ct & " Datensätze)", True
  sql = sqlDeletefrom & "`" & Tbl & "`"
- Call DBCn.Execute(sql) ' ,,adAsyncExecute
+ Call myefrag(sql) ' ,,adAsyncExecute
  DoEvents
 End FUNCTION ' doEntleer
 
@@ -1411,7 +1411,6 @@ Public FUNCTION namenLaden()
  Dim pid$, rs As New Recordset, akt&
  ON Error GoTo fehler
  pid = rNa(0).Pat_id
- ReDim roNa(1)
  sql = "SELECT COALESCE(Pat_ID,0) Pat_ID,COALESCE(lfdnr,0) lfdnr,COALESCE(NVorsatz,'') NVorsatz,COALESCE(Nachname,'') Nachname" & _
 ",COALESCE(Vorname,'') Vorname,IF(GebDat IS NULL OR GebDat=0,CONVERT('18991230',DATE),GebDat) GebDat,COALESCE(f3004,'') f3004,COALESCE(f3006,'') f3006" & _
 ",COALESCE(Straße,'') Straße,COALESCE(KVKStatus,'') KVKStatus,COALESCE(Hausnr,'') Hausnr,COALESCE(Geschlecht,'') Geschlecht" & _
@@ -1433,93 +1432,96 @@ Public FUNCTION namenLaden()
 ",COALESCE(getHA1,0) getHA1,COALESCE(fnHA1,'') fnHA1,COALESCE(getHA2,0) getHA2,COALESCE(fnHA2,'') fnHA2" & _
 ",COALESCE(zubenach,'') zubenach,COALESCE(Verwandt,'') Verwandt,COALESCE(Sprache,'') Sprache,IF(lAktTM IS NULL OR lAktTM=0,CONVERT('18991230',DATE),lAktTM) lAktTM" & _
 ",COALESCE(Mitarbeiter,0) Mitarbeiter FROM `namen` WHERE Pat_ID=" & pid & " ORDER BY `kAufDat`
- myfrag rs, sql
- Do While Not rs.EOF
-  akt = UBound(roNa)
-  roNa(akt).Pat_ID = rs!Pat_ID
-  roNa(akt).lfdnr = rs!lfdnr
-  roNa(akt).NVorsatz = doUmwfSQL(rs!NVorsatz, lies.obMySQL, False)
-  roNa(akt).Nachname = doUmwfSQL(rs!Nachname, lies.obMySQL, False)
-  roNa(akt).Vorname = doUmwfSQL(rs!Vorname, lies.obMySQL, False)
-  roNa(akt).GebDat = rs!GebDat
-  roNa(akt).f3004 = doUmwfSQL(rs!f3004, lies.obMySQL, False)
-  roNa(akt).f3006 = doUmwfSQL(rs!f3006, lies.obMySQL, False)
-  roNa(akt).Straße = doUmwfSQL(rs!Straße, lies.obMySQL, False)
-  roNa(akt).KVKStatus = doUmwfSQL(rs!KVKStatus, lies.obMySQL, False)
-  roNa(akt).Hausnr = doUmwfSQL(rs!Hausnr, lies.obMySQL, False)
-  roNa(akt).Geschlecht = doUmwfSQL(rs!Geschlecht, lies.obMySQL, False)
-  roNa(akt).Plz = doUmwfSQL(rs!Plz, lies.obMySQL, False)
-  roNa(akt).Ort = doUmwfSQL(rs!Ort, lies.obMySQL, False)
-  roNa(akt).Lkz = doUmwfSQL(rs!Lkz, lies.obMySQL, False)
-  roNa(akt).Anschrzus = doUmwfSQL(rs!Anschrzus, lies.obMySQL, False)
-  roNa(akt).NVors = doUmwfSQL(rs!NVors, lies.obMySQL, False)
-  roNa(akt).PFPlz = doUmwfSQL(rs!PFPlz, lies.obMySQL, False)
-  roNa(akt).PFOrt = doUmwfSQL(rs!PFOrt, lies.obMySQL, False)
-  roNa(akt).PFNr = doUmwfSQL(rs!PFNr, lies.obMySQL, False)
-  roNa(akt).f3124 = doUmwfSQL(rs!f3124, lies.obMySQL, False)
-  roNa(akt).AnschrZus_2 = doUmwfSQL(rs!AnschrZus_2, lies.obMySQL, False)
-  roNa(akt).Postfach_2 = doUmwfSQL(rs!Postfach_2, lies.obMySQL, False)
-  roNa(akt).LK_2 = doUmwfSQL(rs!LK_2, lies.obMySQL, False)
-  roNa(akt).Postfach = doUmwfSQL(rs!Postfach, lies.obMySQL, False)
-  roNa(akt).Beruf = doUmwfSQL(rs!Beruf, lies.obMySQL, False)
-  roNa(akt).Weggeldzone = doUmwfSQL(rs!Weggeldzone, lies.obMySQL, False)
-  roNa(akt).WeggzZahl = rs!WeggzZahl
-  roNa(akt).AufnDat = rs!AufnDat
-  roNa(akt).kAufDat = rs!kAufDat
-  roNa(akt).LANR = doUmwfSQL(rs!LANR, lies.obMySQL, False)
-  roNa(akt).BStNr = doUmwfSQL(rs!BStNr, lies.obMySQL, False)
-  roNa(akt).Titel = doUmwfSQL(rs!Titel, lies.obMySQL, False)
-  roNa(akt).Versichertennummer = doUmwfSQL(rs!Versichertennummer, lies.obMySQL, False)
-  roNa(akt).PrivatTel = doUmwfSQL(rs!PrivatTel, lies.obMySQL, False)
-  roNa(akt).KVNr = doUmwfSQL(rs!KVNr, lies.obMySQL, False)
-  roNa(akt).KVNr2 = doUmwfSQL(rs!KVNr2, lies.obMySQL, False)
-  roNa(akt).KVNr3 = doUmwfSQL(rs!KVNr3, lies.obMySQL, False)
-  roNa(akt).KVNr4 = doUmwfSQL(rs!KVNr4, lies.obMySQL, False)
-  roNa(akt).PrivatTel_2 = doUmwfSQL(rs!PrivatTel_2, lies.obMySQL, False)
-  roNa(akt).PrivatFax = doUmwfSQL(rs!PrivatFax, lies.obMySQL, False)
-  roNa(akt).DienstTel = doUmwfSQL(rs!DienstTel, lies.obMySQL, False)
-  roNa(akt).PrivatMobil = doUmwfSQL(rs!PrivatMobil, lies.obMySQL, False)
-  roNa(akt).Email = doUmwfSQL(rs!Email, lies.obMySQL, False)
-  roNa(akt).Arbeitgeber = doUmwfSQL(rs!Arbeitgeber, lies.obMySQL, False)
-  roNa(akt).AnAllgda = rs!AnAllgda
-  roNa(akt).An1da = rs!An1da
-  roNa(akt).An2da = rs!An2da
-  roNa(akt).Checkda = rs!Checkda
-  roNa(akt).DMTypaD = doUmwfSQL(rs!DMTypaD, lies.obMySQL, False)
-  roNa(akt).AktZeit = rs!AktZeit
-  roNa(akt).absPos = rs!absPos
-  roNa(akt).StByte = rs!StByte
-  roNa(akt).StByteA = rs!StByteA
-  roNa(akt).Cave = doUmwfSQL(rs!Cave, lies.obMySQL, False)
-  roNa(akt).Notiz = doUmwfSQL(rs!Notiz, lies.obMySQL, False)
-  roNa(akt).obChk = doUmwfSQL(rs!obChk, lies.obMySQL, False)
-  roNa(akt).dmpklass = rs!dmpklass
-  roNa(akt).dmpbeg = rs!dmpbeg
-  roNa(akt).dmpkhkklass = rs!dmpkhkklass
-  roNa(akt).dmpkhkbeg = rs!dmpkhkbeg
-  roNa(akt).dmpcopdklass = rs!dmpcopdklass
-  roNa(akt).dmpcopdbeg = rs!dmpcopdbeg
-  roNa(akt).dmpabklass = rs!dmpabklass
-  roNa(akt).dmpabbeg = rs!dmpabbeg
-  roNa(akt).dakab = rs!dakab
-  roNa(akt).HzV = rs!HzV
-  roNa(akt).HzVbeg = rs!HzVbeg
-  roNa(akt).DS = rs!DS
-  roNa(akt).DSbeg = rs!DSbeg
-  roNa(akt).getHA0 = rs!getHA0
-  roNa(akt).fnHA0 = doUmwfSQL(rs!fnHA0, lies.obMySQL, False)
-  roNa(akt).getHA1 = rs!getHA1
-  roNa(akt).fnHA1 = doUmwfSQL(rs!fnHA1, lies.obMySQL, False)
-  roNa(akt).getHA2 = rs!getHA2
-  roNa(akt).fnHA2 = doUmwfSQL(rs!fnHA2, lies.obMySQL, False)
-  roNa(akt).zubenach = doUmwfSQL(rs!zubenach, lies.obMySQL, False)
-  roNa(akt).Verwandt = doUmwfSQL(rs!Verwandt, lies.obMySQL, False)
-  roNa(akt).Sprache = doUmwfSQL(rs!Sprache, lies.obMySQL, False)
-  roNa(akt).lAktTM = rs!lAktTM
-  roNa(akt).Mitarbeiter = rs!Mitarbeiter
-  rs.MoveNext
-  IF Not rs.EOF THEN ReDim Preserve roNa(UBound(roNa) + 1)
- Loop
+ myFrag rs, sql
+ ReDim roNa(1)
+ If Not rs.EOF Then
+  Do While Not rs.EOF
+   akt = UBound(roNa)
+   roNa(akt).Pat_ID = rs!Pat_ID
+   roNa(akt).lfdnr = rs!lfdnr
+   roNa(akt).NVorsatz = doUmwfSQL(rs!NVorsatz, lies.obMySQL, False)
+   roNa(akt).Nachname = doUmwfSQL(rs!Nachname, lies.obMySQL, False)
+   roNa(akt).Vorname = doUmwfSQL(rs!Vorname, lies.obMySQL, False)
+   roNa(akt).GebDat = rs!GebDat
+   roNa(akt).f3004 = doUmwfSQL(rs!f3004, lies.obMySQL, False)
+   roNa(akt).f3006 = doUmwfSQL(rs!f3006, lies.obMySQL, False)
+   roNa(akt).Straße = doUmwfSQL(rs!Straße, lies.obMySQL, False)
+   roNa(akt).KVKStatus = doUmwfSQL(rs!KVKStatus, lies.obMySQL, False)
+   roNa(akt).Hausnr = doUmwfSQL(rs!Hausnr, lies.obMySQL, False)
+   roNa(akt).Geschlecht = doUmwfSQL(rs!Geschlecht, lies.obMySQL, False)
+   roNa(akt).Plz = doUmwfSQL(rs!Plz, lies.obMySQL, False)
+   roNa(akt).Ort = doUmwfSQL(rs!Ort, lies.obMySQL, False)
+   roNa(akt).Lkz = doUmwfSQL(rs!Lkz, lies.obMySQL, False)
+   roNa(akt).Anschrzus = doUmwfSQL(rs!Anschrzus, lies.obMySQL, False)
+   roNa(akt).NVors = doUmwfSQL(rs!NVors, lies.obMySQL, False)
+   roNa(akt).PFPlz = doUmwfSQL(rs!PFPlz, lies.obMySQL, False)
+   roNa(akt).PFOrt = doUmwfSQL(rs!PFOrt, lies.obMySQL, False)
+   roNa(akt).PFNr = doUmwfSQL(rs!PFNr, lies.obMySQL, False)
+   roNa(akt).f3124 = doUmwfSQL(rs!f3124, lies.obMySQL, False)
+   roNa(akt).AnschrZus_2 = doUmwfSQL(rs!AnschrZus_2, lies.obMySQL, False)
+   roNa(akt).Postfach_2 = doUmwfSQL(rs!Postfach_2, lies.obMySQL, False)
+   roNa(akt).LK_2 = doUmwfSQL(rs!LK_2, lies.obMySQL, False)
+   roNa(akt).Postfach = doUmwfSQL(rs!Postfach, lies.obMySQL, False)
+   roNa(akt).Beruf = doUmwfSQL(rs!Beruf, lies.obMySQL, False)
+   roNa(akt).Weggeldzone = doUmwfSQL(rs!Weggeldzone, lies.obMySQL, False)
+   roNa(akt).WeggzZahl = rs!WeggzZahl
+   roNa(akt).AufnDat = rs!AufnDat
+   roNa(akt).kAufDat = rs!kAufDat
+   roNa(akt).LANR = doUmwfSQL(rs!LANR, lies.obMySQL, False)
+   roNa(akt).BStNr = doUmwfSQL(rs!BStNr, lies.obMySQL, False)
+   roNa(akt).Titel = doUmwfSQL(rs!Titel, lies.obMySQL, False)
+   roNa(akt).Versichertennummer = doUmwfSQL(rs!Versichertennummer, lies.obMySQL, False)
+   roNa(akt).PrivatTel = doUmwfSQL(rs!PrivatTel, lies.obMySQL, False)
+   roNa(akt).KVNr = doUmwfSQL(rs!KVNr, lies.obMySQL, False)
+   roNa(akt).KVNr2 = doUmwfSQL(rs!KVNr2, lies.obMySQL, False)
+   roNa(akt).KVNr3 = doUmwfSQL(rs!KVNr3, lies.obMySQL, False)
+   roNa(akt).KVNr4 = doUmwfSQL(rs!KVNr4, lies.obMySQL, False)
+   roNa(akt).PrivatTel_2 = doUmwfSQL(rs!PrivatTel_2, lies.obMySQL, False)
+   roNa(akt).PrivatFax = doUmwfSQL(rs!PrivatFax, lies.obMySQL, False)
+   roNa(akt).DienstTel = doUmwfSQL(rs!DienstTel, lies.obMySQL, False)
+   roNa(akt).PrivatMobil = doUmwfSQL(rs!PrivatMobil, lies.obMySQL, False)
+   roNa(akt).Email = doUmwfSQL(rs!Email, lies.obMySQL, False)
+   roNa(akt).Arbeitgeber = doUmwfSQL(rs!Arbeitgeber, lies.obMySQL, False)
+   roNa(akt).AnAllgda = rs!AnAllgda
+   roNa(akt).An1da = rs!An1da
+   roNa(akt).An2da = rs!An2da
+   roNa(akt).Checkda = rs!Checkda
+   roNa(akt).DMTypaD = doUmwfSQL(rs!DMTypaD, lies.obMySQL, False)
+   roNa(akt).AktZeit = rs!AktZeit
+   roNa(akt).absPos = rs!absPos
+   roNa(akt).StByte = rs!StByte
+   roNa(akt).StByteA = rs!StByteA
+   roNa(akt).Cave = doUmwfSQL(rs!Cave, lies.obMySQL, False)
+   roNa(akt).Notiz = doUmwfSQL(rs!Notiz, lies.obMySQL, False)
+   roNa(akt).obChk = doUmwfSQL(rs!obChk, lies.obMySQL, False)
+   roNa(akt).dmpklass = rs!dmpklass
+   roNa(akt).dmpbeg = rs!dmpbeg
+   roNa(akt).dmpkhkklass = rs!dmpkhkklass
+   roNa(akt).dmpkhkbeg = rs!dmpkhkbeg
+   roNa(akt).dmpcopdklass = rs!dmpcopdklass
+   roNa(akt).dmpcopdbeg = rs!dmpcopdbeg
+   roNa(akt).dmpabklass = rs!dmpabklass
+   roNa(akt).dmpabbeg = rs!dmpabbeg
+   roNa(akt).dakab = rs!dakab
+   roNa(akt).HzV = rs!HzV
+   roNa(akt).HzVbeg = rs!HzVbeg
+   roNa(akt).DS = rs!DS
+   roNa(akt).DSbeg = rs!DSbeg
+   roNa(akt).getHA0 = rs!getHA0
+   roNa(akt).fnHA0 = doUmwfSQL(rs!fnHA0, lies.obMySQL, False)
+   roNa(akt).getHA1 = rs!getHA1
+   roNa(akt).fnHA1 = doUmwfSQL(rs!fnHA1, lies.obMySQL, False)
+   roNa(akt).getHA2 = rs!getHA2
+   roNa(akt).fnHA2 = doUmwfSQL(rs!fnHA2, lies.obMySQL, False)
+   roNa(akt).zubenach = doUmwfSQL(rs!zubenach, lies.obMySQL, False)
+   roNa(akt).Verwandt = doUmwfSQL(rs!Verwandt, lies.obMySQL, False)
+   roNa(akt).Sprache = doUmwfSQL(rs!Sprache, lies.obMySQL, False)
+   roNa(akt).lAktTM = rs!lAktTM
+   roNa(akt).Mitarbeiter = rs!Mitarbeiter
+   rs.MoveNext
+   IF Not rs.EOF THEN ReDim Preserve roNa(UBound(roNa) + 1)
+  Loop ' While Not rs.EOF
+ End If ' If rs.EOF
  Exit Function
 fehler:
  Dim AnwPfad$
@@ -1588,7 +1590,7 @@ Public FUNCTION namenSpeichern(SammelInsert%, BezfSp%)
  syscmd 4, pid & ": Speichere namen"
  IF not Allepat THEN
    sql = "DELETE FROM `namen` WHERE Pat_ID = " & CStr(rNa(0).Pat_ID)
-   Call DBCn.Execute(sql)
+   Call myefrag(sql)
  END IF ' not allePat
 ' sql0 = " INSERT " & sqlignore &  "INTO `namen` (Pat_ID,lfdnr,NVorsatz," & _
      "Nachname,Vorname,GebDat,f3004,f3006,Straße,KVKStatus,Hausnr,Geschlecht,Plz," & _
@@ -1627,14 +1629,14 @@ Public FUNCTION namenSpeichern(SammelInsert%, BezfSp%)
    rNa(i).Verwandt, "','" , rNa(i).Sprache, "'," , DatFor_k(rNa(i).lAktTM), "," , rNa(i).Mitarbeiter, ")")
   IF SammelInsert <> 0 AND i < ubound(rNa) THEN csql.Append ","
   IF SammelInsert = 0 OR i = ubound(rNa) THEN
-   Call DBCn.Execute(csql.value,rAf)', , adAsyncExecute)
+   Call myefrag(csql.value,rAf)', , adAsyncExecute)
    IF obfor THEN
     Call ForeignYes0
     Call ForeignYes1
    END IF
    IF sammelinsert = 0 THEN csql.m_len = 0
    IF lese.obmysql AND obmitAlterTab THEN
-    SET rs = DBCn.Execute("SHOW WARNINGS")
+    SET rs = myefrag("SHOW WARNINGS")
     IF not rs.BOF() THEN
      IF rs!code = 1265 THEN
       Err.Raise -2147217833
@@ -1653,7 +1655,7 @@ IF Err.Number = -2147217900 AND InStrB(ErrDescription, " Doppelter; Eintrag; ") 
  Resume Next
 ElseIf Err.Number = -2147467259 AND InStrB(ErrDescription, "Daten zu lang") = 0 THEN ' -2147467259 ' [MySQL][ODBC 3.51 Driver][mysqld-5.1.32-log]Cannot add OR update a child row: a foreign key constraint fails
  IF InStrB(ErrDescription, "'READ-COMMITTED'") <> 0 THEN
-  DBCn.Execute "SET SESSION TRANSACTION ISOLATION LEVEL REPEATABLE READ", rAF
+  myefrag "SET SESSION TRANSACTION ISOLATION LEVEL REPEATABLE READ", rAF
  Else
   Call doBezFeh(csql.Value, BezfSp, ErrDescription)
  END IF
@@ -2048,7 +2050,6 @@ Public FUNCTION faelleLaden()
  Dim pid$, rs As New Recordset, akt&
  ON Error GoTo fehler
  pid = rNa(0).Pat_id
- ReDim roFa(1)
  sql = "SELECT COALESCE(FID,0) FID,COALESCE(Pat_ID,0) Pat_ID,COALESCE(Quartal,'') Quartal,COALESCE(Nachname,'') Nachname" & _
 ",COALESCE(Vorname,'') Vorname,COALESCE(lfdnr,0) lfdnr,COALESCE(TMFNr,'') TMFNr,COALESCE(VKNr,'') VKNr" & _
 ",COALESCE(f4131,'') f4131,COALESCE(f4132,'') f4132,IF(VschBeg IS NULL OR VschBeg=0,CONVERT('18991230',DATE),VschBeg) VschBeg,COALESCE(KKasse_2,'') KKasse_2" & _
@@ -2078,125 +2079,130 @@ sql = sql & ",COALESCE(dmpKhsA,'') dmpKhsA,COALESCE(dmpDMSchulEmpf,'') dmpDMSchu
 ",COALESCE(dmpHypertSchulWahrg,'') dmpHypertSchulWahrg,COALESCE(dmpKKTabakEmpf,'') dmpKKTabakEmpf,COALESCE(dmpKKErnEmpf,'') dmpKKErnEmpf,COALESCE(dmpKKkTrainEmpf,'') dmpKKkTrainEmpf" & _
 ",COALESCE(dmpHbA1cZiel,'') dmpHbA1cZiel,COALESCE(dmpUewFuss,'') dmpUewFuss,COALESCE(dmpEinwDM,'') dmpEinwDM,COALESCE(dmphalbj,'') dmphalbj" & _
 ",COALESCE(dmpMA,'') dmpMA FROM `faelle` WHERE Pat_ID=" & pid & " ORDER BY `fanf`
- myfrag rs, sql
- Do While Not rs.EOF
-  akt = UBound(roFa)
-  roFa(akt).FID = rs!FID
-  roFa(akt).Pat_ID = rs!Pat_ID
-  roFa(akt).Quartal = doUmwfSQL(rs!Quartal, lies.obMySQL, False)
-  roFa(akt).Nachname = doUmwfSQL(rs!Nachname, lies.obMySQL, False)
-  roFa(akt).Vorname = doUmwfSQL(rs!Vorname, lies.obMySQL, False)
-  roFa(akt).lfdnr = rs!lfdnr
-  roFa(akt).TMFNr = doUmwfSQL(rs!TMFNr, lies.obMySQL, False)
-  roFa(akt).VKNr = doUmwfSQL(rs!VKNr, lies.obMySQL, False)
-  roFa(akt).f4131 = doUmwfSQL(rs!f4131, lies.obMySQL, False)
-  roFa(akt).f4132 = doUmwfSQL(rs!f4132, lies.obMySQL, False)
-  roFa(akt).VschBeg = rs!VschBeg
-  roFa(akt).KKasse_2 = doUmwfSQL(rs!KKasse_2, lies.obMySQL, False)
-  roFa(akt).FaktPers = rs!FaktPers
-  roFa(akt).FaktTechn = rs!FaktTechn
-  roFa(akt).FaktLabor = rs!FaktLabor
-  roFa(akt).BhFB = rs!BhFB
-  roFa(akt).BhFE1 = rs!BhFE1
-  roFa(akt).BhFE2 = rs!BhFE2
-  roFa(akt).f4202 = doUmwfSQL(rs!f4202, lies.obMySQL, False)
-  roFa(akt).ausgst = rs!ausgst
-  roFa(akt).KtrAbrB = doUmwfSQL(rs!KtrAbrB, lies.obMySQL, False)
-  roFa(akt).AbrAr = doUmwfSQL(rs!AbrAr, lies.obMySQL, False)
-  roFa(akt).lVorl = rs!lVorl
-  roFa(akt).IK = doUmwfSQL(rs!IK, lies.obMySQL, False)
-  roFa(akt).KVKs = doUmwfSQL(rs!KVKs, lies.obMySQL, False)
-  roFa(akt).KVKserg = doUmwfSQL(rs!KVKserg, lies.obMySQL, False)
-  roFa(akt).Status = doUmwfSQL(rs!Status, lies.obMySQL, False)
-  roFa(akt).Kasse = doUmwfSQL(rs!Kasse, lies.obMySQL, False)
-  roFa(akt).KID = rs!KID
-  roFa(akt).GebOr = doUmwfSQL(rs!GebOr, lies.obMySQL, False)
-  roFa(akt).AbrGb = doUmwfSQL(rs!AbrGb, lies.obMySQL, False)
-  roFa(akt).PersKreis = doUmwfSQL(rs!PersKreis, lies.obMySQL, False)
-  roFa(akt).SKtZusatz = doUmwfSQL(rs!SKtZusatz, lies.obMySQL, False)
-  roFa(akt).letzteRegel = doUmwfSQL(rs!letzteRegel, lies.obMySQL, False)
-  roFa(akt).ÜwText = doUmwfSQL(rs!ÜwText, lies.obMySQL, False)
-  roFa(akt).f4210 = rs!f4210
-  roFa(akt).AkfHAH = rs!AkfHAH
-  roFa(akt).AkfAB0 = rs!AkfAB0
-  roFa(akt).AkfAK = rs!AkfAK
-  roFa(akt).statNuller = doUmwfSQL(rs!statNuller, lies.obMySQL, False)
-  roFa(akt).ÜbwV = doUmwfSQL(rs!ÜbwV, lies.obMySQL, False)
-  roFa(akt).ÜbWVLANR = doUmwfSQL(rs!ÜbWVLANR, lies.obMySQL, False)
-  roFa(akt).ÜbWVBSNR = doUmwfSQL(rs!ÜbWVBSNR, lies.obMySQL, False)
-  roFa(akt).ÜbWVKVNR = doUmwfSQL(rs!ÜbWVKVNR, lies.obMySQL, False)
-  roFa(akt).AndÜw = doUmwfSQL(rs!AndÜw, lies.obMySQL, False)
-  roFa(akt).Übwr = doUmwfSQL(rs!Übwr, lies.obMySQL, False)
-  roFa(akt).ÜbwLANR = doUmwfSQL(rs!ÜbwLANR, lies.obMySQL, False)
-  roFa(akt).ÜWZiel = doUmwfSQL(rs!ÜWZiel, lies.obMySQL, False)
-  roFa(akt).ÜWNNr = doUmwfSQL(rs!ÜWNNr, lies.obMySQL, False)
-  roFa(akt).ÜWNaN = doUmwfSQL(rs!ÜWNaN, lies.obMySQL, False)
-  roFa(akt).ÜWTit = doUmwfSQL(rs!ÜWTit, lies.obMySQL, False)
-  roFa(akt).ÜWVor = doUmwfSQL(rs!ÜWVor, lies.obMySQL, False)
-  roFa(akt).ÜWVsw = doUmwfSQL(rs!ÜWVsw, lies.obMySQL, False)
-  roFa(akt).üwvid = rs!üwvid
-  roFa(akt).Auftrag = doUmwfSQL(rs!Auftrag, lies.obMySQL, False)
-  roFa(akt).Verdacht = doUmwfSQL(rs!Verdacht, lies.obMySQL, False)
-  roFa(akt).Befund = doUmwfSQL(rs!Befund, lies.obMySQL, False)
-  roFa(akt).statKlasse = doUmwfSQL(rs!statKlasse, lies.obMySQL, False)
-  roFa(akt).f4237 = doUmwfSQL(rs!f4237, lies.obMySQL, False)
-  roFa(akt).statBehTage = rs!statBehTage
-  roFa(akt).SchGr = rs!SchGr
-  roFa(akt).Weiterbeh = doUmwfSQL(rs!Weiterbeh, lies.obMySQL, False)
-  roFa(akt).f4266 = rs!f4266
-  roFa(akt).PGeb = doUmwfSQL(rs!PGeb, lies.obMySQL, False)
-  roFa(akt).PGebErg = doUmwfSQL(rs!PGebErg, lies.obMySQL, False)
-  roFa(akt).Mahnfrist = doUmwfSQL(rs!Mahnfrist, lies.obMySQL, False)
-  roFa(akt).Unfallort = doUmwfSQL(rs!Unfallort, lies.obMySQL, False)
-  roFa(akt).BeschAls = doUmwfSQL(rs!BeschAls, lies.obMySQL, False)
-  roFa(akt).BeschSeit = rs!BeschSeit
-  roFa(akt).Unfallbetrieb = doUmwfSQL(rs!Unfallbetrieb, lies.obMySQL, False)
-  roFa(akt).f4570 = doUmwfSQL(rs!f4570, lies.obMySQL, False)
-  roFa(akt).GOÄKatNr = doUmwfSQL(rs!GOÄKatNr, lies.obMySQL, False)
-  roFa(akt).GOÄKatName = doUmwfSQL(rs!GOÄKatName, lies.obMySQL, False)
-  roFa(akt).abrArzt = doUmwfSQL(rs!abrArzt, lies.obMySQL, False)
-  roFa(akt).privVers = doUmwfSQL(rs!privVers, lies.obMySQL, False)
-  roFa(akt).AdNam = doUmwfSQL(rs!AdNam, lies.obMySQL, False)
-  roFa(akt).AdStr = doUmwfSQL(rs!AdStr, lies.obMySQL, False)
-  roFa(akt).AdPlz = doUmwfSQL(rs!AdPlz, lies.obMySQL, False)
-  roFa(akt).AdOrt = doUmwfSQL(rs!AdOrt, lies.obMySQL, False)
-  roFa(akt).ÜwBG = doUmwfSQL(rs!ÜwBG, lies.obMySQL, False)
-  roFa(akt).BhFE = rs!BhFE
-  roFa(akt).s8000 = doUmwfSQL(rs!s8000, lies.obMySQL, False)
-  roFa(akt).s8100 = doUmwfSQL(rs!s8100, lies.obMySQL, False)
-  roFa(akt).AktZeit = rs!AktZeit
-  roFa(akt).Fanf = rs!Fanf
-  roFa(akt).altQuart = doUmwfSQL(rs!altQuart, lies.obMySQL, False)
-  roFa(akt).QAnf = rs!QAnf
-  roFa(akt).QEnd = rs!QEnd
-  roFa(akt).QS = doUmwfSQL(rs!QS, lies.obMySQL, False)
-  roFa(akt).QT = doUmwfSQL(rs!QT, lies.obMySQL, False)
-  roFa(akt).StByte = rs!StByte
-  roFa(akt).absPos = rs!absPos
-  roFa(akt).LANRid = rs!LANRid
-  roFa(akt).f4108 = doUmwfSQL(rs!f4108, lies.obMySQL, False)
-  roFa(akt).BGFallNr = doUmwfSQL(rs!BGFallNr, lies.obMySQL, False)
-  roFa(akt).lGewicht = rs!lGewicht
-  roFa(akt).vorET = rs!vorET
-  roFa(akt).dmpVertret = doUmwfSQL(rs!dmpVertret, lies.obMySQL, False)
-  roFa(akt).dmpArztw = doUmwfSQL(rs!dmpArztw, lies.obMySQL, False)
-  roFa(akt).dmpHypos = doUmwfSQL(rs!dmpHypos, lies.obMySQL, False)
-  roFa(akt).dmpKhsA = doUmwfSQL(rs!dmpKhsA, lies.obMySQL, False)
-  roFa(akt).dmpDMSchulEmpf = doUmwfSQL(rs!dmpDMSchulEmpf, lies.obMySQL, False)
-  roFa(akt).dmpDMSchulWahrg = doUmwfSQL(rs!dmpDMSchulWahrg, lies.obMySQL, False)
-  roFa(akt).dmpHypertSchulEmpf = doUmwfSQL(rs!dmpHypertSchulEmpf, lies.obMySQL, False)
-  roFa(akt).dmpHypertSchulWahrg = doUmwfSQL(rs!dmpHypertSchulWahrg, lies.obMySQL, False)
-  roFa(akt).dmpKKTabakEmpf = doUmwfSQL(rs!dmpKKTabakEmpf, lies.obMySQL, False)
-  roFa(akt).dmpKKErnEmpf = doUmwfSQL(rs!dmpKKErnEmpf, lies.obMySQL, False)
-  roFa(akt).dmpKKkTrainEmpf = doUmwfSQL(rs!dmpKKkTrainEmpf, lies.obMySQL, False)
-  roFa(akt).dmpHbA1cZiel = doUmwfSQL(rs!dmpHbA1cZiel, lies.obMySQL, False)
-  roFa(akt).dmpUewFuss = doUmwfSQL(rs!dmpUewFuss, lies.obMySQL, False)
-  roFa(akt).dmpEinwDM = doUmwfSQL(rs!dmpEinwDM, lies.obMySQL, False)
-  roFa(akt).dmphalbj = doUmwfSQL(rs!dmphalbj, lies.obMySQL, False)
-  roFa(akt).dmpMA = doUmwfSQL(rs!dmpMA, lies.obMySQL, False)
-  rs.MoveNext
-  IF Not rs.EOF THEN ReDim Preserve roFa(UBound(roFa) + 1)
- Loop
+ myFrag rs, sql
+ If rs.EOF Then
+  ReDim roFa(0)
+ Else ' rs.EOF Then
+  ReDim roFa(1)
+  Do While Not rs.EOF
+   akt = UBound(roFa)
+   roFa(akt).FID = rs!FID
+   roFa(akt).Pat_ID = rs!Pat_ID
+   roFa(akt).Quartal = doUmwfSQL(rs!Quartal, lies.obMySQL, False)
+   roFa(akt).Nachname = doUmwfSQL(rs!Nachname, lies.obMySQL, False)
+   roFa(akt).Vorname = doUmwfSQL(rs!Vorname, lies.obMySQL, False)
+   roFa(akt).lfdnr = rs!lfdnr
+   roFa(akt).TMFNr = doUmwfSQL(rs!TMFNr, lies.obMySQL, False)
+   roFa(akt).VKNr = doUmwfSQL(rs!VKNr, lies.obMySQL, False)
+   roFa(akt).f4131 = doUmwfSQL(rs!f4131, lies.obMySQL, False)
+   roFa(akt).f4132 = doUmwfSQL(rs!f4132, lies.obMySQL, False)
+   roFa(akt).VschBeg = rs!VschBeg
+   roFa(akt).KKasse_2 = doUmwfSQL(rs!KKasse_2, lies.obMySQL, False)
+   roFa(akt).FaktPers = rs!FaktPers
+   roFa(akt).FaktTechn = rs!FaktTechn
+   roFa(akt).FaktLabor = rs!FaktLabor
+   roFa(akt).BhFB = rs!BhFB
+   roFa(akt).BhFE1 = rs!BhFE1
+   roFa(akt).BhFE2 = rs!BhFE2
+   roFa(akt).f4202 = doUmwfSQL(rs!f4202, lies.obMySQL, False)
+   roFa(akt).ausgst = rs!ausgst
+   roFa(akt).KtrAbrB = doUmwfSQL(rs!KtrAbrB, lies.obMySQL, False)
+   roFa(akt).AbrAr = doUmwfSQL(rs!AbrAr, lies.obMySQL, False)
+   roFa(akt).lVorl = rs!lVorl
+   roFa(akt).IK = doUmwfSQL(rs!IK, lies.obMySQL, False)
+   roFa(akt).KVKs = doUmwfSQL(rs!KVKs, lies.obMySQL, False)
+   roFa(akt).KVKserg = doUmwfSQL(rs!KVKserg, lies.obMySQL, False)
+   roFa(akt).Status = doUmwfSQL(rs!Status, lies.obMySQL, False)
+   roFa(akt).Kasse = doUmwfSQL(rs!Kasse, lies.obMySQL, False)
+   roFa(akt).KID = rs!KID
+   roFa(akt).GebOr = doUmwfSQL(rs!GebOr, lies.obMySQL, False)
+   roFa(akt).AbrGb = doUmwfSQL(rs!AbrGb, lies.obMySQL, False)
+   roFa(akt).PersKreis = doUmwfSQL(rs!PersKreis, lies.obMySQL, False)
+   roFa(akt).SKtZusatz = doUmwfSQL(rs!SKtZusatz, lies.obMySQL, False)
+   roFa(akt).letzteRegel = doUmwfSQL(rs!letzteRegel, lies.obMySQL, False)
+   roFa(akt).ÜwText = doUmwfSQL(rs!ÜwText, lies.obMySQL, False)
+   roFa(akt).f4210 = rs!f4210
+   roFa(akt).AkfHAH = rs!AkfHAH
+   roFa(akt).AkfAB0 = rs!AkfAB0
+   roFa(akt).AkfAK = rs!AkfAK
+   roFa(akt).statNuller = doUmwfSQL(rs!statNuller, lies.obMySQL, False)
+   roFa(akt).ÜbwV = doUmwfSQL(rs!ÜbwV, lies.obMySQL, False)
+   roFa(akt).ÜbWVLANR = doUmwfSQL(rs!ÜbWVLANR, lies.obMySQL, False)
+   roFa(akt).ÜbWVBSNR = doUmwfSQL(rs!ÜbWVBSNR, lies.obMySQL, False)
+   roFa(akt).ÜbWVKVNR = doUmwfSQL(rs!ÜbWVKVNR, lies.obMySQL, False)
+   roFa(akt).AndÜw = doUmwfSQL(rs!AndÜw, lies.obMySQL, False)
+   roFa(akt).Übwr = doUmwfSQL(rs!Übwr, lies.obMySQL, False)
+   roFa(akt).ÜbwLANR = doUmwfSQL(rs!ÜbwLANR, lies.obMySQL, False)
+   roFa(akt).ÜWZiel = doUmwfSQL(rs!ÜWZiel, lies.obMySQL, False)
+   roFa(akt).ÜWNNr = doUmwfSQL(rs!ÜWNNr, lies.obMySQL, False)
+   roFa(akt).ÜWNaN = doUmwfSQL(rs!ÜWNaN, lies.obMySQL, False)
+   roFa(akt).ÜWTit = doUmwfSQL(rs!ÜWTit, lies.obMySQL, False)
+   roFa(akt).ÜWVor = doUmwfSQL(rs!ÜWVor, lies.obMySQL, False)
+   roFa(akt).ÜWVsw = doUmwfSQL(rs!ÜWVsw, lies.obMySQL, False)
+   roFa(akt).üwvid = rs!üwvid
+   roFa(akt).Auftrag = doUmwfSQL(rs!Auftrag, lies.obMySQL, False)
+   roFa(akt).Verdacht = doUmwfSQL(rs!Verdacht, lies.obMySQL, False)
+   roFa(akt).Befund = doUmwfSQL(rs!Befund, lies.obMySQL, False)
+   roFa(akt).statKlasse = doUmwfSQL(rs!statKlasse, lies.obMySQL, False)
+   roFa(akt).f4237 = doUmwfSQL(rs!f4237, lies.obMySQL, False)
+   roFa(akt).statBehTage = rs!statBehTage
+   roFa(akt).SchGr = rs!SchGr
+   roFa(akt).Weiterbeh = doUmwfSQL(rs!Weiterbeh, lies.obMySQL, False)
+   roFa(akt).f4266 = rs!f4266
+   roFa(akt).PGeb = doUmwfSQL(rs!PGeb, lies.obMySQL, False)
+   roFa(akt).PGebErg = doUmwfSQL(rs!PGebErg, lies.obMySQL, False)
+   roFa(akt).Mahnfrist = doUmwfSQL(rs!Mahnfrist, lies.obMySQL, False)
+   roFa(akt).Unfallort = doUmwfSQL(rs!Unfallort, lies.obMySQL, False)
+   roFa(akt).BeschAls = doUmwfSQL(rs!BeschAls, lies.obMySQL, False)
+   roFa(akt).BeschSeit = rs!BeschSeit
+   roFa(akt).Unfallbetrieb = doUmwfSQL(rs!Unfallbetrieb, lies.obMySQL, False)
+   roFa(akt).f4570 = doUmwfSQL(rs!f4570, lies.obMySQL, False)
+   roFa(akt).GOÄKatNr = doUmwfSQL(rs!GOÄKatNr, lies.obMySQL, False)
+   roFa(akt).GOÄKatName = doUmwfSQL(rs!GOÄKatName, lies.obMySQL, False)
+   roFa(akt).abrArzt = doUmwfSQL(rs!abrArzt, lies.obMySQL, False)
+   roFa(akt).privVers = doUmwfSQL(rs!privVers, lies.obMySQL, False)
+   roFa(akt).AdNam = doUmwfSQL(rs!AdNam, lies.obMySQL, False)
+   roFa(akt).AdStr = doUmwfSQL(rs!AdStr, lies.obMySQL, False)
+   roFa(akt).AdPlz = doUmwfSQL(rs!AdPlz, lies.obMySQL, False)
+   roFa(akt).AdOrt = doUmwfSQL(rs!AdOrt, lies.obMySQL, False)
+   roFa(akt).ÜwBG = doUmwfSQL(rs!ÜwBG, lies.obMySQL, False)
+   roFa(akt).BhFE = rs!BhFE
+   roFa(akt).s8000 = doUmwfSQL(rs!s8000, lies.obMySQL, False)
+   roFa(akt).s8100 = doUmwfSQL(rs!s8100, lies.obMySQL, False)
+   roFa(akt).AktZeit = rs!AktZeit
+   roFa(akt).Fanf = rs!Fanf
+   roFa(akt).altQuart = doUmwfSQL(rs!altQuart, lies.obMySQL, False)
+   roFa(akt).QAnf = rs!QAnf
+   roFa(akt).QEnd = rs!QEnd
+   roFa(akt).QS = doUmwfSQL(rs!QS, lies.obMySQL, False)
+   roFa(akt).QT = doUmwfSQL(rs!QT, lies.obMySQL, False)
+   roFa(akt).StByte = rs!StByte
+   roFa(akt).absPos = rs!absPos
+   roFa(akt).LANRid = rs!LANRid
+   roFa(akt).f4108 = doUmwfSQL(rs!f4108, lies.obMySQL, False)
+   roFa(akt).BGFallNr = doUmwfSQL(rs!BGFallNr, lies.obMySQL, False)
+   roFa(akt).lGewicht = rs!lGewicht
+   roFa(akt).vorET = rs!vorET
+   roFa(akt).dmpVertret = doUmwfSQL(rs!dmpVertret, lies.obMySQL, False)
+   roFa(akt).dmpArztw = doUmwfSQL(rs!dmpArztw, lies.obMySQL, False)
+   roFa(akt).dmpHypos = doUmwfSQL(rs!dmpHypos, lies.obMySQL, False)
+   roFa(akt).dmpKhsA = doUmwfSQL(rs!dmpKhsA, lies.obMySQL, False)
+   roFa(akt).dmpDMSchulEmpf = doUmwfSQL(rs!dmpDMSchulEmpf, lies.obMySQL, False)
+   roFa(akt).dmpDMSchulWahrg = doUmwfSQL(rs!dmpDMSchulWahrg, lies.obMySQL, False)
+   roFa(akt).dmpHypertSchulEmpf = doUmwfSQL(rs!dmpHypertSchulEmpf, lies.obMySQL, False)
+   roFa(akt).dmpHypertSchulWahrg = doUmwfSQL(rs!dmpHypertSchulWahrg, lies.obMySQL, False)
+   roFa(akt).dmpKKTabakEmpf = doUmwfSQL(rs!dmpKKTabakEmpf, lies.obMySQL, False)
+   roFa(akt).dmpKKErnEmpf = doUmwfSQL(rs!dmpKKErnEmpf, lies.obMySQL, False)
+   roFa(akt).dmpKKkTrainEmpf = doUmwfSQL(rs!dmpKKkTrainEmpf, lies.obMySQL, False)
+   roFa(akt).dmpHbA1cZiel = doUmwfSQL(rs!dmpHbA1cZiel, lies.obMySQL, False)
+   roFa(akt).dmpUewFuss = doUmwfSQL(rs!dmpUewFuss, lies.obMySQL, False)
+   roFa(akt).dmpEinwDM = doUmwfSQL(rs!dmpEinwDM, lies.obMySQL, False)
+   roFa(akt).dmphalbj = doUmwfSQL(rs!dmphalbj, lies.obMySQL, False)
+   roFa(akt).dmpMA = doUmwfSQL(rs!dmpMA, lies.obMySQL, False)
+   rs.MoveNext
+   IF Not rs.EOF THEN ReDim Preserve roFa(UBound(roFa) + 1)
+  Loop ' While Not rs.EOF
+ End If ' If rs.EOF
  Exit Function
 fehler:
  Dim AnwPfad$
@@ -2332,11 +2338,11 @@ Public FUNCTION faelleSpeichern(SammelInsert%, BezfSp%)
  syscmd 4, pid & ": Speichere faelle"
  IF not Allepat THEN
   sql = "SELECT pat_id FROM `faelle` WHERE Pat_ID = " & CStr(rNa(0).Pat_ID)
-  myfrag rs, sql
+  myFrag rs, sql
   IF Not rs.BOF THEN
    SET rs = nothing
    sql = "DELETE FROM `faelle` WHERE Pat_ID = " & CStr(rNa(0).Pat_ID)
-   Call DBCn.Execute(sql)
+   Call myefrag(sql)
   END IF
  END IF ' not allePat
 ' sql0 = " INSERT " & sqlignore &  "INTO `faelle` (Pat_ID,Quartal,Nachname," & _
@@ -2386,11 +2392,11 @@ Public FUNCTION faelleSpeichern(SammelInsert%, BezfSp%)
    rFa(i).dmpHbA1cZiel, "','" , rFa(i).dmpUewFuss, "','" , rFa(i).dmpEinwDM, "','" , rFa(i).dmphalbj, "','" , rFa(i).dmpMA, "')")
   IF SammelInsert <> 0 AND i < ubound(rFa) THEN csql.Append ","
   IF SammelInsert = 0 OR i = ubound(rFa) THEN
-   IF Not obFor THEN ForeignNo0
-   Call DBCn.Execute(csql.value,rAf)', , adAsyncExecute)
-   IF Not obFor THEN ForeignYes0
+'   IF Not obFor THEN ForeignNo0
+   Call myefrag(csql.value,rAf)', , adAsyncExecute)
+'   IF Not obFor THEN ForeignYes0
    IF rAF = 0 THEN
-    Err.Raise 998, , "Fehler in faelleSpeichern b.Pat. " & rFa(i).Pat_id & "Err.Number " & Err.Number & ", err.description: " & Err.Description
+    Err.Raise 998, , "Fehler in faelleSpeichern b.Pat. " & rFa(i).Pat_id & ", Err.Number " & Err.Number & ", err.description: " & Err.Description
    END IF
    IF obfor THEN
     Call ForeignYes0
@@ -2398,7 +2404,7 @@ Public FUNCTION faelleSpeichern(SammelInsert%, BezfSp%)
    END IF
    IF sammelinsert = 0 THEN csql.m_len = 0
    IF lese.obmysql AND obmitAlterTab THEN
-    SET rs = DBCn.Execute("SHOW WARNINGS")
+    SET rs = myefrag("SHOW WARNINGS")
     IF not rs.BOF() THEN
      IF rs!code = 1265 THEN
       Err.Raise -2147217833
@@ -2407,8 +2413,8 @@ Public FUNCTION faelleSpeichern(SammelInsert%, BezfSp%)
    END IF
   IF SammelInsert = 0 THEN
   'Hier gibts mit Sammelins noch ein Problem ...
-   ' SET rs = DBCn.Execute("SELECT FID FROM `faelle` WHERE pat_id = " & rFa(i).Pat_ID & " AND quartal = '" & rFa(i).Quartal & "' AND bhfb = " & DatFor_k(rFa(i).BhFB) & " AND bhfe1 = " & DatFor_k(rFa(i).BhFE1) & " AND ausgst = " & DatFor_k(rFa(i).ausgst))
-   SET rs = DBCn.Execute("SELECT LAST_INSERT_ID() FID")
+   ' SET rs = myefrag("SELECT FID FROM `faelle` WHERE pat_id = " & rFa(i).Pat_ID & " AND quartal = '" & rFa(i).Quartal & "' AND bhfb = " & DatFor_k(rFa(i).BhFB) & " AND bhfe1 = " & DatFor_k(rFa(i).BhFE1) & " AND ausgst = " & DatFor_k(rFa(i).ausgst))
+   SET rs = myefrag("SELECT LAST_INSERT_ID() FID")
    IF rs.BOF THEN
     Err.Raise 999, , "Fehler bei der Fallaktualisierung b.Pat. " & rFa(i).Pat_ID & ", FID " & rFa(i).FID
    Else
@@ -2520,7 +2526,7 @@ IF Err.Number = -2147217900 AND InStrB(ErrDescription, " Doppelter; Eintrag; ") 
  Resume Next
 ElseIf Err.Number = -2147467259 AND InStrB(ErrDescription, "Daten zu lang") = 0 THEN ' -2147467259 ' [MySQL][ODBC 3.51 Driver][mysqld-5.1.32-log]Cannot add OR update a child row: a foreign key constraint fails
  IF InStrB(ErrDescription, "'READ-COMMITTED'") <> 0 THEN
-  DBCn.Execute "SET SESSION TRANSACTION ISOLATION LEVEL REPEATABLE READ", rAF
+  myefrag "SET SESSION TRANSACTION ISOLATION LEVEL REPEATABLE READ", rAF
  Else
   Call doBezFeh(csql.Value, BezfSp, ErrDescription)
  END IF
@@ -2769,25 +2775,29 @@ Public FUNCTION auLaden()
  Dim pid$, rs As New Recordset, akt&
  ON Error GoTo fehler
  pid = rNa(0).Pat_id
- ReDim roAu(1)
  sql = "SELECT COALESCE(FID,0) FID,COALESCE(Pat_ID,0) Pat_ID,IF(ZeitPunkt IS NULL OR ZeitPunkt=0,CONVERT('18991230',DATE),ZeitPunkt) ZeitPunkt,COALESCE(Beginn,'') Beginn" & _
 ",COALESCE(Ende,'') Ende,COALESCE(ICDs,'') ICDs,COALESCE(absPos,0) absPos,IF(AktZeit IS NULL OR AktZeit=0,CONVERT('18991230',DATE),AktZeit) AktZeit" & _
 ",COALESCE(StByte,0) StByte FROM `au` WHERE Pat_ID=" & pid & " ORDER BY `ZeitPunkt`
- myfrag rs, sql
- Do While Not rs.EOF
-  akt = UBound(roAu)
-  roAu(akt).FID = rs!FID
-  roAu(akt).Pat_ID = rs!Pat_ID
-  roAu(akt).ZeitPunkt = rs!ZeitPunkt
-  roAu(akt).Beginn = doUmwfSQL(rs!Beginn, lies.obMySQL, False)
-  roAu(akt).Ende = doUmwfSQL(rs!Ende, lies.obMySQL, False)
-  roAu(akt).ICDs = doUmwfSQL(rs!ICDs, lies.obMySQL, False)
-  roAu(akt).absPos = rs!absPos
-  roAu(akt).AktZeit = rs!AktZeit
-  roAu(akt).StByte = rs!StByte
-  rs.MoveNext
-  IF Not rs.EOF THEN ReDim Preserve roAu(UBound(roAu) + 1)
- Loop
+ myFrag rs, sql
+ If rs.EOF Then
+  ReDim roAu(0)
+ Else ' rs.EOF Then
+  ReDim roAu(1)
+  Do While Not rs.EOF
+   akt = UBound(roAu)
+   roAu(akt).FID = rs!FID
+   roAu(akt).Pat_ID = rs!Pat_ID
+   roAu(akt).ZeitPunkt = rs!ZeitPunkt
+   roAu(akt).Beginn = doUmwfSQL(rs!Beginn, lies.obMySQL, False)
+   roAu(akt).Ende = doUmwfSQL(rs!Ende, lies.obMySQL, False)
+   roAu(akt).ICDs = doUmwfSQL(rs!ICDs, lies.obMySQL, False)
+   roAu(akt).absPos = rs!absPos
+   roAu(akt).AktZeit = rs!AktZeit
+   roAu(akt).StByte = rs!StByte
+   rs.MoveNext
+   IF Not rs.EOF THEN ReDim Preserve roAu(UBound(roAu) + 1)
+  Loop ' While Not rs.EOF
+ End If ' If rs.EOF
  Exit Function
 fehler:
  Dim AnwPfad$
@@ -2856,11 +2866,11 @@ Public FUNCTION auSpeichern(SammelInsert%, BezfSp%)
  syscmd 4, pid & ": Speichere au"
  IF not Allepat THEN
   sql = "SELECT pat_id FROM `au` WHERE Pat_ID = " & CStr(rNa(0).Pat_ID)
-  myfrag rs, sql
+  myFrag rs, sql
   IF Not rs.BOF THEN
    SET rs = nothing
    sql = "DELETE FROM `au` WHERE Pat_ID = " & CStr(rNa(0).Pat_ID)
-   Call DBCn.Execute(sql)
+   Call myefrag(sql)
   END IF
  END IF ' not allePat
 ' sql0 = " INSERT " & sqlignore &  "INTO `au` (FID,Pat_ID,ZeitPunkt," & _
@@ -2877,14 +2887,14 @@ Public FUNCTION auSpeichern(SammelInsert%, BezfSp%)
    rAu(i).StByte, ")")
   IF SammelInsert <> 0 AND i < ubound(rAu) THEN csql.Append ","
   IF SammelInsert = 0 OR i = ubound(rAu) THEN
-   Call DBCn.Execute(csql.value,rAf)', , adAsyncExecute)
+   Call myefrag(csql.value,rAf)', , adAsyncExecute)
    IF obfor THEN
     Call ForeignYes0
     Call ForeignYes1
    END IF
    IF sammelinsert = 0 THEN csql.m_len = 0
    IF lese.obmysql AND obmitAlterTab THEN
-    SET rs = DBCn.Execute("SHOW WARNINGS")
+    SET rs = myefrag("SHOW WARNINGS")
     IF not rs.BOF() THEN
      IF rs!code = 1265 THEN
       Err.Raise -2147217833
@@ -2903,7 +2913,7 @@ IF Err.Number = -2147217900 AND InStrB(ErrDescription, " Doppelter; Eintrag; ") 
  Resume Next
 ElseIf Err.Number = -2147467259 AND InStrB(ErrDescription, "Daten zu lang") = 0 THEN ' -2147467259 ' [MySQL][ODBC 3.51 Driver][mysqld-5.1.32-log]Cannot add OR update a child row: a foreign key constraint fails
  IF InStrB(ErrDescription, "'READ-COMMITTED'") <> 0 THEN
-  DBCn.Execute "SET SESSION TRANSACTION ISOLATION LEVEL REPEATABLE READ", rAF
+  myefrag "SET SESSION TRANSACTION ISOLATION LEVEL REPEATABLE READ", rAF
  Else
   Call doBezFeh(csql.Value, BezfSp, ErrDescription)
  END IF
@@ -3006,35 +3016,39 @@ Public FUNCTION briefeLaden()
  Dim pid$, rs As New Recordset, akt&
  ON Error GoTo fehler
  pid = rNa(0).Pat_id
- ReDim roBr(1)
  sql = "SELECT COALESCE(FID,0) FID,COALESCE(Pat_ID,0) Pat_ID,IF(ZeitPunkt IS NULL OR ZeitPunkt=0,CONVERT('18991230',DATE),ZeitPunkt) ZeitPunkt,COALESCE(Pfad,'') Pfad" & _
 ",COALESCE(Art,'') Art,COALESCE(Name,'') Name,COALESCE(autor,'') autor,IF(Quelldatum IS NULL OR Quelldatum=0,CONVERT('18991230',DATE),Quelldatum) Quelldatum" & _
 ",COALESCE(Typ,'') Typ,IF(AktZeit IS NULL OR AktZeit=0,CONVERT('18991230',DATE),AktZeit) AktZeit,COALESCE(DokGroe,0) DokGroe,IF(DokAenD IS NULL OR DokAenD=0,CONVERT('18991230',DATE),DokAenD) DokAenD" & _
 ",COALESCE(QS,'') QS,COALESCE(QT,'') QT,COALESCE(absPos,0) absPos,COALESCE(StByte,0) StByte" & _
 ",COALESCE(ID,0) ID FROM `briefe` WHERE Pat_ID=" & pid & " ORDER BY `ZeitPunkt`
- myfrag rs, sql
- Do While Not rs.EOF
-  akt = UBound(roBr)
-  roBr(akt).FID = rs!FID
-  roBr(akt).Pat_ID = rs!Pat_ID
-  roBr(akt).ZeitPunkt = rs!ZeitPunkt
-  roBr(akt).Pfad = doUmwfSQL(rs!Pfad, lies.obMySQL, False)
-  roBr(akt).Art = doUmwfSQL(rs!Art, lies.obMySQL, False)
-  roBr(akt).Name = doUmwfSQL(rs!Name, lies.obMySQL, False)
-  roBr(akt).autor = doUmwfSQL(rs!autor, lies.obMySQL, False)
-  roBr(akt).Quelldatum = rs!Quelldatum
-  roBr(akt).Typ = doUmwfSQL(rs!Typ, lies.obMySQL, False)
-  roBr(akt).AktZeit = rs!AktZeit
-  roBr(akt).DokGroe = rs!DokGroe
-  roBr(akt).DokAenD = rs!DokAenD
-  roBr(akt).QS = doUmwfSQL(rs!QS, lies.obMySQL, False)
-  roBr(akt).QT = doUmwfSQL(rs!QT, lies.obMySQL, False)
-  roBr(akt).absPos = rs!absPos
-  roBr(akt).StByte = rs!StByte
-  roBr(akt).ID = rs!ID
-  rs.MoveNext
-  IF Not rs.EOF THEN ReDim Preserve roBr(UBound(roBr) + 1)
- Loop
+ myFrag rs, sql
+ If rs.EOF Then
+  ReDim roBr(0)
+ Else ' rs.EOF Then
+  ReDim roBr(1)
+  Do While Not rs.EOF
+   akt = UBound(roBr)
+   roBr(akt).FID = rs!FID
+   roBr(akt).Pat_ID = rs!Pat_ID
+   roBr(akt).ZeitPunkt = rs!ZeitPunkt
+   roBr(akt).Pfad = doUmwfSQL(rs!Pfad, lies.obMySQL, False)
+   roBr(akt).Art = doUmwfSQL(rs!Art, lies.obMySQL, False)
+   roBr(akt).Name = doUmwfSQL(rs!Name, lies.obMySQL, False)
+   roBr(akt).autor = doUmwfSQL(rs!autor, lies.obMySQL, False)
+   roBr(akt).Quelldatum = rs!Quelldatum
+   roBr(akt).Typ = doUmwfSQL(rs!Typ, lies.obMySQL, False)
+   roBr(akt).AktZeit = rs!AktZeit
+   roBr(akt).DokGroe = rs!DokGroe
+   roBr(akt).DokAenD = rs!DokAenD
+   roBr(akt).QS = doUmwfSQL(rs!QS, lies.obMySQL, False)
+   roBr(akt).QT = doUmwfSQL(rs!QT, lies.obMySQL, False)
+   roBr(akt).absPos = rs!absPos
+   roBr(akt).StByte = rs!StByte
+   roBr(akt).ID = rs!ID
+   rs.MoveNext
+   IF Not rs.EOF THEN ReDim Preserve roBr(UBound(roBr) + 1)
+  Loop ' While Not rs.EOF
+ End If ' If rs.EOF
  Exit Function
 fehler:
  Dim AnwPfad$
@@ -3103,11 +3117,11 @@ Public FUNCTION briefeSpeichern(SammelInsert%, BezfSp%)
  syscmd 4, pid & ": Speichere briefe"
  IF not Allepat THEN
   sql = "SELECT pat_id FROM `briefe` WHERE Pat_ID = " & CStr(rNa(0).Pat_ID)
-  myfrag rs, sql
+  myFrag rs, sql
   IF Not rs.BOF THEN
    SET rs = nothing
    sql = "DELETE FROM `briefe` WHERE Pat_ID = " & CStr(rNa(0).Pat_ID)
-   Call DBCn.Execute(sql)
+   Call myefrag(sql)
   END IF
  END IF ' not allePat
 ' sql0 = " INSERT " & sqlignore &  "INTO `briefe` (FID,Pat_ID,ZeitPunkt," & _
@@ -3126,14 +3140,14 @@ Public FUNCTION briefeSpeichern(SammelInsert%, BezfSp%)
    rBr(i).Typ, "'," , DatFor_k(rBr(i).AktZeit), "," , rBr(i).DokGroe, "," , DatFor_k(rBr(i).DokAenD), ",'" , rBr(i).QS, "','" , rBr(i).QT, "'," , rBr(i).absPos, "," , rBr(i).StByte, ")")
   IF SammelInsert <> 0 AND i < ubound(rBr) THEN csql.Append ","
   IF SammelInsert = 0 OR i = ubound(rBr) THEN
-   Call DBCn.Execute(csql.value,rAf)', , adAsyncExecute)
+   Call myefrag(csql.value,rAf)', , adAsyncExecute)
    IF obfor THEN
     Call ForeignYes0
     Call ForeignYes1
    END IF
    IF sammelinsert = 0 THEN csql.m_len = 0
    IF lese.obmysql AND obmitAlterTab THEN
-    SET rs = DBCn.Execute("SHOW WARNINGS")
+    SET rs = myefrag("SHOW WARNINGS")
     IF not rs.BOF() THEN
      IF rs!code = 1265 THEN
       Err.Raise -2147217833
@@ -3152,7 +3166,7 @@ IF Err.Number = -2147217900 AND InStrB(ErrDescription, " Doppelter; Eintrag; ") 
  Resume Next
 ElseIf Err.Number = -2147467259 AND InStrB(ErrDescription, "Daten zu lang") = 0 THEN ' -2147467259 ' [MySQL][ODBC 3.51 Driver][mysqld-5.1.32-log]Cannot add OR update a child row: a foreign key constraint fails
  IF InStrB(ErrDescription, "'READ-COMMITTED'") <> 0 THEN
-  DBCn.Execute "SET SESSION TRANSACTION ISOLATION LEVEL REPEATABLE READ", rAF
+  myefrag "SET SESSION TRANSACTION ISOLATION LEVEL REPEATABLE READ", rAF
  Else
   Call doBezFeh(csql.Value, BezfSp, ErrDescription)
  END IF
@@ -3267,37 +3281,41 @@ Public FUNCTION diagnosenLaden()
  Dim pid$, rs As New Recordset, akt&
  ON Error GoTo fehler
  pid = rNa(0).Pat_id
- ReDim roDi(1)
  sql = "SELECT COALESCE(ID1,0) ID1,COALESCE(FID,0) FID,COALESCE(Pat_id,0) Pat_id,IF(DiagDatum IS NULL OR DiagDatum=0,CONVERT('18991230',DATE),DiagDatum) DiagDatum" & _
 ",COALESCE(DiagSicherheit,'') DiagSicherheit,COALESCE(DiagText,'') DiagText,COALESCE(DiagSeite,'') DiagSeite,COALESCE(DiagAttr,'') DiagAttr" & _
 ",COALESCE(ICD,'') ICD,COALESCE(obDauer,0) obDauer,COALESCE(intBemerk,'') intBemerk,COALESCE(absPos,0) absPos" & _
 ",IF(AktZeit IS NULL OR AktZeit=0,CONVERT('18991230',DATE),AktZeit) AktZeit,COALESCE(StByte,0) StByte,COALESCE(AusnBegr,'') AusnBegr,COALESCE(f6010,0) f6010" & _
 ",COALESCE(obKasse,0) obKasse,IF(lKasse IS NULL OR lKasse=0,CONVERT('18991230',DATE),lKasse) lKasse,COALESCE(f6011,'') f6011 FROM `diagnosen` WHERE Pat_ID=" & pid & " ORDER BY `DiagDatum`
- myfrag rs, sql
- Do While Not rs.EOF
-  akt = UBound(roDi)
-  roDi(akt).ID1 = rs!ID1
-  roDi(akt).FID = rs!FID
-  roDi(akt).Pat_id = rs!Pat_id
-  roDi(akt).DiagDatum = rs!DiagDatum
-  roDi(akt).DiagSicherheit = doUmwfSQL(rs!DiagSicherheit, lies.obMySQL, False)
-  roDi(akt).DiagText = doUmwfSQL(rs!DiagText, lies.obMySQL, False)
-  roDi(akt).DiagSeite = doUmwfSQL(rs!DiagSeite, lies.obMySQL, False)
-  roDi(akt).DiagAttr = doUmwfSQL(rs!DiagAttr, lies.obMySQL, False)
-  roDi(akt).ICD = doUmwfSQL(rs!ICD, lies.obMySQL, False)
-  roDi(akt).obDauer = rs!obDauer
-  roDi(akt).intBemerk = doUmwfSQL(rs!intBemerk, lies.obMySQL, False)
-  roDi(akt).absPos = rs!absPos
-  roDi(akt).AktZeit = rs!AktZeit
-  roDi(akt).StByte = rs!StByte
-  roDi(akt).AusnBegr = doUmwfSQL(rs!AusnBegr, lies.obMySQL, False)
-  roDi(akt).f6010 = rs!f6010
-  roDi(akt).obKasse = rs!obKasse
-  roDi(akt).lKasse = rs!lKasse
-  roDi(akt).f6011 = doUmwfSQL(rs!f6011, lies.obMySQL, False)
-  rs.MoveNext
-  IF Not rs.EOF THEN ReDim Preserve roDi(UBound(roDi) + 1)
- Loop
+ myFrag rs, sql
+ If rs.EOF Then
+  ReDim roDi(0)
+ Else ' rs.EOF Then
+  ReDim roDi(1)
+  Do While Not rs.EOF
+   akt = UBound(roDi)
+   roDi(akt).ID1 = rs!ID1
+   roDi(akt).FID = rs!FID
+   roDi(akt).Pat_id = rs!Pat_id
+   roDi(akt).DiagDatum = rs!DiagDatum
+   roDi(akt).DiagSicherheit = doUmwfSQL(rs!DiagSicherheit, lies.obMySQL, False)
+   roDi(akt).DiagText = doUmwfSQL(rs!DiagText, lies.obMySQL, False)
+   roDi(akt).DiagSeite = doUmwfSQL(rs!DiagSeite, lies.obMySQL, False)
+   roDi(akt).DiagAttr = doUmwfSQL(rs!DiagAttr, lies.obMySQL, False)
+   roDi(akt).ICD = doUmwfSQL(rs!ICD, lies.obMySQL, False)
+   roDi(akt).obDauer = rs!obDauer
+   roDi(akt).intBemerk = doUmwfSQL(rs!intBemerk, lies.obMySQL, False)
+   roDi(akt).absPos = rs!absPos
+   roDi(akt).AktZeit = rs!AktZeit
+   roDi(akt).StByte = rs!StByte
+   roDi(akt).AusnBegr = doUmwfSQL(rs!AusnBegr, lies.obMySQL, False)
+   roDi(akt).f6010 = rs!f6010
+   roDi(akt).obKasse = rs!obKasse
+   roDi(akt).lKasse = rs!lKasse
+   roDi(akt).f6011 = doUmwfSQL(rs!f6011, lies.obMySQL, False)
+   rs.MoveNext
+   IF Not rs.EOF THEN ReDim Preserve roDi(UBound(roDi) + 1)
+  Loop ' While Not rs.EOF
+ End If ' If rs.EOF
  Exit Function
 fehler:
  Dim AnwPfad$
@@ -3366,11 +3384,11 @@ Public FUNCTION diagnosenSpeichern(SammelInsert%, BezfSp%)
  syscmd 4, pid & ": Speichere diagnosen"
  IF not Allepat THEN
   sql = "SELECT pat_id FROM `diagnosen` WHERE Pat_ID = " & CStr(rNa(0).Pat_ID)
-  myfrag rs, sql
+  myFrag rs, sql
   IF Not rs.BOF THEN
    SET rs = nothing
    sql = "DELETE FROM `diagnosen` WHERE Pat_ID = " & CStr(rNa(0).Pat_ID)
-   Call DBCn.Execute(sql)
+   Call myefrag(sql)
   END IF
  END IF ' not allePat
 ' sql0 = " INSERT " & sqlignore &  "INTO `diagnosen` (FID,Pat_id,DiagDatum," & _
@@ -3390,14 +3408,14 @@ Public FUNCTION diagnosenSpeichern(SammelInsert%, BezfSp%)
    rDi(i).lKasse), ",'" , rDi(i).f6011, "')")
   IF SammelInsert <> 0 AND i < ubound(rDi) THEN csql.Append ","
   IF SammelInsert = 0 OR i = ubound(rDi) THEN
-   Call DBCn.Execute(csql.value,rAf)', , adAsyncExecute)
+   Call myefrag(csql.value,rAf)', , adAsyncExecute)
    IF obfor THEN
     Call ForeignYes0
     Call ForeignYes1
    END IF
    IF sammelinsert = 0 THEN csql.m_len = 0
    IF lese.obmysql AND obmitAlterTab THEN
-    SET rs = DBCn.Execute("SHOW WARNINGS")
+    SET rs = myefrag("SHOW WARNINGS")
     IF not rs.BOF() THEN
      IF rs!code = 1265 THEN
       Err.Raise -2147217833
@@ -3416,7 +3434,7 @@ IF Err.Number = -2147217900 AND InStrB(ErrDescription, " Doppelter; Eintrag; ") 
  Resume Next
 ElseIf Err.Number = -2147467259 AND InStrB(ErrDescription, "Daten zu lang") = 0 THEN ' -2147467259 ' [MySQL][ODBC 3.51 Driver][mysqld-5.1.32-log]Cannot add OR update a child row: a foreign key constraint fails
  IF InStrB(ErrDescription, "'READ-COMMITTED'") <> 0 THEN
-  DBCn.Execute "SET SESSION TRANSACTION ISOLATION LEVEL REPEATABLE READ", rAF
+  myefrag "SET SESSION TRANSACTION ISOLATION LEVEL REPEATABLE READ", rAF
  Else
   Call doBezFeh(csql.Value, BezfSp, ErrDescription)
  END IF
@@ -3523,31 +3541,35 @@ Public FUNCTION dokumenteLaden()
  Dim pid$, rs As New Recordset, akt&
  ON Error GoTo fehler
  pid = rNa(0).Pat_id
- ReDim roDo(1)
  sql = "SELECT COALESCE(FID,0) FID,COALESCE(Pat_ID,0) Pat_ID,IF(ZeitPunkt IS NULL OR ZeitPunkt=0,CONVERT('18991230',DATE),ZeitPunkt) ZeitPunkt,COALESCE(DokPfad,'') DokPfad" & _
 ",COALESCE(DokArt,'') DokArt,COALESCE(DokName,'') DokName,IF(Quelldatum IS NULL OR Quelldatum=0,CONVERT('18991230',DATE),Quelldatum) Quelldatum,COALESCE(absPos,0) absPos" & _
 ",IF(AktZeit IS NULL OR AktZeit=0,CONVERT('18991230',DATE),AktZeit) AktZeit,COALESCE(DokGroe,0) DokGroe,IF(DokAenD IS NULL OR DokAenD=0,CONVERT('18991230',DATE),DokAenD) DokAenD,COALESCE(QS,'') QS" & _
 ",COALESCE(QT,'') QT,COALESCE(StByte,0) StByte FROM `dokumente` WHERE Pat_ID=" & pid & " ORDER BY `ZeitPunkt`
- myfrag rs, sql
- Do While Not rs.EOF
-  akt = UBound(roDo)
-  roDo(akt).FID = rs!FID
-  roDo(akt).Pat_ID = rs!Pat_ID
-  roDo(akt).ZeitPunkt = rs!ZeitPunkt
-  roDo(akt).DokPfad = doUmwfSQL(rs!DokPfad, lies.obMySQL, False)
-  roDo(akt).DokArt = doUmwfSQL(rs!DokArt, lies.obMySQL, False)
-  roDo(akt).DokName = doUmwfSQL(rs!DokName, lies.obMySQL, False)
-  roDo(akt).Quelldatum = rs!Quelldatum
-  roDo(akt).absPos = rs!absPos
-  roDo(akt).AktZeit = rs!AktZeit
-  roDo(akt).DokGroe = rs!DokGroe
-  roDo(akt).DokAenD = rs!DokAenD
-  roDo(akt).QS = doUmwfSQL(rs!QS, lies.obMySQL, False)
-  roDo(akt).QT = doUmwfSQL(rs!QT, lies.obMySQL, False)
-  roDo(akt).StByte = rs!StByte
-  rs.MoveNext
-  IF Not rs.EOF THEN ReDim Preserve roDo(UBound(roDo) + 1)
- Loop
+ myFrag rs, sql
+ If rs.EOF Then
+  ReDim roDo(0)
+ Else ' rs.EOF Then
+  ReDim roDo(1)
+  Do While Not rs.EOF
+   akt = UBound(roDo)
+   roDo(akt).FID = rs!FID
+   roDo(akt).Pat_ID = rs!Pat_ID
+   roDo(akt).ZeitPunkt = rs!ZeitPunkt
+   roDo(akt).DokPfad = doUmwfSQL(rs!DokPfad, lies.obMySQL, False)
+   roDo(akt).DokArt = doUmwfSQL(rs!DokArt, lies.obMySQL, False)
+   roDo(akt).DokName = doUmwfSQL(rs!DokName, lies.obMySQL, False)
+   roDo(akt).Quelldatum = rs!Quelldatum
+   roDo(akt).absPos = rs!absPos
+   roDo(akt).AktZeit = rs!AktZeit
+   roDo(akt).DokGroe = rs!DokGroe
+   roDo(akt).DokAenD = rs!DokAenD
+   roDo(akt).QS = doUmwfSQL(rs!QS, lies.obMySQL, False)
+   roDo(akt).QT = doUmwfSQL(rs!QT, lies.obMySQL, False)
+   roDo(akt).StByte = rs!StByte
+   rs.MoveNext
+   IF Not rs.EOF THEN ReDim Preserve roDo(UBound(roDo) + 1)
+  Loop ' While Not rs.EOF
+ End If ' If rs.EOF
  Exit Function
 fehler:
  Dim AnwPfad$
@@ -3616,11 +3638,11 @@ Public FUNCTION dokumenteSpeichern(SammelInsert%, BezfSp%)
  syscmd 4, pid & ": Speichere dokumente"
  IF not Allepat THEN
   sql = "SELECT pat_id FROM `dokumente` WHERE Pat_ID = " & CStr(rNa(0).Pat_ID)
-  myfrag rs, sql
+  myFrag rs, sql
   IF Not rs.BOF THEN
    SET rs = nothing
    sql = "DELETE FROM `dokumente` WHERE Pat_ID = " & CStr(rNa(0).Pat_ID)
-   Call DBCn.Execute(sql)
+   Call myefrag(sql)
   END IF
  END IF ' not allePat
 ' sql0 = " INSERT " & sqlignore &  "INTO `dokumente` (FID,Pat_ID,ZeitPunkt," & _
@@ -3639,14 +3661,14 @@ Public FUNCTION dokumenteSpeichern(SammelInsert%, BezfSp%)
    rDo(i).absPos, "," , DatFor_k(rDo(i).AktZeit), "," , rDo(i).DokGroe, "," , DatFor_k(rDo(i).DokAenD), ",'" , rDo(i).QS, "','" , rDo(i).QT, "'," , rDo(i).StByte, ")")
   IF SammelInsert <> 0 AND i < ubound(rDo) THEN csql.Append ","
   IF SammelInsert = 0 OR i = ubound(rDo) THEN
-   Call DBCn.Execute(csql.value,rAf)', , adAsyncExecute)
+   Call myefrag(csql.value,rAf)', , adAsyncExecute)
    IF obfor THEN
     Call ForeignYes0
     Call ForeignYes1
    END IF
    IF sammelinsert = 0 THEN csql.m_len = 0
    IF lese.obmysql AND obmitAlterTab THEN
-    SET rs = DBCn.Execute("SHOW WARNINGS")
+    SET rs = myefrag("SHOW WARNINGS")
     IF not rs.BOF() THEN
      IF rs!code = 1265 THEN
       Err.Raise -2147217833
@@ -3665,7 +3687,7 @@ IF Err.Number = -2147217900 AND InStrB(ErrDescription, " Doppelter; Eintrag; ") 
  Resume Next
 ElseIf Err.Number = -2147467259 AND InStrB(ErrDescription, "Daten zu lang") = 0 THEN ' -2147467259 ' [MySQL][ODBC 3.51 Driver][mysqld-5.1.32-log]Cannot add OR update a child row: a foreign key constraint fails
  IF InStrB(ErrDescription, "'READ-COMMITTED'") <> 0 THEN
-  DBCn.Execute "SET SESSION TRANSACTION ISOLATION LEVEL REPEATABLE READ", rAF
+  myefrag "SET SESSION TRANSACTION ISOLATION LEVEL REPEATABLE READ", rAF
  Else
   Call doBezFeh(csql.Value, BezfSp, ErrDescription)
  END IF
@@ -3762,29 +3784,33 @@ Public FUNCTION eintraegeLaden()
  Dim pid$, rs As New Recordset, akt&
  ON Error GoTo fehler
  pid = rNa(0).Pat_id
- ReDim roEi(1)
  sql = "SELECT COALESCE(FID,0) FID,COALESCE(Pat_ID,0) Pat_ID,IF(ZeitPunkt IS NULL OR ZeitPunkt=0,CONVERT('18991230',DATE),ZeitPunkt) ZeitPunkt,COALESCE(Art,'') Art" & _
 ",COALESCE(Inhalt,'') Inhalt,COALESCE(absPos,0) absPos,IF(AktZeit IS NULL OR AktZeit=0,CONVERT('18991230',DATE),AktZeit) AktZeit,COALESCE(QS,'') QS" & _
 ",COALESCE(QT,'') QT,COALESCE(StByte,0) StByte,COALESCE(id,0) id,COALESCE(inhNum,0) inhNum" & _
 " FROM `eintraege` WHERE Pat_ID=" & pid & " ORDER BY `ZeitPunkt`
- myfrag rs, sql
- Do While Not rs.EOF
-  akt = UBound(roEi)
-  roEi(akt).FID = rs!FID
-  roEi(akt).Pat_ID = rs!Pat_ID
-  roEi(akt).ZeitPunkt = rs!ZeitPunkt
-  roEi(akt).Art = doUmwfSQL(rs!Art, lies.obMySQL, False)
-  roEi(akt).Inhalt = doUmwfSQL(rs!Inhalt, lies.obMySQL, False)
-  roEi(akt).absPos = rs!absPos
-  roEi(akt).AktZeit = rs!AktZeit
-  roEi(akt).QS = doUmwfSQL(rs!QS, lies.obMySQL, False)
-  roEi(akt).QT = doUmwfSQL(rs!QT, lies.obMySQL, False)
-  roEi(akt).StByte = rs!StByte
-  roEi(akt).id = rs!id
-  roEi(akt).inhNum = rs!inhNum
-  rs.MoveNext
-  IF Not rs.EOF THEN ReDim Preserve roEi(UBound(roEi) + 1)
- Loop
+ myFrag rs, sql
+ If rs.EOF Then
+  ReDim roEi(0)
+ Else ' rs.EOF Then
+  ReDim roEi(1)
+  Do While Not rs.EOF
+   akt = UBound(roEi)
+   roEi(akt).FID = rs!FID
+   roEi(akt).Pat_ID = rs!Pat_ID
+   roEi(akt).ZeitPunkt = rs!ZeitPunkt
+   roEi(akt).Art = doUmwfSQL(rs!Art, lies.obMySQL, False)
+   roEi(akt).Inhalt = doUmwfSQL(rs!Inhalt, lies.obMySQL, False)
+   roEi(akt).absPos = rs!absPos
+   roEi(akt).AktZeit = rs!AktZeit
+   roEi(akt).QS = doUmwfSQL(rs!QS, lies.obMySQL, False)
+   roEi(akt).QT = doUmwfSQL(rs!QT, lies.obMySQL, False)
+   roEi(akt).StByte = rs!StByte
+   roEi(akt).id = rs!id
+   roEi(akt).inhNum = rs!inhNum
+   rs.MoveNext
+   IF Not rs.EOF THEN ReDim Preserve roEi(UBound(roEi) + 1)
+  Loop ' While Not rs.EOF
+ End If ' If rs.EOF
  Exit Function
 fehler:
  Dim AnwPfad$
@@ -3853,11 +3879,11 @@ Public FUNCTION eintraegeSpeichern(SammelInsert%, BezfSp%)
  syscmd 4, pid & ": Speichere eintraege"
  IF not Allepat THEN
   sql = "SELECT pat_id FROM `eintraege` WHERE Pat_ID = " & CStr(rNa(0).Pat_ID)
-  myfrag rs, sql
+  myFrag rs, sql
   IF Not rs.BOF THEN
    SET rs = nothing
    sql = "DELETE FROM `eintraege` WHERE Pat_ID = " & CStr(rNa(0).Pat_ID)
-   Call DBCn.Execute(sql)
+   Call myefrag(sql)
   END IF
  END IF ' not allePat
 ' sql0 = " INSERT " & sqlignore &  "INTO `eintraege` (FID,Pat_ID,ZeitPunkt," & _
@@ -3874,14 +3900,14 @@ Public FUNCTION eintraegeSpeichern(SammelInsert%, BezfSp%)
    rEi(i).QT, "'," , rEi(i).StByte, "," , replace$(rEi(i).inhNum,",","."), ")")
   IF SammelInsert <> 0 AND i < ubound(rEi) THEN csql.Append ","
   IF SammelInsert = 0 OR i = ubound(rEi) THEN
-   Call DBCn.Execute(csql.value,rAf)', , adAsyncExecute)
+   Call myefrag(csql.value,rAf)', , adAsyncExecute)
    IF obfor THEN
     Call ForeignYes0
     Call ForeignYes1
    END IF
    IF sammelinsert = 0 THEN csql.m_len = 0
    IF lese.obmysql AND obmitAlterTab THEN
-    SET rs = DBCn.Execute("SHOW WARNINGS")
+    SET rs = myefrag("SHOW WARNINGS")
     IF not rs.BOF() THEN
      IF rs!code = 1265 THEN
       Err.Raise -2147217833
@@ -3900,7 +3926,7 @@ IF Err.Number = -2147217900 AND InStrB(ErrDescription, " Doppelter; Eintrag; ") 
  Resume Next
 ElseIf Err.Number = -2147467259 AND InStrB(ErrDescription, "Daten zu lang") = 0 THEN ' -2147467259 ' [MySQL][ODBC 3.51 Driver][mysqld-5.1.32-log]Cannot add OR update a child row: a foreign key constraint fails
  IF InStrB(ErrDescription, "'READ-COMMITTED'") <> 0 THEN
-  DBCn.Execute "SET SESSION TRANSACTION ISOLATION LEVEL REPEATABLE READ", rAF
+  myefrag "SET SESSION TRANSACTION ISOLATION LEVEL REPEATABLE READ", rAF
  Else
   Call doBezFeh(csql.Value, BezfSp, ErrDescription)
  END IF
@@ -3978,14 +4004,14 @@ Public FUNCTION forminhaltform_abkSpeichern(SammelInsert%, BezfSp%)
   csql.AppVar Array("('" , rFi(i).Form_Abk, "')")
   IF SammelInsert <> 0 AND i < ubound(rFi) THEN csql.Append ","
   IF SammelInsert = 0 OR i = ubound(rFi) THEN
-   Call DBCn.Execute(csql.value,rAf)', , adAsyncExecute)
+   Call myefrag(csql.value,rAf)', , adAsyncExecute)
    IF obfor THEN
     Call ForeignYes0
     Call ForeignYes1
    END IF
    IF sammelinsert = 0 THEN csql.m_len = 0
    IF lese.obmysql AND obmitAlterTab THEN
-    SET rs = DBCn.Execute("SHOW WARNINGS")
+    SET rs = myefrag("SHOW WARNINGS")
     IF not rs.BOF() THEN
      IF rs!code = 1265 THEN
       Err.Raise -2147217833
@@ -4005,7 +4031,7 @@ IF Err.Number = -2147217900 AND InStrB(ErrDescription, " Doppelter; Eintrag; ") 
  Resume Next
 ElseIf Err.Number = -2147467259 AND InStrB(ErrDescription, "Daten zu lang") = 0 THEN ' -2147467259 ' [MySQL][ODBC 3.51 Driver][mysqld-5.1.32-log]Cannot add OR update a child row: a foreign key constraint fails
  IF InStrB(ErrDescription, "'READ-COMMITTED'") <> 0 THEN
-  DBCn.Execute "SET SESSION TRANSACTION ISOLATION LEVEL REPEATABLE READ", rAF
+  myefrag "SET SESSION TRANSACTION ISOLATION LEVEL REPEATABLE READ", rAF
  Else
   Call doBezFeh(csql.Value, BezfSp, ErrDescription)
  END IF
@@ -4080,14 +4106,14 @@ Public FUNCTION formulareSpeichern(SammelInsert%, BezfSp%)
   csql.AppVar Array("(" , rFo(i).FormID, ",'" , rFo(i).Form_Abk, "','" , rFo(i).FormBez, "','" , rFo(i).FormVorl, "'," , DatFor_k(rFo(i).AktZeit), "," , rFo(i).absPos, "," , rFo(i).StByte, ")")
   IF SammelInsert <> 0 AND i < ubound(rFo) THEN csql.Append ","
   IF SammelInsert = 0 OR i = ubound(rFo) THEN
-   Call DBCn.Execute(csql.value,rAf)', , adAsyncExecute)
+   Call myefrag(csql.value,rAf)', , adAsyncExecute)
    IF obfor THEN
     Call ForeignYes0
     Call ForeignYes1
    END IF
    IF sammelinsert = 0 THEN csql.m_len = 0
    IF lese.obmysql AND obmitAlterTab THEN
-    SET rs = DBCn.Execute("SHOW WARNINGS")
+    SET rs = myefrag("SHOW WARNINGS")
     IF not rs.BOF() THEN
      IF rs!code = 1265 THEN
       Err.Raise -2147217833
@@ -4107,7 +4133,7 @@ IF Err.Number = -2147217900 AND InStrB(ErrDescription, " Doppelter; Eintrag; ") 
  Resume Next
 ElseIf Err.Number = -2147467259 AND InStrB(ErrDescription, "Daten zu lang") = 0 THEN ' -2147467259 ' [MySQL][ODBC 3.51 Driver][mysqld-5.1.32-log]Cannot add OR update a child row: a foreign key constraint fails
  IF InStrB(ErrDescription, "'READ-COMMITTED'") <> 0 THEN
-  DBCn.Execute "SET SESSION TRANSACTION ISOLATION LEVEL REPEATABLE READ", rAF
+  myefrag "SET SESSION TRANSACTION ISOLATION LEVEL REPEATABLE READ", rAF
  Else
   Call doBezFeh(csql.Value, BezfSp, ErrDescription)
  END IF
@@ -4198,27 +4224,31 @@ Public FUNCTION forminhkopfLaden()
  Dim pid$, rs As New Recordset, akt&
  ON Error GoTo fehler
  pid = rNa(0).Pat_id
- ReDim roFr(1)
  sql = "SELECT COALESCE(FoID,0) FoID,COALESCE(FID,0) FID,COALESCE(Pat_ID,0) Pat_ID,COALESCE(Form_ID,0) Form_ID" & _
 ",IF(ZeitPunkt IS NULL OR ZeitPunkt=0,CONVERT('18991230',DATE),ZeitPunkt) ZeitPunkt,COALESCE(AbsPos,0) AbsPos,IF(AktZeit IS NULL OR AktZeit=0,CONVERT('18991230',DATE),AktZeit) AktZeit,COALESCE(StByte,0) StByte" & _
 ",COALESCE(Satzart,'') Satzart,COALESCE(Satzlänge,'') Satzlänge,COALESCE(LANRid,0) LANRid FROM `forminhkopf` WHERE Pat_ID=" & pid & " ORDER BY `ZeitPunkt`
- myfrag rs, sql
- Do While Not rs.EOF
-  akt = UBound(roFr)
-  roFr(akt).FoID = rs!FoID
-  roFr(akt).FID = rs!FID
-  roFr(akt).Pat_ID = rs!Pat_ID
-  roFr(akt).Form_ID = rs!Form_ID
-  roFr(akt).ZeitPunkt = rs!ZeitPunkt
-  roFr(akt).AbsPos = rs!AbsPos
-  roFr(akt).AktZeit = rs!AktZeit
-  roFr(akt).StByte = rs!StByte
-  roFr(akt).Satzart = doUmwfSQL(rs!Satzart, lies.obMySQL, False)
-  roFr(akt).Satzlänge = doUmwfSQL(rs!Satzlänge, lies.obMySQL, False)
-  roFr(akt).LANRid = rs!LANRid
-  rs.MoveNext
-  IF Not rs.EOF THEN ReDim Preserve roFr(UBound(roFr) + 1)
- Loop
+ myFrag rs, sql
+ If rs.EOF Then
+  ReDim roFr(0)
+ Else ' rs.EOF Then
+  ReDim roFr(1)
+  Do While Not rs.EOF
+   akt = UBound(roFr)
+   roFr(akt).FoID = rs!FoID
+   roFr(akt).FID = rs!FID
+   roFr(akt).Pat_ID = rs!Pat_ID
+   roFr(akt).Form_ID = rs!Form_ID
+   roFr(akt).ZeitPunkt = rs!ZeitPunkt
+   roFr(akt).AbsPos = rs!AbsPos
+   roFr(akt).AktZeit = rs!AktZeit
+   roFr(akt).StByte = rs!StByte
+   roFr(akt).Satzart = doUmwfSQL(rs!Satzart, lies.obMySQL, False)
+   roFr(akt).Satzlänge = doUmwfSQL(rs!Satzlänge, lies.obMySQL, False)
+   roFr(akt).LANRid = rs!LANRid
+   rs.MoveNext
+   IF Not rs.EOF THEN ReDim Preserve roFr(UBound(roFr) + 1)
+  Loop ' While Not rs.EOF
+ End If ' If rs.EOF
  Exit Function
 fehler:
  Dim AnwPfad$
@@ -4287,13 +4317,13 @@ Public FUNCTION forminhkopfSpeichern(SammelInsert%, BezfSp%)
  syscmd 4, pid & ": Speichere forminhkopf"
  IF not Allepat THEN
 '  sql = "DELETE FROM `forminhfeld` WHERE foid IN (SELECT foid FROM `forminhkopf` WHERE pat_id = " & CStr(rNa(0).Pat_ID) & ")"
-'  Call DBCn.Execute(sql)
+'  Call myefrag(sql)
   sql = "SELECT pat_id FROM `forminhkopf` WHERE Pat_ID = " & CStr(rNa(0).Pat_ID)
-  myfrag rs, sql
+  myFrag rs, sql
   IF Not rs.BOF THEN
    SET rs = nothing
    sql = "DELETE FROM `forminhkopf` WHERE Pat_ID = " & CStr(rNa(0).Pat_ID)
-   Call DBCn.Execute(sql)
+   Call myefrag(sql)
   END IF
  END IF ' not allePat
 ' sql0 = " INSERT " & sqlignore &  "INTO `forminhkopf` (FoID,FID,Pat_ID," & _
@@ -4310,14 +4340,14 @@ Public FUNCTION forminhkopfSpeichern(SammelInsert%, BezfSp%)
    rFr(i).Satzart, "','" , rFr(i).Satzlänge, "'," , rFr(i).LANRid, ")")
   IF SammelInsert <> 0 AND i < ubound(rFr) THEN csql.Append ","
   IF SammelInsert = 0 OR i = ubound(rFr) THEN
-   Call DBCn.Execute(csql.value,rAf)', , adAsyncExecute)
+   Call myefrag(csql.value,rAf)', , adAsyncExecute)
    IF obfor THEN
     Call ForeignYes0
     Call ForeignYes1
    END IF
    IF sammelinsert = 0 THEN csql.m_len = 0
    IF lese.obmysql AND obmitAlterTab THEN
-    SET rs = DBCn.Execute("SHOW WARNINGS")
+    SET rs = myefrag("SHOW WARNINGS")
     IF not rs.BOF() THEN
      IF rs!code = 1265 THEN
       Err.Raise -2147217833
@@ -4336,7 +4366,7 @@ IF Err.Number = -2147217900 AND InStrB(ErrDescription, " Doppelter; Eintrag; ") 
  Resume Next
 ElseIf Err.Number = -2147467259 AND InStrB(ErrDescription, "Daten zu lang") = 0 THEN ' -2147467259 ' [MySQL][ODBC 3.51 Driver][mysqld-5.1.32-log]Cannot add OR update a child row: a foreign key constraint fails
  IF InStrB(ErrDescription, "'READ-COMMITTED'") <> 0 THEN
-  DBCn.Execute "SET SESSION TRANSACTION ISOLATION LEVEL REPEATABLE READ", rAF
+  myefrag "SET SESSION TRANSACTION ISOLATION LEVEL REPEATABLE READ", rAF
  Else
   Call doBezFeh(csql.Value, BezfSp, ErrDescription)
  END IF
@@ -4412,14 +4442,14 @@ Public FUNCTION forminhfeldSpeichern(SammelInsert%, BezfSp%)
   csql.AppVar Array("(" , rFm(i).FoID, "," , rFm(i).Nr, "," , rFm(i).FeldNr, "," , rFm(i).FeldVW, "," , rFm(i).FeldInhVW, ")")
   IF SammelInsert <> 0 AND i < ubound(rFm) THEN csql.Append ","
   IF SammelInsert = 0 OR i = ubound(rFm) THEN
-   Call DBCn.Execute(csql.value,rAf)', , adAsyncExecute)
+   Call myefrag(csql.value,rAf)', , adAsyncExecute)
    IF obfor THEN
     Call ForeignYes0
     Call ForeignYes1
    END IF
    IF sammelinsert = 0 THEN csql.m_len = 0
    IF lese.obmysql AND obmitAlterTab THEN
-    SET rs = DBCn.Execute("SHOW WARNINGS")
+    SET rs = myefrag("SHOW WARNINGS")
     IF not rs.BOF() THEN
      IF rs!code = 1265 THEN
       Err.Raise -2147217833
@@ -4438,7 +4468,7 @@ IF Err.Number = -2147217900 AND InStrB(ErrDescription, " Doppelter; Eintrag; ") 
  Resume Next
 ElseIf Err.Number = -2147467259 AND InStrB(ErrDescription, "Daten zu lang") = 0 THEN ' -2147467259 ' [MySQL][ODBC 3.51 Driver][mysqld-5.1.32-log]Cannot add OR update a child row: a foreign key constraint fails
  IF InStrB(ErrDescription, "'READ-COMMITTED'") <> 0 THEN
-  DBCn.Execute "SET SESSION TRANSACTION ISOLATION LEVEL REPEATABLE READ", rAF
+  myefrag "SET SESSION TRANSACTION ISOLATION LEVEL REPEATABLE READ", rAF
  Else
   Call doBezFeh(csql.Value, BezfSp, ErrDescription)
  END IF
@@ -4517,24 +4547,28 @@ Public FUNCTION kheinweisLaden()
  Dim pid$, rs As New Recordset, akt&
  ON Error GoTo fehler
  pid = rNa(0).Pat_id
- ReDim roKh(1)
  sql = "SELECT COALESCE(FID,0) FID,COALESCE(Pat_ID,0) Pat_ID,IF(ZeitPunkt IS NULL OR ZeitPunkt=0,CONVERT('18991230',DATE),ZeitPunkt) ZeitPunkt,COALESCE(Ziel,'') Ziel" & _
 ",COALESCE(Diagnose,'') Diagnose,COALESCE(absPos,0) absPos,IF(AktZeit IS NULL OR AktZeit=0,CONVERT('18991230',DATE),AktZeit) AktZeit,COALESCE(StByte,0) StByte" & _
 " FROM `kheinweis` WHERE Pat_ID=" & pid & " ORDER BY `ZeitPunkt`
- myfrag rs, sql
- Do While Not rs.EOF
-  akt = UBound(roKh)
-  roKh(akt).FID = rs!FID
-  roKh(akt).Pat_ID = rs!Pat_ID
-  roKh(akt).ZeitPunkt = rs!ZeitPunkt
-  roKh(akt).Ziel = doUmwfSQL(rs!Ziel, lies.obMySQL, False)
-  roKh(akt).Diagnose = doUmwfSQL(rs!Diagnose, lies.obMySQL, False)
-  roKh(akt).absPos = rs!absPos
-  roKh(akt).AktZeit = rs!AktZeit
-  roKh(akt).StByte = rs!StByte
-  rs.MoveNext
-  IF Not rs.EOF THEN ReDim Preserve roKh(UBound(roKh) + 1)
- Loop
+ myFrag rs, sql
+ If rs.EOF Then
+  ReDim roKh(0)
+ Else ' rs.EOF Then
+  ReDim roKh(1)
+  Do While Not rs.EOF
+   akt = UBound(roKh)
+   roKh(akt).FID = rs!FID
+   roKh(akt).Pat_ID = rs!Pat_ID
+   roKh(akt).ZeitPunkt = rs!ZeitPunkt
+   roKh(akt).Ziel = doUmwfSQL(rs!Ziel, lies.obMySQL, False)
+   roKh(akt).Diagnose = doUmwfSQL(rs!Diagnose, lies.obMySQL, False)
+   roKh(akt).absPos = rs!absPos
+   roKh(akt).AktZeit = rs!AktZeit
+   roKh(akt).StByte = rs!StByte
+   rs.MoveNext
+   IF Not rs.EOF THEN ReDim Preserve roKh(UBound(roKh) + 1)
+  Loop ' While Not rs.EOF
+ End If ' If rs.EOF
  Exit Function
 fehler:
  Dim AnwPfad$
@@ -4603,11 +4637,11 @@ Public FUNCTION kheinweisSpeichern(SammelInsert%, BezfSp%)
  syscmd 4, pid & ": Speichere kheinweis"
  IF not Allepat THEN
   sql = "SELECT pat_id FROM `kheinweis` WHERE Pat_ID = " & CStr(rNa(0).Pat_ID)
-  myfrag rs, sql
+  myFrag rs, sql
   IF Not rs.BOF THEN
    SET rs = nothing
    sql = "DELETE FROM `kheinweis` WHERE Pat_ID = " & CStr(rNa(0).Pat_ID)
-   Call DBCn.Execute(sql)
+   Call myefrag(sql)
   END IF
  END IF ' not allePat
 ' sql0 = " INSERT " & sqlignore &  "INTO `kheinweis` (FID,Pat_ID,ZeitPunkt," & _
@@ -4623,14 +4657,14 @@ Public FUNCTION kheinweisSpeichern(SammelInsert%, BezfSp%)
   csql.AppVar Array("(" , rKh(i).FID, "," , rKh(i).Pat_ID, "," , DatFor_k(rKh(i).ZeitPunkt), ",'" , rKh(i).Ziel, "','" , rKh(i).Diagnose, "'," , rKh(i).absPos, "," , DatFor_k(rKh(i).AktZeit), "," , rKh(i).StByte, ")")
   IF SammelInsert <> 0 AND i < ubound(rKh) THEN csql.Append ","
   IF SammelInsert = 0 OR i = ubound(rKh) THEN
-   Call DBCn.Execute(csql.value,rAf)', , adAsyncExecute)
+   Call myefrag(csql.value,rAf)', , adAsyncExecute)
    IF obfor THEN
     Call ForeignYes0
     Call ForeignYes1
    END IF
    IF sammelinsert = 0 THEN csql.m_len = 0
    IF lese.obmysql AND obmitAlterTab THEN
-    SET rs = DBCn.Execute("SHOW WARNINGS")
+    SET rs = myefrag("SHOW WARNINGS")
     IF not rs.BOF() THEN
      IF rs!code = 1265 THEN
       Err.Raise -2147217833
@@ -4649,7 +4683,7 @@ IF Err.Number = -2147217900 AND InStrB(ErrDescription, " Doppelter; Eintrag; ") 
  Resume Next
 ElseIf Err.Number = -2147467259 AND InStrB(ErrDescription, "Daten zu lang") = 0 THEN ' -2147467259 ' [MySQL][ODBC 3.51 Driver][mysqld-5.1.32-log]Cannot add OR update a child row: a foreign key constraint fails
  IF InStrB(ErrDescription, "'READ-COMMITTED'") <> 0 THEN
-  DBCn.Execute "SET SESSION TRANSACTION ISOLATION LEVEL REPEATABLE READ", rAF
+  myefrag "SET SESSION TRANSACTION ISOLATION LEVEL REPEATABLE READ", rAF
  Else
   Call doBezFeh(csql.Value, BezfSp, ErrDescription)
  END IF
@@ -4730,22 +4764,26 @@ Public FUNCTION lbanforderungenLaden()
  Dim pid$, rs As New Recordset, akt&
  ON Error GoTo fehler
  pid = rNa(0).Pat_id
- ReDim roLb(1)
  sql = "SELECT COALESCE(FID,0) FID,COALESCE(Pat_ID,0) Pat_ID,IF(ZeitPunkt IS NULL OR ZeitPunkt=0,CONVERT('18991230',DATE),ZeitPunkt) ZeitPunkt,COALESCE(AnfText,'') AnfText" & _
 ",COALESCE(absPos,0) absPos,IF(AktZeit IS NULL OR AktZeit=0,CONVERT('18991230',DATE),AktZeit) AktZeit,COALESCE(StByte,0) StByte FROM `lbanforderungen` WHERE Pat_ID=" & pid & " ORDER BY `ZeitPunkt`
- myfrag rs, sql
- Do While Not rs.EOF
-  akt = UBound(roLb)
-  roLb(akt).FID = rs!FID
-  roLb(akt).Pat_ID = rs!Pat_ID
-  roLb(akt).ZeitPunkt = rs!ZeitPunkt
-  roLb(akt).AnfText = doUmwfSQL(rs!AnfText, lies.obMySQL, False)
-  roLb(akt).absPos = rs!absPos
-  roLb(akt).AktZeit = rs!AktZeit
-  roLb(akt).StByte = rs!StByte
-  rs.MoveNext
-  IF Not rs.EOF THEN ReDim Preserve roLb(UBound(roLb) + 1)
- Loop
+ myFrag rs, sql
+ If rs.EOF Then
+  ReDim roLb(0)
+ Else ' rs.EOF Then
+  ReDim roLb(1)
+  Do While Not rs.EOF
+   akt = UBound(roLb)
+   roLb(akt).FID = rs!FID
+   roLb(akt).Pat_ID = rs!Pat_ID
+   roLb(akt).ZeitPunkt = rs!ZeitPunkt
+   roLb(akt).AnfText = doUmwfSQL(rs!AnfText, lies.obMySQL, False)
+   roLb(akt).absPos = rs!absPos
+   roLb(akt).AktZeit = rs!AktZeit
+   roLb(akt).StByte = rs!StByte
+   rs.MoveNext
+   IF Not rs.EOF THEN ReDim Preserve roLb(UBound(roLb) + 1)
+  Loop ' While Not rs.EOF
+ End If ' If rs.EOF
  Exit Function
 fehler:
  Dim AnwPfad$
@@ -4814,11 +4852,11 @@ Public FUNCTION lbanforderungenSpeichern(SammelInsert%, BezfSp%)
  syscmd 4, pid & ": Speichere lbanforderungen"
  IF not Allepat THEN
   sql = "SELECT pat_id FROM `lbanforderungen` WHERE Pat_ID = " & CStr(rNa(0).Pat_ID)
-  myfrag rs, sql
+  myFrag rs, sql
   IF Not rs.BOF THEN
    SET rs = nothing
    sql = "DELETE FROM `lbanforderungen` WHERE Pat_ID = " & CStr(rNa(0).Pat_ID)
-   Call DBCn.Execute(sql)
+   Call myefrag(sql)
   END IF
  END IF ' not allePat
 ' sql0 = " INSERT " & sqlignore &  "INTO `lbanforderungen` (FID,Pat_ID,ZeitPunkt," & _
@@ -4834,14 +4872,14 @@ Public FUNCTION lbanforderungenSpeichern(SammelInsert%, BezfSp%)
   csql.AppVar Array("(" , rLb(i).FID, "," , rLb(i).Pat_ID, "," , DatFor_k(rLb(i).ZeitPunkt), ",'" , rLb(i).AnfText, "'," , rLb(i).absPos, "," , DatFor_k(rLb(i).AktZeit), "," , rLb(i).StByte, ")")
   IF SammelInsert <> 0 AND i < ubound(rLb) THEN csql.Append ","
   IF SammelInsert = 0 OR i = ubound(rLb) THEN
-   Call DBCn.Execute(csql.value,rAf)', , adAsyncExecute)
+   Call myefrag(csql.value,rAf)', , adAsyncExecute)
    IF obfor THEN
     Call ForeignYes0
     Call ForeignYes1
    END IF
    IF sammelinsert = 0 THEN csql.m_len = 0
    IF lese.obmysql AND obmitAlterTab THEN
-    SET rs = DBCn.Execute("SHOW WARNINGS")
+    SET rs = myefrag("SHOW WARNINGS")
     IF not rs.BOF() THEN
      IF rs!code = 1265 THEN
       Err.Raise -2147217833
@@ -4860,7 +4898,7 @@ IF Err.Number = -2147217900 AND InStrB(ErrDescription, " Doppelter; Eintrag; ") 
  Resume Next
 ElseIf Err.Number = -2147467259 AND InStrB(ErrDescription, "Daten zu lang") = 0 THEN ' -2147467259 ' [MySQL][ODBC 3.51 Driver][mysqld-5.1.32-log]Cannot add OR update a child row: a foreign key constraint fails
  IF InStrB(ErrDescription, "'READ-COMMITTED'") <> 0 THEN
-  DBCn.Execute "SET SESSION TRANSACTION ISOLATION LEVEL REPEATABLE READ", rAF
+  myefrag "SET SESSION TRANSACTION ISOLATION LEVEL REPEATABLE READ", rAF
  Else
   Call doBezFeh(csql.Value, BezfSp, ErrDescription)
  END IF
@@ -4953,31 +4991,35 @@ Public FUNCTION laborneuLaden()
  Dim pid$, rs As New Recordset, akt&
  ON Error GoTo fehler
  pid = rNa(0).Pat_id
- ReDim roLa(1)
  sql = "SELECT COALESCE(FID,0) FID,COALESCE(Pat_ID,0) Pat_ID,IF(ZeitPunkt IS NULL OR ZeitPunkt=0,CONVERT('18991230',DATE),ZeitPunkt) ZeitPunkt,COALESCE(FertigStGrad,'') FertigStGrad" & _
 ",COALESCE(Abkü,'') Abkü,COALESCE(LangtextVW,0) LangtextVW,COALESCE(Wert,'') Wert,COALESCE(Einheit,'') Einheit" & _
 ",COALESCE(KommentarVW,0) KommentarVW,COALESCE(AbsPos,0) AbsPos,IF(AktZeit IS NULL OR AktZeit=0,CONVERT('18991230',DATE),AktZeit) AktZeit,COALESCE(Refnr,0) Refnr" & _
 ",COALESCE(StByte,0) StByte,COALESCE(ID,0) ID FROM `laborneu` WHERE Pat_ID=" & pid & " ORDER BY `ZeitPunkt`
- myfrag rs, sql
- Do While Not rs.EOF
-  akt = UBound(roLa)
-  roLa(akt).FID = rs!FID
-  roLa(akt).Pat_ID = rs!Pat_ID
-  roLa(akt).ZeitPunkt = rs!ZeitPunkt
-  roLa(akt).FertigStGrad = doUmwfSQL(rs!FertigStGrad, lies.obMySQL, False)
-  roLa(akt).Abkü = doUmwfSQL(rs!Abkü, lies.obMySQL, False)
-  roLa(akt).LangtextVW = rs!LangtextVW
-  roLa(akt).Wert = doUmwfSQL(rs!Wert, lies.obMySQL, False)
-  roLa(akt).Einheit = doUmwfSQL(rs!Einheit, lies.obMySQL, False)
-  roLa(akt).KommentarVW = rs!KommentarVW
-  roLa(akt).AbsPos = rs!AbsPos
-  roLa(akt).AktZeit = rs!AktZeit
-  roLa(akt).Refnr = rs!Refnr
-  roLa(akt).StByte = rs!StByte
-  roLa(akt).ID = rs!ID
-  rs.MoveNext
-  IF Not rs.EOF THEN ReDim Preserve roLa(UBound(roLa) + 1)
- Loop
+ myFrag rs, sql
+ If rs.EOF Then
+  ReDim roLa(0)
+ Else ' rs.EOF Then
+  ReDim roLa(1)
+  Do While Not rs.EOF
+   akt = UBound(roLa)
+   roLa(akt).FID = rs!FID
+   roLa(akt).Pat_ID = rs!Pat_ID
+   roLa(akt).ZeitPunkt = rs!ZeitPunkt
+   roLa(akt).FertigStGrad = doUmwfSQL(rs!FertigStGrad, lies.obMySQL, False)
+   roLa(akt).Abkü = doUmwfSQL(rs!Abkü, lies.obMySQL, False)
+   roLa(akt).LangtextVW = rs!LangtextVW
+   roLa(akt).Wert = doUmwfSQL(rs!Wert, lies.obMySQL, False)
+   roLa(akt).Einheit = doUmwfSQL(rs!Einheit, lies.obMySQL, False)
+   roLa(akt).KommentarVW = rs!KommentarVW
+   roLa(akt).AbsPos = rs!AbsPos
+   roLa(akt).AktZeit = rs!AktZeit
+   roLa(akt).Refnr = rs!Refnr
+   roLa(akt).StByte = rs!StByte
+   roLa(akt).ID = rs!ID
+   rs.MoveNext
+   IF Not rs.EOF THEN ReDim Preserve roLa(UBound(roLa) + 1)
+  Loop ' While Not rs.EOF
+ End If ' If rs.EOF
  Exit Function
 fehler:
  Dim AnwPfad$
@@ -5046,11 +5088,11 @@ Public FUNCTION laborneuSpeichern(SammelInsert%, BezfSp%)
  syscmd 4, pid & ": Speichere laborneu"
  IF not Allepat THEN
   sql = "SELECT pat_id FROM `laborneu` WHERE Pat_ID = " & CStr(rNa(0).Pat_ID)
-  myfrag rs, sql
+  myFrag rs, sql
   IF Not rs.BOF THEN
    SET rs = nothing
    sql = "DELETE FROM `laborneu` WHERE Pat_ID = " & CStr(rNa(0).Pat_ID)
-   Call DBCn.Execute(sql)
+   Call myefrag(sql)
   END IF
  END IF ' not allePat
 ' sql0 = " INSERT " & sqlignore &  "INTO `laborneu` (FID,Pat_ID,ZeitPunkt," & _
@@ -5067,14 +5109,14 @@ Public FUNCTION laborneuSpeichern(SammelInsert%, BezfSp%)
    rLa(i).KommentarVW, "," , rLa(i).AbsPos, "," , DatFor_k(rLa(i).AktZeit), "," , rLa(i).Refnr, "," , rLa(i).StByte, ")")
   IF SammelInsert <> 0 AND i < ubound(rLa) THEN csql.Append ","
   IF SammelInsert = 0 OR i = ubound(rLa) THEN
-   Call DBCn.Execute(csql.value,rAf)', , adAsyncExecute)
+   Call myefrag(csql.value,rAf)', , adAsyncExecute)
    IF obfor THEN
     Call ForeignYes0
     Call ForeignYes1
    END IF
    IF sammelinsert = 0 THEN csql.m_len = 0
    IF lese.obmysql AND obmitAlterTab THEN
-    SET rs = DBCn.Execute("SHOW WARNINGS")
+    SET rs = myefrag("SHOW WARNINGS")
     IF not rs.BOF() THEN
      IF rs!code = 1265 THEN
       Err.Raise -2147217833
@@ -5093,7 +5135,7 @@ IF Err.Number = -2147217900 AND InStrB(ErrDescription, " Doppelter; Eintrag; ") 
  Resume Next
 ElseIf Err.Number = -2147467259 AND InStrB(ErrDescription, "Daten zu lang") = 0 THEN ' -2147467259 ' [MySQL][ODBC 3.51 Driver][mysqld-5.1.32-log]Cannot add OR update a child row: a foreign key constraint fails
  IF InStrB(ErrDescription, "'READ-COMMITTED'") <> 0 THEN
-  DBCn.Execute "SET SESSION TRANSACTION ISOLATION LEVEL REPEATABLE READ", rAF
+  myefrag "SET SESSION TRANSACTION ISOLATION LEVEL REPEATABLE READ", rAF
  Else
   Call doBezFeh(csql.Value, BezfSp, ErrDescription)
  END IF
@@ -5224,7 +5266,6 @@ Public FUNCTION leistungenLaden()
  Dim pid$, rs As New Recordset, akt&
  ON Error GoTo fehler
  pid = rNa(0).Pat_id
- ReDim roLe(1)
  sql = "SELECT COALESCE(id,0) id,COALESCE(FID,0) FID,COALESCE(Pat_ID,0) Pat_ID,IF(ZeitPunkt IS NULL OR ZeitPunkt=0,CONVERT('18991230',DATE),ZeitPunkt) ZeitPunkt" & _
 ",COALESCE(Leistung,'') Leistung,COALESCE(f5002,'') f5002,COALESCE(f5005,'') f5005,COALESCE(f5006,'') f5006" & _
 ",COALESCE(f5009,'') f5009,COALESCE(Med,'') Med,COALESCE(f5015,'') f5015,COALESCE(f5016,'') f5016" & _
@@ -5233,42 +5274,47 @@ Public FUNCTION leistungenLaden()
 ",COALESCE(Beme,'') Beme,COALESCE(absPos,0) absPos,IF(AktZeit IS NULL OR AktZeit=0,CONVERT('18991230',DATE),AktZeit) AktZeit,COALESCE(QS,'') QS" & _
 ",COALESCE(QT,'') QT,COALESCE(StByte,0) StByte,COALESCE(LANRid,0) LANRid,COALESCE(Sachkbez,'') Sachkbez" & _
 ",COALESCE(Sachkct,0) Sachkct,COALESCE(Zone,'') Zone FROM `leistungen` WHERE Pat_ID=" & pid & " ORDER BY `ZeitPunkt`
- myfrag rs, sql
- Do While Not rs.EOF
-  akt = UBound(roLe)
-  roLe(akt).id = rs!id
-  roLe(akt).FID = rs!FID
-  roLe(akt).Pat_ID = rs!Pat_ID
-  roLe(akt).ZeitPunkt = rs!ZeitPunkt
-  roLe(akt).Leistung = doUmwfSQL(rs!Leistung, lies.obMySQL, False)
-  roLe(akt).f5002 = doUmwfSQL(rs!f5002, lies.obMySQL, False)
-  roLe(akt).f5005 = doUmwfSQL(rs!f5005, lies.obMySQL, False)
-  roLe(akt).f5006 = doUmwfSQL(rs!f5006, lies.obMySQL, False)
-  roLe(akt).f5009 = doUmwfSQL(rs!f5009, lies.obMySQL, False)
-  roLe(akt).Med = doUmwfSQL(rs!Med, lies.obMySQL, False)
-  roLe(akt).f5015 = doUmwfSQL(rs!f5015, lies.obMySQL, False)
-  roLe(akt).f5016 = doUmwfSQL(rs!f5016, lies.obMySQL, False)
-  roLe(akt).f5021 = doUmwfSQL(rs!f5021, lies.obMySQL, False)
-  roLe(akt).f5026 = doUmwfSQL(rs!f5026, lies.obMySQL, False)
-  roLe(akt).Faktor = doUmwfSQL(rs!Faktor, lies.obMySQL, False)
-  roLe(akt).f5098 = doUmwfSQL(rs!f5098, lies.obMySQL, False)
-  roLe(akt).Charge = doUmwfSQL(rs!Charge, lies.obMySQL, False)
-  roLe(akt).LANR = doUmwfSQL(rs!LANR, lies.obMySQL, False)
-  roLe(akt).letzVorg = rs!letzVorg
-  roLe(akt).Ausn = doUmwfSQL(rs!Ausn, lies.obMySQL, False)
-  roLe(akt).Beme = doUmwfSQL(rs!Beme, lies.obMySQL, False)
-  roLe(akt).absPos = rs!absPos
-  roLe(akt).AktZeit = rs!AktZeit
-  roLe(akt).QS = doUmwfSQL(rs!QS, lies.obMySQL, False)
-  roLe(akt).QT = doUmwfSQL(rs!QT, lies.obMySQL, False)
-  roLe(akt).StByte = rs!StByte
-  roLe(akt).LANRid = rs!LANRid
-  roLe(akt).Sachkbez = doUmwfSQL(rs!Sachkbez, lies.obMySQL, False)
-  roLe(akt).Sachkct = rs!Sachkct
-  roLe(akt).Zone = doUmwfSQL(rs!Zone, lies.obMySQL, False)
-  rs.MoveNext
-  IF Not rs.EOF THEN ReDim Preserve roLe(UBound(roLe) + 1)
- Loop
+ myFrag rs, sql
+ If rs.EOF Then
+  ReDim roLe(0)
+ Else ' rs.EOF Then
+  ReDim roLe(1)
+  Do While Not rs.EOF
+   akt = UBound(roLe)
+   roLe(akt).id = rs!id
+   roLe(akt).FID = rs!FID
+   roLe(akt).Pat_ID = rs!Pat_ID
+   roLe(akt).ZeitPunkt = rs!ZeitPunkt
+   roLe(akt).Leistung = doUmwfSQL(rs!Leistung, lies.obMySQL, False)
+   roLe(akt).f5002 = doUmwfSQL(rs!f5002, lies.obMySQL, False)
+   roLe(akt).f5005 = doUmwfSQL(rs!f5005, lies.obMySQL, False)
+   roLe(akt).f5006 = doUmwfSQL(rs!f5006, lies.obMySQL, False)
+   roLe(akt).f5009 = doUmwfSQL(rs!f5009, lies.obMySQL, False)
+   roLe(akt).Med = doUmwfSQL(rs!Med, lies.obMySQL, False)
+   roLe(akt).f5015 = doUmwfSQL(rs!f5015, lies.obMySQL, False)
+   roLe(akt).f5016 = doUmwfSQL(rs!f5016, lies.obMySQL, False)
+   roLe(akt).f5021 = doUmwfSQL(rs!f5021, lies.obMySQL, False)
+   roLe(akt).f5026 = doUmwfSQL(rs!f5026, lies.obMySQL, False)
+   roLe(akt).Faktor = doUmwfSQL(rs!Faktor, lies.obMySQL, False)
+   roLe(akt).f5098 = doUmwfSQL(rs!f5098, lies.obMySQL, False)
+   roLe(akt).Charge = doUmwfSQL(rs!Charge, lies.obMySQL, False)
+   roLe(akt).LANR = doUmwfSQL(rs!LANR, lies.obMySQL, False)
+   roLe(akt).letzVorg = rs!letzVorg
+   roLe(akt).Ausn = doUmwfSQL(rs!Ausn, lies.obMySQL, False)
+   roLe(akt).Beme = doUmwfSQL(rs!Beme, lies.obMySQL, False)
+   roLe(akt).absPos = rs!absPos
+   roLe(akt).AktZeit = rs!AktZeit
+   roLe(akt).QS = doUmwfSQL(rs!QS, lies.obMySQL, False)
+   roLe(akt).QT = doUmwfSQL(rs!QT, lies.obMySQL, False)
+   roLe(akt).StByte = rs!StByte
+   roLe(akt).LANRid = rs!LANRid
+   roLe(akt).Sachkbez = doUmwfSQL(rs!Sachkbez, lies.obMySQL, False)
+   roLe(akt).Sachkct = rs!Sachkct
+   roLe(akt).Zone = doUmwfSQL(rs!Zone, lies.obMySQL, False)
+   rs.MoveNext
+   IF Not rs.EOF THEN ReDim Preserve roLe(UBound(roLe) + 1)
+  Loop ' While Not rs.EOF
+ End If ' If rs.EOF
  Exit Function
 fehler:
  Dim AnwPfad$
@@ -5337,11 +5383,11 @@ Public FUNCTION leistungenSpeichern(SammelInsert%, BezfSp%)
  syscmd 4, pid & ": Speichere leistungen"
  IF not Allepat THEN
   sql = "SELECT pat_id FROM `leistungen` WHERE Pat_ID = " & CStr(rNa(0).Pat_ID)
-  myfrag rs, sql
+  myFrag rs, sql
   IF Not rs.BOF THEN
    SET rs = nothing
    sql = "DELETE FROM `leistungen` WHERE Pat_ID = " & CStr(rNa(0).Pat_ID)
-   Call DBCn.Execute(sql)
+   Call myefrag(sql)
   END IF
  END IF ' not allePat
 ' sql0 = " INSERT " & sqlignore &  "INTO `leistungen` (FID,Pat_ID,ZeitPunkt," & _
@@ -5364,14 +5410,14 @@ Public FUNCTION leistungenSpeichern(SammelInsert%, BezfSp%)
    rLe(i).LANRid, ",'" , rLe(i).Sachkbez, "'," , rLe(i).Sachkct, ",'" , rLe(i).Zone, "')")
   IF SammelInsert <> 0 AND i < ubound(rLe) THEN csql.Append ","
   IF SammelInsert = 0 OR i = ubound(rLe) THEN
-   Call DBCn.Execute(csql.value,rAf)', , adAsyncExecute)
+   Call myefrag(csql.value,rAf)', , adAsyncExecute)
    IF obfor THEN
     Call ForeignYes0
     Call ForeignYes1
    END IF
    IF sammelinsert = 0 THEN csql.m_len = 0
    IF lese.obmysql AND obmitAlterTab THEN
-    SET rs = DBCn.Execute("SHOW WARNINGS")
+    SET rs = myefrag("SHOW WARNINGS")
     IF not rs.BOF() THEN
      IF rs!code = 1265 THEN
       Err.Raise -2147217833
@@ -5390,7 +5436,7 @@ IF Err.Number = -2147217900 AND InStrB(ErrDescription, " Doppelter; Eintrag; ") 
  Resume Next
 ElseIf Err.Number = -2147467259 AND InStrB(ErrDescription, "Daten zu lang") = 0 THEN ' -2147467259 ' [MySQL][ODBC 3.51 Driver][mysqld-5.1.32-log]Cannot add OR update a child row: a foreign key constraint fails
  IF InStrB(ErrDescription, "'READ-COMMITTED'") <> 0 THEN
-  DBCn.Execute "SET SESSION TRANSACTION ISOLATION LEVEL REPEATABLE READ", rAF
+  myefrag "SET SESSION TRANSACTION ISOLATION LEVEL REPEATABLE READ", rAF
  Else
   Call doBezFeh(csql.Value, BezfSp, ErrDescription)
  END IF
@@ -5543,7 +5589,6 @@ Public FUNCTION medplanLaden()
  Dim pid$, rs As New Recordset, akt&
  ON Error GoTo fehler
  pid = rNa(0).Pat_id
- ReDim roMe(1)
  sql = "SELECT COALESCE(FID,0) FID,COALESCE(Pat_ID,0) Pat_ID,COALESCE(MPNr,0) MPNr,IF(ZeitPunkt IS NULL OR ZeitPunkt=0,CONVERT('18991230',DATE),ZeitPunkt) ZeitPunkt" & _
 ",IF(Datum IS NULL OR Datum=0,CONVERT('18991230',DATE),Datum) Datum,COALESCE(Medikament,'') Medikament,COALESCE(MedAnfang,'') MedAnfang,COALESCE(Wirkstoff,'') Wirkstoff" & _
 ",COALESCE(PZN,0) PZN,COALESCE(FeldNr,0) FeldNr,COALESCE(mo,'') mo,COALESCE(mi,'') mi" & _
@@ -5551,37 +5596,42 @@ Public FUNCTION medplanLaden()
 ",COALESCE(Bemerkung,'') Bemerkung,COALESCE(Grund,'') Grund,COALESCE(Stärke,'') Stärke,COALESCE(Einheit,'') Einheit" & _
 ",COALESCE(Form,'') Form,COALESCE(AbsPos,0) AbsPos,IF(AktZeit IS NULL OR AktZeit=0,CONVERT('18991230',DATE),AktZeit) AktZeit,COALESCE(StByte,0) StByte" & _
 ",COALESCE(ergaenzt,0) ergaenzt FROM `medplan` WHERE Pat_ID=" & pid & " ORDER BY `ZeitPunkt`
- myfrag rs, sql
- Do While Not rs.EOF
-  akt = UBound(roMe)
-  roMe(akt).FID = rs!FID
-  roMe(akt).Pat_ID = rs!Pat_ID
-  roMe(akt).MPNr = rs!MPNr
-  roMe(akt).ZeitPunkt = rs!ZeitPunkt
-  roMe(akt).Datum = rs!Datum
-  roMe(akt).Medikament = doUmwfSQL(rs!Medikament, lies.obMySQL, False)
-  roMe(akt).MedAnfang = doUmwfSQL(rs!MedAnfang, lies.obMySQL, False)
-  roMe(akt).Wirkstoff = doUmwfSQL(rs!Wirkstoff, lies.obMySQL, False)
-  roMe(akt).PZN = rs!PZN
-  roMe(akt).FeldNr = rs!FeldNr
-  roMe(akt).mo = doUmwfSQL(rs!mo, lies.obMySQL, False)
-  roMe(akt).mi = doUmwfSQL(rs!mi, lies.obMySQL, False)
-  roMe(akt).nm = doUmwfSQL(rs!nm, lies.obMySQL, False)
-  roMe(akt).ab = doUmwfSQL(rs!ab, lies.obMySQL, False)
-  roMe(akt).zn = doUmwfSQL(rs!zn, lies.obMySQL, False)
-  roMe(akt).bBed = rs!bBed
-  roMe(akt).Bemerkung = doUmwfSQL(rs!Bemerkung, lies.obMySQL, False)
-  roMe(akt).Grund = doUmwfSQL(rs!Grund, lies.obMySQL, False)
-  roMe(akt).Stärke = doUmwfSQL(rs!Stärke, lies.obMySQL, False)
-  roMe(akt).Einheit = doUmwfSQL(rs!Einheit, lies.obMySQL, False)
-  roMe(akt).Form = doUmwfSQL(rs!Form, lies.obMySQL, False)
-  roMe(akt).AbsPos = rs!AbsPos
-  roMe(akt).AktZeit = rs!AktZeit
-  roMe(akt).StByte = rs!StByte
-  roMe(akt).ergaenzt = rs!ergaenzt
-  rs.MoveNext
-  IF Not rs.EOF THEN ReDim Preserve roMe(UBound(roMe) + 1)
- Loop
+ myFrag rs, sql
+ If rs.EOF Then
+  ReDim roMe(0)
+ Else ' rs.EOF Then
+  ReDim roMe(1)
+  Do While Not rs.EOF
+   akt = UBound(roMe)
+   roMe(akt).FID = rs!FID
+   roMe(akt).Pat_ID = rs!Pat_ID
+   roMe(akt).MPNr = rs!MPNr
+   roMe(akt).ZeitPunkt = rs!ZeitPunkt
+   roMe(akt).Datum = rs!Datum
+   roMe(akt).Medikament = doUmwfSQL(rs!Medikament, lies.obMySQL, False)
+   roMe(akt).MedAnfang = doUmwfSQL(rs!MedAnfang, lies.obMySQL, False)
+   roMe(akt).Wirkstoff = doUmwfSQL(rs!Wirkstoff, lies.obMySQL, False)
+   roMe(akt).PZN = rs!PZN
+   roMe(akt).FeldNr = rs!FeldNr
+   roMe(akt).mo = doUmwfSQL(rs!mo, lies.obMySQL, False)
+   roMe(akt).mi = doUmwfSQL(rs!mi, lies.obMySQL, False)
+   roMe(akt).nm = doUmwfSQL(rs!nm, lies.obMySQL, False)
+   roMe(akt).ab = doUmwfSQL(rs!ab, lies.obMySQL, False)
+   roMe(akt).zn = doUmwfSQL(rs!zn, lies.obMySQL, False)
+   roMe(akt).bBed = rs!bBed
+   roMe(akt).Bemerkung = doUmwfSQL(rs!Bemerkung, lies.obMySQL, False)
+   roMe(akt).Grund = doUmwfSQL(rs!Grund, lies.obMySQL, False)
+   roMe(akt).Stärke = doUmwfSQL(rs!Stärke, lies.obMySQL, False)
+   roMe(akt).Einheit = doUmwfSQL(rs!Einheit, lies.obMySQL, False)
+   roMe(akt).Form = doUmwfSQL(rs!Form, lies.obMySQL, False)
+   roMe(akt).AbsPos = rs!AbsPos
+   roMe(akt).AktZeit = rs!AktZeit
+   roMe(akt).StByte = rs!StByte
+   roMe(akt).ergaenzt = rs!ergaenzt
+   rs.MoveNext
+   IF Not rs.EOF THEN ReDim Preserve roMe(UBound(roMe) + 1)
+  Loop ' While Not rs.EOF
+ End If ' If rs.EOF
  Exit Function
 fehler:
  Dim AnwPfad$
@@ -5650,11 +5700,11 @@ Public FUNCTION medplanSpeichern(SammelInsert%, BezfSp%)
  syscmd 4, pid & ": Speichere medplan"
  IF not Allepat THEN
   sql = "SELECT pat_id FROM `medplan` WHERE Pat_ID = " & CStr(rNa(0).Pat_ID)
-  myfrag rs, sql
+  myFrag rs, sql
   IF Not rs.BOF THEN
    SET rs = nothing
    sql = "DELETE FROM `medplan` WHERE Pat_ID = " & CStr(rNa(0).Pat_ID)
-   Call DBCn.Execute(sql)
+   Call myefrag(sql)
   END IF
  END IF ' not allePat
 ' sql0 = " INSERT " & sqlignore &  "INTO `medplan` (FID,Pat_ID,MPNr," & _
@@ -5676,14 +5726,14 @@ Public FUNCTION medplanSpeichern(SammelInsert%, BezfSp%)
    rMe(i).Grund, "','" , rMe(i).Stärke, "','" , rMe(i).Einheit, "','" , rMe(i).Form, "'," , rMe(i).AbsPos, "," , DatFor_k(rMe(i).AktZeit), "," , rMe(i).StByte, "," , cstr(-(rMe(i).ergaenzt<>0)) , ")")
   IF SammelInsert <> 0 AND i < ubound(rMe) THEN csql.Append ","
   IF SammelInsert = 0 OR i = ubound(rMe) THEN
-   Call DBCn.Execute(csql.value,rAf)', , adAsyncExecute)
+   Call myefrag(csql.value,rAf)', , adAsyncExecute)
    IF obfor THEN
     Call ForeignYes0
     Call ForeignYes1
    END IF
    IF sammelinsert = 0 THEN csql.m_len = 0
    IF lese.obmysql AND obmitAlterTab THEN
-    SET rs = DBCn.Execute("SHOW WARNINGS")
+    SET rs = myefrag("SHOW WARNINGS")
     IF not rs.BOF() THEN
      IF rs!code = 1265 THEN
       Err.Raise -2147217833
@@ -5702,7 +5752,7 @@ IF Err.Number = -2147217900 AND InStrB(ErrDescription, " Doppelter; Eintrag; ") 
  Resume Next
 ElseIf Err.Number = -2147467259 AND InStrB(ErrDescription, "Daten zu lang") = 0 THEN ' -2147467259 ' [MySQL][ODBC 3.51 Driver][mysqld-5.1.32-log]Cannot add OR update a child row: a foreign key constraint fails
  IF InStrB(ErrDescription, "'READ-COMMITTED'") <> 0 THEN
-  DBCn.Execute "SET SESSION TRANSACTION ISOLATION LEVEL REPEATABLE READ", rAF
+  myefrag "SET SESSION TRANSACTION ISOLATION LEVEL REPEATABLE READ", rAF
  Else
   Call doBezFeh(csql.Value, BezfSp, ErrDescription)
  END IF
@@ -5831,39 +5881,43 @@ Public FUNCTION rezepteintraegeLaden()
  Dim pid$, rs As New Recordset, akt&
  ON Error GoTo fehler
  pid = rNa(0).Pat_id
- ReDim roRe(1)
  sql = "SELECT COALESCE(FID,0) FID,COALESCE(Pat_ID,0) Pat_ID,IF(ZeitPunkt IS NULL OR ZeitPunkt=0,CONVERT('18991230',DATE),ZeitPunkt) ZeitPunkt,COALESCE(Rezept,'') Rezept" & _
 ",COALESCE(RKlnm,'') RKlnm,COALESCE(Rezeptklasse,'') Rezeptklasse,COALESCE(Rezklkurz,'') Rezklkurz,COALESCE(Rezkllang,'') Rezkllang" & _
 ",COALESCE(kbez,'') kbez,COALESCE(Medikament,'') Medikament,COALESCE(auti,0) auti,COALESCE(anzl,0) anzl" & _
 ",COALESCE(PZN,'') PZN,COALESCE(absPos,0) absPos,IF(AktZeit IS NULL OR AktZeit=0,CONVERT('18991230',DATE),AktZeit) AktZeit,COALESCE(QS,'') QS" & _
 ",COALESCE(QT,'') QT,COALESCE(StByte,0) StByte,COALESCE(LANRid,0) LANRid,COALESCE(id,0) id" & _
 " FROM `rezepteintraege` WHERE Pat_ID=" & pid & " ORDER BY `ZeitPunkt`
- myfrag rs, sql
- Do While Not rs.EOF
-  akt = UBound(roRe)
-  roRe(akt).FID = rs!FID
-  roRe(akt).Pat_ID = rs!Pat_ID
-  roRe(akt).ZeitPunkt = rs!ZeitPunkt
-  roRe(akt).Rezept = doUmwfSQL(rs!Rezept, lies.obMySQL, False)
-  roRe(akt).RKlnm = doUmwfSQL(rs!RKlnm, lies.obMySQL, False)
-  roRe(akt).Rezeptklasse = doUmwfSQL(rs!Rezeptklasse, lies.obMySQL, False)
-  roRe(akt).Rezklkurz = doUmwfSQL(rs!Rezklkurz, lies.obMySQL, False)
-  roRe(akt).Rezkllang = doUmwfSQL(rs!Rezkllang, lies.obMySQL, False)
-  roRe(akt).kbez = doUmwfSQL(rs!kbez, lies.obMySQL, False)
-  roRe(akt).Medikament = doUmwfSQL(rs!Medikament, lies.obMySQL, False)
-  roRe(akt).auti = rs!auti
-  roRe(akt).anzl = rs!anzl
-  roRe(akt).PZN = doUmwfSQL(rs!PZN, lies.obMySQL, False)
-  roRe(akt).absPos = rs!absPos
-  roRe(akt).AktZeit = rs!AktZeit
-  roRe(akt).QS = doUmwfSQL(rs!QS, lies.obMySQL, False)
-  roRe(akt).QT = doUmwfSQL(rs!QT, lies.obMySQL, False)
-  roRe(akt).StByte = rs!StByte
-  roRe(akt).LANRid = rs!LANRid
-  roRe(akt).id = rs!id
-  rs.MoveNext
-  IF Not rs.EOF THEN ReDim Preserve roRe(UBound(roRe) + 1)
- Loop
+ myFrag rs, sql
+ If rs.EOF Then
+  ReDim roRe(0)
+ Else ' rs.EOF Then
+  ReDim roRe(1)
+  Do While Not rs.EOF
+   akt = UBound(roRe)
+   roRe(akt).FID = rs!FID
+   roRe(akt).Pat_ID = rs!Pat_ID
+   roRe(akt).ZeitPunkt = rs!ZeitPunkt
+   roRe(akt).Rezept = doUmwfSQL(rs!Rezept, lies.obMySQL, False)
+   roRe(akt).RKlnm = doUmwfSQL(rs!RKlnm, lies.obMySQL, False)
+   roRe(akt).Rezeptklasse = doUmwfSQL(rs!Rezeptklasse, lies.obMySQL, False)
+   roRe(akt).Rezklkurz = doUmwfSQL(rs!Rezklkurz, lies.obMySQL, False)
+   roRe(akt).Rezkllang = doUmwfSQL(rs!Rezkllang, lies.obMySQL, False)
+   roRe(akt).kbez = doUmwfSQL(rs!kbez, lies.obMySQL, False)
+   roRe(akt).Medikament = doUmwfSQL(rs!Medikament, lies.obMySQL, False)
+   roRe(akt).auti = rs!auti
+   roRe(akt).anzl = rs!anzl
+   roRe(akt).PZN = doUmwfSQL(rs!PZN, lies.obMySQL, False)
+   roRe(akt).absPos = rs!absPos
+   roRe(akt).AktZeit = rs!AktZeit
+   roRe(akt).QS = doUmwfSQL(rs!QS, lies.obMySQL, False)
+   roRe(akt).QT = doUmwfSQL(rs!QT, lies.obMySQL, False)
+   roRe(akt).StByte = rs!StByte
+   roRe(akt).LANRid = rs!LANRid
+   roRe(akt).id = rs!id
+   rs.MoveNext
+   IF Not rs.EOF THEN ReDim Preserve roRe(UBound(roRe) + 1)
+  Loop ' While Not rs.EOF
+ End If ' If rs.EOF
  Exit Function
 fehler:
  Dim AnwPfad$
@@ -5932,11 +5986,11 @@ Public FUNCTION rezepteintraegeSpeichern(SammelInsert%, BezfSp%)
  syscmd 4, pid & ": Speichere rezepteintraege"
  IF not Allepat THEN
   sql = "SELECT pat_id FROM `rezepteintraege` WHERE Pat_ID = " & CStr(rNa(0).Pat_ID)
-  myfrag rs, sql
+  myFrag rs, sql
   IF Not rs.BOF THEN
    SET rs = nothing
    sql = "DELETE FROM `rezepteintraege` WHERE Pat_ID = " & CStr(rNa(0).Pat_ID)
-   Call DBCn.Execute(sql)
+   Call myefrag(sql)
   END IF
  END IF ' not allePat
 ' sql0 = " INSERT " & sqlignore &  "INTO `rezepteintraege` (FID,Pat_ID,ZeitPunkt," & _
@@ -5956,14 +6010,14 @@ Public FUNCTION rezepteintraegeSpeichern(SammelInsert%, BezfSp%)
    rRe(i).QT, "'," , rRe(i).StByte, "," , rRe(i).LANRid, ")")
   IF SammelInsert <> 0 AND i < ubound(rRe) THEN csql.Append ","
   IF SammelInsert = 0 OR i = ubound(rRe) THEN
-   Call DBCn.Execute(csql.value,rAf)', , adAsyncExecute)
+   Call myefrag(csql.value,rAf)', , adAsyncExecute)
    IF obfor THEN
     Call ForeignYes0
     Call ForeignYes1
    END IF
    IF sammelinsert = 0 THEN csql.m_len = 0
    IF lese.obmysql AND obmitAlterTab THEN
-    SET rs = DBCn.Execute("SHOW WARNINGS")
+    SET rs = myefrag("SHOW WARNINGS")
     IF not rs.BOF() THEN
      IF rs!code = 1265 THEN
       Err.Raise -2147217833
@@ -5982,7 +6036,7 @@ IF Err.Number = -2147217900 AND InStrB(ErrDescription, " Doppelter; Eintrag; ") 
  Resume Next
 ElseIf Err.Number = -2147467259 AND InStrB(ErrDescription, "Daten zu lang") = 0 THEN ' -2147467259 ' [MySQL][ODBC 3.51 Driver][mysqld-5.1.32-log]Cannot add OR update a child row: a foreign key constraint fails
  IF InStrB(ErrDescription, "'READ-COMMITTED'") <> 0 THEN
-  DBCn.Execute "SET SESSION TRANSACTION ISOLATION LEVEL REPEATABLE READ", rAF
+  myefrag "SET SESSION TRANSACTION ISOLATION LEVEL REPEATABLE READ", rAF
  Else
   Call doBezFeh(csql.Value, BezfSp, ErrDescription)
  END IF
@@ -6091,30 +6145,34 @@ Public FUNCTION rrLaden()
  Dim pid$, rs As New Recordset, akt&
  ON Error GoTo fehler
  pid = rNa(0).Pat_id
- ReDim roRr(1)
  sql = "SELECT COALESCE(FID,0) FID,COALESCE(Pat_ID,0) Pat_ID,IF(ZeitPunkt IS NULL OR ZeitPunkt=0,CONVERT('18991230',DATE),ZeitPunkt) ZeitPunkt,COALESCE(RR,'') RR" & _
 ",COALESCE(Puls,0) Puls,COALESCE(RRsyst,0) RRsyst,COALESCE(RRdiast,0) RRdiast,COALESCE(RRzahl,0) RRzahl" & _
 ",COALESCE(Quelle,'') Quelle,COALESCE(Bemerkung,'') Bemerkung,COALESCE(absPos,0) absPos,IF(AktZeit IS NULL OR AktZeit=0,CONVERT('18991230',DATE),AktZeit) AktZeit" & _
 ",COALESCE(StByte,0) StByte FROM `rr` WHERE Pat_ID=" & pid & " ORDER BY `ZeitPunkt`
- myfrag rs, sql
- Do While Not rs.EOF
-  akt = UBound(roRr)
-  roRr(akt).FID = rs!FID
-  roRr(akt).Pat_ID = rs!Pat_ID
-  roRr(akt).ZeitPunkt = rs!ZeitPunkt
-  roRr(akt).RR = doUmwfSQL(rs!RR, lies.obMySQL, False)
-  roRr(akt).Puls = rs!Puls
-  roRr(akt).RRsyst = rs!RRsyst
-  roRr(akt).RRdiast = rs!RRdiast
-  roRr(akt).RRzahl = rs!RRzahl
-  roRr(akt).Quelle = doUmwfSQL(rs!Quelle, lies.obMySQL, False)
-  roRr(akt).Bemerkung = doUmwfSQL(rs!Bemerkung, lies.obMySQL, False)
-  roRr(akt).absPos = rs!absPos
-  roRr(akt).AktZeit = rs!AktZeit
-  roRr(akt).StByte = rs!StByte
-  rs.MoveNext
-  IF Not rs.EOF THEN ReDim Preserve roRr(UBound(roRr) + 1)
- Loop
+ myFrag rs, sql
+ If rs.EOF Then
+  ReDim roRr(0)
+ Else ' rs.EOF Then
+  ReDim roRr(1)
+  Do While Not rs.EOF
+   akt = UBound(roRr)
+   roRr(akt).FID = rs!FID
+   roRr(akt).Pat_ID = rs!Pat_ID
+   roRr(akt).ZeitPunkt = rs!ZeitPunkt
+   roRr(akt).RR = doUmwfSQL(rs!RR, lies.obMySQL, False)
+   roRr(akt).Puls = rs!Puls
+   roRr(akt).RRsyst = rs!RRsyst
+   roRr(akt).RRdiast = rs!RRdiast
+   roRr(akt).RRzahl = rs!RRzahl
+   roRr(akt).Quelle = doUmwfSQL(rs!Quelle, lies.obMySQL, False)
+   roRr(akt).Bemerkung = doUmwfSQL(rs!Bemerkung, lies.obMySQL, False)
+   roRr(akt).absPos = rs!absPos
+   roRr(akt).AktZeit = rs!AktZeit
+   roRr(akt).StByte = rs!StByte
+   rs.MoveNext
+   IF Not rs.EOF THEN ReDim Preserve roRr(UBound(roRr) + 1)
+  Loop ' While Not rs.EOF
+ End If ' If rs.EOF
  Exit Function
 fehler:
  Dim AnwPfad$
@@ -6183,11 +6241,11 @@ Public FUNCTION rrSpeichern(SammelInsert%, BezfSp%)
  syscmd 4, pid & ": Speichere rr"
  IF not Allepat THEN
   sql = "SELECT pat_id FROM `rr` WHERE Pat_ID = " & CStr(rNa(0).Pat_ID)
-  myfrag rs, sql
+  myFrag rs, sql
   IF Not rs.BOF THEN
    SET rs = nothing
    sql = "DELETE FROM `rr` WHERE Pat_ID = " & CStr(rNa(0).Pat_ID)
-   Call DBCn.Execute(sql)
+   Call myefrag(sql)
   END IF
  END IF ' not allePat
 ' sql0 = " INSERT " & sqlignore &  "INTO `rr` (FID,Pat_ID,ZeitPunkt," & _
@@ -6204,14 +6262,14 @@ Public FUNCTION rrSpeichern(SammelInsert%, BezfSp%)
    rRr(i).Bemerkung, "'," , rRr(i).absPos, "," , DatFor_k(rRr(i).AktZeit), "," , rRr(i).StByte, ")")
   IF SammelInsert <> 0 AND i < ubound(rRr) THEN csql.Append ","
   IF SammelInsert = 0 OR i = ubound(rRr) THEN
-   Call DBCn.Execute(csql.value,rAf)', , adAsyncExecute)
+   Call myefrag(csql.value,rAf)', , adAsyncExecute)
    IF obfor THEN
     Call ForeignYes0
     Call ForeignYes1
    END IF
    IF sammelinsert = 0 THEN csql.m_len = 0
    IF lese.obmysql AND obmitAlterTab THEN
-    SET rs = DBCn.Execute("SHOW WARNINGS")
+    SET rs = myefrag("SHOW WARNINGS")
     IF not rs.BOF() THEN
      IF rs!code = 1265 THEN
       Err.Raise -2147217833
@@ -6230,7 +6288,7 @@ IF Err.Number = -2147217900 AND InStrB(ErrDescription, " Doppelter; Eintrag; ") 
  Resume Next
 ElseIf Err.Number = -2147467259 AND InStrB(ErrDescription, "Daten zu lang") = 0 THEN ' -2147467259 ' [MySQL][ODBC 3.51 Driver][mysqld-5.1.32-log]Cannot add OR update a child row: a foreign key constraint fails
  IF InStrB(ErrDescription, "'READ-COMMITTED'") <> 0 THEN
-  DBCn.Execute "SET SESSION TRANSACTION ISOLATION LEVEL REPEATABLE READ", rAF
+  myefrag "SET SESSION TRANSACTION ISOLATION LEVEL REPEATABLE READ", rAF
  Else
   Call doBezFeh(csql.Value, BezfSp, ErrDescription)
  END IF
@@ -6296,11 +6354,11 @@ Public FUNCTION kvnrueSpeichern(SammelInsert%, BezfSp%)
  syscmd 4, pid & ": Speichere kvnrue"
  IF not Allepat THEN
   sql = "SELECT pat_id FROM `kvnrue` WHERE Pat_ID = " & CStr(rNa(0).Pat_ID)
-  myfrag rs, sql
+  myFrag rs, sql
   IF Not rs.BOF THEN
    SET rs = nothing
    sql = "DELETE FROM `kvnrue` WHERE Pat_ID = " & CStr(rNa(0).Pat_ID)
-   Call DBCn.Execute(sql)
+   Call myefrag(sql)
   END IF
  END IF ' not allePat
 ' sql0 = " INSERT " & sqlignore &  "INTO `kvnrue` (Pat_ID,KVNr,absPos," & _
@@ -6316,14 +6374,14 @@ Public FUNCTION kvnrueSpeichern(SammelInsert%, BezfSp%)
   csql.AppVar Array("(" , rKv(i).Pat_ID, ",'" , rKv(i).KVNr, "'," , rKv(i).absPos, "," , DatFor_k(rKv(i).AktZeit), "," , rKv(i).StByte, ")")
   IF SammelInsert <> 0 AND i < ubound(rKv) THEN csql.Append ","
   IF SammelInsert = 0 OR i = ubound(rKv) THEN
-   Call DBCn.Execute(csql.value,rAf)', , adAsyncExecute)
+   Call myefrag(csql.value,rAf)', , adAsyncExecute)
    IF obfor THEN
     Call ForeignYes0
     Call ForeignYes1
    END IF
    IF sammelinsert = 0 THEN csql.m_len = 0
    IF lese.obmysql AND obmitAlterTab THEN
-    SET rs = DBCn.Execute("SHOW WARNINGS")
+    SET rs = myefrag("SHOW WARNINGS")
     IF not rs.BOF() THEN
      IF rs!code = 1265 THEN
       Err.Raise -2147217833
@@ -6342,7 +6400,7 @@ IF Err.Number = -2147217900 AND InStrB(ErrDescription, " Doppelter; Eintrag; ") 
  Resume Next
 ElseIf Err.Number = -2147467259 AND InStrB(ErrDescription, "Daten zu lang") = 0 THEN ' -2147467259 ' [MySQL][ODBC 3.51 Driver][mysqld-5.1.32-log]Cannot add OR update a child row: a foreign key constraint fails
  IF InStrB(ErrDescription, "'READ-COMMITTED'") <> 0 THEN
-  DBCn.Execute "SET SESSION TRANSACTION ISOLATION LEVEL REPEATABLE READ", rAF
+  myefrag "SET SESSION TRANSACTION ISOLATION LEVEL REPEATABLE READ", rAF
  Else
   Call doBezFeh(csql.Value, BezfSp, ErrDescription)
  END IF
@@ -6416,14 +6474,14 @@ Public FUNCTION unbekannte_kennungenSpeichern(SammelInsert%, BezfSp%)
   csql.AppVar Array("('" , rUn(i).Kennung, "'," , rUn(i).absPos, "," , rUn(i).StByte, "," , rUn(i).Pat_id, ",'" , rUn(i).Inhalt, "')")
   IF SammelInsert <> 0 AND i < ubound(rUn) THEN csql.Append ","
   IF SammelInsert = 0 OR i = ubound(rUn) THEN
-   Call DBCn.Execute(csql.value,rAf)', , adAsyncExecute)
+   Call myefrag(csql.value,rAf)', , adAsyncExecute)
    IF obfor THEN
     Call ForeignYes0
     Call ForeignYes1
    END IF
    IF sammelinsert = 0 THEN csql.m_len = 0
    IF lese.obmysql AND obmitAlterTab THEN
-    SET rs = DBCn.Execute("SHOW WARNINGS")
+    SET rs = myefrag("SHOW WARNINGS")
     IF not rs.BOF() THEN
      IF rs!code = 1265 THEN
       Err.Raise -2147217833
@@ -6443,7 +6501,7 @@ IF Err.Number = -2147217900 AND InStrB(ErrDescription, " Doppelter; Eintrag; ") 
  Resume Next
 ElseIf Err.Number = -2147467259 AND InStrB(ErrDescription, "Daten zu lang") = 0 THEN ' -2147467259 ' [MySQL][ODBC 3.51 Driver][mysqld-5.1.32-log]Cannot add OR update a child row: a foreign key constraint fails
  IF InStrB(ErrDescription, "'READ-COMMITTED'") <> 0 THEN
-  DBCn.Execute "SET SESSION TRANSACTION ISOLATION LEVEL REPEATABLE READ", rAF
+  myefrag "SET SESSION TRANSACTION ISOLATION LEVEL REPEATABLE READ", rAF
  Else
   Call doBezFeh(csql.Value, BezfSp, ErrDescription)
  END IF
@@ -6542,34 +6600,38 @@ Public FUNCTION dmpreiheLaden()
  Dim pid$, rs As New Recordset, akt&
  ON Error GoTo fehler
  pid = rNa(0).Pat_id
- ReDim roDm(1)
  sql = "SELECT COALESCE(Abk,'') Abk,COALESCE(Art,'') Art,IF(KarteiDatum IS NULL OR KarteiDatum=0,CONVERT('18991230',DATE),KarteiDatum) KarteiDatum,IF(exportiert IS NULL OR exportiert=0,CONVERT('18991230',DATE),exportiert) exportiert" & _
 ",IF(DokuDatum IS NULL OR DokuDatum=0,CONVERT('18991230',DATE),DokuDatum) DokuDatum,COALESCE(obvoll,0) obvoll,COALESCE(ok,0) ok,COALESCE(ausgedruckt,0) ausgedruckt" & _
 ",COALESCE(NachName,'') NachName,COALESCE(VorName,'') VorName,IF(GebDat IS NULL OR GebDat=0,CONVERT('18991230',DATE),GebDat) GebDat,COALESCE(Pat_id,0) Pat_id" & _
 ",COALESCE(StByte,0) StByte,IF(AktZeit IS NULL OR AktZeit=0,CONVERT('18991230',DATE),AktZeit) AktZeit,COALESCE(lanrid,0) lanrid,COALESCE(Zusatzdaten,'') Zusatzdaten" & _
 " FROM `dmpreihe` WHERE Pat_ID=" & pid & " ORDER BY `Dokudatum`
- myfrag rs, sql
- Do While Not rs.EOF
-  akt = UBound(roDm)
-  roDm(akt).Abk = doUmwfSQL(rs!Abk, lies.obMySQL, False)
-  roDm(akt).Art = doUmwfSQL(rs!Art, lies.obMySQL, False)
-  roDm(akt).KarteiDatum = rs!KarteiDatum
-  roDm(akt).exportiert = rs!exportiert
-  roDm(akt).DokuDatum = rs!DokuDatum
-  roDm(akt).obvoll = rs!obvoll
-  roDm(akt).ok = rs!ok
-  roDm(akt).ausgedruckt = rs!ausgedruckt
-  roDm(akt).NachName = doUmwfSQL(rs!NachName, lies.obMySQL, False)
-  roDm(akt).VorName = doUmwfSQL(rs!VorName, lies.obMySQL, False)
-  roDm(akt).GebDat = rs!GebDat
-  roDm(akt).Pat_id = rs!Pat_id
-  roDm(akt).StByte = rs!StByte
-  roDm(akt).AktZeit = rs!AktZeit
-  roDm(akt).lanrid = rs!lanrid
-  roDm(akt).Zusatzdaten = doUmwfSQL(rs!Zusatzdaten, lies.obMySQL, False)
-  rs.MoveNext
-  IF Not rs.EOF THEN ReDim Preserve roDm(UBound(roDm) + 1)
- Loop
+ myFrag rs, sql
+ If rs.EOF Then
+  ReDim roDm(0)
+ Else ' rs.EOF Then
+  ReDim roDm(1)
+  Do While Not rs.EOF
+   akt = UBound(roDm)
+   roDm(akt).Abk = doUmwfSQL(rs!Abk, lies.obMySQL, False)
+   roDm(akt).Art = doUmwfSQL(rs!Art, lies.obMySQL, False)
+   roDm(akt).KarteiDatum = rs!KarteiDatum
+   roDm(akt).exportiert = rs!exportiert
+   roDm(akt).DokuDatum = rs!DokuDatum
+   roDm(akt).obvoll = rs!obvoll
+   roDm(akt).ok = rs!ok
+   roDm(akt).ausgedruckt = rs!ausgedruckt
+   roDm(akt).NachName = doUmwfSQL(rs!NachName, lies.obMySQL, False)
+   roDm(akt).VorName = doUmwfSQL(rs!VorName, lies.obMySQL, False)
+   roDm(akt).GebDat = rs!GebDat
+   roDm(akt).Pat_id = rs!Pat_id
+   roDm(akt).StByte = rs!StByte
+   roDm(akt).AktZeit = rs!AktZeit
+   roDm(akt).lanrid = rs!lanrid
+   roDm(akt).Zusatzdaten = doUmwfSQL(rs!Zusatzdaten, lies.obMySQL, False)
+   rs.MoveNext
+   IF Not rs.EOF THEN ReDim Preserve roDm(UBound(roDm) + 1)
+  Loop ' While Not rs.EOF
+ End If ' If rs.EOF
  Exit Function
 fehler:
  Dim AnwPfad$
@@ -6638,11 +6700,11 @@ Public FUNCTION dmpreiheSpeichern(SammelInsert%, BezfSp%)
  syscmd 4, pid & ": Speichere dmpreihe"
  IF not Allepat THEN
   sql = "SELECT pat_id FROM `dmpreihe` WHERE Pat_ID = " & CStr(rNa(0).Pat_ID)
-  myfrag rs, sql
+  myFrag rs, sql
   IF Not rs.BOF THEN
    SET rs = nothing
    sql = "DELETE FROM `dmpreihe` WHERE Pat_ID = " & CStr(rNa(0).Pat_ID)
-   Call DBCn.Execute(sql)
+   Call myefrag(sql)
   END IF
  END IF ' not allePat
 ' sql0 = " INSERT " & sqlignore &  "INTO `dmpreihe` (Abk,Art,KarteiDatum," & _
@@ -6662,14 +6724,14 @@ Public FUNCTION dmpreiheSpeichern(SammelInsert%, BezfSp%)
    rDm(i).lanrid, ",'" , rDm(i).Zusatzdaten, "')")
   IF SammelInsert <> 0 AND i < ubound(rDm) THEN csql.Append ","
   IF SammelInsert = 0 OR i = ubound(rDm) THEN
-   Call DBCn.Execute(csql.value,rAf)', , adAsyncExecute)
+   Call myefrag(csql.value,rAf)', , adAsyncExecute)
    IF obfor THEN
     Call ForeignYes0
     Call ForeignYes1
    END IF
    IF sammelinsert = 0 THEN csql.m_len = 0
    IF lese.obmysql AND obmitAlterTab THEN
-    SET rs = DBCn.Execute("SHOW WARNINGS")
+    SET rs = myefrag("SHOW WARNINGS")
     IF not rs.BOF() THEN
      IF rs!code = 1265 THEN
       Err.Raise -2147217833
@@ -6688,7 +6750,7 @@ IF Err.Number = -2147217900 AND InStrB(ErrDescription, " Doppelter; Eintrag; ") 
  Resume Next
 ElseIf Err.Number = -2147467259 AND InStrB(ErrDescription, "Daten zu lang") = 0 THEN ' -2147467259 ' [MySQL][ODBC 3.51 Driver][mysqld-5.1.32-log]Cannot add OR update a child row: a foreign key constraint fails
  IF InStrB(ErrDescription, "'READ-COMMITTED'") <> 0 THEN
-  DBCn.Execute "SET SESSION TRANSACTION ISOLATION LEVEL REPEATABLE READ", rAF
+  myefrag "SET SESSION TRANSACTION ISOLATION LEVEL REPEATABLE READ", rAF
  Else
   Call doBezFeh(csql.Value, BezfSp, ErrDescription)
  END IF
@@ -6803,40 +6865,44 @@ Public FUNCTION desktopLaden()
  Dim pid$, rs As New Recordset, akt&
  ON Error GoTo fehler
  pid = rNa(0).Pat_id
- ReDim roDe(1)
  sql = "SELECT COALESCE(id,0) id,COALESCE(IDS,'') IDS,COALESCE(Pat_ID,0) Pat_ID,IF(erstZP IS NULL OR erstZP=0,CONVERT('18991230',DATE),erstZP) erstZP" & _
 ",COALESCE(exoL,'') exoL,COALESCE(hideT,0) hideT,COALESCE(iconPath,'') iconPath,COALESCE(noteBkColor,0) noteBkColor" & _
 ",COALESCE(noteFgColor,0) noteFgColor,COALESCE(positionBottom,0) positionBottom,COALESCE(positionLeft,0) positionLeft,COALESCE(positionRight,0) positionRight" & _
 ",COALESCE(positionTop,0) positionTop,COALESCE(showAsNote,0) showAsNote,COALESCE(syncInfoList,'') syncInfoList,COALESCE(titel,'') titel" & _
 ",COALESCE(toolTipText,'') toolTipText,COALESCE(verankert,0) verankert,COALESCE(absPos,0) absPos,IF(AktZeit IS NULL OR AktZeit=0,CONVERT('18991230',DATE),AktZeit) AktZeit" & _
 ",COALESCE(StByte,0) StByte FROM `desktop` WHERE Pat_ID=" & pid & " ORDER BY `erstZP`
- myfrag rs, sql
- Do While Not rs.EOF
-  akt = UBound(roDe)
-  roDe(akt).id = rs!id
-  roDe(akt).IDS = doUmwfSQL(rs!IDS, lies.obMySQL, False)
-  roDe(akt).Pat_ID = rs!Pat_ID
-  roDe(akt).erstZP = rs!erstZP
-  roDe(akt).exoL = doUmwfSQL(rs!exoL, lies.obMySQL, False)
-  roDe(akt).hideT = rs!hideT
-  roDe(akt).iconPath = doUmwfSQL(rs!iconPath, lies.obMySQL, False)
-  roDe(akt).noteBkColor = rs!noteBkColor
-  roDe(akt).noteFgColor = rs!noteFgColor
-  roDe(akt).positionBottom = rs!positionBottom
-  roDe(akt).positionLeft = rs!positionLeft
-  roDe(akt).positionRight = rs!positionRight
-  roDe(akt).positionTop = rs!positionTop
-  roDe(akt).showAsNote = rs!showAsNote
-  roDe(akt).syncInfoList = doUmwfSQL(rs!syncInfoList, lies.obMySQL, False)
-  roDe(akt).titel = doUmwfSQL(rs!titel, lies.obMySQL, False)
-  roDe(akt).toolTipText = doUmwfSQL(rs!toolTipText, lies.obMySQL, False)
-  roDe(akt).verankert = rs!verankert
-  roDe(akt).absPos = rs!absPos
-  roDe(akt).AktZeit = rs!AktZeit
-  roDe(akt).StByte = rs!StByte
-  rs.MoveNext
-  IF Not rs.EOF THEN ReDim Preserve roDe(UBound(roDe) + 1)
- Loop
+ myFrag rs, sql
+ If rs.EOF Then
+  ReDim roDe(0)
+ Else ' rs.EOF Then
+  ReDim roDe(1)
+  Do While Not rs.EOF
+   akt = UBound(roDe)
+   roDe(akt).id = rs!id
+   roDe(akt).IDS = doUmwfSQL(rs!IDS, lies.obMySQL, False)
+   roDe(akt).Pat_ID = rs!Pat_ID
+   roDe(akt).erstZP = rs!erstZP
+   roDe(akt).exoL = doUmwfSQL(rs!exoL, lies.obMySQL, False)
+   roDe(akt).hideT = rs!hideT
+   roDe(akt).iconPath = doUmwfSQL(rs!iconPath, lies.obMySQL, False)
+   roDe(akt).noteBkColor = rs!noteBkColor
+   roDe(akt).noteFgColor = rs!noteFgColor
+   roDe(akt).positionBottom = rs!positionBottom
+   roDe(akt).positionLeft = rs!positionLeft
+   roDe(akt).positionRight = rs!positionRight
+   roDe(akt).positionTop = rs!positionTop
+   roDe(akt).showAsNote = rs!showAsNote
+   roDe(akt).syncInfoList = doUmwfSQL(rs!syncInfoList, lies.obMySQL, False)
+   roDe(akt).titel = doUmwfSQL(rs!titel, lies.obMySQL, False)
+   roDe(akt).toolTipText = doUmwfSQL(rs!toolTipText, lies.obMySQL, False)
+   roDe(akt).verankert = rs!verankert
+   roDe(akt).absPos = rs!absPos
+   roDe(akt).AktZeit = rs!AktZeit
+   roDe(akt).StByte = rs!StByte
+   rs.MoveNext
+   IF Not rs.EOF THEN ReDim Preserve roDe(UBound(roDe) + 1)
+  Loop ' While Not rs.EOF
+ End If ' If rs.EOF
  Exit Function
 fehler:
  Dim AnwPfad$
@@ -6905,11 +6971,11 @@ Public FUNCTION desktopSpeichern(SammelInsert%, BezfSp%)
  syscmd 4, pid & ": Speichere desktop"
  IF not Allepat THEN
   sql = "SELECT pat_id FROM `desktop` WHERE Pat_ID = " & CStr(rNa(0).Pat_ID)
-  myfrag rs, sql
+  myFrag rs, sql
   IF Not rs.BOF THEN
    SET rs = nothing
    sql = "DELETE FROM `desktop` WHERE Pat_ID = " & CStr(rNa(0).Pat_ID)
-   Call DBCn.Execute(sql)
+   Call myefrag(sql)
   END IF
  END IF ' not allePat
 ' sql0 = " INSERT " & sqlignore &  "INTO `desktop` (IDS,Pat_ID,erstZP," & _
@@ -6929,14 +6995,14 @@ Public FUNCTION desktopSpeichern(SammelInsert%, BezfSp%)
    rDe(i).toolTipText, "'," , rDe(i).verankert, "," , rDe(i).absPos, "," , DatFor_k(rDe(i).AktZeit), "," , rDe(i).StByte, ")")
   IF SammelInsert <> 0 AND i < ubound(rDe) THEN csql.Append ","
   IF SammelInsert = 0 OR i = ubound(rDe) THEN
-   Call DBCn.Execute(csql.value,rAf)', , adAsyncExecute)
+   Call myefrag(csql.value,rAf)', , adAsyncExecute)
    IF obfor THEN
     Call ForeignYes0
     Call ForeignYes1
    END IF
    IF sammelinsert = 0 THEN csql.m_len = 0
    IF lese.obmysql AND obmitAlterTab THEN
-    SET rs = DBCn.Execute("SHOW WARNINGS")
+    SET rs = myefrag("SHOW WARNINGS")
     IF not rs.BOF() THEN
      IF rs!code = 1265 THEN
       Err.Raise -2147217833
@@ -6955,7 +7021,7 @@ IF Err.Number = -2147217900 AND InStrB(ErrDescription, " Doppelter; Eintrag; ") 
  Resume Next
 ElseIf Err.Number = -2147467259 AND InStrB(ErrDescription, "Daten zu lang") = 0 THEN ' -2147467259 ' [MySQL][ODBC 3.51 Driver][mysqld-5.1.32-log]Cannot add OR update a child row: a foreign key constraint fails
  IF InStrB(ErrDescription, "'READ-COMMITTED'") <> 0 THEN
-  DBCn.Execute "SET SESSION TRANSACTION ISOLATION LEVEL REPEATABLE READ", rAF
+  myefrag "SET SESSION TRANSACTION ISOLATION LEVEL REPEATABLE READ", rAF
  Else
   Call doBezFeh(csql.Value, BezfSp, ErrDescription)
  END IF
@@ -7122,7 +7188,6 @@ Public FUNCTION usdmLaden()
  Dim pid$, rs As New Recordset, akt&
  ON Error GoTo fehler
  pid = rNa(0).Pat_id
- ReDim roUs(1)
  sql = "SELECT COALESCE(FID,0) FID,COALESCE(Pat_ID,0) Pat_ID,IF(ZeitPunkt IS NULL OR ZeitPunkt=0,CONVERT('18991230',DATE),ZeitPunkt) ZeitPunkt,COALESCE(Art,'') Art" & _
 ",COALESCE(Spritzst,0) Spritzst,COALESCE(Fußbef_re,0) Fußbef_re,COALESCE(Fußbef_li,0) Fußbef_li,COALESCE(Hyperk_re,0) Hyperk_re" & _
 ",COALESCE(Hyperk_li,0) Hyperk_li,COALESCE(Ulcera_re,0) Ulcera_re,COALESCE(Ulcera_li,0) Ulcera_li,COALESCE(Kraft_Zh_re,0) Kraft_Zh_re" & _
@@ -7135,58 +7200,63 @@ Public FUNCTION usdmLaden()
 ",COALESCE(PulsAtp_li,0) PulsAtp_li,COALESCE(PulsAdp_re,0) PulsAdp_re,COALESCE(PulsAdp_li,0) PulsAdp_li,COALESCE(Mitarbeiter,0) Mitarbeiter" & _
 ",COALESCE(absPos,0) absPos,IF(AktZeit IS NULL OR AktZeit=0,CONVERT('18991230',DATE),AktZeit) AktZeit,COALESCE(QS,'') QS,COALESCE(QT,'') QT" & _
 ",COALESCE(StByte,0) StByte,COALESCE(id,0) id FROM `usdm` WHERE Pat_ID=" & pid & " ORDER BY `ZeitPunkt`
- myfrag rs, sql
- Do While Not rs.EOF
-  akt = UBound(roUs)
-  roUs(akt).FID = rs!FID
-  roUs(akt).Pat_ID = rs!Pat_ID
-  roUs(akt).ZeitPunkt = rs!ZeitPunkt
-  roUs(akt).Art = doUmwfSQL(rs!Art, lies.obMySQL, False)
-  roUs(akt).Spritzst = doUmwfSQL(rs!Spritzst, lies.obMySQL, False)
-  roUs(akt).Fußbef_re = doUmwfSQL(rs!Fußbef_re, lies.obMySQL, False)
-  roUs(akt).Fußbef_li = doUmwfSQL(rs!Fußbef_li, lies.obMySQL, False)
-  roUs(akt).Hyperk_re = doUmwfSQL(rs!Hyperk_re, lies.obMySQL, False)
-  roUs(akt).Hyperk_li = doUmwfSQL(rs!Hyperk_li, lies.obMySQL, False)
-  roUs(akt).Ulcera_re = doUmwfSQL(rs!Ulcera_re, lies.obMySQL, False)
-  roUs(akt).Ulcera_li = doUmwfSQL(rs!Ulcera_li, lies.obMySQL, False)
-  roUs(akt).Kraft_Zh_re = doUmwfSQL(rs!Kraft_Zh_re, lies.obMySQL, False)
-  roUs(akt).Kraft_Zh_li = doUmwfSQL(rs!Kraft_Zh_li, lies.obMySQL, False)
-  roUs(akt).Kraft_Zb_re = doUmwfSQL(rs!Kraft_Zb_re, lies.obMySQL, False)
-  roUs(akt).Kraft_Zb_li = doUmwfSQL(rs!Kraft_Zb_li, lies.obMySQL, False)
-  roUs(akt).Kraft_Knie_re = doUmwfSQL(rs!Kraft_Knie_re, lies.obMySQL, False)
-  roUs(akt).Kraft_Knie_li = doUmwfSQL(rs!Kraft_Knie_li, lies.obMySQL, False)
-  roUs(akt).ASR_re = doUmwfSQL(rs!ASR_re, lies.obMySQL, False)
-  roUs(akt).ASR_li = doUmwfSQL(rs!ASR_li, lies.obMySQL, False)
-  roUs(akt).PSR_re = doUmwfSQL(rs!PSR_re, lies.obMySQL, False)
-  roUs(akt).PSR_li = doUmwfSQL(rs!PSR_li, lies.obMySQL, False)
-  roUs(akt).Oberfl_re = doUmwfSQL(rs!Oberfl_re, lies.obMySQL, False)
-  roUs(akt).Oberfl_li = doUmwfSQL(rs!Oberfl_li, lies.obMySQL, False)
-  roUs(akt).MF_re = doUmwfSQL(rs!MF_re, lies.obMySQL, False)
-  roUs(akt).MF_li = doUmwfSQL(rs!MF_li, lies.obMySQL, False)
-  roUs(akt).KW_re = doUmwfSQL(rs!KW_re, lies.obMySQL, False)
-  roUs(akt).KW_li = doUmwfSQL(rs!KW_li, lies.obMySQL, False)
-  roUs(akt).Vibr_IK_re = doUmwfSQL(rs!Vibr_IK_re, lies.obMySQL, False)
-  roUs(akt).Vibr_IK_li = doUmwfSQL(rs!Vibr_IK_li, lies.obMySQL, False)
-  roUs(akt).Vibr_GZ_re = doUmwfSQL(rs!Vibr_GZ_re, lies.obMySQL, False)
-  roUs(akt).Vibr_GZ_li = doUmwfSQL(rs!Vibr_GZ_li, lies.obMySQL, False)
-  roUs(akt).PulsL_re = doUmwfSQL(rs!PulsL_re, lies.obMySQL, False)
-  roUs(akt).PulsL_li = doUmwfSQL(rs!PulsL_li, lies.obMySQL, False)
-  roUs(akt).PulsKK_re = doUmwfSQL(rs!PulsKK_re, lies.obMySQL, False)
-  roUs(akt).PulsKK_li = doUmwfSQL(rs!PulsKK_li, lies.obMySQL, False)
-  roUs(akt).PulsAtp_re = doUmwfSQL(rs!PulsAtp_re, lies.obMySQL, False)
-  roUs(akt).PulsAtp_li = doUmwfSQL(rs!PulsAtp_li, lies.obMySQL, False)
-  roUs(akt).PulsAdp_re = doUmwfSQL(rs!PulsAdp_re, lies.obMySQL, False)
-  roUs(akt).PulsAdp_li = doUmwfSQL(rs!PulsAdp_li, lies.obMySQL, False)
-  roUs(akt).Mitarbeiter = doUmwfSQL(rs!Mitarbeiter, lies.obMySQL, False)
-  roUs(akt).absPos = rs!absPos
-  roUs(akt).AktZeit = rs!AktZeit
-  roUs(akt).QS = doUmwfSQL(rs!QS, lies.obMySQL, False)
-  roUs(akt).QT = doUmwfSQL(rs!QT, lies.obMySQL, False)
-  roUs(akt).StByte = rs!StByte
-  roUs(akt).id = rs!id
-  rs.MoveNext
-  IF Not rs.EOF THEN ReDim Preserve roUs(UBound(roUs) + 1)
- Loop
+ myFrag rs, sql
+ If rs.EOF Then
+  ReDim roUs(0)
+ Else ' rs.EOF Then
+  ReDim roUs(1)
+  Do While Not rs.EOF
+   akt = UBound(roUs)
+   roUs(akt).FID = rs!FID
+   roUs(akt).Pat_ID = rs!Pat_ID
+   roUs(akt).ZeitPunkt = rs!ZeitPunkt
+   roUs(akt).Art = doUmwfSQL(rs!Art, lies.obMySQL, False)
+   roUs(akt).Spritzst = doUmwfSQL(rs!Spritzst, lies.obMySQL, False)
+   roUs(akt).Fußbef_re = doUmwfSQL(rs!Fußbef_re, lies.obMySQL, False)
+   roUs(akt).Fußbef_li = doUmwfSQL(rs!Fußbef_li, lies.obMySQL, False)
+   roUs(akt).Hyperk_re = doUmwfSQL(rs!Hyperk_re, lies.obMySQL, False)
+   roUs(akt).Hyperk_li = doUmwfSQL(rs!Hyperk_li, lies.obMySQL, False)
+   roUs(akt).Ulcera_re = doUmwfSQL(rs!Ulcera_re, lies.obMySQL, False)
+   roUs(akt).Ulcera_li = doUmwfSQL(rs!Ulcera_li, lies.obMySQL, False)
+   roUs(akt).Kraft_Zh_re = doUmwfSQL(rs!Kraft_Zh_re, lies.obMySQL, False)
+   roUs(akt).Kraft_Zh_li = doUmwfSQL(rs!Kraft_Zh_li, lies.obMySQL, False)
+   roUs(akt).Kraft_Zb_re = doUmwfSQL(rs!Kraft_Zb_re, lies.obMySQL, False)
+   roUs(akt).Kraft_Zb_li = doUmwfSQL(rs!Kraft_Zb_li, lies.obMySQL, False)
+   roUs(akt).Kraft_Knie_re = doUmwfSQL(rs!Kraft_Knie_re, lies.obMySQL, False)
+   roUs(akt).Kraft_Knie_li = doUmwfSQL(rs!Kraft_Knie_li, lies.obMySQL, False)
+   roUs(akt).ASR_re = doUmwfSQL(rs!ASR_re, lies.obMySQL, False)
+   roUs(akt).ASR_li = doUmwfSQL(rs!ASR_li, lies.obMySQL, False)
+   roUs(akt).PSR_re = doUmwfSQL(rs!PSR_re, lies.obMySQL, False)
+   roUs(akt).PSR_li = doUmwfSQL(rs!PSR_li, lies.obMySQL, False)
+   roUs(akt).Oberfl_re = doUmwfSQL(rs!Oberfl_re, lies.obMySQL, False)
+   roUs(akt).Oberfl_li = doUmwfSQL(rs!Oberfl_li, lies.obMySQL, False)
+   roUs(akt).MF_re = doUmwfSQL(rs!MF_re, lies.obMySQL, False)
+   roUs(akt).MF_li = doUmwfSQL(rs!MF_li, lies.obMySQL, False)
+   roUs(akt).KW_re = doUmwfSQL(rs!KW_re, lies.obMySQL, False)
+   roUs(akt).KW_li = doUmwfSQL(rs!KW_li, lies.obMySQL, False)
+   roUs(akt).Vibr_IK_re = doUmwfSQL(rs!Vibr_IK_re, lies.obMySQL, False)
+   roUs(akt).Vibr_IK_li = doUmwfSQL(rs!Vibr_IK_li, lies.obMySQL, False)
+   roUs(akt).Vibr_GZ_re = doUmwfSQL(rs!Vibr_GZ_re, lies.obMySQL, False)
+   roUs(akt).Vibr_GZ_li = doUmwfSQL(rs!Vibr_GZ_li, lies.obMySQL, False)
+   roUs(akt).PulsL_re = doUmwfSQL(rs!PulsL_re, lies.obMySQL, False)
+   roUs(akt).PulsL_li = doUmwfSQL(rs!PulsL_li, lies.obMySQL, False)
+   roUs(akt).PulsKK_re = doUmwfSQL(rs!PulsKK_re, lies.obMySQL, False)
+   roUs(akt).PulsKK_li = doUmwfSQL(rs!PulsKK_li, lies.obMySQL, False)
+   roUs(akt).PulsAtp_re = doUmwfSQL(rs!PulsAtp_re, lies.obMySQL, False)
+   roUs(akt).PulsAtp_li = doUmwfSQL(rs!PulsAtp_li, lies.obMySQL, False)
+   roUs(akt).PulsAdp_re = doUmwfSQL(rs!PulsAdp_re, lies.obMySQL, False)
+   roUs(akt).PulsAdp_li = doUmwfSQL(rs!PulsAdp_li, lies.obMySQL, False)
+   roUs(akt).Mitarbeiter = doUmwfSQL(rs!Mitarbeiter, lies.obMySQL, False)
+   roUs(akt).absPos = rs!absPos
+   roUs(akt).AktZeit = rs!AktZeit
+   roUs(akt).QS = doUmwfSQL(rs!QS, lies.obMySQL, False)
+   roUs(akt).QT = doUmwfSQL(rs!QT, lies.obMySQL, False)
+   roUs(akt).StByte = rs!StByte
+   roUs(akt).id = rs!id
+   rs.MoveNext
+   IF Not rs.EOF THEN ReDim Preserve roUs(UBound(roUs) + 1)
+  Loop ' While Not rs.EOF
+ End If ' If rs.EOF
  Exit Function
 fehler:
  Dim AnwPfad$
@@ -7255,11 +7325,11 @@ Public FUNCTION usdmSpeichern(SammelInsert%, BezfSp%)
  syscmd 4, pid & ": Speichere usdm"
  IF not Allepat THEN
   sql = "SELECT pat_id FROM `usdm` WHERE Pat_ID = " & CStr(rNa(0).Pat_ID)
-  myfrag rs, sql
+  myFrag rs, sql
   IF Not rs.BOF THEN
    SET rs = nothing
    sql = "DELETE FROM `usdm` WHERE Pat_ID = " & CStr(rNa(0).Pat_ID)
-   Call DBCn.Execute(sql)
+   Call myefrag(sql)
   END IF
  END IF ' not allePat
 ' sql0 = " INSERT " & sqlignore &  "INTO `usdm` (FID,Pat_ID,ZeitPunkt," & _
@@ -7288,14 +7358,14 @@ Public FUNCTION usdmSpeichern(SammelInsert%, BezfSp%)
    rUs(i).PulsAdp_li, "','" , rUs(i).Mitarbeiter, "'," , rUs(i).absPos, "," , DatFor_k(rUs(i).AktZeit), ",'" , rUs(i).QS, "','" , rUs(i).QT, "'," , rUs(i).StByte, ")")
   IF SammelInsert <> 0 AND i < ubound(rUs) THEN csql.Append ","
   IF SammelInsert = 0 OR i = ubound(rUs) THEN
-   Call DBCn.Execute(csql.value,rAf)', , adAsyncExecute)
+   Call myefrag(csql.value,rAf)', , adAsyncExecute)
    IF obfor THEN
     Call ForeignYes0
     Call ForeignYes1
    END IF
    IF sammelinsert = 0 THEN csql.m_len = 0
    IF lese.obmysql AND obmitAlterTab THEN
-    SET rs = DBCn.Execute("SHOW WARNINGS")
+    SET rs = myefrag("SHOW WARNINGS")
     IF not rs.BOF() THEN
      IF rs!code = 1265 THEN
       Err.Raise -2147217833
@@ -7314,7 +7384,7 @@ IF Err.Number = -2147217900 AND InStrB(ErrDescription, " Doppelter; Eintrag; ") 
  Resume Next
 ElseIf Err.Number = -2147467259 AND InStrB(ErrDescription, "Daten zu lang") = 0 THEN ' -2147467259 ' [MySQL][ODBC 3.51 Driver][mysqld-5.1.32-log]Cannot add OR update a child row: a foreign key constraint fails
  IF InStrB(ErrDescription, "'READ-COMMITTED'") <> 0 THEN
-  DBCn.Execute "SET SESSION TRANSACTION ISOLATION LEVEL REPEATABLE READ", rAF
+  myefrag "SET SESSION TRANSACTION ISOLATION LEVEL REPEATABLE READ", rAF
  Else
   Call doBezFeh(csql.Value, BezfSp, ErrDescription)
  END IF
@@ -7495,39 +7565,43 @@ Public FUNCTION fussLaden()
  Dim pid$, rs As New Recordset, akt&
  ON Error GoTo fehler
  pid = rNa(0).Pat_id
- ReDim roFu(1)
  sql = "SELECT COALESCE(FID,0) FID,COALESCE(Pat_ID,0) Pat_ID,IF(ZeitPunkt IS NULL OR ZeitPunkt=0,CONVERT('18991230',DATE),ZeitPunkt) ZeitPunkt,COALESCE(Art,'') Art" & _
 ",COALESCE(Fußdeform,'') Fußdeform,COALESCE(Hyper_mEin,'') Hyper_mEin,COALESCE(Weiteres,'') Weiteres,COALESCE(Zn_Ulcus,'') Zn_Ulcus" & _
 ",COALESCE(Zn_Amput,'') Zn_Amput,COALESCE(Fuß_ang,'') Fuß_ang,COALESCE(Ulcera,'') Ulcera,COALESCE(Wundinfektion,'') Wundinfektion" & _
 ",COALESCE(nae_US,'') nae_US,COALESCE(Mitarbeiter,'') Mitarbeiter,COALESCE(absPos,0) absPos,IF(AktZeit IS NULL OR AktZeit=0,CONVERT('18991230',DATE),AktZeit) AktZeit" & _
 ",COALESCE(QS,'') QS,COALESCE(QT,'') QT,COALESCE(StByte,0) StByte,COALESCE(id,0) id" & _
 " FROM `fuss` WHERE Pat_ID=" & pid & " ORDER BY `ZeitPunkt`
- myfrag rs, sql
- Do While Not rs.EOF
-  akt = UBound(roFu)
-  roFu(akt).FID = rs!FID
-  roFu(akt).Pat_ID = rs!Pat_ID
-  roFu(akt).ZeitPunkt = rs!ZeitPunkt
-  roFu(akt).Art = doUmwfSQL(rs!Art, lies.obMySQL, False)
-  roFu(akt).Fußdeform = doUmwfSQL(rs!Fußdeform, lies.obMySQL, False)
-  roFu(akt).Hyper_mEin = doUmwfSQL(rs!Hyper_mEin, lies.obMySQL, False)
-  roFu(akt).Weiteres = doUmwfSQL(rs!Weiteres, lies.obMySQL, False)
-  roFu(akt).Zn_Ulcus = doUmwfSQL(rs!Zn_Ulcus, lies.obMySQL, False)
-  roFu(akt).Zn_Amput = doUmwfSQL(rs!Zn_Amput, lies.obMySQL, False)
-  roFu(akt).Fuß_ang = doUmwfSQL(rs!Fuß_ang, lies.obMySQL, False)
-  roFu(akt).Ulcera = doUmwfSQL(rs!Ulcera, lies.obMySQL, False)
-  roFu(akt).Wundinfektion = doUmwfSQL(rs!Wundinfektion, lies.obMySQL, False)
-  roFu(akt).nae_US = doUmwfSQL(rs!nae_US, lies.obMySQL, False)
-  roFu(akt).Mitarbeiter = doUmwfSQL(rs!Mitarbeiter, lies.obMySQL, False)
-  roFu(akt).absPos = rs!absPos
-  roFu(akt).AktZeit = rs!AktZeit
-  roFu(akt).QS = doUmwfSQL(rs!QS, lies.obMySQL, False)
-  roFu(akt).QT = doUmwfSQL(rs!QT, lies.obMySQL, False)
-  roFu(akt).StByte = rs!StByte
-  roFu(akt).id = rs!id
-  rs.MoveNext
-  IF Not rs.EOF THEN ReDim Preserve roFu(UBound(roFu) + 1)
- Loop
+ myFrag rs, sql
+ If rs.EOF Then
+  ReDim roFu(0)
+ Else ' rs.EOF Then
+  ReDim roFu(1)
+  Do While Not rs.EOF
+   akt = UBound(roFu)
+   roFu(akt).FID = rs!FID
+   roFu(akt).Pat_ID = rs!Pat_ID
+   roFu(akt).ZeitPunkt = rs!ZeitPunkt
+   roFu(akt).Art = doUmwfSQL(rs!Art, lies.obMySQL, False)
+   roFu(akt).Fußdeform = doUmwfSQL(rs!Fußdeform, lies.obMySQL, False)
+   roFu(akt).Hyper_mEin = doUmwfSQL(rs!Hyper_mEin, lies.obMySQL, False)
+   roFu(akt).Weiteres = doUmwfSQL(rs!Weiteres, lies.obMySQL, False)
+   roFu(akt).Zn_Ulcus = doUmwfSQL(rs!Zn_Ulcus, lies.obMySQL, False)
+   roFu(akt).Zn_Amput = doUmwfSQL(rs!Zn_Amput, lies.obMySQL, False)
+   roFu(akt).Fuß_ang = doUmwfSQL(rs!Fuß_ang, lies.obMySQL, False)
+   roFu(akt).Ulcera = doUmwfSQL(rs!Ulcera, lies.obMySQL, False)
+   roFu(akt).Wundinfektion = doUmwfSQL(rs!Wundinfektion, lies.obMySQL, False)
+   roFu(akt).nae_US = doUmwfSQL(rs!nae_US, lies.obMySQL, False)
+   roFu(akt).Mitarbeiter = doUmwfSQL(rs!Mitarbeiter, lies.obMySQL, False)
+   roFu(akt).absPos = rs!absPos
+   roFu(akt).AktZeit = rs!AktZeit
+   roFu(akt).QS = doUmwfSQL(rs!QS, lies.obMySQL, False)
+   roFu(akt).QT = doUmwfSQL(rs!QT, lies.obMySQL, False)
+   roFu(akt).StByte = rs!StByte
+   roFu(akt).id = rs!id
+   rs.MoveNext
+   IF Not rs.EOF THEN ReDim Preserve roFu(UBound(roFu) + 1)
+  Loop ' While Not rs.EOF
+ End If ' If rs.EOF
  Exit Function
 fehler:
  Dim AnwPfad$
@@ -7596,11 +7670,11 @@ Public FUNCTION fussSpeichern(SammelInsert%, BezfSp%)
  syscmd 4, pid & ": Speichere fuss"
  IF not Allepat THEN
   sql = "SELECT pat_id FROM `fuss` WHERE Pat_ID = " & CStr(rNa(0).Pat_ID)
-  myfrag rs, sql
+  myFrag rs, sql
   IF Not rs.BOF THEN
    SET rs = nothing
    sql = "DELETE FROM `fuss` WHERE Pat_ID = " & CStr(rNa(0).Pat_ID)
-   Call DBCn.Execute(sql)
+   Call myefrag(sql)
   END IF
  END IF ' not allePat
 ' sql0 = " INSERT " & sqlignore &  "INTO `fuss` (FID,Pat_ID,ZeitPunkt," & _
@@ -7620,14 +7694,14 @@ Public FUNCTION fussSpeichern(SammelInsert%, BezfSp%)
    rFu(i).QS, "','" , rFu(i).QT, "'," , rFu(i).StByte, ")")
   IF SammelInsert <> 0 AND i < ubound(rFu) THEN csql.Append ","
   IF SammelInsert = 0 OR i = ubound(rFu) THEN
-   Call DBCn.Execute(csql.value,rAf)', , adAsyncExecute)
+   Call myefrag(csql.value,rAf)', , adAsyncExecute)
    IF obfor THEN
     Call ForeignYes0
     Call ForeignYes1
    END IF
    IF sammelinsert = 0 THEN csql.m_len = 0
    IF lese.obmysql AND obmitAlterTab THEN
-    SET rs = DBCn.Execute("SHOW WARNINGS")
+    SET rs = myefrag("SHOW WARNINGS")
     IF not rs.BOF() THEN
      IF rs!code = 1265 THEN
       Err.Raise -2147217833
@@ -7646,7 +7720,7 @@ IF Err.Number = -2147217900 AND InStrB(ErrDescription, " Doppelter; Eintrag; ") 
  Resume Next
 ElseIf Err.Number = -2147467259 AND InStrB(ErrDescription, "Daten zu lang") = 0 THEN ' -2147467259 ' [MySQL][ODBC 3.51 Driver][mysqld-5.1.32-log]Cannot add OR update a child row: a foreign key constraint fails
  IF InStrB(ErrDescription, "'READ-COMMITTED'") <> 0 THEN
-  DBCn.Execute "SET SESSION TRANSACTION ISOLATION LEVEL REPEATABLE READ", rAF
+  myefrag "SET SESSION TRANSACTION ISOLATION LEVEL REPEATABLE READ", rAF
  Else
   Call doBezFeh(csql.Value, BezfSp, ErrDescription)
  END IF
@@ -7771,36 +7845,40 @@ Public FUNCTION ulcusLaden()
  Dim pid$, rs As New Recordset, akt&
  ON Error GoTo fehler
  pid = rNa(0).Pat_id
- ReDim roUl(1)
  sql = "SELECT COALESCE(FID,0) FID,COALESCE(Pat_ID,0) Pat_ID,IF(ZeitPunkt IS NULL OR ZeitPunkt=0,CONVERT('18991230',DATE),ZeitPunkt) ZeitPunkt,COALESCE(Lokalisation,'') Lokalisation" & _
 ",COALESCE(Seite,'') Seite,COALESCE(Größe,'') Größe,COALESCE(Beläge,'') Beläge,COALESCE(Exsudat,'') Exsudat" & _
 ",COALESCE(Geruch,'') Geruch,COALESCE(Wundrand,'') Wundrand,COALESCE(Wundumgebung,'') Wundumgebung,COALESCE(Temperatur,'') Temperatur" & _
 ",COALESCE(Fotodoku,'') Fotodoku,COALESCE(Wundversorgung,'') Wundversorgung,COALESCE(Mitarbeiter,'') Mitarbeiter,COALESCE(absPos,0) absPos" & _
 ",IF(AktZeit IS NULL OR AktZeit=0,CONVERT('18991230',DATE),AktZeit) AktZeit,COALESCE(StByte,0) StByte FROM `ulcus` WHERE Pat_ID=" & pid & " ORDER BY `ZeitPunkt`
- myfrag rs, sql
- Do While Not rs.EOF
-  akt = UBound(roUl)
-  roUl(akt).FID = rs!FID
-  roUl(akt).Pat_ID = rs!Pat_ID
-  roUl(akt).ZeitPunkt = rs!ZeitPunkt
-  roUl(akt).Lokalisation = doUmwfSQL(rs!Lokalisation, lies.obMySQL, False)
-  roUl(akt).Seite = doUmwfSQL(rs!Seite, lies.obMySQL, False)
-  roUl(akt).Größe = doUmwfSQL(rs!Größe, lies.obMySQL, False)
-  roUl(akt).Beläge = doUmwfSQL(rs!Beläge, lies.obMySQL, False)
-  roUl(akt).Exsudat = doUmwfSQL(rs!Exsudat, lies.obMySQL, False)
-  roUl(akt).Geruch = doUmwfSQL(rs!Geruch, lies.obMySQL, False)
-  roUl(akt).Wundrand = doUmwfSQL(rs!Wundrand, lies.obMySQL, False)
-  roUl(akt).Wundumgebung = doUmwfSQL(rs!Wundumgebung, lies.obMySQL, False)
-  roUl(akt).Temperatur = doUmwfSQL(rs!Temperatur, lies.obMySQL, False)
-  roUl(akt).Fotodoku = doUmwfSQL(rs!Fotodoku, lies.obMySQL, False)
-  roUl(akt).Wundversorgung = doUmwfSQL(rs!Wundversorgung, lies.obMySQL, False)
-  roUl(akt).Mitarbeiter = doUmwfSQL(rs!Mitarbeiter, lies.obMySQL, False)
-  roUl(akt).absPos = rs!absPos
-  roUl(akt).AktZeit = rs!AktZeit
-  roUl(akt).StByte = rs!StByte
-  rs.MoveNext
-  IF Not rs.EOF THEN ReDim Preserve roUl(UBound(roUl) + 1)
- Loop
+ myFrag rs, sql
+ If rs.EOF Then
+  ReDim roUl(0)
+ Else ' rs.EOF Then
+  ReDim roUl(1)
+  Do While Not rs.EOF
+   akt = UBound(roUl)
+   roUl(akt).FID = rs!FID
+   roUl(akt).Pat_ID = rs!Pat_ID
+   roUl(akt).ZeitPunkt = rs!ZeitPunkt
+   roUl(akt).Lokalisation = doUmwfSQL(rs!Lokalisation, lies.obMySQL, False)
+   roUl(akt).Seite = doUmwfSQL(rs!Seite, lies.obMySQL, False)
+   roUl(akt).Größe = doUmwfSQL(rs!Größe, lies.obMySQL, False)
+   roUl(akt).Beläge = doUmwfSQL(rs!Beläge, lies.obMySQL, False)
+   roUl(akt).Exsudat = doUmwfSQL(rs!Exsudat, lies.obMySQL, False)
+   roUl(akt).Geruch = doUmwfSQL(rs!Geruch, lies.obMySQL, False)
+   roUl(akt).Wundrand = doUmwfSQL(rs!Wundrand, lies.obMySQL, False)
+   roUl(akt).Wundumgebung = doUmwfSQL(rs!Wundumgebung, lies.obMySQL, False)
+   roUl(akt).Temperatur = doUmwfSQL(rs!Temperatur, lies.obMySQL, False)
+   roUl(akt).Fotodoku = doUmwfSQL(rs!Fotodoku, lies.obMySQL, False)
+   roUl(akt).Wundversorgung = doUmwfSQL(rs!Wundversorgung, lies.obMySQL, False)
+   roUl(akt).Mitarbeiter = doUmwfSQL(rs!Mitarbeiter, lies.obMySQL, False)
+   roUl(akt).absPos = rs!absPos
+   roUl(akt).AktZeit = rs!AktZeit
+   roUl(akt).StByte = rs!StByte
+   rs.MoveNext
+   IF Not rs.EOF THEN ReDim Preserve roUl(UBound(roUl) + 1)
+  Loop ' While Not rs.EOF
+ End If ' If rs.EOF
  Exit Function
 fehler:
  Dim AnwPfad$
@@ -7869,11 +7947,11 @@ Public FUNCTION ulcusSpeichern(SammelInsert%, BezfSp%)
  syscmd 4, pid & ": Speichere ulcus"
  IF not Allepat THEN
   sql = "SELECT pat_id FROM `ulcus` WHERE Pat_ID = " & CStr(rNa(0).Pat_ID)
-  myfrag rs, sql
+  myFrag rs, sql
   IF Not rs.BOF THEN
    SET rs = nothing
    sql = "DELETE FROM `ulcus` WHERE Pat_ID = " & CStr(rNa(0).Pat_ID)
-   Call DBCn.Execute(sql)
+   Call myefrag(sql)
   END IF
  END IF ' not allePat
 ' sql0 = " INSERT " & sqlignore &  "INTO `ulcus` (FID,Pat_ID,ZeitPunkt," & _
@@ -7893,14 +7971,14 @@ Public FUNCTION ulcusSpeichern(SammelInsert%, BezfSp%)
    rUl(i).absPos, "," , DatFor_k(rUl(i).AktZeit), "," , rUl(i).StByte, ")")
   IF SammelInsert <> 0 AND i < ubound(rUl) THEN csql.Append ","
   IF SammelInsert = 0 OR i = ubound(rUl) THEN
-   Call DBCn.Execute(csql.value,rAf)', , adAsyncExecute)
+   Call myefrag(csql.value,rAf)', , adAsyncExecute)
    IF obfor THEN
     Call ForeignYes0
     Call ForeignYes1
    END IF
    IF sammelinsert = 0 THEN csql.m_len = 0
    IF lese.obmysql AND obmitAlterTab THEN
-    SET rs = DBCn.Execute("SHOW WARNINGS")
+    SET rs = myefrag("SHOW WARNINGS")
     IF not rs.BOF() THEN
      IF rs!code = 1265 THEN
       Err.Raise -2147217833
@@ -7919,7 +7997,7 @@ IF Err.Number = -2147217900 AND InStrB(ErrDescription, " Doppelter; Eintrag; ") 
  Resume Next
 ElseIf Err.Number = -2147467259 AND InStrB(ErrDescription, "Daten zu lang") = 0 THEN ' -2147467259 ' [MySQL][ODBC 3.51 Driver][mysqld-5.1.32-log]Cannot add OR update a child row: a foreign key constraint fails
  IF InStrB(ErrDescription, "'READ-COMMITTED'") <> 0 THEN
-  DBCn.Execute "SET SESSION TRANSACTION ISOLATION LEVEL REPEATABLE READ", rAF
+  myefrag "SET SESSION TRANSACTION ISOLATION LEVEL REPEATABLE READ", rAF
  Else
   Call doBezFeh(csql.Value, BezfSp, ErrDescription)
  END IF
@@ -8042,36 +8120,40 @@ Public FUNCTION vkgdLaden()
  Dim pid$, rs As New Recordset, akt&
  ON Error GoTo fehler
  pid = rNa(0).Pat_id
- ReDim roVk(1)
  sql = "SELECT COALESCE(FID,0) FID,COALESCE(Pat_ID,0) Pat_ID,IF(ZeitPunkt IS NULL OR ZeitPunkt=0,CONVERT('18991230',DATE),ZeitPunkt) ZeitPunkt,COALESCE(Wohlempfinden,'') Wohlempfinden" & _
 ",COALESCE(Saettigung,'') Saettigung,COALESCE(Zielwerterreichung,'') Zielwerterreichung,COALESCE(Ketonkörper,'') Ketonkörper,COALESCE(Gynaekologenbefund,'') Gynaekologenbefund" & _
 ",COALESCE(Gewichtsentwicklung,'') Gewichtsentwicklung,COALESCE(HbA1c,'') HbA1c,COALESCE(Bewegung,'') Bewegung,COALESCE(Minuten,'') Minuten" & _
 ",COALESCE(Blutdruck,'') Blutdruck,COALESCE(Puls,'') Puls,COALESCE(Mitarbeiter,'') Mitarbeiter,COALESCE(absPos,0) absPos" & _
 ",IF(AktZeit IS NULL OR AktZeit=0,CONVERT('18991230',DATE),AktZeit) AktZeit,COALESCE(StByte,0) StByte FROM `vkgd` WHERE Pat_ID=" & pid & " ORDER BY `ZeitPunkt`
- myfrag rs, sql
- Do While Not rs.EOF
-  akt = UBound(roVk)
-  roVk(akt).FID = rs!FID
-  roVk(akt).Pat_ID = rs!Pat_ID
-  roVk(akt).ZeitPunkt = rs!ZeitPunkt
-  roVk(akt).Wohlempfinden = doUmwfSQL(rs!Wohlempfinden, lies.obMySQL, False)
-  roVk(akt).Saettigung = doUmwfSQL(rs!Saettigung, lies.obMySQL, False)
-  roVk(akt).Zielwerterreichung = doUmwfSQL(rs!Zielwerterreichung, lies.obMySQL, False)
-  roVk(akt).Ketonkörper = doUmwfSQL(rs!Ketonkörper, lies.obMySQL, False)
-  roVk(akt).Gynaekologenbefund = doUmwfSQL(rs!Gynaekologenbefund, lies.obMySQL, False)
-  roVk(akt).Gewichtsentwicklung = doUmwfSQL(rs!Gewichtsentwicklung, lies.obMySQL, False)
-  roVk(akt).HbA1c = doUmwfSQL(rs!HbA1c, lies.obMySQL, False)
-  roVk(akt).Bewegung = doUmwfSQL(rs!Bewegung, lies.obMySQL, False)
-  roVk(akt).Minuten = doUmwfSQL(rs!Minuten, lies.obMySQL, False)
-  roVk(akt).Blutdruck = doUmwfSQL(rs!Blutdruck, lies.obMySQL, False)
-  roVk(akt).Puls = doUmwfSQL(rs!Puls, lies.obMySQL, False)
-  roVk(akt).Mitarbeiter = doUmwfSQL(rs!Mitarbeiter, lies.obMySQL, False)
-  roVk(akt).absPos = rs!absPos
-  roVk(akt).AktZeit = rs!AktZeit
-  roVk(akt).StByte = rs!StByte
-  rs.MoveNext
-  IF Not rs.EOF THEN ReDim Preserve roVk(UBound(roVk) + 1)
- Loop
+ myFrag rs, sql
+ If rs.EOF Then
+  ReDim roVk(0)
+ Else ' rs.EOF Then
+  ReDim roVk(1)
+  Do While Not rs.EOF
+   akt = UBound(roVk)
+   roVk(akt).FID = rs!FID
+   roVk(akt).Pat_ID = rs!Pat_ID
+   roVk(akt).ZeitPunkt = rs!ZeitPunkt
+   roVk(akt).Wohlempfinden = doUmwfSQL(rs!Wohlempfinden, lies.obMySQL, False)
+   roVk(akt).Saettigung = doUmwfSQL(rs!Saettigung, lies.obMySQL, False)
+   roVk(akt).Zielwerterreichung = doUmwfSQL(rs!Zielwerterreichung, lies.obMySQL, False)
+   roVk(akt).Ketonkörper = doUmwfSQL(rs!Ketonkörper, lies.obMySQL, False)
+   roVk(akt).Gynaekologenbefund = doUmwfSQL(rs!Gynaekologenbefund, lies.obMySQL, False)
+   roVk(akt).Gewichtsentwicklung = doUmwfSQL(rs!Gewichtsentwicklung, lies.obMySQL, False)
+   roVk(akt).HbA1c = doUmwfSQL(rs!HbA1c, lies.obMySQL, False)
+   roVk(akt).Bewegung = doUmwfSQL(rs!Bewegung, lies.obMySQL, False)
+   roVk(akt).Minuten = doUmwfSQL(rs!Minuten, lies.obMySQL, False)
+   roVk(akt).Blutdruck = doUmwfSQL(rs!Blutdruck, lies.obMySQL, False)
+   roVk(akt).Puls = doUmwfSQL(rs!Puls, lies.obMySQL, False)
+   roVk(akt).Mitarbeiter = doUmwfSQL(rs!Mitarbeiter, lies.obMySQL, False)
+   roVk(akt).absPos = rs!absPos
+   roVk(akt).AktZeit = rs!AktZeit
+   roVk(akt).StByte = rs!StByte
+   rs.MoveNext
+   IF Not rs.EOF THEN ReDim Preserve roVk(UBound(roVk) + 1)
+  Loop ' While Not rs.EOF
+ End If ' If rs.EOF
  Exit Function
 fehler:
  Dim AnwPfad$
@@ -8140,11 +8222,11 @@ Public FUNCTION vkgdSpeichern(SammelInsert%, BezfSp%)
  syscmd 4, pid & ": Speichere vkgd"
  IF not Allepat THEN
   sql = "SELECT pat_id FROM `vkgd` WHERE Pat_ID = " & CStr(rNa(0).Pat_ID)
-  myfrag rs, sql
+  myFrag rs, sql
   IF Not rs.BOF THEN
    SET rs = nothing
    sql = "DELETE FROM `vkgd` WHERE Pat_ID = " & CStr(rNa(0).Pat_ID)
-   Call DBCn.Execute(sql)
+   Call myefrag(sql)
   END IF
  END IF ' not allePat
 ' sql0 = " INSERT " & sqlignore &  "INTO `vkgd` (FID,Pat_ID,ZeitPunkt," & _
@@ -8164,14 +8246,14 @@ Public FUNCTION vkgdSpeichern(SammelInsert%, BezfSp%)
    rVk(i).Mitarbeiter, "'," , rVk(i).absPos, "," , DatFor_k(rVk(i).AktZeit), "," , rVk(i).StByte, ")")
   IF SammelInsert <> 0 AND i < ubound(rVk) THEN csql.Append ","
   IF SammelInsert = 0 OR i = ubound(rVk) THEN
-   Call DBCn.Execute(csql.value,rAf)', , adAsyncExecute)
+   Call myefrag(csql.value,rAf)', , adAsyncExecute)
    IF obfor THEN
     Call ForeignYes0
     Call ForeignYes1
    END IF
    IF sammelinsert = 0 THEN csql.m_len = 0
    IF lese.obmysql AND obmitAlterTab THEN
-    SET rs = DBCn.Execute("SHOW WARNINGS")
+    SET rs = myefrag("SHOW WARNINGS")
     IF not rs.BOF() THEN
      IF rs!code = 1265 THEN
       Err.Raise -2147217833
@@ -8190,7 +8272,7 @@ IF Err.Number = -2147217900 AND InStrB(ErrDescription, " Doppelter; Eintrag; ") 
  Resume Next
 ElseIf Err.Number = -2147467259 AND InStrB(ErrDescription, "Daten zu lang") = 0 THEN ' -2147467259 ' [MySQL][ODBC 3.51 Driver][mysqld-5.1.32-log]Cannot add OR update a child row: a foreign key constraint fails
  IF InStrB(ErrDescription, "'READ-COMMITTED'") <> 0 THEN
-  DBCn.Execute "SET SESSION TRANSACTION ISOLATION LEVEL REPEATABLE READ", rAF
+  myefrag "SET SESSION TRANSACTION ISOLATION LEVEL REPEATABLE READ", rAF
  Else
   Call doBezFeh(csql.Value, BezfSp, ErrDescription)
  END IF
@@ -8307,32 +8389,36 @@ Public FUNCTION swsLaden()
  Dim pid$, rs As New Recordset, akt&
  ON Error GoTo fehler
  pid = rNa(0).Pat_id
- ReDim roSw(1)
  sql = "SELECT COALESCE(FID,0) FID,COALESCE(Pat_ID,0) Pat_ID,IF(ZeitPunkt IS NULL OR ZeitPunkt=0,CONVERT('18991230',DATE),ZeitPunkt) ZeitPunkt,IF(LR IS NULL OR LR=0,CONVERT('18991230',DATE),LR) LR" & _
 ",IF(vorET IS NULL OR vorET=0,CONVERT('18991230',DATE),vorET) vorET,IF(ET IS NULL OR ET=0,CONVERT('18991230',DATE),ET) ET,IF(efLR IS NULL OR efLR=0,CONVERT('18991230',DATE),efLR) efLR,IF(erLR IS NULL OR erLR=0,CONVERT('18991230',DATE),erLR) erLR" & _
 ",IF(kGT IS NULL OR kGT=0,CONVERT('18991230',DATE),kGT) kGT,IF(MB IS NULL OR MB=0,CONVERT('18991230',DATE),MB) MB,COALESCE(EndeArt,'') EndeArt,IF(ED IS NULL OR ED=0,CONVERT('18991230',DATE),ED) ED" & _
 ",COALESCE(absPos,0) absPos,IF(AktZeit IS NULL OR AktZeit=0,CONVERT('18991230',DATE),AktZeit) AktZeit,COALESCE(StByte,0) StByte FROM `sws` WHERE Pat_ID=" & pid & " ORDER BY `ZeitPunkt`
- myfrag rs, sql
- Do While Not rs.EOF
-  akt = UBound(roSw)
-  roSw(akt).FID = rs!FID
-  roSw(akt).Pat_ID = rs!Pat_ID
-  roSw(akt).ZeitPunkt = rs!ZeitPunkt
-  roSw(akt).LR = rs!LR
-  roSw(akt).vorET = rs!vorET
-  roSw(akt).ET = rs!ET
-  roSw(akt).efLR = rs!efLR
-  roSw(akt).erLR = rs!erLR
-  roSw(akt).kGT = rs!kGT
-  roSw(akt).MB = rs!MB
-  roSw(akt).EndeArt = doUmwfSQL(rs!EndeArt, lies.obMySQL, False)
-  roSw(akt).ED = rs!ED
-  roSw(akt).absPos = rs!absPos
-  roSw(akt).AktZeit = rs!AktZeit
-  roSw(akt).StByte = rs!StByte
-  rs.MoveNext
-  IF Not rs.EOF THEN ReDim Preserve roSw(UBound(roSw) + 1)
- Loop
+ myFrag rs, sql
+ If rs.EOF Then
+  ReDim roSw(0)
+ Else ' rs.EOF Then
+  ReDim roSw(1)
+  Do While Not rs.EOF
+   akt = UBound(roSw)
+   roSw(akt).FID = rs!FID
+   roSw(akt).Pat_ID = rs!Pat_ID
+   roSw(akt).ZeitPunkt = rs!ZeitPunkt
+   roSw(akt).LR = rs!LR
+   roSw(akt).vorET = rs!vorET
+   roSw(akt).ET = rs!ET
+   roSw(akt).efLR = rs!efLR
+   roSw(akt).erLR = rs!erLR
+   roSw(akt).kGT = rs!kGT
+   roSw(akt).MB = rs!MB
+   roSw(akt).EndeArt = doUmwfSQL(rs!EndeArt, lies.obMySQL, False)
+   roSw(akt).ED = rs!ED
+   roSw(akt).absPos = rs!absPos
+   roSw(akt).AktZeit = rs!AktZeit
+   roSw(akt).StByte = rs!StByte
+   rs.MoveNext
+   IF Not rs.EOF THEN ReDim Preserve roSw(UBound(roSw) + 1)
+  Loop ' While Not rs.EOF
+ End If ' If rs.EOF
  Exit Function
 fehler:
  Dim AnwPfad$
@@ -8401,11 +8487,11 @@ Public FUNCTION swsSpeichern(SammelInsert%, BezfSp%)
  syscmd 4, pid & ": Speichere sws"
  IF not Allepat THEN
   sql = "SELECT pat_id FROM `sws` WHERE Pat_ID = " & CStr(rNa(0).Pat_ID)
-  myfrag rs, sql
+  myFrag rs, sql
   IF Not rs.BOF THEN
    SET rs = nothing
    sql = "DELETE FROM `sws` WHERE Pat_ID = " & CStr(rNa(0).Pat_ID)
-   Call DBCn.Execute(sql)
+   Call myefrag(sql)
   END IF
  END IF ' not allePat
 ' sql0 = " INSERT " & sqlignore &  "INTO `sws` (FID,Pat_ID,ZeitPunkt," & _
@@ -8425,14 +8511,14 @@ Public FUNCTION swsSpeichern(SammelInsert%, BezfSp%)
    rSw(i).StByte, ")")
   IF SammelInsert <> 0 AND i < ubound(rSw) THEN csql.Append ","
   IF SammelInsert = 0 OR i = ubound(rSw) THEN
-   Call DBCn.Execute(csql.value,rAf)', , adAsyncExecute)
+   Call myefrag(csql.value,rAf)', , adAsyncExecute)
    IF obfor THEN
     Call ForeignYes0
     Call ForeignYes1
    END IF
    IF sammelinsert = 0 THEN csql.m_len = 0
    IF lese.obmysql AND obmitAlterTab THEN
-    SET rs = DBCn.Execute("SHOW WARNINGS")
+    SET rs = myefrag("SHOW WARNINGS")
     IF not rs.BOF() THEN
      IF rs!code = 1265 THEN
       Err.Raise -2147217833
@@ -8451,7 +8537,7 @@ IF Err.Number = -2147217900 AND InStrB(ErrDescription, " Doppelter; Eintrag; ") 
  Resume Next
 ElseIf Err.Number = -2147467259 AND InStrB(ErrDescription, "Daten zu lang") = 0 THEN ' -2147467259 ' [MySQL][ODBC 3.51 Driver][mysqld-5.1.32-log]Cannot add OR update a child row: a foreign key constraint fails
  IF InStrB(ErrDescription, "'READ-COMMITTED'") <> 0 THEN
-  DBCn.Execute "SET SESSION TRANSACTION ISOLATION LEVEL REPEATABLE READ", rAF
+  myefrag "SET SESSION TRANSACTION ISOLATION LEVEL REPEATABLE READ", rAF
  Else
   Call doBezFeh(csql.Value, BezfSp, ErrDescription)
  END IF
@@ -8527,14 +8613,14 @@ Public FUNCTION laborxsaetzeSpeichern(SammelInsert%, BezfSp%)
    rLs(i).OrtLabor, "','" , rLs(i).KBVPrüfnr, "','" , rLs(i).Zeichensatz, "','" , rLs(i).Kundenarztnr, "','" , rLs(i).Erstellungsdatum, "','" , rLs(i).Gesamtlänge, "')")
   IF SammelInsert <> 0 AND i < ubound(rLs) THEN csql.Append ","
   IF SammelInsert = 0 OR i = ubound(rLs) THEN
-   Call DBCn.Execute(csql.value,rAf)', , adAsyncExecute)
+   Call myefrag(csql.value,rAf)', , adAsyncExecute)
    IF obfor THEN
     Call ForeignYes0
     Call ForeignYes1
    END IF
    IF sammelinsert = 0 THEN csql.m_len = 0
    IF lese.obmysql AND obmitAlterTab THEN
-    SET rs = DBCn.Execute("SHOW WARNINGS")
+    SET rs = myefrag("SHOW WARNINGS")
     IF not rs.BOF() THEN
      IF rs!code = 1265 THEN
       Err.Raise -2147217833
@@ -8553,7 +8639,7 @@ IF Err.Number = -2147217900 AND InStrB(ErrDescription, " Doppelter; Eintrag; ") 
  Resume Next
 ElseIf Err.Number = -2147467259 AND InStrB(ErrDescription, "Daten zu lang") = 0 THEN ' -2147467259 ' [MySQL][ODBC 3.51 Driver][mysqld-5.1.32-log]Cannot add OR update a child row: a foreign key constraint fails
  IF InStrB(ErrDescription, "'READ-COMMITTED'") <> 0 THEN
-  DBCn.Execute "SET SESSION TRANSACTION ISOLATION LEVEL REPEATABLE READ", rAF
+  myefrag "SET SESSION TRANSACTION ISOLATION LEVEL REPEATABLE READ", rAF
  Else
   Call doBezFeh(csql.Value, BezfSp, ErrDescription)
  END IF
@@ -8662,14 +8748,14 @@ Public FUNCTION laborxeingelSpeichern(SammelInsert%, BezfSp%)
   csql.AppVar Array("('" , rLg(i).Pfad, "','" , rLg(i).Name, "'," , DatFor_k(rLg(i).Zp), "," , cstr(-(rLg(i).fertig<>0)) , ")")
   IF SammelInsert <> 0 AND i < ubound(rLg) THEN csql.Append ","
   IF SammelInsert = 0 OR i = ubound(rLg) THEN
-   Call DBCn.Execute(csql.value,rAf)', , adAsyncExecute)
+   Call myefrag(csql.value,rAf)', , adAsyncExecute)
    IF obfor THEN
     Call ForeignYes0
     Call ForeignYes1
    END IF
    IF sammelinsert = 0 THEN csql.m_len = 0
    IF lese.obmysql AND obmitAlterTab THEN
-    SET rs = DBCn.Execute("SHOW WARNINGS")
+    SET rs = myefrag("SHOW WARNINGS")
     IF not rs.BOF() THEN
      IF rs!code = 1265 THEN
       Err.Raise -2147217833
@@ -8688,7 +8774,7 @@ IF Err.Number = -2147217900 AND InStrB(ErrDescription, " Doppelter; Eintrag; ") 
  Resume Next
 ElseIf Err.Number = -2147467259 AND InStrB(ErrDescription, "Daten zu lang") = 0 THEN ' -2147467259 ' [MySQL][ODBC 3.51 Driver][mysqld-5.1.32-log]Cannot add OR update a child row: a foreign key constraint fails
  IF InStrB(ErrDescription, "'READ-COMMITTED'") <> 0 THEN
-  DBCn.Execute "SET SESSION TRANSACTION ISOLATION LEVEL REPEATABLE READ", rAF
+  myefrag "SET SESSION TRANSACTION ISOLATION LEVEL REPEATABLE READ", rAF
  Else
   Call doBezFeh(csql.Value, BezfSp, ErrDescription)
  END IF
@@ -8771,14 +8857,14 @@ Public FUNCTION laborxusSpeichern(SammelInsert%, BezfSp%, j&)
    rLu(i).ZdüP, "," , rLu(i).ZdiP, ",'" , rLu(i).LWerte, "'," , DatFor_k(rLu(i).verglichen), "," , rLu(i).AfN, ")")
   IF SammelInsert <> 0 AND i < j THEN csql.Append ","
   IF SammelInsert = 0 OR i = j THEN
-   Call DBCn.Execute(csql.value,rAf)', , adAsyncExecute)
+   Call myefrag(csql.value,rAf)', , adAsyncExecute)
    IF obfor THEN
     Call ForeignYes0
     Call ForeignYes1
    END IF
    IF sammelinsert = 0 THEN csql.m_len = 0
    IF lese.obmysql AND obmitAlterTab THEN
-    SET rs = DBCn.Execute("SHOW WARNINGS")
+    SET rs = myefrag("SHOW WARNINGS")
     IF not rs.BOF() THEN
      IF rs!code = 1265 THEN
       Err.Raise -2147217833
@@ -8797,7 +8883,7 @@ IF Err.Number = -2147217900 AND InStrB(ErrDescription, " Doppelter; Eintrag; ") 
  Resume Next
 ElseIf Err.Number = -2147467259 AND InStrB(ErrDescription, "Daten zu lang") = 0 THEN ' -2147467259 ' [MySQL][ODBC 3.51 Driver][mysqld-5.1.32-log]Cannot add OR update a child row: a foreign key constraint fails
  IF InStrB(ErrDescription, "'READ-COMMITTED'") <> 0 THEN
-  DBCn.Execute "SET SESSION TRANSACTION ISOLATION LEVEL REPEATABLE READ", rAF
+  myefrag "SET SESSION TRANSACTION ISOLATION LEVEL REPEATABLE READ", rAF
  Else
   Call doBezFeh(csql.Value, BezfSp, ErrDescription)
  END IF
@@ -8917,14 +9003,14 @@ Public FUNCTION laborxbaktSpeichern(SammelInsert%, BezfSp%)
    rLo(i).Keimzahl, "')")
   IF SammelInsert <> 0 AND i < ubound(rLo) THEN csql.Append ","
   IF SammelInsert = 0 OR i = ubound(rLo) THEN
-   Call DBCn.Execute(csql.value,rAf)', , adAsyncExecute)
+   Call myefrag(csql.value,rAf)', , adAsyncExecute)
    IF obfor THEN
     Call ForeignYes0
     Call ForeignYes1
    END IF
    IF sammelinsert = 0 THEN csql.m_len = 0
    IF lese.obmysql AND obmitAlterTab THEN
-    SET rs = DBCn.Execute("SHOW WARNINGS")
+    SET rs = myefrag("SHOW WARNINGS")
     IF not rs.BOF() THEN
      IF rs!code = 1265 THEN
       Err.Raise -2147217833
@@ -8943,7 +9029,7 @@ IF Err.Number = -2147217900 AND InStrB(ErrDescription, " Doppelter; Eintrag; ") 
  Resume Next
 ElseIf Err.Number = -2147467259 AND InStrB(ErrDescription, "Daten zu lang") = 0 THEN ' -2147467259 ' [MySQL][ODBC 3.51 Driver][mysqld-5.1.32-log]Cannot add OR update a child row: a foreign key constraint fails
  IF InStrB(ErrDescription, "'READ-COMMITTED'") <> 0 THEN
-  DBCn.Execute "SET SESSION TRANSACTION ISOLATION LEVEL REPEATABLE READ", rAF
+  myefrag "SET SESSION TRANSACTION ISOLATION LEVEL REPEATABLE READ", rAF
  Else
   Call doBezFeh(csql.Value, BezfSp, ErrDescription)
  END IF
@@ -9042,7 +9128,7 @@ Public FUNCTION laborxwertSpeichern(SammelInsert%, BezfSp%)
 nextj:
      Dim rsdop As New ADODB.Recordset
      SET rsdop = Nothing
-     myfrag rsdop, "SELECT 0 FROM `laborxwert` WHERE `RefNr` = " & rLw(i).RefNr & " AND `Abkü` = '" & rLw(i).Abkü & "' AND `Langname` = '" & rLw(i).Langname & "' AND `Quelle` = '" &  _
+     myFrag rsdop, "SELECT 0 FROM `laborxwert` WHERE `RefNr` = " & rLw(i).RefNr & " AND `Abkü` = '" & rLw(i).Abkü & "' AND `Langname` = '" & rLw(i).Langname & "' AND `Quelle` = '" &  _
    rLw(i).Quelle & "' AND `QSpez` = '" & rLw(i).QSpez & "' AND `AbnDat` = " & DatFor_k(rLw(i).AbnDat) & " AND `Wert` = '" &  _
    rLw(i).Wert & "' AND `Einheit` = '" & rLw(i).Einheit & "' AND `Grenzwerti` = '" & rLw(i).Grenzwerti & "' AND `Kommentar` = '" & rLw(i).Kommentar & "' AND `Teststatus` = '" &  _
    rLw(i).Teststatus & "' AND `Erklärung` = '" & rLw(i).Erklärung & "' AND `AuftrHinw` = '" & rLw(i).AuftrHinw & "' AND `nbid` = " &  _
@@ -9056,14 +9142,14 @@ nextj:
    rLw(i).Grenzwerti, "','" , rLw(i).Kommentar, "','" , rLw(i).Teststatus, "','" , rLw(i).Erklärung, "','" , rLw(i).AuftrHinw, "'," , rLw(i).nbid, ")")
   IF SammelInsert <> 0 AND i < ubound(rLw) THEN csql.Append ","
   IF SammelInsert = 0 OR i = ubound(rLw) THEN
-   Call DBCn.Execute(csql.value,rAf)', , adAsyncExecute)
+   Call myefrag(csql.value,rAf)', , adAsyncExecute)
    IF obfor THEN
     Call ForeignYes0
     Call ForeignYes1
    END IF
    IF sammelinsert = 0 THEN csql.m_len = 0
    IF lese.obmysql AND obmitAlterTab THEN
-    SET rs = DBCn.Execute("SHOW WARNINGS")
+    SET rs = myefrag("SHOW WARNINGS")
     IF not rs.BOF() THEN
      IF rs!code = 1265 THEN
       Err.Raise -2147217833
@@ -9083,7 +9169,7 @@ IF Err.Number = -2147217900 AND InStrB(ErrDescription, " Doppelter; Eintrag; ") 
  Resume Next
 ElseIf Err.Number = -2147467259 AND InStrB(ErrDescription, "Daten zu lang") = 0 THEN ' -2147467259 ' [MySQL][ODBC 3.51 Driver][mysqld-5.1.32-log]Cannot add OR update a child row: a foreign key constraint fails
  IF InStrB(ErrDescription, "'READ-COMMITTED'") <> 0 THEN
-  DBCn.Execute "SET SESSION TRANSACTION ISOLATION LEVEL REPEATABLE READ", rAF
+  myefrag "SET SESSION TRANSACTION ISOLATION LEVEL REPEATABLE READ", rAF
  Else
   Call doBezFeh(csql.Value, BezfSp, ErrDescription)
  END IF
@@ -9174,14 +9260,14 @@ Public FUNCTION laborxleistSpeichern(SammelInsert%, BezfSp%)
   csql.AppVar Array("(" , rLL(i).RefNr, ",'" , rLL(i).Abkü, "','" , rLL(i).Verf, "','" , rLL(i).EBM, "','" , rLL(i).goä, "','" , rLL(i).Anzahl, "','" , rLL(i).abrd, "')")
   IF SammelInsert <> 0 AND i < ubound(rLL) THEN csql.Append ","
   IF SammelInsert = 0 OR i = ubound(rLL) THEN
-   Call DBCn.Execute(csql.value,rAf)', , adAsyncExecute)
+   Call myefrag(csql.value,rAf)', , adAsyncExecute)
    IF obfor THEN
     Call ForeignYes0
     Call ForeignYes1
    END IF
    IF sammelinsert = 0 THEN csql.m_len = 0
    IF lese.obmysql AND obmitAlterTab THEN
-    SET rs = DBCn.Execute("SHOW WARNINGS")
+    SET rs = myefrag("SHOW WARNINGS")
     IF not rs.BOF() THEN
      IF rs!code = 1265 THEN
       Err.Raise -2147217833
@@ -9200,7 +9286,7 @@ IF Err.Number = -2147217900 AND InStrB(ErrDescription, " Doppelter; Eintrag; ") 
  Resume Next
 ElseIf Err.Number = -2147467259 AND InStrB(ErrDescription, "Daten zu lang") = 0 THEN ' -2147467259 ' [MySQL][ODBC 3.51 Driver][mysqld-5.1.32-log]Cannot add OR update a child row: a foreign key constraint fails
  IF InStrB(ErrDescription, "'READ-COMMITTED'") <> 0 THEN
-  DBCn.Execute "SET SESSION TRANSACTION ISOLATION LEVEL REPEATABLE READ", rAF
+  myefrag "SET SESSION TRANSACTION ISOLATION LEVEL REPEATABLE READ", rAF
  Else
   Call doBezFeh(csql.Value, BezfSp, ErrDescription)
  END IF
@@ -9290,14 +9376,14 @@ Public FUNCTION liuezSpeichern(SammelInsert%, BezfSp%)
    rLi(i).gemmit, "','" , rLi(i).beme, "'," , rLi(i).dmpt2, "," , rLi(i).dmpt1, ",'" , rLi(i).geschlecht, "','" , rLi(i).titel, "','" , rLi(i).zusatz, "','" , rLi(i).ursp, "'," , DatFor_k(rLi(i).aktzeit), ")")
   IF SammelInsert <> 0 AND i < ubound(rLi) THEN csql.Append ","
   IF SammelInsert = 0 OR i = ubound(rLi) THEN
-   Call DBCn.Execute(csql.value,rAf)', , adAsyncExecute)
+   Call myefrag(csql.value,rAf)', , adAsyncExecute)
    IF obfor THEN
     Call ForeignYes0
     Call ForeignYes1
    END IF
    IF sammelinsert = 0 THEN csql.m_len = 0
    IF lese.obmysql AND obmitAlterTab THEN
-    SET rs = DBCn.Execute("SHOW WARNINGS")
+    SET rs = myefrag("SHOW WARNINGS")
     IF not rs.BOF() THEN
      IF rs!code = 1265 THEN
       Err.Raise -2147217833
@@ -9316,7 +9402,7 @@ IF Err.Number = -2147217900 AND InStrB(ErrDescription, " Doppelter; Eintrag; ") 
  Resume Next
 ElseIf Err.Number = -2147467259 AND InStrB(ErrDescription, "Daten zu lang") = 0 THEN ' -2147467259 ' [MySQL][ODBC 3.51 Driver][mysqld-5.1.32-log]Cannot add OR update a child row: a foreign key constraint fails
  IF InStrB(ErrDescription, "'READ-COMMITTED'") <> 0 THEN
-  DBCn.Execute "SET SESSION TRANSACTION ISOLATION LEVEL REPEATABLE READ", rAF
+  myefrag "SET SESSION TRANSACTION ISOLATION LEVEL REPEATABLE READ", rAF
  Else
   Call doBezFeh(csql.Value, BezfSp, ErrDescription)
  END IF
@@ -9495,7 +9581,7 @@ Public FUNCTION tuSpeichern(frm AS Lese, SI%, BfS%) ' frm.dlg.SammelInsert, frm.
  call ulcusSpeichern(SI, BfS)
  call vkgdSpeichern(SI, BfS)
  call swsSpeichern(SI, BfS)
- Call DBCn.Execute("UPDATE `namen` SET aktZeit = " & DatFor_k(rNa(0).AktZeit) & " WHERE pat_id = " & rNa(0).Pat_ID,rAf)
+ Call myefrag("UPDATE `namen` SET aktZeit = " & DatFor_k(rNa(0).AktZeit) & " WHERE pat_id = " & rNa(0).Pat_ID,rAf)
  IF rAf <> 1 THEN 
   frm.Ausgeb "Fehler bei der Setzung des Aktualisierungsdatum bei " & rNa(0).Pat_ID & " " & rNa(0).Nachname & " " & rNa(0).Vorname, true
  END IF
@@ -9509,7 +9595,7 @@ fehler:
 #END IF
  ErrDescription = Err.Description
  IF InStrB(ErrDescription, "'READ-COMMITTED'") <> 0 THEN
-  DBCn.Execute "SET SESSION TRANSACTION ISOLATION LEVEL REPEATABLE READ", rAF
+  myefrag "SET SESSION TRANSACTION ISOLATION LEVEL REPEATABLE READ", rAF
   Resume
  END IF
  SELECT CASE MsgBox("FNr: " & CStr(Err.Number) & vbCrLf & "LastDLLError: " & CStr(Err.LastDllError) & vbCrLf & "Source: " & IIf(ISNULL(Err.Source), vNS, CStr(Err.Source)) & vbCrLf & "Description: " & Err.Description, vbAbortRetryIgnore, "aufgefangener Fehler in tuSpeichern/" + AnwPfad)

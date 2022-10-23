@@ -47,7 +47,7 @@ Public aufRufer As Lese
 
 
 Private Sub Form_Load()
- Dim rs As New Adodb.Recordset
+ Dim rs As New ADODB.Recordset
  myFrag rs, "SELECT * FROM namen n WHERE nachname LIKE 'zutun%' OR straﬂe LIKE 'mittermayer%13%'"
  If Not rs.BOF Then
   Do While Not rs.EOF

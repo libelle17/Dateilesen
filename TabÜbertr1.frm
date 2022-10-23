@@ -256,6 +256,7 @@ fehler:
   Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
  End Select
 End Sub
+
 Sub zeigtabellen()
  Dim rs1 As New ADODB.Recordset, rCn As New ADODB.Connection
  Dim i%, obMySQL%, altDaBa$
@@ -271,7 +272,7 @@ Sub zeigtabellen()
      Set rs1 = Nothing
      Err.Clear
      If obMySQL Then
-      Set rs1 = rCn.Execute("SHOW TABLES")
+      Set rs1 = myEFrag("SHOW TABLES", , rCn)
      Else
       Set rs1 = rCn.OpenSchema(adSchemaTables, Array(Empty, Empty, Empty, "TABLE"))  'Array(, "" & rSch!catalog_name & "")
      End If
@@ -320,16 +321,19 @@ Private Sub Start_Click()
  End If
  LVobMySQL = (LCase(cnz) Like "*mysql*") ' rZCn.ConnectionString' auch für DatFor_k(, umw(
  If erg = 1 Then
-  If LVobMySQL Then rZCn.Execute ("SET foreign_key_checks = 0") ' Kommentar 12.12.09
+  If LVobMySQL Then
+   myEFrag "SET foreign_key_checks = 0", , rZCn ' Kommentar 12.12.09
+  End If
   rZCn.BeginTrans
   If rZCn.DefaultDatabase = DBCn.DefaultDatabase Then obTrans = 1
   If Me.ReplaceStattInsert = 0 Then
-   rZCn.Execute "DELETE FROM `" & LCase(Me.Tabelle) & "`"
-   rZCn.Execute "ALTER TABLE `" & LCase(Me.Tabelle) & "` auto_increment=1"
+   myEFrag "DELETE FROM `" & LCase(Me.Tabelle) & "`", , rZCn
+   myEFrag "ALTER TABLE `" & LCase(Me.Tabelle) & "` auto_increment=1", , rZCn
   End If
   Me.ZZ = 0
   Dim Felder$()
-  rsq.Open "SELECT * FROM `" & LCase(Me.Tabelle) & "`", rQCn, adOpenStatic, adLockReadOnly
+  myFrag rsq, "SELECT * FROM `" & LCase(Me.Tabelle) & "`", adOpenStatic, rQCn, adLockReadOnly
+'  rsq.Open "SELECT * FROM `" & LCase(Me.Tabelle) & "`", rQCn, adOpenStatic, adLockReadOnly
   AuiFd = GetAutoFeld(rZCn, cnz, LCase(Me.Tabelle), rsq, FListe, Felder)
   Do While Not rsq.EOF
    Call TIns(rZCn, LCase(Me.Tabelle), rsq, AuiFd, FListe, Felder, Me.ReplaceStattInsert)
@@ -338,7 +342,9 @@ Private Sub Start_Click()
    DoEvents
    rsq.Move 1
   Loop
-  If LVobMySQL Then rZCn.Execute ("SET foreign_key_checks = 1")
+  If LVobMySQL Then
+   myEFrag "SET foreign_key_checks = 1", , rZCn
+  End If
   If rZCn.DefaultDatabase <> DBCn.DefaultDatabase Or ((rZCn.DefaultDatabase = DBCn.DefaultDatabase) And obTrans <> 0) Then rZCn.CommitTrans: If rZCn.DefaultDatabase = DBCn.DefaultDatabase Then obTrans = 0
  End If
  Call TZahl(nurZiel:=True)
@@ -346,7 +352,7 @@ Private Sub Start_Click()
  Exit Sub
 fehler:
  If InStrB(Err.Description, "Transaction level 'READ-COMMITTED'") <> 0 Then
-  rZCn.Execute "SET SESSION TRANSACTION ISOLATION LEVEL REPEATABLE READ", rAF
+  myEFrag "SET SESSION TRANSACTION ISOLATION LEVEL REPEATABLE READ", rAF, rZCn
   Resume
  End If
  Dim AnwPfad$
@@ -382,10 +388,10 @@ Private Function TZahl%(Optional nurZiel%)
 ' ON Error Resume Next
  If Me.Tabelle <> "" Then
   If CnQ <> "" And nurZiel = 0 Then
-   rs.Open "SELECT * FROM information_schema.TABLEs t WHERE table_schema = '" & CurDB(CnQ) & "' AND table_name = '" & LCase(Tabelle) & "'", CnQ, adOpenStatic, adLockReadOnly
+   myFrag rs, "SELECT * FROM information_schema.TABLEs t WHERE table_schema = '" & CurDB(CnQ) & "' AND table_name = '" & LCase(Tabelle) & "'", adOpenStatic, CnQ, adLockReadOnly
    If rs.BOF Then Exit Function
-   Set rs = Nothing
-   rs.Open "SELECT COUNT(0) ct FROM `" & LCase(Tabelle) & "`", CnQ, adOpenStatic, adLockReadOnly
+'   Set rs = Nothing
+   myFrag rs, "SELECT COUNT(0) ct FROM `" & LCase(Tabelle) & "`", adOpenStatic, CnQ, adLockReadOnly
    ZQ = rs!ct
    LVobMySQL = (InStrB(LCase(CnQ), "mysql") > 0)
    Set rs = Nothing
@@ -411,7 +417,7 @@ Private Function TZahl%(Optional nurZiel%)
   If cnz <> "" Then
    Set rs = Nothing
    On Error Resume Next
-   rs.Open "SELECT COUNT(0) ct FROM `" & LCase(Me.Tabelle) & "`", cnz, adOpenStatic, adLockReadOnly
+   myFrag rs, "SELECT COUNT(0) ct FROM `" & LCase(Me.Tabelle) & "`", adOpenStatic, cnz, adLockReadOnly
    On Error GoTo fehler
    If rs.State = 0 Then
     MsgBox "Tabelle `" & Me.Tabelle & "` existiert nicht unter '" & cnz
@@ -561,7 +567,7 @@ Public Function TIns&(ZCn As ADODB.Connection, TabN$, rq, AuiFd$, FListe$, ByRef
    sql2 = IIf(RsI, "replace", "insert") & " INTO `" & TabN & "`" & FListe & " VALUES("
    
 '   IF AuiFd <> "" THEN
-'    SET rs = ZCn.Execute("SELECT MAX(" & AuiFd & ") mprim FROM `" & "`" & TabN & "`")
+'    SET rs = myEfrag("SELECT MAX(" & AuiFd & ") mprim FROM `" & "`" & TabN & "`",,ZCn)
 '    mprim = IIf(ISNULL(rs!mprim), 0, rs!mprim) + 1
 '   END IF
    For i = 0 To UBound(Felder) ' rQ.Fields.Count - 1
@@ -639,13 +645,13 @@ Public Function TIns&(ZCn As ADODB.Connection, TabN$, rq, AuiFd$, FListe$, ByRef
 '   sql1 = LEFT(sql1, Len(sql1) - 1) & ") " & sql2
    Dim rAF&
 '   zcn.CursorLocation = adUseClient
-   Call ZCn.Execute(sql2, rAF)
+   Call myEFrag(sql2, rAF, ZCn)
    If rAF = 0 Or (rAF <> 1 And rAF < 100 And RsI = 0) Then Err.Raise 999, , "Fehler in TIns: Falsche Zahl an Datensätzen aktualisiert: " & rAF
    If rAF <> 1 Then TIns = 1
    Exit Function
 fehler:
  If InStrB(Err.Description, "Transaction level 'READ-COMMITTED'") <> 0 Then
-  ZCn.Execute "SET SESSION TRANSACTION ISOLATION LEVEL REPEATABLE READ", rAF
+  myEFrag "SET SESSION TRANSACTION ISOLATION LEVEL REPEATABLE READ", rAF, ZCn
   Resume
  End If
  Dim AnwPfad$

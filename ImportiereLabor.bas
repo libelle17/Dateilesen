@@ -74,7 +74,7 @@ Public Function LaborDirektImport(frm As Lese, absPos&, SammelInsert%, BezfSpei%
 '    neuPfad = f1.Path
     obDateiNeu = 0
     For i = 1 To 2
-'     Set rs = DBCn.Execute("SELECT -fertig AS j_fertig, l.* FROM laborxeingel l WHERE name = '" & f1.name & "' AND pfad = '" & doUmwfSQL(f1.path, Lese.obMySQL) & "'")
+'     Set rs = myefrag("SELECT -fertig AS j_fertig, l.* FROM laborxeingel l WHERE name = '" & f1.name & "' AND pfad = '" & doUmwfSQL(f1.path, Lese.obMySQL) & "'")
      myFrag rs, "SELECT -fertig AS j_fertig, l.* FROM laborxeingel l WHERE name = '" & f1.name & "' AND pfad = '" & doUmwfSQL(f1.path, Lese.obMySQL) & "'"
      If rs.BOF Then
       obDateiNeu = True
@@ -134,12 +134,12 @@ On Error GoTo fehler
     frm.Ausgeb "Lese LaborDatei " + CStr(aktDateiNr) + "/" + CStr(DateiZahl) + " (" + SL.Item(ii).File.path + ") ein ...", True
     If SL.Item(ii).DatID = 0 Then ' wenn kein Debuggenohnespeichern und kein unfertiger Datensatz gefunden wurde
       Dim isql$
-       isql = "INSERT INTO `laborxeingel`(name,pfad,zp) values ('" & SL.Item(ii).File.name & "','" & doUmwfSQL(SL.Item(ii).File.path, Lese.obMySQL) & "'," & DatFor_k(Now) & ")"
-       InsKorr DBCn, DBCnS, isql, rAF
-       isql = "SELECT * FROM `laborxeingel` WHERE name = '" & SL.Item(ii).File.name & "' AND pfad = '" & doUmwfSQL(SL.Item(ii).File.path, Lese.obMySQL) & "'"
-       Set rs = Nothing
-       myFrag rs, isql
-       SL.Item(ii).DatID = rs!DatID
+      isql = "INSERT INTO `laborxeingel`(name,pfad,zp) values ('" & SL.Item(ii).File.name & "','" & doUmwfSQL(SL.Item(ii).File.path, Lese.obMySQL) & "'," & DatFor_k(Now) & ")"
+      InsKorr DBCn, DBCnS, isql, rAF
+      isql = "SELECT DatID FROM `laborxeingel` WHERE name = '" & SL.Item(ii).File.name & "' AND pfad = '" & doUmwfSQL(SL.Item(ii).File.path, Lese.obMySQL) & "'" ' *
+      Set rs = Nothing
+      myFrag rs, isql
+      SL.Item(ii).DatID = rs!DatID
     End If
 '   IF f1.Name LIKE "1b*.ld*" OR f1.Name LIKE "Labor*.dat" THEN
 '   IF f1.Name LIKE "Labor*.dat" THEN
@@ -522,9 +522,9 @@ erneut:
             Call laborxusSpeichern(SammelInsert, BezfSpei, i)
            End If
 '           IF rs1.State = 1 THEN rs1.Close
-'           myfrag rs1, "SELECT MAX(refnr) AS mrefnr FROM `laborxus`;"
+'           myFrag rs1, "SELECT MAX(refnr) AS mrefnr FROM `laborxus`;"
            Set rs1 = Nothing
-           Set rs1 = DBCn.Execute("SELECT last_insert_id()")
+           Set rs1 = myEFrag("SELECT last_insert_id()")
            Dim rs1refnr&
 '           IF ISNULL(rs1!mrefnr) THEN rs1refnr = 0 ELSE rs1refnr = rs1!mrefnr
            rs1refnr = rs1.Fields(0)
@@ -561,7 +561,7 @@ erneut:
              myFrag rs, "SELECT `id` FROM `laborxpneu` WHERE `lid` = '" & laborid & "' AND `abkü` = '" & rLw2(i).e.Abkü & "' AND einheit = '" & rLw2(i).e.Einheit & "'"
              If rs.BOF Then
               InsKorr DBCn, DBCnS, "INSERT INTO `laborxpneu`(`lid`,`abkü`,`einheit`,`langtext`) VALUES('" & laborid & "','" & rLw2(i).e.Abkü & "','" & rLw2(i).e.Einheit & "','" & rLw2(i).e.Langname & "')", rAF
-              Set rs = DBCn.Execute("SELECT last_insert_id()")
+              Set rs = myEFrag("SELECT last_insert_id()")
              End If
              If Not rs.BOF Then
               Dim xpid&, Vorgehen% ' 0 = nehmen, 1 = hinzufügen, 2 = ändern, 3 = anderes Geschlecht suchen
@@ -586,7 +586,7 @@ erneut:
               Select Case Vorgehen
                Case 0
                 If rs!Eingang > rLw2(i).Eingang Then
-                 DBCn.Execute "UPDATE `laborxpnb` SET eingang = " & DatFor_k(rLw2(i).Eingang) & ",uid = " & rLw2(i).e.RefNr & " WHERE id = " & rs!id, rAF
+                 myEFrag "UPDATE `laborxpnb` SET eingang = " & DatFor_k(rLw2(i).Eingang) & ",uid = " & rLw2(i).e.RefNr & " WHERE id = " & rs!id, rAF
                  If rAF <> 1 Then
                   Debug.Print "Fehler bei update eingang"
                  End If
@@ -594,9 +594,9 @@ erneut:
                Case 1
                 Set rs = Nothing
                 InsKorr DBCn, DBCnS, "INSERT INTO `laborxpnb`(`pid`,`Geschlecht`,`Eingang`,`uNg`,`oNg`,`NB`,`uid`,`zahl`) VALUES(" & xpid & "," & rLw2(i).geschlecht & "," & DatFor_k(rLw2(i).Eingang) & ",'" & rLw2(i).NormU & "','" & rLw2(i).NormO & "','" & rLw2(i).Normbereich & "'," & rLw2(i).e.RefNr & ",1)", rAF
-                Set rs = DBCn.Execute("SELECT last_insert_id()")
+                Set rs = myEFrag("SELECT last_insert_id()")
                Case 2
-                DBCn.Execute "UPDATE `laborxpnb` SET geschlecht = 9 WHERE id = " & rs!id, rAF
+                myEFrag "UPDATE `laborxpnb` SET geschlecht = 9 WHERE id = " & rs!id, rAF
                 If rAF <> 1 Then
                  Debug.Print "Fehler bei update geschlecht"
                 End If
@@ -606,7 +606,7 @@ erneut:
               
               Select Case Vorgehen
                Case 0, 2
-                DBCn.Execute "UPDATE `laborxpnb` SET zahl = zahl+1 WHERE id = " & rs!id, rAF
+                myEFrag "UPDATE `laborxpnb` SET zahl = zahl+1 WHERE id = " & rs!id, rAF
               End Select
               
              End If
@@ -614,7 +614,7 @@ erneut:
             Debug.Print SL.Item(ii).File.name
             Call laborxwertSpeichern(SammelInsert, BezfSpei)
             Call laborxleistSpeichern(SammelInsert, BezfSpei)
-            Call DBCn.Execute("UPDATE `laborxeingel` SET fertig = 1 WHERE datid = " & SL.Item(ii).DatID) ' Fertigkennzeichen setzen
+            Call myEFrag("UPDATE `laborxeingel` SET fertig = 1 WHERE datid = " & SL.Item(ii).DatID) ' Fertigkennzeichen setzen
 '            Call DBCn.CommitTrans
 '            Call DBCn.BeginTrans
            End If
@@ -671,7 +671,7 @@ fehler:
  AnwPfad = App.path
 #End If
 If InStrB(Err.Description, "Transaction level 'READ-COMMITTED'") <> 0 Then
- DBCn.Execute "SET SESSION TRANSACTION ISOLATION LEVEL REPEATABLE READ", rAF
+ myEFrag "SET SESSION TRANSACTION ISOLATION LEVEL REPEATABLE READ", rAF
  Resume
 End If
 Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in LaborDirektImport/" + AnwPfad)
@@ -680,6 +680,7 @@ Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "Last
  Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
 End Select
 End Function ' LaborDirektImport
+
 Function LaborErgPatId(lies As Lese, Optional mitLöschen%, Optional nurRef&)
 ' Pat_IDs ergänzen
  Dim rs As New ADODB.Recordset, rs1 As New ADODB.Recordset
@@ -732,9 +733,9 @@ nochmal:
 '  sql = sql + " ORDER BY eingang, laborxus.refnr"
    sql = sql + " ORDER BY laborxus.refnr"
    
-  sqlct = "SELECT COUNT(0) AS ct FROM (" & sql & ") AS Zl"
+  sqlct = "SELECT COUNT(0) ct FROM (" & sql & ") AS Zl"
 '  GoTo nochmal:
-  Set rs = DBCn.Execute(LCase(sqlct))
+  Set rs = myEFrag(LCase(sqlct))
   lies.GesBytes = rs!ct
    If mitLöschen Then
 '   IF rs!ct > 30000 THEN
@@ -745,7 +746,7 @@ nochmal:
   End If
 
  If debugbit Then Open lies.snst.DebugDatei For Output As #300
-' SET rLX = DBCn.Execute(lcase(sql))
+' SET rLX = myefrag(lcase(sql))
  obNeuerPat = -1 ' SL neu befüllen
 ' rLX.Open LCase(sql), DBCn, adOpenDynamic, adLockOptimistic
  myFrag rLX, LCase$(sql)
@@ -895,18 +896,18 @@ nochmal:
      
      GesAbk = Left(GesAbk, Len(GesAbk) - 1) + ")"
      If Not debugbit Then
-      Call DBCn.Execute("UPDATE `laborneu` SET refnr = " & rLX!RefNr & " WHERE pat_id = " & SLPat_id & " AND zeitpunkt = " & DatFor_k(rLNZeitpunkt) & " AND abkü IN " & GesAbk, laborneuAfn)
+      Call myEFrag("UPDATE `laborneu` SET refnr = " & rLX!RefNr & " WHERE pat_id = " & SLPat_id & " AND zeitpunkt = " & DatFor_k(rLNZeitpunkt) & " AND abkü IN " & GesAbk, laborneuAfn)
       If laborneuAfn = 0 Then Err.Raise 9999, , "laborneuAFN = 0"
      End If
 '     END IF ' SL.count = 1
     
      If Not debugbit Then
-      Call DBCn.Execute("UPDATE `laborxus` SET pat_idUrsp= '" & nPat_idUrsp & "',Pat_id = " & nPat_ID & ",Zeitpunktlaborneu = " & DatFor_k(rLNZeitpunkt) & ",LWerte = '" & LWerte & "',ZdüP = " & ZdüP & ", Pat_idlaborneu = '" & nPat_idlaborneu & "', AfN = " & laborneuAfn & " WHERE refnr = " & rLX!RefNr, rAF)
+      Call myEFrag("UPDATE `laborxus` SET pat_idUrsp= '" & nPat_idUrsp & "',Pat_id = " & nPat_ID & ",Zeitpunktlaborneu = " & DatFor_k(rLNZeitpunkt) & ",LWerte = '" & LWerte & "',ZdüP = " & ZdüP & ", Pat_idlaborneu = '" & nPat_idlaborneu & "', AfN = " & laborneuAfn & " WHERE refnr = " & rLX!RefNr, rAF)
      End If
     End If ' SL.count = 1
     If SLPat_id <> -1 Or (Now - BDTtoDate(rLX!Erstellungsdatum)) > 7 Then
      If Not debugbit Then
-      Call DBCn.Execute("UPDATE `laborxus` SET verglichen = " & DatFor_k(Now) & ",LWerte = '" & LWerte & "',ZdüP = " & ZdüP & ", ZdiP = " & SL.COUNT & " WHERE refnr = " & rLX!RefNr, rAF)
+      Call myEFrag("UPDATE `laborxus` SET verglichen = " & DatFor_k(Now) & ",LWerte = '" & LWerte & "',ZdüP = " & ZdüP & ", ZdiP = " & SL.COUNT & " WHERE refnr = " & rLX!RefNr, rAF)
      End If
     End If
     rLX.Move 1 ' nach vorher -1
@@ -959,9 +960,9 @@ Function LöschRefNr(Optional RefNr&)
  Dim rAF&
  Dim rs As ADODB.Recordset
  If RefNr = 0 Then
-  Set rs = DBCn.Execute("UPDATE `laborneu` SET refnr = null WHERE NOT ISNULL(refnr)", rAF)
+  Set rs = myEFrag("UPDATE `laborneu` SET refnr = null WHERE NOT ISNULL(refnr)", rAF)
  Else
-  Set rs = DBCn.Execute("UPDATE `laborneu` SET refnr = null WHERE refnr = " & RefNr, rAF)
+  Set rs = myEFrag("UPDATE `laborneu` SET refnr = null WHERE refnr = " & RefNr, rAF)
  End If
  Exit Function
 fehler:
@@ -1042,17 +1043,17 @@ Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "Last
 End Select
 End Function ' BDTtoTime
 
-Function indIns&(cn As ADODB.Connection, CNs$, Tb$, fld$, Wert$, idFld$)
+Function indIns&(Cn As ADODB.Connection, CNs$, Tb$, fld$, Wert$, idFld$)
  Dim rs As New ADODB.Recordset, rAF&
  Dim varlen&, pos&
  Dim STyp$
  On Error GoTo fehler
  Dim sql$
  sql = "SELECT * FROM `" & Tb & "` WHERE `" & fld & "` = '" & doUmwfSQL(Wert, LVobMySQL) & "'"
- rs.Open sql, cn, adOpenStatic, adLockReadOnly
+ myFrag rs, sql, adOpenStatic, Cn, adLockReadOnly
  If rs.BOF Then
   Set rs = Nothing
-  rs.Open "SELECT data_type dt, character_maximum_length cml FROM information_schema.`COLUMNS` C WHERE table_schema = '" & HADBName & "' AND table_name = '" & Tb & "' AND column_name = '" & fld & "'", cn
+  myFrag rs, "SELECT data_type dt, character_maximum_length cml FROM information_schema.`COLUMNS` C WHERE table_schema = '" & HADBName & "' AND table_name = '" & Tb & "' AND column_name = '" & fld & "'", , Cn
 '  rs.Open "SHOW FULL COLUMNS FROM `" & Tb & "` WHERE field = '" & fld & "'", cn
   If Not rs.BOF Then
    STyp = rs!DT
@@ -1064,15 +1065,15 @@ Function indIns&(cn As ADODB.Connection, CNs$, Tb$, fld$, Wert$, idFld$)
     If varlen < Len(Wert) Then
      If Len(Wert) > 767 Then
 ' hier müßte noch der Index verkürzt werden
-      cn.Execute "ALTER TABLE `" & Tb & "` modify `" & fld & "` varchar(" & Len(Wert) & ")"
+      myEFrag "ALTER TABLE `" & Tb & "` modify `" & fld & "` varchar(" & Len(Wert) & ")", , Cn
      Else
-      cn.Execute "ALTER TABLE `" & Tb & "` modify `" & fld & "` varchar(" & Len(Wert) & ")"
+      myEFrag "ALTER TABLE `" & Tb & "` modify `" & fld & "` varchar(" & Len(Wert) & ")", , Cn
      End If
-    End If
-   End If
-  End If
-  InsKorr cn, CNs, "INSERT INTO `" & Tb & "`(`" & fld & "`) VALUES('" & doUmwfSQL(Wert, LVobMySQL) & "')", rAF
-  Set rs = cn.Execute("SELECT last_insert_id()")
+    End If ' STyp = "varchar"
+   End If ' NOT rs.BOF
+  End If ' rs.BOF
+  InsKorr Cn, CNs, "INSERT INTO `" & Tb & "`(`" & fld & "`) VALUES('" & doUmwfSQL(Wert, LVobMySQL) & "')", rAF
+  Set rs = myEFrag("SELECT last_insert_id()", , Cn)
   indIns = rs.Fields(0)
  Else
   indIns = rs.Fields(idFld)
@@ -1094,7 +1095,7 @@ End Function ' indIns
 
 
 Function löschBezügeausLaborxus(Optional RefNr&)
-   Call DBCn.Execute("UPDATE `laborxus` SET " & _
+   Call myEFrag("UPDATE `laborxus` SET " & _
                      "Zeitpunktlaborneu = " & DatFor_k(CDate(0)) & "," & _
                      "verglichen = null," & _
                      "LWerte = """"," & _
@@ -1102,10 +1103,10 @@ Function löschBezügeausLaborxus(Optional RefNr&)
                      "AfN = 0," & _
                      "Pat_idlaborneu = """" " & _
                      IIf(RefNr <> 0, "WHERE refnr = " & RefNr, vNS), rAF)
-   Call DBCn.Execute("UPDATE `laborxus` SET " & _
+   Call myEFrag("UPDATE `laborxus` SET " & _
                      "pat_idursp = ""E"" " & _
                      IIf(RefNr <> 0, "WHERE refnr = " & RefNr & " and", "where") & " pat_idursp IN (""B"",""W"")", rAF)
-   Call DBCn.Execute("UPDATE `laborxus` SET " & _
+   Call myEFrag("UPDATE `laborxus` SET " & _
                      "pat_idursp = """"," & _
                      "pat_id = 0 " & _
                      IIf(RefNr <> 0, "WHERE refnr = " & RefNr & " and", "where") & " pat_idursp = ""L""", rAF)
@@ -1146,7 +1147,7 @@ If SpValLen > maxL And maxL > 0 Then ' longtext
 ''  Call CnOpen(False, ZCStr)
 '  'Call acon(quelleT)
 '  DBCn.Open
-  If Lese.obMySQL Then Call DBCn.Execute("USE `" & Lese.MyDB & "`")
+  If Lese.obMySQL Then Call myEFrag("USE `" & Lese.MyDB & "`")
   Call ForeignNo0
   Call ForeignNo1
   If DBCn.State = 0 Then
@@ -1155,7 +1156,7 @@ If SpValLen > maxL And maxL > 0 Then ' longtext
   If LenB(sqlText) = 0 Then Zinit (Lese.obMySQL)
   If SpValLen > maxL Then
    If Not Lese.obMySQL And SpValLen > 255 Then
-    Call DBCn.Execute("ALTER TABLE `" & TName & "`" & sqlALTER & " COLUMN `" & SpName & "` " & "MEMO", rAF)
+    Call myEFrag("ALTER TABLE `" & TName & "`" & sqlALTER & " COLUMN `" & SpName & "` " & "MEMO", rAF)
     SpMod = -1
    Else
     On Error Resume Next
@@ -1164,10 +1165,10 @@ nochmal:
     If Lese.obMySQL Then
      Set rsc = Nothing
      myFrag rsc, "SHOW FULL COLUMNS FROM `" & TName & "` WHERE field = '" & SpName & "'"
-     Call DBCn.Execute("SET SESSION innodb_strict_mode=off") ' wenn Zeilengröße schon > 8125 osä
-     Call DBCn.Execute("ALTER TABLE `" & TName & "`" & sqlALTER & " COLUMN `" & SpName & "` " & sqlText & "(" & SpValLen & ") " & IIf(IsNull(rsc!collation), vNS, " COLLATE " & rsc!collation) & " default " & IIf(IsNull(rsc!Default), " null", "'" & rsc!Default & "'") & " comment '" & rsc!Comment & "'", rAF)
+     Call myEFrag("SET SESSION innodb_strict_mode=off") ' wenn Zeilengröße schon > 8125 osä
+     Call myEFrag("ALTER TABLE `" & TName & "`" & sqlALTER & " COLUMN `" & SpName & "` " & sqlText & "(" & SpValLen & ") " & IIf(IsNull(rsc!collation), vNS, " COLLATE " & rsc!collation) & " default " & IIf(IsNull(rsc!Default), " null", "'" & rsc!Default & "'") & " comment '" & rsc!Comment & "'", rAF)
     Else
-     Call DBCn.Execute("ALTER TABLE `" & TName & "`" & sqlALTER & " COLUMN `" & SpName & "` " & sqlText & "(" & SpValLen & ")", rAF)
+     Call myEFrag("ALTER TABLE `" & TName & "`" & sqlALTER & " COLUMN `" & SpName & "` " & sqlText & "(" & SpValLen & ")", rAF)
     End If
     FNr = Err.Number
     FText = Err.Description & " " & vbCrLf & Err.LastDllError
@@ -1217,9 +1218,9 @@ Else
 '  ON Error GoTo fehler
 '  DBCn.Close
 '  DBcnOpen ZCStr
-'  IF lese.obmysql THEN Call DBCn.Execute("use " & myDB)
+'  IF lese.obmysql THEN Call myefrag("use " & myDB)
 '  call foreignno
-'  Call DBCn.Execute("ALTER TABLE " & "`" & Tname & "`" & " " & IIf(lese.obmysql, "MODIFY", "ALTER") & " Column " & "`" & SpName & "`" & " " & "MEMO")
+'  Call myefrag("ALTER TABLE " & "`" & Tname & "`" & " " & IIf(lese.obmysql, "MODIFY", "ALTER") & " Column " & "`" & SpName & "`" & " " & "MEMO")
 '   ausgTxt = "Feldudt.mwandlung Tabelle '" & Tname & "' Feld '" & SpName & "';" & maxL & " -> Memo; wg. Inhalt: " & SpVal
 '   Lese.Ausgeb ausgTxt ,true
 '   Open Lese.snst.DebugDatei For Append AS #399

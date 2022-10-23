@@ -1355,11 +1355,11 @@ Private Declare Function ShellExecute Lib "shell32.dll" _
         lpParameters As String, ByVal lpDirectory As String, _
         ByVal nShowCmd As Long) As Long
 
-Private Sub adoRS_MoveComplete(ByVal adReason As Adodb.EventReasonEnum, ByVal pError As Adodb.Error, adStatus As Adodb.EventStatusEnum, ByVal pRecordset As Adodb.Recordset)
+Private Sub adoRS_MoveComplete(ByVal adReason As ADODB.EventReasonEnum, ByVal pError As ADODB.Error, adStatus As ADODB.EventStatusEnum, ByVal pRecordset As ADODB.Recordset)
   'Hierdurch wird die aktuelle Datensatzposition für diese Datensatzgruppe angezeigt
    lblStatus.Caption = CStr(adoRS.AbsolutePosition)
    Call do_Form_Current_Medarten(Me)
-   Dim rs As New Adodb.Recordset
+   Dim rs As New ADODB.Recordset
    If IsNumeric(adoRS!Pat_id) Then
     myFrag rs, "SELECT CONCAT(IF(n.titel='','',CONCAT(n.titel,' ')), IF(n.nvorsatz='','',CONCAT(n.nvorsatz,' ')), n.nachname,',',n.vorname) Name FROM `namen` n WHERE pat_id = " & adoRS!Pat_id
     If Not rs.BOF Then
@@ -1378,7 +1378,7 @@ Private Sub adoRS_MoveComplete(ByVal adReason As Adodb.EventReasonEnum, ByVal pE
    End If ' Not adoRS.BOF And Not adoRS.EOF Then
 End Sub 'adoRS_MoveComplete
 
-Private Sub adoRS_WillChangeRecord(ByVal adReason As Adodb.EventReasonEnum, ByVal cRecords As Long, adStatus As Adodb.EventStatusEnum, ByVal pRecordset As Adodb.Recordset)
+Private Sub adoRS_WillChangeRecord(ByVal adReason As ADODB.EventReasonEnum, ByVal cRecords As Long, adStatus As ADODB.EventStatusEnum, ByVal pRecordset As ADODB.Recordset)
   'Hier können Sie Code zur Überprüfung einfügen
   'Dieses Ereignis wird aufgerufen, wenn die folgenden Aktionen eintreten
   Dim bCancel As Boolean
@@ -1913,7 +1913,7 @@ End Sub 'Private Sub Form_Unload()
 'Östr_Bezeichnungsfeld:                  vLab(40)
 
 Private Sub vCheckb_MouseMove(Index As Integer, Button As Integer, Shift As Integer, x As Single, Y As Single)
- Dim rs As New Adodb.Recordset
+ Dim rs As New ADODB.Recordset
  If LVobMySQL Then
   myFrag rs, "SELECT column_comment FROM information_schema.`COLUMNS` WHERE table_schema = '" & CurDB(DBCn) & "' AND table_name = 'medarten' AND column_name = '" & Me.vCheckb(Index).DataField & "'"
   If Not rs.EOF Then
@@ -1929,7 +1929,7 @@ Private Sub vTextB_GotFocus(Index As Integer)
 End Sub ' Sub vTextB_GotFocus(Index As Integer)
 
 Private Sub vTextB_MouseMove(Index As Integer, Button As Integer, Shift As Integer, x As Single, Y As Single)
- Dim rs As New Adodb.Recordset
+ Dim rs As New ADODB.Recordset
  If LVobMySQL Then
   myFrag rs, "SELECT column_comment FROM information_schema.`COLUMNS` WHERE table_schema = '" & CurDB(DBCn) & "' AND table_name = 'medarten' AND column_name = '" & Me.vTextB(Index).DataField & "'"
   If Not rs.EOF Then

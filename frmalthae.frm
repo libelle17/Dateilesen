@@ -841,7 +841,7 @@ Public Function Vorbereit(Umfang$)
 '  adoPrimaryRS.Open "SELECT DBNr,diff,BStelle,Anrede,HAName,ort,KVNR,KVNu,LANR,Tel1,Tel2,Tel3,Tel4,Fax1,Fax1k,Fax2,Fax2k,Fax3,Fax3k,Email,ZulG,Arzttyp,GemMit,beme,DMPT2,DMPT1,Geschlecht,Titel,Vorname,Nachname,Straße,PLZ,gelöscht,seit,bis,AktZeit FROM althae ORDER BY kvnu", DBCn, adOpenStatic, adLockOptimistic
 '  DBCn.CursorLocation = adUseClient
   If Right$(Umfang, 1) = "," Then Umfang = Left$(Umfang, Len(Umfang) - 1)
-  adoPrimaryRS.Open "SELECT neuAI,DBNr,diff,BStelle,Anrede,HAName,ort,KVNR,KVNu,LANR,Tel1,Tel2,Tel3,Tel4,Fax1,Fax1k,Fax2,Fax2k,Fax3,Fax3k,Email,ZulG,Arzttyp,GemMit,beme,DMPT2,DMPT1,Geschlecht,Titel,Vorname,Nachname,Straße,PLZ,gelöscht,seit,bis,AktZeit FROM althae WHERE kvnu IN (" & Umfang & ")", DBCn, adOpenStatic, adLockOptimistic
+  myFrag adoPrimaryRS, "SELECT neuAI,DBNr,diff,BStelle,Anrede,HAName,ort,KVNR,KVNu,LANR,Tel1,Tel2,Tel3,Tel4,Fax1,Fax1k,Fax2,Fax2k,Fax3,Fax3k,Email,ZulG,Arzttyp,GemMit,beme,DMPT2,DMPT1,Geschlecht,Titel,Vorname,Nachname,Straße,PLZ,gelöscht,seit,bis,AktZeit FROM althae WHERE kvnu IN (" & Umfang & ")", adOpenStatic, DBCn, adLockOptimistic
   If adoPrimaryRS.BOF Then Exit Function
   Dim oText As TextBox
   'Textfelder an Datenprovider binden
@@ -887,8 +887,8 @@ Private Sub Form_Unload(Cancel As Integer)
   Screen.MousePointer = vbDefault
 End Sub ' Form_Unload(Cancel As Integer)
 
-Private Sub adoPrimaryRS_MoveComplete(ByVal adReason As Adodb.EventReasonEnum, ByVal pError As Adodb.Error, adStatus As Adodb.EventStatusEnum, ByVal pRecordset As Adodb.Recordset)
-  Dim rs As New Adodb.Recordset
+Private Sub adoPrimaryRS_MoveComplete(ByVal adReason As ADODB.EventReasonEnum, ByVal pError As ADODB.Error, adStatus As ADODB.EventStatusEnum, ByVal pRecordset As ADODB.Recordset)
+  Dim rs As New ADODB.Recordset
   'Hierdurch wird die aktuelle Datensatzposition für diese Datensatzgruppe angezeigt
   lblStatus.Caption = "Record: " & CStr(adoPrimaryRS.AbsolutePosition)
   If Not adoPrimaryRS.BOF And Not adoPrimaryRS.EOF Then
@@ -899,7 +899,7 @@ Private Sub adoPrimaryRS_MoveComplete(ByVal adReason As Adodb.EventReasonEnum, B
   End If
 End Sub
 
-Private Sub adoPrimaryRS_WillChangeRecord(ByVal adReason As Adodb.EventReasonEnum, ByVal cRecords As Long, adStatus As Adodb.EventStatusEnum, ByVal pRecordset As Adodb.Recordset)
+Private Sub adoPrimaryRS_WillChangeRecord(ByVal adReason As ADODB.EventReasonEnum, ByVal cRecords As Long, adStatus As ADODB.EventStatusEnum, ByVal pRecordset As ADODB.Recordset)
   'Hier können Sie Code zur Überprüfung einfügen
   'Dieses Ereignis wird aufgerufen, wenn die folgenden Aktionen eintreten
   Dim bCancel As Boolean

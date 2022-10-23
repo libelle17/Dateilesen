@@ -7,7 +7,7 @@ Dim DateiNachzuholen$, DebugDatei$, QuelleMDB$
 'Const DebugDatei$ = "c:\u\anamnese\debug.txt"
 'Const QuelleMDB$ = "c:\u\anamnese\quelle.mdb"
 'Public rs As New ADODB.Recordset
-Public rsAdo As New Adodb.Recordset
+Public rsAdo As New ADODB.Recordset
 Public FSO As New FileSystemObject
 Public imAufbauLese As Boolean
 Public imAufbauDialog As Boolean
@@ -323,8 +323,8 @@ End Function ' machAbKü$()
 'BLOB usw.
 
 Function doMacheTypen(Tabelle$) ' aufgerufen aus MacheTypen
- Dim Tabl$, art$, rsAdSc As New Adodb.Recordset
- Dim TDesc As New Adodb.Recordset
+ Dim Tabl$, art$, rsAdSc As New ADODB.Recordset
+ Dim TDesc As New ADODB.Recordset
  Dim lenge&, obZusatzFeld%
  On Error GoTo fehler
  Tabl = LCase(Tabelle)
@@ -374,7 +374,7 @@ Function doMacheTypen(Tabelle$) ' aufgerufen aus MacheTypen
  Loop
 #If False Then
 ' IF lies.obmysql THEN
-  Set rsAdo = DBCn.Execute("SHOW columns FROM `" & Tabl & "`")
+  Set rsAdo = myEFrag("SHOW columns FROM `" & Tabl & "`")
 ' END IF
  Do While Not rsAdo.EOF
   art = " " + rsAdo.Fields(0) + " AS "
@@ -422,12 +422,12 @@ Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "Last
 End Select
 End Function ' doMacheTypen
 
-Function obAutoIncr%(Tabl$, rs As Adodb.Recordset)
+Function obAutoIncr%(Tabl$, rs As ADODB.Recordset)
  Dim test%, Spalt$
  On Error GoTo fehler
  If lies.obMySQL Then
 #If True Then
- Dim rsDir As New Adodb.Recordset, fI%, pi%
+ Dim rsDir As New ADODB.Recordset, fI%, pi%
  rsDir.CursorLocation = adUseServer
 ' For fi = 0 To rsDir.Fields.Count - 1
 '  For pi = 0 To rsDir.Fields(fi).Properties.Count - 1
@@ -488,14 +488,14 @@ End Function ' colW$(col$)
 
 Function doMachSQL0$(TName$, NobAI%) ' NobAI = es existiert eine Zeile ohne Autoincrement
  On Error GoTo fehler
- Dim Tabl$, art$, VStr$, lenge&, rsAdSc As New Adodb.Recordset, SpZ%
+ Dim Tabl$, art$, VStr$, lenge&, rsAdSc As New ADODB.Recordset, SpZ%
  Dim trennz$
  Dim obHierKAI%, colN$ ' ob hier kein AutoIncrement
  NobAI = 0
  Tabl = LCase(TName)
 ' IF Tabl = "forminhaltform_abk" THEN
 ' IF DBCn.State = 0 THEN Call DBCnOpen(CSStr)
-' Call DBCn.Execute("use quelle1;")
+' Call myefrag("use quelle1;")
  Set rsAdSc = DBCnOSchema(adSchemaColumns, Array(Empty, Empty, Tabl, Empty))
  Do
   If rsAdSc.BOF Then Exit Do
@@ -524,7 +524,7 @@ Function doMachSQL0$(TName$, NobAI%) ' NobAI = es existiert eine Zeile ohne Auto
  Loop
  
 #If False Then
- Set rsAdo = DBCn.Execute("SHOW columns FROM `" & Tabl & "`")
+ Set rsAdo = myEFrag("SHOW columns FROM `" & Tabl & "`")
  Do While Not rsAdo.EOF
   doMachSQL0 = doMachSQL0 + rsAdo.Fields(0)
   doMachSQL0 = doMachSQL0 & ","
@@ -552,7 +552,7 @@ Function doMachSQL1$(TI%, ptxt$)
  Dim Tabl$, VStr$, umbrZahl%, obBegonnen%
  Dim trennz$, tza$, tze1$, tze2$
  Dim obHierKAI%, rDT$ ' ob hier kein AutoIncrement / Column-Name / Recordset-Datatype
- Dim rsAdSc As New Adodb.Recordset
+ Dim rsAdSc As New ADODB.Recordset
  On Error GoTo fehler
  umbrZahl = 1
  Tabl = LCase(tbn(TI))
@@ -628,7 +628,7 @@ Function doMachSQL2$(TI%, ptxt$)
  Dim Tabl$, VStr$, umbrZahl%, obBegonnen%
  Dim trennz$, tza$, tze1$, tze2$
  Dim obHierKAI%, rDT$ ' ob hier kein AutoIncrement / Column-Name / Recordset-Datatype
- Dim rsAdSc As New Adodb.Recordset
+ Dim rsAdSc As New ADODB.Recordset
  On Error GoTo fehler
  umbrZahl = 1
  Tabl = LCase(tbn(TI))
@@ -747,7 +747,7 @@ Function doMachSQL3$(TI%, ptxt$)
  Dim Tabl$, VStr$, umbrZahl%, obBegonnen%
  Dim trennz$, tza$, tze1$, tze2$
  Dim obHierKAI%, rDT$ ' ob hier kein AutoIncrement / Column-Name / Recordset-Datatype
- Dim rsAdSc As New Adodb.Recordset
+ Dim rsAdSc As New ADODB.Recordset
  On Error GoTo fehler
  umbrZahl = 1
  Tabl = LCase(tbn(TI))
@@ -837,7 +837,7 @@ End Function ' ZPFeld
 
 Function MacheTypen(frm As Lese)
  Const SammelIns% = 0
- Dim rsAdSc As New Adodb.Recordset
+ Dim rsAdSc As New ADODB.Recordset
  Dim i%, sql$, pText$, aktTbn$, aktTbk$, raText$, ii&, fat% ' fallabhängige Tabelle
  Dim typFile$
  On Error GoTo fehler
@@ -852,7 +852,7 @@ Function MacheTypen(frm As Lese)
  Open typFile For Output As #257
  Call machAbKü
 ' DBCnOpen CSStr
-' Call DBCn.Execute("use " & myDB)
+' Call myefrag("use " & myDB)
  Print #257, "Option Explicit"
  Print #257, "Public obFor%"
  Print #257, "Dim sql$, T1!, T2!, rs As Adodb.Recordset, maxL%"
@@ -905,11 +905,11 @@ Function MacheTypen(frm As Lese)
  Print #257, "' in AllesLösch, LabLösch"
  Print #257, "Public FUNCTION doEntleer(frm AS lese, Tbl$)"
  Print #257, " Dim rs As ADODB.Recordset"
- Print #257, "' SET rs = DBCn.Execute(""SELECT COUNT(0) ct FROM `"" & Tbl & ""`"")"
+ Print #257, "' SET rs = myefrag(""SELECT COUNT(0) ct FROM `"" & Tbl & ""`"")"
  Print #257, " myFrag rs, ""SELECT COUNT(0) ct FROM `"" & Tbl & ""`"""
  Print #257, " frm.Ausgeb ""Lösche: `"" & Tbl & ""` ("" & rs!ct & "" Datensätze)"", True"
  Print #257, " sql = sqlDeletefrom & ""`"" & Tbl & ""`"""
- Print #257, " Call DBCn.Execute(sql) ' ,,adAsyncExecute"
+ Print #257, " Call myefrag(sql) ' ,,adAsyncExecute"
  Print #257, " DoEvents"
  Print #257, "End FUNCTION ' doEntleer"
  Print #257, ""
@@ -1019,7 +1019,6 @@ Function MacheTypen(frm As Lese)
    Print #257, " Dim pid$, rs As New Recordset, akt&"
    Print #257, " ON Error GoTo fehler"
    Print #257, " pid = rNa(0).Pat_id"
-   Print #257, " ReDim ro" & aktTbk & "(1)"
    raText = ""
    pText = " sql = ""SELECT "
    Set rsAdSc = DBCnOSchema(adSchemaColumns, Array(Empty, Empty, LCase(aktTbn), Empty))
@@ -1049,20 +1048,30 @@ Function MacheTypen(frm As Lese)
      izaehl = 0
     End If
     ' "varchar", "longtext", "mediumtext", "char", "text", "varbinary"
-    raText = raText & "  ro" & aktTbk & "(akt)." & rsAdSc!COLUMN_NAME & " = " & IIf(rsAdSc!data_type.Value <> "varchar" And rsAdSc!data_type.Value <> "longtext" And rsAdSc!data_type.Value <> "mediumtext" And rsAdSc!data_type.Value <> "char" And rsAdSc!data_type.Value <> "text" And rsAdSc!data_type.Value <> "varbinary", "rs!" & rsAdSc!COLUMN_NAME, "doUmwfSQL(rs!" & rsAdSc!COLUMN_NAME & ", lies.obMySQL, False)") & vbCrLf
+    raText = raText & "   ro" & aktTbk & "(akt)." & rsAdSc!COLUMN_NAME & " = " & IIf(rsAdSc!data_type.Value <> "varchar" And rsAdSc!data_type.Value <> "longtext" And rsAdSc!data_type.Value <> "mediumtext" And rsAdSc!data_type.Value <> "char" And rsAdSc!data_type.Value <> "text" And rsAdSc!data_type.Value <> "varbinary", "rs!" & rsAdSc!COLUMN_NAME, "doUmwfSQL(rs!" & rsAdSc!COLUMN_NAME & ", lies.obMySQL, False)") & vbCrLf
 '    replace$(doUmwfSQL(rs!diagtext,lies.obMySQL,false), "³", "ü")
     rsAdSc.MoveNext
     If Not rsAdSc.EOF Then pText = pText & ","
    Loop
-   raText = raText & "  rs.MoveNext"
+   raText = raText & "   rs.MoveNext"
    pText = pText & " FROM `" & LCase(tbn(i)) & "` WHERE Pat_ID="" & pid & "" ORDER BY `" & ZPFeld(i) & "`"
    Print #257, pText
-   Print #257, " myfrag rs, sql"
-   Print #257, " Do While Not rs.EOF"
-   Print #257, "  akt = UBound(ro" & aktTbk & ")"
+   Print #257, " myFrag rs, sql"
+   If aktTbn = "namen" Then
+    Print #257, " ReDim ro" & aktTbk & "(1)"
+    Print #257, " If Not rs.EOF Then"
+   Else ' aktTbn = "namen"
+    Print #257, " If rs.EOF Then"
+    Print #257, "  ReDim ro" & aktTbk & "(0)"
+    Print #257, " Else ' rs.EOF Then"
+    Print #257, "  ReDim ro" & aktTbk & "(1)"
+   End If ' aktTbn = "namen" else
+   Print #257, "  Do While Not rs.EOF"
+   Print #257, "   akt = UBound(ro" & aktTbk & ")"
    Print #257, raText
-   Print #257, "  IF Not rs.EOF THEN ReDim Preserve ro" & aktTbk & "(UBound(ro" & aktTbk & ") + 1)"
-   Print #257, " Loop"
+   Print #257, "   IF Not rs.EOF THEN ReDim Preserve ro" & aktTbk & "(UBound(ro" & aktTbk & ") + 1)"
+   Print #257, "  Loop ' While Not rs.EOF"
+   Print #257, " End If ' If rs.EOF"
    Print #257, " Exit Function"
    Print #257, "fehler:"
    Print #257, " Dim AnwPfad$"
@@ -1168,7 +1177,7 @@ Function MacheTypen(frm As Lese)
   End If
   Print #257, " syscmd 4, pid & "": Speichere " & aktTbn & """"
 '  Print #257, " DBCnOpen CSStr"
-'  Print #257, " Call DBCn.Execute(""use quelle1"")"
+'  Print #257, " Call myefrag(""use quelle1"")"
   If i <= TbZ1 Then
    Print #257, " IF not Allepat THEN"
 '  Print #257, "  ON error resume next"
@@ -1179,16 +1188,16 @@ Function MacheTypen(frm As Lese)
      Select Case aktTbn
       Case "forminhkopf"
         Print #257, "'  sql = ""DELETE FROM `forminhfeld` WHERE foid IN (SELECT foid FROM `forminhkopf` WHERE pat_id = "" & CStr(rNa(0).Pat_ID) & "")"""
-        Print #257, "'  Call DBCn.Execute(sql)"
+        Print #257, "'  Call myefrag(sql)"
      End Select
      If aktTbn <> "namen" Then
       Print #257, "  sql = ""SELECT pat_id FROM `" & LCase(tbn(i)) & "` WHERE Pat_ID = """ & " & CStr(rNa(0).Pat_ID)"
-      Print #257, "  myfrag rs, sql"
+      Print #257, "  myFrag rs, sql"
       Print #257, "  IF Not rs.BOF THEN"
       Print #257, "   SET rs = nothing"
      End If
      Print #257, "   sql = ""DELETE FROM `" & LCase(tbn(i)) & "` WHERE Pat_ID = """ & " & CStr(rNa(0).Pat_ID)"
-     Print #257, "   Call DBCn.Execute(sql)"
+     Print #257, "   Call myefrag(sql)"
      If aktTbn <> "namen" Then
       Print #257, "  END IF"
      End If
@@ -1233,7 +1242,7 @@ Function MacheTypen(frm As Lese)
   'sql = LEFT(sql, Len(sql) - 5) + ""
   'Print #257, sql
   'Print #257, " IF rs.State = 1 THEN rs.Close"
-  'Print #257, " myfrag rs, sql"
+  'Print #257, " myFrag rs, sql"
   'Print #257, " IF rs.bof THEN"
   
   If SammelIns Then
@@ -1261,8 +1270,8 @@ Function MacheTypen(frm As Lese)
 '   Dim dupsql As New CString
 '   dupsql.Clear
 '   dupsql.AppVar Array("rsdop.Open ""SELECT 0 FROM `", LCase$(tbn(i)), "` WHERE ")
-'   Print #257, "     myfrag rsdop, ""SELECT 0 FROM laborxwert WHERE refnr = "" & rLw(i).RefNr & "" AND abkü = '"" & rLw(i).Abkü & ""'"""
-   sql = "     myfrag rsdop, ""SELECT 0 FROM `" & LCase$(tbn(i)) & "` WHERE "
+'   Print #257, "     myFrag rsdop, ""SELECT 0 FROM laborxwert WHERE refnr = "" & rLw(i).RefNr & "" AND abkü = '"" & rLw(i).Abkü & ""'"""
+   sql = "     myFrag rsdop, ""SELECT 0 FROM `" & LCase$(tbn(i)) & "` WHERE "
    Call doMachSQL3(i, sql)
    Print #257, sql
    Print #257, "     IF Not rsdop.EOF THEN GoTo nexti"
@@ -1283,15 +1292,15 @@ Function MacheTypen(frm As Lese)
   If SammelIns Then Print #257, "   IF lese.obmysql THEN"
   If SammelIns Then Print #257, "    IF i < " & iend & " THEN sql = sql & "","""
   If SammelIns Then Print #257, "   ELSE"
-'  Print #257, "  Call DBCn.Execute(sql,rAf)', , adAsyncExecute)"
+'  Print #257, "  Call myefrag(sql,rAf)', , adAsyncExecute)"
   If aktTbn = "faelle" Then
-   Print #257, "   IF Not obFor THEN ForeignNo0"
+   Print #257, "'   IF Not obFor THEN ForeignNo0"
   End If
-  Print #257, "   Call DBCn.Execute(csql.value,rAf)', , adAsyncExecute)"
+  Print #257, "   Call myefrag(csql.value,rAf)', , adAsyncExecute)"
   If aktTbn = "faelle" Then
-   Print #257, "   IF Not obFor THEN ForeignYes0"
+   Print #257, "'   IF Not obFor THEN ForeignYes0"
    Print #257, "   IF rAF = 0 THEN"
-   Print #257, "    Err.Raise 998, , ""Fehler in " & aktTbn & "Speichern b.Pat. "" & rFa(i).Pat_id & ""Err.Number "" & Err.Number & "", err.description: "" & Err.Description"
+   Print #257, "    Err.Raise 998, , ""Fehler in " & aktTbn & "Speichern b.Pat. "" & rFa(i).Pat_id & "", Err.Number "" & Err.Number & "", err.description: "" & Err.Description"
    Print #257, "   END IF"
   End If
   Print #257, "   IF obfor THEN"
@@ -1300,7 +1309,7 @@ Function MacheTypen(frm As Lese)
   Print #257, "   END IF"
   Print #257, "   IF sammelinsert = 0 THEN csql.m_len = 0"
   Print #257, "   IF lese.obmysql AND obmitAlterTab THEN"
-  Print #257, "    SET rs = DBCn.Execute(""SHOW WARNINGS"")"
+  Print #257, "    SET rs = myefrag(""SHOW WARNINGS"")"
   Print #257, "    IF not rs.BOF() THEN"
   Print #257, "     IF rs!code = 1265 THEN"
   Print #257, "      Err.Raise -2147217833"
@@ -1310,8 +1319,8 @@ Function MacheTypen(frm As Lese)
   If aktTbn = "faelle" Then
    Print #257, "  IF SammelInsert = 0 THEN"
    Print #257, "  'Hier gibts mit Sammelins noch ein Problem ..."
-   Print #257, "   ' SET rs = DBCn.Execute(""SELECT FID FROM `faelle` WHERE pat_id = "" & rFa(i).Pat_ID & "" AND quartal = '"" & rFa(i).Quartal & ""' AND bhfb = "" & DatFor_k(rFa(i).BhFB) & "" AND bhfe1 = "" & DatFor_k(rFa(i).BhFE1) & "" AND ausgst = "" & DatFor_k(rFa(i).ausgst))"
-   Print #257, "   SET rs = DBCn.Execute(""SELECT LAST_INSERT_ID() FID"")"
+   Print #257, "   ' SET rs = myefrag(""SELECT FID FROM `faelle` WHERE pat_id = "" & rFa(i).Pat_ID & "" AND quartal = '"" & rFa(i).Quartal & ""' AND bhfb = "" & DatFor_k(rFa(i).BhFB) & "" AND bhfe1 = "" & DatFor_k(rFa(i).BhFE1) & "" AND ausgst = "" & DatFor_k(rFa(i).ausgst))"
+   Print #257, "   SET rs = myefrag(""SELECT LAST_INSERT_ID() FID"")"
    Print #257, "   IF rs.BOF THEN"
    Print #257, "    Err.Raise 999, , ""Fehler bei der Fallaktualisierung b.Pat. "" & rFa(i).Pat_ID & "", FID "" & rFa(i).FID"
    Print #257, "   Else"
@@ -1358,7 +1367,7 @@ Function MacheTypen(frm As Lese)
   If iiAnf <> "" Then
    Print #257, " " + iiAnf + " = ubound(r" + Tbk(i) + ")"
   End If
-  If SammelIns Then Print #257, " IF lese.obmysql THEN IF ubound(r" & Tbk(i) & ")>0 THEN call DBCn.Execute(sql)', , adAsyncExecute)"
+  If SammelIns Then Print #257, " IF lese.obmysql THEN IF ubound(r" & Tbk(i) & ")>0 THEN call myefrag(sql)', , adAsyncExecute)"
   Print #257, " syscmd 5"
   Print #257, " Exit Function"
   Print #257, "fehler:"
@@ -1368,7 +1377,7 @@ Function MacheTypen(frm As Lese)
   Print #257, " Resume Next"
   Print #257, "ElseIf Err.Number = -2147467259 AND InStrB(ErrDescription, ""Daten zu lang"") = 0 THEN ' -2147467259 ' [MySQL][ODBC 3.51 Driver][mysqld-5.1.32-log]Cannot add OR update a child row: a foreign key constraint fails"
   Print #257, " IF InStrB(ErrDescription, ""'READ-COMMITTED'"") <> 0 THEN"
-  Print #257, "  DBCn.Execute ""SET SESSION TRANSACTION ISOLATION LEVEL REPEATABLE READ"", rAF"
+  Print #257, "  myefrag ""SET SESSION TRANSACTION ISOLATION LEVEL REPEATABLE READ"", rAF"
   Print #257, " Else"
   Print #257, "  Call doBezFeh(csql.Value, BezfSp, ErrDescription)"
   Print #257, " END IF"
@@ -1517,7 +1526,7 @@ Function MacheTypen(frm As Lese)
   Print #257, "   END IF"
   End Select
  Next i
- Print #257, " Call DBCn.Execute(""UPDATE `namen` SET aktZeit = "" & DatFor_k(rNa(0).AktZeit) & "" WHERE pat_id = "" & rNa(0).Pat_ID,rAf)"
+ Print #257, " Call myefrag(""UPDATE `namen` SET aktZeit = "" & DatFor_k(rNa(0).AktZeit) & "" WHERE pat_id = "" & rNa(0).Pat_ID,rAf)"
  Print #257, " IF rAf <> 1 THEN "
  Print #257, "  frm.Ausgeb ""Fehler bei der Setzung des Aktualisierungsdatum bei "" & rNa(0).Pat_ID & "" "" & rNa(0).Nachname & "" "" & rNa(0).Vorname, true"
  Print #257, " END IF"
@@ -1531,7 +1540,7 @@ Function MacheTypen(frm As Lese)
  Print #257, "#END IF"
  Print #257, " ErrDescription = Err.Description"
  Print #257, " IF InStrB(ErrDescription, ""'READ-COMMITTED'"") <> 0 THEN"
- Print #257, "  DBCn.Execute ""SET SESSION TRANSACTION ISOLATION LEVEL REPEATABLE READ"", rAF"
+ Print #257, "  myefrag ""SET SESSION TRANSACTION ISOLATION LEVEL REPEATABLE READ"", rAF"
  Print #257, "  Resume"
  Print #257, " END IF"
  Print #257, " SELECT CASE MsgBox(""FNr: "" & CStr(Err.Number) & vbCrLf & ""LastDLLError: "" & CStr(Err.LastDllError) & vbCrLf & ""Source: "" & IIf(ISNULL(Err.Source), vNS, CStr(Err.Source)) & vbCrLf & ""Description: "" & Err.Description, vbAbortRetryIgnore, ""aufgefangener Fehler in tuSpeichern/"" + AnwPfad)"
@@ -1664,27 +1673,27 @@ Public Function PutReg(hlese As Lese)
 End Function ' PubReg
 
 Public Function HolKRein(hlese As Lese)
- Dim rs As Adodb.Recordset
+ Dim rs As ADODB.Recordset
  KRein = myFrag(rs, "SELECT COALESCE((SELECT ob FROM koricht ORDER BY datum DESC LIMIT 1),0)").Fields(0)
 End Function ' HolKRein(hlese As Lese)
 
 
 Function BooleanFld(frm As Lese)
- Dim i As ConDtb, j&, rs As Adodb.Recordset, rs1 As Adodb.Recordset
+ Dim i As ConDtb, j&, rs As ADODB.Recordset, rs1 As ADODB.Recordset
  Dim AfN&
  On Error GoTo fehler
  For i = qDtb To q2Dtb
 '  Call frm.ConstrFestleg(i)
 ' Call hlese.ConstrFestleg(0, hlese)
   Call acon(quelleT, i)
-  Set rs = DBCn.Execute("SHOW TABLES;") 'full columns FROM " & DBCn.DefaultDatabase)
+  Set rs = myEFrag("SHOW TABLES;") 'full columns FROM " & DBCn.DefaultDatabase)
   Do While Not rs.EOF
 '   rs.Move 1
-   Set rs1 = DBCn.Execute("SHOW FULL COLUMNS FROM `" & rs.Fields(0) & "`")
+   Set rs1 = myEFrag("SHOW FULL COLUMNS FROM `" & rs.Fields(0) & "`")
    Do While Not rs1.EOF
     If rs1!Type = "tinyint(1)" Then
-'     Call DBCn.Execute("ALTER TABLE `" & DBCn.DefaultDatabase & "`.`" & rs.Fields(0) & "` " & sqlALTER & " COLUMN `" & rs1!Field & "` Bit(1) DEFAULT NULL COMMENT '" & rs1!Comment & "', ENGINE = InnoDB;", AfN)
-     Call DBCn.Execute("ALTER TABLE `" & rs.Fields(0) & "` " & sqlALTER & " COLUMN `" & rs1!Field & "` Bit(1) DEFAULT " & IIf(IsNull(rs1!Default), "NULL", rs1!Default) & " COMMENT '" & rs1!Comment & "', ENGINE = InnoDB;", AfN)
+'     Call myefrag("ALTER TABLE `" & DBCn.DefaultDatabase & "`.`" & rs.Fields(0) & "` " & sqlALTER & " COLUMN `" & rs1!Field & "` Bit(1) DEFAULT NULL COMMENT '" & rs1!Comment & "', ENGINE = InnoDB;", AfN)
+     Call myEFrag("ALTER TABLE `" & rs.Fields(0) & "` " & sqlALTER & " COLUMN `" & rs1!Field & "` Bit(1) DEFAULT " & IIf(IsNull(rs1!Default), "NULL", rs1!Default) & " COMMENT '" & rs1!Comment & "', ENGINE = InnoDB;", AfN)
      Debug.Print AfN
     End If
     rs1.Move 1
@@ -1706,80 +1715,17 @@ Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "Last
  Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
 End Select
 End Function ' BooleanFld(frm AS Lese)
-Public Function VergleichTabAlt(frm As Lese) ' Vergleich der Datenbanktabellenfüllungen
- Const SpBr% = 15
- Const SpBr0% = 30
- Dim aktCn As New Adodb.Connection
- Dim fld$(), i%, j%
- Dim cnA As New Adodb.Recordset, maxF%, cn As New Adodb.Connection
- Dim FNr&, ausg$, Ausg0$
- Dim cat As New ADOX.Catalog
- On Error GoTo fehler
-' Call frm.ConstrFestleg(1, frm)
- Call acon(quelleT, accDtb)
-' IF Not cn Is Nothing THEN SET cn = Nothing 'If cn.State = 1 THEN cn.Close
- Set aktCn = Nothing
- aktCn.Open DBCnS ' DBCn.ConnectionString
- cat.ActiveConnection = aktCn
- Ausg0 = Left("Tabellenfüllungen" + Space$(SpBr0), SpBr0)
- For i = -1 To 1
-  Select Case i
-   Case -1: Ausg0 = Ausg0 & Right$(Space$(SpBr) & frm.snst.QuelleAnamneseBögen, SpBr)
-   Case 0:  Ausg0 = Ausg0 & Right$(Space$(SpBr) & IIf(lies.obMySQL, frm.MyDB, frm.dlg.MdB), SpBr)
-   Case Else: Ausg0 = Ausg0 & Right$(Space$(SpBr) & "MySQL:Quelle" & i, SpBr)
-  End Select
- Next i
- For j = 0 To cat.Tables.COUNT - 1
-  If cat.Tables(j).Type <> "VIEW" And cat.Tables(j).Type <> "LINK" Then
-   ausg = Left(cat.Tables(j).name + Space$(SpBr0), SpBr0)
-   For i = -1 To 1
-    If i = -1 Then
-'     ConStr = CStrAcc + frm.snst.QuelleAnamneseBögen
-     Call acon(quelleT, accDtb, CStrAcc + frm.snst.QuelleAnamneseBögen)
-    ElseIf i = 0 Then
-'     Call frm.ConstrFestleg(0, frm)
-     Call acon(quelleT)
-    ElseIf i = 1 Then
-'     Call frm.ConstrFestleg(2, frm)
-     Call acon(quelleT, qDtb)
-    End If
-'    IF Not cn Is Nothing THEN SET cn = Nothing 'If cn.State = 1 THEN cn.Close
-    Set aktCn = New Adodb.Connection
-    aktCn.Open DBCnS ' DBCn.ConnectionString
-    On Error Resume Next
-    Set cnA = aktCn.Execute("SELECT COUNT(0) AS ct FROM `" & LCase(cat.Tables(j).name) & "`")
-    FNr = Err.Number
-    On Error GoTo fehler
-    ausg = ausg & Right$(Space$(SpBr) & IIf(FNr <> 0, "-", cnA!ct), SpBr)
-   Next i
-   frm.Ausgeb ausg, True
-  End If
- Next j
- frm.Ausgeb Ausg0, True
- Exit Function
-fehler:
- Dim AnwPfad$
-#If VBA6 Then
- AnwPfad = CurrentDb.name
-#Else
- AnwPfad = App.path
-#End If
-Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "aufgefangener Fehler in VergleichTab/" + AnwPfad)
- Case vbAbort: Call MsgBox("Höre auf"): ProgEnde
- Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
- Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
-End Select
-End Function ' VergleichTab
+
 Public Function VergleichTab(frm As Lese) ' Vergleich der Datenbankfüllungen
  Const SpBr% = 20
- Dim SL As New SortierListe, sF As sFeld, cat As New ADOX.Catalog, cn(3) As Adodb.Connection, CNs$(3)
+ Dim SL As New SortierListe, sF As sFeld, cat As New ADOX.Catalog, Cn(3) As ADODB.Connection, CNs$(3)
 ' Dim aktCn As New ADODB.Connection
- Dim fld$(), i%, j%, n%, cnA As New Adodb.Recordset
+ Dim fld$(), i%, j%, n%, cnA As New ADODB.Recordset
 ' dim sc As New ADODB.Recordset
  Call machAbKü
  For i = 0 To 3
 '  Call frm.ConstrFestleg(i + 1, frm)
-  Set cn(i) = acon(quelleT, i + 1)
+  Set Cn(i) = acon(quelleT, i + 1)
   CNs(i) = Lese.dbv.CnStr
   cat.ActiveConnection = DBCn
   For j = 0 To cat.Tables.COUNT - 1
@@ -1794,7 +1740,7 @@ Public Function VergleichTab(frm As Lese) ' Vergleich der Datenbankfüllungen
  For i = 0 To 3
 '  Call frm.ConstrFestleg(i + 1, frm)
 '  Call acon(quelleT, i + 1)
-   SetDBCn cn(i), CNs(i)
+   SetDBCn Cn(i), CNs(i)
 '  IF i > 0 THEN
 '  IF Not cn Is Nothing THEN SET cn = Nothing 'If cn.State = 1 THEN cn.Close
 '  SET aktCn = Nothing
@@ -1804,7 +1750,7 @@ Public Function VergleichTab(frm As Lese) ' Vergleich der Datenbankfüllungen
   For j = 1 To SL.COUNT
    If i > 0 Then
 '    ON Error Resume Next
-'    cn.Execute ("ALTER TABLE " & lcase(SL.item(j).Feld) & " change column abspos AbsPos integer UNSIGNED")
+'    myEfrag ("ALTER TABLE " & lcase(SL.item(j).Feld) & " change column abspos AbsPos integer UNSIGNED",, QCn(dbknr))
 '    ON Error GoTo fehler
    End If
    If Not cnA Is Nothing Then If cnA.State = 1 Then cnA.Close
@@ -1848,13 +1794,13 @@ Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "Last
  Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
  Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
 End Select
-End Function ' Vergleiche
+End Function ' VergleichTab
 
 Public Function Vergleiche(frm As Lese) ' Vergleich der Datenbankstrukturen
  Const SpBr% = 34
  Dim DSo$, Prov$, DSo2$
- Dim aktCn As New Adodb.Connection
- Dim fld$(), i%, j%, n%, k%, l%, cnA As New Adodb.Recordset, maxF%, cn As New Adodb.Connection
+ Dim aktCn As New ADODB.Connection
+ Dim fld$(), i%, j%, n%, k%, l%, cnA As New ADODB.Recordset, maxF%, Cn As New ADODB.Connection
 ' dim sc As New ADODB.Recordset
  Call machAbKü
  For i = 0 To 3
@@ -1871,17 +1817,17 @@ Public Function Vergleiche(frm As Lese) ' Vergleich der Datenbankstrukturen
 '  IF i > 0 THEN
 '  IF Not cn Is Nothing THEN SET cn = Nothing 'If cn.State = 1 THEN cn.Close
   Set aktCn = Nothing
-    aktCn.Open DBCnS ' DBCn.ConnectionString
+  aktCn.Open DBCnS ' DBCn.ConnectionString
 '  END IF
   For j = 0 To TbZ2
    If i > 0 Then
 '    ON Error Resume Next
-'    cn.Execute ("ALTER TABLE " & lcase(Tbn(j)) & " change column abspos AbsPos integer UNSIGNED")
+'    myEfrag ("ALTER TABLE " & lcase(Tbn(j)) & " change column abspos AbsPos integer UNSIGNED",,cn)
 '    ON Error GoTo fehler
    End If
    If Not cnA Is Nothing Then If cnA.State = 1 Then cnA.Close
    On Error Resume Next
-   cnA.Open "SELECT " & IIf(lies.obMySQL, vNS, "top 1 ") & "* FROM " & "`" & LCase(tbn(j)) & "`" & IIf(lies.obMySQL, " LIMIT 1", ""), aktCn, adOpenStatic, adLockReadOnly
+   myFrag cnA, "SELECT " & IIf(lies.obMySQL, vNS, "top 1 ") & "* FROM " & "`" & LCase(tbn(j)) & "`" & IIf(lies.obMySQL, " LIMIT 1", ""), adOpenStatic, aktCn, adLockReadOnly
    If Err.Number <> 0 Then GoTo weiter
    On Error GoTo fehler
    If cnA.Fields.COUNT > maxF Then: maxF = cnA.Fields.COUNT: ReDim Preserve fld(3, TbZ2, 3, maxF)
@@ -1942,9 +1888,9 @@ End Select
 End Function ' Vergleiche
 
 Function TabFuellSnSh() ' Tabfüll; Tabellenfüllungen ermitteln
- Dim rs As New Adodb.Recordset, Zp As Date, zps$, rsct As New Adodb.Recordset, rAF&, ct&, ErrDes$
+ Dim rs As New ADODB.Recordset, Zp As Date, zps$, rsct As New ADODB.Recordset, rAF&, ct&, ErrDes$
  On Error GoTo fehler
- DBCn.Execute "CREATE TABLE IF NOT EXISTS `tabfuell` (id integer(10) auto_increment key, zp datetime, tabname varchar(90), ds integer(10), index tabname(tabname), index zp(zp))"
+ myEFrag "CREATE TABLE IF NOT EXISTS `tabfuell` (id integer(10) auto_increment key, zp datetime, tabname varchar(90), ds integer(10), index tabname(tabname), index zp(zp))"
 ' rs.Open "SELECT table_name, table_type FROM information_schema.tables WHERE table_schema = '" & CurDB(DBCn) & "'", DBCn, adOpenDynamic, adLockOptimistic
  myFrag rs, "SELECT table_name, table_type FROM information_schema.tables WHERE table_schema = '" & CurDB(DBCn) & "'"
  Zp = Now()
@@ -2412,7 +2358,7 @@ Function ForeignNo0()
  On Error GoTo fehler
  If ForeignKAus0 = 0 Then
   If lies.obMySQL Then
-   Call DBCn.Execute("SET foreign_key_checks = 0") ' Kommentar 12.12.09
+   Call myEFrag("SET foreign_key_checks = 0") ' Kommentar 12.12.09
   Else
    ZielDbS = Lese.dlg.MdB
    Call BezLöschA
@@ -2439,7 +2385,7 @@ End Function ' ForeignNo()
 Function ForeignNo1()
  If ForeignKAus1 = 0 Then
   If lies.obMySQL Then
-   Call DBCn.Execute("SET foreign_key_checks = 0")
+   Call myEFrag("SET foreign_key_checks = 0")
   Else
    ZielDbS = Lese.dlg.MdB
    Call BezLöschA
@@ -2451,7 +2397,7 @@ End Function ' ForeignNo()
 Function ForeignYes0()
  If ForeignKAus0 = 1 Then
   If lies.obMySQL Then
-   Call DBCn.Execute("SET foreign_key_checks = 1")
+   Call myEFrag("SET foreign_key_checks = 1")
   Else
    ZielDbS = Lese.dlg.MdB
    Call BezHerstA
@@ -2464,7 +2410,7 @@ End Function ' ForeignNo()
 Function ForeignYes1()
  If ForeignKAus1 = 1 Then
   If lies.obMySQL Then
-   Call DBCn.Execute("SET foreign_key_checks = 1")
+   Call myEFrag("SET foreign_key_checks = 1")
   Else
    ZielDbS = Lese.dlg.MdB
    Call BezHerstA
@@ -2553,22 +2499,22 @@ End Function ' BezHerstA()
 
 #If False Then
 Function holAB(frm As Lese) ' kommt vor in AnamnesebogenHolen_Click
- Dim rq As New Adodb.Recordset ', f1 AS ADODB.Field, f2 AS ADODB.Field,
+ Dim rq As New ADODB.Recordset ', f1 AS ADODB.Field, f2 AS ADODB.Field,
  Dim runde&, Pat_id&
  frm.BytesBez = "Datensätze:"
- rq.Open "SELECT COUNT(0) AS ct FROM `anamnesebogen`", CStrAcc & frm.snst.QuelleAnamneseBögen
+ myFrag rq, "SELECT COUNT(0) AS ct FROM `anamnesebogen`", CStrAcc & frm.snst.QuelleAnamneseBögen
  frm.GesBytes = rq!ct
  On Error GoTo fehler
  DBCn.BeginTrans: obTrans = 1
  Call ForeignNo0
  Call ForeignNo1
  rq.Close
- rq.Open "SELECT * FROM `anamnesebogen`", CStrAcc & frm.snst.QuelleAnamneseBögen
+ myFrag rq, "SELECT * FROM `anamnesebogen`", CStrAcc & frm.snst.QuelleAnamneseBögen
  Do While Not rq.EOF
   runde = runde + 1
   If Not rsAnm Is Nothing Then If rsAnm.State = 1 Then rsAnm.Close
   rsAnm.CursorLocation = adUseClient
-  rsAnm.Open "SELECT * FROM `anamnesebogen` WHERE pat_id = " & rq!Pat_id, DBCn, adOpenStatic, adLockOptimistic
+  myFrag rsAnm, "SELECT * FROM `anamnesebogen` WHERE pat_id = " & rq!Pat_id, adOpenStatic, DBCn, adLockOptimistic
   If Not rsAnm.BOF Then
    Call anaUpd(rq, rsAnm)
   Else
@@ -2626,7 +2572,7 @@ Function doLdFD() ' Liste der fehlenden Dokumente
  Ers(17) = "\\anmeld2\Volume (F)\Turbomed gespiegelt\Dokumente"
  Ers(18) = "\\anmeld2\E\TurboMed\Dokumente"
  If LenB(PcDokPfad) = 0 Then getDokPfad
- Dim rAb As New Adodb.Recordset
+ Dim rAb As New ADODB.Recordset
  Open Datei For Output As #322
 ' rAb.Open "SELECT * FROM dokumente", DBCn, adOpenDynamic, adLockReadOnly
  myFrag rAb, "SELECT * FROM dokumente"
@@ -2693,7 +2639,7 @@ End Function ' sucheinVerz
 'Function testha()
 ' Lese.ProgStart
 ' Dim rs As New ADODB.Recordset
-' myfrag rs, "SELECT übwv, übwvkvnr, übwvlanr, übwvbsnr FROM faelle"
+' myFrag rs, "SELECT übwv, übwvkvnr, übwvlanr, übwvbsnr FROM faelle"
 ' ' => alle genannten sind bisweilen "", aber nie null
 ' Do While Not rs.EOF
 '  IF ISNULL(rs!ÜbWVLANR) THEN
@@ -2708,7 +2654,7 @@ End Function ' sucheinVerz
 ' nur in Sub HausärzteBKK_Click()
 Function doHABKK(frm As Lese)
  Const sql$ = "SELECT COUNT(0) Zahl, CONCAT(l.name,' ',l.vorname,' ',l.fachgruppe,' ',l.zulg,' ',l.ort) Hausarzt, l.telefon, l.fax, übwr üw FROM `aktf` a LEFT JOIN `faelle` f ON a.fid = f.fid LEFT JOIN `kassenliste` k ON f.ik = k.ik AND f.vknr = k.vknr LEFT JOIN `aktlue` l ON übwr = l.kvnro WHERE kateg = 'BKK' AND übwr <> '' AND l.name <> 'Schade' GROUP BY üw ORDER BY Zahl DESC;"
- Dim rAb As New Adodb.Recordset
+ Dim rAb As New ADODB.Recordset
  Open uVerz & "Hausärzte BKK.txt" For Output As #322
 ' rAb.Open sql, DBCn, adOpenDynamic, adLockReadOnly
  myFrag rAb, sql
@@ -2717,7 +2663,7 @@ End Function ' doHABKK
 
 Function doLdFHalt(frm As Lese) ' Liste der fehlenden Hausärzte
  Const sql$ = "SELECT n.Pat_id, n.Nachname, n.Vorname, n.Gebdat, Schgr FROM `namen` n LEFT JOIN `aktfv` ON `aktfv`.pat_id = n.pat_id WHERE n.kvnr = '' AND NOT ISNULL(`aktfv`.pat_id) ORDER BY `namen`.pat_id DESC;"
- Dim rAb As New Adodb.Recordset
+ Dim rAb As New ADODB.Recordset
 ' rAb.Open sql, DBCn, adOpenDynamic, adLockReadOnly
  myFrag rAb, sql
 ' TabAusgeb rAb, Lese, True, , , , , , "Fehlende Hausärzte.txt"
@@ -2736,7 +2682,7 @@ Function doFÜwS(frm As Lese) ' fehlende Überweisungsscheine
  Dim sql$, AktQ$
  AktQ = ZQuart(Now() - Verspätung)
  sql = "SELECT n.Pat_id, gesname(n.pat_id) Name, GROUP_CONCAT(DISTINCT CAST(f.schgr AS char)) Schgr, LEFT(GROUP_CONCAT(DISTINCT CONCAT_WS(', ', l2.Name, LEFT(l2.vorname,1),l2.ort, l2.telefon)),31) Überweiser, LEFT(CONCAT_WS(', ',l.Name, LEFT(l.vorname,1),l.ort, l.telefon),31) Hausarzt FROM `aktf` f LEFT JOIN `briefe` b ON f.pat_id = b.pat_id AND b.name LIKE '%üw%' AND b.name LIKE '%" & Left(AktQ, 1) & "%' AND b.name LIKE '%" & Right(AktQ, 2) & "%' LEFT JOIN `namen` n ON f.pat_id = n.pat_id LEFT JOIN `aktlue` l ON l.kvnr = n.kvnro LEFT JOIN `faelle` f2 ON f2.fid = f.fid AND übwr <> '' LEFT JOIN `aktlue` l2 ON l2.kvnro = übwr WHERE ISNULL(b.name) AND f.schgr<>'0' GROUP BY f.pat_id"
- Dim rAb As New Adodb.Recordset
+ Dim rAb As New ADODB.Recordset
 ' rAb.Open sql, DBCn, adOpenDynamic, adLockReadOnly
  myFrag rAb, sql
  TabAusgeb rAb, Lese, True, , , , , , "Fehlende Überweisungsscheine"
@@ -2745,7 +2691,7 @@ End Function ' doFÜwS
 Function doLdFH(frm As Lese) ' Liste der fehlenden Hausärzte
 ' Const sql$ = "SELECT v.*,n.Nachname,n.Vorname,Gebdat, d.icd, IF(übwv = '', andüw, übwv) AS üw, k.kvnr, n.notiz FROM `aktfv` v LEFT JOIN `namen` n ON v.pat_id = n.pat_id LEFT JOIN `faelle` f ON v.fid = f.fid LEFT JOIN `diagnosen` d ON v.pat_id = d.pat_id AND d.icd LIKE 'E1%' LEFT JOIN kvnrue k ON v.pat_id = k.pat_id WHERE notiz = '' OR ISNULL(notiz) OR k.kvnr = '' OR ISNULL(k.kvnr) GROUP BY v.pat_id ORDER BY v.pat_id, k.lfdnr"
  Const sql$ = "SELECT n.Pat_id, n.Nachname, n.Vorname, n.Gebdat, `aktfv`.Schgr, KVNr FROM `namen` n LEFT JOIN `aktfv` ON `aktfv`.pat_id = n.pat_id WHERE n.kvnr IN ('6419153') AND NOT ISNULL(`aktfv`.pat_id) ORDER BY n.kvnr, n.pat_id DESC"
- Dim rAb As New Adodb.Recordset
+ Dim rAb As New ADODB.Recordset
 ' rAb.Open sql, DBCn, adOpenDynamic, adLockReadOnly
  myFrag rAb, sql
  TabAusgeb rAb, Lese, True, , , , , , "PatientenMitUnsAlsHausarztOhneDieMitFehlendemHausarzt"
@@ -2757,7 +2703,7 @@ Function doSuchTel(frm As Lese) ' suche Telefonnummer
  Dim sql$, telm$
  telm = "'%" & tel & "%'"
  sql$ = "SELECT n.Pat_id, gesname(n.Pat_id) `Name mit Telnr. " & tel & "`, PrivatTel, Privattel_2, Diensttel, PrivatMobil, PrivatFax FROM `namen` n WHERE privattel LIKE " & telm & " OR privattel_2 LIKE  " & telm & " OR privatfax LIKE  " & telm & " OR diensttel LIKE  " & telm & " OR privatmobil LIKE  " & telm
- Dim rAb As New Adodb.Recordset
+ Dim rAb As New ADODB.Recordset
 ' rAb.Open sql, DBCn, adOpenDynamic, adLockReadOnly
  myFrag rAb, sql
  TabAusgeb rAb, Lese, True, , , , , , "Suche Telefonnummer " + tel
@@ -2789,9 +2735,9 @@ Function ergEBM(frm As Lese)
  End If
  On Error GoTo fehler
 ' aus FUNCTION EmailsImport(EmDatei$)
- Dim con As New Adodb.Connection  ' Connection
- Dim rNa As New Adodb.Recordset
- Dim rEx As New Adodb.Recordset
+ Dim con As New ADODB.Connection  ' Connection
+ Dim rNa As New ADODB.Recordset
+ Dim rEx As New ADODB.Recordset
  Dim rX As New ADOX.Catalog
 ' Const EmDatei$ = pverz & "Patientenübergreifendes\Emails.xls" ' Excel-Datei mit Suche aus Turbomed "*@*"
  On Error GoTo fehler
@@ -2812,7 +2758,7 @@ Function ergEBM(frm As Lese)
     pRoh = rEx.Fields(0)
 '    ON Error GoTo fehler
     If pRoh <> "" Then
-'      Call DBCn.Execute("SELECT * FROM `ebm2000plus` WHERE leistung = '" & pRoh & "'", rAf)
+'      Call myefrag("SELECT * FROM `ebm2000plus` WHERE leistung = '" & pRoh & "'", rAf)
       Set rNa = Nothing
       myFrag rNa, "SELECT 0 FROM `ebm2000plus` WHERE leistung IN ('" & pRoh & "','0" & pRoh & "')"
       If rNa.BOF Then
@@ -2840,7 +2786,7 @@ Function ergEBM(frm As Lese)
 '       Debug.Print pRoh, rNa!Leistung
       End If
     End If
-'      Call DBCn.Execute("UPDATE `namen` SET email = '" & rEx.Fields(zFeld) & "' WHERE pat_id = " & pNr, rAf)
+'      Call myefrag("UPDATE `namen` SET email = '" & rEx.Fields(zFeld) & "' WHERE pat_id = " & pNr, rAf)
  ' wenn Name noch nicht da
 '     IF rAf <> 1 THEN Err.Raise 999, , "Fehler beim Einfügen der Email-Adresse '" & rEx.Fields(eFeld) & "' zum Patienten Nr. " & pNr
     ElseIf Not IsNull(rEx.Fields(0)) And Not IsNull(rEx.Fields(1)) And Not IsNull(rEx.Fields(2)) Then
@@ -2868,25 +2814,29 @@ Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "Last
 End Select
 End Function ' ergEBM(frm As Lese)
 
+' nur noch in holEBM2000plus_Click
 Function holAllg(frm As Lese, TabN$, Optional sF$, Optional obPS%) ' Allgemeines / Hausärzte übertragen
 ' 21.3.21: nur noch IN holEBM2000plus_Click
 ' kommt vor in: holLaborParameter_Click(), holEBM2000plus_Click(), holMedArten_Click(), KassenlisteKopieren_Click()
  Dim sqldel$, rAF&, GesZahl&
 ' Const TabN$ = "kassenliste"
 ' Const SF$ = "ID"
- Dim rq As New Adodb.Recordset ', f1 AS ADODB.Field, f2 AS ADODB.Field,
+ Dim rq As New ADODB.Recordset ', f1 AS ADODB.Field, f2 AS ADODB.Field,
  Dim runde&, i%
  frm.BytesBez = "Datensätze:"
- rq.Open "SELECT COUNT(0) AS ct FROM " & "`" & TabN & "`", CStrAcc & frm.snst.QuelleAnamneseBögen
+ AccOpen rq, "SELECT COUNT(0) AS ct FROM " & "`" & TabN & "`", frm.snst.QuelleAnamneseBögen
+' rq.Open "SELECT COUNT(0) AS ct FROM " & "`" & TabN & "`", CStrAcc & frm.snst.QuelleAnamneseBögen
  frm.GesBytes = rq!ct
- If frm.GesBytes > 1 And LCase(CStrAcc & frm.snst.QuelleAnamneseBögen) <> LCase(DBCnS) Then ' DBCn.ConnectionString
+ If frm.GesBytes > 1 Then ' And LCase(CStrAcc & frm.snst.QuelleAnamneseBögen) <> LCase(DBCnS) Then ' DBCn.ConnectionString
   On Error GoTo fehler
   DBCn.BeginTrans: obTrans = 1
   Call ForeignNo0
   Call ForeignNo1
-  rq.Close
-  rq.Open "`" & TabN & "`", CStrAcc & frm.snst.QuelleAnamneseBögen
-  Call DBCn.Execute("DELETE FROM `" & TabN & "`")
+  AccOpen rq, TabN, frm.snst.QuelleAnamneseBögen
+'  rq.Close
+'  rq.Open "`" & TabN & "`", CStrAcc & frm.snst.QuelleAnamneseBögen
+  Call myEFrag("DELETE FROM `" & TabN & "`")
+  
   Do While Not rq.EOF
    runde = runde + 1
    GesZahl = GesZahl + TIns(TabN, sF, obPS, rq)
@@ -2903,8 +2853,8 @@ Function holAllg(frm As Lese, TabN$, Optional sF$, Optional obPS%) ' Allgemeines
   If obTrans <> 0 Then DBCn.CommitTrans: obTrans = 0
  ElseIf frm.GesBytes <= 1 Then
   frm.Ausgeb "Übertragung von " & TabN & " nicht gestartet. Zahl der Datensätze mit " & frm.GesBytes & " zu gering IN " & frm.snst.QuelleAnamneseBögen, True
- ElseIf LCase(CStrAcc & frm.snst.QuelleAnamneseBögen) = LCase(DBCnS) Then ' DBCn.ConnectionString
-  frm.Ausgeb "Übertragung von " & TabN & " nicht gestartet. Quelle und Ziel identisch.", True
+' ElseIf LCase(CStrAcc & frm.snst.QuelleAnamneseBögen) = LCase(DBCnS) Then ' DBCn.ConnectionString
+'  frm.Ausgeb "Übertragung von " & TabN & " nicht gestartet. Quelle und Ziel identisch.", True
  End If
  Exit Function
 fehler:
@@ -2920,17 +2870,17 @@ Function holDA(frm As Lese) ' kommt vor IN DokumenteAbgehaktkopieren_Click()
  Dim sqldel$, rAF&, GesZahl&
  Const TabN$ = "dokumente abgehakt"
  Const sF$ = "dokpfad"
- Dim rq As New Adodb.Recordset ', f1 AS ADODB.Field, f2 AS ADODB.Field,
+ Dim rq As New ADODB.Recordset ', f1 AS ADODB.Field, f2 AS ADODB.Field,
  Dim runde&, Pat_id&, i%
  frm.BytesBez = "Datensätze:"
- rq.Open "SELECT COUNT(0) AS ct FROM " & "`" & TabN & "`", CStrAcc & frm.snst.QuelleAnamneseBögen
+ myFrag rq, "SELECT COUNT(0) AS ct FROM " & "`" & TabN & "`", CStrAcc & frm.snst.QuelleAnamneseBögen
  frm.GesBytes = rq!ct
  On Error GoTo fehler
  DBCn.BeginTrans: obTrans = 1
  Call ForeignNo0
  Call ForeignNo1
  rq.Close
- rq.Open "`" & TabN & "`", CStrAcc & frm.snst.QuelleAnamneseBögen
+ myFrag rq, "`" & TabN & "`", CStrAcc & frm.snst.QuelleAnamneseBögen
  Do While Not rq.EOF
   runde = runde + 1
   Dim Wert$, WertRoh$, obSchonDa%
@@ -2948,11 +2898,11 @@ Function holDA(frm As Lese) ' kommt vor IN DokumenteAbgehaktkopieren_Click()
    End Select
    If Not rsAnm Is Nothing Then If rsAnm.State = 1 Then rsAnm.Close
    rsAnm.CursorLocation = adUseClient
-   rsAnm.Open "SELECT -abgehakt AS j_abgehakt, da.* FROM `" & TabN & "` da WHERE `" & sF & "` = '" & Wert & "'", DBCn, adOpenStatic, adLockOptimistic
+   myFrag rsAnm, "SELECT -abgehakt AS j_abgehakt, da.* FROM `" & TabN & "` da WHERE `" & sF & "` = '" & Wert & "'", adOpenStatic, DBCn, adLockOptimistic
    If Not rsAnm.BOF Then
     If rsAnm!j_abgehakt <> 0 Then obSchonDa = -1
     sqldel = "DELETE FROM " & "`" & TabN & "`" & " WHERE " & sF & " = '" & Wert & "'"
-    Call DBCn.Execute(sqldel, rAF)
+    Call myEFrag(sqldel, rAF)
    End If
   Next i
   GesZahl = GesZahl + TIns(TabN, sF, 0, rq, obSchonDa)
@@ -2990,7 +2940,7 @@ End Function ' holAb
 ' Dim rq As New ADODB.Recordset ', f1 AS ADODB.Field, f2 AS ADODB.Field,
 ' Dim runde& ', i%
 ' frm.BytesBez = "Datensätze:"
-' rq.Open "SELECT COUNT(0) AS ct FROM `" & TabN & "`", CStrAcc & frm.snst.QuelleAnamneseBögen
+' myFrag rq, "SELECT COUNT(0) AS ct FROM `" & TabN & "`", CStrAcc & frm.snst.QuelleAnamneseBögen
 ' frm.GesBytes = rq!ct
 ' IF frm.GesBytes > 1 AND LCase(CStrAcc & frm.snst.QuelleAnamneseBögen) <> LCase$(DBCnS) THEN ' DBCn.ConnectionString
 '  ON Error GoTo fehler
@@ -2998,8 +2948,8 @@ End Function ' holAb
 '  Call ForeignNo0
 '  Call ForeignNo1
 '  rq.Close
-'  rq.Open "`" & TabN & "`", CStrAcc$ & frm.snst.QuelleAnamneseBögen
-'  Call DBCn.Execute("DELETE FROM `" & TabN & "`")
+'  myFrag rq, "`" & TabN & "`", CStrAcc$ & frm.snst.QuelleAnamneseBögen
+'  Call myefrag("DELETE FROM `" & TabN & "`")
 '  Do While Not rq.EOF
 '   runde = runde + 1
 '   gesZahl = gesZahl + TIns(TabN, sF, 0, rq)
@@ -3029,7 +2979,7 @@ End Function ' holAb
 'End Function
 
 Public Function doWSt0Erg()
- Dim rs As New Adodb.Recordset
+ Dim rs As New ADODB.Recordset
  ' COALESCE(d.f6010,0)=0 AND
  sql = "SELECT pat_id, nachname, vorname, zpkt FROM (SELECT pat_id, nachname, vorname," & _
         " (SELECT MAX(fid) mfid FROM `faelle` WHERE pat_id = `namen`.pat_id) AS mmfid" & _
@@ -3088,14 +3038,14 @@ End Function ' doWSt0Erg()
 
 Function dokpfadänder(frm As Lese)
  On Error GoTo fehler
- Dim pos%, runde%, cdTB As ConDtb, db$, fld$, rs As New Adodb.Recordset, cn As New Adodb.Connection, altCnS$, rAF&
+ Dim pos%, runde%, cdTB As ConDtb, db$, fld$, rs As New ADODB.Recordset, Cn As New ADODB.Connection, altCnS$, rAF&
 ' pu = InputBox("Ursprungsserver ohne Slashes:", "Dokpfadänder: Parametereingabe", "mitte")
 ' IF pu = "" THEN Exit Function
 ' pz = InputBox("Zielserver ohne Slashes:", "Dokpfadänder: Parametereingabe", lcase(frm.dbv.Cpt))
 ' IF pu = "" THEN Exit Function
  altCnS = DBCnS ' DBCn.ConnectionString
  For cdTB = accDtb To q2Dtb 'accDtb
-  Set cn = acon(quelleT, cdTB)
+  Set Cn = acon(quelleT, cdTB)
   For runde = 1 To 3
    Select Case runde
     Case 1: db = "dokumente": fld = "dokpfad"
@@ -3105,7 +3055,7 @@ Function dokpfadänder(frm As Lese)
    If cdTB = accDtb Then
     Set rs = Nothing
 '    rs.Open "SELECT * FROM " & "`" & db & "`" & " WHERE `" & fld & "` LIKE '%\turbomed\%' AND NOT (`" & fld & "` LIKE '$\%' AND NOT `" & fld & "` LIKE '$\\%')", Cn, adOpenDynamic, adLockOptimistic '
-    myFrag rs, "SELECT * FROM " & "`" & db & "`" & " WHERE `" & fld & "` LIKE '%\turbomed\%' AND NOT (`" & fld & "` LIKE '$\%' AND NOT `" & fld & "` LIKE '$\\%')", adOpenDynamic, cn
+    myFrag rs, "SELECT * FROM " & "`" & db & "`" & " WHERE `" & fld & "` LIKE '%\turbomed\%' AND NOT (`" & fld & "` LIKE '$\%' AND NOT `" & fld & "` LIKE '$\\%')", adOpenDynamic, Cn
     rAF = 0
     Do While Not rs.EOF
      pos = InStr(LCase(rs(fld)), "\turbomed\")
@@ -3117,7 +3067,7 @@ Function dokpfadänder(frm As Lese)
      rs.Move 1
     Loop
    Else
-    cn.Execute "UPDATE `" & db & "` SET `" & fld & "` = CONCAT('$',mid$(replace$(`" & fld & "`, '\\\\', '\\'), instrb(lcase(replace$(`" & fld & "`,'\\\\','\\')), '\\turbomed\\'))) WHERE `" & fld & "` LIKE '%turbomed%'", rAF
+    myEFrag "UPDATE `" & db & "` SET `" & fld & "` = CONCAT('$',mid$(replace$(`" & fld & "`, '\\\\', '\\'), instrb(lcase(replace$(`" & fld & "`,'\\\\','\\')), '\\turbomed\\'))) WHERE `" & fld & "` LIKE '%turbomed%'", rAF, Cn
    End If
    frm.Ausgeb rAF & " Datensätze IN `" & db & "` geändert auf $\turbomed", True
   Next runde
@@ -3137,20 +3087,20 @@ End Function ' dokpfadänder
 
 Function dokpfadänderAlt(frm As Lese)
  On Error GoTo fehler
- Dim pu$, pz$, runde%, cdTB As ConDtb, db$, rs As New Adodb.Recordset, cn As New Adodb.Connection, altCnS$, rAF&
+ Dim pu$, pz$, runde%, cdTB As ConDtb, db$, rs As New ADODB.Recordset, Cn As New ADODB.Connection, altCnS$, rAF&
  pu = InputBox("Ursprungsserver ohne Slashes:", "Dokpfadänder: Parametereingabe", "mitte")
  If LenB(pu) = 0 Then Exit Function
  pz = InputBox("Zielserver ohne Slashes:", "Dokpfadänder: Parametereingabe", LCase(frm.dbv.Cpt))
  If LenB(pu) = 0 Then Exit Function
  altCnS = DBCnS ' DBCn.ConnectionString
  For cdTB = accDtb To q2Dtb
-  Set cn = acon(quelleT, cdTB)
+  Set Cn = acon(quelleT, cdTB)
   For runde = 1 To 2
    If runde = 1 Then db = "dokumente" Else db = "dokumente abgehakt"
    If cdTB = accDtb Then
     Set rs = Nothing
 '    rs.Open "SELECT * FROM " & "`" & db & "`" & " WHERE dokpfad LIKE '%\\" & pu & "%'", Cn, adOpenDynamic, adLockOptimistic
-    myFrag rs, "SELECT * FROM " & "`" & db & "`" & " WHERE dokpfad LIKE '%\\" & pu & "%'", adOpenDynamic, cn
+    myFrag rs, "SELECT * FROM " & "`" & db & "`" & " WHERE dokpfad LIKE '%\\" & pu & "%'", adOpenDynamic, Cn
     rAF = 0
     Do While Not rs.EOF
      rs!DokPfad = REPLACE$(rs!DokPfad, "\\" & pu, "\\" & pz)
@@ -3158,7 +3108,7 @@ Function dokpfadänderAlt(frm As Lese)
      rAF = rAF + 1
     Loop
    Else
-    cn.Execute "update " & "`" & db & "`" & " SET dokpfad = replace$(dokpfad,'\\" & pu & "','\\" & pz & "') WHERE dokpfad LIKE '%\\" & pu & "%'", rAF
+    myEFrag "update " & "`" & db & "`" & " SET dokpfad = replace$(dokpfad,'\\" & pu & "','\\" & pz & "') WHERE dokpfad LIKE '%\\" & pu & "%'", rAF, Cn
    End If
    frm.Ausgeb rAF & " Datensätze IN " & "`" & db & "`" & " geändert von \\" & pu & " nach \\ " & pz & " auf " & frm.dbv.Cpt, True
   Next runde
@@ -3201,7 +3151,7 @@ End Function ' dokpfadänder
 '  Loop
 '  MsgBox KZahl & " Pfade IN " & rs.ActiveConnection.ConnectionString & " / " & rs.Source & " korrigiert!"
 ''  sql = "update dokumente SET dokpfad = replace$(dokpfad,""\\"",""\"") WHERE instr(dokpfad,""$\\TurboMed\\Dokumente"")>0"
-''  SET rs = DBCn.Execute(sql, raf)
+''  SET rs = myefrag(sql, raf)
 ' Else
 '  MsgBox "Nichts korrigiert, da MySQL gewählt!"
 ' END IF
@@ -3307,7 +3257,7 @@ nochmal:
 '             SET rSc = Nothing
 '             SET rSc = DBCnOSchema(adSchemaColumns, Array(DBCn.DefaultDatabase, Empty, "anamnesebogen", rq.Fields(i).Name))
 '             Feldlänge = rSc!character_maximum_length
-'             SET slen = DBCn.Execute("SHOW FULL COLUMNS FROM `anamnesebogen` WHERE field = '" & rq.Fields(i).Name & "'")
+'             SET slen = myefrag("SHOW FULL COLUMNS FROM `anamnesebogen` WHERE field = '" & rq.Fields(i).Name & "'")
 '             dim slV$
 '             slV = slen.Fields(1).Value
 '             IF slV LIKE "varchar(*" THEN
@@ -3315,10 +3265,10 @@ nochmal:
               Dim Feldlänge&
               Feldlänge = rz.Fields(rq.Fields(i).name).DefinedSize
               If Len(Wert) - 2 > Feldlänge Then ' Anführungszeichen
-               Dim rsc As New Adodb.Recordset
+               Dim rsc As New ADODB.Recordset
                Set rsc = Nothing
                myFrag rsc, "SHOW FULL COLUMNS FROM `" & TName & "` WHERE field = '" & rq.Fields(i).name & "'"
-               DBCn.Execute ("ALTER TABLE `" & TName & "` " & sqlALTER & " COLUMN `" & rq.Fields(i).name & "` " & sqlText & "(" & Len(Wert) - 2 & ")" & " DEFAULT " & IIf(IsNull(rsc!Default), "NULL", rsc!Default) & IIf(IsNull(rsc!collation), vNS, " COLLATE " & rsc!collation) & " COMMENT '" & rsc!Comment & "'")
+               myEFrag ("ALTER TABLE `" & TName & "` " & sqlALTER & " COLUMN `" & rq.Fields(i).name & "` " & sqlText & "(" & Len(Wert) - 2 & ")" & " DEFAULT " & IIf(IsNull(rsc!Default), "NULL", rsc!Default) & IIf(IsNull(rsc!collation), vNS, " COLLATE " & rsc!collation) & " COMMENT '" & rsc!Comment & "'")
                Const tmp$ = "tmpMess.txt"
                Open tmp For Output As #322
                Print #322, "Vergrößere IN Tabelle " & TName & " das Feld '" & rq.Fields(i).name & "' von " & Feldlänge & " auf " & Len(Wert) - 2 & " wegen:"
@@ -3342,7 +3292,7 @@ nochmal:
       'sql = LEFT(sql, len(sql) - 1) & " WHERE pat_id = " & rq!Pat_id
       csql.Cut (csql.length() - 1)
       csql.AppVar Array(" WHERE pat_id = ", rq!Pat_id)
-      Call DBCn.Execute(csql, rAF)
+      Call myEFrag(csql.Value, rAF)
       csql = "UPDATE `" & TName & "` SET "
     End If
    Next i
@@ -3351,21 +3301,21 @@ nochmal:
     csql.AppVar Array(" WHERE pat_id = ", rq!Pat_id)
 '   GoTo nochmal:
    Set rq = Nothing
-   Dim rtok As New Adodb.Recordset
+   Dim rtok As New ADODB.Recordset
    myFrag rtok, "SHOW FULL PROCESSLIST"
    Do While Not rtok.EOF
     If rtok!Command = "Sleep" Then
-     DBCn.Execute ("KILL " & rtok!id)
+     myEFrag ("KILL " & rtok!id)
     End If
     rtok.MoveNext
    Loop
-   Call DBCn.Execute(csql, rAF)
+   Call myEFrag(csql.Value, rAF)
    If rAF <> 1 And Err.Number <> 0 Then
-    Call DBCn.Execute("Commit")
-    Call DBCn.Execute(csql, rAF)
+    Call myEFrag("Commit")
+    Call myEFrag(csql.Value, rAF)
     If rAF <> 1 And Err.Number <> 0 Then
      Set rq = Nothing
-     Call DBCn.Execute(csql, rAF)
+     Call myEFrag(csql.Value, rAF)
      If rAF <> 1 And Err.Number <> 0 Then
       Err.Raise 999, , Err.Number & " " & Err.Description & vbCrLf & "Fehler in anaUpd: Falsche Zahl an Datensätzen aktualisiert: " & rAF
      End If
@@ -3379,7 +3329,7 @@ If fehlerzahl > 2 Then
  Resume Ende
 End If
 If InStrB(Err.Description, "Transaction level 'READ-COMMITTED'") <> 0 Then
- DBCn.Execute "SET SESSION TRANSACTION ISOLATION LEVEL REPEATABLE READ", rAF
+ myEFrag "SET SESSION TRANSACTION ISOLATION LEVEL REPEATABLE READ", rAF
  Resume
 End If
 If Err.Number = -2147467259 Then ' [MySQL][ODBC 3.51 Driver][mysqld-5.1.36-log]MySQL server has gone away
@@ -3407,7 +3357,7 @@ End Function ' anaUpd(rq AS Recordset)
 Public Function TUpd(TabN$, sF$, rq As Recordset)
  Dim i&, sql$, rAF&, Wert$
  Dim pos0&
- Dim rz As New Adodb.Recordset
+ Dim rz As New ADODB.Recordset
  If InStrB(UCase$(DBCn), "MYSQL") <> 0 Then
   myFrag rz, "SELECT * FROM `" & TabN & "` LIMIT 1"
  Else
@@ -3445,19 +3395,19 @@ Public Function TUpd(TabN$, sF$, rq As Recordset)
 '             SET rSc = Nothing
 '             SET rSc = DBCnOSchema(adSchemaColumns, Array(DBCn.DefaultDatabase, Empty, "anamnesebogen", rq.Fields(i).Name))
 '             Feldlänge = rSc!character_maximum_length
-'             SET slen = DBCn.Execute("SHOW FULL COLUMNS FROM `anamnesebogen` WHERE field = '" & rq.Fields(i).Name & "'")
+'             SET slen = myefrag("SHOW FULL COLUMNS FROM `anamnesebogen` WHERE field = '" & rq.Fields(i).Name & "'")
 '             dim slV$
 '             slV = slen.Fields(1).Value
 '             IF slV LIKE "varchar(*" THEN
 '              Feldlänge = mid$(slV, 9, InStr(9, slV, ")") - 9)
-              Dim rsc As New Adodb.Recordset
+              Dim rsc As New ADODB.Recordset
               Dim Feldlänge&
 '              Feldlänge = CLng(Mid(rsc!Type, 9, Len(rsc!Type) - 9))
               Feldlänge = rz.Fields(rq.Fields(i).name).DefinedSize
               If Len(Wert) - 2 > Feldlänge Then ' Anführungszeichen
                Set rsc = Nothing
                myFrag rsc, "SHOW FULL COLUMNS FROM `" & TabN & "` WHERE field = '" & rq.Fields(i).name & "'"
-               DBCn.Execute ("ALTER TABLE `" & TabN & "` " & sqlALTER & " COLUMN `" & rq.Fields(i).name & "` " & sqlText & "(" & Len(Wert) - 2 & ")" & " DEFAULT " & IIf(IsNull(rsc!Default), " NULL", rsc!Default) & IIf(IsNull(rsc!collation), vNS, " COLLATE " & rsc!collation) & " COMMENT '" & rsc!Comment & "'")
+               myEFrag ("ALTER TABLE `" & TabN & "` " & sqlALTER & " COLUMN `" & rq.Fields(i).name & "` " & sqlText & "(" & Len(Wert) - 2 & ")" & " DEFAULT " & IIf(IsNull(rsc!Default), " NULL", rsc!Default) & IIf(IsNull(rsc!collation), vNS, " COLLATE " & rsc!collation) & " COMMENT '" & rsc!Comment & "'")
                Const tmp$ = "tmpMess.txt"
                Open tmp For Output As #322
                Print #322, "Vergrößere IN Tabelle `" & TabN & "` das Feld '" & rq.Fields(i).name & "' von " & Feldlänge & " auf " & Len(Wert) - 2 & " wegen:"
@@ -3478,12 +3428,12 @@ Public Function TUpd(TabN$, sF$, rq As Recordset)
     End Select
     If Not lies.obMySQL And i Mod 100 = 99 Then
       sql = Left(sql, Len(sql) - 1) & " WHERE pat_id = " & rq!Pat_id
-      Call DBCn.Execute(sql, rAF)
+      Call myEFrag(sql, rAF)
       sql = "update " & TabN & " SET "
     End If
    Next i
    sql = Left(sql, Len(sql) - 1) & " WHERE pat_id = " & rq!Pat_id
-   Call DBCn.Execute(sql, rAF)
+   Call myEFrag(sql, rAF)
    If rAF <> 1 Then Err.Raise 999, , "Fehler in TUpd: Falsche Zahl an Datensätzen aktualisiert: " & rAF
    Exit Function
 fehler:
@@ -3496,11 +3446,11 @@ End Function ' TUpd(rq AS Recordset)
 
 Public Function anaIns(rq As Recordset)
  Const TName$ = "anamnesebogen"
- Dim i&, sql1$, sql2$, rAF&, Wert$, mprim&, rs As Adodb.Recordset, pos0&
+ Dim i&, sql1$, sql2$, rAF&, Wert$, mprim&, rs As ADODB.Recordset, pos0&
    On Error GoTo fehler
    sql1 = "INSERT INTO `" & TName & "` ("
    sql2 = "values("
-   Set rs = DBCn.Execute("SELECT MAX(prim) AS mprim FROM `" & TName & "`")
+   Set rs = myEFrag("SELECT MAX(prim) AS mprim FROM `" & TName & "`")
    mprim = IIf(IsNull(rs!mprim), 0, rs!mprim) + 1
    For i = 0 To rq.Fields.COUNT - 1
     Select Case LCase(rq.Fields(i).name)
@@ -3549,12 +3499,12 @@ End Function ' anaIns(rq AS Recordset)
 #Const turbomed = -1
 Public Function TIns&(TabN$, sF$, obPS%, rq, Optional schonAbgehakt) ' ob Primärschlüssel
  Dim i&, sql1$, sql2$, sqldel$, Wert$, mprim&
- Dim rz As New Adodb.Recordset, rs As Adodb.Recordset
+ Dim rz As New ADODB.Recordset, rs As ADODB.Recordset
    On Error GoTo fehler
    sql1 = "INSERT INTO `" & TabN & "` ("
    sql2 = "values("
    If obPS Then
-    Set rs = DBCn.Execute("SELECT MAX(" & sF & ") mprim FROM " & "`" & TabN & "`" & ";")
+    Set rs = myEFrag("SELECT MAX(" & sF & ") mprim FROM " & "`" & TabN & "`" & ";")
     mprim = IIf(IsNull(rs!mprim), 0, rs!mprim) + 1
    End If
    For i = 0 To rq.Fields.COUNT - 1
@@ -4850,7 +4800,7 @@ End Sub ' SizeColumns
 Function doWirt()
  Dim DNam$
  DNam$ = pVerz & "Wirt.txt"
- Dim Pat_id$, rs As New Adodb.Recordset, Faelle As New Adodb.Recordset
+ Dim Pat_id$, rs As New ADODB.Recordset, Faelle As New ADODB.Recordset
 ' Dim lies As New Lese
  Load Lese
  Lese.obMySQL = True
@@ -4862,7 +4812,7 @@ Function doWirt()
  Do While Not Faelle.EOF
   Pat_id = CStr(Faelle!Pat_id)
 '  SET rs = Nothing
-'  myfrag rs, "SELECT * FROM `namen` WHERE pat_id = " & Pat_id
+'  myFrag rs, "SELECT * FROM `namen` WHERE pat_id = " & Pat_id
   Set rs = Nothing
 '  Call rs.Open("SELECT * FROM `Formular` F WHERE FormVorl LIKE '%Kassenrezept%' AND zeitpunkt BETWEEN '2005-01-01' AND '2006-01-01' AND pat_id = " & Pat_id & " AND feld IN ('Datum','Dosierung','Medikamente') AND feldinh <> '-  -  -  -' ORDER BY foid", DBCn, adOpenDynamic, adLockReadOnly)
   myFrag rs, "SELECT * FROM `Formular` F WHERE FormVorl LIKE '%Kassenrezept%' AND zeitpunkt BETWEEN '2005-01-01' AND '2006-01-01' AND pat_id = " & Pat_id & " AND feld IN ('Datum','Dosierung','Medikamente') AND feldinh <> '-  -  -  -' ORDER BY foid"
@@ -4884,7 +4834,7 @@ Function doWirt()
 End Function ' doWirt
 
 Function doHilfsmittelklassifikationen(frm As Lese)
- Dim sql$, rs As New Adodb.Recordset, i%, FNr&, Zahl&(3), summe&, DatumS$, Datum As Date
+ Dim sql$, rs As New ADODB.Recordset, i%, FNr&, Zahl&(3), summe&, DatumS$, Datum As Date
  DatumS = "1.6.08"
  Do
   DatumS = InputBox("Bitte Ab-Datum eingeben:", "Datumseingabe", DatumS)
@@ -4968,9 +4918,8 @@ fehler:
  End Select
 End Function ' doHilfsmittelklassifikationen
 
-
 Function fzsfuell(frm As Lese, abstand&, Optional obgestern) ' Abstand: 999 => unbekannt, 9999 => ohne abstand
-  Dim sql$, vrs As New Adodb.Recordset, runde%, FNr&, rAF&
+  Dim sql$, vrs As New ADODB.Recordset, runde%, FNr&, rAF&
   Dim s0&, s1&, k0&, k1&, QT$
   Dim csql0 As CString
   Dim rsse() As rstype
@@ -4997,7 +4946,7 @@ Function fzsfuell(frm As Lese, abstand&, Optional obgestern) ' Abstand: 999 => u
    zpQBed = "AND TO_DAYS(e.zeitpunkt)-TO_DAYS((CONCAT(YEAR(e.zeitpunkt),'-',MONTH(e.zeitpunkt)-((MONTH(e.zeitpunkt)-1) mod 3),'-01'))) BETWEEN 0 AND " & abstand
   End If ' abstand = 9999
   ' nä Zeile 23.4.22
-  DBCn.Execute ("DELETE fz FROM fallzahlstand fz LEFT JOIN" & vbCrLf & _
+  myEFrag ("DELETE fz FROM fallzahlstand fz LEFT JOIN" & vbCrLf & _
      "(SELECT quartal, COUNT(DISTINCT pat_id) zahl" & vbCrLf & _
      "FROM faelle f" & vbCrLf & _
      "WHERE schgr <> '90' " & QBed & vbCrLf & _
@@ -5028,9 +4977,9 @@ Function fzsfuell(frm As Lese, abstand&, Optional obgestern) ' Abstand: 999 => u
     QT = rsse(ilauf).Quartal
     frm.Ausgeb "Berechne den Fallzahlstand für Quartal: " & QT & IIf(rsse(ilauf).tage = 9999, " gesamt ...", " für " & rsse(ilauf).tage & " Tage nach Quartalsbeginn ... "), True
     Debug.Print QT, rsse(ilauf).tage, rsse(ilauf).kassenpat
-    If ilauf = 0 Or DBCn.Execute("SELECT 0 FROM fallzahlstand WHERE quartal = " & QT & " AND tage = " & abstand).BOF Then
+    If ilauf = 0 Or myEFrag("SELECT 0 FROM fallzahlstand WHERE quartal = " & QT & " AND tage = " & abstand).BOF Then
 '    sql = "DELETE FROM `fallzahlstand` WHERE quartal = " & Qt & " AND tage = " & abstand
-'    DBCn.Execute sql, rAF
+'    myefrag sql, rAF
     Dim qbg$, qed$, vqu$, vqbg$, vqed$
     qbg = Format(QAnf(QT), "yyyymmdd")
     qed = Format(IIf(abstand = 9999, DateAdd("m", 3, QAnf(QT)), QAnf(QT) + abstand + 1) - 1 / 60 / 24 / 24, "'yyyy-mm-dd HH:MM:SS'")
@@ -5109,10 +5058,10 @@ Function fzsfuell(frm As Lese, abstand&, Optional obgestern) ' Abstand: 999 => u
      ' aus vorletzter Zeile vor group: AND substr(quartal,2,4)> '2008' AND quartal <> '12009'
      ' aus letzter Zeile vor Klammer: ORDER BY substr(Quartal,2,4) DESC,LEFT(Quartal,1) desc
     Set csql0 = SqlU(sql, ((LVobMySQL)))
-    DBCn.Execute csql0.Value, rAF
+    myEFrag csql0.Value, rAF
 ' das folgende wurde mit Hilfe des bash-Programms briefautor.sh unnötig:
 #If False Then
-  Dim RsI As New Adodb.Recordset
+  Dim RsI As New ADODB.Recordset
 '    sql = "UPDATE `fallzahlstand` SET arbt = (SELECT COUNT(0) arbt FROM (SELECT DATE(zeitpunkt) tag, COUNT(0) zahl FROM `eintraege` e WHERE zeitpunkt BETWEEN str_to_date(CONCAT(mid(" & Qt & ",2),(LEFT(" & Qt & ",1)-1)*3+1,'/1'),'%Y%c/%d') AND adddate(str_to_date(CONCAT(mid(" & Qt & ",2),(LEFT(" & Qt & ",1)-1)*3+1,'/1'),'%Y%c/%d')," & abstand & ") AND art IN ('tk','gs','notiz') GROUP BY DATE(zeitpunkt)) i WHERE zahl > 5) WHERE quartal = " & Qt & " AND tage = " & abstand
 '    sql = "SELECT eart, COUNT(0) zahl FROM (SELECT * FROM (SELECT name,pat_id,DATE(zeitpunkt) zp,(SELECT MAX(art) FROM `eintraege` e WHERE e.pat_id = `briefe`.pat_id AND art IN ('tk','gs') AND zeitpunkt = (SELECT MAX(zeitpunkt) FROM `eintraege` e WHERE e.pat_id = `briefe`.pat_id AND art IN ('tk','gs') AND zeitpunkt < `briefe`.zeitpunkt)) eart FROM `briefe` WHERE not name LIKE '%dmp-%' AND (name LIKE '%brief%' OR name LIKE '%nachricht%') AND art IN ('wbr','brief')) i WHERE NOT ISNULL(eart) GROUP BY pat_id, eart, zp) i WHERE zp BETWEEN '" & Format(QAnf(quartal), "yyyy-mm-dd") & "' AND '" & IIf(abstand = 9999, Format(qend(quartal), "yyyy-mm-dd"), Format(QAnf(quartal) + abstand, "yyyy-mm-dd")) & "' GROUP BY eart"
     
@@ -5151,13 +5100,13 @@ Function fzsfuell(frm As Lese, abstand&, Optional obgestern) ' Abstand: 999 => u
      Loop
      csql0.Append " BriefeSchade = " & s1 + s0 & ",BriefeKothny=" & k1 + k0 & ",dmBriefeSchade=" & s1 & ",dmBriefeKothny=" & k1
      csql0.Append " WHERE quartal = '" & QT & "' AND tage = " & abstand
-     DBCn.Execute csql0.Value, rAF
+     myEFrag csql0.Value, rAF
     End If ' Not RsI.BOF THEN
     
     Set RsI = Nothing
 #End If
     DoEvents
-    End If ' ilauf = 0 OR DBCN.execute(...).bof
+    End If ' ilauf = 0 OR myefrag(...).bof
    Next ilauf ' While Not vrs.EOF
   End If ' Not vrs.BOF THEN
   Screen.MousePointer = vbNormal
@@ -5181,14 +5130,14 @@ End Function ' fzsfuell(Optional obgestern)
 ' Dim rs As New ADODB.Recordset, RsI As New ADODB.Recordset, sql$, abstand&, rAF&
 ' Dim s0&, s1&, k0&, k1&
 ' Lese.ProgStart
-' myfrag, vrs, "SELECT quartal,tage FROM `fallzahlstand`"
+' myFrag, vrs, "SELECT quartal,tage FROM `fallzahlstand`"
 ' IF Not vrs.BOF THEN
 '  Do While Not vrs.EOF
 '    abstand = vrs!tage
 '    s0 = 0: s1 = 0: k0 = 0: k1 = 0
 '#If False THEN
 '    sql = "UPDATE `fallzahlstand` SET arbt = (SELECT COUNT(0) arbt FROM (SELECT DATE(zeitpunkt) tag, COUNT(0) zahl FROM `eintraege` e WHERE zeitpunkt BETWEEN '" & Format(QAnf(quartal), "yyyy-mm-dd") & "' AND '" & IIf(abstand = 9999, Format(qend(quartal), "yyyy-mm-dd"), Format(QAnf(quartal) + abstand, "yyyy-mm-dd")) & "' AND art IN ('tk','gs','notiz') GROUP BY DATE(zeitpunkt)) i WHERE zahl > 5) WHERE quartal = '" & Qt & "' AND tage = " & abstand
-'    DBCn.Execute sql, rAF
+'    myefrag sql, rAF
 '#END IF
 ''    sql = "SELECT eart, COUNT(0) zahl FROM (SELECT * FROM (SELECT name,pat_id,DATE(zeitpunkt) zp,(SELECT MAX(art) FROM `eintraege` e WHERE e.pat_id = briefe.pat_id AND art IN ('tk','gs') AND zeitpunkt = (SELECT MAX(zeitpunkt) FROM `eintraege` e WHERE e.pat_id = `briefe`.pat_id AND art IN ('tk','gs') AND zeitpunkt < `briefe`.zeitpunkt)) eart FROM `briefe` WHERE not name LIKE '%dmp-%' AND (name LIKE '%brief%' OR name LIKE '%nachricht%') AND art IN ('wbr','brief')) i WHERE NOT ISNULL(eart) GROUP BY pat_id, eart, zp) i WHERE zp BETWEEN '" & Format(QAnf(quartal), "yyyy-mm-dd") & "' AND '" & IIf(abstand = 9999, Format(qend(quartal), "yyyy-mm-dd"), Format(QAnf(quartal) + abstand, "yyyy-mm-dd")) & "' GROUP BY eart"
 '    sql = "SELECT eart, dm, COUNT(0) zahl FROM (" & _
@@ -5204,7 +5153,7 @@ End Function ' fzsfuell(Optional obgestern)
 '                ") i WHERE NOT ISNULL(eart) GROUP BY pat_id, eart, zp, dm " & _
 '                ") i WHERE zp BETWEEN '" & Format(QAnf(quartal), "yyyy-mm-dd") & "' AND '" & IIf(abstand = 9999, Format(qend(quartal), "yyyy-mm-dd"), Format(QAnf(quartal) + abstand, "yyyy-mm-dd")) & "' GROUP BY eart,dm "
 '
-'    myfrag RsI, sql
+'    myFrag RsI, sql
 '    IF Not RsI.BOF THEN
 '     Do While Not RsI.EOF
 '      SELECT CASE RsI!eart
@@ -5213,7 +5162,7 @@ End Function ' fzsfuell(Optional obgestern)
 '      END SELECT
 '      RsI.MoveNext
 '     Loop
-'     DBCn.Execute "UPDATE `fallzahlstand` SET BriefeSchade = " & s1 + s0 & ",BriefeKothny=" & k1 + k0 & ",dmBriefeSchade=" & s1 & ",dmBriefeKothny=" & k1 & " WHERE quartal = '" & Qt & "' AND tage = " & abstand, rAF
+'     myefrag "UPDATE `fallzahlstand` SET BriefeSchade = " & s1 + s0 & ",BriefeKothny=" & k1 + k0 & ",dmBriefeSchade=" & s1 & ",dmBriefeKothny=" & k1 & " WHERE quartal = '" & Qt & "' AND tage = " & abstand, rAF
 '    END IF
 '    SET RsI = Nothing
 '    vrs.MoveNext
@@ -5222,7 +5171,7 @@ End Function ' fzsfuell(Optional obgestern)
 'End FUNCTION ' nachfuell
 
 Function dofallzahlstand(frm As Lese, Optional obgestern$) ' in GesLies und Fallzahlstand_Click
- Dim sql$, rs As New Adodb.Recordset, runde%, FNr&, rAF&
+ Dim sql$, rs As New ADODB.Recordset, runde%, FNr&, rAF&
  Dim abstand&, heute As Date
  Dim csql As CString
  myFrag rs, "SELECT DATE(NOW()) jetzt"
@@ -5269,7 +5218,7 @@ End Function ' fallzahlstand
   " AND substr(quartal,2,4)> '2008' AND quartal <> '12009' " & _
   " GROUP BY quartal ORDER BY substr(Quartal,2,4) DESC,LEFT(Quartal,1) DESC"
 ' Wenn schon Eintrag IN der Tabelle `fallzahlstand`
-'  myfrag rs, "SELECT COUNT(0) Fehlende, Quartal FROM (SELECT f.quartal, f1.tage FROM `fallzahlstand` f LEFT JOIN `fallzahlstand` f1 ON f1.quartal = f.quartal AND f1.tage = " & abstand & " WHERE ISNULL(f1.tage) GROUP BY f.quartal) i"
+'  myFrag rs, "SELECT COUNT(0) Fehlende, Quartal FROM (SELECT f.quartal, f1.tage FROM `fallzahlstand` f LEFT JOIN `fallzahlstand` f1 ON f1.quartal = f.quartal AND f1.tage = " & abstand & " WHERE ISNULL(f1.tage) GROUP BY f.quartal) i"
 '  IF Not rs.BOF THEN
 '   IF rs!fehlende <> 0 THEN
 '    Screen.MousePointer = vbHourglass
@@ -5336,7 +5285,7 @@ End Function ' fallzahlstand
 '  SET rs = Nothing
 '  Call DtbCreateQueryDef("fallzahlstand " & runde, sql)
 '  SET rs = Nothing
-'  myfrag rs, "SELECT * FROM `fallzahlstand " & runde & "`"
+'  myFrag rs, "SELECT * FROM `fallzahlstand " & runde & "`"
 '  Do While Not rs.EOF
 '   frm.Ausgabe = Right$(Space$(4) & rs!Zahl, 4) & " " & Right$(Space$(3) & rs!z0, 3) & " " & rs!Quartal + vbCrLf + altAusgabe
 '   altAusgabe = frm.Ausgabe
@@ -5351,7 +5300,7 @@ End Function ' fallzahlstand
 ' Dim z$, op$, sql$, rs As New ADODB.Recordset, rAF&, Zp As Date
 ' ON Error GoTo fehler
 ' sql = "SELECT time(zp) AS uzeit, i2.* FROM (SELECT IF(minleizp > zeitpunkt, minleizp, zeitpunkt) AS zp, innen.* FROM (SELECT b.pat_id, (SELECT adddate(min(zeitpunkt),INTERVAL 1 minute) FROM `leistungen` WHERE fid = f.fid) AS minleizp, b.zeitpunkt AS zeitpunkt, f.fid, '40120' AS leistung, schgr,GOÄKatName,GOÄKatNr,ÜWZiel,AndÜw,ÜbwV,BhFB,BhFE1,TMFNr,AbrGb,GebOr,KVKserg,KVKs,IK,AbrAr,lVorl,KtrAbrB, name FROM `briefe` b LEFT JOIN lfaellev f using(pat_id) LEFT JOIN (SELECT * FROM `leistungen` WHERE leistung LIKE '4012%') AS l ON l.pat_id = b.pat_id AND DATE(l.zeitpunkt)= DATE(b.zeitpunkt) WHERE (name LIKE '%brief%' OR name LIKE '%DMP-Daten%') AND b.zeitpunkt BETWEEN CONCAT(YEAR(SUBDATE(NOW(),INTERVAL 14 DAY)),'-',((month(SUBDATE(NOW(),INTERVAL 14 DAY))-1)div 3)*3+1,'-01') AND adddate(CONCAT(YEAR(SUBDATE(NOW(),INTERVAL 14 DAY)),'-',((month(SUBDATE(NOW(),INTERVAL 14 DAY))-1)div 3)*3+1,'-01'), INTERVAL 3 MONTH) AND ISNULL(leistung) AND schgr <> '90') AS innen) AS i2x;"
-' myfrag rs, sql
+' myFrag rs, sql
 ' IF Not rs.BOF THEN
 ' z = hVerz + "LEIST " + Format$(Now, "dd/mm/yy HH.MM") + ".BDT"
 ' Open z For Output AS #310
@@ -5480,7 +5429,7 @@ End Function ' fallzahlstand
 ''     q.Edit
 ''     q!Status = übertragen
 ''     q.Update
-'     Call DBCn.Execute("INSERT INTO " & "`" & "leistungen exportiert" & "`" & "(datum,pat_id,schgr,leistung,übertragen) VALUES(" & DatFor_k(rs!Zp) & "," & rs!Pat_id & "," & rs!SchGr & "," & rs!Leistung & ", " & DatFor_k(NOW()) & ")", rAF)
+'     Call myefrag("INSERT INTO " & "`" & "leistungen exportiert" & "`" & "(datum,pat_id,schgr,leistung,übertragen) VALUES(" & DatFor_k(rs!Zp) & "," & rs!Pat_id & "," & rs!SchGr & "," & rs!Leistung & ", " & DatFor_k(NOW()) & ")", rAF)
 ''    END IF ' pat_id =
 '    rs.Move 1
 ' Loop
@@ -5502,20 +5451,20 @@ End Function ' fallzahlstand
 ' END SELECT
 'End Function
 
-Function test8()
- Dim cn As New Adodb.Connection
-' cn.Open "DRIVER={MySQL ODBC 5.1 Driver};database=office;server=linux1;uid=praxis;pwd=***REMOVED***;option=3"
- cn.Open "DRIVER={" & ODBCStr & "};database=office;server=linux1;uid=praxis;pwd=***REMOVED***;option=3"
- Dim rs As New Adodb.Recordset
- rs.Open "SELECT * FROM test", cn, adOpenStatic, adLockReadOnly
- Do While Not rs.EOF
-  Debug.Print rs!t
-  rs.Move 1
- Loop
-End Function ' test8
+'Function test8()
+' Dim Cn As New ADODB.Connection
+'' cn.Open "DRIVER={MySQL ODBC 5.1 Driver};database=office;server=linux1;uid=praxis;pwd=...;option=3"
+' Cn.Open "DRIVER={" & ODBCStr & "};database=office;server=linux1;uid=praxis;pwd=...;option=3"
+' Dim rs As New ADODB.Recordset
+' rs.Open "SELECT * FROM test", Cn, adOpenStatic, adLockReadOnly
+' Do While Not rs.EOF
+'  Debug.Print rs!t
+'  rs.Move 1
+' Loop
+'End Function ' test8
 
 Function fallzeig()
- Dim sql$, AuS$, i%, rs As New Adodb.Recordset
+ Dim sql$, AuS$, i%, rs As New ADODB.Recordset
  On Error GoTo fehler
  sql = "SELECT * FROM (SELECT TOP 100 pat_id, CONCAT(nachname¡ ' '¡ vorname) AS name, intaccdatemy(fanf) AS fanf, Schgr, fid, intaccdatemy(ausgst) AS ausgst, aktzeit, quartal, lvorl, GebOr FROM `faelle` ORDER BY fanf DESC, fid DESC LIMIT 100) i ORDER BY fanf, fid"
  sql = SqlU(sql, Lese.obMySQL)
@@ -5559,14 +5508,14 @@ End Function ' ProgEnde
 Public Function labtest()
  Dim erg$, rAF&
  Lese.ProgStart
- Dim rs As New Adodb.Recordset
+ Dim rs As New ADODB.Recordset
  myFrag rs, "SELECT (SELECT COUNT(0) FROM `laborxus` u WHERE datid = e.datid) zahl,datid,pfad,name FROM laborxeingel e"
  Do While Not rs.EOF
   erg = Dir(rs!Pfad)
   If LenB(erg) = 0 Then
    erg = Dir("\\anmeldr\biowinbackup\" & rs!name)
    If LenB(erg) <> 0 Then
-    DBCn.Execute "update laborxeingel SET pfad = CONCAT('\\\\anmeldr\\biowinbackup\\',name) WHERE datid = " & rs!DatID, rAF
+    myEFrag "update laborxeingel SET pfad = CONCAT('\\\\anmeldr\\biowinbackup\\',name) WHERE datid = " & rs!DatID, rAF
     Debug.Print rAF & " bei Änderung von: " & rs!name
    Else
     Debug.Print rs!Zahl & " " & rs!Pfad
@@ -5588,14 +5537,14 @@ Function getHatest(pid&)
 End Function ' getHatest
 
 Public Function holFrist()
- Dim rv As New Adodb.Recordset
+ Dim rv As New ADODB.Recordset
  Dim FristS
  On Error GoTo fehler
  Lese.ProgStart
- If DBCn.Execute("SHOW FULL TABLES WHERE TABLE_TYPE LIKE '%VIEW%' AND Tables_in_" & DBCn.DefaultDatabase & "='aktfv'").EOF Then
+ If myEFrag("SHOW FULL TABLES WHERE TABLE_TYPE LIKE '%VIEW%' AND Tables_in_" & DBCn.DefaultDatabase & "='aktfv'").EOF Then
   doViewsErstellen
- End If ' DBCn.Execute(
- DBCn.Execute ("use " & DBCn.DefaultDatabase)
+ End If ' myefrag(
+ myEFrag ("use " & DBCn.DefaultDatabase)
  myFrag rv, "SHOW CREATE VIEW `aktf`"
  If (1) Then
   FristS = rv.Fields(1)
@@ -5627,7 +5576,7 @@ fehler:
 End Function ' holFrist()
 
 Function gewEintrag()
- Dim rn As New Adodb.Recordset, rf As New Adodb.Recordset, rE As New Adodb.Recordset, gew0 As New CString, gewStr As New CString, buch$, i&, gew#, za%, kz%, ZZ%, kzm% ' Ziffer (als letztes) angehängt, Kommazahl, Ziffernzahl, keine Ziffer mehr
+ Dim rn As New ADODB.Recordset, rf As New ADODB.Recordset, rE As New ADODB.Recordset, gew0 As New CString, gewStr As New CString, buch$, i&, gew#, za%, kz%, ZZ%, kzm% ' Ziffer (als letztes) angehängt, Kommazahl, Ziffernzahl, keine Ziffer mehr
  Lese.ProgStart
  Dim FristS$
  FristS = holFrist()
@@ -5684,7 +5633,7 @@ Function gewEintrag()
 End Function ' gewEintrag()
 
 Public Function ZahlEintrag() ' &Zahlen aus Einträgen ermitteln
- Dim rn As New Adodb.Recordset, rf As New Adodb.Recordset, rE As New Adodb.Recordset, gew0 As New CString, gewStr As New CString, buch$, i&, gew#, za%, kz%, ZZ%, kzm% ' Ziffer (als letztes) angehängt, Kommazahl, Ziffernzahl, keine Ziffer mehr
+ Dim rn As New ADODB.Recordset, rf As New ADODB.Recordset, rE As New ADODB.Recordset, gew0 As New CString, gewStr As New CString, buch$, i&, gew#, za%, kz%, ZZ%, kzm% ' Ziffer (als letztes) angehängt, Kommazahl, Ziffernzahl, keine Ziffer mehr
  Dim bearbeitet&, vorhanden&, sql$, rafSum&, rAF&
  Lese.ProgStart
  sql = "SELECT id,inhalt FROM `eintraege` WHERE ISNULL(inhnum) OR inhnum=0 ORDER BY pat_id DESC"
@@ -5694,7 +5643,7 @@ Public Function ZahlEintrag() ' &Zahlen aus Einträgen ermitteln
  myFrag rE, sql
  Do While Not rE.EOF
   gew0 = rE!Inhalt
-  DBCn.Execute "UPDATE `eintraege` SET inhnum = " & REPLACE(gew0.ToNumber, ",", ".") & " WHERE id = " & rE!id, rAF
+  myEFrag "UPDATE `eintraege` SET inhnum = " & REPLACE(gew0.ToNumber, ",", ".") & " WHERE id = " & rE!id, rAF
   rafSum = rafSum + rAF
   rE.MoveNext
   bearbeitet = bearbeitet + 1
@@ -5776,7 +5725,7 @@ End Function ' testrisk
 
 Public Sub LiesKassen()
 Call liesexcel("p:\patientenübergreifendes\Listenausgabe_Krankenkassen.xls", 5, "kassen")
-DBCn.Execute "DROP TABLE IF EXISTS kassenliste"
+myEFrag "DROP TABLE IF EXISTS kassenliste"
 sql = "CREATE TABLE `kassenliste` (" & vbCrLf & _
   "`ID` int(10) NOT NULL AUTO_INCREMENT," & vbCrLf & _
   "`VKNR` varchar(6)  DEFAULT NULL," & vbCrLf & _
@@ -5804,8 +5753,8 @@ sql = "CREATE TABLE `kassenliste` (" & vbCrLf & _
   "KEY `VKIK` (`VKNR`,`IK`)," & vbCrLf
   sql = sql & " KEY `kateg` (`Kateg`)" & vbCrLf & _
   ") ENGINE=InnoDB AUTO_INCREMENT=10422 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_german2_ci ROW_FORMAT=DYNAMIC"
-  DBCn.Execute sql
-  DBCn.Execute "INSERT INTO kassenliste(kurzname,ik,vknr,AnzahlIK,AnzahlKTUG,GültigVon,GültigBis,GO) SELECT kurzname,ik,vknr,`Anzahl IK`,`Anzahl KTUG`,`Gültig von`,`Gültig bis`,`GO` FROM kassen"
+  myEFrag sql
+  myEFrag "INSERT INTO kassenliste(kurzname,ik,vknr,AnzahlIK,AnzahlKTUG,GültigVon,GültigBis,GO) SELECT kurzname,ik,vknr,`Anzahl IK`,`Anzahl KTUG`,`Gültig von`,`Gültig bis`,`GO` FROM kassen"
   DoKassenkategorienBestimmen
   Forms(0).Ausgeb "Fertig mit Lieskassen!", True
 End Sub ' LiesKassen
@@ -5930,7 +5879,7 @@ Public Sub DoKassenkategorienBestimmen()
 End Sub ' DoKassenkategorienBestimmen
 
 Sub doKassKat(Kateg$, namen$(), Optional isn%)
- Dim rs As Adodb.Recordset, rAF&, sql$, i%
+ Dim rs As ADODB.Recordset, rAF&, sql$, i%
  sql = "UPDATE `kassenliste` SET geaen=" & Format(Now(), "yyyymmddHHMMSS") & ",Kateg='" & Kateg & "' WHERE ("
  i = 0
  Do
@@ -5946,7 +5895,7 @@ Sub doKassKat(Kateg$, namen$(), Optional isn%)
  If isn <> 0 Then
   sql = sql & " AND (ISNULL(Kateg) OR Kateg='')"
  End If
- Set rs = DBCn.Execute(sql, rAF)
+ Set rs = myEFrag(sql, rAF)
  If rAF <> 0 Then
   Lese.Ausgabe = Lese.Ausgabe & "In die Kategorie '" & Kateg & "' wurden " & rAF & " Kassen eingeteilt." & vbCrLf
   altAusgabe = Lese.Ausgabe
@@ -5958,8 +5907,8 @@ Public Sub liesexcel(Datei$, ÜZeile%, Tbl$)
  Const XStra = "Provider=Microsoft.Jet.OLEDB.4.0;Data Source="
  Const XStrb = ";Extended Properties=""Excel 8.0;HDR=no;IMEX=1"""
  Dim rX As New ADOX.Catalog, sql$, rAF&
- Dim XCon As New Adodb.Connection
- Dim rEx As New Adodb.Recordset, rs As New Adodb.Recordset
+ Dim XCon As New ADODB.Connection
+ Dim rEx As New ADODB.Recordset, rs As New ADODB.Recordset
  Dim InS$
  FNr = 19
  On Error GoTo fehler
@@ -6015,7 +5964,7 @@ Public Sub liesexcel(Datei$, ÜZeile%, Tbl$)
 ' Dim maxsp&
 ' maxsp = rEx.Fields.Count
  On Error Resume Next
- DBCn.Execute ("DROP TABLE IF EXISTS `" & Tbl & "`")
+ myEFrag ("DROP TABLE IF EXISTS `" & Tbl & "`")
  On Error GoTo fehler
  sql = "CREATE TABLE `" & Tbl & "` (id INTEGER(10) AUTO_INCREMENT KEY"
  For j = 0 To UBound(SpNm)
@@ -6034,7 +5983,7 @@ Public Sub liesexcel(Datei$, ÜZeile%, Tbl$)
   If j <> UBound(SpNm) Then InS = InS & ","
  Next
  sql = sql & ")"
- DBCn.Execute sql, rAF
+ myEFrag sql, rAF
  rEx.MoveFirst
  zeile = 1
  Do While Not rEx.EOF

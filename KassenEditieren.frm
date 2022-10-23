@@ -133,7 +133,7 @@ End Sub
 
 Private Sub Anzeigen_Click()
  Dim ergS As New CString, sql As New CString, i&, j&
- Dim rs As New Adodb.Recordset
+ Dim rs As New ADODB.Recordset
  sql = "SELECT vk,ik,name,kateg"
  For i = 0 To Check1.COUNT - 1
   If Check1(i) <> 0 Then
@@ -174,7 +174,7 @@ End Sub ' sqlText_GotFocus()
 
 Private Sub Start_Click()
  Dim ergS As New CString, sql As New CString, i&, j&, erg&
- Dim rs As New Adodb.Recordset
+ Dim rs As New ADODB.Recordset
  sql = "UPDATE `kassenliste` k SET geaen=" & Format(Now(), "yyyymmddHHMMSS") & ","
  For i = 0 To Check1.COUNT - 1
   If Check1(i) <> 0 Then
@@ -189,7 +189,7 @@ Private Sub Start_Click()
  If Me.alle = 0 Then
   sql.Append " WHERE name LIKE '%" & Me.sqlText & "%'"
  End If
- DBCn.Execute sql
+ myEFrag sql.Value
  Anzeigen_Click
  Me.sqlText.SetFocus
 End Sub ' Start_Click()

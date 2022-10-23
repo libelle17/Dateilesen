@@ -284,7 +284,7 @@ Public geladen%
 Public briefneu%
 
 Private Sub Angeforderte_Click(Index As Integer)
- Dim rs As New Adodb.Recordset
+ Dim rs As New ADODB.Recordset
  Dim arztbed$
 ' SELECT CASE Index
 '  Case 0: arztbed = "(e.art IN ('tk','ARCHIE2','APK') OR e.inhalt LIKE '%(tk)%')"
@@ -295,8 +295,8 @@ Private Sub Angeforderte_Click(Index As Integer)
  Me.Diagnosen.Clear
  Me.FaellepHA.Clear
  Me.Vorbriefe.Clear
-' myfrag rs, "SELECT f.pat_id, LEFT(CONCAT(n.nachname,',',n.vorname,IF(n.titel='','',','),n.titel,IF(n.nvorsatz='','',' '),n.nvorsatz),24) AS name, DATE_FORMAT(f.bhfb,'%d.%m.%y') BhFB, IF(e.art IN ('gs','doppler','duplex') OR e.inhalt LIKE '%(gs)%','gs','tk') arzt, f.auftrag, f.verdacht, f.befund FROM faelle f LEFT JOIN namen n ON f.pat_id = n.pat_id LEFT JOIN briefe b ON f.pat_id = b.pat_id AND name LIKE '%brief%' AND b.zeitpunkt > f.bhfb LEFT JOIN eintraege e ON e.pat_id = f.pat_id AND " & arztbed & " WHERE (auftrag LIKE '%beten%' OR auftrag LIKE '%bitte%' OR verdacht LIKE '%beten%' OR verdacht LIKE '%bitte%' OR befund LIKE '%beten%' OR befund LIKE '%bitte%') AND ISNULL(b.name) GROUP BY f.pat_id ORDER BY arzt, f.bhfb, f.pat_id, e.zeitpunkt DESC"
-' myfrag rs, "SELECT f.pat_id, LEFT(CONCAT(n.nachname,',',n.vorname,IF(n.titel='','',','),n.titel,IF(n.nvorsatz='','',' '),n.nvorsatz),24) AS name, DATE_FORMAT(f.bhfb,'%d.%m.%y') BhFB, IF(e.art IN ('gs','doppler','duplex') OR e.inhalt LIKE '%(gs)%','gs','tk') arzt, f.auftrag, f.verdacht, f.befund FROM faelle f LEFT JOIN namen n ON f.pat_id = n.pat_id LEFT JOIN briefe b ON f.pat_id = b.pat_id AND name LIKE '%brief%' AND b.zeitpunkt > f.bhfb LEFT JOIN eintraege e ON e.pat_id = f.pat_id AND " & arztbed & " LEFT JOIN `faxeinp`.`outa` o ON o.pid = f.pat_id AND o.transe > f.bhfb AND o.docname LIKE '%brief%' WHERE (auftrag LIKE '%beten%' OR auftrag LIKE '%bitte%' OR verdacht LIKE '%beten%' OR verdacht LIKE '%bitte%' OR befund LIKE '%beten%' OR befund LIKE '%bitte%') AND ISNULL(b.name) AND ISNULL(o.transe) GROUP BY f.pat_id ORDER BY f.pat_id, e.zeitpunkt DESC"
+' myFrag rs, "SELECT f.pat_id, LEFT(CONCAT(n.nachname,',',n.vorname,IF(n.titel='','',','),n.titel,IF(n.nvorsatz='','',' '),n.nvorsatz),24) AS name, DATE_FORMAT(f.bhfb,'%d.%m.%y') BhFB, IF(e.art IN ('gs','doppler','duplex') OR e.inhalt LIKE '%(gs)%','gs','tk') arzt, f.auftrag, f.verdacht, f.befund FROM faelle f LEFT JOIN namen n ON f.pat_id = n.pat_id LEFT JOIN briefe b ON f.pat_id = b.pat_id AND name LIKE '%brief%' AND b.zeitpunkt > f.bhfb LEFT JOIN eintraege e ON e.pat_id = f.pat_id AND " & arztbed & " WHERE (auftrag LIKE '%beten%' OR auftrag LIKE '%bitte%' OR verdacht LIKE '%beten%' OR verdacht LIKE '%bitte%' OR befund LIKE '%beten%' OR befund LIKE '%bitte%') AND ISNULL(b.name) GROUP BY f.pat_id ORDER BY arzt, f.bhfb, f.pat_id, e.zeitpunkt DESC"
+' myFrag rs, "SELECT f.pat_id, LEFT(CONCAT(n.nachname,',',n.vorname,IF(n.titel='','',','),n.titel,IF(n.nvorsatz='','',' '),n.nvorsatz),24) AS name, DATE_FORMAT(f.bhfb,'%d.%m.%y') BhFB, IF(e.art IN ('gs','doppler','duplex') OR e.inhalt LIKE '%(gs)%','gs','tk') arzt, f.auftrag, f.verdacht, f.befund FROM faelle f LEFT JOIN namen n ON f.pat_id = n.pat_id LEFT JOIN briefe b ON f.pat_id = b.pat_id AND name LIKE '%brief%' AND b.zeitpunkt > f.bhfb LEFT JOIN eintraege e ON e.pat_id = f.pat_id AND " & arztbed & " LEFT JOIN `faxeinp`.`outa` o ON o.pid = f.pat_id AND o.transe > f.bhfb AND o.docname LIKE '%brief%' WHERE (auftrag LIKE '%beten%' OR auftrag LIKE '%bitte%' OR verdacht LIKE '%beten%' OR verdacht LIKE '%bitte%' OR befund LIKE '%beten%' OR befund LIKE '%bitte%') AND ISNULL(b.name) AND ISNULL(o.transe) GROUP BY f.pat_id ORDER BY f.pat_id, e.zeitpunkt DESC"
 myFrag rs, "SELECT * FROM (SELECT f.pat_id, LEFT(CONCAT(n.nachname,',',n.vorname,IF(n.titel='','',','),n.titel,IF(n.nvorsatz='','',' '),n.nvorsatz),24) AS name, DATE_FORMAT(f.bhfb,'%d.%m.%y') BhFB, (SELECT COUNT(0) FROM eintraege e WHERE pat_id = f.pat_id AND (e.art IN ('gs','doppler','duplex') OR e.inhalt LIKE '%(gs)%')) gsz, (SELECT MAX(zeitpunkt) FROM eintraege e WHERE pat_id = f.pat_id AND (e.art IN ('gs','doppler','duplex') OR e.inhalt LIKE '%(gs)%')) gsl, (SELECT COUNT(0) FROM eintraege e WHERE pat_id = f.pat_id AND (e.art IN ('tk') OR e.inhalt LIKE '%(tk)%')) tkz, (SELECT MAX(zeitpunkt) FROM eintraege e WHERE pat_id = f.pat_id AND (e.art IN ('tk') OR e.inhalt LIKE '%(tk)%')) tkl," & _
         "f.auftrag, f.verdacht, f.befund FROM faelle f LEFT JOIN namen n ON f.pat_id = n.pat_id LEFT JOIN briefe b ON f.pat_id = b.pat_id AND name LIKE '%brief%' AND b.zeitpunkt > f.bhfb LEFT JOIN `faxeinp`.`outa` o ON o.pid = f.pat_id AND o.transe > f.bhfb AND o.docname LIKE '%brief% ' WHERE (auftrag LIKE '%beten%' OR auftrag LIKE '%bitte%' OR verdacht LIKE '%beten%' OR verdacht LIKE '%bitte%' OR befund LIKE '%beten%' OR befund LIKE '%bitte%') AND ISNULL(b.name) AND ISNULL(o.transe) GROUP BY f.pat_id) i WHERE " & IIf(Index = 0, "tkz", "gsz") & "<>0 ORDER BY pat_id"
  If Not rs.BOF Then
@@ -416,7 +416,7 @@ End Sub
 
 ' Knopf Thererartenanz
 Private Sub Therapiearten_Click()
- Dim rs As New Adodb.Recordset, spmaxü
+ Dim rs As New ADODB.Recordset, spmaxü
  spmaxü = Array(10, 5, 200)
  If Me.Pat_id <> 0 Then
   myFrag rs, "SELECT * FROM therarten WHERE pat_id=" & CStr(Me.Pat_id) & " ORDER BY zp DESC, mpnr DESC"
@@ -441,7 +441,7 @@ End Sub ' Vorlage_GotFocus
 Private Sub HAAusw_KeyDown(KeyCode As Integer, Shift As Integer)
  Call Key(KeyCode, Shift, Me)
  If KeyCode = 13 Then
-  Dim rNaA As New Adodb.Recordset
+  Dim rNaA As New ADODB.Recordset
   Dim sql$, KVNr$
   sql = "SELECT kvnr FROM hareal WHERE adressat LIKE '%" & Me.HAAusw & "%'"
   myFrag rNaA, sql
@@ -544,7 +544,7 @@ End Sub ' Form_Load
 ' kommt vor IN doPatNameChange, SchreibDatensatz und FDC_indvorWechsel
 Function getPat_id&(PatName$)
  Dim Spl$(), sql$
- Dim rNaA As New Adodb.Recordset
+ Dim rNaA As New ADODB.Recordset
  On Error GoTo fehler
  If IsNull(PatName) Or PatName = vNS Then
   getPat_id = -1
@@ -607,8 +607,8 @@ altobTrans:
 ' Dim sLi As New SortierListe
  #End If
  On Error GoTo fehler
- Dim rNaA As New Adodb.Recordset
-' myfrag rNaA, "SELECT nachname, vorname, gebdat, pat_id FROM `namen` ORDER BY nachname, vorname, gebdat;"
+ Dim rNaA As New ADODB.Recordset
+' myFrag rNaA, "SELECT nachname, vorname, gebdat, pat_id FROM `namen` ORDER BY nachname, vorname, gebdat;"
  #If EinmalDB Then
  sql = "SELECT pat_id, CAST(CONCAT(CAST(nachname AS CHAR)¡ "", ""¡ vorname¡ "",*""¡ DATE_FORMAT(gebdat,'%e.%c.%Y')¡ "" | ""¡ pat_id) AS char) f0, CONCAT(pat_id¡"" | ""¡ CAST(nachname AS char)¡ "", ""¡ vorname¡ "",*""¡ DATE_FORMAT(gebdat,'%e.%c.%Y')) AS f1 FROM `namen` ORDER BY nachname, vorname, gebdat;"
  #Else
@@ -670,7 +670,7 @@ Function AuswPat_id(frm As PatAuswahl)
  On Error GoTo fehler
  'Dim cnADO As New ADODB.Connection
  'cnADO.Open ConStr
- Dim rNaA As New Adodb.Recordset
+ Dim rNaA As New ADODB.Recordset
 ' sql = "SELECT CONCAT(pat_id¡"" : ""¡ nachname¡ "", ""¡ vorname¡ "",*""¡ DATE_FORMAT(gebdat,'%e.%c.%Y')) AS f1 FROM `namen` ORDER BY pat_id;"
 ' IF Forms(0).obMySQL THEN
 '  sql = replace$(sql, "¡", ",")
@@ -716,7 +716,7 @@ Function AuswHA(frm As PatAuswahl)
  DoEvents
  'Dim cnADO As New ADODB.Connection
  'cnADO.Open ConStr
- Dim rHS As New Adodb.Recordset, rKVNr As New Adodb.Recordset
+ Dim rHS As New ADODB.Recordset, rKVNr As New ADODB.Recordset
  myFrag rKVNr, "SELECT DISTINCT kvnr FROM `namen` UNION SELECT DISTINCT übwr FROM `faelle`" ' DISTINCT könnte hier entfallen, ist durch UNION impliziert
  If Not Forms(0).obMySQL Then
    Call acon(HaT)
@@ -827,7 +827,7 @@ Private Sub HAAusw_Click()
 End Sub ' HAAusw_Click()
 
 Private Sub HAAusw_Change()
- Dim rNaA As New Adodb.Recordset
+ Dim rNaA As New ADODB.Recordset
  Dim sql$, KVNr$
  KVNr = Mid$(Me.HAAusw, InStr(Me.HAAusw, "KVNr") + 5, 7)
  If KVNr <> vNS Then
@@ -864,12 +864,12 @@ Private Sub Pat_ID_Change()
 End Sub ' Pat_ID_Change()
 
 Private Sub do_Pat_ID_Change(Optional mitVorDat%)
- Dim rNaA As New Adodb.Recordset
- Dim rFaA As New Adodb.Recordset
- Dim rDi As New Adodb.Recordset
- Dim rEin As New Adodb.Recordset
+ Dim rNaA As New ADODB.Recordset
+ Dim rFaA As New ADODB.Recordset
+ Dim rDi As New ADODB.Recordset
+ Dim rEin As New ADODB.Recordset
  Dim HAStr$, obHA%
- Static rKVA As New Adodb.Recordset
+ Static rKVA As New ADODB.Recordset
  Static innen%
  Dim pos&
  If innen Then Exit Sub
@@ -942,7 +942,7 @@ Private Sub do_Pat_ID_Change(Optional mitVorDat%)
       rFaA.Move 1
      Loop
     End If ' Not rFaA.BOF THEN
-    myFrag rDi, "SELECT diagsicherheit, icd, diagtext, DATE_FORMAT(diagdatum,'%d.%m.%y') diagdatum, obdauer FROM `diagnosen` d WHERE pat_id = " & Me.PatID & " GROUP BY diagsicherheit, icd, diagtext, obdauer ORDER BY icd" ' AND COALESCE(d.f6010,0)=0
+    myFrag rDi, "SELECT diagsicherheit, icd, diagtext, DATE_FORMAT(diagdatum,'%d.%m.%y') diagdatum, obdauer FROM `diagmed` d WHERE pat_id = " & Me.PatID & " GROUP BY diagsicherheit, icd, diagtext, obdauer ORDER BY icd" ' AND COALESCE(d.f6010,0)=0
     If Not rDi.BOF Then
      Do While Not rDi.EOF
       Me.Diagnosen.AddItem rDi!DiagSicherheit & " " & rDi!DiagDatum & " " & IIf(rDi!obDauer = 0, "f", "d") & " " & Left$(rDi!ICD & Space$(7), 7) & rDi!DiagText
@@ -980,8 +980,8 @@ Private Sub do_Pat_ID_Change(Optional mitVorDat%)
     End If
    
 '   IF LenB(Me.HAAusw) = 0 THEN
-     Dim rs As New Adodb.Recordset
-     myFrag rs, "SELECT transe, docname , RCFax, pages , fsize ,Retries FROM `faxeinp`.`outa` o WHERE docname RLIKE 'PID " & Pat_id & "[^0123456789]' ORDER BY transe DESC"
+     Dim rs As New ADODB.Recordset
+     myFrag rs, "SELECT transe, docname , RCFax, pages, fsize, Retries FROM `faxeinp`.`outa` o WHERE docname RLIKE 'PID " & Pat_id & "[^0123456789]' ORDER BY transe DESC"
      If Not rs.BOF Then
       Do While Not rs.EOF
        If rs!transe >= Zulp Then Me.nötig.BackColor = &HFF0000 ' blau
@@ -1003,8 +1003,8 @@ Private Sub do_Pat_ID_Change(Optional mitVorDat%)
      End If ' hlese.Aktion = BriefSchreiben THEN
   '   END IF ' LenB(Me.HAAusw) = 0 THEN
    End If ' rNaA.EOF
-   Dim sql$, rdesk As New Adodb.Recordset
-   sql = "SELECT (0) FROM desktop d WHERE pat_id = " & Me.Pat_id & " AND titel LIKE '%kein%Bericht%'"
+   Dim sql$, rdesk As New ADODB.Recordset
+   sql = "SELECT (0) FROM desktop WHERE pat_id = " & Me.Pat_id & " AND titel LIKE '%kein%Bericht%'"
    Set rdesk = Nothing
    myFrag rdesk, sql
    If Not rdesk.BOF Then
@@ -1056,7 +1056,7 @@ Private Sub PatName_Click()
 End Sub ' PatName_Click()
 
 Private Sub PatName_Change()
- Dim rs As New Adodb.Recordset, sn$(), s1$
+ Dim rs As New ADODB.Recordset, sn$(), s1$
 ' Me.Pat_id = getPat_id(Me.PatName)
  If InStrB(Me.PatName, ",") <> 0 Or InStrB(Me.PatName, " ") <> 0 Then
   SplitNeu Me.PatName, ",", sn

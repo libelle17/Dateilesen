@@ -104,8 +104,8 @@ Public Lanr&
 ' aufgerufen IN doMachDMPBogen
 Public Sub PrepPatid(Pat_id&)
  Dim i&, maxTag$
- Dim rfal As New Adodb.Recordset
- Dim rnam As New Adodb.Recordset
+ Dim rfal As New ADODB.Recordset
+ Dim rnam As New ADODB.Recordset
  myFrag rnam, "SELECT nachname, vorname, titel, nvorsatz FROM `namen` WHERE pat_id =  " & Pat_id
  If Not rnam.BOF Then
   Me.Caption = "Bitte LANR für " & rnam!Titel & " " & rnam!Vorname & " " & rnam!NVorsatz & " " & rnam!Nachname & " (Pat_id: " & Pat_id & ") auswählen!"
@@ -144,9 +144,9 @@ Public Sub PrepPatid(Pat_id&)
 End Sub ' PrepPatid(Pat_id&)
 
 Private Sub Form_Load()
- Dim rlan As New Adodb.Recordset, sql$, i&
+ Dim rlan As New ADODB.Recordset, sql$, i&
  sql = "SELECT a.lanr, a.nachname, a.vorname FROM `lanrpraxis` l LEFT JOIN `haerzte`.`arzt` a ON l.lanr=a.lanr WHERE NOT ISNULL(a.lanr) GROUP BY l.lanr ORDER BY l.lanr"
-' myfrag rlan, "SELECT COUNT(0) zl FROM (" & sql & ")"
+' myFrag rlan, "SELECT COUNT(0) zl FROM (" & sql & ")"
  myFrag rlan, sql
  If Not rlan.BOF Then
   i = 0

@@ -180,7 +180,7 @@ Private m_iSortType As Integer
 Private m_bDragOK As Boolean
 Private m_iDragCol As Integer
 Private xdn As Integer, ydn As Integer
-Public rAd As New Adodb.Recordset
+Public rAd As New ADODB.Recordset
 Public hlese As Lese
 Private DatPfad$
 'Const AbgehSQL$ = "SELECT briefe.Pat_ID, briefe.Zeitpunkt, briefe.pfad, briefe.Name, DATE(briefe.DokAenD) AS Quelldt, briefe.DokGroe, CONCAT(hkv.nachname, ' ', hkv.ort) AS kv, CONCAT(hüw.nachname,' ',hüw.ort) üb, DATE(bhfb) AS Fallbg, IF(abgehakt <> 0,'X',' ') AS abgeh FROM ((`briefe` LEFT JOIN `dokumente abgehakt` ON `briefe`.pfad = `dokumente abgehakt`.pfad) LEFT JOIN `namen` ON `briefe`.pat_id = `namen`.pat_id) LEFT JOIN `lfaelle` ON `briefe`.pat_id = `lfaelle`.pat_id LEFT JOIN `hausaerzte` hkv ON `namen`.kvnr = hkv.kvnr LEFT JOIN `hausaerzte` hüw ON übwv = hüw.kvnr WHERE (((`briefe`.Name) LIKE '%Fremdlabor%')) AND (ISNULL(abgehakt) OR abgehakt = 0) GROUP BY pfad ORDER BY pat_id DESC, zeitpunkt DESC, übwv DESC"
@@ -199,7 +199,7 @@ Private Sub abhaken_Click()
   If rAd.BOF Then
    InsKorr DBCn, DBCnS, "INSERT INTO `dokumente abgehakt` (abgehakt,aktzeit,dokpfad) VALUES(" & ob & "," & DatFor_k(Now) & ",'" & doUmwfSQL(Me.MSHFlexGrid1.Text, lies.obMySQL) & "')", rAF
   Else ' rAd.BOF THEN
-   Call DBCn.Execute("UPDATE `dokumente abgehakt` SET abgehakt = " & ob & ", aktzeit = " & DatFor_k(Now) & " WHERE dokpfad = '" & doUmwfSQL(Me.MSHFlexGrid1.Text, lies.obMySQL) & "'", rAF)
+   Call myEFrag("UPDATE `dokumente abgehakt` SET abgehakt = " & ob & ", aktzeit = " & DatFor_k(Now) & " WHERE dokpfad = '" & doUmwfSQL(Me.MSHFlexGrid1.Text, lies.obMySQL) & "'", rAF)
  End If ' rAd.BOF THEN
  Call weiter_Click
  Exit Sub
@@ -250,7 +250,7 @@ Private Sub inTurbomedAnzeigen_Click() ' IN Turbomed anzeigen
  Dim hnd&, Pat_id&, dtyp%, alttop&, altr&
  Const Pat_IDSp& = 1
  Dim DT As DMPClass, j%
- Dim rTyp As New Adodb.Recordset
+ Dim rTyp As New ADODB.Recordset
  With Me.MSHFlexGrid1
   .SetFocus
   alttop = .TopRow
@@ -435,7 +435,7 @@ Private Sub LadDaten()
  If LenB(DBCnS) = 0 Then  ' DBCn.ConnectionString = "" THEN
   Call acon(quelleT)
  End If
- Dim rs As New Adodb.Recordset
+ Dim rs As New ADODB.Recordset
  If Lese.obMySQL = 0 Then
   myFrag rs, SqlU(sql, Lese.obMySQL) ' um die Fehler im SQL-String besser zu erkennen
  End If
