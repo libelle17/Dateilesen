@@ -369,7 +369,9 @@ Private Sub Patientenlaufzettel_Click()
  Dim zzn%
  zzn = 8
  If IsNumeric(Me.Zeilenzahl) Then zzn = CInt(zzn)
- If IsNumeric(Me.Pat_id) Then Call dodoPLZ(Me.Pat_id, plzVz, Now, Now - Int(Now), True, "", zzn, obRueck)
+ If IsNumeric(Me.Pat_id) Then
+  Call dodoPLZ(Me.Pat_id, plzVz, Now, Now - Int(Now), True, "", zzn, obRueck)
+ End If
 End Sub ' Patientenlaufzettel_Click()
 
 Private Sub Abr_Click()
@@ -1065,13 +1067,15 @@ Private Sub PatName_Change()
   End If
   If UBound(sn) > 0 Then s1 = sn(1) Else s1 = vNS
   myFrag rs, "SELECT COUNT(0) ct, MAX(pat_id) pid FROM `namen` WHERE nachname LIKE '" & UmwfSQL(sn(0)) & "%' AND vorname LIKE '" & UmwfSQL(s1) & "%'"
-  Me.Anzahl = rs!ct
-  If Me.Anzahl > 0 Then
-   Me.Pat_id = rs!pid
-  Else
-   Me.Pat_id = -1
-  End If
- End If
+  If Not rs.EOF Then
+   Me.Anzahl = rs!ct
+   If Me.Anzahl > 0 Then
+    Me.Pat_id = rs!pid
+   Else
+    Me.Pat_id = -1
+   End If
+  End If ' Not rs.EOF Then
+ End If ' Not rs.EOF Then
 End Sub ' PatName_Change()
 
 Private Sub PatName_KeyDown(KeyCode As Integer, Shift As Integer)

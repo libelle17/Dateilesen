@@ -3,7 +3,8 @@ Const haz$ = "HAz" 'Zwischenname
 Const hae$ = "Hausaerzte" ' endgültig
 'Const Datei$ = uVerz + "HA.doc"
 Public Const opti& = 1 + 2 '+ 2048  ' 4 + 8 '+ 32 + 131118 ' 131118, 32 ' + 2048 + 16384
-'Public Const CSStr$ = "DRIVER={MySQL ODBC 3.51 Driver};server=linux1;uid=praxis;pwd=***REMOVED***;database=kvaerzte;OPTION=" & opti
+' Public Const CSStr$ = "DRIVER={MySQL ODBC 3.51 Driver};server=linux1;uid=praxis;pwd=***REMOVED***;database=kvaerzte;OPTION=" & opti
+
 #If False Then
 Function dbtest()
  Dim i%, rs As DAO.Recordset, name$, FNr%
@@ -11,8 +12,8 @@ Function dbtest()
  For i = 0 To Dtb.TableDefs.COUNT - 1
   name = Dtb.TableDefs(i).name
   On Error Resume Next
-  Set rs = myFrag(Dtb, Recordset(name, dbOpenTable))
-  FNr = Err.Number
+  Set rs = myFrag(Dtb, Recordset(name, dbOpenTable), , , , , , True, FNr)
+'  FNr = Err.Number
   On Error GoTo fehler
   Debug.Print i, name, FNr
  Next
@@ -31,6 +32,7 @@ fehler:
  End Select
 End Function ' dbtest
 #End If
+
 Function HANrS$(HANr) ' wird z.Zt. nicht verwendet, 7.1.06
  If IsNull(HANr) Then
   HANrS = vNS

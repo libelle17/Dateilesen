@@ -142,6 +142,7 @@ Public Sub doHAAkt(frm As Lese)
  Dim rAF&, obüberhaupt%
  Dim ausg$, lauf&
  Dim F0 As File, f1 As File
+ Dim ErrNr&, ErrDes$
  On Error GoTo fehler
  ' 1. fetlegen, von wo die Datei Listenausgabe_Überweiser.xls gelesen wird
  userprof = Environ("userprofile")
@@ -232,9 +233,9 @@ gefunden:
 #End If
      Do While Not rdb.EOF
       fld = rdb.Fields(0)
-      myEFrag "USE `" & fld & "`", , MyCn
+      myEFrag "USE `" & fld & "`", , MyCn, True, ErrNr
       Debug.Print "USE `" & fld & "`"
-      If Err.Number <> 0 Then
+      If ErrNr <> 0 Then
 '       Print #399, "Computer: " & Cpt & ", Datenbank : " & fld & ": Fehler: " & Err.Description
        frm.Ausgeb "Computer: " & Cpt & ", Datenbank : " & fld & ": Fehler: " & Err.Description, True
       Else
@@ -261,30 +262,30 @@ gefunden:
        runde = runde + 1
        fld = rdb.Fields(0)
        Debug.Print "Runde: " & runde & ", rdb.fields(0): ", fld
-       myEFrag "USE `" & fld & "`", , MyCn2
-       If Err.Number = -2147467259 Then
+       myEFrag "USE `" & fld & "`", , MyCn2, True, ErrNr
+       If ErrNr = -2147467259 Then
         MyCn2.Close
         MyCn2.Open
-        myEFrag "USE `" & fld & "`", , MyCn2
+        myEFrag "USE `" & fld & "`", , MyCn2, True, ErrNr
        End If ' Err.Number =
-       If Err.Number = 0 Then
+       If ErrNr = 0 Then
 '        If fld = "quelle" Then Stop
         Set rHa = Nothing
  '       rha.Open "SELECT * FROM `anamnesebogen` LIMIT 1", MyCn, adOpenStatic, adLockReadOnly
 '        rHa.Open "SELECT table_name FROM information_schema.`TABLES` WHERE table_schema = '" & fld & "' AND table_name = 'anamnesebogen'", MyCn, adOpenStatic, adLockReadOnly
-        myFrag rHa, "SELECT table_name FROM information_schema.`TABLES` WHERE table_schema = '" & fld & "' AND table_name = 'anamnesebogen'", adOpenStatic, MyCn
-        If Err.Number <> 0 Then
-         Debug.Print Error.Description
-         If Err.Number = -2147217887 Then
+        myFrag rHa, "SELECT table_name FROM information_schema.`TABLES` WHERE table_schema = '" & fld & "' AND table_name = 'anamnesebogen'", adOpenStatic, MyCn, , , , True, ErrNr, ErrDes
+        If ErrNr <> 0 Then
+         Debug.Print ErrDes
+         If ErrNr = -2147217887 Then
           MyCn.Close
           MyCn.Open
 '          rHa.Open "SELECT table_name FROM information_schema.`TABLES` WHERE table_schema = '" & fld & "' AND table_name = 'anamnesebogen'", MyCn, adOpenStatic, adLockReadOnly
-          myFrag rHa, "SELECT table_name FROM information_schema.`TABLES` WHERE table_schema = '" & fld & "' AND table_name = 'anamnesebogen'", adOpenStatic, MyCn
-          If Err.Number <> 0 Then
-           Debug.Print Error.Description
+          myFrag rHa, "SELECT table_name FROM information_schema.`TABLES` WHERE table_schema = '" & fld & "' AND table_name = 'anamnesebogen'", adOpenStatic, MyCn, , , , True, ErrNr, ErrDes
+          If ErrNr <> 0 Then
+           Debug.Print ErrDes
           End If
-         End If
-        End If
+         End If ' ErrNr = -2147217887 Then
+        End If ' ErrNr <> 0 Then
  '       If Err.Number = 0 Then
         If Not rHa.BOF Then
          Do While Not rHa.EOF
@@ -587,13 +588,13 @@ gefunden:
       End If ' rs.eof
       
       On Error Resume Next
-      Call myEFrag(sqlakt, rAF, QCn(dbknr))
-      If Err.Number <> 0 And LVobMySQL Then
+      Call myEFrag(sqlakt, rAF, QCn(dbknr), True, ErrNr, ErrDes)
+      If ErrNr <> 0 And LVobMySQL Then
        Debug.Print "Vorabfrage: ", Vorabfrage
        Debug.Print sqlakt
-       Debug.Print Err.Number, Err.Description, "QCn(dbknr).ConnectionString = ", QCn(dbknr).ConnectionString
+       Debug.Print ErrNr, ErrDes, "QCn(dbknr).ConnectionString = ", QCn(dbknr).ConnectionString
        frm.Ausgeb sqlakt, True
-       frm.Ausgeb Err.Number & Err.Description & " QCn(dbknr).ConnectionString = '" & QCn(dbknr).ConnectionString & "'", True
+       frm.Ausgeb ErrNr & ErrDes & " QCn(dbknr).ConnectionString = '" & QCn(dbknr).ConnectionString & "'", True
       Else
       End If
 #If alt Then
@@ -617,8 +618,8 @@ gefunden:
          Call myEFrag(sqlakt, rAF, QCn(dbknr))
          rs.Move 1
         Loop
-       End If
-      End If
+       End If ' Not rs.BOF Then
+      End If ' rs.State <> 0 Then
       Set rs = Nothing
       myFrag rs, "SELECT DISTINCT kvnr FROM `hausaerzte` WHERE nachname = '" & rF0 & "' AND vorname = '" & rF1 & "' AND plz = '" & rEx.Fields(5) & "' AND kvnr <> '" & REPLACE(KVNr, " ", "") & "'", adOpenStatic, QCn(dbknr), adLockReadOnly
       If rs.State <> 0 Then
@@ -627,9 +628,9 @@ gefunden:
          sqlakt = "INSERT INTO `" & LIUET & "` (name,vorname,titelt,fachgruppe,strasse,plz,ort,telefon,fax,kvnr,aktdat,DBNr, BStelle, anrede, tel1, tel2, tel3, tel4, fax1, fax2, fax3, email, zulg, arzttyp, gemmit, beme, dmpt2, dmpt1, geschlecht, titel) VALUES (" & "'" & rF0 & "','" & rF1 & "','" & rEx.Fields(2) & "','" & rEx.Fields(3) & "','" & rEx.Fields(4) & "','" & rEx.Fields(5) & "','" & rEx.Fields(6) & "','" & f7 & "','" & f8 & "'," & IIf(KVNr = "", "null", "'" & REPLACE$(rs!KVNr, " ", "") & "'") & "," & datformZ(Now, True) & ",'" & DBNr & "','" & BStelle & "','" & anrede & "','" & tel1 & "','" & tel2 & "','" & tel3 & "','" & tel4 & "','" & fax1 & "','" & fax2 & "','" & fax3 & "','" & email & "','" & zulg & "','" & UCase$(Left$(arzttyp, 2)) & "','" & gemmit & "','" & beme & "'," & Abs(dmpt2) & "," & Abs(dmpt1) & ",'" & Left$(geschlecht, 1) & "','" & Titel & "','hausaerzte','" & Format(Now(), "yymmddhhmmss") & "');"
          Call myEFrag(sqlakt, rAF, QCn(dbknr))
          rs.Move 1
-        Loop
-       End If
-      End If
+        Loop ' While Not rs.EOF
+       End If ' Not rs.BOF Then
+      End If ' rs.State <> 0 Then
 #End If
       On Error GoTo fehler
       DoEvents
@@ -776,9 +777,9 @@ End Sub ' Main
 Public Function hausaerztekomprimier() ' 6.12.09
  myEFrag "CREATE TABLE quelle.`ha2` LIKE quelle.`hausaerzte`"
  myEFrag "INSERT INTO quelle.`ha2` SELECT * FROM quelle.`hausaerzte` h GROUP BY überschrift, name, vorname, nachname, anschrift, kvnr, telefon, telefax, e_mail, zulassungsgebiet, arzttyp, `gemeinschaftspraxis mit`, schwerpunkt, zusatzbezeichnung, bemerkung, beme, sprechstunden, `von _ bis`, internetadressen, `behandlung IN fremdsprachen`, `rollstuhlgerechte praxis`, verkehrsmittel, linie, `haltestelle parkplätze`, wegbeschreibung, `entfernung zur praxis`, nichtmehr, titel, geschlecht, straße, plz, ort, dmpt2, dmpt1, gelöscht, zahl;"
- myEFrag "set foreign_key_checks = 0;"
+ myEFrag "SET foreign_key_checks = 0;"
  myEFrag "DROP TABLE quelle.`hausaerzte`;"
- myEFrag "set foreign_key_checks = 1;"
+ myEFrag "SET foreign_key_checks = 1;"
  myEFrag "CREATE TABLE quelle.`hausaerzte` LIKE quelle.`ha2`;"
  myEFrag "INSERT INTO quelle.`hausaerzte` SELECT * FROM quelle.`ha2` h GROUP BY überschrift, name, vorname, nachname, anschrift, kvnr, telefon, telefax, e_mail, zulassungsgebiet, arzttyp, `gemeinschaftspraxis mit`, schwerpunkt, zusatzbezeichnung, bemerkung, beme, sprechstunden, `von _ bis`, internetadressen, `behandlung IN fremdsprachen`, `rollstuhlgerechte praxis`, verkehrsmittel, linie, `haltestelle parkplätze`, wegbeschreibung, `entfernung zur praxis`, nichtmehr, titel, geschlecht, straße, plz, ort, dmpt2, dmpt1, gelöscht, zahl;"
 End Function ' hausaerztekomprimier()
@@ -855,6 +856,7 @@ End Function
 
 ' hier das falsche von oben
 #If False Then
+Dim ErrNr&, ErrDes$
 nochmal:
       v1sql(0) = "SELECT * FROM `hae` WHERE nachname = '" & rF0 & "' and vorname = '" & rF1 & "' and plz = '" & rEx.Fields(5) & "' ORDER BY aktzeit desc"
       v1sql(1) = "SELECT * FROM `haealt` WHERE nachname = '" & rF0 & "' and vorname = '" & rF1 & "' and plz = '" & rEx.Fields(5) & "' ORDER BY aktzeit desc"
@@ -878,20 +880,20 @@ nochmal:
           rF1 = Left(rF1, posv - 1)
          End If
          GoTo nochmal:
-        End If
+        End If ' pos <> 0 Then
         If Not rV1 Is Nothing Then
          If rV1.State <> 0 Then
           rV1.MoveLast
           rV1.Move 1
          End If
-        End If
+        End If ' Not rV1 Is Nothing Then
         Exit For
-       End If
+       End If ' i = UBound(v1sql) + 1 Then
        Set rV1 = Nothing
        Err.Clear
        On Error Resume Next
-       myFrag rV1, REPLACE(REPLACE(v1sql(i), "SELECT *", "SELECT count(0) as ct"), " ORDER BY aktzeit desc", vNS), adOpenStatic, HCn(dbknr), adLockReadOnly
-       If Err.Number = 0 Then
+       myFrag rV1, REPLACE(REPLACE(v1sql(i), "SELECT *", "SELECT count(0) as ct"), " ORDER BY aktzeit desc", vNS), adOpenStatic, HCn(dbknr), adLockReadOnly, , , True, ErrNr, ErrDes
+       If ErrNr = 0 Then
         On Error GoTo fehler
         If rV1!ct >= 1 Then
          Set rV1 = Nothing

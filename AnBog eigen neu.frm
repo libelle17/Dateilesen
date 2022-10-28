@@ -4698,7 +4698,7 @@ End Sub 'cmdAdd_Click()
 
 Private Sub cmdDelete_Click()
   On Error GoTo fehler
-'  Call myefrag("SET foreign_key_checks = 0") ' Kommentar 12.12.09
+'  Call myEFrag("SET foreign_key_checks = 0") ' Kommentar 12.12.09
   With adoRS
     .Delete
     .MoveNext
@@ -4768,7 +4768,7 @@ Private Sub cmdCancel_Click()
  If mvBookMark > 0 Then
     adoRS.Bookmark = mvBookMark
   Else
-'    Call myefrag("SET foreign_key_checks = 0") ' Kommentar 12.12.09
+'    Call myEFrag("SET foreign_key_checks = 0") ' Kommentar 12.12.09
     adoRS.MoveFirst
     Call myEFrag("SET foreign_key_checks = 1")
   End If
@@ -4779,7 +4779,7 @@ Private Sub cmdUpdate_Click()
   On Error GoTo fehler
   adoRS.UpdateBatch adAffectAll
   If mbAddNewFlag Then
-'    Call myefrag("SET foreign_key_checks = 0") 'Kommentar 12.12.09
+'    Call myEFrag("SET foreign_key_checks = 0") 'Kommentar 12.12.09
     adoRS.MoveLast              'Zu neuem Datensatz gehen
     Call myEFrag("SET foreign_key_checks = 1")
   End If
@@ -4808,7 +4808,7 @@ End Sub ' cmdClose_Click()
 
 Private Sub cmdFirst_Click()
   On Error GoTo fehler
-'  Call myefrag("SET foreign_key_checks = 0") ' Kommentar 12.12.09
+'  Call myEFrag("SET foreign_key_checks = 0") ' Kommentar 12.12.09
   adoRS.MoveFirst
   Call myEFrag("SET foreign_key_checks = 1")
   mbDataChanged = False
@@ -4816,9 +4816,11 @@ Private Sub cmdFirst_Click()
 fehler:
  Dim rs As New ADODB.Recordset
  myFrag rs, "SELECT pat_id, gesname(pat_id) GesName  FROM `anamnesebogen` a WHERE pat_id IN (" & Me.PidRange & ") ORDER BY pat_id DESC"
- Do While rs!Pat_id >= adoRS!Pat_id And Not rs.EOF
+ If Not rs.BOF Then
+  Do While rs!Pat_id >= adoRS!Pat_id And Not rs.EOF
    rs.MoveNext
- Loop
+  Loop
+ End If ' not rs.BOF
  If Not rs.EOF Then
   MsgBox "Nächster Patient: " & rs!Pat_id & ", " & rs!gesname
  End If
@@ -4838,7 +4840,7 @@ End Sub ' cmdFirst_Click
 
 Private Sub cmdLast_Click()
   On Error GoTo fehler
-'  Call myefrag("SET foreign_key_checks = 0") ' Kommentar 12.12.09
+'  Call myEFrag("SET foreign_key_checks = 0") ' Kommentar 12.12.09
   adoRS.MoveLast
   Call myEFrag("SET foreign_key_checks = 1")
   mbDataChanged = False
@@ -4846,9 +4848,11 @@ Private Sub cmdLast_Click()
 fehler:
  Dim rs As New ADODB.Recordset
  myFrag rs, "SELECT pat_id, GesName(Pat_id) GesName  FROM `anamnesebogen` a WHERE pat_id IN (" & Me.PidRange & ") ORDER BY pat_id DESC"
- Do While rs!Pat_id >= adoRS!Pat_id And Not rs.EOF
+ If Not rs.BOF Then
+  Do While rs!Pat_id >= adoRS!Pat_id And Not rs.EOF
    rs.MoveNext
- Loop
+  Loop
+ End If ' Not rs.BOF Then
  If Not rs.EOF Then
   MsgBox "Nächster Patient: " & rs!Pat_id & ", " & rs!gesname
  End If
@@ -4868,7 +4872,7 @@ End Sub ' cmdLast_Click()
 
 Private Sub cmdNext_Click()
   On Error GoTo fehler
-'  Call myefrag("SET foreign_key_checks = 0")
+'  Call myEFrag("SET foreign_key_checks = 0")
   If Not adoRS.EOF Then
 '   adoRS.CancelUpdate ' 7.9.09
    Dim Bm
@@ -4889,7 +4893,7 @@ einzeln:
      'Ende der Zeile wurde erreicht; zurück zum Zeilenanfang
     adoRS.MoveLast
   End If
-'  Call myefrag("SET foreign_key_checks = 1")
+'  Call myEFrag("SET foreign_key_checks = 1")
   'Aktuellen Datensatz anzeigen
   mbDataChanged = False
   Exit Sub
@@ -4920,9 +4924,11 @@ fehler:
  rs.CursorLocation = adUseClient
 ' rs.Open anBogCS, DBCn, adOpenDynamic, adLockOptimistic
  myFrag rs, anBogCS
- Do While rs!Pat_id > adoRS!Pat_id And Not rs.EOF
+ If Not rs.BOF Then
+  Do While rs!Pat_id > adoRS!Pat_id And Not rs.EOF
    rs.MoveNext
- Loop
+  Loop
+ End If ' not rs.BOF
  Me.obStumm = True
  adoRS.CancelUpdate
  Set adoRS = Nothing
@@ -4931,7 +4937,7 @@ fehler:
  frm.adoRS.CursorLocation = adUseClient
 ' frm.adoRS.Open anBogCS, db, adOpenDynamic, adLockOptimistic
  myFrag frm.adoRS, anBogCS, adOpenDynamic, db
- adoRS.Find "pat_id=" & rs!Pat_id
+ If Not frm.adoRS.BOF Then adoRS.Find "pat_id=" & rs!Pat_id
  ohneänd = False
 ' IF Not rs.EOF THEN
 '  MsgBox "Nächster Patient: " & rs!Pat_id & ", " & rs!GesName
@@ -5035,7 +5041,7 @@ Private Sub Suchen_Click()
  On Error GoTo fehler
  If SuchStringGeändert Then
   altsuche = Me.suche
-'  Call myefrag("SET foreign_key_checks = 0") ' Kommentar 12.12.09
+'  Call myEFrag("SET foreign_key_checks = 0") ' Kommentar 12.12.09
   If IsNumeric(Me.suche) Then
 '   adoRS.MoveFirst
    adoRS.Find " Pat_id = " & Me.suche, 0, adSearchBackward, adBookmarkLast

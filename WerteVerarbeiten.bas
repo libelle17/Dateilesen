@@ -404,10 +404,10 @@ Function LaborString$(Pat_id&)
  myFrag raDat, sql1
  ls = CStr(rz) & vbCrLf
 #Else
- ZZ = myEFrag("call geslabkatz(" & Pat_id & ",'abkü')")!Zahl + _
-      myEFrag("call geslabkatz(" & Pat_id & ",'gruppe')")!Zahl
- rz = myEFrag("call geslabkatz(" & Pat_id & ",'zeitpunkt')")!Zahl
- myFrag raDat, "call geslabkatg(" & Pat_id & ",'zeitpunkt')"
+ ZZ = myEFrag("CALL geslabkatz(" & Pat_id & ",'abkü')")!Zahl + _
+      myEFrag("CALL geslabkatz(" & Pat_id & ",'gruppe')")!Zahl
+ rz = myEFrag("CALL geslabkatz(" & Pat_id & ",'zeitpunkt')")!Zahl
+ myFrag raDat, "CALL geslabkatg(" & Pat_id & ",'zeitpunkt')"
 #End If
  If raDat.BOF Then Exit Function
  
@@ -923,7 +923,8 @@ Function KommRep() ' Kommentare reparieren
  Dim rs As New ADODB.Recordset, T1 As New ADODB.Recordset, T2 As New ADODB.Recordset, komm$
  Dim xc As New ADOX.Catalog, xr As New ADOX.Table
  Dim xcA As New ADOX.Catalog, xrA As New ADOX.Table
- Dim lauf
+ Dim lauf As Variant
+ Dim ErrNr&, ErrDes$
  On Error GoTo fehler
  Acc.Open "Provider=microsoft.Jet.OLEDb.4.0;Data Source=" & QmdB & ";Jet OLEDb:Engine Type=5"
  MyS.Open "PROVIDER=MSDASQL;driver={" & ODBCStr & "};server=linux1;uid=praxis;pwd=***REMOVED***;database=quelle;"
@@ -975,15 +976,15 @@ Function KommRep() ' Kommentare reparieren
            defa = T2!Default
           End If
           valu = T2!Field.Value
-        Call myEFrag("ALTER TABLE `" & xr.name & "` MODIFY COLUMN `" & T2!Field.Value & " " & T2!Type.Value & " DEFAULT " & defa & IIf(IsNull(T2!collation), vNS, " COLLATE " & T2!collation) & " COMMENT '" & komm & "', ENGINE = InnoDB;", AfN, MyS)
-        If Err.Number <> 0 Then
+        Call myEFrag("ALTER TABLE `" & xr.name & "` MODIFY COLUMN `" & T2!Field.Value & " " & T2!Type.Value & " DEFAULT " & defa & IIf(IsNull(T2!collation), vNS, " COLLATE " & T2!collation) & " COMMENT '" & komm & "', ENGINE = InnoDB;", AfN, MyS, True, ErrNr, ErrDes)
+        If ErrNr <> 0 Then
          Err.Clear
          On Error GoTo fehler
          Debug.Print xr.name, T2!Field.Value, komm
          On Error Resume Next
          Err.Clear
-         Call myEFrag("ALTER TABLE `" & xr.name & "` MODIFY COLUMN `" & T2!Field.Value & "` " & T2!Type.Value & " DEFAULT " & defa & IIf(IsNull(T2!collation), vNS, " COLLATE " & T2!collation) & " COMMENT '" & komm & "', ENGINE = InnoDB;", AfN, MyS)
-         If Err.Number <> 0 Then
+         Call myEFrag("ALTER TABLE `" & xr.name & "` MODIFY COLUMN `" & T2!Field.Value & "` " & T2!Type.Value & " DEFAULT " & defa & IIf(IsNull(T2!collation), vNS, " COLLATE " & T2!collation) & " COMMENT '" & komm & "', ENGINE = InnoDB;", AfN, MyS, True, ErrNr, ErrDes)
+         If ErrNr <> 0 Then
           On Error GoTo fehler
           Call myEFrag("ALTER TABLE `" & xr.name & "` MODIFY COLUMN `" & T2!Field.Value & "` " & T2!Type.Value & " DEFAULT " & defa & IIf(IsNull(T2!collation), vNS, " COLLATE " & T2!collation) & " COMMENT '" & komm & "', ENGINE = InnoDB;", AfN, MyS)
          End If
@@ -1114,12 +1115,12 @@ For k = IIf(obAnzeig, 0, 7) To rAn.Fields.COUNT - 1
  If lies.obMySQL Then
   Dim rsc As New ADODB.Recordset
   Set rsc = Nothing
-  myFrag rsc, "SHOW FULL COLUMNS FROM `anamnesebogen` WHERE field = '" & rAn.Fields(k).name & "'"
+  myFrag rsc, "SHOW FULL COLUMNS FROM `anamnesebogen` WHERE field = '" & rAn.Fields(k).name & "'", , , , , , , FNr
   Descr = rsc!Comment
  Else
   Descr = myTable.Columns(rAn.Fields(k).name).Properties("Description")
  End If
- FNr = Err.Number
+' FNr = Err.Number
  On Error GoTo fehler
  Err.Clear
  If FNr <> 0 Then ' Descr = Dtb.TableDefs(fld.SourceTable).Fields(fld.SourceField).Name

@@ -212,7 +212,7 @@ Public Sub doHausärzteEinlesen()
 End Sub ' doHausärzteEinlesen
 
 Sub Verbinde(Optional db$)
- Dim i%
+ Dim i%, ErrNr&
  On Error GoTo fehler
  If Not HACn Is Nothing Then Set HACn = Nothing
  HACnS = DBCnS
@@ -220,8 +220,8 @@ Sub Verbinde(Optional db$)
  If LenB(db) = 0 Then db = HADBName
  For i = 1 To 2
   If i = 1 Then On Error Resume Next
-  myEFrag "USE `" & db & "`", , HACn
-  If Err.Number <> 0 Then
+  myEFrag "USE `" & db & "`", , HACn, True, ErrNr
+  If ErrNr <> 0 Then
 #If Modul_MachDBhaerzte_bas_dabei Then
    doMach_haerzte db, DBCn, MachDatenbank.GetServr(DBCn) ' keine "`" hier
 #End If

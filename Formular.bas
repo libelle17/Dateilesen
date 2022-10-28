@@ -167,7 +167,7 @@ Dim psql$(10)
 
 ' in doViewserstellen und TheraErmitt
 Function therinit()
- psql(0) = "SET session GROUP_CONCAT_MAX_LEN=15000;"
+ psql(0) = "SET SESSION GROUP_CONCAT_MAX_LEN=15000;"
  psql(1) = "IF inpid=0 THEN DELETE FROM therarten; ELSE DELETE FROM therarten WHERE pat_id=inpid; END IF;"
  psql(2) = "SET @vzahl = ROW_COUNT(); "
  psql(3) = "INSERT INTO therarten(pat_id,zp,mpnr,therart,insart,grund,abspos,aktzeit,stbyte) " & vbCrLf & _
@@ -376,8 +376,8 @@ Private Function cmd$(sql$, obAcc%)
   cmd = REPLACE$(cmd, "intacc", vNS)
   cmd = REPLACE$(cmd, "cdate(", "(")
   cmd = REPLACE$(cmd, "first(", "(")
-'  Call myefrag("DROP VIEW " & ifexists & " `" & QName & "`;")
-'  Call myefrag("CREATE OR REPLACE ALGORITHM=UNDEFINED DEFINER=`" & Forms(0).dbv.uid & "`@`%` SQL SECURITY DEFINER VIEW `" & QName & "` AS " & Cmd)
+'  Call myEFrag("DROP VIEW " & ifexists & " `" & QName & "`;")
+'  Call myEFrag("CREATE OR REPLACE ALGORITHM=UNDEFINED DEFINER=`" & Forms(0).dbv.uid & "`@`%` SQL SECURITY DEFINER VIEW `" & QName & "` AS " & Cmd)
  End If
 End Function ' Cmd
 
@@ -394,8 +394,8 @@ Function SqlU(sql$, obmy%) As CString
   SqlU.REPLACE "intacc", vNS
   SqlU.REPLACE "cdate(", "("
   SqlU.REPLACE "first(", "("
-'  Call myefrag("DROP VIEW " & ifexists & " `" & QName & "`;")
-'  Call myefrag("CREATE OR REPLACE ALGORITHM=UNDEFINED DEFINER=`" & Forms(0).dbv.uid & "`@`%` SQL SECURITY DEFINER VIEW `" & QName & "` AS " & Cmd)
+'  Call myEFrag("DROP VIEW " & ifexists & " `" & QName & "`;")
+'  Call myEFrag("CREATE OR REPLACE ALGORITHM=UNDEFINED DEFINER=`" & Forms(0).dbv.uid & "`@`%` SQL SECURITY DEFINER VIEW `" & QName & "` AS " & Cmd)
  Else
   SqlU.REPLACE "¡", " & "
   SqlU.REPLACE "concat", vNS
@@ -1522,7 +1522,7 @@ Function do_Form_Current_AnBog(frm As AnBog)
  ElseIf IsNull(frm.adoRS!Pat_id) Then
   frm.adoRS.MoveFirst
   Pat_id = frm.adoRS!Pat_id
-'  Pat_id = myefrag("SELECT MAX(pat_id) FROM (" & frm.adoRS.source & ") i").Fields(0)
+'  Pat_id = myEFrag("SELECT MAX(pat_id) FROM (" & frm.adoRS.source & ") i").Fields(0)
  Else
   Pat_id = frm.adoRS!Pat_id
  End If
@@ -2279,10 +2279,10 @@ If Pat_id <> 0 Then
  Else
   lcWA = LCase(frm.adoRS![weitere anamnese])
  End If
- If IsNull(frm.adoRS![Augensp Befund]) Then
+ If IsNull(frm.adoRS![augensp befund]) Then
   lcAB = vNS
  Else
-  lcAB = LCase(frm.adoRS![Augensp Befund])
+  lcAB = LCase(frm.adoRS![augensp befund])
  End If
  If IsNull(frm.adoRS![sehminderung unbehebbar]) Then
   lcSU = vNS
@@ -5279,7 +5279,7 @@ Function do_LaborDokumente_form_load(frm As Form)
 ' SET raDokab = TabÖff("Dokumente abgehakt", "DokPfad")
  Set raDokab = Nothing
 ' Call raDokab.Open("SELECT -ob AS j_ob, d.* FROM `Dokumente abgehakt` d", DBCn, adOpenDynamic, adLockReadOnly)
- myFrag raDokab, "SELECT -ob AS j_ob, d.* FROM `Dokumente abgehakt` d"
+ myFrag raDokab, "SELECT -ob j_ob, d.* FROM `Dokumente abgehakt` d"
  Exit Function
 fehler:
  Dim AnwPfad$
@@ -6097,9 +6097,9 @@ End Function ' getHausarzt(Pid&, Infos$())
 '      IF obInsert AND NOT rHae.BOF THEN
 '       IF HACngef THEN
 '        SET rHae = Nothing
-''        Call myefrag("SET foreign_key_checks = 0")
-''        Call myefrag("DELETE FROM `hausaerzte` WHERE id >= 753")
-''        Call myefrag("SET foreign_key_checks = 1")
+''        Call myEFrag("SET foreign_key_checks = 0")
+''        Call myEFrag("DELETE FROM `hausaerzte` WHERE id >= 753")
+''        Call myEFrag("SET foreign_key_checks = 1")
 '        InsKorr DBCn, dbcns, "INSERT INTO `hausaerzte`(name, vorname, nachname, anschrift, kvnr, telefon, telefax, e_mail, zulassungsgebiet, arzttyp, " & _
 '        "`gemeinschaftspraxis mit`" & ", beme, geschlecht,titel,straße,ort,plz,überschrift,dmpt2,dmpt1,zahl,nichtmehr,schwerpunkt,zusatzbezeichnung,bemerkung,sprechstunden) VALUES('" & rHa!anrede & " " & IIF(rHa!titel <> vNS AND NOT ISNULL(rHa!titel), rHa!titel, "Dr.med.") & " " & rHa!vorname & " " & rHa!nachname & "','" & rHa!vorname & "','" & rHa!nachname & "','" & rHa!straße & ", " & rHa!plz & " " & rHa!ort & "','" & rHa!kvnu & "','" & rHa!tel1 & "','" & rHa!fax1 & "','" & rHa!email & "','" & rHa!zulg & "','" & rHa!arzttyp & "','" & rHa!gemmit & "','" & rHa!beme & "','" & IIF(rHa!anrede = "w", "Frau", "Herr") & "','" & rHa!titel & "','" & rHa!straße & "','" & rHa!ort & "','" & rHa!plz & "',''," & IIF(InfRoh(6, runde) = "X", "1", "0") & "," & IIF(InfRoh(7, runde) = "X", "1", "0") & ",0,0,'','','','')", rAF
 '        obInsert = False
@@ -6582,9 +6582,9 @@ Const sql0$ = "SELECT " & _
       If obInsert And HACngef Then
 ' IF obInsert AND NOT rHae.BOF ist falsch.
 ' wenn rHae.bof dann insert, sonst update
-'        Call myefrag("SET foreign_key_checks = 0")
-'        Call myefrag("DELETE FROM `hausaerzte` WHERE id >= 753")
-'        Call myefrag("SET foreign_key_checks = 1")
+'        Call myEFrag("SET foreign_key_checks = 0")
+'        Call myEFrag("DELETE FROM `hausaerzte` WHERE id >= 753")
+'        Call myEFrag("SET foreign_key_checks = 1")
 
 '       IF rHae.BOF THEN
         Dim obSchonDa%
@@ -6980,6 +6980,7 @@ Public Sub tu_brief(frm As Form)
 End Sub ' tu_brief
 #End If
 
+' in BriefImport_Click
 Public Sub tubriefStandalone(pid&, obStumm%, Optional Zielverz$, Optional Vorlage$, Optional nurLabor% = False, Optional briefneu% = False) ' Brief schreiben
  Dim Pat_id$, myRange, Docu, Inh, dc As Object ' Word.Document, wegen unbekannter Wordversion als Object
  Dim raHa As New ADODB.Recordset
@@ -7134,25 +7135,25 @@ On Error GoTo fehler
      Call BMRd(dc, !ha6a, infos(5, 0)) ' Anrede
      Call BMRd(dc, !ha10a, infos(10, 0)) ' Überweiserinfos
      Dim ii%, Index%
-    For ii = 1 To UBound(infos, 2)
-     If infos(4, ii) <> infos(4, 0) Then
-      Index = ii
-      Exit For
-     End If
-    Next ii
-    If Index <> 0 Then
-    If UBound(infos, 2) > 0 Then
-     Call BMRd(dc, !ha1b, IIf(infos(0, Index) = "Herr", "Herrn", infos(0, Index)), True) '  IIF(raHacall bmrd(dc,!Geschlecht = "w", "Frau", "Herrn")) '+ vblf) + nzw
-     Call BMRd(dc, !ha2b, infos(1, Index), True) ' "Dr.med. " + raHacall bmrd(dc,!VorName & " " & raHacall bmrd(dc,!NachName
-     Call BMRd(dc, !ha3b, infos(2, Index), True) ' raHacall bmrd(dc,!Straße
-     Call BMRd(dc, !ha4b, infos(3, Index), True) ' raHacall bmrd(dc,!Plz & " " & raHacall bmrd(dc,!Ort
-     Call BMRd(dc, !ha5b, infos(4, Index)) ' Faxnummer
-     If Not InStr(infos(10, 0), infos(10, Index)) And Not InStr(infos(10, Index), infos(10, 0)) Then
-      Call BMRd(dc, !ha6b, REPLACE(infos(5, Index), "Sehr", " sehr") & ",", True) ' Anrede
-     End If
-     Call BMRd(dc, !ha10b, infos(10, Index)) ' Überweiserinfos
-    End If
-    End If
+     For ii = 1 To UBound(infos, 2)
+      If infos(4, ii) <> infos(4, 0) Then
+       Index = ii
+       Exit For
+      End If
+     Next ii
+     If Index <> 0 Then
+     If UBound(infos, 2) > 0 Then
+      Call BMRd(dc, !ha1b, IIf(infos(0, Index) = "Herr", "Herrn", infos(0, Index)), True) '  IIF(raHacall bmrd(dc,!Geschlecht = "w", "Frau", "Herrn")) '+ vblf) + nzw
+      Call BMRd(dc, !ha2b, infos(1, Index), True) ' "Dr.med. " + raHacall bmrd(dc,!VorName & " " & raHacall bmrd(dc,!NachName
+      Call BMRd(dc, !ha3b, infos(2, Index), True) ' raHacall bmrd(dc,!Straße
+      Call BMRd(dc, !ha4b, infos(3, Index), True) ' raHacall bmrd(dc,!Plz & " " & raHacall bmrd(dc,!Ort
+      Call BMRd(dc, !ha5b, infos(4, Index)) ' Faxnummer
+      If Not InStr(infos(10, 0), infos(10, Index)) And Not InStr(infos(10, Index), infos(10, 0)) Then
+       Call BMRd(dc, !ha6b, REPLACE(infos(5, Index), "Sehr", " sehr") & ",", True) ' Anrede
+      End If
+      Call BMRd(dc, !ha10b, infos(10, Index)) ' Überweiserinfos
+     End If ' UBound(infos, 2) > 0 Then
+    End If ' Index <> 0 Then
 'weiter:
 '    Next i
     Dim tit$
@@ -7498,6 +7499,7 @@ fehler:
  End Select
 End Sub ' tubriefStandalone(frm AS Form)
 
+' in tubriefStanndalone
 ' Ersetzt Bookmark mit Text, ohne es zu löschen
 Function BMRd(dc As Object, Bm, Text$, Optional obSichtbar%)
  Dim Start&, obEnde&, neulen&, BMName$
@@ -8426,7 +8428,7 @@ End Function ' FlagInit
 'function testth()
 ' Lese.ProgStart
 ' Dim rs AS Recordset
-' SET rs = myefrag("SELECT COALESCE(therart,'') FROM therarten WHERE pat_id=12 LIMIT 1")
+' SET rs = myEFrag("SELECT COALESCE(therart,'') FROM therarten WHERE pat_id=12 LIMIT 1")
 ' IF rs.BOF THEN testth = "" ELSE testth = rs.Fields(0)
 'End Function
 
@@ -9153,8 +9155,8 @@ keineGFR:
          "and pat_id=" & Pat_id & " AND zeitpunkt>" & DatFor_k(VorDat) & vbCrLf & _
          "GROUP BY pat_id,form_id,zeitpunkt " & vbCrLf & _
          ") i GROUP BY pat_id) i"
-'  myefrag "SET GROUP_CONCAT_MAX_LEN = 1000000;"
-'  Epi = Epi + myefrag(sql1).Fields(0)
+'  myEFrag "SET GROUP_CONCAT_MAX_LEN = 1000000;"
+'  Epi = Epi + myEFrag(sql1).Fields(0)
   Dim rs As ADODB.Recordset
   Epi = Epi + myFrag(rs, sql1, adOpenUnspecified, Nothing, adLockReadOnly, 1000000).Fields(0)
   
@@ -11204,13 +11206,13 @@ sql = sql & _
     myEFrag (sql)
 
 '    sql = "DROP FUNCTION IF EXISTS `artspezg`"
-'    myefrag (sql)
+'    myEFrag (sql)
 '    sql = "CREATE DEFINER=`praxis`@`%` FUNCTION `artspezg`() RETURNS VARCHAR(10000)" & Chr$(13) & _
 '    "    DETERMINISTIC" & Chr$(13) & _
 '    "BEGIN " & Chr$(13) & _
 '    " RETURN " & Chr(34) & "(" & artspezG & ")" & Chr(34) & ";" & Chr$(13) & _
 '    "END "
-'    myefrag (sql)
+'    myEFrag (sql)
 
 myEFrag ("DROP FUNCTION IF EXISTS `quelle`.`xpneuzuypneu`")
 sql = "CREATE DEFINER=`praxis`@`%` FUNCTION `quelle`.`xpneuzuypneu`(xid INT) RETURNS INT " & _
@@ -11784,7 +11786,7 @@ sql = "CREATE DEFINER=`praxis`@`%` PROCEDURE `quelle`.`fuellThaP`(IN inpid INT(6
  
 #If alt Then
 sql = sql & _
-"SET session GROUP_CONCAT_MAX_LEN=15000;" & vbCrLf & _
+"SET SESSION GROUP_CONCAT_MAX_LEN=15000;" & vbCrLf & _
 "-- SET @inpid=inpid;" & vbCrLf
 sql = sql & _
 "IF inpid=0 THEN DELETE FROM therarten; ELSE DELETE FROM therarten WHERE pat_id=inpid; END IF;" & vbCrLf & _
@@ -14180,7 +14182,7 @@ CREATE TABLE  `quelle`.`medplan` (
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_german2_ci;
 
 
-ALTER TABLE medplan drop foreign key MedArtenMedPlan_AccRel;
+ALTER TABLE medplan drop FOREIGN KEY MedArtenMedPlan_AccRel;
 ALTER TABLE medplan MODIFY COLUMN `MedAnfang` VARCHAR(35) CHARACTER SET latin1 COLLATE latin1_german2_ci DEFAULT NULL;
 DELETE FROM `medarten`;
 ALTER TABLE `medarten` modify column Medikament VARCHAR(50) CHARACTER SET latin1 COLLATE latin1_german2_ci DEFAULT NULL;
@@ -14252,7 +14254,7 @@ Function do_abgehakt_Click(frm As Form) ' für Labordokumente eP
  Dim rs As New ADODB.Recordset
  myFrag rs, frm.adoRS.source
  If Not rs.BOF Then
-'  myefrag("update ")
+'  myEFrag("update ")
  Else
 '
  End If
@@ -14979,13 +14981,13 @@ Function doDiagnosenexport(Optional obTest%)
 '       MsgBox "Fehler beim Diagnoseneeinfügen für Pat. " & q!Pat_id & " (" & q!GesName & ")" & vbCrLf & "ICD: " & q!ICD & vbCrLf & "Diagtext:" & q!DiagText & vbCrLf & "Datum: " & DatFor_k(aktdat) & rAF & " Datensätze eingefügt"
 '      END IF
 '      IF LenB(q!ICD) <> 0 AND LenB(q!Diagnose) <> 0 THEN
-'       Call myefrag("UPDATE `diagnosenexport` SET status = '" & übertragen & "' WHERE id = " & q!ID, rAF)
+'       Call myEFrag("UPDATE `diagnosenexport` SET status = '" & übertragen & "' WHERE id = " & q!ID, rAF)
 '       IF rAF <> 1 THEN
 '        MsgBox "Fehler beim Statussetzen IN `diagnosenexport` für ID: " & q!ID & rAF & " Datensätze gesetzt"
 '       END IF
 '       InsKorr DBCn, DBCnS, "INSERT INTO `diagnosen exportiert`(pat_id,datum,icd,diagnose,übertragen) VALUES(" & q!Pat_id & "," & DatFor_k(aktdat) & ",'" & q!ICD & "','" & DiagText & "'," & DatFor_k(BDT.üzpt) & ")", rAF
 '       IF rAF > 0 THEN
-'        Call myefrag("DELETE FROM `fuerdiagexp` WHERE id = " & q!ID, rAfL)
+'        Call myEFrag("DELETE FROM `fuerdiagexp` WHERE id = " & q!ID, rAfL)
 '        IF rAfL <> 1 THEN
 '         MsgBox "Fehler beim Löschen aus `fuerdiagexp` von " & q!Pat_id & " (" & q!GesName & ")" & vbCrLf & "ICD: " & q!ICD & vbCrLf & "Diagtext:" & q!DiagText & vbCrLf & "Datum: " & DatFor_k(aktdat) & rAfL & " Datensätze gelöscht"
 '        END IF

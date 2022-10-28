@@ -38,7 +38,7 @@ Public Verspätung$
                       "LEFT JOIN " & hadbname & ".arzt a ON a.idarzt = ahb.arzt_id " & _
                       "GROUP BY kvnu"
                       
-' 11.9.15: kommt offenbar nicht vor, müsste ggf. noch myefrag "SET GROUP_CONCAT_MAX_LEN = 70" vorangestellt werden
+' 11.9.15: kommt offenbar nicht vor, müsste ggf. noch myEFrag "SET GROUP_CONCAT_MAX_LEN = 70" vorangestellt werden
 Public Const kvneu2 = "SELECT GROUP_CONCAT(DISTINCT nachname) haname, ort, CAST(LEFT(bsnr,7) AS char) kvnu, CONCAT(LEFT(bsnr,2),'/',mid(bsnr,3,5)) kvnr, REPLACE(tel1.tel,'-','') tel1, REPLACE(tel2.tel,'-','') tel2, REPLACE(fax1.fax,'-','') fax1, REPLACE(fax2.fax,'-','') fax2, mail1.mail email, IF(obweibl,'Frau','Herr') anrede, titel, vorname, nachname, " & _
                       "MAX(IF(ISNULL((SELECT genehmigung FROM " & HADBName & ".arzt_has_genehmigung ahg1 LEFT JOIN " & HADBName & ".genehmigung g1 ON g1.idgenehmigung = ahg1.genehmigung_id WHERE ahg1.arzt_id = idarzt AND genehmigung = 'DMP-DM1_Koordinierender Arzt_Hausarzt')),'0','1')) dmpt1, " & _
                       "MAX(IF(ISNULL((SELECT genehmigung FROM " & HADBName & ".arzt_has_genehmigung ahg2 LEFT JOIN " & HADBName & ".genehmigung g2 ON g2.idgenehmigung = ahg2.genehmigung_id WHERE ahg2.arzt_id = idarzt AND genehmigung = 'DMP-DM2_Koordinierender Arzt')),'0','1')) dmpt2, " & _
@@ -843,7 +843,7 @@ End Sub ' rrpruef
 
 ' IN do_DMPAusgebStandAlone, dodoPLZ, DMPAusgeb0, doCallDMP
 Function DMPString$(pid&, üdt As DMPClass, Optional ohneVorDMP%, Optional mitBezeich%, Optional DokuDat As Date, Optional mitStr% = True)
- Dim ErgebDatei$
+ Dim ErgebDatei$, AspZul$, AspBef$, UzuPm$
  
  If Not DokuDat Then DokuDat = MIN(Now(), QEnd(ZQuart(Now() - Verspätung)))
  ErgebDatei$ = aVerz & "DMP.txt"
@@ -975,6 +975,9 @@ Else
 ' END IF
 'END IF
 End If
+AspZul = tfeld(raAna![augensp zuletzt])
+AspBef = tfeld(raAna![augensp befund])
+UzuPm = tfeld(raAna![Unterzucker pM])
 myFrag rfal, "SELECT " & IIf(Not LVobMySQL, "top 1", "") & " * FROM `faelle` WHERE pat_id = " & pid & " AND bhfb <= " & DatFor_k(DokuDat) & " ORDER BY bhfb DESC, schgr" & IIf(LVobMySQL, " LIMIT 1", "")
 
 aktDC.Pat_id = pid
@@ -1712,10 +1715,10 @@ End If
 ' ZnAmput As Integer '0=nein, 1=ja
 
 myFrag rfuss, "SELECT IF(nae_us LIKE '%3%Mo%',2,IF(nae_us LIKE '%6%Mo%',1,0)) NaeUS, " & _
-"if(wundinfektion LIKE 'ja%',1,2) Infekt, " & _
-"if(fußdeform IN ('nein','keine','-',''),0,1) fußd, " & _
+"IF(wundinfektion LIKE 'ja%',1,2) Infekt, " & _
+"IF(fußdeform IN ('nein','keine','-',''),0,1) fußd, " & _
 "(hyper_mEin RLIKE 'D[12345]' OR hyper_mEin LIKE 'ja%') AND hyper_mEin<>fußdeform HypermEin, " & _
-"not zn_ulcus IN ('nein','','-') AND zn_ulcus<>fußdeform ZnUlcus, " & _
+"NOT zn_ulcus IN ('nein','','-') AND zn_ulcus<>fußdeform ZnUlcus, " & _
 "zn_amput not IN ('nein','','-') Amp, Fuß_ang " & _
 "FROM fuss " & _
 "WHERE pat_id = " & pid & _
@@ -2507,15 +2510,16 @@ If aktDC.dtyp = "2" Then If mitStr Then TabPr "Lasertherapie:", IIf(aktDC.oblase
 '  fiabfr = "SELECT * FROM (SELECT Pat_ID, FID, Form_ID, ZeitPunkt, Nr, FeldNr, Feld, FeldInh, form_abk FROM `forminhkopf` USE INDEX(auswahl) LEFT JOIN `formulare` ON `formulare`.formid = `forminhkopf`.form_id LEFT JOIN `forminhfeld` ON `forminhfeld`.foid = `forminhkopf`.foid LEFT JOIN `forminhaltfeld` ON `forminhfeld`.feldvw=`forminhaltfeld`.feldvw LEFT JOIN `forminhaltfeldinh` ON `forminhfeld`.feldinhvw=`forminhaltfeldinh`.feldinhvw WHERE pat_id = " & Pat_id & " AND form_abk = 'uew') AS i WHERE feldinh = 'Augenheilkunde' AND feld = 'Ueberweisung_an' AND zeitpunkt > " & DatFor_k(DokuDat - 550) & " ORDER BY zeitpunkt DESC"
 ' Möglichkeit 2:
 '  fiabfr = "SELECT Pat_ID, FID, Form_ID, ZeitPunkt, Nr, FeldNr, Feld, FeldInh, form_abk FROM formulari WHERE pat_id=" & Pat_id & " AND form_abk='uew' AND feld ='Ueberweisung_an' AND feldinh ='Augenheilkunde' AND zeitpunkt > " & DatFor_k(DokuDat - 550) & " ORDER BY zeitpunkt DESC"
+' ohne FORCE INDEX geht es manchmal ...
   fiabfr = "SELECT zeitpunkt " & vbCrLf & _
            "FROM forminhfeld fi " & vbCrLf & _
-           "LEFT JOIN forminhkopf k ON k.foid=fi.foid" & vbCrLf & _
+           "LEFT JOIN forminhkopf k FORCE INDEX (NamenFormInhKopf) ON k.foid=fi.foid" & vbCrLf & _
            "LEFT JOIN forminhfeld ff ON ff.foid=k.foid" & vbCrLf & _
            "LEFT JOIN formulare f ON f.FormID=k.form_id" & vbCrLf & _
            "LEFT JOIN forminhaltfeld fif ON fif.FeldVW=fi.feldvw" & vbCrLf & _
            "LEFT JOIN forminhaltfeldinh fifi ON fifi.FeldInhVW=fi.FeldInhVW" & vbCrLf & _
            "WHERE pat_id=" & Pat_id & " AND form_abk='uew' AND feld='ueberweisung_an' AND feldinh='Augenheilkunde' AND zeitpunkt>" & DatFor_k(DokuDat - 550) & vbCrLf & _
-           "ORDER BY zeitpunkt DESC;"
+           "ORDER BY zeitpunkt DESC LIMIT 1;"
   myFrag uebw, fiabfr
 ' SET uebw = aktDCb.OpenRecordset(, dbOpenDynaset)
  If Not uebw.BOF Then
@@ -2523,10 +2527,10 @@ If aktDC.dtyp = "2" Then If mitStr Then TabPr "Lasertherapie:", IIf(aktDC.oblase
    AugU = AugU + IIf(LenB(AugU) = 0, vNS, ", ") + "Untersuchung veranlasst am " + Format$(uebw!Zeitpunkt, "dd/mm/yy")
   End If
  End If
- If AugU = "" And tfeld(![Augensp zuletzt]) <> "" Then
-  AugU = ![Augensp zuletzt]
-  If tfeld(![Augensp Befund]) <> "" Then
-   AugU = AugU + " (Befund: " + ![Augensp Befund] + ")"
+ If AugU = "" And AspZul <> "" Then
+  AugU = AspZul
+  If AspBef <> "" Then
+   AugU = AugU + " (Befund: " + AspBef + ")"
   End If
  End If
  If AugUDat > DokuDat - 500 Then aktDC.aug = durchg Else aktDC.aug = veranl
@@ -2544,7 +2548,7 @@ If aktDC.dtyp = "2" Then If mitStr Then TabPr "Lasertherapie:", IIf(aktDC.oblase
  End If
  If mitStr Then TabPr "Augenuntersuchung:", AugU
  
- If mitStr Then TabPr "Empf. Dok'intervall:", IIf(aktDC.hbEmpf = halten And (Not obPosi(tfeld(![Unterzucker pM])) Or InStrB(tfeld(![Unterzucker pM]), "selten") <> 0), "viertel- oder halbjährlich", "vierteljährlich")
+ If mitStr Then TabPr "Empf. Dok'intervall:", IIf(aktDC.hbEmpf = halten And (Not obPosi(UzuPm) Or InStrB(UzuPm, "selten") <> 0), "viertel- oder halbjährlich", "vierteljährlich")
 End With ' raana
 
 If mitStr Then DMPString = DmPStrS
@@ -3073,7 +3077,7 @@ Function dododoPorto(Arztnr&)
     pid = Mid$(Datei, Pidpos, pidp2 - Pidpos)
 #If Manuell Then
     Set SSt = New SortierString
-    SSt.stri = pid & " " & Datum
+    SSt.Stri = pid & " " & Datum
     SL.sCAdd SSt, True
 #End If
     Dim sql$
@@ -3124,7 +3128,7 @@ Function dododoPorto(Arztnr&)
     On Error GoTo fehler
     Open PortoDat For Append As #303
     For i = 1 To SL.COUNT
-     Print #303, SL.Item(i).stri
+     Print #303, SL.Item(i).Stri
     Next i
     Close #303
 #End If
@@ -3554,9 +3558,9 @@ End Function
 ' Else
 '  sql1 = replace$(replace$(sql1, "concat", ""), "¡", " & ")
 ' END IF
-' myefrag "DROP TABLE dmpausw"
-' myefrag "CREATE TABLE dmpausw(pat_id int(10) unique key,name varchar(100), üwnnr varchar(10), icd varchar(10),fax varchar(20), adressat varchar(150)) comment 'Auswahl für alleDMPs'"
-' myefrag "DELETE FROM dmpausw"
+' myEFrag "DROP TABLE dmpausw"
+' myEFrag "CREATE TABLE dmpausw(pat_id int(10) unique key,name varchar(100), üwnnr varchar(10), icd varchar(10),fax varchar(20), adressat varchar(150)) comment 'Auswahl für alleDMPs'"
+' myEFrag "DELETE FROM dmpausw"
 ' sql1 = "SELECT * FROM (" & sql1 & ") AS innen GROUP BY pat_id" ' WHERE pat_id = 2193
 ' rsA.Open sql1, DBCn, adOpenDynamic, adLockOptimistic
 '' For runde = 1 To 2
@@ -3674,13 +3678,13 @@ Function doAnwalt(Pat_id&)
  nr = 1
  myFrag rBr, "select * from briefe where pat_id=" & Pat_id & " order by zeitpunkt"
  Do While Not rBr.EOF
-  Datei = "\\linux1\daten\" & Mid(rBr!pfad, 3)
+  Datei = "\\linux1\daten\" & Mid(rBr!Pfad, 3)
   If FSO.FileExists(Datei) Then
    FSO.CopyFile Datei, "p:\anwalt\Dokument_" & nr & "_" & rBr!name & IIf(rBr!art = "wbr", ".doc", IIf(rBr!art = "pdf", ".pdf", ""))
-   Lese.Ausgeb "Dokument '" & rBr!name & "', vom " & rBr!Zeitpunkt & ", Pfad: " & rBr!pfad & " kopiert!", False
+   Lese.Ausgeb "Dokument '" & rBr!name & "', vom " & rBr!Zeitpunkt & ", Pfad: " & rBr!Pfad & " kopiert!", False
    nr = nr + 1
   Else
-   Lese.Ausgeb "Dokument '" & rBr!name & "', vom " & rBr!Zeitpunkt & ", Pfad: " & rBr!pfad & " nicht gefunden!", True
+   Lese.Ausgeb "Dokument '" & rBr!name & "', vom " & rBr!Zeitpunkt & ", Pfad: " & rBr!Pfad & " nicht gefunden!", True
   End If
   rBr.MoveNext
  Loop
@@ -5690,13 +5694,13 @@ Public Function hollabor(Optional PatID& = 0, Optional Abkü$ = "", Optional zpkl
   LockTp = adLockReadOnly
  End If
 #If problematisch Then
-  'myefrag "SET @patid=" & CStr(PatID)
-  'myefrag "SET @abkue='" & Abkü & "'"
-  'myefrag "SET @einheit='" & Einheit & "'"
+  'myEFrag "SET @patid=" & CStr(PatID)
+  'myEFrag "SET @abkue='" & Abkü & "'"
+  'myEFrag "SET @einheit='" & Einheit & "'"
   'sql = "SET @zpkl="
   sql = ""
   If zpkl = 0 Then sql = sql + "0" Else sql = sql + DatFor_k(zpkl)
-  'myefrag sql
+  'myEFrag sql
   myEFrag "SET @patid=" & CStr(PatID) & ",@abkue='" & Abkü & "',@einheit='" & Einheit & "',@zpkl=" & sql & ",@wertkl=" & wertkl
 ' rs.CursorLocation = adUseServer
   sql = "SELECT * FROM geslab" + IIf(obnachgruppe, " WHERE (reihe <> 999 OR ISNULL(reihe)) GROUP BY gruppe, reihe, abkü, einheit,ung,ong ORDER BY gruppe,reihe", " ORDER BY zeitpunkt DESC")
@@ -5706,9 +5710,9 @@ Public Function hollabor(Optional PatID& = 0, Optional Abkü$ = "", Optional zpkl
  Dim par$
  ' 4.7.20: wert statt einheit eingesetzt, da IN labor1 und labor2 offenbar verschiedene Einheiten verwendet werden, z.B. ml/min = ml/mn/1.73 m²
  par = IIf(obnachgruppe, " WHERE (reihe <> 999 OR ISNULL(reihe)) GROUP BY gruppe, reihe, abkü, einheit,ung,ong ORDER BY gruppe,reihe", IIf(Abkü <> "", "WHERE abkü=""" & Abkü & """" & IIf(Einheit <> "", " AND einheit =""" & Einheit & """", "") & IIf(zpkl <> 0, " AND zeitpunkt<" & Format(zpkl, "yyyymmdd"), ""), "") & " GROUP BY zeitpunkt DESC,abkü,wert ORDER BY zeitpunkt DESC")
-' myefrag("flush tables")
+' myEFrag("flush tables")
 '  rs.Open "call geslabdp(" & CStr(PatID) & ",'" & par & "')", DBCn, adOpenStatic, adLockReadOnly
- myFrag rs, "call geslabdp(" & CStr(PatID) & ",'" & par & "')", CursorTp, DBCn, LockTp
+ myFrag rs, "CALL geslabdp(" & CStr(PatID) & ",'" & par & "')", CursorTp, DBCn, LockTp
 #End If
  End If ' altpid<>pid
 #If langsamer Then
@@ -5774,7 +5778,7 @@ End Function ' hollabor
 Public Function testlab(pid&)
  Dim rs As New ADODB.Recordset
  Lese.ProgStart
-' myefrag ("SET @patid=" & pid)
+' myEFrag ("SET @patid=" & pid)
 ' myFrag rs, "SELECT * FROM geslab"
 Const obnachgruppe% = 1
 Dim par$

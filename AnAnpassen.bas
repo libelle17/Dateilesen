@@ -1939,7 +1939,7 @@ If Err.Number = -2147217887 Then ' Das Feld ist zu klein für die Datenmenge, die
    SpName = rsc!COLUMN_NAME
    If SpName = "Diabetestyp" Then Stop
 '   IF Not SpModAlt(NeuInh, "anamnesebogen", rsc) THEN ' dann Memo-Feld
-'    Call myefrag("UPDATE `anamnesebogen` SET " & "`" & SpName & "`" & " = """ & replace$(NeuInh, """", """""") & """ WHERE pat_id = " & rNa(0).Pat_id, AfN)
+'    Call myEFrag("UPDATE `anamnesebogen` SET " & "`" & SpName & "`" & " = """ & replace$(NeuInh, """", """""") & """ WHERE pat_id = " & rNa(0).Pat_id, AfN)
 '   END IF
    If Not SpMod(Len(NeuInh), "anamnesebogen", rsc, NeuInh) Then ' dann Memo-Feld
     Call myEFrag("UPDATE `anamnesebogen` SET `" & SpName & "` = """ & REPLACE$(NeuInh, """", """""") & """ WHERE pat_id = " & rNa(0).Pat_id, AfN)

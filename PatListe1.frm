@@ -1593,8 +1593,10 @@ Public Sub domachDMPBogen(Pat_id&, BogArtlV As BogArtTyp, DokuDat As Date, Optio
  Dim rlanr As New ADODB.Recordset
  If autolanr Then
   myFrag rlanr, "SELECT p.lanr FROM lanrpraxis p WHERE id = IF((SELECT MIN(lanrid) FROM faelle WHERE pat_id = " & Pat_id & " AND qanf = (SELECT MAX(qanf) FROM faelle WHERE pat_id = " & Pat_id & "))>0,(SELECT MIN(lanrid) FROM faelle WHERE pat_id = " & Pat_id & " AND qanf = (SELECT MAX(qanf) FROM faelle WHERE pat_id = " & Pat_id & ")),1)"
-  auswlanr.Lanr = rlanr!Lanr
-  Set rlanr = Nothing
+  If Not rlanr.BOF Then
+   auswlanr.Lanr = rlanr!Lanr
+   Set rlanr = Nothing
+  End If
  Else
   auswlanr.PrepPatid Pat_id
   auswlanr.Show 1, Me
@@ -2852,8 +2854,8 @@ Sub LabordateiAnzeig(Datei$)
 '   Stop
   End If
  End If
- myFrag rs, "SELECT COUNT(0) AS ct FROM `" & labxtb & "`"
- .Rows = rs!ct + 1
+ myFrag rs, "SELECT COUNT(0) ct FROM `" & labxtb & "`"
+ If Not rs.BOF Then .Rows = rs!ct + 1
  Set rs = Nothing
  myFrag rs, "SELECT patient, fehlerart,abkü, " & _
  "substring_index(substring_index(fehlerart,' ',1),':',-1) wert, einheit,langtext, " & _
@@ -3024,7 +3026,7 @@ andSp:
     End If ' PID <> 0
     Dim aktDC As DMPClass, VorDat As Date
     If IsNumeric(.TextMatrix(i, wertsp)) Then aktw = CDbl(REPLACE$(.TextMatrix(i, wertsp), ".", ",")) Else aktw = 0
-    If InStr(UCase(vorDp), "GFR") <> 0 Or InStr(UCase(vorDp), "GFC") <> 0 Or InStr(UCase(vorDp), "MDRD") <> 0 Then
+    If InStr(UCase$(vorDp), "GFR") <> 0 Or InStr(UCase(vorDp), "GFC") <> 0 Or InStr(UCase(vorDp), "MDRD") <> 0 Then
      If aktw < 45 Then
       Call TherAuskunft(CStr(pid), 0, aktDC.insz, VorDat, aktDC.obIns, aktDC.obAnal, aktDC.obGlib, aktDC.obmetf, aktDC.obGlucI, aktDC.obSHGlin, aktDC.obGlit, aktDC.obdpp4, aktDC.obglp1, aktDC.obsglt2, aktDC.obSonstAD, aktDC.obHMG, aktDC.obAntihyp, aktDC.obACEH, aktDC.obBetabl, aktDC.obThro, aktDC.obOAK, , , , aktDC.obDiur, aktDC.obAT1)
       If aktDC.obmetf Then
@@ -3035,13 +3037,13 @@ andSp:
         zuwarnen = True
        Else ' also aktw zw. 30 und 44
         On Error Resume Next
-        ' metdos = myefrag("SELECT (REPLACE(REPLACE(mo,'½',0.5),'1/2',0.5)+REPLACE(REPLACE(mi,'½',0.5),'1/2',0.5)+REPLACE(REPLACE(nm,'½',0.5),'1/2',0.5)+REPLACE(REPLACE(ab,'½',0.5),'1/2',0.5)+REPLACE(REPLACE(zn,'½',0.5),'1/2',0.5))*nr,i.* FROM " & _
+        ' metdos = myEFrag("SELECT (REPLACE(REPLACE(mo,'½',0.5),'1/2',0.5)+REPLACE(REPLACE(mi,'½',0.5),'1/2',0.5)+REPLACE(REPLACE(nm,'½',0.5),'1/2',0.5)+REPLACE(REPLACE(ab,'½',0.5),'1/2',0.5)+REPLACE(REPLACE(zn,'½',0.5),'1/2',0.5))*nr,i.* FROM " & _
               "(SELECT mp.medikament, zunr(mp.medikament) nr,mo,mi,nm,ab,zn FROM wmedplan mp " & _
               "LEFT JOIN medarten ma ON ma.medikament=mp.medanfang " & _
               "WHERE mp.pat_id = " & CStr(pid) & " AND zeitpunkt=(SELECT MAX(zeitpunkt) FROM wmedplan WHERE pat_id = " & CStr(pid) & " AND zeitpunkt=(SELECT MAX(zeitpunkt) FROM medplan WHERE pat_id=" & CStr(pid) & ")) " & _
               "and metf " & _
               ") i;").Fields(0)
-'        metdos = myefrag("SELECT ROUND((zubruch(mo)+zubruch(mi)+zubruch(nm)+zubruch(ab)+zubruch(zn))*zunr(mp.medikament)) metdos " & vbCrLf & _
+'        metdos = myEFrag("SELECT ROUND((zubruch(mo)+zubruch(mi)+zubruch(nm)+zubruch(ab)+zubruch(zn))*zunr(mp.medikament)) metdos " & vbCrLf & _
          "FROM wmedplan mp " & vbCrLf & _
          "LEFT JOIN medarten ma ON ma.medikament=mp.medanfang " & vbCrLf & _
          "WHERE mp.pat_id=" & CStr(pid) & " AND " & vbCrLf & _
@@ -3083,8 +3085,8 @@ andSp:
          Dim radg As New ADODB.Recordset
          ' falls Anämie diagnostiziert
          Set radg = myEFrag("SELECT icd FROM `diagnosen` d WHERE d.pat_id = " & .TextMatrix(i, 0) & " AND d.diagtext LIKE '%anämie%' AND d.diagsicherheit not IN ('A','Z') AND d.obdauer<>0") ' AND COALESCE(d.f6010,0)=0
- '        myefrag "SET GROUP_CONCAT_MAX_LEN = 255"
- '        SET radg = myefrag("SELECT GROUP_CONCAT(diagtext) diag FROM `diagnosen` d WHERE d.pat_id = " & .TextMatrix(i, 0) & " AND d.diagsicherheit not IN ('A','Z') AND COALESCE(d.f6010,0)=0 AND d.obdauer<>0")
+ '        myEFrag "SET GROUP_CONCAT_MAX_LEN = 255"
+ '        SET radg = myEFrag("SELECT GROUP_CONCAT(diagtext) diag FROM `diagnosen` d WHERE d.pat_id = " & .TextMatrix(i, 0) & " AND d.diagsicherheit not IN ('A','Z') AND COALESCE(d.f6010,0)=0 AND d.obdauer<>0")
  '        IF InStrB(radg!Diag, "Anämie") <> 0 OR InStrB(radg!Diag, "anämie") <> 0 THEN
          If Not radg.BOF Then
           .CellBackColor = Orange
@@ -4242,7 +4244,7 @@ Private Sub LaborFüll(Optional nachLangtext%)
   Me.MFG.CellBackColor = GelblichRosa
  End If
  myFrag rs0, "SELECT COUNT(0) ct FROM (" & sql0 & ") i"
- MFG.Rows = rs0!ct + 2
+ If Not rs0.BOF Then MFG.Rows = rs0!ct + 2
  ReDim IDS(1, Me.MFG.Rows)
  Set rs0 = Nothing
  myFrag rs0, sql0

@@ -44,18 +44,16 @@ Attribute VB_Exposed = False
 Option Explicit
 Public aufRufer As Lese
 
-
-
 Private Sub Form_Load()
- Dim rs As New ADODB.Recordset
+ Dim rs As ADODB.Recordset
  myFrag rs, "SELECT * FROM namen n WHERE nachname LIKE 'zutun%' OR straße LIKE 'mittermayer%13%'"
  If Not rs.BOF Then
   Do While Not rs.EOF
    Me.List1.AddItem rs!Nachname & ", " & rs!Vorname & "  (" & rs!Pat_id & ")"
    rs.MoveNext
   Loop
- End If
-End Sub
+ End If ' Not rs.BOF Then
+End Sub  ' Form_Load
 
 Private Sub OKButton_Click()
  Dim spneu$(), spnk$
@@ -65,11 +63,12 @@ Private Sub OKButton_Click()
   If IsNumeric(spnk) Then
    aufRufer.SpPat_id = CLng(spnk)
    aufRufer.SpName = spneu(0)
-  End If
- End If
+  End If ' IsNumeric(spnk) Then
+ End If ' UBound(spneu) > 0 Then
  Me.Visible = False
 End Sub ' OKButton_Click()
+
 Private Sub CancelButton_Click()
  Me.Visible = False
-End Sub
+End Sub ' CancelButton_Click()
 

@@ -567,7 +567,7 @@ Public Function TIns&(ZCn As ADODB.Connection, TabN$, rq, AuiFd$, FListe$, ByRef
    sql2 = IIf(RsI, "replace", "insert") & " INTO `" & TabN & "`" & FListe & " VALUES("
    
 '   IF AuiFd <> "" THEN
-'    SET rs = myEfrag("SELECT MAX(" & AuiFd & ") mprim FROM `" & "`" & TabN & "`",,ZCn)
+'    SET rs = myEFrag("SELECT MAX(" & AuiFd & ") mprim FROM `" & "`" & TabN & "`",,ZCn)
 '    mprim = IIf(ISNULL(rs!mprim), 0, rs!mprim) + 1
 '   END IF
    For i = 0 To UBound(Felder) ' rQ.Fields.Count - 1

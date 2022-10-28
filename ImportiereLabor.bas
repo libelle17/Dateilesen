@@ -74,8 +74,8 @@ Public Function LaborDirektImport(frm As Lese, absPos&, SammelInsert%, BezfSpei%
 '    neuPfad = f1.Path
     obDateiNeu = 0
     For i = 1 To 2
-'     Set rs = myefrag("SELECT -fertig AS j_fertig, l.* FROM laborxeingel l WHERE name = '" & f1.name & "' AND pfad = '" & doUmwfSQL(f1.path, Lese.obMySQL) & "'")
-     myFrag rs, "SELECT -fertig AS j_fertig, l.* FROM laborxeingel l WHERE name = '" & f1.name & "' AND pfad = '" & doUmwfSQL(f1.path, Lese.obMySQL) & "'"
+'     Set rs = myEFrag("SELECT -fertig AS j_fertig, l.* FROM laborxeingel l WHERE name = '" & f1.name & "' AND pfad = '" & doUmwfSQL(f1.path, Lese.obMySQL) & "'")
+     myFrag rs, "SELECT -fertig j_fertig, l.* FROM laborxeingel l WHERE name = '" & f1.name & "' AND pfad = '" & doUmwfSQL(f1.path, Lese.obMySQL) & "'"
      If rs.BOF Then
       obDateiNeu = True
      ElseIf rs!j_fertig = 0 Then
@@ -139,8 +139,10 @@ On Error GoTo fehler
       isql = "SELECT DatID FROM `laborxeingel` WHERE name = '" & SL.Item(ii).File.name & "' AND pfad = '" & doUmwfSQL(SL.Item(ii).File.path, Lese.obMySQL) & "'" ' *
       Set rs = Nothing
       myFrag rs, isql
-      SL.Item(ii).DatID = rs!DatID
-    End If
+      If Not rs.EOF Then
+       SL.Item(ii).DatID = rs!DatID
+      End If ' Not rs.EOF Then
+    End If ' SL.Item(ii).DatID = 0 Then
 '   IF f1.Name LIKE "1b*.ld*" OR f1.Name LIKE "Labor*.dat" THEN
 '   IF f1.Name LIKE "Labor*.dat" THEN
 '    repl = replace$(f1.Name, ".", "")
@@ -182,9 +184,7 @@ On Error GoTo fehler
     
     If ZS Then ltxt = ZSU1(ltxt)
     If ltxt <> "" Then
-      
       Dim lenge%, Kennung%, Inhalt$
-      
       absPos = absPos + 1
       lenge = Left(ltxt, 3)
       Kennung = Mid$(ltxt, 4, 4)
@@ -514,8 +514,8 @@ erneut:
           If rs.State = 1 Then rs.Close
           Dim neuSatzID&
           If Not rs Is Nothing Then If rs.State = 1 Then rs.Close
-          myFrag rs, "SELECT MAX(satzid) AS msatzid FROM `laborxsaetze`"
-          neuSatzID = IIf(IsNull(rs!msatzid), 0, rs!msatzid)
+          myFrag rs, "SELECT MAX(satzid) msatzid FROM `laborxsaetze`"
+          If Not rs.BOF Then neuSatzID = IIf(IsNull(rs!msatzid), 0, rs!msatzid)
           For i = 1 To UBound(rLu)
            rLu(i).SatzID = neuSatzID
            If Not debugohneSpeichern Then
@@ -608,8 +608,7 @@ erneut:
                Case 0, 2
                 myEFrag "UPDATE `laborxpnb` SET zahl = zahl+1 WHERE id = " & rs!id, rAF
               End Select
-              
-             End If
+             End If ' Not rs.BOF Then
             Next i
             Debug.Print SL.Item(ii).File.name
             Call laborxwertSpeichern(SammelInsert, BezfSpei)
@@ -622,11 +621,10 @@ erneut:
           frm.Ausgeb "Unbekannte Kennung: " & Kennung & ", Inhalt: " & Inhalt, True
         End Select
 '      Loop
-     
      If obSchluss Or BrichAb Then
       Exit Do
      End If
-    End If
+    End If ' ltxt <> "" Then
     ltxt = txt
     If Not obEOF Then Exit Do
     obSchluss = True
@@ -746,7 +744,7 @@ nochmal:
   End If
 
  If debugbit Then Open lies.snst.DebugDatei For Output As #300
-' SET rLX = myefrag(lcase(sql))
+' SET rLX = myEFrag(lcase(sql))
  obNeuerPat = -1 ' SL neu befüllen
 ' rLX.Open LCase(sql), DBCn, adOpenDynamic, adLockOptimistic
  myFrag rLX, LCase$(sql)
@@ -777,7 +775,7 @@ nochmal:
     myFrag rLN, sql
     If debugbit Then
      debugzl = 0
-     Print #300, "Dazu wurden IN `laborneu` gefunden:"
+     Print #300, "Dazu wurden in `laborneu` gefunden:"
      Do
       If rLN.BOF Or rLN.EOF Then Exit Do
        debugzl = debugzl + 1
@@ -831,19 +829,19 @@ nochmal:
       Next i
       If SL.COUNT = 0 Then
        VergleichTot = -1
-      End If
+      End If ' SL.COUNT
      End If ' obNeuerPat
-    Else
-    
+    Else ' ' Not rLN.NoMatch THEN else
     End If ' Not rLN.NoMatch THEN
-      If debugbit Then
-       Print #300, vbCrLf & " IN der Liste befinden sich momentan (SL.Count): " & SL.COUNT & IIf(SL.COUNT > 0, ", und zwar:", "!!!!")
-       For i = 1 To SL.COUNT
-        Print #300, "   Pat_id: " & SL.Item(i).Pat_id
-       Next i
-       Print #300, "Gesamt-Abkürzungs-String: " & GesAbk
-       Print #300, ""
-      End If
+    
+    If debugbit Then
+     Print #300, vbCrLf & " in der Liste befinden sich momentan (SL.Count): " & SL.COUNT & IIf(SL.COUNT > 0, ", und zwar:", "!!!!")
+     For i = 1 To SL.COUNT
+      Print #300, "   Pat_id: " & SL.Item(i).Pat_id
+     Next i
+     Print #300, "Gesamt-Abkürzungs-String: " & GesAbk
+     Print #300, ""
+    End If ' debugbit Then
    End If ' VergleichTot
    altRefnr = rLX!RefNr
   End If
@@ -1166,12 +1164,12 @@ nochmal:
      Set rsc = Nothing
      myFrag rsc, "SHOW FULL COLUMNS FROM `" & TName & "` WHERE field = '" & SpName & "'"
      Call myEFrag("SET SESSION innodb_strict_mode=off") ' wenn Zeilengröße schon > 8125 osä
-     Call myEFrag("ALTER TABLE `" & TName & "`" & sqlALTER & " COLUMN `" & SpName & "` " & sqlText & "(" & SpValLen & ") " & IIf(IsNull(rsc!collation), vNS, " COLLATE " & rsc!collation) & " default " & IIf(IsNull(rsc!Default), " null", "'" & rsc!Default & "'") & " comment '" & rsc!Comment & "'", rAF)
-    Else
-     Call myEFrag("ALTER TABLE `" & TName & "`" & sqlALTER & " COLUMN `" & SpName & "` " & sqlText & "(" & SpValLen & ")", rAF)
-    End If
-    FNr = Err.Number
-    FText = Err.Description & " " & vbCrLf & Err.LastDllError
+     Call myEFrag("ALTER TABLE `" & TName & "`" & sqlALTER & " COLUMN `" & SpName & "` " & sqlText & "(" & SpValLen & ") " & IIf(IsNull(rsc!collation), vNS, " COLLATE " & rsc!collation) & " default " & IIf(IsNull(rsc!Default), " null", "'" & rsc!Default & "'") & " comment '" & rsc!Comment & "'", rAF, , True, FNr, FText)
+    Else ' Lese.obMySQL Then
+     Call myEFrag("ALTER TABLE `" & TName & "`" & sqlALTER & " COLUMN `" & SpName & "` " & sqlText & "(" & SpValLen & ")", rAF, , True, FNr, FText)
+    End If ' Lese.obMySQL Then else
+'    FNr = Err.Number
+'    FText = Err.Description & " " & vbCrLf & Err.LastDllError
     On Error GoTo fehler
    End If
    If FNr = 0 Then
@@ -1218,9 +1216,9 @@ Else
 '  ON Error GoTo fehler
 '  DBCn.Close
 '  DBcnOpen ZCStr
-'  IF lese.obmysql THEN Call myefrag("use " & myDB)
+'  IF lese.obmysql THEN Call myEFrag("use " & myDB)
 '  call foreignno
-'  Call myefrag("ALTER TABLE " & "`" & Tname & "`" & " " & IIf(lese.obmysql, "MODIFY", "ALTER") & " Column " & "`" & SpName & "`" & " " & "MEMO")
+'  Call myEFrag("ALTER TABLE " & "`" & Tname & "`" & " " & IIf(lese.obmysql, "MODIFY", "ALTER") & " Column " & "`" & SpName & "`" & " " & "MEMO")
 '   ausgTxt = "Feldudt.mwandlung Tabelle '" & Tname & "' Feld '" & SpName & "';" & maxL & " -> Memo; wg. Inhalt: " & SpVal
 '   Lese.Ausgeb ausgTxt ,true
 '   Open Lese.snst.DebugDatei For Append AS #399

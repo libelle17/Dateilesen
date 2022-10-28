@@ -307,7 +307,7 @@ Function doPatientenlaufzettel(Optional obohnerueckfrage% = 0, Optional obphp% =
   Set PDDoc = Nothing
   SplitNeu Str.Value, vbCrLf, splitt
   SplitNeu splitt(0), " ", s2 ' s0 = "Alle", s1 = "Terminarten", s2 = "1.1.13 - 31.3.2016"
-  syscmd 4, "Erstelle Patientenlaufzettel für " & s2(2) & " IN " & plzVerz & "..."
+  syscmd 4, "Erstelle Patientenlaufzettel für " & s2(2) & " in " & plzVerz & "..."
   DoEvents
   For j = 0 To UBound(s2)
    If InStrB(s2(j), "-") > 0 Then
@@ -572,7 +572,7 @@ End Function ' letztGFR#(PID&)
 
 ' letzten Laborwert einer bestimmten Sorte holen
 '  Public FUNCTION hollwert#(Pat_id&, Abk$, Einh$)
-'   hollwert = myefrag("call ltWert(" & Pat_id & ",""" & Abk & """,""" & Einh & """)")!ltWert
+'   hollwert = myEFrag("call ltWert(" & Pat_id & ",""" & Abk & """,""" & Einh & """)")!ltWert
 '  END Function
 Public Function mplan(pid&)
 ' bei Auswahl aller Medikamentenpläne (Pat_id 1564: 4165 Einträge) Dauer: 0,64s
@@ -582,9 +582,9 @@ Public Function mplan(pid&)
  If pid <> altPID Then
   obHCT = 0
   hctMed = ""
-'  mpz = myefrag("SELECT COUNT(0) Zahl FROM medplan mp WHERE pat_id = " & PID & "")!Zahl
+'  mpz = myEFrag("SELECT COUNT(0) Zahl FROM medplan mp WHERE pat_id = " & PID & "")!Zahl
   mpz = myEFrag("SELECT COUNT(0) Zahl FROM wmedplan mp WHERE pat_id = " & pid & " AND zeitpunkt=(SELECT MAX(zeitpunkt) FROM wmedplan WHERE pat_id=" & pid & ")")!Zahl
-' mpz = myefrag("SELECT COUNT(0) Zahl FROM medplan mp WHERE pat_id = " & Pid & " AND mpnr=(SELECT MAX(mpnr) FROM medplan mpi WHERE pat_id=mp.pat_id AND zeitpunkt=(SELECT MAX(zeitpunkt) FROM medplan WHERE pat_id=mp.pat_id))")!Zahl
+' mpz = myEFrag("SELECT COUNT(0) Zahl FROM medplan mp WHERE pat_id = " & Pid & " AND mpnr=(SELECT MAX(mpnr) FROM medplan mpi WHERE pat_id=mp.pat_id AND zeitpunkt=(SELECT MAX(zeitpunkt) FROM medplan WHERE pat_id=mp.pat_id))")!Zahl
   Erase mdpl ' 30.5.20
   If mpz > 0 Then
    ru = 0
@@ -676,7 +676,7 @@ Function medzz!(ByVal ST$)
  End If
 End Function ' medzz
 
-' aufgerufen IN dodoPlz
+' aufgerufen in dodoPlz
 Function UKPDS(ByRef aRisk As Risk, pid$, gbdt As Date, dmseit$, ByRef falDiabDau%, obweibl%)
 ' 1.11.14 vorgezogen
 ' UKPDS-Risk bestimmen (1)
@@ -1120,7 +1120,7 @@ weiter:
   Next ru
  End If ' safearraygetdim(icd) <> 0
  
-' dmtyp = myefrag("SELECT dmtyp(" & Pat_ID & ")").Fields(0)
+' dmtyp = myEFrag("SELECT dmtyp(" & Pat_ID & ")").Fields(0)
  If dmtyp = "1" Or dmtyp = "2" Or dmtyp = "s" Or dmtyp = "u" Then obdm = -1 Else obdm = 0
  If Not rnam.BOF Then
   syscmd 4, "Erstelle Patientenlaufzettel für: " & rnam!Nachname & ", " & rnam!Vorname & " (Pat_id: " & Pat_id & ")"
@@ -2233,7 +2233,7 @@ keinuzu:
    End If
   Next i
   AusS.AppVar (Array("</div>", vbCrLf))
-  If obpath(0) Then AusS.AppVar (Array("<div class='cave'>Hausarzt nicht IN Turbomed eingetragen</div>", vbCrLf))
+  If obpath(0) Then AusS.AppVar (Array("<div class='cave'>Hausarzt nicht in Turbomed eingetragen</div>", vbCrLf))
   
   Dim obGU%
   Dim rLei As New ADODB.Recordset
@@ -2481,7 +2481,7 @@ keinuzu:
    Next ru
   End If
 '  rTh As Adodb.Recordset
-'  SET rTh = myefrag("SELECT (REPLACE(REPLACE(mo,'½',0.5),'1/2',0.5)+REPLACE(REPLACE(mi,'½',0.5),'1/2',0.5)+REPLACE(REPLACE(nm,'½',0.5),'1/2',0.5)+REPLACE(REPLACE(ab,'½',0.5),'1/2',0.5)+REPLACE(REPLACE(zn,'½',0.5),'1/2',0.5))*nr mg,i.* FROM " & _
+'  SET rTh = myEFrag("SELECT (REPLACE(REPLACE(mo,'½',0.5),'1/2',0.5)+REPLACE(REPLACE(mi,'½',0.5),'1/2',0.5)+REPLACE(REPLACE(nm,'½',0.5),'1/2',0.5)+REPLACE(REPLACE(ab,'½',0.5),'1/2',0.5)+REPLACE(REPLACE(zn,'½',0.5),'1/2',0.5))*nr mg,i.* FROM " & _
            "(SELECT mp.medikament, zunr(mp.medikament) nr,mo,mi,nm,ab,zn FROM medplan mp " & _
            "LEFT JOIN medarten ma ON ma.medikament=mp.medanfang " & _
            "WHERE mp.pat_id = " & Pat_id & " AND mpnr=(SELECT MAX(mpnr) FROM medplan WHERE pat_id = " & Pat_id & ") " & _
@@ -2492,7 +2492,7 @@ keinuzu:
   lGFR = letztGFR(CLng(Pat_id), Palter, obweibl, aRisk.EthnicGroup)
   If lGFR.Abkü = "" And lGFR.WertSg = "" Then lGFR.WertSg = "500"
   ' beim längsten Pat. 0,015 - 0,023 s
-'  obmetf = myefrag("SELECT COUNT(0) zl FROM medplan mp LEFT JOIN medarten ma ON mp.medanfang = ma.medikament WHERE mp.pat_id=" & Pat_ID & " AND metf")!zl
+'  obmetf = myEFrag("SELECT COUNT(0) zl FROM medplan mp LEFT JOIN medarten ma ON mp.medanfang = ma.medikament WHERE mp.pat_id=" & Pat_ID & " AND metf")!zl
   ' 0s
   If obdm And dmtyp = "2" And therart <> "Diät" Then
 ' TH:Metformin
@@ -3226,7 +3226,7 @@ nochmal:
  Set raLw = hollabor(CLng(Pat_id), "", 0, 0, obnachgruppe:=True, Zahl:=lz, Einheit:="", gz:=gz, dzz:=dz, dSL:=dSL) ' , obUpdate:=True)
  'm = 2: Tj(m) = Timer: For p = 0 To m - 1: Tj(m) = Tj(m) - Tj(p): Next p
  ZZ = lz + gz
-' ZZ = myefrag("SELECT COUNT(0)+COUNT(DISTINCT gruppe) Zahl FROM (SELECT * FROM geslaba WHERE (reihe <> 999 OR ISNULL(reihe)) GROUP BY Gruppe, Reihe, Abkü, Einheit,uNg,oNg ORDER BY gruppe, reihe) i")!Zahl
+' ZZ = myEFrag("SELECT COUNT(0)+COUNT(DISTINCT gruppe) Zahl FROM (SELECT * FROM geslaba WHERE (reihe <> 999 OR ISNULL(reihe)) GROUP BY Gruppe, Reihe, Abkü, Einheit,uNg,oNg ORDER BY gruppe, reihe) i")!Zahl
 ' #If False THEN
 '' sql0 = "SELECT Gruppe, Reihe, i.Abkü, i.Langtext,i.Einheit,i.nb, i.uNg,i.oNg FROM (" & sql2 & ") i LEFT JOIN `laborparameter` lp ON i.abkü = lp.`abkü` AND IF(ISNULL(i.einheit) OR i.einheit="""", ""kA"",i.einheit) = lp.`einheit` WHERE pat_id = " & CStr(Pat_id) & " AND (NOT ISNULL(wert) OR NOT ISNULL(kommentar)) AND (reihe <> 999 OR ISNULL(reihe)) GROUP BY Gruppe, Reihe, i.Abkü, i.Einheit,CAST(i.uNg * 100 AS decimal),CAST(i.oNg * 100 AS decimal) ORDER BY gruppe, reihe"
 ' IF lies.obMySQL THEN sql0 = replace$(sql0, "iif(", "if(")
@@ -3419,7 +3419,7 @@ nochmal1:
    Matr(0, 5, j) = Trim$(IIf(IsNull(raLw!uNG), vNS, raLw!uNG)) & "-" & Trim$(IIf(IsNull(raLw!oNG), vNS, raLw!oNG))
 '    ON Error GoTo fehler
   End If ' j > UBound(Matr, 3) THEN
-  If Matr(1, i, 0) = "" Then Matr(1, i, 0) = raLw!DatID & " " & raLw!pfad
+  If Matr(1, i, 0) = "" Then Matr(1, i, 0) = raLw!DatID & " " & raLw!Pfad
   Dim Kommentar$
   If IsNull(raLw!Kommentar) Then Kommentar = "" Else Kommentar = REPLACE$(raLw!Kommentar, "//", "/")
   Matr(0, i, j) = IIf(IsNull(raLw!Wert), IIf(Not IsNull(Kommentar), Left(Kommentar, 10), vNS), raLw!Wert)

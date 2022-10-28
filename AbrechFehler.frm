@@ -289,8 +289,8 @@ Private Function cmd$(sql$, obAcc%)
   cmd = REPLACE$(cmd, "intacc", "")
   cmd = REPLACE$(cmd, "cdate(", "(")
   cmd = REPLACE$(cmd, "first(", "(")
-'  Call myefrag("DROP VIEW " & ifexists & " `" & QName & "`;")
-'  Call myefrag("CREATE OR REPLACE ALGORITHM=UNDEFINED DEFINER=`" & Forms(0).dbv.uid & "`@`%` SQL SECURITY DEFINER VIEW `" & QName & "` AS " & Cmd)
+'  Call myEFrag("DROP VIEW " & ifexists & " `" & QName & "`;")
+'  Call myEFrag("CREATE OR REPLACE ALGORITHM=UNDEFINED DEFINER=`" & Forms(0).dbv.uid & "`@`%` SQL SECURITY DEFINER VIEW `" & QName & "` AS " & Cmd)
  End If
 End Function ' Cmd
 
@@ -2042,11 +2042,11 @@ sql(AWlf) = _
 '•
 ' 33
 ' verlagert IN AbrFausg(
-' myefrag "SET @qn:=(SELECT quartal FROM aktfvs f LEFT JOIN faelle fa USING (fid) LIMIT 1)"
-' myefrag "SET @qe:=vorquart(@qn,1)"
-' myefrag "SET @qz:=vorquart(@qn,2)"
-' myefrag "SET @qd:=vorquart(@qn,3)"
-' myefrag "SET @qv:=vorquart(@qn,4)"
+' myEFrag "SET @qn:=(SELECT quartal FROM aktfvs f LEFT JOIN faelle fa USING (fid) LIMIT 1)"
+' myEFrag "SET @qe:=vorquart(@qn,1)"
+' myEFrag "SET @qz:=vorquart(@qn,2)"
+' myEFrag "SET @qd:=vorquart(@qn,3)"
+' myEFrag "SET @qv:=vorquart(@qn,4)"
 
  AwN(AWlf) = "Mögliche Fehler bei Chronikerpauschale 03220, 03221 (lauto)"
 #If Not False Then
@@ -3457,7 +3457,7 @@ sql(AWlf) = "SELECT Pat_ID, Name, Messzeitpunkt, `01812`, Soll, `01777`, `Vor-01
  maxs(AWlf) = 60
  AWlf = AWlf + 1
 ' 72
- AwN(AWlf) = "Patienten mit Barthel- und TUG-Test, die als gesund eingestuft sind (keine icd IN ('Z74.9','G20.10','G20.20','R26.8','R29.6','R42','R32','R15','R13.9','R26.3','R41.0','R41.3','R52.2','F45.41','G30.9','F29','F32.9','F69','F79.9','R41.3','R63.4','R53','M62.50','R26.8','R68.8') OR pfld.icd RLIKE '^F0[012]')"
+ AwN(AWlf) = "Patienten mit Barthel- und TUG-Test, die als gesund eingestuft sind (keine icd in ('Z74.9','G20.10','G20.20','R26.8','R29.6','R42','R32','R15','R13.9','R26.3','R41.0','R41.3','R52.2','F45.41','G30.9','F29','F32.9','F69','F79.9','R41.3','R63.4','R53','M62.50','R26.8','R68.8') OR pfld.icd RLIKE '^F0[012]')"
  sql(AWlf) = "SELECT v.pat_id, gesname(v.pat_id) Name, patalter(v.pat_id) PAlter " & vbCrLf & _
             ",IF((SELECT MAX(art) FROM eintraege WHERE pat_id = v.pat_id AND art='tk') IS NULL,'',(SELECT CONCAT(LPAD(CAST(COUNT(art) AS char),4,' '),' ',DATE_FORMAT(MAX(zeitpunkt),'-%d.%m.%y')) FROM eintraege WHERE pat_id = v.pat_id AND art = 'tk')) tk " & vbCrLf & _
             ",IF((SELECT MAX(art) FROM eintraege WHERE pat_id = v.pat_id AND art='gs') IS NULL,'',(SELECT CONCAT(LPAD(CAST(COUNT(art) AS char),4,' '),' ',DATE_FORMAT(MAX(zeitpunkt),'-%d.%m.%y')) FROM eintraege WHERE pat_id = v.pat_id AND art = 'gs')) gs " & vbCrLf & _
@@ -4280,7 +4280,7 @@ AwN(AWlf) = "Möglicherweise fehlende 03355 (lauto)"
  
 ' 100
 ' ktag fehlerhaft
- AwN(AWlf) = "Evl. fehlende Beratungsgespraeche IN der oder bei geplanter Schwangerschaft (92281 bei T1DM, 92277 bei T2DM)"
+ AwN(AWlf) = "Evl. fehlende Beratungsgespraeche in der oder bei geplanter Schwangerschaft (92281 bei T1DM, 92277 bei T2DM)"
  ' AND COALESCE(dd.f6010,0)=0
  sql(AWlf) = vbCrLf & _
  "SELECT f.pat_id AS Pat_ID,gesnameG(f.pat_id) Name, dd.ICD DiabICD, ds.icd SchwICD, DATE(ds.diagdatum) SchwICDZp, DATE(e.zeitpunkt) EintrZp, e.art EintrArt, e.inhalt EintrInhalt " & vbCrLf & _
@@ -4309,7 +4309,7 @@ sql(AWlf) = vbCrLf & _
 "SELECT pat_id, gesname(pat_id) Name " & vbCrLf & _
 ", COALESCE((SELECT MAX(voret) FROM sws WHERE voret>" & qtAnf(FristS) & " AND pat_id=v.pat_id),'') voret " & vbCrLf & _
 ", COALESCE((SELECT GROUP_CONCAT(art) FROM eintraege e WHERE v.pat_id=e.pat_id AND e.art RLIKE '^vkgd|^aufgd' AND e.zeitpunkt BETWEEN " & lQAnfuEnd(FristS) & "),'') Eintr " & vbCrLf & _
-", COALESCE((SELECT GROUP_CONCAT(icd) FROM diagnosen d WHERE v.pat_id=d.pat_id AND d.gicdok RLIKE '^E1[0-4]' AND obdauer<>0 )=0),'') dicd " & vbCrLf & _
+", COALESCE((SELECT GROUP_CONCAT(icd) FROM diagnosen d WHERE v.pat_id=d.pat_id AND d.gicdok RLIKE '^E1[0-4]' AND obdauer<>0 ),'') dicd " & vbCrLf & _
 ", COALESCE((SELECT GROUP_CONCAT(icd) FROM diagnosen d WHERE v.pat_id=d.pat_id AND d.gicdok LIKE 'O24%' AND d.diagdatum BETWEEN " & lQAnfuEnd(FristS) & "),'') sicd " & vbCrLf & _
 ", COALESCE((SELECT GROUP_CONCAT(icd) FROM diagnosen d WHERE v.pat_id=d.pat_id AND d.gicdok LIKE 'O24%' AND d.diagdatum BETWEEN " & lQAnfuEnd(FristS) & " AND obdauer<>0),'') sdicd " & vbCrLf & _
 "FROM aktfv v) i " & vbCrLf & _
@@ -5626,7 +5626,7 @@ sql(AWlf) = "" & _
  AWlf = AWlf + 1
 
 ' 145
-AwN(AWlf) = "Pat. mit 'DMP ausgeschrieben', die IN den letzten 5a da waren, unter 90a alt sind und noch keinen Hinweis auf DMP-Wiedereinschreibung auf dem dem Desktop haben"
+AwN(AWlf) = "Pat. mit 'DMP ausgeschrieben', die in den letzten 5a da waren, unter 90a alt sind und noch keinen Hinweis auf DMP-Wiedereinschreibung auf dem dem Desktop haben"
 sql(AWlf) = "" & _
 "SELECT (SELECT MAX(bhfb) FROM faelle WHERE pat_id=n.pat_id) lfall, n.pat_id, gesname(n.pat_id) pname, patalter(n.pat_id) PAlter " & vbCrLf & _
 "FROM namen n LEFT JOIN anamnesebogen USING (pat_id) " & vbCrLf & _
@@ -6302,6 +6302,7 @@ End Sub ' SizeColumns
 
 Public Function AbrFausg(name$, sql$, Datei$, mins%, ByVal maxs%, Überschrift As CString, obappend%, sqlnr%, obauto%, ByRef angefangen%, ByRef BDT As BDTSchreib) ' Abrechnungsfehler ausgeben
  Dim ÜberschrAkt As New CString
+ Dim ErrNr&, ErrDes$
  ÜberschrAkt = Überschrift
  On Error GoTo fehler
  Dim T1!
@@ -6350,7 +6351,7 @@ Public Function AbrFausg(name$, sql$, Datei$, mins%, ByVal maxs%, Überschrift As
   Err.Clear
 '  rE.Open sql, rc, adOpenStatic, adLockReadOnly ' 24.6.09: Hier ging der Kontakt zum Server verloren, evtl. Zufall
   Dim rAF&
-  myFrag rE, sql, adOpenStatic, rc, adLockReadOnly, maxs, rAF, keinFehler:=True
+  myFrag rE, sql, adOpenStatic, rc, adLockReadOnly, maxs, rAF, True, ErrNr, ErrDes
   ' Listen mit (lauto)
   If obauto Then
    Dim lanrda%, leida%, ldda%, pda%, i%, Arztnr&, Zahl&, Protdat$
@@ -6372,7 +6373,7 @@ Public Function AbrFausg(name$, sql$, Datei$, mins%, ByVal maxs%, Überschrift As
       If rE!lanrid = Arztnr Then
        Dim pos%, LEI$
        pos = InStr(rE!LEIFEHLER, " dazu")
-       If pos Then
+       If pos <> 0 Then
         If Not angefangen Then
          Set BDT = New BDTSchreib
          If Not BDT.Start(hVerz, "Leist", 0) Then ' Arztnr) THEN
@@ -6390,32 +6391,34 @@ Public Function AbrFausg(name$, sql$, Datei$, mins%, ByVal maxs%, Überschrift As
         If LeistungsExport1(BDT, rE!pid, LEI, pruefdat, Format$(pruefdat, "HH:MM:SS"), True, Arztnr) Then
          Print #317, " " & rE!pid & " " & LEI & " " & rE!LEIDAT & " " & Arztnr
          Zahl = Zahl + 1
-        End If
-       End If
+        End If ' LeistungsExport1
+       End If ' pos<>0 Then
       End If ' re!lanrid=arztnr
       rE.MoveNext
-     Loop
-     Print #317, "   " & Zahl & " Leistungen IN " & Protdat & " eingetragen."
+     Loop ' While Not rE.EOF
+     Print #317, "   " & Zahl & " Leistungen in " & Protdat & " eingetragen."
      rE.MoveFirst
     Next Arztnr
     If angefangen Then
      BDT.Schreib
-    End If
-   End If
+    End If ' angefangen Then
+   End If  'lanrda And leida And ldda And pda Then
   Else ' obauto
-   If Err.Number <> 0 Then
+   If ErrNr <> 0 Then
     rcsql = rc
     Set rc = Nothing
     Set rc = Lese.dbv.wCn
-    On Error GoTo fehler
     If sql = "" Then AbrFausg = True: Exit Function
-    myFrag rE, sql, adOpenStatic, rc, adLockReadOnly
-   End If ' obauto
+    Set rE = Nothing
+    On Error GoTo fehler2
+    myFrag rE, sql, adOpenStatic, rc, adLockReadOnly, , , True, ErrNumber, ErrDescription
+    If ErrNumber <> 0 Then Error (999)
+   End If ' ErrNr <> 0 Then
   
    On Error GoTo fehler
 '  IF Not rE.EOF THEN
    If Me.Debug <> 0 Then
-    ÜberschrAkt.AppVar Array("SQL: ", vbCrLf, REPLACE$(REPLACE$(REPLACE$(REPLACE$(REPLACE$(REPLACE$(REPLACE$(REPLACE$(REPLACE$(sql, "FROM", vbCrLf + "FROM"), "from", vbCrLf + "FROM"), " ON", vbCrLf + " ON"), "LEFT JOIN", vbCrLf + "LEFT JOIN"), "INNER JOIN", vbCrLf + "INNER JOIN"), "RIGHT JOIN", vbCrLf + "RIGHT JOIN"), "WHERE", vbCrLf + "WHERE"), "ORDER BY", vbCrLf + "ORDER BY"), "ORDER BY", vbCrLf + "ORDER BY"))
+    ÜberschrAkt.AppVar Array(vbCrLf, "SQL: ", vbCrLf, REPLACE$(REPLACE$(REPLACE$(REPLACE$(REPLACE$(REPLACE$(REPLACE$(REPLACE$(REPLACE$(sql, "FROM", vbCrLf + "FROM"), "from", vbCrLf + "FROM"), " ON", vbCrLf + " ON"), "LEFT JOIN", vbCrLf + "LEFT JOIN"), "INNER JOIN", vbCrLf + "INNER JOIN"), "RIGHT JOIN", vbCrLf + "RIGHT JOIN"), "WHERE", vbCrLf + "WHERE"), "ORDER BY", vbCrLf + "ORDER BY"), "ORDER BY", vbCrLf + "ORDER BY"))
    End If
 '  END IF
    FNr = 1000
@@ -6443,6 +6446,7 @@ fehler:
  ErrNumber = Err.Number
  ErrLastDllError = Err.LastDllError
  ErrDescription = Err.Description
+fehler2:
  ErrSource = IIf(IsNull(Err.source), vNS, Err.source)
  If FNr = 999 Then
   Open Datei For Append As #307

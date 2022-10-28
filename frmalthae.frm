@@ -896,8 +896,8 @@ Private Sub adoPrimaryRS_MoveComplete(ByVal adReason As ADODB.EventReasonEnum, B
    If Not rs.BOF Then
     Me.pat_idFeld = rs!Pat_id
    End If
-  End If
-End Sub
+  End If ' not adoPrimayRS.BOF
+End Sub ' adoPrimaryRS_MoveComplete
 
 Private Sub adoPrimaryRS_WillChangeRecord(ByVal adReason As ADODB.EventReasonEnum, ByVal cRecords As Long, adStatus As ADODB.EventStatusEnum, ByVal pRecordset As ADODB.Recordset)
   'Hier können Sie Code zur Überprüfung einfügen

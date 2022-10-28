@@ -617,7 +617,7 @@ End Sub ' Form_Load()
 
 Public Function FrmLEinlesung()
  Dim rs As New ADODB.Recordset ', catx As New ADOX.Catalog
- Dim zl%
+ Dim zl%, ErrNr&, ErrDes$
  On Error GoTo fehler
 ' Exit Function
  If LenB(DBCn) = 0 Or DBCn.State = 0 Then
@@ -634,8 +634,8 @@ Public Function FrmLEinlesung()
   If Not rs Is Nothing Then If rs.State = 1 Then rs.Close
 '  sql = "SELECT datei, dateiaend FROM `eintragszahlen` WHERE NOT ISNULL(datei) AND NOT ISNULL(zp3) AND (zp3 < " & DatFor_k("6.1.2007") & " OR fallzahl > 10) ORDER BY beginn DESC;"
   sql = "SELECT SUBSTRING_INDEX(datei, '\\', -1) datei, dateiaend FROM `eintragszahlen` WHERE NOT ISNULL(datei) AND NOT ISNULL(zp3) AND fallzahl > 10 AND NOT datei LIKE '%HB_%' ORDER BY beginn DESC LIMIT 30;" ' 4.10.20, 28.11.21, 22.10.22
-  myFrag rs, sql
-  If Err.Number = 0 Then
+  myFrag rs, sql, , , , , , True, ErrNr, ErrDes
+  If ErrNr = 0 Then
    Exit For
   Else
    If zl = 0 Then
