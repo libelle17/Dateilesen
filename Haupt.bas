@@ -77,6 +77,7 @@ Public Function KhtsflZuk(Optional frist$)
  KhtsflZuk = tuAbstand(frist, 0, 274)
 End Function ' KhtsflZuk(Optional frist$)
 
+' aufgerufen in: lQAnfuEnd, Khtsfl, KhtsflZuk
 Public Function tuAbstand(frist$, Abst%, Optional Zuk% = 0)
  Dim qa As Date, qe As Date
  If frist = "" Then
@@ -88,8 +89,9 @@ Public Function tuAbstand(frist$, Abst%, Optional Zuk% = 0)
  qa = QAnf(QuartalStr(Now() - frist - Abst))
  qe = QEnd(QuartalStr(Now() - frist + Zuk))
  tuAbstand = Year(qa) & Right("0" & Month(qa), 2) & Right("0" & Day(qa), 2) & " AND " & Year(qe) & Right("0" & Month(qe), 2) & Right("0" & Day(qe), 2) & "235959"
-End Function ' tuAbstand(frist$, Abst%, Optional Zuk% = 0)
+End Function ' tuAbstand
 
+' aufgerufen in ZeigSQL (vielfach)
 Public Function qtAnf$(frist$)
  Dim qa As Date
  Dim Abst%
@@ -5545,6 +5547,7 @@ Function getHatest(pid&)
  Stop
 End Function ' getHatest
 
+' aufgerufen in: gewEintrag, DiesQ, MDIForm_Load, tuAbstand, qtAnf, qtEnd
 Public Function holFrist()
  Dim rv As New ADODB.Recordset
  Dim FristS
@@ -5582,14 +5585,15 @@ fehler:
   Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
   Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
  End Select
-End Function ' holFrist()
+End Function ' holFrist
 
+#If vonnirgends Then
+' aufgerufen nirgends
 Function gewEintrag()
  Dim rn As New ADODB.Recordset, rf As New ADODB.Recordset, rE As New ADODB.Recordset, gew0 As New CString, gewStr As New CString, buch$, i&, gew#, za%, kz%, ZZ%, kzm% ' Ziffer (als letztes) angehängt, Kommazahl, Ziffernzahl, keine Ziffer mehr
  Lese.ProgStart
  Dim FristS$
  FristS = holFrist()
- 
  myFrag rn, "SELECT pat_id FROM namen"
  Do While Not rn.EOF
   myFrag rf, "SELECT 0 FROM `faelle` WHERE pat_id = " & rn!Pat_id
@@ -5640,6 +5644,7 @@ Function gewEintrag()
   rn.MoveNext
  Loop
 End Function ' gewEintrag()
+#End If ' vonnirgends
 
 Public Function ZahlEintrag() ' &Zahlen aus Einträgen ermitteln
  Dim rn As New ADODB.Recordset, rf As New ADODB.Recordset, rE As New ADODB.Recordset, gew0 As New CString, gewStr As New CString, buch$, i&, gew#, za%, kz%, ZZ%, kzm% ' Ziffer (als letztes) angehängt, Kommazahl, Ziffernzahl, keine Ziffer mehr
