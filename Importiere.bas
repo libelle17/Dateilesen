@@ -681,7 +681,7 @@ Function GesLies(frm As Lese, BDTDatei$, BDTName$, EinlAb&, EinlBis&, obLaborDir
   Call doTabVorb(frm, obVorb)
  
   Set medSL = New SortierListe ' für Medklass
-  Call EintragSpäter(1)
+  Call Eintragszl(1)
 #If ohnebezug Then
   Call ForeignNo0
   Call ForeignNo1
@@ -1044,9 +1044,9 @@ Function GesLies(frm As Lese, BDTDatei$, BDTName$, EinlAb&, EinlBis&, obLaborDir
   T1a = Now
 '   IF Not mitLab THEN MsgBox (t1a - t1) * 60 * 60 * 24 ' dauert hingegen nur 9" für die ganze Datei und hat den richtigen Zeichensatz, mit Berechnung von LAktZeit 32"
  
-  Call EintragSpäter(2, fallzahl, (Now - T1) * 60 * 60 * 24) ' Eintragsschleife verlassen
+  Call Eintragszl(2, fallzahl, (Now - T1) * 60 * 60 * 24) ' Eintragsschleife verlassen
   If obSchluss Then
-   Call EintragSpäter(3) ' ... und zwar an der vorgesehenen Stelle
+   Call Eintragszl(3) ' ... und zwar an der vorgesehenen Stelle
   End If
  
   Call medklass2
@@ -1067,14 +1067,14 @@ Function GesLies(frm As Lese, BDTDatei$, BDTName$, EinlAb&, EinlBis&, obLaborDir
   End If
  End If ' frm.dlg.obBDT THEN
  
- Call EintragSpäter(4) ' nach Medklass
+ Call Eintragszl(4) ' nach Medklass
  If Not BrichAb And (FSO.FileExists(frm.dlg.LaborPfadBeispiel) Or FSO.FileExists(frm.dlg.LaborPfadBeispiel)) Then
   If obLaborDirekt Then Call LaborDirektImport(frm, absPos, frm.dlg.SammelInsert, frm.dlg.BeziehungsfehlerSpeichern, frm.dlg.LaborPfadBeispiel, obLDneu)
-  Call EintragSpäter(5)
+  Call Eintragszl(5)
   If obLaborQuer Then Call LaborErgPatId(frm, obLQneu)
-  Call EintragSpäter(6)
+  Call Eintragszl(6)
   If obEmails Then Call EmailsImport(EmDatei, frm)
-  Call EintragSpäter(7)
+  Call Eintragszl(7)
 ' Folgendes aus vermuteten Performancegründen hier statt beim einzeln Speichern
   If frm.dlg.obBDT Then
    frm.Ausgeb "Ergänze Namen im Anmnesebogen ...", False
@@ -1116,7 +1116,7 @@ Function GesLies(frm As Lese, BDTDatei$, BDTName$, EinlAb&, EinlBis&, obLaborDir
   If obLaborDirekt Then  ' 1.11.14, zur Verkürzung des Einzelimports
    Call Lese.FalschAbgehakteUngueltig_Click ' 11.7.09
   End If
-  Call EintragSpäter(8)
+  Call Eintragszl(8)
  End If ' Not BrichAb THEN
  
  If obÜProt Then Close #322
@@ -1422,10 +1422,11 @@ Select Case MsgBox("FNr: " & FNr & ", ErrNr: " & CStr(Err.Number) + vbCrLf + "La
 End Select
 End Function ' EintragStart()
 
-Function EintragSpäter(nr%, Optional fallzahl&, Optional Sekunden&)
+' aufgerufen öfter in geslies
+Function Eintragszl(nr%, Optional fallzahl&, Optional Sekunden&)
  Dim sql$
  On Error GoTo fehler
- Lese.Ausgeb "EintragSpäter ...", False
+ Lese.Ausgeb "Eintragszahlen eintragen ...", False
  If fallzahl = 0 And Sekunden = 0 Then
   sql = "UPDATE `eintragszahlen` SET zp" & nr & " = " + DatFor_k(Now) + " WHERE beginn = " + DatFor_k(rEzäBeg)
  Else
@@ -1434,7 +1435,7 @@ Function EintragSpäter(nr%, Optional fallzahl&, Optional Sekunden&)
 ' Call Lese.ProgStart
 ' Call myEFrag(sql, numA)
  myEFrag sql, numA
- If numA <> 1 Then Err.Raise 999, , "Fehler in Eintragspäter: numA <> 1, und zwar: " & numA
+ If numA <> 1 Then Err.Raise 999, , "Fehler in Eintragszl: numA <> 1, und zwar: " & numA
  Exit Function
 fehler:
  Dim AnwPfad$
@@ -1455,7 +1456,7 @@ Select Case MsgBox("FNr: " & FNr & ", ErrNr: " & CStr(Err.Number) + vbCrLf + "La
  Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
  Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
 End Select
-End Function ' EintragSpäter
+End Function ' Eintragszl
 
 ' aufgerufen IN geslies
 Function StatischInit()
@@ -1677,8 +1678,8 @@ Function THAfestleg() ' IN dolies und geslies / parallel zu Therauskunft
 '    END IF
 '    Debug.Print ifi
 Debug.Print ifi
-    If InStrB(ifi, "reservoir") <> 0 Or InStrB(ifi, "rapid d link") <> 0 Or InStrB(ifi, "rap d li") <> 0 Or InStrB(ifi, "rapid-d li") <> 0 Or InStrB(ifi, "tenderl") <> 0 Or InStrB(ifi, "flexl") <> 0 Or InStrB(ifi, "check spirit") <> 0 Or InStrB(ifi, "insight") <> 0 Or InStrB(ifi, "chek spirit") <> 0 Or InStrB(ifi, "pumpenträg") <> 0 Or InStrB(ifi, "kunststoffampu") <> 0 Or InStrB(ifi, "spritzampull") <> 0 Or InStrB(ifi, "batteriefachdeckel") <> 0 Or InStrB(ifi, "h-tron") <> 0 Or InStrB(ifi, "d-tron") <> 0 Or InStrB(ifi, "paradigm") <> 0 Or InStrB(ifi, "csii") <> 0 Or InStrB(ifi, "linpumpe") <> 0 Or InStrB(ifi, "omnipod") <> 0 Or InStrB(ifi, "minimed") <> 0 Or InStrB(ifi, "640g") <> 0 Or InStrB(ifi, "carelink") <> 0 Or InStrB(ifi, "mio ") <> 0 Or InStrB(ifi, "quickset") <> 0 Or InStrB(ifi, "silhouette") <> 0 Or InStrB(ifi, "sure-t") <> 0 _
-    Or InStrB(ifi, "sure t") <> 0 Or InStrB(ifi, "paradigm") <> 0 Or InStrB(ifi, " veo") <> 0 Or InStrB(ifi, "animas") <> 0 Or InStrB(ifi, "caridge") <> 0 Then
+    If (InStrB(ifi, "reservoir") <> 0 Or InStrB(ifi, "rapid d link") <> 0 Or InStrB(ifi, "rap d li") <> 0 Or InStrB(ifi, "rapid-d li") <> 0 Or InStrB(ifi, "tenderl") <> 0 Or InStrB(ifi, "flexl") <> 0 Or InStrB(ifi, "check spirit") <> 0 Or InStrB(ifi, "insight") <> 0 Or InStrB(ifi, "chek spirit") <> 0 Or InStrB(ifi, "pumpenträg") <> 0 Or InStrB(ifi, "kunststoffampu") <> 0 Or InStrB(ifi, "spritzampull") <> 0 Or InStrB(ifi, "batteriefachdeckel") <> 0 Or InStrB(ifi, "h-tron") <> 0 Or InStrB(ifi, "d-tron") <> 0 Or InStrB(ifi, "paradigm") <> 0 Or InStrB(ifi, "csii") <> 0 Or InStrB(ifi, "linpumpe") <> 0 Or InStrB(ifi, "omnipod") <> 0 Or InStrB(ifi, "minimed") <> 0 Or InStrB(ifi, "640g") <> 0 Or InStrB(ifi, "carelink") <> 0 Or InStrB(ifi, "mio ") <> 0 Or InStrB(ifi, "quickset") <> 0 Or InStrB(ifi, "silhouette") <> 0 Or InStrB(ifi, "sure-t") <> 0 _
+    Or InStrB(ifi, "sure t") <> 0 Or InStrB(ifi, "paradigm") <> 0 Or InStrB(ifi, " veo") <> 0 Or InStrB(ifi, "animas") <> 0 Or InStrB(ifi, "caridge") <> 0) And InStrB(FeldInh, "%menveo%") = 0 Then
      Set SD = New SortierDatum
      Set sFK = New SortierFormularKopf
      sFK.Foid = rFm(i).Foid
@@ -2595,7 +2596,7 @@ Function dolies(frm As Lese, RKennung$, rInhalt$, obSchluss%, znr&)
     rLe(UBound(rLe)).Med = rInhalt
    Case 5011 ' Sachkostenbezeichnung
     rLe(UBound(rLe)).Sachkbez = rInhalt
-   Case 5012 ' Sachkosten IN Cent
+   Case 5012 ' Sachkosten in Cent
     rLe(UBound(rLe)).Sachkct = MachNumerisch(rInhalt)
    Case 5015 ' Organ
     rLe(UBound(rLe)).f5015 = rInhalt
@@ -2624,7 +2625,8 @@ Function dolies(frm As Lese, RKennung$, rInhalt$, obSchluss%, znr&)
 ' Quartalsdiagnose: 6010 Falsch, 6011 ?
 ' anamnest. Dauerdiagnose: kommt nur einmal vor, 6010 Falsch, 6011 nein
 ' anamnest. für diesen Schein relevant: 2x, 6010 einmal falsch, einmal wahr, 6011 nein
-' relevant: 2 x , 6010 einmal falsch, einmal wahr, 6011 ja
+' relevant: 2 x , 6010 einmal falsch (=ohne Kodierrichtlinien relevanter Eintrag), einmal wahr(=mit KR relevant), 6011 ja
+' relevant und dd-Eintrag gelöscht: 1 x 6010 Wahr
 ' relevant und dann bdd-Eintrag gelöscht: 1 x 6010 Falsch, 6011 ja
 ' gelöscht: 6330bddg, 6331gesichert Allergie, 6330ddg, 6331gesichert Allergie
    Case 6010 ' Diagnose gelöscht (Feld dgg)
@@ -2641,39 +2643,47 @@ Function dolies(frm As Lese, RKennung$, rInhalt$, obSchluss%, znr&)
 '     If DText_ = "Harninkontinenz" Then Stop
      For inr = 0 To UBound(rDi)
 '      If rDi(inr).DiagText = DText_ Then Stop
+' wenn die gleichartige Diagnose schon mal gefunden wurde (üblicherweise der bdd-Eintrag zu dd oder umgekehrt),
+' dann keinen neuen Eintrag erzeugen.
+' f6010-Feld falsch = dd-Eintrag existiert (wird nur bei ausgeschalteten Kodierrichtlinien in Abrechnungsdatei geschrieben)
+' f6010-Feld wahr = nur bdd-Eintrag existiert (wird nur bei eingeschalteten Kodierrichtlinien in Abrechnungsdatei geschrieben)
       If rDi(inr).DiagText = DText_ _
-      And rDi(inr).ICD = ICD_ _
-      And rDi(inr).DiagSicherheit = DSic_ _
-      And rDi(inr).DiagSeite = DSe_ _
-      And rDi(inr).DiagAttr = DAt_ _
-      And rDi(inr).AusnBegr = DAus_ _
-      And rDi(inr).intBemerk = DiBm_ _
-      And rDi(inr).obDauer <> 0 Then
-       If f6010_ <> 0 Then
+         And rDi(inr).ICD = ICD_ _
+         And rDi(inr).DiagSicherheit = DSic_ _
+         And rDi(inr).DiagSeite = DSe_ _
+         And rDi(inr).DiagAttr = DAt_ _
+         And rDi(inr).AusnBegr = DAus_ _
+         And rDi(inr).intBemerk = DiBm_ _
+         And rDi(inr).obDauer = obD_ Then
+       If f6010_ <> 0 Then ' Einzeldiagnosen immer übermittelt
         rDi(inr).obKasse = 1
         rDi(inr).lKasse = MAX(rDi(inr).lKasse, messDatum)
-       End If
+       Else
+        rDi(inr).f6010 = 0
+       End If ' f6010_ <> 0 Or obD_ = 0 Then ' Einzeldiagnosen immer übermittelt
        Dim jnr%
-       For jnr = 0 To UBound(Diag)
+       For jnr = 0 To UBound(Diag) ' Schattenarrays für DiagString
         If Diag(jnr) = DText_ _
-        And ICD(jnr) = ICD_ _
-        And DSic(jnr) = DSic_ _
-        And DiagSe(jnr) = DSe_ _
-        And DiagAttr(jnr) = DAt_ _
-        And DiagAus(jnr) = DAus_ _
-        And DiagiBm(jnr) = DiBm_ _
-        And obDauer(jnr) <> obD_ Then
-         If f6010_ <> 0 Then
+           And ICD(jnr) = ICD_ _
+           And DSic(jnr) = DSic_ _
+           And DiagSe(jnr) = DSe_ _
+           And DiagAttr(jnr) = DAt_ _
+           And DiagAus(jnr) = DAus_ _
+           And DiagiBm(jnr) = DiBm_ _
+           And obDauer(jnr) = obD_ Then
+         If f6010_ <> 0 Or obD_ = 0 Then
           obKasse(jnr) = 1
           lKasse(jnr) = MAX(lKasse(jnr), messDatum)
-         End If
+         Else
+          f6010(jnr) = 0
+         End If ' f6010_ <> 0 Or obD_ = 0 Then
          Exit For
-        End If
+        End If ' Diag(jnr) = DText_
        Next
        GoTo difertig
-      End If
+      End If ' rDi(inr).DiagText = DText_
      Next inr
-    End If ' UBound(rDi) > 0
+    End If ' UBound(rDi) > 0 Then
     If (obD_ <> 0 Or rFa(UBound(rFa)).Quartal = AktQ) And DiagNr <= UBound(diagdat) Then ' formal müßte hier evtl altQuart rein, da dessen Belegung auf diese Schleife vorverlegt wurde
      obDStr = True
     End If
@@ -2688,11 +2698,11 @@ Function dolies(frm As Lese, RKennung$, rInhalt$, obSchluss%, znr&)
     rDi(aktDiNr).intBemerk = DiBm_
     rDi(aktDiNr).DiagDatum = messDatum
     rDi(aktDiNr).obDauer = obD_
+    rDi(aktDiNr).f6010 = f6010_
     If f6010_ <> 0 Then
      rDi(aktDiNr).obKasse = 1 ' Einzeldiagnosen werden immer übermittelt
      rDi(aktDiNr).lKasse = MAX(rDi(aktDiNr).lKasse, messDatum)
     End If
-    rDi(aktDiNr).f6010 = f6010_
     rDi(aktDiNr).f6011 = f6011_
     rDi(aktDiNr).FID = rFa(UBound(rFa)).FID
     rDi(aktDiNr).Pat_id = rNa(0).Pat_id
@@ -2724,11 +2734,11 @@ Function dolies(frm As Lese, RKennung$, rInhalt$, obSchluss%, znr&)
      DiagiBm(DiagNr) = DiBm_
      diagdat(DiagNr) = messDatum
      obDauer(DiagNr) = obD_
-     If f6010_ <> 0 Then
-      If obD_ Then
+     If f6010_ <> 0 Or obD_ = 0 Then
+'      If obD_ Then
        obKasse(DiagNr) = 1 ' Einzeldiagnosen werden immer übermittelt
        lKasse(DiagNr) = MAX(lKasse(DiagNr), messDatum)
-      End If
+'      End If
      End If
      f6010(DiagNr) = f6010_
      f6011(DiagNr) = f6011_
@@ -5027,6 +5037,7 @@ Select Case MsgBox("FNr: " & FNr & ", ErrNr: " & CStr(Err.Number) + vbCrLf + "La
 End Select
 End Function ' rrParseSpeichern
 
+' in alleSpeichern
 Function getDTyp$()
  Dim i%
  getDTyp = "?"
@@ -5404,7 +5415,7 @@ Function DiagString$(Pat_id$, DiagTab() As CString, Optional VorDat As Date, Opt
  Dim runde%, rdDi As New ADODB.Recordset, sql$
  On Error GoTo fehler
  sql = "SELECT DiagSicherheit, DiagText, DiagSeite, DiagAttr, d.ICD, obdauer, COALESCE(d.f6010,0) f6010, obDauer<>0 j_obdauer,obKasse,lKasse,f6011, COALESCE(diagdatum,0) DiagDatum, AusnBegr, intBemerk, g1.rf,r.gi2 " & vbCrLf & _
-       "FROM `diagmed` d " & vbCrLf & _
+       "FROM diagview d " & vbCrLf & _
        "LEFT JOIN `diagreihe` r ON d.icd = r.icd " & vbCrLf & _
        "LEFT JOIN `diagg1` g1 ON r.gi1 = g1.lfdnr " & vbCrLf & _
        "WHERE pat_id = " & Pat_id & " AND (d.obdauer <> 0 OR d.diagdatum >" & DatFor_k(VorDat) & ") " & vbCrLf & _

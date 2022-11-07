@@ -944,7 +944,9 @@ Private Sub do_Pat_ID_Change(Optional mitVorDat%)
       rFaA.Move 1
      Loop
     End If ' Not rFaA.BOF THEN
-    myFrag rDi, "SELECT diagsicherheit, icd, diagtext, DATE_FORMAT(diagdatum,'%d.%m.%y') diagdatum, obdauer FROM `diagmed` d WHERE pat_id = " & Me.PatID & " GROUP BY diagsicherheit, icd, diagtext, obdauer ORDER BY icd" ' AND COALESCE(d.f6010,0)=0
+    myFrag rDi, "SELECT diagsicherheit, icd, diagtext, DATE_FORMAT(diagdatum,'%d.%m.%y') diagdatum, obdauer " & vbCrLf & _
+                "FROM diagview d " & vbCrLf & _
+                "WHERE pat_id = " & Me.PatID & " GROUP BY diagsicherheit, icd, diagtext, obdauer ORDER BY icd" ' AND COALESCE(d.f6010,0)=0
     If Not rDi.BOF Then
      Do While Not rDi.EOF
       Me.Diagnosen.AddItem rDi!DiagSicherheit & " " & rDi!DiagDatum & " " & IIf(rDi!obDauer = 0, "f", "d") & " " & Left$(rDi!ICD & Space$(7), 7) & rDi!DiagText

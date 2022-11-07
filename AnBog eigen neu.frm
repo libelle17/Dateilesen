@@ -5165,7 +5165,11 @@ Private Sub AbfragenLad()
  
  DQStr(i) = "Kassenfälle, aktuelle, ohne Diabetesdiagnose"
  ' AND COALESCE(f6010,0)=0
- DQSQL(i) = "SELECT n.pat_id FROM namen n INNER JOIN `aktfv` af ON n.pat_id = af.pat_id WHERE NOT EXISTS (SELECT * FROM `diagnosen` d WHERE d.pat_id = af.pat_id AND (d.gicdok RLIKE '^E1[0-4]\.|^O24\.' ) ) ORDER BY vorgestellt DESC"
+ DQSQL(i) = "SELECT n.pat_id FROM namen n " & vbCrLf & _
+            "INNER JOIN `aktfv` af ON n.pat_id = af.pat_id WHERE NOT EXISTS (" & vbCrLf & _
+             "SELECT * FROM `diagview` d " & vbCrLf & _
+             "WHERE d.pat_id = af.pat_id AND d.gicd RLIKE '^E1[0-4]\.|^O24\.'" & vbCrLf & _
+            ") ORDER BY vorgestellt DESC"
  i = i + 1
 
 ' DQStr(i) = "Kassenfälle, nach vorgestellt sortiert"

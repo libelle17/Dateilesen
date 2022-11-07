@@ -89,7 +89,7 @@ Public Const artSpezBerat$ = artSpezÄrzte & ",'wr','jl','ga','ih','cr','tn','be'
 ' be = Bender Elena
 ' lf = Larissa Fuchs
 
-Public Const artSpezMA$ = "'tst','ke','hz','ns','mh','ag','ph','pq','er','ds','st','eb','us','sn','vb','mip','mm','rc','ik','ks','sb','cb','th','sp','ir','as','sa','sta','eg','ans','mc','rb','mi','gr','bs','sf','fs','eo','cd','mk'"
+Public Const artSpezMA$ = "'tst','ke','hz','ns','mh','ag','ph','pq','er','ds','st','eb','us','sn','vb','mip','mm','rc','ik','ks','sb','cb','th','sp','ir','as','sa','sta','eg','ans','mc','rb','mi','gr','bs','sf','fs','eo','cd','mk','nb'"
 ' tst = Tamara Sturm
 ' cr = Cornelia Reindl
 '' eb = Elmas Balkan / Gürbüz
@@ -131,6 +131,7 @@ Public Const artSpezMA$ = "'tst','ke','hz','ns','mh','ag','ph','pq','er','ds','s
 ' eo = Enkhmaa Oyunchimeg
 ' cd = Claudia Dannert
 ' mk = Melanie Kunze
+' nb = Nina Birgmeir
 '
 ' Einträge, die nicht automatisch mit einer Organuntersuchung verbunden sind
 Public Const artSpezEintr$ = "'notiz','mbf','telef'," & artSpezBerat & "," & artSpezMA & _
@@ -1697,7 +1698,7 @@ sql = "SELECT IF(Mid(di.icd, 5, 1)>=2,1,IF(mid(di.icd,5,1)<=1,0,IF(u.ulcera LIKE
 "FROM aktfvs f " & _
 "LEFT JOIN eintraege e ON f.pat_id = e.pat_id AND e.art='ulcus' AND e.zeitpunkt BETWEEN qanf() AND qend() " & _
 "LEFT JOIN fuss u ON f.pat_id = u.pat_id AND u.ulcera IN ('obfl','tief') AND u.zeitpunkt BETWEEN qanf() AND qend() " & _
-"LEFT JOIN diagmed di ON f.pat_id = di.pat_id AND  di.gICDok RLIKE '^L89\.[12345]' AND obdauer = 0 AND DATE(di.diagdatum) BETWEEN qanf() AND qend() " & _
+"LEFT JOIN diagview di ON f.pat_id = di.pat_id AND  di.gICD RLIKE '^L89\.[1-5]' AND obdauer = 0 AND DATE(di.diagdatum) BETWEEN qanf() AND qend() " & _
 "WHERE (NOT ISNULL(e.Art) OR NOT ISNULL(u.Ulcera) OR NOT ISNULL(di.ICD)) " & _
 " AND f.pat_id = " & pid & _
 " GROUP BY f.pat_id;"
@@ -1750,7 +1751,7 @@ If Not rUlc.BOF Then aktDC.Infekt = 1
 If aktDC.Infekt Or aktDC.ulcus < 2 Then aktDC.NaeUs = 2
 
 Dim raltu As New ADODB.Recordset
-myFrag raltu, "SELECT icd FROM diagmed d WHERE pat_id = " & pid & " AND icd RLIKE '^L89.[234]' AND diagdatum < qanf() AND diagsicherheit<>'A'" '  AND COALESCE(f6010,0)=0"
+myFrag raltu, "SELECT icd FROM diagview d WHERE pat_id = " & pid & " AND icd RLIKE '^L89\.[234]' AND ((diagdatum < qanf() AND diagsicherheit<>'A') OR diagsicherheit='Z')"
 If Not raltu.BOF Then aktDC.ZnUlcus = 1
 
 Dim ranamp As New ADODB.Recordset
@@ -1778,7 +1779,7 @@ If Not ranamp.EOF And ranamp!amp = 1 Then aktDC.ZnAmput = 1
  If ab317 Then mitStr = 0
  Dim raFa As New ADODB.Recordset
  Dim diIsql$
- diIsql = "SELECT ICD, DiagSeite, DiagDatum FROM `diagmed` WHERE pat_id = " & pid & " AND (icd LIKE ""M14.6%"" OR icd LIKE ""T79.%"" OR icd LIKE ""L89.%"" OR icd LIKE ""T89.%"" OR icd LIKE ""T87.4%"" OR icd LIKE ""Z44.1%"") AND diagsicherheit IN (""G"",""V"",""Z"")" '  AND COALESCE(f6010,0)=0 " ' M14.6 = Charcot, M14.2 = Arthorpathie
+ diIsql = "SELECT ICD, DiagSeite, DiagDatum FROM diagview WHERE pat_id = " & pid & " AND gicd RLIKE '^M14.6|^T79\.|^L89\.|^T89\.|^T87.4|^Z44.1'" '  AND COALESCE(f6010,0)=0 " ' M14.6 = Charcot, M14.2 = Arthorpathie
  Dim lddat As Date
  myFrag raFa, "SELECT MAX(bhfb) AS lddat FROM `faelle` WHERE pat_id = " & pid
  If Not raFa.BOF Then
@@ -1838,11 +1839,11 @@ If Not ranamp.EOF And ranamp!amp = 1 Then aktDC.ZnAmput = 1
 '  END Enum
 
   If lies.obMySQL Then
-   sql = "SELECT * FROM `diagmed` WHERE (obdauer <> 0 OR (obdauer = 0 AND CONCAT(((month(diagdatum)+2) div 3)¡ YEAR(diagdatum)) = '" & ZQuart(DokuDat) & "')) AND diagsicherheit<>'A' AND pat_id = " & aktDC.Pat_id ' AND COALESCE(f6010,0)=0
+   sql = "SELECT * FROM diagview WHERE (obdauer <> 0 OR (obdauer = 0 AND CONCAT(((month(diagdatum)+2) div 3)¡ YEAR(diagdatum)) = '" & ZQuart(DokuDat) & "')) AND diagsicherheit<>'A' AND pat_id = " & aktDC.Pat_id ' AND COALESCE(f6010,0)=0
    sql = REPLACE$(sql, "¡", ",")
   Else
-   sql = "SELECT * FROM `diagmed` WHERE (obdauer <> 0 OR (obdauer = 0 AND (int((month(diagdatum)+2) / 3) & YEAR(diagdatum)) = '" & ZQuart(DokuDat) & "')) AND diagsicherheit<>'A' AND pat_id = " & aktDC.Pat_id ' AND COALESCE(f6010,0)=0
-   sql = REPLACE$(REPLACE$(sql, "concat", ""), "¡", " & ")
+   sql = "SELECT * FROM diagview WHERE (obdauer <> 0 OR (obdauer = 0 AND (int((month(diagdatum)+2) / 3) & YEAR(diagdatum)) = '" & ZQuart(DokuDat) & "')) AND diagsicherheit<>'A' AND pat_id = " & aktDC.Pat_id ' AND COALESCE(f6010,0)=0
+   sql = REPLACE$(REPLACE$(sql, "CONCAT", ""), "¡", " & ")
   End If
   
 '  SET rDT = aktDCb.OpenRecordset(sql) ' SET rDT = aktDCb.OpenRecordset("Diagnosen", dbOpenDynaset)
@@ -2020,8 +2021,8 @@ If Not ranamp.EOF And ranamp!amp = 1 Then aktDC.ZnAmput = 1
 '#END IF
 #If vorca2008 Then
   Set raDT = Nothing
-'  Call raDT.Open("SELECT * FROM `diagmed` WHERE pat_id = " & pid & " AND icd LIKE '" & "M14.6%" & "' AND diagsicherheit IN (""G"",""V"") AND COALESCE(f6010,0)=0 ", DBCn, adOpenDynamic, adLockReadOnly)
-  myFrag raDT, "SELECT * FROM `diagmed` WHERE pat_id = " & pid & " AND icd LIKE '" & "M14.6%" & "' AND diagsicherheit IN (""G"",""V"")" ' AND COALESCE(f6010,0)=0 "
+'  Call raDT.Open("SELECT * FROM diagview WHERE pat_id = " & pid & " AND icd LIKE '" & "M14.6%" & "' AND diagsicherheit IN (""G"",""V"") AND COALESCE(f6010,0)=0 ", DBCn, adOpenDynamic, adLockReadOnly)
+  myFrag raDT, "SELECT * FROM diagview WHERE pat_id = " & pid & " AND gicd LIKE 'M14.6%'" ' AND COALESCE(f6010,0)=0 "
   If Not raDT.BOF Then
    Dim Seite$
    If Not IsNull(raDT!DiagSeite) Then
@@ -5220,7 +5221,7 @@ Function WieTabak(Pat_id&) As ZigSt
   WieTabak = doTabakSt(Pat_id)
   If Pat_id <> 0 Then
 '   Call raZig.Open("SELECT * FROM `diagnosen` WHERE pat_id = " & Pat_id & " AND icd LIKE '" & "F17" & "%" & "' AND diagsicherheit IN (""G"",""V"",""Z"")  AND COALESCE(f6010,0)=0 ", DBCn, adOpenDynamic, adLockReadOnly)
-   myFrag raZig, "SELECT DiagText,DiagSicherheit FROM `diagnosen` WHERE pat_id = " & Pat_id & " AND icd LIKE '" & "F17" & "%" & "' AND diagsicherheit IN (""G"",""V"",""Z"") " '  AND COALESCE(f6010,0)=0 "
+   myFrag raZig, "SELECT DiagText,DiagSicherheit FROM diagview WHERE pat_id = " & Pat_id & " AND gzicd LIKE 'F17%'"
    If Not raZig.EOF Then
     DiText = raZig!DiagText
     DiSich = raZig!DiagSicherheit

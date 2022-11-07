@@ -3414,7 +3414,7 @@ Private Sub Form_Load()
 ' ' AND COALESCE(d.f6010,0)=0
      sql = "SELECT f.bhfb, dmpbeg notiz, dmpklass, tkz, n.pat_id, n.nachname, n.vorname, icd, kurzname " & _
       "FROM `namen` n " & _
-      "LEFT JOIN `diagnosen` d ON n.pat_id = d.pat_id AND gicdok RLIKE '^E1[0-4]' " & _
+      "LEFT JOIN `diagview` d ON n.pat_id = d.pat_id AND gicd RLIKE '^E1[0-4]' " & _
       "LEFT JOIN `faelle` f ON f.pat_id = n.pat_id AND bhfb = (SELECT MAX(bhfb) FROM `faelle` WHERE pat_id = n.pat_id AND bhfb < " & DatFor_k(MIN(Now(), QEnd(ZQuart(Now() - Verspätung)))) & ") " & _
       "LEFT JOIN `anamnesebogen` a ON n.pat_id = a.pat_id " & _
       "LEFT JOIN `kassenliste` k ON k.ik = f.ik AND k.vknr = f.vknr "

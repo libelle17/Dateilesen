@@ -1197,9 +1197,9 @@ sql = "SELECT f.pat_id, d.icd DmICD, IF(xh.max1>xh.max2,xh.max1, xh.max2) maxHbA
         "FROM aktfvs v " & _
         "LEFT JOIN kassenliste k ON v.vknr=k.vknr AND v.ik=k.ik" & _
         "LEFT JOIN faelle f ON v.fid = f.fid " & _
-        "LEFT JOIN diagnosen d ON f.pat_id = d.pat_id AND d.gICDok RLIKE '^E1[0-4]\.' " & _
-        "LEFT JOIN diagnosen dn ON f.pat_id = dn.pat_id AND dn.gICDok LIKE 'N08.3%' " & _
-        "LEFT JOIN diagnosen di ON f.pat_id = di.pat_id AND di.gICDok LIKE 'N18%' " & _
+        "LEFT JOIN diagview d ON f.pat_id = d.pat_id AND d.gICD RLIKE '^E1[0-4]\.' " & _
+        "LEFT JOIN diagview dn ON f.pat_id = dn.pat_id AND dn.gICD LIKE 'N08.3%' " & _
+        "LEFT JOIN diagview di ON f.pat_id = di.pat_id AND di.gICD LIKE 'N18%' " & _
         "LEFT JOIN _maxHbA1c xh ON f.pat_id = xh.pat_id " & _
         "LEFT JOIN _maxGluc xg ON f.pat_id = xg.pat_id " & _
         "WHERE k.kateg IN ('AOK','EK') AND (NOT ISNULL(d.icd) OR xh.max1>=6.5 OR xh.max2>= 6.5 OR xg.max1>=200 OR xg.max2>=200) AND _lGFR(f.pat_id)>59 " & _
@@ -1390,7 +1390,10 @@ Private Sub WiedereinbestellungenDMP_Click()
          "join lfaellev lf USING (pat_id) " & _
          "join `kassenliste` k ON k.ik = lf.ik " & _
          "join `anamnesebogen` an USING (pat_id) WHERE tkz=0 GROUP BY pat_id", dbv.wCn, adOpenStatic, adLockReadOnly '  ... UNION SELECT pat_id FROM `namen` na WHERE notiz LIKE '%hier%'
- myFrag r1, "SELECT pat_id, na.nachname, na.vorname, na.dmpklass, na.dmpbeg, lf.bhfb, notiz,rname FROM `namen` na JOIN (SELECT pat_id FROM `dmpreihe` dr WHERE dokudatum > adddate(NOW(),-365)  AND (dr.Abk LIKE 'eDMPDM%' OR dr.Abk LIKE 'DMPDTYP%') UNION SELECT pid pat_id FROM _lfaelle f LEFT JOIN `diagnosen` d ON d.pat_id = f.pid WHERE gICDok REGEXP '^E1[0-4]\.' AND mbhfb > adddate(NOW(),-180) ORDER BY pat_id) innen USING (pat_id) JOIN lfaellev lf USING (pat_id) JOIN `kassenliste` k ON k.ik = lf.ik JOIN `anamnesebogen` an USING (pat_id) WHERE tkz=0 GROUP BY pat_id", adOpenStatic, dbv.wCn, adLockReadOnly  '  ... UNION SELECT pat_id FROM `namen` na WHERE notiz LIKE '%hier%'
+ myFrag r1, "SELECT pat_id, na.nachname, na.vorname, na.dmpklass, na.dmpbeg, lf.bhfb, notiz,rname FROM `namen` na JOIN (SELECT pat_id FROM `dmpreihe` dr WHERE dokudatum > adddate(NOW(),-365)  AND (dr.Abk LIKE 'eDMPDM%' OR dr.Abk LIKE 'DMPDTYP%') UNION SELECT pid pat_id " & vbCrLf & _
+            "FROM _lfaelle f " & vbCrLf & _
+            "LEFT JOIN diagview d ON d.pat_id = f.pid " & vbCrLf & _
+            "WHERE gICD REGEXP '^E1[0-4]\.' AND mbhfb > adddate(NOW(),-180) ORDER BY pat_id) innen USING (pat_id) JOIN lfaellev lf USING (pat_id) JOIN `kassenliste` k ON k.ik = lf.ik JOIN `anamnesebogen` an USING (pat_id) WHERE tkz=0 GROUP BY pat_id", adOpenStatic, dbv.wCn, adLockReadOnly  '  ... UNION SELECT pat_id FROM `namen` na WHERE notiz LIKE '%hier%'
  Do While Not r1.EOF
 '  IF obhierdmp(r1!notiz) THEN
    Set r2 = Nothing
@@ -1705,7 +1708,12 @@ End Sub ' ÜbertragenenAnamnesebogen_Click
 ' ...für Arzt -> Diabetes-Quartalsdiagnosen in Dauerdiagnosen umwandeln (manuell)
 Private Sub DiabetesQuartalsdiagnosenInDauerdiagnosenUmwandeln_Click()
  Dim rs As New ADODB.Recordset
- myFrag rs, "SELECT d.Pat_Id, GesNameG(d.pat_id) GesName, d.DiagDatum, d.ICD FROM faelle f LEFT JOIN diagnosen d ON f.fid = d.fid LEFT JOIN diagnosen dd ON f.pat_id = dd.pat_id AND dd.gICDok RLIKE '^E1[0-4]\.' AND dd.obdauer<>0 WHERE quartal = """ & ZQuart(Now - Verspätung) & """ AND d.gICDok RLIKE '^E1[0-4]\.' AND d.obdauer = 0 AND ISNULL(dd.pat_ID) ORDER BY d.pat_id"
+ myFrag rs, "SELECT d.Pat_Id, GesNameG(d.pat_id) GesName, d.DiagDatum, d.ICD " & vbCrLf & _
+            "FROM faelle f " & vbCrLf & _
+            "LEFT JOIN diagview d ON f.fid = d.fid " & vbCrLf & _
+            "LEFT JOIN diagview dd ON f.pat_id = dd.pat_id AND dd.gICD RLIKE '^E1[0-4]\.' AND dd.obdauer<>0 " & vbCrLf & _
+            "WHERE quartal = """ & ZQuart(Now - Verspätung) & """ AND d.gICD RLIKE '^E1[0-4]\.' AND d.obdauer = 0 AND ISNULL(dd.pat_ID) " & vbCrLf & _
+            "ORDER BY d.pat_id"
  TabAusgeb rs, Me, , , , , , , "Diabetes-Quartalsdiagnosen IN Dauerdiagnosen umwandeln (manuell)", 1
 End Sub ' DiabetesQuartalsdiagnosenInDauerdiagnosenUmwandeln_Click
 
@@ -1767,8 +1775,8 @@ Private Sub Kontrolllisten_für_DMP_HA_Click()
  "SELECT * FROM (" & vbCrLf & _
  "SELECT sum(vdoku) OVER(PARTITION BY getha0) vzahl, COUNT(0) OVER(PARTITION BY getha0) pzahl, i.* FROM (" & vbCrLf & _
  "SELECT f.pat_id, gesnameg(f.pat_id) gesnam " & vbCrLf & _
- ",COALESCE((SELECT CASE WHEN icd REGEXP '^E10' THEN 'Typ 1' WHEN icd REGEXP '^E11' THEN 'Typ 2' WHEN '^O24' THEN 'Gest' ELSE 'Sonst' END FROM diagnosen " & vbCrLf & _
- "WHERE Pat_ID=f.Pat_ID AND gICDok REGEXP '^E1[0-4].|^O24.' AND (obDauer<>0 OR FID=f.FID) " & vbCrLf & _
+ ",COALESCE((SELECT CASE WHEN icd REGEXP '^E10' THEN 'Typ 1' WHEN icd REGEXP '^E11' THEN 'Typ 2' WHEN '^O24' THEN 'Gest' ELSE 'Sonst' END FROM diagview " & vbCrLf & _
+ "WHERE Pat_ID=f.Pat_ID AND gICD REGEXP '^E1[0-4].|^O24.' AND (obDauer<>0 OR FID=f.FID) " & vbCrLf & _
  "ORDER BY ICD " & vbCrLf & _
  "LIMIT 1),'fehlt') typ " & vbCrLf & _
  ", COALESCE((SELECT 1 FROM briefe WHERE pat_id=f.pat_id AND name RLIKE 'dmp[ -]doku' AND zeitpunkt > IF((SELECT COUNT(0) FROM eintraege WHERE pat_id=f.pat_id AND zeitpunkt>qanf())>0,qanf(),qbeg(SUBDATE(NOW(),111))) LIMIT 1),0) vdoku" & vbCrLf & _
@@ -2460,7 +2468,12 @@ End Sub ' PatientenMitAOKKriterien_Click
 ' Statistik -> Gestationsdiabetikerinnen pro Quartal
 Private Sub GestationsdiabetikerinnenProQuartal_Click()
  Dim rs As New ADODB.Recordset
- myFrag rs, "SELECT Quartal, COUNT(0) Zahl FROM (SELECT f.quartal FROM faelle f LEFT JOIN diagnosen d ON f.fid = d.fid AND f.pat_id = d.pat_id WHERE d.gICDok = 'O24.4' GROUP BY d.pat_id) i GROUP BY quartal ORDER BY mid(quartal,2), quartal"
+ myFrag rs, "SELECT Quartal, COUNT(0) Zahl FROM (" & vbCrLf & _
+             "SELECT f.quartal FROM faelle f " & vbCrLf & _
+               "LEFT JOIN diagview d ON f.fid = d.fid AND f.pat_id = d.pat_id " & vbCrLf & _
+               "WHERE d.gICD = 'O24.4' GROUP BY d.pat_id) i " & vbCrLf & _
+            "GROUP BY quartal " & vbCrLf & _
+            "ORDER BY mid(quartal,2), quartal"
  TabAusgeb rs, Me, , , , , , , "Gestationsdiabetikerinnen pro Quartal", 0, True
 End Sub ' GestationsdiabetikerinnenProQuartal_Click
 
@@ -2472,7 +2485,10 @@ Private Sub Gestationsdiabetikerinnen_Click()
  SpMin%(0) = 6
  Call ProgStart
 ' Open DatNam For Output AS #327
- myFrag rs, "SELECT f.pat_id,f.fid, LEFT(CONCAT(a.nachname,' ',a.vorname),20) name, DATE_FORMAT(a.gebdat,'%d.%m.%y') AS geb, d.icd, d.diagsicherheit AS dsi, diabetestyp FROM `aktfvs` f LEFT JOIN `diagnosen` d ON f.fid = d.fid AND gICDok = 'O24.4' LEFT JOIN `anamnesebogen` a ON f.pat_id = a.pat_id WHERE (NOT ISNULL(icd) OR a.diabetestyp = 'g')"
+ myFrag rs, "SELECT f.pat_id,f.fid, LEFT(CONCAT(a.nachname,' ',a.vorname),20) name, DATE_FORMAT(a.gebdat,'%d.%m.%y') AS geb, d.icd, d.diagsicherheit AS dsi, diabetestyp " & vbCrLf & _
+            "FROM `aktfvs` f LEFT JOIN `diagview` d ON f.fid = d.fid AND gICD = 'O24.4' " & vbCrLf & _
+            "LEFT JOIN `anamnesebogen` a ON f.pat_id = a.pat_id " & vbCrLf & _
+            "WHERE (NOT ISNULL(icd) OR a.diabetestyp = 'g')"
  TabAusgeb rs, Me, True, , , , , , "Gestationsdiabetikerinnen"
 End Sub ' Gestationsdiabetikerinnen_Click
 
@@ -2501,7 +2517,7 @@ Private Sub PLZausListe_Click()
           "t1.zp t1zp,t2.therart,t2.zp t2zp FROM therarten t1 " & _
         "LEFT JOIN therarten t2 ON t1.pat_id = t2.pat_id AND t2.zp> t1.zp " & _
         "WHERE NOT ISNULL(t2.zp) AND t1.therart IN ('ict','ct','Komb') AND t2.therart IN ('diät','oad') " & _
-        "AND NOT EXISTS (SELECT icd FROM diagnosen d WHERE d.pat_id = t1.pat_id AND d.gICDok LIKE 'E10%' " & _
+        "AND NOT EXISTS (SELECT icd FROM diagview d WHERE d.pat_id = t1.pat_id AND d.gICD LIKE 'E10%' " & _
         "GROUP BY pat_id ORDER BY t2.zp DESC, t2.MPNr desc; "
   myFrag rs, sql
   If Not rs.BOF Then
@@ -2538,7 +2554,9 @@ End Sub ' PioglitazonRezepte_Click
 ' Statistik -> Diabetiker ohne Schulung letztes Jahr
 Private Sub DiabetikerOhneSchulungLetztesJahr_Click()
  Dim rs As New ADODB.Recordset
- sql = "SELECT f.Pat_ID, CONCAT(n.nachname,',',n.vorname) `Diabetiker von letztem Quartal ohne Schulung letztes Jahr` FROM `aktfvs` f LEFT JOIN `namen` n ON f.pat_id = n.pat_id LEFT JOIN `diagnosen` d ON f.pat_id = d.pat_id AND gICDok REGEXP '^E1[0-4]|^O24' LEFT JOIN `eintraege` e ON f.pat_id = e.pat_id AND art = 'schul' AND YEAR(zeitpunkt) = YEAR(SUBDATE(NOW(),INTERVAL 25 DAY)) WHERE ISNULL(art) AND NOT ISNULL(icd) AND schgr <> 90 GROUP BY pat_id"
+ sql = "SELECT f.Pat_ID, gesname(n.pat_id) PName `Diabetiker von letztem Quartal ohne Schulung letztes Jahr` FROM `aktfvs` f LEFT JOIN `namen` n ON f.pat_id = n.pat_id LEFT JOIN diagview d ON f.pat_id = d.pat_id AND gICD REGEXP '^E1[0-4]|^O24' " & vbCrLf & _
+       "LEFT JOIN `eintraege` e ON f.pat_id = e.pat_id AND art = 'schul' AND YEAR(zeitpunkt) = YEAR(SUBDATE(NOW(),INTERVAL 25 DAY)) " & vbCrLf & _
+       "WHERE ISNULL(art) AND NOT ISNULL(icd) AND schgr <> 90 GROUP BY pat_id"
  myFrag rs, sql
  TabAusgeb rs, Me, , , , , , , "DiabetikerOhneSchulungLetztesJahr"
 End Sub ' DiabetikerOhneSchulungLetztesJahr_Click
@@ -2572,7 +2590,7 @@ Private Sub Therapieartenwechsel_Click() ' s. therart_erm
         "(SELECT COUNT(0)<>0 puzu FROM `medplan` mpu LEFT JOIN `medarten` ma ON mpu.medanfang = ma.medikament WHERE mpu.pat_id = mpü.pat_id AND mpu.mpnr = mpü.mpnr AND puzu<>0) purez, " & _
         "(SELECT COUNT(0)<> 0 FROM (((`forminhfeld` LEFT JOIN `forminhkopf` ON `forminhfeld`.foid=`forminhkopf`.foid) LEFT JOIN `formulare` ON `formulare`.formid=`forminhkopf`.form_id) LEFT JOIN `forminhaltfeld` ON `forminhfeld`.feldvw=`forminhaltfeld`.feldvw) LEFT JOIN `forminhaltfeldinh` ON `forminhfeld`.feldinhvw=`forminhaltfeldinh`.feldinhvw  WHERE form_abk IN ('lar','plar') AND feld IN ('medikament','txtmedKey') AND zeitpunkt > SUBDATE(mpü.zeitpunkt, INTERVAL 0.5 YEAR) AND pat_id = mpü.pat_id) puzu " & _
         "(feldinh LIKE '%reservoir%' OR feldinh LIKE '%Rapid D Link%' OR feldinh LIKE '%Rap D Li%' OR feldinh LIKE '%Rapid-D Li%' OR feldinh LIKE '%TenderL%' OR feldinh LIKE '%FlexL%' OR feldinh LIKE '%Check Spirit%' OR feldinh LIKE '%Insight%' OR feldinh LIKE '%Chek Spirit%' OR feldinh LIKE '%Pumpenträg%' OR feldinh LIKE '%Kunststoffampu%' OR feldinh LIKE '%Spritzampull%' OR feldinh LIKE '%batteriefachdeckel%' OR feldinh LIKE '%H-Tron%' OR feldinh LIKE '%D-Tron%' OR feldinh LIKE '%Paradigm%' OR feldinh LIKE '%CSII%' OR feldinh LIKE '%linpumpe%' OR feldinh LIKE '%omnipod%' OR feldinh LIKE '%ypso pump%' OR " & _
-        " feldinh LIKE '%MiniMed%' OR feldinh LIKE '%640G%' OR feldinh LIKE '%CareLink%' OR Feldinh LIKE '%Mio %' OR feldinh LIKE '%Quick%set%' OR feldinh LIKE '%Silhouette%' OR feldinh LIKE '%Sure-T%' OR feldinh LIKE '%Sure T%' OR feldinh LIKE '%Paradigm%' OR feldinh LIKE '% Veo%' OR feldinh LIKE '%Animas%' OR feldinh LIKE '%Car%idge%') AND zeitpunkt > SUBDATE(mpü.zeitpunkt, INTERVAL 0.5 YEAR) AND pat_id = mpü.pat_id) puzu " & _
+        " feldinh LIKE '%MiniMed%' OR feldinh LIKE '%640G%' OR feldinh LIKE '%CareLink%' OR Feldinh LIKE '%Mio %' OR feldinh LIKE '%Quick%set%' OR feldinh LIKE '%Silhouette%' OR feldinh LIKE '%Sure-T%' OR feldinh LIKE '%Sure T%' OR feldinh LIKE '%Paradigm%' OR feldinh LIKE '% Veo%' OR feldinh LIKE '%Animas%' OR feldinh LIKE '%Car%idge%') AND NOT feldinh LIKE  AND NOT feldinh LIKE '%menveo%' AND zeitpunkt > SUBDATE(mpü.zeitpunkt, INTERVAL 0.5 YEAR) AND pat_id = mpü.pat_id) puzu " & _
         "FROM `medplan` mpü GROUP BY mpü.pat_id, mpü.mpnr, mpü.zeitpunkt) i"
   myFrag rs, sql
   Do While Not rs.EOF
@@ -2590,7 +2608,8 @@ Private Sub Therapieartenwechsel_Click() ' s. therart_erm
  Set rs = Nothing
 ' ' LEFT JOIN `diagnosen` d ON f.pat_id = d.pat_id AND icd REGEXP '^E1[0-4]' AND diagsicherheit <> 'A'
  sql = "SELECT a.Pat_ID, gesname(a.pat_id) Name, ICD, AufnDat, SchGr, t.zp `Beginn`,TherArt " & _
-       "FROM `aktfvs` a LEFT JOIN `diagnosen` d ON a.pat_id = d.pat_id AND gICDok REGEXP '^E1[0-4]|^O24' " & _
+       "FROM `aktfvs` a " & vbCrLf & _
+       "LEFT JOIN diagview d ON a.pat_id = d.pat_id AND gICD REGEXP '^E1[0-4]|^O24' " & _
        "LEFT JOIN `therarten` t ON a.pat_id = t.pat_id " & _
        "WHERE (therart ='ICT' OR therart = 'CSII') AND " & _
        "zp BETWEEN " & lQAnfuEnd(FristS) ', 1)
@@ -2602,7 +2621,14 @@ End Sub ' Sub Therapieartenwechsel_Click
 ' Statistik -> HbA&1c-Statistik (dauert ...)
 Private Sub HbA1cStatistik_Click() ' HbA1c-Stastisik
  Dim rs As New ADODB.Recordset
- myFrag rs, "SELECT COUNT(0) Zahl, ROUND(avg(HbA1c),1) `mittl.HbA1c`, Quartal,ICD FROM (SELECT f.quartal, f.pat_id, MIN(d.icd) icd, l.letzter HbA1c FROM faelle f LEFT JOIN diagnosen d ON f.pat_id = d.pat_id AND d.gICDok RLIKE '^E1[0-4]\.|^O24\.' AND obdauer <> 0 LEFT JOIN lHbA1c l ON f.pat_id = l.pat_id WHERE NOT ISNULL(icd) GROUP BY f.quartal, f.pat_id) i GROUP BY quartal, icd ORDER BY icd,mid(quartal,2),quartal"
+ myFrag rs, "SELECT COUNT(0) Zahl, ROUND(avg(HbA1c),1) `mittl.HbA1c`, Quartal,ICD " & vbCrLf & _
+ "FROM (" & vbCrLf & _
+  "SELECT f.quartal, f.pat_id, MIN(d.icd) icd, l.letzter HbA1c FROM faelle f " & vbCrLf & _
+  "LEFT JOIN diagview d ON f.pat_id = d.pat_id AND d.gICD RLIKE '^E1[0-4]\.|^O24\.' AND obdauer <> 0 " & vbCrLf & _
+  "LEFT JOIN lHbA1c l ON f.pat_id = l.pat_id " & vbCrLf & _
+  "WHERE NOT ISNULL(icd) GROUP BY f.quartal, f.pat_id) i " & vbCrLf & _
+ "GROUP BY quartal, icd " & vbCrLf & _
+ "ORDER BY icd,mid(quartal,2),quartal"
  TabAusgeb rs, Me, , , , , , , "HbA1c-Stastik nach Diabetes-Typ und Quartal"
 End Sub ' HbA1c-Statistik
 
@@ -2713,8 +2739,8 @@ Private Sub Pumpenträgerliste_Click() ' s. therart_erm
   Pat_id = rs!Pat_id
   ' ,'txtmedKey'
   sql = forminhalt & " WHERE form_abk IN ('lar','plar') AND feld IN ('medikament','txtmedKey') AND " & _
-        "(feldinh LIKE '%reservoir% OR feldinh LIKE '%Rapid D Link%' OR feldinh LIKE '%Rap D Li%' OR feldinh LIKE '%Rapid-D Li%' OR feldinh LIKE '%TenderL%' OR feldinh LIKE '%FlexL%' OR feldinh LIKE '%Check Spirit%' OR feldinh LIKE '%Insight%' OR feldinh LIKE '%Chek Spirit%' OR feldinh LIKE '%Pumpenträg%' OR feldinh LIKE '%Kunststoffampu%' OR feldinh LIKE '%Spritzampull%' OR feldinh LIKE '%batteriefachdeckel%' OR feldinh LIKE '%H-Tron%' OR feldinh LIKE '%D-Tron%' OR feldinh LIKE '%Paradigm%' OR feldinh LIKE '%CSII%' OR feldinh LIKE '%linpumpe%' OR feldinh LIKE '%omnipod%' OR feldinh LIKE '%ypso pump%' OR feldinh LIKE '%MiniMed%' OR feldinh LIKE '%640G%' OR feldinh LIKE '%CareLink%' OR Feldinh LIKE '%Mio %' OR feldinh LIKE '%Quick%set%' OR feldinh LIKE '%Silhouette%' OR feldinh LIKE '%Sure-T%' OR feldinh LIKE '%Sure T%' OR feldinh LIKE '%Paradigm%' OR feldinh LIKE '% Veo%' OR feldinh LIKE '%Animas%' OR feldinh LIKE '%Car%idge%') " & _
-        "and zeitpunkt > " & DatFor_k(rs!BhFB - 640) & " AND pat_id = " & Pat_id & " ORDER BY zeitpunkt DESC LIMIT 10"
+        "(feldinh LIKE '%reservoir% OR feldinh LIKE '%Rapid D Link%' OR feldinh LIKE '%Rap D Li%' OR feldinh LIKE '%Rapid-D Li%' OR feldinh LIKE '%TenderL%' OR feldinh LIKE '%FlexL%' OR feldinh LIKE '%Check Spirit%' OR feldinh LIKE '%Insight%' OR feldinh LIKE '%Chek Spirit%' OR feldinh LIKE '%Pumpenträg%' OR feldinh LIKE '%Kunststoffampu%' OR feldinh LIKE '%Spritzampull%' OR feldinh LIKE '%batteriefachdeckel%' OR feldinh LIKE '%H-Tron%' OR feldinh LIKE '%D-Tron%' OR feldinh LIKE '%Paradigm%' OR feldinh LIKE '%CSII%' OR feldinh LIKE '%linpumpe%' OR feldinh LIKE '%omnipod%' OR feldinh LIKE '%ypso pump%' OR feldinh LIKE '%MiniMed%' OR feldinh LIKE '%640G%' OR feldinh LIKE '%CareLink%' OR Feldinh LIKE '%Mio %' OR feldinh LIKE '%Quick%set%' OR feldinh LIKE '%Silhouette%' OR feldinh LIKE '%Sure-T%' OR feldinh LIKE '%Sure T%' OR feldinh LIKE '%Paradigm%' OR feldinh LIKE '% Veo%' OR feldinh LIKE '%Animas%' OR feldinh LIKE '%Car%idge%') AND NOT feldinh LIKE  AND NOT feldinh LIKE '%menveo%'" & _
+        "AND zeitpunkt > " & DatFor_k(rs!BhFB - 640) & " AND pat_id = " & Pat_id & " ORDER BY zeitpunkt DESC LIMIT 10"
   myFrag rez, "SELECT Pat_ID, Zeitpunkt, Feldinh FROM (" & sql & ") i"
   Print #326, STA1(i)
   Print #326, TabAusgeb(rEinl:=rez, AusgebFrm:=Me, obMitausgeb:=False, ohneKopfZ:=True, SpMinÜ:=SpMin).Value
@@ -3612,7 +3638,7 @@ Private Sub Gewichtsabnahmekandidaten_Click()
  "LEFT JOIN namen n ON n.pat_id = tict.pat_id " & _
   "LEFT JOIN medplan mp ON mp.pat_id = tict.pat_id " & _
   "and (medikament LIKE '%by%' OR medikament LIKE '%lyx%' OR medikament LIKE '%vict%')" & _
-  "LEFT JOIN diagnosen d ON d.pat_id = tict.pat_id AND d.gICDok RLIKE '^E1[123]\.' " & _
+  "LEFT JOIN diagview d ON d.pat_id = tict.pat_id AND d.gICD RLIKE '^E1[123]\.' " & _
 "WHERE tict.therart = 'ICT' AND NOT ISNULL(toad.zp) AND gmax.Zeitpunkt < gmin.ZeitPunkt " & _
  "  AND gmax.Zeitpunkt < toad.zp AND gmin.ZeitPunkt > tict.zp " & _
  "GROUP BY tict.pat_id, tict.zp, toad.zp " & _

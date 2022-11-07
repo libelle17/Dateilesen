@@ -479,7 +479,7 @@ If Me.Private <> 0 Then
  sql(AWlf) = "SELECT n.pat_id AS pat_id, gesname(n.pat_id) Name, MIN(e.zeitpunkt) AS minzp, MAX(e.zeitpunkt) AS maxzp, e.art AS art, inhalt " & vbCrLf & _
  "FROM `eintraege` e LEFT JOIN `namen` n ON e.pat_id = n.pat_id " & vbCrLf & _
  "LEFT JOIN `faelle` f ON e.fid = f.fid " & vbCrLf & _
- "LEFT JOIN `diagnosen` d ON e.pat_id = d.pat_id AND d.gicdok REGEXP '^E1[0-4]\.|^O24\.' " & vbCrLf & _
+ "LEFT JOIN `diagview` d ON e.pat_id = d.pat_id AND d.gicd REGEXP '^E1[0-4]\.|^O24\.' " & vbCrLf & _
  "WHERE ((art IN (" & artSpezEintr & ") " & vbCrLf & _
  ") " & vbCrLf & _
  "OR (art IN (" & artSpezUS & "))) " & vbCrLf & _
@@ -509,7 +509,7 @@ If Me.Private <> 0 Then
  sql(AWlf) = "SELECT n.pat_id AS pat_id, gesname(n.pat_id) Name, e.zeitpunkt AS zeitpunkt, e.art AS art, inhalt " & vbCrLf & _
  "FROM `eintraege` e LEFT JOIN `namen` n ON e.pat_id = n.pat_id " & vbCrLf & _
  "LEFT JOIN `faelle` f ON e.fid = f.fid " & vbCrLf & _
- "LEFT JOIN `diagnosen` d ON e.pat_id = d.pat_id AND d.gicdok LIKE 'O24%' AND diagdatum BETWEEN  " & lQAnfuEnd(FristS) & _
+ "LEFT JOIN `diagview` d ON e.pat_id = d.pat_id AND d.gicd LIKE 'O24%' AND diagdatum BETWEEN  " & lQAnfuEnd(FristS) & _
  "WHERE art IN (" & artSpezBerat & ") " & vbCrLf & _
  "AND NOT EXISTS (SELECT pat_id FROM `eintraege` bez WHERE art = 'rech' AND pat_id = e.pat_id AND zeitpunkt > e.zeitpunkt) " & vbCrLf & _
  "AND NOT EXISTS (SELECT pat_id FROM `leistungen` WHERE pat_id = e.pat_id AND DATE(zeitpunkt) = DATE(e.zeitpunkt) AND leistung IN ('24')) " & vbCrLf & _
@@ -870,9 +870,9 @@ sql(AWlf) = "ü"
 "LEFT JOIN anaktk az ON az.pid=f.pat_id" & vbCrLf & _
 "LEFT JOIN `maxHbA1c` xH ON xH.pat_id = f.pat_id " & vbCrLf & _
 "LEFT JOIN `maxGluc` xG ON xG.pat_id = f.pat_id " & vbCrLf & _
-"LEFT JOIN diagnosen dd " & vbCrLf & _
-" ON dd.pat_id = f.pat_id AND dd.gICDok RLIKE '^E1[0-4]\.' AND dd.obdauer<>0 " & vbCrLf & _
-"LEFT JOIN diagnosen gd " & vbCrLf & _
+"LEFT JOIN diagview dd " & vbCrLf & _
+" ON dd.pat_id = f.pat_id AND dd.gICD RLIKE '^E1[0-4]\.' AND dd.obdauer<>0 " & vbCrLf & _
+"LEFT JOIN diagview gd " & vbCrLf & _
 " ON gd.pat_id = f.pat_id AND gd.icd = 'O24.4' AND gd.obdauer=0 AND gd.diagdatum BETWEEN " & lQAnfuEnd(FristS) & " " & vbCrLf & _
 "WHERE " & vbCrLf & _
 " (xH.Wert>6.4 AND ISNULL(dd.icd)) OR (xG.Wert>199 AND ISNULL(dd.icd) AND ISNULL(gd.icd)) " & vbCrLf & _
@@ -918,12 +918,12 @@ AwN(AWlf) = "evtl. fehlende O24.4G nach OGTT (voher 102)"
 sql(AWlf) = vbCrLf & _
 "SELECT * FROM (" & vbCrLf & _
 " SELECT e.inhalt, g0(e.inhalt) g0,g1(e.inhalt) g1,g2(e.inhalt) g2, s.voret, f.pat_id,gesname(f.pat_id) PName, wer" & vbCrLf & _
-", (SELECT MAX(icd) FROM diagnosen d WHERE d.pat_id=f.pat_id AND d.gicdok='O24.4' AND d.diagdatum BETWEEN " & lQAnfuEnd(FristS) & " " & vbCrLf & _
+", (SELECT MAX(icd) FROM diagview d WHERE d.pat_id=f.pat_id AND d.gicd='O24.4' AND d.diagdatum BETWEEN " & lQAnfuEnd(FristS) & " " & vbCrLf & _
 "  ) gdd, dd.icd" & vbCrLf & _
 " FROM aktfvs f" & vbCrLf & _
 " LEFT JOIN anaktk az ON az.pid=f.pat_id" & vbCrLf & _
 " LEFT JOIN sws s ON s.pat_id=f.pat_id AND s.voret>qanf()" & vbCrLf & _
-" LEFT JOIN diagnosen dd ON dd.pat_id=f.pat_id AND dd.gicdok RLIKE '^E1[0-4]\.' AND dd.obdauer<>0 " & vbCrLf & _
+" LEFT JOIN diagview dd ON dd.pat_id=f.pat_id AND dd.gicd RLIKE '^E1[0-4]\.' AND dd.obdauer<>0 " & vbCrLf & _
 " LEFT JOIN eintraege e ON f.pat_id = e.pat_id AND e.art = 'ogtt' AND e.zeitpunkt BETWEEN SUBDATE(" & qtAnf(FristS) & ",INTERVAL 180 DAY) AND " & qtEnd(FristS) & " AND e.zeitpunkt = (SELECT MAX(zeitpunkt) FROM eintraege WHERE pat_id=f.pat_id AND art='ogtt') " & vbCrLf & _
 " AND f.schgr<>90 AND NOT ISNULL(s.voret)" & vbCrLf & _
 " ) i " & vbCrLf & _
@@ -938,11 +938,11 @@ sql(AWlf) = vbCrLf & _
  ' 2
  AwN(AWlf) = "Diabetestypen E13 und E14 (vorher 2)"
  sql(AWlf) = "SELECT d.pat_id,GesNameg(d.pat_id) PName,wer,d.diagdatum Datum,d.diagsicherheit Si, d.DiagText,d.ICD " & vbCrLf & _
-             "FROM `diagnosen` d" & vbCrLf & _
+             "FROM `diagview` d" & vbCrLf & _
              "LEFT JOIN anaktk az ON az.pid=d.pat_id" & vbCrLf & _
              "LEFT JOIN faelle f ON d.fid = f.fid" & vbCrLf & _
-             "LEFT JOIN `diagnosen` r ON d.pat_id = r.pat_id AND r.gicdok RLIKE '^E1[01]'" & vbCrLf & _
-             "WHERE d.gzICDok RLIKE '^E1[234]' AND ISNULL(r.gicdok) AND schgr<> 90" ' AND COALESCE(d.f6010,0)=0
+             "LEFT JOIN `diagview` r ON d.pat_id = r.pat_id AND r.gicd RLIKE '^E1[01]'" & vbCrLf & _
+             "WHERE d.gzICDok RLIKE '^E1[234]' AND ISNULL(r.gicd) AND schgr<> 90" ' AND COALESCE(d.f6010,0)=0
  mins(AWlf) = 5
  maxs(AWlf) = 18
  AWlf = AWlf + 1
@@ -953,7 +953,7 @@ sql(AWlf) = vbCrLf & _
              "FROM aktfvs f " & vbCrLf & _
              "LEFT JOIN anaktk az ON az.pid=f.pat_id" & vbCrLf & _
              "LEFT JOIN namen n USING (pat_id) " & vbCrLf & _
-             "LEFT JOIN `diagnosen` d ON f.pat_id = d.pat_id AND d.gICDok RLIKE '^E1[0-4]\.' AND d.obdauer<>0 WHERE ((dmpklass=2 OR (dmpklass=3 AND dmpbeg<=qend()))) AND ISNULL(d.gicdok)"
+             "LEFT JOIN `diagview` d ON f.pat_id = d.pat_id AND d.gICD RLIKE '^E1[0-4]\.' AND d.obdauer<>0 WHERE ((dmpklass=2 OR (dmpklass=3 AND dmpbeg<=qend()))) AND ISNULL(d.gicd)"
  mins(AWlf) = 7
  maxs(AWlf) = 30
  AWlf = AWlf + 1
@@ -995,7 +995,7 @@ sql(AWlf) = "SELECT pid, gesnameg(pid) PName, wer, zahl, icd, e.Art " & vbCrLf &
  AwN(AWlf) = "Fehlende Fußdiagnose trotz Leistung 97314, 97324 oder 02311 (vorher 6)"
  sql(AWlf) = _
  "SELECT Pat_id, Patient, wer, ICD, Quelldatum, FotoStadium, FotoSeite, Eintr_Seite, Eintr_Zeitpunkt, Art, Eintr_Inhalt FROM (" & vbCrLf & _
- "SELECT f.pat_id, gesname(f.pat_id) Patient, wer, MAX(di.gicdok) ICD, REPLACE(REPLACE(GROUP_CONCAT(DISTINCT IF(INSTR(dokname,' li.')<>0,MID(dokname,INSTR(dokname,' li.')+1,2),IF(INSTR(dokname,' re.')<>0,MID(dokname,INSTR(dokname,' re.')+1,2),''))),',',''),'lire','bds') FotoSeite , GROUP_CONCAT(DISTINCT l.leistung) Leistungen, CONCAT('L89.',CAST(MAX(IF(REPLACE(MID(dokname,INSTR(dokname,'WA ')+3,1),'-','0')>2,2,REPLACE(MID(dokname,INSTR(dokname,'WA ')+3,1),'-','0')))+1 AS char),IF(INSTR(dokname,'Ferse')<>0,'7','8')) Fotostadium, IF(INSTR(e.inhalt,' bds.')<>0,' bds',IF(INSTR(e.inhalt,' li ')<>0,' li', IF(INSTR(e.inhalt,' re ')<>0,' re',''))) Eintr_Seite, d.dokname, e.zeitpunkt Eintr_Zeitpunkt, e.Art, e.inhalt Eintr_Inhalt, Quelldatum " & vbCrLf & _
+ "SELECT f.pat_id, gesname(f.pat_id) Patient, wer, MAX(di.gicd) ICD, REPLACE(REPLACE(GROUP_CONCAT(DISTINCT IF(INSTR(dokname,' li.')<>0,MID(dokname,INSTR(dokname,' li.')+1,2),IF(INSTR(dokname,' re.')<>0,MID(dokname,INSTR(dokname,' re.')+1,2),''))),',',''),'lire','bds') FotoSeite , GROUP_CONCAT(DISTINCT l.leistung) Leistungen, CONCAT('L89.',CAST(MAX(IF(REPLACE(MID(dokname,INSTR(dokname,'WA ')+3,1),'-','0')>2,2,REPLACE(MID(dokname,INSTR(dokname,'WA ')+3,1),'-','0')))+1 AS char),IF(INSTR(dokname,'Ferse')<>0,'7','8')) Fotostadium, IF(INSTR(e.inhalt,' bds.')<>0,' bds',IF(INSTR(e.inhalt,' li ')<>0,' li', IF(INSTR(e.inhalt,' re ')<>0,' re',''))) Eintr_Seite, d.dokname, e.zeitpunkt Eintr_Zeitpunkt, e.Art, e.inhalt Eintr_Inhalt, Quelldatum " & vbCrLf & _
  "FROM `aktf` f " & vbCrLf & _
  "LEFT JOIN anaktk az ON az.pid=f.pat_id" & vbCrLf & _
  "LEFT JOIN `faelle` fa ON f.fid = fa.fid " & vbCrLf & _
@@ -1003,7 +1003,7 @@ sql(AWlf) = "SELECT pid, gesnameg(pid) PName, wer, zahl, icd, e.Art " & vbCrLf &
  "LEFT JOIN `leistungen` l ON f.fid = l.fid " & vbCrLf & _
  "LEFT JOIN `dokumente` d ON f.pat_id = d.pat_id AND d.quelldatum BETWEEN fa.qanf AND fa.qend AND d.dokname LIKE '%WA %' AND NOT d.dokname LIKE '%WA -%'" & vbCrLf & _
  "LEFT JOIN `eintraege` e ON f.pat_id = e.pat_id AND DATE(e.zeitpunkt) BETWEEN fa.qanf AND fa.qend AND (e.art LIKE 'debr%' OR e.inhalt LIKE '%ebrid%' OR e.inhalt LIKE '%resekt%') " & vbCrLf & _
- "LEFT JOIN `diagnosen` di ON f.pat_id = di.pat_id AND di.gICDok RLIKE '^L89\.[12345]' AND (obdauer<>0 OR DATE(di.diagdatum) BETWEEN fa.qanf AND fa.qend) " & vbCrLf & _
+ "LEFT JOIN `diagview` di ON f.pat_id = di.pat_id AND di.gICD RLIKE '^L89\.[1-5]' AND (obdauer<>0 OR DATE(di.diagdatum) BETWEEN fa.qanf AND fa.qend) " & vbCrLf & _
  "WHERE l.leistung IN ('97314','97324','02311') AND l.zeitpunkt BETWEEN qanf() AND qend() " & vbCrLf & _
  "GROUP BY f.fid, e.art, e.inhalt, d.dokname) i" & vbCrLf & _
  "WHERE ISNULL(i.ICD) OR i.ICD COLLATE utf8mb4_german2_ci < i.Fotostadium " & vbCrLf & _
@@ -1022,9 +1022,9 @@ sql(AWlf) = "" & _
 "FROM aktfv f" & vbCrLf & _
 "LEFT JOIN anaktk az ON az.pid=f.pat_id" & vbCrLf & _
 "LEFT JOIN rezepteintraege ra ON ra.pat_id=f.pat_id AND ra.rezkllang IN ('Langrezepteintrag','Heilmittelverordnung') AND ra.medikament RLIKE 'podo|bettu|therapies|ortho[np]' AND ra.zeitpunkt BETWEEN qanf() AND qend()" & vbCrLf & _
-"LEFT JOIN diagnosen d ON d.pat_id=f.pat_id AND d.obdauer<>0 AND d.gICDok REGEXP '^E1[0-4]\.'" & vbCrLf & _
-"LEFT JOIN diagnosen nd ON nd.pat_id=f.pat_id AND nd.obdauer<>0 AND nd.gICDok = 'G63.2'" & vbCrLf & _
-"LEFT JOIN diagnosen na ON na.pat_id=f.pat_id AND na.obdauer<>0 AND na.gICDok RLIKE '^G6[0-3]'" & vbCrLf & _
+"LEFT JOIN diagview d ON d.pat_id=f.pat_id AND d.obdauer<>0 AND d.gICD REGEXP '^E1[0-4]\.'" & vbCrLf & _
+"LEFT JOIN diagview nd ON nd.pat_id=f.pat_id AND nd.obdauer<>0 AND nd.gICD = 'G63.2'" & vbCrLf & _
+"LEFT JOIN diagview na ON na.pat_id=f.pat_id AND na.obdauer<>0 AND na.gICD RLIKE '^G6[0-3]'" & vbCrLf & _
 "WHERE (NOT ISNULL(d.icd) AND ISNULL(nd.icd)) OR (ISNULL(d.icd) AND ISNULL(na.ICD))" & vbCrLf & _
 "GROUP BY f.pat_id" & vbCrLf & _
 "HAVING Rp_akt<>''" & vbCrLf & _
@@ -1069,8 +1069,8 @@ sql(AWlf) = "" & _
  "FROM aktfvs f " & vbCrLf & _
  "LEFT JOIN anaktk az ON az.pid=f.pat_id" & vbCrLf & _
  "LEFT JOIN fuss u ON f.pat_id = u.pat_id AND u.zeitpunkt BETWEEN " & lQAnfuEnd(FristS) & " " & vbCrLf & _
- "LEFT JOIN `diagnosen` di ON f.fid = di.fid AND (di.icd RLIKE '^L89\.[12345]'" & _
- "OR ((SELECT MAX(icd) FROM `diagnosen` dd  WHERE dd.pat_id = f.pat_id AND dd.gicdok REGEXP '^E1[0-4]') IS NULL AND di.gicdok RLIKE '^L97') " & _
+ "LEFT JOIN `diagview` di ON f.fid = di.fid AND (di.icd RLIKE '^L89\.[1-5]'" & _
+ "OR ((SELECT MAX(icd) FROM `diagview` dd  WHERE dd.pat_id = f.pat_id AND dd.gicd REGEXP '^E1[0-4]') IS NULL AND di.gicd RLIKE '^L97') " & _
  ") AND obdauer = 0 AND di.diagdatum BETWEEN " & lQAnfuEnd(FristS) & " " & vbCrLf & _
  "WHERE ulcera <>'nein' " & vbCrLf & _
  " AND zeitpunkt > 20170717080000 " & vbCrLf & _
@@ -1090,8 +1090,8 @@ ulcusicd = "'^L89\.[123]|T14.9|L02.9'"
  "FROM aktfvs f " & vbCrLf & _
  "LEFT JOIN anaktk az ON az.pid=f.pat_id" & vbCrLf & _
  "LEFT JOIN eintraege e ON f.pat_id = e.pat_id AND e.zeitpunkt BETWEEN " & lQAnfuEnd(FristS) & " " & vbCrLf & _
- "LEFT JOIN `diagnosen` di ON f.fid = di.fid AND (di.gicdok RLIKE " & ulcusicd & " " & _
- "OR ((SELECT MAX(icd) FROM `diagnosen` dd  WHERE dd.pat_id = f.pat_id AND dd.gicdok REGEXP '^E1[0-4]' ) IS NULL AND di.gicdok RLIKE '^L97') " & _
+ "LEFT JOIN `diagview` di ON f.fid = di.fid AND (di.gicd RLIKE " & ulcusicd & " " & _
+ "OR ((SELECT MAX(icd) FROM `diagview` dd  WHERE dd.pat_id = f.pat_id AND dd.gicd REGEXP '^E1[0-4]' ) IS NULL AND di.gicd RLIKE '^L97') " & _
  ") AND obdauer = 0 AND di.diagdatum BETWEEN " & lQAnfuEnd(FristS) & " " & vbCrLf & _
  "WHERE art='ulcus' AND inhalt NOT LIKE '%Lokalisation: Bauch%' AND ISNULL(di.icd) " & vbCrLf & _
  "ORDER BY zeitpunkt;"
@@ -1110,9 +1110,9 @@ sql(AWlf) = vbCrLf & _
 "SELECT pat_id, gesname(pat_id) PName, wer " & vbCrLf & _
 ", COALESCE((SELECT MAX(voret) FROM sws WHERE voret>" & qtAnf(FristS) & " AND pat_id=v.pat_id),'') voret " & vbCrLf & _
 ", COALESCE((SELECT GROUP_CONCAT(art) FROM eintraege e WHERE v.pat_id=e.pat_id AND e.art RLIKE '^vkgd|^aufgd' AND e.zeitpunkt BETWEEN " & lQAnfuEnd(FristS) & "),'') Eintr " & vbCrLf & _
-", COALESCE((SELECT GROUP_CONCAT(icd) FROM diagnosen d WHERE v.pat_id=d.pat_id AND d.gicdok RLIKE '^E1[0-4]' AND obdauer<>0 ),'') dicd " & vbCrLf & _
-", COALESCE((SELECT GROUP_CONCAT(icd) FROM diagnosen d WHERE v.pat_id=d.pat_id AND d.gicdok LIKE 'O24%' AND d.diagdatum BETWEEN " & lQAnfuEnd(FristS) & "),'') sicd " & vbCrLf & _
-", COALESCE((SELECT GROUP_CONCAT(icd) FROM diagnosen d WHERE v.pat_id=d.pat_id AND d.gicdok LIKE 'O24%' AND d.diagdatum BETWEEN " & lQAnfuEnd(FristS) & " AND obdauer<>0),'') sdicd " & vbCrLf & _
+", COALESCE((SELECT GROUP_CONCAT(icd) FROM diagview d WHERE v.pat_id=d.pat_id AND d.gicd RLIKE '^E1[0-4]' AND obdauer<>0 ),'') dicd " & vbCrLf & _
+", COALESCE((SELECT GROUP_CONCAT(icd) FROM diagview d WHERE v.pat_id=d.pat_id AND d.gicd LIKE 'O24%' AND d.diagdatum BETWEEN " & lQAnfuEnd(FristS) & "),'') sicd " & vbCrLf & _
+", COALESCE((SELECT GROUP_CONCAT(icd) FROM diagview d WHERE v.pat_id=d.pat_id AND d.gicd LIKE 'O24%' AND d.diagdatum BETWEEN " & lQAnfuEnd(FristS) & " AND obdauer<>0),'') sdicd " & vbCrLf & _
 "FROM aktfv v" & vbCrLf & _
 "LEFT JOIN anaktk az ON az.pid=v.pat_id" & vbCrLf & _
 ") i " & vbCrLf & _
@@ -1144,7 +1144,7 @@ sql(AWlf) = _
 "FROM aktfvs f " & vbCrLf & _
 "LEFT JOIN anaktk az ON az.pid=f.pat_id" & vbCrLf & _
 "LEFT JOIN lHbA1c h USING (pat_id) " & vbCrLf & _
-"LEFT JOIN diagnosen d ON d.pat_id=f.pat_id AND d.gicdok RLIKE '^E1[0-4]' AND d.obdauer<>0 " & vbCrLf & _
+"LEFT JOIN diagview d ON d.pat_id=f.pat_id AND d.gicd RLIKE '^E1[0-4]' AND d.obdauer<>0 " & vbCrLf & _
 "WHERE (h.letzter>7.4 OR false) AND (d.icd RLIKE '^E1[0-4]\.[0-6]0' OR false);"
  mins(AWlf) = 10
  maxs(AWlf) = 80
@@ -1160,8 +1160,8 @@ sql(AWlf) = _
  ",IF(fallei='','',CONCAT(fallei,' -> ',97600)) Leistung " & vbCrLf & _
  "FROM " & vbCrLf & _
  "(SELECT f.pat_id, wer, MAX1,_lGFR(f.pat_id) egfr,obnephrop(f.pat_id) obne " & vbCrLf & _
- ",COALESCE((SELECT GROUP_CONCAT(icd) FROM diagnosen WHERE pat_id=f.pat_id AND gicdok RLIKE '^N1[89]' AND obdauer<>0 ),'') ICD1 " & vbCrLf & _
- ",COALESCE((SELECT GROUP_CONCAT(icd) FROM diagnosen WHERE pat_id=f.pat_id AND gicdok ='N08.3' AND obdauer<>0),'') ICD2 " & vbCrLf & _
+ ",COALESCE((SELECT GROUP_CONCAT(icd) FROM diagview WHERE pat_id=f.pat_id AND gicd RLIKE '^N1[89]' AND obdauer<>0 ),'') ICD1 " & vbCrLf & _
+ ",COALESCE((SELECT GROUP_CONCAT(icd) FROM diagview WHERE pat_id=f.pat_id AND gicd ='N08.3' AND obdauer<>0),'') ICD2 " & vbCrLf & _
  ",COALESCE((SELECT MAX(leistung) FROM leistungen WHERE pat_id = f.pat_id AND zeitpunkt>" & qtAnf(FristS) & " AND leistung IN ('97601','97602')),'') fallei " & vbCrLf & _
  "FROM aktfv f LEFT JOIN _AlbCreMinMax USING (pat_id)" & vbCrLf & _
  "LEFT JOIN anaktk az ON az.pid=f.pat_id" & vbCrLf & _
@@ -1180,8 +1180,8 @@ sql(AWlf) = _
  ' AND COALESCE(f6010,0)=0
 sql(AWlf) = _
 "SELECT * FROM (SELECT f.pat_id, gesnameg(f.pat_id)" & vbCrLf & _
-", COALESCE((SELECT ICD FROM diagnosen " & vbCrLf & _
-"  WHERE Pat_ID=f.Pat_ID AND gICDok REGEXP '^E1[01]' AND (obDauer<>0 OR FID=f.FID) " & vbCrLf & _
+", COALESCE((SELECT ICD FROM diagview" & vbCrLf & _
+"  WHERE Pat_ID=f.Pat_ID AND gICD REGEXP '^E1[01]' AND (obDauer<>0 OR FID=f.FID) " & vbCrLf & _
 "  ORDER BY ICD " & vbCrLf & _
 "  LIMIT 1),'fehlt') ICD " & vbCrLf & _
 ",n.getha0 kvnr, CONCAT(h.name,', ',h.vorname,', ',h.ort) Üw " & vbCrLf & _
@@ -1248,7 +1248,7 @@ sql(AWlf) = "" & _
  AwN(AWlf) = "Kodierrichtlinien (1): Diabetes-ICD"
  sql(AWlf) = "" & _
 "SELECT i.pat_id,i.PName,wer,ddia" & vbCrLf & _
-", CASE WHEN dsnr IN (2,3,4,5,6,7) THEN IF((drei<>dsnr AND drei<>7) OR (dsnr=7 AND ((obfu=5 AND vier NOT IN (4,5)) ) OR obfu=5 AND drei<>7),CONCAT(zwei,if(obfu=5,7,dsnr),obfu),'')" & vbCrLf & _
+", CASE WHEN dsnr IN (2,3,4,5,6,7) THEN IF((drei<>dsnr AND drei<>7) OR (dsnr=7 AND ((obfu=5 AND vier NOT IN (4,5)) ) OR obfu=5 AND drei<>7),CONCAT(zwei,if(obfu=5,7,dsnr),IF(obfu=5 OR dsnr=7,obfu,1)),'')" & vbCrLf & _
 "       WHEN dsnr=9 THEN IF(obfu=3,'',IF(drei<>7 OR vier NOT IN (4,5),CONCAT(zwei,7,5),''))" & vbCrLf & _
 "  END soll" & vbCrLf & _
 "  , grund,dsnr,obfu" & vbCrLf & _
@@ -1263,7 +1263,7 @@ sql(AWlf) = "" & _
 "                                    Else '9' END dsnr" & vbCrLf & _
 ", obfu, grund" & vbCrLf
 sql(AWlf) = sql(AWlf) & _
-"FROM (SELECT f.*, divd.icd ddia, left(divd.icd,4) zwei, MID(divd.icd,5,1) drei, MID(divd.icd,6,1) vier" & vbCrLf & _
+"FROM (SELECT f.*, divd.icd ddia, LEFT(divd.icd,4) zwei, MID(divd.icd,5,1) drei, MID(divd.icd,6,1) vier" & vbCrLf & _
 "            , max(IF(ISNULL(npvd.icd),0,1)) obnp" & vbCrLf & _
 "            , max(IF(ISNULL(luvd.icd),0,1)) oblu" & vbCrLf & _
 "            , max(IF(ISNULL(apvd.icd),0,1)) obap" & vbCrLf & _
@@ -1274,26 +1274,33 @@ sql(AWlf) = sql(AWlf) & _
 "            ,CONCAT(COALESCE(GROUP_CONCAT(distinct npvd.ICD),''),',',COALESCE(GROUP_CONCAT(distinct luvd.ICD),''),',',COALESCE(GROUP_CONCAT(distinct apvd.ICD),''),','" & vbCrLf & _
 "                   ,COALESCE(GROUP_CONCAT(distinct flvd.ICD),''),',',COALESCE(GROUP_CONCAT(distinct auvd.ICD),''),',',COALESCE(GROUP_CONCAT(distinct nevd.ICD),''),','" & vbCrLf & _
 "                     ,COALESCE(GROUP_CONCAT(distinct fuvd.ICD),'')) Grund" & vbCrLf & _
-"FROM aktfv f" & vbCrLf & _
-"LEFT JOIN diagnosen divd ON divd.pat_id=f.pat_id AND divd.gicdok RLIKE '^E1[0-4]\.' AND divd.obdauer<>0" & vbCrLf & _
-"LEFT JOIN diagnosen npvd ON npvd.pat_id=f.pat_id AND npvd.gicdok IN ('G59.0','G63.2','G73.0','G99.0') AND npvd.obdauer<>0" & vbCrLf & _
-"LEFT JOIN diagnosen luvd ON luvd.pat_id=f.pat_id AND luvd.gicdok IN ('N31.1','N31.2') AND luvd.obdauer<>0" & vbCrLf & _
-"LEFT JOIN diagnosen apvd ON apvd.pat_id=f.pat_id AND apvd.gicdok IN ('I79.2') AND apvd.obdauer<>0" & vbCrLf & _
-"LEFT JOIN diagnosen flvd ON flvd.pat_id=f.pat_id AND flvd.gicdok IN ('K77.8','M14.2','M14.6') AND flvd.obdauer<>0" & vbCrLf & _
-"LEFT JOIN diagnosen auvd ON auvd.pat_id=f.pat_id AND auvd.gicdok IN ('H28.0','H36.0') AND auvd.obdauer<>0" & vbCrLf & _
-"LEFT JOIN diagnosen nevd ON nevd.pat_id=f.pat_id AND (nevd.gicdok RLIKE '^N18\.[1-5]' OR nevd.gicdok='N08.3') AND nevd.obdauer<>0" & vbCrLf & _
-"LEFT JOIN diagnosen fuvd ON fuvd.pat_id=f.pat_id AND fuvd.gicdok RLIKE '^L89' AND fuvd.obdauer<>0" & vbCrLf & _
-"GROUP BY f.pat_id" & vbCrLf & _
+"FROM aktfv f" & vbCrLf
+sql(AWlf) = sql(AWlf) & _
+"LEFT JOIN (SELECT pat_id, icd FROM (" & vbCrLf & _
+"  SELECT pat_id, icd,RANK() OVER (PARTITION BY pat_id ORDER BY IF(MID(icd,5,1)='9','-1',MID(icd,5,1)) DESC,MID(icd,6,1) DESC) rang FROM diagview WHERE gicd RLIKE '^E1[0-4]' AND obdauer<>0" & vbCrLf & _
+"          ) d WHERE rang=1) divd ON divd.pat_id=f.pat_id" & vbCrLf & _
+"LEFT JOIN diagview npvd ON npvd.pat_id=f.pat_id AND npvd.gicd IN ('G59.0','G63.2','G73.0','G99.0') AND npvd.obdauer<>0" & vbCrLf & _
+"LEFT JOIN diagview luvd ON luvd.pat_id=f.pat_id AND luvd.gicd IN ('N31.1','N31.2') AND luvd.obdauer<>0" & vbCrLf & _
+"LEFT JOIN diagview apvd ON apvd.pat_id=f.pat_id AND apvd.gicd IN ('I79.2') AND apvd.obdauer<>0" & vbCrLf & _
+"LEFT JOIN diagview flvd ON flvd.pat_id=f.pat_id AND flvd.gicd IN ('K77.8','M14.2','M14.6') AND flvd.obdauer<>0" & vbCrLf & _
+"LEFT JOIN diagview auvd ON auvd.pat_id=f.pat_id AND auvd.gicd IN ('H28.0','H36.0') AND auvd.obdauer<>0" & vbCrLf & _
+"LEFT JOIN diagview nevd ON nevd.pat_id=f.pat_id AND (nevd.gicd RLIKE '^N18\.[1-5]' OR nevd.gicd='N08.3') AND nevd.obdauer<>0" & vbCrLf & _
+"LEFT JOIN diagview fuvd ON fuvd.pat_id=f.pat_id AND fuvd.gicd RLIKE '^L89' AND fuvd.obdauer<>0" & vbCrLf & _
+"GROUP BY f.pat_id, divd.icd" & vbCrLf & _
 ") f WHERE NOT ISNULL(ddia)" & vbCrLf & _
 ") i " & vbCrLf
 sql(AWlf) = sql(AWlf) & _
 "LEFT JOIN anaktk az ON az.pid=i.pat_id" & vbCrLf & _
 "HAVING soll<>'';"
  mins(AWlf) = 10
- maxs(AWlf) = 60
+ maxs(AWlf) = 600
  AWlf = AWlf + 1
  
- AwN(AWlf) = "Kodierrichtlinien (1): Myokardinfarkt"
+' "-- LEFT JOIN diagview divd ON divd.pat_id=f.pat_id AND divd.gicd RLIKE '^E1[0-4]\.' AND divd.obdauer<>0" & vbCrLf & _
+"-- ORDER BY f.pat_id, MID(divd.icd,5,1) DESC" & vbCrLf & _
+
+ 
+ AwN(AWlf) = "Kodierrichtlinien (2): Myokardinfarkt"
  sql(AWlf) = "" & _
  "SELECT f.Pat_ID, gesname(f.pat_id) PName, az.wer, date_format(Diagdatum,'%e.%c.%y') DiagDatum,DiagSicherheit DS, Diagtext, ICD" & vbCrLf & _
  "FROM aktfv f" & vbCrLf & _
@@ -1310,7 +1317,7 @@ sql(AWlf) = sql(AWlf) & _
 sql(AWlf) = "" & _
 "SELECT f.pat_id, gesname(f.pat_id) PName " & vbCrLf & _
 ",(SELECT concat(feldinh,'   ',zeitpunkt) FROM formular WHERE pat_id=f.pat_id AND formvorl='\$\\TurboMed\\Formulare\\Patientenmenue\\ADL.tmf' AND feldnr IN (20,21,22) AND feld='txtdyn' ORDER BY zeitpunkt DESC, foid DESC LIMIT 1) Harnkontinenzpunkte " & vbCrLf & _
-",(SELECT icd FROM diagnosen d WHERE pat_id=f.pat_id AND gicdok LIKE 'R32%' LIMIT 1) R32 " & vbCrLf & _
+",(SELECT icd FROM diagview d WHERE pat_id=f.pat_id AND gicd LIKE 'R32%' LIMIT 1) R32 " & vbCrLf & _
 "FROM aktfv f " & vbCrLf & _
 "HAVING LEFT(Harnkontinenzpunkte,2)<>10 AND ISNULL(R32);"
  mins(AWlf) = 10
@@ -1329,8 +1336,8 @@ sql(AWlf) = "" & _
             "FROM aktfvs v " & vbCrLf & _
             "LEFT JOIN eintraege tug ON v.pat_id = tug.pat_id AND tug.art = 'TUG'  AND tug.zeitpunkt = (SELECT MAX(zeitpunkt) FROM eintraege WHERE pat_id = v.pat_id AND art = 'TUG')" & vbCrLf & _
             "LEFT JOIN eintraege adl ON v.pat_id = adl.pat_id AND adl.art = 'ADL'  AND adl.zeitpunkt = (SELECT MAX(zeitpunkt) FROM eintraege WHERE pat_id = v.pat_id AND art = 'ADL')" & vbCrLf & _
-            "LEFT JOIN diagnosen dd ON v.pat_id = dd.pat_id AND dd.gicdok RLIKE '^F0[0123]|^G20' " & vbCrLf & _
-            "LEFT JOIN diagnosen pfld ON v.pat_id = pfld.pat_id AND pfld.gicdok LIKE 'Z74%' " & vbCrLf & _
+            "LEFT JOIN diagview dd ON v.pat_id = dd.pat_id AND dd.gicd RLIKE '^F0[0123]|^G20' " & vbCrLf & _
+            "LEFT JOIN diagview pfld ON v.pat_id = pfld.pat_id AND pfld.gicd LIKE 'Z74%' " & vbCrLf & _
             "LEFT JOIN eintraege pfl ON pfl.pat_id=v.pat_id AND  pfl.inhalt RLIKE 'pflege(grad|stufe)' AND pfl.inhalt NOT RLIKE '(beantrag|will|soll|keine|Gatt|Ehe(mann|frau)|pflege(grad|stufe) -)'" & vbCrLf & _
             "WHERE NOT ISNULL(pfl.inhalt) AND ISNULL(pfld.icd)" & vbCrLf & _
             "GROUP BY pat_id;"
@@ -1351,8 +1358,8 @@ sql(AWlf) = "" & _
             "LEFT JOIN namen n ON v.pat_id = n.pat_id " & vbCrLf & _
             "LEFT JOIN eintraege tug ON v.pat_id = tug.pat_id AND tug.art = 'TUG'  AND tug.zeitpunkt = (SELECT MAX(zeitpunkt) FROM eintraege WHERE pat_id = v.pat_id AND art = 'TUG')" & vbCrLf & _
             "LEFT JOIN eintraege adl ON v.pat_id = adl.pat_id AND adl.art = 'ADL'  AND adl.zeitpunkt = (SELECT MAX(zeitpunkt) FROM eintraege WHERE pat_id = v.pat_id AND art = 'ADL')" & vbCrLf & _
-            "LEFT JOIN diagnosen dd ON v.pat_id = dd.pat_id AND dd.gicdok RLIKE '^F0[0123]|^G20' " & vbCrLf & _
-            "LEFT JOIN diagnosen schwd ON v.pat_id = schwd.pat_id AND schwd.gicdok LIKE 'R42%' " & vbCrLf & _
+            "LEFT JOIN diagview dd ON v.pat_id = dd.pat_id AND dd.gicd RLIKE '^F0[0123]|^G20' " & vbCrLf & _
+            "LEFT JOIN diagview schwd ON v.pat_id = schwd.pat_id AND schwd.gicd LIKE 'R42%' " & vbCrLf & _
             "LEFT JOIN eintraege schw ON v.pat_id = schw.pat_id AND schw.inhalt LIKE '%schwindel%' AND schw.inhalt NOT LIKE '%kein schwindel%' AND schw.inhalt NOT LIKE '%keinen schwindel%' AND schw.inhalt NOT LIKE '%ohne schwindel%' AND schw.art not IN ('andm','andm2') " & vbCrLf & _
             "LEFT JOIN medplan mp ON v.pat_id = mp.pat_id AND (medikament LIKE '%dimen%' OR (medikament LIKE '%vert%' AND medikament NOT LIKE '%verteil%' AND medikament NOT LIKE '%vertr%' AND medikament NOT LIKE '%Hevert%') " & vbCrLf & _
                   "OR medikament LIKE '%vasomotal%' OR medikament LIKE '%betahistin%' OR medikament LIKE '%quamen%' OR medikament LIKE '%fluna%' OR medikament LIKE '%natil%' OR medikament LIKE '%sibelium%') " & vbCrLf & _
@@ -1375,8 +1382,8 @@ sql(AWlf) = "" & _
             "LEFT JOIN namen n ON v.pat_id = n.pat_id " & vbCrLf & _
             "LEFT JOIN eintraege tug ON v.pat_id = tug.pat_id AND tug.art = 'TUG'  AND tug.zeitpunkt = (SELECT MAX(zeitpunkt) FROM eintraege WHERE pat_id = v.pat_id AND art = 'TUG')" & vbCrLf & _
             "LEFT JOIN eintraege adl ON v.pat_id = adl.pat_id AND adl.art = 'ADL'  AND adl.zeitpunkt = (SELECT MAX(zeitpunkt) FROM eintraege WHERE pat_id = v.pat_id AND art = 'ADL')" & vbCrLf & _
-            "LEFT JOIN diagnosen dd ON v.pat_id = dd.pat_id AND dd.gicdok RLIKE '^F0[0123]|^G20' " & vbCrLf & _
-            "LEFT JOIN diagnosen pfld ON v.pat_id = pfld.pat_id AND pfld.gicdok IN ('R15','R32') " & vbCrLf & _
+            "LEFT JOIN diagview dd ON v.pat_id = dd.pat_id AND dd.gicd RLIKE '^F0[0123]|^G20' " & vbCrLf & _
+            "LEFT JOIN diagview pfld ON v.pat_id = pfld.pat_id AND pfld.gicd IN ('R15','R32') " & vbCrLf & _
             "LEFT JOIN eintraege pfl ON v.pat_id = pfl.pat_id AND pfl.inhalt RLIKE 'inkont[^r]' " & vbCrLf & _
             "WHERE (DATEDIFF(" & qtAnf(FristS) & ", n.GebDat) > 70 * 365 OR NOT ISNULL(dd.ICD)) AND NOT ISNULL(pfl.inhalt) AND ISNULL(pfld.icd)" & vbCrLf & _
             "AND pfl.zeitpunkt >SUBDATE(" & qtAnf(FristS) & ",INTERVAL 1 YEAR) " & vbCrLf & _
@@ -1398,8 +1405,8 @@ sql(AWlf) = "" & _
             "LEFT JOIN namen n ON v.pat_id = n.pat_id " & vbCrLf & _
             "LEFT JOIN eintraege tug ON v.pat_id = tug.pat_id AND tug.art = 'TUG'  AND tug.zeitpunkt = (SELECT MAX(zeitpunkt) FROM eintraege WHERE pat_id = v.pat_id AND art = 'TUG')" & vbCrLf & _
             "LEFT JOIN eintraege adl ON v.pat_id = adl.pat_id AND adl.art = 'ADL'  AND adl.zeitpunkt = (SELECT MAX(zeitpunkt) FROM eintraege WHERE pat_id = v.pat_id AND art = 'ADL')" & vbCrLf & _
-            "LEFT JOIN diagnosen dd ON v.pat_id = dd.pat_id AND dd.icd RLIKE '^F0[0123]|^G20' AND dd.diagsicherheit NOT IN ('A','Z','V') " & vbCrLf & _
-            "LEFT JOIN diagnosen schwd ON v.pat_id = schwd.pat_id AND schwd.gicdok RLIKE '^F0[0123]|R41.0|R41.3' " & vbCrLf & _
+            "LEFT JOIN diagnosen dd ON v.pat_id = dd.pat_id AND dd.icd RLIKE '^F0[0-3]|^G20' AND dd.diagsicherheit NOT IN ('A','Z','V') " & vbCrLf & _
+            "LEFT JOIN diagview schwd ON v.pat_id = schwd.pat_id AND schwd.gicd RLIKE '^F0[0123]|R41.0|R41.3' " & vbCrLf & _
             "LEFT JOIN eintraege schw ON v.pat_id = schw.pat_id AND (schw.inhalt RLIKE '[^öÖ]demen[^t]' OR schw.inhalt LIKE '%vergessl%' OR schw.inhalt LIKE '%vergeßl%' OR (schw.inhalt LIKE '%dächtn%' AND NOT schw.inhalt LIKE '%aus dem Gedächtnis%' AND NOT schw.inhalt LIKE '%Gedächtnisprotokoll%' AND NOT schw.inhalt LIKE '%nach Gedächtnis %' AND NOT schw.inhalt LIKE '%chmerzgedächtnis%') OR schw.inhalt LIKE '%verwirr%') " & vbCrLf & _
             "LEFT JOIN medplan mp ON v.pat_id = mp.pat_id AND medikament RLIKE 'exiba|ergobel|exelon|galanta|galnora|mema[cn]|nicer[ig]|nimvast|prometax|reminyl|rivastig|sermion|yasnal|Donepe|Donez|Aricept|Axura' " & vbCrLf & _
             "WHERE (DATEDIFF(" & qtAnf(FristS) & ", n.GebDat) > 70 * 365 OR NOT ISNULL(dd.ICD)) AND ISNULL(schwd.icd) AND (NOT ISNULL(schw.inhalt) OR NOT ISNULL(mp.medikament)) " & vbCrLf & _
@@ -1421,8 +1428,8 @@ sql(AWlf) = "" & _
             "LEFT JOIN namen n ON v.pat_id = n.pat_id " & vbCrLf & _
             "LEFT JOIN eintraege tug ON v.pat_id = tug.pat_id AND tug.art = 'TUG'  AND tug.zeitpunkt = (SELECT MAX(zeitpunkt) FROM eintraege WHERE pat_id = v.pat_id AND art = 'TUG')" & vbCrLf & _
             "LEFT JOIN eintraege adl ON v.pat_id = adl.pat_id AND adl.art = 'ADL'  AND adl.zeitpunkt = (SELECT MAX(zeitpunkt) FROM eintraege WHERE pat_id = v.pat_id AND art = 'ADL')" & vbCrLf & _
-            "LEFT JOIN diagnosen dd ON v.pat_id = dd.pat_id AND dd.gicdok RLIKE '^F0[0123]|^G20'" & vbCrLf & _
-            "LEFT JOIN diagnosen pfld ON v.pat_id = pfld.pat_id AND pfld.gicdok IN ('R52.2','F45.51') " & vbCrLf & _
+            "LEFT JOIN diagview dd ON v.pat_id = dd.pat_id AND dd.gicd RLIKE '^F0[0123]|^G20'" & vbCrLf & _
+            "LEFT JOIN diagview pfld ON v.pat_id = pfld.pat_id AND pfld.gicd IN ('R52.2','F45.51') " & vbCrLf & _
             "LEFT JOIN eintraege pfl ON v.pat_id = pfl.pat_id AND pfl.art <> 'ufrag' AND pfl.inhalt RLIKE '(?<!keine |kein )schmerz(?!frei|los)' AND NOT pfl.inhalt RLIKE 'bekommen Sie regelm|wie oft am Tag m' AND pfl.art not IN ('andm','andm2') AND pfl.art<>'htxt' AND pfl.zeitpunkt> SUBDATE(" & qtAnf(FristS) & ",INTERVAL 6 MONTH) " & vbCrLf & _
             "WHERE (DATEDIFF(" & qtAnf(FristS) & ", n.GebDat) > 70 * 365 OR NOT ISNULL(dd.ICD)) AND NOT ISNULL(pfl.inhalt) AND ISNULL(pfld.icd) " & vbCrLf & _
             "AND pfl.zeitpunkt >SUBDATE(" & qtAnf(FristS) & ",INTERVAL 3 MONTH) " & vbCrLf & _
@@ -1443,8 +1450,8 @@ sql(AWlf) = "" & _
             "LEFT JOIN namen n ON v.pat_id = n.pat_id " & vbCrLf & _
             "LEFT JOIN eintraege tug ON v.pat_id = tug.pat_id AND tug.art = 'TUG'  AND tug.zeitpunkt = (SELECT MAX(zeitpunkt) FROM eintraege WHERE pat_id = v.pat_id AND art = 'TUG')" & vbCrLf & _
             "LEFT JOIN eintraege adl ON v.pat_id = adl.pat_id AND adl.art = 'ADL'  AND adl.zeitpunkt = (SELECT MAX(zeitpunkt) FROM eintraege WHERE pat_id = v.pat_id AND art = 'ADL')" & vbCrLf & _
-            "LEFT JOIN diagnosen dd ON v.pat_id = dd.pat_id AND dd.gicdok RLIKE '^F0[0123]|^G20'" & vbCrLf & _
-            "LEFT JOIN diagnosen pfld ON v.pat_id = pfld.pat_id AND pfld.gicdok IN ('R29.6') " & vbCrLf & _
+            "LEFT JOIN diagview dd ON v.pat_id = dd.pat_id AND dd.gicd RLIKE '^F0[0-3]|^G20'" & vbCrLf & _
+            "LEFT JOIN diagview pfld ON v.pat_id = pfld.pat_id AND pfld.gicd IN ('R29.6') " & vbCrLf & _
             "LEFT JOIN eintraege pfl ON v.pat_id = pfl.pat_id AND (pfl.inhalt RLIKE '[^h]fallneig' OR (pfl.inhalt LIKE '%sturz%' AND NOT pfl.inhalt LIKE '%hörsturz%' AND NOT pfl.inhalt LIKE '%radlsturz%' AND NOT pfl.inhalt LIKE '%radsturz%')) AND pfl.art not IN ('andm','andm2') " & vbCrLf & _
             "WHERE (DATEDIFF(" & qtAnf(FristS) & ", n.GebDat) > 70 * 365 OR NOT ISNULL(dd.ICD)) AND NOT ISNULL(pfl.inhalt) AND ISNULL(pfld.icd) " & vbCrLf & _
             "AND pfl.zeitpunkt >SUBDATE(" & qtAnf(FristS) & ",INTERVAL 3 MONTH) " & vbCrLf & _
@@ -1465,8 +1472,8 @@ sql(AWlf) = "" & _
             "LEFT JOIN namen n ON v.pat_id = n.pat_id " & vbCrLf & _
             "LEFT JOIN eintraege tug ON v.pat_id = tug.pat_id AND tug.art = 'TUG'  AND tug.zeitpunkt = (SELECT MAX(zeitpunkt) FROM eintraege WHERE pat_id = v.pat_id AND art = 'TUG')" & vbCrLf & _
             "LEFT JOIN eintraege adl ON v.pat_id = adl.pat_id AND adl.art = 'ADL'  AND adl.zeitpunkt = (SELECT MAX(zeitpunkt) FROM eintraege WHERE pat_id = v.pat_id AND art = 'ADL')" & vbCrLf & _
-            "LEFT JOIN diagnosen dd ON v.pat_id = dd.pat_id AND dd.gicdok RLIKE '^F0[0123]|^G20' " & vbCrLf & _
-            "LEFT JOIN diagnosen pfld ON v.pat_id = pfld.pat_id AND pfld.gicdok IN ('R26.3') " & vbCrLf & _
+            "LEFT JOIN diagview dd ON v.pat_id = dd.pat_id AND dd.gicd RLIKE '^F0[0-3]|^G20' " & vbCrLf & _
+            "LEFT JOIN diagview pfld ON v.pat_id = pfld.pat_id AND pfld.gicd IN ('R26.3') " & vbCrLf & _
             "LEFT JOIN eintraege pfl ON v.pat_id = pfl.pat_id AND pfl.inhalt LIKE '%bettläg%' " & vbCrLf & _
             "WHERE (DATEDIFF(" & qtAnf(FristS) & ", n.GebDat) > 70 * 365 OR NOT ISNULL(dd.ICD)) AND NOT ISNULL(pfl.inhalt) AND ISNULL(pfld.icd)" & vbCrLf & _
             "AND pfl.zeitpunkt >SUBDATE(" & qtAnf(FristS) & ",INTERVAL 3 MONTH) " & vbCrLf & _
@@ -1487,8 +1494,8 @@ sql(AWlf) = "" & _
             "LEFT JOIN namen n ON v.pat_id = n.pat_id " & vbCrLf & _
             "LEFT JOIN eintraege tug ON v.pat_id = tug.pat_id AND tug.art = 'TUG'  AND tug.zeitpunkt = (SELECT MAX(zeitpunkt) FROM eintraege WHERE pat_id = v.pat_id AND art = 'TUG')" & vbCrLf & _
             "LEFT JOIN eintraege adl ON v.pat_id = adl.pat_id AND adl.art = 'ADL'  AND adl.zeitpunkt = (SELECT MAX(zeitpunkt) FROM eintraege WHERE pat_id = v.pat_id AND art = 'ADL')" & vbCrLf & _
-            "LEFT JOIN diagnosen dd ON v.pat_id = dd.pat_id AND dd.gicdok RLIKE '^F0[0123]|^G20' " & vbCrLf & _
-            "LEFT JOIN diagnosen pfld ON v.pat_id = pfld.pat_id AND pfld.gicdok IN ('R68.8') " & vbCrLf & _
+            "LEFT JOIN diagview dd ON v.pat_id = dd.pat_id AND dd.gicd RLIKE '^F0[0-3]|^G20' " & vbCrLf & _
+            "LEFT JOIN diagview pfld ON v.pat_id = pfld.pat_id AND pfld.gicd IN ('R68.8') " & vbCrLf & _
             "LEFT JOIN eintraege pfl ON v.pat_id = pfl.pat_id AND pfl.art = 'beweg' AND (pfl.inhalt LIKE '%eingeschr%' OR pfl.inhalt LIKE '%nicht%' OR pfl.inhalt LIKE '%wenig%') AND NOT pfl.inhalt LIKE '%wetter%' " & vbCrLf & _
             "WHERE (DATEDIFF(" & qtAnf(FristS) & ", n.GebDat) > 70 * 365 OR NOT ISNULL(dd.ICD)) AND NOT ISNULL(pfl.inhalt) AND ISNULL(pfld.icd)" & vbCrLf & _
             "AND pfl.zeitpunkt >SUBDATE(" & qtAnf(FristS) & ",INTERVAL 3 MONTH) " & vbCrLf & _
@@ -1510,8 +1517,8 @@ sql(AWlf) = "" & _
             "LEFT JOIN namen n ON v.pat_id = n.pat_id " & vbCrLf & _
             "LEFT JOIN eintraege tug ON v.pat_id = tug.pat_id AND tug.art = 'TUG'  AND tug.zeitpunkt = (SELECT MAX(zeitpunkt) FROM eintraege WHERE pat_id = v.pat_id AND art = 'TUG')" & vbCrLf & _
             "LEFT JOIN eintraege adl ON v.pat_id = adl.pat_id AND adl.art = 'ADL'  AND adl.zeitpunkt = (SELECT MAX(zeitpunkt) FROM eintraege WHERE pat_id = v.pat_id AND art = 'ADL')" & vbCrLf & _
-            "LEFT JOIN diagnosen dd ON v.pat_id = dd.pat_id AND dd.gicdok RLIKE '^F0[0123]|^G20' " & vbCrLf & _
-            "LEFT JOIN diagnosen pfld ON v.pat_id = pfld.pat_id AND pfld.gicdok IN ('R26.8') " & vbCrLf & _
+            "LEFT JOIN diagview dd ON v.pat_id = dd.pat_id AND dd.gicd RLIKE '^F0[0-3]|^G20' " & vbCrLf & _
+            "LEFT JOIN diagview pfld ON v.pat_id = pfld.pat_id AND pfld.gicd IN ('R26.8') " & vbCrLf & _
             "LEFT JOIN eintraege pfl ON v.pat_id = pfl.pat_id AND pfl.art = 'TUG' AND (MID(pfl.inhalt,1,INSTR(pfl.inhalt,' ')) > 10) " & vbCrLf & _
             "WHERE (DATEDIFF(" & qtAnf(FristS) & ", n.GebDat) > 70 * 365 OR NOT ISNULL(dd.ICD)) AND NOT ISNULL(pfl.inhalt) AND ISNULL(pfld.icd)" & vbCrLf & _
             "AND pfl.zeitpunkt >SUBDATE(" & qtAnf(FristS) & ",INTERVAL 1 YEAR) " & vbCrLf & _
@@ -1532,8 +1539,8 @@ sql(AWlf) = "" & _
             "LEFT JOIN namen n ON v.pat_id = n.pat_id " & vbCrLf & _
             "LEFT JOIN eintraege tug ON v.pat_id = tug.pat_id AND tug.art = 'TUG'  AND tug.zeitpunkt = (SELECT MAX(zeitpunkt) FROM eintraege WHERE pat_id = v.pat_id AND art = 'TUG')" & vbCrLf & _
             "LEFT JOIN eintraege adl ON v.pat_id = adl.pat_id AND adl.art = 'ADL'  AND adl.zeitpunkt = (SELECT MAX(zeitpunkt) FROM eintraege WHERE pat_id = v.pat_id AND art = 'ADL')" & vbCrLf & _
-            "LEFT JOIN diagnosen dd ON v.pat_id = dd.pat_id AND dd.gicdok RLIKE '^F0[0123]|^G20' " & vbCrLf & _
-            "LEFT JOIN diagnosen pfld ON v.pat_id = pfld.pat_id AND pfld.gicdok IN ('R13.9') " & vbCrLf & _
+            "LEFT JOIN diagview dd ON v.pat_id = dd.pat_id AND dd.gicd RLIKE '^F0[0-3]|^G20' " & vbCrLf & _
+            "LEFT JOIN diagview pfld ON v.pat_id = pfld.pat_id AND pfld.gicd IN ('R13.9') " & vbCrLf & _
             "LEFT JOIN eintraege pfl ON v.pat_id = pfl.pat_id AND (pfl.inhalt LIKE '%schluckst%' OR pfl.inhalt LIKE '%dysphag%') " & vbCrLf & _
             "WHERE (DATEDIFF(" & qtAnf(FristS) & ", n.GebDat) > 70 * 365 OR NOT ISNULL(dd.ICD)) AND NOT ISNULL(pfl.inhalt) AND ISNULL(pfld.icd)" & vbCrLf & _
             "AND pfl.zeitpunkt >SUBDATE(" & qtAnf(FristS) & ",INTERVAL 1 YEAR) " & vbCrLf & _
@@ -1553,8 +1560,8 @@ sql(AWlf) = "" & _
             "LEFT JOIN namen n ON v.pat_id = n.pat_id " & vbCrLf & _
             "LEFT JOIN eintraege tug ON v.pat_id = tug.pat_id AND tug.art = 'TUG'  AND tug.zeitpunkt = (SELECT MAX(zeitpunkt) FROM eintraege WHERE pat_id = v.pat_id AND art = 'TUG')" & vbCrLf & _
             "LEFT JOIN eintraege adl ON v.pat_id = adl.pat_id AND adl.art = 'ADL'  AND adl.zeitpunkt = (SELECT MAX(zeitpunkt) FROM eintraege WHERE pat_id = v.pat_id AND art = 'ADL')" & vbCrLf & _
-            "LEFT JOIN diagnosen dd ON v.pat_id = dd.pat_id AND dd.gicdok RLIKE '^F0[0123]|^G20' " & vbCrLf & _
-            "LEFT JOIN diagnosen pfld ON v.pat_id = pfld.pat_id AND (pfld.gicdok IN ('Z74.9','G20.10','G20.20','R26.8','R29.6','R42','R32','R15','R13.9','R26.3','R41.0','R41.3','R52.2','F45.41','G30.9','F29','F32.9','F69','F79.9','R41.3','R63.4','R53','M62.50','R26.8','R68.8') OR pfld.gicdok RLIKE '^F0[012]')" & vbCrLf & _
+            "LEFT JOIN diagview dd ON v.pat_id = dd.pat_id AND dd.gicd RLIKE '^F0[0-3]|^G20' " & vbCrLf & _
+            "LEFT JOIN diagview pfld ON v.pat_id = pfld.pat_id AND (pfld.gicd IN ('Z74.9','G20.10','G20.20','R26.8','R29.6','R42','R32','R15','R13.9','R26.3','R41.0','R41.3','R52.2','F45.41','G30.9','F29','F32.9','F69','F79.9','R41.3','R63.4','R53','M62.50','R26.8','R68.8') OR pfld.gicd RLIKE '^F0[012]')" & vbCrLf & _
             "WHERE (DATEDIFF(" & qtAnf(FristS) & ", n.GebDat) > 70 * 365 OR NOT ISNULL(dd.ICD)) AND ISNULL(pfld.icd) " & vbCrLf & _
             "AND NOT ISNULL(tug.inhalt) AND NOT ISNULL(adl.inhalt) " & vbCrLf & _
             "GROUP BY pat_id;"
@@ -1579,13 +1586,13 @@ sql(AWlf) = "SELECT n.Pat_id, gesnameg(n.pat_id) Name,f.Schgr,KVNr,f.VKNr,ICD" &
             ",(SELECT COUNT(0) FROM eintraege WHERE pat_id=n.pat_id AND art NOT IN ('cia','c19i','vac','pa')) sonsteintr " & vbCrLf & _
             "FROM `namen` n  " & vbCrLf & _
             "LEFT JOIN `aktfvs` f ON f.pat_id = n.pat_id  " & vbCrLf & _
-            "LEFT JOIN `diagnosen` d ON d.pat_id = n.pat_id AND (d.gicdok RLIKE '^E1[0-4]|^O24\.4') " & vbCrLf & _
+            "LEFT JOIN `diagview` d ON d.pat_id = n.pat_id AND (d.gicd RLIKE '^E1[0-4]|^O24\.4') " & vbCrLf & _
             "WHERE n.kvnr IN ('') AND NOT ISNULL(f.pat_id) " & vbCrLf & _
             " AND f.SchGr NOT IN (41,44) AND f.VKNr <> 71800 " & vbCrLf & _
              "AND (" & vbCrLf & _
-              "NOT EXISTS (SELECT 0 FROM diagnosen WHERE pat_id=n.pat_id AND gicdok = 'Z26.9')" & vbCrLf & _
+              "NOT EXISTS (SELECT 0 FROM diagview WHERE pat_id=n.pat_id AND gicd = 'Z26.9')" & vbCrLf & _
                "OR (" & vbCrLf & _
-                "EXISTS (SELECT 0 FROM diagnosen WHERE pat_id=n.pat_id AND NOT ((icd IN ('Z26.9','I10.90') AND diagsicherheit IN ('G',' ','V')) OR (icd IN ('U07.1') AND diagsicherheit IN ('G',' ','Z'))) )" & vbCrLf & _
+                "EXISTS (SELECT 0 FROM diagview WHERE pat_id=n.pat_id AND NOT ((gicd IN ('Z26.9','I10.90')) OR (gicd IN ('U07.1') )) )" & vbCrLf & _
                 "AND" & vbCrLf & _
                 "EXISTS (SELECT 0 FROM leistungen WHERE pat_id=n.pat_id AND zeitpunkt BETWEEN qanf() AND qend() AND leistung NOT RLIKE '^883|^0300|^00000|^99215')" & vbCrLf & _
                ")" & vbCrLf & _
@@ -1707,8 +1714,8 @@ sql(AWlf) = "ü"
  "SELECT f.pat_id, gesname(f.pat_id) Name, a.`diabetes seit` dseit, vorgestellt, " & vbCrLf & _
  "d.ICD " & vbCrLf & _
  "FROM aktfvs f LEFT JOIN anamnesebogen a ON f.pat_id = a.pat_id " & vbCrLf & _
- "LEFT JOIN `diagnosen` d " & vbCrLf & _
- " ON d.pat_id = f.pat_id AND d.obdauer <> 0 AND d.gicdok REGEXP '^E1[0-4]\.' ) i " & vbCrLf & _
+ "LEFT JOIN `diagview` d " & vbCrLf & _
+ " ON d.pat_id = f.pat_id AND d.obdauer <> 0 AND d.gicd REGEXP '^E1[0-4]\.' ) i " & vbCrLf & _
  "WHERE NOT CAST(dseit AS DECIMAL) BETWEEN YEAR(NOW())-90 AND YEAR(NOW()) AND zudatum(i.dseit,i.vorgestellt) =i.vorgestellt AND NOT dseit RLIKE '^[0123456789.]{1,2}\.[0123456789.]{1,2}.[0123456789.]{2,4}$' AND NOT ISNULL(icd) "
  mins(AWlf) = 7
  maxs(AWlf) = 20
@@ -1797,11 +1804,11 @@ sql(AWlf) = "" & vbCrLf & _
 "SELECT f.pat_id, gesname(f.pat_id),dm.icd Dm,ni.icd NI,ne.icd Nephr, copd.icd COPD, ri.icd RI, k.name Kasse " & vbCrLf & _
 "FROM aktfvs f " & vbCrLf & _
 "LEFT JOIN kassenliste k ON f.vknr=k.vknr AND f.ik=k.ik " & vbCrLf & _
-"LEFT JOIN diagnosen dm ON f.pat_id = dm.pat_id AND dm.gicdok RLIKE '^E1[013]\.2[01]|^E1[013]\.7[23]' " & vbCrLf & _
-"LEFT JOIN diagnosen ni ON f.pat_id = ni.pat_id AND ni.gicdok RLIKE '^N18\.[12]' " & vbCrLf & _
-"LEFT JOIN diagnosen ne ON f.pat_id = ne.pat_id AND ne.gicdok = 'N08.3'" & vbCrLf & _
-"LEFT JOIN diagnosen copd ON f.pat_id = copd.pat_id AND copd.gicdok RLIKE '^J44\.[018][01]'" & vbCrLf & _
-"LEFT JOIN diagnosen ri ON f.pat_id = ri.pat_id AND ri.gicdok RLIKE '^J96\.1[019]')" & vbCrLf & _
+"LEFT JOIN diagview dm ON f.pat_id = dm.pat_id AND dm.gicd RLIKE '^E1[013]\.2[01]|^E1[013]\.7[23]' " & vbCrLf & _
+"LEFT JOIN diagview ni ON f.pat_id = ni.pat_id AND ni.gicd RLIKE '^N18\.[12]' " & vbCrLf & _
+"LEFT JOIN diagview ne ON f.pat_id = ne.pat_id AND ne.gicd = 'N08.3'" & vbCrLf & _
+"LEFT JOIN diagview copd ON f.pat_id = copd.pat_id AND copd.gicd RLIKE '^J44\.[018][01]'" & vbCrLf & _
+"LEFT JOIN diagview ri ON f.pat_id = ri.pat_id AND ri.gicd RLIKE '^J96\.1[019]')" & vbCrLf & _
 "LEFT JOIN leistungen l ON l.fid = f.fid AND l.leistung = '99300' " & vbCrLf & _
 "WHERE ((NOT ISNULL(dm.icd) AND NOT ISNULL(ni.icd)) " & vbCrLf & _
 "   OR (NOT ISNULL(copd.icd) AND NOT ISNULL(ri.icd))) " & vbCrLf & _
@@ -2149,7 +2156,7 @@ sql(AWlf) = _
 "(SELECT * FROM " & vbCrLf & _
 "(SELECT f.pat_id AS pat_id, gesnameg(f.pat_id) Name, DATEDIFF(" & qtAnf(FristS) & ", n.gebdat) div 365.24 `Alter[a]`, l.leistung AS Leistung, icd, dmpklass, REPLACE(REPLACE(notiz,char(13),''),char(10),'') Notiz, kateg, schgr, Therakt, Ther1  FROM " & aktf & " " & vbCrLf & _
 "LEFT JOIN (SELECT fid,leistung FROM `leistungen` WHERE leistung IN (" & BetrPausch & ")) AS l ON f.fid = l.fid " & vbCrLf & _
-"LEFT JOIN `diagnosen` d ON (f.pat_id = d.pat_id AND d.obdauer <> 0 ) AND gicdok RLIKE '^E1[0-4]\.' " & vbCrLf & _
+"LEFT JOIN `diagview` d ON (f.pat_id = d.pat_id AND d.obdauer <> 0) AND gicd RLIKE '^E1[0-4]\.' " & vbCrLf & _
 "LEFT JOIN `kassenliste` kl ON f.vknr = kl.vknr AND f.ik=kl.ik" & vbCrLf & _
 "LEFT JOIN `namen` n ON f.pat_id = n.pat_id " & vbCrLf & _
 "LEFT JOIN `anamnesebogen` a ON f.pat_id = a.pat_id " & vbCrLf & _
@@ -2242,9 +2249,9 @@ sql(AWlf) = _
 "       FROM aktfvs f " & vbCrLf & _
 "       LEFT JOIN namen n USING (pat_id) " & vbCrLf & _
 "       LEFT JOIN kassenliste kl ON f.vknr=kl.vknr AND f.ik=kl.ik " & vbCrLf & _
-"       LEFT JOIN diagnosen d USING (pat_id) " & vbCrLf & _
+"       LEFT JOIN diagview d USING (pat_id) " & vbCrLf & _
 "       LEFT JOIN leistungen l ON l.fid=f.fid AND l.leistung IN (" & BetrPausch & ") " & vbCrLf & _
-"       WHERE d.obdauer <> 0 AND d.gicdok LIKE 'E10%' " & vbCrLf & _
+"       WHERE d.obdauer <> 0 AND d.gicd LIKE 'E10%' " & vbCrLf & _
 "         AND (((dmpklass=2 OR (dmpklass=3 AND dmpbeg<=qend()))) OR kl.kateg IN ('LKK','PBe')) " & vbCrLf & _
 "       GROUP BY l.id " & vbCrLf & _
 "     ) i " & vbCrLf & _
@@ -2430,10 +2437,10 @@ sql(AWlf) = _
  " LEFT JOIN eintraege e ON e.pat_id=f.pat_id AND e.zeitpunkt BETWEEN qanf() AND qend() AND (e.inhalt LIKE '%ebrid%' OR e.art LIKE 'debr%' OR (e.inhalt LIKE '%resekt%' AND NOT e.inhalt RLIKE 'Leber.*rese[ck]t|Gebärmutterrese|Segmentresekt|Teilresekt|Linksresekt|Totalresekt|Prostataresekt|SD-resekt|Mucosaresektion|Nachresektion|Resektion der Schild|Strumaresekt|Schilddrüsenresekt|Gallenblase[n]{0,1}resektion|Elektroresektion|wurzelresektion|Nierenresektion|Pan[ck]reas.*resektion|trumektomie|igmaresektion|Resektion Leberzyste|Resektionsbereich|Pan[ck]reaskopfresektion|Re[ck]tumrese[ck]t|Rese[ck]tion Lunge'))" & vbCrLf & _
  " LEFT JOIN eintraege fu ON fu.pat_id=f.pat_id AND fu.zeitpunkt BETWEEN qanf() AND qend() AND fu.Art RLIKE 'fuss|fuß|usdm|ulcus'" & vbCrLf & _
  " LEFT JOIN eintraege u ON u.pat_id=f.pat_id AND u.zeitpunkt BETWEEN qanf() AND qend() AND u.Art = 'ulcus'" & vbCrLf & _
- " LEFT JOIN diagnosen d ON d.pat_id=f.pat_id AND d.obdauer<>0 AND d.gICDok REGEXP '^E1[0-4]\.'" & vbCrLf & _
- " LEFT JOIN diagnosen n ON n.pat_id=f.pat_id AND n.obdauer<>0 AND n.gICDok = 'G63.2'" & vbCrLf & _
- " LEFT JOIN diagnosen wc ON wc.pat_id=f.pat_id AND wc.obdauer<>0 AND wc.ICD RLIKE 'L89' AND wc.diagsicherheit IN ('G',' ','Z')" & vbCrLf & _
- " LEFT JOIN diagnosen wa ON wa.pat_id=f.pat_id AND wa.obdauer=0 AND wa.gICDok RLIKE 'L89' AND wa.diagdatum BETWEEN qanf() AND qend()" & vbCrLf & _
+ " LEFT JOIN diagview d ON d.pat_id=f.pat_id AND d.obdauer<>0 AND d.gICD REGEXP '^E1[0-4]\.'" & vbCrLf & _
+ " LEFT JOIN diagview n ON n.pat_id=f.pat_id AND n.obdauer<>0 AND n.gICD = 'G63.2'" & vbCrLf & _
+ " LEFT JOIN diagview wc ON wc.pat_id=f.pat_id AND wc.obdauer<>0 AND wc.ICD RLIKE 'L89' AND wc.diagsicherheit IN ('G',' ','Z')" & vbCrLf & _
+ " LEFT JOIN diagview wa ON wa.pat_id=f.pat_id AND wa.obdauer=0 AND wa.gICD RLIKE 'L89' AND wa.diagdatum BETWEEN qanf() AND qend()" & vbCrLf & _
  " LEFT JOIN rezepteintraege r ON r.pat_id=f.pat_id AND r.rezkllang IN ('Langrezepteintrag','Heilmittelverordnung') AND r.medikament RLIKE 'podo|bettu|therapies|ortho[np]'" & vbCrLf & _
  " LEFT JOIN rezepteintraege ra ON ra.pat_id=f.pat_id AND ra.rezkllang IN ('Langrezepteintrag','Heilmittelverordnung') AND ra.medikament RLIKE 'podo|bettu|therapies|ortho[np]' AND ra.zeitpunkt BETWEEN qanf() AND qend()" & vbCrLf & _
  " GROUP BY f.pat_id" & vbCrLf & _
@@ -2528,7 +2535,7 @@ sql(AWlf) = _
 "  LEFT JOIN (SELECT pat_id,qdm QD,INSTR(name,' WA ') Fpos,Name FROM briefe) b ON b.pat_id = f.pat_id AND b.QD BETWEEN qanf() AND qend() AND b.Fpos<>0 AND MID(b.name,b.Fpos+4,1)<>'-' AND MID(b.name,b.Fpos+4,2) NOT IN ('0A','0B','0C','1A','2A') " & vbCrLf
 ' AND COALESCE(d.f6010,0)=0
 sql(AWlf) = sql(AWlf) & _
-"  LEFT JOIN diagnosen d ON d.pat_id=f.pat_id AND d.gicdok RLIKE '^E1[0-4]' " & vbCrLf & _
+"  LEFT JOIN diagview d ON d.pat_id=f.pat_id AND d.gicd RLIKE '^E1[0-4]' " & vbCrLf & _
 "  LEFT JOIN eintraege wv ON wv.pat_id=f.pat_id AND wv.art='wv' AND DATE(wv.zeitpunkt)=QD " & vbCrLf & _
 "  LEFT JOIN eintraege kv ON kv.pat_id=f.pat_id AND kv.art='kv' AND DATE(kv.zeitpunkt)=QD " & vbCrLf & _
 "  LEFT JOIN (SELECT leistung lei,fid,DATE(zeitpunkt) zp,SUM(lzahl) z FROM leistungen WHERE leistung IN ('02311','02312') GROUP BY pat_id,leistung,DATE(zeitpunkt)) lf ON lf.fid=f.fid AND lf.zp=b.qd " & vbCrLf & _
@@ -2651,8 +2658,8 @@ sql(AWlf) = _
  "LEFT JOIN `leistungen` pat_l ON pat_l.leistung LIKE '0322%' AND pat_l.zeitpunkt BETWEEN " & lQAnfuEnd(FristS) & " AND pat_l.pat_id = f.pat_id " & vbCrLf & _
  "LEFT JOIN `anamnesebogen` a ON f.pat_id = a.pat_id " & vbCrLf & _
  "LEFT JOIN `faelle` MSchGr ON f.pat_id = MSchGr.pat_id AND MSchGr.quartal = '" & AktQ & "' " & vbCrLf & _
- "LEFT JOIN `diagnosen` d ON d.pat_id = f.pat_id AND (d.obdauer <> 0 OR d.diagdatum BETWEEN " & lQAnfuEnd(FristS) & ") AND d.icd REGEXP '^E1[0-4]\.' AND d.diagsicherheit <> 'A'" & vbCrLf & _
- "LEFT JOIN `diagnosen` dg ON dg.pat_id = f.pat_id AND (dg.obdauer <> 0 OR dg.diagdatum BETWEEN " & lQAnfuEnd(FristS) & ") AND dg.gicdok = 'O24.4'" & vbCrLf & _
+ "LEFT JOIN `diagview` d ON d.pat_id = f.pat_id AND (d.obdauer <> 0 OR d.diagdatum BETWEEN " & lQAnfuEnd(FristS) & ") AND d.icd REGEXP '^E1[0-4]\.' AND d.diagsicherheit <> 'A'" & vbCrLf & _
+ "LEFT JOIN `diagview` dg ON dg.pat_id = f.pat_id AND (dg.obdauer <> 0 OR dg.diagdatum BETWEEN " & lQAnfuEnd(FristS) & ") AND dg.gicd = 'O24.4'" & vbCrLf & _
  "LEFT JOIN `namen` n ON f.pat_id = n.pat_id " & vbCrLf & _
  "GROUP BY f.fid ORDER BY gl.leistung DESC) AS innen WHERE kontakte > 1) AS innen " & vbCrLf & _
  "WHERE " & vbCrLf & _
@@ -2718,9 +2725,9 @@ sql(AWlf) = sql(AWlf) & vbCrLf & _
 ", GROUP_CONCAT(DISTINCT CONCAT(sd.icd,sd.diagsicherheit,sd.f6010,sd.obdauer,' ',sd.diagtext)) sonst " & vbCrLf & _
 ", LANRID, DATE(LETZT) LEIDAT " & vbCrLf & _
 "FROM aktfkvs f " & vbCrLf & _
-"LEFT JOIN diagnosen d ON d.pat_id=f.pat_id AND d.gicdok RLIKE '^E78\.0|^E03.9|^I87.0|^F17.1|^E27\.1|^D35\.2|^L20|^E66\.9|^T78\.[134]|^K74|^I[1234567]\.|^I0[56789]\.|^E1[0-4]\.|^E[234589]\.|^E0[356]\.|^M|^N80|^K5[01]|^C|^J4|^E78\.0|^D50|^D68|^R52.2|^I89.0|^D6[34]|^F[^1]\.|^G' AND NOT d.gicdok RLIKE '^M6[5678]\.' AND (d.obdauer <> 0 OR d.diagdatum BETWEEN " & lQAnfuEnd(FristS) & ") " & vbCrLf & _
-"LEFT JOIN diagnosen gd ON gd.fid=f.fid AND gd.gicdok RLIKE 'O24.4' " & vbCrLf & _
-"LEFT JOIN diagnosen sd ON sd.pat_id=f.pat_id AND sd.diagsicherheit NOT IN ('A','Z') " & vbCrLf & _
+"LEFT JOIN diagview d ON d.pat_id=f.pat_id AND d.gicd RLIKE '^E78\.0|^E03.9|^I87.0|^F17.1|^E27\.1|^D35\.2|^L20|^E66\.9|^T78\.[134]|^K74|^I[1234567]\.|^I0[56789]\.|^E1[0-4]\.|^E[234589]\.|^E0[356]\.|^M|^N80|^K5[01]|^C|^J4|^E78\.0|^D50|^D68|^R52.2|^I89.0|^D6[34]|^F[^1]\.|^G' AND NOT d.gicd RLIKE '^M6[5-8]\.' AND (d.obdauer <> 0 OR d.diagdatum BETWEEN " & lQAnfuEnd(FristS) & ") " & vbCrLf & _
+"LEFT JOIN diagview gd ON gd.fid=f.fid AND gd.gicd RLIKE 'O24.4' " & vbCrLf & _
+"LEFT JOIN diagview sd ON sd.pat_id=f.pat_id AND sd.diagsicherheit NOT IN ('A','Z') " & vbCrLf & _
 "GROUP BY f.pat_id) i " & vbCrLf & _
 ") i " & vbCrLf & _
 "WHERE F0<>'' OR F1<>'' ;"
@@ -2764,8 +2771,8 @@ sql(AWlf) = sql(AWlf) & _
 "LEFT JOIN (SELECT GROUP_CONCAT(leistung) lst, fid FROM `leistungen` WHERE leistung = '97146' GROUP BY fid) pat_zl ON f.fid = pat_zl.fid " & vbCrLf & _
 "LEFT JOIN `maxHbA1c` mH ON f.pat_id = mH.pat_id " & vbCrLf & _
 "LEFT JOIN `maxGluc` mG ON f.pat_id = mG.pat_id " & vbCrLf & _
-"LEFT JOIN (SELECT MIN(icd) icd,pat_id,obdauer,diagdatum,diagsicherheit FROM `diagnosen` d WHERE (d.icd RLIKE '^L20' OR d.icd RLIKE '^E66\.9' OR d.icd IN ('T78.4', 'T78.3', 'T78.1') OR d.icd LIKE 'K74%' OR d.icd REGEXP '^I[1234567]\.' OR d.icd REGEXP '^I0[56789]\.' OR d.icd REGEXP '^E1[0-4]\.' OR d.icd RLIKE '^E[234589]\.' OR d.icd RLIKE '^E0[356]\.' OR (d.icd LIKE 'M%' AND NOT d.icd RLIKE '^M6[5678]\.') OR d.icd LIKE 'N80%' OR d.icd LIKE 'K51%' OR d.icd LIKE 'K50%' OR d.icd LIKE 'C%' OR d.icd LIKE 'J4%' OR d.icd = 'E78.0' OR d.icd LIKE 'D50%' OR d.icd LIKE 'D68%' OR d.icd LIKE 'R52.2%' OR d.icd LIKE 'I89.0' OR d.icd LIKE 'D63%' OR icd LIKE 'D64%' OR d.icd REGEXP '^F[^1]\.' OR d.icd LIKE 'G%') AND d.diagsicherheit NOT IN ('A','V') AND (d.obdauer <> 0 OR d.diagdatum BETWEEN " & lQAnfuEnd(FristS) & ") GROUP BY pat_id) d ON d.pat_id = f.pat_id " & vbCrLf & _
-"LEFT JOIN (SELECT MIN(icd) icd,pat_id,obdauer,diagdatum,diagsicherheit FROM `diagnosen` d WHERE d.gicdok = 'O24.4' AND (d.obdauer <> 0 OR d.diagdatum BETWEEN " & lQAnfuEnd(FristS) & ") GROUP BY pat_id) dg ON dg.pat_id = f.pat_id " & vbCrLf & _
+"LEFT JOIN (SELECT MIN(icd) icd,pat_id,obdauer,diagdatum,diagsicherheit FROM `diagnosen` d WHERE (d.icd RLIKE '^L20' OR d.icd RLIKE '^E66\.9' OR d.icd IN ('T78.4', 'T78.3', 'T78.1') OR d.icd LIKE 'K74%' OR d.icd REGEXP '^I[1-7]\.' OR d.icd REGEXP '^I0[5-9]\.' OR d.icd REGEXP '^E1[0-4]\.' OR d.icd RLIKE '^E[234589]\.' OR d.icd RLIKE '^E0[356]\.' OR (d.icd LIKE 'M%' AND NOT d.icd RLIKE '^M6[5678]\.') OR d.icd LIKE 'N80%' OR d.icd LIKE 'K51%' OR d.icd LIKE 'K50%' OR d.icd LIKE 'C%' OR d.icd LIKE 'J4%' OR d.icd = 'E78.0' OR d.icd LIKE 'D50%' OR d.icd LIKE 'D68%' OR d.icd LIKE 'R52.2%' OR d.icd LIKE 'I89.0' OR d.icd LIKE 'D63%' OR icd LIKE 'D64%' OR d.icd REGEXP '^F[^1]\.' OR d.icd LIKE 'G%') AND d.diagsicherheit NOT IN ('A','V') AND (d.obdauer <> 0 OR d.diagdatum BETWEEN " & lQAnfuEnd(FristS) & ") GROUP BY pat_id) d ON d.pat_id = f.pat_id " & vbCrLf & _
+"LEFT JOIN (SELECT MIN(icd) icd,pat_id,obdauer,diagdatum,diagsicherheit FROM `diagview` d WHERE d.gicd = 'O24.4' AND (d.obdauer <> 0 OR d.diagdatum BETWEEN " & lQAnfuEnd(FristS) & ") GROUP BY pat_id) dg ON dg.pat_id = f.pat_id " & vbCrLf & _
 "GROUP BY f.pat_id) i WHERE ( "
  sql(AWlf) = sql(AWlf) & _
 "((ISNULL(ICDchr) AND (NOT ISNULL(GD) OR ((ISNULL(mHbA1c) OR mHbA1c<6.5) AND (ISNULL(mGluc) OR mGluc<200)))) AND NOT ISNULL(cp)) OR " & vbCrLf & _
@@ -2847,7 +2854,7 @@ sql(AWlf) = _
 " , MIN(fÜw) fÜw, P_DMP, GROUP_CONCAT(DISTINCT L_DMP SEPARATOR '/') L_DMP, MIN(fDMP) fDMP, KName " & vbCrLf & _
 "FROM ( " & vbCrLf & _
 "  SELECT f.Pat_id, gesname(f.pat_id) Name,patAlter(f.pat_id) PAlter, l.id LID, l.Zeitpunkt, l.Leistung, maxtha(f.pat_id) Therakt, g.Therarten " & vbCrLf & _
-"  , IF(therarten<>'' AND INSTR(therarten,REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(maxtha(f.pat_id),_utf8mb4'?',_utf8mb4''),_utf8mb4'GLP1ICT',_utf8mb4'ICT'),_utf8mb4'GLP1Ins',_utf8mb4'Komb'),_utf8mb4'GLP1',_utf8mb4'OAD'),_utf8mb4'Komb',IF(d.icd RLIKE '^E10',_utf8mb4'ICT',_utf8mb4'Komb')))=0 AND NOT (d.gICDok = 'O24.4' AND l.leistung=97271),'FTh!','') fTha " & vbCrLf & _
+"  , IF(therarten<>'' AND INSTR(therarten,REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(maxtha(f.pat_id),_utf8mb4'?',_utf8mb4''),_utf8mb4'GLP1ICT',_utf8mb4'ICT'),_utf8mb4'GLP1Ins',_utf8mb4'Komb'),_utf8mb4'GLP1',_utf8mb4'OAD'),_utf8mb4'Komb',IF(d.icd RLIKE '^E10',_utf8mb4'ICT',_utf8mb4'Komb')))=0 AND NOT (d.gICD = 'O24.4' AND l.leistung=97271),'FTh!','') fTha " & vbCrLf & _
 "  , dmtypicd(d.icd) P_DTyp, GROUP_CONCAT(DISTINCT g.DTyp) DTyp, g.leistung gleistung, myid " & vbCrLf & _
 "  ,IF(k.kateg='EK','vdek',IF(k.kateg='',k.name,k.kateg)) Kasse, GROUP_CONCAT(DISTINCT g.Kassen) Kassen, IF(k.name='',k.kurzname,k.name) KName " & vbCrLf & _
 "  ,IF(l.lanr='889690003','Schade',IF(l.lanr='933284903','Kothny',l.lanr)) P_Arzt " & vbCrLf & _
@@ -2863,7 +2870,7 @@ sql(AWlf) = sql(AWlf) & _
 "LEFT JOIN `namen` n ON f.pat_id = n.pat_id " & vbCrLf & _
 "LEFT JOIN `kassenliste` k ON f.vknr = k.vknr AND f.ik = k.ik " & vbCrLf & _
 "LEFT JOIN `leistungen` l ON l.pat_id = f.pat_id AND l.zeitpunkt BETWEEN qanf() AND qend() " & vbCrLf & _
-"LEFT JOIN `diagnosen` d ON d.pat_id = f.pat_id AND d.diagsicherheit IN (' ','G','V') AND icd RLIKE '^E1[0-4]|^O24\.4' AND (obdauer<>0 OR d.fid = f.fid OR d.fid=0 OR ISNULL(d.fid)) " & vbCrLf & _
+"LEFT JOIN `diagview` d ON d.pat_id = f.pat_id AND d.diagsicherheit IN (' ','G','V') AND icd RLIKE '^E1[0-4]|^O24\.4' AND (obdauer<>0 OR d.fid = f.fid OR d.fid=0 OR ISNULL(d.fid)) " & vbCrLf & _
 "LEFT JOIN `anamnesebogen` an ON f.pat_id = an.pat_id " & vbCrLf & _
 "LEFT JOIN `genehmigungen` g ON l.leistung = g.leistung AND (dmtypicd(d.icd) = g.dtyp OR ISNULL(g.dtyp) OR g.dtyp=' ') " & vbCrLf & _
 "WHERE l.leistung IN (SELECT leistung FROM `genehmigungen`) GROUP BY pat_id, lid, myid) i " & vbCrLf & _
@@ -3330,7 +3337,7 @@ AWlf = AWlf + 1
 "INNER JOIN (SELECT leistung FROM genehmigungen WHERE obschulung=2 GROUP BY leistung) g ON l.leistung=g.leistung" & vbCrLf & _
 "LEFT JOIN sws on sws.pat_id=l.pat_id AND sws.voret>l.zeitpunkt" & vbCrLf & _
 "LEFT JOIN anb_neuman n ON n.pat_id=l.pat_id" & vbCrLf & _
-"LEFT JOIN (SELECT pat_id,IF(icd RLIKE '^E',MID(icd,3,1)+1,'g') dmtyp FROM diagnosen WHERE ((gICDok RLIKE '^E1[0-4]\.' AND obdauer<>0) OR (gICDok='O24.4' AND obdauer=0)) GROUP BY pat_id) d ON d.pat_id=l.pat_id" & vbCrLf & _
+"LEFT JOIN (SELECT pat_id,IF(icd RLIKE '^E',MID(icd,3,1)+1,'g') dmtyp FROM diagview WHERE ((gICD RLIKE '^E1[0-4]\.' AND obdauer<>0) OR (gICD='O24.4' AND obdauer=0)) GROUP BY pat_id) d ON d.pat_id=l.pat_id" & vbCrLf & _
 "WHERE l.zeitpunkt BETWEEN qanf() AND qend()" & vbCrLf & _
 "ORDER BY l.pat_id, l.zeitpunkt;"
  
@@ -3373,7 +3380,7 @@ sql(AWlf) = "SELECT f.pat_id " & vbCrLf & _
 ", IF (ROW_NUMBER() OVER (PARTITION BY f.pat_id ORDER BY e.zeitpunkt)=1, " & vbCrLf & _
 "   (SELECT COALESCE(GROUP_CONCAT(DISTINCT leistung SEPARATOR ' '),'') FROM genehmigungen WHERE obschulung=2 " & vbCrLf & _
 "      AND patalter(f.pat_id) BETWEEN von AND bis " & vbCrLf & _
-"      AND (kht<>2 OR ISNULL((SELECT MAX(0) FROM diagnosen WHERE pat_id=f.pat_id AND gICDok='I10.90' AND obdauer<>0))) " & vbCrLf & _
+"      AND (kht<>2 OR ISNULL((SELECT MAX(0) FROM diagview WHERE pat_id=f.pat_id AND gICD='I10.90' AND obdauer<>0))) " & vbCrLf & _
 "      AND INSTR(kassen,f.kateg)<>0 " & vbCrLf & _
 "     AND (INSTR(erklärung,'DMP')=0 OR ((n.dmpklass=2 OR (n.dmpklass=3 AND n.dmpbeg<=qend())))) " & vbCrLf & _
 "     AND dtyp=dt.ityp " & vbCrLf & _
@@ -3384,7 +3391,7 @@ sql(AWlf) = sql(AWlf) & _
 ", IF (ROW_NUMBER() OVER (PARTITION BY f.pat_id ORDER BY e.zeitpunkt)=1, " & vbCrLf & _
 "   (SELECT COALESCE(GROUP_CONCAT(DISTINCT leistung SEPARATOR ' '),'') FROM genehmigungen WHERE obschulung=2 " & vbCrLf & _
 "      AND patalter(f.pat_id) BETWEEN von AND bis " & vbCrLf & _
-"      AND (kht<>2 OR ISNULL((SELECT MAX(0) FROM diagnosen WHERE pat_id=f.pat_id AND gICDok='I10.90' AND obdauer<>0))) " & vbCrLf & _
+"      AND (kht<>2 OR ISNULL((SELECT MAX(0) FROM diagview WHERE pat_id=f.pat_id AND gICD='I10.90' AND obdauer<>0))) " & vbCrLf & _
 "      AND INSTR(kassen,f.kateg)<>0 " & vbCrLf & _
 "     AND (INSTR(erklärung,'DMP')=0 OR ((n.dmpklass=2 OR (n.dmpklass=3 AND n.dmpbeg<=qend())))) " & vbCrLf & _
 "     AND dtyp=dt.ityp " & vbCrLf & _
@@ -3533,8 +3540,8 @@ sql(AWlf) = _
 "LEFT JOIN leistungen l ON l.Pat_ID=f.pat_id AND l.leistung IN (SELECT leistung FROM genehmigungen WHERE obschulung<>0) AND l.zeitpunkt BETWEEN qanf() AND qend()" & vbCrLf & _
 "LEFT JOIN sws on sws.pat_id=f.pat_id AND sws.voret>qanf()" & vbCrLf & _
 "LEFT JOIN anb_neuman n ON n.pat_id=f.pat_id" & vbCrLf & _
-"LEFT JOIN (SELECT pat_id,IF(icd RLIKE '^E',MID(icd,3,1)+1,'g') dmtyp FROM diagnosen" & vbCrLf & _
-"           WHERE ((gICDok RLIKE '^E1[0-4]\.' AND obdauer<>0) OR (gICDok='O24.4' AND obdauer=0)) GROUP BY pat_id) d" & vbCrLf & _
+"LEFT JOIN (SELECT pat_id,IF(icd RLIKE '^E',MID(icd,3,1)+1,'g') dmtyp FROM diagview" & vbCrLf & _
+"           WHERE ((gICD RLIKE '^E1[0-4]\.' AND obdauer<>0) OR (gICD='O24.4' AND obdauer=0)) GROUP BY pat_id) d" & vbCrLf & _
 "           ON d.pat_id=f.pat_id" & vbCrLf & _
 "GROUP BY f.pat_id" & vbCrLf & _
 "HAVING ((VorET<>'' AND dmtyp IN ('1','2')) OR (obneu AND dmtyp='1') OR (dmtyp='g' AND koz>2)) AND lzp<>czp" & vbCrLf & _
@@ -3582,7 +3589,7 @@ sql(AWlf) = sql(AWlf) & _
 "CAST(COALESCE((SELECT SUM(lzahl) FROM leistungen l WHERE l.pat_id=f.pat_id AND l.leistung='9767B' AND l.zeitpunkt BETWEEN 20000101 AND IF(" & qtEnd(FristS) & "<et.voret," & qtEnd(FristS) & ",et.voret)),0) AS char CHARACTER SET utf8) `g9767B` " & vbCrLf & _
 "FROM aktfvs f " & vbCrLf & _
 "LEFT JOIN (SELECT IF(LR=18991230,IF(efLR=18991230,IF(erLR=18991230,voret-INTERVAL 280 day,erlr),efLR),LR) letzteRegel, voret,pat_id FROM sws) et ON et.Pat_ID=f.pat_id AND et.voret>qanf()" & vbCrLf & _
-"LEFT JOIN diagnosen d ON f.pat_id=d.pat_id AND d.gicdok='O24.4' AND d.diagdatum BETWEEN " & lQAnfuEnd(FristS) & " " & vbCrLf & _
+"LEFT JOIN diagview d ON f.pat_id=d.pat_id AND d.gicd='O24.4' AND d.diagdatum BETWEEN " & lQAnfuEnd(FristS) & " " & vbCrLf & _
 "WHERE NOT ISNULL(d.icd)) i " & vbCrLf & _
 "ORDER BY (SELECT IF(MAX(insart)AND NOT ISNULL(MAX(insart)),'x','') FROM therarten t WHERE t.pat_id=i.pat_id AND t.zp BETWEEN qbeg(i.letzteRegel) AND " & qtEnd(FristS) & "), TherArt, pat_id;"
 ' "(SELECT IF(instr(GROUP_CONCAT(DISTINCT insart),'1')<>0 OR instr(GROUP_CONCAT(DISTINCT insart),'4')<>0,'ICT',IF(instr(GROUP_CONCAT(DISTINCT insart),'2')<>0,'Basal','Diät'))  FROM therarten t WHERE t.pat_id=f.pat_id AND t.zp BETWEEN qbeg(str_to_date(et.letzteRegel,'%d.%m.%Y')) AND " & qtEnd(FristS) & ") TherArt, " & vbCrLf & _
@@ -3725,7 +3732,7 @@ sql(AWlf) = vbCrLf & _
  "SELECT f.pat_id, gesname(f.pat_id) Name,d.icd,f.kateg " & vbCrLf & _
  ", COALESCE((SELECT SUM(lzahl) FROM leistungen WHERE leistung='97333' AND pat_id=f.pat_id AND zeitpunkt BETWEEN " & lQAnfuEnd(FristS) & "),0) `Zahl 97333` " & vbCrLf & _
  "FROM aktfv f " & vbCrLf & _
- "LEFT JOIN `diagnosen` d ON f.pat_id = d.pat_id AND gicdok LIKE 'O24.4%' AND diagdatum BETWEEN  " & lQAnfuEnd(FristS) & " " & vbCrLf & _
+ "LEFT JOIN `diagview` d ON f.pat_id = d.pat_id AND gicd LIKE 'O24.4%' AND diagdatum BETWEEN  " & lQAnfuEnd(FristS) & " " & vbCrLf & _
  "WHERE NOT ISNULL(d.ICD) AND f.kateg not IN ('SHV')" & vbCrLf & _
  "HAVING `Zahl 97333`<>2;"
 ' sql(AWlf) = _
@@ -3764,8 +3771,8 @@ sql(AWlf) = vbCrLf & _
  "     e.inhalt, dk.name DokName, dk.qdm DkZp, f.fid " & vbCrLf & _
  " FROM `aktfvs` f " & vbCrLf & _
  " LEFT JOIN sws et ON et.pat_id=f.pat_id AND et.voret>qanf()" & vbCrLf & _
- " LEFT JOIN `diagnosen` ddm ON f.Pat_id = ddm.pat_id AND ddm.gicdok RLIKE '^E1[0-4]\.' " & vbCrLf & _
- " LEFT JOIN `diagnosen` dgd ON f.fid = dgd.fid AND dgd.gicdok LIKE 'O24%' " & vbCrLf & _
+ " LEFT JOIN `diagview` ddm ON f.Pat_id = ddm.pat_id AND ddm.gicd RLIKE '^E1[0-4]\.' " & vbCrLf & _
+ " LEFT JOIN `diagview` dgd ON f.fid = dgd.fid AND dgd.gicd LIKE 'O24%' " & vbCrLf & _
  " LEFT JOIN namen n ON f.pat_id = n.pat_id "
  sql(AWlf) = sql(AWlf) & vbCrLf & _
  " LEFT JOIN `eintraege` e ON f.pat_id = e.pat_id AND e.inhalt RLIKE 'Wohlempfinden|schwanger' AND NOT e.inhalt RLIKE 'war.*schwanger|schwangerschaft|schwanger werden|nicht schwanger|schwanger war|schwanger zu werden|Gattin schwanger' AND e.zeitpunkt BETWEEN qanf() AND qend()" & vbCrLf & _
@@ -3815,7 +3822,7 @@ sql(AWlf) = vbCrLf & _
 ",COALESCE((SELECT SUM(lzahl) FROM leistungen l WHERE f.pat_id=l.pat_id AND l.leistung='03003' AND l.zeitpunkt BETWEEN " & lQAnfuEnd(FristS) & "),0) lz " & vbCrLf & _
 ", f.LANRID " & vbCrLf & _
 "FROM aktfvs f " & vbCrLf & _
-"LEFT JOIN diagnosen d ON f.pat_id=d.pat_id AND d.gicdok='O24.4' AND d.diagdatum BETWEEN " & lQAnfuEnd(FristS) & " " & vbCrLf & _
+"LEFT JOIN diagview d ON f.pat_id=d.pat_id AND d.gicd='O24.4' AND d.diagdatum BETWEEN " & lQAnfuEnd(FristS) & " " & vbCrLf & _
 "WHERE NOT ISNULL(d.icd)) i WHERE lz<>1"
  mins(AWlf) = 10
  maxs(AWlf) = 80
@@ -3830,8 +3837,8 @@ sql(AWlf) = vbCrLf & _
 ",(SELECT GROUP_CONCAT(DISTINCT DATE_FORMAT(zeitpunkt,'%e.%c.%y') SEPARATOR ',') FROM leistungen l WHERE l.pat_id=f.pat_id AND l.leistung='97277' AND l.zeitpunkt BETWEEN qbeg(s.voret - INTERVAL 280 DAY) AND qend()) `Zp` " & vbCrLf & _
 "FROM aktfvs f " & vbCrLf & _
 "LEFT JOIN sws s ON s.pat_id=f.pat_id AND s.voret>qanf()" & vbCrLf & _
-"LEFT JOIN diagnosen d ON f.pat_id=d.pat_id AND d.gicdok='O24.4' AND d.diagdatum BETWEEN " & lQAnfuEnd(FristS) & " " & vbCrLf & _
-"LEFT JOIN diagnosen dm ON f.pat_id=dm.pat_id AND dm.gicdok RLIKE '^E1[0-4]\.' " & vbCrLf & _
+"LEFT JOIN diagview d ON f.pat_id=d.pat_id AND d.gicd='O24.4' AND d.diagdatum BETWEEN " & lQAnfuEnd(FristS) & " " & vbCrLf & _
+"LEFT JOIN diagview dm ON f.pat_id=dm.pat_id AND dm.gicd RLIKE '^E1[0-4]\.' " & vbCrLf & _
 "WHERE NOT ISNULL(d.icd) " & vbCrLf & _
 "HAVING `97277-Zahl`<>1"
  mins(AWlf) = 10
@@ -4125,7 +4132,7 @@ sql(AWlf) = _
 "FROM aktfvs f " & vbCrLf & _
 "LEFT JOIN leistungen vorh ON vorh.fid=f.fid AND vorh.leistung BETWEEN '32030' AND '32135' " & vbCrLf & _
 "LEFT JOIN leistungen ausn ON ausn.fid=f.fid AND ausn.leistung = '32022' " & vbCrLf & _
-"LEFT JOIN `diagnosen` d ON d.pat_id = f.pat_id AND d.obdauer <> 0 AND gicdok REGEXP '^E1[0-4]\.|^O24.4' " & vbCrLf & _
+"LEFT JOIN `diagview` d ON d.pat_id = f.pat_id AND d.obdauer <> 0 AND gicd REGEXP '^E1[0-4]\.|^O24.4' " & vbCrLf & _
 "WHERE ISNULL(ausn.Leistung) AND NOT ISNULL(vorh.Leistung) AND NOT ISNULL(d.ICD) " & vbCrLf & _
 "GROUP BY f.pat_id;"
 
@@ -4166,7 +4173,7 @@ sql(AWlf) = _
              " AND ((mp.zeitpunkt >= (SELECT MAX(zeitpunkt) FROM medplan WHERE zeitpunkt < " & qtAnf(FristS) & " AND pat_id = f.pat_id))  OR (SELECT MAX(zeitpunkt) FROM medplan WHERE zeitpunkt < " & qtAnf(FristS) & " AND pat_id = f.pat_id) IS NULL AND mp.zeitpunkt>=" & qtAnf(FristS) & ") " & vbCrLf & _
              " AND ((mp.zeitpunkt <  (SELECT MIN(zeitpunkt) FROM medplan WHERE zeitpunkt > " & qtEnd(FristS) & " AND pat_id = f.pat_id))  OR (SELECT MIN(zeitpunkt) FROM medplan WHERE zeitpunkt > " & qtEnd(FristS) & " AND pat_id = f.pat_id) IS NULL AND mp.zeitpunkt<=" & qtEnd(FristS) & ") " & vbCrLf & _
              "LEFT JOIN leistungen l ON f.fid = l.fid AND l.leistung = '32015' " & vbCrLf & _
-             "LEFT JOIN diagnosen d ON d.pat_id=f.pat_id AND d.gicdok='Z92.1' AND d.obdauer<>0 " & vbCrLf & _
+             "LEFT JOIN diagview d ON d.pat_id=f.pat_id AND d.gicd='Z92.1' AND d.obdauer<>0 " & vbCrLf & _
              "WHERE antikoag<>0 " & vbCrLf & _
              "GROUP BY f.pat_id" & vbCrLf & _
              "HAVING COALESCE(SUM(lzahl),0)=0" & vbCrLf & _
@@ -4396,8 +4403,8 @@ sql(AWlf) = _
        "FROM aktfvs v " & vbCrLf & _
        "LEFT JOIN kassenliste k ON v.vknr = k.vknr AND v.ik=k.ik " & vbCrLf & _
        "LEFT JOIN faelle f ON v.fid = f.fid " & vbCrLf & _
-       "LEFT JOIN diagnosen jd ON f.pat_id = jd.pat_id AND jd.gicdok LIKE 'J44%' " & vbCrLf & _
-       "LEFT JOIN diagnosen dd ON f.pat_id = dd.pat_id AND dd.diagsicherheit NOT IN ('A','Z') AND (dd.icd LIKE 'R06%' OR dd.icd LIKE 'J96%' OR dd.diagtext LIKE '%dyspnoe%' OR dd.diagtext LIKE '%luftnot%' OR dd.diagtext LIKE '%atemnot%') " & vbCrLf & _
+       "LEFT JOIN diagview jd ON f.pat_id = jd.pat_id AND jd.gicd LIKE 'J44%' " & vbCrLf & _
+       "LEFT JOIN diagview dd ON f.pat_id = dd.pat_id AND dd.diagsicherheit NOT IN ('A','Z') AND (dd.icd LIKE 'R06%' OR dd.icd LIKE 'J96%' OR dd.diagtext LIKE '%dyspnoe%' OR dd.diagtext LIKE '%luftnot%' OR dd.diagtext LIKE '%atemnot%') " & vbCrLf & _
        "LEFT JOIN eintraege e ON f.pat_id = e.pat_id AND (e.zeitpunkt > SUBDATE(" & qtAnf(FristS) & ",INTERVAL 2 YEAR) AND (e.inhalt LIKE '%dyspnoe%' OR (e.inhalt LIKE '%luftnot%' AND e.art not IN ('andm','andm2')) OR (e.inhalt LIKE '%atemnot%' AND e.art not IN ('andm','andm2')))) " & vbCrLf & _
        "WHERE kateg IN ('AOK','EK') AND NOT (ISNULL(jd.ICD) AND ISNULL(dd.ICD) AND ISNULL(e.Inhalt)) AND NOT (jd.icd RLIKE 'J44.[018][01]' AND dd.icd RLIKE 'J96.1[019]') " & vbCrLf & _
        "GROUP BY v.pat_id, e.zeitpunkt, e.inhalt " & vbCrLf & _
@@ -4549,8 +4556,8 @@ AWlf = AWlf + 1
             "LEFT JOIN namen n ON v.pat_id = n.pat_id " & vbCrLf & _
             "LEFT JOIN eintraege tug ON v.pat_id = tug.pat_id AND tug.art = 'TUG'  AND tug.zeitpunkt = (SELECT MAX(zeitpunkt) FROM eintraege WHERE pat_id = v.pat_id AND art = 'TUG')" & vbCrLf & _
             "LEFT JOIN eintraege adl ON v.pat_id = adl.pat_id AND adl.art = 'ADL'  AND adl.zeitpunkt = (SELECT MAX(zeitpunkt) FROM eintraege WHERE pat_id = v.pat_id AND art = 'ADL')" & vbCrLf & _
-            "LEFT JOIN diagnosen dd ON v.pat_id = dd.pat_id AND dd.gicdok RLIKE '^F0[0123]|^G20' " & vbCrLf & _
-            "LEFT JOIN diagnosen pfld ON v.pat_id = pfld.pat_id AND (pfld.gicdok IN ('Z74.9','G20.10','G20.20','R26.8','R29.6','R42','R32','R15','R13.9','R26.3','R41.0','R41.3','R52.2','F45.41','G30.9','F29','F32.9','F69','F79.9','R41.3','R63.4','R53','M62.50','R26.8','R68.8') OR pfld.gicdok RLIKE '^F0[012]') " & vbCrLf & _
+            "LEFT JOIN diagview dd ON v.pat_id = dd.pat_id AND dd.gicd RLIKE '^F0[0123]|^G20' " & vbCrLf & _
+            "LEFT JOIN diagview pfld ON v.pat_id = pfld.pat_id AND (pfld.gicd IN ('Z74.9','G20.10','G20.20','R26.8','R29.6','R42','R32','R15','R13.9','R26.3','R41.0','R41.3','R52.2','F45.41','G30.9','F29','F32.9','F69','F79.9','R41.3','R63.4','R53','M62.50','R26.8','R68.8') OR pfld.gicd RLIKE '^F0[012]') " & vbCrLf & _
             "LEFT JOIN leistungen l ON v.fid = l.fid  AND l.leistung = '03360' " & vbCrLf & _
             "LEFT JOIN leistungen lz ON v.pat_id = lz.pat_id AND lz.leistung = '03360' AND lz.zeitpunkt BETWEEN " & Khtsfl & " " & vbCrLf & _
             "WHERE (DATEDIFF(" & qtAnf(FristS) & ", n.GebDat) > 70 * 365 OR NOT ISNULL(dd.ICD)) " & vbCrLf & _
@@ -4576,8 +4583,8 @@ AWlf = AWlf + 1
             "LEFT JOIN namen n ON v.pat_id = n.pat_id " & vbCrLf & _
             "LEFT JOIN eintraege tug ON v.pat_id = tug.pat_id AND tug.art = 'TUG'  AND tug.zeitpunkt = (SELECT MAX(zeitpunkt) FROM eintraege WHERE pat_id = v.pat_id AND art = 'TUG')" & vbCrLf & _
             "LEFT JOIN eintraege adl ON v.pat_id = adl.pat_id AND adl.art = 'ADL'  AND adl.zeitpunkt = (SELECT MAX(zeitpunkt) FROM eintraege WHERE pat_id = v.pat_id AND art = 'ADL')" & vbCrLf & _
-            "LEFT JOIN diagnosen dd ON v.pat_id = dd.pat_id AND dd.gicdok RLIKE '^F0[0123]|G20' " & vbCrLf & _
-            "LEFT JOIN diagnosen pfld ON v.pat_id = pfld.pat_id AND (pfld.gicdok IN ('Z74.9','G20.10','G20.20','R26.8','R29.6','R42','R32','R15','R13.9','R26.3','R41.0','R52.2','F45.41','G30.9','F29','F32.9','F69','F79.9','R41.3','R63.4','R53','M62.50','R26.8','R68.8') OR pfld.gicdok RLIKE '^F0[012]') " & vbCrLf & _
+            "LEFT JOIN diagview dd ON v.pat_id = dd.pat_id AND dd.gicd RLIKE '^F0[0-3]|G20' " & vbCrLf & _
+            "LEFT JOIN diagview pfld ON v.pat_id = pfld.pat_id AND (pfld.gicd IN ('Z74.9','G20.10','G20.20','R26.8','R29.6','R42','R32','R15','R13.9','R26.3','R41.0','R52.2','F45.41','G30.9','F29','F32.9','F69','F79.9','R41.3','R63.4','R53','M62.50','R26.8','R68.8') OR pfld.gicd RLIKE '^F0[012]') " & vbCrLf & _
             "LEFT JOIN leistungen l ON v.fid = l.fid  AND l.leistung = '03360' " & vbCrLf & _
             "WHERE (DATEDIFF(" & qtAnf(FristS) & ", n.GebDat) > 70 * 365 OR NOT ISNULL(dd.ICD)) " & vbCrLf & _
             "AND NOT ISNULL(tug.inhalt) AND NOT ISNULL(adl.inhalt) " & vbCrLf & _
@@ -4669,8 +4676,8 @@ sql(AWlf) = sql(AWlf) & _
             "LEFT JOIN namen n ON v.pat_id = n.pat_id " & vbCrLf & _
             "LEFT JOIN eintraege tug ON v.pat_id = tug.pat_id AND tug.art = 'TUG'  AND tug.zeitpunkt = (SELECT MAX(zeitpunkt) FROM eintraege WHERE pat_id = v.pat_id AND art = 'TUG')" & vbCrLf & _
             "LEFT JOIN eintraege adl ON v.pat_id = adl.pat_id AND adl.art = 'ADL'  AND adl.zeitpunkt = (SELECT MAX(zeitpunkt) FROM eintraege WHERE pat_id = v.pat_id AND art = 'ADL')" & vbCrLf & _
-            "LEFT JOIN diagnosen dd ON v.pat_id = dd.pat_id AND dd.gicdok RLIKE '^F0[0-3]|G20\.[12]|G30' " & vbCrLf & _
-            "LEFT JOIN diagnosen pfld ON v.pat_id = pfld.pat_id AND pfld.gICDok RLIKE '^F0[0-3]|^F3|^F45\.41|^F69|^F79|^G20\.[12]|^G30\.9|^M62\.50|^R1[35]|^R26\.[38]|^R29\.6|^R32|^R4[12]|^R46\.4|^R52\.[12]|^R5[34]|^R63\.4|^R68\.8|^Z74\.[09]'" & vbCrLf & _
+            "LEFT JOIN diagview dd ON v.pat_id = dd.pat_id AND dd.gicd RLIKE '^F0[0-3]|G20\.[12]|G30' " & vbCrLf & _
+            "LEFT JOIN diagview pfld ON v.pat_id = pfld.pat_id AND pfld.gICD RLIKE '^F0[0-3]|^F3|^F45\.41|^F69|^F79|^G20\.[12]|^G30\.9|^M62\.50|^R1[35]|^R26\.[38]|^R29\.6|^R32|^R4[12]|^R46\.4|^R52\.[12]|^R5[34]|^R63\.4|^R68\.8|^Z74\.[09]'" & vbCrLf & _
             "LEFT JOIN leistungen l ON v.fid = l.fid  AND l.leistung = '03362' " & vbCrLf & _
             "LEFT JOIN medplan mp ON v.pat_id = mp.pat_id " & vbCrLf & _
             "AND ((mp.zeitpunkt >= (SELECT MAX(zeitpunkt) FROM medplan WHERE zeitpunkt < " & qtAnf(FristS) & " AND pat_id = f.pat_id))  OR (SELECT MAX(zeitpunkt) FROM medplan WHERE zeitpunkt < " & qtAnf(FristS) & " AND pat_id = f.pat_id) IS NULL AND mp.zeitpunkt>=" & qtAnf(FristS) & ") " & vbCrLf & _
@@ -4757,11 +4764,11 @@ mins(AWlf) = 10
 sql = _
 "SELECT f.pat_id, gesname(f.pat_id),dm.icd Dm,ni.icd NI,ne.icd Nephr, lGFR.letzter eGFR, copd.icd COPD, ri.icd RI " & vbCrLf & _
 "FROM aktfvs f " & vbCrLf & _
-"LEFT JOIN diagnosen dm ON f.pat_id = dm.pat_id AND dm.gicdok RLIKE '^E1[013]\.2[01]|^E1[013]\.7[23]'" & vbCrLf & _
-"LEFT JOIN diagnosen ni ON f.pat_id = ni.pat_id AND ni.gicdok RLIKE '^N18\.[12]'" & vbCrLf & _
-"LEFT JOIN diagnosen ne ON f.pat_id = ne.pat_id AND ne.gicdok = 'N08.3' " & vbCrLf & _
-"LEFT JOIN diagnosen copd ON f.pat_id = copd.pat_id AND copd.gicdok RLIKE '^J44\.[018][01]'  " & vbCrLf & _
-"LEFT JOIN diagnosen ri ON f.pat_id = ri.pat_id AND ri.gicdok RLIKE '^J96\.1[019]' " & vbCrLf & _
+"LEFT JOIN diagview dm ON f.pat_id = dm.pat_id AND dm.gicd RLIKE '^E1[013]\.2[01]|^E1[013]\.7[23]'" & vbCrLf & _
+"LEFT JOIN diagview ni ON f.pat_id = ni.pat_id AND ni.gicd RLIKE '^N18\.[12]'" & vbCrLf & _
+"LEFT JOIN diagview ne ON f.pat_id = ne.pat_id AND ne.gicd = 'N08.3' " & vbCrLf & _
+"LEFT JOIN diagview copd ON f.pat_id = copd.pat_id AND copd.gicd RLIKE '^J44\.[018][01]'  " & vbCrLf & _
+"LEFT JOIN diagview ri ON f.pat_id = ri.pat_id AND ri.gicd RLIKE '^J96\.1[019]' " & vbCrLf & _
 "LEFT JOIN lGFR ON f.pat_id = lGFR.pat_id " & vbCrLf & _
 "LEFT JOIN leistungen l ON l.pat_id = f.pat_id AND l.zeitpunkt BETWEEN " & lQAnfuEnd(FristS) & " AND l.leistung = '99300' " & vbCrLf & _
 "WHERE (NOT ISNULL(dm.ICD) AND NOT ISNULL(ni.ICD) AND ISNULL(l.Leistung)) " & vbCrLf & _
@@ -5700,9 +5707,9 @@ sql(AWlf) = sql(AWlf) & _
 ", COALESCE(DATE(aktl.zeitpunkt),'') aktleitag, COALESCE(LEFT(aktl.leistung,5),'') aktlei " & vbCrLf & _
 ", (SELECT COUNT(0) FROM leistungen WHERE pat_id=f.pat_id AND leistung IN ('97560','97561','97562') AND YEAR(zeitpunkt)=YEAR(" & qtAnf(FristS) & ") AND zeitpunkt<" & qtAnf(FristS) & ") vorlzl " & vbCrLf & _
 ", COALESCE(LEFT(e.inhalt,20),'') Eintr,instr(e.inhalt,'stör')<>0 EPath, COALESCE(dd.icd,'') Dicd " & vbCrLf & _
-", COALESCE((SELECT icd FROM diagnosen WHERE pat_id=f.pat_id AND gicdok IN ('G59.0','G63.2','G99.0'))=0 LIMIT 1),'') Nicd " & vbCrLf & _
+", COALESCE((SELECT icd FROM diagview WHERE pat_id=f.pat_id AND gicd IN ('G59.0','G63.2','G99.0'))=0 LIMIT 1),'') Nicd " & vbCrLf & _
 ", COALESCE((SELECT leistung FROM leistungen WHERE pat_id=f.pat_id AND leistung='97563' AND zeitpunkt BETWEEN " & lQAnfuEnd(FristS) & " LIMIT 1),'') matel " & vbCrLf & _
-", IF((SELECT 1 FROM diagnosen WHERE pat_id=f.pat_id AND gicdok RLIKE '^L89' LIMIT 1) IS NULL,1,0) obf " & vbCrLf & _
+", IF((SELECT 1 FROM diagview WHERE pat_id=f.pat_id AND gicd RLIKE '^L89' LIMIT 1) IS NULL,1,0) obf " & vbCrLf & _
 ", e.inhalt einh, e.zeitpunkt ezp, f.LANRid " & vbCrLf & _
 "FROM aktfvs f " & vbCrLf & _
 "LEFT JOIN namen n USING (pat_id) " & vbCrLf & _
@@ -5779,7 +5786,7 @@ sql(AWlf) = sql(AWlf) & _
 ", IF(e.inhalt IS NULL,'-','ja') Eintr " & vbCrLf & _
 ", COALESCE(MID(inhalt,instr(inhalt,'entleeren?')+11) RLIKE '^n|^Inko' OR MID(inhalt,instr(inhalt,'Wasserlassen)?')+15) RLIKE '^öfter|^mehr|^[2-9]' OR MID(inhalt,instr(inhalt,'abgeschwächt?')+14) RLIKE '^j' OR MID(inhalt,instr(inhalt,'zu entleeren?')+14) RLIKE '^j' OR MID(inhalt,instr(inhalt,'gang auf?')+10) RLIKE '^j' OR MID(inhalt,instr(inhalt,'beschreiben)')+12) RLIKE '^j',0) EPath, " & vbCrLf & _
 "  COALESCE(dd.icd,'') Dicd,COALESCE(nd.icd,'') Nicd " & vbCrLf & _
-", IF((SELECT 1 FROM diagnosen WHERE pat_id=f.pat_id AND gicdok RLIKE '^L89' LIMIT 1) IS NULL,1,0) obf " & vbCrLf & _
+", IF((SELECT 1 FROM diagview WHERE pat_id=f.pat_id AND gicd RLIKE '^L89' LIMIT 1) IS NULL,1,0) obf " & vbCrLf & _
 ", e.inhalt einh, e.zeitpunkt ezp, f.LANRid " & vbCrLf & _
 "FROM aktfvs f " & vbCrLf & _
 "LEFT JOIN namen n USING (pat_id) " & vbCrLf & _
@@ -5788,8 +5795,8 @@ sql(AWlf) = sql(AWlf) & _
 "LEFT JOIN leistungen aktl ON aktl.pat_id=f.pat_id AND aktl.leistung IN ('97570','97571','97572') AND " & vbCrLf & _
 "   aktl.zeitpunkt=(SELECT MAX(zeitpunkt) FROM leistungen lm WHERE lm.pat_id=f.pat_id AND lm.leistung IN ('97570','97571','97572') AND lm.zeitpunkt>=" & qtAnf(FristS) & ") " & vbCrLf & _
 "LEFT JOIN eintraege e ON e.pat_id=f.pat_id AND e.art='dakluts' AND e.zeitpunkt BETWEEN " & lQAnfuEnd(FristS) & " " & vbCrLf & _
-"LEFT JOIN diagnosen dd ON dd.pat_id=f.pat_id AND dd.gicdok RLIKE '^E1[0-4]\.' AND dd.obdauer<>0 " & vbCrLf & _
-"LEFT JOIN diagnosen nd ON nd.pat_id=f.pat_id AND nd.gicdok IN ('N31.1','N31.2') AND nd.obdauer<>0 " & vbCrLf & _
+"LEFT JOIN diagview dd ON dd.pat_id=f.pat_id AND dd.gicd RLIKE '^E1[0-4]\.' AND dd.obdauer<>0 " & vbCrLf & _
+"LEFT JOIN diagview nd ON nd.pat_id=f.pat_id AND nd.gicd IN ('N31.1','N31.2') AND nd.obdauer<>0 " & vbCrLf & _
 "WHERE n.dakab>20000101 AND (dakab<=DATE(lztl.zeitpunkt) OR ISNULL(lztl.zeitpunkt))) i " & vbCrLf & _
 ") i " & vbCrLf & _
 "WHERE leifehler<>'-' OR dicdfehler<>'-' OR nicdfehler<>'-' " & vbCrLf & _
@@ -5864,7 +5871,7 @@ sql(AWlf) = sql(AWlf) & _
 "   (CONVERT(MID(inhalt,instr(inhalt,'Venenfüllung: re:')+17),integer)>10)+ " & vbCrLf & _
 "   (CONVERT(MID(inhalt,instr(inhalt,', li:')+6),integer)>10) >1 EPath, " & vbCrLf & _
 "  COALESCE(dd.icd,'') Dicd,COALESCE(nd1.icd,'') Nicd1,COALESCE(nd2.icd,'') Nicd2,COALESCE(sd.icd,'') sicd " & vbCrLf & _
-", IF((SELECT 1 FROM diagnosen WHERE pat_id=f.pat_id AND gicdok RLIKE '^L89' LIMIT 1) IS NULL,1,0) obf " & vbCrLf & _
+", IF((SELECT 1 FROM diagview WHERE pat_id=f.pat_id AND gicd RLIKE '^L89' LIMIT 1) IS NULL,1,0) obf " & vbCrLf & _
 ", e.inhalt einh, e.zeitpunkt ezp, f.LANRid " & vbCrLf & _
 "FROM aktfvs f " & vbCrLf & _
 "LEFT JOIN namen n USING (pat_id) " & vbCrLf & _
@@ -5873,10 +5880,10 @@ sql(AWlf) = sql(AWlf) & _
 "LEFT JOIN leistungen aktl ON aktl.pat_id=f.pat_id AND aktl.leistung IN ('97580','97581','97582') AND " & vbCrLf & _
 "   aktl.zeitpunkt=(SELECT MAX(zeitpunkt) FROM leistungen lm WHERE lm.pat_id=f.pat_id AND lm.leistung IN ('97580','97581','97582') AND lm.zeitpunkt>=" & qtAnf(FristS) & ") " & vbCrLf & _
 "LEFT JOIN eintraege e ON e.pat_id=f.pat_id AND e.art='dakap' AND e.zeitpunkt BETWEEN " & lQAnfuEnd(FristS) & " " & vbCrLf & _
-"LEFT JOIN diagnosen dd ON dd.pat_id=f.pat_id AND dd.gicdok RLIKE '^E1[0-4]\.' AND dd.obdauer<>0 " & vbCrLf & _
-"LEFT JOIN diagnosen nd1 ON nd1.pat_id=f.pat_id AND nd1.gicdok IN ('I79.2') AND nd1.obdauer<>0 " & vbCrLf & _
-"LEFT JOIN diagnosen nd2 ON nd2.pat_id=f.pat_id AND nd2.gicdok LIKE 'I70.2%' AND nd2.obdauer<>0 " & vbCrLf & _
-"LEFT JOIN diagnosen sd ON sd.pat_id=f.pat_id AND sd.gicdok = 'I73.9' AND sd.obdauer<>0 " & vbCrLf
+"LEFT JOIN diagview dd ON dd.pat_id=f.pat_id AND dd.gicd RLIKE '^E1[0-4]\.' AND dd.obdauer<>0 " & vbCrLf & _
+"LEFT JOIN diagview nd1 ON nd1.pat_id=f.pat_id AND nd1.gicd IN ('I79.2') AND nd1.obdauer<>0 " & vbCrLf & _
+"LEFT JOIN diagview nd2 ON nd2.pat_id=f.pat_id AND nd2.gicd LIKE 'I70.2%' AND nd2.obdauer<>0 " & vbCrLf & _
+"LEFT JOIN diagview sd ON sd.pat_id=f.pat_id AND sd.gicd = 'I73.9' AND sd.obdauer<>0 " & vbCrLf
 sql(AWlf) = sql(AWlf) & _
 "WHERE n.dakab>20000101 AND (dakab<=DATE(lztl.zeitpunkt) OR ISNULL(lztl.zeitpunkt))) i " & vbCrLf & _
 ") i " & vbCrLf & _
@@ -5946,7 +5953,7 @@ sql(AWlf) = sql(AWlf) & _
 ", COALESCE(LEFT(e.inhalt,120),'') Eintr " & vbCrLf & _
 ", COALESCE(e.inhalt RLIKE 'Leber(((?!((re|li) Niere|Nieren|Pan[ck]r)).)*?((?<!kaum ver|nicht ver)fett|(?<!leicht |kaum |nicht |keine |gering )verdicht)|.*fetteinl|zi)|Fettleber',0) EPath " & vbCrLf & _
 ", COALESCE(dd.icd,'') Dicd,COALESCE(nd1.icd,'') Nicd1,COALESCE(sd.icd,'') sicd " & vbCrLf & _
-", IF((SELECT 1 FROM diagnosen WHERE pat_id=f.pat_id AND gicdok RLIKE '^L89' LIMIT 1) IS NULL,1,0) obf " & vbCrLf & _
+", IF((SELECT 1 FROM diagview WHERE pat_id=f.pat_id AND gicd RLIKE '^L89' LIMIT 1) IS NULL,1,0) obf " & vbCrLf & _
 ", e.inhalt einh, e.zeitpunkt ezp, f.LANRid " & vbCrLf & _
 "FROM aktfvs f " & vbCrLf & _
 "LEFT JOIN namen n USING (pat_id) " & vbCrLf & _
@@ -5955,9 +5962,9 @@ sql(AWlf) = sql(AWlf) & _
 "LEFT JOIN leistungen aktl ON aktl.pat_id=f.pat_id AND aktl.leistung IN ('97590','97591','97592') AND " & vbCrLf & _
 "   aktl.zeitpunkt=(SELECT MAX(zeitpunkt) FROM leistungen lm WHERE lm.pat_id=f.pat_id AND lm.leistung IN ('97590','97591','97592') AND lm.zeitpunkt>=" & qtAnf(FristS) & ") " & vbCrLf & _
 "LEFT JOIN eintraege e ON e.pat_id=f.pat_id AND e.art='sono' AND e.inhalt LIKE 'Abdomen:%' AND e.zeitpunkt BETWEEN " & lQAnfuEnd(FristS) & " " & vbCrLf & _
-"LEFT JOIN diagnosen dd ON dd.pat_id=f.pat_id AND dd.gicdok RLIKE '^E1[0-4]\.' AND dd.obdauer<>0 " & vbCrLf & _
-"LEFT JOIN diagnosen nd1 ON nd1.pat_id=f.pat_id AND nd1.gicdok IN ('K77.8') AND nd1.obdauer<>0 " & vbCrLf & _
-"LEFT JOIN diagnosen sd ON sd.pat_id=f.pat_id AND sd.gicdok RLIKE '^K76\.[09]|^K71' AND sd.obdauer<>0 " & vbCrLf
+"LEFT JOIN diagview dd ON dd.pat_id=f.pat_id AND dd.gicd RLIKE '^E1[0-4]\.' AND dd.obdauer<>0 " & vbCrLf & _
+"LEFT JOIN diagview nd1 ON nd1.pat_id=f.pat_id AND nd1.gicd IN ('K77.8') AND nd1.obdauer<>0 " & vbCrLf & _
+"LEFT JOIN diagview sd ON sd.pat_id=f.pat_id AND sd.gicd RLIKE '^K76\.[09]|^K71' AND sd.obdauer<>0 " & vbCrLf
 sql(AWlf) = sql(AWlf) & _
 "WHERE n.dakab>20000101 AND (dakab<=DATE(lztl.zeitpunkt) OR ISNULL(lztl.zeitpunkt))) i " & vbCrLf & _
 ") i " & vbCrLf & _
@@ -6033,8 +6040,8 @@ sql(AWlf) = sql(AWlf) & _
 " LEFT JOIN leistungen aktl ON aktl.pat_id=f.pat_id AND aktl.leistung IN ('97600','97601','97602') AND " & vbCrLf & _
 "    aktl.zeitpunkt=(SELECT MAX(zeitpunkt) " & vbCrLf & _
 "FROM leistungen lm WHERE lm.pat_id=f.pat_id AND lm.leistung IN ('97600','97601','97602') AND lm.zeitpunkt>=" & qtAnf(FristS) & ") " & vbCrLf & _
-" LEFT JOIN diagnosen dd ON dd.pat_id=f.pat_id AND dd.gicdok RLIKE '^E1[0-4]\.' AND dd.obdauer<>0 " & vbCrLf & _
-" LEFT JOIN diagnosen nd ON nd.pat_id=f.pat_id AND nd.icd RLIKE '^N1[89]' AND NOT nd.gicdok RLIKE '^N18\.[1]' AND nd.obdauer<>0 " & vbCrLf & _
+" LEFT JOIN diagview dd ON dd.pat_id=f.pat_id AND dd.gicd RLIKE '^E1[0-4]\.' AND dd.obdauer<>0 " & vbCrLf & _
+" LEFT JOIN diagview nd ON nd.pat_id=f.pat_id AND nd.icd RLIKE '^N1[89]' AND NOT nd.gicd RLIKE '^N18\.[1]' AND nd.obdauer<>0 " & vbCrLf & _
 " WHERE n.dakab>20000101 AND (dakab<=DATE(lztl.zeitpunkt) OR ISNULL(lztl.zeitpunkt))) i " & vbCrLf & _
 " ) i " & vbCrLf & _
 " WHERE leifehler<>'-' OR dicdfehler<>'-' OR nicdfehler<>'-' " & vbCrLf & _
@@ -6054,13 +6061,13 @@ sql(AWlf) = _
 "   SELECT f.pat_id pid,dm.diagdatum Zp,dm.icd,IF(ISNULL(ni.icd),0,1)NI,IF(ISNULL(au.icd),0,1)AU,IF(ISNULL(ne.icd),0,1)NE,IF(ISNULL(an.icd),0,1)AN,IF(ISNULL(so.icd),0,1)SO,IF(ISNULL(fu.icd),0,1)FU " & vbCrLf & _
 "    FROM aktfv f " & vbCrLf & _
 "    LEFT JOIN namen n ON n.pat_id=f.pat_id " & vbCrLf & _
-"    LEFT JOIN diagnosen dm ON dm.pat_id=f.pat_id AND dm.gicdok RLIKE '^E1[0-4]\.'                                   AND dm.obdauer<>0 " & vbCrLf & _
-"    LEFT JOIN diagnosen ni ON ni.pat_id=f.pat_id AND ni.gicdok='N08.3'                                              AND ni.obdauer<>0 " & vbCrLf & _
-"    LEFT JOIN diagnosen au ON au.pat_id=f.pat_id AND au.gicdok IN ('H28.0','H36.0')                                 AND au.obdauer<>0 " & vbCrLf & _
-"    LEFT JOIN diagnosen ne ON ne.pat_id=f.pat_id AND ne.gicdok IN ('G73.0','G99.0','G59.0','G63.2','N31.1','N31.2') AND ne.obdauer<>0 " & vbCrLf & _
-"    LEFT JOIN diagnosen an ON an.pat_id=f.pat_id AND an.gicdok RLIKE '^I79.2|^I25|^I21|^I7[049]^I6[35689]'          AND an.obdauer<>0 " & vbCrLf & _
-"    LEFT JOIN diagnosen so ON so.pat_id=f.pat_id AND so.gicdok RLIKE '^M14|K77.8|^K76\.[09]|^K71'                   AND so.obdauer<>0 " & vbCrLf & _
-"    LEFT JOIN diagnosen fu ON fu.pat_id=f.pat_id AND fu.gicdok RLIKE '^L89'                                         " & vbCrLf & _
+"    LEFT JOIN diagview dm ON dm.pat_id=f.pat_id AND dm.gicd RLIKE '^E1[0-4]\.'                                   AND dm.obdauer<>0 " & vbCrLf & _
+"    LEFT JOIN diagview ni ON ni.pat_id=f.pat_id AND ni.gicd='N08.3'                                              AND ni.obdauer<>0 " & vbCrLf & _
+"    LEFT JOIN diagview au ON au.pat_id=f.pat_id AND au.gicd IN ('H28.0','H36.0')                                 AND au.obdauer<>0 " & vbCrLf & _
+"    LEFT JOIN diagview ne ON ne.pat_id=f.pat_id AND ne.gicd IN ('G73.0','G99.0','G59.0','G63.2','N31.1','N31.2') AND ne.obdauer<>0 " & vbCrLf & _
+"    LEFT JOIN diagview an ON an.pat_id=f.pat_id AND an.gicd RLIKE '^I79.2|^I25|^I21|^I7[049]^I6[35689]'          AND an.obdauer<>0 " & vbCrLf & _
+"    LEFT JOIN diagview so ON so.pat_id=f.pat_id AND so.gicd RLIKE '^M14|K77.8|^K76\.[09]|^K71'                   AND so.obdauer<>0 " & vbCrLf & _
+"    LEFT JOIN diagview fu ON fu.pat_id=f.pat_id AND fu.gicd RLIKE '^L89'                                         " & vbCrLf & _
 "   WHERE NOT ISNULL(dm.icd) " & vbCrLf & _
 "      AND n.dakab>20000101 " & vbCrLf & _
 "   GROUP BY dm.id1) i " & vbCrLf & _
@@ -6396,29 +6403,29 @@ Private Sub tuStart_click(obauto%)
       "WHERE diabetestyp='?' AND d.ttyp<>'-';")
 ' neuere Updates
      myEFrag (" UPDATE anamnesebogen a" & vbCrLf & _
-      "LEFT JOIN (SELECT pat_id,min(gicdok) gicdok FROM diagnosen WHERE gicdok RLIKE '^E1[01]' GROUP BY pat_id) d ON a.pat_id=d.pat_id" & vbCrLf & _
-      "SET diabetestyp=CASE WHEN gicdok LIKE 'E10%' THEN 1 WHEN gicdok LIKE 'E11%' THEN 2 WHEN gicdok='O24.4' THEN 'g' WHEN gicdok LIKE 'R73%' THEN 'p' ELSE diabetestyp END" & vbCrLf & _
-      "WHERE diabetestyp = '?' AND NOT ISNULL(gicdok);")
+      "LEFT JOIN (SELECT pat_id,min(gicd) gicd FROM diagview WHERE gicd RLIKE '^E1[01]' GROUP BY pat_id) d ON a.pat_id=d.pat_id" & vbCrLf & _
+      "SET diabetestyp=CASE WHEN gicd LIKE 'E10%' THEN 1 WHEN gicd LIKE 'E11%' THEN 2 WHEN gicd='O24.4' THEN 'g' WHEN gicd LIKE 'R73%' THEN 'p' ELSE diabetestyp END" & vbCrLf & _
+      "WHERE diabetestyp = '?' AND NOT ISNULL(gicd);")
      myEFrag (" UPDATE anamnesebogen a" & vbCrLf & _
-      "LEFT JOIN (SELECT pat_id,min(gicdok) gicdok FROM diagnosen where gicdok ='O24.4' GROUP BY pat_id) gd ON a.pat_id=gd.pat_id" & vbCrLf & _
-      "LEFT JOIN (SELECT pat_id,min(gicdok) gicdok FROM diagnosen where gicdok ='^E1[01]' GROUP BY pat_id) d ON a.pat_id=d.pat_id" & vbCrLf & _
+      "LEFT JOIN (SELECT pat_id,min(gicd) gicd FROM diagview WHERE gicd ='O24.4' GROUP BY pat_id) gd ON a.pat_id=gd.pat_id" & vbCrLf & _
+      "LEFT JOIN (SELECT pat_id,min(gicd) gicd FROM diagview WHERE gicd ='^E1[01]' GROUP BY pat_id) d ON a.pat_id=d.pat_id" & vbCrLf & _
       "SET diabetestyp='g'" & vbCrLf & _
-      "WHERE diabetestyp = '?' AND NOT ISNULL(gd.gicdok) AND ISNULL(d.gicdok)")
+      "WHERE diabetestyp = '?' AND NOT ISNULL(gd.gicd) AND ISNULL(d.gicd)")
      myEFrag (" UPDATE anamnesebogen a" & vbCrLf & _
-      "LEFT JOIN (SELECT pat_id,min(gicdok) gicdok FROM diagnosen where gicdok ='R73.0' GROUP BY pat_id) pd ON a.pat_id=pd.pat_id" & vbCrLf & _
-      "LEFT JOIN (SELECT pat_id,min(gicdok) gicdok FROM diagnosen where gicdok ='O24.4' GROUP BY pat_id) gd ON a.pat_id=gd.pat_id" & vbCrLf & _
-      "LEFT JOIN (SELECT pat_id,min(gicdok) gicdok FROM diagnosen where gicdok ='^E1[01]' GROUP BY pat_id) d ON a.pat_id=d.pat_id" & vbCrLf & _
+      "LEFT JOIN (SELECT pat_id,min(gicd) gicd FROM diagview where gicd ='R73.0' GROUP BY pat_id) pd ON a.pat_id=pd.pat_id" & vbCrLf & _
+      "LEFT JOIN (SELECT pat_id,min(gicd) gicd FROM diagview where gicd ='O24.4' GROUP BY pat_id) gd ON a.pat_id=gd.pat_id" & vbCrLf & _
+      "LEFT JOIN (SELECT pat_id,min(gicd) gicd FROM diagview where gicd ='^E1[01]' GROUP BY pat_id) d ON a.pat_id=d.pat_id" & vbCrLf & _
       "SET diabetestyp='p'" & vbCrLf & _
-      "WHERE diabetestyp = '?' and not isnull(pd.gicdok) AND ISNULL(gd.gicdok) AND ISNULL(d.gicdok)")
+      "WHERE diabetestyp = '?' and not isnull(pd.gicd) AND ISNULL(gd.gicd) AND ISNULL(d.gicd)")
      myEFrag (" UPDATE anamnesebogen a" & vbCrLf & _
       "LEFT JOIN (select pat_id, min(art) art, min(inhalt) inhalt FROM eintraege WHERE art LIKE 'andm%' GROUP BY pat_id) e ON e.pat_id=a.pat_id" & vbCrLf & _
-      "LEFT JOIN (SELECT pat_id,MIN(gicdok) gicdok FROM diagnosen WHERE gicdok REGEXP '^E1[0-4]\.|^O24.4|^R73.0' GROUP BY pat_id) gd ON a.pat_id=gd.pat_id" & vbCrLf & _
+      "LEFT JOIN (SELECT pat_id,MIN(gicd) gicd FROM diagview WHERE gicd REGEXP '^E1[0-4]\.|^O24.4|^R73.0' GROUP BY pat_id) gd ON a.pat_id=gd.pat_id" & vbCrLf & _
       "SET diabetestyp=left(TRIM(MID(e.inhalt,INSTR(e.inhalt,'Diabetes Typ ')+12,20)),1)" & vbCrLf & _
-      "WHERE LEFT(Diabetestyp,10)<> 's' and LEFT(Diabetestyp,10)<>case when MID(gicdok,3,1)='0' then '1' when MID(gicdok,3,1)='1' then '2' END" & vbCrLf & _
-      "AND TRIM(MID(e.inhalt,INSTR(e.inhalt,'Diabetes Typ ')+12,20)) RLIKE '^[12] ' AND ((LEFT(TRIM(MID(e.inhalt,INSTR(e.inhalt,'Diabetes Typ ')+12,20)),1)='1' AND gicdok LIKE 'E10%') OR (LEFT(TRIM(MID(e.inhalt,INSTR(e.inhalt,'Diabetes Typ ')+12,20)),1)='2' AND gicdok LIKE 'E11%'))")
+      "WHERE LEFT(Diabetestyp,10)<> 's' and LEFT(Diabetestyp,10)<>case when MID(gicd,3,1)='0' then '1' when MID(gicd,3,1)='1' then '2' END" & vbCrLf & _
+      "AND TRIM(MID(e.inhalt,INSTR(e.inhalt,'Diabetes Typ ')+12,20)) RLIKE '^[12] ' AND ((LEFT(TRIM(MID(e.inhalt,INSTR(e.inhalt,'Diabetes Typ ')+12,20)),1)='1' AND gicd LIKE 'E10%') OR (LEFT(TRIM(MID(e.inhalt,INSTR(e.inhalt,'Diabetes Typ ')+12,20)),1)='2' AND gicd LIKE 'E11%'))")
      myEFrag (" UPDATE anamnesebogen a" & vbCrLf & _
-      "LEFT JOIN diagnosen d ON d.pat_id=a.pat_id AND gicdok REGEXP '^E1[0-4]\.|^O24.4|^R73.0'" & vbCrLf & _
-      "SET diabetestyp=CASE WHEN gicdok LIKE 'E10%' THEN 1 WHEN gicdok LIKE 'E11%' THEN 2 WHEN gicdok='O24.4' THEN 'g' WHEN gicdok LIKE 'R73%' THEN 'p' ELSE diabetestyp END" & vbCrLf & _
+      "LEFT JOIN diagview d ON d.pat_id=a.pat_id AND gicd REGEXP '^E1[0-4]\.|^O24.4|^R73.0'" & vbCrLf & _
+      "SET diabetestyp=CASE WHEN gicd LIKE 'E10%' THEN 1 WHEN gicd LIKE 'E11%' THEN 2 WHEN gicd='O24.4' THEN 'g' WHEN gicd LIKE 'R73%' THEN 'p' ELSE diabetestyp END" & vbCrLf & _
       "WHERE ISNULL((SELECT 0 FROM eintraege WHERE pat_id=a.pat_id AND art LIKE 'andm%' LIMIT 1))")
     End If
     Do While Not AbrFausg(Str(AWlf - 1) & ". " & AwN(AWlf - 1), REPLACE(dowr(sql(AWlf - 1)), vbLf, " "), AbrFlrDt, mins(AWlf - 1), maxs(AWlf - 1), Überschrift, obappend, AWlf - 1, obauto, angefangen, BDT)

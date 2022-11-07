@@ -126,11 +126,11 @@ Public Type labtyp
 End Type
 
 Type plzDaten ' für doPatientenlaufzettel
- PID As Long
+ pid As Long
  Datum As Date
  Uhrzeit As Date
  Arzt As String
- Zusatz As String
+ zusatz As String
 End Type ' plzDaten
 
 Dim obHCT%, hctMed$
@@ -216,7 +216,7 @@ Function doPatientenlaufzettel(Optional obohnerueckfrage% = 0, Optional obphp% =
 ' Strings Falls Text von Anfang ausgelesen werden soll (bzw bis zum Ende)
  Dim FromFirst$, ToLast$
  Dim Str As New CString, NTL&
- Dim i%, j&, splitt$(), s2$(), PID$, Datum As Date
+ Dim i%, j&, splitt$(), s2$(), pid$, Datum As Date
  Dim Uhrzeit$, Arzt$, erstZ&
  Dim obausdb%
  Dim plzVerz$
@@ -374,16 +374,16 @@ DoEvents
      myFrag rTerm, sql
      iru = 0
      Do While Not rTerm.EOF
-      plzDat(iru).PID = rTerm!PID
+      plzDat(iru).pid = rTerm!pid
       plzDat(iru).Datum = rTerm!Datum
       plzDat(iru).Uhrzeit = rTerm!Uhrzeit
       plzDat(iru).Arzt = rTerm!Arzt
-      plzDat(iru).Zusatz = rTerm!Zusatz
+      plzDat(iru).zusatz = rTerm!zusatz
       iru = iru + 1
       rTerm.MoveNext
      Loop
      For iru = 0 To UBound(plzDat)
-      Call dodoPLZ(CStr(plzDat(iru).PID), plzVerz, plzDat(iru).Datum, CStr(plzDat(iru).Uhrzeit), , plzDat(iru).Arzt, , obphp)
+      Call dodoPLZ(CStr(plzDat(iru).pid), plzVerz, plzDat(iru).Datum, CStr(plzDat(iru).Uhrzeit), , plzDat(iru).Arzt, , obphp)
       noch = noch - 1
       syscmd 4, "noch zu erstellen: " & noch & " Patientenlaufzettel für " & s2(0) & " in " & plzVerz
      Next iru
@@ -408,9 +408,9 @@ DoEvents
   For j = 0 To UBound(splitt)
    If InStrB(splitt(j), " ") <> 0 Then
     i = InStr(splitt(j), " ")
-    PID = Left$(splitt(j), i - 1)
-    If IsNumeric(PID) Then
-     If InStrB(PID, ".") = 0 And InStrB(PID, ",") = 0 And InStrB(PID, ";") = 0 Then
+    pid = Left$(splitt(j), i - 1)
+    If IsNumeric(pid) Then
+     If InStrB(pid, ".") = 0 And InStrB(pid, ",") = 0 And InStrB(pid, ";") = 0 Then
       Uhrzeit = vNS
       i = InStr(splitt(j), ":")
       If i <> 0 Then
@@ -418,7 +418,7 @@ DoEvents
        Uhrzeit = Mid$(splitt(j), i - 2, 5)
       End If ' i <> 0 THEN
       DoEvents
-      Call dodoPLZ(CLng(PID), plzVerz, Datum, Uhrzeit, , Arzt, , obphp)
+      Call dodoPLZ(CLng(pid), plzVerz, Datum, Uhrzeit, , Arzt, , obphp)
       erstZ = erstZ + 1
      End If ' InStrB(Pid, ".") = 0 AND ...
     End If ' IsNumeric(Pid) THEN
@@ -576,19 +576,19 @@ Public Function UTFOpen&(DN$)
 End Function '  UTFOpen&(DN$)
 
 ' letzte eGFR
-Public Function letztGFR(PID&, Optional Palter#, Optional obweibl%, Optional EthnicGroup% = 1) As labtyp
+Public Function letztGFR(pid&, Optional Palter#, Optional obweibl%, Optional EthnicGroup% = 1) As labtyp
 ' letztGFR = hollwert(PID, "GFR','GFRCYS','GFRK','GFRM','GFRT','GFRW','CREACL','GFC','GFCK1','GFCK2','GFCK3','GFCK4','GFCM1','GFCW1','GFCW2','MDRD", "ml/m")
  Static altPID&, altPalter#, altobweibl%
  Dim LA As labtyp, lc As labtyp
- LA = LabPat(LA_eGFR, PID)
- lc = LabPat(LA_Krea, PID)
+ LA = LabPat(LA_eGFR, pid)
+ lc = LabPat(LA_Krea, pid)
  If lc.Zp - LA.Zp > 1 Or (lc.WertSg <> "" And LA.WertSg = "") Then ' wenn letztes Kreatinin mehr als einen Tag jünger als die letzte eGFR ist
-  If PID <> altPID And Palter = 0 Then
-   altPID = PID
-   altPalter = myEFrag("SELECT patalter(" & PID & ")").Fields(0)
-   altobweibl = myEFrag("SELECT IF(geschlecht='w',-1,0) FROM namen WHERE pat_id=" & CStr(PID)).Fields(0)
-  ElseIf PID <> altPID Then
-   altPID = PID
+  If pid <> altPID And Palter = 0 Then
+   altPID = pid
+   altPalter = myEFrag("SELECT patalter(" & pid & ")").Fields(0)
+   altobweibl = myEFrag("SELECT IF(geschlecht='w',-1,0) FROM namen WHERE pat_id=" & CStr(pid)).Fields(0)
+  ElseIf pid <> altPID Then
+   altPID = pid
    altPalter = Palter
    altobweibl = obweibl
   End If
@@ -607,16 +607,16 @@ End Function ' letztGFR#(PID&)
 '  Public FUNCTION hollwert#(Pat_id&, Abk$, Einh$)
 '   hollwert = myEFrag("call ltWert(" & Pat_id & ",""" & Abk & """,""" & Einh & """)")!ltWert
 '  END Function
-Public Function mplan(PID&)
+Public Function mplan(pid&)
 ' bei Auswahl aller Medikamentenpläne (Pat_id 1564: 4165 Einträge) Dauer: 0,64s
  Dim rTh As New ADODB.Recordset, mpz%, ru%
  Static altPID&
  On Error GoTo fehler
- If PID <> altPID Then
+ If pid <> altPID Then
   obHCT = 0
   hctMed = ""
 '  mpz = myEFrag("SELECT COUNT(0) Zahl FROM medplan mp WHERE pat_id = " & PID & "")!Zahl
-  mpz = myEFrag("SELECT COUNT(0) Zahl FROM wmedplan mp WHERE pat_id = " & PID & " AND zeitpunkt=(SELECT MAX(zeitpunkt) FROM wmedplan WHERE pat_id=" & PID & ")")!Zahl
+  mpz = myEFrag("SELECT COUNT(0) Zahl FROM wmedplan mp WHERE pat_id = " & pid & " AND zeitpunkt=(SELECT MAX(zeitpunkt) FROM wmedplan WHERE pat_id=" & pid & ")")!Zahl
 ' mpz = myEFrag("SELECT COUNT(0) Zahl FROM medplan mp WHERE pat_id = " & Pid & " AND mpnr=(SELECT MAX(mpnr) FROM medplan mpi WHERE pat_id=mp.pat_id AND zeitpunkt=(SELECT MAX(zeitpunkt) FROM medplan WHERE pat_id=mp.pat_id))")!Zahl
   Erase mdpl ' 30.5.20
   If mpz > 0 Then
@@ -625,7 +625,7 @@ Public Function mplan(PID&)
 '            "WHERE mp.pat_id = " & PID & ""
    myFrag rTh, "SELECT mp.*,ma.metf,ma.sglt2 FROM wmedplan mp " & _
             "LEFT JOIN medarten ma ON ma.medikament=mp.medanfang " & _
-            "WHERE mp.pat_id = " & PID & " AND mp.zeitpunkt=(SELECT MAX(zeitpunkt) FROM wmedplan WHERE pat_id=" & PID & ")"
+            "WHERE mp.pat_id = " & pid & " AND mp.zeitpunkt=(SELECT MAX(zeitpunkt) FROM wmedplan WHERE pat_id=" & pid & ")"
 '           "WHERE mp.pat_id = " & Pid & " AND mpnr=(SELECT MAX(mpnr) FROM medplan mpi WHERE pat_id=mp.pat_id AND zeitpunkt=(SELECT MAX(zeitpunkt) FROM medplan WHERE pat_id=mp.pat_id))"
    Do While Not rTh.EOF
     mdpl(ru).m.ab = rTh!ab
@@ -663,7 +663,7 @@ Public Function mplan(PID&)
     ru = ru + 1
    Loop
   End If ' mpz>0 THEN
-  altPID = PID
+  altPID = pid
  End If ' pid<>altpid
  Exit Function
 fehler:
@@ -710,12 +710,12 @@ Function medzz!(ByVal ST$)
 End Function ' medzz
 
 ' aufgerufen in dodoPlz
-Function UKPDS(ByRef aRisk As Risk, PID$, gbdt As Date, dmseit$, ByRef falDiabDau%, obweibl%)
+Function UKPDS(ByRef aRisk As Risk, pid$, gbdt As Date, dmseit$, ByRef falDiabDau%, obweibl%)
 ' 1.11.14 vorgezogen
 ' UKPDS-Risk bestimmen (1)
   Dim diabseit As Date
   Dim rsDia As New ADODB.Recordset
-  aRisk.AgeDiagDiabetes = MAX((erbe(PID) - gbdt) * 0.002737925747, 20) ' / 365.24 ' bei Active-X-Fehler: an der Kommandozeile "regsvr32 u:\programmierung\riskeng.ocx" laufen lassen
+  aRisk.AgeDiagDiabetes = MAX((erbe(pid) - gbdt) * 0.002737925747, 20) ' / 365.24 ' bei Active-X-Fehler: an der Kommandozeile "regsvr32 u:\programmierung\riskeng.ocx" laufen lassen
   aRisk.DurationDiagnosedDiabetes = 0
   falDiabDau = -1
   Dim DSnum As Date
@@ -758,11 +758,11 @@ Function UKPDS(ByRef aRisk As Risk, PID$, gbdt As Date, dmseit$, ByRef falDiabDa
 ' UKPDS-Risk bestimmen (2)
   aRisk.Female = obweibl
   Set rsDia = Nothing
-  myFrag rsDia, "SELECT 0 FROM `diagnosen` d WHERE d.pat_id = " & PID & " AND (d.gicdok LIKE 'I48%')" ' AND COALESCE(d.f6010,0)=0
+  myFrag rsDia, "SELECT 0 FROM `diagview` d WHERE d.pat_id = " & pid & " AND (d.gicd LIKE 'I48%')" ' AND COALESCE(d.f6010,0)=0
   aRisk.AtrialFibrillation = Not rsDia.BOF()
   Set rsDia = Nothing
   aRisk.EthnicGroup = 1 ' 2 = Afro-Caribbean, 3 = Asian-Indian
-  myFrag rsDia, "SELECT diagsicherheit d FROM `diagnosen` d WHERE d.pat_id = " & PID & " AND (d.icd LIKE 'F17%') AND NOT d.diagsicherheit IN ('A')" '  AND COALESCE(d.f6010,0)=0
+  myFrag rsDia, "SELECT diagsicherheit d FROM `diagnosen` d WHERE d.pat_id = " & pid & " AND (d.icd LIKE 'F17%') AND NOT d.diagsicherheit IN ('A')" '  AND COALESCE(d.f6010,0)=0
   If rsDia.EOF Then
    aRisk.SmokingStatus = 0
   ElseIf rsDia!d = "Z" Then
@@ -771,12 +771,12 @@ Function UKPDS(ByRef aRisk As Risk, PID$, gbdt As Date, dmseit$, ByRef falDiabDa
    aRisk.SmokingStatus = 2
   End If
   Set rsDia = Nothing
-  myFrag rsDia, "SELECT COUNT(0) ct FROM (SELECT * FROM rrparse WHERE pat_id = " & PID & " ORDER BY zeitpunkt DESC LIMIT 6) i"
+  myFrag rsDia, "SELECT COUNT(0) ct FROM (SELECT * FROM rrparse WHERE pat_id = " & pid & " ORDER BY zeitpunkt DESC LIMIT 6) i"
   If Not rsDia.BOF Then
    If Not IsNull(rsDia!ct) Then aRisk.BloodPressure_Precision = rsDia!ct
   End If
   Set rsDia = Nothing
-  myFrag rsDia, "SELECT avg(rrsyst) s, avg(rrdiast) d FROM (SELECT rrsyst,rrdiast FROM rrparse WHERE pat_id = " & PID & " ORDER BY zeitpunkt DESC LIMIT 6) i"
+  myFrag rsDia, "SELECT avg(rrsyst) s, avg(rrdiast) d FROM (SELECT rrsyst,rrdiast FROM rrparse WHERE pat_id = " & pid & " ORDER BY zeitpunkt DESC LIMIT 6) i"
   If Not rsDia.BOF Then
    If Not IsNull(rsDia!s) Then aRisk.BloodPressure = rsDia!s
   End If
@@ -1224,7 +1224,7 @@ weiter:
 hyperton:
 #Else
   Set rsDia = Nothing
-  myFrag rsDia, "SELECT 0 FROM `diagmed` d WHERE d.pat_id = " & Pat_id & " AND d.gICDok LIKE 'i10%'" '  AND COALESCE(d.f6010,0)=0
+  myFrag rsDia, "SELECT 0 FROM diagview d WHERE d.pat_id = " & Pat_id & " AND d.gICD LIKE 'i10%' LIMIT 1" '  AND COALESCE(d.f6010,0)=0
   If rsDia.EOF Then
    If pathz(RRi) < 1 Or (npathz(RRi) > 2 And pathz(RRi) < 2) Then
     normoton = True
@@ -1952,7 +1952,7 @@ keinuzu:
   End If ' obGPT And obGOT And obTHR Then
   If obGPT And obGOT And obTHR And obAlb And üdt.bmi <> 0 Then
    Dim obDMoPG%
-   obDMoPG = myEFrag("SELECT IF(EXISTS (SELECT 0 FROM diagmed WHERE gICDok RLIKE '^E1[0-4]\.|^R73\.9' AND pat_id=" & Pat_id & "),1,0)").Fields(0)
+   obDMoPG = myEFrag("SELECT IF(EXISTS(SELECT 0 FROM diagview WHERE gICD RLIKE '^E1[0-4]\.|^R73\.9' AND pat_id=" & Pat_id & " LIMIT 1),1,0)").Fields(0)
    NFS = Round(-1.675 + 0.037 * Palter + 0.094 * üdt.bmi + 1.13 * obDMoPG + 0.99 * GOT / GPT - 0.013 * Thr - 0.66 * Alb * 0.1, 3)
   End If ' obGPT And obGOT And obTHR And obAlb And üdt.bmi <> 0 Then
   
@@ -2002,7 +2002,7 @@ keinuzu:
     If üdt.FEn(12) = True Or üdt.sens = pathdok Then
      MerkblattText = MerkblattText & "ICD("
      Set rsDia = Nothing
-     myFrag rsDia, "SELECT DISTINCT icd FROM `diagmed` d WHERE pat_id = " & Pat_id & " AND (d.gicdok LIKE 'L89%' OR d.gicdok LIKE 'M14.6%' OR d.gicdok = 'G63.2') " ' AND COALESCE(d.f6010,0)=0
+     myFrag rsDia, "SELECT DISTINCT icd FROM diagview d WHERE pat_id = " & Pat_id & " AND (d.gicd LIKE 'L89%' OR d.gicd LIKE 'M14.6%' OR d.gicd = 'G63.2') "
      Do While Not rsDia.EOF
       MerkblattText = MerkblattText & rsDia!ICD & ","
       rsDia.Move 1
@@ -2448,7 +2448,7 @@ keinuzu:
   If falDiabDau Then AusS.AppVar (Array("    <span class='cave'>&nbsp;bitte `Diabetes seit` im Anamnesemakro überprüfen: soll Jahreszahl oder Datum sein,&nbsp;&nbsp;</span>", vbCrLf))
 ' Barthel-Index
   Dim rsdd As New ADODB.Recordset
-  myFrag rsdd, "SELECT icd FROM diagmed d WHERE d.pat_id = " & Pat_id & " AND (d.gICDok RLIKE '^F0[0123]' OR d.gICDok LIKE 'G20%')" '  AND COALESCE(d.f6010,0)=0
+  myFrag rsdd, "SELECT icd FROM diagview d WHERE d.pat_id = " & Pat_id & " AND (d.gICD RLIKE '^F0[0-3]|^G20')"
   Dim rse As New ADODB.Recordset
   If Not rFl.EOF() Then
    If rFl!SchGr <> 90 And (Palter >= 70 Or Not rsdd.BOF) Then
@@ -2484,15 +2484,15 @@ keinuzu:
     AusS.AppVar Array("<span style= 'color:rgb(51, 153, 255);font-size:4mm'>&nbsp;DAK/KKH/HEK/TK-Unterschrift " & DAKUStr)
      
      Dim NPmd%, LUTSmd%, Apmd%, LebMd%, NiMd%
-     NPmd = myEFrag("SELECT 1 FROM diagmed WHERE pat_id = " & Pat_id & " AND (gICDok LIKE 'E1%.4' OR gICDok LIKE 'G59.0%' OR gICDok LIKE 'G63.2%' OR gICDok LIKE 'G99.0%')").EOF ' COALESCE(f6010,0)=0 AND
+     NPmd = myEFrag("SELECT 1 FROM diagview WHERE pat_id = " & Pat_id & " AND gICD RLIKE '^E1[0-4]\.4|^G59\.0|^G63\.2|^G99\.0'").EOF
      If NPmd Then NPmd = myEFrag("SELECT zeitpunkt FROM eintraege WHERE art='daknp' AND pat_id = " & Pat_id & " AND zeitpunkt >= SUBDATE(qanf(),INTERVAL 9 MONTH)").EOF
-     LUTSmd = myEFrag("SELECT 0 FROM diagmed WHERE pat_id = " & Pat_id & " AND gicdok RLIKE '^N31\.[12]'").BOF ' COALESCE(f6010,0)=0 AND
+     LUTSmd = myEFrag("SELECT 0 FROM diagview WHERE pat_id = " & Pat_id & " AND gicd RLIKE '^N31\.[12]'").BOF
      If LUTSmd Then LUTSmd = myEFrag("SELECT zeitpunkt FROM eintraege WHERE art='dakluts' AND pat_id = " & Pat_id & " AND zeitpunkt >= SUBDATE(qanf(),INTERVAL 9 MONTH)").EOF
-     If Palter > 50 Then Apmd = myEFrag("SELECT 0 FROM diagmed WHERE pat_id = " & Pat_id & " AND gicdok LIKE '^E1.\.5|^I79.2|^I73.'").BOF Else Apmd = 0 ' COALESCE(f6010,0)=0 AND
+     If Palter > 50 Then Apmd = myEFrag("SELECT 0 FROM diagview WHERE pat_id = " & Pat_id & " AND gicd RLIKE '^E1.\.5|^I79.2|^I73.'").BOF Else Apmd = 0
      If Apmd Then Apmd = myEFrag("SELECT zeitpunkt FROM eintraege WHERE art='dakap' AND pat_id = " & Pat_id & " AND zeitpunkt >= SUBDATE(qanf(),INTERVAL 9 MONTH)").EOF
-     LebMd = myEFrag("SELECT 0 FROM diagmed WHERE pat_id = " & Pat_id & " AND (gicdok LIKE 'K77.8')").BOF ' COALESCE(f6010,0)=0 AND
+     LebMd = myEFrag("SELECT 0 FROM diagview WHERE pat_id = " & Pat_id & " AND gicd = 'K77.8'").BOF ' COALESCE(f6010,0)=0 AND
      If LebMd Then LebMd = myEFrag("SELECT zeitpunkt FROM eintraege WHERE art='sono' AND (inhalt LIKE '%Abdomen%' OR inhalt LIKE '%Bauch%') AND pat_id = " & Pat_id & " AND zeitpunkt >= SUBDATE(qanf(),INTERVAL 9 MONTH)").EOF
-     NiMd = myEFrag("SELECT 0 FROM diagmed WHERE pat_id = " & Pat_id & " AND gicdok rLIKE '^E1.*\.2|^N18|^N19|^I12\.0|^I13\.1|^I13\.2|^Z49\.[012]|^Z99\.2'").BOF ' COALESCE(f6010,0)=0 AND
+     NiMd = myEFrag("SELECT 0 FROM diagview WHERE pat_id = " & Pat_id & " AND gicd RLIKE '^E1.*\.2|^N18|^N19|^I12\.0|^I13\.1|^I13\.2|^Z49\.[012]|^Z99\.2'").BOF ' COALESCE(f6010,0)=0 AND
      If (NPmd Or LUTSmd Or Apmd Or LebMd Or NiMd) Then
       AusS.AppVar Array(IIf(NPmd, "NPMd, ", ""), IIf(LUTSmd, "LUTSMd, ", ""), IIf(Apmd, "APMd, ", ""), IIf(LebMd, "LebMd ,", ""), IIf(NiMd, "NiMd ", ""))
      End If ' NPmd OR LUTSmd OR Apmd OR Lebmd OR NiMd
@@ -2976,7 +2976,7 @@ keinuzu:
     AusS.AppVar Array("  <th bgcolor=""#DDDDDD""></th>", vbCrLf)
     
     If Not rTerm.BOF And Not rTerm.EOF Then
-     AusS.AppVar Array(" <th class='term'>", Format(rTerm!Uhrzeit, "d.m.yy hh:mm") & " " & rTerm!raum & " " & rTerm!Zusatz & "</th>")
+     AusS.AppVar Array(" <th class='term'>", Format(rTerm!Uhrzeit, "d.m.yy hh:mm") & " " & rTerm!raum & " " & rTerm!zusatz & "</th>")
     End If
     If Not rTerm.BOF And Not rTerm.EOF Then rTerm.MoveNext
     
@@ -3567,11 +3567,11 @@ End Sub      ' LaborIns
 
 ' 21.8.20: z.Zt. nicht aufgerufen
 Function doPLZeinzeln()
- Dim PID$, ZeilZ$
+ Dim pid$, ZeilZ$
  ZeilZ = "8"
- PID = InputBox("Bitte Pat-ID aus Turbomed eingeben:", "Patientenlaufzettel Eingabe")
+ pid = InputBox("Bitte Pat-ID aus Turbomed eingeben:", "Patientenlaufzettel Eingabe")
 ' ZeilZ = InputBox("Bitte gewünschte Tabellenzeilenzahl eingeben:", "Patientenlaufzettel Eingabe", ZeilZ)
- If IsNumeric(PID) And IsNumeric(ZeilZ) Then
-  Call dodoPLZ(PID, plzVz, Now, Now - Int(Now), True, "", CDbl(ZeilZ))
+ If IsNumeric(pid) And IsNumeric(ZeilZ) Then
+  Call dodoPLZ(pid, plzVz, Now, Now - Int(Now), True, "", CDbl(ZeilZ))
  End If
 End Function ' doPLZeinzeln

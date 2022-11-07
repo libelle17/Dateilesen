@@ -2996,9 +2996,9 @@ Public Function doWSt0Erg()
         " WHERE EXISTS (SELECT 0 FROM `diagnosen` d WHERE d.icd LIKE 'L89.%' AND NOT d.icd LIKE 'L89.1%' AND d.diagsicherheit <> 'A' AND " & _
                                               " pat_id = `namen`.pat_id and" & _
                                               " fid <> (SELECT MAX(fid) FROM `faelle` WHERE pat_id = `namen`.pat_id))" & _
-" AND NOT EXISTS (SELECT 0 FROM `diagnosen` d WHERE d.gICDok LIKE 'L89.1%'" & _
+" AND NOT EXISTS (SELECT 0 FROM `diagview` d WHERE d.gICD LIKE 'L89.1%'" & _
                                               " pat_id = `namen`.pat_id)" & _
-" AND NOT EXISTS (SELECT 0 FROM `diagnosen` d WHERE d.gICDok LIKE 'L89.%'" & _
+" AND NOT EXISTS (SELECT 0 FROM `diagview` d WHERE d.gICD LIKE 'L89.%'" & _
                                               " pat_id = `namen`.pat_id and" & _
                                               " fid = (SELECT MAX(fid) FROM `faelle` WHERE pat_id = `namen`.pat_id)))" & _
 " AS innen" & _
@@ -5016,9 +5016,9 @@ Function fzsfuell(frm As Lese, abstand&, Optional obgestern) ' Abstand: 999 => u
     ",COALESCE((SELECT COUNT(DISTINCT pat_id) FROM faelle f WHERE quartal=" & QT & " AND schgr<>'90' AND fanf BETWEEN " & qbg & " AND " & qed & " AND EXISTS (SELECT 0 FROM `diagnosen` d WHERE d.pat_id = f.pat_id AND d.icd RLIKE '^E1[0-4]\.' AND d.diagsicherheit IN ('G',' ') AND obdauer<>0) GROUP BY quartal),0) DM" & vbCrLf & _
     ",COALESCE((SELECT COUNT(DISTINCT pat_id) FROM faelle f WHERE quartal=" & QT & " AND schgr<>'90' AND fanf BETWEEN " & qbg & " AND " & qed & " AND EXISTS (SELECT 0 FROM eintraege WHERE pat_id= f.pat_id AND zeitpunkt BETWEEN " & qbg & " AND " & qed & " AND (art IN ('gs','doppler','duplex') OR inhalt LIKE '%(gs)%') AND NOT inhalt LIKE '%(wd)%' AND NOT inhalt LIKE '%(ah)%') GROUP BY quartal),0) davonSchade" & vbCrLf & _
     ",COALESCE((SELECT COUNT(DISTINCT pat_id) FROM faelle f WHERE quartal=" & QT & " AND schgr<>'90' AND fanf BETWEEN " & qbg & " AND " & qed & " AND EXISTS (SELECT 0 FROM eintraege WHERE pat_id= f.pat_id AND zeitpunkt BETWEEN " & qbg & " AND " & qed & " AND (art IN ('tk') OR inhalt LIKE '%(tk)%')) GROUP BY quartal),0) davonKothny" & vbCrLf & _
-    ",COALESCE((SELECT COUNT(DISTINCT pat_id) FROM faelle f WHERE quartal=" & QT & " AND schgr<>'90' AND fanf BETWEEN " & qbg & " AND " & qed & " AND EXISTS (SELECT 0 FROM `diagnosen` d WHERE d.pat_id = f.pat_id AND d.gicdok = 'O24.4' AND obdauer=0 AND diagdatum BETWEEN " & qbg & " AND " & qed & ") GROUP BY quartal),0) GDM" & vbCrLf & _
+    ",COALESCE((SELECT COUNT(DISTINCT pat_id) FROM faelle f WHERE quartal=" & QT & " AND schgr<>'90' AND fanf BETWEEN " & qbg & " AND " & qed & " AND EXISTS (SELECT 0 FROM diagview d WHERE d.pat_id = f.pat_id AND d.gicd = 'O24.4' AND obdauer=0 AND diagdatum BETWEEN " & qbg & " AND " & qed & ") GROUP BY quartal),0) GDM" & vbCrLf & _
     ",COALESCE((SELECT COUNT(DISTINCT pat_id) FROM faelle f WHERE quartal=" & QT & " AND schgr<>'90' AND fanf BETWEEN " & qbg & " AND " & qed & " AND EXISTS (SELECT 0 FROM eintraege WHERE pat_id= f.pat_id AND zeitpunkt BETWEEN " & qbg & " AND " & qed & " AND (SELECT MIN(fanf) FROM faelle WHERE pat_id=f.pat_id)=f.fanf) GROUP BY quartal),0) neue" & vbCrLf & _
-    ",COALESCE((SELECT COUNT(DISTINCT pat_id) FROM faelle f WHERE quartal=" & QT & " AND schgr<>'90' AND fanf BETWEEN " & qbg & " AND " & qed & " AND EXISTS (SELECT 0 FROM eintraege WHERE pat_id= f.pat_id AND zeitpunkt BETWEEN " & qbg & " AND " & qed & " AND (SELECT MIN(fanf) FROM faelle WHERE pat_id=f.pat_id)=f.fanf) AND EXISTS (SELECT 0 FROM `diagnosen` d WHERE d.pat_id = f.pat_id AND d.gICDok RLIKE '^E1[0-4]\.' AND obdauer<>0) GROUP BY quartal),0) neueDM" & vbCrLf & _
+    ",COALESCE((SELECT COUNT(DISTINCT pat_id) FROM faelle f WHERE quartal=" & QT & " AND schgr<>'90' AND fanf BETWEEN " & qbg & " AND " & qed & " AND EXISTS (SELECT 0 FROM eintraege WHERE pat_id= f.pat_id AND zeitpunkt BETWEEN " & qbg & " AND " & qed & " AND (SELECT MIN(fanf) FROM faelle WHERE pat_id=f.pat_id)=f.fanf) AND EXISTS (SELECT 0 FROM diagview d WHERE d.pat_id = f.pat_id AND d.gICD RLIKE '^E1[0-4]\.' AND obdauer<>0) GROUP BY quartal),0) neueDM" & vbCrLf & _
     ",COALESCE((SELECT COUNT(DISTINCT pat_id) FROM faelle f WHERE quartal=" & QT & " AND schgr<>'90' AND fanf BETWEEN " & qbg & " AND " & qed & " AND EXISTS (SELECT 0 FROM eintraege WHERE pat_id= f.pat_id AND zeitpunkt BETWEEN " & qbg & " AND " & qed & " AND ((art IN ('gs','doppler','duplex') OR inhalt LIKE '%(gs)%') AND NOT inhalt LIKE '%(wd)%' AND NOT inhalt LIKE '%(ah)%') AND (SELECT MIN(fanf) FROM faelle WHERE pat_id=f.pat_id)=f.fanf) GROUP BY quartal),0) neueSchade" & vbCrLf & _
     ",COALESCE((SELECT COUNT(DISTINCT pat_id) FROM faelle f WHERE quartal=" & QT & " AND schgr<>'90' AND fanf BETWEEN " & qbg & " AND " & qed & " AND EXISTS (SELECT 0 FROM eintraege WHERE pat_id= f.pat_id AND zeitpunkt BETWEEN " & qbg & " AND " & qed & " AND (art IN ('tk') OR inhalt LIKE '%(tk)%') AND (SELECT MIN(fanf) FROM faelle WHERE pat_id=f.pat_id)=f.fanf) GROUP BY quartal),0) neueKothny" & vbCrLf & _
     ",COALESCE((SELECT COUNT(0) FROM `eintraege` e WHERE e.art = 'doppler' AND zeitpunkt BETWEEN " & qbg & " AND " & qed & "),0) Doppler" & vbCrLf & _
@@ -5031,8 +5031,8 @@ Function fzsfuell(frm As Lese, abstand&, Optional obgestern) ' Abstand: 999 => u
     ",COALESCE((SELECT COUNT(0) FROM (SELECT COUNT(0) zahl FROM eintraege WHERE art IN ('gs') AND zeitpunkt BETWEEN " & qbg & " AND " & qed & " GROUP BY DATE(zeitpunkt)) i WHERE zahl>5),0) arbtSchade" & vbCrLf & _
     ",COALESCE((SELECT COUNT(0) FROM briefe WHERE autor='gs' AND (name LIKE '%brief%' OR name LIKE '%nachricht%') AND quelldatum BETWEEN " & qbg & " AND " & qed & "),0) BriefeSchade" & vbCrLf & _
     ",COALESCE((SELECT COUNT(0) FROM briefe WHERE autor='tk' AND (name LIKE '%brief%' OR name LIKE '%nachricht%') AND quelldatum BETWEEN " & qbg & " AND " & qed & "),0) BriefeKothny" & vbCrLf & _
-    ",COALESCE((SELECT COUNT(0) FROM briefe WHERE autor='gs' AND (name LIKE '%brief%' OR name LIKE '%nachricht%') AND quelldatum BETWEEN " & qbg & " AND " & qed & "AND EXISTS (SELECT 0 FROM `diagnosen` d WHERE d.pat_id = pat_id AND d.gICDok RLIKE '^E1[0-4]\.' AND obdauer<>0 )),0) dmBriefeSchade" & vbCrLf & _
-    ",COALESCE((SELECT COUNT(0) FROM briefe WHERE autor='tk' AND (name LIKE '%brief%' OR name LIKE '%nachricht%') AND quelldatum BETWEEN " & qbg & " AND " & qed & "AND EXISTS (SELECT 0 FROM `diagnosen` d WHERE d.pat_id = pat_id AND d.gICDok RLIKE '^E1[0-4]\.' AND obdauer<>0 )),0) dmBriefeKothny" & vbCrLf & _
+    ",COALESCE((SELECT COUNT(0) FROM briefe WHERE autor='gs' AND (name LIKE '%brief%' OR name LIKE '%nachricht%') AND quelldatum BETWEEN " & qbg & " AND " & qed & "AND EXISTS (SELECT 0 FROM diagview d WHERE d.pat_id = pat_id AND d.gICD RLIKE '^E1[0-4]\.' AND obdauer<>0 )),0) dmBriefeSchade" & vbCrLf & _
+    ",COALESCE((SELECT COUNT(0) FROM briefe WHERE autor='tk' AND (name LIKE '%brief%' OR name LIKE '%nachricht%') AND quelldatum BETWEEN " & qbg & " AND " & qed & "AND EXISTS (SELECT 0 FROM diagview d WHERE d.pat_id = pat_id AND d.gICD RLIKE '^E1[0-4]\.' AND obdauer<>0 )),0) dmBriefeKothny" & vbCrLf & _
     ") i"
 '   sql = sql & _
     " FROM (SELECT qu" & vbCrLf & _
@@ -5090,7 +5090,7 @@ Function fzsfuell(frm As Lese, abstand&, Optional obgestern) ' Abstand: 999 => u
             ") eart," & _
          "NOT ISNULL(icd) dm " & _
        "FROM `briefe` b " & _
-       "LEFT JOIN `diagnosen` d ON b.pat_id = d.pat_id AND d.gICDok RLIKE '^E1[0-4]\.|^O24\.'" & _
+       "LEFT JOIN diagview d ON b.pat_id = d.pat_id AND d.gICD RLIKE '^E1[0-4]\.|^O24\.'" & _
        "WHERE not name LIKE '%dmp-%' AND (name LIKE '%brief%' OR name LIKE '%nachricht%') AND art IN ('wbr','brief') " & _
                 ") i WHERE NOT ISNULL(eart) GROUP BY pat_id, eart, zp, dm " & _
                 ") i WHERE zp BETWEEN " & DatFor_k(QAnf(QT)) & " AND " & IIf(abstand = 9999, DatFor_k(QEnd(QT) + 1), DatFor_k(QAnf(QT) + abstand + 1)) & " GROUP BY eart,dm "

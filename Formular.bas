@@ -179,7 +179,7 @@ Function therinit()
 "  WHERE insulinpumpe<>0 AND (inpid=0 OR a.pat_id=inpid) " & vbCrLf & _
 " UNION -- 2) Rezepte für Pumpenzubehör, könnten für ein Jahr Pumpentherapie versprechen: " & vbCrLf & _
 "  SELECT Pat_id pid,-2 MPNr, zeitpunkt Zp,ADDDATE(zeitpunkt,365) bis,'CSII' Thart, feldinh Gru,f.foid ia,FID absPos,Form_id StByte, feldnr FROM formular f " & vbCrLf & _
-"  WHERE form_abk IN ('rp','lar','prp','plar') AND feld IN ('medikament','txtMedKey','VerordnungsZeile') AND feldinh RLIKE 'reservoir|rapid d link|rap d li|rapid-d li|tenderl|sure t|paradigm|veo|animas|cartridge|t-slim|t:slim|variosoft|trusteel|autosoft|ypsopump|insigh|omnipod' " & vbCrLf & _
+"  WHERE form_abk IN ('rp','lar','prp','plar') AND feld IN ('medikament','txtMedKey','VerordnungsZeile') AND feldinh RLIKE 'reservoir|rapid d link|rap d li|rapid-d li|tenderl|sure t|paradigm|veo|animas|cartridge|t-slim|t:slim|variosoft|trusteel|autosoft|ypsopump|insigh|omnipod' AND NOT feldinh LIKE '%menveo%'" & vbCrLf & _
 "  AND (inpid=0 OR pat_id=inpid) " & vbCrLf & _
 " UNION -- 3) Insulinpläne " & vbCrLf & _
 " SELECT pat_id pid,-3 MPNr,qdm zp,qdm bis,'ICT' Thart, MID(NAME,p) Gru,-2 ia,b.absPos,b.StByte,0 FROM (SELECT IF(p1>p2,p1,p2) p, b.* FROM (SELECT INSTR(b.name,'insulin') p1, INSTR(b.name,'spritz') p2, b.* FROM briefe b) b) b WHERE b.name RLIKE '(insulin|spritz).*(plan|schema|tabelle)' " & vbCrLf & _
@@ -251,10 +251,10 @@ psql(3) = psql(3) & _
 "AND NOT (lia=-2 AND ia=2 AND NOT (thart<>lthart AND thart IN ('GLP1','GLP1Ins','GLP1ICT')) AND zp BETWEEN lzp AND ADDDATE(lzp,92)) " & vbCrLf & _
 "ORDER BY pid,zp,MPNr; "
  psql(4) = "SELECT @vzahl vzahl, ROW_COUNT() zahl; "
- psql(5) = "UPDATE anamnesebogen a SET therakt =(SELECT therart FROM therarten WHERE pat_id=a.pat_id ORDER BY zp DESC, mpnr DESC LIMIT 1) WHERE inpid=0 OR pat_id=inpid;"
+ psql(5) = "UPDATE anamnesebogen a SET ther1=(SELECT therart FROM therarten WHERE pat_id=a.pat_id ORDER BY zp, mpnr LIMIT 1), therakt =(SELECT therart FROM therarten WHERE pat_id=a.pat_id ORDER BY zp DESC, mpnr DESC LIMIT 1) WHERE inpid=0 OR pat_id=inpid;"
 End Function ' therinit
 
-' die folgende Funktion muss so umständlich eingerichtet werden, da der Aufruf von "call fuellThaP"
+' 10/22: die folgende Funktion muss so umständlich eingerichtet werden, da der Aufruf von "call fuellThaP"
 ' unter MariaDB 10.9 mit ca. 80% Wahrscheinlichkeit den Server crasht (ähnliches im Netz)
 ' in alleSpeichern, doViewsErstellen, testTab, Therapieartenwechsel_click, rufThFestleg, theraktakt
 Public Function TheraErmitt&(pid&, Optional ByRef vzahl&)
@@ -3670,19 +3670,19 @@ End Function ' sensib
         "      IF(e.inhalt LIKE '%pst%' OR e.inhalt LIKE '%postst%',2,0), " & _
         "  IF (ISNULL(u.pat_id), " & _
         "   IF(ISNULL(icd),1,2), " & _
-        "    IF((instr(pulsatp_re,'+')<>0 AND instr(pulsatp_li,'+')<>0) OR (instr(pulsadp_re,'+')<>0 AND instr(pulsadp_li,'+')<>0),0,2) " & _
+        "    IF((INSTR(pulsatp_re,'+')<>0 AND INSTR(pulsatp_li,'+')<>0) OR (INSTR(pulsadp_re,'+')<>0 AND INSTR(pulsadp_li,'+')<>0),0,2) " & _
         "))) ergeb, " & _
         "IF (ISNULL(e.inhalt) AND ISNULL(u.pat_id) AND ISNULL(icd),'nicht untersucht', " & _
         " IF (NOT ISNULL(e.inhalt) AND ((e.inhalt LIKE '%pst%' OR e.inhalt LIKE '%postst%') OR ISNULL(icd)), " & _
         "      CONCAT(IF(e.inhalt LIKE '%pst%' OR e.inhalt LIKE '%postst%','','un'),'auffällig (',upper(LEFT(e.art,1)),mid(e.art,2),' ',DATE_FORMAT(e.zeitpunkt,'%e.%c.%Y'),')'), " & _
         "  IF (ISNULL(u.pat_id), " & _
         "   IF(ISNULL(icd),'nicht untersucht',CONCAT('auffällig (Diagn.',icd,')')), " & _
-        "    CONCAT(IF((instr(pulsatp_re,'+')<>0 AND instr(pulsatp_li,'+')<>0) OR (instr(pulsadp_re,'+')<>0 AND instr(pulsadp_li,'+')<>0),'un',''),'auffällig: ',pulsatp_re,'/',pulsatp_li,',',pulsadp_re,'/',pulsadp_li,' (',DATE_FORMAT(u.zeitpunkt,'%e.%c.%Y'),')') " & _
+        "    CONCAT(IF((INSTR(pulsatp_re,'+')<>0 AND INSTR(pulsatp_li,'+')<>0) OR (INSTR(pulsadp_re,'+')<>0 AND INSTR(pulsadp_li,'+')<>0),'un',''),'auffällig: ',pulsatp_re,'/',pulsatp_li,',',pulsadp_re,'/',pulsadp_li,' (',DATE_FORMAT(u.zeitpunkt,'%e.%c.%Y'),')') " & _
         "))) etext, " & _
-        "d.icd, e.inhalt, (instr(pulsatp_re,'+')<>0 AND instr(pulsatp_li,'+')<>0) OR (instr(pulsadp_re,'+')<>0 AND instr(pulsadp_li,'+')<>0) unauff " & _
+        "d.icd, e.inhalt, (INSTR(pulsatp_re,'+')<>0 AND INSTR(pulsatp_li,'+')<>0) OR (INSTR(pulsadp_re,'+')<>0 AND INSTR(pulsadp_li,'+')<>0) unauff " & _
         "FROM namen n " & _
         "LEFT JOIN usdm u ON n.pat_id = u.pat_id AND u.zeitpunkt=(SELECT MAX(zeitpunkt) FROM usdm u1 WHERE u1.pat_id = u.pat_id) " & _
-        "LEFT JOIN diagnosen d ON d.pat_id = n.pat_id AND d.gICDok RLIKE '^I7[034]\.' AND d.id1 = (SELECT MAX(id1) FROM diagnosen d0 WHERE d0.pat_id = d.pat_id AND (d.gICDok RLIKE '^I7[034]\.')) " & _
+        "LEFT JOIN diagview d ON d.pat_id = n.pat_id AND d.gICD RLIKE '^I7[034]\.' AND d.id1 = (SELECT MAX(id1) FROM diagview d0 WHERE d0.pat_id = d.pat_id AND (d.gICD RLIKE '^I7[034]\.')) " & _
         "LEFT JOIN eintraege e ON e.pat_id = n.pat_id AND e.art IN ('doppler','duplex') AND e.inhalt LIKE '%beina%' AND e.zeitpunkt=(SELECT MAX(zeitpunkt) FROM eintraege e0 WHERE e0.pat_id = e.pat_id AND e.art IN ('doppler','duplex') AND e.inhalt LIKE '%beina%') " & _
         "WHERE n.Pat_id = " & Pat_id
   myFrag rpuls, sql
@@ -9891,10 +9891,40 @@ Vsql = "SELECT COUNT(0) AS ct,pat_id FROM __kontakttage GROUP BY pat_id;"
 Call DtbCreateQueryDef(VN, Vsql)
 vz = vz + 1
 
+' ca. 3% langsamer als diagview, wohl wegen mehr Spalten
+'VN = "diagv"
+'Vsql = _
+"SELECT " & vbCrLf & _
+"  IF(diagsicherheit IN ('G',' '),IF(obdauer,krd,akt),'') gicdko" & vbCrLf & _
+", IF(diagsicherheit IN ('G',' '),IF(obdauer,nfc,akt),'') gicdok" & vbCrLf & _
+", IF(diagsicherheit IN ('G',' '),IF(obdauer,IF(kori(),krd,nfc),akt),'') gicd" & vbCrLf & _
+", IF(diagsicherheit IN ('G',' ','Z'),IF(obdauer,krd,akt),'') gzicdko" & vbCrLf & _
+", IF(diagsicherheit IN ('G',' ','Z'),IF(obdauer,nfc,akt),'') gzicdok" & vbCrLf & _
+", IF(diagsicherheit IN ('G',' ','Z'),IF(obdauer,IF(kori(),krd,nfc),akt),'') gzicd" & vbCrLf & _
+", d.* FROM (" & vbCrLf & _
+"SELECT IF(obdauer AND obkasse AND lkasse>qanf(),icd,'') krd" & vbCrLf & _
+", IF(f6010,'',icd) nfc" & vbCrLf & _
+", IF(NOT obdauer AND diagdatum<qanf(),'',icd) akt" & vbCrLf & _
+", d.* FROM diagnosen d) d"
+'Call DtbCreateQueryDef(VN, Vsql)
+
+
+VN = "diagview"
+Vsql = _
+"SELECT d.* " & vbCrLf & _
+", IF(diagsicherheit IN ('G',' '),IF(obdauer,IF(obkasse AND lkasse>qanf(),icd,''),IF(diagdatum<qanf(),'',icd)),'') gicdko" & vbCrLf & _
+", IF(diagsicherheit IN ('G',' '),IF(obdauer,IF(f6010,'',icd),IF(diagdatum<qanf(),'',icd)),'') gicdok" & vbCrLf & _
+", IF(diagsicherheit IN ('G',' '),IF(obdauer,IF(kori(),IF(obkasse AND lkasse>qanf(),icd,''),IF(f6010,'',icd)),IF(diagdatum<qanf(),'',icd)),'') gicd" & vbCrLf & _
+", IF(diagsicherheit IN ('G',' ','Z'),IF(obdauer,IF(obkasse AND lkasse>qanf(),icd,''),IF(diagdatum<qanf(),'',icd)),'') gzicdko" & vbCrLf & _
+", IF(diagsicherheit IN ('G',' ','Z'),IF(obdauer,IF(f6010,'',icd),IF(diagdatum<qanf(),'',icd)),'') gzicdok" & vbCrLf & _
+", IF(diagsicherheit IN ('G',' ','Z'),IF(obdauer,IF(kori(),IF(obkasse AND lkasse>qanf(),icd,''),IF(f6010,'',icd)),IF(diagdatum<qanf(),'',icd)),'') gzicd" & vbCrLf & _
+"FROM diagnosen d"
+Call DtbCreateQueryDef(VN, Vsql)
+
 If LVobMySQL Then
  VN = "aktfaelle"
   Vsql = "SELECT f.pat_id pid, notiz, stru.leistung stru, chron.leistung chron, kt.ct kt, ebm.leistung verspau " & vbCrLf & _
- ",(SELECT icd FROM diagnosen d WHERE d.pat_id=f.pat_id AND d.gicdok RLIKE '^E1[0-4]\.|^O24\.' AND (d.obdauer <> 0 OR d.fid = f.fid) ORDER BY icd LIMIT 1) icd " & vbCrLf & _
+ ",(SELECT icd FROM diagview d WHERE d.pat_id=f.pat_id AND d.gicd RLIKE '^E1[0-4]\.|^O24\.' AND (d.obdauer <> 0 OR d.fid = f.fid) ORDER BY icd LIMIT 1) icd " & vbCrLf & _
  ", f.*, k.id, k.name kname, kateg, anzahlik, anzahlktug, gültigvon, gültigbis, go, kurzname " & vbCrLf & _
  "FROM ((`faelle` f " & vbCrLf & _
  "LEFT JOIN `kassenliste` k ON f.vknr = k.vknr AND f.ik = k.ik) " & vbCrLf & _
@@ -10017,7 +10047,7 @@ If LVobMySQL Then
  Vsql = _
  "SELECT CASE WHEN dicd LIKE 'E10%' THEN '1' WHEN dicd LIKE 'E11%' THEN '2' WHEN dicd = 'O24.4' THEN 'g' ELSE '-' END dtyp, i.* FROM (" & vbCrLf & _
  " SELECT COALESCE(t.therart,'Diät') mta, rang(COALESCE(t.therart,'Diät')) rang, t.zp tzp " & vbCrLf & _
- ", (SELECT MAX(icd) FROM diagnosen WHERE pat_id=f.pat_id AND ((gicdok RLIKE '^E1[0-4]\.' AND obdauer<>0) OR (gicdok='O24.4' AND obdauer=0 AND diagdatum BETWEEN qanf() AND qend()))) dicd " & vbCrLf & _
+ ", (SELECT MAX(icd) FROM diagview WHERE pat_id=f.pat_id AND ((gicd RLIKE '^E1[0-4]\.' AND obdauer<>0) OR (gicd='O24.4' AND obdauer=0 AND diagdatum BETWEEN qanf() AND qend()))) dicd " & vbCrLf & _
  ", f.* " & vbCrLf & _
  " FROM aktfv f " & vbCrLf & _
  " LEFT JOIN therarten t ON t.pat_id=f.pat_id AND t.zp BETWEEN COALESCE((SELECT MAX(zp) FROM therarten WHERE pat_id=f.pat_id AND zp<qanf()),19000101) AND qend() " & vbCrLf & _
@@ -10112,7 +10142,7 @@ vz = vz + 1
 ' diagnosenview für die Medizin
 VN = "diagmed"
 Vsql = _
-"SELECT * FROM diagnosen d" & vbCrLf & _
+"SELECT * FROM diagview d" & vbCrLf & _
 "WHERE ISNULL(lkasse) OR lkasse=(SELECT MAX(lkasse) FROM diagnosen WHERE pat_id=d.pat_id AND icd=d.icd AND diagtext=d.diagtext AND diagsicherheit=d.diagsicherheit AND diagseite=d.diagseite AND diagattr=d.diagattr AND intbemerk=d.intbemerk AND obdauer=d.obdauer AND ausnbegr=d.ausnbegr)" & vbCrLf & _
 "GROUP BY pat_id, icd, diagtext, diagsicherheit, diagseite, diagattr, intbemerk, obdauer, ausnbegr, lkasse"
 Call DtbCreateQueryDef(VN, Vsql)
@@ -10121,8 +10151,8 @@ vz = vz + 1
 ' diagnosenview für die Abrechnung, zumindest so lange Diagnosen noch doppelt importiert
 VN = "diagabr"
 Vsql = _
-"SELECT d.*, IF(k.ob,gICDkr,gICDok) gICD FROM diagnosen d LEFT JOIN koricht k ON datum=(SELECT MAX(datum) FROM koricht)" & vbCrLf & _
-"WHERE ISNULL(lkasse) OR lkasse=(SELECT MAX(lkasse) FROM diagnosen WHERE pat_id=d.pat_id AND icd=d.icd AND diagtext=d.diagtext AND diagsicherheit=d.diagsicherheit AND diagseite=d.diagseite AND diagattr=d.diagattr AND intbemerk=d.intbemerk AND obdauer=d.obdauer AND ausnbegr=d.ausnbegr)" & vbCrLf & _
+"SELECT d.* FROM diagview d -- LEFT JOIN koricht k ON datum=(SELECT MAX(datum) FROM koricht)" & vbCrLf & _
+"WHERE ISNULL(lkasse) OR lkasse=(SELECT MAX(lkasse) FROM diagview WHERE pat_id=d.pat_id AND icd=d.icd AND diagtext=d.diagtext AND diagsicherheit=d.diagsicherheit AND diagseite=d.diagseite AND diagattr=d.diagattr AND intbemerk=d.intbemerk AND obdauer=d.obdauer AND ausnbegr=d.ausnbegr)" & vbCrLf & _
 "GROUP BY pat_id, icd, diagtext, diagsicherheit, diagseite, diagattr, intbemerk, obdauer, ausnbegr, lkasse"
 Call DtbCreateQueryDef(VN, Vsql)
 vz = vz + 1
@@ -10369,7 +10399,11 @@ Call DtbCreateQueryDef(VN, Vsql)
 vz = vz + 1
 
 VN = "CSII bei Typ 2"
-Vsql = "SELECT `a`.`Pat_id` AS `pat_id`,`a`.`Nachname` `nachname`,`a`.`Vorname` `vorname`,`d`.`gICDok` `icd` FROM (`anamnesebogen` `a` LEFT JOIN `diagnosen` `d` on(((`a`.`Pat_id` = `d`.`Pat_id`) AND (`d`.`gICDok` REGEXP '^E1[1234].|^O24.4') ))) WHERE ((`a`.`Ther1` = 'CSII') AND (`d`.`ICD` IS NOT NULL))"
+Vsql = "SELECT a.Pat_ID, gesname(a.pat_id) PName, t.zp, t.therart, t.grund, d.gicd icd " & vbCrLf & _
+"FROM anamnesebogen a" & vbCrLf & _
+"LEFT JOIN therarten t USING (pat_id)" & vbCrLf & _
+"LEFT JOIN diagview d ON d.Pat_id = a.Pat_id AND d.gicd REGEXP '^E1[1-4]\.|^O24.4'" & vbCrLf & _
+"WHERE (a.Ther1 = 'CSII' OR t.therart='CSII') AND d.ICD IS NOT NULL"
 Call DtbCreateQueryDef(VN, Vsql)
 vz = vz + 1
 
@@ -10399,7 +10433,7 @@ Vsql = "SELECT IF(a.DsJ='',COALESCE(erstandm,vorgestellt),a.DsJ) >= MID(aktq(),2
        "ELSE '' END DsJ,`Diabetes seit`,pid IS NOT NULL obicd,a.pat_id,vorgestellt,bmi" & vbCrLf & _
        ",(SELECT SUBSTRING_INDEX(GROUP_CONCAT(zeitpunkt ORDER BY zeitpunkt),',',1) FROM eintraege WHERE art LIKE 'andm%' AND pat_id=a.pat_id) erstandm" & vbCrLf & _
        " FROM anamnesebogen a" & vbCrLf & _
-       " LEFT JOIN (SELECT pat_id pid FROM diagnosen WHERE gicdok LIKE 'E1%' GROUP BY pat_id) d ON d.pid=a.pat_id" & vbCrLf & _
+       " LEFT JOIN (SELECT pat_id pid FROM diagview WHERE gicd LIKE 'E1%' GROUP BY pat_id) d ON d.pid=a.pat_id" & vbCrLf & _
        ") a;"
 Call DtbCreateQueryDef(VN, Vsql)
 vz = vz + 1
@@ -11787,8 +11821,8 @@ sql = "CREATE DEFINER=`praxis`@`%` FUNCTION `dmtyp`( pid INT(6) UNSIGNED ) RETUR
 "    COMMENT 'Diabetestyp (`1`,`2`,`s`,`u`,`g`)'" & vbCrLf & _
 "BEGIN" & vbCrLf & _
 "  DECLARE typ VARCHAR(1);" & vbCrLf & _
-"  SET typ = (SELECT CASE SUBSTR(gicdok,1,1) WHEN 'E' THEN CASE SUBSTR(gicdok,3,1) WHEN 1 THEN '2' WHEN 0 THEN '1' WHEN 3 THEN 's' ELSE 'u' END WHEN 'O' THEN 'g' WHEN 'R' THEN 'p' ELSE '-' END FROM " & vbCrLf & _
-"  (SELECT MIN(gicdok) gicdok FROM diagnosen d WHERE pat_id = pid AND gicdok REGEXP '^E1[0-4]\.|^O24|^R73' " & vbCrLf & _
+"  SET typ = (SELECT CASE SUBSTR(gicd,1,1) WHEN 'E' THEN CASE SUBSTR(gicd,3,1) WHEN 1 THEN '2' WHEN 0 THEN '1' WHEN 3 THEN 's' ELSE 'u' END WHEN 'O' THEN 'g' WHEN 'R' THEN 'p' ELSE '-' END FROM " & vbCrLf & _
+"  (SELECT MIN(gicd) gicd FROM diagview d WHERE pat_id = pid AND gicd REGEXP '^E1[0-4]\.|^O24|^R73' " & vbCrLf & _
 "  ) i );" & vbCrLf & _
 "RETURN typ;" & vbCrLf & _
 "END"
@@ -11839,7 +11873,7 @@ sql = sql & _
 "  WHERE insulinpumpe<>0 AND (inpid=0 OR a.pat_id=inpid) " & vbCrLf & _
 " UNION -- 2) Rezepte für Pumpenzubehör, könnten für ein Jahr Pumpentherapie versprechen: " & vbCrLf & _
 "  SELECT Pat_id pid,-2 MPNr, zeitpunkt Zp,ADDDATE(zeitpunkt,365) bis,'CSII' Thart, feldinh Gru,f.foid ia,FID absPos,Form_id StByte, feldnr FROM formular f " & vbCrLf & _
-"  WHERE form_abk IN ('rp','lar','prp','plar') AND feld IN ('medikament','txtMedKey','VerordnungsZeile') AND feldinh RLIKE 'reservoir|rapid d link|rap d li|rapid-d li|tenderl|sure t|paradigm|veo|animas|cartridge|t-slim|t:slim|variosoft|trusteel|autosoft|ypsopump|insigh|omnipod' " & vbCrLf & _
+"  WHERE form_abk IN ('rp','lar','prp','plar') AND feld IN ('medikament','txtMedKey','VerordnungsZeile') AND feldinh RLIKE 'reservoir|rapid d link|rap d li|rapid-d li|tenderl|sure t|paradigm|veo|animas|cartridge|t-slim|t:slim|variosoft|trusteel|autosoft|ypsopump|insigh|omnipod' AND NOT feldinh LIKE '%menveo%'" & vbCrLf & _
 "  AND (inpid=0 OR pat_id=inpid) " & vbCrLf & _
 " UNION -- 3) Insulinpläne " & vbCrLf & _
 " SELECT pat_id pid,-3 MPNr,qdm zp,qdm bis,'ICT' Thart, MID(NAME,p) Gru,-2 ia,b.absPos,b.StByte,0 FROM (SELECT IF(p1>p2,p1,p2) p, b.* FROM (SELECT INSTR(b.name,'insulin') p1, INSTR(b.name,'spritz') p2, b.* FROM briefe b) b) b WHERE b.name RLIKE '(insulin|spritz).*(plan|schema|tabelle)' " & vbCrLf & _
@@ -12094,14 +12128,14 @@ myEFrag (sql)
 sql = "DROP VIEW IF EXISTS `dtypen`;"
 myEFrag sql
 sql = "CREATE OR REPLACE ALGORITHM=UNDEFINED DEFINER=`praxis`@`%` SQL SECURITY DEFINER VIEW `dtypen` AS " & vbCrLf & _
-"SELECT Pat_id, gicdok, ityp " & vbCrLf & _
+"SELECT Pat_id, gicd, ityp " & vbCrLf & _
 ", IF(obsek AND ityp IN ('1','2'),'s',ityp) ttyp, diagtext, obsek " & vbCrLf & _
 "FROM ( " & vbCrLf & _
-" SELECT n.pat_id, d.gicdok, d.diagtext, COALESCE(diagtext RLIKE 'pan[ck]r|sekund',0) obsek " & vbCrLf & _
-" , CASE LEFT(gicdok,1) WHEN 'E' THEN CASE MID(gicdok,3,1) WHEN 1 THEN '2' WHEN 0 THEN '1' WHEN 3 THEN 's' ELSE 'u' END WHEN 'O' THEN 'g' WHEN 'R' THEN 'p' ELSE '-' END ityp " & vbCrLf & _
-" , RANK() OVER(PARTITION BY n.pat_id ORDER BY obsek DESC,LEFT(d.gicdok,3),MID(d.gicdok,5,1)=9 DESC,MID(d.gicdok,5) DESC,LENGTH(d.diagtext) DESC) rang " & vbCrLf & _
+" SELECT n.pat_id, d.gicd, d.diagtext, COALESCE(diagtext RLIKE 'pan[ck]r|sekund',0) obsek " & vbCrLf & _
+" , CASE LEFT(gicd,1) WHEN 'E' THEN CASE MID(gicd,3,1) WHEN 1 THEN '2' WHEN 0 THEN '1' WHEN 3 THEN 's' ELSE 'u' END WHEN 'O' THEN 'g' WHEN 'R' THEN 'p' ELSE '-' END ityp " & vbCrLf & _
+" , RANK() OVER(PARTITION BY n.pat_id ORDER BY obsek DESC,LEFT(d.gicd,3),MID(d.gicd,5,1)=9 DESC,MID(d.gicd,5) DESC,LENGTH(d.diagtext) DESC) rang " & vbCrLf & _
 " FROM namen n " & vbCrLf & _
-" LEFT JOIN diagnosen d ON d.pat_id=n.pat_id AND d.gICDok REGEXP '^E1[0-4]\.|^O24|^R73' GROUP BY n.pat_id,d.gicdok,d.diagtext " & vbCrLf & _
+" LEFT JOIN diagview d ON d.pat_id=n.pat_id AND d.gICD REGEXP '^E1[0-4]\.|^O24|^R73' GROUP BY n.pat_id,d.gicd,d.diagtext " & vbCrLf & _
 ") i " & vbCrLf & _
 "WHERE rang=1;"
 myEFrag sql
@@ -12110,8 +12144,8 @@ sql = "DROP VIEW IF EXISTS `dtypview`;"
 myEFrag sql
 sql = "CREATE OR REPLACE ALGORITHM=UNDEFINED DEFINER=`praxis`@`%` SQL SECURITY DEFINER VIEW `dtypview` AS " & vbCrLf & _
 "SELECT n.pat_id, d.dmtyp FROM namen n" & vbCrLf & _
-"LEFT JOIN (SELECT pat_id,CASE WHEN icd RLIKE '^E' THEN CAST(MID(icd,3,1)+1 AS CHAR) WHEN icd RLIKE '^R' THEN 'p' ELSE 'g' END dmtyp FROM diagnosen" & vbCrLf & _
-"WHERE ((gICDok RLIKE '^E1[0-4]\.|^R73' AND obdauer<>0) OR (gICDok='O24.4' AND obdauer=0)) GROUP BY pat_id) d" & vbCrLf & _
+"LEFT JOIN (SELECT pat_id,CASE WHEN icd RLIKE '^E' THEN CAST(MID(icd,3,1)+1 AS CHAR) WHEN icd RLIKE '^R' THEN 'p' ELSE 'g' END dmtyp FROM diagview" & vbCrLf & _
+"WHERE ((gICD RLIKE '^E1[0-4]\.|^R73' AND obdauer<>0) OR (gICD='O24.4' AND obdauer=0)) GROUP BY pat_id) d" & vbCrLf & _
 "ON d.pat_id=n.pat_id;"
 myEFrag sql
     
