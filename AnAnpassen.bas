@@ -65,8 +65,8 @@ Function AnTrennZeichen()
  G4(10) = "Kalt-Warm:"
  G4(11) = "Vibration Innenknöchel:"
  G4(12) = "Vibration Großzehenballen:"
- G4(13) = "Puls IN der Leiste:"
- G4(14) = "Puls IN der Kniekehle:"
+ G4(13) = "Puls in der Leiste:"
+ G4(14) = "Puls in der Kniekehle:"
  G4(15) = "Puls der re A.tib.post.:"
  G4(16) = "Puls der re A.dors.ped.:"
  G4(17) = "aktuellen Blutdruck und"
@@ -542,8 +542,8 @@ Function usdm0()
              "Kalt-Warm: re:", ", li:", _
              "Vibration Innenknöchel: re:", ", li:", _
              "Vibration Großzehenballen: re:", ", li:", _
-             "Puls IN der Leiste: re:", ", li:", _
-             "Puls IN der Kniekehle: re:", ", li:", _
+             "Puls in der Leiste: re:", ", li:", _
+             "Puls in der Kniekehle: re:", ", li:", _
              "Puls der re A.tib.post.: re:", ", li:", _
              "Puls der re A.dors.ped.: re:", ", li:", _
              "aktuellen Blutdruck und ggf. Puls bitte extra eingeben; Mitarbeiter:", "")
@@ -1486,7 +1486,7 @@ Function anal()
  Fd(5) = "Größe"
  tr(6) = "Wichtige bisherige Krankheiten und Operationen:"
  Fd(6) = "Weitere Anamnese"
- tr(7) = "Grund für Vorstellung IN der Praxis:"
+ tr(7) = "Grund für Vorstellung in der Praxis:"
  Fd(7) = "Grund für Vorstellung"
  Call do_anImp(imin, imax, tr(), Fd(), "anal")
  Exit Function
@@ -1601,7 +1601,7 @@ Function do_anImp(imin%, imax%, tr$(), Fd$(), makro$, Optional tfd1, Optional tf
         tz2 = tr(i + k)
         Do
          If InStrB(sp(1), tz2) <> 0 Then
-          If InStrB(sp(0), tz2) <> 0 Then Exit Do ' wenn es IN der Antwort steht und weiter vorne IN der Frage
+          If InStrB(sp(0), tz2) <> 0 Then Exit Do ' wenn es in der Antwort steht und weiter vorne in der Frage
           sp(0) = sp(0) + trennz + sp(1)
           AbN(i - imin) = vNS ' richtige Trennung fehlte
           GoTo w2 ' falsches Fragment
@@ -1905,7 +1905,7 @@ weiter:
 '   rsAnm.Update
 '  END IF
 ' Else
-'  IF rsAnm.NoMatch THEN MsgBox "Pat. " + CStr(Pat_id) + " nicht IN der Anamnesetabelle gefunden"
+'  IF rsAnm.NoMatch THEN MsgBox "Pat. " + CStr(Pat_id) + " nicht in der Anamnesetabelle gefunden"
 '  IF rEi.NoMatch THEN SysCmd 4, "Pat. " + CStr(Pat_id) + " nicht IN Tabelle 'eintraege' gefunden" 'MsgBox "Pat. " + CStr(Pat_id) + " nicht IN den eintraegen gefunden"
   
  End If ' Not rEi.NoMatch AND NOT rsAnm.NoMatch THEN
@@ -2164,11 +2164,11 @@ Function usdmAlt(Optional fürDMP%)
  Fd(3) = "Puls Atp"
  tr(4) = "li:"
  Fd(4) = "Puls Kniekehle"
- tr(5) = "Puls IN der Kniekehle: re:"
+ tr(5) = "Puls in der Kniekehle: re:"
  Fd(5) = "Puls Kniekehle"
  tr(6) = "li:"
  Fd(6) = "Puls Leiste"
- tr(7) = "Puls IN der Leiste: re:"
+ tr(7) = "Puls in der Leiste: re:"
  Fd(7) = "Puls Leiste"
  tr(8) = "li:"
  Fd(8) = "Vibration Großzehe"

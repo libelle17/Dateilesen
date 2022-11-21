@@ -2103,7 +2103,7 @@ End Select
 End Function ' ZSU1
 
 #If False Then
-'' Stellt IN der Datenbank programmstände.Lauf den Wert Abbruch auf 'obabbruch', falls er nicht schon darauf steht und falls nicht "Nichtändern" eingegeben wurde
+'' Stellt in der Datenbank programmstände.Lauf den Wert Abbruch auf 'obabbruch', falls er nicht schon darauf steht und falls nicht "Nichtändern" eingegeben wurde
 '' Ansonsten liefert die Funktion "true"
 'Public FUNCTION ProgrammLauf(obAbbruch%, Optional Cpt$, Optional NichtÄndern%) AS Boolean
 ' Dim i%, plConn As New ADODB.Connection, rsA As Adodb.Recordset, lcConStr$
@@ -2716,7 +2716,7 @@ Function doSuchTel(frm As Lese) ' suche Telefonnummer
 ' rAb.Open sql, DBCn, adOpenDynamic, adLockReadOnly
  myFrag rAb, sql
  TabAusgeb rAb, Lese, True, , , , , , "Suche Telefonnummer " + tel
-End Function
+End Function ' doSuchTel
 
 Function ergEBM(frm As Lese)
  Dim QDat$, Text$, Spli$(), dszahl&, rAF&
@@ -5227,7 +5227,7 @@ End Function ' fallzahlstand
   "BETWEEN 0 AND to_days(SUBDATE(NOW(),INTERVAL " & obgestern & " DAY))-to_days(cdate(CONCAT(YEAR(SUBDATE(NOW(),INTERVAL " & obgestern & " DAY))¡'-'¡intacc((month(SUBDATE(NOW(),INTERVAL " & obgestern & " DAY))-1)divmy 3)*3+1¡'-01'))) AND " & IIf(runde = 1, "(pat_id < 3044 OR pat_id > 50000)", IIf(runde = 2, "pat_id > 3044", "true")) & _
   " AND substr(quartal,2,4)> '2008' AND quartal <> '12009' " & _
   " GROUP BY quartal ORDER BY substr(Quartal,2,4) DESC,LEFT(Quartal,1) DESC"
-' Wenn schon Eintrag IN der Tabelle `fallzahlstand`
+' Wenn schon Eintrag in der Tabelle `fallzahlstand`
 '  myFrag rs, "SELECT COUNT(0) Fehlende, Quartal FROM (SELECT f.quartal, f1.tage FROM `fallzahlstand` f LEFT JOIN `fallzahlstand` f1 ON f1.quartal = f.quartal AND f1.tage = " & abstand & " WHERE ISNULL(f1.tage) GROUP BY f.quartal) i"
 '  IF Not rs.BOF THEN
 '   IF rs!fehlende <> 0 THEN

@@ -2027,7 +2027,7 @@ Public Sub domachDMPBogen(Pat_id&, BogArtlV As BogArtTyp, DokuDat As Date, Optio
    
    KrZS = Format(aktDC.krz, "00")
    ' stationäre Einweisungen wegen Diabetes seit der letzten Doku unter "relevante Ereignisse"
-   ' zwar auch schon im Formular vor 30.6.15, aber dort (wohl durch einen Fehler) nicht IN der Maske
+   ' zwar auch schon im Formular vor 30.6.15, aber dort (wohl durch einen Fehler) nicht in der Maske
    If Len(CStr(KrZS)) > 2 Then KrZS = "00" ' 28.6.17: "2014"
    For i = 2 - Len(CStr(KrZS)) To 1
     BDT.FFAdd "StationaereDM" & DmT & "#" & i
@@ -2369,7 +2369,7 @@ Public Sub domachDMPBogen(Pat_id&, BogArtlV As BogArtTyp, DokuDat As Date, Optio
     SendStr2 = SendStr2 & IIf(aktDC.obAntihyp, " ", "") & "{TAB}"
     SendStr2 = SendStr2 & IIf(aktDC.obThro, " ", "") & "{TAB}"
     SendStr2 = SendStr2 & "{TAB 6} {TAB 3} {TAB}" ' Schulungen
-    SendStr2 = SendStr2 & IIf(aktDC.Tabak, " {TAB 2}", "{TAB}{TAB}") ' 'X' steht bei "nein" IN der Folgedoku noch nicht drin
+    SendStr2 = SendStr2 & IIf(aktDC.Tabak, " {TAB 2}", "{TAB}{TAB}") ' 'X' steht bei "nein" in der Folgedoku noch nicht drin
     SendStr2 = SendStr2 & IIf(aktDC.bmi >= 25, " {TAB 2}", "{TAB} {TAB}")
     SendStr2 = SendStr2 & IIf(aktDC.hbEmpf = halten, " {TAB 3}", "{TAB} {TAB 2}")
     SendStr2 = SendStr2 & IIf(aktDC.rrEmpf = halten, " {TAB 2}", "{TAB} {TAB}")
@@ -3444,7 +3444,7 @@ Private Sub Form_Load()
       End If
       .Text = lfdnr
       .CellBackColor = vbWhite
-' IN der ersten Spalte die schon exportierten färben
+' in der ersten Spalte die schon exportierten färben
       For k = 1 To pCol.COUNT
        If pCol.Item(k) = CStr(rDPat!Pat_id) Then
         .CellBackColor = DunkelRosa

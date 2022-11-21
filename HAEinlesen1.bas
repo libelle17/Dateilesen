@@ -436,7 +436,7 @@ bisfestleg:
 '     IF AbZ > 88 THEN Debug.Print "Abz:", AbZ: Stop
      If aktab = 1 Then
       Absch(AbZ).Bis = aktab - 2
-     ElseIf InStrB(splitt(aktab - 1), " ") = 0 Then ' wenn der Name sich über zwei Zeilen zieht, dann ist IN der zweiten Zeile evtl. kein Leerzeichen mehr; Angerpointner
+     ElseIf InStrB(splitt(aktab - 1), " ") = 0 Then ' wenn der Name sich über zwei Zeilen zieht, dann ist in der zweiten Zeile evtl. kein Leerzeichen mehr; Angerpointner
       Absch(AbZ).Bis = aktab - 3
       splitt(aktab - 2) = splitt(aktab - 2) & " " & splitt(aktab - 1)
       splitt(aktab - 1) = vNS
@@ -717,13 +717,13 @@ Sub proTeilnehmer(ByRef splitt$(), ByRef Absch() As AbschTyp, aktab&, ByRef HACn
      End If
 ' Ende Case uabName
     Case NLrt
-' die Zeile, IN der PLZ und Ort stehen, enthält als erstes eine Ziffer
+' die Zeile, in der PLZ und Ort stehen, enthält als erstes eine Ziffer
      For jj = j To Absch(aktab).Bis  ' j+1 gestrichen wegen Gerald Beier
       If IsNumeric(Left$(splitt(jj), 5)) And Len(splitt(jj)) > 6 Then OrtZeile = jj: Exit For
      Next jj
      If OrtZeile >= Absch(aktab).Bis Then MsgBox "Ortszeile > " & Absch(aktab).Bis: Stop
 '     IF OrtZeile = 1890 THEN Stop
-' IN der Zeile nach dem Namen könnte, muß aber nicht, eine Niederlassungsart stehen
+' in der Zeile nach dem Namen könnte, muß aber nicht, eine Niederlassungsart stehen
      Select Case splitt(j)
       Case "Facharzt", "Hausarzt", "Fach- und Hausarzt", "Psychologischer Psychotherapeut", "Psychologische Psychotherapeutin"
        Arzt.nlart_id = indIns(HACn, HACnS, "nlart", "niederlassungsart", splitt(j), "idnlart")

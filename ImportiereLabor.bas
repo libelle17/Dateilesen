@@ -280,7 +280,7 @@ On Error GoTo fehler
             End Select
             If Not rs.BOF Then
              Do
-              If runde = 1 Or rs!GebDat <> rLuGebDat Then  ' damit IN der zweiten Runde nicht dieselben nochmal kommen / Null dürfte nicht vorkommen
+              If runde = 1 Or rs!GebDat <> rLuGebDat Then  ' damit in der zweiten Runde nicht dieselben nochmal kommen / Null dürfte nicht vorkommen
                erwZ = erwZ + 1
                Select Case runde
                 Case 1
@@ -719,10 +719,10 @@ nochmal:
         "ON `laborxsaetze`.SatzID = `laborxus`.SatzID) INNER JOIN (SELECT refnr, abkü, " & sqliif & "(ISNULL(wert) OR wert = """",kommentar, wert) AS wert FROM `laborxwert` UNION SELECT refnr, verf AS abkü, keimzahl AS wert FROM `laborxbakt`) AS xw ON `laborxus`.RefNr = xw.RefNr " & _
         "WHERE NOT ISNULL(xw.abkü) AND ((ISNULL(verglichen) OR verglichen < " & DatFor_k(#1/1/2000#) & "))" ' NOT ISNULL(xw.Wert) AND xw.wert <> """" ' AND NOT ISNULL(xw.Wert) AND xw.wert <> """""
 '        IF lies.obmysql THEN sql = replace$(sql, "iif", "if")
-' 4.2.07: Bei Pat_id 107, laborident EIWE_T ist IN der BDT-Datei kein Wert, obwohl IN der übergebenen Datei "negativ" steht
+' 4.2.07: Bei Pat_id 107, laborident EIWE_T ist in der BDT-Datei kein Wert, obwohl in der übergebenen Datei "negativ" steht
 '  GoTo nochmal
 ' einheit aus Ergebnisliste gestrichen
-' die leeren werden oft gar nicht IN der BDT-Datei mitgeliefert, was zu hohen Raten unangemessener Aberkennungen führt
+' die leeren werden oft gar nicht in der BDT-Datei mitgeliefert, was zu hohen Raten unangemessener Aberkennungen führt
 '  IF NOT ISNULL(nurRef) THEN
    If nurRef > 0 Then
     sql = sql + " AND laborxus.Refnr IN (" & nurRef & ") "

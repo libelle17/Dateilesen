@@ -504,7 +504,7 @@ If Me.Private <> 0 Then
  AWlf = AWlf + 1
  
  'ktag fehlerhaft
- AwN(AWlf) = "Evtl. fehlende Untersuchungen IN der Schwangerschaft (24)"
+ AwN(AWlf) = "Evtl. fehlende Untersuchungen in der Schwangerschaft (24)"
  '  AND COALESCE(d.f6010,0)=0
  sql(AWlf) = "SELECT n.pat_id AS pat_id, gesname(n.pat_id) Name, e.zeitpunkt AS zeitpunkt, e.art AS art, inhalt " & vbCrLf & _
  "FROM `eintraege` e LEFT JOIN `namen` n ON e.pat_id = n.pat_id " & vbCrLf & _
@@ -961,7 +961,7 @@ sql(AWlf) = vbCrLf & _
 
 ' 8
 AwN(AWlf) = "Möglicherweise doppelte Diabetesdiagnosen (vorher 8)"
-'f6010=1 => 'ddg' steht IN der Art-Spalte
+'f6010=1 => 'ddg' steht in der Art-Spalte
 'bestimmte Simultandiagnosen nötig für Nephropathiepauschale
 'sql(AWlf) = "SELECT a.Pat_ID, d.GesName, COUNT(0) Zahl, GROUP_CONCAT(CONCAT(icd,diagsicherheit,diagattr)) ICDs FROM `aktfvs` a LEFT JOIN `diagnosen` d ON d.pat_id = a.pat_id AND diagsicherheit IN (' ','G','V') AND COALESCE(f6010,0)=0 AND icd RLIKE '^E1[0-4]|^O24' AND (obdauer<>0 OR d.fid = a.fid OR d.fid=0 OR ISNULL(d.fid)) GROUP BY a.pat_id HAVING zahl<>1"
 ' AND COALESCE(d.f6010,0)=0
@@ -2807,7 +2807,7 @@ sql(AWlf) = "SELECT f.pat_id, gesname(f.pat_id), l1.leistung, l0.leistung " & vb
 
 ' 48
 AwN(AWlf) = "Pauschalenfehler nach Tabelle (vorher 48)"
-'17.10.12: Prinzip: für alle Fälle (aktfvs) werden die leistungen rausgesucht, die IN der Tabelle `genehmigungen` behandelt werden
+'17.10.12: Prinzip: für alle Fälle (aktfvs) werden die leistungen rausgesucht, die in der Tabelle `genehmigungen` behandelt werden
 '(WHERE l.leistung IN (SELECT leistung FROM `genehmigungen`)).
 'Dazu wird jeweils eine Zeile aus `genehmigungen` mit derselben Leistung und dem selben Diabetestyp ausgewählt
 '(LEFT JOIN `genehmigungen` g ON l.leistung = g.leistung " & vbCrLf & _ " AND IF(d.icd RLIKE '^E10',_latin1'1', IF(d.icd RLIKE '^E11',_latin1'2',IF(d.icd = 'O24.4',_latin1'g',null))) = g.dtyp " & vbCrLf & _).
@@ -5242,7 +5242,7 @@ sql(AWlf) = sql(AWlf) & _
 "LEFT JOIN leistungen l ON l.pat_id=i.pat_id AND DATE(l.zeitpunkt)=date(i.zeitpunkt) AND leistung RLIKE '^8833[12578][ABRVWXGHK]|^88333[ABVWGH]|^88334[YI]{0,1}|^88336[ABVWGH]' " & vbCrLf & _
 "GROUP BY i.pat_id,i.zeitpunkt " & vbCrLf & _
 "HAVING solllei<>REPLACE(REPLACE(REPLACE(istlei,'X','R'),'W','B'),'V','A') OR lzahl<>1; "
-' vacinh23 = IN der Inhaltsspalte von "vac" steht "2." oder "3.", sonst 1
+' vacinh23 = in der Inhaltsspalte von "vac" steht "2." oder "3.", sonst 1
 ' vorvac = es existiert ein älterer "vac"-Eintrag mit einer Corona-Firma im Namen,
 ' c19i = ein c19i-Makro verweist auf einen früheren Zeitpunkt,
 ' vorze = ein Zertifikat verweist auf früheren Zeitpunkt,

@@ -149,7 +149,7 @@ Private Declare Function SafeArrayGetDim Lib "oleaut32.dll" (ByRef saArray() As 
 '     ubiL = UBound(iLanr)
 '     ON Error GoTo fehler
 '     IF ubiL <> -1 THEN
-Dim auti%() ' aut idem, hat bei Langrezepten umgekehrte Bedeutung wie bei Kassenrezepten und IN der Datenbank
+Dim auti%() ' aut idem, hat bei Langrezepten umgekehrte Bedeutung wie bei Kassenrezepten und in der Datenbank
 Dim anzl%() ' Anzahl bei Kassenrezepten
 Dim mdnr% ' Medikament Nr im Rezept (0-2)
 Public qbeg As Date

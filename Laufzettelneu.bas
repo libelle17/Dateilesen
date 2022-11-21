@@ -76,7 +76,7 @@ Private Const SW_SHOWMINIMIZED = 2 ' zeigt das Fenster minimiert an
 Private Const SW_SHOWMINNOACTIVE = 7 ' zeigt das Fenster minimiert an aber aktiviert
 ' es nicht
 Private Const SW_SHOWNA = 8 ' zeigt das Fenster an, aber aktiviert es nicht
-Private Const SW_SHOWNOACTIVATE = 4 ' zeigt das Fenster IN der besten Größe und
+Private Const SW_SHOWNOACTIVATE = 4 ' zeigt das Fenster in der besten Größe und
 ' Position an aber aktiviert es nicht
 Private Const SW_SHOWNORMAL = 1 ' zeigt das Fenster ganz normal an
  
@@ -356,18 +356,18 @@ Else ' obphp Then
  Loop
 End If ' obphp Then else
 DoEvents
-
  
  If obausdb Then
 '  myFrag rTerm, "SELECT PID, DATE(zp) Datum, time(zp) Uhrzeit, raum Arzt,Zusatz FROM termine t WHERE DATE(zp) = " & Format(s2(0), "yyyymmdd")
   Dim plzDat() As plzDaten
-  Dim hinzu&, sql$, iru&, noch&
+  Dim hinzu&, sql$, iru&, noch&, unoch&
   For hinzu = 0 To 45
    Datum = CDate(s2(0)) + hinzu
    sql = "SELECT PID, DATE(zp) Datum, MIN(TIME(zp)) Uhrzeit, GROUP_CONCAT(DISTINCT raum SEPARATOR ' ') Arzt,GROUP_CONCAT(DISTINCT Zusatz SEPARATOR ' ') Zusatz FROM termine t WHERE " & SelDatum("zp", Datum) & " AND pid<>0 GROUP BY pid"
    myFrag rTerm, "SELECT COUNT(0) zl FROM (" & sql & ") i"
    If Not rTerm.EOF Then
     noch = rTerm!zl
+    unoch = noch
     If noch <> 0 Then
      syscmd 4, "zu erstellen: " & noch & " Patientenlaufzettel für " & s2(0) & " in " & plzVerz
      ReDim plzDat(noch - 1)
@@ -384,11 +384,13 @@ DoEvents
      Loop
      For iru = 0 To UBound(plzDat)
       Call dodoPLZ(CStr(plzDat(iru).pid), plzVerz, plzDat(iru).Datum, CStr(plzDat(iru).Uhrzeit), , plzDat(iru).Arzt, , obphp)
+      erstZ = erstZ + 1
       noch = noch - 1
       syscmd 4, "noch zu erstellen: " & noch & " Patientenlaufzettel für " & s2(0) & " in " & plzVerz
      Next iru
     End If ' noch <> 0 Then
    End If ' Not rTerm.EOF Then
+   If noch < 1 And unoch > 5 Then Exit For ' wenn es ein Tag mit mehr als 5 Terminen war
 '   If Not rTerm.BOF Then
 '    Do While Not rTerm.EOF
 '     DoEvents
@@ -1026,7 +1028,7 @@ End If
    End If
  Next i
  Const pzl% = 51     ' Zahl der Parameter
- Dim aktlw&(pzl), angef&(pzl) ' Ordinalzahl des IN der aktuell bearbeiteten Zeile einzutragenden Wertes der aktuellen Spalte
+ Dim aktlw&(pzl), angef&(pzl) ' Ordinalzahl des in der aktuell bearbeiteten Zeile einzutragenden Wertes der aktuellen Spalte
  Const SchulPID& = 1789
  Const SpZahl% = 11
 ' Public Enum ParNr
@@ -1053,7 +1055,7 @@ End If
  Dim obMB% ' ob Merkblatt Fußsyndrom mitgegeben
 ' Dim obAvan% ' ob Avandia verordnet wird
 ' Dim wasAvan$ ' was genau verordnet wurde
- Dim falDiabDau% ' falsche Diabetesdauer (`Diabetes seit` IN der der Anamnese)
+ Dim falDiabDau% ' falsche Diabetesdauer (`Diabetes seit` in der der Anamnese)
  Dim rs(pzl) As New ADODB.Recordset, rszahl As New ADODB.Recordset
  Dim sql$(pzl) ' werden hinter "' Recordsets öffnen" verwendet
  Dim kritnr(pzl) As LabArt ' Kriterium Nr. für die Filternr
@@ -1095,7 +1097,8 @@ End If
  If LenB(DBCn) = 0 Or LenB(DBCnS) = 0 Then Call acon(quelleT) ' DBCn.ConnectionString
  myFrag rnam, "SELECT * FROM `namen` n WHERE pat_id = " & Pat_id
  If rnam.BOF Then
-  MsgBox ("Keinen Patienten zu " & Pat_id & " gefunden!")
+'  MsgBox ("Keinen Patienten zu " & Pat_id & " gefunden!")
+  Lese.Ausgeb "Keinen Patienten zu " & Pat_id & " gefunden!", True
   Exit Function
  End If
  myFrag rAn, "SELECT COALESCE(`diabetes seit`,'') dmseit,vorgestellt,Diabetestyp FROM `anamnesebogen` WHERE pat_id = " & Pat_id
@@ -1849,7 +1852,7 @@ keinuzu:
     
 ' für jeden Parameter i Wertezahl rsz(i) bestimmen
 ' IN jeder Großzeile muß zunächst die Zahl der Unterzeilen ermittelt werden, diese wiederum hängt von der
-' Menge der IN der Großzeile dargestellten Spalten ab
+' Menge der in der Großzeile dargestellten Spalten ab
   rszmax = 0
   For i = 0 To pzl
    rsz(i) = 0
@@ -2468,7 +2471,7 @@ keinuzu:
   Set rsdd = Nothing
   m = 29: TI(m) = Timer: For p = 0 To m - 1: TI(m) = TI(m) - TI(p): Next p
   If obdm Then
-   ' bei der Techniker nicht, wenn Pat. IN der hausarztzentrierten Versorgung
+   ' bei der Techniker nicht, wenn Pat. in der hausarztzentrierten Versorgung
    If rFl!krkasse Like "DAK*" Or rFl!krkasse Like "KKH*" Or rFl!krkasse Like "Kaufmännische K*" Or (rFl!Kateg = "EK" And (((rFl!krkasse Like "*TK*" Or rFl!krkasse Like "*Techniker*") And rnam!HzV <> 1) Or rFl!krkasse Like "*hans*")) Then
     Dim rDF As New ADODB.Recordset
     myFrag rDF, "SELECT CASE substr(inhalt,6,2) WHEN 'HA' THEN 'HA' WHEN 'hi' THEN 'hier' WHEN 'ne' THEN 'nein' ELSE '?' END wo," & _
@@ -3254,7 +3257,7 @@ Sub LaborInsPLZ(Pat_id$, SelbstStatus%, raDatBOF%, ByRef Matr$(), ByRef MForm%()
  
 nochmal:
 
- ' 19.3.17: Cortisoltagesprofil wird noch nicht angezeigt (Wegnahme von Zeitpunkt aus Gruppierungsfelder IN der nächsten Zeile nützt auch nichts)
+ ' 19.3.17: Cortisoltagesprofil wird noch nicht angezeigt (Wegnahme von Zeitpunkt aus Gruppierungsfelder in der nächsten Zeile nützt auch nichts)
 ' sql2 = "SELECT * FROM (SELECT * FROM `labor2a` WHERE pat_id = " & Pat_id & " UNION SELECT * FROM `labor1a` WHERE pat_id = " & Pat_id & ") i GROUP BY pat_id,zeitpunkt,abkü,wert,einheit,nb"
 ' sql2 = "SELECT lab.* FROM (SELECT @patid:= " & Pat_id & " nix) nul, geslab lab"
  'm = 1: Tj(m) = Timer: For p = 0 To m - 1: Tj(m) = Tj(m) - Tj(p): Next p

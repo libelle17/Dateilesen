@@ -493,8 +493,8 @@ Public Type DMPClass
  khew As Boolean ' Krankenhauseinweisung
  mau As DMPStat ' Mikroalbuminurie
  oblaser As DMPStat ' Lasertherapie
- hypoZAn As Integer ' Zahl der Hypos IN der Anamnese
- hypoZKK As Integer ' Zahl der Hypos IN Karteikarte
+ hypoZAn As Integer ' Zahl der Hypos in der Anamnese
+ hypoZKK As Integer ' Zahl der Hypos in Karteikarte
  hypoZ As Integer ' Zahl der Hypos, Synthese
  krZAn As Integer ' Zahl der stationären Aufenthalte wegen Diabetes aus Anamnese
  krZKK As Integer ' Zahl der stationären Aufenthalte wegen Diabetes aus Karteikarte
@@ -3133,7 +3133,7 @@ Function dododoPorto(Arztnr&)
     Next i
     Close #303
 #End If
- Lese.Ausgeb "Datei '" & BDT.DMPImp & "' neu mit " & vbCrLf & Zahl & " Leistungen zu den Briefen IN '" & Verz & "' und " & vbCrLf & Zahl1 & " Leistungen zu Arztbriefen IN der Tabelle `briefe` für Kassenpatienten erstellt!, geeignet: " & geeignet, True
+ Lese.Ausgeb "Datei '" & BDT.DMPImp & "' neu mit " & vbCrLf & Zahl & " Leistungen zu den Briefen IN '" & Verz & "' und " & vbCrLf & Zahl1 & " Leistungen zu Arztbriefen in der Tabelle `briefe` für Kassenpatienten erstellt!, geeignet: " & geeignet, True
  Lese.Ausgeb sql, True
  Exit Function
 fehler:
@@ -4386,7 +4386,7 @@ Function TherAuskunft(ByVal Pat_id$, ByVal obanf%, Optional ByRef insz%, Optiona
  Dim MPNr&(), MP0&, MPe&, mpz&, i&, MPNrl& ' erste und letzte, laufende MedPlan-Nummer des Quartals
  On Error GoTo fehler
  Call Lese.ProgStart
-' QuartalMax: Falls befüllt, so wird die höchstwertige Therapie des IN der Variablen angegebenen Quartals ermittelt
+' QuartalMax: Falls befüllt, so wird die höchstwertige Therapie des in der Variablen angegebenen Quartals ermittelt
 ' SET rMa = TabÖff("MedArten", "Medikament")
 'Medikamente:
  mpz = 0

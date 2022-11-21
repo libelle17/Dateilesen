@@ -1,5 +1,7 @@
 Attribute VB_Name = "Formular"
 Option Explicit
+Dim ag As New CString
+Dim donr$
 
 Const HADBName$ = "haerzte"
 Type hatyp
@@ -5608,7 +5610,7 @@ Sub DetectExcel()
         Exit Sub
     Else
     ' Excel wird ausgeführt. Verwenden der API-Funktion
-    ' SendMessage, um Excel IN der Tabelle ausgeführter
+    ' SendMessage, um Excel in der Tabelle ausgeführter
     ' Objekte einzutragen.
         SendMessage hwnd, WM_USER + 18, 0, 0
     End If
@@ -6180,7 +6182,7 @@ End Function ' getHausarzt(Pid&, Infos$())
 '      Exit For
 '     END IF
 '    Next runde
-'' dann der Rest IN der Reihenfolge
+'' dann der Rest in der Reihenfolge
 '    For runde = aktrunde - 1 To 0 Step -1
 '     IF InfRoh(11, runde) = "X" OR InStrB(InfRoh(10, runde), "HA") <> 0 THEN
 '      gelöscht = 0
@@ -6712,7 +6714,7 @@ korrigier:
      End If
     Next runde
     ' m = 103: Tj(m) = Timer ': for p = 0 To m - 1: Tj(m) = Tj(m) - Tj(p): Next p
-' dann der Rest IN der Reihenfolge
+' dann der Rest in der Reihenfolge
     For runde = aktrunde - 1 To 0 Step -1
      If InfRoh(11, runde) = "X" Or InStrB(InfRoh(10, runde), "HA") <> 0 Then
       gelöscht = 0
@@ -6984,6 +6986,62 @@ Public Sub tu_brief(frm As Form)
 End Sub ' tu_brief
 #End If
 
+'Function stil1(ByRef stil As CString, Optional SZ% = 24, Optional van%)
+'' Set stil = New CString
+' stil.Append "<w:rPr><w:rFonts w:ascii=""Arial"" w:hAnsi=""Arial"" w:cs=""Arial""/>"
+' If van Then stil.Append "<w:vanish/>"
+' stil.AppVar Array("<w:sz w:val=""", SZ, """/>")
+' stil.Append "<w:lang w:val=""en-GB""/></w:rPr>"
+'End Function ' stil
+
+Function stil$(Optional SZ% = 24, Optional van%)
+' Set stil = New CString
+ stil = "<w:rPr><w:rFonts w:ascii=""Arial"" w:hAnsi=""Arial"" w:cs=""Arial""/>"
+ If van Then stil = stil & "<w:vanish/>"
+ stil = stil & "<w:sz w:val=""" & SZ & """/>"
+ stil = stil & "<w:lang w:val=""en-GB""/></w:rPr>"
+End Function ' stil
+
+'' bei 100000 Anhängungen geht "" & "" langsamer as CString, bei weniger deutlich umgekehrt
+'Public Function vstile()
+' Dim i&, ST As New CString, stl$
+' Debug.Print Now()
+' For i = 0 To 100000
+''  Call stil1(st)
+'  stl = stl & stil
+' Next i
+' Debug.Print Now()
+'End Function
+
+' aufgerufen in tubriefStandalone
+Sub bookm(bmname$, Inh$, Optional obvanish%, Optional obbold%)
+ Static bmnr&
+ ag.AppVar Array("<w:bookmarkStart w:id=""", bmnr, """ w:name=""", bmname, """/>", "<w:r><w:rPr><w:rFonts w:ascii=""Arial"" w:hAnsi=""Arial""/>", IIf(obbold <> 0, "<w:b/><w:bCs/>", ""), IIf(obvanish <> 0, "<w:vanish/>", ""), "<w:sz w:val=""24""/><w:szCs w:val=""24""/><w:lang w:val=""en-GB""/></w:rPr>")
+ If Inh$ <> "" Then ag.AppVar Array("<w:t", IIf(Inh = " ", " xml:space=""preserve""", ""), ">", Inh, "</w:t>")
+ ag.AppVar Array("</w:r><w:bookmarkEnd w:id=""", bmnr, """/>")
+ bmnr = bmnr + 1
+End Sub ' bookm
+
+' aufgerufen in tubriefStandalone
+Sub agpreserve()
+ ag.Append "<w:r><w:rPr><w:rFonts w:ascii=""Arial"" w:hAnsi=""Arial""/><w:sz w:val=""24""/><w:szCs w:val=""24""/><w:lang w:val=""en-GB""/></w:rPr><w:t xml:space=""preserve""> </w:t></w:r>"
+End Sub ' agpreserve
+
+' aufgerufen in tubriefStandalone
+Sub agtabu()
+ ag.Append "<w:r><w:rPr><w:rFonts w:ascii=""Arial"" w:hAnsi=""Arial""/><w:sz w:val=""24""/><w:lang w:val=""en-GB""/></w:rPr><w:tab/></w:r>"
+End Sub ' agtabu
+
+Sub agtab2()
+ ag.Append "<w:pPr><w:tabs><w:tab w:val=""left"" w:pos=""5387""/></w:tabs><w:rPr><w:rFonts w:ascii=""Arial"" w:hAnsi=""Arial""/><w:sz w:val=""24""/><w:lang w:val=""en-GB""/></w:rPr></w:pPr>"
+End Sub ' agtab2
+
+Function agabsa$()
+ Static absnr&
+ agabsa = "<w:p w14:paraId=""" & Right$("0000000" & Hex(absnr), 8) & """ w14:textId=""77777777"" w:rsidR=""00000000"" w:rsidRDefault=""" & donr & """>"
+ absnr = absnr + 1
+End Function ' agabsa
+
 ' in BriefImport_Click
 Public Sub tubriefStandalone(pid&, obStumm%, Optional Zielverz$, Optional Vorlage$, Optional nurLabor% = False, Optional briefneu% = False) ' Brief schreiben
  Dim Pat_id$, myRange, Docu, Inh, dc As Object ' Word.Document, wegen unbekannter Wordversion als Object
@@ -7039,21 +7097,21 @@ Public Sub tubriefStandalone(pid&, obStumm%, Optional Zielverz$, Optional Vorlag
   Dim oSh As New IWshShell_Class, aname$
 '  SET oSh = New IWshShell_Class
   oSh.rUn "cmd /c ""xcopy v:\exp8\ v:\exp9\ /s /y /h /r /k /c && move v:\exp9\word\media\image" & VBuch & ".jpeg v:\exp9\word\media\1.jpeg && del v:\exp9\word\media\image*.jpeg && move v:\exp9\word\media\1.jpeg v:\exp9\word\media\image1.jpeg""", 0, True
-  Open "v:\exp9\docProps\app.xml" For Output As #51
+  Open "\\linux1\daten\down\exp9\docProps\app.xml" For Output As #51
   Print #51, app1 & Vorlage & app2
   Close #51
-  Open "v:\exp9\docProps\core.xml" For Output As #51
+  Open "\\linux1\daten\down\exp9\docProps\core.xml" For Output As #51
   Print #51, core1 & Environ("username") & core2 & Environ("username") & core3 & Format(Now(), "YYYY-mm-ddThh:MM:ssZ") & core4 & Format(Now(), "YYYY-mm-ddThh:MM:ssZ") & core5
   Close #51
-  Open "V:\exp9\word\_rels\settings.xml.rels" For Output As #51
+  Open "\\linux1\daten\down\exp9\word\_rels\settings.xml.rels" For Output As #51
   Print #51, settings1 & "c:\turbomed\vorlagen\" & Vorlage & settings2
   Close #51
   ' in .run wird das " durch "" escaped, in powershell durch \"
-'  oSh.rUn "powershell ""$dt=\""v:\exp9\word\endnotes.xml\"",\""v:\exp9\word\footnotes.xml\"";$dth=\""v:\exp9\word\header1.xml\"";$nrd=\""\\linux1\daten\eigene dateien\programmierung\dateilesen\dzahl.txt\"";$nr=[int](get-content -path $nrd)+1;set-content -path $nrd $nr;$repl='${1}'+'{0:X8}' -f $nr+'$2';$qla='(.*w:rsidRDefault=\"")[0-9A-F]*(\""><w:';$qls=$qla+'r><w:';foreach ($dta in $dt){((get-content -path $dta) -replace \""${qls}s.*)\"",$repl) -replace \""${qls}c.*)\"",$repl|set-content -path $dta;};(get-content -path $dth)|foreach-object {$_ -replace \""${qla}p.*)\"",$repl}|set-content -path $dth;""", 0, True
+'  oSh.run "powershell ""$dt=\""v:\exp9\word\endnotes.xml\"",\""v:\exp9\word\footnotes.xml\"";$dth=\""v:\exp9\word\header1.xml\"";$nrd=\""\\linux1\daten\eigene dateien\programmierung\dateilesen\dzahl.txt\"";$nr=[int](get-content -path $nrd)+1;set-content -path $nrd $nr;$repl='${1}'+'{0:X8}' -f $nr+'$2';$qla='(.*w:rsidRDefault=\"")[0-9A-F]*(\""><w:';$qls=$qla+'r><w:';foreach ($dta in $dt){((get-content -path $dta) -replace \""${qls}s.*)\"",$repl) -replace \""${qls}c.*)\"",$repl|set-content -path $dta;};(get-content -path $dth)|foreach-object {$_ -replace \""${qla}p.*)\"",$repl}|set-content -path $dth;""", 0, True
   aname = ArBName$(sverz, rsNa!Nachname, rsNa!Vorname, Pat_id$, infos$())
   Dim dzahl$
   dzahl = "\\linux1\daten\eigene dateien\programmierung\dateilesen\dzahl.txt"
-  oSh.rUn "powershell ""$vz=\""v:\exp9\word\\\"";$dt=@($vz+\""endnotes.xml\"";$vz+\""footnotes.xml\"";$vz+\""document.xml\"";$vz+\""settings.xml\"");$anr=[string](get-content -path $dt[0]) -replace '.*w:rsidRDefault=\""([0-9A-F]*)\"".*','$1';$nrd=\""" & dzahl & "\"";$nr=[int](get-content -path $nrd)+1;set-content -path $nrd $nr;$nrs='{0:X8}' -f $nr;foreach ($dta in $dt){(get-content -path $dta) -replace $anr, $nrs|set-content -path $dta;};""", 0, True
+  oSh.rUn "powershell ""$vz=\""\\linux1\daten\down\exp9\word\\\"";$dt=@($vz+\""endnotes.xml\"";$vz+\""footnotes.xml\"";$vz+\""document.xml\"";$vz+\""settings.xml\"");$anr=[string](get-content -path $dt[0]) -replace '.*w:rsidRDefault=\""([0-9A-F]*)\"".*','$1';$nrd=\""" & dzahl & "\"";$nr=[int](get-content -path $nrd)+1;set-content -path $nrd $nr;$nrs='{0:X8}' -f $nr;foreach ($dta in $dt){(get-content -path $dta) -replace $anr, $nrs|set-content -path $dta;};""", 0, True
   Dim docid$
   Randomize
   docid = Right("0000000" & Hex(Rnd * (16 ^ 7 - 1)), 7)
@@ -7067,31 +7125,67 @@ Public Sub tubriefStandalone(pid&, obStumm%, Optional Zielverz$, Optional Vorlag
   docid = docid & Right("0000000" & Hex(Rnd * (16 ^ 7 - 1)), 4)
   oSh.rUn "powershell ""$dt=\""v:\exp9\word\settings.xml\"";$repl='${1}'+'" & docid & "'+'$2';$qla='(.*{)[0-9A-F-]*(}.*)';(get-content -path $dt) -replace $qla,$repl|set-content -path $dt;""", 0, True
   
-  Dim nr$
-  nr = Right$("00000000" & Hex(ReadFile(dzahl)), 8)
-  Open "V:\exp9\word\header1.xml" For Output As #51
-  Print #51, header1 & nr & header2 & rsNa!gname & header3 & Format(Now(), "dd.mm.yy") & header4 & nr & header5
+  donr = Right$("00000000" & Hex(ReadFile(dzahl)), 8)
+  Open "\\linux1\daten\down\exp9\word\header1.xml" For Output As #51
+  Print #51, header1 & donr & header2 & zuh(rsNa!gname) & header3 & Format(Now(), "dd.mm.yy") & header4 & donr & header5
   Close #51
-  Open "V:\exp9\word\document.xml" For Output As #51
-  Print #51, doc1 & kopf0 & doc2 & nr & doc3 & nr & doc4 & nr & doc5 & nr & doc6 & nr & doc7 & nr & doc8 & nr & doc9 & Format(Now(), "dd.mm.yyyy") & doc10 & nr & doc11 & nr & doc11 & nr & doc12 & nr & doc13 & nr & doc14 & _
+  Open "\\linux1\daten\down\exp9\word\document.xml" For Output As #51
+'  If UBound(infos, 2) = 0 Then ReDim Preserve infos(UBound(infos, 1), 1)
+'  Print #51, zuh(doc1 & kopf0 & doc2 & donr & doc3 & donr & doc4 & donr & doc5 & donr & doc6 & donr & doc7 & donr & doc8 & donr & doc9 & Format(Now(), "dd.mm.yyyy") & doc10 & donr & doc11 & donr & doc11 & nr & doc12 & donr & doc13 & donr & doc14 & _
   IIf(infos(0, 0) = "Herr", "Herrn", infos(0, 0)) & doc15 & IIf(infos(0, 1) = "Herr", "Herrn", infos(0, 1)) & doc16 & nr & doc17 & infos(1, 0) & doc18 & infos(1, 1) & doc19 & nr & doc20 & infos(2, 0) & doc21 & infos(2, 1) & doc22 & nr & doc23 & nr & doc24 & infos(3, 0) & doc25 & infos(3, 1) & doc26 & nr & doc27 & nr & doc28 & nr & doc28 & nr & doc28 & nr & doc29 & _
   "Liebe Kolleginnen </w:t></w:r></w:p>" & _
-  doce
+  doce)
+'  Dim doc1a$, doc1b$
+  
+  ag.AppVar Array(doc1, kopf0, "<w:body>", agabsa, vors, doc2, agabsa, vors, doc3, agabsa, vors, doc4, agabsa, vors, zuh(doc5), agabsa, doc6, agabsa, doc7, agabsa, doc8, Format(Now(), "dd.mm.yyyy"), doc9, agabsa, doc10, agabsa, zuh(doc11), agabsa, doc12, agabsa)
+  ag.Append "<w:pPr><w:tabs><w:tab w:val=""left"" w:pos=""5387""/></w:tabs><w:spacing w:before=""140""/><w:rPr><w:rFonts w:ascii=""Arial"" w:hAnsi=""Arial""/><w:sz w:val=""24""/><w:lang w:val=""en-GB""/></w:rPr></w:pPr>"
+  bookm "ha1a", IIf(infos(0, 0) = "Herr", "Herrn", infos(0, 0)), False
+  agpreserve
+  bookm "ha10a", zuh(infos(10, 0)), True
+  agtabu
+  Dim ii%, Index%
+  For ii = 1 To UBound(infos, 2)
+   If infos(4, ii) <> infos(4, 0) Then
+    Index = ii
+    Exit For
+   End If
+  Next ii
+  bookm "ha1b", IIf(Index <> 0 And UBound(infos, 2) > 0, IIf(infos(0, Index) = "Herr", "Herrn", infos(0, Index)), "$1210$"), IIf(Index <> 0 And UBound(infos, 2) > 0, False, True)
+  agpreserve
+  bookm "ha10b", IIf(Index <> 0 And UBound(infos, 2) > 0, infos(10, Index), " "), IIf(Index <> 0 And UBound(infos, 2) > 0, False, True)
+  ag.Append "</w:p>"
+  ag.Append agabsa
+  agtab2
+  bookm "ha2a", zuh(infos(1, 0))
+  agtabu
+  bookm "ha2b", zuh(IIf(Index <> 0 And UBound(infos, 2) > 0, infos(1, Index), "$1203$ $1202$ $1201$")), IIf(Index <> 0 And UBound(infos, 2) > 0, False, True)
+  ag.Append "</w:p>"
+  ag.Append agabsa
+  agtab2
+  bookm "ha3a", zuh(infos(2, 0))
+  agtabu
+  bookm "ha3b", zuh(IIf(Index <> 0 And UBound(infos, 2) > 0, infos(2, Index), "$1205$ $1206$")), IIf(Index <> 0 And UBound(infos, 2) > 0, False, True)
+  ag.Append "</w:p>"
+  ag.Append agabsa
+  ag.AppVar Array("<w:pPr><w:framePr w:w=""340"" w:h=""550"" w:hSpace=""181"" w:wrap=""around"" w:vAnchor=""page"" w:hAnchor=""page"" w:x=""642"" w:y=""5671""/><w:tabs><w:tab w:val=""left"" w:pos=""5387""/></w:tabs><w:rPr><w:rFonts w:ascii=""Arial"" w:hAnsi=""Arial""/><w:sz w:val=""16""/></w:rPr></w:pPr><w:r><w:rPr><w:rFonts w:ascii=""Arial"" w:hAnsi=""Arial""/><w:sz w:val=""32""/></w:rPr><w:t>", zuh("-"), "</w:t></w:r></w:p>")
+  ag.Append agabsa
+  agtab2
+  bookm "ha4a", zuh(infos(3, 0)), , True
+  agtabu
+  bookm "ha4b", zuh(IIf(Index <> 0 And UBound(infos, 2) > 0, infos(3, Index), "$1207$ $1208$")), IIf(Index <> 0 And UBound(infos, 2) > 0, False, True), IIf(Index <> 0 And UBound(infos, 2) > 0, False, True)
+  ag.Append "</w:p>"
+  ag.Append "</w:body></w:document>"
+  Print #51, ag
   Close #51
   
-  oSh.rUn "cmd /c """"c:\program files\7-zip\7z"" a -tzip -xr!*.swp """ & sverz & "\" & aname & "x"" v:\exp9\*""", 0, True
-  oSh.rUn "cmd /c """"c:\program files (x86)\microsoft office\root\office16\winword"" """ & sverz & aname & "x""""", 0, True
-  oSh.rUn "cmd /c """"c:\program files (x86)\microsoft office\root\office16\winword"" """ & sverz & aname & "x""""", 0, True
-  oSh.rUn "cmd /c """"c:\program files (x86)\microsoft office\root\office16\winword"" """ & sverz & aname & "x""""", 0, True
-  oSh.rUn "cmd /c """"c:\program files (x86)\microsoft office\root\office16\winword"" """ & sverz & aname & "x""""", 0, True
-  oSh.rUn "cmd /c """"c:\program files (x86)\microsoft office\root\office16\winword"" """ & sverz & aname & "x""""", 0, True
-  oSh.rUn "cmd /c """"c:\program files (x86)\microsoft office\root\office16\winword"" """ & sverz & aname & "x""""", 0, True
-  oSh.rUn "cmd /c """"c:\program files (x86)\microsoft office\root\office16\winword"" """ & sverz & aname & "x""""", 0, True
-  oSh.rUn "cmd /c """"c:\program files (x86)\microsoft office\root\office16\winword"" """ & sverz & aname & "x""""", 0, True
-  oSh.rUn "cmd /c """"c:\program files (x86)\microsoft office\root\office16\winword"" """ & sverz & aname & "x""""", 0, True
-  oSh.rUn "cmd /c """"c:\program files (x86)\microsoft office\root\office16\winword"" """ & sverz & aname & "x""""", 0, True
-  oSh.rUn "cmd /c """"c:\program files (x86)\microsoft office\root\office16\winword"" """ & sverz & aname & "x""""", 0, True
-  oSh.rUn "cmd /c """"c:\program files (x86)\microsoft office\root\office16\winword"" """ & sverz & aname & "x""""", 0, True
+  Dim iru%
+  For iru = 0 To 10
+   If False Then FSO.CopyFile "\\linux1\daten\down\h\word\document.xml", "\\linux1\daten\down\exp9\word\document.xml"
+   oSh.rUn "powershell ""$vz=\""v:\exp9\word\\\"";$dt=@($vz+\""endnotes.xml\"";$vz+\""footnotes.xml\"";$vz+\""document.xml\"";$vz+\""settings.xml\"");$anr=[string](get-content -path $dt[0]) -replace '.*w:rsidRDefault=\""([0-9A-F]*)\"".*','$1';$nrd=\""" & dzahl & "\"";$nr=[int](get-content -path $nrd)+1;set-content -path $nrd $nr;$nrs='{0:X8}' -f $nr;foreach ($dta in $dt){(get-content -path $dta) -replace $anr, $nrs|set-content -path $dta;};""", 0, True
+   oSh.rUn "cmd /c """"c:\program files\7-zip\7z"" a -tzip -mm=deflate -mx9 -aoa -xr!*.swp """ & sverz & "\" & aname & "x"" \\linux1\daten\down\exp9\*""", 0, True
+'  oSh.run "cmd /c """"c:\program files (x86)\microsoft office\root\office16\winword"" """ & sverz & aname & "x""""", 0, True
+   oSh.rUn "cmd /c """"c:\program files\microsoft office\root\office16\winword"" """ & sverz & aname & "x""""", 0, True
+  Next iru
  Else ' briefneu
 '  ON Error Resume Next
   Call GetWord
@@ -7138,15 +7232,14 @@ On Error GoTo fehler
      Call BMRd(dc, !ha5a, infos(4, 0)) ' Faxnummer
      Call BMRd(dc, !ha6a, infos(5, 0)) ' Anrede
      Call BMRd(dc, !ha10a, infos(10, 0)) ' Überweiserinfos
-     Dim ii%, Index%
+'     Dim ii%, Index%
      For ii = 1 To UBound(infos, 2)
       If infos(4, ii) <> infos(4, 0) Then
        Index = ii
        Exit For
       End If
      Next ii
-     If Index <> 0 Then
-     If UBound(infos, 2) > 0 Then
+     If Index <> 0 And UBound(infos, 2) > 0 Then
       Call BMRd(dc, !ha1b, IIf(infos(0, Index) = "Herr", "Herrn", infos(0, Index)), True) '  IIF(raHacall bmrd(dc,!Geschlecht = "w", "Frau", "Herrn")) '+ vblf) + nzw
       Call BMRd(dc, !ha2b, infos(1, Index), True) ' "Dr.med. " + raHacall bmrd(dc,!VorName & " " & raHacall bmrd(dc,!NachName
       Call BMRd(dc, !ha3b, infos(2, Index), True) ' raHacall bmrd(dc,!Straße
@@ -7156,8 +7249,7 @@ On Error GoTo fehler
        Call BMRd(dc, !ha6b, REPLACE(infos(5, Index), "Sehr", " sehr") & ",", True) ' Anrede
       End If
       Call BMRd(dc, !ha10b, infos(10, Index)) ' Überweiserinfos
-     End If ' UBound(infos, 2) > 0 Then
-    End If ' Index <> 0 Then
+     End If ' Index <> 0 And UBound(infos, 2) > 0 Then
 'weiter:
 '    Next i
     Dim tit$
@@ -7503,20 +7595,34 @@ fehler:
  End Select
 End Sub ' tubriefStandalone(frm AS Form)
 
+Public Function zuh$(ByRef q$)
+ Dim i&, a%, b$
+ zuh = ""
+ For i = 1 To Len(q)
+  b = Mid$(q, i, 1)
+  a = Asc(b)
+  If a < 128 Then
+   zuh = zuh & b
+  Else ' a < 128
+   zuh = zuh & "&#" & a & ";"
+  End If ' a < 128
+ Next i
+End Function ' zuh
+
 ' in tubriefStanndalone
 ' Ersetzt Bookmark mit Text, ohne es zu löschen
 Function BMRd(dc As Object, Bm, Text$, Optional obSichtbar%)
- Dim Start&, obEnde&, neulen&, BMName$
+ Dim Start&, obEnde&, neulen&, bmname$
  On Error GoTo fehler
  With Bm
   Start = .Start
   obEnde = .END
  End With
  neulen = Len(Text)
- BMName = Bm.name
+ bmname = Bm.name
  Bm.Range = Text
- Call dc.bookmarks.Add(BMName, dc.Range(Start, Start + neulen))
- If obSichtbar Then dc.bookmarks(BMName).Range.Font.Hidden = False
+ Call dc.bookmarks.Add(bmname, dc.Range(Start, Start + neulen))
+ If obSichtbar Then dc.bookmarks(bmname).Range.Font.Hidden = False
  Exit Function
 fehler:
   Dim FNr&, FLastDLLError&, FSource$, FDescr$
@@ -7574,7 +7680,7 @@ End Function ' fobHAimDMP(HANr$)
 ' in do_Form_Current_Anbog
 Sub HAlokal(rHa As ADODB.Recordset, KVNr$, Optional NaN, Optional VoN)
 #If False Then
-' IN der örtlichen Datei nicht gefundenen Hausarzt aus der systemischen übertragen
+' in der örtlichen Datei nicht gefundenen Hausarzt aus der systemischen übertragen
   Dim rKv As New ADODB.Recordset
   On Error GoTo fehler
        Set rKv = TabÖff("HAE")
@@ -8848,7 +8954,7 @@ w2:
   If rsAnam!dmtyp = "g" Then
    Epi = Epi + "Für den weiteren Verlauf gelten nach Leitlinien folgende Empfehlungen: " & vbCrLf
    If Now - lddat < 60 Then
-    Epi = Epi + "Monatliche Ultraschalluntersuchungen ab der 24. SSW, besondere Vorsicht mit Tokolytika etc., Entbindung IN geeigneter Klinik"
+    Epi = Epi + "Monatliche Ultraschalluntersuchungen ab der 24. SSW, besondere Vorsicht mit Tokolytika etc., Entbindung in geeigneter Klinik"
     If thrang(1) >= 4 Then
      Epi = Epi + " mit Neonatologie, BZ perinatal 2-stündlich messen, Ziel 70 - 110 mg/dl"
     End If
@@ -8859,10 +8965,10 @@ w2:
     Epi = Epi + " naßchemische Blutglucosebestimmung im Kreißsaal, Frühestfütterung, Stillen, Information des Kinderarztes über die positive Familienanamnese." & vbCrLf
     Epi = Epi + "Für die Patientin wird weiterhin empfohlen: " & vbCrLf
     Epi = Epi + "Nüchterne und postprandiale Blutzuckermessungen am 2. Tag nach der Entbindung, bei pathologischem Ausfall diabetologische Weiterbetreuung, ansonsten oraler Glucosetoleranztest nach 6-12 Wochen und dann spätestens alle 2 Jahre, "
-    Epi = Epi + "bei erneuter Schwangerschaft oraler Glucosetoleranztest im 1. Trimenon, IN der 24.-28. Woche sowie IN der 32.-34. Woche, jeweils falls zuvor negativ."
+    Epi = Epi + "bei erneuter Schwangerschaft oraler Glucosetoleranztest im 1. Trimenon, in der 24.-28. Woche sowie in der 32.-34. Woche, jeweils falls zuvor negativ."
    Else
     Epi = Epi + "Oraler Glucosetoleranztest spätestens alle 2 Jahre, "
-    Epi = Epi + "bei erneuter Schwangerschaft oraler Glucosetoleranztest im 1. Trimenon, IN der 24.-28. Woche sowie IN der 32.-34. Woche, jeweils falls zuvor negativ."
+    Epi = Epi + "bei erneuter Schwangerschaft oraler Glucosetoleranztest im 1. Trimenon, in der 24.-28. Woche sowie in der 32.-34. Woche, jeweils falls zuvor negativ."
    End If
   End If ' rsAnam!dmtyp = "g" THEN
 ' Schulungen
@@ -14249,7 +14355,7 @@ CREATE TABLE  `quelle`.`medplan` (
   `zn` VARCHAR(10) COLLATE latin1_german2_ci DEFAULT NULL,
   `bBed` bit(1) DEFAULT NULL,
   `Bemerkung` longtext COLLATE latin1_german2_ci,
-  `AbsPos` int(10) DEFAULT NULL COMMENT 'Zeile IN der BDT-Datei',
+  `AbsPos` int(10) DEFAULT NULL COMMENT 'Zeile in der BDT-Datei',
   `AktZeit` DATETIME DEFAULT NULL COMMENT 'Aktualisierungszeit',
   `StByte` int(10) DEFAULT NULL COMMENT 'Ordnungsnummer der Datenübertragung',
   KEY `Auswahl` (`Pat_ID`,`ZeitPunkt`,`FeldNr`),
