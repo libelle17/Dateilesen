@@ -3994,6 +3994,7 @@ End Sub ' Command1_KeyDown
 
 Private Sub MFG_MouseMove(Button As Integer, Shift As Integer, x As Single, Y As Single)
  Dim rs As New ADODB.Recordset, obbez%
+ On Error GoTo fehler
  Select Case Me.PLArt
   Case artLPar
    altrow = Me.MFG.Row
@@ -4030,6 +4031,7 @@ Private Sub MFG_MouseMove(Button As Integer, Shift As Integer, x As Single, Y As
    Select Case Me.MFG.MouseCol
      Case namsp
 '      myFrag rs, "SELECT GROUP_CONCAT(CONCAT_WS(' ',DATE_FORMAT(diagdatum,'%d.%m.%y'), CONCAT('(',diagsicherheit,')'), diagtext, icd),char(13,10)) diag FROM `diagnosen` WHERE pat_id = " & Pat_id & " AND diagsicherheit <> 'A' ORDER BY DATE(diagdatum)"
+vorher:
       myFrag rs, "SELECT GROUP_CONCAT(CONCAT_WS(' ',diagsicherheit, diagtext)) diag FROM `diagnosen` d WHERE d.pat_id = " & Me.MFG.TextMatrix(MFG.MouseRow, Pat_IDSp) & " AND d.diagsicherheit <> 'A' ORDER BY DATE(d.diagdatum)" ' AND COALESCE(d.f6010,0)=0
       If Not rs.BOF Then
        If Not IsNull(rs!Diag) Then
@@ -4052,6 +4054,29 @@ Private Sub MFG_MouseMove(Button As Integer, Shift As Integer, x As Single, Y As
    End If
   End If ' isNumeric(Me.MFG.TextMatrix ...
  End Select ' case me.mfg.mousecol
+ Exit Sub
+fehler:
+ Dim FNr&, FLastDLLError&, FSource$, FDescr$
+ FNr = Err.Number
+ FLastDLLError = Err.LastDllError
+ FSource = Err.source
+ FDescr = Err.Description
+ If FNr = 3704 Then ' für ein geschlossene Objekt nicht zugelassen
+  DBCnOpen
+  Set rs = Nothing
+  Resume vorher
+ End If
+ Dim AnwPfad$
+#If VBA6 Then
+ AnwPfad = CurrentDb.name
+#Else
+ AnwPfad = App.path
+#End If
+ Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(FNr) + vbCrLf + "LastDLLError: " + CStr(FLastDLLError) + vbCrLf + "Source: " + IIf(IsNull(FSource), vNS, CStr(FSource)) + vbCrLf + "Description: " + FDescr, vbAbortRetryIgnore, "Aufgefangener Fehler in MouseMove/" + AnwPfad)
+  Case vbAbort: Call MsgBox("Höre auf"): ProgEnde
+  Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
+  Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
+ End Select
 End Sub ' MFG_MouseMove
 
 Private Sub MFG_MouseDown(Button As Integer, Shift As Integer, x As Single, Y As Single)

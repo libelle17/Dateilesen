@@ -284,6 +284,7 @@ fehler:
   Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
  End Select
 End Function ' letzt
+
 Function behDauerStr$(Pat_id) ' für tubriefStandalone
  Dim D1 As Date, D2 As Date
  On Error GoTo fehler

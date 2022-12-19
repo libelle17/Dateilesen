@@ -282,6 +282,7 @@ Public VorBriefID& ' letzte Pat_id, zu der ein Vorbrief rausgesucht wurde
 Public obRueck%
 Public geladen%
 Public briefneu%
+Public nichtherricht%
 
 Private Sub Angeforderte_Click(Index As Integer)
  Dim rs As New ADODB.Recordset
@@ -628,12 +629,12 @@ altobTrans:
  frm.PatName = zwi
  frm.PatName.SelStart = Len(Me.PatName.Text)
  Do While Not rNaA.EOF
-  If Not IsNull(rNaA!F0) Then
-  t = rNaA!F0 ' rNaA!NachName + ", " & rNaA!VorName + ",*" + format$(rNaA!GebDat, "D.M.YY") & " | " + CStr(rNaA!Pat_id)
+  If Not IsNull(rNaA!f0) Then
+  t = rNaA!f0 ' rNaA!NachName + ", " & rNaA!VorName + ",*" + format$(rNaA!GebDat, "D.M.YY") & " | " + CStr(rNaA!Pat_id)
   frm!PatName.AddItem t
   i = i + 1
   If i = 30 Then
-   syscmd 4, "Pat: " & rNaA!F0 'rNaA!NachName & " " & rNaA!VorName
+   syscmd 4, "Pat: " & rNaA!f0 'rNaA!NachName & " " & rNaA!VorName
    DoEvents
    i = 0
   End If
@@ -866,6 +867,8 @@ Private Sub Pat_ID_Change()
 End Sub ' Pat_ID_Change()
 
 Private Sub do_Pat_ID_Change(Optional mitVorDat%)
+ Const maxlauf& = 100
+ Dim lauf&
  Dim rNaA As New ADODB.Recordset
  Dim rFaA As New ADODB.Recordset
  Dim rDi As New ADODB.Recordset
@@ -905,10 +908,15 @@ Private Sub do_Pat_ID_Change(Optional mitVorDat%)
 '   Call Me.hlese.ConstrFestleg(0, Me.hlese)
     Call acon(quelleT)
    End If
+   On Error GoTo f0
+vorabfrag:
+   lauf = lauf + 1
    myFrag rNaA, "SELECT nachname, vorname, gebdat, pat_id FROM `namen` WHERE pat_id = " & Me.PatID & " ORDER BY nachname, vorname, gebdat"
    If rNaA.EOF Then
+    On Error GoTo fehler
     Me.pat_idDaten = vNS
    Else
+    On Error GoTo fehler
     Me.pat_idDaten = rNaA!Nachname & ", " & rNaA!Vorname + ",*" + Format$(rNaA!GebDat, "D.M.YY") + " | " + CStr(rNaA!Pat_id)
 ' Call KVÄVorb
 '    Call acon(HaT)
@@ -1021,6 +1029,10 @@ Private Sub do_Pat_ID_Change(Optional mitVorDat%)
  End If ' Me.Pat_id <> vNS THEN
  Me.MousePointer = vbDefault
  Exit Sub
+f0:
+ If Err.Number = 3704 And lauf < maxlauf Then ' Der Vorgang ist für ein geschlossenes Objekt nicht zugelassen.
+  Resume vorabfrag
+ End If
 fehler:
  Dim AnwPfad$
 #If VBA6 Then

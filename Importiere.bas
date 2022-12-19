@@ -108,7 +108,7 @@ Dim lLang$, lLangVW&
 Dim lKomm$, lKommVW&
 Dim SpeicherZt As Date
 Dim AktQ$ ' aktuelles Quartal
-Dim obDStr% ' ob Diagnose IN Diagnosestring einzutragen ist
+Dim obDStr% ' ob Diagnose in Diagnosestring einzutragen ist
 Dim maxBhFB As Date, imaxBhFB% ' Fall mit dem maximalen Behandlungsfallbeginn
 Dim mSL As SortierListe ' für medarten
 'Public rAna() AS Ana
@@ -1172,12 +1172,12 @@ Public Function controlsLauf(frm As Lese)
  Next i
 End Function 'ControlsLauf
 
-Function GetMed(Lang$, Einrück%) As CString ' mit Einrück=0 IN doMedklassT, THAfstleg, dolies, MedArtenPruef, alleSpeichern, therauskunft, mit 3 auch in: allespeichern
+Function GetMed(lang$, Einrück%) As CString ' mit Einrück=0 IN doMedklassT, THAfstleg, dolies, MedArtenPruef, alleSpeichern, therauskunft, mit 3 auch in: allespeichern
 '  medi.Med = Trim$(UCase$(LEFT(rMe(i).Medikament, IIf(InStrB(rMe(i).Medikament, " ") > 0, InStr(rMe(i).Medikament, " ") - 1, Len(rMe(i).Medikament)))))
 '  medi.Med = Trim$(UCase$(LEFT(rRe(i).Medikament, IIf(InStrB(Mid$(rRe(i).Medikament, 4), " ") > 0, InStr(Mid$(rRe(i).Medikament, 4), " ") - 1 + 4, Len(rRe(i).Medikament)))))
   Dim links$, lzpos&
   Set GetMed = New CString
-  GetMed = Lang
+  GetMed = lang
 '  IF GetMed.Instr("Humalog® ") <> 0 THEN Stop
 '  IF GetMed = "Humalog       ca." THEN Stop
 '  IF GetMed = "Berlinsulin Basal" THEN Stop
@@ -1304,7 +1304,7 @@ Function EintragZusatz()
     If Not rs1.BOF Then
      dae = FileDateTime(rs!Datei) '  FSO.GetFile(rs!Datei).DateLastModified
      If rs1!DateiAend <> dae Then
- '    sql = "update " & IIf(LVobMySQL, vns, " top 1 ") & "`" & DefDB(dbcn) & "`.`eintragszahlen` SET DateiAend = " & DatFor_k(dae) & " WHERE Datei = '" & umwfSQL(rs!Datei) & "'" & IIf(LVobMySQL, " LIMIT 1", "")
+ '    sql = "UPDATE " & IIf(LVobMySQL, vns, " top 1 ") & "`" & DefDB(dbcn) & "`.`eintragszahlen` SET DateiAend = " & DatFor_k(dae) & " WHERE Datei = '" & umwfSQL(rs!Datei) & "'" & IIf(LVobMySQL, " LIMIT 1", "")
       sql = "UPDATE `eintragszahlen` SET DateiAend = " & DatFor_k(dae) & " WHERE beginn = " & DatFor_k(rs1!Beginn)
       Call myEFrag(sql, rAF)
       If rAF <> 1 Then
@@ -2426,6 +2426,8 @@ Function dolies(frm As Lese, RKennung$, rInhalt$, obSchluss%, znr&)
         KVNr = myFrag(kvnrrs, "SELECT MAX(kvnr)+1 from " & Tabl & " WHERE kvnr<700000000").Fields(0)
        End If
        For uerunde = 1 To 2
+resume_4247:
+        On Error GoTo fehler_4247
         Set uers = Nothing
         myFrag uers, "SELECT id FROM " & Tabl & " WHERE kvnr = '" & KVNr & "' AND titel = '" & Arra(1) & "' AND vorname = '" & Arra(2) & "' AND zusatz = '" & Arra(3) & "' AND " & nnafeld & " = '" & Arra(4) & "'"
         If uers.EOF Then
@@ -2433,8 +2435,9 @@ Function dolies(frm As Lese, RKennung$, rInhalt$, obSchluss%, znr&)
         Else ' uers.EOF
          Exit For
         End If ' uers.EOF
-       Next ' uerunde
-      Next ' insrunde
+        On Error GoTo fehler
+       Next uerunde
+      Next insrunde
       If Not uers.EOF Then
        rFa(UBound(rFa)).üwvid = uers!id
       End If
@@ -2641,7 +2644,7 @@ Function dolies(frm As Lese, RKennung$, rInhalt$, obSchluss%, znr&)
     obDStr = False
     If UBound(rDi) > 0 Then
 '     If DText_ = "Harninkontinenz" Then Stop
-     For inr = 0 To UBound(rDi)
+     For inr = 1 To UBound(rDi)
 '      If rDi(inr).DiagText = DText_ Then Stop
 ' wenn die gleichartige Diagnose schon mal gefunden wurde (üblicherweise der bdd-Eintrag zu dd oder umgekehrt),
 ' dann keinen neuen Eintrag erzeugen.
@@ -2654,7 +2657,7 @@ Function dolies(frm As Lese, RKennung$, rInhalt$, obSchluss%, znr&)
          And rDi(inr).DiagAttr = DAt_ _
          And rDi(inr).AusnBegr = DAus_ _
          And rDi(inr).intBemerk = DiBm_ _
-         And rDi(inr).obDauer = obD_ Then
+         And (rDi(inr).obDauer = obD_ And obD_ <> 0) Then
        If f6010_ <> 0 Then ' Einzeldiagnosen immer übermittelt
         rDi(inr).obKasse = 1
         rDi(inr).lKasse = MAX(rDi(inr).lKasse, messDatum)
@@ -2662,7 +2665,7 @@ Function dolies(frm As Lese, RKennung$, rInhalt$, obSchluss%, znr&)
         rDi(inr).f6010 = 0
        End If ' f6010_ <> 0 Or obD_ = 0 Then ' Einzeldiagnosen immer übermittelt
        Dim jnr%
-       For jnr = 0 To UBound(Diag) ' Schattenarrays für DiagString
+       For jnr = 1 To UBound(Diag) ' Schattenarrays für DiagString
         If Diag(jnr) = DText_ _
            And ICD(jnr) = ICD_ _
            And DSic(jnr) = DSic_ _
@@ -2679,7 +2682,7 @@ Function dolies(frm As Lese, RKennung$, rInhalt$, obSchluss%, znr&)
          End If ' f6010_ <> 0 Or obD_ = 0 Then
          Exit For
         End If ' Diag(jnr) = DText_
-       Next
+       Next jnr
        GoTo difertig
       End If ' rDi(inr).DiagText = DText_
      Next inr
@@ -3841,6 +3844,11 @@ rEiVorb:
 '  Next i
  End If ' Rkennung LIKE "####" THEN
  Exit Function
+fehler_4247:
+ If Err.Number = -2147467259 Or Err.Number = 3704 Then
+  Call DBCnOpen
+  Resume resume_4247
+ End If
 fehler:
   Dim AnwPfad$
 #If VBA6 Then
@@ -4616,7 +4624,7 @@ nachFehler:
  End If ' obHausBesuch
  Call tuSpeichern(frm, frm.dlg.SammelInsert, frm.dlg.BeziehungsfehlerSpeichern)
  ' korrigiertes Aufnahmedatum
- myEFrag "update namen n LEFT JOIN (SELECT pat_id, MIN(bhfb) bhfb, MIN(fanf) fanf FROM faelle f GROUP BY pat_id) f ON n.pat_id=f.pat_id SET kAufDat=date(IF(fanf>bhfb,fanf,bhfb)) WHERE f.pat_id=" & CStr(rNa(0).Pat_id), rAF
+ myEFrag "UPDATE namen n LEFT JOIN (SELECT pat_id, MIN(bhfb) bhfb, MIN(fanf) fanf FROM faelle f GROUP BY pat_id) f ON n.pat_id=f.pat_id SET kAufDat=date(IF(fanf>bhfb,fanf,bhfb)) WHERE f.pat_id=" & CStr(rNa(0).Pat_id), rAF
  If rsAnm Is Nothing Or rsAnm.State = 0 Then Call rsAnamOpen
  Call rrParseSpeichern
 ' Call TherapieArtEinzelnFestlegen(rNa(0).Pat_id, rsAnm)
@@ -4720,7 +4728,7 @@ End Function ' testmedarten
 'myFrag rs, "SELECT pat_id,notiz FROM quelle.`namen`"
 'Do While Not rs.EOF
 ' ohd = obhierdmp(rs!Notiz, , , , od)
-' myEFrag "update quelle.`namen` SET obhierdmp = " & ohd & ", obdmp = " & od & " WHERE pat_id = " & rs!Pat_id, rAf
+' myEFrag "UPDATE quelle.`namen` SET obhierdmp = " & ohd & ", obdmp = " & od & " WHERE pat_id = " & rs!Pat_id, rAf
 ' Debug.Print rAf
 ' rs.Move 1d
 'Loop
@@ -4912,7 +4920,7 @@ Function holRRsyst%(RR$)
   ppu = InStr(RRg, "LETZTEN")
   If ppu > 0 And InStrB(RRg, "MESSUNGEN") <> 0 Then pos = ppu
  Else
-  ppu = InStr(RR, "Puls") ' hier case sensitive,deshalb RR statt RRg, IN mysql: ... binary ...
+  ppu = InStr(RR, "Puls") ' hier case sensitive,deshalb RR statt RRg, in mysql: ... binary ...
   If ppu > 0 And ppu < pos Then pos = ppu
  End If
  If pos = 0 Then pos = Len(RRg) + 1
@@ -5646,7 +5654,7 @@ Function MachDiagnosen(Pat_id$, DiagTab() As CString, Optional dmseit$, Optional
       End If
      Next k
     Next j
-'    IF obAnBog THEN    ' 6.10.13 auskommentiert, da sonst im Arztbrief V.a. und Z.n. nicht erscheint (tubrief_standalone)
+'    IF obAnBog THEN    ' 6.10.13 auskommentiert, da sonst im Arztbrief V.a. und Z.n. nicht erscheint (tubriefStandalone)
      For j = 0 To DiagNr - 1
       Select Case DSic(j)
        Case "V"

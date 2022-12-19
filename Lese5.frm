@@ -548,6 +548,9 @@ Begin VB.MDIForm Lese
       Begin VB.Menu Briefschreibenneu 
          Caption         =   "Br&ief schreiben neu"
       End
+      Begin VB.Menu Briefnochmal 
+         Caption         =   "Br&ief nochmal"
+      End
       Begin VB.Menu BriefImport 
          Caption         =   "Brief zu letztem &Import schreiben"
          Shortcut        =   ^I
@@ -1714,7 +1717,7 @@ Private Sub DiabetesQuartalsdiagnosenInDauerdiagnosenUmwandeln_Click()
             "LEFT JOIN diagview dd ON f.pat_id = dd.pat_id AND dd.gICD RLIKE '^E1[0-4]\.' AND dd.obdauer<>0 " & vbCrLf & _
             "WHERE quartal = """ & ZQuart(Now - Verspätung) & """ AND d.gICD RLIKE '^E1[0-4]\.' AND d.obdauer = 0 AND ISNULL(dd.pat_ID) " & vbCrLf & _
             "ORDER BY d.pat_id"
- TabAusgeb rs, Me, , , , , , , "Diabetes-Quartalsdiagnosen IN Dauerdiagnosen umwandeln (manuell)", 1
+ TabAusgeb rs, Me, , , , , , , "Diabetes-Quartalsdiagnosen in Dauerdiagnosen umwandeln (manuell)", 1
 End Sub ' DiabetesQuartalsdiagnosenInDauerdiagnosenUmwandeln_Click
 
 ' 5.7.10: jetzt nicht mehr nötig, in PatListe integriert
@@ -2008,6 +2011,14 @@ Private Sub Briefschreibenneu_Click()
 ' Aktion = nix
  Call ProgEnde
 End Sub ' Briefschreibenneu_Click
+
+Private Sub Briefnochmal_Click()
+ Call ProgStart
+ If Me.pataw.Pat_id = "" Then Me.pataw.Pat_id = 681
+ Call tubriefStandalone(Me.pataw.Pat_id, 0, "", "", 0, True, True)
+' Aktion = nix
+ Call ProgEnde
+End Sub ' Briefnochmal_Click
 
 ' ...für Arzt -> Brief zu letztem Import schreiben
 Private Sub BriefImport_Click()
@@ -2901,7 +2912,7 @@ End Sub ' holLaborParameter_Click
 
 ' EDV -> Tabelle kopieren
 Private Sub TabKop_Click() ' Tabelle kopieren
- Set Tü.F0 = Me
+ Set Tü.f0 = Me
  Tü.Show
 End Sub ' TabKop_Click
 
@@ -3726,12 +3737,6 @@ Function FileJoin&(strFile1$, strFile2$)
     FileJoin = lFileLen
 End Function ' FileJoin
 
-' in Kontrolllisten_für_DMP_HA_Click
-Function umlweg$(q$)
-' IF InStrB(q, "Ü") OR InStrB(q, "ß") THEN Stop
- umlweg = REPLACE$(REPLACE$(REPLACE$(REPLACE$(REPLACE$(REPLACE$(REPLACE$(q, "ä", "\'e4"), "Ä", "\'c4"), "ö", "\'f6"), "Ö", "\'d6"), "ü", "\'fc"), "Ü", "\'dc"), "ß", "\'df")
-End Function ' umlweg$
-
 ' in GNR_Statistiken_einl_Click
 Sub doGNR_Statistiken_einl_Click(Optional obneu = 0)
  Const XStra = "Provider=Microsoft.Jet.OLEDB.4.0;Data Source="
@@ -3778,15 +3783,15 @@ Sub doGNR_Statistiken_einl_Click(Optional obneu = 0)
   rEx.Open "`" & rX.Tables(rX.Tables.COUNT - 1).name & "`", XCon ' Hier Excel, nicht obmysql = 0!
   doeintr = 0
   Do While Not rEx.EOF
-   Dim F0$
+   Dim f0$
    If Not IsNull(rEx.Fields(0)) Then
-    F0 = rEx.Fields(0)
-    If InStrB(F0, "Erstellt am") = 1 Then
+    f0 = rEx.Fields(0)
+    If InStrB(f0, "Erstellt am") = 1 Then
      Dim pZeitr%, Dat0 As Date, Dat1 As Date, q0$, q1$
-     pZeitr = InStr(F0, "Zeitraum")
+     pZeitr = InStr(f0, "Zeitraum")
      If pZeitr <> 0 Then
-      Dat0 = CDate(Mid(F0, pZeitr + 11, 10))
-      Dat1 = CDate(Mid(F0, pZeitr + 26, 10))
+      Dat0 = CDate(Mid(f0, pZeitr + 11, 10))
+      Dat1 = CDate(Mid(f0, pZeitr + 26, 10))
       q0 = QuartalStr(Dat0)
       q1 = QuartalStr(Dat1)
       If q0 <> q1 Or Dat0 <> QAnf(q0) Or Dat1 <> QEnd(q1) Then
@@ -3810,7 +3815,7 @@ Sub doGNR_Statistiken_einl_Click(Optional obneu = 0)
       End If ' q0 <> q1 OR Dat0 <> QAnf(q0) OR Dat1 <> qend(q1) Then else
      End If ' pZeitr <> 0 Then
     ElseIf doeintr = 1 Then
-     If F0 = "GNR" Then
+     If f0 = "GNR" Then
       fleigru = 0: fpunkte = 0: feuro = 0: fm = 0: ff = 0: fr = 0: FZahl = 0: fmin = 0
       fgnr = 0
       For FNr = 0 To rEx.Fields.COUNT - 1
@@ -3829,7 +3834,7 @@ Sub doGNR_Statistiken_einl_Click(Optional obneu = 0)
      End If ' F0 = "GNR" Then
     ElseIf doeintr = 2 Then
       Dim punkte&, m&, F&, r&, Zahl&, MIN&, ppunkte&, pm&, pf&, pr&, pzahl&, pmin&, euro#, Wert#, uwert#
-      If F0 = "Summe" Then Exit Do
+      If f0 = "Summe" Then Exit Do
       ppunkte = InStr(rEx.Fields(fpunkte), ","): If ppunkte = 0 Then punkte = IIf(IsNumeric(rEx.Fields(fpunkte)), rEx.Fields(fpunkte), "0") Else punkte = Left(rEx.Fields(fpunkte), ppunkte - 1)
       pm = InStr(rEx.Fields(fm), ","): If pm = 0 Then m = rEx.Fields(fm) Else m = Left(rEx.Fields(fm), pm - 1)
       pf = InStr(rEx.Fields(ff), ","): If pf = 0 Then F = rEx.Fields(ff) Else F = Left(rEx.Fields(ff), pf - 1)
@@ -4091,7 +4096,7 @@ Public Sub los()
   Case GefaxteAnzeigen
    Call ZeigGefaxteAn(Me.pataw.PatID, Me.pataw.PatName)
   Case Briefschreiben
-   Call tubriefStandalone(Me.pataw.PatID, False, , Me.pataw.Vorlage, , Me.pataw.briefneu)
+   Call tubriefStandalone(Me.pataw.PatID, False, , Me.pataw.Vorlage, , Me.pataw.briefneu, Me.pataw.nichtherricht)
   Case RestlicheBriefe
    Call doRestlicheBriefe(Me, Me.pataw.PatID)
   Case Patientenlaufzetteleinzeln
@@ -4179,7 +4184,7 @@ End Sub ' doCallDMP
 'Private Sub EinlesenEingelesene_Click()
 ' obMitAlterTab = True
 ' call progstart
-' Call myEFrag("update quelle.`namen` SET aktzeit = 0")
+' Call myEFrag("UPDATE quelle.`namen` SET aktzeit = 0")
 ' Call doEinlesen(False)
 ' Call ProgEnde
 'End Sub ' EinlesenEingelesene_Click()
