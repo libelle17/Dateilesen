@@ -29,7 +29,7 @@ Function AnTrennZeichen()
  G2(13) = "BZ-Messung selbst?"
  G2(14) = "Durchschnittliche Zahl der BZ-Messungen"
  G2(15) = "Wie hoch ist der BZ meist vor dem Essen:"
- G2(16) = "Wie oft IN den letzten 12 Monaten waren Ketoazidosen"
+ G2(16) = "Wie oft in den letzten 12 Monaten waren Ketoazidosen"
  G2(17) = "Schwangerschaft?"
  G2(18) = "Bluthochdruck?"
  G2(19) = "Wann war die letzte Augenspiegelung?"
@@ -41,7 +41,7 @@ Function AnTrennZeichen()
  G2(25) = "Druckstellen/Schwielen?"
  G2(26) = "Gehen Sie regelmäßig zur Fußpflege?"
  G2(27) = "Haben Sie diabetesgerechte Einlagen/Schuhe?"
- G2(28) = "Neue Fußkomplikationen IN den letzten 12 Monaten?"
+ G2(28) = "Neue Fußkomplikationen in den letzten 12 Monaten?"
  G2(29) = "Entleerungsstörung Magen?"
  G2(30) = "Sonstige Folgeerkrankungen:"
  
@@ -172,7 +172,7 @@ Function dmpErg()
 '    Dim ri AS RecordInfo
 '    SET ri = TLI.TypeInfoFromRecordVariant(rFa)
 '    Dim member AS MemberInfo
-'    For Each member IN ri.Members
+'    For Each member In ri.Members
 '     Dim memberVal AS Variant
 '     memberVal = TLI.RecordField(someUDT, member.name)
 '     Debug.Print member.name & " : " & memberVal
@@ -210,7 +210,7 @@ Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "Last
  Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
 End Select
 End Function ' dmperg
-' IN usdm0, usdm1, usdm2, usfuss, usulcus, usvkgd, usvkgd2 sowie dmperg
+' in usdm0, usdm1, usdm2, usfuss, usulcus, usvkgd, usvkgd2 sowie dmperg
 ' fuer: usdm, fuss, ulcus, vkgd, faelle
 Function Kusd(ByRef trz, ByRef Wert$(), j&)
  Dim Offs%(), fehler%(), trzlen%(), k%, lOffs%, letztk%, tzz%
@@ -224,7 +224,7 @@ Function Kusd(ByRef trz, ByRef Wert$(), j&)
  ' für jedes Trennzeichen ...
  For k = 0 To tzz
   trzlen(k) = Len(trz(k)) ' ... Länge bestimmen
-  ' ... und Offset des Vorkommens IN rei(j).Inhalt bestimmen:
+  ' ... und Offset des Vorkommens in rei(j).Inhalt bestimmen:
   letztk = k - 1 ' letztk = Index des Trennzeichens, hinter dem gesucht werden soll
   Do
    Do While letztk >= 0 ' wenn das letzte Trennzeichen nicht gefunden wurde, dann ein voriges nehmen
@@ -316,16 +316,16 @@ Function Kusd(ByRef trz, ByRef Wert$(), j&)
   If Offs(k) <> 0 Then
    p0ende = Offs(k) + trzlen(k)
    If d0 > p0ende Then
-    Wert(k) = Trim(Mid$(rEi(j).Inhalt, p0ende, d0 - p0ende))
+    Wert(k) = Trim$(Mid$(rEi(j).Inhalt, p0ende, d0 - p0ende))
     Do While True
-     Select Case Left(Wert(k), 1)
-      Case ":", ",", ";": Wert(k) = Trim(Mid(Wert(k), 2))
+     Select Case Left$(Wert(k), 1)
+      Case ":", ",", ";": Wert(k) = Trim$(Mid$(Wert(k), 2))
       Case Else: Exit Do
      End Select
     Loop
     Do While True
-     Select Case Right(Wert(k), 1)
-      Case ":", ",", ";": Wert(k) = Trim(Left(Wert(k), Len(Wert(k)) - 1)) ' "." nicht wg. "n.u."
+     Select Case Right$(Wert(k), 1)
+      Case ":", ",", ";": Wert(k) = Trim$(Left$(Wert(k), Len(Wert(k)) - 1)) ' "." nicht wg. "n.u."
       Case Else: Exit Do
      End Select
     Loop
@@ -348,7 +348,7 @@ Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "Last
 End Select
 End Function
 #If False Then
-' IN usdm0, usdm1, usdm2, usfuss, usulcus, usvkgd, usvkgd2 sowie dmperg
+' in usdm0, usdm1, usdm2, usfuss, usulcus, usvkgd, usvkgd2 sowie dmperg
 Function KernUsd(ByRef trz, ByRef Wert$(), j&)
  Dim p1&, pe1&, p2&, p2t&, p3&, k&, m&, rFai&, WertLen&, lWertLen&, npe1k& ' Index auf trz zur Bestimmung der nächsten Trennzeichenlänge für pe1
  Dim lpe1& ' letztes pe1
@@ -361,7 +361,7 @@ Function KernUsd(ByRef trz, ByRef Wert$(), j&)
    ReDim trzlen(UBound(Wert))
    Dim naefehlt%
    For k = 0 To UBound(Wert)
-    If p2 = p3 And p2 <> 0 Then naefehlt = True Else naefehlt = 0 ' wenn eins ganz fehlt, z.B. ", Puls" IN vkgd
+    If p2 = p3 And p2 <> 0 Then naefehlt = True Else naefehlt = 0 ' wenn eins ganz fehlt, z.B. ", Puls" in vkgd
     trzlen(k) = Len(trz(k))
     If k = 0 Then p1 = InStr(rEi(j).Inhalt, trz(k)): npe1k = k Else p1 = p2
     lpe1 = pe1
@@ -830,7 +830,7 @@ Function usVKGD()
    If (Wert(7) <> "u" Or rVk(UBound(rVk)).Blutdruck = "") And InStr(Wert(7), "~") = 0 Then rVk(UBound(rVk)).Blutdruck = Wert(7)
    If (Wert(8) <> "u" Or rVk(UBound(rVk)).Puls = "") And InStr(Wert(8), "~") = 0 Then rVk(UBound(rVk)).Puls = Wert(8)
    If (Wert(9) <> "u" Or rVk(UBound(rVk)).Mitarbeiter = "") And InStr(Wert(9), "~") = 0 Then rVk(UBound(rVk)).Mitarbeiter = Wert(9)
-   If Right(rVk(UBound(rVk)).Mitarbeiter, 1) = ")" Then rVk(UBound(rVk)).Mitarbeiter = Left(rVk(UBound(rVk)).Mitarbeiter, Len(rVk(UBound(rVk)).Mitarbeiter) - 1)
+   If Right$(rVk(UBound(rVk)).Mitarbeiter, 1) = ")" Then rVk(UBound(rVk)).Mitarbeiter = Left$(rVk(UBound(rVk)).Mitarbeiter, Len(rVk(UBound(rVk)).Mitarbeiter) - 1)
    Dim k&
    For k = UBound(trz) - 1 To 1 Step -1
     If Wert(k) = Wert(k - 1) Then Wert(k) = ""
@@ -877,7 +877,7 @@ Function usVKGD2()
    If (Wert(7) <> "u" Or rVk(UBound(rVk)).Blutdruck = "") And InStr(Wert(7), "~") = 0 Then rVk(UBound(rVk)).Blutdruck = Wert(7)
    If (Wert(8) <> "u" Or rVk(UBound(rVk)).Puls = "") And InStr(Wert(8), "~") = 0 Then rVk(UBound(rVk)).Puls = Wert(8)
    If (Wert(9) <> "u" Or rVk(UBound(rVk)).Mitarbeiter = "") And InStr(Wert(9), "~") = 0 Then rVk(UBound(rVk)).Mitarbeiter = Wert(9)
-   If Right(rVk(UBound(rVk)).Mitarbeiter, 1) = ")" Then rVk(UBound(rVk)).Mitarbeiter = Left(rVk(UBound(rVk)).Mitarbeiter, Len(rVk(UBound(rVk)).Mitarbeiter) - 1)
+   If Right$(rVk(UBound(rVk)).Mitarbeiter, 1) = ")" Then rVk(UBound(rVk)).Mitarbeiter = Left$(rVk(UBound(rVk)).Mitarbeiter, Len(rVk(UBound(rVk)).Mitarbeiter) - 1)
    Dim k&
    For k = UBound(trz) - 1 To 1 Step -1
     If Wert(k) = Wert(k - 1) Then Wert(k) = ""
@@ -1043,7 +1043,7 @@ Function AnDmFieseln()
  Fd(3) = "Entleerungsstörungen Harnblase"
  tr(4) = "Entleerungsstörung Magen?"
  Fd(4) = "Entleerungsstörungen Magen"
- tr(5) = "Neue Fußkomplikationen IN den letzten 12 Monaten?"
+ tr(5) = "Neue Fußkomplikationen in den letzten 12 Monaten?"
  Fd(5) = "Neue Fußkomplikationen"
  tr(6) = "Haben Sie diabetesgerechte Einlagen/Schuhe?"
  Fd(6) = "Einlagen"
@@ -1131,13 +1131,13 @@ Function AnDmFieseln()
  Fd(45) = "Schwanger"
  tr(46) = "wie oft im Monat ist der BZ > 300 mg/dl?"
  Fd(46) = "BZgr300 pM"
- tr(47) = "Wie oft IN den letzten 12 Monaten waren Ketoazidosen mit Krankenhauseinweisung?"
+ tr(47) = "Wie oft in den letzten 12 Monaten waren Ketoazidosen mit Krankenhauseinweisung?"
  Fd(47) = "Keto pa"
- tr(48) = "Wie oft IN den letzten 12 Monaten waren Ketoazidosen mit Krakenhauseinweisung?"
+ tr(48) = "Wie oft in den letzten 12 Monaten waren Ketoazidosen mit Krakenhauseinweisung?"
  Fd(48) = "Keto pa"
- tr(49) = "wie oft IN den letzten 12 Monaten waren Sie deshalb bewußtlos?"
+ tr(49) = "wie oft in den letzten 12 Monaten waren Sie deshalb bewußtlos?"
  Fd(49) = "Bewußtlos pa"
- tr(50) = "wie oft IN den letzten 12 Monaten war deshalb fremde Hilfe nötig?"
+ tr(50) = "wie oft in den letzten 12 Monaten war deshalb fremde Hilfe nötig?"
  Fd(50) = "Fremde Hilfe pa"
  tr(51) = "werden sie rechtzeitg bemerkt?"
  Fd(51) = "UZ rechtzeitig"
@@ -1183,7 +1183,7 @@ Function AnDmFieseln()
  Fd(71) = "Spritz-Eß-Abstand abends"
  tr(72) = "mittags"
  Fd(72) = "Spritz-Eß-Abstand mittags"
- tr(73) = "Spritz-Eß-Abstand bei normalem BZ IN Minuten ca.: früh"
+ tr(73) = "Spritz-Eß-Abstand bei normalem BZ in Minuten ca.: früh"
  Fd(73) = "Spritz-Eß-Abstand früh"
  tr(74) = "abends"
  Fd(74) = "Essenszeit abends"
@@ -1301,7 +1301,7 @@ Function AnDm2Fieseln()
  Fd(4) = "Entleerungsstörungen Harnblase"
  tr(5) = "Entleerungsstörung Magen?"
  Fd(5) = "Entleerungsstörungen Magen"
- tr(6) = "Neue Fußkomplikationen IN den letzten 12 Monaten?"
+ tr(6) = "Neue Fußkomplikationen in den letzten 12 Monaten?"
  Fd(6) = "Neue Fußkomplikationen"
  tr(7) = "Haben Sie diabetesgerechte Einlagen/Schuhe?"
  Fd(7) = "Einlagen"
@@ -1390,7 +1390,7 @@ Function AnDm2Fieseln()
  Fd(47) = "Keto pa"
  tr(48) = "Bisher Ketoazidosen mit Krankenhauseinweisung?"
  Fd(48) = "Keto"
- tr(49) = "wie oft IN den letzten 12 Monaten?"
+ tr(49) = "wie oft in den letzten 12 Monaten?"
  Fd(49) = "Bewußtlos pa"
  tr(50) = "Bisher Unterzucker mit Bewußtlosigkeit oder Fremdhilfe?"
  Fd(50) = "Schwere Uzu"
@@ -1607,7 +1607,7 @@ Function do_anImp(imin%, imax%, tr$(), Fd$(), makro$, Optional tfd1, Optional tf
           GoTo w2 ' falsches Fragment
          End If
          If InStrB(":) ", Right$(tz2, 1)) <> 0 And Right$(tz2, 1) <> vNS Then
-          tz2 = Left(tz2, Len(tz2) - 1)
+          tz2 = Left$(tz2, Len(tz2) - 1)
          Else
           Exit Do ' keine falschen Fragmente
          End If
@@ -1617,7 +1617,7 @@ Function do_anImp(imin%, imax%, tr$(), Fd$(), makro$, Optional tfd1, Optional tf
       Do
        If sp(1) = vNS Then Exit Do
        If InStrB(EndStr, Right$(sp(1), 1)) <> 0 Then
-        sp(1) = Left(sp(1), Len(sp(1)) - 1)
+        sp(1) = Left$(sp(1), Len(sp(1)) - 1)
        Else
         Exit Do
        End If
@@ -1634,7 +1634,7 @@ Function do_anImp(imin%, imax%, tr$(), Fd$(), makro$, Optional tfd1, Optional tf
      End If ' IF UBound(sp) > 0 THEN
 ' hier kommt er nur an, wenn trennz nichts trennte
      If InStrB(":)? ", Right$(trennz, 1)) > 0 And Right$(trennz, 1) <> vNS Then
-      trennz = Left(trennz, Len(trennz) - 1)
+      trennz = Left$(trennz, Len(trennz) - 1)
      Else
 '      Debug.Print trennz + ":: ", "-----------------"
       AbN(i - imin) = vNS
@@ -1765,7 +1765,7 @@ doppelt:
         Else ' instrb(fd(i-imin), "Essenszeit") <> 0 OR instrb(fd(i-imin), "Broteinheiten") <> 0 THEN
          Select Case fld
           Case "Tendenz"
-           AbI(i - imin) = Left(AbI(i - imin), 1)
+           AbI(i - imin) = Left$(AbI(i - imin), 1)
           Case "Diabetestyp"
            Select Case AbI(i - imin)
             Case "path.Glucosetoleranz"
@@ -1824,7 +1824,7 @@ doppelt:
               adVarBinary, adLongVarBinary, adError, adArray
 '            Case 8, 129, 130, 200, 201, 202, 203, 0, 9, 12, 13, 72, 128, 132, 138, 204, 205, 10, 8192
               NeuInh = AbI(i - imin)
-              rsAnm.Fields(fld).Value = Left(NeuInh, rsAnm.Fields(fld).DefinedSize)
+              rsAnm.Fields(fld).Value = Left$(NeuInh, rsAnm.Fields(fld).DefinedSize)
             End Select
            Else
             FproZielFeld = 2
@@ -1906,7 +1906,7 @@ weiter:
 '  END IF
 ' Else
 '  IF rsAnm.NoMatch THEN MsgBox "Pat. " + CStr(Pat_id) + " nicht in der Anamnesetabelle gefunden"
-'  IF rEi.NoMatch THEN SysCmd 4, "Pat. " + CStr(Pat_id) + " nicht IN Tabelle 'eintraege' gefunden" 'MsgBox "Pat. " + CStr(Pat_id) + " nicht IN den eintraegen gefunden"
+'  IF rEi.NoMatch THEN SysCmd 4, "Pat. " + CStr(Pat_id) + " nicht in Tabelle 'eintraege' gefunden" 'MsgBox "Pat. " + CStr(Pat_id) + " nicht in den eintraegen gefunden"
   
  End If ' Not rEi.NoMatch AND NOT rsAnm.NoMatch THEN
 End If ' not kdm
@@ -1933,7 +1933,7 @@ If Err.Number = -2147217887 Then ' Das Feld ist zu klein für die Datenmenge, die
  Versuch = Versuch + 1
  If MerkNeuInh <> NeuInh Then Versuch = 0
  If Versuch > 5 Then
-  If NeuInh > vNS Then NeuInh = Left(NeuInh, Len(NeuInh) - 1)
+  If NeuInh > vNS Then NeuInh = Left$(NeuInh, Len(NeuInh) - 1)
  End If
  If fld = vNS Then fld = Fd(i)
  Do
@@ -1977,7 +1977,7 @@ Function MachNumerisch#(ByVal ST$, Optional erstDatum%)
   nachziffer = 0
   For pos = 1 To Len(ST)
    If InStrB("0123456789" + IIf(nachziffer, " ,.", ""), Mid$(ST, pos, 1)) = 0 And Mid$(ST, pos, 1) <> vNS Then
-    ST = Left(ST, pos - 1) & " " & Mid$(ST, pos + 1)
+    ST = Left$(ST, pos - 1) & " " & Mid$(ST, pos + 1)
    Else
     nachziffer = True
    End If
@@ -1988,8 +1988,8 @@ Function MachNumerisch#(ByVal ST$, Optional erstDatum%)
   ST = 0
  Else ' ST = vNS THEN
   pos = InStr(ST, "  ")
-  If pos > 0 And IsNumeric(Left(ST, pos)) Then
-   ST = Left(ST, pos)
+  If pos > 0 And IsNumeric(Left$(ST, pos)) Then
+   ST = Left$(ST, pos)
   End If
   For runde = 1 To 2
    If (erstDatum And (runde = 1)) Or (Not erstDatum And (runde = 2)) Then
@@ -2053,7 +2053,7 @@ Function MachNumerisch#(ByVal ST$, Optional erstDatum%)
         Case "87, im Dezember 93"
          ST = "87"
         Case Else
-         Err.Raise 999, , "Unbehandelter Fall IN machnumerisch: " & stor & " bei Pat.: " & rNa(0).Pat_id
+         Err.Raise 999, , "Unbehandelter Fall in machnumerisch: " & stor & " bei Pat.: " & rNa(0).Pat_id
          MsgBox stneu & " nicht numerisch zu bekommen (machmumerisch)"
          ST = "0"
        End Select
@@ -2322,14 +2322,14 @@ Function gKw$(ST$, Optional Typ)
  gKw = ST
  p1 = InStr(gKw, "~{")
  If p1 > 0 Then
-  gKw = Trim$(Left(gKw, p1 - 1))
+  gKw = Trim$(Left$(gKw, p1 - 1))
  Else
   Do
    p1 = InStr(gKw, "{")
    pe = InStr(gKw, "}")
    If pe = 0 Then pe = Len(gKw)
    If p1 > 0 And pe > p1 Then
-    gKw = Left(gKw, p1 - 1) + Mid$(gKw, pe + 1)
+    gKw = Left$(gKw, p1 - 1) + Mid$(gKw, pe + 1)
    End If
    If gKw = "{" Then gKw = vNS: p1 = 0
   Loop Until p1 = 0

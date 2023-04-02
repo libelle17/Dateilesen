@@ -18,10 +18,11 @@ Public mVerz$, DMPImp$, ZDat$
 Public üzpt As Date ' Übertragungszeitpunkt
 
 Private Sub Class_Initialize()
-    ' create the t() array
-    ZZ = -1
-    üzpt = Now()
-End Sub
+ ' create the t() array
+ ZZ = -1
+ üzpt = Now()
+End Sub ' Class_Initialize
+
 Private Function callVerzPrüf(Verz$)
  Dim erg$
  On Error GoTo fehler
@@ -45,6 +46,7 @@ Dim AnwPfad$
   Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
  End Select
 End Function ' callVerzPrüf
+
 'öffnet BDT-Exportdatei mit Handle 327 und Namen mit Datum und praxisinternem Arzt
 Public Function Start%(ByRef Verz$, ByRef Vorsilbe$, Optional Arztnr&)
  Dim erg$
@@ -73,6 +75,7 @@ Dim AnwPfad$
   Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
  End Select
 End Function 'Start
+
 Public Function ImportFolderHerricht(Optional Verz$, Optional DateiName$)
  Dim fld As Folder, Fil As File, FPath$
  Dim errn&
@@ -113,6 +116,7 @@ Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "Last
  Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
 End Select
 End Function ' ImportFolderHerricht()
+
 Public Sub Add(ByRef SchlüsselundInhalt$)
  ZZ = ZZ + 1
  If ZZ = 0 Then
@@ -123,7 +127,7 @@ Public Sub Add(ByRef SchlüsselundInhalt$)
  zl = 5 + Len(SchlüsselundInhalt)
  t(ZZ) = Format(zl, "000")
  If Len(t(ZZ)) > 3 Then
-  t(ZZ) = Right(t(ZZ), 3)
+  t(ZZ) = Right$(t(ZZ), 3)
  End If
  t(ZZ) = t(ZZ) & ZSU(SchlüsselundInhalt)
  If Left$(SchlüsselundInhalt, 4) = "8000" Then
@@ -131,6 +135,7 @@ Public Sub Add(ByRef SchlüsselundInhalt$)
   ReDim Preserve t(ZZ)
  End If
 End Sub ' Add(ByRef SchlüsselundInhalt$)
+
 Public Sub DAdd(ByRef Schlüssel$, ByRef Datum)
  On Error GoTo fehler
  If Datum = 0 Then
@@ -152,46 +157,58 @@ Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "Last
  Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
 End Select
 End Sub ' Sub DAdd(ByRef Schlüssel$, ByRef Datum)
+
 Public Sub TAdd(ByRef Schlüssel$, ByRef Datum)
  Call Add(Schlüssel & Format$(Datum, "HHMM"))
-End Sub
+End Sub ' Sub TAdd(
+
 Public Sub FFAdd(ByRef Schlüssel$) ' Formularfeld
  Call Add("6298" & Schlüssel)
 End Sub
+
 Public Sub FIAdd(ByRef Schlüssel$) ' FormularfeldInhalt
  Call Add("6299" & Schlüssel)
 End Sub
+
 Public Sub SAdd(ByRef Schlüssel$, ByRef Roh$)
 ' Dim Verarb$
 ' Verarb = ZSU(Roh)
  Call Add(Schlüssel & Roh)
 End Sub
+
 Public Sub Satzart(ByRef Satzart$)
  Call Add("8000" & Satzart)
 End Sub
+
 Public Sub PatID(ByRef PatID&)
  Call Add("3000" & CStr(PatID))
 End Sub
+
 Public Sub NVorsatz(ByRef NV$)
  Call SAdd("3100", NV)
 End Sub
+
 Public Sub Nachname(ByRef NN$)
  Call SAdd("3101", NN)
 End Sub
+
 Public Sub Vorname(ByRef VN$)
  Call SAdd("3102", VN)
 End Sub
+
 Public Sub Geb(ByRef GebDat As Date)
  Dim FGeb$
  FGeb = Format$(GebDat, "ddmmyyyy")
  If Mid$(FGeb, 5, 2) = "20" Then
-  If GebDat > Date Then FGeb = Left(FGeb, 4) & "19" & Right$(FGeb, 2)
+  If GebDat > Date Then FGeb = Left$(FGeb, 4) & "19" & Right$(FGeb, 2)
  End If
  Add ("3103" & FGeb)
 End Sub
+
 Public Sub Arztnummer(ByRef nr$)
  Call Add("9100" & nr)
 End Sub
+
 Public Sub Erstellungsdatum(ByRef Datum As Date)
  Call DAdd("9103", Datum)
 End Sub
@@ -200,7 +217,7 @@ Public Sub Schreib(Optional anhängen%)
  Dim errn&
  For i = ZZ To 0 Step -1
   lenge = lenge + Len(t(i)) + 2
-  If Left(t(i), 7) = "0138000" Then
+  If Left$(t(i), 7) = "0138000" Then
    lenge = lenge + 12
    t(i + 1) = "0148100" & Format(lenge, "00000")
    lenge = 0
@@ -340,6 +357,7 @@ Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "Last
  Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
 End Select
 End Function ' ZSU
+
 ' liefert vns, falls Erfolg, oder das nicht zu erstellende Verzeichnis
 Public Function VerzPrüf$(ByRef Verz$)
  Dim Bstd$(), i%, j%, k%, tStr$
@@ -358,7 +376,7 @@ Public Function VerzPrüf$(ByRef Verz$)
     If InStrB(Mid$(tStr, 3), "\") <> 0 Then 'And Not LEFT(TStr, 2) = "\\" AND InStr(mid$(TStr, 3), "\") = 1 THEN
      Call FSO.CreateFolder(tStr)
     End If
-    If Not (Left$(tStr, 2) = "\\" And Not InStr(Mid(tStr, 3), "\")) Then
+    If Not (Left$(tStr, 2) = "\\" And Not InStr(Mid$(tStr, 3), "\")) Then
      If Not FSO.FolderExists(tStr) Then
       VerzPrüf = tStr
      End If

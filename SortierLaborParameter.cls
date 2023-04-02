@@ -159,7 +159,7 @@ Public Property Let Einheit(ByVal vData As Variant)
 'wird beim Zuweisen eines Werts zu der Eigenschaft auf der linken Seite einer Zuweisung verwendet.
 'Syntax: X.FeldInhVW = 5
     mvEinheit = vData
-    mvkleinheit = LCase(vData)
+    mvkleinheit = LCase$(vData)
 End Property
 
 

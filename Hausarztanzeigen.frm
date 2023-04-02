@@ -227,7 +227,7 @@ Private Sub OK_Click()
  If rs.EOF Then
   MsgBox "Nix gefunden"
  Else
-  TabAusgeb rs, Me, , , , , Array(120), , "Hausarztergebnis für '" & Text1(0) & "', '" & Text1(1) & "' IN '" & Text1(2) & "'"
+  TabAusgeb rs, Me, , , , , Array(120), , "Hausarztergebnis für '" & Text1(0) & "', '" & Text1(1) & "' in '" & Text1(2) & "'"
  End If
 End Sub ' Ok_Click()
 

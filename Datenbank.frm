@@ -860,7 +860,7 @@ End Sub ' Pat_IDVon_KeyDown
 Public Sub Start_Click()
  If Not obStart Then
  If Not lies.obMySQL Then Me.hlese.obAusgedehnt = True
- Call PutReg(Me.hlese) ' da IN hide nicht dabei
+ Call PutReg(Me.hlese) ' da in hide nicht dabei
 ' hlese.Visible = True
  hlese.Show
 ' Me.Hide
@@ -947,7 +947,7 @@ Public Function MdBFestleg()
    .flags = .flags And Not FileOpenConstants.cdlOFNFileMustExist
    .ShowOpen
    ZielDbS = .Filename
-    If LCase(Right$(ZielDbS, 3) <> "mdb") Then ZielDbS = ZielDbS & ".mdb"
+    If LCase$(Right$(ZielDbS, 3) <> "mdb") Then ZielDbS = ZielDbS & ".mdb"
    If Not FSO.FileExists(ZielDbS) And InStrB(ZielDbS, "*") = 0 Then
 '    SET dbe = New DAO.DBEngine
 '    SET ws = dbe.Workspaces(0)

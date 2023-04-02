@@ -171,7 +171,7 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
 Option Explicit
-Private Const MARGIN_SIZE = 60      ' IN Twips
+Private Const MARGIN_SIZE = 60      ' in Twips
 ' Variablen für das Aktivieren der Spaltensortierung
 Private m_iSortCol As Integer
 Private m_iSortType As Integer
@@ -245,7 +245,7 @@ End Sub
 'Sleep Millisekunden
 'End Sub
 
-Private Sub inTurbomedAnzeigen_Click() ' IN Turbomed anzeigen
+Private Sub inTurbomedAnzeigen_Click() ' in Turbomed anzeigen
  Const obStumm% = 0
  Dim hnd&, Pat_id&, dtyp%, alttop&, altr&
  Const Pat_IDSp& = 1
@@ -559,7 +559,7 @@ Private Function IrfanString$()
  Me.MSHFlexGrid1.col = 3
  If LenB(PcDokPfad) = 0 Then getDokPfad
  With Me.MSHFlexGrid1
-  DateiName = Stutz(REPLACE$(LCase(.Text), "$\turbomed\dokumente", PcDokPfad))
+  DateiName = Stutz(REPLACE$(LCase$(.Text), "$\turbomed\dokumente", PcDokPfad))
   IrfanString = getIViewPfad & " " & DateiName & " /title='" & .TextMatrix(.Row, 4) & "'   (" & DateiName & ")" ' Environ("ProgramFiles") & "\irfanview\i_view32.exe
  End With
  Exit Function
@@ -608,7 +608,7 @@ End Sub ' Irfan_Click
 
 Private Sub MSHFlexGrid1_DragDrop(source As Control, x As Single, Y As Single)
 '-------------------------------------------------------------------------------------------
-' Code IN den DragDrop-, MouseDown-, MouseMove- und MouseUp-Ereignissen der Tabelle aktiviert das Ziehen von Spalten
+' Code in den DragDrop-, MouseDown-, MouseMove- und MouseUp-Ereignissen der Tabelle aktiviert das Ziehen von Spalten
 '-------------------------------------------------------------------------------------------
 
     If m_iDragCol = -1 Then Exit Sub    ' es wurde nicht gezogen
@@ -625,7 +625,7 @@ End Sub
 
 Private Sub MSHFlexGrid1_MouseDown(Button As Integer, Shift As Integer, x As Single, Y As Single)
 '-------------------------------------------------------------------------------------------
-' Code IN den DragDrop-, MouseDown-, MouseMove- und MouseUp-Ereignissen der Tabelle aktiviert das Ziehen von Spalten
+' Code in den DragDrop-, MouseDown-, MouseMove- und MouseUp-Ereignissen der Tabelle aktiviert das Ziehen von Spalten
 '-------------------------------------------------------------------------------------------
 
     If MSHFlexGrid1.MouseRow <> 0 Then Exit Sub
@@ -640,7 +640,7 @@ End Sub
 
 Private Sub MSHFlexGrid1_MouseMove(Button As Integer, Shift As Integer, x As Single, Y As Single)
 '-------------------------------------------------------------------------------------------
-' Code IN den DragDrop-, MouseDown-, MouseMove- und MouseUp-Ereignissen der Tabelle aktiviert das Ziehen von Spalten
+' Code in den DragDrop-, MouseDown-, MouseMove- und MouseUp-Ereignissen der Tabelle aktiviert das Ziehen von Spalten
 '-------------------------------------------------------------------------------------------
 
     ' testen, um zu sehen, ob zum dem Ziehen begonnen werden kann
@@ -658,7 +658,7 @@ End Sub
 
 Private Sub MSHFlexGrid1_MouseUp(Button As Integer, Shift As Integer, x As Single, Y As Single)
 '-------------------------------------------------------------------------------------------
-' Code IN den DragDrop-, MouseDown-, MouseMove- und MouseUp-Ereignissen der Tabelle aktiviert das Ziehen von Spalten
+' Code in den DragDrop-, MouseDown-, MouseMove- und MouseUp-Ereignissen der Tabelle aktiviert das Ziehen von Spalten
 '-------------------------------------------------------------------------------------------
 
     m_bDragOK = False
@@ -667,7 +667,7 @@ End Sub
 
 Private Sub MSHFlexGrid1_DblClick()
 '-------------------------------------------------------------------------------------------
-' Code IN DblClick-Ereignis der Tabelle aktiviert Spaltensortierung
+' Code in DblClick-Ereignis der Tabelle aktiviert Spaltensortierung
 '-------------------------------------------------------------------------------------------
 
     Dim i As Integer
@@ -719,7 +719,7 @@ Private Sub Form_Resize()
         sngScaleWidth = .ScaleWidth
         sngScaleHeight = .ScaleHeight
 
-        ' Schaltfläche 'Schließen' IN untere rechte Ecke verschieben
+        ' Schaltfläche 'Schließen' in untere rechte Ecke verschieben
         With .cmdClose
                 sngButtonTop = sngScaleHeight - (.Height + MARGIN_SIZE) - Me.dpS.Height - MARGIN_SIZE
                 .Move sngScaleWidth - (.Width + MARGIN_SIZE), sngButtonTop
@@ -805,7 +805,7 @@ Private Sub Photoimpact_Click()
   On Error GoTo fehler
   If LenB(PcDokPfad) = 0 Then getDokPfad
   With Me.MSHFlexGrid1
-   DatPfad = Environ("ProgramFiles") & "\Ulead Systems\Ulead PhotoImpact 6\iedit.exe " & "" & Stutz(REPLACE$(LCase(.TextMatrix(.Row, 3)), "$\turbomed\dokumente", PcDokPfad)) + ""
+   DatPfad = Environ("ProgramFiles") & "\Ulead Systems\Ulead PhotoImpact 6\iedit.exe " & "" & Stutz(REPLACE$(LCase$(.TextMatrix(.Row, 3)), "$\turbomed\dokumente", PcDokPfad)) + ""
   End With
   irf = Shell(DatPfad, vbMaximizedFocus)
 '   Me.Hide

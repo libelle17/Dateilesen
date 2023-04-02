@@ -101,7 +101,7 @@ Attribute VB_Exposed = False
 Option Explicit
 Public Lanr&
 
-' aufgerufen IN doMachDMPBogen
+' aufgerufen in doMachDMPBogen
 Public Sub PrepPatid(Pat_id&)
  Dim i&, maxTag$
  Dim rfal As New ADODB.Recordset
@@ -181,7 +181,7 @@ Private Sub Form_Load()
   Loop
  End If
  Me.Height = MIN(Me.Option1.COUNT * 300& + 2000, 3675)
- Me.Ok.Top = Me.Height - 1000
+ Me.OK.Top = Me.Height - 1000
  Me.Abbruch.Top = Me.Height - 1000
  
  Exit Sub

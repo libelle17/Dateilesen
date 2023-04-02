@@ -326,7 +326,7 @@ If Me.FaellepHA.ListCount > 0 Then
  Inx = Me.FaellepHA.ListIndex
  If Inx < 0 Then Inx = 0
  If Inx > Me.FaellepHA.ListCount Then Inx = Me.FaellepHA.ListCount
- Me.Pat_id = Left(Me.FaellepHA.List(Inx), InStr(Me.FaellepHA.List(Inx), " ") - 1)
+ Me.Pat_id = Left$(Me.FaellepHA.List(Inx), InStr(Me.FaellepHA.List(Inx), " ") - 1)
 End If
 End Sub ' FaellepHA_Click
 
@@ -544,7 +544,7 @@ Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "Last
 End Select
 End Sub ' Form_Load
 
-' kommt vor IN doPatNameChange, SchreibDatensatz und FDC_indvorWechsel
+' kommt vor in doPatNameChange, SchreibDatensatz und FDC_indvorWechsel
 Function getPat_id&(PatName$)
  Dim Spl$(), sql$
  Dim rNaA As New ADODB.Recordset
@@ -629,12 +629,12 @@ altobTrans:
  frm.PatName = zwi
  frm.PatName.SelStart = Len(Me.PatName.Text)
  Do While Not rNaA.EOF
-  If Not IsNull(rNaA!f0) Then
-  t = rNaA!f0 ' rNaA!NachName + ", " & rNaA!VorName + ",*" + format$(rNaA!GebDat, "D.M.YY") & " | " + CStr(rNaA!Pat_id)
+  If Not IsNull(rNaA!F0) Then
+  t = rNaA!F0 ' rNaA!NachName + ", " & rNaA!VorName + ",*" + format$(rNaA!GebDat, "D.M.YY") & " | " + CStr(rNaA!Pat_id)
   frm!PatName.AddItem t
   i = i + 1
   If i = 30 Then
-   syscmd 4, "Pat: " & rNaA!f0 'rNaA!NachName & " " & rNaA!VorName
+   syscmd 4, "Pat: " & rNaA!F0 'rNaA!NachName & " " & rNaA!VorName
    DoEvents
    i = 0
   End If
@@ -710,7 +710,7 @@ Function repl(q$, r$, z$)
  repl = REPLACE$(q, r, z)
 End Function ' repl(q$, r$, z$)
 
-' zuvor auch IN form_load, jetzt nur noch IN HAAusw_GotFocus
+' zuvor auch in form_load, jetzt nur noch in HAAusw_GotFocus
 Function AuswHA(frm As PatAuswahl)
  Dim zwi$, sql$, i%, hier%, ItemStr$
  Dim kvPfad$, p1&, p2&
@@ -734,18 +734,18 @@ Function AuswHA(frm As PatAuswahl)
  End If
  Do While Not rKVNr.EOF
   If lies.obMySQL Or kvPfad <> "" Then
-'   sql = "SELECT dbnr, bstelle, anrede, """" AS überschrift, haname, ort, kvnu AS kvnr, tel1, tel2, tel3, tel4, fax1, fax1k,fax2,fax2k, fax3,fax3k, email, zulg, arzttyp, gemmit, beme, -dmpt2 AS j_dmpt2, -dmpt1 AS j_dmpt1, geschlecht, titel, vorname, nachname, straße, plz FROM `kvaerzte`.hae WHERE kvnr = '" & LEFT(rKVNr!KVNr, 2) & "/" & mid$(rKVNr!KVNr, 3, 5) & "' " & _
-         "UNION SELECT dbnr, bstelle, anrede, """" AS überschrift, haname, ort, kvnu AS kvnr, tel1, tel2, tel3, tel4, fax1, fax1k,fax2,fax2k, fax3,fax3k, email, zulg, arzttyp, gemmit, beme, -dmpt2 AS j_dmpt2, -dmpt1 AS j_dmpt1, geschlecht, titel, vorname, nachname, straße, plz FROM `kvaerzte`.`haealt` WHERE kvnr = '" & LEFT(rKVNr!KVNr, 2) & "/" & mid$(rKVNr!KVNr, 3, 5) & "' " & _
+'   sql = "SELECT dbnr, bstelle, anrede, """" AS überschrift, haname, ort, kvnu AS kvnr, tel1, tel2, tel3, tel4, fax1, fax1k,fax2,fax2k, fax3,fax3k, email, zulg, arzttyp, gemmit, beme, -dmpt2 AS j_dmpt2, -dmpt1 AS j_dmpt1, geschlecht, titel, vorname, nachname, straße, plz FROM `kvaerzte`.hae WHERE kvnr = '" & LEFT(rKVNr!KVNr, 2) & "/" & MID(rKVNr!KVNr, 3, 5) & "' " & _
+         "UNION SELECT dbnr, bstelle, anrede, """" AS überschrift, haname, ort, kvnu AS kvnr, tel1, tel2, tel3, tel4, fax1, fax1k,fax2,fax2k, fax3,fax3k, email, zulg, arzttyp, gemmit, beme, -dmpt2 AS j_dmpt2, -dmpt1 AS j_dmpt1, geschlecht, titel, vorname, nachname, straße, plz FROM `kvaerzte`.`haealt` WHERE kvnr = '" & Left$(rKVNr!KVNr, 2) & "/" & Mid$(rKVNr!KVNr, 3, 5) & "' " & _
          "UNION SELECT id AS dbnr, """" AS bstelle, """" AS anrede, überschrift, name AS haname, ort, kvnr, telefon AS tel1, """" AS tel2, """" AS tel3, """" AS tel4, telefax AS fax1, replace$(replace$(replace$(telefax,""/"",""""),""-"",""""),"" "","""") AS fax1k,"""" AS fax2,"""" AS fax2k, """" AS fax3, """" AS fax3k, e_mail AS email, zulassungsgebiet AS zulg, arzttyp, `gemeinschaftspraxis mit` AS gemmit, beme, dmpt2, dmpt2, geschlecht, titel, vorname, nachname, straße, plz FROM `hausaerzte` WHERE kvnr = '" & rKVNr!KVNr & "' " & _
          "UNION SELECT """" AS dbnr, """" AS bstelle, """" AS anrede, """" AS überschrift, name AS haname, ort, kvnr, telefon AS tel1, """" AS tel2, """" AS tel3, """" AS tel4, """" AS fax1, fax AS fax1k,"""" AS fax2,"""" AS fax2k, """" AS fax3, """" AS fax3k, """" AS email, fachgruppe AS zulg, """" AS arzttyp, """" AS gemmit, """" AS beme, -2 AS dmpt2, -2 AS dmpt1, 0 AS geschlecht, titel, vorname, name AS nachname, strasse, plz FROM `liuez` WHERE kvnr = '" & rKVNr!KVNr & "'"
-'    sql = "SELECT dbnr, bstelle, anrede, """" AS überschrift, haname, ort, kvnu AS kvnr, tel1, tel2, tel3, tel4, fax1, fax1k,fax2,fax2k, fax3,fax3k, email, zulg, arzttyp, gemmit, beme, dmpt2, dmpt1, geschlecht, titel, vorname, nachname, straße, plz FROM `kvaerzte`.`hae` WHERE kvnr = '" & LEFT(rKVNr!KVNr, 2) & "/" & Mid$(rKVNr!KVNr, 3, 5) & "' " & _
-         "UNION SELECT dbnr, bstelle, anrede, """" AS überschrift, haname, ort, kvnu AS kvnr, tel1, tel2, tel3, tel4, fax1, fax1k,fax2,fax2k, fax3,fax3k, email, zulg, arzttyp, gemmit, beme, dmpt2, dmpt1, geschlecht, titel, vorname, nachname, straße, plz FROM `kvaerzte`.`hae`alt WHERE kvnr = '" & LEFT(rKVNr!KVNr, 2) & "/" & Mid$(rKVNr!KVNr, 3, 5) & "' " & _
+'    sql = "SELECT dbnr, bstelle, anrede, """" AS überschrift, haname, ort, kvnu AS kvnr, tel1, tel2, tel3, tel4, fax1, fax1k,fax2,fax2k, fax3,fax3k, email, zulg, arzttyp, gemmit, beme, dmpt2, dmpt1, geschlecht, titel, vorname, nachname, straße, plz FROM `kvaerzte`.`hae` WHERE kvnr = '" & Left$(rKVNr!KVNr, 2) & "/" & Mid$(rKVNr!KVNr, 3, 5) & "' " & _
+         "UNION SELECT dbnr, bstelle, anrede, """" AS überschrift, haname, ort, kvnu AS kvnr, tel1, tel2, tel3, tel4, fax1, fax1k,fax2,fax2k, fax3,fax3k, email, zulg, arzttyp, gemmit, beme, dmpt2, dmpt1, geschlecht, titel, vorname, nachname, straße, plz FROM `kvaerzte`.`hae`alt WHERE kvnr = '" & Left$(rKVNr!KVNr, 2) & "/" & Mid$(rKVNr!KVNr, 3, 5) & "' " & _
          "UNION SELECT id AS dbnr, """" AS bstelle, """" AS anrede, überschrift, name AS haname, ort, kvnr, telefon AS tel1, """" AS tel2, """" AS tel3, """" AS tel4, telefax AS fax1, REPLACE(REPLACE(REPLACE(telefax,""/"",""""),""-"",""""),"" "","""") AS fax1k,"""" AS fax2,"""" AS fax2k, """" AS fax3, """" AS fax3k, e_mail AS email, zulassungsgebiet AS zulg, arzttyp, `gemeinschaftspraxis mit` AS gemmit, beme, dmpt2, dmpt2, geschlecht, titel, vorname, nachname, straße, plz FROM `hausaerzte` WHERE kvnr = '" & rKVNr!KVNr & "' " & _
          "UNION SELECT """" AS dbnr, """" AS bstelle, """" AS anrede, """" AS überschrift, name AS haname, ort, kvnr, telefon AS tel1, """" AS tel2, """" AS tel3, """" AS tel4, """" AS fax1, fax AS fax1k,"""" AS fax2,"""" AS fax2k, """" AS fax3, """" AS fax3k, """" AS email, fachgruppe AS zulg, """" AS arzttyp, """" AS gemmit, """" AS beme, -2 AS dmpt2, -2 AS dmpt1, 0 AS geschlecht, titel, vorname, name AS nachname, strasse, plz FROM `liuez` WHERE kvnr = '" & rKVNr!KVNr & "'"
      sql = "SELECT * FROM (" & _
           "SELECT GROUP_CONCAT(DISTINCT nachname) haname, ort, CAST(LEFT(bsnr,7) AS char) kvnr, REPLACE(tel,'-','') tel1, REPLACE(fax,'-','') fax1, titel, vorname, nachname, CONCAT(straße,' ',hausnr) straße, plz FROM " & HADBName & ".bs LEFT JOIN " & HADBName & ".ort ON ort_id = idort LEFT JOIN " & HADBName & ".tel ON tel.bs_id = idbs LEFT JOIN " & HADBName & ".fax ON fax.bs_id = idbs LEFT JOIN " & HADBName & ".arzt_has_bs ahb ON ahb.bs_id = idbs LEFT JOIN " & HADBName & ".arzt a ON a.idarzt = ahb.arzt_id LEFT JOIN " & HADBName & ".titel t ON t.idtitel = a.titel_id WHERE bsnr = '" & IIf(IsNull(rKVNr!KVNr), "000000", rKVNr!KVNr) & "00' " & _
-          "UNION SELECT haname, ort, CAST(kvnu AS char) kvnr, tel1, fax1, titel, vorname, nachname, straße, plz FROM `kvaerzte`.`hae` WHERE kvnr = '" & Left(IIf(IsNull(rKVNr!KVNr), "000000", rKVNr!KVNr), 2) & "/" & Mid$(IIf(IsNull(rKVNr!KVNr), "000000", rKVNr!KVNr), 3, 5) & "' " & _
-          "UNION SELECT haname, ort, CAST(kvnu AS char) kvnr, tel1, fax1, titel, vorname, nachname, straße, plz FROM `kvaerzte`.`haealt` WHERE kvnr = '" & Left(IIf(IsNull(rKVNr!KVNr), "000000", rKVNr!KVNr), 2) & "/" & Mid$(IIf(IsNull(rKVNr!KVNr), "000000", rKVNr!KVNr), 3, 5) & "' " & _
+          "UNION SELECT haname, ort, CAST(kvnu AS char) kvnr, tel1, fax1, titel, vorname, nachname, straße, plz FROM `kvaerzte`.`hae` WHERE kvnr = '" & Left$(IIf(IsNull(rKVNr!KVNr), "000000", rKVNr!KVNr), 2) & "/" & Mid$(IIf(IsNull(rKVNr!KVNr), "000000", rKVNr!KVNr), 3, 5) & "' " & _
+          "UNION SELECT haname, ort, CAST(kvnu AS char) kvnr, tel1, fax1, titel, vorname, nachname, straße, plz FROM `kvaerzte`.`haealt` WHERE kvnr = '" & Left$(IIf(IsNull(rKVNr!KVNr), "000000", rKVNr!KVNr), 2) & "/" & Mid$(IIf(IsNull(rKVNr!KVNr), "000000", rKVNr!KVNr), 3, 5) & "' " & _
           "UNION SELECT name haname, ort, CAST(kvnr AS char) kvnr, telefon AS tel1, telefax AS fax1, titel, vorname, nachname, straße, plz FROM `hausaerzte` WHERE kvnr = '" & IIf(IsNull(rKVNr!KVNr), "000000", rKVNr!KVNr) & "' " & _
           "UNION SELECT name haname, ort, CAST(kvnr AS char) kvnr, telefon AS tel1, '' AS fax1, titel, vorname, name AS nachname, strasse, plz FROM `aktlue` WHERE kvnro = '" & IIf(IsNull(rKVNr!KVNr), "000000", rKVNr!KVNr) & "' " & _
           ") i WHERE NOT ISNULL(nachname) ORDER BY haname DESC;"
@@ -867,7 +867,7 @@ Private Sub Pat_ID_Change()
 End Sub ' Pat_ID_Change()
 
 Private Sub do_Pat_ID_Change(Optional mitVorDat%)
- Const maxlauf& = 100
+ Const MaxLauf& = 100
  Dim lauf&
  Dim rNaA As New ADODB.Recordset
  Dim rFaA As New ADODB.Recordset
@@ -881,7 +881,7 @@ Private Sub do_Pat_ID_Change(Optional mitVorDat%)
 ' Call KVÄVorb
  Me.MousePointer = vbHourglass
  pos = InStr(Me.Pat_id, " |")
- If pos <> 0 Then innen = True: Me.Pat_id = Left(Me.Pat_id, pos - 1): innen = False
+ If pos <> 0 Then innen = True: Me.Pat_id = Left$(Me.Pat_id, pos - 1): innen = False
  If Me.Pat_id <> vNS And Me.Pat_id <> "-1" Then
   On Error Resume Next
   If Not IsNumeric(Me.Pat_id) Then
@@ -908,8 +908,8 @@ Private Sub do_Pat_ID_Change(Optional mitVorDat%)
 '   Call Me.hlese.ConstrFestleg(0, Me.hlese)
     Call acon(quelleT)
    End If
-   On Error GoTo f0
-vorabfrag:
+   On Error GoTo F01
+vorabfra1:
    lauf = lauf + 1
    myFrag rNaA, "SELECT nachname, vorname, gebdat, pat_id FROM `namen` WHERE pat_id = " & Me.PatID & " ORDER BY nachname, vorname, gebdat"
    If rNaA.EOF Then
@@ -948,7 +948,7 @@ vorabfrag:
         obHA = -1
  '      END IF
       End If
-      Me.Faelle.AddItem (rFaA!BhFB & " - " & rFaA!BhFE1 & " " & rFaA!SchGr & "  " & Left(IIf(IsNull(rFaA!name), vNS, rFaA!name), 20) & " " & IIf(IsNull(rFaA!Kateg), vNS, rFaA!Kateg) & "  " & rFaA!ÜWNNr & " " & rFaA!ÜWNaN & " " & rFaA!ÜWVor)
+      Me.Faelle.AddItem (rFaA!BhFB & " - " & rFaA!BhFE1 & " " & rFaA!SchGr & "  " & Left$(IIf(IsNull(rFaA!name), vNS, rFaA!name), 20) & " " & IIf(IsNull(rFaA!Kateg), vNS, rFaA!Kateg) & "  " & rFaA!ÜWNNr & " " & rFaA!ÜWNaN & " " & rFaA!ÜWVor)
       rFaA.Move 1
      Loop
     End If ' Not rFaA.BOF THEN
@@ -1029,9 +1029,9 @@ vorabfrag:
  End If ' Me.Pat_id <> vNS THEN
  Me.MousePointer = vbDefault
  Exit Sub
-f0:
- If Err.Number = 3704 And lauf < maxlauf Then ' Der Vorgang ist für ein geschlossenes Objekt nicht zugelassen.
-  Resume vorabfrag
+F01:
+ If Err.Number = 3704 And lauf < MaxLauf Then ' Der Vorgang ist für ein geschlossenes Objekt nicht zugelassen.
+  Resume vorabfra1
  End If
 fehler:
  Dim AnwPfad$
@@ -1051,7 +1051,7 @@ Public Function getPid(Text$)
  Dim pos&
  pos = InStr(Text, " ")
  If pos > 0 Then
-  getPid = Left(Me.Pat_id, pos - 1)
+  getPid = Left$(Me.Pat_id, pos - 1)
  Else
   getPid = Me.Pat_id
  End If

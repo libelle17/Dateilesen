@@ -110,7 +110,7 @@ Public Type Faelle
  ausgst As Date 'ausgst datetime '4102 ('ausgestellt am')
  KtrAbrB As String 'KtrAbrB varchar '4106, Kostenträgerabrechnungsbereich (00 = Primärabrechnung (immer))
  AbrAr As String 'AbrAr varchar '4107, Abrechnungsart (1 = Primärkassen)
- lVorl As Date 'lVorl datetime '4109, letzte Vorlage
+ lvorl As Date 'lVorl datetime '4109, letzte Vorlage
  IK As String 'IK varchar '4111 Krankenkassennummer (IK)
  KVKs As String 'KVKs varchar '4112 Versichertenstatus VK
  KVKserg As String 'KVKserg varchar '4113 Ost/West-Status VK
@@ -493,7 +493,7 @@ Public Type dmpreihe
  exportiert As Date 'exportiert datetime 'Datum des Exports
  DokuDatum As Date 'DokuDatum datetime 'Datum der Dokumentation
  obvoll As Integer 'obvoll bit 'ob vollständig
- Ok As Integer 'ok bit 'ob """"""""ok""""""""
+ OK As Integer 'ok bit 'ob """"""""ok""""""""
  ausgedruckt As Integer 'ausgedruckt bit 'ob """"""""ausgedruckt""""""""
  Nachname As String 'NachName varchar '
  Vorname As String 'VorName varchar '
@@ -1834,7 +1834,7 @@ Public Function roFaZuw(i&, j&)
  roFa(i).ausgst = rFa(j).ausgst
  roFa(i).KtrAbrB = rFa(j).KtrAbrB
  roFa(i).AbrAr = rFa(j).AbrAr
- roFa(i).lVorl = rFa(j).lVorl
+ roFa(i).lvorl = rFa(j).lvorl
  roFa(i).IK = rFa(j).IK
  roFa(i).KVKs = rFa(j).KVKs
  roFa(i).KVKserg = rFa(j).KVKserg
@@ -1950,7 +1950,7 @@ Public Function FaZUnt%(i&, j&)
  If roFa(i).ausgst <> rFa(j).ausgst Then GoSub unter
  If roFa(i).KtrAbrB <> rFa(j).KtrAbrB Then GoSub unter
  If roFa(i).AbrAr <> rFa(j).AbrAr Then GoSub unter
- If roFa(i).lVorl <> rFa(j).lVorl Then GoSub unter
+ If roFa(i).lvorl <> rFa(j).lvorl Then GoSub unter
  If roFa(i).IK <> rFa(j).IK Then GoSub unter
  If roFa(i).KVKs <> rFa(j).KVKs Then GoSub unter
  If roFa(i).KVKserg <> rFa(j).KVKserg Then GoSub unter
@@ -2109,7 +2109,7 @@ sql = sql & ",COALESCE(dmpKhsA,'') dmpKhsA,COALESCE(dmpDMSchulEmpf,'') dmpDMSchu
    roFa(akt).ausgst = rs!ausgst
    roFa(akt).KtrAbrB = doUmwfSQL(rs!KtrAbrB, lies.obMySQL, False)
    roFa(akt).AbrAr = doUmwfSQL(rs!AbrAr, lies.obMySQL, False)
-   roFa(akt).lVorl = rs!lVorl
+   roFa(akt).lvorl = rs!lvorl
    roFa(akt).IK = doUmwfSQL(rs!IK, lies.obMySQL, False)
    roFa(akt).KVKs = doUmwfSQL(rs!KVKs, lies.obMySQL, False)
    roFa(akt).KVKserg = doUmwfSQL(rs!KVKserg, lies.obMySQL, False)
@@ -2379,7 +2379,7 @@ Public Function faelleSpeichern(SammelInsert%, BezfSp%)
   csql.AppVar Array("(", rFa(i).Pat_id, ",'", rFa(i).Quartal, "','", rFa(i).Nachname, "','", rFa(i).Vorname, "',", rFa(i).lfdnr, ",'", rFa(i).TMFNr, "','", rFa(i).VKNr, "','", rFa(i).f4131, "','", _
    rFa(i).f4132, "',", DatFor_k(rFa(i).VschBeg), ",'", rFa(i).KKasse_2, "',", REPLACE$(rFa(i).FaktPers, ",", "."), ",", REPLACE$(rFa(i).FaktTechn, ",", "."), ",", REPLACE$(rFa(i).FaktLabor, ",", "."), ",", DatFor_k( _
    rFa(i).BhFB), ",", DatFor_k(rFa(i).BhFE1), ",", DatFor_k(rFa(i).BhFE2), ",'", rFa(i).f4202, "',", DatFor_k(rFa(i).ausgst), ",'", rFa(i).KtrAbrB, "','", rFa(i).AbrAr, "',", DatFor_k( _
-   rFa(i).lVorl), ",'", rFa(i).IK, "','", rFa(i).KVKs, "','", rFa(i).KVKserg, "','", rFa(i).Status, "','", rFa(i).Kasse, "',", rFa(i).KID, ",'", rFa(i).GebOr, "','", rFa(i).AbrGb, "','", _
+   rFa(i).lvorl), ",'", rFa(i).IK, "','", rFa(i).KVKs, "','", rFa(i).KVKserg, "','", rFa(i).Status, "','", rFa(i).Kasse, "',", rFa(i).KID, ",'", rFa(i).GebOr, "','", rFa(i).AbrGb, "','", _
    rFa(i).PersKreis, "','", rFa(i).SKtZusatz, "','", rFa(i).letzteRegel, "','", rFa(i).ÜwText, "',", rFa(i).f4210, ",", rFa(i).AkfHAH, ",", rFa(i).AkfAB0, ",", rFa(i).AkfAK, ",'", _
    rFa(i).statNuller, "','", rFa(i).ÜbwV, "','", rFa(i).ÜbWVLANR, "','", rFa(i).ÜbWVBSNR, "','", rFa(i).ÜbWVKVNR, "','", rFa(i).AndÜw, "','", rFa(i).Übwr, "','", rFa(i).ÜbwLANR, "','", _
    rFa(i).ÜWZiel, "','", rFa(i).ÜWNNr, "','", rFa(i).ÜWNaN, "','", rFa(i).ÜWTit, "','", rFa(i).ÜWVor, "','", rFa(i).ÜWVsw, "',", rFa(i).üwvid, ",'", rFa(i).Auftrag, "','", rFa(i).Verdacht, "','", _
@@ -6562,7 +6562,7 @@ Public Function roDmZuw(i&, j&)
  roDm(i).exportiert = rDm(j).exportiert
  roDm(i).DokuDatum = rDm(j).DokuDatum
  roDm(i).obvoll = rDm(j).obvoll
- roDm(i).Ok = rDm(j).Ok
+ roDm(i).OK = rDm(j).OK
  roDm(i).ausgedruckt = rDm(j).ausgedruckt
  roDm(i).Nachname = rDm(j).Nachname
  roDm(i).Vorname = rDm(j).Vorname
@@ -6581,7 +6581,7 @@ Public Function DmZUnt%(i&, j&)
  If roDm(i).exportiert <> rDm(j).exportiert Then GoSub unter
  If roDm(i).DokuDatum <> rDm(j).DokuDatum Then GoSub unter
  If roDm(i).obvoll <> rDm(j).obvoll Then GoSub unter
- If roDm(i).Ok <> rDm(j).Ok Then GoSub unter
+ If roDm(i).OK <> rDm(j).OK Then GoSub unter
  If roDm(i).ausgedruckt <> rDm(j).ausgedruckt Then GoSub unter
  If roDm(i).Nachname <> rDm(j).Nachname Then GoSub unter
  If roDm(i).Vorname <> rDm(j).Vorname Then GoSub unter
@@ -6619,7 +6619,7 @@ Public Function dmpreiheLaden()
    roDm(akt).exportiert = rs!exportiert
    roDm(akt).DokuDatum = rs!DokuDatum
    roDm(akt).obvoll = rs!obvoll
-   roDm(akt).Ok = rs!Ok
+   roDm(akt).OK = rs!OK
    roDm(akt).ausgedruckt = rs!ausgedruckt
    roDm(akt).Nachname = doUmwfSQL(rs!Nachname, lies.obMySQL, False)
    roDm(akt).Vorname = doUmwfSQL(rs!Vorname, lies.obMySQL, False)
@@ -6721,7 +6721,7 @@ Public Function dmpreiheSpeichern(SammelInsert%, BezfSp%)
    csql.Append csql0
   End If
   csql.AppVar Array("('", rDm(i).Abk, "','", rDm(i).art, "',", DatFor_k(rDm(i).KarteiDatum), ",", DatFor_k(rDm(i).exportiert), ",", DatFor_k(rDm(i).DokuDatum), ",", CStr(-(rDm(i).obvoll <> 0)), ",", CStr(-( _
-   rDm(i).Ok <> 0)), ",", CStr(-(rDm(i).ausgedruckt <> 0)), ",'", rDm(i).Nachname, "','", rDm(i).Vorname, "',", DatFor_k(rDm(i).GebDat), ",", rDm(i).Pat_id, ",", rDm(i).StByte, ",", DatFor_k(rDm(i).AktZeit), ",", _
+   rDm(i).OK <> 0)), ",", CStr(-(rDm(i).ausgedruckt <> 0)), ",'", rDm(i).Nachname, "','", rDm(i).Vorname, "',", DatFor_k(rDm(i).GebDat), ",", rDm(i).Pat_id, ",", rDm(i).StByte, ",", DatFor_k(rDm(i).AktZeit), ",", _
    rDm(i).lanrid, ",'", rDm(i).Zusatzdaten, "')")
   If SammelInsert <> 0 And i < UBound(rDm) Then csql.Append ","
   If SammelInsert = 0 Or i = UBound(rDm) Then

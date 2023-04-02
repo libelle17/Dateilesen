@@ -194,7 +194,7 @@ Dim dbknr As ConDtb
     ccol.Add "LINUX1"
 '  End If
   For Each Cpt In ccol
-   If LCase(Cpt) = "linux1" Then GoTo gefunden
+   If LCase$(Cpt) = "linux1" Then GoTo gefunden
   Next Cpt
   ccol.Add "LINUX1"
 gefunden:
@@ -452,7 +452,7 @@ gefunden:
     If IsNull(rEx.Fields(7)) Then Exit Do ' 8.1.08
     If rEx.Fields(0) <> vNS And Not IsNumeric(rEx.Fields(0)) Then
      f7 = REPLACE(REPLACE(REPLACE(REPLACE(rEx.Fields(7), "-", vNS), "/", vNS), " ", vNS), "+", "00")
-     If Left(f7, 1) <> "0" And f7 <> vNS Then
+     If Left$(f7, 1) <> "0" And f7 <> vNS Then
       If Len(f7) < 7 Then
        f7 = aktVorw & f7
       Else
@@ -460,7 +460,7 @@ gefunden:
       End If
      End If
      f8 = REPLACE(REPLACE(REPLACE(REPLACE(rEx.Fields(8), "-", vNS), "/", vNS), " ", vNS), "+", "00")
-     If Left(f8, 1) <> "0" And f8 <> vNS Then
+     If Left$(f8, 1) <> "0" And f8 <> vNS Then
       If Len(f8) < 7 Then
        f8 = aktVorw & f8
       Else
@@ -651,7 +651,7 @@ gefunden:
 For dbknr = LBound(QCn) To UBound(QCn)
  QCn(dbknr).Open
  HCn(dbknr).Open
- LVobMySQL = InStr(UCase(QCn(dbknr).ConnectionString), "MYSQL") > 0  '(Not (cDtb = accDtb))
+ LVobMySQL = InStr(UCase$(QCn(dbknr).ConnectionString), "MYSQL") > 0  '(Not (cDtb = accDtb))
  LVobMySQL = True ' 11.10.15
  Call Zinit(LVobMySQL)
  Set rV1 = Nothing
@@ -675,7 +675,7 @@ For dbknr = LBound(QCn) To UBound(QCn)
 '   Debug.Print "nicht gefunden: ", rV1!Name, rV1!vorname
    End If
    Do While Not rV2.EOF
-    If REPLACE$(REPLACE$(LCase(rV2!anschrift), " ", vNS), "str.", "straﬂe") <> REPLACE$(REPLACE$(LCase(rV1!strasse & "," & rV1!plz & rV1!ort), " ", vNS), "str.", "straﬂe") Then
+    If REPLACE$(REPLACE$(LCase$(rV2!anschrift), " ", vNS), "str.", "straﬂe") <> REPLACE$(REPLACE$(LCase$(rV1!strasse & "," & rV1!plz & rV1!ort), " ", vNS), "str.", "straﬂe") Then
 '    Debug.Print rv2!nachname, rv2!vorname, rv2!anschrift, "<>", rV1!strasse & ", " & rV1!plz & " " & rV1!ort
     End If
    
@@ -685,7 +685,7 @@ For dbknr = LBound(QCn) To UBound(QCn)
      obT = True
     ElseIf Not IsNull(rV2!telefon) Then
      v1 = REPLACE(REPLACE(REPLACE(rV1!telefon, " ", vNS), "/", vNS), "-", vNS)
-     If Left(v1, 1) <> "0" Then
+     If Left$(v1, 1) <> "0" Then
       If Len(v1) < 7 Then
        v1 = aktVorw & v1
       Else
@@ -704,7 +704,7 @@ For dbknr = LBound(QCn) To UBound(QCn)
      obT = True
     ElseIf Not IsNull(rV2!telefax) Then
      v1 = REPLACE(REPLACE(REPLACE(rV1!fax, " ", vNS), "/", vNS), "-", vNS)
-     If Left(v1, 1) <> "0" Then
+     If Left$(v1, 1) <> "0" Then
       If Len(v1) < 7 Then
        v1 = aktVorw & v1
       Else
@@ -800,7 +800,7 @@ End Function ' hausaerztekomprimier()
 '   End If
 '  End If
 '  Set oNameSpace = GetObject("WinNT:")
-'  For Each oDomain IN oNameSpace
+'  For Each oDomain in oNameSpace
 '    Call ShowAllComputers(oDomain.Name, ccol)
 '  Next
 '  Set altCCol = ccol
@@ -821,7 +821,7 @@ End Function ' hausaerztekomprimier()
 '  PrimDomainContr.Filter = Array("Computer")
 '  ON Error Resume Next
 '
-'  For Each oComputer IN PrimDomainContr
+'  For Each oComputer in PrimDomainContr
 '    ccol.Add oComputer.Name ' HostByName(oComputer.Name)
 ''    Debug.Print oComputer.Name
 '  Next
@@ -877,7 +877,7 @@ nochmal:
          rF0 = Trim$(Left$(rF0, pos - 1))
          posv = InStr(rF1, "/")
          If posv <> 0 Then
-          rF1 = Left(rF1, posv - 1)
+          rF1 = Left$(rF1, posv - 1)
          End If
          GoTo nochmal:
         End If ' pos <> 0 Then

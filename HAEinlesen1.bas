@@ -179,12 +179,12 @@ Public Function ZiehDat(Datei$) As Date
       p1 = Len(Datei)
       pz = 0
       Do
-       bst = Mid(Datei, p1, 1)
+       bst = Mid$(Datei, p1, 1)
        If bst = "-" Then pz = pz + 1
        If pz = 2 Or p1 = 1 Then Exit Do
        p1 = p1 - 1
       Loop
-      zds = Mid(Datei, p1 + 7, 2) & "." & Mid(Datei, p1 + 5, 2) & "." & Mid(Datei, p1 + 1, 4) & " " & Mid(Datei, p1 + 10, 2) & ":" & Mid(Datei, p1 + 12, 2) & ":" & Mid(Datei, p1 + 14, 2)
+      zds = Mid$(Datei, p1 + 7, 2) & "." & Mid$(Datei, p1 + 5, 2) & "." & Mid$(Datei, p1 + 1, 4) & " " & Mid$(Datei, p1 + 10, 2) & ":" & Mid$(Datei, p1 + 12, 2) & ":" & Mid$(Datei, p1 + 14, 2)
       If IsDate(zds) Then
        ZiehDat = CDate(zds)
       Else
@@ -284,7 +284,7 @@ Sub dodoHausärzteEinlesen(Filename$, obRückfrage%, Optional db$)
 
 #Const hadbneu = 0
 #If hadbneu Then
-' IF LenB(DB) <> 0 THEN ' ist auch schon IN verbinde
+' IF LenB(DB) <> 0 THEN ' ist auch schon in verbinde
   Call doMach_haerzte(db, DBCn, DBVerb.Cpt)
 ' END IF
 #End If
@@ -313,7 +313,7 @@ Sub dodoHausärzteEinlesen(Filename$, obRückfrage%, Optional db$)
 ' die ersten 30 Seiten einlesen
   If j > maxP Then Exit Do
  Loop
-' IN jeder Zeile von splitt steht eine Zeile aus der PDF-Datei
+' in jeder Zeile von splitt steht eine Zeile aus der PDF-Datei
  SplitNeu Str.Value, vbCrLf, splitt, "(", ")"
  
  Verbinde db
@@ -376,7 +376,7 @@ Sub dodoHausärzteEinlesen(Filename$, obRückfrage%, Optional db$)
 ' Kommt doch noch später einer, so handelt es sich um einen neuen Arzt ohne Niederlassungsart -> Gerald Beier
     Else ' IF LANRZeile <> 0 THEN
      If aktName = "Dr.med. Christiane Beier" Then
-      If IsNumeric(Left(splitt(aktab), 1)) Then ' weil "like" so lang brauchen soll
+      If IsNumeric(Left$(splitt(aktab), 1)) Then ' weil "like" so lang brauchen soll
        If splitt(aktab) Like "##### *" And Not splitt(aktab) Like "* * * *" And Not InStrB(splitt(aktab), ",") <> 0 And Not InStrB(splitt(aktab), ".") <> 0 And Not InStrB(splitt(aktab), " EBM") <> 0 And Not InStrB(splitt(aktab), " und ") <> 0 And Not InStrB(splitt(aktab), "Komplex") <> 0 Then ' PLZ mit Ort
 '        MsgBox "vermutlich Fehlerhafte Verarbeitung der Zeile " & aktab & ": " & vbCrLf & splitt(aktab)
         GoSub bisfestleg
@@ -699,8 +699,8 @@ Sub proTeilnehmer(ByRef splitt$(), ByRef Absch() As AbschTyp, aktab&, ByRef HACn
           pos = InStr(Arzt.Vorname, "Beier Perlasberger")
           If pos = 0 Then pos = InStr(Arzt.Vorname, "Theisen")
           If pos <> 0 Then
-           Arzt.Nachname = Mid(Arzt.Vorname, pos) & " " & Arzt.Nachname
-           Arzt.Vorname = Trim(Left$(Arzt.Vorname, pos - 1))
+           Arzt.Nachname = Mid$(Arzt.Vorname, pos) & " " & Arzt.Nachname
+           Arzt.Vorname = Trim$(Left$(Arzt.Vorname, pos - 1))
           End If
           Arzt.titel_id = indIns(HACn, HACnS, "titel", "titel", s2(0), "idtitel")
          End If ' rs.bof
@@ -761,7 +761,7 @@ Sub proTeilnehmer(ByRef splitt$(), ByRef Absch() As AbschTyp, aktab&, ByRef HACn
          End If
         End If
         If BS.name <> vNS Then BS.name = BS.name & " " & splitt(jj) Else BS.name = splitt(jj)
-        If l1.Value Like "* #*" Or l1.Value Like "#*" Or IsNumeric(l1.Value) Or Len(l1.Value) < 3 Or Left(l1.Value, 4) = "str." Or l1.Value Like "*str.*" Or InStrB(l1.Value, ",") <> 0 Then
+        If l1.Value Like "* #*" Or l1.Value Like "#*" Or IsNumeric(l1.Value) Or Len(l1.Value) < 3 Or Left$(l1.Value, 4) = "str." Or l1.Value Like "*str.*" Or InStrB(l1.Value, ",") <> 0 Then
         Else
          Select Case ergstr(jjj)
 '         Case "Berufsausübungsgem. / MVZ-München, 80799", "Einsteinstr. 130", "München, Heßstr. 22", "Ofenthaler Weg 20"
@@ -790,19 +790,19 @@ stimmt:
      BS.Straße = Trim$(Left$(splitt(OrtZeile - 1), jj - 1))
      pos = InStr(BS.Straße, "Perlasberger")
      If pos <> 0 Then
-      BS.Straße = Mid(BS.Straße, pos)
+      BS.Straße = Mid$(BS.Straße, pos)
      End If
      SplitNeu splitt(OrtZeile), " ", s2
      If Not IsNumeric(s2(0)) Then ' Leerzeichen vergessen
       ReDim s2(1)
       For jjj = 1 To Len(splitt(OrtZeile))
-       If IsNumeric(Mid(splitt(OrtZeile), jjj, 1)) Then
-        s2(0) = s2(0) & Mid(splitt(OrtZeile), jjj, 1)
+       If IsNumeric(Mid$(splitt(OrtZeile), jjj, 1)) Then
+        s2(0) = s2(0) & Mid$(splitt(OrtZeile), jjj, 1)
        Else
         Exit For
        End If
       Next jjj
-      s2(1) = Mid(splitt(OrtZeile), Len(s2(0)) + 1)
+      s2(1) = Mid$(splitt(OrtZeile), Len(s2(0)) + 1)
      End If
      BS.plz = s2(0)
      If UBound(s2) > 0 Then
@@ -854,7 +854,7 @@ stimmt:
       MsgBox "Keine Sprechzeiten bei Arzt " & Arzt.Nachname & ", " & Arzt.Vorname
       szz = Absch(aktab).Bis
      End If
-     If splitt(j) = "Angestellt IN MVZ und überörtliche" Then
+     If splitt(j) = "Angestellt in MVZ und überörtliche" Then
       splitt(j + 1) = splitt(j) & " " & splitt(j + 1)
       splitt(j) = vNS
       j = j + 1
@@ -862,7 +862,7 @@ stimmt:
      mailz = -1
      ReDim mail(0)
      For jj = j To szz - 2
-      If Left$(splitt(jj), 8) = "E-Mail.:" Then ' IN einer Zeile stand: "E-Mail.:", dann nä Zeile
+      If Left$(splitt(jj), 8) = "E-Mail.:" Then ' in einer Zeile stand: "E-Mail.:", dann nä Zeile
        mailz = mailz + 1
        If mailz > UBound(mail) Then ReDim Preserve mail(mailz)
        mail(mailz).Append Mid$(splitt(jj), 10)
@@ -872,8 +872,8 @@ stimmt:
      Next jj
      Dim BSArt$
      BSArt = splitt(szz - 1)
-'     IF BSArt = "Angestellt IN MVZ" THEN Stop
-     If Left$(BSArt, 14) = "Angestellt IN " Then BS.obAng = 1: BSArt = Mid(BSArt, 15)
+'     IF BSArt = "Angestellt in MVZ" THEN Stop
+     If Left$(BSArt, 14) = "Angestellt in " Then BS.obAng = 1: BSArt = Mid$(BSArt, 15)
      BS.bsart_id = indIns(HACn, HACnS, "bsart", "BSArt", BSArt, "idbsart")
      j = szz
      For jj = j + 1 To Absch(aktab).Bis
@@ -915,7 +915,7 @@ stimmt:
 '      IF BS.obNBS = 1 THEN BS.NBSNR = s2(1): BS.BSNR = 0 ELSE BS.NBSNR = 0: BS.BSNR = s2(1)
        If UBound(s2) = 1 Then
         BS.BSNR = s2(1)
-       Else ' Schricke hat 2 Lanr, diese erscheinen wie auch die BSNR IN einer Extra-Zeile; 2. LANR ignorieren wir
+       Else ' Schricke hat 2 Lanr, diese erscheinen wie auch die BSNR in einer Extra-Zeile; 2. LANR ignorieren wir
         p2 = 1
         Do
          If Not IsNumeric(splitt(LANRZeile + p2)) Then Exit Do
@@ -1118,7 +1118,7 @@ stimmt:
   If rs.BOF Then
    Set rs = Nothing
    InsKorr HACn, HACnS, "INSERT INTO `bs`(`name`,`straße`,`hausnr`,`plz`,`ort_id`,`bsnr`,`bsart_id`,`sprechzeiten_id`,`rollst`,`aktzeit`,`seit`) VALUES('" & doUmwfSQL(BS.name, LVobMySQL) & "','" & doUmwfSQL(BS.Straße.Value, LVobMySQL) & "','" & BS.Hausnr & "','" & BS.plz & "'," & BS.Ort_id & ",'" & BS.BSNR & "'," & BS.bsart_id & "," & BS.sprechzeiten_id & "," & BS.Rollst & "," & DatFor_k(KVDate) & "," & DatFor_k(KVDate) & ")", rAF
-   If rAF = 0 Then MsgBox "Einrichtung: " & BS.name & ", " & BS.Straße & ", " & BS.Ort_id & " konnte nicht IN bs eingefügt werden!"
+   If rAF = 0 Then MsgBox "Einrichtung: " & BS.name & ", " & BS.Straße & ", " & BS.Ort_id & " konnte nicht in bs eingefügt werden!"
    Set rs = myEFrag("SELECT last_insert_id()", , HACn)
   Else
    myEFrag "UPDATE `bs` SET `name` = '" & doUmwfSQL(BS.name, LVobMySQL) & "',`straße` = '" & doUmwfSQL(BS.Straße.Value, LVobMySQL) & "',`hausnr` = '" & BS.Hausnr & "',`plz` = '" & BS.plz & "',`ort_id` = " & BS.Ort_id & ",`bsart_id` = " & BS.bsart_id & ",`sprechzeiten_id` = " & BS.sprechzeiten_id & ",`rollst` = " & BS.Rollst & ",`aktzeit` = " & DatFor_k(KVDate) & " WHERE `bsnr` = '" & BS.BSNR & "'", rAF, HACn

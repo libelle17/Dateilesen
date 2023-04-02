@@ -207,7 +207,7 @@ Private Sub Austauschen_Click()
 End Sub ' Austauschen_Click
 
 Private Sub C1_Click(Index As Integer)
- Me.Tabelle = LCase(REPLACE$(Me.C1(Index).Caption, "&", ""))
+ Me.Tabelle = LCase$(REPLACE$(Me.C1(Index).Caption, "&", ""))
 End Sub ' C1_Click
 
 Private Sub CsQ_Click()
@@ -314,12 +314,12 @@ Private Sub Start_Click()
  CurCat = rZCn.Properties("Current Catalog")
  If LenB(CurCat) = 0 Then CurCat = DefDB(rZCn) ' rZCn.Properties("Data Source Name")
  If Me.ReplaceStattInsert = 0 Then
-  FrageS = "Wollen Sie wirklich alle " & Me.ZZ & " Datensätze aus " & vbCrLf & "" & Me.Tabelle & "" & " IN " & vbCrLf & rZCn.Properties("dbms name") & " /" & vbCrLf & CurCat & vbCrLf & " löschen?"
+  FrageS = "Wollen Sie wirklich alle " & Me.ZZ & " Datensätze aus " & vbCrLf & "" & Me.Tabelle & "" & " in " & vbCrLf & rZCn.Properties("dbms name") & " /" & vbCrLf & CurCat & vbCrLf & " löschen?"
   erg = MsgBox(FrageS, vbOKCancel)
  Else
   erg = 1
  End If
- LVobMySQL = (LCase(cnz) Like "*mysql*") ' rZCn.ConnectionString' auch für DatFor_k(, umw(
+ LVobMySQL = (LCase$(cnz) Like "*mysql*") ' rZCn.ConnectionString' auch für DatFor_k(, umw(
  If erg = 1 Then
   If LVobMySQL Then
    myEFrag "SET foreign_key_checks = 0", , rZCn ' Kommentar 12.12.09
@@ -327,16 +327,16 @@ Private Sub Start_Click()
   rZCn.BeginTrans
   If rZCn.DefaultDatabase = DBCn.DefaultDatabase Then obTrans = 1
   If Me.ReplaceStattInsert = 0 Then
-   myEFrag "DELETE FROM `" & LCase(Me.Tabelle) & "`", , rZCn
-   myEFrag "ALTER TABLE `" & LCase(Me.Tabelle) & "` auto_increment=1", , rZCn
+   myEFrag "DELETE FROM `" & LCase$(Me.Tabelle) & "`", , rZCn
+   myEFrag "ALTER TABLE `" & LCase$(Me.Tabelle) & "` auto_increment=1", , rZCn
   End If
   Me.ZZ = 0
   Dim Felder$()
-  myFrag rsq, "SELECT * FROM `" & LCase(Me.Tabelle) & "`", adOpenStatic, rQCn, adLockReadOnly
-'  rsq.Open "SELECT * FROM `" & LCase(Me.Tabelle) & "`", rQCn, adOpenStatic, adLockReadOnly
-  AuiFd = GetAutoFeld(rZCn, cnz, LCase(Me.Tabelle), rsq, FListe, Felder)
+  myFrag rsq, "SELECT * FROM `" & LCase$(Me.Tabelle) & "`", adOpenStatic, rQCn, adLockReadOnly
+'  rsq.Open "SELECT * FROM `" & LCase$(Me.Tabelle) & "`", rQCn, adOpenStatic, adLockReadOnly
+  AuiFd = GetAutoFeld(rZCn, cnz, LCase$(Me.Tabelle), rsq, FListe, Felder)
   Do While Not rsq.EOF
-   Call TIns(rZCn, LCase(Me.Tabelle), rsq, AuiFd, FListe, Felder, Me.ReplaceStattInsert)
+   Call TIns(rZCn, LCase$(Me.Tabelle), rsq, AuiFd, FListe, Felder, Me.ReplaceStattInsert)
    If Me.ZZ = "" Then Me.ZZ = 0
    Me.ZZ = Me.ZZ + 1
    DoEvents
@@ -388,15 +388,15 @@ Private Function TZahl%(Optional nurZiel%)
 ' ON Error Resume Next
  If Me.Tabelle <> "" Then
   If CnQ <> "" And nurZiel = 0 Then
-   myFrag rs, "SELECT * FROM information_schema.TABLEs t WHERE table_schema = '" & CurDB(CnQ) & "' AND table_name = '" & LCase(Tabelle) & "'", adOpenStatic, CnQ, adLockReadOnly
+   myFrag rs, "SELECT * FROM information_schema.TABLEs t WHERE table_schema = '" & CurDB(CnQ) & "' AND table_name = '" & LCase$(Tabelle) & "'", adOpenStatic, CnQ, adLockReadOnly
    If rs.BOF Then Exit Function
 '   Set rs = Nothing
-   myFrag rs, "SELECT COUNT(0) ct FROM `" & LCase(Tabelle) & "`", adOpenStatic, CnQ, adLockReadOnly
+   myFrag rs, "SELECT COUNT(0) ct FROM `" & LCase$(Tabelle) & "`", adOpenStatic, CnQ, adLockReadOnly
    ZQ = rs!ct
-   LVobMySQL = (InStrB(LCase(CnQ), "mysql") > 0)
+   LVobMySQL = (InStrB(LCase$(CnQ), "mysql") > 0)
    Set rs = Nothing
-'   rs.Open "SELECT " & IIf(LVobMySQL, vNS, "top 20") & " * FROM `" & LCase(Me.Tabelle) & "` " & IIf(LVobMySQL, " LIMIT 20", ""), CnQ, adOpenDynamic, adLockReadOnly
-   myFrag rs, "SELECT " & IIf(LVobMySQL, vNS, "top 20") & " * FROM `" & LCase(Me.Tabelle) & "` " & IIf(LVobMySQL, " LIMIT 20", ""), adOpenDynamic, CnQ
+'   rs.Open "SELECT " & IIf(LVobMySQL, vNS, "top 20") & " * FROM `" & LCase$(Me.Tabelle) & "` " & IIf(LVobMySQL, " LIMIT 20", ""), CnQ, adOpenDynamic, adLockReadOnly
+   myFrag rs, "SELECT " & IIf(LVobMySQL, vNS, "top 20") & " * FROM `" & LCase$(Me.Tabelle) & "` " & IIf(LVobMySQL, " LIMIT 20", ""), adOpenDynamic, CnQ
    With Me.MSHFlexGrid1
    .Clear
    .Cols = rs.Fields.COUNT
@@ -417,7 +417,7 @@ Private Function TZahl%(Optional nurZiel%)
   If cnz <> "" Then
    Set rs = Nothing
    On Error Resume Next
-   myFrag rs, "SELECT COUNT(0) ct FROM `" & LCase(Me.Tabelle) & "`", adOpenStatic, cnz, adLockReadOnly
+   myFrag rs, "SELECT COUNT(0) ct FROM `" & LCase$(Me.Tabelle) & "`", adOpenStatic, cnz, adLockReadOnly
    On Error GoTo fehler
    If rs.State = 0 Then
     MsgBox "Tabelle `" & Me.Tabelle & "` existiert nicht unter '" & cnz
@@ -427,10 +427,10 @@ Private Function TZahl%(Optional nurZiel%)
     Exit Function
    End If
    ZZ = rs!ct
-   LVobMySQL = (InStrB(LCase(cnz), "mysql") > 0)
+   LVobMySQL = (InStrB(LCase$(cnz), "mysql") > 0)
    Set rs = Nothing
-'   rs.Open "SELECT " & IIf(LVobMySQL, vNS, "top 20") & " * FROM `" & LCase(Me.Tabelle) & "` " & IIf(LVobMySQL, " LIMIT 20", ""), cnz, adOpenDynamic, adLockReadOnly
-   myFrag rs, "SELECT " & IIf(LVobMySQL, vNS, "top 20") & " * FROM `" & LCase(Me.Tabelle) & "` " & IIf(LVobMySQL, " LIMIT 20", ""), adOpenDynamic, cnz
+'   rs.Open "SELECT " & IIf(LVobMySQL, vNS, "top 20") & " * FROM `" & LCase$(Me.Tabelle) & "` " & IIf(LVobMySQL, " LIMIT 20", ""), cnz, adOpenDynamic, adLockReadOnly
+   myFrag rs, "SELECT " & IIf(LVobMySQL, vNS, "top 20") & " * FROM `" & LCase$(Me.Tabelle) & "` " & IIf(LVobMySQL, " LIMIT 20", ""), adOpenDynamic, cnz
    With Me.MSHFlexGrid2
    .Clear
    .Cols = rs.Fields.COUNT
@@ -499,7 +499,7 @@ Public Function GetAutoFeld$(ZCn As ADODB.Connection, ZCnS$, TabN$, rsq, FListe$
     End If
     Felder(i) = rs.Fields(i).name
    Next i
-   FListe = Left(FListe, Len(FListe) - 1) & ")"
+   FListe = Left$(FListe, Len(FListe) - 1) & ")"
    Exit Function
    
    On Error Resume Next
@@ -619,7 +619,7 @@ Public Function TIns&(ZCn As ADODB.Connection, TabN$, rq, AuiFd$, FListe$, ByRef
          Case adDate, adFileTime, adDBDate, adDBTime, adDBTimeStamp
 '         Case 7, 64, 133, 134, 135
            Wert = DatFor_k(rq.Fields(Felder(i)).Value)
-           If Wert = "##" Or Wert = "''" Then Err.Raise 999, , "Fehler in TIns mit Wert = ""##"" OR wert = ""''"" IN Datumsfeld"
+           If Wert = "##" Or Wert = "''" Then Err.Raise 999, , "Fehler in TIns mit Wert = ""##"" OR wert = ""''"" in Datumsfeld"
          Case adBSTR, adChar, adWChar, adVarChar, adLongVarChar, adVarWChar, adLongVarWChar, adEmpty, _
               adIDispatch, adVariant, adIUnknown, adGUID, adBinary, adUserDefined, adPropVariant, _
               adVarBinary, adLongVarBinary, adError, adArray
@@ -641,7 +641,7 @@ Public Function TIns&(ZCn As ADODB.Connection, TabN$, rq, AuiFd$, FListe$, ByRef
     End If
     Wert = vNS
    Next i
-   sql2 = Left(sql2, Len(sql2) - 1) & ")"
+   sql2 = Left$(sql2, Len(sql2) - 1) & ")"
 '   sql1 = LEFT(sql1, Len(sql1) - 1) & ") " & sql2
    Dim rAF&
 '   zcn.CursorLocation = adUseClient
@@ -667,7 +667,7 @@ Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "Last
 End Select
 End Function ' TIns(rq AS Recordset)
 
-'Function umw$(q$) ' jetzt IN quelledb
+'Function umw$(q$) ' jetzt in quelledb
 ' IF LVobMySQL THEN
 '  umw = replace$(replace$(replace$(Trim$(q), "\", "\\"), "'", "\'"), Chr$(0), "")
 ' Else

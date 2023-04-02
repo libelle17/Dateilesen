@@ -18,3 +18,10 @@ Attribute VB_Exposed = False
 Public WithEvents dbv As DBVerb
 Attribute dbv.VB_VarHelpID = -1
 
+Private Sub Form_KeyDown(KeyCode As Integer, Shift As Integer)
+ Stop
+End Sub
+
+Private Sub Form_KeyPress(KeyAscii As Integer)
+ Stop
+End Sub

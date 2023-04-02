@@ -51,7 +51,7 @@ Private Const SEE_MASK_CLASSNAME = &H1 ' Struktur wird mit dem Klassennamen oder
 Private Const SEE_MASK_CONNECTNETDRV = &H80 ' Struktur verbindet den PC mit einem
 ' Netzlaufwerk falls nötig, lpFile muss der UNC-Pfadname im Netzwerk sein
 Private Const SEE_MASK_DOENVSUBST = &H200 ' Struktur wird mit Umgebungsvariablen des
-' Programms gefüllt, diese werden IN lpDirectory oder lpFile gepackt
+' Programms gefüllt, diese werden in lpDirectory oder lpFile gepackt
 Private Const SEE_MASK_FLAG_DDEWAIT = &H100 ' die Funktion wartet, dass die DDE ihre
 ' Vorgänge abgeschlossen hat und kehrt dann erst zurück
 Private Const SEE_MASK_FLAG_NO_UI = &H400 ' die Funktion zeigt keine Fehler-Dialogboxen an
@@ -59,9 +59,9 @@ Private Const SEE_MASK_HOTKEY = &H20 ' dwHotkey wird gefüllt
 Private Const SEE_MASK_ICON = &H10 ' hIcon wird mit dem Icon Handle des
 ' Standardicons der Anwendung gefüllt
 Private Const SEE_MASK_IDLIST = &H4 ' benutzt die lpIDLIST-Option, um das Programm zu
-' starten, das IN ihr beschrieben ist
+' starten, das in ihr beschrieben ist
 Private Const SEE_MASK_INVOKEIDLIST = &HC ' benutzt die lpIDLIST-Option, um das
-' Programm zu starten, das IN ihr beschrieben ist
+' Programm zu starten, das in ihr beschrieben ist
 Private Const SEE_MASK_NOCLOSEPROCESS = &H40 ' füllt die Struktur-Option hProcess
 ' mit dem Process-Handle der gestarteten Anwendung
  
@@ -104,12 +104,12 @@ Private Const HOTKEYF_SHIFT = &H1 ' benutzt Shift für den Hotkey
 Private Const INFINITE = &HFFFF ' unendlich warten
  
 ' WaitForSingleObject Rückgabe-Konstanten
-Private Const WAIT_ABANDONED = &H80 ' der Mutex der IN hHanlde angegeben ist wird
+Private Const WAIT_ABANDONED = &H80 ' der Mutex der in hHanlde angegeben ist wird
 ' nicht freigegeben, so lange der Eltern-Thread zerstört ist. Der Mutex ist nun
 ' Bestandteil des aufrufenden Threads und ist nicht mehr im signalisierenden Status
 Private Const WAIT_FAILED = &HFFFFFFFF ' die Funktion ist gescheitert
-Private Const WAIT_OBJECT_0 = &H0 ' das Objekt, das IN hHandle spezifiziert ist,
-' ist IN einem signalisierendem Status
+Private Const WAIT_OBJECT_0 = &H0 ' das Objekt, das in hHandle spezifiziert ist,
+' ist in einem signalisierendem Status
 Private Const WAIT_TIMEOUT = &H102 ' das Zeitlimit für eine Änderung des
 ' Thread-Status ist abgelaufen
 Public Const phpVS$ = "\\linux1\php\"
@@ -550,7 +550,7 @@ Public Function UTF16NachUTF8B(Text As String) As String
   UTF16NachUTF8B = MidB(Ausgabestr, 1, AktLaenge)
 End Function ' UTF16NachUTF8B
   
-    ' Speichern des Strings als UTF-8 IN Textdatei
+    ' Speichern des Strings als UTF-8 in Textdatei
  Public Sub sUTF8(DerText$, DateiName$)
     Dim strBytes() As Byte
     Dim DatNr&
@@ -643,7 +643,7 @@ Public Function mplan(pid&)
     mdpl(ru).m.Grund = rTh!Grund
     mdpl(ru).m.MedAnfang = rTh!MedAnfang
     mdpl(ru).m.Medikament = rTh!Medikament
-    If InStrB(UCase(mdpl(ru).m.Medikament), "HCT") <> 0 Or (InStrB(UCase(mdpl(ru).m.Medikament), "COMP") <> 0 And InStrB(UCase(mdpl(ru).m.Medikament), "COMPLEX") = 0 And InStrB(UCase(mdpl(ru).m.Medikament), "COMPACT") = 0 And InStrB(UCase(mdpl(ru).m.Medikament), "DORZOCOMP") = 0 And InStrB(UCase(mdpl(ru).m.Medikament), "DORZOLAMID") = 0 And InStrB(UCase(mdpl(ru).m.Medikament), "TILIDIN") = 0 And InStrB(UCase(mdpl(ru).m.Medikament), "PARACETAMOL") = 0) Then
+    If InStrB(UCase$(mdpl(ru).m.Medikament), "HCT") <> 0 Or (InStrB(UCase$(mdpl(ru).m.Medikament), "COMP") <> 0 And InStrB(UCase$(mdpl(ru).m.Medikament), "COMPLEX") = 0 And InStrB(UCase$(mdpl(ru).m.Medikament), "COMPACT") = 0 And InStrB(UCase$(mdpl(ru).m.Medikament), "DORZOCOMP") = 0 And InStrB(UCase$(mdpl(ru).m.Medikament), "DORZOLAMID") = 0 And InStrB(UCase$(mdpl(ru).m.Medikament), "TILIDIN") = 0 And InStrB(UCase$(mdpl(ru).m.Medikament), "PARACETAMOL") = 0) Then
      obHCT = True
      hctMed = mdpl(ru).m.Medikament
     End If
@@ -685,8 +685,8 @@ End Function ' mplan
 ' Medikamentenangabe zu Zahl
 Function medzz!(ByVal ST$)
  Dim b$, z$, nachziffer%, pos%
- If Left(ST, 1) = "(" Then ST = Mid(ST, 2)
- If Right(ST, 1) = ")" Then ST = Left(ST, Len(ST) - 1)
+ If Left$(ST, 1) = "(" Then ST = Mid$(ST, 2)
+ If Right$(ST, 1) = ")" Then ST = Left$(ST, Len(ST) - 1)
  If ST = "1/2" Then
   medzz = 0.5
  ElseIf IsNumeric(ST) Then
@@ -701,7 +701,7 @@ Function medzz!(ByVal ST$)
   nachziffer = 0
   For pos = 1 To Len(ST)
    If InStrB("0123456789" + IIf(nachziffer, " ,.", ""), Mid$(ST, pos, 1)) = 0 And Mid$(ST, pos, 1) <> vNS Then
-    ST = Left(ST, pos - 1) & " " & Mid$(ST, pos + 1)
+    ST = Left$(ST, pos - 1) & " " & Mid$(ST, pos + 1)
    Else
     nachziffer = True
    End If
@@ -984,36 +984,36 @@ Function dodoPLZ(Pat_id$, plzVerz$, Optional Datum As Date, Optional Uhrzeit$, O
 #End If
 On Error GoTo fehler
 ' alte Dateien des gleichen Patienten löschen
-If obphp Then
- Dim Fil As File
- Dim loestr$(3), aktzls
- loestr(0) = phpV
- loestr(1) = phpVvorb
- loestr(2) = phpVfertig
- loestr(3) = phpVbehand
- For Each aktzls In loestr()
-  For Each Fil In FSO.GetFolder(aktzls).Files
+ If obphp Then
+  Dim Fil As File
+  Dim loestr$(3), aktzls
+  loestr(0) = phpV
+  loestr(1) = phpVvorb
+  loestr(2) = phpVfertig
+  loestr(3) = phpVbehand
+  For Each aktzls In loestr()
+   For Each Fil In FSO.GetFolder(aktzls).Files
+    If InStrB(Fil, ",Pid_" & Pat_id & ",") <> 0 Or InStrB(Fil, ",Pid " & Pat_id & ", Patientenlaufzettel") <> 0 Then
+     On Error Resume Next
+     FSO.DeleteFile (Fil)
+     On Error GoTo fehler
+    End If
+   Next Fil
+  Next aktzls
+ Else ' obphp
+  Dim erg$
+  For Each Fil In FSO.GetFolder(plzVerz).Files
    If InStrB(Fil, ",Pid_" & Pat_id & ",") <> 0 Or InStrB(Fil, ",Pid " & Pat_id & ", Patientenlaufzettel") <> 0 Then
     On Error Resume Next
-    FSO.DeleteFile (Fil)
+    Kill Fil
     On Error GoTo fehler
    End If
   Next Fil
- Next aktzls
-Else
- Dim erg$
- For Each Fil In FSO.GetFolder(plzVerz).Files
-  If InStrB(Fil, ",Pid_" & Pat_id & ",") <> 0 Or InStrB(Fil, ",Pid " & Pat_id & ", Patientenlaufzettel") <> 0 Then
-   On Error Resume Next
-   Kill Fil
-   On Error GoTo fehler
-  End If
- Next Fil
-End If
+ End If ' obphp else
 ' bis hier 0,4s
  m = 1: TI(m) = Timer: For p = 0 To m - 1: TI(m) = TI(m) - TI(p): Next
 
- Dim rnam As New ADODB.Recordset, rAn As New ADODB.Recordset, rFl As New ADODB.Recordset, rFlb As New ADODB.Recordset
+ Dim rnam As New ADODB.Recordset, rAn As New ADODB.Recordset, rFl As ADODB.Recordset, rFlb As New ADODB.Recordset
  Dim rsDia As New ADODB.Recordset, rsMB As New ADODB.Recordset, rTha As New ADODB.Recordset
  Dim rHAV As New ADODB.Recordset
  Dim i&, Größe!, Gewicht!, Wert$, WertNum!, j&, k&, ianf&, iend&, FlbZ&, aktlwx&  ', lSQL$ ' bmi!, bmiS$,
@@ -1088,28 +1088,36 @@ End If
  Dim UKtip$ ' String für Tip-Tool zu UKPDS-Risk
  Dim therart$ ' letzte Therapieart
  Dim dmtyp$
- Dim obdm%, obweibl%, obdement%
- Dim obart%, obherzi%, obneph%, icdh$ ' Arteriosklerose, Herzinsuffizienz, Nephropathie, ICD-Hauptteil
+ Dim obdm%, obweibl%, obdement%, GebDat As Date
+ Dim obart%, obherzi%, obneph%, obreti% ' Arteriosklerose, Herzinsuffizienz, Nephropathie, Retinopathie
  Dim ru% ' Runde
- Dim dmseit$
+ Dim dmseit$, icdh$ ' ICD-Hauptteil
+ Dim NName$, VName$, Vorgestellt As Date
  
  On Error GoTo fehler
  If LenB(DBCn) = 0 Or LenB(DBCnS) = 0 Then Call acon(quelleT) ' DBCn.ConnectionString
- myFrag rnam, "SELECT * FROM `namen` n WHERE pat_id = " & Pat_id
+ myFrag rAn, "SELECT COALESCE(`diabetes seit`,'') dmseit,vorgestellt,Diabetestyp FROM `anamnesebogen` WHERE pat_id = " & Pat_id
+ If rAn.State <> 0 Then
+  If Not rAn.BOF Then
+   dmseit = rAn!dmseit
+   Vorgestellt = rAn!Vorgestellt
+  End If
+ End If
+ myFrag rnam, "SELECT * FROM `namen` n WHERE pat_id = " & Pat_id, adOpenStatic, DBCn, adLockReadOnly
  If rnam.BOF Then
 '  MsgBox ("Keinen Patienten zu " & Pat_id & " gefunden!")
   Lese.Ausgeb "Keinen Patienten zu " & Pat_id & " gefunden!", True
   Exit Function
  End If
- myFrag rAn, "SELECT COALESCE(`diabetes seit`,'') dmseit,vorgestellt,Diabetestyp FROM `anamnesebogen` WHERE pat_id = " & Pat_id
- If Not rAn.BOF Then
-  dmseit = rAn!dmseit
- End If
+ NName = rnam!Nachname
+ VName = rnam!Vorname
  obweibl = (rnam!geschlecht = "w")
+ GebDat = rnam!GebDat
  Palter = AlterBei(Now(), rnam!GebDat)
  Dim DiagTab() As CString
  m = 2: TI(m) = Timer: For p = 0 To m - 1: TI(m) = TI(m) - TI(p): Next p
  Call DiagString(Pat_id, DiagTab, , , dmseit) ' 0,35s
+ Call UKPDS(aRisk, Pat_id, GebDat, dmseit, falDiabDau, obweibl)
  m = 3: TI(m) = Timer: For p = 0 To m - 1: TI(m) = TI(m) - TI(p): Next p
  
  dmtyp = "-"
@@ -1134,8 +1142,8 @@ End If
       dmtyp = "p"
       GoTo weiter
      End If ' Left$(icd(ru),2) elseif elseif
-    End If ' dmtyp = "-"
-    If icdh = "F03" Then
+'    End If ' dmtyp = "-"
+    ElseIf icdh = "F03" Then
      obdement = True
     ElseIf icdh = "I42" Or icdh = "I43" Or icdh = "I50" Or icdh = "I25" Then
      obherzi = True ' Herzschwäche
@@ -1145,6 +1153,8 @@ End If
      obart = True ' pAVK
     ElseIf ICD(ru) = "N08.3" Or icdh = "N18" Or icdh = "N19" Then
      obneph = True
+    ElseIf ICD(ru) = "H36.0" Then
+     obreti = True
     End If
    ElseIf DSic(ru) = "Z" Then
     If icdh = "I21" Then
@@ -1163,7 +1173,7 @@ weiter:
 ' dmtyp = myEFrag("SELECT dmtyp(" & Pat_ID & ")").Fields(0)
  If dmtyp = "1" Or dmtyp = "2" Or dmtyp = "s" Or dmtyp = "u" Then obdm = -1 Else obdm = 0
  If Not rnam.BOF Then
-  syscmd 4, "Erstelle Patientenlaufzettel für: " & rnam!Nachname & ", " & rnam!Vorname & " (Pat_id: " & Pat_id & ")"
+  syscmd 4, "Erstelle Patientenlaufzettel für: " & NName & ", " & VName & " (Pat_id: " & Pat_id & ")"
  Else
   syscmd 4, "Patient mit Pat_id " & Pat_id & " nicht in Datenbank: " & DefDB(DBCn) & "gefunden, Patientenlaufzettel daher nicht erstellbar!"
  End If
@@ -1172,23 +1182,36 @@ weiter:
  ' Feld !Kasse wird überlagert von gleichnamigem Feld aus Faelle, führt zu unvorsehbaren Ergebnissen (Fall 706)
  
  m = 4: TI(m) = Timer: For p = 0 To m - 1: TI(m) = TI(m) - TI(p): Next p
+ Dim rFlSchGr%, rFlKateg$, obDMPPrüf%, obLeist%, vorET As Date, rFlkrkasse$
+ obLeist = True
+ If obdm Then obDMPPrüf = True Else obDMPPrüf = False
 ' myFrag rFl, "SELECT k.name KrKasse, k.*, f.* FROM (SELECT f.* FROM faelle f WHERE f.pat_id = " & Pat_id & " AND qanf = (SELECT MAX(qanf) FROM faelle WHERE pat_id = " & Pat_id & ")) f LEFT JOIN `kassenliste` k ON f.VKNr=k.vknr AND f.IK=k.IK ORDER BY MID(qanf,2) DESC, qanf DESC" ' schgr 21.6.16
  myFrag rFl, "SELECT schgr,kateg,k.name krkasse" & vbCrLf & _
           ",(SELECT voret FROM sws WHERE pat_id=f.pat_id AND voret>qanf LIMIT 1) voret" & vbCrLf & _
           "FROM faelle f" & vbCrLf & _
           "LEFT JOIN kassenliste k ON f.VKNr=k.vknr AND f.ik = k.ik" & vbCrLf & _
           "WHERE f.pat_id=" & Pat_id & " AND qanf=(SELECT MAX(qanf) FROM faelle WHERE pat_id=f.pat_id)" & vbCrLf & _
-          "ORDER BY MID(qanf,2) DESC, qanf DESC"  ' 11.4.22
+          "ORDER BY MID(qanf,2) DESC, qanf DESC", adOpenStatic, DBCn, adLockReadOnly ' 11.4.22
+ If rFl.State <> 0 Then
+  If Not rFl.BOF Then
+   rFlSchGr = rFl!SchGr
+   rFlKateg = rFl!Kateg
+   If rFlSchGr = 90 Or rFlKateg = "LKK" Or rFlKateg = "PBe" Or rFlKateg = "SHV" Then obDMPPrüf = 0
+   If Not IsNull(rFl!vorET) Then vorET = rFl!vorET
+   If rFl!SchGr = 90 Then obLeist = False
+   If Not IsNull(rFl!krkasse) Then rFlkrkasse = rFl!krkasse
+  End If ' rFl.BOF Then
+ End If ' Not rFl.BOF Then
  m = 5: TI(m) = Timer: For p = 0 To m - 1: TI(m) = TI(m) - TI(p): Next p
   
   myFrag rTha, "SELECT therart,zp FROM therarten tha WHERE pat_id=" & Pat_id & " ORDER BY zp DESC,mpnr DESC LIMIT 1"
   If Not rTha.BOF Then therart = rTha!therart
   If Datum = 0 Then Datum = Now
   If obphp Then
-   DateiNameRoh = rnam!Nachname & "_" & rnam!Vorname & ",Pid_" & rnam!Pat_id & IIf(LenB(Arzt) <> 0, "," & Arzt, vNS) ' replace$(CDate(Uhrzeit), ":", ".") & "_" & Format(Datum, "dd.mm.yyyy") &
+   DateiNameRoh = NName & "_" & VName & ",Pid_" & rnam!Pat_id & IIf(LenB(Arzt) <> 0, "," & Arzt, vNS) ' replace$(CDate(Uhrzeit), ":", ".") & "_" & Format(Datum, "dd.mm.yyyy") &
    DateiNameRoh = REPLACE$(REPLACE$(REPLACE$(REPLACE$(REPLACE$(REPLACE$(REPLACE$(REPLACE$(DateiNameRoh, "ä", "ae"), "ö", "oe"), "ü", "ue"), "Ä", "Ae"), "Ö", "Oe"), "Ü", "Ue"), "ß", "ss"), "'", "")
   Else
-   DateiNameRoh = rnam!Nachname & " " & rnam!Vorname & ",   Pid " & rnam!Pat_id & IIf(LenB(Arzt) <> 0, ", " & Arzt, vNS) & ", Patientenlaufzettel" ' replace$(CDate(Uhrzeit), ":", ".") & " " & Format(Datum, "dd.mm.yyyy") &
+   DateiNameRoh = NName & " " & VName & ",   Pid " & rnam!Pat_id & IIf(LenB(Arzt) <> 0, ", " & Arzt, vNS) & ", Patientenlaufzettel" ' replace$(CDate(Uhrzeit), ":", ".") & " " & Format(Datum, "dd.mm.yyyy") &
   End If
  m = 6: TI(m) = Timer: For p = 0 To m - 1: TI(m) = TI(m) - TI(p): Next p
 '  Dim i%
@@ -1201,7 +1224,7 @@ weiter:
   If obphp Then
    AusS.AppVar (Array("<HEAD>", vbCrLf))
    AusS.AppVar (Array("    <META HTTP-EQUIV='CONTENT-TYPE' CONTENT='text/html; charset=windows-1252'>", vbCrLf))
-   AusS.AppVar (Array("    <TITLE>" & rnam!Nachname & " " & rnam!Vorname & " (Pat_id:" & rnam!Pat_id & "): Patientenlaufzettel vom " & Now & "</TITLE>", vbCrLf))
+   AusS.AppVar (Array("    <TITLE>" & NName & " " & VName & " (Pat_id:" & rnam!Pat_id & "): Patientenlaufzettel vom " & Now & "</TITLE>", vbCrLf))
    AusS.AppVar (Array("    <META NAME='AUTHOR' CONTENT='Gerald Schade'>", vbCrLf))
    AusS.AppVar (Array("    <META NAME='CREATED' CONTENT=" & Format(Now, "yyyymmdd") & ";" & Format(Now, "hhmmss") & "00'>", vbCrLf))
    AusS.AppVar (Array("    <META NAME='CHANGEDBY' CONTENT='Gerald Schade'>", vbCrLf))
@@ -1353,11 +1376,11 @@ keinuzu:
   Üs(i) = "Hyper"
   Titel(i) = "Hyerglykämische Entgleisung"
   sql(i) = "SELECT zeitpunkt zp, inhalt wert FROM `eintraege` WHERE (art LIKE 'hyper%') AND pat_id = " & Pat_id & " ORDER BY zp DESC"
-  If Left$(rAn!Diabetestyp, 1) = "1*" Then
+'  If Left$(rAn!Diabetestyp, 1) = "1*" Then
    nurpath(i) = 3 '1
-  Else
-   nurpath(i) = 3
-  End If
+'  Else
+'   nurpath(i) = 3
+'  End If
   Fqmin(i) = 0
   i = i + 1
   
@@ -1581,7 +1604,7 @@ keinuzu:
      "UNION SELECT * FROM (SELECT vorgestellt zp, CONCAT(`Augensp zuletzt`,': ',`Augensp Befund`) wert FROM `anamnesebogen` WHERE pat_id = " & Pat_id & " AND NOT ISNULL(`Augensp zuletzt`)) u3 " & _
      "ORDER BY zp DESC"
   Weite(i) = "7%"
-  Fqmin(i) = 1
+  Fqmin(i) = IIf(obreti Or aRisk.HbA1c > 7.5, 1, 0.5) ' geändert 30.1.23 von 1
   If Not obdm Then nurpath(i) = 3
   i = i + 1
   
@@ -1656,7 +1679,7 @@ keinuzu:
    Titel(i) = "Schulungseintrag mit Nachname des Patieten"
    SchulEintri = i
    ' pat_id=1789: Patient "Seminar"
-   sql(i) = "SELECT zeitpunkt zp, concat (art, ' <- ', inhalt) wert FROM `eintraege` WHERE pat_id = 1789 AND inhalt LIKE '%" & UmwfSQL(rnam!Nachname) & "%' ORDER BY zp DESC"
+   sql(i) = "SELECT zeitpunkt zp, concat (art, ' <- ', inhalt) wert FROM `eintraege` WHERE pat_id = 1789 AND inhalt LIKE '%" & UmwfSQL(NName) & "%' ORDER BY zp DESC"
    nurpath(i) = 3
    i = i + 1
   End If ' obdm Then
@@ -1851,7 +1874,7 @@ keinuzu:
   End If
     
 ' für jeden Parameter i Wertezahl rsz(i) bestimmen
-' IN jeder Großzeile muß zunächst die Zahl der Unterzeilen ermittelt werden, diese wiederum hängt von der
+' in jeder Großzeile muß zunächst die Zahl der Unterzeilen ermittelt werden, diese wiederum hängt von der
 ' Menge der in der Großzeile dargestellten Spalten ab
   rszmax = 0
   For i = 0 To pzl
@@ -1886,7 +1909,7 @@ keinuzu:
      WertNum = MachNumerisch(REPLACE$(lab(aktlwx).WertSg, ".", ","))
      If WertNum > grenze(Albi) Then pathAlbZ = pathAlbZ + 1
      AlbZ = AlbZ + 1
-     If AlbZ = 3 And pathAlbZ = 0 Then Exit For ' Wenn die letzten 3 IN Ordnung sind, dann o.k.
+     If AlbZ = 3 And pathAlbZ = 0 Then Exit For ' Wenn die letzten 3 in Ordnung sind, dann o.k.
     End If
    Next aktlwx
 '   Do While Not rs(Albi).EOF
@@ -1894,7 +1917,7 @@ keinuzu:
 '    WertNum = MachNumerisch(replace$(wert, ".", ","))
 '    IF WertNum > grenze(Albi) THEN pathAlbZ = pathAlbZ + 1
 '    AlbZ = AlbZ + 1
-'    IF AlbZ = 3 AND pathAlbZ = 0 THEN Exit Do ' Wenn die letzten 3 IN Ordnung sind, dann o.k.
+'    IF AlbZ = 3 AND pathAlbZ = 0 THEN Exit Do ' Wenn die letzten 3 in Ordnung sind, dann o.k.
 '    rs(Albi).Move 1
 '   Loop
 '   rs(Albi).MoveFirst
@@ -1946,6 +1969,7 @@ keinuzu:
     End If
    Next ' aktlwx
   End If ' obLabzugew Then
+  If rs(Tailli).State = 0 Then rs(Tailli).Close: rs(Tailli).Open
   If Not rs(Tailli).BOF Then Taille = MachNumerisch(rs(Tailli).Fields(1)): obTaille = True
   If obTG And obTaille And üdt.bmi <> 0 And obGGT Then
    FLI = Round((Exp(0.953 * Log(TG) + 0.139 * üdt.bmi + 0.718 * Log(GGT) + 0.053 * Taille - 15.745) / (1 + Exp(0.953 * Log(TG) + 0.139 * üdt.bmi + 0.718 * Log(GGT) + 0.053 * Taille - 15.745))) * 100)
@@ -1970,7 +1994,7 @@ keinuzu:
      pos = pos + 7
      p2 = InStr(pos, Intervall, ";")
      If p2 > 0 Then
-      Intervall = Mid(Intervall, pos, p2 - pos)
+      Intervall = Mid$(Intervall, pos, p2 - pos)
       Select Case Intervall
        Case "1 a"
         Fqminu = Fqmin(Fußi) = 1
@@ -1989,7 +2013,7 @@ keinuzu:
   
   If üdt.fußst = auff Or üdt.sens = auff Or üdt.sens = pathdok Or üdt.Puls = auff Or üdt.FEn(12) = True Then
    Fqmin(Fußi) = 4
-' Wenn IN diesem Quartal Neurostatus gemacht oder fällig, dann kein Fußstatus nötig
+' Wenn in diesem Quartal Neurostatus gemacht oder fällig, dann kein Fußstatus nötig
    If Not rs(Neuri).EOF Then
     If ZQuart(rs(Neuri)!Zp) = ZQuart(Now()) Then
      Fqminu = Fqmin(Fußi) = 0
@@ -2147,11 +2171,6 @@ keinuzu:
 'Beginn mit Schreiben der Daten
   Dim DmPStr As New CString, dmpfarbe$
   dmpfarbe = "class='unauff' style='color:blue'"
-  Dim obDMPPrüf%
-  If obdm Then obDMPPrüf = True Else obDMPPrüf = False
-  If Not rFl.EOF Then
-   If rFl!SchGr = 90 Or rFl!Kateg = "LKK" Or rFl!Kateg = "PBe" Or rFl!Kateg = "SHV" Then obDMPPrüf = 0
-  End If
   If obDMPPrüf Then
    DmPStr = ",  DMP-Diab: "
    Select Case rnam!dmpklass
@@ -2194,7 +2213,7 @@ keinuzu:
      Case 4: DmPStr.Append "ausgeschrieben ("
     End Select
    End If
-  End If ' rFl!kateg
+  End If ' obDMPPrüf Then
   
   m = 19: TI(m) = Timer: For p = 0 To m - 1: TI(m) = TI(m) - TI(p): Next p
   If obdm Then
@@ -2202,7 +2221,8 @@ keinuzu:
    m = 20: TI(m) = Timer: For p = 0 To m - 1: TI(m) = TI(m) - TI(p): Next p
    m = 21: TI(m) = Timer: For p = 0 To m - 1: TI(m) = TI(m) - TI(p): Next p
    m = 22: TI(m) = Timer: For p = 0 To m - 1: TI(m) = TI(m) - TI(p): Next p
-   Call UKPDS(aRisk, Pat_id, rnam!GebDat, dmseit, falDiabDau, obweibl)
+'  vorverlegt wegen aRisk.hba1c 30.1.23
+'   Call UKPDS(aRisk, Pat_id, GebDat, dmseit, falDiabDau, obweibl)
    m = 23: TI(m) = Timer: For p = 0 To m - 1: TI(m) = TI(m) - TI(p): Next p
    UKtip = "D-Dauer: " & aRisk.DurationDiagnosedDiabetes & "a, weibl: " & aRisk.Female & ", VHFli: " & aRisk.AtrialFibrillation & ", Ethn: " & "kaukas" & ", Rauch: " & IIf(aRisk.SmokingStatus = 0, "nie", IIf(aRisk.SmokingStatus = 1, "früher", "ja")) & ", RRsyst: " & aRisk.BloodPressure & ", gemess. " & aRisk.BloodPressure_Precision & "mal, HbA1c: " & aRisk.HbA1c & ", gemess. " & aRisk.HbA1c_Precision & " mal, Chol/HDL: " & aRisk.LipidRatio & ", gemess. " & aRisk.LipidRatio_Precision & " mal"
    Dim cR$, CU$, CL$, CFR$, CFU$, CFL$, SR$, SU$, SL$, SFR$, SFU$, SFL$
@@ -2230,12 +2250,10 @@ keinuzu:
    End If
   End If
 #End If
-  Dim vorET As Date
-  If Not rFl.BOF Then If Not IsNull(rFl!vorET) Then vorET = rFl!vorET
   ' 255,204,229 = #ffcce5 rötlich; 229,204,255 = #E5CCFF bläulich; #ffffcc gelblich
-  AusS.AppVar (Array(" ", IIf(dmtyp = "1" Or dmtyp = "2" Or dmtyp = "g", "<span style='background-color:" & IIf(dmtyp = "1", "#ffd9e8", IIf(dmtyp = "g", "#ffffde", "#efe0ff")) & "'", ""), "<B><span title='", rnam!Vorname, " ", rnam!Nachname, ", ", rnam!strasse, ", ", rnam!plz, " ", rnam!ort, ", Tel1: ", rnam!PrivatTel, ", Tel2: ", rnam!PrivatTel_2, ", Mobil:", rnam!PrivatMobil, ", Fax: ", rnam!PrivatFax, ", Diensttel: ", rnam!DienstTel & ", Email: ", rnam!email, "'>", IIf(rFl!vorET > Now(), "<span class='schwanger'>", ""), _
-  GesNamFn(rnam), "</span></B>, *", Format(rnam!GebDat, "d.m.yy"), " (", Palter, "a), <span style='color:blue'><span class='unauff'>&nbsp;&nbsp;Pat_id: </span>", Pat_id, "</span><span id = 'unauff'>,", IIf(obdm, "&nbsp;&nbsp;D.m.seit: ", ""), IIf(obdm, dmseit, ""), ",&nbsp;&nbsp;vorgestellt: ", Format(rAn!Vorgestellt, "d.m.yy"), ",&nbsp;&nbsp;für: </span>", Format(Datum, "d.m.yy"), " <span style='font-size:smaller'>", Format(Uhrzeit, "hh:mm"), ",</span>&nbsp;&nbsp;&nbsp;<span class='unauff'>", rnam!Notiz, ",&nbsp;&nbsp;&nbsp;", IIf(obdm, "Therapie zuletzt: ", ""), "</span>", IIf(obdm, therart, ""), "<span " & dmpfarbe & ">", DmPStr, "</span></h1>", vbCrLf))
-' TherapieArtEinzelnFestlegen(CLng(Pat_ID), rAn) & "</span></h1>" ' rnam!Vorname, " ", rnam!Nachname
+  AusS.AppVar (Array(" ", IIf(dmtyp = "1" Or dmtyp = "2" Or dmtyp = "g", "<span style='background-color:" & IIf(dmtyp = "1", "#ffd9e8", IIf(dmtyp = "g", "#ffffde", "#efe0ff")) & "'", ""), "<B><span title='", VName, " ", NName, ", ", rnam!strasse, ", ", rnam!plz, " ", rnam!ort, ", Tel1: ", rnam!PrivatTel, ", Tel2: ", rnam!PrivatTel_2, ", Mobil:", rnam!PrivatMobil, ", Fax: ", rnam!PrivatFax, ", Diensttel: ", rnam!DienstTel & ", Email: ", rnam!email, "'>", IIf(vorET > Now(), "<span class='schwanger'>", ""), _
+  GesNamFn(rnam), "</span></B>, *", Format(rnam!GebDat, "d.m.yy"), " (", Palter, "a), <span style='color:blue'><span class='unauff'>&nbsp;&nbsp;Pat_id: </span>", Pat_id, "</span><span id = 'unauff'>,", IIf(obdm, "&nbsp;&nbsp;D.m.seit: ", ""), IIf(obdm, dmseit, ""), ",&nbsp;&nbsp;vorgestellt: ", Format(Vorgestellt, "d.m.yy"), ",&nbsp;&nbsp;für: </span>", Format(Datum, "d.m.yy"), " <span style='font-size:smaller'>", Format(Uhrzeit, "hh:mm"), ",</span>&nbsp;&nbsp;&nbsp;<span class='unauff'>", rnam!Notiz, ",&nbsp;&nbsp;&nbsp;", IIf(obdm, "Therapie zuletzt: ", ""), "</span>", IIf(obdm, therart, ""), "<span " & dmpfarbe & ">", DmPStr, "</span></h1>", vbCrLf))
+' TherapieArtEinzelnFestlegen(CLng(Pat_ID), rAn) & "</span></h1>" ' VName, " ", NName
   ' * 2.73792574745373E-03 ' 1/365,24
   AusS.AppVar (Array("</h1>", vbCrLf))
 '  IF Not obhierdmp(rNam!Notiz) THEN
@@ -2278,15 +2296,7 @@ keinuzu:
   Dim obGU%
   Dim rLei As New ADODB.Recordset
   obGU = 0
-  Dim obLeist%
-  obLeist = False
-  If rFl.EOF Then
-   obLeist = True
-  Else
-   If rFl!SchGr <> 90 Then
-    obLeist = True
-   End If
-  End If
+  
   If obLeist Then
    If KVNr = "6419153" And Palter > 35 Then
     myFrag rLei, "SELECT zeitpunkt FROM `leistungen` WHERE pat_id = " & Pat_id & " AND leistung = '01732' ORDER BY zeitpunkt DESC"
@@ -2452,28 +2462,27 @@ keinuzu:
 ' Barthel-Index
   Dim rsdd As New ADODB.Recordset
   myFrag rsdd, "SELECT icd FROM diagview d WHERE d.pat_id = " & Pat_id & " AND (d.gICD RLIKE '^F0[0-3]|^G20')"
-  Dim rse As New ADODB.Recordset
-  If Not rFl.EOF() Then
-   If rFl!SchGr <> 90 And (Palter >= 70 Or Not rsdd.BOF) Then
-    Set rse = Nothing ' 13.4.21: wenn im Folgenden nicht _latin1 bei inhalt steht, kommt bei der virtuallen Spalte Unsinn raus
-    myFrag rse, "SELECT DATE(zeitpunkt) datum, art, inhalt FROM `eintraege` WHERE zeitpunkt > DATE_SUB(NOW(), INTERVAL 150 DAY) AND Art = 'ADL' AND pat_id = " & Pat_id & " ORDER BY zeitpunkt DESC"
-    If rse.BOF Then
-     AusS.AppVar (Array("    <span class='cave'>&nbsp;ADL(Barthel),&nbsp;&nbsp;</span>", vbCrLf))
-    End If
-    Set rse = Nothing
-    ' ktag fehlerhaft
-    myFrag rse, "SELECT DATE(zeitpunkt) datum, art, inhalt FROM `eintraege` WHERE zeitpunkt > DATE_SUB(NOW(), INTERVAL 150 DAY) AND Art = 'TUG' AND pat_id = " & Pat_id & " ORDER BY zeitpunkt DESC"
-    If rse.BOF Then
-     AusS.AppVar (Array("    <span class='cave'>&nbsp;TUG(Time up AND go),&nbsp;&nbsp;</span>", vbCrLf))
-    End If
-   End If ' rFl!SchGr <> 90 AND (PAlter >= 70 OR Not rsdd.BOF) THEN
-  End If ' Not rFl.EOF() THEN (TUG)
+  Dim rse As ADODB.Recordset
+  If rFlSchGr <> 90 And (Palter >= 70 Or Not rsdd.BOF) Then
+   Set rse = Nothing ' 13.4.21: wenn im Folgenden nicht _latin1 bei inhalt steht, kommt bei der virtuallen Spalte Unsinn raus
+   myFrag rse, "SELECT DATE(zeitpunkt) datum, art, inhalt FROM `eintraege` WHERE zeitpunkt > DATE_SUB(NOW(), INTERVAL 150 DAY) AND Art = 'ADL' AND pat_id = " & Pat_id & " ORDER BY zeitpunkt DESC"
+   If rse.BOF Then
+    AusS.AppVar (Array("    <span class='cave'>&nbsp;ADL(Barthel),&nbsp;&nbsp;</span>", vbCrLf))
+   End If
+   Set rse = Nothing
+   ' ktag fehlerhaft
+   myFrag rse, "SELECT DATE(zeitpunkt) datum, art, inhalt FROM `eintraege` WHERE zeitpunkt > DATE_SUB(NOW(), INTERVAL 150 DAY) AND Art = 'TUG' AND pat_id = " & Pat_id & " ORDER BY zeitpunkt DESC"
+   If rse.BOF Then
+    AusS.AppVar (Array("    <span class='cave'>&nbsp;TUG(Time up AND go),&nbsp;&nbsp;</span>", vbCrLf))
+   End If
+  End If ' rFlSchGr <> 90 AND (PAlter >= 70 OR Not rsdd.BOF) THEN
   Set rsdd = Nothing
   m = 29: TI(m) = Timer: For p = 0 To m - 1: TI(m) = TI(m) - TI(p): Next p
   If obdm Then
    ' bei der Techniker nicht, wenn Pat. in der hausarztzentrierten Versorgung
-   If rFl!krkasse Like "DAK*" Or rFl!krkasse Like "KKH*" Or rFl!krkasse Like "Kaufmännische K*" Or (rFl!Kateg = "EK" And (((rFl!krkasse Like "*TK*" Or rFl!krkasse Like "*Techniker*") And rnam!HzV <> 1) Or rFl!krkasse Like "*hans*")) Then
-    Dim rDF As New ADODB.Recordset
+   If rFlkrkasse Like "DAK*" Or rFlkrkasse Like "KKH*" Or rFlkrkasse Like "Kaufmännische K*" Or (rFlKateg = "EK" And (((rFlkrkasse Like "*TK*" Or rFlkrkasse Like "*Techniker*") And rnam!HzV <> 1) Or rFlkrkasse Like "*hans*")) Then
+    Dim rDF As ADODB.Recordset
+    Set rDF = Nothing
     myFrag rDF, "SELECT CASE substr(inhalt,6,2) WHEN 'HA' THEN 'HA' WHEN 'hi' THEN 'hier' WHEN 'ne' THEN 'nein' ELSE '?' END wo," & _
      "DATE_FORMAT(zeitpunkt,'%d.%m.%y'), e.* FROM eintraege e WHERE art='dak' " & _
      "and zeitpunkt= (SELECT MAX(zeitpunkt) FROM eintraege ei WHERE pat_id = e.pat_id AND art='dak') " & _
@@ -2577,9 +2586,7 @@ keinuzu:
    End If ' obart OR (üdt.bmi
   End If ' obdm AND dmtyp = "2" AND therart <> "Diät" THEN
   
-  Dim SchGr%
-  If Not rFl.EOF Then SchGr = rFl!SchGr
-  If SchGr <> 90 Then ' nicht bei Privaten
+  If rFlSchGr <> 90 Then ' nicht bei Privaten
 ' TH:Kombinationstherapie DPP4-Hemmer aufspalten
    Dim rdpp4 As New ADODB.Recordset
    myFrag rdpp4, "SELECT IF(therart IN ('ICT','CSII','CT','GLP1Ins','GLP1ICT','GLP1'),CONCAT('Therapieart ',therart,', bitte ',mp.medikament,' ',IF(metf,'um','ab'),'setzen!'),CONCAT('Kombinationstablette ',mp.medikament,' bitte aufspalten!')) Anw FROM namen f " & vbCrLf & _
@@ -2627,7 +2634,7 @@ keinuzu:
     thh(UBound(thh)) = rdpp4!Anw ' .fields(1)
    End If ' Not rdpp4.BOF THEN
    Set rdpp4 = Nothing
-  End If ' IF rFl!SchGr <> 90 THEN ' nicht bei Privaten
+  End If ' IF rFlSchGr <> 90 THEN ' nicht bei Privaten
 
 ' TH:Metformin-Dosierung
   If lGFR.WertSg < 30 And metdos > 0 Then
@@ -2664,7 +2671,7 @@ keinuzu:
   Set rsMB = Nothing
 ' DKG/ESC/DHL/ESH-Leitlinien 2018, wenn wir diesen Wert als Praxis-Blutdruck annehmen
   If lRRz = 0 Then
-   RRtxt = "Keine RR-Messung IN den letzten " & frist & " Tagen gespeichert. Bitte messen und eintragen."
+   RRtxt = "Keine RR-Messung in den letzten " & frist & " Tagen gespeichert. Bitte messen und eintragen."
   Else ' => lRRz > 0
    If (lRRd <= 80 And (Palter < 65 And lRRs < 130 And lRRs >= 120) Or (Palter >= 65 And lRRs < 140 And lRRs >= 130)) Then
 ' => auch ohne Kenntnis von Medikation sowie Diagnosen alles in Ordnung
@@ -2699,7 +2706,7 @@ keinuzu:
      Set rsMB = Nothing
     End If
     If (lRRz = 0 Or (lRRd <= 80 And (Palter < 65 And lRRs < 130 And lRRs >= 120) Or (Palter >= 65 And lRRs < 140 And lRRs >= 130))) Then
-' Blutdruck nach letzter Änderung nicht wieder gemessen oder IN Ordnung
+' Blutdruck nach letzter Änderung nicht wieder gemessen oder in Ordnung
     ElseIf RRMedAktZ = 0 Then ' keine antihypertensive Medikation
      If (Palter < 65 And lRRs < 120) Or (Palter >= 65 And lRRs < 130) Then
      ' Blutdruck ohne Medikation niedrig => kein Handlungsbedarf
@@ -2807,7 +2814,7 @@ keinuzu:
    For j = 1 To rszmax ' Durchlauf der Kleinzeilen innerhalb eines Blocks
 'Werte(j)
     AusS.AppVar (Array("   <TR>", vbCrLf))
-    For i = ianf To iend ' Parameter IN jedem Block
+    For i = ianf To iend ' Parameter in jedem Block
 '     IF i = GFRi THEN Stop
 '     IF i = Hba1ci THEN Stop
      If ((i <> SchulEintri Or Fqmin(Schuli) = 365) And ((nurpath(i) = 0 Or nurpath(i) = 3 Or pathol(i, 0)) And rsz(i) <> 0 And Titel(i) <> "")) Then
@@ -2842,7 +2849,7 @@ keinuzu:
         End If
         Zp = QAnf(ZQuart(zpu))
         If j = 1 Then
-' wenn z.B. nicht IN diesem Quartal (fqmin(i)=4) und auch nicht jünger als die Hälfte des entsprechenden Abstandes, dann rot
+' wenn z.B. nicht in diesem Quartal (fqmin(i)=4) und auch nicht jünger als die Hälfte des entsprechenden Abstandes, dann rot
          If Fqmin(i) <> 0 Then
 '          IF Now() - Zp + 30 > 365 / Fqmin(i) AND (Now - zpu) > 365 / Fqmin(i) * 0.5 THEN obpath(i) = True
           If Now() - Zp > 365 / Fqmin(i) And (Now - zpu) > 365 / Fqmin(i) * 0.5 Then obpath(i) = True
@@ -2870,7 +2877,7 @@ keinuzu:
 #Const mitLeerZellen = False
 #If mitLeerZellen Then
        ElseIf Pause(i) = 0 Then
-'        IF RowSp(i) = 0 OR j = 1 THEN ' Beim Neurostatus IN die folgenden Zeilen nichts mehr schreiben
+'        IF RowSp(i) = 0 OR j = 1 THEN ' Beim Neurostatus in die folgenden Zeilen nichts mehr schreiben
          AusS.AppVar (Array("    <td rowspan='", rszmax - j + 1, "' colspan = '2' class='schmal' style='border-style:none'></td>", vbCrLf))
          Pause(i) = -1
        ElseIf Pause(i) > 0 Then
@@ -2878,7 +2885,7 @@ keinuzu:
 #Else
       Else  ' rsz(i) >= j THEN
        If rsz(i) <> 0 Then
-'        IF i <> Neuri OR j = 1 THEN ' Beim Neurostatus IN die folgenden Zeilen nichts mehr schreiben
+'        IF i <> Neuri OR j = 1 THEN ' Beim Neurostatus in die folgenden Zeilen nichts mehr schreiben
          AusS.AppVar (Array("    <td class='schmal'></td><td></td>", vbCrLf))
 '        END IF ' rsz(i) <> 0 THEN
        End If
@@ -2947,7 +2954,7 @@ keinuzu:
       AusS.AppVar Array("  <th class='med'>", mdpl(k).m.Medikament, "</th><th class='med'>", mdpl(k).m.mo, "</th><th class='med'>", mdpl(k).m.mi, "</th><th class='med'>", mdpl(k).m.nm, "</th><th class='med'>", mdpl(k).m.ab, "</th><th class='med'>", mdpl(k).m.Zn, "</th><th class='med'>", IIf(mdpl(k).m.bBed <> 0, "b.Bed.", vNS), "</th></span>", vbCrLf)
      ElseIf Not medfertig Then
       AusS.Append "  <th class='med' colspan=""7"" rowspan=""" & TabZ - k + 1 & """>"
-      AusS.Append IIf(Left(mdpl(UBound(mdpl)).m.Bemerkung, 2) = vbCrLf, REPLACE$(Mid(mdpl(UBound(mdpl)).m.Bemerkung, 2), vbCrLf, "<br>"), mdpl(UBound(mdpl)).m.Bemerkung)
+      AusS.Append IIf(Left$(mdpl(UBound(mdpl)).m.Bemerkung, 2) = vbCrLf, REPLACE$(Mid$(mdpl(UBound(mdpl)).m.Bemerkung, 2), vbCrLf, "<br>"), mdpl(UBound(mdpl)).m.Bemerkung)
       AusS.AppVar Array("</th>", vbCrLf)
       medfertig = True
      End If ' k <= UBound(mdpl) Then elseif
@@ -3012,7 +3019,7 @@ keinuzu:
     End If
    Next i
    AusS.AppVar (Array(" <tr>", vbCrLf))
-   Dim iumw& ' um Laborwerte IN umgekehrter Datumsreihenfolge anzuzeigen
+   Dim iumw& ' um Laborwerte in umgekehrter Datumsreihenfolge anzuzeigen
    For i = 3 To UBound(Matr, 2)
     If i > 5 Then
      iumw = UBound(Matr, 2) - i + 6
@@ -3075,9 +3082,9 @@ keinuzu:
    Next i
   End If
   m = 40: TI(m) = Timer: For p = 0 To m - 1: TI(m) = TI(m) - TI(p): Next p
-  DoEvents
-  Lese.Ausgeb "Patientenlaufzettel für " & rnam!Nachname & ", " & rnam!Vorname & " (Pat_id: " & Pat_id & ") erstellt.", True
-  syscmd 4, "Fertig mit dem Patientenlaufzettel für: " & rnam!Nachname & ", " & rnam!Vorname & " (Pat_id: " & Pat_id & ")"
+'  DoEvents
+  Lese.Ausgeb "Patientenlaufzettel für " & NName & ", " & VName & " (Pat_id: " & Pat_id & ") erstellt.", True
+  syscmd 4, "Fertig mit dem Patientenlaufzettel für: " & NName & ", " & VName & " (Pat_id: " & Pat_id & ")"
 '  Call Shell("firefox.exe " & DateiName)
 '  Dim reg0$, reg1$
  ' reg0 = getReg(HLM, "software\mozilla\Mozilla Firefox", "CurrentVersion")
@@ -3087,7 +3094,7 @@ keinuzu:
    Else
     DateiName = DateiNameAkt
    End If
-   '' das geht nicht IN sono1
+   '' das geht nicht in sono1
    Dim DPfad$
    Dim dPFehler%
    DPfad = getReg(HLM, "software\mozilla\Mozilla Firefox\" & getReg(HLM, "software\mozilla\Mozilla Firefox", "CurrentVersion") & "\Main", "PathToExe") & " """ & DateiName & """"
@@ -3220,7 +3227,7 @@ Sub LaborInsPLZ(Pat_id$, SelbstStatus%, raDatBOF%, ByRef Matr$(), ByRef MForm%()
  Dim ZZ&, gschl$, Vgl$, altGruppe%, Nb$ ' Normbereich
  Dim sql0$, sql1$, sqldat$ ' , sql2$
  Dim u!, o! ' oberer und unterer Grenzwert numerisch
- Dim uNG$, oNG$ ' obere und untere Normgrenze IN Zeichen
+ Dim uNG$, oNG$ ' obere und untere Normgrenze in Zeichen
  Dim unm$, onm$, unw$, onw$
  Dim pKz% ' Pathologisch-Kennzeichen
  Dim altgru&
@@ -3238,7 +3245,7 @@ Sub LaborInsPLZ(Pat_id$, SelbstStatus%, raDatBOF%, ByRef Matr$(), ByRef MForm%()
 ' raDat.Open sql1, DBCn, adOpenDynamic, adLockReadOnly
 ' IF Not raDat.BOF THEN
 '   SelbstStatus = SelbstStatus + 2
-' ELSE ' 19.3.17, Pat. 62118: kein Wert aus Labor2a erscheint IN Labor1a
+' ELSE ' 19.3.17, Pat. 62118: kein Wert aus Labor2a erscheint in Labor1a
 '   Dim l2_1 As New ADODB.Recordset
 '   l2_1.Open "SELECT wert FROM `labor2a` WHERE pat_id=" & Pat_id & " AND NOT ISNULL(wert) LIMIT 1", DBCn, adOpenDynamic, adLockReadOnly
 '   IF Not l2_1.BOF THEN SelbstStatus = SelbstStatus + 2
@@ -3303,8 +3310,8 @@ nochmal1:
 ' END IF
 ' GoTo nochmal1
  If dz = 0 Then dz = 1
- ReDim Matr(1, dz + 5, ZZ + 2) ' Spaltenzahl, Zeilenzahl, matr(x,y)= Wert ' (1, = für Tooltip, 27.3.10, Umkehrung 6.4.11
- ReDim MForm(dz + 5, ZZ + 2) ' Formatierung (1 = schräg, 2 = fett)
+ ReDim Matr(1, dz + 5, ZZ + 2) ' Spaltenzahl, Zeilenzahl, matr(x,y)= Wert ' (1, = für Tooltip, 27.3.10, Umkehrung 6.4.11 ' 8.2.23 +6 statt +5 ' 9.2.23 wieder +5
+ ReDim MForm(dz + 5, ZZ + 2) ' Formatierung (1 = schräg, 2 = fett) ' 8.2.23 +6 statt +5 ' 9.2. wieder +5
  ' links noch: 0:Abkü, 1:unterer NW, 2:oberer NW, dann 3:Langtext, 4:Einheit, 5:Normbereich
  ReDim mBreiten(dz)
  
@@ -3336,8 +3343,8 @@ nochmal1:
   Do While Not raDat.EOF
    Matr(0, i + 5, 0) = Format$(raDat!Datum, "dd.mm.yy")
    i = i + 1
-   raDat.Move 1
    If i > dz Then Exit Do
+   raDat.Move 1
   Loop
   raDat.Close
  End If
@@ -3348,6 +3355,12 @@ nochmal1:
  Dim rlp As New ADODB.Recordset
  j = 1
  altgru = -1
+ Dim raLwSource$
+ raLwSource = raLw.source
+ If raLw.State = 0 Then
+  Set raLw = Nothing
+  raLw.Open raLwSource, DBCn, adOpenStatic, adLockReadOnly
+ End If
  If Not raLw.BOF Then
  raLw.MoveFirst
  Do While Not raLw.EOF
@@ -3459,31 +3472,33 @@ nochmal1:
    Matr(0, 5, j) = Trim$(IIf(IsNull(raLw!uNG), vNS, raLw!uNG)) & "-" & Trim$(IIf(IsNull(raLw!oNG), vNS, raLw!oNG))
 '    ON Error GoTo fehler
   End If ' j > UBound(Matr, 3) THEN
-  If Matr(1, i, 0) = "" Then Matr(1, i, 0) = raLw!DatID & " " & raLw!Pfad
-  Dim Kommentar$
-  If IsNull(raLw!Kommentar) Then Kommentar = "" Else Kommentar = REPLACE$(raLw!Kommentar, "//", "/")
-  Matr(0, i, j) = IIf(IsNull(raLw!Wert), IIf(Not IsNull(Kommentar), Left(Kommentar, 10), vNS), raLw!Wert)
-  Matr(1, i, j) = raLw!Labor
-  If InStrB(Kommentar, "//") <> 0 Then
-   MsgBox " Fehler in LaborInsPLZ: InstrB(kommentar, ""//"") <> 0"
-   Stop
-  End If
-  Dim diesselbst%
-  If Not IsNull(Kommentar) And LenB(Kommentar) <> 0 And Kommentar <> "; " And Kommentar <> "; :    ////////   *:" And Kommentar <> "; :    ////////  * :" And Kommentar <> "; :    //////// *  :" Then
-   Matr(1, i, j) = Matr(1, i, j) & vbCrLf & Kommentar
-   If InStrB(Kommentar, "manuell") <> 0 Then
+  If i <= dz + 5 Then
+   If Matr(1, i, 0) = "" Then Matr(1, i, 0) = raLw!DatID & " " & raLw!Pfad
+   Dim Kommentar$
+   If IsNull(raLw!Kommentar) Then Kommentar = "" Else Kommentar = REPLACE$(raLw!Kommentar, "//", "/")
+   Matr(0, i, j) = IIf(IsNull(raLw!Wert), IIf(Not IsNull(Kommentar), Left$(Kommentar, 10), vNS), raLw!Wert)
+   Matr(1, i, j) = raLw!Labor
+   If InStrB(Kommentar, "//") <> 0 Then
+    MsgBox " Fehler in LaborInsPLZ: InstrB(kommentar, ""//"") <> 0"
+    Stop
+   End If
+   Dim diesselbst%
+   If Not IsNull(Kommentar) And LenB(Kommentar) <> 0 And Kommentar <> "; " And Kommentar <> "; :    ////////   *:" And Kommentar <> "; :    ////////  * :" And Kommentar <> "; :    //////// *  :" Then
+    Matr(1, i, j) = Matr(1, i, j) & vbCrLf & Kommentar
+    If InStrB(Kommentar, "manuell") <> 0 Then
      diesselbst = 1
 '     Tabl.cell(j + 1, i - 2).Range.Font.Italic = True
      MForm(i, j) = MForm(i, j) + 1
-   ElseIf LenB(raLw!Wert) = 0 Then
+    ElseIf LenB(raLw!Wert) = 0 Then
 '     Matr(i + Diffbr, j) = Matr(i, j) & IIf(lenb(Matr(i, j)) = 0, vns, " ") & kommentar
 #If False Then
      Matr(0, i, j) = Matr(1, i, j) & vbCrLf & Kommentar
 #Else
-     Matr(0, i, j) = IIf(Not IsNull(Kommentar), Left(Kommentar, 10), vNS)
+     Matr(0, i, j) = IIf(Not IsNull(Kommentar), Left$(Kommentar, 10), vNS)
 #End If
-   End If
-  End If ' NOT ISNULL(kommentar) AND LenB(kommentar) <> 0 AND kommentar <> "; " AND kommentar <> "; :    ////////   *:" AND kommentar <> "; :    ////////  * :" AND kommentar <> "; :    //////// *  :" THEN
+    End If
+   End If ' NOT ISNULL(kommentar) AND LenB(kommentar) <> 0 AND kommentar <> "; " AND kommentar <> "; :    ////////   *:" AND kommentar <> "; :    ////////  * :" AND kommentar <> "; :    //////// *  :" THEN
+  End If ' i <= dz + 5
   If diesselbst Then obselbst = 1 Else obnichtselbst = 1
   pKz = 0 ' "n" normal
   If IsNumeric(raLw!Wert) Or raLw!Wert Like "1:*" Or raLw!Wert Like "<*" Or raLw!Wert Like ">*" Then
@@ -3494,15 +3509,15 @@ nochmal1:
    rlWS = raLw!Wert
    For pos = 1 To Len(raLw!Wert)
     If InStrB("0123456789,.:-+<>", Mid$(rlWS, pos, 1)) = 0 Then
-     rlWS = Left(rlWS, pos - 1) & Mid$(rlWS, pos + 1)
+     rlWS = Left$(rlWS, pos - 1) & Mid$(rlWS, pos + 1)
      pos = pos - 1
     End If
    Next pos
    If rlWS Like "1:<*" Then rlWS = "<1:" & Mid$(rlWS, 4)
-   If Left(rlWS, 1) = "<" Then
+   If Left$(rlWS, 1) = "<" Then
     obkl = True
     rlWS = Mid$(rlWS, 2)
-   ElseIf Left(rlWS, 1) = ">" Then
+   ElseIf Left$(rlWS, 1) = ">" Then
     obgr = True
     rlWS = Mid$(rlWS, 2)
    End If

@@ -37,7 +37,7 @@ Function HANrS$(HANr) ' wird z.Zt. nicht verwendet, 7.1.06
  If IsNull(HANr) Then
   HANrS = vNS
  ElseIf InStrB(CStr(HANr), "/") = 0 Then
-  HANrS = Left(HANr, 2) + "/" + Right$(HANr, 5)
+  HANrS = Left$(HANr, 2) + "/" + Right$(HANr, 5)
  Else
   HANrS = CStr(HANr)
  End If
@@ -71,8 +71,8 @@ Sub HAzählen()
   While Not pa.EOF
  '  HA.FindFirst "KVNr = '" & pa!HANr & "'"
    Set HA = Nothing
-'   Call HA.Open("SELECT * FROM `hae` WHERE kvnr = '" & Left(REPLACE$(pa!KVNr, "/", ""), 7) & "'", DBCn, adOpenDynamic, adLockOptimistic)
-   myFrag HA, "SELECT * FROM `hae` WHERE kvnr = '" & Left(REPLACE$(pa!KVNr, "/", ""), 7) & "'"
+'   Call HA.Open("SELECT * FROM `hae` WHERE kvnr = '" & Left$(Replace$(pa!KVNr, "/", ""), 7) & "'", DBCn, adOpenDynamic, adLockOptimistic)
+   myFrag HA, "SELECT * FROM `hae` WHERE kvnr = '" & Left$(REPLACE$(pa!KVNr, "/", ""), 7) & "'"
    If IsNull(pa!HANr) Or pa!HANr = vNS Then
     Na = Na + 1
    Else
@@ -83,7 +83,7 @@ Sub HAzählen()
      HA.Update
     Else
      ng = ng + 1
-     FText = FText + vbCr + "  " + GesNamFn(pa) & " " & Left(REPLACE$(pa!HANr, "/", ""), 7)
+     FText = FText + vbCr + "  " + GesNamFn(pa) & " " & Left$(REPLACE$(pa!HANr, "/", ""), 7)
     End If
    End If
    pa.MoveNext

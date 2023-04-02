@@ -75,7 +75,7 @@ Sub werteAusGeb(Optional obStumm As Boolean = False)
 'ID = forms!Anamnesebogen!Pat_ID
 'On Error GoTo fehler
 'If ID = "" THEN
-' For Each tbl IN dtb.TableDefs
+' For Each tbl In dtb.TableDefs
 '  DoCmd.Close acTable, tbl.Name, acSaveYes
 ' Next
 ' DoCmd.OpenForm dtb.Containers(2).Documents(0).Name 'Anamnesebogen
@@ -147,7 +147,7 @@ Function AusgDiag$(Pat_id&, Optional ohneNotwend%)
  Dim Spl$(), j%
 ' SET rsNa = TabÖff("Anamnesebogen", "Pat_ID")
  Set rsNa = Nothing
- myFrag rsNa, "SELECT * FROM `anamnesebogen` WHERE pat_id = " & Pat_id
+ myFrag rsNa, "SELECT Diagnosen FROM `anamnesebogen` WHERE pat_id = " & Pat_id
  If Not rsNa.EOF Then
   Spl = Split(rsNa!Diagnosen, vbVerticalTab)
   For j = 0 To UBound(Spl)
@@ -158,7 +158,7 @@ Function AusgDiag$(Pat_id&, Optional ohneNotwend%)
    End If
   Next j
 '  AusgDiag = replace$(rsAnam!Diagnosen, " `", vbtab + "`")
-  If Len(AusgDiag) >= 1 Then AusgDiag = Left(AusgDiag, Len(AusgDiag) - 1)
+  If Len(AusgDiag) >= 1 Then AusgDiag = Left$(AusgDiag, Len(AusgDiag) - 1)
  End If
  rsNa.Close
 End Function ' AusDiag
@@ -204,6 +204,7 @@ fehler:
 End Sub ' behDatAusgeb
 #End If
 
+' aufgerufen in lebe, behDauerStr, UKPDS
 Function erbe(ByVal Pat_id&) As Date
 'Static rFa AS DAO.Recordset
 'Set rFa = TabÖff("faelle", "ErstF")
@@ -245,6 +246,7 @@ fehler:
   Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
  End Select
 End Function ' erbe(byVal Pat_id&) As Date
+
 Function lebe(ByVal Pat_id&) As Date
 Dim lbehD As Date, rLb As New ADODB.Recordset
 On Error GoTo fehler
@@ -285,7 +287,7 @@ fehler:
  End Select
 End Function ' letzt
 
-Function behDauerStr$(Pat_id) ' für tubriefStandalone
+Function behDauerStr$(Pat_id) ' nur in tubriefStandalone
  Dim D1 As Date, D2 As Date
  On Error GoTo fehler
  D1 = DateValue(erbe(Pat_id))
@@ -309,6 +311,7 @@ fehler:
   Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
  End Select
 End Function ' behDauerStr$()
+
 Sub LaborAusgeb(Optional id&)
  Dim ErgebDatei$
  ErgebDatei$ = aVerz + "Labor.txt"
@@ -344,7 +347,7 @@ Function LaborString$(Pat_id&)
 ' zeilenzahl bestimmen
  Dim ZZ&, rz$, gschl$, Vgl$, altGruppe%, Nb$ ' Normbereich
  Dim u!, o! ' oberer und unterer Grenzwert numerisch
- Dim uNG$, oNG$ ' obere und untere Normgrenze IN zeichen
+ Dim uNG$, oNG$ ' obere und untere Normgrenze in zeichen
  Dim pKz$ ' Pathologisch-Kennzeichen
  Dim abküz%, gruppez%
  'dtbInit
@@ -517,7 +520,7 @@ Function LaborString$(Pat_id&)
 ' Print #2, LS
 ' Close #2
  End Function ' LaborString
- ' noch IN werteAusGeb und doMachDMPBogen
+ ' noch in werteAusGeb und doMachDMPBogen
 Public Sub DMPAusgeb0(aktDC As DMPClass, Optional Pat_id$, Optional obAnzeig As Boolean = True, Optional obnurDMPString = False, Optional DokuDat As Date)
  'DMPAusgeb0 =
  Dim DMPStrhier$
@@ -554,7 +557,7 @@ fehler:
 End Sub      ' DMPAusgeb0
 
 #If False Then
-Function TherapieArtEinzelnFestlegen(Pat_id&, Optional rsAna As ADODB.Recordset) ' IN TherapieArtenFestlegen und alleSpeichern
+Function TherapieArtEinzelnFestlegen(Pat_id&, Optional rsAna As ADODB.Recordset) ' in TherapieArtenFestlegen und alleSpeichern
 Dim nTher$, rAF&, rAnPatID&, Anzeige$, Fanf As Date
 On Error Resume Next
 Fanf = rsAna!Fanf
@@ -629,7 +632,7 @@ End Function ' testtherart$()
 
 #If False Then
 'Public FUNCTION therart_erm(Pat_id&, Optional obanf%, Optional rsAna As Adodb.Recordset, Optional VorDat As Date, Optional Qmax$) AS TherapieArt
-'' IN Therapiearteneinzelnfestlegen, Epikrise, DMPString, testTherArt
+'' in Therapiearteneinzelnfestlegen, Epikrise, DMPString, testTherArt
 'Dim insz%, obIns AS Boolean, obAnal AS Boolean, obGlib AS AntidiabMedType, obmetf AS AntidiabMedType, obGlucI AS AntidiabMedType, obSHGlin AS AntidiabMedType, obGlit AS AntidiabMedType, obdpp4 AS AntidiabMedType, obglp1 AS AntidiabMedType, obsglt2 AS AntidiabMedType, obSonstAD AS AntidiabMedType
 'Dim rAnPatID&, neuladen%
 'On Error Resume Next
@@ -653,7 +656,7 @@ End Function ' testtherart$()
 '         Else
 '          DT = rsAna!Diabetestyp
 '         END IF
-' SELECT CASE LCase(DT)
+' SELECT CASE LCase$(DT)
 '  Case 1, 2, "g", "s", "p"
 '       Dim rmed As New ADODB.Recordset, rMA As New ADODB.Recordset, obRezPumpe AS Boolean, obRezIns AS Boolean
 ''      dim Kurzmed$
@@ -681,7 +684,7 @@ End Function ' testtherart$()
 '        IF Not obRezPumpe THEN
 '         Dim Ausschluß$, krzmd$
 '         Ausschluß = " AND NOT medikament RLIKE 'senso|\ ttr|clix|loe|aviva'"
-'         krzmd = "if(instr(mid(medikament,4),' ')=0,medikament,LEFT(medikament,2+instr(mid(medikament,4),' '))) kurzmed, "
+'         krzmd = "IF(INSTR(MID(medikament,4),' ')=0,medikament,LEFT(medikament,2+INSTR(MID(medikament,4),' '))) kurzmed, "
 '         sql1 = "SELECT DISTINCT " & krzmd & "medikament FROM `rezepteintraege`  WHERE pat_id = " & CStr(rsAna!Pat_id) & Ausschluß
 '         IF VorDat <> CDate(0) THEN
 '             sql1 = sql1 + " AND zeitpunkt < " & DatFor_k(VorDat + 1)
@@ -696,7 +699,7 @@ End Function ' testtherart$()
 '          Do While Not rmed.EOF
 ''           Kurzmed = UCase$(LEFT(rmed!Medikament, IIf(InStrB(Mid$(rmed!Medikament, 4), " ") > 0, InStr(Mid$(rmed!Medikament, 4), " ") - 1 + 4, Len(rmed!Medikament))))
 ''          rmA.Seek "=", Kurzmed
-''           IF Not (LCase(rmed!Medikament) LIKE "*senso*" OR LCase(rmed!Medikament) LIKE "* ttr*" OR LCase(rmed!Medikament) LIKE "*clix*" OR LCase(rmed!Medikament) LIKE "*loe*" OR LCase(rmed!Medikament) LIKE "*aviva*") THEN ' ACCU CHEK SENSOR COmF GLUC TTR 50 St / Accu Chek Spirit Serv Pack  1 P
+''           IF Not (LCase$(rmed!Medikament) LIKE "*senso*" OR LCase$(rmed!Medikament) LIKE "* ttr*" OR LCase$(rmed!Medikament) LIKE "*clix*" OR LCase$(rmed!Medikament) LIKE "*loe*" OR LCase$(rmed!Medikament) LIKE "*aviva*") THEN ' ACCU CHEK SENSOR COmF GLUC TTR 50 St / Accu Chek Spirit Serv Pack  1 P
 '            SET rMA = Nothing
 '            Dim MittelMed$
 '            MittelMed = rmed!kurzmed
@@ -1015,7 +1018,7 @@ Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "Last
 End Select
 End Function ' KommRep
 
-Function AnReparieren() ' Ergänzt die IN den mySQL-Tabellen vermutlich bei der Spaltenbreitenanpassung verlorenen Kommentare aus u:\anamnese\quelle.mdb
+Function AnReparieren() ' Ergänzt die in den mySQL-Tabellen vermutlich bei der Spaltenbreitenanpassung verlorenen Kommentare aus u:\anamnese\quelle.mdb
 'ALTER TABLE `quelle1`.`anamnesebogen` mODIFY COLUMN `Grund für Vorstellung` VARCHAR(479) CHARACTER SET latin1 COLLATE latin1_german2_ci DEFAULT NULL COmmENT '^Grund für Vorstellung';
  Dim i&
  Dim DbA As New ADODB.Connection
@@ -1128,7 +1131,7 @@ For k = IIf(obAnzeig, 0, 7) To rAn.Fields.COUNT - 1
   Descr = rAn.Fields(k).name
  End If
  obNz = False
- If Left(Descr, 1) = "^" Then
+ If Left$(Descr, 1) = "^" Then
   obNz = True
   If te <> "" Then
 '   te = ucase$(LEFT(te, 1)) + mid$(te, 2)
@@ -1143,28 +1146,28 @@ For k = IIf(obAnzeig, 0, 7) To rAn.Fields.COUNT - 1
  End If
  
  obVorwort = False
- If Left(Descr, 1) = "<" Then
+ If Left$(Descr, 1) = "<" Then
   obVorwort = True
   Descr = LTrim$(Mid$(Descr, 2))
  End If
  
  obkomma = False
- If Left(Descr, 1) = "," Then
+ If Left$(Descr, 1) = "," Then
   obkomma = True
   Descr = LTrim$(Mid$(Descr, 2))
  End If
  
  keinName = False
- If Left(Descr, 1) = "-" Then
+ If Left$(Descr, 1) = "-" Then
   keinName = True
   Descr = LTrim$(Mid$(Descr, 2))
  End If
  
- If Left(Descr, 1) = ":" Then Descr = IIf(keinName, vNS, fld.name) + ":"
+ If Left$(Descr, 1) = ":" Then Descr = IIf(keinName, vNS, fld.name) + ":"
  DPPos = InStr(Descr, ":")
  If DPPos > 0 Then
   If Not obVorwort Then
-   Vorwort = Left(Descr, DPPos - 1) + ":"
+   Vorwort = Left$(Descr, DPPos - 1) + ":"
    Descr = Vorwort & " " & Mid$(Descr, DPPos + 1)
   End If
  End If
@@ -1190,7 +1193,7 @@ For k = IIf(obAnzeig, 0, 7) To rAn.Fields.COUNT - 1
    End If
    
    Dim fldName$
-   fldName = LCase(fld.name)
+   fldName = LCase$(fld.name)
    Select Case fldName
     Case "aufschreiben", "bluthochdruck"
      fldv = REPLACE$(REPLACE$(fldv, "n ", "nein "), "n,", "nein,")
@@ -1217,7 +1220,7 @@ For k = IIf(obAnzeig, 0, 7) To rAn.Fields.COUNT - 1
      ElseIf fldv = "u" Then
       Add = "unbekannt"
      Else
-      If Left(fldv, 2) = "n " Then
+      If Left$(fldv, 2) = "n " Then
        Add = REPLACE$(fldv, "n ", "nein ", , 1)
       Else
        Add = CStr(fldv)
@@ -1261,10 +1264,10 @@ For k = IIf(obAnzeig, 0, 7) To rAn.Fields.COUNT - 1
      fldv = REPLACE$(fldv, "SG", "Strömungsgeräusch")
    End Select
    obnadp = False
-   j = InStr(LCase(fldv), "nadp")
+   j = InStr(LCase$(fldv), "nadp")
    If j > 0 Then
     obnadp = True
-    fldv = Left(fldv, j - 1) + LTrim$(Right$(fldv, Len(fldv) - j - 3))
+    fldv = Left$(fldv, j - 1) + LTrim$(Right$(fldv, Len(fldv) - j - 3))
    End If
    
    Select Case fldName
@@ -1353,7 +1356,7 @@ For k = IIf(obAnzeig, 0, 7) To rAn.Fields.COUNT - 1
        Add = "nie"
       Case Else
        Add = REPLACE$(REPLACE$(REPLACE$(fldv, "j ", "ja "), "m ", "meist "), "n ", "nie ")
-       If Left(Add, 2) = "i " Then Add = REPLACE$(Add, "i ", "immer ", , 1)
+       If Left$(Add, 2) = "i " Then Add = REPLACE$(Add, "i ", "immer ", , 1)
      End Select
     Case "letztes hba1c", "vorherige werte"
      Add = fldv + " %"
@@ -1372,7 +1375,7 @@ For k = IIf(obAnzeig, 0, 7) To rAn.Fields.COUNT - 1
     Case "fremde hilfe pa", "bewußtlos pa"
      If fldv = "0" Or fldv = "n" Or fldv = "-" Then
        Add = "kein mal"
-     ElseIf Left(fldv, 1) = "(" Then
+     ElseIf Left$(fldv, 1) = "(" Then
       Add = fldv
      Else
       Add = fldv + " mal"
@@ -1395,11 +1398,11 @@ For k = IIf(obAnzeig, 0, 7) To rAn.Fields.COUNT - 1
        stelle = stelle + 1
       Wend
       If Mid$(Add, stelle, 2) <> "mm" And Mid$(Add, stelle + 1, 2) <> "mm" Then
-       Add = Left(Add, stelle - 1) + " mm Hg" + Right$(Add, Len(Add) - stelle + 1)
+       Add = Left$(Add, stelle - 1) + " mm Hg" + Right$(Add, Len(Add) - stelle + 1)
       End If
       stelle = InStr(stelle + 1, Add, "/")
      Wend
-     If Trim$(LCase(Add)) = "n" Then Add = "normal"
+     If Trim$(LCase$(Add)) = "n" Then Add = "normal"
     Case "tabak", "tabakex", "tabakbis", "tabakakt"
      Add = CStr(fldv)
     Case "tabakmenge"
@@ -1424,7 +1427,7 @@ For k = IIf(obAnzeig, 0, 7) To rAn.Fields.COUNT - 1
      If fldv = "-" And rAn![Jahr letzte Diabetesschulung] = "-" Then
       fldv = vNS
      Else
-      Select Case UCase(fldv)
+      Select Case UCase$(fldv)
        Case "KD"
         Add = "Klinikum Dachau"
        Case "KMB"
@@ -1443,7 +1446,7 @@ For k = IIf(obAnzeig, 0, 7) To rAn.Fields.COUNT - 1
       End If
      End If
     Case "augensp befund", "herz", "lunge", "bauch", "mundhöhle", "carotiden"
-     If LCase(fldv) = "n" Or LCase(fldv) = "ob" Or LCase(fldv) = "ok" Or LCase(Left(fldv, 3)) = "o.b" Then
+     If LCase$(fldv) = "n" Or LCase$(fldv) = "ob" Or LCase$(fldv) = "ok" Or LCase$(Left$(fldv, 3)) = "o.b" Then
       Select Case fldName
        Case "carotiden"
         Add = "kein Strömungsgeräusch"
@@ -1456,9 +1459,9 @@ For k = IIf(obAnzeig, 0, 7) To rAn.Fields.COUNT - 1
      End If
     Case "erhöht?"
      If Trim$(fldv) <> "" Then
-      If InStrB("n-nein", LCase(fldv)) = 0 Then
+      If InStrB("n-nein", LCase$(fldv)) = 0 Then
        Add = "normal"
-      ElseIf InStrB("j+ja", LCase(fldv)) = 0 Then
+      ElseIf InStrB("j+ja", LCase$(fldv)) = 0 Then
        Add = "erhöht"
       End If
      End If
@@ -1552,14 +1555,14 @@ For k = IIf(obAnzeig, 0, 7) To rAn.Fields.COUNT - 1
    If obNz And Add = vNS And fldName <> "j_insulinpumpe" And fldName <> "insulinpumpe" Then Add = "-"
 ' 2. zeile Ende gestrichen: 'IIf(Descr = ":", fldname, "") +
    If Add <> vNS Then _
-    te = te + IIf(Right$(te, 1) = vbLf Or LenB(te) = 0, vNS, IIf(Left(Descr, 1) = ",", vNS, " ")) + _
-         Trim$(IIf(Right$(te, 1) = vbLf Or LenB(te) = 0, IIf(Left(Descr, 2) = ", ", Mid$(Descr, 3), Descr), Descr)) + IIf(LenB(te) = 0, vNS, " ") + Add
+    te = te + IIf(Right$(te, 1) = vbLf Or LenB(te) = 0, vNS, IIf(Left$(Descr, 1) = ",", vNS, " ")) + _
+         Trim$(IIf(Right$(te, 1) = vbLf Or LenB(te) = 0, IIf(Left$(Descr, 2) = ", ", Mid$(Descr, 3), Descr), Descr)) + IIf(LenB(te) = 0, vNS, " ") + Add
   End If ' fld <> "False" AND fld <> "" THEN
  End If ' NOT ISNULL(fld)
 Next
-te = UCase$(Left(te, 1)) + Mid$(te, 2)
+te = UCase$(Left$(te, 1)) + Mid$(te, 2)
 If te <> "" Then
- If Right$(te, 3) <> "." & vbCrLf Then te = Left(te, Len(te) - 2) + "." & vbCrLf
+ If Right$(te, 3) <> "." & vbCrLf Then te = Left$(te, Len(te) - 2) + "." & vbCrLf
 End If
 te = te + myEFrag("SELECT COALESCE(group_concat(concat(case when art LIKE 'Alk%' THEN 'Alkhol' when art LIKE 'fa%' AND art<>'fams' THEN 'Familienanamnese' when art LIKE 'rauch%' OR art LIKE 'nik%' THEN 'Tabak' end,' (',DATE_FORMAT(zeitpunkt,'%d.%m.%y'),'):','\t', Inhalt,'\n') SEPARATOR ''),'') FROM eintraege WHERE pat_id =" & Pat_id & "").Fields(0)
 '  AND (art LIKE 'fa%' OR art LIKE 'rauch%' OR art LIKE 'nik%' OR art LIKE 'alk%') AND art<>'fams' ' braucht's offenbar nicht
@@ -1586,15 +1589,15 @@ Function bruchteile(fldv$, rE$, li$)
       Dim tp1% ' Trennposition 1
       tp = InStr(fldv, "|")
       If InStrB(fldv, ",") > 0 And InStrB(fldv, "bds") = 0 Then
-       rE = Left(fldv, InStr(fldv, ",") - 1)
+       rE = Left$(fldv, InStr(fldv, ",") - 1)
        li = Right$(fldv, Len(fldv) - InStr(fldv, ","))
       ElseIf tp > 0 Then
-       rE = Left(fldv, tp - 1)
+       rE = Left$(fldv, tp - 1)
        li = Mid$(fldv, tp + 1)
        tp = InStr(rE, "/")
-       If tp > 0 Then rE = Left(rE, tp - 1)
+       If tp > 0 Then rE = Left$(rE, tp - 1)
        tp = InStr(li, "/")
-       If tp > 0 Then li = Left(li, tp - 1)
+       If tp > 0 Then li = Left$(li, tp - 1)
       Else
        rE = fldv
        li = fldv
@@ -1603,7 +1606,7 @@ Function bruchteile(fldv$, rE$, li$)
       li = LTrim$(Trim$(li))
 End Function ' bruchteile(fldv$, re$, li$)
 Function Spritzstelle(Abkü)
-  Select Case LCase(CStr(Abkü))
+  Select Case LCase$(CStr(Abkü))
    Case "-"
     Spritzstelle = "-"
    Case "b"
