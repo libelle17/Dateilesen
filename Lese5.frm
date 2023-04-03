@@ -3229,7 +3229,7 @@ End Sub ' FalscheDokumente_Click
 Private Sub korrQD_Click() ' Quelldatum für alle Dokumente korrigieren
  Dim rs As New adodb.Recordset, nQD As Date, rAF&, rsum&
  Call ProgStart
- myEFrag "UPDATE dokumente SET quelldatum=quelldat(dokname);", rsum
+ myEFrag "UPDATE dokumente SET quelldatum=quelldat(dokname,DokAenD);", rsum
 ' myFrag rs, "SELECT * FROM `dokumente`"
 ' Do While Not rs.EOF
 '  nQD = doQuelldatum(rs!DokName)
@@ -3249,7 +3249,7 @@ End Sub ' korrQD_Click
 Private Sub korrQB_Click() ' Quelldatum für alle Briefe korrigieren
  Dim rs As New adodb.Recordset, nQD As Date, rAF&, rsum&
  Call ProgStart
- myEFrag "UPDATE briefe SET quelldatum=quelldat(name);", rsum
+ myEFrag "UPDATE briefe SET quelldatum=quelldat(name,DokAendD);", rsum
 ' myFrag rs; "SELECT * FROM `briefe`"
 ' Do While Not rs.EOF
 '  nQD = doFLQuelldatum(rs!name)

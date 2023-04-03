@@ -11317,46 +11317,68 @@ sql = sql & "   SET i=i+1;" & Chr$(13) & _
     myEFrag (sql)
     
 myEFrag ("DROP FUNCTION IF EXISTS `quelldat`")
-sql = "CREATE DEFINER=`praxis`@`%` FUNCTION `quelldat`(name VARCHAR(1000)) RETURNS DATETIME " & _
-    "    DETERMINISTIC " & _
-    "    NO SQL " & Chr$(13) & _
+sql = "CREATE DEFINER=`praxis`@`%` FUNCTION `quelldat`(name VARCHAR(1000),dokd DATETIME) RETURNS DATETIME" & _
+    "    DETERMINISTIC NO SQL" & Chr$(13) & _
     "BEGIN " & vbCrLf & _
-    " DECLARE posf,runde,p1,p2,p3,p4 INT DEFAULT 0;" & vbCrLf & _
+    " DECLARE posf,runde,p1,art INT DEFAULT 0;" & vbCrLf & _
     " DECLARE Flb VARCHAR(10) DEFAULT 'Fremdlabor';" & vbCrLf & _
-    " DECLARE m1 VARCHAR(1000) DEFAULT '([0-2][0-9]\\.|3[01]\\.|[1-9]\\.)([0-9]\\.|0[0-9]\\.|1[0-2]\\.)(19|20|)([0-9]{2}) ([0-9]{6}|[0-9]{4}[^0-9])';" & vbCrLf & _
-    " DECLARE m2 VARCHAR(1000) DEFAULT '([0-2][0-9]\\.|3[01]\\.|[1-9]\\.)([0-9]\\.|0[0-9]\\.|1[0-2]\\.)(19|20|)([0-9]{2})( ([0-9]|[0-2][0-9])[.:][0-9]{2}([.:][0-9]{2}|)|)';" & vbCrLf & _
-    " DECLARE flname VARCHAR(1000);" & vbCrLf & _
+    " DECLARE m1 VARCHAR(1000) DEFAULT '(31\\.((0|)[13578]|1[02])|30\\.((0|)[1,3-9]|1[0-2])|((0|)[1-9]|[1-2][0-9])\\.((0|)[0-9]|1[0-2]))\\.(19|20|)([0-9]{2}) ([0-9]{6}|[0-9]{4})';" & vbCrLf & _
+    " DECLARE m2 VARCHAR(1000) DEFAULT '(19|20)[0-9]{2}[01][0-9][0-3][0-9]_[0-2][0-9][0-6][0-9]{3}';" & vbCrLf & _
+    " DECLARE m3 VARCHAR(1000) DEFAULT '(31\\.((0|)[13578]|1[02])|30\\.((0|)[1,3-9]|1[0-2])|((0|)[1-9]|[1-2][0-9])\\.((0|)[0-9]|1[0-2]))\\.(19|20|)([0-9]{2})( ([0-9]|[0-2][0-9])[.:][0-9]{2}([.:][0-9]{2}|)|)';" & vbCrLf & _
+    " DECLARE m4 VARCHAR(1000) DEFAULT '(31\\.((0|)[13578]|1[02])|30\\.((0|)[1,3-9]|1[0-2])|((0|)[1-9]|[1-2][0-9])\\.((0|)[0-9]|1[0-2]))\\.';" & vbCrLf & _
+    " DECLARE flname,testname,umwname VARCHAR(1000);" & vbCrLf & _
     " DECLARE eDAT DATETIME;" & vbCrLf & _
     " DECLARE EXIT HANDLER FOR SQLSTATE '22007' RETURN 18991230;" & vbCrLf & _
-    " DECLARE EXIT HANDLER FOR SQLSTATE 'HY000' RETURN 18991230;" & vbCrLf & _
+    " DECLARE EXIT HANDLER FOR SQLSTATE 'HY000' RETURN 18991230;" & vbCrLf
+ sql = sql & _
     " SET posf=INSTR(name,Flb);" & vbCrLf & _
     " IF POSf>0 THEN" & vbCrLf & _
-    "  SET flname=SUBSTRING_INDEX(name,Flb,-1);" & vbCrLf
- sql = sql & _
+    "  SET flname=SUBSTRING_INDEX(name,Flb,-1);" & vbCrLf & _
     " ELSE " & vbCrLf & _
     "  SET flname = name; " & vbCrLf & _
     " END IF;" & vbCrLf & _
     " na: LOOP" & vbCrLf & _
-    "  r1: LOOP " & vbCrLf & _
-    "   SET p1=REGEXP_INSTR(flname,m1);" & vbCrLf & _
-    "   IF p1<2 THEN" & vbCrLf & _
-    "    SET p1=REGEXP_INSTR(flname,m2);" & vbCrLf & _
+    "  SET art=0;" & vbCrLf & _
+    "  SET testname=flname;" & vbCrLf
+ sql = sql & _
+    "  r1: LOOP" & vbCrLf & _
+    "   SET p1=REGEXP_INSTR(testname,m1);" & vbCrLf & _
+    "   IF p1>0 THEN SET art=1; SET umwname=REGEXP_SUBSTR(MID(testname,p1),m1);" & vbCrLf & _
+    "   ELSE" & vbCrLf & _
+    "    SET p1=REGEXP_INSTR(testname,m2);" & vbCrLf & _
+    "    IF p1>0 THEN SET art=2; SET umwname=REGEXP_SUBSTR(MID(testname,p1),m2);" & vbCrLf & _
+    "    ELSE" & vbCrLf & _
+    "     SET p1=REGEXP_INSTR(testname,m3);" & vbCrLf & _
+    "     IF p1>0 THEN SET art=3; SET umwname=REGEXP_SUBSTR(MID(testname,p1),m3);" & vbCrLf & _
+    "     ELSE" & vbCrLf & _
+    "      SET p1=REGEXP_INSTR(testname,m4);" & vbCrLf & _
+    "      IF p1>0 THEN SET art=4; SET umwname=REGEXP_SUBSTR(MID(testname,p1),m4);" & vbCrLf & _
+    "      END IF;" & vbCrLf & _
+    "     END IF;" & vbCrLf & _
+    "    END IF;" & vbCrLf & _
     "   END IF;" & vbCrLf & _
-    "   IF p1>2 THEN SET flname=MID(flname,p1); ELSE LEAVE r1; END IF;" & vbCrLf & _
+    "   IF p1=0 THEN LEAVE r1; END IF;" & vbCrLf & _
+    "   SET flname=MID(testname,p1);" & vbCrLf & _
+    "   SET testname=MID(flname,LENGTH(umwname)+1);" & vbCrLf & _
     "  END LOOP r1;" & vbCrLf
  sql = sql & _
-    "  SET edat=STR_TO_DATE(REPLACE(REGEXP_SUBSTR(flname,m1),':','.'),'%d.%m.%Y %H%i%s');" & vbCrLf & _
-    "  IF edat=0 THEN" & vbCrLf & _
-    "   SET edat=STR_TO_DATE(REPLACE(REPLACE(REGEXP_SUBSTR(flname,m2),':','.'),'-','.'),'%d.%m.%Y %H.%i.%s');" & vbCrLf & _
-    "  END IF;" & vbCrLf & _
+    "  CASE WHEN art=1 THEN SET edat=STR_TO_DATE(REPLACE(umwname,':','.'),'%d.%m.%Y %H%i%s');" & vbCrLf & _
+    "       WHEN art=2 THEN SET edat=STR_TO_DATE(umwname,'%Y%m%d_%H%i%s');" & vbCrLf & _
+    "       WHEN art=3 THEN SET edat=STR_TO_DATE(REPLACE(REPLACE(umwname,':','.'),'-','.'),'%d.%m.%Y %H.%i.%s');" & vbCrLf & _
+    "       WHEN art=4 THEN SET edat=STR_TO_DATE(CONCAT(REPLACE(umwname,':','.'),YEAR(dokd)),'%d.%m.%Y');" & vbCrLf & _
+    "                       IF edat>dokd THEN SET edat=edat-INTERVAL 1 YEAR; END IF;" & vbCrLf & _
+    "       ELSE SET edat=0;" & vbCrLf & _
+    "  END CASE;" & vbCrLf & _
     "  IF runde=1 OR POSf=0 OR edat<>0 THEN LEAVE na; END IF;" & vbCrLf & _
     "  SET flname=name;" & vbCrLf & _
     "  SET runde=runde+1;" & vbCrLf & _
     " END LOOP na;" & vbCrLf & _
-    " IF edat=0 THEN SET edat=18991230; END IF; " & vbCrLf & _
+    " IF edat=0 OR (edat>NOW()) THEN SET edat=18991230; END IF; -- (edat>dokd+INTERVAL 7 MONTH AND dokd<>18991230)" & vbCrLf & _
     " RETURN edat;" & vbCrLf & _
     "END" & vbCrLf
     myEFrag (sql)
+'     "  " & vbCrLf & _
+
 
 #If False Then
 myEFrag ("DROP FUNCTION IF EXISTS `quelldat`")
@@ -11861,7 +11883,7 @@ sql = "CREATE DEFINER=`praxis`@`%` FUNCTION  `quelle`.`rang`(tha text) RETURNS I
     "DETERMINISTIC " & vbCrLf & _
     "COMMENT 'rang der Therapiearten' " & _
 "BEGIN " & vbCrLf & _
-"    Case lower(Tha) " & vbCrLf & _
+"    CASE LOWER(Tha) " & vbCrLf & _
 "      WHEN 'diät'THEN RETURN 0; " & vbCrLf & _
 "      WHEN 'diät?'THEN RETURN 0; " & vbCrLf & _
 "      WHEN 'oad' THEN RETURN 1; " & vbCrLf & _
