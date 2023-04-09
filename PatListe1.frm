@@ -1453,7 +1453,7 @@ Public Sub callMachDMPBogen(Pat_id&, Optional VorDoku$, Optional obmitauswahl%, 
         AktCol = j
 '        IF VorDokuSp = 0 THEN VorDokuSp = AktCol
         VorDoku = rDok!art & " " & Format(rDok!DokuDatum, "dd.mm.yy")
-        If rDok!OK And rDok!ausgedruckt Then
+        If rDok!Ok And rDok!ausgedruckt Then
          VorDoku = VorDoku & " ok"
         ElseIf j = begcol And Not obraus Then
 '         obrot = True ' Wenn Pat. rausgeflogen, dann fehlt auch aktuelle Erstdoku
@@ -1985,9 +1985,17 @@ Public Sub domachDMPBogen(Pat_id&, BogArtlV As BogArtTyp, DokuDat As Date, Optio
    
    BDT.FFAdd "Ik"
 '   BDT.FIAdd "10" & rfal!IK    ' 1.1.15: Vorsatz von "10" empirisch bei Monterosso ermittelt, in IK-Liste scheint es bei den DMP-Kassen 10 zu sein, bei LKK auch 11
-   Dim rik As New ADODB.Recordset, IKs$
-   myFrag rik, "SELECT * FROM IKs WHERE ik = " & aktDC.IK
-   If Not rik.BOF Then IKs = rik!ikprae Else IKs = ""
+   Dim rik As New ADODB.Recordset, IKs$, ikname$, ikprae$
+   myFrag rik, "SELECT ikprae,name FROM IKs WHERE ik = " & aktDC.IK
+   If Not rik.BOF Then
+    ikprae = rik!ikprae
+    ikname = rik!name
+    IKs = ikprae
+   Else
+    ikprae = ""
+    ikname = ""
+    IKs = ""
+   End If
    IKs = IKs & aktDC.IK  ' 1.1.15: scheint aber auch so zu gehen, was mir momentan sicherer erscheint
    BDT.FIAdd IKs
    If ab315 Then
@@ -2200,7 +2208,7 @@ Public Sub domachDMPBogen(Pat_id&, BogArtlV As BogArtTyp, DokuDat As Date, Optio
    ' folgende Zeile war für beide Ärzte gleich
    ' 30.6.15 Anschriftenzusatz ergaenzt
    ZsD = ZsD & "<Krankenhaus><Abteilung>FA Innere und Allgemeinmedizin (Hausarzt)</Abteilung><Name>Gerald Schade</Name></Krankenhaus><Praxis><Praxisname>Gerald Schade</Praxisname><Anschriftenzusatz></Anschriftenzusatz><Strasse>Mittermayerstraße</Strasse><Hausnummer>13</Hausnummer><PLZ>85221</PLZ><Stadt>Dachau</Stadt><Laenderkennzeichen></Laenderkennzeichen><Postfach></Postfach><PostfachPLZ></PostfachPLZ><PostfachOrt></PostfachOrt><Telefon>tel: 08131 / 616 380</Telefon><Telefax>fax: </Telefax></Praxis><Betriebsstaette><BSNR>641915300</BSNR><Betriebsstaettename>Diabetologische Gemeinschaftspraxis</Betriebsstaettename><Anschriftenzusatz></Anschriftenzusatz><Strasse>Mittermayerstraße</Strasse><Hausnummer>13</Hausnummer><PLZ>85221</PLZ><Stadt>Dachau</Stadt><Laenderkennzeichen></Laenderkennzeichen><Postfach></Postfach><PostfachPLZ></PostfachPLZ><PostfachOrt></PostfachOrt><Telefon>tel: 08131 / 616 380</Telefon><Telefax>fax: </Telefax></Betriebsstaette>"
-   ZsD = ZsD & "<Krankenversicherung><Typ>GKV</Typ><Name>" & Trim$(rik!name) & "</Name><ikPraefix>" & rik!ikprae & "</ikPraefix><IKNummer>" & Trim$(aktDC.IK) & "</IKNummer><KostentraegerAbrechnungsbereich>" & aktDC.KtrAbrB & "</KostentraegerAbrechnungsbereich>"
+   ZsD = ZsD & "<Krankenversicherung><Typ>GKV</Typ><Name>" & Trim$(ikname) & "</Name><ikPraefix>" & ikprae & "</ikPraefix><IKNummer>" & Trim$(aktDC.IK) & "</IKNummer><KostentraegerAbrechnungsbereich>" & aktDC.KtrAbrB & "</KostentraegerAbrechnungsbereich>"
    Set rik = Nothing
    
 ' Hier der KV-Bereich
@@ -3631,7 +3639,7 @@ Private Sub Form_Load()
         .col = j
         If VorDokuSp = 0 Then VorDokuSp = .col
         .Text = rDok!art & " " & Format(rDok!DokuDatum, "dd.mm.yy")
-        If rDok!OK And rDok!ausgedruckt Then
+        If rDok!Ok And rDok!ausgedruckt Then
          .Text = .Text & " ok"
         ElseIf j = begcol And Not obraus And ZQuart(BhFB) = ZQuart(Now() - Verspätung) Then ' letzte Bedingungen eingefügt 31.12.15
          .toolTipText = "Doku fehlt"

@@ -6318,21 +6318,44 @@ End Function ' LaborEintr0()
 'End Function ' formInhMach
 
 ' aufgerufen in doLies (2x)
-Function doQuelldatum(DokName$, Optional dokdat As Date) As Date
- Dim Spli$(), i&, buch$, doumw$, cont As String * 10, auffuell%, auffStand%
+' zu koordinieren mit `quelldat` in doViewserstellen( in imporiere
+Function doQuelldatum(ByVal DokName$, Optional dokdat As Date) As Date
+ Dim Spli$(), i&, aru%, buch$, doumw$, auffuell%, auffStand%, testname$, p1&, p2&
+ Dim doumwD As Date
+ Dim gesdat$
+ On Error GoTo fehler
+ DokName = LCase$(DokName)
+ p1 = InStr(DokName, "fremdlabor")
+ If p1 <> 0 Then
+  p2 = InStr(Mid(DokName, p1), "bz")
+  If p2 = 0 Then p2 = InStr(Mid(DokName, p1), "rr")
+  If p2 = 0 Then p2 = InStr(Mid(DokName, p1), "medikamentenplan")
+  If p2 <> 0 Then testname = Left$(Mid(DokName, p1), p2 - 1)
+ End If
+ If testname = "" Then testname = DokName
+ For aru = 1 To IIf(p2 <> 0, 2, 1)
+  If aru = 2 Then testname = DokName
   If dokdat = 0 Then dokdat = Now()
-  Spli = Split(REPLACE$(REPLACE$(REPLACE$(REPLACE$(DokName, ".jpg", ""), ".tif", ""), ".pdf", ""), ",", " "))
+  Spli = Split(REPLACE$(REPLACE$(REPLACE$(REPLACE$(testname, ".jpg", ""), ".tif", ""), ".pdf", ""), ",", " "))
   For i = UBound(Spli) To 0 Step -1
-   If i > 0 Then If IsDate(Spli(i - 1)) And InStrB(Spli(i - 1), ".") <> 0 Then If CDate(Spli(i - 1)) <= Now() Then i = i - 1 ' 2.4.23
+'   gesdat = Spli(i - 1)
+   If i > 0 Then
+    If InStr(Spli(i - 1), "-") Then Spli(i - 1) = Mid(Spli(i - 1), InStr(Spli(i - 1), "-") + 1)
+    Spli(i - 1) = REPLACE$(Spli(i - 1), "-", ".") ' 25.1.-6-2.23
+    If i > 0 Then If IsDate(Spli(i - 1)) And InStrB(Spli(i - 1), ".") <> 0 Then If CDate(Spli(i - 1)) <= Now() Then i = i - 1 ' 2.4.23
+   End If
    doumw = Spli(i)
    If IsDate(doumw) And InStrB(doumw, ".") <> 0 Then ' korrigiert 11.7.09
     If InStr(Mid(doumw, InStr(doumw, ".") + 1), ".") = 0 Then
-     doumw = doumw & "." & Year(dokdat)
+     gesdat = doumw & "." & Year(dokdat)
     ElseIf Right$(doumw, 1) = "." Then
-     doumw = doumw & Year(dokdat)
+     gesdat = doumw & Year(dokdat)
+    Else
+     gesdat = doumw
     End If
-    If doumw > dokdat Then doumw = DateAdd("y", -1, doumw)
-    If CDate(doumw) <= Now Then ' 2.4.24
+    If IsDate(gesdat) Then doumwD = CDate(gesdat) Else doumwD = CDate(doumw)
+    If doumwD > dokdat Then doumwD = DateAdd("y", -1, doumwD)
+    If doumwD <= Now Then ' 2.4.24
 '    rdo.Edit
      buch = ""
      If UBound(Spli) > i Then
@@ -6342,11 +6365,7 @@ Function doQuelldatum(DokName$, Optional dokdat As Date) As Date
        buch = doumw & " " & REPLACE$(Spli(i + 1), ".", ":")
       End If
      End If
-     If IsDate(buch) Then
-      doQuelldatum = CDate(buch)
-     Else
-      doQuelldatum = CDate(doumw)
-     End If
+     If IsDate(buch) Then doQuelldatum = CDate(buch) Else doQuelldatum = doumwD
  '    rdo.Update
      Exit For
     End If
@@ -6355,8 +6374,22 @@ Function doQuelldatum(DokName$, Optional dokdat As Date) As Date
     doQuelldatum = Mid$(doumw, 7, 2) & "." & Mid$(doumw, 5, 2) & "." & Left$(doumw, 4) & " " & Mid$(doumw, 10, 2) & ":" & Mid(doumw, 12, 2) & ":" & Mid(doumw, 14, 2) ' Format(doumw, "YYYYMMDD_HHMMSS")
    End If ' IsDate(Spli(i)) And InStrB(Spli(i), ".") <> 0
   Next i
-  If doQuelldatum = 0 Then doQuelldatum = GetDatumAusString(DokName)
-  ReDim Spli(0)
+  If doQuelldatum <> 0 Then Exit For
+ Next aru
+ If doQuelldatum = 0 Then doQuelldatum = GetDatumAusString(testname)
+ Exit Function
+fehler:
+ Dim AnwPfad$
+#If VBA6 Then
+ AnwPfad = CurrentDb.name
+#Else
+ AnwPfad = App.path
+#End If
+Select Case MsgBox("FNr: " & FNr & ", ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in doQuelldatum/" + AnwPfad)
+ Case vbAbort: Call MsgBox("Höre auf"): ProgEnde
+ Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
+ Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
+End Select
 End Function ' doQuelldatum
 
 #If False Then
