@@ -10178,7 +10178,7 @@ Call DtbCreateQueryDef(VN, Vsql)
 If LVobMySQL Then
  VN = "aktfaelle"
   Vsql = "SELECT f.pat_id pid, notiz, stru.leistung stru, chron.leistung chron, kt.ct kt, ebm.leistung verspau " & vbCrLf & _
- ",(SELECT icd FROM diagview d WHERE d.pat_id=f.pat_id AND d.gicd RLIKE '^E1[0-4]\.|^O24\.' AND (d.obdauer <> 0 OR d.fid = f.fid) ORDER BY icd LIMIT 1) icd " & vbCrLf & _
+ ",(SELECT icd FROM diagview d WHERE d.pat_id=f.pat_id AND (d.gicd REGEXP '^E1[0-4]\.|^R73' OR (d.icd LIKE 'O24%' AND d.f6010=0 AND d.diagsicherheit IN ('G',' ') AND d.diagdatum BETWEEN qbegs(f.quartal) AND qends(f.quartal))) ORDER BY icd LIMIT 1) icd " & vbCrLf & _
  ", f.*, k.id, k.name kname, kateg, anzahlik, anzahlktug, gültigvon, gültigbis, go, kurzname " & vbCrLf & _
  "FROM ((`faelle` f " & vbCrLf & _
  "LEFT JOIN `kassenliste` k ON f.vknr = k.vknr AND f.ik = k.ik) " & vbCrLf & _
@@ -10301,7 +10301,7 @@ If LVobMySQL Then
  Vsql = _
  "SELECT CASE WHEN dicd LIKE 'E10%' THEN '1' WHEN dicd LIKE 'E11%' THEN '2' WHEN dicd = 'O24.4' THEN 'g' ELSE '-' END dtyp, i.* FROM (" & vbCrLf & _
  " SELECT COALESCE(t.therart,'Diät') mta, rang(COALESCE(t.therart,'Diät')) rang, t.zp tzp " & vbCrLf & _
- ", (SELECT MAX(icd) FROM diagview WHERE pat_id=f.pat_id AND ((gicd RLIKE '^E1[0-4]\.' AND obdauer<>0) OR (gicd='O24.4' AND obdauer=0 AND diagdatum BETWEEN qanf() AND qend()))) dicd " & vbCrLf & _
+ ", (SELECT MAX(icd) FROM diagview WHERE pat_id=f.pat_id AND ((gicd RLIKE '^E1[0-4]\.' AND obdauer<>0) OR (d.icd='O24.4' AND d.f6010=0 AND d.diagsicherheit IN ('G',' ') AND obdauer=0 AND diagdatum BETWEEN qanf() AND qend()))) dicd " & vbCrLf & _
  ", f.* " & vbCrLf & _
  " FROM aktfv f " & vbCrLf & _
  " LEFT JOIN therarten t ON t.pat_id=f.pat_id AND t.zp BETWEEN COALESCE((SELECT MAX(zp) FROM therarten WHERE pat_id=f.pat_id AND zp<qanf()),19000101) AND qend() " & vbCrLf & _
@@ -10656,7 +10656,7 @@ VN = "CSII bei Typ 2"
 Vsql = "SELECT a.Pat_ID, gesname(a.pat_id) PName, t.zp, t.therart, t.grund, d.gicd icd " & vbCrLf & _
 "FROM anamnesebogen a" & vbCrLf & _
 "LEFT JOIN therarten t USING (pat_id)" & vbCrLf & _
-"LEFT JOIN diagview d ON d.Pat_id = a.Pat_id AND d.gicd REGEXP '^E1[1-4]\.|^O24.4'" & vbCrLf & _
+"LEFT JOIN diagview d ON d.Pat_id = a.Pat_id AND (d.gicd REGEXP '^E1[1-4]\.' OR (d.icd='O24.4' AND d.f6010=0 AND d.diagsicherheit in ('G',' ')))" & vbCrLf & _
 "WHERE (a.Ther1 = 'CSII' OR t.therart='CSII') AND d.ICD IS NOT NULL"
 Call DtbCreateQueryDef(VN, Vsql)
 vz = vz + 1
@@ -11341,11 +11341,11 @@ sql = "CREATE DEFINER=`praxis`@`%` FUNCTION `quelldat`(name VARCHAR(1000),dokd D
     " SET POSf=INSTR(name,Flb);" & vbCrLf & _
     " IF POSf>0 THEN" & vbCrLf & _
     "  SET flname=SUBSTRING_INDEX(name,Flb,-1);" & vbCrLf & _
+    "  SET p1=REGEXP_INSTR(flname,'BZ|RR|Medikamentenplan');" & vbCrLf & _
+    "  IF p1>0 THEN SET flname=LEFT(flname,p1);" & vbCrLf & _
+    "  END IF;" & vbCrLf & _
     " ELSE " & vbCrLf & _
     "  SET flname = name; " & vbCrLf & _
-    " END IF;" & vbCrLf & _
-    " SET p1=REGEXP_INSTR(flname,'BZ|RR|Medikamentenplan');" & vbCrLf & _
-    " IF p1>0 THEN SET flname=LEFT(flname,p1);" & vbCrLf & _
     " END IF;" & vbCrLf & _
     " na: LOOP" & vbCrLf & _
     "  SET art=0;" & vbCrLf & _
@@ -11550,7 +11550,7 @@ sql = sql & _
     
     VN = "aktfkvs" ' aktive Fälle mit Kontakten, auch 0 Kontakte, schnell (ohne kateg und goäkatnr)
     Vsql = _
-    "SELECT f.pat_id, COUNT(DISTINCT zp) koz,COALESCE(GROUP_CONCAT(DISTINCT DATE_FORMAT(zp,'%e.%c.') ORDER BY zp SEPARATOR '•'),'') czp, COALESCE(min(zp),'') erst, COALESCE(MAX(zp),'') letzt, f.fid,f.schgr,f.vknr,f.ik,f.lanrid, COALESCE(GROUP_CONCAT(Typ ORDER BY zp SEPARATOR '•'),'') Typ, COALESCE(GROUP_CONCAT(Art ORDER BY zp SEPARATOR '•'),'') Art" & vbCrLf & _
+    "SELECT f.pat_id, COUNT(DISTINCT zp) koz,quartal,COALESCE(GROUP_CONCAT(DISTINCT DATE_FORMAT(zp,'%e.%c.') ORDER BY zp SEPARATOR '•'),'') czp, COALESCE(min(zp),'') erst, COALESCE(MAX(zp),'') letzt, f.fid,f.schgr,f.vknr,f.ik,f.lanrid, COALESCE(GROUP_CONCAT(Typ ORDER BY zp SEPARATOR '•'),'') Typ, COALESCE(GROUP_CONCAT(Art ORDER BY zp SEPARATOR '•'),'') Art" & vbCrLf & _
     "FROM aktfv f " & vbCrLf & _
     "LEFT JOIN kontkte USING (pat_id)" & vbCrLf & _
     "GROUP BY f.pat_id; "
@@ -12140,7 +12140,7 @@ sql = "CREATE DEFINER=`praxis`@`%` FUNCTION `dmtyp`( pid INT(6) UNSIGNED ) RETUR
 "BEGIN" & vbCrLf & _
 "  DECLARE typ VARCHAR(1);" & vbCrLf & _
 "  SET typ = (SELECT CASE SUBSTR(gicd,1,1) WHEN 'E' THEN CASE SUBSTR(gicd,3,1) WHEN 1 THEN '2' WHEN 0 THEN '1' WHEN 3 THEN 's' ELSE 'u' END WHEN 'O' THEN 'g' WHEN 'R' THEN 'p' ELSE '-' END FROM " & vbCrLf & _
-"  (SELECT MIN(gicd) gicd FROM diagview d WHERE pat_id = pid AND gicd REGEXP '^E1[0-4]\.|^O24|^R73' " & vbCrLf & _
+"  (SELECT MIN(icd) gicd FROM diagview d WHERE pat_id = pid AND (d.gicd REGEXP '^E1[0-4]\.|^R73' OR (d.icd='O24.4' AND d.f6010=0 AND d.diagsicherheit in ('G',' '))) " & vbCrLf & _
 "  ) i );" & vbCrLf & _
 "RETURN typ;" & vbCrLf & _
 "END"
@@ -12446,14 +12446,14 @@ myEFrag (sql)
 sql = "DROP VIEW IF EXISTS `dtypen`;"
 myEFrag sql
 sql = "CREATE OR REPLACE ALGORITHM=UNDEFINED DEFINER=`praxis`@`%` SQL SECURITY DEFINER VIEW `dtypen` AS " & vbCrLf & _
-"SELECT Pat_id, gicd, ityp " & vbCrLf & _
+"SELECT Pat_id, icd gicd, ityp " & vbCrLf & _
 ", IF(obsek AND ityp IN ('1','2'),'s',ityp) ttyp, diagtext, obsek " & vbCrLf & _
 "FROM ( " & vbCrLf & _
-" SELECT n.pat_id, d.gicd, d.diagtext, COALESCE(diagtext RLIKE 'pan[ck]r|sekund',0) obsek " & vbCrLf & _
-" , CASE LEFT(gicd,1) WHEN 'E' THEN CASE MID(gicd,3,1) WHEN 1 THEN '2' WHEN 0 THEN '1' WHEN 3 THEN 's' ELSE 'u' END WHEN 'O' THEN 'g' WHEN 'R' THEN 'p' ELSE '-' END ityp " & vbCrLf & _
+" SELECT n.pat_id, d.icd, d.diagtext, COALESCE(diagtext RLIKE 'pan[ck]r|sekund',0) obsek " & vbCrLf & _
+" , CASE LEFT(icd,1) WHEN 'E' THEN CASE MID(icd,3,1) WHEN 1 THEN '2' WHEN 0 THEN '1' WHEN 3 THEN 's' ELSE 'u' END WHEN 'O' THEN 'g' WHEN 'R' THEN 'p' ELSE '-' END ityp " & vbCrLf & _
 " , RANK() OVER(PARTITION BY n.pat_id ORDER BY obsek DESC,LEFT(d.gicd,3),MID(d.gicd,5,1)=9 DESC,MID(d.gicd,5) DESC,LENGTH(d.diagtext) DESC) rang " & vbCrLf & _
 " FROM namen n " & vbCrLf & _
-" LEFT JOIN diagview d ON d.pat_id=n.pat_id AND d.gICD REGEXP '^E1[0-4]\.|^O24|^R73' GROUP BY n.pat_id,d.gicd,d.diagtext " & vbCrLf & _
+" LEFT JOIN diagview d ON d.pat_id=n.pat_id AND (d.gicd REGEXP '^E1[0-4]\.|^R73' OR (d.icd='O24.4' AND d.f6010=0 AND d.diagsicherheit in ('G',' '))) GROUP BY n.pat_id,d.gicd,d.diagtext " & vbCrLf & _
 ") i " & vbCrLf & _
 "WHERE rang=1;"
 myEFrag sql
@@ -12463,8 +12463,8 @@ myEFrag sql
 sql = "CREATE OR REPLACE ALGORITHM=UNDEFINED DEFINER=`praxis`@`%` SQL SECURITY DEFINER VIEW `dtypview` AS " & vbCrLf & _
 "SELECT n.pat_id, d.dmtyp FROM namen n" & vbCrLf & _
 "LEFT JOIN (SELECT pat_id,CASE WHEN icd RLIKE '^E' THEN CAST(MID(icd,3,1)+1 AS CHAR) WHEN icd RLIKE '^R' THEN 'p' ELSE 'g' END dmtyp " & vbCrLf & _
-"FROM diagview" & vbCrLf & _
-"WHERE ((gICD RLIKE '^E1[0-4]\.|^R73' AND obdauer<>0) OR (gICD='O24.4' AND obdauer=0)) GROUP BY pat_id) d" & vbCrLf & _
+"FROM diagview d" & vbCrLf & _
+"WHERE (d.gicd REGEXP '^E1[0-4]\.|^R73' OR (d.icd='O24.4' AND d.f6010=0 AND d.diagsicherheit in ('G',' '))) GROUP BY pat_id) d" & vbCrLf & _
 "ON d.pat_id=n.pat_id;"
 myEFrag sql
     

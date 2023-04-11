@@ -5168,7 +5168,7 @@ Private Sub AbfragenLad()
  DQSQL(i) = "SELECT n.pat_id FROM namen n " & vbCrLf & _
             "INNER JOIN `aktfv` af ON n.pat_id = af.pat_id WHERE NOT EXISTS (" & vbCrLf & _
              "SELECT * FROM `diagview` d " & vbCrLf & _
-             "WHERE d.pat_id = af.pat_id AND d.gicd RLIKE '^E1[0-4]\.|^O24\.'" & vbCrLf & _
+             "WHERE d.pat_id = af.pat_id AND (d.gicd REGEXP '^E1[0-4]\.|^R73' OR (d.icd LIKE 'O24%' AND d.f6010=0 AND d.diagsicherheit IN ('G',' ') AND d.diagdatum BETWEEN qbegs(af.quartal) AND qends(af.quartal)))" & vbCrLf & _
             ") ORDER BY vorgestellt DESC"
  i = i + 1
 
