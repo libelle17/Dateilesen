@@ -220,7 +220,7 @@ Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "Last
  Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
  Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
 End Select
-End Sub
+End Sub ' abhaken_Click
 
 Private Sub dpS_DragOVER(source As Control, x As Single, Y As Single, State As Integer)
 '
@@ -333,15 +333,15 @@ End Sub ' InTurbomed anzeigen
 
 Private Sub MSHFlexGrid1_EnterCell()
  Me.MSHFlexGrid1.CellBackColor = vbYellow
-End Sub
+End Sub ' MSHFlexGrid1_EnterCell
 
 Private Sub MSHFlexGrid1_LeaveCell()
  Me.MSHFlexGrid1.CellBackColor = IIf(Me.MSHFlexGrid1.Row = 0, vbActiveBorder, vbWhite)
-End Sub
+End Sub ' MSHFlexGrid1_LeaveCell
 
 Private Sub nurHeuer_Click()
  Call LadDaten
-End Sub
+End Sub ' nurHeuer_Click
 
 Private Sub weiter_Click()
  On Error GoTo fehler
@@ -378,7 +378,7 @@ Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "Last
  Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
  Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
 End Select
-End Sub
+End Sub ' weiter_Click
 
 
 Private Sub zurück_Click()
@@ -414,20 +414,19 @@ Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "Last
  Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
  Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
 End Select
-End Sub 'zurück
+End Sub 'zurück_Click
 
 
 Private Sub Form_Initialize()
 '    rAd.Open sql, dbcn, adOpenDynamic, adLockOptimistic
 '    SET Me.MSHFlexGrid1.DataSource = rAd
 
-End Sub
+End Sub ' Form_Initialize
 
 Private Sub LadDaten()
 ' PROVIDER=MSDASQL;dsn=MySQLpraxis;uid=praxis;pwd=***REMOVED***;database=quelle;
  Dim sql$
  On Error GoTo fehler
- 
  If Not obStart Then
   hlese.Visible = False
  End If
@@ -472,6 +471,7 @@ Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "Last
  Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
 End Select
 End Sub ' LadDaten
+
 Private Sub FlexAusricht()
  On Error GoTo fehler
     With MSHFlexGrid1
@@ -526,6 +526,7 @@ Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "Last
  Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
 End Select
 End Sub ' FlexAusricht
+
 Private Sub Form_Load() ' Labor eintragen
  On Error GoTo fehler
  Screen.MousePointer = vbHourglass
@@ -552,7 +553,8 @@ End Sub 'Form_Load
 
 Private Sub Form_Unload(Cancel As Integer)
  hlese.Visible = True
-End Sub
+End Sub ' Form_Unload
+
 Private Function IrfanString$()
  Dim DateiName$
  On Error GoTo fehler
@@ -610,7 +612,6 @@ Private Sub MSHFlexGrid1_DragDrop(source As Control, x As Single, Y As Single)
 '-------------------------------------------------------------------------------------------
 ' Code in den DragDrop-, MouseDown-, MouseMove- und MouseUp-Ereignissen der Tabelle aktiviert das Ziehen von Spalten
 '-------------------------------------------------------------------------------------------
-
     If m_iDragCol = -1 Then Exit Sub    ' es wurde nicht gezogen
     If MSHFlexGrid1.MouseRow <> 0 Then Exit Sub
     If MSHFlexGrid1.FixedCols = 1 And MSHFlexGrid1.MouseCol = 0 Then Exit Sub
@@ -620,29 +621,24 @@ Private Sub MSHFlexGrid1_DragDrop(source As Control, x As Single, Y As Single)
         .ColPosition(m_iDragCol) = .MouseCol
         .Redraw = True
     End With
-
-End Sub
+End Sub ' MSHFlexGrid1_DragDrop
 
 Private Sub MSHFlexGrid1_MouseDown(Button As Integer, Shift As Integer, x As Single, Y As Single)
 '-------------------------------------------------------------------------------------------
 ' Code in den DragDrop-, MouseDown-, MouseMove- und MouseUp-Ereignissen der Tabelle aktiviert das Ziehen von Spalten
 '-------------------------------------------------------------------------------------------
-
     If MSHFlexGrid1.MouseRow <> 0 Then Exit Sub
     If MSHFlexGrid1.MouseCol = 0 And MSHFlexGrid1.FixedCols = 1 Then Exit Sub
-
     xdn = x
     ydn = Y
     m_iDragCol = -1     ' Zieh-Attribut löschen
     m_bDragOK = True
-
-End Sub
+End Sub ' MSHFlexGrid1_MouseDown
 
 Private Sub MSHFlexGrid1_MouseMove(Button As Integer, Shift As Integer, x As Single, Y As Single)
 '-------------------------------------------------------------------------------------------
 ' Code in den DragDrop-, MouseDown-, MouseMove- und MouseUp-Ereignissen der Tabelle aktiviert das Ziehen von Spalten
 '-------------------------------------------------------------------------------------------
-
     ' testen, um zu sehen, ob zum dem Ziehen begonnen werden kann
     If Not m_bDragOK Then Exit Sub
     If Button <> 1 Then Exit Sub                        ' falsche Schaltfläche
@@ -653,31 +649,24 @@ Private Sub MSHFlexGrid1_MouseMove(Button As Integer, Shift As Integer, x As Sin
     ' wenn Sie bis hierher gekommen sind, dann starten Sie den Ziehvorgang
     m_iDragCol = MSHFlexGrid1.MouseCol
     MSHFlexGrid1.Drag vbBeginDrag
-
-End Sub
+End Sub ' MSHFlexGrid1_MouseMove
 
 Private Sub MSHFlexGrid1_MouseUp(Button As Integer, Shift As Integer, x As Single, Y As Single)
 '-------------------------------------------------------------------------------------------
 ' Code in den DragDrop-, MouseDown-, MouseMove- und MouseUp-Ereignissen der Tabelle aktiviert das Ziehen von Spalten
 '-------------------------------------------------------------------------------------------
-
     m_bDragOK = False
-
-End Sub
+End Sub ' MSHFlexGrid1_MouseUp
 
 Private Sub MSHFlexGrid1_DblClick()
 '-------------------------------------------------------------------------------------------
 ' Code in DblClick-Ereignis der Tabelle aktiviert Spaltensortierung
 '-------------------------------------------------------------------------------------------
-
-    Dim i As Integer
-
+    Dim i%
     ' nur dann sortieren, wenn eine feste Zeile angeklickt wurde
     If MSHFlexGrid1.MouseRow >= MSHFlexGrid1.FixedRows Then Exit Sub
-
     i = m_iSortCol                  ' alte Spalte speichern
     m_iSortCol = MSHFlexGrid1.col   ' neue Spalte festlegen
-
     ' Sortiertyp inkrementieren
     If i <> m_iSortCol Then
         ' wenn eine neue Spalte geklickt wird, mit aufsteigender Sortierung beginnen
@@ -687,16 +676,13 @@ Private Sub MSHFlexGrid1_DblClick()
         m_iSortType = m_iSortType + 1
     If m_iSortType = 3 Then m_iSortType = 1
     End If
-
     DoColumnSort
-
-End Sub
+End Sub ' MSHFlexGrid1_DblClick
 
 Sub DoColumnSort()
 '-------------------------------------------------------------------------------------------
 ' Führt Exchange-Sortierung von column m_iSortCol durch
 '-------------------------------------------------------------------------------------------
-
     With MSHFlexGrid1
         .Redraw = False
         .Row = 1
@@ -705,20 +691,16 @@ Sub DoColumnSort()
         .Sort = m_iSortType
         .Redraw = True
     End With
-
-End Sub
+End Sub ' DoColumnSort
 
 Private Sub Form_Resize()
-
     Dim sngButtonTop As Single
     Dim sngScaleWidth As Single
     Dim sngScaleHeight As Single
-
     On Error GoTo Form_Resize_Error
     With Me
         sngScaleWidth = .ScaleWidth
         sngScaleHeight = .ScaleHeight
-
         ' Schaltfläche 'Schließen' in untere rechte Ecke verschieben
         With .cmdClose
                 sngButtonTop = sngScaleHeight - (.Height + MARGIN_SIZE) - Me.dpS.Height - MARGIN_SIZE
@@ -745,7 +727,6 @@ Private Sub Form_Resize()
         With .dpS
             .Move .Left, sngButtonTop + MARGIN_SIZE + Me.cmdRefresh.Height
         End With
-        
         .MSHFlexGrid1.Move MARGIN_SIZE, _
             MARGIN_SIZE, _
             sngScaleWidth - (2 * MARGIN_SIZE), _
@@ -758,7 +739,6 @@ Private Sub Form_Resize()
         .nurHeuer.Top = .inTurbomedAnzeigen.Top
     End With
     Exit Sub
-
 Form_Resize_Error:
     ' Fehler bei negativen Werten vermeiden
     Resume Next
@@ -773,7 +753,7 @@ Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "Last
  Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
  Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
 End Select
-End Sub
+End Sub ' Form_Resize
 
 Private Sub cmdRefresh_Click()
   'Dies wird nur für Mehrbenutzeranwendungen benötigt
@@ -785,19 +765,19 @@ Private Sub cmdRefresh_Click()
   Exit Sub
 RefreshErr:
   MsgBox Err.Description
-End Sub
+End Sub ' cmdRefresh_Click
 
 Private Sub cmdUpdate_Click()
   On Error GoTo UpdateErr
-
   dpS.Recordset.UpdateBatch adAffectAll
   Exit Sub
 UpdateErr:
   MsgBox Err.Description
-End Sub
+End Sub ' cmdUpdate_Click
+
 Private Sub cmdClose_Click()
     Unload Me
-End Sub
+End Sub ' cmdClose_Click
 
 
 Private Sub Photoimpact_Click()

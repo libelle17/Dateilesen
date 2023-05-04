@@ -570,7 +570,7 @@ Function eintrhist()
  End If
  If LenB(hist) <> 0 Then
   Set rq = Nothing
-  myFrag rq, "SELECT * FROM `eintraege` WHERE pat_id IN (" & Left$(hist, Len(hist) - 1) & ") AND art <> 'Pkon'"
+  myFrag rq, "SELECT * FROM `eintraege` WHERE pat_id IN (" & Left$(hist, Len(hist) - 1) & ") AND art <> 'Pkon'", adOpenStatic
   Do While Not rq.EOF
    Do
     Set rz1 = Nothing
@@ -1271,8 +1271,9 @@ End Function ' doMedklassT()
 ' Medklass, 2. Teil
  Dim Med$, i&
  Dim rs As ADODB.Recordset
- On Error GoTo fehler
+ On Error Resume Next
  DBCn.BeginTrans: obTrans = 1
+ On Error GoTo fehler
 ' Call ForeignNo
   For i = 1 To medSL.COUNT
   Med = medSL.Item(i).Med
@@ -2369,10 +2370,10 @@ Function dolies(frm As Lese, RKennung$, rInhalt$, obSchluss%, znr&)
    Case 4108 ' ? -> allenfalls mit "103" befüllt
     rFa(UBound(rFa)).f4108 = rInhalt
    Case 4109 ' letzte Vorlage
-    rFa(UBound(rFa)).lvorl = BDTtoDate(rInhalt)
-    Call VorstellSetz(rFa(UBound(rFa)).lvorl)
+    rFa(UBound(rFa)).lVorl = BDTtoDate(rInhalt)
+    Call VorstellSetz(rFa(UBound(rFa)).lVorl)
    Case 4110 ' Uhrzeit zu letzter Vorlage
-    rFa(UBound(rFa)).lvorl = rFa(UBound(rFa)).lvorl + BDTtoTime(rInhalt)
+    rFa(UBound(rFa)).lVorl = rFa(UBound(rFa)).lVorl + BDTtoTime(rInhalt)
    Case 4111 ' IK
     rFa(UBound(rFa)).IK = rInhalt
    Case 4112 'KVKStatus
@@ -3606,7 +3607,7 @@ rEiVorb:
 '    Datei = replace$(lcase(Datei), "\linserv\daten\turbomed\dokumente", PcDokPfad)
     Do
      pos = InStr(3, LCase$(Datei), "\turbomed\dokumente")
-     If pos = 0 Then pos = InStr(LCase$(Datei), "\turbomed\dokumente")
+     If pos = 0 Then pos = InStr(1, Datei, "\turbomed\dokumente", vbTextCompare)
      If pos = 0 Then Exit Do
      If pos = 2 Then Exit Do
      Datei = "$" & Mid$(Datei, pos)
@@ -3623,11 +3624,11 @@ rEiVorb:
       rBr(UBound(rBr)).DokGroe = Fil.size
       rBr(UBound(rBr)).DokAenD = Fil.DateLastModified
      End If
-     rBr(UBound(rBr)).Quelldatum = doQuelldatum(rBr(UBound(rBr)).name, rBr(UBound(rBr)).DokAenD)
     Else
 ' Entwicklung: hier kann das Fehlt-Kennzeichen gesetzt werden und evtl.
 '       rDo(UBound(rDo)).DokPfad = Datei 'stehen
     End If
+    rBr(UBound(rBr)).Quelldatum = doQuelldatum(rBr(UBound(rBr)).name, rBr(UBound(rBr)).DokAenD) ' nach außen verschoben 22.4.23
    Case 6325 ' Dokumentpfad
     If Not obZweiteRunde Then
      ReDim Preserve rDo(UBound(rDo) + 1)
@@ -3649,7 +3650,7 @@ rEiVorb:
 '     Datei = replace$(lcase(Datei), "\linserv\daten\turbomed\dokumente", PcDokPfad)
      Do
       pos = InStr(3, LCase$(Datei), "\turbomed\dokumente")
-      If pos = 0 Then pos = InStr(LCase$(Datei), "\turbomed\dokumente")
+      If pos = 0 Then pos = InStr(1, Datei, "\turbomed\dokumente", vbTextCompare)
       If pos = 0 Then Exit Do
       If pos = 2 Then Exit Do
       Datei = "$" & Mid$(Datei, pos)
@@ -4097,8 +4098,8 @@ Function fFanfFuell()
    rFa(i).Fanf = rFa(i).ausgst
   End If
   If rFa(i).Fanf = 0 Then
-   If rFa(i).lvorl <> 0 And DateValue(rFa(i).lvorl) <= lAusgst Then
-    rFa(i).Fanf = rFa(i).lvorl
+   If rFa(i).lVorl <> 0 And DateValue(rFa(i).lVorl) <= lAusgst Then
+    rFa(i).Fanf = rFa(i).lVorl
    End If
   End If
   If rFa(i).Fanf = 0 Then
@@ -4113,14 +4114,14 @@ Function fFanfFuell()
     End If
    Next j
    If Eintr1 <> 0 Then
-    If Eintr1 > rFa(i).lvorl And rFa(i).lvorl <> 0 Then
-     rFa(i).Fanf = rFa(i).lvorl
+    If Eintr1 > rFa(i).lVorl And rFa(i).lVorl <> 0 Then
+     rFa(i).Fanf = rFa(i).lVorl
     Else
      rFa(i).Fanf = Eintr1
     End If
    Else
-    If rFa(i).lvorl <> 0 Then
-     rFa(i).Fanf = rFa(i).lvorl
+    If rFa(i).lVorl <> 0 Then
+     rFa(i).Fanf = rFa(i).lVorl
     ElseIf rFa(i).Pat_id = 2 And rFa(i).Nachname Like "Muster*" Then
      rFa(i).Fanf = #7/1/2004#
     Else
@@ -4350,7 +4351,9 @@ Function alleSpeichern(frm As Lese)
  If ProgrammLauf(-1, Cpt, -1) Then GoTo Ende
 #End If
 anamneseanfang:
+ On Error Resume Next
  If obTrans <> 0 Then DBCn.CommitTrans: obTrans = 0
+ On Error GoTo fehler
 nachFehler:
  Call rsAnamOpen
  Set rsc = New ADODB.Recordset
@@ -4374,13 +4377,16 @@ nachFehler:
   End Select
   rsc.MoveNext
  Loop
+ On Error Resume Next
  DBCn.BeginTrans: obTrans = 1
+ On Error GoTo fehler
  If rsAnm!Nachname <> rNa(0).Nachname Or IsNull(rsAnm!Nachname) Then rsAnm!Nachname = rNa(0).Nachname
  If rsAnm!Vorname <> rNa(0).Vorname Or IsNull(rsAnm!Vorname) Then rsAnm!Vorname = rNa(0).Vorname
  If rsAnm!GebDat <> rNa(0).GebDat Or IsNull(rsAnm!GebDat) Then rsAnm!GebDat = rNa(0).GebDat
  If rsAnm!NVorsatz <> rNa(0).NVorsatz Or IsNull(rsAnm!NVorsatz) Then rsAnm!NVorsatz = rNa(0).NVorsatz
  If rsAnm!Titel <> rNa(0).Titel Or IsNull(rsAnm!Titel) Then rsAnm!Titel = rNa(0).Titel
  If rsAnm!Vorgestellt <> VorStDat Or IsNull(rsAnm!Vorgestellt) And VorStDat <> 0 Then rsAnm!Vorgestellt = VorStDat
+
  
 ' 1. Angabe bei der Anamnese
 ' IF rsAnm!Diabetestyp = vNS OR IsNull(rsAnm!Diabetestyp) THEN ' Kommentar 12.2.22
@@ -4680,7 +4686,11 @@ rufauf "ssh", "root@linux1 mysql --defaults-extra-file=~/.mysqlpwd quelle -e'CAL
 ' myEFrag "CALL fuellThaP(" & CStr(rNa(0).Pat_id) & ")"
 #End If
  If Kassengeändert Then
-  myEFrag "UPDATE `kassenliste` k LEFT JOIN (SELECT kateg,go,ik,vknr FROM `kassenliste` WHERE kateg <> '' GROUP BY ik,vknr) k2 ON k.vknr = k2.vknr AND k.ik=k2.ik SET k.kateg=k2.kateg, k.go=k2.go, geaen=" & Format(Now(), "yyyymmddHHMMSS") & " WHERE k.kateg = '' AND NOT ISNULL(k2.kateg)", rAF
+  myEFrag "UPDATE `kassenliste` k LEFT JOIN " & vbCrLf & _
+  "(SELECT kateg,go,ik,vknr FROM `kassenliste`" & vbCrLf & _
+  " WHERE kateg <> '' GROUP BY ik,vknr) k2 ON k.vknr = k2.vknr AND k.ik=k2.ik " & vbCrLf & _
+  "SET k.kateg=k2.kateg, k.go=k2.go, geaen=" & Format(Now(), "yyyymmddHHMMSS") & vbCrLf & _
+  " WHERE k.kateg = '' AND k2.kateg IS NOT NULL", rAF
   Ausgeb rAF & " Kassenkategorien anhand der VK-Nummern eingefügt"
 '  Call Lese.KassenkategorienBestimmen_Click
   Kassengeändert = 0
@@ -6317,19 +6327,182 @@ End Function ' LaborEintr0()
 '' call foreignyes
 'End Function ' formInhMach
 
+Static Function REGEXP_INSTR%(tStr$, muster$)
+ Dim rEx As New RegExp
+ Dim regMC
+ rEx.Pattern = muster
+ rEx.IgnoreCase = True
+ If rEx.test(tStr) Then
+  Set regMC = rEx.Execute(tStr)
+  REGEXP_INSTR = regMC(0).FirstIndex + 1 ' wenn das Muster gleich am Anfang kommt, geht's sonst nicht
+ Else
+  REGEXP_INSTR = 0
+ End If ' rEx.test(tstr) Then
+End Function ' REGEXP_INSTR
+
+Static Function REGEXP_SUBSTR$(tStr$, muster$)
+ Dim rEx As New RegExp
+ Dim regMC
+ rEx.Pattern = muster
+ rEx.IgnoreCase = True
+ If rEx.test(tStr) Then
+  Set regMC = rEx.Execute(tStr)
+  REGEXP_SUBSTR = regMC(0).Value
+ Else
+  REGEXP_SUBSTR = ""
+ End If ' rEx.test(tstr) Then
+End Function ' REGEXP_SUBSTR
+
+Function std1(s$) As Date
+' edat=STR_TO_DATE(REPLACE(umwname,':','.'),'%d.%m.%Y %H%i%s')
+ Dim ns$, DS$, p1%
+ ns = REPLACE$(s, ":", ".")
+ p1 = InStr(ns, " ")
+ DS = Left$(ns, p1) & Mid$(ns, p1 + 1, 2) & ":" & Mid$(ns, p1 + 3, 2) & IIf(Len(Mid$(ns, p1)) > 5, ":", "") & Mid$(ns, p1 + 5, 2)
+ On Error Resume Next
+ std1 = CDate(DS)
+End Function ' std1(s$) As Date
+
+Function std2(s$) As Date
+ Dim DS$
+' edat=STR_TO_DATE(umwname,'%Y%m%d_%H%i%s')
+ DS = Mid$(s, 7, 2) & "." & Mid$(s, 5, 2) & "." & Left$(s, 4) & " " & Mid$(s, 10, 2) & ":" & Mid$(s, 12, 2) & IIf(Len(s) > 13, ":", "") & Mid(s, 14, 2)
+ On Error Resume Next
+ std2 = CDate(DS)
+End Function ' std1(s$) As Date
+
+Function std3(s$) As Date
+ Dim ns$, DS$, p1%
+ Dim p2%, p3%
+' edat=STR_TO_DATE(REPLACE(REPLACE(umwname,':','.'),'-','.'),'%d.%m.%Y %H.%i.%s')
+ ns = REPLACE$(REPLACE$(s, ":", "."), "-", ".")
+ p1 = InStr(ns, " ")
+ If p1 = 0 Then
+  DS = ns
+ Else
+  p2 = InStr(p1, ns, ".")
+  DS = Left$(ns, p1) & Mid$(ns, p1 + 1, IIf(p2, MIN(2, p2 - p1 - 1), 2))
+  If p2 Then
+   p3 = InStr(p2 + 1, ns, ".")
+   DS = DS & ":" & Mid$(ns, p2 + 1, IIf(p3, MIN(2, p3 - p2 - 1), 2))
+   If p3 Then
+    DS = DS & ":" & Mid$(ns, p3 + 1, 2)
+   End If
+  End If
+'  DS = Left$(ns, p1) & Mid$(ns, p1 + 1, MIN(2, p2 - p1 - 1)) & IIf(p2, ":" & Mid$(ns, p2 + 1, MIN(2, p3 - p2 - 1)) & IIf(p3, ":" & Mid$(ns, p3 + 1), ""), "")
+'  DS = Left$(ns, p1)
+ End If
+ On Error Resume Next
+ std3 = CDate(DS)
+End Function ' std1(s$) As Date
+
+Function std4(s$, dokd As Date) As Date
+ Dim ns$, DS$
+' edat=STR_TO_DATE(CONCAT(REPLACE(umwname,':','.'),YEAR(dokd)),'%d.%m.%Y');
+' IF edat>dokd THEN SET edat=edat-INTERVAL 1 YEAR; END IF;
+ ns = REPLACE$(s, ":", ".") & Year(dokd)
+ On Error Resume Next
+ std4 = CDate(ns)
+ If std4 > dokd Then std4 = DateAdd("yyyy", -1, std4)
+End Function ' std1(s$) As Date
+
+
+' notwendig für diese Funktion: Verweis auf Microsoft VBScript Regular Expressions: c:\windows\syswow64\vbscript.dll\3
 ' aufgerufen in doLies (2x)
 ' zu koordinieren mit `quelldat` in doViewserstellen( in imporiere
-Function doQuelldatum(ByVal DokName$, Optional dokdat As Date) As Date
+Function doQuelldatum(ByVal name$, Optional dokd As Date) As Date
+ Dim rEx As New RegExp
+ Dim regMC
+ Dim posf%, runde%, p1%, art%
+ Const Flb$ = "Fremdlabor"
+ Const m1$ = "(31\.((0|)[13578]|1[02])|30\.((0|)[1,3-9]|1[0-2])|((0|)[1-9]|[1-2][0-9])\.((0|)[0-9]|1[0-2]))\.(19|20|)([0-9]{2}) ([0-9]{6}|[0-9]{4})"
+ Const m2$ = "(19|20)[0-9]{2}[01][0-9][0-3][0-9]_[0-2][0-9][0-6][0-9]{3}"
+ Const m3$ = "(31\.((0|)[13578]|1[02])|30\.((0|)[1,3-9]|1[0-2])|((0|)[1-9]|[1-2][0-9])\.((0|)[0-9]|1[0-2]))\.(19|20|)([0-9]{2})( ([0-9]|[0-2][0-9])[.:][0-9]{2}([.:][0-9]{2}|)|)"
+ Const m4$ = "(31\.((0|)[13578]|1[02])|30\.((0|)[1,3-9]|1[0-2])|((0|)[1-9]|[1-2][0-9])\.((0|)[0-9]|1[0-2]))\."
+ Dim flname$, testname$, umwname$
+ Dim eDat As Date
+ posf = InStr(1, name, Flb, vbTextCompare)
+ If posf > 0 Then
+  flname = Mid$(name, InStrRev(name, Flb) + Len(Flb)) ' SUBSTRING_INDEX(name,Flb,-1)
+  p1 = REGEXP_INSTR(flname, "BZ|RR|Medikamentenplan")
+  If p1 <> 0 Then flname = Left(flname, p1 - 1)
+ Else
+  flname = name
+ End If ' posf>0
+ Do ' na
+  art = 0
+  testname = flname
+  Do ' r1
+   p1 = REGEXP_INSTR(testname, m1)
+   If p1 <> 0 Then
+    art = 1: umwname = REGEXP_SUBSTR(Mid$(testname, p1), m1)
+   Else
+    p1 = REGEXP_INSTR(testname, m2)
+    If p1 <> 0 Then
+     art = 2: umwname = REGEXP_SUBSTR(Mid$(testname, p1), m2)
+    Else
+     p1 = REGEXP_INSTR(testname, m3)
+     If p1 <> 0 Then
+      art = 3: umwname = REGEXP_SUBSTR(Mid$(testname, p1), m3)
+     Else
+      p1 = REGEXP_INSTR(testname, m4)
+      If p1 <> 0 Then
+       art = 4: umwname = REGEXP_SUBSTR(Mid$(testname, p1), m4)
+      End If
+     End If
+    End If
+   End If
+   If p1 = 0 Then Exit Do
+   flname = Mid$(testname, p1)
+   testname = Mid$(flname, Len(umwname) + 1)
+   If REGEXP_INSTR(testname, "[0-9]") = 0 Then Exit Do
+  Loop ' r1
+  Select Case art
+   Case 1: eDat = std1(umwname)
+   Case 2: eDat = std2(umwname)
+   Case 3: eDat = std3(umwname)
+   Case 4: eDat = std4(umwname, dokd)
+   Case Else: eDat = 0
+  End Select
+  If runde = 1 Or posf = 0 Or eDat <> 0 Then Exit Do
+  flname = name
+  runde = runde + 1
+ Loop ' na
+ If eDat = 0 Or eDat > Now() Or eDat < #1/1/1985# Then eDat = CDate("30.12.1899")
+ doQuelldatum = eDat
+End Function ' doQuelldatum
+
+#If zutesten Then
+Public Function testqd()
+ Dim rs As New ADODB.Recordset, Zahl&
+ Lese.ProgStart
+ rs.Open "SELECT quelldat(b.name,b.DokAenD) myd, b.* FROM briefe b", DBCn, adOpenStatic, adLockReadOnly
+ DoEvents
+ Do While Not rs.EOF
+  Zahl = Zahl + 1
+  If doQuelldatum(rs!name, rs!DokAenD) <> rs!myd Then
+   Debug.Print Zahl, doQuelldatum(rs!name, rs!DokAenD), rs!myd
+'  Else
+'   Debug.Print Zahl, rs!myd, "stimmt!"
+  End If
+  rs.Move 1
+ Loop
+ Debug.Print "Fertig"
+End Function ' testqd()
+#End If
+
+#If False Then
+Function doQuelldatumAlt(ByVal DokName$, Optional dokdat As Date) As Date
  Dim Spli$(), i&, aru%, buch$, doumw$, auffuell%, auffStand%, testname$, p1&, p2&
  Dim doumwD As Date
  Dim gesdat$
  On Error GoTo fehler
- DokName = LCase$(DokName)
- p1 = InStr(DokName, "fremdlabor")
+' DokName = LCase$(DokName)
+ p1 = InStr(1, DokName, "fremdlabor", vbTextCompare)
  If p1 <> 0 Then
-  p2 = InStr(Mid(DokName, p1), "bz")
-  If p2 = 0 Then p2 = InStr(Mid(DokName, p1), "rr")
-  If p2 = 0 Then p2 = InStr(Mid(DokName, p1), "medikamentenplan")
+  p2 = InStr(1, Mid$(DokName, p1), "bz", vbTextCompare)
+  If p2 = 0 Then p2 = InStr(1, Mid$(DokName, p1), "rr", vbTextCompare)
+  If p2 = 0 Then p2 = InStr(1, Mid$(DokName, p1), "medikamentenplan", vbTextCompare)
   If p2 <> 0 Then testname = Left$(Mid(DokName, p1), p2 - 1)
  End If
  If testname = "" Then testname = DokName
@@ -6346,7 +6519,7 @@ Function doQuelldatum(ByVal DokName$, Optional dokdat As Date) As Date
    End If
    doumw = Spli(i)
    If IsDate(doumw) And InStrB(doumw, ".") <> 0 Then ' korrigiert 11.7.09
-    If InStr(Mid(doumw, InStr(doumw, ".") + 1), ".") = 0 Then
+    If InStr(Mid$(doumw, InStr(doumw, ".") + 1), ".") = 0 Then
      gesdat = doumw & "." & Year(dokdat)
     ElseIf Right$(doumw, 1) = "." Then
      gesdat = doumw & Year(dokdat)
@@ -6365,18 +6538,18 @@ Function doQuelldatum(ByVal DokName$, Optional dokdat As Date) As Date
        buch = doumw & " " & REPLACE$(Spli(i + 1), ".", ":")
       End If
      End If
-     If IsDate(buch) Then doQuelldatum = CDate(buch) Else doQuelldatum = doumwD
+     If IsDate(buch) Then doQuelldatumAlt = CDate(buch) Else doQuelldatumAlt = doumwD
  '    rdo.Update
      Exit For
     End If
    ElseIf doumw Like "*########_######.png" Then
     doumw = Left$(Right$(doumw, 19), 15)
-    doQuelldatum = Mid$(doumw, 7, 2) & "." & Mid$(doumw, 5, 2) & "." & Left$(doumw, 4) & " " & Mid$(doumw, 10, 2) & ":" & Mid(doumw, 12, 2) & ":" & Mid(doumw, 14, 2) ' Format(doumw, "YYYYMMDD_HHMMSS")
+    doQuelldatumAlt = Mid$(doumw, 7, 2) & "." & Mid$(doumw, 5, 2) & "." & Left$(doumw, 4) & " " & Mid$(doumw, 10, 2) & ":" & Mid(doumw, 12, 2) & ":" & Mid(doumw, 14, 2) ' Format(doumw, "YYYYMMDD_HHMMSS")
    End If ' IsDate(Spli(i)) And InStrB(Spli(i), ".") <> 0
   Next i
-  If doQuelldatum <> 0 Then Exit For
+  If doQuelldatumAlt <> 0 Then Exit For
  Next aru
- If doQuelldatum = 0 Then doQuelldatum = GetDatumAusString(testname)
+ If doQuelldatumAlt = 0 Then doQuelldatumAlt = GetDatumAusString(testname)
  Exit Function
 fehler:
  Dim AnwPfad$
@@ -6391,13 +6564,14 @@ Select Case MsgBox("FNr: " & FNr & ", ErrNr: " & CStr(Err.Number) + vbCrLf + "La
  Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
 End Select
 End Function ' doQuelldatum
+#End If
 
 #If False Then
 Function doFLQuelldatum(DokName$, Optional dokdat As Date) As Date
  Dim posfl%, p0%, ndok$
  Dim Spli$(), i&, buch$, cont As String * 10, auffuell%, auffStand%
  Const Fl$ = "Fremdlabor"
- posfl = InStr(DokName, Fl)
+ posfl = InStr(1, DokName, Fl, vbTextCompare)
  If posfl Then
   p0 = posfl + Len(Fl)
   ndok = REPLACE$(Mid$(DokName, p0), ",", " ")

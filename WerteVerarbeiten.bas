@@ -1264,7 +1264,7 @@ For k = IIf(obAnzeig, 0, 7) To rAn.Fields.COUNT - 1
      fldv = REPLACE$(fldv, "SG", "Strömungsgeräusch")
    End Select
    obnadp = False
-   j = InStr(LCase$(fldv), "nadp")
+   j = InStr(1, fldv, "nadp", vbTextCompare)
    If j > 0 Then
     obnadp = True
     fldv = Left$(fldv, j - 1) + LTrim$(Right$(fldv, Len(fldv) - j - 3))

@@ -3623,15 +3623,16 @@ Function sensib(Pat_id&, Optional ByRef etext) As DMPStat
   Lese.ProgStart
   myFrag rf, "SELECT pat_id, gesname(pat_id) name FROM aktfv"
   Do While Not rf.EOF
-   myEFrag ("call sensib(" & rf!Pat_id & ",@sens_obpath,@sens_pz, @sens_gz, @sens_text)")
+   myEFrag ("CALL sensib(" & rf!Pat_id & ",@sens_obpath,@sens_pz, @sens_gz, @sens_text)")
    myFrag rs, "SELECT @sens_obpath,@sens_pz,@sens_gz, @sens_text"
    Debug.Print rf!Pat_id, rs![@sens_obpath], rs![@sens_pz], rs![@sens_gz], rs![@sens_text] ' rf!name,
    Set rs = Nothing
    rf.MoveNext
   Loop
 #Else
-  myEFrag ("call sensib(" & Pat_id & ",@sens_obpath,@sens_pz, @sens_gz, @sens_text)")
+  myEFrag ("CALL sensib(" & Pat_id & ",@sens_obpath,@sens_pz, @sens_gz, @sens_text)")
   myFrag rs, "SELECT @sens_obpath, @sens_text"
+  On Error Resume Next
   etext = rs![@sens_text]
   sensib = rs![@sens_obpath]
 #End If
@@ -7677,6 +7678,7 @@ On Error GoTo fehler
    Call snie
   End If ' obStumm
  End If ' briefneu
+ Lese.Ausgeb "Fertig mit Arztbrief für " & pid & "(" & gesname & ")", True, True
  syscmd acSysCmdClearStatus
  Exit Sub
 fehler:
@@ -10301,7 +10303,7 @@ If LVobMySQL Then
  Vsql = _
  "SELECT CASE WHEN dicd LIKE 'E10%' THEN '1' WHEN dicd LIKE 'E11%' THEN '2' WHEN dicd = 'O24.4' THEN 'g' ELSE '-' END dtyp, i.* FROM (" & vbCrLf & _
  " SELECT COALESCE(t.therart,'Diät') mta, rang(COALESCE(t.therart,'Diät')) rang, t.zp tzp " & vbCrLf & _
- ", (SELECT MAX(icd) FROM diagview WHERE pat_id=f.pat_id AND ((gicd RLIKE '^E1[0-4]\.' AND obdauer<>0) OR (d.icd='O24.4' AND d.f6010=0 AND d.diagsicherheit IN ('G',' ') AND obdauer=0 AND diagdatum BETWEEN qanf() AND qend()))) dicd " & vbCrLf & _
+ ", (SELECT MAX(icd) FROM diagview d WHERE pat_id=f.pat_id AND ((gicd RLIKE '^E1[0-4]\.' AND obdauer<>0) OR (d.icd='O24.4' AND d.f6010=0 AND d.diagsicherheit IN ('G',' ') AND obdauer=0 AND diagdatum BETWEEN qanf() AND qend()))) dicd " & vbCrLf & _
  ", f.* " & vbCrLf & _
  " FROM aktfv f " & vbCrLf & _
  " LEFT JOIN therarten t ON t.pat_id=f.pat_id AND t.zp BETWEEN COALESCE((SELECT MAX(zp) FROM therarten WHERE pat_id=f.pat_id AND zp<qanf()),19000101) AND qend() " & vbCrLf & _
@@ -11370,6 +11372,7 @@ sql = "CREATE DEFINER=`praxis`@`%` FUNCTION `quelldat`(name VARCHAR(1000),dokd D
     "   IF p1=0 THEN LEAVE r1; END IF;" & vbCrLf & _
     "   SET flname=MID(testname,p1);" & vbCrLf & _
     "   SET testname=MID(flname,LENGTH(umwname)+1);" & vbCrLf & _
+    "   IF REGEXP_INSTR(testname, '[0-9]') = 0 THEN LEAVE r1; END IF;" & vbCrLf & _
     "  END LOOP r1;" & vbCrLf
  sql = sql & _
     "  CASE WHEN art=1 THEN SET edat=STR_TO_DATE(REPLACE(umwname,':','.'),'%d.%m.%Y %H%i%s');" & vbCrLf & _
@@ -11383,7 +11386,7 @@ sql = "CREATE DEFINER=`praxis`@`%` FUNCTION `quelldat`(name VARCHAR(1000),dokd D
     "  SET flname=name;" & vbCrLf & _
     "  SET runde=runde+1;" & vbCrLf & _
     " END LOOP na;" & vbCrLf & _
-    " IF edat=0 OR (edat>NOW()) THEN SET edat=18991230; END IF; -- (edat>dokd+INTERVAL 7 MONTH AND dokd<>18991230)" & vbCrLf & _
+    " IF edat=0 OR edat>NOW() OR edat<19850101 THEN SET edat=18991230; END IF; -- (edat>dokd+INTERVAL 7 MONTH AND dokd<>18991230)" & vbCrLf & _
     " RETURN edat;" & vbCrLf & _
     "END" & vbCrLf
     myEFrag (sql)

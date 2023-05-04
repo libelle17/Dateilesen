@@ -110,7 +110,7 @@ Public Type Faelle
  ausgst As Date 'ausgst datetime '4102 ('ausgestellt am')
  KtrAbrB As String 'KtrAbrB varchar '4106, Kostenträgerabrechnungsbereich (00 = Primärabrechnung (immer))
  AbrAr As String 'AbrAr varchar '4107, Abrechnungsart (1 = Primärkassen)
- lvorl As Date 'lVorl datetime '4109, letzte Vorlage
+ lVorl As Date 'lVorl datetime '4109, letzte Vorlage
  IK As String 'IK varchar '4111 Krankenkassennummer (IK)
  KVKs As String 'KVKs varchar '4112 Versichertenstatus VK
  KVKserg As String 'KVKserg varchar '4113 Ost/West-Status VK
@@ -493,7 +493,7 @@ Public Type dmpreihe
  exportiert As Date 'exportiert datetime 'Datum des Exports
  DokuDatum As Date 'DokuDatum datetime 'Datum der Dokumentation
  obvoll As Integer 'obvoll bit 'ob vollständig
- OK As Integer 'ok bit 'ob """"""""ok""""""""
+ Ok As Integer 'ok bit 'ob """"""""ok""""""""
  ausgedruckt As Integer 'ausgedruckt bit 'ob """"""""ausgedruckt""""""""
  Nachname As String 'NachName varchar '
  Vorname As String 'VorName varchar '
@@ -1137,8 +1137,10 @@ Public Function doEntleer(frm As Lese, Tbl$)
  Dim rs As ADODB.Recordset
 ' SET rs = myEFrag("SELECT COUNT(0) ct FROM `" & Tbl & "`")
  myFrag rs, "SELECT COUNT(0) ct FROM `" & Tbl & "`"
- frm.Ausgeb "Lösche: `" & Tbl & "` (" & rs!ct & " Datensätze)", True
- sql = sqlDeletefrom & "`" & Tbl & "`"
+ If Not rs.BOF Then
+  frm.Ausgeb "Lösche: `" & Tbl & "` (" & rs!ct & " Datensätze)", True
+  sql = sqlDeletefrom & "`" & Tbl & "`"
+ End If ' Not rs.BOF then
  Call myEFrag(sql) ' ,,adAsyncExecute
  DoEvents
 End Function ' doEntleer
@@ -1413,25 +1415,25 @@ Public Function namenLaden()
  On Error GoTo fehler
  pid = rNa(0).Pat_id
  sql = "SELECT COALESCE(Pat_ID,0) Pat_ID,COALESCE(lfdnr,0) lfdnr,COALESCE(NVorsatz,'') NVorsatz,COALESCE(Nachname,'') Nachname" & _
-",COALESCE(Vorname,'') Vorname,IF(GebDat IS NULL OR GebDat=0,CONVERT('18991230',DATE),GebDat) GebDat,COALESCE(f3004,'') f3004,COALESCE(f3006,'') f3006" & _
+",COALESCE(Vorname,'') Vorname,COALESCE(GebDat - INTERVAL 0 DAY,CONVERT('18991230',DATE)) GebDat,COALESCE(f3004,'') f3004,COALESCE(f3006,'') f3006" & _
 ",COALESCE(Straße,'') Straße,COALESCE(KVKStatus,'') KVKStatus,COALESCE(Hausnr,'') Hausnr,COALESCE(Geschlecht,'') Geschlecht" & _
 ",COALESCE(Plz,'') Plz,COALESCE(Ort,'') Ort,COALESCE(Lkz,'') Lkz,COALESCE(Anschrzus,'') Anschrzus" & _
 ",COALESCE(NVors,'') NVors,COALESCE(PFPlz,'') PFPlz,COALESCE(PFOrt,'') PFOrt,COALESCE(PFNr,'') PFNr" & _
 ",COALESCE(f3124,'') f3124,COALESCE(AnschrZus_2,'') AnschrZus_2,COALESCE(Postfach_2,'') Postfach_2,COALESCE(LK_2,'') LK_2" & _
 ",COALESCE(Postfach,'') Postfach,COALESCE(Beruf,'') Beruf,COALESCE(Weggeldzone,'') Weggeldzone,COALESCE(WeggzZahl,0) WeggzZahl" & _
-",IF(AufnDat IS NULL OR AufnDat=0,CONVERT('18991230',DATE),AufnDat) AufnDat,IF(kAufDat IS NULL OR kAufDat=0,CONVERT('18991230',DATE),kAufDat) kAufDat,COALESCE(LANR,'') LANR,COALESCE(BStNr,'') BStNr" & _
+",COALESCE(AufnDat - INTERVAL 0 DAY,CONVERT('18991230',DATE)) AufnDat,COALESCE(kAufDat - INTERVAL 0 DAY,CONVERT('18991230',DATE)) kAufDat,COALESCE(LANR,'') LANR,COALESCE(BStNr,'') BStNr" & _
 ",COALESCE(Titel,'') Titel,COALESCE(Versichertennummer,'') Versichertennummer,COALESCE(PrivatTel,'') PrivatTel,COALESCE(KVNr,'') KVNr" & _
 ",COALESCE(KVNr2,'') KVNr2,COALESCE(KVNr3,'') KVNr3,COALESCE(KVNr4,'') KVNr4,COALESCE(PrivatTel_2,'') PrivatTel_2" & _
 ",COALESCE(PrivatFax,'') PrivatFax,COALESCE(DienstTel,'') DienstTel,COALESCE(PrivatMobil,'') PrivatMobil,COALESCE(Email,'') Email" & _
 ",COALESCE(Arbeitgeber,'') Arbeitgeber,COALESCE(AnAllgda,0) AnAllgda,COALESCE(An1da,0) An1da,COALESCE(An2da,0) An2da" & _
-",COALESCE(Checkda,0) Checkda,COALESCE(DMTypaD,'') DMTypaD,IF(AktZeit IS NULL OR AktZeit=0,CONVERT('18991230',DATE),AktZeit) AktZeit,COALESCE(absPos,0) absPos" & _
+",COALESCE(Checkda,0) Checkda,COALESCE(DMTypaD,'') DMTypaD,COALESCE(AktZeit - INTERVAL 0 DAY,CONVERT('18991230',DATE)) AktZeit,COALESCE(absPos,0) absPos" & _
 ",COALESCE(StByte,0) StByte,COALESCE(StByteA,0) StByteA,COALESCE(Cave,'') Cave,COALESCE(Notiz,'') Notiz" & _
-",COALESCE(obChk,'') obChk,COALESCE(dmpklass,0) dmpklass,IF(dmpbeg IS NULL OR dmpbeg=0,CONVERT('18991230',DATE),dmpbeg) dmpbeg,COALESCE(dmpkhkklass,0) dmpkhkklass" & _
-",IF(dmpkhkbeg IS NULL OR dmpkhkbeg=0,CONVERT('18991230',DATE),dmpkhkbeg) dmpkhkbeg,COALESCE(dmpcopdklass,0) dmpcopdklass,IF(dmpcopdbeg IS NULL OR dmpcopdbeg=0,CONVERT('18991230',DATE),dmpcopdbeg) dmpcopdbeg,COALESCE(dmpabklass,0) dmpabklass" & _
-",IF(dmpabbeg IS NULL OR dmpabbeg=0,CONVERT('18991230',DATE),dmpabbeg) dmpabbeg,IF(dakab IS NULL OR dakab=0,CONVERT('18991230',DATE),dakab) dakab,COALESCE(HzV,0) HzV,IF(HzVbeg IS NULL OR HzVbeg=0,CONVERT('18991230',DATE),HzVbeg) HzVbeg" & _
-",COALESCE(DS,0) DS,IF(DSbeg IS NULL OR DSbeg=0,CONVERT('18991230',DATE),DSbeg) DSbeg,COALESCE(getHA0,0) getHA0,COALESCE(fnHA0,'') fnHA0" & _
+",COALESCE(obChk,'') obChk,COALESCE(dmpklass,0) dmpklass,COALESCE(dmpbeg - INTERVAL 0 DAY,CONVERT('18991230',DATE)) dmpbeg,COALESCE(dmpkhkklass,0) dmpkhkklass" & _
+",COALESCE(dmpkhkbeg - INTERVAL 0 DAY,CONVERT('18991230',DATE)) dmpkhkbeg,COALESCE(dmpcopdklass,0) dmpcopdklass,COALESCE(dmpcopdbeg - INTERVAL 0 DAY,CONVERT('18991230',DATE)) dmpcopdbeg,COALESCE(dmpabklass,0) dmpabklass" & _
+",COALESCE(dmpabbeg - INTERVAL 0 DAY,CONVERT('18991230',DATE)) dmpabbeg,COALESCE(dakab - INTERVAL 0 DAY,CONVERT('18991230',DATE)) dakab,COALESCE(HzV,0) HzV,COALESCE(HzVbeg - INTERVAL 0 DAY,CONVERT('18991230',DATE)) HzVbeg" & _
+",COALESCE(DS,0) DS,COALESCE(DSbeg - INTERVAL 0 DAY,CONVERT('18991230',DATE)) DSbeg,COALESCE(getHA0,0) getHA0,COALESCE(fnHA0,'') fnHA0" & _
 ",COALESCE(getHA1,0) getHA1,COALESCE(fnHA1,'') fnHA1,COALESCE(getHA2,0) getHA2,COALESCE(fnHA2,'') fnHA2" & _
-",COALESCE(zubenach,'') zubenach,COALESCE(Verwandt,'') Verwandt,COALESCE(Sprache,'') Sprache,IF(lAktTM IS NULL OR lAktTM=0,CONVERT('18991230',DATE),lAktTM) lAktTM" & _
+",COALESCE(zubenach,'') zubenach,COALESCE(Verwandt,'') Verwandt,COALESCE(Sprache,'') Sprache,COALESCE(lAktTM - INTERVAL 0 DAY,CONVERT('18991230',DATE)) lAktTM" & _
 ",COALESCE(Mitarbeiter,0) Mitarbeiter FROM `namen` WHERE Pat_ID=" & pid & " ORDER BY `kAufDat`"
  myFrag rs, sql
  ReDim roNa(1)
@@ -1834,7 +1836,7 @@ Public Function roFaZuw(i&, j&)
  roFa(i).ausgst = rFa(j).ausgst
  roFa(i).KtrAbrB = rFa(j).KtrAbrB
  roFa(i).AbrAr = rFa(j).AbrAr
- roFa(i).lvorl = rFa(j).lvorl
+ roFa(i).lVorl = rFa(j).lVorl
  roFa(i).IK = rFa(j).IK
  roFa(i).KVKs = rFa(j).KVKs
  roFa(i).KVKserg = rFa(j).KVKserg
@@ -1950,7 +1952,7 @@ Public Function FaZUnt%(i&, j&)
  If roFa(i).ausgst <> rFa(j).ausgst Then GoSub unter
  If roFa(i).KtrAbrB <> rFa(j).KtrAbrB Then GoSub unter
  If roFa(i).AbrAr <> rFa(j).AbrAr Then GoSub unter
- If roFa(i).lvorl <> rFa(j).lvorl Then GoSub unter
+ If roFa(i).lVorl <> rFa(j).lVorl Then GoSub unter
  If roFa(i).IK <> rFa(j).IK Then GoSub unter
  If roFa(i).KVKs <> rFa(j).KVKs Then GoSub unter
  If roFa(i).KVKserg <> rFa(j).KVKserg Then GoSub unter
@@ -2053,10 +2055,10 @@ Public Function faelleLaden()
  pid = rNa(0).Pat_id
  sql = "SELECT COALESCE(FID,0) FID,COALESCE(Pat_ID,0) Pat_ID,COALESCE(Quartal,'') Quartal,COALESCE(Nachname,'') Nachname" & _
 ",COALESCE(Vorname,'') Vorname,COALESCE(lfdnr,0) lfdnr,COALESCE(TMFNr,'') TMFNr,COALESCE(VKNr,'') VKNr" & _
-",COALESCE(f4131,'') f4131,COALESCE(f4132,'') f4132,IF(VschBeg IS NULL OR VschBeg=0,CONVERT('18991230',DATE),VschBeg) VschBeg,COALESCE(KKasse_2,'') KKasse_2" & _
-",COALESCE(FaktPers,0) FaktPers,COALESCE(FaktTechn,0) FaktTechn,COALESCE(FaktLabor,0) FaktLabor,IF(BhFB IS NULL OR BhFB=0,CONVERT('18991230',DATE),BhFB) BhFB" & _
-",IF(BhFE1 IS NULL OR BhFE1=0,CONVERT('18991230',DATE),BhFE1) BhFE1,IF(BhFE2 IS NULL OR BhFE2=0,CONVERT('18991230',DATE),BhFE2) BhFE2,COALESCE(f4202,'') f4202,IF(ausgst IS NULL OR ausgst=0,CONVERT('18991230',DATE),ausgst) ausgst" & _
-",COALESCE(KtrAbrB,'') KtrAbrB,COALESCE(AbrAr,'') AbrAr,IF(lVorl IS NULL OR lVorl=0,CONVERT('18991230',DATE),lVorl) lVorl,COALESCE(IK,'') IK" & _
+",COALESCE(f4131,'') f4131,COALESCE(f4132,'') f4132,COALESCE(VschBeg - INTERVAL 0 DAY,CONVERT('18991230',DATE)) VschBeg,COALESCE(KKasse_2,'') KKasse_2" & _
+",COALESCE(FaktPers,0) FaktPers,COALESCE(FaktTechn,0) FaktTechn,COALESCE(FaktLabor,0) FaktLabor,COALESCE(BhFB - INTERVAL 0 DAY,CONVERT('18991230',DATE)) BhFB" & _
+",COALESCE(BhFE1 - INTERVAL 0 DAY,CONVERT('18991230',DATE)) BhFE1,COALESCE(BhFE2 - INTERVAL 0 DAY,CONVERT('18991230',DATE)) BhFE2,COALESCE(f4202,'') f4202,COALESCE(ausgst - INTERVAL 0 DAY,CONVERT('18991230',DATE)) ausgst" & _
+",COALESCE(KtrAbrB,'') KtrAbrB,COALESCE(AbrAr,'') AbrAr,COALESCE(lVorl - INTERVAL 0 DAY,CONVERT('18991230',DATE)) lVorl,COALESCE(IK,'') IK" & _
 ",COALESCE(KVKs,'') KVKs,COALESCE(KVKserg,'') KVKserg,COALESCE(Status,'') Status,COALESCE(Kasse,'') Kasse" & _
 ",COALESCE(KID,0) KID,COALESCE(GebOr,'') GebOr,COALESCE(AbrGb,'') AbrGb,COALESCE(PersKreis,'') PersKreis" & _
 ",COALESCE(SKtZusatz,'') SKtZusatz,COALESCE(letzteRegel,'') letzteRegel,COALESCE(ÜwText,'') ÜwText,COALESCE(f4210,0) f4210" & _
@@ -2068,14 +2070,14 @@ Public Function faelleLaden()
 ",COALESCE(Befund,'') Befund,COALESCE(statKlasse,'') statKlasse,COALESCE(f4237,'') f4237,COALESCE(statBehTage,0) statBehTage" & _
 ",COALESCE(SchGr,0) SchGr,COALESCE(Weiterbeh,'') Weiterbeh,COALESCE(f4266,0) f4266,COALESCE(PGeb,'') PGeb" & _
 ",COALESCE(PGebErg,'') PGebErg,COALESCE(Mahnfrist,'') Mahnfrist,COALESCE(Unfallort,'') Unfallort,COALESCE(BeschAls,'') BeschAls" & _
-",IF(BeschSeit IS NULL OR BeschSeit=0,CONVERT('18991230',DATE),BeschSeit) BeschSeit,COALESCE(Unfallbetrieb,'') Unfallbetrieb,COALESCE(f4570,'') f4570,COALESCE(GOÄKatNr,'') GOÄKatNr" & _
+",COALESCE(BeschSeit - INTERVAL 0 DAY,CONVERT('18991230',DATE)) BeschSeit,COALESCE(Unfallbetrieb,'') Unfallbetrieb,COALESCE(f4570,'') f4570,COALESCE(GOÄKatNr,'') GOÄKatNr" & _
 ",COALESCE(GOÄKatName,'') GOÄKatName,COALESCE(abrArzt,'') abrArzt,COALESCE(privVers,'') privVers,COALESCE(AdNam,'') AdNam" & _
 ",COALESCE(AdStr,'') AdStr,COALESCE(AdPlz,'') AdPlz,COALESCE(AdOrt,'') AdOrt,COALESCE(ÜwBG,'') ÜwBG" & _
-",IF(BhFE IS NULL OR BhFE=0,CONVERT('18991230',DATE),BhFE) BhFE,COALESCE(s8000,'') s8000,COALESCE(s8100,'') s8100,IF(AktZeit IS NULL OR AktZeit=0,CONVERT('18991230',DATE),AktZeit) AktZeit" & _
-",IF(Fanf IS NULL OR Fanf=0,CONVERT('18991230',DATE),Fanf) Fanf,COALESCE(altQuart,'') altQuart,IF(QAnf IS NULL OR QAnf=0,CONVERT('18991230',DATE),QAnf) QAnf,IF(QEnd IS NULL OR QEnd=0,CONVERT('18991230',DATE),QEnd) QEnd" & _
+",COALESCE(BhFE - INTERVAL 0 DAY,CONVERT('18991230',DATE)) BhFE,COALESCE(s8000,'') s8000,COALESCE(s8100,'') s8100,COALESCE(AktZeit - INTERVAL 0 DAY,CONVERT('18991230',DATE)) AktZeit" & _
+",COALESCE(Fanf - INTERVAL 0 DAY,CONVERT('18991230',DATE)) Fanf,COALESCE(altQuart,'') altQuart,COALESCE(QAnf - INTERVAL 0 DAY,CONVERT('18991230',DATE)) QAnf,COALESCE(QEnd - INTERVAL 0 DAY,CONVERT('18991230',DATE)) QEnd" & _
 ",COALESCE(QS,'') QS,COALESCE(QT,'') QT,COALESCE(StByte,0) StByte,COALESCE(absPos,0) absPos" & _
 ",COALESCE(LANRid,0) LANRid,COALESCE(f4108,'') f4108,COALESCE(BGFallNr,'') BGFallNr,COALESCE(lGewicht,0) lGewicht" & _
-",IF(vorET IS NULL OR vorET=0,CONVERT('18991230',DATE),vorET) vorET,COALESCE(dmpVertret,'') dmpVertret,COALESCE(dmpArztw,'') dmpArztw,COALESCE(dmpHypos,'') dmpHypos"
+",COALESCE(vorET - INTERVAL 0 DAY,CONVERT('18991230',DATE)) vorET,COALESCE(dmpVertret,'') dmpVertret,COALESCE(dmpArztw,'') dmpArztw,COALESCE(dmpHypos,'') dmpHypos"
 sql = sql & ",COALESCE(dmpKhsA,'') dmpKhsA,COALESCE(dmpDMSchulEmpf,'') dmpDMSchulEmpf,COALESCE(dmpDMSchulWahrg,'') dmpDMSchulWahrg,COALESCE(dmpHypertSchulEmpf,'') dmpHypertSchulEmpf" & _
 ",COALESCE(dmpHypertSchulWahrg,'') dmpHypertSchulWahrg,COALESCE(dmpKKTabakEmpf,'') dmpKKTabakEmpf,COALESCE(dmpKKErnEmpf,'') dmpKKErnEmpf,COALESCE(dmpKKkTrainEmpf,'') dmpKKkTrainEmpf" & _
 ",COALESCE(dmpHbA1cZiel,'') dmpHbA1cZiel,COALESCE(dmpUewFuss,'') dmpUewFuss,COALESCE(dmpEinwDM,'') dmpEinwDM,COALESCE(dmphalbj,'') dmphalbj" & _
@@ -2109,7 +2111,7 @@ sql = sql & ",COALESCE(dmpKhsA,'') dmpKhsA,COALESCE(dmpDMSchulEmpf,'') dmpDMSchu
    roFa(akt).ausgst = rs!ausgst
    roFa(akt).KtrAbrB = doUmwfSQL(rs!KtrAbrB, lies.obMySQL, False)
    roFa(akt).AbrAr = doUmwfSQL(rs!AbrAr, lies.obMySQL, False)
-   roFa(akt).lvorl = rs!lvorl
+   roFa(akt).lVorl = rs!lVorl
    roFa(akt).IK = doUmwfSQL(rs!IK, lies.obMySQL, False)
    roFa(akt).KVKs = doUmwfSQL(rs!KVKs, lies.obMySQL, False)
    roFa(akt).KVKserg = doUmwfSQL(rs!KVKserg, lies.obMySQL, False)
@@ -2379,7 +2381,7 @@ Public Function faelleSpeichern(SammelInsert%, BezfSp%)
   csql.AppVar Array("(", rFa(i).Pat_id, ",'", rFa(i).Quartal, "','", rFa(i).Nachname, "','", rFa(i).Vorname, "',", rFa(i).lfdnr, ",'", rFa(i).TMFNr, "','", rFa(i).VKNr, "','", rFa(i).f4131, "','", _
    rFa(i).f4132, "',", DatFor_k(rFa(i).VschBeg), ",'", rFa(i).KKasse_2, "',", REPLACE$(rFa(i).FaktPers, ",", "."), ",", REPLACE$(rFa(i).FaktTechn, ",", "."), ",", REPLACE$(rFa(i).FaktLabor, ",", "."), ",", DatFor_k( _
    rFa(i).BhFB), ",", DatFor_k(rFa(i).BhFE1), ",", DatFor_k(rFa(i).BhFE2), ",'", rFa(i).f4202, "',", DatFor_k(rFa(i).ausgst), ",'", rFa(i).KtrAbrB, "','", rFa(i).AbrAr, "',", DatFor_k( _
-   rFa(i).lvorl), ",'", rFa(i).IK, "','", rFa(i).KVKs, "','", rFa(i).KVKserg, "','", rFa(i).Status, "','", rFa(i).Kasse, "',", rFa(i).KID, ",'", rFa(i).GebOr, "','", rFa(i).AbrGb, "','", _
+   rFa(i).lVorl), ",'", rFa(i).IK, "','", rFa(i).KVKs, "','", rFa(i).KVKserg, "','", rFa(i).Status, "','", rFa(i).Kasse, "',", rFa(i).KID, ",'", rFa(i).GebOr, "','", rFa(i).AbrGb, "','", _
    rFa(i).PersKreis, "','", rFa(i).SKtZusatz, "','", rFa(i).letzteRegel, "','", rFa(i).ÜwText, "',", rFa(i).f4210, ",", rFa(i).AkfHAH, ",", rFa(i).AkfAB0, ",", rFa(i).AkfAK, ",'", _
    rFa(i).statNuller, "','", rFa(i).ÜbwV, "','", rFa(i).ÜbWVLANR, "','", rFa(i).ÜbWVBSNR, "','", rFa(i).ÜbWVKVNR, "','", rFa(i).AndÜw, "','", rFa(i).Übwr, "','", rFa(i).ÜbwLANR, "','", _
    rFa(i).ÜWZiel, "','", rFa(i).ÜWNNr, "','", rFa(i).ÜWNaN, "','", rFa(i).ÜWTit, "','", rFa(i).ÜWVor, "','", rFa(i).ÜWVsw, "',", rFa(i).üwvid, ",'", rFa(i).Auftrag, "','", rFa(i).Verdacht, "','", _
@@ -2414,8 +2416,8 @@ Public Function faelleSpeichern(SammelInsert%, BezfSp%)
    End If
   If SammelInsert = 0 Then
   'Hier gibts mit Sammelins noch ein Problem ...
-   ' SET rs = myEFrag("SELECT FID FROM `faelle` WHERE pat_id = " & rFa(i).Pat_ID & " AND quartal = '" & rFa(i).Quartal & "' AND bhfb = " & DatFor_k(rFa(i).BhFB) & " AND bhfe1 = " & DatFor_k(rFa(i).BhFE1) & " AND ausgst = " & DatFor_k(rFa(i).ausgst))
-   Set rs = myEFrag("SELECT LAST_INSERT_ID() FID")
+    Set rs = myEFrag("SELECT MAX(fid) FID FROM `faelle` WHERE pat_id = " & rFa(i).Pat_id & " AND quartal = '" & rFa(i).Quartal & "' AND bhfb = " & DatFor_k(rFa(i).BhFB) & " AND bhfe1 = " & DatFor_k(rFa(i).BhFE1) & " AND ausgst = " & DatFor_k(rFa(i).ausgst))
+'   Set rs = myEFrag("SELECT LAST_INSERT_ID() FID")
    If rs.BOF Then
     Err.Raise 999, , "Fehler bei der Fallaktualisierung b.Pat. " & rFa(i).Pat_id & ", FID " & rFa(i).FID
    Else
@@ -2776,8 +2778,8 @@ Public Function auLaden()
  Dim pid$, rs As New Recordset, akt&
  On Error GoTo fehler
  pid = rNa(0).Pat_id
- sql = "SELECT COALESCE(FID,0) FID,COALESCE(Pat_ID,0) Pat_ID,IF(ZeitPunkt IS NULL OR ZeitPunkt=0,CONVERT('18991230',DATE),ZeitPunkt) ZeitPunkt,COALESCE(Beginn,'') Beginn" & _
-",COALESCE(Ende,'') Ende,COALESCE(ICDs,'') ICDs,COALESCE(absPos,0) absPos,IF(AktZeit IS NULL OR AktZeit=0,CONVERT('18991230',DATE),AktZeit) AktZeit" & _
+ sql = "SELECT COALESCE(FID,0) FID,COALESCE(Pat_ID,0) Pat_ID,COALESCE(ZeitPunkt - INTERVAL 0 DAY,CONVERT('18991230',DATE)) ZeitPunkt,COALESCE(Beginn,'') Beginn" & _
+",COALESCE(Ende,'') Ende,COALESCE(ICDs,'') ICDs,COALESCE(absPos,0) absPos,COALESCE(AktZeit - INTERVAL 0 DAY,CONVERT('18991230',DATE)) AktZeit" & _
 ",COALESCE(StByte,0) StByte FROM `au` WHERE Pat_ID=" & pid & " ORDER BY `ZeitPunkt`"
  myFrag rs, sql
  If rs.EOF Then
@@ -3017,9 +3019,9 @@ Public Function briefeLaden()
  Dim pid$, rs As New Recordset, akt&
  On Error GoTo fehler
  pid = rNa(0).Pat_id
- sql = "SELECT COALESCE(FID,0) FID,COALESCE(Pat_ID,0) Pat_ID,IF(ZeitPunkt IS NULL OR ZeitPunkt=0,CONVERT('18991230',DATE),ZeitPunkt) ZeitPunkt,COALESCE(Pfad,'') Pfad" & _
-",COALESCE(Art,'') Art,COALESCE(Name,'') Name,COALESCE(autor,'') autor,IF(Quelldatum IS NULL OR Quelldatum=0,CONVERT('18991230',DATE),Quelldatum) Quelldatum" & _
-",COALESCE(Typ,'') Typ,IF(AktZeit IS NULL OR AktZeit=0,CONVERT('18991230',DATE),AktZeit) AktZeit,COALESCE(DokGroe,0) DokGroe,IF(DokAenD IS NULL OR DokAenD=0,CONVERT('18991230',DATE),DokAenD) DokAenD" & _
+ sql = "SELECT COALESCE(FID,0) FID,COALESCE(Pat_ID,0) Pat_ID,COALESCE(ZeitPunkt - INTERVAL 0 DAY,CONVERT('18991230',DATE)) ZeitPunkt,COALESCE(Pfad,'') Pfad" & _
+",COALESCE(Art,'') Art,COALESCE(Name,'') Name,COALESCE(autor,'') autor,COALESCE(Quelldatum - INTERVAL 0 DAY,CONVERT('18991230',DATE)) Quelldatum" & _
+",COALESCE(Typ,'') Typ,COALESCE(AktZeit - INTERVAL 0 DAY,CONVERT('18991230',DATE)) AktZeit,COALESCE(DokGroe,0) DokGroe,COALESCE(DokAenD - INTERVAL 0 DAY,CONVERT('18991230',DATE)) DokAenD" & _
 ",COALESCE(QS,'') QS,COALESCE(QT,'') QT,COALESCE(absPos,0) absPos,COALESCE(StByte,0) StByte" & _
 ",COALESCE(ID,0) ID FROM `briefe` WHERE Pat_ID=" & pid & " ORDER BY `ZeitPunkt`"
  myFrag rs, sql
@@ -3282,11 +3284,11 @@ Public Function diagnosenLaden()
  Dim pid$, rs As New Recordset, akt&
  On Error GoTo fehler
  pid = rNa(0).Pat_id
- sql = "SELECT COALESCE(ID1,0) ID1,COALESCE(FID,0) FID,COALESCE(Pat_id,0) Pat_id,IF(DiagDatum IS NULL OR DiagDatum=0,CONVERT('18991230',DATE),DiagDatum) DiagDatum" & _
+ sql = "SELECT COALESCE(ID1,0) ID1,COALESCE(FID,0) FID,COALESCE(Pat_id,0) Pat_id,COALESCE(DiagDatum - INTERVAL 0 DAY,CONVERT('18991230',DATE)) DiagDatum" & _
 ",COALESCE(DiagSicherheit,'') DiagSicherheit,COALESCE(DiagText,'') DiagText,COALESCE(DiagSeite,'') DiagSeite,COALESCE(DiagAttr,'') DiagAttr" & _
 ",COALESCE(ICD,'') ICD,COALESCE(obDauer,0) obDauer,COALESCE(intBemerk,'') intBemerk,COALESCE(absPos,0) absPos" & _
-",IF(AktZeit IS NULL OR AktZeit=0,CONVERT('18991230',DATE),AktZeit) AktZeit,COALESCE(StByte,0) StByte,COALESCE(AusnBegr,'') AusnBegr,COALESCE(f6010,0) f6010" & _
-",COALESCE(obKasse,0) obKasse,IF(lKasse IS NULL OR lKasse=0,CONVERT('18991230',DATE),lKasse) lKasse,COALESCE(f6011,'') f6011 FROM `diagnosen` WHERE Pat_ID=" & pid & " ORDER BY `DiagDatum`"
+",COALESCE(AktZeit - INTERVAL 0 DAY,CONVERT('18991230',DATE)) AktZeit,COALESCE(StByte,0) StByte,COALESCE(AusnBegr,'') AusnBegr,COALESCE(f6010,0) f6010" & _
+",COALESCE(obKasse,0) obKasse,COALESCE(lKasse - INTERVAL 0 DAY,CONVERT('18991230',DATE)) lKasse,COALESCE(f6011,'') f6011 FROM `diagnosen` WHERE Pat_ID=" & pid & " ORDER BY `DiagDatum`"
  myFrag rs, sql
  If rs.EOF Then
   ReDim roDi(0)
@@ -3542,9 +3544,9 @@ Public Function dokumenteLaden()
  Dim pid$, rs As New Recordset, akt&
  On Error GoTo fehler
  pid = rNa(0).Pat_id
- sql = "SELECT COALESCE(FID,0) FID,COALESCE(Pat_ID,0) Pat_ID,IF(ZeitPunkt IS NULL OR ZeitPunkt=0,CONVERT('18991230',DATE),ZeitPunkt) ZeitPunkt,COALESCE(DokPfad,'') DokPfad" & _
-",COALESCE(DokArt,'') DokArt,COALESCE(DokName,'') DokName,IF(Quelldatum IS NULL OR Quelldatum=0,CONVERT('18991230',DATE),Quelldatum) Quelldatum,COALESCE(absPos,0) absPos" & _
-",IF(AktZeit IS NULL OR AktZeit=0,CONVERT('18991230',DATE),AktZeit) AktZeit,COALESCE(DokGroe,0) DokGroe,IF(DokAenD IS NULL OR DokAenD=0,CONVERT('18991230',DATE),DokAenD) DokAenD,COALESCE(QS,'') QS" & _
+ sql = "SELECT COALESCE(FID,0) FID,COALESCE(Pat_ID,0) Pat_ID,COALESCE(ZeitPunkt - INTERVAL 0 DAY,CONVERT('18991230',DATE)) ZeitPunkt,COALESCE(DokPfad,'') DokPfad" & _
+",COALESCE(DokArt,'') DokArt,COALESCE(DokName,'') DokName,COALESCE(Quelldatum - INTERVAL 0 DAY,CONVERT('18991230',DATE)) Quelldatum,COALESCE(absPos,0) absPos" & _
+",COALESCE(AktZeit - INTERVAL 0 DAY,CONVERT('18991230',DATE)) AktZeit,COALESCE(DokGroe,0) DokGroe,COALESCE(DokAenD - INTERVAL 0 DAY,CONVERT('18991230',DATE)) DokAenD,COALESCE(QS,'') QS" & _
 ",COALESCE(QT,'') QT,COALESCE(StByte,0) StByte FROM `dokumente` WHERE Pat_ID=" & pid & " ORDER BY `ZeitPunkt`"
  myFrag rs, sql
  If rs.EOF Then
@@ -3785,8 +3787,8 @@ Public Function eintraegeLaden()
  Dim pid$, rs As New Recordset, akt&
  On Error GoTo fehler
  pid = rNa(0).Pat_id
- sql = "SELECT COALESCE(FID,0) FID,COALESCE(Pat_ID,0) Pat_ID,IF(ZeitPunkt IS NULL OR ZeitPunkt=0,CONVERT('18991230',DATE),ZeitPunkt) ZeitPunkt,COALESCE(Art,'') Art" & _
-",COALESCE(Inhalt,'') Inhalt,COALESCE(absPos,0) absPos,IF(AktZeit IS NULL OR AktZeit=0,CONVERT('18991230',DATE),AktZeit) AktZeit,COALESCE(QS,'') QS" & _
+ sql = "SELECT COALESCE(FID,0) FID,COALESCE(Pat_ID,0) Pat_ID,COALESCE(ZeitPunkt - INTERVAL 0 DAY,CONVERT('18991230',DATE)) ZeitPunkt,COALESCE(Art,'') Art" & _
+",COALESCE(Inhalt,'') Inhalt,COALESCE(absPos,0) absPos,COALESCE(AktZeit - INTERVAL 0 DAY,CONVERT('18991230',DATE)) AktZeit,COALESCE(QS,'') QS" & _
 ",COALESCE(QT,'') QT,COALESCE(StByte,0) StByte,COALESCE(id,0) id,COALESCE(inhNum,0) inhNum" & _
 " FROM `eintraege` WHERE Pat_ID=" & pid & " ORDER BY `ZeitPunkt`"
  myFrag rs, sql
@@ -4226,7 +4228,7 @@ Public Function forminhkopfLaden()
  On Error GoTo fehler
  pid = rNa(0).Pat_id
  sql = "SELECT COALESCE(FoID,0) FoID,COALESCE(FID,0) FID,COALESCE(Pat_ID,0) Pat_ID,COALESCE(Form_ID,0) Form_ID" & _
-",IF(ZeitPunkt IS NULL OR ZeitPunkt=0,CONVERT('18991230',DATE),ZeitPunkt) ZeitPunkt,COALESCE(AbsPos,0) AbsPos,IF(AktZeit IS NULL OR AktZeit=0,CONVERT('18991230',DATE),AktZeit) AktZeit,COALESCE(StByte,0) StByte" & _
+",COALESCE(ZeitPunkt - INTERVAL 0 DAY,CONVERT('18991230',DATE)) ZeitPunkt,COALESCE(AbsPos,0) AbsPos,COALESCE(AktZeit - INTERVAL 0 DAY,CONVERT('18991230',DATE)) AktZeit,COALESCE(StByte,0) StByte" & _
 ",COALESCE(Satzart,'') Satzart,COALESCE(Satzlänge,'') Satzlänge,COALESCE(LANRid,0) LANRid FROM `forminhkopf` WHERE Pat_ID=" & pid & " ORDER BY `ZeitPunkt`"
  myFrag rs, sql
  If rs.EOF Then
@@ -4548,8 +4550,8 @@ Public Function kheinweisLaden()
  Dim pid$, rs As New Recordset, akt&
  On Error GoTo fehler
  pid = rNa(0).Pat_id
- sql = "SELECT COALESCE(FID,0) FID,COALESCE(Pat_ID,0) Pat_ID,IF(ZeitPunkt IS NULL OR ZeitPunkt=0,CONVERT('18991230',DATE),ZeitPunkt) ZeitPunkt,COALESCE(Ziel,'') Ziel" & _
-",COALESCE(Diagnose,'') Diagnose,COALESCE(absPos,0) absPos,IF(AktZeit IS NULL OR AktZeit=0,CONVERT('18991230',DATE),AktZeit) AktZeit,COALESCE(StByte,0) StByte" & _
+ sql = "SELECT COALESCE(FID,0) FID,COALESCE(Pat_ID,0) Pat_ID,COALESCE(ZeitPunkt - INTERVAL 0 DAY,CONVERT('18991230',DATE)) ZeitPunkt,COALESCE(Ziel,'') Ziel" & _
+",COALESCE(Diagnose,'') Diagnose,COALESCE(absPos,0) absPos,COALESCE(AktZeit - INTERVAL 0 DAY,CONVERT('18991230',DATE)) AktZeit,COALESCE(StByte,0) StByte" & _
 " FROM `kheinweis` WHERE Pat_ID=" & pid & " ORDER BY `ZeitPunkt`"
  myFrag rs, sql
  If rs.EOF Then
@@ -4765,8 +4767,8 @@ Public Function lbanforderungenLaden()
  Dim pid$, rs As New Recordset, akt&
  On Error GoTo fehler
  pid = rNa(0).Pat_id
- sql = "SELECT COALESCE(FID,0) FID,COALESCE(Pat_ID,0) Pat_ID,IF(ZeitPunkt IS NULL OR ZeitPunkt=0,CONVERT('18991230',DATE),ZeitPunkt) ZeitPunkt,COALESCE(AnfText,'') AnfText" & _
-",COALESCE(absPos,0) absPos,IF(AktZeit IS NULL OR AktZeit=0,CONVERT('18991230',DATE),AktZeit) AktZeit,COALESCE(StByte,0) StByte FROM `lbanforderungen` WHERE Pat_ID=" & pid & " ORDER BY `ZeitPunkt`"
+ sql = "SELECT COALESCE(FID,0) FID,COALESCE(Pat_ID,0) Pat_ID,COALESCE(ZeitPunkt - INTERVAL 0 DAY,CONVERT('18991230',DATE)) ZeitPunkt,COALESCE(AnfText,'') AnfText" & _
+",COALESCE(absPos,0) absPos,COALESCE(AktZeit - INTERVAL 0 DAY,CONVERT('18991230',DATE)) AktZeit,COALESCE(StByte,0) StByte FROM `lbanforderungen` WHERE Pat_ID=" & pid & " ORDER BY `ZeitPunkt`"
  myFrag rs, sql
  If rs.EOF Then
   ReDim roLb(0)
@@ -4992,9 +4994,9 @@ Public Function laborneuLaden()
  Dim pid$, rs As New Recordset, akt&
  On Error GoTo fehler
  pid = rNa(0).Pat_id
- sql = "SELECT COALESCE(FID,0) FID,COALESCE(Pat_ID,0) Pat_ID,IF(ZeitPunkt IS NULL OR ZeitPunkt=0,CONVERT('18991230',DATE),ZeitPunkt) ZeitPunkt,COALESCE(FertigStGrad,'') FertigStGrad" & _
+ sql = "SELECT COALESCE(FID,0) FID,COALESCE(Pat_ID,0) Pat_ID,COALESCE(ZeitPunkt - INTERVAL 0 DAY,CONVERT('18991230',DATE)) ZeitPunkt,COALESCE(FertigStGrad,'') FertigStGrad" & _
 ",COALESCE(Abkü,'') Abkü,COALESCE(LangtextVW,0) LangtextVW,COALESCE(Wert,'') Wert,COALESCE(Einheit,'') Einheit" & _
-",COALESCE(KommentarVW,0) KommentarVW,COALESCE(AbsPos,0) AbsPos,IF(AktZeit IS NULL OR AktZeit=0,CONVERT('18991230',DATE),AktZeit) AktZeit,COALESCE(Refnr,0) Refnr" & _
+",COALESCE(KommentarVW,0) KommentarVW,COALESCE(AbsPos,0) AbsPos,COALESCE(AktZeit - INTERVAL 0 DAY,CONVERT('18991230',DATE)) AktZeit,COALESCE(Refnr,0) Refnr" & _
 ",COALESCE(StByte,0) StByte,COALESCE(ID,0) ID FROM `laborneu` WHERE Pat_ID=" & pid & " ORDER BY `ZeitPunkt`"
  myFrag rs, sql
  If rs.EOF Then
@@ -5267,12 +5269,12 @@ Public Function leistungenLaden()
  Dim pid$, rs As New Recordset, akt&
  On Error GoTo fehler
  pid = rNa(0).Pat_id
- sql = "SELECT COALESCE(id,0) id,COALESCE(FID,0) FID,COALESCE(Pat_ID,0) Pat_ID,IF(ZeitPunkt IS NULL OR ZeitPunkt=0,CONVERT('18991230',DATE),ZeitPunkt) ZeitPunkt" & _
+ sql = "SELECT COALESCE(id,0) id,COALESCE(FID,0) FID,COALESCE(Pat_ID,0) Pat_ID,COALESCE(ZeitPunkt - INTERVAL 0 DAY,CONVERT('18991230',DATE)) ZeitPunkt" & _
 ",COALESCE(Leistung,'') Leistung,COALESCE(f5002,'') f5002,COALESCE(f5005,'') f5005,COALESCE(f5006,'') f5006" & _
 ",COALESCE(f5009,'') f5009,COALESCE(Med,'') Med,COALESCE(f5015,'') f5015,COALESCE(f5016,'') f5016" & _
 ",COALESCE(f5021,'') f5021,COALESCE(f5026,'') f5026,COALESCE(Faktor,'') Faktor,COALESCE(f5098,'') f5098" & _
-",COALESCE(Charge,'') Charge,COALESCE(LANR,'') LANR,IF(letzVorg IS NULL OR letzVorg=0,CONVERT('18991230',DATE),letzVorg) letzVorg,COALESCE(Ausn,'') Ausn" & _
-",COALESCE(Beme,'') Beme,COALESCE(absPos,0) absPos,IF(AktZeit IS NULL OR AktZeit=0,CONVERT('18991230',DATE),AktZeit) AktZeit,COALESCE(QS,'') QS" & _
+",COALESCE(Charge,'') Charge,COALESCE(LANR,'') LANR,COALESCE(letzVorg - INTERVAL 0 DAY,CONVERT('18991230',DATE)) letzVorg,COALESCE(Ausn,'') Ausn" & _
+",COALESCE(Beme,'') Beme,COALESCE(absPos,0) absPos,COALESCE(AktZeit - INTERVAL 0 DAY,CONVERT('18991230',DATE)) AktZeit,COALESCE(QS,'') QS" & _
 ",COALESCE(QT,'') QT,COALESCE(StByte,0) StByte,COALESCE(LANRid,0) LANRid,COALESCE(Sachkbez,'') Sachkbez" & _
 ",COALESCE(Sachkct,0) Sachkct,COALESCE(Zone,'') Zone FROM `leistungen` WHERE Pat_ID=" & pid & " ORDER BY `ZeitPunkt`"
  myFrag rs, sql
@@ -5590,12 +5592,12 @@ Public Function medplanLaden()
  Dim pid$, rs As New Recordset, akt&
  On Error GoTo fehler
  pid = rNa(0).Pat_id
- sql = "SELECT COALESCE(FID,0) FID,COALESCE(Pat_ID,0) Pat_ID,COALESCE(MPNr,0) MPNr,IF(ZeitPunkt IS NULL OR ZeitPunkt=0,CONVERT('18991230',DATE),ZeitPunkt) ZeitPunkt" & _
-",IF(Datum IS NULL OR Datum=0,CONVERT('18991230',DATE),Datum) Datum,COALESCE(Medikament,'') Medikament,COALESCE(MedAnfang,'') MedAnfang,COALESCE(Wirkstoff,'') Wirkstoff" & _
+ sql = "SELECT COALESCE(FID,0) FID,COALESCE(Pat_ID,0) Pat_ID,COALESCE(MPNr,0) MPNr,COALESCE(ZeitPunkt - INTERVAL 0 DAY,CONVERT('18991230',DATE)) ZeitPunkt" & _
+",COALESCE(Datum - INTERVAL 0 DAY,CONVERT('18991230',DATE)) Datum,COALESCE(Medikament,'') Medikament,COALESCE(MedAnfang,'') MedAnfang,COALESCE(Wirkstoff,'') Wirkstoff" & _
 ",COALESCE(PZN,0) PZN,COALESCE(FeldNr,0) FeldNr,COALESCE(mo,'') mo,COALESCE(mi,'') mi" & _
 ",COALESCE(nm,'') nm,COALESCE(ab,'') ab,COALESCE(zn,'') zn,COALESCE(bBed,0) bBed" & _
 ",COALESCE(Bemerkung,'') Bemerkung,COALESCE(Grund,'') Grund,COALESCE(Stärke,'') Stärke,COALESCE(Einheit,'') Einheit" & _
-",COALESCE(Form,'') Form,COALESCE(AbsPos,0) AbsPos,IF(AktZeit IS NULL OR AktZeit=0,CONVERT('18991230',DATE),AktZeit) AktZeit,COALESCE(StByte,0) StByte" & _
+",COALESCE(Form,'') Form,COALESCE(AbsPos,0) AbsPos,COALESCE(AktZeit - INTERVAL 0 DAY,CONVERT('18991230',DATE)) AktZeit,COALESCE(StByte,0) StByte" & _
 ",COALESCE(ergaenzt,0) ergaenzt FROM `medplan` WHERE Pat_ID=" & pid & " ORDER BY `ZeitPunkt`"
  myFrag rs, sql
  If rs.EOF Then
@@ -5882,10 +5884,10 @@ Public Function rezepteintraegeLaden()
  Dim pid$, rs As New Recordset, akt&
  On Error GoTo fehler
  pid = rNa(0).Pat_id
- sql = "SELECT COALESCE(FID,0) FID,COALESCE(Pat_ID,0) Pat_ID,IF(ZeitPunkt IS NULL OR ZeitPunkt=0,CONVERT('18991230',DATE),ZeitPunkt) ZeitPunkt,COALESCE(Rezept,'') Rezept" & _
+ sql = "SELECT COALESCE(FID,0) FID,COALESCE(Pat_ID,0) Pat_ID,COALESCE(ZeitPunkt - INTERVAL 0 DAY,CONVERT('18991230',DATE)) ZeitPunkt,COALESCE(Rezept,'') Rezept" & _
 ",COALESCE(RKlnm,'') RKlnm,COALESCE(Rezeptklasse,'') Rezeptklasse,COALESCE(Rezklkurz,'') Rezklkurz,COALESCE(Rezkllang,'') Rezkllang" & _
 ",COALESCE(kbez,'') kbez,COALESCE(Medikament,'') Medikament,COALESCE(auti,0) auti,COALESCE(anzl,0) anzl" & _
-",COALESCE(PZN,'') PZN,COALESCE(absPos,0) absPos,IF(AktZeit IS NULL OR AktZeit=0,CONVERT('18991230',DATE),AktZeit) AktZeit,COALESCE(QS,'') QS" & _
+",COALESCE(PZN,'') PZN,COALESCE(absPos,0) absPos,COALESCE(AktZeit - INTERVAL 0 DAY,CONVERT('18991230',DATE)) AktZeit,COALESCE(QS,'') QS" & _
 ",COALESCE(QT,'') QT,COALESCE(StByte,0) StByte,COALESCE(LANRid,0) LANRid,COALESCE(id,0) id" & _
 " FROM `rezepteintraege` WHERE Pat_ID=" & pid & " ORDER BY `ZeitPunkt`"
  myFrag rs, sql
@@ -6146,9 +6148,9 @@ Public Function rrLaden()
  Dim pid$, rs As New Recordset, akt&
  On Error GoTo fehler
  pid = rNa(0).Pat_id
- sql = "SELECT COALESCE(FID,0) FID,COALESCE(Pat_ID,0) Pat_ID,IF(ZeitPunkt IS NULL OR ZeitPunkt=0,CONVERT('18991230',DATE),ZeitPunkt) ZeitPunkt,COALESCE(RR,'') RR" & _
+ sql = "SELECT COALESCE(FID,0) FID,COALESCE(Pat_ID,0) Pat_ID,COALESCE(ZeitPunkt - INTERVAL 0 DAY,CONVERT('18991230',DATE)) ZeitPunkt,COALESCE(RR,'') RR" & _
 ",COALESCE(Puls,0) Puls,COALESCE(RRsyst,0) RRsyst,COALESCE(RRdiast,0) RRdiast,COALESCE(RRzahl,0) RRzahl" & _
-",COALESCE(Quelle,'') Quelle,COALESCE(Bemerkung,'') Bemerkung,COALESCE(absPos,0) absPos,IF(AktZeit IS NULL OR AktZeit=0,CONVERT('18991230',DATE),AktZeit) AktZeit" & _
+",COALESCE(Quelle,'') Quelle,COALESCE(Bemerkung,'') Bemerkung,COALESCE(absPos,0) absPos,COALESCE(AktZeit - INTERVAL 0 DAY,CONVERT('18991230',DATE)) AktZeit" & _
 ",COALESCE(StByte,0) StByte FROM `rr` WHERE Pat_ID=" & pid & " ORDER BY `ZeitPunkt`"
  myFrag rs, sql
  If rs.EOF Then
@@ -6562,7 +6564,7 @@ Public Function roDmZuw(i&, j&)
  roDm(i).exportiert = rDm(j).exportiert
  roDm(i).DokuDatum = rDm(j).DokuDatum
  roDm(i).obvoll = rDm(j).obvoll
- roDm(i).OK = rDm(j).OK
+ roDm(i).Ok = rDm(j).Ok
  roDm(i).ausgedruckt = rDm(j).ausgedruckt
  roDm(i).Nachname = rDm(j).Nachname
  roDm(i).Vorname = rDm(j).Vorname
@@ -6581,7 +6583,7 @@ Public Function DmZUnt%(i&, j&)
  If roDm(i).exportiert <> rDm(j).exportiert Then GoSub unter
  If roDm(i).DokuDatum <> rDm(j).DokuDatum Then GoSub unter
  If roDm(i).obvoll <> rDm(j).obvoll Then GoSub unter
- If roDm(i).OK <> rDm(j).OK Then GoSub unter
+ If roDm(i).Ok <> rDm(j).Ok Then GoSub unter
  If roDm(i).ausgedruckt <> rDm(j).ausgedruckt Then GoSub unter
  If roDm(i).Nachname <> rDm(j).Nachname Then GoSub unter
  If roDm(i).Vorname <> rDm(j).Vorname Then GoSub unter
@@ -6601,10 +6603,10 @@ Public Function dmpreiheLaden()
  Dim pid$, rs As New Recordset, akt&
  On Error GoTo fehler
  pid = rNa(0).Pat_id
- sql = "SELECT COALESCE(Abk,'') Abk,COALESCE(Art,'') Art,IF(KarteiDatum IS NULL OR KarteiDatum=0,CONVERT('18991230',DATE),KarteiDatum) KarteiDatum,IF(exportiert IS NULL OR exportiert=0,CONVERT('18991230',DATE),exportiert) exportiert" & _
-",IF(DokuDatum IS NULL OR DokuDatum=0,CONVERT('18991230',DATE),DokuDatum) DokuDatum,COALESCE(obvoll,0) obvoll,COALESCE(ok,0) ok,COALESCE(ausgedruckt,0) ausgedruckt" & _
-",COALESCE(NachName,'') NachName,COALESCE(VorName,'') VorName,IF(GebDat IS NULL OR GebDat=0,CONVERT('18991230',DATE),GebDat) GebDat,COALESCE(Pat_id,0) Pat_id" & _
-",COALESCE(StByte,0) StByte,IF(AktZeit IS NULL OR AktZeit=0,CONVERT('18991230',DATE),AktZeit) AktZeit,COALESCE(lanrid,0) lanrid,COALESCE(Zusatzdaten,'') Zusatzdaten" & _
+ sql = "SELECT COALESCE(Abk,'') Abk,COALESCE(Art,'') Art,COALESCE(KarteiDatum - INTERVAL 0 DAY,CONVERT('18991230',DATE)) KarteiDatum,COALESCE(exportiert - INTERVAL 0 DAY,CONVERT('18991230',DATE)) exportiert" & _
+",COALESCE(DokuDatum - INTERVAL 0 DAY,CONVERT('18991230',DATE)) DokuDatum,COALESCE(obvoll,0) obvoll,COALESCE(ok,0) ok,COALESCE(ausgedruckt,0) ausgedruckt" & _
+",COALESCE(NachName,'') NachName,COALESCE(VorName,'') VorName,COALESCE(GebDat - INTERVAL 0 DAY,CONVERT('18991230',DATE)) GebDat,COALESCE(Pat_id,0) Pat_id" & _
+",COALESCE(StByte,0) StByte,COALESCE(AktZeit - INTERVAL 0 DAY,CONVERT('18991230',DATE)) AktZeit,COALESCE(lanrid,0) lanrid,COALESCE(Zusatzdaten,'') Zusatzdaten" & _
 " FROM `dmpreihe` WHERE Pat_ID=" & pid & " ORDER BY `Dokudatum`"
  myFrag rs, sql
  If rs.EOF Then
@@ -6619,7 +6621,7 @@ Public Function dmpreiheLaden()
    roDm(akt).exportiert = rs!exportiert
    roDm(akt).DokuDatum = rs!DokuDatum
    roDm(akt).obvoll = rs!obvoll
-   roDm(akt).OK = rs!OK
+   roDm(akt).Ok = rs!Ok
    roDm(akt).ausgedruckt = rs!ausgedruckt
    roDm(akt).Nachname = doUmwfSQL(rs!Nachname, lies.obMySQL, False)
    roDm(akt).Vorname = doUmwfSQL(rs!Vorname, lies.obMySQL, False)
@@ -6721,7 +6723,7 @@ Public Function dmpreiheSpeichern(SammelInsert%, BezfSp%)
    csql.Append csql0
   End If
   csql.AppVar Array("('", rDm(i).Abk, "','", rDm(i).art, "',", DatFor_k(rDm(i).KarteiDatum), ",", DatFor_k(rDm(i).exportiert), ",", DatFor_k(rDm(i).DokuDatum), ",", CStr(-(rDm(i).obvoll <> 0)), ",", CStr(-( _
-   rDm(i).OK <> 0)), ",", CStr(-(rDm(i).ausgedruckt <> 0)), ",'", rDm(i).Nachname, "','", rDm(i).Vorname, "',", DatFor_k(rDm(i).GebDat), ",", rDm(i).Pat_id, ",", rDm(i).StByte, ",", DatFor_k(rDm(i).AktZeit), ",", _
+   rDm(i).Ok <> 0)), ",", CStr(-(rDm(i).ausgedruckt <> 0)), ",'", rDm(i).Nachname, "','", rDm(i).Vorname, "',", DatFor_k(rDm(i).GebDat), ",", rDm(i).Pat_id, ",", rDm(i).StByte, ",", DatFor_k(rDm(i).AktZeit), ",", _
    rDm(i).lanrid, ",'", rDm(i).Zusatzdaten, "')")
   If SammelInsert <> 0 And i < UBound(rDm) Then csql.Append ","
   If SammelInsert = 0 Or i = UBound(rDm) Then
@@ -6866,11 +6868,11 @@ Public Function desktopLaden()
  Dim pid$, rs As New Recordset, akt&
  On Error GoTo fehler
  pid = rNa(0).Pat_id
- sql = "SELECT COALESCE(id,0) id,COALESCE(IDS,'') IDS,COALESCE(Pat_ID,0) Pat_ID,IF(erstZP IS NULL OR erstZP=0,CONVERT('18991230',DATE),erstZP) erstZP" & _
+ sql = "SELECT COALESCE(id,0) id,COALESCE(IDS,'') IDS,COALESCE(Pat_ID,0) Pat_ID,COALESCE(erstZP - INTERVAL 0 DAY,CONVERT('18991230',DATE)) erstZP" & _
 ",COALESCE(exoL,'') exoL,COALESCE(hideT,0) hideT,COALESCE(iconPath,'') iconPath,COALESCE(noteBkColor,0) noteBkColor" & _
 ",COALESCE(noteFgColor,0) noteFgColor,COALESCE(positionBottom,0) positionBottom,COALESCE(positionLeft,0) positionLeft,COALESCE(positionRight,0) positionRight" & _
 ",COALESCE(positionTop,0) positionTop,COALESCE(showAsNote,0) showAsNote,COALESCE(syncInfoList,'') syncInfoList,COALESCE(titel,'') titel" & _
-",COALESCE(toolTipText,'') toolTipText,COALESCE(verankert,0) verankert,COALESCE(absPos,0) absPos,IF(AktZeit IS NULL OR AktZeit=0,CONVERT('18991230',DATE),AktZeit) AktZeit" & _
+",COALESCE(toolTipText,'') toolTipText,COALESCE(verankert,0) verankert,COALESCE(absPos,0) absPos,COALESCE(AktZeit - INTERVAL 0 DAY,CONVERT('18991230',DATE)) AktZeit" & _
 ",COALESCE(StByte,0) StByte FROM `desktop` WHERE Pat_ID=" & pid & " ORDER BY `erstZP`"
  myFrag rs, sql
  If rs.EOF Then
@@ -7189,7 +7191,7 @@ Public Function usdmLaden()
  Dim pid$, rs As New Recordset, akt&
  On Error GoTo fehler
  pid = rNa(0).Pat_id
- sql = "SELECT COALESCE(FID,0) FID,COALESCE(Pat_ID,0) Pat_ID,IF(ZeitPunkt IS NULL OR ZeitPunkt=0,CONVERT('18991230',DATE),ZeitPunkt) ZeitPunkt,COALESCE(Art,'') Art" & _
+ sql = "SELECT COALESCE(FID,0) FID,COALESCE(Pat_ID,0) Pat_ID,COALESCE(ZeitPunkt - INTERVAL 0 DAY,CONVERT('18991230',DATE)) ZeitPunkt,COALESCE(Art,'') Art" & _
 ",COALESCE(Spritzst,0) Spritzst,COALESCE(Fußbef_re,0) Fußbef_re,COALESCE(Fußbef_li,0) Fußbef_li,COALESCE(Hyperk_re,0) Hyperk_re" & _
 ",COALESCE(Hyperk_li,0) Hyperk_li,COALESCE(Ulcera_re,0) Ulcera_re,COALESCE(Ulcera_li,0) Ulcera_li,COALESCE(Kraft_Zh_re,0) Kraft_Zh_re" & _
 ",COALESCE(Kraft_Zh_li,0) Kraft_Zh_li,COALESCE(Kraft_Zb_re,0) Kraft_Zb_re,COALESCE(Kraft_Zb_li,0) Kraft_Zb_li,COALESCE(Kraft_Knie_re,0) Kraft_Knie_re" & _
@@ -7199,7 +7201,7 @@ Public Function usdmLaden()
 ",COALESCE(Vibr_IK_li,0) Vibr_IK_li,COALESCE(Vibr_GZ_re,0) Vibr_GZ_re,COALESCE(Vibr_GZ_li,0) Vibr_GZ_li,COALESCE(PulsL_re,0) PulsL_re" & _
 ",COALESCE(PulsL_li,0) PulsL_li,COALESCE(PulsKK_re,0) PulsKK_re,COALESCE(PulsKK_li,0) PulsKK_li,COALESCE(PulsAtp_re,0) PulsAtp_re" & _
 ",COALESCE(PulsAtp_li,0) PulsAtp_li,COALESCE(PulsAdp_re,0) PulsAdp_re,COALESCE(PulsAdp_li,0) PulsAdp_li,COALESCE(Mitarbeiter,0) Mitarbeiter" & _
-",COALESCE(absPos,0) absPos,IF(AktZeit IS NULL OR AktZeit=0,CONVERT('18991230',DATE),AktZeit) AktZeit,COALESCE(QS,'') QS,COALESCE(QT,'') QT" & _
+",COALESCE(absPos,0) absPos,COALESCE(AktZeit - INTERVAL 0 DAY,CONVERT('18991230',DATE)) AktZeit,COALESCE(QS,'') QS,COALESCE(QT,'') QT" & _
 ",COALESCE(StByte,0) StByte,COALESCE(id,0) id FROM `usdm` WHERE Pat_ID=" & pid & " ORDER BY `ZeitPunkt`"
  myFrag rs, sql
  If rs.EOF Then
@@ -7566,10 +7568,10 @@ Public Function fussLaden()
  Dim pid$, rs As New Recordset, akt&
  On Error GoTo fehler
  pid = rNa(0).Pat_id
- sql = "SELECT COALESCE(FID,0) FID,COALESCE(Pat_ID,0) Pat_ID,IF(ZeitPunkt IS NULL OR ZeitPunkt=0,CONVERT('18991230',DATE),ZeitPunkt) ZeitPunkt,COALESCE(Art,'') Art" & _
+ sql = "SELECT COALESCE(FID,0) FID,COALESCE(Pat_ID,0) Pat_ID,COALESCE(ZeitPunkt - INTERVAL 0 DAY,CONVERT('18991230',DATE)) ZeitPunkt,COALESCE(Art,'') Art" & _
 ",COALESCE(Fußdeform,'') Fußdeform,COALESCE(Hyper_mEin,'') Hyper_mEin,COALESCE(Weiteres,'') Weiteres,COALESCE(Zn_Ulcus,'') Zn_Ulcus" & _
 ",COALESCE(Zn_Amput,'') Zn_Amput,COALESCE(Fuß_ang,'') Fuß_ang,COALESCE(Ulcera,'') Ulcera,COALESCE(Wundinfektion,'') Wundinfektion" & _
-",COALESCE(nae_US,'') nae_US,COALESCE(Mitarbeiter,'') Mitarbeiter,COALESCE(absPos,0) absPos,IF(AktZeit IS NULL OR AktZeit=0,CONVERT('18991230',DATE),AktZeit) AktZeit" & _
+",COALESCE(nae_US,'') nae_US,COALESCE(Mitarbeiter,'') Mitarbeiter,COALESCE(absPos,0) absPos,COALESCE(AktZeit - INTERVAL 0 DAY,CONVERT('18991230',DATE)) AktZeit" & _
 ",COALESCE(QS,'') QS,COALESCE(QT,'') QT,COALESCE(StByte,0) StByte,COALESCE(id,0) id" & _
 " FROM `fuss` WHERE Pat_ID=" & pid & " ORDER BY `ZeitPunkt`"
  myFrag rs, sql
@@ -7846,11 +7848,11 @@ Public Function ulcusLaden()
  Dim pid$, rs As New Recordset, akt&
  On Error GoTo fehler
  pid = rNa(0).Pat_id
- sql = "SELECT COALESCE(FID,0) FID,COALESCE(Pat_ID,0) Pat_ID,IF(ZeitPunkt IS NULL OR ZeitPunkt=0,CONVERT('18991230',DATE),ZeitPunkt) ZeitPunkt,COALESCE(Lokalisation,'') Lokalisation" & _
+ sql = "SELECT COALESCE(FID,0) FID,COALESCE(Pat_ID,0) Pat_ID,COALESCE(ZeitPunkt - INTERVAL 0 DAY,CONVERT('18991230',DATE)) ZeitPunkt,COALESCE(Lokalisation,'') Lokalisation" & _
 ",COALESCE(Seite,'') Seite,COALESCE(Größe,'') Größe,COALESCE(Beläge,'') Beläge,COALESCE(Exsudat,'') Exsudat" & _
 ",COALESCE(Geruch,'') Geruch,COALESCE(Wundrand,'') Wundrand,COALESCE(Wundumgebung,'') Wundumgebung,COALESCE(Temperatur,'') Temperatur" & _
 ",COALESCE(Fotodoku,'') Fotodoku,COALESCE(Wundversorgung,'') Wundversorgung,COALESCE(Mitarbeiter,'') Mitarbeiter,COALESCE(absPos,0) absPos" & _
-",IF(AktZeit IS NULL OR AktZeit=0,CONVERT('18991230',DATE),AktZeit) AktZeit,COALESCE(StByte,0) StByte FROM `ulcus` WHERE Pat_ID=" & pid & " ORDER BY `ZeitPunkt`"
+",COALESCE(AktZeit - INTERVAL 0 DAY,CONVERT('18991230',DATE)) AktZeit,COALESCE(StByte,0) StByte FROM `ulcus` WHERE Pat_ID=" & pid & " ORDER BY `ZeitPunkt`"
  myFrag rs, sql
  If rs.EOF Then
   ReDim roUl(0)
@@ -8121,11 +8123,11 @@ Public Function vkgdLaden()
  Dim pid$, rs As New Recordset, akt&
  On Error GoTo fehler
  pid = rNa(0).Pat_id
- sql = "SELECT COALESCE(FID,0) FID,COALESCE(Pat_ID,0) Pat_ID,IF(ZeitPunkt IS NULL OR ZeitPunkt=0,CONVERT('18991230',DATE),ZeitPunkt) ZeitPunkt,COALESCE(Wohlempfinden,'') Wohlempfinden" & _
+ sql = "SELECT COALESCE(FID,0) FID,COALESCE(Pat_ID,0) Pat_ID,COALESCE(ZeitPunkt - INTERVAL 0 DAY,CONVERT('18991230',DATE)) ZeitPunkt,COALESCE(Wohlempfinden,'') Wohlempfinden" & _
 ",COALESCE(Saettigung,'') Saettigung,COALESCE(Zielwerterreichung,'') Zielwerterreichung,COALESCE(Ketonkörper,'') Ketonkörper,COALESCE(Gynaekologenbefund,'') Gynaekologenbefund" & _
 ",COALESCE(Gewichtsentwicklung,'') Gewichtsentwicklung,COALESCE(HbA1c,'') HbA1c,COALESCE(Bewegung,'') Bewegung,COALESCE(Minuten,'') Minuten" & _
 ",COALESCE(Blutdruck,'') Blutdruck,COALESCE(Puls,'') Puls,COALESCE(Mitarbeiter,'') Mitarbeiter,COALESCE(absPos,0) absPos" & _
-",IF(AktZeit IS NULL OR AktZeit=0,CONVERT('18991230',DATE),AktZeit) AktZeit,COALESCE(StByte,0) StByte FROM `vkgd` WHERE Pat_ID=" & pid & " ORDER BY `ZeitPunkt`"
+",COALESCE(AktZeit - INTERVAL 0 DAY,CONVERT('18991230',DATE)) AktZeit,COALESCE(StByte,0) StByte FROM `vkgd` WHERE Pat_ID=" & pid & " ORDER BY `ZeitPunkt`"
  myFrag rs, sql
  If rs.EOF Then
   ReDim roVk(0)
@@ -8390,10 +8392,10 @@ Public Function swsLaden()
  Dim pid$, rs As New Recordset, akt&
  On Error GoTo fehler
  pid = rNa(0).Pat_id
- sql = "SELECT COALESCE(FID,0) FID,COALESCE(Pat_ID,0) Pat_ID,IF(ZeitPunkt IS NULL OR ZeitPunkt=0,CONVERT('18991230',DATE),ZeitPunkt) ZeitPunkt,IF(LR IS NULL OR LR=0,CONVERT('18991230',DATE),LR) LR" & _
-",IF(vorET IS NULL OR vorET=0,CONVERT('18991230',DATE),vorET) vorET,IF(ET IS NULL OR ET=0,CONVERT('18991230',DATE),ET) ET,IF(efLR IS NULL OR efLR=0,CONVERT('18991230',DATE),efLR) efLR,IF(erLR IS NULL OR erLR=0,CONVERT('18991230',DATE),erLR) erLR" & _
-",IF(kGT IS NULL OR kGT=0,CONVERT('18991230',DATE),kGT) kGT,IF(MB IS NULL OR MB=0,CONVERT('18991230',DATE),MB) MB,COALESCE(EndeArt,'') EndeArt,IF(ED IS NULL OR ED=0,CONVERT('18991230',DATE),ED) ED" & _
-",COALESCE(absPos,0) absPos,IF(AktZeit IS NULL OR AktZeit=0,CONVERT('18991230',DATE),AktZeit) AktZeit,COALESCE(StByte,0) StByte FROM `sws` WHERE Pat_ID=" & pid & " ORDER BY `ZeitPunkt`"
+ sql = "SELECT COALESCE(FID,0) FID,COALESCE(Pat_ID,0) Pat_ID,COALESCE(ZeitPunkt - INTERVAL 0 DAY,CONVERT('18991230',DATE)) ZeitPunkt,COALESCE(LR - INTERVAL 0 DAY,CONVERT('18991230',DATE)) LR" & _
+",COALESCE(vorET - INTERVAL 0 DAY,CONVERT('18991230',DATE)) vorET,COALESCE(ET - INTERVAL 0 DAY,CONVERT('18991230',DATE)) ET,COALESCE(efLR - INTERVAL 0 DAY,CONVERT('18991230',DATE)) efLR,COALESCE(erLR - INTERVAL 0 DAY,CONVERT('18991230',DATE)) erLR" & _
+",COALESCE(kGT - INTERVAL 0 DAY,CONVERT('18991230',DATE)) kGT,COALESCE(MB - INTERVAL 0 DAY,CONVERT('18991230',DATE)) MB,COALESCE(EndeArt,'') EndeArt,COALESCE(ED - INTERVAL 0 DAY,CONVERT('18991230',DATE)) ED" & _
+",COALESCE(absPos,0) absPos,COALESCE(AktZeit - INTERVAL 0 DAY,CONVERT('18991230',DATE)) AktZeit,COALESCE(StByte,0) StByte FROM `sws` WHERE Pat_ID=" & pid & " ORDER BY `ZeitPunkt`"
  myFrag rs, sql
  If rs.EOF Then
   ReDim roSw(0)

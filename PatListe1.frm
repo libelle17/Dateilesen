@@ -1663,9 +1663,9 @@ Public Sub domachDMPBogen(Pat_id&, BogArtlV As BogArtTyp, DokuDat As Date, Optio
  
 ' myFrag rsAnam, "SELECT * FROM `anamnesebogen` WHERE pat_id = " & Pat_id
 ' myFrag rnam, "SELECT * FROM `namen` WHERE pat_id = " & Pat_id
- Dim lvorl As Date
+ Dim lVorl As Date
  myFrag rfal, "SELECT " & IIf(Not LVobMySQL, "top 1", "") & " * FROM `faelle` WHERE pat_id = " & Pat_id & " AND bhfb <= " & DatFor_k(MIN(Now(), QEnd(ZQuart(Now() - Verspätung)))) & " ORDER BY bhfb DESC, schgr" & IIf(LVobMySQL, " LIMIT 1", "")
- lvorl = rfal!lvorl
+ lVorl = rfal!lVorl
  myFrag rform, "SELECT " & IIf(Not LVobMySQL, "top 1", "") & " `feldinh` FROM `formular` WHERE pat_id = " & Pat_id & " AND Feld = 'Kasse' AND `zeitpunkt` <= " & DatFor_k(MIN(Now(), QEnd(ZQuart(Now - Verspätung)))) & " AND feldinh LIKE '%'" & " ORDER BY zeitpunkt DESC" & IIf(LVobMySQL, " LIMIT 1", "") ' & aktdc.vknr & "%'"  geht nicht gut: VKNr nicht unbedingt aktuell in `faelle` (s.Pat_id 51)
 ' Ermittlung der 'Kasse' aus Rezepten oder Überweisungen oder vorherigen DMP-Dokus usw.
 
@@ -2239,7 +2239,7 @@ Public Sub domachDMPBogen(Pat_id&, BogArtlV As BogArtTyp, DokuDat As Date, Optio
    ZsD = ZsD & "<BisDatumderGueltigkeit>" & Year(Now) + 1 & "-" & Right$("0" & Month(Now), 2) & "</BisDatumderGueltigkeit>"
 ' auskommentiert am 30.6.15, da bei Woltmann Fehler dadurch erzeugt ("Wenn eine Angabe im Feld KVK-Einlesedatum erfolgte, dann darf die Angabe der Statusergänzung nicht fehlen.")
    If ab0921 Then
-    ZsD = ZsD & "<KVKEinlesedatum>" & Format(MAX(QAnf(ZQuart(DokuDat)), lvorl), "yyyy-mm-dd") & "</KVKEinlesedatum>"
+    ZsD = ZsD & "<KVKEinlesedatum>" & Format(MAX(QAnf(ZQuart(DokuDat)), lVorl), "yyyy-mm-dd") & "</KVKEinlesedatum>"
    End If
    ZsD = ZsD & "<WohnsitzLaendercode>D</WohnsitzLaendercode>"
    If ab0921 Then
@@ -3105,7 +3105,7 @@ andSp:
     End If ' PID <> 0
     Dim aktDC As DMPClass, VorDat As Date
     If IsNumeric(.TextMatrix(i, wertsp)) Then aktw = CDbl(REPLACE$(.TextMatrix(i, wertsp), ".", ",")) Else aktw = 0
-    If InStr(UCase$(vorDp), "GFR") <> 0 Or InStr(UCase$(vorDp), "GFC") <> 0 Or InStr(UCase$(vorDp), "MDRD") <> 0 Then
+    If InStr(1, vorDp, "GFR", vbTextCompare) <> 0 Or InStr(1, vorDp, "GFC", vbTextCompare) <> 0 Or InStr(1, vorDp, "MDRD", vbTextCompare) <> 0 Then
      If aktw < 45 Then
       Call TherAuskunft(CStr(pid), 0, aktDC.insz, VorDat, aktDC.obIns, aktDC.obAnal, aktDC.obGlib, aktDC.obmetf, aktDC.obGlucI, aktDC.obSHGlin, aktDC.obGlit, aktDC.obdpp4, aktDC.obglp1, aktDC.obsglt2, aktDC.obSonstAD, aktDC.obHMG, aktDC.obAntihyp, aktDC.obACEH, aktDC.obBetabl, aktDC.obThro, aktDC.obOAK, , , , aktDC.obDiur, aktDC.obAT1)
       If aktDC.obmetf Then

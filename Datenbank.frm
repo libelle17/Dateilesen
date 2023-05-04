@@ -432,7 +432,7 @@ Private Sub dbv_wCnAendern(CnStr As String)
   Me.ConstrCn = dbv.CnStr
   Me.ConStrLabel = dbv.Constr
   obStart = True
-  Me.obMySQL = InStr(UCase$(dbv.CnStr), "MYSQL") <> 0
+  Me.obMySQL = InStr(1, dbv.CnStr, "MYSQL", vbTextCompare) <> 0
 ' obStart = False ' 13.4.08, da bei Auswahl von Access im Lese-Fenster sonst dann im Dialog-Fenster Zeitgewinn nicht stimmt
   Me.obAcc = Not Me.obMySQL
   If Me.obAcc Then

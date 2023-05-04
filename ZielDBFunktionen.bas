@@ -1483,7 +1483,7 @@ If True Then ' lwZahl
    Dim rEintr As New ADODB.Recordset
    myFrag rEintr, "SELECT * FROM `eintraege` WHERE art = ""urin"" AND inhalt LIKE ""%micral%"" AND Pat_ID = " & aktDC.Pat_id & " ORDER BY zeitpunkt DESC"
    If Not rEintr.EOF Then
-    DMPUAlb = Mid$(rEintr!Inhalt, InStr(LCase$(rEintr!Inhalt), "micral")) & " (" & Format$(rEintr!Zeitpunkt, "dd/mm/yy") & ")"
+    DMPUAlb = Mid$(rEintr!Inhalt, InStr(1, rEintr!Inhalt, "micral", vbTextCompare)) & " (" & Format$(rEintr!Zeitpunkt, "dd/mm/yy") & ")"
    End If
   Else
    If InStrB(Labs.WertSg, "<") <> 0 Then
@@ -2772,8 +2772,8 @@ Function FallExport(BDT As BDTSchreib, Pat_id&, Datu As Date, ByRef Lanr&, Optio
       BDT.SAdd "4107", rFa!AbrAr
      End If
      If rFa!SchGr <> "90" Then
-      BDT.DAdd "4109", rFa!lvorl
-      BDT.TAdd "4110", rFa!lvorl
+      BDT.DAdd "4109", rFa!lVorl
+      BDT.TAdd "4110", rFa!lVorl
       BDT.SAdd "4111", rFa!IK
       If Not IsNull(rFa!KVKs) And rFa!KVKs <> vNS Then ' bei Pat_id 43
        BDT.SAdd "4112", rFa!KVKs
@@ -2952,8 +2952,8 @@ Function LeistungsExport1a(BDT As BDTSchreib, Pat_id&, Leist$, Datu As Date, Opt
       BDT.SAdd "4107", rFa!AbrAr
      End If
      If rFa!SchGr <> "90" Then
-      BDT.DAdd "4109", rFa!lvorl
-      BDT.TAdd "4110", rFa!lvorl
+      BDT.DAdd "4109", rFa!lVorl
+      BDT.TAdd "4110", rFa!lVorl
       BDT.SAdd "4111", rFa!IK
       If Not IsNull(rFa!KVKs) And rFa!KVKs <> vNS Then ' bei Pat_id 43
        BDT.SAdd "4112", rFa!KVKs
@@ -5795,7 +5795,7 @@ Public Function hollabor(Optional PatID& = 0, Optional Abkü$ = "", Optional zpkl
   If rs.State = 0 Then
    sql = rs.source
    Set rs = Nothing
-   rs.Open sql
+   rs.Open sql, DBCn, adOpenStatic, adLockReadOnly
   End If
   If Not rs.BOF Then rs.MoveFirst
  Else

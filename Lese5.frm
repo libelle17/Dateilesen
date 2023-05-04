@@ -3249,7 +3249,7 @@ End Sub ' korrQD_Click
 Private Sub korrQB_Click() ' Quelldatum für alle Briefe korrigieren
  Dim rs As New ADODB.Recordset, nQD As Date, rAF&, rsum&
  Call ProgStart
- myEFrag "UPDATE briefe SET quelldatum=quelldat(name,DokAendD);", rsum
+ myEFrag "UPDATE quelle.briefe SET quelldatum=quelldat(name,DokAenD);", rsum
 ' myFrag rs; "SELECT * FROM `briefe`"
 ' Do While Not rs.EOF
 '  nQD = doFLQuelldatum(rs!name)

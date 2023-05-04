@@ -987,7 +987,7 @@ sql(AWlf) = "SELECT pid, gesnameg(pid) PName, wer, zahl, icd, e.Art " & vbCrLf &
  sql(AWlf) = "SELECT f.pat_id, gesname(f.pat_id) PName, wer, dmpklass, f.icd icd " & vbCrLf & _
     "FROM `aktfaellev` f LEFT JOIN `namen` n ON f.pat_id = n.pat_id  " & vbCrLf & _
     "LEFT JOIN anaktk az ON az.pid=f.pat_id" & vbCrLf & _
-    "WHERE NOT (f.icd RLIKE '^E1[01]\.|O24.4')"
+    "WHERE NOT (f.icd RLIKE '^E1[01]\.|^R73|^O24.4')"
  mins(AWlf) = 7
  maxs(AWlf) = 30
  AWlf = AWlf + 1
@@ -997,10 +997,12 @@ sql(AWlf) = "SELECT pid, gesnameg(pid) PName, wer, zahl, icd, e.Art " & vbCrLf &
  sql(AWlf) = _
  "SELECT eid, Pat_id, Patient, wer, ICD, Quelldatum, FotoStadium, FotoSeite, Eintr_Seite, Eintr_Zeitpunkt, Art, Eintr_Inhalt, Leistn, DokName FROM (" & vbCrLf & _
  " SELECT e.id eid, f.pat_id, gesname(f.pat_id) Patient, wer, MAX(di.gicd) ICD, Quelldatum" & vbCrLf & _
- " , CONCAT('L89.',CAST(MAX(IF(MID(dokname,INSTR(dokname,'WA ')+3,1)>2,2,MID(dokname,INSTR(dokname,'WA ')+3,1)))+1 AS CHAR),IF(INSTR(dokname,'Ferse')<>0,'7','8')) COLLATE utf8mb4_general_ci Fotostadium" & vbCrLf & _
+ " , CONCAT('L89.',CAST(MAX(IF(MID(dokname,INSTR(dokname,'WA ')+3,1)>2,2,MID(dokname,INSTR(dokname,'WA ')+3,1)))+1 AS CHAR),IF(INSTR(dokname,'Ferse')<>0,'7','8')) Fotostadium" & vbCrLf & _
  " , REPLACE(REPLACE(GROUP_CONCAT(DISTINCT IF(INSTR(dokname,' li.')<>0,MID(dokname,INSTR(dokname,' li.')+1,2),IF(INSTR(dokname,' re.')<>0,MID(dokname,INSTR(dokname,' re.')+1,2),''))),',',''),'lire','bds') FotoSeite" & vbCrLf & _
  " , IF(INSTR(e.inhalt,' bds.')<>0,' bds',IF(INSTR(e.inhalt,' li ')<>0,' li', IF(INSTR(e.inhalt,' re ')<>0,' re',''))) Eintr_Seite" & vbCrLf & _
- " , e.zeitpunkt Eintr_Zeitpunkt, e.Art, e.inhalt Eintr_Inhalt, Leistn, d.dokname" & vbCrLf & _
+ " , e.zeitpunkt Eintr_Zeitpunkt, e.Art, e.inhalt Eintr_Inhalt" & vbCrLf & _
+ ", Leistn" & vbCrLf & _
+ ", d.dokname" & vbCrLf & _
  " FROM `aktf` f " & vbCrLf & _
  " LEFT JOIN anaktk az ON az.pid=f.pat_id" & vbCrLf & _
  " LEFT JOIN `faelle` fa ON f.fid = fa.fid" & vbCrLf & _
@@ -1014,6 +1016,9 @@ sql(AWlf) = "SELECT pid, gesnameg(pid) PName, wer, zahl, icd, e.Art " & vbCrLf &
  " HAVING ISNULL(ICD) OR (NOT ISNULL(fotostadium) AND (ICD < Fotostadium ))" & vbCrLf & _
  " ) i" & vbCrLf & _
  "GROUP BY pat_id"
+' "" & vbCrLf & _
+' gestrichen vor Fotostadium: "COLLATE utf8mb4_general_ci" (dieses führt hier zu einem SQL-Fehler, wenn auch nicht in HeidiSQL
+
  ' AND obdauer = 0
  ' -- 'WA |WA -'
  ' ausrangiert 7.1.23:
@@ -1619,7 +1624,13 @@ sql(AWlf) = "SELECT n.Pat_id, gesnameg(n.pat_id) Name,f.Schgr,KVNr,f.VKNr,ICD" &
  ' 36
  ' diagsicherheit in aktfaellev schon eingebaut
  AwN(AWlf) = "'DMP HA'-Einträge in Notiz bei fehlendem Nachweis der DMP-Teilnahme seitens des Hausarztes im Internet für akt. Diabetestyp (vorher 20)"
- sql(AWlf) = "SELECT n.pat_id, gesname(n.pat_id) Name, ICD, n.getha0 ÜWNNr, CONCAT(IF(h.anrede,'Herr','Frau'), ' ', h.adressat) Hausarzt FROM `aktfaellev` f LEFT JOIN `namen` n ON f.pat_id = n.pat_id LEFT JOIN `hareal` h ON n.getha0 = h.kvnr WHERE n.dmpklass = 2 AND f.icd RLIKE '^E1[0-4]\.' AND NOT ((dmp1<>0 AND icd RLIKE '^E1[0234]') OR (dmp2<>0 AND icd RLIKE '^E1[1234]')) ORDER BY Hausarzt, Name"
+ sql(AWlf) = _
+ "SELECT n.pat_id, gesname(n.pat_id) Name, ICD, n.getha0 ÜWNNr, CONCAT(IF(h.anrede,'Herr','Frau'), ' ', h.adressat) Hausarzt " & vbCrLf & _
+ "FROM `aktfaellev` f " & vbCrLf & _
+ "LEFT JOIN `namen` n ON f.pat_id = n.pat_id " & vbCrLf & _
+ "LEFT JOIN `hareal` h ON n.getha0 = h.kvnr " & vbCrLf & _
+ "WHERE n.dmpklass = 2 AND f.icd RLIKE '^E1[0-4]\.' " & vbCrLf & _
+ "AND NOT ((dmp1<>0 AND icd RLIKE '^E1[0234]') OR (dmp2<>0 AND icd RLIKE '^E1[1234]')) ORDER BY Hausarzt, Name"
  mins(AWlf) = 7
  maxs(AWlf) = 30
  AWlf = AWlf + 1
@@ -3147,7 +3158,7 @@ AwN(AWlf) = "Möglicherweise fehlende 03355 (lauto) (vorher 98)"
  "   , COALESCE((SELECT SUM(lzahl) FROM leistungen WHERE pat_id=f.pat_id AND leistung='03355' AND zeitpunkt BETWEEN " & Khtsfl & "),0) bisher" & vbCrLf & _
  "   , (SELECT CONCAT(DATE(zeitpunkt),' ',LEFT(name,40)) FROM briefe WHERE pat_id=f.pat_id AND name RLIKE 'libre|dexcom|cgm|clarity|medtronic|care link|eversen' AND NOT name RLIKE 'cgm bmp' AND qdm>SUBDATE(" & qtAnf(FristS) & ",INTERVAL 6 MONTH) LIMIT 1) Einles" & vbCrLf & _
  "   , (SELECT CONCAT(DATE(fr.zeitpunkt),' ',LEFT(fr.feldinh,40)) FROM formular fr WHERE fr.pat_id=f.pat_id AND fr.form_abk='lar' AND fr.feld='medikament' AND fr.feldinh RLIKE 'Guardian|CGM StartSet|Enlite|Dexcom|Dexom|Eversen|CGM|Libre' AND fr.zeitpunkt>SUBDATE(" & qtAnf(FristS) & ",INTERVAL 12 MONTH) LIMIT 1) Langrz" & vbCrLf & _
- "   , (SELECT CONCAT(art,' ',inhalt) FROM eintraege e WHERE e.pat_id=f.pat_id AND e.inhalt RLIKE 'cgm|eversen|guardian|enlite|dexcom|libre' AND NOT e.inhalt LIKE '%vorgestellt%will%nicht%' AND e.zeitpunkt BETWEEN " & Khtsfl & " LIMIT 1) Eintr" & vbCrLf & _
+ "   , (SELECT CONCAT(art,' ',inhalt) FROM eintraege e WHERE e.pat_id=f.pat_id AND e.inhalt RLIKE 'cgm|eversen|guardian|enlite|dexcom|libre' AND NOT e.inhalt LIKE '%vorgestellt%will%nicht%' AND e.zeitpunkt BETWEEN qanf()- INTERVAL 3 MONTH AND qend() ORDER BY zeitpunkt DESC LIMIT 1) Eintr" & vbCrLf & _
  "   , COALESCE((SELECT lzahl FROM leistungen WHERE pat_id=f.pat_id AND leistung='03355' AND DATE(zeitpunkt)=DATE(f.zp) GROUP BY pat_id, DATE(zeitpunkt)),0) bish " & vbCrLf & _
  "   , LANRID, zp" & vbCrLf & _
  "   FROM kstreng f" & vbCrLf & _
@@ -3598,7 +3609,7 @@ sql(AWlf) = sql(AWlf) & _
 "CONCAT( " & vbCrLf & _
 "CAST(COALESCE((SELECT SUM(lzahl) FROM leistungen l WHERE l.pat_id=f.pat_id AND l.leistung='97274E' AND l.zeitpunkt BETWEEN " & qtAnf(FristS) & " AND IF(" & qtEnd(FristS) & "<et.voret," & qtEnd(FristS) & ",et.voret)),0) AS char CHARACTER SET utf8),'/', " & vbCrLf & _
 "COALESCE((SELECT SUM(lzahl) FROM leistungen l WHERE l.pat_id=f.pat_id AND l.leistung='97274E' AND l.zeitpunkt BETWEEN 20000101 AND IF(" & qtEnd(FristS) & "<et.voret," & qtEnd(FristS) & ",et.voret))),0) `97274E`, " & vbCrLf & _
-"CAST(COALESCE((SELECT SUM(lzahl) FROM leistungen l WHERE l.pat_id=f.pat_id AND l.leistung='9767B' AND l.zeitpunkt BETWEEN 20000101 AND IF(" & qtEnd(FristS) & "<et.voret," & qtEnd(FristS) & ",et.voret)),0) AS char CHARACTER SET utf8) `g9767B` " & vbCrLf & _
+"CAST(COALESCE((SELECT SUM(lzahl) FROM leistungen l WHERE l.pat_id=f.pat_id AND l.leistung='97267B' AND l.zeitpunkt BETWEEN 20000101 AND IF(" & qtEnd(FristS) & "<et.voret," & qtEnd(FristS) & ",et.voret)),0) AS char CHARACTER SET utf8) `97267B` " & vbCrLf & _
 "FROM aktfvs f " & vbCrLf & _
 "LEFT JOIN (SELECT IF(LR=18991230,IF(efLR=18991230,IF(erLR=18991230,voret-INTERVAL 280 day,erlr),efLR),LR) letzteRegel, voret,pat_id FROM sws) et ON et.Pat_ID=f.pat_id AND et.voret>qanf()" & vbCrLf & _
 "LEFT JOIN diagview d ON f.pat_id=d.pat_id AND (d.icd='O24.4' AND d.f6010=0 AND d.diagsicherheit IN ('G',' ') AND d.diagdatum BETWEEN qbegs(f.quartal) AND qends(f.quartal))" & vbCrLf & _
@@ -3636,7 +3647,8 @@ sql(AWlf) = "SELECT Pat_ID, Name, Messzeitpunkt, `01812`, Soll, `01777`, `Vor-01
       ", COALESCE(SUM(gluc.lzahl),0) `01812`, " & vbCrLf & _
       "gesname(f.pat_id) Name, DATE(e.zeitpunkt) Messzeitpunkt, e.inhalt einh, e.fid fid, e.pat_id pat_id " & vbCrLf & _
             ",COALESCE((SELECT SUM(lzahl) FROM leistungen WHERE pat_id= e.pat_id AND DATE(zeitpunkt)<DATE(e.zeitpunkt) AND DATE(zeitpunkt)> et.letzteRegel AND leistung='01777'),0) `Vor-01777` " & vbCrLf & _
-            ", et.voret, (SELECT COUNT(0) FROM eintraege WHERE pat_id=e.pat_id AND DATE(zeitpunkt)=DATE(e.zeitpunkt) AND art IN ('bzvgl','bz')) + CASE WHEN e.inhalt LIKE '%mg%mg%mg%' THEN 3 WHEN e.inhalt LIKE '%mg%mg%' THEN 2 WHEN e.inhalt LIKE '%mg%' THEN 1 ELSE 0 END Soll" & vbCrLf & _
+            ", et.voret, (SELECT COUNT(0) FROM eintraege WHERE pat_id=e.pat_id AND DATE(zeitpunkt)=DATE(e.zeitpunkt) AND art IN ('bzvgl','bz')) + CASE WHEN e.inhalt LIKE '%mg%mg%mg%' AND NOT e.inhalt LIKE '%mg%mg%~%mg%' THEN 3 WHEN e.inhalt LIKE '%mg%mg%' AND NOT e.inhalt LIKE '%mg%~%mg%' THEN 2 WHEN e.inhalt LIKE '%mg%' THEN 1 ELSE 0 END Soll" & vbCrLf & _
+            ", f.vknr, f.ik" & vbCrLf & _
              "FROM eintraege e " & vbCrLf & _
             "LEFT JOIN `faelle` f ON e.fid = f.fid " & vbCrLf & _
             "LEFT JOIN (SELECT IF(LR=18991230,IF(efLR=18991230,IF(erLR=18991230,voret-INTERVAL 280 day,erlr),efLR),LR) letzteRegel, voret,pat_id FROM sws) et ON et.Pat_ID=f.pat_id AND et.voret>qanf() AND et.voret - INTERVAL 280 DAY<e.zeitpunkt" & vbCrLf & _
@@ -3646,7 +3658,9 @@ sql(AWlf) = "SELECT Pat_ID, Name, Messzeitpunkt, `01812`, Soll, `01777`, `Vor-01
       "WHERE f.schgr<>90 AND e.art = 'ogtt' AND e.zeitpunkt BETWEEN " & lQAnfuEnd(FristS) & " " & vbCrLf & _
       "AND EXISTS (SELECT 0 FROM sws WHERE pat_id=f.pat_id AND e.zeitpunkt BETWEEN voret - INTERVAL 280 day AND voret) " & vbCrLf & _
             "GROUP BY e.fid,e.zeitpunkt) i " & vbCrLf & _
-      "WHERE `01777`<>(IF(`Vor-01777`=0 AND ob50=1,1,0)) OR `01812` < Soll"
+      "WHERE ((SELECT MAX(kateg) FROM kassenliste WHERE vknr=i.vknr AND ik=i.ik)<>'SHV' AND " & vbCrLf & _
+              "`01777`<>(IF(`Vor-01777`=0 AND ob50=1,1,0)))" & vbCrLf & _
+      "OR `01812` < Soll"
  mins(AWlf) = 10
  maxs(AWlf) = 60
  AWlf = AWlf + 1
@@ -3774,28 +3788,28 @@ sql(AWlf) = vbCrLf & _
  sql(AWlf) = _
  "SELECT * FROM ( SELECT i.Pat_id, i.Name, i.voret, i.`OGTT`,i.`ICD D.m.`,i.`ICD Schw`, " & vbCrLf & _
  "      IF(`ICD Schw`=swdg,'-',swdg) `evtl.fehl.Diag.`, l.leistung, COALESCE(SUM(lzahl),0) LZahl, " & vbCrLf & _
- "      IF(swdg='O24.4' AND (l.leistung<>97333 OR COALESCE(SUM(lzahl),0)<>2),'97333 2-mal',IF(swdg='O24.0' AND l.leistung<>97313,'97313',IF(swdg='O24.1' AND l.leistung<>97323,'97323','-'))) `evtl.fehl.Leistg`, " & vbCrLf & _
- "       i.Inhalt , i.DokName, i.DkZp, i.FID, geschlecht, quartal " & vbCrLf & _
+ "      IF(swdg='O24.4' AND kateg<>'SHV' AND (l.leistung<>97333 OR COALESCE(SUM(lzahl),0)<>2),'97333 2-mal',IF(swdg='O24.0' AND l.leistung<>97313,'97313',IF(swdg='O24.1' AND l.leistung<>97323,'97323','-'))) `evtl.fehl.Leistg`, " & vbCrLf & _
+ "       i.Inhalt , i.DokName, i.DkZp, i.FID, geschlecht, quartal,kateg " & vbCrLf & _
  "    FROM ( " & vbCrLf & _
  " SELECT n.pat_id, n.geschlecht, et.voret, gesname(n.pat_id) Name, CONCAT(DATE_FORMAT(ogtt.zeitpunkt,'%e.%c.%y'),':',g0(ogtt.inhalt),'/',g1(ogtt.inhalt),'/',g2(ogtt.inhalt)) `OGTT`, " & vbCrLf & _
  "     ddm.icd `ICD D.m.`, dgd.icd `ICD Schw`, " & vbCrLf & _
  "     IF(ddm.icd LIKE 'E10%','O24.0', IF(ISNULL(ddm.icd),'O24.4','O24.1')) swdg, " & vbCrLf & _
- "     e.inhalt, dk.name DokName, dk.qdm DkZp, f.fid, f.quartal " & vbCrLf & _
- " FROM `aktfvs` f " & vbCrLf & _
+ "     e.inhalt, dk.name DokName, dk.qdm DkZp, f.fid, f.quartal,f.kateg " & vbCrLf & _
+ " FROM aktfv f " & vbCrLf & _
  " LEFT JOIN sws et ON et.pat_id=f.pat_id AND et.voret>qanf()" & vbCrLf & _
- " LEFT JOIN `diagview` ddm ON f.Pat_id = ddm.pat_id AND ddm.gicd RLIKE '^E1[0-4]\.' " & vbCrLf & _
- " LEFT JOIN `diagview` dgd ON f.pat_id = dgd.pat_id AND(dgd .icd LIKE 'O24%' AND dgd.f6010=0 AND dgd.diagsicherheit IN ('G',' ') AND dgd.diagdatum BETWEEN qbegs(f.quartal) AND qends(f.quartal)) " & vbCrLf & _
+ " LEFT JOIN diagview ddm ON f.Pat_id = ddm.pat_id AND ddm.gicd RLIKE '^E1[0-4]\.' " & vbCrLf & _
+ " LEFT JOIN diagnosen dgd ON f.pat_id = dgd.pat_id AND(dgd .icd LIKE 'O24%' AND dgd.f6010=0 AND dgd.diagsicherheit IN ('G',' ') AND dgd.diagdatum BETWEEN qbegs(f.quartal) AND qends(f.quartal)) " & vbCrLf & _
  " LEFT JOIN namen n ON f.pat_id = n.pat_id "
  sql(AWlf) = sql(AWlf) & vbCrLf & _
- " LEFT JOIN `eintraege` e ON f.pat_id = e.pat_id AND e.inhalt RLIKE 'Wohlempfinden|schwanger' AND NOT e.inhalt RLIKE 'war.*schwanger|schwangerschaft|schwanger werden|nicht schwanger|schwanger war|schwanger zu werden|Gattin schwanger' AND e.zeitpunkt BETWEEN qanf() AND qend()" & vbCrLf & _
+ " LEFT JOIN eintraege e ON f.pat_id = e.pat_id AND e.inhalt RLIKE 'Wohlempfinden|schwanger' AND NOT e.inhalt RLIKE 'war.*schwanger|schwangerschaft|schwanger werden|nicht schwanger|schwanger war|schwanger zu werden|Gattin schwanger' AND e.zeitpunkt BETWEEN qanf() AND qend()" & vbCrLf & _
  " LEFT JOIN eintraege ogtt ON ogtt.pat_id=f.pat_id AND ogtt.art='ogtt' AND ogtt.zeitpunkt = (SELECT MAX(zeitpunkt) FROM eintraege WHERE pat_id=f.pat_id AND art='ogtt') AND ADDDATE(ogtt.zeitpunkt,180)>" & qtAnf(FristS) & " " & _
- " LEFT JOIN `briefe` dk ON f.pat_id = dk.pat_id AND dk.name LIKE '%mutterpa%' AND dk.qdm BETWEEN " & lQAnfuEnd(FristS) & " " & vbCrLf & _
+ " LEFT JOIN briefe dk ON f.pat_id = dk.pat_id AND dk.name LIKE '%mutterpa%' AND dk.qdm BETWEEN " & lQAnfuEnd(FristS) & " " & vbCrLf & _
  " WHERE (NOT ISNULL(dk.name) OR NOT ISNULL(e.inhalt) OR NOT ISNULL(dgd.icd)) " & vbCrLf & _
  "        AND NOT (g0(ogtt.inhalt)<92 AND g1(ogtt.inhalt)<180 AND g2(ogtt.inhalt)<153) " & vbCrLf & _
  "        AND NOT et.voret BETWEEN ADDDATE(" & qtAnf(FristS) & ",-90) AND ADDDATE(" & qtAnf(FristS) & ",-1) " & vbCrLf & _
  "        AND ogtt.zeitpunkt < et.voret" & vbCrLf & _
  " GROUP BY f.pat_id) i " & vbCrLf & _
- " LEFT JOIN `leistungen` l ON i.fid = l.fid AND l.leistung IN ('97313','97323','97333') " & vbCrLf & _
+ " LEFT JOIN `leistungen` l ON l.pat_id=i.pat_id AND quartal(l.zeitpunkt) = i.quartal AND l.leistung IN ('97313','97323','97333')" & vbCrLf & _
  " GROUP BY i.fid) i " & vbCrLf & _
  " WHERE (`evtl.fehl.Diag.`<>'-' OR `evtl.fehl.Leistg`<>'-') " & vbCrLf & _
  " AND NOT EXISTS (SELECT icd FROM diagnosen WHERE pat_id = i.pat_id AND (icd LIKE 'O24%' AND f6010=0 AND diagsicherheit = 'A' AND diagdatum BETWEEN qbegs(i.quartal) AND qends(i.quartal)))"
@@ -3847,11 +3861,11 @@ sql(AWlf) = vbCrLf & _
 "SELECT f.pat_id, gesname(f.pat_id) Name, s.VorET," & vbCrLf & _
 "COALESCE((SELECT SUM(lzahl) FROM leistungen l WHERE l.pat_id=f.pat_id AND l.leistung='97277' AND l.zeitpunkt BETWEEN qbeg(s.voret - INTERVAL 280 DAY) AND qend()),0) `97277-Zahl` " & vbCrLf & _
 ",(SELECT GROUP_CONCAT(DISTINCT DATE_FORMAT(zeitpunkt,'%e.%c.%y') SEPARATOR ',') FROM leistungen l WHERE l.pat_id=f.pat_id AND l.leistung='97277' AND l.zeitpunkt BETWEEN qbeg(s.voret - INTERVAL 280 DAY) AND qend()) `Zp` " & vbCrLf & _
-"FROM aktfvs f " & vbCrLf & _
+"FROM aktfvmta f " & vbCrLf & _
 "LEFT JOIN sws s ON s.pat_id=f.pat_id AND s.voret>qanf()" & vbCrLf & _
 "LEFT JOIN diagview d ON f.pat_id=d.pat_id AND (d.icd='O24.4' AND d.f6010=0 AND d.diagsicherheit IN ('G',' ') AND d.diagdatum BETWEEN qbegs(f.quartal) AND qends(f.quartal)) " & vbCrLf & _
 "LEFT JOIN diagview dm ON f.pat_id=dm.pat_id AND dm.gicd RLIKE '^E1[0-4]\.' " & vbCrLf & _
-"WHERE NOT ISNULL(d.icd) " & vbCrLf & _
+"WHERE NOT ISNULL(d.icd) AND f.kateg<> 'SHV'" & vbCrLf & _
 "HAVING `97277-Zahl`<>1"
  mins(AWlf) = 10
  maxs(AWlf) = 80
@@ -4145,7 +4159,7 @@ sql(AWlf) = _
 "FROM aktfvs f " & vbCrLf & _
 "LEFT JOIN leistungen vorh ON vorh.fid=f.fid AND vorh.leistung BETWEEN '32030' AND '32135' " & vbCrLf & _
 "LEFT JOIN leistungen ausn ON ausn.fid=f.fid AND ausn.leistung = '32022' " & vbCrLf & _
-"LEFT JOIN `diagview` d ON d.pat_id = f.pat_id AND (d.gicd REGEXP '^E1[0-4]\.|^R73' OR (d.icd='O24.4' AND d.f6010=0 AND d.diagsicherheit IN ('G',' ') AND d.diagdatum BETWEEN qbegs(f.quartal) AND qends(f.quartal))) " & vbCrLf & _
+"LEFT JOIN `diagview` d ON d.pat_id = f.pat_id AND (d.gicd REGEXP '^E1[0-4]\.' OR (d.icd='O24.4' AND d.f6010=0 AND d.diagsicherheit IN ('G',' ') AND d.diagdatum BETWEEN qbegs(f.quartal) AND qends(f.quartal))) " & vbCrLf & _
 "WHERE ISNULL(ausn.Leistung) AND NOT ISNULL(vorh.Leistung) AND NOT ISNULL(d.ICD) " & vbCrLf & _
 "GROUP BY f.pat_id;"
 
@@ -5240,7 +5254,7 @@ sql(AWlf) = sql(AWlf) & _
 "  FROM" & vbCrLf & _
 "  (SELECT e.*" & vbCrLf & _
 "   , EXISTS(SELECT 0 FROM eintraege WHERE pat_id=e.pat_id AND art = 'vac' AND inhalt RLIKE 'Janssen|Johnson|Astra|Vaxzev|Spikevax|Moderna|biontech|comirnaty|corminaty|cominarty|comiarty|coirnaty|cominary|comirnary|commirnaty|comirnarty|cominaty|comitnaty|novavax' AND DATE(zeitpunkt)<DATE(e.zeitpunkt)) vorvac" & vbCrLf & _
-"   , CASE WHEN inhalt RLIKE '2\\.' THEN 2 WHEN inhalt RLIKE '[3-9]\\.' THEN 3 ELSE 1 END vacinh23 " & vbCrLf & _
+"   , CASE WHEN inhalt RLIKE '2\\.' THEN 2 WHEN inhalt RLIKE '[3-9]\\.|[1-9][0-9]\\.' THEN 3 ELSE 1 END vacinh23 " & vbCrLf & _
 "   , EXISTS(SELECT 0 FROM eintraege WHERE pat_id=e.pat_id AND art='c19i' AND zuDatum(MID(inhalt,INSTR(inhalt,' am ')),qanf()) BETWEEN 20201201 AND DATE(e.zeitpunkt) - INTERVAL 1 DAY) c19i" & vbCrLf & _
 "   , EXISTS(SELECT feldinh FROM formular WHERE pat_id=e.pat_id AND form_abk IN ('covze','covge') AND feld IN ('impfdatum','testpositivdatum') AND STR_TO_DATE(feldinh,'%d.%m.%Y')<DATE(e.zeitpunkt)) vorze" & vbCrLf & _
 "   , COALESCE((SELECT DATE_FORMAT(diagdatum,'%d.%m.%y') FROM diagnosen WHERE pat_id=e.pat_id AND diagdatum<DATE(e.zeitpunkt) AND icd='U07.1' AND diagsicherheit IN ('G','Z',' ') ORDER BY zeitpunkt LIMIT 1),'') znc " & vbCrLf & _
@@ -5435,7 +5449,9 @@ sql(AWlf) = "" & vbCrLf & _
 "FROM faxeinp.outa " & vbCrLf & _
 "LEFT JOIN namen n ON n.pat_id=pid " & vbCrLf & _
 "LEFT JOIN eintraege e ON pid = e.pat_id AND (art= 'dak') " & vbCrLf & _
-"WHERE docname RLIKE '6971042276004|7433967297004|51180684684|40656961201|404606626279' AND NOT docname RLIKE 'Attest' AND ISNULL(art) AND pid<>0 " & vbCrLf & _
+"WHERE docname RLIKE '6971042276004|7433967297004|51180684684|40656961201|404606626279' " & vbCrLf & _
+"AND NOT docname RLIKE 'Attest' AND ISNULL(art) AND pid<>0 " & vbCrLf & _
+"AND EXISTS(SELECT 1 FROM `faelle` f WHERE pat_id=pid AND qbeg(fanf)=qbeg(submt) AND ((SELECT MAX(kateg) FROM kassenliste WHERE vknr=f.vknr AND ik=f.ik)) IN ('','BKK','BKN','EK','IKK'))" & vbCrLf & _
 "ORDER BY docname;"
  mins(AWlf) = 10
  maxs(AWlf) = 60
@@ -5464,7 +5480,7 @@ sql(AWlf) = "" & vbCrLf & _
 
 ' 161 DAK-Module
  sql(AWlf) = LiesDatei("\\linux1\daten\eigene Dateien\dakges.qbquery")
- sql(AWlf) = Mid$(sql(AWlf), InStr(UCase$(sql(AWlf)), "SELECT"))
+ sql(AWlf) = Mid$(sql(AWlf), InStr(1, sql(AWlf), "SELECT", vbTextCompare))
  AwN(AWlf) = "Fehler bei DAK-Modul: Synthese (vorher 123)"
  mins(AWlf) = 10
  maxs(AWlf) = 80
@@ -5472,7 +5488,7 @@ sql(AWlf) = "" & vbCrLf & _
  
  ' 162 DAK Neuropathie zur Kontrolle
  sql(AWlf) = LiesDatei("\\linux1\daten\eigene Dateien\daknp.qbquery")
- sql(AWlf) = Mid$(sql(AWlf), InStr(UCase$(sql(AWlf)), "SELECT"))
+ sql(AWlf) = Mid$(sql(AWlf), InStr(1, sql(AWlf), "SELECT", vbTextCompare))
  AwN(AWlf) = "DAK-Modul-Kontrolle Neuropathie (vorher 124)"
  mins(AWlf) = 10
  maxs(AWlf) = 80
@@ -5480,7 +5496,7 @@ sql(AWlf) = "" & vbCrLf & _
  
  ' 163 DAK LUTS zur Kontrolle
  sql(AWlf) = LiesDatei("\\linux1\daten\eigene Dateien\daklu.qbquery")
- sql(AWlf) = Mid$(sql(AWlf), InStr(UCase$(sql(AWlf)), "SELECT"))
+ sql(AWlf) = Mid$(sql(AWlf), InStr(1, sql(AWlf), "SELECT", vbTextCompare))
  AwN(AWlf) = "DAK-Modul-Kontrolle LUTS  (vorher 125)"
  mins(AWlf) = 10
  maxs(AWlf) = 80
@@ -5516,8 +5532,9 @@ ob_tkversandt = "'tk.*(geschickt|gefaxt)'"
 ' 167
  AwN(AWlf) = "TK-Modul-Einschreibungen (" & ob_tkeinschr & ") ohne Versandeintrag (" & ob_tkversandt & ") (vorher 152)"
 sql(AWlf) = "" & _
-"SELECT f.pat_id, gesname(f.pat_id) PName, LEFT(b.Name,80) BName, IF(b.quelldatum=18991230,'',DATE_FORMAT(b.quelldatum,'%d.%m.%y')) Quelldatum, DATE_FORMAT(b.Zeitpunkt,'%d.%m.%y') Zeitpunkt " & vbCrLf & _
+"SELECT f.pat_id, gesname(f.pat_id) PName, n.gebdat, LEFT(b.Name,80) BName, IF(b.quelldatum=18991230,'',DATE_FORMAT(b.quelldatum,'%d.%m.%y')) Quelldatum, DATE_FORMAT(b.Zeitpunkt,'%d.%m.%y') Zeitpunkt " & vbCrLf & _
 "FROM aktfv f " & vbCrLf & _
+"LEFT JOIN namen n USING(pat_id)" & vbCrLf & _
 "LEFT JOIN briefe b ON b.pat_id=f.pat_id AND b.Name RLIKE " & ob_tkeinschr & vbCrLf & _
 "LEFT JOIN eintraege e ON e.pat_id=f.pat_id AND e.inhalt RLIKE " & ob_tkversandt & vbCrLf & _
 "WHERE NOT ISNULL(b.name) AND ISNULL(e.zeitpunkt);"
@@ -5525,6 +5542,26 @@ sql(AWlf) = "" & _
  maxs(AWlf) = 60
  AWlf = AWlf + 1
 
+' 168
+ AwN(AWlf) = "ergänzende Listen"
+sql(AWlf) = "ü"
+ mins(AWlf) = 10
+ maxs(AWlf) = 60
+ AWlf = AWlf + 1
+  
+' 169
+ AwN(AWlf) = "Leistung 01435 zu Fall mit Grundpauschale oder taggleicher sonstiger Leistung"
+sql(AWlf) = "" & _
+"SELECT f.pat_id, gesname(f.pat_id), l.zeitpunkt " & vbCrLf & _
+",(SELECT zeitpunkt FROM leistungen WHERE pat_id =f.pat_id AND zeitpunkt BETWEEN qanf() AND qend() AND leistung IN (03001,03002,03003,03004,03005,03011,03012,03013,03014,03015)) ZeitpunktGrundPauschale" & vbCrLf & _
+", COALESCE((SELECT group_concat(leistung) FROM leistungen WHERE pat_id =f.pat_id AND date(zeitpunkt)=DATE(l.zeitpunkt) AND leistung<>l.leistung),'') LeistGleicherTag" & vbCrLf & _
+"FROM aktfv f LEFT JOIN leistungen l ON l.pat_id=f.pat_id AND l.ZeitPunkt BETWEEN qanf() AND qend()" & vbCrLf & _
+"LEFT JOIN eintraege e ON e.pat_id=f.pat_id AND e.inhalt RLIKE " & ob_tkversandt & vbCrLf & _
+"WHERE l.leistung='01435'" & vbCrLf & _
+"ORDER BY f.pat_id;"
+ mins(AWlf) = 10
+ maxs(AWlf) = 60
+ AWlf = AWlf + 1
 
 
 

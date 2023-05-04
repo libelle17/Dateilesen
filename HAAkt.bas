@@ -651,7 +651,7 @@ gefunden:
 For dbknr = LBound(QCn) To UBound(QCn)
  QCn(dbknr).Open
  HCn(dbknr).Open
- LVobMySQL = InStr(UCase$(QCn(dbknr).ConnectionString), "MYSQL") > 0  '(Not (cDtb = accDtb))
+ LVobMySQL = InStr(1, QCn(dbknr).ConnectionString, "MYSQL", vbTextCompare) > 0 '(Not (cDtb = accDtb))
  LVobMySQL = True ' 11.10.15
  Call Zinit(LVobMySQL)
  Set rV1 = Nothing
