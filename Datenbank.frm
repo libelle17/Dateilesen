@@ -386,7 +386,7 @@ Private Sub AccAussuchen_Click()
  Call AccTest
 End Sub ' AccAussuchen_Click
 
-Private Sub AccAussuchen_KeyDown(KeyCode As Integer, Shift As Integer)
+Private Sub AccAussuchen_KeyDown(KeyCode%, Shift%)
  Call Key(KeyCode, Shift, Me)
 End Sub ' AccAussuchen_KeyDown
 
@@ -404,7 +404,7 @@ Private Sub BDTaussuchen_Click()
   Call BDTDateiDialog
 End Sub ' BDTaussuchen_Click
 
-Private Sub BDTaussuchen_KeyDown(KeyCode As Integer, Shift As Integer)
+Private Sub BDTaussuchen_KeyDown(KeyCode%, Shift%)
  Call Key(KeyCode, Shift, Me)
 End Sub ' BDTaussuchen_KeyDown
 
@@ -413,7 +413,7 @@ Private Sub BDTDatei_Change()
  If FSO.FileExists(Me.BDTDatei) Then Me.BDTAend = FSO.GetFile(Me.BDTDatei).DateLastModified
 End Sub ' BDTDatei_Change()
 
-Private Sub BDTDatei_KeyDown(KeyCode As Integer, Shift As Integer)
+Private Sub BDTDatei_KeyDown(KeyCode%, Shift%)
  Call Key(KeyCode, Shift, Me)
  If Me.Visible Then Screen.MousePointer = vbDefault
 End Sub ' BDTDatei_KeyDown
@@ -448,7 +448,7 @@ Private Sub EmailsAussuchen_Click()
   Call EmDateiDialog
 End Sub ' EmailsAussuchen_Click
 
-Private Sub EmailsAussuchen_KeyDown(KeyCode As Integer, Shift As Integer)
+Private Sub EmailsAussuchen_KeyDown(KeyCode%, Shift%)
  Call Key(KeyCode, Shift, Me)
 End Sub ' EmailsAussuchen_KeyDown
 
@@ -494,15 +494,15 @@ Private Sub komprimieren_Click()
  If Me.Visible Then Screen.MousePointer = vbDefault
 End Sub ' komprimieren_Click
 
-Private Sub LaborDirektEinlesen_KeyDown(KeyCode As Integer, Shift As Integer)
+Private Sub LaborDirektEinlesen_KeyDown(KeyCode%, Shift%)
  Call Key(KeyCode, Shift, Me)
 End Sub ' LaborDirektEinlesen_KeyDown
 
-Private Sub LaborDirektNeu_KeyDown(KeyCode As Integer, Shift As Integer)
+Private Sub LaborDirektNeu_KeyDown(KeyCode%, Shift%)
  Call Key(KeyCode, Shift, Me)
 End Sub
 
-Private Sub LaborPfadBeispiel_KeyDown(KeyCode As Integer, Shift As Integer)
+Private Sub LaborPfadBeispiel_KeyDown(KeyCode%, Shift%)
  Call Key(KeyCode, Shift, Me)
 
 End Sub ' LaborPfadBeispiel_KeyDown
@@ -511,15 +511,15 @@ Private Sub LaborpfadBez_Click()
  LaborPfadBeispiel = Lese.LaborPfadDialog(LaborPfadBeispiel)
 End Sub ' LaborpfadBez_Click
 
-Private Sub LaborQuerNeu_KeyDown(KeyCode As Integer, Shift As Integer)
+Private Sub LaborQuerNeu_KeyDown(KeyCode%, Shift%)
  Call Key(KeyCode, Shift, Me)
 End Sub ' LaborQuerNeu_KeyDown
 
-Private Sub LaborQuerVerb_KeyDown(KeyCode As Integer, Shift As Integer)
+Private Sub LaborQuerVerb_KeyDown(KeyCode%, Shift%)
  Call Key(KeyCode, Shift, Me)
 End Sub ' LaborQuerVerb_KeyDown
 
-Private Sub mitEmails_KeyDown(KeyCode As Integer, Shift As Integer)
+Private Sub mitEmails_KeyDown(KeyCode%, Shift%)
  Call Key(KeyCode, Shift, Me)
 End Sub ' mitEmails_KeyDown
 
@@ -537,15 +537,15 @@ Private Sub MdB_Click()
  hlese.Ziel = Me.MdB
 End Sub ' MdB_Click
 
-Private Sub obMySQL_KeyDown(KeyCode As Integer, Shift As Integer)
+Private Sub obMySQL_KeyDown(KeyCode%, Shift%)
  Call Key(KeyCode, Shift, Me)
 End Sub ' obMySQL_KeyDown
 
-Private Sub obAcc_KeyDown(KeyCode As Integer, Shift As Integer)
+Private Sub obAcc_KeyDown(KeyCode%, Shift%)
  Call Key(KeyCode, Shift, Me)
 End Sub ' obAcc_KeyDown
 
-Private Sub obVglMitLetzterEinlesung_KeyDown(KeyCode As Integer, Shift As Integer)
+Private Sub obVglMitLetzterEinlesung_KeyDown(KeyCode%, Shift%)
  Call Key(KeyCode, Shift, Me)
 End Sub ' obVglMitLetzterEinlesung_KeyDown
 
@@ -580,15 +580,15 @@ Private Sub CancelButton_Click()
  If Me.Visible Then Screen.MousePointer = vbDefault
 End Sub ' CancelButton_Click
 
-Private Sub CancelButton_KeyDown(KeyCode As Integer, Shift As Integer)
+Private Sub CancelButton_KeyDown(KeyCode%, Shift%)
  Call Key(KeyCode, Shift, Me)
 End Sub ' CancelButton_KeyDown
 
-Private Sub EmDatei_KeyDown(KeyCode As Integer, Shift As Integer)
+Private Sub EmDatei_KeyDown(KeyCode%, Shift%)
  Call Key(KeyCode, Shift, Me)
 End Sub ' EmDatei_KeyDown
 
-Private Sub Form_KeyDown(KeyCode As Integer, Shift As Integer)
+Private Sub Form_KeyDown(KeyCode%, Shift%)
  Call Key(KeyCode, Shift, Me)
 End Sub ' Form_KeyDown
 
@@ -626,7 +626,7 @@ Public Function FrmLEinlesung()
    If lies.obMySQL Then Call myEFrag("USE " & hlese.MyDB)
  End If
  Me.obVglMitLetzterEinlesung = 1
- Me.obVglMitLetzterEinlesung.Enabled = False
+' Me.obVglMitLetzterEinlesung.Enabled = False ' auskommentiert 13.5.23
 ' catx.ActiveConnection = ConStr
 ' zl = catx.Tables("eintragszahlen").Columns("dateiaend").Properties.Count
  On Error Resume Next
@@ -704,13 +704,13 @@ Private Sub Form_Terminate()
 '
 End Sub ' Form_Terminate
 
-Private Sub Form_Unload(Cancel As Integer)
+Private Sub Form_Unload(Cancel%)
  hlese.Visible = True
  Call PutReg(Me.hlese)
  Call Me.hlese.PutEinstAufDB
 End Sub ' form_unload
 
-Private Sub MdB_KeyDown(KeyCode As Integer, Shift As Integer)
+Private Sub MdB_KeyDown(KeyCode%, Shift%)
  hlese.Ziel = Me.MdB
  Call Key(KeyCode, Shift, Me)
 End Sub ' MdB_KeyDown
@@ -719,7 +719,7 @@ Private Sub obAcc_DblClick()
  Call AccTest
 End Sub ' obAcc_DblClick
 
-Private Sub obBDT_KeyDown(KeyCode As Integer, Shift As Integer)
+Private Sub obBDT_KeyDown(KeyCode%, Shift%)
  Call Key(KeyCode, Shift, Me)
 End Sub ' obBDT_KeyDown
 
@@ -833,6 +833,8 @@ Private Function AuswEnable()
  ElseIf Me.TabellenEntleeren Then
   Me.obVglMitLetzterEinlesung.Enabled = False
   Me.ZurücksetzenLAktDat.Enabled = False
+ Else
+  Me.obVglMitLetzterEinlesung.Enabled = True
  End If
 End Function ' AuswEnable
 
@@ -845,15 +847,15 @@ Private Sub OKButton_Click()
  Me.hlese.Show
 End Sub ' OKButton_Click
 
-Private Sub OKButton_KeyDown(KeyCode As Integer, Shift As Integer)
+Private Sub OKButton_KeyDown(KeyCode%, Shift%)
  Call Key(KeyCode, Shift, Me)
 End Sub ' OKButton_KeyDown
 
-Private Sub Pat_IDBis_KeyDown(KeyCode As Integer, Shift As Integer)
+Private Sub Pat_IDBis_KeyDown(KeyCode%, Shift%)
  Call Key(KeyCode, Shift, Me)
 End Sub ' Pat_IDBis_KeyDown
 
-Private Sub Pat_IDVon_KeyDown(KeyCode As Integer, Shift As Integer)
+Private Sub Pat_IDVon_KeyDown(KeyCode%, Shift%)
  Call Key(KeyCode, Shift, Me)
 End Sub ' Pat_IDVon_KeyDown
 
@@ -864,16 +866,16 @@ Public Sub Start_Click()
 ' hlese.Visible = True
  hlese.Show
 ' Me.Hide
- Call Einlesen
+ Call Einlies
  If Not lies.obMySQL And Me.hlese.obAusgedehnt Then Call kompakt(Me.hlese)
  End If
 End Sub ' Start_Click()
 
-Private Sub Start_KeyDown(KeyCode As Integer, Shift As Integer)
+Private Sub Start_KeyDown(KeyCode%, Shift%)
  Call Key(KeyCode, Shift, Me)
 End Sub ' KeyDown
 
-Private Sub TabellenEntleeren_KeyDown(KeyCode As Integer, Shift As Integer)
+Private Sub TabellenEntleeren_KeyDown(KeyCode%, Shift%)
  Call Key(KeyCode, Shift, Me)
 End Sub ' TabellenEntleeren_KeyDown
 
@@ -885,19 +887,19 @@ Private Sub bereinigeFormInhFeld_KeyDown(KeyCode%, Shift%)
  Call Key(KeyCode, Shift, Me)
 End Sub ' bereinigeFormInhFeld_KeyDown
 
-Private Sub VorladenFFI_KeyDown(KeyCode As Integer, Shift As Integer)
+Private Sub VorladenFFI_KeyDown(KeyCode%, Shift%)
  Call Key(KeyCode, Shift, Me)
 End Sub ' VorladenFFI_KeyDown
 
-Private Sub ÜberTabelle_KeyDown(KeyCode As Integer, Shift As Integer)
+Private Sub ÜberTabelle_KeyDown(KeyCode%, Shift%)
  Call Key(KeyCode, Shift, Me)
 End Sub ' ÜberTabelle_KeyDown
 
-Private Sub NurInTabelle_KeyDown(KeyCode As Integer, Shift As Integer)
+Private Sub NurInTabelle_KeyDown(KeyCode%, Shift%)
  Call Key(KeyCode, Shift, Me)
 End Sub ' NurInTabelle_KeyDown
 
-Private Sub ZurücksetzenLAktDat_KeyDown(KeyCode As Integer, Shift As Integer)
+Private Sub ZurücksetzenLAktDat_KeyDown(KeyCode%, Shift%)
  Call Key(KeyCode, Shift, Me)
 End Sub ' ZurücksetzenLAktDat_KeyDown
 
@@ -966,8 +968,8 @@ Public Function MdBFestleg()
   End With
 End Function ' MdBFestleg
 
-
-Public Sub Einlesen()
+' in Start_Click
+Public Sub Einlies()
  Dim i%
  obMitAlterTab = Me.AlterTab
  obVorb = Me.VorladenFFI
@@ -984,12 +986,12 @@ Public Sub Einlesen()
   LaborPfadBeispiel = Lese.LaborPfadDialog(LaborPfadBeispiel)
  End If
  Call Lese.ProgStart
- Call doEinlesen(Me.TabellenEntleeren)
+ Call doEinles(Me.TabellenEntleeren)
  Call hlese.ProgEnde
 End Sub ' EinlesenVorb_Click()
 
 ' 30.3.21: nur in Einlesen
-Private Sub doEinlesen(obevtlAlle%)
+Private Sub doEinles(obevtlAlle%)
 ' Const obZS% = -1
  Dim Fil As File, erg%, sql$, obAktZeit%
  On Error GoTo fehler
@@ -1030,7 +1032,7 @@ Private Sub doEinlesen(obevtlAlle%)
    If erg = vbNo Then Exit Sub
    Call myEFrag(sql)
   End If
- End If
+ End If ' Me.obBDT Then
  Call EintragStart(Me.hlese)
  T1 = Now
  If IsNumeric(Me.Pat_IDVon) Then EinlAb = Me.Pat_IDVon Else EinlAb = 0
@@ -1053,10 +1055,10 @@ fehler:
 #Else
  AnwPfad = App.path
 #End If
-Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in doEinlesen/" + AnwPfad)
+Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in doEinles/" + AnwPfad)
  Case vbAbort: Call MsgBox("Höre auf"): ProgEnde
  Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
  Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
 End Select
-End Sub ' doEinlesen
+End Sub ' doEinles
 

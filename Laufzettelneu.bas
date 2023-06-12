@@ -578,20 +578,20 @@ Public Function UTFOpen&(DN$)
 End Function '  UTFOpen&(DN$)
 
 ' letzte eGFR
-Public Function letztGFR(pid&, Optional Palter#, Optional obweibl%, Optional EthnicGroup% = 1) As labtyp
+Public Function letztGFR(pid&, Optional PAlter#, Optional obweibl%, Optional EthnicGroup% = 1) As labtyp
 ' letztGFR = hollwert(PID, "GFR','GFRCYS','GFRK','GFRM','GFRT','GFRW','CREACL','GFC','GFCK1','GFCK2','GFCK3','GFCK4','GFCM1','GFCW1','GFCW2','MDRD", "ml/m")
  Static altPID&, altPalter#, altobweibl%
  Dim LA As labtyp, lc As labtyp
  LA = LabPat(LA_eGFR, pid)
  lc = LabPat(LA_Krea, pid)
  If lc.Zp - LA.Zp > 1 Or (lc.WertSg <> "" And LA.WertSg = "") Then ' wenn letztes Kreatinin mehr als einen Tag jünger als die letzte eGFR ist
-  If pid <> altPID And Palter = 0 Then
+  If pid <> altPID And PAlter = 0 Then
    altPID = pid
    altPalter = myEFrag("SELECT patalter(" & pid & ")").Fields(0)
    altobweibl = myEFrag("SELECT IF(geschlecht='w',-1,0) FROM namen WHERE pat_id=" & CStr(pid)).Fields(0)
   ElseIf pid <> altPID Then
    altPID = pid
-   altPalter = Palter
+   altPalter = PAlter
    altobweibl = obweibl
   End If
   
@@ -1085,7 +1085,7 @@ On Error GoTo fehler
  Dim pathz%(pzl), npathz%(pzl) ' Zahl der nicht/ Pathologischen
  Dim rund%(pzl) ' runden auf; default -1
  Dim üwerg$()
- Dim Palter# ' Patientenalter
+ Dim PAlter# ' Patientenalter
  Dim aRisk As New Risk ' für UKPDS Risk engine, erfordert u:\programmierung\RiskEng.ocx
  Dim UKtip$ ' String für Tip-Tool zu UKPDS-Risk
  Dim therart$ ' letzte Therapieart
@@ -1105,17 +1105,28 @@ On Error GoTo fehler
    Vorgestellt = rAn!Vorgestellt
   End If
  End If
+ Dim rnamBOF%
+ Dim dmpBeg#, dmpKlass%, dmpKhkKlass%, dmpCopdKlass%, dmpAbKlass%, dmpKhkBeg#, dmpCopdBeg#, dmpAbBeg#
  myFrag rnam, "SELECT * FROM `namen` n WHERE pat_id = " & Pat_id, adOpenStatic, DBCn, adLockReadOnly
- If rnam.BOF Then
+ rnamBOF = rnam.BOF
+ If rnamBOF Then
 '  MsgBox ("Keinen Patienten zu " & Pat_id & " gefunden!")
   Lese.Ausgeb "Keinen Patienten zu " & Pat_id & " gefunden!", True
   Exit Function
- End If
+ End If ' rnamBOF
+ dmpKlass = rnam!dmpKlass
+ dmpKhkKlass = rnam!dmpKhkKlass
+ dmpCopdKlass = rnam!dmpCopdKlass
+ dmpAbKlass = rnam!dmpAbKlass
+ dmpBeg = rnam!dmpBeg
+ dmpKhkBeg = rnam!dmpKhkBeg
+ dmpCopdBeg = rnam!dmpCopdBeg
+ dmpAbBeg = rnam!dmpAbBeg
  NName = rnam!Nachname
  VName = rnam!Vorname
  obweibl = (rnam!geschlecht = "w")
  GebDat = rnam!GebDat
- Palter = AlterBei(Now(), rnam!GebDat)
+ PAlter = AlterBei(Now(), rnam!GebDat)
  Dim DiagTab() As CString
  m = 2: TI(m) = Timer: For p = 0 To m - 1: TI(m) = TI(m) - TI(p): Next p
  Call DiagString(Pat_id, DiagTab, , , dmseit) ' 0,35s
@@ -1174,7 +1185,7 @@ weiter:
  
 ' dmtyp = myEFrag("SELECT dmtyp(" & Pat_ID & ")").Fields(0)
  If dmtyp = "1" Or dmtyp = "2" Or dmtyp = "s" Or dmtyp = "u" Then obdm = -1 Else obdm = 0
- If Not rnam.BOF Then
+ If Not rnamBOF Then
   syscmd 4, "Erstelle Patientenlaufzettel für: " & NName & ", " & VName & " (Pat_id: " & Pat_id & ")"
  Else
   syscmd 4, "Patient mit Pat_id " & Pat_id & " nicht in Datenbank: " & DefDB(DBCn) & "gefunden, Patientenlaufzettel daher nicht erstellbar!"
@@ -1648,7 +1659,7 @@ keinuzu:
 '  sql(i) = "SELECT zeitpunkt zp, IF(ISNULL(wert),IF(ISNULL(kommentar),'',kommentar),wert) wert FROM (" & lsql & ") AS innen WHERE abkü IN ('TSH', 'TS1E01', 'TSH-L_K','TSBL','TSBF') ORDER BY zp DESC"
   Fqmin(i) = 2
   UGrenze(i) = 0.27
-  grenze(i) = IIf(Palter < 40, 2.5, 4.2)
+  grenze(i) = IIf(PAlter < 40, 2.5, 4.2)
   nurpath(i) = 1
   i = i + 1
   
@@ -1808,7 +1819,7 @@ keinuzu:
   Üs(i) = "Colo"
   Titel(i) = "Aufklärung über Darmkrebsfrüherkennung"
   sql(i) = "SELECT zeitpunkt zp, inhalt wert FROM `eintraege` WHERE (art LIKE 'colo%') AND pat_id = " & Pat_id & " ORDER BY zp DESC"
-  If Palter > 54 And Palter < 82 Then
+  If PAlter > 54 And PAlter < 82 Then
    Fqmin(i) = 1
   Else
    Fqmin(i) = 0
@@ -1818,7 +1829,7 @@ keinuzu:
   Üs(i) = "Pros"
   Titel(i) = "Aufklärung über Urologische Früherkennung"
   sql(i) = "SELECT zeitpunkt zp, inhalt wert FROM `eintraege` WHERE (art LIKE 'pros%') AND pat_id = " & Pat_id & " ORDER BY zp DESC"
-  If obweibl Or Palter < 45 Or Palter > 77 Then
+  If obweibl Or PAlter < 45 Or PAlter > 77 Then
    Fqmin(i) = 0
   Else
    Fqmin(i) = 1
@@ -1828,7 +1839,7 @@ keinuzu:
   Üs(i) = "Gyn"
   Titel(i) = "Aufklärung über gynäkologische Untersuchung"
   sql(i) = "SELECT zeitpunkt zp, inhalt wert FROM `eintraege` WHERE (art LIKE 'gyn%') AND pat_id = " & Pat_id & " ORDER BY zp DESC"
-  If obweibl And Palter > 19 Then
+  If obweibl And PAlter > 19 Then
    Fqmin(i) = 1
   Else
    Fqmin(i) = 0
@@ -1977,12 +1988,12 @@ keinuzu:
    FLI = Round((Exp(0.953 * Log(TG) + 0.139 * üdt.bmi + 0.718 * Log(GGT) + 0.053 * Taille - 15.745) / (1 + Exp(0.953 * Log(TG) + 0.139 * üdt.bmi + 0.718 * Log(GGT) + 0.053 * Taille - 15.745))) * 100)
   End If ' obTG And obTaille And üdt.bmi <> 0 And obGGT Then
   If obGPT And obGOT And obTHR Then
-   FIB4 = Round(Palter * GOT / Thr / Sqr(GPT), 2)
+   FIB4 = Round(PAlter * GOT / Thr / Sqr(GPT), 2)
   End If ' obGPT And obGOT And obTHR Then
   If obGPT And obGOT And obTHR And obAlb And üdt.bmi <> 0 Then
    Dim obDMoPG%
    obDMoPG = myEFrag("SELECT IF(EXISTS(SELECT 0 FROM diagview WHERE gICD RLIKE '^E1[0-4]\.|^R73\.9' AND pat_id=" & Pat_id & " LIMIT 1),1,0)").Fields(0)
-   NFS = Round(-1.675 + 0.037 * Palter + 0.094 * üdt.bmi + 1.13 * obDMoPG + 0.99 * GOT / GPT - 0.013 * Thr - 0.66 * Alb * 0.1, 3)
+   NFS = Round(-1.675 + 0.037 * PAlter + 0.094 * üdt.bmi + 1.13 * obDMoPG + 0.99 * GOT / GPT - 0.013 * Thr - 0.66 * Alb * 0.1, 3)
   End If ' obGPT And obGOT And obTHR And obAlb And üdt.bmi <> 0 Then
   
   Dim obFußmakro%
@@ -2175,39 +2186,39 @@ keinuzu:
   dmpfarbe = "class='unauff' style='color:blue'"
   If obDMPPrüf Then
    DmPStr = ",  DMP-Diab: "
-   Select Case rnam!dmpklass
+   Select Case dmpKlass
     Case 0: DmPStr.Append "unbek (": dmpfarbe = "class='cave'"
     Case 1: DmPStr.Append "nein (": dmpfarbe = "class='cave'"
     Case 2: DmPStr.Append "HA ("
     Case 3: DmPStr.Append "hier ("
     Case 4: DmPStr.Append "ausgeschrieben ("
    End Select
-   DmPStr.AppVar Array(IIf(rnam!dmpbeg = 0, "", Format(rnam!dmpbeg, "d.m.yy")), ")")
-   If rnam!dmpkhkklass <> 0 Then
+   DmPStr.AppVar Array(IIf(dmpBeg = 0, "", Format(dmpBeg, "d.m.yy")), ")")
+   If dmpKhkKlass <> 0 Then
     DmPStr.Append ", DMP-KHK: "
-    Select Case rnam!dmpkhkklass
+    Select Case dmpKhkKlass
      Case 0: DmPStr.Append "unbek ("
      Case 1: DmPStr.Append "nein ("
      Case 2: DmPStr.Append "HA ("
      Case 3: DmPStr.Append "hier ("
      Case 4: DmPStr.Append "ausgeschrieben ("
     End Select
-    DmPStr.AppVar Array(Format(rnam!dmpkhkbeg, "d.m.yy"), ")")
+    DmPStr.AppVar Array(Format(dmpKhkBeg, "d.m.yy"), ")")
    End If
-   If rnam!dmpcopdklass <> 0 Then
+   If dmpCopdKlass <> 0 Then
     DmPStr.Append ", DMP-COPD: "
-    Select Case rnam!dmpcopdklass
+    Select Case dmpCopdKlass
      Case 0: DmPStr.Append "unbek ("
      Case 1: DmPStr.Append "nein ("
      Case 2: DmPStr.Append "HA ("
      Case 3: DmPStr.Append "hier ("
      Case 4: DmPStr.Append "ausgeschrieben ("
     End Select
-    DmPStr.AppVar Array(Format(rnam!dmpcopdbeg, "d.m.yy"), ")")
+    DmPStr.AppVar Array(Format(dmpCopdBeg, "d.m.yy"), ")")
    End If
-   If rnam!dmpabklass <> 0 Then
+   If dmpAbKlass <> 0 Then
     DmPStr.Append ", DMP-AB: "
-    Select Case rnam!dmpabklass
+    Select Case dmpAbKlass
      Case 0: DmPStr.Append "unbek ("
      Case 1: DmPStr.Append "nein ("
      Case 2: DmPStr.Append "HA ("
@@ -2254,7 +2265,7 @@ keinuzu:
 #End If
   ' 255,204,229 = #ffcce5 rötlich; 229,204,255 = #E5CCFF bläulich; #ffffcc gelblich
   AusS.AppVar (Array(" ", IIf(dmtyp = "1" Or dmtyp = "2" Or dmtyp = "g", "<span style='background-color:" & IIf(dmtyp = "1", "#ffd9e8", IIf(dmtyp = "g", "#ffffde", "#efe0ff")) & "'", ""), "<B><span title='", VName, " ", NName, ", ", rnam!strasse, ", ", rnam!plz, " ", rnam!ort, ", Tel1: ", rnam!PrivatTel, ", Tel2: ", rnam!PrivatTel_2, ", Mobil:", rnam!PrivatMobil, ", Fax: ", rnam!PrivatFax, ", Diensttel: ", rnam!DienstTel & ", Email: ", rnam!email, "'>", IIf(vorET > Now(), "<span class='schwanger'>", ""), _
-  GesNamFn(rnam), "</span></B>, *", Format(rnam!GebDat, "d.m.yy"), " (", Palter, "a), <span style='color:blue'><span class='unauff'>&nbsp;&nbsp;Pat_id: </span>", Pat_id, "</span><span id = 'unauff'>,", IIf(obdm, "&nbsp;&nbsp;D.m.seit: ", ""), IIf(obdm, dmseit, ""), ",&nbsp;&nbsp;vorgestellt: ", Format(Vorgestellt, "d.m.yy"), ",&nbsp;&nbsp;für: </span>", Format(Datum, "d.m.yy"), " <span style='font-size:smaller'>", Format(Uhrzeit, "hh:mm"), ",</span>&nbsp;&nbsp;&nbsp;<span class='unauff'>", rnam!Notiz, ",&nbsp;&nbsp;&nbsp;", IIf(obdm, "Therapie zuletzt: ", ""), "</span>", IIf(obdm, therart, ""), "<span " & dmpfarbe & ">", DmPStr, "</span></h1>", vbCrLf))
+  GesNamFn(rnam), "</span></B>, *", Format(rnam!GebDat, "d.m.yy"), " (", PAlter, "a), <span style='color:blue'><span class='unauff'>&nbsp;&nbsp;Pat_id: </span>", Pat_id, "</span><span id = 'unauff'>,", IIf(obdm, "&nbsp;&nbsp;D.m.seit: ", ""), IIf(obdm, dmseit, ""), ",&nbsp;&nbsp;vorgestellt: ", Format(Vorgestellt, "d.m.yy"), ",&nbsp;&nbsp;für: </span>", Format(Datum, "d.m.yy"), " <span style='font-size:smaller'>", Format(Uhrzeit, "hh:mm"), ",</span>&nbsp;&nbsp;&nbsp;<span class='unauff'>", rnam!Notiz, ",&nbsp;&nbsp;&nbsp;", IIf(obdm, "Therapie zuletzt: ", ""), "</span>", IIf(obdm, therart, ""), "<span " & dmpfarbe & ">", DmPStr, "</span></h1>", vbCrLf))
 ' TherapieArtEinzelnFestlegen(CLng(Pat_ID), rAn) & "</span></h1>" ' VName, " ", NName
   ' * 2.73792574745373E-03 ' 1/365,24
   AusS.AppVar (Array("</h1>", vbCrLf))
@@ -2300,7 +2311,7 @@ keinuzu:
   obGU = 0
   
   If obLeist Then
-   If KVNr = "6419153" And Palter > 35 Then
+   If KVNr = "6419153" And PAlter > 35 Then
     myFrag rLei, "SELECT zeitpunkt FROM `leistungen` WHERE pat_id = " & Pat_id & " AND leistung = '01732' ORDER BY zeitpunkt DESC"
     If rLei.BOF Then
      obGU = True
@@ -2465,7 +2476,7 @@ keinuzu:
   Dim rsdd As New ADODB.Recordset
   myFrag rsdd, "SELECT icd FROM diagview d WHERE d.pat_id = " & Pat_id & " AND (d.gICD RLIKE '^F0[0-3]|^G20')"
   Dim rse As ADODB.Recordset
-  If rFlSchGr <> 90 And (Palter >= 70 Or Not rsdd.BOF) Then
+  If rFlSchGr <> 90 And (PAlter >= 70 Or Not rsdd.BOF) Then
    Set rse = Nothing ' 13.4.21: wenn im Folgenden nicht _latin1 bei inhalt steht, kommt bei der virtuallen Spalte Unsinn raus
    myFrag rse, "SELECT DATE(zeitpunkt) datum, art, inhalt FROM `eintraege` WHERE zeitpunkt > DATE_SUB(NOW(), INTERVAL 150 DAY) AND Art = 'ADL' AND pat_id = " & Pat_id & " ORDER BY zeitpunkt DESC"
    If rse.BOF Then
@@ -2502,7 +2513,7 @@ keinuzu:
      If NPmd Then NPmd = myEFrag("SELECT zeitpunkt FROM eintraege WHERE art='daknp' AND pat_id = " & Pat_id & " AND zeitpunkt >= SUBDATE(qanf(),INTERVAL 9 MONTH)").EOF
      LUTSmd = myEFrag("SELECT 0 FROM diagview WHERE pat_id = " & Pat_id & " AND gicd RLIKE '^N31\.[12]'").BOF
      If LUTSmd Then LUTSmd = myEFrag("SELECT zeitpunkt FROM eintraege WHERE art='dakluts' AND pat_id = " & Pat_id & " AND zeitpunkt >= SUBDATE(qanf(),INTERVAL 9 MONTH)").EOF
-     If Palter > 50 Then Apmd = myEFrag("SELECT 0 FROM diagview WHERE pat_id = " & Pat_id & " AND gicd RLIKE '^E1.\.5|^I79.2|^I73.'").BOF Else Apmd = 0
+     If PAlter > 50 Then Apmd = myEFrag("SELECT 0 FROM diagview WHERE pat_id = " & Pat_id & " AND gicd RLIKE '^E1.\.5|^I79.2|^I73.'").BOF Else Apmd = 0
      If Apmd Then Apmd = myEFrag("SELECT zeitpunkt FROM eintraege WHERE art='dakap' AND pat_id = " & Pat_id & " AND zeitpunkt >= SUBDATE(qanf(),INTERVAL 9 MONTH)").EOF
      LebMd = myEFrag("SELECT 0 FROM diagview WHERE pat_id = " & Pat_id & " AND gicd = 'K77.8'").BOF ' COALESCE(f6010,0)=0 AND
      If LebMd Then LebMd = myEFrag("SELECT zeitpunkt FROM eintraege WHERE art='sono' AND (inhalt LIKE '%Abdomen%' OR inhalt LIKE '%Bauch%') AND pat_id = " & Pat_id & " AND zeitpunkt >= SUBDATE(qanf(),INTERVAL 9 MONTH)").EOF
@@ -2540,7 +2551,7 @@ keinuzu:
            ") i;")
 '  IF Not rTh.BOF THEN metdos = rTh!mg
   Dim lGFR As labtyp
-  lGFR = letztGFR(CLng(Pat_id), Palter, obweibl, aRisk.EthnicGroup)
+  lGFR = letztGFR(CLng(Pat_id), PAlter, obweibl, aRisk.EthnicGroup)
   If lGFR.Abkü = "" And lGFR.WertSg = "" Then lGFR.WertSg = "500"
   ' beim längsten Pat. 0,015 - 0,023 s
 '  obmetf = myEFrag("SELECT COUNT(0) zl FROM medplan mp LEFT JOIN medarten ma ON mp.medanfang = ma.medikament WHERE mp.pat_id=" & Pat_ID & " AND metf")!zl
@@ -2572,7 +2583,7 @@ keinuzu:
      thh(UBound(thh)) = "Typ 2-Diabetes, Therapie " & therart & IIf(obneph, ", Nephropathie", "") & IIf(obherzi, ", Herzinsuffizienz", "") & ", letzte eGFR: " & lGFR.WertSg & "; zuletzt kein SGLT-2-Hemmer im Med'plan, kein ksp/ksä-Eintrag => evtl. versuchen"
     End If
    End If
-   If Not obdement And Palter < 80 And (obart Or (üdt.bmi > 26.9 And (therart = "CSII" Or therart = "CT" Or therart = "ICT" Or therart = "Komb"))) Then
+   If Not obdement And PAlter < 80 And (obart Or (üdt.bmi > 26.9 And (therart = "CSII" Or therart = "CT" Or therart = "ICT" Or therart = "Komb"))) Then
 ' TH:GLP1-Agonist
     Dim glp%
     glp = myEFrag("SELECT COALESCE(" & vbCrLf & _
@@ -2675,7 +2686,7 @@ keinuzu:
   If lRRz = 0 Then
    RRtxt = "Keine RR-Messung in den letzten " & frist & " Tagen gespeichert. Bitte messen und eintragen."
   Else ' => lRRz > 0
-   If (lRRd <= 80 And (Palter < 65 And lRRs < 130 And lRRs >= 120) Or (Palter >= 65 And lRRs < 140 And lRRs >= 130)) Then
+   If (lRRd <= 80 And (PAlter < 65 And lRRs < 130 And lRRs >= 120) Or (PAlter >= 65 And lRRs < 140 And lRRs >= 130)) Then
 ' => auch ohne Kenntnis von Medikation sowie Diagnosen alles in Ordnung
    Else ' wenn nicht, dann brauchen wir die Medikation
     Dim obKHE%, ICDs
@@ -2707,23 +2718,23 @@ keinuzu:
      If Not IsNull(rsMB!rz) Then lRRz = rsMB!rz Else lRRz = 0
      Set rsMB = Nothing
     End If
-    If (lRRz = 0 Or (lRRd <= 80 And (Palter < 65 And lRRs < 130 And lRRs >= 120) Or (Palter >= 65 And lRRs < 140 And lRRs >= 130))) Then
+    If (lRRz = 0 Or (lRRd <= 80 And (PAlter < 65 And lRRs < 130 And lRRs >= 120) Or (PAlter >= 65 And lRRs < 140 And lRRs >= 130))) Then
 ' Blutdruck nach letzter Änderung nicht wieder gemessen oder in Ordnung
     ElseIf RRMedAktZ = 0 Then ' keine antihypertensive Medikation
-     If (Palter < 65 And lRRs < 120) Or (Palter >= 65 And lRRs < 130) Then
+     If (PAlter < 65 And lRRs < 120) Or (PAlter >= 65 And lRRs < 130) Then
      ' Blutdruck ohne Medikation niedrig => kein Handlungsbedarf
      Else
      ' Blutdruck ohne Medikation zu hoch
-      RRtxt = "Durchschnitt der letzten " & CStr(lRRz) & " Blutdruckwerte mit " & CStr(lRRs) & "/" & CStr(lRRd) & " höher als " & IIf(Palter < 65, "120", "130") & "/80 mm Hg, evtl. Antihypertensiva zu erwägen."
+      RRtxt = "Durchschnitt der letzten " & CStr(lRRz) & " Blutdruckwerte mit " & CStr(lRRs) & "/" & CStr(lRRd) & " höher als " & IIf(PAlter < 65, "120", "130") & "/80 mm Hg, evtl. Antihypertensiva zu erwägen."
      End If
     Else ' RRMedz>0: antihypertensive Medikation, RR evtl. außerhalb Zielbereich
-     If (Palter < 65 And lRRs < 120) Or (Palter >= 65 And lRRs < 130) Then
+     If (PAlter < 65 And lRRs < 120) Or (PAlter >= 65 And lRRs < 130) Then
       If lRRÄnd < Now() - 14 Then ' wenn nicht kürzlich die Medikation schon geändert
-       RRtxt = "RRsyst mit " & lRRs & " evtl. zu niedrig (<" & IIf(Palter < 65, "120", "130") & ") mm Hg. Letzte Änderung der antihypert.Med. " & Format(lRRÄnd, "dd.mm.yy") & ", evtl. Med. reduzieren."
+       RRtxt = "RRsyst mit " & lRRs & " evtl. zu niedrig (<" & IIf(PAlter < 65, "120", "130") & ") mm Hg. Letzte Änderung der antihypert.Med. " & Format(lRRÄnd, "dd.mm.yy") & ", evtl. Med. reduzieren."
       End If
      Else
      ' RR evtl. zu hoch
-      RRtxt = "Durchschnitt der letzten " & CStr(lRRz) & " Blutdruckwerte mit " & CStr(lRRs) & "/" & CStr(lRRd) & " höher als " & IIf(Palter < 65, "130", "140") & "/80 mm Hg. Letzte Änderung der antihypert.Med. " & Format(lRRÄnd, "dd.mm.yy") & ", evtl. Änderung angezeigt."
+      RRtxt = "Durchschnitt der letzten " & CStr(lRRz) & " Blutdruckwerte mit " & CStr(lRRs) & "/" & CStr(lRRd) & " höher als " & IIf(PAlter < 65, "130", "140") & "/80 mm Hg. Letzte Änderung der antihypert.Med. " & Format(lRRÄnd, "dd.mm.yy") & ", evtl. Änderung angezeigt."
      End If ' (Palter < 65 AND lRRs < 120) OR (Palter >= 65 AND lRRs < 130) THEN else
     End If ' RRMedz=0 else
    End If ' (lRRd < 80 AND (Palter < 65 AND lRRs < 130 AND lRRs >= 120) OR (Palter >= 65 AND lRRs < 140 AND lRRs >= 130)) THEN else
@@ -2978,7 +2989,7 @@ keinuzu:
         If k = 4 And FLI <> -1 Then
          AusS.AppVar Array("  <th>Fettlb'ind.:</th><th></th><th", IIf(FLI < 30, "", " bgcolor=""" & IIf(FLI > 60, "yellow", "lightyellow") & """"), ">", FLI, "</th></th><th></th><th></th>")
         ElseIf k = 5 And FIB4 <> -1 Then
-         AusS.AppVar Array("  <th>FIB-4'ind.:</th><th></th><th", IIf(FIB4 < IIf(Palter < 66, 1.3, 2), "", " bgcolor=""" & IIf(FIB4 > 3.25, "yellow", "lightyellow") & """"), ">", CStr(FIB4), "</th></th><th></th><th></th>")
+         AusS.AppVar Array("  <th>FIB-4'ind.:</th><th></th><th", IIf(FIB4 < IIf(PAlter < 66, 1.3, 2), "", " bgcolor=""" & IIf(FIB4 > 3.25, "yellow", "lightyellow") & """"), ">", CStr(FIB4), "</th></th><th></th><th></th>")
         ElseIf k = 6 And NFS <> -1 Then
          AusS.AppVar Array("  <th>NFScore:</th><th></th><th", IIf(NFS < -1.455, "", " bgcolor=""" & IIf(NFS > 0.676, "yellow", "lightyellow") & """"), ">", CStr(NFS), "</th></th><th></th><th></th>")
         End If

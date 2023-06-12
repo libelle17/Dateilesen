@@ -10095,7 +10095,20 @@ vz = vz + 1
 
 
 VN = "formular"
-Vsql = "SELECT `forminhkopf`.FoID AS foid,`forminhkopf`.Pat_ID AS Pat_ID,`forminhkopf`.FID AS FID,`forminhkopf`.Form_ID AS Form_ID,`forminhkopf`.ZeitPunkt AS ZeitPunkt,`forminhfeld`.Nr AS Nr,`forminhfeld`.FeldNr AS FeldNr,`forminhaltfeld`.Feld AS Feld,`forminhaltfeldinh`.FeldInh AS FeldInh,`formulare`.Form_Abk AS form_abk,`formulare`.FormVorl AS FormVorl FROM ((((`forminhfeld` LEFT JOIN `forminhkopf` on((`forminhfeld`.FoID = `forminhkopf`.FoID))) LEFT JOIN `formulare` on((`formulare`.FormID = `forminhkopf`.Form_ID))) LEFT JOIN `forminhaltfeld` on((`forminhfeld`.FeldVW = `forminhaltfeld`.FeldVW))) LEFT JOIN `forminhaltfeldinh` on((`forminhfeld`.FeldInhVW = `forminhaltfeldinh`.FeldInhVW))) ORDER BY `forminhkopf`.FoID;"
+'Vsql = "SELECT `forminhkopf`.FoID,`forminhkopf`.Pat_ID,`forminhkopf`.FID,`forminhkopf`.Form_ID,`forminhkopf`.ZeitPunkt AS ZeitPunkt,`forminhfeld`.Nr AS Nr,`forminhfeld`.FeldNr AS FeldNr,`forminhaltfeld`.Feld,`forminhaltfeldinh`.FeldInh,`formulare`.Form_Abk,`formulare`.FormVorl " & vbcrlf & _
+"FROM ((((`forminhfeld` LEFT JOIN `forminhkopf` on((`forminhfeld`.FoID = `forminhkopf`.FoID))) " & vbcrfl & _
+"LEFT JOIN `formulare` on((`formulare`.FormID = `forminhkopf`.Form_ID)))  " & vbcrfl & _
+"LEFT JOIN `forminhaltfeld` on((`forminhfeld`.FeldVW = `forminhaltfeld`.FeldVW)))  " & vbcrfl & _
+"LEFT JOIN `forminhaltfeldinh` on((`forminhfeld`.FeldInhVW = `forminhaltfeldinh`.FeldInhVW)))  " & vbcrfl & _
+"ORDER BY `forminhkopf`.FoID;"
+Vsql = "SELECT fik.FoID,fik.Pat_ID,fik.FID,fik.Form_ID,fik.ZeitPunkt," & vbCrLf & _
+"fi.Nr,fi.FeldNr,fif.Feld,fifi.FeldInh,fo.Form_Abk,fo.FormVorl " & vbCrLf & _
+"FROM `forminhfeld` fi" & vbCrLf & _
+"LEFT JOIN `forminhkopf` fik ON fik.FoID = fi.FoID" & vbCrLf & _
+"LEFT JOIN `formulare` fo ON fo.FormID = fik.Form_ID" & vbCrLf & _
+"LEFT JOIN `forminhaltfeld` fif ON fif.FeldVW = fi.FeldVW" & vbCrLf & _
+"LEFT JOIN `forminhaltfeldinh` fifi ON fifi.FeldInhVW = fi.FeldInhVW" & vbCrLf & _
+"ORDER BY fik.FoID;"
 Call DtbCreateQueryDef(VN, Vsql)
 vz = vz + 1
 

@@ -5780,7 +5780,7 @@ Public Sub RufKassenKategorienBestimmen()
  Call Lese.ProgEnde
 End Sub ' RufKassenKategorienBestimmen
 
-' in doEinlesen, liesKassen und RufKassenKategorienBestimmen
+' in doEinles, liesKassen und RufKassenKategorienBestimmen
 Public Sub DoKassenkategorienBestimmen()
  Dim namen$()
  ReDim namen(80)

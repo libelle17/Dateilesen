@@ -73,7 +73,7 @@ Function AnTrennZeichen()
  
  For i = 1 To UBound(rEi)
   Select Case rEi(i).art
-   Case "anal", "andm", "usal", "usdm"
+   Case "anal", "andm", "usal", "usdm", "usdm1", "usdm2"
     H0.Clear
     h1.Clear
     H0 = rEi(i).Inhalt
@@ -107,7 +107,7 @@ Function AnTrennZeichen()
      h1.AppVar Array(H0.Mid(midakt, midnext - midakt), "; ")
      midakt = midnext
     Next j
-   Case "usdm"
+   Case "usdm", "usdm1", "usdm2"
     For j = 0 To UBound(G4)
      midnext = H0.Instr(G4(j))
      If midnext = 0 Or midnext <= midakt Then
@@ -118,7 +118,7 @@ Function AnTrennZeichen()
     Next j
   End Select
   Select Case rEi(i).art
-   Case "anal", "andm", "usal", "usdm"
+   Case "anal", "andm", "usal", "usdm", "usdm1", "usdm2"
     If rEi(i).art <> "usdm" Or h1 = "" Then h1.Append H0.Mid(midakt) ' OR h1="" 10.11.19 wg. PID 52832
     rEi(i).Inhalt = h1
   End Select
@@ -758,6 +758,7 @@ Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "Last
  Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
 End Select
 End Function ' usdm2
+
 Function USfuss()
  Dim trz, j&
  On Error GoTo fehler
@@ -2241,6 +2242,7 @@ Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "Last
  Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
 End Select
 End Function ' usDMAlt
+
 Function nächstes(ByVal ez$)
  Dim Spl$(), vs$
  On Error GoTo fehler

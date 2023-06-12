@@ -247,14 +247,15 @@ End Sub
 
 Private Sub inTurbomedAnzeigen_Click() ' in Turbomed anzeigen
  Const obStumm% = 0
- Dim hnd&, Pat_id&, dtyp%, alttop&, altr&
+ Dim hnd&, Pat_id& ' , dtyp%, alttop&, altr&
  Const Pat_IDSp& = 1
- Dim DT As DMPClass, j%
- Dim rTyp As New ADODB.Recordset
+' Dim DT As DMPClass, j%
+' Dim rTyp As New ADODB.Recordset
+ On Error GoTo fehler
  With Me.MSHFlexGrid1
   .SetFocus
-  alttop = .TopRow
-  altr = .Row
+'  alttop = .TopRow
+'  altr = .Row
 '  altC = .col
   Pat_id = .TextMatrix(.Row, Pat_IDSp)
 '  .col = altC
@@ -292,6 +293,19 @@ Private Sub inTurbomedAnzeigen_Click() ' in Turbomed anzeigen
 '  Pause (Pausenlänge)
 '  SendKeys "^{F7}", True
  End If
+ Exit Sub
+fehler:
+ Dim AnwPfad$
+#If VBA6 Then
+ AnwPfad = CurrentDb.name
+#Else
+ AnwPfad = App.path
+#End If
+Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "aufgefangener Fehler in inTurbomedAnzeigen/" + AnwPfad)
+ Case vbAbort: Call MsgBox("Höre auf"): ProgEnde
+ Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
+ Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
+End Select
 End Sub ' InTurbomed anzeigen
 
 

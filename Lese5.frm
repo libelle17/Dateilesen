@@ -4168,7 +4168,7 @@ End Sub ' doCallDMP
 'Private Sub Einlesen_Click(index As Integer)
 ' obMitAlterTab = True
 ' call progstart
-' Call doEinlesen(True)
+' Call doEinles(True)
 ' Call ProgEnde
 'End Sub ' Einlesen_Click(Index As Integer)
 
@@ -4179,7 +4179,7 @@ End Sub ' doCallDMP
 ' erg = InputBox("Ab welcher Patientennummer soll eingelesen werden?", "Einlesen ab Patientennummer")
 ' IF IsNumeric(erg) THEN
 '  EinlAb = erg
-'  Call doEinlesen(False)
+'  Call doEinles(False)
 '  Call ProgEnde
 ' END IF
 'End Sub
@@ -4188,41 +4188,41 @@ End Sub ' doCallDMP
 ' obMitAlterTab = True
 ' call progstart
 ' Call myEFrag("UPDATE quelle.`namen` SET aktzeit = 0")
-' Call doEinlesen(False)
+' Call doEinles(False)
 ' Call ProgEnde
 'End Sub ' EinlesenEingelesene_Click()
 
 'Private Sub EinlesenohneLabor_Click()
 ' obMitAlterTab = True
 ' call progstart
-' Call doEinlesen(False, True)
+' Call doEinles(False, True)
 ' Call ProgEnde
 'End Sub ' EinlesenohneLabor_Click()
 
 'Private Sub EinlesenSchnell_Click()
 ' obMitAlterTab = False
 ' call progstart
-' Call doEinlesen(False)
+' Call doEinles(False)
 ' Call ProgEnde
 'End Sub ' EinlesenSchnell_Click()
 'Private Sub EinlesenEinzeln_Click()
 ' obMitAlterTab = True
 ' call progstart
-' Call doEinlesen(False)
+' Call doEinles(False)
 ' Call ProgEnde
 'End Sub ' EinlesenEinzeln_Click()
 'Private Sub EinlesenVorb_Click()
 ' obMitAlterTab = True
 ' obVorb = True
 ' call progstart
-' Call doEinlesen(True)
+' Call doEinles(True)
 ' Call ProgEnde
 'End Sub ' EinlesenVorb_Click()
 'Private Sub EinlesenEinzelnVorb_Click()
 ' obMitAlterTab = True
 ' obVorb = True
 ' call progstart
-' Call doEinlesen(False)
+' Call doEinles(False)
 ' Call ProgEnde
 'End Sub ' EinlesenEinzelnVorb_Click()
 
@@ -4651,8 +4651,17 @@ Private Sub mdiForm_Load()
   a = 0
   b = 50000
   ' passable Farben zwischen &H00C00000& und &H00FFFFFF&; 4194303 ist die Differenz
-  Me.Ausgabe.BackColor = &HC00000 + (((App.Revision + a) * b) Mod 4194303)
-  
+ ' Me.Ausgabe.BackColor = &HCC0000 + (((App.Revision + a) * b) Mod 4194303)
+  Dim z0#, z1#, z2#, z3#, z4#
+  z0 = 1 / App.Revision
+  z1 = z0 * 10000000
+  z1 = z1 - Int(z1)
+  z2 = z1 * 100
+  z2 = z2 - Int(z2)
+  z3 = z2 * 100
+  z3 = z3 - Int(z3)
+'  Me.Ausgabe.BackColor = &HA0FFFF
+  Me.Ausgabe.BackColor = RGB(160 + z1 * 95, 160 + z2 * 95, 160 + z3 * 95)
  imAufbauLese = True
 ' SET qdb = New QuelleDBC
  Set dbv = New DBVerb
