@@ -367,15 +367,7 @@ Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "Last
 End Select
 End Sub ' Private Sub Form_Load()
 
-Public Function ZeigSQL() ' Abrechnungsfehler
-'Const nname$ = "LEFT(CONCAT(IF(n.titel='','',CONCAT(n.titel,' ')),IF(n.nvorsatz='','',CONCAT(n.nvorsatz,' ')),n.nachname,', ',n.vorname),25) Name, "
-Dim FristS$
-AktQ = Me.Quartal
-FristS = Str(Int(Now() - QEnd(AktQ) + 1))
-Static aktf$, qanfS$, qendS$
-On Error GoTo fehler
-AWlf = 0
-If Me.Private <> 0 Then
+Public Function ZeigSprivat(FristS$)
 ' 24.10.09: ändern in WHERE bhfe = '1899-12-30' AND schgr = 90
 ' ktag fehlerhaft
  AwN(AWlf) = "Evtl. fehlende Abrechnung von Beratungen (1,3)"
@@ -793,7 +785,18 @@ If Me.Private <> 0 Then
  mins(AWlf) = 5
  maxs(AWlf) = 100
  AWlf = AWlf + 1
+End Function
 
+Public Function ZeigSQL() ' Abrechnungsfehler
+'Const nname$ = "LEFT(CONCAT(IF(n.titel='','',CONCAT(n.titel,' ')),IF(n.nvorsatz='','',CONCAT(n.nvorsatz,' ')),n.nachname,', ',n.vorname),25) Name, "
+Dim FristS$
+AktQ = Me.Quartal
+FristS = Str(Int(Now() - QEnd(AktQ) + 1))
+Static aktf$, qanfS$, qendS$
+On Error GoTo fehler
+AWlf = 0
+If Me.Private <> 0 Then
+ ZeigSprivat (FristS)
  
 Else ' me.private = 0 => Kassenpatienten
 ' faq$ = "SELECT * FROM `faelle` WHERE quartal = '" + aktQ + "'"
@@ -838,10 +841,13 @@ sql(AWlf) = "ü"
  AwN(AWlf) = "Widersprüchlicher Diabetestyp Anamnese/ ICD (quartalsübergreifende Abfrage!) (vorher 0)"
  ' AND COALESCE(d.f6010,0)=0
  sql(AWlf) = _
-"SELECT Pat_id PID, PName, wer, LEFT(Diabetestyp,10) DTyp, IF(ISNULL(anam),'(null)',Anam) Anam, MaxHbA1c, CONCAT(g0,' ',g2) OGTT, icd FROM ( " & vbCrLf & _
-"SELECT f.pat_id, gesname(f.pat_id) Pname, wer, a.diabetestyp,TRIM(MID(e.inhalt,INSTR(e.inhalt,'Diabetes Typ ')+12,20)) Anam, IF(xH.max1>xH.max2,xH.max1, xH.max2) maxHbA1c, " & vbCrLf & _
-"IF(xG.max1>xG.max2,xG.max1, xG.max2) maxGluc, g0(IF(LENGTH(og.inhalt)>1000,LEFT(og.inhalt,1000),og.inhalt)) g0, g2(IF(LENGTH(og.inhalt)>1000,LEFT(og.inhalt,1000),og.inhalt)) g2, " & vbCrLf & _
-"(SELECT MIN(icd) FROM diagview d WHERE d.pat_id=f.pat_id AND (d.gicd REGEXP '^E1[0-4]\.|^R73' OR (d.icd='O24.4' AND d.f6010=0 AND d.diagsicherheit IN ('G',' ') AND d.diagdatum BETWEEN qbegs(f.quartal) AND qends(f.quartal)))) icd " & vbCrLf & _
+"SELECT Pat_id PID, PName, wer, LEFT(Diabetestyp,10) DTyp, IF(ISNULL(anam),'(null)',Anam) Anam, MaxHbA1c, CONCAT(g0,' ',g2) OGTT, icd " & vbCrLf & _
+"FROM ( " & vbCrLf & _
+" SELECT f.pat_id, gesname(f.pat_id) Pname, wer, a.diabetestyp," & vbCrLf & _
+" TRIM(MID(e.inhalt,INSTR(e.inhalt,'Diabetes Typ ')+12,20)) Anam," & vbCrLf & _
+" IF(xH.max1>xH.max2,xH.max1, xH.max2) maxHbA1c, " & vbCrLf & _
+" IF(xG.max1>xG.max2,xG.max1, xG.max2) maxGluc, g0(IF(LENGTH(og.inhalt)>1000,LEFT(og.inhalt,1000),og.inhalt)) g0, g2(IF(LENGTH(og.inhalt)>1000,LEFT(og.inhalt,1000),og.inhalt)) g2, " & vbCrLf & _
+" (SELECT MIN(icd) FROM diagview d WHERE d.pat_id=f.pat_id AND (d.gicd REGEXP '^E1[0-4]\.|^R73' OR (d.icd='O24.4' AND d.f6010=0 AND d.diagsicherheit IN ('G',' ') AND d.diagdatum BETWEEN qbegs(f.quartal) AND qends(f.quartal)))) icd " & vbCrLf & _
 "FROM aktfvs f " & vbCrLf & _
 "LEFT JOIN anamnesebogen a ON a.pat_id = f.pat_id " & vbCrLf & _
 "LEFT JOIN `_maxHbA1c` xH ON xH.pat_id = a.pat_id " & vbCrLf & _
@@ -853,7 +859,7 @@ sql(AWlf) = "ü"
 "NOT (diabetestyp IN ('1','1?','s') AND icd LIKE 'E10%') AND " & vbCrLf & _
 "NOT (diabetestyp IN ('2','2?','s') AND icd LIKE 'E11%') AND " & vbCrLf & _
 "NOT (diabetestyp IN ('-','','u','p') AND (ISNULL(icd) OR icd='O24.4')) AND " & vbCrLf & _
-"NOT (diabetestyp IN ('-','p','','?') AND (ISNULL(icd) OR icd='R73.0')) AND " & vbCrLf & _
+"NOT (diabetestyp IN ('-','p','','?','g') AND (ISNULL(icd) OR icd='R73.0')) AND " & vbCrLf & _
 "NOT (diabetestyp = 's' AND icd LIKE 'E13%') AND " & vbCrLf & _
 "NOT (diabetestyp='g' AND icd ='O24.4');"
  mins(AWlf) = 5
@@ -996,7 +1002,7 @@ sql(AWlf) = "SELECT pid, gesnameg(pid) PName, wer, zahl, icd, e.Art " & vbCrLf &
  AwN(AWlf) = "Fehlende Fußdiagnose trotz Leistung 97314, 97324 oder 02311 (vorher 6)"
  sql(AWlf) = _
  "SELECT eid, Pat_id, Patient, wer, ICD, Quelldatum, FotoStadium, FotoSeite, Eintr_Seite, Eintr_Zeitpunkt, Art, Eintr_Inhalt, Leistn, DokName FROM (" & vbCrLf & _
- " SELECT e.id eid, f.pat_id, gesname(f.pat_id) Patient, wer, MAX(di.gicd) ICD, Quelldatum" & vbCrLf & _
+ " SELECT e.id eid, f.pat_id, gesname(f.pat_id) Patient, wer, MAX(di.icd) ICD, Quelldatum" & vbCrLf & _
  " , CONCAT('L89.',CAST(MAX(IF(MID(dokname,INSTR(dokname,'WA ')+3,1)>2,2,MID(dokname,INSTR(dokname,'WA ')+3,1)))+1 AS CHAR),IF(INSTR(dokname,'Ferse')<>0,'7','8')) Fotostadium" & vbCrLf & _
  " , REPLACE(REPLACE(GROUP_CONCAT(DISTINCT IF(INSTR(dokname,' li.')<>0,MID(dokname,INSTR(dokname,' li.')+1,2),IF(INSTR(dokname,' re.')<>0,MID(dokname,INSTR(dokname,' re.')+1,2),''))),',',''),'lire','bds') FotoSeite" & vbCrLf & _
  " , IF(INSTR(e.inhalt,' bds.')<>0,' bds',IF(INSTR(e.inhalt,' li ')<>0,' li', IF(INSTR(e.inhalt,' re ')<>0,' re',''))) Eintr_Seite" & vbCrLf & _
@@ -1010,10 +1016,10 @@ sql(AWlf) = "SELECT pid, gesnameg(pid) PName, wer, zahl, icd, e.Art " & vbCrLf &
  " LEFT JOIN (SELECT pat_id,GROUP_CONCAT(DISTINCT CONCAT(DATE_FORMAT(ZeitPunkt,'%d.%m.%y'),': ',leistung) SEPARATOR ', ') Leistn FROM leistungen WHERE leistung IN ('97314','97324','02311') AND zeitpunkt BETWEEN qanf() AND qend() GROUP BY pat_id) l ON l.pat_id = f.pat_id" & vbCrLf & _
  " LEFT JOIN `dokumente` d ON f.pat_id = d.pat_id AND d.quelldatum BETWEEN fa.qanf AND fa.qend AND d.dokname RLIKE 'WA [0-5]'" & vbCrLf & _
  " LEFT JOIN `eintraege` e ON f.pat_id = e.pat_id AND DATE(e.zeitpunkt) BETWEEN fa.qanf AND fa.qend AND (e.art RLIKE 'debr|ulcus' OR e.inhalt RLIKE 'ebrid|resekt')" & vbCrLf & _
- " LEFT JOIN `diagview` di ON f.pat_id = di.pat_id AND di.gICD RLIKE '^L89\.[1-5]' AND (obdauer<>0 OR DATE(di.diagdatum) BETWEEN fa.qanf AND fa.qend)" & vbCrLf & _
+ " LEFT JOIN `diagview` di ON f.pat_id = di.pat_id AND di.ICD RLIKE '^L89\.[1-5]' AND (obdauer<>0 OR DATE(di.diagdatum) BETWEEN qbeg(d.quelldatum) AND qende(d.quelldatum))" & vbCrLf & _
  " WHERE not ISNULL(Leistn)" & vbCrLf & _
  " GROUP BY f.pat_id,e.art, e.inhalt, d.dokname" & vbCrLf & _
- " HAVING ISNULL(ICD) OR (NOT ISNULL(fotostadium) AND (ICD < Fotostadium ))" & vbCrLf & _
+ " HAVING ISNULL(ICD) OR (NOT ISNULL(fotostadium) AND (ICD COLLATE utf8mb4_german2_ci < Fotostadium ))" & vbCrLf & _
  " ) i" & vbCrLf & _
  "GROUP BY pat_id"
 ' "" & vbCrLf & _
@@ -1250,12 +1256,22 @@ sql(AWlf) = "" & _
 ' 19
  AwN(AWlf) = "Kernschatten ohne CLL (vorher 156)"
 sql(AWlf) = "" & _
-"SELECT l.pat_id, wia(l.pat_id) Arzt, gesname(l.pat_id) NAME, Patalter(l.pat_id) Patalter, az.wer, GROUP_CONCAT(l.zeitpunkt SEPARATOR ', ') zp, GROUP_CONCAT(l.wert SEPARATOR ', ') `%` " & vbCrLf & _
-"FROM labor2a l " & vbCrLf & _
-"LEFT JOIN diagnosen d ON d.Pat_id=l.pat_id AND d.icd LIKE 'C91%' " & vbCrLf & _
-"LEFT JOIN anamnesebogen a ON a.pat_id=l.pat_id " & vbCrLf & _
-"LEFT JOIN anaktk az ON az.pid=a.pat_id" & vbCrLf & _
-"WHERE abkü='ksm' AND ISNULL(d.icd) AND a.tkz<>1 GROUP BY pat_id ORDER BY MAX(zeitpunkt);"
+"SELECT IF(lwer=wer AND NOT ISNULL(lwer),'',CONCAT(CHR(13),CHR(10))) ``" & vbCrLf & _
+" , i.pat_id,IF(wer='-','?',wer) Arzt,Name,Patalter,Zp,`%`,lbeh" & vbCrLf & _
+"  FROM (SELECT " & vbCrLf & _
+"  l.pat_id, az.Wer, wia(l.pat_id) labArzt, gesname(l.pat_id) NAME, Patalter(l.pat_id) patalter" & vbCrLf & _
+"  , GROUP_CONCAT(l.zeitpunkt SEPARATOR '|') zp, MAX(zeitpunkt) mzp" & vbCrLf & _
+"  , GROUP_CONCAT(l.wert SEPARATOR '|') `%` ,date(lbeh) lbeh" & vbCrLf & _
+"  , CASE when wer='-' then 0 WHEN wer='tk' THEN 1 WHEN wer='ah' THEN 2 ELSE 3 END rh" & vbCrLf & _
+"  , LAG(wer) OVER(ORDER BY rh,mzp DESC) lwer" & vbCrLf & _
+"  FROM labor2a l " & vbCrLf & _
+"  LEFT JOIN diagnosen d ON d.Pat_id=l.pat_id AND d.icd LIKE 'C91%' " & vbCrLf & _
+"  LEFT JOIN anamnesebogen a ON a.pat_id=l.pat_id" & vbCrLf & _
+"  LEFT JOIN anaktk az ON az.pid=a.pat_id" & vbCrLf & _
+"  LEFT JOIN namenlb n ON n.pat_id=a.pat_id" & vbCrLf & _
+"  WHERE abkü='ksm' AND ISNULL(d.icd) AND a.tkz<>1 " & vbCrLf & _
+"  GROUP BY pat_id " & vbCrLf & _
+" ) i ORDER BY rh, mzp DESC;"
  mins(AWlf) = 10
  maxs(AWlf) = 60
  AWlf = AWlf + 1
@@ -3890,6 +3906,7 @@ sql(AWlf) = "ü"
              "AND ((WEEKDAY(e.zeitpunkt)=0 AND TIME(e.zeitpunkt) BETWEEN '19:30' AND '22:00') OR (WEEKDAY(e.zeitpunkt) IN (1,3) AND time(e.zeitpunkt) BETWEEN '20:00' AND '22:00') OR (weekday(e.zeitpunkt) IN (2,4) AND time(e.zeitpunkt) BETWEEN '19:00' AND '22:00') OR (weekday(e.zeitpunkt) IN (5,6) AND time(e.zeitpunkt) BETWEEN '07:00' AND '19:00')) AND schgr <> '90' AND NOT goäkatnr IN ('40','41') " & vbCrLf & _
              "AND e.inhalt NOT LIKE '%nachgef%' AND e.inhalt NOT LIKE '=>%' " & vbCrLf & _
              "AND NOT EXISTS (SELECT 0 FROM leistungen WHERE pat_id=e.pat_id AND leistung IN (01101,01102,01205,01207,01210,01212,01214,01216,01218,01410,01411,01412,01413,01415,01418,01949,01950,01951,01953,03373,04373,37306) AND zeitpunkt BETWEEN e.zeitpunkt AND e.zeitpunkt + INTERVAL 1 hour)" & vbCrLf & _
+             "AND NOT (WEEKDAY(e.zeitpunkt)=5 AND EXISTS (SELECT 0 FROM leistungen WHERE pat_id=e.pat_id AND DATE(zeitpunkt)=DATE(e.zeitpunkt) AND leistung='01102'))" & vbCrLf & _
              "AND ISNULL(leistung) " & vbCrLf & _
              "ORDER BY e.zeitpunkt"
  mins(AWlf) = 7
@@ -5563,32 +5580,10 @@ sql(AWlf) = "" & _
  maxs(AWlf) = 60
  AWlf = AWlf + 1
 
-
-
- 
-
-
-
-
-
-
-
-
-
-
-
 ' neuView
 AwN(AWlf) = "- Ende -"
 sql(AWlf) = "ü"
  AWlf = AWlf + 1
-
- 
-
-
-
-
-
-
  
 ' 19.2.11
 ' AwN(AWlf) = "97350A, 97360A, 97370B, 92282, 92278, 92281, 92277 für LKK-Patienten:"
@@ -5699,7 +5694,6 @@ sql(AWlf) = "ü"
  mins(AWlf) = 10
  maxs(AWlf) = 80
  AWlf = AWlf + 1
- 
 
  ' 123
  AwN(AWlf) = "Fehler bei DAK-Modul: Neuropathie (lauto)"
@@ -5776,7 +5770,6 @@ sql(AWlf) = sql(AWlf) & _
  mins(AWlf) = 10
  maxs(AWlf) = 80
  AWlf = AWlf + 1
- 
  
 ' 124
 AwN(AWlf) = "Fehler bei DAK-Modul: LUTS (lauto)"
@@ -5855,7 +5848,6 @@ sql(AWlf) = sql(AWlf) & _
  mins(AWlf) = 10
  maxs(AWlf) = 80
  AWlf = AWlf + 1
- 
  
 ' 125
  AwN(AWlf) = "Fehler bei DAK-Modul: Angiopathie (lauto)"
@@ -6024,7 +6016,6 @@ sql(AWlf) = sql(AWlf) & _
  mins(AWlf) = 10
  maxs(AWlf) = 80
  AWlf = AWlf + 1
- 
  
 ' 127
 ' bei fehlender Albuminurie und bisheriger Klassifikation als nicht pathologisch => Toleranzbreite bis eGFR 45 ml/min

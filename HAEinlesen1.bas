@@ -58,6 +58,7 @@ Private Type BSTyp
  name As String
 End Type
 Const ArztSuchS$ = "KVB_Arztsuche*.pdf"
+
 Public Function doalleKVDateien()
  Dim i&, erg&, db$
  Dim SL As New SortierListe, SD As SortierDatei, Fil$
@@ -86,6 +87,33 @@ Public Function doalleKVDateien()
  MsgBox "geht nur mit adobe"
  #End If
 End Function ' alleKVDateien
+
+Public Function lebetest()
+ Dim rs As ADODB.Recordset
+ Dim lebed As Date
+ Open "p:\namausg.txt" For Output As #205
+ Call Lese.ProgStart
+ myFrag rs, "select gesname(pat_id) Nam, n.* from namenlb n", adOpenStatic
+ If Not rs.BOF Then
+  Do While Not rs.EOF
+   rs.MoveNext
+   lebed = lebe(rs!Pat_id)
+   Dim lbeh As Date
+   lbeh = rs!lbeh
+   If rs!lbeh <> lebed Then
+    Debug.Print rs!Pat_id, lbeh, lebe(rs!Pat_id)
+    Print #205, rs!Pat_id & " " & lbeh & " " & lebe(rs!Pat_id)
+   Else
+'    Print #205, rs!Pat_id & " (stimmt)"
+'    Debug.Print rs!Pat_id, "(stimmt)"
+   End If
+   DoEvents
+  Loop
+ End If
+ Debug.Print "Fertig!"
+ Print #205, "Fertig!"
+ Close #205
+End Function
 
 Function TLösch(Tb$)
 ' HACn.Execute "TRUNCATE `" & Tb & "`", rAF

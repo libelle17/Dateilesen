@@ -247,7 +247,8 @@ fehler:
  End Select
 End Function ' erbe(byVal Pat_id&) As Date
 
-Function lebe(ByVal Pat_id&) As Date
+' in lebetest
+Function lebe(ByVal Pat_id&) As Date ' Letzte Behandlung
 Dim lbehD As Date, rLb As New ADODB.Recordset
 On Error GoTo fehler
 lebe = erbe(Pat_id)
@@ -287,11 +288,11 @@ fehler:
  End Select
 End Function ' letzt
 
-Function behDauerStr$(Pat_id) ' nur in tubriefStandalone
+Function behDauerStr$(Pat_id, lbeh As Date) ' nur in tubriefStandalone
  Dim D1 As Date, D2 As Date
  On Error GoTo fehler
  D1 = DateValue(erbe(Pat_id))
- D2 = DateValue(lebe(Pat_id))
+ D2 = lbeh ' DateValue(lebe(Pat_id))
  If D1 = D2 Then
   behDauerStr = "am " + Format$(D1, "d.m.YY")
  Else

@@ -7115,8 +7115,8 @@ Public Sub tubriefStandalone(pid&, obStumm%, Optional Zielverz$, Optional Vorlag
   
 '  SET rsNa = TabÖff("Namen", "pat_ID")
 '  rsNa.Seek "=", raAn!Pat_id
- Dim NachNa$, VorNa$, GName$, G1Name$, tit$, GebDat As Date, dieder$
- myFrag rsNa, "SELECT n.*,COALESCE(titel,'') tit, CONCAT(IF(geschlecht='m','Herrn','Frau'),' ',gesname(pat_id),', *',DATE_FORMAT(gebdat,'%e.%c.%y')) gname,IF(geschlecht='m','der','die') dieder FROM `namen` n WHERE pat_id = " & Pat_id
+ Dim NachNa$, VorNa$, GName$, G1Name$, tit$, GebDat As Date, dieder$, lbeh As Date
+ myFrag rsNa, "SELECT n.*,COALESCE(titel,'') tit, CONCAT(IF(geschlecht='m','Herrn','Frau'),' ',gesname(pat_id),', *',DATE_FORMAT(gebdat,'%e.%c.%y')) gname,IF(geschlecht='m','der','die') dieder, lbeh FROM namenlb n WHERE pat_id = " & Pat_id
  If rsNa.EOF Then Exit Sub
  NachNa = rsNa!Nachname
  VorNa = rsNa!Vorname
@@ -7124,6 +7124,7 @@ Public Sub tubriefStandalone(pid&, obStumm%, Optional Zielverz$, Optional Vorlag
  GebDat = rsNa!GebDat
  tit = rsNa!tit
  dieder = rsNa!dieder
+ lbeh = rsNa!lbeh
 ' G1Name = rsNa!G1Name
  myFrag raAn, "SELECT COALESCE(GesName(Pat_id),'') GesName, COALESCE(`diabetes seit`,0) dmseit FROM `anamnesebogen` a WHERE pat_id = " & Pat_id, adOpenStatic
  Dim gesname$, dmseit$
@@ -7245,7 +7246,7 @@ Public Sub tubriefStandalone(pid&, obStumm%, Optional Zielverz$, Optional Vorlag
    ag.AppVar Array("<w:pPr><w:spacing w:before=""120""/>", stil(, , , 1), "</w:pPr>")
    ag.Append stiltxt("besten Dank für die freundliche Überweisung von ")
    ag.Append stiltxt(REPLACE$(GName, ", *", ", geb. ") & ", ", True)
-   ag.Append stiltxt(dieder & " sich " & behDauerStr(Pat_id) & " bei uns vorstellte.")
+   ag.Append stiltxt(dieder & " sich " & behDauerStr(Pat_id, lbeh) & " bei uns vorstellte.")
    ag.Append "</w:p>"
    ag.Append agabsa
    ag.Append stil()
@@ -7410,7 +7411,7 @@ On Error GoTo fehler
     !Diagnosen.Range = DString
     !pdieder.Range = dieder
     Dim behD As New CString
-    behD = behDauerStr(Pat_id)
+    behD = behDauerStr(Pat_id, lbeh)
     !Zeitraum.Range = behD.Value
     If InStrB(behD, "am") <> 0 Then
      On Error Resume Next ' 16.10.14: entfällt, da umgestellt auf immer "besten Dank für die freundliche Überweisung"
@@ -10181,6 +10182,38 @@ Vsql = _
 '", ROW_NUMBER() OVER (PARTITION BY pat_id,DiagSicherheit,diagtext,d.diagseite,diagattr,icd,obdauer,intBemerk,AusnBegr,f6010,obkasse,lkasse,f6011 ORDER BY id1) rang" & vbCrLf & _
 '"HAVING rang=1"
 Call DtbCreateQueryDef(VN, Vsql)
+
+' "  COALESCE((SELECT MAX(zeitpunkt) FROM eintraege WHERE pat_id=n.pat_id AND (art IN (" & artspezG & ") OR art LIKE 'rr%' OR art LIKE 'bz%')),0)" & vbCrLf & _
+' "" & vbCrLf & _
+
+VN = "namenleb"
+Vsql = _
+"SELECT" & vbCrLf & _
+" IF(qad=0,qfa,qad) leb" & vbCrLf & _
+", i.*" & vbCrLf & _
+"FROM (SELECT " & vbCrLf & _
+"  COALESCE(IF(aufndat>20040701,aufndat,0),0) qad" & vbCrLf & _
+", COALESCE((SELECT MAX(fanf) FROM faelle WHERE pat_id=n.pat_id),0) qfa" & vbCrLf & _
+", n.*" & vbCrLf & _
+"FROM namen n) i;" & vbCrLf & _
+""
+Call DtbCreateQueryDef(VN, Vsql)
+
+VN = "namenlb"
+Vsql = _
+"SELECT" & vbCrLf & _
+" IF(ge=0,leb,ge) lbeh" & vbCrLf & _
+" , i.*" & vbCrLf & _
+"FROM (SELECT " & vbCrLf & _
+" GREATEST(" & vbCrLf & _
+"  COALESCE((SELECT MAX(zeitpunkt) FROM eintraege WHERE pat_id=n.pat_id AND (art IN (" & artspezG & ") OR art LIKE 'rr%' OR art LIKE 'bz%')),0)" & vbCrLf & _
+" ,COALESCE((SELECT MAX(zeitpunkt) FROM medplan WHERE pat_id=n.pat_id),0)" & vbCrLf & _
+" ) ge" & vbCrLf & _
+", n.*" & vbCrLf & _
+"FROM namenleb n) i;" & vbCrLf & _
+""
+Call DtbCreateQueryDef(VN, Vsql)
+
 
 ' diagview mit eindeutigen Datensätzen
 VN = "diageview"
@@ -14251,6 +14284,7 @@ Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "Last
  Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
 End Select
 End Function ' Piep()
+
 #If False Then
 ' 19.6.11: wird offenbar nicht verwendet
 Function GetZA(DBNr&)
