@@ -840,6 +840,8 @@ sql(AWlf) = "ü"
 ' 1
  AwN(AWlf) = "Widersprüchlicher Diabetestyp Anamnese/ ICD (quartalsübergreifende Abfrage!) (vorher 0)"
  ' AND COALESCE(d.f6010,0)=0
+ ' SELECT pat_id, gesname(pat_id), diabetestyp, a.* FROM anamnesebogen a WHERE pat_id IN
+ ' <dann in notepad die Spalte markieren mit Alt+Shift+Maus> usw.
  sql(AWlf) = _
 "SELECT Pat_id PID, PName, wer, LEFT(Diabetestyp,10) DTyp, IF(ISNULL(anam),'(null)',Anam) Anam, MaxHbA1c, CONCAT(g0,' ',g2) OGTT, icd " & vbCrLf & _
 "FROM ( " & vbCrLf & _
@@ -4404,7 +4406,7 @@ sql(AWlf) = _
 ", Inhalt" & vbCrLf & _
 "FROM aktfv f" & vbCrLf & _
 "LEFT JOIN eintraege e ON e.pat_id=f.pat_id AND e.art IN ('sono')" & vbCrLf & _
-"AND (e.inhalt RLIKE 'Abd|leber|nier') " & vbCrLf & _
+"AND (e.inhalt RLIKE 'Abd|leber|[^o]nier') " & vbCrLf & _
 "AND e.zeitpunkt BETWEEN qanf() AND qend()" & vbCrLf & _
 "WHERE NOT ISNULL(e.Pat_id)" & vbCrLf & _
 "HAVING `sonozl(33042/A)`=0;"
@@ -5111,8 +5113,11 @@ sql(AWlf) = "ü"
 '#END IF
 
 #Else
-' 147
 ' AwN(AWlf) = "Falsche Zahl Grundpauschalen 0301x"
+#End If
+
+#If mitcovid Then
+' 147
  AwN(AWlf) = "Falsche Zahl Genesenenzertifikatabrechnungen 88371 (lauto) (vorher 36)"
 ' sql(AWlf) = _
 "  SELECT f.pat_id, gesname(f.pat_id), " & vbCrLf & _
@@ -5134,10 +5139,11 @@ sql(AWlf) = _
 mins(AWlf) = 7
 maxs(AWlf) = 20
 AWlf = AWlf + 1
+' 148
+#Else
+' 147
 #End If
-
- ' 148
- ' ktag fehlerhaft
+' ktag fehlerhaft
  AwN(AWlf) = "Fehlende Leistungen für Impfungen (vac) außer Hepatitis (vorher 57)"
 ' sql(AWlf) = "SELECT f.pat_id, gesnameg(f.pat_id) Name, e.Tag, COUNT(art) `Impfungs-Zahl`, SUM(lzahl) `Leistungs-Zahl`, inhalt, MAX(leistung) " & vbCrLf & _
              "FROM aktfvs f " & vbCrLf & _
@@ -5200,7 +5206,7 @@ sql(AWlf) = sql(AWlf) & _
 ' inhalt RLIKE 'havr|twin|shingrix|zostavax|enger|hbvax|vaqta|ambirix|prevenar|priorix|m-m-rva|mmrvax' "
 '             "OR (iart IN (8,108) AND leistung NOT IN ('88331A','88331B','88331V','88331W','88331G','88331H','88332A','88332B','88332V','88332W','88332G','88332H','88333A','88333B','88333V','88333W','88333G','88333H')) " & vbCrLf & _
 
-
+#If mitcovid Then
 ' 149
 ' ktag fehlerhaft
  AwN(AWlf) = "Covid-Impfberatungen (Makro cib) ohne Impfung mit Zahl d.Leistungen 88322 <>1 (lauto) (vorher 133)"
@@ -5238,7 +5244,6 @@ sql(AWlf) = sql(AWlf) & _
  maxs(AWlf) = 80
  AWlf = AWlf + 1
  
-#If True Then
 ' 151
 AwN(AWlf) = "Zu ungenaue Covid-Impf-Abrechnung (lauto) (vorher 137)"
 ' AND COALESCE(f6010,0)=0
@@ -5366,8 +5371,11 @@ sql(AWlf) = sql(AWlf) & _
  mins(AWlf) = 10
  maxs(AWlf) = 60
  AWlf = AWlf + 1
- 
 ' 153
+#Else
+' 148
+#End If
+ 
 AwN(AWlf) = "Möglicherweise unerlaubt abgerechnete Impfberatungen (88322) (vorher 140)"
  sql(AWlf) = "" & _
  "SELECT l.pat_id,gesname(l.pat_id) PName, l.Zeitpunkt,l.Leistung, n.ZeitPunkt, n.Leistung " & vbCrLf & _
@@ -5381,7 +5389,11 @@ AwN(AWlf) = "Möglicherweise unerlaubt abgerechnete Impfberatungen (88322) (vorhe
  maxs(AWlf) = 60
  AWlf = AWlf + 1
 
+#If mitcovid Then
 ' 154
+#Else
+' 149
+#End If
 AwN(AWlf) = "Unbekannte Impfstoffe (vorher 141)"
 sql(AWlf) = "" & _
 "SELECT pat_id, gesname(pat_id) PName, Zeitpunkt, Art, Inhalt FROM eintraege WHERE art='vac' AND impfart(inhalt)=999;"
@@ -5389,6 +5401,7 @@ sql(AWlf) = "" & _
  maxs(AWlf) = 60
  AWlf = AWlf + 1
  
+#If mitcovid Then
 ' 155
 AwN(AWlf) = "Abrechnung Genesenenzertifikate (lauto) (vorher 143)"
 sql(AWlf) = "" & _
@@ -5415,11 +5428,18 @@ sql(AWlf) = "" & _
  AWlf = AWlf + 1
  
 ' 157, neuView
+#Else
+' 150
+#End If
 AwN(AWlf) = "DAK-Modul"
 sql(AWlf) = "ü"
  AWlf = AWlf + 1
-
+ 
+#If mitcovid Then
 ' 158
+#Else
+' 151
+#End If
 AwN(AWlf) = "Keinem Patienten zugeordnete DAK-Faxe /KKH-Faxe(bitte im MySQL-Query-Browser zuordnen über 'SELECT pid,docname,eind FROM faxeinp.outa WHERE eind=...') (vorher 89)"
 sql(AWlf) = "" & vbCrLf & _
 "SELECT eind, pid, docname FROM faxeinp.outa " & _
@@ -5429,7 +5449,11 @@ sql(AWlf) = "" & vbCrLf & _
  maxs(AWlf) = 60
  AWlf = AWlf + 1
 
+#If mitcovid Then
 ' 159
+#Else
+' 152
+#End If
 AwN(AWlf) = "Evtl. nicht angekommene oder fehlerhaft benannte DAK/KKH/HEK-Einverständnis-Faxe (nicht berücksichtigbar: Techniker Kk.) (vorher 90)"
 ' 07433967297004 = neue Nr. DAK
 ' 051180684684 = KKH
@@ -5456,7 +5480,11 @@ sql(AWlf) = "" & vbCrLf & _
  maxs(AWlf) = 60
  AWlf = AWlf + 1
 
+#If mitcovid Then
 ' 160
+#Else
+' 153
+#End If
 AwN(AWlf) = "Evtl. fehlende DAK(/KKH/HEK/TK)-Makros (vorher 91)"
 sql(AWlf) = "" & vbCrLf & _
 "SELECT docname, pid, n.pat_id, gesname(n.pat_id) Name, DATE_FORMAT(transe,'%d.%m.%Y') gefaxt " & vbCrLf & _
@@ -5495,7 +5523,11 @@ sql(AWlf) = "" & vbCrLf & _
 '") i"
 '#END IF
 
+#If mitcovid Then
 ' 161 DAK-Module
+#Else
+' 154 DAK-Module
+#End If
  sql(AWlf) = LiesDatei("\\linux1\daten\eigene Dateien\dakges.qbquery")
  sql(AWlf) = Mid$(sql(AWlf), InStr(1, sql(AWlf), "SELECT", vbTextCompare))
  AwN(AWlf) = "Fehler bei DAK-Modul: Synthese (vorher 123)"
@@ -5503,7 +5535,11 @@ sql(AWlf) = "" & vbCrLf & _
  maxs(AWlf) = 80
  AWlf = AWlf + 1
  
+#If mitcovid Then
  ' 162 DAK Neuropathie zur Kontrolle
+#Else
+ ' 155 DAK Neuropathie zur Kontrolle
+#End If
  sql(AWlf) = LiesDatei("\\linux1\daten\eigene Dateien\daknp.qbquery")
  sql(AWlf) = Mid$(sql(AWlf), InStr(1, sql(AWlf), "SELECT", vbTextCompare))
  AwN(AWlf) = "DAK-Modul-Kontrolle Neuropathie (vorher 124)"
@@ -5511,7 +5547,11 @@ sql(AWlf) = "" & vbCrLf & _
  maxs(AWlf) = 80
  AWlf = AWlf + 1
  
+#If mitcovid Then
  ' 163 DAK LUTS zur Kontrolle
+#Else
+ ' 156 DAK LUTS zur Kontrolle
+#End If
  sql(AWlf) = LiesDatei("\\linux1\daten\eigene Dateien\daklu.qbquery")
  sql(AWlf) = Mid$(sql(AWlf), InStr(1, sql(AWlf), "SELECT", vbTextCompare))
  AwN(AWlf) = "DAK-Modul-Kontrolle LUTS  (vorher 125)"
@@ -5519,7 +5559,11 @@ sql(AWlf) = "" & vbCrLf & _
  maxs(AWlf) = 80
  AWlf = AWlf + 1
  
+#If mitcovid Then
  ' 164 DAK Angiopathie zur Kontrolle
+#Else
+ ' 157 DAK Angiopathie zur Kontrolle
+#End If
  sql(AWlf) = LiesDatei("\\linux1\daten\eigene Dateien\dakap.qbquery")
  sql(AWlf) = Mid$(sql(AWlf), InStr(sql(AWlf), "select"))
  AwN(AWlf) = "DAK-Modul-Kontrolle Angiopathie (vorher 126)"
@@ -5527,7 +5571,11 @@ sql(AWlf) = "" & vbCrLf & _
  maxs(AWlf) = 80
  AWlf = AWlf + 1
  
+#If mitcovid Then
  ' 165 DAK Hepatopathie zur Kontrolle
+#Else
+ ' 158 DAK Hepatopathie zur Kontrolle
+#End If
  sql(AWlf) = LiesDatei("\\linux1\daten\eigene Dateien\dakfl.qbquery")
  sql(AWlf) = Mid$(sql(AWlf), InStr(sql(AWlf), "select"))
  AwN(AWlf) = "DAK-Modul-Kontrolle Hepatopathie (vorher 127)"
@@ -5535,7 +5583,11 @@ sql(AWlf) = "" & vbCrLf & _
  maxs(AWlf) = 80
  AWlf = AWlf + 1
  
+#If mitcovid Then
  ' 166 DAK Nephropathie zur Kontrolle
+#Else
+ ' 159 DAK Nephropathie zur Kontrolle
+#End If
  sql(AWlf) = LiesDatei("\\linux1\daten\eigene Dateien\dakne.qbquery")
  sql(AWlf) = Mid$(sql(AWlf), InStr(sql(AWlf), "select"))
  AwN(AWlf) = "DAK-Modul-Kontrolle Nephropathie (vorher 128)"
@@ -5546,7 +5598,11 @@ sql(AWlf) = "" & vbCrLf & _
 Dim ob_tkeinschr$, ob_tkversandt$
 ob_tkeinschr = "'tk.*(Modul|Programm)'"
 ob_tkversandt = "'tk.*(geschickt|gefaxt)'"
+#If mitcovid Then
 ' 167
+#Else
+' 160
+#End If
  AwN(AWlf) = "TK-Modul-Einschreibungen (" & ob_tkeinschr & ") ohne Versandeintrag (" & ob_tkversandt & ") (vorher 152)"
 sql(AWlf) = "" & _
 "SELECT f.pat_id, gesname(f.pat_id) PName, n.gebdat, LEFT(b.Name,80) BName, IF(b.quelldatum=18991230,'',DATE_FORMAT(b.quelldatum,'%d.%m.%y')) Quelldatum, DATE_FORMAT(b.Zeitpunkt,'%d.%m.%y') Zeitpunkt " & vbCrLf & _
@@ -5559,14 +5615,22 @@ sql(AWlf) = "" & _
  maxs(AWlf) = 60
  AWlf = AWlf + 1
 
+#If mitcovid Then
 ' 168
+#Else
+' 161
+#End If
  AwN(AWlf) = "ergänzende Listen"
 sql(AWlf) = "ü"
  mins(AWlf) = 10
  maxs(AWlf) = 60
  AWlf = AWlf + 1
   
+#If mitcovid Then
 ' 169
+#Else
+' 162
+#End If
  AwN(AWlf) = "Leistung 01435 zu Fall mit Grundpauschale oder taggleicher sonstiger Leistung"
 sql(AWlf) = "" & _
 "SELECT f.pat_id, gesname(f.pat_id), l.zeitpunkt " & vbCrLf & _
@@ -5678,7 +5742,7 @@ sql(AWlf) = "ü"
  mins(AWlf) = 7
  maxs(AWlf) = 120
  AWlf = AWlf + 1
-#End If
+
 
 
 
