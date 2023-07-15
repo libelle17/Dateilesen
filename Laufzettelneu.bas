@@ -1029,7 +1029,11 @@ On Error GoTo fehler
     iob(i) = True
    End If
  Next i
+#If mitcovid Then
  Const pzl% = 51     ' Zahl der Parameter
+#Else
+ Const pzl% = 50 ' Zahl der Parameter
+#End If
  Dim aktlw&(pzl), angef&(pzl) ' Ordinalzahl des in der aktuell bearbeiteten Zeile einzutragenden Wertes der aktuellen Spalte
  Const SchulPID& = 1789
  Const SpZahl% = 11
@@ -1106,7 +1110,7 @@ On Error GoTo fehler
   End If
  End If
  Dim rnamBOF%
- Dim dmpBeg#, dmpKlass%, dmpKhkKlass%, dmpCopdKlass%, dmpAbKlass%, dmpKhkBeg#, dmpCopdBeg#, dmpAbBeg#
+ Dim dmpbeg#, dmpklass%, dmpkhkklass%, dmpcopdklass%, dmpabklass%, dmpkhkbeg#, dmpcopdbeg#, dmpabbeg#
  myFrag rnam, "SELECT * FROM `namen` n WHERE pat_id = " & Pat_id, adOpenStatic, DBCn, adLockReadOnly
  rnamBOF = rnam.BOF
  If rnamBOF Then
@@ -1114,14 +1118,14 @@ On Error GoTo fehler
   Lese.Ausgeb "Keinen Patienten zu " & Pat_id & " gefunden!", True
   Exit Function
  End If ' rnamBOF
- dmpKlass = rnam!dmpKlass
- dmpKhkKlass = rnam!dmpKhkKlass
- dmpCopdKlass = rnam!dmpCopdKlass
- dmpAbKlass = rnam!dmpAbKlass
- dmpBeg = rnam!dmpBeg
- dmpKhkBeg = rnam!dmpKhkBeg
- dmpCopdBeg = rnam!dmpCopdBeg
- dmpAbBeg = rnam!dmpAbBeg
+ dmpklass = rnam!dmpklass
+ dmpkhkklass = rnam!dmpkhkklass
+ dmpcopdklass = rnam!dmpcopdklass
+ dmpabklass = rnam!dmpabklass
+ dmpbeg = rnam!dmpbeg
+ dmpkhkbeg = rnam!dmpkhkbeg
+ dmpcopdbeg = rnam!dmpcopdbeg
+ dmpabbeg = rnam!dmpabbeg
  NName = rnam!Nachname
  VName = rnam!Vorname
  obweibl = (rnam!geschlecht = "w")
@@ -1806,6 +1810,7 @@ keinuzu:
   End Select
   i = i + 1
     
+#If mitcovid Then
   Üs(i) = "ImpfCovid"
   Titel(i) = "Impfaufklärung Covid"
   sql(i) = "SELECT zeitpunkt zp, inhalt wert FROM `eintraege` WHERE pat_id = " & Pat_id & " AND (" & vbCrLf & _
@@ -1815,6 +1820,7 @@ keinuzu:
    "ORDER BY zp DESC"
    Fqmin(i) = 1
   i = i + 1
+#End If
     
   Üs(i) = "Colo"
   Titel(i) = "Aufklärung über Darmkrebsfrüherkennung"
@@ -2186,39 +2192,39 @@ keinuzu:
   dmpfarbe = "class='unauff' style='color:blue'"
   If obDMPPrüf Then
    DmPStr = ",  DMP-Diab: "
-   Select Case dmpKlass
+   Select Case dmpklass
     Case 0: DmPStr.Append "unbek (": dmpfarbe = "class='cave'"
     Case 1: DmPStr.Append "nein (": dmpfarbe = "class='cave'"
     Case 2: DmPStr.Append "HA ("
     Case 3: DmPStr.Append "hier ("
     Case 4: DmPStr.Append "ausgeschrieben ("
    End Select
-   DmPStr.AppVar Array(IIf(dmpBeg = 0, "", Format(dmpBeg, "d.m.yy")), ")")
-   If dmpKhkKlass <> 0 Then
+   DmPStr.AppVar Array(IIf(dmpbeg = 0, "", Format(dmpbeg, "d.m.yy")), ")")
+   If dmpkhkklass <> 0 Then
     DmPStr.Append ", DMP-KHK: "
-    Select Case dmpKhkKlass
+    Select Case dmpkhkklass
      Case 0: DmPStr.Append "unbek ("
      Case 1: DmPStr.Append "nein ("
      Case 2: DmPStr.Append "HA ("
      Case 3: DmPStr.Append "hier ("
      Case 4: DmPStr.Append "ausgeschrieben ("
     End Select
-    DmPStr.AppVar Array(Format(dmpKhkBeg, "d.m.yy"), ")")
+    DmPStr.AppVar Array(Format(dmpkhkbeg, "d.m.yy"), ")")
    End If
-   If dmpCopdKlass <> 0 Then
+   If dmpcopdklass <> 0 Then
     DmPStr.Append ", DMP-COPD: "
-    Select Case dmpCopdKlass
+    Select Case dmpcopdklass
      Case 0: DmPStr.Append "unbek ("
      Case 1: DmPStr.Append "nein ("
      Case 2: DmPStr.Append "HA ("
      Case 3: DmPStr.Append "hier ("
      Case 4: DmPStr.Append "ausgeschrieben ("
     End Select
-    DmPStr.AppVar Array(Format(dmpCopdBeg, "d.m.yy"), ")")
+    DmPStr.AppVar Array(Format(dmpcopdbeg, "d.m.yy"), ")")
    End If
-   If dmpAbKlass <> 0 Then
+   If dmpabklass <> 0 Then
     DmPStr.Append ", DMP-AB: "
-    Select Case dmpAbKlass
+    Select Case dmpabklass
      Case 0: DmPStr.Append "unbek ("
      Case 1: DmPStr.Append "nein ("
      Case 2: DmPStr.Append "HA ("

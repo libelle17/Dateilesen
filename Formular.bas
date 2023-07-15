@@ -2199,7 +2199,11 @@ If Pat_id <> 0 Then
  End If
  
  Dim ulcer$
- ulcer = IIf(IsNull(frm.adoRS!Ulcera), vNS, LCase$(frm.adoRS!Ulcera))
+ If IsNull(frm.adoRS!Ulcera) Then
+  ulcer = vNS
+ Else
+  ulcer = frm.adoRS!Ulcera
+ End If
  ulcer = Trim$(ulcer)
 #If debu <> 0 Then
        Tvor = Takt: Takt = Timer
@@ -2498,7 +2502,9 @@ syscmd 4, "Formularvorbereitung 15 " & frm.adoRS!Nachname & ", " & frm.adoRS!Vor
  frm.Inhalt = vNS
 'Debug.Print "Form_Current 5:" + format$(Now, "hh:mm:ss")
 #If mitab Then
+On Error Resume Next
 Call ddsono(frm)
+On Error GoTo fehler
 Dim rs As New ADODB.Recordset
 myFrag rs, "SELECT quartal, auftrag, verdacht, befund FROM `faelle` WHERE pat_id = " & Pat_id & " AND ((NOT ISNULL(auftrag) AND auftrag <> '') OR (NOT ISNULL(verdacht) AND verdacht <> '') OR (NOT ISNULL(befund) AND befund <> '')) ORDER BY bhfb DESC"
 If Not rs.BOF Then
@@ -3719,10 +3725,12 @@ Function PStatus%(Pat_id&, Optional frm As Object)
    myFrag frm, "SELECT * FROM `anakt` WHERE pat_id = " & Pat_id
    If frm.BOF Then Exit Function
   End If
+  On Error Resume Next
   pul = IIf(IsNull(frm.adoRS![Puls Leiste]), vNS, LCase$(frm.adoRS![Puls Leiste]))
   puk = IIf(IsNull(frm.adoRS![Puls Kniekehle]), vNS, LCase$(frm.adoRS![Puls Kniekehle]))
   putp = IIf(IsNull(frm.adoRS![Puls Atp]), vNS, LCase$(frm.adoRS![Puls Atp]))
   pudp = IIf(IsNull(frm.adoRS![Puls Adp]), vNS, LCase$(frm.adoRS![Puls Adp]))
+  On Error GoTo fehler
   If ((InStrB(pul, "-") <> 0 Or InStrB(pul, "mono") <> 0) And Not (putp = "+ | +" Or pudp = "+ | +" Or putp = "++ | ++" Or pudp = "++ | ++")) Or InStrB(pul, "pst") <> 0 Or InStrB(pul, "post") <> 0 Then
    Call doGilbE(frm, "I70.20", "vTextB", 121) ' Puls Leiste
    pulp = -1
@@ -3766,8 +3774,10 @@ End Function ' PStatus
    myFrag frm, "SELECT * FROM `anakt` WHERE pat_id = " & Pat_id
    If frm.BOF Then Exit Function
   End If
+  On Error Resume Next
   liph = IIf(IsNull(frm.adoRS![Liphypertrophien Abdomen]), vNS, LCase$(frm.adoRS![Liphypertrophien Abdomen]))
   obLH = Not obNein(liph) And Not obUnbek(liph) And liph <> "entfällt" And liph <> "kein insulin"
+  On Error GoTo fehler
   If Not obLH Then
    liph = IIf(IsNull(frm.adoRS![Liphypertrophien Beine]), vNS, LCase$(frm.adoRS![Liphypertrophien Beine]))
    obLH = Not obNein(liph)
@@ -3871,19 +3881,31 @@ End Function ' obLH
 
  Dim kraft$, obkraft
  obkraft = 0
- kraft = IIf(IsNull(frm.adoRS![Kraft Zehenheber]), vNS, LCase$(frm.adoRS![Kraft Zehenheber]))
+ If Not IsNull(frm.adoRS![Kraft Zehenheber]) Then
+  kraft = frm.adoRS![Kraft Zehenheber]
+ Else
+  kraft = ""
+ End If
  If kraft = "vermindert" Or InStrB(kraft, "schwach") <> 0 Or InStrB(kraft, "gering ") <> 0 Then
    obVNeurop = True
    obkraft = -1
    Call doGilbE(frm, "G63.2", "vTextB", 111) 'Kraft Zehenheber")
  End If
- kraft = IIf(IsNull(frm.adoRS![Kraft Zehenbeuger]), vNS, LCase$(frm.adoRS![Kraft Zehenbeuger]))
+ If Not IsNull(frm.adoRS![Kraft Zehenbeuger]) Then
+  kraft = frm.adoRS![Kraft Zehenbeuger]
+ Else
+  kraft = ""
+ End If
  If kraft = "vermindert" Or InStrB(kraft, "schwach") <> 0 Or InStrB(kraft, "gering ") <> 0 Then
    obVNeurop = True
    obkraft = -1
    Call doGilbE(frm, "G63.2", "vTextB", 112) 'Kraft Zehenbeuger")
  End If
- kraft = IIf(IsNull(frm.adoRS![Kraft Knie]), vNS, LCase$(frm.adoRS![Kraft Knie]))
+ If Not IsNull(frm.adoRS![Kraft Knie]) Then
+  kraft = frm.adoRS![Kraft Knie]
+ Else
+  kraft = ""
+ End If
  If kraft = "vermindert" Or InStrB(kraft, "schwach") <> 0 Or InStrB(kraft, "gering ") <> 0 Then
    obVNeurop = True
    obkraft = -1
@@ -3893,13 +3915,21 @@ End Function ' obLH
  
  Dim mer$, obmer As Boolean
  obmer = 0
- mer = IIf(IsNull(frm.adoRS!ASR), vNS, LCase$(frm.adoRS!ASR))
+ If Not IsNull(frm.adoRS!ASR) Then
+  mer = frm.adoRS!ASR
+ Else
+  mer = ""
+ End If
  If (InStrB(mer, "-") <> 0 And InStrB(mer, "?") <> 0) Or mer = "-" Or mer = "-/-" Then
   obVNeurop = True
   obmer = True
   Call doGilbE(frm, "G63.2", "vTextB", 114) 'ASR")
  End If
- mer = IIf(IsNull(frm.adoRS!PSR), vNS, LCase$(frm.adoRS!PSR))
+ If Not IsNull(frm.adoRS!PSR) Then
+  mer = frm.adoRS!PSR
+ Else
+  mer = ""
+ End If
  If (InStrB(mer, "-") <> 0 And InStrB(mer, "?") <> 0) Or mer = "-" Or mer = "-/-" Then
   obVNeurop = True
   obmer = True
@@ -3908,7 +3938,11 @@ End Function ' obLH
  If obmer Then NPGrund = NPGrund + IIf(LenB(NPGrund) = 0, vNS, ",") + "MER"
   
  Dim ofl$, obofl As Boolean
- ofl = IIf(IsNull(frm.adoRS!Oberflächensensibilität), vNS, LCase$(frm.adoRS!Oberflächensensibilität))
+ If Not IsNull(frm.adoRS!Oberflächensensibilität) Then
+  ofl = frm.adoRS!Oberflächensensibilität
+ Else
+  ofl = ""
+ End If
  If InStrB(ofl, "gestört") <> 0 Or InStrB(ofl, "paret") <> 0 Or InStrB(ofl, "vermind") <> 0 Or InStrB(ofl, "path") <> 0 Or InStrB(ofl, "pelz") <> 0 Or InStrB(ofl, "strumpf") <> 0 Or InStrB(ofl, "schwäch") <> 0 Or InStrB(ofl, "eingeschr") <> 0 Then
   obNeurop = True
   NPGrund = NPGrund + IIf(LenB(NPGrund) = 0, vNS, ",") + "Ofl"
@@ -3916,7 +3950,11 @@ End Function ' obLH
  End If
  
  Dim Monf$
- Monf = IIf(IsNull(frm.adoRS!Monofilamenttest), vNS, LCase$(frm.adoRS!Monofilamenttest))
+ If Not IsNull(frm.adoRS!Monofilamenttest) Then
+  Monf = frm.adoRS!Monofilamenttest
+ Else
+  Monf = ""
+ End If
  If Left$(Monf, 1) = "0" Or InStrB(Monf, " 0") <> 0 Or InStrB(Monf, "1") <> 0 Or InStrB(Monf, "2") <> 0 Or (InStrB(Monf, "3") <> 0 And InStrB(Monf, "/3") = 0) Or InStrB(Monf, "4") <> 0 Or InStrB(Monf, "6/8") <> 0 Or InStrB(Monf, "5/8") <> 0 Or InStrB(Monf, "gestört") <> 0 Or InStrB(Monf, "5/10") <> 0 Or InStrB(Monf, "6/10") <> 0 Or InStrB(Monf, "7/10") <> 0 Or InStrB(Monf, "8/10") <> 0 Or InStrB(Monf, "neg") <> 0 Or InStrB(Monf, "path") <> 0 Or InStrB(Monf, " -") <> 0 Or InStrB(Monf, "zufäl") <> 0 Or InStrB(Monf, "erat") <> 0 Then
   obNeurop = True
   NPGrund = NPGrund + IIf(LenB(NPGrund) = 0, vNS, ",") + "MF"
@@ -3924,7 +3962,11 @@ End Function ' obLH
  End If
  
  Dim KW$
- KW = IIf(IsNull(frm.adoRS![Kalt-Warm]), vNS, LCase$(frm.adoRS![Kalt-Warm]))
+ If Not IsNull(frm.adoRS![Kalt-Warm]) Then
+  KW = frm.adoRS![Kalt-Warm]
+ Else
+  KW = ""
+ End If
  If Left$(KW, 1) = "0" Or InStrB(KW, " 0") <> 0 Or InStrB(KW, "1") <> 0 Or InStrB(KW, "2") <> 0 Then
 ' OR instrb(Monf, "6/8") <> 0 OR instrb(Monf, "5/8") <> 0 OR instrb(Monf, "6/8") <> 0 OR instrb(Monf, "5/10") <> 0 OR instrb(Monf, "6/10") <> 0 OR instrb(Monf, "7/10") <> 0 OR instrb(KW, "gestört") <> 0 OR instrb(KW, "neg") <> 0 OR instrb(KW, "path") <> 0 OR instrb(KW, " -") <> 0 OR instrb(KW, "zufäl") <> 0 OR instrb(KW, "erat") <> 0 THEN ' OR instrb(KW, "4") <> 0 OR instrb(Monf, "8/10") <> 0
   obVNeurop = True
