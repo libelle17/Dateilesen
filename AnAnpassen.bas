@@ -950,6 +950,58 @@ Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "Last
 End Select
 End Function ' usulcus
 
+' 16.7.23: noch nicht aktiviert
+Function USUlcusa()
+ Dim trz, j&
+ On Error GoTo fehler
+ trz = Array("Lokalisation:", _
+             "Seite:", "Größe:", _
+             "Beläge:", "Exsudat:", _
+             "Geruch aus 3 cm Entfernung:", "Wundrand:", "Wundgrund:", "Wundumgebung:", "Temperatur:", "Phase:", "Fotodoku", _
+             "Wundversorgung:", _
+             "Mitarbeiter:", "")
+             Debug.Print UBound(trz)
+ For j = 1 To UBound(rEi)
+  If rEi(j).art = "ulcus" Then
+   If rUl(UBound(rUl)).absPos <> 0 Or UBound(rUl) = 0 Then ReDim Preserve rUl(UBound(rUl) + 1)
+   Dim Wert$()
+   Call Kusd(trz, Wert, j)
+   Call rUlRest(j)
+   If (Wert(0) <> "u" Or rUl(UBound(rUl)).Lokalisation = "") And InStr(Wert(0), "~") = 0 Then rUl(UBound(rUl)).Lokalisation = Wert(0)
+   If (Wert(1) <> "u" Or rUl(UBound(rUl)).Seite = "") And InStr(Wert(1), "~") = 0 Then rUl(UBound(rUl)).Seite = Wert(1)
+   If (Wert(2) <> "u" Or rUl(UBound(rUl)).Größe = "") And InStr(Wert(2), "~") = 0 Then rUl(UBound(rUl)).Größe = Wert(2)
+   If (Wert(3) <> "u" Or rUl(UBound(rUl)).Beläge = "") And InStr(Wert(3), "~") = 0 Then rUl(UBound(rUl)).Beläge = Wert(3)
+   If (Wert(4) <> "u" Or rUl(UBound(rUl)).Exsudat = "") And InStr(Wert(4), "~") = 0 Then rUl(UBound(rUl)).Exsudat = Wert(4)
+   If (Wert(5) <> "u" Or rUl(UBound(rUl)).Geruch = "") And InStr(Wert(5), "~") = 0 Then rUl(UBound(rUl)).Geruch = Wert(5)
+   If (Wert(6) <> "u" Or rUl(UBound(rUl)).Wundrand = "") And InStr(Wert(6), "~") = 0 Then rUl(UBound(rUl)).Wundrand = Wert(6)
+'   If (Wert(7) <> "u" Or rUl(UBound(rUl)).Wundgrund = "") And InStr(Wert(7), "~") = 0 Then rUl(UBound(rUl)).Wundgrund = Wert(7)
+   If (Wert(8) <> "u" Or rUl(UBound(rUl)).Wundumgebung = "") And InStr(Wert(8), "~") = 0 Then rUl(UBound(rUl)).Wundumgebung = Wert(8)
+   If (Wert(9) <> "u" Or rUl(UBound(rUl)).Temperatur = "") And InStr(Wert(9), "~") = 0 Then rUl(UBound(rUl)).Temperatur = Wert(9)
+'   If (Wert(10) <> "u" Or rUl(UBound(rUl)).Phase = "") And InStr(Wert(10), "~") = 0 Then rUl(UBound(rUl)).Phase = Wert(10)
+   If (Wert(11) <> "u" Or rUl(UBound(rUl)).Fotodoku = "") And InStr(Wert(11), "~") = 0 Then rUl(UBound(rUl)).Fotodoku = Wert(11)
+   If (Wert(12) <> "u" Or rUl(UBound(rUl)).Wundversorgung = "") And InStr(Wert(12), "~") = 0 Then rUl(UBound(rUl)).Wundversorgung = Wert(12)
+   If (Wert(13) <> "u" Or rUl(UBound(rUl)).Mitarbeiter = "") And InStr(Wert(13), "~") = 0 Then rUl(UBound(rUl)).Mitarbeiter = Wert(13)
+   Dim k&
+   For k = UBound(trz) - 1 To 1 Step -1
+    If Wert(k) = Wert(k - 1) Then Wert(k) = ""
+   Next k
+  End If
+ Next j
+ 
+ Exit Function
+fehler:
+  Dim AnwPfad$
+#If VBA6 Then
+ AnwPfad = CurrentDb.name
+#Else
+ AnwPfad = App.path
+#End If
+Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in usulcusa/" + AnwPfad)
+ Case vbAbort: Call MsgBox("Höre auf"): ProgEnde
+ Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
+ Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
+End Select
+End Function ' usulcusa
 
 Function AnAlle() ' -> im Menü als "Anamnesedatenblatt -> Anamnesen ergänzen"
  Dim i%, j&

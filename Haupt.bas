@@ -5739,7 +5739,7 @@ End Function ' testrisk
 #End If
 
 Public Sub LiesKassen()
-Call liesexcel("p:\patientenübergreifendes\Listenausgabe_Krankenkassen.xls", 5, "kassen")
+Call liesExcel("p:\patientenübergreifendes\Listenausgabe_Krankenkassen.xls", 5, "kassen")
 myEFrag "DROP TABLE IF EXISTS kassenliste"
 sql = "CREATE TABLE `kassenliste` (" & vbCrLf & _
   "`ID` int(10) NOT NULL AUTO_INCREMENT," & vbCrLf & _
@@ -5918,7 +5918,7 @@ Sub doKassKat(Kateg$, namen$(), Optional isn%)
 End Sub ' doKassKat
 
 
-Public Sub liesexcel(Datei$, ÜZeile%, Tbl$)
+Public Sub liesExcel(Datei$, ÜZeile%, Tbl$)
  Const XStra = "Provider=Microsoft.Jet.OLEDB.4.0;Data Source="
  Const XStrb = ";Extended Properties=""Excel 8.0;HDR=no;IMEX=1"""
  Dim rX As New ADOX.Catalog, sql$, rAF&
@@ -6035,12 +6035,12 @@ fehler:
 #Else
  AnwPfad = App.path
 #End If
- Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "aufgefangener Fehler in ExcelLesen/" + AnwPfad)
+ Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "aufgefangener Fehler in lieseExcel/" + AnwPfad)
   Case vbAbort: Call MsgBox("Höre auf"): ProgEnde
   Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
   Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
  End Select
-End Sub ' ExcelLesen
+End Sub ' liesExcel
 
 ' in Kontrolllisten_für_DMP_HA_Click und tubriefStandalone
 Public Function umlweg$(ByRef q$)

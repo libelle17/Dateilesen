@@ -980,7 +980,7 @@ sql(AWlf) = "SELECT pid, gesnameg(pid) PName, wer, zahl, icd, e.Art " & vbCrLf &
             "(SELECT MAX(zeitpunkt) FROM `eintraege` WHERE pat_id = f.pat_id AND (art IN ('gs','tk') OR inhalt LIKE '%(gs)%' OR inhalt LIKE '%(tk)%')) lEintr " & vbCrLf & _
             "FROM `aktfvs` f " & vbCrLf & _
             "LEFT JOIN anaktk az ON az.pid=f.pat_id" & vbCrLf & _
-            "LEFT JOIN `diageview` d ON d.pat_id = f.pat_id AND (d.gicd REGEXP '^E1[0-4]\.|^R73' OR (d.icd='O24.4' AND d.f6010=0 AND d.diagsicherheit IN ('G',' ') AND d.diagdatum BETWEEN qbegs(f.quartal) AND qends(f.quartal)))" & vbCrLf & _
+            "LEFT JOIN `diageview` d ON d.pat_id = f.pat_id AND ((d.gicd REGEXP '^E1[0-4]\.|^R73' AND d.obdauer<>0 AND d.diagsicherheit='G') OR (d.icd='O24.4' AND d.f6010=0 AND d.diagsicherheit IN ('G',' ') AND d.diagdatum BETWEEN qbegs(f.quartal) AND qends(f.quartal)))" & vbCrLf & _
             "GROUP BY f.pat_id HAVING zahl<>1) i " & vbCrLf & _
             "LEFT JOIN `eintraege` e ON i.pid = e.pat_id AND e.zeitpunkt = i.leintr AND (art IN ('tk','gs') OR inhalt LIKE '%(tk)%' OR inhalt LIKE '%(gs)%') " & vbCrLf & _
             "WHERE NOT (icd RLIKE 'E1[01].7[^5]' AND icd RLIKE 'E1[01].75') AND NOT (icd RLIKE 'E1[01].7[^4]' AND icd RLIKE 'E1[01].74') AND NOT (icd RLIKE 'E1[01].2' AND icd RLIKE 'E1[01].[^2]') " & vbCrLf & _
@@ -1786,6 +1786,7 @@ sql(AWlf) = _
  ' 41
  AwN(AWlf) = "Unverwertbare DMP-Einteilung im Notiz-Feld (vorher 10)"
  sql(AWlf) = "SELECT n.pat_id, gesname(n.pat_id) Name, n.dmpklass, n.dmpbeg,n.dmpkhkklass, n.DMPKHKBeg, n.DMPCopdKlass, n.DmpCOPDBeg, n.DMPABKlass, n.DMPABBeg, REPLACE(n.notiz,CONCAT(char(13),char(10)),'') Notiz " & vbCrLf & _
+             ",(SELECT GROUP_CONCAT(CONCAT(MID(abk,INSTR(abk,'DMP')+3),'_',art,'(',IF(ok,'1','0'),'/',IF(ausgedruckt,'1','0'),'/',IF(exportiert=18991230,'-',DATE_FORMAT(exportiert,'%d.%m.%y')),')') ORDER BY exportiert DESC) FROM dmpreihe d WHERE karteidatum > NOW()-INTERVAL 2 YEAR AND pat_id=n.pat_id) DMPzuletzt" & vbCrLf & _
              "FROM aktfvs f " & vbCrLf & _
              "LEFT JOIN namen n USING (pat_id) " & vbCrLf & _
              "WHERE notiz LIKE '%dmp%' AND NOT notiz = CONCAT('DMP NEIN',char(13),char(10)) AND NOT notiz = CONCAT('DMP AUSGESCHRIEBEN',char(13),char(10)) " & vbCrLf & _
@@ -1795,7 +1796,7 @@ sql(AWlf) = _
              "GROUP BY n.pat_id " & vbCrLf & _
              "ORDER BY pat_id DESC"
  mins(AWlf) = 7
- maxs(AWlf) = 30
+ maxs(AWlf) = 120
  AWlf = AWlf + 1
   
 ' 42
@@ -5372,10 +5373,6 @@ sql(AWlf) = sql(AWlf) & _
  maxs(AWlf) = 60
  AWlf = AWlf + 1
 ' 153
-#Else
-' 148
-#End If
- 
 AwN(AWlf) = "Möglicherweise unerlaubt abgerechnete Impfberatungen (88322) (vorher 140)"
  sql(AWlf) = "" & _
  "SELECT l.pat_id,gesname(l.pat_id) PName, l.Zeitpunkt,l.Leistung, n.ZeitPunkt, n.Leistung " & vbCrLf & _
@@ -5389,10 +5386,9 @@ AwN(AWlf) = "Möglicherweise unerlaubt abgerechnete Impfberatungen (88322) (vorhe
  maxs(AWlf) = 60
  AWlf = AWlf + 1
 
-#If mitcovid Then
 ' 154
 #Else
-' 149
+' 148
 #End If
 AwN(AWlf) = "Unbekannte Impfstoffe (vorher 141)"
 sql(AWlf) = "" & _
@@ -5429,7 +5425,7 @@ sql(AWlf) = "" & _
  
 ' 157, neuView
 #Else
-' 150
+' 149
 #End If
 AwN(AWlf) = "DAK-Modul"
 sql(AWlf) = "ü"
@@ -5438,7 +5434,7 @@ sql(AWlf) = "ü"
 #If mitcovid Then
 ' 158
 #Else
-' 151
+' 150
 #End If
 AwN(AWlf) = "Keinem Patienten zugeordnete DAK-Faxe /KKH-Faxe(bitte im MySQL-Query-Browser zuordnen über 'SELECT pid,docname,eind FROM faxeinp.outa WHERE eind=...') (vorher 89)"
 sql(AWlf) = "" & vbCrLf & _
@@ -5452,7 +5448,7 @@ sql(AWlf) = "" & vbCrLf & _
 #If mitcovid Then
 ' 159
 #Else
-' 152
+' 151
 #End If
 AwN(AWlf) = "Evtl. nicht angekommene oder fehlerhaft benannte DAK/KKH/HEK-Einverständnis-Faxe (nicht berücksichtigbar: Techniker Kk.) (vorher 90)"
 ' 07433967297004 = neue Nr. DAK
@@ -5483,7 +5479,7 @@ sql(AWlf) = "" & vbCrLf & _
 #If mitcovid Then
 ' 160
 #Else
-' 153
+' 152
 #End If
 AwN(AWlf) = "Evtl. fehlende DAK(/KKH/HEK/TK)-Makros (vorher 91)"
 sql(AWlf) = "" & vbCrLf & _
@@ -5526,7 +5522,7 @@ sql(AWlf) = "" & vbCrLf & _
 #If mitcovid Then
 ' 161 DAK-Module
 #Else
-' 154 DAK-Module
+' 153 DAK-Module
 #End If
  sql(AWlf) = LiesDatei("\\linux1\daten\eigene Dateien\dakges.qbquery")
  sql(AWlf) = Mid$(sql(AWlf), InStr(1, sql(AWlf), "SELECT", vbTextCompare))
@@ -5538,7 +5534,7 @@ sql(AWlf) = "" & vbCrLf & _
 #If mitcovid Then
  ' 162 DAK Neuropathie zur Kontrolle
 #Else
- ' 155 DAK Neuropathie zur Kontrolle
+ ' 154 DAK Neuropathie zur Kontrolle
 #End If
  sql(AWlf) = LiesDatei("\\linux1\daten\eigene Dateien\daknp.qbquery")
  sql(AWlf) = Mid$(sql(AWlf), InStr(1, sql(AWlf), "SELECT", vbTextCompare))
@@ -5550,7 +5546,7 @@ sql(AWlf) = "" & vbCrLf & _
 #If mitcovid Then
  ' 163 DAK LUTS zur Kontrolle
 #Else
- ' 156 DAK LUTS zur Kontrolle
+ ' 155 DAK LUTS zur Kontrolle
 #End If
  sql(AWlf) = LiesDatei("\\linux1\daten\eigene Dateien\daklu.qbquery")
  sql(AWlf) = Mid$(sql(AWlf), InStr(1, sql(AWlf), "SELECT", vbTextCompare))
@@ -5562,7 +5558,7 @@ sql(AWlf) = "" & vbCrLf & _
 #If mitcovid Then
  ' 164 DAK Angiopathie zur Kontrolle
 #Else
- ' 157 DAK Angiopathie zur Kontrolle
+ ' 156 DAK Angiopathie zur Kontrolle
 #End If
  sql(AWlf) = LiesDatei("\\linux1\daten\eigene Dateien\dakap.qbquery")
  sql(AWlf) = Mid$(sql(AWlf), InStr(sql(AWlf), "select"))
@@ -5574,7 +5570,7 @@ sql(AWlf) = "" & vbCrLf & _
 #If mitcovid Then
  ' 165 DAK Hepatopathie zur Kontrolle
 #Else
- ' 158 DAK Hepatopathie zur Kontrolle
+ ' 157 DAK Hepatopathie zur Kontrolle
 #End If
  sql(AWlf) = LiesDatei("\\linux1\daten\eigene Dateien\dakfl.qbquery")
  sql(AWlf) = Mid$(sql(AWlf), InStr(sql(AWlf), "select"))
@@ -5586,7 +5582,7 @@ sql(AWlf) = "" & vbCrLf & _
 #If mitcovid Then
  ' 166 DAK Nephropathie zur Kontrolle
 #Else
- ' 159 DAK Nephropathie zur Kontrolle
+ ' 158 DAK Nephropathie zur Kontrolle
 #End If
  sql(AWlf) = LiesDatei("\\linux1\daten\eigene Dateien\dakne.qbquery")
  sql(AWlf) = Mid$(sql(AWlf), InStr(sql(AWlf), "select"))
@@ -5601,7 +5597,7 @@ ob_tkversandt = "'tk.*(geschickt|gefaxt)'"
 #If mitcovid Then
 ' 167
 #Else
-' 160
+' 159
 #End If
  AwN(AWlf) = "TK-Modul-Einschreibungen (" & ob_tkeinschr & ") ohne Versandeintrag (" & ob_tkversandt & ") (vorher 152)"
 sql(AWlf) = "" & _
@@ -5618,7 +5614,7 @@ sql(AWlf) = "" & _
 #If mitcovid Then
 ' 168
 #Else
-' 161
+' 160
 #End If
  AwN(AWlf) = "ergänzende Listen"
 sql(AWlf) = "ü"
@@ -5629,7 +5625,7 @@ sql(AWlf) = "ü"
 #If mitcovid Then
 ' 169
 #Else
-' 162
+' 161
 #End If
  AwN(AWlf) = "Leistung 01435 zu Fall mit Grundpauschale oder taggleicher sonstiger Leistung"
 sql(AWlf) = "" & _

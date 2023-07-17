@@ -504,6 +504,9 @@ Begin VB.MDIForm Lese
       Begin VB.Menu DMPKHKAsthma 
          Caption         =   "DM&P KHK Asthma"
       End
+      Begin VB.Menu DMP_Übersicht 
+         Caption         =   "DMP &Übersicht"
+      End
       Begin VB.Menu DuplexKontrollieren 
          Caption         =   "&Duplex Kontrollieren"
       End
@@ -1001,6 +1004,13 @@ Private Sub Datenbank_Click()
  dlg.Show
  Screen.MousePointer = vbDefault
 End Sub ' Datenbank_Click
+
+' für Arzt -> DMP Übersicht
+Private Sub DMP_Übersicht_Click()
+ Dim rs As New ADODB.Recordset
+ myFrag rs, "SELECT NachName, VorName, GebDat, Pat_id, LanrID, Karteidatum, DATE(exportiert) EXP, DATE(dokudatum) Doku, Abk, Art FROM dmpreihe e WHERE karteidatum BETWEEN qanf() AND qend() AND exportiert<>18991230 ORDER BY lanrid, REPLACE(nachname,'€','C'), vorname, gebdat;"
+ TabAusgeb rs, Me, , , , , , , "DMP-Dok'en " & ZQuart(Now() - Verspätung) & ", nach LANRID, Nachname, Vorname, Geb'dat sortiert", , True, , , , , True
+End Sub ' DMP_Übersicht_Click()
 
 ' Datei -> Optionen
 Private Sub Optionen_Click()
