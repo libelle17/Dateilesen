@@ -1212,7 +1212,9 @@ weiter:
  If rFl.State <> 0 Then
   If Not rFl.BOF Then
    rFlSchGr = rFl!SchGr
+   On Error Resume Next
    rFlKateg = rFl!Kateg
+   On Error GoTo fehler
    If rFlSchGr = 90 Or rFlKateg = "LKK" Or rFlKateg = "PBe" Or rFlKateg = "SHV" Then obDMPPrüf = 0
    If Not IsNull(rFl!vorET) Then vorET = rFl!vorET
    If rFl!SchGr = 90 Then obLeist = False

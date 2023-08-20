@@ -4030,7 +4030,7 @@ Private Sub MyDB_Change()
 '   obStart = False
    Me.dbv.DaBa = Me.MyDB
    On Error Resume Next
-   DBCn.CommitTrans
+   DBCn.CommitTrans: obTrans = 0
    On Error GoTo 0
    If DBCn.State <> 0 Then DBCn.Close ' 12.12.09 + nächste Zeile
    DBCnS = Me.dbv.CnStr
@@ -4223,14 +4223,14 @@ End Sub ' doCallDMP
 'End Sub ' EinlesenEinzeln_Click()
 'Private Sub EinlesenVorb_Click()
 ' obMitAlterTab = True
-' obVorb = True
+' obVorber = True
 ' call progstart
 ' Call doEinles(True)
 ' Call ProgEnde
 'End Sub ' EinlesenVorb_Click()
 'Private Sub EinlesenEinzelnVorb_Click()
 ' obMitAlterTab = True
-' obVorb = True
+' obVorber = True
 ' call progstart
 ' Call doEinles(False)
 ' Call ProgEnde
@@ -4466,8 +4466,8 @@ Public Function HolEinstvonDB()
    dlg.ZurücksetzenLAktDat = Abs(HolEinstFeld(rs, "ZurücksetzenLAktDat", 0, "BIT"))
    dlg.obVglMitLetzterEinlesung = Abs(HolEinstFeld(rs, "obVglMitLetzterEinlesung", 0, "BIT"))
    dlg.ZurücksetzenLAktDat = 0
-   dlg.Pat_IDVon = HolEinstFeld(rs, "Pat_IDvon", 0, "TEXT", 6)
-   dlg.Pat_IDBis = HolEinstFeld(rs, "Pat_IDbis", 0, "TEXT", 6)
+'   dlg.Pat_IDVon = HolEinstFeld(rs, "Pat_IDvon", 0, "TEXT", 6) ' auskommentiert 20.8.23
+'   dlg.Pat_IDBis = HolEinstFeld(rs, "Pat_IDbis", 0, "TEXT", 6)
    dlg.AlterTab = Abs(HolEinstFeld(rs, "AlterTab", -1, "BIT"))
    dlg.VorladenFFI = Abs(HolEinstFeld(rs, "VorladenFFI", 0, "BIT"))
    dlg.ÜberTabelle = Abs(HolEinstFeld(rs, "ÜberTabelle", 0, "BIT"))
@@ -4812,6 +4812,7 @@ End Function ' AbbrechDisable
 
 Public Function ProgStart()
  If LenB(DBCnS) = 0 Then ' DBCn.ConnectionString
+  syscmd 4, "ProgStart"
   BrichAb = 0
   T1 = Now
   Me.Controls!Abbrechen.Enabled = True

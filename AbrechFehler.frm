@@ -1,5 +1,5 @@
 VERSION 5.00
-Object = "{0ECD9B60-23AA-11D0-B351-00A0C9055D8E}#6.0#0"; "MSHFLXGD.OCX"
+Object = "{0ECD9B60-23AA-11D0-B351-00A0C9055D8E}#6.0#0"; "mshflxgd.ocx"
 Begin VB.Form AbrechFehler 
    Caption         =   "Abrechnungsfehler"
    ClientHeight    =   11055
@@ -1980,7 +1980,7 @@ sql(AWlf) = sql(AWlf) & _
  sql(AWlf) = vbCrLf & _
  "SELECT vorname, geschlecht, pat_id, gesname(pat_id) Gesname FROM namen n " & vbCrLf & _
  "WHERE (SELECT COUNT(DISTINCT geschlecht) FROM namen ref WHERE ref.vorname=n.vorname)<>1 " & vbCrLf & _
- " AND n.vorname NOT IN ('Aliye','Andrea','Gabriele','Michele','Milan','Nikola','Nuran','Rong','Yüksel') " & vbCrLf & _
+ " AND n.vorname NOT IN ('Aliye','Andrea','Gabriele','Michele','Milan','Nikola','Nuran','Rong','Wei','Yüksel') " & vbCrLf & _
  "ORDER BY vorname, geschlecht;"
  mins(AWlf) = 10
  maxs(AWlf) = 80
@@ -2291,7 +2291,7 @@ sql(AWlf) = _
 "       LEFT JOIN namen n USING (pat_id) " & vbCrLf & _
 "       LEFT JOIN kassenliste kl ON f.vknr=kl.vknr AND f.ik=kl.ik " & vbCrLf & _
 "       LEFT JOIN diagview d USING (pat_id) " & vbCrLf & _
-"       LEFT JOIN leistungen l ON l.fid=f.fid AND l.leistung IN (" & BetrPausch & ") " & vbCrLf & _
+"       LEFT JOIN leistungen l ON l.pat_id=f.pat_id AND l.leistung IN (" & BetrPausch & ") AND l.zeitpunkt BETWEEN qanf() and qend()" & vbCrLf & _
 "       WHERE d.obdauer <> 0 AND d.gicd LIKE 'E10%' " & vbCrLf & _
 "         AND (((dmpklass=2 OR (dmpklass=3 AND dmpbeg<=qend()))) OR kl.kateg IN ('LKK','PBe')) " & vbCrLf & _
 "       GROUP BY l.id " & vbCrLf & _
@@ -2476,7 +2476,7 @@ sql(AWlf) = _
  " ,COALESCE(GROUP_CONCAT(DISTINCT CONCAT(fu.art,':',LEFT(fu.Inhalt,4)) SEPARATOR ', '),'') Fuß_akt, e.Art eArt, u.Art uArt, r.Medikament rRz, ra.Medikament raRz, d.ICD dICD, dmpKlass,dmpbeg,Kateg" & vbCrLf & _
  " ,COALESCE(GROUP_CONCAT(DISTINCT CONCAT(e.art,':',e.Inhalt)),'') Debr_akt" & vbCrLf & _
  " FROM aktfv f LEFT JOIN namen USING (pat_id)" & vbCrLf & _
- " LEFT JOIN eintraege e ON e.pat_id=f.pat_id AND e.zeitpunkt BETWEEN qanf() AND qend() AND (e.inhalt LIKE '%ebrid%' OR e.art LIKE 'debr%' OR (e.inhalt LIKE '%resekt%' AND NOT e.inhalt RLIKE 'Leber.*rese[ck]t|Gebärmutterrese|Segmentresekt|Teilresekt|Linksresekt|Totalresekt|Prostataresekt|SD-resekt|Mucosaresektion|Nachresektion|Resektion der Schild|Strumaresekt|Schilddrüsenresekt|Gallenblase[n]{0,1}resektion|Elektroresektion|wurzelresektion|Nierenresektion|Pan[ck]reas.*resektion|trumektomie|igmaresektion|Resektion Leberzyste|Resektionsbereich|Pan[ck]reaskopfresektion|Re[ck]tumrese[ck]t|Rese[ck]tion Lunge'))" & vbCrLf & _
+ " LEFT JOIN eintraege e ON e.pat_id=f.pat_id AND e.zeitpunkt BETWEEN qanf() AND qend() AND (e.inhalt LIKE '%ebrid%' OR e.art LIKE 'debr%' OR (e.inhalt LIKE '%resekt%' AND NOT e.inhalt RLIKE 'Leber.*rese[ck]t|Gebärmutterrese|Segmentresekt|Teilresekt|Linksresekt|Totalresekt|Prostataresekt|SD-resekt|Mucosaresektion|Nachresektion|Resektion der Schild|Strumaresekt|Schilddrüsenresekt|Gallenblase[n]{0,1}resektion|Elektroresektion|wurzelresektion|Nierenresektion|Pan[ck]reas.*resektion|trumektomie|igmaresektion|Resektion Leberzyste|Resektionsbereich|Pan[ck]reaskopfresektion|Re[ck]tumrese[ck]t|darmresekt|milzresekt|Rese[ck]tion Lunge'))" & vbCrLf & _
  " LEFT JOIN eintraege fu ON fu.pat_id=f.pat_id AND fu.zeitpunkt BETWEEN qanf() AND qend() AND fu.Art RLIKE 'fuss|fuß|usdm|ulcus'" & vbCrLf & _
  " LEFT JOIN eintraege u ON u.pat_id=f.pat_id AND u.zeitpunkt BETWEEN qanf() AND qend() AND u.Art = 'ulcus'" & vbCrLf & _
  " LEFT JOIN diagview d ON d.pat_id=f.pat_id AND d.obdauer<>0 AND d.gICD REGEXP '^E1[0-4]\.'" & vbCrLf & _
@@ -2509,7 +2509,7 @@ sql(AWlf) = _
  "SELECT f.pat_id, gesname(f.pat_id), DATE_FORMAT(e.zeitpunkt,'%e.%c.%y') Zp, e.art, e.inhalt " & vbCrLf & _
  "FROM aktfvs f " & vbCrLf & _
  "LEFT JOIN namen USING (pat_id) " & vbCrLf & _
- "LEFT JOIN eintraege e ON e.pat_id=f.pat_id AND e.zeitpunkt BETWEEN " & lQAnfuEnd(FristS) & " AND (inhalt LIKE '%ebrid%' OR art LIKE 'debr%' OR (inhalt LIKE '%resekt%' AND NOT inhalt RLIKE 'Leber.*rese[ck]t|Gebärmutterrese|Nierenresekt|Teilresekt|Linksresekt|Totalresekt|Prostataresekt|SD-resekt|Mucosaresekt|Resektion der Schild|Strumaresekt|Schilddrüsenresekt|Gallenblasenresektion|Elektroresekt|wurzelresekt|Pan[ck]reas.*resekt|trumektomie|igmaresekt|Resektion Leberzyste|Resektionsbereich|Pan[ck]reaskopfresekt|Re[ck]tumrese[ck]t|Rese[ck]tion Lunge|Hypoph.*resekt')) " & vbCrLf & _
+ "LEFT JOIN eintraege e ON e.pat_id=f.pat_id AND e.zeitpunkt BETWEEN " & lQAnfuEnd(FristS) & " AND (inhalt LIKE '%ebrid%' OR art LIKE 'debr%' OR (inhalt LIKE '%resekt%' AND NOT inhalt RLIKE 'Leber.*rese[ck]t|Gebärmutterrese|Nierenresekt|Teilresekt|Linksresekt|Totalresekt|Prostataresekt|SD-resekt|Mucosaresekt|Resektion der Schild|Strumaresekt|Schilddrüsenresekt|Gallenblasenresektion|Elektroresekt|wurzelresekt|Pan[ck]reas.*resekt|trumektomie|igmaresekt|Resektion Leberzyste|Resektionsbereich|Pan[ck]reaskopfresekt|Re[ck]tumrese[ck]t|Rese[ck]tion Lunge|darmresekt|milzresekt|Hypoph.*resekt')) " & vbCrLf & _
  "LEFT JOIN leistungen l ON l.fid = f.fid AND leistung IN ('02311','02312') " & vbCrLf & _
  "WHERE NOT ISNULL(e.art) AND ISNULL(leistung) " & vbCrLf & _
  "ORDER BY f.pat_id;" & vbCrLf & _
@@ -3074,7 +3074,7 @@ AwN(AWlf) = "Fehlende 32025 für Blutzuckermessungen (bz, bzvgl, ogtt) außerhalb 
 "      AND e.zeitpunkt BETWEEN fl.bhfb AND fl.bhfe1 " & vbCrLf & _
 "      AND e.zeitpunkt BETWEEN " & lQAnfuEnd(FristS) & vbCrLf & _
 "AND NOT EXISTS (SELECT 0 FROM sws WHERE pat_id=f.pat_id AND e.zeitpunkt BETWEEN voret - INTERVAL 280 DAY AND voret) " & vbCrLf & _
-"LEFT JOIN (SELECT fid, SUM(lzahl) lz, DATE(zeitpunkt) lzp FROM leistungen WHERE leistung = '32025' GROUP BY fid,DATE(zeitpunkt)) l ON f.fid = l.fid AND lzp = DATE(e.zeitpunkt) " & vbCrLf & _
+"LEFT JOIN (SELECT fid, SUM(lzahl) lz, DATE(zeitpunkt) lzp FROM leistungen WHERE leistung = '32025' GROUP BY fid,DATE(zeitpunkt)) l ON f.pat_id = l.pat_id AND lzp = DATE(e.zeitpunkt) " & vbCrLf & _
 "WHERE NOT ISNULL(e.Zeitpunkt) " & vbCrLf & _
 "GROUP BY e.id " & vbCrLf & _
 ") i WHERE artz>lzz " & vbCrLf & _

@@ -2,17 +2,17 @@ VERSION 5.00
 Object = "{F9043C88-F6F2-101A-A3C9-08002B2F49FB}#1.2#0"; "COMDLG32.OCX"
 Begin VB.Form Dialog 
    BorderStyle     =   3  'Fester Dialog
-   Caption         =   "Auswahl der Datenbank"
+   Caption         =   "Auswahl von Datei und Datenbank"
    ClientHeight    =   7695
    ClientLeft      =   2010
    ClientTop       =   1380
-   ClientWidth     =   9330
+   ClientWidth     =   9750
    Icon            =   "Datenbank.frx":0000
    LinkTopic       =   "Dialog"
    MaxButton       =   0   'False
    MinButton       =   0   'False
    ScaleHeight     =   7695
-   ScaleWidth      =   9330
+   ScaleWidth      =   9750
    ShowInTaskbar   =   0   'False
    Begin VB.CheckBox nuraktfaelle 
       Caption         =   "&nur aktuelle Fälle"
@@ -20,7 +20,7 @@ Begin VB.Form Dialog
       Left            =   5640
       TabIndex        =   43
       Top             =   3360
-      Width           =   1815
+      Width           =   1575
    End
    Begin VB.CheckBox NurInTabelle 
       Caption         =   "&Nur dorthin einlesen"
@@ -90,7 +90,7 @@ Begin VB.Form Dialog
    Begin VB.CommandButton BDTaussuchen 
       Caption         =   "a&ussuchen"
       Height          =   375
-      Left            =   7080
+      Left            =   8640
       TabIndex        =   2
       Top             =   0
       Width           =   975
@@ -114,7 +114,7 @@ Begin VB.Form Dialog
    Begin VB.CommandButton komprimieren 
       Caption         =   "&komprimieren"
       Height          =   255
-      Left            =   7080
+      Left            =   7320
       TabIndex        =   35
       Top             =   1440
       Width           =   2295
@@ -124,9 +124,9 @@ Begin VB.Form Dialog
       Enabled         =   0   'False
       ForeColor       =   &H80000013&
       Height          =   285
-      Left            =   5520
+      Left            =   7200
       TabIndex        =   34
-      Top             =   2880
+      Top             =   3120
       Width           =   2535
    End
    Begin VB.TextBox LDatei 
@@ -136,7 +136,7 @@ Begin VB.Form Dialog
       Left            =   2520
       TabIndex        =   33
       Top             =   2880
-      Width           =   3015
+      Width           =   7215
    End
    Begin VB.CheckBox obVglMitLetzterEinlesung 
       Caption         =   "&Vergleich mit letzter Einlesung"
@@ -173,7 +173,7 @@ Begin VB.Form Dialog
       Left            =   1290
       TabIndex        =   1
       Top             =   0
-      Width           =   5745
+      Width           =   7305
    End
    Begin VB.CheckBox obBDT 
       Caption         =   "&BDT-Datei:"
@@ -309,7 +309,7 @@ Begin VB.Form Dialog
    Begin VB.CommandButton CancelButton 
       Caption         =   "Abbre&chen"
       Height          =   375
-      Left            =   8040
+      Left            =   8400
       TabIndex        =   31
       Top             =   2280
       Width           =   1215
@@ -317,7 +317,7 @@ Begin VB.Form Dialog
    Begin VB.CommandButton OKButton 
       Caption         =   "&OK"
       Height          =   375
-      Left            =   8040
+      Left            =   8400
       TabIndex        =   30
       Top             =   1800
       Width           =   1215
@@ -485,6 +485,7 @@ End Sub ' Form_GotFocus
 
 Private Sub Form_Initialize()
 '
+ 
 End Sub ' Form_Initialize
 
 Private Sub komprimieren_Click()
@@ -972,7 +973,7 @@ End Function ' MdBFestleg
 Public Sub Einlies()
  Dim i%
  obMitAlterTab = Me.AlterTab
- obVorb = Me.VorladenFFI
+ obVorber = Me.VorladenFFI
  If Me.obBDT Then
   Do
    For i = 1 To 2
@@ -990,10 +991,11 @@ Public Sub Einlies()
  Call hlese.ProgEnde
 End Sub ' EinlesenVorb_Click()
 
-' 30.3.21: nur in Einlesen
+' 30.3.21: nur in Einlies()
 Private Sub doEinles(obevtlAlle%)
 ' Const obZS% = -1
  Dim Fil As File, erg%, sql$, obAktZeit%
+ Dim oblies%
  On Error GoTo fehler
  
  Dim EinlAb&, EinlBis&
@@ -1041,11 +1043,12 @@ Private Sub doEinles(obevtlAlle%)
  Dim FilName$
  If Not Me.obBDT Then FilName = "" Else FilName = Fil.name
  obHausBesuch = (UCase$(Me.BDTDatei) Like "*\HB_*.BDT")
- Call GesLies(Me.hlese, Me.BDTDatei, FilName, EinlAb, EinlBis, Me.LaborDirektEinlesen, Me.LaborDirektNeu, Me.LaborQuerVerb, Me.LaborQuerNeu, Me.obmitEmails, Me.EmDatei)
+ Call GesLies(Me.hlese, Me.BDTDatei, FilName, EinlAb, EinlBis, Me.LaborDirektEinlesen, Me.LaborDirektNeu, Me.LaborQuerVerb, Me.LaborQuerNeu, Me.obmitEmails, Me.EmDatei, oblies%)
  DoKassenkategorienBestimmen
  If Command = "auto" Then
  Else
-  MsgBox CStr((Now - T1) * 60 * 60 * 24) + " s"
+'  MsgBox CStr((Now - T1) * 60 * 60 * 24) + " s"
+  syscmd 4, IIf(oblies, "Fertig mit Einlesen von ", "nicht eingelesen: ") & "Pat. " & altpatg & ", Zeitdauer gesamt: " & Format$((Now - T1) * 60 * 60 * 24, "###,###,###,###,###,###,##0") & "s, " & "Zeitdauer nach Haupteinlesen: " & Format$((Now - T1a) * 60 * 60 * 24, "###,###,###,###,###,###,##0") & " s"
  End If
  Exit Sub
 fehler:

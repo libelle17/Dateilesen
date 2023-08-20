@@ -262,6 +262,7 @@ End Function ' therinit
 ' in alleSpeichern, doViewsErstellen, testTab, Therapieartenwechsel_click, rufThFestleg, theraktakt
 Public Function TheraErmitt&(pid&, Optional ByRef vzahl&)
  Dim iru&, rs As ADODB.Recordset, rAF&
+ syscmd 4, "Ermittle Therapiearten"
 ' Lese.ProgStart
  Call therinit
  For iru = 1 To 5 ' ohne group_concat_max_len
@@ -273,6 +274,7 @@ Public Function TheraErmitt&(pid&, Optional ByRef vzahl&)
    TheraErmitt = rs!Zahl ' Zahl der aktuellen Datens‰tze in in Therarten
   End If ' iru = 1
  Next iru
+ syscmd 5
  Exit Function
 fehler:
  Dim AnwPfad$
@@ -4093,15 +4095,15 @@ End Function ' EigTAlter$(Pat_id&, Eig$, vz$, grenze$)
 #If False Then
 ' wird von SQL-Abfragen aufgerufen
   Function EigT$(Pat_id&, Eig$) ' Eigenschaft testen
-   Static sql$, altpat&
+   Static sql$, altpatE&
    Static md As DAO.Recordset
    On Error GoTo fehler
    Call dtbInit
    If Pat_id = 0 Then Exit Function
-   If Pat_id <> altpat Then
+   If Pat_id <> altpatE Then
     sql = "SELECT * FROM `" + QMdbAkt + "`.`medikamente mit Arten` WHERE `medplan`.pat_id =" + CStr(Pat_id)
     Set md = Dtb.OpenRecordset(sql, dbOpenDynaset)
-    altpat = Pat_id
+    altpatE = Pat_id
    End If
    If Not md.BOF Then
     md.MoveFirst
@@ -8127,8 +8129,8 @@ Function ‹w12$(Pat_id&, ‹w1$()) ' Saubere Funktion zum Ermitteln der ‹berweisern
     End If
     If UBound(bhb) = maxFZ Then Exit Do
     
-    Dim Fertig%
-    Fertig = 0
+    Dim fertig%
+    fertig = 0
     For runde = 2 To 2
      Select Case runde
       Case 1: Feld = "And‹w"
@@ -8137,8 +8139,8 @@ Function ‹w12$(Pat_id&, ‹w1$()) ' Saubere Funktion zum Ermitteln der ‹berweisern
 '      Case 3: Feld = "‹bwvkvnr"
      End Select
      If Not IsNull(raFa.Fields(Feld)) Then
-      If raFa.Fields(Feld) <> "0000000" And LenB(raFa.Fields(Feld)) <> 0 And Not Fertig Then
-       If runde = 2 Then Fertig = True
+      If raFa.Fields(Feld) <> "0000000" And LenB(raFa.Fields(Feld)) <> 0 And Not fertig Then
+       If runde = 2 Then fertig = True
        obalt = 0
        For i = 0 To stand
         If ‹w1(0, i) = raFa.Fields(Feld) Then
@@ -8390,16 +8392,16 @@ habDC:
      RestDa = 0
      Set pakt = r2.Range.paragraphs(1).Next
      Do While pakt.Range.Text <> vbCr
-      If Left$(pakt.Range, 1) <> vbTab And Not IsDate(Left$(pakt.Range, 8)) Then GoTo Fertig
+      If Left$(pakt.Range, 1) <> vbTab And Not IsDate(Left$(pakt.Range, 8)) Then GoTo fertig
       If IsDate(Left$(pakt.Range, 8)) And IsNumeric(Left$(pakt.Range, 8)) Then ' Erg‰nzung isnumeric 27.4.08 Jˆrger
        If CDate(Left$(pakt.Range, 8)) > VorDat Then
          RestDa = True
-         GoTo Fertig
+         GoTo fertig
        End If
       End If
       Set pakt = pakt.Next
      Loop
-Fertig:
+fertig:
      On Error Resume Next
      If RestDa Then
       dc.Range(r2.Range.paragraphs(1).Range.Next.Start, pakt.Range.Start).Font.Hidden = True ' 23.10.12: pakt.range.start statt pakt.range.start-1, um Leerzeile unter ‹berschrift zu vermeiden

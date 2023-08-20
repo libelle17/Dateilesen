@@ -21,7 +21,7 @@ Const TbZ1% = 26 ' 27 (therarten)
 Const TbZ2% = TbZ1 + 8
 'Public Lese1
 Public AllePat% ' alle Patienten sind in der Datei
-Public obVorb% ' ob Formularvorbereitung
+Public obVorber% ' ob Formularvorbereitung
 Dim tbn$(TbZ2), Tbk$(TbZ2), noDup%(TbZ2)
 Public ZielDbS$
 Public BrichAb% ' bricht gleich ab
@@ -844,6 +844,7 @@ Function MacheTypen(frm As Lese)
  Dim i%, sql$, pText$, aktTbn$, aktTbk$, raText$, ii&, fat% ' fallabhängige Tabelle
  Dim typFile$
  On Error GoTo fehler
+ syscmd 4, "Mache Typen ..."
  typFile = App.path + "\" + "typen.bas"
  On Error Resume Next
  Const ZdAltenDateien& = 8
@@ -857,7 +858,7 @@ Function MacheTypen(frm As Lese)
 ' DBCnOpen CSStr
 ' Call myEFrag("use " & myDB)
  Print #257, "Option Explicit"
- Print #257, "Public obFor%"
+ Print #257, "Public obForK%"
  Print #257, "Dim sql$, T1!, T2!, rs As Adodb.Recordset, maxL%"
  
 ' Print #257, ""
@@ -868,7 +869,7 @@ Function MacheTypen(frm As Lese)
  Print #257, ""
  For i = 0 To TbZ2
   aktTbn = LCase$(REPLACE$(tbn(i), " ", "_"))
-  Print #257, "Public r" & Tbk(i) & "() AS " & aktTbn
+  Print #257, "Public r" & Tbk(i) & "() AS " & aktTbn & IIf(aktTbn = "formulare", "' kommt vor in: formulareSpeichern, doTabVorb, dolies", "")
  Next i
  Print #257, ""
  For i = 0 To TbZ2
@@ -974,7 +975,7 @@ Function MacheTypen(frm As Lese)
  Print #257, "Function doBezFeh(csqlVal$, obSpei%, ErrDes$)"
  Print #257, " Call ForeignNo0"
  Print #257, " Call ForeignNo1"
- Print #257, " obfor = True"
+ Print #257, " obforK = True"
  Print #257, " IF obSpei <> 0 THEN"
  Print #257, "  Open BezFeh For Append AS #299"
  Print #257, "  Print #299, vbCrLf & vbCrLf & Now() & "": "" & csqlVal"
@@ -982,6 +983,25 @@ Function MacheTypen(frm As Lese)
  Print #257, "  Close #299"
  Print #257, " END IF"
  Print #257, "End FUNCTION 'doBezFeh"
+ Print #257, ""
+ Print #257, "' aufgerufen in alleSpeichern"
+ Print #257, "Function fidSetz()"
+ Print #257, " Dim i&"
+ For i = 0 To TbZ2 - 1
+  Select Case Tbk(i)
+   Case "Ei", "Fr", "Le", "Re", "Di", "Br"
+   Print #257, " For i = 1 To UBound(r" & Tbk(i) & ")"
+   Print #257, "  If r" & Tbk(i) & "(i).FID = 0 Then"
+   Print #257, "   If UBound(rFa) > 0 Then"
+   Print #257, "    r" & Tbk(i) & "(i).FID = rFa(1).FID"
+   Print #257, "   End If"
+   Print #257, "  Else"
+   Print #257, "   Exit For"
+   Print #257, "  End If"
+   Print #257, " Next i"
+  End Select
+ Next i
+ Print #257, "End Function ' FIDsetz"
  
 #If False Then
  Print #257, "Public FUNCTION rAna_Hin(rs As Adodb.Recordset, rAna AS " & LCase$(tbn(TbZ2)) & ")" ' anamnesebogen; auf die Ersetzung von "rAna" durch tbk(tbz2) wurde aus mehreren Gründen verzichtet
@@ -1171,17 +1191,17 @@ Function MacheTypen(frm As Lese)
     pText = pText + ", j&"
   End Select
   Print #257, pText & ")"
-  Print #257, " Dim i&, rAF&, Pid$, m% ',sql0$" ', DBCn As New adodb.Connection"
+  Print #257, " Dim i&, rAF&, Pid$, m%, sfnr% ',sql0$" ', DBCn As New adodb.Connection ' SpeicherFehler-Nr."
   Print #257, " Dim csql0 As New CString, csql As New CString"
   Print #257, " Dim rs As New ADODB.recordset"
   Print #257, " T1 = Timer"
-  Print #257, " ON error resume next"
+  Print #257, " On Error Resume Next"
   Print #257, " Pid = rNa(0).Pat_id"
   If aktTbn = "unbekannte_kennungen" Then
   Else
    Print #257, " ON Error GoTo fehler"
   End If
-  Print #257, " syscmd 4, pid & "": Speichere " & aktTbn & """"
+  Print #257, " syscmd 4, pid & "": Speichere "" & ubound(r" & Tbk(i) & ") & "" Sätze in `" & aktTbn & "`"""
 '  Print #257, " DBCnOpen CSStr"
 '  Print #257, " Call myEFrag(""use quelle1"")"
   If i <= TbZ1 Then
@@ -1300,16 +1320,17 @@ Function MacheTypen(frm As Lese)
   If SammelIns Then Print #257, "   ELSE"
 '  Print #257, "  Call myEFrag(sql,rAf)', , adAsyncExecute)"
   If aktTbn = "faelle" Then
-   Print #257, "'   IF Not obFor THEN ForeignNo0"
+   Print #257, "'   IF Not obForK THEN ForeignNo0"
   End If
-  Print #257, "   Call myEFrag(csql.value,rAf)', , adAsyncExecute)"
+  Print #257, "'   Call myEFrag(csql.Value,rAf)', , adAsyncExecute) ' wegen unzureichender Fehlerverarbeitung wieder ausrangiert 19.8.23"
+  Print #257, "   Call DBCn.Execute(csql.Value, rAF) ', , adAsyncExecute)"
   If aktTbn = "faelle" Then
-   Print #257, "'   IF Not obFor THEN ForeignYes0"
+   Print #257, "'   IF Not obFork THEN ForeignYes0"
    Print #257, "   IF rAF = 0 THEN"
    Print #257, "    Err.Raise 998, , ""Fehler in " & aktTbn & "Speichern b.Pat. "" & rFa(i).Pat_id & "", Err.Number "" & Err.Number & "", err.description: "" & Err.Description"
    Print #257, "   END IF"
   End If
-  Print #257, "   IF obfor THEN"
+  Print #257, "   IF obforK THEN"
   Print #257, "    Call ForeignYes0"
   Print #257, "    Call ForeignYes1"
   Print #257, "   END IF"
@@ -1378,17 +1399,23 @@ Function MacheTypen(frm As Lese)
   Print #257, " Exit Function"
   Print #257, "fehler:"
   Print #257, "ErrDescription = Err.Description"
+  Print #257, "sfnr = sfnr + 1"
+  Print #257, "If sfnr > 10 then "
+  Print #257, " Lese.Ausgeb sfnr & "" Fehler in """"" & aktTbn & "Speichern()"""" bei Pat. "" & rNa(0).Pat_id & "", gebe auf (ErrDes: "" & ErrDescription & "")"", True"
+  Print #257, " sfnr = 0"
+  Print #257, " Resume Next"
+  Print #257, "End if"
   Print #257, "IF Err.Number = -2147217900 AND InStrB(ErrDescription, "" Doppelter; Eintrag; "") <> 0 THEN"
   Print #257, " Call Shell(App.path + ""\..\nachricht\nachricht.exe "" & App.EXEName & "" Doppelter Eintrag bei: "" & vbCrLf & csql.Value)"
   Print #257, " Resume Next"
-  Print #257, "ElseIf Err.Number = -2147467259 AND InStrB(ErrDescription, ""Daten zu lang"") = 0 THEN ' -2147467259 ' [MySQL][ODBC 3.51 Driver][mysqld-5.1.32-log]Cannot add OR update a child row: a FOREIGN KEY constraint fails"
+  Print #257, "ElseIf Err.Number = -2147467259 AND InStrB(ErrDescription, ""Daten zu lang"") = 0 AND InStrB(ErrDescription, ""Data too long"") = 0 THEN ' -2147467259 ' [MySQL][ODBC 3.51 Driver][mysqld-5.1.32-log]Cannot add OR update a child row: a FOREIGN KEY constraint fails"
   Print #257, " IF InStrB(ErrDescription, ""'READ-COMMITTED'"") <> 0 THEN"
   Print #257, "  myEFrag ""SET SESSION TRANSACTION ISOLATION LEVEL REPEATABLE READ"", rAF"
   Print #257, " Else"
   Print #257, "  Call doBezFeh(csql.Value, BezfSp, ErrDescription)"
   Print #257, " END IF"
   Print #257, " Resume"
-  Print #257, "ElseIf Err.Number = -2147217833 OR InStrB(ErrDescription, ""Daten zu lang"") <> 0 THEN"
+  Print #257, "ElseIf Err.Number = -2147217833 OR InStrB(ErrDescription, ""Daten zu lang"") <> 0 OR InStrB(ErrDescription, ""Data too long"") <> 0 THEN"
   Print #257, " Dim rsc As Adodb.Recordset, maxi%(), k%"
   Dim SpZ%, j%
   SpZ = 0
@@ -1415,7 +1442,7 @@ Function MacheTypen(frm As Lese)
   Loop
   Print #257, " next k"
   If i <= TbZ1 Then
-   Print #257, " IF obTrans <>0 THEN DBCn.CommitTrans: obtrans = 0"
+   Print #257, " IF obTrans <>0 Then If DBCn.Execute(""SELECT COUNT(1) FROM information_schema.innodb_trx WHERE trx_mysql_thread_id = CONNECTION_ID()"").Fields(0) <> 0 Then DBCn.CommitTrans: obtrans = 0"
   End If
   Print #257, " nochmal:"
   Print #257, " SET rsc = New ADODB.Recordset"
@@ -1468,7 +1495,8 @@ Function MacheTypen(frm As Lese)
 '  IF i <= TbZ1 THEN ' Kommentar 29.10.08
 '   Print #257, " DBCn.BeginTrans"
 '  END IF
-  Print #257, " IF lese.obMysql THEN Resume next ELSE resume"
+'  Print #257, " IF lese.obMysql THEN Resume next ELSE resume" ' geändert 20.8.23
+  Print #257, " resume"
   If aktTbn = "namen" Then
    Print #257, "ElseIf Err.Number = -2147217871 OR Err.Number = -2147217859 OR err.Number = -2147467259 THEN"
    Print #257, " For i = 0 To 10"
@@ -1519,23 +1547,32 @@ Function MacheTypen(frm As Lese)
  Print #257, "End FUNCTION ' tuLaden"
  Print #257, ""
  Print #257, "Public FUNCTION tuSpeichern(frm AS Lese, SI%, BfS%) ' frm.dlg.SammelInsert, frm.dlg.BeziehungsfehlerSpeichern"
- Print #257, " Dim rAf&"
+ Print #257, " Dim rAf&, altsi$"
+ Print #257, " altsi = sqlIGNORE"
+ Print #257, " sqlIGNORE = """""
  Print #257, " ON Error GoTo fehler"
  For i = 0 To TbZ1
   aktTbn = LCase$(REPLACE$(tbn(i), " ", "_"))
+  If aktTbn = "formulare" Then
+   Print #257, " sqlIGNORE = "" IGNORE """
+  End If
   Print #257, " call " & aktTbn & "Speichern(SI, BfS)"
+  If aktTbn = "formulare" Then
+   Print #257, " sqlIGNORE = """""
+  End If
   Select Case aktTbn
-  Case "faelle", "forminhaltform_abk"
-  Print #257, "   IF not lese.obmysql THEN"
-  Print #257, "    IF obTrans <> 0 THEN Call DBCn.CommitTrans: obtrans = 0"
-  Print #257, "    Call DBCn.BeginTrans: obTrans = 1"
-  Print #257, "   END IF"
+   Case "faelle", "forminhaltform_abk"
+    Print #257, "   IF not lese.obmysql THEN"
+    Print #257, "    IF obTrans <> 0 THEN Call DBCn.CommitTrans: obtrans = 0"
+    Print #257, "    Call DBCn.BeginTrans: obTrans = 1"
+    Print #257, "   END IF"
   End Select
  Next i
  Print #257, " Call myEFrag(""UPDATE `namen` SET aktZeit = "" & DatFor_k(rNa(0).AktZeit) & "" WHERE pat_id = "" & rNa(0).Pat_ID,rAf)"
  Print #257, " IF rAf <> 1 THEN "
  Print #257, "  frm.Ausgeb ""Fehler bei der Setzung des Aktualisierungsdatum bei "" & rNa(0).Pat_ID & "" "" & rNa(0).Nachname & "" "" & rNa(0).Vorname, true"
  Print #257, " END IF"
+ Print #257, " sqlIGNORE = altsi"
  Print #257, " Exit Function"
  Print #257, "fehler:"
  Print #257, " Dim AnwPfad$"
@@ -1559,6 +1596,7 @@ Function MacheTypen(frm As Lese)
  
  Close #257
  frm.Ausgeb "Fertig mit MacheTypen", True
+ syscmd 5
  Exit Function
 fehler:
  Dim AnwPfad$
@@ -2367,7 +2405,9 @@ Function ForeignNo0()
  On Error GoTo fehler
  If ForeignKAus0 = 0 Then
   If lies.obMySQL Then
-   Call myEFrag("SET foreign_key_checks = 0") ' Kommentar 12.12.09
+'   Call myEFrag("SET foreign_key_checks = 0") ' Kommentar 12.12.09
+   Dim rAF&
+   DBCn.Execute "set foreign_key_checks = 0", rAF
   Else
    ZielDbS = Lese.dlg.MdB
    Call BezLöschA
@@ -2394,7 +2434,9 @@ End Function ' ForeignNo()
 Function ForeignNo1()
  If ForeignKAus1 = 0 Then
   If lies.obMySQL Then
-   Call myEFrag("SET foreign_key_checks = 0")
+'   Call myEFrag("SET foreign_key_checks = 0")
+   Dim rAF&
+   DBCn.Execute "set foreign_key_checks = 0", rAF
   Else
    ZielDbS = Lese.dlg.MdB
    Call BezLöschA
@@ -3702,24 +3744,45 @@ End Function ' doSp
 
 ' aufgerufen in: Form_Activate
 Function getLDatei$(Upfad$, Optional muster$)
- Dim DCol As New Collection, Datei$, Pfad$ ' , nr&
+ Dim Datei$, Pfad$ ' , nr&
  Dim objShell, objExecObject
+ On Error GoTo fehler
  Pfad = getPfad(Upfad, Datei)
  If LenB(muster) = 0 Then muster = Datei
  If LenB(muster) = 0 Then muster = "*.bdt"
+nochmal:
  Pfad = getPfad(Upfad)
 ' IF Muster = "*.bdt" THEN
- If LenB(Pfad) <> 0 Then
+If LenB(Pfad) <> 0 Then
 '  erg = Shell("cmd / c dir '" & Pfad & muster & "' /b /o-d")
 '  SET objShell = Wscript.CreateObject("WScript.Shell")
   Set objShell = New IWshShell_Class
 #If True Then
    objShell.rUn "cmd /c dir """ & Pfad & muster & """ /b /o-d|clip", 0, True
    Dim strOutput$, pos&
-   strOutput = CreateObject("htmlfile").ParentWindow.ClipboardData.GetData("text")
-   pos = InStr(strOutput, Chr(13))
-   If pos Then Datei = Left$(strOutput, pos - 1) Else Datei = strOutput
-   If Datei <> "" Then getLDatei = Pfad & Datei
+'   strOutput = CreateObject("htmlfile").ParentWindow.ClipboardData.GetData("text")
+   strOutput = Dir(Pfad, vbNormal)
+   Dim tw As Object
+   strOutput = Dir(Pfad & muster, vbNormal)
+   Set tw = CreateObject("htmlfile")
+   If Not tw Is Nothing Then
+    On Error Resume Next
+    strOutput = tw.ParentWindow.ClipboardData.GetData("text")
+    On Error GoTo fehler
+    If strOutput = "" Then GoTo anders
+    pos = InStr(strOutput, Chr(13))
+    If pos Then Datei = Left$(strOutput, pos - 1) Else Datei = strOutput
+    If Datei <> "" Then getLDatei = Pfad & Datei
+   Else
+anders:
+    Dim DCol As New Collection
+    Datei = Dir(Pfad & muster)
+    Do While LenB(Datei) <> 0
+     Call AddFileSortedByDateLastModified(DCol, FSO.GetFile(Pfad & Datei), kmName)
+     Datei = Dir
+    Loop
+    If DCol.COUNT > 0 Then getLDatei = Pfad & DCol.Item(DCol.COUNT).name
+   End If ' Not tw Is Nothing Then else
 #ElseIf False Then
    Set objExecObject = objShell.Exec("cmd /c dir """ & Pfad & muster & """ /b /o-d")
    Do While Not objExecObject.StdOut.AtEndOfStream
@@ -3728,14 +3791,33 @@ Function getLDatei$(Upfad$, Optional muster$)
     Exit Do
    Loop
 #Else
-  Datei = Dir(Pfad & muster)
-  Do While LenB(Datei) <> 0
-   Call AddFileSortedByDateLastModified(DCol, FSO.GetFile(Pfad & Datei), kmName)
-   Datei = Dir
-  Loop
-  If DCol.COUNT > 0 Then getLDatei = Pfad & DCol.Item(DCol.COUNT).name
+   Dim Folder As Folder
+   Dim cur As File, DT As File
+   Set Folder = FSO.GetFolder(Pfad)
+   Set cur = FSO.GetFile(Pfad & Dir(Pfad)) 'cur (Neueste gefundene) auf erste setzen
+   For Each DT In Folder.Files
+    If UCase$(DT) Like UCase$(muster) Then
+     If DT.DateCreated > cur.DateCreated Then
+      Set cur = FSO.GetFile(Pfad & DT.name)
+     End If
+    End If
+   Next DT
+   If Not cur Is Nothing Then getLDatei = Pfad & cur.name
 #End If
- End If
+ End If ' LenB(pfad) <> 0 Then
+Exit Function
+fehler:
+ Dim AnwPfad$
+#If VBA6 Then
+ AnwPfad = CurrentDb.name
+#Else
+ AnwPfad = App.path
+#End If
+ Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "aufgefangener Fehler in getLDatei/" + AnwPfad)
+  Case vbAbort: Call MsgBox("Höre auf"): ProgEnde
+  Case vbRetry: Call MsgBox("Versuche nochmal"): Resume nochmal
+  Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
+ End Select
 End Function ' getLDatei
 
 ' aufgerufen nur in getLDatei
@@ -3752,19 +3834,17 @@ Public Function getPfad$(dname$, Optional getDat$)
  Next i
 End Function ' getPfad
 
-#If False Then
+' #If False Then
 ' wurde nur verwendet in getLDatei
 Public Function AddFileSortedByDateLastModified _
  (Collection As Collection, Item As File, _
  Optional ByVal KeyMode As KeyModeConstants = kmName) As Long
-
   Dim nCount&
   Dim nHigh As Long
   Dim nLow As Long
   Dim nTest As Long
   Dim nTestItem As Object
   Dim nKey As String
-  
   Select Case KeyMode
     Case kmName
       nKey = Item.name
@@ -3819,7 +3899,7 @@ Public Function AddFileSortedByDateLastModified _
     End If
   End With
 End Function ' AddFileSortedByDateLastModified
-#End If
+' #End If
 
 ' Analoga nach 29.9.06 verschrieben:
 ' SELECT DISTINCT rezepteintraege.pat_id, nachname, vorname, versicherung, kassenliste.name FROM (`quelle`.`rezepteintraege` LEFT JOIN quelle.`anamnesebogen` ON rezepteintraege.pat_id = `anamnesebogen`.pat_id) LEFT JOIN quelle.`kassenliste` ON `anamnesebogen`.versicherung = `kassenliste`.vknr WHERE (medikament LIKE "%umalog%" OR medikament LIKE "%ovorapid%" OR medikament LIKE "%iprolog%" OR medikament LIKE "%pidra%") AND zeitpunkt > '2006-09-28' AND Diabetestyp = 2 AND versicherungsart <> 90;
@@ -5783,6 +5863,7 @@ End Sub ' RufKassenKategorienBestimmen
 ' in doEinles, liesKassen und RufKassenKategorienBestimmen
 Public Sub DoKassenkategorienBestimmen()
  Dim namen$()
+ syscmd 4, "Bestimme Kassenkategorien"
  ReDim namen(80)
  namen(0) = "aok": Call doKassKat("AOK", namen)
  namen(0) = "ikk": Call doKassKat("IKK", namen)
@@ -5890,6 +5971,7 @@ Public Sub DoKassenkategorienBestimmen()
  ReDim namen(20)
  namen(0) = "PBeaKK"
  Call doKassKat("PBe", namen)
+ syscmd 5
  Debug.Print "Fertig mit Kassenkategorienbestimmen"
 End Sub ' DoKassenkategorienBestimmen
 
