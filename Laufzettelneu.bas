@@ -135,7 +135,9 @@ End Type ' plzDaten
 
 Dim obHCT%, hctMed$
 
+#If False Then
 ' Editor mit der Autoexec.bat Datei öffnen
+' kommentiert aufgerufen in doPatientenlaufzettel
 Private Sub doplink()
   Dim RetVal As Long, ShExInfo As SHELLEXECUTEINFO
  
@@ -167,14 +169,12 @@ Private Sub doplink()
       Err.Raise 5, "ShellExecuteEx", "Datei ist mit keinem Programm verknüpft"
     End Select
   Else
- 
     ' andernfalls Programmdaten ausgeben
-    Debug.Print "Datei gestartet: " & ShExInfo.lpFile
-    Debug.Print "Dateiklasse: " & ShExInfo.lpClass
-    Debug.Print "Prozess Handle: " & ShExInfo.hProcess
-    Debug.Print "Instanz Handle:" & ShExInfo.hInstApp
+'    Debug.Print "Datei gestartet: " & ShExInfo.lpFile
+'    Debug.Print "Dateiklasse: " & ShExInfo.lpClass
+'    Debug.Print "Prozess Handle: " & ShExInfo.hProcess
+'    Debug.Print "Instanz Handle:" & ShExInfo.hInstApp
   End If
- 
   ' warten, bis die Anwendung beendet wird
   Do
     DoEvents
@@ -183,8 +183,11 @@ Private Sub doplink()
   ' beenden des Programms signalisieren
   MsgBox "Das Programm wurde beendet"
 End Sub ' doplink()
+#End If
 
-Public Sub RunCommandLine(sCmdLine As String)
+#If False Then
+' kommentiert aufgerufen in doPatientenlaufzettel und rufThFestleg
+Public Sub RunCommandLine(sCmdLine$)
     Dim nProcessID&
     Dim hProcess&
     Dim nResult&
@@ -200,6 +203,7 @@ Public Sub RunCommandLine(sCmdLine As String)
         End If
     End If
 End Sub ' RunCommandLine
+#End If
 
 Function doPatientenlaufzettel(Optional obohnerueckfrage% = 0, Optional obphp% = 0) ' aufgerufen aus: Patientenlaufzettel_Click() und MDIForm_Activate
     ' für PDF lesen

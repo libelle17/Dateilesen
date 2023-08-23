@@ -686,6 +686,9 @@ Begin VB.MDIForm Lese
       Begin VB.Menu Einlesungen 
          Caption         =   "&Einlesungen"
       End
+      Begin VB.Menu EinlesungenAnzeigen 
+         Caption         =   "&Einlesungen anzeigen"
+      End
       Begin VB.Menu Fallzahlstand 
          Caption         =   "&Fallzahlstand"
          Shortcut        =   ^F
@@ -822,6 +825,9 @@ Begin VB.MDIForm Lese
       Begin VB.Menu FormulareÜbertragen 
          Caption         =   "&Formulare übertragen"
       End
+      Begin VB.Menu Formulare_bereinigen 
+         Caption         =   "&Formulare bereinigen"
+      End
       Begin VB.Menu BooleanFelder 
          Caption         =   "&Boolean-Felder in MySQL-Datenbanken erstellen"
       End
@@ -839,9 +845,6 @@ Begin VB.MDIForm Lese
       End
       Begin VB.Menu Apothekenrezepte 
          Caption         =   "Apothekenrezepte"
-      End
-      Begin VB.Menu EinlesungenAnzeigen 
-         Caption         =   "&Einlesungen anzeigen"
       End
       Begin VB.Menu DokumenteAbgehaktPrüfen 
          Caption         =   "Dokumente abgeha&kt prüfen"
@@ -1011,6 +1014,22 @@ Private Sub DMP_Übersicht_Click()
  myFrag rs, "SELECT NachName, VorName, GebDat, Pat_id, LanrID, Karteidatum, DATE(exportiert) EXP, DATE(dokudatum) Doku, Abk, Art FROM dmpreihe e WHERE karteidatum BETWEEN qanf() AND qend() AND exportiert<>18991230 ORDER BY lanrid, REPLACE(nachname,'€','C'), vorname, gebdat;"
  TabAusgeb rs, Me, , , , , , , "DMP-Dok'en " & ZQuart(Now() - Verspätung) & ", nach LANRID, Nachname, Vorname, Geb'dat sortiert", , True, , , , , True
 End Sub ' DMP_Übersicht_Click()
+
+' EDV -> Formulare bereinigen
+Private Sub Formulare_bereinigen_Click()
+ Dim rAF&
+ sql = "DELETE FROM forminhaltfeld WHERE NOT EXISTS (SELECT 1 FROM forminhfeld where feldvw = forminhaltfeld.feldvw LIMIT 1)"
+ syscmd 4, sql
+ myEFrag sql, rAF
+ sql = "DELETE f FROM forminhfeld f LEFT JOIN forminhkopf k USING (foid) WHERE k.foid IS NULL;"
+ syscmd 4, sql
+ myEFrag sql, rAF
+ sql = "DELETE fif FROM forminhaltfeldinh WHERE NOT EXISTS (SELECT 1 FROM forminhfeld WHERE feldinhvw = forminhaltfeldinh.feldinhvw LIMIT 1)"
+ ' fif LEFT JOIN forminhfeld fi USING (feldinhvw) WHERE fi.feldinhvw IS NULL;"
+ syscmd 4, sql
+ myEFrag sql, rAF
+ syscmd 4, "Fertig mit Bereinigen der Formulare"
+End Sub ' Formulare_bereinigen_Click()
 
 ' Datei -> Optionen
 Private Sub Optionen_Click()
@@ -1323,7 +1342,7 @@ While Not EOF(1)
   pid = LTrim$(sLine)
   If (InStr(pid, " ")) Then pid = Left$(pid, InStr(pid, " ") - 1)
   If (InStr(pid, ",")) Then pid = Left$(pid, InStr(pid, ",") - 1)
-  Debug.Print pid
+'  Debug.Print pid
   If IsNumeric(pid) Then
     dodoPLZ pid, plzVz, Now, Now - Int(Now), True, ""
   End If ' IsNumeric(pid) Then
@@ -1422,7 +1441,7 @@ Private Sub WiedereinbestellungenDMP_Click()
    If obDruck Then
 '    AusgStr = Right$(Space$(4) & r1!Pat_id, 4) & " " & LEFT(r1!Nachname & Space$(15), 15) & " " & LEFT(r1!Vorname & Space$(11), 11) & "   " & IIf(obhierdmp(r1!Notiz), "X", " ") & " (" & LEFT(IIf(ISNULL(r1!Notiz) OR LenB(r1!Notiz) = 0, r1!rname, replace$(replace$(r1!Notiz, vbCr, ""), vbLf, "")) & ")" & Space$(42), 42) & " " & LEFT(r1!BhFB & Space$(10), 10) & " " & Zp
     AusgStr = Right$(Space$(4) & r1!Pat_id, 4) & " " & Left$(r1!Nachname & Space$(15), 15) & " " & Left$(r1!Vorname & Space$(11), 11) & "   " & IIf(r1!dmpklass = 3, "X", " ") & " (" & Left$(IIf(IsNull(r1!Notiz) Or LenB(r1!Notiz) = 0, r1!rname, REPLACE$(REPLACE$(r1!Notiz, vbCr, ""), vbLf, "")) & ")" & Space$(42), 42) & " " & Left$(r1!BhFB & Space$(10), 10) & " " & Zp
-    Debug.Print AusgStr
+'    Debug.Print AusgStr
     Me.Ausgeb AusgStr & vbCrLf & altAusgabe, True
     Print #339, AusgStr
     Print #339, String$(110, "_")
@@ -2243,7 +2262,7 @@ Private Sub DoppelteDiagnosen_Click()
   rs.Move 1
  Loop
  Print #327, "Fertig!"
- Debug.Print "Fertig!"
+' Debug.Print "Fertig!"
  Close #327
  Call ProgEnde
  zeigan DatNam
@@ -2263,7 +2282,7 @@ Private Sub KassenEditieren_Click()
   ked.Check1(ked.Check1.COUNT - 1).Top = ked.Check1(ked.Check1.COUNT - 2).Top + 300
   ked.Check1(ked.Check1.COUNT - 1).Visible = True
   rs.Move 1
- Loop
+ Loop ' While Not rs.EOF
  Unload ked.Check1(ked.Check1.COUNT - 1)
  ked.Show
 End Sub ' KassenEditieren_Click
@@ -3556,8 +3575,8 @@ Private Sub doppelteFaxe_Click()
  Call acon(quelleT)
  Call acon(FaxT)
  Call dodoppelteFaxe(pVerz & "unkorrigiert")
- Print #323, "Fertig!"
- Debug.Print "Fertig!"
+ Print #323, "Fertig mit doppelteFaxe_Click!"
+' Debug.Print "Fertig mit doppelteFaxe_Click!"
  Close #323
  zeigan DatNam
 End Sub ' doppelteFaxe_Click
@@ -3644,7 +3663,7 @@ Private Sub Gewichte_Click()
   myEFrag sql, rAF
   rs.Move 1
  Loop
- Debug.Print "Fertig!"
+ Lese.Ausgeb "Fertig mit Gewichte_Click!", True
 End Sub ' Gewichte_Click
 
 ' Testfunktionen -> Gewichtsabnahmekandidaten
@@ -3905,7 +3924,7 @@ Private Sub dodoppelteFaxe(V$)
  Dim Fil As File, pid$, pos%, buch$
  Dim rs As New ADODB.Recordset, rs1 As New ADODB.Recordset
  Print #323, V
- Debug.Print V
+ Debug.Print "dodoppelteFaxe(" & V & ")"
  For Each Fil In FSO.GetFolder(V).Files
   If Fil.name Like "*PID *" Then
    pos = InStr(Fil.name, "PID ") + 4

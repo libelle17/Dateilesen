@@ -428,7 +428,10 @@ Function KernUsd(ByRef trz, ByRef Wert$(), j&)
       Wert(k) = Trim$(Mid$(rEi(j).Inhalt, pe1, WertLen))
       Offs(k) = pe1
      Else
-      If rEi(j).art <> "vkgd" Then Stop
+      If rEi(j).art <> "vkgd" Then
+       MsgBox "rEi(" & j & ").art <> 'vkgd' (" & rEi(j).vkgd & ")"
+       Stop
+      End If
       p2 = p1 ' wenn eins ausgelassen war, dann das darauf folgende noch berücksichtigen
      End If
     Else
@@ -814,7 +817,7 @@ Function usVKGD()
              ", aktueller Gynäkologenbefund", ", Gewichtsentwicklung der Schwangeren", _
              ", HbA1c (monatlich)+ ggf. TSH (dreimonatlich) abgenommen", ", Blutdruck", ", Puls", _
              "; (", "")
-             Debug.Print UBound(trz)
+'             Debug.Print UBound(trz)
  For j = 1 To UBound(rEi)
   If rEi(j).art = "vkgd" Then
    If rVk(UBound(rVk)).absPos <> 0 Or UBound(rVk) = 0 Then ReDim Preserve rVk(UBound(rVk) + 1)
@@ -861,7 +864,7 @@ Function usVKGD2()
              ", aktueller Gynäkologenbefund", ", Gewichtsentwicklung der Schwangeren", _
              ", Bewegung: Art:", ", Minuten pro Woche:", ", Blutdruck", ", Puls", _
              "; (", "")
-             Debug.Print UBound(trz)
+'             Debug.Print UBound(trz)
  For j = 1 To UBound(rEi)
   If rEi(j).art = "vkgd2" Then
    If rVk(UBound(rVk)).absPos <> 0 Or UBound(rVk) = 0 Then ReDim Preserve rVk(UBound(rVk) + 1)
@@ -909,7 +912,7 @@ Function USUlcus()
              "Geruch aus 3 cm Entfernung:", "Wundrand:", "Wundumgebung:", "Temperatur:", "Fotodoku", _
              "Wundversorgung:", _
              "Mitarbeiter:", "")
-             Debug.Print UBound(trz)
+'             Debug.Print UBound(trz)
  For j = 1 To UBound(rEi)
   If rEi(j).art = "ulcus" Then
    If rUl(UBound(rUl)).absPos <> 0 Or UBound(rUl) = 0 Then ReDim Preserve rUl(UBound(rUl) + 1)
@@ -960,7 +963,7 @@ Function USUlcusa()
              "Geruch aus 3 cm Entfernung:", "Wundrand:", "Wundgrund:", "Wundumgebung:", "Temperatur:", "Phase:", "Fotodoku", _
              "Wundversorgung:", _
              "Mitarbeiter:", "")
-             Debug.Print UBound(trz)
+'             Debug.Print UBound(trz)
  For j = 1 To UBound(rEi)
   If rEi(j).art = "ulcus" Then
    If rUl(UBound(rUl)).absPos <> 0 Or UBound(rUl) = 0 Then ReDim Preserve rUl(UBound(rUl) + 1)
@@ -1633,11 +1636,11 @@ Function do_anImp(imin%, imax%, tr$(), Fd$(), makro$, Optional tfd1, Optional tf
     Do
      Dim ZifPos As Vorkommen
      trennz = REPLACE$(trennz, " ", "")
-     Debug.Print trennz
+'     Debug.Print trennz
      ZifPos = doSp(sp(0), trennz)
      If ZifPos.Beg > 0 Then
       sp(1) = Mid$(sp(0), ZifPos.END + 1)
-      Debug.Print sp(1)
+'      Debug.Print sp(1)
       sp(0) = Left$(sp(0), ZifPos.Beg - 1)
 #If False Then
      sp = Split(sp(0), trennz)
@@ -1966,7 +1969,7 @@ End If ' not kdm
 Exit Function
 Dim Feld$
 f1:
- Debug.Print fld, NeuInh
+' Debug.Print fld, NeuInh
 fehler:
  Dim AnwPfad$
 #If VBA6 Then
@@ -1992,7 +1995,7 @@ If Err.Number = -2147217887 Then ' Das Feld ist zu klein für die Datenmenge, die
  Do
   If rsc!COLUMN_NAME = rsAnm.Fields(fld).name Then
    SpName = rsc!COLUMN_NAME
-   If SpName = "Diabetestyp" Then Stop
+'   If SpName = "Diabetestyp" Then Stop
 '   IF Not SpModAlt(NeuInh, "anamnesebogen", rsc) THEN ' dann Memo-Feld
 '    Call myEFrag("UPDATE `anamnesebogen` SET " & "`" & SpName & "`" & " = """ & replace$(NeuInh, """", """""") & """ WHERE pat_id = " & rNa(0).Pat_id, AfN)
 '   END IF

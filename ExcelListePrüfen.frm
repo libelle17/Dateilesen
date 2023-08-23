@@ -283,7 +283,7 @@ End Sub ' form_load
 '#Else
 ' AnwPfad = App.path
 '#END IF
-'SELECT CASE MsgBox("FNr: " & FNr & "ErrNr: " & CStr(FNr) + vbCrLf + "LastDLLError: " + CStr(FLastDLLError) + vbCrLf + "Source: " + IIf(ISNULL(FSource), vNS, CStr(FSource)) + vbCrLf + "Description: " + FDescr, vbAbortRetryIgnore, "Aufgefangener Fehler in doVorhandene/" + AnwPfad)
+'SELECT CASE MsgBox("FNr: " & FNr & "ErrNr: " & CStr(FNr) + vbCrLf + "LastDLLError: " + CStr(FLastDLLError) + vbCrLf + "Source: " + IIf(ISNULL(FSource), vNS, CStr(FSource)) + vbCrLf + "Description: " + FDescr, vbAbortRetryIgnore, "Aufgefangener Fehler in Form_Load/" + AnwPfad)
 ' Case vbAbort: Call MsgBox("Höre auf"): Progende
 ' Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
 ' Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
@@ -324,7 +324,7 @@ Private Sub DateiBearbeiten_Click()
     If IsNull(rEx.Fields(1)) Then Exit Do ' 8.1.08
     Select Case FenArt
      Case 2
-      Debug.Print rEx.Fields(0), rEx.Fields(1), rEx.Fields(2), rEx.Fields(3)
+'      Debug.Print rEx.Fields(0), rEx.Fields(1), rEx.Fields(2), rEx.Fields(3)
       Dim rsl As New ADODB.Recordset
       Set rsl = Nothing
       myFrag rsl, "SELECT COUNT(0) ct FROM `laborparameter` WHERE abkü = '" & UmwfSQL(rEx.Fields(0)) & "' AND langtext = '" & UmwfSQL(rEx.Fields(1)) & "' AND einheit = '" & UmwfSQL(rEx.Fields(2)) & "'"
@@ -334,36 +334,36 @@ Private Sub DateiBearbeiten_Click()
        Stop
       End If
      Case Else
-    If rEx.Fields(0) <> "" And Not IsNumeric(rEx.Fields(0)) Then
-     pRoh = rEx.Fields(0)
-     If InStrB(rEx.Fields(2), "Es ist kein Bericht vorhanden") > 0 Then
-      ka = InStr(pRoh, "(")
-      ke = InStr(pRoh, ")")
-      If ka > 0 And ke > 0 Then
-       sql = "SELECT pat_id FROM `namen` WHERE CONCAT(vorname¡' '¡nvorsatz¡if(nvorsatz<>'',' ','')¡nachname¡' ('¡DATE_FORMAT(gebdat,'%d.%m.%Y')) = '" & Left$(pRoh, ke - 1) & "'"
-       If InStrB(UCase$(dbv.ODBC), "MYSQL") > 0 Then
-        sql = REPLACE$(sql, "¡", ",")
-       Else
-        sql = REPLACE$(REPLACE$(sql, "concat", ""), "¡", " & ")
-        sql = REPLACE$(sql, "DATE_FORMAT(", "format$(")
-        sql = REPLACE$(sql, "if(", "iif(")
-        sql = REPLACE$(sql, "%d.%m.%Y", "dd.mm.yyyy")
-       End If
-       Set rs = Nothing
-       myFrag rs, sql
-       If rs.EOF Then
-        MsgBox "Stop in DateiBearbeitenClick: " & vbCrLf & "rs.EOF" & vbCrLf & "sql: " & sql
-        Stop
-       Else
-        If Not angefangen Then
-'         Call LeistungsExport0
-         angefangen = True
-        End If
-        Call teste(rs!Pat_id)
-       End If
-      End If
-     End If
-    End If
+      If rEx.Fields(0) <> "" And Not IsNumeric(rEx.Fields(0)) Then
+       pRoh = rEx.Fields(0)
+       If InStrB(rEx.Fields(2), "Es ist kein Bericht vorhanden") > 0 Then
+        ka = InStr(pRoh, "(")
+        ke = InStr(pRoh, ")")
+        If ka > 0 And ke > 0 Then
+         sql = "SELECT pat_id FROM `namen` WHERE CONCAT(vorname¡' '¡nvorsatz¡if(nvorsatz<>'',' ','')¡nachname¡' ('¡DATE_FORMAT(gebdat,'%d.%m.%Y')) = '" & Left$(pRoh, ke - 1) & "'"
+         If InStrB(UCase$(dbv.ODBC), "MYSQL") > 0 Then
+          sql = REPLACE$(sql, "¡", ",")
+         Else
+          sql = REPLACE$(REPLACE$(sql, "concat", ""), "¡", " & ")
+          sql = REPLACE$(sql, "DATE_FORMAT(", "format$(")
+          sql = REPLACE$(sql, "if(", "iif(")
+          sql = REPLACE$(sql, "%d.%m.%Y", "dd.mm.yyyy")
+         End If
+         Set rs = Nothing
+         myFrag rs, sql
+         If rs.EOF Then
+          MsgBox "Stop in DateiBearbeitenClick: " & vbCrLf & "rs.EOF" & vbCrLf & "sql: " & sql
+          Stop
+         Else
+          If Not angefangen Then
+'           Call LeistungsExport0
+           angefangen = True
+          End If
+          Call PatTeste(rs!Pat_id)
+         End If ' rs.EOF Then
+        End If ' ka > 0 And ke > 0 Then
+       End If ' InStrB(rEx.Fields(2), "Es ist kein Bericht vorhanden") > 0 Then
+      End If ' rEx.Fields(0) <> "" And Not IsNumeric(rEx.Fields(0)) Then
     End Select
   ElseIf Not IsNull(rEx.Fields(0)) And Not IsNull(rEx.Fields(1)) And Not IsNull(rEx.Fields(2)) Then
    obAnfang = True
@@ -398,7 +398,8 @@ Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(FNr) + vbCrLf + "LastDLLErro
 End Select
 End Sub ' DateiBearbeiten_Click()
 
-Public Sub teste(Pat_id&)
+' aufgerufen in DateiBearbeiten_Click()
+Public Sub PatTeste(Pat_id&)
  Dim rs As New ADODB.Recordset, rl As New ADODB.Recordset
  Dim BDT As New BDTSchreib
 ' Static obstart%
@@ -407,10 +408,10 @@ Public Sub teste(Pat_id&)
   Set rs = Nothing
   myFrag rs, "SELECT SchGr,FID FROM `faelle` f WHERE f.pat_id = " & Pat_id & " AND quartal = '42007'"
   If rs.EOF Then
-   MsgBox "Stop in teste: " & vbCrLf & "rs.EOF" & vbCrLf & "sql: " & sql & vbCrLf & "Pat_id: " & Pat_id
+   MsgBox "Stop in PatTeste: " & vbCrLf & "rs.EOF" & vbCrLf & "sql: " & sql & vbCrLf & "Pat_id: " & Pat_id
    Stop
   ElseIf rs!SchGr <> "00" Then
-   Debug.Print Pat_id
+'   Debug.Print Pat_id
    Set rl = Nothing
    myFrag rl, "SELECT * FROM `leistungen` WHERE fid = " & rs!FID & " AND leistung IN (33012,33060,33061,33042) ORDER BY zeitpunkt DESC"
    Dim Datum As Date
@@ -431,8 +432,9 @@ Public Sub teste(Pat_id&)
     '   END IF
   End If
  End If
-End Sub ' teste
+End Sub ' PatTeste
 
+' aufgerufen in Form_Load
 Public Sub RegLaden()
  Dim neuS$, neuB&
  On Error Resume Next

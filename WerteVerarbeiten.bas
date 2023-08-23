@@ -247,7 +247,7 @@ fehler:
  End Select
 End Function ' erbe(byVal Pat_id&) As Date
 
-' in lebetest
+' in lebetest und do_Form_Current_Anbog
 Function lebe(ByVal Pat_id&) As Date ' Letzte Behandlung
 Dim lbehD As Date, rLb As New ADODB.Recordset
 On Error GoTo fehler
@@ -286,7 +286,7 @@ fehler:
   Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
   Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
  End Select
-End Function ' letzt
+End Function ' lebe
 
 Function behDauerStr$(Pat_id, lbeh As Date) ' nur in tubriefStandalone
  Dim D1 As Date, D2 As Date
@@ -748,14 +748,17 @@ End Function ' testtherart$()
 'End FUNCTION ' Therart
 #End If
 
+#If zutesten Then
 Sub odbctest()
  Dim v1$(), v2$(), i
  Call regEnumVal("SOFTWARE\ODBC\ODBCINST.INI\ODBC Drivers", v1, v2)
  For i = 0 To UBound(v1)
   Debug.Print v1(i), v2(i)
  Next i
-End Sub
+End Sub ' odbctest()
+#End If
 
+' aufgerufen in test_Click
 Public Function bittest1()
  'SetDBCn Nothing
  DBCnS = vNS
@@ -770,6 +773,7 @@ Public Function bittest1()
  End If ' rs.State <> 0 Then
 End Function ' bittest1
 
+#If zutesten Then
 Function bittest()
  Dim rAF&, Cn$(2), dtyp$(1), i%, j%
  Dim rs As New ADODB.Recordset
@@ -823,7 +827,7 @@ fehler:
   Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
  End Select
 End Function ' bittest
-
+#End If
 
 Sub GibwerteAus(Optional obAnzeig As Boolean = True)
  do_GibwerteAus obAnzeig
@@ -967,7 +971,7 @@ Function KommRep() ' Kommentare reparieren
 '       komm = T1.Fields(T2!Field).Properties("Description")
        On Error GoTo fehler
        If komm <> T2!Comment Then
-        Debug.Print "->", xr.name, T2!Field.Value, komm, T2!Comment
+'        Debug.Print "->", xr.name, T2!Field.Value, komm, T2!Comment
        End If
        If komm <> "" Then
         Dim AfN&
@@ -985,7 +989,7 @@ Function KommRep() ' Kommentare reparieren
         If ErrNr <> 0 Then
          Err.Clear
          On Error GoTo fehler
-         Debug.Print xr.name, T2!Field.Value, komm
+'         Debug.Print xr.name, T2!Field.Value, komm
          On Error Resume Next
          Err.Clear
          Call myEFrag("ALTER TABLE `" & xr.name & "` MODIFY COLUMN `" & T2!Field.Value & "` " & T2!Type.Value & " DEFAULT " & defa & IIf(IsNull(T2!collation), vNS, " COLLATE " & T2!collation) & " COMMENT '" & komm & "', ENGINE = InnoDB;", AfN, MyS, True, ErrNr, ErrDes)

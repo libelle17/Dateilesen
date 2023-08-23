@@ -206,14 +206,14 @@ gefunden:
    Err.Clear
    Dim Port&
    For Port = 0 To 3307 Step 3307
-    Debug.Print Cpt
+'    Debug.Print Cpt
     Dim CnStr$
     CnStr = "Provider=MSDASQL.1;Extended Properties=DRIVER={" & ODBCStr() & "};OPTION=3;PWD=***REMOVED***;PORT=" & Port & ";SERVER=" & Cpt & ";UID=praxis;"
     Set MyCn = Nothing
     Set MyCn = New ADODB.Connection
     MyCn.Open CnStr
     If Err.Number <> 0 Then
-     Debug.Print "Fehler beim Öffnen der Verbindung: " & CnStr & " " & Err.Description
+'     Debug.Print "Fehler beim Öffnen der Verbindung: " & CnStr & " " & Err.Description
      frm.Ausgeb "Fehler beim Öffnen der Verbindung: " & CnStr & " " & Err.Description, True
      Err.Clear
      CnStr = "DRIVER={" & ODBCStr() & "};server=" & Cpt & ";option=0;uid=praxis;pwd=***REMOVED***;"
@@ -223,7 +223,7 @@ gefunden:
     End If
     If Err.Number = 0 Then
      Dim obenthalten%
-     Debug.Print MyCn.ConnectionString
+'     Debug.Print MyCn.ConnectionString
      DoEvents
      obenthalten = False
 #If langsam Then
@@ -234,7 +234,7 @@ gefunden:
      Do While Not rdb.EOF
       fld = rdb.Fields(0)
       myEFrag "USE `" & fld & "`", , MyCn, True, ErrNr
-      Debug.Print "USE `" & fld & "`"
+'      Debug.Print "USE `" & fld & "`"
       If ErrNr <> 0 Then
 '       Print #399, "Computer: " & Cpt & ", Datenbank : " & fld & ": Fehler: " & Err.Description
        frm.Ausgeb "Computer: " & Cpt & ", Datenbank : " & fld & ": Fehler: " & Err.Description, True
@@ -261,7 +261,7 @@ gefunden:
       Do While Not rdb.EOF
        runde = runde + 1
        fld = rdb.Fields(0)
-       Debug.Print "Runde: " & runde & ", rdb.fields(0): ", fld
+'       Debug.Print "Runde: " & runde & ", rdb.fields(0): ", fld
        myEFrag "USE `" & fld & "`", , MyCn2, True, ErrNr
        If ErrNr = -2147467259 Then
         MyCn2.Close
@@ -275,7 +275,7 @@ gefunden:
 '        rHa.Open "SELECT table_name FROM information_schema.`TABLES` WHERE table_schema = '" & fld & "' AND table_name = 'anamnesebogen'", MyCn, adOpenStatic, adLockReadOnly
         myFrag rHa, "SELECT table_name FROM information_schema.`TABLES` WHERE table_schema = '" & fld & "' AND table_name = 'anamnesebogen'", adOpenStatic, MyCn, , , , True, ErrNr, ErrDes
         If ErrNr <> 0 Then
-         Debug.Print ErrDes
+'         Debug.Print ErrDes
          If ErrNr = -2147217887 Then
           MyCn.Close
           MyCn.Open
@@ -318,7 +318,7 @@ gefunden:
             obenthalten = True
            End If ' Err.Number <> 0 Then
           End If ' Err.Number <> 0 Then
-          Debug.Print zeigstr
+'          Debug.Print zeigstr
 '          Print #399, zeigstr
           frm.Ausgeb zeigstr, True
           rHa.MoveNext
@@ -590,9 +590,9 @@ gefunden:
       On Error Resume Next
       Call myEFrag(sqlakt, rAF, QCn(dbknr), True, ErrNr, ErrDes)
       If ErrNr <> 0 And LVobMySQL Then
-       Debug.Print "Vorabfrage: ", Vorabfrage
-       Debug.Print sqlakt
-       Debug.Print ErrNr, ErrDes, "QCn(dbknr).ConnectionString = ", QCn(dbknr).ConnectionString
+'       Debug.Print "Vorabfrage: ", Vorabfrage
+'       Debug.Print sqlakt
+'       Debug.Print ErrNr, ErrDes, "QCn(dbknr).ConnectionString = ", QCn(dbknr).ConnectionString
        frm.Ausgeb sqlakt, True
        frm.Ausgeb ErrNr & ErrDes & " QCn(dbknr).ConnectionString = '" & QCn(dbknr).ConnectionString & "'", True
       Else
@@ -644,7 +644,7 @@ gefunden:
    rEx.Move 1
  Loop
  frm.Ausgeb "Fertig mit Einlesen von: '" & aktDatei & "', " & zeile & " Zeilen bearbeitet, aktualisiere jetzt ...", True
- Debug.Print zeile, " Zeilen bearbeitet"
+' Debug.Print zeile, " Zeilen bearbeitet"
 ' Exit Sub
 #End If
  
@@ -695,9 +695,9 @@ For dbknr = LBound(QCn) To UBound(QCn)
      v2 = REPLACE(REPLACE(REPLACE(rV2!telefon, " ", vNS), "/", vNS), "-", vNS)
      If v1 <> v2 Then obT = True
     End If
-    If obT Then
-     Debug.Print rV2!Nachname, rV2!Vorname, rV2!telefon, "<>", rV1!telefon
-    End If
+'    If obT Then
+'     Debug.Print rV2!Nachname, rV2!Vorname, rV2!telefon, "<>", rV1!telefon
+'    End If
    
     obT = False
     If IsNull(rV2!telefax) + (IsNull(rV1!fax) Or rV1!fax = vNS) = -1 Then
@@ -714,9 +714,9 @@ For dbknr = LBound(QCn) To UBound(QCn)
      v2 = REPLACE(REPLACE(REPLACE(rV2!telefax, " ", vNS), "/", vNS), "-", vNS)
      If v1 <> v2 Then obT = True
     End If
-    If obT Then
-     Debug.Print rV2!Nachname, rV2!Vorname, rV2!telefax, "<>", "'" & rV1!fax & "'"
-    End If
+'    If obT Then
+'     Debug.Print rV2!Nachname, rV2!Vorname, rV2!telefax, "<>", "'" & rV1!fax & "'"
+'    End If
     DoEvents
     rV2.Move 1
    Loop ' While Not rV2.EOF
@@ -867,7 +867,7 @@ nochmal:
       
       For i = 0 To UBound(v1sql) + 1
        If i = UBound(v1sql) + 1 Then
-        Debug.Print rF0
+'        Debug.Print rF0
 '        Stop
         pos = InStr(rF0, "/")
         If pos = 0 Then pos = InStr(rF0, ",")

@@ -723,7 +723,7 @@ Sub doStart() 'DMP-Infos an Hausärzte faxen starten
 '          IF aktPatGefaxt(j) = fax1 THEN obdoppelt = True
 '         Next j
          If Not obdoppelt Then
-          Debug.Print "Erstelle: ", PatZuHASL.Item(i).Pat_id, PatZuHASL.Item(i).name, fax1, PatZuHASL.Item(i).ÜWNr
+          syscmd 4, "Erstelle: " & " " & PatZuHASL.Item(i).Pat_id & " " & PatZuHASL.Item(i).name & " " & fax1 & " " & PatZuHASL.Item(i).ÜWNr
 '          IF runde = 1 THEN
 '          Else
 '           IF pat_id = 1974 THEN
@@ -1378,7 +1378,7 @@ Private Sub htmlb(Optional obStumm%) ' HTML-Dateien bewahren
      FileCopy aktdat, Ziel & NN & ", geb. " & Geb & ", DMP-" & dmpArt & ".html"
      Zahl = Zahl + 1
      Kill aktdat
-     Debug.Print erg & " " & dmpArt & " " & NN & " " & Geb
+'     Debug.Print erg & " " & dmpArt & " " & NN & " " & Geb
     End If
     erg = Dir
    Loop
@@ -1556,7 +1556,7 @@ Private Sub Command2_Click()
     If pos = 4 Then
      Dim Pat_id$
      Pat_id = Mid$(erg, pos + 4)
-     Debug.Print Pat_id
+'     Debug.Print Pat_id
 #If True Then
      callMachDMPBogen CLng(Pat_id), "", 0, True, True, Datei
 #Else
@@ -3176,7 +3176,7 @@ andSp:
        End If
        If aktw < vw1 - 1.5 Then .TextMatrix(i, medsp) = "Hb-Abfall!": .Row = i: .col = medsp: .CellBackColor = vbRed
       Case Else
-       Debug.Print vorDp, i
+'       Debug.Print vorDp, i
      End Select ' vorDp
     End If ' GFR else
     Dim Tkz%, gsz%, wdz%, ahz%
@@ -3270,7 +3270,7 @@ fehler:
  End Select
 End Sub ' LabordateiAnzeig
 
-
+' aufgerufen in Form_Load
 Private Sub RegLaden()
  Dim neuS$, neuB&, i&
  Static angefangen%
@@ -3460,7 +3460,7 @@ Private Sub Form_Load()
    If FSO.FolderExists(gelvz) Then
     Set Fls = FSO.GetFolder(gelvz).Files
     For Each Fl In Fls
-     Debug.Print Fl.name, Fl.DateLastModified
+'     Debug.Print Fl.name, Fl.DateLastModified
      If Fl.name Like "*" & DMP_Import And Fl.DateLastModified > Now() - 14 Then
       Open Fl.path For Input As #388
       Do While Not EOF(388)

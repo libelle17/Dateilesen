@@ -587,7 +587,7 @@ erneut:
                 If rs!Eingang > rLw2(i).Eingang Then
                  myEFrag "UPDATE `laborxpnb` SET eingang = " & DatFor_k(rLw2(i).Eingang) & ",uid = " & rLw2(i).e.RefNr & " WHERE id = " & rs!id, rAF
                  If rAF <> 1 Then
-                  Debug.Print "Fehler bei update eingang"
+                  Debug.Print "Fehler in LaborDirektImport bei update eingang"
                  End If
                 End If
                Case 1
@@ -597,7 +597,7 @@ erneut:
                Case 2
                 myEFrag "UPDATE `laborxpnb` SET geschlecht = 9 WHERE id = " & rs!id, rAF
                 If rAF <> 1 Then
-                 Debug.Print "Fehler bei update geschlecht"
+                 Debug.Print "Fehler in LaborDirektImport bei update geschlecht"
                 End If
               End Select
               rLw(i).nbid = rs.Fields(0)
@@ -609,7 +609,7 @@ erneut:
               End Select
              End If ' Not rs.BOF Then
             Next i
-            Debug.Print SL.Item(ii).File.name
+'            Debug.Print SL.Item(ii).File.name
             Call laborxwertSpeichern(SammelInsert, BezfSpei)
             Call laborxleistSpeichern(SammelInsert, BezfSpei)
             Call myEFrag("UPDATE `laborxeingel` SET fertig = 1 WHERE datid = " & SL.Item(ii).DatID) ' Fertigkennzeichen setzen

@@ -1201,7 +1201,7 @@ Function MacheTypen(frm As Lese)
   Else
    Print #257, " ON Error GoTo fehler"
   End If
-  Print #257, " syscmd 4, pid & "": Speichere "" & ubound(r" & Tbk(i) & ") & "" Sätze in `" & aktTbn & "`"""
+  Print #257, " syscmd 4, pid & "": Speichere "" & Ubound(r" & Tbk(i) & ")+" & IIf(aktTbn = "namen", 1, 0) & " & "" Sätze in `" & aktTbn & "`"""
 '  Print #257, " DBCnOpen CSStr"
 '  Print #257, " Call myEFrag(""use quelle1"")"
   If i <= TbZ1 Then
@@ -1738,7 +1738,7 @@ Function BooleanFld(frm As Lese)
     If rs1!Type = "tinyint(1)" Then
 '     Call myEFrag("ALTER TABLE `" & DBCn.DefaultDatabase & "`.`" & rs.Fields(0) & "` " & sqlALTER & " COLUMN `" & rs1!Field & "` Bit(1) DEFAULT NULL COMMENT '" & rs1!Comment & "', ENGINE = InnoDB;", AfN)
      Call myEFrag("ALTER TABLE `" & rs.Fields(0) & "` " & sqlALTER & " COLUMN `" & rs1!Field & "` Bit(1) DEFAULT " & IIf(IsNull(rs1!Default), "NULL", rs1!Default) & " COMMENT '" & rs1!Comment & "', ENGINE = InnoDB;", AfN)
-     Debug.Print AfN
+'     Debug.Print AfN
     End If
     rs1.Move 1
    Loop
@@ -1889,17 +1889,19 @@ weiter:
   DSo = DSo & Left$(DefDB(aktCn) & Space$(SpBr), SpBr) ' "Data Source Name"
   Prov = Prov & Left$(aktCn.Provider & Space$(SpBr), SpBr)
  Next i
- For j = 0 To TbZ2
-  For k = 0 To cnA.Fields.COUNT - 1
-   For l = 0 To 3
-    If fld(1, j, l, k) <> fld(2, j, l, k) Then
-     If l < 3 Then
-     Debug.Print tbn(j), fld(1, j, 0, k), l, fld(1, j, l, k), fld(2, j, l, k)
-     End If
-    End If
-   Next l
-  Next k
- Next j
+ 
+' For j = 0 To TbZ2
+'  For k = 0 To cnA.Fields.COUNT - 1
+'   For l = 0 To 3
+'    If fld(1, j, l, k) <> fld(2, j, l, k) Then
+'     If l < 3 Then
+'     Debug.Print tbn(j), fld(1, j, 0, k), l, fld(1, j, l, k), fld(2, j, l, k)
+'     End If
+'    End If
+'   Next l
+'  Next k
+' Next j
+
 ' frm.Ausgabe = LEFT(frm.dlg.MdB + Space$(SpBr), SpBr) & " " & LEFT("quelle" + Space$(SpBr), SpBr) & " " & LEFT("quelle1" + Space$(SpBr), SpBr) & " " & LEFT("quelle2" + Space$(SpBr), SpBr) + vbCrLf + vbCrLf
  frm.Ausgabe = DSo & vbCrLf & Prov & vbCrLf
  
@@ -2241,10 +2243,11 @@ Function adoxtest(dlg As Dialog)
    On Error GoTo fehler
    If CC > 0 Then
     For j = 1 To CC - 1
-     Debug.Print cat.Tables(k).Columns(j).name, cat.Tables(k).Columns(j).Attributes, cat.Tables(k).Columns(j).Properties.COUNT
-     For l = 0 To cat.Tables(k).Columns(j).Properties.COUNT - 1
-      Debug.Print cat.Tables(k).Columns(j).Properties(l).name, cat.Tables(k).Columns(j).Properties(l).Value
-     Next l
+'     Debug.Print cat.Tables(k).Columns(j).name, cat.Tables(k).Columns(j).Attributes, cat.Tables(k).Columns(j).Properties.COUNT
+'     For l = 0 To cat.Tables(k).Columns(j).Properties.COUNT - 1
+'      Debug.Print cat.Tables(k).Columns(j).Properties(l).name, cat.Tables(k).Columns(j).Properties(l).Value
+'     Next l
+
 '   Debug.Print cat.Tables(1).Columns(j).SortOrder
 '    Debug.Print cat.Tables(k).Columns(j).Properties.Count
 '    Debug.Print cat.Tables(k).Columns(j).Attributes
@@ -2387,7 +2390,7 @@ If KeyCode = 27 Then
    End If
   End If
  ElseIf KeyCode <> 16 And KeyCode <> 17 And KeyCode <> 18 Then
-  Debug.Print "KeyCode in Haupt.Key: " & KeyCode
+'  Debug.Print "KeyCode in Haupt.Key: " & KeyCode
  End If
 ' IF KeyCode = 33 THEN Call doRückwärtsCmd(frm)
 ' IF KeyCode = 34 THEN Call doVorwärtsCmd(frm) <- stellt den aktuellen Feldinhalt falsch ein!
@@ -2402,22 +2405,23 @@ End Select
 End Function ' key
 
 Function ForeignNo0()
+ Dim runde%
  On Error GoTo fehler
  If ForeignKAus0 = 0 Then
   If lies.obMySQL Then
-'   Call myEFrag("SET foreign_key_checks = 0") ' Kommentar 12.12.09
-   Dim rAF&
-   DBCn.Execute "set foreign_key_checks = 0", rAF
+'   Call myEFrag("SET foreign_key_checks = 0")
+   DBCn.Execute "SET foreign_key_checks = 0"
   Else
    ZielDbS = Lese.dlg.MdB
    Call BezLöschA
   End If
-  ForeignKAus0 = ForeignKAus0 + 1
- End If
+  ForeignKAus0 = 1
+ End If ' ForeignKAus0 = 0 Then
  Exit Function
 fehler:
 ErrNumber = Err.Number
-If Err.Number = -2147467259 Then ' The Server has gone away
+runde = runde + 1
+If runde < 10 And Err.Number = -2147467259 Then ' The Server has gone away
  DBCnS = Lese.dbv.CnStr
 ' IF LenB(DBCnS) = 0 THEN DBCnS = DBCn.ConnectionString
 ' SetDBCn Nothing
@@ -2436,39 +2440,39 @@ Function ForeignNo1()
   If lies.obMySQL Then
 '   Call myEFrag("SET foreign_key_checks = 0")
    Dim rAF&
-   DBCn.Execute "set foreign_key_checks = 0", rAF
+   DBCn.Execute "SET foreign_key_checks = 0", rAF
   Else
    ZielDbS = Lese.dlg.MdB
    Call BezLöschA
-  End If
-  ForeignKAus1 = ForeignKAus1 + 1
- End If
+  End If ' lies.obMySQL Then
+  ForeignKAus1 = 1
+ End If ' ForeignKAus1 = 0 Then
 End Function ' ForeignNo()
 
 Function ForeignYes0()
  If ForeignKAus0 = 1 Then
   If lies.obMySQL Then
-   Call myEFrag("SET foreign_key_checks = 1")
+'   Call myEFrag("SET foreign_key_checks = 1")
+   DBCn.Execute "SET foreign_key_checks = 1"
   Else
    ZielDbS = Lese.dlg.MdB
    Call BezHerstA
-  End If
- End If
- ForeignKAus0 = ForeignKAus0 - 1
- If ForeignKAus0 < 0 Then ForeignKAus0 = 0
+  End If ' lies.obMySQL Then
+  ForeignKAus0 = 0
+ End If ' ForeignKAus0 = 1 Then
 End Function ' ForeignNo()
 
 Function ForeignYes1()
  If ForeignKAus1 = 1 Then
   If lies.obMySQL Then
-   Call myEFrag("SET foreign_key_checks = 1")
+'   Call myEFrag("SET foreign_key_checks = 1")
+   DBCn.Execute "SET foreign_key_checks = 1"
   Else
    ZielDbS = Lese.dlg.MdB
    Call BezHerstA
   End If
+  ForeignKAus1 = 0
  End If
- ForeignKAus1 = ForeignKAus1 - 1
- If ForeignKAus1 < 0 Then ForeignKAus1 = 0
 End Function ' ForeignNo()
 
 ' 21.9.08 aus AccDBMach kopiert
@@ -2637,7 +2641,7 @@ Function doLdFD() ' Liste der fehlenden Dokumente
      Print #322, "Kopiere " & Zp & " -> " & aktDP
     End If
    Next i
-   Debug.Print aktDP
+'   Debug.Print aktDP
    Print #322, rAb!Pat_id, rAb!Zeitpunkt, aktDP, rAb!DokName
    Lese.Ausgabe = Lese.Ausgabe & vbCrLf & rAb!Pat_id & " " & rAb!Zeitpunkt & " " & aktDP & vbTab & rAb!DokName
    tStr = sucheinVerz(rAb!DokName, pVerz)
@@ -3922,14 +3926,14 @@ Function ÜbertragFormulare(lies As Lese, AccForm$, FName$, Datenbank$, MyTab$)
  Call MdB.DoCmd.OpenForm(assform, acDesign)
  For i = 0 To MdB.Forms(0).Properties.COUNT - 1
   On Error Resume Next
-  Debug.Print MdB.Forms(0).Properties(i).name & " " & MdB.Forms(0).Properties(i)
+'  Debug.Print MdB.Forms(0).Properties(i).name & " " & MdB.Forms(0).Properties(i)
   On Error GoTo fehler
  Next i
  Call MdB.DoCmd.Close(acForm, AccForm)
  Call MdB.DoCmd.OpenForm(AccForm)
  For i = 0 To MdB.Forms(0).Properties.COUNT - 1
   On Error Resume Next
-  Debug.Print MdB.Forms(0).Properties(i).name & " " & MdB.Forms(0).Properties(i)
+'  Debug.Print MdB.Forms(0).Properties(i).name & " " & MdB.Forms(0).Properties(i)
   On Error GoTo fehler
  Next i
  Call MdB.DoCmd.Close(acForm, AccForm)
@@ -4116,11 +4120,11 @@ Function ÜbertragFormulare(lies As Lese, AccForm$, FName$, Datenbank$, MyTab$)
     MsgBox "Stop 2 bei Übertragformulare:" & vbCrLf & "MdB.Forms(0)(i).ControlType: " & MdB.Forms(0)(i).ControlType & vbCrLf & "i: " & i
     Stop
   End Select
-  If 1 = 0 Then
-    For j = 0 To MdB.Forms(0)(i).Properties.COUNT - 1
-     Debug.Print MdB.Forms(0)(i).Properties(j).name & " "; MdB.Forms(0)(i).Properties(j)
-    Next j
-  End If
+'  If 1 = 0 Then
+'    For j = 0 To MdB.Forms(0)(i).Properties.COUNT - 1
+'     Debug.Print MdB.Forms(0)(i).Properties(j).name & " "; MdB.Forms(0)(i).Properties(j)
+'    Next j
+'  End If
   On Error Resume Next
   Print #309, "      TabIndex        =   " & TabI(i)
   Print #309, "      BackColor       =   " & MdB.Forms(0)(i).BackColor
@@ -5071,7 +5075,7 @@ Function fzsfuell(frm As Lese, abstand&, Optional obgestern) ' Abstand: 999 => u
    For ilauf = 0 To UBound(rsse)
     QT = rsse(ilauf).Quartal
     frm.Ausgeb "Berechne den Fallzahlstand für Quartal: " & QT & IIf(rsse(ilauf).tage = 9999, " gesamt ...", " für " & rsse(ilauf).tage & " Tage nach Quartalsbeginn ... "), True
-    Debug.Print QT, rsse(ilauf).tage, rsse(ilauf).kassenpat
+'    Debug.Print QT, rsse(ilauf).tage, rsse(ilauf).kassenpat
     If ilauf = 0 Or myEFrag("SELECT 0 FROM fallzahlstand WHERE quartal = " & QT & " AND tage = " & abstand).BOF Then
 '    sql = "DELETE FROM `fallzahlstand` WHERE quartal = " & Qt & " AND tage = " & abstand
 '    myEFrag sql, rAF
@@ -5608,14 +5612,14 @@ Public Function labtest()
    erg = Dir("\\anmeldr\biowinbackup\" & rs!name)
    If LenB(erg) <> 0 Then
     myEFrag "UPDATE laborxeingel SET pfad = CONCAT('\\\\anmeldr\\biowinbackup\\',name) WHERE datid = " & rs!DatID, rAF
-    Debug.Print rAF & " bei Änderung von: " & rs!name
+'    Debug.Print rAF & " bei Änderung von: " & rs!name
    Else
-    Debug.Print rs!Zahl & " " & rs!Pfad
+'    Debug.Print rs!Zahl & " " & rs!Pfad
    End If
   End If
   rs.MoveNext
  Loop
- Debug.Print "Fertig!"
+' Debug.Print "Fertig!"
 End Function ' labtest
 
 Function getHatest(pid&)
@@ -5971,8 +5975,8 @@ Public Sub DoKassenkategorienBestimmen()
  ReDim namen(20)
  namen(0) = "PBeaKK"
  Call doKassKat("PBe", namen)
- syscmd 5
- Debug.Print "Fertig mit Kassenkategorienbestimmen"
+ syscmd 4, "Fertig mit Kassenkategorienbestimmen"
+' Debug.Print "Fertig mit Kassenkategorienbestimmen"
 End Sub ' DoKassenkategorienBestimmen
 
 Sub doKassKat(Kateg$, namen$(), Optional isn%)

@@ -981,7 +981,7 @@ Public Sub Einlies()
     Call BDTDateiDialog
    Next i
    Exit Sub
-  Loop
+  Loop ' Me.obBDT Then
  End If
  If Me.LaborDirektEinlesen And (Me.LaborPfadBeispiel = vNS Or Me.LaborPfadBeispiel = "0") Then
   LaborPfadBeispiel = Lese.LaborPfadDialog(LaborPfadBeispiel)

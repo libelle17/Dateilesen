@@ -525,7 +525,7 @@ Public Function GetAutoFeld$(ZCn As ADODB.Connection, ZCnS$, TabN$, rsq, FListe$
     For i = 0 To rsc.Fields.COUNT - 1
      ausg = ausg & rsc.Fields(i).name & ":" & rsc.Fields(i).Value & " "
     Next i
-    Debug.Print ausg
+'    Debug.Print ausg
     Print #399, ausg
     ausg = vNS
     rsc.Move 1

@@ -825,7 +825,7 @@ Public Sub rrpruef()
  Lese.ProgStart
  myFrag rs, "SELECT pat_id, gesname(pat_id) Name,(SELECT MAX(zeitpunkt)from rr WHERE pat_id=n.pat_id) rr1 FROM namen n ORDER BY pat_id DESC" ' WHERE pat_id <60050
  While Not rs.EOF
-  Debug.Print rs!Pat_id
+'  Debug.Print rs!Pat_id
 '  Call DMPString$(rs!Pat_id, ad, , , IIf(ISNULL(rs!RR1), Now(), rs!RR1), 0)
   Set raAna = Nothing
   If obAdo Then
@@ -837,12 +837,17 @@ Public Sub rrpruef()
   ad.RRsyst = 0
   ad.RRdiast = 0
   ad.PrRR = GetPrRR(raAna, ad.RRsyst, ad.RRdiast, obdiastkorr:=True)
-  If ad.RRsyst > 300 Or ad.RRsyst < 50 Or ad.RRdiast > 180 Or ad.RRdiast < 30 Then If Not IsNull(rs!RR1) Then Stop
+  If ad.RRsyst > 300 Or ad.RRsyst < 50 Or ad.RRdiast > 180 Or ad.RRdiast < 30 Then
+   If Not IsNull(rs!RR1) Then
+    MsgBox "falscher Blutdruck: " & ad.RRsyst & " " & ad.RRdiast
+    Stop
+   End If
+  End If
   ad.RRsyst = 0
   ad.RRdiast = 0
   rs.MoveNext
  Wend
- Debug.Print "Fertig mit rrpruef"
+' Debug.Print "Fertig mit rrpruef"
 End Sub ' rrpruef
 
 ' in do_DMPAusgebStandAlone, dodoPLZ, DMPAusgeb0, doCallDMP
@@ -1349,7 +1354,7 @@ If True Then ' lwZahl
 ' SET raLau = LabEPat(HbA1c, PID)
  alt_la = LabArt0 ' falls schon mal mit gleichen Parametern aufgerufen
  Labs = LabPat(LA_HbA1c, pid)
- Debug.Print Labs.WertSg
+' Debug.Print Labs.WertSg
 ' raLaU.MoveFirst
 ' raLaU.Find "Abkü = ""HBA1C"""
 '  DMPHbA1c = raLau!Wert & "% (" & Format$(raLau!Zp, "dd/mm/yy") & ")" & IIf(Not ab315, ", oberer Normwert: 6,2%", "")
@@ -3373,7 +3378,7 @@ Sub tob()
  Dim dmpk&, dmpkhkk&, dmpcopdk&, dmpabk&, HzV&, DS&, hzvab As Date, dsab As Date
  Dim dmpb As Date, dmpkhkb As Date, dmpcopdb As Date, dmpabb As Date
  Call obhierdmpfn("DMP COPD MVZ 12.10.19", dmpk, dmpb, dmpkhkk, dmpkhkb, dmpcopdk, dmpcopdb, dmpabk, dmpabb, HzV, hzvab, DS, dsab)
- Debug.Print dmpk, dmpb, dmpcopdk, dmpcopdb, HzV, hzvab, DS, dsab
+' Debug.Print dmpk, dmpb, dmpcopdk, dmpcopdb, HzV, hzvab, DS, dsab
 End Sub ' tob
 
 Sub obhierdmpfn(Notiz$, dmpklass&, dmpbeg As Date, Optional dmpkhkklass&, Optional dmpkhkbeg As Date, Optional dmpcopdklass&, Optional dmpcopdbeg As Date, Optional dmpabklass&, Optional dmpabbeg As Date, Optional HzV&, Optional HzVbeg As Date, Optional DS&, Optional DSbeg As Date)
@@ -3637,7 +3642,7 @@ Function einDMP(Pat_id&, Optional ICD$, Optional dszahl&, Optional Nachname$, Op
           If aktPatGefaxt(j) = fax1 Then obdoppelt = True
          Next j
          If Not obdoppelt Then
-          Debug.Print "Erstelle: ", Pat_id, Nachname, Vorname, fax1, ÜWNNr
+'          Debug.Print "Erstelle: ", Pat_id, Nachname, Vorname, fax1, ÜWNNr
 '          IF runde = 1 THEN
 '          Else
 '           IF pat_id = 1974 THEN
@@ -4270,7 +4275,7 @@ Public Function zqtest()
   aktdat = aktdat - 1
  Next i
  T2 = Timer
- Debug.Print T2 - T1
+' Debug.Print T2 - T1
 End Function ' zqtest
 
 Function GesNamFn$(ByVal rs) ' AS DAO.Recordset) ' s.a. GesName(
@@ -4365,7 +4370,7 @@ Public Function neuTher()
  Call Lese.ProgStart
  myFrag rNa, "SELECT pat_id,gesname(pat_id) name FROM namen"
  Do While Not rNa.EOF
-  Debug.Print rNa!Pat_id, rNa!name
+'  Debug.Print rNa!Pat_id, rNa!name
   myEFrag "SELECT therartn(" & rNa!Pat_id & ")"
   rNa.MoveNext
   DoEvents
@@ -5660,7 +5665,7 @@ For i = 1 To Len(Quelle)
 Next i
 ZSU = ZS
 If ZSU <> Quelle Then
- Debug.Print "ZSU: " + ZSU + " -> " + Quelle
+' Debug.Print "ZSU: " + ZSU + " -> " + Quelle
 End If
  Exit Function
 fehler:
@@ -5708,7 +5713,7 @@ On Error GoTo fehler
       Call cAutoit.send(Mid$(pstr, i, 1))
     ' Call cAutoit.sleep(100)
      Next i
-     Debug.Print "adors!pat_id: " & pstr
+'     Debug.Print "adors!pat_id: " & pstr
     End If
     'Exit Sub
     Call cAutoit.WinWait("TurboMed", "")

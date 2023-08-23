@@ -32,10 +32,10 @@ Public Property Get Index() As Long
 'Syntax: Debug.Print X.index
     Index = mvarIndex
 End Property
+
 Public Property Get SortVar()
  SortVar = mvFeldInh
 End Property
-
 
 Public Function istKleinerAls(ByRef E2) As Boolean
 Attribute istKleinerAls.VB_Description = "Wahr, wenn das erste Element größer ist"

@@ -341,7 +341,7 @@ For i = 1 To Len(Quelle)
 Next i
 ZSU = ZS
 If ZSU <> Quelle Then
- Debug.Print "ZSU: " + ZSU + " -> " + Quelle
+' Debug.Print "ZSU: " + ZSU + " -> " + Quelle
 End If
  Exit Function
 fehler:

@@ -88,12 +88,13 @@ Public Function doalleKVDateien()
  #End If
 End Function ' alleKVDateien
 
+#If zutesten Then
 Public Function lebetest()
  Dim rs As ADODB.Recordset
  Dim lebed As Date
  Open "p:\namausg.txt" For Output As #205
  Call Lese.ProgStart
- myFrag rs, "select gesname(pat_id) Nam, n.* from namenlb n", adOpenStatic
+ myFrag rs, "SELECT gesname(pat_id) Nam, n.* FROM namenlb n", adOpenStatic
  If Not rs.BOF Then
   Do While Not rs.EOF
    rs.MoveNext
@@ -101,19 +102,21 @@ Public Function lebetest()
    Dim lbeh As Date
    lbeh = rs!lbeh
    If rs!lbeh <> lebed Then
-    Debug.Print rs!Pat_id, lbeh, lebe(rs!Pat_id)
+'    Debug.Print rs!Pat_id, lbeh, lebe(rs!Pat_id)
     Print #205, rs!Pat_id & " " & lbeh & " " & lebe(rs!Pat_id)
    Else
 '    Print #205, rs!Pat_id & " (stimmt)"
 '    Debug.Print rs!Pat_id, "(stimmt)"
    End If
    DoEvents
-  Loop
- End If
- Debug.Print "Fertig!"
+  Loop ' while not rs.EOF
+ End If ' Not rs.BOF Then
+' Debug.Print "Fertig!"
  Print #205, "Fertig!"
  Close #205
-End Function
+End Function ' lebetest
+End If ' lebetest
+#End If
 
 Function TLösch(Tb$)
 ' HACn.Execute "TRUNCATE `" & Tb & "`", rAF
@@ -506,7 +509,7 @@ Sub proTeilnehmer(ByRef splitt$(), ByRef Absch() As AbschTyp, aktab&, ByRef HACn
   Dim ausgj&
   If aktab = 0 Then ausgj = 0 Else ausgj = Absch(aktab - 1).Bis + 1
   If Left$(splitt(ausgj), 8) = "Hinweis:" Then ausgj = ausgj + 1
-  Debug.Print splitt(ausgj)
+'  Debug.Print splitt(ausgj)
   
   For j = ausgj To Absch(aktab).Bis
    Select Case Uab
@@ -794,7 +797,7 @@ Sub proTeilnehmer(ByRef splitt$(), ByRef Absch() As AbschTyp, aktab&, ByRef HACn
          Select Case ergstr(jjj)
 '         Case "Berufsausübungsgem. / MVZ-München, 80799", "Einsteinstr. 130", "München, Heßstr. 22", "Ofenthaler Weg 20"
           Case "München", "Erl", "Ansbach", "Hasenkopf", "Nbg", "Windsheim", "Nürnberg", "Kollegen", "Marktheidenfeld-Michelrieth", "Partenkirchen/Auenst", "Rosenheimer Str.", "Roßhaupter-96", "Steenbeek/Groneberg", "Wasserburg", "Wessels-Str.", "Wichtermann", "ÜÖ BAG, Dres.med. Neher/Hilber & Kollegen", "Aurnhammer-Str.", "Bad Gögging", "Bahnhofspl.", "Gemünden-Langenprozelten", "Günzburger Str.41", "Hohenwarter Str", "Kalbskopf-Str", "Preuschwitz.Str.101"
-            Debug.Print "proTeiln. ergstr(jjj): " & ergstr(jjj)
+'            Debug.Print "proTeiln. ergstr(jjj): " & ergstr(jjj)
           Case Else
 stimmt:
            fren(UBound(fren)) = indIns(HACn, HACnS, "fachrichtung", "Fachrichtung", ergstr(jjj), "idFachrichtung")

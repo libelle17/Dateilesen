@@ -34,11 +34,11 @@ Public Property Get Index() As Long
 'wird beim Ermitteln eines Eigenschaftswertes auf der rechten Seite einer Zuweisung verwendet.
 'Syntax: Debug.Print X.index
     Index = mvarIndex
-End Property
+End Property ' Get Index()
+
 Public Property Get SortVar()
  SortVar = mvAbkü
-End Property
-
+End Property ' Get SortVar()
 
 Public Function istKleinerAls(ByRef E2) As Boolean
 Attribute istKleinerAls.VB_Description = "Wahr, wenn das erste Element größer ist"

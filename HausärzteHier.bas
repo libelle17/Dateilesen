@@ -5,7 +5,7 @@ Const hae$ = "Hausaerzte" ' endgültig
 Public Const opti& = 1 + 2 '+ 2048  ' 4 + 8 '+ 32 + 131118 ' 131118, 32 ' + 2048 + 16384
 ' Public Const CSStr$ = "DRIVER={MySQL ODBC 3.51 Driver};server=linux1;uid=praxis;pwd=***REMOVED***;database=kvaerzte;OPTION=" & opti
 
-#If False Then
+#If zutesten Then
 Function dbtest()
  Dim i%, rs As DAO.Recordset, name$, FNr%
  On Error GoTo fehler

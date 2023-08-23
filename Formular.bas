@@ -995,7 +995,7 @@ Function AnpassForm()
  Err.Clear
  With CommandBars!Anamneseblatt.Controls(1)
  For i = 1 To .Controls.COUNT
-  Debug.Print .Controls(i).OnAction
+'  Debug.Print .Controls(i).OnAction
   If .Controls(i).OnAction = "wausgeb" Then
    .Controls(i).Caption = "&Werte für " + PatName + " ausgeben" ' wausgeb
    Exit For
@@ -1437,6 +1437,7 @@ Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "Last
 End Select
 End Function 'do_Form_AfterUpdate(frm)
 
+#If zutesten Then
 Function formtest()
  Dim i%
  On Error GoTo fehler
@@ -1457,6 +1458,7 @@ Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "Last
  Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
 End Select
 End Function ' formtest()
+#End If
 
 ' wird aus dem Formularcode aufgerufen
 Function do_Form_Current_Medarten(frm As Medarten)
@@ -3633,7 +3635,7 @@ Function sensib(Pat_id&, Optional ByRef etext) As DMPStat
   Do While Not rf.EOF
    myEFrag ("CALL sensib(" & rf!Pat_id & ",@sens_obpath,@sens_pz, @sens_gz, @sens_text)")
    myFrag rs, "SELECT @sens_obpath,@sens_pz,@sens_gz, @sens_text"
-   Debug.Print rf!Pat_id, rs![@sens_obpath], rs![@sens_pz], rs![@sens_gz], rs![@sens_text] ' rf!name,
+'   Debug.Print rf!Pat_id, rs![@sens_obpath], rs![@sens_pz], rs![@sens_gz], rs![@sens_text] ' rf!name,
    Set rs = Nothing
    rf.MoveNext
   Loop
@@ -4505,11 +4507,13 @@ Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "Last
 End Select
 End Function ' do_RRParse(erg$, rsP AS dao.recordset, Pat_id$, ZeitPunkt As Date)
 
+#If zutesten Then
 Function testrp(p$)
  Dim s%, d%
  Call dodoRRParse(p, s, d)
  Debug.Print s, d
 End Function ' testrp(p$)
+#End If
 
 ' 20.3.17: folgende Funktion sollte jetzt durch SQL-Funktionen RRsyst und RRdiast erübrigt sein
 Function dodoRRParse(ByVal erg$, RRsyst%, RRdiast%, Optional Zp As Date)
@@ -6441,7 +6445,7 @@ Function getHausarzt1(infos$(), rFa() As Faelle, rKv() As kvnrue, Optional obHAP
          If rFa(1).Übwr <> vNS Then
           InfRoh(12, runde) = rFa(1).Übwr
           myEFrag "UPDATE `liuez` SET kvnr = " & rFa(1).Übwr & " WHERE id = " & rListena!id, rAF
-          Debug.Print rAF
+'          Debug.Print rAF
          End If
         Else
          InfRoh(12, runde) = rListena!KVNr
@@ -6840,6 +6844,7 @@ Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "Last
 End Select
 End Function ' gethausarzt1
 
+' aufgerufen in VorhandeneBriefe_Click
 Function doVorhandene&()
  Dim Fil As File, pid&, pos&, p2&, BriefZiel$
  Dim VorMüll$, FilName$, FilPath$
@@ -6849,7 +6854,7 @@ Function doVorhandene&()
   For Each Fil In FSO.GetFolder(BriefZiel).Files
    FilPath = Fil.path
    pos = InStr(FilPath, "PID")
-   Debug.Print FilPath
+'   Debug.Print FilPath
    If pos > 0 Then
     p2 = InStr(pos, FilPath, ",")
     If p2 > 0 Then
@@ -7017,7 +7022,7 @@ fehler:
 #Else
  AnwPfad = App.path
 #End If
-Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(FNr) + vbCrLf + "LastDLLError: " + CStr(FLastDLLError) + vbCrLf + "Source: " + IIf(IsNull(FSource), vNS, CStr(FSource)) + vbCrLf + "Description: " + FDescr, vbAbortRetryIgnore, "Aufgefangener Fehler in doVorhandene/" + AnwPfad)
+Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(FNr) + vbCrLf + "LastDLLError: " + CStr(FLastDLLError) + vbCrLf + "Source: " + IIf(IsNull(FSource), vNS, CStr(FSource)) + vbCrLf + "Description: " + FDescr, vbAbortRetryIgnore, "Aufgefangener Fehler in doBriefeBerichtspflicht/" + AnwPfad)
  Case vbAbort: Call MsgBox("Höre auf"): ProgEnde
  Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
  Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
@@ -7760,6 +7765,7 @@ Public Function zuh$(ByRef q$)
  Next i
 End Function ' zuh
 
+#If zutesten Then
 Function leseu()
  Const Datei$ = "v:\exp9\word\document.xml"
  Dim zeile$
@@ -7774,6 +7780,7 @@ Function leseu()
 ' Lese.ProgEnde
  Close #52
 End Function ' leseu()
+#End If
 
 ' in tubriefStanndalone
 ' Ersetzt Bookmark mit Text, ohne es zu löschen
@@ -8129,8 +8136,8 @@ Function Üw12$(Pat_id&, Üw1$()) ' Saubere Funktion zum Ermitteln der Überweisern
     End If
     If UBound(bhb) = maxFZ Then Exit Do
     
-    Dim fertig%
-    fertig = 0
+    Dim Fertig%
+    Fertig = 0
     For runde = 2 To 2
      Select Case runde
       Case 1: Feld = "AndÜw"
@@ -8139,8 +8146,8 @@ Function Üw12$(Pat_id&, Üw1$()) ' Saubere Funktion zum Ermitteln der Überweisern
 '      Case 3: Feld = "Übwvkvnr"
      End Select
      If Not IsNull(raFa.Fields(Feld)) Then
-      If raFa.Fields(Feld) <> "0000000" And LenB(raFa.Fields(Feld)) <> 0 And Not fertig Then
-       If runde = 2 Then fertig = True
+      If raFa.Fields(Feld) <> "0000000" And LenB(raFa.Fields(Feld)) <> 0 And Not Fertig Then
+       If runde = 2 Then Fertig = True
        obalt = 0
        For i = 0 To stand
         If Üw1(0, i) = raFa.Fields(Feld) Then
@@ -8282,7 +8289,7 @@ Function GetVorDat(Pat_id$, obStumm%, Optional obschließ%, Optional ohneÖffnen%,
      lBrNam = BRz!Pfad
      lBrNam = REPLACE$(REPLACE$(lBrNam, "$\TurboMed\Dokumente", getDokPfad), "^", "")
      On Error Resume Next
-     If Wapp.Version = 0 Then Debug.Print Wapp.Version
+'     If Wapp.Version = 0 Then Debug.Print Wapp.Version
      If Err.Number <> 0 Then GetWord
      On Error GoTo fehler
      Select Case Wapp.Version
@@ -8392,16 +8399,16 @@ habDC:
      RestDa = 0
      Set pakt = r2.Range.paragraphs(1).Next
      Do While pakt.Range.Text <> vbCr
-      If Left$(pakt.Range, 1) <> vbTab And Not IsDate(Left$(pakt.Range, 8)) Then GoTo fertig
+      If Left$(pakt.Range, 1) <> vbTab And Not IsDate(Left$(pakt.Range, 8)) Then GoTo Fertig
       If IsDate(Left$(pakt.Range, 8)) And IsNumeric(Left$(pakt.Range, 8)) Then ' Ergänzung isnumeric 27.4.08 Jörger
        If CDate(Left$(pakt.Range, 8)) > VorDat Then
          RestDa = True
-         GoTo fertig
+         GoTo Fertig
        End If
       End If
       Set pakt = pakt.Next
      Loop
-fertig:
+Fertig:
      On Error Resume Next
      If RestDa Then
       dc.Range(r2.Range.paragraphs(1).Range.Next.Start, pakt.Range.Start).Font.Hidden = True ' 23.10.12: pakt.range.start statt pakt.range.start-1, um Leerzeile unter Überschrift zu vermeiden
@@ -8618,7 +8625,7 @@ Sub MedArtenUnausgefüllt()
    For i = 0 To Dtb.TableDefs!Medarten.Fields.COUNT - 1
      Select Case Dtb.TableDefs!Medarten.Fields(i).name
       Case "falsch", "false"
-       Debug.Print "ausgespart: " + Dtb.TableDefs!Medarten.Fields(i).name
+'       Debug.Print "ausgespart: " + Dtb.TableDefs!Medarten.Fields(i).name
       Case Else
        If Dtb.TableDefs!Medarten.Fields(i).Type = 1 Then
         qd = qd + IIf(Feld1, " or", vNS) & vNS & "`" + Dtb.TableDefs!Medarten.Fields(i).name + "`"
@@ -8642,13 +8649,13 @@ Sub MedArtenUnausgefüllt()
       Case Else
        If Dtb.TableDefs!Medarten.Fields(i).Type = 1 Then
         If rs.Fields(Dtb.TableDefs!Medarten.Fields(i).name) Then
-         Debug.Print rs!Medikament, rs.Fields(Dtb.TableDefs!Medarten.Fields(i).name).name + " positiv"
+'         Debug.Print rs!Medikament, rs.Fields(Dtb.TableDefs!Medarten.Fields(i).name).name + " positiv"
          GoTo weiter
         End If
        End If
      End Select
    Next i
-   Debug.Print rs!Medikament, " keines positiv"
+'   Debug.Print rs!Medikament, " keines positiv"
 weiter:
   rs.MoveNext
  Loop
@@ -13718,7 +13725,7 @@ Sub LaborTabAnp(Wapp As Object, dc As Object, nurLabor%) 'Word.Application, dc A
       End If
     End If
    Next j
-   Debug.Print "Spalte: ", i, wi
+'   Debug.Print "Spalte: ", i, wi
    Select Case i
     Case 1
      wi = wi * 0.41  ' 0.5 * (3.41 / 3.21) ' paßt
@@ -13794,15 +13801,15 @@ Sub LaborTabAnp_alt(dc)
   Tabl.Select
   Do While .Columns(.Columns.COUNT - 1).Width = .Columns(.Columns.COUNT).Width And .Columns(.Columns.COUNT - 1).Width = .Columns(1).Width
   Loop
-  For ColuNr = 1 To .Columns.COUNT
-   Debug.Print "vorher2: " + CStr(ColuNr) & " " & CStr(.Columns(ColuNr).Width)
-  Next ColuNr
+'  For ColuNr = 1 To .Columns.COUNT
+'   Debug.Print "vorher2: " + CStr(ColuNr) & " " & CStr(.Columns(ColuNr).Width)
+'  Next ColuNr
   For ColuNr = 4 To .Columns.COUNT
    If .Columns(ColuNr).Width > 80 Then GoTo ender
   Next ColuNr
-  For ColuNr = 1 To .Columns.COUNT
-   Debug.Print "nachher: " + CStr(ColuNr) & " " & CStr(.Columns(ColuNr).Width)
-  Next ColuNr
+'  For ColuNr = 1 To .Columns.COUNT
+'   Debug.Print "nachher: " + CStr(ColuNr) & " " & CStr(.Columns(ColuNr).Width)
+'  Next ColuNr
   GoTo nichtender
 ender:
   For i = 2 To 3
@@ -14558,26 +14565,27 @@ Function AlleBriefe()
  ' irfan
 End Function ' do_Briefe_Click(frm AS Form)
 
-
+#If zutesten Then
 Function FormAusg()
  Dim i%, ct As Control, j%
  Open uVerz & "Anambog.txt" For Output As #293
  Call AnbogVar
  With Application.Forms(Anmnbi)
- For i = 0 To .Controls.COUNT - 1
-  Set ct = .Controls(i)
-  Debug.Print ct.Properties.COUNT
-  For j = 0 To ct.Properties.COUNT - 1
-   Debug.Print " " & ct.Properties(j).name
-   Debug.Print "  " & ct.Properties(j).Value
-  Next j
- Next i
+  For i = 0 To .Controls.COUNT - 1
+   Set ct = .Controls(i)
+'   Debug.Print ct.Properties.COUNT
+   For j = 0 To ct.Properties.COUNT - 1
+'    Debug.Print " " & ct.Properties(j).name
+'    Debug.Print "  " & ct.Properties(j).Value
+   Next j
+  Next i
 ' For i = 1 To .Properties.Count
 '  Debug.Print i & " " & .Properties(i).Name & " "; .Properties(i).Value
 ' Next i
-End With
+ End With
  Close #293
-End Function
+End Function ' FormAusg()
+#End If
 
 #If False Then
 
@@ -14686,12 +14694,14 @@ ALTER TABLE  medplan ADD CONSTRAINT `MedArtenMedPlan_AccRel` FOREIGN KEY (`MedAn
 
 #End If
 
+#If zutesten Then
 Function asctest()
 Dim i%, j%
 For i = 0 To 255
  Debug.Print i, Chr$(i)
 Next i
 End Function ' asctest
+#End If
 
 'Function zeigviews()
 ' Dim rv As New ADODB.Recordset, rCn As New ADODB.Connection, i%, stri$
@@ -15027,6 +15037,7 @@ Function doRückgängig()
 End Function ' doRückgängig()
 
 #If Not thaalt Then
+#If zutesten Then
 Function testthap(pid&)
 ' IF DBCn.State <> 0 THEN DBCn.Close
 ' SET DBCn = Nothing
@@ -15041,7 +15052,8 @@ Function testthap(pid&)
  Debug.Print myEFrag("SELECT COUNT(0) zl FROM therarten WHERE pat_id=" & CStr(pid)).Fields(0)
  Lese.ProgEnde
  Debug.Print "Fertig"
-End Function
+End Function ' testthap(pid&)
+#End If
 #End If
 'Function testnull()
 ' Lese.ProgStart
@@ -15570,19 +15582,23 @@ Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "Last
  Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
 End Select
 End Function ' DiagnosenExport()
+
+#If zutesten Then
+' aufgerufen nirgends
 Function alldynDiag()
  Lese.ProgStart
  Dim rsAnam As New ADODB.Recordset
  myFrag rsAnam, "SELECT pat_id FROM `anamnesebogen` WHERE pat_id = 52996"
  Do While Not rsAnam.EOF
   Call dynDiag(CStr(rsAnam!Pat_id))
-  Debug.Print "Fertig mit " & rsAnam!Pat_id
+'  Debug.Print "Fertig mit " & rsAnam!Pat_id
   rsAnam.MoveNext
  Loop
  MsgBox "Fertig mit alldynDiag!"
 End Function ' alldynDiag() und doDiagnosenExport
+#End If
 
-' aufgerufen in alldynDiag und
+' aufgerufen in alldynDiag und doDiagnosenExport
 Function dynDiag$(Pat_id$) ' für DiagnosenExport
  On Error GoTo fehler
  Dim DBDiagString$, DiagTab() As CString
