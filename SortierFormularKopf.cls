@@ -16,6 +16,7 @@ Option Explicit
 Private mvFoid&
 Public Zeitpunkt As Date
 Private mvIndex& 'lokale Kopie
+
 Public Property Let Index(ByVal vData As Long)
     On Error GoTo fehler
     mvIndex = vData
@@ -32,7 +33,8 @@ Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "Last
  Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
  Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
 End Select
-End Property
+End Property ' Let Index(ByVal vData As Long)
+
 Public Property Get Index() As Long
     On Error GoTo fehler
     Index = mvIndex
@@ -49,7 +51,7 @@ Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "Last
  Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
  Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
 End Select
-End Property
+End Property ' Get Index() As Long
 
 Public Function istKleinerAls(ByRef E2) As Boolean
  On Error GoTo fehler
@@ -71,7 +73,8 @@ Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "Last
  Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
  Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
 End Select
-End Function
+End Function ' istKleinerAls(ByRef E2) As Boolean
+
 Public Function unGleich(ByRef E2) As Boolean
  On Error GoTo fehler
  If mvFoid <> E2.Foid Then unGleich = True
@@ -88,7 +91,8 @@ Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "Last
  Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
  Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
 End Select
-End Function
+End Function ' unGleich(ByRef E2) As Boolean
+
 Public Property Set Foid(ByVal vData)
     On Error GoTo fehler
     mvFoid = vData
@@ -105,7 +109,8 @@ Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "Last
  Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
  Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
 End Select
-End Property
+End Property ' Set Foid(ByVal vData)
+
 Public Property Get Foid()
     On Error GoTo fehler
     Foid = mvFoid
@@ -122,7 +127,7 @@ Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "Last
  Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
  Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
 End Select
-End Property
+End Property ' Get Foid()
 
 Public Property Let Foid(ByVal vData)
     On Error GoTo fehler
@@ -140,5 +145,5 @@ Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "Last
  Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
  Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
 End Select
-End Property
+End Property ' Let Foid()
 

@@ -339,6 +339,7 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
 Option Explicit
+Public pRs As ADODB.Recordset ' zugewiesen in Tabausgeb, verwendet in TabAusFüll
 Public hlese As Lese
 Public AnfCode%
 Public labxtb$
@@ -494,7 +495,7 @@ Dim cb&, QuellZ&, IDS&()
 Const MFGLabCols% = 9
 ' Zwischenspeicher für die Registry
 Dim MFGCW&(), MFGTopRow&, MFGRow&, MFGLeftCol&, MFGCol&, MFGLabSort%
-Public pRs As ADODB.Recordset, obMitZähler% ' 0 = ohne Zähler, 1 = mit Zähler
+Public obMitZähler% ' 0 = ohne Zähler, 1 = mit Zähler
 Dim obPidSp%
 Private Declare Function ShellExecute Lib "shell32.dll" _
         Alias "ShellExecuteA" (ByVal hwnd As Long, ByVal _
@@ -918,7 +919,7 @@ Private Sub Form_Unload(Cancel As Integer)
 End Sub ' Form_Unload(Cancel As Integer)
 
 Public Sub li1_Click()
- Dim rAF&, i&
+ Dim rAf&, i&
  FNr = 7
  If Cstumm = 0 Then
   Li1.Visible = False
@@ -926,8 +927,8 @@ Public Sub li1_Click()
    For i = cRow(MFGTyp) To cRowSel(MFGTyp)
     MFG.col = 0
     MFG.Row = i
-    Call myEFrag("UPDATE `diagreihe` SET gi1 = (SELECT MIN(lfdnr) FROM diagg1 WHERE gruppe='" & Li1 & "') WHERE icd = '" & MFG.TextMatrix(i, 0) & "'", rAF)
-    If rAF <> 1 Then
+    Call myEFrag("UPDATE `diagreihe` SET gi1 = (SELECT MIN(lfdnr) FROM diagg1 WHERE gruppe='" & Li1 & "') WHERE icd = '" & MFG.TextMatrix(i, 0) & "'", rAf)
+    If rAf <> 1 Then
      MsgBox ("Fehler beim Diagnosenupdate: " & Li1 & " " & MFG.TextMatrix(i, 0))
     End If
     MFG.col = GruSp
@@ -948,7 +949,7 @@ End Sub ' li1_click
 
 Public Sub Text1_Fertig()
  Dim i&
- Dim rAF&
+ Dim rAf&
  FNr = 23
  If Cstumm = 0 Then
   Text1.Visible = False
@@ -956,8 +957,8 @@ Public Sub Text1_Fertig()
    For i = cRow(MFGTyp) To cRowSel(MFGTyp)
     MFG.col = 0
     MFG.Row = i
-    Call myEFrag("UPDATE diagreihe SET gi2 = '" & Text1 & "' WHERE icd = '" & MFG.TextMatrix(i, 0) & "'", rAF)
-    If rAF <> 1 Then
+    Call myEFrag("UPDATE diagreihe SET gi2 = '" & Text1 & "' WHERE icd = '" & MFG.TextMatrix(i, 0) & "'", rAf)
+    If rAf <> 1 Then
      MsgBox ("Fehler beim Diagnosenupdate: " & Text1 & " " & MFG.TextMatrix(i, 0))
     End If
     MFG.col = GruSp + 1
@@ -2707,7 +2708,7 @@ Public Sub csvLesen(Datei$) ' für PatListe Load (Laborwerte)
   On Error GoTo fehler
     Dim zeile$, z2$, Feld$(), f2$(), Tz$, pos%
     Dim angefangen%
-    Dim rAF&
+    Dim rAf&
     Dim znr&
     Open Datei For Input Access Read As #389
     Do While Not EOF(389)
@@ -2735,8 +2736,9 @@ Public Sub csvLesen(Datei$) ' für PatListe Load (Laborwerte)
          labxtb = "labor_xls" & Int(CDbl(Now()) * 1000000)
          myEFrag ("DROP TABLE `" & labxtb & "`")
          On Error GoTo fehler
-         myEFrag "CREATE TABLE `" & labxtb & "` (id integer(10) auto_increment key, patient varchar(255), fehlerart varchar(3000))", rAF
-         myEFrag "BEGIN"
+         myEFrag "CREATE TABLE `" & labxtb & "` (id integer(10) auto_increment key, patient varchar(255), fehlerart varchar(3000))", rAf
+'         myEFrag "BEGIN"
+         BegTrans
         End If
        End If
      Else
@@ -2749,12 +2751,12 @@ Public Sub csvLesen(Datei$) ' für PatListe Load (Laborwerte)
         If Left$(Feld$(1), 1) = """" Then Feld$(1) = Mid$(Feld$(1), 2, Len(Feld$(1)) - 2)
        End If
        If UBound(Feld) > 1 Then
-        InsKorr DBCn, DBCnS, "INSERT INTO `" & labxtb & "`(patient,fehlerart) VALUES('" & UmwfSQL(Feld(0)) & "','" & UmwfSQL(Feld(1)) & "')", rAF
+        InsKorr DBCn, DBCnS, "INSERT INTO `" & labxtb & "`(patient,fehlerart) VALUES('" & UmwfSQL(Feld(0)) & "','" & UmwfSQL(Feld(1)) & "')", rAf
        End If
      End If
     Loop
     Close #389
-    myEFrag "COMMIT"
+    ComTrans
  Exit Sub
 fehler:
  Dim AnwPfad$
@@ -2768,12 +2770,12 @@ fehler:
   Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
   Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
  End Select
-End Sub
+End Sub ' csvLesen
 
 Public Sub ExcelLesen(Datei$) ' für PatListe Load (Laborwerte)
  Const XStra = "Provider=Microsoft.Jet.OLEDB.4.0;Data Source="
  Const XStrb = ";Extended Properties=""Excel 8.0;HDR=no;IMEX=1"""
- Dim rX As New ADOX.Catalog, sql$, ka%, ke%, runde%, angefangen%, obAnfang%, i&, rAF&
+ Dim rX As New ADOX.Catalog, sql$, ka%, ke%, runde%, angefangen%, obAnfang%, i&, rAf&
  Dim XCon As New ADODB.Connection
  Dim rEx As New ADODB.Recordset, rs As New ADODB.Recordset
  FNr = 19
@@ -2790,11 +2792,11 @@ Public Sub ExcelLesen(Datei$) ' für PatListe Load (Laborwerte)
  labxtb = "labor_xls" & Int(CDbl(Now()) * 1000000)
  myEFrag ("DROP TABLE `" & labxtb & "`")
  On Error GoTo fehler
- myEFrag "CREATE TABLE `" & labxtb & "` (id integer(10) auto_increment key, patient varchar(255), fehlerart varchar(3000))", rAF
+ myEFrag "CREATE TABLE `" & labxtb & "` (id integer(10) auto_increment key, patient varchar(255), fehlerart varchar(3000))", rAf
  Do While Not rEx.EOF
   If obAnfang Then
     If IsNull(rEx.Fields(1)) Then Exit Do ' 8.1.08
-    InsKorr DBCn, DBCnS, "INSERT INTO `" & labxtb & "`(patient,fehlerart) VALUES('" & UmwfSQL(rEx.Fields(0)) & "','" & UmwfSQL(rEx.Fields(1)) & "')", rAF
+    InsKorr DBCn, DBCnS, "INSERT INTO `" & labxtb & "`(patient,fehlerart) VALUES('" & UmwfSQL(rEx.Fields(0)) & "','" & UmwfSQL(rEx.Fields(1)) & "')", rAf
   ElseIf Not IsNull(rEx.Fields(0)) And Not IsNull(rEx.Fields(IIf(rEx.Fields.COUNT > 1, 1, 0))) And Not IsNull(rEx.Fields(IIf(rEx.Fields.COUNT > 2, 2, 0))) Then
    obAnfang = True
   End If
@@ -3336,7 +3338,7 @@ Private Sub invis(ab%)
 End Sub ' invis
 
 Private Sub Form_Load()
- Dim sql$, i%, erg$, j&, gehezu&, rAF&, pid$, BhFB As Date, dmpklass&, Tkz%
+ Dim sql$, i%, erg$, j&, gehezu&, rAf&, pid$, BhFB As Date, dmpklass&, Tkz%
 ' #Const obpcol = True
 #If obpcol Then
  Dim pCol As New Collection
@@ -3486,7 +3488,7 @@ Private Sub Form_Load()
       On Error GoTo fehler
      Next i
      Me.Command1(0).Caption = "&Refresh"
-     myEFrag "INSERT INTO `diagreihe`(`icd`) SELECT `icd` FROM `diagnosen` WHERE not `icd` IN (SELECT icd FROM `diagreihe`) GROUP BY icd ", rAF
+     myEFrag "INSERT INTO `diagreihe`(`icd`) SELECT `icd` FROM `diagnosen` WHERE not `icd` IN (SELECT icd FROM `diagreihe`) GROUP BY icd ", rAf
      Call MFGrefresh
      Me.MFG.Visible = False
      Dim z2&
@@ -3779,7 +3781,7 @@ Sub zähleDMPPat()
 End Sub ' zähleDMPPat()
 
 Sub AlleMark(ob%) ' Alle Markieren, alle Demarkieren
- Dim i&, sum&, j&, k&, übrig%, HaslZl&, rAF&
+ Dim i&, sum&, j&, k&, übrig%, HaslZl&, rAf&
  Dim diffs$, diff&
  Dim rfax As New ADODB.Recordset
  On Error GoTo fehler
@@ -3794,7 +3796,7 @@ Sub AlleMark(ob%) ' Alle Markieren, alle Demarkieren
   diffs = InputBox("Wie viele Tage zurück sollen die Faxe berücksichtigt werden?", "Rückfrage DMP-DeMarkierung", 60)
   If IsNumeric(diffs) Then diff = CDbl(diffs)
   Me.MFG.MousePointer = vbArrowHourglass ' vbCustom
-  myEFrag "UPDATE `faxeinp`.`outa` SET pid = MID(docname,instr(docname,'PID ')+4,locate(', ',docname,instr(docname,'PID '))-instr(docname,'PID ')-4) WHERE instr(docname,'PID ')<>0 AND (ISNULL(pid) OR pid=0) AND MID(docname,instr(docname,'PID ')+4,locate(', ',docname,instr(docname,'PID '))-instr(docname,'PID ')-4)<>''", rAF
+  myEFrag "UPDATE `faxeinp`.`outa` SET pid = MID(docname,instr(docname,'PID ')+4,locate(', ',docname,instr(docname,'PID '))-instr(docname,'PID ')-4) WHERE instr(docname,'PID ')<>0 AND (ISNULL(pid) OR pid=0) AND MID(docname,instr(docname,'PID ')+4,locate(', ',docname,instr(docname,'PID '))-instr(docname,'PID ')-4)<>''", rAf
   For i = 1 To PatZuHASL.COUNT
    If PatZuHASL.Item(i).gewählt <> 0 Then
 '    myFrag rfax, "SELECT docname, o.* FROM faxeinp.`outa` o WHERE docname LIKE '%pid " & PatZuHASL.Item(i).Pat_id & ", dmp-daten%' AND datediff(NOW(),submt) < " & Diff & " ORDER BY submt DESC"
@@ -4285,7 +4287,7 @@ End Sub ' MFG_MouseDown
 'SET FOREIGN_KEY_CHECKS=1;
 
 Private Sub MFG_MouseUp(Button As Integer, Shift As Integer, x As Single, Y As Single)
- Dim sqls$, sqld$, sqli$, MR&, rs As New ADODB.Recordset, i&, rAF&
+ Dim sqls$, sqld$, sqli$, MR&, rs As New ADODB.Recordset, i&, rAf&
  Me.MFG.MousePointer = flexDefault
  If x <> altX Or Y <> altY Then
  Select Case Me.PLArt
@@ -4312,7 +4314,7 @@ Private Sub MFG_MouseUp(Button As Integer, Shift As Integer, x As Single, Y As S
    End Select
    If IDS(0, MR) <> 0 Then
 ' Verknüpfungen 1) löschen
-     myEFrag sqld, rAF
+     myEFrag sqld, rAf
 ' Farben zu alternativen Verknüfungen nach 1) korrigieren
      For i = 0 To UBound(IDS, 2)
       If IDS(1, i) = IDS(0, MR) Then
@@ -4332,8 +4334,8 @@ Private Sub MFG_MouseUp(Button As Integer, Shift As Integer, x As Single, Y As S
      myFrag rs, "SELECT `idypbez` FROM `laborypgl` WHERE `idypneu` = " & cb
      If Not rs.EOF Then
 ' Verknüpfung nach 2) löschen
-      myEFrag "DELETE FROM `laborypgl` WHERE `idypneu` = " & cb, rAF
-      If rAF <> 1 Then
+      myEFrag "DELETE FROM `laborypgl` WHERE `idypneu` = " & cb, rAf
+      If rAf <> 1 Then
        MsgBox "Fehler in MFG.Mouseup nach DELETE FROM `laborypgl` WHERE `idypneu` = " & cb
        Stop
       End If
@@ -4357,7 +4359,7 @@ Private Sub MFG_MouseUp(Button As Integer, Shift As Integer, x As Single, Y As S
      Else
 ' Verknüfung nach 3) überbrücken
       If Me.MFG.TextMatrix(MR, 8) = "x" Then
-       myEFrag "UPDATE `laborypgl` SET `idypbez` = " & cb & " WHERE `idypbez` = " & IDS(1, MR), rAF
+       myEFrag "UPDATE `laborypgl` SET `idypbez` = " & cb & " WHERE `idypbez` = " & IDS(1, MR), rAf
        For i = 0 To UBound(IDS, 2)
         If IDS(0, i) = IDS(1, MR) Then
          Me.MFG.TextMatrix(i, 1) = rs!Wert

@@ -777,7 +777,7 @@ Function UKPDS(ByRef aRisk As Risk, pid$, gbdt As Date, dmseit$, ByRef falDiabDa
    aRisk.SmokingStatus = 2
   End If
   Set rsDia = Nothing
-  myFrag rsDia, "SELECT COUNT(0) ct FROM (SELECT * FROM rrparse WHERE pat_id = " & pid & " ORDER BY zeitpunkt DESC LIMIT 6) i"
+  myFrag rsDia, "SELECT COUNT(0) ct FROM (SELECT 0 FROM rrparse WHERE pat_id = " & pid & " ORDER BY zeitpunkt DESC LIMIT 6) i"
   If Not rsDia.BOF Then
    If Not IsNull(rsDia!ct) Then aRisk.BloodPressure_Precision = rsDia!ct
   End If
@@ -3146,14 +3146,12 @@ Static runden%
 If Err.Number = 429 Then
  runden = runden + 1
  If runden < 10 Then
-  ' "\\linux1\daten\down\pstools\psexec -u administrator -p ***REMOVED***
-'   Shell ("\\linux1\daten\down\pstools\psexec -u administrator -p ***REMOVED*** cmd /e:on /c regsvr32 " & Chr$(34) & "\\linux1\daten\eigene Dateien\Programmierung\riskeng.ocx" & Chr$(34))
    Dim QDat$, ZDat$
   If aktOSV >= win_vista Then
    QDat = "u:\Programmierung\riskeng.ocx"
    ZDat = Environ("programdata")
    Shell ("cmd /e:on /c copy " & Chr(34) & QDat & Chr(34) & " " & Chr(34) & ZDat & Chr(34))
-   Shell ("\\linux1\daten\down\pstools\psexec -u administrator -p ***REMOVED*** cmd /e:on /c regsvr32 " & Chr$(34) & ZDat & "\riskeng.ocx" & Chr$(34))
+   Shell (doalsAd & acceu & ap1 & ap2 & " cmd /e:on /c regsvr32 " & Chr$(34) & ZDat & "\riskeng.ocx" & Chr$(34))
   Else
    Shell ("cmd /c regsvr32 u:\programmierung\riskeng.ocx")
   End If
@@ -3222,14 +3220,12 @@ Static runden%
 If Err.Number = 429 Then
  runden = runden + 1
  If runden < 10 Then
-  ' "\\linux1\daten\down\pstools\psexec -u administrator -p ***REMOVED***
-'   Shell ("\\linux1\daten\down\pstools\psexec -u administrator -p ***REMOVED*** cmd /e:on /c regsvr32 " & Chr$(34) & "\\linux1\daten\eigene Dateien\Programmierung\riskeng.ocx" & Chr$(34))
    Dim QDat$, ZDat$
   If aktOSV >= win_vista Then
    QDat = "u:\Programmierung\riskeng.ocx"
    ZDat = Environ("programdata")
    Shell ("cmd /e:on /c copy " & Chr(34) & QDat & Chr(34) & " " & Chr(34) & ZDat & Chr(34))
-   Shell ("\\linux1\daten\down\pstools\psexec -u administrator -p ***REMOVED*** cmd /e:on /c regsvr32 " & Chr$(34) & ZDat & "\riskeng.ocx" & Chr$(34))
+   Shell (doalsAd & acceu & ap1 & ap2 & " cmd /e:on /c regsvr32 " & Chr$(34) & ZDat & "\riskeng.ocx" & Chr$(34))
   Else
    Shell ("cmd /c regsvr32 u:\programmierung\riskeng.ocx")
   End If

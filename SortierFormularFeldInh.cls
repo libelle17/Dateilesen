@@ -20,22 +20,23 @@ Option Explicit
 Private mvFeldInh$
 Private mvFeldInhVW&
 Private mvarIndex As Long 'lokale Kopie
+
 Public Property Let Index(ByVal vData As Long)
 'wird beim Zuweisen eines Werts zu der Eigenschaft auf der linken Seite einer Zuweisung verwendet.
 'Syntax: X.index = 5
     mvarIndex = vData
-End Property
+End Property ' Let Index(ByVal vData As Long)
 
 
 Public Property Get Index() As Long
 'wird beim Ermitteln eines Eigenschaftswertes auf der rechten Seite einer Zuweisung verwendet.
 'Syntax: Debug.Print X.index
     Index = mvarIndex
-End Property
+End Property ' Get Index() As Long
 
 Public Property Get SortVar()
  SortVar = mvFeldInh
-End Property
+End Property ' Get SortVar()
 
 Public Function istKleinerAls(ByRef E2) As Boolean
 Attribute istKleinerAls.VB_Description = "Wahr, wenn das erste Element größer ist"
@@ -59,6 +60,7 @@ Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "Last
  Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
 End Select
 End Function '  istKleinerAls
+
 Public Function unGleich(ByRef E2) As Boolean
  On Error GoTo fehler
  If mvFeldInh <> E2.FeldInh Then unGleich = True
@@ -76,6 +78,7 @@ Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "Last
  Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
 End Select
 End Function ' unGleich
+
 Public Property Let FeldInh(ByVal vData As Variant)
 'wird beim Zuweisen eines Werts zu der Eigenschaft auf der linken Seite einer Zuweisung verwendet.
 'Syntax: X.FeldInh = 5
@@ -94,7 +97,7 @@ Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "Last
  Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
  Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
 End Select
-End Property
+End Property ' Let FeldInh(ByVal vData As Variant)
 
 Public Property Get FeldInh() As Variant
 'wird beim Ermitteln eines Eigenschaftswertes auf der rechten Seite einer Zuweisung verwendet.
@@ -104,7 +107,7 @@ Public Property Get FeldInh() As Variant
 '    Else
         FeldInh = mvFeldInh
 '    END IF
-End Property
+End Property ' Get FeldInh() As Variant
 
 Public Property Let FeldInhVW(ByVal vData As Variant)
 'wird beim Zuweisen eines Werts zu der Eigenschaft auf der linken Seite einer Zuweisung verwendet.
@@ -124,8 +127,7 @@ Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "Last
  Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
  Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
 End Select
-End Property
-
+End Property ' FeldInhVW(ByVal vData As Variant)
 
 Public Property Get FeldInhVW() As Variant
 'wird beim Ermitteln eines Eigenschaftswertes auf der rechten Seite einer Zuweisung verwendet.
@@ -135,6 +137,6 @@ Public Property Get FeldInhVW() As Variant
 '    Else
         FeldInhVW = mvFeldInhVW
 '    END IF
-End Property
+End Property ' Get FeldInhVW() As Variant
 
 

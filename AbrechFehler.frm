@@ -1,5 +1,5 @@
 VERSION 5.00
-Object = "{0ECD9B60-23AA-11D0-B351-00A0C9055D8E}#6.0#0"; "mshflxgd.ocx"
+Object = "{0ECD9B60-23AA-11D0-B351-00A0C9055D8E}#6.0#0"; "MSHFLXGD.OCX"
 Begin VB.Form AbrechFehler 
    Caption         =   "Abrechnungsfehler"
    ClientHeight    =   11055
@@ -6792,18 +6792,18 @@ Public Function AbrFausg(name$, sql$, Datei$, mins%, ByVal maxs%, Überschrift As
     If sql = "" Then AbrFausg = True: Exit Function
     Set rE = Nothing
 '    On Error GoTo fehler2
-    myFrag rE, sql, adOpenStatic, rc, adLockReadOnly, , , True, ErrNumber, ErrDescription
+    myFrag rE, sql, adOpenStatic, rc, adLockReadOnly, , , True, ErrNumber, ErrDescr
     If ErrNumber <> 0 Then
      Open Datei For Append As #307
-'     Print #307, "Error " & ErrNumber & ": " & ErrDescription
-     Print #307, ÜberschrAkt.Value & vbCrLf; "SQL-Fehler:" & vbCrLf & "Error " & ErrNumber & ", " & ErrDescription & vbCrLf & "bei:" & vbCrLf & sql & vbCrLf
+'     Print #307, "Error " & ErrNumber & ": " & ErrDescr
+     Print #307, ÜberschrAkt.Value & vbCrLf; "SQL-Fehler:" & vbCrLf & "Error " & ErrNumber & ", " & ErrDescr & vbCrLf & "bei:" & vbCrLf & sql & vbCrLf
 ' ausgetauscht 11.12.22:
 '   myFrag rE, "SHOW ERRORS", adOpenStatic, rc, adLockReadOnly
 '   If Not rE.EOF Then
 '    Print #307, rE.Fields(0) & " " & rE.Fields(1) & " " & rE.Fields(2)
 '    Print #307, ÜberschrAkt.Value & vbCrLf; "SQL-Fehler:" & vbCrLf & rE.Fields(0) & " " & rE.Fields(1) & " " & rE.Fields(2) & vbCrLf & sql & vbCrLf
 '   Else
-'    Print #307, ErrDescription
+'    Print #307, ErrDescr
 '   End If
     Close #307
 ' Dim tmpsql$
@@ -6846,7 +6846,7 @@ zurück:
 fehler:
  ErrNumber = Err.Number
  ErrLastDllError = Err.LastDllError
- ErrDescription = Err.Description
+ ErrDescr = Err.Description
  ErrSource = IIf(IsNull(Err.source), vNS, Err.source)
 fehler2:
  Dim AnwPfad$
@@ -6855,7 +6855,7 @@ fehler2:
 #Else
  AnwPfad = App.path
 #End If
-Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(ErrNumber) + vbCrLf + "LastDLLError: " + CStr(ErrLastDllError) + vbCrLf + "Source: " + ErrSource + vbCrLf + "Description: " + ErrDescription, vbAbortRetryIgnore, "Aufgefangener Fehler in AbrF_ausg/" + AnwPfad)
+Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(ErrNumber) + vbCrLf + "LastDLLError: " + CStr(ErrLastDllError) + vbCrLf + "Source: " + ErrSource + vbCrLf + "Description: " + ErrDescr, vbAbortRetryIgnore, "Aufgefangener Fehler in AbrF_ausg/" + AnwPfad)
  Case vbAbort: Call MsgBox("Höre auf"): ProgEnde
  Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
  Case vbIgnore: Call MsgBox("Setze fort"): Resume Next

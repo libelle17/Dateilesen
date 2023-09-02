@@ -186,7 +186,7 @@ End If
 Pat_id = id
 Open ErgebDatei For Output Access Write Lock Write As #2
 lbehD = lebe(Pat_id)
-Print #2, CStr(Forms(Anmnbi).adoRS!Vorgestellt) + IIf(lBehDat <> CDate(0), ", zuletzt am " + Format$(lbehD, "dd/mm/yy") + ",", "")
+Print #2, CStr(Forms(Anmnbi).anaRS!Vorgestellt) + IIf(lBehDat <> CDate(0), ", zuletzt am " + Format$(lbehD, "dd/mm/yy") + ",", "")
 Close #2
 Exit Sub
 fehler:
@@ -559,7 +559,7 @@ End Sub      ' DMPAusgeb0
 
 #If False Then
 Function TherapieArtEinzelnFestlegen(Pat_id&, Optional rsAna As ADODB.Recordset) ' in TherapieArtenFestlegen und alleSpeichern
-Dim nTher$, rAF&, rAnPatID&, Anzeige$, Fanf As Date
+Dim nTher$, rAf&, rAnPatID&, Anzeige$, Fanf As Date
 On Error Resume Next
 Fanf = rsAna!Fanf
 On Error GoTo fehler
@@ -580,9 +580,9 @@ If Not rsAna.EOF Then
  If nTher <> rsAna!Ther1 Or IsNull(rsAna!Ther1) Then
   Anzeige = Pat_id & ": Ther1: " & rsAna!Ther1 & " -> " & nTher
   Call syscmd(acSysCmdSetStatus, Anzeige)
-  Call myEFrag("UPDATE `anamnesebogen` SET ther1 = '" & nTher & "' WHERE pat_id = " & Pat_id, rAF)
-  If rAF <> 1 Then
-   Anzeige = "   Fehler beim Update von Ther1 bei " & Pat_id & ": rAF = " & rAF
+  Call myEFrag("UPDATE `anamnesebogen` SET ther1 = '" & nTher & "' WHERE pat_id = " & Pat_id, rAf)
+  If rAf <> 1 Then
+   Anzeige = "   Fehler beim Update von Ther1 bei " & Pat_id & ": rAF = " & rAf
    Call syscmd(acSysCmdSetStatus, Anzeige)
   End If
  End If
@@ -591,9 +591,9 @@ If Not rsAna.EOF Then
 '  Anzeige = Pat_id & " " & rsAna!NachName & " " & rsAna!VorName & ": TherAkt: " & rsAna!TherAkt & " -> " & nTher
   Anzeige = Pat_id & " " & ": TherAkt: " & rsAna!TherAkt & " -> " & nTher
   Call syscmd(acSysCmdSetStatus, Anzeige)
-  Call myEFrag("UPDATE `anamnesebogen` SET therakt = '" & nTher & "' WHERE pat_id = " & Pat_id, rAF)
-  If rAF <> 1 Then
-   Anzeige = "   Fehler beim Update von TherAkt bei " & Pat_id & ": rAF = " & rAF
+  Call myEFrag("UPDATE `anamnesebogen` SET therakt = '" & nTher & "' WHERE pat_id = " & Pat_id, rAf)
+  If rAf <> 1 Then
+   Anzeige = "   Fehler beim Update von TherAkt bei " & Pat_id & ": rAF = " & rAf
    Call syscmd(acSysCmdSetStatus, Anzeige)
   End If
  End If
@@ -775,7 +775,7 @@ End Function ' bittest1
 
 #If zutesten Then
 Function bittest()
- Dim rAF&, Cn$(2), dtyp$(1), i%, j%
+ Dim rAf&, Cn$(2), dtyp$(1), i%, j%
  Dim rs As New ADODB.Recordset
  Dim Vb As New ADODB.Connection
  On Error GoTo fehler
@@ -870,11 +870,11 @@ Sub FormAufruf()
   Call AnbogVar
   Forms(Anmnbi).Show
   DoCmd.Maximize
-  Forms(Anmnbi).adoRS.Find " Pat_id >= " & CStr(AktID), 0, adSearchForward, adBookmarkFirst
+  Forms(Anmnbi).anaRS.Find " Pat_id >= " & CStr(AktID), 0, adSearchForward, adBookmarkFirst
 '  ON Error Resume Next
 '  Forms(anmnbi).Recordset.FindFirst "Pat_ID = " + CStr(AktID) ' wieder alten Datensatz wählen
   On Error GoTo fehler
-  If Forms(Anmnbi).adoRS.EOF Then ' Recordset.Nomatch() THEN
+  If Forms(Anmnbi).anaRS.EOF Then ' Recordset.Nomatch() THEN
    altRecordSource = Forms(Anmnbi).RecordSource
    Forms(Anmnbi).RecordSource = "Anamnesebogen alle Datensätze"
    On Error Resume Next
@@ -905,9 +905,9 @@ Sub FormRestoreSource()
   DoCmd.OpenForm Anmnb
  End If
  If altRecordSource <> "" Then
-  Forms(Anmnbi).adoRS.Close
-'  Forms(Anmnbi).adoRS.Open altRecordSource, Lese.dbv.CnStr, adOpenDynamic, adLockOptimistic
-  myFrag Forms(Anmnbi).adoRS, altRecordSource, adOpenDynamic, Lese.dbv.CnStr
+  Forms(Anmnbi).anaRS.Close
+'  Forms(Anmnbi).anaRS.Open altRecordSource, Lese.dbv.CnStr, adOpenDynamic, adLockOptimistic
+  myFrag Forms(Anmnbi).anaRS, altRecordSource, adOpenDynamic, Lese.dbv.CnStr
  End If
 End Sub ' FormRestoreSource()
 

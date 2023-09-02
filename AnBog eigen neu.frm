@@ -4593,8 +4593,8 @@ Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
-Public WithEvents adoRS As Recordset
-Attribute adoRS.VB_VarHelpID = -1
+Public WithEvents anaRS As Recordset
+Attribute anaRS.VB_VarHelpID = -1
 Dim mbChangedByCode As Boolean
 Dim mvBookMark As Variant
 Dim mbEditFlag As Boolean
@@ -4603,46 +4603,46 @@ Public mbDataChanged As Boolean
 Dim altsuche$, SuchStringGeändert%
 Dim cat As New ADOX.Catalog
 Public obStumm%
-Public anBogCS$ ' ConnectionString von adoRS
+Public anBogCS$ ' ConnectionString von anaRS
 Public PidRange$
 Dim DQStr$()
 Dim DQSQL$()
 
-Private Sub adoRS_EndOfRecordset(fMoreData As Boolean, adStatus As ADODB.EventStatusEnum, ByVal pRecordset As ADODB.Recordset)
+Private Sub anaRS_EndOfRecordset(fMoreData As Boolean, adStatus As ADODB.EventStatusEnum, ByVal pRecordset As ADODB.Recordset)
 '
 End Sub
 
-Private Sub adoRS_FetchComplete(ByVal pError As ADODB.Error, adStatus As ADODB.EventStatusEnum, ByVal pRecordset As ADODB.Recordset)
+Private Sub anaRS_FetchComplete(ByVal pError As ADODB.Error, adStatus As ADODB.EventStatusEnum, ByVal pRecordset As ADODB.Recordset)
 '
 End Sub
 
-Private Sub adoRS_FetchProgress(ByVal Progress As Long, ByVal MaxProgress As Long, adStatus As ADODB.EventStatusEnum, ByVal pRecordset As ADODB.Recordset)
+Private Sub anaRS_FetchProgress(ByVal Progress As Long, ByVal MaxProgress As Long, adStatus As ADODB.EventStatusEnum, ByVal pRecordset As ADODB.Recordset)
 '
 End Sub
 
-Private Sub adoRS_FieldChangeComplete(ByVal cFields As Long, ByVal Fields As Variant, ByVal pError As ADODB.Error, adStatus As ADODB.EventStatusEnum, ByVal pRecordset As ADODB.Recordset)
+Private Sub anaRS_FieldChangeComplete(ByVal cFields As Long, ByVal Fields As Variant, ByVal pError As ADODB.Error, adStatus As ADODB.EventStatusEnum, ByVal pRecordset As ADODB.Recordset)
 '
-End Sub ' adoRS_FieldChangeComplete
+End Sub ' anaRS_FieldChangeComplete
 
-Private Sub adoRS_MoveComplete(ByVal adReason As ADODB.EventReasonEnum, ByVal pError As ADODB.Error, adStatus As ADODB.EventStatusEnum, ByVal pRecordset As ADODB.Recordset)
+Private Sub anaRS_MoveComplete(ByVal adReason As ADODB.EventReasonEnum, ByVal pError As ADODB.Error, adStatus As ADODB.EventStatusEnum, ByVal pRecordset As ADODB.Recordset)
   'Hierdurch wird die aktuelle Datensatzposition für diese Datensatzgruppe angezeigt
-   lblStatus.Caption = CStr(adoRS.AbsolutePosition)
+   lblStatus.Caption = CStr(anaRS.AbsolutePosition)
    If Not Me.obStumm Then Call do_Form_Current_AnBog(Me)
-End Sub 'adoRS_MoveComplete
+End Sub 'anaRS_MoveComplete
 
-Private Sub adoRS_RecordChangeComplete(ByVal adReason As ADODB.EventReasonEnum, ByVal cRecords As Long, ByVal pError As ADODB.Error, adStatus As ADODB.EventStatusEnum, ByVal pRecordset As ADODB.Recordset)
+Private Sub anaRS_RecordChangeComplete(ByVal adReason As ADODB.EventReasonEnum, ByVal cRecords As Long, ByVal pError As ADODB.Error, adStatus As ADODB.EventStatusEnum, ByVal pRecordset As ADODB.Recordset)
 '
-End Sub ' adoRS_RecordChangeComplete
+End Sub ' anaRS_RecordChangeComplete
 
-Private Sub adoRS_RecordsetChangeComplete(ByVal adReason As ADODB.EventReasonEnum, ByVal pError As ADODB.Error, adStatus As ADODB.EventStatusEnum, ByVal pRecordset As ADODB.Recordset)
-'
-End Sub
-
-Private Sub adoRS_WillChangeField(ByVal cFields As Long, ByVal Fields As Variant, adStatus As ADODB.EventStatusEnum, ByVal pRecordset As ADODB.Recordset)
+Private Sub anaRS_RecordsetChangeComplete(ByVal adReason As ADODB.EventReasonEnum, ByVal pError As ADODB.Error, adStatus As ADODB.EventStatusEnum, ByVal pRecordset As ADODB.Recordset)
 '
 End Sub
 
-Private Sub adoRS_WillChangeRecord(ByVal adReason As ADODB.EventReasonEnum, ByVal cRecords As Long, adStatus As ADODB.EventStatusEnum, ByVal pRecordset As ADODB.Recordset)
+Private Sub anaRS_WillChangeField(ByVal cFields As Long, ByVal Fields As Variant, adStatus As ADODB.EventStatusEnum, ByVal pRecordset As ADODB.Recordset)
+'
+End Sub
+
+Private Sub anaRS_WillChangeRecord(ByVal adReason As ADODB.EventReasonEnum, ByVal cRecords As Long, adStatus As ADODB.EventStatusEnum, ByVal pRecordset As ADODB.Recordset)
   'Hier können Sie Code zur Überprüfung einfügen
   'Dieses Ereignis wird aufgerufen, wenn die folgenden Aktionen eintreten
   Dim bCancel As Boolean
@@ -4660,19 +4660,19 @@ Private Sub adoRS_WillChangeRecord(ByVal adReason As ADODB.EventReasonEnum, ByVa
   Case adRsnUpdate
   End Select
   If bCancel Then adStatus = adStatusCancel
-End Sub 'adoRS_WillChangeRecord
+End Sub 'anaRS_WillChangeRecord
 
-Private Sub adoRS_WillChangeRecordset(ByVal adReason As ADODB.EventReasonEnum, adStatus As ADODB.EventStatusEnum, ByVal pRecordset As ADODB.Recordset)
+Private Sub anaRS_WillChangeRecordset(ByVal adReason As ADODB.EventReasonEnum, adStatus As ADODB.EventStatusEnum, ByVal pRecordset As ADODB.Recordset)
 '
-End Sub ' adoRS_WillChangeRecordset
+End Sub ' anaRS_WillChangeRecordset
 
-Private Sub adoRS_WillMove(ByVal adReason As ADODB.EventReasonEnum, adStatus As ADODB.EventStatusEnum, ByVal pRecordset As ADODB.Recordset)
+Private Sub anaRS_WillMove(ByVal adReason As ADODB.EventReasonEnum, adStatus As ADODB.EventStatusEnum, ByVal pRecordset As ADODB.Recordset)
 '
-End Sub ' adoRS_WillMove
+End Sub ' anaRS_WillMove
 
 Private Sub cmdAdd_Click()
   On Error GoTo fehler
-  With adoRS
+  With anaRS
     If Not (.BOF And .EOF) Then
       mvBookMark = .Bookmark
     End If
@@ -4699,7 +4699,7 @@ End Sub 'cmdAdd_Click()
 Private Sub cmdDelete_Click()
   On Error GoTo fehler
 '  Call myEFrag("SET foreign_key_checks = 0") ' Kommentar 12.12.09
-  With adoRS
+  With anaRS
     .Delete
     .MoveNext
     If .EOF Then .MoveLast
@@ -4723,7 +4723,7 @@ End Sub ' Private Sub cmdDelete_Click()
 Private Sub cmdRefresh_Click()
   'Dies wird nur für Mehrbenutzeranwendungen benötigt
   On Error GoTo fehler
-  adoRS.Requery
+  anaRS.Requery
  Exit Sub
 fehler:
  Dim AnwPfad$
@@ -4764,12 +4764,12 @@ Private Sub cmdCancel_Click()
   SetButtons True
   mbEditFlag = False
   mbAddNewFlag = False
-  adoRS.CancelUpdate
+  anaRS.CancelUpdate
  If mvBookMark > 0 Then
-    adoRS.Bookmark = mvBookMark
+    anaRS.Bookmark = mvBookMark
   Else
 '    Call myEFrag("SET foreign_key_checks = 0") ' Kommentar 12.12.09
-    adoRS.MoveFirst
+    anaRS.MoveFirst
     Call myEFrag("SET foreign_key_checks = 1")
   End If
   mbDataChanged = False
@@ -4777,10 +4777,10 @@ End Sub ' cmdCancel_Click()
 
 Private Sub cmdUpdate_Click()
   On Error GoTo fehler
-  adoRS.UpdateBatch adAffectAll
+  anaRS.UpdateBatch adAffectAll
   If mbAddNewFlag Then
 '    Call myEFrag("SET foreign_key_checks = 0") 'Kommentar 12.12.09
-    adoRS.MoveLast              'Zu neuem Datensatz gehen
+    anaRS.MoveLast              'Zu neuem Datensatz gehen
     Call myEFrag("SET foreign_key_checks = 1")
   End If
   mbEditFlag = False
@@ -4809,7 +4809,7 @@ End Sub ' cmdClose_Click()
 Private Sub cmdFirst_Click()
   On Error GoTo fehler
 '  Call myEFrag("SET foreign_key_checks = 0") ' Kommentar 12.12.09
-  adoRS.MoveFirst
+  anaRS.MoveFirst
   Call myEFrag("SET foreign_key_checks = 1")
   mbDataChanged = False
   Exit Sub
@@ -4817,7 +4817,7 @@ fehler:
  Dim rs As New ADODB.Recordset
  myFrag rs, "SELECT pat_id, gesname(pat_id) GesName  FROM `anamnesebogen` a WHERE pat_id IN (" & Me.PidRange & ") ORDER BY pat_id DESC"
  If Not rs.BOF Then
-  Do While rs!Pat_id >= adoRS!Pat_id And Not rs.EOF
+  Do While rs!Pat_id >= anaRS!Pat_id And Not rs.EOF
    rs.MoveNext
   Loop
  End If ' not rs.BOF
@@ -4841,7 +4841,7 @@ End Sub ' cmdFirst_Click
 Private Sub cmdLast_Click()
   On Error GoTo fehler
 '  Call myEFrag("SET foreign_key_checks = 0") ' Kommentar 12.12.09
-  adoRS.MoveLast
+  anaRS.MoveLast
   Call myEFrag("SET foreign_key_checks = 1")
   mbDataChanged = False
   Exit Sub
@@ -4849,7 +4849,7 @@ fehler:
  Dim rs As New ADODB.Recordset
  myFrag rs, "SELECT pat_id, GesName(Pat_id) GesName  FROM `anamnesebogen` a WHERE pat_id IN (" & Me.PidRange & ") ORDER BY pat_id DESC"
  If Not rs.BOF Then
-  Do While rs!Pat_id >= adoRS!Pat_id And Not rs.EOF
+  Do While rs!Pat_id >= anaRS!Pat_id And Not rs.EOF
    rs.MoveNext
   Loop
  End If ' Not rs.BOF Then
@@ -4873,25 +4873,25 @@ End Sub ' cmdLast_Click()
 Private Sub cmdNext_Click()
   On Error GoTo fehler
 '  Call myEFrag("SET foreign_key_checks = 0")
-  If Not adoRS.EOF Then
-'   adoRS.CancelUpdate ' 7.9.09
+  If Not anaRS.EOF Then
+'   anaRS.CancelUpdate ' 7.9.09
    Dim Bm
    If False Then
 einzeln:
     For Each ctl In Me.Controls
      Err.Clear
      On Error Resume Next
-     Set ctl.DataSource = adoRS
+     Set ctl.DataSource = anaRS
     Next ctl
    End If
-'   IF adoRS.EditMode <> adEditNone THEN adoRS.Update ' 13.9.09
-   adoRS.MoveNext
+'   IF anaRS.EditMode <> adEditNone THEN anaRS.Update ' 13.9.09
+   anaRS.MoveNext
 '   Call do_Form_Current_AnBog(Me)
   End If
-  If adoRS.EOF And adoRS.RecordCount > 0 Then
+  If anaRS.EOF And anaRS.RecordCount > 0 Then
     Tüt 1760, 1000
      'Ende der Zeile wurde erreicht; zurück zum Zeilenanfang
-    adoRS.MoveLast
+    anaRS.MoveLast
   End If
 '  Call myEFrag("SET foreign_key_checks = 1")
   'Aktuellen Datensatz anzeigen
@@ -4902,17 +4902,17 @@ fehler:
 ' IF Err.Number = -2147217904 AND InStrB(Err.Description, "Parameter") <> 0 THEN
 '  rs.CursorLocation = adUseClient
 '  rs.Open anBogCS, DBCn, adOpenDynamic, adLockOptimistic
-'  Do While rs!Pat_id > adoRS!Pat_id AND NOT rs.EOF
+'  Do While rs!Pat_id > anaRS!Pat_id AND NOT rs.EOF
 '   rs.MoveNext
 '  Loop
 '  Me.obStumm = True
-'  adoRS.CancelUpdate
-'  SET adoRS = Nothing
-'  SET adoRS = New ADODB.Recordset
-'' adoRS.Open "SELECT *,IF(größe=0,'',gewicht/größe/größe*if(größe>3,10000,1)) AS bmi, CONCAT(nachname,' ', vorname) AS gesname  FROM `anamnesebogen` WHERE pat_id IN (" & me.PidRange & ") ORDER BY pat_id DESC", DBCn, adOpenDynamic, adLockOptimistic ' adLockReadOnly ' 7.9.09
-'  adoRS.CursorLocation = adUseClient
-'  adoRS.Open anBogCS, DB, adOpenDynamic, adLockOptimistic
-'  adoRS.Find "pat_id=" & rs!Pat_id
+'  anaRS.CancelUpdate
+'  SET anaRS = Nothing
+'  SET anaRS = New ADODB.Recordset
+'' anaRS.Open "SELECT *,IF(größe=0,'',gewicht/größe/größe*if(größe>3,10000,1)) AS bmi, CONCAT(nachname,' ', vorname) AS gesname  FROM `anamnesebogen` WHERE pat_id IN (" & me.PidRange & ") ORDER BY pat_id DESC", DBCn, adOpenDynamic, adLockOptimistic ' adLockReadOnly ' 7.9.09
+'  anaRS.CursorLocation = adUseClient
+'  anaRS.Open anBogCS, DB, adOpenDynamic, adLockOptimistic
+'  anaRS.Find "pat_id=" & rs!Pat_id
 '  ohneänd = False
 '' IF Not rs.EOF THEN
 ''  MsgBox "Nächster Patient: " & rs!Pat_id & ", " & rs!GesName
@@ -4925,19 +4925,19 @@ fehler:
 ' rs.Open anBogCS, DBCn, adOpenDynamic, adLockOptimistic
  myFrag rs, anBogCS
  If Not rs.BOF Then
-  Do While rs!Pat_id > adoRS!Pat_id And Not rs.EOF
+  Do While rs!Pat_id > anaRS!Pat_id And Not rs.EOF
    rs.MoveNext
   Loop
  End If ' not rs.BOF
  Me.obStumm = True
- adoRS.CancelUpdate
- Set adoRS = Nothing
- Set adoRS = New ADODB.Recordset
-' adoRS.Open "SELECT *,IF(größe=0,'',gewicht/größe/größe*if(größe>3,10000,1)) AS bmi, CONCAT(nachname,' ', vorname) AS gesname  FROM `anamnesebogen` WHERE pat_id IN (" & me.PidRange & ") ORDER BY pat_id DESC", DBCn, adOpenDynamic, adLockOptimistic ' adLockReadOnly ' 7.9.09
- frm.adoRS.CursorLocation = adUseClient
-' frm.adoRS.Open anBogCS, db, adOpenDynamic, adLockOptimistic
- myFrag frm.adoRS, anBogCS, adOpenDynamic, db
- If Not frm.adoRS.BOF Then adoRS.Find "pat_id=" & rs!Pat_id
+ anaRS.CancelUpdate
+ Set anaRS = Nothing
+ Set anaRS = New ADODB.Recordset
+' anaRS.Open "SELECT *,IF(größe=0,'',gewicht/größe/größe*if(größe>3,10000,1)) AS bmi, CONCAT(nachname,' ', vorname) AS gesname  FROM `anamnesebogen` WHERE pat_id IN (" & me.PidRange & ") ORDER BY pat_id DESC", DBCn, adOpenDynamic, adLockOptimistic ' adLockReadOnly ' 7.9.09
+ frm.anaRS.CursorLocation = adUseClient
+' frm.anaRS.Open anBogCS, db, adOpenDynamic, adLockOptimistic
+ myFrag frm.anaRS, anBogCS, adOpenDynamic, db
+ If Not frm.anaRS.BOF Then anaRS.Find "pat_id=" & rs!Pat_id
  ohneänd = False
 ' IF Not rs.EOF THEN
 '  MsgBox "Nächster Patient: " & rs!Pat_id & ", " & rs!GesName
@@ -4961,15 +4961,15 @@ Private Sub cmdPrevious_Click()
   On Error GoTo fehler
 wieder:
 '   Call DBCn.BeginTrans           ' 25.6.09 wegen Foreign_key-Fehler
-  If Not adoRS.BOF Then
-'   IF adoRS.EditMode <> adEditNone THEN adoRS.Update   ' 13.9.09
-   adoRS.MovePrevious
+  If Not anaRS.BOF Then
+'   IF anaRS.EditMode <> adEditNone THEN anaRS.Update   ' 13.9.09
+   anaRS.MovePrevious
 '   Call DBCn.CommitTrans
   End If
-  If adoRS.BOF And adoRS.RecordCount > 0 Then
+  If anaRS.BOF And anaRS.RecordCount > 0 Then
     Tüt 1760, 40
     'Ende der Zeile wurde erreicht; zurück zum Zeilenanfang
-    adoRS.MoveFirst
+    anaRS.MoveFirst
   End If
   'Aktuellen Datensatz anzeigen
   mbDataChanged = False
@@ -4978,7 +4978,7 @@ fehler:
 ' Dim rs As New ADODB.Recordset
 ' SET rs = Nothing
 ' myFrag rs, "SELECT pat_id, CONCAT(nachname,' ', vorname) AS gesname  FROM `anamnesebogen` a WHERE pat_id IN (" & me.PidRange & ") ORDER BY pat_id"
-' Do While rs!Pat_id <= adoRS!Pat_id AND NOT rs.EOF
+' Do While rs!Pat_id <= anaRS!Pat_id AND NOT rs.EOF
 '   rs.MoveNext
 ' Loop
 ' IF Not rs.EOF THEN
@@ -5043,11 +5043,11 @@ Private Sub Suchen_Click()
   altsuche = Me.suche
 '  Call myEFrag("SET foreign_key_checks = 0") ' Kommentar 12.12.09
   If IsNumeric(Me.suche) Then
-'   adoRS.MoveFirst
-   adoRS.Find " Pat_id = " & Me.suche, 0, adSearchBackward, adBookmarkLast
+'   anaRS.MoveFirst
+   anaRS.Find " Pat_id = " & Me.suche, 0, adSearchBackward, adBookmarkLast
   ElseIf Me.suche <> "" Then
    Dim suchrs As New ADODB.Recordset
-'   adoRS.Find "gesname LIKE '" & Me.suche & "*'", 1, adSearchForward
+'   anaRS.Find "gesname LIKE '" & Me.suche & "*'", 1, adSearchForward
    Set suchrs = Nothing
    Dim namen$()
    If InStrB(Me.suche, " ") <> 0 Then
@@ -5061,13 +5061,13 @@ Private Sub Suchen_Click()
    End If
    myFrag suchrs, "SELECT pat_id FROM `anamnesebogen` WHERE nachname LIKE '" & namen(0) & "%' AND vorname LIKE '" & namen(1) & "%'"
    If Not suchrs.BOF Then
-    adoRS.Find " Pat_id = " & suchrs!Pat_id, 0, adSearchBackward, adBookmarkLast
+    anaRS.Find " Pat_id = " & suchrs!Pat_id, 0, adSearchBackward, adBookmarkLast
    End If
-'   IF InStrB(LCase$(adoRS!Nachname), LCase$(namen(0))) <> 1 OR InStrB(LCase$(adoRS!Vorname), LCase$(namen(1))) <> 1 THEN
-'    adoRS.Find " Pat_id >= " & suchrs!Pat_id, 0, adSearchForward, adBookmarkFirst
+'   IF InStrB(LCase$(anaRS!Nachname), LCase$(namen(0))) <> 1 OR InStrB(LCase$(anaRS!Vorname), LCase$(namen(1))) <> 1 THEN
+'    anaRS.Find " Pat_id >= " & suchrs!Pat_id, 0, adSearchForward, adBookmarkFirst
 '   END IF
-   If adoRS.EOF Then
-    adoRS.MoveFirst
+   If anaRS.EOF Then
+    anaRS.MoveFirst
    End If
   End If
   Call myEFrag("SET foreign_key_checks = 1")
@@ -5223,7 +5223,7 @@ End Sub ' AbfragenLad
 Private Sub Form_Load()
   Call AbfragenLad
 '  Call doForm_Load(Me)
-'  SET cat.ActiveConnection = adoRS.ActiveConnection
+'  SET cat.ActiveConnection = anaRS.ActiveConnection
 ' 'Me.Controls!Diagnosen.ControlSource = "=replace$(replace$(recordset!Diagnosen,vbverticaltab,vbcr+vblf),vbtab,"" "")"
 End Sub ' Form_Load()
 
@@ -5355,7 +5355,7 @@ Private Sub vComboB_Change(Index As Integer)
     Me.PidRange = DQSQL(Me.vComboB(3).ListIndex)
     If Me.PidRange <> altPR Then
      Call doForm_Load(Me)
-     Set cat.ActiveConnection = adoRS.ActiveConnection
+     Set cat.ActiveConnection = anaRS.ActiveConnection
      altPR = Me.PidRange
     End If
    End If

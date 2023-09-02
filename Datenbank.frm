@@ -1000,6 +1000,7 @@ Private Sub doEinles(obevtlAlle%)
  
  Dim EinlAb&, EinlBis&
  Call acon(quelleT, , , , , , , True)
+ ComTrans
  AllePat = 0
  If Me.obBDT Then
   Set Fil = FSO.GetFile(Me.BDTDatei)
@@ -1048,7 +1049,8 @@ Private Sub doEinles(obevtlAlle%)
  If Command = "auto" Then
  Else
 '  MsgBox CStr((Now - T1) * 60 * 60 * 24) + " s"
-  syscmd 4, IIf(oblies, "Fertig mit Einlesen von ", "nicht eingelesen: ") & "Pat. " & altpatg & ", Zeitdauer gesamt: " & Format$((Now - T1) * 60 * 60 * 24, "###,###,###,###,###,###,##0") & "s, " & "Zeitdauer nach Haupteinlesen: " & Format$((Now - T1a) * 60 * 60 * 24, "###,###,###,###,###,###,##0") & " s"
+  Lese.Prozent = "100 %"
+  syscmd 4, IIf(oblies, "Fertig mit Einlesen von ", "nicht eingelesen: ") & Me.BDTDatei & ", Zeitdauer gesamt: " & Format$((Now - T1) * 60 * 60 * 24, "###,###,###,###,###,###,##0") & "s, " & "Zeitdauer nach Haupteinlesen: " & Format$((Now - T1a) * 60 * 60 * 24, "###,###,###,###,###,###,##0") & " s"
  End If
  Exit Sub
 fehler:

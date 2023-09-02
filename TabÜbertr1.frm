@@ -306,7 +306,7 @@ End Sub
 
 Private Sub Start_Click()
  Dim rQCn As New ADODB.Connection, rZCn As New ADODB.Connection, erg, CurCat$, Frage$
- Dim rsq As New ADODB.Recordset, InS$, AuiFd$, FListe$, rAF&
+ Dim rsq As New ADODB.Recordset, InS$, AuiFd$, FListe$, rAf&
  On Error GoTo fehler
  rQCn.Open CnQ
  rZCn.Open cnz
@@ -324,8 +324,9 @@ Private Sub Start_Click()
   If LVobMySQL Then
    myEFrag "SET foreign_key_checks = 0", , rZCn ' Kommentar 12.12.09
   End If
-  rZCn.BeginTrans
-  If rZCn.DefaultDatabase = DBCn.DefaultDatabase Then obTrans = 1
+'  rZCn.BeginTrans
+'  If rZCn.DefaultDatabase = DBCn.DefaultDatabase Then obTrans = 1
+  BegTrans rZCn
   If Me.ReplaceStattInsert = 0 Then
    myEFrag "DELETE FROM `" & LCase$(Me.Tabelle) & "`", , rZCn
    myEFrag "ALTER TABLE `" & LCase$(Me.Tabelle) & "` auto_increment=1", , rZCn
@@ -345,14 +346,16 @@ Private Sub Start_Click()
   If LVobMySQL Then
    myEFrag "SET foreign_key_checks = 1", , rZCn
   End If
-  If rZCn.DefaultDatabase <> DBCn.DefaultDatabase Or ((rZCn.DefaultDatabase = DBCn.DefaultDatabase) And obTrans <> 0) Then rZCn.CommitTrans: If rZCn.DefaultDatabase = DBCn.DefaultDatabase Then obTrans = 0
- End If
+  If rZCn.DefaultDatabase <> DBCn.DefaultDatabase Or ((rZCn.DefaultDatabase = DBCn.DefaultDatabase) And obTrans <> 0) Then
+   Call ComTrans(rZCn)  ' rZCn.CommitTrans: If rZCn.DefaultDatabase = DBCn.DefaultDatabase Then obTrans = 0
+  End If ' rZCn.DefaultDatabase <> DBCn.DefaultDatabase Or ((rZCn.DefaultDatabase = DBCn.DefaultDatabase) And obTrans <> 0) Then
+ End If ' erg = 1 Then
  Call TZahl(nurZiel:=True)
  Tüt 440, 1000
  Exit Sub
 fehler:
  If InStrB(Err.Description, "Transaction level 'READ-COMMITTED'") <> 0 Then
-  myEFrag "SET SESSION TRANSACTION ISOLATION LEVEL REPEATABLE READ", rAF, rZCn
+  myEFrag "SET SESSION TRANSACTION ISOLATION LEVEL REPEATABLE READ", rAf, rZCn
   Resume
  End If
  Dim AnwPfad$
@@ -643,15 +646,15 @@ Public Function TIns&(ZCn As ADODB.Connection, TabN$, rq, AuiFd$, FListe$, ByRef
    Next i
    sql2 = Left$(sql2, Len(sql2) - 1) & ")"
 '   sql1 = LEFT(sql1, Len(sql1) - 1) & ") " & sql2
-   Dim rAF&
+   Dim rAf&
 '   zcn.CursorLocation = adUseClient
-   Call myEFrag(sql2, rAF, ZCn)
-   If rAF = 0 Or (rAF <> 1 And rAF < 100 And RsI = 0) Then Err.Raise 999, , "Fehler in TIns: Falsche Zahl an Datensätzen aktualisiert: " & rAF
-   If rAF <> 1 Then TIns = 1
+   Call myEFrag(sql2, rAf, ZCn)
+   If rAf = 0 Or (rAf <> 1 And rAf < 100 And RsI = 0) Then Err.Raise 999, , "Fehler in TIns: Falsche Zahl an Datensätzen aktualisiert: " & rAf
+   If rAf <> 1 Then TIns = 1
    Exit Function
 fehler:
  If InStrB(Err.Description, "Transaction level 'READ-COMMITTED'") <> 0 Then
-  myEFrag "SET SESSION TRANSACTION ISOLATION LEVEL REPEATABLE READ", rAF, ZCn
+  myEFrag "SET SESSION TRANSACTION ISOLATION LEVEL REPEATABLE READ", rAf, ZCn
   Resume
  End If
  Dim AnwPfad$

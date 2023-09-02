@@ -583,13 +583,13 @@ Function getPat_id&(PatName$)
  End If
  Exit Function
 fehler:
-ErrDescription = Err.Description
+ErrDescr = Err.Description
 ErrNumber = Err.Number
 ErrLastDllError = Err.LastDllError
 ErrSource = Err.source
 ' Der ODBC-Treiber unterstützt die angeforderten Eigenschaften nicht.
 ' -2147217887
-If InStrB(ErrDescription, "Der ODBC-Treiber unterstützt") <> 0 Then
+If InStrB(ErrDescr, "Der ODBC-Treiber unterstützt") <> 0 Then
  Call DBCnOpen
  Resume
 End If

@@ -1,6 +1,6 @@
 Option Explicit
 Public obForK%
-Dim sql$, T1!, T2!, rs As Adodb.Recordset, maxL%
+Dim sql$, T1!, T2!, maxL%
 
 Public type namen
  Pat_ID AS long 'Pat_ID int '3000
@@ -1014,6 +1014,11 @@ Public type anamnesebogen
  QT AS string 'QT varchar 'Quartal sortiert von vorgestellt
 end type
 
+Type fzu
+ falt As Long
+ fneu As Long
+End Type ' fzu
+
 Public rNa() AS namen
 Public rFa() AS faelle
 Public rAu() AS au
@@ -1239,60 +1244,102 @@ End FUNCTION 'doBezFeh
 
 ' aufgerufen in alleSpeichern
 Function fidSetz()
- Dim i&
- For i = 1 To UBound(rBr)
-  If rBr(i).FID = 0 Then
-   If UBound(rFa) > 0 Then
-    rBr(i).FID = rFa(1).FID
-   End If
-  Else
-   Exit For
-  End If
+ Dim i&, j&
+ For i = 1 To UBound(rBr) ' Briefe
+  For j = 1 To UBound(rFa)
+   If rBr(i).FID = rFa(j).FID Then Goto Brweiter
+  Next j
+  For j = 1 To UBound(rFa)
+   If int(rBr(i).Zeitpunkt) >= int(rFa(j).BhFB) AND int(rBr(i).Zeitpunkt) <= int(rFa(j).BhFE1) Then
+    rBr(i).FID = rFa(j).FID
+    Exit For
+   End If ' If int(rBr(i).Zeitpunkt)) >= int(rFa(j).BhFB) AND int(rBr(i).Zeitpunkt) <= int(rFa(j).BhFE1) Then
+  Next j
+Brweiter:
  Next i
- For i = 1 To UBound(rDi)
-  If rDi(i).FID = 0 Then
-   If UBound(rFa) > 0 Then
-    rDi(i).FID = rFa(1).FID
-   End If
-  Else
-   Exit For
-  End If
+ For i = 1 To UBound(rDi) ' Diagnosen
+  For j = 1 To UBound(rFa)
+   If rDi(i).FID = rFa(j).FID Then Goto Diweiter
+  Next j
+  For j = 1 To UBound(rFa)
+   If int(rDi(i).DiagDatum) >= int(rFa(j).BhFB) AND int(rDi(i).diagDatum) <= int(rFa(j).BhFE1) Then
+    rDi(i).FID = rFa(j).FID
+    Exit For
+   End If ' If int(rDi(i).DiagDatum)) >= int(rFa(j).BhFB) AND int(rDi(i).diagDatum) <= int(rFa(j).BhFE1) Then
+  Next j
+Diweiter:
  Next i
- For i = 1 To UBound(rEi)
-  If rEi(i).FID = 0 Then
-   If UBound(rFa) > 0 Then
-    rEi(i).FID = rFa(1).FID
-   End If
-  Else
-   Exit For
-  End If
+ For i = 1 To UBound(rEi) ' eintraege
+  For j = 1 To UBound(rFa)
+   If rEi(i).FID = rFa(j).FID Then Goto Eiweiter
+  Next j
+  For j = 1 To UBound(rFa)
+   If int(rEi(i).Zeitpunkt) >= int(rFa(j).BhFB) AND int(rEi(i).Zeitpunkt) <= int(rFa(j).BhFE1) Then
+    rEi(i).FID = rFa(j).FID
+    Exit For
+   End If ' If int(rEi(i).Zeitpunkt)) >= int(rFa(j).BhFB) AND int(rEi(i).Zeitpunkt) <= int(rFa(j).BhFE1) Then
+  Next j
+Eiweiter:
  Next i
- For i = 1 To UBound(rFr)
-  If rFr(i).FID = 0 Then
-   If UBound(rFa) > 0 Then
-    rFr(i).FID = rFa(1).FID
-   End If
-  Else
-   Exit For
-  End If
+ For i = 1 To UBound(rFr) ' FormInhKopf
+  For j = 1 To UBound(rFa)
+   If rFr(i).FID = rFa(j).FID Then Goto Frweiter
+  Next j
+  For j = 1 To UBound(rFa)
+   If int(rFr(i).Zeitpunkt) >= int(rFa(j).BhFB) AND int(rFr(i).Zeitpunkt) <= int(rFa(j).BhFE1) Then
+    rFr(i).FID = rFa(j).FID
+    Exit For
+   End If ' If int(rFr(i).Zeitpunkt)) >= int(rFa(j).BhFB) AND int(rFr(i).Zeitpunkt) <= int(rFa(j).BhFE1) Then
+  Next j
+Frweiter:
  Next i
- For i = 1 To UBound(rLe)
-  If rLe(i).FID = 0 Then
-   If UBound(rFa) > 0 Then
-    rLe(i).FID = rFa(1).FID
-   End If
-  Else
-   Exit For
-  End If
+ For i = 1 To UBound(rLe) ' Leistungen
+  For j = 1 To UBound(rFa)
+   If rLe(i).FID = rFa(j).FID Then Goto Leweiter
+  Next j
+  For j = 1 To UBound(rFa)
+   If int(rLe(i).Zeitpunkt) >= int(rFa(j).BhFB) AND int(rLe(i).Zeitpunkt) <= int(rFa(j).BhFE1) Then
+    rLe(i).FID = rFa(j).FID
+    Exit For
+   End If ' If int(rLe(i).Zeitpunkt)) >= int(rFa(j).BhFB) AND int(rLe(i).Zeitpunkt) <= int(rFa(j).BhFE1) Then
+  Next j
+Leweiter:
  Next i
- For i = 1 To UBound(rRe)
-  If rRe(i).FID = 0 Then
-   If UBound(rFa) > 0 Then
-    rRe(i).FID = rFa(1).FID
-   End If
-  Else
-   Exit For
-  End If
+ For i = 1 To UBound(rMe) ' MedPlan
+  For j = 1 To UBound(rFa)
+   If rMe(i).FID = rFa(j).FID Then Goto Meweiter
+  Next j
+  For j = 1 To UBound(rFa)
+   If int(rMe(i).Zeitpunkt) >= int(rFa(j).BhFB) AND int(rMe(i).Zeitpunkt) <= int(rFa(j).BhFE1) Then
+    rMe(i).FID = rFa(j).FID
+    Exit For
+   End If ' If int(rMe(i).Zeitpunkt)) >= int(rFa(j).BhFB) AND int(rMe(i).Zeitpunkt) <= int(rFa(j).BhFE1) Then
+  Next j
+Meweiter:
+ Next i
+ For i = 1 To UBound(rRe) ' Rezepteintraege
+  For j = 1 To UBound(rFa)
+   If rRe(i).FID = rFa(j).FID Then Goto Reweiter
+  Next j
+  For j = 1 To UBound(rFa)
+   If int(rRe(i).Zeitpunkt) >= int(rFa(j).BhFB) AND int(rRe(i).Zeitpunkt) <= int(rFa(j).BhFE1) Then
+    rRe(i).FID = rFa(j).FID
+    Exit For
+   End If ' If int(rRe(i).Zeitpunkt)) >= int(rFa(j).BhFB) AND int(rRe(i).Zeitpunkt) <= int(rFa(j).BhFE1) Then
+  Next j
+Reweiter:
+ Next i
+ For i = 1 To UBound(rFu) ' fuss
+  For j = 1 To UBound(rFa)
+   If rFu(i).FID = rFa(j).FID Then Goto Fuweiter
+  Next j
+  For j = 1 To UBound(rFa)
+   If int(rFu(i).Zeitpunkt) >= int(rFa(j).BhFB) AND int(rFu(i).Zeitpunkt) <= int(rFa(j).BhFE1) Then
+    rFu(i).FID = rFa(j).FID
+    Exit For
+   End If ' If int(rFu(i).Zeitpunkt)) >= int(rFa(j).BhFB) AND int(rFu(i).Zeitpunkt) <= int(rFa(j).BhFE1) Then
+  Next j
+Fuweiter:
  Next i
 End Function ' FIDsetz
 
@@ -1599,28 +1646,27 @@ fehler:
 End FUNCTION ' namenLaden
 
 Function namenEinf
- Dim rbeg&, robeg&, ri&, roi&
+ Dim rbeg&, roendpe&, ri&, roi&
  On Error GoTo fehler
  IF UBound(rNa) > 0 THEN
-  rbeg = 0
   For ri = 1 To UBound(rNa)
-   IF rNa(ri).kAufDat >= qbeg THEN
+   IF rNa(ri).kAufDat >= qbeg Then ' aktqanf()
     rbeg = ri
     Exit For
    END IF
   Next ri
   IF rbeg <> 0 THEN
-   For robeg = 0 To UBound(roNa)
-    IF roNa(robeg).kAufDat >= qbeg THEN
+   For roendpe = 0 To UBound(roNa)
+    IF roNa(roendpe).kAufDat >= qbeg THEN
      Exit For
     END IF
-   Next robeg
-   IF robeg <= UBound(roFa) THEN
-    ReDim Preserve roNa(robeg - 1)
-   END IF ' IF robeg <= UBound(roFa) THEN
-   ReDim Preserve roNa(robeg + UBound(rNa) - rbeg)
+   Next roendpe
+   IF roendpe <= UBound(roFa) THEN
+    ReDim Preserve roNa(roendpe - 1)
+   END IF ' IF roendpe <= UBound(roFa) THEN
+   ReDim Preserve roNa(roendpe + UBound(rNa) - rbeg)
    For ri = rbeg To UBound(rNa)
-    Call roNaZuw(robeg + ri - rbeg, ri)
+    Call roNaZuw(roendpe + ri - rbeg, ri)
    Next ri
   END IF ' IF rbeg <> 0 THEN
  END IF ' IF UBound(rFa) > 0 THEN
@@ -1641,7 +1687,7 @@ fehler:
 End FUNCTION ' namenEinf
 
 Public FUNCTION namenSpeichern(SammelInsert%, BezfSp%)
- Dim i&, rAF&, Pid$, m%, sfnr% ',sql0$
+ Dim i&, rAF&, Pid$, m%, sfnr%, altmode$ ',sql0$
  Dim csql0 As New CString, csql As New CString
  Dim rs As New ADODB.recordset
  T1 = Timer
@@ -1649,10 +1695,6 @@ Public FUNCTION namenSpeichern(SammelInsert%, BezfSp%)
  Pid = rNa(0).Pat_id
  ON Error GoTo fehler
  syscmd 4, pid & ": Speichere " & Ubound(rNa)+1 & " Sätze in `namen`"
- IF NOT Allepat THEN
-   sql = "DELETE FROM `namen` WHERE Pat_ID = " & CStr(rNa(0).Pat_ID)
-   Call myEFrag(sql)
- END IF ' not allePat
 ' sql0 = " INSERT " & sqlignore &  "INTO `namen` (Pat_ID,lfdnr,NVorsatz," & _
      "Nachname,Vorname,GebDat,f3004,f3006,Straße,KVKStatus,Hausnr,Geschlecht,Plz," & _
      "Ort,Lkz,Anschrzus,NVors,PFPlz,PFOrt,PFNr,f3124,AnschrZus_2,Postfach_2," & _
@@ -1671,6 +1713,12 @@ Public FUNCTION namenSpeichern(SammelInsert%, BezfSp%)
      "StByteA,Cave,Notiz,obChk,dmpklass,dmpbeg,dmpkhkklass,dmpkhkbeg,dmpcopdklass,dmpcopdbeg," & _
      "dmpabklass,dmpabbeg,dakab,HzV,HzVbeg,DS,DSbeg,getHA0,fnHA0,getHA1," & _
      "fnHA1,getHA2,fnHA2,zubenach,Verwandt,Sprache,lAktTM,Mitarbeiter)               VALUES"))
+sql:
+ csql.m_Len = 0
+ IF NOT Allepat THEN
+   sql = "DELETE FROM `namen` WHERE Pat_ID = " & CStr(rNa(0).Pat_ID)
+   Call myEFrag(sql)
+ END IF ' not AllePat
  For i = 0 to ubound(rNa)
 '  rNa(i).AktZeit = now()
   rNa(i).StByte = CStr(AktByte)
@@ -1690,45 +1738,40 @@ Public FUNCTION namenSpeichern(SammelInsert%, BezfSp%)
    rNa(i).Verwandt, "','" , rNa(i).Sprache, "'," , DatFor_k(rNa(i).lAktTM), "," , rNa(i).Mitarbeiter, ")")
   IF SammelInsert <> 0 AND i < ubound(rNa) THEN csql.Append ","
   IF SammelInsert = 0 OR i = ubound(rNa) THEN
+    altmode = DBCn.Execute("SELECT @@global.sql_mode").Fields(0)
+   Call DBCn.Execute("SET GLOBAL sql_mode='STRICT_TRANS_TABLES'") ' NO_ENGINE_SUBSTITUTION
 '   Call myEFrag(csql.Value,rAf)', , adAsyncExecute) ' wegen unzureichender Fehlerverarbeitung wieder ausrangiert 19.8.23
    Call DBCn.Execute(csql.Value, rAF) ', , adAsyncExecute)
    IF obforK THEN
     Call ForeignYes0
     Call ForeignYes1
-   END IF
-   IF sammelinsert = 0 THEN csql.m_len = 0
-   IF lese.obmysql AND obmitAlterTab THEN
-    SET rs = myEFrag("SHOW WARNINGS")
-    IF not rs.BOF() THEN
-     IF rs!code = 1265 THEN
-      Err.Raise -2147217833
-     END IF
-    END IF
-   END IF
-   END IF
+   END IF ' obforK THEN
+  END IF ' SammelInsert = 0 OR i = ubound(rNa)
   DoEvents
  Next i
  syscmd 5
  Exit Function
 fehler:
-ErrDescription = Err.Description
+ErrDescr = Err.Description
+ErrNumber = Err.Number
+syscmd 4, "rNa(" & i & "/" & UBound(rNa) & "):   " & ErrDescr
 sfnr = sfnr + 1
 If sfnr > 10 then 
- Lese.Ausgeb sfnr & " Fehler in ""namenSpeichern()"" bei Pat. " & rNa(0).Pat_id & ", gebe auf (ErrDes: " & ErrDescription & ")", True
+ Lese.Ausgeb sfnr & " Fehler in ""namenSpeichern()"" bei Pat. " & rNa(0).Pat_id & ", gebe auf (ErrDes: " & ErrDescr & ")", True
  sfnr = 0
  Resume Next
-End if
-IF Err.Number = -2147217900 AND InStrB(ErrDescription, " Doppelter; Eintrag; ") <> 0 THEN
+End if ' sfnr > 10
+IF ErrNumber = -2147217900 AND InStrB(ErrDescr, " Doppelter; Eintrag; ") <> 0 THEN
  Call Shell(App.path + "\..\nachricht\nachricht.exe " & App.EXEName & " Doppelter Eintrag bei: " & vbCrLf & csql.Value)
  Resume Next
-ElseIf Err.Number = -2147467259 AND InStrB(ErrDescription, "Daten zu lang") = 0 AND InStrB(ErrDescription, "Data too long") = 0 THEN ' -2147467259 ' [MySQL][ODBC 3.51 Driver][mysqld-5.1.32-log]Cannot add OR update a child row: a FOREIGN KEY constraint fails
- IF InStrB(ErrDescription, "'READ-COMMITTED'") <> 0 THEN
+ElseIf ErrNumber = -2147467259 AND InStrB(ErrDescr, "Daten zu lang") = 0 AND InStrB(ErrDescr, "Data too long") = 0 THEN ' -2147467259 ' [MySQL][ODBC 3.51 Driver][mysqld-5.1.32-log]Cannot add OR update a child row: a FOREIGN KEY constraint fails
+ IF InStrB(ErrDescr, "'READ-COMMITTED'") <> 0 THEN
   myEFrag "SET SESSION TRANSACTION ISOLATION LEVEL REPEATABLE READ", rAF
  Else
-  Call doBezFeh(csql.Value, BezfSp, ErrDescription)
+  Call doBezFeh(csql.Value, BezfSp, ErrDescr)
  END IF
  Resume
-ElseIf Err.Number = -2147217833 OR InStrB(ErrDescription, "Daten zu lang") <> 0 OR InStrB(ErrDescription, "Data too long") <> 0 THEN
+ElseIf ErrNumber = -2147217833 OR InStrB(ErrDescr, "Daten zu lang") <> 0 OR InStrB(ErrDescr, "Data too long") <> 0 THEN
  Dim rsc As Adodb.Recordset, maxi%(), k%
  redim maxi(48)
  for k = iif(SammelInsert<>0,0,i) to iif(SammelInsert<>0,ubound(rNa),i)
@@ -1782,7 +1825,7 @@ ElseIf Err.Number = -2147217833 OR InStrB(ErrDescription, "Daten zu lang") <> 0 
   IF Len(rNa(k).Verwandt) > maxi(47) THEN maxi(47) = Len(rNa(k).Verwandt)
   IF Len(rNa(k).Sprache) > maxi(48) THEN maxi(48) = Len(rNa(k).Sprache)
  next k
- IF obTrans <>0 Then If DBCn.Execute("SELECT COUNT(1) FROM information_schema.innodb_trx WHERE trx_mysql_thread_id = CONNECTION_ID()").Fields(0) <> 0 Then DBCn.CommitTrans: obtrans = 0
+ IF obTrans <>0 Then If DBCn.Execute("SELECT COUNT(1) FROM information_schema.innodb_trx WHERE trx_mysql_thread_id = CONNECTION_ID()").Fields(0) <> 0 Then ComTrans ' DBCn.CommitTrans: obtrans = 0
  nochmal:
  SET rsc = New ADODB.Recordset
  SET rsc = DBCnOSchema(adSchemaColumns, Array(Empty, Empty, "namen", Empty))
@@ -1856,7 +1899,10 @@ ElseIf Err.Number = -2147217833 OR InStrB(ErrDescription, "Daten zu lang") <> 0 
  Call ForeignNo0
  Call ForeignNo1
  resume
-ElseIf Err.Number = -2147217871 OR Err.Number = -2147217859 OR err.Number = -2147467259 THEN
+ElseIf InStrB(1, ErrDescr, "gone away", vbTextCompare) <> 0 Or InStrB(ErrDescr, "ost connection") <> 0 Then
+ DBCnOpen
+ Resume
+ElseIf ErrNumber = -2147217871 OR ErrNumber = -2147217859 OR ErrNumber = -2147467259 THEN
  For i = 0 To 10
   Call ForeignYes0
   Call ForeignYes1
@@ -1864,16 +1910,16 @@ ElseIf Err.Number = -2147217871 OR Err.Number = -2147217859 OR err.Number = -214
  Call ForeignNo0
  Call ForeignNo1
  Resume
-END IF ' Err.Number = -2147217833 THEN
+END IF ' ErrNumber = 
  Dim AnwPfad$
 #If VBA6 THEN
  AnwPfad = currentDB.Name
 #Else
  AnwPfad = App.Path
 #END IF
- SELECT CASE MsgBox("FNr: " + CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " & IIf(ISNULL(Err.Source), vNS, CStr(Err.Source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "aufgefangener Fehler in namenSpeichern/" + AnwPfad)
+ SELECT CASE MsgBox("FNr: " + CStr(ErrNumber) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " & IIf(ISNULL(Err.Source), vNS, CStr(Err.Source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "aufgefangener Fehler in namenSpeichern/" + AnwPfad)
   Case vbAbort: Call MsgBox(" Höre auf "): Progende
-  Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
+  Case vbRetry: Call MsgBox("Versuche nochmal"): If ErrNumber = 998 Then Resume sql Else Resume
   Case vbIgnore: Call MsgBox(" Setze fort "): Resume Next
  END SELECT
 End FUNCTION ' namenSpeichern
@@ -2287,98 +2333,167 @@ fehler:
 End FUNCTION ' faelleLaden
 
 Function faelleEinf
- Dim rbeg&, robeg&, ri&, roi&, jj&, fazu%()
+ Dim rbeg&, roendpe&, ri&, roi&, jj&, fazu%()
+ Dim fzu() As fzu
  On Error GoTo fehler
- IF UBound(rFa) > 0 THEN
-  rbeg = 0
+ If UBound(rFa) > 0 Then ' wenn neue Fälle da
   For ri = 1 To UBound(rFa)
-   IF rFa(ri).fanf >= qbeg THEN
-    rbeg = ri
+   If rFa(ri).Fanf >= qbeg Then ' aktqanf()
+    rbeg = ri ' dann bezeichnet rbeg den ersten zu importierenden Fall
+    For roendpe = 0 To UBound(roFa)
+     If roFa(roendpe).Fanf >= qbeg Then
+      Exit For ' ... und roFa den ersten nicht mehr zu verwendenden bestehenden Fall,
+     End If ' roFa(roendpe).Fanf >= qbeg Then
+    Next roendpe
     Exit For
-   END IF
+   End If ' rFa(ri).Fanf >= qbeg Then ' aktqanf()
   Next ri
-  IF rbeg <> 0 THEN
-   For robeg = 0 To UBound(roFa)
-    IF roFa(robeg).fanf >= qbeg THEN
-     Exit For
-    END IF
-   Next robeg
-   IF robeg <= UBound(roFa) THEN
-    ReDim fazu(robeg To UBound(roFa))
-    For roi = robeg To UBound(roFa)
-     For ri = rbeg To UBound(rFa) - 1
-      IF roFa(roi).fanf >= rFa(ri).fanf AND roFa(roi).fanf < rFa(ri).BhFE THEN
-       fazu(roi) = ri
-       GoTo fertig
-      END IF
-     Next ri
-     fazu(roi) = UBound(rFa)
-fertig:
-    Next roi
-    For roi = robeg To UBound(roFa)
-     For jj = 1 To UBound(roAu)
-      IF roAu(jj).FID = roFa(roi).FID THEN roAu(jj).FID = rFa(fazu(roi)).FID
-     Next jj
-     For jj = 1 To UBound(roBr)
-      IF roBr(jj).FID = roFa(roi).FID THEN roBr(jj).FID = rFa(fazu(roi)).FID
-     Next jj
-     For jj = 1 To UBound(roDi)
-      IF roDi(jj).FID = roFa(roi).FID THEN roDi(jj).FID = rFa(fazu(roi)).FID
-     Next jj
-     For jj = 1 To UBound(roDo)
-      IF roDo(jj).FID = roFa(roi).FID THEN roDo(jj).FID = rFa(fazu(roi)).FID
-     Next jj
-     For jj = 1 To UBound(roEi)
-      IF roEi(jj).FID = roFa(roi).FID THEN roEi(jj).FID = rFa(fazu(roi)).FID
-     Next jj
-     For jj = 1 To UBound(roFr)
-      IF roFr(jj).FID = roFa(roi).FID THEN roFr(jj).FID = rFa(fazu(roi)).FID
-     Next jj
-     For jj = 1 To UBound(roKh)
-      IF roKh(jj).FID = roFa(roi).FID THEN roKh(jj).FID = rFa(fazu(roi)).FID
-     Next jj
-     For jj = 1 To UBound(roLb)
-      IF roLb(jj).FID = roFa(roi).FID THEN roLb(jj).FID = rFa(fazu(roi)).FID
-     Next jj
-     For jj = 1 To UBound(roLa)
-      IF roLa(jj).FID = roFa(roi).FID THEN roLa(jj).FID = rFa(fazu(roi)).FID
-     Next jj
-     For jj = 1 To UBound(roLe)
-      IF roLe(jj).FID = roFa(roi).FID THEN roLe(jj).FID = rFa(fazu(roi)).FID
-     Next jj
-     For jj = 1 To UBound(roMe)
-      IF roMe(jj).FID = roFa(roi).FID THEN roMe(jj).FID = rFa(fazu(roi)).FID
-     Next jj
-     For jj = 1 To UBound(roRe)
-      IF roRe(jj).FID = roFa(roi).FID THEN roRe(jj).FID = rFa(fazu(roi)).FID
-     Next jj
-     For jj = 1 To UBound(roRr)
-      IF roRr(jj).FID = roFa(roi).FID THEN roRr(jj).FID = rFa(fazu(roi)).FID
-     Next jj
-     For jj = 1 To UBound(roUs)
-      IF roUs(jj).FID = roFa(roi).FID THEN roUs(jj).FID = rFa(fazu(roi)).FID
-     Next jj
-     For jj = 1 To UBound(roFu)
-      IF roFu(jj).FID = roFa(roi).FID THEN roFu(jj).FID = rFa(fazu(roi)).FID
-     Next jj
-     For jj = 1 To UBound(roUl)
-      IF roUl(jj).FID = roFa(roi).FID THEN roUl(jj).FID = rFa(fazu(roi)).FID
-     Next jj
-     For jj = 1 To UBound(roVk)
-      IF roVk(jj).FID = roFa(roi).FID THEN roVk(jj).FID = rFa(fazu(roi)).FID
-     Next jj
-     For jj = 1 To UBound(roSw)
-      IF roSw(jj).FID = roFa(roi).FID THEN roSw(jj).FID = rFa(fazu(roi)).FID
-     Next jj
-    Next roi
-    ReDim Preserve roFa(robeg - 1)
-   END IF ' IF robeg <= UBound(roFa) THEN
-   ReDim Preserve roFa(robeg + UBound(rFa) - rbeg)
-   For ri = rbeg To UBound(rFa)
-    Call roFaZuw(robeg + ri - rbeg, ri)
-   Next ri
-  END IF ' IF rbeg <> 0 THEN
- END IF ' IF UBound(rFa) > 0 THEN
+ End If ' UBound(rFa) > 0
+ If rbeg = 0 Then
+  roendpe = UBound(roFa) + 1 ', ggf. alle aus roFa zu verwenden, und nur die,
+ Else ' rbeg = 0 Then
+ ' ermitteln, welcher Fallnummer aus rFa jeder zu löschende Fall aus rFo entspricht
+  If roendpe <= UBound(roFa) Then
+   ReDim fazu(roendpe To UBound(roFa))
+   For roi = roendpe To UBound(roFa)
+    For ri = rbeg To UBound(rFa) - 1
+     If roFa(roi).Fanf >= rFa(ri).Fanf And roFa(roi).Fanf < rFa(ri).BhFE Then
+      fazu(roi) = ri
+      GoTo Fertig
+     End If ' roFa(roi).Fanf >= rFa(ri).Fanf And roFa(roi).Fanf < rFa(ri).BhFE
+    Next ri
+    fazu(roi) = UBound(rFa)
+Fertig:
+   Next roi
+ End If ' If roendpe <= UBound(roFa) Then
+' die Fallnummern zu aus roFa zu löschenden Sätze durch  die aus rFa ersetzen
+  For roi = roendpe To UBound(roFa)
+   For jj = 1 To UBound(roAu)
+    IF roAu(jj).FID = roFa(roi).FID THEN roAu(jj).FID = rFa(fazu(roi)).FID
+   Next jj
+   For jj = 1 To UBound(roBr)
+    IF roBr(jj).FID = roFa(roi).FID THEN roBr(jj).FID = rFa(fazu(roi)).FID
+   Next jj
+   For jj = 1 To UBound(roDi)
+    IF roDi(jj).FID = roFa(roi).FID THEN roDi(jj).FID = rFa(fazu(roi)).FID
+   Next jj
+   For jj = 1 To UBound(roDo)
+    IF roDo(jj).FID = roFa(roi).FID THEN roDo(jj).FID = rFa(fazu(roi)).FID
+   Next jj
+   For jj = 1 To UBound(roEi)
+    IF roEi(jj).FID = roFa(roi).FID THEN roEi(jj).FID = rFa(fazu(roi)).FID
+   Next jj
+   For jj = 1 To UBound(roFr)
+    IF roFr(jj).FID = roFa(roi).FID THEN roFr(jj).FID = rFa(fazu(roi)).FID
+   Next jj
+   For jj = 1 To UBound(roKh)
+    IF roKh(jj).FID = roFa(roi).FID THEN roKh(jj).FID = rFa(fazu(roi)).FID
+   Next jj
+   For jj = 1 To UBound(roLb)
+    IF roLb(jj).FID = roFa(roi).FID THEN roLb(jj).FID = rFa(fazu(roi)).FID
+   Next jj
+   For jj = 1 To UBound(roLa)
+    IF roLa(jj).FID = roFa(roi).FID THEN roLa(jj).FID = rFa(fazu(roi)).FID
+   Next jj
+   For jj = 1 To UBound(roLe)
+    IF roLe(jj).FID = roFa(roi).FID THEN roLe(jj).FID = rFa(fazu(roi)).FID
+   Next jj
+   For jj = 1 To UBound(roMe)
+    IF roMe(jj).FID = roFa(roi).FID THEN roMe(jj).FID = rFa(fazu(roi)).FID
+   Next jj
+   For jj = 1 To UBound(roRe)
+    IF roRe(jj).FID = roFa(roi).FID THEN roRe(jj).FID = rFa(fazu(roi)).FID
+   Next jj
+   For jj = 1 To UBound(roRr)
+    IF roRr(jj).FID = roFa(roi).FID THEN roRr(jj).FID = rFa(fazu(roi)).FID
+   Next jj
+   For jj = 1 To UBound(roUs)
+    IF roUs(jj).FID = roFa(roi).FID THEN roUs(jj).FID = rFa(fazu(roi)).FID
+   Next jj
+   For jj = 1 To UBound(roFu)
+    IF roFu(jj).FID = roFa(roi).FID THEN roFu(jj).FID = rFa(fazu(roi)).FID
+   Next jj
+   For jj = 1 To UBound(roUl)
+    IF roUl(jj).FID = roFa(roi).FID THEN roUl(jj).FID = rFa(fazu(roi)).FID
+   Next jj
+   For jj = 1 To UBound(roVk)
+    IF roVk(jj).FID = roFa(roi).FID THEN roVk(jj).FID = rFa(fazu(roi)).FID
+   Next jj
+   For jj = 1 To UBound(roSw)
+    IF roSw(jj).FID = roFa(roi).FID THEN roSw(jj).FID = rFa(fazu(roi)).FID
+   Next jj
+  Next roi
+  ReDim Preserve roFa(roendpe - 1) ' roFa kürzen ...
+  ReDim Preserve roFa(roendpe + UBound(rFa) - rbeg) ' ... und erweitern ...
+  For ri = rbeg To UBound(rFa)
+   Call roFaZuw(roendpe + ri - rbeg, ri) ' und die Fälle aus rFa an roFa anhängen
+  Next ri
+ End If ' rbeg = 0 Then Else
+ ReDim fzu(UBound(roFa)) ' dann fzu füllen
+ For ri = 1 To UBound(roFa)
+  fzu(ri).falt = roFa(ri).FID
+  fzu(ri).fneu = patanffid + ri - 1
+ Next ri
+ For ri = UBound(roFa) To 1 Step -1 ' dann die künftigen Fallnummern statt den aktuellen verwenden
+  If roFa(ri).FID <> fzu(ri).falt Then
+   MsgBox "Fehler bei " & rNa(0).Pat_id & ", ri: " & ri & ", " & roFa(ri).FID & " <> " & fzu(ri).falt
+  End If ' roFa(ri).FID <> fzu(ri).falt Then
+  For jj = 1 To UBound(roAu)
+   If roAu(jj).FID = roFa(ri).FID Then roAu(jj).FID = fzu(ri).fneu
+  Next jj
+  For jj = 1 To UBound(roBr)
+   If roBr(jj).FID = roFa(ri).FID Then roBr(jj).FID = fzu(ri).fneu
+  Next jj
+  For jj = 1 To UBound(roDi)
+   If roDi(jj).FID = roFa(ri).FID Then roDi(jj).FID = fzu(ri).fneu
+  Next jj
+  For jj = 1 To UBound(roDo)
+   If roDo(jj).FID = roFa(ri).FID Then roDo(jj).FID = fzu(ri).fneu
+  Next jj
+  For jj = 1 To UBound(roEi)
+   If roEi(jj).FID = roFa(ri).FID Then roEi(jj).FID = fzu(ri).fneu
+  Next jj
+  For jj = 1 To UBound(roFr)
+   If roFr(jj).FID = roFa(ri).FID Then roFr(jj).FID = fzu(ri).fneu
+  Next jj
+  For jj = 1 To UBound(roKh)
+   If roKh(jj).FID = roFa(ri).FID Then roKh(jj).FID = fzu(ri).fneu
+  Next jj
+  For jj = 1 To UBound(roLb)
+   If roLb(jj).FID = roFa(ri).FID Then roLb(jj).FID = fzu(ri).fneu
+  Next jj
+  For jj = 1 To UBound(roLa)
+   If roLa(jj).FID = roFa(ri).FID Then roLa(jj).FID = fzu(ri).fneu
+  Next jj
+  For jj = 1 To UBound(roLe)
+   If roLe(jj).FID = roFa(ri).FID Then roLe(jj).FID = fzu(ri).fneu
+  Next jj
+  For jj = 1 To UBound(roMe)
+   If roMe(jj).FID = roFa(ri).FID Then roMe(jj).FID = fzu(ri).fneu
+  Next jj
+  For jj = 1 To UBound(roRe)
+   If roRe(jj).FID = roFa(ri).FID Then roRe(jj).FID = fzu(ri).fneu
+  Next jj
+  For jj = 1 To UBound(roRr)
+   If roRr(jj).FID = roFa(ri).FID Then roRr(jj).FID = fzu(ri).fneu
+  Next jj
+  For jj = 1 To UBound(roUs)
+   If roUs(jj).FID = roFa(ri).FID Then roUs(jj).FID = fzu(ri).fneu
+  Next jj
+  For jj = 1 To UBound(roFu)
+   If roFu(jj).FID = roFa(ri).FID Then roFu(jj).FID = fzu(ri).fneu
+  Next jj
+  For jj = 1 To UBound(roUl)
+   If roUl(jj).FID = roFa(ri).FID Then roUl(jj).FID = fzu(ri).fneu
+  Next jj
+  For jj = 1 To UBound(roVk)
+   If roVk(jj).FID = roFa(ri).FID Then roVk(jj).FID = fzu(ri).fneu
+  Next jj
+  For jj = 1 To UBound(roSw)
+   If roSw(jj).FID = roFa(ri).FID Then roSw(jj).FID = fzu(ri).fneu
+  Next jj
+  roFa(ri).FID = fzu(ri).fneu
+ Next ri
  rFa = roFa
  Exit Function
 fehler:
@@ -2396,7 +2511,8 @@ fehler:
 End FUNCTION ' faelleEinf
 
 Public FUNCTION faelleSpeichern(SammelInsert%, BezfSp%)
- Dim i&, rAF&, Pid$, m%, sfnr% ',sql0$
+ Dim i&, rAF&, Pid$, m%, sfnr%, altmode$ ',sql0$
+Dim j%
  Dim csql0 As New CString, csql As New CString
  Dim rs As New ADODB.recordset
  T1 = Timer
@@ -2404,15 +2520,6 @@ Public FUNCTION faelleSpeichern(SammelInsert%, BezfSp%)
  Pid = rNa(0).Pat_id
  ON Error GoTo fehler
  syscmd 4, pid & ": Speichere " & Ubound(rFa)+0 & " Sätze in `faelle`"
- IF NOT Allepat THEN
-  sql = "SELECT pat_id FROM `faelle` WHERE Pat_ID = " & CStr(rNa(0).Pat_ID)
-  myFrag rs, sql
-  IF Not rs.BOF THEN
-   SET rs = nothing
-   sql = "DELETE FROM `faelle` WHERE Pat_ID = " & CStr(rNa(0).Pat_ID)
-   Call myEFrag(sql)
-  END IF
- END IF ' not allePat
 ' sql0 = " INSERT " & sqlignore &  "INTO `faelle` (Pat_ID,Quartal,Nachname," & _
      "Vorname,lfdnr,TMFNr,VKNr,f4131,f4132,VschBeg,KKasse_2,FaktPers,FaktTechn," & _
      "FaktLabor,BhFB,BhFE1,BhFE2,f4202,ausgst,KtrAbrB,AbrAr,lVorl,IK," & _
@@ -2437,6 +2544,12 @@ Public FUNCTION faelleSpeichern(SammelInsert%, BezfSp%)
      "Fanf,altQuart,QAnf,QEnd,QS,QT,StByte,absPos,LANRid,f4108," & _
      "BGFallNr,lGewicht,vorET,dmpVertret,dmpArztw,dmpHypos,dmpKhsA,dmpDMSchulEmpf,dmpDMSchulWahrg,dmpHypertSchulEmpf," & _
      "dmpHypertSchulWahrg,dmpKKTabakEmpf,dmpKKErnEmpf,dmpKKkTrainEmpf,dmpHbA1cZiel,dmpUewFuss,dmpEinwDM,dmphalbj,dmpMA)        VALUES"))
+sql:
+ csql.m_Len = 0
+ IF NOT Allepat THEN
+   sql = "DELETE FROM `faelle` WHERE Pat_ID = " & CStr(rNa(0).Pat_ID)
+   Call myEFrag(sql)
+ END IF ' not AllePat
  For i = 1 to ubound(rFa)
 '  rFa(i).AktZeit = now()
   rFa(i).StByte = CStr(AktByte)
@@ -2461,152 +2574,160 @@ Public FUNCTION faelleSpeichern(SammelInsert%, BezfSp%)
   IF SammelInsert <> 0 AND i < ubound(rFa) THEN csql.Append ","
   IF SammelInsert = 0 OR i = ubound(rFa) THEN
 '   IF Not obForK THEN ForeignNo0
+    altmode = DBCn.Execute("SELECT @@global.sql_mode").Fields(0)
+   Call DBCn.Execute("SET GLOBAL sql_mode='STRICT_TRANS_TABLES'") ' NO_ENGINE_SUBSTITUTION
 '   Call myEFrag(csql.Value,rAf)', , adAsyncExecute) ' wegen unzureichender Fehlerverarbeitung wieder ausrangiert 19.8.23
    Call DBCn.Execute(csql.Value, rAF) ', , adAsyncExecute)
 '   IF Not obFork THEN ForeignYes0
    IF rAF = 0 THEN
     Err.Raise 998, , "Fehler in faelleSpeichern b.Pat. " & rFa(i).Pat_id & ", Err.Number " & Err.Number & ", err.description: " & Err.Description
-   END IF
+   END IF ' rAF = 0 THEN
    IF obforK THEN
     Call ForeignYes0
     Call ForeignYes1
-   END IF
-   IF sammelinsert = 0 THEN csql.m_len = 0
-   IF lese.obmysql AND obmitAlterTab THEN
-    SET rs = myEFrag("SHOW WARNINGS")
-    IF not rs.BOF() THEN
-     IF rs!code = 1265 THEN
-      Err.Raise -2147217833
-     END IF
-    END IF
-   END IF
-  IF SammelInsert = 0 THEN
-  'Hier gibts mit Sammelins noch ein Problem ...
-   SET rs = myEFrag("SELECT MAX(fid) FID FROM `faelle` WHERE pat_id = " & rFa(i).Pat_ID & " AND quartal = '" & rFa(i).Quartal & "' AND bhfb = " & DatFor_k(rFa(i).BhFB) & " AND bhfe1 = " & DatFor_k(rFa(i).BhFE1) & " AND ausgst = " & DatFor_k(rFa(i).ausgst))
-   ' SET rs = myEFrag("SELECT LAST_INSERT_ID() FID")
-   IF rs.BOF THEN
-    Err.Raise 999, , "Fehler bei der Fallaktualisierung b.Pat. " & rFa(i).Pat_ID & ", FID " & rFa(i).FID
-   Else
-    IF rs!FID <> rFa(i).FID THEN
-     Lese.Ausgeb "Änderung bei der FallID  bei Pat. " & rFa(i).Pat_ID & ", FID " & rFa(i).FID & " -> " & rs!FID & " in zu speichernden Tabellen mit fallid", True 
-     Dim jjj&
+   END IF ' obforK THEN
+   IF SammelInsert = 0 THEN
+   'Hier gibts mit Sammelins noch ein Problem ...
+'    set rs = nothing
+'    For j = 2 To 2
+'     If j = 1 Then
+'      Set rs = myEFrag("SELECT LAST_INSERT_ID() FID") ' session-spezifisch '27.8.23: liefert in Schleife immer die erste Zahl, auch mit Commit zwischendrin
+'     Else ' j = 1 Then
+      Set rs = myEFrag("SELECT MAX(fid) FID FROM `faelle` WHERE pat_id = " & rFa(i).Pat_id & " AND quartal = '" & rFa(i).Quartal & "' AND bhfb = " & DatFor_k(rFa(i).BhFB) & " AND bhfe1 = " & DatFor_k(rFa(i).BhFE1) & " AND ausgst = " & DatFor_k(rFa(i).ausgst))
+'     End If
+'     If Not rs.BOF Then If rs.Fields(0) <> 0 Then Exit For
+'    Next j
+    IF rs.BOF Then
+     Err.Raise 999, , "Fehler bei der Fallaktualisierung b.Pat. " & rFa(i).Pat_ID & ", FID " & rFa(i).FID
+    ElseIf rs!FID = 0 Then
+     MsgBox "Fehler in faellespeichern:" & vbCrLf & rs.source
+     GoTo sql
+    Else ' rs.BOF Then
+     neufid = rs!FID
+     If neufid <> rFa(i).FID Then
+      Lese.Ausgeb "Änderung bei der FallID  bei Pat. " & rFa(i).Pat_ID & ", FID " & rFa(i).FID & " -> " & neufid & " in zu speichernden Tabellen mit fallid", True 
+      Dim jjj&
       For jjj = 1 To UBound(rAu)
        IF rAu(jjj).FID = rFa(i).FID THEN
-        rAu(jjj).FID = rs!FID
-       END IF
+        rAu(jjj).FID = neufid
+       END IF ' rAu(jjj).FID = rFa(i).FID THEN
       Next jjj
       For jjj = 1 To UBound(rBr)
        IF rBr(jjj).FID = rFa(i).FID THEN
-        rBr(jjj).FID = rs!FID
-       END IF
+        rBr(jjj).FID = neufid
+       END IF ' rBr(jjj).FID = rFa(i).FID THEN
       Next jjj
       For jjj = 1 To UBound(rDi)
        IF rDi(jjj).FID = rFa(i).FID THEN
-        rDi(jjj).FID = rs!FID
-       END IF
+        rDi(jjj).FID = neufid
+       END IF ' rDi(jjj).FID = rFa(i).FID THEN
       Next jjj
       For jjj = 1 To UBound(rDo)
        IF rDo(jjj).FID = rFa(i).FID THEN
-        rDo(jjj).FID = rs!FID
-       END IF
+        rDo(jjj).FID = neufid
+       END IF ' rDo(jjj).FID = rFa(i).FID THEN
       Next jjj
       For jjj = 1 To UBound(rEi)
        IF rEi(jjj).FID = rFa(i).FID THEN
-        rEi(jjj).FID = rs!FID
-       END IF
+        rEi(jjj).FID = neufid
+       END IF ' rEi(jjj).FID = rFa(i).FID THEN
       Next jjj
       For jjj = 1 To UBound(rFr)
        IF rFr(jjj).FID = rFa(i).FID THEN
-        rFr(jjj).FID = rs!FID
-       END IF
+        rFr(jjj).FID = neufid
+       END IF ' rFr(jjj).FID = rFa(i).FID THEN
       Next jjj
       For jjj = 1 To UBound(rKh)
        IF rKh(jjj).FID = rFa(i).FID THEN
-        rKh(jjj).FID = rs!FID
-       END IF
+        rKh(jjj).FID = neufid
+       END IF ' rKh(jjj).FID = rFa(i).FID THEN
       Next jjj
       For jjj = 1 To UBound(rLb)
        IF rLb(jjj).FID = rFa(i).FID THEN
-        rLb(jjj).FID = rs!FID
-       END IF
+        rLb(jjj).FID = neufid
+       END IF ' rLb(jjj).FID = rFa(i).FID THEN
       Next jjj
       For jjj = 1 To UBound(rLa)
        IF rLa(jjj).FID = rFa(i).FID THEN
-        rLa(jjj).FID = rs!FID
-       END IF
+        rLa(jjj).FID = neufid
+       END IF ' rLa(jjj).FID = rFa(i).FID THEN
       Next jjj
       For jjj = 1 To UBound(rLe)
        IF rLe(jjj).FID = rFa(i).FID THEN
-        rLe(jjj).FID = rs!FID
-       END IF
+        rLe(jjj).FID = neufid
+       END IF ' rLe(jjj).FID = rFa(i).FID THEN
       Next jjj
       For jjj = 1 To UBound(rMe)
        IF rMe(jjj).FID = rFa(i).FID THEN
-        rMe(jjj).FID = rs!FID
-       END IF
+        rMe(jjj).FID = neufid
+       END IF ' rMe(jjj).FID = rFa(i).FID THEN
       Next jjj
       For jjj = 1 To UBound(rRe)
        IF rRe(jjj).FID = rFa(i).FID THEN
-        rRe(jjj).FID = rs!FID
-       END IF
+        rRe(jjj).FID = neufid
+       END IF ' rRe(jjj).FID = rFa(i).FID THEN
       Next jjj
       For jjj = 1 To UBound(rRr)
        IF rRr(jjj).FID = rFa(i).FID THEN
-        rRr(jjj).FID = rs!FID
-       END IF
+        rRr(jjj).FID = neufid
+       END IF ' rRr(jjj).FID = rFa(i).FID THEN
       Next jjj
       For jjj = 1 To UBound(rUs)
        IF rUs(jjj).FID = rFa(i).FID THEN
-        rUs(jjj).FID = rs!FID
-       END IF
+        rUs(jjj).FID = neufid
+       END IF ' rUs(jjj).FID = rFa(i).FID THEN
       Next jjj
       For jjj = 1 To UBound(rFu)
        IF rFu(jjj).FID = rFa(i).FID THEN
-        rFu(jjj).FID = rs!FID
-       END IF
+        rFu(jjj).FID = neufid
+       END IF ' rFu(jjj).FID = rFa(i).FID THEN
       Next jjj
       For jjj = 1 To UBound(rUl)
        IF rUl(jjj).FID = rFa(i).FID THEN
-        rUl(jjj).FID = rs!FID
-       END IF
+        rUl(jjj).FID = neufid
+       END IF ' rUl(jjj).FID = rFa(i).FID THEN
       Next jjj
       For jjj = 1 To UBound(rVk)
        IF rVk(jjj).FID = rFa(i).FID THEN
-        rVk(jjj).FID = rs!FID
-       END IF
+        rVk(jjj).FID = neufid
+       END IF ' rVk(jjj).FID = rFa(i).FID THEN
       Next jjj
       For jjj = 1 To UBound(rSw)
        IF rSw(jjj).FID = rFa(i).FID THEN
-        rSw(jjj).FID = rs!FID
-       END IF
+        rSw(jjj).FID = neufid
+       END IF ' rSw(jjj).FID = rFa(i).FID THEN
       Next jjj
-     END IF
-    END IF
-  END IF ' IF Sammelinsert = 0 
-   END IF
+     END IF ' neufid <> rFa(i).FID Then
+     neufid = neufid + 1 ' für den nächsten Patienten
+    END IF ' rs.BOF Then
+    csql.m_len = 0
+   END IF ' IF SammelInsert = 0 Then
+  END IF ' SammelInsert = 0 OR i = ubound(rFa)
   DoEvents
  Next i
  syscmd 5
  Exit Function
 fehler:
-ErrDescription = Err.Description
+ErrDescr = Err.Description
+ErrNumber = Err.Number
+syscmd 4, "rFa(" & i & "/" & UBound(rFa) & "):   " & ErrDescr
 sfnr = sfnr + 1
 If sfnr > 10 then 
- Lese.Ausgeb sfnr & " Fehler in ""faelleSpeichern()"" bei Pat. " & rNa(0).Pat_id & ", gebe auf (ErrDes: " & ErrDescription & ")", True
+ Lese.Ausgeb sfnr & " Fehler in ""faelleSpeichern()"" bei Pat. " & rNa(0).Pat_id & ", gebe auf (ErrDes: " & ErrDescr & ")", True
  sfnr = 0
  Resume Next
-End if
-IF Err.Number = -2147217900 AND InStrB(ErrDescription, " Doppelter; Eintrag; ") <> 0 THEN
+End if ' sfnr > 10
+IF ErrNumber = -2147217900 AND InStrB(ErrDescr, " Doppelter; Eintrag; ") <> 0 THEN
  Call Shell(App.path + "\..\nachricht\nachricht.exe " & App.EXEName & " Doppelter Eintrag bei: " & vbCrLf & csql.Value)
  Resume Next
-ElseIf Err.Number = -2147467259 AND InStrB(ErrDescription, "Daten zu lang") = 0 AND InStrB(ErrDescription, "Data too long") = 0 THEN ' -2147467259 ' [MySQL][ODBC 3.51 Driver][mysqld-5.1.32-log]Cannot add OR update a child row: a FOREIGN KEY constraint fails
- IF InStrB(ErrDescription, "'READ-COMMITTED'") <> 0 THEN
+ElseIf ErrNumber = -2147467259 AND InStrB(ErrDescr, "Daten zu lang") = 0 AND InStrB(ErrDescr, "Data too long") = 0 THEN ' -2147467259 ' [MySQL][ODBC 3.51 Driver][mysqld-5.1.32-log]Cannot add OR update a child row: a FOREIGN KEY constraint fails
+ IF InStrB(ErrDescr, "'READ-COMMITTED'") <> 0 THEN
   myEFrag "SET SESSION TRANSACTION ISOLATION LEVEL REPEATABLE READ", rAF
  Else
-  Call doBezFeh(csql.Value, BezfSp, ErrDescription)
+  Call doBezFeh(csql.Value, BezfSp, ErrDescr)
  END IF
  Resume
-ElseIf Err.Number = -2147217833 OR InStrB(ErrDescription, "Daten zu lang") <> 0 OR InStrB(ErrDescription, "Data too long") <> 0 THEN
+ElseIf ErrNumber = -2147217833 OR InStrB(ErrDescr, "Daten zu lang") <> 0 OR InStrB(ErrDescr, "Data too long") <> 0 THEN
  Dim rsc As Adodb.Recordset, maxi%(), k%
  redim maxi(80)
  for k = iif(SammelInsert<>0,1,i) to iif(SammelInsert<>0,ubound(rFa),i)
@@ -2692,7 +2813,7 @@ ElseIf Err.Number = -2147217833 OR InStrB(ErrDescription, "Daten zu lang") <> 0 
   IF Len(rFa(k).dmphalbj) > maxi(79) THEN maxi(79) = Len(rFa(k).dmphalbj)
   IF Len(rFa(k).dmpMA) > maxi(80) THEN maxi(80) = Len(rFa(k).dmpMA)
  next k
- IF obTrans <>0 Then If DBCn.Execute("SELECT COUNT(1) FROM information_schema.innodb_trx WHERE trx_mysql_thread_id = CONNECTION_ID()").Fields(0) <> 0 Then DBCn.CommitTrans: obtrans = 0
+ IF obTrans <>0 Then If DBCn.Execute("SELECT COUNT(1) FROM information_schema.innodb_trx WHERE trx_mysql_thread_id = CONNECTION_ID()").Fields(0) <> 0 Then ComTrans ' DBCn.CommitTrans: obtrans = 0
  nochmal:
  SET rsc = New ADODB.Recordset
  SET rsc = DBCnOSchema(adSchemaColumns, Array(Empty, Empty, "faelle", Empty))
@@ -2798,22 +2919,25 @@ ElseIf Err.Number = -2147217833 OR InStrB(ErrDescription, "Daten zu lang") <> 0 
  Call ForeignNo0
  Call ForeignNo1
  resume
-END IF ' Err.Number = -2147217833 THEN
-IF Err.Number = -2147467259 THEN
+ElseIf InStrB(1, ErrDescr, "gone away", vbTextCompare) <> 0 Or InStrB(ErrDescr, "ost connection") <> 0 Then
+ DBCnOpen
+ Resume
+END IF ' ErrNumber = 
+IF ErrNumber = -2147467259 THEN
  Dim sqlquer$
  sqlquer = "INSERT INTO `kassenliste`(name,kurzname,`GO`,`VKNR`,`IK`,`eingef`,pid) values (" & "'" & rFa(I).kasse & "', '" & rFa(I).kkasse_2 & "', '" & rFa(I).GOÄKatName & "', '" & rFa(I).VKNr & "', '" & rFa(I).IK & "'," & Format(NOW(), "yyyymmddHHMMSS") & "," & rFa(I).Pat_id & ")"
  InsKorr DBCn, DBCnS, sqlquer, rAF
  Resume
-END IF ' Err.Number = -2147467259 THEN
+END IF ' ErrNumber = -2147467259 THEN
  Dim AnwPfad$
 #If VBA6 THEN
  AnwPfad = currentDB.Name
 #Else
  AnwPfad = App.Path
 #END IF
- SELECT CASE MsgBox("FNr: " + CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " & IIf(ISNULL(Err.Source), vNS, CStr(Err.Source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "aufgefangener Fehler in faelleSpeichern/" + AnwPfad)
+ SELECT CASE MsgBox("FNr: " + CStr(ErrNumber) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " & IIf(ISNULL(Err.Source), vNS, CStr(Err.Source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "aufgefangener Fehler in faelleSpeichern/" + AnwPfad)
   Case vbAbort: Call MsgBox(" Höre auf "): Progende
-  Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
+  Case vbRetry: Call MsgBox("Versuche nochmal"): If ErrNumber = 998 Then Resume sql Else Resume
   Case vbIgnore: Call MsgBox(" Setze fort "): Resume Next
  END SELECT
 End FUNCTION ' faelleSpeichern
@@ -2889,28 +3013,27 @@ fehler:
 End FUNCTION ' auLaden
 
 Function auEinf
- Dim rbeg&, robeg&, ri&, roi&
+ Dim rbeg&, roendpe&, ri&, roi&
  On Error GoTo fehler
  IF UBound(rAu) > 0 THEN
-  rbeg = 0
   For ri = 1 To UBound(rAu)
-   IF rAu(ri).ZeitPunkt >= qbeg THEN
+   IF rAu(ri).ZeitPunkt >= qbeg Then ' aktqanf()
     rbeg = ri
     Exit For
    END IF
   Next ri
   IF rbeg <> 0 THEN
-   For robeg = 0 To UBound(roAu)
-    IF roAu(robeg).ZeitPunkt >= qbeg THEN
+   For roendpe = 0 To UBound(roAu)
+    IF roAu(roendpe).ZeitPunkt >= qbeg THEN
      Exit For
     END IF
-   Next robeg
-   IF robeg <= UBound(roFa) THEN
-    ReDim Preserve roAu(robeg - 1)
-   END IF ' IF robeg <= UBound(roFa) THEN
-   ReDim Preserve roAu(robeg + UBound(rAu) - rbeg)
+   Next roendpe
+   IF roendpe <= UBound(roFa) THEN
+    ReDim Preserve roAu(roendpe - 1)
+   END IF ' IF roendpe <= UBound(roFa) THEN
+   ReDim Preserve roAu(roendpe + UBound(rAu) - rbeg)
    For ri = rbeg To UBound(rAu)
-    Call roAuZuw(robeg + ri - rbeg, ri)
+    Call roAuZuw(roendpe + ri - rbeg, ri)
    Next ri
   END IF ' IF rbeg <> 0 THEN
  END IF ' IF UBound(rFa) > 0 THEN
@@ -2931,7 +3054,7 @@ fehler:
 End FUNCTION ' auEinf
 
 Public FUNCTION auSpeichern(SammelInsert%, BezfSp%)
- Dim i&, rAF&, Pid$, m%, sfnr% ',sql0$
+ Dim i&, rAF&, Pid$, m%, sfnr%, altmode$ ',sql0$
  Dim csql0 As New CString, csql As New CString
  Dim rs As New ADODB.recordset
  T1 = Timer
@@ -2939,19 +3062,16 @@ Public FUNCTION auSpeichern(SammelInsert%, BezfSp%)
  Pid = rNa(0).Pat_id
  ON Error GoTo fehler
  syscmd 4, pid & ": Speichere " & Ubound(rAu)+0 & " Sätze in `au`"
- IF NOT Allepat THEN
-  sql = "SELECT pat_id FROM `au` WHERE Pat_ID = " & CStr(rNa(0).Pat_ID)
-  myFrag rs, sql
-  IF Not rs.BOF THEN
-   SET rs = nothing
-   sql = "DELETE FROM `au` WHERE Pat_ID = " & CStr(rNa(0).Pat_ID)
-   Call myEFrag(sql)
-  END IF
- END IF ' not allePat
 ' sql0 = " INSERT " & sqlignore &  "INTO `au` (FID,Pat_ID,ZeitPunkt," & _
      "Beginn,Ende,ICDs,absPos,AktZeit,StByte) VALUES
  Call csql0.AppVar(Array(" INSERT ", sqlIgnore, " INTO `au` (FID,Pat_ID,ZeitPunkt," & _
      "Beginn,Ende,ICDs,absPos,AktZeit,StByte)            VALUES"))
+sql:
+ csql.m_Len = 0
+ IF NOT Allepat THEN
+   sql = "DELETE FROM `au` WHERE Pat_ID = " & CStr(rNa(0).Pat_ID)
+   Call myEFrag(sql)
+ END IF ' not AllePat
  For i = 1 to ubound(rAu)
 '  rAu(i).AktZeit = now()
   rAu(i).StByte = CStr(AktByte)
@@ -2962,45 +3082,40 @@ Public FUNCTION auSpeichern(SammelInsert%, BezfSp%)
    rAu(i).StByte, ")")
   IF SammelInsert <> 0 AND i < ubound(rAu) THEN csql.Append ","
   IF SammelInsert = 0 OR i = ubound(rAu) THEN
+    altmode = DBCn.Execute("SELECT @@global.sql_mode").Fields(0)
+   Call DBCn.Execute("SET GLOBAL sql_mode='STRICT_TRANS_TABLES'") ' NO_ENGINE_SUBSTITUTION
 '   Call myEFrag(csql.Value,rAf)', , adAsyncExecute) ' wegen unzureichender Fehlerverarbeitung wieder ausrangiert 19.8.23
    Call DBCn.Execute(csql.Value, rAF) ', , adAsyncExecute)
    IF obforK THEN
     Call ForeignYes0
     Call ForeignYes1
-   END IF
-   IF sammelinsert = 0 THEN csql.m_len = 0
-   IF lese.obmysql AND obmitAlterTab THEN
-    SET rs = myEFrag("SHOW WARNINGS")
-    IF not rs.BOF() THEN
-     IF rs!code = 1265 THEN
-      Err.Raise -2147217833
-     END IF
-    END IF
-   END IF
-   END IF
+   END IF ' obforK THEN
+  END IF ' SammelInsert = 0 OR i = ubound(rAu)
   DoEvents
  Next i
  syscmd 5
  Exit Function
 fehler:
-ErrDescription = Err.Description
+ErrDescr = Err.Description
+ErrNumber = Err.Number
+syscmd 4, "rAu(" & i & "/" & UBound(rAu) & "):   " & ErrDescr
 sfnr = sfnr + 1
 If sfnr > 10 then 
- Lese.Ausgeb sfnr & " Fehler in ""auSpeichern()"" bei Pat. " & rNa(0).Pat_id & ", gebe auf (ErrDes: " & ErrDescription & ")", True
+ Lese.Ausgeb sfnr & " Fehler in ""auSpeichern()"" bei Pat. " & rNa(0).Pat_id & ", gebe auf (ErrDes: " & ErrDescr & ")", True
  sfnr = 0
  Resume Next
-End if
-IF Err.Number = -2147217900 AND InStrB(ErrDescription, " Doppelter; Eintrag; ") <> 0 THEN
+End if ' sfnr > 10
+IF ErrNumber = -2147217900 AND InStrB(ErrDescr, " Doppelter; Eintrag; ") <> 0 THEN
  Call Shell(App.path + "\..\nachricht\nachricht.exe " & App.EXEName & " Doppelter Eintrag bei: " & vbCrLf & csql.Value)
  Resume Next
-ElseIf Err.Number = -2147467259 AND InStrB(ErrDescription, "Daten zu lang") = 0 AND InStrB(ErrDescription, "Data too long") = 0 THEN ' -2147467259 ' [MySQL][ODBC 3.51 Driver][mysqld-5.1.32-log]Cannot add OR update a child row: a FOREIGN KEY constraint fails
- IF InStrB(ErrDescription, "'READ-COMMITTED'") <> 0 THEN
+ElseIf ErrNumber = -2147467259 AND InStrB(ErrDescr, "Daten zu lang") = 0 AND InStrB(ErrDescr, "Data too long") = 0 THEN ' -2147467259 ' [MySQL][ODBC 3.51 Driver][mysqld-5.1.32-log]Cannot add OR update a child row: a FOREIGN KEY constraint fails
+ IF InStrB(ErrDescr, "'READ-COMMITTED'") <> 0 THEN
   myEFrag "SET SESSION TRANSACTION ISOLATION LEVEL REPEATABLE READ", rAF
  Else
-  Call doBezFeh(csql.Value, BezfSp, ErrDescription)
+  Call doBezFeh(csql.Value, BezfSp, ErrDescr)
  END IF
  Resume
-ElseIf Err.Number = -2147217833 OR InStrB(ErrDescription, "Daten zu lang") <> 0 OR InStrB(ErrDescription, "Data too long") <> 0 THEN
+ElseIf ErrNumber = -2147217833 OR InStrB(ErrDescr, "Daten zu lang") <> 0 OR InStrB(ErrDescr, "Data too long") <> 0 THEN
  Dim rsc As Adodb.Recordset, maxi%(), k%
  redim maxi(2)
  for k = iif(SammelInsert<>0,1,i) to iif(SammelInsert<>0,ubound(rAu),i)
@@ -3008,7 +3123,7 @@ ElseIf Err.Number = -2147217833 OR InStrB(ErrDescription, "Daten zu lang") <> 0 
   IF Len(rAu(k).Ende) > maxi(1) THEN maxi(1) = Len(rAu(k).Ende)
   IF Len(rAu(k).ICDs) > maxi(2) THEN maxi(2) = Len(rAu(k).ICDs)
  next k
- IF obTrans <>0 Then If DBCn.Execute("SELECT COUNT(1) FROM information_schema.innodb_trx WHERE trx_mysql_thread_id = CONNECTION_ID()").Fields(0) <> 0 Then DBCn.CommitTrans: obtrans = 0
+ IF obTrans <>0 Then If DBCn.Execute("SELECT COUNT(1) FROM information_schema.innodb_trx WHERE trx_mysql_thread_id = CONNECTION_ID()").Fields(0) <> 0 Then ComTrans ' DBCn.CommitTrans: obtrans = 0
  nochmal:
  SET rsc = New ADODB.Recordset
  SET rsc = DBCnOSchema(adSchemaColumns, Array(Empty, Empty, "au", Empty))
@@ -3036,16 +3151,19 @@ ElseIf Err.Number = -2147217833 OR InStrB(ErrDescription, "Daten zu lang") <> 0 
  Call ForeignNo0
  Call ForeignNo1
  resume
-END IF ' Err.Number = -2147217833 THEN
+ElseIf InStrB(1, ErrDescr, "gone away", vbTextCompare) <> 0 Or InStrB(ErrDescr, "ost connection") <> 0 Then
+ DBCnOpen
+ Resume
+END IF ' ErrNumber = 
  Dim AnwPfad$
 #If VBA6 THEN
  AnwPfad = currentDB.Name
 #Else
  AnwPfad = App.Path
 #END IF
- SELECT CASE MsgBox("FNr: " + CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " & IIf(ISNULL(Err.Source), vNS, CStr(Err.Source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "aufgefangener Fehler in auSpeichern/" + AnwPfad)
+ SELECT CASE MsgBox("FNr: " + CStr(ErrNumber) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " & IIf(ISNULL(Err.Source), vNS, CStr(Err.Source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "aufgefangener Fehler in auSpeichern/" + AnwPfad)
   Case vbAbort: Call MsgBox(" Höre auf "): Progende
-  Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
+  Case vbRetry: Call MsgBox("Versuche nochmal"): If ErrNumber = 998 Then Resume sql Else Resume
   Case vbIgnore: Call MsgBox(" Setze fort "): Resume Next
  END SELECT
 End FUNCTION ' auSpeichern
@@ -3147,28 +3265,27 @@ fehler:
 End FUNCTION ' briefeLaden
 
 Function briefeEinf
- Dim rbeg&, robeg&, ri&, roi&
+ Dim rbeg&, roendpe&, ri&, roi&
  On Error GoTo fehler
  IF UBound(rBr) > 0 THEN
-  rbeg = 0
   For ri = 1 To UBound(rBr)
-   IF rBr(ri).ZeitPunkt >= qbeg THEN
+   IF rBr(ri).ZeitPunkt >= qbeg Then ' aktqanf()
     rbeg = ri
     Exit For
    END IF
   Next ri
   IF rbeg <> 0 THEN
-   For robeg = 0 To UBound(roBr)
-    IF roBr(robeg).ZeitPunkt >= qbeg THEN
+   For roendpe = 0 To UBound(roBr)
+    IF roBr(roendpe).ZeitPunkt >= qbeg THEN
      Exit For
     END IF
-   Next robeg
-   IF robeg <= UBound(roFa) THEN
-    ReDim Preserve roBr(robeg - 1)
-   END IF ' IF robeg <= UBound(roFa) THEN
-   ReDim Preserve roBr(robeg + UBound(rBr) - rbeg)
+   Next roendpe
+   IF roendpe <= UBound(roFa) THEN
+    ReDim Preserve roBr(roendpe - 1)
+   END IF ' IF roendpe <= UBound(roFa) THEN
+   ReDim Preserve roBr(roendpe + UBound(rBr) - rbeg)
    For ri = rbeg To UBound(rBr)
-    Call roBrZuw(robeg + ri - rbeg, ri)
+    Call roBrZuw(roendpe + ri - rbeg, ri)
    Next ri
   END IF ' IF rbeg <> 0 THEN
  END IF ' IF UBound(rFa) > 0 THEN
@@ -3189,7 +3306,7 @@ fehler:
 End FUNCTION ' briefeEinf
 
 Public FUNCTION briefeSpeichern(SammelInsert%, BezfSp%)
- Dim i&, rAF&, Pid$, m%, sfnr% ',sql0$
+ Dim i&, rAF&, Pid$, m%, sfnr%, altmode$ ',sql0$
  Dim csql0 As New CString, csql As New CString
  Dim rs As New ADODB.recordset
  T1 = Timer
@@ -3197,21 +3314,18 @@ Public FUNCTION briefeSpeichern(SammelInsert%, BezfSp%)
  Pid = rNa(0).Pat_id
  ON Error GoTo fehler
  syscmd 4, pid & ": Speichere " & Ubound(rBr)+0 & " Sätze in `briefe`"
- IF NOT Allepat THEN
-  sql = "SELECT pat_id FROM `briefe` WHERE Pat_ID = " & CStr(rNa(0).Pat_ID)
-  myFrag rs, sql
-  IF Not rs.BOF THEN
-   SET rs = nothing
-   sql = "DELETE FROM `briefe` WHERE Pat_ID = " & CStr(rNa(0).Pat_ID)
-   Call myEFrag(sql)
-  END IF
- END IF ' not allePat
 ' sql0 = " INSERT " & sqlignore &  "INTO `briefe` (FID,Pat_ID,ZeitPunkt," & _
      "Pfad,Art,Name,autor,Quelldatum,Typ,AktZeit,DokGroe,DokAenD,QS," & _
      "QT,absPos,StByte) VALUES
  Call csql0.AppVar(Array(" INSERT ", sqlIgnore, " INTO `briefe` (FID,Pat_ID,ZeitPunkt," & _
      "Pfad,Art,Name,autor,Quelldatum,Typ,AktZeit,DokGroe,DokAenD,QS," & _
      "QT,absPos,StByte)      VALUES"))
+sql:
+ csql.m_Len = 0
+ IF NOT Allepat THEN
+   sql = "DELETE FROM `briefe` WHERE Pat_ID = " & CStr(rNa(0).Pat_ID)
+   Call myEFrag(sql)
+ END IF ' not AllePat
  For i = 1 to ubound(rBr)
 '  rBr(i).AktZeit = now()
   rBr(i).StByte = CStr(AktByte)
@@ -3222,45 +3336,40 @@ Public FUNCTION briefeSpeichern(SammelInsert%, BezfSp%)
    rBr(i).Typ, "'," , DatFor_k(rBr(i).AktZeit), "," , rBr(i).DokGroe, "," , DatFor_k(rBr(i).DokAenD), ",'" , rBr(i).QS, "','" , rBr(i).QT, "'," , rBr(i).absPos, "," , rBr(i).StByte, ")")
   IF SammelInsert <> 0 AND i < ubound(rBr) THEN csql.Append ","
   IF SammelInsert = 0 OR i = ubound(rBr) THEN
+    altmode = DBCn.Execute("SELECT @@global.sql_mode").Fields(0)
+   Call DBCn.Execute("SET GLOBAL sql_mode='STRICT_TRANS_TABLES'") ' NO_ENGINE_SUBSTITUTION
 '   Call myEFrag(csql.Value,rAf)', , adAsyncExecute) ' wegen unzureichender Fehlerverarbeitung wieder ausrangiert 19.8.23
    Call DBCn.Execute(csql.Value, rAF) ', , adAsyncExecute)
    IF obforK THEN
     Call ForeignYes0
     Call ForeignYes1
-   END IF
-   IF sammelinsert = 0 THEN csql.m_len = 0
-   IF lese.obmysql AND obmitAlterTab THEN
-    SET rs = myEFrag("SHOW WARNINGS")
-    IF not rs.BOF() THEN
-     IF rs!code = 1265 THEN
-      Err.Raise -2147217833
-     END IF
-    END IF
-   END IF
-   END IF
+   END IF ' obforK THEN
+  END IF ' SammelInsert = 0 OR i = ubound(rBr)
   DoEvents
  Next i
  syscmd 5
  Exit Function
 fehler:
-ErrDescription = Err.Description
+ErrDescr = Err.Description
+ErrNumber = Err.Number
+syscmd 4, "rBr(" & i & "/" & UBound(rBr) & "):   " & ErrDescr
 sfnr = sfnr + 1
 If sfnr > 10 then 
- Lese.Ausgeb sfnr & " Fehler in ""briefeSpeichern()"" bei Pat. " & rNa(0).Pat_id & ", gebe auf (ErrDes: " & ErrDescription & ")", True
+ Lese.Ausgeb sfnr & " Fehler in ""briefeSpeichern()"" bei Pat. " & rNa(0).Pat_id & ", gebe auf (ErrDes: " & ErrDescr & ")", True
  sfnr = 0
  Resume Next
-End if
-IF Err.Number = -2147217900 AND InStrB(ErrDescription, " Doppelter; Eintrag; ") <> 0 THEN
+End if ' sfnr > 10
+IF ErrNumber = -2147217900 AND InStrB(ErrDescr, " Doppelter; Eintrag; ") <> 0 THEN
  Call Shell(App.path + "\..\nachricht\nachricht.exe " & App.EXEName & " Doppelter Eintrag bei: " & vbCrLf & csql.Value)
  Resume Next
-ElseIf Err.Number = -2147467259 AND InStrB(ErrDescription, "Daten zu lang") = 0 AND InStrB(ErrDescription, "Data too long") = 0 THEN ' -2147467259 ' [MySQL][ODBC 3.51 Driver][mysqld-5.1.32-log]Cannot add OR update a child row: a FOREIGN KEY constraint fails
- IF InStrB(ErrDescription, "'READ-COMMITTED'") <> 0 THEN
+ElseIf ErrNumber = -2147467259 AND InStrB(ErrDescr, "Daten zu lang") = 0 AND InStrB(ErrDescr, "Data too long") = 0 THEN ' -2147467259 ' [MySQL][ODBC 3.51 Driver][mysqld-5.1.32-log]Cannot add OR update a child row: a FOREIGN KEY constraint fails
+ IF InStrB(ErrDescr, "'READ-COMMITTED'") <> 0 THEN
   myEFrag "SET SESSION TRANSACTION ISOLATION LEVEL REPEATABLE READ", rAF
  Else
-  Call doBezFeh(csql.Value, BezfSp, ErrDescription)
+  Call doBezFeh(csql.Value, BezfSp, ErrDescr)
  END IF
  Resume
-ElseIf Err.Number = -2147217833 OR InStrB(ErrDescription, "Daten zu lang") <> 0 OR InStrB(ErrDescription, "Data too long") <> 0 THEN
+ElseIf ErrNumber = -2147217833 OR InStrB(ErrDescr, "Daten zu lang") <> 0 OR InStrB(ErrDescr, "Data too long") <> 0 THEN
  Dim rsc As Adodb.Recordset, maxi%(), k%
  redim maxi(6)
  for k = iif(SammelInsert<>0,1,i) to iif(SammelInsert<>0,ubound(rBr),i)
@@ -3272,7 +3381,7 @@ ElseIf Err.Number = -2147217833 OR InStrB(ErrDescription, "Daten zu lang") <> 0 
   IF Len(rBr(k).QS) > maxi(5) THEN maxi(5) = Len(rBr(k).QS)
   IF Len(rBr(k).QT) > maxi(6) THEN maxi(6) = Len(rBr(k).QT)
  next k
- IF obTrans <>0 Then If DBCn.Execute("SELECT COUNT(1) FROM information_schema.innodb_trx WHERE trx_mysql_thread_id = CONNECTION_ID()").Fields(0) <> 0 Then DBCn.CommitTrans: obtrans = 0
+ IF obTrans <>0 Then If DBCn.Execute("SELECT COUNT(1) FROM information_schema.innodb_trx WHERE trx_mysql_thread_id = CONNECTION_ID()").Fields(0) <> 0 Then ComTrans ' DBCn.CommitTrans: obtrans = 0
  nochmal:
  SET rsc = New ADODB.Recordset
  SET rsc = DBCnOSchema(adSchemaColumns, Array(Empty, Empty, "briefe", Empty))
@@ -3304,16 +3413,19 @@ ElseIf Err.Number = -2147217833 OR InStrB(ErrDescription, "Daten zu lang") <> 0 
  Call ForeignNo0
  Call ForeignNo1
  resume
-END IF ' Err.Number = -2147217833 THEN
+ElseIf InStrB(1, ErrDescr, "gone away", vbTextCompare) <> 0 Or InStrB(ErrDescr, "ost connection") <> 0 Then
+ DBCnOpen
+ Resume
+END IF ' ErrNumber = 
  Dim AnwPfad$
 #If VBA6 THEN
  AnwPfad = currentDB.Name
 #Else
  AnwPfad = App.Path
 #END IF
- SELECT CASE MsgBox("FNr: " + CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " & IIf(ISNULL(Err.Source), vNS, CStr(Err.Source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "aufgefangener Fehler in briefeSpeichern/" + AnwPfad)
+ SELECT CASE MsgBox("FNr: " + CStr(ErrNumber) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " & IIf(ISNULL(Err.Source), vNS, CStr(Err.Source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "aufgefangener Fehler in briefeSpeichern/" + AnwPfad)
   Case vbAbort: Call MsgBox(" Höre auf "): Progende
-  Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
+  Case vbRetry: Call MsgBox("Versuche nochmal"): If ErrNumber = 998 Then Resume sql Else Resume
   Case vbIgnore: Call MsgBox(" Setze fort "): Resume Next
  END SELECT
 End FUNCTION ' briefeSpeichern
@@ -3421,28 +3533,27 @@ fehler:
 End FUNCTION ' diagnosenLaden
 
 Function diagnosenEinf
- Dim rbeg&, robeg&, ri&, roi&
+ Dim rbeg&, roendpe&, ri&, roi&
  On Error GoTo fehler
  IF UBound(rDi) > 0 THEN
-  rbeg = 0
   For ri = 1 To UBound(rDi)
-   IF rDi(ri).DiagDatum >= qbeg THEN
+   IF rDi(ri).DiagDatum >= qbeg Then ' aktqanf()
     rbeg = ri
     Exit For
    END IF
   Next ri
   IF rbeg <> 0 THEN
-   For robeg = 0 To UBound(roDi)
-    IF roDi(robeg).DiagDatum >= qbeg THEN
+   For roendpe = 0 To UBound(roDi)
+    IF roDi(roendpe).DiagDatum >= qbeg THEN
      Exit For
     END IF
-   Next robeg
-   IF robeg <= UBound(roFa) THEN
-    ReDim Preserve roDi(robeg - 1)
-   END IF ' IF robeg <= UBound(roFa) THEN
-   ReDim Preserve roDi(robeg + UBound(rDi) - rbeg)
+   Next roendpe
+   IF roendpe <= UBound(roFa) THEN
+    ReDim Preserve roDi(roendpe - 1)
+   END IF ' IF roendpe <= UBound(roFa) THEN
+   ReDim Preserve roDi(roendpe + UBound(rDi) - rbeg)
    For ri = rbeg To UBound(rDi)
-    Call roDiZuw(robeg + ri - rbeg, ri)
+    Call roDiZuw(roendpe + ri - rbeg, ri)
    Next ri
   END IF ' IF rbeg <> 0 THEN
  END IF ' IF UBound(rFa) > 0 THEN
@@ -3463,7 +3574,7 @@ fehler:
 End FUNCTION ' diagnosenEinf
 
 Public FUNCTION diagnosenSpeichern(SammelInsert%, BezfSp%)
- Dim i&, rAF&, Pid$, m%, sfnr% ',sql0$
+ Dim i&, rAF&, Pid$, m%, sfnr%, altmode$ ',sql0$
  Dim csql0 As New CString, csql As New CString
  Dim rs As New ADODB.recordset
  T1 = Timer
@@ -3471,21 +3582,18 @@ Public FUNCTION diagnosenSpeichern(SammelInsert%, BezfSp%)
  Pid = rNa(0).Pat_id
  ON Error GoTo fehler
  syscmd 4, pid & ": Speichere " & Ubound(rDi)+0 & " Sätze in `diagnosen`"
- IF NOT Allepat THEN
-  sql = "SELECT pat_id FROM `diagnosen` WHERE Pat_ID = " & CStr(rNa(0).Pat_ID)
-  myFrag rs, sql
-  IF Not rs.BOF THEN
-   SET rs = nothing
-   sql = "DELETE FROM `diagnosen` WHERE Pat_ID = " & CStr(rNa(0).Pat_ID)
-   Call myEFrag(sql)
-  END IF
- END IF ' not allePat
 ' sql0 = " INSERT " & sqlignore &  "INTO `diagnosen` (FID,Pat_id,DiagDatum," & _
      "DiagSicherheit,DiagText,DiagSeite,DiagAttr,ICD,obDauer,intBemerk,absPos,AktZeit,StByte," & _
      "AusnBegr,f6010,obKasse,lKasse,f6011) VALUES
  Call csql0.AppVar(Array(" INSERT ", sqlIgnore, " INTO `diagnosen` (FID,Pat_id,DiagDatum," & _
      "DiagSicherheit,DiagText,DiagSeite,DiagAttr,ICD,obDauer,intBemerk,absPos,AktZeit,StByte," & _
      "AusnBegr,f6010,obKasse,lKasse,f6011)               VALUES"))
+sql:
+ csql.m_Len = 0
+ IF NOT Allepat THEN
+   sql = "DELETE FROM `diagnosen` WHERE Pat_ID = " & CStr(rNa(0).Pat_ID)
+   Call myEFrag(sql)
+ END IF ' not AllePat
  For i = 1 to ubound(rDi)
 '  rDi(i).AktZeit = now()
   rDi(i).StByte = CStr(AktByte)
@@ -3497,45 +3605,40 @@ Public FUNCTION diagnosenSpeichern(SammelInsert%, BezfSp%)
    rDi(i).lKasse), ",'" , rDi(i).f6011, "')")
   IF SammelInsert <> 0 AND i < ubound(rDi) THEN csql.Append ","
   IF SammelInsert = 0 OR i = ubound(rDi) THEN
+    altmode = DBCn.Execute("SELECT @@global.sql_mode").Fields(0)
+   Call DBCn.Execute("SET GLOBAL sql_mode='STRICT_TRANS_TABLES'") ' NO_ENGINE_SUBSTITUTION
 '   Call myEFrag(csql.Value,rAf)', , adAsyncExecute) ' wegen unzureichender Fehlerverarbeitung wieder ausrangiert 19.8.23
    Call DBCn.Execute(csql.Value, rAF) ', , adAsyncExecute)
    IF obforK THEN
     Call ForeignYes0
     Call ForeignYes1
-   END IF
-   IF sammelinsert = 0 THEN csql.m_len = 0
-   IF lese.obmysql AND obmitAlterTab THEN
-    SET rs = myEFrag("SHOW WARNINGS")
-    IF not rs.BOF() THEN
-     IF rs!code = 1265 THEN
-      Err.Raise -2147217833
-     END IF
-    END IF
-   END IF
-   END IF
+   END IF ' obforK THEN
+  END IF ' SammelInsert = 0 OR i = ubound(rDi)
   DoEvents
  Next i
  syscmd 5
  Exit Function
 fehler:
-ErrDescription = Err.Description
+ErrDescr = Err.Description
+ErrNumber = Err.Number
+syscmd 4, "rDi(" & i & "/" & UBound(rDi) & "):   " & ErrDescr
 sfnr = sfnr + 1
 If sfnr > 10 then 
- Lese.Ausgeb sfnr & " Fehler in ""diagnosenSpeichern()"" bei Pat. " & rNa(0).Pat_id & ", gebe auf (ErrDes: " & ErrDescription & ")", True
+ Lese.Ausgeb sfnr & " Fehler in ""diagnosenSpeichern()"" bei Pat. " & rNa(0).Pat_id & ", gebe auf (ErrDes: " & ErrDescr & ")", True
  sfnr = 0
  Resume Next
-End if
-IF Err.Number = -2147217900 AND InStrB(ErrDescription, " Doppelter; Eintrag; ") <> 0 THEN
+End if ' sfnr > 10
+IF ErrNumber = -2147217900 AND InStrB(ErrDescr, " Doppelter; Eintrag; ") <> 0 THEN
  Call Shell(App.path + "\..\nachricht\nachricht.exe " & App.EXEName & " Doppelter Eintrag bei: " & vbCrLf & csql.Value)
  Resume Next
-ElseIf Err.Number = -2147467259 AND InStrB(ErrDescription, "Daten zu lang") = 0 AND InStrB(ErrDescription, "Data too long") = 0 THEN ' -2147467259 ' [MySQL][ODBC 3.51 Driver][mysqld-5.1.32-log]Cannot add OR update a child row: a FOREIGN KEY constraint fails
- IF InStrB(ErrDescription, "'READ-COMMITTED'") <> 0 THEN
+ElseIf ErrNumber = -2147467259 AND InStrB(ErrDescr, "Daten zu lang") = 0 AND InStrB(ErrDescr, "Data too long") = 0 THEN ' -2147467259 ' [MySQL][ODBC 3.51 Driver][mysqld-5.1.32-log]Cannot add OR update a child row: a FOREIGN KEY constraint fails
+ IF InStrB(ErrDescr, "'READ-COMMITTED'") <> 0 THEN
   myEFrag "SET SESSION TRANSACTION ISOLATION LEVEL REPEATABLE READ", rAF
  Else
-  Call doBezFeh(csql.Value, BezfSp, ErrDescription)
+  Call doBezFeh(csql.Value, BezfSp, ErrDescr)
  END IF
  Resume
-ElseIf Err.Number = -2147217833 OR InStrB(ErrDescription, "Daten zu lang") <> 0 OR InStrB(ErrDescription, "Data too long") <> 0 THEN
+ElseIf ErrNumber = -2147217833 OR InStrB(ErrDescr, "Daten zu lang") <> 0 OR InStrB(ErrDescr, "Data too long") <> 0 THEN
  Dim rsc As Adodb.Recordset, maxi%(), k%
  redim maxi(7)
  for k = iif(SammelInsert<>0,1,i) to iif(SammelInsert<>0,ubound(rDi),i)
@@ -3548,7 +3651,7 @@ ElseIf Err.Number = -2147217833 OR InStrB(ErrDescription, "Daten zu lang") <> 0 
   IF Len(rDi(k).AusnBegr) > maxi(6) THEN maxi(6) = Len(rDi(k).AusnBegr)
   IF Len(rDi(k).f6011) > maxi(7) THEN maxi(7) = Len(rDi(k).f6011)
  next k
- IF obTrans <>0 Then If DBCn.Execute("SELECT COUNT(1) FROM information_schema.innodb_trx WHERE trx_mysql_thread_id = CONNECTION_ID()").Fields(0) <> 0 Then DBCn.CommitTrans: obtrans = 0
+ IF obTrans <>0 Then If DBCn.Execute("SELECT COUNT(1) FROM information_schema.innodb_trx WHERE trx_mysql_thread_id = CONNECTION_ID()").Fields(0) <> 0 Then ComTrans ' DBCn.CommitTrans: obtrans = 0
  nochmal:
  SET rsc = New ADODB.Recordset
  SET rsc = DBCnOSchema(adSchemaColumns, Array(Empty, Empty, "diagnosen", Empty))
@@ -3581,16 +3684,19 @@ ElseIf Err.Number = -2147217833 OR InStrB(ErrDescription, "Daten zu lang") <> 0 
  Call ForeignNo0
  Call ForeignNo1
  resume
-END IF ' Err.Number = -2147217833 THEN
+ElseIf InStrB(1, ErrDescr, "gone away", vbTextCompare) <> 0 Or InStrB(ErrDescr, "ost connection") <> 0 Then
+ DBCnOpen
+ Resume
+END IF ' ErrNumber = 
  Dim AnwPfad$
 #If VBA6 THEN
  AnwPfad = currentDB.Name
 #Else
  AnwPfad = App.Path
 #END IF
- SELECT CASE MsgBox("FNr: " + CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " & IIf(ISNULL(Err.Source), vNS, CStr(Err.Source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "aufgefangener Fehler in diagnosenSpeichern/" + AnwPfad)
+ SELECT CASE MsgBox("FNr: " + CStr(ErrNumber) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " & IIf(ISNULL(Err.Source), vNS, CStr(Err.Source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "aufgefangener Fehler in diagnosenSpeichern/" + AnwPfad)
   Case vbAbort: Call MsgBox(" Höre auf "): Progende
-  Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
+  Case vbRetry: Call MsgBox("Versuche nochmal"): If ErrNumber = 998 Then Resume sql Else Resume
   Case vbIgnore: Call MsgBox(" Setze fort "): Resume Next
  END SELECT
 End FUNCTION ' diagnosenSpeichern
@@ -3682,28 +3788,27 @@ fehler:
 End FUNCTION ' dokumenteLaden
 
 Function dokumenteEinf
- Dim rbeg&, robeg&, ri&, roi&
+ Dim rbeg&, roendpe&, ri&, roi&
  On Error GoTo fehler
  IF UBound(rDo) > 0 THEN
-  rbeg = 0
   For ri = 1 To UBound(rDo)
-   IF rDo(ri).ZeitPunkt >= qbeg THEN
+   IF rDo(ri).ZeitPunkt >= qbeg Then ' aktqanf()
     rbeg = ri
     Exit For
    END IF
   Next ri
   IF rbeg <> 0 THEN
-   For robeg = 0 To UBound(roDo)
-    IF roDo(robeg).ZeitPunkt >= qbeg THEN
+   For roendpe = 0 To UBound(roDo)
+    IF roDo(roendpe).ZeitPunkt >= qbeg THEN
      Exit For
     END IF
-   Next robeg
-   IF robeg <= UBound(roFa) THEN
-    ReDim Preserve roDo(robeg - 1)
-   END IF ' IF robeg <= UBound(roFa) THEN
-   ReDim Preserve roDo(robeg + UBound(rDo) - rbeg)
+   Next roendpe
+   IF roendpe <= UBound(roFa) THEN
+    ReDim Preserve roDo(roendpe - 1)
+   END IF ' IF roendpe <= UBound(roFa) THEN
+   ReDim Preserve roDo(roendpe + UBound(rDo) - rbeg)
    For ri = rbeg To UBound(rDo)
-    Call roDoZuw(robeg + ri - rbeg, ri)
+    Call roDoZuw(roendpe + ri - rbeg, ri)
    Next ri
   END IF ' IF rbeg <> 0 THEN
  END IF ' IF UBound(rFa) > 0 THEN
@@ -3724,7 +3829,7 @@ fehler:
 End FUNCTION ' dokumenteEinf
 
 Public FUNCTION dokumenteSpeichern(SammelInsert%, BezfSp%)
- Dim i&, rAF&, Pid$, m%, sfnr% ',sql0$
+ Dim i&, rAF&, Pid$, m%, sfnr%, altmode$ ',sql0$
  Dim csql0 As New CString, csql As New CString
  Dim rs As New ADODB.recordset
  T1 = Timer
@@ -3732,21 +3837,18 @@ Public FUNCTION dokumenteSpeichern(SammelInsert%, BezfSp%)
  Pid = rNa(0).Pat_id
  ON Error GoTo fehler
  syscmd 4, pid & ": Speichere " & Ubound(rDo)+0 & " Sätze in `dokumente`"
- IF NOT Allepat THEN
-  sql = "SELECT pat_id FROM `dokumente` WHERE Pat_ID = " & CStr(rNa(0).Pat_ID)
-  myFrag rs, sql
-  IF Not rs.BOF THEN
-   SET rs = nothing
-   sql = "DELETE FROM `dokumente` WHERE Pat_ID = " & CStr(rNa(0).Pat_ID)
-   Call myEFrag(sql)
-  END IF
- END IF ' not allePat
 ' sql0 = " INSERT " & sqlignore &  "INTO `dokumente` (FID,Pat_ID,ZeitPunkt," & _
      "DokPfad,DokArt,DokName,Quelldatum,absPos,AktZeit,DokGroe,DokAenD,QS,QT," & _
      "StByte) VALUES
  Call csql0.AppVar(Array(" INSERT ", sqlIgnore, " INTO `dokumente` (FID,Pat_ID,ZeitPunkt," & _
      "DokPfad,DokArt,DokName,Quelldatum,absPos,AktZeit,DokGroe,DokAenD,QS,QT," & _
      "StByte)  VALUES"))
+sql:
+ csql.m_Len = 0
+ IF NOT Allepat THEN
+   sql = "DELETE FROM `dokumente` WHERE Pat_ID = " & CStr(rNa(0).Pat_ID)
+   Call myEFrag(sql)
+ END IF ' not AllePat
  For i = 1 to ubound(rDo)
 '  rDo(i).AktZeit = now()
   rDo(i).StByte = CStr(AktByte)
@@ -3757,45 +3859,40 @@ Public FUNCTION dokumenteSpeichern(SammelInsert%, BezfSp%)
    rDo(i).absPos, "," , DatFor_k(rDo(i).AktZeit), "," , rDo(i).DokGroe, "," , DatFor_k(rDo(i).DokAenD), ",'" , rDo(i).QS, "','" , rDo(i).QT, "'," , rDo(i).StByte, ")")
   IF SammelInsert <> 0 AND i < ubound(rDo) THEN csql.Append ","
   IF SammelInsert = 0 OR i = ubound(rDo) THEN
+    altmode = DBCn.Execute("SELECT @@global.sql_mode").Fields(0)
+   Call DBCn.Execute("SET GLOBAL sql_mode='STRICT_TRANS_TABLES'") ' NO_ENGINE_SUBSTITUTION
 '   Call myEFrag(csql.Value,rAf)', , adAsyncExecute) ' wegen unzureichender Fehlerverarbeitung wieder ausrangiert 19.8.23
    Call DBCn.Execute(csql.Value, rAF) ', , adAsyncExecute)
    IF obforK THEN
     Call ForeignYes0
     Call ForeignYes1
-   END IF
-   IF sammelinsert = 0 THEN csql.m_len = 0
-   IF lese.obmysql AND obmitAlterTab THEN
-    SET rs = myEFrag("SHOW WARNINGS")
-    IF not rs.BOF() THEN
-     IF rs!code = 1265 THEN
-      Err.Raise -2147217833
-     END IF
-    END IF
-   END IF
-   END IF
+   END IF ' obforK THEN
+  END IF ' SammelInsert = 0 OR i = ubound(rDo)
   DoEvents
  Next i
  syscmd 5
  Exit Function
 fehler:
-ErrDescription = Err.Description
+ErrDescr = Err.Description
+ErrNumber = Err.Number
+syscmd 4, "rDo(" & i & "/" & UBound(rDo) & "):   " & ErrDescr
 sfnr = sfnr + 1
 If sfnr > 10 then 
- Lese.Ausgeb sfnr & " Fehler in ""dokumenteSpeichern()"" bei Pat. " & rNa(0).Pat_id & ", gebe auf (ErrDes: " & ErrDescription & ")", True
+ Lese.Ausgeb sfnr & " Fehler in ""dokumenteSpeichern()"" bei Pat. " & rNa(0).Pat_id & ", gebe auf (ErrDes: " & ErrDescr & ")", True
  sfnr = 0
  Resume Next
-End if
-IF Err.Number = -2147217900 AND InStrB(ErrDescription, " Doppelter; Eintrag; ") <> 0 THEN
+End if ' sfnr > 10
+IF ErrNumber = -2147217900 AND InStrB(ErrDescr, " Doppelter; Eintrag; ") <> 0 THEN
  Call Shell(App.path + "\..\nachricht\nachricht.exe " & App.EXEName & " Doppelter Eintrag bei: " & vbCrLf & csql.Value)
  Resume Next
-ElseIf Err.Number = -2147467259 AND InStrB(ErrDescription, "Daten zu lang") = 0 AND InStrB(ErrDescription, "Data too long") = 0 THEN ' -2147467259 ' [MySQL][ODBC 3.51 Driver][mysqld-5.1.32-log]Cannot add OR update a child row: a FOREIGN KEY constraint fails
- IF InStrB(ErrDescription, "'READ-COMMITTED'") <> 0 THEN
+ElseIf ErrNumber = -2147467259 AND InStrB(ErrDescr, "Daten zu lang") = 0 AND InStrB(ErrDescr, "Data too long") = 0 THEN ' -2147467259 ' [MySQL][ODBC 3.51 Driver][mysqld-5.1.32-log]Cannot add OR update a child row: a FOREIGN KEY constraint fails
+ IF InStrB(ErrDescr, "'READ-COMMITTED'") <> 0 THEN
   myEFrag "SET SESSION TRANSACTION ISOLATION LEVEL REPEATABLE READ", rAF
  Else
-  Call doBezFeh(csql.Value, BezfSp, ErrDescription)
+  Call doBezFeh(csql.Value, BezfSp, ErrDescr)
  END IF
  Resume
-ElseIf Err.Number = -2147217833 OR InStrB(ErrDescription, "Daten zu lang") <> 0 OR InStrB(ErrDescription, "Data too long") <> 0 THEN
+ElseIf ErrNumber = -2147217833 OR InStrB(ErrDescr, "Daten zu lang") <> 0 OR InStrB(ErrDescr, "Data too long") <> 0 THEN
  Dim rsc As Adodb.Recordset, maxi%(), k%
  redim maxi(4)
  for k = iif(SammelInsert<>0,1,i) to iif(SammelInsert<>0,ubound(rDo),i)
@@ -3805,7 +3902,7 @@ ElseIf Err.Number = -2147217833 OR InStrB(ErrDescription, "Daten zu lang") <> 0 
   IF Len(rDo(k).QS) > maxi(3) THEN maxi(3) = Len(rDo(k).QS)
   IF Len(rDo(k).QT) > maxi(4) THEN maxi(4) = Len(rDo(k).QT)
  next k
- IF obTrans <>0 Then If DBCn.Execute("SELECT COUNT(1) FROM information_schema.innodb_trx WHERE trx_mysql_thread_id = CONNECTION_ID()").Fields(0) <> 0 Then DBCn.CommitTrans: obtrans = 0
+ IF obTrans <>0 Then If DBCn.Execute("SELECT COUNT(1) FROM information_schema.innodb_trx WHERE trx_mysql_thread_id = CONNECTION_ID()").Fields(0) <> 0 Then ComTrans ' DBCn.CommitTrans: obtrans = 0
  nochmal:
  SET rsc = New ADODB.Recordset
  SET rsc = DBCnOSchema(adSchemaColumns, Array(Empty, Empty, "dokumente", Empty))
@@ -3835,16 +3932,19 @@ ElseIf Err.Number = -2147217833 OR InStrB(ErrDescription, "Daten zu lang") <> 0 
  Call ForeignNo0
  Call ForeignNo1
  resume
-END IF ' Err.Number = -2147217833 THEN
+ElseIf InStrB(1, ErrDescr, "gone away", vbTextCompare) <> 0 Or InStrB(ErrDescr, "ost connection") <> 0 Then
+ DBCnOpen
+ Resume
+END IF ' ErrNumber = 
  Dim AnwPfad$
 #If VBA6 THEN
  AnwPfad = currentDB.Name
 #Else
  AnwPfad = App.Path
 #END IF
- SELECT CASE MsgBox("FNr: " + CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " & IIf(ISNULL(Err.Source), vNS, CStr(Err.Source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "aufgefangener Fehler in dokumenteSpeichern/" + AnwPfad)
+ SELECT CASE MsgBox("FNr: " + CStr(ErrNumber) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " & IIf(ISNULL(Err.Source), vNS, CStr(Err.Source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "aufgefangener Fehler in dokumenteSpeichern/" + AnwPfad)
   Case vbAbort: Call MsgBox(" Höre auf "): Progende
-  Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
+  Case vbRetry: Call MsgBox("Versuche nochmal"): If ErrNumber = 998 Then Resume sql Else Resume
   Case vbIgnore: Call MsgBox(" Setze fort "): Resume Next
  END SELECT
 End FUNCTION ' dokumenteSpeichern
@@ -3930,28 +4030,27 @@ fehler:
 End FUNCTION ' eintraegeLaden
 
 Function eintraegeEinf
- Dim rbeg&, robeg&, ri&, roi&
+ Dim rbeg&, roendpe&, ri&, roi&
  On Error GoTo fehler
  IF UBound(rEi) > 0 THEN
-  rbeg = 0
   For ri = 1 To UBound(rEi)
-   IF rEi(ri).ZeitPunkt >= qbeg THEN
+   IF rEi(ri).ZeitPunkt >= qbeg Then ' aktqanf()
     rbeg = ri
     Exit For
    END IF
   Next ri
   IF rbeg <> 0 THEN
-   For robeg = 0 To UBound(roEi)
-    IF roEi(robeg).ZeitPunkt >= qbeg THEN
+   For roendpe = 0 To UBound(roEi)
+    IF roEi(roendpe).ZeitPunkt >= qbeg THEN
      Exit For
     END IF
-   Next robeg
-   IF robeg <= UBound(roFa) THEN
-    ReDim Preserve roEi(robeg - 1)
-   END IF ' IF robeg <= UBound(roFa) THEN
-   ReDim Preserve roEi(robeg + UBound(rEi) - rbeg)
+   Next roendpe
+   IF roendpe <= UBound(roFa) THEN
+    ReDim Preserve roEi(roendpe - 1)
+   END IF ' IF roendpe <= UBound(roFa) THEN
+   ReDim Preserve roEi(roendpe + UBound(rEi) - rbeg)
    For ri = rbeg To UBound(rEi)
-    Call roEiZuw(robeg + ri - rbeg, ri)
+    Call roEiZuw(roendpe + ri - rbeg, ri)
    Next ri
   END IF ' IF rbeg <> 0 THEN
  END IF ' IF UBound(rFa) > 0 THEN
@@ -3972,7 +4071,7 @@ fehler:
 End FUNCTION ' eintraegeEinf
 
 Public FUNCTION eintraegeSpeichern(SammelInsert%, BezfSp%)
- Dim i&, rAF&, Pid$, m%, sfnr% ',sql0$
+ Dim i&, rAF&, Pid$, m%, sfnr%, altmode$ ',sql0$
  Dim csql0 As New CString, csql As New CString
  Dim rs As New ADODB.recordset
  T1 = Timer
@@ -3980,19 +4079,16 @@ Public FUNCTION eintraegeSpeichern(SammelInsert%, BezfSp%)
  Pid = rNa(0).Pat_id
  ON Error GoTo fehler
  syscmd 4, pid & ": Speichere " & Ubound(rEi)+0 & " Sätze in `eintraege`"
- IF NOT Allepat THEN
-  sql = "SELECT pat_id FROM `eintraege` WHERE Pat_ID = " & CStr(rNa(0).Pat_ID)
-  myFrag rs, sql
-  IF Not rs.BOF THEN
-   SET rs = nothing
-   sql = "DELETE FROM `eintraege` WHERE Pat_ID = " & CStr(rNa(0).Pat_ID)
-   Call myEFrag(sql)
-  END IF
- END IF ' not allePat
 ' sql0 = " INSERT " & sqlignore &  "INTO `eintraege` (FID,Pat_ID,ZeitPunkt," & _
      "Art,Inhalt,absPos,AktZeit,QS,QT,StByte,inhNum) VALUES
  Call csql0.AppVar(Array(" INSERT ", sqlIgnore, " INTO `eintraege` (FID,Pat_ID,ZeitPunkt," & _
      "Art,Inhalt,absPos,AktZeit,QS,QT,StByte,inhNum)     VALUES"))
+sql:
+ csql.m_Len = 0
+ IF NOT Allepat THEN
+   sql = "DELETE FROM `eintraege` WHERE Pat_ID = " & CStr(rNa(0).Pat_ID)
+   Call myEFrag(sql)
+ END IF ' not AllePat
  For i = 1 to ubound(rEi)
 '  rEi(i).AktZeit = now()
   rEi(i).StByte = CStr(AktByte)
@@ -4003,45 +4099,40 @@ Public FUNCTION eintraegeSpeichern(SammelInsert%, BezfSp%)
    rEi(i).QT, "'," , rEi(i).StByte, "," , replace$(rEi(i).inhNum,",","."), ")")
   IF SammelInsert <> 0 AND i < ubound(rEi) THEN csql.Append ","
   IF SammelInsert = 0 OR i = ubound(rEi) THEN
+    altmode = DBCn.Execute("SELECT @@global.sql_mode").Fields(0)
+   Call DBCn.Execute("SET GLOBAL sql_mode='STRICT_TRANS_TABLES'") ' NO_ENGINE_SUBSTITUTION
 '   Call myEFrag(csql.Value,rAf)', , adAsyncExecute) ' wegen unzureichender Fehlerverarbeitung wieder ausrangiert 19.8.23
    Call DBCn.Execute(csql.Value, rAF) ', , adAsyncExecute)
    IF obforK THEN
     Call ForeignYes0
     Call ForeignYes1
-   END IF
-   IF sammelinsert = 0 THEN csql.m_len = 0
-   IF lese.obmysql AND obmitAlterTab THEN
-    SET rs = myEFrag("SHOW WARNINGS")
-    IF not rs.BOF() THEN
-     IF rs!code = 1265 THEN
-      Err.Raise -2147217833
-     END IF
-    END IF
-   END IF
-   END IF
+   END IF ' obforK THEN
+  END IF ' SammelInsert = 0 OR i = ubound(rEi)
   DoEvents
  Next i
  syscmd 5
  Exit Function
 fehler:
-ErrDescription = Err.Description
+ErrDescr = Err.Description
+ErrNumber = Err.Number
+syscmd 4, "rEi(" & i & "/" & UBound(rEi) & "):   " & ErrDescr
 sfnr = sfnr + 1
 If sfnr > 10 then 
- Lese.Ausgeb sfnr & " Fehler in ""eintraegeSpeichern()"" bei Pat. " & rNa(0).Pat_id & ", gebe auf (ErrDes: " & ErrDescription & ")", True
+ Lese.Ausgeb sfnr & " Fehler in ""eintraegeSpeichern()"" bei Pat. " & rNa(0).Pat_id & ", gebe auf (ErrDes: " & ErrDescr & ")", True
  sfnr = 0
  Resume Next
-End if
-IF Err.Number = -2147217900 AND InStrB(ErrDescription, " Doppelter; Eintrag; ") <> 0 THEN
+End if ' sfnr > 10
+IF ErrNumber = -2147217900 AND InStrB(ErrDescr, " Doppelter; Eintrag; ") <> 0 THEN
  Call Shell(App.path + "\..\nachricht\nachricht.exe " & App.EXEName & " Doppelter Eintrag bei: " & vbCrLf & csql.Value)
  Resume Next
-ElseIf Err.Number = -2147467259 AND InStrB(ErrDescription, "Daten zu lang") = 0 AND InStrB(ErrDescription, "Data too long") = 0 THEN ' -2147467259 ' [MySQL][ODBC 3.51 Driver][mysqld-5.1.32-log]Cannot add OR update a child row: a FOREIGN KEY constraint fails
- IF InStrB(ErrDescription, "'READ-COMMITTED'") <> 0 THEN
+ElseIf ErrNumber = -2147467259 AND InStrB(ErrDescr, "Daten zu lang") = 0 AND InStrB(ErrDescr, "Data too long") = 0 THEN ' -2147467259 ' [MySQL][ODBC 3.51 Driver][mysqld-5.1.32-log]Cannot add OR update a child row: a FOREIGN KEY constraint fails
+ IF InStrB(ErrDescr, "'READ-COMMITTED'") <> 0 THEN
   myEFrag "SET SESSION TRANSACTION ISOLATION LEVEL REPEATABLE READ", rAF
  Else
-  Call doBezFeh(csql.Value, BezfSp, ErrDescription)
+  Call doBezFeh(csql.Value, BezfSp, ErrDescr)
  END IF
  Resume
-ElseIf Err.Number = -2147217833 OR InStrB(ErrDescription, "Daten zu lang") <> 0 OR InStrB(ErrDescription, "Data too long") <> 0 THEN
+ElseIf ErrNumber = -2147217833 OR InStrB(ErrDescr, "Daten zu lang") <> 0 OR InStrB(ErrDescr, "Data too long") <> 0 THEN
  Dim rsc As Adodb.Recordset, maxi%(), k%
  redim maxi(3)
  for k = iif(SammelInsert<>0,1,i) to iif(SammelInsert<>0,ubound(rEi),i)
@@ -4050,7 +4141,7 @@ ElseIf Err.Number = -2147217833 OR InStrB(ErrDescription, "Daten zu lang") <> 0 
   IF Len(rEi(k).QS) > maxi(2) THEN maxi(2) = Len(rEi(k).QS)
   IF Len(rEi(k).QT) > maxi(3) THEN maxi(3) = Len(rEi(k).QT)
  next k
- IF obTrans <>0 Then If DBCn.Execute("SELECT COUNT(1) FROM information_schema.innodb_trx WHERE trx_mysql_thread_id = CONNECTION_ID()").Fields(0) <> 0 Then DBCn.CommitTrans: obtrans = 0
+ IF obTrans <>0 Then If DBCn.Execute("SELECT COUNT(1) FROM information_schema.innodb_trx WHERE trx_mysql_thread_id = CONNECTION_ID()").Fields(0) <> 0 Then ComTrans ' DBCn.CommitTrans: obtrans = 0
  nochmal:
  SET rsc = New ADODB.Recordset
  SET rsc = DBCnOSchema(adSchemaColumns, Array(Empty, Empty, "eintraege", Empty))
@@ -4079,22 +4170,25 @@ ElseIf Err.Number = -2147217833 OR InStrB(ErrDescription, "Daten zu lang") <> 0 
  Call ForeignNo0
  Call ForeignNo1
  resume
-END IF ' Err.Number = -2147217833 THEN
+ElseIf InStrB(1, ErrDescr, "gone away", vbTextCompare) <> 0 Or InStrB(ErrDescr, "ost connection") <> 0 Then
+ DBCnOpen
+ Resume
+END IF ' ErrNumber = 
  Dim AnwPfad$
 #If VBA6 THEN
  AnwPfad = currentDB.Name
 #Else
  AnwPfad = App.Path
 #END IF
- SELECT CASE MsgBox("FNr: " + CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " & IIf(ISNULL(Err.Source), vNS, CStr(Err.Source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "aufgefangener Fehler in eintraegeSpeichern/" + AnwPfad)
+ SELECT CASE MsgBox("FNr: " + CStr(ErrNumber) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " & IIf(ISNULL(Err.Source), vNS, CStr(Err.Source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "aufgefangener Fehler in eintraegeSpeichern/" + AnwPfad)
   Case vbAbort: Call MsgBox(" Höre auf "): Progende
-  Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
+  Case vbRetry: Call MsgBox("Versuche nochmal"): If ErrNumber = 998 Then Resume sql Else Resume
   Case vbIgnore: Call MsgBox(" Setze fort "): Resume Next
  END SELECT
 End FUNCTION ' eintraegeSpeichern
 
 Public FUNCTION forminhaltform_abkSpeichern(SammelInsert%, BezfSp%)
- Dim i&, rAF&, Pid$, m%, sfnr% ',sql0$
+ Dim i&, rAF&, Pid$, m%, sfnr%, altmode$ ',sql0$
  Dim csql0 As New CString, csql As New CString
  Dim rs As New ADODB.recordset
  T1 = Timer
@@ -4102,10 +4196,12 @@ Public FUNCTION forminhaltform_abkSpeichern(SammelInsert%, BezfSp%)
  Pid = rNa(0).Pat_id
  ON Error GoTo fehler
  syscmd 4, pid & ": Speichere " & Ubound(rFi)+0 & " Sätze in `forminhaltform_abk`"
- IF NOT Allepat THEN
- END IF ' not allePat
 ' sql0 = " INSERT " & sqlignore &  "INTO `forminhaltform_abk` (Form_Abk) VALUES
  Call csql0.AppVar(Array(" INSERT ", sqlIgnore, " INTO `forminhaltform_abk` (Form_Abk)             VALUES"))
+sql:
+ csql.m_Len = 0
+ IF NOT Allepat THEN
+ END IF ' not AllePat
  For i = rFi1 + 1 to ubound(rFi)
 '  rFi(i).AktZeit = now()
   IF SammelInsert = 0 OR i = rFi1 + 1 THEN
@@ -4114,52 +4210,47 @@ Public FUNCTION forminhaltform_abkSpeichern(SammelInsert%, BezfSp%)
   csql.AppVar Array("('" , rFi(i).Form_Abk, "')")
   IF SammelInsert <> 0 AND i < ubound(rFi) THEN csql.Append ","
   IF SammelInsert = 0 OR i = ubound(rFi) THEN
+    altmode = DBCn.Execute("SELECT @@global.sql_mode").Fields(0)
+   Call DBCn.Execute("SET GLOBAL sql_mode='STRICT_TRANS_TABLES'") ' NO_ENGINE_SUBSTITUTION
 '   Call myEFrag(csql.Value,rAf)', , adAsyncExecute) ' wegen unzureichender Fehlerverarbeitung wieder ausrangiert 19.8.23
    Call DBCn.Execute(csql.Value, rAF) ', , adAsyncExecute)
    IF obforK THEN
     Call ForeignYes0
     Call ForeignYes1
-   END IF
-   IF sammelinsert = 0 THEN csql.m_len = 0
-   IF lese.obmysql AND obmitAlterTab THEN
-    SET rs = myEFrag("SHOW WARNINGS")
-    IF not rs.BOF() THEN
-     IF rs!code = 1265 THEN
-      Err.Raise -2147217833
-     END IF
-    END IF
-   END IF
-   END IF
+   END IF ' obforK THEN
+  END IF ' SammelInsert = 0 OR i = ubound(rFi)
   DoEvents
  Next i
- rFi1 = ubound(rFi)
+ rFi1 = UBound(rFi)
  syscmd 5
  Exit Function
 fehler:
-ErrDescription = Err.Description
+ErrDescr = Err.Description
+ErrNumber = Err.Number
+syscmd 4, "rFi(" & i & "/" & UBound(rFi) & "):   " & ErrDescr
 sfnr = sfnr + 1
 If sfnr > 10 then 
- Lese.Ausgeb sfnr & " Fehler in ""forminhaltform_abkSpeichern()"" bei Pat. " & rNa(0).Pat_id & ", gebe auf (ErrDes: " & ErrDescription & ")", True
+ Lese.Ausgeb sfnr & " Fehler in ""forminhaltform_abkSpeichern()"" bei Pat. " & rNa(0).Pat_id & ", gebe auf (ErrDes: " & ErrDescr & ")", True
  sfnr = 0
  Resume Next
-End if
-IF Err.Number = -2147217900 AND InStrB(ErrDescription, " Doppelter; Eintrag; ") <> 0 THEN
+End if ' sfnr > 10
+IF ErrNumber = -2147217900 AND InStrB(ErrDescr, " Doppelter; Eintrag; ") <> 0 THEN
  Call Shell(App.path + "\..\nachricht\nachricht.exe " & App.EXEName & " Doppelter Eintrag bei: " & vbCrLf & csql.Value)
  Resume Next
-ElseIf Err.Number = -2147467259 AND InStrB(ErrDescription, "Daten zu lang") = 0 AND InStrB(ErrDescription, "Data too long") = 0 THEN ' -2147467259 ' [MySQL][ODBC 3.51 Driver][mysqld-5.1.32-log]Cannot add OR update a child row: a FOREIGN KEY constraint fails
- IF InStrB(ErrDescription, "'READ-COMMITTED'") <> 0 THEN
+ElseIf ErrNumber = -2147467259 AND InStrB(ErrDescr, "Daten zu lang") = 0 AND InStrB(ErrDescr, "Data too long") = 0 THEN ' -2147467259 ' [MySQL][ODBC 3.51 Driver][mysqld-5.1.32-log]Cannot add OR update a child row: a FOREIGN KEY constraint fails
+ IF InStrB(ErrDescr, "'READ-COMMITTED'") <> 0 THEN
   myEFrag "SET SESSION TRANSACTION ISOLATION LEVEL REPEATABLE READ", rAF
  Else
-  Call doBezFeh(csql.Value, BezfSp, ErrDescription)
+  Call doBezFeh(csql.Value, BezfSp, ErrDescr)
  END IF
  Resume
-ElseIf Err.Number = -2147217833 OR InStrB(ErrDescription, "Daten zu lang") <> 0 OR InStrB(ErrDescription, "Data too long") <> 0 THEN
+ElseIf ErrNumber = -2147217833 OR InStrB(ErrDescr, "Daten zu lang") <> 0 OR InStrB(ErrDescr, "Data too long") <> 0 THEN
  Dim rsc As Adodb.Recordset, maxi%(), k%
  redim maxi(0)
  for k = iif(SammelInsert<>0,rFi1 + 1,i) to iif(SammelInsert<>0,ubound(rFi),i)
   IF Len(rFi(k).Form_Abk) > maxi(0) THEN maxi(0) = Len(rFi(k).Form_Abk)
  next k
- IF obTrans <>0 Then If DBCn.Execute("SELECT COUNT(1) FROM information_schema.innodb_trx WHERE trx_mysql_thread_id = CONNECTION_ID()").Fields(0) <> 0 Then DBCn.CommitTrans: obtrans = 0
+ IF obTrans <>0 Then If DBCn.Execute("SELECT COUNT(1) FROM information_schema.innodb_trx WHERE trx_mysql_thread_id = CONNECTION_ID()").Fields(0) <> 0 Then ComTrans ' DBCn.CommitTrans: obtrans = 0
  nochmal:
  SET rsc = New ADODB.Recordset
  SET rsc = DBCnOSchema(adSchemaColumns, Array(Empty, Empty, "forminhaltform_abk", Empty))
@@ -4185,22 +4276,25 @@ ElseIf Err.Number = -2147217833 OR InStrB(ErrDescription, "Daten zu lang") <> 0 
  Call ForeignNo0
  Call ForeignNo1
  resume
-END IF ' Err.Number = -2147217833 THEN
+ElseIf InStrB(1, ErrDescr, "gone away", vbTextCompare) <> 0 Or InStrB(ErrDescr, "ost connection") <> 0 Then
+ DBCnOpen
+ Resume
+END IF ' ErrNumber = 
  Dim AnwPfad$
 #If VBA6 THEN
  AnwPfad = currentDB.Name
 #Else
  AnwPfad = App.Path
 #END IF
- SELECT CASE MsgBox("FNr: " + CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " & IIf(ISNULL(Err.Source), vNS, CStr(Err.Source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "aufgefangener Fehler in forminhaltform_abkSpeichern/" + AnwPfad)
+ SELECT CASE MsgBox("FNr: " + CStr(ErrNumber) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " & IIf(ISNULL(Err.Source), vNS, CStr(Err.Source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "aufgefangener Fehler in forminhaltform_abkSpeichern/" + AnwPfad)
   Case vbAbort: Call MsgBox(" Höre auf "): Progende
-  Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
+  Case vbRetry: Call MsgBox("Versuche nochmal"): If ErrNumber = 998 Then Resume sql Else Resume
   Case vbIgnore: Call MsgBox(" Setze fort "): Resume Next
  END SELECT
 End FUNCTION ' forminhaltform_abkSpeichern
 
 Public FUNCTION formulareSpeichern(SammelInsert%, BezfSp%)
- Dim i&, rAF&, Pid$, m%, sfnr% ',sql0$
+ Dim i&, rAF&, Pid$, m%, sfnr%, altmode$ ',sql0$
  Dim csql0 As New CString, csql As New CString
  Dim rs As New ADODB.recordset
  T1 = Timer
@@ -4208,12 +4302,14 @@ Public FUNCTION formulareSpeichern(SammelInsert%, BezfSp%)
  Pid = rNa(0).Pat_id
  ON Error GoTo fehler
  syscmd 4, pid & ": Speichere " & Ubound(rFo)+0 & " Sätze in `formulare`"
- IF NOT Allepat THEN
- END IF ' not allePat
 ' sql0 = " INSERT " & sqlignore &  "INTO `formulare` (FormID,Form_Abk,FormBez," & _
      "FormVorl,AktZeit,absPos,StByte) VALUES
  Call csql0.AppVar(Array(" INSERT ", sqlIgnore, " INTO `formulare` (FormID,Form_Abk,FormBez," & _
      "FormVorl,AktZeit,absPos,StByte)      VALUES"))
+sql:
+ csql.m_Len = 0
+ IF NOT Allepat THEN
+ END IF ' not AllePat
  For i = rFo1 + 1 to ubound(rFo)
 '  rFo(i).AktZeit = now()
   rFo(i).StByte = CStr(AktByte)
@@ -4223,46 +4319,41 @@ Public FUNCTION formulareSpeichern(SammelInsert%, BezfSp%)
   csql.AppVar Array("(" , rFo(i).FormID, ",'" , rFo(i).Form_Abk, "','" , rFo(i).FormBez, "','" , rFo(i).FormVorl, "'," , DatFor_k(rFo(i).AktZeit), "," , rFo(i).absPos, "," , rFo(i).StByte, ")")
   IF SammelInsert <> 0 AND i < ubound(rFo) THEN csql.Append ","
   IF SammelInsert = 0 OR i = ubound(rFo) THEN
+    altmode = DBCn.Execute("SELECT @@global.sql_mode").Fields(0)
+   Call DBCn.Execute("SET GLOBAL sql_mode='STRICT_TRANS_TABLES'") ' NO_ENGINE_SUBSTITUTION
 '   Call myEFrag(csql.Value,rAf)', , adAsyncExecute) ' wegen unzureichender Fehlerverarbeitung wieder ausrangiert 19.8.23
    Call DBCn.Execute(csql.Value, rAF) ', , adAsyncExecute)
    IF obforK THEN
     Call ForeignYes0
     Call ForeignYes1
-   END IF
-   IF sammelinsert = 0 THEN csql.m_len = 0
-   IF lese.obmysql AND obmitAlterTab THEN
-    SET rs = myEFrag("SHOW WARNINGS")
-    IF not rs.BOF() THEN
-     IF rs!code = 1265 THEN
-      Err.Raise -2147217833
-     END IF
-    END IF
-   END IF
-   END IF
+   END IF ' obforK THEN
+  END IF ' SammelInsert = 0 OR i = ubound(rFo)
   DoEvents
  Next i
- rFo1 = ubound(rFo)
+ rFo1 = UBound(rFo)
  syscmd 5
  Exit Function
 fehler:
-ErrDescription = Err.Description
+ErrDescr = Err.Description
+ErrNumber = Err.Number
+syscmd 4, "rFo(" & i & "/" & UBound(rFo) & "):   " & ErrDescr
 sfnr = sfnr + 1
 If sfnr > 10 then 
- Lese.Ausgeb sfnr & " Fehler in ""formulareSpeichern()"" bei Pat. " & rNa(0).Pat_id & ", gebe auf (ErrDes: " & ErrDescription & ")", True
+ Lese.Ausgeb sfnr & " Fehler in ""formulareSpeichern()"" bei Pat. " & rNa(0).Pat_id & ", gebe auf (ErrDes: " & ErrDescr & ")", True
  sfnr = 0
  Resume Next
-End if
-IF Err.Number = -2147217900 AND InStrB(ErrDescription, " Doppelter; Eintrag; ") <> 0 THEN
+End if ' sfnr > 10
+IF ErrNumber = -2147217900 AND InStrB(ErrDescr, " Doppelter; Eintrag; ") <> 0 THEN
  Call Shell(App.path + "\..\nachricht\nachricht.exe " & App.EXEName & " Doppelter Eintrag bei: " & vbCrLf & csql.Value)
  Resume Next
-ElseIf Err.Number = -2147467259 AND InStrB(ErrDescription, "Daten zu lang") = 0 AND InStrB(ErrDescription, "Data too long") = 0 THEN ' -2147467259 ' [MySQL][ODBC 3.51 Driver][mysqld-5.1.32-log]Cannot add OR update a child row: a FOREIGN KEY constraint fails
- IF InStrB(ErrDescription, "'READ-COMMITTED'") <> 0 THEN
+ElseIf ErrNumber = -2147467259 AND InStrB(ErrDescr, "Daten zu lang") = 0 AND InStrB(ErrDescr, "Data too long") = 0 THEN ' -2147467259 ' [MySQL][ODBC 3.51 Driver][mysqld-5.1.32-log]Cannot add OR update a child row: a FOREIGN KEY constraint fails
+ IF InStrB(ErrDescr, "'READ-COMMITTED'") <> 0 THEN
   myEFrag "SET SESSION TRANSACTION ISOLATION LEVEL REPEATABLE READ", rAF
  Else
-  Call doBezFeh(csql.Value, BezfSp, ErrDescription)
+  Call doBezFeh(csql.Value, BezfSp, ErrDescr)
  END IF
  Resume
-ElseIf Err.Number = -2147217833 OR InStrB(ErrDescription, "Daten zu lang") <> 0 OR InStrB(ErrDescription, "Data too long") <> 0 THEN
+ElseIf ErrNumber = -2147217833 OR InStrB(ErrDescr, "Daten zu lang") <> 0 OR InStrB(ErrDescr, "Data too long") <> 0 THEN
  Dim rsc As Adodb.Recordset, maxi%(), k%
  redim maxi(2)
  for k = iif(SammelInsert<>0,rFo1 + 1,i) to iif(SammelInsert<>0,ubound(rFo),i)
@@ -4270,7 +4361,7 @@ ElseIf Err.Number = -2147217833 OR InStrB(ErrDescription, "Daten zu lang") <> 0 
   IF Len(rFo(k).FormBez) > maxi(1) THEN maxi(1) = Len(rFo(k).FormBez)
   IF Len(rFo(k).FormVorl) > maxi(2) THEN maxi(2) = Len(rFo(k).FormVorl)
  next k
- IF obTrans <>0 Then If DBCn.Execute("SELECT COUNT(1) FROM information_schema.innodb_trx WHERE trx_mysql_thread_id = CONNECTION_ID()").Fields(0) <> 0 Then DBCn.CommitTrans: obtrans = 0
+ IF obTrans <>0 Then If DBCn.Execute("SELECT COUNT(1) FROM information_schema.innodb_trx WHERE trx_mysql_thread_id = CONNECTION_ID()").Fields(0) <> 0 Then ComTrans ' DBCn.CommitTrans: obtrans = 0
  nochmal:
  SET rsc = New ADODB.Recordset
  SET rsc = DBCnOSchema(adSchemaColumns, Array(Empty, Empty, "formulare", Empty))
@@ -4298,16 +4389,19 @@ ElseIf Err.Number = -2147217833 OR InStrB(ErrDescription, "Daten zu lang") <> 0 
  Call ForeignNo0
  Call ForeignNo1
  resume
-END IF ' Err.Number = -2147217833 THEN
+ElseIf InStrB(1, ErrDescr, "gone away", vbTextCompare) <> 0 Or InStrB(ErrDescr, "ost connection") <> 0 Then
+ DBCnOpen
+ Resume
+END IF ' ErrNumber = 
  Dim AnwPfad$
 #If VBA6 THEN
  AnwPfad = currentDB.Name
 #Else
  AnwPfad = App.Path
 #END IF
- SELECT CASE MsgBox("FNr: " + CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " & IIf(ISNULL(Err.Source), vNS, CStr(Err.Source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "aufgefangener Fehler in formulareSpeichern/" + AnwPfad)
+ SELECT CASE MsgBox("FNr: " + CStr(ErrNumber) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " & IIf(ISNULL(Err.Source), vNS, CStr(Err.Source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "aufgefangener Fehler in formulareSpeichern/" + AnwPfad)
   Case vbAbort: Call MsgBox(" Höre auf "): Progende
-  Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
+  Case vbRetry: Call MsgBox("Versuche nochmal"): If ErrNumber = 998 Then Resume sql Else Resume
   Case vbIgnore: Call MsgBox(" Setze fort "): Resume Next
  END SELECT
 End FUNCTION ' formulareSpeichern
@@ -4389,28 +4483,27 @@ fehler:
 End FUNCTION ' forminhkopfLaden
 
 Function forminhkopfEinf
- Dim rbeg&, robeg&, ri&, roi&
+ Dim rbeg&, roendpe&, ri&, roi&
  On Error GoTo fehler
  IF UBound(rFr) > 0 THEN
-  rbeg = 0
   For ri = 1 To UBound(rFr)
-   IF rFr(ri).ZeitPunkt >= qbeg THEN
+   IF rFr(ri).ZeitPunkt >= qbeg Then ' aktqanf()
     rbeg = ri
     Exit For
    END IF
   Next ri
   IF rbeg <> 0 THEN
-   For robeg = 0 To UBound(roFr)
-    IF roFr(robeg).ZeitPunkt >= qbeg THEN
+   For roendpe = 0 To UBound(roFr)
+    IF roFr(roendpe).ZeitPunkt >= qbeg THEN
      Exit For
     END IF
-   Next robeg
-   IF robeg <= UBound(roFa) THEN
-    ReDim Preserve roFr(robeg - 1)
-   END IF ' IF robeg <= UBound(roFa) THEN
-   ReDim Preserve roFr(robeg + UBound(rFr) - rbeg)
+   Next roendpe
+   IF roendpe <= UBound(roFa) THEN
+    ReDim Preserve roFr(roendpe - 1)
+   END IF ' IF roendpe <= UBound(roFa) THEN
+   ReDim Preserve roFr(roendpe + UBound(rFr) - rbeg)
    For ri = rbeg To UBound(rFr)
-    Call roFrZuw(robeg + ri - rbeg, ri)
+    Call roFrZuw(roendpe + ri - rbeg, ri)
    Next ri
   END IF ' IF rbeg <> 0 THEN
  END IF ' IF UBound(rFa) > 0 THEN
@@ -4431,7 +4524,7 @@ fehler:
 End FUNCTION ' forminhkopfEinf
 
 Public FUNCTION forminhkopfSpeichern(SammelInsert%, BezfSp%)
- Dim i&, rAF&, Pid$, m%, sfnr% ',sql0$
+ Dim i&, rAF&, Pid$, m%, sfnr%, altmode$ ',sql0$
  Dim csql0 As New CString, csql As New CString
  Dim rs As New ADODB.recordset
  T1 = Timer
@@ -4439,21 +4532,20 @@ Public FUNCTION forminhkopfSpeichern(SammelInsert%, BezfSp%)
  Pid = rNa(0).Pat_id
  ON Error GoTo fehler
  syscmd 4, pid & ": Speichere " & Ubound(rFr)+0 & " Sätze in `forminhkopf`"
- IF NOT Allepat THEN
-'  sql = "DELETE FROM `forminhfeld` WHERE foid IN (SELECT foid FROM `forminhkopf` WHERE pat_id = " & CStr(rNa(0).Pat_ID) & ")"
-'  Call myEFrag(sql)
-  sql = "SELECT pat_id FROM `forminhkopf` WHERE Pat_ID = " & CStr(rNa(0).Pat_ID)
-  myFrag rs, sql
-  IF Not rs.BOF THEN
-   SET rs = nothing
-   sql = "DELETE FROM `forminhkopf` WHERE Pat_ID = " & CStr(rNa(0).Pat_ID)
-   Call myEFrag(sql)
-  END IF
- END IF ' not allePat
 ' sql0 = " INSERT " & sqlignore &  "INTO `forminhkopf` (FoID,FID,Pat_ID," & _
      "Form_ID,ZeitPunkt,AbsPos,AktZeit,StByte,Satzart,Satzlänge,LANRid) VALUES
  Call csql0.AppVar(Array(" INSERT ", sqlIgnore, " INTO `forminhkopf` (FoID,FID,Pat_ID," & _
      "Form_ID,ZeitPunkt,AbsPos,AktZeit,StByte,Satzart,Satzlänge,LANRid)              VALUES"))
+ FoIDv = 0
+erneut:
+sql:
+ csql.m_Len = 0
+ IF NOT Allepat THEN
+'    sql = "DELETE FROM `forminhfeld` WHERE foid IN (SELECT foid FROM `forminhkopf` WHERE pat_id = " & CStr(rNa(0).Pat_ID) & ")"
+'    Call myEFrag(sql)
+   sql = "DELETE FROM `forminhkopf` WHERE Pat_ID = " & CStr(rNa(0).Pat_ID)
+   Call myEFrag(sql)
+ END IF ' not AllePat
  For i = 1 to ubound(rFr)
 '  rFr(i).AktZeit = now()
   rFr(i).StByte = CStr(AktByte)
@@ -4464,52 +4556,65 @@ Public FUNCTION forminhkopfSpeichern(SammelInsert%, BezfSp%)
    rFr(i).Satzart, "','" , rFr(i).Satzlänge, "'," , rFr(i).LANRid, ")")
   IF SammelInsert <> 0 AND i < ubound(rFr) THEN csql.Append ","
   IF SammelInsert = 0 OR i = ubound(rFr) THEN
+    altmode = DBCn.Execute("SELECT @@global.sql_mode").Fields(0)
+   Call DBCn.Execute("SET GLOBAL sql_mode='STRICT_TRANS_TABLES'") ' NO_ENGINE_SUBSTITUTION
 '   Call myEFrag(csql.Value,rAf)', , adAsyncExecute) ' wegen unzureichender Fehlerverarbeitung wieder ausrangiert 19.8.23
    Call DBCn.Execute(csql.Value, rAF) ', , adAsyncExecute)
    IF obforK THEN
     Call ForeignYes0
     Call ForeignYes1
-   END IF
-   IF sammelinsert = 0 THEN csql.m_len = 0
-   IF lese.obmysql AND obmitAlterTab THEN
-    SET rs = myEFrag("SHOW WARNINGS")
-    IF not rs.BOF() THEN
-     IF rs!code = 1265 THEN
-      Err.Raise -2147217833
-     END IF
-    END IF
-   END IF
-   END IF
+   END IF ' obforK THEN
+  END IF ' SammelInsert = 0 OR i = ubound(rFr)
   DoEvents
  Next i
  syscmd 5
  Exit Function
 fehler:
-ErrDescription = Err.Description
+ErrDescr = Err.Description
+ErrNumber = Err.Number
+syscmd 4, "rFr(" & i & "/" & UBound(rFr) & "):   " & ErrDescr
+If ErrNumber = -2147217900 And ErrDescr Like "*Duplicate entry * for key 'PRIMARY'" Then
+ Dim schlüssel$, pos&, iiru&, jjru&
+ pos = InStr(ErrDescr, "'")
+ schlüssel = Mid$(ErrDescr, pos + 1, InStr(pos + 2, ErrDescr, "'") - pos - 1)
+' Debug.Print schlüssel
+ For iiru = 1 To UBound(rFr)
+  If rFr(iiru).Foid = schlüssel Then
+   If FoIDv = 0 Then FoIDv = DBCn.Execute("SELECT (MAX(foid)+1) FROM forminhkopf").fields(0) Else FoIDv = FoIDv + 1
+   rFr(iiru).Foid = FoIDv
+   For jjru = 1 To UBound(rFm)
+    If rFm(jjru).Foid = schlüssel Then rFm(jjru).Foid = FoIDv
+   Next jjru
+   Exit For
+  End If ' rFr(iiru).Foid = schlüssel Then
+ Next iiru
+ csql = ""
+ Resume erneut
+End If ' ErrNumber = -2147217900 And ErrDescr Like "*Duplicate entry * for key 'PRIMARY'" Then
 sfnr = sfnr + 1
 If sfnr > 10 then 
- Lese.Ausgeb sfnr & " Fehler in ""forminhkopfSpeichern()"" bei Pat. " & rNa(0).Pat_id & ", gebe auf (ErrDes: " & ErrDescription & ")", True
+ Lese.Ausgeb sfnr & " Fehler in ""forminhkopfSpeichern()"" bei Pat. " & rNa(0).Pat_id & ", gebe auf (ErrDes: " & ErrDescr & ")", True
  sfnr = 0
  Resume Next
-End if
-IF Err.Number = -2147217900 AND InStrB(ErrDescription, " Doppelter; Eintrag; ") <> 0 THEN
+End if ' sfnr > 10
+IF ErrNumber = -2147217900 AND InStrB(ErrDescr, " Doppelter; Eintrag; ") <> 0 THEN
  Call Shell(App.path + "\..\nachricht\nachricht.exe " & App.EXEName & " Doppelter Eintrag bei: " & vbCrLf & csql.Value)
  Resume Next
-ElseIf Err.Number = -2147467259 AND InStrB(ErrDescription, "Daten zu lang") = 0 AND InStrB(ErrDescription, "Data too long") = 0 THEN ' -2147467259 ' [MySQL][ODBC 3.51 Driver][mysqld-5.1.32-log]Cannot add OR update a child row: a FOREIGN KEY constraint fails
- IF InStrB(ErrDescription, "'READ-COMMITTED'") <> 0 THEN
+ElseIf ErrNumber = -2147467259 AND InStrB(ErrDescr, "Daten zu lang") = 0 AND InStrB(ErrDescr, "Data too long") = 0 THEN ' -2147467259 ' [MySQL][ODBC 3.51 Driver][mysqld-5.1.32-log]Cannot add OR update a child row: a FOREIGN KEY constraint fails
+ IF InStrB(ErrDescr, "'READ-COMMITTED'") <> 0 THEN
   myEFrag "SET SESSION TRANSACTION ISOLATION LEVEL REPEATABLE READ", rAF
  Else
-  Call doBezFeh(csql.Value, BezfSp, ErrDescription)
+  Call doBezFeh(csql.Value, BezfSp, ErrDescr)
  END IF
  Resume
-ElseIf Err.Number = -2147217833 OR InStrB(ErrDescription, "Daten zu lang") <> 0 OR InStrB(ErrDescription, "Data too long") <> 0 THEN
+ElseIf ErrNumber = -2147217833 OR InStrB(ErrDescr, "Daten zu lang") <> 0 OR InStrB(ErrDescr, "Data too long") <> 0 THEN
  Dim rsc As Adodb.Recordset, maxi%(), k%
  redim maxi(1)
  for k = iif(SammelInsert<>0,1,i) to iif(SammelInsert<>0,ubound(rFr),i)
   IF Len(rFr(k).Satzart) > maxi(0) THEN maxi(0) = Len(rFr(k).Satzart)
   IF Len(rFr(k).Satzlänge) > maxi(1) THEN maxi(1) = Len(rFr(k).Satzlänge)
  next k
- IF obTrans <>0 Then If DBCn.Execute("SELECT COUNT(1) FROM information_schema.innodb_trx WHERE trx_mysql_thread_id = CONNECTION_ID()").Fields(0) <> 0 Then DBCn.CommitTrans: obtrans = 0
+ IF obTrans <>0 Then If DBCn.Execute("SELECT COUNT(1) FROM information_schema.innodb_trx WHERE trx_mysql_thread_id = CONNECTION_ID()").Fields(0) <> 0 Then ComTrans ' DBCn.CommitTrans: obtrans = 0
  nochmal:
  SET rsc = New ADODB.Recordset
  SET rsc = DBCnOSchema(adSchemaColumns, Array(Empty, Empty, "forminhkopf", Empty))
@@ -4536,22 +4641,25 @@ ElseIf Err.Number = -2147217833 OR InStrB(ErrDescription, "Daten zu lang") <> 0 
  Call ForeignNo0
  Call ForeignNo1
  resume
-END IF ' Err.Number = -2147217833 THEN
+ElseIf InStrB(1, ErrDescr, "gone away", vbTextCompare) <> 0 Or InStrB(ErrDescr, "ost connection") <> 0 Then
+ DBCnOpen
+ Resume
+END IF ' ErrNumber = 
  Dim AnwPfad$
 #If VBA6 THEN
  AnwPfad = currentDB.Name
 #Else
  AnwPfad = App.Path
 #END IF
- SELECT CASE MsgBox("FNr: " + CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " & IIf(ISNULL(Err.Source), vNS, CStr(Err.Source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "aufgefangener Fehler in forminhkopfSpeichern/" + AnwPfad)
+ SELECT CASE MsgBox("FNr: " + CStr(ErrNumber) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " & IIf(ISNULL(Err.Source), vNS, CStr(Err.Source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "aufgefangener Fehler in forminhkopfSpeichern/" + AnwPfad)
   Case vbAbort: Call MsgBox(" Höre auf "): Progende
-  Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
+  Case vbRetry: Call MsgBox("Versuche nochmal"): If ErrNumber = 998 Then Resume sql Else Resume
   Case vbIgnore: Call MsgBox(" Setze fort "): Resume Next
  END SELECT
 End FUNCTION ' forminhkopfSpeichern
 
 Public FUNCTION forminhfeldSpeichern(SammelInsert%, BezfSp%)
- Dim i&, rAF&, Pid$, m%, sfnr% ',sql0$
+ Dim i&, rAF&, Pid$, m%, sfnr%, altmode$ ',sql0$
  Dim csql0 As New CString, csql As New CString
  Dim rs As New ADODB.recordset
  T1 = Timer
@@ -4559,12 +4667,14 @@ Public FUNCTION forminhfeldSpeichern(SammelInsert%, BezfSp%)
  Pid = rNa(0).Pat_id
  ON Error GoTo fehler
  syscmd 4, pid & ": Speichere " & Ubound(rFm)+0 & " Sätze in `forminhfeld`"
- IF NOT Allepat THEN
- END IF ' not allePat
 ' sql0 = " INSERT " & sqlignore &  "INTO `forminhfeld` (FoID,Nr,FeldNr," & _
      "FeldVW,FeldInhVW) VALUES
  Call csql0.AppVar(Array(" INSERT ", sqlIgnore, " INTO `forminhfeld` (FoID,Nr,FeldNr," & _
      "FeldVW,FeldInhVW)      VALUES"))
+sql:
+ csql.m_Len = 0
+ IF NOT Allepat THEN
+ END IF ' not AllePat
  For i = 1 to ubound(rFm)
 '  rFm(i).AktZeit = now()
   IF SammelInsert = 0 OR i = 1 THEN
@@ -4573,50 +4683,45 @@ Public FUNCTION forminhfeldSpeichern(SammelInsert%, BezfSp%)
   csql.AppVar Array("(" , rFm(i).FoID, "," , rFm(i).Nr, "," , rFm(i).FeldNr, "," , rFm(i).FeldVW, "," , rFm(i).FeldInhVW, ")")
   IF SammelInsert <> 0 AND i < ubound(rFm) THEN csql.Append ","
   IF SammelInsert = 0 OR i = ubound(rFm) THEN
+    altmode = DBCn.Execute("SELECT @@global.sql_mode").Fields(0)
+   Call DBCn.Execute("SET GLOBAL sql_mode='STRICT_TRANS_TABLES'") ' NO_ENGINE_SUBSTITUTION
 '   Call myEFrag(csql.Value,rAf)', , adAsyncExecute) ' wegen unzureichender Fehlerverarbeitung wieder ausrangiert 19.8.23
    Call DBCn.Execute(csql.Value, rAF) ', , adAsyncExecute)
    IF obforK THEN
     Call ForeignYes0
     Call ForeignYes1
-   END IF
-   IF sammelinsert = 0 THEN csql.m_len = 0
-   IF lese.obmysql AND obmitAlterTab THEN
-    SET rs = myEFrag("SHOW WARNINGS")
-    IF not rs.BOF() THEN
-     IF rs!code = 1265 THEN
-      Err.Raise -2147217833
-     END IF
-    END IF
-   END IF
-   END IF
+   END IF ' obforK THEN
+  END IF ' SammelInsert = 0 OR i = ubound(rFm)
   DoEvents
  Next i
  syscmd 5
  Exit Function
 fehler:
-ErrDescription = Err.Description
+ErrDescr = Err.Description
+ErrNumber = Err.Number
+syscmd 4, "rFm(" & i & "/" & UBound(rFm) & "):   " & ErrDescr
 sfnr = sfnr + 1
 If sfnr > 10 then 
- Lese.Ausgeb sfnr & " Fehler in ""forminhfeldSpeichern()"" bei Pat. " & rNa(0).Pat_id & ", gebe auf (ErrDes: " & ErrDescription & ")", True
+ Lese.Ausgeb sfnr & " Fehler in ""forminhfeldSpeichern()"" bei Pat. " & rNa(0).Pat_id & ", gebe auf (ErrDes: " & ErrDescr & ")", True
  sfnr = 0
  Resume Next
-End if
-IF Err.Number = -2147217900 AND InStrB(ErrDescription, " Doppelter; Eintrag; ") <> 0 THEN
+End if ' sfnr > 10
+IF ErrNumber = -2147217900 AND InStrB(ErrDescr, " Doppelter; Eintrag; ") <> 0 THEN
  Call Shell(App.path + "\..\nachricht\nachricht.exe " & App.EXEName & " Doppelter Eintrag bei: " & vbCrLf & csql.Value)
  Resume Next
-ElseIf Err.Number = -2147467259 AND InStrB(ErrDescription, "Daten zu lang") = 0 AND InStrB(ErrDescription, "Data too long") = 0 THEN ' -2147467259 ' [MySQL][ODBC 3.51 Driver][mysqld-5.1.32-log]Cannot add OR update a child row: a FOREIGN KEY constraint fails
- IF InStrB(ErrDescription, "'READ-COMMITTED'") <> 0 THEN
+ElseIf ErrNumber = -2147467259 AND InStrB(ErrDescr, "Daten zu lang") = 0 AND InStrB(ErrDescr, "Data too long") = 0 THEN ' -2147467259 ' [MySQL][ODBC 3.51 Driver][mysqld-5.1.32-log]Cannot add OR update a child row: a FOREIGN KEY constraint fails
+ IF InStrB(ErrDescr, "'READ-COMMITTED'") <> 0 THEN
   myEFrag "SET SESSION TRANSACTION ISOLATION LEVEL REPEATABLE READ", rAF
  Else
-  Call doBezFeh(csql.Value, BezfSp, ErrDescription)
+  Call doBezFeh(csql.Value, BezfSp, ErrDescr)
  END IF
  Resume
-ElseIf Err.Number = -2147217833 OR InStrB(ErrDescription, "Daten zu lang") <> 0 OR InStrB(ErrDescription, "Data too long") <> 0 THEN
+ElseIf ErrNumber = -2147217833 OR InStrB(ErrDescr, "Daten zu lang") <> 0 OR InStrB(ErrDescr, "Data too long") <> 0 THEN
  Dim rsc As Adodb.Recordset, maxi%(), k%
  redim maxi(-1)
  for k = iif(SammelInsert<>0,1,i) to iif(SammelInsert<>0,ubound(rFm),i)
  next k
- IF obTrans <>0 Then If DBCn.Execute("SELECT COUNT(1) FROM information_schema.innodb_trx WHERE trx_mysql_thread_id = CONNECTION_ID()").Fields(0) <> 0 Then DBCn.CommitTrans: obtrans = 0
+ IF obTrans <>0 Then If DBCn.Execute("SELECT COUNT(1) FROM information_schema.innodb_trx WHERE trx_mysql_thread_id = CONNECTION_ID()").Fields(0) <> 0 Then ComTrans ' DBCn.CommitTrans: obtrans = 0
  nochmal:
  SET rsc = New ADODB.Recordset
  SET rsc = DBCnOSchema(adSchemaColumns, Array(Empty, Empty, "forminhfeld", Empty))
@@ -4641,16 +4746,19 @@ ElseIf Err.Number = -2147217833 OR InStrB(ErrDescription, "Daten zu lang") <> 0 
  Call ForeignNo0
  Call ForeignNo1
  resume
-END IF ' Err.Number = -2147217833 THEN
+ElseIf InStrB(1, ErrDescr, "gone away", vbTextCompare) <> 0 Or InStrB(ErrDescr, "ost connection") <> 0 Then
+ DBCnOpen
+ Resume
+END IF ' ErrNumber = 
  Dim AnwPfad$
 #If VBA6 THEN
  AnwPfad = currentDB.Name
 #Else
  AnwPfad = App.Path
 #END IF
- SELECT CASE MsgBox("FNr: " + CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " & IIf(ISNULL(Err.Source), vNS, CStr(Err.Source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "aufgefangener Fehler in forminhfeldSpeichern/" + AnwPfad)
+ SELECT CASE MsgBox("FNr: " + CStr(ErrNumber) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " & IIf(ISNULL(Err.Source), vNS, CStr(Err.Source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "aufgefangener Fehler in forminhfeldSpeichern/" + AnwPfad)
   Case vbAbort: Call MsgBox(" Höre auf "): Progende
-  Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
+  Case vbRetry: Call MsgBox("Versuche nochmal"): If ErrNumber = 998 Then Resume sql Else Resume
   Case vbIgnore: Call MsgBox(" Setze fort "): Resume Next
  END SELECT
 End FUNCTION ' forminhfeldSpeichern
@@ -4723,28 +4831,27 @@ fehler:
 End FUNCTION ' kheinweisLaden
 
 Function kheinweisEinf
- Dim rbeg&, robeg&, ri&, roi&
+ Dim rbeg&, roendpe&, ri&, roi&
  On Error GoTo fehler
  IF UBound(rKh) > 0 THEN
-  rbeg = 0
   For ri = 1 To UBound(rKh)
-   IF rKh(ri).ZeitPunkt >= qbeg THEN
+   IF rKh(ri).ZeitPunkt >= qbeg Then ' aktqanf()
     rbeg = ri
     Exit For
    END IF
   Next ri
   IF rbeg <> 0 THEN
-   For robeg = 0 To UBound(roKh)
-    IF roKh(robeg).ZeitPunkt >= qbeg THEN
+   For roendpe = 0 To UBound(roKh)
+    IF roKh(roendpe).ZeitPunkt >= qbeg THEN
      Exit For
     END IF
-   Next robeg
-   IF robeg <= UBound(roFa) THEN
-    ReDim Preserve roKh(robeg - 1)
-   END IF ' IF robeg <= UBound(roFa) THEN
-   ReDim Preserve roKh(robeg + UBound(rKh) - rbeg)
+   Next roendpe
+   IF roendpe <= UBound(roFa) THEN
+    ReDim Preserve roKh(roendpe - 1)
+   END IF ' IF roendpe <= UBound(roFa) THEN
+   ReDim Preserve roKh(roendpe + UBound(rKh) - rbeg)
    For ri = rbeg To UBound(rKh)
-    Call roKhZuw(robeg + ri - rbeg, ri)
+    Call roKhZuw(roendpe + ri - rbeg, ri)
    Next ri
   END IF ' IF rbeg <> 0 THEN
  END IF ' IF UBound(rFa) > 0 THEN
@@ -4765,7 +4872,7 @@ fehler:
 End FUNCTION ' kheinweisEinf
 
 Public FUNCTION kheinweisSpeichern(SammelInsert%, BezfSp%)
- Dim i&, rAF&, Pid$, m%, sfnr% ',sql0$
+ Dim i&, rAF&, Pid$, m%, sfnr%, altmode$ ',sql0$
  Dim csql0 As New CString, csql As New CString
  Dim rs As New ADODB.recordset
  T1 = Timer
@@ -4773,19 +4880,16 @@ Public FUNCTION kheinweisSpeichern(SammelInsert%, BezfSp%)
  Pid = rNa(0).Pat_id
  ON Error GoTo fehler
  syscmd 4, pid & ": Speichere " & Ubound(rKh)+0 & " Sätze in `kheinweis`"
- IF NOT Allepat THEN
-  sql = "SELECT pat_id FROM `kheinweis` WHERE Pat_ID = " & CStr(rNa(0).Pat_ID)
-  myFrag rs, sql
-  IF Not rs.BOF THEN
-   SET rs = nothing
-   sql = "DELETE FROM `kheinweis` WHERE Pat_ID = " & CStr(rNa(0).Pat_ID)
-   Call myEFrag(sql)
-  END IF
- END IF ' not allePat
 ' sql0 = " INSERT " & sqlignore &  "INTO `kheinweis` (FID,Pat_ID,ZeitPunkt," & _
      "Ziel,Diagnose,absPos,AktZeit,StByte) VALUES
  Call csql0.AppVar(Array(" INSERT ", sqlIgnore, " INTO `kheinweis` (FID,Pat_ID,ZeitPunkt," & _
      "Ziel,Diagnose,absPos,AktZeit,StByte)               VALUES"))
+sql:
+ csql.m_Len = 0
+ IF NOT Allepat THEN
+   sql = "DELETE FROM `kheinweis` WHERE Pat_ID = " & CStr(rNa(0).Pat_ID)
+   Call myEFrag(sql)
+ END IF ' not AllePat
  For i = 1 to ubound(rKh)
 '  rKh(i).AktZeit = now()
   rKh(i).StByte = CStr(AktByte)
@@ -4795,52 +4899,47 @@ Public FUNCTION kheinweisSpeichern(SammelInsert%, BezfSp%)
   csql.AppVar Array("(" , rKh(i).FID, "," , rKh(i).Pat_ID, "," , DatFor_k(rKh(i).ZeitPunkt), ",'" , rKh(i).Ziel, "','" , rKh(i).Diagnose, "'," , rKh(i).absPos, "," , DatFor_k(rKh(i).AktZeit), "," , rKh(i).StByte, ")")
   IF SammelInsert <> 0 AND i < ubound(rKh) THEN csql.Append ","
   IF SammelInsert = 0 OR i = ubound(rKh) THEN
+    altmode = DBCn.Execute("SELECT @@global.sql_mode").Fields(0)
+   Call DBCn.Execute("SET GLOBAL sql_mode='STRICT_TRANS_TABLES'") ' NO_ENGINE_SUBSTITUTION
 '   Call myEFrag(csql.Value,rAf)', , adAsyncExecute) ' wegen unzureichender Fehlerverarbeitung wieder ausrangiert 19.8.23
    Call DBCn.Execute(csql.Value, rAF) ', , adAsyncExecute)
    IF obforK THEN
     Call ForeignYes0
     Call ForeignYes1
-   END IF
-   IF sammelinsert = 0 THEN csql.m_len = 0
-   IF lese.obmysql AND obmitAlterTab THEN
-    SET rs = myEFrag("SHOW WARNINGS")
-    IF not rs.BOF() THEN
-     IF rs!code = 1265 THEN
-      Err.Raise -2147217833
-     END IF
-    END IF
-   END IF
-   END IF
+   END IF ' obforK THEN
+  END IF ' SammelInsert = 0 OR i = ubound(rKh)
   DoEvents
  Next i
  syscmd 5
  Exit Function
 fehler:
-ErrDescription = Err.Description
+ErrDescr = Err.Description
+ErrNumber = Err.Number
+syscmd 4, "rKh(" & i & "/" & UBound(rKh) & "):   " & ErrDescr
 sfnr = sfnr + 1
 If sfnr > 10 then 
- Lese.Ausgeb sfnr & " Fehler in ""kheinweisSpeichern()"" bei Pat. " & rNa(0).Pat_id & ", gebe auf (ErrDes: " & ErrDescription & ")", True
+ Lese.Ausgeb sfnr & " Fehler in ""kheinweisSpeichern()"" bei Pat. " & rNa(0).Pat_id & ", gebe auf (ErrDes: " & ErrDescr & ")", True
  sfnr = 0
  Resume Next
-End if
-IF Err.Number = -2147217900 AND InStrB(ErrDescription, " Doppelter; Eintrag; ") <> 0 THEN
+End if ' sfnr > 10
+IF ErrNumber = -2147217900 AND InStrB(ErrDescr, " Doppelter; Eintrag; ") <> 0 THEN
  Call Shell(App.path + "\..\nachricht\nachricht.exe " & App.EXEName & " Doppelter Eintrag bei: " & vbCrLf & csql.Value)
  Resume Next
-ElseIf Err.Number = -2147467259 AND InStrB(ErrDescription, "Daten zu lang") = 0 AND InStrB(ErrDescription, "Data too long") = 0 THEN ' -2147467259 ' [MySQL][ODBC 3.51 Driver][mysqld-5.1.32-log]Cannot add OR update a child row: a FOREIGN KEY constraint fails
- IF InStrB(ErrDescription, "'READ-COMMITTED'") <> 0 THEN
+ElseIf ErrNumber = -2147467259 AND InStrB(ErrDescr, "Daten zu lang") = 0 AND InStrB(ErrDescr, "Data too long") = 0 THEN ' -2147467259 ' [MySQL][ODBC 3.51 Driver][mysqld-5.1.32-log]Cannot add OR update a child row: a FOREIGN KEY constraint fails
+ IF InStrB(ErrDescr, "'READ-COMMITTED'") <> 0 THEN
   myEFrag "SET SESSION TRANSACTION ISOLATION LEVEL REPEATABLE READ", rAF
  Else
-  Call doBezFeh(csql.Value, BezfSp, ErrDescription)
+  Call doBezFeh(csql.Value, BezfSp, ErrDescr)
  END IF
  Resume
-ElseIf Err.Number = -2147217833 OR InStrB(ErrDescription, "Daten zu lang") <> 0 OR InStrB(ErrDescription, "Data too long") <> 0 THEN
+ElseIf ErrNumber = -2147217833 OR InStrB(ErrDescr, "Daten zu lang") <> 0 OR InStrB(ErrDescr, "Data too long") <> 0 THEN
  Dim rsc As Adodb.Recordset, maxi%(), k%
  redim maxi(1)
  for k = iif(SammelInsert<>0,1,i) to iif(SammelInsert<>0,ubound(rKh),i)
   IF Len(rKh(k).Ziel) > maxi(0) THEN maxi(0) = Len(rKh(k).Ziel)
   IF Len(rKh(k).Diagnose) > maxi(1) THEN maxi(1) = Len(rKh(k).Diagnose)
  next k
- IF obTrans <>0 Then If DBCn.Execute("SELECT COUNT(1) FROM information_schema.innodb_trx WHERE trx_mysql_thread_id = CONNECTION_ID()").Fields(0) <> 0 Then DBCn.CommitTrans: obtrans = 0
+ IF obTrans <>0 Then If DBCn.Execute("SELECT COUNT(1) FROM information_schema.innodb_trx WHERE trx_mysql_thread_id = CONNECTION_ID()").Fields(0) <> 0 Then ComTrans ' DBCn.CommitTrans: obtrans = 0
  nochmal:
  SET rsc = New ADODB.Recordset
  SET rsc = DBCnOSchema(adSchemaColumns, Array(Empty, Empty, "kheinweis", Empty))
@@ -4867,16 +4966,19 @@ ElseIf Err.Number = -2147217833 OR InStrB(ErrDescription, "Daten zu lang") <> 0 
  Call ForeignNo0
  Call ForeignNo1
  resume
-END IF ' Err.Number = -2147217833 THEN
+ElseIf InStrB(1, ErrDescr, "gone away", vbTextCompare) <> 0 Or InStrB(ErrDescr, "ost connection") <> 0 Then
+ DBCnOpen
+ Resume
+END IF ' ErrNumber = 
  Dim AnwPfad$
 #If VBA6 THEN
  AnwPfad = currentDB.Name
 #Else
  AnwPfad = App.Path
 #END IF
- SELECT CASE MsgBox("FNr: " + CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " & IIf(ISNULL(Err.Source), vNS, CStr(Err.Source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "aufgefangener Fehler in kheinweisSpeichern/" + AnwPfad)
+ SELECT CASE MsgBox("FNr: " + CStr(ErrNumber) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " & IIf(ISNULL(Err.Source), vNS, CStr(Err.Source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "aufgefangener Fehler in kheinweisSpeichern/" + AnwPfad)
   Case vbAbort: Call MsgBox(" Höre auf "): Progende
-  Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
+  Case vbRetry: Call MsgBox("Versuche nochmal"): If ErrNumber = 998 Then Resume sql Else Resume
   Case vbIgnore: Call MsgBox(" Setze fort "): Resume Next
  END SELECT
 End FUNCTION ' kheinweisSpeichern
@@ -4945,28 +5047,27 @@ fehler:
 End FUNCTION ' lbanforderungenLaden
 
 Function lbanforderungenEinf
- Dim rbeg&, robeg&, ri&, roi&
+ Dim rbeg&, roendpe&, ri&, roi&
  On Error GoTo fehler
  IF UBound(rLb) > 0 THEN
-  rbeg = 0
   For ri = 1 To UBound(rLb)
-   IF rLb(ri).ZeitPunkt >= qbeg THEN
+   IF rLb(ri).ZeitPunkt >= qbeg Then ' aktqanf()
     rbeg = ri
     Exit For
    END IF
   Next ri
   IF rbeg <> 0 THEN
-   For robeg = 0 To UBound(roLb)
-    IF roLb(robeg).ZeitPunkt >= qbeg THEN
+   For roendpe = 0 To UBound(roLb)
+    IF roLb(roendpe).ZeitPunkt >= qbeg THEN
      Exit For
     END IF
-   Next robeg
-   IF robeg <= UBound(roFa) THEN
-    ReDim Preserve roLb(robeg - 1)
-   END IF ' IF robeg <= UBound(roFa) THEN
-   ReDim Preserve roLb(robeg + UBound(rLb) - rbeg)
+   Next roendpe
+   IF roendpe <= UBound(roFa) THEN
+    ReDim Preserve roLb(roendpe - 1)
+   END IF ' IF roendpe <= UBound(roFa) THEN
+   ReDim Preserve roLb(roendpe + UBound(rLb) - rbeg)
    For ri = rbeg To UBound(rLb)
-    Call roLbZuw(robeg + ri - rbeg, ri)
+    Call roLbZuw(roendpe + ri - rbeg, ri)
    Next ri
   END IF ' IF rbeg <> 0 THEN
  END IF ' IF UBound(rFa) > 0 THEN
@@ -4987,7 +5088,7 @@ fehler:
 End FUNCTION ' lbanforderungenEinf
 
 Public FUNCTION lbanforderungenSpeichern(SammelInsert%, BezfSp%)
- Dim i&, rAF&, Pid$, m%, sfnr% ',sql0$
+ Dim i&, rAF&, Pid$, m%, sfnr%, altmode$ ',sql0$
  Dim csql0 As New CString, csql As New CString
  Dim rs As New ADODB.recordset
  T1 = Timer
@@ -4995,19 +5096,16 @@ Public FUNCTION lbanforderungenSpeichern(SammelInsert%, BezfSp%)
  Pid = rNa(0).Pat_id
  ON Error GoTo fehler
  syscmd 4, pid & ": Speichere " & Ubound(rLb)+0 & " Sätze in `lbanforderungen`"
- IF NOT Allepat THEN
-  sql = "SELECT pat_id FROM `lbanforderungen` WHERE Pat_ID = " & CStr(rNa(0).Pat_ID)
-  myFrag rs, sql
-  IF Not rs.BOF THEN
-   SET rs = nothing
-   sql = "DELETE FROM `lbanforderungen` WHERE Pat_ID = " & CStr(rNa(0).Pat_ID)
-   Call myEFrag(sql)
-  END IF
- END IF ' not allePat
 ' sql0 = " INSERT " & sqlignore &  "INTO `lbanforderungen` (FID,Pat_ID,ZeitPunkt," & _
      "AnfText,absPos,AktZeit,StByte) VALUES
  Call csql0.AppVar(Array(" INSERT ", sqlIgnore, " INTO `lbanforderungen` (FID,Pat_ID,ZeitPunkt," & _
      "AnfText,absPos,AktZeit,StByte)       VALUES"))
+sql:
+ csql.m_Len = 0
+ IF NOT Allepat THEN
+   sql = "DELETE FROM `lbanforderungen` WHERE Pat_ID = " & CStr(rNa(0).Pat_ID)
+   Call myEFrag(sql)
+ END IF ' not AllePat
  For i = 1 to ubound(rLb)
 '  rLb(i).AktZeit = now()
   rLb(i).StByte = CStr(AktByte)
@@ -5017,51 +5115,46 @@ Public FUNCTION lbanforderungenSpeichern(SammelInsert%, BezfSp%)
   csql.AppVar Array("(" , rLb(i).FID, "," , rLb(i).Pat_ID, "," , DatFor_k(rLb(i).ZeitPunkt), ",'" , rLb(i).AnfText, "'," , rLb(i).absPos, "," , DatFor_k(rLb(i).AktZeit), "," , rLb(i).StByte, ")")
   IF SammelInsert <> 0 AND i < ubound(rLb) THEN csql.Append ","
   IF SammelInsert = 0 OR i = ubound(rLb) THEN
+    altmode = DBCn.Execute("SELECT @@global.sql_mode").Fields(0)
+   Call DBCn.Execute("SET GLOBAL sql_mode='STRICT_TRANS_TABLES'") ' NO_ENGINE_SUBSTITUTION
 '   Call myEFrag(csql.Value,rAf)', , adAsyncExecute) ' wegen unzureichender Fehlerverarbeitung wieder ausrangiert 19.8.23
    Call DBCn.Execute(csql.Value, rAF) ', , adAsyncExecute)
    IF obforK THEN
     Call ForeignYes0
     Call ForeignYes1
-   END IF
-   IF sammelinsert = 0 THEN csql.m_len = 0
-   IF lese.obmysql AND obmitAlterTab THEN
-    SET rs = myEFrag("SHOW WARNINGS")
-    IF not rs.BOF() THEN
-     IF rs!code = 1265 THEN
-      Err.Raise -2147217833
-     END IF
-    END IF
-   END IF
-   END IF
+   END IF ' obforK THEN
+  END IF ' SammelInsert = 0 OR i = ubound(rLb)
   DoEvents
  Next i
  syscmd 5
  Exit Function
 fehler:
-ErrDescription = Err.Description
+ErrDescr = Err.Description
+ErrNumber = Err.Number
+syscmd 4, "rLb(" & i & "/" & UBound(rLb) & "):   " & ErrDescr
 sfnr = sfnr + 1
 If sfnr > 10 then 
- Lese.Ausgeb sfnr & " Fehler in ""lbanforderungenSpeichern()"" bei Pat. " & rNa(0).Pat_id & ", gebe auf (ErrDes: " & ErrDescription & ")", True
+ Lese.Ausgeb sfnr & " Fehler in ""lbanforderungenSpeichern()"" bei Pat. " & rNa(0).Pat_id & ", gebe auf (ErrDes: " & ErrDescr & ")", True
  sfnr = 0
  Resume Next
-End if
-IF Err.Number = -2147217900 AND InStrB(ErrDescription, " Doppelter; Eintrag; ") <> 0 THEN
+End if ' sfnr > 10
+IF ErrNumber = -2147217900 AND InStrB(ErrDescr, " Doppelter; Eintrag; ") <> 0 THEN
  Call Shell(App.path + "\..\nachricht\nachricht.exe " & App.EXEName & " Doppelter Eintrag bei: " & vbCrLf & csql.Value)
  Resume Next
-ElseIf Err.Number = -2147467259 AND InStrB(ErrDescription, "Daten zu lang") = 0 AND InStrB(ErrDescription, "Data too long") = 0 THEN ' -2147467259 ' [MySQL][ODBC 3.51 Driver][mysqld-5.1.32-log]Cannot add OR update a child row: a FOREIGN KEY constraint fails
- IF InStrB(ErrDescription, "'READ-COMMITTED'") <> 0 THEN
+ElseIf ErrNumber = -2147467259 AND InStrB(ErrDescr, "Daten zu lang") = 0 AND InStrB(ErrDescr, "Data too long") = 0 THEN ' -2147467259 ' [MySQL][ODBC 3.51 Driver][mysqld-5.1.32-log]Cannot add OR update a child row: a FOREIGN KEY constraint fails
+ IF InStrB(ErrDescr, "'READ-COMMITTED'") <> 0 THEN
   myEFrag "SET SESSION TRANSACTION ISOLATION LEVEL REPEATABLE READ", rAF
  Else
-  Call doBezFeh(csql.Value, BezfSp, ErrDescription)
+  Call doBezFeh(csql.Value, BezfSp, ErrDescr)
  END IF
  Resume
-ElseIf Err.Number = -2147217833 OR InStrB(ErrDescription, "Daten zu lang") <> 0 OR InStrB(ErrDescription, "Data too long") <> 0 THEN
+ElseIf ErrNumber = -2147217833 OR InStrB(ErrDescr, "Daten zu lang") <> 0 OR InStrB(ErrDescr, "Data too long") <> 0 THEN
  Dim rsc As Adodb.Recordset, maxi%(), k%
  redim maxi(0)
  for k = iif(SammelInsert<>0,1,i) to iif(SammelInsert<>0,ubound(rLb),i)
   IF Len(rLb(k).AnfText) > maxi(0) THEN maxi(0) = Len(rLb(k).AnfText)
  next k
- IF obTrans <>0 Then If DBCn.Execute("SELECT COUNT(1) FROM information_schema.innodb_trx WHERE trx_mysql_thread_id = CONNECTION_ID()").Fields(0) <> 0 Then DBCn.CommitTrans: obtrans = 0
+ IF obTrans <>0 Then If DBCn.Execute("SELECT COUNT(1) FROM information_schema.innodb_trx WHERE trx_mysql_thread_id = CONNECTION_ID()").Fields(0) <> 0 Then ComTrans ' DBCn.CommitTrans: obtrans = 0
  nochmal:
  SET rsc = New ADODB.Recordset
  SET rsc = DBCnOSchema(adSchemaColumns, Array(Empty, Empty, "lbanforderungen", Empty))
@@ -5087,16 +5180,19 @@ ElseIf Err.Number = -2147217833 OR InStrB(ErrDescription, "Daten zu lang") <> 0 
  Call ForeignNo0
  Call ForeignNo1
  resume
-END IF ' Err.Number = -2147217833 THEN
+ElseIf InStrB(1, ErrDescr, "gone away", vbTextCompare) <> 0 Or InStrB(ErrDescr, "ost connection") <> 0 Then
+ DBCnOpen
+ Resume
+END IF ' ErrNumber = 
  Dim AnwPfad$
 #If VBA6 THEN
  AnwPfad = currentDB.Name
 #Else
  AnwPfad = App.Path
 #END IF
- SELECT CASE MsgBox("FNr: " + CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " & IIf(ISNULL(Err.Source), vNS, CStr(Err.Source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "aufgefangener Fehler in lbanforderungenSpeichern/" + AnwPfad)
+ SELECT CASE MsgBox("FNr: " + CStr(ErrNumber) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " & IIf(ISNULL(Err.Source), vNS, CStr(Err.Source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "aufgefangener Fehler in lbanforderungenSpeichern/" + AnwPfad)
   Case vbAbort: Call MsgBox(" Höre auf "): Progende
-  Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
+  Case vbRetry: Call MsgBox("Versuche nochmal"): If ErrNumber = 998 Then Resume sql Else Resume
   Case vbIgnore: Call MsgBox(" Setze fort "): Resume Next
  END SELECT
 End FUNCTION ' lbanforderungenSpeichern
@@ -5188,28 +5284,27 @@ fehler:
 End FUNCTION ' laborneuLaden
 
 Function laborneuEinf
- Dim rbeg&, robeg&, ri&, roi&
+ Dim rbeg&, roendpe&, ri&, roi&
  On Error GoTo fehler
  IF UBound(rLa) > 0 THEN
-  rbeg = 0
   For ri = 1 To UBound(rLa)
-   IF rLa(ri).ZeitPunkt >= qbeg THEN
+   IF rLa(ri).ZeitPunkt >= qbeg Then ' aktqanf()
     rbeg = ri
     Exit For
    END IF
   Next ri
   IF rbeg <> 0 THEN
-   For robeg = 0 To UBound(roLa)
-    IF roLa(robeg).ZeitPunkt >= qbeg THEN
+   For roendpe = 0 To UBound(roLa)
+    IF roLa(roendpe).ZeitPunkt >= qbeg THEN
      Exit For
     END IF
-   Next robeg
-   IF robeg <= UBound(roFa) THEN
-    ReDim Preserve roLa(robeg - 1)
-   END IF ' IF robeg <= UBound(roFa) THEN
-   ReDim Preserve roLa(robeg + UBound(rLa) - rbeg)
+   Next roendpe
+   IF roendpe <= UBound(roFa) THEN
+    ReDim Preserve roLa(roendpe - 1)
+   END IF ' IF roendpe <= UBound(roFa) THEN
+   ReDim Preserve roLa(roendpe + UBound(rLa) - rbeg)
    For ri = rbeg To UBound(rLa)
-    Call roLaZuw(robeg + ri - rbeg, ri)
+    Call roLaZuw(roendpe + ri - rbeg, ri)
    Next ri
   END IF ' IF rbeg <> 0 THEN
  END IF ' IF UBound(rFa) > 0 THEN
@@ -5230,7 +5325,7 @@ fehler:
 End FUNCTION ' laborneuEinf
 
 Public FUNCTION laborneuSpeichern(SammelInsert%, BezfSp%)
- Dim i&, rAF&, Pid$, m%, sfnr% ',sql0$
+ Dim i&, rAF&, Pid$, m%, sfnr%, altmode$ ',sql0$
  Dim csql0 As New CString, csql As New CString
  Dim rs As New ADODB.recordset
  T1 = Timer
@@ -5238,19 +5333,16 @@ Public FUNCTION laborneuSpeichern(SammelInsert%, BezfSp%)
  Pid = rNa(0).Pat_id
  ON Error GoTo fehler
  syscmd 4, pid & ": Speichere " & Ubound(rLa)+0 & " Sätze in `laborneu`"
- IF NOT Allepat THEN
-  sql = "SELECT pat_id FROM `laborneu` WHERE Pat_ID = " & CStr(rNa(0).Pat_ID)
-  myFrag rs, sql
-  IF Not rs.BOF THEN
-   SET rs = nothing
-   sql = "DELETE FROM `laborneu` WHERE Pat_ID = " & CStr(rNa(0).Pat_ID)
-   Call myEFrag(sql)
-  END IF
- END IF ' not allePat
 ' sql0 = " INSERT " & sqlignore &  "INTO `laborneu` (FID,Pat_ID,ZeitPunkt," & _
      "FertigStGrad,Abkü,LangtextVW,Wert,Einheit,KommentarVW,AbsPos,AktZeit,Refnr,StByte) VALUES
  Call csql0.AppVar(Array(" INSERT ", sqlIgnore, " INTO `laborneu` (FID,Pat_ID,ZeitPunkt," & _
      "FertigStGrad,Abkü,LangtextVW,Wert,Einheit,KommentarVW,AbsPos,AktZeit,Refnr,StByte)           VALUES"))
+sql:
+ csql.m_Len = 0
+ IF NOT Allepat THEN
+   sql = "DELETE FROM `laborneu` WHERE Pat_ID = " & CStr(rNa(0).Pat_ID)
+   Call myEFrag(sql)
+ END IF ' not AllePat
  For i = 1 to ubound(rLa)
 '  rLa(i).AktZeit = now()
   rLa(i).StByte = CStr(AktByte)
@@ -5261,45 +5353,40 @@ Public FUNCTION laborneuSpeichern(SammelInsert%, BezfSp%)
    rLa(i).KommentarVW, "," , rLa(i).AbsPos, "," , DatFor_k(rLa(i).AktZeit), "," , rLa(i).Refnr, "," , rLa(i).StByte, ")")
   IF SammelInsert <> 0 AND i < ubound(rLa) THEN csql.Append ","
   IF SammelInsert = 0 OR i = ubound(rLa) THEN
+    altmode = DBCn.Execute("SELECT @@global.sql_mode").Fields(0)
+   Call DBCn.Execute("SET GLOBAL sql_mode='STRICT_TRANS_TABLES'") ' NO_ENGINE_SUBSTITUTION
 '   Call myEFrag(csql.Value,rAf)', , adAsyncExecute) ' wegen unzureichender Fehlerverarbeitung wieder ausrangiert 19.8.23
    Call DBCn.Execute(csql.Value, rAF) ', , adAsyncExecute)
    IF obforK THEN
     Call ForeignYes0
     Call ForeignYes1
-   END IF
-   IF sammelinsert = 0 THEN csql.m_len = 0
-   IF lese.obmysql AND obmitAlterTab THEN
-    SET rs = myEFrag("SHOW WARNINGS")
-    IF not rs.BOF() THEN
-     IF rs!code = 1265 THEN
-      Err.Raise -2147217833
-     END IF
-    END IF
-   END IF
-   END IF
+   END IF ' obforK THEN
+  END IF ' SammelInsert = 0 OR i = ubound(rLa)
   DoEvents
  Next i
  syscmd 5
  Exit Function
 fehler:
-ErrDescription = Err.Description
+ErrDescr = Err.Description
+ErrNumber = Err.Number
+syscmd 4, "rLa(" & i & "/" & UBound(rLa) & "):   " & ErrDescr
 sfnr = sfnr + 1
 If sfnr > 10 then 
- Lese.Ausgeb sfnr & " Fehler in ""laborneuSpeichern()"" bei Pat. " & rNa(0).Pat_id & ", gebe auf (ErrDes: " & ErrDescription & ")", True
+ Lese.Ausgeb sfnr & " Fehler in ""laborneuSpeichern()"" bei Pat. " & rNa(0).Pat_id & ", gebe auf (ErrDes: " & ErrDescr & ")", True
  sfnr = 0
  Resume Next
-End if
-IF Err.Number = -2147217900 AND InStrB(ErrDescription, " Doppelter; Eintrag; ") <> 0 THEN
+End if ' sfnr > 10
+IF ErrNumber = -2147217900 AND InStrB(ErrDescr, " Doppelter; Eintrag; ") <> 0 THEN
  Call Shell(App.path + "\..\nachricht\nachricht.exe " & App.EXEName & " Doppelter Eintrag bei: " & vbCrLf & csql.Value)
  Resume Next
-ElseIf Err.Number = -2147467259 AND InStrB(ErrDescription, "Daten zu lang") = 0 AND InStrB(ErrDescription, "Data too long") = 0 THEN ' -2147467259 ' [MySQL][ODBC 3.51 Driver][mysqld-5.1.32-log]Cannot add OR update a child row: a FOREIGN KEY constraint fails
- IF InStrB(ErrDescription, "'READ-COMMITTED'") <> 0 THEN
+ElseIf ErrNumber = -2147467259 AND InStrB(ErrDescr, "Daten zu lang") = 0 AND InStrB(ErrDescr, "Data too long") = 0 THEN ' -2147467259 ' [MySQL][ODBC 3.51 Driver][mysqld-5.1.32-log]Cannot add OR update a child row: a FOREIGN KEY constraint fails
+ IF InStrB(ErrDescr, "'READ-COMMITTED'") <> 0 THEN
   myEFrag "SET SESSION TRANSACTION ISOLATION LEVEL REPEATABLE READ", rAF
  Else
-  Call doBezFeh(csql.Value, BezfSp, ErrDescription)
+  Call doBezFeh(csql.Value, BezfSp, ErrDescr)
  END IF
  Resume
-ElseIf Err.Number = -2147217833 OR InStrB(ErrDescription, "Daten zu lang") <> 0 OR InStrB(ErrDescription, "Data too long") <> 0 THEN
+ElseIf ErrNumber = -2147217833 OR InStrB(ErrDescr, "Daten zu lang") <> 0 OR InStrB(ErrDescr, "Data too long") <> 0 THEN
  Dim rsc As Adodb.Recordset, maxi%(), k%
  redim maxi(3)
  for k = iif(SammelInsert<>0,1,i) to iif(SammelInsert<>0,ubound(rLa),i)
@@ -5308,7 +5395,7 @@ ElseIf Err.Number = -2147217833 OR InStrB(ErrDescription, "Daten zu lang") <> 0 
   IF Len(rLa(k).Wert) > maxi(2) THEN maxi(2) = Len(rLa(k).Wert)
   IF Len(rLa(k).Einheit) > maxi(3) THEN maxi(3) = Len(rLa(k).Einheit)
  next k
- IF obTrans <>0 Then If DBCn.Execute("SELECT COUNT(1) FROM information_schema.innodb_trx WHERE trx_mysql_thread_id = CONNECTION_ID()").Fields(0) <> 0 Then DBCn.CommitTrans: obtrans = 0
+ IF obTrans <>0 Then If DBCn.Execute("SELECT COUNT(1) FROM information_schema.innodb_trx WHERE trx_mysql_thread_id = CONNECTION_ID()").Fields(0) <> 0 Then ComTrans ' DBCn.CommitTrans: obtrans = 0
  nochmal:
  SET rsc = New ADODB.Recordset
  SET rsc = DBCnOSchema(adSchemaColumns, Array(Empty, Empty, "laborneu", Empty))
@@ -5337,16 +5424,19 @@ ElseIf Err.Number = -2147217833 OR InStrB(ErrDescription, "Daten zu lang") <> 0 
  Call ForeignNo0
  Call ForeignNo1
  resume
-END IF ' Err.Number = -2147217833 THEN
+ElseIf InStrB(1, ErrDescr, "gone away", vbTextCompare) <> 0 Or InStrB(ErrDescr, "ost connection") <> 0 Then
+ DBCnOpen
+ Resume
+END IF ' ErrNumber = 
  Dim AnwPfad$
 #If VBA6 THEN
  AnwPfad = currentDB.Name
 #Else
  AnwPfad = App.Path
 #END IF
- SELECT CASE MsgBox("FNr: " + CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " & IIf(ISNULL(Err.Source), vNS, CStr(Err.Source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "aufgefangener Fehler in laborneuSpeichern/" + AnwPfad)
+ SELECT CASE MsgBox("FNr: " + CStr(ErrNumber) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " & IIf(ISNULL(Err.Source), vNS, CStr(Err.Source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "aufgefangener Fehler in laborneuSpeichern/" + AnwPfad)
   Case vbAbort: Call MsgBox(" Höre auf "): Progende
-  Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
+  Case vbRetry: Call MsgBox("Versuche nochmal"): If ErrNumber = 998 Then Resume sql Else Resume
   Case vbIgnore: Call MsgBox(" Setze fort "): Resume Next
  END SELECT
 End FUNCTION ' laborneuSpeichern
@@ -5490,28 +5580,27 @@ fehler:
 End FUNCTION ' leistungenLaden
 
 Function leistungenEinf
- Dim rbeg&, robeg&, ri&, roi&
+ Dim rbeg&, roendpe&, ri&, roi&
  On Error GoTo fehler
  IF UBound(rLe) > 0 THEN
-  rbeg = 0
   For ri = 1 To UBound(rLe)
-   IF rLe(ri).ZeitPunkt >= qbeg THEN
+   IF rLe(ri).ZeitPunkt >= qbeg Then ' aktqanf()
     rbeg = ri
     Exit For
    END IF
   Next ri
   IF rbeg <> 0 THEN
-   For robeg = 0 To UBound(roLe)
-    IF roLe(robeg).ZeitPunkt >= qbeg THEN
+   For roendpe = 0 To UBound(roLe)
+    IF roLe(roendpe).ZeitPunkt >= qbeg THEN
      Exit For
     END IF
-   Next robeg
-   IF robeg <= UBound(roFa) THEN
-    ReDim Preserve roLe(robeg - 1)
-   END IF ' IF robeg <= UBound(roFa) THEN
-   ReDim Preserve roLe(robeg + UBound(rLe) - rbeg)
+   Next roendpe
+   IF roendpe <= UBound(roFa) THEN
+    ReDim Preserve roLe(roendpe - 1)
+   END IF ' IF roendpe <= UBound(roFa) THEN
+   ReDim Preserve roLe(roendpe + UBound(rLe) - rbeg)
    For ri = rbeg To UBound(rLe)
-    Call roLeZuw(robeg + ri - rbeg, ri)
+    Call roLeZuw(roendpe + ri - rbeg, ri)
    Next ri
   END IF ' IF rbeg <> 0 THEN
  END IF ' IF UBound(rFa) > 0 THEN
@@ -5532,7 +5621,7 @@ fehler:
 End FUNCTION ' leistungenEinf
 
 Public FUNCTION leistungenSpeichern(SammelInsert%, BezfSp%)
- Dim i&, rAF&, Pid$, m%, sfnr% ',sql0$
+ Dim i&, rAF&, Pid$, m%, sfnr%, altmode$ ',sql0$
  Dim csql0 As New CString, csql As New CString
  Dim rs As New ADODB.recordset
  T1 = Timer
@@ -5540,15 +5629,6 @@ Public FUNCTION leistungenSpeichern(SammelInsert%, BezfSp%)
  Pid = rNa(0).Pat_id
  ON Error GoTo fehler
  syscmd 4, pid & ": Speichere " & Ubound(rLe)+0 & " Sätze in `leistungen`"
- IF NOT Allepat THEN
-  sql = "SELECT pat_id FROM `leistungen` WHERE Pat_ID = " & CStr(rNa(0).Pat_ID)
-  myFrag rs, sql
-  IF Not rs.BOF THEN
-   SET rs = nothing
-   sql = "DELETE FROM `leistungen` WHERE Pat_ID = " & CStr(rNa(0).Pat_ID)
-   Call myEFrag(sql)
-  END IF
- END IF ' not allePat
 ' sql0 = " INSERT " & sqlignore &  "INTO `leistungen` (FID,Pat_ID,ZeitPunkt," & _
      "Leistung,f5002,f5005,f5006,f5009,Med,f5015,f5016,f5021,f5026," & _
      "Faktor,f5098,Charge,LANR,letzVorg,Ausn,Beme,absPos,AktZeit,QS," & _
@@ -5557,6 +5637,12 @@ Public FUNCTION leistungenSpeichern(SammelInsert%, BezfSp%)
      "Leistung,f5002,f5005,f5006,f5009,Med,f5015,f5016,f5021,f5026," & _
      "Faktor,f5098,Charge,LANR,letzVorg,Ausn,Beme,absPos,AktZeit,QS," & _
      "QT,StByte,LANRid,Sachkbez,Sachkct,Zone)            VALUES"))
+sql:
+ csql.m_Len = 0
+ IF NOT Allepat THEN
+   sql = "DELETE FROM `leistungen` WHERE Pat_ID = " & CStr(rNa(0).Pat_ID)
+   Call myEFrag(sql)
+ END IF ' not AllePat
  For i = 1 to ubound(rLe)
 '  rLe(i).AktZeit = now()
   rLe(i).StByte = CStr(AktByte)
@@ -5569,45 +5655,40 @@ Public FUNCTION leistungenSpeichern(SammelInsert%, BezfSp%)
    rLe(i).LANRid, ",'" , rLe(i).Sachkbez, "'," , rLe(i).Sachkct, ",'" , rLe(i).Zone, "')")
   IF SammelInsert <> 0 AND i < ubound(rLe) THEN csql.Append ","
   IF SammelInsert = 0 OR i = ubound(rLe) THEN
+    altmode = DBCn.Execute("SELECT @@global.sql_mode").Fields(0)
+   Call DBCn.Execute("SET GLOBAL sql_mode='STRICT_TRANS_TABLES'") ' NO_ENGINE_SUBSTITUTION
 '   Call myEFrag(csql.Value,rAf)', , adAsyncExecute) ' wegen unzureichender Fehlerverarbeitung wieder ausrangiert 19.8.23
    Call DBCn.Execute(csql.Value, rAF) ', , adAsyncExecute)
    IF obforK THEN
     Call ForeignYes0
     Call ForeignYes1
-   END IF
-   IF sammelinsert = 0 THEN csql.m_len = 0
-   IF lese.obmysql AND obmitAlterTab THEN
-    SET rs = myEFrag("SHOW WARNINGS")
-    IF not rs.BOF() THEN
-     IF rs!code = 1265 THEN
-      Err.Raise -2147217833
-     END IF
-    END IF
-   END IF
-   END IF
+   END IF ' obforK THEN
+  END IF ' SammelInsert = 0 OR i = ubound(rLe)
   DoEvents
  Next i
  syscmd 5
  Exit Function
 fehler:
-ErrDescription = Err.Description
+ErrDescr = Err.Description
+ErrNumber = Err.Number
+syscmd 4, "rLe(" & i & "/" & UBound(rLe) & "):   " & ErrDescr
 sfnr = sfnr + 1
 If sfnr > 10 then 
- Lese.Ausgeb sfnr & " Fehler in ""leistungenSpeichern()"" bei Pat. " & rNa(0).Pat_id & ", gebe auf (ErrDes: " & ErrDescription & ")", True
+ Lese.Ausgeb sfnr & " Fehler in ""leistungenSpeichern()"" bei Pat. " & rNa(0).Pat_id & ", gebe auf (ErrDes: " & ErrDescr & ")", True
  sfnr = 0
  Resume Next
-End if
-IF Err.Number = -2147217900 AND InStrB(ErrDescription, " Doppelter; Eintrag; ") <> 0 THEN
+End if ' sfnr > 10
+IF ErrNumber = -2147217900 AND InStrB(ErrDescr, " Doppelter; Eintrag; ") <> 0 THEN
  Call Shell(App.path + "\..\nachricht\nachricht.exe " & App.EXEName & " Doppelter Eintrag bei: " & vbCrLf & csql.Value)
  Resume Next
-ElseIf Err.Number = -2147467259 AND InStrB(ErrDescription, "Daten zu lang") = 0 AND InStrB(ErrDescription, "Data too long") = 0 THEN ' -2147467259 ' [MySQL][ODBC 3.51 Driver][mysqld-5.1.32-log]Cannot add OR update a child row: a FOREIGN KEY constraint fails
- IF InStrB(ErrDescription, "'READ-COMMITTED'") <> 0 THEN
+ElseIf ErrNumber = -2147467259 AND InStrB(ErrDescr, "Daten zu lang") = 0 AND InStrB(ErrDescr, "Data too long") = 0 THEN ' -2147467259 ' [MySQL][ODBC 3.51 Driver][mysqld-5.1.32-log]Cannot add OR update a child row: a FOREIGN KEY constraint fails
+ IF InStrB(ErrDescr, "'READ-COMMITTED'") <> 0 THEN
   myEFrag "SET SESSION TRANSACTION ISOLATION LEVEL REPEATABLE READ", rAF
  Else
-  Call doBezFeh(csql.Value, BezfSp, ErrDescription)
+  Call doBezFeh(csql.Value, BezfSp, ErrDescr)
  END IF
  Resume
-ElseIf Err.Number = -2147217833 OR InStrB(ErrDescription, "Daten zu lang") <> 0 OR InStrB(ErrDescription, "Data too long") <> 0 THEN
+ElseIf ErrNumber = -2147217833 OR InStrB(ErrDescr, "Daten zu lang") <> 0 OR InStrB(ErrDescr, "Data too long") <> 0 THEN
  Dim rsc As Adodb.Recordset, maxi%(), k%
  redim maxi(19)
  for k = iif(SammelInsert<>0,1,i) to iif(SammelInsert<>0,ubound(rLe),i)
@@ -5632,7 +5713,7 @@ ElseIf Err.Number = -2147217833 OR InStrB(ErrDescription, "Daten zu lang") <> 0 
   IF Len(rLe(k).Sachkbez) > maxi(18) THEN maxi(18) = Len(rLe(k).Sachkbez)
   IF Len(rLe(k).Zone) > maxi(19) THEN maxi(19) = Len(rLe(k).Zone)
  next k
- IF obTrans <>0 Then If DBCn.Execute("SELECT COUNT(1) FROM information_schema.innodb_trx WHERE trx_mysql_thread_id = CONNECTION_ID()").Fields(0) <> 0 Then DBCn.CommitTrans: obtrans = 0
+ IF obTrans <>0 Then If DBCn.Execute("SELECT COUNT(1) FROM information_schema.innodb_trx WHERE trx_mysql_thread_id = CONNECTION_ID()").Fields(0) <> 0 Then ComTrans ' DBCn.CommitTrans: obtrans = 0
  nochmal:
  SET rsc = New ADODB.Recordset
  SET rsc = DBCnOSchema(adSchemaColumns, Array(Empty, Empty, "leistungen", Empty))
@@ -5677,16 +5758,19 @@ ElseIf Err.Number = -2147217833 OR InStrB(ErrDescription, "Daten zu lang") <> 0 
  Call ForeignNo0
  Call ForeignNo1
  resume
-END IF ' Err.Number = -2147217833 THEN
+ElseIf InStrB(1, ErrDescr, "gone away", vbTextCompare) <> 0 Or InStrB(ErrDescr, "ost connection") <> 0 Then
+ DBCnOpen
+ Resume
+END IF ' ErrNumber = 
  Dim AnwPfad$
 #If VBA6 THEN
  AnwPfad = currentDB.Name
 #Else
  AnwPfad = App.Path
 #END IF
- SELECT CASE MsgBox("FNr: " + CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " & IIf(ISNULL(Err.Source), vNS, CStr(Err.Source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "aufgefangener Fehler in leistungenSpeichern/" + AnwPfad)
+ SELECT CASE MsgBox("FNr: " + CStr(ErrNumber) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " & IIf(ISNULL(Err.Source), vNS, CStr(Err.Source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "aufgefangener Fehler in leistungenSpeichern/" + AnwPfad)
   Case vbAbort: Call MsgBox(" Höre auf "): Progende
-  Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
+  Case vbRetry: Call MsgBox("Versuche nochmal"): If ErrNumber = 998 Then Resume sql Else Resume
   Case vbIgnore: Call MsgBox(" Setze fort "): Resume Next
  END SELECT
 End FUNCTION ' leistungenSpeichern
@@ -5814,28 +5898,27 @@ fehler:
 End FUNCTION ' medplanLaden
 
 Function medplanEinf
- Dim rbeg&, robeg&, ri&, roi&
+ Dim rbeg&, roendpe&, ri&, roi&
  On Error GoTo fehler
  IF UBound(rMe) > 0 THEN
-  rbeg = 0
   For ri = 1 To UBound(rMe)
-   IF rMe(ri).ZeitPunkt >= qbeg THEN
+   IF rMe(ri).ZeitPunkt >= qbeg Then ' aktqanf()
     rbeg = ri
     Exit For
    END IF
   Next ri
   IF rbeg <> 0 THEN
-   For robeg = 0 To UBound(roMe)
-    IF roMe(robeg).ZeitPunkt >= qbeg THEN
+   For roendpe = 0 To UBound(roMe)
+    IF roMe(roendpe).ZeitPunkt >= qbeg THEN
      Exit For
     END IF
-   Next robeg
-   IF robeg <= UBound(roFa) THEN
-    ReDim Preserve roMe(robeg - 1)
-   END IF ' IF robeg <= UBound(roFa) THEN
-   ReDim Preserve roMe(robeg + UBound(rMe) - rbeg)
+   Next roendpe
+   IF roendpe <= UBound(roFa) THEN
+    ReDim Preserve roMe(roendpe - 1)
+   END IF ' IF roendpe <= UBound(roFa) THEN
+   ReDim Preserve roMe(roendpe + UBound(rMe) - rbeg)
    For ri = rbeg To UBound(rMe)
-    Call roMeZuw(robeg + ri - rbeg, ri)
+    Call roMeZuw(roendpe + ri - rbeg, ri)
    Next ri
   END IF ' IF rbeg <> 0 THEN
  END IF ' IF UBound(rFa) > 0 THEN
@@ -5856,7 +5939,7 @@ fehler:
 End FUNCTION ' medplanEinf
 
 Public FUNCTION medplanSpeichern(SammelInsert%, BezfSp%)
- Dim i&, rAF&, Pid$, m%, sfnr% ',sql0$
+ Dim i&, rAF&, Pid$, m%, sfnr%, altmode$ ',sql0$
  Dim csql0 As New CString, csql As New CString
  Dim rs As New ADODB.recordset
  T1 = Timer
@@ -5864,15 +5947,6 @@ Public FUNCTION medplanSpeichern(SammelInsert%, BezfSp%)
  Pid = rNa(0).Pat_id
  ON Error GoTo fehler
  syscmd 4, pid & ": Speichere " & Ubound(rMe)+0 & " Sätze in `medplan`"
- IF NOT Allepat THEN
-  sql = "SELECT pat_id FROM `medplan` WHERE Pat_ID = " & CStr(rNa(0).Pat_ID)
-  myFrag rs, sql
-  IF Not rs.BOF THEN
-   SET rs = nothing
-   sql = "DELETE FROM `medplan` WHERE Pat_ID = " & CStr(rNa(0).Pat_ID)
-   Call myEFrag(sql)
-  END IF
- END IF ' not allePat
 ' sql0 = " INSERT " & sqlignore &  "INTO `medplan` (FID,Pat_ID,MPNr," & _
      "ZeitPunkt,Datum,Medikament,MedAnfang,Wirkstoff,PZN,FeldNr,mo,mi,nm," & _
      "ab,zn,bBed,Bemerkung,Grund,Stärke,Einheit,Form,AbsPos,AktZeit," & _
@@ -5881,6 +5955,12 @@ Public FUNCTION medplanSpeichern(SammelInsert%, BezfSp%)
      "ZeitPunkt,Datum,Medikament,MedAnfang,Wirkstoff,PZN,FeldNr,mo,mi,nm," & _
      "ab,zn,bBed,Bemerkung,Grund,Stärke,Einheit,Form,AbsPos,AktZeit," & _
      "StByte,ergaenzt)       VALUES"))
+sql:
+ csql.m_Len = 0
+ IF NOT Allepat THEN
+   sql = "DELETE FROM `medplan` WHERE Pat_ID = " & CStr(rNa(0).Pat_ID)
+   Call myEFrag(sql)
+ END IF ' not AllePat
  For i = 1 to ubound(rMe)
 '  rMe(i).AktZeit = now()
   rMe(i).StByte = CStr(AktByte)
@@ -5892,45 +5972,40 @@ Public FUNCTION medplanSpeichern(SammelInsert%, BezfSp%)
    rMe(i).Grund, "','" , rMe(i).Stärke, "','" , rMe(i).Einheit, "','" , rMe(i).Form, "'," , rMe(i).AbsPos, "," , DatFor_k(rMe(i).AktZeit), "," , rMe(i).StByte, "," , cstr(-(rMe(i).ergaenzt<>0)) , ")")
   IF SammelInsert <> 0 AND i < ubound(rMe) THEN csql.Append ","
   IF SammelInsert = 0 OR i = ubound(rMe) THEN
+    altmode = DBCn.Execute("SELECT @@global.sql_mode").Fields(0)
+   Call DBCn.Execute("SET GLOBAL sql_mode='STRICT_TRANS_TABLES'") ' NO_ENGINE_SUBSTITUTION
 '   Call myEFrag(csql.Value,rAf)', , adAsyncExecute) ' wegen unzureichender Fehlerverarbeitung wieder ausrangiert 19.8.23
    Call DBCn.Execute(csql.Value, rAF) ', , adAsyncExecute)
    IF obforK THEN
     Call ForeignYes0
     Call ForeignYes1
-   END IF
-   IF sammelinsert = 0 THEN csql.m_len = 0
-   IF lese.obmysql AND obmitAlterTab THEN
-    SET rs = myEFrag("SHOW WARNINGS")
-    IF not rs.BOF() THEN
-     IF rs!code = 1265 THEN
-      Err.Raise -2147217833
-     END IF
-    END IF
-   END IF
-   END IF
+   END IF ' obforK THEN
+  END IF ' SammelInsert = 0 OR i = ubound(rMe)
   DoEvents
  Next i
  syscmd 5
  Exit Function
 fehler:
-ErrDescription = Err.Description
+ErrDescr = Err.Description
+ErrNumber = Err.Number
+syscmd 4, "rMe(" & i & "/" & UBound(rMe) & "):   " & ErrDescr
 sfnr = sfnr + 1
 If sfnr > 10 then 
- Lese.Ausgeb sfnr & " Fehler in ""medplanSpeichern()"" bei Pat. " & rNa(0).Pat_id & ", gebe auf (ErrDes: " & ErrDescription & ")", True
+ Lese.Ausgeb sfnr & " Fehler in ""medplanSpeichern()"" bei Pat. " & rNa(0).Pat_id & ", gebe auf (ErrDes: " & ErrDescr & ")", True
  sfnr = 0
  Resume Next
-End if
-IF Err.Number = -2147217900 AND InStrB(ErrDescription, " Doppelter; Eintrag; ") <> 0 THEN
+End if ' sfnr > 10
+IF ErrNumber = -2147217900 AND InStrB(ErrDescr, " Doppelter; Eintrag; ") <> 0 THEN
  Call Shell(App.path + "\..\nachricht\nachricht.exe " & App.EXEName & " Doppelter Eintrag bei: " & vbCrLf & csql.Value)
  Resume Next
-ElseIf Err.Number = -2147467259 AND InStrB(ErrDescription, "Daten zu lang") = 0 AND InStrB(ErrDescription, "Data too long") = 0 THEN ' -2147467259 ' [MySQL][ODBC 3.51 Driver][mysqld-5.1.32-log]Cannot add OR update a child row: a FOREIGN KEY constraint fails
- IF InStrB(ErrDescription, "'READ-COMMITTED'") <> 0 THEN
+ElseIf ErrNumber = -2147467259 AND InStrB(ErrDescr, "Daten zu lang") = 0 AND InStrB(ErrDescr, "Data too long") = 0 THEN ' -2147467259 ' [MySQL][ODBC 3.51 Driver][mysqld-5.1.32-log]Cannot add OR update a child row: a FOREIGN KEY constraint fails
+ IF InStrB(ErrDescr, "'READ-COMMITTED'") <> 0 THEN
   myEFrag "SET SESSION TRANSACTION ISOLATION LEVEL REPEATABLE READ", rAF
  Else
-  Call doBezFeh(csql.Value, BezfSp, ErrDescription)
+  Call doBezFeh(csql.Value, BezfSp, ErrDescr)
  END IF
  Resume
-ElseIf Err.Number = -2147217833 OR InStrB(ErrDescription, "Daten zu lang") <> 0 OR InStrB(ErrDescription, "Data too long") <> 0 THEN
+ElseIf ErrNumber = -2147217833 OR InStrB(ErrDescr, "Daten zu lang") <> 0 OR InStrB(ErrDescr, "Data too long") <> 0 THEN
  Dim rsc As Adodb.Recordset, maxi%(), k%
  redim maxi(12)
  for k = iif(SammelInsert<>0,1,i) to iif(SammelInsert<>0,ubound(rMe),i)
@@ -5948,7 +6023,7 @@ ElseIf Err.Number = -2147217833 OR InStrB(ErrDescription, "Daten zu lang") <> 0 
   IF Len(rMe(k).Einheit) > maxi(11) THEN maxi(11) = Len(rMe(k).Einheit)
   IF Len(rMe(k).Form) > maxi(12) THEN maxi(12) = Len(rMe(k).Form)
  next k
- IF obTrans <>0 Then If DBCn.Execute("SELECT COUNT(1) FROM information_schema.innodb_trx WHERE trx_mysql_thread_id = CONNECTION_ID()").Fields(0) <> 0 Then DBCn.CommitTrans: obtrans = 0
+ IF obTrans <>0 Then If DBCn.Execute("SELECT COUNT(1) FROM information_schema.innodb_trx WHERE trx_mysql_thread_id = CONNECTION_ID()").Fields(0) <> 0 Then ComTrans ' DBCn.CommitTrans: obtrans = 0
  nochmal:
  SET rsc = New ADODB.Recordset
  SET rsc = DBCnOSchema(adSchemaColumns, Array(Empty, Empty, "medplan", Empty))
@@ -5986,16 +6061,19 @@ ElseIf Err.Number = -2147217833 OR InStrB(ErrDescription, "Daten zu lang") <> 0 
  Call ForeignNo0
  Call ForeignNo1
  resume
-END IF ' Err.Number = -2147217833 THEN
+ElseIf InStrB(1, ErrDescr, "gone away", vbTextCompare) <> 0 Or InStrB(ErrDescr, "ost connection") <> 0 Then
+ DBCnOpen
+ Resume
+END IF ' ErrNumber = 
  Dim AnwPfad$
 #If VBA6 THEN
  AnwPfad = currentDB.Name
 #Else
  AnwPfad = App.Path
 #END IF
- SELECT CASE MsgBox("FNr: " + CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " & IIf(ISNULL(Err.Source), vNS, CStr(Err.Source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "aufgefangener Fehler in medplanSpeichern/" + AnwPfad)
+ SELECT CASE MsgBox("FNr: " + CStr(ErrNumber) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " & IIf(ISNULL(Err.Source), vNS, CStr(Err.Source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "aufgefangener Fehler in medplanSpeichern/" + AnwPfad)
   Case vbAbort: Call MsgBox(" Höre auf "): Progende
-  Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
+  Case vbRetry: Call MsgBox("Versuche nochmal"): If ErrNumber = 998 Then Resume sql Else Resume
   Case vbIgnore: Call MsgBox(" Setze fort "): Resume Next
  END SELECT
 End FUNCTION ' medplanSpeichern
@@ -6107,28 +6185,27 @@ fehler:
 End FUNCTION ' rezepteintraegeLaden
 
 Function rezepteintraegeEinf
- Dim rbeg&, robeg&, ri&, roi&
+ Dim rbeg&, roendpe&, ri&, roi&
  On Error GoTo fehler
  IF UBound(rRe) > 0 THEN
-  rbeg = 0
   For ri = 1 To UBound(rRe)
-   IF rRe(ri).ZeitPunkt >= qbeg THEN
+   IF rRe(ri).ZeitPunkt >= qbeg Then ' aktqanf()
     rbeg = ri
     Exit For
    END IF
   Next ri
   IF rbeg <> 0 THEN
-   For robeg = 0 To UBound(roRe)
-    IF roRe(robeg).ZeitPunkt >= qbeg THEN
+   For roendpe = 0 To UBound(roRe)
+    IF roRe(roendpe).ZeitPunkt >= qbeg THEN
      Exit For
     END IF
-   Next robeg
-   IF robeg <= UBound(roFa) THEN
-    ReDim Preserve roRe(robeg - 1)
-   END IF ' IF robeg <= UBound(roFa) THEN
-   ReDim Preserve roRe(robeg + UBound(rRe) - rbeg)
+   Next roendpe
+   IF roendpe <= UBound(roFa) THEN
+    ReDim Preserve roRe(roendpe - 1)
+   END IF ' IF roendpe <= UBound(roFa) THEN
+   ReDim Preserve roRe(roendpe + UBound(rRe) - rbeg)
    For ri = rbeg To UBound(rRe)
-    Call roReZuw(robeg + ri - rbeg, ri)
+    Call roReZuw(roendpe + ri - rbeg, ri)
    Next ri
   END IF ' IF rbeg <> 0 THEN
  END IF ' IF UBound(rFa) > 0 THEN
@@ -6149,7 +6226,7 @@ fehler:
 End FUNCTION ' rezepteintraegeEinf
 
 Public FUNCTION rezepteintraegeSpeichern(SammelInsert%, BezfSp%)
- Dim i&, rAF&, Pid$, m%, sfnr% ',sql0$
+ Dim i&, rAF&, Pid$, m%, sfnr%, altmode$ ',sql0$
  Dim csql0 As New CString, csql As New CString
  Dim rs As New ADODB.recordset
  T1 = Timer
@@ -6157,21 +6234,18 @@ Public FUNCTION rezepteintraegeSpeichern(SammelInsert%, BezfSp%)
  Pid = rNa(0).Pat_id
  ON Error GoTo fehler
  syscmd 4, pid & ": Speichere " & Ubound(rRe)+0 & " Sätze in `rezepteintraege`"
- IF NOT Allepat THEN
-  sql = "SELECT pat_id FROM `rezepteintraege` WHERE Pat_ID = " & CStr(rNa(0).Pat_ID)
-  myFrag rs, sql
-  IF Not rs.BOF THEN
-   SET rs = nothing
-   sql = "DELETE FROM `rezepteintraege` WHERE Pat_ID = " & CStr(rNa(0).Pat_ID)
-   Call myEFrag(sql)
-  END IF
- END IF ' not allePat
 ' sql0 = " INSERT " & sqlignore &  "INTO `rezepteintraege` (FID,Pat_ID,ZeitPunkt," & _
      "Rezept,RKlnm,Rezeptklasse,Rezklkurz,Rezkllang,kbez,Medikament,auti,anzl,PZN," & _
      "absPos,AktZeit,QS,QT,StByte,LANRid) VALUES
  Call csql0.AppVar(Array(" INSERT ", sqlIgnore, " INTO `rezepteintraege` (FID,Pat_ID,ZeitPunkt," & _
      "Rezept,RKlnm,Rezeptklasse,Rezklkurz,Rezkllang,kbez,Medikament,auti,anzl,PZN," & _
      "absPos,AktZeit,QS,QT,StByte,LANRid)  VALUES"))
+sql:
+ csql.m_Len = 0
+ IF NOT Allepat THEN
+   sql = "DELETE FROM `rezepteintraege` WHERE Pat_ID = " & CStr(rNa(0).Pat_ID)
+   Call myEFrag(sql)
+ END IF ' not AllePat
  For i = 1 to ubound(rRe)
 '  rRe(i).AktZeit = now()
   rRe(i).StByte = CStr(AktByte)
@@ -6183,45 +6257,40 @@ Public FUNCTION rezepteintraegeSpeichern(SammelInsert%, BezfSp%)
    rRe(i).QT, "'," , rRe(i).StByte, "," , rRe(i).LANRid, ")")
   IF SammelInsert <> 0 AND i < ubound(rRe) THEN csql.Append ","
   IF SammelInsert = 0 OR i = ubound(rRe) THEN
+    altmode = DBCn.Execute("SELECT @@global.sql_mode").Fields(0)
+   Call DBCn.Execute("SET GLOBAL sql_mode='STRICT_TRANS_TABLES'") ' NO_ENGINE_SUBSTITUTION
 '   Call myEFrag(csql.Value,rAf)', , adAsyncExecute) ' wegen unzureichender Fehlerverarbeitung wieder ausrangiert 19.8.23
    Call DBCn.Execute(csql.Value, rAF) ', , adAsyncExecute)
    IF obforK THEN
     Call ForeignYes0
     Call ForeignYes1
-   END IF
-   IF sammelinsert = 0 THEN csql.m_len = 0
-   IF lese.obmysql AND obmitAlterTab THEN
-    SET rs = myEFrag("SHOW WARNINGS")
-    IF not rs.BOF() THEN
-     IF rs!code = 1265 THEN
-      Err.Raise -2147217833
-     END IF
-    END IF
-   END IF
-   END IF
+   END IF ' obforK THEN
+  END IF ' SammelInsert = 0 OR i = ubound(rRe)
   DoEvents
  Next i
  syscmd 5
  Exit Function
 fehler:
-ErrDescription = Err.Description
+ErrDescr = Err.Description
+ErrNumber = Err.Number
+syscmd 4, "rRe(" & i & "/" & UBound(rRe) & "):   " & ErrDescr
 sfnr = sfnr + 1
 If sfnr > 10 then 
- Lese.Ausgeb sfnr & " Fehler in ""rezepteintraegeSpeichern()"" bei Pat. " & rNa(0).Pat_id & ", gebe auf (ErrDes: " & ErrDescription & ")", True
+ Lese.Ausgeb sfnr & " Fehler in ""rezepteintraegeSpeichern()"" bei Pat. " & rNa(0).Pat_id & ", gebe auf (ErrDes: " & ErrDescr & ")", True
  sfnr = 0
  Resume Next
-End if
-IF Err.Number = -2147217900 AND InStrB(ErrDescription, " Doppelter; Eintrag; ") <> 0 THEN
+End if ' sfnr > 10
+IF ErrNumber = -2147217900 AND InStrB(ErrDescr, " Doppelter; Eintrag; ") <> 0 THEN
  Call Shell(App.path + "\..\nachricht\nachricht.exe " & App.EXEName & " Doppelter Eintrag bei: " & vbCrLf & csql.Value)
  Resume Next
-ElseIf Err.Number = -2147467259 AND InStrB(ErrDescription, "Daten zu lang") = 0 AND InStrB(ErrDescription, "Data too long") = 0 THEN ' -2147467259 ' [MySQL][ODBC 3.51 Driver][mysqld-5.1.32-log]Cannot add OR update a child row: a FOREIGN KEY constraint fails
- IF InStrB(ErrDescription, "'READ-COMMITTED'") <> 0 THEN
+ElseIf ErrNumber = -2147467259 AND InStrB(ErrDescr, "Daten zu lang") = 0 AND InStrB(ErrDescr, "Data too long") = 0 THEN ' -2147467259 ' [MySQL][ODBC 3.51 Driver][mysqld-5.1.32-log]Cannot add OR update a child row: a FOREIGN KEY constraint fails
+ IF InStrB(ErrDescr, "'READ-COMMITTED'") <> 0 THEN
   myEFrag "SET SESSION TRANSACTION ISOLATION LEVEL REPEATABLE READ", rAF
  Else
-  Call doBezFeh(csql.Value, BezfSp, ErrDescription)
+  Call doBezFeh(csql.Value, BezfSp, ErrDescr)
  END IF
  Resume
-ElseIf Err.Number = -2147217833 OR InStrB(ErrDescription, "Daten zu lang") <> 0 OR InStrB(ErrDescription, "Data too long") <> 0 THEN
+ElseIf ErrNumber = -2147217833 OR InStrB(ErrDescr, "Daten zu lang") <> 0 OR InStrB(ErrDescr, "Data too long") <> 0 THEN
  Dim rsc As Adodb.Recordset, maxi%(), k%
  redim maxi(9)
  for k = iif(SammelInsert<>0,1,i) to iif(SammelInsert<>0,ubound(rRe),i)
@@ -6236,7 +6305,7 @@ ElseIf Err.Number = -2147217833 OR InStrB(ErrDescription, "Daten zu lang") <> 0 
   IF Len(rRe(k).QS) > maxi(8) THEN maxi(8) = Len(rRe(k).QS)
   IF Len(rRe(k).QT) > maxi(9) THEN maxi(9) = Len(rRe(k).QT)
  next k
- IF obTrans <>0 Then If DBCn.Execute("SELECT COUNT(1) FROM information_schema.innodb_trx WHERE trx_mysql_thread_id = CONNECTION_ID()").Fields(0) <> 0 Then DBCn.CommitTrans: obtrans = 0
+ IF obTrans <>0 Then If DBCn.Execute("SELECT COUNT(1) FROM information_schema.innodb_trx WHERE trx_mysql_thread_id = CONNECTION_ID()").Fields(0) <> 0 Then ComTrans ' DBCn.CommitTrans: obtrans = 0
  nochmal:
  SET rsc = New ADODB.Recordset
  SET rsc = DBCnOSchema(adSchemaColumns, Array(Empty, Empty, "rezepteintraege", Empty))
@@ -6271,16 +6340,19 @@ ElseIf Err.Number = -2147217833 OR InStrB(ErrDescription, "Daten zu lang") <> 0 
  Call ForeignNo0
  Call ForeignNo1
  resume
-END IF ' Err.Number = -2147217833 THEN
+ElseIf InStrB(1, ErrDescr, "gone away", vbTextCompare) <> 0 Or InStrB(ErrDescr, "ost connection") <> 0 Then
+ DBCnOpen
+ Resume
+END IF ' ErrNumber = 
  Dim AnwPfad$
 #If VBA6 THEN
  AnwPfad = currentDB.Name
 #Else
  AnwPfad = App.Path
 #END IF
- SELECT CASE MsgBox("FNr: " + CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " & IIf(ISNULL(Err.Source), vNS, CStr(Err.Source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "aufgefangener Fehler in rezepteintraegeSpeichern/" + AnwPfad)
+ SELECT CASE MsgBox("FNr: " + CStr(ErrNumber) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " & IIf(ISNULL(Err.Source), vNS, CStr(Err.Source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "aufgefangener Fehler in rezepteintraegeSpeichern/" + AnwPfad)
   Case vbAbort: Call MsgBox(" Höre auf "): Progende
-  Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
+  Case vbRetry: Call MsgBox("Versuche nochmal"): If ErrNumber = 998 Then Resume sql Else Resume
   Case vbIgnore: Call MsgBox(" Setze fort "): Resume Next
  END SELECT
 End FUNCTION ' rezepteintraegeSpeichern
@@ -6369,28 +6441,27 @@ fehler:
 End FUNCTION ' rrLaden
 
 Function rrEinf
- Dim rbeg&, robeg&, ri&, roi&
+ Dim rbeg&, roendpe&, ri&, roi&
  On Error GoTo fehler
  IF UBound(rRr) > 0 THEN
-  rbeg = 0
   For ri = 1 To UBound(rRr)
-   IF rRr(ri).ZeitPunkt >= qbeg THEN
+   IF rRr(ri).ZeitPunkt >= qbeg Then ' aktqanf()
     rbeg = ri
     Exit For
    END IF
   Next ri
   IF rbeg <> 0 THEN
-   For robeg = 0 To UBound(roRr)
-    IF roRr(robeg).ZeitPunkt >= qbeg THEN
+   For roendpe = 0 To UBound(roRr)
+    IF roRr(roendpe).ZeitPunkt >= qbeg THEN
      Exit For
     END IF
-   Next robeg
-   IF robeg <= UBound(roFa) THEN
-    ReDim Preserve roRr(robeg - 1)
-   END IF ' IF robeg <= UBound(roFa) THEN
-   ReDim Preserve roRr(robeg + UBound(rRr) - rbeg)
+   Next roendpe
+   IF roendpe <= UBound(roFa) THEN
+    ReDim Preserve roRr(roendpe - 1)
+   END IF ' IF roendpe <= UBound(roFa) THEN
+   ReDim Preserve roRr(roendpe + UBound(rRr) - rbeg)
    For ri = rbeg To UBound(rRr)
-    Call roRrZuw(robeg + ri - rbeg, ri)
+    Call roRrZuw(roendpe + ri - rbeg, ri)
    Next ri
   END IF ' IF rbeg <> 0 THEN
  END IF ' IF UBound(rFa) > 0 THEN
@@ -6411,7 +6482,7 @@ fehler:
 End FUNCTION ' rrEinf
 
 Public FUNCTION rrSpeichern(SammelInsert%, BezfSp%)
- Dim i&, rAF&, Pid$, m%, sfnr% ',sql0$
+ Dim i&, rAF&, Pid$, m%, sfnr%, altmode$ ',sql0$
  Dim csql0 As New CString, csql As New CString
  Dim rs As New ADODB.recordset
  T1 = Timer
@@ -6419,19 +6490,16 @@ Public FUNCTION rrSpeichern(SammelInsert%, BezfSp%)
  Pid = rNa(0).Pat_id
  ON Error GoTo fehler
  syscmd 4, pid & ": Speichere " & Ubound(rRr)+0 & " Sätze in `rr`"
- IF NOT Allepat THEN
-  sql = "SELECT pat_id FROM `rr` WHERE Pat_ID = " & CStr(rNa(0).Pat_ID)
-  myFrag rs, sql
-  IF Not rs.BOF THEN
-   SET rs = nothing
-   sql = "DELETE FROM `rr` WHERE Pat_ID = " & CStr(rNa(0).Pat_ID)
-   Call myEFrag(sql)
-  END IF
- END IF ' not allePat
 ' sql0 = " INSERT " & sqlignore &  "INTO `rr` (FID,Pat_ID,ZeitPunkt," & _
      "RR,Puls,RRsyst,RRdiast,RRzahl,Quelle,Bemerkung,absPos,AktZeit,StByte) VALUES
  Call csql0.AppVar(Array(" INSERT ", sqlIgnore, " INTO `rr` (FID,Pat_ID,ZeitPunkt," & _
      "RR,Puls,RRsyst,RRdiast,RRzahl,Quelle,Bemerkung,absPos,AktZeit,StByte)          VALUES"))
+sql:
+ csql.m_Len = 0
+ IF NOT Allepat THEN
+   sql = "DELETE FROM `rr` WHERE Pat_ID = " & CStr(rNa(0).Pat_ID)
+   Call myEFrag(sql)
+ END IF ' not AllePat
  For i = 1 to ubound(rRr)
 '  rRr(i).AktZeit = now()
   rRr(i).StByte = CStr(AktByte)
@@ -6442,45 +6510,40 @@ Public FUNCTION rrSpeichern(SammelInsert%, BezfSp%)
    rRr(i).Bemerkung, "'," , rRr(i).absPos, "," , DatFor_k(rRr(i).AktZeit), "," , rRr(i).StByte, ")")
   IF SammelInsert <> 0 AND i < ubound(rRr) THEN csql.Append ","
   IF SammelInsert = 0 OR i = ubound(rRr) THEN
+    altmode = DBCn.Execute("SELECT @@global.sql_mode").Fields(0)
+   Call DBCn.Execute("SET GLOBAL sql_mode='STRICT_TRANS_TABLES'") ' NO_ENGINE_SUBSTITUTION
 '   Call myEFrag(csql.Value,rAf)', , adAsyncExecute) ' wegen unzureichender Fehlerverarbeitung wieder ausrangiert 19.8.23
    Call DBCn.Execute(csql.Value, rAF) ', , adAsyncExecute)
    IF obforK THEN
     Call ForeignYes0
     Call ForeignYes1
-   END IF
-   IF sammelinsert = 0 THEN csql.m_len = 0
-   IF lese.obmysql AND obmitAlterTab THEN
-    SET rs = myEFrag("SHOW WARNINGS")
-    IF not rs.BOF() THEN
-     IF rs!code = 1265 THEN
-      Err.Raise -2147217833
-     END IF
-    END IF
-   END IF
-   END IF
+   END IF ' obforK THEN
+  END IF ' SammelInsert = 0 OR i = ubound(rRr)
   DoEvents
  Next i
  syscmd 5
  Exit Function
 fehler:
-ErrDescription = Err.Description
+ErrDescr = Err.Description
+ErrNumber = Err.Number
+syscmd 4, "rRr(" & i & "/" & UBound(rRr) & "):   " & ErrDescr
 sfnr = sfnr + 1
 If sfnr > 10 then 
- Lese.Ausgeb sfnr & " Fehler in ""rrSpeichern()"" bei Pat. " & rNa(0).Pat_id & ", gebe auf (ErrDes: " & ErrDescription & ")", True
+ Lese.Ausgeb sfnr & " Fehler in ""rrSpeichern()"" bei Pat. " & rNa(0).Pat_id & ", gebe auf (ErrDes: " & ErrDescr & ")", True
  sfnr = 0
  Resume Next
-End if
-IF Err.Number = -2147217900 AND InStrB(ErrDescription, " Doppelter; Eintrag; ") <> 0 THEN
+End if ' sfnr > 10
+IF ErrNumber = -2147217900 AND InStrB(ErrDescr, " Doppelter; Eintrag; ") <> 0 THEN
  Call Shell(App.path + "\..\nachricht\nachricht.exe " & App.EXEName & " Doppelter Eintrag bei: " & vbCrLf & csql.Value)
  Resume Next
-ElseIf Err.Number = -2147467259 AND InStrB(ErrDescription, "Daten zu lang") = 0 AND InStrB(ErrDescription, "Data too long") = 0 THEN ' -2147467259 ' [MySQL][ODBC 3.51 Driver][mysqld-5.1.32-log]Cannot add OR update a child row: a FOREIGN KEY constraint fails
- IF InStrB(ErrDescription, "'READ-COMMITTED'") <> 0 THEN
+ElseIf ErrNumber = -2147467259 AND InStrB(ErrDescr, "Daten zu lang") = 0 AND InStrB(ErrDescr, "Data too long") = 0 THEN ' -2147467259 ' [MySQL][ODBC 3.51 Driver][mysqld-5.1.32-log]Cannot add OR update a child row: a FOREIGN KEY constraint fails
+ IF InStrB(ErrDescr, "'READ-COMMITTED'") <> 0 THEN
   myEFrag "SET SESSION TRANSACTION ISOLATION LEVEL REPEATABLE READ", rAF
  Else
-  Call doBezFeh(csql.Value, BezfSp, ErrDescription)
+  Call doBezFeh(csql.Value, BezfSp, ErrDescr)
  END IF
  Resume
-ElseIf Err.Number = -2147217833 OR InStrB(ErrDescription, "Daten zu lang") <> 0 OR InStrB(ErrDescription, "Data too long") <> 0 THEN
+ElseIf ErrNumber = -2147217833 OR InStrB(ErrDescr, "Daten zu lang") <> 0 OR InStrB(ErrDescr, "Data too long") <> 0 THEN
  Dim rsc As Adodb.Recordset, maxi%(), k%
  redim maxi(2)
  for k = iif(SammelInsert<>0,1,i) to iif(SammelInsert<>0,ubound(rRr),i)
@@ -6488,7 +6551,7 @@ ElseIf Err.Number = -2147217833 OR InStrB(ErrDescription, "Daten zu lang") <> 0 
   IF Len(rRr(k).Quelle) > maxi(1) THEN maxi(1) = Len(rRr(k).Quelle)
   IF Len(rRr(k).Bemerkung) > maxi(2) THEN maxi(2) = Len(rRr(k).Bemerkung)
  next k
- IF obTrans <>0 Then If DBCn.Execute("SELECT COUNT(1) FROM information_schema.innodb_trx WHERE trx_mysql_thread_id = CONNECTION_ID()").Fields(0) <> 0 Then DBCn.CommitTrans: obtrans = 0
+ IF obTrans <>0 Then If DBCn.Execute("SELECT COUNT(1) FROM information_schema.innodb_trx WHERE trx_mysql_thread_id = CONNECTION_ID()").Fields(0) <> 0 Then ComTrans ' DBCn.CommitTrans: obtrans = 0
  nochmal:
  SET rsc = New ADODB.Recordset
  SET rsc = DBCnOSchema(adSchemaColumns, Array(Empty, Empty, "rr", Empty))
@@ -6516,22 +6579,25 @@ ElseIf Err.Number = -2147217833 OR InStrB(ErrDescription, "Daten zu lang") <> 0 
  Call ForeignNo0
  Call ForeignNo1
  resume
-END IF ' Err.Number = -2147217833 THEN
+ElseIf InStrB(1, ErrDescr, "gone away", vbTextCompare) <> 0 Or InStrB(ErrDescr, "ost connection") <> 0 Then
+ DBCnOpen
+ Resume
+END IF ' ErrNumber = 
  Dim AnwPfad$
 #If VBA6 THEN
  AnwPfad = currentDB.Name
 #Else
  AnwPfad = App.Path
 #END IF
- SELECT CASE MsgBox("FNr: " + CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " & IIf(ISNULL(Err.Source), vNS, CStr(Err.Source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "aufgefangener Fehler in rrSpeichern/" + AnwPfad)
+ SELECT CASE MsgBox("FNr: " + CStr(ErrNumber) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " & IIf(ISNULL(Err.Source), vNS, CStr(Err.Source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "aufgefangener Fehler in rrSpeichern/" + AnwPfad)
   Case vbAbort: Call MsgBox(" Höre auf "): Progende
-  Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
+  Case vbRetry: Call MsgBox("Versuche nochmal"): If ErrNumber = 998 Then Resume sql Else Resume
   Case vbIgnore: Call MsgBox(" Setze fort "): Resume Next
  END SELECT
 End FUNCTION ' rrSpeichern
 
 Public FUNCTION kvnrueSpeichern(SammelInsert%, BezfSp%)
- Dim i&, rAF&, Pid$, m%, sfnr% ',sql0$
+ Dim i&, rAF&, Pid$, m%, sfnr%, altmode$ ',sql0$
  Dim csql0 As New CString, csql As New CString
  Dim rs As New ADODB.recordset
  T1 = Timer
@@ -6539,19 +6605,16 @@ Public FUNCTION kvnrueSpeichern(SammelInsert%, BezfSp%)
  Pid = rNa(0).Pat_id
  ON Error GoTo fehler
  syscmd 4, pid & ": Speichere " & Ubound(rKv)+0 & " Sätze in `kvnrue`"
- IF NOT Allepat THEN
-  sql = "SELECT pat_id FROM `kvnrue` WHERE Pat_ID = " & CStr(rNa(0).Pat_ID)
-  myFrag rs, sql
-  IF Not rs.BOF THEN
-   SET rs = nothing
-   sql = "DELETE FROM `kvnrue` WHERE Pat_ID = " & CStr(rNa(0).Pat_ID)
-   Call myEFrag(sql)
-  END IF
- END IF ' not allePat
 ' sql0 = " INSERT " & sqlignore &  "INTO `kvnrue` (Pat_ID,KVNr,absPos," & _
      "AktZeit,StByte) VALUES
  Call csql0.AppVar(Array(" INSERT ", sqlIgnore, " INTO `kvnrue` (Pat_ID,KVNr,absPos," & _
      "AktZeit,StByte)        VALUES"))
+sql:
+ csql.m_Len = 0
+ IF NOT Allepat THEN
+   sql = "DELETE FROM `kvnrue` WHERE Pat_ID = " & CStr(rNa(0).Pat_ID)
+   Call myEFrag(sql)
+ END IF ' not AllePat
  For i = 1 to ubound(rKv)
 '  rKv(i).AktZeit = now()
   rKv(i).StByte = CStr(AktByte)
@@ -6561,51 +6624,46 @@ Public FUNCTION kvnrueSpeichern(SammelInsert%, BezfSp%)
   csql.AppVar Array("(" , rKv(i).Pat_ID, ",'" , rKv(i).KVNr, "'," , rKv(i).absPos, "," , DatFor_k(rKv(i).AktZeit), "," , rKv(i).StByte, ")")
   IF SammelInsert <> 0 AND i < ubound(rKv) THEN csql.Append ","
   IF SammelInsert = 0 OR i = ubound(rKv) THEN
+    altmode = DBCn.Execute("SELECT @@global.sql_mode").Fields(0)
+   Call DBCn.Execute("SET GLOBAL sql_mode='STRICT_TRANS_TABLES'") ' NO_ENGINE_SUBSTITUTION
 '   Call myEFrag(csql.Value,rAf)', , adAsyncExecute) ' wegen unzureichender Fehlerverarbeitung wieder ausrangiert 19.8.23
    Call DBCn.Execute(csql.Value, rAF) ', , adAsyncExecute)
    IF obforK THEN
     Call ForeignYes0
     Call ForeignYes1
-   END IF
-   IF sammelinsert = 0 THEN csql.m_len = 0
-   IF lese.obmysql AND obmitAlterTab THEN
-    SET rs = myEFrag("SHOW WARNINGS")
-    IF not rs.BOF() THEN
-     IF rs!code = 1265 THEN
-      Err.Raise -2147217833
-     END IF
-    END IF
-   END IF
-   END IF
+   END IF ' obforK THEN
+  END IF ' SammelInsert = 0 OR i = ubound(rKv)
   DoEvents
  Next i
  syscmd 5
  Exit Function
 fehler:
-ErrDescription = Err.Description
+ErrDescr = Err.Description
+ErrNumber = Err.Number
+syscmd 4, "rKv(" & i & "/" & UBound(rKv) & "):   " & ErrDescr
 sfnr = sfnr + 1
 If sfnr > 10 then 
- Lese.Ausgeb sfnr & " Fehler in ""kvnrueSpeichern()"" bei Pat. " & rNa(0).Pat_id & ", gebe auf (ErrDes: " & ErrDescription & ")", True
+ Lese.Ausgeb sfnr & " Fehler in ""kvnrueSpeichern()"" bei Pat. " & rNa(0).Pat_id & ", gebe auf (ErrDes: " & ErrDescr & ")", True
  sfnr = 0
  Resume Next
-End if
-IF Err.Number = -2147217900 AND InStrB(ErrDescription, " Doppelter; Eintrag; ") <> 0 THEN
+End if ' sfnr > 10
+IF ErrNumber = -2147217900 AND InStrB(ErrDescr, " Doppelter; Eintrag; ") <> 0 THEN
  Call Shell(App.path + "\..\nachricht\nachricht.exe " & App.EXEName & " Doppelter Eintrag bei: " & vbCrLf & csql.Value)
  Resume Next
-ElseIf Err.Number = -2147467259 AND InStrB(ErrDescription, "Daten zu lang") = 0 AND InStrB(ErrDescription, "Data too long") = 0 THEN ' -2147467259 ' [MySQL][ODBC 3.51 Driver][mysqld-5.1.32-log]Cannot add OR update a child row: a FOREIGN KEY constraint fails
- IF InStrB(ErrDescription, "'READ-COMMITTED'") <> 0 THEN
+ElseIf ErrNumber = -2147467259 AND InStrB(ErrDescr, "Daten zu lang") = 0 AND InStrB(ErrDescr, "Data too long") = 0 THEN ' -2147467259 ' [MySQL][ODBC 3.51 Driver][mysqld-5.1.32-log]Cannot add OR update a child row: a FOREIGN KEY constraint fails
+ IF InStrB(ErrDescr, "'READ-COMMITTED'") <> 0 THEN
   myEFrag "SET SESSION TRANSACTION ISOLATION LEVEL REPEATABLE READ", rAF
  Else
-  Call doBezFeh(csql.Value, BezfSp, ErrDescription)
+  Call doBezFeh(csql.Value, BezfSp, ErrDescr)
  END IF
  Resume
-ElseIf Err.Number = -2147217833 OR InStrB(ErrDescription, "Daten zu lang") <> 0 OR InStrB(ErrDescription, "Data too long") <> 0 THEN
+ElseIf ErrNumber = -2147217833 OR InStrB(ErrDescr, "Daten zu lang") <> 0 OR InStrB(ErrDescr, "Data too long") <> 0 THEN
  Dim rsc As Adodb.Recordset, maxi%(), k%
  redim maxi(0)
  for k = iif(SammelInsert<>0,1,i) to iif(SammelInsert<>0,ubound(rKv),i)
   IF Len(rKv(k).KVNr) > maxi(0) THEN maxi(0) = Len(rKv(k).KVNr)
  next k
- IF obTrans <>0 Then If DBCn.Execute("SELECT COUNT(1) FROM information_schema.innodb_trx WHERE trx_mysql_thread_id = CONNECTION_ID()").Fields(0) <> 0 Then DBCn.CommitTrans: obtrans = 0
+ IF obTrans <>0 Then If DBCn.Execute("SELECT COUNT(1) FROM information_schema.innodb_trx WHERE trx_mysql_thread_id = CONNECTION_ID()").Fields(0) <> 0 Then ComTrans ' DBCn.CommitTrans: obtrans = 0
  nochmal:
  SET rsc = New ADODB.Recordset
  SET rsc = DBCnOSchema(adSchemaColumns, Array(Empty, Empty, "kvnrue", Empty))
@@ -6631,34 +6689,39 @@ ElseIf Err.Number = -2147217833 OR InStrB(ErrDescription, "Daten zu lang") <> 0 
  Call ForeignNo0
  Call ForeignNo1
  resume
-END IF ' Err.Number = -2147217833 THEN
+ElseIf InStrB(1, ErrDescr, "gone away", vbTextCompare) <> 0 Or InStrB(ErrDescr, "ost connection") <> 0 Then
+ DBCnOpen
+ Resume
+END IF ' ErrNumber = 
  Dim AnwPfad$
 #If VBA6 THEN
  AnwPfad = currentDB.Name
 #Else
  AnwPfad = App.Path
 #END IF
- SELECT CASE MsgBox("FNr: " + CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " & IIf(ISNULL(Err.Source), vNS, CStr(Err.Source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "aufgefangener Fehler in kvnrueSpeichern/" + AnwPfad)
+ SELECT CASE MsgBox("FNr: " + CStr(ErrNumber) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " & IIf(ISNULL(Err.Source), vNS, CStr(Err.Source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "aufgefangener Fehler in kvnrueSpeichern/" + AnwPfad)
   Case vbAbort: Call MsgBox(" Höre auf "): Progende
-  Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
+  Case vbRetry: Call MsgBox("Versuche nochmal"): If ErrNumber = 998 Then Resume sql Else Resume
   Case vbIgnore: Call MsgBox(" Setze fort "): Resume Next
  END SELECT
 End FUNCTION ' kvnrueSpeichern
 
 Public FUNCTION unbekannte_kennungenSpeichern(SammelInsert%, BezfSp%)
- Dim i&, rAF&, Pid$, m%, sfnr% ',sql0$
+ Dim i&, rAF&, Pid$, m%, sfnr%, altmode$ ',sql0$
  Dim csql0 As New CString, csql As New CString
  Dim rs As New ADODB.recordset
  T1 = Timer
  On Error Resume Next
  Pid = rNa(0).Pat_id
  syscmd 4, pid & ": Speichere " & Ubound(rUn)+0 & " Sätze in `unbekannte_kennungen`"
- IF NOT Allepat THEN
- END IF ' not allePat
 ' sql0 = " INSERT " & sqlignore &  "INTO `unbekannte kennungen` (Kennung,absPos,StByte," & _
      "Pat_id,Inhalt) VALUES
  Call csql0.AppVar(Array(" INSERT ", sqlIgnore, " INTO `unbekannte kennungen` (Kennung,absPos,StByte," & _
      "Pat_id,Inhalt)         VALUES"))
+sql:
+ csql.m_Len = 0
+ IF NOT Allepat THEN
+ END IF ' not AllePat
  For i = rUn1 + 1 to ubound(rUn)
 '  rUn(i).AktZeit = now()
   rUn(i).StByte = CStr(AktByte)
@@ -6668,53 +6731,48 @@ Public FUNCTION unbekannte_kennungenSpeichern(SammelInsert%, BezfSp%)
   csql.AppVar Array("('" , rUn(i).Kennung, "'," , rUn(i).absPos, "," , rUn(i).StByte, "," , rUn(i).Pat_id, ",'" , rUn(i).Inhalt, "')")
   IF SammelInsert <> 0 AND i < ubound(rUn) THEN csql.Append ","
   IF SammelInsert = 0 OR i = ubound(rUn) THEN
+    altmode = DBCn.Execute("SELECT @@global.sql_mode").Fields(0)
+   Call DBCn.Execute("SET GLOBAL sql_mode='STRICT_TRANS_TABLES'") ' NO_ENGINE_SUBSTITUTION
 '   Call myEFrag(csql.Value,rAf)', , adAsyncExecute) ' wegen unzureichender Fehlerverarbeitung wieder ausrangiert 19.8.23
    Call DBCn.Execute(csql.Value, rAF) ', , adAsyncExecute)
    IF obforK THEN
     Call ForeignYes0
     Call ForeignYes1
-   END IF
-   IF sammelinsert = 0 THEN csql.m_len = 0
-   IF lese.obmysql AND obmitAlterTab THEN
-    SET rs = myEFrag("SHOW WARNINGS")
-    IF not rs.BOF() THEN
-     IF rs!code = 1265 THEN
-      Err.Raise -2147217833
-     END IF
-    END IF
-   END IF
-   END IF
+   END IF ' obforK THEN
+  END IF ' SammelInsert = 0 OR i = ubound(rUn)
   DoEvents
  Next i
- rUn1 = ubound(rUn)
+ rUn1 = UBound(rUn)
  syscmd 5
  Exit Function
 fehler:
-ErrDescription = Err.Description
+ErrDescr = Err.Description
+ErrNumber = Err.Number
+syscmd 4, "rUn(" & i & "/" & UBound(rUn) & "):   " & ErrDescr
 sfnr = sfnr + 1
 If sfnr > 10 then 
- Lese.Ausgeb sfnr & " Fehler in ""unbekannte_kennungenSpeichern()"" bei Pat. " & rNa(0).Pat_id & ", gebe auf (ErrDes: " & ErrDescription & ")", True
+ Lese.Ausgeb sfnr & " Fehler in ""unbekannte_kennungenSpeichern()"" bei Pat. " & rNa(0).Pat_id & ", gebe auf (ErrDes: " & ErrDescr & ")", True
  sfnr = 0
  Resume Next
-End if
-IF Err.Number = -2147217900 AND InStrB(ErrDescription, " Doppelter; Eintrag; ") <> 0 THEN
+End if ' sfnr > 10
+IF ErrNumber = -2147217900 AND InStrB(ErrDescr, " Doppelter; Eintrag; ") <> 0 THEN
  Call Shell(App.path + "\..\nachricht\nachricht.exe " & App.EXEName & " Doppelter Eintrag bei: " & vbCrLf & csql.Value)
  Resume Next
-ElseIf Err.Number = -2147467259 AND InStrB(ErrDescription, "Daten zu lang") = 0 AND InStrB(ErrDescription, "Data too long") = 0 THEN ' -2147467259 ' [MySQL][ODBC 3.51 Driver][mysqld-5.1.32-log]Cannot add OR update a child row: a FOREIGN KEY constraint fails
- IF InStrB(ErrDescription, "'READ-COMMITTED'") <> 0 THEN
+ElseIf ErrNumber = -2147467259 AND InStrB(ErrDescr, "Daten zu lang") = 0 AND InStrB(ErrDescr, "Data too long") = 0 THEN ' -2147467259 ' [MySQL][ODBC 3.51 Driver][mysqld-5.1.32-log]Cannot add OR update a child row: a FOREIGN KEY constraint fails
+ IF InStrB(ErrDescr, "'READ-COMMITTED'") <> 0 THEN
   myEFrag "SET SESSION TRANSACTION ISOLATION LEVEL REPEATABLE READ", rAF
  Else
-  Call doBezFeh(csql.Value, BezfSp, ErrDescription)
+  Call doBezFeh(csql.Value, BezfSp, ErrDescr)
  END IF
  Resume
-ElseIf Err.Number = -2147217833 OR InStrB(ErrDescription, "Daten zu lang") <> 0 OR InStrB(ErrDescription, "Data too long") <> 0 THEN
+ElseIf ErrNumber = -2147217833 OR InStrB(ErrDescr, "Daten zu lang") <> 0 OR InStrB(ErrDescr, "Data too long") <> 0 THEN
  Dim rsc As Adodb.Recordset, maxi%(), k%
  redim maxi(1)
  for k = iif(SammelInsert<>0,rUn1 + 1,i) to iif(SammelInsert<>0,ubound(rUn),i)
   IF Len(rUn(k).Kennung) > maxi(0) THEN maxi(0) = Len(rUn(k).Kennung)
   IF Len(rUn(k).Inhalt) > maxi(1) THEN maxi(1) = Len(rUn(k).Inhalt)
  next k
- IF obTrans <>0 Then If DBCn.Execute("SELECT COUNT(1) FROM information_schema.innodb_trx WHERE trx_mysql_thread_id = CONNECTION_ID()").Fields(0) <> 0 Then DBCn.CommitTrans: obtrans = 0
+ IF obTrans <>0 Then If DBCn.Execute("SELECT COUNT(1) FROM information_schema.innodb_trx WHERE trx_mysql_thread_id = CONNECTION_ID()").Fields(0) <> 0 Then ComTrans ' DBCn.CommitTrans: obtrans = 0
  nochmal:
  SET rsc = New ADODB.Recordset
  SET rsc = DBCnOSchema(adSchemaColumns, Array(Empty, Empty, "unbekannte kennungen", Empty))
@@ -6741,16 +6799,19 @@ ElseIf Err.Number = -2147217833 OR InStrB(ErrDescription, "Daten zu lang") <> 0 
  Call ForeignNo0
  Call ForeignNo1
  resume
-END IF ' Err.Number = -2147217833 THEN
+ElseIf InStrB(1, ErrDescr, "gone away", vbTextCompare) <> 0 Or InStrB(ErrDescr, "ost connection") <> 0 Then
+ DBCnOpen
+ Resume
+END IF ' ErrNumber = 
  Dim AnwPfad$
 #If VBA6 THEN
  AnwPfad = currentDB.Name
 #Else
  AnwPfad = App.Path
 #END IF
- SELECT CASE MsgBox("FNr: " + CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " & IIf(ISNULL(Err.Source), vNS, CStr(Err.Source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "aufgefangener Fehler in unbekannte_kennungenSpeichern/" + AnwPfad)
+ SELECT CASE MsgBox("FNr: " + CStr(ErrNumber) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " & IIf(ISNULL(Err.Source), vNS, CStr(Err.Source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "aufgefangener Fehler in unbekannte_kennungenSpeichern/" + AnwPfad)
   Case vbAbort: Call MsgBox(" Höre auf "): Progende
-  Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
+  Case vbRetry: Call MsgBox("Versuche nochmal"): If ErrNumber = 998 Then Resume sql Else Resume
   Case vbIgnore: Call MsgBox(" Setze fort "): Resume Next
  END SELECT
 End FUNCTION ' unbekannte_kennungenSpeichern
@@ -6849,28 +6910,27 @@ fehler:
 End FUNCTION ' dmpreiheLaden
 
 Function dmpreiheEinf
- Dim rbeg&, robeg&, ri&, roi&
+ Dim rbeg&, roendpe&, ri&, roi&
  On Error GoTo fehler
  IF UBound(rDm) > 0 THEN
-  rbeg = 0
   For ri = 1 To UBound(rDm)
-   IF rDm(ri).Dokudatum >= qbeg THEN
+   IF rDm(ri).Dokudatum >= qbeg Then ' aktqanf()
     rbeg = ri
     Exit For
    END IF
   Next ri
   IF rbeg <> 0 THEN
-   For robeg = 0 To UBound(roDm)
-    IF roDm(robeg).Dokudatum >= qbeg THEN
+   For roendpe = 0 To UBound(roDm)
+    IF roDm(roendpe).Dokudatum >= qbeg THEN
      Exit For
     END IF
-   Next robeg
-   IF robeg <= UBound(roFa) THEN
-    ReDim Preserve roDm(robeg - 1)
-   END IF ' IF robeg <= UBound(roFa) THEN
-   ReDim Preserve roDm(robeg + UBound(rDm) - rbeg)
+   Next roendpe
+   IF roendpe <= UBound(roFa) THEN
+    ReDim Preserve roDm(roendpe - 1)
+   END IF ' IF roendpe <= UBound(roFa) THEN
+   ReDim Preserve roDm(roendpe + UBound(rDm) - rbeg)
    For ri = rbeg To UBound(rDm)
-    Call roDmZuw(robeg + ri - rbeg, ri)
+    Call roDmZuw(roendpe + ri - rbeg, ri)
    Next ri
   END IF ' IF rbeg <> 0 THEN
  END IF ' IF UBound(rFa) > 0 THEN
@@ -6891,7 +6951,7 @@ fehler:
 End FUNCTION ' dmpreiheEinf
 
 Public FUNCTION dmpreiheSpeichern(SammelInsert%, BezfSp%)
- Dim i&, rAF&, Pid$, m%, sfnr% ',sql0$
+ Dim i&, rAF&, Pid$, m%, sfnr%, altmode$ ',sql0$
  Dim csql0 As New CString, csql As New CString
  Dim rs As New ADODB.recordset
  T1 = Timer
@@ -6899,21 +6959,18 @@ Public FUNCTION dmpreiheSpeichern(SammelInsert%, BezfSp%)
  Pid = rNa(0).Pat_id
  ON Error GoTo fehler
  syscmd 4, pid & ": Speichere " & Ubound(rDm)+0 & " Sätze in `dmpreihe`"
- IF NOT Allepat THEN
-  sql = "SELECT pat_id FROM `dmpreihe` WHERE Pat_ID = " & CStr(rNa(0).Pat_ID)
-  myFrag rs, sql
-  IF Not rs.BOF THEN
-   SET rs = nothing
-   sql = "DELETE FROM `dmpreihe` WHERE Pat_ID = " & CStr(rNa(0).Pat_ID)
-   Call myEFrag(sql)
-  END IF
- END IF ' not allePat
 ' sql0 = " INSERT " & sqlignore &  "INTO `dmpreihe` (Abk,Art,KarteiDatum," & _
      "exportiert,DokuDatum,obvoll,ok,ausgedruckt,NachName,VorName,GebDat,Pat_id,StByte," & _
      "AktZeit,lanrid,Zusatzdaten) VALUES
  Call csql0.AppVar(Array(" INSERT ", sqlIgnore, " INTO `dmpreihe` (Abk,Art,KarteiDatum," & _
      "exportiert,DokuDatum,obvoll,ok,ausgedruckt,NachName,VorName,GebDat,Pat_id,StByte," & _
      "AktZeit,lanrid,Zusatzdaten)          VALUES"))
+sql:
+ csql.m_Len = 0
+ IF NOT Allepat THEN
+   sql = "DELETE FROM `dmpreihe` WHERE Pat_ID = " & CStr(rNa(0).Pat_ID)
+   Call myEFrag(sql)
+ END IF ' not AllePat
  For i = 1 to ubound(rDm)
 '  rDm(i).AktZeit = now()
   rDm(i).StByte = CStr(AktByte)
@@ -6925,45 +6982,40 @@ Public FUNCTION dmpreiheSpeichern(SammelInsert%, BezfSp%)
    rDm(i).lanrid, ",'" , rDm(i).Zusatzdaten, "')")
   IF SammelInsert <> 0 AND i < ubound(rDm) THEN csql.Append ","
   IF SammelInsert = 0 OR i = ubound(rDm) THEN
+    altmode = DBCn.Execute("SELECT @@global.sql_mode").Fields(0)
+   Call DBCn.Execute("SET GLOBAL sql_mode='STRICT_TRANS_TABLES'") ' NO_ENGINE_SUBSTITUTION
 '   Call myEFrag(csql.Value,rAf)', , adAsyncExecute) ' wegen unzureichender Fehlerverarbeitung wieder ausrangiert 19.8.23
    Call DBCn.Execute(csql.Value, rAF) ', , adAsyncExecute)
    IF obforK THEN
     Call ForeignYes0
     Call ForeignYes1
-   END IF
-   IF sammelinsert = 0 THEN csql.m_len = 0
-   IF lese.obmysql AND obmitAlterTab THEN
-    SET rs = myEFrag("SHOW WARNINGS")
-    IF not rs.BOF() THEN
-     IF rs!code = 1265 THEN
-      Err.Raise -2147217833
-     END IF
-    END IF
-   END IF
-   END IF
+   END IF ' obforK THEN
+  END IF ' SammelInsert = 0 OR i = ubound(rDm)
   DoEvents
  Next i
  syscmd 5
  Exit Function
 fehler:
-ErrDescription = Err.Description
+ErrDescr = Err.Description
+ErrNumber = Err.Number
+syscmd 4, "rDm(" & i & "/" & UBound(rDm) & "):   " & ErrDescr
 sfnr = sfnr + 1
 If sfnr > 10 then 
- Lese.Ausgeb sfnr & " Fehler in ""dmpreiheSpeichern()"" bei Pat. " & rNa(0).Pat_id & ", gebe auf (ErrDes: " & ErrDescription & ")", True
+ Lese.Ausgeb sfnr & " Fehler in ""dmpreiheSpeichern()"" bei Pat. " & rNa(0).Pat_id & ", gebe auf (ErrDes: " & ErrDescr & ")", True
  sfnr = 0
  Resume Next
-End if
-IF Err.Number = -2147217900 AND InStrB(ErrDescription, " Doppelter; Eintrag; ") <> 0 THEN
+End if ' sfnr > 10
+IF ErrNumber = -2147217900 AND InStrB(ErrDescr, " Doppelter; Eintrag; ") <> 0 THEN
  Call Shell(App.path + "\..\nachricht\nachricht.exe " & App.EXEName & " Doppelter Eintrag bei: " & vbCrLf & csql.Value)
  Resume Next
-ElseIf Err.Number = -2147467259 AND InStrB(ErrDescription, "Daten zu lang") = 0 AND InStrB(ErrDescription, "Data too long") = 0 THEN ' -2147467259 ' [MySQL][ODBC 3.51 Driver][mysqld-5.1.32-log]Cannot add OR update a child row: a FOREIGN KEY constraint fails
- IF InStrB(ErrDescription, "'READ-COMMITTED'") <> 0 THEN
+ElseIf ErrNumber = -2147467259 AND InStrB(ErrDescr, "Daten zu lang") = 0 AND InStrB(ErrDescr, "Data too long") = 0 THEN ' -2147467259 ' [MySQL][ODBC 3.51 Driver][mysqld-5.1.32-log]Cannot add OR update a child row: a FOREIGN KEY constraint fails
+ IF InStrB(ErrDescr, "'READ-COMMITTED'") <> 0 THEN
   myEFrag "SET SESSION TRANSACTION ISOLATION LEVEL REPEATABLE READ", rAF
  Else
-  Call doBezFeh(csql.Value, BezfSp, ErrDescription)
+  Call doBezFeh(csql.Value, BezfSp, ErrDescr)
  END IF
  Resume
-ElseIf Err.Number = -2147217833 OR InStrB(ErrDescription, "Daten zu lang") <> 0 OR InStrB(ErrDescription, "Data too long") <> 0 THEN
+ElseIf ErrNumber = -2147217833 OR InStrB(ErrDescr, "Daten zu lang") <> 0 OR InStrB(ErrDescr, "Data too long") <> 0 THEN
  Dim rsc As Adodb.Recordset, maxi%(), k%
  redim maxi(4)
  for k = iif(SammelInsert<>0,1,i) to iif(SammelInsert<>0,ubound(rDm),i)
@@ -6973,7 +7025,7 @@ ElseIf Err.Number = -2147217833 OR InStrB(ErrDescription, "Daten zu lang") <> 0 
   IF Len(rDm(k).VorName) > maxi(3) THEN maxi(3) = Len(rDm(k).VorName)
   IF Len(rDm(k).Zusatzdaten) > maxi(4) THEN maxi(4) = Len(rDm(k).Zusatzdaten)
  next k
- IF obTrans <>0 Then If DBCn.Execute("SELECT COUNT(1) FROM information_schema.innodb_trx WHERE trx_mysql_thread_id = CONNECTION_ID()").Fields(0) <> 0 Then DBCn.CommitTrans: obtrans = 0
+ IF obTrans <>0 Then If DBCn.Execute("SELECT COUNT(1) FROM information_schema.innodb_trx WHERE trx_mysql_thread_id = CONNECTION_ID()").Fields(0) <> 0 Then ComTrans ' DBCn.CommitTrans: obtrans = 0
  nochmal:
  SET rsc = New ADODB.Recordset
  SET rsc = DBCnOSchema(adSchemaColumns, Array(Empty, Empty, "dmpreihe", Empty))
@@ -7003,16 +7055,19 @@ ElseIf Err.Number = -2147217833 OR InStrB(ErrDescription, "Daten zu lang") <> 0 
  Call ForeignNo0
  Call ForeignNo1
  resume
-END IF ' Err.Number = -2147217833 THEN
+ElseIf InStrB(1, ErrDescr, "gone away", vbTextCompare) <> 0 Or InStrB(ErrDescr, "ost connection") <> 0 Then
+ DBCnOpen
+ Resume
+END IF ' ErrNumber = 
  Dim AnwPfad$
 #If VBA6 THEN
  AnwPfad = currentDB.Name
 #Else
  AnwPfad = App.Path
 #END IF
- SELECT CASE MsgBox("FNr: " + CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " & IIf(ISNULL(Err.Source), vNS, CStr(Err.Source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "aufgefangener Fehler in dmpreiheSpeichern/" + AnwPfad)
+ SELECT CASE MsgBox("FNr: " + CStr(ErrNumber) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " & IIf(ISNULL(Err.Source), vNS, CStr(Err.Source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "aufgefangener Fehler in dmpreiheSpeichern/" + AnwPfad)
   Case vbAbort: Call MsgBox(" Höre auf "): Progende
-  Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
+  Case vbRetry: Call MsgBox("Versuche nochmal"): If ErrNumber = 998 Then Resume sql Else Resume
   Case vbIgnore: Call MsgBox(" Setze fort "): Resume Next
  END SELECT
 End FUNCTION ' dmpreiheSpeichern
@@ -7127,28 +7182,27 @@ fehler:
 End FUNCTION ' desktopLaden
 
 Function desktopEinf
- Dim rbeg&, robeg&, ri&, roi&
+ Dim rbeg&, roendpe&, ri&, roi&
  On Error GoTo fehler
  IF UBound(rDe) > 0 THEN
-  rbeg = 0
   For ri = 1 To UBound(rDe)
-   IF rDe(ri).erstZP >= qbeg THEN
+   IF rDe(ri).erstZP >= qbeg Then ' aktqanf()
     rbeg = ri
     Exit For
    END IF
   Next ri
   IF rbeg <> 0 THEN
-   For robeg = 0 To UBound(roDe)
-    IF roDe(robeg).erstZP >= qbeg THEN
+   For roendpe = 0 To UBound(roDe)
+    IF roDe(roendpe).erstZP >= qbeg THEN
      Exit For
     END IF
-   Next robeg
-   IF robeg <= UBound(roFa) THEN
-    ReDim Preserve roDe(robeg - 1)
-   END IF ' IF robeg <= UBound(roFa) THEN
-   ReDim Preserve roDe(robeg + UBound(rDe) - rbeg)
+   Next roendpe
+   IF roendpe <= UBound(roFa) THEN
+    ReDim Preserve roDe(roendpe - 1)
+   END IF ' IF roendpe <= UBound(roFa) THEN
+   ReDim Preserve roDe(roendpe + UBound(rDe) - rbeg)
    For ri = rbeg To UBound(rDe)
-    Call roDeZuw(robeg + ri - rbeg, ri)
+    Call roDeZuw(roendpe + ri - rbeg, ri)
    Next ri
   END IF ' IF rbeg <> 0 THEN
  END IF ' IF UBound(rFa) > 0 THEN
@@ -7169,7 +7223,7 @@ fehler:
 End FUNCTION ' desktopEinf
 
 Public FUNCTION desktopSpeichern(SammelInsert%, BezfSp%)
- Dim i&, rAF&, Pid$, m%, sfnr% ',sql0$
+ Dim i&, rAF&, Pid$, m%, sfnr%, altmode$ ',sql0$
  Dim csql0 As New CString, csql As New CString
  Dim rs As New ADODB.recordset
  T1 = Timer
@@ -7177,21 +7231,18 @@ Public FUNCTION desktopSpeichern(SammelInsert%, BezfSp%)
  Pid = rNa(0).Pat_id
  ON Error GoTo fehler
  syscmd 4, pid & ": Speichere " & Ubound(rDe)+0 & " Sätze in `desktop`"
- IF NOT Allepat THEN
-  sql = "SELECT pat_id FROM `desktop` WHERE Pat_ID = " & CStr(rNa(0).Pat_ID)
-  myFrag rs, sql
-  IF Not rs.BOF THEN
-   SET rs = nothing
-   sql = "DELETE FROM `desktop` WHERE Pat_ID = " & CStr(rNa(0).Pat_ID)
-   Call myEFrag(sql)
-  END IF
- END IF ' not allePat
 ' sql0 = " INSERT " & sqlignore &  "INTO `desktop` (IDS,Pat_ID,erstZP," & _
      "exoL,hideT,iconPath,noteBkColor,noteFgColor,positionBottom,positionLeft,positionRight,positionTop,showAsNote," & _
      "syncInfoList,titel,toolTipText,verankert,absPos,AktZeit,StByte) VALUES
  Call csql0.AppVar(Array(" INSERT ", sqlIgnore, " INTO `desktop` (IDS,Pat_ID,erstZP," & _
      "exoL,hideT,iconPath,noteBkColor,noteFgColor,positionBottom,positionLeft,positionRight,positionTop,showAsNote," & _
      "syncInfoList,titel,toolTipText,verankert,absPos,AktZeit,StByte)  VALUES"))
+sql:
+ csql.m_Len = 0
+ IF NOT Allepat THEN
+   sql = "DELETE FROM `desktop` WHERE Pat_ID = " & CStr(rNa(0).Pat_ID)
+   Call myEFrag(sql)
+ END IF ' not AllePat
  For i = 1 to ubound(rDe)
 '  rDe(i).AktZeit = now()
   rDe(i).StByte = CStr(AktByte)
@@ -7203,45 +7254,40 @@ Public FUNCTION desktopSpeichern(SammelInsert%, BezfSp%)
    rDe(i).toolTipText, "'," , rDe(i).verankert, "," , rDe(i).absPos, "," , DatFor_k(rDe(i).AktZeit), "," , rDe(i).StByte, ")")
   IF SammelInsert <> 0 AND i < ubound(rDe) THEN csql.Append ","
   IF SammelInsert = 0 OR i = ubound(rDe) THEN
+    altmode = DBCn.Execute("SELECT @@global.sql_mode").Fields(0)
+   Call DBCn.Execute("SET GLOBAL sql_mode='STRICT_TRANS_TABLES'") ' NO_ENGINE_SUBSTITUTION
 '   Call myEFrag(csql.Value,rAf)', , adAsyncExecute) ' wegen unzureichender Fehlerverarbeitung wieder ausrangiert 19.8.23
    Call DBCn.Execute(csql.Value, rAF) ', , adAsyncExecute)
    IF obforK THEN
     Call ForeignYes0
     Call ForeignYes1
-   END IF
-   IF sammelinsert = 0 THEN csql.m_len = 0
-   IF lese.obmysql AND obmitAlterTab THEN
-    SET rs = myEFrag("SHOW WARNINGS")
-    IF not rs.BOF() THEN
-     IF rs!code = 1265 THEN
-      Err.Raise -2147217833
-     END IF
-    END IF
-   END IF
-   END IF
+   END IF ' obforK THEN
+  END IF ' SammelInsert = 0 OR i = ubound(rDe)
   DoEvents
  Next i
  syscmd 5
  Exit Function
 fehler:
-ErrDescription = Err.Description
+ErrDescr = Err.Description
+ErrNumber = Err.Number
+syscmd 4, "rDe(" & i & "/" & UBound(rDe) & "):   " & ErrDescr
 sfnr = sfnr + 1
 If sfnr > 10 then 
- Lese.Ausgeb sfnr & " Fehler in ""desktopSpeichern()"" bei Pat. " & rNa(0).Pat_id & ", gebe auf (ErrDes: " & ErrDescription & ")", True
+ Lese.Ausgeb sfnr & " Fehler in ""desktopSpeichern()"" bei Pat. " & rNa(0).Pat_id & ", gebe auf (ErrDes: " & ErrDescr & ")", True
  sfnr = 0
  Resume Next
-End if
-IF Err.Number = -2147217900 AND InStrB(ErrDescription, " Doppelter; Eintrag; ") <> 0 THEN
+End if ' sfnr > 10
+IF ErrNumber = -2147217900 AND InStrB(ErrDescr, " Doppelter; Eintrag; ") <> 0 THEN
  Call Shell(App.path + "\..\nachricht\nachricht.exe " & App.EXEName & " Doppelter Eintrag bei: " & vbCrLf & csql.Value)
  Resume Next
-ElseIf Err.Number = -2147467259 AND InStrB(ErrDescription, "Daten zu lang") = 0 AND InStrB(ErrDescription, "Data too long") = 0 THEN ' -2147467259 ' [MySQL][ODBC 3.51 Driver][mysqld-5.1.32-log]Cannot add OR update a child row: a FOREIGN KEY constraint fails
- IF InStrB(ErrDescription, "'READ-COMMITTED'") <> 0 THEN
+ElseIf ErrNumber = -2147467259 AND InStrB(ErrDescr, "Daten zu lang") = 0 AND InStrB(ErrDescr, "Data too long") = 0 THEN ' -2147467259 ' [MySQL][ODBC 3.51 Driver][mysqld-5.1.32-log]Cannot add OR update a child row: a FOREIGN KEY constraint fails
+ IF InStrB(ErrDescr, "'READ-COMMITTED'") <> 0 THEN
   myEFrag "SET SESSION TRANSACTION ISOLATION LEVEL REPEATABLE READ", rAF
  Else
-  Call doBezFeh(csql.Value, BezfSp, ErrDescription)
+  Call doBezFeh(csql.Value, BezfSp, ErrDescr)
  END IF
  Resume
-ElseIf Err.Number = -2147217833 OR InStrB(ErrDescription, "Daten zu lang") <> 0 OR InStrB(ErrDescription, "Data too long") <> 0 THEN
+ElseIf ErrNumber = -2147217833 OR InStrB(ErrDescr, "Daten zu lang") <> 0 OR InStrB(ErrDescr, "Data too long") <> 0 THEN
  Dim rsc As Adodb.Recordset, maxi%(), k%
  redim maxi(5)
  for k = iif(SammelInsert<>0,1,i) to iif(SammelInsert<>0,ubound(rDe),i)
@@ -7252,7 +7298,7 @@ ElseIf Err.Number = -2147217833 OR InStrB(ErrDescription, "Daten zu lang") <> 0 
   IF Len(rDe(k).titel) > maxi(4) THEN maxi(4) = Len(rDe(k).titel)
   IF Len(rDe(k).toolTipText) > maxi(5) THEN maxi(5) = Len(rDe(k).toolTipText)
  next k
- IF obTrans <>0 Then If DBCn.Execute("SELECT COUNT(1) FROM information_schema.innodb_trx WHERE trx_mysql_thread_id = CONNECTION_ID()").Fields(0) <> 0 Then DBCn.CommitTrans: obtrans = 0
+ IF obTrans <>0 Then If DBCn.Execute("SELECT COUNT(1) FROM information_schema.innodb_trx WHERE trx_mysql_thread_id = CONNECTION_ID()").Fields(0) <> 0 Then ComTrans ' DBCn.CommitTrans: obtrans = 0
  nochmal:
  SET rsc = New ADODB.Recordset
  SET rsc = DBCnOSchema(adSchemaColumns, Array(Empty, Empty, "desktop", Empty))
@@ -7283,16 +7329,19 @@ ElseIf Err.Number = -2147217833 OR InStrB(ErrDescription, "Daten zu lang") <> 0 
  Call ForeignNo0
  Call ForeignNo1
  resume
-END IF ' Err.Number = -2147217833 THEN
+ElseIf InStrB(1, ErrDescr, "gone away", vbTextCompare) <> 0 Or InStrB(ErrDescr, "ost connection") <> 0 Then
+ DBCnOpen
+ Resume
+END IF ' ErrNumber = 
  Dim AnwPfad$
 #If VBA6 THEN
  AnwPfad = currentDB.Name
 #Else
  AnwPfad = App.Path
 #END IF
- SELECT CASE MsgBox("FNr: " + CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " & IIf(ISNULL(Err.Source), vNS, CStr(Err.Source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "aufgefangener Fehler in desktopSpeichern/" + AnwPfad)
+ SELECT CASE MsgBox("FNr: " + CStr(ErrNumber) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " & IIf(ISNULL(Err.Source), vNS, CStr(Err.Source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "aufgefangener Fehler in desktopSpeichern/" + AnwPfad)
   Case vbAbort: Call MsgBox(" Höre auf "): Progende
-  Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
+  Case vbRetry: Call MsgBox("Versuche nochmal"): If ErrNumber = 998 Then Resume sql Else Resume
   Case vbIgnore: Call MsgBox(" Setze fort "): Resume Next
  END SELECT
 End FUNCTION ' desktopSpeichern
@@ -7488,28 +7537,27 @@ fehler:
 End FUNCTION ' usdmLaden
 
 Function usdmEinf
- Dim rbeg&, robeg&, ri&, roi&
+ Dim rbeg&, roendpe&, ri&, roi&
  On Error GoTo fehler
  IF UBound(rUs) > 0 THEN
-  rbeg = 0
   For ri = 1 To UBound(rUs)
-   IF rUs(ri).ZeitPunkt >= qbeg THEN
+   IF rUs(ri).ZeitPunkt >= qbeg Then ' aktqanf()
     rbeg = ri
     Exit For
    END IF
   Next ri
   IF rbeg <> 0 THEN
-   For robeg = 0 To UBound(roUs)
-    IF roUs(robeg).ZeitPunkt >= qbeg THEN
+   For roendpe = 0 To UBound(roUs)
+    IF roUs(roendpe).ZeitPunkt >= qbeg THEN
      Exit For
     END IF
-   Next robeg
-   IF robeg <= UBound(roFa) THEN
-    ReDim Preserve roUs(robeg - 1)
-   END IF ' IF robeg <= UBound(roFa) THEN
-   ReDim Preserve roUs(robeg + UBound(rUs) - rbeg)
+   Next roendpe
+   IF roendpe <= UBound(roFa) THEN
+    ReDim Preserve roUs(roendpe - 1)
+   END IF ' IF roendpe <= UBound(roFa) THEN
+   ReDim Preserve roUs(roendpe + UBound(rUs) - rbeg)
    For ri = rbeg To UBound(rUs)
-    Call roUsZuw(robeg + ri - rbeg, ri)
+    Call roUsZuw(roendpe + ri - rbeg, ri)
    Next ri
   END IF ' IF rbeg <> 0 THEN
  END IF ' IF UBound(rFa) > 0 THEN
@@ -7530,7 +7578,7 @@ fehler:
 End FUNCTION ' usdmEinf
 
 Public FUNCTION usdmSpeichern(SammelInsert%, BezfSp%)
- Dim i&, rAF&, Pid$, m%, sfnr% ',sql0$
+ Dim i&, rAF&, Pid$, m%, sfnr%, altmode$ ',sql0$
  Dim csql0 As New CString, csql As New CString
  Dim rs As New ADODB.recordset
  T1 = Timer
@@ -7538,15 +7586,6 @@ Public FUNCTION usdmSpeichern(SammelInsert%, BezfSp%)
  Pid = rNa(0).Pat_id
  ON Error GoTo fehler
  syscmd 4, pid & ": Speichere " & Ubound(rUs)+0 & " Sätze in `usdm`"
- IF NOT Allepat THEN
-  sql = "SELECT pat_id FROM `usdm` WHERE Pat_ID = " & CStr(rNa(0).Pat_ID)
-  myFrag rs, sql
-  IF Not rs.BOF THEN
-   SET rs = nothing
-   sql = "DELETE FROM `usdm` WHERE Pat_ID = " & CStr(rNa(0).Pat_ID)
-   Call myEFrag(sql)
-  END IF
- END IF ' not allePat
 ' sql0 = " INSERT " & sqlignore &  "INTO `usdm` (FID,Pat_ID,ZeitPunkt," & _
      "Art,Spritzst,Fußbef_re,Fußbef_li,Hyperk_re,Hyperk_li,Ulcera_re,Ulcera_li,Kraft_Zh_re,Kraft_Zh_li," & _
      "Kraft_Zb_re,Kraft_Zb_li,Kraft_Knie_re,Kraft_Knie_li,ASR_re,ASR_li,PSR_re,PSR_li,Oberfl_re,Oberfl_li," & _
@@ -7559,6 +7598,12 @@ Public FUNCTION usdmSpeichern(SammelInsert%, BezfSp%)
      "MF_re,MF_li,KW_re,KW_li,Vibr_IK_re,Vibr_IK_li,Vibr_GZ_re,Vibr_GZ_li,PulsL_re,PulsL_li," & _
      "PulsKK_re,PulsKK_li,PulsAtp_re,PulsAtp_li,PulsAdp_re,PulsAdp_li,Mitarbeiter,absPos,AktZeit,QS," & _
      "QT,StByte)             VALUES"))
+sql:
+ csql.m_Len = 0
+ IF NOT Allepat THEN
+   sql = "DELETE FROM `usdm` WHERE Pat_ID = " & CStr(rNa(0).Pat_ID)
+   Call myEFrag(sql)
+ END IF ' not AllePat
  For i = 1 to ubound(rUs)
 '  rUs(i).AktZeit = now()
   rUs(i).StByte = CStr(AktByte)
@@ -7573,45 +7618,40 @@ Public FUNCTION usdmSpeichern(SammelInsert%, BezfSp%)
    rUs(i).PulsAdp_li, "','" , rUs(i).Mitarbeiter, "'," , rUs(i).absPos, "," , DatFor_k(rUs(i).AktZeit), ",'" , rUs(i).QS, "','" , rUs(i).QT, "'," , rUs(i).StByte, ")")
   IF SammelInsert <> 0 AND i < ubound(rUs) THEN csql.Append ","
   IF SammelInsert = 0 OR i = ubound(rUs) THEN
+    altmode = DBCn.Execute("SELECT @@global.sql_mode").Fields(0)
+   Call DBCn.Execute("SET GLOBAL sql_mode='STRICT_TRANS_TABLES'") ' NO_ENGINE_SUBSTITUTION
 '   Call myEFrag(csql.Value,rAf)', , adAsyncExecute) ' wegen unzureichender Fehlerverarbeitung wieder ausrangiert 19.8.23
    Call DBCn.Execute(csql.Value, rAF) ', , adAsyncExecute)
    IF obforK THEN
     Call ForeignYes0
     Call ForeignYes1
-   END IF
-   IF sammelinsert = 0 THEN csql.m_len = 0
-   IF lese.obmysql AND obmitAlterTab THEN
-    SET rs = myEFrag("SHOW WARNINGS")
-    IF not rs.BOF() THEN
-     IF rs!code = 1265 THEN
-      Err.Raise -2147217833
-     END IF
-    END IF
-   END IF
-   END IF
+   END IF ' obforK THEN
+  END IF ' SammelInsert = 0 OR i = ubound(rUs)
   DoEvents
  Next i
  syscmd 5
  Exit Function
 fehler:
-ErrDescription = Err.Description
+ErrDescr = Err.Description
+ErrNumber = Err.Number
+syscmd 4, "rUs(" & i & "/" & UBound(rUs) & "):   " & ErrDescr
 sfnr = sfnr + 1
 If sfnr > 10 then 
- Lese.Ausgeb sfnr & " Fehler in ""usdmSpeichern()"" bei Pat. " & rNa(0).Pat_id & ", gebe auf (ErrDes: " & ErrDescription & ")", True
+ Lese.Ausgeb sfnr & " Fehler in ""usdmSpeichern()"" bei Pat. " & rNa(0).Pat_id & ", gebe auf (ErrDes: " & ErrDescr & ")", True
  sfnr = 0
  Resume Next
-End if
-IF Err.Number = -2147217900 AND InStrB(ErrDescription, " Doppelter; Eintrag; ") <> 0 THEN
+End if ' sfnr > 10
+IF ErrNumber = -2147217900 AND InStrB(ErrDescr, " Doppelter; Eintrag; ") <> 0 THEN
  Call Shell(App.path + "\..\nachricht\nachricht.exe " & App.EXEName & " Doppelter Eintrag bei: " & vbCrLf & csql.Value)
  Resume Next
-ElseIf Err.Number = -2147467259 AND InStrB(ErrDescription, "Daten zu lang") = 0 AND InStrB(ErrDescription, "Data too long") = 0 THEN ' -2147467259 ' [MySQL][ODBC 3.51 Driver][mysqld-5.1.32-log]Cannot add OR update a child row: a FOREIGN KEY constraint fails
- IF InStrB(ErrDescription, "'READ-COMMITTED'") <> 0 THEN
+ElseIf ErrNumber = -2147467259 AND InStrB(ErrDescr, "Daten zu lang") = 0 AND InStrB(ErrDescr, "Data too long") = 0 THEN ' -2147467259 ' [MySQL][ODBC 3.51 Driver][mysqld-5.1.32-log]Cannot add OR update a child row: a FOREIGN KEY constraint fails
+ IF InStrB(ErrDescr, "'READ-COMMITTED'") <> 0 THEN
   myEFrag "SET SESSION TRANSACTION ISOLATION LEVEL REPEATABLE READ", rAF
  Else
-  Call doBezFeh(csql.Value, BezfSp, ErrDescription)
+  Call doBezFeh(csql.Value, BezfSp, ErrDescr)
  END IF
  Resume
-ElseIf Err.Number = -2147217833 OR InStrB(ErrDescription, "Daten zu lang") <> 0 OR InStrB(ErrDescription, "Data too long") <> 0 THEN
+ElseIf ErrNumber = -2147217833 OR InStrB(ErrDescr, "Daten zu lang") <> 0 OR InStrB(ErrDescr, "Data too long") <> 0 THEN
  Dim rsc As Adodb.Recordset, maxi%(), k%
  redim maxi(38)
  for k = iif(SammelInsert<>0,1,i) to iif(SammelInsert<>0,ubound(rUs),i)
@@ -7655,7 +7695,7 @@ ElseIf Err.Number = -2147217833 OR InStrB(ErrDescription, "Daten zu lang") <> 0 
   IF Len(rUs(k).QS) > maxi(37) THEN maxi(37) = Len(rUs(k).QS)
   IF Len(rUs(k).QT) > maxi(38) THEN maxi(38) = Len(rUs(k).QT)
  next k
- IF obTrans <>0 Then If DBCn.Execute("SELECT COUNT(1) FROM information_schema.innodb_trx WHERE trx_mysql_thread_id = CONNECTION_ID()").Fields(0) <> 0 Then DBCn.CommitTrans: obtrans = 0
+ IF obTrans <>0 Then If DBCn.Execute("SELECT COUNT(1) FROM information_schema.innodb_trx WHERE trx_mysql_thread_id = CONNECTION_ID()").Fields(0) <> 0 Then ComTrans ' DBCn.CommitTrans: obtrans = 0
  nochmal:
  SET rsc = New ADODB.Recordset
  SET rsc = DBCnOSchema(adSchemaColumns, Array(Empty, Empty, "usdm", Empty))
@@ -7719,16 +7759,19 @@ ElseIf Err.Number = -2147217833 OR InStrB(ErrDescription, "Daten zu lang") <> 0 
  Call ForeignNo0
  Call ForeignNo1
  resume
-END IF ' Err.Number = -2147217833 THEN
+ElseIf InStrB(1, ErrDescr, "gone away", vbTextCompare) <> 0 Or InStrB(ErrDescr, "ost connection") <> 0 Then
+ DBCnOpen
+ Resume
+END IF ' ErrNumber = 
  Dim AnwPfad$
 #If VBA6 THEN
  AnwPfad = currentDB.Name
 #Else
  AnwPfad = App.Path
 #END IF
- SELECT CASE MsgBox("FNr: " + CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " & IIf(ISNULL(Err.Source), vNS, CStr(Err.Source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "aufgefangener Fehler in usdmSpeichern/" + AnwPfad)
+ SELECT CASE MsgBox("FNr: " + CStr(ErrNumber) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " & IIf(ISNULL(Err.Source), vNS, CStr(Err.Source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "aufgefangener Fehler in usdmSpeichern/" + AnwPfad)
   Case vbAbort: Call MsgBox(" Höre auf "): Progende
-  Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
+  Case vbRetry: Call MsgBox("Versuche nochmal"): If ErrNumber = 998 Then Resume sql Else Resume
   Case vbIgnore: Call MsgBox(" Setze fort "): Resume Next
  END SELECT
 End FUNCTION ' usdmSpeichern
@@ -7840,28 +7883,27 @@ fehler:
 End FUNCTION ' fussLaden
 
 Function fussEinf
- Dim rbeg&, robeg&, ri&, roi&
+ Dim rbeg&, roendpe&, ri&, roi&
  On Error GoTo fehler
  IF UBound(rFu) > 0 THEN
-  rbeg = 0
   For ri = 1 To UBound(rFu)
-   IF rFu(ri).ZeitPunkt >= qbeg THEN
+   IF rFu(ri).ZeitPunkt >= qbeg Then ' aktqanf()
     rbeg = ri
     Exit For
    END IF
   Next ri
   IF rbeg <> 0 THEN
-   For robeg = 0 To UBound(roFu)
-    IF roFu(robeg).ZeitPunkt >= qbeg THEN
+   For roendpe = 0 To UBound(roFu)
+    IF roFu(roendpe).ZeitPunkt >= qbeg THEN
      Exit For
     END IF
-   Next robeg
-   IF robeg <= UBound(roFa) THEN
-    ReDim Preserve roFu(robeg - 1)
-   END IF ' IF robeg <= UBound(roFa) THEN
-   ReDim Preserve roFu(robeg + UBound(rFu) - rbeg)
+   Next roendpe
+   IF roendpe <= UBound(roFa) THEN
+    ReDim Preserve roFu(roendpe - 1)
+   END IF ' IF roendpe <= UBound(roFa) THEN
+   ReDim Preserve roFu(roendpe + UBound(rFu) - rbeg)
    For ri = rbeg To UBound(rFu)
-    Call roFuZuw(robeg + ri - rbeg, ri)
+    Call roFuZuw(roendpe + ri - rbeg, ri)
    Next ri
   END IF ' IF rbeg <> 0 THEN
  END IF ' IF UBound(rFa) > 0 THEN
@@ -7882,7 +7924,7 @@ fehler:
 End FUNCTION ' fussEinf
 
 Public FUNCTION fussSpeichern(SammelInsert%, BezfSp%)
- Dim i&, rAF&, Pid$, m%, sfnr% ',sql0$
+ Dim i&, rAF&, Pid$, m%, sfnr%, altmode$ ',sql0$
  Dim csql0 As New CString, csql As New CString
  Dim rs As New ADODB.recordset
  T1 = Timer
@@ -7890,21 +7932,18 @@ Public FUNCTION fussSpeichern(SammelInsert%, BezfSp%)
  Pid = rNa(0).Pat_id
  ON Error GoTo fehler
  syscmd 4, pid & ": Speichere " & Ubound(rFu)+0 & " Sätze in `fuss`"
- IF NOT Allepat THEN
-  sql = "SELECT pat_id FROM `fuss` WHERE Pat_ID = " & CStr(rNa(0).Pat_ID)
-  myFrag rs, sql
-  IF Not rs.BOF THEN
-   SET rs = nothing
-   sql = "DELETE FROM `fuss` WHERE Pat_ID = " & CStr(rNa(0).Pat_ID)
-   Call myEFrag(sql)
-  END IF
- END IF ' not allePat
 ' sql0 = " INSERT " & sqlignore &  "INTO `fuss` (FID,Pat_ID,ZeitPunkt," & _
      "Art,Fußdeform,Hyper_mEin,Weiteres,Zn_Ulcus,Zn_Amput,Fuß_ang,Ulcera,Wundinfektion,nae_US," & _
      "Mitarbeiter,absPos,AktZeit,QS,QT,StByte) VALUES
  Call csql0.AppVar(Array(" INSERT ", sqlIgnore, " INTO `fuss` (FID,Pat_ID,ZeitPunkt," & _
      "Art,Fußdeform,Hyper_mEin,Weiteres,Zn_Ulcus,Zn_Amput,Fuß_ang,Ulcera,Wundinfektion,nae_US," & _
      "Mitarbeiter,absPos,AktZeit,QS,QT,StByte)           VALUES"))
+sql:
+ csql.m_Len = 0
+ IF NOT Allepat THEN
+   sql = "DELETE FROM `fuss` WHERE Pat_ID = " & CStr(rNa(0).Pat_ID)
+   Call myEFrag(sql)
+ END IF ' not AllePat
  For i = 1 to ubound(rFu)
 '  rFu(i).AktZeit = now()
   rFu(i).StByte = CStr(AktByte)
@@ -7916,45 +7955,40 @@ Public FUNCTION fussSpeichern(SammelInsert%, BezfSp%)
    rFu(i).QS, "','" , rFu(i).QT, "'," , rFu(i).StByte, ")")
   IF SammelInsert <> 0 AND i < ubound(rFu) THEN csql.Append ","
   IF SammelInsert = 0 OR i = ubound(rFu) THEN
+    altmode = DBCn.Execute("SELECT @@global.sql_mode").Fields(0)
+   Call DBCn.Execute("SET GLOBAL sql_mode='STRICT_TRANS_TABLES'") ' NO_ENGINE_SUBSTITUTION
 '   Call myEFrag(csql.Value,rAf)', , adAsyncExecute) ' wegen unzureichender Fehlerverarbeitung wieder ausrangiert 19.8.23
    Call DBCn.Execute(csql.Value, rAF) ', , adAsyncExecute)
    IF obforK THEN
     Call ForeignYes0
     Call ForeignYes1
-   END IF
-   IF sammelinsert = 0 THEN csql.m_len = 0
-   IF lese.obmysql AND obmitAlterTab THEN
-    SET rs = myEFrag("SHOW WARNINGS")
-    IF not rs.BOF() THEN
-     IF rs!code = 1265 THEN
-      Err.Raise -2147217833
-     END IF
-    END IF
-   END IF
-   END IF
+   END IF ' obforK THEN
+  END IF ' SammelInsert = 0 OR i = ubound(rFu)
   DoEvents
  Next i
  syscmd 5
  Exit Function
 fehler:
-ErrDescription = Err.Description
+ErrDescr = Err.Description
+ErrNumber = Err.Number
+syscmd 4, "rFu(" & i & "/" & UBound(rFu) & "):   " & ErrDescr
 sfnr = sfnr + 1
 If sfnr > 10 then 
- Lese.Ausgeb sfnr & " Fehler in ""fussSpeichern()"" bei Pat. " & rNa(0).Pat_id & ", gebe auf (ErrDes: " & ErrDescription & ")", True
+ Lese.Ausgeb sfnr & " Fehler in ""fussSpeichern()"" bei Pat. " & rNa(0).Pat_id & ", gebe auf (ErrDes: " & ErrDescr & ")", True
  sfnr = 0
  Resume Next
-End if
-IF Err.Number = -2147217900 AND InStrB(ErrDescription, " Doppelter; Eintrag; ") <> 0 THEN
+End if ' sfnr > 10
+IF ErrNumber = -2147217900 AND InStrB(ErrDescr, " Doppelter; Eintrag; ") <> 0 THEN
  Call Shell(App.path + "\..\nachricht\nachricht.exe " & App.EXEName & " Doppelter Eintrag bei: " & vbCrLf & csql.Value)
  Resume Next
-ElseIf Err.Number = -2147467259 AND InStrB(ErrDescription, "Daten zu lang") = 0 AND InStrB(ErrDescription, "Data too long") = 0 THEN ' -2147467259 ' [MySQL][ODBC 3.51 Driver][mysqld-5.1.32-log]Cannot add OR update a child row: a FOREIGN KEY constraint fails
- IF InStrB(ErrDescription, "'READ-COMMITTED'") <> 0 THEN
+ElseIf ErrNumber = -2147467259 AND InStrB(ErrDescr, "Daten zu lang") = 0 AND InStrB(ErrDescr, "Data too long") = 0 THEN ' -2147467259 ' [MySQL][ODBC 3.51 Driver][mysqld-5.1.32-log]Cannot add OR update a child row: a FOREIGN KEY constraint fails
+ IF InStrB(ErrDescr, "'READ-COMMITTED'") <> 0 THEN
   myEFrag "SET SESSION TRANSACTION ISOLATION LEVEL REPEATABLE READ", rAF
  Else
-  Call doBezFeh(csql.Value, BezfSp, ErrDescription)
+  Call doBezFeh(csql.Value, BezfSp, ErrDescr)
  END IF
  Resume
-ElseIf Err.Number = -2147217833 OR InStrB(ErrDescription, "Daten zu lang") <> 0 OR InStrB(ErrDescription, "Data too long") <> 0 THEN
+ElseIf ErrNumber = -2147217833 OR InStrB(ErrDescr, "Daten zu lang") <> 0 OR InStrB(ErrDescr, "Data too long") <> 0 THEN
  Dim rsc As Adodb.Recordset, maxi%(), k%
  redim maxi(12)
  for k = iif(SammelInsert<>0,1,i) to iif(SammelInsert<>0,ubound(rFu),i)
@@ -7972,7 +8006,7 @@ ElseIf Err.Number = -2147217833 OR InStrB(ErrDescription, "Daten zu lang") <> 0 
   IF Len(rFu(k).QS) > maxi(11) THEN maxi(11) = Len(rFu(k).QS)
   IF Len(rFu(k).QT) > maxi(12) THEN maxi(12) = Len(rFu(k).QT)
  next k
- IF obTrans <>0 Then If DBCn.Execute("SELECT COUNT(1) FROM information_schema.innodb_trx WHERE trx_mysql_thread_id = CONNECTION_ID()").Fields(0) <> 0 Then DBCn.CommitTrans: obtrans = 0
+ IF obTrans <>0 Then If DBCn.Execute("SELECT COUNT(1) FROM information_schema.innodb_trx WHERE trx_mysql_thread_id = CONNECTION_ID()").Fields(0) <> 0 Then ComTrans ' DBCn.CommitTrans: obtrans = 0
  nochmal:
  SET rsc = New ADODB.Recordset
  SET rsc = DBCnOSchema(adSchemaColumns, Array(Empty, Empty, "fuss", Empty))
@@ -8010,16 +8044,19 @@ ElseIf Err.Number = -2147217833 OR InStrB(ErrDescription, "Daten zu lang") <> 0 
  Call ForeignNo0
  Call ForeignNo1
  resume
-END IF ' Err.Number = -2147217833 THEN
+ElseIf InStrB(1, ErrDescr, "gone away", vbTextCompare) <> 0 Or InStrB(ErrDescr, "ost connection") <> 0 Then
+ DBCnOpen
+ Resume
+END IF ' ErrNumber = 
  Dim AnwPfad$
 #If VBA6 THEN
  AnwPfad = currentDB.Name
 #Else
  AnwPfad = App.Path
 #END IF
- SELECT CASE MsgBox("FNr: " + CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " & IIf(ISNULL(Err.Source), vNS, CStr(Err.Source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "aufgefangener Fehler in fussSpeichern/" + AnwPfad)
+ SELECT CASE MsgBox("FNr: " + CStr(ErrNumber) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " & IIf(ISNULL(Err.Source), vNS, CStr(Err.Source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "aufgefangener Fehler in fussSpeichern/" + AnwPfad)
   Case vbAbort: Call MsgBox(" Höre auf "): Progende
-  Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
+  Case vbRetry: Call MsgBox("Versuche nochmal"): If ErrNumber = 998 Then Resume sql Else Resume
   Case vbIgnore: Call MsgBox(" Setze fort "): Resume Next
  END SELECT
 End FUNCTION ' fussSpeichern
@@ -8124,28 +8161,27 @@ fehler:
 End FUNCTION ' ulcusLaden
 
 Function ulcusEinf
- Dim rbeg&, robeg&, ri&, roi&
+ Dim rbeg&, roendpe&, ri&, roi&
  On Error GoTo fehler
  IF UBound(rUl) > 0 THEN
-  rbeg = 0
   For ri = 1 To UBound(rUl)
-   IF rUl(ri).ZeitPunkt >= qbeg THEN
+   IF rUl(ri).ZeitPunkt >= qbeg Then ' aktqanf()
     rbeg = ri
     Exit For
    END IF
   Next ri
   IF rbeg <> 0 THEN
-   For robeg = 0 To UBound(roUl)
-    IF roUl(robeg).ZeitPunkt >= qbeg THEN
+   For roendpe = 0 To UBound(roUl)
+    IF roUl(roendpe).ZeitPunkt >= qbeg THEN
      Exit For
     END IF
-   Next robeg
-   IF robeg <= UBound(roFa) THEN
-    ReDim Preserve roUl(robeg - 1)
-   END IF ' IF robeg <= UBound(roFa) THEN
-   ReDim Preserve roUl(robeg + UBound(rUl) - rbeg)
+   Next roendpe
+   IF roendpe <= UBound(roFa) THEN
+    ReDim Preserve roUl(roendpe - 1)
+   END IF ' IF roendpe <= UBound(roFa) THEN
+   ReDim Preserve roUl(roendpe + UBound(rUl) - rbeg)
    For ri = rbeg To UBound(rUl)
-    Call roUlZuw(robeg + ri - rbeg, ri)
+    Call roUlZuw(roendpe + ri - rbeg, ri)
    Next ri
   END IF ' IF rbeg <> 0 THEN
  END IF ' IF UBound(rFa) > 0 THEN
@@ -8166,7 +8202,7 @@ fehler:
 End FUNCTION ' ulcusEinf
 
 Public FUNCTION ulcusSpeichern(SammelInsert%, BezfSp%)
- Dim i&, rAF&, Pid$, m%, sfnr% ',sql0$
+ Dim i&, rAF&, Pid$, m%, sfnr%, altmode$ ',sql0$
  Dim csql0 As New CString, csql As New CString
  Dim rs As New ADODB.recordset
  T1 = Timer
@@ -8174,21 +8210,18 @@ Public FUNCTION ulcusSpeichern(SammelInsert%, BezfSp%)
  Pid = rNa(0).Pat_id
  ON Error GoTo fehler
  syscmd 4, pid & ": Speichere " & Ubound(rUl)+0 & " Sätze in `ulcus`"
- IF NOT Allepat THEN
-  sql = "SELECT pat_id FROM `ulcus` WHERE Pat_ID = " & CStr(rNa(0).Pat_ID)
-  myFrag rs, sql
-  IF Not rs.BOF THEN
-   SET rs = nothing
-   sql = "DELETE FROM `ulcus` WHERE Pat_ID = " & CStr(rNa(0).Pat_ID)
-   Call myEFrag(sql)
-  END IF
- END IF ' not allePat
 ' sql0 = " INSERT " & sqlignore &  "INTO `ulcus` (FID,Pat_ID,ZeitPunkt," & _
      "Lokalisation,Seite,Größe,Beläge,Exsudat,Geruch,Wundrand,Wundumgebung,Temperatur,Fotodoku," & _
      "Wundversorgung,Mitarbeiter,absPos,AktZeit,StByte) VALUES
  Call csql0.AppVar(Array(" INSERT ", sqlIgnore, " INTO `ulcus` (FID,Pat_ID,ZeitPunkt," & _
      "Lokalisation,Seite,Größe,Beläge,Exsudat,Geruch,Wundrand,Wundumgebung,Temperatur,Fotodoku," & _
      "Wundversorgung,Mitarbeiter,absPos,AktZeit,StByte)  VALUES"))
+sql:
+ csql.m_Len = 0
+ IF NOT Allepat THEN
+   sql = "DELETE FROM `ulcus` WHERE Pat_ID = " & CStr(rNa(0).Pat_ID)
+   Call myEFrag(sql)
+ END IF ' not AllePat
  For i = 1 to ubound(rUl)
 '  rUl(i).AktZeit = now()
   rUl(i).StByte = CStr(AktByte)
@@ -8200,45 +8233,40 @@ Public FUNCTION ulcusSpeichern(SammelInsert%, BezfSp%)
    rUl(i).absPos, "," , DatFor_k(rUl(i).AktZeit), "," , rUl(i).StByte, ")")
   IF SammelInsert <> 0 AND i < ubound(rUl) THEN csql.Append ","
   IF SammelInsert = 0 OR i = ubound(rUl) THEN
+    altmode = DBCn.Execute("SELECT @@global.sql_mode").Fields(0)
+   Call DBCn.Execute("SET GLOBAL sql_mode='STRICT_TRANS_TABLES'") ' NO_ENGINE_SUBSTITUTION
 '   Call myEFrag(csql.Value,rAf)', , adAsyncExecute) ' wegen unzureichender Fehlerverarbeitung wieder ausrangiert 19.8.23
    Call DBCn.Execute(csql.Value, rAF) ', , adAsyncExecute)
    IF obforK THEN
     Call ForeignYes0
     Call ForeignYes1
-   END IF
-   IF sammelinsert = 0 THEN csql.m_len = 0
-   IF lese.obmysql AND obmitAlterTab THEN
-    SET rs = myEFrag("SHOW WARNINGS")
-    IF not rs.BOF() THEN
-     IF rs!code = 1265 THEN
-      Err.Raise -2147217833
-     END IF
-    END IF
-   END IF
-   END IF
+   END IF ' obforK THEN
+  END IF ' SammelInsert = 0 OR i = ubound(rUl)
   DoEvents
  Next i
  syscmd 5
  Exit Function
 fehler:
-ErrDescription = Err.Description
+ErrDescr = Err.Description
+ErrNumber = Err.Number
+syscmd 4, "rUl(" & i & "/" & UBound(rUl) & "):   " & ErrDescr
 sfnr = sfnr + 1
 If sfnr > 10 then 
- Lese.Ausgeb sfnr & " Fehler in ""ulcusSpeichern()"" bei Pat. " & rNa(0).Pat_id & ", gebe auf (ErrDes: " & ErrDescription & ")", True
+ Lese.Ausgeb sfnr & " Fehler in ""ulcusSpeichern()"" bei Pat. " & rNa(0).Pat_id & ", gebe auf (ErrDes: " & ErrDescr & ")", True
  sfnr = 0
  Resume Next
-End if
-IF Err.Number = -2147217900 AND InStrB(ErrDescription, " Doppelter; Eintrag; ") <> 0 THEN
+End if ' sfnr > 10
+IF ErrNumber = -2147217900 AND InStrB(ErrDescr, " Doppelter; Eintrag; ") <> 0 THEN
  Call Shell(App.path + "\..\nachricht\nachricht.exe " & App.EXEName & " Doppelter Eintrag bei: " & vbCrLf & csql.Value)
  Resume Next
-ElseIf Err.Number = -2147467259 AND InStrB(ErrDescription, "Daten zu lang") = 0 AND InStrB(ErrDescription, "Data too long") = 0 THEN ' -2147467259 ' [MySQL][ODBC 3.51 Driver][mysqld-5.1.32-log]Cannot add OR update a child row: a FOREIGN KEY constraint fails
- IF InStrB(ErrDescription, "'READ-COMMITTED'") <> 0 THEN
+ElseIf ErrNumber = -2147467259 AND InStrB(ErrDescr, "Daten zu lang") = 0 AND InStrB(ErrDescr, "Data too long") = 0 THEN ' -2147467259 ' [MySQL][ODBC 3.51 Driver][mysqld-5.1.32-log]Cannot add OR update a child row: a FOREIGN KEY constraint fails
+ IF InStrB(ErrDescr, "'READ-COMMITTED'") <> 0 THEN
   myEFrag "SET SESSION TRANSACTION ISOLATION LEVEL REPEATABLE READ", rAF
  Else
-  Call doBezFeh(csql.Value, BezfSp, ErrDescription)
+  Call doBezFeh(csql.Value, BezfSp, ErrDescr)
  END IF
  Resume
-ElseIf Err.Number = -2147217833 OR InStrB(ErrDescription, "Daten zu lang") <> 0 OR InStrB(ErrDescription, "Data too long") <> 0 THEN
+ElseIf ErrNumber = -2147217833 OR InStrB(ErrDescr, "Daten zu lang") <> 0 OR InStrB(ErrDescr, "Data too long") <> 0 THEN
  Dim rsc As Adodb.Recordset, maxi%(), k%
  redim maxi(11)
  for k = iif(SammelInsert<>0,1,i) to iif(SammelInsert<>0,ubound(rUl),i)
@@ -8255,7 +8283,7 @@ ElseIf Err.Number = -2147217833 OR InStrB(ErrDescription, "Daten zu lang") <> 0 
   IF Len(rUl(k).Wundversorgung) > maxi(10) THEN maxi(10) = Len(rUl(k).Wundversorgung)
   IF Len(rUl(k).Mitarbeiter) > maxi(11) THEN maxi(11) = Len(rUl(k).Mitarbeiter)
  next k
- IF obTrans <>0 Then If DBCn.Execute("SELECT COUNT(1) FROM information_schema.innodb_trx WHERE trx_mysql_thread_id = CONNECTION_ID()").Fields(0) <> 0 Then DBCn.CommitTrans: obtrans = 0
+ IF obTrans <>0 Then If DBCn.Execute("SELECT COUNT(1) FROM information_schema.innodb_trx WHERE trx_mysql_thread_id = CONNECTION_ID()").Fields(0) <> 0 Then ComTrans ' DBCn.CommitTrans: obtrans = 0
  nochmal:
  SET rsc = New ADODB.Recordset
  SET rsc = DBCnOSchema(adSchemaColumns, Array(Empty, Empty, "ulcus", Empty))
@@ -8292,16 +8320,19 @@ ElseIf Err.Number = -2147217833 OR InStrB(ErrDescription, "Daten zu lang") <> 0 
  Call ForeignNo0
  Call ForeignNo1
  resume
-END IF ' Err.Number = -2147217833 THEN
+ElseIf InStrB(1, ErrDescr, "gone away", vbTextCompare) <> 0 Or InStrB(ErrDescr, "ost connection") <> 0 Then
+ DBCnOpen
+ Resume
+END IF ' ErrNumber = 
  Dim AnwPfad$
 #If VBA6 THEN
  AnwPfad = currentDB.Name
 #Else
  AnwPfad = App.Path
 #END IF
- SELECT CASE MsgBox("FNr: " + CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " & IIf(ISNULL(Err.Source), vNS, CStr(Err.Source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "aufgefangener Fehler in ulcusSpeichern/" + AnwPfad)
+ SELECT CASE MsgBox("FNr: " + CStr(ErrNumber) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " & IIf(ISNULL(Err.Source), vNS, CStr(Err.Source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "aufgefangener Fehler in ulcusSpeichern/" + AnwPfad)
   Case vbAbort: Call MsgBox(" Höre auf "): Progende
-  Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
+  Case vbRetry: Call MsgBox("Versuche nochmal"): If ErrNumber = 998 Then Resume sql Else Resume
   Case vbIgnore: Call MsgBox(" Setze fort "): Resume Next
  END SELECT
 End FUNCTION ' ulcusSpeichern
@@ -8406,28 +8437,27 @@ fehler:
 End FUNCTION ' vkgdLaden
 
 Function vkgdEinf
- Dim rbeg&, robeg&, ri&, roi&
+ Dim rbeg&, roendpe&, ri&, roi&
  On Error GoTo fehler
  IF UBound(rVk) > 0 THEN
-  rbeg = 0
   For ri = 1 To UBound(rVk)
-   IF rVk(ri).ZeitPunkt >= qbeg THEN
+   IF rVk(ri).ZeitPunkt >= qbeg Then ' aktqanf()
     rbeg = ri
     Exit For
    END IF
   Next ri
   IF rbeg <> 0 THEN
-   For robeg = 0 To UBound(roVk)
-    IF roVk(robeg).ZeitPunkt >= qbeg THEN
+   For roendpe = 0 To UBound(roVk)
+    IF roVk(roendpe).ZeitPunkt >= qbeg THEN
      Exit For
     END IF
-   Next robeg
-   IF robeg <= UBound(roFa) THEN
-    ReDim Preserve roVk(robeg - 1)
-   END IF ' IF robeg <= UBound(roFa) THEN
-   ReDim Preserve roVk(robeg + UBound(rVk) - rbeg)
+   Next roendpe
+   IF roendpe <= UBound(roFa) THEN
+    ReDim Preserve roVk(roendpe - 1)
+   END IF ' IF roendpe <= UBound(roFa) THEN
+   ReDim Preserve roVk(roendpe + UBound(rVk) - rbeg)
    For ri = rbeg To UBound(rVk)
-    Call roVkZuw(robeg + ri - rbeg, ri)
+    Call roVkZuw(roendpe + ri - rbeg, ri)
    Next ri
   END IF ' IF rbeg <> 0 THEN
  END IF ' IF UBound(rFa) > 0 THEN
@@ -8448,7 +8478,7 @@ fehler:
 End FUNCTION ' vkgdEinf
 
 Public FUNCTION vkgdSpeichern(SammelInsert%, BezfSp%)
- Dim i&, rAF&, Pid$, m%, sfnr% ',sql0$
+ Dim i&, rAF&, Pid$, m%, sfnr%, altmode$ ',sql0$
  Dim csql0 As New CString, csql As New CString
  Dim rs As New ADODB.recordset
  T1 = Timer
@@ -8456,21 +8486,18 @@ Public FUNCTION vkgdSpeichern(SammelInsert%, BezfSp%)
  Pid = rNa(0).Pat_id
  ON Error GoTo fehler
  syscmd 4, pid & ": Speichere " & Ubound(rVk)+0 & " Sätze in `vkgd`"
- IF NOT Allepat THEN
-  sql = "SELECT pat_id FROM `vkgd` WHERE Pat_ID = " & CStr(rNa(0).Pat_ID)
-  myFrag rs, sql
-  IF Not rs.BOF THEN
-   SET rs = nothing
-   sql = "DELETE FROM `vkgd` WHERE Pat_ID = " & CStr(rNa(0).Pat_ID)
-   Call myEFrag(sql)
-  END IF
- END IF ' not allePat
 ' sql0 = " INSERT " & sqlignore &  "INTO `vkgd` (FID,Pat_ID,ZeitPunkt," & _
      "Wohlempfinden,Saettigung,Zielwerterreichung,Ketonkörper,Gynaekologenbefund,Gewichtsentwicklung,HbA1c,Bewegung,Minuten,Blutdruck," & _
      "Puls,Mitarbeiter,absPos,AktZeit,StByte) VALUES
  Call csql0.AppVar(Array(" INSERT ", sqlIgnore, " INTO `vkgd` (FID,Pat_ID,ZeitPunkt," & _
      "Wohlempfinden,Saettigung,Zielwerterreichung,Ketonkörper,Gynaekologenbefund,Gewichtsentwicklung,HbA1c,Bewegung,Minuten,Blutdruck," & _
      "Puls,Mitarbeiter,absPos,AktZeit,StByte)            VALUES"))
+sql:
+ csql.m_Len = 0
+ IF NOT Allepat THEN
+   sql = "DELETE FROM `vkgd` WHERE Pat_ID = " & CStr(rNa(0).Pat_ID)
+   Call myEFrag(sql)
+ END IF ' not AllePat
  For i = 1 to ubound(rVk)
 '  rVk(i).AktZeit = now()
   rVk(i).StByte = CStr(AktByte)
@@ -8482,45 +8509,40 @@ Public FUNCTION vkgdSpeichern(SammelInsert%, BezfSp%)
    rVk(i).Mitarbeiter, "'," , rVk(i).absPos, "," , DatFor_k(rVk(i).AktZeit), "," , rVk(i).StByte, ")")
   IF SammelInsert <> 0 AND i < ubound(rVk) THEN csql.Append ","
   IF SammelInsert = 0 OR i = ubound(rVk) THEN
+    altmode = DBCn.Execute("SELECT @@global.sql_mode").Fields(0)
+   Call DBCn.Execute("SET GLOBAL sql_mode='STRICT_TRANS_TABLES'") ' NO_ENGINE_SUBSTITUTION
 '   Call myEFrag(csql.Value,rAf)', , adAsyncExecute) ' wegen unzureichender Fehlerverarbeitung wieder ausrangiert 19.8.23
    Call DBCn.Execute(csql.Value, rAF) ', , adAsyncExecute)
    IF obforK THEN
     Call ForeignYes0
     Call ForeignYes1
-   END IF
-   IF sammelinsert = 0 THEN csql.m_len = 0
-   IF lese.obmysql AND obmitAlterTab THEN
-    SET rs = myEFrag("SHOW WARNINGS")
-    IF not rs.BOF() THEN
-     IF rs!code = 1265 THEN
-      Err.Raise -2147217833
-     END IF
-    END IF
-   END IF
-   END IF
+   END IF ' obforK THEN
+  END IF ' SammelInsert = 0 OR i = ubound(rVk)
   DoEvents
  Next i
  syscmd 5
  Exit Function
 fehler:
-ErrDescription = Err.Description
+ErrDescr = Err.Description
+ErrNumber = Err.Number
+syscmd 4, "rVk(" & i & "/" & UBound(rVk) & "):   " & ErrDescr
 sfnr = sfnr + 1
 If sfnr > 10 then 
- Lese.Ausgeb sfnr & " Fehler in ""vkgdSpeichern()"" bei Pat. " & rNa(0).Pat_id & ", gebe auf (ErrDes: " & ErrDescription & ")", True
+ Lese.Ausgeb sfnr & " Fehler in ""vkgdSpeichern()"" bei Pat. " & rNa(0).Pat_id & ", gebe auf (ErrDes: " & ErrDescr & ")", True
  sfnr = 0
  Resume Next
-End if
-IF Err.Number = -2147217900 AND InStrB(ErrDescription, " Doppelter; Eintrag; ") <> 0 THEN
+End if ' sfnr > 10
+IF ErrNumber = -2147217900 AND InStrB(ErrDescr, " Doppelter; Eintrag; ") <> 0 THEN
  Call Shell(App.path + "\..\nachricht\nachricht.exe " & App.EXEName & " Doppelter Eintrag bei: " & vbCrLf & csql.Value)
  Resume Next
-ElseIf Err.Number = -2147467259 AND InStrB(ErrDescription, "Daten zu lang") = 0 AND InStrB(ErrDescription, "Data too long") = 0 THEN ' -2147467259 ' [MySQL][ODBC 3.51 Driver][mysqld-5.1.32-log]Cannot add OR update a child row: a FOREIGN KEY constraint fails
- IF InStrB(ErrDescription, "'READ-COMMITTED'") <> 0 THEN
+ElseIf ErrNumber = -2147467259 AND InStrB(ErrDescr, "Daten zu lang") = 0 AND InStrB(ErrDescr, "Data too long") = 0 THEN ' -2147467259 ' [MySQL][ODBC 3.51 Driver][mysqld-5.1.32-log]Cannot add OR update a child row: a FOREIGN KEY constraint fails
+ IF InStrB(ErrDescr, "'READ-COMMITTED'") <> 0 THEN
   myEFrag "SET SESSION TRANSACTION ISOLATION LEVEL REPEATABLE READ", rAF
  Else
-  Call doBezFeh(csql.Value, BezfSp, ErrDescription)
+  Call doBezFeh(csql.Value, BezfSp, ErrDescr)
  END IF
  Resume
-ElseIf Err.Number = -2147217833 OR InStrB(ErrDescription, "Daten zu lang") <> 0 OR InStrB(ErrDescription, "Data too long") <> 0 THEN
+ElseIf ErrNumber = -2147217833 OR InStrB(ErrDescr, "Daten zu lang") <> 0 OR InStrB(ErrDescr, "Data too long") <> 0 THEN
  Dim rsc As Adodb.Recordset, maxi%(), k%
  redim maxi(11)
  for k = iif(SammelInsert<>0,1,i) to iif(SammelInsert<>0,ubound(rVk),i)
@@ -8537,7 +8559,7 @@ ElseIf Err.Number = -2147217833 OR InStrB(ErrDescription, "Daten zu lang") <> 0 
   IF Len(rVk(k).Puls) > maxi(10) THEN maxi(10) = Len(rVk(k).Puls)
   IF Len(rVk(k).Mitarbeiter) > maxi(11) THEN maxi(11) = Len(rVk(k).Mitarbeiter)
  next k
- IF obTrans <>0 Then If DBCn.Execute("SELECT COUNT(1) FROM information_schema.innodb_trx WHERE trx_mysql_thread_id = CONNECTION_ID()").Fields(0) <> 0 Then DBCn.CommitTrans: obtrans = 0
+ IF obTrans <>0 Then If DBCn.Execute("SELECT COUNT(1) FROM information_schema.innodb_trx WHERE trx_mysql_thread_id = CONNECTION_ID()").Fields(0) <> 0 Then ComTrans ' DBCn.CommitTrans: obtrans = 0
  nochmal:
  SET rsc = New ADODB.Recordset
  SET rsc = DBCnOSchema(adSchemaColumns, Array(Empty, Empty, "vkgd", Empty))
@@ -8574,16 +8596,19 @@ ElseIf Err.Number = -2147217833 OR InStrB(ErrDescription, "Daten zu lang") <> 0 
  Call ForeignNo0
  Call ForeignNo1
  resume
-END IF ' Err.Number = -2147217833 THEN
+ElseIf InStrB(1, ErrDescr, "gone away", vbTextCompare) <> 0 Or InStrB(ErrDescr, "ost connection") <> 0 Then
+ DBCnOpen
+ Resume
+END IF ' ErrNumber = 
  Dim AnwPfad$
 #If VBA6 THEN
  AnwPfad = currentDB.Name
 #Else
  AnwPfad = App.Path
 #END IF
- SELECT CASE MsgBox("FNr: " + CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " & IIf(ISNULL(Err.Source), vNS, CStr(Err.Source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "aufgefangener Fehler in vkgdSpeichern/" + AnwPfad)
+ SELECT CASE MsgBox("FNr: " + CStr(ErrNumber) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " & IIf(ISNULL(Err.Source), vNS, CStr(Err.Source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "aufgefangener Fehler in vkgdSpeichern/" + AnwPfad)
   Case vbAbort: Call MsgBox(" Höre auf "): Progende
-  Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
+  Case vbRetry: Call MsgBox("Versuche nochmal"): If ErrNumber = 998 Then Resume sql Else Resume
   Case vbIgnore: Call MsgBox(" Setze fort "): Resume Next
  END SELECT
 End FUNCTION ' vkgdSpeichern
@@ -8678,28 +8703,27 @@ fehler:
 End FUNCTION ' swsLaden
 
 Function swsEinf
- Dim rbeg&, robeg&, ri&, roi&
+ Dim rbeg&, roendpe&, ri&, roi&
  On Error GoTo fehler
  IF UBound(rSw) > 0 THEN
-  rbeg = 0
   For ri = 1 To UBound(rSw)
-   IF rSw(ri).ZeitPunkt >= qbeg THEN
+   IF rSw(ri).ZeitPunkt >= qbeg Then ' aktqanf()
     rbeg = ri
     Exit For
    END IF
   Next ri
   IF rbeg <> 0 THEN
-   For robeg = 0 To UBound(roSw)
-    IF roSw(robeg).ZeitPunkt >= qbeg THEN
+   For roendpe = 0 To UBound(roSw)
+    IF roSw(roendpe).ZeitPunkt >= qbeg THEN
      Exit For
     END IF
-   Next robeg
-   IF robeg <= UBound(roFa) THEN
-    ReDim Preserve roSw(robeg - 1)
-   END IF ' IF robeg <= UBound(roFa) THEN
-   ReDim Preserve roSw(robeg + UBound(rSw) - rbeg)
+   Next roendpe
+   IF roendpe <= UBound(roFa) THEN
+    ReDim Preserve roSw(roendpe - 1)
+   END IF ' IF roendpe <= UBound(roFa) THEN
+   ReDim Preserve roSw(roendpe + UBound(rSw) - rbeg)
    For ri = rbeg To UBound(rSw)
-    Call roSwZuw(robeg + ri - rbeg, ri)
+    Call roSwZuw(roendpe + ri - rbeg, ri)
    Next ri
   END IF ' IF rbeg <> 0 THEN
  END IF ' IF UBound(rFa) > 0 THEN
@@ -8720,7 +8744,7 @@ fehler:
 End FUNCTION ' swsEinf
 
 Public FUNCTION swsSpeichern(SammelInsert%, BezfSp%)
- Dim i&, rAF&, Pid$, m%, sfnr% ',sql0$
+ Dim i&, rAF&, Pid$, m%, sfnr%, altmode$ ',sql0$
  Dim csql0 As New CString, csql As New CString
  Dim rs As New ADODB.recordset
  T1 = Timer
@@ -8728,21 +8752,18 @@ Public FUNCTION swsSpeichern(SammelInsert%, BezfSp%)
  Pid = rNa(0).Pat_id
  ON Error GoTo fehler
  syscmd 4, pid & ": Speichere " & Ubound(rSw)+0 & " Sätze in `sws`"
- IF NOT Allepat THEN
-  sql = "SELECT pat_id FROM `sws` WHERE Pat_ID = " & CStr(rNa(0).Pat_ID)
-  myFrag rs, sql
-  IF Not rs.BOF THEN
-   SET rs = nothing
-   sql = "DELETE FROM `sws` WHERE Pat_ID = " & CStr(rNa(0).Pat_ID)
-   Call myEFrag(sql)
-  END IF
- END IF ' not allePat
 ' sql0 = " INSERT " & sqlignore &  "INTO `sws` (FID,Pat_ID,ZeitPunkt," & _
      "LR,vorET,ET,efLR,erLR,kGT,MB,EndeArt,ED,absPos," & _
      "AktZeit,StByte) VALUES
  Call csql0.AppVar(Array(" INSERT ", sqlIgnore, " INTO `sws` (FID,Pat_ID,ZeitPunkt," & _
      "LR,vorET,ET,efLR,erLR,kGT,MB,EndeArt,ED,absPos," & _
      "AktZeit,StByte)        VALUES"))
+sql:
+ csql.m_Len = 0
+ IF NOT Allepat THEN
+   sql = "DELETE FROM `sws` WHERE Pat_ID = " & CStr(rNa(0).Pat_ID)
+   Call myEFrag(sql)
+ END IF ' not AllePat
  For i = 1 to ubound(rSw)
 '  rSw(i).AktZeit = now()
   rSw(i).StByte = CStr(AktByte)
@@ -8754,51 +8775,46 @@ Public FUNCTION swsSpeichern(SammelInsert%, BezfSp%)
    rSw(i).StByte, ")")
   IF SammelInsert <> 0 AND i < ubound(rSw) THEN csql.Append ","
   IF SammelInsert = 0 OR i = ubound(rSw) THEN
+    altmode = DBCn.Execute("SELECT @@global.sql_mode").Fields(0)
+   Call DBCn.Execute("SET GLOBAL sql_mode='STRICT_TRANS_TABLES'") ' NO_ENGINE_SUBSTITUTION
 '   Call myEFrag(csql.Value,rAf)', , adAsyncExecute) ' wegen unzureichender Fehlerverarbeitung wieder ausrangiert 19.8.23
    Call DBCn.Execute(csql.Value, rAF) ', , adAsyncExecute)
    IF obforK THEN
     Call ForeignYes0
     Call ForeignYes1
-   END IF
-   IF sammelinsert = 0 THEN csql.m_len = 0
-   IF lese.obmysql AND obmitAlterTab THEN
-    SET rs = myEFrag("SHOW WARNINGS")
-    IF not rs.BOF() THEN
-     IF rs!code = 1265 THEN
-      Err.Raise -2147217833
-     END IF
-    END IF
-   END IF
-   END IF
+   END IF ' obforK THEN
+  END IF ' SammelInsert = 0 OR i = ubound(rSw)
   DoEvents
  Next i
  syscmd 5
  Exit Function
 fehler:
-ErrDescription = Err.Description
+ErrDescr = Err.Description
+ErrNumber = Err.Number
+syscmd 4, "rSw(" & i & "/" & UBound(rSw) & "):   " & ErrDescr
 sfnr = sfnr + 1
 If sfnr > 10 then 
- Lese.Ausgeb sfnr & " Fehler in ""swsSpeichern()"" bei Pat. " & rNa(0).Pat_id & ", gebe auf (ErrDes: " & ErrDescription & ")", True
+ Lese.Ausgeb sfnr & " Fehler in ""swsSpeichern()"" bei Pat. " & rNa(0).Pat_id & ", gebe auf (ErrDes: " & ErrDescr & ")", True
  sfnr = 0
  Resume Next
-End if
-IF Err.Number = -2147217900 AND InStrB(ErrDescription, " Doppelter; Eintrag; ") <> 0 THEN
+End if ' sfnr > 10
+IF ErrNumber = -2147217900 AND InStrB(ErrDescr, " Doppelter; Eintrag; ") <> 0 THEN
  Call Shell(App.path + "\..\nachricht\nachricht.exe " & App.EXEName & " Doppelter Eintrag bei: " & vbCrLf & csql.Value)
  Resume Next
-ElseIf Err.Number = -2147467259 AND InStrB(ErrDescription, "Daten zu lang") = 0 AND InStrB(ErrDescription, "Data too long") = 0 THEN ' -2147467259 ' [MySQL][ODBC 3.51 Driver][mysqld-5.1.32-log]Cannot add OR update a child row: a FOREIGN KEY constraint fails
- IF InStrB(ErrDescription, "'READ-COMMITTED'") <> 0 THEN
+ElseIf ErrNumber = -2147467259 AND InStrB(ErrDescr, "Daten zu lang") = 0 AND InStrB(ErrDescr, "Data too long") = 0 THEN ' -2147467259 ' [MySQL][ODBC 3.51 Driver][mysqld-5.1.32-log]Cannot add OR update a child row: a FOREIGN KEY constraint fails
+ IF InStrB(ErrDescr, "'READ-COMMITTED'") <> 0 THEN
   myEFrag "SET SESSION TRANSACTION ISOLATION LEVEL REPEATABLE READ", rAF
  Else
-  Call doBezFeh(csql.Value, BezfSp, ErrDescription)
+  Call doBezFeh(csql.Value, BezfSp, ErrDescr)
  END IF
  Resume
-ElseIf Err.Number = -2147217833 OR InStrB(ErrDescription, "Daten zu lang") <> 0 OR InStrB(ErrDescription, "Data too long") <> 0 THEN
+ElseIf ErrNumber = -2147217833 OR InStrB(ErrDescr, "Daten zu lang") <> 0 OR InStrB(ErrDescr, "Data too long") <> 0 THEN
  Dim rsc As Adodb.Recordset, maxi%(), k%
  redim maxi(0)
  for k = iif(SammelInsert<>0,1,i) to iif(SammelInsert<>0,ubound(rSw),i)
   IF Len(rSw(k).EndeArt) > maxi(0) THEN maxi(0) = Len(rSw(k).EndeArt)
  next k
- IF obTrans <>0 Then If DBCn.Execute("SELECT COUNT(1) FROM information_schema.innodb_trx WHERE trx_mysql_thread_id = CONNECTION_ID()").Fields(0) <> 0 Then DBCn.CommitTrans: obtrans = 0
+ IF obTrans <>0 Then If DBCn.Execute("SELECT COUNT(1) FROM information_schema.innodb_trx WHERE trx_mysql_thread_id = CONNECTION_ID()").Fields(0) <> 0 Then ComTrans ' DBCn.CommitTrans: obtrans = 0
  nochmal:
  SET rsc = New ADODB.Recordset
  SET rsc = DBCnOSchema(adSchemaColumns, Array(Empty, Empty, "sws", Empty))
@@ -8824,22 +8840,25 @@ ElseIf Err.Number = -2147217833 OR InStrB(ErrDescription, "Daten zu lang") <> 0 
  Call ForeignNo0
  Call ForeignNo1
  resume
-END IF ' Err.Number = -2147217833 THEN
+ElseIf InStrB(1, ErrDescr, "gone away", vbTextCompare) <> 0 Or InStrB(ErrDescr, "ost connection") <> 0 Then
+ DBCnOpen
+ Resume
+END IF ' ErrNumber = 
  Dim AnwPfad$
 #If VBA6 THEN
  AnwPfad = currentDB.Name
 #Else
  AnwPfad = App.Path
 #END IF
- SELECT CASE MsgBox("FNr: " + CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " & IIf(ISNULL(Err.Source), vNS, CStr(Err.Source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "aufgefangener Fehler in swsSpeichern/" + AnwPfad)
+ SELECT CASE MsgBox("FNr: " + CStr(ErrNumber) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " & IIf(ISNULL(Err.Source), vNS, CStr(Err.Source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "aufgefangener Fehler in swsSpeichern/" + AnwPfad)
   Case vbAbort: Call MsgBox(" Höre auf "): Progende
-  Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
+  Case vbRetry: Call MsgBox("Versuche nochmal"): If ErrNumber = 998 Then Resume sql Else Resume
   Case vbIgnore: Call MsgBox(" Setze fort "): Resume Next
  END SELECT
 End FUNCTION ' swsSpeichern
 
 Public FUNCTION laborxsaetzeSpeichern(SammelInsert%, BezfSp%)
- Dim i&, rAF&, Pid$, m%, sfnr% ',sql0$
+ Dim i&, rAF&, Pid$, m%, sfnr%, altmode$ ',sql0$
  Dim csql0 As New CString, csql As New CString
  Dim rs As New ADODB.recordset
  T1 = Timer
@@ -8853,6 +8872,8 @@ Public FUNCTION laborxsaetzeSpeichern(SammelInsert%, BezfSp%)
  Call csql0.AppVar(Array(" INSERT ", sqlIgnore, " INTO `laborxsaetze` (DatID,Satzart,Satzlänge," & _
      "SatzlängeSchluss,VersionSatzb,Arztnr,Arztname,StraßePraxis,Arzt,LANR,PLZPraxis,OrtPraxis,Labor," & _
      "StraßeLabor,PLZLabor,OrtLabor,KBVPrüfnr,Zeichensatz,Kundenarztnr,Erstellungsdatum,Gesamtlänge)             VALUES"))
+sql:
+ csql.m_Len = 0
  For i = 0 to ubound(rLs)
 '  rLs(i).AktZeit = now()
   IF SammelInsert = 0 OR i = 0 THEN
@@ -8863,45 +8884,40 @@ Public FUNCTION laborxsaetzeSpeichern(SammelInsert%, BezfSp%)
    rLs(i).OrtLabor, "','" , rLs(i).KBVPrüfnr, "','" , rLs(i).Zeichensatz, "','" , rLs(i).Kundenarztnr, "','" , rLs(i).Erstellungsdatum, "','" , rLs(i).Gesamtlänge, "')")
   IF SammelInsert <> 0 AND i < ubound(rLs) THEN csql.Append ","
   IF SammelInsert = 0 OR i = ubound(rLs) THEN
+    altmode = DBCn.Execute("SELECT @@global.sql_mode").Fields(0)
+   Call DBCn.Execute("SET GLOBAL sql_mode='STRICT_TRANS_TABLES'") ' NO_ENGINE_SUBSTITUTION
 '   Call myEFrag(csql.Value,rAf)', , adAsyncExecute) ' wegen unzureichender Fehlerverarbeitung wieder ausrangiert 19.8.23
    Call DBCn.Execute(csql.Value, rAF) ', , adAsyncExecute)
    IF obforK THEN
     Call ForeignYes0
     Call ForeignYes1
-   END IF
-   IF sammelinsert = 0 THEN csql.m_len = 0
-   IF lese.obmysql AND obmitAlterTab THEN
-    SET rs = myEFrag("SHOW WARNINGS")
-    IF not rs.BOF() THEN
-     IF rs!code = 1265 THEN
-      Err.Raise -2147217833
-     END IF
-    END IF
-   END IF
-   END IF
+   END IF ' obforK THEN
+  END IF ' SammelInsert = 0 OR i = ubound(rLs)
   DoEvents
  Next i
  syscmd 5
  Exit Function
 fehler:
-ErrDescription = Err.Description
+ErrDescr = Err.Description
+ErrNumber = Err.Number
+syscmd 4, "rLs(" & i & "/" & UBound(rLs) & "):   " & ErrDescr
 sfnr = sfnr + 1
 If sfnr > 10 then 
- Lese.Ausgeb sfnr & " Fehler in ""laborxsaetzeSpeichern()"" bei Pat. " & rNa(0).Pat_id & ", gebe auf (ErrDes: " & ErrDescription & ")", True
+ Lese.Ausgeb sfnr & " Fehler in ""laborxsaetzeSpeichern()"" bei Pat. " & rNa(0).Pat_id & ", gebe auf (ErrDes: " & ErrDescr & ")", True
  sfnr = 0
  Resume Next
-End if
-IF Err.Number = -2147217900 AND InStrB(ErrDescription, " Doppelter; Eintrag; ") <> 0 THEN
+End if ' sfnr > 10
+IF ErrNumber = -2147217900 AND InStrB(ErrDescr, " Doppelter; Eintrag; ") <> 0 THEN
  Call Shell(App.path + "\..\nachricht\nachricht.exe " & App.EXEName & " Doppelter Eintrag bei: " & vbCrLf & csql.Value)
  Resume Next
-ElseIf Err.Number = -2147467259 AND InStrB(ErrDescription, "Daten zu lang") = 0 AND InStrB(ErrDescription, "Data too long") = 0 THEN ' -2147467259 ' [MySQL][ODBC 3.51 Driver][mysqld-5.1.32-log]Cannot add OR update a child row: a FOREIGN KEY constraint fails
- IF InStrB(ErrDescription, "'READ-COMMITTED'") <> 0 THEN
+ElseIf ErrNumber = -2147467259 AND InStrB(ErrDescr, "Daten zu lang") = 0 AND InStrB(ErrDescr, "Data too long") = 0 THEN ' -2147467259 ' [MySQL][ODBC 3.51 Driver][mysqld-5.1.32-log]Cannot add OR update a child row: a FOREIGN KEY constraint fails
+ IF InStrB(ErrDescr, "'READ-COMMITTED'") <> 0 THEN
   myEFrag "SET SESSION TRANSACTION ISOLATION LEVEL REPEATABLE READ", rAF
  Else
-  Call doBezFeh(csql.Value, BezfSp, ErrDescription)
+  Call doBezFeh(csql.Value, BezfSp, ErrDescr)
  END IF
  Resume
-ElseIf Err.Number = -2147217833 OR InStrB(ErrDescription, "Daten zu lang") <> 0 OR InStrB(ErrDescription, "Data too long") <> 0 THEN
+ElseIf ErrNumber = -2147217833 OR InStrB(ErrDescr, "Daten zu lang") <> 0 OR InStrB(ErrDescr, "Data too long") <> 0 THEN
  Dim rsc As Adodb.Recordset, maxi%(), k%
  redim maxi(19)
  for k = iif(SammelInsert<>0,0,i) to iif(SammelInsert<>0,ubound(rLs),i)
@@ -8970,22 +8986,25 @@ ElseIf Err.Number = -2147217833 OR InStrB(ErrDescription, "Daten zu lang") <> 0 
  Call ForeignNo0
  Call ForeignNo1
  resume
-END IF ' Err.Number = -2147217833 THEN
+ElseIf InStrB(1, ErrDescr, "gone away", vbTextCompare) <> 0 Or InStrB(ErrDescr, "ost connection") <> 0 Then
+ DBCnOpen
+ Resume
+END IF ' ErrNumber = 
  Dim AnwPfad$
 #If VBA6 THEN
  AnwPfad = currentDB.Name
 #Else
  AnwPfad = App.Path
 #END IF
- SELECT CASE MsgBox("FNr: " + CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " & IIf(ISNULL(Err.Source), vNS, CStr(Err.Source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "aufgefangener Fehler in laborxsaetzeSpeichern/" + AnwPfad)
+ SELECT CASE MsgBox("FNr: " + CStr(ErrNumber) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " & IIf(ISNULL(Err.Source), vNS, CStr(Err.Source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "aufgefangener Fehler in laborxsaetzeSpeichern/" + AnwPfad)
   Case vbAbort: Call MsgBox(" Höre auf "): Progende
-  Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
+  Case vbRetry: Call MsgBox("Versuche nochmal"): If ErrNumber = 998 Then Resume sql Else Resume
   Case vbIgnore: Call MsgBox(" Setze fort "): Resume Next
  END SELECT
 End FUNCTION ' laborxsaetzeSpeichern
 
 Public FUNCTION laborxeingelSpeichern(SammelInsert%, BezfSp%)
- Dim i&, rAF&, Pid$, m%, sfnr% ',sql0$
+ Dim i&, rAF&, Pid$, m%, sfnr%, altmode$ ',sql0$
  Dim csql0 As New CString, csql As New CString
  Dim rs As New ADODB.recordset
  T1 = Timer
@@ -8997,6 +9016,8 @@ Public FUNCTION laborxeingelSpeichern(SammelInsert%, BezfSp%)
      "fertig) VALUES
  Call csql0.AppVar(Array(" INSERT ", sqlIgnore, " INTO `laborxeingel` (Pfad,Name,Zp," & _
      "fertig)  VALUES"))
+sql:
+ csql.m_Len = 0
  For i = 1 to ubound(rLg)
 '  rLg(i).AktZeit = now()
   IF SammelInsert = 0 OR i = 1 THEN
@@ -9005,45 +9026,40 @@ Public FUNCTION laborxeingelSpeichern(SammelInsert%, BezfSp%)
   csql.AppVar Array("('" , rLg(i).Pfad, "','" , rLg(i).Name, "'," , DatFor_k(rLg(i).Zp), "," , cstr(-(rLg(i).fertig<>0)) , ")")
   IF SammelInsert <> 0 AND i < ubound(rLg) THEN csql.Append ","
   IF SammelInsert = 0 OR i = ubound(rLg) THEN
+    altmode = DBCn.Execute("SELECT @@global.sql_mode").Fields(0)
+   Call DBCn.Execute("SET GLOBAL sql_mode='STRICT_TRANS_TABLES'") ' NO_ENGINE_SUBSTITUTION
 '   Call myEFrag(csql.Value,rAf)', , adAsyncExecute) ' wegen unzureichender Fehlerverarbeitung wieder ausrangiert 19.8.23
    Call DBCn.Execute(csql.Value, rAF) ', , adAsyncExecute)
    IF obforK THEN
     Call ForeignYes0
     Call ForeignYes1
-   END IF
-   IF sammelinsert = 0 THEN csql.m_len = 0
-   IF lese.obmysql AND obmitAlterTab THEN
-    SET rs = myEFrag("SHOW WARNINGS")
-    IF not rs.BOF() THEN
-     IF rs!code = 1265 THEN
-      Err.Raise -2147217833
-     END IF
-    END IF
-   END IF
-   END IF
+   END IF ' obforK THEN
+  END IF ' SammelInsert = 0 OR i = ubound(rLg)
   DoEvents
  Next i
  syscmd 5
  Exit Function
 fehler:
-ErrDescription = Err.Description
+ErrDescr = Err.Description
+ErrNumber = Err.Number
+syscmd 4, "rLg(" & i & "/" & UBound(rLg) & "):   " & ErrDescr
 sfnr = sfnr + 1
 If sfnr > 10 then 
- Lese.Ausgeb sfnr & " Fehler in ""laborxeingelSpeichern()"" bei Pat. " & rNa(0).Pat_id & ", gebe auf (ErrDes: " & ErrDescription & ")", True
+ Lese.Ausgeb sfnr & " Fehler in ""laborxeingelSpeichern()"" bei Pat. " & rNa(0).Pat_id & ", gebe auf (ErrDes: " & ErrDescr & ")", True
  sfnr = 0
  Resume Next
-End if
-IF Err.Number = -2147217900 AND InStrB(ErrDescription, " Doppelter; Eintrag; ") <> 0 THEN
+End if ' sfnr > 10
+IF ErrNumber = -2147217900 AND InStrB(ErrDescr, " Doppelter; Eintrag; ") <> 0 THEN
  Call Shell(App.path + "\..\nachricht\nachricht.exe " & App.EXEName & " Doppelter Eintrag bei: " & vbCrLf & csql.Value)
  Resume Next
-ElseIf Err.Number = -2147467259 AND InStrB(ErrDescription, "Daten zu lang") = 0 AND InStrB(ErrDescription, "Data too long") = 0 THEN ' -2147467259 ' [MySQL][ODBC 3.51 Driver][mysqld-5.1.32-log]Cannot add OR update a child row: a FOREIGN KEY constraint fails
- IF InStrB(ErrDescription, "'READ-COMMITTED'") <> 0 THEN
+ElseIf ErrNumber = -2147467259 AND InStrB(ErrDescr, "Daten zu lang") = 0 AND InStrB(ErrDescr, "Data too long") = 0 THEN ' -2147467259 ' [MySQL][ODBC 3.51 Driver][mysqld-5.1.32-log]Cannot add OR update a child row: a FOREIGN KEY constraint fails
+ IF InStrB(ErrDescr, "'READ-COMMITTED'") <> 0 THEN
   myEFrag "SET SESSION TRANSACTION ISOLATION LEVEL REPEATABLE READ", rAF
  Else
-  Call doBezFeh(csql.Value, BezfSp, ErrDescription)
+  Call doBezFeh(csql.Value, BezfSp, ErrDescr)
  END IF
  Resume
-ElseIf Err.Number = -2147217833 OR InStrB(ErrDescription, "Daten zu lang") <> 0 OR InStrB(ErrDescription, "Data too long") <> 0 THEN
+ElseIf ErrNumber = -2147217833 OR InStrB(ErrDescr, "Daten zu lang") <> 0 OR InStrB(ErrDescr, "Data too long") <> 0 THEN
  Dim rsc As Adodb.Recordset, maxi%(), k%
  redim maxi(1)
  for k = iif(SammelInsert<>0,1,i) to iif(SammelInsert<>0,ubound(rLg),i)
@@ -9076,22 +9092,25 @@ ElseIf Err.Number = -2147217833 OR InStrB(ErrDescription, "Daten zu lang") <> 0 
  Call ForeignNo0
  Call ForeignNo1
  resume
-END IF ' Err.Number = -2147217833 THEN
+ElseIf InStrB(1, ErrDescr, "gone away", vbTextCompare) <> 0 Or InStrB(ErrDescr, "ost connection") <> 0 Then
+ DBCnOpen
+ Resume
+END IF ' ErrNumber = 
  Dim AnwPfad$
 #If VBA6 THEN
  AnwPfad = currentDB.Name
 #Else
  AnwPfad = App.Path
 #END IF
- SELECT CASE MsgBox("FNr: " + CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " & IIf(ISNULL(Err.Source), vNS, CStr(Err.Source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "aufgefangener Fehler in laborxeingelSpeichern/" + AnwPfad)
+ SELECT CASE MsgBox("FNr: " + CStr(ErrNumber) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " & IIf(ISNULL(Err.Source), vNS, CStr(Err.Source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "aufgefangener Fehler in laborxeingelSpeichern/" + AnwPfad)
   Case vbAbort: Call MsgBox(" Höre auf "): Progende
-  Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
+  Case vbRetry: Call MsgBox("Versuche nochmal"): If ErrNumber = 998 Then Resume sql Else Resume
   Case vbIgnore: Call MsgBox(" Setze fort "): Resume Next
  END SELECT
 End FUNCTION ' laborxeingelSpeichern
 
 Public FUNCTION laborxusSpeichern(SammelInsert%, BezfSp%, j&)
- Dim i&, rAF&, Pid$, m%, sfnr% ',sql0$
+ Dim i&, rAF&, Pid$, m%, sfnr%, altmode$ ',sql0$
  Dim csql0 As New CString, csql As New CString
  Dim rs As New ADODB.recordset
  T1 = Timer
@@ -9109,6 +9128,8 @@ Public FUNCTION laborxusSpeichern(SammelInsert%, BezfSp%, j&)
      "NVorsatz,BefArt,Abrechnungstyp,GebüOrd,Auftraggeber,Patienteninformation,Geschlecht,AuftrHinw,Pat_idUrsp,Pat_idErwVNG," & _
      "Pat_idErwVN,Pat_idErwG,Pat_idErwGB,Pat_idErwGL,Pat_idLaborNeu,ZeitpunktLaborneu,ZdüP,ZdiP,LWerte,verglichen," & _
      "AfN)     VALUES"))
+sql:
+ csql.m_Len = 0
  For i = j to j
 '  rLu(i).AktZeit = now()
   IF SammelInsert = 0 OR i = j THEN
@@ -9121,45 +9142,40 @@ Public FUNCTION laborxusSpeichern(SammelInsert%, BezfSp%, j&)
    rLu(i).ZdüP, "," , rLu(i).ZdiP, ",'" , rLu(i).LWerte, "'," , DatFor_k(rLu(i).verglichen), "," , rLu(i).AfN, ")")
   IF SammelInsert <> 0 AND i < j THEN csql.Append ","
   IF SammelInsert = 0 OR i = j THEN
+    altmode = DBCn.Execute("SELECT @@global.sql_mode").Fields(0)
+   Call DBCn.Execute("SET GLOBAL sql_mode='STRICT_TRANS_TABLES'") ' NO_ENGINE_SUBSTITUTION
 '   Call myEFrag(csql.Value,rAf)', , adAsyncExecute) ' wegen unzureichender Fehlerverarbeitung wieder ausrangiert 19.8.23
    Call DBCn.Execute(csql.Value, rAF) ', , adAsyncExecute)
    IF obforK THEN
     Call ForeignYes0
     Call ForeignYes1
-   END IF
-   IF sammelinsert = 0 THEN csql.m_len = 0
-   IF lese.obmysql AND obmitAlterTab THEN
-    SET rs = myEFrag("SHOW WARNINGS")
-    IF not rs.BOF() THEN
-     IF rs!code = 1265 THEN
-      Err.Raise -2147217833
-     END IF
-    END IF
-   END IF
-   END IF
+   END IF ' obforK THEN
+  END IF ' SammelInsert = 0 OR i = j
   DoEvents
  Next i
  syscmd 5
  Exit Function
 fehler:
-ErrDescription = Err.Description
+ErrDescr = Err.Description
+ErrNumber = Err.Number
+syscmd 4, "rLu(" & i & "/" & UBound(rLu) & "):   " & ErrDescr
 sfnr = sfnr + 1
 If sfnr > 10 then 
- Lese.Ausgeb sfnr & " Fehler in ""laborxusSpeichern()"" bei Pat. " & rNa(0).Pat_id & ", gebe auf (ErrDes: " & ErrDescription & ")", True
+ Lese.Ausgeb sfnr & " Fehler in ""laborxusSpeichern()"" bei Pat. " & rNa(0).Pat_id & ", gebe auf (ErrDes: " & ErrDescr & ")", True
  sfnr = 0
  Resume Next
-End if
-IF Err.Number = -2147217900 AND InStrB(ErrDescription, " Doppelter; Eintrag; ") <> 0 THEN
+End if ' sfnr > 10
+IF ErrNumber = -2147217900 AND InStrB(ErrDescr, " Doppelter; Eintrag; ") <> 0 THEN
  Call Shell(App.path + "\..\nachricht\nachricht.exe " & App.EXEName & " Doppelter Eintrag bei: " & vbCrLf & csql.Value)
  Resume Next
-ElseIf Err.Number = -2147467259 AND InStrB(ErrDescription, "Daten zu lang") = 0 AND InStrB(ErrDescription, "Data too long") = 0 THEN ' -2147467259 ' [MySQL][ODBC 3.51 Driver][mysqld-5.1.32-log]Cannot add OR update a child row: a FOREIGN KEY constraint fails
- IF InStrB(ErrDescription, "'READ-COMMITTED'") <> 0 THEN
+ElseIf ErrNumber = -2147467259 AND InStrB(ErrDescr, "Daten zu lang") = 0 AND InStrB(ErrDescr, "Data too long") = 0 THEN ' -2147467259 ' [MySQL][ODBC 3.51 Driver][mysqld-5.1.32-log]Cannot add OR update a child row: a FOREIGN KEY constraint fails
+ IF InStrB(ErrDescr, "'READ-COMMITTED'") <> 0 THEN
   myEFrag "SET SESSION TRANSACTION ISOLATION LEVEL REPEATABLE READ", rAF
  Else
-  Call doBezFeh(csql.Value, BezfSp, ErrDescription)
+  Call doBezFeh(csql.Value, BezfSp, ErrDescr)
  END IF
  Resume
-ElseIf Err.Number = -2147217833 OR InStrB(ErrDescription, "Daten zu lang") <> 0 OR InStrB(ErrDescription, "Data too long") <> 0 THEN
+ElseIf ErrNumber = -2147217833 OR InStrB(ErrDescr, "Daten zu lang") <> 0 OR InStrB(ErrDescr, "Data too long") <> 0 THEN
  Dim rsc As Adodb.Recordset, maxi%(), k%
  redim maxi(24)
  for k = iif(SammelInsert<>0,j,i) to iif(SammelInsert<>0,j,i)
@@ -9238,22 +9254,25 @@ ElseIf Err.Number = -2147217833 OR InStrB(ErrDescription, "Daten zu lang") <> 0 
  Call ForeignNo0
  Call ForeignNo1
  resume
-END IF ' Err.Number = -2147217833 THEN
+ElseIf InStrB(1, ErrDescr, "gone away", vbTextCompare) <> 0 Or InStrB(ErrDescr, "ost connection") <> 0 Then
+ DBCnOpen
+ Resume
+END IF ' ErrNumber = 
  Dim AnwPfad$
 #If VBA6 THEN
  AnwPfad = currentDB.Name
 #Else
  AnwPfad = App.Path
 #END IF
- SELECT CASE MsgBox("FNr: " + CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " & IIf(ISNULL(Err.Source), vNS, CStr(Err.Source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "aufgefangener Fehler in laborxusSpeichern/" + AnwPfad)
+ SELECT CASE MsgBox("FNr: " + CStr(ErrNumber) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " & IIf(ISNULL(Err.Source), vNS, CStr(Err.Source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "aufgefangener Fehler in laborxusSpeichern/" + AnwPfad)
   Case vbAbort: Call MsgBox(" Höre auf "): Progende
-  Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
+  Case vbRetry: Call MsgBox("Versuche nochmal"): If ErrNumber = 998 Then Resume sql Else Resume
   Case vbIgnore: Call MsgBox(" Setze fort "): Resume Next
  END SELECT
 End FUNCTION ' laborxusSpeichern
 
 Public FUNCTION laborxbaktSpeichern(SammelInsert%, BezfSp%)
- Dim i&, rAF&, Pid$, m%, sfnr% ',sql0$
+ Dim i&, rAF&, Pid$, m%, sfnr%, altmode$ ',sql0$
  Dim csql0 As New CString, csql As New CString
  Dim rs As New ADODB.recordset
  T1 = Timer
@@ -9265,6 +9284,8 @@ Public FUNCTION laborxbaktSpeichern(SammelInsert%, BezfSp%)
      "Quelle,QSpez,AbnDat,Kommentar,Erklärung,Keimzahl) VALUES
  Call csql0.AppVar(Array(" INSERT ", sqlIgnore, " INTO `laborxbakt` (RefNr,Verf,KuQu," & _
      "Quelle,QSpez,AbnDat,Kommentar,Erklärung,Keimzahl)  VALUES"))
+sql:
+ csql.m_Len = 0
  For i = 1 to ubound(rLo)
 '  rLo(i).AktZeit = now()
   IF SammelInsert = 0 OR i = 1 THEN
@@ -9274,45 +9295,40 @@ Public FUNCTION laborxbaktSpeichern(SammelInsert%, BezfSp%)
    rLo(i).Keimzahl, "')")
   IF SammelInsert <> 0 AND i < ubound(rLo) THEN csql.Append ","
   IF SammelInsert = 0 OR i = ubound(rLo) THEN
+    altmode = DBCn.Execute("SELECT @@global.sql_mode").Fields(0)
+   Call DBCn.Execute("SET GLOBAL sql_mode='STRICT_TRANS_TABLES'") ' NO_ENGINE_SUBSTITUTION
 '   Call myEFrag(csql.Value,rAf)', , adAsyncExecute) ' wegen unzureichender Fehlerverarbeitung wieder ausrangiert 19.8.23
    Call DBCn.Execute(csql.Value, rAF) ', , adAsyncExecute)
    IF obforK THEN
     Call ForeignYes0
     Call ForeignYes1
-   END IF
-   IF sammelinsert = 0 THEN csql.m_len = 0
-   IF lese.obmysql AND obmitAlterTab THEN
-    SET rs = myEFrag("SHOW WARNINGS")
-    IF not rs.BOF() THEN
-     IF rs!code = 1265 THEN
-      Err.Raise -2147217833
-     END IF
-    END IF
-   END IF
-   END IF
+   END IF ' obforK THEN
+  END IF ' SammelInsert = 0 OR i = ubound(rLo)
   DoEvents
  Next i
  syscmd 5
  Exit Function
 fehler:
-ErrDescription = Err.Description
+ErrDescr = Err.Description
+ErrNumber = Err.Number
+syscmd 4, "rLo(" & i & "/" & UBound(rLo) & "):   " & ErrDescr
 sfnr = sfnr + 1
 If sfnr > 10 then 
- Lese.Ausgeb sfnr & " Fehler in ""laborxbaktSpeichern()"" bei Pat. " & rNa(0).Pat_id & ", gebe auf (ErrDes: " & ErrDescription & ")", True
+ Lese.Ausgeb sfnr & " Fehler in ""laborxbaktSpeichern()"" bei Pat. " & rNa(0).Pat_id & ", gebe auf (ErrDes: " & ErrDescr & ")", True
  sfnr = 0
  Resume Next
-End if
-IF Err.Number = -2147217900 AND InStrB(ErrDescription, " Doppelter; Eintrag; ") <> 0 THEN
+End if ' sfnr > 10
+IF ErrNumber = -2147217900 AND InStrB(ErrDescr, " Doppelter; Eintrag; ") <> 0 THEN
  Call Shell(App.path + "\..\nachricht\nachricht.exe " & App.EXEName & " Doppelter Eintrag bei: " & vbCrLf & csql.Value)
  Resume Next
-ElseIf Err.Number = -2147467259 AND InStrB(ErrDescription, "Daten zu lang") = 0 AND InStrB(ErrDescription, "Data too long") = 0 THEN ' -2147467259 ' [MySQL][ODBC 3.51 Driver][mysqld-5.1.32-log]Cannot add OR update a child row: a FOREIGN KEY constraint fails
- IF InStrB(ErrDescription, "'READ-COMMITTED'") <> 0 THEN
+ElseIf ErrNumber = -2147467259 AND InStrB(ErrDescr, "Daten zu lang") = 0 AND InStrB(ErrDescr, "Data too long") = 0 THEN ' -2147467259 ' [MySQL][ODBC 3.51 Driver][mysqld-5.1.32-log]Cannot add OR update a child row: a FOREIGN KEY constraint fails
+ IF InStrB(ErrDescr, "'READ-COMMITTED'") <> 0 THEN
   myEFrag "SET SESSION TRANSACTION ISOLATION LEVEL REPEATABLE READ", rAF
  Else
-  Call doBezFeh(csql.Value, BezfSp, ErrDescription)
+  Call doBezFeh(csql.Value, BezfSp, ErrDescr)
  END IF
  Resume
-ElseIf Err.Number = -2147217833 OR InStrB(ErrDescription, "Daten zu lang") <> 0 OR InStrB(ErrDescription, "Data too long") <> 0 THEN
+ElseIf ErrNumber = -2147217833 OR InStrB(ErrDescr, "Daten zu lang") <> 0 OR InStrB(ErrDescr, "Data too long") <> 0 THEN
  Dim rsc As Adodb.Recordset, maxi%(), k%
  redim maxi(6)
  for k = iif(SammelInsert<>0,1,i) to iif(SammelInsert<>0,ubound(rLo),i)
@@ -9355,22 +9371,25 @@ ElseIf Err.Number = -2147217833 OR InStrB(ErrDescription, "Daten zu lang") <> 0 
  Call ForeignNo0
  Call ForeignNo1
  resume
-END IF ' Err.Number = -2147217833 THEN
+ElseIf InStrB(1, ErrDescr, "gone away", vbTextCompare) <> 0 Or InStrB(ErrDescr, "ost connection") <> 0 Then
+ DBCnOpen
+ Resume
+END IF ' ErrNumber = 
  Dim AnwPfad$
 #If VBA6 THEN
  AnwPfad = currentDB.Name
 #Else
  AnwPfad = App.Path
 #END IF
- SELECT CASE MsgBox("FNr: " + CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " & IIf(ISNULL(Err.Source), vNS, CStr(Err.Source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "aufgefangener Fehler in laborxbaktSpeichern/" + AnwPfad)
+ SELECT CASE MsgBox("FNr: " + CStr(ErrNumber) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " & IIf(ISNULL(Err.Source), vNS, CStr(Err.Source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "aufgefangener Fehler in laborxbaktSpeichern/" + AnwPfad)
   Case vbAbort: Call MsgBox(" Höre auf "): Progende
-  Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
+  Case vbRetry: Call MsgBox("Versuche nochmal"): If ErrNumber = 998 Then Resume sql Else Resume
   Case vbIgnore: Call MsgBox(" Setze fort "): Resume Next
  END SELECT
 End FUNCTION ' laborxbaktSpeichern
 
 Public FUNCTION laborxwertSpeichern(SammelInsert%, BezfSp%)
- Dim i&, rAF&, Pid$, m%, sfnr% ',sql0$
+ Dim i&, rAF&, Pid$, m%, sfnr%, altmode$ ',sql0$
  Dim csql0 As New CString, csql As New CString
  Dim rs As New ADODB.recordset
  T1 = Timer
@@ -9384,6 +9403,8 @@ Public FUNCTION laborxwertSpeichern(SammelInsert%, BezfSp%)
  Call csql0.AppVar(Array(" INSERT ", sqlIgnore, " INTO `laborxwert` (RefNr,Abkü,Langname," & _
      "Quelle,QSpez,AbnDat,Wert,Einheit,Grenzwerti,Kommentar,Teststatus,Erklärung,AuftrHinw," & _
      "nbid)    VALUES"))
+sql:
+ csql.m_Len = 0
  For i = 1 to ubound(rLw)
 '  rLw(i).AktZeit = now()
     Dim j&
@@ -9420,46 +9441,41 @@ nextj:
    rLw(i).Grenzwerti, "','" , rLw(i).Kommentar, "','" , rLw(i).Teststatus, "','" , rLw(i).Erklärung, "','" , rLw(i).AuftrHinw, "'," , rLw(i).nbid, ")")
   IF SammelInsert <> 0 AND i < ubound(rLw) THEN csql.Append ","
   IF SammelInsert = 0 OR i = ubound(rLw) THEN
+    altmode = DBCn.Execute("SELECT @@global.sql_mode").Fields(0)
+   Call DBCn.Execute("SET GLOBAL sql_mode='STRICT_TRANS_TABLES'") ' NO_ENGINE_SUBSTITUTION
 '   Call myEFrag(csql.Value,rAf)', , adAsyncExecute) ' wegen unzureichender Fehlerverarbeitung wieder ausrangiert 19.8.23
    Call DBCn.Execute(csql.Value, rAF) ', , adAsyncExecute)
    IF obforK THEN
     Call ForeignYes0
     Call ForeignYes1
-   END IF
-   IF sammelinsert = 0 THEN csql.m_len = 0
-   IF lese.obmysql AND obmitAlterTab THEN
-    SET rs = myEFrag("SHOW WARNINGS")
-    IF not rs.BOF() THEN
-     IF rs!code = 1265 THEN
-      Err.Raise -2147217833
-     END IF
-    END IF
-   END IF
-   END IF
+   END IF ' obforK THEN
+  END IF ' SammelInsert = 0 OR i = ubound(rLw)
 nexti:
   DoEvents
  Next i
  syscmd 5
  Exit Function
 fehler:
-ErrDescription = Err.Description
+ErrDescr = Err.Description
+ErrNumber = Err.Number
+syscmd 4, "rLw(" & i & "/" & UBound(rLw) & "):   " & ErrDescr
 sfnr = sfnr + 1
 If sfnr > 10 then 
- Lese.Ausgeb sfnr & " Fehler in ""laborxwertSpeichern()"" bei Pat. " & rNa(0).Pat_id & ", gebe auf (ErrDes: " & ErrDescription & ")", True
+ Lese.Ausgeb sfnr & " Fehler in ""laborxwertSpeichern()"" bei Pat. " & rNa(0).Pat_id & ", gebe auf (ErrDes: " & ErrDescr & ")", True
  sfnr = 0
  Resume Next
-End if
-IF Err.Number = -2147217900 AND InStrB(ErrDescription, " Doppelter; Eintrag; ") <> 0 THEN
+End if ' sfnr > 10
+IF ErrNumber = -2147217900 AND InStrB(ErrDescr, " Doppelter; Eintrag; ") <> 0 THEN
  Call Shell(App.path + "\..\nachricht\nachricht.exe " & App.EXEName & " Doppelter Eintrag bei: " & vbCrLf & csql.Value)
  Resume Next
-ElseIf Err.Number = -2147467259 AND InStrB(ErrDescription, "Daten zu lang") = 0 AND InStrB(ErrDescription, "Data too long") = 0 THEN ' -2147467259 ' [MySQL][ODBC 3.51 Driver][mysqld-5.1.32-log]Cannot add OR update a child row: a FOREIGN KEY constraint fails
- IF InStrB(ErrDescription, "'READ-COMMITTED'") <> 0 THEN
+ElseIf ErrNumber = -2147467259 AND InStrB(ErrDescr, "Daten zu lang") = 0 AND InStrB(ErrDescr, "Data too long") = 0 THEN ' -2147467259 ' [MySQL][ODBC 3.51 Driver][mysqld-5.1.32-log]Cannot add OR update a child row: a FOREIGN KEY constraint fails
+ IF InStrB(ErrDescr, "'READ-COMMITTED'") <> 0 THEN
   myEFrag "SET SESSION TRANSACTION ISOLATION LEVEL REPEATABLE READ", rAF
  Else
-  Call doBezFeh(csql.Value, BezfSp, ErrDescription)
+  Call doBezFeh(csql.Value, BezfSp, ErrDescr)
  END IF
  Resume
-ElseIf Err.Number = -2147217833 OR InStrB(ErrDescription, "Daten zu lang") <> 0 OR InStrB(ErrDescription, "Data too long") <> 0 THEN
+ElseIf ErrNumber = -2147217833 OR InStrB(ErrDescr, "Daten zu lang") <> 0 OR InStrB(ErrDescr, "Data too long") <> 0 THEN
  Dim rsc As Adodb.Recordset, maxi%(), k%
  redim maxi(10)
  for k = iif(SammelInsert<>0,1,i) to iif(SammelInsert<>0,ubound(rLw),i)
@@ -9510,22 +9526,25 @@ ElseIf Err.Number = -2147217833 OR InStrB(ErrDescription, "Daten zu lang") <> 0 
  Call ForeignNo0
  Call ForeignNo1
  resume
-END IF ' Err.Number = -2147217833 THEN
+ElseIf InStrB(1, ErrDescr, "gone away", vbTextCompare) <> 0 Or InStrB(ErrDescr, "ost connection") <> 0 Then
+ DBCnOpen
+ Resume
+END IF ' ErrNumber = 
  Dim AnwPfad$
 #If VBA6 THEN
  AnwPfad = currentDB.Name
 #Else
  AnwPfad = App.Path
 #END IF
- SELECT CASE MsgBox("FNr: " + CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " & IIf(ISNULL(Err.Source), vNS, CStr(Err.Source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "aufgefangener Fehler in laborxwertSpeichern/" + AnwPfad)
+ SELECT CASE MsgBox("FNr: " + CStr(ErrNumber) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " & IIf(ISNULL(Err.Source), vNS, CStr(Err.Source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "aufgefangener Fehler in laborxwertSpeichern/" + AnwPfad)
   Case vbAbort: Call MsgBox(" Höre auf "): Progende
-  Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
+  Case vbRetry: Call MsgBox("Versuche nochmal"): If ErrNumber = 998 Then Resume sql Else Resume
   Case vbIgnore: Call MsgBox(" Setze fort "): Resume Next
  END SELECT
 End FUNCTION ' laborxwertSpeichern
 
 Public FUNCTION laborxleistSpeichern(SammelInsert%, BezfSp%)
- Dim i&, rAF&, Pid$, m%, sfnr% ',sql0$
+ Dim i&, rAF&, Pid$, m%, sfnr%, altmode$ ',sql0$
  Dim csql0 As New CString, csql As New CString
  Dim rs As New ADODB.recordset
  T1 = Timer
@@ -9537,6 +9556,8 @@ Public FUNCTION laborxleistSpeichern(SammelInsert%, BezfSp%)
      "EBM,goä,Anzahl,abrd) VALUES
  Call csql0.AppVar(Array(" INSERT ", sqlIgnore, " INTO `laborxleist` (RefNr,Abkü,Verf," & _
      "EBM,goä,Anzahl,abrd)   VALUES"))
+sql:
+ csql.m_Len = 0
  For i = 1 to ubound(rLL)
 '  rLL(i).AktZeit = now()
   IF SammelInsert = 0 OR i = 1 THEN
@@ -9545,45 +9566,40 @@ Public FUNCTION laborxleistSpeichern(SammelInsert%, BezfSp%)
   csql.AppVar Array("(" , rLL(i).RefNr, ",'" , rLL(i).Abkü, "','" , rLL(i).Verf, "','" , rLL(i).EBM, "','" , rLL(i).goä, "','" , rLL(i).Anzahl, "','" , rLL(i).abrd, "')")
   IF SammelInsert <> 0 AND i < ubound(rLL) THEN csql.Append ","
   IF SammelInsert = 0 OR i = ubound(rLL) THEN
+    altmode = DBCn.Execute("SELECT @@global.sql_mode").Fields(0)
+   Call DBCn.Execute("SET GLOBAL sql_mode='STRICT_TRANS_TABLES'") ' NO_ENGINE_SUBSTITUTION
 '   Call myEFrag(csql.Value,rAf)', , adAsyncExecute) ' wegen unzureichender Fehlerverarbeitung wieder ausrangiert 19.8.23
    Call DBCn.Execute(csql.Value, rAF) ', , adAsyncExecute)
    IF obforK THEN
     Call ForeignYes0
     Call ForeignYes1
-   END IF
-   IF sammelinsert = 0 THEN csql.m_len = 0
-   IF lese.obmysql AND obmitAlterTab THEN
-    SET rs = myEFrag("SHOW WARNINGS")
-    IF not rs.BOF() THEN
-     IF rs!code = 1265 THEN
-      Err.Raise -2147217833
-     END IF
-    END IF
-   END IF
-   END IF
+   END IF ' obforK THEN
+  END IF ' SammelInsert = 0 OR i = ubound(rLL)
   DoEvents
  Next i
  syscmd 5
  Exit Function
 fehler:
-ErrDescription = Err.Description
+ErrDescr = Err.Description
+ErrNumber = Err.Number
+syscmd 4, "rLL(" & i & "/" & UBound(rLL) & "):   " & ErrDescr
 sfnr = sfnr + 1
 If sfnr > 10 then 
- Lese.Ausgeb sfnr & " Fehler in ""laborxleistSpeichern()"" bei Pat. " & rNa(0).Pat_id & ", gebe auf (ErrDes: " & ErrDescription & ")", True
+ Lese.Ausgeb sfnr & " Fehler in ""laborxleistSpeichern()"" bei Pat. " & rNa(0).Pat_id & ", gebe auf (ErrDes: " & ErrDescr & ")", True
  sfnr = 0
  Resume Next
-End if
-IF Err.Number = -2147217900 AND InStrB(ErrDescription, " Doppelter; Eintrag; ") <> 0 THEN
+End if ' sfnr > 10
+IF ErrNumber = -2147217900 AND InStrB(ErrDescr, " Doppelter; Eintrag; ") <> 0 THEN
  Call Shell(App.path + "\..\nachricht\nachricht.exe " & App.EXEName & " Doppelter Eintrag bei: " & vbCrLf & csql.Value)
  Resume Next
-ElseIf Err.Number = -2147467259 AND InStrB(ErrDescription, "Daten zu lang") = 0 AND InStrB(ErrDescription, "Data too long") = 0 THEN ' -2147467259 ' [MySQL][ODBC 3.51 Driver][mysqld-5.1.32-log]Cannot add OR update a child row: a FOREIGN KEY constraint fails
- IF InStrB(ErrDescription, "'READ-COMMITTED'") <> 0 THEN
+ElseIf ErrNumber = -2147467259 AND InStrB(ErrDescr, "Daten zu lang") = 0 AND InStrB(ErrDescr, "Data too long") = 0 THEN ' -2147467259 ' [MySQL][ODBC 3.51 Driver][mysqld-5.1.32-log]Cannot add OR update a child row: a FOREIGN KEY constraint fails
+ IF InStrB(ErrDescr, "'READ-COMMITTED'") <> 0 THEN
   myEFrag "SET SESSION TRANSACTION ISOLATION LEVEL REPEATABLE READ", rAF
  Else
-  Call doBezFeh(csql.Value, BezfSp, ErrDescription)
+  Call doBezFeh(csql.Value, BezfSp, ErrDescr)
  END IF
  Resume
-ElseIf Err.Number = -2147217833 OR InStrB(ErrDescription, "Daten zu lang") <> 0 OR InStrB(ErrDescription, "Data too long") <> 0 THEN
+ElseIf ErrNumber = -2147217833 OR InStrB(ErrDescr, "Daten zu lang") <> 0 OR InStrB(ErrDescr, "Data too long") <> 0 THEN
  Dim rsc As Adodb.Recordset, maxi%(), k%
  redim maxi(5)
  for k = iif(SammelInsert<>0,1,i) to iif(SammelInsert<>0,ubound(rLL),i)
@@ -9624,22 +9640,25 @@ ElseIf Err.Number = -2147217833 OR InStrB(ErrDescription, "Daten zu lang") <> 0 
  Call ForeignNo0
  Call ForeignNo1
  resume
-END IF ' Err.Number = -2147217833 THEN
+ElseIf InStrB(1, ErrDescr, "gone away", vbTextCompare) <> 0 Or InStrB(ErrDescr, "ost connection") <> 0 Then
+ DBCnOpen
+ Resume
+END IF ' ErrNumber = 
  Dim AnwPfad$
 #If VBA6 THEN
  AnwPfad = currentDB.Name
 #Else
  AnwPfad = App.Path
 #END IF
- SELECT CASE MsgBox("FNr: " + CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " & IIf(ISNULL(Err.Source), vNS, CStr(Err.Source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "aufgefangener Fehler in laborxleistSpeichern/" + AnwPfad)
+ SELECT CASE MsgBox("FNr: " + CStr(ErrNumber) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " & IIf(ISNULL(Err.Source), vNS, CStr(Err.Source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "aufgefangener Fehler in laborxleistSpeichern/" + AnwPfad)
   Case vbAbort: Call MsgBox(" Höre auf "): Progende
-  Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
+  Case vbRetry: Call MsgBox("Versuche nochmal"): If ErrNumber = 998 Then Resume sql Else Resume
   Case vbIgnore: Call MsgBox(" Setze fort "): Resume Next
  END SELECT
 End FUNCTION ' laborxleistSpeichern
 
 Public FUNCTION liuezSpeichern(SammelInsert%, BezfSp%)
- Dim i&, rAF&, Pid$, m%, sfnr% ',sql0$
+ Dim i&, rAF&, Pid$, m%, sfnr%, altmode$ ',sql0$
  Dim csql0 As New CString, csql As New CString
  Dim rs As New ADODB.recordset
  T1 = Timer
@@ -9657,6 +9676,8 @@ Public FUNCTION liuezSpeichern(SammelInsert%, BezfSp%)
      "bstelle,anrede,tel1,tel2,tel3,tel4,fax1,fax2,fax3,email," & _
      "zulg,arzttyp,gemmit,beme,dmpt2,dmpt1,geschlecht,titel,zusatz,ursp," & _
      "aktzeit)               VALUES"))
+sql:
+ csql.m_Len = 0
  For i = 1 to ubound(rLi)
 '  rLi(i).AktZeit = now()
   IF SammelInsert = 0 OR i = 1 THEN
@@ -9668,45 +9689,40 @@ Public FUNCTION liuezSpeichern(SammelInsert%, BezfSp%)
    rLi(i).gemmit, "','" , rLi(i).beme, "'," , rLi(i).dmpt2, "," , rLi(i).dmpt1, ",'" , rLi(i).geschlecht, "','" , rLi(i).titel, "','" , rLi(i).zusatz, "','" , rLi(i).ursp, "'," , DatFor_k(rLi(i).aktzeit), ")")
   IF SammelInsert <> 0 AND i < ubound(rLi) THEN csql.Append ","
   IF SammelInsert = 0 OR i = ubound(rLi) THEN
+    altmode = DBCn.Execute("SELECT @@global.sql_mode").Fields(0)
+   Call DBCn.Execute("SET GLOBAL sql_mode='STRICT_TRANS_TABLES'") ' NO_ENGINE_SUBSTITUTION
 '   Call myEFrag(csql.Value,rAf)', , adAsyncExecute) ' wegen unzureichender Fehlerverarbeitung wieder ausrangiert 19.8.23
    Call DBCn.Execute(csql.Value, rAF) ', , adAsyncExecute)
    IF obforK THEN
     Call ForeignYes0
     Call ForeignYes1
-   END IF
-   IF sammelinsert = 0 THEN csql.m_len = 0
-   IF lese.obmysql AND obmitAlterTab THEN
-    SET rs = myEFrag("SHOW WARNINGS")
-    IF not rs.BOF() THEN
-     IF rs!code = 1265 THEN
-      Err.Raise -2147217833
-     END IF
-    END IF
-   END IF
-   END IF
+   END IF ' obforK THEN
+  END IF ' SammelInsert = 0 OR i = ubound(rLi)
   DoEvents
  Next i
  syscmd 5
  Exit Function
 fehler:
-ErrDescription = Err.Description
+ErrDescr = Err.Description
+ErrNumber = Err.Number
+syscmd 4, "rLi(" & i & "/" & UBound(rLi) & "):   " & ErrDescr
 sfnr = sfnr + 1
 If sfnr > 10 then 
- Lese.Ausgeb sfnr & " Fehler in ""liuezSpeichern()"" bei Pat. " & rNa(0).Pat_id & ", gebe auf (ErrDes: " & ErrDescription & ")", True
+ Lese.Ausgeb sfnr & " Fehler in ""liuezSpeichern()"" bei Pat. " & rNa(0).Pat_id & ", gebe auf (ErrDes: " & ErrDescr & ")", True
  sfnr = 0
  Resume Next
-End if
-IF Err.Number = -2147217900 AND InStrB(ErrDescription, " Doppelter; Eintrag; ") <> 0 THEN
+End if ' sfnr > 10
+IF ErrNumber = -2147217900 AND InStrB(ErrDescr, " Doppelter; Eintrag; ") <> 0 THEN
  Call Shell(App.path + "\..\nachricht\nachricht.exe " & App.EXEName & " Doppelter Eintrag bei: " & vbCrLf & csql.Value)
  Resume Next
-ElseIf Err.Number = -2147467259 AND InStrB(ErrDescription, "Daten zu lang") = 0 AND InStrB(ErrDescription, "Data too long") = 0 THEN ' -2147467259 ' [MySQL][ODBC 3.51 Driver][mysqld-5.1.32-log]Cannot add OR update a child row: a FOREIGN KEY constraint fails
- IF InStrB(ErrDescription, "'READ-COMMITTED'") <> 0 THEN
+ElseIf ErrNumber = -2147467259 AND InStrB(ErrDescr, "Daten zu lang") = 0 AND InStrB(ErrDescr, "Data too long") = 0 THEN ' -2147467259 ' [MySQL][ODBC 3.51 Driver][mysqld-5.1.32-log]Cannot add OR update a child row: a FOREIGN KEY constraint fails
+ IF InStrB(ErrDescr, "'READ-COMMITTED'") <> 0 THEN
   myEFrag "SET SESSION TRANSACTION ISOLATION LEVEL REPEATABLE READ", rAF
  Else
-  Call doBezFeh(csql.Value, BezfSp, ErrDescription)
+  Call doBezFeh(csql.Value, BezfSp, ErrDescr)
  END IF
  Resume
-ElseIf Err.Number = -2147217833 OR InStrB(ErrDescription, "Daten zu lang") <> 0 OR InStrB(ErrDescription, "Data too long") <> 0 THEN
+ElseIf ErrNumber = -2147217833 OR InStrB(ErrDescr, "Daten zu lang") <> 0 OR InStrB(ErrDescr, "Data too long") <> 0 THEN
  Dim rsc As Adodb.Recordset, maxi%(), k%
  redim maxi(29)
  for k = iif(SammelInsert<>0,1,i) to iif(SammelInsert<>0,ubound(rLi),i)
@@ -9795,16 +9811,19 @@ ElseIf Err.Number = -2147217833 OR InStrB(ErrDescription, "Daten zu lang") <> 0 
  Call ForeignNo0
  Call ForeignNo1
  resume
-END IF ' Err.Number = -2147217833 THEN
+ElseIf InStrB(1, ErrDescr, "gone away", vbTextCompare) <> 0 Or InStrB(ErrDescr, "ost connection") <> 0 Then
+ DBCnOpen
+ Resume
+END IF ' ErrNumber = 
  Dim AnwPfad$
 #If VBA6 THEN
  AnwPfad = currentDB.Name
 #Else
  AnwPfad = App.Path
 #END IF
- SELECT CASE MsgBox("FNr: " + CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " & IIf(ISNULL(Err.Source), vNS, CStr(Err.Source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "aufgefangener Fehler in liuezSpeichern/" + AnwPfad)
+ SELECT CASE MsgBox("FNr: " + CStr(ErrNumber) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " & IIf(ISNULL(Err.Source), vNS, CStr(Err.Source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "aufgefangener Fehler in liuezSpeichern/" + AnwPfad)
   Case vbAbort: Call MsgBox(" Höre auf "): Progende
-  Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
+  Case vbRetry: Call MsgBox("Versuche nochmal"): If ErrNumber = 998 Then Resume sql Else Resume
   Case vbIgnore: Call MsgBox(" Setze fort "): Resume Next
  END SELECT
 End FUNCTION ' liuezSpeichern
@@ -9812,19 +9831,21 @@ End FUNCTION ' liuezSpeichern
 Public FUNCTION tuLaden
  call namenLaden
  call faelleLaden
-   IF not lese.obmysql THEN
-    IF obTrans <> 0 THEN Call DBCn.CommitTrans: obtrans = 0
-    Call DBCn.BeginTrans: obTrans = 1
-   END IF
+'  IF not lese.obmysql THEN
+'   IF obTrans <> 0 THEN Call DBCn.CommitTrans: obtrans = 0
+'    Call DBCn.BeginTrans: obTrans = 1
+'  END IF ' not lese.obmysql 
+   wechsTrans
  call auLaden
  call briefeLaden
  call diagnosenLaden
  call dokumenteLaden
  call eintraegeLaden
-   IF not lese.obmysql THEN
-    IF obTrans <> 0 THEN Call DBCn.CommitTrans: obtrans = 0
-    Call DBCn.BeginTrans: obTrans = 1
-   END IF
+'  IF not lese.obmysql THEN
+'   IF obTrans <> 0 THEN Call DBCn.CommitTrans: obtrans = 0
+'    Call DBCn.BeginTrans: obTrans = 1
+'  END IF ' not lese.obmysql 
+   wechsTrans
  call forminhkopfLaden
  call kheinweisLaden
  call lbanforderungenLaden
@@ -9843,26 +9864,25 @@ Public FUNCTION tuLaden
 End FUNCTION ' tuLaden
 
 Public FUNCTION tuSpeichern(frm AS Lese, SI%, BfS%) ' frm.dlg.SammelInsert, frm.dlg.BeziehungsfehlerSpeichern
- Dim rAf&, altsi$
+ Dim rAf&, altsi$,altsam%
  altsi = sqlIGNORE
+ sqlIGNORE = ""
+ altsam = SI
  sqlIGNORE = ""
  ON Error GoTo fehler
  call namenSpeichern(SI, BfS)
+ SI = 0
+ ComTrans
  call faelleSpeichern(SI, BfS)
-   IF not lese.obmysql THEN
-    IF obTrans <> 0 THEN Call DBCn.CommitTrans: obtrans = 0
-    Call DBCn.BeginTrans: obTrans = 1
-   END IF
+ SI = altsam
+ wechsTrans
  call auSpeichern(SI, BfS)
  call briefeSpeichern(SI, BfS)
  call diagnosenSpeichern(SI, BfS)
  call dokumenteSpeichern(SI, BfS)
  call eintraegeSpeichern(SI, BfS)
  call forminhaltform_abkSpeichern(SI, BfS)
-   IF not lese.obmysql THEN
-    IF obTrans <> 0 THEN Call DBCn.CommitTrans: obtrans = 0
-    Call DBCn.BeginTrans: obTrans = 1
-   END IF
+ wechsTrans
  sqlIGNORE = " IGNORE "
  call formulareSpeichern(SI, BfS)
  sqlIGNORE = ""
@@ -9887,7 +9907,7 @@ Public FUNCTION tuSpeichern(frm AS Lese, SI%, BfS%) ' frm.dlg.SammelInsert, frm.
  Call myEFrag("UPDATE `namen` SET aktZeit = " & DatFor_k(rNa(0).AktZeit) & " WHERE pat_id = " & rNa(0).Pat_ID,rAf)
  IF rAf <> 1 THEN 
   frm.Ausgeb "Fehler bei der Setzung des Aktualisierungsdatum bei " & rNa(0).Pat_ID & " " & rNa(0).Nachname & " " & rNa(0).Vorname, true
- END IF
+ END IF ' rAf <> 0
  sqlIGNORE = altsi
  Exit Function
 fehler:
@@ -9897,8 +9917,8 @@ fehler:
 #Else
  AnwPfad = App.Path
 #END IF
- ErrDescription = Err.Description
- IF InStrB(ErrDescription, "'READ-COMMITTED'") <> 0 THEN
+ ErrDescr = Err.Description
+ IF InStrB(ErrDescr, "'READ-COMMITTED'") <> 0 THEN
   myEFrag "SET SESSION TRANSACTION ISOLATION LEVEL REPEATABLE READ", rAF
   Resume
  END IF

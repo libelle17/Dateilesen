@@ -1340,8 +1340,8 @@ Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
-Public WithEvents adoRS As Recordset
-Attribute adoRS.VB_VarHelpID = -1
+Public WithEvents anaRS As Recordset
+Attribute anaRS.VB_VarHelpID = -1
 Dim mbChangedByCode As Boolean
 Dim mvBookMark As Variant
 Dim mbEditFlag As Boolean
@@ -1355,30 +1355,30 @@ Private Declare Function ShellExecute Lib "shell32.dll" _
         lpParameters As String, ByVal lpDirectory As String, _
         ByVal nShowCmd As Long) As Long
 
-Private Sub adoRS_MoveComplete(ByVal adReason As ADODB.EventReasonEnum, ByVal pError As ADODB.Error, adStatus As ADODB.EventStatusEnum, ByVal pRecordset As ADODB.Recordset)
+Private Sub anaRS_MoveComplete(ByVal adReason As ADODB.EventReasonEnum, ByVal pError As ADODB.Error, adStatus As ADODB.EventStatusEnum, ByVal pRecordset As ADODB.Recordset)
   'Hierdurch wird die aktuelle Datensatzposition für diese Datensatzgruppe angezeigt
-   lblStatus.Caption = CStr(adoRS.AbsolutePosition)
+   lblStatus.Caption = CStr(anaRS.AbsolutePosition)
    Call do_Form_Current_Medarten(Me)
    Dim rs As New ADODB.Recordset
-   If IsNumeric(adoRS!Pat_id) Then
-    myFrag rs, "SELECT CONCAT(IF(n.titel='','',CONCAT(n.titel,' ')), IF(n.nvorsatz='','',CONCAT(n.nvorsatz,' ')), n.nachname,',',n.vorname) Name FROM `namen` n WHERE pat_id = " & adoRS!Pat_id
+   If IsNumeric(anaRS!Pat_id) Then
+    myFrag rs, "SELECT CONCAT(IF(n.titel='','',CONCAT(n.titel,' ')), IF(n.nvorsatz='','',CONCAT(n.nvorsatz,' ')), n.nachname,',',n.vorname) Name FROM `namen` n WHERE pat_id = " & anaRS!Pat_id
     If Not rs.BOF Then
      Me.PName = rs!name
     End If ' Not rs.BOF Then
-   End If ' IsNumeric(adoRS!Pat_id) Then
-   If Not adoRS.BOF And Not adoRS.EOF Then
-    If adoRS!Falsch <> 0 Then
+   End If ' IsNumeric(anaRS!Pat_id) Then
+   If Not anaRS.BOF And Not anaRS.EOF Then
+    If anaRS!Falsch <> 0 Then
      Me.BackColor = "&H0080C0FF"
-    ElseIf adoRS!glib <> 0 Or adoRS!metf <> 0 Or adoRS!gluci <> 0 Or adoRS!shglin <> 0 _
-     Or adoRS!glit <> 0 Or adoRS!dpp4 Or adoRS!glp1 Or adoRS!sglt2 Or adoRS!sonstad <> 0 Or adoRS!InS <> 0 Or adoRS!anal <> 0 Or adoRS!insart <> "0" Or adoRS!hmg <> 0 Or adoRS!hypt <> 0 Or adoRS!Thro <> 0 Or adoRS!Antib <> 0 Or adoRS!And <> 0 Or adoRS!tStr <> 0 Or adoRS!puzu <> 0 Or adoRS!VMat <> 0 Or adoRS!PenN <> 0 Or adoRS!neurp <> 0 Or adoRS!autnp <> 0 Or adoRS!fetts <> 0 Or adoRS!Hsre <> 0 Or adoRS!antimyk <> 0 Or adoRS!glauk <> 0 Or adoRS!cold <> 0 Or adoRS!pros <> 0 Or adoRS!urä <> 0 Or adoRS!hythy <> 0 Or adoRS!ostp <> 0 Or adoRS!khk <> 0 Or adoRS!HerzI <> 0 Or adoRS!stru <> 0 Or adoRS!avk <> 0 Or adoRS!pani <> 0 Or adoRS!vari <> 0 Or adoRS!östr <> 0 Or adoRS!antidep <> 0 Or adoRS!antidem <> 0 Or adoRS!antiep <> 0 Or adoRS!park <> 0 Or adoRS!antipern <> 0 Or adoRS!Appet <> 0 Or adoRS!Anäm <> 0 Or adoRS!antiherp <> 0 Or adoRS!NSAR <> 0 Or adoRS!Antikoag <> 0 Or adoRS!Betabl <> 0 Or adoRS!ACEH <> 0 Or adoRS!AT1 <> 0 Or adoRS!CalcA <> 0 Or adoRS!Diur <> 0 Then
+    ElseIf anaRS!glib <> 0 Or anaRS!metf <> 0 Or anaRS!gluci <> 0 Or anaRS!shglin <> 0 _
+     Or anaRS!glit <> 0 Or anaRS!dpp4 Or anaRS!glp1 Or anaRS!sglt2 Or anaRS!sonstad <> 0 Or anaRS!InS <> 0 Or anaRS!anal <> 0 Or anaRS!insart <> "0" Or anaRS!hmg <> 0 Or anaRS!hypt <> 0 Or anaRS!Thro <> 0 Or anaRS!Antib <> 0 Or anaRS!And <> 0 Or anaRS!tStr <> 0 Or anaRS!puzu <> 0 Or anaRS!VMat <> 0 Or anaRS!PenN <> 0 Or anaRS!neurp <> 0 Or anaRS!autnp <> 0 Or anaRS!fetts <> 0 Or anaRS!Hsre <> 0 Or anaRS!antimyk <> 0 Or anaRS!glauk <> 0 Or anaRS!cold <> 0 Or anaRS!pros <> 0 Or anaRS!urä <> 0 Or anaRS!hythy <> 0 Or anaRS!ostp <> 0 Or anaRS!khk <> 0 Or anaRS!HerzI <> 0 Or anaRS!stru <> 0 Or anaRS!avk <> 0 Or anaRS!pani <> 0 Or anaRS!vari <> 0 Or anaRS!östr <> 0 Or anaRS!antidep <> 0 Or anaRS!antidem <> 0 Or anaRS!antiep <> 0 Or anaRS!park <> 0 Or anaRS!antipern <> 0 Or anaRS!Appet <> 0 Or anaRS!Anäm <> 0 Or anaRS!antiherp <> 0 Or anaRS!NSAR <> 0 Or anaRS!Antikoag <> 0 Or anaRS!Betabl <> 0 Or anaRS!ACEH <> 0 Or anaRS!AT1 <> 0 Or anaRS!CalcA <> 0 Or anaRS!Diur <> 0 Then
      Me.BackColor = "&H0080FFFF"
     Else
      Me.BackColor = "&H8000000F" ' gelblichgrau
     End If
-   End If ' Not adoRS.BOF And Not adoRS.EOF Then
-End Sub 'adoRS_MoveComplete
+   End If ' Not anaRS.BOF And Not anaRS.EOF Then
+End Sub 'anaRS_MoveComplete
 
-Private Sub adoRS_WillChangeRecord(ByVal adReason As ADODB.EventReasonEnum, ByVal cRecords As Long, adStatus As ADODB.EventStatusEnum, ByVal pRecordset As ADODB.Recordset)
+Private Sub anaRS_WillChangeRecord(ByVal adReason As ADODB.EventReasonEnum, ByVal cRecords As Long, adStatus As ADODB.EventStatusEnum, ByVal pRecordset As ADODB.Recordset)
   'Hier können Sie Code zur Überprüfung einfügen
   'Dieses Ereignis wird aufgerufen, wenn die folgenden Aktionen eintreten
   Dim bCancel As Boolean
@@ -1396,11 +1396,11 @@ Private Sub adoRS_WillChangeRecord(ByVal adReason As ADODB.EventReasonEnum, ByVa
   Case adRsnUpdate
   End Select
   If bCancel Then adStatus = adStatusCancel
-End Sub 'adoRS_WillChangeRecord
+End Sub 'anaRS_WillChangeRecord
 
 Public Sub cmdAdd_Click()
   On Error GoTo fehler
-  With adoRS
+  With anaRS
     If Not (.BOF And .EOF) Then
       mvBookMark = .Bookmark
     End If
@@ -1426,7 +1426,7 @@ End Sub 'cmdAdd_Click()
 
 Public Sub cmdDelete_Click()
   On Error GoTo fehler
-  With adoRS
+  With anaRS
     .Delete
     .MoveNext
     If .EOF Then .MoveLast
@@ -1449,7 +1449,7 @@ End Sub ' Private Sub cmdDelete_Click()
 Public Sub cmdRefresh_Click()
   'Dies wird nur für Mehrbenutzeranwendungen benötigt
   On Error GoTo fehler
-  adoRS.Requery
+  anaRS.Requery
  Exit Sub
 fehler:
  Dim AnwPfad$
@@ -1490,20 +1490,20 @@ Public Sub cmdCancel_Click()
   SetButtons True
   mbEditFlag = False
   mbAddNewFlag = False
-  adoRS.CancelUpdate
+  anaRS.CancelUpdate
  If mvBookMark > 0 Then
-    adoRS.Bookmark = mvBookMark
+    anaRS.Bookmark = mvBookMark
   Else
-    adoRS.MoveFirst
+    anaRS.MoveFirst
   End If
   mbDataChanged = False
 End Sub ' cmdCancel_Click()
 
 Public Sub cmdUpdate_Click()
   On Error GoTo fehler
-  adoRS.UpdateBatch adAffectAll
+  anaRS.UpdateBatch adAffectAll
   If mbAddNewFlag Then
-    adoRS.MoveLast              'Zu neuem Datensatz gehen
+    anaRS.MoveLast              'Zu neuem Datensatz gehen
   End If
   mbEditFlag = False
   mbAddNewFlag = False
@@ -1530,7 +1530,7 @@ End Sub
 
 Public Sub cmdFirst_Click()
   On Error GoTo fehler
-  adoRS.MoveFirst
+  anaRS.MoveFirst
   mbDataChanged = False
   Exit Sub
 fehler:
@@ -1549,7 +1549,7 @@ End Sub ' cmdFirst_Click
 
 Public Sub cmdLast_Click()
   On Error GoTo fehler
-  adoRS.MoveLast
+  anaRS.MoveLast
   mbDataChanged = False
   Exit Sub
 fehler:
@@ -1568,11 +1568,11 @@ End Sub ' cmdLast_Click()
 
 Public Sub cmdNext_Click()
   On Error GoTo fehler
-  If Not adoRS.EOF Then adoRS.MoveNext
-  If adoRS.EOF And adoRS.RecordCount > 0 Then
+  If Not anaRS.EOF Then anaRS.MoveNext
+  If anaRS.EOF And anaRS.RecordCount > 0 Then
     Tüt 1760, 1000
      'Ende der Zeile wurde erreicht; zurück zum Zeilenanfang
-    adoRS.MoveLast
+    anaRS.MoveLast
   End If
   'Aktuellen Datensatz anzeigen
   mbDataChanged = False
@@ -1593,11 +1593,11 @@ End Sub ' cmdNext_Click()
 
 Public Sub cmdPrevious_Click()
   On Error GoTo fehler
-  If Not adoRS.BOF Then adoRS.MovePrevious
-  If adoRS.BOF And adoRS.RecordCount > 0 Then
+  If Not anaRS.BOF Then anaRS.MovePrevious
+  If anaRS.BOF And anaRS.RecordCount > 0 Then
     Tüt 1760, 1000
     'Ende der Zeile wurde erreicht; zurück zum Zeilenanfang
-    adoRS.MoveFirst
+    anaRS.MoveFirst
   End If
   'Aktuellen Datensatz anzeigen
   mbDataChanged = False
@@ -1647,10 +1647,10 @@ Public Sub Suchen_Click()
  If SuchStringGeändert Then
   altsuche = Me.suche
   If IsNumeric(Me.suche) Then
-   adoRS.Find " pat_id = " & Me.suche, 0, adSearchForward
+   anaRS.Find " pat_id = " & Me.suche, 0, adSearchForward
   Else
-   If adoRS.EOF Then adoRS.MoveFirst
-   adoRS.Find "medikament LIKE '*" & Me.suche & "*'", 1, adSearchForward
+   If anaRS.EOF Then anaRS.MoveFirst
+   anaRS.Find "medikament LIKE '*" & Me.suche & "*'", 1, adSearchForward
   End If
  Else
   Me.suche.SetFocus
