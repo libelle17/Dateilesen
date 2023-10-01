@@ -1050,9 +1050,11 @@ Private Sub doEinles(obevtlAlle%)
  Else
 '  MsgBox CStr((Now - T1) * 60 * 60 * 24) + " s"
   Lese.Prozent = "100 %"
-  syscmd 4, IIf(oblies, "Fertig mit Einlesen von ", "nicht eingelesen: ") & Me.BDTDatei & ", Zeitdauer gesamt: " & Format$((Now - T1) * 60 * 60 * 24, "###,###,###,###,###,###,##0") & "s, " & "Zeitdauer nach Haupteinlesen: " & Format$((Now - T1a) * 60 * 60 * 24, "###,###,###,###,###,###,##0") & " s"
- End If
- Exit Sub
+  sql = IIf(oblies, "Fertig mit Einlesen von ", "nicht eingelesen: ") & Me.BDTDatei & ", Zeitdauer gesamt: " & Format$((Now - T1) * 60 * 60 * 24, "###,###,###,###,###,###,##0") & "s, " & "Zeitdauer nach Haupteinlesen: " & Format$((Now - T1a) * 60 * 60 * 24, "###,###,###,###,###,###,##0") & " s" ' Variablenrecycling
+  syscmd 4, sql
+  Me.hlese.Ausgeb sql, True
+ End If ' Command = "auto" else
+ Exit Sub ' doEinles
 fehler:
  Dim AnwPfad$
 #If VBA6 Then

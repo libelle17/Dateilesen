@@ -1322,12 +1322,12 @@ Function GetMed(lang$, Einrück%) As CString ' mit Einrück=0 in doMedklassT, THAf
    links = Left$(GetMed, lzpos - 1)
    Select Case links
     Case "ACCU", "ACCU-CHEK", "HUMALOG", "LIPROLOG", "INSUMAN", "BERLINSULIN", "HUMINSULIN", "INSULIN" ' ,"INSULIN RATIO","INSULIN HUMINSULIN","INSULIN HM","INSULIN BRAUN RATIO","INSULIN BBM RATIO","INSULIN B.BRAUN","INSULIN B.","INSULIN B"
-     lzpos = GetMed.Instr(" ", 1 + MAX(Len(links) + 1, Einrück))
+     lzpos = GetMed.Instr(" ", 1 + MAXvb(Len(links) + 1, Einrück))
      While GetMed.Mid(lzpos, 1) = " " And lzpos <= GetMed.length: lzpos = lzpos + 1: Wend
 '     links = Left$(GetMed, lzpos - 1)
    End Select
    If links = "ACCU" Or InStr(links, "®") <> 0 Then
-     lzpos = GetMed.Instr(" ", 1 + MAX(lzpos, Einrück))
+     lzpos = GetMed.Instr(" ", 1 + MAXvb(lzpos, Einrück))
      While GetMed.Mid(lzpos, 1) = " " And lzpos <= GetMed.length: lzpos = lzpos + 1: Wend
    End If
    If lzpos > 0 Then
@@ -2831,7 +2831,7 @@ resume_4247:
          And (rDi(inr).obDauer = obD_ And obD_ <> 0) Then
        If f6010_ <> 0 Then ' Einzeldiagnosen immer übermittelt
         rDi(inr).obKasse = 1
-        rDi(inr).lKasse = MAX(rDi(inr).lKasse, messDatum)
+        rDi(inr).lKasse = MAXvb(rDi(inr).lKasse, messDatum)
        Else
         rDi(inr).f6010 = 0
        End If ' f6010_ <> 0 Or obD_ = 0 Then ' Einzeldiagnosen immer übermittelt
@@ -2847,7 +2847,7 @@ resume_4247:
            And obDauer(jnr) = obD_ Then
          If f6010_ <> 0 Or obD_ = 0 Then
           obKasse(jnr) = 1
-          lKasse(jnr) = MAX(lKasse(jnr), messDatum)
+          lKasse(jnr) = MAXvb(lKasse(jnr), messDatum)
          Else
           f6010(jnr) = 0
          End If ' f6010_ <> 0 Or obD_ = 0 Then
@@ -2875,7 +2875,7 @@ resume_4247:
     rDi(aktDiNr).f6010 = f6010_
     If f6010_ <> 0 Then
      rDi(aktDiNr).obKasse = 1 ' Einzeldiagnosen werden immer übermittelt
-     rDi(aktDiNr).lKasse = MAX(rDi(aktDiNr).lKasse, messDatum)
+     rDi(aktDiNr).lKasse = MAXvb(rDi(aktDiNr).lKasse, messDatum)
     End If
     rDi(aktDiNr).f6011 = f6011_
     rDi(aktDiNr).FID = rFa(UBound(rFa)).FID
@@ -2911,7 +2911,7 @@ resume_4247:
      If f6010_ <> 0 Or obD_ = 0 Then
 '      If obD_ Then
        obKasse(DiagNr) = 1 ' Einzeldiagnosen werden immer übermittelt
-       lKasse(DiagNr) = MAX(lKasse(DiagNr), messDatum)
+       lKasse(DiagNr) = MAXvb(lKasse(DiagNr), messDatum)
 '      End If
      End If
      f6010(DiagNr) = f6010_
@@ -3039,7 +3039,7 @@ difertig:
          If LenB(Diast) <> 0 Then
           GoSub rEiVorb
           Select Case irunde
-           Case 1: rEi(UBound(rEi)).art = "gewicht": rEi(UBound(rEi)).Inhalt = Left$(Diast, MAX(Len(Diast) - 3, 0)) & " kg" ' g -> kg
+           Case 1: rEi(UBound(rEi)).art = "gewicht": rEi(UBound(rEi)).Inhalt = Left$(Diast, MAXvb(Len(Diast) - 3, 0)) & " kg" ' g -> kg
            Case 2: rEi(UBound(rEi)).art = "groesse": rEi(UBound(rEi)).Inhalt = Left$(Diast, Len(Diast) - 1) & " cm" ' mm -> cm
            Case 3: rEi(UBound(rEi)).art = "taille":  rEi(UBound(rEi)).Inhalt = Left$(Diast, Len(Diast) - 1) & " cm" ' mm -> cm
            Case 4: rEi(UBound(rEi)).art = "hüfte":   rEi(UBound(rEi)).Inhalt = Left$(Diast, Len(Diast) - 1) & " cm" ' mm -> cm
@@ -3337,8 +3337,8 @@ rEiVorb:
      rFm_Nr = 0
      jetztKopf = True
     End If ' FormBez = "Medikamentenplan"
-   Case 6298 ' Formularfeld und ggf. Spalte
-    FormSp = rInhalt ' nur für DMP-Bogen und Kasse benötigt, auch TUG und ADL
+   Case 6298 ' Formularfeld und ggf. Spalte, "Feld"
+    FormSp = rInhalt ' nur für DMP-Bogen und Kasse benötigt, auch TUG und ADL, auch Überweisung an
     Call aufSplit(rInhalt)
 #If altMed Then
     If FormBez = "Medikamentenplan" Then
@@ -4667,7 +4667,8 @@ nachFehler:
   cisql.AppVar Array("('", REPLACE$(rFm(i).FeldInh, "'", "\\'"), "',", AktByte, ")")
   If i < UBound(rFm) Then cisql.Append ","
  Next i
- DBCn.Execute cisql.Value, rAf
+' DBCn.Execute cisql.Value, rAf
+ myEFrag cisql.Value, rAf
  syscmd 4, "Formular-Speichern, neue Methode (2)"
 ' DBCn.Execute ("START TRANSACTION")
  BegTrans
@@ -4718,12 +4719,14 @@ nachFehler:
 #If mitfensterget Then
 ' 29.8.23: geht (noch) nicht
  rufauf "ssh", "root@linux1 mysql --defaults-extra-file=~/.mysqlpwd quelle -e'CALL getfeldinhvw('" & eing & "'," & AktByte & ")' >liebevollkuh", 2, "c:\windows\system32\openssh\", , 0
- ausg = DBCn.Execute("SELECT @vw").Fields(0)
+' ausg = DBCn.Execute("SELECT @vw").Fields(0)
+ ausg = myEFrag("SELECT @vw").Fields(0)
 #Else
 #If fehlersuch Then
  ausg1 = getfeldinhvw(eing.Value, AktByte)
 #Else
- ausg = DBCn.Execute("CALL getfeldinhvw('" & eing & "'," & AktByte & ")").Fields(0)
+' ausg = DBCn.Execute("CALL getfeldinhvw('" & eing & "'," & AktByte & ")").Fields(0)
+ ausg = myEFrag("CALL getfeldinhvw('" & eing & "'," & AktByte & ")").Fields(0)
  If ausg1 <> "" And ausg <> ausg1 Then Stop
 #End If
 #End If
@@ -4795,20 +4798,6 @@ alteMethode:
    rFm(i).FeldInhVW = rsaS!FeldInhVW
   End If ' obVorber else
   If rsaS Is Nothing Then Else If rsaS.State = 1 Then rsaS.Close
-  If obVorber Or 1 = 1 Then
-   Dim f1 As sFeld, f2 As sFeld
-   Set f1 = New sFeld
-   f1.Feld = rFm(i).Feld
-   Set f2 = sListFeld.GetItem(f1)
-   If f2 Is Nothing Then
-    Set rsaS = myEFrag("INSERT INTO `forminhaltfeld` (Feld,stbyte) VALUES('" & rFm(i).Feld & "'," & AktByte & ")")
-    Set rsaS = myEFrag("SELECT Feldvw,Feld FROM `forminhaltfeld` WHERE Feld = '" & rFm(i).Feld & "'")
-    f1.FeldVW = rsaS!FeldVW
-    Call sListFeld.sCAdd(f1)
-    rFm(i).FeldVW = f1.FeldVW
-   Else ' f2 is nothing
-    rFm(i).FeldVW = f2.FeldVW
-   End If ' f2 is nothing
 '  Else
 '   For j = 1 To 2
 '    Set rsaS = myEFrag("SELECT feldvw,feld FROM `forminhaltfeld` WHERE feld = '" & rFm(i).Feld & "'")
@@ -4819,11 +4808,27 @@ alteMethode:
 '    End If
 '   Next j
 '   rFm(i).FeldVW = rsaS!FeldVW
-  End If
- Next i
 ' DBCn.Execute "COMMIT"
+ Next i
  ComTrans
 nachformulare:
+ BegTrans
+ For i = 1 To UBound(rFm)
+  Dim f1 As sFeld, f2 As sFeld
+  Set f1 = New sFeld
+  f1.Feld = rFm(i).Feld
+  Set f2 = sListFeld.GetItem(f1)
+  If f2 Is Nothing Then
+   Set rsaS = myEFrag("INSERT INTO `forminhaltfeld` (Feld,stbyte) VALUES('" & rFm(i).Feld & "'," & AktByte & ")")
+   Set rsaS = myEFrag("SELECT Feldvw,Feld FROM `forminhaltfeld` WHERE Feld = '" & rFm(i).Feld & "'")
+   f1.FeldVW = rsaS!FeldVW
+   Call sListFeld.sCAdd(f1)
+   rFm(i).FeldVW = f1.FeldVW
+  Else ' f2 is nothing
+   rFm(i).FeldVW = f2.FeldVW
+  End If ' f2 is nothing
+ Next i
+ ComTrans
  syscmd 5
  
  frm.SBez = "S"
@@ -4854,7 +4859,7 @@ nachformulare:
  syscmd 4, "DMP-Speichern"
 ' obhierdmp
 ' rNa(0).dmpklass = obhierdmpfn(rNa(0).Notiz, , , , rNa(0).dmpbeg, rNa(0).dmpkhkklass, rNa(0).dmpkhkbeg, rNa(0).dmpcopdklass, rNa(0).dmpcopdbeg, rNa(0).dmpcopdklass)
- obhierdmpfn rNa(0).Notiz, rNa(0).dmpklass, rNa(0).dmpbeg, rNa(0).dmpkhkklass, rNa(0).dmpkhkbeg, rNa(0).dmpcopdklass, rNa(0).dmpcopdbeg, rNa(0).dmpabklass, rNa(0).dmpabbeg, rNa(0).HzV, rNa(0).HzVbeg, rNa(0).DS, rNa(0).DSbeg
+ obhierdmpfn rNa(0).Notiz, rNa(0).NZNr, rNa(0).dmpklass, rNa(0).dmpbeg, rNa(0).dmpkhkklass, rNa(0).dmpkhkbeg, rNa(0).dmpcopdklass, rNa(0).dmpcopdbeg, rNa(0).dmpabklass, rNa(0).dmpabbeg, rNa(0).HzV, rNa(0).HzVbeg, rNa(0).DS, rNa(0).DSbeg
  Dim Infos12$()
 '  Dim rKv1() AS kvnrue
  Call getHausarzt1(Infos12, rFa, rKv, True)
@@ -4977,7 +4982,8 @@ nachformulare:
  Call tuSpeichern(frm, frm.dlg.SammelInsert, frm.dlg.BeziehungsfehlerSpeichern)
  ' korrigiertes Aufnahmedatum(2)
  Dim altesAufnDat As Date
- altesAufnDat = DBCn.Execute("Select kaufdat from namen where pat_id=" & CStr(rNa(0).Pat_id)).Fields(0)
+' altesAufnDat = DBCn.Execute("SELECT kaufdat FROM namen WHERE pat_id=" & CStr(rNa(0).Pat_id)).Fields(0)
+ altesAufnDat = myEFrag("SELECT kaufdat FROM namen WHERE pat_id=" & CStr(rNa(0).Pat_id)).Fields(0)
  myEFrag "UPDATE namen n LEFT JOIN (SELECT pat_id, MIN(bhfb) bhfb, MIN(fanf) fanf FROM faelle f GROUP BY pat_id) f ON n.pat_id=f.pat_id SET kAufDat=date(IF(fanf>bhfb,fanf,bhfb)) WHERE f.pat_id=" & CStr(rNa(0).Pat_id), rAf
  If rAf <> 0 Then
   MsgBox "Fehler bei der Aufnahmedatumskorrektur" ' wenn das nie kommt, kann die vorige Zeile auskommentiert werden
@@ -5096,6 +5102,7 @@ Function getfeldinhvw$(Felder$, StByte&)
   aktvw = 0
   If InStrB(elem, "'") Then Stop
   For iru = 1 To 2
+' wegen häufigen Aufrufs nicht durch MyEFrag ersetzt
    aktvw = DBCn.Execute("SELECT COALESCE((SELECT feldinhvw FROM forminhaltfeldinh WHERE feldinh ='" & elem & "' LIMIT 1),0)").Fields(0)
    If aktvw = 0 Then
     DBCn.Execute "INSERT INTO forminhaltfeldinh(feldinh,stbyte) VALUES('" & elem & "'," & StByte & ");"
@@ -5851,7 +5858,7 @@ Function RezEintr(rez$, obLangrz%, Optional mitAutidem = True)
     If UBound(auti) < mdnr Then ReDim Preserve auti(mdnr)
     If UBound(anzl) < mdnr Then ReDim Preserve anzl(mdnr)
     rRe(UBound(rRe)).auti = IIf(mitAutidem, auti(mdnr), 2)
-    rRe(UBound(rRe)).anzl = MAX(anzl(mdnr), 1)
+    rRe(UBound(rRe)).anzl = MAXvb(anzl(mdnr), 1)
    End If
    mdnr = mdnr + 1
   End If
@@ -6750,6 +6757,7 @@ End Function ' LaborEintr0()
 '' call foreignyes
 'End Function ' formInhMach
 
+' aufgerufen in doQuelldatum
 Static Function REGEXP_INSTR%(tStr$, muster$)
  Dim rEx As New RegExp
  Dim regMC
@@ -6763,6 +6771,7 @@ Static Function REGEXP_INSTR%(tStr$, muster$)
  End If ' rEx.test(tstr) Then
 End Function ' REGEXP_INSTR
 
+' aufgerufen in doQuelldatum und REGEXP_SUBSTR
 Static Function REGEXP_SUBSTR$(tStr$, muster$)
  Dim rEx As New RegExp
  Dim regMC
@@ -6804,17 +6813,17 @@ Function std3(s$) As Date
   DS = ns
  Else
   p2 = InStr(p1, ns, ".")
-  DS = Left$(ns, p1) & Mid$(ns, p1 + 1, IIf(p2, MIN(2, p2 - p1 - 1), 2))
+  DS = Left$(ns, p1) & Mid$(ns, p1 + 1, IIf(p2, MINvb(2, p2 - p1 - 1), 2))
   If p2 Then
    p3 = InStr(p2 + 1, ns, ".")
-   DS = DS & ":" & Mid$(ns, p2 + 1, IIf(p3, MIN(2, p3 - p2 - 1), 2))
+   DS = DS & ":" & Mid$(ns, p2 + 1, IIf(p3, MINvb(2, p3 - p2 - 1), 2))
    If p3 Then
     DS = DS & ":" & Mid$(ns, p3 + 1, 2)
-   End If
-  End If
+   End If ' p3 Then
+  End If ' p2 Then
 '  DS = Left$(ns, p1) & Mid$(ns, p1 + 1, MIN(2, p2 - p1 - 1)) & IIf(p2, ":" & Mid$(ns, p2 + 1, MIN(2, p3 - p2 - 1)) & IIf(p3, ":" & Mid$(ns, p3 + 1), ""), "")
 '  DS = Left$(ns, p1)
- End If
+ End If ' p1 = 0 else
  On Error Resume Next
  std3 = CDate(DS)
 End Function ' std1(s$) As Date

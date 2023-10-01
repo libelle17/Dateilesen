@@ -36,7 +36,7 @@ Public Enum KeyModeConstants
   kmName
   kmPath
 End Enum
-Dim ForeignKAus0%, ForeignKAus1%
+Dim ForeignKAus0%, ForeignKAus1%, rAf&
 Public KVÄDatei1$, BriefZiel$, AutoBriefZiel$, AutoBriefProtok$
 'Public Const KVÄDatei1$ = AnamneseVerZeichnis1 + "KV-Ärzte neu.mdb"
 'Public Const BriefZiel$ = pVerz
@@ -1448,8 +1448,10 @@ End If ' aktTbn = "faelle" Then
   If aktTbn = "faelle" Then
    Print #257, "'   IF Not obForK THEN ForeignNo0"
   End If ' aktTbn = "faelle" Then
-  Print #257, "    altmode = DBCn.Execute(""SELECT @@global.sql_mode"").Fields(0)"
-  Print #257, "   Call DBCn.Execute(""SET GLOBAL sql_mode='STRICT_TRANS_TABLES'"") ' NO_ENGINE_SUBSTITUTION"
+  Print #257, "'    altmode = DBCn.Execute(""SELECT @@global.sql_mode"").Fields(0)"
+  Print #257, "    altmode = myEFrag(""SELECT @@global.sql_mode"", , DBCn).Fields(0)"
+  Print #257, "'   Call DBCn.Execute(""SET GLOBAL sql_mode='STRICT_TRANS_TABLES'"") ' NO_ENGINE_SUBSTITUTION"
+  Print #257, "    myEFrag ""SET GLOBAL sql_mode='STRICT_TRANS_TABLES'"", , DBCn ' NO_ENGINE_SUBSTITUTION"
   Print #257, "'   Call myEFrag(csql.Value,rAf)', , adAsyncExecute) ' wegen unzureichender Fehlerverarbeitung wieder ausrangiert 19.8.23"
   Print #257, "   Call DBCn.Execute(csql.Value, rAF) ', , adAsyncExecute)"
   If aktTbn = "faelle" Then
@@ -1551,7 +1553,8 @@ End If ' aktTbn = "faelle" Then
    Print #257, "' Debug.Print schlüssel"
    Print #257, " For iiru = 1 To UBound(rFr)"
    Print #257, "  If rFr(iiru).Foid = schlüssel Then"
-   Print #257, "   If FoIDv = 0 Then FoIDv = DBCn.Execute(""SELECT (MAX(foid)+1) FROM forminhkopf"").fields(0) Else FoIDv = FoIDv + 1"
+'   Print #257, "   If FoIDv = 0 Then FoIDv = DBCn.Execute(""SELECT (MAX(foid)+1) FROM forminhkopf"").fields(0) Else FoIDv = FoIDv + 1"
+   Print #257, "   If FoIDv = 0 Then FoIDv = MyEfrag(""SELECT (MAX(foid)+1) FROM forminhkopf"", , DBCn).fields(0) Else FoIDv = FoIDv + 1"
    Print #257, "   rFr(iiru).Foid = FoIDv"
    Print #257, "   For jjru = 1 To UBound(rFm)"
    Print #257, "    If rFm(jjru).Foid = schlüssel Then rFm(jjru).Foid = FoIDv"
@@ -1607,7 +1610,8 @@ End If ' aktTbn = "faelle" Then
   Loop ' While Not rsAdSc.EOF
   Print #257, " next k"
   If i <= TbZ1 Then
-   Print #257, " IF obTrans <>0 Then If DBCn.Execute(""SELECT COUNT(1) FROM information_schema.innodb_trx WHERE trx_mysql_thread_id = CONNECTION_ID()"").Fields(0) <> 0 Then ComTrans ' DBCn.CommitTrans: obtrans = 0"
+   Print #257, " If obTrans <> 0 Then If myEFrag(""SELECT COUNT(1) FROM information_schema.innodb_trx WHERE trx_mysql_thread_id = CONNECTION_ID()"", , DBCn).Fields(0) <> 0 Then ComTrans ' DBCn.CommitTrans: obtrans = 0"
+'  Print #257, " IF obTrans <>0 Then If DBCn.Execute(""SELECT COUNT(1) FROM information_schema.innodb_trx WHERE trx_mysql_thread_id = CONNECTION_ID()"").Fields(0) <> 0 Then ComTrans ' DBCn.CommitTrans: obtrans = 0"
   End If ' i <= TbZ1 Then
  syscmd 4, "Mache Typen (23) ..."
   Print #257, " nochmal:"
@@ -2594,8 +2598,8 @@ Function ForeignNo0()
  On Error GoTo fehler
  If ForeignKAus0 = 0 Then
   If lies.obMySQL Then
-'   Call myEFrag("SET foreign_key_checks = 0")
-   DBCn.Execute "SET foreign_key_checks = 0"
+'   DBCn.Execute "SET foreign_key_checks = 0"
+   Call myEFrag("SET foreign_key_checks = 0")
   Else
    ZielDbS = Lese.dlg.MdB
    Call BezLöschA
@@ -2624,9 +2628,9 @@ End Function ' ForeignNo()
 Function ForeignNo1()
  If ForeignKAus1 = 0 Then
   If lies.obMySQL Then
-'   Call myEFrag("SET foreign_key_checks = 0")
-   Dim rAf&
-   DBCn.Execute "SET foreign_key_checks = 0", rAf
+'   Dim rAf&
+'   DBCn.Execute "SET foreign_key_checks = 0", rAf
+   Call myEFrag("SET foreign_key_checks = 0", rAf)
   Else
    ZielDbS = Lese.dlg.MdB
    Call BezLöschA
@@ -2638,8 +2642,8 @@ End Function ' ForeignNo()
 Function ForeignYes0()
  If ForeignKAus0 = 1 Then
   If lies.obMySQL Then
-'   Call myEFrag("SET foreign_key_checks = 1")
-   DBCn.Execute "SET foreign_key_checks = 1"
+   Call myEFrag("SET foreign_key_checks = 1")
+'   DBCn.Execute "SET foreign_key_checks = 1"
   Else
    ZielDbS = Lese.dlg.MdB
    Call BezHerstA
@@ -2651,8 +2655,8 @@ End Function ' ForeignNo()
 Function ForeignYes1()
  If ForeignKAus1 = 1 Then
   If lies.obMySQL Then
-'   Call myEFrag("SET foreign_key_checks = 1")
-   DBCn.Execute "SET foreign_key_checks = 1"
+   Call myEFrag("SET foreign_key_checks = 1")
+'   DBCn.Execute "SET foreign_key_checks = 1"
   Else
    ZielDbS = Lese.dlg.MdB
    Call BezHerstA
@@ -6271,7 +6275,7 @@ Public Sub liesExcel(Datei$, ÜZeile%, Tbl$)
  For j = 0 To UBound(SpNm)
   If ArtM(j) = 0 Then
    If btlm(j) > 0 Then
-    sql = sql & ",`" & SpNm(j) & "` DECIMAL(" & MIN(LenM(j) + 1 + btlm(j), 65) & "," & MIN(btlm(j), 30) & ")"
+    sql = sql & ",`" & SpNm(j) & "` DECIMAL(" & MINvb(LenM(j) + 1 + btlm(j), 65) & "," & MINvb(btlm(j), 30) & ")"
    Else
     sql = sql & ",`" & SpNm(j) & "` INTEGER(" & LenM(j) & ")"
    End If

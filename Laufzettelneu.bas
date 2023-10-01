@@ -721,7 +721,7 @@ Function UKPDS(ByRef aRisk As Risk, pid$, gbdt As Date, dmseit$, ByRef falDiabDa
 ' UKPDS-Risk bestimmen (1)
   Dim diabseit As Date
   Dim rsDia As New ADODB.Recordset
-  aRisk.AgeDiagDiabetes = MAX((erbe(pid) - gbdt) * 0.002737925747, 20) ' / 365.24 ' bei Active-X-Fehler: an der Kommandozeile "regsvr32 u:\programmierung\riskeng.ocx" laufen lassen
+  aRisk.AgeDiagDiabetes = MAXvb((erbe(pid) - gbdt) * 0.002737925747, 20) ' / 365.24 ' bei Active-X-Fehler: an der Kommandozeile "regsvr32 u:\programmierung\riskeng.ocx" laufen lassen
   aRisk.DurationDiagnosedDiabetes = 0
   falDiabDau = -1
   Dim DSnum As Date
@@ -730,17 +730,17 @@ Function UKPDS(ByRef aRisk As Risk, pid$, gbdt As Date, dmseit$, ByRef falDiabDa
    If Not IsDate(dmseit) And IsDate(DSnum) And DSnum > #1/1/1920# And DSnum < #1/1/2100# Then
     aRisk.DurationDiagnosedDiabetes = Round((IIf(DSnum >= Now(), 0, Now() - DSnum)) / 365.24, 1)
     On Error Resume Next
-    aRisk.AgeDiagDiabetes = Round(MAX((Year(DSnum) - Year(gbdt)), 20), 1) ' PAlter - aRisk.DurationDiagnosedDiabetes
+    aRisk.AgeDiagDiabetes = Round(MAXvb((Year(DSnum) - Year(gbdt)), 20), 1) ' PAlter - aRisk.DurationDiagnosedDiabetes
     On Error GoTo fehler
     falDiabDau = 0
 '  IF isnumeric(DMseit)
    ElseIf (dmseit Like "*#/##" Or dmseit Like "*#/####") Then ' cdate( geht nicht bei "12/10"
-   Dim dumw$
+    Dim dumw$
     dumw = "01/" & dmseit
     If IsDate(dumw) Then
-'     aRisk.AgeDiagDiabetes = ROUND(MAX((CDate(dumw) - gbdt) * 2.7379257474573E-03, 20), 1)
+'     aRisk.AgeDiagDiabetes = ROUND(MAXvb((CDate(dumw) - gbdt) * 2.7379257474573E-03, 20), 1)
      DSnum = CDate(dumw)
-     aRisk.AgeDiagDiabetes = MAX(AlterBei(DSnum, gbdt), 20)
+     aRisk.AgeDiagDiabetes = MAXvb(AlterBei(DSnum, gbdt), 20)
 '     aRisk.DurationDiagnosedDiabetes = (NOW() - CDate(dumw)) * 2.7379257474573E-03
      aRisk.DurationDiagnosedDiabetes = Round(AlterBei(Now(), DSnum), 1)
      falDiabDau = 0
@@ -748,8 +748,8 @@ Function UKPDS(ByRef aRisk As Risk, pid$, gbdt As Date, dmseit$, ByRef falDiabDa
    ElseIf IsDate(dmseit) Then
     DSnum = CDate(dmseit)
     If DSnum > #1/1/1920# And DSnum < #1/1/2100# Then
-'     aRisk.AgeDiagDiabetes = ROUND(MAX((CDate(DMseit) - gbdt) * 2.73792574745373E-03, 20), 1) ' / 365.24
-     aRisk.AgeDiagDiabetes = MAX(AlterBei(DSnum, gbdt), 20)
+'     aRisk.AgeDiagDiabetes = ROUND(MAXvb((CDate(DMseit) - gbdt) * 2.73792574745373E-03, 20), 1) ' / 365.24
+     aRisk.AgeDiagDiabetes = MAXvb(AlterBei(DSnum, gbdt), 20)
      Dim durdiagdiab#
 '     durdiagdiab = (NOW() - CDate(DMseit)) * 2.73792574745373E-03 ' / 365.24
      durdiagdiab = AlterBei(Now(), DSnum)
@@ -758,8 +758,8 @@ Function UKPDS(ByRef aRisk As Risk, pid$, gbdt As Date, dmseit$, ByRef falDiabDa
      End If
      falDiabDau = 0
     End If
-   Else
-   End If
+   ' Else
+   End If ' Not IsDate(dmseit) And IsDate(DSnum) And DSnum > #1/1/1920# And DSnum < #1/1/2100# Then else else
   End If ' NOT ISNULL(DMseit)
 ' UKPDS-Risk bestimmen (2)
   aRisk.Female = obweibl
@@ -2885,13 +2885,13 @@ keinuzu:
          Dim rsidat As Date
          
          If gefunden Then rsidat = zpu Else rsidat = CDate(0)
-         AusS.AppVar (Array("    <td", IIf(RowSp(i) <> 0, " rowspan='" & MIN(RowSp(i), rszmax - j + 1) & "' ", ""), " class='schmal'><P", IIf(obpath(i), " class='cave'", ""), ">", Format(rsidat, "d.m.yy"), "</td>", vbCrLf))
+         AusS.AppVar (Array("    <td", IIf(RowSp(i) <> 0, " rowspan='" & MINvb(RowSp(i), rszmax - j + 1) & "' ", ""), " class='schmal'><P", IIf(obpath(i), " class='cave'", ""), ">", Format(rsidat, "d.m.yy"), "</td>", vbCrLf))
 '         Debug.Print rs(i)!Wert
          Dim rsiwert
          On Error Resume Next
          If gefunden Then rsiwert = Wert Else rsiwert = 0
          On Error GoTo fehler
-         AusS.AppVar (Array("    <td", IIf(RowSp(i) <> 0, " rowspan='" & MIN(RowSp(i), rszmax - j + 1) & "' ", ""), IIf(pathol(i, j), " class='path'", ""), IIf(LenB(Weite(i)) <> 0, " style='width:" & Weite(i) & "'", ""), ">", IIf(RowSp(i) <> 0, vNS, "<p>"), rsiwert, IIf(RowSp(i) <> 0, vNS, "</p>"), "</td>", vbCrLf))
+         AusS.AppVar (Array("    <td", IIf(RowSp(i) <> 0, " rowspan='" & MINvb(RowSp(i), rszmax - j + 1) & "' ", ""), IIf(pathol(i, j), " class='path'", ""), IIf(LenB(Weite(i)) <> 0, " style='width:" & Weite(i) & "'", ""), ">", IIf(RowSp(i) <> 0, vNS, "<p>"), rsiwert, IIf(RowSp(i) <> 0, vNS, "</p>"), "</td>", vbCrLf))
          If RowSp(i) <> 0 Then
           Pause(i) = RowSp(i) - 1
          End If
@@ -2937,10 +2937,10 @@ keinuzu:
   obDiagnosen = (SafeArrayGetDim(DiagTab) <> 0)
   obmed = (SafeArrayGetDim(mdpl) <> 0)
   If obDiagnosen Then TabZ = UBound(DiagTab)
-  If obmed Then TabZ = MAX(TabZ, UBound(mdpl) + 2)
+  If obmed Then TabZ = MAXvb(TabZ, UBound(mdpl) + 2)
   If Not obDiagnosen And j <> -1 Then TabZ = j + 1
   ' UKPDS-Risk, s.o.
-  If obdm Then TabZ = MAX(TabZ, 2)
+  If obdm Then TabZ = MAXvb(TabZ, 2)
 
 ' Termine eintragen
   Dim rTerm As New ADODB.Recordset
@@ -2949,10 +2949,10 @@ keinuzu:
   ' TabZ = MAX(TabZ, rTerm!Zahl)
   ' SET rTerm = Nothing
   myFrag rTerm, "SELECT COUNT(0) OVER()-1 zahl, DATE(zp) datum, zp uhrzeit, raum, zusatz FROM termine t WHERE zp >= DATE(NOW()) AND pid = " & Pat_id
-  If Not rTerm.BOF Then TabZ = MAX(TabZ, rTerm!Zahl)
+  If Not rTerm.BOF Then TabZ = MAXvb(TabZ, rTerm!Zahl)
   
 ' Fettleberindices
-  If NFS <> -1 Then TabZ = MAX(TabZ, 6) Else If FIB4 <> -1 Then TabZ = MAX(TabZ, 5) Else If FLI <> -1 Then TabZ = MAX(TabZ, 4)
+  If NFS <> -1 Then TabZ = MAXvb(TabZ, 6) Else If FIB4 <> -1 Then TabZ = MAXvb(TabZ, 5) Else If FLI <> -1 Then TabZ = MAXvb(TabZ, 4)
   
 ' Diagnosen, Medikation und UKPDS Risk
   AusS.AppVar Array("<br><table border=""1""><thead align=""left""><tr><th>Diagnosen:</th><th>ICD</th><th bgcolor=""#CCCCCC"">_</th><th>Letzte Medikation:</th><th>fr</th><th>mi</th><th>nm</th><th>ab</th><th>zn</th><th>bBed</th><th bgcolor=""#CCCCCC"">_</th><th" & IIf(obdm, " bgcolor=""#FFFF00""", "") & ">", IIf(obdm, "<span title='" & UKtip & "'</span>UKPDS RE: </th><th>KHE</th><th>fatale KHE</th><th>Apoplex</th><th>fataler Apoplex</th><th bgcolor=""#CCCCCC"">_</th>", IIf(FLI <> -1 Or FIB4 <> -1 Or NFS <> -1, "</th><th></th><th></th><th></th><th></th><th></th>", "")), "<th>Termine</th>", vbCrLf)

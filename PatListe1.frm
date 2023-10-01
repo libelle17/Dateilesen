@@ -756,9 +756,9 @@ Public Sub Command1_Click(Index As Integer)
   Case artLPar
    Select Case Index
     Case 0
-     Me.MFG.TopRow = MAX(Me.MFG.TopRow - 30, 1)
+     Me.MFG.TopRow = MAXvb(Me.MFG.TopRow - 30, 1)
     Case 1
-     Me.MFG.TopRow = MIN(Me.MFG.TopRow + 30, Me.MFG.Rows)
+     Me.MFG.TopRow = MINvb(Me.MFG.TopRow + 30, Me.MFG.Rows)
     Case 2
      Unload Me
    End Select
@@ -1250,7 +1250,7 @@ Sub doFS(nuranzeigen%, Optional ohneakt% = False)
   Pause (Pausenlänge)
   SendKeys " ", True
   Pause (Pausenlänge)
-  SendKeys " " & Format(MIN(Now(), QEnd(ZQuart(Now() - Verspätung))), "ddmmyyyy") & "{TAB}", True
+  SendKeys " " & Format(MINvb(Now(), QEnd(ZQuart(Now() - Verspätung))), "ddmmyyyy") & "{TAB}", True
   Pause (Pausenlänge)
   SendKeys "%O", True
   Pause (Pausenlänge)
@@ -1472,7 +1472,7 @@ Public Sub callMachDMPBogen(Pat_id&, Optional VorDoku$, Optional obmitauswahl%, 
      End If
  End If
  If dtyp = 2 Then If VorDoku = vNS Then BogArtVar = typ2neu Else BogArtVar = typ2alt Else If VorDoku = vNS Then BogArtVar = typ1neu Else BogArtVar = typ1alt
- DokuDat = MIN(Now(), QEnd(ZQuart(Now() - Verspätung)))
+ DokuDat = MINvb(Now(), QEnd(ZQuart(Now() - Verspätung)))
  If obmitauswahl Then
   dmpba.Option1(BogArtVar - 1) = True
   Set dmpba.vater = Me
@@ -1666,13 +1666,11 @@ Public Sub domachDMPBogen(Pat_id&, BogArtlV As BogArtTyp, DokuDat As Date, Optio
 ' myFrag rsAnam, "SELECT * FROM `anamnesebogen` WHERE pat_id = " & Pat_id
 ' myFrag rnam, "SELECT * FROM `namen` WHERE pat_id = " & Pat_id
  Dim lVorl As Date
- myFrag rfal, "SELECT " & IIf(Not LVobMySQL, "top 1", "") & " * FROM `faelle` WHERE pat_id = " & Pat_id & " AND bhfb <= " & DatFor_k(MIN(Now(), QEnd(ZQuart(Now() - Verspätung)))) & " ORDER BY bhfb DESC, schgr" & IIf(LVobMySQL, " LIMIT 1", "")
+ myFrag rfal, "SELECT " & IIf(Not LVobMySQL, "top 1", "") & " * FROM `faelle` WHERE pat_id = " & Pat_id & " AND bhfb <= " & DatFor_k(MINvb(Now(), QEnd(ZQuart(Now() - Verspätung)))) & " ORDER BY bhfb DESC, schgr" & IIf(LVobMySQL, " LIMIT 1", "")
  lVorl = rfal!lVorl
- myFrag rform, "SELECT " & IIf(Not LVobMySQL, "top 1", "") & " `feldinh` FROM `formular` WHERE pat_id = " & Pat_id & " AND Feld = 'Kasse' AND `zeitpunkt` <= " & DatFor_k(MIN(Now(), QEnd(ZQuart(Now - Verspätung)))) & " AND feldinh LIKE '%'" & " ORDER BY zeitpunkt DESC" & IIf(LVobMySQL, " LIMIT 1", "") ' & aktdc.vknr & "%'"  geht nicht gut: VKNr nicht unbedingt aktuell in `faelle` (s.Pat_id 51)
+ myFrag rform, "SELECT " & IIf(Not LVobMySQL, "top 1", "") & " `feldinh` FROM `formular` WHERE pat_id = " & Pat_id & " AND Feld = 'Kasse' AND `zeitpunkt` <= " & DatFor_k(MINvb(Now(), QEnd(ZQuart(Now - Verspätung)))) & " AND feldinh LIKE '%'" & " ORDER BY zeitpunkt DESC" & IIf(LVobMySQL, " LIMIT 1", "") ' & aktdc.vknr & "%'"  geht nicht gut: VKNr nicht unbedingt aktuell in `faelle` (s.Pat_id 51)
 ' Ermittlung der 'Kasse' aus Rezepten oder Überweisungen oder vorherigen DMP-Dokus usw.
-
  Call DMPAusgeb0(aktDC, CStr(Pat_id), Not obStumm, , DokuDat) ' dort wird DMPString aufgerufen
- 
  Dim Kasse$
  If Not rform.BOF Then
   Kasse = rform!FeldInh ' Trim$(replace$(rform!FeldInh, aktdc.vknr, ""))
@@ -2216,8 +2214,10 @@ Public Sub domachDMPBogen(Pat_id&, BogArtlV As BogArtTyp, DokuDat As Date, Optio
 ' Hier der KV-Bereich
    Dim kvbereich$, rkvber As New ADODB.Recordset
    myFrag rkvber, "SELECT kv FROM plz WHERE plz = " & aktDC.plz
-   If Not rkvber.BOF Then
-    kvbereich = rkvber!KV
+   If rkvber.State = 0 Then
+    kvbereich = "71"
+   ElseIf Not rkvber.BOF Then
+    kvbereich = rkvber!kv
    Else
     kvbereich = "71"
    End If
@@ -2241,7 +2241,7 @@ Public Sub domachDMPBogen(Pat_id&, BogArtlV As BogArtTyp, DokuDat As Date, Optio
    ZsD = ZsD & "<BisDatumderGueltigkeit>" & Year(Now) + 1 & "-" & Right$("0" & Month(Now), 2) & "</BisDatumderGueltigkeit>"
 ' auskommentiert am 30.6.15, da bei Woltmann Fehler dadurch erzeugt ("Wenn eine Angabe im Feld KVK-Einlesedatum erfolgte, dann darf die Angabe der Statusergänzung nicht fehlen.")
    If ab0921 Then
-    ZsD = ZsD & "<KVKEinlesedatum>" & Format(MAX(QAnf(ZQuart(DokuDat)), lVorl), "yyyy-mm-dd") & "</KVKEinlesedatum>"
+    ZsD = ZsD & "<KVKEinlesedatum>" & Format(MAXvb(QAnf(ZQuart(DokuDat)), lVorl), "yyyy-mm-dd") & "</KVKEinlesedatum>"
    End If
    ZsD = ZsD & "<WohnsitzLaendercode>D</WohnsitzLaendercode>"
    If ab0921 Then
@@ -3514,8 +3514,8 @@ Private Sub Form_Load()
       End If
      Next i
      If Not gesetzt Then
-      Me.MFG.Row = MAX(z2, 1)
-      Me.MFG.TopRow = MAX(Me.MFG.Row - 10, 1)
+      Me.MFG.Row = MAXvb(z2, 1)
+      Me.MFG.TopRow = MAXvb(Me.MFG.Row - 10, 1)
       Me.MFG.col = 2
      End If
      Me.MFG.Visible = True
@@ -3534,7 +3534,7 @@ Private Sub Form_Load()
      sql = "SELECT f.bhfb, dmpbeg notiz, dmpklass, tkz, n.pat_id, n.nachname, n.vorname, icd, kurzname " & _
       "FROM `namen` n " & _
       "LEFT JOIN `diagview` d ON n.pat_id = d.pat_id AND gicd RLIKE '^E1[0-4]' " & _
-      "LEFT JOIN `faelle` f ON f.pat_id = n.pat_id AND bhfb = (SELECT MAX(bhfb) FROM `faelle` WHERE pat_id = n.pat_id AND bhfb < " & DatFor_k(MIN(Now(), QEnd(ZQuart(Now() - Verspätung)))) & ") " & _
+      "LEFT JOIN `faelle` f ON f.pat_id = n.pat_id AND bhfb = (SELECT MAX(bhfb) FROM `faelle` WHERE pat_id = n.pat_id AND bhfb < " & DatFor_k(MINvb(Now(), QEnd(ZQuart(Now() - Verspätung)))) & ") " & _
       "LEFT JOIN `anamnesebogen` a ON n.pat_id = a.pat_id " & _
       "LEFT JOIN `kassenliste` k ON k.ik = f.ik AND k.vknr = f.vknr "
       If Me.ohneTermine Then sql = sql & "LEFT JOIN termine t ON t.pid = n.pat_id AND DATE(t.zp) BETWEEN now() AND qende(NOW()) "
@@ -4258,12 +4258,12 @@ Private Sub MFG_MouseDown(Button As Integer, Shift As Integer, x As Single, Y As
       If Me.MFG.TextMatrix(i, 8) = altherk Then
        Me.MFG.Row = i
        Me.MFG.col = 2
-       Me.MFG.TopRow = MAX(i - 10, 1)
+       Me.MFG.TopRow = MAXvb(i - 10, 1)
        Exit For
       End If
      End If
     Next i
-   Else
+   Else ' MR = 0 Then
     QuellZ = MR
     If Me.MFG.TextMatrix(MR, 8) = "x" Then
      cb = IDS(1, MR)
@@ -4271,8 +4271,8 @@ Private Sub MFG_MouseDown(Button As Integer, Shift As Integer, x As Single, Y As
     Else
      cb = 0
     End If
-   End If
- End Select
+   End If ' MR = 0 Then else
+ End Select ' Case Me.PLArt
 End Sub ' MFG_MouseDown
 
 'vorausgehend:

@@ -968,12 +968,12 @@ vorabfra1:
     myFrag rEin, "SELECT COUNT(0) tk, DATE_FORMAT(MAX(zeitpunkt),'%e.%c.%y') zp FROM `eintraege` WHERE (art IN ('tk','ARCHIE2','APK') OR inhalt LIKE '%(tk)%') AND pat_id = " & Me.Pat_id
     If Not rEin.BOF Then
      If rEin!tk <> 0 Then
-      Zulp = MAX(Zulp, rEin!Zp)
+      Zulp = MAXvb(Zulp, rEin!Zp)
       Me.Arzt = "Kothny (" & rEin!tk & ", zul.: " & rEin!Zp & ") "
       lbeh = rEin!tk
       Me.Arzt.BackColor = &HFF&
      End If
-    End If
+    End If ' Not rEin.BOF Then
     Set rEin = Nothing
     myFrag rEin, "SELECT COUNT(0) gs, DATE_FORMAT(MAX(zeitpunkt),'%e.%c.%y') zp FROM `eintraege` WHERE ((art IN ('gs','doppler','duplex') AND NOT inhalt LIKE '%(tk)%') OR inhalt LIKE '%(gs)%') AND pat_id = " & Me.Pat_id
     If Not rEin.BOF Then
@@ -986,10 +986,10 @@ vorabfra1:
         Me.Arzt.BackColor = &HFF&
        End If
       If LenB(Me.Arzt) <> 0 Then Me.Arzt = Me.Arzt & ", "
-      Zulp = MAX(Zulp, rEin!Zp)
+      Zulp = MAXvb(Zulp, rEin!Zp)
       Me.Arzt = Me.Arzt & " Schade (" & rEin!gs & ", zul.: " & rEin!Zp & ")"
-     End If
-    End If
+     End If ' rEin!gs <> 0 Then
+    End If ' Not rEin.BOF Then
    
 '   IF LenB(Me.HAAusw) = 0 THEN
      Dim rs As New ADODB.Recordset

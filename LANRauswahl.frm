@@ -180,8 +180,8 @@ Private Sub Form_Load()
    rlan.MoveNext
   Loop
  End If
- Me.Height = MIN(Me.Option1.COUNT * 300& + 2000, 3675)
- Me.OK.Top = Me.Height - 1000
+ Me.Height = MINvb(Me.Option1.COUNT * 300& + 2000, 3675)
+ Me.Ok.Top = Me.Height - 1000
  Me.Abbruch.Top = Me.Height - 1000
  
  Exit Sub

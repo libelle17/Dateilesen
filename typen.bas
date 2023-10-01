@@ -60,6 +60,7 @@ Public type namen
  Cave AS string 'Cave varchar '3654
  Notiz AS string 'Notiz varchar '3634 DMP-Infos: DMP hier <datum>, DMP HA <datum>, DMP nein <datum>, DMP ausgeschrieben <datum>
  obChk AS string 'obChk varchar 'obChroniker (Feld 3800)
+ NZNr AS long 'NZNr int 'Notiz-Zeile Nr. (in welcher Zeile auf dem Desktop steht der unter 'Notiz' eingetragene Rest
  dmpklass AS long 'dmpklass int '1 = DMP nein, 2 = DMP HA, 3 = DMP hier, 4 = DMP ausgeschrieben
  dmpbeg AS date 'dmpbeg date 'Datum der aktuellen DMP-Klassifikation
  dmpkhkklass AS long 'dmpkhkklass int '1 = DMP nein, 2 = DMP HA, 3 = DMP hier
@@ -295,7 +296,7 @@ Public type forminhaltform_abk
 end type
 
 Public type formulare
- FormID AS long 'FormID int '
+ FormID AS long 'FormID int 'Primärindex formulare
  Form_Abk AS string 'Form_Abk varchar '
  FormBez AS string 'FormBez longtext '
  FormVorl AS string 'FormVorl varchar '
@@ -305,26 +306,26 @@ Public type formulare
 end type
 
 Public type forminhkopf
- FoID AS long 'FoID int '
- FID AS long 'FID int 'Fall-Bezug
- Pat_ID AS long 'Pat_ID int '
- Form_ID AS long 'Form_ID int '
+ FoID AS long 'FoID int 'Primär-Index für Formulare
+ FID AS long 'FID int '-> faelle.fid
+ Pat_ID AS long 'Pat_ID int '-> namen.pat_id
+ Form_ID AS long 'Form_ID int '-> formulare.FormID
  ZeitPunkt AS date 'ZeitPunkt datetime '
  AbsPos AS long 'AbsPos int 'Zeile in der BDT-Datei
  AktZeit AS date 'AktZeit datetime 'Aktualisierungszeit
  StByte AS long 'StByte int 'Ordnungsnummer der Datenübertragung
  Satzart AS string 'Satzart varchar '8000
  Satzlänge AS string 'Satzlänge varchar '8100
- LANRid AS long 'LANRid int 'Bezug auf lanrpraxis.id
+ LANRid AS long 'LANRid int '-> lanrpraxis.id
 end type
 
 Public type forminhfeld
- FoID AS long 'FoID int '
+ FoID AS long 'FoID int '-> forminhkopf.foid
  Nr AS integer 'Nr smallint '
  FeldNr AS integer 'FeldNr smallint '
- FeldVW AS long 'FeldVW int '
+ FeldVW AS long 'FeldVW int '->forminhaltfeld.FeldVW
  Feld AS string
- FeldInhVW AS long 'FeldInhVW int '
+ FeldInhVW AS long 'FeldInhVW int '-> forminhaltfeldinh.FeldinhVW
  FeldInh AS string
 end type
 
@@ -1401,6 +1402,7 @@ Public FUNCTION roNaZuw(i&, j&)
  roNa(i).Cave = rNa(j).Cave
  roNa(i).Notiz = rNa(j).Notiz
  roNa(i).obChk = rNa(j).obChk
+ roNa(i).NZNr = rNa(j).NZNr
  roNa(i).dmpklass = rNa(j).dmpklass
  roNa(i).dmpbeg = rNa(j).dmpbeg
  roNa(i).dmpkhkklass = rNa(j).dmpkhkklass
@@ -1485,6 +1487,7 @@ Public FUNCTION NaZUnt%(i&, j&)
  IF roNa(i).Cave <> rNa(j).Cave THEN gosub unter
  IF roNa(i).Notiz <> rNa(j).Notiz THEN gosub unter
  IF roNa(i).obChk <> rNa(j).obChk THEN gosub unter
+ IF roNa(i).NZNr <> rNa(j).NZNr THEN gosub unter
  IF roNa(i).dmpklass <> rNa(j).dmpklass THEN gosub unter
  IF roNa(i).dmpbeg <> rNa(j).dmpbeg THEN gosub unter
  IF roNa(i).dmpkhkklass <> rNa(j).dmpkhkklass THEN gosub unter
@@ -1533,13 +1536,13 @@ Public FUNCTION namenLaden()
 ",COALESCE(Arbeitgeber,'') Arbeitgeber,COALESCE(AnAllgda,0) AnAllgda,COALESCE(An1da,0) An1da,COALESCE(An2da,0) An2da" & _
 ",COALESCE(Checkda,0) Checkda,COALESCE(DMTypaD,'') DMTypaD,COALESCE(AktZeit - INTERVAL 0 DAY,CONVERT('18991230',DATE)) AktZeit,COALESCE(absPos,0) absPos" & _
 ",COALESCE(StByte,0) StByte,COALESCE(StByteA,0) StByteA,COALESCE(Cave,'') Cave,COALESCE(Notiz,'') Notiz" & _
-",COALESCE(obChk,'') obChk,COALESCE(dmpklass,0) dmpklass,COALESCE(dmpbeg - INTERVAL 0 DAY,CONVERT('18991230',DATE)) dmpbeg,COALESCE(dmpkhkklass,0) dmpkhkklass" & _
-",COALESCE(dmpkhkbeg - INTERVAL 0 DAY,CONVERT('18991230',DATE)) dmpkhkbeg,COALESCE(dmpcopdklass,0) dmpcopdklass,COALESCE(dmpcopdbeg - INTERVAL 0 DAY,CONVERT('18991230',DATE)) dmpcopdbeg,COALESCE(dmpabklass,0) dmpabklass" & _
-",COALESCE(dmpabbeg - INTERVAL 0 DAY,CONVERT('18991230',DATE)) dmpabbeg,COALESCE(dakab - INTERVAL 0 DAY,CONVERT('18991230',DATE)) dakab,COALESCE(HzV,0) HzV,COALESCE(HzVbeg - INTERVAL 0 DAY,CONVERT('18991230',DATE)) HzVbeg" & _
-",COALESCE(DS,0) DS,COALESCE(DSbeg - INTERVAL 0 DAY,CONVERT('18991230',DATE)) DSbeg,COALESCE(getHA0,0) getHA0,COALESCE(fnHA0,'') fnHA0" & _
-",COALESCE(getHA1,0) getHA1,COALESCE(fnHA1,'') fnHA1,COALESCE(getHA2,0) getHA2,COALESCE(fnHA2,'') fnHA2" & _
-",COALESCE(zubenach,'') zubenach,COALESCE(Verwandt,'') Verwandt,COALESCE(Sprache,'') Sprache,COALESCE(lAktTM - INTERVAL 0 DAY,CONVERT('18991230',DATE)) lAktTM" & _
-",COALESCE(Mitarbeiter,0) Mitarbeiter FROM `namen` WHERE Pat_ID=" & pid & " ORDER BY `kAufDat`
+",COALESCE(obChk,'') obChk,COALESCE(NZNr,0) NZNr,COALESCE(dmpklass,0) dmpklass,COALESCE(dmpbeg - INTERVAL 0 DAY,CONVERT('18991230',DATE)) dmpbeg" & _
+",COALESCE(dmpkhkklass,0) dmpkhkklass,COALESCE(dmpkhkbeg - INTERVAL 0 DAY,CONVERT('18991230',DATE)) dmpkhkbeg,COALESCE(dmpcopdklass,0) dmpcopdklass,COALESCE(dmpcopdbeg - INTERVAL 0 DAY,CONVERT('18991230',DATE)) dmpcopdbeg" & _
+",COALESCE(dmpabklass,0) dmpabklass,COALESCE(dmpabbeg - INTERVAL 0 DAY,CONVERT('18991230',DATE)) dmpabbeg,COALESCE(dakab - INTERVAL 0 DAY,CONVERT('18991230',DATE)) dakab,COALESCE(HzV,0) HzV" & _
+",COALESCE(HzVbeg - INTERVAL 0 DAY,CONVERT('18991230',DATE)) HzVbeg,COALESCE(DS,0) DS,COALESCE(DSbeg - INTERVAL 0 DAY,CONVERT('18991230',DATE)) DSbeg,COALESCE(getHA0,0) getHA0" & _
+",COALESCE(fnHA0,'') fnHA0,COALESCE(getHA1,0) getHA1,COALESCE(fnHA1,'') fnHA1,COALESCE(getHA2,0) getHA2" & _
+",COALESCE(fnHA2,'') fnHA2,COALESCE(zubenach,'') zubenach,COALESCE(Verwandt,'') Verwandt,COALESCE(Sprache,'') Sprache" & _
+",COALESCE(lAktTM - INTERVAL 0 DAY,CONVERT('18991230',DATE)) lAktTM,COALESCE(Mitarbeiter,0) Mitarbeiter FROM `namen` WHERE Pat_ID=" & pid & " ORDER BY `kAufDat`
  myFrag rs, sql
  ReDim roNa(1)
  If Not rs.EOF Then
@@ -1602,6 +1605,7 @@ Public FUNCTION namenLaden()
    roNa(akt).Cave = doUmwfSQL(rs!Cave, lies.obMySQL, False)
    roNa(akt).Notiz = doUmwfSQL(rs!Notiz, lies.obMySQL, False)
    roNa(akt).obChk = doUmwfSQL(rs!obChk, lies.obMySQL, False)
+   roNa(akt).NZNr = rs!NZNr
    roNa(akt).dmpklass = rs!dmpklass
    roNa(akt).dmpbeg = rs!dmpbeg
    roNa(akt).dmpkhkklass = rs!dmpkhkklass
@@ -1701,18 +1705,18 @@ Public FUNCTION namenSpeichern(SammelInsert%, BezfSp%)
      "LK_2,Postfach,Beruf,Weggeldzone,WeggzZahl,AufnDat,kAufDat,LANR,BStNr,Titel," & _
      "Versichertennummer,PrivatTel,KVNr,KVNr2,KVNr3,KVNr4,PrivatTel_2,PrivatFax,DienstTel,PrivatMobil," & _
      "Email,Arbeitgeber,AnAllgda,An1da,An2da,Checkda,DMTypaD,AktZeit,absPos,StByte," & _
-     "StByteA,Cave,Notiz,obChk,dmpklass,dmpbeg,dmpkhkklass,dmpkhkbeg,dmpcopdklass,dmpcopdbeg," & _
-     "dmpabklass,dmpabbeg,dakab,HzV,HzVbeg,DS,DSbeg,getHA0,fnHA0,getHA1," & _
-     "fnHA1,getHA2,fnHA2,zubenach,Verwandt,Sprache,lAktTM,Mitarbeiter) VALUES
+     "StByteA,Cave,Notiz,obChk,NZNr,dmpklass,dmpbeg,dmpkhkklass,dmpkhkbeg,dmpcopdklass," & _
+     "dmpcopdbeg,dmpabklass,dmpabbeg,dakab,HzV,HzVbeg,DS,DSbeg,getHA0,fnHA0," & _
+     "getHA1,fnHA1,getHA2,fnHA2,zubenach,Verwandt,Sprache,lAktTM,Mitarbeiter) VALUES
  Call csql0.AppVar(Array(" INSERT ", sqlIgnore, " INTO `namen` (Pat_ID,lfdnr,NVorsatz," & _
      "Nachname,Vorname,GebDat,f3004,f3006,Straße,KVKStatus,Hausnr,Geschlecht,Plz," & _
      "Ort,Lkz,Anschrzus,NVors,PFPlz,PFOrt,PFNr,f3124,AnschrZus_2,Postfach_2," & _
      "LK_2,Postfach,Beruf,Weggeldzone,WeggzZahl,AufnDat,kAufDat,LANR,BStNr,Titel," & _
      "Versichertennummer,PrivatTel,KVNr,KVNr2,KVNr3,KVNr4,PrivatTel_2,PrivatFax,DienstTel,PrivatMobil," & _
      "Email,Arbeitgeber,AnAllgda,An1da,An2da,Checkda,DMTypaD,AktZeit,absPos,StByte," & _
-     "StByteA,Cave,Notiz,obChk,dmpklass,dmpbeg,dmpkhkklass,dmpkhkbeg,dmpcopdklass,dmpcopdbeg," & _
-     "dmpabklass,dmpabbeg,dakab,HzV,HzVbeg,DS,DSbeg,getHA0,fnHA0,getHA1," & _
-     "fnHA1,getHA2,fnHA2,zubenach,Verwandt,Sprache,lAktTM,Mitarbeiter)               VALUES"))
+     "StByteA,Cave,Notiz,obChk,NZNr,dmpklass,dmpbeg,dmpkhkklass,dmpkhkbeg,dmpcopdklass," & _
+     "dmpcopdbeg,dmpabklass,dmpabbeg,dakab,HzV,HzVbeg,DS,DSbeg,getHA0,fnHA0," & _
+     "getHA1,fnHA1,getHA2,fnHA2,zubenach,Verwandt,Sprache,lAktTM,Mitarbeiter)        VALUES"))
 sql:
  csql.m_Len = 0
  IF NOT Allepat THEN
@@ -1732,14 +1736,16 @@ sql:
    rNa(i).Titel, "','" , rNa(i).Versichertennummer, "','" , rNa(i).PrivatTel, "','" , rNa(i).KVNr, "','" , rNa(i).KVNr2, "','" , rNa(i).KVNr3, "','" , rNa(i).KVNr4, "','" , rNa(i).PrivatTel_2, "','" ,  _
    rNa(i).PrivatFax, "','" , rNa(i).DienstTel, "','" , rNa(i).PrivatMobil, "','" , rNa(i).Email, "','" , rNa(i).Arbeitgeber, "'," , cstr(-(rNa(i).AnAllgda<>0)) , "," , cstr(-(rNa(i).An1da<>0)) , "," , cstr(-( _
    rNa(i).An2da<>0)) , "," , cstr(-(rNa(i).Checkda<>0)) , ",'" , rNa(i).DMTypaD, "'," , DatFor_k( 0 ), "," , rNa(i).absPos, "," , rNa(i).StByte, "," , rNa(i).StByteA, ",'" ,  _
-   rNa(i).Cave, "','" , rNa(i).Notiz, "','" , rNa(i).obChk, "'," , rNa(i).dmpklass, "," , DatFor_k(rNa(i).dmpbeg), "," , rNa(i).dmpkhkklass, "," , DatFor_k(rNa(i).dmpkhkbeg), "," , rNa(i).dmpcopdklass, "," , DatFor_k( _
-   rNa(i).dmpcopdbeg), "," , rNa(i).dmpabklass, "," , DatFor_k(rNa(i).dmpabbeg), "," , DatFor_k(rNa(i).dakab), "," , rNa(i).HzV, "," , DatFor_k(rNa(i).HzVbeg), "," , rNa(i).DS, "," , DatFor_k( _
-   rNa(i).DSbeg), "," , rNa(i).getHA0, ",'" , rNa(i).fnHA0, "'," , rNa(i).getHA1, ",'" , rNa(i).fnHA1, "'," , rNa(i).getHA2, ",'" , rNa(i).fnHA2, "','" , rNa(i).zubenach, "','" ,  _
+   rNa(i).Cave, "','" , rNa(i).Notiz, "','" , rNa(i).obChk, "'," , rNa(i).NZNr, "," , rNa(i).dmpklass, "," , DatFor_k(rNa(i).dmpbeg), "," , rNa(i).dmpkhkklass, "," , DatFor_k(rNa(i).dmpkhkbeg), "," ,  _
+   rNa(i).dmpcopdklass, "," , DatFor_k(rNa(i).dmpcopdbeg), "," , rNa(i).dmpabklass, "," , DatFor_k(rNa(i).dmpabbeg), "," , DatFor_k(rNa(i).dakab), "," , rNa(i).HzV, "," , DatFor_k(rNa(i).HzVbeg), "," ,  _
+   rNa(i).DS, "," , DatFor_k(rNa(i).DSbeg), "," , rNa(i).getHA0, ",'" , rNa(i).fnHA0, "'," , rNa(i).getHA1, ",'" , rNa(i).fnHA1, "'," , rNa(i).getHA2, ",'" , rNa(i).fnHA2, "','" , rNa(i).zubenach, "','" ,  _
    rNa(i).Verwandt, "','" , rNa(i).Sprache, "'," , DatFor_k(rNa(i).lAktTM), "," , rNa(i).Mitarbeiter, ")")
   IF SammelInsert <> 0 AND i < ubound(rNa) THEN csql.Append ","
   IF SammelInsert = 0 OR i = ubound(rNa) THEN
-    altmode = DBCn.Execute("SELECT @@global.sql_mode").Fields(0)
-   Call DBCn.Execute("SET GLOBAL sql_mode='STRICT_TRANS_TABLES'") ' NO_ENGINE_SUBSTITUTION
+'    altmode = DBCn.Execute("SELECT @@global.sql_mode").Fields(0)
+    altmode = myEFrag("SELECT @@global.sql_mode", , DBCn).Fields(0)
+'   Call DBCn.Execute("SET GLOBAL sql_mode='STRICT_TRANS_TABLES'") ' NO_ENGINE_SUBSTITUTION
+    myEFrag "SET GLOBAL sql_mode='STRICT_TRANS_TABLES'", , DBCn ' NO_ENGINE_SUBSTITUTION
 '   Call myEFrag(csql.Value,rAf)', , adAsyncExecute) ' wegen unzureichender Fehlerverarbeitung wieder ausrangiert 19.8.23
    Call DBCn.Execute(csql.Value, rAF) ', , adAsyncExecute)
    IF obforK THEN
@@ -1825,7 +1831,7 @@ ElseIf ErrNumber = -2147217833 OR InStrB(ErrDescr, "Daten zu lang") <> 0 OR InSt
   IF Len(rNa(k).Verwandt) > maxi(47) THEN maxi(47) = Len(rNa(k).Verwandt)
   IF Len(rNa(k).Sprache) > maxi(48) THEN maxi(48) = Len(rNa(k).Sprache)
  next k
- IF obTrans <>0 Then If DBCn.Execute("SELECT COUNT(1) FROM information_schema.innodb_trx WHERE trx_mysql_thread_id = CONNECTION_ID()").Fields(0) <> 0 Then ComTrans ' DBCn.CommitTrans: obtrans = 0
+ If obTrans <> 0 Then If myEFrag("SELECT COUNT(1) FROM information_schema.innodb_trx WHERE trx_mysql_thread_id = CONNECTION_ID()", , DBCn).Fields(0) <> 0 Then ComTrans ' DBCn.CommitTrans: obtrans = 0
  nochmal:
  SET rsc = New ADODB.Recordset
  SET rsc = DBCnOSchema(adSchemaColumns, Array(Empty, Empty, "namen", Empty))
@@ -2574,8 +2580,10 @@ sql:
   IF SammelInsert <> 0 AND i < ubound(rFa) THEN csql.Append ","
   IF SammelInsert = 0 OR i = ubound(rFa) THEN
 '   IF Not obForK THEN ForeignNo0
-    altmode = DBCn.Execute("SELECT @@global.sql_mode").Fields(0)
-   Call DBCn.Execute("SET GLOBAL sql_mode='STRICT_TRANS_TABLES'") ' NO_ENGINE_SUBSTITUTION
+'    altmode = DBCn.Execute("SELECT @@global.sql_mode").Fields(0)
+    altmode = myEFrag("SELECT @@global.sql_mode", , DBCn).Fields(0)
+'   Call DBCn.Execute("SET GLOBAL sql_mode='STRICT_TRANS_TABLES'") ' NO_ENGINE_SUBSTITUTION
+    myEFrag "SET GLOBAL sql_mode='STRICT_TRANS_TABLES'", , DBCn ' NO_ENGINE_SUBSTITUTION
 '   Call myEFrag(csql.Value,rAf)', , adAsyncExecute) ' wegen unzureichender Fehlerverarbeitung wieder ausrangiert 19.8.23
    Call DBCn.Execute(csql.Value, rAF) ', , adAsyncExecute)
 '   IF Not obFork THEN ForeignYes0
@@ -2813,7 +2821,7 @@ ElseIf ErrNumber = -2147217833 OR InStrB(ErrDescr, "Daten zu lang") <> 0 OR InSt
   IF Len(rFa(k).dmphalbj) > maxi(79) THEN maxi(79) = Len(rFa(k).dmphalbj)
   IF Len(rFa(k).dmpMA) > maxi(80) THEN maxi(80) = Len(rFa(k).dmpMA)
  next k
- IF obTrans <>0 Then If DBCn.Execute("SELECT COUNT(1) FROM information_schema.innodb_trx WHERE trx_mysql_thread_id = CONNECTION_ID()").Fields(0) <> 0 Then ComTrans ' DBCn.CommitTrans: obtrans = 0
+ If obTrans <> 0 Then If myEFrag("SELECT COUNT(1) FROM information_schema.innodb_trx WHERE trx_mysql_thread_id = CONNECTION_ID()", , DBCn).Fields(0) <> 0 Then ComTrans ' DBCn.CommitTrans: obtrans = 0
  nochmal:
  SET rsc = New ADODB.Recordset
  SET rsc = DBCnOSchema(adSchemaColumns, Array(Empty, Empty, "faelle", Empty))
@@ -3082,8 +3090,10 @@ sql:
    rAu(i).StByte, ")")
   IF SammelInsert <> 0 AND i < ubound(rAu) THEN csql.Append ","
   IF SammelInsert = 0 OR i = ubound(rAu) THEN
-    altmode = DBCn.Execute("SELECT @@global.sql_mode").Fields(0)
-   Call DBCn.Execute("SET GLOBAL sql_mode='STRICT_TRANS_TABLES'") ' NO_ENGINE_SUBSTITUTION
+'    altmode = DBCn.Execute("SELECT @@global.sql_mode").Fields(0)
+    altmode = myEFrag("SELECT @@global.sql_mode", , DBCn).Fields(0)
+'   Call DBCn.Execute("SET GLOBAL sql_mode='STRICT_TRANS_TABLES'") ' NO_ENGINE_SUBSTITUTION
+    myEFrag "SET GLOBAL sql_mode='STRICT_TRANS_TABLES'", , DBCn ' NO_ENGINE_SUBSTITUTION
 '   Call myEFrag(csql.Value,rAf)', , adAsyncExecute) ' wegen unzureichender Fehlerverarbeitung wieder ausrangiert 19.8.23
    Call DBCn.Execute(csql.Value, rAF) ', , adAsyncExecute)
    IF obforK THEN
@@ -3123,7 +3133,7 @@ ElseIf ErrNumber = -2147217833 OR InStrB(ErrDescr, "Daten zu lang") <> 0 OR InSt
   IF Len(rAu(k).Ende) > maxi(1) THEN maxi(1) = Len(rAu(k).Ende)
   IF Len(rAu(k).ICDs) > maxi(2) THEN maxi(2) = Len(rAu(k).ICDs)
  next k
- IF obTrans <>0 Then If DBCn.Execute("SELECT COUNT(1) FROM information_schema.innodb_trx WHERE trx_mysql_thread_id = CONNECTION_ID()").Fields(0) <> 0 Then ComTrans ' DBCn.CommitTrans: obtrans = 0
+ If obTrans <> 0 Then If myEFrag("SELECT COUNT(1) FROM information_schema.innodb_trx WHERE trx_mysql_thread_id = CONNECTION_ID()", , DBCn).Fields(0) <> 0 Then ComTrans ' DBCn.CommitTrans: obtrans = 0
  nochmal:
  SET rsc = New ADODB.Recordset
  SET rsc = DBCnOSchema(adSchemaColumns, Array(Empty, Empty, "au", Empty))
@@ -3336,8 +3346,10 @@ sql:
    rBr(i).Typ, "'," , DatFor_k(rBr(i).AktZeit), "," , rBr(i).DokGroe, "," , DatFor_k(rBr(i).DokAenD), ",'" , rBr(i).QS, "','" , rBr(i).QT, "'," , rBr(i).absPos, "," , rBr(i).StByte, ")")
   IF SammelInsert <> 0 AND i < ubound(rBr) THEN csql.Append ","
   IF SammelInsert = 0 OR i = ubound(rBr) THEN
-    altmode = DBCn.Execute("SELECT @@global.sql_mode").Fields(0)
-   Call DBCn.Execute("SET GLOBAL sql_mode='STRICT_TRANS_TABLES'") ' NO_ENGINE_SUBSTITUTION
+'    altmode = DBCn.Execute("SELECT @@global.sql_mode").Fields(0)
+    altmode = myEFrag("SELECT @@global.sql_mode", , DBCn).Fields(0)
+'   Call DBCn.Execute("SET GLOBAL sql_mode='STRICT_TRANS_TABLES'") ' NO_ENGINE_SUBSTITUTION
+    myEFrag "SET GLOBAL sql_mode='STRICT_TRANS_TABLES'", , DBCn ' NO_ENGINE_SUBSTITUTION
 '   Call myEFrag(csql.Value,rAf)', , adAsyncExecute) ' wegen unzureichender Fehlerverarbeitung wieder ausrangiert 19.8.23
    Call DBCn.Execute(csql.Value, rAF) ', , adAsyncExecute)
    IF obforK THEN
@@ -3381,7 +3393,7 @@ ElseIf ErrNumber = -2147217833 OR InStrB(ErrDescr, "Daten zu lang") <> 0 OR InSt
   IF Len(rBr(k).QS) > maxi(5) THEN maxi(5) = Len(rBr(k).QS)
   IF Len(rBr(k).QT) > maxi(6) THEN maxi(6) = Len(rBr(k).QT)
  next k
- IF obTrans <>0 Then If DBCn.Execute("SELECT COUNT(1) FROM information_schema.innodb_trx WHERE trx_mysql_thread_id = CONNECTION_ID()").Fields(0) <> 0 Then ComTrans ' DBCn.CommitTrans: obtrans = 0
+ If obTrans <> 0 Then If myEFrag("SELECT COUNT(1) FROM information_schema.innodb_trx WHERE trx_mysql_thread_id = CONNECTION_ID()", , DBCn).Fields(0) <> 0 Then ComTrans ' DBCn.CommitTrans: obtrans = 0
  nochmal:
  SET rsc = New ADODB.Recordset
  SET rsc = DBCnOSchema(adSchemaColumns, Array(Empty, Empty, "briefe", Empty))
@@ -3605,8 +3617,10 @@ sql:
    rDi(i).lKasse), ",'" , rDi(i).f6011, "')")
   IF SammelInsert <> 0 AND i < ubound(rDi) THEN csql.Append ","
   IF SammelInsert = 0 OR i = ubound(rDi) THEN
-    altmode = DBCn.Execute("SELECT @@global.sql_mode").Fields(0)
-   Call DBCn.Execute("SET GLOBAL sql_mode='STRICT_TRANS_TABLES'") ' NO_ENGINE_SUBSTITUTION
+'    altmode = DBCn.Execute("SELECT @@global.sql_mode").Fields(0)
+    altmode = myEFrag("SELECT @@global.sql_mode", , DBCn).Fields(0)
+'   Call DBCn.Execute("SET GLOBAL sql_mode='STRICT_TRANS_TABLES'") ' NO_ENGINE_SUBSTITUTION
+    myEFrag "SET GLOBAL sql_mode='STRICT_TRANS_TABLES'", , DBCn ' NO_ENGINE_SUBSTITUTION
 '   Call myEFrag(csql.Value,rAf)', , adAsyncExecute) ' wegen unzureichender Fehlerverarbeitung wieder ausrangiert 19.8.23
    Call DBCn.Execute(csql.Value, rAF) ', , adAsyncExecute)
    IF obforK THEN
@@ -3651,7 +3665,7 @@ ElseIf ErrNumber = -2147217833 OR InStrB(ErrDescr, "Daten zu lang") <> 0 OR InSt
   IF Len(rDi(k).AusnBegr) > maxi(6) THEN maxi(6) = Len(rDi(k).AusnBegr)
   IF Len(rDi(k).f6011) > maxi(7) THEN maxi(7) = Len(rDi(k).f6011)
  next k
- IF obTrans <>0 Then If DBCn.Execute("SELECT COUNT(1) FROM information_schema.innodb_trx WHERE trx_mysql_thread_id = CONNECTION_ID()").Fields(0) <> 0 Then ComTrans ' DBCn.CommitTrans: obtrans = 0
+ If obTrans <> 0 Then If myEFrag("SELECT COUNT(1) FROM information_schema.innodb_trx WHERE trx_mysql_thread_id = CONNECTION_ID()", , DBCn).Fields(0) <> 0 Then ComTrans ' DBCn.CommitTrans: obtrans = 0
  nochmal:
  SET rsc = New ADODB.Recordset
  SET rsc = DBCnOSchema(adSchemaColumns, Array(Empty, Empty, "diagnosen", Empty))
@@ -3859,8 +3873,10 @@ sql:
    rDo(i).absPos, "," , DatFor_k(rDo(i).AktZeit), "," , rDo(i).DokGroe, "," , DatFor_k(rDo(i).DokAenD), ",'" , rDo(i).QS, "','" , rDo(i).QT, "'," , rDo(i).StByte, ")")
   IF SammelInsert <> 0 AND i < ubound(rDo) THEN csql.Append ","
   IF SammelInsert = 0 OR i = ubound(rDo) THEN
-    altmode = DBCn.Execute("SELECT @@global.sql_mode").Fields(0)
-   Call DBCn.Execute("SET GLOBAL sql_mode='STRICT_TRANS_TABLES'") ' NO_ENGINE_SUBSTITUTION
+'    altmode = DBCn.Execute("SELECT @@global.sql_mode").Fields(0)
+    altmode = myEFrag("SELECT @@global.sql_mode", , DBCn).Fields(0)
+'   Call DBCn.Execute("SET GLOBAL sql_mode='STRICT_TRANS_TABLES'") ' NO_ENGINE_SUBSTITUTION
+    myEFrag "SET GLOBAL sql_mode='STRICT_TRANS_TABLES'", , DBCn ' NO_ENGINE_SUBSTITUTION
 '   Call myEFrag(csql.Value,rAf)', , adAsyncExecute) ' wegen unzureichender Fehlerverarbeitung wieder ausrangiert 19.8.23
    Call DBCn.Execute(csql.Value, rAF) ', , adAsyncExecute)
    IF obforK THEN
@@ -3902,7 +3918,7 @@ ElseIf ErrNumber = -2147217833 OR InStrB(ErrDescr, "Daten zu lang") <> 0 OR InSt
   IF Len(rDo(k).QS) > maxi(3) THEN maxi(3) = Len(rDo(k).QS)
   IF Len(rDo(k).QT) > maxi(4) THEN maxi(4) = Len(rDo(k).QT)
  next k
- IF obTrans <>0 Then If DBCn.Execute("SELECT COUNT(1) FROM information_schema.innodb_trx WHERE trx_mysql_thread_id = CONNECTION_ID()").Fields(0) <> 0 Then ComTrans ' DBCn.CommitTrans: obtrans = 0
+ If obTrans <> 0 Then If myEFrag("SELECT COUNT(1) FROM information_schema.innodb_trx WHERE trx_mysql_thread_id = CONNECTION_ID()", , DBCn).Fields(0) <> 0 Then ComTrans ' DBCn.CommitTrans: obtrans = 0
  nochmal:
  SET rsc = New ADODB.Recordset
  SET rsc = DBCnOSchema(adSchemaColumns, Array(Empty, Empty, "dokumente", Empty))
@@ -4099,8 +4115,10 @@ sql:
    rEi(i).QT, "'," , rEi(i).StByte, "," , replace$(rEi(i).inhNum,",","."), ")")
   IF SammelInsert <> 0 AND i < ubound(rEi) THEN csql.Append ","
   IF SammelInsert = 0 OR i = ubound(rEi) THEN
-    altmode = DBCn.Execute("SELECT @@global.sql_mode").Fields(0)
-   Call DBCn.Execute("SET GLOBAL sql_mode='STRICT_TRANS_TABLES'") ' NO_ENGINE_SUBSTITUTION
+'    altmode = DBCn.Execute("SELECT @@global.sql_mode").Fields(0)
+    altmode = myEFrag("SELECT @@global.sql_mode", , DBCn).Fields(0)
+'   Call DBCn.Execute("SET GLOBAL sql_mode='STRICT_TRANS_TABLES'") ' NO_ENGINE_SUBSTITUTION
+    myEFrag "SET GLOBAL sql_mode='STRICT_TRANS_TABLES'", , DBCn ' NO_ENGINE_SUBSTITUTION
 '   Call myEFrag(csql.Value,rAf)', , adAsyncExecute) ' wegen unzureichender Fehlerverarbeitung wieder ausrangiert 19.8.23
    Call DBCn.Execute(csql.Value, rAF) ', , adAsyncExecute)
    IF obforK THEN
@@ -4141,7 +4159,7 @@ ElseIf ErrNumber = -2147217833 OR InStrB(ErrDescr, "Daten zu lang") <> 0 OR InSt
   IF Len(rEi(k).QS) > maxi(2) THEN maxi(2) = Len(rEi(k).QS)
   IF Len(rEi(k).QT) > maxi(3) THEN maxi(3) = Len(rEi(k).QT)
  next k
- IF obTrans <>0 Then If DBCn.Execute("SELECT COUNT(1) FROM information_schema.innodb_trx WHERE trx_mysql_thread_id = CONNECTION_ID()").Fields(0) <> 0 Then ComTrans ' DBCn.CommitTrans: obtrans = 0
+ If obTrans <> 0 Then If myEFrag("SELECT COUNT(1) FROM information_schema.innodb_trx WHERE trx_mysql_thread_id = CONNECTION_ID()", , DBCn).Fields(0) <> 0 Then ComTrans ' DBCn.CommitTrans: obtrans = 0
  nochmal:
  SET rsc = New ADODB.Recordset
  SET rsc = DBCnOSchema(adSchemaColumns, Array(Empty, Empty, "eintraege", Empty))
@@ -4210,8 +4228,10 @@ sql:
   csql.AppVar Array("('" , rFi(i).Form_Abk, "')")
   IF SammelInsert <> 0 AND i < ubound(rFi) THEN csql.Append ","
   IF SammelInsert = 0 OR i = ubound(rFi) THEN
-    altmode = DBCn.Execute("SELECT @@global.sql_mode").Fields(0)
-   Call DBCn.Execute("SET GLOBAL sql_mode='STRICT_TRANS_TABLES'") ' NO_ENGINE_SUBSTITUTION
+'    altmode = DBCn.Execute("SELECT @@global.sql_mode").Fields(0)
+    altmode = myEFrag("SELECT @@global.sql_mode", , DBCn).Fields(0)
+'   Call DBCn.Execute("SET GLOBAL sql_mode='STRICT_TRANS_TABLES'") ' NO_ENGINE_SUBSTITUTION
+    myEFrag "SET GLOBAL sql_mode='STRICT_TRANS_TABLES'", , DBCn ' NO_ENGINE_SUBSTITUTION
 '   Call myEFrag(csql.Value,rAf)', , adAsyncExecute) ' wegen unzureichender Fehlerverarbeitung wieder ausrangiert 19.8.23
    Call DBCn.Execute(csql.Value, rAF) ', , adAsyncExecute)
    IF obforK THEN
@@ -4250,7 +4270,7 @@ ElseIf ErrNumber = -2147217833 OR InStrB(ErrDescr, "Daten zu lang") <> 0 OR InSt
  for k = iif(SammelInsert<>0,rFi1 + 1,i) to iif(SammelInsert<>0,ubound(rFi),i)
   IF Len(rFi(k).Form_Abk) > maxi(0) THEN maxi(0) = Len(rFi(k).Form_Abk)
  next k
- IF obTrans <>0 Then If DBCn.Execute("SELECT COUNT(1) FROM information_schema.innodb_trx WHERE trx_mysql_thread_id = CONNECTION_ID()").Fields(0) <> 0 Then ComTrans ' DBCn.CommitTrans: obtrans = 0
+ If obTrans <> 0 Then If myEFrag("SELECT COUNT(1) FROM information_schema.innodb_trx WHERE trx_mysql_thread_id = CONNECTION_ID()", , DBCn).Fields(0) <> 0 Then ComTrans ' DBCn.CommitTrans: obtrans = 0
  nochmal:
  SET rsc = New ADODB.Recordset
  SET rsc = DBCnOSchema(adSchemaColumns, Array(Empty, Empty, "forminhaltform_abk", Empty))
@@ -4319,8 +4339,10 @@ sql:
   csql.AppVar Array("(" , rFo(i).FormID, ",'" , rFo(i).Form_Abk, "','" , rFo(i).FormBez, "','" , rFo(i).FormVorl, "'," , DatFor_k(rFo(i).AktZeit), "," , rFo(i).absPos, "," , rFo(i).StByte, ")")
   IF SammelInsert <> 0 AND i < ubound(rFo) THEN csql.Append ","
   IF SammelInsert = 0 OR i = ubound(rFo) THEN
-    altmode = DBCn.Execute("SELECT @@global.sql_mode").Fields(0)
-   Call DBCn.Execute("SET GLOBAL sql_mode='STRICT_TRANS_TABLES'") ' NO_ENGINE_SUBSTITUTION
+'    altmode = DBCn.Execute("SELECT @@global.sql_mode").Fields(0)
+    altmode = myEFrag("SELECT @@global.sql_mode", , DBCn).Fields(0)
+'   Call DBCn.Execute("SET GLOBAL sql_mode='STRICT_TRANS_TABLES'") ' NO_ENGINE_SUBSTITUTION
+    myEFrag "SET GLOBAL sql_mode='STRICT_TRANS_TABLES'", , DBCn ' NO_ENGINE_SUBSTITUTION
 '   Call myEFrag(csql.Value,rAf)', , adAsyncExecute) ' wegen unzureichender Fehlerverarbeitung wieder ausrangiert 19.8.23
    Call DBCn.Execute(csql.Value, rAF) ', , adAsyncExecute)
    IF obforK THEN
@@ -4361,7 +4383,7 @@ ElseIf ErrNumber = -2147217833 OR InStrB(ErrDescr, "Daten zu lang") <> 0 OR InSt
   IF Len(rFo(k).FormBez) > maxi(1) THEN maxi(1) = Len(rFo(k).FormBez)
   IF Len(rFo(k).FormVorl) > maxi(2) THEN maxi(2) = Len(rFo(k).FormVorl)
  next k
- IF obTrans <>0 Then If DBCn.Execute("SELECT COUNT(1) FROM information_schema.innodb_trx WHERE trx_mysql_thread_id = CONNECTION_ID()").Fields(0) <> 0 Then ComTrans ' DBCn.CommitTrans: obtrans = 0
+ If obTrans <> 0 Then If myEFrag("SELECT COUNT(1) FROM information_schema.innodb_trx WHERE trx_mysql_thread_id = CONNECTION_ID()", , DBCn).Fields(0) <> 0 Then ComTrans ' DBCn.CommitTrans: obtrans = 0
  nochmal:
  SET rsc = New ADODB.Recordset
  SET rsc = DBCnOSchema(adSchemaColumns, Array(Empty, Empty, "formulare", Empty))
@@ -4556,8 +4578,10 @@ sql:
    rFr(i).Satzart, "','" , rFr(i).Satzlänge, "'," , rFr(i).LANRid, ")")
   IF SammelInsert <> 0 AND i < ubound(rFr) THEN csql.Append ","
   IF SammelInsert = 0 OR i = ubound(rFr) THEN
-    altmode = DBCn.Execute("SELECT @@global.sql_mode").Fields(0)
-   Call DBCn.Execute("SET GLOBAL sql_mode='STRICT_TRANS_TABLES'") ' NO_ENGINE_SUBSTITUTION
+'    altmode = DBCn.Execute("SELECT @@global.sql_mode").Fields(0)
+    altmode = myEFrag("SELECT @@global.sql_mode", , DBCn).Fields(0)
+'   Call DBCn.Execute("SET GLOBAL sql_mode='STRICT_TRANS_TABLES'") ' NO_ENGINE_SUBSTITUTION
+    myEFrag "SET GLOBAL sql_mode='STRICT_TRANS_TABLES'", , DBCn ' NO_ENGINE_SUBSTITUTION
 '   Call myEFrag(csql.Value,rAf)', , adAsyncExecute) ' wegen unzureichender Fehlerverarbeitung wieder ausrangiert 19.8.23
    Call DBCn.Execute(csql.Value, rAF) ', , adAsyncExecute)
    IF obforK THEN
@@ -4580,7 +4604,7 @@ If ErrNumber = -2147217900 And ErrDescr Like "*Duplicate entry * for key 'PRIMAR
 ' Debug.Print schlüssel
  For iiru = 1 To UBound(rFr)
   If rFr(iiru).Foid = schlüssel Then
-   If FoIDv = 0 Then FoIDv = DBCn.Execute("SELECT (MAX(foid)+1) FROM forminhkopf").fields(0) Else FoIDv = FoIDv + 1
+   If FoIDv = 0 Then FoIDv = MyEfrag("SELECT (MAX(foid)+1) FROM forminhkopf", , DBCn).fields(0) Else FoIDv = FoIDv + 1
    rFr(iiru).Foid = FoIDv
    For jjru = 1 To UBound(rFm)
     If rFm(jjru).Foid = schlüssel Then rFm(jjru).Foid = FoIDv
@@ -4614,7 +4638,7 @@ ElseIf ErrNumber = -2147217833 OR InStrB(ErrDescr, "Daten zu lang") <> 0 OR InSt
   IF Len(rFr(k).Satzart) > maxi(0) THEN maxi(0) = Len(rFr(k).Satzart)
   IF Len(rFr(k).Satzlänge) > maxi(1) THEN maxi(1) = Len(rFr(k).Satzlänge)
  next k
- IF obTrans <>0 Then If DBCn.Execute("SELECT COUNT(1) FROM information_schema.innodb_trx WHERE trx_mysql_thread_id = CONNECTION_ID()").Fields(0) <> 0 Then ComTrans ' DBCn.CommitTrans: obtrans = 0
+ If obTrans <> 0 Then If myEFrag("SELECT COUNT(1) FROM information_schema.innodb_trx WHERE trx_mysql_thread_id = CONNECTION_ID()", , DBCn).Fields(0) <> 0 Then ComTrans ' DBCn.CommitTrans: obtrans = 0
  nochmal:
  SET rsc = New ADODB.Recordset
  SET rsc = DBCnOSchema(adSchemaColumns, Array(Empty, Empty, "forminhkopf", Empty))
@@ -4683,8 +4707,10 @@ sql:
   csql.AppVar Array("(" , rFm(i).FoID, "," , rFm(i).Nr, "," , rFm(i).FeldNr, "," , rFm(i).FeldVW, "," , rFm(i).FeldInhVW, ")")
   IF SammelInsert <> 0 AND i < ubound(rFm) THEN csql.Append ","
   IF SammelInsert = 0 OR i = ubound(rFm) THEN
-    altmode = DBCn.Execute("SELECT @@global.sql_mode").Fields(0)
-   Call DBCn.Execute("SET GLOBAL sql_mode='STRICT_TRANS_TABLES'") ' NO_ENGINE_SUBSTITUTION
+'    altmode = DBCn.Execute("SELECT @@global.sql_mode").Fields(0)
+    altmode = myEFrag("SELECT @@global.sql_mode", , DBCn).Fields(0)
+'   Call DBCn.Execute("SET GLOBAL sql_mode='STRICT_TRANS_TABLES'") ' NO_ENGINE_SUBSTITUTION
+    myEFrag "SET GLOBAL sql_mode='STRICT_TRANS_TABLES'", , DBCn ' NO_ENGINE_SUBSTITUTION
 '   Call myEFrag(csql.Value,rAf)', , adAsyncExecute) ' wegen unzureichender Fehlerverarbeitung wieder ausrangiert 19.8.23
    Call DBCn.Execute(csql.Value, rAF) ', , adAsyncExecute)
    IF obforK THEN
@@ -4721,7 +4747,7 @@ ElseIf ErrNumber = -2147217833 OR InStrB(ErrDescr, "Daten zu lang") <> 0 OR InSt
  redim maxi(-1)
  for k = iif(SammelInsert<>0,1,i) to iif(SammelInsert<>0,ubound(rFm),i)
  next k
- IF obTrans <>0 Then If DBCn.Execute("SELECT COUNT(1) FROM information_schema.innodb_trx WHERE trx_mysql_thread_id = CONNECTION_ID()").Fields(0) <> 0 Then ComTrans ' DBCn.CommitTrans: obtrans = 0
+ If obTrans <> 0 Then If myEFrag("SELECT COUNT(1) FROM information_schema.innodb_trx WHERE trx_mysql_thread_id = CONNECTION_ID()", , DBCn).Fields(0) <> 0 Then ComTrans ' DBCn.CommitTrans: obtrans = 0
  nochmal:
  SET rsc = New ADODB.Recordset
  SET rsc = DBCnOSchema(adSchemaColumns, Array(Empty, Empty, "forminhfeld", Empty))
@@ -4899,8 +4925,10 @@ sql:
   csql.AppVar Array("(" , rKh(i).FID, "," , rKh(i).Pat_ID, "," , DatFor_k(rKh(i).ZeitPunkt), ",'" , rKh(i).Ziel, "','" , rKh(i).Diagnose, "'," , rKh(i).absPos, "," , DatFor_k(rKh(i).AktZeit), "," , rKh(i).StByte, ")")
   IF SammelInsert <> 0 AND i < ubound(rKh) THEN csql.Append ","
   IF SammelInsert = 0 OR i = ubound(rKh) THEN
-    altmode = DBCn.Execute("SELECT @@global.sql_mode").Fields(0)
-   Call DBCn.Execute("SET GLOBAL sql_mode='STRICT_TRANS_TABLES'") ' NO_ENGINE_SUBSTITUTION
+'    altmode = DBCn.Execute("SELECT @@global.sql_mode").Fields(0)
+    altmode = myEFrag("SELECT @@global.sql_mode", , DBCn).Fields(0)
+'   Call DBCn.Execute("SET GLOBAL sql_mode='STRICT_TRANS_TABLES'") ' NO_ENGINE_SUBSTITUTION
+    myEFrag "SET GLOBAL sql_mode='STRICT_TRANS_TABLES'", , DBCn ' NO_ENGINE_SUBSTITUTION
 '   Call myEFrag(csql.Value,rAf)', , adAsyncExecute) ' wegen unzureichender Fehlerverarbeitung wieder ausrangiert 19.8.23
    Call DBCn.Execute(csql.Value, rAF) ', , adAsyncExecute)
    IF obforK THEN
@@ -4939,7 +4967,7 @@ ElseIf ErrNumber = -2147217833 OR InStrB(ErrDescr, "Daten zu lang") <> 0 OR InSt
   IF Len(rKh(k).Ziel) > maxi(0) THEN maxi(0) = Len(rKh(k).Ziel)
   IF Len(rKh(k).Diagnose) > maxi(1) THEN maxi(1) = Len(rKh(k).Diagnose)
  next k
- IF obTrans <>0 Then If DBCn.Execute("SELECT COUNT(1) FROM information_schema.innodb_trx WHERE trx_mysql_thread_id = CONNECTION_ID()").Fields(0) <> 0 Then ComTrans ' DBCn.CommitTrans: obtrans = 0
+ If obTrans <> 0 Then If myEFrag("SELECT COUNT(1) FROM information_schema.innodb_trx WHERE trx_mysql_thread_id = CONNECTION_ID()", , DBCn).Fields(0) <> 0 Then ComTrans ' DBCn.CommitTrans: obtrans = 0
  nochmal:
  SET rsc = New ADODB.Recordset
  SET rsc = DBCnOSchema(adSchemaColumns, Array(Empty, Empty, "kheinweis", Empty))
@@ -5115,8 +5143,10 @@ sql:
   csql.AppVar Array("(" , rLb(i).FID, "," , rLb(i).Pat_ID, "," , DatFor_k(rLb(i).ZeitPunkt), ",'" , rLb(i).AnfText, "'," , rLb(i).absPos, "," , DatFor_k(rLb(i).AktZeit), "," , rLb(i).StByte, ")")
   IF SammelInsert <> 0 AND i < ubound(rLb) THEN csql.Append ","
   IF SammelInsert = 0 OR i = ubound(rLb) THEN
-    altmode = DBCn.Execute("SELECT @@global.sql_mode").Fields(0)
-   Call DBCn.Execute("SET GLOBAL sql_mode='STRICT_TRANS_TABLES'") ' NO_ENGINE_SUBSTITUTION
+'    altmode = DBCn.Execute("SELECT @@global.sql_mode").Fields(0)
+    altmode = myEFrag("SELECT @@global.sql_mode", , DBCn).Fields(0)
+'   Call DBCn.Execute("SET GLOBAL sql_mode='STRICT_TRANS_TABLES'") ' NO_ENGINE_SUBSTITUTION
+    myEFrag "SET GLOBAL sql_mode='STRICT_TRANS_TABLES'", , DBCn ' NO_ENGINE_SUBSTITUTION
 '   Call myEFrag(csql.Value,rAf)', , adAsyncExecute) ' wegen unzureichender Fehlerverarbeitung wieder ausrangiert 19.8.23
    Call DBCn.Execute(csql.Value, rAF) ', , adAsyncExecute)
    IF obforK THEN
@@ -5154,7 +5184,7 @@ ElseIf ErrNumber = -2147217833 OR InStrB(ErrDescr, "Daten zu lang") <> 0 OR InSt
  for k = iif(SammelInsert<>0,1,i) to iif(SammelInsert<>0,ubound(rLb),i)
   IF Len(rLb(k).AnfText) > maxi(0) THEN maxi(0) = Len(rLb(k).AnfText)
  next k
- IF obTrans <>0 Then If DBCn.Execute("SELECT COUNT(1) FROM information_schema.innodb_trx WHERE trx_mysql_thread_id = CONNECTION_ID()").Fields(0) <> 0 Then ComTrans ' DBCn.CommitTrans: obtrans = 0
+ If obTrans <> 0 Then If myEFrag("SELECT COUNT(1) FROM information_schema.innodb_trx WHERE trx_mysql_thread_id = CONNECTION_ID()", , DBCn).Fields(0) <> 0 Then ComTrans ' DBCn.CommitTrans: obtrans = 0
  nochmal:
  SET rsc = New ADODB.Recordset
  SET rsc = DBCnOSchema(adSchemaColumns, Array(Empty, Empty, "lbanforderungen", Empty))
@@ -5353,8 +5383,10 @@ sql:
    rLa(i).KommentarVW, "," , rLa(i).AbsPos, "," , DatFor_k(rLa(i).AktZeit), "," , rLa(i).Refnr, "," , rLa(i).StByte, ")")
   IF SammelInsert <> 0 AND i < ubound(rLa) THEN csql.Append ","
   IF SammelInsert = 0 OR i = ubound(rLa) THEN
-    altmode = DBCn.Execute("SELECT @@global.sql_mode").Fields(0)
-   Call DBCn.Execute("SET GLOBAL sql_mode='STRICT_TRANS_TABLES'") ' NO_ENGINE_SUBSTITUTION
+'    altmode = DBCn.Execute("SELECT @@global.sql_mode").Fields(0)
+    altmode = myEFrag("SELECT @@global.sql_mode", , DBCn).Fields(0)
+'   Call DBCn.Execute("SET GLOBAL sql_mode='STRICT_TRANS_TABLES'") ' NO_ENGINE_SUBSTITUTION
+    myEFrag "SET GLOBAL sql_mode='STRICT_TRANS_TABLES'", , DBCn ' NO_ENGINE_SUBSTITUTION
 '   Call myEFrag(csql.Value,rAf)', , adAsyncExecute) ' wegen unzureichender Fehlerverarbeitung wieder ausrangiert 19.8.23
    Call DBCn.Execute(csql.Value, rAF) ', , adAsyncExecute)
    IF obforK THEN
@@ -5395,7 +5427,7 @@ ElseIf ErrNumber = -2147217833 OR InStrB(ErrDescr, "Daten zu lang") <> 0 OR InSt
   IF Len(rLa(k).Wert) > maxi(2) THEN maxi(2) = Len(rLa(k).Wert)
   IF Len(rLa(k).Einheit) > maxi(3) THEN maxi(3) = Len(rLa(k).Einheit)
  next k
- IF obTrans <>0 Then If DBCn.Execute("SELECT COUNT(1) FROM information_schema.innodb_trx WHERE trx_mysql_thread_id = CONNECTION_ID()").Fields(0) <> 0 Then ComTrans ' DBCn.CommitTrans: obtrans = 0
+ If obTrans <> 0 Then If myEFrag("SELECT COUNT(1) FROM information_schema.innodb_trx WHERE trx_mysql_thread_id = CONNECTION_ID()", , DBCn).Fields(0) <> 0 Then ComTrans ' DBCn.CommitTrans: obtrans = 0
  nochmal:
  SET rsc = New ADODB.Recordset
  SET rsc = DBCnOSchema(adSchemaColumns, Array(Empty, Empty, "laborneu", Empty))
@@ -5655,8 +5687,10 @@ sql:
    rLe(i).LANRid, ",'" , rLe(i).Sachkbez, "'," , rLe(i).Sachkct, ",'" , rLe(i).Zone, "')")
   IF SammelInsert <> 0 AND i < ubound(rLe) THEN csql.Append ","
   IF SammelInsert = 0 OR i = ubound(rLe) THEN
-    altmode = DBCn.Execute("SELECT @@global.sql_mode").Fields(0)
-   Call DBCn.Execute("SET GLOBAL sql_mode='STRICT_TRANS_TABLES'") ' NO_ENGINE_SUBSTITUTION
+'    altmode = DBCn.Execute("SELECT @@global.sql_mode").Fields(0)
+    altmode = myEFrag("SELECT @@global.sql_mode", , DBCn).Fields(0)
+'   Call DBCn.Execute("SET GLOBAL sql_mode='STRICT_TRANS_TABLES'") ' NO_ENGINE_SUBSTITUTION
+    myEFrag "SET GLOBAL sql_mode='STRICT_TRANS_TABLES'", , DBCn ' NO_ENGINE_SUBSTITUTION
 '   Call myEFrag(csql.Value,rAf)', , adAsyncExecute) ' wegen unzureichender Fehlerverarbeitung wieder ausrangiert 19.8.23
    Call DBCn.Execute(csql.Value, rAF) ', , adAsyncExecute)
    IF obforK THEN
@@ -5713,7 +5747,7 @@ ElseIf ErrNumber = -2147217833 OR InStrB(ErrDescr, "Daten zu lang") <> 0 OR InSt
   IF Len(rLe(k).Sachkbez) > maxi(18) THEN maxi(18) = Len(rLe(k).Sachkbez)
   IF Len(rLe(k).Zone) > maxi(19) THEN maxi(19) = Len(rLe(k).Zone)
  next k
- IF obTrans <>0 Then If DBCn.Execute("SELECT COUNT(1) FROM information_schema.innodb_trx WHERE trx_mysql_thread_id = CONNECTION_ID()").Fields(0) <> 0 Then ComTrans ' DBCn.CommitTrans: obtrans = 0
+ If obTrans <> 0 Then If myEFrag("SELECT COUNT(1) FROM information_schema.innodb_trx WHERE trx_mysql_thread_id = CONNECTION_ID()", , DBCn).Fields(0) <> 0 Then ComTrans ' DBCn.CommitTrans: obtrans = 0
  nochmal:
  SET rsc = New ADODB.Recordset
  SET rsc = DBCnOSchema(adSchemaColumns, Array(Empty, Empty, "leistungen", Empty))
@@ -5972,8 +6006,10 @@ sql:
    rMe(i).Grund, "','" , rMe(i).Stärke, "','" , rMe(i).Einheit, "','" , rMe(i).Form, "'," , rMe(i).AbsPos, "," , DatFor_k(rMe(i).AktZeit), "," , rMe(i).StByte, "," , cstr(-(rMe(i).ergaenzt<>0)) , ")")
   IF SammelInsert <> 0 AND i < ubound(rMe) THEN csql.Append ","
   IF SammelInsert = 0 OR i = ubound(rMe) THEN
-    altmode = DBCn.Execute("SELECT @@global.sql_mode").Fields(0)
-   Call DBCn.Execute("SET GLOBAL sql_mode='STRICT_TRANS_TABLES'") ' NO_ENGINE_SUBSTITUTION
+'    altmode = DBCn.Execute("SELECT @@global.sql_mode").Fields(0)
+    altmode = myEFrag("SELECT @@global.sql_mode", , DBCn).Fields(0)
+'   Call DBCn.Execute("SET GLOBAL sql_mode='STRICT_TRANS_TABLES'") ' NO_ENGINE_SUBSTITUTION
+    myEFrag "SET GLOBAL sql_mode='STRICT_TRANS_TABLES'", , DBCn ' NO_ENGINE_SUBSTITUTION
 '   Call myEFrag(csql.Value,rAf)', , adAsyncExecute) ' wegen unzureichender Fehlerverarbeitung wieder ausrangiert 19.8.23
    Call DBCn.Execute(csql.Value, rAF) ', , adAsyncExecute)
    IF obforK THEN
@@ -6023,7 +6059,7 @@ ElseIf ErrNumber = -2147217833 OR InStrB(ErrDescr, "Daten zu lang") <> 0 OR InSt
   IF Len(rMe(k).Einheit) > maxi(11) THEN maxi(11) = Len(rMe(k).Einheit)
   IF Len(rMe(k).Form) > maxi(12) THEN maxi(12) = Len(rMe(k).Form)
  next k
- IF obTrans <>0 Then If DBCn.Execute("SELECT COUNT(1) FROM information_schema.innodb_trx WHERE trx_mysql_thread_id = CONNECTION_ID()").Fields(0) <> 0 Then ComTrans ' DBCn.CommitTrans: obtrans = 0
+ If obTrans <> 0 Then If myEFrag("SELECT COUNT(1) FROM information_schema.innodb_trx WHERE trx_mysql_thread_id = CONNECTION_ID()", , DBCn).Fields(0) <> 0 Then ComTrans ' DBCn.CommitTrans: obtrans = 0
  nochmal:
  SET rsc = New ADODB.Recordset
  SET rsc = DBCnOSchema(adSchemaColumns, Array(Empty, Empty, "medplan", Empty))
@@ -6257,8 +6293,10 @@ sql:
    rRe(i).QT, "'," , rRe(i).StByte, "," , rRe(i).LANRid, ")")
   IF SammelInsert <> 0 AND i < ubound(rRe) THEN csql.Append ","
   IF SammelInsert = 0 OR i = ubound(rRe) THEN
-    altmode = DBCn.Execute("SELECT @@global.sql_mode").Fields(0)
-   Call DBCn.Execute("SET GLOBAL sql_mode='STRICT_TRANS_TABLES'") ' NO_ENGINE_SUBSTITUTION
+'    altmode = DBCn.Execute("SELECT @@global.sql_mode").Fields(0)
+    altmode = myEFrag("SELECT @@global.sql_mode", , DBCn).Fields(0)
+'   Call DBCn.Execute("SET GLOBAL sql_mode='STRICT_TRANS_TABLES'") ' NO_ENGINE_SUBSTITUTION
+    myEFrag "SET GLOBAL sql_mode='STRICT_TRANS_TABLES'", , DBCn ' NO_ENGINE_SUBSTITUTION
 '   Call myEFrag(csql.Value,rAf)', , adAsyncExecute) ' wegen unzureichender Fehlerverarbeitung wieder ausrangiert 19.8.23
    Call DBCn.Execute(csql.Value, rAF) ', , adAsyncExecute)
    IF obforK THEN
@@ -6305,7 +6343,7 @@ ElseIf ErrNumber = -2147217833 OR InStrB(ErrDescr, "Daten zu lang") <> 0 OR InSt
   IF Len(rRe(k).QS) > maxi(8) THEN maxi(8) = Len(rRe(k).QS)
   IF Len(rRe(k).QT) > maxi(9) THEN maxi(9) = Len(rRe(k).QT)
  next k
- IF obTrans <>0 Then If DBCn.Execute("SELECT COUNT(1) FROM information_schema.innodb_trx WHERE trx_mysql_thread_id = CONNECTION_ID()").Fields(0) <> 0 Then ComTrans ' DBCn.CommitTrans: obtrans = 0
+ If obTrans <> 0 Then If myEFrag("SELECT COUNT(1) FROM information_schema.innodb_trx WHERE trx_mysql_thread_id = CONNECTION_ID()", , DBCn).Fields(0) <> 0 Then ComTrans ' DBCn.CommitTrans: obtrans = 0
  nochmal:
  SET rsc = New ADODB.Recordset
  SET rsc = DBCnOSchema(adSchemaColumns, Array(Empty, Empty, "rezepteintraege", Empty))
@@ -6510,8 +6548,10 @@ sql:
    rRr(i).Bemerkung, "'," , rRr(i).absPos, "," , DatFor_k(rRr(i).AktZeit), "," , rRr(i).StByte, ")")
   IF SammelInsert <> 0 AND i < ubound(rRr) THEN csql.Append ","
   IF SammelInsert = 0 OR i = ubound(rRr) THEN
-    altmode = DBCn.Execute("SELECT @@global.sql_mode").Fields(0)
-   Call DBCn.Execute("SET GLOBAL sql_mode='STRICT_TRANS_TABLES'") ' NO_ENGINE_SUBSTITUTION
+'    altmode = DBCn.Execute("SELECT @@global.sql_mode").Fields(0)
+    altmode = myEFrag("SELECT @@global.sql_mode", , DBCn).Fields(0)
+'   Call DBCn.Execute("SET GLOBAL sql_mode='STRICT_TRANS_TABLES'") ' NO_ENGINE_SUBSTITUTION
+    myEFrag "SET GLOBAL sql_mode='STRICT_TRANS_TABLES'", , DBCn ' NO_ENGINE_SUBSTITUTION
 '   Call myEFrag(csql.Value,rAf)', , adAsyncExecute) ' wegen unzureichender Fehlerverarbeitung wieder ausrangiert 19.8.23
    Call DBCn.Execute(csql.Value, rAF) ', , adAsyncExecute)
    IF obforK THEN
@@ -6551,7 +6591,7 @@ ElseIf ErrNumber = -2147217833 OR InStrB(ErrDescr, "Daten zu lang") <> 0 OR InSt
   IF Len(rRr(k).Quelle) > maxi(1) THEN maxi(1) = Len(rRr(k).Quelle)
   IF Len(rRr(k).Bemerkung) > maxi(2) THEN maxi(2) = Len(rRr(k).Bemerkung)
  next k
- IF obTrans <>0 Then If DBCn.Execute("SELECT COUNT(1) FROM information_schema.innodb_trx WHERE trx_mysql_thread_id = CONNECTION_ID()").Fields(0) <> 0 Then ComTrans ' DBCn.CommitTrans: obtrans = 0
+ If obTrans <> 0 Then If myEFrag("SELECT COUNT(1) FROM information_schema.innodb_trx WHERE trx_mysql_thread_id = CONNECTION_ID()", , DBCn).Fields(0) <> 0 Then ComTrans ' DBCn.CommitTrans: obtrans = 0
  nochmal:
  SET rsc = New ADODB.Recordset
  SET rsc = DBCnOSchema(adSchemaColumns, Array(Empty, Empty, "rr", Empty))
@@ -6624,8 +6664,10 @@ sql:
   csql.AppVar Array("(" , rKv(i).Pat_ID, ",'" , rKv(i).KVNr, "'," , rKv(i).absPos, "," , DatFor_k(rKv(i).AktZeit), "," , rKv(i).StByte, ")")
   IF SammelInsert <> 0 AND i < ubound(rKv) THEN csql.Append ","
   IF SammelInsert = 0 OR i = ubound(rKv) THEN
-    altmode = DBCn.Execute("SELECT @@global.sql_mode").Fields(0)
-   Call DBCn.Execute("SET GLOBAL sql_mode='STRICT_TRANS_TABLES'") ' NO_ENGINE_SUBSTITUTION
+'    altmode = DBCn.Execute("SELECT @@global.sql_mode").Fields(0)
+    altmode = myEFrag("SELECT @@global.sql_mode", , DBCn).Fields(0)
+'   Call DBCn.Execute("SET GLOBAL sql_mode='STRICT_TRANS_TABLES'") ' NO_ENGINE_SUBSTITUTION
+    myEFrag "SET GLOBAL sql_mode='STRICT_TRANS_TABLES'", , DBCn ' NO_ENGINE_SUBSTITUTION
 '   Call myEFrag(csql.Value,rAf)', , adAsyncExecute) ' wegen unzureichender Fehlerverarbeitung wieder ausrangiert 19.8.23
    Call DBCn.Execute(csql.Value, rAF) ', , adAsyncExecute)
    IF obforK THEN
@@ -6663,7 +6705,7 @@ ElseIf ErrNumber = -2147217833 OR InStrB(ErrDescr, "Daten zu lang") <> 0 OR InSt
  for k = iif(SammelInsert<>0,1,i) to iif(SammelInsert<>0,ubound(rKv),i)
   IF Len(rKv(k).KVNr) > maxi(0) THEN maxi(0) = Len(rKv(k).KVNr)
  next k
- IF obTrans <>0 Then If DBCn.Execute("SELECT COUNT(1) FROM information_schema.innodb_trx WHERE trx_mysql_thread_id = CONNECTION_ID()").Fields(0) <> 0 Then ComTrans ' DBCn.CommitTrans: obtrans = 0
+ If obTrans <> 0 Then If myEFrag("SELECT COUNT(1) FROM information_schema.innodb_trx WHERE trx_mysql_thread_id = CONNECTION_ID()", , DBCn).Fields(0) <> 0 Then ComTrans ' DBCn.CommitTrans: obtrans = 0
  nochmal:
  SET rsc = New ADODB.Recordset
  SET rsc = DBCnOSchema(adSchemaColumns, Array(Empty, Empty, "kvnrue", Empty))
@@ -6731,8 +6773,10 @@ sql:
   csql.AppVar Array("('" , rUn(i).Kennung, "'," , rUn(i).absPos, "," , rUn(i).StByte, "," , rUn(i).Pat_id, ",'" , rUn(i).Inhalt, "')")
   IF SammelInsert <> 0 AND i < ubound(rUn) THEN csql.Append ","
   IF SammelInsert = 0 OR i = ubound(rUn) THEN
-    altmode = DBCn.Execute("SELECT @@global.sql_mode").Fields(0)
-   Call DBCn.Execute("SET GLOBAL sql_mode='STRICT_TRANS_TABLES'") ' NO_ENGINE_SUBSTITUTION
+'    altmode = DBCn.Execute("SELECT @@global.sql_mode").Fields(0)
+    altmode = myEFrag("SELECT @@global.sql_mode", , DBCn).Fields(0)
+'   Call DBCn.Execute("SET GLOBAL sql_mode='STRICT_TRANS_TABLES'") ' NO_ENGINE_SUBSTITUTION
+    myEFrag "SET GLOBAL sql_mode='STRICT_TRANS_TABLES'", , DBCn ' NO_ENGINE_SUBSTITUTION
 '   Call myEFrag(csql.Value,rAf)', , adAsyncExecute) ' wegen unzureichender Fehlerverarbeitung wieder ausrangiert 19.8.23
    Call DBCn.Execute(csql.Value, rAF) ', , adAsyncExecute)
    IF obforK THEN
@@ -6772,7 +6816,7 @@ ElseIf ErrNumber = -2147217833 OR InStrB(ErrDescr, "Daten zu lang") <> 0 OR InSt
   IF Len(rUn(k).Kennung) > maxi(0) THEN maxi(0) = Len(rUn(k).Kennung)
   IF Len(rUn(k).Inhalt) > maxi(1) THEN maxi(1) = Len(rUn(k).Inhalt)
  next k
- IF obTrans <>0 Then If DBCn.Execute("SELECT COUNT(1) FROM information_schema.innodb_trx WHERE trx_mysql_thread_id = CONNECTION_ID()").Fields(0) <> 0 Then ComTrans ' DBCn.CommitTrans: obtrans = 0
+ If obTrans <> 0 Then If myEFrag("SELECT COUNT(1) FROM information_schema.innodb_trx WHERE trx_mysql_thread_id = CONNECTION_ID()", , DBCn).Fields(0) <> 0 Then ComTrans ' DBCn.CommitTrans: obtrans = 0
  nochmal:
  SET rsc = New ADODB.Recordset
  SET rsc = DBCnOSchema(adSchemaColumns, Array(Empty, Empty, "unbekannte kennungen", Empty))
@@ -6982,8 +7026,10 @@ sql:
    rDm(i).lanrid, ",'" , rDm(i).Zusatzdaten, "')")
   IF SammelInsert <> 0 AND i < ubound(rDm) THEN csql.Append ","
   IF SammelInsert = 0 OR i = ubound(rDm) THEN
-    altmode = DBCn.Execute("SELECT @@global.sql_mode").Fields(0)
-   Call DBCn.Execute("SET GLOBAL sql_mode='STRICT_TRANS_TABLES'") ' NO_ENGINE_SUBSTITUTION
+'    altmode = DBCn.Execute("SELECT @@global.sql_mode").Fields(0)
+    altmode = myEFrag("SELECT @@global.sql_mode", , DBCn).Fields(0)
+'   Call DBCn.Execute("SET GLOBAL sql_mode='STRICT_TRANS_TABLES'") ' NO_ENGINE_SUBSTITUTION
+    myEFrag "SET GLOBAL sql_mode='STRICT_TRANS_TABLES'", , DBCn ' NO_ENGINE_SUBSTITUTION
 '   Call myEFrag(csql.Value,rAf)', , adAsyncExecute) ' wegen unzureichender Fehlerverarbeitung wieder ausrangiert 19.8.23
    Call DBCn.Execute(csql.Value, rAF) ', , adAsyncExecute)
    IF obforK THEN
@@ -7025,7 +7071,7 @@ ElseIf ErrNumber = -2147217833 OR InStrB(ErrDescr, "Daten zu lang") <> 0 OR InSt
   IF Len(rDm(k).VorName) > maxi(3) THEN maxi(3) = Len(rDm(k).VorName)
   IF Len(rDm(k).Zusatzdaten) > maxi(4) THEN maxi(4) = Len(rDm(k).Zusatzdaten)
  next k
- IF obTrans <>0 Then If DBCn.Execute("SELECT COUNT(1) FROM information_schema.innodb_trx WHERE trx_mysql_thread_id = CONNECTION_ID()").Fields(0) <> 0 Then ComTrans ' DBCn.CommitTrans: obtrans = 0
+ If obTrans <> 0 Then If myEFrag("SELECT COUNT(1) FROM information_schema.innodb_trx WHERE trx_mysql_thread_id = CONNECTION_ID()", , DBCn).Fields(0) <> 0 Then ComTrans ' DBCn.CommitTrans: obtrans = 0
  nochmal:
  SET rsc = New ADODB.Recordset
  SET rsc = DBCnOSchema(adSchemaColumns, Array(Empty, Empty, "dmpreihe", Empty))
@@ -7254,8 +7300,10 @@ sql:
    rDe(i).toolTipText, "'," , rDe(i).verankert, "," , rDe(i).absPos, "," , DatFor_k(rDe(i).AktZeit), "," , rDe(i).StByte, ")")
   IF SammelInsert <> 0 AND i < ubound(rDe) THEN csql.Append ","
   IF SammelInsert = 0 OR i = ubound(rDe) THEN
-    altmode = DBCn.Execute("SELECT @@global.sql_mode").Fields(0)
-   Call DBCn.Execute("SET GLOBAL sql_mode='STRICT_TRANS_TABLES'") ' NO_ENGINE_SUBSTITUTION
+'    altmode = DBCn.Execute("SELECT @@global.sql_mode").Fields(0)
+    altmode = myEFrag("SELECT @@global.sql_mode", , DBCn).Fields(0)
+'   Call DBCn.Execute("SET GLOBAL sql_mode='STRICT_TRANS_TABLES'") ' NO_ENGINE_SUBSTITUTION
+    myEFrag "SET GLOBAL sql_mode='STRICT_TRANS_TABLES'", , DBCn ' NO_ENGINE_SUBSTITUTION
 '   Call myEFrag(csql.Value,rAf)', , adAsyncExecute) ' wegen unzureichender Fehlerverarbeitung wieder ausrangiert 19.8.23
    Call DBCn.Execute(csql.Value, rAF) ', , adAsyncExecute)
    IF obforK THEN
@@ -7298,7 +7346,7 @@ ElseIf ErrNumber = -2147217833 OR InStrB(ErrDescr, "Daten zu lang") <> 0 OR InSt
   IF Len(rDe(k).titel) > maxi(4) THEN maxi(4) = Len(rDe(k).titel)
   IF Len(rDe(k).toolTipText) > maxi(5) THEN maxi(5) = Len(rDe(k).toolTipText)
  next k
- IF obTrans <>0 Then If DBCn.Execute("SELECT COUNT(1) FROM information_schema.innodb_trx WHERE trx_mysql_thread_id = CONNECTION_ID()").Fields(0) <> 0 Then ComTrans ' DBCn.CommitTrans: obtrans = 0
+ If obTrans <> 0 Then If myEFrag("SELECT COUNT(1) FROM information_schema.innodb_trx WHERE trx_mysql_thread_id = CONNECTION_ID()", , DBCn).Fields(0) <> 0 Then ComTrans ' DBCn.CommitTrans: obtrans = 0
  nochmal:
  SET rsc = New ADODB.Recordset
  SET rsc = DBCnOSchema(adSchemaColumns, Array(Empty, Empty, "desktop", Empty))
@@ -7618,8 +7666,10 @@ sql:
    rUs(i).PulsAdp_li, "','" , rUs(i).Mitarbeiter, "'," , rUs(i).absPos, "," , DatFor_k(rUs(i).AktZeit), ",'" , rUs(i).QS, "','" , rUs(i).QT, "'," , rUs(i).StByte, ")")
   IF SammelInsert <> 0 AND i < ubound(rUs) THEN csql.Append ","
   IF SammelInsert = 0 OR i = ubound(rUs) THEN
-    altmode = DBCn.Execute("SELECT @@global.sql_mode").Fields(0)
-   Call DBCn.Execute("SET GLOBAL sql_mode='STRICT_TRANS_TABLES'") ' NO_ENGINE_SUBSTITUTION
+'    altmode = DBCn.Execute("SELECT @@global.sql_mode").Fields(0)
+    altmode = myEFrag("SELECT @@global.sql_mode", , DBCn).Fields(0)
+'   Call DBCn.Execute("SET GLOBAL sql_mode='STRICT_TRANS_TABLES'") ' NO_ENGINE_SUBSTITUTION
+    myEFrag "SET GLOBAL sql_mode='STRICT_TRANS_TABLES'", , DBCn ' NO_ENGINE_SUBSTITUTION
 '   Call myEFrag(csql.Value,rAf)', , adAsyncExecute) ' wegen unzureichender Fehlerverarbeitung wieder ausrangiert 19.8.23
    Call DBCn.Execute(csql.Value, rAF) ', , adAsyncExecute)
    IF obforK THEN
@@ -7695,7 +7745,7 @@ ElseIf ErrNumber = -2147217833 OR InStrB(ErrDescr, "Daten zu lang") <> 0 OR InSt
   IF Len(rUs(k).QS) > maxi(37) THEN maxi(37) = Len(rUs(k).QS)
   IF Len(rUs(k).QT) > maxi(38) THEN maxi(38) = Len(rUs(k).QT)
  next k
- IF obTrans <>0 Then If DBCn.Execute("SELECT COUNT(1) FROM information_schema.innodb_trx WHERE trx_mysql_thread_id = CONNECTION_ID()").Fields(0) <> 0 Then ComTrans ' DBCn.CommitTrans: obtrans = 0
+ If obTrans <> 0 Then If myEFrag("SELECT COUNT(1) FROM information_schema.innodb_trx WHERE trx_mysql_thread_id = CONNECTION_ID()", , DBCn).Fields(0) <> 0 Then ComTrans ' DBCn.CommitTrans: obtrans = 0
  nochmal:
  SET rsc = New ADODB.Recordset
  SET rsc = DBCnOSchema(adSchemaColumns, Array(Empty, Empty, "usdm", Empty))
@@ -7955,8 +8005,10 @@ sql:
    rFu(i).QS, "','" , rFu(i).QT, "'," , rFu(i).StByte, ")")
   IF SammelInsert <> 0 AND i < ubound(rFu) THEN csql.Append ","
   IF SammelInsert = 0 OR i = ubound(rFu) THEN
-    altmode = DBCn.Execute("SELECT @@global.sql_mode").Fields(0)
-   Call DBCn.Execute("SET GLOBAL sql_mode='STRICT_TRANS_TABLES'") ' NO_ENGINE_SUBSTITUTION
+'    altmode = DBCn.Execute("SELECT @@global.sql_mode").Fields(0)
+    altmode = myEFrag("SELECT @@global.sql_mode", , DBCn).Fields(0)
+'   Call DBCn.Execute("SET GLOBAL sql_mode='STRICT_TRANS_TABLES'") ' NO_ENGINE_SUBSTITUTION
+    myEFrag "SET GLOBAL sql_mode='STRICT_TRANS_TABLES'", , DBCn ' NO_ENGINE_SUBSTITUTION
 '   Call myEFrag(csql.Value,rAf)', , adAsyncExecute) ' wegen unzureichender Fehlerverarbeitung wieder ausrangiert 19.8.23
    Call DBCn.Execute(csql.Value, rAF) ', , adAsyncExecute)
    IF obforK THEN
@@ -8006,7 +8058,7 @@ ElseIf ErrNumber = -2147217833 OR InStrB(ErrDescr, "Daten zu lang") <> 0 OR InSt
   IF Len(rFu(k).QS) > maxi(11) THEN maxi(11) = Len(rFu(k).QS)
   IF Len(rFu(k).QT) > maxi(12) THEN maxi(12) = Len(rFu(k).QT)
  next k
- IF obTrans <>0 Then If DBCn.Execute("SELECT COUNT(1) FROM information_schema.innodb_trx WHERE trx_mysql_thread_id = CONNECTION_ID()").Fields(0) <> 0 Then ComTrans ' DBCn.CommitTrans: obtrans = 0
+ If obTrans <> 0 Then If myEFrag("SELECT COUNT(1) FROM information_schema.innodb_trx WHERE trx_mysql_thread_id = CONNECTION_ID()", , DBCn).Fields(0) <> 0 Then ComTrans ' DBCn.CommitTrans: obtrans = 0
  nochmal:
  SET rsc = New ADODB.Recordset
  SET rsc = DBCnOSchema(adSchemaColumns, Array(Empty, Empty, "fuss", Empty))
@@ -8233,8 +8285,10 @@ sql:
    rUl(i).absPos, "," , DatFor_k(rUl(i).AktZeit), "," , rUl(i).StByte, ")")
   IF SammelInsert <> 0 AND i < ubound(rUl) THEN csql.Append ","
   IF SammelInsert = 0 OR i = ubound(rUl) THEN
-    altmode = DBCn.Execute("SELECT @@global.sql_mode").Fields(0)
-   Call DBCn.Execute("SET GLOBAL sql_mode='STRICT_TRANS_TABLES'") ' NO_ENGINE_SUBSTITUTION
+'    altmode = DBCn.Execute("SELECT @@global.sql_mode").Fields(0)
+    altmode = myEFrag("SELECT @@global.sql_mode", , DBCn).Fields(0)
+'   Call DBCn.Execute("SET GLOBAL sql_mode='STRICT_TRANS_TABLES'") ' NO_ENGINE_SUBSTITUTION
+    myEFrag "SET GLOBAL sql_mode='STRICT_TRANS_TABLES'", , DBCn ' NO_ENGINE_SUBSTITUTION
 '   Call myEFrag(csql.Value,rAf)', , adAsyncExecute) ' wegen unzureichender Fehlerverarbeitung wieder ausrangiert 19.8.23
    Call DBCn.Execute(csql.Value, rAF) ', , adAsyncExecute)
    IF obforK THEN
@@ -8283,7 +8337,7 @@ ElseIf ErrNumber = -2147217833 OR InStrB(ErrDescr, "Daten zu lang") <> 0 OR InSt
   IF Len(rUl(k).Wundversorgung) > maxi(10) THEN maxi(10) = Len(rUl(k).Wundversorgung)
   IF Len(rUl(k).Mitarbeiter) > maxi(11) THEN maxi(11) = Len(rUl(k).Mitarbeiter)
  next k
- IF obTrans <>0 Then If DBCn.Execute("SELECT COUNT(1) FROM information_schema.innodb_trx WHERE trx_mysql_thread_id = CONNECTION_ID()").Fields(0) <> 0 Then ComTrans ' DBCn.CommitTrans: obtrans = 0
+ If obTrans <> 0 Then If myEFrag("SELECT COUNT(1) FROM information_schema.innodb_trx WHERE trx_mysql_thread_id = CONNECTION_ID()", , DBCn).Fields(0) <> 0 Then ComTrans ' DBCn.CommitTrans: obtrans = 0
  nochmal:
  SET rsc = New ADODB.Recordset
  SET rsc = DBCnOSchema(adSchemaColumns, Array(Empty, Empty, "ulcus", Empty))
@@ -8509,8 +8563,10 @@ sql:
    rVk(i).Mitarbeiter, "'," , rVk(i).absPos, "," , DatFor_k(rVk(i).AktZeit), "," , rVk(i).StByte, ")")
   IF SammelInsert <> 0 AND i < ubound(rVk) THEN csql.Append ","
   IF SammelInsert = 0 OR i = ubound(rVk) THEN
-    altmode = DBCn.Execute("SELECT @@global.sql_mode").Fields(0)
-   Call DBCn.Execute("SET GLOBAL sql_mode='STRICT_TRANS_TABLES'") ' NO_ENGINE_SUBSTITUTION
+'    altmode = DBCn.Execute("SELECT @@global.sql_mode").Fields(0)
+    altmode = myEFrag("SELECT @@global.sql_mode", , DBCn).Fields(0)
+'   Call DBCn.Execute("SET GLOBAL sql_mode='STRICT_TRANS_TABLES'") ' NO_ENGINE_SUBSTITUTION
+    myEFrag "SET GLOBAL sql_mode='STRICT_TRANS_TABLES'", , DBCn ' NO_ENGINE_SUBSTITUTION
 '   Call myEFrag(csql.Value,rAf)', , adAsyncExecute) ' wegen unzureichender Fehlerverarbeitung wieder ausrangiert 19.8.23
    Call DBCn.Execute(csql.Value, rAF) ', , adAsyncExecute)
    IF obforK THEN
@@ -8559,7 +8615,7 @@ ElseIf ErrNumber = -2147217833 OR InStrB(ErrDescr, "Daten zu lang") <> 0 OR InSt
   IF Len(rVk(k).Puls) > maxi(10) THEN maxi(10) = Len(rVk(k).Puls)
   IF Len(rVk(k).Mitarbeiter) > maxi(11) THEN maxi(11) = Len(rVk(k).Mitarbeiter)
  next k
- IF obTrans <>0 Then If DBCn.Execute("SELECT COUNT(1) FROM information_schema.innodb_trx WHERE trx_mysql_thread_id = CONNECTION_ID()").Fields(0) <> 0 Then ComTrans ' DBCn.CommitTrans: obtrans = 0
+ If obTrans <> 0 Then If myEFrag("SELECT COUNT(1) FROM information_schema.innodb_trx WHERE trx_mysql_thread_id = CONNECTION_ID()", , DBCn).Fields(0) <> 0 Then ComTrans ' DBCn.CommitTrans: obtrans = 0
  nochmal:
  SET rsc = New ADODB.Recordset
  SET rsc = DBCnOSchema(adSchemaColumns, Array(Empty, Empty, "vkgd", Empty))
@@ -8775,8 +8831,10 @@ sql:
    rSw(i).StByte, ")")
   IF SammelInsert <> 0 AND i < ubound(rSw) THEN csql.Append ","
   IF SammelInsert = 0 OR i = ubound(rSw) THEN
-    altmode = DBCn.Execute("SELECT @@global.sql_mode").Fields(0)
-   Call DBCn.Execute("SET GLOBAL sql_mode='STRICT_TRANS_TABLES'") ' NO_ENGINE_SUBSTITUTION
+'    altmode = DBCn.Execute("SELECT @@global.sql_mode").Fields(0)
+    altmode = myEFrag("SELECT @@global.sql_mode", , DBCn).Fields(0)
+'   Call DBCn.Execute("SET GLOBAL sql_mode='STRICT_TRANS_TABLES'") ' NO_ENGINE_SUBSTITUTION
+    myEFrag "SET GLOBAL sql_mode='STRICT_TRANS_TABLES'", , DBCn ' NO_ENGINE_SUBSTITUTION
 '   Call myEFrag(csql.Value,rAf)', , adAsyncExecute) ' wegen unzureichender Fehlerverarbeitung wieder ausrangiert 19.8.23
    Call DBCn.Execute(csql.Value, rAF) ', , adAsyncExecute)
    IF obforK THEN
@@ -8814,7 +8872,7 @@ ElseIf ErrNumber = -2147217833 OR InStrB(ErrDescr, "Daten zu lang") <> 0 OR InSt
  for k = iif(SammelInsert<>0,1,i) to iif(SammelInsert<>0,ubound(rSw),i)
   IF Len(rSw(k).EndeArt) > maxi(0) THEN maxi(0) = Len(rSw(k).EndeArt)
  next k
- IF obTrans <>0 Then If DBCn.Execute("SELECT COUNT(1) FROM information_schema.innodb_trx WHERE trx_mysql_thread_id = CONNECTION_ID()").Fields(0) <> 0 Then ComTrans ' DBCn.CommitTrans: obtrans = 0
+ If obTrans <> 0 Then If myEFrag("SELECT COUNT(1) FROM information_schema.innodb_trx WHERE trx_mysql_thread_id = CONNECTION_ID()", , DBCn).Fields(0) <> 0 Then ComTrans ' DBCn.CommitTrans: obtrans = 0
  nochmal:
  SET rsc = New ADODB.Recordset
  SET rsc = DBCnOSchema(adSchemaColumns, Array(Empty, Empty, "sws", Empty))
@@ -8884,8 +8942,10 @@ sql:
    rLs(i).OrtLabor, "','" , rLs(i).KBVPrüfnr, "','" , rLs(i).Zeichensatz, "','" , rLs(i).Kundenarztnr, "','" , rLs(i).Erstellungsdatum, "','" , rLs(i).Gesamtlänge, "')")
   IF SammelInsert <> 0 AND i < ubound(rLs) THEN csql.Append ","
   IF SammelInsert = 0 OR i = ubound(rLs) THEN
-    altmode = DBCn.Execute("SELECT @@global.sql_mode").Fields(0)
-   Call DBCn.Execute("SET GLOBAL sql_mode='STRICT_TRANS_TABLES'") ' NO_ENGINE_SUBSTITUTION
+'    altmode = DBCn.Execute("SELECT @@global.sql_mode").Fields(0)
+    altmode = myEFrag("SELECT @@global.sql_mode", , DBCn).Fields(0)
+'   Call DBCn.Execute("SET GLOBAL sql_mode='STRICT_TRANS_TABLES'") ' NO_ENGINE_SUBSTITUTION
+    myEFrag "SET GLOBAL sql_mode='STRICT_TRANS_TABLES'", , DBCn ' NO_ENGINE_SUBSTITUTION
 '   Call myEFrag(csql.Value,rAf)', , adAsyncExecute) ' wegen unzureichender Fehlerverarbeitung wieder ausrangiert 19.8.23
    Call DBCn.Execute(csql.Value, rAF) ', , adAsyncExecute)
    IF obforK THEN
@@ -9026,8 +9086,10 @@ sql:
   csql.AppVar Array("('" , rLg(i).Pfad, "','" , rLg(i).Name, "'," , DatFor_k(rLg(i).Zp), "," , cstr(-(rLg(i).fertig<>0)) , ")")
   IF SammelInsert <> 0 AND i < ubound(rLg) THEN csql.Append ","
   IF SammelInsert = 0 OR i = ubound(rLg) THEN
-    altmode = DBCn.Execute("SELECT @@global.sql_mode").Fields(0)
-   Call DBCn.Execute("SET GLOBAL sql_mode='STRICT_TRANS_TABLES'") ' NO_ENGINE_SUBSTITUTION
+'    altmode = DBCn.Execute("SELECT @@global.sql_mode").Fields(0)
+    altmode = myEFrag("SELECT @@global.sql_mode", , DBCn).Fields(0)
+'   Call DBCn.Execute("SET GLOBAL sql_mode='STRICT_TRANS_TABLES'") ' NO_ENGINE_SUBSTITUTION
+    myEFrag "SET GLOBAL sql_mode='STRICT_TRANS_TABLES'", , DBCn ' NO_ENGINE_SUBSTITUTION
 '   Call myEFrag(csql.Value,rAf)', , adAsyncExecute) ' wegen unzureichender Fehlerverarbeitung wieder ausrangiert 19.8.23
    Call DBCn.Execute(csql.Value, rAF) ', , adAsyncExecute)
    IF obforK THEN
@@ -9142,8 +9204,10 @@ sql:
    rLu(i).ZdüP, "," , rLu(i).ZdiP, ",'" , rLu(i).LWerte, "'," , DatFor_k(rLu(i).verglichen), "," , rLu(i).AfN, ")")
   IF SammelInsert <> 0 AND i < j THEN csql.Append ","
   IF SammelInsert = 0 OR i = j THEN
-    altmode = DBCn.Execute("SELECT @@global.sql_mode").Fields(0)
-   Call DBCn.Execute("SET GLOBAL sql_mode='STRICT_TRANS_TABLES'") ' NO_ENGINE_SUBSTITUTION
+'    altmode = DBCn.Execute("SELECT @@global.sql_mode").Fields(0)
+    altmode = myEFrag("SELECT @@global.sql_mode", , DBCn).Fields(0)
+'   Call DBCn.Execute("SET GLOBAL sql_mode='STRICT_TRANS_TABLES'") ' NO_ENGINE_SUBSTITUTION
+    myEFrag "SET GLOBAL sql_mode='STRICT_TRANS_TABLES'", , DBCn ' NO_ENGINE_SUBSTITUTION
 '   Call myEFrag(csql.Value,rAf)', , adAsyncExecute) ' wegen unzureichender Fehlerverarbeitung wieder ausrangiert 19.8.23
    Call DBCn.Execute(csql.Value, rAF) ', , adAsyncExecute)
    IF obforK THEN
@@ -9295,8 +9359,10 @@ sql:
    rLo(i).Keimzahl, "')")
   IF SammelInsert <> 0 AND i < ubound(rLo) THEN csql.Append ","
   IF SammelInsert = 0 OR i = ubound(rLo) THEN
-    altmode = DBCn.Execute("SELECT @@global.sql_mode").Fields(0)
-   Call DBCn.Execute("SET GLOBAL sql_mode='STRICT_TRANS_TABLES'") ' NO_ENGINE_SUBSTITUTION
+'    altmode = DBCn.Execute("SELECT @@global.sql_mode").Fields(0)
+    altmode = myEFrag("SELECT @@global.sql_mode", , DBCn).Fields(0)
+'   Call DBCn.Execute("SET GLOBAL sql_mode='STRICT_TRANS_TABLES'") ' NO_ENGINE_SUBSTITUTION
+    myEFrag "SET GLOBAL sql_mode='STRICT_TRANS_TABLES'", , DBCn ' NO_ENGINE_SUBSTITUTION
 '   Call myEFrag(csql.Value,rAf)', , adAsyncExecute) ' wegen unzureichender Fehlerverarbeitung wieder ausrangiert 19.8.23
    Call DBCn.Execute(csql.Value, rAF) ', , adAsyncExecute)
    IF obforK THEN
@@ -9441,8 +9507,10 @@ nextj:
    rLw(i).Grenzwerti, "','" , rLw(i).Kommentar, "','" , rLw(i).Teststatus, "','" , rLw(i).Erklärung, "','" , rLw(i).AuftrHinw, "'," , rLw(i).nbid, ")")
   IF SammelInsert <> 0 AND i < ubound(rLw) THEN csql.Append ","
   IF SammelInsert = 0 OR i = ubound(rLw) THEN
-    altmode = DBCn.Execute("SELECT @@global.sql_mode").Fields(0)
-   Call DBCn.Execute("SET GLOBAL sql_mode='STRICT_TRANS_TABLES'") ' NO_ENGINE_SUBSTITUTION
+'    altmode = DBCn.Execute("SELECT @@global.sql_mode").Fields(0)
+    altmode = myEFrag("SELECT @@global.sql_mode", , DBCn).Fields(0)
+'   Call DBCn.Execute("SET GLOBAL sql_mode='STRICT_TRANS_TABLES'") ' NO_ENGINE_SUBSTITUTION
+    myEFrag "SET GLOBAL sql_mode='STRICT_TRANS_TABLES'", , DBCn ' NO_ENGINE_SUBSTITUTION
 '   Call myEFrag(csql.Value,rAf)', , adAsyncExecute) ' wegen unzureichender Fehlerverarbeitung wieder ausrangiert 19.8.23
    Call DBCn.Execute(csql.Value, rAF) ', , adAsyncExecute)
    IF obforK THEN
@@ -9566,8 +9634,10 @@ sql:
   csql.AppVar Array("(" , rLL(i).RefNr, ",'" , rLL(i).Abkü, "','" , rLL(i).Verf, "','" , rLL(i).EBM, "','" , rLL(i).goä, "','" , rLL(i).Anzahl, "','" , rLL(i).abrd, "')")
   IF SammelInsert <> 0 AND i < ubound(rLL) THEN csql.Append ","
   IF SammelInsert = 0 OR i = ubound(rLL) THEN
-    altmode = DBCn.Execute("SELECT @@global.sql_mode").Fields(0)
-   Call DBCn.Execute("SET GLOBAL sql_mode='STRICT_TRANS_TABLES'") ' NO_ENGINE_SUBSTITUTION
+'    altmode = DBCn.Execute("SELECT @@global.sql_mode").Fields(0)
+    altmode = myEFrag("SELECT @@global.sql_mode", , DBCn).Fields(0)
+'   Call DBCn.Execute("SET GLOBAL sql_mode='STRICT_TRANS_TABLES'") ' NO_ENGINE_SUBSTITUTION
+    myEFrag "SET GLOBAL sql_mode='STRICT_TRANS_TABLES'", , DBCn ' NO_ENGINE_SUBSTITUTION
 '   Call myEFrag(csql.Value,rAf)', , adAsyncExecute) ' wegen unzureichender Fehlerverarbeitung wieder ausrangiert 19.8.23
    Call DBCn.Execute(csql.Value, rAF) ', , adAsyncExecute)
    IF obforK THEN
@@ -9689,8 +9759,10 @@ sql:
    rLi(i).gemmit, "','" , rLi(i).beme, "'," , rLi(i).dmpt2, "," , rLi(i).dmpt1, ",'" , rLi(i).geschlecht, "','" , rLi(i).titel, "','" , rLi(i).zusatz, "','" , rLi(i).ursp, "'," , DatFor_k(rLi(i).aktzeit), ")")
   IF SammelInsert <> 0 AND i < ubound(rLi) THEN csql.Append ","
   IF SammelInsert = 0 OR i = ubound(rLi) THEN
-    altmode = DBCn.Execute("SELECT @@global.sql_mode").Fields(0)
-   Call DBCn.Execute("SET GLOBAL sql_mode='STRICT_TRANS_TABLES'") ' NO_ENGINE_SUBSTITUTION
+'    altmode = DBCn.Execute("SELECT @@global.sql_mode").Fields(0)
+    altmode = myEFrag("SELECT @@global.sql_mode", , DBCn).Fields(0)
+'   Call DBCn.Execute("SET GLOBAL sql_mode='STRICT_TRANS_TABLES'") ' NO_ENGINE_SUBSTITUTION
+    myEFrag "SET GLOBAL sql_mode='STRICT_TRANS_TABLES'", , DBCn ' NO_ENGINE_SUBSTITUTION
 '   Call myEFrag(csql.Value,rAf)', , adAsyncExecute) ' wegen unzureichender Fehlerverarbeitung wieder ausrangiert 19.8.23
    Call DBCn.Execute(csql.Value, rAF) ', , adAsyncExecute)
    IF obforK THEN

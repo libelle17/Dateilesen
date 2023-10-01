@@ -854,7 +854,7 @@ End Sub ' rrpruef
 Function DMPString$(pid&, üdt As DMPClass, Optional ohneVorDMP%, Optional mitBezeich%, Optional DokuDat As Date, Optional mitStr% = True)
  Dim ErgebDatei$, AspZul$, AspBef$, UzuPm$
  
- If Not DokuDat Then DokuDat = MIN(Now(), QEnd(ZQuart(Now() - Verspätung)))
+ If Not DokuDat Then DokuDat = MINvb(Now(), QEnd(ZQuart(Now() - Verspätung)))
  ErgebDatei$ = aVerz & "DMP.txt"
 ' Dim aktDC.obglib AS AntidiabMedType, aktDC.obmetf AS Boolean, aktDC.obgluci AS Boolean, aktDC.obshglin AS Boolean, aktDC.obglit AS Boolean, aktDC.obsonstAD AS boolean, _
      aktDC.obins AS Boolean, aktDC.obanal AS Boolean, aktDC.obhmg AS Boolean, aktDC.obantihyp AS Boolean, aktDC.obthro AS Boolean
@@ -1014,7 +1014,7 @@ If aktDC.Lkz = "" Then aktDC.Lkz = "D"
 aktDC.Postleitzahl = "D " & aktDC.plz & " " & aktDC.ort ' 1.1.15 Länderkennzeichen
 aktDC.PrivatTel = rsAnam!PrivatTel
 #If False Then ' 29.6.15, Woltmann
- myFrag rform, "SELECT " & IIf(Not LVobMySQL, "top 1", "") & " feldinh FROM `formular` WHERE pat_id = " & Pat_id & " AND Feld = 'KVKGueltig' AND zeitpunkt <= " & DatFor_k(MIN(Now(), QEnd(ZQuart(Now - Verspätung)))) & " AND feldinh LIKE '%/%'" & " ORDER BY zeitpunkt DESC" & IIf(LVobMySQL, " LIMIT 1", "")
+ myFrag rform, "SELECT " & IIf(Not LVobMySQL, "top 1", "") & " feldinh FROM `formular` WHERE pat_id = " & Pat_id & " AND Feld = 'KVKGueltig' AND zeitpunkt <= " & DatFor_k(MINvb(Now(), QEnd(ZQuart(Now - Verspätung)))) & " AND feldinh LIKE '%/%'" & " ORDER BY zeitpunkt DESC" & IIf(LVobMySQL, " LIMIT 1", "")
  If Not rform.BOF Then
   Postleitzahl = Left$(Postleitzahl & Space$(25), 25) & rform!FeldInh
  Else
@@ -1338,7 +1338,7 @@ With raAna
  End If ' aktDC.kgr <> 0 THEN
  
  aktDC.PrRR = GetPrRR(raAna, aktDC.RRsyst, aktDC.RRdiast, obdiastkorr:=True)
- If aktDC.RRdiast < 30 Then aktDC.RRdiast = MIN(70, aktDC.RRsyst) ' 31.10.20
+ If aktDC.RRdiast < 30 Then aktDC.RRdiast = MINvb(70, aktDC.RRsyst) ' 31.10.20
  If aktDC.dtyp = "2" Then
   If aktDC.PrRR <> "" Then
    If mitStr Then TabPr "Blutdruck:", aktDC.PrRR
@@ -1439,7 +1439,7 @@ If True Then ' lwZahl
   If CreaR = "o,B," Then CreaR = "1.0"
   
   Dim pospfeil%
-  pospfeil = MAX(InStr(CreaR, ">"), InStr(CreaR, "<"))
+  pospfeil = MAXvb(InStr(CreaR, ">"), InStr(CreaR, "<"))
   If pospfeil > 0 Then CreaR = Mid$(CreaR, pospfeil + 1)
   aktDC.Crea = REPLACE$(CreaR, ",,", ",")
   aktDC.Crea = Round(aktDC.Crea, 1)
@@ -1962,7 +1962,7 @@ If Not ranamp.EOF And ranamp!amp = 1 Then aktDC.ZnAmput = 1
    aktSei = unbek
    Do While Not raDT.EOF
     If InStrB(raDT!ICD, "L89.") <> 0 Then
-     aktWA = MAX(Mid$(raDT!ICD, 5, 1) - 1, 0) ' Korrektur 3.1.15 z.B. L89.09
+     aktWA = MAXvb(Mid$(raDT!ICD, 5, 1) - 1, 0) ' Korrektur 3.1.15 z.B. L89.09
      If aktWA > aktDC.mWA Then
       aktDC.mWA = aktWA
       If IsNull(raDT!DiagSeite) Then
@@ -2162,7 +2162,7 @@ If aktDC.dtyp = "2" Then If mitStr Then TabPr "Lasertherapie:", IIf(aktDC.oblase
   aktDC.hypoZKK = rs!ct
   Set rs = Nothing
   If IsNumeric(aktDC.dmpHypos) Then If aktDC.dmpHypos <> 0 Then aktDC.hypoZ = aktDC.dmpHypos
-  aktDC.hypoZ = MAX(aktDC.hypoZ, aktDC.hypoZKK)
+  aktDC.hypoZ = MAXvb(aktDC.hypoZ, aktDC.hypoZKK)
   If aktDC.hypoZ Then
    hypoStr = aktDC.hypoZ
   Else
@@ -3180,7 +3180,7 @@ Function tuBriefeLeiDok(frm As Lese, Optional Arztnr&)
    myFrag rl, "SELECT * FROM `leistungen` WHERE fid = " & rf!FID & " AND leistung IN ('01601')"
    If rl.BOF Then
 '    Call LeistungsExport1(rF!Pat_id, "01601", MIN(DateValue(rB!Zeitpunkt), #12/31/2007#), CDate("18:00"))
-    Call LeistungsExport1(rf!Pat_id, "40110", MIN(DateValue(rB!Zeitpunkt), #12/31/2007#), CDate("18:00"), , , Arztnr)
+    Call LeistungsExport1(rf!Pat_id, "40110", MINvb(DateValue(rB!Zeitpunkt), #12/31/2007#), CDate("18:00"), , , Arztnr)
    End If
   Else
    sql1 = "SELECT * FROM `briefe` WHERE pat_id = " & rf!Pat_id & " AND zeitpunkt >= " & DatFor_k(QAnf(ZQuart(Now() - 20))) & " AND name LIKE '%.doc' AND (name LIKE '%dmp-daten%') AND zeitpunkt >= " & DatFor_k(#10/16/2007#)
@@ -3191,7 +3191,7 @@ Function tuBriefeLeiDok(frm As Lese, Optional Arztnr&)
     myFrag rl, "SELECT * FROM `leistungen` WHERE fid = " & rf!FID & " AND leistung IN ('01600')"
     If rl.BOF Then
 '     Call LeistungsExport1(rF!Pat_id, "01600", MIN(DateValue(rB!Zeitpunkt), #12/31/2007#), CDate("18:00"))
-     Call LeistungsExport1(rf!Pat_id, "40110", MIN(DateValue(rB!Zeitpunkt), #12/31/2007#), CDate("18:00"), , , Arztnr)
+     Call LeistungsExport1(rf!Pat_id, "40110", MINvb(DateValue(rB!Zeitpunkt), #12/31/2007#), CDate("18:00"), , , Arztnr)
     End If
    End If
   End If
@@ -3366,22 +3366,29 @@ End Function ' alleDMPLeiDok
 ' Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
 'End SELECT
 'End FUNCTION ' alleDMPLeiDok1
-Function MAX(D1, D2)
- If D1 > D2 Then MAX = D1 Else MAX = D2
+
+' in GetMed, dolies, rezEintr, do_Pat_ID_Change, PatAuswahl, Command1_Click, callMachDMPBogen, Form_Load (Pat_Liste), MFG_Mouse_Down, UKPDS, dodoPLZ, LaborIns1, obhierdmpfn, TabAusgeb
+Function MAXvb(D1, D2)
+ If D1 > D2 Then MAXvb = D1 Else MAXvb = D2
 End Function ' max
 
-Function MIN(D1, D2)
- If D1 < D2 Then MIN = D1 Else MIN = D2
+' in liesExcel, std3, Command1_Click, doFS, callMachDMPBogen, dodoPLZ, DMPString, tuBriefeLeiDok, einDMP, getPrRR, TabAusgeb, Form_Load (LANRAuswahl),
+Function MINvb(D1, D2)
+ If D1 < D2 Then MINvb = D1 Else MINvb = D2
 End Function ' min
 
-Sub tob()
+#If zutesten Then
+' kommt nirgends vor
+Sub tobhier()
  Dim dmpk&, dmpkhkk&, dmpcopdk&, dmpabk&, HzV&, DS&, hzvab As Date, dsab As Date
- Dim dmpb As Date, dmpkhkb As Date, dmpcopdb As Date, dmpabb As Date
- Call obhierdmpfn("DMP COPD MVZ 12.10.19", dmpk, dmpb, dmpkhkk, dmpkhkb, dmpcopdk, dmpcopdb, dmpabk, dmpabb, HzV, hzvab, DS, dsab)
+ Dim dmpb As Date, dmpkhkb As Date, dmpcopdb As Date, dmpabb As Date, NZNr&
+ Call obhierdmpfn("DMP COPD MVZ 12.10.19", NZNr, dmpk, dmpb, dmpkhkk, dmpkhkb, dmpcopdk, dmpcopdb, dmpabk, dmpabb, HzV, hzvab, DS, dsab)
 ' Debug.Print dmpk, dmpb, dmpcopdk, dmpcopdb, HzV, hzvab, DS, dsab
-End Sub ' tob
+End Sub ' tobhier
+#End If
 
-Sub obhierdmpfn(Notiz$, dmpklass&, dmpbeg As Date, Optional dmpkhkklass&, Optional dmpkhkbeg As Date, Optional dmpcopdklass&, Optional dmpcopdbeg As Date, Optional dmpabklass&, Optional dmpabbeg As Date, Optional HzV&, Optional HzVbeg As Date, Optional DS&, Optional DSbeg As Date)
+' in alleSpeichern() und tob()
+Sub obhierdmpfn(Notiz$, NZNr&, dmpklass&, dmpbeg As Date, Optional dmpkhkklass&, Optional dmpkhkbeg As Date, Optional dmpcopdklass&, Optional dmpcopdbeg As Date, Optional dmpabklass&, Optional dmpabbeg As Date, Optional HzV&, Optional HzVbeg As Date, Optional DS&, Optional DSbeg As Date)
  Dim buch$, pos%, testd As Date, i%, notdat$(), ndRichtig%() ' letztes wahr, wenn notdat-Zeile für DMP verwertbar oder irrelevant
  Dim maxdHier(3) As Date, maxdHA(3) As Date, maxdNein(3) As Date, maxdAus(3) As Date
  Dim dmpArt% ' 0 = Diabetes, 1 = KHK, 2 = COPD, 3 = Asthma bronchiale
@@ -3394,11 +3401,11 @@ Sub obhierdmpfn(Notiz$, dmpklass&, dmpbeg As Date, Optional dmpkhkklass&, Option
        notdat(UBound(notdat)) = UCase$(Trim$(Left$(Notiz, pos - 1)))
        Notiz = Mid$(Notiz, pos + 2)
        ReDim Preserve notdat(UBound(notdat) + 1)
-      Else
+      Else ' pos <> 0 Then
        notdat(UBound(notdat)) = UCase$(Trim$(Notiz))
        Notiz = vNS
        Exit Do
-      End If
+      End If ' pos <> 0 Then else
      Loop
      ReDim ndRichtig(UBound(notdat))
      Dim umw$
@@ -3434,15 +3441,15 @@ Sub obhierdmpfn(Notiz$, dmpklass&, dmpbeg As Date, Optional dmpkhkklass&, Option
        If InStrB(notdat(i), "KHK") <> 0 Then dmpArt = 1 Else If InStrB(notdat(i), "COPD") <> 0 Then dmpArt = 2 Else If (InStrB(notdat(i), "ASTHMA") <> 0 Or InStrB(notdat(i), "AB") <> 0) Then dmpArt = 3
        If testd <> 0 Then
         If InStrB(notdat(i), "HIER") <> 0 Or InStrB(notdat(i), "BEI UNS") <> 0 Then
-         maxdHier(dmpArt) = MAX(maxdHier(dmpArt), testd)
+         maxdHier(dmpArt) = MAXvb(maxdHier(dmpArt), testd)
         ElseIf InStrB(notdat(i), " HA") <> 0 Or InStrB(notdat(i), " HÄ") <> 0 Then
-         maxdHA(dmpArt) = MAX(maxdHA(dmpArt), testd)
+         maxdHA(dmpArt) = MAXvb(maxdHA(dmpArt), testd)
         ElseIf InStrB(notdat(i), "NEIN") <> 0 Then
-         maxdNein(dmpArt) = MAX(maxdNein(dmpArt), testd)
+         maxdNein(dmpArt) = MAXvb(maxdNein(dmpArt), testd)
         ElseIf InStrB(notdat(i), "AUSGESCHRIEBEN") <> 0 Then
-         maxdAus(dmpArt) = MAX(maxdAus(dmpArt), testd)
+         maxdAus(dmpArt) = MAXvb(maxdAus(dmpArt), testd)
         Else ' z.B. DMP MVZ
-         maxdHA(dmpArt) = MAX(maxdHA(dmpArt), testd)
+         maxdHA(dmpArt) = MAXvb(maxdHA(dmpArt), testd)
          ndRichtig(i) = False ' b2) und "hier", " HA" oder "nein" enthalten
         End If ' instrb(notdat(i), ...
        End If ' test<>0
@@ -3456,7 +3463,8 @@ Sub obhierdmpfn(Notiz$, dmpklass&, dmpbeg As Date, Optional dmpkhkklass&, Option
      For i = UBound(notdat) To 0 Step -1
       If ndRichtig(i) = 0 Then
        Notiz = notdat(i) & vbCrLf & Notiz
-      End If
+       NZNr = i
+      End If ' ndRichtig(i) = 0 Then
      Next i
      For dmpArt = 3 To 0 Step -1
         dmpklass = 0
@@ -3622,7 +3630,7 @@ Function einDMP(Pat_id&, Optional ICD$, Optional dszahl&, Optional Nachname$, Op
 '     IF rs!getHA <> Infos(12, 0) THEN Stop
 '     Exit Function
      If LenB(ICD) = 0 Then ICD = IIf(infos(6, i) = "X", "E11", "E10")
-     For i = 0 To MIN(maxverschieden - 1, UBound(infos, 2))
+     For i = 0 To MINvb(maxverschieden - 1, UBound(infos, 2))
 '      IF ((ICD LIKE "E11*" AND infos(6, i) = "X") OR (ICD LIKE "E10*" AND infos(7, i) = "X")) THEN
       If ((ICD Like "E11*") Or (ICD Like "E10*")) Then
       ' 5.7.10: Diese beiden Zeilen wären notwendig für die zwischenzeitliche Umfunktionierung dieser Funktion,
@@ -4816,7 +4824,7 @@ End Function ' SensSplit(SensStrg, re$, li$)
     End If
    End With
   End If
-  If obdiastkorr Then If RRdiast < 30 Then RRdiast = MIN(70, RRsyst) ' 31.10.20
+  If obdiastkorr Then If RRdiast < 30 Then RRdiast = MINvb(70, RRsyst) ' 31.10.20
   Exit Function
 fehler:
  Dim AnwPfad$
