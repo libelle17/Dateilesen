@@ -6,7 +6,7 @@ Begin VB.MDIForm Lese
    ClientHeight    =   6360
    ClientLeft      =   270
    ClientTop       =   1275
-   ClientWidth     =   18360
+   ClientWidth     =   15240
    Icon            =   "Lese5.frx":0000
    LinkTopic       =   "Lese"
    Picture         =   "Lese5.frx":030A
@@ -15,10 +15,10 @@ Begin VB.MDIForm Lese
       Height          =   6015
       Left            =   0
       ScaleHeight     =   5955
-      ScaleWidth      =   18300
+      ScaleWidth      =   15180
       TabIndex        =   0
       Top             =   0
-      Width           =   18360
+      Width           =   15240
       Begin VB.TextBox DurchschnDauer 
          BackColor       =   &H80000018&
          ForeColor       =   &H008080FF&
@@ -1010,8 +1010,12 @@ End Sub ' Datenbank_Click
 ' für Arzt -> DMP Übersicht
 Private Sub DMP_Übersicht_Click()
  Dim rs As New ADODB.Recordset
- myFrag rs, "SELECT NachName, VorName, GebDat, Pat_id, LanrID, Karteidatum, DATE(exportiert) EXP, DATE(dokudatum) Doku, Abk, Art FROM dmpreihe e WHERE karteidatum BETWEEN qanf() AND qend() AND exportiert<>18991230 ORDER BY lanrid, REPLACE(nachname,'€','C'), vorname, gebdat;"
- TabAusgeb rs, Me, , , , , , , "DMP-Dok'en " & ZQuart(Now() - Verspätung) & ", nach LANRID, Nachname, Vorname, Geb'dat sortiert", , True, , , , , True
+ Dim quart$
+ quart = InputBox("Quartal?", "Quartalseingabe", Left$(ZQuart(Now() - vgbVerspätung), 1) & Right$(ZQuart(Now() - vgbVerspätung), 2))
+ sql = "SELECT NachName, VorName, GebDat, Pat_id, LanrID, Karteidatum, DATE(exportiert) EXP, DATE(dokudatum) Doku, Abk, Art " & vbCrLf & _
+ "FROM dmpreihe e WHERE karteidatum BETWEEN " & Format(QAnf(quart), "YYYYmmdd") & " AND " & Format(QEnd(quart), "YYYYmmdd") & " AND exportiert<>18991230 ORDER BY lanrid, REPLACE(nachname,'€','C'), vorname, gebdat;"
+ myFrag rs, sql
+ TabAusgeb rs, Me, , , , , , , "DMP-Dok'en " & quart & ", nach LANRID, Nachname, Vorname, Geb'dat sortiert", , True, , , , , True
 End Sub ' DMP_Übersicht_Click()
 
 ' EDV -> Formulare bereinigen
@@ -2334,10 +2338,10 @@ Private Sub Überweiserstatistik_Click()
  Open DatNam For Output As #326
  Call ProgStart
 ' myFrag rs, "SELECT kvnu,anrede, haname,plz,ort,tel1,tel2,fax1,fax2,zulg,arzttyp,gemmit,beme,dmpt2,dmpt1,gelöscht,ct FROM (SELECT COUNT(0) AS ct, LEFT(übwv,7) AS kvnu FROM `faelle` WHERE bhfb > " & DatFor_k(Now - 365) & " AND übwv <> '' GROUP BY übwv " & _
-   "UNION SELECT COUNT(0) AS ct, LEFT(andüw,7) AS kvnu FROM `faelle` WHERE bhfb > " & DatFor_k(Now - 365) & " AND andüw <> '' GROUP BY andüw) AS i LEFT JOIN `kvaerzte`.`hae` USING (kvnu) WHERE not gelöscht AND NOT ISNULL(kvnu) AND kvnu <> '6419153' ORDER BY ct DESC"
+   "UNION SELECT COUNT(0) AS ct, LEFT(andüw,7) AS kvnu FROM `faelle` WHERE bhfb > " & DatFor_k(Now - 365) & " AND andüw <> '' GROUP BY andüw) AS i LEFT JOIN `kvaerzte`.`hae` USING (kvnu) WHERE not gelöscht AND NOT ISNULL(kvnu) AND kvnu <> '" & kvnr & "' ORDER BY ct DESC"
 ' myFrag rs, "SELECT kvnu,anrede, haname,plz,ort,tel1,tel2,fax1,fax2,zulg,arzttyp,dmpt2,dmpt1 FROM (SELECT COUNT(0) AS ct, LEFT(übwv,7) AS kvnu FROM `faelle` WHERE bhfb > " & DatFor_k(Now - 365) & " AND übwv <> '' GROUP BY übwv " & _
-   "UNION SELECT COUNT(0) AS ct, LEFT(andüw,7) AS kvnu FROM `faelle` WHERE bhfb > " & DatFor_k(Now - 365) & " AND andüw <> '' GROUP BY andüw) AS i LEFT JOIN `kvaerzte`.`hae` USING (kvnu) WHERE not gelöscht AND NOT ISNULL(kvnu) AND kvnu <> '6419153' ORDER BY ct DESC"
- sql = "SELECT ct,haname,ort,dmpt2,dmpt1,i.kvnu,lname,pat_id,bhfb FROM (SELECT COUNT(0) AS ct, übwr kvnu, GROUP_CONCAT(DISTINCT CAST(pat_id AS char)) pat_id, bhfb FROM quelle.faelle f WHERE bhfb > '2008-12-05 21:39:20' AND übwr <> '' AND übwr <> '641915300' GROUP BY kvnu) i LEFT JOIN " & HADBName & ".`hae` hae ON i.kvnu = hae.kvnu LEFT JOIN (SELECT GROUP_CONCAT(DISTINCT name) lname,kvnr FROM `aktlue` l WHERE kvnro<>'' GROUP BY kvnr) l ON i.kvnu = l.kvnr ORDER BY ct DESC;"
+   "UNION SELECT COUNT(0) AS ct, LEFT(andüw,7) AS kvnu FROM `faelle` WHERE bhfb > " & DatFor_k(Now - 365) & " AND andüw <> '' GROUP BY andüw) AS i LEFT JOIN `kvaerzte`.`hae` USING (kvnu) WHERE not gelöscht AND NOT ISNULL(kvnu) AND kvnu <> '" & kvnr & "' ORDER BY ct DESC"
+ sql = "SELECT ct,haname,ort,dmpt2,dmpt1,i.kvnu,lname,pat_id,bhfb FROM (SELECT COUNT(0) AS ct, übwr kvnu, GROUP_CONCAT(DISTINCT CAST(pat_id AS char)) pat_id, bhfb FROM quelle.faelle f WHERE bhfb > '2008-12-05 21:39:20' AND übwr <> '' AND übwr <> '" & BSNR & "' GROUP BY kvnu) i LEFT JOIN " & HADBName & ".`hae` hae ON i.kvnu = hae.kvnu LEFT JOIN (SELECT GROUP_CONCAT(DISTINCT name) lname,kvnr FROM `aktlue` l WHERE kvnro<>'' GROUP BY kvnr) l ON i.kvnu = l.kvnr ORDER BY ct DESC;"
  myFrag rs, sql
  For i = 0 To rs.Fields.COUNT - 1
   ausg = ausg & """" & rs.Fields(i).name & """;"
@@ -2358,7 +2362,7 @@ Private Sub Überweiserstatistik_Click()
  Call ProgEnde
  zeigan DatNam
 End Sub ' Überweiserstatistik_Click
-' SELECT kvnu,anrede, haname,plz,ort,tel1,tel2,fax1,fax2,zulg,arzttyp,gemmit,beme,dmpt2,dmpt1,gelöscht,ct FROM (SELECT COUNT(0) AS ct, LEFT(übwv,7) AS kvnu FROM `faelle` WHERE bhfb > '2007-09-30' AND übwv <> '' GROUP BY übwv UNION SELECT COUNT(0) AS ct, LEFT(andüw,7) AS kvnu FROM `faelle` WHERE bhfb > '2007-09-30' AND andüw <> '' GROUP BY andüw) AS i LEFT JOIN `kvaerzte`.`hae` USING (kvnu) WHERE not gelöscht AND NOT ISNULL(kvnu) AND kvnu <> '6419153' ORDER BY ct DESC;
+' SELECT kvnu,anrede, haname,plz,ort,tel1,tel2,fax1,fax2,zulg,arzttyp,gemmit,beme,dmpt2,dmpt1,gelöscht,ct FROM (SELECT COUNT(0) AS ct, LEFT(übwv,7) AS kvnu FROM `faelle` WHERE bhfb > '2007-09-30' AND übwv <> '' GROUP BY übwv UNION SELECT COUNT(0) AS ct, LEFT(andüw,7) AS kvnu FROM `faelle` WHERE bhfb > '2007-09-30' AND andüw <> '' GROUP BY andüw) AS i LEFT JOIN `kvaerzte`.`hae` USING (kvnu) WHERE not gelöscht AND NOT ISNULL(kvnu) AND kvnu <> '" & kvnr & "' ORDER BY ct DESC;
 
 ' Statistik -> &Überweiserstatistik d.letzten 2a
 Private Sub Überweiserstatistik2_Click()
@@ -3856,7 +3860,8 @@ Sub doGNR_Statistiken_einl_Click(Optional obneu = 0)
        End If
        InsKorr DBCn, DBCnS, "INSERT INTO `" & GStat & "` (datei,dateidat,qinv) values ('" & UmwfSQL(Verz & "\" & erg) & "'," & DatFor_k(DateiDat) & ",'" & Mid$(q0, 2) & Left$(q0, 1) & "')", rAf
        Set rTest = Nothing
-       Set rTest = myEFrag("SELECT last_insert_id()")
+'       Set rTest = myEFrag("SELECT last_insert_id()")
+       Set rTest = myEFrag("SELECT id FROM `" & GStat & "` WHERE DATEI='" & UmwfSQL(Verz & "\" & erg) & "'")
        statid = rTest.Fields(0)
        If statid = 0 Then MsgBox "Fehler in doGNR_Statistiken_einl_Click: last_insert_id()=0"
        doeintr = 1

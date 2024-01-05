@@ -1079,7 +1079,7 @@ On Error GoTo fehler
  Dim Fqminu% 'Duplikat für die Füße
  Dim UGrenze!(pzl), grenze!(pzl) ' Grenze für pathologische Werte
  Dim obpath%(pzl)
- Dim KVNr&
+ Dim pKVNR&
  Const GrenzeDiast! = 81
  Dim nurpath%(pzl) ' -1 = nicht anzeigen
                   ' 1 = Anzeige nur bei Fehlen eines Wertes und bei pathologischem Wert,
@@ -2302,7 +2302,7 @@ keinuzu:
     Dim KVNrS$
     KVNrS = üwerg(12, i)
     If IsNumeric(KVNrS) Then
-     KVNr = KVNrS
+     pKVNR = KVNrS
     End If
     Exit For
    End If
@@ -2323,7 +2323,7 @@ keinuzu:
   obGU = 0
   
   If obLeist Then
-   If KVNr = "6419153" And PAlter > 35 Then
+   If pKVNR = KVNR And PAlter > 35 Then
     myFrag rLei, "SELECT zeitpunkt FROM `leistungen` WHERE pat_id = " & Pat_id & " AND leistung = '01732' ORDER BY zeitpunkt DESC"
     If rLei.BOF Then
      obGU = True
@@ -2337,7 +2337,7 @@ keinuzu:
   End If
   m = 26: TI(m) = Timer: For p = 0 To m - 1: TI(m) = TI(m) - TI(p): Next p
 '  IF Not rFl.BOF THEN ' 5.3.09
-'   IF rFl!Kateg = "AOK" AND (KVNr = "6419153" OR obpath(0) = -1) THEN
+'   IF rFl!Kateg = "AOK" AND (pKVNr = kvnr OR obpath(0) = -1) THEN
 '    SET rHAV = Nothing
 '    myFrag rHAV, "SELECT * FROM `eintraege` WHERE pat_id = " & Pat_ID & " AND art = 'hav'"
 '    IF rHAV.BOF THEN

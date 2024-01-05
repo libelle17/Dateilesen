@@ -1610,18 +1610,19 @@ Public Sub domachDMPBogen(Pat_id&, BogArtlV As BogArtTyp, DokuDat As Date, Optio
  Dim ErstellDat$, i%, GewichtS$, GrößeS$, HbA1cS$, HypoZS$, KrZS$, KreaS$, eGFRs$, RRS$
   
  Dim WagSt$, ArmSt$
- Dim ab315%, ab317%, ab0418%, ab1118%, ab0619%, ab0921%, ab0423%
+ Dim ab315%, ab317%, ab0418%, ab1118%, ab0619%, ab0921%, ab0423%, ab1023%
+ ab1023 = (DokuDat > #9/30/2023#)
  ab0423 = (DokuDat > #3/31/2023#)
- ab315 = (DokuDat > #6/30/2015#)
- ab317 = (DokuDat > #6/30/2017#)
- ab0418 = (DokuDat > #3/31/2018#)
- ab1118 = (DokuDat > #10/1/2018#)
- ab0619 = (DokuDat > #4/1/2019#)
  ab0921 = (DokuDat > #6/30/2021#)
+ ab0619 = (DokuDat > #4/1/2019#)
+ ab1118 = (DokuDat > #10/1/2018#)
+ ab0418 = (DokuDat > #3/31/2018#)
+ ab317 = (DokuDat > #6/30/2017#)
+ ab315 = (DokuDat > #6/30/2015#)
  Dim Datenerfassung$, FeldFormVersion$
- Datenerfassung$ = IIf(ab0423, "April_2023", IIf(ab0921, "July_2021", IIf(ab0619, "April_2019", IIf(ab1118, "Okt_2018", IIf(ab0418, "Jan_2018", IIf(ab317, "July_2017", "15_07"))))))
+ 'Datenerfassung$ = IIf(ab1023, "Okt_2023", IIf(ab0423, "April_2023", IIf(ab0921, "July_2021", IIf(ab0619, "April_2019", IIf(ab1118, "Okt_2018", IIf(ab0418, "Jan_2018", IIf(ab317, "July_2017", "15_07")))))))
+ Datenerfassung$ = Switch(ab1023, "Okt_2023", ab0423, "April_2023", ab0921, "July_2021", ab0619, "April_2019", ab1118, "Okt_2018", ab0418, "Jan_2018", ab317, "July_2017", True, "15_07")
  FeldFormVersion = Datenerfassung
- FeldFormVersion = IIf(ab0423, "April_2023", IIf(ab0921, "July_2021", IIf(ab0619, "April_2019", IIf(ab1118, "Okt_2018", IIf(ab0418, "April_2018", Datenerfassung)))))
  
  FNr = 17
  On Error GoTo fehler
@@ -1633,17 +1634,18 @@ Public Sub domachDMPBogen(Pat_id&, BogArtlV As BogArtTyp, DokuDat As Date, Optio
  Next iru
  If LenB(erg) <> 0 Then
   If Not immeranhaeng Then
-   Select Case MsgBox("Datei '" & Datei & "' vorhanden. Löschen (sonst anhängen)?", vbYesNoCancel + vbDefaultButton2, "Rückfrage")
+   Select Case MsgBox("Datei '" & Datei & "' vorhanden. Umbenennen (sonst anhängen)?", vbYesNoCancel + vbDefaultButton2, "Rückfrage")
     Case vbYes
      On Error Resume Next
-     Kill Datei
+     FSO.MoveFile Datei, REPLACE(Datei, ".BDT", Format(Now(), "_yymmdd_HHMMSS.B\DT"))
+'     Kill Datei
      Kill REPLACE$(Datei, "u:", "\\linux1\daten\eigene Dateien")
      On Error GoTo fehler
     Case vbNo
     Case vbCancel: Exit Sub
    End Select
-  End If
- End If
+  End If ' Not immeranhaeng Then
+ End If ' LenB(erg) <> 0 Then
  Dim auswlanr As New LANRauswahl
  
  Dim rlanr As New ADODB.Recordset
@@ -1653,12 +1655,12 @@ Public Sub domachDMPBogen(Pat_id&, BogArtlV As BogArtTyp, DokuDat As Date, Optio
    auswlanr.Lanr = rlanr!Lanr
    Set rlanr = Nothing
   End If
- Else
+ Else ' autolanr Then
   auswlanr.PrepPatid Pat_id
   auswlanr.Show 1, Me
   auswlanr.Visible = False
   If auswlanr.Lanr = 0 Then Exit Sub
- End If
+ End If ' autolanr Then else
  
 ' DokuDat = qend(ZQuart(NOW() - Verspätung))
  DokuDatS = Format(DokuDat, "dd.mm.yyyy")
@@ -1708,7 +1710,8 @@ Public Sub domachDMPBogen(Pat_id&, BogArtlV As BogArtTyp, DokuDat As Date, Optio
  erg = Dir(BDT.DMPImp)
  If LenB(erg) = 0 Then
   Call BDT.BDTKopf
- End If
+  Call BDT.BDTKo2(auswlanr.Lanr)
+ End If ' LenB(erg) = 0
  BDT.Satzart "6200" ' Falldaten
  BDT.PatID Pat_id
  If aktDC.NVorsatz <> "" Then
@@ -1721,7 +1724,7 @@ Public Sub domachDMPBogen(Pat_id&, BogArtlV As BogArtTyp, DokuDat As Date, Optio
  BDT.TAdd "6201", "2000"
  BDT.Add "6203" & "TM#?##"       ' ergänzt 1.1.5
  BDT.Add "3635TM#" & auswlanr.Lanr
- BDT.Add "3636TM#641915300"
+ BDT.Add "3636TM#" & BSNR
  
  Select Case BogArtlV
   Case typ2alt, typ1alt, typ2neu, typ1neu
@@ -1731,12 +1734,14 @@ Public Sub domachDMPBogen(Pat_id&, BogArtlV As BogArtTyp, DokuDat As Date, Optio
    BDT.Add "6295eDMPDM" & DmT
    BDT.Add "6296" & IIf(obErstD, "Ersteinschreibung", "Verlaufsdokumentation") & " Diabetes mellitus Typ " & DmT & " (ok/ausgedruckt)"
    BDT.Add "6297$\TurboMed\Formulare\Patientenmenue\eDMP Datenerfassung" & IIf(ab315, "_" & Datenerfassung, "") & ".tmf "
-   BDT.FFAdd "ACEHemmerDM" & DmT & "#" & -(Not aktDC.obACEH)
-   BDT.FIAdd "X"
-   If aktDC.obAT1 Then
-    BDT.FFAdd "ACEHemmerDM" & DmT & "#3"
+   If Not ab1023 Then
+    BDT.FFAdd "ACEHemmerDM" & DmT & "#" & -(Not aktDC.obACEH)
     BDT.FIAdd "X"
-   End If
+    If aktDC.obAT1 Then
+     BDT.FFAdd "ACEHemmerDM" & DmT & "#3"
+     BDT.FIAdd "X"
+    End If ' aktDC.obAT1 Then
+   End If ' Not ab1023 Then
    If aktDC.obRauch Or aktDC.dmpKKTabakEmpf = "j" Then
     BDT.Add "6298Angebot#0"
     BDT.FIAdd "X"
@@ -1753,27 +1758,30 @@ Public Sub domachDMPBogen(Pat_id&, BogArtlV As BogArtTyp, DokuDat As Date, Optio
     BDT.FFAdd "AntidiabetischDM2#" & IIf(aktDC.obSonstAD = adja Or aktDC.obGlit = adja Or aktDC.obGlucI = adja Or aktDC.obSHGlin = adja Or aktDC.obdpp4 Or aktDC.obglp1 Or aktDC.obsglt2, "0", "1") ' "0" = ja, "1" = nein
     BDT.FIAdd "X"
    End If
-   If ab315 Then
-    BDT.FFAdd "AntihypertensivDM" & DmT & "#" & -(Not aktDC.obDiur)
-   Else
-    BDT.FFAdd "AntihypertensivDM" & DmT & "#" & -(Not aktDC.obAntihyp)
-   End If
-   BDT.FIAdd "X"
+   If Not ab1023 Then
+    If ab315 Then
+     BDT.FFAdd "AntihypertensivDM" & DmT & "#" & -(Not aktDC.obDiur)
+    Else
+     BDT.FFAdd "AntihypertensivDM" & DmT & "#" & -(Not aktDC.obAntihyp)
+    End If
+    BDT.FIAdd "X"
+   End If ' Not ab1023 Then
    If Not ab317 Then
     If ab315 Then
      If obErstD Then
       If aktDC.dmpArztw = "j" Then
        BDT.FFAdd "ArztwechselDM" & DmT & "#0"
        BDT.FIAdd "X"
-      End If
-     End If
-    End If
-   End If
-   BDT.FFAdd "BetablockerDM" & DmT & "#" & -(Not aktDC.obBetabl)
-   BDT.FIAdd "X"
+      End If ' aktDC.dmpArztw = "j" Then
+     End If ' obErstD Then
+    End If ' ab315 Then
+   End If ' Not ab317 Then
+   If Not ab1023 Then
+    BDT.FFAdd "BetablockerDM" & DmT & "#" & -(Not aktDC.obBetabl)
+    BDT.FIAdd "X"
+   End If ' Not ab1023 Then
    BDT.FFAdd "Datum"
    BDT.FIAdd Format(DokuDat, "dd.mm.yy")
-   
    Dim diabFussEinr$
    If ab315 Then ' neu: 0=ja, 1=nein, 2=veranlasst
     Select Case aktDC.dmpUewFuss
@@ -1783,15 +1791,15 @@ Public Sub domachDMPBogen(Pat_id&, BogArtlV As BogArtTyp, DokuDat As Date, Optio
       diabFussEinr = "2"
      Case Else ' "n", fehlend
       diabFussEinr = "1"
-    End Select
+    End Select ' case aktDC.dmpUewFuss
    Else ' alt: 0 = nein, 1 = diabetologisch qualifizierter Arzt 2 = ja (Fußeinrichtung)
     Select Case aktDC.dmpUewFuss
      Case "j", "v"
       diabFussEinr = "2"
      Case Else ' "n", fehlend
       diabFussEinr = "0"
-    End Select
-   End If
+    End Select ' case aktDC.dmpUewFuss
+   End If ' ab315 else
    BDT.FFAdd "DiabFussDM" & DmT & "#" & diabFussEinr
    BDT.FIAdd "X"
    ' vorangegangene Doku, s. SEmpfohlen (aktuelle Doku)
@@ -1806,12 +1814,27 @@ Public Sub domachDMPBogen(Pat_id&, BogArtlV As BogArtTyp, DokuDat As Date, Optio
       DiabWahrgNr = "2"
      Case Else ' "u", "n empf"
       DiabWahrgNr = "3"
-    End Select
+    End Select ' cse aktDC.dmpDMSchulWahrg
     BDT.FFAdd "DiabWahrgenommenDM" & DmT & "#" & DiabWahrgNr
     BDT.FIAdd "X"
-   End If
+   End If ' Not obErstD
    ' Dokumentationsintervall: 0=quartalsweise, 1=halbjährlich
-   BDT.FFAdd "DintervallDM" & DmT & "#" & IIf(aktDC.dmphalbj = "j", "1", "0")
+   BDT.FFAdd "DintervallABV2#0"
+   BDT.FIAdd "X"
+   BDT.FFAdd "DintervallCOPD#0"
+   BDT.FIAdd "X"
+   If DmT = 1 Then
+    BDT.FFAdd "DintervallDM1#" & IIf(aktDC.dmphalbj = "j", "1", "0")
+    BDT.FIAdd "X"
+    BDT.FFAdd "DintervallDM2#0"
+    BDT.FIAdd "X"
+   Else ' DmT = 1 Then
+    BDT.FFAdd "DintervallDM1#0"
+    BDT.FIAdd "X"
+    BDT.FFAdd "DintervallDM2#" & IIf(aktDC.dmphalbj = "j", "1", "0")
+    BDT.FIAdd "X"
+   End If ' DmT = 1 Then else
+   BDT.FFAdd "DintervallKHK#0"
    BDT.FIAdd "X"
    BDT.FFAdd "DokuTyp"
    BDT.FIAdd "DM" & DmT & "." & IIf(obErstD, "E", "F") & "D"
@@ -1822,7 +1845,7 @@ Public Sub domachDMPBogen(Pat_id&, BogArtlV As BogArtTyp, DokuDat As Date, Optio
    Select Case DmT
     Case 1: EinschrWg = "1"
     Case 2: EinschrWg = "0"
-   End Select
+   End Select ' case DmT
    ' Einschreibung wegen: 0= DM Typ 2, 1=Typ 1, 2=KHK, 3=Asthma, 4=COPD
    BDT.FFAdd "Einschreibung#" & EinschrWg
    BDT.FIAdd "X"
@@ -1924,19 +1947,27 @@ Public Sub domachDMPBogen(Pat_id&, BogArtlV As BogArtTyp, DokuDat As Date, Optio
       BDT.FFAdd "FussstatusDM" & DmT & "#1"
      Case auff
       BDT.FFAdd "FussstatusDM" & DmT & "#2"
-    End Select
+    End Select ' case aktDC.fußst
     BDT.FIAdd "X"
    End If ' not ab317
+   If ab1023 Then
+    If DmT = "2" Then
+     BDT.FFAdd "GLP1DM2#" & -(Not (aktDC.obglp1 = adja))
+     BDT.FIAdd "X"
+    End If ' DmT = "2" Then
+   End If ' ab1023 Then
    
    GewichtS = Format(aktDC.gewi, "000")
    For i = 3 - Len(CStr(GewichtS)) To 2
     BDT.FFAdd "Gewicht#" & i
     BDT.FIAdd Mid$(GewichtS, i + 1, 1)
    Next i
-   If DmT = "2" Then
-    BDT.FFAdd "GlibenclamidDM2#" & -(Not (aktDC.obGlib = adja))
-    BDT.FIAdd "X"
-   End If
+   If Not ab1023 Then
+    If DmT = "2" Then
+     BDT.FFAdd "GlibenclamidDM2#" & -(Not (aktDC.obGlib = adja))
+     BDT.FIAdd "X"
+    End If ' DmT = "2" Then
+   End If ' Not ab1023 Then
    If Not ab317 Then
     If aktDC.fußst = auff Then
      BDT.FFAdd "Grad0bisVDM" & DmT & "#" & Left$(aktDC.mWA, 1) ' Wagner-Stadium, stimmt zufällig überein
@@ -1953,12 +1984,17 @@ Public Sub domachDMPBogen(Pat_id&, BogArtlV As BogArtTyp, DokuDat As Date, Optio
     BDT.FFAdd "Groesse#" & i
     BDT.FIAdd Mid$(GrößeS, i + 1, 1)
    Next i
-   BDT.FFAdd "HMGDM" & DmT & "#" & -(Not aktDC.obHMG)
-   BDT.FIAdd "X"
-   HbA1cS = Format(aktDC.bekHb * 10, "000")
-   For i = 3 - Len(CStr(HbA1cS)) To 2
+   If Not ab1023 Then
+    BDT.FFAdd "HMGDM" & DmT & "#" & -(Not aktDC.obHMG)
+    BDT.FIAdd "X"
+   End If ' Not ab1023 Then
+   Dim HbA1clen%
+   HbA1clen = 3
+'   HbA1clen = IIf(ab1023, 2, 3)
+   HbA1cS = Format(aktDC.bekHb * 10 ^ (HbA1clen - 2), Left$("000", HbA1clen))
+   For i = 3 - HbA1clen To 2
     BDT.FFAdd "Hba1cDM" & DmT & "#" & i
-    BDT.FIAdd Mid$(HbA1cS, i + 1, 1)
+    BDT.FIAdd Mid$(HbA1cS, i + HbA1clen - 2, 1)
    Next i
    
    If Not obErstD Then
@@ -1972,15 +2008,18 @@ Public Sub domachDMPBogen(Pat_id&, BogArtlV As BogArtTyp, DokuDat As Date, Optio
       HypertWahrgNr = "2"
      Case Else ' "u", "n empf"
       HypertWahrgNr = "3"
-    End Select
+    End Select ' case aktDC.dmpHypertSchulWahrg
     BDT.FFAdd "HyperWahrgenommenDM" & DmT & "#" & HypertWahrgNr
     BDT.FIAdd "X"
    End If
    
-   HypoZS = Format(aktDC.hypoZ, "00")
-   For i = 2 - Len(CStr(HypoZS)) To 1
+   Dim HypoLen%
+   HypoLen = 2
+'   HypoLen = IIf(ab1023, 1, 2)
+   HypoZS = Format(aktDC.hypoZ, Left$("00", HypoLen))
+   For i = 2 - HypoLen To 1
     BDT.FFAdd "HypoglykaemenDM" & DmT & "#" & i
-    BDT.FIAdd Mid$(HypoZS, i + 1, 1)
+    BDT.FIAdd Mid$(HypoZS, i + HypoLen - 1, 1)
    Next i
    
    BDT.FFAdd "Ik"
@@ -2000,12 +2039,12 @@ Public Sub domachDMPBogen(Pat_id&, BogArtlV As BogArtTyp, DokuDat As Date, Optio
    BDT.FIAdd IKs
    If ab315 Then
     If (aktDC.obIns Or aktDC.obAnal) Then
-    BDT.FFAdd "InjektionsstellenDM" & DmT & "#" & aktDC.inj ' 0=nicht untersucht, 1=unauffällig, 2 = auffällig
+     BDT.FFAdd "InjektionsstellenDM" & DmT & "#" & aktDC.inj ' 0=nicht untersucht, 1=unauffällig, 2 = auffällig
      BDT.FIAdd "X"
 '    Else
 '     BDT.FIAdd ""
     End If
-   End If
+   End If ' ab315 Then
    If Not ab0921 Or DmT <> "1" Then
     BDT.FFAdd "InsulinDM" & DmT & "#" & -(Not (aktDC.obIns Or aktDC.obAnal))
     BDT.FIAdd "X"
@@ -2056,16 +2095,22 @@ Public Sub domachDMPBogen(Pat_id&, BogArtlV As BogArtTyp, DokuDat As Date, Optio
    If aktDC.dmpDMSchulEmpf <> "j" And aktDC.dmpHypertSchulEmpf <> "j" Then
     BDT.FFAdd "SEmpfohlenDM" & DmT & "#2"
     BDT.FIAdd "X"
-   Else
+   Else ' aktDC.dmpDMSchulEmpf <> "j" And aktDC.dmpHypertSchulEmpf <> "j" Then
     If aktDC.dmpDMSchulEmpf = "j" Then
      BDT.FFAdd "SEmpfohlenDM" & DmT & "#0"
      BDT.FIAdd "X"
-    End If
+    End If ' If aktDC.dmpDMSchulEmpf = "j" Then
     If aktDC.dmpHypertSchulEmpf = "j" Then
      BDT.FFAdd "SEmpfohlenDM" & DmT & "#1"
      BDT.FIAdd "X"
-    End If
-   End If
+    End If ' aktDC.dmpHypertSchulEmpf = "j" Then
+   End If ' aktDC.dmpDMSchulEmpf <> "j" And aktDC.dmpHypertSchulEmpf <> "j" Then else
+   If ab1023 Then
+    If DmT = "2" Then
+     BDT.FFAdd "SGLT2DM2#" & -(Not (aktDC.obsglt2 = adja))
+     BDT.FIAdd "X"
+    End If ' DmT = "2" Then
+   End If ' ab1023 Then
    BDT.FFAdd "SensibilitaetDM" & DmT & "#" & IIf(aktDC.sens = ndok, "0", IIf(aktDC.sens = unauff, "1", "2"))
    BDT.FIAdd "X"
    If aktDC.FEn(7) Then ' Nephropathie
@@ -2116,6 +2161,10 @@ Public Sub domachDMPBogen(Pat_id&, BogArtlV As BogArtTyp, DokuDat As Date, Optio
    BDT.FIAdd aktDC.strasse
 '   ErstellDat = Format(min(NOW(), qend(ZQuart(qend(ZQuart(Now - Verspätung))) + 1)), "ddmmyyyy")
    'ErstellDat = Format(qend(ZQuart(qend(ZQuart(Now - Verspätung)) + 1)), "ddmmyyyy") ' 7.12.10
+   If ab1023 Then
+    BDT.FFAdd "TeilnahmeHinweisAngezeigt"
+    BDT.FIAdd "DM" & DmT
+   End If
    If Not ab315 Then
     ErstellDat = Format(QEnd(ZQuart(DokuDat)), "ddmmyyyy") ' 15.8.15
     For i = 0 To 7
@@ -2137,12 +2186,14 @@ Public Sub domachDMPBogen(Pat_id&, BogArtlV As BogArtTyp, DokuDat As Date, Optio
    'UeberweisungKHK
    BDT.FFAdd "UlcusDM" & DmT & "#" & aktDC.ulcus
    BDT.FIAdd "X"
-   BDT.FFAdd "UrinDM" & DmT & "#" & IIf(aktDC.mau = ndok, "0", IIf(aktDC.mau = auff, "1", "2"))
-   BDT.FIAdd "X"
+   If Not ab1023 Or BogArtlV = typ1alt Or BogArtlV = typ1neu Then
+    BDT.FFAdd "UrinDM" & DmT & "#" & IIf(aktDC.mau = ndok, "0", IIf(aktDC.mau = auff, "1", "2"))
+    BDT.FIAdd "X"
+   End If ' Not ab1023 Then
    BDT.FFAdd "Versichertennr"
    BDT.FIAdd Trim$(aktDC.Versichertennummer)
    BDT.FFAdd "Vertragsarztnr"
-   BDT.FIAdd "641915300"
+   BDT.FIAdd BSNR
    If ab315 Then
     If aktDC.dmpVertret = "j" Then
      BDT.FFAdd "VertretungDM" & DmT & "#0"
@@ -2203,11 +2254,11 @@ Public Sub domachDMPBogen(Pat_id&, BogArtlV As BogArtTyp, DokuDat As Date, Optio
    ZsD = ZsD & "<Geschlecht>" & aktDC.geschlecht & "</Geschlecht><GeburtsDatum>" & Format(aktDC.GebDat, "yyyy-mm-dd") & "</GeburtsDatum><Telefon>tel: " & aktDC.PrivatTel & "</Telefon><Telefax>fax: " & "</Telefax></Behandelter>"
    
    myFrag rlanr, "SELECT * FROM lanrpraxis p WHERE lanr = " & auswlanr.Lanr
-   ZsD = ZsD & "<Arzt><KVNummer>6419153</KVNummer><Titel>" & rlanr!Titel & "</Titel><Vorsatz></Vorsatz><Zusatz></Zusatz><Vorname>" & rlanr!Vorname & "</Vorname><Nachname>" & rlanr!Nachname & "</Nachname><Anschriftenzusatz></Anschriftenzusatz><Strasse>Mittermayerstraße</Strasse><Hausnummer>13</Hausnummer><PLZ>85221</PLZ><Stadt>Dachau</Stadt><Laenderkennzeichen></Laenderkennzeichen><Postfach></Postfach><PostfachPLZ></PostfachPLZ><PostfachOrt></PostfachOrt><Telefon>tel: 08131 / 616 380</Telefon><Telefax>fax: </Telefax></Arzt>"
+   ZsD = ZsD & "<Arzt><KVNummer>" & KVNr & "</KVNummer><Titel>" & rlanr!Titel & "</Titel><Vorsatz></Vorsatz><Zusatz></Zusatz><Vorname>" & rlanr!Vorname & "</Vorname><Nachname>" & rlanr!Nachname & "</Nachname><Anschriftenzusatz></Anschriftenzusatz><Strasse>Mittermayerstraße</Strasse><Hausnummer>13</Hausnummer><PLZ>85221</PLZ><Stadt>Dachau</Stadt><Laenderkennzeichen></Laenderkennzeichen><Postfach></Postfach><PostfachPLZ></PostfachPLZ><PostfachOrt></PostfachOrt><Telefon>tel: 08131 / 616 380</Telefon><Telefax>fax: </Telefax></Arzt>"
    Set rlanr = Nothing
    ' folgende Zeile war für beide Ärzte gleich
    ' 30.6.15 Anschriftenzusatz ergaenzt
-   ZsD = ZsD & "<Krankenhaus><Abteilung>FA Innere und Allgemeinmedizin (Hausarzt)</Abteilung><Name>Gerald Schade</Name></Krankenhaus><Praxis><Praxisname>Gerald Schade</Praxisname><Anschriftenzusatz></Anschriftenzusatz><Strasse>Mittermayerstraße</Strasse><Hausnummer>13</Hausnummer><PLZ>85221</PLZ><Stadt>Dachau</Stadt><Laenderkennzeichen></Laenderkennzeichen><Postfach></Postfach><PostfachPLZ></PostfachPLZ><PostfachOrt></PostfachOrt><Telefon>tel: 08131 / 616 380</Telefon><Telefax>fax: </Telefax></Praxis><Betriebsstaette><BSNR>641915300</BSNR><Betriebsstaettename>Diabetologische Gemeinschaftspraxis</Betriebsstaettename><Anschriftenzusatz></Anschriftenzusatz><Strasse>Mittermayerstraße</Strasse><Hausnummer>13</Hausnummer><PLZ>85221</PLZ><Stadt>Dachau</Stadt><Laenderkennzeichen></Laenderkennzeichen><Postfach></Postfach><PostfachPLZ></PostfachPLZ><PostfachOrt></PostfachOrt><Telefon>tel: 08131 / 616 380</Telefon><Telefax>fax: </Telefax></Betriebsstaette>"
+   ZsD = ZsD & "<Krankenhaus><Abteilung>FA Innere und Allgemeinmedizin (Hausarzt)</Abteilung><Name>Gerald Schade</Name></Krankenhaus><Praxis><Praxisname>Gerald Schade</Praxisname><Anschriftenzusatz></Anschriftenzusatz><Strasse>Mittermayerstraße</Strasse><Hausnummer>13</Hausnummer><PLZ>85221</PLZ><Stadt>Dachau</Stadt><Laenderkennzeichen></Laenderkennzeichen><Postfach></Postfach><PostfachPLZ></PostfachPLZ><PostfachOrt></PostfachOrt><Telefon>tel: 08131 / 616 380</Telefon><Telefax>fax: </Telefax></Praxis><Betriebsstaette><BSNR>" & BSNR & "</BSNR><Betriebsstaettename>Diabetologische Gemeinschaftspraxis</Betriebsstaettename><Anschriftenzusatz></Anschriftenzusatz><Strasse>Mittermayerstraße</Strasse><Hausnummer>13</Hausnummer><PLZ>85221</PLZ><Stadt>Dachau</Stadt><Laenderkennzeichen></Laenderkennzeichen><Postfach></Postfach><PostfachPLZ></PostfachPLZ><PostfachOrt></PostfachOrt><Telefon>tel: 08131 / 616 380</Telefon><Telefax>fax: </Telefax></Betriebsstaette>"
    ZsD = ZsD & "<Krankenversicherung><Typ>GKV</Typ><Name>" & Trim$(ikname) & "</Name><ikPraefix>" & ikprae & "</ikPraefix><IKNummer>" & Trim$(aktDC.IK) & "</IKNummer><KostentraegerAbrechnungsbereich>" & aktDC.KtrAbrB & "</KostentraegerAbrechnungsbereich>"
    Set rik = Nothing
    
@@ -2273,21 +2324,21 @@ Public Sub domachDMPBogen(Pat_id&, BogArtlV As BogArtTyp, DokuDat As Date, Optio
      If aktDC.dmpDMSchulWahrg = "j" Then
       BDT.FFAdd "schulungBereitsWahrgenommenDM" & DmT & "#0"
       BDT.FIAdd "X"
-     End If
+     End If ' aktDC.dmpDMSchulWahrg = "j" Then
      If aktDC.dmpHypertSchulWahrg = "j" Then
       BDT.FFAdd "schulungBereitsWahrgenommenDM" & DmT & "#1"
       BDT.FIAdd "X"
-     End If
+     End If ' aktDC.dmpHypertSchulWahrg = "j" Then
      If aktDC.dmpDMSchulWahrg <> "j" Or aktDC.dmpHypertSchulWahrg <> "j" Then
       BDT.FFAdd "schulungBereitsWahrgenommenDM" & DmT & "#2"
       BDT.FIAdd "X"
-     End If
+     End If ' aktDC.dmpDMSchulWahrg <> "j" Or aktDC.dmpHypertSchulWahrg <> "j" Then
     End If ' IF obErstD THEN
    End If ' IF ab317 THEN
    If aktDC.Deform Then ' Fußdeformität
     BDT.FFAdd "weiteresRisikoUlcusDM" & DmT & "#0"
     BDT.FIAdd "X"
-   End If
+   End If ' aktDC.Deform Then ' Fußdeformität
    If aktDC.Hyperk Then ' Hyperkeratose mit Einblutung
     BDT.FFAdd "weiteresRisikoUlcusDM" & DmT & "#1"
     BDT.FIAdd "X"
@@ -2304,7 +2355,7 @@ Public Sub domachDMPBogen(Pat_id&, BogArtlV As BogArtTyp, DokuDat As Date, Optio
    BDT.FIAdd "X"
    BDT.FFAdd "wundInfektionDM" & DmT & "#" & aktDC.Infekt
    BDT.FIAdd "X"
- End Select
+ End Select ' Case BogArtlV
  Call BDT.Schreib(anhängen:=True)
  Exit Sub
  
@@ -2316,7 +2367,6 @@ Public Sub domachDMPBogen(Pat_id&, BogArtlV As BogArtTyp, DokuDat As Date, Optio
   RRstr = "{TAB 6}"
  End If
  Select Case BogArtlV
-
   Case typ2neu
     SendStr = "%{F2}{TAB}+{TAB}"
     SendStr = SendStr & aktDC.daseit & IIf(aktDC.dspsy, " {TAB 2}", "{TAB} {TAB}")

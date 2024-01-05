@@ -521,6 +521,7 @@ Function LaborString$(Pat_id&)
 ' Print #2, LS
 ' Close #2
  End Function ' LaborString
+ 
  ' noch in werteAusGeb und doMachDMPBogen
 Public Sub DMPAusgeb0(aktDC As DMPClass, Optional Pat_id$, Optional obAnzeig As Boolean = True, Optional obnurDMPString = False, Optional DokuDat As Date)
  'DMPAusgeb0 =

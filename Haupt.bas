@@ -2458,6 +2458,7 @@ Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "Last
  Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
 End Select
 End Function ' adoxtest
+
 Function getDokPfad$(Optional Abschnitt$)
  On Error GoTo fehler
  Dim idt As TMIniDatei, erg$
@@ -2494,7 +2495,7 @@ Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "Last
  Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
  Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
 End Select
-End Function ' getTMExeV
+End Function ' getDokPfad
 
 Public Function Key(KeyCode%, Shift%, frm As Form, Optional ctrl$)
  Static keyzl%
@@ -2591,7 +2592,7 @@ Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "Last
  Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
  Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
 End Select
-End Function ' key
+End Function ' Key
 
 Function ForeignNo0()
  Dim runde%
@@ -2937,7 +2938,7 @@ End Function ' doFÜwS
 
 Function doLdFH(frm As Lese) ' Liste der fehlenden Hausärzte
 ' Const sql$ = "SELECT v.*,n.Nachname,n.Vorname,Gebdat, d.icd, IF(übwv = '', andüw, übwv) AS üw, k.kvnr, n.notiz FROM `aktfv` v LEFT JOIN `namen` n ON v.pat_id = n.pat_id LEFT JOIN `faelle` f ON v.fid = f.fid LEFT JOIN `diagnosen` d ON v.pat_id = d.pat_id AND d.icd LIKE 'E1%' LEFT JOIN kvnrue k ON v.pat_id = k.pat_id WHERE notiz = '' OR ISNULL(notiz) OR k.kvnr = '' OR ISNULL(k.kvnr) GROUP BY v.pat_id ORDER BY v.pat_id, k.lfdnr"
- Const sql$ = "SELECT n.Pat_id, n.Nachname, n.Vorname, n.Gebdat, `aktfv`.Schgr, KVNr FROM `namen` n LEFT JOIN `aktfv` ON `aktfv`.pat_id = n.pat_id WHERE n.kvnr IN ('6419153') AND NOT ISNULL(`aktfv`.pat_id) ORDER BY n.kvnr, n.pat_id DESC"
+ Const sql$ = "SELECT n.Pat_id, n.Nachname, n.Vorname, n.Gebdat, `aktfv`.Schgr, KVNr FROM `namen` n LEFT JOIN `aktfv` ON `aktfv`.pat_id = n.pat_id WHERE n.kvnr IN ('" & KVNr & "') AND NOT ISNULL(`aktfv`.pat_id) ORDER BY n.kvnr, n.pat_id DESC"
  Dim rAb As New ADODB.Recordset
 ' rAb.Open sql, DBCn, adOpenDynamic, adLockReadOnly
  myFrag rAb, sql
@@ -5607,7 +5608,7 @@ End Function ' fallzahlstand
 ' Open z For Output AS #310
 '  Print #310, "01380000020"
 '  Print #310, "014810000082"
-'  Print #310, "01691006419153"
+'  Print #310, "0169100" & KVNR
 '  Print #310, "017910309042005"
 '  Print #310, "0129105001"
 '  Print #310, "01091062"
@@ -5624,7 +5625,7 @@ End Function ' fallzahlstand
 '  Print #310, "0260102TurboMed EDV GmbH"
 '  Print #310, "0250103TurboMed@Windows"
 '  Print #310, "0180104IBM PC/AT"
-'  Print #310, "01602016419153"
+'  Print #310, "0160201" & KVNR
 '  Print #310, "01002021"
 '  Print #310, "0220203Gerald Schade"
 '  Print #310, "0500204FA Innere und Allgemeinmedizin (Hausarzt)"

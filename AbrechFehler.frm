@@ -143,12 +143,12 @@ Const lf$ = _
  "SELECT * FROM `faelle` INNER JOIN (SELECT MIN(pat_id) AS pid, MAX(bhfb) AS bb FROM `faelle` GROUP BY pat_id) AS sel " + _
  "ON (`faelle`.BhFB=sel.bb) AND (`faelle`.Pat_ID=sel.pid) "
 Const tAusgS$ = "\Abrechnungsfehler"
-Dim AktQ$
+Dim AktQ$    ' aktuelles Quartal
 Dim tAusgSg$ ' Ausgabedatei mit Verzeichnis
 Dim AbrVerz$ ' Verzeichnis davon
-Dim J2$, J1$
-Dim CoSt$
-Dim FNr&
+' Dim J2$, J1$
+Dim CoSt$ ' ConnectionString
+Dim FNr&  ' FehlerNummer
 Dim AwN$() ' Auswahl-Namen
 Dim sql$() ' SQL-Befehle
 Dim mins%() ' Minimale Ausgabebreite
@@ -161,7 +161,7 @@ Dim AWz%, AWlf%
 Dim nichtspeichern%
 Dim sqlgezeigt%
 #If obmitalterform Then
-Public AbrF As New AbrFForm
+ Public AbrF As New AbrFForm
 #End If
 
 Public Function LiesDatei$(ByVal dname$)
@@ -304,10 +304,10 @@ Private Sub Form_Load()
  ReDim AwN(AWz - 1)
  ReDim mins(AWz - 1)
  ReDim maxs(AWz - 1)
- J2 = J2a
- J1 = J1a
+' J2 = J2a
+' J1 = J1a
 #If obmitalterform Then
- If Me.AbrF.DAO Then J2 = J2d: J1 = J1d
+' If Me.AbrF.DAO Then J2 = J2d: J1 = J1d
  If Me.AbrF.ADOJet Then
   CoSt = CoJ
  Else
@@ -984,7 +984,8 @@ sql(AWlf) = "SELECT pid, gesnameg(pid) PName, wer, zahl, icd, e.Art " & vbCrLf &
             "GROUP BY f.pat_id HAVING zahl<>1) i " & vbCrLf & _
             "LEFT JOIN `eintraege` e ON i.pid = e.pat_id AND e.zeitpunkt = i.leintr AND (art IN ('tk','gs') OR inhalt LIKE '%(tk)%' OR inhalt LIKE '%(gs)%') " & vbCrLf & _
             "WHERE NOT (icd RLIKE 'E1[01].7[^5]' AND icd RLIKE 'E1[01].75') AND NOT (icd RLIKE 'E1[01].7[^4]' AND icd RLIKE 'E1[01].74') AND NOT (icd RLIKE 'E1[01].2' AND icd RLIKE 'E1[01].[^2]') " & vbCrLf & _
-            "GROUP BY pid,leintr"
+            "GROUP BY pid,leintr" & vbCrLf & _
+            "HAVING NOT ICD RLIKE 'O24.4.*R73.0' AND NOT ICD RLIKE 'R73.0.*O24.4'"
  mins(AWlf) = 10
  maxs(AWlf) = 60
  AWlf = AWlf + 1
@@ -2178,7 +2179,7 @@ sql(AWlf) = "" & _
 "FROM aktfv f LEFT JOIN leistungen l ON f.pat_id=l.pat_id " & vbCrLf & _
 " AND l.zeitpunkt BETWEEN qanf() AND qend() " & vbCrLf & _
 " AND NOT EXISTS (SELECT 0 FROM leistungen WHERE fid=l.fid AND zeitpunkt BETWEEN qanf() AND qend() AND leistung <> l.leistung) " & vbCrLf & _
-" AND (SELECT COUNT(0) FROM faelle WHERE pat_id=f.pat_id AND bhfb BETWEEN qanf() AND qend())>1 " & vbCrLf & _
+" AND (SELECT COUNT(0) FROM faelle WHERE pat_id=f.pat_id AND schgr<>90 AND bhfb BETWEEN qanf() AND qend())>1 " & vbCrLf & _
 "WHERE NOT ISNULL(l.leistung) " & vbCrLf & _
 ";"
  mins(AWlf) = 10
@@ -2225,7 +2226,7 @@ sql(AWlf) = _
 "SELECT * FROM ( " & vbCrLf & _
 "SELECT f.pat_id PID, gesnameg(f.pat_id) Name, DTyp, n.dmpklass DMP,f.Kateg " & vbCrLf & _
 ", f.mTA Maxth " & vbCrLf & _
-", IF(dtyp='g','97333',IF(ADDDATE(n.gebdat,INTERVAL 18 YEAR)>" & qtAnf(FristS) & ",IF(dtyp='1','97312','97322'),IF(dtyp='1','97310',IF(f.rang IN (6,7,8,9,10),'97320','97321')))) `Soll` " & vbCrLf & _
+", IF(dtyp='g','97333',IF(ADDDATE(n.gebdat,INTERVAL 18 YEAR)>" & qtAnf(FristS) & ",IF(dtyp='1','97312','97322'),IF(dtyp='1','97310',IF(f.rang IN (8,9,10),'97320','97321')))) `Soll` " & vbCrLf & _
 ", COALESCE(l.leistung,'') Ist, COALESCE(SUM(l.lzahl),0) Zahl " & vbCrLf & _
 "FROM aktfvmta f " & vbCrLf & _
 "LEFT JOIN namen n USING (pat_id) " & vbCrLf & _
@@ -2756,7 +2757,7 @@ sql(AWlf) = sql(AWlf) & vbCrLf & _
 "  , LANRID, LEIDAT,czp,cart " & vbCrLf & _
 "FROM ( " & vbCrLf & _
 " SELECT f.pat_id,czp,f.art cart " & vbCrLf & _
-", NOT ISNULL(d.icd) obChrPa " & vbCrLf & _
+", NOT ISNULL(d.icd) AND ISNULL(pau.leistung) obChrPa " & vbCrLf & _
 ", IF((SELECT IF(COUNT(0)>0,1,0) FROM faelle WHERE pat_id=f.pat_id AND quartal=@qe) " & vbCrLf & _
 " +(SELECT IF(COUNT(0)>0,1,0) FROM faelle WHERE pat_id=f.pat_id AND quartal=@qz) " & vbCrLf & _
 " +(SELECT IF(COUNT(0)>0,1,0) FROM faelle WHERE pat_id=f.pat_id AND quartal=@qd) " & vbCrLf & _
@@ -2766,11 +2767,12 @@ sql(AWlf) = sql(AWlf) & vbCrLf & _
 ", (SELECT COUNT(leistung) FROM leistungen WHERE pat_id=f.pat_id AND leistung IN ('03220','03220H') AND zeitpunkt BETWEEN qanf() AND qend()) l0z " & vbCrLf & _
 ", (SELECT COUNT(leistung) FROM leistungen WHERE pat_id=f.pat_id AND leistung IN ('03221','03221H') AND zeitpunkt BETWEEN qanf() AND qend()) l1z " & vbCrLf & _
 ", GROUP_CONCAT(DISTINCT CONCAT(sd.icd,sd.diagsicherheit,sd.f6010,sd.obdauer,' ',sd.diagtext)) sonst " & vbCrLf & _
-", LANRID, DATE(LETZT) LEIDAT " & vbCrLf & _
+", f.LANRID, DATE(LETZT) LEIDAT " & vbCrLf & _
 "FROM aktfkvs f " & vbCrLf & _
 "LEFT JOIN diagview d ON d.pat_id=f.pat_id AND d.gicd RLIKE '^E78\.0|^E03.9|^I87.0|^F17.1|^E27\.1|^D35\.2|^L20|^E66\.9|^T78\.[134]|^K74|^I[1234567]\.|^I0[56789]\.|^E1[0-4]\.|^E[234589]\.|^E0[356]\.|^M|^N80|^K5[01]|^C|^J4|^E78\.0|^D50|^D68|^R52.2|^I89.0|^D6[34]|^F[^1]\.|^G' AND NOT d.gicd RLIKE '^M6[5-8]\.' AND (d.obdauer <> 0 OR d.diagdatum BETWEEN " & lQAnfuEnd(FristS) & ") " & vbCrLf & _
 "LEFT JOIN diagview gd ON gd.pat_id=f.pat_id AND (gd.icd='O24.4' AND gd.f6010=0 AND gd.diagsicherheit IN ('G',' ') AND gd.diagdatum BETWEEN qbegs(f.quartal) AND qends(f.quartal))" & vbCrLf & _
 "LEFT JOIN diagview sd ON sd.pat_id=f.pat_id AND sd.diagsicherheit NOT IN ('A','Z') " & vbCrLf & _
+"LEFT JOIN leistungen pau ON pau.pat_id=f.pat_id AND pau.leistung='97146' AND pau.zeitpunkt BETWEEN qanf() AND qend()" & vbCrLf & _
 "GROUP BY f.pat_id) i " & vbCrLf & _
 ") i " & vbCrLf & _
 "WHERE F0<>'' OR F1<>'' ;"
@@ -2828,7 +2830,7 @@ sql(AWlf) = sql(AWlf) & _
 "(NOT ISNULL(ICDchr) AND NOT ISNULL(CP) AND cp IN ('03220H','03220') AND koz > 1) OR " & vbCrLf & _
 "INSTR(cp,',') OR " & vbCrLf & _
 "false) AND ISNULL(zl) AND fehler<>''" & _
-" AND (NOT fehler LIKE '%H %' OR kvnr='' OR kvnr RLIKE '^6419153' OR kvnr='933284903' OR kvnr='889690003')"
+" AND (NOT fehler LIKE '%H %' OR kvnr='' OR kvnr RLIKE '^" & KVNr & "' OR kvnr='933284903' OR kvnr='889690003')"
 #End If
  mins(AWlf) = 8
  maxs(AWlf) = 20
@@ -2886,6 +2888,7 @@ AwN(AWlf) = "Pauschalenfehler nach Tabelle (vorher 48)"
 " HAVING true) i GROUP BY pat_id, lid) i WHERE fTha<>'' OR fDTyp<>'' OR fkas<>'' OR flanr<>'' OR falter<>'' OR fweibl<>0 OR füw<>'' OR fdmp<>'' OR ISNULL(l_ther)"
 
 ' das gleiche, übersichtlicher:
+' 1.10.23: AND COALESCE(f6010,0)=0 wg. Pat. 67849 und
 sql(AWlf) = _
 "SELECT Pat_id, Name, PAlter, geschlecht P_Gsl, Zeitpunkt, Leistung, Therakt P_Ther " & vbCrLf & _
 " , GROUP_CONCAT(DISTINCT Therarten ORDER BY dtyp SEPARATOR '/') L_Ther, MIN(fTha) fTha, P_DTyp " & vbCrLf & _
@@ -2912,7 +2915,7 @@ sql(AWlf) = sql(AWlf) & _
 "LEFT JOIN `namen` n ON f.pat_id = n.pat_id " & vbCrLf & _
 "LEFT JOIN `kassenliste` k ON f.vknr = k.vknr AND f.ik = k.ik " & vbCrLf & _
 "LEFT JOIN `leistungen` l ON l.pat_id = f.pat_id AND l.zeitpunkt BETWEEN qanf() AND qend() " & vbCrLf & _
-"LEFT JOIN `diagview` d ON d.pat_id = f.pat_id AND d.diagsicherheit IN (' ','G','V') AND icd RLIKE '^E1[0-4]|^O24\.4' AND ((icd rlike '^E1[0-4]' AND obdauer<>0) OR (obdauer=0 AND icd='O24.4' AND diagdatum BETWEEN qanf() AND qend())) " & vbCrLf & _
+"LEFT JOIN `diagview` d ON d.pat_id = f.pat_id AND d.diagsicherheit IN (' ','G') AND COALESCE(f6010,0)=0 AND icd RLIKE '^E1[0-4]|^O24\.4' AND ((icd rlike '^E1[0-4]' AND obdauer<>0) OR (obdauer=0 AND icd='O24.4' AND diagdatum BETWEEN qanf() AND qend())) " & vbCrLf & _
 "LEFT JOIN `anamnesebogen` an ON f.pat_id = an.pat_id " & vbCrLf & _
 "LEFT JOIN `genehmigungen` g ON l.leistung = g.leistung AND (dmtypicd(d.icd) = g.dtyp OR ISNULL(g.dtyp) OR g.dtyp=' ') " & vbCrLf & _
 "WHERE l.leistung IN (SELECT leistung FROM `genehmigungen`) GROUP BY pat_id, lid, myid) i " & vbCrLf & _
@@ -2920,6 +2923,7 @@ sql(AWlf) = sql(AWlf) & _
 "HAVING fTha<>'' OR fDTyp<>'' OR fkas<>'' OR flanr<>'' OR falter<>'' OR fweibl<>0 OR füw<>'' OR fdmp<>'' OR ISNULL(l_ther) " & vbCrLf & _
 ";"
 ' -- IF(d.icd RLIKE '^E10',_latin1'1', IF(d.icd RLIKE '^E11',_latin1'2',IF(d.icd = 'O24.4',_latin1'g',null))) " & vbCrLf & _
+' 19.10.23: 'V' bei diagview entfernt
 
 mins(AWlf) = 10
 maxs(AWlf) = 60
@@ -4582,7 +4586,7 @@ sql(AWlf) = "SELECT n.Pat_id PID, gesname(n.pat_id) Name, patAlter(n.pat_id) PAl
 " LEFT JOIN eintraege rr ON rr.pat_id = f.pat_id AND rr.zeitpunkt BETWEEN SUBDATE(" & qtAnf(FristS) & ",182) AND " & qtEnd(FristS) & " " & vbCrLf & _
 " LEFT JOIN laborneu albu ON f.fid=albu.fid AND albu.abkü LIKE '%albu%' " & vbCrLf & _
 " LEFT JOIN `leistungen` l ON n.pat_id = l.pat_id AND l.leistung = '01732' AND DATEDIFF(" & qtAnf(FristS) & ",l.zeitpunkt)<365*3 " & vbCrLf & _
-" WHERE n.kvnr IN ('6419153','889690003','9333284903') AND DATEDIFF(" & qtAnf(FristS) & ",gebdat) > 365*35 AND ISNULL(leistung) " & vbCrLf & _
+" WHERE n.kvnr IN ('" & KVNr & "','889690003','9333284903') AND DATEDIFF(" & qtAnf(FristS) & ",gebdat) > 365*35 AND ISNULL(leistung) " & vbCrLf & _
 " AND NOT ISNULL(gluc.art) AND NOT ISNULL(chol.art) AND (NOT ISNULL(urin.art) OR NOT ISNULL(albu.fid)) " & vbCrLf & _
 " GROUP BY n.pat_id;"
  mins(AWlf) = 10
@@ -5225,8 +5229,19 @@ sql(AWlf) = sql(AWlf) & _
 ' inhalt RLIKE 'havr|twin|shingrix|zostavax|enger|hbvax|vaqta|ambirix|prevenar|priorix|m-m-rva|mmrvax' "
 '             "OR (iart IN (8,108) AND leistung NOT IN ('88331A','88331B','88331V','88331W','88331G','88331H','88332A','88332B','88332V','88332W','88332G','88332H','88333A','88333B','88333V','88333W','88333G','88333H')) " & vbCrLf & _
 
+ AwN(AWlf) = "Unwohlgeformte Covid-Impfeinträge"
+ sql(AWlf) = _
+ "SELECT pat_id, gesname(pat_id) PName, Zeitpunkt, Inhalt" & vbCrLf & _
+ "FROM eintraege" & vbCrLf & _
+ "WHERE art='vac' and inhalt RLIKE 'covid' and zeitpunkt >= qbeg(qanf()- INTERVAL 1 DAY)" & vbCrLf & _
+ "AND (inhalt RLIKE ' .Impfung' OR inhalt NOT RLIKE 'ch.-b.: [^ ]* ?, [1-9]')" & vbCrLf & _
+ ""
+ mins(AWlf) = 10
+ maxs(AWlf) = 60
+ AWlf = AWlf + 1
+ 
 #If mitcovid Then
-' 149
+' 150
 ' ktag fehlerhaft
  AwN(AWlf) = "Covid-Impfberatungen (Makro cib) ohne Impfung mit Zahl d.Leistungen 88322 <>1 (lauto) (vorher 133)"
  sql(AWlf) = _
@@ -5244,7 +5259,7 @@ sql(AWlf) = sql(AWlf) & _
  maxs(AWlf) = 80
  AWlf = AWlf + 1
 
-' 150
+' 151
 ' ktag fehlerhaft
  AwN(AWlf) = "Covid-Testzeugnisse mit Zahl d.Leistungen 88320 <>1 (lauto) (vorher 134)"
  sql(AWlf) = _
@@ -5263,7 +5278,7 @@ sql(AWlf) = sql(AWlf) & _
  maxs(AWlf) = 80
  AWlf = AWlf + 1
  
-' 151
+' 152
 AwN(AWlf) = "Zu ungenaue Covid-Impf-Abrechnung (lauto) (vorher 137)"
 ' AND COALESCE(f6010,0)=0
 sql(AWlf) = "" & _
@@ -5325,7 +5340,7 @@ sql(AWlf) = sql(AWlf) & _
  maxs(AWlf) = 60
  AWlf = AWlf + 1
  
- ' 152
+ ' 153
  AwN(AWlf) = "Covidimpfzertifikatabrechnungsauffälligkeiten (lauto) (vorher 138)"
  sql(AWlf) = "" & _
 "SELECT PID,gesname(pid) PName,ZP,COALESCE(impfdd,'') Impfdatum,COALESCE(slei,'') `Soll-Leistung`,COALESCE(srang,'') `Soll-Rang`,COALESCE(vaczl,'') vaczl,COALESCE(vorfzl,'') vorfzl,COALESCE(ilei,'') ilei,COALESCE(lzahl,'') lzahl,COALESCE(irang,'') irang,LANRID,LEIDAT " & vbCrLf & _
@@ -5390,7 +5405,8 @@ sql(AWlf) = sql(AWlf) & _
  mins(AWlf) = 10
  maxs(AWlf) = 60
  AWlf = AWlf + 1
-' 153
+ 
+' 154
 AwN(AWlf) = "Möglicherweise unerlaubt abgerechnete Impfberatungen (88322) (vorher 140)"
  sql(AWlf) = "" & _
  "SELECT l.pat_id,gesname(l.pat_id) PName, l.Zeitpunkt,l.Leistung, n.ZeitPunkt, n.Leistung " & vbCrLf & _
@@ -5404,9 +5420,9 @@ AwN(AWlf) = "Möglicherweise unerlaubt abgerechnete Impfberatungen (88322) (vorhe
  maxs(AWlf) = 60
  AWlf = AWlf + 1
 
-' 154
+' 155
 #Else
-' 148
+' 149
 #End If
 AwN(AWlf) = "Unbekannte Impfstoffe (vorher 141)"
 sql(AWlf) = "" & _
@@ -5416,7 +5432,7 @@ sql(AWlf) = "" & _
  AWlf = AWlf + 1
  
 #If mitcovid Then
-' 155
+' 156
 AwN(AWlf) = "Abrechnung Genesenenzertifikate (lauto) (vorher 143)"
 sql(AWlf) = "" & _
 "  SELECT f.pat_id PID, gesname(f.pat_id) PName,  DATE(fo.zeitpunkt) LEIDAT, '88371 dazu' LEIFEHLER, f.lanrid LANRID " & vbCrLf & _
@@ -5429,7 +5445,7 @@ sql(AWlf) = "" & _
  maxs(AWlf) = 60
  AWlf = AWlf + 1
  
-' 156
+' 157
 AwN(AWlf) = "Covid-Impfungen ohne Chargenangabe (vorher 149)"
 sql(AWlf) = "" & _
 "SELECT f.pat_id, gesname(f.pat_id) PName, l.Zeitpunkt, l.Leistung, l.Charge " & vbCrLf & _
@@ -5441,18 +5457,18 @@ sql(AWlf) = "" & _
  maxs(AWlf) = 60
  AWlf = AWlf + 1
  
-' 157, neuView
+' 158, neuView
 #Else
-' 149
+' 150
 #End If
 AwN(AWlf) = "DAK-Modul"
 sql(AWlf) = "ü"
  AWlf = AWlf + 1
  
 #If mitcovid Then
-' 158
+' 159
 #Else
-' 150
+' 151
 #End If
 AwN(AWlf) = "Keinem Patienten zugeordnete DAK-Faxe /KKH-Faxe(bitte im MySQL-Query-Browser zuordnen über 'SELECT pid,docname,eind FROM faxeinp.outa WHERE eind=...') (vorher 89)"
 sql(AWlf) = "" & vbCrLf & _
@@ -5464,9 +5480,9 @@ sql(AWlf) = "" & vbCrLf & _
  AWlf = AWlf + 1
 
 #If mitcovid Then
-' 159
+' 160
 #Else
-' 151
+' 152
 #End If
 AwN(AWlf) = "Evtl. nicht angekommene oder fehlerhaft benannte DAK/KKH/HEK-Einverständnis-Faxe (nicht berücksichtigbar: Techniker Kk.) (vorher 90)"
 ' 07433967297004 = neue Nr. DAK
@@ -5495,9 +5511,9 @@ sql(AWlf) = "" & vbCrLf & _
  AWlf = AWlf + 1
 
 #If mitcovid Then
-' 160
+' 161
 #Else
-' 152
+' 153
 #End If
 AwN(AWlf) = "Evtl. fehlende DAK(/KKH/HEK/TK)-Makros (vorher 91)"
 sql(AWlf) = "" & vbCrLf & _
@@ -5538,9 +5554,9 @@ sql(AWlf) = "" & vbCrLf & _
 '#END IF
 
 #If mitcovid Then
-' 161 DAK-Module
+' 162 DAK-Module
 #Else
-' 153 DAK-Module
+' 154 DAK-Module
 #End If
  sql(AWlf) = LiesDatei("\\linux1\daten\eigene Dateien\dakges.qbquery")
  sql(AWlf) = Mid$(sql(AWlf), InStr(1, sql(AWlf), "SELECT", vbTextCompare))
@@ -5550,9 +5566,9 @@ sql(AWlf) = "" & vbCrLf & _
  AWlf = AWlf + 1
  
 #If mitcovid Then
- ' 162 DAK Neuropathie zur Kontrolle
+ ' 163 DAK Neuropathie zur Kontrolle
 #Else
- ' 154 DAK Neuropathie zur Kontrolle
+ ' 155 DAK Neuropathie zur Kontrolle
 #End If
  sql(AWlf) = LiesDatei("\\linux1\daten\eigene Dateien\daknp.qbquery")
  sql(AWlf) = Mid$(sql(AWlf), InStr(1, sql(AWlf), "SELECT", vbTextCompare))
@@ -5562,9 +5578,9 @@ sql(AWlf) = "" & vbCrLf & _
  AWlf = AWlf + 1
  
 #If mitcovid Then
- ' 163 DAK LUTS zur Kontrolle
+ ' 164 DAK LUTS zur Kontrolle
 #Else
- ' 155 DAK LUTS zur Kontrolle
+ ' 156 DAK LUTS zur Kontrolle
 #End If
  sql(AWlf) = LiesDatei("\\linux1\daten\eigene Dateien\daklu.qbquery")
  sql(AWlf) = Mid$(sql(AWlf), InStr(1, sql(AWlf), "SELECT", vbTextCompare))
@@ -5574,9 +5590,9 @@ sql(AWlf) = "" & vbCrLf & _
  AWlf = AWlf + 1
  
 #If mitcovid Then
- ' 164 DAK Angiopathie zur Kontrolle
+ ' 165 DAK Angiopathie zur Kontrolle
 #Else
- ' 156 DAK Angiopathie zur Kontrolle
+ ' 157 DAK Angiopathie zur Kontrolle
 #End If
  sql(AWlf) = LiesDatei("\\linux1\daten\eigene Dateien\dakap.qbquery")
  sql(AWlf) = Mid$(sql(AWlf), InStr(sql(AWlf), "select"))
@@ -5586,9 +5602,9 @@ sql(AWlf) = "" & vbCrLf & _
  AWlf = AWlf + 1
  
 #If mitcovid Then
- ' 165 DAK Hepatopathie zur Kontrolle
+ ' 166 DAK Hepatopathie zur Kontrolle
 #Else
- ' 157 DAK Hepatopathie zur Kontrolle
+ ' 158 DAK Hepatopathie zur Kontrolle
 #End If
  sql(AWlf) = LiesDatei("\\linux1\daten\eigene Dateien\dakfl.qbquery")
  sql(AWlf) = Mid$(sql(AWlf), InStr(sql(AWlf), "select"))
@@ -5598,9 +5614,9 @@ sql(AWlf) = "" & vbCrLf & _
  AWlf = AWlf + 1
  
 #If mitcovid Then
- ' 166 DAK Nephropathie zur Kontrolle
+ ' 167 DAK Nephropathie zur Kontrolle
 #Else
- ' 158 DAK Nephropathie zur Kontrolle
+ ' 159 DAK Nephropathie zur Kontrolle
 #End If
  sql(AWlf) = LiesDatei("\\linux1\daten\eigene Dateien\dakne.qbquery")
  sql(AWlf) = Mid$(sql(AWlf), InStr(sql(AWlf), "select"))
@@ -5613,9 +5629,9 @@ Dim ob_tkeinschr$, ob_tkversandt$
 ob_tkeinschr = "'tk.*(Modul|Programm)'"
 ob_tkversandt = "'tk.*(geschickt|gefaxt)'"
 #If mitcovid Then
-' 167
+' 168
 #Else
-' 159
+' 160
 #End If
  AwN(AWlf) = "TK-Modul-Einschreibungen (" & ob_tkeinschr & ") ohne Versandeintrag (" & ob_tkversandt & ") (vorher 152)"
 sql(AWlf) = "" & _
@@ -5630,9 +5646,9 @@ sql(AWlf) = "" & _
  AWlf = AWlf + 1
 
 #If mitcovid Then
-' 168
+' 169
 #Else
-' 160
+' 161
 #End If
  AwN(AWlf) = "ergänzende Listen"
 sql(AWlf) = "ü"
@@ -5641,9 +5657,9 @@ sql(AWlf) = "ü"
  AWlf = AWlf + 1
   
 #If mitcovid Then
-' 169
+' 170
 #Else
-' 161
+' 162
 #End If
  AwN(AWlf) = "Leistung 01435 zu Fall mit Grundpauschale oder taggleicher sonstiger Leistung"
 sql(AWlf) = "" & _
@@ -6333,7 +6349,7 @@ Public Sub EinstSpeichern()
    Zahl(AWlf - 1) = (MFG.TextMatrix(AWlf, 1) = "X")
   Next AWlf
   Call fBiSpei(HCU, RegWurzel & App.EXEName, "Wert", Zahl)
- End If
+ End If ' not nichtspeichern then
 End Sub ' Public Sub EinstSpeichern()
 
 Public Sub SQLvorZeigSQL()
@@ -6572,19 +6588,19 @@ Private Sub tuStart_click(obauto%)
 End Sub ' tu_Start_Click
 
 Function QuartalFüll()
- Dim mon%, Jahr%, Quart$
+ Dim mon%, Jahr%, quart$
  On Error GoTo fehler
  noenter = True
  mon = 1
  Jahr = 2005
  Do
   Do
-   Quart = CStr(mon) + CStr(Jahr)
-   Quartal.AddItem (Quart)
-   If Quart = ZQuart(Now - Verspätung) Then
+   quart = CStr(mon) + CStr(Jahr)
+   Quartal.AddItem (quart)
+   If quart = ZQuart(Now - Verspätung) Then
     Quartal.Selected(Quartal.ListCount - 1) = -1
    End If
-   If Quart = ZQuart(Now) Then Exit Function
+   If quart = ZQuart(Now) Then Exit Function
    mon = mon + 1
    If mon > 4 Then Exit Do
   Loop

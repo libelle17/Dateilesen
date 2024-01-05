@@ -3,6 +3,8 @@ Option Explicit
 Dim ag As New CString
 Dim donr$
 Dim bmnr&
+Public Const KVNr = "6419153"
+Public Const BSNR = KVNr & "00"
 
 Const HADBName$ = "haerzte"
 Type hatyp
@@ -164,7 +166,7 @@ Public Const laborAbfr$ = "SELECT n.Pat_ID AS Pat_ID,n.ZeitPunkt AS ZeitPunkt,n.
 
 Dim psql$(10)
 
-' in doViewserstellen und TheraErmitt
+' gemeinsame Algorithmusdefinition zum Therapieartenermitteln, in doViewserstellen und TheraErmitt
 Function therinit()
  psql(0) = "SET SESSION GROUP_CONCAT_MAX_LEN=15000;"
 ' psql(1) = "IF inpid IN('','0') THEN DELETE FROM therarten; ELSE DELETE FROM therarten WHERE FIND_IN_SET(pat_id,inpid)>0; END IF;"
@@ -188,104 +190,128 @@ Function therinit()
 " UNION -- 4) Medikamentenplan " & vbCrLf & _
 "  SELECT Pid,MPNr,Zp,Zp bis,Thart,gru,ia,abspos,stbyte,feldnr FROM ( " & vbCrLf & _
 "   SELECT Pid,MPNr,Zp,Zp bis " & vbCrLf
- psql(3) = "INSERT INTO therarten(pat_id,zp,mpnr,therart,insart,grund,abspos,aktzeit,stbyte) " & vbCrLf & _
-"SELECT pid,zp,mpnr,thart,ia,gru,abspos,NOW(),stbyte FROM ( " & vbCrLf & _
-"WITH dsort AS ( -- da zum Vergleich mit dem Vorbefund zweimal zu verwenden " & vbCrLf & _
-"SELECT RANK() OVER (PARTITION BY pid ORDER BY zp,MPNr) rang, i.* FROM ( " & vbCrLf & _
-"  -- 1) Anamnese:" & vbCrLf & _
-"  SELECT a.pat_id pid, -1 MPNr, aufndat Zp, aufndat Bis, 'CSII' Thart, 'Anamnese: Insulinpumpe' Gru,  0 ia, x.absPos, x.StByte, 0 FeldNr FROM namen x LEFT JOIN anamnesebogen a USING (pat_id) " & vbCrLf & _
-"  WHERE insulinpumpe<>0 AND (inpid='0' OR x.pat_id IN (inpid)) " & vbCrLf & _
-" UNION -- 2) Rezepte für Pumpenzubehör, könnten für ein Jahr Pumpentherapie versprechen: " & vbCrLf & _
-"  SELECT Pat_id pid,-2 MPNr, zeitpunkt Zp,ADDDATE(zeitpunkt,365) bis,'CSII' Thart, feldinh Gru,foid ia,FID absPos,Form_id StByte, feldnr FROM formular x " & vbCrLf & _
-"  WHERE form_abk IN ('rp','lar','prp','plar') AND feld IN ('medikament','txtMedKey','VerordnungsZeile') AND feldinh RLIKE 'reservoir|rapid d link|rap d li|rapid-d li|tenderl|sure t|paradigm|veo|animas|cartridge|t-slim|t:slim|variosoft|trusteel|autosoft|ypsopump|insigh|omnipod' AND NOT feldinh LIKE '%menveo%'" & vbCrLf & _
-"  AND (inpid='0' OR x.pat_id IN (inpid)) " & vbCrLf & _
-" UNION -- 3) Insulinpläne " & vbCrLf & _
-" SELECT pat_id pid,-3 MPNr,qdm zp,qdm bis,'ICT' Thart, MID(NAME,p) Gru,-2 ia,x.absPos,x.StByte,0 FROM (SELECT IF(p1>p2,p1,p2) p, b.* FROM (SELECT INSTR(b.name,'insulin') p1, INSTR(b.name,'spritz') p2, b.* FROM briefe b) b) x WHERE name RLIKE '(insulin|spritz).*(plan|schema|tabelle)' " & vbCrLf & _
-"  AND (inpid='0' OR x.pat_id IN (inpid))" & vbCrLf & _
-" UNION -- 4) Medikamentenplan " & vbCrLf & _
-"  SELECT Pid,MPNr,Zp,Zp bis,Thart,gru,ia,abspos,stbyte,feldnr FROM ( " & vbCrLf & _
-"   SELECT Pid,MPNr,Zp,Zp bis " & vbCrLf
-psql(3) = psql(3) & _
-"       ,CASE WHEN SUM(pu) THEN 'CSII' " & vbCrLf & _
-"       WHEN SUM(obmzi) OR sum(iz)>=3 THEN -- wenn Mahlzeiteninsulin oder mind. 3 x Insulin/d " & vbCrLf & _
-"       CASE " & vbCrLf & _
-"        WHEN SUM(glp) THEN 'GLP1ICT' " & vbCrLf & _
-"        ELSE 'ICT' " & vbCrLf & _
-"       END " & vbCrLf & _
-"      WHEN SUM(iz)=2 THEN " & vbCrLf & _
-"       CASE " & vbCrLf & _
-"        WHEN SUM(glp) THEN 'GLP1Ins' " & vbCrLf & _
-"        ELSE 'CT' " & vbCrLf & _
-"       END " & vbCrLf & _
-"      WHEN SUM(iz)=1 THEN -- Insulinzahl pro Tag " & vbCrLf & _
-"       CASE " & vbCrLf & _
-"        WHEN SUM(glp) THEN 'GLP1Ins' " & vbCrLf & _
-"        WHEN SUM(oboad) THEN 'Komb' " & vbCrLf & _
-"        ELSE 'CT' " & vbCrLf & _
-"       END " & vbCrLf & _
-"      ELSE -- WHEN SUM(iz)=0 THEN " & vbCrLf & _
-"       CASE " & vbCrLf & _
-"        WHEN SUM(glp) THEN 'GLP1' " & vbCrLf & _
-"        WHEN SUM(oboad) THEN 'OAD' " & vbCrLf & _
-"        ELSE 'Diät' " & vbCrLf & _
-"       END " & vbCrLf
-psql(3) = psql(3) & _
-"     END Thart " & vbCrLf & _
-"   ,GROUP_CONCAT(DISTINCT gru SEPARATOR '') gru,MAX(ia) ia,abspos,stbyte,MIN(feldnr) feldnr -- Grund, Insulinart " & vbCrLf & _
-"   FROM ( " & vbCrLf & _
-"    SELECT Pid,MPNr,Zp,Med,Pu,oboad,IF(obin,ezm,0) iz,ezm AND ia=1 obmzi " & vbCrLf & _
-"     ,IF(eztm,glp,0) glp,IF(ezm,obin,0) ins,IF(ezm,ia,0) ia " & vbCrLf & _
-"     ,IF(pu||if(eztm,glp,0)||oboad||(ezm&&ia=1)||if(obin,ezm,0),CONCAT('/',Med,' '),'') gru " & vbCrLf & _
-"     ,IF(pu||if(eztm,glp,0)||oboad||(ezm&&ia=1)||if(obin,ezm,0),Feldnr,NULL) FeldNr,absPos,StByte " & vbCrLf & _
-"    FROM ( " & vbCrLf & _
-"     SELECT pid,MPNr,zp,Med,pu,ez,wglp,ohneE,IF(ez,oad,0)oboad,glp,obin,ia,FeldNr,absPos,StByte " & vbCrLf & _
-"      ,IF(ez,ez,ohnee) ezm -- Eintragszahl modifziert " & vbCrLf & _
-"      ,IF(ez,ez,wglp&&ohneE) eztm -- Eintragszahl teilmodifiziert " & vbCrLf & _
-"     FROM ( " & vbCrLf & _
-"      SELECT x.Pat_id pid,x.MPNr MPNr,x.Zeitpunkt Zp,x.Medikament Med,ma.puzu<>0 pu " & vbCrLf & _
-"       ,MAX((COALESCE(x.mo,'')<>'')+(COALESCE(x.mi,'')<>'')+(COALESCE(x.nm,'')<>'')+(COALESCE(x.ab,'')<>'')+(COALESCE(x.zn,'')<>'')+if(glp1<>0 AND x.Medanfang RLIKE 'OZEMPIC|TRULICITY',1,0)) ez " & vbCrLf & _
-"       ,glp1<>0 AND x.MedAnfang RLIKE 'OZEMPIC|TRULICITY' wglp -- Wochen-GLP-1 " & vbCrLf & _
-"       ,pzn<>0 AND concat(x.Bemerkung,' ',x.Grund) NOT RLIKE 'Pause|abgesetzt|beendet|zur Zeit nicht' ohneE -- ohne Eintrag im neuen Medplan, aber vermutlich angewandt " & vbCrLf & _
-"       ,ma.glib<>0 OR ma.metf<>0 OR ma.gluci<>0 OR ma.shglin<>0 OR ma.dpp4<>0 OR ma.sglt2<>0 OR ma.sonstad<>0 oad " & vbCrLf & _
-"       ,glp1<>0 glp " & vbCrLf & _
-"       ,ma.ins<>0 OR ma.anal<>0 obin -- ob Insulin " & vbCrLf & _
-"       ,IF(insart='' OR ISNULL(insart),0,insart) ia -- Insulinart: 1= schnell, 2 = langsam, 3 = Misch " & vbCrLf
-'psql(3) = psql(3) & _
-"       ,x.FeldNr,x.absPos,x.StByte -- zur Zeit eher überflüssige Felder " & vbCrLf & _
-"      FROM wmedplan x LEFT JOIN medarten ma ON x.medanfang= ma.medikament " & vbCrLf & _
-"      WHERE (inpids IN('','0') OR x.pat_id IN (inpid)) " & vbCrLf & _
-"      GROUP BY x.pat_id,mpnr,x.zeitpunkt,ma.id -- z.B. versch.Toujeo-Zeilen für v. Zuckerwerte" & vbCrLf & _
-"     ) i " & vbCrLf & _
-"    ) i " & vbCrLf & _
-"   ) i GROUP BY pid,MPNr,zp -- 13.12.21: gleiche MPNr für versch. Zeitpunkte! wohl durch HB_-Import" & vbCrLf & _
-"  ) i " & vbCrLf & _
-" ) i " & vbCrLf & _
-") -- with ...; letzte Therapieart, letzter Zeitpunkt: " & vbCrLf & _
-"SELECT d.*, COALESCE(LAG(thart,1) OVER (PARTITION BY pid ORDER BY zp,MPNr),'') lthart, COALESCE(LAG(zp,1) OVER (PARTITION BY pid ORDER BY zp,MPNr),'1900-01-01') lzp, COALESCE(LAG(ia,1) OVER (PARTITION BY pid ORDER BY zp,MPNr),'-10') lia " & vbCrLf & _
-"FROM dsort d " & vbCrLf & _
-" WHERE NOT EXISTS (SELECT 1 FROM dsort d1 WHERE d.pid=d1.pid AND d1.rang<d.rang AND (d.zp > d1.zp AND d.zp <= d1.bis)) -- Gültigkeitsende wirken lassen (bes. Pumpenrezept) " & vbCrLf & _
-") i -- nur Wechsel anzeigen, nicht von CSII/ICT auf Diät, nicht im Karenzzeitraum (1a nach Pumpenrezept oder 92 Tage nach Insulinplan): " & vbCrLf & _
-"WHERE lthart<>thart AND NOT (thart='Diät' AND lthart IN ('CSII','ICT','GLP1ICT') AND NOT EXISTS (SELECT 1 FROM sws WHERE pat_id=i.pid AND voret BETWEEN i.lzp AND i.zp)) " & vbCrLf & _
-"AND NOT (lia=-2 AND ia=2 AND NOT (thart<>lthart AND thart IN ('GLP1','GLP1Ins','GLP1ICT')) AND zp BETWEEN lzp AND ADDDATE(lzp,92)) " & vbCrLf & _
-"ORDER BY pid,zp,MPNr; "
-psql(3) = psql(3) & _
-"       ,x.FeldNr,x.absPos,x.StByte -- zur Zeit eher überflüssige Felder " & vbCrLf & _
-"      FROM wmedplan x LEFT JOIN medarten ma ON x.medanfang= ma.medikament " & vbCrLf & _
-"      WHERE (inpid='0' OR x.pat_id IN (inpid))" & vbCrLf & _
-"      GROUP BY x.pat_id,mpnr,x.zeitpunkt,ma.id -- z.B. versch.Toujeo-Zeilen für v. Zuckerwerte" & vbCrLf & _
-"     ) i " & vbCrLf & _
-"    ) i " & vbCrLf & _
-"   ) i GROUP BY pid,MPNr,zp -- 13.12.21: gleiche MPNr für versch. Zeitpunkte! wohl durch HB_-Import" & vbCrLf & _
-"  ) i " & vbCrLf & _
-" ) i " & vbCrLf & _
-") -- with ...; letzte Therapieart, letzter Zeitpunkt: " & vbCrLf & _
-"SELECT d.*, COALESCE(LAG(thart,1) OVER (PARTITION BY pid ORDER BY zp,MPNr),'') lthart, COALESCE(LAG(zp,1) OVER (PARTITION BY pid ORDER BY zp,MPNr),'1900-01-01') lzp, COALESCE(LAG(ia,1) OVER (PARTITION BY pid ORDER BY zp,MPNr),'-10') lia " & vbCrLf & _
-"FROM dsort d " & vbCrLf & _
-" WHERE NOT EXISTS (SELECT 1 FROM dsort d1 WHERE d.pid=d1.pid AND d1.rang<d.rang AND (d.zp > d1.zp AND d.zp <= d1.bis)) -- Gültigkeitsende wirken lassen (bes. Pumpenrezept) " & vbCrLf & _
-") i -- nur Wechsel anzeigen, nicht von CSII/ICT auf Diät, nicht im Karenzzeitraum (1a nach Pumpenrezept oder 92 Tage nach Insulinplan): " & vbCrLf & _
-"WHERE lthart<>thart AND NOT (thart='Diät' AND lthart IN ('CSII','ICT','GLP1ICT') AND NOT EXISTS (SELECT 1 FROM sws WHERE pat_id=i.pid AND voret BETWEEN i.lzp AND i.zp)) " & vbCrLf & _
-"AND NOT (lia=-2 AND ia=2 AND NOT (thart<>lthart AND thart IN ('GLP1','GLP1Ins','GLP1ICT')) AND zp BETWEEN lzp AND ADDDATE(lzp,92)) " & vbCrLf & _
-"ORDER BY pid,zp,MPNr; "
+ psql(3) = _
+ "INSERT INTO therarten(pat_id,zp,mpnr,therart,insart,grund,abspos,aktzeit,stbyte)" & vbCrLf & _
+ "SELECT pid,zp,mpnr,thart,ia,gru,abspos,aktzeit,stbyte FROM (" & vbCrLf & _
+ "SELECT pid,zp,mpnr,thart, COALESCE(LAG(thart,1) OVER (PARTITION BY pid ORDER BY zp,MPNr),'') lthart" & vbCrLf & _
+ ",ia,gru,abspos,NOW() aktzeit,stbyte FROM (" & vbCrLf & _
+ "WITH dsort AS ( -- da zum Vergleich mit dem Vorbefund zweimal zu verwenden" & vbCrLf & _
+ "SELECT RANK() OVER (PARTITION BY pid ORDER BY zp,MPNr) rang, i.* FROM (" & vbCrLf & _
+ "  -- 1) Anamnese:" & vbCrLf & _
+ "  SELECT a.pat_id pid, -1 MPNr, aufndat Zp, aufndat Bis, 'CSII' Thart, 'Anamnese: Insulinpumpe' Gru,  0 ia, x.absPos, x.StByte, 0 FeldNr FROM namen x LEFT JOIN anamnesebogen a USING (pat_id)" & vbCrLf & _
+ "  WHERE insulinpumpe<>0 AND (inpid='0' OR x.pat_id IN (inpid))" & vbCrLf & _
+ " UNION -- 2) Rezepte für Pumpenzubehör, könnten für ein Jahr Pumpentherapie versprechen:" & vbCrLf & _
+ "  SELECT Pat_id pid,-2 MPNr, zeitpunkt Zp,ADDDATE(zeitpunkt,365) bis,'CSII' Thart, feldinh Gru,5 ia,FID absPos,Form_id StByte, feldnr FROM formular x" & vbCrLf & _
+ "  WHERE form_abk IN ('rp','lar','prp','plar') AND feld IN ('medikament','txtMedKey','VerordnungsZeile') AND feldinh RLIKE 'reservoir|rapid d link|rap d li|rapid-d li|tenderl|flexl|sure t|paradigm|veo|animas|cartridge|t-slim|t:slim|variosoft|trusteel|autosoft|ypsopump|insigh|omnipod' AND NOT feldinh LIKE '%menveo%'" & vbCrLf & _
+ "  AND (inpid='0' OR x.pat_id IN (inpid))" & vbCrLf & _
+ " UNION -- 3) Rezepte für Nadeln oder Verzögerungsinsulin, die ICT versprechen:" & vbCrLf & _
+ "  SELECT Pat_id pid,-2 MPNr, zeitpunkt Zp,zeitpunkt bis,'ICT' Thart, feldinh Gru,4 ia,FID absPos,Form_id StByte, feldnr FROM formular x" & vbCrLf & _
+ "  WHERE form_abk IN ('rp','lar','prp','plar') AND feld IN ('medikament','txtMedKey','VerordnungsZeile') AND feldinh RLIKE 'fine|Nad|micro fi|[0-9] {0,1}mm|lantus|tresiba|levemir|basal|protaphan|semglee|abasaglar|semilente' AND NOT feldinh RLIKE 'fine {0,1}touch|Katheter|Paradigm|Mio|Flexl|Tender|d li|link|autosoft|Minimed|Sohlen|Oberarm|Fußbett|Schuh|Wanderh|Lancets fine|easy(-release| set)|quick {0,1}set|mmHg|insight|mylife|inset|insulinset|infusion|polster|szinti|dana|fexo|enadura|infektionsnadeln|port|magnes|medtronic|sicherheitslan|omnipod|orbisoft|orbit soft|nadellanz|schlauch|sure|tamponade|trusteel|varisoft|knoten|fine point|flex link|microlet fine|verkürz|vasofix|truesteel|sterile lanzetten|stahlnad|[68]0 {0,1}cm|alkohol|thin lanc|haut|TESTSTR|variosoft|Nadellänge|^BD Micro Fine Lancetten G 33 200 Stück$'" & vbCrLf & _
+ "  AND (inpid='0' OR x.pat_id IN (inpid))" & vbCrLf & _
+ " UNION -- 4) Insulinpläne" & vbCrLf & _
+ " SELECT pat_id pid,-3 MPNr,qdm zp,qdm bis,'ICT' Thart, MID(NAME,p) Gru,-2 ia,x.absPos,x.StByte,0 FROM (SELECT IF(p1>p2,p1,p2) p, b.* FROM (SELECT INSTR(b.name,'insulin') p1, INSTR(b.name,'spritz') p2, b.* FROM briefe b) b) x WHERE name RLIKE '(insulin|spritz).*(plan|schema|tabelle)'" & vbCrLf & _
+ "  AND (inpid='0' OR x.pat_id IN (inpid))" & vbCrLf & _
+ " UNION -- 5) Medikamentenplan" & vbCrLf & _
+ "  SELECT Pid,MPNr,Zp,Zp bis,Thart,gru,ia,abspos,stbyte,feldnr FROM (" & vbCrLf & _
+ "   SELECT Pid,MPNr,Zp,Zp bis" & vbCrLf
+ psql(3) = psql(3) & _
+ "       ,CASE WHEN SUM(pu) THEN 'CSII'" & vbCrLf & _
+ "       WHEN SUM(obmzi) OR sum(iz)>=3 THEN -- wenn Mahlzeiteninsulin oder mind. 3 x Insulin/d" & vbCrLf & _
+ "       CASE" & vbCrLf & _
+ "        WHEN SUM(glp) THEN 'GLP1ICT'" & vbCrLf & _
+ "        ELSE 'ICT'" & vbCrLf & _
+ "       END" & vbCrLf & _
+ "      WHEN SUM(iz)=2 THEN" & vbCrLf & _
+ "       CASE" & vbCrLf & _
+ "        WHEN SUM(glp) THEN 'GLP1Ins'" & vbCrLf & _
+ "        ELSE 'CT'" & vbCrLf & _
+ "       END" & vbCrLf & _
+ "      WHEN SUM(iz)=1 THEN -- Insulinzahl pro Tag" & vbCrLf & _
+ "       CASE" & vbCrLf & _
+ "        WHEN SUM(glp) THEN 'GLP1Ins'" & vbCrLf & _
+ "        WHEN SUM(oboad) THEN 'Komb'" & vbCrLf & _
+ "        ELSE 'CT'" & vbCrLf & _
+ "       END" & vbCrLf & _
+ "      ELSE -- WHEN SUM(iz)=0 THEN" & vbCrLf & _
+ "       CASE" & vbCrLf & _
+ "        WHEN SUM(glp) THEN 'GLP1'" & vbCrLf & _
+ "        WHEN SUM(oboad) THEN 'OAD'" & vbCrLf & _
+ "        ELSE 'Diät'" & vbCrLf & _
+ "       END" & vbCrLf
+ psql(3) = psql(3) & _
+ "     END Thart" & vbCrLf & _
+ "   ,GROUP_CONCAT(DISTINCT gru SEPARATOR '') gru,MAX(ia) ia,abspos,stbyte,MIN(feldnr) feldnr -- Grund, Insulinart" & vbCrLf & _
+ "   FROM (" & vbCrLf & _
+ "    SELECT Pid,MPNr,Zp,Med,Pu,oboad,IF(obin,ezm,0) iz,ezm AND ia=1 obmzi" & vbCrLf & _
+ "     ,IF(eztm,glp,0) glp,IF(ezm,obin,0) ins,IF(ezm,ia,0) ia" & vbCrLf & _
+ "     ,IF(pu||if(eztm,glp,0)||oboad||(ezm&&ia=1)||if(obin,ezm,0),CONCAT('/',Med,' '),'') gru" & vbCrLf & _
+ "     ,IF(pu||if(eztm,glp,0)||oboad||(ezm&&ia=1)||if(obin,ezm,0),Feldnr,NULL) FeldNr,absPos,StByte" & vbCrLf & _
+ "    FROM (" & vbCrLf & _
+ "     SELECT pid,MPNr,zp,Med,pu,ez,wglp,ohneE,IF(ez,oad,0)oboad,glp,obin,ia,FeldNr,absPos,StByte" & vbCrLf & _
+ "      ,IF(ez,ez,ohnee) ezm -- Eintragszahl modifziert" & vbCrLf & _
+ "      ,IF(ez,ez,wglp&&ohneE) eztm -- Eintragszahl teilmodifiziert" & vbCrLf & _
+ "     FROM (" & vbCrLf & _
+ "      SELECT x.Pat_id pid,x.MPNr MPNr,x.Zeitpunkt Zp,x.Medikament Med,ma.puzu<>0 pu" & vbCrLf & _
+ "       ,MAX((COALESCE(x.mo,'')<>'')+(COALESCE(x.mi,'')<>'')+(COALESCE(x.nm,'')<>'')+(COALESCE(x.ab,'')<>'')+(COALESCE(x.zn,'')<>'')+if(glp1<>0 AND x.Medanfang RLIKE 'OZEMPIC|TRULICITY|bydureon|victoza|mounjaro',1,0)) ez" & vbCrLf & _
+ "       ,glp1<>0 AND x.MedAnfang RLIKE 'OZEMPIC|TRULICITY|bydureon|mounjaro' wglp -- Wochen-GLP-1" & vbCrLf & _
+ "       ,pzn<>0 AND concat(x.Bemerkung,' ',x.Grund) NOT RLIKE 'Pause|abgesetzt|beendet|zur Zeit nicht' ohneE -- ohne Eintrag im neuen Medplan, aber vermutlich angewandt" & vbCrLf & _
+ "       ,ma.glib<>0 OR ma.metf<>0 OR ma.gluci<>0 OR ma.shglin<>0 OR ma.dpp4<>0 OR ma.sglt2<>0 OR ma.sonstad<>0 oad" & vbCrLf & _
+ "       ,glp1<>0 glp" & vbCrLf & _
+ "       ,ma.ins<>0 OR ma.anal<>0 obin -- ob Insulin" & vbCrLf & _
+ "       ,IF(insart='' OR ISNULL(insart),0,insart) ia -- Insulinart: 1= schnell, 2 = langsam, 3 = Misch" & vbCrLf & _
+ "       ,x.FeldNr,x.absPos,x.StByte -- zur Zeit eher überflüssige Felder" & vbCrLf & _
+ "      FROM wmedplan x LEFT JOIN medarten ma ON x.medanfang= ma.medikament" & vbCrLf & _
+ "      WHERE (inpid='0' OR x.pat_id IN (inpid))" & vbCrLf
+ psql(3) = psql(3) & _
+ "      GROUP BY x.pat_id,mpnr,x.zeitpunkt,ma.id -- z.B. versch.Toujeo-Zeilen für v. Zuckerwerte" & vbCrLf & _
+ "     ) i" & vbCrLf & _
+ "    ) i" & vbCrLf & _
+ "   ) i GROUP BY pid,MPNr,zp -- 13.12.21: gleiche MPNr für versch. Zeitpunkte! wohl durch HB_-Import" & vbCrLf & _
+ "  ) i" & vbCrLf & _
+ " ) i" & vbCrLf & _
+ ") -- with ...; letzte Therapieart, letzter Zeitpunkt: " & vbCrLf & _
+ "SELECT d.*" & vbCrLf & _
+ ", COALESCE(ldso.thart,'') lathart -- letzte andere Therapieart" & vbCrLf & _
+ ", RANK() over (PARTITION BY pid ORDER BY zp,mpnr) thrang" & vbCrLf & _
+ ", COALESCE(LAG(d.zp,1) OVER (PARTITION BY pid ORDER BY zp,MPNr),'1900-01-01') lzp" & vbCrLf & _
+ ", COALESCE(LAG(d.ia,1) OVER (PARTITION BY pid ORDER BY zp,MPNr),'-10') lia" & vbCrLf & _
+ "FROM dsort d LEFT JOIN dsort ldso -- letztes (anderes) dsort" & vbCrLf & _
+ " ON ldso.pid=d.pid AND ldso.rang=(SELECT MAX(rang) FROM dsort WHERE pid=d.pid AND rang<d.rang AND thart<>d.thart)" & vbCrLf & _
+ " WHERE NOT EXISTS (SELECT 1 FROM dsort WHERE pid=d.pid AND rang<d.rang AND (zp<d.zp AND bis>=d.zp)) -- Gültigkeitsende wirken lassen (bes. Pumpenrezept)" & vbCrLf & _
+ ") i -- nur Wechsel anzeigen, nicht von CSII/ICT auf Diät, nicht im Karenzzeitraum (1a nach Pumpenrezept oder 92 Tage nach Insulinplan):" & vbCrLf & _
+ "WHERE false OR thart<>lathart AND NOT (" & vbCrLf & _
+ "  thart='Diät' AND lathart IN ('CSII','ICT','GLP1ICT') AND NOT EXISTS (SELECT 1 FROM sws WHERE pat_id=i.pid AND voret BETWEEN i.lzp AND i.zp))" & vbCrLf & _
+ "  AND NOT (lia=-2 AND ia=2 AND NOT (thart<>lathart AND thart IN ('GLP1','GLP1Ins','GLP1ICT')) AND zp BETWEEN lzp AND ADDDATE(lzp,92))" & vbCrLf & _
+ "  AND NOT (ia=4 and lathart<>'CSII')" & vbCrLf & _
+ "  AND NOT (lathart='CSII' AND ia<>4)" & vbCrLf & _
+ "GROUP BY pid,zp,thart" & vbCrLf & _
+ "ORDER BY pid,zp,MPNr" & vbCrLf & _
+ ") i WHERE thart<>lthart" & vbCrLf
+ psql(3) = psql(3) & _
+ "" & vbCrLf & _
+ "" & vbCrLf & _
+ "" & vbCrLf & _
+ "" & vbCrLf & _
+ "" & vbCrLf & _
+ "" & vbCrLf & _
+ "" & vbCrLf & _
+ "" & vbCrLf & _
+ "" & vbCrLf & _
+ "" & vbCrLf & _
+ "" & vbCrLf & _
+ "" & vbCrLf & _
+ "" & vbCrLf & _
+ "" & vbCrLf & _
+ "" & vbCrLf & _
+ "" & vbCrLf & _
+ "" & vbCrLf & _
+ "" & vbCrLf & _
+ "" & vbCrLf & _
+ "" & vbCrLf & _
+ "" & vbCrLf & _
+ "" & vbCrLf & _
+ "" & vbCrLf
+
  psql(4) = "SELECT @vzahl vzahl, ROW_COUNT() zahl; "
 ' psql(5) = "UPDATE anamnesebogen x SET ther1=(SELECT therart FROM therarten WHERE pat_id=x.pat_id ORDER BY zp, mpnr LIMIT 1), therakt =(SELECT therart FROM therarten WHERE pat_id=x.pat_id ORDER BY zp DESC, mpnr DESC LIMIT 1) WHERE inpids IN('','0') OR x.pat_id IN (inpid);"
  psql(5) = "UPDATE anamnesebogen x SET ther1=(SELECT therart FROM therarten WHERE pat_id=x.pat_id ORDER BY zp, mpnr LIMIT 1), therakt =(SELECT therart FROM therarten WHERE pat_id=x.pat_id ORDER BY zp DESC, mpnr DESC LIMIT 1) WHERE (inpid='0' OR x.pat_id IN (inpid));"
@@ -293,6 +319,7 @@ End Function ' therinit
 
 ' 10/22: die folgende Funktion muss so umständlich eingerichtet werden, da der Aufruf von "call fuellThaP"
 ' unter MariaDB 10.9 mit ca. 80% Wahrscheinlichkeit den Server crasht (ähnliches im Netz)
+' gemeinsame Algorithmusdefinition in therinit
 ' in alleSpeichern, doViewsErstellen, testTab, Therapieartenwechsel_click, rufThFestleg, theraktakt
 Public Function TheraErmitt&(pids$, Optional ByRef vzahl&)
  Dim iru&, rs As ADODB.Recordset, rAf& ' , inpids$
@@ -7231,9 +7258,9 @@ Public Sub tubriefStandalone(pid&, obStumm%, Optional Zielverz$, Optional Vorlag
 '    sverz$ = sverz & "unkorrigiert\"
    sverz = AutoBriefZiel
   End If
- Else
+ Else ' Zielverz = vNS Then
   sverz = Zielverz
- End If
+ End If ' Zielverz = vNS Then else
 '  lies.obmysql = False
 '  Call Zinit(Lies.obMySQL)
  nzw = vbCr
@@ -7242,6 +7269,10 @@ Public Sub tubriefStandalone(pid&, obStumm%, Optional Zielverz$, Optional Vorlag
 '  rsNa.Seek "=", raAn!Pat_id
  Dim NachNa$, VorNa$, GName$, G1Name$, tit$, GebDat As Date, dieder$, lbeh As Date
  myFrag rsNa, "SELECT n.*,COALESCE(titel,'') tit, CONCAT(IF(geschlecht='m','Herrn','Frau'),' ',gesname(pat_id),', *',DATE_FORMAT(gebdat,'%e.%c.%y')) gname,IF(geschlecht='m','der','die') dieder, lbeh FROM namenlb n WHERE pat_id = " & Pat_id
+ If rsNa.State = 0 Then
+  MsgBox "Namen-Tabelle nicht abfragbar. Es könnten z.B. die Indices von einlesen korrupt sein."
+  Exit Sub
+ End If ' rsNa.State = 0 Then
  If rsNa.EOF Then Exit Sub
  NachNa = rsNa!Nachname
  VorNa = rsNa!Vorname
@@ -8051,7 +8082,7 @@ vonvorne:
          Exit For
         End If
        Next i
-       If Not obalt And Feld <> "6419153" And Feld <> "641915300" And Feld <> "889690003" And Feld <> "933284903" Then
+       If Not obalt And Feld <> KVNr And Feld <> BSNR And Feld <> "889690003" And Feld <> "933284903" Then
         stand = stand + 1
         ReDim Preserve Üw1(4, stand) ' 0 = KV-Nr, 1 = Nachname, 2 = Vorname, 3 = Position
         Üw1ini = True
@@ -8100,7 +8131,7 @@ vonvorne:
     Next i
    End If
    If (0 / 1) + (Not Not rKv) = 0 Or obrKvzugew = 0 Then
-    myFrag rK, "SELECT kvnr FROM `kvnrue` WHERE pat_id = " & rFa(1).Pat_id & IIf(auchwir, "", " AND kvnr NOT IN ('','6419153','641915300','889690003','933284903')") & " ORDER BY lfdnr"
+    myFrag rK, "SELECT kvnr FROM `kvnrue` WHERE pat_id = " & rFa(1).Pat_id & IIf(auchwir, "", " AND kvnr NOT IN ('','" & KVNr & "','" & BSNR & "','889690003','933284903')") & " ORDER BY lfdnr"
     If Not rK.BOF Then
      Do While Not rK.EOF()
        obalt = 0
@@ -12388,7 +12419,7 @@ sql = "DROP PROCEDURE IF EXISTS `fuellThaP`;"
 myEFrag (sql)
 sql = "CREATE DEFINER=`praxis`@`%` PROCEDURE `quelle`.`fuellThaP`(IN inpid TEXT) " & vbCrLf & _
 "    MODIFIES SQL DATA " & vbCrLf & _
-"    COMMENT 'fuellt die Tabelle tharten, pid 0 => alle; Algorithmus 11.12.20' " & vbCrLf & _
+"    COMMENT 'fuellt die Tabelle tharten, pid 0 => alle; Algorithmus definiert in therinit, seit 11.12.20' " & vbCrLf & _
 "proc: BEGIN " & vbCrLf & _
 "-- RESET QUERY CACHE;" & vbCrLf & _
 " DECLARE sqlt TEXT; " & vbCrLf
@@ -12417,12 +12448,12 @@ sql = "CREATE DEFINER=`praxis`@`%` PROCEDURE `quelle`.`fuellThaP`(IN inpid TEXT)
    sql = sql & _
    " PREPARE stmt FROM sqlt;" & vbCrLf & _
    " EXECUTE stmt;" & vbCrLf
- End Select
+ End Select ' case iru
  Select Case iru
   Case 2, 4, 5
    sql = sql & _
    " DEALLOCATE PREPARE stmt;" & vbCrLf
- End Select
+ End Select ' case iru
 Next iru
  
 #If alt Then
@@ -15229,6 +15260,7 @@ Function doDiagnosenexport(Optional obTest%)
  Dim Lanr&
  On Error GoTo fehler
  Dim Quartal$, erg$, dzahl&, BDT As New BDTSchreib
+ 
 ' Dim Q AS DAO.Recordset, rFa AS DAO.Recordset, n AS DAO.Recordset, ü AS DAO.Recordset
  Dim q As New ADODB.Recordset, rFa As New ADODB.Recordset, n As New ADODB.Recordset, Ü As New ADODB.Recordset
 ' Dim rDT As New ADODB.Recordset
@@ -15287,27 +15319,35 @@ Function doDiagnosenexport(Optional obTest%)
 '  rDT.Open "SELECT * FROM diagnosen", DBCn, adOpenDynamic, adLockOptimistic
   Pat_id = -1
   Dim neuDauer%, obDauer%
+  Dim nurquart%, ICD$, Zeitpunkt As Date, Diagnose$, DiagText$, id&, name$
   Do While Not q.EOF
+   nurquart = q!nurquart
+   ICD = q!ICD
+   Zeitpunkt = q!Zeitpunkt
+   Diagnose = q!Diagnose
+'   DiagText = q!DiagText
+   name = q!name
+   id = q!id
    If q!Pat_id <> Pat_id Then
     Pat_id = q!Pat_id ' Hier kommt er nur einmal pro Patient vorbei
     neuDauer = 0
-    If IsNull(q!Zeitpunkt) Then aktdat = lFDat(q!Pat_id) Else aktdat = q!Zeitpunkt
+    If IsNull(Zeitpunkt) Then aktdat = lFDat(Pat_id) Else aktdat = Zeitpunkt
     Quartal = ZQuart(aktdat)
     Set rFa = Nothing
-'    rFa.Open "SELECT * FROM `faelle` f LEFT JOIN `lanrpraxis` l ON f.lanrid = l.id WHERE pat_id = " & q!Pat_id & " AND quartal = '" & Quartal & "' ORDER BY bhfb DESC", DBCn, adOpenDynamic, adLockOptimistic
-    myFrag rFa, "SELECT * FROM `faelle` f LEFT JOIN `lanrpraxis` l ON f.lanrid = l.id WHERE pat_id = " & q!Pat_id & " AND quartal = '" & Quartal & "' ORDER BY bhfb DESC"
+'    rFa.Open "SELECT * FROM `faelle` f LEFT JOIN `lanrpraxis` l ON f.lanrid = l.id WHERE pat_id = " & Pat_id & " AND quartal = '" & Quartal & "' ORDER BY bhfb DESC", DBCn, adOpenDynamic, adLockOptimistic
+    myFrag rFa, "SELECT * FROM `faelle` f LEFT JOIN `lanrpraxis` l ON f.lanrid = l.id WHERE pat_id = " & Pat_id & " AND quartal = '" & Quartal & "' ORDER BY bhfb DESC"
     If rFa.BOF Then
      Set rFa = Nothing
-'     rFa.Open "SELECT * FROM `faelle` f LEFT JOIN `lanrpraxis` l ON f.lanrid = l.id WHERE pat_id = " & q!Pat_id & " ORDER BY bhfb DESC", DBCn, adOpenDynamic, adLockOptimistic
-     myFrag rFa, "SELECT * FROM `faelle` f LEFT JOIN `lanrpraxis` l ON f.lanrid = l.id WHERE pat_id = " & q!Pat_id & " ORDER BY bhfb DESC"
+'     rFa.Open "SELECT * FROM `faelle` f LEFT JOIN `lanrpraxis` l ON f.lanrid = l.id WHERE pat_id = " & Pat_id & " ORDER BY bhfb DESC", DBCn, adOpenDynamic, adLockOptimistic
+     myFrag rFa, "SELECT * FROM `faelle` f LEFT JOIN `lanrpraxis` l ON f.lanrid = l.id WHERE pat_id = " & Pat_id & " ORDER BY bhfb DESC"
     End If
     If Not rFa.BOF Then
-     Call FallExport(BDT, q!Pat_id, aktdat, Lanr)
+     Call FallExport(BDT, Pat_id, aktdat, Lanr)
     End If
-   End If ' q!Pat_id <> Pat_id THEN
+   End If ' Pat_id <> Pat_id THEN
    If Not rFa.BOF Then
-    If Not IsNull(q!nurquart) Then ' 14.6.21
-     obDauer = Not q!nurquart
+    If Not IsNull(nurquart) Then ' 14.6.21
+     obDauer = Not nurquart
     Else
      obDauer = 0
     End If
@@ -15323,24 +15363,24 @@ Function doDiagnosenexport(Optional obTest%)
         BDT.TAdd "6201", aktdat
         BDT.SAdd "6203", "TM#?##"
         BDT.SAdd "3635", "TM#" & rFa!Lanr
-        BDT.SAdd "3636", "TM#" & "641915300"
-        Dim ICD$, DiagSi$, DiagText$
-        ICD = q!ICD
+        BDT.SAdd "3636", "TM#" & BSNR
+        Dim DiagSi$ ', DiagText$
+'        ICD = ICD
         DiagSi = "G"
-        DiagText = q!Diagnose
-        If Not IsNull(q!ICD) Then
-         If q!ICD <> vNS Then
-          If InStrB("VGZA", Right$(q!ICD, 1)) > 0 And Right$(q!ICD, 1) <> vNS Then
-           DiagSi = Right$(q!ICD, 1)
-           ICD = Left$(q!ICD, Len(q!ICD) - 1)
+        DiagText = Diagnose
+        If Not IsNull(ICD) Then
+         If ICD <> vNS Then
+          If InStrB("VGZA", Right$(ICD, 1)) > 0 And Right$(ICD, 1) <> vNS Then
+           DiagSi = Right$(ICD, 1)
+           ICD = Left$(ICD, Len(ICD) - 1)
            Select Case DiagSi
             Case "V": DiagText = LTrim$(REPLACE$(DiagText, "V.a.", vNS))
             Case "Z": DiagText = LTrim$(REPLACE$(DiagText, "Z.n.", vNS))
             Case "A": DiagText = LTrim$(REPLACE$(DiagText, "Ausschluss ", vNS))
            End Select
           End If
-         End If ' q!ICD <> vNS THEN
-        End If ' NOT ISNULL(q!ICD) THEN
+         End If ' ICD <> vNS THEN
+        End If ' NOT ISNULL(ICD) THEN
         BDT.SAdd IIf(obDauer = 0, "6000", "3650"), DiagText
         BDT.SAdd "6001", ICD
         BDT.SAdd "6003", DiagSi
@@ -15351,27 +15391,27 @@ Function doDiagnosenexport(Optional obTest%)
         
        If Not obTest Then
          Dim rAf&, rAfL&
-         InsKorr DBCn, DBCnS, "INSERT INTO `diagnosen`(pat_id, ICD,diagdatum,diagsicherheit,diagtext,obdauer,aktzeit) VALUES(" & q!Pat_id & ",'" & q!ICD & "'," & DatFor_k(aktdat) & ",'" & DiagSi & "','" & DiagText & "'," & IIf(obDauer = 0, 0, 1) & "," & DatFor_k(BDT.üzpt) & ")", rAf
+         InsKorr DBCn, DBCnS, "INSERT INTO `diagnosen`(pat_id, ICD,diagdatum,diagsicherheit,diagtext,obdauer,aktzeit) VALUES(" & Pat_id & ",'" & ICD & "'," & DatFor_k(aktdat) & ",'" & DiagSi & "','" & DiagText & "'," & IIf(obDauer = 0, 0, 1) & "," & DatFor_k(BDT.üzpt) & ")", rAf
          If rAf <> 1 Then
-          MsgBox "Fehler beim Diagnoseneeinfügen für Pat. " & q!Pat_id & vbCrLf & "ICD: " & q!ICD & vbCrLf & "Diagtext:" & q!DiagText & vbCrLf & "Datum: " & DatFor_k(aktdat) & rAf & " Datensätze eingefügt"
+          MsgBox "Fehler beim Diagnoseneeinfügen für Pat. " & Pat_id & vbCrLf & "ICD: " & ICD & vbCrLf & "Diagtext:" & DiagText & vbCrLf & "Datum: " & DatFor_k(aktdat) & rAf & " Datensätze eingefügt"
          End If
-         If LenB(q!ICD) <> 0 And LenB(q!Diagnose) <> 0 Then
-          Call myEFrag("UPDATE `diagnosenexport` SET status = '" & übertragen & "' WHERE id = " & q!id, rAf)
+         If LenB(ICD) <> 0 And LenB(Diagnose) <> 0 Then
+          Call myEFrag("UPDATE `diagnosenexport` SET status = '" & übertragen & "' WHERE id = " & id, rAf)
           If rAf <> 1 Then
-           MsgBox "Fehler beim Statussetzen in `diagnosenexport` für ID: " & q!id & rAf & " Datensätze gesetzt"
+           MsgBox "Fehler beim Statussetzen in `diagnosenexport` für ID: " & id & rAf & " Datensätze gesetzt"
           End If
-          InsKorr DBCn, DBCnS, "INSERT INTO `diagnosen exportiert`(pat_id,datum,icd,diagnose,übertragen) VALUES(" & q!Pat_id & "," & DatFor_k(aktdat) & ",'" & q!ICD & "','" & DiagText & "'," & DatFor_k(BDT.üzpt) & ")", rAf
+          InsKorr DBCn, DBCnS, "INSERT INTO `diagnosen exportiert`(pat_id,datum,icd,diagnose,übertragen) VALUES(" & Pat_id & "," & DatFor_k(aktdat) & ",'" & ICD & "','" & DiagText & "'," & DatFor_k(BDT.üzpt) & ")", rAf
           If rAf > 0 Then
-           Call myEFrag("DELETE FROM `fuerdiagexp` WHERE id = " & q!id, rAfL)
+           Call myEFrag("DELETE FROM `fuerdiagexp` WHERE id = " & id, rAfL)
            If rAfL <> 1 Then
-            MsgBox "Fehler beim Löschen aus `fuerdiagexp` von " & q!Pat_id & " (" & UmwfSQL(q!name) & ")" & vbCrLf & "ICD: " & q!ICD & vbCrLf & "Diagtext:" & DiagText & vbCrLf & "Datum: " & DatFor_k(aktdat) & vbCrLf & rAfL & " Datensätze gelöscht"
+            MsgBox "Fehler beim Löschen aus `fuerdiagexp` von " & Pat_id & " (" & UmwfSQL(name) & ")" & vbCrLf & "ICD: " & ICD & vbCrLf & "Diagtext:" & DiagText & vbCrLf & "Datum: " & DatFor_k(aktdat) & vbCrLf & rAfL & " Datensätze gelöscht"
            End If
           End If
           If rAf <> 1 Then
-           MsgBox "Fehler beim Eintragen in `diagnosen exportiert` von " & q!Pat_id & vbCrLf & "ICD: " & q!ICD & vbCrLf & "Diagtext:" & q!DiagText & vbCrLf & "Datum: " & DatFor_k(aktdat) & rAf & " Datensätze eingetragen"
+           MsgBox "Fehler beim Eintragen in `diagnosen exportiert` von " & Pat_id & vbCrLf & "ICD: " & ICD & vbCrLf & "Diagtext:" & DiagText & vbCrLf & "Datum: " & DatFor_k(aktdat) & rAf & " Datensätze eingetragen"
           End If
-         End If ' q!icd <> vns AND q!Diagnose <> vns THEN
-         Call dynDiag(CStr(q!Pat_id)) ' 12.7.08
+         End If ' icd <> vns AND Diagnose <> vns THEN
+         Call dynDiag(CStr(Pat_id)) ' 12.7.08
         End If ' obTEst
     
    End If ' Not rFa.BOF THEN
