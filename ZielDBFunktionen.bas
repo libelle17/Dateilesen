@@ -537,7 +537,15 @@ Public Type DMPClass
  x_bbk As String
  x_gewi As String
  x_DMPHbA1c As String
-End Type
+ x_DMPeGFR As String
+ x_DMPUAlb As String
+ x_spät As String
+ x_inj As String
+ x_Pulsstatus As String
+ x_SensText As String
+ x_wrstr As String
+ x_Ulcus As String
+End Type ' DMPClass
 
 Enum LabArt
  LabArt0
@@ -1144,8 +1152,7 @@ With raAna
  #End If ' vorca2008
  
 ' 2.Reiter
- Dim spät$, ereig$, bbk As New CString
- spät = vNS
+ Dim spät As New CString, ereig$, bbk As New CString
  ereig = vNS
  'If instrb(!Diagnosen, "yperton") <> 0 OR instrb(!Diagnosen, "ochdru") <> 0 THEN bbk.append " Hypertonus,"
  'If diT("yperton") OR diT("ochdru") THEN bbk.append " Hypertonus,"
@@ -1202,7 +1209,7 @@ With raAna
  If obPosi(!Dialyse <> 0) Or diI("Z49", , , , , aktDC.FEi(8), aktDC.FEd(8)) Then
   aktDC.FEn(8) = True
   If ab315 Then
-   spät = IIf(LenB(spät) = 0, "Nephropathie:", ":") & " Nierenersatztherapie"
+   spät.AppVar Array(IIf(spät.length = 0, "Nephropathie:", ":"), " Nierenersatztherapie")
   Else
    bbk.AppVar Array(" Nierenersatztherapie", IIf(aktDC.FE(8) And Not ab315, "( bek)", ""), ",")
   End If
@@ -1212,14 +1219,14 @@ With raAna
   If aktDC.obG632 Or diI("G59.0 G99.0") Or diT("europath") Then
    aktDC.FEn(11) = True
    If ab315 Then
-    spät = spät & IIf(LenB(spät) = 0, "", ", ") & "Neuropathie"
+    spät.AppVar Array(IIf(spät.length = 0, "", ", "), "Neuropathie")
    End If
   End If
   
   If diT("Retinopath") Or diI("H36") Then
    aktDC.FEn(9) = True
    If ab315 Then
-    spät = spät & IIf(LenB(spät) = 0, "", ", ") & "Retinopathie"
+    spät.AppVar Array(IIf(spät.length = 0, "", ", "), "Retinopathie")
    Else
     bbk.AppVar Array(" diab. Retinopathie", IIf(aktDC.FE(9) And Not ab315, "( bek)", ""), ",")
    End If
@@ -1227,7 +1234,7 @@ With raAna
   If InStrB(LCase$(!Diagnosen), "blind") <> 0 Or diI("H54 S05", , , True, , aktDC.FEi(10), aktDC.FEd(10)) Then
    aktDC.FEn(10) = True
    If ab315 Then
-    spät = spät & IIf(aktDC.FEn(9), ", ", IIf(LenB(spät) = 0, "", ", ") & "Retinopathie") & " (Blindheit)"
+    spät.AppVar Array(IIf(aktDC.FEn(9), ", ", IIf(spät.length = 0, "", ", ") & "Retinopathie"), " (Blindheit)")
    Else
     bbk.AppVar Array(" Blindheit", IIf(aktDC.FE(10) And Not ab315, "( bek)", ""), ",")
    End If
@@ -1360,13 +1367,13 @@ With raAna
  If aktDC.dtyp = "2" Then
   If aktDC.PrRR <> "" Then
    If mitStr Then TabPr "Blutdruck:", aktDC.PrRR
-  End If
- End If
+  End If ' aktDC.PrRR <> "" Then
+ End If ' aktDC.dtyp = "2" Then
  
 If True Then ' lwZahl
  aktDC.bekHb = 0
 ' ralau.Seek "=", CStr(PID), "HBA1C"
- Dim DMPCrea$, DMPeGFR$, DMPUAlb$
+ Dim DMPCrea$
 ' SET raLau = Nothing
 ' raLau.Open "SELECT * FROM (" & lsql & ") AS innen WHERE abkü = ""HBA1C"" ORDER BY zeitpunkt DESC", DBCn, adOpenDynamic, adLockReadOnly
 ' SET raLau = LabEPat(HbA1c, PID)
@@ -1491,12 +1498,12 @@ If True Then ' lwZahl
 '     aktDC.eGFR = ROUND((140 - raAna!palter) * aktDC.gewi * IIf(aktDC.gewi < 3, 100, 1) * IIf(aktDC.Geschlecht = "w", 0.85, 1) / aktDC.Crea / 72, 0)
 '    END IF
 '   END IF
-'   DMPeGFR = IIf(aktDC.eGFR, aktDC.eGFR & " ml/min (" + Format$(Labs.Zp, "dd/mm/yy") + ")", "nicht vorliegend") ', oberer Normwert: 1,3 mg/dl"
+'   aktdc.x_DMPeGFR = IIf(aktDC.eGFR, aktDC.eGFR & " ml/min (" + Format$(Labs.Zp, "dd/mm/yy") + ")", "nicht vorliegend") ', oberer Normwert: 1,3 mg/dl"
 '  END IF
   Dim lG As labtyp
   lG = letztGFR(pid, PAlter, IIf(aktDC.geschlecht = "w", -1, 0))
   aktDC.eGFR = IIf(lG.WertSg = "", 200, lG.WertSg)
-  DMPeGFR = IIf(aktDC.eGFR, aktDC.eGFR & " " & lG.Einheit & " (" + Format$(lG.Zp, "dd/mm/yy") + ")", "nicht vorliegend") ', oberer Normwert: 1,3 mg/dl"
+  aktDC.x_DMPeGFR = IIf(aktDC.eGFR, aktDC.eGFR & " " & lG.Einheit & " (" + Format$(lG.Zp, "dd/mm/yy") + ")", "nicht vorliegend") ', oberer Normwert: 1,3 mg/dl"
  End If ' ab315 THEN
  
 ' IF aktDC.dtyp = "1" THEN ' 5.10.08: jetzt auch Typ 2
@@ -1513,12 +1520,12 @@ If True Then ' lwZahl
    Dim rEintr As New ADODB.Recordset
    myFrag rEintr, "SELECT * FROM `eintraege` WHERE art = ""urin"" AND inhalt LIKE ""%micral%"" AND Pat_ID = " & aktDC.Pat_id & " ORDER BY zeitpunkt DESC"
    If Not rEintr.EOF Then
-    DMPUAlb = Mid$(rEintr!Inhalt, InStr(1, rEintr!Inhalt, "micral", vbTextCompare)) & " (" & Format$(rEintr!Zeitpunkt, "dd/mm/yy") & ")"
-   End If
-  Else
+    aktDC.x_DMPUAlb = Mid$(rEintr!Inhalt, InStr(1, rEintr!Inhalt, "micral", vbTextCompare)) & " (" & Format$(rEintr!Zeitpunkt, "dd/mm/yy") & ")"
+   End If ' Not rEintr.EOF Then
+  Else ' Labs.Abkü = "" Then
    If InStrB(Labs.WertSg, "<") <> 0 Then
     aktDC.mau = unauff
-   Else
+   Else ' InStrB(Labs.WertSg, "<") <> 0 Then
      Dim raLauW$
      raLauW = REPLACE$(REPLACE$(REPLACE$(IIf(Labs.WertSg = vNS, "0", Labs.WertSg), "ca.", ""), ".", ","), " (Urin)", vNS)
      If IsNumeric(raLauW) Then
@@ -1530,28 +1537,28 @@ If True Then ' lwZahl
      Else
       aktDC.mau = unauff
      End If
-   End If
+   End If ' InStrB(Labs.WertSg, "<") <> 0 Then else
    Dim werts$
    If IsNumeric(Labs.WertSg) Then werts = CStr(Labs.WertSg) Else werts = Labs.WertSg
-   DMPUAlb = werts + " mg/dl (" + Format$(Labs.Zp, "dd/mm/yy") + "), oberer Normwert: 29 mg/gCrea"
+   aktDC.x_DMPUAlb = werts + " mg/dl (" + Format$(Labs.Zp, "dd/mm/yy") + "), oberer Normwert: 29 mg/gCrea"
    If IsNumeric(Labs.WertSg) Then
     If Labs.WertSg >= 30 Then
      aktDC.mau = auff
     Else
      aktDC.mau = unauff
     End If
-   End If
+   End If ' IsNumeric(Labs.WertSg) Then
 '  END IF
- End If
- If aktDC.dtyp = "2" Then
-  If mitStr Then TabPr IIf(ab317, "•  ", "") & "HbA1c:", aktDC.x_DMPHbA1c
-  If ab315 Then
-   If mitStr Then TabPr "eGFR:", DMPeGFR
-  Else
-   If mitStr Then TabPr "Serum-Kreatinin:", DMPCrea
+  End If ' Labs.Abkü = "" Then else
+  If aktDC.dtyp = "2" Then
+   If mitStr Then TabPr IIf(ab317, "•  ", "") & "HbA1c:", aktDC.x_DMPHbA1c
+   If ab315 Then
+    If mitStr Then TabPr "eGFR:", aktDC.x_DMPeGFR
+   Else
+    If mitStr Then TabPr "Serum-Kreatinin:", DMPCrea
+   End If
+   If mitStr Then TabPr "Urin-Albumin:", aktDC.x_DMPUAlb ' 5.10.08 Kommentar entfernt
   End If
-  If mitStr Then TabPr "Urin-Albumin:", DMPUAlb ' 5.10.08 Kommentar entfernt
- End If
  'If obPosi(!Beinbefund) OR obPosi(!Ulcera) OR diI("M14") THEN
  End If 'lwzahl
  
@@ -1568,16 +1575,15 @@ If True Then ' lwZahl
  Dim summe%
  Dim Nausg$, LUSDat$
  Dim MFBegr$, KWBegr$, VibBegr$
- Dim PulsStatus$
- aktDC.Puls = PStatNeu(pid, PulsStatus)
- If mitStr And Not ab317 Then TabPr "Pulsstatus: ", PulsStatus
- Dim SensText$
- aktDC.sens = sensib(pid, SensText)
- If mitStr And Not ab317 Then TabPr "Sensibilität: ", SensText
+ aktDC.Puls = PStatNeu(pid, aktDC.x_Pulsstatus)
+ If mitStr And Not ab317 Then TabPr "Pulsstatus: ", aktDC.x_Pulsstatus
+ aktDC.sens = sensib(pid, aktDC.x_SensText)
+ If mitStr And Not ab317 Then TabPr "Sensibilität: ", aktDC.x_SensText
    
  If mitStr And ab315 Then
-  If LenB(spät) = 0 Then spät = "keine"
-  TabPr "Spätfolgen: ", spät
+  If spät.length = 0 Then spät = "keine"
+  aktDC.x_spät = spät
+  TabPr "Spätfolgen: ", aktDC.x_spät
  End If ' mitStr AND ab315 THEN
 
 
@@ -1719,7 +1725,8 @@ If True Then ' lwZahl
      End If
     End If
   If mitStr And ab315 And ab317 Then
-   TabPr "Injektionsstellen:", IIf(aktDC.inj = 0, "nicht untersucht", IIf(aktDC.inj = 1, "unauffällig", "auffällig"))
+   aktDC.x_inj = IIf(aktDC.inj = 0, "nicht untersucht", IIf(aktDC.inj = 1, "unauffällig", "auffällig"))
+   TabPr "Injektionsstellen:", aktDC.x_inj
   End If
   
 ' 29.8.17
@@ -1787,21 +1794,20 @@ Dim ranamp As New ADODB.Recordset
 myFrag ranamp, "SELECT NOT ISNULL(amputation) AND amputation NOT IN ('n','-','','entfällt','/','--','nn','u','.-') AND amputation NOT LIKE '?%' AND amputation not RLIKE '^n[ .]' AND amputation not RLIKE 'nein' amp FROM anamnesebogen a WHERE pat_id = " & pid
 If Not ranamp.EOF And ranamp!amp = 1 Then aktDC.ZnAmput = 1
   
-  
- If mitStr And ab317 Then TabPr "•  Pulsstatus: ", PulsStatus
- If mitStr And ab317 Then TabPr "Sensibilität: ", SensText
  If mitStr And ab317 Then
-  Dim wrstr$
-  wrstr = IIf(aktDC.Deform, "Fußdeformität, ", "") & _
+  TabPr "•  Pulsstatus: ", aktDC.x_Pulsstatus
+  TabPr "Sensibilität: ", aktDC.x_SensText
+  aktDC.x_wrstr = IIf(aktDC.Deform, "Fußdeformität, ", "") & _
   IIf(aktDC.Hyperk, "Hyperkeratose mit Einblutung, ", "") & _
   IIf(aktDC.ZnUlcus, "Z.n. Ulcus, ", "") & _
   IIf(aktDC.ZnAmput, "Z.n. Amputation, ", "") & _
   IIf(aktDC.Deform Or aktDC.Hyperk Or aktDC.ZnUlcus Or aktDC.ZnAmput, "ja", "nein")
-  TabPr "Weiteres Risiko für Ulcus: ", wrstr
- End If
- If mitStr And ab317 Then TabPr "Ulcus: ", Switch(aktDC.ulcus = 0, "oberflächlich", aktDC.ulcus = 1, "tief", aktDC.ulcus = 2, "nein", 1, "nicht untersucht")
- If mitStr And ab317 Then TabPr "Wundinfektion: ", IIf(aktDC.Infekt = 0, "nicht untersucht", IIf(aktDC.Infekt = 1, "ja", "nein"))
- If mitStr And ab317 Then TabPr "Intervall der künftigen Fußinspektionen: ", IIf(aktDC.NaeUs = 0, "jährlich", IIf(aktDC.NaeUs = 1, "alle 6 Monate", "alle 3 Mo oder häufiger"))
+  TabPr "Weiteres Risiko für Ulcus: ", aktDC.x_wrstr
+  aktDC.x_Ulcus = Switch(aktDC.ulcus = 0, "oberflächlich", aktDC.ulcus = 1, "tief", aktDC.ulcus = 2, "nein", 1, "nicht untersucht")
+  TabPr "Ulcus: ", aktDC.x_Ulcus
+  TabPr "Wundinfektion: ", IIf(aktDC.Infekt = 0, "nicht untersucht", IIf(aktDC.Infekt = 1, "ja", "nein"))
+  TabPr "Intervall der künftigen Fußinspektionen: ", IIf(aktDC.NaeUs = 0, "jährlich", IIf(aktDC.NaeUs = 1, "alle 6 Monate", "alle 3 Mo oder häufiger"))
+ End If ' mitStr And ab317 Then
  
  Dim merkmitstr%
  merkmitstr = mitStr
@@ -2089,8 +2095,8 @@ If Not ranamp.EOF And ranamp!amp = 1 Then aktDC.ZnAmput = 1
   End If
   If mitStr Then TabPr "HbA1c:", aktDC.x_DMPHbA1c
   If mitStr Then TabPr "Serum-Kreatinin:", DMPCrea
-  If mitStr Then TabPr "Urin-Albumin:", DMPUAlb
- End If
+  If mitStr Then TabPr "Urin-Albumin:", aktDC.x_DMPUAlb
+ End If ' aktDC.dtyp = "1" Then
  
 #If vorca2008 Then
 ' Dim oblaser AS Boolean
@@ -4057,10 +4063,15 @@ End Sub ' FaxSend
 
 ' in einDMP, doStart
 Public Function do_DMPAusgebStandAlone(Pat_id&, Optional fax1$, Optional Adressat$)
- Const uvz$ = "z2145", uvuv$ = uvz & "\" & "neu\", guv$ = "p:\zufaxen\" & uvuv, dxml$ = guv & "word\document.xml"
  Dim docName$, DT As DMPClass
  On Error GoTo fehler
+'#Const wordalt = True
 #If Not wordalt Then
+ Const uvz$ = "z2145", uvuv$ = uvz & "\" & "neu\", guv$ = "p:\zufaxen\" & uvuv, dxml$ = guv & "word\document.xml"
+ Const AbsE$ = "</w:t></w:r></w:p>"
+ Const AbE1$ = "<w:p><w:pPr><w:pStyle w:val=""Normal""/><w:tabs><w:tab w:val=""clear"" w:pos=""1701""/><w:tab w:val=""left"" w:pos=""3118"" w:leader=""dot""/></w:tabs><w:ind w:hanging=""400"" w:left=""400"" w:right=""0""/><w:rPr/></w:pPr><w:r><w:rPr><w:rFonts w:cs=""Arial"" w:ascii=""Arial"" w:hAnsi=""Arial""/><w:b/><w:i/><w:szCs w:val=""24""/></w:rPr><w:t>"
+ Const AbE2$ = "</w:t></w:r><w:r><w:rPr><w:rFonts w:cs=""Arial"" w:ascii=""Arial"" w:hAnsi=""Arial""/><w:szCs w:val=""24""/></w:rPr><w:tab/><w:t>"
+ Const abe3$ = "</w:t></w:r><w:r><w:rPr><w:rFonts w:cs=""Arial"" w:ascii=""Arial"" w:hAnsi=""Arial""/><w:szCs w:val=""24""/></w:rPr><w:t xml:space=""preserve""> </w:t><w:tab/><w:t>"
  Dim DMPS$
  Dim ag As New CString
  Dim oSh As New IWshShell_Class
@@ -4068,35 +4079,39 @@ Public Function do_DMPAusgebStandAlone(Pat_id&, Optional fax1$, Optional Adressa
  oSh.rUn "robocopy u:\programmierung\dateilesen\zudocx\ " & guv & " /s /copy:dat", 0, True
  If FSO.FileExists(dxml) Then Kill dxml
  ag.Append "<w:document xmlns:o=""urn:schemas-microsoft-com:office:office"" xmlns:r=""http://schemas.openxmlformats.org/officeDocument/2006/relationships"" xmlns:v=""urn:schemas-microsoft-com:vml"" xmlns:w=""http://schemas.openxmlformats.org/wordprocessingml/2006/main"" xmlns:w10=""urn:schemas-microsoft-com:office:word"" xmlns:wp=""http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing"" xmlns:wps=""http://schemas.microsoft.com/office/word/2010/wordprocessingShape"" xmlns:wpg=""http://schemas.microsoft.com/office/word/2010/wordprocessingGroup"" xmlns:mc=""http://schemas.openxmlformats.org/markup-compatibility/2006"" xmlns:wp14=""http://schemas.microsoft.com/office/word/2010/wordprocessingDrawing"" xmlns:w14=""http://schemas.microsoft.com/office/word/2010/wordml"" xmlns:w15=""http://schemas.microsoft.com/office/word/2012/wordml"" mc:Ignorable=""w14 wp14 w15""><w:body><w:p><w:pPr><w:pStyle w:val=""Heading1""/><w:tabs><w:tab w:val=""clear"" w:pos=""1701""/>"
- ag.Append "<w:tab w:val=""left"" w:pos=""3118"" w:leader=""dot""/></w:tabs><w:ind w:hanging=""400"" w:left=""400"" w:right=""0""/><w:rPr/></w:pPr><w:r><w:rPr><w:rFonts w:cs=""Arial"" w:ascii=""Arial"" w:hAnsi=""Arial""/><w:sz w:val=""20""/></w:rPr><w:t>Diabetol. Gemeins'praxis Dachau</w:t></w:r><w:r><w:rPr><w:rFonts w:cs=""Arial"" w:ascii=""Arial"" w:hAnsi=""Arial""/><w:b w:val=""false""/><w:sz w:val=""20""/></w:rPr><w:t>, G.Schade, Dr.T.Kothny</w:t><w:tab/><w:t>Tel. 08131 616380, Fax 616381</w:t></w:r></w:p><w:p><w:pPr><w:pStyle w:val=""Normal""/><w:widowControl w:val=""false""/><w:tabs><w:tab w:val=""clear"" w:pos=""1701""/><w:tab w:val=""left"" w:pos=""3118"" w:leader=""dot""/></w:tabs><w:autoSpaceDE w:val=""false""/><w:spacing w:lineRule=""exact"" w:line=""100"" w:before=""0"" w:after=""40""/><w:ind w:hanging=""400"" w:left=""400"" w:right=""0""/><w:rPr><w:rFonts w:ascii=""Arial"" w:hAnsi=""Arial"" w:cs=""Arial""/></w:rPr></w:pPr><w:r><w:rPr>"
- ag.Append "<w:rFonts w:cs=""Arial"" w:ascii=""Arial"" w:hAnsi=""Arial""/></w:rPr><w:tab/></w:r></w:p><w:p><w:pPr><w:pStyle w:val=""Normal""/><w:tabs><w:tab w:val=""clear"" w:pos=""1701""/><w:tab w:val=""left"" w:pos=""3118"" w:leader=""dot""/></w:tabs><w:ind w:hanging=""400"" w:left=""400"" w:right=""0""/><w:rPr><w:rFonts w:ascii=""Arial"" w:hAnsi=""Arial"" w:cs=""Arial""/><w:sz w:val=""18""/><w:szCs w:val=""24""/></w:rPr></w:pPr><w:r><w:rPr><w:rFonts w:cs=""Arial"" w:ascii=""Arial"" w:hAnsi=""Arial""/><w:sz w:val=""18""/><w:szCs w:val=""24""/></w:rPr><w:t>Sehr geehr. F./H. Kolleg..,</w:t><w:tab/><w:t xml:space=""preserve"">untenst. Pat. ist nach unseren Unterlagen b. Ihnen im DMP Diabetes eingeschrieben. </w:t><w:br/><w:t xml:space=""preserve"">Hier zu Ihrer Unterstützung unsere DMP-Infos. </w:t><w:tab/><w:t>Mit bestem Dank für das Vertrauen und freundlichen Grüßen</w:t></w:r></w:p><w:p><w:pPr><w:pStyle w:val=""Normal""/><w:tabs><w:tab w:val=""clear"" w:pos=""1701""/>"
- ag.Append "<w:tab w:val=""left"" w:pos=""3118"" w:leader=""dot""/></w:tabs><w:ind w:hanging=""400"" w:left=""400"" w:right=""0""/><w:rPr><w:rFonts w:ascii=""Arial"" w:hAnsi=""Arial"" w:cs=""Arial""/><w:sz w:val=""18""/><w:szCs w:val=""24""/></w:rPr></w:pPr><w:r><w:rPr><w:rFonts w:cs=""Arial"" w:ascii=""Arial"" w:hAnsi=""Arial""/><w:sz w:val=""18""/><w:szCs w:val=""24""/></w:rPr></w:r></w:p><w:p><w:pPr><w:pStyle w:val=""Normal""/><w:tabs><w:tab w:val=""clear"" w:pos=""1701""/><w:tab w:val=""left"" w:pos=""3118"" w:leader=""dot""/></w:tabs><w:ind w:hanging=""400"" w:left=""400"" w:right=""0""/><w:rPr/></w:pPr><w:r><w:rPr><w:rFonts w:cs=""Arial"" w:ascii=""Arial"" w:hAnsi=""Arial""/><w:b/><w:i/><w:szCs w:val=""24""/></w:rPr><w:t>"
+ ag.Append "<w:tab w:val=""left"" w:pos=""3118"" w:leader=""dot""/></w:tabs><w:ind w:hanging=""400"" w:left=""400"" w:right=""0""/><w:rPr/></w:pPr><w:r><w:rPr><w:rFonts w:cs=""Arial"" w:ascii=""Arial"" w:hAnsi=""Arial""/><w:sz w:val=""20""/></w:rPr><w:t>Diabetol. Gemeins'praxis Dachau</w:t></w:r><w:r><w:rPr><w:rFonts w:cs=""Arial"" w:ascii=""Arial"" w:hAnsi=""Arial""/><w:b w:val=""false""/><w:sz w:val=""20""/></w:rPr><w:t>, G.Schade, Dr.T.Kothny</w:t><w:tab/><w:t>Tel. 08131 616380, Fax 616381"
+ ag.Append AbsE
+ ag.Append "<w:p><w:pPr><w:pStyle w:val=""Normal""/><w:widowControl w:val=""false""/><w:tabs><w:tab w:val=""clear"" w:pos=""1701""/><w:tab w:val=""left"" w:pos=""3118"" w:leader=""dot""/></w:tabs><w:autoSpaceDE w:val=""false""/><w:spacing w:lineRule=""exact"" w:line=""100"" w:before=""0"" w:after=""40""/><w:ind w:hanging=""400"" w:left=""400"" w:right=""0""/><w:rPr><w:rFonts w:ascii=""Arial"" w:hAnsi=""Arial"" w:cs=""Arial""/></w:rPr></w:pPr><w:r><w:rPr>"
+ ag.AppVar Array("<w:rFonts w:cs=""Arial"" w:ascii=""Arial"" w:hAnsi=""Arial""/></w:rPr><w:tab/></w:r></w:p><w:p><w:pPr><w:pStyle w:val=""Normal""/><w:tabs><w:tab w:val=""clear"" w:pos=""1701""/><w:tab w:val=""left"" w:pos=""3118"" w:leader=""dot""/></w:tabs><w:ind w:hanging=""400"" w:left=""400"" w:right=""0""/><w:rPr><w:rFonts w:ascii=""Arial"" w:hAnsi=""Arial"" w:cs=""Arial""/><w:sz w:val=""18""/><w:szCs w:val=""24""/></w:rPr></w:pPr><w:r><w:rPr><w:rFonts w:cs=""Arial"" w:ascii=""Arial"" w:hAnsi=""Arial""/><w:sz w:val=""18""/><w:szCs w:val=""24""/></w:rPr><w:t>Sehr geehr. F./H. Kolleg..,</w:t><w:tab/><w:t xml:space=""preserve"">untenst. Pat. ist nach unseren Unterlagen b. Ihnen im DMP Diabetes eingeschrieben. </w:t><w:br/><w:t xml:space=""preserve"">Hier zu Ihrer Unterstützung unsere DMP-Infos. </w:t><w:tab/><w:t>Mit bestem Dank für das Vertrauen und freundlichen Grüßen", AbsE)
+ ag.Append "<w:p><w:pPr><w:pStyle w:val=""Normal""/><w:tabs><w:tab w:val=""clear"" w:pos=""1701""/>"
+ ag.AppVar Array("<w:tab w:val=""left"" w:pos=""3118"" w:leader=""dot""/></w:tabs><w:ind w:hanging=""400"" w:left=""400"" w:right=""0""/><w:rPr><w:rFonts w:ascii=""Arial"" w:hAnsi=""Arial"" w:cs=""Arial""/><w:sz w:val=""18""/><w:szCs w:val=""24""/></w:rPr></w:pPr><w:r><w:rPr><w:rFonts w:cs=""Arial"" w:ascii=""Arial"" w:hAnsi=""Arial""/><w:sz w:val=""18""/><w:szCs w:val=""24""/></w:rPr></w:r></w:p>", AbE1)
 ' ag.Append REPLACE$(REPLACE$(REPLACE$(DT.x_gesName, "'", "&#8217;"), "ß", "&#223;"), "*", "&#9733;")
  ag.Append DT.x_gesName
  ag.Append "</w:t></w:r><w:r><w:rPr><w:rFonts w:cs=""Arial"" w:ascii=""Arial"" w:hAnsi=""Arial""/><w:b/><w:i/><w:vanish/><w:szCs w:val=""24""/></w:rPr><w:t xml:space=""preserve""> (Pat'nr "
  ag.Append Pat_id
  ag.Append ")</w:t></w:r><w:r><w:rPr><w:rFonts w:cs=""Arial"" w:ascii=""Arial"" w:hAnsi=""Arial""/><w:b/><w:i/><w:szCs w:val=""24""/></w:rPr><w:t>, DMP-Informatione</w:t></w:r><w:r><w:rPr><w:rFonts w:cs=""Arial"" w:ascii=""Arial"" w:hAnsi=""Arial""/><w:szCs w:val=""24""/></w:rPr><w:t>n für "
- ag.Append Format(DT.x_DokuDat, "d.m.yy")
- ag.Append ":</w:t></w:r></w:p><w:p><w:pPr><w:pStyle w:val=""Normal""/><w:tabs><w:tab w:val=""clear"" w:pos=""1701""/><w:tab w:val=""left"" w:pos=""3118"" w:leader=""dot""/></w:tabs><w:ind w:hanging=""400"" w:left=""400"" w:right=""0""/><w:rPr/></w:pPr><w:r><w:rPr><w:rFonts w:cs=""Arial"" w:ascii=""Arial"" w:hAnsi=""Arial""/><w:b/><w:i/><w:szCs w:val=""24""/></w:rPr><w:t>"
- ag.Append DT.x_DmTyp
- ag.Append "</w:t></w:r><w:r><w:rPr><w:rFonts w:cs=""Arial"" w:ascii=""Arial"" w:hAnsi=""Arial""/><w:szCs w:val=""24""/></w:rPr><w:tab/><w:t>"
- ag.Append DT.daseit
- ag.Append "</w:t></w:r></w:p><w:p><w:pPr><w:pStyle w:val=""Normal""/><w:tabs><w:tab w:val=""clear"" w:pos=""1701""/><w:tab w:val=""left"" w:pos=""3118"" w:leader=""dot""/></w:tabs><w:ind w:hanging=""400"" w:left=""400"" w:right=""0""/><w:rPr/></w:pPr><w:r><w:rPr><w:rFonts w:cs=""Arial"" w:ascii=""Arial"" w:hAnsi=""Arial""/><w:b/><w:i/><w:szCs w:val=""24""/></w:rPr><w:t>•</w:t></w:r><w:r><w:rPr><w:rFonts w:eastAsia=""Arial"" w:cs=""Arial"" w:ascii=""Arial"" w:hAnsi=""Arial""/><w:b/><w:i/><w:szCs w:val=""24""/></w:rPr><w:t xml:space=""preserve""> </w:t></w:r><w:r><w:rPr><w:rFonts w:cs=""Arial"" w:ascii=""Arial"" w:hAnsi=""Arial""/><w:b/><w:i/><w:szCs w:val=""24""/></w:rPr><w:t>Bek. Begleit-/Folgeerk.:</w:t></w:r><w:r><w:rPr><w:rFonts w:cs=""Arial"" w:ascii=""Arial"" w:hAnsi=""Arial""/><w:szCs w:val=""24""/></w:rPr><w:tab/><w:t>"
- ag.Append DT.x_bbk
- ag.Append "</w:t></w:r></w:p>"
- ag.Append "<w:p><w:pPr><w:pStyle w:val=""Normal""/><w:tabs><w:tab w:val=""clear"" w:pos=""1701""/><w:tab w:val=""left"" w:pos=""3118"" w:leader=""dot""/></w:tabs><w:ind w:hanging=""400"" w:left=""400"" w:right=""0""/><w:rPr/></w:pPr><w:r><w:rPr><w:rFonts w:cs=""Arial"" w:ascii=""Arial"" w:hAnsi=""Arial""/><w:b/><w:i/><w:szCs w:val=""24""/></w:rPr><w:t>"
- ag.Append "Raucher:</w:t></w:r><w:r><w:rPr><w:rFonts w:cs=""Arial"" w:ascii=""Arial"" w:hAnsi=""Arial""/><w:szCs w:val=""24""/></w:rPr><w:tab/><w:t>"
- ag.Append IIf(DT.Tabak, "ja", "nein")
- ag.Append "</w:t></w:r></w:p><w:p><w:pPr><w:pStyle w:val=""Normal""/><w:tabs><w:tab w:val=""clear"" w:pos=""1701""/><w:tab w:val=""left"" w:pos=""3118"" w:leader=""dot""/></w:tabs><w:ind w:hanging=""400"" w:left=""400"" w:right=""0""/><w:rPr/></w:pPr><w:r><w:rPr><w:rFonts w:cs=""Arial"" w:ascii=""Arial"" w:hAnsi=""Arial""/><w:b/><w:i/><w:szCs w:val=""24""/></w:rPr><w:t>Körpergröße:</w:t></w:r><w:r><w:rPr><w:rFonts w:cs=""Arial"" w:ascii=""Arial"" w:hAnsi=""Arial""/><w:szCs w:val=""24""/></w:rPr><w:tab/><w:t>"
- ag.Append DT.kgr
- ag.Append " cm</w:t></w:r></w:p><w:p><w:pPr><w:pStyle w:val=""Normal""/><w:tabs><w:tab w:val=""clear"" w:pos=""1701""/><w:tab w:val=""left"" w:pos=""3118"" w:leader=""dot""/></w:tabs><w:ind w:hanging=""400"" w:left=""400"" w:right=""0""/><w:rPr/></w:pPr><w:r><w:rPr><w:rFonts w:cs=""Arial"" w:ascii=""Arial"" w:hAnsi=""Arial""/><w:b/><w:i/><w:szCs w:val=""24""/></w:rPr><w:t>Körpergewicht:</w:t></w:r><w:r><w:rPr><w:rFonts w:cs=""Arial"" w:ascii=""Arial"" w:hAnsi=""Arial""/><w:szCs w:val=""24""/></w:rPr><w:tab/><w:t>"
- ag.Append DT.x_gewi
- ag.Append "</w:t></w:r></w:p>"
- ag.Append "<w:p><w:pPr><w:pStyle w:val=""Normal""/><w:tabs><w:tab w:val=""clear"" w:pos=""1701""/><w:tab w:val=""left"" w:pos=""3118"" w:leader=""dot""/></w:tabs><w:ind w:hanging=""400"" w:left=""400"" w:right=""0""/><w:rPr/></w:pPr><w:r><w:rPr><w:rFonts w:cs=""Arial"" w:ascii=""Arial"" w:hAnsi=""Arial""/><w:b/><w:i/><w:szCs w:val=""24""/><w:lang w:val=""en-GB""/></w:rPr><w:t>Blutdruck:</w:t></w:r><w:r><w:rPr><w:rFonts w:cs=""Arial"" w:ascii=""Arial"" w:hAnsi=""Arial""/><w:szCs w:val=""24""/><w:lang w:val=""en-GB""/></w:rPr><w:tab/><w:t>"
- ag.Append DT.PrRR
- ag.Append "</w:t></w:r></w:p><w:p><w:pPr><w:pStyle w:val=""Normal""/><w:tabs><w:tab w:val=""clear"" w:pos=""1701""/><w:tab w:val=""left"" w:pos=""3118"" w:leader=""dot""/></w:tabs><w:ind w:hanging=""400"" w:left=""400"" w:right=""0""/><w:rPr/></w:pPr><w:r><w:rPr><w:rFonts w:cs=""Arial"" w:ascii=""Arial"" w:hAnsi=""Arial""/><w:b/><w:i/><w:szCs w:val=""24""/><w:lang w:val=""en-GB""/></w:rPr><w:t>•</w:t></w:r><w:r><w:rPr><w:rFonts w:eastAsia=""Arial"" w:cs=""Arial"" w:ascii=""Arial"" w:hAnsi=""Arial""/><w:b/><w:i/><w:szCs w:val=""24""/><w:lang w:val=""en-GB""/></w:rPr><w:t xml:space=""preserve""> </w:t></w:r><w:r><w:rPr><w:rFonts w:cs=""Arial"" w:ascii=""Arial"" w:hAnsi=""Arial""/><w:b/><w:i/><w:szCs w:val=""24""/><w:lang w:val=""en-GB""/></w:rPr><w:t>HbA1c:</w:t></w:r><w:r><w:rPr><w:rFonts w:cs=""Arial"" w:ascii=""Arial"" w:hAnsi=""Arial""/><w:szCs w:val=""24""/><w:lang w:val=""en-GB""/></w:rPr><w:tab/><w:t>"
- ag.Append DT.x_DMPHbA1c
- ag.Append "</w:t></w:r></w:p>"
+ ag.AppVar Array(Format(DT.x_DokuDat, "d.m.yy"), ":", AbsE)
+ ag.AppVar Array(AbE1, DT.x_DmTyp, AbE2, DT.daseit, AbsE)
+ ag.AppVar Array(AbE1, "•</w:t></w:r><w:r><w:rPr><w:rFonts w:eastAsia=""Arial"" w:cs=""Arial"" w:ascii=""Arial"" w:hAnsi=""Arial""/><w:b/><w:i/><w:szCs w:val=""24""/></w:rPr><w:t xml:space=""preserve""> </w:t></w:r><w:r><w:rPr><w:rFonts w:cs=""Arial"" w:ascii=""Arial"" w:hAnsi=""Arial""/><w:b/><w:i/><w:szCs w:val=""24""/></w:rPr><w:t>Bek. Begleit-/Folgeerk.:", AbE2)
+ ag.AppVar Array(DT.x_bbk, AbsE)
+ ag.AppVar Array(AbE1, "Raucher:", AbE2, IIf(DT.Tabak, "ja", "nein"), AbsE)
+ ag.AppVar Array(AbE1, "Körpergröße:", AbE2, DT.kgr, " cm", AbsE)
+ ag.AppVar Array(AbE1, "Körpergewicht:", AbE2, DT.x_gewi, AbsE)
+ ' <w:p><w:pPr><w:pStyle w:val=""Normal""/><w:tabs><w:tab w:val=""clear"" w:pos=""1701""/><w:tab w:val=""left"" w:pos=""3118"" w:leader=""dot""/></w:tabs><w:ind w:hanging=""400"" w:left=""400"" w:right=""0""/><w:rPr/></w:pPr><w:r><w:rPr><w:rFonts w:cs=""Arial"" w:ascii=""Arial"" w:hAnsi=""Arial""/><w:b/><w:i/><w:szCs w:val=""24""/><w:lang w:val=""en-GB""/></w:rPr><w:t>
+ ag.AppVar Array(AbE1, "Blutdruck:</w:t></w:r><w:r><w:rPr><w:rFonts w:cs=""Arial"" w:ascii=""Arial"" w:hAnsi=""Arial""/><w:szCs w:val=""24""/><w:lang w:val=""en-GB""/></w:rPr><w:tab/><w:t>")
+ ag.AppVar Array(DT.PrRR, AbsE)
+ ' <w:p><w:pPr><w:pStyle w:val=""Normal""/><w:tabs><w:tab w:val=""clear"" w:pos=""1701""/><w:tab w:val=""left"" w:pos=""3118"" w:leader=""dot""/></w:tabs><w:ind w:hanging=""400"" w:left=""400"" w:right=""0""/><w:rPr/></w:pPr><w:r><w:rPr><w:rFonts w:cs=""Arial"" w:ascii=""Arial"" w:hAnsi=""Arial""/><w:b/><w:i/><w:szCs w:val=""24""/><w:lang w:val=""en-GB""/></w:rPr><w:t>
+ ag.AppVar Array(AbE1, "•</w:t></w:r><w:r><w:rPr><w:rFonts w:eastAsia=""Arial"" w:cs=""Arial"" w:ascii=""Arial"" w:hAnsi=""Arial""/><w:b/><w:i/><w:szCs w:val=""24""/><w:lang w:val=""en-GB""/></w:rPr><w:t xml:space=""preserve""> </w:t></w:r><w:r><w:rPr><w:rFonts w:cs=""Arial"" w:ascii=""Arial"" w:hAnsi=""Arial""/><w:b/><w:i/><w:szCs w:val=""24""/><w:lang w:val=""en-GB""/></w:rPr><w:t>HbA1c:</w:t></w:r><w:r><w:rPr><w:rFonts w:cs=""Arial"" w:ascii=""Arial"" w:hAnsi=""Arial""/><w:szCs w:val=""24""/><w:lang w:val=""en-GB""/></w:rPr><w:tab/><w:t>")
+ ag.AppVar Array(DT.x_DMPHbA1c, AbsE)
+ ag.AppVar Array(AbE1, "eGFR:", AbE2, DT.x_DMPeGFR, AbsE)
+ ag.AppVar Array(AbE1, "Urin-Albumin:", AbE2, DT.x_DMPUAlb, AbsE)
+ ag.AppVar Array(AbE1, "Spätfolgen:", abe3, DT.x_spät, AbsE)
+ ag.AppVar Array(AbE1, "Injektionsstellen:", AbE2, DT.x_inj, AbsE)
+ ag.AppVar Array(AbE1, "•</w:t></w:r><w:r><w:rPr><w:rFonts w:eastAsia=""Arial"" w:cs=""Arial"" w:ascii=""Arial"" w:hAnsi=""Arial""/><w:b/><w:i/><w:szCs w:val=""24""/></w:rPr><w:t xml:space=""preserve""> </w:t></w:r><w:r><w:rPr><w:rFonts w:cs=""Arial"" w:ascii=""Arial"" w:hAnsi=""Arial""/><w:b/><w:i/><w:szCs w:val=""24""/></w:rPr><w:t>Pulsstatus:", abe3)
+ ag.AppVar Array(DT.x_Pulsstatus, AbsE)
+ ag.AppVar Array(AbE1, "Sensibilität:", abe3, DT.x_SensText, AbsE)
+ ag.AppVar Array(AbE1, "Weiteres Risiko für Ulcus:", abe3, DT.x_wrstr, AbsE)
+ ag.AppVar Array(AbE1, "Ulcus:", abe3, DT.x_Ulcus, AbsE)
  
  ag.Append "<w:sectPr><w:type w:val=""continuous""/><w:pgSz w:w=""11906"" w:h=""16838""/><w:pgMar w:left=""567"" w:right=""567"" w:gutter=""0"" w:header=""0"" w:top=""567"" w:footer=""0"" w:bottom=""567""/><w:cols w:num=""2"" w:equalWidth=""false"" w:sep=""false""><w:col w:w=""3969"" w:space=""340""/><w:col w:w=""6463""/></w:cols><w:formProt w:val=""false""/><w:textDirection w:val=""lrTb""/><w:docGrid w:type=""default"" w:linePitch=""360"" w:charSpace=""0""/></w:sectPr></w:body></w:document>"
 ' Print #197, "";
