@@ -2,7 +2,7 @@ Attribute VB_Name = "HAAkt"
 Option Explicit
 ' Public FSO As New FileSystemObject ' 15.5.22 auskommentiert, da hier doppelt
 Const LÜDatei$ = "Listenausgabe_Überweiser.xls"
-Const Verzeichnis$ = "p:\patientenübergreifendes\"
+Const Verzeichnis$ = "Patientenübergreifendes\"
 'Public Const XCon0 = "Driver={Microsoft Excel Driver (*.xls)};Dbq=" & LÜDatei & ";"
 Public Const XStra = "Provider=Microsoft.Jet.OLEDB.4.0;Data Source="
 Public Const XStrb = ";Extended Properties=""Excel 8.0;HDR=no;IMEX=1"""
@@ -10,6 +10,7 @@ Const LIUEZ$ = "liuez" ' Listenausgabe Überweiser Ziel
 Const LIUET$ = "liuet" ' Listenausgabe Überweiser temporär
 Const aktVorw$ = "08131"
 Const ausgD$ = "\HAAktAusg.txt"
+
 ' Public plzVz$, vVerz$, uVerz$, pVerz$ ' 15.5.22 auskommentiert, da hier doppelt
 ' Public Const vns$ = vbNullString ' 15.5.22 auskommentiert, da hier doppelt
 ' Public FPos&, FNr&, obStart% ' 15.5.22 auskommentiert, da hier doppelt
@@ -139,7 +140,7 @@ Public Sub doHAAkt(frm As Lese)
  Dim rV1 As New ADODB.Recordset
  Dim rV2 As New ADODB.Recordset
  Dim rs As New ADODB.Recordset
- Dim rAF&, obüberhaupt%
+ Dim rAf&, obüberhaupt%
  Dim ausg$, lauf&
  Dim F0 As File, f1 As File
  Dim ErrNr&, ErrDes$
@@ -161,21 +162,21 @@ Public Sub doHAAkt(frm As Lese)
  aktDatei = SHFolder(&H5) & "\" & LÜDatei ' eigene Dokumente
  If FSO.FileExists(aktDatei) Then
   Set F0 = FSO.GetFile(aktDatei)
-  If FSO.FileExists(Verzeichnis & LÜDatei) Then
-   Set f1 = FSO.GetFile(Verzeichnis & LÜDatei)
+  If FSO.FileExists(pVerz & Verzeichnis & LÜDatei) Then
+   Set f1 = FSO.GetFile(pVerz & Verzeichnis & LÜDatei)
    If f1.DateLastModified > F0.DateLastModified Then
-    aktDatei = Verzeichnis & LÜDatei
+    aktDatei = pVerz & Verzeichnis & LÜDatei
    End If
   End If
  Else
-  aktDatei = Verzeichnis & LÜDatei
+  aktDatei = pVerz & Verzeichnis & LÜDatei
  End If
 Dim fld$
 Dim dbknr As ConDtb
 ' Dim LVobMySQL As Boolean
 #Const vordef = False
 #If Not vordef Then
-' Provider=MSDASQL.1;Extended Properties="DATABASE=kvaerzte;DRIVER={MySQL ODBC 5.1 Driver};OPTION=3;PWD=***REMOVED***;PORT=0;SERVER=linux1;UID=praxis"
+' Provider=MSDASQL.1;Extended Properties="DATABASE=kvaerzte;DRIVER={MySQL ODBC 5.1 Driver};OPTION=3;PWD=***REMOVED***;PORT=0;SERVER=" & LiName & ";UID=praxis"
  Dim QCn() As ADODB.Connection
  Dim HCn() As ADODB.Connection
  Dim QCns$()
@@ -191,15 +192,15 @@ Dim dbknr As ConDtb
 '  SET ccol = fI.dbv.ShowAllDomains
 '  If ccol.Count = 0 Then
 '    Debug.Print "Keine Domain gefunden"
-    ccol.Add "LINUX1"
+    ccol.Add UCase$(LiName)
 '  End If
   For Each Cpt In ccol
-   If LCase$(Cpt) = "linux1" Then GoTo gefunden
+   If LCase$(Cpt) = LiName Then GoTo gefunden
   Next Cpt
-  ccol.Add "LINUX1"
+  ccol.Add UCase$(LiName)
 gefunden:
   For Each Cpt In ccol
-   If Cpt = "LINUX1" Then
+   If Cpt = UCase$(LiName) Then
    Dim MyCn As ADODB.Connection, MyCn2 As New ADODB.Connection, rdb As ADODB.Recordset, rHa As New ADODB.Recordset
    Set MyCn = New ADODB.Connection
    On Error Resume Next
@@ -402,7 +403,7 @@ gefunden:
   End If
   Dim kvnrlen$
   kvnrlen = myEFrag("SELECT character_maximum_length FROM information_schema.columns WHERE table_schema='" & QCn(dbknr).DefaultDatabase & "' AND TABLE_NAME='faelle' AND COLUMN_NAME='übwvkvnr'", , QCn(dbknr)).Fields(0)
-  csql = "CREATE TABLE " & ifnotexists & " `" & LIUET & "` (name " & sqlText & "(53), vorname " & sqlText & "(35), titelt " & sqlText & "(40), fachgruppe " & sqlText & "(202), strasse " & sqlText & "(40), plz " & sqlText & "(7), ort " & sqlText & "(30), telefon " & sqlText & "(40)" & IIf((LVobMySQL), " collate utf8mb4_german2_ci", vNS) & ", fax " & sqlText & "(40) " & IIf((LVobMySQL), " collate utf8mb4_german2_ci", vNS) & ", kvnr " & sqlText & "(" & kvnrlen & ")" & IIf((LVobMySQL), " collate utf8mb4_german2_ci", vNS) & ", aktdat date, id " & sqlAutoIncr & " primary key," & _
+  csql = "CREATE TABLE " & ifnotexists & " `" & LIUET & "` (name " & sqlText & "(53), vorname " & sqlText & "(35), titelt " & sqlText & "(40), fachgruppe " & sqlText & "(202), strasse " & sqlText & "(40), plz " & sqlText & "(7), ort " & sqlText & "(30), telefon " & sqlText & "(40)" & IIf((LVobMySQL), " COLLATE utf8mb4_german2_ci", vNS) & ", fax " & sqlText & "(40) " & IIf((LVobMySQL), " COLLATE utf8mb4_german2_ci", vNS) & ", kvnr " & sqlText & "(" & kvnrlen & ")" & IIf((LVobMySQL), " collate utf8mb4_german2_ci", vNS) & ", id " & sqlAutoIncr & " primary key," & _
          "überschrift " & sqlText & "(1), dbnr " & sqlText & "(7), bstelle " & sqlText & "(53), anrede " & sqlText & "(10), tel1 " & sqlText & "(40), tel2 " & sqlText & "(40), tel3 " & sqlText & "(40), tel4 " & sqlText & "(40), fax1 " & sqlText & "(40), fax2 " & sqlText & "(40), fax3 " & sqlText & "(40), email " & sqlText & "(70), zulg " & sqlText & "(150), " & _
          "arzttyp " & sqlText & "(2), gemmit " & sqlmemo & ", beme " & sqlmemo & ", dmpt2 " & sqlBool & ", dmpt1 " & sqlBool & ", geschlecht " & sqlText & "(1), titel " & sqlText & "(90), zusatz " & sqlText & "(20), ursp " & sqlText & "(30), aktzeit DATETIME" & _
          ", UNIQUE KEY `ident` (`name`,`vorname`,`plz`,`tel1`) " & vbCrLf & _
@@ -414,9 +415,9 @@ gefunden:
   If Not LVobMySQL Then On Error Resume Next
   Call myEFrag(csql, , QCn(dbknr))
   If Not LVobMySQL Then On Error GoTo fehler
-  Call myEFrag("DELETE FROM " & LIUET & " WHERE ISNULL(kvnr) OR kvnr=''", rAF, QCn(dbknr)) ' 28.12.15 hierher verschoben
+  Call myEFrag("DELETE FROM " & LIUET & " WHERE ISNULL(kvnr) OR kvnr=''", rAf, QCn(dbknr)) ' 28.12.15 hierher verschoben
   Call myEFrag("DROP TABLE IF EXISTS `lauo`", , QCn(dbknr))
-  Call myEFrag("CREATE TABLE `lauo` (name " & sqlText & "(53),vorname " & sqlText & "(35),titelt " & sqlText & " (40),fachgruppe " & sqlText & "(202),strasse " & sqlText & "(40),plz " & sqlText & "(7),ort " & sqlText & "(30),telefon " & sqlText & "(40)" & IIf((LVobMySQL), " collate utf8_general_ci", vNS) & ",fax " & sqlText & "(40) " & IIf((LVobMySQL), " collate utf8_general_ci", vNS) & ", aktdat date, id " & sqlAutoIncr & " primary key)", , QCn(dbknr))
+  Call myEFrag("CREATE TABLE `lauo` (name " & sqlText & "(53),vorname " & sqlText & "(35),titelt " & sqlText & " (40),fachgruppe " & sqlText & "(202),strasse " & sqlText & "(40),plz " & sqlText & "(7),ort " & sqlText & "(30),telefon " & sqlText & "(40)" & IIf((LVobMySQL), " COLLATE utf8_general_ci", vNS) & ",fax " & sqlText & "(40) " & IIf((LVobMySQL), " COLLATE utf8_general_ci", vNS) & ", aktzeit DATETIME, id " & sqlAutoIncr & " PRIMARY KEY)", , QCn(dbknr))
   QCn(dbknr).Close
   HCn(dbknr).Close
  Next ' dbknr = LBound(QCn) To UBound(QCn)
@@ -425,7 +426,7 @@ gefunden:
  Dim sqlakt$, f7$, f8$
  Dim HaeCon As New ADODB.Connection, rhae As New ADODB.Recordset
  Dim KVNr$, DBNr$, BStelle$, anrede$, tel1$, tel2$, tel3$, tel4$, fax1$, fax2$, fax3$, email$, zulg$, arzttyp$, gemmit$, beme$, dmpt2%, dmpt1%, geschlecht$, Titel$
- HaeCon.Open "Provider=MSDASQL.1;Extended Properties=""DATABASE=haerzte;DRIVER={" & ODBCStr() & "};OPTION=0;PWD=***REMOVED***;PORT=0;SERVER=linux1;UID=praxis"""
+ HaeCon.Open "Provider=MSDASQL.1;Extended Properties=""DATABASE=haerzte;DRIVER={" & ODBCStr() & "};OPTION=0;PWD=***REMOVED***;PORT=0;SERVER=" & LiName & ";UID=praxis"""
  
  Set XCon = Nothing
  XCon.Open XStra & aktDatei & XStrb
@@ -558,10 +559,10 @@ gefunden:
       LVobMySQL = True ' 11.10.15
       If LVobMySQL Then
       Call Zinit(LVobMySQL)
-      sqlakt = "INSERT INTO `lauo` (name,vorname,titelt,fachgruppe,strasse,plz,ort,telefon,fax) VALUES (" & "'" & rF0 & "','" & rF1 & _
+      sqlakt = "INSERT INTO `lauo` (name,vorname,titelt,fachgruppe,strasse,plz,ort,telefon,fax,aktzeit) VALUES (" & "'" & rF0 & "','" & rF1 & _
                 "','" & rEx.Fields(2) & "','" & rEx.Fields(3) & "','" & rEx.Fields(4) & "','" & rEx.Fields(5) & "','" & _
-                rEx.Fields(6) & "','" & f7 & "','" & f8 & "');"
-      Call myEFrag(sqlakt, rAF, QCn(dbknr))
+                rEx.Fields(6) & "','" & f7 & "','" & f8 & "'," & Format(Now(), "yymmddHHMMSS") & ");"
+      Call myEFrag(sqlakt, rAf, QCn(dbknr))
       
       pos = 0
       Set rs = Nothing
@@ -571,24 +572,24 @@ gefunden:
       Vorabfrage = "SELECT * FROM `" & LIUET & "` WHERE name = '" & rF0 & "' AND vorname = '" & rF1 & "' AND plz ='" & rEx.Fields(5) & "' AND telefon = '" & f7 & "'"
       myFrag rs, Vorabfrage, adOpenStatic, QCn(dbknr), adLockReadOnly
       If rs.EOF Then
-       sqlakt = "INSERT INTO `" & LIUET & "` (name,vorname,titelt,fachgruppe,strasse,plz,ort,telefon,fax,kvnr,aktdat,DBNr, BStelle, anrede, tel1, tel2, tel3, tel4, fax1, fax2, fax3, email, zulg, arzttyp, gemmit, beme, dmpt2, dmpt1, geschlecht, titel, ursp, aktzeit) VALUES (" & "'" & rF0 & "','" & rF1 & _
+       sqlakt = "INSERT INTO `" & LIUET & "` (name,vorname,titelt,fachgruppe,strasse,plz,ort,telefon,fax,kvnr,DBNr, BStelle, anrede, tel1, tel2, tel3, tel4, fax1, fax2, fax3, email, zulg, arzttyp, gemmit, beme, dmpt2, dmpt1, geschlecht, titel, ursp, aktzeit) VALUES (" & "'" & rF0 & "','" & rF1 & _
                 "','" & rEx.Fields(2) & "','" & rEx.Fields(3) & "','" & rEx.Fields(4) & "','" & rEx.Fields(5) & "','" & _
-                rEx.Fields(6) & "','" & f7 & "','" & f8 & "'," & IIf(KVNr = "", "null", "'" & REPLACE$(KVNr, " ", "") & "'") & "," & datformZ(Now, True) & ",'" & DBNr & "','" & BStelle & "','" & anrede & "','" & tel1 & "','" & tel2 & "','" & tel3 & "','" & tel4 & "','" & fax1 & "','" & fax2 & "','" & fax3 & "','" & email & "','" & zulg & "','" & UCase$(Left$(arzttyp, 2)) & "','" & gemmit & "','" & beme & "'," & Abs(dmpt2) & "," & Abs(dmpt1) & ",'" & Left$(geschlecht, 1) & "','" & Titel & "','xls','" & Format(Now(), "yymmddhhmmss") & "');"
-      Else
+                rEx.Fields(6) & "','" & f7 & "','" & f8 & "'," & IIf(KVNr = "", "null", "'" & REPLACE$(KVNr, " ", "") & "'") & ",'" & DBNr & "','" & BStelle & "','" & anrede & "','" & tel1 & "','" & tel2 & "','" & tel3 & "','" & tel4 & "','" & fax1 & "','" & fax2 & "','" & fax3 & "','" & email & "','" & zulg & "','" & UCase$(Left$(arzttyp, 2)) & "','" & gemmit & "','" & beme & "'," & Abs(dmpt2) & "," & Abs(dmpt1) & ",'" & Left$(geschlecht, 1) & "','" & Titel & "','xls'," & Format(Now(), "yymmddHHMMSS") & ");"
+      Else ' rs.EOF
        If pos <> 0 Then
         rF0 = rF0 & "%"
        End If
        If KVNr = vNS Then
 '        sqlakt = "UPDATE `" & liuet & "` SET titelt = '" & rEx.Fields(2) & "', fachgruppe='" & rEx.Fields(3) & "',strasse='" & rEx.Fields(4) & "',plz='" & rEx.Fields(5) & "',ort='" & rEx.Fields(6) & "',telefon='" & f7 & "',fax='" & f8 & "',aktdat=" & datformZ(Now, True) & ",DBNr='" & DBNr & "',BStelle='" & BStelle & "',Anrede='" & anrede & "',tel1='" & tel1 & "',tel2='" & tel2 & "',tel3='" & tel3 & "',tel4='" & tel4 & "',fax2='" & fax2 & "',fax3='" & fax3 & "',email='" & email & "',zulg='" & zulg & "',arzttyp='" & UCase$(Left$(arzttyp, 2)) & "',gemmit='" & gemmit & "',beme='" & beme & "',dmpt2=" & Abs(dmpt2) & ",dmpt1=" & Abs(dmpt1) & ",geschlecht='" & Left$(geschlecht, 1) & "',titel='" & Titel & "' WHERE name LIKE '" & rF0 & "' AND vorname = '" & rF1 & "'"
-         sqlakt = "UPDATE `" & LIUET & "` SET titelt = '" & rEx.Fields(2) & "', fachgruppe='" & rEx.Fields(3) & "',strasse='" & rEx.Fields(4) & "',ort='" & rEx.Fields(6) & "',fax='" & f8 & "',aktdat=" & datformZ(Now, True) & ",DBNr='" & DBNr & "',BStelle='" & BStelle & "',Anrede='" & anrede & "',tel1='" & tel1 & "',tel2='" & tel2 & "',tel3='" & tel3 & "',tel4='" & tel4 & "',fax2='" & fax2 & "',fax3='" & fax3 & "',email='" & email & "',zulg='" & zulg & "',arzttyp='" & UCase$(Left$(arzttyp, 2)) & "',gemmit='" & gemmit & "',beme='" & beme & "',dmpt2=" & Abs(dmpt2) & ",dmpt1=" & Abs(dmpt1) & ",geschlecht='" & Left$(geschlecht, 1) & "',titel='" & Titel & "' WHERE name LIKE '" & rF0 & "' AND vorname = '" & rF1 & "' AND plz ='" & rEx.Fields(5) & "' AND telefon = '" & f7 & "'"
+         sqlakt = "UPDATE `" & LIUET & "` SET titelt = '" & rEx.Fields(2) & "', fachgruppe='" & rEx.Fields(3) & "',strasse='" & rEx.Fields(4) & "',ort='" & rEx.Fields(6) & "',fax='" & f8 & "',DBNr='" & DBNr & "',BStelle='" & BStelle & "',Anrede='" & anrede & "',tel1='" & tel1 & "',tel2='" & tel2 & "',tel3='" & tel3 & "',tel4='" & tel4 & "',fax2='" & fax2 & "',fax3='" & fax3 & "',email='" & email & "',zulg='" & zulg & "',arzttyp='" & UCase$(Left$(arzttyp, 2)) & "',gemmit='" & gemmit & "',beme='" & beme & "',dmpt2=" & Abs(dmpt2) & ",dmpt1=" & Abs(dmpt1) & ",geschlecht='" & Left$(geschlecht, 1) & "',titel='" & Titel & "',aktzeit=" & Format(Now(), "yymmddHHMMSS") & " WHERE name LIKE '" & rF0 & "' AND vorname = '" & rF1 & "' AND plz ='" & rEx.Fields(5) & "' AND telefon = '" & f7 & "'"
        Else
 '        sqlakt = "UPDATE `" & liuet & "` SET titelt = '" & rEx.Fields(2) & "', fachgruppe='" & rEx.Fields(3) & "',strasse='" & rEx.Fields(4) & "',plz='" & rEx.Fields(5) & "',ort='" & rEx.Fields(6) & "',telefon='" & f7 & "',fax='" & f8 & "',kvnr='" & KVNr & "',aktdat=" & datformZ(Now, True) & ",DBNr='" & DBNr & "',BStelle='" & BStelle & "',Anrede='" & anrede & "',tel1='" & tel1 & "',tel2='" & tel2 & "',tel3='" & tel3 & "',tel4='" & tel4 & "',fax2='" & fax2 & "',fax3='" & fax3 & "',email='" & email & "',zulg='" & zulg & "',arzttyp='" & UCase$(Left$(arzttyp, 2)) & "',gemmit='" & gemmit & "',beme='" & beme & "',dmpt2=" & Abs(dmpt2) & ",dmpt1=" & Abs(dmpt1) & ",geschlecht='" & Left$(geschlecht, 1) & "',titel='" & Titel & "' WHERE name LIKE '" & rF0 & "' AND vorname = '" & rF1 & "'"
-        sqlakt = "UPDATE `" & LIUET & "` SET titelt = '" & rEx.Fields(2) & "', fachgruppe='" & rEx.Fields(3) & "',strasse='" & rEx.Fields(4) & "',ort='" & rEx.Fields(6) & "',fax='" & f8 & "',kvnr=" & IIf(KVNr = vNS, "null", "'" & REPLACE$(KVNr, " ", "") & "'") & ",aktdat=" & datformZ(Now, True) & ",DBNr='" & DBNr & "',BStelle='" & BStelle & "',Anrede='" & anrede & "',tel1='" & tel1 & "',tel2='" & tel2 & "',tel3='" & tel3 & "',tel4='" & tel4 & "',fax2='" & fax2 & "',fax3='" & fax3 & "',email='" & email & "',zulg='" & zulg & "',arzttyp='" & UCase$(Left$(arzttyp, 2)) & "',gemmit='" & gemmit & "',beme='" & beme & "',dmpt2=" & Abs(dmpt2) & ",dmpt1=" & Abs(dmpt1) & ",geschlecht='" & Left$(geschlecht, 1) & "',titel='" & Titel & "'" & IIf(KVNr = vNS, "", ",ursp=CONCAT(ursp,'" & ursp & "')") & " WHERE name LIKE '" & rF0 & "' AND vorname = '" & rF1 & "' AND plz ='" & rEx.Fields(5) & "' AND telefon = '" & f7 & "'"
+        sqlakt = "UPDATE `" & LIUET & "` SET titelt = '" & rEx.Fields(2) & "', fachgruppe='" & rEx.Fields(3) & "',strasse='" & rEx.Fields(4) & "',ort='" & rEx.Fields(6) & "',fax='" & f8 & "',kvnr=" & IIf(KVNr = vNS, "null", "'" & REPLACE$(KVNr, " ", "") & "'") & ",DBNr='" & DBNr & "',BStelle='" & BStelle & "',Anrede='" & anrede & "',tel1='" & tel1 & "',tel2='" & tel2 & "',tel3='" & tel3 & "',tel4='" & tel4 & "',fax2='" & fax2 & "',fax3='" & fax3 & "',email='" & email & "',zulg='" & zulg & "',arzttyp='" & UCase$(Left$(arzttyp, 2)) & "',gemmit='" & gemmit & "',beme='" & beme & "',dmpt2=" & Abs(dmpt2) & ",dmpt1=" & Abs(dmpt1) & ",geschlecht='" & Left$(geschlecht, 1) & "',titel='" & Titel & "'" & IIf(KVNr = vNS, "", ",ursp=CONCAT(ursp,'" & ursp & "')") & ",aktzeit=" & Format(Now(), "yymmddHHMMSS") & " WHERE name LIKE '" & rF0 & "' AND vorname = '" & rF1 & "' AND plz ='" & rEx.Fields(5) & "' AND telefon = '" & f7 & "'"
        End If
       End If ' rs.eof
       
       On Error Resume Next
-      Call myEFrag(sqlakt, rAF, QCn(dbknr), True, ErrNr, ErrDes)
+      Call myEFrag(sqlakt, rAf, QCn(dbknr), True, ErrNr, ErrDes)
       If ErrNr <> 0 And LVobMySQL Then
 '       Debug.Print "Vorabfrage: ", Vorabfrage
 '       Debug.Print sqlakt
@@ -603,8 +604,8 @@ gefunden:
       If rs.State <> 0 Then
        If Not rs.BOF Then
         Do While Not rs.EOF
-         sqlakt = "INSERT INTO `" & LIUET & "` (name,vorname,titelt,fachgruppe,strasse,plz,ort,telefon,fax,kvnr,aktdat,DBNr, BStelle, anrede, tel1, tel2, tel3, tel4, fax1, fax2, fax3, email, zulg, arzttyp, gemmit, beme, dmpt2, dmpt1, geschlecht, titel,ursp,aktzeit) VALUES (" & "'" & rF0 & "','" & rF1 & "','" & rEx.Fields(2) & "','" & rEx.Fields(3) & "','" & rEx.Fields(4) & "','" & rEx.Fields(5) & "','" & rEx.Fields(6) & "','" & f7 & "','" & f8 & "'," & IIf(rs!KVNr = "", "null", "'" & REPLACE$(rs!KVNr, " ", "") & "'") & "," & datformZ(Now, True) & ",'" & DBNr & "','" & BStelle & "','" & anrede & "','" & tel1 & "','" & tel2 & "','" & tel3 & "','" & tel4 & "','" & fax1 & "','" & fax2 & "','" & fax3 & "','" & email & "','" & zulg & "','" & UCase$(Left$(arzttyp, 2)) & "','" & gemmit & "','" & beme & "'," & Abs(dmpt2) & "," & Abs(dmpt1) & ",'" & Left$(geschlecht, 1) & "','" & Titel & "','kvaerzte.hae','" & Format(Now(), "yymmddhhmmss") & "');"
-         Call myEFrag(sqlakt, rAF, QCn(dbknr))
+         sqlakt = "INSERT INTO `" & LIUET & "` (name,vorname,titelt,fachgruppe,strasse,plz,ort,telefon,fax,kvnr,DBNr, BStelle, anrede, tel1, tel2, tel3, tel4, fax1, fax2, fax3, email, zulg, arzttyp, gemmit, beme, dmpt2, dmpt1, geschlecht, titel,ursp,aktzeit) VALUES (" & "'" & rF0 & "','" & rF1 & "','" & rEx.Fields(2) & "','" & rEx.Fields(3) & "','" & rEx.Fields(4) & "','" & rEx.Fields(5) & "','" & rEx.Fields(6) & "','" & f7 & "','" & f8 & "'," & IIf(rs!KVNr = "", "null", "'" & REPLACE$(rs!KVNr, " ", "") & "'") & ",'" & DBNr & "','" & BStelle & "','" & anrede & "','" & tel1 & "','" & tel2 & "','" & tel3 & "','" & tel4 & "','" & fax1 & "','" & fax2 & "','" & fax3 & "','" & email & "','" & zulg & "','" & UCase$(Left$(arzttyp, 2)) & "','" & gemmit & "','" & beme & "'," & Abs(dmpt2) & "," & Abs(dmpt1) & ",'" & Left$(geschlecht, 1) & "','" & Titel & "','kvaerzte.hae'," & Format(Now(), "yymmddHHMMSS") & ");"
+         Call myEFrag(sqlakt, rAf, QCn(dbknr))
          rs.Move 1
         Loop
        End If
@@ -614,8 +615,8 @@ gefunden:
       If rs.State <> 0 Then
        If Not rs.BOF Then
         Do While Not rs.EOF
-         sqlakt = "INSERT INTO `" & LIUET & "` (name,vorname,titelt,fachgruppe,strasse,plz,ort,telefon,fax,kvnr,aktdat,DBNr, BStelle, anrede, tel1, tel2, tel3, tel4, fax1, fax2, fax3, email, zulg, arzttyp, gemmit, beme, dmpt2, dmpt1, geschlecht, titel) VALUES (" & "'" & rF0 & "','" & rF1 & "','" & rEx.Fields(2) & "','" & rEx.Fields(3) & "','" & rEx.Fields(4) & "','" & rEx.Fields(5) & "','" & rEx.Fields(6) & "','" & f7 & "','" & f8 & "'," & IIf(rs!KVNr = "", "null", "'" & REPLACE$(rs!KVNr, " ", "") & "'") & "," & datformZ(Now, True) & ",'" & DBNr & "','" & BStelle & "','" & anrede & "','" & tel1 & "','" & tel2 & "','" & tel3 & "','" & tel4 & "','" & fax1 & "','" & fax2 & "','" & fax3 & "','" & email & "','" & zulg & "','" & UCase$(Left$(arzttyp, 2)) & "','" & gemmit & "','" & beme & "'," & Abs(dmpt2) & "," & Abs(dmpt1) & ",'" & Left$(geschlecht, 1) & "','" & Titel & "','kvaerzte.haealt','" & Format(Now(), "yymmddhhmmss") & "');"
-         Call myEFrag(sqlakt, rAF, QCn(dbknr))
+         sqlakt = "INSERT INTO `" & LIUET & "` (name,vorname,titelt,fachgruppe,strasse,plz,ort,telefon,fax,kvnr,DBNr, BStelle, anrede, tel1, tel2, tel3, tel4, fax1, fax2, fax3, email, zulg, arzttyp, gemmit, beme, dmpt2, dmpt1, geschlecht, titel,ursp,aktzeit) VALUES (" & "'" & rF0 & "','" & rF1 & "','" & rEx.Fields(2) & "','" & rEx.Fields(3) & "','" & rEx.Fields(4) & "','" & rEx.Fields(5) & "','" & rEx.Fields(6) & "','" & f7 & "','" & f8 & "'," & IIf(rs!KVNr = "", "null", "'" & REPLACE$(rs!KVNr, " ", "") & "'") & "," & ",'" & DBNr & "','" & BStelle & "','" & anrede & "','" & tel1 & "','" & tel2 & "','" & tel3 & "','" & tel4 & "','" & fax1 & "','" & fax2 & "','" & fax3 & "','" & email & "','" & zulg & "','" & UCase$(Left$(arzttyp, 2)) & "','" & gemmit & "','" & beme & "'," & Abs(dmpt2) & "," & Abs(dmpt1) & ",'" & Left$(geschlecht, 1) & "','" & Titel & "','kvaerzte.haealt'," & Format(Now(), "yymmddHHMMSS") & ");"
+         Call myEFrag(sqlakt, rAf, QCn(dbknr))
          rs.Move 1
         Loop
        End If ' Not rs.BOF Then
@@ -625,8 +626,8 @@ gefunden:
       If rs.State <> 0 Then
        If Not rs.BOF Then
         Do While Not rs.EOF
-         sqlakt = "INSERT INTO `" & LIUET & "` (name,vorname,titelt,fachgruppe,strasse,plz,ort,telefon,fax,kvnr,aktdat,DBNr, BStelle, anrede, tel1, tel2, tel3, tel4, fax1, fax2, fax3, email, zulg, arzttyp, gemmit, beme, dmpt2, dmpt1, geschlecht, titel) VALUES (" & "'" & rF0 & "','" & rF1 & "','" & rEx.Fields(2) & "','" & rEx.Fields(3) & "','" & rEx.Fields(4) & "','" & rEx.Fields(5) & "','" & rEx.Fields(6) & "','" & f7 & "','" & f8 & "'," & IIf(KVNr = "", "null", "'" & REPLACE$(rs!KVNr, " ", "") & "'") & "," & datformZ(Now, True) & ",'" & DBNr & "','" & BStelle & "','" & anrede & "','" & tel1 & "','" & tel2 & "','" & tel3 & "','" & tel4 & "','" & fax1 & "','" & fax2 & "','" & fax3 & "','" & email & "','" & zulg & "','" & UCase$(Left$(arzttyp, 2)) & "','" & gemmit & "','" & beme & "'," & Abs(dmpt2) & "," & Abs(dmpt1) & ",'" & Left$(geschlecht, 1) & "','" & Titel & "','hausaerzte','" & Format(Now(), "yymmddhhmmss") & "');"
-         Call myEFrag(sqlakt, rAF, QCn(dbknr))
+         sqlakt = "INSERT INTO `" & LIUET & "` (name,vorname,titelt,fachgruppe,strasse,plz,ort,telefon,fax,kvnr,DBNr, BStelle, anrede, tel1, tel2, tel3, tel4, fax1, fax2, fax3, email, zulg, arzttyp, gemmit, beme, dmpt2, dmpt1, geschlecht, titel,ursp,aktzeit) VALUES (" & "'" & rF0 & "','" & rF1 & "','" & rEx.Fields(2) & "','" & rEx.Fields(3) & "','" & rEx.Fields(4) & "','" & rEx.Fields(5) & "','" & rEx.Fields(6) & "','" & f7 & "','" & f8 & "'," & IIf(KVNr = "", "null", "'" & REPLACE$(rs!KVNr, " ", "") & "'") & "," & ",'" & DBNr & "','" & BStelle & "','" & anrede & "','" & tel1 & "','" & tel2 & "','" & tel3 & "','" & tel4 & "','" & fax1 & "','" & fax2 & "','" & fax3 & "','" & email & "','" & zulg & "','" & UCase$(Left$(arzttyp, 2)) & "','" & gemmit & "','" & beme & "'," & Abs(dmpt2) & "," & Abs(dmpt1) & ",'" & Left$(geschlecht, 1) & "','" & Titel & "','hausaerzte'," & Format(Now(), "yymmddHHMMSS") & ");"
+         Call myEFrag(sqlakt, rAf, QCn(dbknr))
          rs.Move 1
         Loop ' While Not rs.EOF
        End If ' Not rs.BOF Then
@@ -667,9 +668,9 @@ For dbknr = LBound(QCn) To UBound(QCn)
   If rV2.State <> 0 Then
    If Not rV2.EOF Then
     If Not LVobMySQL Then On Error Resume Next
-    Call myEFrag("UPDATE `" & LIUET & "` SET überschrift = '" & rV2!Überschrift & "' WHERE name = '" & rV1!name & "' AND vorname = '" & rV1!Vorname & "'", rAF, QCn(dbknr))
+    Call myEFrag("UPDATE `" & LIUET & "` SET überschrift = '" & rV2!Überschrift & "',aktzeit=" & Format(Now(), "yymmddHHMMSS") & " WHERE name = '" & rV1!name & "' AND vorname = '" & rV1!Vorname & "'", rAf, QCn(dbknr))
     If (Not IsNull(rV2!e_mail) And rV2!e_mail <> vNS) And (rV1!email = vNS Or IsNull(rV1!email)) Then
-     Call myEFrag("UPDATE `" & LIUET & "` SET email = '" & rV2!e_mail & "' WHERE name = '" & rV1!name & "' AND vorname = '" & rV1!Vorname & "'", rAF, QCn(dbknr))
+     Call myEFrag("UPDATE `" & LIUET & "` SET email = '" & rV2!e_mail & "',aktzeit=" & Format(Now(), "yymmddHHMMSS") & " WHERE name = '" & rV1!name & "' AND vorname = '" & rV1!Vorname & "'", rAf, QCn(dbknr))
     End If
     On Error GoTo fehler
 '   Debug.Print "nicht gefunden: ", rV1!Name, rV1!vorname
@@ -725,28 +726,28 @@ For dbknr = LBound(QCn) To UBound(QCn)
  Loop ' While Not rV1.EOF
  Call myEFrag("UPDATE IGNORE " & LIUET & " l " & _
  "LEFT JOIN (SELECT * FROM faelle f GROUP BY übwvbsnr, übwr, übwlanr, üwnnr, üwnan, üwtit, üwvor, üwvsw, üwvid) f " & _
- "ON l.name = f.üwnan AND (l.vorname = concat(f.üwvor,IF(ISNULL(f.üwvsw) OR f.üwvsw='','',' '),f.üwvsw) OR l.vorname = f.üwvsw) AND l.titelt = f.üwtit " & _
- "SET l.kvnr= REPLACE(f.übwvkvnr,' ',''),l.ursp=CONCAT(l.ursp,'+faelle.übwvknr') WHERE REPLACE(übwvkvnr,' ','')<>''" & _
- "", rAF, QCn(dbknr)) '"WHERE kvnr='' AND REPLACE(übwvkvnr,' ','')<>'' AND NOT ISNULL(übwvkvnr);", rAF,QCn(dbknr))
+ "ON l.name = f.üwnan AND (l.vorname = CONCAT(f.üwvor,IF(ISNULL(f.üwvsw) OR f.üwvsw='','',' '),f.üwvsw) OR l.vorname = f.üwvsw) AND l.titelt = f.üwtit " & _
+ "SET l.kvnr= REPLACE(f.übwvkvnr,' ',''),l.ursp=CONCAT(l.ursp,'+faelle.übwvknr'),l.aktzeit=" & Format(Now(), "yymmddHHMMSS") & " WHERE REPLACE(übwvkvnr,' ','')<>''" & _
+ "", rAf, QCn(dbknr)) '"WHERE kvnr='' AND REPLACE(übwvkvnr,' ','')<>'' AND NOT ISNULL(übwvkvnr);", rAF,QCn(dbknr))
  sql = "UPDATE " & LIUET & " SET anrede = 'Frau' WHERE vorname IN ('Andrea','Alexandra','Angelika','Anke','Anne','Annett','Annette','Astrid','Barbara','Bibiana','Birgit','Carolin','Christina','Christine','Dagmar','Dorothea','Edith','Elke','Eva','Gabriele','Gerlinde','Gesche','Gisela','Heidi','Heidrun','Ingrid','Isabella','Jana','Julia','Jutta','Katharina','Katrin','Kirsten','Kristina','Laima','Margot','Maria','Marianne','Marion','Mirjana','Monica','Nicole','Nina','Oana','Oskana','Rabia','Rita','Sabine','Silke','Sonja','Susanne','Swantje','Swetlana','Theodora','Tina','Ursula','Ute','Viktoria','Yvonne')"
- myEFrag sql, rAF, QCn(dbknr)
+ myEFrag sql, rAf, QCn(dbknr)
  sql = "UPDATE " & LIUET & " SET anrede = 'Herrn' WHERE vorname IN ('Andreas','Axel','Bernhard','Christian','Christoph','Clemens','Dieter','Edgar','Elmer','Ernst','Ernst-Ulrich','Franz','Franz Egid','Günther','Guido','Hans','Hans-Hermann','Hans-Joachim','Hans-Jürgen','Heribert','Herrmann','Holger','Ioannis','Joachim','Johann','Johann de','Johannes','Karl','Ludwig','Malte','Mario','Meinrad','Nikolaus','Nikolaus von','Olaf','Peter','Rainer','Ramon','Reinhold','Roman','Rudolf','Rüdiger','Stefan','Theodor','Thomas','Ulrich','Volker','Wolf-Dieter','Wolfgang','Yves')"
- myEFrag sql, rAF, QCn(dbknr)
+ myEFrag sql, rAf, QCn(dbknr)
  ' 29.12.15:
  On Error Resume Next
- myEFrag "DROP TABLE " & LIUEZ, rAF, QCn(dbknr)
+ myEFrag "DROP TABLE " & LIUEZ, rAf, QCn(dbknr)
  On Error GoTo fehler
- myEFrag "CREATE TABLE " & LIUEZ & " LIKE " & LIUET, rAF, QCn(dbknr)
- myEFrag "INSERT INTO " & LIUEZ & " SELECT * FROM " & LIUET & " l GROUP BY kvnr, name, vorname, plz,ort, telefon, tel1,fax, tel2, email, dmpt2, dmpt1, geschlecht", rAF, QCn(dbknr)
- myEFrag "DROP TABLE " & LIUET, rAF, QCn(dbknr)
- myEFrag "ALTER TABLE " & LIUEZ & " ADD COLUMN kvnri INTEGER(20) AS (CAST(REPLACE(kvnr,' ','') As Integer));", rAF, QCn(dbknr)
- myEFrag "ALTER TABLE " & LIUEZ & " ADD INDEX kvnr(kvnri) USING BTREE;", rAF, QCn(dbknr)
+ myEFrag "CREATE TABLE " & LIUEZ & " LIKE " & LIUET, rAf, QCn(dbknr)
+ myEFrag "INSERT INTO " & LIUEZ & " SELECT * FROM " & LIUET & " l GROUP BY kvnr, name, vorname, plz,ort, telefon, tel1,fax, tel2, email, dmpt2, dmpt1, geschlecht", rAf, QCn(dbknr)
+ myEFrag "DROP TABLE " & LIUET, rAf, QCn(dbknr)
+ myEFrag "ALTER TABLE " & LIUEZ & " ADD COLUMN kvnri INTEGER(20) AS (CAST(REPLACE(kvnr,' ','') As Integer));", rAf, QCn(dbknr)
+ myEFrag "ALTER TABLE " & LIUEZ & " ADD INDEX kvnr(kvnri) USING BTREE;", rAf, QCn(dbknr)
  QCn(dbknr).Close
  HCn(dbknr).Close
 Next dbknr
 End If ' obüberhaupt
 'Print #399, Now() & ": Fertig mit Aktualisieren der Hausärzte!"
-frm.Ausgeb Now() & ": Fertig mit Aktualisieren der Hausärzte!", True
+ frm.Ausgeb Now() & ": Fertig mit Aktualisieren der Hausärzte (in lauo und " & LIUEZ & ")!", True
 Else
 ' Print #399, Now() & ": Keine Datei zum Aktualisieren der Hausärzte!"
  frm.Ausgeb Now() & ": Keine Datei zum Aktualisieren der Hausärzte!", True

@@ -407,8 +407,8 @@ Private Sub patname_gotfocus()
   If Not PatGewählt Then
    Call AuswName(Me)
    PatGewählt = True
-  End If
- End If
+  End If ' Not PatGewählt Then
+ End If ' PatZuWählen Then
  Me.PatName.SelStart = Len(Me.PatName)
  Me.PatName.SelLength = 0
 End Sub ' patname_gotfocus()
@@ -424,7 +424,7 @@ Private Sub Therapiearten_Click()
  If Me.Pat_id <> 0 Then
   myFrag rs, "SELECT * FROM therarten WHERE pat_id=" & CStr(Me.Pat_id) & " ORDER BY zp DESC, mpnr DESC"
   TabAusgeb rs, Me, , , , , spmaxü, , "Therapiearten von Pat. " & CStr(Me.Pat_id) '& " (" & gesname(PID) & ")"
- End If
+ End If ' If Me.Pat_id <> 0 Then
 End Sub ' Therapiearten_Click()
 
 Private Sub VorDat_Click() 'Vordaten der Briefe raussuchen
@@ -445,16 +445,16 @@ Private Sub HAAusw_KeyDown(KeyCode As Integer, Shift As Integer)
  Call Key(KeyCode, Shift, Me)
  If KeyCode = 13 Then
   Dim rNaA As New ADODB.Recordset
-  Dim sql$, KVNR$
+  Dim sql$, KVNr$
   sql = "SELECT kvnr FROM hareal WHERE adressat LIKE '%" & Me.HAAusw & "%'"
   myFrag rNaA, sql
   If Not rNaA.BOF Then
-   KVNR = rNaA!KVNR
-   If KVNR <> vNS Then
+   KVNr = rNaA!KVNr
+   If KVNr <> vNS Then
     Set rNaA = Nothing
     sql = "SELECT DISTINCT * from(" & _
-       "SELECT `namen`.pat_id, quartal, bhfb, `namen`.nachname, `namen`.vorname, `namen`.gebdat  FROM `namen` LEFT JOIN (SELECT pat_id, MIN(quartal) AS quartal, MIN(bhfb) AS bhfb FROM (SELECT pat_id, quartal, bhfb FROM `faelle` ORDER BY bhfb DESC) AS innen GROUP BY pat_id) AS minnen ON minnen.pat_id = `namen`.pat_id WHERE kvnr = '" & KVNR & "' UNION " & _
-       "SELECT `namen`.pat_id, quartal, bhfb, `namen`.nachname, `namen`.vorname, `namen`.gebdat  FROM (SELECT pat_id, MIN(quartal) AS quartal, MIN(bhfb) AS bhfb, MIN(übwr) AS übwr FROM (SELECT pat_id, quartal, bhfb, übwr FROM `faelle` ORDER BY bhfb DESC) AS innen GROUP BY pat_id) AS minnen LEFT JOIN `namen` ON minnen.pat_id = `namen`.pat_id WHERE übwr = '" & KVNR & "') AS in1 ORDER BY pat_id DESC"
+       "SELECT `namen`.pat_id, quartal, bhfb, `namen`.nachname, `namen`.vorname, `namen`.gebdat  FROM `namen` LEFT JOIN (SELECT pat_id, MIN(quartal) AS quartal, MIN(bhfb) AS bhfb FROM (SELECT pat_id, quartal, bhfb FROM `faelle` ORDER BY bhfb DESC) AS innen GROUP BY pat_id) AS minnen ON minnen.pat_id = `namen`.pat_id WHERE kvnr = '" & KVNr & "' UNION " & _
+       "SELECT `namen`.pat_id, quartal, bhfb, `namen`.nachname, `namen`.vorname, `namen`.gebdat  FROM (SELECT pat_id, MIN(quartal) AS quartal, MIN(bhfb) AS bhfb, MIN(übwr) AS übwr FROM (SELECT pat_id, quartal, bhfb, übwr FROM `faelle` ORDER BY bhfb DESC) AS innen GROUP BY pat_id) AS minnen LEFT JOIN `namen` ON minnen.pat_id = `namen`.pat_id WHERE übwr = '" & KVNr & "') AS in1 ORDER BY pat_id DESC"
 
     If LenB(DBCnS) = 0 Then 'DBCn.ConnectionString = "" THEN
 '   Call Me.hlese.ConstrFestleg(0, Me.hlese)
@@ -470,9 +470,9 @@ Private Sub HAAusw_KeyDown(KeyCode As Integer, Shift As Integer)
     Loop
     Call Me.FaellepHA_Click
     Exit Sub
-   End If
-  End If
- End If
+   End If ' KVNr <> vNS Then
+  End If ' Not rNaA.BOF Then
+ End If ' KeyCode = 13 Then
 End Sub ' HAAusw_KeyDown
 
 Private Sub Hausarzt_KeyDown(KeyCode As Integer, Shift As Integer)
@@ -744,11 +744,11 @@ Function AuswHA(frm As PatAuswahl)
          "UNION SELECT id AS dbnr, """" AS bstelle, """" AS anrede, überschrift, name AS haname, ort, kvnr, telefon AS tel1, """" AS tel2, """" AS tel3, """" AS tel4, telefax AS fax1, REPLACE(REPLACE(REPLACE(telefax,""/"",""""),""-"",""""),"" "","""") AS fax1k,"""" AS fax2,"""" AS fax2k, """" AS fax3, """" AS fax3k, e_mail AS email, zulassungsgebiet AS zulg, arzttyp, `gemeinschaftspraxis mit` AS gemmit, beme, dmpt2, dmpt2, geschlecht, titel, vorname, nachname, straße, plz FROM `hausaerzte` WHERE kvnr = '" & rKVNr!KVNr & "' " & _
          "UNION SELECT """" AS dbnr, """" AS bstelle, """" AS anrede, """" AS überschrift, name AS haname, ort, kvnr, telefon AS tel1, """" AS tel2, """" AS tel3, """" AS tel4, """" AS fax1, fax AS fax1k,"""" AS fax2,"""" AS fax2k, """" AS fax3, """" AS fax3k, """" AS email, fachgruppe AS zulg, """" AS arzttyp, """" AS gemmit, """" AS beme, -2 AS dmpt2, -2 AS dmpt1, 0 AS geschlecht, titel, vorname, name AS nachname, strasse, plz FROM `liuez` WHERE kvnr = '" & rKVNr!KVNr & "'"
      sql = "SELECT * FROM (" & _
-          "SELECT GROUP_CONCAT(DISTINCT nachname) haname, ort, CAST(LEFT(bsnr,7) AS char) kvnr, REPLACE(tel,'-','') tel1, REPLACE(fax,'-','') fax1, titel, vorname, nachname, CONCAT(straße,' ',hausnr) straße, plz FROM " & HADBName & ".bs LEFT JOIN " & HADBName & ".ort ON ort_id = idort LEFT JOIN " & HADBName & ".tel ON tel.bs_id = idbs LEFT JOIN " & HADBName & ".fax ON fax.bs_id = idbs LEFT JOIN " & HADBName & ".arzt_has_bs ahb ON ahb.bs_id = idbs LEFT JOIN " & HADBName & ".arzt a ON a.idarzt = ahb.arzt_id LEFT JOIN " & HADBName & ".titel t ON t.idtitel = a.titel_id WHERE bsnr = '" & IIf(IsNull(rKVNr!KVNR), "000000", rKVNr!KVNR) & "00' " & _
-          "UNION SELECT haname, ort, CAST(kvnu AS char) kvnr, tel1, fax1, titel, vorname, nachname, straße, plz FROM `kvaerzte`.`hae` WHERE kvnr = '" & Left$(IIf(IsNull(rKVNr!KVNR), "000000", rKVNr!KVNR), 2) & "/" & Mid$(IIf(IsNull(rKVNr!KVNR), "000000", rKVNr!KVNR), 3, 5) & "' " & _
-          "UNION SELECT haname, ort, CAST(kvnu AS char) kvnr, tel1, fax1, titel, vorname, nachname, straße, plz FROM `kvaerzte`.`haealt` WHERE kvnr = '" & Left$(IIf(IsNull(rKVNr!KVNR), "000000", rKVNr!KVNR), 2) & "/" & Mid$(IIf(IsNull(rKVNr!KVNR), "000000", rKVNr!KVNR), 3, 5) & "' " & _
-          "UNION SELECT name haname, ort, CAST(kvnr AS char) kvnr, telefon AS tel1, telefax AS fax1, titel, vorname, nachname, straße, plz FROM `hausaerzte` WHERE kvnr = '" & IIf(IsNull(rKVNr!KVNR), "000000", rKVNr!KVNR) & "' " & _
-          "UNION SELECT name haname, ort, CAST(kvnr AS char) kvnr, telefon AS tel1, '' AS fax1, titel, vorname, name AS nachname, strasse, plz FROM `aktlue` WHERE kvnro = '" & IIf(IsNull(rKVNr!KVNR), "000000", rKVNr!KVNR) & "' " & _
+          "SELECT GROUP_CONCAT(DISTINCT nachname) haname, ort, CAST(LEFT(bsnr,7) AS char) kvnr, REPLACE(tel,'-','') tel1, REPLACE(fax,'-','') fax1, titel, vorname, nachname, CONCAT(straße,' ',hausnr) straße, plz FROM " & HADBName & ".bs LEFT JOIN " & HADBName & ".ort ON ort_id = idort LEFT JOIN " & HADBName & ".tel ON tel.bs_id = idbs LEFT JOIN " & HADBName & ".fax ON fax.bs_id = idbs LEFT JOIN " & HADBName & ".arzt_has_bs ahb ON ahb.bs_id = idbs LEFT JOIN " & HADBName & ".arzt a ON a.idarzt = ahb.arzt_id LEFT JOIN " & HADBName & ".titel t ON t.idtitel = a.titel_id WHERE bsnr = '" & IIf(IsNull(rKVNr!KVNr), "000000", rKVNr!KVNr) & "00' " & _
+          "UNION SELECT haname, ort, CAST(kvnu AS char) kvnr, tel1, fax1, titel, vorname, nachname, straße, plz FROM `kvaerzte`.`hae` WHERE kvnr = '" & Left$(IIf(IsNull(rKVNr!KVNr), "000000", rKVNr!KVNr), 2) & "/" & Mid$(IIf(IsNull(rKVNr!KVNr), "000000", rKVNr!KVNr), 3, 5) & "' " & _
+          "UNION SELECT haname, ort, CAST(kvnu AS char) kvnr, tel1, fax1, titel, vorname, nachname, straße, plz FROM `kvaerzte`.`haealt` WHERE kvnr = '" & Left$(IIf(IsNull(rKVNr!KVNr), "000000", rKVNr!KVNr), 2) & "/" & Mid$(IIf(IsNull(rKVNr!KVNr), "000000", rKVNr!KVNr), 3, 5) & "' " & _
+          "UNION SELECT name haname, ort, CAST(kvnr AS char) kvnr, telefon AS tel1, telefax AS fax1, titel, vorname, nachname, straße, plz FROM `hausaerzte` WHERE kvnr = '" & IIf(IsNull(rKVNr!KVNr), "000000", rKVNr!KVNr) & "' " & _
+          "UNION SELECT name haname, ort, CAST(kvnr AS char) kvnr, telefon AS tel1, '' AS fax1, titel, vorname, name AS nachname, strasse, plz FROM `aktlue` WHERE kvnro = '" & IIf(IsNull(rKVNr!KVNr), "000000", rKVNr!KVNr) & "' " & _
           ") i WHERE NOT ISNULL(nachname) ORDER BY haname DESC;"
 ' geht nicht wegen der Reihenfolge der Felder
 '    sql = "SELECT * FROM (" & _
@@ -766,7 +766,7 @@ Function AuswHA(frm As PatAuswahl)
    myFrag rHS, sql
    If Not rHS.BOF Then
 ' Nachname, Titel, Vorname, KVNr, Tel1, Fax1, Straße, PLZ, Ort
-    ItemStr = rHS!Nachname & ", " & rHS!Titel & ", " & rHS!Vorname & ", KVNr:" & rHS!KVNR & ", T." & rHS!tel1 & " F." & rHS!fax1 & ", " & rHS!Straße & ", " & rHS!plz & " " & rHS!ort
+    ItemStr = rHS!Nachname & ", " & rHS!Titel & ", " & rHS!Vorname & ", KVNr:" & rHS!KVNr & ", T." & rHS!tel1 & " F." & rHS!fax1 & ", " & rHS!Straße & ", " & rHS!plz & " " & rHS!ort
     For i = 0 To frm.HAAusw.ListCount
      If frm.HAAusw.List(i) > ItemStr Then
       Call frm.HAAusw.AddItem(ItemStr, i)
@@ -832,12 +832,12 @@ End Sub ' HAAusw_Click()
 
 Private Sub HAAusw_Change()
  Dim rNaA As New ADODB.Recordset
- Dim sql$, KVNR$
- KVNR = Mid$(Me.HAAusw, InStr(Me.HAAusw, "KVNr") + 5, 7)
- If KVNR <> vNS Then
+ Dim sql$, KVNr$
+ KVNr = Mid$(Me.HAAusw, InStr(Me.HAAusw, "KVNr") + 5, 7)
+ If KVNr <> vNS Then
   sql = "SELECT DISTINCT * from(" & _
-       "SELECT `namen`.pat_id, quartal, bhfb, `namen`.nachname, `namen`.vorname, `namen`.gebdat  FROM `namen` LEFT JOIN (SELECT pat_id, MIN(quartal) AS quartal, MIN(bhfb) AS bhfb FROM (SELECT pat_id, quartal, bhfb FROM `faelle` ORDER BY bhfb DESC) AS innen GROUP BY pat_id) AS minnen ON minnen.pat_id = `namen`.pat_id WHERE kvnr = '" & KVNR & "' UNION " & _
-       "SELECT `namen`.pat_id, quartal, bhfb, `namen`.nachname, `namen`.vorname, `namen`.gebdat  FROM (SELECT pat_id, MIN(quartal) AS quartal, MIN(bhfb) AS bhfb, MIN(übwr) AS übwr FROM (SELECT pat_id, quartal, bhfb, übwr FROM `faelle` ORDER BY bhfb DESC) AS innen GROUP BY pat_id) AS minnen LEFT JOIN `namen` ON minnen.pat_id = `namen`.pat_id WHERE übwr = '" & KVNR & "') AS in1 ORDER BY pat_id DESC"
+       "SELECT `namen`.pat_id, quartal, bhfb, `namen`.nachname, `namen`.vorname, `namen`.gebdat  FROM `namen` LEFT JOIN (SELECT pat_id, MIN(quartal) AS quartal, MIN(bhfb) AS bhfb FROM (SELECT pat_id, quartal, bhfb FROM `faelle` ORDER BY bhfb DESC) AS innen GROUP BY pat_id) AS minnen ON minnen.pat_id = `namen`.pat_id WHERE kvnr = '" & KVNr & "' UNION " & _
+       "SELECT `namen`.pat_id, quartal, bhfb, `namen`.nachname, `namen`.vorname, `namen`.gebdat  FROM (SELECT pat_id, MIN(quartal) AS quartal, MIN(bhfb) AS bhfb, MIN(übwr) AS übwr FROM (SELECT pat_id, quartal, bhfb, übwr FROM `faelle` ORDER BY bhfb DESC) AS innen GROUP BY pat_id) AS minnen LEFT JOIN `namen` ON minnen.pat_id = `namen`.pat_id WHERE übwr = '" & KVNr & "') AS in1 ORDER BY pat_id DESC"
 
   If LenB(DBCnS) = 0 Then 'DBCn.ConnectionString = "" THEN
 '   Call Me.hlese.ConstrFestleg(0, Me.hlese)

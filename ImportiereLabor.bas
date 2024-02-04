@@ -1190,7 +1190,7 @@ nochmal:
    akterr = Err.Number
    On Error GoTo fehler
    If akterr <> 0 Then
-    Open REPLACE$(Lese.snst.DebugDatei, "u:", "\\linux1\daten\eigene Dateien") For Append As #399
+    Open REPLACE$(Lese.snst.DebugDatei, "u:", LiServer & "daten\eigene Dateien") For Append As #399
    End If
    Print #399, ausgTxt
    Close #399

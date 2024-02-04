@@ -4600,16 +4600,16 @@ ErrDescr = Err.Description
 ErrNumber = Err.Number
 syscmd 4, "rFr(" & i & "/" & UBound(rFr) & "):   " & ErrDescr
 If ErrNumber = -2147217900 And ErrDescr Like "*Duplicate entry * for key 'PRIMARY'" Then
- Dim Schlüssel$, pos&, iiru&, jjru&
+ Dim schlüssel$, pos&, iiru&, jjru&
  pos = InStr(ErrDescr, "'")
- Schlüssel = Mid$(ErrDescr, pos + 1, InStr(pos + 2, ErrDescr, "'") - pos - 1)
+ schlüssel = Mid$(ErrDescr, pos + 1, InStr(pos + 2, ErrDescr, "'") - pos - 1)
 ' Debug.Print schlüssel
  For iiru = 1 To UBound(rFr)
-  If rFr(iiru).Foid = Schlüssel Then
+  If rFr(iiru).Foid = schlüssel Then
    If FoIDv = 0 Then FoIDv = myEFrag("SELECT (MAX(foid)+1) FROM forminhkopf", , DBCn).Fields(0) Else FoIDv = FoIDv + 1
    rFr(iiru).Foid = FoIDv
    For jjru = 1 To UBound(rFm)
-    If rFm(jjru).Foid = Schlüssel Then rFm(jjru).Foid = FoIDv
+    If rFm(jjru).Foid = schlüssel Then rFm(jjru).Foid = FoIDv
    Next jjru
    Exit For
   End If ' rFr(iiru).Foid = schlüssel Then

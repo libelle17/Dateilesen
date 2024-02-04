@@ -94,7 +94,7 @@ End Function ' alleKVDateien
 Public Function lebetest()
  Dim rs As ADODB.Recordset
  Dim lebed As Date
- Open "p:\namausg.txt" For Output As #205
+ Open pVerz & "namausg.txt" For Output As #205
  Call Lese.ProgStart
  myFrag rs, "SELECT gesname(pat_id) Nam, n.* FROM namenlb n", adOpenStatic
  If Not rs.BOF Then

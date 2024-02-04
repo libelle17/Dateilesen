@@ -3,7 +3,7 @@ Const haz$ = "HAz" 'Zwischenname
 Const hae$ = "Hausaerzte" ' endgültig
 'Const Datei$ = uVerz + "HA.doc"
 Public Const opti& = 1 + 2 '+ 2048  ' 4 + 8 '+ 32 + 131118 ' 131118, 32 ' + 2048 + 16384
-' Public Const CSStr$ = "DRIVER={MySQL ODBC 3.51 Driver};server=linux1;uid=praxis;pwd=***REMOVED***;database=kvaerzte;OPTION=" & opti
+' Public Const CSStr$ = "DRIVER={MySQL ODBC 3.51 Driver};server=" & LiName & ";uid=praxis;pwd=***REMOVED***;database=kvaerzte;OPTION=" & opti
 
 #If zutesten Then
 Function dbtest()

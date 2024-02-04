@@ -1395,7 +1395,7 @@ sql(AWlf) = "" & _
             "LEFT JOIN eintraege adl ON v.pat_id = adl.pat_id AND adl.art = 'ADL'  AND adl.zeitpunkt = (SELECT MAX(zeitpunkt) FROM eintraege WHERE pat_id = v.pat_id AND art = 'ADL')" & vbCrLf & _
             "LEFT JOIN diagview dd ON v.pat_id = dd.pat_id AND dd.gicd RLIKE '^F0[0123]|^G20' " & vbCrLf & _
             "LEFT JOIN diagview schwd ON v.pat_id = schwd.pat_id AND schwd.gicd LIKE 'R42%' " & vbCrLf & _
-            "LEFT JOIN eintraege schw ON v.pat_id = schw.pat_id AND schw.inhalt LIKE '%schwindel%' AND schw.inhalt NOT LIKE '%kein schwindel%' AND schw.inhalt NOT LIKE '%keinen schwindel%' AND schw.inhalt NOT LIKE '%ohne schwindel%' AND schw.art NOT IN ('andm','andm2') " & vbCrLf & _
+            "LEFT JOIN eintraege schw ON v.pat_id = schw.pat_id AND schw.inhalt LIKE '%schwindel%' AND schw.inhalt NOT LIKE '%nicht schwindel%' AND schw.inhalt NOT LIKE '%kein schwindel%' AND schw.inhalt NOT LIKE '%keinen schwindel%' AND schw.inhalt NOT LIKE '%ohne schwindel%' AND schw.art NOT IN ('andm','andm2') " & vbCrLf & _
             "LEFT JOIN medplan mp ON v.pat_id = mp.pat_id AND (medikament LIKE '%dimen%' OR (medikament LIKE '%vert%' AND medikament NOT LIKE '%verteil%' AND medikament NOT LIKE '%vertr%' AND medikament NOT LIKE '%Hevert%') " & vbCrLf & _
                   "OR medikament LIKE '%vasomotal%' OR medikament LIKE '%betahistin%' OR medikament LIKE '%quamen%' OR medikament LIKE '%fluna%' OR medikament LIKE '%natil%' OR medikament LIKE '%sibelium%') " & vbCrLf & _
             "WHERE (DATEDIFF(" & qtAnf(FristS) & ", n.GebDat) > 70 * 365 OR NOT ISNULL(dd.ICD)) AND ISNULL(schwd.icd) AND ((NOT ISNULL(schw.inhalt) OR NOT ISNULL(mp.medikament))) " & vbCrLf & _
@@ -1817,7 +1817,7 @@ sql(AWlf) = "" & vbCrLf & _
  AWlf = AWlf + 1
 
  ' 43
- AwN(AWlf) = "Fehlende oder mehrdeutige Krankenkassenkategorie (vorher 11)"
+ AwN(AWlf) = "Fehlende oder mehrdeutige Krankenkassenkategorie (INSERT INTO kassenliste (vknr, ik, NAME, kateg, anzahlik,anzahlktug, gültigvon, gültigbis,  go,kurzname,rname, eingef, geaen) SELECT vknr, ik, NAME, kateg, anzahlik,anzahlktug, gültigvon, gültigbis,  go,kurzname,rname, eingef, geaen FROM kassenliste WHERE id=...; usw.)"
  sql(AWlf) = _
 " SELECT Pat_id,PatName,Ik,VKNr,KategZahl,KategN FROM ( " & vbCrLf & _
 " SELECT f.Pat_id, gesname(f.pat_id) Patname, Ik,Vknr, Kateg " & vbCrLf & _
@@ -2576,7 +2576,7 @@ sql(AWlf) = _
 "  lf.lei LFLeist,COALESCE(lf.z,0) LFz,L13.lei L13Leist,COALESCE(L13.z,0) L13z,L00.leistung L00Leist,L00t.leistung L00tLeist, COALESCE(L00t.z,0) L00tz, L97.leistung L97Leist," & vbCrLf & _
 "  MAX(MID(b.name,b.Fpos+4,2)) FotoStad,  b.QD FotoTag,  b.name DokName " & vbCrLf & _
 "  FROM aktfvs f " & vbCrLf & _
-"  LEFT JOIN (SELECT pat_id,qdm QD,INSTR(name,' WA ') Fpos,Name FROM briefe) b ON b.pat_id = f.pat_id AND b.QD BETWEEN qanf() AND qend() AND b.Fpos<>0 AND MID(b.name,b.Fpos+4,1)<>'-' AND MID(b.name,b.Fpos+4,2) NOT IN ('0A','0B','0C','1A','2A') " & vbCrLf
+"  LEFT JOIN (SELECT pat_id,DATE(qdm) QD,INSTR(name,' WA ') Fpos,Name FROM briefe) b ON b.pat_id = f.pat_id AND b.QD BETWEEN qanf() AND qend() AND b.Fpos<>0 AND MID(b.name,b.Fpos+4,1)<>'-' AND MID(b.name,b.Fpos+4,2) NOT IN ('0A','0B','0C','1A','2A') " & vbCrLf
 ' AND COALESCE(d.f6010,0)=0
 sql(AWlf) = sql(AWlf) & _
 "  LEFT JOIN diagview d ON d.pat_id=f.pat_id AND d.gicd RLIKE '^E1[0-4]' " & vbCrLf & _
@@ -2593,9 +2593,9 @@ sql(AWlf) = sql(AWlf) & _
 " (fotoStad<>'' AND " & vbCrLf & _
 "   (   (ISNULL(LFLeist) AND (ISNULL(L00tz) OR L00tz<3)) " & vbCrLf & _
 "    OR ((LFLeist='02312' OR ISNULL(LFLeist)) AND ISNULL(L13Leist) AND L13z<>0) " & vbCrLf & _
-"    OR (LFLeist='02311' AND NOT ISNULL(L13Leist)) " & vbCrLf & _
-"    OR (LFLeist='02311' AND NOT ISNULL(L00tLeist)) " & vbCrLf & _
-"    OR (LFLeist='02312' AND NOT ISNULL(L00Leist)) " & vbCrLf & _
+"    OR (LFLeist='02311' AND COALESCE(L13Leist,0)<>0) " & vbCrLf & _
+"    OR (LFLeist='02311' AND COALESCE(L00tLeist,0)<>0) " & vbCrLf & _
+"    OR (LFLeist='02312' AND COALESCE(L00Leist,0)<>0) " & vbCrLf & _
 "     OR (NOT ISNULL(icd) AND ISNULL(L97Leist)) " & vbCrLf & _
 "   ) " & vbCrLf & _
 " ) " & vbCrLf & _
@@ -3032,10 +3032,13 @@ sql(AWlf) = "" & _
 ", LAG(therart,1) over(PARTITION BY pat_id ORDER BY zp) Vorther" & vbCrLf & _
 ",COALESCE((SELECT SUM(lzahl) FROM leistungen WHERE leistung='97270' AND pat_id=f.pat_id AND zeitpunkt BETWEEN qanf()-INTERVAL 9 MONTH AND qend()),0) 97270_Zahl" & vbCrLf & _
 ",(SELECT GROUP_CONCAT(DATE_FORMAT(zeitpunkt,'%e.%c.%y')SEPARATOR'|') FROM leistungen WHERE leistung='97270' AND pat_id=f.pat_id AND zeitpunkt BETWEEN qanf()-INTERVAL 9 MONTH AND qend()) 97270_Daten" & vbCrLf & _
+", COALESCE(a.insulinpumpe,0) inspu" & vbCrLf & _
 "FROM aktfv f LEFT JOIN therarten t ON f.pat_id=t.pat_id" & vbCrLf & _
+"LEFT JOIN anamnesebogen a ON a.pat_id=f.pat_id" & vbCrLf & _
 ") i" & vbCrLf & _
 "WHERE zp BETWEEN qanf() AND qend()" & vbCrLf & _
 "AND therart IN ('CSII')" & vbCrLf & _
+"AND inspu<>1" & vbCrLf & _
 "AND (Vorther NOT IN ('CSII') OR ISNULL(Vorther))" & vbCrLf & _
 ""
  mins(AWlf) = 10
@@ -4298,7 +4301,7 @@ sql(AWlf) = _
 ", Inhalt" & vbCrLf & _
 "FROM aktfv f" & vbCrLf & _
 "LEFT JOIN eintraege e ON e.pat_id=f.pat_id AND e.art IN ('doppler','duplex')" & vbCrLf & _
-"AND (e.inhalt RLIKE '^Bein|Belastung|A.d.|A.t.|biph|monoph|postst|Fußart|IDR|A. fem.|A.fem.|in Ruhe|in Ruhe|aorta' AND NOT e.inhalt RLIKE '^halsschlagadern|halsart|Nierenarterien') " & vbCrLf & _
+"AND (e.inhalt RLIKE '^Bein|Belastung|A.d.|A.t.|biph|monoph|postst|Fußart|IDR|A. fem.|A.fem.|in Ruhe|in Ruhe|aorta' AND NOT e.inhalt RLIKE 'halsvenen|^halsschlagadern|halsart|Nierenarterien') " & vbCrLf & _
 "AND e.zeitpunkt BETWEEN qanf() AND qend()" & vbCrLf & _
 "WHERE NOT ISNULL(e.Pat_id)" & vbCrLf & _
 "HAVING `cwzl(33061)`=0;"
@@ -5558,7 +5561,7 @@ sql(AWlf) = "" & vbCrLf & _
 #Else
 ' 154 DAK-Module
 #End If
- sql(AWlf) = LiesDatei("\\linux1\daten\eigene Dateien\dakges.qbquery")
+ sql(AWlf) = LiesDatei(uVerz & "dakges.qbquery")
  sql(AWlf) = Mid$(sql(AWlf), InStr(1, sql(AWlf), "SELECT", vbTextCompare))
  AwN(AWlf) = "Fehler bei DAK-Modul: Synthese (vorher 123)"
  mins(AWlf) = 10
@@ -5570,7 +5573,7 @@ sql(AWlf) = "" & vbCrLf & _
 #Else
  ' 155 DAK Neuropathie zur Kontrolle
 #End If
- sql(AWlf) = LiesDatei("\\linux1\daten\eigene Dateien\daknp.qbquery")
+ sql(AWlf) = LiesDatei(uVerz & "daknp.qbquery")
  sql(AWlf) = Mid$(sql(AWlf), InStr(1, sql(AWlf), "SELECT", vbTextCompare))
  AwN(AWlf) = "DAK-Modul-Kontrolle Neuropathie (vorher 124)"
  mins(AWlf) = 10
@@ -5582,7 +5585,7 @@ sql(AWlf) = "" & vbCrLf & _
 #Else
  ' 156 DAK LUTS zur Kontrolle
 #End If
- sql(AWlf) = LiesDatei("\\linux1\daten\eigene Dateien\daklu.qbquery")
+ sql(AWlf) = LiesDatei(uVerz & "daklu.qbquery")
  sql(AWlf) = Mid$(sql(AWlf), InStr(1, sql(AWlf), "SELECT", vbTextCompare))
  AwN(AWlf) = "DAK-Modul-Kontrolle LUTS  (vorher 125)"
  mins(AWlf) = 10
@@ -5594,7 +5597,7 @@ sql(AWlf) = "" & vbCrLf & _
 #Else
  ' 157 DAK Angiopathie zur Kontrolle
 #End If
- sql(AWlf) = LiesDatei("\\linux1\daten\eigene Dateien\dakap.qbquery")
+ sql(AWlf) = LiesDatei(uVerz & "dakap.qbquery")
  sql(AWlf) = Mid$(sql(AWlf), InStr(sql(AWlf), "select"))
  AwN(AWlf) = "DAK-Modul-Kontrolle Angiopathie (vorher 126)"
  mins(AWlf) = 10
@@ -5606,7 +5609,7 @@ sql(AWlf) = "" & vbCrLf & _
 #Else
  ' 158 DAK Hepatopathie zur Kontrolle
 #End If
- sql(AWlf) = LiesDatei("\\linux1\daten\eigene Dateien\dakfl.qbquery")
+ sql(AWlf) = LiesDatei(uVerz & "dakfl.qbquery")
  sql(AWlf) = Mid$(sql(AWlf), InStr(sql(AWlf), "select"))
  AwN(AWlf) = "DAK-Modul-Kontrolle Hepatopathie (vorher 127)"
  mins(AWlf) = 10
@@ -5618,7 +5621,7 @@ sql(AWlf) = "" & vbCrLf & _
 #Else
  ' 159 DAK Nephropathie zur Kontrolle
 #End If
- sql(AWlf) = LiesDatei("\\linux1\daten\eigene Dateien\dakne.qbquery")
+ sql(AWlf) = LiesDatei(uVerz & "dakne.qbquery")
  sql(AWlf) = Mid$(sql(AWlf), InStr(sql(AWlf), "select"))
  AwN(AWlf) = "DAK-Modul-Kontrolle Nephropathie (vorher 128)"
  mins(AWlf) = 10

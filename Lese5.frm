@@ -402,6 +402,9 @@ Begin VB.MDIForm Lese
       Begin VB.Menu Abrechnungsfehler 
          Caption         =   "&Abrechnungsfehler"
       End
+      Begin VB.Menu Ziffer30u31Ausschlüsse 
+         Caption         =   "Ziffer &30 und 31-Ausschlüsse"
+      End
       Begin VB.Menu Niereninsuffizienzpauschalendiabetiker 
          Caption         =   "&Niereninsuffizienzpauschalendiabetiker"
       End
@@ -1039,6 +1042,25 @@ Private Sub Optionen_Click()
  opt.Show
 End Sub ' Optionen_Click()
 
+Private Sub Ziffer30u31Ausschlüsse_Click()
+  Dim rs As New ADODB.Recordset, spmax%(3)
+  spmax(0) = 6
+  spmax(1) = 20
+  spmax(2) = 10
+  spmax(3) = 200
+' sql$ = "SELECT n.Pat_id, gesname(n.Pat_id) `Name mit Telnr. " & tel & "`, PrivatTel, Privattel_2, Diensttel, PrivatMobil, PrivatFax FROM `namen` n WHERE privattel LIKE " & telm & " OR privattel_2 LIKE  " & telm & " OR privatfax LIKE  " & telm & " OR diensttel LIKE  " & telm & " OR privatmobil LIKE  " & telm
+  sql = "SELECT d.pat_id, gesname(d.pat_id) PName,d.erstZP, d.titel Titel, CONCAT(PrivatMobil,' / ',Privattel,' / ',Privattel_2) Tel" & vbCrLf & _
+ "FROM faelle f" & vbCrLf & _
+ "LEFT JOIN namen n USING (pat_id)" & vbCrLf & _
+ "LEFT JOIN desktop d USING (pat_id)" & vbCrLf & _
+ "WHERE schgr=90 AND bhfe1> NOW() - INTERVAL 1 YEAR" & vbCrLf & _
+ "AND d.titel RLIKE '[^1-9]15($|[^1-9])|[^1-9]30($|[^1-9])|[^1-9]31($|[^1-9])'" & vbCrLf & _
+ " GROUP BY pat_id" & vbCrLf & _
+ "ORDER BY pname" & vbCrLf
+ myFrag rs, sql
+ Call TabAusgeb(rs, Me, , , , , , True, "Ausschlüsse von Ziffern 15, 30 und 31")
+End Sub ' Ziffer30u31Ausschlüsse_Click()
+
 #If False Then
 Private Sub Zurücksetzen_Click() ' nicht sichtbar: "Datei -> &Zurücksetzen des Programmlaufs"
  Call ProgrammLauf(-1) ' falls es fälschlich auf 0 steht: 0 = Programm läuft, -1 = nicht
@@ -1120,7 +1142,7 @@ End Sub ' DMPHAKorr_Click
 ' Funktionen für Arzthelferin und Arzt -> Motivationsgesprächskandidaten
 Private Sub Motivationsgesprächskandidaten_Click()
 ' Dim rv As New ADODB.Recordset, rs As New ADODB.Recordset, i&, ausg$, TA1$, SpMax%(5), fristS$, sql$
- Dim rs As New ADODB.Recordset, SpMax%(5), sql$
+ Dim rs As New ADODB.Recordset, spmax%(5), sql$
 
  Call ProgStart
 ' myFrag rv, "SHOW CREATE VIEW `aktfv`"
@@ -1133,8 +1155,8 @@ Private Sub Motivationsgesprächskandidaten_Click()
 '  Exit Sub
 ' END IF
 
- SpMax(1) = 32
- SpMax(5) = 300
+ spmax(1) = 32
+ spmax(5) = 300
 ' Const Schulungsleistungen$ = "(leistung LIKE '972%' OR leistung LIKE '922%' OR Leistung='92282' OR Leistung='92278' OR Leistung='92281' OR Leistung='92277') AND NOT leistung IN ('97272','97276','97277')"
 ' Print #325, "Lfdnr. Pat_id Name                          ICD"
 ' myFrag rs, "SELECT f.pat_id,gesname, icd FROM `aktfv` f LEFT JOIN `diagnosen` d ON f.pat_id = d.pat_id AND icd REGEXP '^E1[0-4]' AND diagsicherheit <> 'A' LEFT JOIN leistungen l ON f.pat_id = l.pat_id AND (leistung LIKE '972%' OR leistung LIKE '922%' OR leistung = '92282' OR leistung = '92278') AND NOT leistung IN ('97272','97276','97277') AND YEAR(zeitpunkt) = YEAR(SUBDATE(NOW(),INTERVAL 20 DAY)) AND adddate(zeitpunkt,INTERVAL 365 DAY) > now() WHERE NOT ISNULL(id1) AND ISNULL(leistung) GROUP BY f.pat_id"
@@ -1143,7 +1165,7 @@ Private Sub Motivationsgesprächskandidaten_Click()
 ' ' folgendes nach "and " & Schulungsleistungen & " auskommentiert 10.4.12: " AND YEAR(zeitpunkt) = YEAR(SUBDATE(NOW(),INTERVAL " & FristS & " DAY)) " & \_
  sql = motsql()
  myFrag rs, sql
-Call TabAusgeb(rs, Me, , , , , SpMax, True, "Kandidaten f.neue Motivationsziffern (92278(T2DM), 92282(T1DM))")
+Call TabAusgeb(rs, Me, , , , , spmax, True, "Kandidaten f.neue Motivationsziffern (92278(T2DM), 92282(T1DM))")
 ' Open DatNam For Output AS #325
 ' Print #325, TA1
 ' i = 0
@@ -1337,9 +1359,9 @@ End Sub ' PLZeinzeln_Click
 
 ' Funktionen für Arzthelferin und Arzt -> Patientenlaufzettel aus zuplz.txt
 Private Sub Patientenlaufzettel_aus_zuplz_Click()
-Const dname$ = "p:\Abrechnung\zuplz.txt"
+Const dname$ = "Abrechnung\zuplz.txt"
 Dim sLine$, pid$
-Open dname For Input As #1
+Open pVerz & dname For Input As #1
 While Not EOF(1)
   Line Input #1, sLine
   pid = LTrim$(sLine)
@@ -1802,9 +1824,9 @@ End Sub ' DMP_Dokumente_an_HA_Nachweis_Click
 Private Sub Kontrolllisten_für_DMP_HA_Click()
  Dim rdh As New ADODB.Recordset
  Dim altgetha&
- Const ZielVz$ = "\\linux1\daten\Patientendokumente\zufaxen\DMP\"
- Shell ("cmd /c del /q " & ZielVz & "*.*")
- Const qd$ = "\\linux1\daten\down\Kontroll"
+ Const ZielVz$ = "zufaxen\DMP\"
+ Shell ("cmd /c del /q " & pVerz & ZielVz & "*.*")
+ Const qd$ = "Kontroll"
  Dim Ziel$
  sql = _
  "SELECT * FROM (" & vbCrLf & _
@@ -1842,16 +1864,16 @@ Private Sub Kontrolllisten_für_DMP_HA_Click()
    If altgetha = 0 Then GoTo w2:
   End If
   Close #312
-  FileJoin qd & "3.rtf", Ziel
+  FileJoin vVerz & qd & "3.rtf", Ziel
 w2:
   If rdh.EOF Then Exit Do
-  Ziel = ZielVz & "DMP-Rückfrage an Dr.med." & rdh!name & ", " & rdh!Vorname & " an Fax " & rdh!fax & ".rtf"
+  Ziel = pVerz & ZielVz & "DMP-Rückfrage an Dr.med." & rdh!name & ", " & rdh!Vorname & " an Fax " & rdh!fax & ".rtf"
   syscmd 4, Ziel
-  FSO.CopyFile qd & "1.rtf", Ziel, True
+  FSO.CopyFile vVerz & qd & "1.rtf", Ziel, True
   Open Ziel For Append As #312
   Print #312, Format(Now(), "dd.mm.yy")
   Close #312
-  FileJoin qd & "2b.rtf", Ziel
+  FileJoin vVerz & qd & "2b.rtf", Ziel
   Open Ziel For Append As #312
   altgetha = rdh!getHA0
 w1:
@@ -1860,7 +1882,7 @@ w1:
   rdh.MoveNext
  Loop
  syscmd 5
- MsgBox "Fertig mit DMP-Rückfragen in Verzeichnis " & ZielVz
+ MsgBox "Fertig mit DMP-Rückfragen in Verzeichnis " & pVerz & ZielVz
 End Sub ' Kontrolllisten_für_DMP_HA_Click
 
 ' ...für Arzt -> Unverwertbare DMP-Einträge
@@ -2181,7 +2203,7 @@ Private Sub Faxwarteschlange_Click()
  Dim sql$, rs As New ADODB.Recordset
  sql = "SELECT cdateidatum,original, telnr FROM faxeinp.spool s ORDER BY cdateizeit DESC"
  myFrag rs, sql
- TabAusgeb rs, Me, , , , , , , , , , , "Faxwarteschlange auf linux1 (Fritzcard)"
+ TabAusgeb rs, Me, , , , , , , , , , , "Faxwarteschlange auf " & LiName & " (Fritzcard)"
 End Sub ' Faxwarteschlange_Click
 
 ' ...für Arzt -> Faxe gescheitert
@@ -2190,7 +2212,7 @@ Private Sub Faxe_gescheitert_Click()
  sql = "SELECT docname, rcname, rcfax, transe, gesname(o.pid) Name, o.pid, submid FROM faxeinp.outa o LEFT JOIN namen n ON o.pid = n.pat_id WHERE erfolg='0' ORDER BY transe DESC LIMIT 2500"
 ' sql = "SELECT titel, submt, submid, docname,fsize,rcfax, rcname,transe, pid FROM faxeinp.outf o ORDER BY submt DESC"
  myFrag rs, sql
- TabAusgeb rs, Me, , , , , , , , , , , "Faxe gescheitert auf linux1 (Fritzcard)"
+ TabAusgeb rs, Me, , , , , , , , , , , "Faxe gescheitert auf " & LiName & " (Fritzcard)"
 End Sub ' Faxe_gescheitert_Click
 
 ' ...für Arzt -> Pat. löschen
@@ -2391,7 +2413,7 @@ End Sub ' Überweiserstatistik2_Click
 
 ' Statistik -> Schulungsstatistik nach Schulungsart
 Private Sub Schulungsstatistik_Click()
- Dim col As New Collection, el, rs As New ADODB.Recordset, ausg$, TA1$, SpMax%(5), rAf&
+ Dim col As New Collection, el, rs As New ADODB.Recordset, ausg$, TA1$, spmax%(5), rAf&
  myEFrag "INSERT INTO `ebm2000plus`(leistung,titel,euro) SELECT g.leistung, g.erklärung, g.wert FROM `genehmigungen` g LEFT JOIN `ebm2000plus` e ON g.leistung=e.leistung WHERE ISNULL(e.leistung)", rAf
  myFrag rs, "SELECT leistung FROM `genehmigungen` WHERE obschulung<>0"
  Do While Not rs.EOF
@@ -2437,8 +2459,8 @@ Private Sub Schulungsstatistik_Click()
   lst.Cut (lst.length - 1)
   sql.AppVar Array("SELECT e.Leistung,Titel,COUNT(pat_id) Zahl,CAST(GROUP_CONCAT(pat_id) AS char) Pat_IDs FROM `ebm2000plus` e LEFT JOIN `leistungen` l ON l.leistung = e.leistung AND YEAR(SUBDATE(NOW(),INTERVAL 15 DAY)) = YEAR(l.zeitpunkt) WHERE e.leistung IN (", lst.Value, ") GROUP BY e.leistung")
   myFrag rs, sql.Value
-  SpMax(3) = 100
-  TA1 = TabAusgeb(rs, Me, , , , , SpMax, , "Schulungsstatistik")
+  spmax(3) = 100
+  TA1 = TabAusgeb(rs, Me, , , , , spmax, , "Schulungsstatistik")
 #Else ' True
 '  Dim DatNam$
 '  DatNam = pVerz & "Schulungsstatistik " & Format$(Now, "dd.mm.yy hh.mm.ss") & ".csv"
@@ -2620,7 +2642,7 @@ Private Sub Therapieartenwechsel_Click() ' s. therart_erm
 ' 22.10.22: führt bei Aufruf über Ado zumindest bis zur Mariadb-Version 10.9 immer wieder zum Server-Crash, s.ähnliche Bug-Hinweise früherer Versionen
 #Const mitfensters = False
 #If mitfensters Then
-  rufauf "ssh", "root@linux1 mysql --defaults-extra-file=~/.mysqlpwd quelle -e'CALL fuellThaP(0)'", 2, "c:\windows\system32\openssh\", -1, 0
+  rufauf "ssh", "root@" & LiName & " mysql --defaults-extra-file=~/.mysqlpwd quelle -e'CALL fuellThaP(0)'", 2, "c:\windows\system32\openssh\", -1, 0
 #Else
  Call TheraErmitt(0)
 #End If
@@ -3124,7 +3146,7 @@ End Sub ' LabortestsZuordnen_Click
 
 ' EDV -> Laborvergleich
 Private Sub Laborvergleich_Click()
- Dim rv As New ADODB.Recordset, rs As New ADODB.Recordset, i&, ausg$, TA1$, SpMax%(5), FristS$, sql$
+ Dim rv As New ADODB.Recordset, rs As New ADODB.Recordset, i&, ausg$, TA1$, spmax%(5), FristS$, sql$
  sql = "SELECT * FROM (SELECT COUNT(0) Zahl,Labor,trim(CONCAT(LEFT(CONCAT(abkü,'          '),10),LEFT(CONCAT(einheit,'            '),12),LEFT(nb,26))) `Verfahren/Einheit/   Normbereich`,Langtext, MAX(zeitpunkt) MaxEing, MIN(zeitpunkt) MinEing FROM labor2a GROUP BY abkü, einheit, nb, langtext, labor ORDER BY langtext, `Verfahren/Einheit/   Normbereich`) i;"
  myFrag rs, sql
  TA1 = TabAusgeb(rs, Me, , , , , , False, "Laborvergleich")
@@ -3817,7 +3839,7 @@ Sub doGNR_Statistiken_einl_Click(Optional obneu = 0)
  
  erg = Dir(Verz & "\GNR-Statistik*")
  If erg = "" Then
-  Verz = "\\linux1\daten\shome\gerald\kv-abrechnungen"
+  Verz = tVerz & "kv-abrechnungen"
   erg = Dir$(Verz & "\GNR-Statistik*")
  End If
  Do While erg <> ""
@@ -4053,7 +4075,7 @@ Private Sub MDIForm_Activate()
   LVobMySQL = Lese.obMySQL
   BezFeh = pVerz & "BezFehler_" & DefDB(DBCn) & "_" & Format(Now(), "YYYYMMDD_hhmmss") & ".txt"
   obMitAlterTab = True
-  Call LaborDirektImport(Lese, 0, True, 0, "\\linux1\turbomed\Labor\backup\", 0)
+  Call LaborDirektImport(Lese, 0, True, 0, xVerz & "Labor\backup\", 0)
   Call ProgEnde
  End If
  On Error Resume Next
@@ -4964,7 +4986,7 @@ End Sub ' MDIForm_Unload
 #If False Then
 Public Function ConstrFestleg(ByVal art As ConDtb, Optional hlese As Lese)   ' dlg ist für art= 0 und 1 nötig
  On Error GoTo fehler
-'ConStr$ = "DRIVER={MySQL ODBC 3.51 Driver};server=linux1;uid=praxis;pwd=***REMOVED***;option=" & opti
+'ConStr$ = "DRIVER={MySQL ODBC 3.51 Driver};server=" & LiName & ";uid=praxis;pwd=***REMOVED***;option=" & opti
  Select Case art
   Case 0
    If hlese.obAcc Then

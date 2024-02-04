@@ -718,7 +718,6 @@ Sub doStart() 'DMP-Infos an Hausärzte faxen starten
       If gefunden Then
          fax1 = HASL.Item(j).fax
          ÜwNm = HASL.Item(j).ÜwNm
-         If fax1 = "08131 25169" Then fax1 = "08131 273373" ' Dr. Stolzki falsche Faxnummer
          obdoppelt = False
 '         For j = 0 To UBound(aktPatGefaxt) - 1
 '          IF aktPatGefaxt(j) = fax1 THEN obdoppelt = True
@@ -822,9 +821,9 @@ Public Sub Command1_Click(Index As Integer)
 End Sub ' Command1_Click(Index As Integer)
 
 Sub farberklärung()
-'Shell "u:\programmierung\Dateilesen\LaborFarblegende.htm", vbNormalFocus
+'Shell uverz & "programmierung\Dateilesen\LaborFarblegende.htm", vbNormalFocus
 Dim Result&
-Result = ShellExecute(Me.hwnd, "Open", "u:\programmierung\Dateilesen\LaborFarblegende.htm", "", App.path, 1)
+Result = ShellExecute(Me.hwnd, "Open", uVerz & "Programmierung\Dateilesen\LaborFarblegende.htm", "", App.path, 1)
 #If False Then
  Dim fI As New FürIcon
  fI.Height = 16000
@@ -1630,7 +1629,7 @@ Public Sub domachDMPBogen(Pat_id&, BogArtlV As BogArtTyp, DokuDat As Date, Optio
  For iru = 1 To 2
   erg = Dir(Datei)
   If LenB(erg) <> 0 Then Exit For
-  Datei = REPLACE$(Datei, "u:", "\\linux1\daten\eigene Dateien")
+  Datei = REPLACE$(Datei, "u:", LiServer & "Daten\eigene Dateien")
  Next iru
  If LenB(erg) <> 0 Then
   If Not immeranhaeng Then
@@ -1639,7 +1638,7 @@ Public Sub domachDMPBogen(Pat_id&, BogArtlV As BogArtTyp, DokuDat As Date, Optio
      On Error Resume Next
      FSO.MoveFile Datei, REPLACE(Datei, ".BDT", Format(Now(), "_yymmdd_HHMMSS.B\DT"))
 '     Kill Datei
-     Kill REPLACE$(Datei, "u:", "\\linux1\daten\eigene Dateien")
+     Kill REPLACE$(Datei, "u:", LiServer & "Daten\eigene Dateien")
      On Error GoTo fehler
     Case vbNo
     Case vbCancel: Exit Sub
@@ -1755,7 +1754,7 @@ Public Sub domachDMPBogen(Pat_id&, BogArtlV As BogArtTyp, DokuDat As Date, Optio
     BDT.FIAdd "X"
    End If
    If DmT = "2" Then
-    BDT.FFAdd "AntidiabetischDM2#" & IIf(aktDC.obSonstAD = adja Or aktDC.obGlit = adja Or aktDC.obGlucI = adja Or aktDC.obSHGlin = adja Or aktDC.obdpp4 Or aktDC.obglp1 Or aktDC.obsglt2, "0", "1") ' "0" = ja, "1" = nein
+    BDT.FFAdd "AntidiabetischDM2#" & IIf(aktDC.obSonstAD = adja Or aktDC.obGlit = adja Or aktDC.obGlucI = adja Or aktDC.obSHGlin = adja Or aktDC.obDpp4 Or aktDC.obGlp1 Or aktDC.obSglt2, "0", "1") ' "0" = ja, "1" = nein
     BDT.FIAdd "X"
    End If
    If Not ab1023 Then
@@ -1952,7 +1951,7 @@ Public Sub domachDMPBogen(Pat_id&, BogArtlV As BogArtTyp, DokuDat As Date, Optio
    End If ' not ab317
    If ab1023 Then
     If DmT = "2" Then
-     BDT.FFAdd "GLP1DM2#" & -(Not (aktDC.obglp1 = adja))
+     BDT.FFAdd "GLP1DM2#" & -(Not (aktDC.obGlp1 = adja))
      BDT.FIAdd "X"
     End If ' DmT = "2" Then
    End If ' ab1023 Then
@@ -2107,7 +2106,7 @@ Public Sub domachDMPBogen(Pat_id&, BogArtlV As BogArtTyp, DokuDat As Date, Optio
    End If ' aktDC.dmpDMSchulEmpf <> "j" And aktDC.dmpHypertSchulEmpf <> "j" Then else
    If ab1023 Then
     If DmT = "2" Then
-     BDT.FFAdd "SGLT2DM2#" & -(Not (aktDC.obsglt2 = adja))
+     BDT.FFAdd "SGLT2DM2#" & -(Not (aktDC.obSglt2 = adja))
      BDT.FIAdd "X"
     End If ' DmT = "2" Then
    End If ' ab1023 Then
@@ -3159,7 +3158,7 @@ andSp:
     If IsNumeric(.TextMatrix(i, wertsp)) Then aktw = CDbl(REPLACE$(.TextMatrix(i, wertsp), ".", ",")) Else aktw = 0
     If InStr(1, vorDp, "GFR", vbTextCompare) <> 0 Or InStr(1, vorDp, "GFC", vbTextCompare) <> 0 Or InStr(1, vorDp, "MDRD", vbTextCompare) <> 0 Then
      If aktw < 45 Then
-      Call TherAuskunft(CStr(pid), 0, aktDC.insz, VorDat, aktDC.obIns, aktDC.obAnal, aktDC.obGlib, aktDC.obmetf, aktDC.obGlucI, aktDC.obSHGlin, aktDC.obGlit, aktDC.obdpp4, aktDC.obglp1, aktDC.obsglt2, aktDC.obSonstAD, aktDC.obHMG, aktDC.obAntihyp, aktDC.obACEH, aktDC.obBetabl, aktDC.obThro, aktDC.obOAK, , , , aktDC.obDiur, aktDC.obAT1)
+      Call TherAuskunft(CStr(pid), 0, aktDC.insz, VorDat, aktDC.obIns, aktDC.obAnal, aktDC.obGlib, aktDC.obmetf, aktDC.obGlucI, aktDC.obSHGlin, aktDC.obGlit, aktDC.obDpp4, aktDC.obGlp1, aktDC.obSglt2, aktDC.obSonstAD, aktDC.obHMG, aktDC.obAntihyp, aktDC.obACEH, aktDC.obBetabl, aktDC.obThro, aktDC.obOAK, , , , aktDC.obDiur, aktDC.obAT1)
       If aktDC.obmetf Then
        Dim zuwarnen%
        zuwarnen = 0
@@ -3424,7 +3423,7 @@ Private Sub Form_Load()
  End Select
  Select Case Me.PLArt
   Case artLPar ' Laborparameter
-'   SET MFG.MouseIcon = LoadPicture("U:\Programmierung\Icons\Symbole\Hände\E - I411.ico", vbLPSmall, vbLPSmallShell)
+'   SET MFG.MouseIcon = LoadPicture(uverz & "Programmierung\Icons\Symbole\Hände\E - I411.ico", vbLPSmall, vbLPSmallShell)
    Me.Caption = "Laborparameter zuordnen"
    Call RegLaden
    Call LaborFüll(MFGLabSort)
@@ -3508,9 +3507,9 @@ Private Sub Form_Load()
 #If obpcol Then
 #Else
    Dim Fls As Files, Fl As File
-   Const gelvz$ = "\\linux1\daten\Papierkorb\eigene Dateien\TMImport"
-   If FSO.FolderExists(gelvz) Then
-    Set Fls = FSO.GetFolder(gelvz).Files
+   Const gelvz$ = "Papierkorb\eigene Dateien\TMImport"
+   If FSO.FolderExists(zVerz & gelvz) Then
+    Set Fls = FSO.GetFolder(zVerz & gelvz).Files
     For Each Fl In Fls
 '     Debug.Print Fl.name, Fl.DateLastModified
      If Fl.name Like "*" & DMP_Import And Fl.DateLastModified > Now() - 14 Then

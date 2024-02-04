@@ -538,7 +538,7 @@ Public Sub DMPAusgeb0(aktDC As DMPClass, Optional Pat_id$, Optional obAnzeig As 
  errn = Err.Number
  On Error GoTo fehler
  If errn <> 0 Then
-  Open REPLACE$(ErgebDatei, "p:", "\\linux1\daten\Patientendokumente") For Output Access Write Lock Write As #1
+  Open REPLACE$(ErgebDatei, "p:", LiServer & "daten\Patientendokumente") For Output Access Write Lock Write As #1
  End If
  Print #1, DMPStrhier
  Close #1
@@ -782,8 +782,8 @@ Function bittest()
  On Error GoTo fehler
  Call Lese.ProgStart
  Cn(0) = "Provider=microsoft.Jet.OLEDb.4.0;Data Source=" & QmdB & ";Jet OLEDb:Engine Type=5" ' u:\anamnese\quelle.mdb
- Cn(1) = "PROVIDER=MSDASQL;driver={" & ODBCStr & "};server=linux1;uid=praxis;pwd=***REMOVED***;database=quelle;"
- Cn(2) = "PROVIDER=MSDASQL;driver={MySQL ODBC 3.51 Driver};server=linux1;uid=praxis;pwd=***REMOVED***;database=quelle;"
+ Cn(1) = "PROVIDER=MSDASQL;driver={" & ODBCStr & "};server=" & LiName & ";uid=praxis;pwd=***REMOVED***;database=quelle;"
+ Cn(2) = "PROVIDER=MSDASQL;driver={MySQL ODBC 3.51 Driver};server=" & LiName & ";uid=praxis;pwd=***REMOVED***;database=quelle;"
  dtyp(0) = "bit"
  dtyp(1) = "tinyint"
  For i = LBound(Cn) To UBound(Cn)
@@ -937,7 +937,7 @@ Function KommRep() ' Kommentare reparieren
  Dim ErrNr&, ErrDes$
  On Error GoTo fehler
  Acc.Open "Provider=microsoft.Jet.OLEDb.4.0;Data Source=" & QmdB & ";Jet OLEDb:Engine Type=5"
- MyS.Open "PROVIDER=MSDASQL;driver={" & ODBCStr & "};server=linux1;uid=praxis;pwd=***REMOVED***;database=quelle;"
+ MyS.Open "PROVIDER=MSDASQL;driver={" & ODBCStr & "};server=" & LiName & ";uid=praxis;pwd=***REMOVED***;database=quelle;"
  myFrag rs, "SHOW TABLES", , MyS
  xc.ActiveConnection = MyS
  xcA.ActiveConnection = Acc

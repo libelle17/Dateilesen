@@ -112,7 +112,7 @@ Private Const WAIT_OBJECT_0 = &H0 ' das Objekt, das in hHandle spezifiziert ist,
 ' ist in einem signalisierendem Status
 Private Const WAIT_TIMEOUT = &H102 ' das Zeitlimit für eine Änderung des
 ' Thread-Status ist abgelaufen
-Public Const phpVS$ = "\\linux1\php\"
+Public Const phpVS$ = LiServer & "php\"
 Public Const phpV$ = phpVS & "plz\"
 Public Const phpVvorb$ = phpVS & "vorb\"
 Public Const phpVfertig$ = phpVS & "fertig\"
@@ -148,7 +148,7 @@ Private Sub doplink()
     .hwnd = 0
     .lpVerb = "open"
     .lpFile = "C:\Program Files (x86)\PuTTY\plink.exe"
-    .lpParameters = "root@linux1 /usr/bin/termine"
+    .lpParameters = "root@" & LiName & " /usr/bin/termine"
     .lpDirectory = "c:\program files (x86)\Putty"
 '    .nShow = SW_SHOWMAXIMIZED
     .nShow = SW_SHOWNORMAL
@@ -156,7 +156,7 @@ Private Sub doplink()
  
   ' Programm ausführen
   RetVal = ShellExecuteEx(ShExInfo)
-'  Retval = ShellExecute(0, "open", "plink", "root@linux1 /usr/bin/termine", "c:\", SW_SHOWNORMAL)
+'  Retval = ShellExecute(0, "open", "plink", "root@" & liname & " /usr/bin/termine", "c:\", SW_SHOWNORMAL)
   If RetVal = 0 Then
  
     ' bei Fehler Text ausgeben
@@ -229,7 +229,7 @@ Function doPatientenlaufzettel(Optional obohnerueckfrage% = 0, Optional obphp% =
 ' IF plzVerz = vNS THEN plzVerz = plzVz
 ' alte löschen
  
-' Prüfen, ob Termine gespeichert wurden und mit dem C-Programm "termine" (auf linux1) ausgelesen wurden
+' Prüfen, ob Termine gespeichert wurden und mit dem C-Programm "termine" (auf <LiName>) ausgelesen wurden
  
  If obphp <> 0 Then plzVerz = phpV Else plzVerz = plzVz
  Filename = plzVz & "TMFTools.pdf"
@@ -243,9 +243,9 @@ Function doPatientenlaufzettel(Optional obohnerueckfrage% = 0, Optional obphp% =
  If Not obausdb And FSO.FileExists(Filename) Then
 '   doplink
 ' 22.10.22: führt bei Aufruf über Ado zumindest bis zur Mariadb-Version 10.9 immer wieder zum Server-Crash, s.ähnliche Bug-Hinweise früherer Versionen
-  rufauf "ssh", "root@linux1 termine", 2, "c:\windows\system32\openssh\", -1, 1
-'  RunCommandLine ("plink root@linux1 termine")
- End If
+  rufauf "ssh", "root@" & LiName & " termine", 2, "c:\windows\system32\openssh\", -1, 1
+'  RunCommandLine ("plink root@" & LiName & " termine")
+ End If ' Not obausdb And FSO.FileExists(Filename) Then
  
 ' verschiedene Daten bestimmen
  Dim rTerm As New ADODB.Recordset
@@ -435,9 +435,9 @@ DoEvents
  On Error Resume Next
  syscmd 4, erstZ & " Patientenlaufzettel für " & s2(0) & " in " & plzVerz & " erstellt."
  If Not obausdb Then
-  syscmd 4, Filename + ": " + CStr(FileDateTime(Filename)) + ", " + FTextname + ": " + CStr(FileDateTime(FTextname)) + " => Programm 'termine' auf linux1 starten!"
+  syscmd 4, Filename + ": " + CStr(FileDateTime(Filename)) + ", " + FTextname + ": " + CStr(FileDateTime(FTextname)) + " => Programm 'termine' auf " & LiName & " starten!"
  End If
- If obphp <> 0 Then plzVerz = "p:\plz\"
+ If obphp <> 0 Then plzVerz = pVerz & "plz\"
  Exit Function
 fehler:
  Dim AnwPfad$
@@ -980,7 +980,7 @@ Function dodoPLZ(Pat_id$, plzVerz$, Optional Datum As Date, Optional Uhrzeit$, O
  Dim m%, p%
  m = 0: TI(m) = Timer: For p = 0 To m - 1: TI(m) = TI(m) - TI(p): Next
 #If printtest Then
- DN = "\\linux1\php\plz\uml5.html"
+ DN = LiServer & "php\plz\uml5.html"
  DatNr = UTFOpen(DN)
  sUTF DatNr, "<?php"
  sUTF DatNr, "echo ""äöüßÄÖÜ€µ"";"
@@ -1027,7 +1027,7 @@ On Error GoTo fehler
  Dim AusS As New CString
  Dim iStri(3), iDN$(3), iob!(3)
  For i = 0 To 3
-   iDN(i) = "\\linux1\php\php\i" & i & "S.php"
+   iDN(i) = LiServer & "php\php\i" & i & "S.php"
    If GetFileTime(iDN(i), mftlastwritetime) + 1 < Now() Then
     Set iStri(i) = New CString
     iob(i) = True
@@ -2022,14 +2022,15 @@ keinuzu:
       Intervall = Mid$(Intervall, pos, p2 - pos)
       Select Case Intervall
        Case "1 a"
-        Fqminu = Fqmin(Fußi) = 1
+        Fqminu = 1
        Case "6 Mo"
-        Fqminu = Fqmin(Fußi) = 2
+        Fqminu = 2
         obFußmakro = 1
        Case "<= 3Mo"
-        Fqminu = Fqmin(Fußi) = 4
+        Fqminu = 4
         obFußmakro = 2
       End Select
+      Fqmin(Fußi) = Fqminu
      End If ' p2 > 0 Then
     End If ' pos > 0 Then
    End If ' rs(Fußi).Fields.COUNT > 1 Then
@@ -2041,7 +2042,8 @@ keinuzu:
 ' Wenn in diesem Quartal Neurostatus gemacht oder fällig, dann kein Fußstatus nötig
    If Not rs(Neuri).EOF Then
     If ZQuart(rs(Neuri)!Zp) = ZQuart(Now()) Then
-     Fqminu = Fqmin(Fußi) = 0
+     Fqmin(Fußi) = 0
+     Fqminu = Fqmin(Fußi)
     End If
    End If
    ' vielleicht alle 2 Jahre
@@ -2268,10 +2270,10 @@ keinuzu:
 #If False Then
   If Not obphp Then ' kommt also nie vor
    If obphp Then
-    AusS.AppVar (Array("<a href=""http://linux1/vorb"">V</a>", vbCrLf))
-    AusS.AppVar (Array("<a href=""http://linux1/behand"">B</a>", vbCrLf))
-    AusS.AppVar (Array("<a href=""http://linux1/fertig"">F</a>", vbCrLf))
-    AusS.AppVar (Array("<a href=""http://linux1/plz"" accesskey='z'>&#8598;</a>", vbCrLf))
+    AusS.AppVar (Array("<a href=""http://" & LiName & "/vorb"">V</a>", vbCrLf))
+    AusS.AppVar (Array("<a href=""http://" & LiName & "/behand"">B</a>", vbCrLf))
+    AusS.AppVar (Array("<a href=""http://" & LiName & "/fertig"">F</a>", vbCrLf))
+    AusS.AppVar (Array("<a href=""http://" & LiName & "/plz"" accesskey='z'>&#8598;</a>", vbCrLf))
    End If
   End If
 #End If
@@ -2323,7 +2325,7 @@ keinuzu:
   obGU = 0
   
   If obLeist Then
-   If pKVNR = KVNR And PAlter > 35 Then
+   If pKVNR = KVNr And PAlter > 35 Then
     myFrag rLei, "SELECT zeitpunkt FROM `leistungen` WHERE pat_id = " & Pat_id & " AND leistung = '01732' ORDER BY zeitpunkt DESC"
     If rLei.BOF Then
      obGU = True
@@ -3079,7 +3081,7 @@ keinuzu:
   For i = 0 To 100
    Err.Clear
    DateiNameAktRoh = DateiNameRoh & String(i, "_") & ".html"
-   DateiNameAkt = IIf(obphp, "\\linux1\php\plz\", plzVerz) & DateiNameAktRoh ' replace$(CDate(Uhrzeit), ":", ".") & " " & Format(Datum, "dd.mm.yyyy") &
+   DateiNameAkt = IIf(obphp, "\\" & LiName & "\php\plz\", plzVerz) & DateiNameAktRoh ' replace$(CDate(Uhrzeit), ":", ".") & " " & Format(Datum, "dd.mm.yyyy") &
    If obphp <> 0 Then
     DatNr = UTFOpen(DateiNameAkt)
    Else
@@ -3115,7 +3117,7 @@ keinuzu:
  ' reg0 = getReg(HLM, "software\mozilla\Mozilla Firefox", "CurrentVersion")
   If mitanzeig Then
    If obphp <> 0 Then
-    DateiName = "http://linux1/plz/" & DateiNameAktRoh
+    DateiName = "http://" & LiName & "/plz/" & DateiNameAktRoh
    Else
     DateiName = DateiNameAkt
    End If
@@ -3148,17 +3150,17 @@ If Err.Number = 429 Then
  If runden < 10 Then
    Dim QDat$, ZDat$
   If aktOSV >= win_vista Then
-   QDat = "u:\Programmierung\riskeng.ocx"
+   QDat = uVerz & "Programmierung\riskeng.ocx"
    ZDat = Environ("programdata")
    Shell ("cmd /e:on /c copy " & Chr(34) & QDat & Chr(34) & " " & Chr(34) & ZDat & Chr(34))
-   Shell (doalsAd & acceu & ap1 & ap2 & " cmd /e:on /c regsvr32 " & Chr$(34) & ZDat & "\riskeng.ocx" & Chr$(34))
+   Shell (vVerz & doalsAd & acceu & ap1 & ap2 & " cmd /e:on /c regsvr32 " & Chr$(34) & ZDat & "\riskeng.ocx" & Chr$(34))
   Else
-   Shell ("cmd /c regsvr32 u:\programmierung\riskeng.ocx")
+   Shell ("cmd /c regsvr32 """ & uVerz & "\programmierung\riskeng.ocx""")
   End If
   Sleep 1000
   Resume
- End If
-End If
+ End If ' runden < 10 Then
+End If ' Err.Number = 429 Then
 Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in dodoPLZ/" + AnwPfad)
  Case vbAbort: Call MsgBox("Höre auf"): ProgEnde
  Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
@@ -3222,17 +3224,17 @@ If Err.Number = 429 Then
  If runden < 10 Then
    Dim QDat$, ZDat$
   If aktOSV >= win_vista Then
-   QDat = "u:\Programmierung\riskeng.ocx"
+   QDat = uVerz & "Programmierung\riskeng.ocx"
    ZDat = Environ("programdata")
    Shell ("cmd /e:on /c copy " & Chr(34) & QDat & Chr(34) & " " & Chr(34) & ZDat & Chr(34))
-   Shell (doalsAd & acceu & ap1 & ap2 & " cmd /e:on /c regsvr32 " & Chr$(34) & ZDat & "\riskeng.ocx" & Chr$(34))
-  Else
-   Shell ("cmd /c regsvr32 u:\programmierung\riskeng.ocx")
-  End If
+   Shell (vVerz & doalsAd & acceu & ap1 & ap2 & " cmd /e:on /c regsvr32 " & Chr$(34) & ZDat & "\riskeng.ocx" & Chr$(34))
+  Else ' aktOSV >= win_vista Then
+   Shell ("cmd /c regsvr32 """ & uVerz & "programmierung\riskeng.ocx""")
+  End If ' aktOSV >= win_vista Then else
   Sleep 1000
   Resume
- End If
-End If
+ End If ' runden < 10 Then
+End If ' Err.Number = 429 Then
 Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in eintraege/" + AnwPfad)
  Case vbAbort: Call MsgBox("Höre auf"): ProgEnde
  Case vbRetry: Call MsgBox("Versuche nochmal"): Resume

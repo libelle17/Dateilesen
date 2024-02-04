@@ -278,7 +278,7 @@ Public Const artSpezUS$ = artSpezUS0 & "," & artSpezUS1
 ' für Liste 112
 Public Const artSpezSonst$ = "'PKon','kva','rcg','dd','dg','ddg','bddg','rdg','lar','plar','spbrp','htxt','txt','priv','bez','rech'" & _
 ",'pvs','mhng','Ch.B.','prp','unbek','WZeit','ict','ct','oad','typ1','BfA','PGeb','haem','Text','kgä','kgp','ksä','ksp','kmä','kmp'" & _
-",'mimp','uebw','abstr','cib','nfd','dpe'"
+",'mimp','uebw','abstr','cib','nfd','dpe','mpa'"
 ' Pkon = Behandlungsdauer
 ' kva = Abrechnungsziffer gesetzliche Kasse
 ' rcg = Rechnungsnummer
@@ -323,6 +323,7 @@ Public Const artSpezSonst$ = "'PKon','kva','rcg','dd','dg','ddg','bddg','rdg','l
 ' cib = Covid-Impfberatung
 ' nfd = Notfalldatensatz
 ' dpe = Datensatz persönliche Erklärung
+' mpa = Medikamentenplan aktualisert
 
 Public Const artspezG$ = artSpezEintr & "," & artSpezUS
 Public Const AuffArtSql = vbCrLf & _
@@ -444,7 +445,7 @@ Public Type DMPClass
  dmpEinwDM As String * 1
  dmphalbj As String * 1
  
- dtyp As String ' Diabetestyp, "1", "2"
+ DTyp As String ' Diabetestyp, "1", "2"
  daseit As String
  dspsy As Boolean ' diabetesspezifische Symptome
  dspmed As Boolean ' diagnosespezifische Medikation
@@ -458,7 +459,7 @@ Public Type DMPClass
  DS(2) As Date ' DiabSchulung
  HS(2) As Date ' HyperSchulung
  VorM(13) As Integer
- obMetf As AntidiabMedType
+ obmetf As AntidiabMedType
  obGlib As AntidiabMedType
  obGlucI As AntidiabMedType
  obSHGlin As AntidiabMedType
@@ -879,7 +880,7 @@ Public Sub rrpruef()
   End If
   ad.RRsyst = 0
   ad.RRdiast = 0
-  ad.PrRR = GetPrRR(raAna, ad.RRsyst, ad.RRdiast, obdiastkorr:=True)
+  ad.PrRR = GetPrRR(rs!Pat_id, raAna, ad.RRsyst, ad.RRdiast, obdiastkorr:=True)
   If ad.RRsyst > 300 Or ad.RRsyst < 50 Or ad.RRdiast > 180 Or ad.RRdiast < 30 Then
    If Not IsNull(rs!RR1) Then
     MsgBox "falscher Blutdruck: " & ad.RRsyst & " " & ad.RRdiast
@@ -935,7 +936,7 @@ aktDC.KtrAbrB = "00"
 
 nochmal:
 If diI("Z34 Z33", pid) Then aktDC.obSchw = True
-If diI("E10") Then aktDC.dtyp = "1" Else If diI("E11") Then aktDC.dtyp = "2"
+If diI("E10") Then aktDC.DTyp = "1" Else If diI("E11") Then aktDC.DTyp = "2"
 If Not ohneVorDMP Then
 'fiabfr = "SELECT Pat_ID, FID, form_abk,Form_ID, ZeitPunkt, Nr, FeldNr, Feld, FeldInh, form_abk FROM (((`forminhfeld` LEFT JOIN `forminhkopf` ON `forminhfeld`.foid=`forminhkopf`.foid) LEFT JOIN `formulare` ON `formulare`.formid=`forminhkopf`.form_id) LEFT JOIN `forminhaltfeld` ON `forminhfeld`.feldvw=`forminhaltfeld`.feldvw) LEFT JOIN `forminhaltfeldinh` ON `forminhfeld`.feldinhvw=`forminhaltfeldinh`.feldinhvw WHERE form_abk LIKE ""dmpdtyp%"" AND feldinh = ""X"" AND pat_id = " & Pid & " ORDER BY zeitpunkt"
 fiabfr = "SELECT * FROM (SELECT Pat_ID, FID, form_abk, Form_ID, ZeitPunkt, Nr, FeldNr, Feld, FeldInh FROM `forminhkopf` LEFT JOIN `formulare` ON `formulare`.formid = `forminhkopf`.form_id LEFT JOIN `forminhfeld` ON `forminhfeld`.foid = `forminhkopf`.foid LEFT JOIN `forminhaltfeld` ON `forminhfeld`.feldvw=`forminhaltfeld`.feldvw LEFT JOIN `forminhaltfeldinh` ON `forminhfeld`.feldinhvw=`forminhaltfeldinh`.feldinhvw AND feldinh='X' WHERE pat_id = " & pid & " AND form_abk LIKE 'dmpdtyp%') AS i WHERE feldinh<>null ORDER BY zeitpunkt"
@@ -994,10 +995,35 @@ aktDC.RRdiast = 0
 On Error GoTo fehler
 'Set rMA = TabÖff("MedArten", "Medikament")
 If obAdo Then
+ myFrag rsAnam, "SELECT gesnameg(pat_id) gn, n.* FROM `namen` n WHERE pat_id = " & pid, adOpenStatic, DBCn, adLockReadOnly
+Else
+ myFrag rsAnam, "SELECT gesnameg(pat_id) gn, n.* FROM `namen` n WHERE pat_id = " & pid, adOpenStatic
+End If
+aktDC.x_GesName = rsAnam!gn ' GesNamFn(rsAnam) & ", *" & Format$(aktDC.GebDat, "dd.mm.yyyy")
+aktDC.Nachname = rsAnam!Nachname
+aktDC.Vorname = rsAnam!Vorname
+aktDC.GebDat = rsAnam!GebDat
+aktDC.Titel = rsAnam!Titel
+aktDC.plz = rsAnam!plz
+aktDC.ort = rsAnam!ort
+aktDC.Lkz = rsAnam!Lkz
+aktDC.PFPlz = rsAnam!PFPlz
+aktDC.PFOrt = rsAnam!PFOrt
+aktDC.NVors = rsAnam!NVors
+aktDC.PrivatTel = rsAnam!PrivatTel
+If Not IsNull(rsAnam!NVorsatz) Then aktDC.NVorsatz = rsAnam!NVorsatz
+aktDC.geschlecht = rsAnam!geschlecht
+aktDC.Anschrzus = rsAnam!Anschrzus
+aktDC.PrivatTel = rsAnam!PrivatTel
+aktDC.KVKStatus = rsAnam!KVKStatus
+aktDC.strasse = rsAnam!strasse
+aktDC.Hausnr = rsAnam!Hausnr
+aktDC.Versichertennummer = Trim$(rsAnam!Versichertennummer)
+
+If obAdo Then
 ' raAna.Open "SELECT patAlter(ana.pat_id) PAlter, ana.* FROM `anamnesebogen` ana WHERE pat_id = " & pid, DBCn, adOpenKeyset, adLockReadOnly
- myFrag raAna, "SELECT patAlter(ana.pat_id) PAlter, ana.* FROM `anamnesebogen` ana WHERE pat_id = " & pid, adOpenStatic, DBCn, adLockReadOnly
+ myFrag raAna, "SELECT patAlter(ana.pat_id) PAlter, ana.*, COALESCE(MAX(Ulcera),'')='' AND COALESCE(MAX(`Puls Atp`),'')='' AND COALESCE(MAX(`Puls Adp`),'')='' AND COALESCE(MAX(`Vibration IK`),'')='' AND COALESCE(MAX(`Vibration Großzehe`),'')='' AND COALESCE(MAX(`Kalt-Warm`),'')='' anaNdok FROM `anamnesebogen` ana WHERE pat_id = " & pid, adOpenStatic, DBCn, adLockReadOnly
 ' rsAnam.Open "SELECT * FROM `namen` WHERE pat_id = " & pid, DBCn, adOpenKeyset, adLockReadOnly
- myFrag rsAnam, "SELECT * FROM `namen` WHERE pat_id = " & pid, adOpenStatic
 Else
 ' SET rEi = TabÖff("eintraege", "Auswahl")
 ''Set rlau = TabÖff("Labor", "WertSuch")
@@ -1009,9 +1035,8 @@ Else
  'Call raKH.Open("SELECT * FROM kheinweis WHERE pat_id = " & PID, DBCn, adOpenDynamic, adLockReadOnly)
 ' Call raAna.Open("SELECT -dialyse AS j_dialyse, a.* FROM `anamnesebogen` a WHERE pat_id = " & pid, DBCn, adOpenDynamic, adLockReadOnly)
 '  Call raAna.Open("SELECT patAlter(ana.pat_id) PAlter, ana.* FROM `anamnesebogen` ana WHERE pat_id = " & pid, DBCn, adOpenDynamic, adLockReadOnly)
- myFrag raAna, "SELECT patAlter(ana.pat_id) PAlter, ana.* FROM `anamnesebogen` ana WHERE pat_id = " & pid, adOpenDynamic
+ myFrag raAna, "SELECT patAlter(ana.pat_id) PAlter, ana.*, COALESCE(MAX(Ulcera),'')='' AND COALESCE(MAX(`Puls Atp`),'')='' AND COALESCE(MAX(`Puls Adp`),'')='' AND COALESCE(MAX(`Vibration IK`),'')='' AND COALESCE(MAX(`Vibration Großzehe`),'')='' AND COALESCE(MAX(`Kalt-Warm`),'')='' anaNdok FROM `anamnesebogen` ana WHERE pat_id = " & pid, adOpenDynamic
 ' Call rsAnam.Open("SELECT * FROM `namen` WHERE pat_id = " & pid, DBCn, adOpenDynamic, adLockReadOnly)
- myFrag rsAnam, "SELECT * FROM `namen` WHERE pat_id = " & pid, adOpenStatic
 ' DoCmd.Save acForm, Anmnb geht leider nicht
 'If PID = 0 THEN
 ' Dim tonRunde%
@@ -1032,35 +1057,36 @@ Else
 ' END IF
 'END IF
 End If
-AspZul = tfeld(raAna![augensp zuletzt])
-AspBef = tfeld(raAna![augensp befund])
-UzuPm = tfeld(raAna![Unterzucker pM])
-myFrag rfal, "SELECT " & IIf(Not LVobMySQL, "top 1", "") & " * FROM `faelle` WHERE pat_id = " & pid & " AND bhfb <= " & DatFor_k(DokuDat) & " ORDER BY bhfb DESC, schgr" & IIf(LVobMySQL, " LIMIT 1", "")
+With raAna
+ Dim Herzinfarkt$, Ulcera$, PAlter#, anaNdok%, Diagnosen$, Dialyse&, Größe#, Amputation$, Gewicht$, DiabTyp$
+ anaNdok = !anaNdok
+ Herzinfarkt = !Herzinfarkt
+ Ulcera = !Ulcera
+ PAlter = !PAlter
+ Diagnosen = !Diagnosen
+ Dialyse = !Dialyse
+ Größe = !Größe
+ Amputation = !Amputation
+ Gewicht = !Gewicht
+ DiabTyp = !Diabetestyp
+ 
+AspZul = tfeld(![augensp zuletzt])
+AspBef = tfeld(![augensp befund])
+UzuPm = tfeld(![Unterzucker pM])
 
 aktDC.Pat_id = pid
-If IsNull(raAna!Nachname) Then ' so am 2.9.08 ereignet
- aktDC.Nachname = rsAnam!Nachname
- aktDC.Vorname = rsAnam!Vorname
-Else
- aktDC.Nachname = raAna!Nachname
- aktDC.Vorname = raAna!Vorname
-End If
+'If IsNull(!Nachname) Then ' so am 2.9.08 ereignet
+' aktDC.Nachname = rsAnam!Nachname
+' aktDC.Vorname = rsAnam!Vorname
+'Else
+' aktDC.Nachname = !Nachname
+' aktDC.Vorname = !Vorname
+'End If
 Pat_id = pid ' Pat_id = modulübergreifend
-aktDC.GebDat = rsAnam!GebDat
-aktDC.Titel = rsAnam!Titel
-aktDC.plz = rsAnam!plz
-aktDC.ort = rsAnam!ort
-aktDC.Lkz = rsAnam!Lkz
-aktDC.PFPlz = rsAnam!PFPlz
-aktDC.PFOrt = rsAnam!PFOrt
-aktDC.NVors = rsAnam!NVors
-aktDC.PrivatTel = rsAnam!PrivatTel
-If Not IsNull(rsAnam!NVorsatz) Then aktDC.NVorsatz = rsAnam!NVorsatz
-aktDC.geschlecht = rsAnam!geschlecht
-aktDC.Anschrzus = rsAnam!Anschrzus
+
 If aktDC.Lkz = "" Then aktDC.Lkz = "D"
 aktDC.Postleitzahl = "D " & aktDC.plz & " " & aktDC.ort ' 1.1.15 Länderkennzeichen
-aktDC.PrivatTel = rsAnam!PrivatTel
+
 #If False Then ' 29.6.15, Woltmann
  myFrag rform, "SELECT " & IIf(Not LVobMySQL, "top 1", "") & " feldinh FROM `formular` WHERE pat_id = " & Pat_id & " AND Feld = 'KVKGueltig' AND zeitpunkt <= " & DatFor_k(MINvb(Now(), QEnd(ZQuart(Now - Verspätung)))) & " AND feldinh LIKE '%/%'" & " ORDER BY zeitpunkt DESC" & IIf(LVobMySQL, " LIMIT 1", "")
  If Not rform.BOF Then
@@ -1070,11 +1096,8 @@ aktDC.PrivatTel = rsAnam!PrivatTel
  End If
 #End If
 
- aktDC.KVKStatus = rsAnam!KVKStatus
  
- aktDC.strasse = rsAnam!strasse
- aktDC.Hausnr = rsAnam!Hausnr
- aktDC.Versichertennummer = Trim$(rsAnam!Versichertennummer)
+ myFrag rfal, "SELECT " & IIf(Not LVobMySQL, "top 1", "") & " * FROM `faelle` WHERE pat_id = " & pid & " AND bhfb <= " & DatFor_k(DokuDat) & " ORDER BY bhfb DESC, schgr" & IIf(LVobMySQL, " LIMIT 1", "")
  If Not rfal.BOF Then
   aktDC.VKNr = rfal!VKNr
   aktDC.IK = rfal!IK
@@ -1092,6 +1115,8 @@ aktDC.PrivatTel = rsAnam!PrivatTel
   aktDC.dmpKKErnEmpf = LCase$(rfal!dmpKKErnEmpf)
   aktDC.dmpKKkTrainEmpf = LCase$(rfal!dmpKKkTrainEmpf)
   aktDC.dmpHbA1cZiel = REPLACE$(rfal!dmpHbA1cZiel, ".", ",")
+  aktDC.dmpUewFuss = LCase$(rfal!dmpUewFuss)
+  aktDC.dmpEinwDM = LCase$(rfal!dmpEinwDM)
  End If ' Not rfal.BOF Then
  If Not IsNumeric(aktDC.dmpHbA1cZiel) Then
   Dim rHb As New ADODB.Recordset
@@ -1101,10 +1126,6 @@ aktDC.PrivatTel = rsAnam!PrivatTel
   End If
   Set rHb = Nothing
  End If ' Not IsNumeric(aktDC.dmpHbA1cZiel) Then
- If Not rfal.BOF Then
-  aktDC.dmpUewFuss = LCase$(rfal!dmpUewFuss)
-  aktDC.dmpEinwDM = LCase$(rfal!dmpEinwDM)
- End If ' Not rfal.BOF Then
  aktDC.dmphalbj = "n" ' LCase$(rfal!dmphalbj)
  Dim rDMPh As New ADODB.Recordset
   myFrag rDMPh, "SELECT MAX(dmphalbj) FROM faelle f0 WHERE pat_id = " & pid & " AND bhfb = (SELECT MAX(bhfb) FROM faelle f WHERE f.pat_id = " & pid & " AND dmphalbj<>'')"
@@ -1130,16 +1151,11 @@ aktDC.PrivatTel = rsAnam!PrivatTel
 
 'Set ralau = aktDCb.OpenRecordset("SELECT * FROM `" + QMdbAkt + "`.laborUNION WHERE pat_id = " + CStr(aktDC.pat_id) + " ORDER BY zeitpunkt DESC")
 'With Forms!anamnesebogen
-aktDC.x_GesName = GesNamFn(rsAnam) & ", *" & Format$(raAna!GebDat, "dd.mm.yyyy")
 aktDC.x_DokName = aktDC.x_GesName & " (Pat'nr " & pid & ")" & IIf(mitBezeich, ", DMP-Informationen für " & Format(DokuDat, "d.m.yy"), vNS)
 aktDC.x_DoklangName = REPLACE$(aktDC.x_DokName, "*", "geb. ")
-Dim Herzinfarkt$, PAlter#
-With raAna
- Herzinfarkt = !Herzinfarkt
- PAlter = !PAlter
  If mitStr Then DmPStrS = IIf(mitBezeich, vNS, "DMP-Informationen vom " & Format$(Date, "DD.MM.YY") & " zu " & vbTab & vbTab & vbTab & vbTab & vbCrLf) & aktDC.x_DokName + ":"
  
- aktDC.x_DmTyp = "D.m. Typ " & dtyp(raAna!Diabetestyp) & IIf(aktDC.dtyp <> raAna!Diabetestyp, " (laut Anamnesebogen; " & aktDC.dtyp & " laut ICD)", vNS) & " seit:"
+ aktDC.x_DmTyp = "D.m. Typ " & DTyp(DiabTyp) & IIf(aktDC.DTyp <> DiabTyp, " (laut Anamnesebogen; " & aktDC.DTyp & " laut ICD)", vNS) & " seit:"
  If Not IsNull(Vgst) Then
   aktDC.daseit = zuJahr(DSeit(raAna, True), Vgst)
   If mitStr Then TabPr aktDC.x_DmTyp, aktDC.daseit
@@ -1157,9 +1173,9 @@ With raAna
  #End If ' vorca2008
  
  Dim VorDat As Date '(nur Attrappe)
- Call TherAuskunft(CStr(pid), 0, aktDC.insz, VorDat, aktDC.obIns, aktDC.obAnal, aktDC.obGlib, aktDC.obMetf, aktDC.obGlucI, aktDC.obSHGlin, aktDC.obGlit, aktDC.obDpp4, aktDC.obGlp1, aktDC.obSglt2, aktDC.obSonstAD, aktDC.obHMG, aktDC.obAntihyp, aktDC.obACEH, aktDC.obBetabl, aktDC.obThro, aktDC.obOAK, , , , aktDC.obDiur, aktDC.obAT1)
+ Call TherAuskunft(CStr(pid), 0, aktDC.insz, VorDat, aktDC.obIns, aktDC.obAnal, aktDC.obGlib, aktDC.obmetf, aktDC.obGlucI, aktDC.obSHGlin, aktDC.obGlit, aktDC.obDpp4, aktDC.obGlp1, aktDC.obSglt2, aktDC.obSonstAD, aktDC.obHMG, aktDC.obAntihyp, aktDC.obACEH, aktDC.obBetabl, aktDC.obThro, aktDC.obOAK, , , , aktDC.obDiur, aktDC.obAT1)
  'if mitstr THEN TabPr "Diagnosespez. Medik.: ", IIf(!`DiabetesMedikament 1` <> "" AND NOT ISNULL(!`DiabetesMedikament 1`), "  ja", "nein")
- If aktDC.dtyp = "1" And Not aktDC.obIns And Not aktDC.obAnal Then ' Medikamentenplan fehlt oder keine Dosierung angegeben
+ If aktDC.DTyp = "1" And Not aktDC.obIns And Not aktDC.obAnal Then ' Medikamentenplan fehlt oder keine Dosierung angegeben
   Dim rez As New ADODB.Recordset, rezSQL$
   rezSQL = "SELECT * FROM (SELECT *,LEFT(medikament,instr(medikament,"" "")-1) AS medanf FROM `rezepteintraege` ) AS rez LEFT JOIN `medarten` ON rez.medanf = `medarten`.medikament WHERE rez.pat_id = 150 AND (ins OR anal) ORDER BY zeitpunkt DESC;"
 '  IF Not lies.obMySQL THEN rezSQL = replace$(rezSQL, "collate latin1_german2_ci ", vNS)
@@ -1172,7 +1188,7 @@ With raAna
  End If
  
  #If vorca2008 Then
-  aktDC.dspmed = (aktDC.obIns Or aktDC.obAnal Or aktDC.obGlib = adja Or aktDC.obMetf = adja Or aktDC.obGlucI = adja Or aktDC.obSHGlin = adja Or aktDC.obGlit = adja Or aktDC.obDpp4 = adja Or aktDC.obGlp1 = adja Or aktDC.obSglt2 = adja Or aktDC.obSonstAD = adja)
+  aktDC.dspmed = (aktDC.obIns Or aktDC.obAnal Or aktDC.obGlib = adja Or aktDC.obmetf = adja Or aktDC.obGlucI = adja Or aktDC.obSHGlin = adja Or aktDC.obGlit = adja Or aktDC.obDpp4 = adja Or aktDC.obGlp1 = adja Or aktDC.obSglt2 = adja Or aktDC.obSonstAD = adja)
 ' aktDC.dspmed = (aktDC.VorM(0) OR aktDC.VorM(1) OR aktDC.VorM(2) OR aktDC.VorM(3) OR aktDC.VorM(4) OR aktDC.VorM(5) OR aktDC.VorM(6))
   If mitStr Then TabPr "Diagnosespez. Medik.:", IIf(aktDC.dspmed, "  ja", "nein")
  #End If ' vorca2008
@@ -1231,7 +1247,7 @@ With raAna
  End If
   
 ' IF obPosi(!j_Dialyse) OR diI("Z49.1") THEN
- If obPosi(!Dialyse <> 0) Or diI("Z49", , , , , aktDC.FEi(8), aktDC.FEd(8)) Then
+ If obPosi(Dialyse <> 0) Or diI("Z49", , , , , aktDC.FEi(8), aktDC.FEd(8)) Then
   aktDC.FEn(8) = True
   If aktDC.ab315 Then
    spät.AppVar Array(IIf(spät.length = 0, "Nephropathie:", ":"), " Nierenersatztherapie")
@@ -1256,7 +1272,7 @@ With raAna
     bbk.AppVar Array(" diab. Retinopathie", IIf(aktDC.FE(9) And Not aktDC.ab315, "( bek)", ""), ",")
    End If
   End If
-  If InStrB(LCase$(!Diagnosen), "blind") <> 0 Or diI("H54 S05", , , True, , aktDC.FEi(10), aktDC.FEd(10)) Then
+  If InStrB(LCase$(Diagnosen), "blind") <> 0 Or diI("H54 S05", , , True, , aktDC.FEi(10), aktDC.FEd(10)) Then
    aktDC.FEn(10) = True
    If aktDC.ab315 Then
     spät.AppVar Array(IIf(aktDC.FEn(9), ", ", IIf(spät.length = 0, "", ", ") & "Retinopathie"), " (Blindheit)")
@@ -1276,12 +1292,12 @@ With raAna
    aktDC.FEn(12) = True
    If Not aktDC.ab315 Then bbk.AppVar Array(" Diabetisches Fußsyndrom", IIf(aktDC.FE(12) And Not aktDC.ab315, "( bek)", ""), ",")
   End If
-  If obPosi(!Amputation) Or diT("mputat", , , True, , aktDC.FEi(13), aktDC.FEd(13)) Then
+  If obPosi(Amputation) Or diT("mputat", , , True, , aktDC.FEi(13), aktDC.FEd(13)) Then
    aktDC.FEn(13) = True
    If Not aktDC.ab315 Then bbk.AppVar Array(" Amputation", IIf(aktDC.FE(13) And Not aktDC.ab315, "( bek)", ""), ",")
   End If
 
-  If diI("M36.8 M14.2") Or InStrB(!Diagnosen, "aculop") <> 0 _
+  If diI("M36.8 M14.2") Or InStrB(Diagnosen, "aculop") <> 0 _
   Or diI("K77.8 K71.7 K71.6 K76.9 K76.2") Or diT("atara") > 0 Or diT("arnwegsinf") > 0 Then
    aktDC.FEn(14) = True
    If Not aktDC.ab315 Then bbk.AppVar Array(" Sonstige", IIf(aktDC.FE(14) And Not aktDC.ab315, "( bek)", ""), "")
@@ -1316,11 +1332,11 @@ With raAna
 '  END IF
 ' END IF
  aktDC.obRauch = diI("F17.1")
- aktDC.Tabak = (WieTabak(!Pat_id) = aktuell)
+ aktDC.Tabak = (WieTabak(Pat_id) = aktuell)
  If mitStr Then TabPr "Raucher:", IIf(aktDC.Tabak, "  ja", "nein")
- If Not IsNull(!Größe) Then
-  aktDC.kgr = Round(REPLACE$(IIf(!Größe < 10, !Größe * 100, !Größe), ".", ","), 0)
-  If mitStr Then TabPr "Körpergröße:", CStr(!Größe) + IIf(!Größe < 10, " m", " cm")
+ If Not IsNull(Größe) Then
+  aktDC.kgr = Round(REPLACE$(IIf(Größe < 10, Größe * 100, Größe), ".", ","), 0)
+  If mitStr Then TabPr "Körpergröße:", CStr(Größe) + IIf(Größe < 10, " m", " cm")
  End If ' Not IsNull(!Größe) Then
  
 ' raEi.Open "SELECT * FROM `eintraege` WHERE pat_id = " & pid & " AND art = ""Gewicht"" ORDER BY zeitpunkt DESC", DBCn, adOpenDynamic, adLockReadOnly
@@ -1366,11 +1382,11 @@ With raAna
   End If
   aktDC.x_Gewi = raEi!Inhalt + IIf(InStrB(raEi!Inhalt, "kg") <> 0, vNS, " kg") & " (" & CStr(DateValue(raEi!Zeitpunkt)) & ")"
  Else
-  If IsNull(!Gewicht) Then
+  If IsNull(Gewicht) Then
    aktDC.x_Gewi = "? kg"
   Else
-   aktDC.gewi = Round(REPLACE$(!Gewicht, ".", ","), 0) ' ist double
-   aktDC.x_Gewi = CStr(!Gewicht) + " kg"
+   aktDC.gewi = Round(REPLACE$(Gewicht, ".", ","), 0) ' ist double
+   aktDC.x_Gewi = Gewicht + " kg"
   End If ' IsNull(!Gewicht) Then else
  End If ' Not raEi.EOF THEN else
  If mitStr Then TabPr "Körpergewicht:", aktDC.x_Gewi
@@ -1387,9 +1403,9 @@ With raAna
   End If
  End If ' aktDC.kgr <> 0 THEN
  
- aktDC.PrRR = GetPrRR(raAna, aktDC.RRsyst, aktDC.RRdiast, obdiastkorr:=True)
+ aktDC.PrRR = GetPrRR(pid, raAna, aktDC.RRsyst, aktDC.RRdiast, obdiastkorr:=True)
  If aktDC.RRdiast < 30 Then aktDC.RRdiast = MINvb(70, aktDC.RRsyst) ' 31.10.20
- If aktDC.dtyp = "2" Then
+ If aktDC.DTyp = "2" Then
   If aktDC.PrRR <> "" Then
    If mitStr Then TabPr "Blutdruck:", aktDC.PrRR
   End If ' aktDC.PrRR <> "" Then
@@ -1575,7 +1591,7 @@ If True Then ' lwZahl
    End If ' IsNumeric(Labs.WertSg) Then
 '  END IF
   End If ' Labs.Abkü = "" Then else
-  If aktDC.dtyp = "2" Then
+  If aktDC.DTyp = "2" Then
    If mitStr Then TabPr IIf(aktDC.ab317, "•  ", "") & "HbA1c:", aktDC.x_DMPHbA1c
    If aktDC.ab315 Then
     If mitStr Then TabPr "eGFR:", aktDC.x_DMPeGFR
@@ -1583,8 +1599,8 @@ If True Then ' lwZahl
     If mitStr Then TabPr "Serum-Kreatinin:", DMPCrea
    End If
    If mitStr Then TabPr "Urin-Albumin:", aktDC.x_DMPUAlb ' 5.10.08 Kommentar entfernt
-  End If
- 'If obPosi(!Beinbefund) OR obPosi(!Ulcera) OR diI("M14") THEN
+  End If ' aktDC.dtyp = "2" Then
+ 'If obPosi(!Beinbefund) OR obPosi(Ulcera) OR diI("M14") THEN
  End If 'lwzahl
  
  On Error Resume Next
@@ -1853,11 +1869,11 @@ If Not ranamp.EOF And ranamp!amp = 1 Then aktDC.ZnAmput = 1
 ' Call raDT.Open(diIsql, DBCn, adOpenDynamic, adLockReadOnly)
  myFrag raDT, diIsql
  Dim obUlc%, FSauf$
- obUlc = obPosi(!Ulcera)
+ obUlc = obPosi(Ulcera)
  If obUlc Or Not raDT.BOF Then
   aktDC.fußst = auff
   FSauf = "auffällig "
-  If obUlc Then FSauf = FSauf & "(Anamnesebogen:Ulcera: " & !Ulcera & ") "
+  If obUlc Then FSauf = FSauf & "(Anamnesebogen:Ulcera: " & Ulcera & ") "
   Do While Not raDT.EOF
    Dim diags$
    If Not IsNull(raDT!DiagSeite) Then diags = raDT!DiagSeite
@@ -2007,6 +2023,11 @@ If Not ranamp.EOF And ranamp!amp = 1 Then aktDC.ZnAmput = 1
   Loop ' While Not raFot.EOF
   
 '  IF aktDC.mwa = "" THEN
+  If raDT.State = 0 Then
+   Set raDT = Nothing
+'  raDT.Open sql, DBCn, adOpenDynamic, adLockReadOnly
+   myFrag raDT, sql, adOpenStatic
+  End If
   If Not raDT.BOF Then
    raDT.MoveFirst
    aktSei = unbek
@@ -2062,7 +2083,7 @@ If Not ranamp.EOF And ranamp!amp = 1 Then aktDC.ZnAmput = 1
   Set raFot = Nothing
 '#If False THEN
 '  Dim posi%
-'  posi = InStr(!Diagnosen, "Wagner")
+'  posi = InStr(Diagnosen, "Wagner")
 '  Dim inf AS Boolean, isch AS Boolean, ArmSt$
 '  inf = False
 '  isch = False
@@ -2077,7 +2098,7 @@ If Not ranamp.EOF And ranamp!amp = 1 Then aktDC.ZnAmput = 1
 '   ArmSt = "C"
 '  END IF
 '  IF posi <> 0 THEN
-'   IF mitstr THEN TabPr "Grad nach Wagner und Armstrong: ", IIf(posi <> 0, Mid$(!Diagnosen, posi + 7, 1) + ArmSt, "0A")
+'   IF mitstr THEN TabPr "Grad nach Wagner und Armstrong: ", IIf(posi <> 0, Mid$(Diagnosen, posi + 7, 1) + ArmSt, "0A")
 '  END IF
 '#END IF
 #If vorca2008 Then
@@ -2106,17 +2127,18 @@ If Not ranamp.EOF And ranamp!amp = 1 Then aktDC.ZnAmput = 1
   Set raDT = Nothing
 #End If ' vorca2008
  Else ' obUlc OR Not raDT.BOF THEN
-  If tfeld(!Ulcera) = "" And tfeld(![Puls Atp]) = "" And tfeld(![Puls Adp]) = "" And tfeld(![Vibration IK]) = "" And tfeld(![Vibration Großzehe]) = "" And tfeld(![Kalt-Warm]) = "" Then
+'  If tfeld(Ulcera) = "" And tfeld(![Puls Atp]) = "" And tfeld(![Puls Adp]) = "" And tfeld(![Vibration IK]) = "" And tfeld(![Vibration Großzehe]) = "" And tfeld(![Kalt-Warm]) = "" Then
+  If anaNdok Then
    aktDC.fußst = ndok
    FSauf = "" '"nicht dokumentiert"
-  Else ' tfeld(!Ulcera) = "" ...
+  Else ' tfeld(Ulcera) = "" ...
    aktDC.fußst = unauff
    FSauf = "unauffällig"
-  End If ' tfeld(!Ulcera) = "" ... else
+  End If ' tfeld(Ulcera) = "" ... else
   If aktDC.ab317 And mitStr Then TabPr "Fußstatus:", FSauf
  End If ' obUlc OR Not raDT.BOF THEN else
  
- If aktDC.dtyp = "1" Then
+ If aktDC.DTyp = "1" Then
   If mitStr Then
    If aktDC.PrRR <> "" Then TabPr "Blutdruck:", aktDC.PrRR
    TabPr "HbA1c:", aktDC.x_DMPHbA1c
@@ -2153,7 +2175,7 @@ If Not ranamp.EOF And ranamp!amp = 1 Then aktDC.ZnAmput = 1
   End If
  End If
 ' Handlungsbedarf: spätere Lasertherapie
-If aktDC.dtyp = "2" Then If mitStr Then TabPr "Lasertherapie:", IIf(aktDC.oblaser, "  ja", "nein")
+If aktDC.DTyp = "2" Then If mitStr Then TabPr "Lasertherapie:", IIf(aktDC.oblaser, "  ja", "nein")
 #End If 'vorca2008
  
   If mitStr And aktDC.ab315 And Not aktDC.ab317 Then
@@ -2182,13 +2204,13 @@ If aktDC.dtyp = "2" Then If mitStr Then TabPr "Lasertherapie:", IIf(aktDC.oblase
   Set raDT = Nothing
  End If
  
- If aktDC.dtyp = "1" Then If mitStr Then TabPr "Lasertherapie:", IIf(aktDC.oblaser, "  ja", "nein")
+ If aktDC.DTyp = "1" Then If mitStr Then TabPr "Lasertherapie:", IIf(aktDC.oblaser, "  ja", "nein")
  If aktDC.ab315 Then
-  If aktDC.FEn(8) Then ereig.Append Array("Nierenersatzth.", IIf(aktDC.FE(8), "(bek)", "(ICD " & aktDC.FEi(8) & " vor " & Format(aktDC.FEd(8), "d.m.yy") & ")"), ", ")
-  If aktDC.FEn(10) Then ereig.Append Array("Erblindung", IIf(aktDC.FE(10), "(bek)", "(ICD " & aktDC.FEi(10) & " vor " & Format(aktDC.FEd(10), "d.m.yy") & ")"), ", ")
-  If aktDC.FEn(13) Then ereig.Append Array("Amputation", IIf(aktDC.FE(13), "(bek)", "(ICD " & aktDC.FEi(13) & " vor " & Format(aktDC.FEd(13), "d.m.yy") & ")"), ", ")
-  If aktDC.FEn(4) Then ereig.Append Array("Herzinfarkt", IIf(aktDC.FE(4), "(bek)", "(ICD " & aktDC.FEi(4) & " vor " & Format(aktDC.FEd(4), "d.m.yy") & ")"), ", ")
-  If aktDC.FEn(5) Then ereig.Append Array("Schlaganfall", IIf(aktDC.FE(5), "(bek)", "(ICD " & aktDC.FEi(5) & " vor " & Format(aktDC.FEd(5), "d.m.yy") & ")"), ",")
+  If aktDC.FEn(8) Then ereig.AppVar Array("Nierenersatzth.", IIf(aktDC.FE(8), "(bek)", "(ICD " & aktDC.FEi(8) & " vor " & Format(aktDC.FEd(8), "d.m.yy") & ")"), ", ")
+  If aktDC.FEn(10) Then ereig.AppVar Array("Erblindung", IIf(aktDC.FE(10), "(bek)", "(ICD " & aktDC.FEi(10) & " vor " & Format(aktDC.FEd(10), "d.m.yy") & ")"), ", ")
+  If aktDC.FEn(13) Then ereig.AppVar Array("Amputation", IIf(aktDC.FE(13), "(bek)", "(ICD " & aktDC.FEi(13) & " vor " & Format(aktDC.FEd(13), "d.m.yy") & ")"), ", ")
+  If aktDC.FEn(4) Then ereig.AppVar Array("Herzinfarkt", IIf(aktDC.FE(4), "(bek)", "(ICD " & aktDC.FEi(4) & " vor " & Format(aktDC.FEd(4), "d.m.yy") & ")"), ", ")
+  If aktDC.FEn(5) Then ereig.AppVar Array("Schlaganfall", IIf(aktDC.FE(5), "(bek)", "(ICD " & aktDC.FEi(5) & " vor " & Format(aktDC.FEd(5), "d.m.yy") & ")"), ",")
   If ereig.length = 0 Then ereig = "keine d.gen." Else ereig.Cut (ereig.length - 2)
   aktDC.x_Ereig = ereig
   If mitStr Then TabPr "relev.Ereignisse: ", aktDC.x_Ereig
@@ -2232,10 +2254,10 @@ If aktDC.dtyp = "2" Then If mitStr Then TabPr "Lasertherapie:", IIf(aktDC.oblase
   If obPosi(![keto pa]) Then
    If IsNumeric(![keto pa]) Then
 '   aktDC.krZAn = ![keto pa]
-    If IsDate(raAna![keto pa]) Then
+    If IsDate(![keto pa]) Then
      aktDC.krZAn = 1
-    ElseIf IsNumeric(raAna![keto pa]) Then
-     aktDC.krZAn = raAna![keto pa]
+    ElseIf IsNumeric(![keto pa]) Then
+     aktDC.krZAn = ![keto pa]
     End If
     aktDC.krz = aktDC.krZAn
    End If
@@ -2295,16 +2317,16 @@ If aktDC.dtyp = "2" Then If mitStr Then TabPr "Lasertherapie:", IIf(aktDC.oblase
  aktDC.obNI = (aktDC.eGFR < 45)
  
 ' IF mitStr THEN DmPStrS = DmPStrS & vbCrLf
- If aktDC.dtyp <> "1" Then
+ If aktDC.DTyp <> "1" Then
   If Not aktDC.ab1023 Then If mitStr Then TabPr "Glibenclamid:", IIf(aktDC.ab315, IIf(aktDC.obGlib, "  ja", IIf(aktDC.obNI, "Kontraindikation", "nein")), IIf(aktDC.obGlib, IIf(Not aktDC.ab315 And aktDC.VorM(0) = 0 And aktDC.obVorb, "(unverändert) ", "  ") & "  ja", IIf(Not aktDC.ab315 And aktDC.VorM(0) > 0, "(unverändert) ", "  ") & IIf(aktDC.obNI, "Kontraindikation", "nein")))
   If Not aktDC.obGlib And aktDC.obNI Then aktDC.obGlib = adki
-  If aktDC.obMetf Then
+  If aktDC.obmetf Then
    aktDC.x_Metformin = "  ja"
    If Not aktDC.ab315 And aktDC.VorM(1) = 0 And aktDC.obVorb Then aktDC.x_Metformin = "(unverändert)" & aktDC.x_Metformin
    If aktDC.obNI Then aktDC.x_Metformin = aktDC.x_Metformin & ": Sollte evtl. aufgrund Creatininerhöhung abgesetzt werden"
   Else
    If aktDC.obNI Then
-    aktDC.obMetf = adki
+    aktDC.obmetf = adki
     aktDC.x_Metformin = "Kontraindikation"
    Else ' aktDC.obNI Then
     aktDC.x_Metformin = "nein"
@@ -2369,11 +2391,11 @@ If aktDC.dtyp = "2" Then If mitStr Then TabPr "Lasertherapie:", IIf(aktDC.oblase
     pos = InStr(Labs.WertSg, ">") ' Pat_id 744
     If pos > 0 Then Labs.WertSg = Mid$(Labs.WertSg, pos + 1)
     If Labs.WertSg >= 8# Then
-     DMSchulz = SchulzBest(!Pat_id, zpd1, zpdL, DokuDat - 2 * 365)
+     DMSchulz = SchulzBest(CStr(Pat_id), zpd1, zpdL, DokuDat - 2 * 365)
      If ((aktDC.tart = OAD Or aktDC.tart = offen Or aktDC.tart = Diät) And DMSchulz < 4) Or DMSchulz < 6 Then
       If zplschul(Pat_id) < DokuDat - 92 Then
 '    Debug.Print Pat_id
-       If raAna!GebDat > DokuDat - 365 * 83 Then ' Schulung nicht mehr unbedingt über 83 Jahre empfehlen
+       If aktDC.GebDat > DokuDat - 365 * 83 Then  ' Schulung nicht mehr unbedingt über 83 Jahre empfehlen
         aktDC.SE(0) = DokuDat ' SE(2) Schulung empfohlen
        End If
       End If
@@ -2469,7 +2491,7 @@ If aktDC.dtyp = "2" Then If mitStr Then TabPr "Lasertherapie:", IIf(aktDC.oblase
   Loop
  End If ' Not lapp.BOF Then
  
- DMSchulz = SchulzBest(!Pat_id, zpd1, zpdL)
+ DMSchulz = SchulzBest(CStr(pid), zpd1, zpdL)
  aktDC.x_SchulStr = IIf(DMSchulz > 1, CStr(DMSchulz) + " (Diabetes: " & zpd1 & " - " & zpdL & ")", "") + IIf(HSchulz > 1, CStr(HSchulz) + " (Hypertonie: " & zpr1 & " - " & zprL & ")", "")
  If aktDC.x_SchulStr = "" Then aktDC.x_SchulStr = "keine"
  If mitStr Then TabPr "Bish.Schulg.b.uns (ges.):", aktDC.x_SchulStr
@@ -2489,9 +2511,9 @@ If aktDC.dtyp = "2" Then If mitStr Then TabPr "Lasertherapie:", IIf(aktDC.oblase
   End If
   If mitStr Then TabPr "•  Info'angeb.KK gewü.: ", aktDC.x_InfoAng
  Else ' aktdc.ab315 Then
-  If aktDC.dtyp = "2" Then
+  If aktDC.DTyp = "2" Then
    If mitStr Then TabPr "  Aufgabe Tabak empf.:", IIf(aktDC.Tabak, "  ja", "nein")
-   If !Größe <> 0 Then
+   If Größe <> 0 Then
 ''   IF mitstr THEN TabPr "Ernährungsber. empf.:", IIf(CDbl(replace$(!`bmi`, ".", ",")) > 24.9, "  ja", "nein")
 '    Dim bmi!
 '    bmi = !Gewicht * IIf(!Gewicht < 3, 100, 1) / !Größe / !Größe '* 10000
@@ -2503,7 +2525,7 @@ If aktDC.dtyp = "2" Then If mitStr Then TabPr "Lasertherapie:", IIf(aktDC.oblase
 '    IF bmi > 24.9 THEN aktDC.ernb = True
     If aktDC.bmi >= 25 Then aktDC.ernb = True
     If mitStr Then TabPr "Ernährungsber. empf.:", IIf(aktDC.ernb, "  ja", "nein")
-   End If ' !Größe <> 0 Then
+   End If ' Größe <> 0 Then
   End If ' aktDC.dtyp = "2" Then
  End If ' aktdc.ab315 Then else
  
@@ -2546,7 +2568,7 @@ If aktDC.dtyp = "2" Then If mitStr Then TabPr "Lasertherapie:", IIf(aktDC.oblase
   End If ' mitStr
  End If ' aktdc.ab315 Then
  
- If aktDC.dtyp = "1" Or Not aktDC.ab1023 Then
+ If aktDC.DTyp = "1" Or Not aktDC.ab1023 Then
   Dim AugUDat As Date
   Dim rBr As New ADODB.Recordset
   aktDC.x_Aug = vNS
@@ -3714,7 +3736,6 @@ Function einDMP(Pat_id&, Optional ICD$, Optional dszahl&, Optional Nachname$, Op
 '        Case "6495818", "6491291" ' Pfeuffer, Krombholz
         Case Else
          fax1 = infos(4, i)
-         If fax1 = "08131 25169" Then fax1 = "08131 273373" ' Dr. Stolzki falsche Faxnummer
          obdoppelt = False
          For j = 0 To UBound(aktPatGefaxt) - 1
           If aktPatGefaxt(j) = fax1 Then obdoppelt = True
@@ -3727,7 +3748,7 @@ Function einDMP(Pat_id&, Optional ICD$, Optional dszahl&, Optional Nachname$, Op
            anfang = True
 '           END IF
            If anfang Then
-            Call Ausgeb(Pat_id & ": " & Nachname & ", " & Vorname & ", " & fax1 & ", " & ÜWNNr)
+'            Call Ausgeb(Pat_id & ": " & Nachname & ", " & Vorname & ", " & fax1 & ", " & ÜWNNr)
             DoEvents
             Adressat = infos(10, i) & " " & infos(1, i)
             docName = do_DMPAusgebStandAlone(Pat_id, fax1, Adressat)
@@ -3766,18 +3787,18 @@ Function doAnwalt(Pat_id&)
  Dim rBr As New ADODB.Recordset, nr&, Datei$
  On Error GoTo fehler
  nr = 1
- myFrag rBr, "select * from briefe where pat_id=" & Pat_id & " order by zeitpunkt"
+ myFrag rBr, "SELECT Pfad,Name,Art,Zeitpunkt FROM briefe WHERE pat_id=" & Pat_id & " ORDER BY ZEITPUNKT"
  Do While Not rBr.EOF
-  Datei = "\\linux1\daten\" & Mid$(rBr!Pfad, 3)
+  Datei = zVerz & Mid$(rBr!Pfad, 3)
   If FSO.FileExists(Datei) Then
-   FSO.CopyFile Datei, "p:\anwalt\Dokument_" & nr & "_" & rBr!name & IIf(rBr!art = "wbr", ".doc", IIf(rBr!art = "pdf", ".pdf", ""))
+   FSO.CopyFile Datei, pVerz & "anwalt\Dokument_" & nr & "_" & rBr!name & IIf(rBr!art = "wbr", ".doc", IIf(rBr!art = "pdf", ".pdf", ""))
    Lese.Ausgeb "Dokument '" & rBr!name & "', vom " & rBr!Zeitpunkt & ", Pfad: " & rBr!Pfad & " kopiert!", False
    nr = nr + 1
   Else
    Lese.Ausgeb "Dokument '" & rBr!name & "', vom " & rBr!Zeitpunkt & ", Pfad: " & rBr!Pfad & " nicht gefunden!", True
   End If
   rBr.MoveNext
- Loop
+ Loop ' While Not rBr.EOF
  Lese.Ausgeb nr & " Dokumente kopiert", True
  Exit Function
 fehler:
@@ -4111,10 +4132,30 @@ End Sub ' FaxSend
 Public Function do_DMPAusgebStandAlone(Pat_id&, Optional fax1$, Optional Adressat$)
  Dim docName$, DT As DMPClass
  On Error GoTo fehler
+ If fax1 = "08131 25169" Then fax1 = "08131 273373" ' Dr. Stolzki falsche Faxnummer
+ If InStrB(fax1, "6119199") <> 0 Or InStrB(fax1, "91191") Then fax1 = "6119198"
  FNr = 0
+ Dim rsAnam As New ADODB.Recordset
+ Dim sverz$, guv$, dxml$
+#If Not wordalt Then
+ Const uvz$ = "2145\", uvuv$ = uvz & "neu\"
+ guv = pVerz & "\zufaxen\" & uvuv
+ dxml$ = guv & "word\document.xml"
+#Else
+ Const uvz$ = "2145\"
+#End If
+ If fax1$ = vNS Then
+  sverz = pVerz
+ Else
+  sverz = pVerz & "zufaxen\" & uvz
+ End If ' fax1 = vns
+ myFrag rsAnam, "SELECT CONCAT('" & UmwfSQL(sverz) & "',COALESCE(MAX(gesname(pat_id)),''),', PID ','" & Pat_id & "','" & ", DMP-Daten vom " & Format$(Now, "DD/MM/YY hh.mm.ss") & IIf(Adressat <> "" And Not IsNull(Adressat), " für " & Adressat, "") & IIf(LenB(fax1) = 0, vNS, " an Fax " & fax1) & ".doc') FROM `anamnesebogen` WHERE pat_id = " & Pat_id
+ If Not rsAnam.BOF Then
+  docName = rsAnam.Fields(0)
+ End If
+' docName = sverz + rsAnam!Nachname & " " & rsAnam!Vorname & ", PID " & rsAnam!Pat_id & ", DMP-Daten vom " & Format$(Now, "DD/MM/YY hh.mm.ss") & IIf(Adressat <> "" And Not IsNull(Adressat), " für " & Adressat, "") & IIf(LenB(fax1) = 0, vNS, " an Fax " & fax1) & ".doc"
 ' #Const wordalt = True
 #If Not wordalt Then
- Const uvz$ = "z2145", uvuv$ = uvz & "\" & "neu\", guv$ = "p:\zufaxen\" & uvuv, dxml$ = guv & "word\document.xml"
  Const AbsE$ = "</w:t></w:r></w:p>"
  Const AbE1$ = "<w:p><w:pPr><w:pStyle w:val=""Normal""/><w:tabs><w:tab w:val=""clear"" w:pos=""1701""/><w:tab w:val=""left"" w:pos=""3118"" w:leader=""dot""/></w:tabs><w:ind w:hanging=""400"" w:left=""400"" w:right=""0""/><w:rPr/></w:pPr><w:r><w:rPr><w:rFonts w:cs=""Arial"" w:ascii=""Arial"" w:hAnsi=""Arial""/><w:b/><w:i/><w:szCs w:val=""24""/></w:rPr><w:t>"
  Const AbE2$ = "</w:t></w:r><w:r><w:rPr><w:rFonts w:cs=""Arial"" w:ascii=""Arial"" w:hAnsi=""Arial""/><w:szCs w:val=""24""/></w:rPr><w:tab/><w:t>"
@@ -4123,10 +4164,13 @@ Public Function do_DMPAusgebStandAlone(Pat_id&, Optional fax1$, Optional Adressa
 ' Const AbE4$ = "•  </w:t></w:r><w:r><w:rPr><w:rFonts w:eastAsia=""Arial"" w:cs=""Arial"" w:ascii=""Arial"" w:hAnsi=""Arial""/><w:b/><w:i/><w:szCs w:val=""24""/></w:rPr><w:t xml:space=""preserve""> </w:t></w:r><w:r><w:rPr><w:rFonts w:cs=""Arial"" w:ascii=""Arial"" w:hAnsi=""Arial""/><w:b/><w:i/><w:szCs w:val=""24""/></w:rPr><w:t>"
  Const AbE4$ = "</w:t><w:t xml:space=""preserve"">&#10151;  </w:t></w:r><w:r><w:rPr><w:rFonts w:eastAsia=""Arial"" w:cs=""Arial"" w:ascii=""Arial"" w:hAnsi=""Arial""/><w:b/><w:i/><w:szCs w:val=""24""/></w:rPr><w:t xml:space=""preserve""> </w:t></w:r><w:r><w:rPr><w:rFonts w:cs=""Arial"" w:ascii=""Arial"" w:hAnsi=""Arial""/><w:b/><w:i/><w:szCs w:val=""24""/></w:rPr><w:t>"
 '                </w:t></w:r><w:r><w:rPr><w:rFonts w:eastAsia=""Arial"" w:cs=""Arial"" w:ascii=""Arial"" w:hAnsi=""Arial""/><w:b/><w:i/><w:szCs w:val=""24""/><w:lang w:val=""en-GB""/></w:rPr><w:t xml:space=""preserve""> </w:t></w:r><w:r><w:rPr><w:rFonts w:cs=""Arial"" w:ascii=""Arial"" w:hAnsi=""Arial""/><w:b/><w:i/><w:szCs w:val=""24""/><w:lang w:val=""en-GB""/></w:rPr><w:t>
+ Const AbE5$ = "<w:p><w:pPr><w:pStyle w:val=""Normal""/><w:tabs><w:tab w:val=""clear"" w:pos=""1701""/><w:tab w:val=""left"" w:pos=""3118"" w:leader=""dot""/></w:tabs><w:spacing w:before=""57"" w:after=""0""/><w:ind w:hanging=""400"" w:left=""400"" w:right=""0""/><w:rPr/></w:pPr><w:r><w:rPr><w:rFonts w:cs=""Arial"" w:ascii=""Arial"" w:hAnsi=""Arial""/><w:b/><w:i/><w:szCs w:val=""24""/></w:rPr><w:t>"
  Dim ag As New CString
  Dim oSh As New IWshShell_Class
  Call DMPString$(Pat_id, DT, , True, , False)
- oSh.rUn "robocopy u:\programmierung\dateilesen\zudocx\ " & guv & " /s /copy:dat", 0, True
+' robocopy geht nicht, stellt nicht alle Unterverzeichnisse her, behauptet dann, sie seien schon da
+' oSh.rUn "robocopy """ & uVerz & "programmierung\dateilesen\zudocx\\"" """ & pVerz & "zufaxen\" & uvz & "neu"" /s /copy:dat /r:3 /w:2", 0, True
+ oSh.rUn "xcopy """ & uVerz & "programmierung\dateilesen\zudocx\*.*"" """ & pVerz & "zufaxen\" & uvz & "neu\"" /s /d /k /y /h /r /c", 0, True
  If FSO.FileExists(dxml) Then Kill dxml
  ag.Append "<w:document xmlns:o=""urn:schemas-microsoft-com:office:office"" xmlns:r=""http://schemas.openxmlformats.org/officeDocument/2006/relationships"" xmlns:v=""urn:schemas-microsoft-com:vml"" xmlns:w=""http://schemas.openxmlformats.org/wordprocessingml/2006/main"" xmlns:w10=""urn:schemas-microsoft-com:office:word"" xmlns:wp=""http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing"" xmlns:wps=""http://schemas.microsoft.com/office/word/2010/wordprocessingShape"" xmlns:wpg=""http://schemas.microsoft.com/office/word/2010/wordprocessingGroup"" xmlns:mc=""http://schemas.openxmlformats.org/markup-compatibility/2006"" xmlns:wp14=""http://schemas.microsoft.com/office/word/2010/wordprocessingDrawing"" xmlns:w14=""http://schemas.microsoft.com/office/word/2010/wordml"" xmlns:w15=""http://schemas.microsoft.com/office/word/2012/wordml"" mc:Ignorable=""w14 wp14 w15""><w:body><w:p><w:pPr><w:pStyle w:val=""Heading1""/><w:tabs><w:tab w:val=""clear"" w:pos=""1701""/>"
  ag.Append "<w:tab w:val=""left"" w:pos=""3118"" w:leader=""dot""/></w:tabs><w:ind w:hanging=""400"" w:left=""400"" w:right=""0""/><w:rPr/></w:pPr><w:r><w:rPr><w:rFonts w:cs=""Arial"" w:ascii=""Arial"" w:hAnsi=""Arial""/><w:sz w:val=""20""/></w:rPr><w:t>Diabetol. Gemeins'praxis Dachau</w:t></w:r><w:r><w:rPr><w:rFonts w:cs=""Arial"" w:ascii=""Arial"" w:hAnsi=""Arial""/><w:b w:val=""false""/><w:sz w:val=""20""/></w:rPr><w:t>, G.Schade, Dr.T.Kothny</w:t><w:tab/><w:t>Tel. 08131 616380, Fax 616381"
@@ -4136,66 +4180,61 @@ Public Function do_DMPAusgebStandAlone(Pat_id&, Optional fax1$, Optional Adressa
  ag.Append "<w:p><w:pPr><w:pStyle w:val=""Normal""/><w:tabs><w:tab w:val=""clear"" w:pos=""1701""/>"
  ag.AppVar Array("<w:tab w:val=""left"" w:pos=""3118"" w:leader=""dot""/></w:tabs><w:ind w:hanging=""400"" w:left=""400"" w:right=""0""/><w:rPr><w:rFonts w:ascii=""Arial"" w:hAnsi=""Arial"" w:cs=""Arial""/><w:sz w:val=""18""/><w:szCs w:val=""24""/></w:rPr></w:pPr><w:r><w:rPr><w:rFonts w:cs=""Arial"" w:ascii=""Arial"" w:hAnsi=""Arial""/><w:sz w:val=""18""/><w:szCs w:val=""24""/></w:rPr></w:r></w:p>", AbE1)
 ' ag.Append REPLACE$(REPLACE$(REPLACE$(DT.x_gesName, "'", "&#8217;"), "ß", "&#223;"), "*", "&#9733;")
- ag.Append DT.x_GesName
+ ag.Append sonz(DT.x_GesName)
  ag.Append "</w:t></w:r><w:r><w:rPr><w:rFonts w:cs=""Arial"" w:ascii=""Arial"" w:hAnsi=""Arial""/><w:b/><w:i/><w:vanish/><w:szCs w:val=""24""/></w:rPr><w:t xml:space=""preserve""> (Pat'nr "
  ag.Append Pat_id
  ag.Append ")</w:t></w:r><w:r><w:rPr><w:rFonts w:cs=""Arial"" w:ascii=""Arial"" w:hAnsi=""Arial""/><w:b/><w:i/><w:szCs w:val=""24""/></w:rPr><w:t>, DMP-Informatione</w:t></w:r><w:r><w:rPr><w:rFonts w:cs=""Arial"" w:ascii=""Arial"" w:hAnsi=""Arial""/><w:szCs w:val=""24""/></w:rPr><w:t>n für "
  ag.AppVar Array(Format(DT.x_DokuDat, "d.m.yy"), ":", AbsE)
- ag.AppVar Array(AbE1, DT.x_DmTyp, AbE2, DT.daseit, AbsE)
- ag.AppVar Array(AbE1, AbE4, "Bek. Begleit-/Folgeerk.:", AbE2, DT.x_Bbk, AbsE)
+ ag.AppVar Array(AbE1, sonz(DT.x_DmTyp), AbE2, sonz(DT.daseit), AbsE)
+ ag.AppVar Array(AbE5, AbE4, "Bek. Begleit-/Folgeerk.:", AbE2, sonz(DT.x_Bbk), AbsE)
  ag.AppVar Array(AbE1, "Raucher:", AbE2, IIf(DT.Tabak, "ja", "nein"), AbsE)
  ag.AppVar Array(AbE1, "Körpergröße:", AbE2, DT.kgr, " cm", AbsE)
- ag.AppVar Array(AbE1, "Körpergewicht:", AbE2, DT.x_Gewi, AbsE)
+ ag.AppVar Array(AbE1, "Körpergewicht:", AbE2, sonz(DT.x_Gewi), AbsE)
  ' <w:p><w:pPr><w:pStyle w:val=""Normal""/><w:tabs><w:tab w:val=""clear"" w:pos=""1701""/><w:tab w:val=""left"" w:pos=""3118"" w:leader=""dot""/></w:tabs><w:ind w:hanging=""400"" w:left=""400"" w:right=""0""/><w:rPr/></w:pPr><w:r><w:rPr><w:rFonts w:cs=""Arial"" w:ascii=""Arial"" w:hAnsi=""Arial""/><w:b/><w:i/><w:szCs w:val=""24""/><w:lang w:val=""en-GB""/></w:rPr><w:t>
- ag.AppVar Array(AbE1, "Blutdruck:", AbE2, DT.PrRR, AbsE)
+ ag.AppVar Array(AbE1, "Blutdruck:", AbE2, sonz(DT.PrRR), AbsE)
  ' <w:p><w:pPr><w:pStyle w:val=""Normal""/><w:tabs><w:tab w:val=""clear"" w:pos=""1701""/><w:tab w:val=""left"" w:pos=""3118"" w:leader=""dot""/></w:tabs><w:ind w:hanging=""400"" w:left=""400"" w:right=""0""/><w:rPr/></w:pPr><w:r><w:rPr><w:rFonts w:cs=""Arial"" w:ascii=""Arial"" w:hAnsi=""Arial""/><w:b/><w:i/><w:szCs w:val=""24""/><w:lang w:val=""en-GB""/></w:rPr><w:t>
  ' </w:t></w:r><w:r><w:rPr><w:rFonts w:eastAsia=""Arial"" w:cs=""Arial"" w:ascii=""Arial"" w:hAnsi=""Arial""/><w:b/><w:i/><w:szCs w:val=""24""/><w:lang w:val=""en-GB""/></w:rPr><w:t xml:space=""preserve""> </w:t></w:r><w:r><w:rPr><w:rFonts w:cs=""Arial"" w:ascii=""Arial"" w:hAnsi=""Arial""/><w:b/><w:i/><w:szCs w:val=""24""/><w:lang w:val=""en-GB""/></w:rPr><w:t>
  ' </w:t></w:r><w:r><w:rPr><w:rFonts w:cs=""Arial"" w:ascii=""Arial"" w:hAnsi=""Arial""/><w:szCs w:val=""24""/><w:lang w:val=""en-GB""/></w:rPr><w:tab/><w:t>
- ag.AppVar Array(AbE1, AbE4, "HbA1c:", AbE2, DT.x_DMPHbA1c, AbsE)
- ag.AppVar Array(AbE1, "eGFR:", AbE2, DT.x_DMPeGFR, AbsE)
- ag.AppVar Array(AbE1, "Urin-Albumin:", AbE2, DT.x_DMPUAlb, AbsE)
- ag.AppVar Array(AbE1, "Spätfolgen:", AbE3, DT.x_Spät, AbsE)
- ag.AppVar Array(AbE1, "Injektionsstellen:", AbE2, DT.x_Inj, AbsE)
- ag.AppVar Array(AbE1, AbE4, "Pulsstatus:", AbE3, DT.x_Pulsstatus, AbsE)
- ag.AppVar Array(AbE1, "Sensibilität:", AbE3, DT.x_SensText, AbsE)
- ag.AppVar Array(AbE1, "Weiteres Risiko für Ulcus:", AbE3, DT.x_wrstr, AbsE)
- ag.AppVar Array(AbE1, "Ulcus:", AbE3, DT.x_Ulcus, AbsE)
- ag.AppVar Array(AbE1, "Wundinfektion:", AbE3, DT.x_Wundinfektion, AbsE)
- ag.AppVar Array(AbE1, "Intervall der künftigen Fußinspektionen:", AbE3, DT.x_Wundinfektion, AbsE)
- ag.AppVar Array(AbE1, "relev.Ereignisse:", AbE3, DT.x_Ereig, AbsE)
- ag.AppVar Array(AbE1, "Schw.Hypoglyk./Q.:", AbE3, DT.x_HypoStr, AbsE)
- ag.AppVar Array(AbE1, AbE4, "Insulin oder -analoga:", AbE2, DT.x_Insulin, AbsE)
- If DT.dtyp <> "1" Then
-  ag.AppVar Array(AbE1, "Metformin:", AbE3, DT.x_Metformin, AbsE)
-  ag.AppVar Array(AbE1, "Sonst.antidiab.Medik.:", AbE3, DT.x_Sonstige, AbsE)
-  ag.AppVar Array(AbE1, "SGLT2-Hemmer:", AbE3, DT.x_Sglt2, AbsE)
-  ag.AppVar Array(AbE1, "GLP1-Analoga:", AbE3, DT.x_Glp1, AbsE)
+ ag.AppVar Array(AbE5, AbE4, "HbA1c:", AbE2, sonz(DT.x_DMPHbA1c), AbsE)
+ ag.AppVar Array(AbE1, "eGFR:", AbE2, sonz(DT.x_DMPeGFR), AbsE)
+ ag.AppVar Array(AbE1, "Urin-Albumin:", AbE2, sonz(DT.x_DMPUAlb), AbsE)
+ ag.AppVar Array(AbE1, "Spätfolgen:", AbE3, sonz(DT.x_Spät), AbsE)
+ ag.AppVar Array(AbE1, "Injektionsstellen:", AbE2, sonz(DT.x_Inj), AbsE)
+ ag.AppVar Array(AbE5, AbE4, "Pulsstatus:", AbE3, sonz(DT.x_Pulsstatus), AbsE)
+ ag.AppVar Array(AbE1, "Sensibilität:", AbE3, sonz(DT.x_SensText), AbsE)
+ ag.AppVar Array(AbE1, "Weiteres Risiko für Ulcus:", AbE3, sonz(DT.x_wrstr), AbsE)
+ ag.AppVar Array(AbE1, "Ulcus:", AbE3, sonz(DT.x_Ulcus), AbsE)
+ ag.AppVar Array(AbE1, "Wundinfektion:", AbE3, sonz(DT.x_Wundinfektion), AbsE)
+ ag.AppVar Array(AbE1, "Intervall der künftigen Fußinspektionen:", AbE3, sonz(DT.x_Wundinfektion), AbsE)
+ ag.AppVar Array(AbE1, "relev.Ereignisse:", AbE3, sonz(DT.x_Ereig), AbsE)
+ ag.AppVar Array(AbE1, "Schw.Hypoglyk./Q.:", AbE3, sonz(DT.x_HypoStr), AbsE)
+ If DT.DTyp <> "1" Then
+  ag.AppVar Array(AbE5, AbE4, "Insulin oder -analoga:", AbE2, sonz(DT.x_Insulin), AbsE)
+  ag.AppVar Array(AbE1, "Metformin:", AbE3, sonz(DT.x_Metformin), AbsE)
+  ag.AppVar Array(AbE1, "Sonst.antidiab.Medik.:", AbE3, sonz(DT.x_Sonstige), AbsE)
+  ag.AppVar Array(AbE1, "SGLT2-Hemmer:", AbE3, sonz(DT.x_Sglt2), AbsE)
+  ag.AppVar Array(AbE1, "GLP1-Analoga:", AbE3, sonz(DT.x_Glp1), AbsE)
+  ag.AppVar Array(AbE1, "Thrombozytenhemmer:", AbE3, sonz(DT.x_Thromb), AbsE)
+ Else
+  ag.AppVar Array(AbE5, AbE4, "Thrombozytenhemmer:", AbE2, sonz(DT.x_Thromb), AbsE)
  End If ' DT.dtyp <> "1" Then
- ag.AppVar Array(AbE1, "Thrombozytenhemmer:", AbE3, DT.x_Thromb, AbsE)
  ag.AppVar Array(AbE1, "Orale Antikoagulation:", AbE3, DT.x_OAK, AbsE)
- ag.AppVar Array(AbE1, AbE4, "Schulungen empfohlen:", AbE2, DT.x_SchulEmpf, AbsE)
- ag.AppVar Array(AbE1, "Diabetesschulung   wahrg.:", AbE3, DT.x_SchulWahrg, AbsE)
- ag.AppVar Array(AbE1, "Hypertonieschulung wahrg.:", AbE3, DT.x_HSchulWahr, AbsE)
- ag.AppVar Array(AbE1, "Bish.Schulg.b.uns (ges.):", AbE3, DT.x_SchulStr, AbsE)
- ag.AppVar Array(AbE1, AbE4, "Info'angeb.KK gewü.:", AbE2, DT.x_InfoAng, AbsE)
- ag.AppVar Array(AbE1, "HbA1c-Zielwert:", AbE3, DT.x_HZiel, AbsE)
- ag.AppVar Array(AbE1, "Bhdlg.Fußeinr.:", AbE3, DT.x_BhdF, AbsE)
- ag.AppVar Array(AbE1, "Diab'bez.stat.Einweisung:", AbE3, DT.x_BhdD, AbsE)
- If DT.dtyp = "1" Or Not DT.ab1023 Then ag.AppVar Array(AbE1, "Augenuntersuchung:", AbE3, DT.x_Aug, AbsE)
- ag.AppVar Array(AbE1, "Empf. Dok'intervall:", AbE3, DT.x_EmpfItv, AbsE)
+ ag.AppVar Array(AbE5, AbE4, "Schulungen empfohlen:", AbE2, sonz(DT.x_SchulEmpf), AbsE)
+ ag.AppVar Array(AbE1, "Diabetesschulung   wahrg.:", AbE3, sonz(DT.x_SchulWahrg), AbsE)
+ ag.AppVar Array(AbE1, "Hypertonieschulung wahrg.:", AbE3, sonz(DT.x_HSchulWahr), AbsE)
+ ag.AppVar Array(AbE1, "Bish.Schulg.b.uns (ges.):", AbE3, sonz(DT.x_SchulStr), AbsE)
+ ag.AppVar Array(AbE5, AbE4, "Info'angeb.KK gewü.:", AbE2, sonz(DT.x_InfoAng), AbsE)
+ ag.AppVar Array(AbE1, "HbA1c-Zielwert:", AbE3, sonz(DT.x_HZiel), AbsE)
+ ag.AppVar Array(AbE1, "Bhdlg.Fußeinr.:", AbE3, sonz(DT.x_BhdF), AbsE)
+ ag.AppVar Array(AbE1, "Diab'bez.stat.Einweisung:", AbE3, sonz(DT.x_BhdD), AbsE)
+ If DT.DTyp = "1" Or Not DT.ab1023 Then ag.AppVar Array(AbE1, "Augenuntersuchung:", AbE3, sonz(DT.x_Aug), AbsE)
+ ag.AppVar Array(AbE1, "Empf. Dok'intervall:", AbE3, sonz(DT.x_EmpfItv), AbsE)
 ' Ende des einspaltigen Teils
  ag.Append "<w:p><w:pPr><w:sectPr><w:type w:val=""nextPage""/><w:pgSz w:w=""11906"" w:h=""16838""/><w:pgMar w:left=""567"" w:right=""567"" w:gutter=""0"" w:header=""0"" w:top=""567"" w:footer=""0"" w:bottom=""567""/><w:pgNumType w:fmt=""decimal""/><w:formProt w:val=""false""/><w:textDirection w:val=""lrTb""/><w:docGrid w:type=""default"" w:linePitch=""360"" w:charSpace=""0""/></w:sectPr></w:pPr></w:p>"
 
 #Else ' wordalt
  Dim dc, VorString$
  Dim mR1, mR2, mR3
- Dim rsAnam As New ADODB.Recordset
- Dim sverz$
- If fax1$ = vNS Then
-  sverz = pVerz
- Else
-  sverz = pVerz & "\zufaxen\2145\"
- End If
 ' dtbInit
 ' SET rsAnam = TabÖff("Anamnesebogen", "Pat_id")
 ' myFrag rsAnam, "SELECT * FROM `anamnesebogen` WHERE pat_id = " & Pat_id ' 22.3.12: nach untens verschoben, da evtl. während des Aufrufs von DMPString Verlorengehen möglich
@@ -4283,7 +4322,7 @@ vorgetword:
  myFrag mrs, sql
  If Not mrs.BOF Then
   Do While Not mrs.EOF
-   ag.AppVar Array("<w:t xml:space=""preserve"">", mrs.Fields(0), "</w:t><w:br/>")
+   ag.AppVar Array("<w:t xml:space=""preserve"">", sonz(mrs.Fields(0)), "</w:t><w:br/>")
    mrs.MoveNext
   Loop
  End If ' Not mrs.BOF Then
@@ -4354,10 +4393,14 @@ vorgetword:
  Dim DiagTab() As CString, gesD$
  gesD = DiagString$(CStr(Pat_id), DiagTab, Now() - 180, True)
 #If Not wordalt Then
- ag.Append "<w:p><w:pPr><w:pStyle w:val=""Normal""/><w:tabs><w:tab w:val=""clear"" w:pos=""1701""/><w:tab w:val=""left"" w:pos=""5102"" w:leader=""dot""/></w:tabs><w:rPr><w:rFonts w:ascii=""Courier New"" w:hAnsi=""Courier New"" w:cs=""Courier New""/><w:sz w:val=""16""/><w:szCs w:val=""24""/></w:rPr></w:pPr><w:r><w:br w:type=""column""/></w:r><w:r><w:rPr><w:rFonts w:cs=""Courier New"" w:ascii=""Courier New"" w:hAnsi=""Courier New""/><w:b/><w:sz w:val=""16""/><w:szCs w:val=""24""/><w:u w:val=""single""/></w:rPr><w:t>Diagnosen:</w:t></w:r></w:p><w:p><w:pPr><w:pStyle w:val=""Normal""/><w:tabs><w:tab w:val=""clear"" w:pos=""1701""/><w:tab w:val=""left"" w:pos=""5102"" w:leader=""dot""/></w:tabs><w:rPr><w:rFonts w:ascii=""Courier New"" w:hAnsi=""Courier New"" w:cs=""Courier New""/><w:sz w:val=""16""/><w:szCs w:val=""24""/></w:rPr></w:pPr><w:r><w:rPr><w:rFonts w:cs=""Courier New"" w:ascii=""Courier New"" w:hAnsi=""Courier New""/><w:sz w:val=""16""/><w:szCs w:val=""24""/></w:rPr>"
+ ag.Append "<w:p><w:pPr><w:pStyle w:val=""Normal""/><w:tabs><w:tab w:val=""clear"" w:pos=""1701""/><w:tab w:val=""left"" w:pos=""5102"" w:leader=""dot""/></w:tabs><w:spacing w:before=""170"" w:after=""0""/><w:rPr><w:rFonts w:ascii=""Courier New"" w:hAnsi=""Courier New"" w:cs=""Courier New""/><w:sz w:val=""16""/><w:szCs w:val=""24""/></w:rPr></w:pPr><w:r><w:br w:type=""column""/></w:r><w:r><w:rPr><w:rFonts w:cs=""Courier New"" w:ascii=""Courier New"" w:hAnsi=""Courier New""/><w:b/><w:sz w:val=""16""/><w:szCs w:val=""24""/><w:u w:val=""single""/></w:rPr><w:t>"
+ ag.Append "Diagnosen:</w:t></w:r></w:p><w:p><w:pPr><w:pStyle w:val=""Normal""/><w:tabs><w:tab w:val=""clear"" w:pos=""1701""/><w:tab w:val=""left"" w:pos=""5102"" w:leader=""dot""/></w:tabs><w:rPr><w:rFonts w:ascii=""Courier New"" w:hAnsi=""Courier New"" w:cs=""Courier New""/><w:sz w:val=""16""/><w:szCs w:val=""24""/></w:rPr></w:pPr><w:r><w:rPr><w:rFonts w:cs=""Courier New"" w:ascii=""Courier New"" w:hAnsi=""Courier New""/><w:sz w:val=""16""/><w:szCs w:val=""24""/></w:rPr>"
  Dim iru&
  For iru = 0 To UBound(DiagTab)
-  ag.AppVar Array("<w:t xml:space=""preserve"">", Left$(Left$(DiagTab(iru), InStr(DiagTab(iru), Chr$(9)) - 1) & String(45, "."), 45), "</w:t><w:tab/><w:t>", Mid$(DiagTab(iru), InStr(DiagTab(iru), Chr(9)) + 1), "</w:t><w:br/>")
+  ag.AppVar Array("<w:t xml:space=""preserve"">", sonz(Left$(Left$(DiagTab(iru), InStr(DiagTab(iru), Chr$(9)) - 1) & String(45, "."), 45)), "</w:t><w:tab/><w:t>", sonz(Mid$(DiagTab(iru), InStr(DiagTab(iru), Chr(9)) + 1)), "</w:t><w:br/>")
+  If iru = 28 Then ' zwei Spaltenumbrüche für die nächste Seite
+   ag.Append "</w:r></w:p><w:p><w:pPr><w:pStyle w:val=""Normal""/><w:tabs><w:tab w:val=""clear"" w:pos=""1701""/><w:tab w:val=""left"" w:pos=""5102"" w:leader=""dot""/></w:tabs><w:rPr><w:rFonts w:ascii=""Courier New"" w:hAnsi=""Courier New"" w:cs=""Courier New""/><w:sz w:val=""16""/><w:szCs w:val=""24""/></w:rPr></w:pPr><w:r><w:br w:type=""column""/></w:r><w:r><w:rPr/></w:r></w:p><w:p><w:pPr><w:pStyle w:val=""Normal""/><w:tabs><w:tab w:val=""clear"" w:pos=""1701""/><w:tab w:val=""left"" w:pos=""5102"" w:leader=""dot""/></w:tabs><w:rPr><w:rFonts w:ascii=""Courier New"" w:hAnsi=""Courier New"" w:cs=""Courier New""/><w:sz w:val=""16""/><w:szCs w:val=""24""/></w:rPr></w:pPr><w:r><w:br w:type=""column""/></w:r><w:r><w:rPr><w:rFonts w:cs=""Courier New"" w:ascii=""Courier New"" w:hAnsi=""Courier New""/><w:sz w:val=""16""/><w:szCs w:val=""24""/></w:rPr>"
+  End If
  Next iru
  
  ag.Append "</w:r></w:p>"
@@ -4365,16 +4408,15 @@ vorgetword:
  Open dxml For Output As #197
  Print #197, zsuh(ag.Value)
  Close #197
- docName = "p:\zufaxen\" & uvz & "\" & DT.x_DoklangName & ".docx"
- oSh.rUn "cmd /c """"c:\program files\7-zip\7z"" a -tzip -mm=deflate -mx9 -aoa -r -xr!*.swp """ & docName & """ """ & "p:\zufaxen\" & uvuv & "*.*""""", 0, True
+' docName = pVerz & "zufaxen\" & uvz & DT.x_DoklangName & ".docx"
+ docName = docName & "x"
+ oSh.rUn "cmd /c """"c:\program files\7-zip\7z"" a -tzip -mm=deflate -mx9 -aoa -r -xr!*.swp """ & docName & """ """ & guv & "*.*""""", 0, True
 #Else
  dc.Range(dc.Range.END - 1, dc.Range.END - 1).InsertBreak Type:=8 'wdColumnBreak
  dc.Range(dc.Range.END - 1, dc.Range.END - 1).Insertafter "Diagnosen:" & vbCrLf
  dc.Range(dc.paragraphs.Last.Previous.Range.Start, dc.paragraphs.Last.Previous.Range.END - 1).bold = True
  dc.Range(dc.paragraphs.Last.Previous.Range.Start, dc.paragraphs.Last.Previous.Range.END - 1).Underline = 1 ' wdUnderlineSingle
  dc.Range(dc.Range.END - 1, dc.Range.END - 1).Insertafter gesD
- myFrag rsAnam, "SELECT * FROM `anamnesebogen` WHERE pat_id = " & Pat_id
- docName = sverz + rsAnam!Nachname & " " & rsAnam!Vorname & ", PID " & rsAnam!Pat_id & ", DMP-Daten vom " + Format$(Now, "DD/MM/YY hh.mm.ss") & IIf(Adressat <> "" And Not IsNull(Adressat), " für " & Adressat, "") & IIf(LenB(fax1) = 0, vNS, " an Fax " & fax1) & ".doc"
  dc.SaveAs Filename:=REPLACE(REPLACE$(docName, "/", vNS), "\'", "'")
  dc.Close
 '  .Visible = True
@@ -4382,7 +4424,7 @@ vorgetword:
 '  .Application.WindowState = wdWindowStateMaximize
 '  .Activate
 #End If ' wordalt
- 
+ Ausgeb ("DMP-Doku erstellt: " & docName)
  do_DMPAusgebStandAlone = docName
  Exit Function
 fehler:
@@ -4498,13 +4540,13 @@ Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "Last
 End Select
 End Function ' GesName
 
-Function dtyp$(Inh$)
+Function DTyp$(Inh$)
 Select Case LCase$(Inh)
 '1','2','-','?','s' = sekundär,'g' = Gestationsdiabetes, 'p' = pathologische Glucosetoleranz oder gestörte Nüchternglucose
- Case "s":  dtyp = "sekundär"
- Case "g": dtyp = "Gestationsdiabetes"
- Case "p": dtyp = "'pathologische Glucosetoleranz oder gestörte Nüchternglucose'"
- Case Else: dtyp = Inh
+ Case "s":  DTyp = "sekundär"
+ Case "g": DTyp = "Gestationsdiabetes"
+ Case "p": DTyp = "'pathologische Glucosetoleranz oder gestörte Nüchternglucose'"
+ Case Else: DTyp = Inh
 End Select
 End Function ' dtyp
 
@@ -4552,6 +4594,7 @@ Function TabPr(s1, s2)
 End Function ' TabPr(S1, S2)
 
 'obpositiv
+' in DMPString
 Function obPosi(s) As Boolean
  If IsNull(s) Then
   obPosi = False
@@ -4562,8 +4605,9 @@ Function obPosi(s) As Boolean
   SStr = s
   obPosi = Not obNein(SStr)
   If obPosi Then If SStr = "?" Then obPosi = False
- End If
+ End If ' isnull(s) else else
 End Function ' obPosi(S) AS Boolean
+
 Public Function neuTher()
  Dim rNa As New ADODB.Recordset
  Call Lese.ProgStart
@@ -4581,7 +4625,7 @@ End Function ' neuTher()
 ' aufgerufen in DMPString, Epikrise (2x) und Labordateianzeig
 Function TherAuskunft(ByVal Pat_id$, ByVal obanf%, Optional ByRef insz%, Optional ByVal VorDat As Date, _
  Optional ByRef obIns As Boolean, Optional ByRef obAnal As Boolean, Optional ByRef obGlib As AntidiabMedType, _
- Optional ByRef obMetf As AntidiabMedType, Optional ByRef obGlucI As AntidiabMedType, _
+ Optional ByRef obmetf As AntidiabMedType, Optional ByRef obGlucI As AntidiabMedType, _
  Optional ByRef obSHGlin As AntidiabMedType, Optional ByRef obGlit As AntidiabMedType, _
  Optional ByRef obDpp4 As AntidiabMedType, Optional ByRef obGlp1 As AntidiabMedType, _
  Optional ByRef obSglt2 As AntidiabMedType, Optional ByRef obSonstAD As AntidiabMedType, _
@@ -4628,7 +4672,7 @@ Function TherAuskunft(ByVal Pat_id$, ByVal obanf%, Optional ByRef insz%, Optiona
   If Qmax <> "" Then
    Call MedPlanNr(Pat_id, True, , , nr:=MPNr(i)) ' dann die übrigen Variablen hier jeweils neu befüllen
   End If
-  obGlib = adnein: obMetf = adnein: obGlucI = adnein: obSHGlin = adnein: obGlit = adnein: obDpp4 = adnein: obGlp1 = adnein: obSglt2 = adnein: obSonstAD = adnein
+  obGlib = adnein: obmetf = adnein: obGlucI = adnein: obSHGlin = adnein: obGlit = adnein: obDpp4 = adnein: obGlp1 = adnein: obSglt2 = adnein: obSonstAD = adnein
   obIns = 0: obAnal = 0: obHMG = 0: obAntihyp = 0: obACEH = 0: obBetabl = 0: obThro = 0
   insz = 0
   obNIns = 0
@@ -4656,7 +4700,7 @@ Function TherAuskunft(ByVal Pat_id$, ByVal obanf%, Optional ByRef insz%, Optiona
      If Not IsNull(raMa!j_antikoag) Then If raMa!j_antikoag <> 0 Then obAntikoag = True ' Bei Marcumar steht meist keine Dosierung drin
      If DosH > 0 Then
       If Not IsNull(raMa!j_glib) Then If raMa!j_glib <> 0 Then obGlib = adja
-      If Not IsNull(raMa!j_Metf) Then If raMa!j_Metf <> 0 Then obMetf = adja
+      If Not IsNull(raMa!j_Metf) Then If raMa!j_Metf <> 0 Then obmetf = adja
       If Not IsNull(raMa!j_GlucI) Then If raMa!j_GlucI <> 0 Then obGlucI = adja
       If Not IsNull(raMa!j_SHGlin) Then If raMa!j_SHGlin <> 0 Then obSHGlin = adja
       If Not IsNull(raMa!j_Glit) Then If raMa!j_Glit <> 0 Then obGlit = adja
@@ -4702,7 +4746,7 @@ Function TherAuskunft(ByVal Pat_id$, ByVal obanf%, Optional ByRef insz%, Optiona
       Else
        If obGlp1 = adja Then
         Thfakt = glp1
-       ElseIf obGlib = adja Or obMetf = adja Or obGlucI = adja Or obSHGlin = adja Or obGlit = adja Or obDpp4 = adja Or obSglt2 = adja Or obSonstAD = adja Then
+       ElseIf obGlib = adja Or obmetf = adja Or obGlucI = adja Or obSHGlin = adja Or obGlit = adja Or obDpp4 = adja Or obSglt2 = adja Or obSonstAD = adja Then
         Thfakt = OAD
        Else
         If DT = "1" Then
@@ -4715,7 +4759,7 @@ Function TherAuskunft(ByVal Pat_id$, ByVal obanf%, Optional ByRef insz%, Optiona
      Case 1
       If obGlp1 = adja Then
        Thfakt = glp1ins
-      ElseIf obGlib = adja Or obMetf = adja Or obGlucI = adja Or obSHGlin = adja Or obGlit = adja Or obDpp4 = adja Or obSglt2 = adja Or obSonstAD = adja Then
+      ElseIf obGlib = adja Or obmetf = adja Or obGlucI = adja Or obSHGlin = adja Or obGlit = adja Or obDpp4 = adja Or obSglt2 = adja Or obSonstAD = adja Then
        Thfakt = komb
       Else
        Thfakt = ct
@@ -4913,11 +4957,11 @@ Function PulsParse$(Feld, Optional repath As Boolean, Optional lipath As Boolean
 End Function ' PulsParse
 
 Function tfeld$(s)
-If IsNull(s) Then
- tfeld = vNS
-Else
- tfeld = s
-End If
+ If IsNull(s) Then
+  tfeld = vNS
+ Else
+  tfeld = s
+ End If ' isnull(s) else
 End Function ' TFeld$(S)
 
 Function obMonPath(Feld, rep%, lip%)
@@ -4979,7 +5023,7 @@ li = Trim$(li)
 End Function ' SensSplit(SensStrg, re$, li$)
 
 ' in Epikrise, rrpruef und DMPString
- Public Function GetPrRR$(rsAnahier As ADODB.Recordset, RRsyst%, RRdiast%, Optional obdiastkorr% = 0)
+ Public Function GetPrRR$(ByVal pid$, rsAnahier As ADODB.Recordset, RRsyst%, RRdiast%, Optional obdiastkorr% = 0)
  '  Dim rrr AS DAO.Recordset
 '  SET rrr = TabÖff("RR", "Auswahl")
 '  rrr.Seek "=", CStr(rs!Pat_id)
@@ -4988,17 +5032,21 @@ End Function ' SensSplit(SensStrg, re$, li$)
 '  rarr.Open "SELECT * FROM rr WHERE pat_id = " & rsAnahier!Pat_id & " ORDER BY zeitpunkt DESC", DBCn, adOpenDynamic, adLockReadOnly
   Dim rarr As New ADODB.Recordset
 '  rarr.Open "SELECT rs,rd FROM (SELECT rrsyst(rr) rs, rrdiast(rr) rd, zeitpunkt FROM rr WHERE Pat_id = " & rsAnahier!Pat_id & ") i WHERE rs<>0 AND rd<>0 ORDER BY zeitpunkt DESC", DBCn, adOpenDynamic, adLockReadOnly
-  myFrag rarr, "SELECT rs,rd FROM (SELECT rrsyst(rr) rs, rrdiast(rr) rd, zeitpunkt FROM rr WHERE Pat_id = " & rsAnahier!Pat_id & ") i WHERE rs<>0 AND rd<>0 ORDER BY zeitpunkt DESC"
+  myFrag rarr, "SELECT rs,rd FROM (SELECT rrsyst(rr) rs, rrdiast(rr) rd, zeitpunkt FROM rr WHERE Pat_id = " & pid & ") i WHERE rs<>0 AND rd<>0 ORDER BY zeitpunkt DESC"
   If rarr.EOF Then
    Set rarr = Nothing
 '   rarr.Open "SELECT rs,rd FROM (SELECT rrsyst(rr) rs, rrdiast(rr) rd, zeitpunkt FROM rr WHERE Pat_id = " & rsAnahier!Pat_id & ") i WHERE rs<>0 ORDER BY zeitpunkt DESC", DBCn, adOpenDynamic, adLockReadOnly
-   myFrag rarr, "SELECT rs,rd FROM (SELECT rrsyst(rr) rs, rrdiast(rr) rd, zeitpunkt FROM rr WHERE Pat_id = " & rsAnahier!Pat_id & ") i WHERE rs<>0 ORDER BY zeitpunkt DESC"
+   myFrag rarr, "SELECT rs,rd FROM (SELECT rrsyst(rr) rs, rrdiast(rr) rd, zeitpunkt FROM rr WHERE Pat_id = " & pid & ") i WHERE rs<>0 ORDER BY zeitpunkt DESC"
   End If
   If Not rarr.BOF Then
    RRsyst = rarr!rs
    RRdiast = rarr!rD
    GetPrRR = RRsyst & "/" & RRdiast & " mm Hg"
   Else
+   If rsAnahier.State = 0 Then
+    Set rsAnahier = Nothing
+    myFrag rsAnahier, "SELECT * FROM anamnesebogen WHERE pat_id = " & pid, adOpenStatic
+   End If
    With rsAnahier
 '    IF Not rarr.EOF THEN
 '     GetPrRR = rarr!RR & IIf(InStrB(rarr!RR, "mm Hg") = 0 AND InStrB(rarr!RR, "mmHg") = 0, " mm Hg", "") + " (" + Format$(rarr!Zeitpunkt, "DD.MM.YY") + ")"
@@ -5679,7 +5727,38 @@ Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "Last
  Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
  Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
 End Select
- End Function ' doTabakStAlt
+End Function ' doTabakStAlt
+
+Function sonz$(Quelle$)
+ Dim i&, ZS$, bz$, bqb$, bq%
+ On Error GoTo fehler
+ For i = 1 To Len(Quelle)
+  bqb = Mid$(Quelle, i, 1)
+'  bq = AscW(bqb)
+  Select Case bqb
+   Case "&": bz = "&amp;"
+   Case """": bz = "&quot;"
+   Case "'": bz = "&#039;"
+   Case "<": bz = "&lt;"
+   Case ">": bz = "&gt;"
+   Case Else: bz = bqb
+  End Select
+  sonz = sonz + bz
+ Next i
+ Exit Function
+fehler:
+ Dim AnwPfad$
+#If VBA6 Then
+ AnwPfad = CurrentDb.name
+#Else
+ AnwPfad = App.path
+#End If
+ Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in ZSUh/" + AnwPfad)
+  Case vbAbort: Call MsgBox("Höre auf"): ProgEnde
+  Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
+  Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
+ End Select
+End Function ' sonz
  
 Function zsuh$(Quelle$)
  Dim i&, ZS$, bz$, bqb$, bq%
@@ -5693,11 +5772,11 @@ Function zsuh$(Quelle$)
       bz = bqb
    Case 128: bz = "â‚¬" ' Chr(&HE2) & Chr(&H82) & Chr(&HAC) ' €
    Case 129: bz = Chr$(&HC2) & Chr$(&H81)
-   Case 130: bz = "â€š"
-   Case 131: bz = "Æ’"
-   Case 132: bz = "â€ž"
-   Case 133: bz = "â€†"
-   Case 134: bz = "â€ "
+   Case 130: bz = "â€š" ' ‚
+   Case 131: bz = "Æ’"  ' ƒ
+   Case 132: bz = "â€ž" ' „
+   Case 133: bz = "â€†" ' …
+   Case 134: bz = "â€ " '
    Case 135: bz = "â€¡"
    Case 136: bz = "Ë†"
    Case 137: bz = "â€°"

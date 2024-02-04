@@ -672,6 +672,8 @@ Function GesLies(frm As Lese, BDTDatei$, BDTName$, EinlAb&, EinlBis&, obLaborDir
 ' Dim rAdo As New Adodb.Recordset
 ' Dim rs As New Adodb.Recordset
  Dim altpatg$ ' letzter Patient aus geslies, kommt vor in: Geslies' , doeinles
+ altpatg = "-1"
+ Dim neuPat$
  
  Dim ltxtS As New CString 'letzter Text
  Dim tx1S As New CString, tx2S As New CString ' Eingelesener Text aus BDT (324), aus frm.dlg.LDatei
@@ -689,7 +691,6 @@ Function GesLies(frm As Lese, BDTDatei$, BDTName$, EinlAb&, EinlBis&, obLaborDir
  Dim Cpt$, i&
  Dim Tm1!, Tm2!, Dauer!, DauerZ&
  Dim rsinl As New ADODB.Recordset
- altpatg = "-1"
  On Error GoTo fehler
  
  If IsNumeric(frm.GesBytes) Then GesBytes = frm.GesBytes
@@ -765,7 +766,6 @@ Function GesLies(frm As Lese, BDTDatei$, BDTName$, EinlAb&, EinlBis&, obLaborDir
   Dim aktdat As Date, aktDatD As Date ' Aktualisierungzeitpunkt / -datum (BDT-Felder 5000 und 6200)
   Dim fallzahl& ', Zahl der verarbeiteten Fälle
 '  Dim obVorspannVorbei%
-  Dim neuPat$
 '  Dim obAuslassen% ' Variable nicht mit obVorspannvorbei identisch setzen, damit auch bei den ausgelassenen Patienten lfdnr hochgezählt werden kann
   Dim aktPatAusg As New CString ' aktuelle Patientendaten für Ausgabe
   Dim spos& ' für seek
@@ -1043,7 +1043,7 @@ Function GesLies(frm As Lese, BDTDatei$, BDTName$, EinlAb&, EinlBis&, obLaborDir
     If frm.dlg.obVglMitLetzterEinlesung <> 0 And Not obHausBesuch Then If obSchluss Then Exit Do
     If BrichAb Then
      Exit Do
-    End If
+    End If ' BrichAb
    End If ' frm.dlg.obVglMitLetzterEinlesung = 0 OR obHausBesuch OR Steuer <> D2Weiter THEN
    
    If frm.dlg.obVglMitLetzterEinlesung <> 0 And Not obHausBesuch Then ' wenn Vergleich mit letzter Einlesung
@@ -1147,8 +1147,8 @@ Function GesLies(frm As Lese, BDTDatei$, BDTName$, EinlAb&, EinlBis&, obLaborDir
   Call ForeignYes1
 #End If
 #If Not thaalt Then
-'Shell "ssh root@linux1 mysql --defaults-extra-file=~/.mysqlpwd quelle -e'CALL fuellThaP(" & CStr(rNa(0).Pat_id) & ")'", vbMaximizedFocus
-'rufauf "c:\windows\system32\openssh\ssh.exe", "root@linux1 mysql --defaults-extra-file=~/.mysqlpwd quelle -e'CALL fuellThaP(" & CStr(rNa(0).Pat_id) & ")'", 1, "c:\windows\system32\openssh\", -1
+'Shell "ssh root@" & LiName & " mysql --defaults-extra-file=~/.mysqlpwd quelle -e'CALL fuellThaP(" & CStr(rNa(0).Pat_id) & ")'", vbMaximizedFocus
+'rufauf "c:\windows\system32\openssh\ssh.exe", "root@" & LiName & " mysql --defaults-extra-file=~/.mysqlpwd quelle -e'CALL fuellThaP(" & CStr(rNa(0).Pat_id) & ")'", 1, "c:\windows\system32\openssh\", -1
 'Debug.Print rNa(0).Pat_id
 ' 22.10.22: führt bei Aufruf über Ado zumindest bis zur Mariadb-Version 10.9 immer wieder zum Server-Crash, s.ähnliche Bug-Hinweise früherer Versionen
 'syscmd 4, "Bestimme Therapiearten für " & IIf(pidsftha = "''", "alle Patienten", pidsftha)
@@ -1156,7 +1156,7 @@ Function GesLies(frm As Lese, BDTDatei$, BDTName$, EinlAb&, EinlBis&, obLaborDir
 '#If mitfensterges Then
 '' 29.8.23: würde gehen
 '' hier kann nötig sein:  innodb_lock_wait_timeout=200 in my.cnf
-'  rufauf "ssh", "root@linux1 mariadb --defaults-extra-file=~/.mysqlpwd quelle -e'CALL fuellThaP('\'" & pidsftha & "'\'')'", 2, "c:\windows\system32\openssh\", -1, 0
+'  rufauf "ssh", "root@" & LiName & " mariadb --defaults-extra-file=~/.mysqlpwd quelle -e'CALL fuellThaP('\'" & pidsftha & "'\'')'", 2, "c:\windows\system32\openssh\", -1, 0
 '#Else
 '  Call TheraErmitt(pidsftha & "'")
 '#End If
@@ -1321,7 +1321,7 @@ Function GetMed(lang$, Einrück%) As CString ' mit Einrück=0 in doMedklassT, THAf
   If lzpos > 0 Then
    links = Left$(GetMed, lzpos - 1)
    Select Case links
-    Case "ACCU", "ACCU-CHEK", "HUMALOG", "LIPROLOG", "INSUMAN", "BERLINSULIN", "HUMINSULIN", "INSULIN" ' ,"INSULIN RATIO","INSULIN HUMINSULIN","INSULIN HM","INSULIN BRAUN RATIO","INSULIN BBM RATIO","INSULIN B.BRAUN","INSULIN B.","INSULIN B"
+    Case "ACCU", "ACCU-CHEK", "LYUMJEV", "HUMALOG", "LIPROLOG", "INSUMAN", "BERLINSULIN", "HUMINSULIN", "INSULIN" ' ,"INSULIN RATIO","INSULIN HUMINSULIN","INSULIN HM","INSULIN BRAUN RATIO","INSULIN BBM RATIO","INSULIN B.BRAUN","INSULIN B.","INSULIN B"
      lzpos = GetMed.Instr(" ", 1 + MAXvb(Len(links) + 1, Einrück))
      While GetMed.Mid(lzpos, 1) = " " And lzpos <= GetMed.length: lzpos = lzpos + 1: Wend
 '     links = Left$(GetMed, lzpos - 1)
@@ -1671,11 +1671,11 @@ End Function ' thtest
 Function rufThFestleg(Pat_id&)
  syscmd acSysCmdSetStatus, "ermittle und speichere Therapiearten für Pat. " & Pat_id
 #If Not thaalt Then
- 'RunCommandLine ("ssh root@linux1 mysql --defaults-extra-file=~/.mysqlpwd quelle -e'CALL fuellThaP(" & CStr(Pat_id) & ")'")
+ 'RunCommandLine ("ssh root@" & LiName & " mysql --defaults-extra-file=~/.mysqlpwd quelle -e'CALL fuellThaP(" & CStr(Pat_id) & ")'")
 ' 22.10.22: führt bei Aufruf über Ado zumindest bis zur Mariadb-Version 10.9 immer wieder zum Server-Crash, s.ähnliche Bug-Hinweise früherer Versionen
 #Const mitfensterr = False
 #If mitfensterr Then
- rufauf "ssh", "root@linux1 mysql --defaults-extra-file=~/.mysqlpwd quelle -e'CALL fuellThaP(" & CStr(Pat_id) & ")'", 2, "c:\windows\system32\openssh\", -1, 0
+ rufauf "ssh", "root@" & LiName & " mysql --defaults-extra-file=~/.mysqlpwd quelle -e'CALL fuellThaP(" & CStr(Pat_id) & ")'", 2, "c:\windows\system32\openssh\", -1, 0
 #Else
  Call TheraErmitt(CStr(Pat_id))
 #End If
@@ -2115,7 +2115,7 @@ Public Function theraktakt() ' Therapiearten auf einmal aktualisieren 11.7.10, s
 ' 22.10.22: myEFrag "CALL fuellThaP(0)" führt bei Aufruf über Ado zumindest bis zur Mariadb-Version 10.9 immer wieder zum Server-Crash, s.ähnliche Bug-Hinweise früherer Versionen
 #Const mitfenstert = False
 #If mitfenstert Then
- rufauf "ssh", "root@linux1 mysql --defaults-extra-file=~/.mysqlpwd quelle -e'CALL fuellThaP(0)'", 2, "c:\windows\system32\openssh\", -1, 0
+ rufauf "ssh", "root@" & LiName & " mysql --defaults-extra-file=~/.mysqlpwd quelle -e'CALL fuellThaP(0)'", 2, "c:\windows\system32\openssh\", -1, 0
 #Else
  Call TheraErmitt(0)
 #End If
@@ -4720,7 +4720,7 @@ nachFehler:
 #Const mitfensterget = False
 #If mitfensterget Then
 ' 29.8.23: geht (noch) nicht
- rufauf "ssh", "root@linux1 mysql --defaults-extra-file=~/.mysqlpwd quelle -e'CALL getfeldinhvw('" & eing & "'," & AktByte & ")' >liebevollkuh", 2, "c:\windows\system32\openssh\", , 0
+ rufauf "ssh", "root@" & LiName & " mysql --defaults-extra-file=~/.mysqlpwd quelle -e'CALL getfeldinhvw('" & eing & "'," & AktByte & ")' >liebevollkuh", 2, "c:\windows\system32\openssh\", , 0
 ' ausg = DBCn.Execute("SELECT @vw").Fields(0)
  ausg = myEFrag("SELECT @vw").Fields(0)
 #Else
@@ -5012,7 +5012,7 @@ syscmd 4, "Bestimme Therapiearten für " & CStr(rNa(0).Pat_id)
 #If mitfensterges Then
 ' 29.8.23: würde gehen
 ' hier kann nötig sein:  innodb_lock_wait_timeout=200 in my.cnf
-  rufauf "ssh", "root@linux1 mariadb --defaults-extra-file=~/.mysqlpwd quelle -e'CALL fuellThaP(" & CStr(rNa(0).Pat_id) & ")'", 2, "c:\windows\system32\openssh\", -1, 0
+  rufauf "ssh", "root@" & LiName & " mariadb --defaults-extra-file=~/.mysqlpwd quelle -e'CALL fuellThaP(" & CStr(rNa(0).Pat_id) & ")'", 2, "c:\windows\system32\openssh\", -1, 0
 #Else
   Call TheraErmitt(CStr(rNa(0).Pat_id))
 #End If
@@ -5042,9 +5042,9 @@ vers1:
   Set DBCn = Nothing
   Call DBCnOpen
   Resume
- Else
+ Else ' Err.Number = -2147467259 Then
   Resume alteMethode
- End If
+ End If ' Err.Number = -2147467259 Then else
 vorformsp:
  Set DBCn = Nothing
  Call DBCnOpen

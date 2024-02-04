@@ -39,7 +39,7 @@ End Enum
 Dim NKrStr$(), Nflag$(), DSi() As DSiTyp ' für KRAdd
 #Const mitab = True ' auch noch in Lese
 #If mitab Then
-'Public Const CStrMy$ = "DRIVER={MySQL ODBC 5.1 Driver};server=linux1;user=praxis;pwd=***REMOVED***;database="
+'Public Const CStrMy$ = "DRIVER={MySQL ODBC 5.1 Driver};server=" & LiName & ";user=praxis;pwd=***REMOVED***;database="
 Private CStrMy$
 #End If
 #Const debu = 0 ' noch in Importiert
@@ -209,8 +209,13 @@ Function therinit()
  "  WHERE form_abk IN ('rp','lar','prp','plar') AND feld IN ('medikament','txtMedKey','VerordnungsZeile') AND feldinh RLIKE 'fine|Nad|micro fi|[0-9] {0,1}mm|lantus|tresiba|levemir|basal|protaphan|semglee|abasaglar|semilente' AND NOT feldinh RLIKE 'fine {0,1}touch|Katheter|Paradigm|Mio|Flexl|Tender|d li|link|autosoft|Minimed|Sohlen|Oberarm|Fußbett|Schuh|Wanderh|Lancets fine|easy(-release| set)|quick {0,1}set|mmHg|insight|mylife|inset|insulinset|infusion|polster|szinti|dana|fexo|enadura|infektionsnadeln|port|magnes|medtronic|sicherheitslan|omnipod|orbisoft|orbit soft|nadellanz|schlauch|sure|tamponade|trusteel|varisoft|knoten|fine point|flex link|microlet fine|verkürz|vasofix|truesteel|sterile lanzetten|stahlnad|[68]0 {0,1}cm|alkohol|thin lanc|haut|TESTSTR|variosoft|Nadellänge|^BD Micro Fine Lancetten G 33 200 Stück$'" & vbCrLf & _
  "  AND (inpid='0' OR x.pat_id IN (inpid))" & vbCrLf & _
  " UNION -- 4) Insulinpläne" & vbCrLf & _
- " SELECT pat_id pid,-3 MPNr,qdm zp,qdm bis,'ICT' Thart, MID(NAME,p) Gru,-2 ia,x.absPos,x.StByte,0 FROM (SELECT IF(p1>p2,p1,p2) p, b.* FROM (SELECT INSTR(b.name,'insulin') p1, INSTR(b.name,'spritz') p2, b.* FROM briefe b) b) x WHERE name RLIKE '(insulin|spritz).*(plan|schema|tabelle)'" & vbCrLf & _
+ " (SELECT pat_id pid,-3 MPNr,qdm zp,qdm bis,'ICT' Thart, MID(NAME,p) Gru,-2 ia,x.absPos,x.StByte,0 FROM (SELECT IF(p1>p2,p1,p2) p, b.* FROM (SELECT INSTR(b.name,'insulin') p1, INSTR(b.name,'spritz') p2, b.* FROM briefe b) b) x WHERE name RLIKE '(insulin|spritz).*(plan|schema|tabelle)'" & vbCrLf & _
  "  AND (inpid='0' OR x.pat_id IN (inpid))" & vbCrLf & _
+ " UNION --  Insulinpläne als Formulare, angenommen wird mind. 14 Tage Gültigkeit für Therapieart" & vbCrLf & _
+ " SELECT DISTINCT pat_id pid,-3 MPNr,zeitpunkt zp,zeitpunkt + INTERVAL 14 DAY bis,'ICT' Thart, CONCAT('Insulinplan ',(SELECT MAX(feldinh) FROM formular WHERE foid=x.foid AND feld='FAktuellesDatum')) Gru,-2 ia,1 absPos,1 StByte,0" & vbCrLf & _
+ " FROM formular x WHERE feld='Eingabe1' AND (Nr = 3 AND Feldnr = 2) AND (inpid='0' OR x.pat_id IN (inpid))" & vbCrLf & _
+ " GROUP BY pid, zp) " & vbCrLf
+ psql(3) = psql(3) & _
  " UNION -- 5) Medikamentenplan" & vbCrLf & _
  "  SELECT Pid,MPNr,Zp,Zp bis,Thart,gru,ia,abspos,stbyte,feldnr FROM (" & vbCrLf & _
  "   SELECT Pid,MPNr,Zp,Zp bis" & vbCrLf
@@ -5983,10 +5988,11 @@ Function getHausarzt(pid&, infos$()) ' Bildet aus den Infos in `namen` und `hare
          infos(j, i) = IIf(rs1.Fields(j) = 0, vNS, "X")
         Case Else
          On Error Resume Next
+        
          infos(j, i) = rs1.Fields(j)
          On Error GoTo fehler
-       End Select
-       End If
+       End Select ' j
+       End If ' j <> 10
       Next j
       infos(10, i) = fnHA(i)
      End If ' Not rs1.EOF THEN
@@ -7135,7 +7141,7 @@ End Function ' doBriefeBerichtspflicht
 'lfaelle: SELECT *
 'FROM `faelle` INNER JOIN `SELECT MIN(pat_id) AS pid, MAX(bhfb) AS bb FROM `faelle` GROUP BY pat_id`. AS sel ON (`faelle`.`bhfb`=sel.bb) AND (`faelle`.`pat_id`=sel.pid)
 'ORDER BY `pat_id`;
-' Vorlage: getDokPfad("Vorlagen") + "\AccessBrief.dot" ' \\linux1\turbomed\vorlagen\AccessBrief.dot (s.u.)
+' Vorlage: getDokPfad("Vorlagen") + "\AccessBrief.dot" ' xVerz & \vorlagen\AccessBrief.dot (s.u.)
 #If mitab Then
 Public Sub tu_brief(frm As Form)
  ' frm.anaRS!Pat_id
@@ -7303,21 +7309,21 @@ Public Sub tubriefStandalone(pid&, obStumm%, Optional Zielverz$, Optional Vorlag
   If Not nichtherricht Then
    Dim oSh As New IWshShell_Class
 '  SET oSh = New IWshShell_Class
-   oSh.rUn "cmd /c ""xcopy v:\exp8\ v:\exp9\ /s /y /h /r /k /c && move v:\exp9\word\media\image" & VBuch & ".jpeg v:\exp9\word\media\1.jpeg && del v:\exp9\word\media\image*.jpeg && move v:\exp9\word\media\1.jpeg v:\exp9\word\media\image1.jpeg""", 0, True
-   Open "\\linux1\daten\down\exp9\docProps\app.xml" For Output As #51
+   oSh.rUn "cmd /c ""xcopy " & vVerz & "exp8\ " & vVerz & "exp9\ /s /y /h /r /k /c && move " & vVerz & "exp9\word\media\image" & VBuch & ".jpeg " & vVerz & "\exp9\word\media\1.jpeg && del " & vVerz & "exp9\word\media\image*.jpeg && move " & vVerz & "exp9\word\media\1.jpeg " & vVerz & "exp9\word\media\image1.jpeg""", 0, True
+   Open vVerz & "exp9\docProps\app.xml" For Output As #51
    Print #51, app1 & Vorlage & app2
    Close #51
-   Open "\\linux1\daten\down\exp9\docProps\core.xml" For Output As #51
+   Open vVerz & "exp9\docProps\core.xml" For Output As #51
    Print #51, core1 & Environ("username") & core2 & Environ("username") & core3 & Format(Now(), "YYYY-mm-ddThh:MM:ssZ") & core4 & Format(Now(), "YYYY-mm-ddThh:MM:ssZ") & core5
    Close #51
-   Open "\\linux1\daten\down\exp9\word\_rels\settings.xml.rels" For Output As #51
+   Open vVerz & "exp9\word\_rels\settings.xml.rels" For Output As #51
    Print #51, settings1 & "c:\turbomed\vorlagen\" & Vorlage & settings2
    Close #51
   ' in .run wird das " durch "" escaped, in powershell durch \"
-'  oSh.run "powershell ""$dt=\""v:\exp9\word\endnotes.xml\"",\""v:\exp9\word\footnotes.xml\"";$dth=\""v:\exp9\word\header1.xml\"";$nrd=\""\\linux1\daten\eigene dateien\programmierung\dateilesen\dzahl.txt\"";$nr=[int](get-content -path $nrd)+1;set-content -path $nrd $nr;$repl='${1}'+'{0:X8}' -f $nr+'$2';$qla='(.*w:rsidRDefault=\"")[0-9A-F]*(\""><w:';$qls=$qla+'r><w:';foreach ($dta in $dt){((get-content -path $dta) -replace \""${qls}s.*)\"",$repl) -replace \""${qls}c.*)\"",$repl|set-content -path $dta;};(get-content -path $dth)|foreach-object {$_ -replace \""${qla}p.*)\"",$repl}|set-content -path $dth;""", 0, True
+'  oSh.run "powershell ""$dt=\""v:\exp9\word\endnotes.xml\"",\""v:\exp9\word\footnotes.xml\"";$dth=\""v:\exp9\word\header1.xml\"";$nrd=\""\\" & LiName & "\daten\eigene dateien\programmierung\dateilesen\dzahl.txt\"";$nr=[int](get-content -path $nrd)+1;set-content -path $nrd $nr;$repl='${1}'+'{0:X8}' -f $nr+'$2';$qla='(.*w:rsidRDefault=\"")[0-9A-F]*(\""><w:';$qls=$qla+'r><w:';foreach ($dta in $dt){((get-content -path $dta) -replace \""${qls}s.*)\"",$repl) -replace \""${qls}c.*)\"",$repl|set-content -path $dta;};(get-content -path $dth)|foreach-object {$_ -replace \""${qla}p.*)\"",$repl}|set-content -path $dth;""", 0, True
    Dim dzahl$
-   dzahl = "\\linux1\daten\eigene dateien\programmierung\dateilesen\dzahl.txt"
-   oSh.rUn "powershell ""$vz=\""\\linux1\daten\down\exp9\word\\\"";$dt=@($vz+\""endnotes.xml\"";$vz+\""footnotes.xml\"";$vz+\""document.xml\"";$vz+\""settings.xml\"");$anr=[string](get-content -path $dt[0]) -replace '.*w:rsidRDefault=\""([0-9A-F]*)\"".*','$1';$nrd=\""" & dzahl & "\"";$nr=[int](get-content -path $nrd)+1;set-content -path $nrd $nr;$nrs='{0:X8}' -f $nr;foreach ($dta in $dt){(get-content -path $dta) -replace $anr, $nrs|set-content -path $dta;};""", 0, True
+   dzahl = uVerz & "Programmierung\Dateilesen\dzahl.txt"
+   oSh.rUn "powershell ""$vz=\""" & vVerz & "exp9\word\\\"";$dt=@($vz+\""endnotes.xml\"";$vz+\""footnotes.xml\"";$vz+\""document.xml\"";$vz+\""settings.xml\"");$anr=[string](get-content -path $dt[0]) -replace '.*w:rsidRDefault=\""([0-9A-F]*)\"".*','$1';$nrd=\""" & dzahl & "\"";$nr=[int](get-content -path $nrd)+1;set-content -path $nrd $nr;$nrs='{0:X8}' -f $nr;foreach ($dta in $dt){(get-content -path $dta) -replace $anr, $nrs|set-content -path $dta;};""", 0, True
    Dim docid$
    Randomize
    docid = Right$("0000000" & Hex(Rnd * (16 ^ 7 - 1)), 7)
@@ -7329,13 +7335,13 @@ Public Sub tubriefStandalone(pid&, obStumm%, Optional Zielverz$, Optional Vorlag
    docid = docid & Right$("0000000" & Hex(Rnd * (16 ^ 7 - 1)), 7)
    Randomize
    docid = docid & Right$("0000000" & Hex(Rnd * (16 ^ 7 - 1)), 4)
-   oSh.rUn "powershell ""$dt=\""v:\exp9\word\settings.xml\"";$repl='${1}'+'" & docid & "'+'$2';$qla='(.*{)[0-9A-F-]*(}.*)';(get-content -path $dt) -replace $qla,$repl|set-content -path $dt;""", 0, True
+   oSh.rUn "powershell ""$dt=\""" & vVerz & "exp9\word\settings.xml\"";$repl='${1}'+'" & docid & "'+'$2';$qla='(.*{)[0-9A-F-]*(}.*)';(get-content -path $dt) -replace $qla,$repl|set-content -path $dt;""", 0, True
   
    donr = Right$("00000000" & Hex(ReadFile(dzahl)), 8)
-   Open "\\linux1\daten\down\exp9\word\header1.xml" For Output As #51
+   Open vVerz & "exp9\word\header1.xml" For Output As #51
    Print #51, header1 & donr & header2 & zuh(GName) & header3 & Format(Now(), "dd.mm.yy") & header4 & donr & header5
    Close #51
-   Open "\\linux1\daten\down\exp9\word\document.xml" For Output As #51
+   Open vVerz & "exp9\word\document.xml" For Output As #51
 '  If UBound(infos, 2) = 0 Then ReDim Preserve infos(UBound(infos, 1), 1)
 '  Print #51, zuh(doc1 & kopf0 & doc2 & donr & doc3 & donr & doc4 & donr & doc5 & donr & doc6 & donr & doc7 & donr & doc8 & donr & doc9 & Format(Now(), "dd.mm.yyyy") & doc10 & donr & doc11 & donr & doc11 & nr & doc12 & donr & doc13 & donr & doc14 & _
   IIf(infos(0, 0) = "Herr", "Herrn", infos(0, 0)) & doc15 & IIf(infos(0, 1) = "Herr", "Herrn", infos(0, 1)) & doc16 & nr & doc17 & infos(1, 0) & doc18 & infos(1, 1) & doc19 & nr & doc20 & infos(2, 0) & doc21 & infos(2, 1) & doc22 & nr & doc23 & nr & doc24 & infos(3, 0) & doc25 & infos(3, 1) & doc26 & nr & doc27 & nr & doc28 & nr & doc28 & nr & doc28 & nr & doc29 & _
@@ -7431,10 +7437,10 @@ Public Sub tubriefStandalone(pid&, obStumm%, Optional Zielverz$, Optional Vorlag
    Print #51, zsuh(ag.Value)
 '   Print #51, ConvertToUTF8(ag.Value)
    Close #51
-   If False Then FSO.CopyFile "\\linux1\daten\down\h\word\document.xml", "\\linux1\daten\down\exp9\word\document.xml"
-   oSh.rUn "powershell ""$vz=\""v:\exp9\word\\\"";$dt=@($vz+\""endnotes.xml\"";$vz+\""footnotes.xml\"";$vz+\""document.xml\"";$vz+\""settings.xml\"");$anr=[string](get-content -path $dt[0]) -replace '.*w:rsidRDefault=\""([0-9A-F]*)\"".*','$1';$nrd=\""" & dzahl & "\"";$nr=[int](get-content -path $nrd)+1;set-content -path $nrd $nr;$nrs='{0:X8}' -f $nr;foreach ($dta in $dt){(get-content -path $dta) -replace $anr, $nrs|set-content -path $dta;};""", 0, True
+   If False Then FSO.CopyFile vVerz & "h\word\document.xml", vVerz & "exp9\word\document.xml"
+   oSh.rUn "powershell ""$vz=\""" & vVerz & "exp9\word\\\"";$dt=@($vz+\""endnotes.xml\"";$vz+\""footnotes.xml\"";$vz+\""document.xml\"";$vz+\""settings.xml\"");$anr=[string](get-content -path $dt[0]) -replace '.*w:rsidRDefault=\""([0-9A-F]*)\"".*','$1';$nrd=\""" & dzahl & "\"";$nr=[int](get-content -path $nrd)+1;set-content -path $nrd $nr;$nrs='{0:X8}' -f $nr;foreach ($dta in $dt){(get-content -path $dta) -replace $anr, $nrs|set-content -path $dta;};""", 0, True
   End If ' nichtherricht
-  oSh.rUn "cmd /c """"c:\program files\7-zip\7z"" a -tzip -mm=deflate -mx9 -aoa -xr!*.swp """ & sverz & "\" & aname & "x"" \\linux1\daten\down\exp9\*""", 0, True
+  oSh.rUn "cmd /c """"c:\program files\7-zip\7z"" a -tzip -mm=deflate -mx9 -aoa -xr!*.swp """ & sverz & "\" & aname & "x"" " & vVerz & "exp9\*""", 0, True
 ' oSh.run "cmd /c """"c:\program files (x86)\microsoft office\root\office16\winword"" """ & sverz & aname & "x""""", 0, True
   oSh.rUn "cmd /c """"c:\program files\microsoft office\root\office16\winword"" """ & sverz & aname & "x""""", 0, True
  Else ' briefneu
@@ -7452,7 +7458,7 @@ Public Sub tubriefStandalone(pid&, obStumm%, Optional Zielverz$, Optional Vorlag
 neufestleg:
     Set dc = Nothing
     While dc Is Nothing
-     tpl = getDokPfad("Vorlagen") & "\" & Vorlage ' \\linux1\turbomed\vorlagen\AccessBrief.dot
+     tpl = getDokPfad("Vorlagen") & "\" & Vorlage ' xVerz & vorlagen\AccessBrief.dot
      On Error Resume Next
      Set dc = .documents.Add(Template:=tpl)
      On Error GoTo fehler
@@ -7874,10 +7880,10 @@ End Function ' zuh
 
 #If zutesten Then
 Function leseu()
- Const Datei$ = "v:\exp9\word\document.xml"
+ Const Datei$ = "exp9\word\document.xml"
  Dim zeile$
 ' Lese.ProgStart
- Open Datei For Input As #52
+ Open vVerz & Datei For Input As #52
  While Not EOF(52)
   Line Input #52, zeile
   If InStr(zeile, "besten") <> 0 Then
@@ -9378,7 +9384,7 @@ w2:
    End If ' flag(flDFS) Then else
    Epi = Epi + nzw
   End If ' rsAnam!obMBlAusgeh <> 0 Or Not mbl.BOF Then
-  Call GetPrRR(rsAnam, RRsyst, RRdiast)
+  Call GetPrRR(Pat_id, rsAnam, RRsyst, RRdiast)
   If diI("I10", Pat_id) Then
    Epi = Epi + nzw + "Blutdruckziel nach Leitlinien und ("
 '   Epi = Epi + "Für den Blutdruck gilt nach den aktuellen Leitlinien "
@@ -11474,7 +11480,7 @@ sql = sql & "   SET i=i+1;" & Chr$(13) & _
     "   WHEN inh RLIKE 'Janssen|Johnson' THEN SET erg='124';" & vbCrLf & _
     "   WHEN inh RLIKE 'Astra|Vaxzev' THEN SET erg='123';" & vbCrLf & _
     "   WHEN inh RLIKE 'Spikevax|Moderna' THEN SET erg='122';" & vbCrLf & _
-    "   WHEN inh RLIKE 'biontech|comirnaty|corminaty|cominarty|comiarty|coirnaty|cominary|comirnary|commirnaty|comirnarty|cominaty|comitnaty' THEN IF inh RLIKE ': [GH]' THEN SET erg='127'; ELSE SET erg='121'; END IF;" & vbCrLf & _
+    "   WHEN inh RLIKE 'biontech|comirnaty|corminaty|cominarty|comiarty|coirnaty|cominary|comirnary|commirnaty|comirnarty|cominaty|comitnaty' THEN IF inh RLIKE ': [GH]|: 23' THEN SET erg='127'; ELSE SET erg='121'; END IF;" & vbCrLf & _
     "   WHEN inh RLIKE 'Novavax' THEN SET erg='125';" & vbCrLf & _
     "   WHEN inh RLIKE 'Valneva' THEN SET erg='126';" & vbCrLf & _
     "   WHEN inh RLIKE 'VNR1M08G|Vit B12' THEN SET erg='199';" & vbCrLf & _
@@ -14888,7 +14894,7 @@ End Function ' asctest
 'Function zeigviews()
 ' Dim rv As New ADODB.Recordset, rCn As New ADODB.Connection, i%, stri$
 '' Call rCn.Open(CStrAcc & StACCDB)
-' CStrMy = "DRIVER={" & ODBCStr & "};server=linux1;user=praxis;pwd=...;database="
+' CStrMy = "DRIVER={" & ODBCStr & "};server=" & LiName & ";user=praxis;pwd=...;database="
 ' Call rCn.Open(CStrMy & "quelle")
 '' SET rV = rCn.OpenSchema(adSchemaViews)
 ' Set rv = rCn.OpenSchema(adSchemaTables)
@@ -14907,7 +14913,7 @@ End Function ' asctest
 'Function btest()
 ' Dim rv As ADODB.Recordset, rCn As New ADODB.Connection, i%, stri$, rAF&
 '' Call rCn.Open(CStrAcc & StACCDB)
-' CStrMy = "DRIVER={" & ODBCStr & "};server=linux1;user=praxis;pwd=...;database="
+' CStrMy = "DRIVER={" & ODBCStr & "};server=" & LiName & ";user=praxis;pwd=...;database="
 ' Call rCn.Open(CStrMy & "quelle")
 ' myFrag rv, "SELECT tkz,pat_id FROM `anamnesebogen` WHERE pat_id=2", adOpenStatic, rCn, adLockOptimistic
 ' rv!Tkz = 1
@@ -15228,7 +15234,7 @@ Function testthap(pids$)
 ' 22.10.22: führt bei Aufruf über Ado zumindest bis zur Mariadb-Version 10.9 immer wieder zum Server-Crash, s.ähnliche Bug-Hinweise früherer Versionen
 '#Const mitfensterther = True
 #If mitfensterther Then
- rufauf "ssh", "root@linux1 mysql --defaults-extra-file=~/.mysqlpwd quelle -e'CALL fuellThaP(" & pids & ")'", 2, "c:\windows\system32\openssh\", -1, 0
+ rufauf "ssh", "root@" & LiName & " mysql --defaults-extra-file=~/.mysqlpwd quelle -e'CALL fuellThaP(" & pids & ")'", 2, "c:\windows\system32\openssh\", -1, 0
 #Else
  Call TheraErmitt(pids)
 #End If
