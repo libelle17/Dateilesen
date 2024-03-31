@@ -783,7 +783,6 @@ Public Type LIUEZ
  telefon As String 'telefon varchar '
  fax As String 'fax varchar '
  KVNr As String 'kvnr varchar '
- aktdat As Date 'aktdat date '
  id As Long 'id int '
  Überschrift As String 'überschrift varchar '
  DBNr As String 'dbnr varchar '
@@ -1093,6 +1092,7 @@ Public roLL() As laborxleist
 Public roLi() As LIUEZ
 Public roAna() As Anamnesebogen
 
+' in Geslies(2x)
 Public Function Tinit()
  Static wdh%
  ReDim rAna(0)
@@ -1150,6 +1150,32 @@ Public Function doEntleer(frm As Lese, Tbl$)
  Call myEFrag(sql) ' ,,adAsyncExecute
  DoEvents
 End Function ' doEntleer
+
+' in Pat_loeschen_Click, doPatvonMO
+Public Sub LöschePat(pid&, Optional obAnzeig%)
+ Dim Tb, tbn, rAf&, ergeb$
+ On Error GoTo fehler
+ tbn = Array("namen", "faelle", "au", "briefe", "diagnosen", "dokumente", "eintraege", "forminhkopf", "kheinweis", "lbanforderungen", "laborneu", "leistungen", "medplan", "rezepteintraege", "rr", "kvnrue", "dmpreihe", "desktop", "usdm", "fuss", "ulcus", "vkgd", "sws")
+ For Each Tb In tbn
+  myEFrag "DELETE FROM `" & Tb & "` WHERE PAT_ID = " & pid, rAf
+  ergeb = ergeb & vbCrLf & rAf & " Sätze aus `" & Tb & "` gelöscht."
+ Next
+ If obAnzeig Then MsgBox ergeb
+ Debug.Print ergeb
+ Exit Sub
+fehler:
+ Dim AnwPfad$
+ #If VBA6 Then
+  AnwPfad = CurrentDb.name
+ #Else
+  AnwPfad = App.path
+ #End If
+ Select Case MsgBox("FNr: " + CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " & IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "aufgefangener Fehler in LöschePat/" + AnwPfad)
+  Case vbAbort: Call MsgBox(" Höre auf "): ProgEnde
+  Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
+  Case vbIgnore: Call MsgBox(" Setze fort "): Resume Next
+ End Select
+End Sub      ' LöschePat
 
 Public Function AllesLösch(frm As Lese)
  Dim ct&, rs As New ADODB.Recordset
@@ -1748,8 +1774,7 @@ sql:
 '   Call DBCn.Execute("SET GLOBAL sql_mode='STRICT_TRANS_TABLES'") ' NO_ENGINE_SUBSTITUTION
     myEFrag "SET GLOBAL sql_mode='STRICT_TRANS_TABLES'", , DBCn ' NO_ENGINE_SUBSTITUTION
 '   Call myEFrag(csql.Value,rAf)', , adAsyncExecute) ' wegen unzureichender Fehlerverarbeitung wieder ausrangiert 19.8.23
-'   Call DBCn.Execute(csql.Value, rAf) ', , adAsyncExecute)
-   Call myEFrag(csql.Value, rAf) ', , adAsyncExecute) ' wegen unzureichender Fehlerverarbeitung wieder ausrangiert 19.8.23
+   Call DBCn.Execute(csql.Value, rAf) ', , adAsyncExecute)
    If obForK Then
     Call ForeignYes0
     Call ForeignYes1
@@ -4600,16 +4625,16 @@ ErrDescr = Err.Description
 ErrNumber = Err.Number
 syscmd 4, "rFr(" & i & "/" & UBound(rFr) & "):   " & ErrDescr
 If ErrNumber = -2147217900 And ErrDescr Like "*Duplicate entry * for key 'PRIMARY'" Then
- Dim schlüssel$, pos&, iiru&, jjru&
+ Dim Schlüssel$, pos&, iiru&, jjru&
  pos = InStr(ErrDescr, "'")
- schlüssel = Mid$(ErrDescr, pos + 1, InStr(pos + 2, ErrDescr, "'") - pos - 1)
+ Schlüssel = Mid$(ErrDescr, pos + 1, InStr(pos + 2, ErrDescr, "'") - pos - 1)
 ' Debug.Print schlüssel
  For iiru = 1 To UBound(rFr)
-  If rFr(iiru).Foid = schlüssel Then
+  If rFr(iiru).Foid = Schlüssel Then
    If FoIDv = 0 Then FoIDv = myEFrag("SELECT (MAX(foid)+1) FROM forminhkopf", , DBCn).Fields(0) Else FoIDv = FoIDv + 1
    rFr(iiru).Foid = FoIDv
    For jjru = 1 To UBound(rFm)
-    If rFm(jjru).Foid = schlüssel Then rFm(jjru).Foid = FoIDv
+    If rFm(jjru).Foid = Schlüssel Then rFm(jjru).Foid = FoIDv
    Next jjru
    Exit For
   End If ' rFr(iiru).Foid = schlüssel Then
@@ -9739,15 +9764,13 @@ Public Function liuezSpeichern(SammelInsert%, BezfSp%)
  On Error GoTo fehler
  syscmd 4, pid & ": Speichere " & UBound(rLi) + 0 & " Sätze in `liuez`"
 ' sql0 = " INSERT " & sqlignore &  "INTO `liuez` (name,vorname,titelt," & _
-     "fachgruppe,strasse,plz,ort,telefon,fax,kvnr,aktdat,überschrift,dbnr," & _
-     "bstelle,anrede,tel1,tel2,tel3,tel4,fax1,fax2,fax3,email," & _
-     "zulg,arzttyp,gemmit,beme,dmpt2,dmpt1,geschlecht,titel,zusatz,ursp," & _
-     "aktzeit) VALUES
+     "fachgruppe,strasse,plz,ort,telefon,fax,kvnr,überschrift,dbnr,bstelle," & _
+     "anrede,tel1,tel2,tel3,tel4,fax1,fax2,fax3,email,zulg," & _
+     "arzttyp,gemmit,beme,dmpt2,dmpt1,geschlecht,titel,zusatz,ursp,aktzeit) VALUES
  Call csql0.AppVar(Array(" INSERT ", sqlIGNORE, " INTO `liuez` (name,vorname,titelt," & _
-     "fachgruppe,strasse,plz,ort,telefon,fax,kvnr,aktdat,überschrift,dbnr," & _
-     "bstelle,anrede,tel1,tel2,tel3,tel4,fax1,fax2,fax3,email," & _
-     "zulg,arzttyp,gemmit,beme,dmpt2,dmpt1,geschlecht,titel,zusatz,ursp," & _
-     "aktzeit)               VALUES"))
+     "fachgruppe,strasse,plz,ort,telefon,fax,kvnr,überschrift,dbnr,bstelle," & _
+     "anrede,tel1,tel2,tel3,tel4,fax1,fax2,fax3,email,zulg," & _
+     "arzttyp,gemmit,beme,dmpt2,dmpt1,geschlecht,titel,zusatz,ursp,aktzeit)          VALUES"))
 sql:
  csql.m_Len = 0
  For i = 1 To UBound(rLi)
@@ -9756,9 +9779,9 @@ sql:
    csql.Append csql0
   End If
   csql.AppVar Array("('", rLi(i).name, "','", rLi(i).Vorname, "','", rLi(i).titelt, "','", rLi(i).fachgruppe, "','", rLi(i).strasse, "','", rLi(i).plz, "','", rLi(i).ort, "','", rLi(i).telefon, "','", _
-   rLi(i).fax, "','", rLi(i).KVNr, "',", DatFor_k(rLi(i).aktdat), ",'", rLi(i).Überschrift, "','", rLi(i).DBNr, "','", rLi(i).BStelle, "','", rLi(i).anrede, "','", rLi(i).tel1, "','", _
-   rLi(i).tel2, "','", rLi(i).tel3, "','", rLi(i).tel4, "','", rLi(i).fax1, "','", rLi(i).fax2, "','", rLi(i).fax3, "','", rLi(i).email, "','", rLi(i).zulg, "','", rLi(i).arzttyp, "','", _
-   rLi(i).gemmit, "','", rLi(i).beme, "',", rLi(i).dmpt2, ",", rLi(i).dmpt1, ",'", rLi(i).geschlecht, "','", rLi(i).Titel, "','", rLi(i).zusatz, "','", rLi(i).ursp, "',", DatFor_k(rLi(i).AktZeit), ")")
+   rLi(i).fax, "','", rLi(i).KVNr, "','", rLi(i).Überschrift, "','", rLi(i).DBNr, "','", rLi(i).BStelle, "','", rLi(i).anrede, "','", rLi(i).tel1, "','", rLi(i).tel2, "','", rLi(i).tel3, "','", _
+   rLi(i).tel4, "','", rLi(i).fax1, "','", rLi(i).fax2, "','", rLi(i).fax3, "','", rLi(i).email, "','", rLi(i).zulg, "','", rLi(i).arzttyp, "','", rLi(i).gemmit, "','", rLi(i).beme, "',", _
+   rLi(i).dmpt2, ",", rLi(i).dmpt1, ",'", rLi(i).geschlecht, "','", rLi(i).Titel, "','", rLi(i).zusatz, "','", rLi(i).ursp, "',", DatFor_k(rLi(i).AktZeit), ")")
   If SammelInsert <> 0 And i < UBound(rLi) Then csql.Append ","
   If SammelInsert = 0 Or i = UBound(rLi) Then
 '    altmode = DBCn.Execute("SELECT @@global.sql_mode").Fields(0)

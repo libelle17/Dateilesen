@@ -4985,7 +4985,7 @@ nachformulare:
  ' korrigiertes Aufnahmedatum(2)
  Dim altesAufnDat As Date
 ' altesAufnDat = DBCn.Execute("SELECT kaufdat FROM namen WHERE pat_id=" & CStr(rNa(0).Pat_id)).Fields(0)
- altesAufnDat = myEFrag("SELECT kaufdat FROM namen WHERE pat_id=" & CStr(rNa(0).Pat_id)).Fields(0)
+ altesAufnDat = myEFrag("select COALESCE((SELECT kaufdat FROM namen WHERE pat_id=" & CStr(rNa(0).Pat_id) & "),0) i").Fields(0)
  myEFrag "UPDATE namen n LEFT JOIN (SELECT pat_id, MIN(bhfb) bhfb, MIN(fanf) fanf FROM faelle f GROUP BY pat_id) f ON n.pat_id=f.pat_id SET kAufDat=date(IF(fanf>bhfb,fanf,bhfb)) WHERE f.pat_id=" & CStr(rNa(0).Pat_id), rAf
  If rAf <> 0 Then
  ' nachzupruefen: 67794, 67795

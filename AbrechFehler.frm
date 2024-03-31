@@ -845,16 +845,16 @@ sql(AWlf) = "ü"
  sql(AWlf) = _
 "SELECT Pat_id PID, PName, wer, LEFT(Diabetestyp,10) DTyp, IF(ISNULL(anam),'(null)',Anam) Anam, MaxHbA1c, CONCAT(g0,' ',g2) OGTT, icd " & vbCrLf & _
 "FROM ( " & vbCrLf & _
-" SELECT f.pat_id, gesname(f.pat_id) Pname, wer, a.diabetestyp," & vbCrLf & _
+" SELECT f.pat_id, gesname(f.pat_id) Pname, az.wer, a.diabetestyp," & vbCrLf & _
 " TRIM(MID(e.inhalt,INSTR(e.inhalt,'Diabetes Typ ')+12,20)) Anam," & vbCrLf & _
 " IF(xH.max1>xH.max2,xH.max1, xH.max2) maxHbA1c, " & vbCrLf & _
 " IF(xG.max1>xG.max2,xG.max1, xG.max2) maxGluc, g0(IF(LENGTH(og.inhalt)>1000,LEFT(og.inhalt,1000),og.inhalt)) g0, g2(IF(LENGTH(og.inhalt)>1000,LEFT(og.inhalt,1000),og.inhalt)) g2, " & vbCrLf & _
 " (SELECT MIN(icd) FROM diagview d WHERE d.pat_id=f.pat_id AND (d.gicd REGEXP '^E1[0-4]\.|^R73' OR (d.icd='O24.4' AND d.f6010=0 AND d.diagsicherheit IN ('G',' ') AND d.diagdatum BETWEEN qbegs(f.quartal) AND qends(f.quartal)))) icd " & vbCrLf & _
 "FROM aktfvs f " & vbCrLf & _
 "LEFT JOIN anamnesebogen a ON a.pat_id = f.pat_id " & vbCrLf & _
-"LEFT JOIN `_maxHbA1c` xH ON xH.pat_id = a.pat_id " & vbCrLf & _
-"LEFT JOIN `_maxGluc` xG ON xG.pat_id = a.pat_id " & vbCrLf & _
-"LEFT JOIN eintraege e ON e.pat_id = f.pat_id AND e.art IN ('andm','andm2') " & vbCrLf & _
+"LEFT JOIN `_maxHbA1c` xH ON xH.pat_id = f.pat_id " & vbCrLf & _
+"LEFT JOIN `_maxGluc` xG ON xG.pat_id = f.pat_id " & vbCrLf & _
+"LEFT JOIN eintraege e ON e.pat_id = f.pat_id AND e.art IN ('andm','andm2') AND e.ZeitPunkt=(SELECT MAX(zeitpunkt) FROM eintraege WHERE pat_id=f.pat_id AND art IN ('andm','andm2'))" & vbCrLf & _
 "LEFT JOIN eintraege og ON f.pat_id = og.pat_id AND og.art = 'ogtt' " & vbCrLf & _
 "LEFT JOIN anaktk az ON az.pid=f.pat_id" & vbCrLf & _
 ") i WHERE " & vbCrLf & _
@@ -867,6 +867,7 @@ sql(AWlf) = "ü"
  mins(AWlf) = 5
  maxs(AWlf) = 18
  AWlf = AWlf + 1
+
  ' die 1000 s. Views g0, g2 und _vorNr
  ' vorher: lfaellev statt aktfvs
 
@@ -6236,7 +6237,7 @@ End If ' Private / Kassenpatienten
  ReDim Preserve mins(AWz - 1)
  ReDim Preserve maxs(AWz - 1)
  With MFG
-  .Cols = 6
+  .cols = 6
   .Rows = AWz + 1
   .col = 1
   .FormatString = "|*|<Erklärung"
@@ -6670,7 +6671,7 @@ If Not sqlgezeigt Then Call ZeigSQL
 FNr = 1
     max_row = flx.Rows - 1
 FNr = 2
-    For c = 0 To flx.Cols - 1
+    For c = 0 To flx.cols - 1
         max_wid = 0
         For r = 0 To max_row
 FNr = 3

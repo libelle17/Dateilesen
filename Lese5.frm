@@ -867,6 +867,12 @@ Begin VB.MDIForm Lese
       Begin VB.Menu Punktwerte 
          Caption         =   "&Punktwerte EBM2010"
       End
+      Begin VB.Menu MedOffZpSetzen 
+         Caption         =   "Med&OffZpSetzen"
+      End
+      Begin VB.Menu MedOffTabZahl 
+         Caption         =   "MedOffTab&Zahl"
+      End
    End
    Begin VB.Menu Testfunktionen 
       Caption         =   "&Testfunktionen"
@@ -917,6 +923,9 @@ Begin VB.MDIForm Lese
       Begin VB.Menu testlqanf 
          Caption         =   "&testlqanf"
       End
+      Begin VB.Menu PatvonMO 
+         Caption         =   "P&atvonMO"
+      End
    End
    Begin VB.Menu Fenster 
       Caption         =   "Fe&nster"
@@ -932,6 +941,10 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
 Option Explicit
+Const MoSer$ = "szn4"
+Const MOCStr$ = "DRIVER={MySQL ODBC 8.0 Unicode Driver};server=" & MoSer & ";option=0;database=medoff;uid=medoff;pwd=medoff;port=2020;"
+Public MOCon As New ADODB.Connection
+Public rsco As New ADODB.Recordset
 Public dlg As New Dialog
 Public opt As New Optionen
 Public snst As New Sonstige
@@ -1037,10 +1050,157 @@ Private Sub Formulare_bereinigen_Click()
  syscmd 4, "Fertig mit Bereinigen der Formulare"
 End Sub ' Formulare_bereinigen_Click()
 
+Private Sub MedOffZpSetzen_Click()
+ Dim vorhin As Date, Tn$, tr&, jS$
+ jS = DatFor_k(Now())
+ On Error Resume Next
+ MOCon.Open MOCStr
+ On Error GoTo 0
+' vorhin = DBCn.Execute("SELECT COALESCE((SELECT datum FROM moprot WHERE server='" & MoSer & "' LIMIT 1),0)").Fields(0)
+ vorhin = myEFrag("SELECT COALESCE((SELECT datum FROM moprot WHERE server='" & MoSer & "' LIMIT 1),0)", , DBCn).Fields(0)
+' DBCn.BeginTrans
+' DBCn.Execute "TRUNCATE mozp;"
+' DBCn.Execute "INSERT INTO mozp VALUES(now());"
+' DBCn.CommitTrans
+ myEFrag "TRUNCATE mozp;", , DBCn
+ myEFrag "INSERT INTO mozp VALUES(now());", , DBCn
+ Set rsco = Nothing
+ rsco.Open "SELECT TABLE_NAME, TABLE_ROWS From information_schema.tables WHERE table_schema = 'medoff' AND table_name NOT LIKE '%_fsurogat_seq'", MOCon, adOpenStatic, adLockReadOnly
+ Do While Not rsco.EOF
+  Tn = rsco!table_name
+'  tr = rsco!table_rows
+  Dim obabfr%
+  obabfr = 0
+  If vorhin = 0 Then
+   obabfr = -1
+  Else
+   tr = MOCon.Execute("SELECT COUNT(0) FROM `" & Tn & "`").Fields(0)
+   If tr <> myEFrag("SELECT table_rows FROM moprot WHERE server='" & MoSer & "' AND table_name='" & Tn & "' AND datum=(SELECT MAX(datum) FROM moprot WHERE server='" & MoSer & "' AND table_name='" & Tn & "')", , DBCn).Fields(0) Then
+    obabfr = -1
+   End If
+  End If
+  If obabfr Then
+   myEFrag "INSERT INTO moprot(server,datum,table_name,table_rows) VALUES('" & MoSer & "'," & jS & ",'" & Tn & "','" & tr & "')", , DBCn
+  End If
+  rsco.MoveNext
+ Loop
+ MsgBox "Datenbanken zum Zeitpunkt " & jS & " gemerkt."
+ Set rsco = Nothing
+End Sub ' MedOffZpSetzen_Click
+
+' zeigt Tabellenänderung in medoff an, nachdem zum letzten Mal MedOffZpSetzen_Click aufgerufen wurde
+Private Sub MedOffTabZahl_Click()
+ Const datnam$ = "v:\moaend.txt"
+ Dim rcol As New ADODB.Recordset, raen As New ADODB.Recordset
+ Dim lzp As Date
+ Dim Tn$, tr&, jS$, cols$, colN$, sql$, runde%, Prim$, colz& ', AnzS$
+ Dim Wt() ' Werte
+ On Error Resume Next
+ MOCon.Open MOCStr
+ On Error GoTo pfadfehler
+ Open datnam For Output As #220
+ On Error GoTo fehler
+ jS = DatFor_k(Now())
+ lzp = DBCn.Execute("SELECT COALESCE((SELECT letzt FROM mozp),0)").Fields(0)
+ Debug.Print "letzter Zeitpunkt: ", lzp
+ Set rsco = Nothing
+ rsco.Open "SELECT TABLE_NAME, TABLE_ROWS From information_schema.tables WHERE table_schema = 'medoff' AND table_name NOT LIKE '%_fsurogat_seq'", MOCon, adOpenStatic, adLockReadOnly
+ Do While Not rsco.EOF
+  Tn = rsco!table_name
+  syscmd 4, "Tabelle: " & Tn
+'  tr = rsco!table_rows
+  Debug.Print Tn
+  Set rcol = Nothing
+  cols = "": colN = "": colz = 0
+  rcol.Open "SELECT column_name FROM information_schema.columns WHERE table_schema = 'medoff' and TABLE_NAME='" & Tn & "' ORDER BY ordinal_position", MOCon, adOpenStatic, adLockReadOnly
+  Do While Not rcol.EOF
+   colN = IIf(colN = "", rcol.Fields(0), colN & "," & rcol.Fields(0))
+   colz = colz + 1
+   If cols <> "" Then cols = cols & ",' ',"
+   cols = cols & "CONCAT('" & rcol.Fields(0) & ":',CONVERT(COALESCE(LEFT(" & rcol.Fields(0) & ",20),'') USING 'utf8mb4'))"
+   rcol.MoveNext
+  Loop
+  ReDim Wt(colz)
+  Prim = MOCon.Execute("SELECT GROUP_CONCAT(DISTINCT COLUMN_NAME) sp FROM information_schema.key_column_usage i WHERE CONSTRAINT_NAME='PRIMARY' AND table_schema='medoff' AND table_name='" & Tn & "' AND column_name NOT IN ('row_start','row_end') GROUP BY table_catalog,table_schema,TABLE_NAME ORDER BY table_catalog,table_schema,table_name,ordinal_position").Fields(0)
+'  sql = "SELECT CONCAT(" & cols & ",' ',row_start,' ',row_end) FROM `" & Tn & "` WHERE row_start>" & Format(lzp, "yyyymmddHHMMSS") ' FOR SYSTEM_TIME BETWEEN " & Format(lzp, "yyyymmddHHMMSS") & " AND NOW()"
+  sql = "SELECT * FROM (SELECT CONCAT(" & cols & ",' ',row_start,' ',row_end) sp, row_start, LEAD(row_start,1) OVER (PARTITION BY " & Prim & " ORDER BY row_start) nrs, LAG(row_start,1) OVER (PARTITION BY " & Prim & " ORDER BY row_start) vrs, a.* FROM `" & Tn & "` FOR system_time ALL a) i WHERE row_start>" & Format(lzp, "yyyymmddHHMMSS") & " or nrs>" & Format(lzp, "yyyymmddHHMMSS") & " ORDER BY " & Prim & ",row_start;"
+  Const Offs% = 4 ' Offset der ersten Spalte aus a.*
+  runde = 0
+  raen.Open sql, MOCon, adOpenStatic, adLockReadOnly
+'  If Tn = "patfall" Then Stop
+  Do While Not raen.EOF
+   If runde = 0 Then
+    tr = MOCon.Execute("SELECT COUNT(0) FROM `" & Tn & "`").Fields(0)
+    Print #220, vbCrLf & Tn & " (" & DBCn.Execute("SELECT table_rows FROM moprot WHERE server='" & MoSer & "' AND table_name='" & Tn & "' AND datum=(SELECT MAX(datum) FROM moprot WHERE server='" & MoSer & "' AND table_name='" & Tn & "')").Fields(0) & " -> " & tr & "):"
+    Print #220, colN & ":"
+   End If
+   Print #220, raen.Fields(0)
+   rcol.MoveFirst
+   colz = 0
+   Do While Not rcol.EOF
+    If runde = 0 Then
+     If IsNull(raen.Fields(colz + Offs)) Then Wt(colz) = "NULL" Else Wt(colz) = raen.Fields(colz + Offs)
+    ElseIf Not IsNull(raen!vrs) Then ' wenn Datensatz nicht neu eingefügt wurde
+     If CStr(Wt(colz)) <> CStr(IIf(IsNull(raen.Fields(colz + Offs)), "NULL", raen.Fields(colz + Offs))) Then
+      Print #220, rcol.Fields(0) & ": " & Wt(colz) & " -> " & raen.Fields(colz + Offs)
+     End If
+    End If
+    colz = colz + 1
+    rcol.MoveNext
+   Loop
+   runde = 1
+   raen.MoveNext
+  Loop
+  Set raen = Nothing
+' On Error Resume Next
+' MOCon.Execute "ALTER TABLE `" & Tn & "` ADD SYSTEM VERSIONING"
+' On Error GoTo fehler
+'  If vorhin = 0 Or tr <> DBCn.Execute("SELECT table_rows FROM moprot WHERE server='" & moser & "' AND table_name='" & tn & "' AND datum=(SELECT MAX(datum) FROM moprot WHERE server='" & moser & "' AND table_name='" & tn & "')").Fields(0) Then
+'   If vorhin <> 0 Then AnzS = IIf(AnzS = "", tn, AnzS & vbCrLf & tn)
+'   DBCn.Execute "INSERT INTO moprot(server,datum,table_name,table_rows) VALUES('" & moser & "'," & jS & ",'" & tn & "','" & tr & "')"
+'  End If
+  rsco.MoveNext
+ Loop
+ Close #220
+ Set rsco = Nothing
+ zeigan datnam
+' If AnzS <> "" Then
+'  MsgBox "Folgende Tabellen befüllt: " & vbCrLf & AnzS
+' Else
+'  MsgBox "MedOffTabZahl_Click: keine Tabelle geändert"
+' End If
+ Exit Sub
+pfadfehler:
+ Open REPLACE$(datnam, "v:", "\\linux1\daten\down") For Output As #220
+ Resume Next
+fehler:
+ Dim AnwPfad$
+#If VBA6 Then
+ AnwPfad = CurrentDb.name
+#Else
+ AnwPfad = App.path
+#End If
+If Err.Number = -2147467259 Then
+ DBCn.Close
+ DBCn.Open
+ Resume
+End If
+Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in MedOffTabZahl/" + AnwPfad)
+ Case vbAbort: Call MsgBox("Höre auf"): ProgEnde
+ Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
+ Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
+End Select
+End Sub ' MedOffTabZahl_Click
+
+
 ' Datei -> Optionen
 Private Sub Optionen_Click()
  opt.Show
 End Sub ' Optionen_Click()
+
+Private Sub PatvonMO_Click()
+ Call doPatvonMO(2112, 12112)
+End Sub ' PatvonMO_Click
 
 Private Sub Ziffer30u31Ausschlüsse_Click()
   Dim rs As New ADODB.Recordset, spmax%(3)
@@ -1369,7 +1529,7 @@ While Not EOF(1)
   If (InStr(pid, ",")) Then pid = Left$(pid, InStr(pid, ",") - 1)
 '  Debug.Print pid
   If IsNumeric(pid) Then
-    dodoPLZ pid, plzVz, Now, Now - Int(Now), True, ""
+    dodoplz pid, plzVz, Now, Now - Int(Now), True, ""
   End If ' IsNumeric(pid) Then
 Wend ' Not EOF(1)
 Close #1
@@ -1816,6 +1976,7 @@ Private Sub DMP_Dokumente_an_HA_Nachweis_Click() ' s.DMPFüll
        "LEFT JOIN `desktop` dt ON n.pat_id = dt.pat_id AND dt.titel LIKE '%kein%bericht%' " & vbCrLf & _
        "GROUP BY f0.pat_id;"
 '       "WHERE ISNULL(dt.titel) AND n.dmpklass = 2 AND f.icd RLIKE '^E1[0-4]\.' AND h.kvnr<>'' " & vbCrLf & _
+
  myFrag rs, sql
  TabAusgeb rs, Me, True, , , , , , , , , , "DMP_Dokumente_an_HA_Nachweis_Click (DMP-Klass 2=relevant)"
 End Sub ' DMP_Dokumente_an_HA_Nachweis_Click
@@ -2217,21 +2378,14 @@ End Sub ' Faxe_gescheitert_Click
 
 ' ...für Arzt -> Pat. löschen
 Private Sub Pat_loeschen_Click()
- Dim Pat_id&, erg&, rAf&, ergeb$
+ Dim Pat_id&, erg&
  Pat_id = InputBox("Welchen Patienten wollen Sie löschen?")
  Dim rsPat As New ADODB.Recordset
  myFrag rsPat, "SELECT gesname(" & Pat_id & ")"
  If Not rsPat.BOF() Then
   erg = MsgBox("Wollen Sie wirklich den Patienten `" & Pat_id & " (" & rsPat.Fields(0) & ")` löschen?", vbYesNo)
   If erg = vbYes Then
-   Dim Tb, tbn
-   tbn = Array("namen", "faelle", "au", "briefe", "diagnosen", "dokumente", "eintraege", "forminhkopf", "kheinweis", "lbanforderungen", "laborneu", "leistungen", "medplan", "rezepteintraege", "rr", "kvnrue", "dmpreihe", "therarten", "desktop", "usdm", "fuss", "ulcus")
-   For Each Tb In tbn
-    myEFrag "DELETE FROM `" & Tb & "` WHERE PAT_ID = " & Pat_id, rAf
-    ergeb = ergeb & vbCrLf & rAf & " Sätze aus `" & Tb & "` gelöscht."
-   Next
-   MsgBox ergeb
-   Debug.Print ergeb
+   Call LöschePat(Pat_id, True)
   End If
  End If ' Not rsPat.BOF() Then
 End Sub ' Pat_loeschen_Click
@@ -2257,7 +2411,7 @@ Private Sub PLZfuerMedikament_Click()
   myFrag rs, "SELECT DISTINCT pat_id FROM medplan WHERE medikament LIKE '" & Med & "%' ORDER BY pat_id DESC"
   If Not rs.BOF Then
    Do While Not rs.EOF
-    dodoPLZ rs!Pat_id, plzVz
+    dodoplz rs!Pat_id, plzVz
     rs.MoveNext
    Loop
   End If
@@ -2274,9 +2428,9 @@ End Sub ' VerdächtigeÜberweiser_Click
 
 ' ...für Arzt -> Doppelte Diagnosen ermitteln
 Private Sub DoppelteDiagnosen_Click()
- Dim rs As New ADODB.Recordset, DatNam$, i&
- DatNam = pVerz & "DoppelteDiagnosen " & Format$(Now, "dd.mm.yy hh.mm.ss") & ".txt"
- Open DatNam For Output As #327
+ Dim rs As New ADODB.Recordset, datnam$, i&
+ datnam = pVerz & "DoppelteDiagnosen " & Format$(Now, "dd.mm.yy hh.mm.ss") & ".txt"
+ Open datnam For Output As #327
  Print #327, "Nr. Zahl Pat_id Name                        ICD Sicherheit -Seite -text"
  Call ProgStart
  myFrag rs, "SELECT * FROM (SELECT COUNT(0) ct, pat_id, icd, gesnameg(pat_id) GesName, diagsicherheit si, diagtext tx, diagseite se FROM `diagnosen` WHERE obdauer <> 0 GROUP BY pat_id, icd, diagsicherheit, diagseite) AS i WHERE ct > 1 ORDER BY pat_id DESC"
@@ -2290,7 +2444,7 @@ Private Sub DoppelteDiagnosen_Click()
 ' Debug.Print "Fertig!"
  Close #327
  Call ProgEnde
- zeigan DatNam
+ zeigan datnam
 End Sub ' DoppelteDiagnosen_Click
 
 ' ...für Arzt -> KassenEditieren (Rabattverträge etc.)
@@ -2355,9 +2509,9 @@ End Sub ' Sub HausärzteBKK_Click
 
 ' Statistik -> Überweiserstatistik
 Private Sub Überweiserstatistik_Click()
- Dim rs As New ADODB.Recordset, DatNam$, i&, ausg$, sql$
- DatNam = pVerz & "Überweiserstatistik " & Format$(Now, "dd.mm.yy hh.mm.ss") & ".csv"
- Open DatNam For Output As #326
+ Dim rs As New ADODB.Recordset, datnam$, i&, ausg$, sql$
+ datnam = pVerz & "Überweiserstatistik " & Format$(Now, "dd.mm.yy hh.mm.ss") & ".csv"
+ Open datnam For Output As #326
  Call ProgStart
 ' myFrag rs, "SELECT kvnu,anrede, haname,plz,ort,tel1,tel2,fax1,fax2,zulg,arzttyp,gemmit,beme,dmpt2,dmpt1,gelöscht,ct FROM (SELECT COUNT(0) AS ct, LEFT(übwv,7) AS kvnu FROM `faelle` WHERE bhfb > " & DatFor_k(Now - 365) & " AND übwv <> '' GROUP BY übwv " & _
    "UNION SELECT COUNT(0) AS ct, LEFT(andüw,7) AS kvnu FROM `faelle` WHERE bhfb > " & DatFor_k(Now - 365) & " AND andüw <> '' GROUP BY andüw) AS i LEFT JOIN `kvaerzte`.`hae` USING (kvnu) WHERE not gelöscht AND NOT ISNULL(kvnu) AND kvnu <> '" & kvnr & "' ORDER BY ct DESC"
@@ -2382,7 +2536,7 @@ Private Sub Überweiserstatistik_Click()
  MsgBox "Fertig!"
  Close #326
  Call ProgEnde
- zeigan DatNam
+ zeigan datnam
 End Sub ' Überweiserstatistik_Click
 ' SELECT kvnu,anrede, haname,plz,ort,tel1,tel2,fax1,fax2,zulg,arzttyp,gemmit,beme,dmpt2,dmpt1,gelöscht,ct FROM (SELECT COUNT(0) AS ct, LEFT(übwv,7) AS kvnu FROM `faelle` WHERE bhfb > '2007-09-30' AND übwv <> '' GROUP BY übwv UNION SELECT COUNT(0) AS ct, LEFT(andüw,7) AS kvnu FROM `faelle` WHERE bhfb > '2007-09-30' AND andüw <> '' GROUP BY andüw) AS i LEFT JOIN `kvaerzte`.`hae` USING (kvnu) WHERE not gelöscht AND NOT ISNULL(kvnu) AND kvnu <> '" & kvnr & "' ORDER BY ct DESC;
 
@@ -2588,7 +2742,7 @@ Private Sub PLZausListe_Click()
   If Not rs.BOF Then
    Do While Not rs.EOF
     Zahl = Zahl + 1
-    dodoPLZ rs!Pat_id, plzVz, , , , rs!T1Zp & " - " & rs!T2Zp & " (gs " & rs!gsz & ", tk " & rs!Tkz & ")", 0
+    dodoplz rs!Pat_id, plzVz, , , , rs!T1Zp & " - " & rs!T2Zp & " (gs " & rs!gsz & ", tk " & rs!Tkz & ")", 0
     rs.MoveNext
    Loop
   End If
@@ -2798,12 +2952,12 @@ End Sub ' Quartalsvergleich_Click
 ' künftig ähnlich:
 ' SELECT gesname(th.pat_id) Name, th.Pat_id, DATE_FORMAT(th.zp,'%d.%m.%Y') CSII_hier_seit, (SELECT DATE_FORMAT(MAX(bhfb),'%d.%m.%Y') FROM faelle f WHERE f.pat_id= th.pat_id) BhFB FROM therarten th LEFT JOIN anamnesebogen a ON th.pat_id = a.pat_id WHERE therart = 'CSII' AND zp = (SELECT MAX(zp) FROM therarten t WHERE t.pat_id = th.pat_id) AND tkz=0;
 Private Sub Pumpenträgerliste_Click() ' s. therart_erm
- Dim rs As New ADODB.Recordset, rez As New ADODB.Recordset, Pat_id&, AusgStr$, DatNam$, TA1$, STA1$(), i&
+ Dim rs As New ADODB.Recordset, rez As New ADODB.Recordset, Pat_id&, AusgStr$, datnam$, TA1$, STA1$(), i&
  Dim SpMin%(2)
  SpMin%(0) = 6
  Call ProgStart
- DatNam = pVerz & "Pumpenträger " & Format$(Now, "dd.mm.yy hh.mm.ss") & ".txt"
- Open DatNam For Output As #326
+ datnam = pVerz & "Pumpenträger " & Format$(Now, "dd.mm.yy hh.mm.ss") & ".txt"
+ Open datnam For Output As #326
  ' für Acrobat Querdruck 70%
  myFrag rs, "SELECT a.pat_id, LEFT(CONCAT(a.nachname,',',a.vorname,IF(a.titel='','',','),a.titel,IF(a.nvorsatz='','',' '),a.nvorsatz,' (',a.anrede,')'),24) AS name, DATE_FORMAT(a.gebdat,'%d.%m.%y') AS geb, LEFT(CONCAT(`diabetes seit`,' ',a.`insulin seit`),12) AS 'D.m./Ins.', LEFT(CONCAT(IF(a.insulinpumpe=1,'+','-'),' ',a.`insulinpumpe seit`,' ',a.`insulinpumpe marke`),24) AS 'Pumpe b.Anamn./seit/Marke', LEFT(a.ther1,4) AS Ther1, LEFT(a.dmp,9) AS DMP, f.schgr AS SG, DATE_FORMAT(f.bhfb,'%d.%m.%y') AS bhfb, LEFT(CONCAT(privattel, '|',privatmobil,'|',diensttel,'|',email,'|',privatfax,'|',privattel_2),60) AS kontakt FROM `anamnesebogen` a LEFT JOIN `namen` n ON a.pat_id = n.pat_id LEFT JOIN lfaellev f ON a.pat_id = f.pat_id WHERE therakt = 'CSII' AND tkz = 0"
  TA1 = TabAusgeb(rs, Me, True).Value
@@ -2830,7 +2984,7 @@ Private Sub Pumpenträgerliste_Click() ' s. therart_erm
   i = i + 1
  Loop
  Close #326
- zeigan DatNam
+ zeigan datnam
 End Sub ' Pumpenträgerliste_Click
 
 ' Statistik -> suchTel
@@ -3343,7 +3497,7 @@ Private Sub Apothekenrezepte_Click()
  Open uVerz & "Apotheke.csv" For Output As #333
  myFrag rs, "SELECT foid, nachname, vorname, DATE(gebdat) AS geb, fr.zeitpunkt AS Zeitp, fa.feldinh AS text FROM `formular` fr LEFT JOIN `formular` fa USING (foid) LEFT JOIN `namen` ON fr.pat_id = `namen`.pat_id WHERE fr.feldinh LIKE '%Gerald Schade;' AND NOT ISNULL(fr.pat_id) AND fr.formvorl LIKE '%rezept%' AND ((fr.formvorl LIKE '%lang%' AND fa.feld = 'medikament') OR (fr.formvorl NOT LIKE '%lang%' AND fa.nr IN (4,8,9,10,11))) AND fr.zeitpunkt BETWEEN '2008-02-01' AND now() AND NOT fa.feldinh LIKE '%-  -%'"
  Do While Not rs.EOF
-  Print #333, rs!Foid & ";" & rs!Nachname & ";" & rs!Vorname & ";" & rs!Geb & ";" & rs!Zeitp & ";" & rs!Text
+  Print #333, rs!Foid & ";" & rs!Nachname & ";" & rs!Vorname & ";" & rs!Geb & ";" & rs!Zeitp & ";" & rs!text
   rs.Move 1
  Loop
  Close #333
@@ -3610,16 +3764,16 @@ End Sub ' gefaxttrennen_Click
 
 ' Testfunktionen -> doppelteFAxe
 Private Sub doppelteFaxe_Click()
- Dim DatNam$
- DatNam = pVerz & "schongefaxte " & Format$(Now, "dd.mm.yy hh.mm.ss") & ".txt"
- Open DatNam For Output As #323
+ Dim datnam$
+ datnam = pVerz & "schongefaxte " & Format$(Now, "dd.mm.yy hh.mm.ss") & ".txt"
+ Open datnam For Output As #323
  Call acon(quelleT)
  Call acon(FaxT)
  Call dodoppelteFaxe(pVerz & "unkorrigiert")
  Print #323, "Fertig mit doppelteFaxe_Click!"
 ' Debug.Print "Fertig mit doppelteFaxe_Click!"
  Close #323
- zeigan DatNam
+ zeigan datnam
 End Sub ' doppelteFaxe_Click
 
 ' Testfunktionen -> alteHausärzte
@@ -4179,7 +4333,7 @@ Public Sub los()
 '   Call doPLZeinzeln(Me.pataw.PatID)
     zzn = 8
     If IsNumeric(Me.pataw.Zeilenzahl) Then zzn = CInt(Me.pataw.Zeilenzahl)
-   Call dodoPLZ(Me.pataw.PatID, plzVz, Now, Now - Int(Now), True, "", zzn, obRueck)
+   Call dodoplz(Me.pataw.PatID, plzVz, Now, Now - Int(Now), True, "", zzn, obRueck)
   Case DMPZettel
    Call einDMP(Me.pataw.Pat_id)
   Case Anwalt
@@ -4442,18 +4596,18 @@ Private Sub Ausgabe_KeyDown(KeyCode As Integer, Shift As Integer)
   If obCtrl Then
    If KeyCode = 68 Then ' D
     pe = Me.Ausgabe.SelStart
-    Do While Mid$(Ausgabe.Text, pe, 2) <> vbCrLf
+    Do While Mid$(Ausgabe.text, pe, 2) <> vbCrLf
      pe = pe + 1
-     If pe = Len(Ausgabe.Text) - 1 Then
-      pe = Len(Ausgabe.Text)
+     If pe = Len(Ausgabe.text) - 1 Then
+      pe = Len(Ausgabe.text)
       Exit Do
      End If
     Loop
     pa = pe
-    Do While Mid$(Me.Ausgabe.Text, pa, 1) <> " " And pa > 0
+    Do While Mid$(Me.Ausgabe.text, pa, 1) <> " " And pa > 0
      pa = pa - 1
     Loop
-    Zahl = Mid$(Me.Ausgabe.Text, pa + 1, pe - pa - 1)
+    Zahl = Mid$(Me.Ausgabe.text, pa + 1, pe - pa - 1)
     Clipboard.SetText Zahl
     Call doCallDMP(ByVal Zahl)
    End If
@@ -5028,15 +5182,15 @@ End Select
 End Function ' ConstrFestleg
 #End If
 
-Public Function Ausgeb(Text$, obDauer%, Optional obdebug%)
- Me.Ausgabe = Text & vbCrLf & altAusgabe
+Public Function Ausgeb(text$, obDauer%, Optional obdebug%)
+ Me.Ausgabe = text & vbCrLf & altAusgabe
  If obDauer <> 0 Then
   altAusgabe = Me.Ausgabe
  End If
- If InStrB(Text, "READ-COMMITTED") <> 0 Then
-  MsgBox "Beinahe-Stop in Ausgeb:" & vbCrLf & "instrb(text, 'READ-COMMITTED') <> 0" & vbCrLf & "Text: " & Text
+ If InStrB(text, "READ-COMMITTED") <> 0 Then
+  MsgBox "Beinahe-Stop in Ausgeb:" & vbCrLf & "instrb(text, 'READ-COMMITTED') <> 0" & vbCrLf & "Text: " & text
  End If
- If obdebug <> 0 Then Debug.Print Text
+ If obdebug <> 0 Then Debug.Print text
  DoEvents
 End Function ' Ausgeb
 

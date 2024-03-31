@@ -112,18 +112,11 @@ Private Const WAIT_OBJECT_0 = &H0 ' das Objekt, das in hHandle spezifiziert ist,
 ' ist in einem signalisierendem Status
 Private Const WAIT_TIMEOUT = &H102 ' das Zeitlimit für eine Änderung des
 ' Thread-Status ist abgelaufen
-Public Const phpVS$ = LiServer & "php\"
-Public Const phpV$ = phpVS & "plz\"
-Public Const phpVvorb$ = phpVS & "vorb\"
-Public Const phpVfertig$ = phpVS & "fertig\"
-Public Const phpVbehand$ = phpVS & "behand\"
-
-Public Type labtyp
- Abkü As String
- Zp As Date
- WertSg As String ' Wert-String, mit "," als Dezimaltrennzeichen;
- Einheit As String
-End Type
+Const phpVS$ = LiServer & "php\"
+Const phpV$ = phpVS & "plz\"
+Const phpVvorb$ = phpVS & "vorb\"
+Const phpVfertig$ = phpVS & "fertig\"
+Const phpVbehand$ = phpVS & "behand\"
 
 Type plzDaten ' für doPatientenlaufzettel
  pid As Long
@@ -387,7 +380,7 @@ DoEvents
       rTerm.MoveNext
      Loop
      For iru = 0 To UBound(plzDat)
-      Call dodoPLZ(CStr(plzDat(iru).pid), plzVerz, plzDat(iru).Datum, CStr(plzDat(iru).Uhrzeit), , plzDat(iru).Arzt, , obphp)
+      Call dodoplz(CStr(plzDat(iru).pid), plzVerz, plzDat(iru).Datum, CStr(plzDat(iru).Uhrzeit), , plzDat(iru).Arzt, , obphp)
       erstZ = erstZ + 1
       noch = noch - 1
       syscmd 4, "noch zu erstellen: " & noch & " Patientenlaufzettel für " & s2(0) & " in " & plzVerz
@@ -424,7 +417,7 @@ DoEvents
        Uhrzeit = Mid$(splitt(j), i - 2, 5)
       End If ' i <> 0 THEN
       DoEvents
-      Call dodoPLZ(CLng(pid), plzVerz, Datum, Uhrzeit, , Arzt, , obphp)
+      Call dodoplz(CLng(pid), plzVerz, Datum, Uhrzeit, , Arzt, , obphp)
       erstZ = erstZ + 1
      End If ' InStrB(Pid, ".") = 0 AND ...
     End If ' IsNumeric(Pid) THEN
@@ -973,8 +966,9 @@ Sub tukopf(ByVal AusS As CString)
   AusS.AppVar (Array("<h1>", vbCrLf))  ' , <span" & IIF(bmi > 24.9, " class='path'", "") & ">" & bmiS & "</span>
 End Sub      ' tukopf
 
+
 ' in: doPLZeinzeln, PLZausListe_Click, los (Lese), Command1_Click (PatListe, 2x), PatListe.plz, MFG_Click (Patliste), doPatientenlaufzettel, Patientenlaufzettel_Click (PatAuswahl und AnBog)
-Function dodoPLZ(Pat_id$, plzVerz$, Optional Datum As Date, Optional Uhrzeit$, Optional mitanzeig%, Optional Arzt$, Optional zmaxges% = 8, Optional obphp% = 0) ' Patientenlaufzettel
+Function dodoplz(Pat_id$, plzVerz$, Optional Datum As Date, Optional Uhrzeit$, Optional mitanzeig%, Optional Arzt$, Optional zmaxges% = 8, Optional obphp% = 0) ' Patientenlaufzettel
  Dim DN$, DatNr&
  Dim TI!(41)
  Dim m%, p%
@@ -2901,8 +2895,8 @@ keinuzu:
         Else
          Pause(i) = Pause(i) - 1
         End If
-#Const mitLeerZellen = False
-#If mitLeerZellen Then
+#Const mitLeerZellenMo = False
+#If mitLeerZellenMo Then
        ElseIf Pause(i) = 0 Then
 '        IF RowSp(i) = 0 OR j = 1 THEN ' Beim Neurostatus in die folgenden Zeilen nichts mehr schreiben
          AusS.AppVar (Array("    <td rowspan='", rszmax - j + 1, "' colspan = '2' class='schmal' style='border-style:none'></td>", vbCrLf))
@@ -3613,6 +3607,6 @@ Function doPLZeinzeln()
  pid = InputBox("Bitte Pat-ID aus Turbomed eingeben:", "Patientenlaufzettel Eingabe")
 ' ZeilZ = InputBox("Bitte gewünschte Tabellenzeilenzahl eingeben:", "Patientenlaufzettel Eingabe", ZeilZ)
  If IsNumeric(pid) And IsNumeric(ZeilZ) Then
-  Call dodoPLZ(pid, plzVz, Now, Now - Int(Now), True, "", CDbl(ZeilZ))
+  Call dodoplz(pid, plzVz, Now, Now - Int(Now), True, "", CDbl(ZeilZ))
  End If
 End Function ' doPLZeinzeln

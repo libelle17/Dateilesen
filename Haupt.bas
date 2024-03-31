@@ -888,6 +888,7 @@ Function MacheTypen(frm As Lese)
  Next i
  syscmd 4, "Mache Typen (4) ..."
  Print #257, ""
+ Print #257, "' in Geslies(2x)"
  Print #257, "Public FUNCTION Tinit()"
  Print #257, " static wdh%"
  Print #257, " ReDim rAna(0)"
@@ -931,6 +932,43 @@ Function MacheTypen(frm As Lese)
  Print #257, " Call myEFrag(sql) ' ,,adAsyncExecute"
  Print #257, " DoEvents"
  Print #257, "End FUNCTION ' doEntleer"
+ Print #257, ""
+ Print #257, "' in Pat_loeschen_Click, doPatvonMO"
+ Print #257, "Public Sub LöschePat(PID&, True)"
+ Print #257, " Dim Tb, tbn, rAf&, ergeb$"
+ Dim tbnS$
+ tbnS = " tbn = Array("
+ For i = 0 To TbZ1
+  Select Case LCase$(tbn(i))
+   Case "forminhaltform_abk", "formulare", "forminhfeld", "unbekannte kennungen"
+   Case Else
+    tbnS = tbnS & """" & LCase$(tbn(i)) & """"
+    If i <> TbZ1 Then tbnS = tbnS & ", "
+  End Select
+ Next i
+ tbnS = tbnS & ")"
+ Print #257, " ON Error GoTo fehler"
+ Print #257, tbnS
+ Print #257, " For Each Tb In tbn"
+ Print #257, "  myEFrag ""DELETE FROM `"" & Tb & ""` WHERE PAT_ID = "" & PID, rAf"
+ Print #257, "  ergeb = ergeb & vbCrLf & rAf & "" Sätze aus `"" & Tb & ""` gelöscht."""
+ Print #257, " Next"
+ Print #257, " MsgBox ergeb"
+ Print #257, " Debug.Print ergeb"
+ Print #257, " Exit Function"
+ Print #257, "fehler:"
+ Print #257, " Dim AnwPfad$"
+ Print #257, " #If VBA6 THEN"
+ Print #257, "  AnwPfad = currentDB.Name"
+ Print #257, " #Else"
+ Print #257, "  AnwPfad = App.Path"
+ Print #257, " #END IF"
+ Print #257, " SELECT CASE MsgBox(""FNr: "" + CStr(Err.Number) + vbCrLf + ""LastDLLError: "" + CStr(Err.LastDllError) + vbCrLf + ""Source: "" & IIf(ISNULL(Err.Source), vNS, CStr(Err.Source)) + vbCrLf + ""Description: "" + Err.Description, vbAbortRetryIgnore, ""aufgefangener Fehler in LöschePat/"" + AnwPfad)"
+ Print #257, "  Case vbAbort: Call MsgBox("" Höre auf ""): Progende"
+ Print #257, "  Case vbRetry: Call MsgBox(""Versuche nochmal""): Resume"
+ Print #257, "  Case vbIgnore: Call MsgBox("" Setze fort ""): Resume Next"
+ Print #257, " END SELECT"
+ Print #257, "End FUNCTION ' LöschePat"
  Print #257, ""
  Print #257, "Public FUNCTION AllesLösch(frm AS lese)"
  Print #257, " Dim ct&, rs As New ADODB.recordset"
@@ -2466,6 +2504,10 @@ Function getDokPfad$(Optional Abschnitt$)
   If LenB(Abschnitt) = 0 Then Abschnitt = "Dokumente"
   Set idt = New TMIniDatei
   getDokPfad = idt.GetProp("Verzeichnisse/TurboMed/" & Abschnitt, "Pfad")
+  If getDokPfad = "" Then
+   MsgBox "Bitte c:\turbomed\Programm\local.ini auf Existenz prüfen und NVIni laufen lassen!"
+   ProgEnde
+  End If
   Dim p1%
   p1 = InStr(getDokPfad, "\\\")
   If p1 <> 0 Then getDokPfad = Mid$(getDokPfad, p1 + 1)
@@ -2565,7 +2607,7 @@ If KeyCode = 27 Then
        frm.GesZl = frm.GesZl - 1
        Dim iz&
        For iz = 1 To frm.GesColl.COUNT
-        If frm.GesColl(iz) = frm.MFG.Text Then
+        If frm.GesColl(iz) = frm.MFG.text Then
          frm.GesColl.Remove (iz)
          Exit For
         End If
@@ -2573,7 +2615,7 @@ If KeyCode = 27 Then
      Else
        frm.MFG.CellBackColor = vbYellow
        frm.GesZl = frm.GesZl + 1
-       frm.GesColl.Add frm.MFG.Text
+       frm.GesColl.Add frm.MFG.text
      End If
      frm.Command1(14).Caption = frm.GesZl & " &Ges"
     End If
@@ -2958,17 +3000,17 @@ Function doSuchTel(frm As Lese) ' suche Telefonnummer
 End Function ' doSuchTel
 
 Function ergEBM(frm As Lese)
- Dim QDat$, Text$, Spli$(), dszahl&, rAf&
+ Dim QDat$, text$, Spli$(), dszahl&, rAf&
 ' Zeilenumbrüche führen zu Fehlern, ähnlich bei ".csv" und ";" statt ".txt" und ";"
 #If False Then
  QDat = getLDatei(uVerz, "Listenausgabe_EBM-Ziffern*.txt")
  Open QDat For Input As #281
  For i = 1 To 5
-  Input #281, Text
+  Input #281, text
  Next i
  Do While Not EOF(281)
-  Input #281, Text
-  Spli = Split(Text, vbTab)
+  Input #281, text
+  Spli = Split(text, vbTab)
   If UBound(Spli) > 0 Then
 '   Debug.Print spli(0)
   End If
@@ -2996,7 +3038,7 @@ Function ergEBM(frm As Lese)
  End If
  If QDat <> "" Then
  con.Open "Provider=Microsoft.Jet.OLEDB.4.0;Extended Properties=""Excel 8.0;HDR=No;IMEX=1"";Data Source=" & QDat & ";" ' TABLE=Adressen$"
- Dim runde%, i%, zFeld$, lFeld$, obAnfang%, pNr%, pRoh
+ Dim runde%, i%, zFeld$, lFeld$, obAnfang%, PNr%, pRoh
   rX.ActiveConnection = con
   rEx.Open "`" & rX.Tables(rX.Tables.COUNT - 1).name & "`", con ' Hier Excel, nicht lies.obmysql = 0!
   Do While Not rEx.EOF
@@ -3579,7 +3621,7 @@ endeschlaf:
      Set rq = Nothing
      Call myEFrag(csql.Value, rAf, , True, ErrNr, ErrDes)
      If rAf <> 1 And ErrNr <> 0 Then
-      Err.Raise 999, , ErrNr & " " & ErrDes & vbCrLf & "Fehler in anaUpd: Falsche Zahl an Datensätzen aktualisiert: " & rAf
+      Err.Raise 999, , ErrNr & " " & ErrDes & vbCrLf & "Fehler in anaUpd: Falsche Zahl an Datensätzen aktualisiert: " & rAf & vbCrLf & "bei: " & csql.Value
      End If ' rAF <> 1 And ErrNr <> 0 Then
     End If ' rAF <> 1 And ErrNr <> 0 Then
    End If ' rAF <> 1 And ErrNr <> 0 Then
@@ -5081,7 +5123,7 @@ Dim r As Long
 Dim c As Integer
 On Error GoTo fehler
     max_row = flx.Rows - 1
-    For c = abSpalte To flx.Cols - 1
+    For c = abSpalte To flx.cols - 1
         max_wid = 0
         For r = 0 To max_row
             wid = frm.TextWidth(Left$(REPLACE$(REPLACE$(flx.TextMatrix(r, c), vbCrLf, "--"), Chr(10), "-"), 6129)) ' sonst Überlauf

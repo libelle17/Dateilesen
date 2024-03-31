@@ -78,7 +78,7 @@ Public Const artSpezÄrzte$ = "'ni','gstel','gs','rz','ep','bga','tk','APK','wd',
 ' wd = Diane Wagner
 ' ah = Anna Hammerschmidt
 
-Public Const artSpezBerat$ = artSpezÄrzte & ",'wr','jl','ga','ih','cr','tn','be','lf','kb'"
+Public Const artSpezBerat$ = artSpezÄrzte & ",'wr','jl','ga','ih','cr','tn','be','lf','kb','mn'"
 ' wr = Walburga Roßmeier
 ' jl = Juliane Lange
 ' ga = Greß Angelika
@@ -88,6 +88,7 @@ Public Const artSpezBerat$ = artSpezÄrzte & ",'wr','jl','ga','ih','cr','tn','be'
 ' be = Bender Elena
 ' lf = Larissa Fuchs
 ' kb = Katja Butz
+' mn = Milande Nana
 
 Public Const artSpezMA$ = "'tst','ke','hz','ns','mh','ag','ph','pq','er','ds','st','eb','us','sn','vb','mip','mm','rc','ik','ks','sb','cb','th','sp','ir','as','sa','sta','eg','ans','mc','rb','mi','gr','bs','sf','fs','eo','cd','mk','nb','sas','mf','bt'"
 ' tst = Tamara Sturm
@@ -604,6 +605,14 @@ Enum LabArt
 End Enum ' LabArt
 ' statische Variable für die Funktion LabPat
 Public alt_la As LabArt, altPID&, aktlwx&, lwZahl&
+
+Public Type labtyp
+ Abkü As String
+ Zp As Date
+ WertSg As String ' Wert-String, mit "," als Dezimaltrennzeichen;
+ Einheit As String
+End Type
+ 
 Public lab() As labtyp
 
 '#Const sqllangsam = True
@@ -621,7 +630,7 @@ Public Function LetztLab(pid&, Abkü$, Einh$, Zp As Date) As labtyp
    i = 0
    Do While Not rsl.EOF
     lab(i).Abkü = rsl!Abkü
-    lab(i).WertSg = REPLACE$(rsl!Wert, ".", ",")
+    lab(i).WertSg = REPLACE$(rsl!wert, ".", ",")
     lab(i).Einheit = rsl!Einheit
     lab(i).Zp = rsl!Zeitpunkt
     i = i + 1
@@ -680,7 +689,7 @@ Public Function LabPat(LA As LabArt, pid&, Optional naechster%) As labtyp
    i = 0
    Do While Not rsl.EOF
     lab(i).Abkü = rsl!Abkü
-    lab(i).WertSg = REPLACE$(rsl!Wert, ".", ",")
+    lab(i).WertSg = REPLACE$(rsl!wert, ".", ",")
     lab(i).Einheit = rsl!Einheit
     lab(i).Zp = rsl!Zeitpunkt
     i = i + 1
@@ -1507,7 +1516,7 @@ If True Then ' lwZahl
   Dim pospfeil%
   pospfeil = MAXvb(InStr(CreaR, ">"), InStr(CreaR, "<"))
   If pospfeil > 0 Then CreaR = Mid$(CreaR, pospfeil + 1)
-  aktDC.Crea = REPLACE$(CreaR, ",,", ",")
+  aktDC.Crea = REPLACE$(REPLACE$(CreaR, "^", ""), ",,", ",")
   aktDC.Crea = Round(aktDC.Crea, 1)
   DMPCrea = Labs.WertSg & " mg/dl (" & Format$(Labs.Zp, "dd/mm/yy") & ")" ', oberer Normwert: 1,3 mg/dl"
  End If
@@ -4263,15 +4272,15 @@ vorgetword:
  Set mR1 = dc.content
  With mR1.Find
   .clearformatting
-  .Text = " ("
-  .replacement.Text = vNS
+  .text = " ("
+  .replacement.text = vNS
   .wrap = wdFindContinue
   .Format = False
   .Execute
  End With
  If mR1.Find.found Then
   Set mR2 = dc.Range(mR1.Start, mR1.Start)
-  mR2.Find.Text = ")"
+  mR2.Find.text = ")"
   mR2.Find.Execute
   If mR2.Find.found Then
    Set mR3 = dc.Range(mR1.Start, mR2.END)
@@ -4284,7 +4293,7 @@ vorgetword:
  Dim Para
  Set Para = mR3.paragraphs.First.Range
  Do While Err.Number = 0
-  With dc.Range(Para.Start, Para.Start + InStr(Para.Text, ":")).Font
+  With dc.Range(Para.Start, Para.Start + InStr(Para.text, ":")).Font
    .Italic = True
    .bold = True
   End With
@@ -4333,7 +4342,7 @@ vorgetword:
   myFrag mrs, sql
   dc.Range.Insertafter vbCrLf & TabAusgeb(mrs, Lese, , Chr$(11), , , , , , , True).Value
   Set mR2 = dc.paragraphs.Last.Range
-  mR2.Find.Text = ":"
+  mR2.Find.text = ":"
   mR2.Find.Execute
   If mR2.Find.found Then
    dc.Range(dc.paragraphs.Last.Range.Start, mR2.END).bold = True
@@ -5590,28 +5599,28 @@ fehler:
     End Select
  End Function ' doTabakSt
  
- Function doTabakStAlt(Text) As ZigSt  ' TabakStatus "parsen"
+ Function doTabakStAlt(text) As ZigSt  ' TabakStatus "parsen"
   Dim KommaStelle%, FrüherStelle%, bisStelle%, MinusStelle%, LJStelle% ' 0 = keiner, 1 = früher, 2 = aktuell, 3 = vor mehr als 15 Jahren
   Dim jahrk$, obdatum%, Datu As Date, sp$()
   Dim rSn$, rSnpos&
   On Error GoTo fehler
-  If Not IsNull(Text) Then
-   Text = Trim$(Text)
-   rSnpos = InStr(Text, "RauchenSienoch")
+  If Not IsNull(text) Then
+   text = Trim$(text)
+   rSnpos = InStr(text, "RauchenSienoch")
    If rSnpos > 0 Then
-    rSn = Mid$(Text, rSnpos + 16)
+    rSn = Mid$(text, rSnpos + 16)
     If InStrB(rSn, "RauchenSienoch") <> 0 Then rSn = Mid$(rSn, InStr(rSn, "RauchenSienoch") + 16)
    End If
-   If Left$(Text, 1) = "j" Then
-    sp = Split(Text, "Frühergeraucht?")
+   If Left$(text, 1) = "j" Then
+    sp = Split(text, "Frühergeraucht?")
     If Trim$(sp(0)) = ",wieviel?" Or obNein(Left$(sp(0), 1)) Then
      doTabakStAlt = nie
     Else
      If rSnpos > 0 Then
       If obNein(rSn) Then doTabakStAlt = früher Else If (obNein(sp(0)) Or InStrB(rSn, "j") <> 0) Then doTabakStAlt = aktuell
      Else
-      If LCase$(Left$(Text, 1)) = "j" Then
-       If InStrB(Text, "is") <> 0 Then
+      If LCase$(Left$(text, 1)) = "j" Then
+       If InStrB(text, "is") <> 0 Then
         doTabakStAlt = früher
        Else
         doTabakStAlt = aktuell
@@ -5629,18 +5638,18 @@ fehler:
     End If
    ElseIf Left$(rSn, 1) = "j" Then 'obNein(rSn) = 0 THEN 4.4.07 Pat. 1716
     doTabakStAlt = aktuell
-   ElseIf Left$(Text, 1) = "n" Or Text = "Frühergeraucht? n" Or Text = "Frühergeraucht? -" Or Left$(Text, 1) = "," Then
+   ElseIf Left$(text, 1) = "n" Or text = "Frühergeraucht? n" Or text = "Frühergeraucht? -" Or Left$(text, 1) = "," Then
     doTabakStAlt = nie
    Else
-    KommaStelle = InStr(Text, ",")
-    MinusStelle = InStr(Text, "-")
-    bisStelle = InStr(Text, "bis")
-    LJStelle = InStr(Text, "LJ")
-    FrüherStelle = InStr(Text, "früher")
+    KommaStelle = InStr(text, ",")
+    MinusStelle = InStr(text, "-")
+    bisStelle = InStr(text, "bis")
+    LJStelle = InStr(text, "LJ")
+    FrüherStelle = InStr(text, "früher")
     obdatum = 0
     If MinusStelle = 1 Or bisStelle = 1 Then
-     If MinusStelle = 1 Then jahrk = Mid$(Text, 2)
-     If bisStelle = 1 Then jahrk = Mid$(Text, 4)
+     If MinusStelle = 1 Then jahrk = Mid$(text, 2)
+     If bisStelle = 1 Then jahrk = Mid$(text, 4)
      jahrk = LTrim$(jahrk)
      If InStrB(jahrk, " ") <> 0 Then
       jahrk = Left$(jahrk, InStr(jahrk, " ") - 1)
@@ -5667,19 +5676,19 @@ fehler:
     End If
     
    End If ' MinusStelle = 1 OR bisStelle = 1 THEN
-   If Not IsNull(Text) And Text <> "" Then
+   If Not IsNull(text) And text <> "" Then
     If bisStelle > 0 Or (FrüherStelle > 0 And (KommaStelle = 0 Or (KommaStelle > 0 And KommaStelle > FrüherStelle))) Then
      doTabakStAlt = früher
     ElseIf (FrüherStelle > 0 And KommaStelle > 0 And FrüherStelle > KommaStelle) Then
      doTabakStAlt = aktuell
     Else
-     If InStrB(Text, "ja") <> 0 Or InStr(Text, "j") = 1 Then
+     If InStrB(text, "ja") <> 0 Or InStr(text, "j") = 1 Then
       doTabakStAlt = aktuell
      Else
-      If Text = "n" Or Text = "-" Or InStrB(Text, "nein") <> 0 Or InStrB(Text, "kein") <> 0 Or Text = "0" Then
+      If text = "n" Or text = "-" Or InStrB(text, "nein") <> 0 Or InStrB(text, "kein") <> 0 Or text = "0" Then
        doTabakStAlt = nie
       Else
-       If (InStrB(Text, "LJ") <> 0 And MinusStelle > 0) Or (MinusStelle = 1 And obdatum) Then
+       If (InStrB(text, "LJ") <> 0 And MinusStelle > 0) Or (MinusStelle = 1 And obdatum) Then
 '        IF Not obdatum OR (obdatum AND datu > Now + 15 * 365) THEN
 ' muß noch getestet werden
          doTabakStAlt = früher
@@ -5692,9 +5701,9 @@ fehler:
    End If
   End If ' NOT ISNULL(Text
   End If
-   If doTabakStAlt = früher And InStrB(Text, "biswann:") <> 0 Then
-    bisStelle = InStr(Text, "biswann:") + Len("biswann:")
-    jahrk = LTrim$(Trim$(Mid$(Text, bisStelle + 1)))
+   If doTabakStAlt = früher And InStrB(text, "biswann:") <> 0 Then
+    bisStelle = InStr(text, "biswann:") + Len("biswann:")
+    jahrk = LTrim$(Trim$(Mid$(text, bisStelle + 1)))
     obdatum = -1
    End If
   If doTabakStAlt = 1 And obdatum Then

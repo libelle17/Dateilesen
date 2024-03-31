@@ -509,7 +509,7 @@ Private Sub TabAusFüll()
  Dim aktRow&, i&
  obPidSp = False
  aktRow = 1
- Me.MFG.Cols = pRs.Fields.COUNT + obMitZähler
+ Me.MFG.cols = pRs.Fields.COUNT + obMitZähler
  If Not pRs.BOF Then pRs.MoveFirst
  Do While Not pRs.EOF
   aktRow = aktRow + 1
@@ -525,7 +525,7 @@ Private Sub TabAusFüll()
  Next i
  
 '
-If Me.MFG.Cols < 6 Then Me.MFG.col = Me.MFG.Cols - 1 Else Me.MFG.col = 5
+If Me.MFG.cols < 6 Then Me.MFG.col = Me.MFG.cols - 1 Else Me.MFG.col = 5
 ' Me.Label1.Width = Me.MFG.CellWidth
 ' Me.Label1.AutoSize = True
  Do While Not pRs.EOF
@@ -616,7 +616,7 @@ sql0 = "SELECT COUNT(0) Zahl, i.* FROM (SELECT n.getha0 ÜWNNR, h.fax, h.Anrede, 
 '  END IF
   rs0.MoveNext
  Loop
- Me.MFG.Cols = PlusCol + 5
+ Me.MFG.cols = PlusCol + 5
  Me.MFG.Rows = HASL.COUNT + 1 '  IF Me.MFG.Rows <= i THEN Me.MFG.Rows = Me.MFG.Rows + 1000
  For i = 1 To HASL.COUNT
   Set HAS = HASL.Item(i)
@@ -777,7 +777,7 @@ Public Sub Command1_Click(Index As Integer)
     Case 2 - 2 * (obPidSp + 1): Call Nächster
     Case 3 - 2 * (obPidSp + 1): Call Voriger
     Case 0: Call FertigStellen(Me.MFG.Row, True) ' in Turbomed anzeigen
-    Case 1: Call dodoPLZ(Me.MFG.TextMatrix(Me.MFG.Row, PIDSp), plzVz, Now, Now - Int(Now), True)  ' Patientenlaufzettel erstellen
+    Case 1: Call dodoplz(Me.MFG.TextMatrix(Me.MFG.Row, PIDSp), plzVz, Now, Now - Int(Now), True)  ' Patientenlaufzettel erstellen
    End Select
    
   Case artLab
@@ -787,7 +787,7 @@ Public Sub Command1_Click(Index As Integer)
     Case 2: Call verschieb(pVerz & "LaborAlt")
     Case 3: Call lösch
     Case 4: Call FertigStellen(Me.MFG.Row, True) ' in Turbomed anzeigen
-    Case 5: Call dodoPLZ(Me.MFG.TextMatrix(Me.MFG.Row, Pat_IDSp), plzVz, Now, Now - Int(Now), True) ' Patientenlaufzettel erstellen
+    Case 5: Call dodoplz(Me.MFG.TextMatrix(Me.MFG.Row, Pat_IDSp), plzVz, Now, Now - Int(Now), True) ' Patientenlaufzettel erstellen
     Case 6: Call farberklärung ' hier Farberklärung
    End Select
    
@@ -898,7 +898,7 @@ End Sub ' Auffrisch()
 Private Sub plz()
  Dim Pat_id$
  Pat_id = MFG.TextMatrix(MFG.Row, PIDSp)
- Call dodoPLZ(Pat_id, plzVz, Now, Now - Int(Now), True)
+ Call dodoplz(Pat_id, plzVz, Now, Now - Int(Now), True)
 End Sub ' Anleitung
 
 
@@ -1092,7 +1092,7 @@ Public Sub Suchen(Optional weiter%, Optional alleSp%) ' Suchen
  With MFG
   alttop = .TopRow
   VonSp = IIf(alleSp, 0, .col)
-  BisSp = IIf(alleSp, .Cols - 1, .col)
+  BisSp = IIf(alleSp, .cols - 1, .col)
 '  altr = .Row
 '  altC = .col
   Call MFG_leavecell
@@ -1119,7 +1119,7 @@ End Sub ' Suchen
 Public Sub FertigStellen(zeile&, Optional nuranzeigen%, Optional PatID&) ' nachdem BDT-Datei(en) manuell importiert wurde(n)
  Const obStumm% = 0
  FNr = 11
- Dim VorDoku$, Pat_id&, dtyp%, rs As New Recordset
+ Dim VorDoku$, Pat_id&, DTyp%, rs As New Recordset
 ' Dim aktDC AS DMPClass
  Dim j%
  Dim rTyp As New ADODB.Recordset
@@ -1428,11 +1428,11 @@ End Sub ' dokuErstelle
 
 Public Sub callMachDMPBogen(Pat_id&, Optional VorDoku$, Optional obmitauswahl%, Optional immeranhaeng%, Optional obStumm%, Optional Datei$)  ' Erstelle
  If Datei = "" Then Datei = uVerz & "tmimport\" & DMP_Import
- Dim rTyp As New ADODB.Recordset, dtyp%
+ Dim rTyp As New ADODB.Recordset, DTyp%
  Dim dmpba As New DMPBogenauswahl
  FNr = 16
  myFrag rTyp, "SELECT icd FROM diagnosen d WHERE d.pat_id = " & Pat_id & " AND d.diagsicherheit <> 'A' AND d.icd LIKE 'E1%' ORDER BY icd", adOpenStatic, DBCn, adLockReadOnly ' AND COALESCE(d.f6010,0)=0
- If Not rTyp.EOF Then dtyp = Mid$(rTyp.Fields(0), 3, 1) + 1
+ If Not rTyp.EOF Then DTyp = Mid$(rTyp.Fields(0), 3, 1) + 1
  If VorDoku = "" Then
       Dim rDok As New ADODB.Recordset
       Dim begcol%, j%, AktCol%, obraus%
@@ -1470,7 +1470,7 @@ Public Sub callMachDMPBogen(Pat_id&, Optional VorDoku$, Optional obmitauswahl%, 
       End If
      End If
  End If
- If dtyp = 2 Then If VorDoku = vNS Then BogArtVar = typ2neu Else BogArtVar = typ2alt Else If VorDoku = vNS Then BogArtVar = typ1neu Else BogArtVar = typ1alt
+ If DTyp = 2 Then If VorDoku = vNS Then BogArtVar = typ2neu Else BogArtVar = typ2alt Else If VorDoku = vNS Then BogArtVar = typ1neu Else BogArtVar = typ1alt
  DokuDat = MINvb(Now(), QEnd(ZQuart(Now() - Verspätung)))
  If obmitauswahl Then
   dmpba.Option1(BogArtVar - 1) = True
@@ -1704,7 +1704,7 @@ Public Sub domachDMPBogen(Pat_id&, BogArtlV As BogArtTyp, DokuDat As Date, Optio
  #If zumdebug = 1 Then
   Call DMPString$(Pat_id, aktDC, , , DokuDat, 0)
  #End If
- Call BDT.ImportFolderHerricht(hVerz, Mid$(Datei, Len(hVerz) + 1))
+ Call BDT.ImportFolderHerricht(hVerz, Mid(Datei, Len(Datei) - InStr(StrReverse(Datei), "\") + 2))
  
  erg = Dir(BDT.DMPImp)
  If LenB(erg) = 0 Then
@@ -2022,9 +2022,9 @@ Public Sub domachDMPBogen(Pat_id&, BogArtlV As BogArtTyp, DokuDat As Date, Optio
    Next i
    
    BDT.FFAdd "Ik"
-'   BDT.FIAdd "10" & rfal!IK    ' 1.1.15: Vorsatz von "10" empirisch bei Monterosso ermittelt, in IK-Liste scheint es bei den DMP-Kassen 10 zu sein, bei LKK auch 11
+'   BDT.FIAdd "10" & rfal!IK    ' 1.1.15: Vorsatz von "10" empirisch bei PID 18613 ermittelt, in IK-Liste scheint es bei den DMP-Kassen 10 zu sein, bei LKK auch 11
    Dim rik As New ADODB.Recordset, IKs$, ikname$, ikprae$
-   myFrag rik, "SELECT ikprae,name FROM IKs WHERE ik = " & aktDC.IK
+   myFrag rik, "SELECT ikprae,name FROM IKs WHERE ik = '" & aktDC.IK = "'"
    If Not rik.BOF Then
     ikprae = rik!ikprae
     ikname = rik!name
@@ -2721,9 +2721,9 @@ Private Sub MFGrefresh()
  MFG.Rows = rs!ct + 30
  Set rs = Nothing
  myFrag rs, "SELECT MAX(zahl) AS mz FROM (SELECT icd, COUNT(0) AS zahl FROM (SELECT d.icd AS icd,diagtext FROM `diagnosen` d LEFT JOIN `diagreihe` r ON d.icd = r.icd GROUP BY d.icd, diagtext) AS innen GROUP BY icd) AS innen;", adOpenStatic, DBCn, adLockOptimistic
- MFG.Cols = rs!mZ + 4
+ MFG.cols = rs!mZ + 4
  Me.MFG.ColWidth(2) = 500
- For i = 3 To Me.MFG.Cols
+ For i = 3 To Me.MFG.cols
   Me.MFG.ColWidth(i) = 3100
  Next i
  Set rs = Nothing
@@ -2881,7 +2881,7 @@ Sub LabordateiAnzeig(Datei$)
  vorFarbe = vbWhite
  With Me.MFG
  .Visible = False
- .Cols = labhwsp + 1
+ .cols = labhwsp + 1
  .TextMatrix(0, namsp) = "Patient"
  .TextMatrix(0, parsp) = "Parameter"
  .TextMatrix(0, wertsp) = "Wert"
@@ -2906,7 +2906,7 @@ Sub LabordateiAnzeig(Datei$)
  "ORDER BY l.pat_id,l.name,gruppe,reihe,id"
  '  ",IF(RANK() OVER(PARTITION BY pat_id ORDER BY l.pat_id,gruppe,reihe,id)=1,l.NAME,'') ueName" & vbCrLf & _
 
- Dim Pat_id&, dtyp$
+ Dim Pat_id&, DTyp$
 
  If Not rc.BOF And True Then
   .Rows = rc!Zahl + 1
@@ -2914,10 +2914,10 @@ Sub LabordateiAnzeig(Datei$)
   Do While Not rc.EOF
     If Not IsNull(rc!Pat_id) Then
      Pat_id = rc!Pat_id
-     dtyp = rc!ityp
+     DTyp = rc!ityp
      If Pat_id <> vorPID Then vorFarbe = IIf(vorFarbe = vbWhite, vbGräulich, vbWhite) '&H8000000F&=vbgelblichgrau
      Sp1Farbe = vorFarbe
-     If dtyp = "1" Then Sp1Farbe = &HCCCCFF Else If dtyp = "2" Then Sp1Farbe = &HFFCCCC
+     If DTyp = "1" Then Sp1Farbe = &HCCCCFF Else If DTyp = "2" Then Sp1Farbe = &HFFCCCC
      'If Not IsNull(rc!obsws) Then If dtyp = "1" Or dtyp = "2" Then Sp1Farbe = vbGoldenRod Else Sp1Farbe = 2139610 ' RGB(218, 165, 32)
      If Not IsNull(rc!obsws) Then Sp1Farbe = vbGoldenRod
      vorPID = Pat_id
@@ -3362,7 +3362,7 @@ Public Sub RegSpeichern()
  Dim cR As New Registry, i&
  On Error GoTo fehler
   RegPos = RegWurzel & App.EXEName & "\PatListe\" & Me.PLArt
-  For i = 0 To Me.MFG.Cols - 1
+  For i = 0 To Me.MFG.cols - 1
    cR.WriteKey Me.MFG.ColWidth(i), CStr(i), RegPos, HKEY_CURRENT_USER, REG_DWORD
   Next i
  cR.WriteKey Me.MFG.TopRow, "TopRow", RegPos, HKEY_CURRENT_USER, REG_DWORD
@@ -3434,7 +3434,7 @@ Private Sub Form_Load()
    Me.Label1.Visible = False
    Me.Text1.Visible = False
    Call SizeColumns(MFG, Me, True, 5000)
-   For i = 0 To Me.MFG.Cols - 1
+   For i = 0 To Me.MFG.cols - 1
     If MFGCW(i) <> 0 Then Me.MFG.ColWidth(i) = MFGCW(i)
    Next i
    If MFGTopRow <> 0 Then Me.MFG.TopRow = MFGTopRow
@@ -3594,7 +3594,7 @@ Private Sub Form_Load()
      With MFG
      myFrag rDPat, "SELECT COUNT(0) FROM (" & sql & ") AS innen", adOpenStatic, DBCn, adLockReadOnly
      .Rows = rDPat.Fields(0) + 2
-     .Cols = 21
+     .cols = 21
      .Row = 1
      Set rDPat = Nothing
      lfdnr = 0
@@ -3685,7 +3685,7 @@ Private Sub Form_Load()
          .toolTipText = ZQuart(rDok!DokuDatum) & " <> " & ZQuart(Now() - Verspätung) & " (falsches Quartal)"
         End If
        End If
-       For j = begcol To .Cols - 1
+       For j = begcol To .cols - 1
         If rDok.EOF Then Exit For
         .col = j
         If VorDokuSp = 0 Then VorDokuSp = .col
@@ -4019,7 +4019,7 @@ Public Sub MFG_Click()
    If IsNumeric(Me.MFG.TextMatrix(Me.MFG.MouseRow, Pat_IDSp)) Then
     Select Case Me.MFG.MouseCol
      Case 0: Call FertigStellen(Me.MFG.MouseRow, True) ' in Turbomed anzeigen
-     Case 1: Call dodoPLZ(Me.MFG.TextMatrix(Me.MFG.MouseRow, Pat_IDSp), plzVz, Now, Now - Int(Now), True, , , True)
+     Case 1: Call dodoplz(Me.MFG.TextMatrix(Me.MFG.MouseRow, Pat_IDSp), plzVz, Now, Now - Int(Now), True, , , True)
     End Select
    End If
  End Select
@@ -4458,7 +4458,7 @@ Private Sub LaborFüll(Optional nachLangtext%)
         "LEFT JOIN `laborypneu` lp ON i.pid = lp.id ORDER BY abkü DESC, herk, einheit,labor, eingang DESC) i " & vbCrLf & _
         "GROUP BY herk,labor,abkü,einheit "
  Me.MFG.Clear
- Me.MFG.Cols = MFGLabCols ' 9
+ Me.MFG.cols = MFGLabCols ' 9
  Me.MFG.Row = 0
  If nachLangtext Then
   sql0 = sql0 & "ORDER BY langtext,abkü,einheit DESC,nb DESC"
