@@ -3,6 +3,7 @@ Option Explicit
 Option Compare Text
 
 Const MoSer$ = "wser"
+Const parsemotxt$ = "v:\Parsememo31.txt"
 Public Const MOCStr$ = "DRIVER={MySQL ODBC 8.0 Unicode Driver};server=" & MoSer & ";option=0;database=medoff;uid=medoff;pwd=medoff;port=2020;"
 ' Public MOCon As New ADODB.Connection
   
@@ -103,26 +104,33 @@ Public Function ebQuickSort(ByRef pvarArray() As ebType, Optional ByVal plngLeft
     ebQuickSort = pvarArray
 End Function ' ebQuickSort
 
-
-Public Function ParseMemo(FMemo$, MStr() As memoType) ' pNr&, FSur&,
+' BLOB-Felder aus Medical Office parsen
+Public Function ParseMemo(FMemo$, MStr() As memoType, Optional obDebug%, Optional ÜSchr$) ' pNr&, FSur&,
  Dim gl&, pos&, MAX&, aktmax&, altmax&, tlen&, ie&, altie&, mznr%, i&
  Dim obDruck%, txt$, ebS$
  Dim eb() As ebType
+ On Error GoTo fehler
+ Erase MStr
  If FMemo <> "" Then
   pos = 1
   ie = 0
- ' Open "v:\Parsememo31.txt" For Output As #255
+  If obDebug Then
+   Open parsemotxt For Append As #255
+   Print #255, ÜSchr & ":"
+  End If ' obDebug
   Do
    obDruck = 0
    tlen = Asc(Mid$(FMemo, pos + 1, 1)) * 256& + Asc(Mid$(FMemo, pos, 1))
    If pos = 1 Then gl = tlen: MAX = gl
    altmax = MAX
-   aktmax = tlen + pos + 1
-   If aktmax >= 0 And aktmax <= gl Then
+   aktmax = tlen + pos + 1 ' aktuell angegebene Länge aus dem und dem nä Byte
+   If aktmax >= 0 And aktmax <= gl Then ' wenn die angegebene Länge vertretbar
+   ' und an der letzten Stelle 0 steht (dann könnte es eine Länge sein), da es hier aber Ausnahmen gibt, wurde re>Max davon ausgenommen
+   ' wenn die akt.Länge nicht über die Vorbestehende hinausreicht oder d.vorbest.schon überschritten wurde:
     If ((Asc(Mid$(FMemo, aktmax, 1)) = 0 And aktmax <= MAX) Or pos > MAX) Then
-     altie = ie
-     If aktmax <= MAX Then ie = ie + 1
-     If pos > MAX Then
+     altie = ie ' letzte Ebene
+     If aktmax <= MAX Then ie = ie + 1 ' im ersten Fall wird die Ebene erhöht
+     If pos > MAX Then ' im zweiten Fall wird zurückgegriffen
       mznr = -1
       ie = 0
       If SafeArrayGetDim(MStr) <> 0 Then
@@ -135,26 +143,27 @@ Public Function ParseMemo(FMemo$, MStr() As memoType) ' pNr&, FSur&,
       End If ' SafeArrayGetDim(MStr) <> 0 Then
       ie = ie + 1
      End If ' pos > MAX
-     If ie <= altie Then
-      If ie < altie Then
+     If ie <= altie Then ' wenn die Ebene nicht erhöht worden ist
+      If ie < altie Then ' wenn sie vielmehr reduziert wurde
        For i = UBound(eb) To 0 Step -1
-        If eb(i).nr > ie Then Call ebTypeDelete(eb, i, 0)
+        If eb(i).nr > ie Then Call ebTypeDelete(eb, i, 0) ' dann werden die höheren Einträge wieder gelöscht
        Next i
        Call ebTypeDelete(eb, UBound(eb) + 1, -1)
       End If ' ie < AltID Then
       For i = 0 To UBound(eb)
-       If eb(i).nr = ie Then eb(i).Wert = eb(i).Wert + 1
+       If eb(i).nr = ie Then eb(i).Wert = eb(i).Wert + 1 ' dann wird die Zählung der akt. Ebene erhöht
       Next i
      Else ' ie < AltID Then
+      ' sonst muss ein neuer Eintrag für die hohe Ebene erstellt werden
       If SafeArrayGetDim(eb) = 0 Then ReDim eb(0) Else ReDim Preserve eb(UBound(eb) + 1)
       eb(UBound(eb)).nr = ie
       eb(UBound(eb)).Wert = 1
      End If ' ie <= altie Then
-     MAX = aktmax
-     obDruck = 1
+     MAX = aktmax ' neue vorbestehende Länge
+     obDruck = 1 ' und drucken
     End If ' ((Asc(Mid$(FMemo, aktmax, 1)) = 0 And aktmax <= MAX) Or pos > MAX) Then
    End If ' aktmax >= 0 And aktmax <= gl Then
-   If obDruck = 1 Or pos = 1 Then ' or pos=1 or true
+   If obDruck = 1 Then ' Or pos = 1 Then ' or pos=1 or true then
     txt = Mid(FMemo, pos + 2, tlen)
     If txt <> String$(tlen, Chr$(0)) Then
      ebS = ""
@@ -166,7 +175,15 @@ Public Function ParseMemo(FMemo$, MStr() As memoType) ' pNr&, FSur&,
       Next i
       If Right$(ebS, 1) = "." Then ebS = Left$(ebS, Len(ebS) - 1)
      End If ' SafeArrayGetDim(eb) <> 0 Then
-     If SafeArrayGetDim(MStr) = 0 Then ReDim MStr(0) Else ReDim Preserve MStr(UBound(MStr) + 1)
+     If SafeArrayGetDim(MStr) = 0 Then
+       ReDim MStr(0)
+     Else ' SafeArrayGetDim(MStr) = 0 Then
+       ' das Folgende geht leider nicht, weil dann oben eb() falsch befüllt wird
+       ' zum Debuggen das Folgende mit "or True" ergänzen
+'       If Not (InStr(ebS, MStr(UBound(MStr)).enr & ".") = 1 And ebS <> MStr(UBound(MStr)).enr) Then
+        ReDim Preserve MStr(UBound(MStr) + 1)
+'       End If
+     End If ' SafeArrayGetDim(MStr) = 0 Then else
 '     MStr(UBound(MStr)).patnr = pNr
 '     MStr(UBound(MStr)).FSur = FSur
      MStr(UBound(MStr)).znr = pos
@@ -175,30 +192,69 @@ Public Function ParseMemo(FMemo$, MStr() As memoType) ' pNr&, FSur&,
      MStr(UBound(MStr)).enr = ebS
      If Asc(Right$(txt, 1)) = 0 Then txt = Left$(txt, Len(txt) - 1)
      MStr(UBound(MStr)).Text = txt
-'     Print #255, pos & "|" & MAX & "|" & ie & "|" & ebS & "|" & Mid$(FMemo, pos, 1) & "|" & Asc(Mid$(FMemo, pos, 1)) & "|" & Asc(Mid$(FMemo, pos + 1, 1)) * 256& + Asc(Mid$(FMemo, pos, 1)) & "| aktMax: " & aktmax & "| altMax: " & altmax & "| Laenge: " & Len(txt) & "| EndByte: " & Asc(Mid$(FMemo, aktmax, 1)) & "|" & txt & vbCrLf
-    Else ' txt <> String$(Chr$(0), tlen) Then
+'     If obDebug Then
+'      Print #255, pos & "|" & MAX & "|" & ie & "|" & ebS & "|" & Mid$(FMemo, pos, 1) & "|" & Asc(Mid$(FMemo, pos, 1)) & "|" & Asc(Mid$(FMemo, pos + 1, 1)) * 256& + Asc(Mid$(FMemo, pos, 1)) & "| aktMax: " & aktmax & "| altMax: " & altmax & "| Laenge: " & Len(txt) & "| EndByte: " & Asc(Mid$(FMemo, aktmax, 1)) & "|" & txt & vbCrLf
+'     End If ' obDebug Then
+    Else ' txt <> String$(Chr$(0), tlen) Then ' 0-Strings nicht auffieseln
      pos = pos + tlen
     End If ' txt <> String$(Chr$(0), tlen) Then
    End If ' obdruck = 1 Then ' or pos=1 or true
    pos = pos + 1
    If pos >= gl Then Exit Do
   Loop
-'  Close #255
+  ' folende Zeilen zum Debuggen auskommentieren (in der Schleife laba ist das deutlich langsamer!)
   For i = UBound(MStr) - 1 To 0 Step -1
    If InStr(MStr(i + 1).enr, MStr(i).enr & ".") = 1 And MStr(i + 1).enr <> MStr(i).enr Then ' MStr(i).patnr = MStr(i + 1).patnr And MStr(i).FSur = MStr(i + 1).FSur And
     Call memoTypeDelete(MStr, i, 0)
    End If
    Call memoTypeDelete(MStr, UBound(MStr) + 1, True)
   Next i
+  If obDebug Then
+   For i = 0 To UBound(MStr)
+    Dim endse$, endsz$
+    If MStr(i).znr <= Len(FMemo) Then
+     endse = Asc(Mid$(FMemo, MStr(i).znr, 1))
+    Else
+     endse = "!: " & MStr(i).znr & ">" & Len(FMemo)
+    End If
+    If MStr(i).znr <= Len(FMemo) - 1 Then
+     endsz = Asc(Mid$(FMemo, MStr(i).znr + 1, 1)) * 256& + Asc(Mid$(FMemo, MStr(i).znr, 1))
+    Else
+     endsz = "!: " & MStr(i).znr - 1 & ">" & Len(FMemo)
+    End If
+    Print #255, MStr(i).znr & "|" & MStr(i).mx & "|" & MStr(i).ebn & "|" & MStr(i).enr & "|" & IIf(endse <> "10", Mid$(FMemo, MStr(i).znr, 1), "") & "|" & endse & "|" & endsz & "| Laenge: " & Len(MStr(i).Text) & "|" & IIf(Right$(MStr(i).Text, 1) = Chr$(10), Left$(MStr(i).Text, IIf(Len(MStr(i).Text) = 0, 1, Len(MStr(i).Text)) - 1), MStr(i).Text)
+   Next i
+  End If ' obdebug
+  If obDebug Then
+   Print #255, vbCrLf
+   Close #255
+  End If ' obDebug
  End If ' FMEMO<>""
+ Exit Function
+fehler:
+ Dim AnwPfad$
+#If VBA6 Then
+ AnwPfad = CurrentDb.name
+#Else
+ AnwPfad = App.path
+#End If
+ Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in ParseMemo/" + AnwPfad)
+  Case vbAbort: Call MsgBox("Höre auf"): ProgEnde
+  Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
+  Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
+ End Select
 End Function ' ParseMemo
 
 
 Public Function doPatvonMO(pNr&, pid&)
+ Const obDebug% = True
  Dim rsNa As New ADODB.Recordset, rsFa As New ADODB.Recordset
- Dim MStr() As memoType
+ Dim MStr() As memoType, rsfaru%, j&
 ' ReDim MStr(0)
  Call LöschePat(pid)
+ On Error Resume Next
+ If obDebug Then FSO.DeleteFile parsemotxt
+ On Error GoTo fehler
  Tinit
  Dim MOCon As New ADODB.Connection
  MOCon.Open MOCStr
@@ -209,19 +265,28 @@ Public Function doPatvonMO(pNr&, pid&)
  rNa(0).NVorsatz = rsNa!FNamenszusatz
  rNa(0).Titel = rsNa!FTitel
  rNa(0).Vorname = rsNa!FVorname
- rNa(0).Vorname = rsNa!FVorname
  Select Case rsNa!FGeschlecht:  Case "2": rNa(0).geschlecht = "w":  Case "1": rNa(0).geschlecht = "m":  Case Else: rNa(0).geschlecht = rsNa!FGeschlecht: End Select
  rNa(0).GebDat = DateSerial(Mid$(rsNa!fgeburtsdatum, 1, 4), Mid$(rsNa!fgeburtsdatum, 5, 2), Mid$(rsNa!fgeburtsdatum, 7, 2))
  rNa(0).Versichertennummer = rsNa!FAktversichertennr
  rNa(0).AufnDat = CDate("1.1.1890") + rsNa!FErstkontakt
  rNa(0).Straße = rsNa!FStrasse
- rsFa.Open "SELECT COALESCE(CONVERT(fmemo USING latin1),'') fmemo FROM patfall WHERE fpatnr=" & pNr, MOCon, adOpenStatic, adLockReadOnly
+ rsFa.Open "SELECT COALESCE(CONVERT(fmemo USING latin1),'') fmemo,CONCAT(fpatnr,', ',fvon,' - ',fbis) ueschr FROM patfall WHERE fpatnr=" & pNr & " ORDER BY FVon DESC", MOCon, adOpenStatic, adLockReadOnly
+ rsfaru = 0
  If Not rsFa.BOF Then
   Do While Not rsFa.EOF
-   Call ParseMemo(rsFa!FMemo, MStr()) ' rsFa!fpatnr, rsFa!fsurogat,
+   Call ParseMemo(rsFa!FMemo, MStr(), obDebug, rsFa!ueschr)  ' rsFa!fpatnr, rsFa!fsurogat,
+   If rsfaru = 0 Then
+    For j = 0 To UBound(MStr)
+     If MStr(j).enr = "3.2.2.5.6" Then
+      rNa(0).KVKStatus = MStr(j).Text
+      Exit For
+     End If
+    Next j
+    rsfaru = 1
+   End If
    rsFa.MoveNext
   Loop
- End If
+ End If ' Not rsFa.BOF Then
  Set rsFa = Nothing
  Set rsFa = Nothing ' wirkt witzigerweise erst beim zweiten Mal (?!)
  rsFa.Open "SELECT COALESCE(CONVERT(fmemo USING latin1),'') fmemo FROM patstamm WHERE fsurogat=" & pNr, MOCon, adOpenStatic, adLockReadOnly
@@ -229,6 +294,20 @@ Public Function doPatvonMO(pNr&, pid&)
    Call ParseMemo(rsFa!FMemo, MStr()) ' rsFa!fpatnr, rsFa!fsurogat,
    rsFa.MoveNext
  End If
+ MsgBox "Fertig"
+ Exit Function
+fehler:
+ Dim AnwPfad$
+#If VBA6 Then
+ AnwPfad = CurrentDb.name
+#Else
+ AnwPfad = App.path
+#End If
+ Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in doPatvonMO/" + AnwPfad)
+  Case vbAbort: Call MsgBox("Höre auf"): ProgEnde
+  Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
+  Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
+ End Select
 End Function ' doPatvonMO(pNr&, pid&)
 
 Public Function suchfi(pNr&, fI$)
@@ -407,7 +486,7 @@ Language sql
 NOT DETERMINISTIC
 CONTAINS sql
 SQL SECURITY DEFINER
-Comment 'liest das Feld FMemo aus patfall in die Tabelle tmpfmemo auslesen'
+Comment 'liest das Feld FMemo aus patfall in die Tabelle tmpfmemo aus'
 tp: Begin
 DECLARE gl,pos,MAX,aktmax,altmax,tlen,ie,altie INT(10) DEFAULT 0;
 DECLARE obdruck INT(1);
