@@ -3684,19 +3684,20 @@ sql(AWlf) = "ü"
 '    "WHERE e.art = 'ogtt' AND e.zeitpunkt BETWEEN " & lqanfuend(FristS) & " AND letzteRegel<>'' AND ADDDATE(STR_TO_DATE(f.letzteRegel,'TM#%d%m%Y'),274) > e.zeitpunkt GROUP BY e.fid,e.zeitpunkt) i " & vbCrLf & _
 '    "WHERE `01777`<>(IF((SELECT SUM(IF(f5005='',1,f5005)) FROM leistungen l WHERE l.pat_id= pat_id AND DATE(l.zeitpunkt)<messzeitpunkt AND DATE(l.zeitpunkt) > `letzte Regel` AND l.leistung='01777')=0,1,0)) OR `01812` <>3 "
 sql(AWlf) = "SELECT Pat_ID, Name, Messzeitpunkt, `01812`, Soll, `01777`, `Vor-01777`" & vbCrLf & _
-", ob50, CONCAT(DATE_FORMAT(voret - INTERVAL 280 DAY,'%d.%m.%y'),'-',DATE_FORMAT(voret,'%d.%m.%y')) `SWS-von-bis`" & vbCrLf & _
+", ob50, letzteRegel, CONCAT(DATE_FORMAT(voret - INTERVAL 280 DAY,'%d.%m.%y'),'-',DATE_FORMAT(voret,'%d.%m.%y')) `SWS-von-bis`" & vbCrLf & _
 ", einh `OGTT-Dokumentation` " & vbCrLf & _
 "FROM ( " & vbCrLf & _
       "SELECT COALESCE(SUM(ogtt.lzahl),0) `01777` " & vbCrLf & _
-      ", (SELECT MAX(IF(inhalt RLIKE 'ja am|t *ja|am *[0-9]' OR inhalt LIKE '%chgeführt? ja%',1,IF(inhalt RLIKE 'nein am|- am|-,' OR inhalt LIKE '%chgeführt? nein%',0,'?'))) FROM eintraege WHERE pat_id = f.pat_id AND art RLIKE '^angd|^50g$' AND DATE(zeitpunkt)=DATE(e.zeitpunkt)) ob50 " & vbCrLf & _
+      ", COALESCE((SELECT MAX(IF(inhalt RLIKE 'ja am|t *ja|am *[0-9]' OR inhalt LIKE '%chgeführt? ja%',1,IF(inhalt RLIKE 'nein am|- am|-,' OR inhalt LIKE '%chgeführt? nein%',0,'?'))) FROM eintraege WHERE pat_id = f.pat_id AND art RLIKE '^angd|^50g$' AND DATE(zeitpunkt)=DATE(e.zeitpunkt)),1) ob50 " & vbCrLf & _
       ", COALESCE(SUM(gluc.lzahl),0) `01812`, " & vbCrLf & _
+      "et.letzteRegel, " & vbCrLf & _
       "gesname(f.pat_id) Name, DATE(e.zeitpunkt) Messzeitpunkt, e.inhalt einh, e.fid fid, e.pat_id pat_id " & vbCrLf & _
             ",COALESCE((SELECT SUM(lzahl) FROM leistungen WHERE pat_id= e.pat_id AND DATE(zeitpunkt)<DATE(e.zeitpunkt) AND DATE(zeitpunkt)> et.letzteRegel AND leistung='01777'),0) `Vor-01777` " & vbCrLf & _
             ", et.voret, (SELECT COUNT(0) FROM eintraege WHERE pat_id=e.pat_id AND DATE(zeitpunkt)=DATE(e.zeitpunkt) AND art IN ('bzvgl','bz')) + CASE WHEN e.inhalt LIKE '%mg%mg%mg%' AND NOT e.inhalt LIKE '%mg%mg%~%mg%' THEN 3 WHEN e.inhalt LIKE '%mg%mg%' AND NOT e.inhalt LIKE '%mg%~%mg%' THEN 2 WHEN e.inhalt LIKE '%mg%' THEN 1 ELSE 0 END Soll" & vbCrLf & _
             ", f.vknr, f.ik" & vbCrLf & _
              "FROM eintraege e " & vbCrLf & _
             "LEFT JOIN `faelle` f ON e.fid = f.fid " & vbCrLf & _
-            "LEFT JOIN (SELECT IF(LR=18991230,IF(efLR=18991230,IF(erLR=18991230,voret-INTERVAL 280 day,erlr),efLR),LR) letzteRegel, voret,pat_id FROM sws) et ON et.Pat_ID=f.pat_id AND et.voret>qanf() AND et.voret - INTERVAL 280 DAY<e.zeitpunkt" & vbCrLf & _
+            "LEFT JOIN (SELECT IF(LR=18991230,IF(efLR=18991230,IF(erLR=18991230,IF(voret<19500101,voret+INTERVAL 100 YEAR,voret)-INTERVAL 280 day,erlr),efLR),IF(LR<19500101,LR+INTERVAL 100 YEAR,LR)) letzteRegel, voret,pat_id FROM sws) et ON et.Pat_ID=f.pat_id AND et.voret>qanf() AND et.voret - INTERVAL 280 DAY<e.zeitpunkt" & vbCrLf & _
             "LEFT JOIN leistungen ogtt ON f.fid = ogtt.fid AND ogtt.leistung = '01777' AND DATE(ogtt.zeitpunkt) = DATE(e.zeitpunkt) " & vbCrLf & _
             "LEFT JOIN leistungen gluc ON f.fid = gluc.fid AND gluc.leistung = '01812' AND DATE(gluc.zeitpunkt) = DATE(e.zeitpunkt) " & vbCrLf & _
             "LEFT JOIN namen n ON e.pat_id = n.pat_id " & vbCrLf & _
@@ -3918,6 +3919,25 @@ sql(AWlf) = vbCrLf & _
 '"LEFT JOIN faelle et USING (fid) " & vbCrLf & _
 ",d.icd,d.diagdatum" & vbCrLf & _
 " -- OR (NOT ISNULL(s.voret) AND ISNULL(dm.icd)) " entfernt 14.7.22, da auch Schwangere mit gar keinem Diabetes möglich sind
+
+'AwN(AWlf) = "GDM mit Hypertonie"
+''  AND COALESCE(d.f6010,0)=0
+'sql(AWlf) = vbCrLf & _
+'"SELECT gesname(f.pat_id) PName, f.pat_id, h.icd, mp.medikament, zdzhB, GROUP_CONCAT(rr) rr" & vbCrLf & _
+'"FROM aktfv f" & vbCrLf & _
+'"LEFT JOIN diagview d ON f.pat_id = d.pat_id AND (d.icd='O24.4' AND d.f6010=0 AND d.diagsicherheit IN ('G',' ') AND d.diagdatum BETWEEN qbegs(f.quartal) AND qends(f.quartal))" & vbCrLf & _
+'"LEFT JOIN diagview h ON f.pat_id = h.pat_id AND (h.icd RLIKE '^i10' AND h.diagsicherheit IN ('G',' '))" & vbCrLf & _
+'"LEFT JOIN (SELECT mp.* from medplan mp inner JOIN medarten ma ON mp.medanfang=ma.medikament where tag between qanf() and qend() AND hypt<>0) mp ON mp.pat_id=f.pat_id" & vbCrLf & _
+'"LEFT JOIN (select COUNT(0) OVER (PARTITION BY pat_id) zdzhB, pat_id, zeitpunkt, rr from rr WHERE (rr.rrsyst>=140 OR rr.rrdiast>=90)) rr  ON rr.pat_id=f.pat_id" & vbCrLf & _
+'"Where Not IsNull(d.ICD)" & vbCrLf & _
+'"AND (NOT ISNULL(h.icd) OR NOT isnull(medikament) OR zdzhB>1" & vbCrLf & _
+'")" & vbCrLf & _
+'"GROUP BY f.pat_id" & vbCrLf & _
+'";"
+' mins(AWlf) = 10
+' maxs(AWlf) = 80
+' AWlf = AWlf + 1
+'
 
 ' 113, neuView
 AwN(AWlf) = "Weitere Leistungen"

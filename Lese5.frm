@@ -504,6 +504,9 @@ Begin VB.MDIForm Lese
       Begin VB.Menu DMPhierListeoT 
          Caption         =   "D&MP hier Liste ohne Pat.mit Terminen"
       End
+      Begin VB.Menu DMPRückmeldungsfehler 
+         Caption         =   "DM&P-Rückmeldungsfehler"
+      End
       Begin VB.Menu DMPKHKAsthma 
          Caption         =   "DM&P KHK Asthma"
       End
@@ -1034,6 +1037,18 @@ Private Sub DMP_Übersicht_Click()
  TabAusgeb rs, Me, , , , , , , "DMP-Dok'en " & quart & ", nach LANRID, Nachname, Vorname, Geb'dat sortiert", , True, , , , , True
 End Sub ' DMP_Übersicht_Click()
 
+Private Sub DMPRückmeldungsfehler_Click()
+Dim rs As New ADODB.Recordset
+sql = "SELECT r.pat_id,gesname(r.pat_id) PName,Karteidatum,Date(Dokudatum) DokuDatum,date(exportiert) exp,Art,Abk,Aktzeit FROM dmpreihe r LEFT JOIN dmprm m ON r.pat_id=npid AND if(right(abk,1) IN ('1','2'),CONCAT(r.art,RIGHT(abk,1))=m.dokuart,CONCAT(LEFT(art,1),MID(abk,5))=m.dokuart)" & vbCrLf & _
+"WHERE quartal(dokudatum) = vorquart(quartal(NOW()),1)" & vbCrLf & _
+"AND ISNULL(npid)" & vbCrLf & _
+"ORDER BY pat_id" & vbCrLf & _
+";"
+rs.Open sql, DBCn, adOpenStatic, adLockReadOnly
+Call TabAusgeb(rs, Me, , , , , , True, "Nicht erkannte DMP-Rückmeldungen")
+
+End Sub ' DMPRückmeldungsfehler_Click
+
 ' EDV -> Formulare bereinigen
 Private Sub Formulare_bereinigen_Click()
  Dim rAf&
@@ -1199,7 +1214,8 @@ Private Sub Optionen_Click()
 End Sub ' Optionen_Click()
 
 Private Sub PatvonMO_Click()
- Call doPatvonMO(2112, 12112)
+ Const pNr& = 59152 ' 1394 ' 2112
+ Call doPatvonMO(pNr)
 End Sub ' PatvonMO_Click
 
 Private Sub Ziffer30u31Ausschlüsse_Click()
@@ -3497,7 +3513,7 @@ Private Sub Apothekenrezepte_Click()
  Open uVerz & "Apotheke.csv" For Output As #333
  myFrag rs, "SELECT foid, nachname, vorname, DATE(gebdat) AS geb, fr.zeitpunkt AS Zeitp, fa.feldinh AS text FROM `formular` fr LEFT JOIN `formular` fa USING (foid) LEFT JOIN `namen` ON fr.pat_id = `namen`.pat_id WHERE fr.feldinh LIKE '%Gerald Schade;' AND NOT ISNULL(fr.pat_id) AND fr.formvorl LIKE '%rezept%' AND ((fr.formvorl LIKE '%lang%' AND fa.feld = 'medikament') OR (fr.formvorl NOT LIKE '%lang%' AND fa.nr IN (4,8,9,10,11))) AND fr.zeitpunkt BETWEEN '2008-02-01' AND now() AND NOT fa.feldinh LIKE '%-  -%'"
  Do While Not rs.EOF
-  Print #333, rs!Foid & ";" & rs!Nachname & ";" & rs!Vorname & ";" & rs!Geb & ";" & rs!Zeitp & ";" & rs!text
+  Print #333, rs!Foid & ";" & rs!Nachname & ";" & rs!Vorname & ";" & rs!Geb & ";" & rs!Zeitp & ";" & rs!Text
   rs.Move 1
  Loop
  Close #333
@@ -4034,7 +4050,7 @@ Sub doGNR_Statistiken_einl_Click(Optional obneu = 0)
          myEFrag ("DELETE FROM `" & GStat & "` WHERE id = " & rTest!id)
         End If
        End If
-       InsKorr DBCn, DBCnS, "INSERT INTO `" & GStat & "` (datei,dateidat,qinv) values ('" & UmwfSQL(Verz & "\" & erg) & "'," & DatFor_k(DateiDat) & ",'" & Mid$(q0, 2) & Left$(q0, 1) & "')", rAf
+       InsKorr DBCn, DBCnS, "INSERT INTO `" & GStat & "` (datei,dateidat,qinv) VALUES ('" & UmwfSQL(Verz & "\" & erg) & "'," & DatFor_k(DateiDat) & ",'" & Mid$(q0, 2) & Left$(q0, 1) & "')", rAf
        Set rTest = Nothing
 '       Set rTest = myEFrag("SELECT last_insert_id()")
        Set rTest = myEFrag("SELECT id FROM `" & GStat & "` WHERE DATEI='" & UmwfSQL(Verz & "\" & erg) & "'")
@@ -4073,7 +4089,7 @@ Sub doGNR_Statistiken_einl_Click(Optional obneu = 0)
       euro = "0" & REPLACE$(rEx.Fields(feuro), ".", ",")
       Wert = euro * Zahl
       uwert = IIf((euro = 18.75 Or euro = 19.05 Or euro = 14.25) And Left$(rEx.Fields(fgnr), 1) = "9", 75, euro) * Zahl
-      InsKorr DBCn, DBCnS, "INSERT INTO `" & GZahl & "` (statid,gnr,leigru,punkte,euro,m,f,r,zahl,wert,uwert,min) values (" & statid & ",'" & rEx.Fields(fgnr) & "','" & rEx.Fields(fleigru) & "'," & punkte & "," & REPLACE(euro, ",", ".") & "," & m & "," & F & "," & r & "," & Zahl & "," & REPLACE(Wert, ",", ".") & "," & REPLACE(uwert, ",", ".") & "," & MIN & ")", rAf
+      InsKorr DBCn, DBCnS, "INSERT INTO `" & GZahl & "` (statid,gnr,leigru,punkte,euro,m,f,r,zahl,wert,uwert,min) VALUES (" & statid & ",'" & rEx.Fields(fgnr) & "','" & rEx.Fields(fleigru) & "'," & punkte & "," & REPLACE(euro, ",", ".") & "," & m & "," & F & "," & r & "," & Zahl & "," & REPLACE(Wert, ",", ".") & "," & REPLACE(uwert, ",", ".") & "," & MIN & ")", rAf
     End If ' InStrB(F0, "Erstellt am") = 1 Then elseif elseif doeintr = 2
    End If ' NOT ISNULL(rEx.Fields(0)) Then
 '   Debug.Print rEx.Fields(0) ' , rEx.Fields(1), rEx.Fields(2), rEx.Fields(3), rEx.Fields(4), rEx.Fields(5), rEx.Fields(6), rEx.Fields(7), rEx.Fields(8), rEx.Fields(9), rEx.Fields(10), rEx.Fields(11), rEx.Fields(12)
@@ -4596,18 +4612,18 @@ Private Sub Ausgabe_KeyDown(KeyCode As Integer, Shift As Integer)
   If obCtrl Then
    If KeyCode = 68 Then ' D
     pe = Me.Ausgabe.SelStart
-    Do While Mid$(Ausgabe.text, pe, 2) <> vbCrLf
+    Do While Mid$(Ausgabe.Text, pe, 2) <> vbCrLf
      pe = pe + 1
-     If pe = Len(Ausgabe.text) - 1 Then
-      pe = Len(Ausgabe.text)
+     If pe = Len(Ausgabe.Text) - 1 Then
+      pe = Len(Ausgabe.Text)
       Exit Do
      End If
     Loop
     pa = pe
-    Do While Mid$(Me.Ausgabe.text, pa, 1) <> " " And pa > 0
+    Do While Mid$(Me.Ausgabe.Text, pa, 1) <> " " And pa > 0
      pa = pa - 1
     Loop
-    Zahl = Mid$(Me.Ausgabe.text, pa + 1, pe - pa - 1)
+    Zahl = Mid$(Me.Ausgabe.Text, pa + 1, pe - pa - 1)
     Clipboard.SetText Zahl
     Call doCallDMP(ByVal Zahl)
    End If
@@ -5182,15 +5198,15 @@ End Select
 End Function ' ConstrFestleg
 #End If
 
-Public Function Ausgeb(text$, obDauer%, Optional obdebug%)
- Me.Ausgabe = text & vbCrLf & altAusgabe
+Public Function Ausgeb(Text$, obDauer%, Optional obDebug%)
+ Me.Ausgabe = Text & vbCrLf & altAusgabe
  If obDauer <> 0 Then
   altAusgabe = Me.Ausgabe
  End If
- If InStrB(text, "READ-COMMITTED") <> 0 Then
-  MsgBox "Beinahe-Stop in Ausgeb:" & vbCrLf & "instrb(text, 'READ-COMMITTED') <> 0" & vbCrLf & "Text: " & text
+ If InStrB(Text, "READ-COMMITTED") <> 0 Then
+  MsgBox "Beinahe-Stop in Ausgeb:" & vbCrLf & "instrb(text, 'READ-COMMITTED') <> 0" & vbCrLf & "Text: " & Text
  End If
- If obdebug <> 0 Then Debug.Print text
+ If obDebug <> 0 Then Debug.Print Text
  DoEvents
 End Function ' Ausgeb
 

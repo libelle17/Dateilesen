@@ -133,7 +133,7 @@ On Error GoTo fehler
     frm.Ausgeb "Lese LaborDatei " + CStr(aktDateiNr) + "/" + CStr(DateiZahl) + " (" + SL.Item(ii).File.path + ") ein ...", True
     If SL.Item(ii).DatID = 0 Then ' wenn kein Debuggenohnespeichern und kein unfertiger Datensatz gefunden wurde
       Dim isql$
-      isql = "INSERT INTO `laborxeingel`(name,pfad,zp) values ('" & SL.Item(ii).File.name & "','" & doUmwfSQL(SL.Item(ii).File.path, Lese.obMySQL) & "'," & DatFor_k(Now) & ")"
+      isql = "INSERT INTO `laborxeingel`(name,pfad,zp) VALUES ('" & SL.Item(ii).File.name & "','" & doUmwfSQL(SL.Item(ii).File.path, Lese.obMySQL) & "'," & DatFor_k(Now) & ")"
       InsKorr DBCn, DBCnS, isql, rAf
       isql = "SELECT DatID FROM `laborxeingel` WHERE name = '" & SL.Item(ii).File.name & "' AND pfad = '" & doUmwfSQL(SL.Item(ii).File.path, Lese.obMySQL) & "'" ' *
       Set rs = Nothing

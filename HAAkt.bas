@@ -384,8 +384,8 @@ gefunden:
   Next dbknr
 #End If
 
-#Const obdebug = False
-#If Not obdebug Then
+#Const obDebug = False
+#If Not obDebug Then
   
  For dbknr = LBound(QCn) To UBound(QCn)
   QCn(dbknr).Open QCns(dbknr)

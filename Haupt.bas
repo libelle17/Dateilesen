@@ -1723,7 +1723,7 @@ End If ' aktTbn = "faelle" Then
   If aktTbn = "faelle" Then
    Print #257, "IF ErrNumber = -2147467259 THEN"
    Print #257, " Dim sqlquer$"
-   Print #257, " sqlquer = ""INSERT INTO `kassenliste`(name,kurzname,`GO`,`VKNR`,`IK`,`eingef`,pid) values ("" & ""'"" & rFa(I).kasse & ""', '"" & rFa(I).kkasse_2 & ""', '"" & rFa(I).GOÄKatName & ""', '"" & rFa(I).VKNr & ""', '"" & rFa(I).IK & ""',"" & Format(NOW(), ""yyyymmddHHMMSS"") & "","" & rFa(I).Pat_id & "")"""
+   Print #257, " sqlquer = ""INSERT INTO `kassenliste`(name,kurzname,`GO`,`VKNR`,`IK`,`eingef`,pid) VALUES ("" & ""'"" & rFa(I).kasse & ""', '"" & rFa(I).kkasse_2 & ""', '"" & rFa(I).GOÄKatName & ""', '"" & rFa(I).VKNr & ""', '"" & rFa(I).IK & ""',"" & Format(NOW(), ""yyyymmddHHMMSS"") & "","" & rFa(I).Pat_id & "")"""
    Print #257, " InsKorr DBCn, DBCnS, sqlquer, rAF"
    Print #257, " Resume"
    Print #257, "END IF ' ErrNumber = -2147467259 THEN"
@@ -2414,7 +2414,7 @@ End Function ' ZSU1
 '    Exit For
 '   ELSE ' Err.Number = 0 AND NOT rsA.BOF THEN
 '    Err.Clear
-'    Call plConn.Execute("INSERT INTO Lauf (Programm) values (""DateiLese"");")
+'    Call plConn.Execute("INSERT INTO Lauf (Programm) VALUES (""DateiLese"");")
 '    IF Err.Number = 0 THEN
 '     Exit For
 '    ELSE '  Err.Number = 0 THEN
@@ -2607,7 +2607,7 @@ If KeyCode = 27 Then
        frm.GesZl = frm.GesZl - 1
        Dim iz&
        For iz = 1 To frm.GesColl.COUNT
-        If frm.GesColl(iz) = frm.MFG.text Then
+        If frm.GesColl(iz) = frm.MFG.Text Then
          frm.GesColl.Remove (iz)
          Exit For
         End If
@@ -2615,7 +2615,7 @@ If KeyCode = 27 Then
      Else
        frm.MFG.CellBackColor = vbYellow
        frm.GesZl = frm.GesZl + 1
-       frm.GesColl.Add frm.MFG.text
+       frm.GesColl.Add frm.MFG.Text
      End If
      frm.Command1(14).Caption = frm.GesZl & " &Ges"
     End If
@@ -3000,17 +3000,17 @@ Function doSuchTel(frm As Lese) ' suche Telefonnummer
 End Function ' doSuchTel
 
 Function ergEBM(frm As Lese)
- Dim QDat$, text$, Spli$(), dszahl&, rAf&
+ Dim QDat$, Text$, Spli$(), dszahl&, rAf&
 ' Zeilenumbrüche führen zu Fehlern, ähnlich bei ".csv" und ";" statt ".txt" und ";"
 #If False Then
  QDat = getLDatei(uVerz, "Listenausgabe_EBM-Ziffern*.txt")
  Open QDat For Input As #281
  For i = 1 To 5
-  Input #281, text
+  Input #281, Text
  Next i
  Do While Not EOF(281)
-  Input #281, text
-  Spli = Split(text, vbTab)
+  Input #281, Text
+  Spli = Split(Text, vbTab)
   If UBound(Spli) > 0 Then
 '   Debug.Print spli(0)
   End If
@@ -3038,7 +3038,7 @@ Function ergEBM(frm As Lese)
  End If
  If QDat <> "" Then
  con.Open "Provider=Microsoft.Jet.OLEDB.4.0;Extended Properties=""Excel 8.0;HDR=No;IMEX=1"";Data Source=" & QDat & ";" ' TABLE=Adressen$"
- Dim runde%, i%, zFeld$, lFeld$, obAnfang%, PNr%, pRoh
+ Dim runde%, i%, zFeld$, lFeld$, obAnfang%, pNr%, pRoh
   rX.ActiveConnection = con
   rEx.Open "`" & rX.Tables(rX.Tables.COUNT - 1).name & "`", con ' Hier Excel, nicht lies.obmysql = 0!
   Do While Not rEx.EOF

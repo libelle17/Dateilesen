@@ -246,11 +246,13 @@ fehler:
 End Function ' ParseMemo
 
 
-Public Function doPatvonMO(pNr&, pid&)
+Public Function doPatvonMO(pNr&)
  Const obDebug% = True
+ Dim pid&, pos&
  Dim rsNa As New ADODB.Recordset, rsFa As New ADODB.Recordset
  Dim MStr() As memoType, rsfaru%, j&
 ' ReDim MStr(0)
+ pid = pNr + 100000
  Call LöschePat(pid)
  On Error Resume Next
  If obDebug Then FSO.DeleteFile parsemotxt
@@ -258,8 +260,9 @@ Public Function doPatvonMO(pNr&, pid&)
  Tinit
  Dim MOCon As New ADODB.Connection
  MOCon.Open MOCStr
- rsNa.Open "SELECT * from patstamm WHERE FSurogat=" & pNr, MOCon, adOpenStatic, adLockReadOnly
- rNa(0).Pat_id = pNr
+ rsNa.Open "SELECT COALESCE(CONVERT(fmemo USING latin1),'') Memo, p.* from patstamm p WHERE FSurogat=" & pNr, MOCon, adOpenStatic, adLockReadOnly
+ rNa(0).Pat_id = pid ' = pNr
+ rNa(0).lfdnr = -1 ' Import aus MO
  rNa(0).Nachname = rsNa!FNachname
  rNa(0).NVors = rsNa!FNamensvorsatz
  rNa(0).NVorsatz = rsNa!FNamenszusatz
@@ -268,8 +271,40 @@ Public Function doPatvonMO(pNr&, pid&)
  Select Case rsNa!FGeschlecht:  Case "2": rNa(0).geschlecht = "w":  Case "1": rNa(0).geschlecht = "m":  Case Else: rNa(0).geschlecht = rsNa!FGeschlecht: End Select
  rNa(0).GebDat = DateSerial(Mid$(rsNa!fgeburtsdatum, 1, 4), Mid$(rsNa!fgeburtsdatum, 5, 2), Mid$(rsNa!fgeburtsdatum, 7, 2))
  rNa(0).Versichertennummer = rsNa!FAktversichertennr
+ ' fehlt rna(0).f3004: aus ' ',0,2,3
  rNa(0).AufnDat = CDate("1.1.1890") + rsNa!FErstkontakt
  rNa(0).Straße = rsNa!FStrasse
+ rNa(0).Hausnr = rsNa!FHausnr
+ rNa(0).plz = rsNa!FPlz
+ rNa(0).ort = rsNa!FOrt
+ rNa(0).Lkz = rsNa!FLaendercode
+ rNa(0).NVors = rsNa!FNamenszusatz
+ ' nicht enthalten/nicht befüllt: Anschrzus, PFPlz,anschrzus_2,postfach_2,lk_2,postfach,beruf,Weggeldzone,
+ rNa(0).WeggzZahl = rsNa!FEntfernung ' bei Pat. 1219 doch nicht die Weggeldzone als Zahl
+ rNa(0).Titel = rsNa!FTitel
+ 
+ rNa(0).PrivatTel = rsNa!FTelefonPrivat
+ pos = InStr(rNa(0).PrivatTel, " (")
+ If pos <> 0 Then rNa(0).PrivatTel = Left$(rNa(0).PrivatTel, pos - 1)
+ 
+ rNa(0).PrivatFax = rsNa!ffax
+ pos = InStr(rNa(0).PrivatFax, " (")
+ If pos <> 0 Then rNa(0).PrivatFax = Left$(rNa(0).PrivatFax, pos - 1)
+ 
+ rNa(0).DienstTel = rsNa!FTelefondienst
+ pos = InStr(rNa(0).DienstTel, " (")
+ If pos <> 0 Then rNa(0).DienstTel = Left$(rNa(0).DienstTel, pos - 1)
+ 
+ Call ParseMemo(rsNa!Memo, MStr(), obDebug, "FMemo von rsNa, Pat-id: " & pNr)
+ If Not rsNa.BOF Then
+  Do While Not rsNa.EOF
+   For j = 0 To UBound(MStr)
+'    Debug.Print MStr(j).enr, MStr(j).Text
+   Next j
+   rsNa.MoveNext
+  Loop
+ End If ' Not rsFa.BOF Then
+ 
  rsFa.Open "SELECT COALESCE(CONVERT(fmemo USING latin1),'') fmemo,CONCAT(fpatnr,', ',fvon,' - ',fbis) ueschr FROM patfall WHERE fpatnr=" & pNr & " ORDER BY FVon DESC", MOCon, adOpenStatic, adLockReadOnly
  rsfaru = 0
  If Not rsFa.BOF Then
@@ -277,10 +312,13 @@ Public Function doPatvonMO(pNr&, pid&)
    Call ParseMemo(rsFa!FMemo, MStr(), obDebug, rsFa!ueschr)  ' rsFa!fpatnr, rsFa!fsurogat,
    If rsfaru = 0 Then
     For j = 0 To UBound(MStr)
-     If MStr(j).enr = "3.2.2.5.6" Then
-      rNa(0).KVKStatus = MStr(j).Text
-      Exit For
-     End If
+'     Debug.Print MStr(j).enr, MStr(j).Text
+     Select Case MStr(j).enr
+      Case "3.2.2.5.6":      rNa(0).KVKStatus = MStr(j).Text
+      Case "3.2.4"
+       rNa(0).f3006 = MStr(j).Text
+       Exit For
+     End Select
     Next j
     rsfaru = 1
    End If
@@ -294,6 +332,7 @@ Public Function doPatvonMO(pNr&, pid&)
    Call ParseMemo(rsFa!FMemo, MStr()) ' rsFa!fpatnr, rsFa!fsurogat,
    rsFa.MoveNext
  End If
+ Call alleSpeichern(lies)
  MsgBox "Fertig"
  Exit Function
 fehler:
