@@ -326,9 +326,9 @@ End Function ' therinit
 ' unter MariaDB 10.9 mit ca. 80% Wahrscheinlichkeit den Server crasht (ähnliches im Netz)
 ' gemeinsame Algorithmusdefinition in therinit
 ' in alleSpeichern, doViewsErstellen, testTab, Therapieartenwechsel_click, rufThFestleg, theraktakt
-Public Function TheraErmitt&(pids$, Optional ByRef vzahl&)
+Public Function TheraErmitt&(pids$, Optional ByRef vzahl&, Optional Position$)
  Dim iru&, rs As ADODB.Recordset, rAf& ' , inpids$
- syscmd 4, "Ermittle Therapiearten"
+ syscmd 4, "Ermittle Therapiearten für Pat. " & pids & Position
 ' Lese.ProgStart
  ComTrans
  Call therinit
@@ -361,7 +361,7 @@ Public Function TheraErmitt&(pids$, Optional ByRef vzahl&)
    Case Else
     sql = psql(iru)
   End Select
- syscmd 4, "Ermittle Therapiearten (" & iru & ")"
+ syscmd 4, "Ermittle Therapiearten für Pat. " & pids & " (Runde: " & iru & ")" & Position
   myFrag rs, sql, adOpenUnspecified, Nothing, adLockReadOnly, 15000, rAf
   If iru = 1 Then
    vzahl = rAf ' Zahl der vorherigen Datensätze in in Therarten
@@ -5144,12 +5144,12 @@ Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "Last
 End Select
 End Function ' LabWert0
 
-Function LabwertA#(frm As Form, LabA As LabArt, Optional sign, Optional ByVal grenze!, Optional Diagnose$, Optional ZielICD$, Optional DSiAkt As DSiTyp, Optional Einheit$, Optional ICD1$, Optional ICD2$, Optional SGrenze, Optional WGrenze, Optional ICD3$) ' sichere Grenze, weibliche Grenze
+Function LabwertA#(frm As Form, laba As LabArt, Optional sign, Optional ByVal grenze!, Optional Diagnose$, Optional ZielICD$, Optional DSiAkt As DSiTyp, Optional Einheit$, Optional ICD1$, Optional ICD2$, Optional SGrenze, Optional WGrenze, Optional ICD3$) ' sichere Grenze, weibliche Grenze
  Dim sq2$, sq1$, Kommentar$, Zeitpunkt As Date
  Dim Labs As labtyp
  On Error GoTo fehler
  alt_la = LabArt0 ' falls schon mal mit gleichen Parametern aufgerufen
- Labs = LabPat(LabA, Pat_id)
+ Labs = LabPat(laba, Pat_id)
  If Labs.Zp <> -1 Then
   LabwertA = MachNumerisch(Labs.WertSg)
   If Alter = 0 Then Alter = AlterBei(Zeitpunkt, GebDat)

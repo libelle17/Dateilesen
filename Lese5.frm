@@ -870,6 +870,9 @@ Begin VB.MDIForm Lese
       Begin VB.Menu Punktwerte 
          Caption         =   "&Punktwerte EBM2010"
       End
+      Begin VB.Menu MedOffSystemVersioning 
+         Caption         =   "&MedOffSystemVersioning hinzufügen"
+      End
       Begin VB.Menu MedOffZpSetzen 
          Caption         =   "Med&OffZpSetzen"
       End
@@ -926,6 +929,9 @@ Begin VB.MDIForm Lese
       Begin VB.Menu testlqanf 
          Caption         =   "&testlqanf"
       End
+      Begin VB.Menu SuchInSpaltenInMO 
+         Caption         =   "&SuchInSpaltenInMO"
+      End
       Begin VB.Menu PatvonMO 
          Caption         =   "P&atvonMO"
       End
@@ -944,8 +950,10 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
 Option Explicit
-Const MoSer$ = "szn4"
+Const MoSer$ = "wser" ' "szn4"
+Const MoHier$ = "szn4"
 Const MOCStr$ = "DRIVER={MySQL ODBC 8.0 Unicode Driver};server=" & MoSer & ";option=0;database=medoff;uid=medoff;pwd=medoff;port=2020;"
+Const MOCHier$ = "DRIVER={MySQL ODBC 8.0 Unicode Driver};server=" & MoHier & ";option=0;database=medoff;uid=medoff;pwd=medoff;port=2020;"
 Public MOCon As New ADODB.Connection
 Public rsco As New ADODB.Recordset
 Public dlg As New Dialog
@@ -1065,11 +1073,43 @@ Private Sub Formulare_bereinigen_Click()
  syscmd 4, "Fertig mit Bereinigen der Formulare"
 End Sub ' Formulare_bereinigen_Click()
 
+Private Sub MedOffSystemVersioning_Click()
+ Dim rsco As New ADODB.Recordset
+ MOCon.Open MOCHier
+ On Error GoTo fehler
+ rsco.Open "SELECT TABLE_NAME From information_schema.tables WHERE table_schema = 'medoff'", MOCon, adOpenStatic, adLockReadOnly
+ Do While Not rsco.EOF
+  On Error Resume Next
+  MOCon.Execute ("ALTER TABLE `" & rsco!table_name & "` ADD SYSTEM VERSIONING")
+  On Error GoTo fehler
+  rsco.MoveNext
+ Loop
+ Debug.Print "Fertig"
+Exit Sub
+fehler:
+ Dim AnwPfad$
+#If VBA6 Then
+ AnwPfad = CurrentDb.name
+#Else
+ AnwPfad = App.path
+#End If
+If Err.Number = -2147467259 Then
+ DBCn.Close
+ DBCn.Open
+ Resume
+End If
+Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in MedOffSystemVersioning/" + AnwPfad)
+ Case vbAbort: Call MsgBox("Höre auf"): ProgEnde
+ Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
+ Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
+End Select
+End Sub ' MedOffSystemVersioning_Click()
+
 Private Sub MedOffZpSetzen_Click()
  Dim vorhin As Date, Tn$, tr&, jS$
  jS = DatFor_k(Now())
  On Error Resume Next
- MOCon.Open MOCStr
+ MOCon.Open MOCHier
  On Error GoTo 0
 ' vorhin = DBCn.Execute("SELECT COALESCE((SELECT datum FROM moprot WHERE server='" & MoSer & "' LIMIT 1),0)").Fields(0)
  vorhin = myEFrag("SELECT COALESCE((SELECT datum FROM moprot WHERE server='" & MoSer & "' LIMIT 1),0)", , DBCn).Fields(0)
@@ -1090,7 +1130,7 @@ Private Sub MedOffZpSetzen_Click()
    obabfr = -1
   Else
    tr = MOCon.Execute("SELECT COUNT(0) FROM `" & Tn & "`").Fields(0)
-   If tr <> myEFrag("SELECT table_rows FROM moprot WHERE server='" & MoSer & "' AND table_name='" & Tn & "' AND datum=(SELECT MAX(datum) FROM moprot WHERE server='" & MoSer & "' AND table_name='" & Tn & "')", , DBCn).Fields(0) Then
+   If tr <> myEFrag("SELECT COALESCE((SELECT table_rows FROM moprot WHERE server='" & MoSer & "' AND table_name='" & Tn & "' AND datum=(SELECT MAX(datum) FROM moprot WHERE server='" & MoSer & "' AND table_name='" & Tn & "')),0)", , DBCn).Fields(0) Then
     obabfr = -1
    End If
   End If
@@ -1111,7 +1151,7 @@ Private Sub MedOffTabZahl_Click()
  Dim Tn$, tr&, jS$, cols$, colN$, sql$, runde%, Prim$, colz& ', AnzS$
  Dim Wt() ' Werte
  On Error Resume Next
- MOCon.Open MOCStr
+ MOCon.Open MOCHier
  On Error GoTo pfadfehler
  Open datnam For Output As #220
  On Error GoTo fehler
@@ -1213,10 +1253,95 @@ Private Sub Optionen_Click()
  opt.Show
 End Sub ' Optionen_Click()
 
+' Testfunktionen -> PatvonMo
 Private Sub PatvonMO_Click()
- Const pNr& = 59152 ' 1394 ' 2112
+ Const pNr& = 18 ' 105 ' 246 ' 59152 ' 1394 ' 2112
  Call doPatvonMO(pNr)
 End Sub ' PatvonMO_Click
+
+' sucht nach einem String in den Medical Office-Datenbanken
+Private Sub SuchInSpaltenInMO_Click()
+ Const DBName$ = "medoff"
+ Const datnam$ = "p:\datennachweis.txt"
+ Const StringDT$ = "'varchar','text','longtext','longblob'"
+ Const NumDT$ = "'tinyint','smallint','int','double','bigint'"
+ Const DatDT$ = "'datetime'"
+ Dim MOCon As New ADODB.Connection
+ Dim rst As ADODB.Recordset, rsc As ADODB.Recordset, rsu As ADODB.Recordset
+ Dim SuchS$, Tbl$, art%, zru&, fru&, ZStr$, sql$, PatNr$, PatBed$ ' 0=String, 1=Zahl, 2=Datum, Zeilenrunde, Feldrunde, Zeilenstring, Patientennummer, Patientenbedingung
+ MOCon.Open MOCStr
+ Do
+  PatNr = InputBox("PatNr", "PatNr, falls nur bei bestimmtem Pat. gesucht werden soll:")
+ Loop Until PatNr = "" Or IsNumeric(PatNr)
+ SuchS = InputBox("Suchstring: ", "Eingabe des Suchstrings", "")
+ If SuchS = "" Then Exit Sub
+ If IsDate(SuchS) Then
+  art = 2
+ Else
+  If IsNumeric(SuchS) Then
+   art = 1
+  Else
+   art = 0
+  End If
+ End If
+ Open datnam For Output As #325
+ Set rst = myEFrag("SHOW TABLES WHERE tables_in_medoff NOT RLIKE 'fsurogat'", , MOCon)
+ Do While Not rst.EOF
+  Tbl = rst.Fields(0)
+  myFrag rsc, "SELECT table_name tn, column_name cn, data_type dt, column_type ct, column_comment cc FROM information_schema.`COLUMNS` C WHERE table_schema = '" & DBName & "' AND table_name = '" & Tbl & "'" & " AND data_type IN (" & IIf(art = 2, StringDT & "," & DatDT, IIf(art = 1, StringDT & "," & NumDT, StringDT)) & ")", adOpenDynamic, MOCon, adLockReadOnly
+  PatBed = ""
+  If PatNr <> "" Then
+   If Not rsc.BOF Then
+    Do While Not rsc.EOF
+    ' patrelation: fpatid, tmpmpatfall und tmpmpatstamm: patnr
+     If LCase$(rsc!Cn) = "fpatnr" Or LCase$(rsc!Cn) = "patnr" Or LCase$(rsc!Cn) = "fpatid" Or (rsc!Tn = "patstamm" And LCase$(rsc!Cn) = "fsurogat") Then
+      PatBed = " AND `" & rsc!Cn & "`= " & PatNr
+      Exit Do
+     End If
+     rsc.MoveNext
+    Loop
+    rsc.MoveFirst
+   End If
+  End If
+  Ausgeb "SuchInSpalten " & SuchS & ", Tabelle: " & rst.Fields(0), True
+'  If rst.Fields(0) = "patstamm" Then Stop
+  Do While Not rsc.EOF
+'   Debug.Print rsc!Tn, rsc!Cn, rsc!DT, rsc!ct
+   Debug.Print rsc!Cn
+'   If LCase$(rsc!Cn) = "ftelefonprivat" Then Stop
+   sql = "select * from `" & rsc!Tn & "` where `" & rsc!Cn & "` LIKE '%" & SuchS & "%'" & PatBed
+   Debug.Print sql
+   syscmd 4, sql
+   DoEvents
+   Set rsu = myEFrag(sql, , MOCon)
+   zru = 0
+   Do While Not rsu.EOF
+    zru = zru + 1
+    If zru = 1 Then
+      Print #325, vbCrLf & rsc!Tn & " " & rsc!Cn & " " & rsc!DT & " Zeile Nr: " & zru & ":"
+      ZStr = ""
+      For fru = 0 To rsu.Fields.COUNT - 1
+       ZStr = ZStr & rsu.Fields(fru).name & "|"
+      Next fru
+      Print #325, ZStr
+    End If
+    ZStr = ""
+    For fru = 0 To rsu.Fields.COUNT - 1
+     ZStr = ZStr & rsu.Fields(fru) & "|"
+    Next fru
+    Print #325, ZStr
+    rsu.MoveNext
+   Loop
+   rsc.MoveNext
+  Loop
+'  Debug.Print rst.Fields(0)
+  rst.MoveNext
+ Loop
+ syscmd 4, "Fertig mit SuchInSpalten '" & SuchS & "'"
+ Ausgeb "Fertig mit SuchInSpalten '" & SuchS & "'", True
+ Close #325
+ zeigan datnam
+End Sub ' SuchInSpaltenInMO_Click
 
 Private Sub Ziffer30u31Ausschlüsse_Click()
   Dim rs As New ADODB.Recordset, spmax%(3)
@@ -3197,10 +3322,14 @@ Private Sub TherapieartenFestlegen_Click() ' Therapiearten festlegen
 ' rsAna.Open "SELECT pat_id,diabetestyp,-insulinpumpe AS j_insulinpumpe,ther1,therakt FROM `anamnesebogen`", DBCn, adOpenStatic, adLockOptimistic
 ' rsAna.Open "SELECT pat_id,diabetestyp,insulinpumpe,ther1,therakt FROM `anamnesebogen`", DBCn, adOpenStatic, adLockOptimistic
 ' rsAna.Open "SELECT an.pat_id, diabetestyp,insulinpumpe,ther1,therakt, (SELECT MAX(fanf) FROM `faelle` WHERE pat_id = an.pat_id) fanf FROM `anamnesebogen` an LEFT JOIN `faelle` f ON an.pat_id = f.pat_id GROUP BY pat_id ORDER BY (SELECT MAX(fanf) FROM `faelle` WHERE pat_id = an.pat_id) DESC", DBCn, adOpenStatic, adLockOptimistic
+ Dim patzahl&, aktzahl&
+ patzahl = myEFrag("select count(0) from namen", , DBCn).Fields(0)
+ aktzahl = 0
  myFrag rsAna, "SELECT n.pat_id, gesname(n.pat_id), MIN(f.fanf) FROM namen n LEFT JOIN faelle f ON n.pat_id = f.pat_id WHERE f.pat_id>000 AND f.pat_id <= 70000 GROUP BY n.pat_id ORDER BY fanf DESC"
  Do While Not rsAna.EOF
+  aktzahl = aktzahl + 1
 '  Call TherapieArtEinzelnFestlegen(rsAna!Pat_id, rsAna)
-  Call rufThFestleg(rsAna!Pat_id)
+  Call rufThFestleg(rsAna!Pat_id, " (" & aktzahl & "/" & patzahl & ")")
   rsAna.Move 1
  Loop
  Ausgeb "Fertig mit Festlegen der Therapiearten", True

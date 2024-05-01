@@ -245,7 +245,7 @@ fehler:
  End Select
 End Function ' ParseMemo
 
-
+' in PatvonMO_Click
 Public Function doPatvonMO(pNr&)
  Const obDebug% = True
  Dim pid&, pos&
@@ -263,46 +263,109 @@ Public Function doPatvonMO(pNr&)
  rsNa.Open "SELECT COALESCE(CONVERT(fmemo USING latin1),'') Memo, p.* from patstamm p WHERE FSurogat=" & pNr, MOCon, adOpenStatic, adLockReadOnly
  rNa(0).Pat_id = pid ' = pNr
  rNa(0).lfdnr = -1 ' Import aus MO
- rNa(0).Nachname = rsNa!FNachname
- rNa(0).NVors = rsNa!FNamensvorsatz
- rNa(0).NVorsatz = rsNa!FNamenszusatz
+ rNa(0).Nachname = rsNa!fNachname
+ rNa(0).NVorsatz = rsNa!FNamensvorsatz
+ rNa(0).NVors = rsNa!FNamenszusatz
  rNa(0).Titel = rsNa!FTitel
- rNa(0).Vorname = rsNa!FVorname
+ rNa(0).Vorname = rsNa!fVorname
  Select Case rsNa!FGeschlecht:  Case "2": rNa(0).geschlecht = "w":  Case "1": rNa(0).geschlecht = "m":  Case Else: rNa(0).geschlecht = rsNa!FGeschlecht: End Select
  rNa(0).GebDat = DateSerial(Mid$(rsNa!fgeburtsdatum, 1, 4), Mid$(rsNa!fgeburtsdatum, 5, 2), Mid$(rsNa!fgeburtsdatum, 7, 2))
  rNa(0).Versichertennummer = rsNa!FAktversichertennr
  ' fehlt rna(0).f3004: aus ' ',0,2,3
  rNa(0).AufnDat = CDate("1.1.1890") + rsNa!FErstkontakt
+' rna(0).kAufDat=
  rNa(0).Straße = rsNa!FStrasse
  rNa(0).Hausnr = rsNa!FHausnr
  rNa(0).plz = rsNa!FPlz
  rNa(0).ort = rsNa!FOrt
  rNa(0).Lkz = rsNa!FLaendercode
- rNa(0).NVors = rsNa!FNamenszusatz
  ' nicht enthalten/nicht befüllt: Anschrzus, PFPlz,anschrzus_2,postfach_2,lk_2,postfach,beruf,Weggeldzone,
- rNa(0).WeggzZahl = rsNa!FEntfernung ' bei Pat. 1219 doch nicht die Weggeldzone als Zahl
+ rNa(0).WeggzZahl = IIf(rsNa!FEntfernung = "", 0, rsNa!FEntfernung) ' bei Pat. 1219 doch nicht die Weggeldzone als Zahl
  rNa(0).Titel = rsNa!FTitel
  
- rNa(0).PrivatTel = rsNa!FTelefonPrivat
+ rNa(0).PrivatTel = rsNa!FTelefonprivat
  pos = InStr(rNa(0).PrivatTel, " (")
  If pos <> 0 Then rNa(0).PrivatTel = Left$(rNa(0).PrivatTel, pos - 1)
+ 
+ If InStrB(rsNa!ftelefonmobil, "dienstlich") <> 0 Then
+  rNa(0).DienstTel = rsNa!ftelefonmobil
+  pos = InStr(rNa(0).DienstTel, " (")
+  If pos <> 0 Then rNa(0).DienstTel = Left$(rNa(0).DienstTel, pos - 1)
+ Else
+  rNa(0).PrivatTel_2 = rsNa!ftelefonmobil
+  pos = InStr(rNa(0).PrivatTel_2, " (")
+  If pos <> 0 Then rNa(0).PrivatTel_2 = Left$(rNa(0).PrivatTel_2, pos - 1)
+ End If
+ 
+ rNa(0).PrivatMobil = rsNa!FTelefondienst
+ pos = InStr(rNa(0).PrivatMobil, " (")
+ If pos <> 0 Then rNa(0).PrivatMobil = Left$(rNa(0).PrivatMobil, pos - 1)
  
  rNa(0).PrivatFax = rsNa!ffax
  pos = InStr(rNa(0).PrivatFax, " (")
  If pos <> 0 Then rNa(0).PrivatFax = Left$(rNa(0).PrivatFax, pos - 1)
  
- rNa(0).DienstTel = rsNa!FTelefondienst
- pos = InStr(rNa(0).DienstTel, " (")
- If pos <> 0 Then rNa(0).DienstTel = Left$(rNa(0).DienstTel, pos - 1)
+ rNa(0).email = rsNa!femail
+ pos = InStr(rNa(0).email, " (")
+ If pos <> 0 Then rNa(0).email = Left$(rNa(0).email, pos - 1)
+ Dim rsha As New ADODB.Recordset, rslue  As New ADODB.Recordset
+ rsha.Open "SELECT FArztnralt, FAdresse, farztgruppe, FNachname, FVorname FROM patrelation r LEFT JOIN earzt a ON r.freferenzid = a.fsurogat AND freferenztyp=2 LEFT JOIN epraxis p ON a.FExtpraxisnr = p.fsurogat WHERE fpatid=" & pNr, MOCon, adOpenStatic, adLockReadOnly
+ If Not rsha.BOF Then
+  Dim haru%, KVNr$
+  haru = 0
+  KVNr = ""
+  Do While Not rsha.EOF
+   haru = haru + 1
+   If rsha!FArztnralt <> "" Then
+    KVNr = rsha!FArztnralt
+   ElseIf Not IsNull(rsha!Fadresse) Then ' mit COALESCE kommt trotzdem eine Fehlermeldung raus
+'    Set rslue = myEFrag(, , DBCn)
+    Dim NN$, VN$, Adr$
+    NN = rsha!fNachname
+    VN = rsha!fVorname
+    Adr = REPLACE$(rsha!Fadresse, "'", "")
+    On Error Resume Next
+    rslue.Open "SELECT kvnr FROM aktlue a WHERE nameo ='" & NN & "' AND vno='" & VN & "' AND '" & Adr & "' LIKE CONCAT('%',a.strasse,'%')", DBCn, adOpenStatic, adLockReadOnly
+    If Not rslue.BOF Then
+     KVNr = rslue!KVNr
+    End If
+    On Error GoTo fehler
+   End If
+   If KVNr = "" Then
+    Set rslue = myEFrag("SELECT kvnr FROM aktlue a WHERE nameo ='" & rsha!fNachname & "' AND vno='" & rsha!fVorname & "' AND fachgruppe='" & rsha!farztgruppe & "'", , DBCn)
+    If Not rslue.BOF Then
+     KVNr = rslue!KVNr
+    Else
+     Set rslue = myEFrag("SELECT kvnr FROM aktlue a WHERE nameo ='" & rsha!fNachname & "' AND vno='" & rsha!fVorname & "'", , DBCn)
+     If Not rslue.BOF Then
+      KVNr = rslue!KVNr
+     End If
+    End If
+   End If
+   rsha.MoveNext
+   Select Case haru
+    Case 1: rNa(0).KVNr = KVNr
+    Case 2: rNa(0).KVNr2 = KVNr
+    Case 3: rNa(0).KVNr3 = KVNr
+    Case 4: rNa(0).KVNr4 = KVNr
+   End Select
+  Loop
+ End If
+ 
+ ' KVnr: fpatrelation, dort fpatid= fpatnr, freferenztyp 2 = Hausarzt (0=Arbeitgeber), freferenzid = earzt.fsurogat,
+ ' dort FExtpraxisnr = epraxis.fsurogat
  
  Call ParseMemo(rsNa!Memo, MStr(), obDebug, "FMemo von rsNa, Pat-id: " & pNr)
+ 
  If Not rsNa.BOF Then
-  Do While Not rsNa.EOF
-   For j = 0 To UBound(MStr)
+  If SafeArrayGetDim(MStr) <> 0 Then
+   Do While Not rsNa.EOF
+    For j = 0 To UBound(MStr)
 '    Debug.Print MStr(j).enr, MStr(j).Text
-   Next j
-   rsNa.MoveNext
-  Loop
+    Next j
+    rsNa.MoveNext
+   Loop
+  End If
  End If ' Not rsFa.BOF Then
  
  rsFa.Open "SELECT COALESCE(CONVERT(fmemo USING latin1),'') fmemo,CONCAT(fpatnr,', ',fvon,' - ',fbis) ueschr FROM patfall WHERE fpatnr=" & pNr & " ORDER BY FVon DESC", MOCon, adOpenStatic, adLockReadOnly
@@ -349,19 +412,20 @@ fehler:
  End Select
 End Function ' doPatvonMO(pNr&, pid&)
 
+' kommt nirgends vor
 Public Function suchfi(pNr&, fI$)
  Dim altt$, gefu%, i&
  Dim rst As New ADODB.Recordset, rsu As New ADODB.Recordset
  Dim MOCon As New ADODB.Connection
  MOCon.Open MOCStr
- rst.Open "SELECT c.TABLE_NAME tn -- , a.column_name cn" & vbCrLf & _
+ rst.Open "SELECT c.TABLE_NAME tn, c.COLUMN_NAME cn -- , a.column_name cn" & vbCrLf & _
           "FROM information_schema.columns c" & vbCrLf & _
           "-- LEFT JOIN information_schema.columns a ON c.TABLE_CATALOG=a.TABLE_CATALOG AND c.TABLE_SCHEMA=a.TABLE_SCHEMA AND c.table_name=a.TABLE_NAME" & vbCrLf & _
-          "WHERE c.table_catalog='def' AND c.table_schema='medoff' AND (c.COLUMN_NAME='fpatnr' OR (c.TABLE_NAME='patstamm' AND c.COLUMN_NAME='fsurogat')) GROUP BY c.table_name ORDER BY c.table_name", MOCon, adOpenStatic, adLockReadOnly
+          "WHERE c.table_catalog='def' AND c.table_schema='medoff' AND (c.COLUMN_NAME IN ('fpatnr','patnr','fpatid') OR (c.TABLE_NAME='patstamm' AND c.COLUMN_NAME='fsurogat')) GROUP BY c.table_name ORDER BY c.table_name", MOCon, adOpenStatic, adLockReadOnly
  Do While Not rst.EOF
   If rst!Tn <> altt Then
    Set rsu = Nothing
-   rsu.Open "SELECT * FROM `" & rst!Tn & "` WHERE `" & IIf(rst!Tn = "patstamm", "fsurogat", "fpatnr") & "`=" & pNr, MOCon, adOpenStatic, adLockReadOnly
+   rsu.Open "SELECT * FROM `" & rst!Tn & "` WHERE `" & rst!Cn & "`=" & pNr, MOCon, adOpenStatic, adLockReadOnly
    gefu = 0
    Do While Not rsu.EOF
     For i = 0 To rsu.Fields.COUNT - 1
@@ -374,7 +438,7 @@ Public Function suchfi(pNr&, fI$)
     Next i
     If gefu Then GoTo weiter
    rsu.MoveNext
-  Loop
+  Loop ' While Not rsu.EOF
 weiter:
   End If
   rst.MoveNext
@@ -382,6 +446,8 @@ weiter:
  Debug.Print "Fertig"
 End Function ' suchfi(pNr&, fI$)
 
+
+' kommt nirgends vor
 Public Function suchal(fI$, obrlike%)
  Dim altt$, j&
  Dim rst As New ADODB.Recordset, rsu As New ADODB.Recordset
@@ -404,7 +470,7 @@ Public Function suchal(fI$, obrlike%)
  Loop
 #Else
  rst.Open "SELECT TABLE_NAME tn FROM information_schema.tables t WHERE table_catalog='def' AND table_schema='medoff' AND TABLE_NAME  NOT RLIKE 'fsurogat'" & vbCrLf & _
- "and not exists (select 0 from information_schema.columns where  table_catalog='def' AND table_schema='medoff' AND TABLE_NAME =t.table_name and column_Name = 'fpatnr')" & vbCrLf & _
+ "and not exists (select 0 from information_schema.columns where  table_catalog='def' AND table_schema='medoff' AND TABLE_NAME =t.table_name and column_Name in ('fpatnr','patnr','fpatid'))" & vbCrLf & _
  "and table_name not in ('datafile')" _
  , MOCon, adOpenStatic, adLockReadOnly
  Do While Not rst.EOF
@@ -457,7 +523,7 @@ CREATE TABLE IF NOT EXISTS tmpmpatstamm (
     enr VARCHAR(128) DEFAULT '',
     TEXT text DEFAULT '',
     PRIMARY KEY Zugriff(patnr,znr),
-    Key zuloe(patnr, enr)
+    Key zuloe(PatNr, enr)
 );
 DELETE FROM tmpmpatstamm WHERE pnr=0 OR patnr=pnr;
 CREATE TEMPORARY TABLE IF NOT EXISTS tmpeb(nr INT(2) PRIMARY KEY,wert INT(2)); -- temporäre Ebenentabelle
@@ -540,7 +606,7 @@ CREATE TABLE IF NOT EXISTS tmpmpatfall (
     enr VARCHAR(128) DEFAULT '',
     TEXT text DEFAULT '',
     PRIMARY KEY Zugriff(patnr,fsur,znr),
-    Key zuloe(patnr, fsur, enr)
+    Key zuloe(PatNr, fsur, enr)
 );
 DELETE FROM tmpmpatfall WHERE pnr=0 OR patnr=pnr;
 CREATE TEMPORARY TABLE if NOT EXISTS tmpeb(nr INT(2) PRIMARY KEY,wert INT(2)); -- temporäre Ebenentabelle

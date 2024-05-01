@@ -1669,8 +1669,8 @@ Function thtest()
 End Function ' thtest
 
 ' in TherapieartenFestlegen_Click(), thtest()
-Function rufThFestleg(Pat_id&)
- syscmd acSysCmdSetStatus, "ermittle und speichere Therapiearten für Pat. " & Pat_id
+Function rufThFestleg(Pat_id&, Optional Position$)
+ syscmd acSysCmdSetStatus, "ermittle und speichere Therapiearten für Pat. " & Pat_id & Position
 #If Not thaalt Then
  'RunCommandLine ("ssh root@" & LiName & " mysql --defaults-extra-file=~/.mysqlpwd quelle -e'CALL fuellThaP(" & CStr(Pat_id) & ")'")
 ' 22.10.22: führt bei Aufruf über Ado zumindest bis zur Mariadb-Version 10.9 immer wieder zum Server-Crash, s.ähnliche Bug-Hinweise früherer Versionen
@@ -1678,7 +1678,7 @@ Function rufThFestleg(Pat_id&)
 #If mitfensterr Then
  rufauf "ssh", "root@" & LiName & " mysql --defaults-extra-file=~/.mysqlpwd quelle -e'CALL fuellThaP(" & CStr(Pat_id) & ")'", 2, "c:\windows\system32\openssh\", -1, 0
 #Else
- Call TheraErmitt(CStr(Pat_id))
+ Call TheraErmitt(CStr(Pat_id), , Position)
 #End If
 ' myEFrag "CALL fuellThaP(" & CStr(Pat_id) & ")"
 #Else ' ausrangiert 12.12.20

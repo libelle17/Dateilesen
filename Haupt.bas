@@ -2971,7 +2971,7 @@ End Function ' doldfH
 Function doFÜwS(frm As Lese) ' fehlende Überweisungsscheine
  Dim sql$, AktQ$
  AktQ = ZQuart(Now() - Verspätung)
- sql = "SELECT n.Pat_id, gesname(n.pat_id) Name, GROUP_CONCAT(DISTINCT CAST(f.schgr AS char)) Schgr, LEFT(GROUP_CONCAT(DISTINCT CONCAT_WS(', ', l2.Name, LEFT(l2.vorname,1),l2.ort, l2.telefon)),31) Überweiser, LEFT(CONCAT_WS(', ',l.Name, LEFT(l.vorname,1),l.ort, l.telefon),31) Hausarzt FROM `aktf` f LEFT JOIN `briefe` b ON f.pat_id = b.pat_id AND b.name LIKE '%üw%' AND b.name LIKE '%" & Left$(AktQ, 1) & "%' AND b.name LIKE '%" & Right$(AktQ, 2) & "%' LEFT JOIN `namen` n ON f.pat_id = n.pat_id LEFT JOIN `aktlue` l ON l.kvnr = n.kvnro LEFT JOIN `faelle` f2 ON f2.fid = f.fid AND übwr <> '' LEFT JOIN `aktlue` l2 ON l2.kvnro = übwr WHERE ISNULL(b.name) AND f.schgr<>'0' GROUP BY f.pat_id"
+ sql = "SELECT n.Pat_id, gesname(n.pat_id) Name, GROUP_CONCAT(DISTINCT CAST(f.schgr AS char)) Schgr, LEFT(GROUP_CONCAT(DISTINCT CONCAT_WS(', ', l2.Name, LEFT(l2.vorname,1),l2.ort, l2.telefon)),31) Überweiser, LEFT(CONCAT_WS(', ',l.Name, LEFT(l.vorname,1),l.ort, l.telefon),31) Hausarzt FROM `aktf` f LEFT JOIN `briefe` b ON f.pat_id = b.pat_id AND b.name LIKE '%üw%' AND b.name LIKE '%" & Left$(AktQ, 1) & "%' AND b.name LIKE '%" & Right$(AktQ, 2) & "%' LEFT JOIN `namen` n ON f.pat_id = n.pat_id LEFT JOIN `aktlue` l ON l.kvnr = n.kvnr LEFT JOIN `faelle` f2 ON f2.fid = f.fid AND übwr <> '' LEFT JOIN `aktlue` l2 ON l2.kvnro = übwr WHERE ISNULL(b.name) AND f.schgr<>'0' GROUP BY f.pat_id"
  Dim rAb As New ADODB.Recordset
 ' rAb.Open sql, DBCn, adOpenDynamic, adLockReadOnly
  myFrag rAb, sql
