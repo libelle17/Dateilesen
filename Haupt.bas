@@ -934,7 +934,7 @@ Function MacheTypen(frm As Lese)
  Print #257, "End FUNCTION ' doEntleer"
  Print #257, ""
  Print #257, "' in Pat_loeschen_Click, doPatvonMO"
- Print #257, "Public Sub LöschePat(PID&, True)"
+ Print #257, "Public Sub LöschePat(PID&, Optional obAnzeig%)"
  Print #257, " Dim Tb, tbn, rAf&, ergeb$"
  Dim tbnS$
  tbnS = " tbn = Array("
@@ -953,9 +953,11 @@ Function MacheTypen(frm As Lese)
  Print #257, "  myEFrag ""DELETE FROM `"" & Tb & ""` WHERE PAT_ID = "" & PID, rAf"
  Print #257, "  ergeb = ergeb & vbCrLf & rAf & "" Sätze aus `"" & Tb & ""` gelöscht."""
  Print #257, " Next"
- Print #257, " MsgBox ergeb"
- Print #257, " Debug.Print ergeb"
- Print #257, " Exit Function"
+ Print #257, " If obAnzeig Then "
+ Print #257, "  MsgBox ergeb"
+ Print #257, "  Debug.Print ergeb"
+ Print #257, " End If ' obAnzeig Then "
+ Print #257, " Exit Sub"
  Print #257, "fehler:"
  Print #257, " Dim AnwPfad$"
  Print #257, " #If VBA6 THEN"
@@ -968,7 +970,7 @@ Function MacheTypen(frm As Lese)
  Print #257, "  Case vbRetry: Call MsgBox(""Versuche nochmal""): Resume"
  Print #257, "  Case vbIgnore: Call MsgBox("" Setze fort ""): Resume Next"
  Print #257, " END SELECT"
- Print #257, "End FUNCTION ' LöschePat"
+ Print #257, "End Sub ' LöschePat"
  Print #257, ""
  Print #257, "Public FUNCTION AllesLösch(frm AS lese)"
  Print #257, " Dim ct&, rs As New ADODB.recordset"
@@ -1335,6 +1337,28 @@ End If ' aktTbn = "faelle" Then
    Print #257, "End FUNCTION ' " & aktTbn & "Einf"
   End Select ' aktTbn <> "forminhaltform_abk" AND aktTbn <> "formulare" AND aktTbn <> "forminhFeld" AND aktTbn <> "unbekannte_kennungen" THEN
   Print #257, ""
+  Print #257, "Public FUNCTION r" & Tbk(i) & "Dump()"
+   Print #257, " Dim i&, ffa&"
+   Print #257, " Const ffadat$ = ""\\linux1\daten\down\r" & Tbk(i) & "dump.txt"""
+   Print #257, " Open ffadat For Output As #200"
+   Print #257, " For i = 1 To UBound(r" & Tbk(i) & ")"
+   Print #257, "  Print #200, vbCrLf & ""i: "" & i"
+     If Not rsAdSc Is Nothing Then If rsAdSc.State = 1 Then rsAdSc.Close
+     Set rsAdSc = DBCnOSchema(adSchemaColumns, Array(Empty, Empty, LCase$(aktTbn), Empty))
+     Do While Not rsAdSc.EOF
+   Const uebr% = 33
+   Dim obohneaz%
+   obohneaz = InStrB(rsAdSc!data_type, "int") <> 0 Or InStrB(rsAdSc!data_type, "date") <> 0 Or rsAdSc!data_type = "float" Or rsAdSc!data_type = "double" Or rsAdSc!data_type = "bit" Or rsAdSc!data_type = "time"
+   Print #257, "  Print #200, Left$(""r" & Tbk(i) & "("" & i & "")." & rsAdSc!COLUMN_NAME & ":"" & String$(" & uebr & ", "".""), " & uebr & ") " & IIf(obohneaz, "", "& ""'"" ") & "& r" & Tbk(i) & "(i)." & rsAdSc!COLUMN_NAME & IIf(obohneaz, "", " & ""'""")
+'    """'"" & rFa(i)." & "rsAdSc!COLUMN_NAME & ""'"""
+      rsAdSc.Move 1
+     Loop
+   Print #257, " Next i"
+   Print #257, " Close #200"
+   Print #257, " zeigan ffadat"
+   Print #257, "End FUNCTION ' " & aktTbn & "Dump"
+   Print #257, ""
+  
   pText = "Public FUNCTION " & aktTbn & "Speichern(SammelInsert%, BezfSp%"
   Select Case aktTbn
    Case "laborxus" ' , "laborxwert", "laborxbakt", "laborxleist"
@@ -1518,7 +1542,7 @@ End If ' aktTbn = "faelle" Then
    Print #257, "'     If j = 1 Then"
    Print #257, "'      Set rs = myEFrag(""SELECT LAST_INSERT_ID() FID"") ' session-spezifisch '27.8.23: liefert in Schleife immer die erste Zahl, auch mit Commit zwischendrin"
    Print #257, "'     Else ' j = 1 Then"
-   Print #257, "      Set rs = myEFrag(""SELECT MAX(fid) FID FROM `faelle` WHERE pat_id = "" & rFa(i).Pat_id & "" AND quartal = '"" & rFa(i).Quartal & ""' AND bhfb = "" & DatFor_k(rFa(i).BhFB) & "" AND bhfe1 = "" & DatFor_k(rFa(i).BhFE1) & "" AND ausgst = "" & DatFor_k(rFa(i).ausgst))"
+   Print #257, "      Set rs = myEFrag(""SELECT COALESCE((SELECT MAX(fid) FID FROM `faelle` WHERE pat_id = "" & rFa(i).Pat_id & "" AND quartal = '"" & rFa(i).Quartal & ""' AND bhfb = "" & DatFor_k(rFa(i).BhFB) & "" AND bhfe1 = "" & DatFor_k(rFa(i).BhFE1) & "" AND ausgst = "" & DatFor_k(rFa(i).ausgst) &  ""),(SELECT MAX(fid)+1 FID FROM `faelle`)) FID"")"
    Print #257, "'     End If"
    Print #257, "'     If Not rs.BOF Then If rs.Fields(0) <> 0 Then Exit For"
    Print #257, "'    Next j"
@@ -1760,9 +1784,9 @@ End If ' aktTbn = "faelle" Then
   End Select
  Next i
  syscmd 4, "Mache Typen (27) ..."
- Print #257, "End FUNCTION ' tuLaden"
+ Print #257, "End Function ' tuLaden"
  Print #257, ""
- Print #257, "Public FUNCTION tuSpeichern(frm AS Lese, SI%, BfS%) ' frm.dlg.SammelInsert, frm.dlg.BeziehungsfehlerSpeichern"
+ Print #257, "Public Function tuSpeichern(frm AS Lese, SI%, BfS%) ' frm.dlg.SammelInsert, frm.dlg.BeziehungsfehlerSpeichern"
  Print #257, " Dim rAf&, altsi$,altsam%"
  Print #257, " altsi = sqlIGNORE"
  Print #257, " sqlIGNORE = """""
@@ -1823,6 +1847,7 @@ End If ' aktTbn = "faelle" Then
  syscmd 4, "Mache Typen (29) ..."
  Close #257
  frm.Ausgeb "Fertig mit MacheTypen", True
+ syscmd 4, "Fertig mit MacheTypen"
  syscmd 5
  Exit Function
 fehler:

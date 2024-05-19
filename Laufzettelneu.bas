@@ -1990,7 +1990,7 @@ keinuzu:
   End If ' obLabzugew Then
   If rs(Tailli).State = 0 Then rs(Tailli).Close: rs(Tailli).Open
   If Not rs(Tailli).BOF Then Taille = MachNumerisch(rs(Tailli).Fields(1)): obTaille = True
-  If obTG And obTaille And üdt.bmi <> 0 And obGGT Then
+  If obTG And TG <> 0 And obTaille And üdt.bmi <> 0 And obGGT Then
    FLI = Round((Exp(0.953 * Log(TG) + 0.139 * üdt.bmi + 0.718 * Log(GGT) + 0.053 * Taille - 15.745) / (1 + Exp(0.953 * Log(TG) + 0.139 * üdt.bmi + 0.718 * Log(GGT) + 0.053 * Taille - 15.745))) * 100)
   End If ' obTG And obTaille And üdt.bmi <> 0 And obGGT Then
   If obGPT And obGOT And obTHR Then

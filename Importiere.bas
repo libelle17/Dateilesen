@@ -2148,6 +2148,7 @@ Public Function testzwi() ' 3750
  testzwi = ZwischenStr(ri, s1, s2)
 End Function ' testzwi
 
+' in dolies (2x)
 Function neuQuartal(frm As Lese, rInhalt$)
     Dim i&
     On Error GoTo fehler
@@ -2516,7 +2517,10 @@ Function dolies(frm As Lese, RKennung$, rInhalt$, obSchluss%, znr&, obmitFormula
     rFa(UBound(rFa)).lVorl = BDTtoDate(rInhalt)
     Call VorstellSetz(rFa(UBound(rFa)).lVorl)
    Case 4110 ' Uhrzeit zu letzter Vorlage
-    rFa(UBound(rFa)).lVorl = rFa(UBound(rFa)).lVorl + BDTtoTime(rInhalt)
+'    rFa(UBound(rFa)).lVorl = rFa(UBound(rFa)).lVorl + BDTtoTime(rInhalt)
+    If rInhalt <> "*" Then
+     rFa(UBound(rFa)).VschEnd = RBDTtoDate(rInhalt)
+    End If ' rInhalt <> "*" Then
    Case 4111 ' IK
     rFa(UBound(rFa)).IK = rInhalt
    Case 4112 'KVKStatus
@@ -2665,7 +2669,7 @@ resume_4247:
      rFa(UBound(rFa)).SchGr = rInhalt
      ' zuvor: testaltQuartal
      Select Case rFa(UBound(rFa)).SchGr
-      Case "00", "20", "21", "23", "24"  ' 23 = kurativ Konsiliaruntersuchung 21 = Auftragsleistung
+      Case "00", "20", "21", "23", "24"  ' 20= ‹berweisung Selbstaustellung, 21 = Auftragsleistung, 23 = kurativ Konsiliaruntersuchung
        If rFa(UBound(rFa)).Quartal <> ZQuart(rFa(UBound(rFa)).BhFB) Then
         rFa(UBound(rFa)).altQuart = rFa(UBound(rFa)).Quartal
         rFa(UBound(rFa)).Quartal = ZQuart(rFa(UBound(rFa)).BhFB)
@@ -3991,7 +3995,6 @@ rEiVorb:
 '  case 8490 ' 'Abschluss-Zeile', - #Test-Ident -- nur bei header 6200 -- -; bei Pat_id 11: "Auftragsnummer DOB350B"
 ' steht noch aus:
 ' case 3750 ' Desktop-Objekt
-' case 4266 ' Kurabbruch
 '  case 8409 ' Karteiartspalte f¸r Blutdruck- und BMI-Formular
   Case 9100 ' Arztnummer des Absenders
   Case 9103 ' Erstellungsdatum
@@ -4320,10 +4323,10 @@ Select Case MsgBox("FNr: " & FNr & ", ErrNr: " & CStr(Err.Number) + vbCrLf + "La
 End Select
 End Function ' fFAnfFuell
 
-Function trs()
- Lese.ProgStart
- rsAnamOpen
-End Function
+' Function trs()
+' Lese.ProgStart
+' rsAnamOpen
+' End Function 'trs
 
 Function rsAnamOpen()
  Dim i%, sql$
@@ -4473,8 +4476,8 @@ Function aktqanf(Optional diff%) As Date
  aktqanf = CDate("01." & mon & "." & Year(jetzt))
 End Function ' aktqanf() As Date
 
-' Aufruf nur in GesLies(
-Function alleSpeichern(frm As Lese)
+' Aufruf in GesLies und doPatvonMO
+Function alleSpeichern(frm As Lese, Optional vonMo%)
 ' rsAnam!Vorgestellt = MYDAT(Vorgestellt)
  Dim Cpt$, i&, j&, runde%
  Dim DMSchL&
@@ -4863,39 +4866,41 @@ nachformulare:
 ' obhierdmp
 ' rNa(0).dmpklass = obhierdmpfn(rNa(0).Notiz, , , , rNa(0).dmpbeg, rNa(0).dmpkhkklass, rNa(0).dmpkhkbeg, rNa(0).dmpcopdklass, rNa(0).dmpcopdbeg, rNa(0).dmpcopdklass)
  obhierdmpfn rNa(0).Notiz, rNa(0).NZNr, rNa(0).dmpklass, rNa(0).dmpbeg, rNa(0).dmpkhkklass, rNa(0).dmpkhkbeg, rNa(0).dmpcopdklass, rNa(0).dmpcopdbeg, rNa(0).dmpabklass, rNa(0).dmpabbeg, rNa(0).HzV, rNa(0).HzVbeg, rNa(0).DS, rNa(0).DSbeg
- Dim Infos12$()
+ If Not vonMo Then
+  Dim Infos12$()
 '  Dim rKv1() AS kvnrue
- Call getHausarzt1(Infos12, rFa, rKv, True)
- For i = 0 To UBound(Infos12, 2)
-  If InStrB(Infos12(12, i), " ") Then Infos12(12, i) = REPLACE$(Infos12(12, i), " ", "") ' 19.12.14, '64 16653'
- Next i
- rNa(0).getHA0 = IIf(Infos12(12, 0) = vNS, 0, Infos12(12, 0))
- rNa(0).fnHA0 = IIf(Infos12(10, 0) = vNS, 0, Infos12(10, 0))
- If UBound(Infos12, 2) > 0 Then
-  rNa(0).getHA1 = IIf(Infos12(12, 1) = vNS, 0, Infos12(12, 1))
-  rNa(0).fnHA1 = IIf(Infos12(10, 1) = vNS, 0, Infos12(10, 1))
-  If UBound(Infos12, 2) > 1 Then
-   rNa(0).getHA2 = IIf(Infos12(12, 2) = vNS, 0, Infos12(12, 2))
-   rNa(0).fnHA2 = IIf(Infos12(10, 2) = vNS, 0, Infos12(10, 2))
-  End If
- End If ' UBound(Infos12, 2) > 0
- For i = 0 To UBound(Infos12, 2)
+  Call getHausarzt1(Infos12, rFa, rKv, True)
+  For i = 0 To UBound(Infos12, 2)
+   If InStrB(Infos12(12, i), " ") Then Infos12(12, i) = REPLACE$(Infos12(12, i), " ", "") ' 19.12.14, '64 16653'
+  Next i
+  rNa(0).getHA0 = IIf(Infos12(12, 0) = vNS, 0, Infos12(12, 0))
+  rNa(0).fnHA0 = IIf(Infos12(10, 0) = vNS, 0, Infos12(10, 0))
+  If UBound(Infos12, 2) > 0 Then
+   rNa(0).getHA1 = IIf(Infos12(12, 1) = vNS, 0, Infos12(12, 1))
+   rNa(0).fnHA1 = IIf(Infos12(10, 1) = vNS, 0, Infos12(10, 1))
+   If UBound(Infos12, 2) > 1 Then
+    rNa(0).getHA2 = IIf(Infos12(12, 2) = vNS, 0, Infos12(12, 2))
+    rNa(0).fnHA2 = IIf(Infos12(10, 2) = vNS, 0, Infos12(10, 2))
+   End If
+  End If ' UBound(Infos12, 2) > 0
+  For i = 0 To UBound(Infos12, 2)
 '  IF i < 3 THEN
 '   myEFrag "UPDATE `namen` SET getha" & CStr(i) & " = " & IIf(Infos12(12, i) = vNS, 0, Infos12(12, i)) & " WHERE pat_id = " & rNa(0).Pat_id, rAF
 '  END IF
-  If Infos12(12, i) <> vNS Then
+   If Infos12(12, i) <> vNS Then
 '   myEFrag "SELECT kvnr FROM `hareal` WHERE kvnr = " & Infos12(12, i), rAF
-   Dim rKVNr As New ADODB.Recordset, obFehlt%
-   myFrag rKVNr, "SELECT 0 FROM `hareal` WHERE kvnr = " & Infos12(12, i)
-   obFehlt = rKVNr.EOF
-   Set rKVNr = Nothing
-   If obFehlt Then
-    InsKorr DBCn, DBCnS, "INSERT INTO `hareal`(Anrede,Adressat,Straﬂe,PLZOrt,Fax,‹berschrift,dmp2,dmp1,Niederlassungsgebiet,Vorname,InnereAllg,kvnr,Tel,Nachname) VALUES(" & IIf(Infos12(0, i) = "Herr", 1, 0) & ",'" & Infos12(1, i) & "','" & Infos12(2, i) & "','" & Infos12(3, i) & "','" & Infos12(4, i) & "','" & Infos12(5, i) & "'," & IIf(Infos12(6, i) = vNS, 0, 1) & "," & IIf(Infos12(7, i) = vNS, 0, 1) & ",'" & Infos12(8, i) & "','" & Infos12(9, i) & "'," & IIf(Infos12(11, i) = "", 0, 1) & "," & IIf(Infos12(12, i) = vNS, 0, Infos12(12, i)) & ",'" & Infos12(13, i) & "','" & Infos12(14, i) & "')", rAf
-   Else
-    myEFrag "UPDATE `hareal` SET Anrede=" & IIf(Infos12(0, i) = "Herr", 1, 0) & ",Adressat='" & Infos12(1, i) & "',Straﬂe='" & Infos12(2, i) & "',PLZOrt='" & Infos12(3, i) & "',Fax='" & Infos12(4, i) & "',‹berschrift='" & Infos12(5, i) & "',dmp2=" & IIf(Infos12(6, i) = vNS, 0, 1) & ",dmp1=" & IIf(Infos12(7, i) = vNS, 0, 1) & ",Niederlassungsgebiet='" & Infos12(8, i) & "',Vorname='" & Infos12(9, i) & "',InnereAllg=" & IIf(Infos12(11, i) = vNS, 0, 1) & ",Tel='" & Infos12(13, i) & "',Nachname='" & Infos12(14, i) & "' WHERE kvnr = " & Infos12(12, i), rAf
-   End If ' obFehlt Then
-  End If ' Infos12(12, i) <> vNS Then
- Next i
+    Dim rKVNr As New ADODB.Recordset, obFehlt%
+    myFrag rKVNr, "SELECT 0 FROM `hareal` WHERE kvnr = " & Infos12(12, i)
+    obFehlt = rKVNr.EOF
+    Set rKVNr = Nothing
+    If obFehlt Then
+     InsKorr DBCn, DBCnS, "INSERT INTO `hareal`(Anrede,Adressat,Straﬂe,PLZOrt,Fax,‹berschrift,dmp2,dmp1,Niederlassungsgebiet,Vorname,InnereAllg,kvnr,Tel,Nachname) VALUES(" & IIf(Infos12(0, i) = "Herr", 1, 0) & ",'" & Infos12(1, i) & "','" & Infos12(2, i) & "','" & Infos12(3, i) & "','" & Infos12(4, i) & "','" & Infos12(5, i) & "'," & IIf(Infos12(6, i) = vNS, 0, 1) & "," & IIf(Infos12(7, i) = vNS, 0, 1) & ",'" & Infos12(8, i) & "','" & Infos12(9, i) & "'," & IIf(Infos12(11, i) = "", 0, 1) & "," & IIf(Infos12(12, i) = vNS, 0, Infos12(12, i)) & ",'" & Infos12(13, i) & "','" & Infos12(14, i) & "')", rAf
+    Else
+     myEFrag "UPDATE `hareal` SET Anrede=" & IIf(Infos12(0, i) = "Herr", 1, 0) & ",Adressat='" & Infos12(1, i) & "',Straﬂe='" & Infos12(2, i) & "',PLZOrt='" & Infos12(3, i) & "',Fax='" & Infos12(4, i) & "',‹berschrift='" & Infos12(5, i) & "',dmp2=" & IIf(Infos12(6, i) = vNS, 0, 1) & ",dmp1=" & IIf(Infos12(7, i) = vNS, 0, 1) & ",Niederlassungsgebiet='" & Infos12(8, i) & "',Vorname='" & Infos12(9, i) & "',InnereAllg=" & IIf(Infos12(11, i) = vNS, 0, 1) & ",Tel='" & Infos12(13, i) & "',Nachname='" & Infos12(14, i) & "' WHERE kvnr = " & Infos12(12, i), rAf
+    End If ' obFehlt Then
+   End If ' Infos12(12, i) <> vNS Then
+  Next i
+ End If ' not vonMO
  Call kassenspeichern(frm, CStr(rNa(0).Pat_id))
 ' Call kvnrpruef
 ' On Error Resume Next

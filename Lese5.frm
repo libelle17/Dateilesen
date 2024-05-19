@@ -1255,7 +1255,7 @@ End Sub ' Optionen_Click()
 
 ' Testfunktionen -> PatvonMo
 Private Sub PatvonMO_Click()
- Const pNr& = 18 ' 105 ' 246 ' 59152 ' 1394 ' 2112
+ Const pNr& = 53119 ' 69377 ' 51630 ' 105 ' 18 ' 246 ' 59152 ' 1394 ' 2112
  Call doPatvonMO(pNr)
 End Sub ' PatvonMO_Click
 
@@ -2527,7 +2527,7 @@ Private Sub Pat_loeschen_Click()
   erg = MsgBox("Wollen Sie wirklich den Patienten `" & Pat_id & " (" & rsPat.Fields(0) & ")` löschen?", vbYesNo)
   If erg = vbYes Then
    Call LöschePat(Pat_id, True)
-  End If
+  End If ' erg = vbYes
  End If ' Not rsPat.BOF() Then
 End Sub ' Pat_loeschen_Click
 
