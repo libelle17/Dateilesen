@@ -7544,7 +7544,7 @@ On Error GoTo fehler
      If raFa!ausgst > lddat Then lddat = raFa!ausgst
     End If
     Dim iDiag As New ADODB.Recordset, licd$, ldiag$, lSicher$, iDDiagText$, iDICD$, iDDiagSich$
-'    iDiag.Open "SELECT ICD, DiagText, DiagSicherheit FROM `diagnosen` d WHERE d.pat_id = " & Pat_id & " AND (d.obdauer <> 0 OR d.diagdatum > " & DatFor_k(lddat) & ") AND COALESCE(d.f6010,0)=0 ORDER BY icd, DiagSicherheit", DBCn, adOpenDynamic, adLockReadOnly
+'    iDiag.Open "SELECT ICD, DiagText, DiagSicherheit FROM `diagnosen` d WHERE d.pat_id = " & Pat_id & " AND (d.obdauer <> 0 OR d.diagdatum > " & DatFor_k(lddat) & ") AND COALESCE(d.Dggel,0)=0 ORDER BY icd, DiagSicherheit", DBCn, adOpenDynamic, adLockReadOnly
     myFrag iDiag, "SELECT ICD, DiagText, DiagSicherheit FROM `diagnosen` d WHERE d.pat_id = " & Pat_id & " AND (d.obdauer <> 0 OR d.diagdatum > " & DatFor_k(lddat) & ") ORDER BY icd, DiagSicherheit"
     If Not iDiag.BOF Then
 '     iDiag.MoveFirst
@@ -8950,7 +8950,7 @@ Sub Epikrise(dc, Pat_id$, VorDat As Date, lddat As Date, obStumm%)
 '    IF Not rDT.NoMatch THEN
 '     Do Until rDT.EOF
      Set rDT = Nothing
-'     rDT.Open "SELECT ICD, DiagSicherheit FROM `diagnosen` d WHERE d.pat_id = " & Pat_id & "  AND COALESCE(d.f6010,0)=0 ", DBCn, adOpenDynamic, adLockReadOnly
+'     rDT.Open "SELECT ICD, DiagSicherheit FROM `diagnosen` d WHERE d.pat_id = " & Pat_id & "  AND COALESCE(d.Dggel,0)=0 ", DBCn, adOpenDynamic, adLockReadOnly
      myFrag rDT, "SELECT ICD, DiagSicherheit FROM `diagnosen` d WHERE d.pat_id = " & Pat_id
      Do While Not rDT.EOF
 '      IF rDT!Pat_id <> Pat_id THEN Exit Do
@@ -9011,7 +9011,7 @@ w1:
 '    rDT.Seek "=", Pat_ID
 '    SET rDT = Nothing
     Set rDT = Nothing
-'    rDT.Open " SELECT Pat_id, ICD, DiagSicherheit, DiagText FROM `diagnosen` d WHERE d.pat_id = " & Pat_id & "  AND COALESCE(d.f6010,0)=0 ", DBCn, adOpenDynamic, adLockReadOnly
+'    rDT.Open " SELECT Pat_id, ICD, DiagSicherheit, DiagText FROM `diagnosen` d WHERE d.pat_id = " & Pat_id & "  AND COALESCE(d.Dggel,0)=0 ", DBCn, adOpenDynamic, adLockReadOnly
     Dim DiagT$, diags$
     myFrag rDT, "SELECT Pat_id, ICD, DiagSicherheit, DiagText FROM `diagnosen` d WHERE d.pat_id = " & Pat_id
     If Not rDT.BOF Then
@@ -9308,7 +9308,7 @@ w2:
   Dim obHWI%, AntibText$
   AntibText = vNS
   Set rDT = Nothing
-'  rDT.Open "SELECT 0 FROM `diagnosen` d WHERE d.pat_id = " & Pat_id & " AND (d.icd LIKE ""N12%"" OR d.icd LIKE ""N30%"" OR d.icd LIKE ""N39%"") AND d.diagsicherheit <> 'A' AND COALESCE(d.f6010,0)=0 ", DBCn, adOpenDynamic, adLockReadOnly
+'  rDT.Open "SELECT 0 FROM `diagnosen` d WHERE d.pat_id = " & Pat_id & " AND (d.icd LIKE ""N12%"" OR d.icd LIKE ""N30%"" OR d.icd LIKE ""N39%"") AND d.diagsicherheit <> 'A' AND COALESCE(d.Dggel,0)=0 ", DBCn, adOpenDynamic, adLockReadOnly
   myFrag rDT, "SELECT 0 FROM `diagnosen` d WHERE d.pat_id = " & Pat_id & " AND (d.icd LIKE ""N12%"" OR d.icd LIKE ""N30%"" OR d.icd LIKE ""N39%"") AND d.diagsicherheit <> 'A'"
   If rDT.BOF Then obHWI = 0 Else obHWI = -1
   Dim rAntib As New ADODB.Recordset
@@ -9442,7 +9442,7 @@ w2:
 ' ASS
   Dim AssA As Boolean, AssE As Boolean, AntikoagA As Boolean, AntikoagE As Boolean, keinAss
   keinAss = True ' statt 0 seit 25.1.12, nur noch bei KHK, Myokardinfarkt, Apoplex, Arteriosklerose, Nephropathie (N08.3, noch nicht aufgenommen)
-'  rDT0.Open "SELECT d.icd AS icd, diagtext,g1.gruppe dg1 FROM `diagnosen` d LEFT JOIN `diagreihe` dr ON d.icd = dr.icd  LEFT JOIN diagg1 g1 ON g1.lfdnr=dr.gi1 WHERE d.pat_id = " & Pat_id & " AND (d.icd LIKE 'I25%' OR d.icd LIKE 'I21%' OR d.icd LIKE 'I20%' OR d.icd LIKE 'Z95%' OR d.icd LIKE 'I64%' OR d.icd LIKE 'I63%' OR d.icd LIKE 'I67%') AND d.diagsicherheit <> 'A' AND COALESCE(d.f6010,0)=0 ", DBCn, adOpenDynamic, adLockReadOnly
+'  rDT0.Open "SELECT d.icd AS icd, diagtext,g1.gruppe dg1 FROM `diagnosen` d LEFT JOIN `diagreihe` dr ON d.icd = dr.icd  LEFT JOIN diagg1 g1 ON g1.lfdnr=dr.gi1 WHERE d.pat_id = " & Pat_id & " AND (d.icd LIKE 'I25%' OR d.icd LIKE 'I21%' OR d.icd LIKE 'I20%' OR d.icd LIKE 'Z95%' OR d.icd LIKE 'I64%' OR d.icd LIKE 'I63%' OR d.icd LIKE 'I67%') AND d.diagsicherheit <> 'A' AND COALESCE(d.Dggel,0)=0 ", DBCn, adOpenDynamic, adLockReadOnly
   myFrag rDT0, "SELECT d.icd AS icd, diagtext,g1.gruppe dg1 FROM `diagnosen` d LEFT JOIN `diagreihe` dr ON d.icd = dr.icd  LEFT JOIN diagg1 g1 ON g1.lfdnr=dr.gi1 WHERE d.pat_id = " & Pat_id & " AND (d.icd LIKE 'I25%' OR d.icd LIKE 'I21%' OR d.icd LIKE 'I20%' OR d.icd LIKE 'Z95%' OR d.icd LIKE 'I64%' OR d.icd LIKE 'I63%' OR d.icd LIKE 'I67%') AND d.diagsicherheit <> 'A'"
   If Not rDT0.BOF Then keinAss = 0
   If flag(flUlc) Then keinAss = True
@@ -9456,7 +9456,7 @@ w2:
      keinAss = True
     Else
      Set rDT = Nothing
-'     rDT.Open "SELECT d.icd AS icd, diagtext,g1.gruppe dg1 FROM `diagnosen` d LEFT JOIN `diagreihe` dr ON d.icd = dr.icd LEFT JOIN diagg1 g1 ON g1.lfdnr=dr.gi1 WHERE pat_id = " & Pat_id & " AND d.diagsicherheit <> 'A' AND COALESCE(d.f6010,0)=0 ", DBCn, adOpenDynamic, adLockReadOnly
+'     rDT.Open "SELECT d.icd AS icd, diagtext,g1.gruppe dg1 FROM `diagnosen` d LEFT JOIN `diagreihe` dr ON d.icd = dr.icd LEFT JOIN diagg1 g1 ON g1.lfdnr=dr.gi1 WHERE pat_id = " & Pat_id & " AND d.diagsicherheit <> 'A' AND COALESCE(d.Dggel,0)=0 ", DBCn, adOpenDynamic, adLockReadOnly
      myFrag rDT, "SELECT icd, COALESCE(DiagText,'') DiagText, dg1 FROM (SELECT d.icd,DiagText,g1.gruppe dg1 FROM `diagnosen` d LEFT JOIN `diagreihe` dr ON d.icd = dr.icd LEFT JOIN diagg1 g1 ON g1.lfdnr=dr.gi1 WHERE pat_id = " & Pat_id & " AND d.diagsicherheit <> 'A') i", adOpenStatic
      Do While Not rDT.EOF
   ' Leberkrankheiten außer Leberzirrhose, Obstipation
@@ -10319,7 +10319,7 @@ vz = vz + 1
 ", IF(diagsicherheit IN ('G',' ','Z'),IF(obdauer,IF(kori(),krd,nfc),akt),'') gzicd" & vbCrLf & _
 ", d.* FROM (" & vbCrLf & _
 "SELECT IF(obdauer AND obkasse AND lkasse>qanf(),icd,'') krd" & vbCrLf & _
-", IF(f6010,'',icd) nfc" & vbCrLf & _
+", IF(Dggel,'',icd) nfc" & vbCrLf & _
 ", IF(NOT obdauer AND diagdatum<qanf(),'',icd) akt" & vbCrLf & _
 ", d.* FROM diagnosen d) d"
 'Call DtbCreateQueryDef(VN, Vsql)
@@ -10329,11 +10329,11 @@ VN = "diagview"
 Vsql = _
 "SELECT d.* " & vbCrLf & _
 ", IF(diagsicherheit IN ('G',' '),IF(obdauer,IF(obkasse AND lkasse>qanf(),icd,''),IF(diagdatum<qanf(),'',icd)),'') gicdko" & vbCrLf & _
-", IF(diagsicherheit IN ('G',' '),IF(obdauer,IF(f6010,'',icd),IF(diagdatum<qanf(),'',icd)),'') gicdok" & vbCrLf & _
-", IF(diagsicherheit IN ('G',' '),IF(obdauer,IF(kori(),IF(obkasse AND lkasse>qanf(),icd,''),IF(f6010,'',icd)),IF(diagdatum<qanf(),'',icd)),'') gicd" & vbCrLf & _
+", IF(diagsicherheit IN ('G',' '),IF(obdauer,IF(Dggel,'',icd),IF(diagdatum<qanf(),'',icd)),'') gicdok" & vbCrLf & _
+", IF(diagsicherheit IN ('G',' '),IF(obdauer,IF(kori(),IF(obkasse AND lkasse>qanf(),icd,''),IF(Dggel,'',icd)),IF(diagdatum<qanf(),'',icd)),'') gicd" & vbCrLf & _
 ", IF(diagsicherheit IN ('G',' ','Z'),IF(obdauer,IF(obkasse AND lkasse>qanf(),icd,''),IF(diagdatum<qanf(),'',icd)),'') gzicdko" & vbCrLf & _
-", IF(diagsicherheit IN ('G',' ','Z'),IF(obdauer,IF(f6010,'',icd),IF(diagdatum<qanf(),'',icd)),'') gzicdok" & vbCrLf & _
-", IF(diagsicherheit IN ('G',' ','Z'),IF(obdauer,IF(kori(),IF(obkasse AND lkasse>qanf(),icd,''),IF(f6010,'',icd)),IF(diagdatum<qanf(),'',icd)),'') gzicd" & vbCrLf & _
+", IF(diagsicherheit IN ('G',' ','Z'),IF(obdauer,IF(Dggel,'',icd),IF(diagdatum<qanf(),'',icd)),'') gzicdok" & vbCrLf & _
+", IF(diagsicherheit IN ('G',' ','Z'),IF(obdauer,IF(kori(),IF(obkasse AND lkasse>qanf(),icd,''),IF(Dggel,'',icd)),IF(diagdatum<qanf(),'',icd)),'') gzicd" & vbCrLf & _
 "FROM diagnosen d" & vbCrLf & _
 ""
 
@@ -10341,13 +10341,13 @@ Vsql = _
 ' ""
 
 ' 5,3 s:
-' "GROUP BY pat_id,DiagSicherheit,diagtext,d.diagseite,diagattr,icd,obdauer,intBemerk,AusnBegr,f6010,obkasse,lkasse,f6011"
+' "GROUP BY pat_id,DiagSicherheit,diagtext,d.diagseite,diagattr,icd,obdauer,intBemerk,AusnBegr,Dggel,obkasse,lkasse,KFdFA"
 
 ' 3,4 s:
-'"WHERE NOT EXISTS (SELECT 0 FROM diagnosen WHERE id1<d.id1 AND pat_id=d.Pat_id AND diagsicherheit=d.DiagSicherheit AND diagtext=d.diagtext AND diagseite=d.diagseite AND diagattr=d.diagattr AND icd=d.icd AND obdauer=d.obdauer AND intbemerk=d.intBemerk AND ausnbegr=d.AusnBegr AND f6010=d.f6010 AND obkasse=d.obkasse AND lkasse=d.lkasse AND f6011=d.f6011)"
+'"WHERE NOT EXISTS (SELECT 0 FROM diagnosen WHERE id1<d.id1 AND pat_id=d.Pat_id AND diagsicherheit=d.DiagSicherheit AND diagtext=d.diagtext AND diagseite=d.diagseite AND diagattr=d.diagattr AND icd=d.icd AND obdauer=d.obdauer AND intbemerk=d.intBemerk AND ausnbegr=d.AusnBegr AND Dggel=d.Dggel AND obkasse=d.obkasse AND lkasse=d.lkasse AND KFdFA=d.KFdFA)"
 
 ' 4,1 s:
-'", ROW_NUMBER() OVER (PARTITION BY pat_id,DiagSicherheit,diagtext,d.diagseite,diagattr,icd,obdauer,intBemerk,AusnBegr,f6010,obkasse,lkasse,f6011 ORDER BY id1) rang" & vbCrLf & _
+'", ROW_NUMBER() OVER (PARTITION BY pat_id,DiagSicherheit,diagtext,d.diagseite,diagattr,icd,obdauer,intBemerk,AusnBegr,Dggel,obkasse,lkasse,KFdFA ORDER BY id1) rang" & vbCrLf & _
 '"HAVING rang=1"
 Call DtbCreateQueryDef(VN, Vsql)
 
@@ -10388,13 +10388,13 @@ VN = "diageview"
 Vsql = _
 "SELECT d.* " & vbCrLf & _
 "FROM diagview d" & vbCrLf & _
-"WHERE NOT EXISTS (SELECT 0 FROM diagnosen WHERE id1<d.id1 AND pat_id=d.Pat_id AND diagsicherheit=d.DiagSicherheit AND diagtext=d.diagtext AND diagseite=d.diagseite AND diagattr=d.diagattr AND icd=d.icd AND obdauer=d.obdauer AND intbemerk=d.intBemerk AND ausnbegr=d.AusnBegr AND f6010=d.f6010 AND obkasse=d.obkasse AND lkasse=d.lkasse AND f6011=d.f6011)"
+"WHERE NOT EXISTS (SELECT 0 FROM diagnosen WHERE id1<d.id1 AND pat_id=d.Pat_id AND diagsicherheit=d.DiagSicherheit AND diagtext=d.diagtext AND diagseite=d.diagseite AND diagattr=d.diagattr AND icd=d.icd AND obdauer=d.obdauer AND intbemerk=d.intBemerk AND ausnbegr=d.AusnBegr AND Dggel=d.Dggel AND obkasse=d.obkasse AND lkasse=d.lkasse AND KFdFA=d.KFdFA)"
 Call DtbCreateQueryDef(VN, Vsql)
 
 If LVobMySQL Then
  VN = "aktfaelle"
   Vsql = "SELECT f.pat_id pid, notiz, stru.leistung stru, chron.leistung chron, kt.ct kt, ebm.leistung verspau " & vbCrLf & _
- ",(SELECT icd FROM diagview d WHERE d.pat_id=f.pat_id AND (d.gicd REGEXP '^E1[0-4]\.|^R73' OR (d.icd LIKE 'O24%' AND d.f6010=0 AND d.diagsicherheit IN ('G',' ') AND d.diagdatum BETWEEN qbegs(f.quartal) AND qends(f.quartal))) ORDER BY icd LIMIT 1) icd " & vbCrLf & _
+ ",(SELECT icd FROM diagview d WHERE d.pat_id=f.pat_id AND (d.gicd REGEXP '^E1[0-4]\.|^R73' OR (d.icd LIKE 'O24%' AND d.Dggel=0 AND d.diagsicherheit IN ('G',' ') AND d.diagdatum BETWEEN qbegs(f.quartal) AND qends(f.quartal))) ORDER BY icd LIMIT 1) icd " & vbCrLf & _
  ", f.*, k.id, k.name kname, kateg, anzahlik, anzahlktug, gültigvon, gültigbis, go, kurzname " & vbCrLf & _
  "FROM ((`faelle` f " & vbCrLf & _
  "LEFT JOIN `kassenliste` k ON f.vknr = k.vknr AND f.ik = k.ik) " & vbCrLf & _
@@ -10517,7 +10517,7 @@ If LVobMySQL Then
  Vsql = _
  "SELECT CASE WHEN dicd LIKE 'E10%' THEN '1' WHEN dicd LIKE 'E11%' THEN '2' WHEN dicd = 'O24.4' THEN 'g' ELSE '-' END dtyp, i.* FROM (" & vbCrLf & _
  " SELECT COALESCE(t.therart,'Diät') mta, rang(COALESCE(t.therart,'Diät')) rang, t.zp tzp " & vbCrLf & _
- ", (SELECT MAX(icd) FROM diagview d WHERE pat_id=f.pat_id AND ((gicd RLIKE '^E1[0-4]\.' AND obdauer<>0) OR (d.icd='O24.4' AND d.f6010=0 AND d.diagsicherheit IN ('G',' ') AND obdauer=0 AND diagdatum BETWEEN qanf() AND qend()))) dicd " & vbCrLf & _
+ ", (SELECT MAX(icd) FROM diagview d WHERE pat_id=f.pat_id AND ((gicd RLIKE '^E1[0-4]\.' AND obdauer<>0) OR (d.icd='O24.4' AND d.Dggel=0 AND d.diagsicherheit IN ('G',' ') AND obdauer=0 AND diagdatum BETWEEN qanf() AND qend()))) dicd " & vbCrLf & _
  ", f.* " & vbCrLf & _
  " FROM aktfv f " & vbCrLf & _
  " LEFT JOIN therarten t ON t.pat_id=f.pat_id AND t.zp BETWEEN COALESCE((SELECT MAX(zp) FROM therarten WHERE pat_id=f.pat_id AND zp<qanf()),19000101) AND qend() " & vbCrLf & _
@@ -10872,7 +10872,7 @@ VN = "CSII bei Typ 2"
 Vsql = "SELECT a.Pat_ID, gesname(a.pat_id) PName, t.zp, t.therart, t.grund, d.gicd icd " & vbCrLf & _
 "FROM anamnesebogen a" & vbCrLf & _
 "LEFT JOIN therarten t USING (pat_id)" & vbCrLf & _
-"LEFT JOIN diagview d ON d.Pat_id = a.Pat_id AND (d.gicd REGEXP '^E1[1-4]\.' OR (d.icd='O24.4' AND d.f6010=0 AND d.diagsicherheit in ('G',' ')))" & vbCrLf & _
+"LEFT JOIN diagview d ON d.Pat_id = a.Pat_id AND (d.gicd REGEXP '^E1[1-4]\.' OR (d.icd='O24.4' AND d.Dggel=0 AND d.diagsicherheit in ('G',' ')))" & vbCrLf & _
 "WHERE (a.Ther1 = 'CSII' OR t.therart='CSII') AND d.ICD IS NOT NULL"
 Call DtbCreateQueryDef(VN, Vsql)
 vz = vz + 1
@@ -11456,14 +11456,14 @@ sql = sql & "   SET i=i+1;" & Chr$(13) & _
     "DECLARE erg INTEGER DEFAULT 99;" & Chr$(13) & _
     "  CASE" & Chr$(13) & _
     "   WHEN inh RLIKE 'influvac|influsplit|vaxigrip|afluria|optaflu|xanaflu|begripal|begrivac|flucelvax|fluad|fluva|Flucelvax' THEN SET erg='1';" & vbCrLf & _
-    "   WHEN inh RLIKE 'pneumovax|prevenar' THEN SET erg='2';" & vbCrLf & _
+    "   WHEN inh RLIKE 'pneumovax|prevenar|apexxnar' THEN SET erg='2';" & vbCrLf & _
     "   WHEN inh RLIKE 'boostrix|repevax|revaxis|ipv[- ]M[eé]rieux|infanrix' THEN SET erg='3';" & vbCrLf & _
     "   WHEN inh RLIKE 'shingrix|zostavax' THEN SET erg='4';" & vbCrLf & _
     "   WHEN inh RLIKE 'fsme|encepur' THEN SET erg='5';" & vbCrLf & _
     "   WHEN inh RLIKE 'priorix|m-m-r|mmr' THEN SET erg='6';" & vbCrLf & _
     "   WHEN inh RLIKE 'td[- ]pur|tetagam|tetanol|td[- ]rix' THEN SET erg='7';" & vbCrLf & _
     "   WHEN inh RLIKE 'strovac' THEN SET erg='8';" & vbCrLf & _
-    "   WHEN inh RLIKE 'havrix|twinrix|engerix b' THEN SET erg='9';" & vbCrLf & _
+    "   WHEN inh RLIKE 'havrix|twinrix|engerix b|VAQTA' THEN SET erg='9';" & vbCrLf & _
     "   WHEN inh RLIKE 'bexsero' THEN SET erg='10';" & vbCrLf & _
     "   WHEN inh RLIKE 'gardasil' THEN SET erg='12';" & vbCrLf & _
     "   WHEN inh RLIKE 'typhim' THEN SET erg='13';" & vbCrLf & _
@@ -12400,12 +12400,12 @@ sql = "CREATE DEFINER=`praxis`@`%` FUNCTION `dmtyp`( pid INT(6) UNSIGNED ) RETUR
 "BEGIN" & vbCrLf & _
 "  DECLARE typ VARCHAR(1);" & vbCrLf & _
 "  SET typ = (SELECT CASE SUBSTR(gicd,1,1) WHEN 'E' THEN CASE SUBSTR(gicd,3,1) WHEN 1 THEN '2' WHEN 0 THEN '1' WHEN 3 THEN 's' ELSE 'u' END WHEN 'O' THEN 'g' WHEN 'R' THEN 'p' ELSE '-' END FROM " & vbCrLf & _
-"  (SELECT MIN(icd) gicd FROM diagview d WHERE pat_id = pid AND (d.gicd REGEXP '^E1[0-4]\.|^R73' OR (d.icd='O24.4' AND d.f6010=0 AND d.diagsicherheit in ('G',' '))) " & vbCrLf & _
+"  (SELECT MIN(icd) gicd FROM diagview d WHERE pat_id = pid AND (d.gicd REGEXP '^E1[0-4]\.|^R73' OR (d.icd='O24.4' AND d.Dggel=0 AND d.diagsicherheit in ('G',' '))) " & vbCrLf & _
 "  ) i );" & vbCrLf & _
 "RETURN typ;" & vbCrLf & _
 "END"
 ' wenn z.B. erst E10.91 und dann O24.0
-'"   AND d.diagdatum = (SELECT MAX(diagdatum) FROM diagnosen di WHERE di.pat_id = d.pat_id AND ((di.icd REGEXP '^E1[0-4]\.' ) OR (di.icd = 'O24.4' )) AND di.diagsicherheit NOT IN ('A','Z') AND COALESCE(di.f6010,0)=0)" & vbCrLf
+'"   AND d.diagdatum = (SELECT MAX(diagdatum) FROM diagnosen di WHERE di.pat_id = d.pat_id AND ((di.icd REGEXP '^E1[0-4]\.' ) OR (di.icd = 'O24.4' )) AND di.diagsicherheit NOT IN ('A','Z') AND COALESCE(di.Dggel,0)=0)" & vbCrLf
  myEFrag (sql)
 
 sql = "DROP FUNCTION IF EXISTS `dmtypicd`;"
@@ -12417,7 +12417,7 @@ sql = "CREATE DEFINER=`praxis`@`%` FUNCTION `dmtypicd`(icd VARCHAR(6)) RETURNS V
 "RETURN CASE SUBSTR(icd,1,1) WHEN 'E' THEN CASE SUBSTR(icd,3,1) WHEN 1 THEN '2' WHEN 0 THEN '1' WHEN 3 THEN 's' ELSE 'u' END WHEN 'O' THEN 'g' WHEN 'R' THEN 'p' ELSE '-' END ;" & vbCrLf & _
 "END"
 ' wenn z.B. erst E10.91 und dann O24.0
-'"   AND d.diagdatum = (SELECT MAX(diagdatum) FROM diagnosen di WHERE di.pat_id = d.pat_id AND ((di.icd REGEXP '^E1[0-4]\.' ) OR (di.icd = 'O24.4' )) AND di.diagsicherheit NOT IN ('A','Z') AND COALESCE(di.f6010,0)=0)" & vbCrLf
+'"   AND d.diagdatum = (SELECT MAX(diagdatum) FROM diagnosen di WHERE di.pat_id = d.pat_id AND ((di.icd REGEXP '^E1[0-4]\.' ) OR (di.icd = 'O24.4' )) AND di.diagsicherheit NOT IN ('A','Z') AND COALESCE(di.Dggel,0)=0)" & vbCrLf
 myEFrag (sql)
 
 ' würde unter diesem Namen auch in pznbdt aufgerufen
@@ -12740,7 +12740,7 @@ sql = "CREATE OR REPLACE ALGORITHM=UNDEFINED DEFINER=`praxis`@`%` SQL SECURITY D
 " , CASE LEFT(icd,1) WHEN 'E' THEN CASE MID(icd,3,1) WHEN 1 THEN '2' WHEN 0 THEN '1' WHEN 3 THEN 's' ELSE 'u' END WHEN 'O' THEN 'g' WHEN 'R' THEN 'p' ELSE '-' END ityp " & vbCrLf & _
 " , RANK() OVER(PARTITION BY n.pat_id ORDER BY obsek DESC,LEFT(d.gicd,3),MID(d.gicd,5,1)=9 DESC,MID(d.gicd,5) DESC,LENGTH(d.diagtext) DESC) rang " & vbCrLf & _
 " FROM namen n " & vbCrLf & _
-" LEFT JOIN diagview d ON d.pat_id=n.pat_id AND (d.gicd REGEXP '^E1[0-4]\.|^R73' OR (d.icd='O24.4' AND d.f6010=0 AND d.diagsicherheit in ('G',' '))) GROUP BY n.pat_id,d.gicd,d.diagtext " & vbCrLf & _
+" LEFT JOIN diagview d ON d.pat_id=n.pat_id AND (d.gicd REGEXP '^E1[0-4]\.|^R73' OR (d.icd='O24.4' AND d.Dggel=0 AND d.diagsicherheit in ('G',' '))) GROUP BY n.pat_id,d.gicd,d.diagtext " & vbCrLf & _
 ") i " & vbCrLf & _
 "WHERE rang=1;"
 myEFrag sql
@@ -12751,7 +12751,7 @@ sql = "CREATE OR REPLACE ALGORITHM=UNDEFINED DEFINER=`praxis`@`%` SQL SECURITY D
 "SELECT n.pat_id, d.dmtyp FROM namen n" & vbCrLf & _
 "LEFT JOIN (SELECT pat_id,CASE WHEN icd RLIKE '^E' THEN CAST(MID(icd,3,1)+1 AS CHAR) WHEN icd RLIKE '^R' THEN 'p' ELSE 'g' END dmtyp " & vbCrLf & _
 "FROM diagview d" & vbCrLf & _
-"WHERE (d.gicd REGEXP '^E1[0-4]\.|^R73' OR (d.icd='O24.4' AND d.f6010=0 AND d.diagsicherheit in ('G',' '))) GROUP BY pat_id) d" & vbCrLf & _
+"WHERE (d.gicd REGEXP '^E1[0-4]\.|^R73' OR (d.icd='O24.4' AND d.Dggel=0 AND d.diagsicherheit in ('G',' '))) GROUP BY pat_id) d" & vbCrLf & _
 "ON d.pat_id=n.pat_id;"
 myEFrag sql
     

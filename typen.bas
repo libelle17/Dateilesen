@@ -9,8 +9,8 @@ Public type namen
  Nachname AS string 'Nachname varchar '3101
  Vorname AS string 'Vorname varchar '3102
  GebDat AS date 'GebDat datetime '3103
- f3004 AS string 'f3004 varchar '3004 Kartentyp/-generation, 2019 gelöscht, bis jetzt 0 oder 2
- f3006 AS string 'f3006 varchar '3006 eGK-Versichertenstammdaten-Schema-Version, bis jetzt 5.1.0 oder 5.2.0
+ KarGen AS string 'KarGen varchar '3004 Kartentyp/-generation, 2019 gelöscht, bis jetzt 0 oder 2
+ eGKSchVer AS string 'eGKSchVer varchar '3006 eGK-Versichertenstammdaten-Schema-Version, bis jetzt 5.1.0 oder 5.2.0
  Straße AS string 'Straße varchar '3107
  KVKStatus AS string 'KVKStatus varchar '3108
  Hausnr AS string 'Hausnr varchar '3109
@@ -23,7 +23,7 @@ Public type namen
  PFPlz AS string 'PFPlz varchar '3121 Postfach-Postleitzahl
  PFOrt AS string 'PFOrt varchar '3122 Postfach-Ort
  PFNr AS string 'PFNr varchar '3123 Postfach-Nr.
- f3124 AS string 'f3124 varchar '3124 unbek.Feld, bisher immer leer
+ PFWsLC AS string 'PFWsLC varchar '3124 Postfach Wohnsitzländercode, bisher immer leer
  AnschrZus_2 AS string 'AnschrZus_2 varchar '3215 Anschriftenzusatz, aufgeteiltes Feld
  Postfach_2 AS string 'Postfach_2 varchar '3216 Postfach, aufgeteiltes Feld
  LK_2 AS string 'LK_2 varchar '3217 Ländercode vermutlich Herkunftsland, aufgeteiltes Feld
@@ -93,11 +93,15 @@ Public type faelle
  Quartal AS string 'Quartal varchar '4101 Quartal der Ausstellung
  Nachname AS string 'Nachname varchar '3101 Nachname
  Vorname AS string 'Vorname varchar '3102 Vorname
+ DtlOnlPfg AS date 'DtlOnlPfg datetime '3010 Datum der letzten Online-Prüfung
+ ErgbdOnlP AS long 'ErgbdOnlP int '3011 Ergebnis der Onlineprüfung ('2')
+ ErrorCode AS long 'ErrorCode int '3012 Error-Code (bis 5-stellig)
+ PrüfZdFd AS string 'PrüfZdFd varchar '3013 Prüfziffer des Fachdienstes (bis 88 Stellen)
  lfdnr AS long 'lfdnr int 'laufende Fallnummer
  TMFNr AS string 'TMFNr varchar '4144 Fallnummer in Turbomed
  VKNr AS string 'VKNr varchar '4104 VK-Nr.
- f4131 AS string 'f4131 varchar '4131 besondere Personengruppe, bis jetzt immer 0
- f4132 AS string 'f4132 varchar '4132 DMP_Kennzeichnung, 0-6
+ bPerG AS string 'bPerG varchar '4131 besondere Personengruppe, ' ', 0, 4, 6, 7, 8, Sozialhilfempf., SVA, Asyl
+ DMPKnZ AS string 'DMPKnZ varchar '4132 DMP_Kennzeichnung, ' ', 0-9
  VschBeg AS date 'VschBeg datetime '4133 Versichternschutzbeginn
  VschEnd AS date 'VschEnd datetime '4110 Versichternschutzende
  KKasse_2 AS string 'KKasse_2 varchar '4134 Krankenkasse aus Fall
@@ -107,11 +111,12 @@ Public type faelle
  BhFB AS date 'BhFB datetime '4150 Behandlungsfall: Beginn
  BhFE1 AS date 'BhFE1 datetime '4151 Behandlungsfall: Ende (Musterwoman) / Wohl Ende des Behandlungsfallbeginnquartals
  BhFE2 AS date 'BhFE2 datetime '4152 Behandlungsfall: Ende (Musterwoman),bei offenem Fall 00000000, sonst z.B. 30092006 für 3/06
- f4202 AS string 'f4202 varchar '4202 Unfall, Unfallfolgen nach 4152
+ UnfFlg AS string 'UnfFlg varchar '4202 Unfall, Unfallfolgen nach 4152
  ausgst AS date 'ausgst datetime '4102 ('ausgestellt am')
  KtrAbrB AS string 'KtrAbrB varchar '4106, Kostenträgerabrechnungsbereich (00 = Primärabrechnung (immer))
  AbrAr AS string 'AbrAr varchar '4107, Abrechnungsart (1 = Primärkassen)
  lVorl AS date 'lVorl datetime '4109, letzte Vorlage
+ KartBes AS byte 'KartBes tinyint '0=alles in Ordnung, 1=Schein fehlt, 2=Ersatzverfahren, 3=Schein fehlt
  IK AS string 'IK varchar '4111 Krankenkassennummer (IK)
  KVKs AS string 'KVKs varchar '4112 Versichertenstatus VK
  KVKserg AS string 'KVKserg varchar '4113 Ost/West-Status VK
@@ -122,9 +127,10 @@ Public type faelle
  AbrGb AS string 'AbrGb varchar '4122, Abrechnungsgebiet (07 = Diabetes)
  PersKreis AS string 'PersKreis varchar '4123 Personenkreis/Untersuchungskategorie
  SKtZusatz AS string 'SKtZusatz varchar '4124 SKT-Zusatzangaben
+ SktBem AS string 'SktBem varchar '4126 SKT-Bemerkung
  letzteRegel AS string 'letzteRegel varchar '4206, letzter Tag der Regel
  ÜwText AS string 'ÜwText longtext '4209: Auftrags- / erläuternder Text zur Überweisung
- f4210 AS byte 'f4210 tinyint '4210, Ankreuzfeld Mutterschaftsvorsorge Lues-Suchreaktion
+ AkfLues AS byte 'AkfLues tinyint '4210, Ankreuzfeld Mutterschaftsvorsorge Lues-Suchreaktion
  AkfHAH AS byte 'AkfHAH tinyint '4211 Ankreuzfeld Muvo HAH
  AkfAB0 AS byte 'AkfAB0 tinyint '4212 Ankreuzfeld AB0.RH
  AkfAK AS byte 'AkfAK tinyint '4213 Ankreuzfeld AK
@@ -148,11 +154,15 @@ Public type faelle
 
  Befund AS string 'Befund varchar '4208 Befund bei Überweisung
  statKlasse AS string 'statKlasse varchar '4236 Klasse bei Behandlung
- f4237 AS string 'f4237 varchar '4237 Krankenhausname
+ KHNam AS string 'KHNam varchar '4237 Krankenhausname
  statBehTage AS long 'statBehTage int '4238 Krankenhausaufenthalt
  SchGr AS double 'SchGr decimal '4239, Schein(unter)gruppe
  Weiterbeh AS string 'Weiterbeh varchar '4243, Weiterbehandelnder
- f4266 AS single 'f4266 float '4266 Kurabbruch,  Datumsfeld, bisher nur bei Musterwoman
+ KurAbb AS single 'KurAbb float '4266 Kurabbruch,  Datumsfeld, bisher nur bei Musterwoman
+ VermiArt AS string 'VermiArt varchar '4301 Vermittlungsart: 0=-, 1=TSS-Terminfall, 2=TSS-Akutfall, 3=HA-Vermittlungsfall, 4=offene Sprechstunde,  5=Neuopatient,  6=TSS-Routinetermin
+ VermiCode AS long 'VermiCode int 'Vermittlungscode, 12-stellig, nicht Turbomed-BDT-Datei
+ VermiDatum AS date 'VermiDatum date 'Tag der Terminvermittlung, nicht Turbomed-BDT-Datei
+ VermiZusatz AS string 'VermiZusatz varchar 'Zusatzinfo zur Terminvermittlung, nicht in Turbomed-BDT-Datei
  PGeb AS string 'PGeb varchar '4401, Praxisgebühr
  PGebErg AS string 'PGebErg varchar '4402, Array
  Mahnfrist AS string 'Mahnfrist varchar '4403, Mahnfrist bis
@@ -160,7 +170,7 @@ Public type faelle
  BeschAls AS string 'BeschAls varchar '4506 Beschäftigt als
  BeschSeit AS date 'BeschSeit datetime '4506 Beschäftigt seit
  Unfallbetrieb AS string 'Unfallbetrieb varchar '4509 Unfallbetrieb
- f4570 AS string 'f4570 varchar '4570 Besondere Heilbehandlung, nur einamal 0
+ bHeilb AS string 'bHeilb varchar '4570 Besondere Heilbehandlung, nur einamal 0
  GOÄKatNr AS string 'GOÄKatNr varchar '4580 (1): Katalog-Nummer
  GOÄKatName AS string 'GOÄKatName varchar '4580 (2): Privat-Abrechnungskatalog
  abrArzt AS string 'abrArzt varchar '4585 abrechnender Arzt
@@ -183,7 +193,7 @@ Public type faelle
  StByte AS long 'StByte int 'Ordnungsnummer der Datenübertragung
  absPos AS long 'absPos int 'Zeile in der BDT-Datei
  LANRid AS long 'LANRid int 'Bezug auf lanrpraxis.id
- f4108 AS string 'f4108 varchar '4108 Zulassungsnummer mobiles Lesegerät
+ ZnrMLes AS string 'ZnrMLes varchar '4108 Zulassungsnummer mobiles Lesegerät
  BGFallNr AS string 'BGFallNr varchar '3603 BG-Fall-Nummer	
  lGewicht AS double 'lGewicht decimal 'letztes Gewicht in kg
  vorET AS date 'vorET date 'voraussichtlicher Entbindungstermin
@@ -253,10 +263,10 @@ Public type diagnosen
  AktZeit AS date 'AktZeit datetime 'Aktualisierungszeit
  StByte AS long 'StByte int 'Ordnungsnummer der Datenübertragung
  AusnBegr AS string 'AusnBegr varchar '6008 Ausnahmebegründung
- f6010 AS byte 'f6010 tinyint 'Falsch=dd-Eintrag, Wahr=bdd-Eintragurspr.: 6010 Diagnose gelöscht
+ Dggel AS byte 'Dggel tinyint '6010 Falsch=dd-Eintrag, Wahr=bdd-Eintragurspr.: 6010 Diagnose gelöscht
  obKasse AS byte 'obKasse tinyint 'ob nach Kodierrichtlinien an Kasse zu übermitteln
  lKasse AS date 'lKasse datetime 'wann zuletzt Kassenübermittlung nach Kodierrichtlinien eingetragen (bd/bdd, f6010 Wahr)
- f6011 AS string 'f6011 varchar '6011 8.12.10: bisher nur """"""""TM#?""""""""
+ KFdFA AS string 'KFdFA varchar 'Krankheitsfall d. Fallakte 6011 8.12.10: bisher nur """"""""TM#?""""""""
 end type
 
 Public type dokumente
@@ -325,9 +335,9 @@ Public type forminhfeld
  Nr AS integer 'Nr smallint '
  FeldNr AS integer 'FeldNr smallint '
  FeldVW AS long 'FeldVW int '->forminhaltfeld.FeldVW
- Feld AS string
+ Feld AS string ' nur Hilfsfeld, nicht in Datenbank
  FeldInhVW AS long 'FeldInhVW int '-> forminhaltfeldinh.FeldinhVW
- FeldInh AS string
+ FeldInh AS string ' nur Hilfsfeld, nicht in Datenbank
 end type
 
 Public type kheinweis
@@ -358,16 +368,19 @@ Public type laborneu
  FertigStGrad AS string 'FertigStGrad varchar '8401
  Abkü AS string 'Abkü varchar '8410
  LangtextVW AS long 'LangtextVW int '8411
- Langtext AS string
+ Langtext AS string ' nur Hilfsfeld, nicht in Datenbank
  Wert AS string 'Wert varchar '8420
  Einheit AS string 'Einheit varchar '8421
+ AnmkgVW AS long 'AnmkgVW int '8470
+ Anmkg AS string ' nur Hilfsfeld, nicht in Datenbank
  KommentarVW AS long 'KommentarVW int '8480
- Kommentar AS string
+ Kommentar AS string ' nur Hilfsfeld, nicht in Datenbank
  AbsPos AS long 'AbsPos int 'Zeile in der BDT-Datei
  AktZeit AS date 'AktZeit datetime 'Aktualisierungszeit
  Refnr AS long 'Refnr int 'Bezug auf LaborXUS
  StByte AS long 'StByte int 'Ordnungsnummer der Datenübertragung
  ID AS long 'ID int '
+ AbschlZl AS string 'AbschlZl varchar '8490
 end type
 
 Public type leistungen
@@ -376,17 +389,17 @@ Public type leistungen
  Pat_ID AS long 'Pat_ID int '3000
  ZeitPunkt AS date 'ZeitPunkt datetime '5000 + 6201
  Leistung AS string 'Leistung varchar '5001 Leistungsziffer
- f5002 AS string 'f5002 varchar '5002 Art der Untersuchung
- f5005 AS string 'f5005 varchar '5005 Anzahl
- f5006 AS string 'f5006 varchar '5006 um Uhrzeit
- f5009 AS string 'f5009 varchar '5009 freier Begründungstext
+ ArtdUs AS string 'ArtdUs varchar '5002 Art der Untersuchung
+ LAnzl AS string 'LAnzl varchar '5005 Anzahl
+ LUhrz AS string 'LUhrz varchar '5006 um Uhrzeit
+ LfBegr AS string 'LfBegr varchar '5009 freier Begründungstext
  Med AS string 'Med varchar '5010 Medikament
- f5015 AS string 'f5015 varchar '5015 Organ
- f5016 AS string 'f5016 varchar '5016 Name des Arztes (Briefempfänger)
- f5021 AS string 'f5021 varchar '5021 Datum letzte Krebsvorsorge
- f5026 AS string 'f5026 varchar '5026 Entlassungsdatum
+ LOrgan AS string 'LOrgan varchar '5015 Organ
+ LArztBf AS string 'LArztBf varchar '5016 Name des Arztes (Briefempfänger)
+ DtlKbsV AS string 'DtlKbsV varchar '5021 Datum letzte Krebsvorsorge
+ LEntlDt AS string 'LEntlDt varchar '5026 Entlassungsdatum
  Faktor AS string 'Faktor varchar '5062 Multiplikator für GOÄ-Rechnung
- f5098 AS string 'f5098 varchar '5098 0000000000
+ LBSNR AS string 'LBSNR varchar '5098 Bestriebestättennummer des Ortes der Leistungserbringung 0000000000
  Charge AS string 'Charge varchar '9999 Charge
  LANR AS string 'LANR varchar '5099 LANR
  letzVorg AS date 'letzVorg datetime '5101 letzter Vorgang
@@ -458,6 +471,7 @@ Public type rr
  FID AS long 'FID int 'Fall-Bezug
  Pat_ID AS long 'Pat_ID int '3000
  ZeitPunkt AS date 'ZeitPunkt datetime '6200 + 6201
+ FormTitel AS string 'FormTitel varchar '8409 Formulartitel
  RR AS string 'RR longtext '6230
  Puls AS long 'Puls int 'Puls
  RRsyst AS integer 'RRsyst smallint '
@@ -648,6 +662,7 @@ Public type sws
  FID AS long 'FID int 'Fall-Bezug
  Pat_ID AS long 'Pat_ID int '3000
  ZeitPunkt AS date 'ZeitPunkt datetime '6200 + 6201
+ FormTitel AS string 'FormTitel varchar '8409 Formulartitel
  LR AS date 'LR date 'anzeigeText:>LR: 
  vorET AS date 'vorET date 'voraussichtlicher ET: 
  ET AS date 'ET date 'Entbindung ... Datum: 
@@ -657,6 +672,17 @@ Public type sws
  MB AS date 'MB date 'MutterschutzBeginn
  EndeArt AS string 'EndeArt varchar 'EndeArt
  ED AS date 'ED date 'EndeDatum
+ absPos AS long 'absPos int 'Zeile in BDT-Datei
+ AktZeit AS date 'AktZeit datetime 'Aktualisierungszeit
+ StByte AS long 'StByte int 'Ordnungsnummer der Datenübertragung
+end type
+
+Public type vopl
+ FID AS long 'FID int 'Fall-Bezug
+ Pat_ID AS long 'Pat_ID int '3000
+ ZeitPunkt AS date 'ZeitPunkt datetime '6200 + 6201
+ FormTitel AS string 'FormTitel varchar '8409 Formulartitel
+ Inhalt AS string 'Inhalt longtext 'Inhalt der Verordnung
  absPos AS long 'absPos int 'Zeile in BDT-Datei
  AktZeit AS date 'AktZeit datetime 'Aktualisierungszeit
  StByte AS long 'StByte int 'Ordnungsnummer der Datenübertragung
@@ -1047,6 +1073,7 @@ Public rFu() AS fuss
 Public rUl() AS ulcus
 Public rVk() AS vkgd
 Public rSw() AS sws
+Public rVo() AS vopl
 Public rLs() AS laborxsaetze
 Public rLg() AS laborxeingel
 Public rLu() AS laborxus
@@ -1083,6 +1110,7 @@ Public roFu() AS fuss
 Public roUl() AS ulcus
 Public roVk() AS vkgd
 Public roSw() AS sws
+Public roVo() AS vopl
 Public roLs() AS laborxsaetze
 Public roLg() AS laborxeingel
 Public roLu() AS laborxus
@@ -1123,6 +1151,7 @@ Public FUNCTION Tinit()
  ReDim rUl(0)
  ReDim rVk(0)
  ReDim rSw(0)
+ ReDim rVo(0)
  wdh = -1
 End FUNCTION ' Tinit
 
@@ -1155,7 +1184,7 @@ End FUNCTION ' doEntleer
 Public Sub LöschePat(PID&, Optional obAnzeig%)
  Dim Tb, tbn, rAf&, ergeb$
  ON Error GoTo fehler
- tbn = Array("namen", "faelle", "au", "briefe", "diagnosen", "dokumente", "eintraege", "forminhkopf", "kheinweis", "lbanforderungen", "laborneu", "leistungen", "medplan", "rezepteintraege", "rr", "kvnrue", "dmpreihe", "desktop", "usdm", "fuss", "ulcus", "vkgd", "sws")
+ tbn = Array("namen", "faelle", "au", "briefe", "diagnosen", "dokumente", "eintraege", "forminhkopf", "kheinweis", "lbanforderungen", "laborneu", "leistungen", "medplan", "rezepteintraege", "rr", "kvnrue", "dmpreihe", "desktop", "usdm", "fuss", "ulcus", "vkgd", "sws", "vopl")
  For Each Tb In tbn
   myEFrag "DELETE FROM `" & Tb & "` WHERE PAT_ID = " & PID, rAf
   ergeb = ergeb & vbCrLf & rAf & " Sätze aus `" & Tb & "` gelöscht."
@@ -1184,6 +1213,7 @@ Public FUNCTION AllesLösch(frm AS lese)
  ON Error GoTo fehler
  call ForeignNo0
  call ForeignNo1
+ call doEntleer(frm, "vopl")
  call doEntleer(frm, "sws")
  call doEntleer(frm, "vkgd")
  call doEntleer(frm, "ulcus")
@@ -1380,8 +1410,8 @@ Public FUNCTION roNaZuw(i&, j&)
  roNa(i).Nachname = rNa(j).Nachname
  roNa(i).Vorname = rNa(j).Vorname
  roNa(i).GebDat = rNa(j).GebDat
- roNa(i).f3004 = rNa(j).f3004
- roNa(i).f3006 = rNa(j).f3006
+ roNa(i).KarGen = rNa(j).KarGen
+ roNa(i).eGKSchVer = rNa(j).eGKSchVer
  roNa(i).Straße = rNa(j).Straße
  roNa(i).KVKStatus = rNa(j).KVKStatus
  roNa(i).Hausnr = rNa(j).Hausnr
@@ -1394,7 +1424,7 @@ Public FUNCTION roNaZuw(i&, j&)
  roNa(i).PFPlz = rNa(j).PFPlz
  roNa(i).PFOrt = rNa(j).PFOrt
  roNa(i).PFNr = rNa(j).PFNr
- roNa(i).f3124 = rNa(j).f3124
+ roNa(i).PFWsLC = rNa(j).PFWsLC
  roNa(i).AnschrZus_2 = rNa(j).AnschrZus_2
  roNa(i).Postfach_2 = rNa(j).Postfach_2
  roNa(i).LK_2 = rNa(j).LK_2
@@ -1465,8 +1495,8 @@ Public FUNCTION NaZUnt%(i&, j&)
  IF roNa(i).Nachname <> rNa(j).Nachname THEN gosub unter
  IF roNa(i).Vorname <> rNa(j).Vorname THEN gosub unter
  IF roNa(i).GebDat <> rNa(j).GebDat THEN gosub unter
- IF roNa(i).f3004 <> rNa(j).f3004 THEN gosub unter
- IF roNa(i).f3006 <> rNa(j).f3006 THEN gosub unter
+ IF roNa(i).KarGen <> rNa(j).KarGen THEN gosub unter
+ IF roNa(i).eGKSchVer <> rNa(j).eGKSchVer THEN gosub unter
  IF roNa(i).Straße <> rNa(j).Straße THEN gosub unter
  IF roNa(i).KVKStatus <> rNa(j).KVKStatus THEN gosub unter
  IF roNa(i).Hausnr <> rNa(j).Hausnr THEN gosub unter
@@ -1479,7 +1509,7 @@ Public FUNCTION NaZUnt%(i&, j&)
  IF roNa(i).PFPlz <> rNa(j).PFPlz THEN gosub unter
  IF roNa(i).PFOrt <> rNa(j).PFOrt THEN gosub unter
  IF roNa(i).PFNr <> rNa(j).PFNr THEN gosub unter
- IF roNa(i).f3124 <> rNa(j).f3124 THEN gosub unter
+ IF roNa(i).PFWsLC <> rNa(j).PFWsLC THEN gosub unter
  IF roNa(i).AnschrZus_2 <> rNa(j).AnschrZus_2 THEN gosub unter
  IF roNa(i).Postfach_2 <> rNa(j).Postfach_2 THEN gosub unter
  IF roNa(i).LK_2 <> rNa(j).LK_2 THEN gosub unter
@@ -1552,11 +1582,11 @@ Public FUNCTION namenLaden()
  ON Error GoTo fehler
  pid = rNa(0).Pat_id
  sql = "SELECT COALESCE(Pat_ID,0) Pat_ID,COALESCE(lfdnr,0) lfdnr,COALESCE(NVorsatz,'') NVorsatz,COALESCE(Nachname,'') Nachname" & _
-",COALESCE(Vorname,'') Vorname,COALESCE(GebDat - INTERVAL 0 DAY,CONVERT('18991230',DATE)) GebDat,COALESCE(f3004,'') f3004,COALESCE(f3006,'') f3006" & _
+",COALESCE(Vorname,'') Vorname,COALESCE(GebDat - INTERVAL 0 DAY,CONVERT('18991230',DATE)) GebDat,COALESCE(KarGen,'') KarGen,COALESCE(eGKSchVer,'') eGKSchVer" & _
 ",COALESCE(Straße,'') Straße,COALESCE(KVKStatus,'') KVKStatus,COALESCE(Hausnr,'') Hausnr,COALESCE(Geschlecht,'') Geschlecht" & _
 ",COALESCE(Plz,'') Plz,COALESCE(Ort,'') Ort,COALESCE(Lkz,'') Lkz,COALESCE(Anschrzus,'') Anschrzus" & _
 ",COALESCE(NVors,'') NVors,COALESCE(PFPlz,'') PFPlz,COALESCE(PFOrt,'') PFOrt,COALESCE(PFNr,'') PFNr" & _
-",COALESCE(f3124,'') f3124,COALESCE(AnschrZus_2,'') AnschrZus_2,COALESCE(Postfach_2,'') Postfach_2,COALESCE(LK_2,'') LK_2" & _
+",COALESCE(PFWsLC,'') PFWsLC,COALESCE(AnschrZus_2,'') AnschrZus_2,COALESCE(Postfach_2,'') Postfach_2,COALESCE(LK_2,'') LK_2" & _
 ",COALESCE(Postfach,'') Postfach,COALESCE(Beruf,'') Beruf,COALESCE(Weggeldzone,'') Weggeldzone,COALESCE(WeggzZahl,0) WeggzZahl" & _
 ",COALESCE(AufnDat - INTERVAL 0 DAY,CONVERT('18991230',DATE)) AufnDat,COALESCE(kAufDat - INTERVAL 0 DAY,CONVERT('18991230',DATE)) kAufDat,COALESCE(LANR,'') LANR,COALESCE(BStNr,'') BStNr" & _
 ",COALESCE(Titel,'') Titel,COALESCE(Versichertennummer,'') Versichertennummer,COALESCE(PrivatTel,'') PrivatTel,COALESCE(KVNr,'') KVNr" & _
@@ -1583,8 +1613,8 @@ Public FUNCTION namenLaden()
    roNa(akt).Nachname = doUmwfSQL(rs!Nachname, lies.obMySQL, False)
    roNa(akt).Vorname = doUmwfSQL(rs!Vorname, lies.obMySQL, False)
    roNa(akt).GebDat = rs!GebDat
-   roNa(akt).f3004 = doUmwfSQL(rs!f3004, lies.obMySQL, False)
-   roNa(akt).f3006 = doUmwfSQL(rs!f3006, lies.obMySQL, False)
+   roNa(akt).KarGen = doUmwfSQL(rs!KarGen, lies.obMySQL, False)
+   roNa(akt).eGKSchVer = doUmwfSQL(rs!eGKSchVer, lies.obMySQL, False)
    roNa(akt).Straße = doUmwfSQL(rs!Straße, lies.obMySQL, False)
    roNa(akt).KVKStatus = doUmwfSQL(rs!KVKStatus, lies.obMySQL, False)
    roNa(akt).Hausnr = doUmwfSQL(rs!Hausnr, lies.obMySQL, False)
@@ -1597,7 +1627,7 @@ Public FUNCTION namenLaden()
    roNa(akt).PFPlz = doUmwfSQL(rs!PFPlz, lies.obMySQL, False)
    roNa(akt).PFOrt = doUmwfSQL(rs!PFOrt, lies.obMySQL, False)
    roNa(akt).PFNr = doUmwfSQL(rs!PFNr, lies.obMySQL, False)
-   roNa(akt).f3124 = doUmwfSQL(rs!f3124, lies.obMySQL, False)
+   roNa(akt).PFWsLC = doUmwfSQL(rs!PFWsLC, lies.obMySQL, False)
    roNa(akt).AnschrZus_2 = doUmwfSQL(rs!AnschrZus_2, lies.obMySQL, False)
    roNa(akt).Postfach_2 = doUmwfSQL(rs!Postfach_2, lies.obMySQL, False)
    roNa(akt).LK_2 = doUmwfSQL(rs!LK_2, lies.obMySQL, False)
@@ -1731,8 +1761,8 @@ Public FUNCTION rNaDump()
   Print #200, Left$("rNa(" & i & ").Nachname:" & String$(33, "."), 33) & "'" & rNa(i).Nachname & "'"
   Print #200, Left$("rNa(" & i & ").Vorname:" & String$(33, "."), 33) & "'" & rNa(i).Vorname & "'"
   Print #200, Left$("rNa(" & i & ").GebDat:" & String$(33, "."), 33) & rNa(i).GebDat
-  Print #200, Left$("rNa(" & i & ").f3004:" & String$(33, "."), 33) & "'" & rNa(i).f3004 & "'"
-  Print #200, Left$("rNa(" & i & ").f3006:" & String$(33, "."), 33) & "'" & rNa(i).f3006 & "'"
+  Print #200, Left$("rNa(" & i & ").KarGen:" & String$(33, "."), 33) & "'" & rNa(i).KarGen & "'"
+  Print #200, Left$("rNa(" & i & ").eGKSchVer:" & String$(33, "."), 33) & "'" & rNa(i).eGKSchVer & "'"
   Print #200, Left$("rNa(" & i & ").Straße:" & String$(33, "."), 33) & "'" & rNa(i).Straße & "'"
   Print #200, Left$("rNa(" & i & ").KVKStatus:" & String$(33, "."), 33) & "'" & rNa(i).KVKStatus & "'"
   Print #200, Left$("rNa(" & i & ").Hausnr:" & String$(33, "."), 33) & "'" & rNa(i).Hausnr & "'"
@@ -1745,7 +1775,7 @@ Public FUNCTION rNaDump()
   Print #200, Left$("rNa(" & i & ").PFPlz:" & String$(33, "."), 33) & "'" & rNa(i).PFPlz & "'"
   Print #200, Left$("rNa(" & i & ").PFOrt:" & String$(33, "."), 33) & "'" & rNa(i).PFOrt & "'"
   Print #200, Left$("rNa(" & i & ").PFNr:" & String$(33, "."), 33) & "'" & rNa(i).PFNr & "'"
-  Print #200, Left$("rNa(" & i & ").f3124:" & String$(33, "."), 33) & "'" & rNa(i).f3124 & "'"
+  Print #200, Left$("rNa(" & i & ").PFWsLC:" & String$(33, "."), 33) & "'" & rNa(i).PFWsLC & "'"
   Print #200, Left$("rNa(" & i & ").AnschrZus_2:" & String$(33, "."), 33) & "'" & rNa(i).AnschrZus_2 & "'"
   Print #200, Left$("rNa(" & i & ").Postfach_2:" & String$(33, "."), 33) & "'" & rNa(i).Postfach_2 & "'"
   Print #200, Left$("rNa(" & i & ").LK_2:" & String$(33, "."), 33) & "'" & rNa(i).LK_2 & "'"
@@ -1822,8 +1852,8 @@ Public FUNCTION namenSpeichern(SammelInsert%, BezfSp%)
  ON Error GoTo fehler
  syscmd 4, pid & ": Speichere " & Ubound(rNa)+1 & " Sätze in `namen`"
 ' sql0 = " INSERT " & sqlignore &  "INTO `namen` (Pat_ID,lfdnr,NVorsatz," & _
-     "Nachname,Vorname,GebDat,f3004,f3006,Straße,KVKStatus,Hausnr,Geschlecht,Plz," & _
-     "Ort,Lkz,Anschrzus,NVors,PFPlz,PFOrt,PFNr,f3124,AnschrZus_2,Postfach_2," & _
+     "Nachname,Vorname,GebDat,KarGen,eGKSchVer,Straße,KVKStatus,Hausnr,Geschlecht,Plz," & _
+     "Ort,Lkz,Anschrzus,NVors,PFPlz,PFOrt,PFNr,PFWsLC,AnschrZus_2,Postfach_2," & _
      "LK_2,Postfach,Beruf,Weggeldzone,WeggzZahl,AufnDat,kAufDat,LANR,BStNr,Titel," & _
      "Versichertennummer,PrivatTel,KVNr,KVNr2,KVNr3,KVNr4,PrivatTel_2,PrivatFax,DienstTel,PrivatMobil," & _
      "Email,Arbeitgeber,AnAllgda,An1da,An2da,Checkda,DMTypaD,AktZeit,absPos,StByte," & _
@@ -1831,8 +1861,8 @@ Public FUNCTION namenSpeichern(SammelInsert%, BezfSp%)
      "dmpcopdbeg,dmpabklass,dmpabbeg,dakab,HzV,HzVbeg,DS,DSbeg,getHA0,fnHA0," & _
      "getHA1,fnHA1,getHA2,fnHA2,zubenach,Verwandt,Sprache,lAktTM,Mitarbeiter) VALUES
  Call csql0.AppVar(Array(" INSERT ", sqlIgnore, " INTO `namen` (Pat_ID,lfdnr,NVorsatz," & _
-     "Nachname,Vorname,GebDat,f3004,f3006,Straße,KVKStatus,Hausnr,Geschlecht,Plz," & _
-     "Ort,Lkz,Anschrzus,NVors,PFPlz,PFOrt,PFNr,f3124,AnschrZus_2,Postfach_2," & _
+     "Nachname,Vorname,GebDat,KarGen,eGKSchVer,Straße,KVKStatus,Hausnr,Geschlecht,Plz," & _
+     "Ort,Lkz,Anschrzus,NVors,PFPlz,PFOrt,PFNr,PFWsLC,AnschrZus_2,Postfach_2," & _
      "LK_2,Postfach,Beruf,Weggeldzone,WeggzZahl,AufnDat,kAufDat,LANR,BStNr,Titel," & _
      "Versichertennummer,PrivatTel,KVNr,KVNr2,KVNr3,KVNr4,PrivatTel_2,PrivatFax,DienstTel,PrivatMobil," & _
      "Email,Arbeitgeber,AnAllgda,An1da,An2da,Checkda,DMTypaD,AktZeit,absPos,StByte," & _
@@ -1848,22 +1878,22 @@ sql:
  For i = 0 to ubound(rNa)
 '  rNa(i).AktZeit = now()
   rNa(i).StByte = CStr(AktByte)
-  IF SammelInsert = 0 OR i = 0 THEN
+  IF SammelInsert = 0 Or i = 0 Then
    csql.Append csql0
-  END IF
-  csql.AppVar Array("(" , rNa(i).Pat_ID, "," , rNa(i).lfdnr, ",'" , rNa(i).NVorsatz, "','" , rNa(i).Nachname, "','" , rNa(i).Vorname, "'," , DatFor_k(rNa(i).GebDat), ",'" , rNa(i).f3004, "','" , rNa(i).f3006, "','" ,  _
+  END IF ' SammelInsert = 0 Or i = 0 Then
+  csql.AppVar Array("(" , rNa(i).Pat_ID, "," , rNa(i).lfdnr, ",'" , rNa(i).NVorsatz, "','" , rNa(i).Nachname, "','" , rNa(i).Vorname, "'," , DatFor_k(rNa(i).GebDat), ",'" , rNa(i).KarGen, "','" , rNa(i).eGKSchVer, "','" ,  _
    rNa(i).Straße, "','" , rNa(i).KVKStatus, "','" , rNa(i).Hausnr, "','" , rNa(i).Geschlecht, "','" , rNa(i).Plz, "','" , rNa(i).Ort, "','" , rNa(i).Lkz, "','" , rNa(i).Anschrzus, "','" ,  _
-   rNa(i).NVors, "','" , rNa(i).PFPlz, "','" , rNa(i).PFOrt, "','" , rNa(i).PFNr, "','" , rNa(i).f3124, "','" , rNa(i).AnschrZus_2, "','" , rNa(i).Postfach_2, "','" , rNa(i).LK_2, "','" , rNa(i).Postfach, "','" ,  _
-   rNa(i).Beruf, "','" , rNa(i).Weggeldzone, "'," , rNa(i).WeggzZahl, "," , DatFor_k(rNa(i).AufnDat), "," , DatFor_k(rNa(i).kAufDat), ",'" , rNa(i).LANR, "','" , rNa(i).BStNr, "','" ,  _
+   rNa(i).NVors, "','" , rNa(i).PFPlz, "','" , rNa(i).PFOrt, "','" , rNa(i).PFNr, "','" , rNa(i).PFWsLC, "','" , rNa(i).AnschrZus_2, "','" , rNa(i).Postfach_2, "','" , rNa(i).LK_2, "','" ,  _
+   rNa(i).Postfach, "','" , rNa(i).Beruf, "','" , rNa(i).Weggeldzone, "'," , rNa(i).WeggzZahl, "," , DatFor_k(rNa(i).AufnDat), "," , DatFor_k(rNa(i).kAufDat), ",'" , rNa(i).LANR, "','" , rNa(i).BStNr, "','" ,  _
    rNa(i).Titel, "','" , rNa(i).Versichertennummer, "','" , rNa(i).PrivatTel, "','" , rNa(i).KVNr, "','" , rNa(i).KVNr2, "','" , rNa(i).KVNr3, "','" , rNa(i).KVNr4, "','" , rNa(i).PrivatTel_2, "','" ,  _
    rNa(i).PrivatFax, "','" , rNa(i).DienstTel, "','" , rNa(i).PrivatMobil, "','" , rNa(i).Email, "','" , rNa(i).Arbeitgeber, "'," , cstr(-(rNa(i).AnAllgda<>0)) , "," , cstr(-(rNa(i).An1da<>0)) , "," , cstr(-( _
    rNa(i).An2da<>0)) , "," , cstr(-(rNa(i).Checkda<>0)) , ",'" , rNa(i).DMTypaD, "'," , DatFor_k( 0 ), "," , rNa(i).absPos, "," , rNa(i).StByte, "," , rNa(i).StByteA, ",'" ,  _
    rNa(i).Cave, "','" , rNa(i).Notiz, "','" , rNa(i).obChk, "'," , rNa(i).NZNr, "," , rNa(i).dmpklass, "," , DatFor_k(rNa(i).dmpbeg), "," , rNa(i).dmpkhkklass, "," , DatFor_k(rNa(i).dmpkhkbeg), "," ,  _
    rNa(i).dmpcopdklass, "," , DatFor_k(rNa(i).dmpcopdbeg), "," , rNa(i).dmpabklass, "," , DatFor_k(rNa(i).dmpabbeg), "," , DatFor_k(rNa(i).dakab), "," , rNa(i).HzV, "," , DatFor_k(rNa(i).HzVbeg), "," ,  _
-   rNa(i).DS, "," , DatFor_k(rNa(i).DSbeg), "," , rNa(i).getHA0, ",'" , rNa(i).fnHA0, "'," , rNa(i).getHA1, ",'" , rNa(i).fnHA1, "'," , rNa(i).getHA2, ",'" , rNa(i).fnHA2, "','" , rNa(i).zubenach, "','" ,  _
-   rNa(i).Verwandt, "','" , rNa(i).Sprache, "'," , DatFor_k(rNa(i).lAktTM), "," , rNa(i).Mitarbeiter, ")")
-  IF SammelInsert <> 0 AND i < ubound(rNa) THEN csql.Append ","
-  IF SammelInsert = 0 OR i = ubound(rNa) THEN
+   rNa(i).DS, "," , DatFor_k(rNa(i).DSbeg), "," , rNa(i).getHA0, ",'" , rNa(i).fnHA0, "'," , rNa(i).getHA1, ",'" , rNa(i).fnHA1, "'," , rNa(i).getHA2, ",'" , rNa(i).fnHA2, "','" ,  _
+   rNa(i).zubenach, "','" , rNa(i).Verwandt, "','" , rNa(i).Sprache, "'," , DatFor_k(rNa(i).lAktTM), "," , rNa(i).Mitarbeiter, ")")
+  IF SammelInsert <> 0 AND i < ubound(rNa) Then csql.Append ","
+  IF SammelInsert = 0 OR i = ubound(rNa) Then
 '    altmode = DBCn.Execute("SELECT @@global.sql_mode").Fields(0)
     altmode = myEFrag("SELECT @@global.sql_mode", , DBCn).Fields(0)
 '   Call DBCn.Execute("SET GLOBAL sql_mode='STRICT_TRANS_TABLES'") ' NO_ENGINE_SUBSTITUTION
@@ -1906,8 +1936,8 @@ ElseIf ErrNumber = -2147217833 OR InStrB(ErrDescr, "Daten zu lang") <> 0 OR InSt
   IF Len(rNa(k).NVorsatz) > maxi(0) THEN maxi(0) = Len(rNa(k).NVorsatz)
   IF Len(rNa(k).Nachname) > maxi(1) THEN maxi(1) = Len(rNa(k).Nachname)
   IF Len(rNa(k).Vorname) > maxi(2) THEN maxi(2) = Len(rNa(k).Vorname)
-  IF Len(rNa(k).f3004) > maxi(3) THEN maxi(3) = Len(rNa(k).f3004)
-  IF Len(rNa(k).f3006) > maxi(4) THEN maxi(4) = Len(rNa(k).f3006)
+  IF Len(rNa(k).KarGen) > maxi(3) THEN maxi(3) = Len(rNa(k).KarGen)
+  IF Len(rNa(k).eGKSchVer) > maxi(4) THEN maxi(4) = Len(rNa(k).eGKSchVer)
   IF Len(rNa(k).Straße) > maxi(5) THEN maxi(5) = Len(rNa(k).Straße)
   IF Len(rNa(k).KVKStatus) > maxi(6) THEN maxi(6) = Len(rNa(k).KVKStatus)
   IF Len(rNa(k).Hausnr) > maxi(7) THEN maxi(7) = Len(rNa(k).Hausnr)
@@ -1920,7 +1950,7 @@ ElseIf ErrNumber = -2147217833 OR InStrB(ErrDescr, "Daten zu lang") <> 0 OR InSt
   IF Len(rNa(k).PFPlz) > maxi(14) THEN maxi(14) = Len(rNa(k).PFPlz)
   IF Len(rNa(k).PFOrt) > maxi(15) THEN maxi(15) = Len(rNa(k).PFOrt)
   IF Len(rNa(k).PFNr) > maxi(16) THEN maxi(16) = Len(rNa(k).PFNr)
-  IF Len(rNa(k).f3124) > maxi(17) THEN maxi(17) = Len(rNa(k).f3124)
+  IF Len(rNa(k).PFWsLC) > maxi(17) THEN maxi(17) = Len(rNa(k).PFWsLC)
   IF Len(rNa(k).AnschrZus_2) > maxi(18) THEN maxi(18) = Len(rNa(k).AnschrZus_2)
   IF Len(rNa(k).Postfach_2) > maxi(19) THEN maxi(19) = Len(rNa(k).Postfach_2)
   IF Len(rNa(k).LK_2) > maxi(20) THEN maxi(20) = Len(rNa(k).LK_2)
@@ -1968,8 +1998,8 @@ ElseIf ErrNumber = -2147217833 OR InStrB(ErrDescr, "Daten zu lang") <> 0 OR InSt
        Case 0: Lese.Ausgeb "   Verkürze Inhalt von rNa.NVorsatz: '" & rNa(k).NVorsatz & "' -> '" & Left$(rNa(k).NVorsatz, maxL)  & "'",true : rNa(k).NVorsatz = Left$(rNa(k).NVorsatz, maxL)
        Case 1: Lese.Ausgeb "   Verkürze Inhalt von rNa.Nachname: '" & rNa(k).Nachname & "' -> '" & Left$(rNa(k).Nachname, maxL)  & "'",true : rNa(k).Nachname = Left$(rNa(k).Nachname, maxL)
        Case 2: Lese.Ausgeb "   Verkürze Inhalt von rNa.Vorname: '" & rNa(k).Vorname & "' -> '" & Left$(rNa(k).Vorname, maxL)  & "'",true : rNa(k).Vorname = Left$(rNa(k).Vorname, maxL)
-       Case 3: Lese.Ausgeb "   Verkürze Inhalt von rNa.f3004: '" & rNa(k).f3004 & "' -> '" & Left$(rNa(k).f3004, maxL)  & "'",true : rNa(k).f3004 = Left$(rNa(k).f3004, maxL)
-       Case 4: Lese.Ausgeb "   Verkürze Inhalt von rNa.f3006: '" & rNa(k).f3006 & "' -> '" & Left$(rNa(k).f3006, maxL)  & "'",true : rNa(k).f3006 = Left$(rNa(k).f3006, maxL)
+       Case 3: Lese.Ausgeb "   Verkürze Inhalt von rNa.KarGen: '" & rNa(k).KarGen & "' -> '" & Left$(rNa(k).KarGen, maxL)  & "'",true : rNa(k).KarGen = Left$(rNa(k).KarGen, maxL)
+       Case 4: Lese.Ausgeb "   Verkürze Inhalt von rNa.eGKSchVer: '" & rNa(k).eGKSchVer & "' -> '" & Left$(rNa(k).eGKSchVer, maxL)  & "'",true : rNa(k).eGKSchVer = Left$(rNa(k).eGKSchVer, maxL)
        Case 5: Lese.Ausgeb "   Verkürze Inhalt von rNa.Straße: '" & rNa(k).Straße & "' -> '" & Left$(rNa(k).Straße, maxL)  & "'",true : rNa(k).Straße = Left$(rNa(k).Straße, maxL)
        Case 6: Lese.Ausgeb "   Verkürze Inhalt von rNa.KVKStatus: '" & rNa(k).KVKStatus & "' -> '" & Left$(rNa(k).KVKStatus, maxL)  & "'",true : rNa(k).KVKStatus = Left$(rNa(k).KVKStatus, maxL)
        Case 7: Lese.Ausgeb "   Verkürze Inhalt von rNa.Hausnr: '" & rNa(k).Hausnr & "' -> '" & Left$(rNa(k).Hausnr, maxL)  & "'",true : rNa(k).Hausnr = Left$(rNa(k).Hausnr, maxL)
@@ -1982,7 +2012,7 @@ ElseIf ErrNumber = -2147217833 OR InStrB(ErrDescr, "Daten zu lang") <> 0 OR InSt
        Case 14: Lese.Ausgeb "   Verkürze Inhalt von rNa.PFPlz: '" & rNa(k).PFPlz & "' -> '" & Left$(rNa(k).PFPlz, maxL)  & "'",true : rNa(k).PFPlz = Left$(rNa(k).PFPlz, maxL)
        Case 15: Lese.Ausgeb "   Verkürze Inhalt von rNa.PFOrt: '" & rNa(k).PFOrt & "' -> '" & Left$(rNa(k).PFOrt, maxL)  & "'",true : rNa(k).PFOrt = Left$(rNa(k).PFOrt, maxL)
        Case 16: Lese.Ausgeb "   Verkürze Inhalt von rNa.PFNr: '" & rNa(k).PFNr & "' -> '" & Left$(rNa(k).PFNr, maxL)  & "'",true : rNa(k).PFNr = Left$(rNa(k).PFNr, maxL)
-       Case 17: Lese.Ausgeb "   Verkürze Inhalt von rNa.f3124: '" & rNa(k).f3124 & "' -> '" & Left$(rNa(k).f3124, maxL)  & "'",true : rNa(k).f3124 = Left$(rNa(k).f3124, maxL)
+       Case 17: Lese.Ausgeb "   Verkürze Inhalt von rNa.PFWsLC: '" & rNa(k).PFWsLC & "' -> '" & Left$(rNa(k).PFWsLC, maxL)  & "'",true : rNa(k).PFWsLC = Left$(rNa(k).PFWsLC, maxL)
        Case 18: Lese.Ausgeb "   Verkürze Inhalt von rNa.AnschrZus_2: '" & rNa(k).AnschrZus_2 & "' -> '" & Left$(rNa(k).AnschrZus_2, maxL)  & "'",true : rNa(k).AnschrZus_2 = Left$(rNa(k).AnschrZus_2, maxL)
        Case 19: Lese.Ausgeb "   Verkürze Inhalt von rNa.Postfach_2: '" & rNa(k).Postfach_2 & "' -> '" & Left$(rNa(k).Postfach_2, maxL)  & "'",true : rNa(k).Postfach_2 = Left$(rNa(k).Postfach_2, maxL)
        Case 20: Lese.Ausgeb "   Verkürze Inhalt von rNa.LK_2: '" & rNa(k).LK_2 & "' -> '" & Left$(rNa(k).LK_2, maxL)  & "'",true : rNa(k).LK_2 = Left$(rNa(k).LK_2, maxL)
@@ -2058,11 +2088,15 @@ Public FUNCTION roFaZuw(i&, j&)
  roFa(i).Quartal = rFa(j).Quartal
  roFa(i).Nachname = rFa(j).Nachname
  roFa(i).Vorname = rFa(j).Vorname
+ roFa(i).DtlOnlPfg = rFa(j).DtlOnlPfg
+ roFa(i).ErgbdOnlP = rFa(j).ErgbdOnlP
+ roFa(i).ErrorCode = rFa(j).ErrorCode
+ roFa(i).PrüfZdFd = rFa(j).PrüfZdFd
  roFa(i).lfdnr = rFa(j).lfdnr
  roFa(i).TMFNr = rFa(j).TMFNr
  roFa(i).VKNr = rFa(j).VKNr
- roFa(i).f4131 = rFa(j).f4131
- roFa(i).f4132 = rFa(j).f4132
+ roFa(i).bPerG = rFa(j).bPerG
+ roFa(i).DMPKnZ = rFa(j).DMPKnZ
  roFa(i).VschBeg = rFa(j).VschBeg
  roFa(i).VschEnd = rFa(j).VschEnd
  roFa(i).KKasse_2 = rFa(j).KKasse_2
@@ -2072,11 +2106,12 @@ Public FUNCTION roFaZuw(i&, j&)
  roFa(i).BhFB = rFa(j).BhFB
  roFa(i).BhFE1 = rFa(j).BhFE1
  roFa(i).BhFE2 = rFa(j).BhFE2
- roFa(i).f4202 = rFa(j).f4202
+ roFa(i).UnfFlg = rFa(j).UnfFlg
  roFa(i).ausgst = rFa(j).ausgst
  roFa(i).KtrAbrB = rFa(j).KtrAbrB
  roFa(i).AbrAr = rFa(j).AbrAr
  roFa(i).lVorl = rFa(j).lVorl
+ roFa(i).KartBes = rFa(j).KartBes
  roFa(i).IK = rFa(j).IK
  roFa(i).KVKs = rFa(j).KVKs
  roFa(i).KVKserg = rFa(j).KVKserg
@@ -2087,9 +2122,10 @@ Public FUNCTION roFaZuw(i&, j&)
  roFa(i).AbrGb = rFa(j).AbrGb
  roFa(i).PersKreis = rFa(j).PersKreis
  roFa(i).SKtZusatz = rFa(j).SKtZusatz
+ roFa(i).SktBem = rFa(j).SktBem
  roFa(i).letzteRegel = rFa(j).letzteRegel
  roFa(i).ÜwText = rFa(j).ÜwText
- roFa(i).f4210 = rFa(j).f4210
+ roFa(i).AkfLues = rFa(j).AkfLues
  roFa(i).AkfHAH = rFa(j).AkfHAH
  roFa(i).AkfAB0 = rFa(j).AkfAB0
  roFa(i).AkfAK = rFa(j).AkfAK
@@ -2112,11 +2148,15 @@ Public FUNCTION roFaZuw(i&, j&)
  roFa(i).Verdacht = rFa(j).Verdacht
  roFa(i).Befund = rFa(j).Befund
  roFa(i).statKlasse = rFa(j).statKlasse
- roFa(i).f4237 = rFa(j).f4237
+ roFa(i).KHNam = rFa(j).KHNam
  roFa(i).statBehTage = rFa(j).statBehTage
  roFa(i).SchGr = rFa(j).SchGr
  roFa(i).Weiterbeh = rFa(j).Weiterbeh
- roFa(i).f4266 = rFa(j).f4266
+ roFa(i).KurAbb = rFa(j).KurAbb
+ roFa(i).VermiArt = rFa(j).VermiArt
+ roFa(i).VermiCode = rFa(j).VermiCode
+ roFa(i).VermiDatum = rFa(j).VermiDatum
+ roFa(i).VermiZusatz = rFa(j).VermiZusatz
  roFa(i).PGeb = rFa(j).PGeb
  roFa(i).PGebErg = rFa(j).PGebErg
  roFa(i).Mahnfrist = rFa(j).Mahnfrist
@@ -2124,7 +2164,7 @@ Public FUNCTION roFaZuw(i&, j&)
  roFa(i).BeschAls = rFa(j).BeschAls
  roFa(i).BeschSeit = rFa(j).BeschSeit
  roFa(i).Unfallbetrieb = rFa(j).Unfallbetrieb
- roFa(i).f4570 = rFa(j).f4570
+ roFa(i).bHeilb = rFa(j).bHeilb
  roFa(i).GOÄKatNr = rFa(j).GOÄKatNr
  roFa(i).GOÄKatName = rFa(j).GOÄKatName
  roFa(i).abrArzt = rFa(j).abrArzt
@@ -2147,7 +2187,7 @@ Public FUNCTION roFaZuw(i&, j&)
  roFa(i).StByte = rFa(j).StByte
  roFa(i).absPos = rFa(j).absPos
  roFa(i).LANRid = rFa(j).LANRid
- roFa(i).f4108 = rFa(j).f4108
+ roFa(i).ZnrMLes = rFa(j).ZnrMLes
  roFa(i).BGFallNr = rFa(j).BGFallNr
  roFa(i).lGewicht = rFa(j).lGewicht
  roFa(i).vorET = rFa(j).vorET
@@ -2175,11 +2215,15 @@ Public FUNCTION FaZUnt%(i&, j&)
  IF roFa(i).Quartal <> rFa(j).Quartal THEN gosub unter
  IF roFa(i).Nachname <> rFa(j).Nachname THEN gosub unter
  IF roFa(i).Vorname <> rFa(j).Vorname THEN gosub unter
+ IF roFa(i).DtlOnlPfg <> rFa(j).DtlOnlPfg THEN gosub unter
+ IF roFa(i).ErgbdOnlP <> rFa(j).ErgbdOnlP THEN gosub unter
+ IF roFa(i).ErrorCode <> rFa(j).ErrorCode THEN gosub unter
+ IF roFa(i).PrüfZdFd <> rFa(j).PrüfZdFd THEN gosub unter
  IF roFa(i).lfdnr <> rFa(j).lfdnr THEN gosub unter
  IF roFa(i).TMFNr <> rFa(j).TMFNr THEN gosub unter
  IF roFa(i).VKNr <> rFa(j).VKNr THEN gosub unter
- IF roFa(i).f4131 <> rFa(j).f4131 THEN gosub unter
- IF roFa(i).f4132 <> rFa(j).f4132 THEN gosub unter
+ IF roFa(i).bPerG <> rFa(j).bPerG THEN gosub unter
+ IF roFa(i).DMPKnZ <> rFa(j).DMPKnZ THEN gosub unter
  IF roFa(i).VschBeg <> rFa(j).VschBeg THEN gosub unter
  IF roFa(i).VschEnd <> rFa(j).VschEnd THEN gosub unter
  IF roFa(i).KKasse_2 <> rFa(j).KKasse_2 THEN gosub unter
@@ -2189,11 +2233,12 @@ Public FUNCTION FaZUnt%(i&, j&)
  IF roFa(i).BhFB <> rFa(j).BhFB THEN gosub unter
  IF roFa(i).BhFE1 <> rFa(j).BhFE1 THEN gosub unter
  IF roFa(i).BhFE2 <> rFa(j).BhFE2 THEN gosub unter
- IF roFa(i).f4202 <> rFa(j).f4202 THEN gosub unter
+ IF roFa(i).UnfFlg <> rFa(j).UnfFlg THEN gosub unter
  IF roFa(i).ausgst <> rFa(j).ausgst THEN gosub unter
  IF roFa(i).KtrAbrB <> rFa(j).KtrAbrB THEN gosub unter
  IF roFa(i).AbrAr <> rFa(j).AbrAr THEN gosub unter
  IF roFa(i).lVorl <> rFa(j).lVorl THEN gosub unter
+ IF roFa(i).KartBes <> rFa(j).KartBes THEN gosub unter
  IF roFa(i).IK <> rFa(j).IK THEN gosub unter
  IF roFa(i).KVKs <> rFa(j).KVKs THEN gosub unter
  IF roFa(i).KVKserg <> rFa(j).KVKserg THEN gosub unter
@@ -2204,9 +2249,10 @@ Public FUNCTION FaZUnt%(i&, j&)
  IF roFa(i).AbrGb <> rFa(j).AbrGb THEN gosub unter
  IF roFa(i).PersKreis <> rFa(j).PersKreis THEN gosub unter
  IF roFa(i).SKtZusatz <> rFa(j).SKtZusatz THEN gosub unter
+ IF roFa(i).SktBem <> rFa(j).SktBem THEN gosub unter
  IF roFa(i).letzteRegel <> rFa(j).letzteRegel THEN gosub unter
  IF roFa(i).ÜwText <> rFa(j).ÜwText THEN gosub unter
- IF roFa(i).f4210 <> rFa(j).f4210 THEN gosub unter
+ IF roFa(i).AkfLues <> rFa(j).AkfLues THEN gosub unter
  IF roFa(i).AkfHAH <> rFa(j).AkfHAH THEN gosub unter
  IF roFa(i).AkfAB0 <> rFa(j).AkfAB0 THEN gosub unter
  IF roFa(i).AkfAK <> rFa(j).AkfAK THEN gosub unter
@@ -2229,11 +2275,15 @@ Public FUNCTION FaZUnt%(i&, j&)
  IF roFa(i).Verdacht <> rFa(j).Verdacht THEN gosub unter
  IF roFa(i).Befund <> rFa(j).Befund THEN gosub unter
  IF roFa(i).statKlasse <> rFa(j).statKlasse THEN gosub unter
- IF roFa(i).f4237 <> rFa(j).f4237 THEN gosub unter
+ IF roFa(i).KHNam <> rFa(j).KHNam THEN gosub unter
  IF roFa(i).statBehTage <> rFa(j).statBehTage THEN gosub unter
  IF roFa(i).SchGr <> rFa(j).SchGr THEN gosub unter
  IF roFa(i).Weiterbeh <> rFa(j).Weiterbeh THEN gosub unter
- IF roFa(i).f4266 <> rFa(j).f4266 THEN gosub unter
+ IF roFa(i).KurAbb <> rFa(j).KurAbb THEN gosub unter
+ IF roFa(i).VermiArt <> rFa(j).VermiArt THEN gosub unter
+ IF roFa(i).VermiCode <> rFa(j).VermiCode THEN gosub unter
+ IF roFa(i).VermiDatum <> rFa(j).VermiDatum THEN gosub unter
+ IF roFa(i).VermiZusatz <> rFa(j).VermiZusatz THEN gosub unter
  IF roFa(i).PGeb <> rFa(j).PGeb THEN gosub unter
  IF roFa(i).PGebErg <> rFa(j).PGebErg THEN gosub unter
  IF roFa(i).Mahnfrist <> rFa(j).Mahnfrist THEN gosub unter
@@ -2241,7 +2291,7 @@ Public FUNCTION FaZUnt%(i&, j&)
  IF roFa(i).BeschAls <> rFa(j).BeschAls THEN gosub unter
  IF roFa(i).BeschSeit <> rFa(j).BeschSeit THEN gosub unter
  IF roFa(i).Unfallbetrieb <> rFa(j).Unfallbetrieb THEN gosub unter
- IF roFa(i).f4570 <> rFa(j).f4570 THEN gosub unter
+ IF roFa(i).bHeilb <> rFa(j).bHeilb THEN gosub unter
  IF roFa(i).GOÄKatNr <> rFa(j).GOÄKatNr THEN gosub unter
  IF roFa(i).GOÄKatName <> rFa(j).GOÄKatName THEN gosub unter
  IF roFa(i).abrArzt <> rFa(j).abrArzt THEN gosub unter
@@ -2264,7 +2314,7 @@ Public FUNCTION FaZUnt%(i&, j&)
  IF roFa(i).StByte <> rFa(j).StByte THEN gosub unter
  IF roFa(i).absPos <> rFa(j).absPos THEN gosub unter
  IF roFa(i).LANRid <> rFa(j).LANRid THEN gosub unter
- IF roFa(i).f4108 <> rFa(j).f4108 THEN gosub unter
+ IF roFa(i).ZnrMLes <> rFa(j).ZnrMLes THEN gosub unter
  IF roFa(i).BGFallNr <> rFa(j).BGFallNr THEN gosub unter
  IF roFa(i).lGewicht <> rFa(j).lGewicht THEN gosub unter
  IF roFa(i).vorET <> rFa(j).vorET THEN gosub unter
@@ -2295,34 +2345,37 @@ Public FUNCTION faelleLaden()
  ON Error GoTo fehler
  pid = rNa(0).Pat_id
  sql = "SELECT COALESCE(FID,0) FID,COALESCE(Pat_ID,0) Pat_ID,COALESCE(Quartal,'') Quartal,COALESCE(Nachname,'') Nachname" & _
-",COALESCE(Vorname,'') Vorname,COALESCE(lfdnr,0) lfdnr,COALESCE(TMFNr,'') TMFNr,COALESCE(VKNr,'') VKNr" & _
-",COALESCE(f4131,'') f4131,COALESCE(f4132,'') f4132,COALESCE(VschBeg - INTERVAL 0 DAY,CONVERT('18991230',DATE)) VschBeg,COALESCE(VschEnd - INTERVAL 0 DAY,CONVERT('18991230',DATE)) VschEnd" & _
+",COALESCE(Vorname,'') Vorname,COALESCE(DtlOnlPfg - INTERVAL 0 DAY,CONVERT('18991230',DATE)) DtlOnlPfg,COALESCE(ErgbdOnlP,0) ErgbdOnlP,COALESCE(ErrorCode,0) ErrorCode" & _
+",COALESCE(PrüfZdFd,'') PrüfZdFd,COALESCE(lfdnr,0) lfdnr,COALESCE(TMFNr,'') TMFNr,COALESCE(VKNr,'') VKNr" & _
+",COALESCE(bPerG,'') bPerG,COALESCE(DMPKnZ,'') DMPKnZ,COALESCE(VschBeg - INTERVAL 0 DAY,CONVERT('18991230',DATE)) VschBeg,COALESCE(VschEnd - INTERVAL 0 DAY,CONVERT('18991230',DATE)) VschEnd" & _
 ",COALESCE(KKasse_2,'') KKasse_2,COALESCE(FaktPers,0) FaktPers,COALESCE(FaktTechn,0) FaktTechn,COALESCE(FaktLabor,0) FaktLabor" & _
-",COALESCE(BhFB - INTERVAL 0 DAY,CONVERT('18991230',DATE)) BhFB,COALESCE(BhFE1 - INTERVAL 0 DAY,CONVERT('18991230',DATE)) BhFE1,COALESCE(BhFE2 - INTERVAL 0 DAY,CONVERT('18991230',DATE)) BhFE2,COALESCE(f4202,'') f4202" & _
+",COALESCE(BhFB - INTERVAL 0 DAY,CONVERT('18991230',DATE)) BhFB,COALESCE(BhFE1 - INTERVAL 0 DAY,CONVERT('18991230',DATE)) BhFE1,COALESCE(BhFE2 - INTERVAL 0 DAY,CONVERT('18991230',DATE)) BhFE2,COALESCE(UnfFlg,'') UnfFlg" & _
 ",COALESCE(ausgst - INTERVAL 0 DAY,CONVERT('18991230',DATE)) ausgst,COALESCE(KtrAbrB,'') KtrAbrB,COALESCE(AbrAr,'') AbrAr,COALESCE(lVorl - INTERVAL 0 DAY,CONVERT('18991230',DATE)) lVorl" & _
-",COALESCE(IK,'') IK,COALESCE(KVKs,'') KVKs,COALESCE(KVKserg,'') KVKserg,COALESCE(Status,'') Status" & _
-",COALESCE(Kasse,'') Kasse,COALESCE(KID,0) KID,COALESCE(GebOr,'') GebOr,COALESCE(AbrGb,'') AbrGb" & _
-",COALESCE(PersKreis,'') PersKreis,COALESCE(SKtZusatz,'') SKtZusatz,COALESCE(letzteRegel,'') letzteRegel,COALESCE(ÜwText,'') ÜwText" & _
-",COALESCE(f4210,0) f4210,COALESCE(AkfHAH,0) AkfHAH,COALESCE(AkfAB0,0) AkfAB0,COALESCE(AkfAK,0) AkfAK" & _
-",COALESCE(statNuller,'') statNuller,COALESCE(ÜbwV,'') ÜbwV,COALESCE(ÜbWVLANR,'') ÜbWVLANR,COALESCE(ÜbWVBSNR,'') ÜbWVBSNR" & _
-",COALESCE(ÜbWVKVNR,'') ÜbWVKVNR,COALESCE(AndÜw,'') AndÜw,COALESCE(Übwr,'') Übwr,COALESCE(ÜbwLANR,'') ÜbwLANR" & _
-",COALESCE(ÜWZiel,'') ÜWZiel,COALESCE(ÜWNNr,'') ÜWNNr,COALESCE(ÜWNaN,'') ÜWNaN,COALESCE(ÜWTit,'') ÜWTit" & _
-",COALESCE(ÜWVor,'') ÜWVor,COALESCE(ÜWVsw,'') ÜWVsw,COALESCE(üwvid,0) üwvid,COALESCE(Auftrag,'') Auftrag" & _
-",COALESCE(Verdacht,'') Verdacht,COALESCE(Befund,'') Befund,COALESCE(statKlasse,'') statKlasse,COALESCE(f4237,'') f4237" & _
-",COALESCE(statBehTage,0) statBehTage,COALESCE(SchGr,0) SchGr,COALESCE(Weiterbeh,'') Weiterbeh,COALESCE(f4266,0) f4266" & _
-",COALESCE(PGeb,'') PGeb,COALESCE(PGebErg,'') PGebErg,COALESCE(Mahnfrist,'') Mahnfrist,COALESCE(Unfallort,'') Unfallort" & _
-",COALESCE(BeschAls,'') BeschAls,COALESCE(BeschSeit - INTERVAL 0 DAY,CONVERT('18991230',DATE)) BeschSeit,COALESCE(Unfallbetrieb,'') Unfallbetrieb,COALESCE(f4570,'') f4570" & _
-",COALESCE(GOÄKatNr,'') GOÄKatNr,COALESCE(GOÄKatName,'') GOÄKatName,COALESCE(abrArzt,'') abrArzt,COALESCE(privVers,'') privVers" & _
-",COALESCE(AdNam,'') AdNam,COALESCE(AdStr,'') AdStr,COALESCE(AdPlz,'') AdPlz,COALESCE(AdOrt,'') AdOrt" & _
-",COALESCE(ÜwBG,'') ÜwBG,COALESCE(BhFE - INTERVAL 0 DAY,CONVERT('18991230',DATE)) BhFE,COALESCE(s8000,'') s8000,COALESCE(s8100,'') s8100" & _
-",COALESCE(AktZeit - INTERVAL 0 DAY,CONVERT('18991230',DATE)) AktZeit,COALESCE(Fanf - INTERVAL 0 DAY,CONVERT('18991230',DATE)) Fanf,COALESCE(altQuart,'') altQuart,COALESCE(QAnf - INTERVAL 0 DAY,CONVERT('18991230',DATE)) QAnf" & _
-",COALESCE(QEnd - INTERVAL 0 DAY,CONVERT('18991230',DATE)) QEnd,COALESCE(QS,'') QS,COALESCE(QT,'') QT,COALESCE(StByte,0) StByte" & _
-",COALESCE(absPos,0) absPos,COALESCE(LANRid,0) LANRid,COALESCE(f4108,'') f4108,COALESCE(BGFallNr,'') BGFallNr" & _
-",COALESCE(lGewicht,0) lGewicht,COALESCE(vorET - INTERVAL 0 DAY,CONVERT('18991230',DATE)) vorET,COALESCE(dmpVertret,'') dmpVertret,COALESCE(dmpArztw,'') dmpArztw"
-sql = sql & ",COALESCE(dmpHypos,'') dmpHypos,COALESCE(dmpKhsA,'') dmpKhsA,COALESCE(dmpDMSchulEmpf,'') dmpDMSchulEmpf,COALESCE(dmpDMSchulWahrg,'') dmpDMSchulWahrg" & _
-",COALESCE(dmpHypertSchulEmpf,'') dmpHypertSchulEmpf,COALESCE(dmpHypertSchulWahrg,'') dmpHypertSchulWahrg,COALESCE(dmpKKTabakEmpf,'') dmpKKTabakEmpf,COALESCE(dmpKKErnEmpf,'') dmpKKErnEmpf" & _
-",COALESCE(dmpKKkTrainEmpf,'') dmpKKkTrainEmpf,COALESCE(dmpHbA1cZiel,'') dmpHbA1cZiel,COALESCE(dmpUewFuss,'') dmpUewFuss,COALESCE(dmpEinwDM,'') dmpEinwDM" & _
-",COALESCE(dmphalbj,'') dmphalbj,COALESCE(dmpMA,'') dmpMA FROM `faelle` WHERE Pat_ID=" & pid & " ORDER BY `fanf`
+",COALESCE(KartBes,0) KartBes,COALESCE(IK,'') IK,COALESCE(KVKs,'') KVKs,COALESCE(KVKserg,'') KVKserg" & _
+",COALESCE(Status,'') Status,COALESCE(Kasse,'') Kasse,COALESCE(KID,0) KID,COALESCE(GebOr,'') GebOr" & _
+",COALESCE(AbrGb,'') AbrGb,COALESCE(PersKreis,'') PersKreis,COALESCE(SKtZusatz,'') SKtZusatz,COALESCE(SktBem,'') SktBem" & _
+",COALESCE(letzteRegel,'') letzteRegel,COALESCE(ÜwText,'') ÜwText,COALESCE(AkfLues,0) AkfLues,COALESCE(AkfHAH,0) AkfHAH" & _
+",COALESCE(AkfAB0,0) AkfAB0,COALESCE(AkfAK,0) AkfAK,COALESCE(statNuller,'') statNuller,COALESCE(ÜbwV,'') ÜbwV" & _
+",COALESCE(ÜbWVLANR,'') ÜbWVLANR,COALESCE(ÜbWVBSNR,'') ÜbWVBSNR,COALESCE(ÜbWVKVNR,'') ÜbWVKVNR,COALESCE(AndÜw,'') AndÜw" & _
+",COALESCE(Übwr,'') Übwr,COALESCE(ÜbwLANR,'') ÜbwLANR,COALESCE(ÜWZiel,'') ÜWZiel,COALESCE(ÜWNNr,'') ÜWNNr" & _
+",COALESCE(ÜWNaN,'') ÜWNaN,COALESCE(ÜWTit,'') ÜWTit,COALESCE(ÜWVor,'') ÜWVor,COALESCE(ÜWVsw,'') ÜWVsw" & _
+",COALESCE(üwvid,0) üwvid,COALESCE(Auftrag,'') Auftrag,COALESCE(Verdacht,'') Verdacht,COALESCE(Befund,'') Befund" & _
+",COALESCE(statKlasse,'') statKlasse,COALESCE(KHNam,'') KHNam,COALESCE(statBehTage,0) statBehTage,COALESCE(SchGr,0) SchGr" & _
+",COALESCE(Weiterbeh,'') Weiterbeh,COALESCE(KurAbb,0) KurAbb,COALESCE(VermiArt,'') VermiArt,COALESCE(VermiCode,0) VermiCode" & _
+",COALESCE(VermiDatum - INTERVAL 0 DAY,CONVERT('18991230',DATE)) VermiDatum,COALESCE(VermiZusatz,'') VermiZusatz,COALESCE(PGeb,'') PGeb,COALESCE(PGebErg,'') PGebErg" & _
+",COALESCE(Mahnfrist,'') Mahnfrist,COALESCE(Unfallort,'') Unfallort,COALESCE(BeschAls,'') BeschAls,COALESCE(BeschSeit - INTERVAL 0 DAY,CONVERT('18991230',DATE)) BeschSeit" & _
+",COALESCE(Unfallbetrieb,'') Unfallbetrieb,COALESCE(bHeilb,'') bHeilb,COALESCE(GOÄKatNr,'') GOÄKatNr,COALESCE(GOÄKatName,'') GOÄKatName" & _
+",COALESCE(abrArzt,'') abrArzt,COALESCE(privVers,'') privVers,COALESCE(AdNam,'') AdNam,COALESCE(AdStr,'') AdStr" & _
+",COALESCE(AdPlz,'') AdPlz,COALESCE(AdOrt,'') AdOrt,COALESCE(ÜwBG,'') ÜwBG,COALESCE(BhFE - INTERVAL 0 DAY,CONVERT('18991230',DATE)) BhFE" & _
+",COALESCE(s8000,'') s8000,COALESCE(s8100,'') s8100,COALESCE(AktZeit - INTERVAL 0 DAY,CONVERT('18991230',DATE)) AktZeit,COALESCE(Fanf - INTERVAL 0 DAY,CONVERT('18991230',DATE)) Fanf" & _
+",COALESCE(altQuart,'') altQuart,COALESCE(QAnf - INTERVAL 0 DAY,CONVERT('18991230',DATE)) QAnf,COALESCE(QEnd - INTERVAL 0 DAY,CONVERT('18991230',DATE)) QEnd,COALESCE(QS,'') QS"
+sql = sql & ",COALESCE(QT,'') QT,COALESCE(StByte,0) StByte,COALESCE(absPos,0) absPos,COALESCE(LANRid,0) LANRid" & _
+",COALESCE(ZnrMLes,'') ZnrMLes,COALESCE(BGFallNr,'') BGFallNr,COALESCE(lGewicht,0) lGewicht,COALESCE(vorET - INTERVAL 0 DAY,CONVERT('18991230',DATE)) vorET" & _
+",COALESCE(dmpVertret,'') dmpVertret,COALESCE(dmpArztw,'') dmpArztw,COALESCE(dmpHypos,'') dmpHypos,COALESCE(dmpKhsA,'') dmpKhsA" & _
+",COALESCE(dmpDMSchulEmpf,'') dmpDMSchulEmpf,COALESCE(dmpDMSchulWahrg,'') dmpDMSchulWahrg,COALESCE(dmpHypertSchulEmpf,'') dmpHypertSchulEmpf,COALESCE(dmpHypertSchulWahrg,'') dmpHypertSchulWahrg" & _
+",COALESCE(dmpKKTabakEmpf,'') dmpKKTabakEmpf,COALESCE(dmpKKErnEmpf,'') dmpKKErnEmpf,COALESCE(dmpKKkTrainEmpf,'') dmpKKkTrainEmpf,COALESCE(dmpHbA1cZiel,'') dmpHbA1cZiel" & _
+",COALESCE(dmpUewFuss,'') dmpUewFuss,COALESCE(dmpEinwDM,'') dmpEinwDM,COALESCE(dmphalbj,'') dmphalbj,COALESCE(dmpMA,'') dmpMA" & _
+" FROM `faelle` WHERE Pat_ID=" & pid & " ORDER BY `fanf`
  myFrag rs, sql
  If rs.EOF Then
   ReDim roFa(0)
@@ -2335,11 +2388,15 @@ sql = sql & ",COALESCE(dmpHypos,'') dmpHypos,COALESCE(dmpKhsA,'') dmpKhsA,COALES
    roFa(akt).Quartal = doUmwfSQL(rs!Quartal, lies.obMySQL, False)
    roFa(akt).Nachname = doUmwfSQL(rs!Nachname, lies.obMySQL, False)
    roFa(akt).Vorname = doUmwfSQL(rs!Vorname, lies.obMySQL, False)
+   roFa(akt).DtlOnlPfg = rs!DtlOnlPfg
+   roFa(akt).ErgbdOnlP = rs!ErgbdOnlP
+   roFa(akt).ErrorCode = rs!ErrorCode
+   roFa(akt).PrüfZdFd = doUmwfSQL(rs!PrüfZdFd, lies.obMySQL, False)
    roFa(akt).lfdnr = rs!lfdnr
    roFa(akt).TMFNr = doUmwfSQL(rs!TMFNr, lies.obMySQL, False)
    roFa(akt).VKNr = doUmwfSQL(rs!VKNr, lies.obMySQL, False)
-   roFa(akt).f4131 = doUmwfSQL(rs!f4131, lies.obMySQL, False)
-   roFa(akt).f4132 = doUmwfSQL(rs!f4132, lies.obMySQL, False)
+   roFa(akt).bPerG = doUmwfSQL(rs!bPerG, lies.obMySQL, False)
+   roFa(akt).DMPKnZ = doUmwfSQL(rs!DMPKnZ, lies.obMySQL, False)
    roFa(akt).VschBeg = rs!VschBeg
    roFa(akt).VschEnd = rs!VschEnd
    roFa(akt).KKasse_2 = doUmwfSQL(rs!KKasse_2, lies.obMySQL, False)
@@ -2349,11 +2406,12 @@ sql = sql & ",COALESCE(dmpHypos,'') dmpHypos,COALESCE(dmpKhsA,'') dmpKhsA,COALES
    roFa(akt).BhFB = rs!BhFB
    roFa(akt).BhFE1 = rs!BhFE1
    roFa(akt).BhFE2 = rs!BhFE2
-   roFa(akt).f4202 = doUmwfSQL(rs!f4202, lies.obMySQL, False)
+   roFa(akt).UnfFlg = doUmwfSQL(rs!UnfFlg, lies.obMySQL, False)
    roFa(akt).ausgst = rs!ausgst
    roFa(akt).KtrAbrB = doUmwfSQL(rs!KtrAbrB, lies.obMySQL, False)
    roFa(akt).AbrAr = doUmwfSQL(rs!AbrAr, lies.obMySQL, False)
    roFa(akt).lVorl = rs!lVorl
+   roFa(akt).KartBes = rs!KartBes
    roFa(akt).IK = doUmwfSQL(rs!IK, lies.obMySQL, False)
    roFa(akt).KVKs = doUmwfSQL(rs!KVKs, lies.obMySQL, False)
    roFa(akt).KVKserg = doUmwfSQL(rs!KVKserg, lies.obMySQL, False)
@@ -2364,9 +2422,10 @@ sql = sql & ",COALESCE(dmpHypos,'') dmpHypos,COALESCE(dmpKhsA,'') dmpKhsA,COALES
    roFa(akt).AbrGb = doUmwfSQL(rs!AbrGb, lies.obMySQL, False)
    roFa(akt).PersKreis = doUmwfSQL(rs!PersKreis, lies.obMySQL, False)
    roFa(akt).SKtZusatz = doUmwfSQL(rs!SKtZusatz, lies.obMySQL, False)
+   roFa(akt).SktBem = doUmwfSQL(rs!SktBem, lies.obMySQL, False)
    roFa(akt).letzteRegel = doUmwfSQL(rs!letzteRegel, lies.obMySQL, False)
    roFa(akt).ÜwText = doUmwfSQL(rs!ÜwText, lies.obMySQL, False)
-   roFa(akt).f4210 = rs!f4210
+   roFa(akt).AkfLues = rs!AkfLues
    roFa(akt).AkfHAH = rs!AkfHAH
    roFa(akt).AkfAB0 = rs!AkfAB0
    roFa(akt).AkfAK = rs!AkfAK
@@ -2389,11 +2448,15 @@ sql = sql & ",COALESCE(dmpHypos,'') dmpHypos,COALESCE(dmpKhsA,'') dmpKhsA,COALES
    roFa(akt).Verdacht = doUmwfSQL(rs!Verdacht, lies.obMySQL, False)
    roFa(akt).Befund = doUmwfSQL(rs!Befund, lies.obMySQL, False)
    roFa(akt).statKlasse = doUmwfSQL(rs!statKlasse, lies.obMySQL, False)
-   roFa(akt).f4237 = doUmwfSQL(rs!f4237, lies.obMySQL, False)
+   roFa(akt).KHNam = doUmwfSQL(rs!KHNam, lies.obMySQL, False)
    roFa(akt).statBehTage = rs!statBehTage
    roFa(akt).SchGr = rs!SchGr
    roFa(akt).Weiterbeh = doUmwfSQL(rs!Weiterbeh, lies.obMySQL, False)
-   roFa(akt).f4266 = rs!f4266
+   roFa(akt).KurAbb = rs!KurAbb
+   roFa(akt).VermiArt = doUmwfSQL(rs!VermiArt, lies.obMySQL, False)
+   roFa(akt).VermiCode = rs!VermiCode
+   roFa(akt).VermiDatum = rs!VermiDatum
+   roFa(akt).VermiZusatz = doUmwfSQL(rs!VermiZusatz, lies.obMySQL, False)
    roFa(akt).PGeb = doUmwfSQL(rs!PGeb, lies.obMySQL, False)
    roFa(akt).PGebErg = doUmwfSQL(rs!PGebErg, lies.obMySQL, False)
    roFa(akt).Mahnfrist = doUmwfSQL(rs!Mahnfrist, lies.obMySQL, False)
@@ -2401,7 +2464,7 @@ sql = sql & ",COALESCE(dmpHypos,'') dmpHypos,COALESCE(dmpKhsA,'') dmpKhsA,COALES
    roFa(akt).BeschAls = doUmwfSQL(rs!BeschAls, lies.obMySQL, False)
    roFa(akt).BeschSeit = rs!BeschSeit
    roFa(akt).Unfallbetrieb = doUmwfSQL(rs!Unfallbetrieb, lies.obMySQL, False)
-   roFa(akt).f4570 = doUmwfSQL(rs!f4570, lies.obMySQL, False)
+   roFa(akt).bHeilb = doUmwfSQL(rs!bHeilb, lies.obMySQL, False)
    roFa(akt).GOÄKatNr = doUmwfSQL(rs!GOÄKatNr, lies.obMySQL, False)
    roFa(akt).GOÄKatName = doUmwfSQL(rs!GOÄKatName, lies.obMySQL, False)
    roFa(akt).abrArzt = doUmwfSQL(rs!abrArzt, lies.obMySQL, False)
@@ -2424,7 +2487,7 @@ sql = sql & ",COALESCE(dmpHypos,'') dmpHypos,COALESCE(dmpKhsA,'') dmpKhsA,COALES
    roFa(akt).StByte = rs!StByte
    roFa(akt).absPos = rs!absPos
    roFa(akt).LANRid = rs!LANRid
-   roFa(akt).f4108 = doUmwfSQL(rs!f4108, lies.obMySQL, False)
+   roFa(akt).ZnrMLes = doUmwfSQL(rs!ZnrMLes, lies.obMySQL, False)
    roFa(akt).BGFallNr = doUmwfSQL(rs!BGFallNr, lies.obMySQL, False)
    roFa(akt).lGewicht = rs!lGewicht
    roFa(akt).vorET = rs!vorET
@@ -2553,6 +2616,9 @@ Fertig:
    For jj = 1 To UBound(roSw)
     IF roSw(jj).FID = roFa(roi).FID THEN roSw(jj).FID = rFa(fazu(roi)).FID
    Next jj
+   For jj = 1 To UBound(roVo)
+    IF roVo(jj).FID = roFa(roi).FID THEN roVo(jj).FID = rFa(fazu(roi)).FID
+   Next jj
   Next roi
   ReDim Preserve roFa(roendpe - 1) ' roFa kürzen ...
   ReDim Preserve roFa(roendpe + UBound(rFa) - rbeg) ' ... und erweitern ...
@@ -2623,6 +2689,9 @@ Fertig:
   For jj = 1 To UBound(roSw)
    If roSw(jj).FID = roFa(ri).FID Then roSw(jj).FID = fzu(ri).fneu
   Next jj
+  For jj = 1 To UBound(roVo)
+   If roVo(jj).FID = roFa(ri).FID Then roVo(jj).FID = fzu(ri).fneu
+  Next jj
   roFa(ri).FID = fzu(ri).fneu
  Next ri
  rFa = roFa
@@ -2652,11 +2721,15 @@ Public FUNCTION rFaDump()
   Print #200, Left$("rFa(" & i & ").Quartal:" & String$(33, "."), 33) & "'" & rFa(i).Quartal & "'"
   Print #200, Left$("rFa(" & i & ").Nachname:" & String$(33, "."), 33) & "'" & rFa(i).Nachname & "'"
   Print #200, Left$("rFa(" & i & ").Vorname:" & String$(33, "."), 33) & "'" & rFa(i).Vorname & "'"
+  Print #200, Left$("rFa(" & i & ").DtlOnlPfg:" & String$(33, "."), 33) & rFa(i).DtlOnlPfg
+  Print #200, Left$("rFa(" & i & ").ErgbdOnlP:" & String$(33, "."), 33) & rFa(i).ErgbdOnlP
+  Print #200, Left$("rFa(" & i & ").ErrorCode:" & String$(33, "."), 33) & rFa(i).ErrorCode
+  Print #200, Left$("rFa(" & i & ").PrüfZdFd:" & String$(33, "."), 33) & "'" & rFa(i).PrüfZdFd & "'"
   Print #200, Left$("rFa(" & i & ").lfdnr:" & String$(33, "."), 33) & rFa(i).lfdnr
   Print #200, Left$("rFa(" & i & ").TMFNr:" & String$(33, "."), 33) & "'" & rFa(i).TMFNr & "'"
   Print #200, Left$("rFa(" & i & ").VKNr:" & String$(33, "."), 33) & "'" & rFa(i).VKNr & "'"
-  Print #200, Left$("rFa(" & i & ").f4131:" & String$(33, "."), 33) & "'" & rFa(i).f4131 & "'"
-  Print #200, Left$("rFa(" & i & ").f4132:" & String$(33, "."), 33) & "'" & rFa(i).f4132 & "'"
+  Print #200, Left$("rFa(" & i & ").bPerG:" & String$(33, "."), 33) & "'" & rFa(i).bPerG & "'"
+  Print #200, Left$("rFa(" & i & ").DMPKnZ:" & String$(33, "."), 33) & "'" & rFa(i).DMPKnZ & "'"
   Print #200, Left$("rFa(" & i & ").VschBeg:" & String$(33, "."), 33) & rFa(i).VschBeg
   Print #200, Left$("rFa(" & i & ").VschEnd:" & String$(33, "."), 33) & rFa(i).VschEnd
   Print #200, Left$("rFa(" & i & ").KKasse_2:" & String$(33, "."), 33) & "'" & rFa(i).KKasse_2 & "'"
@@ -2666,11 +2739,12 @@ Public FUNCTION rFaDump()
   Print #200, Left$("rFa(" & i & ").BhFB:" & String$(33, "."), 33) & rFa(i).BhFB
   Print #200, Left$("rFa(" & i & ").BhFE1:" & String$(33, "."), 33) & rFa(i).BhFE1
   Print #200, Left$("rFa(" & i & ").BhFE2:" & String$(33, "."), 33) & rFa(i).BhFE2
-  Print #200, Left$("rFa(" & i & ").f4202:" & String$(33, "."), 33) & "'" & rFa(i).f4202 & "'"
+  Print #200, Left$("rFa(" & i & ").UnfFlg:" & String$(33, "."), 33) & "'" & rFa(i).UnfFlg & "'"
   Print #200, Left$("rFa(" & i & ").ausgst:" & String$(33, "."), 33) & rFa(i).ausgst
   Print #200, Left$("rFa(" & i & ").KtrAbrB:" & String$(33, "."), 33) & "'" & rFa(i).KtrAbrB & "'"
   Print #200, Left$("rFa(" & i & ").AbrAr:" & String$(33, "."), 33) & "'" & rFa(i).AbrAr & "'"
   Print #200, Left$("rFa(" & i & ").lVorl:" & String$(33, "."), 33) & rFa(i).lVorl
+  Print #200, Left$("rFa(" & i & ").KartBes:" & String$(33, "."), 33) & rFa(i).KartBes
   Print #200, Left$("rFa(" & i & ").IK:" & String$(33, "."), 33) & "'" & rFa(i).IK & "'"
   Print #200, Left$("rFa(" & i & ").KVKs:" & String$(33, "."), 33) & "'" & rFa(i).KVKs & "'"
   Print #200, Left$("rFa(" & i & ").KVKserg:" & String$(33, "."), 33) & "'" & rFa(i).KVKserg & "'"
@@ -2681,9 +2755,10 @@ Public FUNCTION rFaDump()
   Print #200, Left$("rFa(" & i & ").AbrGb:" & String$(33, "."), 33) & "'" & rFa(i).AbrGb & "'"
   Print #200, Left$("rFa(" & i & ").PersKreis:" & String$(33, "."), 33) & "'" & rFa(i).PersKreis & "'"
   Print #200, Left$("rFa(" & i & ").SKtZusatz:" & String$(33, "."), 33) & "'" & rFa(i).SKtZusatz & "'"
+  Print #200, Left$("rFa(" & i & ").SktBem:" & String$(33, "."), 33) & "'" & rFa(i).SktBem & "'"
   Print #200, Left$("rFa(" & i & ").letzteRegel:" & String$(33, "."), 33) & "'" & rFa(i).letzteRegel & "'"
   Print #200, Left$("rFa(" & i & ").ÜwText:" & String$(33, "."), 33) & "'" & rFa(i).ÜwText & "'"
-  Print #200, Left$("rFa(" & i & ").f4210:" & String$(33, "."), 33) & rFa(i).f4210
+  Print #200, Left$("rFa(" & i & ").AkfLues:" & String$(33, "."), 33) & rFa(i).AkfLues
   Print #200, Left$("rFa(" & i & ").AkfHAH:" & String$(33, "."), 33) & rFa(i).AkfHAH
   Print #200, Left$("rFa(" & i & ").AkfAB0:" & String$(33, "."), 33) & rFa(i).AkfAB0
   Print #200, Left$("rFa(" & i & ").AkfAK:" & String$(33, "."), 33) & rFa(i).AkfAK
@@ -2706,11 +2781,15 @@ Public FUNCTION rFaDump()
   Print #200, Left$("rFa(" & i & ").Verdacht:" & String$(33, "."), 33) & "'" & rFa(i).Verdacht & "'"
   Print #200, Left$("rFa(" & i & ").Befund:" & String$(33, "."), 33) & "'" & rFa(i).Befund & "'"
   Print #200, Left$("rFa(" & i & ").statKlasse:" & String$(33, "."), 33) & "'" & rFa(i).statKlasse & "'"
-  Print #200, Left$("rFa(" & i & ").f4237:" & String$(33, "."), 33) & "'" & rFa(i).f4237 & "'"
+  Print #200, Left$("rFa(" & i & ").KHNam:" & String$(33, "."), 33) & "'" & rFa(i).KHNam & "'"
   Print #200, Left$("rFa(" & i & ").statBehTage:" & String$(33, "."), 33) & rFa(i).statBehTage
   Print #200, Left$("rFa(" & i & ").SchGr:" & String$(33, "."), 33) & "'" & rFa(i).SchGr & "'"
   Print #200, Left$("rFa(" & i & ").Weiterbeh:" & String$(33, "."), 33) & "'" & rFa(i).Weiterbeh & "'"
-  Print #200, Left$("rFa(" & i & ").f4266:" & String$(33, "."), 33) & rFa(i).f4266
+  Print #200, Left$("rFa(" & i & ").KurAbb:" & String$(33, "."), 33) & rFa(i).KurAbb
+  Print #200, Left$("rFa(" & i & ").VermiArt:" & String$(33, "."), 33) & "'" & rFa(i).VermiArt & "'"
+  Print #200, Left$("rFa(" & i & ").VermiCode:" & String$(33, "."), 33) & rFa(i).VermiCode
+  Print #200, Left$("rFa(" & i & ").VermiDatum:" & String$(33, "."), 33) & rFa(i).VermiDatum
+  Print #200, Left$("rFa(" & i & ").VermiZusatz:" & String$(33, "."), 33) & "'" & rFa(i).VermiZusatz & "'"
   Print #200, Left$("rFa(" & i & ").PGeb:" & String$(33, "."), 33) & "'" & rFa(i).PGeb & "'"
   Print #200, Left$("rFa(" & i & ").PGebErg:" & String$(33, "."), 33) & "'" & rFa(i).PGebErg & "'"
   Print #200, Left$("rFa(" & i & ").Mahnfrist:" & String$(33, "."), 33) & "'" & rFa(i).Mahnfrist & "'"
@@ -2718,7 +2797,7 @@ Public FUNCTION rFaDump()
   Print #200, Left$("rFa(" & i & ").BeschAls:" & String$(33, "."), 33) & "'" & rFa(i).BeschAls & "'"
   Print #200, Left$("rFa(" & i & ").BeschSeit:" & String$(33, "."), 33) & rFa(i).BeschSeit
   Print #200, Left$("rFa(" & i & ").Unfallbetrieb:" & String$(33, "."), 33) & "'" & rFa(i).Unfallbetrieb & "'"
-  Print #200, Left$("rFa(" & i & ").f4570:" & String$(33, "."), 33) & "'" & rFa(i).f4570 & "'"
+  Print #200, Left$("rFa(" & i & ").bHeilb:" & String$(33, "."), 33) & "'" & rFa(i).bHeilb & "'"
   Print #200, Left$("rFa(" & i & ").GOÄKatNr:" & String$(33, "."), 33) & "'" & rFa(i).GOÄKatNr & "'"
   Print #200, Left$("rFa(" & i & ").GOÄKatName:" & String$(33, "."), 33) & "'" & rFa(i).GOÄKatName & "'"
   Print #200, Left$("rFa(" & i & ").abrArzt:" & String$(33, "."), 33) & "'" & rFa(i).abrArzt & "'"
@@ -2741,7 +2820,7 @@ Public FUNCTION rFaDump()
   Print #200, Left$("rFa(" & i & ").StByte:" & String$(33, "."), 33) & rFa(i).StByte
   Print #200, Left$("rFa(" & i & ").absPos:" & String$(33, "."), 33) & rFa(i).absPos
   Print #200, Left$("rFa(" & i & ").LANRid:" & String$(33, "."), 33) & rFa(i).LANRid
-  Print #200, Left$("rFa(" & i & ").f4108:" & String$(33, "."), 33) & "'" & rFa(i).f4108 & "'"
+  Print #200, Left$("rFa(" & i & ").ZnrMLes:" & String$(33, "."), 33) & "'" & rFa(i).ZnrMLes & "'"
   Print #200, Left$("rFa(" & i & ").BGFallNr:" & String$(33, "."), 33) & "'" & rFa(i).BGFallNr & "'"
   Print #200, Left$("rFa(" & i & ").lGewicht:" & String$(33, "."), 33) & "'" & rFa(i).lGewicht & "'"
   Print #200, Left$("rFa(" & i & ").vorET:" & String$(33, "."), 33) & rFa(i).vorET
@@ -2777,28 +2856,30 @@ Dim j%
  ON Error GoTo fehler
  syscmd 4, pid & ": Speichere " & Ubound(rFa)+0 & " Sätze in `faelle`"
 ' sql0 = " INSERT " & sqlignore &  "INTO `faelle` (Pat_ID,Quartal,Nachname," & _
-     "Vorname,lfdnr,TMFNr,VKNr,f4131,f4132,VschBeg,VschEnd,KKasse_2,FaktPers," & _
-     "FaktTechn,FaktLabor,BhFB,BhFE1,BhFE2,f4202,ausgst,KtrAbrB,AbrAr,lVorl," & _
-     "IK,KVKs,KVKserg,Status,Kasse,KID,GebOr,AbrGb,PersKreis,SKtZusatz," & _
-     "letzteRegel,ÜwText,f4210,AkfHAH,AkfAB0,AkfAK,statNuller,ÜbwV,ÜbWVLANR,ÜbWVBSNR," & _
-     "ÜbWVKVNR,AndÜw,Übwr,ÜbwLANR,ÜWZiel,ÜWNNr,ÜWNaN,ÜWTit,ÜWVor,ÜWVsw," & _
-     "üwvid,Auftrag,Verdacht,Befund,statKlasse,f4237,statBehTage,SchGr,Weiterbeh,f4266," & _
-     "PGeb,PGebErg,Mahnfrist,Unfallort,BeschAls,BeschSeit,Unfallbetrieb,f4570,GOÄKatNr,GOÄKatName," & _
+     "Vorname,DtlOnlPfg,ErgbdOnlP,ErrorCode,PrüfZdFd,lfdnr,TMFNr,VKNr,bPerG,DMPKnZ," & _
+     "VschBeg,VschEnd,KKasse_2,FaktPers,FaktTechn,FaktLabor,BhFB,BhFE1,BhFE2,UnfFlg," & _
+     "ausgst,KtrAbrB,AbrAr,lVorl,KartBes,IK,KVKs,KVKserg,Status,Kasse," & _
+     "KID,GebOr,AbrGb,PersKreis,SKtZusatz,SktBem,letzteRegel,ÜwText,AkfLues,AkfHAH," & _
+     "AkfAB0,AkfAK,statNuller,ÜbwV,ÜbWVLANR,ÜbWVBSNR,ÜbWVKVNR,AndÜw,Übwr,ÜbwLANR," & _
+     "ÜWZiel,ÜWNNr,ÜWNaN,ÜWTit,ÜWVor,ÜWVsw,üwvid,Auftrag,Verdacht,Befund," & _
+     "statKlasse,KHNam,statBehTage,SchGr,Weiterbeh,KurAbb,VermiArt,VermiCode,VermiDatum,VermiZusatz," & _
+     "PGeb,PGebErg,Mahnfrist,Unfallort,BeschAls,BeschSeit,Unfallbetrieb,bHeilb,GOÄKatNr,GOÄKatName," & _
      "abrArzt,privVers,AdNam,AdStr,AdPlz,AdOrt,ÜwBG,BhFE,s8000,s8100," & _
      "AktZeit,Fanf,altQuart,QAnf,QEnd,QS,QT,StByte,absPos,LANRid," & _
-     "f4108,BGFallNr,lGewicht,vorET,dmpVertret,dmpArztw,dmpHypos,dmpKhsA,dmpDMSchulEmpf,dmpDMSchulWahrg," & _
+     "ZnrMLes,BGFallNr,lGewicht,vorET,dmpVertret,dmpArztw,dmpHypos,dmpKhsA,dmpDMSchulEmpf,dmpDMSchulWahrg," & _
      "dmpHypertSchulEmpf,dmpHypertSchulWahrg,dmpKKTabakEmpf,dmpKKErnEmpf,dmpKKkTrainEmpf,dmpHbA1cZiel,dmpUewFuss,dmpEinwDM,dmphalbj,dmpMA) VALUES
  Call csql0.AppVar(Array(" INSERT ", sqlIgnore, " INTO `faelle` (Pat_ID,Quartal,Nachname," & _
-     "Vorname,lfdnr,TMFNr,VKNr,f4131,f4132,VschBeg,VschEnd,KKasse_2,FaktPers," & _
-     "FaktTechn,FaktLabor,BhFB,BhFE1,BhFE2,f4202,ausgst,KtrAbrB,AbrAr,lVorl," & _
-     "IK,KVKs,KVKserg,Status,Kasse,KID,GebOr,AbrGb,PersKreis,SKtZusatz," & _
-     "letzteRegel,ÜwText,f4210,AkfHAH,AkfAB0,AkfAK,statNuller,ÜbwV,ÜbWVLANR,ÜbWVBSNR," & _
-     "ÜbWVKVNR,AndÜw,Übwr,ÜbwLANR,ÜWZiel,ÜWNNr,ÜWNaN,ÜWTit,ÜWVor,ÜWVsw," & _
-     "üwvid,Auftrag,Verdacht,Befund,statKlasse,f4237,statBehTage,SchGr,Weiterbeh,f4266," & _
-     "PGeb,PGebErg,Mahnfrist,Unfallort,BeschAls,BeschSeit,Unfallbetrieb,f4570,GOÄKatNr,GOÄKatName," & _
+     "Vorname,DtlOnlPfg,ErgbdOnlP,ErrorCode,PrüfZdFd,lfdnr,TMFNr,VKNr,bPerG,DMPKnZ," & _
+     "VschBeg,VschEnd,KKasse_2,FaktPers,FaktTechn,FaktLabor,BhFB,BhFE1,BhFE2,UnfFlg," & _
+     "ausgst,KtrAbrB,AbrAr,lVorl,KartBes,IK,KVKs,KVKserg,Status,Kasse," & _
+     "KID,GebOr,AbrGb,PersKreis,SKtZusatz,SktBem,letzteRegel,ÜwText,AkfLues,AkfHAH," & _
+     "AkfAB0,AkfAK,statNuller,ÜbwV,ÜbWVLANR,ÜbWVBSNR,ÜbWVKVNR,AndÜw,Übwr,ÜbwLANR," & _
+     "ÜWZiel,ÜWNNr,ÜWNaN,ÜWTit,ÜWVor,ÜWVsw,üwvid,Auftrag,Verdacht,Befund," & _
+     "statKlasse,KHNam,statBehTage,SchGr,Weiterbeh,KurAbb,VermiArt,VermiCode,VermiDatum,VermiZusatz," & _
+     "PGeb,PGebErg,Mahnfrist,Unfallort,BeschAls,BeschSeit,Unfallbetrieb,bHeilb,GOÄKatNr,GOÄKatName," & _
      "abrArzt,privVers,AdNam,AdStr,AdPlz,AdOrt,ÜwBG,BhFE,s8000,s8100," & _
      "AktZeit,Fanf,altQuart,QAnf,QEnd,QS,QT,StByte,absPos,LANRid," & _
-     "f4108,BGFallNr,lGewicht,vorET,dmpVertret,dmpArztw,dmpHypos,dmpKhsA,dmpDMSchulEmpf,dmpDMSchulWahrg," & _
+     "ZnrMLes,BGFallNr,lGewicht,vorET,dmpVertret,dmpArztw,dmpHypos,dmpKhsA,dmpDMSchulEmpf,dmpDMSchulWahrg," & _
      "dmpHypertSchulEmpf,dmpHypertSchulWahrg,dmpKKTabakEmpf,dmpKKErnEmpf,dmpKKkTrainEmpf,dmpHbA1cZiel,dmpUewFuss,dmpEinwDM,dmphalbj,dmpMA)   VALUES"))
 sql:
  csql.m_Len = 0
@@ -2809,27 +2890,29 @@ sql:
  For i = 1 to ubound(rFa)
 '  rFa(i).AktZeit = now()
   rFa(i).StByte = CStr(AktByte)
-  IF SammelInsert = 0 OR i = 1 THEN
+  IF SammelInsert = 0 Or i = 1 Then
    csql.Append csql0
-  END IF
-  csql.AppVar Array("(" , rFa(i).Pat_ID, ",'" , rFa(i).Quartal, "','" , rFa(i).Nachname, "','" , rFa(i).Vorname, "'," , rFa(i).lfdnr, ",'" , rFa(i).TMFNr, "','" , rFa(i).VKNr, "','" , rFa(i).f4131, "','" ,  _
-   rFa(i).f4132, "'," , DatFor_k(rFa(i).VschBeg), "," , DatFor_k(rFa(i).VschEnd), ",'" , rFa(i).KKasse_2, "'," , replace$(rFa(i).FaktPers,",","."), "," , replace$(rFa(i).FaktTechn,",","."), "," ,  _
-   replace$(rFa(i).FaktLabor,",","."), "," , DatFor_k(rFa(i).BhFB), "," , DatFor_k(rFa(i).BhFE1), "," , DatFor_k(rFa(i).BhFE2), ",'" , rFa(i).f4202, "'," , DatFor_k(rFa(i).ausgst), ",'" , rFa(i).KtrAbrB, "','" ,  _
-   rFa(i).AbrAr, "'," , DatFor_k(rFa(i).lVorl), ",'" , rFa(i).IK, "','" , rFa(i).KVKs, "','" , rFa(i).KVKserg, "','" , rFa(i).Status, "','" , rFa(i).Kasse, "'," , rFa(i).KID, ",'" ,  _
-   rFa(i).GebOr, "','" , rFa(i).AbrGb, "','" , rFa(i).PersKreis, "','" , rFa(i).SKtZusatz, "','" , rFa(i).letzteRegel, "','" , rFa(i).ÜwText, "'," , rFa(i).f4210, "," , rFa(i).AkfHAH, "," , rFa(i).AkfAB0, "," ,  _
-   rFa(i).AkfAK, ",'" , rFa(i).statNuller, "','" , rFa(i).ÜbwV, "','" , rFa(i).ÜbWVLANR, "','" , rFa(i).ÜbWVBSNR, "','" , rFa(i).ÜbWVKVNR, "','" , rFa(i).AndÜw, "','" , rFa(i).Übwr, "','" ,  _
-   rFa(i).ÜbwLANR, "','" , rFa(i).ÜWZiel, "','" , rFa(i).ÜWNNr, "','" , rFa(i).ÜWNaN, "','" , rFa(i).ÜWTit, "','" , rFa(i).ÜWVor, "','" , rFa(i).ÜWVsw, "'," , rFa(i).üwvid, ",'" , rFa(i).Auftrag, "','" ,  _
-   rFa(i).Verdacht, "','" , rFa(i).Befund, "','" , rFa(i).statKlasse, "','" , rFa(i).f4237, "'," , rFa(i).statBehTage, "," , rFa(i).SchGr, ",'" , rFa(i).Weiterbeh, "'," , replace$(rFa(i).f4266,",","."), ",'" ,  _
-   rFa(i).PGeb, "','" , rFa(i).PGebErg, "','" , rFa(i).Mahnfrist, "','" , rFa(i).Unfallort, "','" , rFa(i).BeschAls, "'," , DatFor_k(rFa(i).BeschSeit), ",'" , rFa(i).Unfallbetrieb, "','" ,  _
-   rFa(i).f4570, "','" , rFa(i).GOÄKatNr, "','" , rFa(i).GOÄKatName, "','" , rFa(i).abrArzt, "','" , rFa(i).privVers, "','" , rFa(i).AdNam, "','" , rFa(i).AdStr, "','" ,  _
-   rFa(i).AdPlz, "','" , rFa(i).AdOrt, "','" , rFa(i).ÜwBG, "'," , DatFor_k(rFa(i).BhFE), ",'" , rFa(i).s8000, "','" , rFa(i).s8100, "'," , DatFor_k(rFa(i).AktZeit), "," , DatFor_k(rFa(i).Fanf), ",'" ,  _
-   rFa(i).altQuart, "'," , DatFor_k(rFa(i).QAnf), "," , DatFor_k(rFa(i).QEnd), ",'" , rFa(i).QS, "','" , rFa(i).QT, "'," , rFa(i).StByte, "," , rFa(i).absPos, "," , rFa(i).LANRid, ",'" , rFa(i).f4108, "','" ,  _
-   rFa(i).BGFallNr, "'," , rFa(i).lGewicht, "," , DatFor_k(rFa(i).vorET), ",'" , rFa(i).dmpVertret, "','" , rFa(i).dmpArztw, "','" , rFa(i).dmpHypos, "','" , rFa(i).dmpKhsA, "','" ,  _
-   rFa(i).dmpDMSchulEmpf, "','" , rFa(i).dmpDMSchulWahrg, "','" , rFa(i).dmpHypertSchulEmpf, "','" , rFa(i).dmpHypertSchulWahrg, "','" , rFa(i).dmpKKTabakEmpf, "','" , rFa(i).dmpKKErnEmpf, "','" ,  _
-   rFa(i).dmpKKkTrainEmpf, "','" , rFa(i).dmpHbA1cZiel, "','" , rFa(i).dmpUewFuss, "','" , rFa(i).dmpEinwDM, "','" , rFa(i).dmphalbj, "','" , rFa(i).dmpMA, "')")
-  IF SammelInsert <> 0 AND i < ubound(rFa) THEN csql.Append ","
-  IF SammelInsert = 0 OR i = ubound(rFa) THEN
-'   IF Not obForK THEN ForeignNo0
+  END IF ' SammelInsert = 0 Or i = 1 Then
+  csql.AppVar Array("(" , rFa(i).Pat_ID, ",'" , rFa(i).Quartal, "','" , rFa(i).Nachname, "','" , rFa(i).Vorname, "'," , DatFor_k(rFa(i).DtlOnlPfg), "," , rFa(i).ErgbdOnlP, "," , rFa(i).ErrorCode, ",'" , rFa(i).PrüfZdFd, "'," ,  _
+   rFa(i).lfdnr, ",'" , rFa(i).TMFNr, "','" , rFa(i).VKNr, "','" , rFa(i).bPerG, "','" , rFa(i).DMPKnZ, "'," , DatFor_k(rFa(i).VschBeg), "," , DatFor_k(rFa(i).VschEnd), ",'" ,  _
+   rFa(i).KKasse_2, "'," , replace$(rFa(i).FaktPers,",","."), "," , replace$(rFa(i).FaktTechn,",","."), "," , replace$(rFa(i).FaktLabor,",","."), "," , DatFor_k(rFa(i).BhFB), "," , DatFor_k(rFa(i).BhFE1), "," , DatFor_k( _
+   rFa(i).BhFE2), ",'" , rFa(i).UnfFlg, "'," , DatFor_k(rFa(i).ausgst), ",'" , rFa(i).KtrAbrB, "','" , rFa(i).AbrAr, "'," , DatFor_k(rFa(i).lVorl), "," , rFa(i).KartBes, ",'" ,  _
+   rFa(i).IK, "','" , rFa(i).KVKs, "','" , rFa(i).KVKserg, "','" , rFa(i).Status, "','" , rFa(i).Kasse, "'," , rFa(i).KID, ",'" , rFa(i).GebOr, "','" , rFa(i).AbrGb, "','" , rFa(i).PersKreis, "','" ,  _
+   rFa(i).SKtZusatz, "','" , rFa(i).SktBem, "','" , rFa(i).letzteRegel, "','" , rFa(i).ÜwText, "'," , rFa(i).AkfLues, "," , rFa(i).AkfHAH, "," , rFa(i).AkfAB0, "," , rFa(i).AkfAK, ",'" ,  _
+   rFa(i).statNuller, "','" , rFa(i).ÜbwV, "','" , rFa(i).ÜbWVLANR, "','" , rFa(i).ÜbWVBSNR, "','" , rFa(i).ÜbWVKVNR, "','" , rFa(i).AndÜw, "','" , rFa(i).Übwr, "','" , rFa(i).ÜbwLANR, "','" , rFa(i).ÜWZiel, "','" ,  _
+   rFa(i).ÜWNNr, "','" , rFa(i).ÜWNaN, "','" , rFa(i).ÜWTit, "','" , rFa(i).ÜWVor, "','" , rFa(i).ÜWVsw, "'," , rFa(i).üwvid, ",'" , rFa(i).Auftrag, "','" , rFa(i).Verdacht, "','" ,  _
+   rFa(i).Befund, "','" , rFa(i).statKlasse, "','" , rFa(i).KHNam, "'," , rFa(i).statBehTage, "," , rFa(i).SchGr, ",'" , rFa(i).Weiterbeh, "'," , replace$(rFa(i).KurAbb,",","."), ",'" , rFa(i).VermiArt, "'," ,  _
+   rFa(i).VermiCode, "," , DatFor_k(rFa(i).VermiDatum), ",'" , rFa(i).VermiZusatz, "','" , rFa(i).PGeb, "','" , rFa(i).PGebErg, "','" , rFa(i).Mahnfrist, "','" , rFa(i).Unfallort, "','" ,  _
+   rFa(i).BeschAls, "'," , DatFor_k(rFa(i).BeschSeit), ",'" , rFa(i).Unfallbetrieb, "','" , rFa(i).bHeilb, "','" , rFa(i).GOÄKatNr, "','" , rFa(i).GOÄKatName, "','" , rFa(i).abrArzt, "','" ,  _
+   rFa(i).privVers, "','" , rFa(i).AdNam, "','" , rFa(i).AdStr, "','" , rFa(i).AdPlz, "','" , rFa(i).AdOrt, "','" , rFa(i).ÜwBG, "'," , DatFor_k(rFa(i).BhFE), ",'" , rFa(i).s8000, "','" ,  _
+   rFa(i).s8100, "'," , DatFor_k(rFa(i).AktZeit), "," , DatFor_k(rFa(i).Fanf), ",'" , rFa(i).altQuart, "'," , DatFor_k(rFa(i).QAnf), "," , DatFor_k(rFa(i).QEnd), ",'" , rFa(i).QS, "','" , rFa(i).QT, "'," ,  _
+   rFa(i).StByte, "," , rFa(i).absPos, "," , rFa(i).LANRid, ",'" , rFa(i).ZnrMLes, "','" , rFa(i).BGFallNr, "'," , rFa(i).lGewicht, "," , DatFor_k(rFa(i).vorET), ",'" , rFa(i).dmpVertret, "','" ,  _
+   rFa(i).dmpArztw, "','" , rFa(i).dmpHypos, "','" , rFa(i).dmpKhsA, "','" , rFa(i).dmpDMSchulEmpf, "','" , rFa(i).dmpDMSchulWahrg, "','" , rFa(i).dmpHypertSchulEmpf, "','" , rFa(i).dmpHypertSchulWahrg, "','")
+  csql.AppVar Array(rFa(i).dmpKKTabakEmpf, "','" , rFa(i).dmpKKErnEmpf, "','" , rFa(i).dmpKKkTrainEmpf, "','" , rFa(i).dmpHbA1cZiel, "','" , rFa(i).dmpUewFuss, "','" , rFa(i).dmpEinwDM, "','" ,  _
+   rFa(i).dmphalbj, "','" , rFa(i).dmpMA, "')")
+  IF SammelInsert <> 0 AND i < ubound(rFa) Then csql.Append ","
+  IF SammelInsert = 0 OR i = ubound(rFa) Then
+'   If Not obForK Then ForeignNo0
 '    altmode = DBCn.Execute("SELECT @@global.sql_mode").Fields(0)
     altmode = myEFrag("SELECT @@global.sql_mode", , DBCn).Fields(0)
 '   Call DBCn.Execute("SET GLOBAL sql_mode='STRICT_TRANS_TABLES'") ' NO_ENGINE_SUBSTITUTION
@@ -2955,6 +3038,11 @@ sql:
         rSw(jjj).FID = neufid
        END IF ' rSw(jjj).FID = rFa(i).FID THEN
       Next jjj
+      For jjj = 1 To UBound(rVo)
+       IF rVo(jjj).FID = rFa(i).FID THEN
+        rVo(jjj).FID = neufid
+       END IF ' rVo(jjj).FID = rFa(i).FID THEN
+      Next jjj
      END IF ' neufid <> rFa(i).FID Then
      neufid = neufid + 1 ' für den nächsten Patienten
     END IF ' rs.BOF Then
@@ -2987,89 +3075,93 @@ ElseIf ErrNumber = -2147467259 AND InStrB(ErrDescr, "Daten zu lang") = 0 AND InS
  Resume
 ElseIf ErrNumber = -2147217833 OR InStrB(ErrDescr, "Daten zu lang") <> 0 OR InStrB(ErrDescr, "Data too long") <> 0 THEN
  Dim rsc As Adodb.Recordset, maxi%(), k%
- redim maxi(80)
+ redim maxi(84)
  for k = iif(SammelInsert<>0,1,i) to iif(SammelInsert<>0,ubound(rFa),i)
   IF Len(rFa(k).Quartal) > maxi(0) THEN maxi(0) = Len(rFa(k).Quartal)
   IF Len(rFa(k).Nachname) > maxi(1) THEN maxi(1) = Len(rFa(k).Nachname)
   IF Len(rFa(k).Vorname) > maxi(2) THEN maxi(2) = Len(rFa(k).Vorname)
-  IF Len(rFa(k).TMFNr) > maxi(3) THEN maxi(3) = Len(rFa(k).TMFNr)
-  IF Len(rFa(k).VKNr) > maxi(4) THEN maxi(4) = Len(rFa(k).VKNr)
-  IF Len(rFa(k).f4131) > maxi(5) THEN maxi(5) = Len(rFa(k).f4131)
-  IF Len(rFa(k).f4132) > maxi(6) THEN maxi(6) = Len(rFa(k).f4132)
-  IF Len(rFa(k).KKasse_2) > maxi(7) THEN maxi(7) = Len(rFa(k).KKasse_2)
-  IF Len(rFa(k).f4202) > maxi(8) THEN maxi(8) = Len(rFa(k).f4202)
-  IF Len(rFa(k).KtrAbrB) > maxi(9) THEN maxi(9) = Len(rFa(k).KtrAbrB)
-  IF Len(rFa(k).AbrAr) > maxi(10) THEN maxi(10) = Len(rFa(k).AbrAr)
-  IF Len(rFa(k).IK) > maxi(11) THEN maxi(11) = Len(rFa(k).IK)
-  IF Len(rFa(k).KVKs) > maxi(12) THEN maxi(12) = Len(rFa(k).KVKs)
-  IF Len(rFa(k).KVKserg) > maxi(13) THEN maxi(13) = Len(rFa(k).KVKserg)
-  IF Len(rFa(k).Status) > maxi(14) THEN maxi(14) = Len(rFa(k).Status)
-  IF Len(rFa(k).Kasse) > maxi(15) THEN maxi(15) = Len(rFa(k).Kasse)
-  IF Len(rFa(k).GebOr) > maxi(16) THEN maxi(16) = Len(rFa(k).GebOr)
-  IF Len(rFa(k).AbrGb) > maxi(17) THEN maxi(17) = Len(rFa(k).AbrGb)
-  IF Len(rFa(k).PersKreis) > maxi(18) THEN maxi(18) = Len(rFa(k).PersKreis)
-  IF Len(rFa(k).SKtZusatz) > maxi(19) THEN maxi(19) = Len(rFa(k).SKtZusatz)
-  IF Len(rFa(k).letzteRegel) > maxi(20) THEN maxi(20) = Len(rFa(k).letzteRegel)
-  IF Len(rFa(k).ÜwText) > maxi(21) THEN maxi(21) = Len(rFa(k).ÜwText)
-  IF Len(rFa(k).statNuller) > maxi(22) THEN maxi(22) = Len(rFa(k).statNuller)
-  IF Len(rFa(k).ÜbwV) > maxi(23) THEN maxi(23) = Len(rFa(k).ÜbwV)
-  IF Len(rFa(k).ÜbWVLANR) > maxi(24) THEN maxi(24) = Len(rFa(k).ÜbWVLANR)
-  IF Len(rFa(k).ÜbWVBSNR) > maxi(25) THEN maxi(25) = Len(rFa(k).ÜbWVBSNR)
-  IF Len(rFa(k).ÜbWVKVNR) > maxi(26) THEN maxi(26) = Len(rFa(k).ÜbWVKVNR)
-  IF Len(rFa(k).AndÜw) > maxi(27) THEN maxi(27) = Len(rFa(k).AndÜw)
-  IF Len(rFa(k).Übwr) > maxi(28) THEN maxi(28) = Len(rFa(k).Übwr)
-  IF Len(rFa(k).ÜbwLANR) > maxi(29) THEN maxi(29) = Len(rFa(k).ÜbwLANR)
-  IF Len(rFa(k).ÜWZiel) > maxi(30) THEN maxi(30) = Len(rFa(k).ÜWZiel)
-  IF Len(rFa(k).ÜWNNr) > maxi(31) THEN maxi(31) = Len(rFa(k).ÜWNNr)
-  IF Len(rFa(k).ÜWNaN) > maxi(32) THEN maxi(32) = Len(rFa(k).ÜWNaN)
-  IF Len(rFa(k).ÜWTit) > maxi(33) THEN maxi(33) = Len(rFa(k).ÜWTit)
-  IF Len(rFa(k).ÜWVor) > maxi(34) THEN maxi(34) = Len(rFa(k).ÜWVor)
-  IF Len(rFa(k).ÜWVsw) > maxi(35) THEN maxi(35) = Len(rFa(k).ÜWVsw)
-  IF Len(rFa(k).Auftrag) > maxi(36) THEN maxi(36) = Len(rFa(k).Auftrag)
-  IF Len(rFa(k).Verdacht) > maxi(37) THEN maxi(37) = Len(rFa(k).Verdacht)
-  IF Len(rFa(k).Befund) > maxi(38) THEN maxi(38) = Len(rFa(k).Befund)
-  IF Len(rFa(k).statKlasse) > maxi(39) THEN maxi(39) = Len(rFa(k).statKlasse)
-  IF Len(rFa(k).f4237) > maxi(40) THEN maxi(40) = Len(rFa(k).f4237)
-  IF Len(rFa(k).Weiterbeh) > maxi(41) THEN maxi(41) = Len(rFa(k).Weiterbeh)
-  IF Len(rFa(k).PGeb) > maxi(42) THEN maxi(42) = Len(rFa(k).PGeb)
-  IF Len(rFa(k).PGebErg) > maxi(43) THEN maxi(43) = Len(rFa(k).PGebErg)
-  IF Len(rFa(k).Mahnfrist) > maxi(44) THEN maxi(44) = Len(rFa(k).Mahnfrist)
-  IF Len(rFa(k).Unfallort) > maxi(45) THEN maxi(45) = Len(rFa(k).Unfallort)
-  IF Len(rFa(k).BeschAls) > maxi(46) THEN maxi(46) = Len(rFa(k).BeschAls)
-  IF Len(rFa(k).Unfallbetrieb) > maxi(47) THEN maxi(47) = Len(rFa(k).Unfallbetrieb)
-  IF Len(rFa(k).f4570) > maxi(48) THEN maxi(48) = Len(rFa(k).f4570)
-  IF Len(rFa(k).GOÄKatNr) > maxi(49) THEN maxi(49) = Len(rFa(k).GOÄKatNr)
-  IF Len(rFa(k).GOÄKatName) > maxi(50) THEN maxi(50) = Len(rFa(k).GOÄKatName)
-  IF Len(rFa(k).abrArzt) > maxi(51) THEN maxi(51) = Len(rFa(k).abrArzt)
-  IF Len(rFa(k).privVers) > maxi(52) THEN maxi(52) = Len(rFa(k).privVers)
-  IF Len(rFa(k).AdNam) > maxi(53) THEN maxi(53) = Len(rFa(k).AdNam)
-  IF Len(rFa(k).AdStr) > maxi(54) THEN maxi(54) = Len(rFa(k).AdStr)
-  IF Len(rFa(k).AdPlz) > maxi(55) THEN maxi(55) = Len(rFa(k).AdPlz)
-  IF Len(rFa(k).AdOrt) > maxi(56) THEN maxi(56) = Len(rFa(k).AdOrt)
-  IF Len(rFa(k).ÜwBG) > maxi(57) THEN maxi(57) = Len(rFa(k).ÜwBG)
-  IF Len(rFa(k).s8000) > maxi(58) THEN maxi(58) = Len(rFa(k).s8000)
-  IF Len(rFa(k).s8100) > maxi(59) THEN maxi(59) = Len(rFa(k).s8100)
-  IF Len(rFa(k).altQuart) > maxi(60) THEN maxi(60) = Len(rFa(k).altQuart)
-  IF Len(rFa(k).QS) > maxi(61) THEN maxi(61) = Len(rFa(k).QS)
-  IF Len(rFa(k).QT) > maxi(62) THEN maxi(62) = Len(rFa(k).QT)
-  IF Len(rFa(k).f4108) > maxi(63) THEN maxi(63) = Len(rFa(k).f4108)
-  IF Len(rFa(k).BGFallNr) > maxi(64) THEN maxi(64) = Len(rFa(k).BGFallNr)
-  IF Len(rFa(k).dmpVertret) > maxi(65) THEN maxi(65) = Len(rFa(k).dmpVertret)
-  IF Len(rFa(k).dmpArztw) > maxi(66) THEN maxi(66) = Len(rFa(k).dmpArztw)
-  IF Len(rFa(k).dmpHypos) > maxi(67) THEN maxi(67) = Len(rFa(k).dmpHypos)
-  IF Len(rFa(k).dmpKhsA) > maxi(68) THEN maxi(68) = Len(rFa(k).dmpKhsA)
-  IF Len(rFa(k).dmpDMSchulEmpf) > maxi(69) THEN maxi(69) = Len(rFa(k).dmpDMSchulEmpf)
-  IF Len(rFa(k).dmpDMSchulWahrg) > maxi(70) THEN maxi(70) = Len(rFa(k).dmpDMSchulWahrg)
-  IF Len(rFa(k).dmpHypertSchulEmpf) > maxi(71) THEN maxi(71) = Len(rFa(k).dmpHypertSchulEmpf)
-  IF Len(rFa(k).dmpHypertSchulWahrg) > maxi(72) THEN maxi(72) = Len(rFa(k).dmpHypertSchulWahrg)
-  IF Len(rFa(k).dmpKKTabakEmpf) > maxi(73) THEN maxi(73) = Len(rFa(k).dmpKKTabakEmpf)
-  IF Len(rFa(k).dmpKKErnEmpf) > maxi(74) THEN maxi(74) = Len(rFa(k).dmpKKErnEmpf)
-  IF Len(rFa(k).dmpKKkTrainEmpf) > maxi(75) THEN maxi(75) = Len(rFa(k).dmpKKkTrainEmpf)
-  IF Len(rFa(k).dmpHbA1cZiel) > maxi(76) THEN maxi(76) = Len(rFa(k).dmpHbA1cZiel)
-  IF Len(rFa(k).dmpUewFuss) > maxi(77) THEN maxi(77) = Len(rFa(k).dmpUewFuss)
-  IF Len(rFa(k).dmpEinwDM) > maxi(78) THEN maxi(78) = Len(rFa(k).dmpEinwDM)
-  IF Len(rFa(k).dmphalbj) > maxi(79) THEN maxi(79) = Len(rFa(k).dmphalbj)
-  IF Len(rFa(k).dmpMA) > maxi(80) THEN maxi(80) = Len(rFa(k).dmpMA)
+  IF Len(rFa(k).PrüfZdFd) > maxi(3) THEN maxi(3) = Len(rFa(k).PrüfZdFd)
+  IF Len(rFa(k).TMFNr) > maxi(4) THEN maxi(4) = Len(rFa(k).TMFNr)
+  IF Len(rFa(k).VKNr) > maxi(5) THEN maxi(5) = Len(rFa(k).VKNr)
+  IF Len(rFa(k).bPerG) > maxi(6) THEN maxi(6) = Len(rFa(k).bPerG)
+  IF Len(rFa(k).DMPKnZ) > maxi(7) THEN maxi(7) = Len(rFa(k).DMPKnZ)
+  IF Len(rFa(k).KKasse_2) > maxi(8) THEN maxi(8) = Len(rFa(k).KKasse_2)
+  IF Len(rFa(k).UnfFlg) > maxi(9) THEN maxi(9) = Len(rFa(k).UnfFlg)
+  IF Len(rFa(k).KtrAbrB) > maxi(10) THEN maxi(10) = Len(rFa(k).KtrAbrB)
+  IF Len(rFa(k).AbrAr) > maxi(11) THEN maxi(11) = Len(rFa(k).AbrAr)
+  IF Len(rFa(k).IK) > maxi(12) THEN maxi(12) = Len(rFa(k).IK)
+  IF Len(rFa(k).KVKs) > maxi(13) THEN maxi(13) = Len(rFa(k).KVKs)
+  IF Len(rFa(k).KVKserg) > maxi(14) THEN maxi(14) = Len(rFa(k).KVKserg)
+  IF Len(rFa(k).Status) > maxi(15) THEN maxi(15) = Len(rFa(k).Status)
+  IF Len(rFa(k).Kasse) > maxi(16) THEN maxi(16) = Len(rFa(k).Kasse)
+  IF Len(rFa(k).GebOr) > maxi(17) THEN maxi(17) = Len(rFa(k).GebOr)
+  IF Len(rFa(k).AbrGb) > maxi(18) THEN maxi(18) = Len(rFa(k).AbrGb)
+  IF Len(rFa(k).PersKreis) > maxi(19) THEN maxi(19) = Len(rFa(k).PersKreis)
+  IF Len(rFa(k).SKtZusatz) > maxi(20) THEN maxi(20) = Len(rFa(k).SKtZusatz)
+  IF Len(rFa(k).SktBem) > maxi(21) THEN maxi(21) = Len(rFa(k).SktBem)
+  IF Len(rFa(k).letzteRegel) > maxi(22) THEN maxi(22) = Len(rFa(k).letzteRegel)
+  IF Len(rFa(k).ÜwText) > maxi(23) THEN maxi(23) = Len(rFa(k).ÜwText)
+  IF Len(rFa(k).statNuller) > maxi(24) THEN maxi(24) = Len(rFa(k).statNuller)
+  IF Len(rFa(k).ÜbwV) > maxi(25) THEN maxi(25) = Len(rFa(k).ÜbwV)
+  IF Len(rFa(k).ÜbWVLANR) > maxi(26) THEN maxi(26) = Len(rFa(k).ÜbWVLANR)
+  IF Len(rFa(k).ÜbWVBSNR) > maxi(27) THEN maxi(27) = Len(rFa(k).ÜbWVBSNR)
+  IF Len(rFa(k).ÜbWVKVNR) > maxi(28) THEN maxi(28) = Len(rFa(k).ÜbWVKVNR)
+  IF Len(rFa(k).AndÜw) > maxi(29) THEN maxi(29) = Len(rFa(k).AndÜw)
+  IF Len(rFa(k).Übwr) > maxi(30) THEN maxi(30) = Len(rFa(k).Übwr)
+  IF Len(rFa(k).ÜbwLANR) > maxi(31) THEN maxi(31) = Len(rFa(k).ÜbwLANR)
+  IF Len(rFa(k).ÜWZiel) > maxi(32) THEN maxi(32) = Len(rFa(k).ÜWZiel)
+  IF Len(rFa(k).ÜWNNr) > maxi(33) THEN maxi(33) = Len(rFa(k).ÜWNNr)
+  IF Len(rFa(k).ÜWNaN) > maxi(34) THEN maxi(34) = Len(rFa(k).ÜWNaN)
+  IF Len(rFa(k).ÜWTit) > maxi(35) THEN maxi(35) = Len(rFa(k).ÜWTit)
+  IF Len(rFa(k).ÜWVor) > maxi(36) THEN maxi(36) = Len(rFa(k).ÜWVor)
+  IF Len(rFa(k).ÜWVsw) > maxi(37) THEN maxi(37) = Len(rFa(k).ÜWVsw)
+  IF Len(rFa(k).Auftrag) > maxi(38) THEN maxi(38) = Len(rFa(k).Auftrag)
+  IF Len(rFa(k).Verdacht) > maxi(39) THEN maxi(39) = Len(rFa(k).Verdacht)
+  IF Len(rFa(k).Befund) > maxi(40) THEN maxi(40) = Len(rFa(k).Befund)
+  IF Len(rFa(k).statKlasse) > maxi(41) THEN maxi(41) = Len(rFa(k).statKlasse)
+  IF Len(rFa(k).KHNam) > maxi(42) THEN maxi(42) = Len(rFa(k).KHNam)
+  IF Len(rFa(k).Weiterbeh) > maxi(43) THEN maxi(43) = Len(rFa(k).Weiterbeh)
+  IF Len(rFa(k).VermiArt) > maxi(44) THEN maxi(44) = Len(rFa(k).VermiArt)
+  IF Len(rFa(k).VermiZusatz) > maxi(45) THEN maxi(45) = Len(rFa(k).VermiZusatz)
+  IF Len(rFa(k).PGeb) > maxi(46) THEN maxi(46) = Len(rFa(k).PGeb)
+  IF Len(rFa(k).PGebErg) > maxi(47) THEN maxi(47) = Len(rFa(k).PGebErg)
+  IF Len(rFa(k).Mahnfrist) > maxi(48) THEN maxi(48) = Len(rFa(k).Mahnfrist)
+  IF Len(rFa(k).Unfallort) > maxi(49) THEN maxi(49) = Len(rFa(k).Unfallort)
+  IF Len(rFa(k).BeschAls) > maxi(50) THEN maxi(50) = Len(rFa(k).BeschAls)
+  IF Len(rFa(k).Unfallbetrieb) > maxi(51) THEN maxi(51) = Len(rFa(k).Unfallbetrieb)
+  IF Len(rFa(k).bHeilb) > maxi(52) THEN maxi(52) = Len(rFa(k).bHeilb)
+  IF Len(rFa(k).GOÄKatNr) > maxi(53) THEN maxi(53) = Len(rFa(k).GOÄKatNr)
+  IF Len(rFa(k).GOÄKatName) > maxi(54) THEN maxi(54) = Len(rFa(k).GOÄKatName)
+  IF Len(rFa(k).abrArzt) > maxi(55) THEN maxi(55) = Len(rFa(k).abrArzt)
+  IF Len(rFa(k).privVers) > maxi(56) THEN maxi(56) = Len(rFa(k).privVers)
+  IF Len(rFa(k).AdNam) > maxi(57) THEN maxi(57) = Len(rFa(k).AdNam)
+  IF Len(rFa(k).AdStr) > maxi(58) THEN maxi(58) = Len(rFa(k).AdStr)
+  IF Len(rFa(k).AdPlz) > maxi(59) THEN maxi(59) = Len(rFa(k).AdPlz)
+  IF Len(rFa(k).AdOrt) > maxi(60) THEN maxi(60) = Len(rFa(k).AdOrt)
+  IF Len(rFa(k).ÜwBG) > maxi(61) THEN maxi(61) = Len(rFa(k).ÜwBG)
+  IF Len(rFa(k).s8000) > maxi(62) THEN maxi(62) = Len(rFa(k).s8000)
+  IF Len(rFa(k).s8100) > maxi(63) THEN maxi(63) = Len(rFa(k).s8100)
+  IF Len(rFa(k).altQuart) > maxi(64) THEN maxi(64) = Len(rFa(k).altQuart)
+  IF Len(rFa(k).QS) > maxi(65) THEN maxi(65) = Len(rFa(k).QS)
+  IF Len(rFa(k).QT) > maxi(66) THEN maxi(66) = Len(rFa(k).QT)
+  IF Len(rFa(k).ZnrMLes) > maxi(67) THEN maxi(67) = Len(rFa(k).ZnrMLes)
+  IF Len(rFa(k).BGFallNr) > maxi(68) THEN maxi(68) = Len(rFa(k).BGFallNr)
+  IF Len(rFa(k).dmpVertret) > maxi(69) THEN maxi(69) = Len(rFa(k).dmpVertret)
+  IF Len(rFa(k).dmpArztw) > maxi(70) THEN maxi(70) = Len(rFa(k).dmpArztw)
+  IF Len(rFa(k).dmpHypos) > maxi(71) THEN maxi(71) = Len(rFa(k).dmpHypos)
+  IF Len(rFa(k).dmpKhsA) > maxi(72) THEN maxi(72) = Len(rFa(k).dmpKhsA)
+  IF Len(rFa(k).dmpDMSchulEmpf) > maxi(73) THEN maxi(73) = Len(rFa(k).dmpDMSchulEmpf)
+  IF Len(rFa(k).dmpDMSchulWahrg) > maxi(74) THEN maxi(74) = Len(rFa(k).dmpDMSchulWahrg)
+  IF Len(rFa(k).dmpHypertSchulEmpf) > maxi(75) THEN maxi(75) = Len(rFa(k).dmpHypertSchulEmpf)
+  IF Len(rFa(k).dmpHypertSchulWahrg) > maxi(76) THEN maxi(76) = Len(rFa(k).dmpHypertSchulWahrg)
+  IF Len(rFa(k).dmpKKTabakEmpf) > maxi(77) THEN maxi(77) = Len(rFa(k).dmpKKTabakEmpf)
+  IF Len(rFa(k).dmpKKErnEmpf) > maxi(78) THEN maxi(78) = Len(rFa(k).dmpKKErnEmpf)
+  IF Len(rFa(k).dmpKKkTrainEmpf) > maxi(79) THEN maxi(79) = Len(rFa(k).dmpKKkTrainEmpf)
+  IF Len(rFa(k).dmpHbA1cZiel) > maxi(80) THEN maxi(80) = Len(rFa(k).dmpHbA1cZiel)
+  IF Len(rFa(k).dmpUewFuss) > maxi(81) THEN maxi(81) = Len(rFa(k).dmpUewFuss)
+  IF Len(rFa(k).dmpEinwDM) > maxi(82) THEN maxi(82) = Len(rFa(k).dmpEinwDM)
+  IF Len(rFa(k).dmphalbj) > maxi(83) THEN maxi(83) = Len(rFa(k).dmphalbj)
+  IF Len(rFa(k).dmpMA) > maxi(84) THEN maxi(84) = Len(rFa(k).dmpMA)
  next k
  If obTrans <> 0 Then If myEFrag("SELECT COUNT(1) FROM information_schema.innodb_trx WHERE trx_mysql_thread_id = CONNECTION_ID()", , DBCn).Fields(0) <> 0 Then ComTrans ' DBCn.CommitTrans: obtrans = 0
  nochmal:
@@ -3086,84 +3178,88 @@ ElseIf ErrNumber = -2147217833 OR InStrB(ErrDescr, "Daten zu lang") <> 0 OR InSt
        Case 0: Lese.Ausgeb "   Verkürze Inhalt von rFa.Quartal: '" & rFa(k).Quartal & "' -> '" & Left$(rFa(k).Quartal, maxL)  & "'",true : rFa(k).Quartal = Left$(rFa(k).Quartal, maxL)
        Case 1: Lese.Ausgeb "   Verkürze Inhalt von rFa.Nachname: '" & rFa(k).Nachname & "' -> '" & Left$(rFa(k).Nachname, maxL)  & "'",true : rFa(k).Nachname = Left$(rFa(k).Nachname, maxL)
        Case 2: Lese.Ausgeb "   Verkürze Inhalt von rFa.Vorname: '" & rFa(k).Vorname & "' -> '" & Left$(rFa(k).Vorname, maxL)  & "'",true : rFa(k).Vorname = Left$(rFa(k).Vorname, maxL)
-       Case 3: Lese.Ausgeb "   Verkürze Inhalt von rFa.TMFNr: '" & rFa(k).TMFNr & "' -> '" & Left$(rFa(k).TMFNr, maxL)  & "'",true : rFa(k).TMFNr = Left$(rFa(k).TMFNr, maxL)
-       Case 4: Lese.Ausgeb "   Verkürze Inhalt von rFa.VKNr: '" & rFa(k).VKNr & "' -> '" & Left$(rFa(k).VKNr, maxL)  & "'",true : rFa(k).VKNr = Left$(rFa(k).VKNr, maxL)
-       Case 5: Lese.Ausgeb "   Verkürze Inhalt von rFa.f4131: '" & rFa(k).f4131 & "' -> '" & Left$(rFa(k).f4131, maxL)  & "'",true : rFa(k).f4131 = Left$(rFa(k).f4131, maxL)
-       Case 6: Lese.Ausgeb "   Verkürze Inhalt von rFa.f4132: '" & rFa(k).f4132 & "' -> '" & Left$(rFa(k).f4132, maxL)  & "'",true : rFa(k).f4132 = Left$(rFa(k).f4132, maxL)
-       Case 7: Lese.Ausgeb "   Verkürze Inhalt von rFa.KKasse_2: '" & rFa(k).KKasse_2 & "' -> '" & Left$(rFa(k).KKasse_2, maxL)  & "'",true : rFa(k).KKasse_2 = Left$(rFa(k).KKasse_2, maxL)
-       Case 8: Lese.Ausgeb "   Verkürze Inhalt von rFa.f4202: '" & rFa(k).f4202 & "' -> '" & Left$(rFa(k).f4202, maxL)  & "'",true : rFa(k).f4202 = Left$(rFa(k).f4202, maxL)
-       Case 9: Lese.Ausgeb "   Verkürze Inhalt von rFa.KtrAbrB: '" & rFa(k).KtrAbrB & "' -> '" & Left$(rFa(k).KtrAbrB, maxL)  & "'",true : rFa(k).KtrAbrB = Left$(rFa(k).KtrAbrB, maxL)
-       Case 10: Lese.Ausgeb "   Verkürze Inhalt von rFa.AbrAr: '" & rFa(k).AbrAr & "' -> '" & Left$(rFa(k).AbrAr, maxL)  & "'",true : rFa(k).AbrAr = Left$(rFa(k).AbrAr, maxL)
-       Case 11: Lese.Ausgeb "   Verkürze Inhalt von rFa.IK: '" & rFa(k).IK & "' -> '" & Left$(rFa(k).IK, maxL)  & "'",true : rFa(k).IK = Left$(rFa(k).IK, maxL)
-       Case 12: Lese.Ausgeb "   Verkürze Inhalt von rFa.KVKs: '" & rFa(k).KVKs & "' -> '" & Left$(rFa(k).KVKs, maxL)  & "'",true : rFa(k).KVKs = Left$(rFa(k).KVKs, maxL)
-       Case 13: Lese.Ausgeb "   Verkürze Inhalt von rFa.KVKserg: '" & rFa(k).KVKserg & "' -> '" & Left$(rFa(k).KVKserg, maxL)  & "'",true : rFa(k).KVKserg = Left$(rFa(k).KVKserg, maxL)
-       Case 14: Lese.Ausgeb "   Verkürze Inhalt von rFa.Status: '" & rFa(k).Status & "' -> '" & Left$(rFa(k).Status, maxL)  & "'",true : rFa(k).Status = Left$(rFa(k).Status, maxL)
-       Case 15: Lese.Ausgeb "   Verkürze Inhalt von rFa.Kasse: '" & rFa(k).Kasse & "' -> '" & Left$(rFa(k).Kasse, maxL)  & "'",true : rFa(k).Kasse = Left$(rFa(k).Kasse, maxL)
-       Case 16: Lese.Ausgeb "   Verkürze Inhalt von rFa.GebOr: '" & rFa(k).GebOr & "' -> '" & Left$(rFa(k).GebOr, maxL)  & "'",true : rFa(k).GebOr = Left$(rFa(k).GebOr, maxL)
-       Case 17: Lese.Ausgeb "   Verkürze Inhalt von rFa.AbrGb: '" & rFa(k).AbrGb & "' -> '" & Left$(rFa(k).AbrGb, maxL)  & "'",true : rFa(k).AbrGb = Left$(rFa(k).AbrGb, maxL)
-       Case 18: Lese.Ausgeb "   Verkürze Inhalt von rFa.PersKreis: '" & rFa(k).PersKreis & "' -> '" & Left$(rFa(k).PersKreis, maxL)  & "'",true : rFa(k).PersKreis = Left$(rFa(k).PersKreis, maxL)
-       Case 19: Lese.Ausgeb "   Verkürze Inhalt von rFa.SKtZusatz: '" & rFa(k).SKtZusatz & "' -> '" & Left$(rFa(k).SKtZusatz, maxL)  & "'",true : rFa(k).SKtZusatz = Left$(rFa(k).SKtZusatz, maxL)
-       Case 20: Lese.Ausgeb "   Verkürze Inhalt von rFa.letzteRegel: '" & rFa(k).letzteRegel & "' -> '" & Left$(rFa(k).letzteRegel, maxL)  & "'",true : rFa(k).letzteRegel = Left$(rFa(k).letzteRegel, maxL)
-       Case 21: Lese.Ausgeb "   Verkürze Inhalt von rFa.ÜwText: '" & rFa(k).ÜwText & "' -> '" & Left$(rFa(k).ÜwText, maxL)  & "'",true : rFa(k).ÜwText = Left$(rFa(k).ÜwText, maxL)
-       Case 22: Lese.Ausgeb "   Verkürze Inhalt von rFa.statNuller: '" & rFa(k).statNuller & "' -> '" & Left$(rFa(k).statNuller, maxL)  & "'",true : rFa(k).statNuller = Left$(rFa(k).statNuller, maxL)
-       Case 23: Lese.Ausgeb "   Verkürze Inhalt von rFa.ÜbwV: '" & rFa(k).ÜbwV & "' -> '" & Left$(rFa(k).ÜbwV, maxL)  & "'",true : rFa(k).ÜbwV = Left$(rFa(k).ÜbwV, maxL)
-       Case 24: Lese.Ausgeb "   Verkürze Inhalt von rFa.ÜbWVLANR: '" & rFa(k).ÜbWVLANR & "' -> '" & Left$(rFa(k).ÜbWVLANR, maxL)  & "'",true : rFa(k).ÜbWVLANR = Left$(rFa(k).ÜbWVLANR, maxL)
-       Case 25: Lese.Ausgeb "   Verkürze Inhalt von rFa.ÜbWVBSNR: '" & rFa(k).ÜbWVBSNR & "' -> '" & Left$(rFa(k).ÜbWVBSNR, maxL)  & "'",true : rFa(k).ÜbWVBSNR = Left$(rFa(k).ÜbWVBSNR, maxL)
-       Case 26: Lese.Ausgeb "   Verkürze Inhalt von rFa.ÜbWVKVNR: '" & rFa(k).ÜbWVKVNR & "' -> '" & Left$(rFa(k).ÜbWVKVNR, maxL)  & "'",true : rFa(k).ÜbWVKVNR = Left$(rFa(k).ÜbWVKVNR, maxL)
-       Case 27: Lese.Ausgeb "   Verkürze Inhalt von rFa.AndÜw: '" & rFa(k).AndÜw & "' -> '" & Left$(rFa(k).AndÜw, maxL)  & "'",true : rFa(k).AndÜw = Left$(rFa(k).AndÜw, maxL)
-       Case 28: Lese.Ausgeb "   Verkürze Inhalt von rFa.Übwr: '" & rFa(k).Übwr & "' -> '" & Left$(rFa(k).Übwr, maxL)  & "'",true : rFa(k).Übwr = Left$(rFa(k).Übwr, maxL)
-       Case 29: Lese.Ausgeb "   Verkürze Inhalt von rFa.ÜbwLANR: '" & rFa(k).ÜbwLANR & "' -> '" & Left$(rFa(k).ÜbwLANR, maxL)  & "'",true : rFa(k).ÜbwLANR = Left$(rFa(k).ÜbwLANR, maxL)
-       Case 30: Lese.Ausgeb "   Verkürze Inhalt von rFa.ÜWZiel: '" & rFa(k).ÜWZiel & "' -> '" & Left$(rFa(k).ÜWZiel, maxL)  & "'",true : rFa(k).ÜWZiel = Left$(rFa(k).ÜWZiel, maxL)
-       Case 31: Lese.Ausgeb "   Verkürze Inhalt von rFa.ÜWNNr: '" & rFa(k).ÜWNNr & "' -> '" & Left$(rFa(k).ÜWNNr, maxL)  & "'",true : rFa(k).ÜWNNr = Left$(rFa(k).ÜWNNr, maxL)
-       Case 32: Lese.Ausgeb "   Verkürze Inhalt von rFa.ÜWNaN: '" & rFa(k).ÜWNaN & "' -> '" & Left$(rFa(k).ÜWNaN, maxL)  & "'",true : rFa(k).ÜWNaN = Left$(rFa(k).ÜWNaN, maxL)
-       Case 33: Lese.Ausgeb "   Verkürze Inhalt von rFa.ÜWTit: '" & rFa(k).ÜWTit & "' -> '" & Left$(rFa(k).ÜWTit, maxL)  & "'",true : rFa(k).ÜWTit = Left$(rFa(k).ÜWTit, maxL)
-       Case 34: Lese.Ausgeb "   Verkürze Inhalt von rFa.ÜWVor: '" & rFa(k).ÜWVor & "' -> '" & Left$(rFa(k).ÜWVor, maxL)  & "'",true : rFa(k).ÜWVor = Left$(rFa(k).ÜWVor, maxL)
-       Case 35: Lese.Ausgeb "   Verkürze Inhalt von rFa.ÜWVsw: '" & rFa(k).ÜWVsw & "' -> '" & Left$(rFa(k).ÜWVsw, maxL)  & "'",true : rFa(k).ÜWVsw = Left$(rFa(k).ÜWVsw, maxL)
-       Case 36: Lese.Ausgeb "   Verkürze Inhalt von rFa.Auftrag: '" & rFa(k).Auftrag & "' -> '" & Left$(rFa(k).Auftrag, maxL)  & "'",true : rFa(k).Auftrag = Left$(rFa(k).Auftrag, maxL)
-       Case 37: Lese.Ausgeb "   Verkürze Inhalt von rFa.Verdacht: '" & rFa(k).Verdacht & "' -> '" & Left$(rFa(k).Verdacht, maxL)  & "'",true : rFa(k).Verdacht = Left$(rFa(k).Verdacht, maxL)
-       Case 38: Lese.Ausgeb "   Verkürze Inhalt von rFa.Befund: '" & rFa(k).Befund & "' -> '" & Left$(rFa(k).Befund, maxL)  & "'",true : rFa(k).Befund = Left$(rFa(k).Befund, maxL)
-       Case 39: Lese.Ausgeb "   Verkürze Inhalt von rFa.statKlasse: '" & rFa(k).statKlasse & "' -> '" & Left$(rFa(k).statKlasse, maxL)  & "'",true : rFa(k).statKlasse = Left$(rFa(k).statKlasse, maxL)
-       Case 40: Lese.Ausgeb "   Verkürze Inhalt von rFa.f4237: '" & rFa(k).f4237 & "' -> '" & Left$(rFa(k).f4237, maxL)  & "'",true : rFa(k).f4237 = Left$(rFa(k).f4237, maxL)
-       Case 41: Lese.Ausgeb "   Verkürze Inhalt von rFa.Weiterbeh: '" & rFa(k).Weiterbeh & "' -> '" & Left$(rFa(k).Weiterbeh, maxL)  & "'",true : rFa(k).Weiterbeh = Left$(rFa(k).Weiterbeh, maxL)
-       Case 42: Lese.Ausgeb "   Verkürze Inhalt von rFa.PGeb: '" & rFa(k).PGeb & "' -> '" & Left$(rFa(k).PGeb, maxL)  & "'",true : rFa(k).PGeb = Left$(rFa(k).PGeb, maxL)
-       Case 43: Lese.Ausgeb "   Verkürze Inhalt von rFa.PGebErg: '" & rFa(k).PGebErg & "' -> '" & Left$(rFa(k).PGebErg, maxL)  & "'",true : rFa(k).PGebErg = Left$(rFa(k).PGebErg, maxL)
-       Case 44: Lese.Ausgeb "   Verkürze Inhalt von rFa.Mahnfrist: '" & rFa(k).Mahnfrist & "' -> '" & Left$(rFa(k).Mahnfrist, maxL)  & "'",true : rFa(k).Mahnfrist = Left$(rFa(k).Mahnfrist, maxL)
-       Case 45: Lese.Ausgeb "   Verkürze Inhalt von rFa.Unfallort: '" & rFa(k).Unfallort & "' -> '" & Left$(rFa(k).Unfallort, maxL)  & "'",true : rFa(k).Unfallort = Left$(rFa(k).Unfallort, maxL)
-       Case 46: Lese.Ausgeb "   Verkürze Inhalt von rFa.BeschAls: '" & rFa(k).BeschAls & "' -> '" & Left$(rFa(k).BeschAls, maxL)  & "'",true : rFa(k).BeschAls = Left$(rFa(k).BeschAls, maxL)
-       Case 47: Lese.Ausgeb "   Verkürze Inhalt von rFa.Unfallbetrieb: '" & rFa(k).Unfallbetrieb & "' -> '" & Left$(rFa(k).Unfallbetrieb, maxL)  & "'",true : rFa(k).Unfallbetrieb = Left$(rFa(k).Unfallbetrieb, maxL)
-       Case 48: Lese.Ausgeb "   Verkürze Inhalt von rFa.f4570: '" & rFa(k).f4570 & "' -> '" & Left$(rFa(k).f4570, maxL)  & "'",true : rFa(k).f4570 = Left$(rFa(k).f4570, maxL)
-       Case 49: Lese.Ausgeb "   Verkürze Inhalt von rFa.GOÄKatNr: '" & rFa(k).GOÄKatNr & "' -> '" & Left$(rFa(k).GOÄKatNr, maxL)  & "'",true : rFa(k).GOÄKatNr = Left$(rFa(k).GOÄKatNr, maxL)
-       Case 50: Lese.Ausgeb "   Verkürze Inhalt von rFa.GOÄKatName: '" & rFa(k).GOÄKatName & "' -> '" & Left$(rFa(k).GOÄKatName, maxL)  & "'",true : rFa(k).GOÄKatName = Left$(rFa(k).GOÄKatName, maxL)
-       Case 51: Lese.Ausgeb "   Verkürze Inhalt von rFa.abrArzt: '" & rFa(k).abrArzt & "' -> '" & Left$(rFa(k).abrArzt, maxL)  & "'",true : rFa(k).abrArzt = Left$(rFa(k).abrArzt, maxL)
-       Case 52: Lese.Ausgeb "   Verkürze Inhalt von rFa.privVers: '" & rFa(k).privVers & "' -> '" & Left$(rFa(k).privVers, maxL)  & "'",true : rFa(k).privVers = Left$(rFa(k).privVers, maxL)
-       Case 53: Lese.Ausgeb "   Verkürze Inhalt von rFa.AdNam: '" & rFa(k).AdNam & "' -> '" & Left$(rFa(k).AdNam, maxL)  & "'",true : rFa(k).AdNam = Left$(rFa(k).AdNam, maxL)
-       Case 54: Lese.Ausgeb "   Verkürze Inhalt von rFa.AdStr: '" & rFa(k).AdStr & "' -> '" & Left$(rFa(k).AdStr, maxL)  & "'",true : rFa(k).AdStr = Left$(rFa(k).AdStr, maxL)
-       Case 55: Lese.Ausgeb "   Verkürze Inhalt von rFa.AdPlz: '" & rFa(k).AdPlz & "' -> '" & Left$(rFa(k).AdPlz, maxL)  & "'",true : rFa(k).AdPlz = Left$(rFa(k).AdPlz, maxL)
-       Case 56: Lese.Ausgeb "   Verkürze Inhalt von rFa.AdOrt: '" & rFa(k).AdOrt & "' -> '" & Left$(rFa(k).AdOrt, maxL)  & "'",true : rFa(k).AdOrt = Left$(rFa(k).AdOrt, maxL)
-       Case 57: Lese.Ausgeb "   Verkürze Inhalt von rFa.ÜwBG: '" & rFa(k).ÜwBG & "' -> '" & Left$(rFa(k).ÜwBG, maxL)  & "'",true : rFa(k).ÜwBG = Left$(rFa(k).ÜwBG, maxL)
-       Case 58: Lese.Ausgeb "   Verkürze Inhalt von rFa.s8000: '" & rFa(k).s8000 & "' -> '" & Left$(rFa(k).s8000, maxL)  & "'",true : rFa(k).s8000 = Left$(rFa(k).s8000, maxL)
-       Case 59: Lese.Ausgeb "   Verkürze Inhalt von rFa.s8100: '" & rFa(k).s8100 & "' -> '" & Left$(rFa(k).s8100, maxL)  & "'",true : rFa(k).s8100 = Left$(rFa(k).s8100, maxL)
-       Case 60: Lese.Ausgeb "   Verkürze Inhalt von rFa.altQuart: '" & rFa(k).altQuart & "' -> '" & Left$(rFa(k).altQuart, maxL)  & "'",true : rFa(k).altQuart = Left$(rFa(k).altQuart, maxL)
-       Case 61: Lese.Ausgeb "   Verkürze Inhalt von rFa.QS: '" & rFa(k).QS & "' -> '" & Left$(rFa(k).QS, maxL)  & "'",true : rFa(k).QS = Left$(rFa(k).QS, maxL)
-       Case 62: Lese.Ausgeb "   Verkürze Inhalt von rFa.QT: '" & rFa(k).QT & "' -> '" & Left$(rFa(k).QT, maxL)  & "'",true : rFa(k).QT = Left$(rFa(k).QT, maxL)
-       Case 63: Lese.Ausgeb "   Verkürze Inhalt von rFa.f4108: '" & rFa(k).f4108 & "' -> '" & Left$(rFa(k).f4108, maxL)  & "'",true : rFa(k).f4108 = Left$(rFa(k).f4108, maxL)
-       Case 64: Lese.Ausgeb "   Verkürze Inhalt von rFa.BGFallNr: '" & rFa(k).BGFallNr & "' -> '" & Left$(rFa(k).BGFallNr, maxL)  & "'",true : rFa(k).BGFallNr = Left$(rFa(k).BGFallNr, maxL)
-       Case 65: Lese.Ausgeb "   Verkürze Inhalt von rFa.dmpVertret: '" & rFa(k).dmpVertret & "' -> '" & Left$(rFa(k).dmpVertret, maxL)  & "'",true : rFa(k).dmpVertret = Left$(rFa(k).dmpVertret, maxL)
-       Case 66: Lese.Ausgeb "   Verkürze Inhalt von rFa.dmpArztw: '" & rFa(k).dmpArztw & "' -> '" & Left$(rFa(k).dmpArztw, maxL)  & "'",true : rFa(k).dmpArztw = Left$(rFa(k).dmpArztw, maxL)
-       Case 67: Lese.Ausgeb "   Verkürze Inhalt von rFa.dmpHypos: '" & rFa(k).dmpHypos & "' -> '" & Left$(rFa(k).dmpHypos, maxL)  & "'",true : rFa(k).dmpHypos = Left$(rFa(k).dmpHypos, maxL)
-       Case 68: Lese.Ausgeb "   Verkürze Inhalt von rFa.dmpKhsA: '" & rFa(k).dmpKhsA & "' -> '" & Left$(rFa(k).dmpKhsA, maxL)  & "'",true : rFa(k).dmpKhsA = Left$(rFa(k).dmpKhsA, maxL)
-       Case 69: Lese.Ausgeb "   Verkürze Inhalt von rFa.dmpDMSchulEmpf: '" & rFa(k).dmpDMSchulEmpf & "' -> '" & Left$(rFa(k).dmpDMSchulEmpf, maxL)  & "'",true : rFa(k).dmpDMSchulEmpf = Left$(rFa(k).dmpDMSchulEmpf, maxL)
-       Case 70: Lese.Ausgeb "   Verkürze Inhalt von rFa.dmpDMSchulWahrg: '" & rFa(k).dmpDMSchulWahrg & "' -> '" & Left$(rFa(k).dmpDMSchulWahrg, maxL)  & "'",true : rFa(k).dmpDMSchulWahrg = Left$(rFa(k).dmpDMSchulWahrg, maxL)
-       Case 71: Lese.Ausgeb "   Verkürze Inhalt von rFa.dmpHypertSchulEmpf: '" & rFa(k).dmpHypertSchulEmpf & "' -> '" & Left$(rFa(k).dmpHypertSchulEmpf, maxL)  & "'",true : rFa(k).dmpHypertSchulEmpf = Left$(rFa(k).dmpHypertSchulEmpf, maxL)
-       Case 72: Lese.Ausgeb "   Verkürze Inhalt von rFa.dmpHypertSchulWahrg: '" & rFa(k).dmpHypertSchulWahrg & "' -> '" & Left$(rFa(k).dmpHypertSchulWahrg, maxL)  & "'",true : rFa(k).dmpHypertSchulWahrg = Left$(rFa(k).dmpHypertSchulWahrg, maxL)
-       Case 73: Lese.Ausgeb "   Verkürze Inhalt von rFa.dmpKKTabakEmpf: '" & rFa(k).dmpKKTabakEmpf & "' -> '" & Left$(rFa(k).dmpKKTabakEmpf, maxL)  & "'",true : rFa(k).dmpKKTabakEmpf = Left$(rFa(k).dmpKKTabakEmpf, maxL)
-       Case 74: Lese.Ausgeb "   Verkürze Inhalt von rFa.dmpKKErnEmpf: '" & rFa(k).dmpKKErnEmpf & "' -> '" & Left$(rFa(k).dmpKKErnEmpf, maxL)  & "'",true : rFa(k).dmpKKErnEmpf = Left$(rFa(k).dmpKKErnEmpf, maxL)
-       Case 75: Lese.Ausgeb "   Verkürze Inhalt von rFa.dmpKKkTrainEmpf: '" & rFa(k).dmpKKkTrainEmpf & "' -> '" & Left$(rFa(k).dmpKKkTrainEmpf, maxL)  & "'",true : rFa(k).dmpKKkTrainEmpf = Left$(rFa(k).dmpKKkTrainEmpf, maxL)
-       Case 76: Lese.Ausgeb "   Verkürze Inhalt von rFa.dmpHbA1cZiel: '" & rFa(k).dmpHbA1cZiel & "' -> '" & Left$(rFa(k).dmpHbA1cZiel, maxL)  & "'",true : rFa(k).dmpHbA1cZiel = Left$(rFa(k).dmpHbA1cZiel, maxL)
-       Case 77: Lese.Ausgeb "   Verkürze Inhalt von rFa.dmpUewFuss: '" & rFa(k).dmpUewFuss & "' -> '" & Left$(rFa(k).dmpUewFuss, maxL)  & "'",true : rFa(k).dmpUewFuss = Left$(rFa(k).dmpUewFuss, maxL)
-       Case 78: Lese.Ausgeb "   Verkürze Inhalt von rFa.dmpEinwDM: '" & rFa(k).dmpEinwDM & "' -> '" & Left$(rFa(k).dmpEinwDM, maxL)  & "'",true : rFa(k).dmpEinwDM = Left$(rFa(k).dmpEinwDM, maxL)
-       Case 79: Lese.Ausgeb "   Verkürze Inhalt von rFa.dmphalbj: '" & rFa(k).dmphalbj & "' -> '" & Left$(rFa(k).dmphalbj, maxL)  & "'",true : rFa(k).dmphalbj = Left$(rFa(k).dmphalbj, maxL)
-       Case 80: Lese.Ausgeb "   Verkürze Inhalt von rFa.dmpMA: '" & rFa(k).dmpMA & "' -> '" & Left$(rFa(k).dmpMA, maxL)  & "'",true : rFa(k).dmpMA = Left$(rFa(k).dmpMA, maxL)
+       Case 3: Lese.Ausgeb "   Verkürze Inhalt von rFa.PrüfZdFd: '" & rFa(k).PrüfZdFd & "' -> '" & Left$(rFa(k).PrüfZdFd, maxL)  & "'",true : rFa(k).PrüfZdFd = Left$(rFa(k).PrüfZdFd, maxL)
+       Case 4: Lese.Ausgeb "   Verkürze Inhalt von rFa.TMFNr: '" & rFa(k).TMFNr & "' -> '" & Left$(rFa(k).TMFNr, maxL)  & "'",true : rFa(k).TMFNr = Left$(rFa(k).TMFNr, maxL)
+       Case 5: Lese.Ausgeb "   Verkürze Inhalt von rFa.VKNr: '" & rFa(k).VKNr & "' -> '" & Left$(rFa(k).VKNr, maxL)  & "'",true : rFa(k).VKNr = Left$(rFa(k).VKNr, maxL)
+       Case 6: Lese.Ausgeb "   Verkürze Inhalt von rFa.bPerG: '" & rFa(k).bPerG & "' -> '" & Left$(rFa(k).bPerG, maxL)  & "'",true : rFa(k).bPerG = Left$(rFa(k).bPerG, maxL)
+       Case 7: Lese.Ausgeb "   Verkürze Inhalt von rFa.DMPKnZ: '" & rFa(k).DMPKnZ & "' -> '" & Left$(rFa(k).DMPKnZ, maxL)  & "'",true : rFa(k).DMPKnZ = Left$(rFa(k).DMPKnZ, maxL)
+       Case 8: Lese.Ausgeb "   Verkürze Inhalt von rFa.KKasse_2: '" & rFa(k).KKasse_2 & "' -> '" & Left$(rFa(k).KKasse_2, maxL)  & "'",true : rFa(k).KKasse_2 = Left$(rFa(k).KKasse_2, maxL)
+       Case 9: Lese.Ausgeb "   Verkürze Inhalt von rFa.UnfFlg: '" & rFa(k).UnfFlg & "' -> '" & Left$(rFa(k).UnfFlg, maxL)  & "'",true : rFa(k).UnfFlg = Left$(rFa(k).UnfFlg, maxL)
+       Case 10: Lese.Ausgeb "   Verkürze Inhalt von rFa.KtrAbrB: '" & rFa(k).KtrAbrB & "' -> '" & Left$(rFa(k).KtrAbrB, maxL)  & "'",true : rFa(k).KtrAbrB = Left$(rFa(k).KtrAbrB, maxL)
+       Case 11: Lese.Ausgeb "   Verkürze Inhalt von rFa.AbrAr: '" & rFa(k).AbrAr & "' -> '" & Left$(rFa(k).AbrAr, maxL)  & "'",true : rFa(k).AbrAr = Left$(rFa(k).AbrAr, maxL)
+       Case 12: Lese.Ausgeb "   Verkürze Inhalt von rFa.IK: '" & rFa(k).IK & "' -> '" & Left$(rFa(k).IK, maxL)  & "'",true : rFa(k).IK = Left$(rFa(k).IK, maxL)
+       Case 13: Lese.Ausgeb "   Verkürze Inhalt von rFa.KVKs: '" & rFa(k).KVKs & "' -> '" & Left$(rFa(k).KVKs, maxL)  & "'",true : rFa(k).KVKs = Left$(rFa(k).KVKs, maxL)
+       Case 14: Lese.Ausgeb "   Verkürze Inhalt von rFa.KVKserg: '" & rFa(k).KVKserg & "' -> '" & Left$(rFa(k).KVKserg, maxL)  & "'",true : rFa(k).KVKserg = Left$(rFa(k).KVKserg, maxL)
+       Case 15: Lese.Ausgeb "   Verkürze Inhalt von rFa.Status: '" & rFa(k).Status & "' -> '" & Left$(rFa(k).Status, maxL)  & "'",true : rFa(k).Status = Left$(rFa(k).Status, maxL)
+       Case 16: Lese.Ausgeb "   Verkürze Inhalt von rFa.Kasse: '" & rFa(k).Kasse & "' -> '" & Left$(rFa(k).Kasse, maxL)  & "'",true : rFa(k).Kasse = Left$(rFa(k).Kasse, maxL)
+       Case 17: Lese.Ausgeb "   Verkürze Inhalt von rFa.GebOr: '" & rFa(k).GebOr & "' -> '" & Left$(rFa(k).GebOr, maxL)  & "'",true : rFa(k).GebOr = Left$(rFa(k).GebOr, maxL)
+       Case 18: Lese.Ausgeb "   Verkürze Inhalt von rFa.AbrGb: '" & rFa(k).AbrGb & "' -> '" & Left$(rFa(k).AbrGb, maxL)  & "'",true : rFa(k).AbrGb = Left$(rFa(k).AbrGb, maxL)
+       Case 19: Lese.Ausgeb "   Verkürze Inhalt von rFa.PersKreis: '" & rFa(k).PersKreis & "' -> '" & Left$(rFa(k).PersKreis, maxL)  & "'",true : rFa(k).PersKreis = Left$(rFa(k).PersKreis, maxL)
+       Case 20: Lese.Ausgeb "   Verkürze Inhalt von rFa.SKtZusatz: '" & rFa(k).SKtZusatz & "' -> '" & Left$(rFa(k).SKtZusatz, maxL)  & "'",true : rFa(k).SKtZusatz = Left$(rFa(k).SKtZusatz, maxL)
+       Case 21: Lese.Ausgeb "   Verkürze Inhalt von rFa.SktBem: '" & rFa(k).SktBem & "' -> '" & Left$(rFa(k).SktBem, maxL)  & "'",true : rFa(k).SktBem = Left$(rFa(k).SktBem, maxL)
+       Case 22: Lese.Ausgeb "   Verkürze Inhalt von rFa.letzteRegel: '" & rFa(k).letzteRegel & "' -> '" & Left$(rFa(k).letzteRegel, maxL)  & "'",true : rFa(k).letzteRegel = Left$(rFa(k).letzteRegel, maxL)
+       Case 23: Lese.Ausgeb "   Verkürze Inhalt von rFa.ÜwText: '" & rFa(k).ÜwText & "' -> '" & Left$(rFa(k).ÜwText, maxL)  & "'",true : rFa(k).ÜwText = Left$(rFa(k).ÜwText, maxL)
+       Case 24: Lese.Ausgeb "   Verkürze Inhalt von rFa.statNuller: '" & rFa(k).statNuller & "' -> '" & Left$(rFa(k).statNuller, maxL)  & "'",true : rFa(k).statNuller = Left$(rFa(k).statNuller, maxL)
+       Case 25: Lese.Ausgeb "   Verkürze Inhalt von rFa.ÜbwV: '" & rFa(k).ÜbwV & "' -> '" & Left$(rFa(k).ÜbwV, maxL)  & "'",true : rFa(k).ÜbwV = Left$(rFa(k).ÜbwV, maxL)
+       Case 26: Lese.Ausgeb "   Verkürze Inhalt von rFa.ÜbWVLANR: '" & rFa(k).ÜbWVLANR & "' -> '" & Left$(rFa(k).ÜbWVLANR, maxL)  & "'",true : rFa(k).ÜbWVLANR = Left$(rFa(k).ÜbWVLANR, maxL)
+       Case 27: Lese.Ausgeb "   Verkürze Inhalt von rFa.ÜbWVBSNR: '" & rFa(k).ÜbWVBSNR & "' -> '" & Left$(rFa(k).ÜbWVBSNR, maxL)  & "'",true : rFa(k).ÜbWVBSNR = Left$(rFa(k).ÜbWVBSNR, maxL)
+       Case 28: Lese.Ausgeb "   Verkürze Inhalt von rFa.ÜbWVKVNR: '" & rFa(k).ÜbWVKVNR & "' -> '" & Left$(rFa(k).ÜbWVKVNR, maxL)  & "'",true : rFa(k).ÜbWVKVNR = Left$(rFa(k).ÜbWVKVNR, maxL)
+       Case 29: Lese.Ausgeb "   Verkürze Inhalt von rFa.AndÜw: '" & rFa(k).AndÜw & "' -> '" & Left$(rFa(k).AndÜw, maxL)  & "'",true : rFa(k).AndÜw = Left$(rFa(k).AndÜw, maxL)
+       Case 30: Lese.Ausgeb "   Verkürze Inhalt von rFa.Übwr: '" & rFa(k).Übwr & "' -> '" & Left$(rFa(k).Übwr, maxL)  & "'",true : rFa(k).Übwr = Left$(rFa(k).Übwr, maxL)
+       Case 31: Lese.Ausgeb "   Verkürze Inhalt von rFa.ÜbwLANR: '" & rFa(k).ÜbwLANR & "' -> '" & Left$(rFa(k).ÜbwLANR, maxL)  & "'",true : rFa(k).ÜbwLANR = Left$(rFa(k).ÜbwLANR, maxL)
+       Case 32: Lese.Ausgeb "   Verkürze Inhalt von rFa.ÜWZiel: '" & rFa(k).ÜWZiel & "' -> '" & Left$(rFa(k).ÜWZiel, maxL)  & "'",true : rFa(k).ÜWZiel = Left$(rFa(k).ÜWZiel, maxL)
+       Case 33: Lese.Ausgeb "   Verkürze Inhalt von rFa.ÜWNNr: '" & rFa(k).ÜWNNr & "' -> '" & Left$(rFa(k).ÜWNNr, maxL)  & "'",true : rFa(k).ÜWNNr = Left$(rFa(k).ÜWNNr, maxL)
+       Case 34: Lese.Ausgeb "   Verkürze Inhalt von rFa.ÜWNaN: '" & rFa(k).ÜWNaN & "' -> '" & Left$(rFa(k).ÜWNaN, maxL)  & "'",true : rFa(k).ÜWNaN = Left$(rFa(k).ÜWNaN, maxL)
+       Case 35: Lese.Ausgeb "   Verkürze Inhalt von rFa.ÜWTit: '" & rFa(k).ÜWTit & "' -> '" & Left$(rFa(k).ÜWTit, maxL)  & "'",true : rFa(k).ÜWTit = Left$(rFa(k).ÜWTit, maxL)
+       Case 36: Lese.Ausgeb "   Verkürze Inhalt von rFa.ÜWVor: '" & rFa(k).ÜWVor & "' -> '" & Left$(rFa(k).ÜWVor, maxL)  & "'",true : rFa(k).ÜWVor = Left$(rFa(k).ÜWVor, maxL)
+       Case 37: Lese.Ausgeb "   Verkürze Inhalt von rFa.ÜWVsw: '" & rFa(k).ÜWVsw & "' -> '" & Left$(rFa(k).ÜWVsw, maxL)  & "'",true : rFa(k).ÜWVsw = Left$(rFa(k).ÜWVsw, maxL)
+       Case 38: Lese.Ausgeb "   Verkürze Inhalt von rFa.Auftrag: '" & rFa(k).Auftrag & "' -> '" & Left$(rFa(k).Auftrag, maxL)  & "'",true : rFa(k).Auftrag = Left$(rFa(k).Auftrag, maxL)
+       Case 39: Lese.Ausgeb "   Verkürze Inhalt von rFa.Verdacht: '" & rFa(k).Verdacht & "' -> '" & Left$(rFa(k).Verdacht, maxL)  & "'",true : rFa(k).Verdacht = Left$(rFa(k).Verdacht, maxL)
+       Case 40: Lese.Ausgeb "   Verkürze Inhalt von rFa.Befund: '" & rFa(k).Befund & "' -> '" & Left$(rFa(k).Befund, maxL)  & "'",true : rFa(k).Befund = Left$(rFa(k).Befund, maxL)
+       Case 41: Lese.Ausgeb "   Verkürze Inhalt von rFa.statKlasse: '" & rFa(k).statKlasse & "' -> '" & Left$(rFa(k).statKlasse, maxL)  & "'",true : rFa(k).statKlasse = Left$(rFa(k).statKlasse, maxL)
+       Case 42: Lese.Ausgeb "   Verkürze Inhalt von rFa.KHNam: '" & rFa(k).KHNam & "' -> '" & Left$(rFa(k).KHNam, maxL)  & "'",true : rFa(k).KHNam = Left$(rFa(k).KHNam, maxL)
+       Case 43: Lese.Ausgeb "   Verkürze Inhalt von rFa.Weiterbeh: '" & rFa(k).Weiterbeh & "' -> '" & Left$(rFa(k).Weiterbeh, maxL)  & "'",true : rFa(k).Weiterbeh = Left$(rFa(k).Weiterbeh, maxL)
+       Case 44: Lese.Ausgeb "   Verkürze Inhalt von rFa.VermiArt: '" & rFa(k).VermiArt & "' -> '" & Left$(rFa(k).VermiArt, maxL)  & "'",true : rFa(k).VermiArt = Left$(rFa(k).VermiArt, maxL)
+       Case 45: Lese.Ausgeb "   Verkürze Inhalt von rFa.VermiZusatz: '" & rFa(k).VermiZusatz & "' -> '" & Left$(rFa(k).VermiZusatz, maxL)  & "'",true : rFa(k).VermiZusatz = Left$(rFa(k).VermiZusatz, maxL)
+       Case 46: Lese.Ausgeb "   Verkürze Inhalt von rFa.PGeb: '" & rFa(k).PGeb & "' -> '" & Left$(rFa(k).PGeb, maxL)  & "'",true : rFa(k).PGeb = Left$(rFa(k).PGeb, maxL)
+       Case 47: Lese.Ausgeb "   Verkürze Inhalt von rFa.PGebErg: '" & rFa(k).PGebErg & "' -> '" & Left$(rFa(k).PGebErg, maxL)  & "'",true : rFa(k).PGebErg = Left$(rFa(k).PGebErg, maxL)
+       Case 48: Lese.Ausgeb "   Verkürze Inhalt von rFa.Mahnfrist: '" & rFa(k).Mahnfrist & "' -> '" & Left$(rFa(k).Mahnfrist, maxL)  & "'",true : rFa(k).Mahnfrist = Left$(rFa(k).Mahnfrist, maxL)
+       Case 49: Lese.Ausgeb "   Verkürze Inhalt von rFa.Unfallort: '" & rFa(k).Unfallort & "' -> '" & Left$(rFa(k).Unfallort, maxL)  & "'",true : rFa(k).Unfallort = Left$(rFa(k).Unfallort, maxL)
+       Case 50: Lese.Ausgeb "   Verkürze Inhalt von rFa.BeschAls: '" & rFa(k).BeschAls & "' -> '" & Left$(rFa(k).BeschAls, maxL)  & "'",true : rFa(k).BeschAls = Left$(rFa(k).BeschAls, maxL)
+       Case 51: Lese.Ausgeb "   Verkürze Inhalt von rFa.Unfallbetrieb: '" & rFa(k).Unfallbetrieb & "' -> '" & Left$(rFa(k).Unfallbetrieb, maxL)  & "'",true : rFa(k).Unfallbetrieb = Left$(rFa(k).Unfallbetrieb, maxL)
+       Case 52: Lese.Ausgeb "   Verkürze Inhalt von rFa.bHeilb: '" & rFa(k).bHeilb & "' -> '" & Left$(rFa(k).bHeilb, maxL)  & "'",true : rFa(k).bHeilb = Left$(rFa(k).bHeilb, maxL)
+       Case 53: Lese.Ausgeb "   Verkürze Inhalt von rFa.GOÄKatNr: '" & rFa(k).GOÄKatNr & "' -> '" & Left$(rFa(k).GOÄKatNr, maxL)  & "'",true : rFa(k).GOÄKatNr = Left$(rFa(k).GOÄKatNr, maxL)
+       Case 54: Lese.Ausgeb "   Verkürze Inhalt von rFa.GOÄKatName: '" & rFa(k).GOÄKatName & "' -> '" & Left$(rFa(k).GOÄKatName, maxL)  & "'",true : rFa(k).GOÄKatName = Left$(rFa(k).GOÄKatName, maxL)
+       Case 55: Lese.Ausgeb "   Verkürze Inhalt von rFa.abrArzt: '" & rFa(k).abrArzt & "' -> '" & Left$(rFa(k).abrArzt, maxL)  & "'",true : rFa(k).abrArzt = Left$(rFa(k).abrArzt, maxL)
+       Case 56: Lese.Ausgeb "   Verkürze Inhalt von rFa.privVers: '" & rFa(k).privVers & "' -> '" & Left$(rFa(k).privVers, maxL)  & "'",true : rFa(k).privVers = Left$(rFa(k).privVers, maxL)
+       Case 57: Lese.Ausgeb "   Verkürze Inhalt von rFa.AdNam: '" & rFa(k).AdNam & "' -> '" & Left$(rFa(k).AdNam, maxL)  & "'",true : rFa(k).AdNam = Left$(rFa(k).AdNam, maxL)
+       Case 58: Lese.Ausgeb "   Verkürze Inhalt von rFa.AdStr: '" & rFa(k).AdStr & "' -> '" & Left$(rFa(k).AdStr, maxL)  & "'",true : rFa(k).AdStr = Left$(rFa(k).AdStr, maxL)
+       Case 59: Lese.Ausgeb "   Verkürze Inhalt von rFa.AdPlz: '" & rFa(k).AdPlz & "' -> '" & Left$(rFa(k).AdPlz, maxL)  & "'",true : rFa(k).AdPlz = Left$(rFa(k).AdPlz, maxL)
+       Case 60: Lese.Ausgeb "   Verkürze Inhalt von rFa.AdOrt: '" & rFa(k).AdOrt & "' -> '" & Left$(rFa(k).AdOrt, maxL)  & "'",true : rFa(k).AdOrt = Left$(rFa(k).AdOrt, maxL)
+       Case 61: Lese.Ausgeb "   Verkürze Inhalt von rFa.ÜwBG: '" & rFa(k).ÜwBG & "' -> '" & Left$(rFa(k).ÜwBG, maxL)  & "'",true : rFa(k).ÜwBG = Left$(rFa(k).ÜwBG, maxL)
+       Case 62: Lese.Ausgeb "   Verkürze Inhalt von rFa.s8000: '" & rFa(k).s8000 & "' -> '" & Left$(rFa(k).s8000, maxL)  & "'",true : rFa(k).s8000 = Left$(rFa(k).s8000, maxL)
+       Case 63: Lese.Ausgeb "   Verkürze Inhalt von rFa.s8100: '" & rFa(k).s8100 & "' -> '" & Left$(rFa(k).s8100, maxL)  & "'",true : rFa(k).s8100 = Left$(rFa(k).s8100, maxL)
+       Case 64: Lese.Ausgeb "   Verkürze Inhalt von rFa.altQuart: '" & rFa(k).altQuart & "' -> '" & Left$(rFa(k).altQuart, maxL)  & "'",true : rFa(k).altQuart = Left$(rFa(k).altQuart, maxL)
+       Case 65: Lese.Ausgeb "   Verkürze Inhalt von rFa.QS: '" & rFa(k).QS & "' -> '" & Left$(rFa(k).QS, maxL)  & "'",true : rFa(k).QS = Left$(rFa(k).QS, maxL)
+       Case 66: Lese.Ausgeb "   Verkürze Inhalt von rFa.QT: '" & rFa(k).QT & "' -> '" & Left$(rFa(k).QT, maxL)  & "'",true : rFa(k).QT = Left$(rFa(k).QT, maxL)
+       Case 67: Lese.Ausgeb "   Verkürze Inhalt von rFa.ZnrMLes: '" & rFa(k).ZnrMLes & "' -> '" & Left$(rFa(k).ZnrMLes, maxL)  & "'",true : rFa(k).ZnrMLes = Left$(rFa(k).ZnrMLes, maxL)
+       Case 68: Lese.Ausgeb "   Verkürze Inhalt von rFa.BGFallNr: '" & rFa(k).BGFallNr & "' -> '" & Left$(rFa(k).BGFallNr, maxL)  & "'",true : rFa(k).BGFallNr = Left$(rFa(k).BGFallNr, maxL)
+       Case 69: Lese.Ausgeb "   Verkürze Inhalt von rFa.dmpVertret: '" & rFa(k).dmpVertret & "' -> '" & Left$(rFa(k).dmpVertret, maxL)  & "'",true : rFa(k).dmpVertret = Left$(rFa(k).dmpVertret, maxL)
+       Case 70: Lese.Ausgeb "   Verkürze Inhalt von rFa.dmpArztw: '" & rFa(k).dmpArztw & "' -> '" & Left$(rFa(k).dmpArztw, maxL)  & "'",true : rFa(k).dmpArztw = Left$(rFa(k).dmpArztw, maxL)
+       Case 71: Lese.Ausgeb "   Verkürze Inhalt von rFa.dmpHypos: '" & rFa(k).dmpHypos & "' -> '" & Left$(rFa(k).dmpHypos, maxL)  & "'",true : rFa(k).dmpHypos = Left$(rFa(k).dmpHypos, maxL)
+       Case 72: Lese.Ausgeb "   Verkürze Inhalt von rFa.dmpKhsA: '" & rFa(k).dmpKhsA & "' -> '" & Left$(rFa(k).dmpKhsA, maxL)  & "'",true : rFa(k).dmpKhsA = Left$(rFa(k).dmpKhsA, maxL)
+       Case 73: Lese.Ausgeb "   Verkürze Inhalt von rFa.dmpDMSchulEmpf: '" & rFa(k).dmpDMSchulEmpf & "' -> '" & Left$(rFa(k).dmpDMSchulEmpf, maxL)  & "'",true : rFa(k).dmpDMSchulEmpf = Left$(rFa(k).dmpDMSchulEmpf, maxL)
+       Case 74: Lese.Ausgeb "   Verkürze Inhalt von rFa.dmpDMSchulWahrg: '" & rFa(k).dmpDMSchulWahrg & "' -> '" & Left$(rFa(k).dmpDMSchulWahrg, maxL)  & "'",true : rFa(k).dmpDMSchulWahrg = Left$(rFa(k).dmpDMSchulWahrg, maxL)
+       Case 75: Lese.Ausgeb "   Verkürze Inhalt von rFa.dmpHypertSchulEmpf: '" & rFa(k).dmpHypertSchulEmpf & "' -> '" & Left$(rFa(k).dmpHypertSchulEmpf, maxL)  & "'",true : rFa(k).dmpHypertSchulEmpf = Left$(rFa(k).dmpHypertSchulEmpf, maxL)
+       Case 76: Lese.Ausgeb "   Verkürze Inhalt von rFa.dmpHypertSchulWahrg: '" & rFa(k).dmpHypertSchulWahrg & "' -> '" & Left$(rFa(k).dmpHypertSchulWahrg, maxL)  & "'",true : rFa(k).dmpHypertSchulWahrg = Left$(rFa(k).dmpHypertSchulWahrg, maxL)
+       Case 77: Lese.Ausgeb "   Verkürze Inhalt von rFa.dmpKKTabakEmpf: '" & rFa(k).dmpKKTabakEmpf & "' -> '" & Left$(rFa(k).dmpKKTabakEmpf, maxL)  & "'",true : rFa(k).dmpKKTabakEmpf = Left$(rFa(k).dmpKKTabakEmpf, maxL)
+       Case 78: Lese.Ausgeb "   Verkürze Inhalt von rFa.dmpKKErnEmpf: '" & rFa(k).dmpKKErnEmpf & "' -> '" & Left$(rFa(k).dmpKKErnEmpf, maxL)  & "'",true : rFa(k).dmpKKErnEmpf = Left$(rFa(k).dmpKKErnEmpf, maxL)
+       Case 79: Lese.Ausgeb "   Verkürze Inhalt von rFa.dmpKKkTrainEmpf: '" & rFa(k).dmpKKkTrainEmpf & "' -> '" & Left$(rFa(k).dmpKKkTrainEmpf, maxL)  & "'",true : rFa(k).dmpKKkTrainEmpf = Left$(rFa(k).dmpKKkTrainEmpf, maxL)
+       Case 80: Lese.Ausgeb "   Verkürze Inhalt von rFa.dmpHbA1cZiel: '" & rFa(k).dmpHbA1cZiel & "' -> '" & Left$(rFa(k).dmpHbA1cZiel, maxL)  & "'",true : rFa(k).dmpHbA1cZiel = Left$(rFa(k).dmpHbA1cZiel, maxL)
+       Case 81: Lese.Ausgeb "   Verkürze Inhalt von rFa.dmpUewFuss: '" & rFa(k).dmpUewFuss & "' -> '" & Left$(rFa(k).dmpUewFuss, maxL)  & "'",true : rFa(k).dmpUewFuss = Left$(rFa(k).dmpUewFuss, maxL)
+       Case 82: Lese.Ausgeb "   Verkürze Inhalt von rFa.dmpEinwDM: '" & rFa(k).dmpEinwDM & "' -> '" & Left$(rFa(k).dmpEinwDM, maxL)  & "'",true : rFa(k).dmpEinwDM = Left$(rFa(k).dmpEinwDM, maxL)
+       Case 83: Lese.Ausgeb "   Verkürze Inhalt von rFa.dmphalbj: '" & rFa(k).dmphalbj & "' -> '" & Left$(rFa(k).dmphalbj, maxL)  & "'",true : rFa(k).dmphalbj = Left$(rFa(k).dmphalbj, maxL)
+       Case 84: Lese.Ausgeb "   Verkürze Inhalt von rFa.dmpMA: '" & rFa(k).dmpMA & "' -> '" & Left$(rFa(k).dmpMA, maxL)  & "'",true : rFa(k).dmpMA = Left$(rFa(k).dmpMA, maxL)
       END SELECT
      Next
     elseif maxl < 0 THEN
@@ -3353,13 +3449,13 @@ sql:
  For i = 1 to ubound(rAu)
 '  rAu(i).AktZeit = now()
   rAu(i).StByte = CStr(AktByte)
-  IF SammelInsert = 0 OR i = 1 THEN
+  IF SammelInsert = 0 Or i = 1 Then
    csql.Append csql0
-  END IF
+  END IF ' SammelInsert = 0 Or i = 1 Then
   csql.AppVar Array("(" , rAu(i).FID, "," , rAu(i).Pat_ID, "," , DatFor_k(rAu(i).ZeitPunkt), ",'" , rAu(i).Beginn, "','" , rAu(i).Ende, "','" , rAu(i).ICDs, "'," , rAu(i).absPos, "," , DatFor_k(rAu(i).AktZeit), "," ,  _
    rAu(i).StByte, ")")
-  IF SammelInsert <> 0 AND i < ubound(rAu) THEN csql.Append ","
-  IF SammelInsert = 0 OR i = ubound(rAu) THEN
+  IF SammelInsert <> 0 AND i < ubound(rAu) Then csql.Append ","
+  IF SammelInsert = 0 OR i = ubound(rAu) Then
 '    altmode = DBCn.Execute("SELECT @@global.sql_mode").Fields(0)
     altmode = myEFrag("SELECT @@global.sql_mode", , DBCn).Fields(0)
 '   Call DBCn.Execute("SET GLOBAL sql_mode='STRICT_TRANS_TABLES'") ' NO_ENGINE_SUBSTITUTION
@@ -3637,13 +3733,13 @@ sql:
  For i = 1 to ubound(rBr)
 '  rBr(i).AktZeit = now()
   rBr(i).StByte = CStr(AktByte)
-  IF SammelInsert = 0 OR i = 1 THEN
+  IF SammelInsert = 0 Or i = 1 Then
    csql.Append csql0
-  END IF
+  END IF ' SammelInsert = 0 Or i = 1 Then
   csql.AppVar Array("(" , rBr(i).FID, "," , rBr(i).Pat_ID, "," , DatFor_k(rBr(i).ZeitPunkt), ",'" , rBr(i).Pfad, "','" , rBr(i).Art, "','" , rBr(i).Name, "','" , rBr(i).autor, "'," , DatFor_k(rBr(i).Quelldatum), ",'" ,  _
    rBr(i).Typ, "'," , DatFor_k(rBr(i).AktZeit), "," , rBr(i).DokGroe, "," , DatFor_k(rBr(i).DokAenD), ",'" , rBr(i).QS, "','" , rBr(i).QT, "'," , rBr(i).absPos, "," , rBr(i).StByte, ")")
-  IF SammelInsert <> 0 AND i < ubound(rBr) THEN csql.Append ","
-  IF SammelInsert = 0 OR i = ubound(rBr) THEN
+  IF SammelInsert <> 0 AND i < ubound(rBr) Then csql.Append ","
+  IF SammelInsert = 0 OR i = ubound(rBr) Then
 '    altmode = DBCn.Execute("SELECT @@global.sql_mode").Fields(0)
     altmode = myEFrag("SELECT @@global.sql_mode", , DBCn).Fields(0)
 '   Call DBCn.Execute("SET GLOBAL sql_mode='STRICT_TRANS_TABLES'") ' NO_ENGINE_SUBSTITUTION
@@ -3756,10 +3852,10 @@ Public FUNCTION roDiZuw(i&, j&)
  roDi(i).AktZeit = rDi(j).AktZeit
  roDi(i).StByte = rDi(j).StByte
  roDi(i).AusnBegr = rDi(j).AusnBegr
- roDi(i).f6010 = rDi(j).f6010
+ roDi(i).Dggel = rDi(j).Dggel
  roDi(i).obKasse = rDi(j).obKasse
  roDi(i).lKasse = rDi(j).lKasse
- roDi(i).f6011 = rDi(j).f6011
+ roDi(i).KFdFA = rDi(j).KFdFA
 End FUNCTION ' roDiZuw
 
 Public FUNCTION DiZUnt%(i&, j&)
@@ -3778,10 +3874,10 @@ Public FUNCTION DiZUnt%(i&, j&)
  IF roDi(i).AktZeit <> rDi(j).AktZeit THEN gosub unter
  IF roDi(i).StByte <> rDi(j).StByte THEN gosub unter
  IF roDi(i).AusnBegr <> rDi(j).AusnBegr THEN gosub unter
- IF roDi(i).f6010 <> rDi(j).f6010 THEN gosub unter
+ IF roDi(i).Dggel <> rDi(j).Dggel THEN gosub unter
  IF roDi(i).obKasse <> rDi(j).obKasse THEN gosub unter
  IF roDi(i).lKasse <> rDi(j).lKasse THEN gosub unter
- IF roDi(i).f6011 <> rDi(j).f6011 THEN gosub unter
+ IF roDi(i).KFdFA <> rDi(j).KFdFA THEN gosub unter
  Exit Function
 unter:
  DiZUnt = DiZUnt + 1
@@ -3795,8 +3891,8 @@ Public FUNCTION diagnosenLaden()
  sql = "SELECT COALESCE(ID1,0) ID1,COALESCE(FID,0) FID,COALESCE(Pat_id,0) Pat_id,COALESCE(DiagDatum - INTERVAL 0 DAY,CONVERT('18991230',DATE)) DiagDatum" & _
 ",COALESCE(DiagSicherheit,'') DiagSicherheit,COALESCE(DiagText,'') DiagText,COALESCE(DiagSeite,'') DiagSeite,COALESCE(DiagAttr,'') DiagAttr" & _
 ",COALESCE(ICD,'') ICD,COALESCE(obDauer,0) obDauer,COALESCE(intBemerk,'') intBemerk,COALESCE(absPos,0) absPos" & _
-",COALESCE(AktZeit - INTERVAL 0 DAY,CONVERT('18991230',DATE)) AktZeit,COALESCE(StByte,0) StByte,COALESCE(AusnBegr,'') AusnBegr,COALESCE(f6010,0) f6010" & _
-",COALESCE(obKasse,0) obKasse,COALESCE(lKasse - INTERVAL 0 DAY,CONVERT('18991230',DATE)) lKasse,COALESCE(f6011,'') f6011 FROM `diagnosen` WHERE Pat_ID=" & pid & " ORDER BY `DiagDatum`
+",COALESCE(AktZeit - INTERVAL 0 DAY,CONVERT('18991230',DATE)) AktZeit,COALESCE(StByte,0) StByte,COALESCE(AusnBegr,'') AusnBegr,COALESCE(Dggel,0) Dggel" & _
+",COALESCE(obKasse,0) obKasse,COALESCE(lKasse - INTERVAL 0 DAY,CONVERT('18991230',DATE)) lKasse,COALESCE(KFdFA,'') KFdFA FROM `diagnosen` WHERE Pat_ID=" & pid & " ORDER BY `DiagDatum`
  myFrag rs, sql
  If rs.EOF Then
   ReDim roDi(0)
@@ -3819,10 +3915,10 @@ Public FUNCTION diagnosenLaden()
    roDi(akt).AktZeit = rs!AktZeit
    roDi(akt).StByte = rs!StByte
    roDi(akt).AusnBegr = doUmwfSQL(rs!AusnBegr, lies.obMySQL, False)
-   roDi(akt).f6010 = rs!f6010
+   roDi(akt).Dggel = rs!Dggel
    roDi(akt).obKasse = rs!obKasse
    roDi(akt).lKasse = rs!lKasse
-   roDi(akt).f6011 = doUmwfSQL(rs!f6011, lies.obMySQL, False)
+   roDi(akt).KFdFA = doUmwfSQL(rs!KFdFA, lies.obMySQL, False)
    rs.MoveNext
    IF Not rs.EOF THEN ReDim Preserve roDi(UBound(roDi) + 1)
   Loop ' While Not rs.EOF
@@ -3904,10 +4000,10 @@ Public FUNCTION rDiDump()
   Print #200, Left$("rDi(" & i & ").AktZeit:" & String$(33, "."), 33) & rDi(i).AktZeit
   Print #200, Left$("rDi(" & i & ").StByte:" & String$(33, "."), 33) & rDi(i).StByte
   Print #200, Left$("rDi(" & i & ").AusnBegr:" & String$(33, "."), 33) & "'" & rDi(i).AusnBegr & "'"
-  Print #200, Left$("rDi(" & i & ").f6010:" & String$(33, "."), 33) & rDi(i).f6010
+  Print #200, Left$("rDi(" & i & ").Dggel:" & String$(33, "."), 33) & rDi(i).Dggel
   Print #200, Left$("rDi(" & i & ").obKasse:" & String$(33, "."), 33) & rDi(i).obKasse
   Print #200, Left$("rDi(" & i & ").lKasse:" & String$(33, "."), 33) & rDi(i).lKasse
-  Print #200, Left$("rDi(" & i & ").f6011:" & String$(33, "."), 33) & "'" & rDi(i).f6011 & "'"
+  Print #200, Left$("rDi(" & i & ").KFdFA:" & String$(33, "."), 33) & "'" & rDi(i).KFdFA & "'"
  Next i
  Close #200
  zeigan ffadat
@@ -3924,10 +4020,10 @@ Public FUNCTION diagnosenSpeichern(SammelInsert%, BezfSp%)
  syscmd 4, pid & ": Speichere " & Ubound(rDi)+0 & " Sätze in `diagnosen`"
 ' sql0 = " INSERT " & sqlignore &  "INTO `diagnosen` (FID,Pat_id,DiagDatum," & _
      "DiagSicherheit,DiagText,DiagSeite,DiagAttr,ICD,obDauer,intBemerk,absPos,AktZeit,StByte," & _
-     "AusnBegr,f6010,obKasse,lKasse,f6011) VALUES
+     "AusnBegr,Dggel,obKasse,lKasse,KFdFA) VALUES
  Call csql0.AppVar(Array(" INSERT ", sqlIgnore, " INTO `diagnosen` (FID,Pat_id,DiagDatum," & _
      "DiagSicherheit,DiagText,DiagSeite,DiagAttr,ICD,obDauer,intBemerk,absPos,AktZeit,StByte," & _
-     "AusnBegr,f6010,obKasse,lKasse,f6011)               VALUES"))
+     "AusnBegr,Dggel,obKasse,lKasse,KFdFA)               VALUES"))
 sql:
  csql.m_Len = 0
  IF NOT Allepat THEN
@@ -3937,14 +4033,14 @@ sql:
  For i = 1 to ubound(rDi)
 '  rDi(i).AktZeit = now()
   rDi(i).StByte = CStr(AktByte)
-  IF SammelInsert = 0 OR i = 1 THEN
+  IF SammelInsert = 0 Or i = 1 Then
    csql.Append csql0
-  END IF
+  END IF ' SammelInsert = 0 Or i = 1 Then
   csql.AppVar Array("(" , rDi(i).FID, "," , rDi(i).Pat_id, "," , DatFor_k(rDi(i).DiagDatum), ",'" , rDi(i).DiagSicherheit, "','" , rDi(i).DiagText, "','" , rDi(i).DiagSeite, "','" , rDi(i).DiagAttr, "','" ,  _
-   rDi(i).ICD, "'," , rDi(i).obDauer, ",'" , rDi(i).intBemerk, "'," , rDi(i).absPos, "," , DatFor_k(rDi(i).AktZeit), "," , rDi(i).StByte, ",'" , rDi(i).AusnBegr, "'," , rDi(i).f6010, "," , rDi(i).obKasse, "," , DatFor_k( _
-   rDi(i).lKasse), ",'" , rDi(i).f6011, "')")
-  IF SammelInsert <> 0 AND i < ubound(rDi) THEN csql.Append ","
-  IF SammelInsert = 0 OR i = ubound(rDi) THEN
+   rDi(i).ICD, "'," , rDi(i).obDauer, ",'" , rDi(i).intBemerk, "'," , rDi(i).absPos, "," , DatFor_k(rDi(i).AktZeit), "," , rDi(i).StByte, ",'" , rDi(i).AusnBegr, "'," , rDi(i).Dggel, "," , rDi(i).obKasse, "," , DatFor_k( _
+   rDi(i).lKasse), ",'" , rDi(i).KFdFA, "')")
+  IF SammelInsert <> 0 AND i < ubound(rDi) Then csql.Append ","
+  IF SammelInsert = 0 OR i = ubound(rDi) Then
 '    altmode = DBCn.Execute("SELECT @@global.sql_mode").Fields(0)
     altmode = myEFrag("SELECT @@global.sql_mode", , DBCn).Fields(0)
 '   Call DBCn.Execute("SET GLOBAL sql_mode='STRICT_TRANS_TABLES'") ' NO_ENGINE_SUBSTITUTION
@@ -3991,7 +4087,7 @@ ElseIf ErrNumber = -2147217833 OR InStrB(ErrDescr, "Daten zu lang") <> 0 OR InSt
   IF Len(rDi(k).ICD) > maxi(4) THEN maxi(4) = Len(rDi(k).ICD)
   IF Len(rDi(k).intBemerk) > maxi(5) THEN maxi(5) = Len(rDi(k).intBemerk)
   IF Len(rDi(k).AusnBegr) > maxi(6) THEN maxi(6) = Len(rDi(k).AusnBegr)
-  IF Len(rDi(k).f6011) > maxi(7) THEN maxi(7) = Len(rDi(k).f6011)
+  IF Len(rDi(k).KFdFA) > maxi(7) THEN maxi(7) = Len(rDi(k).KFdFA)
  next k
  If obTrans <> 0 Then If myEFrag("SELECT COUNT(1) FROM information_schema.innodb_trx WHERE trx_mysql_thread_id = CONNECTION_ID()", , DBCn).Fields(0) <> 0 Then ComTrans ' DBCn.CommitTrans: obtrans = 0
  nochmal:
@@ -4012,7 +4108,7 @@ ElseIf ErrNumber = -2147217833 OR InStrB(ErrDescr, "Daten zu lang") <> 0 OR InSt
        Case 4: Lese.Ausgeb "   Verkürze Inhalt von rDi.ICD: '" & rDi(k).ICD & "' -> '" & Left$(rDi(k).ICD, maxL)  & "'",true : rDi(k).ICD = Left$(rDi(k).ICD, maxL)
        Case 5: Lese.Ausgeb "   Verkürze Inhalt von rDi.intBemerk: '" & rDi(k).intBemerk & "' -> '" & Left$(rDi(k).intBemerk, maxL)  & "'",true : rDi(k).intBemerk = Left$(rDi(k).intBemerk, maxL)
        Case 6: Lese.Ausgeb "   Verkürze Inhalt von rDi.AusnBegr: '" & rDi(k).AusnBegr & "' -> '" & Left$(rDi(k).AusnBegr, maxL)  & "'",true : rDi(k).AusnBegr = Left$(rDi(k).AusnBegr, maxL)
-       Case 7: Lese.Ausgeb "   Verkürze Inhalt von rDi.f6011: '" & rDi(k).f6011 & "' -> '" & Left$(rDi(k).f6011, maxL)  & "'",true : rDi(k).f6011 = Left$(rDi(k).f6011, maxL)
+       Case 7: Lese.Ausgeb "   Verkürze Inhalt von rDi.KFdFA: '" & rDi(k).KFdFA & "' -> '" & Left$(rDi(k).KFdFA, maxL)  & "'",true : rDi(k).KFdFA = Left$(rDi(k).KFdFA, maxL)
       END SELECT
      Next
     elseif maxl < 0 THEN
@@ -4219,13 +4315,13 @@ sql:
  For i = 1 to ubound(rDo)
 '  rDo(i).AktZeit = now()
   rDo(i).StByte = CStr(AktByte)
-  IF SammelInsert = 0 OR i = 1 THEN
+  IF SammelInsert = 0 Or i = 1 Then
    csql.Append csql0
-  END IF
+  END IF ' SammelInsert = 0 Or i = 1 Then
   csql.AppVar Array("(" , rDo(i).FID, "," , rDo(i).Pat_ID, "," , DatFor_k(rDo(i).ZeitPunkt), ",'" , rDo(i).DokPfad, "','" , rDo(i).DokArt, "','" , rDo(i).DokName, "'," , DatFor_k(rDo(i).Quelldatum), "," ,  _
    rDo(i).absPos, "," , DatFor_k(rDo(i).AktZeit), "," , rDo(i).DokGroe, "," , DatFor_k(rDo(i).DokAenD), ",'" , rDo(i).QS, "','" , rDo(i).QT, "'," , rDo(i).StByte, ")")
-  IF SammelInsert <> 0 AND i < ubound(rDo) THEN csql.Append ","
-  IF SammelInsert = 0 OR i = ubound(rDo) THEN
+  IF SammelInsert <> 0 AND i < ubound(rDo) Then csql.Append ","
+  IF SammelInsert = 0 OR i = ubound(rDo) Then
 '    altmode = DBCn.Execute("SELECT @@global.sql_mode").Fields(0)
     altmode = myEFrag("SELECT @@global.sql_mode", , DBCn).Fields(0)
 '   Call DBCn.Execute("SET GLOBAL sql_mode='STRICT_TRANS_TABLES'") ' NO_ENGINE_SUBSTITUTION
@@ -4484,13 +4580,13 @@ sql:
  For i = 1 to ubound(rEi)
 '  rEi(i).AktZeit = now()
   rEi(i).StByte = CStr(AktByte)
-  IF SammelInsert = 0 OR i = 1 THEN
+  IF SammelInsert = 0 Or i = 1 Then
    csql.Append csql0
-  END IF
+  END IF ' SammelInsert = 0 Or i = 1 Then
   csql.AppVar Array("(" , rEi(i).FID, "," , rEi(i).Pat_ID, "," , DatFor_k(rEi(i).ZeitPunkt), ",'" , rEi(i).Art, "','" , rEi(i).Inhalt, "'," , rEi(i).absPos, "," , DatFor_k(rEi(i).AktZeit), ",'" , rEi(i).QS, "','" ,  _
    rEi(i).QT, "'," , rEi(i).StByte, "," , replace$(rEi(i).inhNum,",","."), ")")
-  IF SammelInsert <> 0 AND i < ubound(rEi) THEN csql.Append ","
-  IF SammelInsert = 0 OR i = ubound(rEi) THEN
+  IF SammelInsert <> 0 AND i < ubound(rEi) Then csql.Append ","
+  IF SammelInsert = 0 OR i = ubound(rEi) Then
 '    altmode = DBCn.Execute("SELECT @@global.sql_mode").Fields(0)
     altmode = myEFrag("SELECT @@global.sql_mode", , DBCn).Fields(0)
 '   Call DBCn.Execute("SET GLOBAL sql_mode='STRICT_TRANS_TABLES'") ' NO_ENGINE_SUBSTITUTION
@@ -4611,12 +4707,12 @@ sql:
  END IF ' not AllePat
  For i = rFi1 + 1 to ubound(rFi)
 '  rFi(i).AktZeit = now()
-  IF SammelInsert = 0 OR i = rFi1 + 1 THEN
+  IF SammelInsert = 0 Or i = rFi1 + 1 Then
    csql.Append csql0
-  END IF
+  END IF ' SammelInsert = 0 Or i = rFi1 + 1 Then
   csql.AppVar Array("('" , rFi(i).Form_Abk, "')")
-  IF SammelInsert <> 0 AND i < ubound(rFi) THEN csql.Append ","
-  IF SammelInsert = 0 OR i = ubound(rFi) THEN
+  IF SammelInsert <> 0 AND i < ubound(rFi) Then csql.Append ","
+  IF SammelInsert = 0 OR i = ubound(rFi) Then
 '    altmode = DBCn.Execute("SELECT @@global.sql_mode").Fields(0)
     altmode = myEFrag("SELECT @@global.sql_mode", , DBCn).Fields(0)
 '   Call DBCn.Execute("SET GLOBAL sql_mode='STRICT_TRANS_TABLES'") ' NO_ENGINE_SUBSTITUTION
@@ -4740,12 +4836,12 @@ sql:
  For i = rFo1 + 1 to ubound(rFo)
 '  rFo(i).AktZeit = now()
   rFo(i).StByte = CStr(AktByte)
-  IF SammelInsert = 0 OR i = rFo1 + 1 THEN
+  IF SammelInsert = 0 Or i = rFo1 + 1 Then
    csql.Append csql0
-  END IF
+  END IF ' SammelInsert = 0 Or i = rFo1 + 1 Then
   csql.AppVar Array("(" , rFo(i).FormID, ",'" , rFo(i).Form_Abk, "','" , rFo(i).FormBez, "','" , rFo(i).FormVorl, "'," , DatFor_k(rFo(i).AktZeit), "," , rFo(i).absPos, "," , rFo(i).StByte, ")")
-  IF SammelInsert <> 0 AND i < ubound(rFo) THEN csql.Append ","
-  IF SammelInsert = 0 OR i = ubound(rFo) THEN
+  IF SammelInsert <> 0 AND i < ubound(rFo) Then csql.Append ","
+  IF SammelInsert = 0 OR i = ubound(rFo) Then
 '    altmode = DBCn.Execute("SELECT @@global.sql_mode").Fields(0)
     altmode = myEFrag("SELECT @@global.sql_mode", , DBCn).Fields(0)
 '   Call DBCn.Execute("SET GLOBAL sql_mode='STRICT_TRANS_TABLES'") ' NO_ENGINE_SUBSTITUTION
@@ -5000,13 +5096,13 @@ sql:
  For i = 1 to ubound(rFr)
 '  rFr(i).AktZeit = now()
   rFr(i).StByte = CStr(AktByte)
-  IF SammelInsert = 0 OR i = 1 THEN
+  IF SammelInsert = 0 Or i = 1 Then
    csql.Append csql0
-  END IF
+  END IF ' SammelInsert = 0 Or i = 1 Then
   csql.AppVar Array("(" , rFr(i).FoID, "," , rFr(i).FID, "," , rFr(i).Pat_ID, "," , rFr(i).Form_ID, "," , DatFor_k(rFr(i).ZeitPunkt), "," , rFr(i).AbsPos, "," , DatFor_k(rFr(i).AktZeit), "," , rFr(i).StByte, ",'" ,  _
    rFr(i).Satzart, "','" , rFr(i).Satzlänge, "'," , rFr(i).LANRid, ")")
-  IF SammelInsert <> 0 AND i < ubound(rFr) THEN csql.Append ","
-  IF SammelInsert = 0 OR i = ubound(rFr) THEN
+  IF SammelInsert <> 0 AND i < ubound(rFr) Then csql.Append ","
+  IF SammelInsert = 0 OR i = ubound(rFr) Then
 '    altmode = DBCn.Execute("SELECT @@global.sql_mode").Fields(0)
     altmode = myEFrag("SELECT @@global.sql_mode", , DBCn).Fields(0)
 '   Call DBCn.Execute("SET GLOBAL sql_mode='STRICT_TRANS_TABLES'") ' NO_ENGINE_SUBSTITUTION
@@ -5146,12 +5242,12 @@ sql:
  END IF ' not AllePat
  For i = 1 to ubound(rFm)
 '  rFm(i).AktZeit = now()
-  IF SammelInsert = 0 OR i = 1 THEN
+  IF SammelInsert = 0 Or i = 1 Then
    csql.Append csql0
-  END IF
+  END IF ' SammelInsert = 0 Or i = 1 Then
   csql.AppVar Array("(" , rFm(i).FoID, "," , rFm(i).Nr, "," , rFm(i).FeldNr, "," , rFm(i).FeldVW, "," , rFm(i).FeldInhVW, ")")
-  IF SammelInsert <> 0 AND i < ubound(rFm) THEN csql.Append ","
-  IF SammelInsert = 0 OR i = ubound(rFm) THEN
+  IF SammelInsert <> 0 AND i < ubound(rFm) Then csql.Append ","
+  IF SammelInsert = 0 OR i = ubound(rFm) Then
 '    altmode = DBCn.Execute("SELECT @@global.sql_mode").Fields(0)
     altmode = myEFrag("SELECT @@global.sql_mode", , DBCn).Fields(0)
 '   Call DBCn.Execute("SET GLOBAL sql_mode='STRICT_TRANS_TABLES'") ' NO_ENGINE_SUBSTITUTION
@@ -5383,12 +5479,12 @@ sql:
  For i = 1 to ubound(rKh)
 '  rKh(i).AktZeit = now()
   rKh(i).StByte = CStr(AktByte)
-  IF SammelInsert = 0 OR i = 1 THEN
+  IF SammelInsert = 0 Or i = 1 Then
    csql.Append csql0
-  END IF
+  END IF ' SammelInsert = 0 Or i = 1 Then
   csql.AppVar Array("(" , rKh(i).FID, "," , rKh(i).Pat_ID, "," , DatFor_k(rKh(i).ZeitPunkt), ",'" , rKh(i).Ziel, "','" , rKh(i).Diagnose, "'," , rKh(i).absPos, "," , DatFor_k(rKh(i).AktZeit), "," , rKh(i).StByte, ")")
-  IF SammelInsert <> 0 AND i < ubound(rKh) THEN csql.Append ","
-  IF SammelInsert = 0 OR i = ubound(rKh) THEN
+  IF SammelInsert <> 0 AND i < ubound(rKh) Then csql.Append ","
+  IF SammelInsert = 0 OR i = ubound(rKh) Then
 '    altmode = DBCn.Execute("SELECT @@global.sql_mode").Fields(0)
     altmode = myEFrag("SELECT @@global.sql_mode", , DBCn).Fields(0)
 '   Call DBCn.Execute("SET GLOBAL sql_mode='STRICT_TRANS_TABLES'") ' NO_ENGINE_SUBSTITUTION
@@ -5619,12 +5715,12 @@ sql:
  For i = 1 to ubound(rLb)
 '  rLb(i).AktZeit = now()
   rLb(i).StByte = CStr(AktByte)
-  IF SammelInsert = 0 OR i = 1 THEN
+  IF SammelInsert = 0 Or i = 1 Then
    csql.Append csql0
-  END IF
+  END IF ' SammelInsert = 0 Or i = 1 Then
   csql.AppVar Array("(" , rLb(i).FID, "," , rLb(i).Pat_ID, "," , DatFor_k(rLb(i).ZeitPunkt), ",'" , rLb(i).AnfText, "'," , rLb(i).absPos, "," , DatFor_k(rLb(i).AktZeit), "," , rLb(i).StByte, ")")
-  IF SammelInsert <> 0 AND i < ubound(rLb) THEN csql.Append ","
-  IF SammelInsert = 0 OR i = ubound(rLb) THEN
+  IF SammelInsert <> 0 AND i < ubound(rLb) Then csql.Append ","
+  IF SammelInsert = 0 OR i = ubound(rLb) Then
 '    altmode = DBCn.Execute("SELECT @@global.sql_mode").Fields(0)
     altmode = myEFrag("SELECT @@global.sql_mode", , DBCn).Fields(0)
 '   Call DBCn.Execute("SET GLOBAL sql_mode='STRICT_TRANS_TABLES'") ' NO_ENGINE_SUBSTITUTION
@@ -5718,12 +5814,14 @@ Public FUNCTION roLaZuw(i&, j&)
  roLa(i).LangtextVW = rLa(j).LangtextVW
  roLa(i).Wert = rLa(j).Wert
  roLa(i).Einheit = rLa(j).Einheit
+ roLa(i).AnmkgVW = rLa(j).AnmkgVW
  roLa(i).KommentarVW = rLa(j).KommentarVW
  roLa(i).AbsPos = rLa(j).AbsPos
  roLa(i).AktZeit = rLa(j).AktZeit
  roLa(i).Refnr = rLa(j).Refnr
  roLa(i).StByte = rLa(j).StByte
  roLa(i).ID = rLa(j).ID
+ roLa(i).AbschlZl = rLa(j).AbschlZl
 End FUNCTION ' roLaZuw
 
 Public FUNCTION LaZUnt%(i&, j&)
@@ -5735,12 +5833,14 @@ Public FUNCTION LaZUnt%(i&, j&)
  IF roLa(i).LangtextVW <> rLa(j).LangtextVW THEN gosub unter
  IF roLa(i).Wert <> rLa(j).Wert THEN gosub unter
  IF roLa(i).Einheit <> rLa(j).Einheit THEN gosub unter
+ IF roLa(i).AnmkgVW <> rLa(j).AnmkgVW THEN gosub unter
  IF roLa(i).KommentarVW <> rLa(j).KommentarVW THEN gosub unter
  IF roLa(i).AbsPos <> rLa(j).AbsPos THEN gosub unter
  IF roLa(i).AktZeit <> rLa(j).AktZeit THEN gosub unter
  IF roLa(i).Refnr <> rLa(j).Refnr THEN gosub unter
  IF roLa(i).StByte <> rLa(j).StByte THEN gosub unter
  IF roLa(i).ID <> rLa(j).ID THEN gosub unter
+ IF roLa(i).AbschlZl <> rLa(j).AbschlZl THEN gosub unter
  Exit Function
 unter:
  LaZUnt = LaZUnt + 1
@@ -5753,8 +5853,9 @@ Public FUNCTION laborneuLaden()
  pid = rNa(0).Pat_id
  sql = "SELECT COALESCE(FID,0) FID,COALESCE(Pat_ID,0) Pat_ID,COALESCE(ZeitPunkt - INTERVAL 0 DAY,CONVERT('18991230',DATE)) ZeitPunkt,COALESCE(FertigStGrad,'') FertigStGrad" & _
 ",COALESCE(Abkü,'') Abkü,COALESCE(LangtextVW,0) LangtextVW,COALESCE(Wert,'') Wert,COALESCE(Einheit,'') Einheit" & _
-",COALESCE(KommentarVW,0) KommentarVW,COALESCE(AbsPos,0) AbsPos,COALESCE(AktZeit - INTERVAL 0 DAY,CONVERT('18991230',DATE)) AktZeit,COALESCE(Refnr,0) Refnr" & _
-",COALESCE(StByte,0) StByte,COALESCE(ID,0) ID FROM `laborneu` WHERE Pat_ID=" & pid & " ORDER BY `ZeitPunkt`
+",COALESCE(AnmkgVW,0) AnmkgVW,COALESCE(KommentarVW,0) KommentarVW,COALESCE(AbsPos,0) AbsPos,COALESCE(AktZeit - INTERVAL 0 DAY,CONVERT('18991230',DATE)) AktZeit" & _
+",COALESCE(Refnr,0) Refnr,COALESCE(StByte,0) StByte,COALESCE(ID,0) ID,COALESCE(AbschlZl,'') AbschlZl" & _
+" FROM `laborneu` WHERE Pat_ID=" & pid & " ORDER BY `ZeitPunkt`
  myFrag rs, sql
  If rs.EOF Then
   ReDim roLa(0)
@@ -5770,12 +5871,14 @@ Public FUNCTION laborneuLaden()
    roLa(akt).LangtextVW = rs!LangtextVW
    roLa(akt).Wert = doUmwfSQL(rs!Wert, lies.obMySQL, False)
    roLa(akt).Einheit = doUmwfSQL(rs!Einheit, lies.obMySQL, False)
+   roLa(akt).AnmkgVW = rs!AnmkgVW
    roLa(akt).KommentarVW = rs!KommentarVW
    roLa(akt).AbsPos = rs!AbsPos
    roLa(akt).AktZeit = rs!AktZeit
    roLa(akt).Refnr = rs!Refnr
    roLa(akt).StByte = rs!StByte
    roLa(akt).ID = rs!ID
+   roLa(akt).AbschlZl = doUmwfSQL(rs!AbschlZl, lies.obMySQL, False)
    rs.MoveNext
    IF Not rs.EOF THEN ReDim Preserve roLa(UBound(roLa) + 1)
   Loop ' While Not rs.EOF
@@ -5850,12 +5953,14 @@ Public FUNCTION rLaDump()
   Print #200, Left$("rLa(" & i & ").LangtextVW:" & String$(33, "."), 33) & rLa(i).LangtextVW
   Print #200, Left$("rLa(" & i & ").Wert:" & String$(33, "."), 33) & "'" & rLa(i).Wert & "'"
   Print #200, Left$("rLa(" & i & ").Einheit:" & String$(33, "."), 33) & "'" & rLa(i).Einheit & "'"
+  Print #200, Left$("rLa(" & i & ").AnmkgVW:" & String$(33, "."), 33) & rLa(i).AnmkgVW
   Print #200, Left$("rLa(" & i & ").KommentarVW:" & String$(33, "."), 33) & rLa(i).KommentarVW
   Print #200, Left$("rLa(" & i & ").AbsPos:" & String$(33, "."), 33) & rLa(i).AbsPos
   Print #200, Left$("rLa(" & i & ").AktZeit:" & String$(33, "."), 33) & rLa(i).AktZeit
   Print #200, Left$("rLa(" & i & ").Refnr:" & String$(33, "."), 33) & rLa(i).Refnr
   Print #200, Left$("rLa(" & i & ").StByte:" & String$(33, "."), 33) & rLa(i).StByte
   Print #200, Left$("rLa(" & i & ").ID:" & String$(33, "."), 33) & rLa(i).ID
+  Print #200, Left$("rLa(" & i & ").AbschlZl:" & String$(33, "."), 33) & "'" & rLa(i).AbschlZl & "'"
  Next i
  Close #200
  zeigan ffadat
@@ -5871,9 +5976,11 @@ Public FUNCTION laborneuSpeichern(SammelInsert%, BezfSp%)
  ON Error GoTo fehler
  syscmd 4, pid & ": Speichere " & Ubound(rLa)+0 & " Sätze in `laborneu`"
 ' sql0 = " INSERT " & sqlignore &  "INTO `laborneu` (FID,Pat_ID,ZeitPunkt," & _
-     "FertigStGrad,Abkü,LangtextVW,Wert,Einheit,KommentarVW,AbsPos,AktZeit,Refnr,StByte) VALUES
+     "FertigStGrad,Abkü,LangtextVW,Wert,Einheit,AnmkgVW,KommentarVW,AbsPos,AktZeit,Refnr," & _
+     "StByte,AbschlZl) VALUES
  Call csql0.AppVar(Array(" INSERT ", sqlIgnore, " INTO `laborneu` (FID,Pat_ID,ZeitPunkt," & _
-     "FertigStGrad,Abkü,LangtextVW,Wert,Einheit,KommentarVW,AbsPos,AktZeit,Refnr,StByte)           VALUES"))
+     "FertigStGrad,Abkü,LangtextVW,Wert,Einheit,AnmkgVW,KommentarVW,AbsPos,AktZeit,Refnr," & _
+     "StByte,AbschlZl)       VALUES"))
 sql:
  csql.m_Len = 0
  IF NOT Allepat THEN
@@ -5883,13 +5990,13 @@ sql:
  For i = 1 to ubound(rLa)
 '  rLa(i).AktZeit = now()
   rLa(i).StByte = CStr(AktByte)
-  IF SammelInsert = 0 OR i = 1 THEN
+  IF SammelInsert = 0 Or i = 1 Then
    csql.Append csql0
-  END IF
+  END IF ' SammelInsert = 0 Or i = 1 Then
   csql.AppVar Array("(" , rLa(i).FID, "," , rLa(i).Pat_ID, "," , DatFor_k(rLa(i).ZeitPunkt), ",'" , rLa(i).FertigStGrad, "','" , rLa(i).Abkü, "'," , rLa(i).LangtextVW, ",'" , rLa(i).Wert, "','" , rLa(i).Einheit, "'," ,  _
-   rLa(i).KommentarVW, "," , rLa(i).AbsPos, "," , DatFor_k(rLa(i).AktZeit), "," , rLa(i).Refnr, "," , rLa(i).StByte, ")")
-  IF SammelInsert <> 0 AND i < ubound(rLa) THEN csql.Append ","
-  IF SammelInsert = 0 OR i = ubound(rLa) THEN
+   rLa(i).AnmkgVW, "," , rLa(i).KommentarVW, "," , rLa(i).AbsPos, "," , DatFor_k(rLa(i).AktZeit), "," , rLa(i).Refnr, "," , rLa(i).StByte, ",'" , rLa(i).AbschlZl, "')")
+  IF SammelInsert <> 0 AND i < ubound(rLa) Then csql.Append ","
+  IF SammelInsert = 0 OR i = ubound(rLa) Then
 '    altmode = DBCn.Execute("SELECT @@global.sql_mode").Fields(0)
     altmode = myEFrag("SELECT @@global.sql_mode", , DBCn).Fields(0)
 '   Call DBCn.Execute("SET GLOBAL sql_mode='STRICT_TRANS_TABLES'") ' NO_ENGINE_SUBSTITUTION
@@ -5927,12 +6034,13 @@ ElseIf ErrNumber = -2147467259 AND InStrB(ErrDescr, "Daten zu lang") = 0 AND InS
  Resume
 ElseIf ErrNumber = -2147217833 OR InStrB(ErrDescr, "Daten zu lang") <> 0 OR InStrB(ErrDescr, "Data too long") <> 0 THEN
  Dim rsc As Adodb.Recordset, maxi%(), k%
- redim maxi(3)
+ redim maxi(4)
  for k = iif(SammelInsert<>0,1,i) to iif(SammelInsert<>0,ubound(rLa),i)
   IF Len(rLa(k).FertigStGrad) > maxi(0) THEN maxi(0) = Len(rLa(k).FertigStGrad)
   IF Len(rLa(k).Abkü) > maxi(1) THEN maxi(1) = Len(rLa(k).Abkü)
   IF Len(rLa(k).Wert) > maxi(2) THEN maxi(2) = Len(rLa(k).Wert)
   IF Len(rLa(k).Einheit) > maxi(3) THEN maxi(3) = Len(rLa(k).Einheit)
+  IF Len(rLa(k).AbschlZl) > maxi(4) THEN maxi(4) = Len(rLa(k).AbschlZl)
  next k
  If obTrans <> 0 Then If myEFrag("SELECT COUNT(1) FROM information_schema.innodb_trx WHERE trx_mysql_thread_id = CONNECTION_ID()", , DBCn).Fields(0) <> 0 Then ComTrans ' DBCn.CommitTrans: obtrans = 0
  nochmal:
@@ -5950,6 +6058,7 @@ ElseIf ErrNumber = -2147217833 OR InStrB(ErrDescr, "Daten zu lang") <> 0 OR InSt
        Case 1: Lese.Ausgeb "   Verkürze Inhalt von rLa.Abkü: '" & rLa(k).Abkü & "' -> '" & Left$(rLa(k).Abkü, maxL)  & "'",true : rLa(k).Abkü = Left$(rLa(k).Abkü, maxL)
        Case 2: Lese.Ausgeb "   Verkürze Inhalt von rLa.Wert: '" & rLa(k).Wert & "' -> '" & Left$(rLa(k).Wert, maxL)  & "'",true : rLa(k).Wert = Left$(rLa(k).Wert, maxL)
        Case 3: Lese.Ausgeb "   Verkürze Inhalt von rLa.Einheit: '" & rLa(k).Einheit & "' -> '" & Left$(rLa(k).Einheit, maxL)  & "'",true : rLa(k).Einheit = Left$(rLa(k).Einheit, maxL)
+       Case 4: Lese.Ausgeb "   Verkürze Inhalt von rLa.AbschlZl: '" & rLa(k).AbschlZl & "' -> '" & Left$(rLa(k).AbschlZl, maxL)  & "'",true : rLa(k).AbschlZl = Left$(rLa(k).AbschlZl, maxL)
       END SELECT
      Next
     elseif maxl < 0 THEN
@@ -5986,17 +6095,17 @@ Public FUNCTION roLeZuw(i&, j&)
  roLe(i).Pat_ID = rLe(j).Pat_ID
  roLe(i).ZeitPunkt = rLe(j).ZeitPunkt
  roLe(i).Leistung = rLe(j).Leistung
- roLe(i).f5002 = rLe(j).f5002
- roLe(i).f5005 = rLe(j).f5005
- roLe(i).f5006 = rLe(j).f5006
- roLe(i).f5009 = rLe(j).f5009
+ roLe(i).ArtdUs = rLe(j).ArtdUs
+ roLe(i).LAnzl = rLe(j).LAnzl
+ roLe(i).LUhrz = rLe(j).LUhrz
+ roLe(i).LfBegr = rLe(j).LfBegr
  roLe(i).Med = rLe(j).Med
- roLe(i).f5015 = rLe(j).f5015
- roLe(i).f5016 = rLe(j).f5016
- roLe(i).f5021 = rLe(j).f5021
- roLe(i).f5026 = rLe(j).f5026
+ roLe(i).LOrgan = rLe(j).LOrgan
+ roLe(i).LArztBf = rLe(j).LArztBf
+ roLe(i).DtlKbsV = rLe(j).DtlKbsV
+ roLe(i).LEntlDt = rLe(j).LEntlDt
  roLe(i).Faktor = rLe(j).Faktor
- roLe(i).f5098 = rLe(j).f5098
+ roLe(i).LBSNR = rLe(j).LBSNR
  roLe(i).Charge = rLe(j).Charge
  roLe(i).LANR = rLe(j).LANR
  roLe(i).letzVorg = rLe(j).letzVorg
@@ -6019,17 +6128,17 @@ Public FUNCTION LeZUnt%(i&, j&)
  IF roLe(i).Pat_ID <> rLe(j).Pat_ID THEN gosub unter
  IF roLe(i).ZeitPunkt <> rLe(j).ZeitPunkt THEN gosub unter
  IF roLe(i).Leistung <> rLe(j).Leistung THEN gosub unter
- IF roLe(i).f5002 <> rLe(j).f5002 THEN gosub unter
- IF roLe(i).f5005 <> rLe(j).f5005 THEN gosub unter
- IF roLe(i).f5006 <> rLe(j).f5006 THEN gosub unter
- IF roLe(i).f5009 <> rLe(j).f5009 THEN gosub unter
+ IF roLe(i).ArtdUs <> rLe(j).ArtdUs THEN gosub unter
+ IF roLe(i).LAnzl <> rLe(j).LAnzl THEN gosub unter
+ IF roLe(i).LUhrz <> rLe(j).LUhrz THEN gosub unter
+ IF roLe(i).LfBegr <> rLe(j).LfBegr THEN gosub unter
  IF roLe(i).Med <> rLe(j).Med THEN gosub unter
- IF roLe(i).f5015 <> rLe(j).f5015 THEN gosub unter
- IF roLe(i).f5016 <> rLe(j).f5016 THEN gosub unter
- IF roLe(i).f5021 <> rLe(j).f5021 THEN gosub unter
- IF roLe(i).f5026 <> rLe(j).f5026 THEN gosub unter
+ IF roLe(i).LOrgan <> rLe(j).LOrgan THEN gosub unter
+ IF roLe(i).LArztBf <> rLe(j).LArztBf THEN gosub unter
+ IF roLe(i).DtlKbsV <> rLe(j).DtlKbsV THEN gosub unter
+ IF roLe(i).LEntlDt <> rLe(j).LEntlDt THEN gosub unter
  IF roLe(i).Faktor <> rLe(j).Faktor THEN gosub unter
- IF roLe(i).f5098 <> rLe(j).f5098 THEN gosub unter
+ IF roLe(i).LBSNR <> rLe(j).LBSNR THEN gosub unter
  IF roLe(i).Charge <> rLe(j).Charge THEN gosub unter
  IF roLe(i).LANR <> rLe(j).LANR THEN gosub unter
  IF roLe(i).letzVorg <> rLe(j).letzVorg THEN gosub unter
@@ -6055,9 +6164,9 @@ Public FUNCTION leistungenLaden()
  ON Error GoTo fehler
  pid = rNa(0).Pat_id
  sql = "SELECT COALESCE(id,0) id,COALESCE(FID,0) FID,COALESCE(Pat_ID,0) Pat_ID,COALESCE(ZeitPunkt - INTERVAL 0 DAY,CONVERT('18991230',DATE)) ZeitPunkt" & _
-",COALESCE(Leistung,'') Leistung,COALESCE(f5002,'') f5002,COALESCE(f5005,'') f5005,COALESCE(f5006,'') f5006" & _
-",COALESCE(f5009,'') f5009,COALESCE(Med,'') Med,COALESCE(f5015,'') f5015,COALESCE(f5016,'') f5016" & _
-",COALESCE(f5021,'') f5021,COALESCE(f5026,'') f5026,COALESCE(Faktor,'') Faktor,COALESCE(f5098,'') f5098" & _
+",COALESCE(Leistung,'') Leistung,COALESCE(ArtdUs,'') ArtdUs,COALESCE(LAnzl,'') LAnzl,COALESCE(LUhrz,'') LUhrz" & _
+",COALESCE(LfBegr,'') LfBegr,COALESCE(Med,'') Med,COALESCE(LOrgan,'') LOrgan,COALESCE(LArztBf,'') LArztBf" & _
+",COALESCE(DtlKbsV,'') DtlKbsV,COALESCE(LEntlDt,'') LEntlDt,COALESCE(Faktor,'') Faktor,COALESCE(LBSNR,'') LBSNR" & _
 ",COALESCE(Charge,'') Charge,COALESCE(LANR,'') LANR,COALESCE(letzVorg - INTERVAL 0 DAY,CONVERT('18991230',DATE)) letzVorg,COALESCE(Ausn,'') Ausn" & _
 ",COALESCE(Beme,'') Beme,COALESCE(absPos,0) absPos,COALESCE(AktZeit - INTERVAL 0 DAY,CONVERT('18991230',DATE)) AktZeit,COALESCE(QS,'') QS" & _
 ",COALESCE(QT,'') QT,COALESCE(StByte,0) StByte,COALESCE(LANRid,0) LANRid,COALESCE(Sachkbez,'') Sachkbez" & _
@@ -6074,17 +6183,17 @@ Public FUNCTION leistungenLaden()
    roLe(akt).Pat_ID = rs!Pat_ID
    roLe(akt).ZeitPunkt = rs!ZeitPunkt
    roLe(akt).Leistung = doUmwfSQL(rs!Leistung, lies.obMySQL, False)
-   roLe(akt).f5002 = doUmwfSQL(rs!f5002, lies.obMySQL, False)
-   roLe(akt).f5005 = doUmwfSQL(rs!f5005, lies.obMySQL, False)
-   roLe(akt).f5006 = doUmwfSQL(rs!f5006, lies.obMySQL, False)
-   roLe(akt).f5009 = doUmwfSQL(rs!f5009, lies.obMySQL, False)
+   roLe(akt).ArtdUs = doUmwfSQL(rs!ArtdUs, lies.obMySQL, False)
+   roLe(akt).LAnzl = doUmwfSQL(rs!LAnzl, lies.obMySQL, False)
+   roLe(akt).LUhrz = doUmwfSQL(rs!LUhrz, lies.obMySQL, False)
+   roLe(akt).LfBegr = doUmwfSQL(rs!LfBegr, lies.obMySQL, False)
    roLe(akt).Med = doUmwfSQL(rs!Med, lies.obMySQL, False)
-   roLe(akt).f5015 = doUmwfSQL(rs!f5015, lies.obMySQL, False)
-   roLe(akt).f5016 = doUmwfSQL(rs!f5016, lies.obMySQL, False)
-   roLe(akt).f5021 = doUmwfSQL(rs!f5021, lies.obMySQL, False)
-   roLe(akt).f5026 = doUmwfSQL(rs!f5026, lies.obMySQL, False)
+   roLe(akt).LOrgan = doUmwfSQL(rs!LOrgan, lies.obMySQL, False)
+   roLe(akt).LArztBf = doUmwfSQL(rs!LArztBf, lies.obMySQL, False)
+   roLe(akt).DtlKbsV = doUmwfSQL(rs!DtlKbsV, lies.obMySQL, False)
+   roLe(akt).LEntlDt = doUmwfSQL(rs!LEntlDt, lies.obMySQL, False)
    roLe(akt).Faktor = doUmwfSQL(rs!Faktor, lies.obMySQL, False)
-   roLe(akt).f5098 = doUmwfSQL(rs!f5098, lies.obMySQL, False)
+   roLe(akt).LBSNR = doUmwfSQL(rs!LBSNR, lies.obMySQL, False)
    roLe(akt).Charge = doUmwfSQL(rs!Charge, lies.obMySQL, False)
    roLe(akt).LANR = doUmwfSQL(rs!LANR, lies.obMySQL, False)
    roLe(akt).letzVorg = rs!letzVorg
@@ -6170,17 +6279,17 @@ Public FUNCTION rLeDump()
   Print #200, Left$("rLe(" & i & ").Pat_ID:" & String$(33, "."), 33) & rLe(i).Pat_ID
   Print #200, Left$("rLe(" & i & ").ZeitPunkt:" & String$(33, "."), 33) & rLe(i).ZeitPunkt
   Print #200, Left$("rLe(" & i & ").Leistung:" & String$(33, "."), 33) & "'" & rLe(i).Leistung & "'"
-  Print #200, Left$("rLe(" & i & ").f5002:" & String$(33, "."), 33) & "'" & rLe(i).f5002 & "'"
-  Print #200, Left$("rLe(" & i & ").f5005:" & String$(33, "."), 33) & "'" & rLe(i).f5005 & "'"
-  Print #200, Left$("rLe(" & i & ").f5006:" & String$(33, "."), 33) & "'" & rLe(i).f5006 & "'"
-  Print #200, Left$("rLe(" & i & ").f5009:" & String$(33, "."), 33) & "'" & rLe(i).f5009 & "'"
+  Print #200, Left$("rLe(" & i & ").ArtdUs:" & String$(33, "."), 33) & "'" & rLe(i).ArtdUs & "'"
+  Print #200, Left$("rLe(" & i & ").LAnzl:" & String$(33, "."), 33) & "'" & rLe(i).LAnzl & "'"
+  Print #200, Left$("rLe(" & i & ").LUhrz:" & String$(33, "."), 33) & "'" & rLe(i).LUhrz & "'"
+  Print #200, Left$("rLe(" & i & ").LfBegr:" & String$(33, "."), 33) & "'" & rLe(i).LfBegr & "'"
   Print #200, Left$("rLe(" & i & ").Med:" & String$(33, "."), 33) & "'" & rLe(i).Med & "'"
-  Print #200, Left$("rLe(" & i & ").f5015:" & String$(33, "."), 33) & "'" & rLe(i).f5015 & "'"
-  Print #200, Left$("rLe(" & i & ").f5016:" & String$(33, "."), 33) & "'" & rLe(i).f5016 & "'"
-  Print #200, Left$("rLe(" & i & ").f5021:" & String$(33, "."), 33) & "'" & rLe(i).f5021 & "'"
-  Print #200, Left$("rLe(" & i & ").f5026:" & String$(33, "."), 33) & "'" & rLe(i).f5026 & "'"
+  Print #200, Left$("rLe(" & i & ").LOrgan:" & String$(33, "."), 33) & "'" & rLe(i).LOrgan & "'"
+  Print #200, Left$("rLe(" & i & ").LArztBf:" & String$(33, "."), 33) & "'" & rLe(i).LArztBf & "'"
+  Print #200, Left$("rLe(" & i & ").DtlKbsV:" & String$(33, "."), 33) & "'" & rLe(i).DtlKbsV & "'"
+  Print #200, Left$("rLe(" & i & ").LEntlDt:" & String$(33, "."), 33) & "'" & rLe(i).LEntlDt & "'"
   Print #200, Left$("rLe(" & i & ").Faktor:" & String$(33, "."), 33) & "'" & rLe(i).Faktor & "'"
-  Print #200, Left$("rLe(" & i & ").f5098:" & String$(33, "."), 33) & "'" & rLe(i).f5098 & "'"
+  Print #200, Left$("rLe(" & i & ").LBSNR:" & String$(33, "."), 33) & "'" & rLe(i).LBSNR & "'"
   Print #200, Left$("rLe(" & i & ").Charge:" & String$(33, "."), 33) & "'" & rLe(i).Charge & "'"
   Print #200, Left$("rLe(" & i & ").LANR:" & String$(33, "."), 33) & "'" & rLe(i).LANR & "'"
   Print #200, Left$("rLe(" & i & ").letzVorg:" & String$(33, "."), 33) & rLe(i).letzVorg
@@ -6210,12 +6319,12 @@ Public FUNCTION leistungenSpeichern(SammelInsert%, BezfSp%)
  ON Error GoTo fehler
  syscmd 4, pid & ": Speichere " & Ubound(rLe)+0 & " Sätze in `leistungen`"
 ' sql0 = " INSERT " & sqlignore &  "INTO `leistungen` (FID,Pat_ID,ZeitPunkt," & _
-     "Leistung,f5002,f5005,f5006,f5009,Med,f5015,f5016,f5021,f5026," & _
-     "Faktor,f5098,Charge,LANR,letzVorg,Ausn,Beme,absPos,AktZeit,QS," & _
+     "Leistung,ArtdUs,LAnzl,LUhrz,LfBegr,Med,LOrgan,LArztBf,DtlKbsV,LEntlDt," & _
+     "Faktor,LBSNR,Charge,LANR,letzVorg,Ausn,Beme,absPos,AktZeit,QS," & _
      "QT,StByte,LANRid,Sachkbez,Sachkct,Zone) VALUES
  Call csql0.AppVar(Array(" INSERT ", sqlIgnore, " INTO `leistungen` (FID,Pat_ID,ZeitPunkt," & _
-     "Leistung,f5002,f5005,f5006,f5009,Med,f5015,f5016,f5021,f5026," & _
-     "Faktor,f5098,Charge,LANR,letzVorg,Ausn,Beme,absPos,AktZeit,QS," & _
+     "Leistung,ArtdUs,LAnzl,LUhrz,LfBegr,Med,LOrgan,LArztBf,DtlKbsV,LEntlDt," & _
+     "Faktor,LBSNR,Charge,LANR,letzVorg,Ausn,Beme,absPos,AktZeit,QS," & _
      "QT,StByte,LANRid,Sachkbez,Sachkct,Zone)            VALUES"))
 sql:
  csql.m_Len = 0
@@ -6226,15 +6335,15 @@ sql:
  For i = 1 to ubound(rLe)
 '  rLe(i).AktZeit = now()
   rLe(i).StByte = CStr(AktByte)
-  IF SammelInsert = 0 OR i = 1 THEN
+  IF SammelInsert = 0 Or i = 1 Then
    csql.Append csql0
-  END IF
-  csql.AppVar Array("(" , rLe(i).FID, "," , rLe(i).Pat_ID, "," , DatFor_k(rLe(i).ZeitPunkt), ",'" , rLe(i).Leistung, "','" , rLe(i).f5002, "','" , rLe(i).f5005, "','" , rLe(i).f5006, "','" , rLe(i).f5009, "','" ,  _
-   rLe(i).Med, "','" , rLe(i).f5015, "','" , rLe(i).f5016, "','" , rLe(i).f5021, "','" , rLe(i).f5026, "','" , rLe(i).Faktor, "','" , rLe(i).f5098, "','" , rLe(i).Charge, "','" , rLe(i).LANR, "'," , DatFor_k( _
+  END IF ' SammelInsert = 0 Or i = 1 Then
+  csql.AppVar Array("(" , rLe(i).FID, "," , rLe(i).Pat_ID, "," , DatFor_k(rLe(i).ZeitPunkt), ",'" , rLe(i).Leistung, "','" , rLe(i).ArtdUs, "','" , rLe(i).LAnzl, "','" , rLe(i).LUhrz, "','" , rLe(i).LfBegr, "','" ,  _
+   rLe(i).Med, "','" , rLe(i).LOrgan, "','" , rLe(i).LArztBf, "','" , rLe(i).DtlKbsV, "','" , rLe(i).LEntlDt, "','" , rLe(i).Faktor, "','" , rLe(i).LBSNR, "','" , rLe(i).Charge, "','" , rLe(i).LANR, "'," , DatFor_k( _
    rLe(i).letzVorg), ",'" , rLe(i).Ausn, "','" , rLe(i).Beme, "'," , rLe(i).absPos, "," , DatFor_k(rLe(i).AktZeit), ",'" , rLe(i).QS, "','" , rLe(i).QT, "'," , rLe(i).StByte, "," ,  _
    rLe(i).LANRid, ",'" , rLe(i).Sachkbez, "'," , rLe(i).Sachkct, ",'" , rLe(i).Zone, "')")
-  IF SammelInsert <> 0 AND i < ubound(rLe) THEN csql.Append ","
-  IF SammelInsert = 0 OR i = ubound(rLe) THEN
+  IF SammelInsert <> 0 AND i < ubound(rLe) Then csql.Append ","
+  IF SammelInsert = 0 OR i = ubound(rLe) Then
 '    altmode = DBCn.Execute("SELECT @@global.sql_mode").Fields(0)
     altmode = myEFrag("SELECT @@global.sql_mode", , DBCn).Fields(0)
 '   Call DBCn.Execute("SET GLOBAL sql_mode='STRICT_TRANS_TABLES'") ' NO_ENGINE_SUBSTITUTION
@@ -6275,17 +6384,17 @@ ElseIf ErrNumber = -2147217833 OR InStrB(ErrDescr, "Daten zu lang") <> 0 OR InSt
  redim maxi(19)
  for k = iif(SammelInsert<>0,1,i) to iif(SammelInsert<>0,ubound(rLe),i)
   IF Len(rLe(k).Leistung) > maxi(0) THEN maxi(0) = Len(rLe(k).Leistung)
-  IF Len(rLe(k).f5002) > maxi(1) THEN maxi(1) = Len(rLe(k).f5002)
-  IF Len(rLe(k).f5005) > maxi(2) THEN maxi(2) = Len(rLe(k).f5005)
-  IF Len(rLe(k).f5006) > maxi(3) THEN maxi(3) = Len(rLe(k).f5006)
-  IF Len(rLe(k).f5009) > maxi(4) THEN maxi(4) = Len(rLe(k).f5009)
+  IF Len(rLe(k).ArtdUs) > maxi(1) THEN maxi(1) = Len(rLe(k).ArtdUs)
+  IF Len(rLe(k).LAnzl) > maxi(2) THEN maxi(2) = Len(rLe(k).LAnzl)
+  IF Len(rLe(k).LUhrz) > maxi(3) THEN maxi(3) = Len(rLe(k).LUhrz)
+  IF Len(rLe(k).LfBegr) > maxi(4) THEN maxi(4) = Len(rLe(k).LfBegr)
   IF Len(rLe(k).Med) > maxi(5) THEN maxi(5) = Len(rLe(k).Med)
-  IF Len(rLe(k).f5015) > maxi(6) THEN maxi(6) = Len(rLe(k).f5015)
-  IF Len(rLe(k).f5016) > maxi(7) THEN maxi(7) = Len(rLe(k).f5016)
-  IF Len(rLe(k).f5021) > maxi(8) THEN maxi(8) = Len(rLe(k).f5021)
-  IF Len(rLe(k).f5026) > maxi(9) THEN maxi(9) = Len(rLe(k).f5026)
+  IF Len(rLe(k).LOrgan) > maxi(6) THEN maxi(6) = Len(rLe(k).LOrgan)
+  IF Len(rLe(k).LArztBf) > maxi(7) THEN maxi(7) = Len(rLe(k).LArztBf)
+  IF Len(rLe(k).DtlKbsV) > maxi(8) THEN maxi(8) = Len(rLe(k).DtlKbsV)
+  IF Len(rLe(k).LEntlDt) > maxi(9) THEN maxi(9) = Len(rLe(k).LEntlDt)
   IF Len(rLe(k).Faktor) > maxi(10) THEN maxi(10) = Len(rLe(k).Faktor)
-  IF Len(rLe(k).f5098) > maxi(11) THEN maxi(11) = Len(rLe(k).f5098)
+  IF Len(rLe(k).LBSNR) > maxi(11) THEN maxi(11) = Len(rLe(k).LBSNR)
   IF Len(rLe(k).Charge) > maxi(12) THEN maxi(12) = Len(rLe(k).Charge)
   IF Len(rLe(k).LANR) > maxi(13) THEN maxi(13) = Len(rLe(k).LANR)
   IF Len(rLe(k).Ausn) > maxi(14) THEN maxi(14) = Len(rLe(k).Ausn)
@@ -6308,17 +6417,17 @@ ElseIf ErrNumber = -2147217833 OR InStrB(ErrDescr, "Daten zu lang") <> 0 OR InSt
      For k = IIf(SammelInsert <> 0,1, i) To IIf(SammelInsert <> 0,ubound(rLe), i)
       SELECT CASE m
        Case 0: Lese.Ausgeb "   Verkürze Inhalt von rLe.Leistung: '" & rLe(k).Leistung & "' -> '" & Left$(rLe(k).Leistung, maxL)  & "'",true : rLe(k).Leistung = Left$(rLe(k).Leistung, maxL)
-       Case 1: Lese.Ausgeb "   Verkürze Inhalt von rLe.f5002: '" & rLe(k).f5002 & "' -> '" & Left$(rLe(k).f5002, maxL)  & "'",true : rLe(k).f5002 = Left$(rLe(k).f5002, maxL)
-       Case 2: Lese.Ausgeb "   Verkürze Inhalt von rLe.f5005: '" & rLe(k).f5005 & "' -> '" & Left$(rLe(k).f5005, maxL)  & "'",true : rLe(k).f5005 = Left$(rLe(k).f5005, maxL)
-       Case 3: Lese.Ausgeb "   Verkürze Inhalt von rLe.f5006: '" & rLe(k).f5006 & "' -> '" & Left$(rLe(k).f5006, maxL)  & "'",true : rLe(k).f5006 = Left$(rLe(k).f5006, maxL)
-       Case 4: Lese.Ausgeb "   Verkürze Inhalt von rLe.f5009: '" & rLe(k).f5009 & "' -> '" & Left$(rLe(k).f5009, maxL)  & "'",true : rLe(k).f5009 = Left$(rLe(k).f5009, maxL)
+       Case 1: Lese.Ausgeb "   Verkürze Inhalt von rLe.ArtdUs: '" & rLe(k).ArtdUs & "' -> '" & Left$(rLe(k).ArtdUs, maxL)  & "'",true : rLe(k).ArtdUs = Left$(rLe(k).ArtdUs, maxL)
+       Case 2: Lese.Ausgeb "   Verkürze Inhalt von rLe.LAnzl: '" & rLe(k).LAnzl & "' -> '" & Left$(rLe(k).LAnzl, maxL)  & "'",true : rLe(k).LAnzl = Left$(rLe(k).LAnzl, maxL)
+       Case 3: Lese.Ausgeb "   Verkürze Inhalt von rLe.LUhrz: '" & rLe(k).LUhrz & "' -> '" & Left$(rLe(k).LUhrz, maxL)  & "'",true : rLe(k).LUhrz = Left$(rLe(k).LUhrz, maxL)
+       Case 4: Lese.Ausgeb "   Verkürze Inhalt von rLe.LfBegr: '" & rLe(k).LfBegr & "' -> '" & Left$(rLe(k).LfBegr, maxL)  & "'",true : rLe(k).LfBegr = Left$(rLe(k).LfBegr, maxL)
        Case 5: Lese.Ausgeb "   Verkürze Inhalt von rLe.Med: '" & rLe(k).Med & "' -> '" & Left$(rLe(k).Med, maxL)  & "'",true : rLe(k).Med = Left$(rLe(k).Med, maxL)
-       Case 6: Lese.Ausgeb "   Verkürze Inhalt von rLe.f5015: '" & rLe(k).f5015 & "' -> '" & Left$(rLe(k).f5015, maxL)  & "'",true : rLe(k).f5015 = Left$(rLe(k).f5015, maxL)
-       Case 7: Lese.Ausgeb "   Verkürze Inhalt von rLe.f5016: '" & rLe(k).f5016 & "' -> '" & Left$(rLe(k).f5016, maxL)  & "'",true : rLe(k).f5016 = Left$(rLe(k).f5016, maxL)
-       Case 8: Lese.Ausgeb "   Verkürze Inhalt von rLe.f5021: '" & rLe(k).f5021 & "' -> '" & Left$(rLe(k).f5021, maxL)  & "'",true : rLe(k).f5021 = Left$(rLe(k).f5021, maxL)
-       Case 9: Lese.Ausgeb "   Verkürze Inhalt von rLe.f5026: '" & rLe(k).f5026 & "' -> '" & Left$(rLe(k).f5026, maxL)  & "'",true : rLe(k).f5026 = Left$(rLe(k).f5026, maxL)
+       Case 6: Lese.Ausgeb "   Verkürze Inhalt von rLe.LOrgan: '" & rLe(k).LOrgan & "' -> '" & Left$(rLe(k).LOrgan, maxL)  & "'",true : rLe(k).LOrgan = Left$(rLe(k).LOrgan, maxL)
+       Case 7: Lese.Ausgeb "   Verkürze Inhalt von rLe.LArztBf: '" & rLe(k).LArztBf & "' -> '" & Left$(rLe(k).LArztBf, maxL)  & "'",true : rLe(k).LArztBf = Left$(rLe(k).LArztBf, maxL)
+       Case 8: Lese.Ausgeb "   Verkürze Inhalt von rLe.DtlKbsV: '" & rLe(k).DtlKbsV & "' -> '" & Left$(rLe(k).DtlKbsV, maxL)  & "'",true : rLe(k).DtlKbsV = Left$(rLe(k).DtlKbsV, maxL)
+       Case 9: Lese.Ausgeb "   Verkürze Inhalt von rLe.LEntlDt: '" & rLe(k).LEntlDt & "' -> '" & Left$(rLe(k).LEntlDt, maxL)  & "'",true : rLe(k).LEntlDt = Left$(rLe(k).LEntlDt, maxL)
        Case 10: Lese.Ausgeb "   Verkürze Inhalt von rLe.Faktor: '" & rLe(k).Faktor & "' -> '" & Left$(rLe(k).Faktor, maxL)  & "'",true : rLe(k).Faktor = Left$(rLe(k).Faktor, maxL)
-       Case 11: Lese.Ausgeb "   Verkürze Inhalt von rLe.f5098: '" & rLe(k).f5098 & "' -> '" & Left$(rLe(k).f5098, maxL)  & "'",true : rLe(k).f5098 = Left$(rLe(k).f5098, maxL)
+       Case 11: Lese.Ausgeb "   Verkürze Inhalt von rLe.LBSNR: '" & rLe(k).LBSNR & "' -> '" & Left$(rLe(k).LBSNR, maxL)  & "'",true : rLe(k).LBSNR = Left$(rLe(k).LBSNR, maxL)
        Case 12: Lese.Ausgeb "   Verkürze Inhalt von rLe.Charge: '" & rLe(k).Charge & "' -> '" & Left$(rLe(k).Charge, maxL)  & "'",true : rLe(k).Charge = Left$(rLe(k).Charge, maxL)
        Case 13: Lese.Ausgeb "   Verkürze Inhalt von rLe.LANR: '" & rLe(k).LANR & "' -> '" & Left$(rLe(k).LANR, maxL)  & "'",true : rLe(k).LANR = Left$(rLe(k).LANR, maxL)
        Case 14: Lese.Ausgeb "   Verkürze Inhalt von rLe.Ausn: '" & rLe(k).Ausn & "' -> '" & Left$(rLe(k).Ausn, maxL)  & "'",true : rLe(k).Ausn = Left$(rLe(k).Ausn, maxL)
@@ -6582,14 +6691,14 @@ sql:
  For i = 1 to ubound(rMe)
 '  rMe(i).AktZeit = now()
   rMe(i).StByte = CStr(AktByte)
-  IF SammelInsert = 0 OR i = 1 THEN
+  IF SammelInsert = 0 Or i = 1 Then
    csql.Append csql0
-  END IF
+  END IF ' SammelInsert = 0 Or i = 1 Then
   csql.AppVar Array("(" , rMe(i).FID, "," , rMe(i).Pat_ID, "," , rMe(i).MPNr, "," , DatFor_k(rMe(i).ZeitPunkt), "," , DatFor_k(rMe(i).Datum), ",'" , rMe(i).Medikament, "','" , rMe(i).MedAnfang, "','" , rMe(i).Wirkstoff, "'," ,  _
    rMe(i).PZN, "," , rMe(i).FeldNr, ",'" , rMe(i).mo, "','" , rMe(i).mi, "','" , rMe(i).nm, "','" , rMe(i).ab, "','" , rMe(i).zn, "'," , cstr(-(rMe(i).bBed<>0)) , ",'" , rMe(i).Bemerkung, "','" ,  _
    rMe(i).Grund, "','" , rMe(i).Stärke, "','" , rMe(i).Einheit, "','" , rMe(i).Form, "'," , rMe(i).AbsPos, "," , DatFor_k(rMe(i).AktZeit), "," , rMe(i).StByte, "," , cstr(-(rMe(i).ergaenzt<>0)) , ")")
-  IF SammelInsert <> 0 AND i < ubound(rMe) THEN csql.Append ","
-  IF SammelInsert = 0 OR i = ubound(rMe) THEN
+  IF SammelInsert <> 0 AND i < ubound(rMe) Then csql.Append ","
+  IF SammelInsert = 0 OR i = ubound(rMe) Then
 '    altmode = DBCn.Execute("SELECT @@global.sql_mode").Fields(0)
     altmode = myEFrag("SELECT @@global.sql_mode", , DBCn).Fields(0)
 '   Call DBCn.Execute("SET GLOBAL sql_mode='STRICT_TRANS_TABLES'") ' NO_ENGINE_SUBSTITUTION
@@ -6900,14 +7009,14 @@ sql:
  For i = 1 to ubound(rRe)
 '  rRe(i).AktZeit = now()
   rRe(i).StByte = CStr(AktByte)
-  IF SammelInsert = 0 OR i = 1 THEN
+  IF SammelInsert = 0 Or i = 1 Then
    csql.Append csql0
-  END IF
+  END IF ' SammelInsert = 0 Or i = 1 Then
   csql.AppVar Array("(" , rRe(i).FID, "," , rRe(i).Pat_ID, "," , DatFor_k(rRe(i).ZeitPunkt), ",'" , rRe(i).Rezept, "','" , rRe(i).RKlnm, "','" , rRe(i).Rezeptklasse, "','" , rRe(i).Rezklkurz, "','" , rRe(i).Rezkllang, "','" ,  _
    rRe(i).kbez, "','" , rRe(i).Medikament, "'," , rRe(i).auti, "," , rRe(i).anzl, ",'" , rRe(i).PZN, "'," , rRe(i).absPos, "," , DatFor_k(rRe(i).AktZeit), ",'" , rRe(i).QS, "','" ,  _
    rRe(i).QT, "'," , rRe(i).StByte, "," , rRe(i).LANRid, ")")
-  IF SammelInsert <> 0 AND i < ubound(rRe) THEN csql.Append ","
-  IF SammelInsert = 0 OR i = ubound(rRe) THEN
+  IF SammelInsert <> 0 AND i < ubound(rRe) Then csql.Append ","
+  IF SammelInsert = 0 OR i = ubound(rRe) Then
 '    altmode = DBCn.Execute("SELECT @@global.sql_mode").Fields(0)
     altmode = myEFrag("SELECT @@global.sql_mode", , DBCn).Fields(0)
 '   Call DBCn.Execute("SET GLOBAL sql_mode='STRICT_TRANS_TABLES'") ' NO_ENGINE_SUBSTITUTION
@@ -7014,6 +7123,7 @@ Public FUNCTION roRrZuw(i&, j&)
  roRr(i).FID = rRr(j).FID
  roRr(i).Pat_ID = rRr(j).Pat_ID
  roRr(i).ZeitPunkt = rRr(j).ZeitPunkt
+ roRr(i).FormTitel = rRr(j).FormTitel
  roRr(i).RR = rRr(j).RR
  roRr(i).Puls = rRr(j).Puls
  roRr(i).RRsyst = rRr(j).RRsyst
@@ -7030,6 +7140,7 @@ Public FUNCTION RrZUnt%(i&, j&)
  IF roRr(i).FID <> rRr(j).FID THEN gosub unter
  IF roRr(i).Pat_ID <> rRr(j).Pat_ID THEN gosub unter
  IF roRr(i).ZeitPunkt <> rRr(j).ZeitPunkt THEN gosub unter
+ IF roRr(i).FormTitel <> rRr(j).FormTitel THEN gosub unter
  IF roRr(i).RR <> rRr(j).RR THEN gosub unter
  IF roRr(i).Puls <> rRr(j).Puls THEN gosub unter
  IF roRr(i).RRsyst <> rRr(j).RRsyst THEN gosub unter
@@ -7050,10 +7161,10 @@ Public FUNCTION rrLaden()
  Dim pid$, rs As New Recordset, akt&
  ON Error GoTo fehler
  pid = rNa(0).Pat_id
- sql = "SELECT COALESCE(FID,0) FID,COALESCE(Pat_ID,0) Pat_ID,COALESCE(ZeitPunkt - INTERVAL 0 DAY,CONVERT('18991230',DATE)) ZeitPunkt,COALESCE(RR,'') RR" & _
-",COALESCE(Puls,0) Puls,COALESCE(RRsyst,0) RRsyst,COALESCE(RRdiast,0) RRdiast,COALESCE(RRzahl,0) RRzahl" & _
-",COALESCE(Quelle,'') Quelle,COALESCE(Bemerkung,'') Bemerkung,COALESCE(absPos,0) absPos,COALESCE(AktZeit - INTERVAL 0 DAY,CONVERT('18991230',DATE)) AktZeit" & _
-",COALESCE(StByte,0) StByte FROM `rr` WHERE Pat_ID=" & pid & " ORDER BY `ZeitPunkt`
+ sql = "SELECT COALESCE(FID,0) FID,COALESCE(Pat_ID,0) Pat_ID,COALESCE(ZeitPunkt - INTERVAL 0 DAY,CONVERT('18991230',DATE)) ZeitPunkt,COALESCE(FormTitel,'') FormTitel" & _
+",COALESCE(RR,'') RR,COALESCE(Puls,0) Puls,COALESCE(RRsyst,0) RRsyst,COALESCE(RRdiast,0) RRdiast" & _
+",COALESCE(RRzahl,0) RRzahl,COALESCE(Quelle,'') Quelle,COALESCE(Bemerkung,'') Bemerkung,COALESCE(absPos,0) absPos" & _
+",COALESCE(AktZeit - INTERVAL 0 DAY,CONVERT('18991230',DATE)) AktZeit,COALESCE(StByte,0) StByte FROM `rr` WHERE Pat_ID=" & pid & " ORDER BY `ZeitPunkt`
  myFrag rs, sql
  If rs.EOF Then
   ReDim roRr(0)
@@ -7064,6 +7175,7 @@ Public FUNCTION rrLaden()
    roRr(akt).FID = rs!FID
    roRr(akt).Pat_ID = rs!Pat_ID
    roRr(akt).ZeitPunkt = rs!ZeitPunkt
+   roRr(akt).FormTitel = doUmwfSQL(rs!FormTitel, lies.obMySQL, False)
    roRr(akt).RR = doUmwfSQL(rs!RR, lies.obMySQL, False)
    roRr(akt).Puls = rs!Puls
    roRr(akt).RRsyst = rs!RRsyst
@@ -7143,6 +7255,7 @@ Public FUNCTION rRrDump()
   Print #200, Left$("rRr(" & i & ").FID:" & String$(33, "."), 33) & rRr(i).FID
   Print #200, Left$("rRr(" & i & ").Pat_ID:" & String$(33, "."), 33) & rRr(i).Pat_ID
   Print #200, Left$("rRr(" & i & ").ZeitPunkt:" & String$(33, "."), 33) & rRr(i).ZeitPunkt
+  Print #200, Left$("rRr(" & i & ").FormTitel:" & String$(33, "."), 33) & "'" & rRr(i).FormTitel & "'"
   Print #200, Left$("rRr(" & i & ").RR:" & String$(33, "."), 33) & "'" & rRr(i).RR & "'"
   Print #200, Left$("rRr(" & i & ").Puls:" & String$(33, "."), 33) & rRr(i).Puls
   Print #200, Left$("rRr(" & i & ").RRsyst:" & String$(33, "."), 33) & rRr(i).RRsyst
@@ -7168,9 +7281,11 @@ Public FUNCTION rrSpeichern(SammelInsert%, BezfSp%)
  ON Error GoTo fehler
  syscmd 4, pid & ": Speichere " & Ubound(rRr)+0 & " Sätze in `rr`"
 ' sql0 = " INSERT " & sqlignore &  "INTO `rr` (FID,Pat_ID,ZeitPunkt," & _
-     "RR,Puls,RRsyst,RRdiast,RRzahl,Quelle,Bemerkung,absPos,AktZeit,StByte) VALUES
+     "FormTitel,RR,Puls,RRsyst,RRdiast,RRzahl,Quelle,Bemerkung,absPos,AktZeit," & _
+     "StByte) VALUES
  Call csql0.AppVar(Array(" INSERT ", sqlIgnore, " INTO `rr` (FID,Pat_ID,ZeitPunkt," & _
-     "RR,Puls,RRsyst,RRdiast,RRzahl,Quelle,Bemerkung,absPos,AktZeit,StByte)          VALUES"))
+     "FormTitel,RR,Puls,RRsyst,RRdiast,RRzahl,Quelle,Bemerkung,absPos,AktZeit," & _
+     "StByte)  VALUES"))
 sql:
  csql.m_Len = 0
  IF NOT Allepat THEN
@@ -7180,13 +7295,13 @@ sql:
  For i = 1 to ubound(rRr)
 '  rRr(i).AktZeit = now()
   rRr(i).StByte = CStr(AktByte)
-  IF SammelInsert = 0 OR i = 1 THEN
+  IF SammelInsert = 0 Or i = 1 Then
    csql.Append csql0
-  END IF
-  csql.AppVar Array("(" , rRr(i).FID, "," , rRr(i).Pat_ID, "," , DatFor_k(rRr(i).ZeitPunkt), ",'" , rRr(i).RR, "'," , rRr(i).Puls, "," , rRr(i).RRsyst, "," , rRr(i).RRdiast, "," , rRr(i).RRzahl, ",'" , rRr(i).Quelle, "','" ,  _
-   rRr(i).Bemerkung, "'," , rRr(i).absPos, "," , DatFor_k(rRr(i).AktZeit), "," , rRr(i).StByte, ")")
-  IF SammelInsert <> 0 AND i < ubound(rRr) THEN csql.Append ","
-  IF SammelInsert = 0 OR i = ubound(rRr) THEN
+  END IF ' SammelInsert = 0 Or i = 1 Then
+  csql.AppVar Array("(" , rRr(i).FID, "," , rRr(i).Pat_ID, "," , DatFor_k(rRr(i).ZeitPunkt), ",'" , rRr(i).FormTitel, "','" , rRr(i).RR, "'," , rRr(i).Puls, "," , rRr(i).RRsyst, "," , rRr(i).RRdiast, "," ,  _
+   rRr(i).RRzahl, ",'" , rRr(i).Quelle, "','" , rRr(i).Bemerkung, "'," , rRr(i).absPos, "," , DatFor_k(rRr(i).AktZeit), "," , rRr(i).StByte, ")")
+  IF SammelInsert <> 0 AND i < ubound(rRr) Then csql.Append ","
+  IF SammelInsert = 0 OR i = ubound(rRr) Then
 '    altmode = DBCn.Execute("SELECT @@global.sql_mode").Fields(0)
     altmode = myEFrag("SELECT @@global.sql_mode", , DBCn).Fields(0)
 '   Call DBCn.Execute("SET GLOBAL sql_mode='STRICT_TRANS_TABLES'") ' NO_ENGINE_SUBSTITUTION
@@ -7224,11 +7339,12 @@ ElseIf ErrNumber = -2147467259 AND InStrB(ErrDescr, "Daten zu lang") = 0 AND InS
  Resume
 ElseIf ErrNumber = -2147217833 OR InStrB(ErrDescr, "Daten zu lang") <> 0 OR InStrB(ErrDescr, "Data too long") <> 0 THEN
  Dim rsc As Adodb.Recordset, maxi%(), k%
- redim maxi(2)
+ redim maxi(3)
  for k = iif(SammelInsert<>0,1,i) to iif(SammelInsert<>0,ubound(rRr),i)
-  IF Len(rRr(k).RR) > maxi(0) THEN maxi(0) = Len(rRr(k).RR)
-  IF Len(rRr(k).Quelle) > maxi(1) THEN maxi(1) = Len(rRr(k).Quelle)
-  IF Len(rRr(k).Bemerkung) > maxi(2) THEN maxi(2) = Len(rRr(k).Bemerkung)
+  IF Len(rRr(k).FormTitel) > maxi(0) THEN maxi(0) = Len(rRr(k).FormTitel)
+  IF Len(rRr(k).RR) > maxi(1) THEN maxi(1) = Len(rRr(k).RR)
+  IF Len(rRr(k).Quelle) > maxi(2) THEN maxi(2) = Len(rRr(k).Quelle)
+  IF Len(rRr(k).Bemerkung) > maxi(3) THEN maxi(3) = Len(rRr(k).Bemerkung)
  next k
  If obTrans <> 0 Then If myEFrag("SELECT COUNT(1) FROM information_schema.innodb_trx WHERE trx_mysql_thread_id = CONNECTION_ID()", , DBCn).Fields(0) <> 0 Then ComTrans ' DBCn.CommitTrans: obtrans = 0
  nochmal:
@@ -7242,9 +7358,10 @@ ElseIf ErrNumber = -2147217833 OR InStrB(ErrDescr, "Daten zu lang") <> 0 OR InSt
     IF maxL > 0 THEN
      For k = IIf(SammelInsert <> 0,1, i) To IIf(SammelInsert <> 0,ubound(rRr), i)
       SELECT CASE m
-       Case 0: Lese.Ausgeb "   Verkürze Inhalt von rRr.RR: '" & rRr(k).RR & "' -> '" & Left$(rRr(k).RR, maxL)  & "'",true : rRr(k).RR = Left$(rRr(k).RR, maxL)
-       Case 1: Lese.Ausgeb "   Verkürze Inhalt von rRr.Quelle: '" & rRr(k).Quelle & "' -> '" & Left$(rRr(k).Quelle, maxL)  & "'",true : rRr(k).Quelle = Left$(rRr(k).Quelle, maxL)
-       Case 2: Lese.Ausgeb "   Verkürze Inhalt von rRr.Bemerkung: '" & rRr(k).Bemerkung & "' -> '" & Left$(rRr(k).Bemerkung, maxL)  & "'",true : rRr(k).Bemerkung = Left$(rRr(k).Bemerkung, maxL)
+       Case 0: Lese.Ausgeb "   Verkürze Inhalt von rRr.FormTitel: '" & rRr(k).FormTitel & "' -> '" & Left$(rRr(k).FormTitel, maxL)  & "'",true : rRr(k).FormTitel = Left$(rRr(k).FormTitel, maxL)
+       Case 1: Lese.Ausgeb "   Verkürze Inhalt von rRr.RR: '" & rRr(k).RR & "' -> '" & Left$(rRr(k).RR, maxL)  & "'",true : rRr(k).RR = Left$(rRr(k).RR, maxL)
+       Case 2: Lese.Ausgeb "   Verkürze Inhalt von rRr.Quelle: '" & rRr(k).Quelle & "' -> '" & Left$(rRr(k).Quelle, maxL)  & "'",true : rRr(k).Quelle = Left$(rRr(k).Quelle, maxL)
+       Case 3: Lese.Ausgeb "   Verkürze Inhalt von rRr.Bemerkung: '" & rRr(k).Bemerkung & "' -> '" & Left$(rRr(k).Bemerkung, maxL)  & "'",true : rRr(k).Bemerkung = Left$(rRr(k).Bemerkung, maxL)
       END SELECT
      Next
     elseif maxl < 0 THEN
@@ -7314,12 +7431,12 @@ sql:
  For i = 1 to ubound(rKv)
 '  rKv(i).AktZeit = now()
   rKv(i).StByte = CStr(AktByte)
-  IF SammelInsert = 0 OR i = 1 THEN
+  IF SammelInsert = 0 Or i = 1 Then
    csql.Append csql0
-  END IF
+  END IF ' SammelInsert = 0 Or i = 1 Then
   csql.AppVar Array("(" , rKv(i).Pat_ID, ",'" , rKv(i).KVNr, "'," , rKv(i).absPos, "," , DatFor_k(rKv(i).AktZeit), "," , rKv(i).StByte, ")")
-  IF SammelInsert <> 0 AND i < ubound(rKv) THEN csql.Append ","
-  IF SammelInsert = 0 OR i = ubound(rKv) THEN
+  IF SammelInsert <> 0 AND i < ubound(rKv) Then csql.Append ","
+  IF SammelInsert = 0 OR i = ubound(rKv) Then
 '    altmode = DBCn.Execute("SELECT @@global.sql_mode").Fields(0)
     altmode = myEFrag("SELECT @@global.sql_mode", , DBCn).Fields(0)
 '   Call DBCn.Execute("SET GLOBAL sql_mode='STRICT_TRANS_TABLES'") ' NO_ENGINE_SUBSTITUTION
@@ -7434,12 +7551,12 @@ sql:
  For i = rUn1 + 1 to ubound(rUn)
 '  rUn(i).AktZeit = now()
   rUn(i).StByte = CStr(AktByte)
-  IF SammelInsert = 0 OR i = rUn1 + 1 THEN
+  IF SammelInsert = 0 Or i = rUn1 + 1 Then
    csql.Append csql0
-  END IF
+  END IF ' SammelInsert = 0 Or i = rUn1 + 1 Then
   csql.AppVar Array("('" , rUn(i).Kennung, "'," , rUn(i).absPos, "," , rUn(i).StByte, "," , rUn(i).Pat_id, ",'" , rUn(i).Inhalt, "')")
-  IF SammelInsert <> 0 AND i < ubound(rUn) THEN csql.Append ","
-  IF SammelInsert = 0 OR i = ubound(rUn) THEN
+  IF SammelInsert <> 0 AND i < ubound(rUn) Then csql.Append ","
+  IF SammelInsert = 0 OR i = ubound(rUn) Then
 '    altmode = DBCn.Execute("SELECT @@global.sql_mode").Fields(0)
     altmode = myEFrag("SELECT @@global.sql_mode", , DBCn).Fields(0)
 '   Call DBCn.Execute("SET GLOBAL sql_mode='STRICT_TRANS_TABLES'") ' NO_ENGINE_SUBSTITUTION
@@ -7712,14 +7829,14 @@ sql:
  For i = 1 to ubound(rDm)
 '  rDm(i).AktZeit = now()
   rDm(i).StByte = CStr(AktByte)
-  IF SammelInsert = 0 OR i = 1 THEN
+  IF SammelInsert = 0 Or i = 1 Then
    csql.Append csql0
-  END IF
+  END IF ' SammelInsert = 0 Or i = 1 Then
   csql.AppVar Array("('" , rDm(i).Abk, "','" , rDm(i).Art, "'," , DatFor_k(rDm(i).KarteiDatum), "," , DatFor_k(rDm(i).exportiert), "," , DatFor_k(rDm(i).DokuDatum), "," , cstr(-(rDm(i).obvoll<>0)) , "," , cstr(-( _
    rDm(i).ok<>0)) , "," , cstr(-(rDm(i).ausgedruckt<>0)) , ",'" , rDm(i).NachName, "','" , rDm(i).VorName, "'," , DatFor_k(rDm(i).GebDat), "," , rDm(i).Pat_id, "," , rDm(i).StByte, "," , DatFor_k(rDm(i).AktZeit), "," ,  _
    rDm(i).lanrid, ",'" , rDm(i).Zusatzdaten, "')")
-  IF SammelInsert <> 0 AND i < ubound(rDm) THEN csql.Append ","
-  IF SammelInsert = 0 OR i = ubound(rDm) THEN
+  IF SammelInsert <> 0 AND i < ubound(rDm) Then csql.Append ","
+  IF SammelInsert = 0 OR i = ubound(rDm) Then
 '    altmode = DBCn.Execute("SELECT @@global.sql_mode").Fields(0)
     altmode = myEFrag("SELECT @@global.sql_mode", , DBCn).Fields(0)
 '   Call DBCn.Execute("SET GLOBAL sql_mode='STRICT_TRANS_TABLES'") ' NO_ENGINE_SUBSTITUTION
@@ -8018,14 +8135,14 @@ sql:
  For i = 1 to ubound(rDe)
 '  rDe(i).AktZeit = now()
   rDe(i).StByte = CStr(AktByte)
-  IF SammelInsert = 0 OR i = 1 THEN
+  IF SammelInsert = 0 Or i = 1 Then
    csql.Append csql0
-  END IF
+  END IF ' SammelInsert = 0 Or i = 1 Then
   csql.AppVar Array("('" , rDe(i).IDS, "'," , rDe(i).Pat_ID, "," , DatFor_k(rDe(i).erstZP), ",'" , rDe(i).exoL, "'," , rDe(i).hideT, ",'" , rDe(i).iconPath, "'," , rDe(i).noteBkColor, "," , rDe(i).noteFgColor, "," ,  _
    rDe(i).positionBottom, "," , rDe(i).positionLeft, "," , rDe(i).positionRight, "," , rDe(i).positionTop, "," , rDe(i).showAsNote, ",'" , rDe(i).syncInfoList, "','" , rDe(i).titel, "','" ,  _
    rDe(i).toolTipText, "'," , rDe(i).verankert, "," , rDe(i).absPos, "," , DatFor_k(rDe(i).AktZeit), "," , rDe(i).StByte, ")")
-  IF SammelInsert <> 0 AND i < ubound(rDe) THEN csql.Append ","
-  IF SammelInsert = 0 OR i = ubound(rDe) THEN
+  IF SammelInsert <> 0 AND i < ubound(rDe) Then csql.Append ","
+  IF SammelInsert = 0 OR i = ubound(rDe) Then
 '    altmode = DBCn.Execute("SELECT @@global.sql_mode").Fields(0)
     altmode = myEFrag("SELECT @@global.sql_mode", , DBCn).Fields(0)
 '   Call DBCn.Execute("SET GLOBAL sql_mode='STRICT_TRANS_TABLES'") ' NO_ENGINE_SUBSTITUTION
@@ -8438,17 +8555,17 @@ sql:
  For i = 1 to ubound(rUs)
 '  rUs(i).AktZeit = now()
   rUs(i).StByte = CStr(AktByte)
-  IF SammelInsert = 0 OR i = 1 THEN
+  IF SammelInsert = 0 Or i = 1 Then
    csql.Append csql0
-  END IF
+  END IF ' SammelInsert = 0 Or i = 1 Then
   csql.AppVar Array("(" , rUs(i).FID, "," , rUs(i).Pat_ID, "," , DatFor_k(rUs(i).ZeitPunkt), ",'" , rUs(i).Art, "','" , rUs(i).Spritzst, "','" , rUs(i).Fußbef_re, "','" , rUs(i).Fußbef_li, "','" , rUs(i).Hyperk_re, "','" ,  _
    rUs(i).Hyperk_li, "','" , rUs(i).Ulcera_re, "','" , rUs(i).Ulcera_li, "','" , rUs(i).Kraft_Zh_re, "','" , rUs(i).Kraft_Zh_li, "','" , rUs(i).Kraft_Zb_re, "','" , rUs(i).Kraft_Zb_li, "','" ,  _
    rUs(i).Kraft_Knie_re, "','" , rUs(i).Kraft_Knie_li, "','" , rUs(i).ASR_re, "','" , rUs(i).ASR_li, "','" , rUs(i).PSR_re, "','" , rUs(i).PSR_li, "','" , rUs(i).Oberfl_re, "','" , rUs(i).Oberfl_li, "','" ,  _
    rUs(i).MF_re, "','" , rUs(i).MF_li, "','" , rUs(i).KW_re, "','" , rUs(i).KW_li, "','" , rUs(i).Vibr_IK_re, "','" , rUs(i).Vibr_IK_li, "','" , rUs(i).Vibr_GZ_re, "','" ,  _
    rUs(i).Vibr_GZ_li, "','" , rUs(i).PulsL_re, "','" , rUs(i).PulsL_li, "','" , rUs(i).PulsKK_re, "','" , rUs(i).PulsKK_li, "','" , rUs(i).PulsAtp_re, "','" , rUs(i).PulsAtp_li, "','" , rUs(i).PulsAdp_re, "','" ,  _
    rUs(i).PulsAdp_li, "','" , rUs(i).Mitarbeiter, "'," , rUs(i).absPos, "," , DatFor_k(rUs(i).AktZeit), ",'" , rUs(i).QS, "','" , rUs(i).QT, "'," , rUs(i).StByte, ")")
-  IF SammelInsert <> 0 AND i < ubound(rUs) THEN csql.Append ","
-  IF SammelInsert = 0 OR i = ubound(rUs) THEN
+  IF SammelInsert <> 0 AND i < ubound(rUs) Then csql.Append ","
+  IF SammelInsert = 0 OR i = ubound(rUs) Then
 '    altmode = DBCn.Execute("SELECT @@global.sql_mode").Fields(0)
     altmode = myEFrag("SELECT @@global.sql_mode", , DBCn).Fields(0)
 '   Call DBCn.Execute("SET GLOBAL sql_mode='STRICT_TRANS_TABLES'") ' NO_ENGINE_SUBSTITUTION
@@ -8811,14 +8928,14 @@ sql:
  For i = 1 to ubound(rFu)
 '  rFu(i).AktZeit = now()
   rFu(i).StByte = CStr(AktByte)
-  IF SammelInsert = 0 OR i = 1 THEN
+  IF SammelInsert = 0 Or i = 1 Then
    csql.Append csql0
-  END IF
+  END IF ' SammelInsert = 0 Or i = 1 Then
   csql.AppVar Array("(" , rFu(i).FID, "," , rFu(i).Pat_ID, "," , DatFor_k(rFu(i).ZeitPunkt), ",'" , rFu(i).Art, "','" , rFu(i).Fußdeform, "','" , rFu(i).Hyper_mEin, "','" , rFu(i).Weiteres, "','" , rFu(i).Zn_Ulcus, "','" ,  _
    rFu(i).Zn_Amput, "','" , rFu(i).Fuß_ang, "','" , rFu(i).Ulcera, "','" , rFu(i).Wundinfektion, "','" , rFu(i).nae_US, "','" , rFu(i).Mitarbeiter, "'," , rFu(i).absPos, "," , DatFor_k(rFu(i).AktZeit), ",'" ,  _
    rFu(i).QS, "','" , rFu(i).QT, "'," , rFu(i).StByte, ")")
-  IF SammelInsert <> 0 AND i < ubound(rFu) THEN csql.Append ","
-  IF SammelInsert = 0 OR i = ubound(rFu) THEN
+  IF SammelInsert <> 0 AND i < ubound(rFu) Then csql.Append ","
+  IF SammelInsert = 0 OR i = ubound(rFu) Then
 '    altmode = DBCn.Execute("SELECT @@global.sql_mode").Fields(0)
     altmode = myEFrag("SELECT @@global.sql_mode", , DBCn).Fields(0)
 '   Call DBCn.Execute("SET GLOBAL sql_mode='STRICT_TRANS_TABLES'") ' NO_ENGINE_SUBSTITUTION
@@ -9120,14 +9237,14 @@ sql:
  For i = 1 to ubound(rUl)
 '  rUl(i).AktZeit = now()
   rUl(i).StByte = CStr(AktByte)
-  IF SammelInsert = 0 OR i = 1 THEN
+  IF SammelInsert = 0 Or i = 1 Then
    csql.Append csql0
-  END IF
+  END IF ' SammelInsert = 0 Or i = 1 Then
   csql.AppVar Array("(" , rUl(i).FID, "," , rUl(i).Pat_ID, "," , DatFor_k(rUl(i).ZeitPunkt), ",'" , rUl(i).Lokalisation, "','" , rUl(i).Seite, "','" , rUl(i).Größe, "','" , rUl(i).Beläge, "','" , rUl(i).Exsudat, "','" ,  _
    rUl(i).Geruch, "','" , rUl(i).Wundrand, "','" , rUl(i).Wundumgebung, "','" , rUl(i).Temperatur, "','" , rUl(i).Fotodoku, "','" , rUl(i).Wundversorgung, "','" , rUl(i).Mitarbeiter, "'," ,  _
    rUl(i).absPos, "," , DatFor_k(rUl(i).AktZeit), "," , rUl(i).StByte, ")")
-  IF SammelInsert <> 0 AND i < ubound(rUl) THEN csql.Append ","
-  IF SammelInsert = 0 OR i = ubound(rUl) THEN
+  IF SammelInsert <> 0 AND i < ubound(rUl) Then csql.Append ","
+  IF SammelInsert = 0 OR i = ubound(rUl) Then
 '    altmode = DBCn.Execute("SELECT @@global.sql_mode").Fields(0)
     altmode = myEFrag("SELECT @@global.sql_mode", , DBCn).Fields(0)
 '   Call DBCn.Execute("SET GLOBAL sql_mode='STRICT_TRANS_TABLES'") ' NO_ENGINE_SUBSTITUTION
@@ -9427,14 +9544,14 @@ sql:
  For i = 1 to ubound(rVk)
 '  rVk(i).AktZeit = now()
   rVk(i).StByte = CStr(AktByte)
-  IF SammelInsert = 0 OR i = 1 THEN
+  IF SammelInsert = 0 Or i = 1 Then
    csql.Append csql0
-  END IF
+  END IF ' SammelInsert = 0 Or i = 1 Then
   csql.AppVar Array("(" , rVk(i).FID, "," , rVk(i).Pat_ID, "," , DatFor_k(rVk(i).ZeitPunkt), ",'" , rVk(i).Wohlempfinden, "','" , rVk(i).Saettigung, "','" , rVk(i).Zielwerterreichung, "','" , rVk(i).Ketonkörper, "','" ,  _
    rVk(i).Gynaekologenbefund, "','" , rVk(i).Gewichtsentwicklung, "','" , rVk(i).HbA1c, "','" , rVk(i).Bewegung, "','" , rVk(i).Minuten, "','" , rVk(i).Blutdruck, "','" , rVk(i).Puls, "','" ,  _
    rVk(i).Mitarbeiter, "'," , rVk(i).absPos, "," , DatFor_k(rVk(i).AktZeit), "," , rVk(i).StByte, ")")
-  IF SammelInsert <> 0 AND i < ubound(rVk) THEN csql.Append ","
-  IF SammelInsert = 0 OR i = ubound(rVk) THEN
+  IF SammelInsert <> 0 AND i < ubound(rVk) Then csql.Append ","
+  IF SammelInsert = 0 OR i = ubound(rVk) Then
 '    altmode = DBCn.Execute("SELECT @@global.sql_mode").Fields(0)
     altmode = myEFrag("SELECT @@global.sql_mode", , DBCn).Fields(0)
 '   Call DBCn.Execute("SET GLOBAL sql_mode='STRICT_TRANS_TABLES'") ' NO_ENGINE_SUBSTITUTION
@@ -9545,6 +9662,7 @@ Public FUNCTION roSwZuw(i&, j&)
  roSw(i).FID = rSw(j).FID
  roSw(i).Pat_ID = rSw(j).Pat_ID
  roSw(i).ZeitPunkt = rSw(j).ZeitPunkt
+ roSw(i).FormTitel = rSw(j).FormTitel
  roSw(i).LR = rSw(j).LR
  roSw(i).vorET = rSw(j).vorET
  roSw(i).ET = rSw(j).ET
@@ -9563,6 +9681,7 @@ Public FUNCTION SwZUnt%(i&, j&)
  IF roSw(i).FID <> rSw(j).FID THEN gosub unter
  IF roSw(i).Pat_ID <> rSw(j).Pat_ID THEN gosub unter
  IF roSw(i).ZeitPunkt <> rSw(j).ZeitPunkt THEN gosub unter
+ IF roSw(i).FormTitel <> rSw(j).FormTitel THEN gosub unter
  IF roSw(i).LR <> rSw(j).LR THEN gosub unter
  IF roSw(i).vorET <> rSw(j).vorET THEN gosub unter
  IF roSw(i).ET <> rSw(j).ET THEN gosub unter
@@ -9585,10 +9704,11 @@ Public FUNCTION swsLaden()
  Dim pid$, rs As New Recordset, akt&
  ON Error GoTo fehler
  pid = rNa(0).Pat_id
- sql = "SELECT COALESCE(FID,0) FID,COALESCE(Pat_ID,0) Pat_ID,COALESCE(ZeitPunkt - INTERVAL 0 DAY,CONVERT('18991230',DATE)) ZeitPunkt,COALESCE(LR - INTERVAL 0 DAY,CONVERT('18991230',DATE)) LR" & _
-",COALESCE(vorET - INTERVAL 0 DAY,CONVERT('18991230',DATE)) vorET,COALESCE(ET - INTERVAL 0 DAY,CONVERT('18991230',DATE)) ET,COALESCE(efLR - INTERVAL 0 DAY,CONVERT('18991230',DATE)) efLR,COALESCE(erLR - INTERVAL 0 DAY,CONVERT('18991230',DATE)) erLR" & _
-",COALESCE(kGT - INTERVAL 0 DAY,CONVERT('18991230',DATE)) kGT,COALESCE(MB - INTERVAL 0 DAY,CONVERT('18991230',DATE)) MB,COALESCE(EndeArt,'') EndeArt,COALESCE(ED - INTERVAL 0 DAY,CONVERT('18991230',DATE)) ED" & _
-",COALESCE(absPos,0) absPos,COALESCE(AktZeit - INTERVAL 0 DAY,CONVERT('18991230',DATE)) AktZeit,COALESCE(StByte,0) StByte FROM `sws` WHERE Pat_ID=" & pid & " ORDER BY `ZeitPunkt`
+ sql = "SELECT COALESCE(FID,0) FID,COALESCE(Pat_ID,0) Pat_ID,COALESCE(ZeitPunkt - INTERVAL 0 DAY,CONVERT('18991230',DATE)) ZeitPunkt,COALESCE(FormTitel,'') FormTitel" & _
+",COALESCE(LR - INTERVAL 0 DAY,CONVERT('18991230',DATE)) LR,COALESCE(vorET - INTERVAL 0 DAY,CONVERT('18991230',DATE)) vorET,COALESCE(ET - INTERVAL 0 DAY,CONVERT('18991230',DATE)) ET,COALESCE(efLR - INTERVAL 0 DAY,CONVERT('18991230',DATE)) efLR" & _
+",COALESCE(erLR - INTERVAL 0 DAY,CONVERT('18991230',DATE)) erLR,COALESCE(kGT - INTERVAL 0 DAY,CONVERT('18991230',DATE)) kGT,COALESCE(MB - INTERVAL 0 DAY,CONVERT('18991230',DATE)) MB,COALESCE(EndeArt,'') EndeArt" & _
+",COALESCE(ED - INTERVAL 0 DAY,CONVERT('18991230',DATE)) ED,COALESCE(absPos,0) absPos,COALESCE(AktZeit - INTERVAL 0 DAY,CONVERT('18991230',DATE)) AktZeit,COALESCE(StByte,0) StByte" & _
+" FROM `sws` WHERE Pat_ID=" & pid & " ORDER BY `ZeitPunkt`
  myFrag rs, sql
  If rs.EOF Then
   ReDim roSw(0)
@@ -9599,6 +9719,7 @@ Public FUNCTION swsLaden()
    roSw(akt).FID = rs!FID
    roSw(akt).Pat_ID = rs!Pat_ID
    roSw(akt).ZeitPunkt = rs!ZeitPunkt
+   roSw(akt).FormTitel = doUmwfSQL(rs!FormTitel, lies.obMySQL, False)
    roSw(akt).LR = rs!LR
    roSw(akt).vorET = rs!vorET
    roSw(akt).ET = rs!ET
@@ -9680,6 +9801,7 @@ Public FUNCTION rSwDump()
   Print #200, Left$("rSw(" & i & ").FID:" & String$(33, "."), 33) & rSw(i).FID
   Print #200, Left$("rSw(" & i & ").Pat_ID:" & String$(33, "."), 33) & rSw(i).Pat_ID
   Print #200, Left$("rSw(" & i & ").ZeitPunkt:" & String$(33, "."), 33) & rSw(i).ZeitPunkt
+  Print #200, Left$("rSw(" & i & ").FormTitel:" & String$(33, "."), 33) & "'" & rSw(i).FormTitel & "'"
   Print #200, Left$("rSw(" & i & ").LR:" & String$(33, "."), 33) & rSw(i).LR
   Print #200, Left$("rSw(" & i & ").vorET:" & String$(33, "."), 33) & rSw(i).vorET
   Print #200, Left$("rSw(" & i & ").ET:" & String$(33, "."), 33) & rSw(i).ET
@@ -9707,11 +9829,11 @@ Public FUNCTION swsSpeichern(SammelInsert%, BezfSp%)
  ON Error GoTo fehler
  syscmd 4, pid & ": Speichere " & Ubound(rSw)+0 & " Sätze in `sws`"
 ' sql0 = " INSERT " & sqlignore &  "INTO `sws` (FID,Pat_ID,ZeitPunkt," & _
-     "LR,vorET,ET,efLR,erLR,kGT,MB,EndeArt,ED,absPos," & _
-     "AktZeit,StByte) VALUES
+     "FormTitel,LR,vorET,ET,efLR,erLR,kGT,MB,EndeArt,ED," & _
+     "absPos,AktZeit,StByte) VALUES
  Call csql0.AppVar(Array(" INSERT ", sqlIgnore, " INTO `sws` (FID,Pat_ID,ZeitPunkt," & _
-     "LR,vorET,ET,efLR,erLR,kGT,MB,EndeArt,ED,absPos," & _
-     "AktZeit,StByte)        VALUES"))
+     "FormTitel,LR,vorET,ET,efLR,erLR,kGT,MB,EndeArt,ED," & _
+     "absPos,AktZeit,StByte)               VALUES"))
 sql:
  csql.m_Len = 0
  IF NOT Allepat THEN
@@ -9721,14 +9843,14 @@ sql:
  For i = 1 to ubound(rSw)
 '  rSw(i).AktZeit = now()
   rSw(i).StByte = CStr(AktByte)
-  IF SammelInsert = 0 OR i = 1 THEN
+  IF SammelInsert = 0 Or i = 1 Then
    csql.Append csql0
-  END IF
-  csql.AppVar Array("(" , rSw(i).FID, "," , rSw(i).Pat_ID, "," , DatFor_k(rSw(i).ZeitPunkt), "," , DatFor_k(rSw(i).LR), "," , DatFor_k(rSw(i).vorET), "," , DatFor_k(rSw(i).ET), "," , DatFor_k(rSw(i).efLR), "," , DatFor_k( _
-   rSw(i).erLR), "," , DatFor_k(rSw(i).kGT), "," , DatFor_k(rSw(i).MB), ",'" , rSw(i).EndeArt, "'," , DatFor_k(rSw(i).ED), "," , rSw(i).absPos, "," , DatFor_k(rSw(i).AktZeit), "," ,  _
+  END IF ' SammelInsert = 0 Or i = 1 Then
+  csql.AppVar Array("(" , rSw(i).FID, "," , rSw(i).Pat_ID, "," , DatFor_k(rSw(i).ZeitPunkt), ",'" , rSw(i).FormTitel, "'," , DatFor_k(rSw(i).LR), "," , DatFor_k(rSw(i).vorET), "," , DatFor_k(rSw(i).ET), "," , DatFor_k( _
+   rSw(i).efLR), "," , DatFor_k(rSw(i).erLR), "," , DatFor_k(rSw(i).kGT), "," , DatFor_k(rSw(i).MB), ",'" , rSw(i).EndeArt, "'," , DatFor_k(rSw(i).ED), "," , rSw(i).absPos, "," , DatFor_k(rSw(i).AktZeit), "," ,  _
    rSw(i).StByte, ")")
-  IF SammelInsert <> 0 AND i < ubound(rSw) THEN csql.Append ","
-  IF SammelInsert = 0 OR i = ubound(rSw) THEN
+  IF SammelInsert <> 0 AND i < ubound(rSw) Then csql.Append ","
+  IF SammelInsert = 0 OR i = ubound(rSw) Then
 '    altmode = DBCn.Execute("SELECT @@global.sql_mode").Fields(0)
     altmode = myEFrag("SELECT @@global.sql_mode", , DBCn).Fields(0)
 '   Call DBCn.Execute("SET GLOBAL sql_mode='STRICT_TRANS_TABLES'") ' NO_ENGINE_SUBSTITUTION
@@ -9766,9 +9888,10 @@ ElseIf ErrNumber = -2147467259 AND InStrB(ErrDescr, "Daten zu lang") = 0 AND InS
  Resume
 ElseIf ErrNumber = -2147217833 OR InStrB(ErrDescr, "Daten zu lang") <> 0 OR InStrB(ErrDescr, "Data too long") <> 0 THEN
  Dim rsc As Adodb.Recordset, maxi%(), k%
- redim maxi(0)
+ redim maxi(1)
  for k = iif(SammelInsert<>0,1,i) to iif(SammelInsert<>0,ubound(rSw),i)
-  IF Len(rSw(k).EndeArt) > maxi(0) THEN maxi(0) = Len(rSw(k).EndeArt)
+  IF Len(rSw(k).FormTitel) > maxi(0) THEN maxi(0) = Len(rSw(k).FormTitel)
+  IF Len(rSw(k).EndeArt) > maxi(1) THEN maxi(1) = Len(rSw(k).EndeArt)
  next k
  If obTrans <> 0 Then If myEFrag("SELECT COUNT(1) FROM information_schema.innodb_trx WHERE trx_mysql_thread_id = CONNECTION_ID()", , DBCn).Fields(0) <> 0 Then ComTrans ' DBCn.CommitTrans: obtrans = 0
  nochmal:
@@ -9782,7 +9905,8 @@ ElseIf ErrNumber = -2147217833 OR InStrB(ErrDescr, "Daten zu lang") <> 0 OR InSt
     IF maxL > 0 THEN
      For k = IIf(SammelInsert <> 0,1, i) To IIf(SammelInsert <> 0,ubound(rSw), i)
       SELECT CASE m
-       Case 0: Lese.Ausgeb "   Verkürze Inhalt von rSw.EndeArt: '" & rSw(k).EndeArt & "' -> '" & Left$(rSw(k).EndeArt, maxL)  & "'",true : rSw(k).EndeArt = Left$(rSw(k).EndeArt, maxL)
+       Case 0: Lese.Ausgeb "   Verkürze Inhalt von rSw.FormTitel: '" & rSw(k).FormTitel & "' -> '" & Left$(rSw(k).FormTitel, maxL)  & "'",true : rSw(k).FormTitel = Left$(rSw(k).FormTitel, maxL)
+       Case 1: Lese.Ausgeb "   Verkürze Inhalt von rSw.EndeArt: '" & rSw(k).EndeArt & "' -> '" & Left$(rSw(k).EndeArt, maxL)  & "'",true : rSw(k).EndeArt = Left$(rSw(k).EndeArt, maxL)
       END SELECT
      Next
     elseif maxl < 0 THEN
@@ -9812,6 +9936,247 @@ END IF ' ErrNumber =
   Case vbIgnore: Call MsgBox(" Setze fort "): Resume Next
  END SELECT
 End FUNCTION ' swsSpeichern
+
+Public FUNCTION roVoZuw(i&, j&)
+ roVo(i).FID = rVo(j).FID
+ roVo(i).Pat_ID = rVo(j).Pat_ID
+ roVo(i).ZeitPunkt = rVo(j).ZeitPunkt
+ roVo(i).FormTitel = rVo(j).FormTitel
+ roVo(i).Inhalt = rVo(j).Inhalt
+ roVo(i).absPos = rVo(j).absPos
+ roVo(i).AktZeit = rVo(j).AktZeit
+ roVo(i).StByte = rVo(j).StByte
+End FUNCTION ' roVoZuw
+
+Public FUNCTION VoZUnt%(i&, j&)
+ IF roVo(i).FID <> rVo(j).FID THEN gosub unter
+ IF roVo(i).Pat_ID <> rVo(j).Pat_ID THEN gosub unter
+ IF roVo(i).ZeitPunkt <> rVo(j).ZeitPunkt THEN gosub unter
+ IF roVo(i).FormTitel <> rVo(j).FormTitel THEN gosub unter
+ IF roVo(i).Inhalt <> rVo(j).Inhalt THEN gosub unter
+ IF roVo(i).absPos <> rVo(j).absPos THEN gosub unter
+ IF roVo(i).AktZeit <> rVo(j).AktZeit THEN gosub unter
+ IF roVo(i).StByte <> rVo(j).StByte THEN gosub unter
+ Exit Function
+unter:
+ VoZUnt = VoZUnt + 1
+ Return
+End FUNCTION ' VoZUnt
+
+Public FUNCTION voplLaden()
+ Dim pid$, rs As New Recordset, akt&
+ ON Error GoTo fehler
+ pid = rNa(0).Pat_id
+ sql = "SELECT COALESCE(FID,0) FID,COALESCE(Pat_ID,0) Pat_ID,COALESCE(ZeitPunkt - INTERVAL 0 DAY,CONVERT('18991230',DATE)) ZeitPunkt,COALESCE(FormTitel,'') FormTitel" & _
+",COALESCE(Inhalt,'') Inhalt,COALESCE(absPos,0) absPos,COALESCE(AktZeit - INTERVAL 0 DAY,CONVERT('18991230',DATE)) AktZeit,COALESCE(StByte,0) StByte" & _
+" FROM `vopl` WHERE Pat_ID=" & pid & " ORDER BY `ZeitPunkt`
+ myFrag rs, sql
+ If rs.EOF Then
+  ReDim roVo(0)
+ Else ' rs.EOF Then
+  ReDim roVo(1)
+  Do While Not rs.EOF
+   akt = UBound(roVo)
+   roVo(akt).FID = rs!FID
+   roVo(akt).Pat_ID = rs!Pat_ID
+   roVo(akt).ZeitPunkt = rs!ZeitPunkt
+   roVo(akt).FormTitel = doUmwfSQL(rs!FormTitel, lies.obMySQL, False)
+   roVo(akt).Inhalt = doUmwfSQL(rs!Inhalt, lies.obMySQL, False)
+   roVo(akt).absPos = rs!absPos
+   roVo(akt).AktZeit = rs!AktZeit
+   roVo(akt).StByte = rs!StByte
+   rs.MoveNext
+   IF Not rs.EOF THEN ReDim Preserve roVo(UBound(roVo) + 1)
+  Loop ' While Not rs.EOF
+ End If ' If rs.EOF
+ Exit Function
+fehler:
+ Dim AnwPfad$
+ #If VBA6 THEN
+ AnwPfad = currentDB.Name
+ #Else
+ AnwPfad = App.Path
+ #END IF
+ SELECT CASE MsgBox("FNr: " + CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " & IIf(ISNULL(Err.Source), vNS, CStr(Err.Source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "aufgefangener Fehler in voplLaden/" + AnwPfad)
+  Case vbAbort: Call MsgBox(" 2Höre auf "): Progende
+  Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
+  Case vbIgnore: Call MsgBox(" Setze fort "): Resume Next
+ END SELECT
+End FUNCTION ' voplLaden
+
+Function voplEinf
+ Dim rbeg&, roendpe&, ri&, roi&
+ On Error GoTo fehler
+ IF UBound(rVo) > 0 THEN
+  For ri = 1 To UBound(rVo)
+   IF rVo(ri).ZeitPunkt >= qbeg Then ' aktqanf()
+    rbeg = ri
+    Exit For
+   END IF
+  Next ri
+  IF rbeg <> 0 THEN
+   For roendpe = 0 To UBound(roVo)
+    IF roVo(roendpe).ZeitPunkt >= qbeg THEN
+     Exit For
+    END IF
+   Next roendpe
+   IF roendpe <= UBound(roFa) THEN
+    ReDim Preserve roVo(roendpe - 1)
+   END IF ' IF roendpe <= UBound(roFa) THEN
+   ReDim Preserve roVo(roendpe + UBound(rVo) - rbeg)
+   For ri = rbeg To UBound(rVo)
+    Call roVoZuw(roendpe + ri - rbeg, ri)
+   Next ri
+  END IF ' IF rbeg <> 0 THEN
+ END IF ' IF UBound(rFa) > 0 THEN
+ rVo = roVo
+ Exit Function
+fehler:
+ Dim AnwPfad$
+ #If VBA6 THEN
+ AnwPfad = CurrentDb.name
+ #Else
+ AnwPfad = App.path
+ #END IF
+ Select Case MsgBox("FNr: " + CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " & IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "aufgefangener Fehler in voplEinf/" + AnwPfad)
+  Case vbAbort: Call MsgBox(" Höre auf "): Progende
+  Case vbRetry: Call MsgBox(" Versuche nochmal"): Resume
+  Case vbIgnore: Call MsgBox(" Setze fort "): Resume Next
+ END Select
+End FUNCTION ' voplEinf
+
+Public FUNCTION rVoDump()
+ Dim i&, ffa&
+ Const ffadat$ = "\\linux1\daten\down\rVodump.txt"
+ Open ffadat For Output As #200
+ For i = 1 To UBound(rVo)
+  Print #200, vbCrLf & "i: " & i
+  Print #200, Left$("rVo(" & i & ").FID:" & String$(33, "."), 33) & rVo(i).FID
+  Print #200, Left$("rVo(" & i & ").Pat_ID:" & String$(33, "."), 33) & rVo(i).Pat_ID
+  Print #200, Left$("rVo(" & i & ").ZeitPunkt:" & String$(33, "."), 33) & rVo(i).ZeitPunkt
+  Print #200, Left$("rVo(" & i & ").FormTitel:" & String$(33, "."), 33) & "'" & rVo(i).FormTitel & "'"
+  Print #200, Left$("rVo(" & i & ").Inhalt:" & String$(33, "."), 33) & "'" & rVo(i).Inhalt & "'"
+  Print #200, Left$("rVo(" & i & ").absPos:" & String$(33, "."), 33) & rVo(i).absPos
+  Print #200, Left$("rVo(" & i & ").AktZeit:" & String$(33, "."), 33) & rVo(i).AktZeit
+  Print #200, Left$("rVo(" & i & ").StByte:" & String$(33, "."), 33) & rVo(i).StByte
+ Next i
+ Close #200
+ zeigan ffadat
+End FUNCTION ' voplDump
+
+Public FUNCTION voplSpeichern(SammelInsert%, BezfSp%)
+ Dim i&, rAF&, Pid$, m%, sfnr%, altmode$ ',sql0$
+ Dim csql0 As New CString, csql As New CString
+ Dim rs As New ADODB.recordset
+ T1 = Timer
+ On Error Resume Next
+ Pid = rNa(0).Pat_id
+ ON Error GoTo fehler
+ syscmd 4, pid & ": Speichere " & Ubound(rVo)+0 & " Sätze in `vopl`"
+' sql0 = " INSERT " & sqlignore &  "INTO `vopl` (FID,Pat_ID,ZeitPunkt," & _
+     "FormTitel,Inhalt,absPos,AktZeit,StByte) VALUES
+ Call csql0.AppVar(Array(" INSERT ", sqlIgnore, " INTO `vopl` (FID,Pat_ID,ZeitPunkt," & _
+     "FormTitel,Inhalt,absPos,AktZeit,StByte)            VALUES"))
+sql:
+ csql.m_Len = 0
+ IF NOT Allepat THEN
+   sql = "DELETE FROM `vopl` WHERE Pat_ID = " & CStr(rNa(0).Pat_ID)
+   Call myEFrag(sql)
+ END IF ' not AllePat
+ For i = 1 to ubound(rVo)
+'  rVo(i).AktZeit = now()
+  rVo(i).StByte = CStr(AktByte)
+  IF SammelInsert = 0 Or i = 1 Then
+   csql.Append csql0
+  END IF ' SammelInsert = 0 Or i = 1 Then
+  csql.AppVar Array("(" , rVo(i).FID, "," , rVo(i).Pat_ID, "," , DatFor_k(rVo(i).ZeitPunkt), ",'" , rVo(i).FormTitel, "','" , rVo(i).Inhalt, "'," , rVo(i).absPos, "," , DatFor_k(rVo(i).AktZeit), "," , rVo(i).StByte, ")")
+  IF SammelInsert <> 0 AND i < ubound(rVo) Then csql.Append ","
+  IF SammelInsert = 0 OR i = ubound(rVo) Then
+'    altmode = DBCn.Execute("SELECT @@global.sql_mode").Fields(0)
+    altmode = myEFrag("SELECT @@global.sql_mode", , DBCn).Fields(0)
+'   Call DBCn.Execute("SET GLOBAL sql_mode='STRICT_TRANS_TABLES'") ' NO_ENGINE_SUBSTITUTION
+    myEFrag "SET GLOBAL sql_mode='STRICT_TRANS_TABLES'", , DBCn ' NO_ENGINE_SUBSTITUTION
+'   Call myEFrag(csql.Value,rAf)', , adAsyncExecute) ' wegen unzureichender Fehlerverarbeitung wieder ausrangiert 19.8.23
+   Call DBCn.Execute(csql.Value, rAF) ', , adAsyncExecute)
+   IF obforK THEN
+    Call ForeignYes0
+    Call ForeignYes1
+   END IF ' obforK THEN
+  END IF ' SammelInsert = 0 OR i = ubound(rVo)
+  DoEvents
+ Next i
+ syscmd 5
+ Exit Function
+fehler:
+ErrDescr = Err.Description
+ErrNumber = Err.Number
+syscmd 4, "rVo(" & i & "/" & UBound(rVo) & "):   " & ErrDescr
+sfnr = sfnr + 1
+If sfnr > 10 then 
+ Lese.Ausgeb sfnr & " Fehler in ""voplSpeichern()"" bei Pat. " & rNa(0).Pat_id & ", gebe auf (ErrDes: " & ErrDescr & ")", True
+ sfnr = 0
+ Resume Next
+End if ' sfnr > 10
+IF ErrNumber = -2147217900 AND InStrB(ErrDescr, " Doppelter; Eintrag; ") <> 0 THEN
+ Call Shell(App.path + "\..\nachricht\nachricht.exe " & App.EXEName & " Doppelter Eintrag bei: " & vbCrLf & csql.Value)
+ Resume Next
+ElseIf ErrNumber = -2147467259 AND InStrB(ErrDescr, "Daten zu lang") = 0 AND InStrB(ErrDescr, "Data too long") = 0 THEN ' -2147467259 ' [MySQL][ODBC 3.51 Driver][mysqld-5.1.32-log]Cannot add OR update a child row: a FOREIGN KEY constraint fails
+ IF InStrB(ErrDescr, "'READ-COMMITTED'") <> 0 THEN
+  myEFrag "SET SESSION TRANSACTION ISOLATION LEVEL REPEATABLE READ", rAF
+ Else
+  Call doBezFeh(csql.Value, BezfSp, ErrDescr)
+ END IF
+ Resume
+ElseIf ErrNumber = -2147217833 OR InStrB(ErrDescr, "Daten zu lang") <> 0 OR InStrB(ErrDescr, "Data too long") <> 0 THEN
+ Dim rsc As Adodb.Recordset, maxi%(), k%
+ redim maxi(1)
+ for k = iif(SammelInsert<>0,1,i) to iif(SammelInsert<>0,ubound(rVo),i)
+  IF Len(rVo(k).FormTitel) > maxi(0) THEN maxi(0) = Len(rVo(k).FormTitel)
+  IF Len(rVo(k).Inhalt) > maxi(1) THEN maxi(1) = Len(rVo(k).Inhalt)
+ next k
+ If obTrans <> 0 Then If myEFrag("SELECT COUNT(1) FROM information_schema.innodb_trx WHERE trx_mysql_thread_id = CONNECTION_ID()", , DBCn).Fields(0) <> 0 Then ComTrans ' DBCn.CommitTrans: obtrans = 0
+ nochmal:
+ SET rsc = New ADODB.Recordset
+ SET rsc = DBCnOSchema(adSchemaColumns, Array(Empty, Empty, "vopl", Empty))
+ m = 0
+ Do While Not rsc.EOF
+  SELECT CASE rsc!data_type
+   Case "varchar", "longtext", "mediumtext", "char", "text", "varbinary", 8, 129, 130, 200, 201, 202, 203, "set", "enum", "blob", "longblob", 0, 9, 12, 13, 72, 128, 132, 138, 204, 205
+    maxL = SpMod(maxi(m), "vopl", rsc)
+    IF maxL > 0 THEN
+     For k = IIf(SammelInsert <> 0,1, i) To IIf(SammelInsert <> 0,ubound(rVo), i)
+      SELECT CASE m
+       Case 0: Lese.Ausgeb "   Verkürze Inhalt von rVo.FormTitel: '" & rVo(k).FormTitel & "' -> '" & Left$(rVo(k).FormTitel, maxL)  & "'",true : rVo(k).FormTitel = Left$(rVo(k).FormTitel, maxL)
+       Case 1: Lese.Ausgeb "   Verkürze Inhalt von rVo.Inhalt: '" & rVo(k).Inhalt & "' -> '" & Left$(rVo(k).Inhalt, maxL)  & "'",true : rVo(k).Inhalt = Left$(rVo(k).Inhalt, maxL)
+      END SELECT
+     Next
+    elseif maxl < 0 THEN
+     goto nochmal
+    END IF
+    m = m + 1
+  END SELECT
+  IF rsc.State = 0 THEN Exit Do
+  rsc.Move 1
+ Loop
+ Call ForeignNo0
+ Call ForeignNo1
+ resume
+ElseIf InStrB(1, ErrDescr, "gone away", vbTextCompare) <> 0 Or InStrB(ErrDescr, "ost connection") <> 0 Then
+ DBCnOpen
+ Resume
+END IF ' ErrNumber = 
+ Dim AnwPfad$
+#If VBA6 THEN
+ AnwPfad = currentDB.Name
+#Else
+ AnwPfad = App.Path
+#END IF
+ SELECT CASE MsgBox("FNr: " + CStr(ErrNumber) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " & IIf(ISNULL(Err.Source), vNS, CStr(Err.Source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "aufgefangener Fehler in voplSpeichern/" + AnwPfad)
+  Case vbAbort: Call MsgBox(" Höre auf "): Progende
+  Case vbRetry: Call MsgBox("Versuche nochmal"): If ErrNumber = 998 Then Resume sql Else Resume
+  Case vbIgnore: Call MsgBox(" Setze fort "): Resume Next
+ END SELECT
+End FUNCTION ' voplSpeichern
 
 Public FUNCTION rLsDump()
  Dim i&, ffa&
@@ -9865,14 +10230,14 @@ sql:
  csql.m_Len = 0
  For i = 0 to ubound(rLs)
 '  rLs(i).AktZeit = now()
-  IF SammelInsert = 0 OR i = 0 THEN
+  IF SammelInsert = 0 Or i = 0 Then
    csql.Append csql0
-  END IF
+  END IF ' SammelInsert = 0 Or i = 0 Then
   csql.AppVar Array("(" , rLs(i).DatID, ",'" , rLs(i).Satzart, "','" , rLs(i).Satzlänge, "','" , rLs(i).SatzlängeSchluss, "','" , rLs(i).VersionSatzb, "','" , rLs(i).Arztnr, "','" , rLs(i).Arztname, "','" ,  _
    rLs(i).StraßePraxis, "','" , rLs(i).Arzt, "','" , rLs(i).LANR, "','" , rLs(i).PLZPraxis, "','" , rLs(i).OrtPraxis, "','" , rLs(i).Labor, "','" , rLs(i).StraßeLabor, "','" , rLs(i).PLZLabor, "','" ,  _
    rLs(i).OrtLabor, "','" , rLs(i).KBVPrüfnr, "','" , rLs(i).Zeichensatz, "','" , rLs(i).Kundenarztnr, "','" , rLs(i).Erstellungsdatum, "','" , rLs(i).Gesamtlänge, "')")
-  IF SammelInsert <> 0 AND i < ubound(rLs) THEN csql.Append ","
-  IF SammelInsert = 0 OR i = ubound(rLs) THEN
+  IF SammelInsert <> 0 AND i < ubound(rLs) Then csql.Append ","
+  IF SammelInsert = 0 OR i = ubound(rLs) Then
 '    altmode = DBCn.Execute("SELECT @@global.sql_mode").Fields(0)
     altmode = myEFrag("SELECT @@global.sql_mode", , DBCn).Fields(0)
 '   Call DBCn.Execute("SET GLOBAL sql_mode='STRICT_TRANS_TABLES'") ' NO_ENGINE_SUBSTITUTION
@@ -10027,12 +10392,12 @@ sql:
  csql.m_Len = 0
  For i = 1 to ubound(rLg)
 '  rLg(i).AktZeit = now()
-  IF SammelInsert = 0 OR i = 1 THEN
+  IF SammelInsert = 0 Or i = 1 Then
    csql.Append csql0
-  END IF
+  END IF ' SammelInsert = 0 Or i = 1 Then
   csql.AppVar Array("('" , rLg(i).Pfad, "','" , rLg(i).Name, "'," , DatFor_k(rLg(i).Zp), "," , cstr(-(rLg(i).fertig<>0)) , ")")
-  IF SammelInsert <> 0 AND i < ubound(rLg) THEN csql.Append ","
-  IF SammelInsert = 0 OR i = ubound(rLg) THEN
+  IF SammelInsert <> 0 AND i < ubound(rLg) Then csql.Append ","
+  IF SammelInsert = 0 OR i = ubound(rLg) Then
 '    altmode = DBCn.Execute("SELECT @@global.sql_mode").Fields(0)
     altmode = myEFrag("SELECT @@global.sql_mode", , DBCn).Fields(0)
 '   Call DBCn.Execute("SET GLOBAL sql_mode='STRICT_TRANS_TABLES'") ' NO_ENGINE_SUBSTITUTION
@@ -10187,16 +10552,16 @@ sql:
  csql.m_Len = 0
  For i = j to j
 '  rLu(i).AktZeit = now()
-  IF SammelInsert = 0 OR i = j THEN
+  IF SammelInsert = 0 Or i = j Then
    csql.Append csql0
-  END IF
+  END IF ' SammelInsert = 0 Or i = j Then
   csql.AppVar Array("(" , rLu(i).DatID, "," , rLu(i).SatzID, ",'" , rLu(i).Satzart, "','" , rLu(i).Satzlänge, "','" , rLu(i).Auftragsnummer, "','" , rLu(i).Auftragsschlüssel, "'," , DatFor_k(rLu(i).Eingang), ",'" ,  _
    rLu(i).Berichtsdatum, "'," , rLu(i).Pat_id, ",'" , rLu(i).Nachname, "','" , rLu(i).Vorname, "','" , rLu(i).GebDat, "','" , rLu(i).Titel, "','" , rLu(i).NVorsatz, "','" , rLu(i).BefArt, "','" ,  _
    rLu(i).Abrechnungstyp, "','" , rLu(i).GebüOrd, "','" , rLu(i).Auftraggeber, "','" , rLu(i).Patienteninformation, "','" , rLu(i).Geschlecht, "','" , rLu(i).AuftrHinw, "','" , rLu(i).Pat_idUrsp, "','" ,  _
    rLu(i).Pat_idErwVNG, "','" , rLu(i).Pat_idErwVN, "','" , rLu(i).Pat_idErwG, "','" , rLu(i).Pat_idErwGB, "','" , rLu(i).Pat_idErwGL, "','" , rLu(i).Pat_idLaborNeu, "'," , DatFor_k(rLu(i).ZeitpunktLaborneu), "," ,  _
    rLu(i).ZdüP, "," , rLu(i).ZdiP, ",'" , rLu(i).LWerte, "'," , DatFor_k(rLu(i).verglichen), "," , rLu(i).AfN, ")")
-  IF SammelInsert <> 0 AND i < j THEN csql.Append ","
-  IF SammelInsert = 0 OR i = j THEN
+  IF SammelInsert <> 0 AND i < j Then csql.Append ","
+  IF SammelInsert = 0 OR i = j Then
 '    altmode = DBCn.Execute("SELECT @@global.sql_mode").Fields(0)
     altmode = myEFrag("SELECT @@global.sql_mode", , DBCn).Fields(0)
 '   Call DBCn.Execute("SET GLOBAL sql_mode='STRICT_TRANS_TABLES'") ' NO_ENGINE_SUBSTITUTION
@@ -10365,13 +10730,13 @@ sql:
  csql.m_Len = 0
  For i = 1 to ubound(rLo)
 '  rLo(i).AktZeit = now()
-  IF SammelInsert = 0 OR i = 1 THEN
+  IF SammelInsert = 0 Or i = 1 Then
    csql.Append csql0
-  END IF
+  END IF ' SammelInsert = 0 Or i = 1 Then
   csql.AppVar Array("(" , rLo(i).RefNr, ",'" , rLo(i).Verf, "','" , rLo(i).KuQu, "','" , rLo(i).Quelle, "','" , rLo(i).QSpez, "'," , DatFor_k(rLo(i).AbnDat), ",'" , rLo(i).Kommentar, "','" , rLo(i).Erklärung, "','" ,  _
    rLo(i).Keimzahl, "')")
-  IF SammelInsert <> 0 AND i < ubound(rLo) THEN csql.Append ","
-  IF SammelInsert = 0 OR i = ubound(rLo) THEN
+  IF SammelInsert <> 0 AND i < ubound(rLo) Then csql.Append ","
+  IF SammelInsert = 0 OR i = ubound(rLo) Then
 '    altmode = DBCn.Execute("SELECT @@global.sql_mode").Fields(0)
     altmode = myEFrag("SELECT @@global.sql_mode", , DBCn).Fields(0)
 '   Call DBCn.Execute("SET GLOBAL sql_mode='STRICT_TRANS_TABLES'") ' NO_ENGINE_SUBSTITUTION
@@ -10538,13 +10903,13 @@ nextj:
    rLw(i).nbid & ""
      IF Not rsdop.EOF THEN GoTo nexti
     Next j
-  IF SammelInsert = 0 OR i = 1 THEN
+  IF SammelInsert = 0 Or i = 1 Then
    csql.Append csql0
-  END IF
+  END IF ' SammelInsert = 0 Or i = 1 Then
   csql.AppVar Array("(" , rLw(i).RefNr, ",'" , rLw(i).Abkü, "','" , rLw(i).Langname, "','" , rLw(i).Quelle, "','" , rLw(i).QSpez, "'," , DatFor_k(rLw(i).AbnDat), ",'" , rLw(i).Wert, "','" , rLw(i).Einheit, "','" ,  _
    rLw(i).Grenzwerti, "','" , rLw(i).Kommentar, "','" , rLw(i).Teststatus, "','" , rLw(i).Erklärung, "','" , rLw(i).AuftrHinw, "'," , rLw(i).nbid, ")")
-  IF SammelInsert <> 0 AND i < ubound(rLw) THEN csql.Append ","
-  IF SammelInsert = 0 OR i = ubound(rLw) THEN
+  IF SammelInsert <> 0 AND i < ubound(rLw) Then csql.Append ","
+  IF SammelInsert = 0 OR i = ubound(rLw) Then
 '    altmode = DBCn.Execute("SELECT @@global.sql_mode").Fields(0)
     altmode = myEFrag("SELECT @@global.sql_mode", , DBCn).Fields(0)
 '   Call DBCn.Execute("SET GLOBAL sql_mode='STRICT_TRANS_TABLES'") ' NO_ENGINE_SUBSTITUTION
@@ -10684,12 +11049,12 @@ sql:
  csql.m_Len = 0
  For i = 1 to ubound(rLL)
 '  rLL(i).AktZeit = now()
-  IF SammelInsert = 0 OR i = 1 THEN
+  IF SammelInsert = 0 Or i = 1 Then
    csql.Append csql0
-  END IF
+  END IF ' SammelInsert = 0 Or i = 1 Then
   csql.AppVar Array("(" , rLL(i).RefNr, ",'" , rLL(i).Abkü, "','" , rLL(i).Verf, "','" , rLL(i).EBM, "','" , rLL(i).goä, "','" , rLL(i).Anzahl, "','" , rLL(i).abrd, "')")
-  IF SammelInsert <> 0 AND i < ubound(rLL) THEN csql.Append ","
-  IF SammelInsert = 0 OR i = ubound(rLL) THEN
+  IF SammelInsert <> 0 AND i < ubound(rLL) Then csql.Append ","
+  IF SammelInsert = 0 OR i = ubound(rLL) Then
 '    altmode = DBCn.Execute("SELECT @@global.sql_mode").Fields(0)
     altmode = myEFrag("SELECT @@global.sql_mode", , DBCn).Fields(0)
 '   Call DBCn.Execute("SET GLOBAL sql_mode='STRICT_TRANS_TABLES'") ' NO_ENGINE_SUBSTITUTION
@@ -10849,15 +11214,15 @@ sql:
  csql.m_Len = 0
  For i = 1 to ubound(rLi)
 '  rLi(i).AktZeit = now()
-  IF SammelInsert = 0 OR i = 1 THEN
+  IF SammelInsert = 0 Or i = 1 Then
    csql.Append csql0
-  END IF
+  END IF ' SammelInsert = 0 Or i = 1 Then
   csql.AppVar Array("('" , rLi(i).name, "','" , rLi(i).vorname, "','" , rLi(i).titelt, "','" , rLi(i).fachgruppe, "','" , rLi(i).strasse, "','" , rLi(i).plz, "','" , rLi(i).ort, "','" , rLi(i).telefon, "','" ,  _
    rLi(i).fax, "','" , rLi(i).kvnr, "','" , rLi(i).überschrift, "','" , rLi(i).dbnr, "','" , rLi(i).bstelle, "','" , rLi(i).anrede, "','" , rLi(i).tel1, "','" , rLi(i).tel2, "','" , rLi(i).tel3, "','" ,  _
    rLi(i).tel4, "','" , rLi(i).fax1, "','" , rLi(i).fax2, "','" , rLi(i).fax3, "','" , rLi(i).email, "','" , rLi(i).zulg, "','" , rLi(i).arzttyp, "','" , rLi(i).gemmit, "','" , rLi(i).beme, "'," ,  _
    rLi(i).dmpt2, "," , rLi(i).dmpt1, ",'" , rLi(i).geschlecht, "','" , rLi(i).titel, "','" , rLi(i).zusatz, "','" , rLi(i).ursp, "'," , DatFor_k(rLi(i).aktzeit), ")")
-  IF SammelInsert <> 0 AND i < ubound(rLi) THEN csql.Append ","
-  IF SammelInsert = 0 OR i = ubound(rLi) THEN
+  IF SammelInsert <> 0 AND i < ubound(rLi) Then csql.Append ","
+  IF SammelInsert = 0 OR i = ubound(rLi) Then
 '    altmode = DBCn.Execute("SELECT @@global.sql_mode").Fields(0)
     altmode = myEFrag("SELECT @@global.sql_mode", , DBCn).Fields(0)
 '   Call DBCn.Execute("SET GLOBAL sql_mode='STRICT_TRANS_TABLES'") ' NO_ENGINE_SUBSTITUTION
@@ -11032,6 +11397,7 @@ Public FUNCTION tuLaden
  call ulcusLaden
  call vkgdLaden
  call swsLaden
+ call voplLaden
 End Function ' tuLaden
 
 Public Function tuSpeichern(frm AS Lese, SI%, BfS%) ' frm.dlg.SammelInsert, frm.dlg.BeziehungsfehlerSpeichern
@@ -11075,6 +11441,7 @@ Public Function tuSpeichern(frm AS Lese, SI%, BfS%) ' frm.dlg.SammelInsert, frm.
  call ulcusSpeichern(SI, BfS)
  call vkgdSpeichern(SI, BfS)
  call swsSpeichern(SI, BfS)
+ call voplSpeichern(SI, BfS)
  Call myEFrag("UPDATE `namen` SET aktZeit = " & DatFor_k(rNa(0).AktZeit) & " WHERE pat_id = " & rNa(0).Pat_ID,rAf)
  IF rAf <> 1 THEN 
   frm.Ausgeb "Fehler bei der Setzung des Aktualisierungsdatum bei " & rNa(0).Pat_ID & " " & rNa(0).Nachname & " " & rNa(0).Vorname, true

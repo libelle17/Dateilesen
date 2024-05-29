@@ -999,8 +999,35 @@ Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "Last
 End Select
 End Function ' rbdttodate
 
+Function BDTtoDateTime(DaT) As Date
+ On Error GoTo fehler
+ If DaT = Space$(8) Or DaT Like "00*" Then
+ Else
+  On Error Resume Next
+  BDTtoDateTime = CDate(Format$(Left$(DaT, 14), "####\.##\.## ##\:##\:##"))
+  If BDTtoDateTime = 0 Then
+   BDTtoDateTime = CDate(Format$(Left$(DaT, 14), "##\.##\.#### ##\:##\:##"))
+  End If
+  On Error GoTo fehler
+ End If
+ Exit Function
+fehler:
+ Dim AnwPfad$
+#If VBA6 Then
+ AnwPfad = CurrentDb.name
+#Else
+ AnwPfad = App.path
+#End If
+Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in BDTtoDateTime/" + AnwPfad)
+ Case vbAbort: Call MsgBox("Höre auf"): ProgEnde
+ Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
+ Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
+End Select
+End Function ' BDTtoDateTime
+
 Function BDTtoDate(DaT) As Date ' für BDT-Format
  On Error GoTo fehler
+' If Len(DaT) > 8 Then Stop
  If DaT = Space$(8) Or DaT Like "00*" Then
  Else
   On Error Resume Next

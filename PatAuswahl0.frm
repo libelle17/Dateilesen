@@ -371,7 +371,7 @@ Private Sub Patientenlaufzettel_Click()
  zzn = 8
  If IsNumeric(Me.Zeilenzahl) Then zzn = CInt(zzn)
  If IsNumeric(Me.Pat_id) Then
-  Call dodoPLZ(Me.Pat_id, plzVz, Now, Now - Int(Now), True, "", zzn, obRueck)
+  Call dodoplz(Me.Pat_id, plzVz, Now, Now - Int(Now), True, "", zzn, obRueck)
  End If
 End Sub ' Patientenlaufzettel_Click()
 
@@ -955,7 +955,7 @@ vorabfra1:
     End If ' Not rFaA.BOF THEN
     myFrag rDi, "SELECT diagsicherheit, icd, diagtext, DATE_FORMAT(diagdatum,'%d.%m.%y') diagdatum, obdauer " & vbCrLf & _
                 "FROM diagview d " & vbCrLf & _
-                "WHERE pat_id = " & Me.PatID & " GROUP BY diagsicherheit, icd, diagtext, obdauer ORDER BY icd" ' AND COALESCE(d.f6010,0)=0
+                "WHERE pat_id = " & Me.PatID & " GROUP BY diagsicherheit, icd, diagtext, obdauer ORDER BY icd" ' AND COALESCE(d.Dggel,0)=0
     If Not rDi.BOF Then
      Do While Not rDi.EOF
       Me.Diagnosen.AddItem rDi!DiagSicherheit & " " & rDi!DiagDatum & " " & IIf(rDi!obDauer = 0, "f", "d") & " " & Left$(rDi!ICD & Space$(7), 7) & rDi!DiagText

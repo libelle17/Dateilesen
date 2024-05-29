@@ -5034,7 +5034,7 @@ Private Sub inTM_Click()
 End Sub 'inTM_Click
 
 Private Sub Patientenlaufzettel_Click()
- Call dodoPLZ(vTextB(1), plzVz, Now, Now - Int(Now), True)
+ Call dodoplz(vTextB(1), plzVz, Now, Now - Int(Now), True)
 End Sub ' Patientenlaufzettel_Click
 
 Private Sub Suchen_Click()
@@ -5164,11 +5164,11 @@ Private Sub AbfragenLad()
  
  
  DQStr(i) = "Kassenfälle, aktuelle, ohne Diabetesdiagnose"
- ' AND COALESCE(f6010,0)=0
+ ' AND COALESCE(Dggel,0)=0
  DQSQL(i) = "SELECT n.pat_id FROM namen n " & vbCrLf & _
             "INNER JOIN `aktfv` af ON n.pat_id = af.pat_id WHERE NOT EXISTS (" & vbCrLf & _
              "SELECT * FROM `diagview` d " & vbCrLf & _
-             "WHERE d.pat_id = af.pat_id AND (d.gicd REGEXP '^E1[0-4]\.|^R73' OR (d.icd LIKE 'O24%' AND d.f6010=0 AND d.diagsicherheit IN ('G',' ') AND d.diagdatum BETWEEN qbegs(af.quartal) AND qends(af.quartal)))" & vbCrLf & _
+             "WHERE d.pat_id = af.pat_id AND (d.gicd REGEXP '^E1[0-4]\.|^R73' OR (d.icd LIKE 'O24%' AND d.Dggel=0 AND d.diagsicherheit IN ('G',' ') AND d.diagdatum BETWEEN qbegs(af.quartal) AND qends(af.quartal)))" & vbCrLf & _
             ") ORDER BY vorgestellt DESC"
  i = i + 1
 

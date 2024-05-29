@@ -446,7 +446,7 @@ Public Type DMPClass
  dmpEinwDM As String * 1
  dmphalbj As String * 1
  
- DTyp As String ' Diabetestyp, "1", "2"
+ dtyp As String ' Diabetestyp, "1", "2"
  daseit As String
  dspsy As Boolean ' diabetesspezifische Symptome
  dspmed As Boolean ' diagnosespezifische Medikation
@@ -630,7 +630,7 @@ Public Function LetztLab(pid&, Abkü$, Einh$, Zp As Date) As labtyp
    i = 0
    Do While Not rsl.EOF
     lab(i).Abkü = rsl!Abkü
-    lab(i).WertSg = REPLACE$(rsl!wert, ".", ",")
+    lab(i).WertSg = REPLACE$(rsl!Wert, ".", ",")
     lab(i).Einheit = rsl!Einheit
     lab(i).Zp = rsl!Zeitpunkt
     i = i + 1
@@ -689,7 +689,7 @@ Public Function LabPat(LA As LabArt, pid&, Optional naechster%) As labtyp
    i = 0
    Do While Not rsl.EOF
     lab(i).Abkü = rsl!Abkü
-    lab(i).WertSg = REPLACE$(rsl!wert, ".", ",")
+    lab(i).WertSg = REPLACE$(rsl!Wert, ".", ",")
     lab(i).Einheit = rsl!Einheit
     lab(i).Zp = rsl!Zeitpunkt
     i = i + 1
@@ -945,7 +945,7 @@ aktDC.KtrAbrB = "00"
 
 nochmal:
 If diI("Z34 Z33", pid) Then aktDC.obSchw = True
-If diI("E10") Then aktDC.DTyp = "1" Else If diI("E11") Then aktDC.DTyp = "2"
+If diI("E10") Then aktDC.dtyp = "1" Else If diI("E11") Then aktDC.dtyp = "2"
 If Not ohneVorDMP Then
 'fiabfr = "SELECT Pat_ID, FID, form_abk,Form_ID, ZeitPunkt, Nr, FeldNr, Feld, FeldInh, form_abk FROM (((`forminhfeld` LEFT JOIN `forminhkopf` ON `forminhfeld`.foid=`forminhkopf`.foid) LEFT JOIN `formulare` ON `formulare`.formid=`forminhkopf`.form_id) LEFT JOIN `forminhaltfeld` ON `forminhfeld`.feldvw=`forminhaltfeld`.feldvw) LEFT JOIN `forminhaltfeldinh` ON `forminhfeld`.feldinhvw=`forminhaltfeldinh`.feldinhvw WHERE form_abk LIKE ""dmpdtyp%"" AND feldinh = ""X"" AND pat_id = " & Pid & " ORDER BY zeitpunkt"
 fiabfr = "SELECT * FROM (SELECT Pat_ID, FID, form_abk, Form_ID, ZeitPunkt, Nr, FeldNr, Feld, FeldInh FROM `forminhkopf` LEFT JOIN `formulare` ON `formulare`.formid = `forminhkopf`.form_id LEFT JOIN `forminhfeld` ON `forminhfeld`.foid = `forminhkopf`.foid LEFT JOIN `forminhaltfeld` ON `forminhfeld`.feldvw=`forminhaltfeld`.feldvw LEFT JOIN `forminhaltfeldinh` ON `forminhfeld`.feldinhvw=`forminhaltfeldinh`.feldinhvw AND feldinh='X' WHERE pat_id = " & pid & " AND form_abk LIKE 'dmpdtyp%') AS i WHERE feldinh<>null ORDER BY zeitpunkt"
@@ -1164,7 +1164,7 @@ aktDC.x_DokName = aktDC.x_GesName & " (Pat'nr " & pid & ")" & IIf(mitBezeich, ",
 aktDC.x_DoklangName = REPLACE$(aktDC.x_DokName, "*", "geb. ")
  If mitStr Then DmPStrS = IIf(mitBezeich, vNS, "DMP-Informationen vom " & Format$(Date, "DD.MM.YY") & " zu " & vbTab & vbTab & vbTab & vbTab & vbCrLf) & aktDC.x_DokName + ":"
  
- aktDC.x_DmTyp = "D.m. Typ " & DTyp(DiabTyp) & IIf(aktDC.DTyp <> DiabTyp, " (laut Anamnesebogen; " & aktDC.DTyp & " laut ICD)", vNS) & " seit:"
+ aktDC.x_DmTyp = "D.m. Typ " & dtyp(DiabTyp) & IIf(aktDC.dtyp <> DiabTyp, " (laut Anamnesebogen; " & aktDC.dtyp & " laut ICD)", vNS) & " seit:"
  If Not IsNull(Vgst) Then
   aktDC.daseit = zuJahr(DSeit(raAna, True), Vgst)
   If mitStr Then TabPr aktDC.x_DmTyp, aktDC.daseit
@@ -1184,7 +1184,7 @@ aktDC.x_DoklangName = REPLACE$(aktDC.x_DokName, "*", "geb. ")
  Dim VorDat As Date '(nur Attrappe)
  Call TherAuskunft(CStr(pid), 0, aktDC.insz, VorDat, aktDC.obIns, aktDC.obAnal, aktDC.obGlib, aktDC.obmetf, aktDC.obGlucI, aktDC.obSHGlin, aktDC.obGlit, aktDC.obDpp4, aktDC.obGlp1, aktDC.obSglt2, aktDC.obSonstAD, aktDC.obHMG, aktDC.obAntihyp, aktDC.obACEH, aktDC.obBetabl, aktDC.obThro, aktDC.obOAK, , , , aktDC.obDiur, aktDC.obAT1)
  'if mitstr THEN TabPr "Diagnosespez. Medik.: ", IIf(!`DiabetesMedikament 1` <> "" AND NOT ISNULL(!`DiabetesMedikament 1`), "  ja", "nein")
- If aktDC.DTyp = "1" And Not aktDC.obIns And Not aktDC.obAnal Then ' Medikamentenplan fehlt oder keine Dosierung angegeben
+ If aktDC.dtyp = "1" And Not aktDC.obIns And Not aktDC.obAnal Then ' Medikamentenplan fehlt oder keine Dosierung angegeben
   Dim rez As New ADODB.Recordset, rezSQL$
   rezSQL = "SELECT * FROM (SELECT *,LEFT(medikament,instr(medikament,"" "")-1) AS medanf FROM `rezepteintraege` ) AS rez LEFT JOIN `medarten` ON rez.medanf = `medarten`.medikament WHERE rez.pat_id = 150 AND (ins OR anal) ORDER BY zeitpunkt DESC;"
 '  IF Not lies.obMySQL THEN rezSQL = replace$(rezSQL, "collate latin1_german2_ci ", vNS)
@@ -1414,7 +1414,7 @@ aktDC.x_DoklangName = REPLACE$(aktDC.x_DokName, "*", "geb. ")
  
  aktDC.PrRR = GetPrRR(pid, raAna, aktDC.RRsyst, aktDC.RRdiast, obdiastkorr:=True)
  If aktDC.RRdiast < 30 Then aktDC.RRdiast = MINvb(70, aktDC.RRsyst) ' 31.10.20
- If aktDC.DTyp = "2" Then
+ If aktDC.dtyp = "2" Then
   If aktDC.PrRR <> "" Then
    If mitStr Then TabPr "Blutdruck:", aktDC.PrRR
   End If ' aktDC.PrRR <> "" Then
@@ -1600,7 +1600,7 @@ If True Then ' lwZahl
    End If ' IsNumeric(Labs.WertSg) Then
 '  END IF
   End If ' Labs.Abkü = "" Then else
-  If aktDC.DTyp = "2" Then
+  If aktDC.dtyp = "2" Then
    If mitStr Then TabPr IIf(aktDC.ab317, "•  ", "") & "HbA1c:", aktDC.x_DMPHbA1c
    If aktDC.ab315 Then
     If mitStr Then TabPr "eGFR:", aktDC.x_DMPeGFR
@@ -1865,7 +1865,7 @@ If Not ranamp.EOF And ranamp!amp = 1 Then aktDC.ZnAmput = 1
  
  Dim raFa As New ADODB.Recordset
  Dim diIsql$
- diIsql = "SELECT ICD, DiagSeite, DiagDatum FROM diagview WHERE pat_id = " & pid & " AND gicd RLIKE '^M14.6|^T79\.|^L89\.|^T89\.|^T87.4|^Z44.1'" '  AND COALESCE(f6010,0)=0 " ' M14.6 = Charcot, M14.2 = Arthorpathie
+ diIsql = "SELECT ICD, DiagSeite, DiagDatum FROM diagview WHERE pat_id = " & pid & " AND gicd RLIKE '^M14.6|^T79\.|^L89\.|^T89\.|^T87.4|^Z44.1'" '  AND COALESCE(Dggel,0)=0 " ' M14.6 = Charcot, M14.2 = Arthorpathie
  Dim lddat As Date
  myFrag raFa, "SELECT MAX(bhfb) AS lddat FROM `faelle` WHERE pat_id = " & pid
  If Not raFa.BOF Then
@@ -1925,10 +1925,10 @@ If Not ranamp.EOF And ranamp!amp = 1 Then aktDC.ZnAmput = 1
 '  END Enum
 
   If lies.obMySQL Then
-   sql = "SELECT * FROM diagview WHERE (obdauer <> 0 OR (obdauer = 0 AND CONCAT(((month(diagdatum)+2) div 3)¡ YEAR(diagdatum)) = '" & ZQuart(DokuDat) & "')) AND diagsicherheit<>'A' AND pat_id = " & aktDC.Pat_id ' AND COALESCE(f6010,0)=0
+   sql = "SELECT * FROM diagview WHERE (obdauer <> 0 OR (obdauer = 0 AND CONCAT(((month(diagdatum)+2) div 3)¡ YEAR(diagdatum)) = '" & ZQuart(DokuDat) & "')) AND diagsicherheit<>'A' AND pat_id = " & aktDC.Pat_id ' AND COALESCE(Dggel,0)=0
    sql = REPLACE$(sql, "¡", ",")
   Else
-   sql = "SELECT * FROM diagview WHERE (obdauer <> 0 OR (obdauer = 0 AND (int((month(diagdatum)+2) / 3) & YEAR(diagdatum)) = '" & ZQuart(DokuDat) & "')) AND diagsicherheit<>'A' AND pat_id = " & aktDC.Pat_id ' AND COALESCE(f6010,0)=0
+   sql = "SELECT * FROM diagview WHERE (obdauer <> 0 OR (obdauer = 0 AND (int((month(diagdatum)+2) / 3) & YEAR(diagdatum)) = '" & ZQuart(DokuDat) & "')) AND diagsicherheit<>'A' AND pat_id = " & aktDC.Pat_id ' AND COALESCE(Dggel,0)=0
    sql = REPLACE$(REPLACE$(sql, "CONCAT", ""), "¡", " & ")
   End If
   
@@ -2112,8 +2112,8 @@ If Not ranamp.EOF And ranamp!amp = 1 Then aktDC.ZnAmput = 1
 '#END IF
 #If vorca2008 Then
   Set raDT = Nothing
-'  Call raDT.Open("SELECT * FROM diagview WHERE pat_id = " & pid & " AND icd LIKE '" & "M14.6%" & "' AND diagsicherheit IN (""G"",""V"") AND COALESCE(f6010,0)=0 ", DBCn, adOpenDynamic, adLockReadOnly)
-  myFrag raDT, "SELECT * FROM diagview WHERE pat_id = " & pid & " AND gicd LIKE 'M14.6%'" ' AND COALESCE(f6010,0)=0 "
+'  Call raDT.Open("SELECT * FROM diagview WHERE pat_id = " & pid & " AND icd LIKE '" & "M14.6%" & "' AND diagsicherheit IN (""G"",""V"") AND COALESCE(Dggel,0)=0 ", DBCn, adOpenDynamic, adLockReadOnly)
+  myFrag raDT, "SELECT * FROM diagview WHERE pat_id = " & pid & " AND gicd LIKE 'M14.6%'" ' AND COALESCE(Dggel,0)=0 "
   If Not raDT.BOF Then
    Dim Seite$
    If Not IsNull(raDT!DiagSeite) Then
@@ -2147,7 +2147,7 @@ If Not ranamp.EOF And ranamp!amp = 1 Then aktDC.ZnAmput = 1
   If aktDC.ab317 And mitStr Then TabPr "Fußstatus:", FSauf
  End If ' obUlc OR Not raDT.BOF THEN else
  
- If aktDC.DTyp = "1" Then
+ If aktDC.dtyp = "1" Then
   If mitStr Then
    If aktDC.PrRR <> "" Then TabPr "Blutdruck:", aktDC.PrRR
    TabPr "HbA1c:", aktDC.x_DMPHbA1c
@@ -2184,7 +2184,7 @@ If Not ranamp.EOF And ranamp!amp = 1 Then aktDC.ZnAmput = 1
   End If
  End If
 ' Handlungsbedarf: spätere Lasertherapie
-If aktDC.DTyp = "2" Then If mitStr Then TabPr "Lasertherapie:", IIf(aktDC.oblaser, "  ja", "nein")
+If aktDC.dtyp = "2" Then If mitStr Then TabPr "Lasertherapie:", IIf(aktDC.oblaser, "  ja", "nein")
 #End If 'vorca2008
  
   If mitStr And aktDC.ab315 And Not aktDC.ab317 Then
@@ -2213,7 +2213,7 @@ If aktDC.DTyp = "2" Then If mitStr Then TabPr "Lasertherapie:", IIf(aktDC.oblase
   Set raDT = Nothing
  End If
  
- If aktDC.DTyp = "1" Then If mitStr Then TabPr "Lasertherapie:", IIf(aktDC.oblaser, "  ja", "nein")
+ If aktDC.dtyp = "1" Then If mitStr Then TabPr "Lasertherapie:", IIf(aktDC.oblaser, "  ja", "nein")
  If aktDC.ab315 Then
   If aktDC.FEn(8) Then ereig.AppVar Array("Nierenersatzth.", IIf(aktDC.FE(8), "(bek)", "(ICD " & aktDC.FEi(8) & " vor " & Format(aktDC.FEd(8), "d.m.yy") & ")"), ", ")
   If aktDC.FEn(10) Then ereig.AppVar Array("Erblindung", IIf(aktDC.FE(10), "(bek)", "(ICD " & aktDC.FEi(10) & " vor " & Format(aktDC.FEd(10), "d.m.yy") & ")"), ", ")
@@ -2326,7 +2326,7 @@ If aktDC.DTyp = "2" Then If mitStr Then TabPr "Lasertherapie:", IIf(aktDC.oblase
  aktDC.obNI = (aktDC.eGFR < 45)
  
 ' IF mitStr THEN DmPStrS = DmPStrS & vbCrLf
- If aktDC.DTyp <> "1" Then
+ If aktDC.dtyp <> "1" Then
   If Not aktDC.ab1023 Then If mitStr Then TabPr "Glibenclamid:", IIf(aktDC.ab315, IIf(aktDC.obGlib, "  ja", IIf(aktDC.obNI, "Kontraindikation", "nein")), IIf(aktDC.obGlib, IIf(Not aktDC.ab315 And aktDC.VorM(0) = 0 And aktDC.obVorb, "(unverändert) ", "  ") & "  ja", IIf(Not aktDC.ab315 And aktDC.VorM(0) > 0, "(unverändert) ", "  ") & IIf(aktDC.obNI, "Kontraindikation", "nein")))
   If Not aktDC.obGlib And aktDC.obNI Then aktDC.obGlib = adki
   If aktDC.obmetf Then
@@ -2520,7 +2520,7 @@ If aktDC.DTyp = "2" Then If mitStr Then TabPr "Lasertherapie:", IIf(aktDC.oblase
   End If
   If mitStr Then TabPr "•  Info'angeb.KK gewü.: ", aktDC.x_InfoAng
  Else ' aktdc.ab315 Then
-  If aktDC.DTyp = "2" Then
+  If aktDC.dtyp = "2" Then
    If mitStr Then TabPr "  Aufgabe Tabak empf.:", IIf(aktDC.Tabak, "  ja", "nein")
    If Größe <> 0 Then
 ''   IF mitstr THEN TabPr "Ernährungsber. empf.:", IIf(CDbl(replace$(!`bmi`, ".", ",")) > 24.9, "  ja", "nein")
@@ -2577,7 +2577,7 @@ If aktDC.DTyp = "2" Then If mitStr Then TabPr "Lasertherapie:", IIf(aktDC.oblase
   End If ' mitStr
  End If ' aktdc.ab315 Then
  
- If aktDC.DTyp = "1" Or Not aktDC.ab1023 Then
+ If aktDC.dtyp = "1" Or Not aktDC.ab1023 Then
   Dim AugUDat As Date
   Dim rBr As New ADODB.Recordset
   aktDC.x_Aug = vNS
@@ -4217,7 +4217,7 @@ Public Function do_DMPAusgebStandAlone(Pat_id&, Optional fax1$, Optional Adressa
  ag.AppVar Array(AbE1, "Intervall der künftigen Fußinspektionen:", AbE3, sonz(DT.x_Wundinfektion), AbsE)
  ag.AppVar Array(AbE1, "relev.Ereignisse:", AbE3, sonz(DT.x_Ereig), AbsE)
  ag.AppVar Array(AbE1, "Schw.Hypoglyk./Q.:", AbE3, sonz(DT.x_HypoStr), AbsE)
- If DT.DTyp <> "1" Then
+ If DT.dtyp <> "1" Then
   ag.AppVar Array(AbE5, AbE4, "Insulin oder -analoga:", AbE2, sonz(DT.x_Insulin), AbsE)
   ag.AppVar Array(AbE1, "Metformin:", AbE3, sonz(DT.x_Metformin), AbsE)
   ag.AppVar Array(AbE1, "Sonst.antidiab.Medik.:", AbE3, sonz(DT.x_Sonstige), AbsE)
@@ -4236,7 +4236,7 @@ Public Function do_DMPAusgebStandAlone(Pat_id&, Optional fax1$, Optional Adressa
  ag.AppVar Array(AbE1, "HbA1c-Zielwert:", AbE3, sonz(DT.x_HZiel), AbsE)
  ag.AppVar Array(AbE1, "Bhdlg.Fußeinr.:", AbE3, sonz(DT.x_BhdF), AbsE)
  ag.AppVar Array(AbE1, "Diab'bez.stat.Einweisung:", AbE3, sonz(DT.x_BhdD), AbsE)
- If DT.DTyp = "1" Or Not DT.ab1023 Then ag.AppVar Array(AbE1, "Augenuntersuchung:", AbE3, sonz(DT.x_Aug), AbsE)
+ If DT.dtyp = "1" Or Not DT.ab1023 Then ag.AppVar Array(AbE1, "Augenuntersuchung:", AbE3, sonz(DT.x_Aug), AbsE)
  ag.AppVar Array(AbE1, "Empf. Dok'intervall:", AbE3, sonz(DT.x_EmpfItv), AbsE)
 ' Ende des einspaltigen Teils
  ag.Append "<w:p><w:pPr><w:sectPr><w:type w:val=""nextPage""/><w:pgSz w:w=""11906"" w:h=""16838""/><w:pgMar w:left=""567"" w:right=""567"" w:gutter=""0"" w:header=""0"" w:top=""567"" w:footer=""0"" w:bottom=""567""/><w:pgNumType w:fmt=""decimal""/><w:formProt w:val=""false""/><w:textDirection w:val=""lrTb""/><w:docGrid w:type=""default"" w:linePitch=""360"" w:charSpace=""0""/></w:sectPr></w:pPr></w:p>"
@@ -4272,15 +4272,15 @@ vorgetword:
  Set mR1 = dc.content
  With mR1.Find
   .clearformatting
-  .text = " ("
-  .replacement.text = vNS
+  .Text = " ("
+  .replacement.Text = vNS
   .wrap = wdFindContinue
   .Format = False
   .Execute
  End With
  If mR1.Find.found Then
   Set mR2 = dc.Range(mR1.Start, mR1.Start)
-  mR2.Find.text = ")"
+  mR2.Find.Text = ")"
   mR2.Find.Execute
   If mR2.Find.found Then
    Set mR3 = dc.Range(mR1.Start, mR2.END)
@@ -4293,7 +4293,7 @@ vorgetword:
  Dim Para
  Set Para = mR3.paragraphs.First.Range
  Do While Err.Number = 0
-  With dc.Range(Para.Start, Para.Start + InStr(Para.text, ":")).Font
+  With dc.Range(Para.Start, Para.Start + InStr(Para.Text, ":")).Font
    .Italic = True
    .bold = True
   End With
@@ -4342,7 +4342,7 @@ vorgetword:
   myFrag mrs, sql
   dc.Range.Insertafter vbCrLf & TabAusgeb(mrs, Lese, , Chr$(11), , , , , , , True).Value
   Set mR2 = dc.paragraphs.Last.Range
-  mR2.Find.text = ":"
+  mR2.Find.Text = ":"
   mR2.Find.Execute
   If mR2.Find.found Then
    dc.Range(dc.paragraphs.Last.Range.Start, mR2.END).bold = True
@@ -4549,13 +4549,13 @@ Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "Last
 End Select
 End Function ' GesName
 
-Function DTyp$(Inh$)
+Function dtyp$(Inh$)
 Select Case LCase$(Inh)
 '1','2','-','?','s' = sekundär,'g' = Gestationsdiabetes, 'p' = pathologische Glucosetoleranz oder gestörte Nüchternglucose
- Case "s":  DTyp = "sekundär"
- Case "g": DTyp = "Gestationsdiabetes"
- Case "p": DTyp = "'pathologische Glucosetoleranz oder gestörte Nüchternglucose'"
- Case Else: DTyp = Inh
+ Case "s":  dtyp = "sekundär"
+ Case "g": dtyp = "Gestationsdiabetes"
+ Case "p": dtyp = "'pathologische Glucosetoleranz oder gestörte Nüchternglucose'"
+ Case Else: dtyp = Inh
 End Select
 End Function ' dtyp
 
@@ -4828,7 +4828,7 @@ Function diI%(icd_str$, Optional pid, Optional abDat As Date, Optional auchZ As 
    If i = SpliZ - 1 Then icdsql = icdsql & ")" Else icdsql = icdsql & " OR "
   Next i
  End If
- diIsql = "SELECT " & IIf(lies.obMySQL, vNS, "top 1 ") & "* FROM `diagnosen` WHERE pat_id = " & Pat_id & " AND " & icdsql & " AND diagsicherheit IN ('G','V',''" & IIf(auchZ, ",'Z'", "") & ") " & IIf(abDat <> 0, " AND diagdatum >= " & DatFor_k(abDat), "") & IIf(LenB(Weiteres) <> 0, " AND " & Weiteres, "") '  AND COALESCE(f6010,0)=0
+ diIsql = "SELECT " & IIf(lies.obMySQL, vNS, "top 1 ") & "* FROM `diagnosen` WHERE pat_id = " & Pat_id & " AND " & icdsql & " AND diagsicherheit IN ('G','V',''" & IIf(auchZ, ",'Z'", "") & ") " & IIf(abDat <> 0, " AND diagdatum >= " & DatFor_k(abDat), "") & IIf(LenB(Weiteres) <> 0, " AND " & Weiteres, "") '  AND COALESCE(Dggel,0)=0
  Dim lddat As Date
  myFrag raFa, "SELECT MAX(bhfb) AS lddat FROM `faelle` WHERE pat_id = " & Pat_id
  If Not raFa.BOF Then
@@ -4882,7 +4882,7 @@ Function diT%(diagtxt$, Optional pid, Optional abDat As Date, Optional auchZ As 
    If i = SpliZ - 1 Then dtxtsql = dtxtsql & ")" Else dtxtsql = dtxtsql & " OR "
   Next i
  End If
- diTsql = "SELECT " & IIf(lies.obMySQL, vNS, "top 1 ") & "* FROM `diagnosen` WHERE pat_id = " & Pat_id & " AND " & dtxtsql & " AND diagsicherheit IN ('G','V',''" & IIf(auchZ, ",'Z'", "") & ") " & IIf(abDat <> 0, " AND diagdatum >= " & DatFor_k(abDat), "") & IIf(LenB(Weiteres) <> 0, " AND " & Weiteres, "") ' AND COALESCE(f6010,0)=0
+ diTsql = "SELECT " & IIf(lies.obMySQL, vNS, "top 1 ") & "* FROM `diagnosen` WHERE pat_id = " & Pat_id & " AND " & dtxtsql & " AND diagsicherheit IN ('G','V',''" & IIf(auchZ, ",'Z'", "") & ") " & IIf(abDat <> 0, " AND diagdatum >= " & DatFor_k(abDat), "") & IIf(LenB(Weiteres) <> 0, " AND " & Weiteres, "") ' AND COALESCE(Dggel,0)=0
  Dim lddat As Date
  myFrag raFa, "SELECT MAX(bhfb) lddat FROM `faelle` WHERE pat_id = " & Pat_id
  If Not raFa.BOF Then
@@ -5488,7 +5488,7 @@ Function WieTabak(Pat_id&) As ZigSt
   Dim DiText$, DiSich$
   WieTabak = doTabakSt(Pat_id)
   If Pat_id <> 0 Then
-'   Call raZig.Open("SELECT * FROM `diagnosen` WHERE pat_id = " & Pat_id & " AND icd LIKE '" & "F17" & "%" & "' AND diagsicherheit IN (""G"",""V"",""Z"")  AND COALESCE(f6010,0)=0 ", DBCn, adOpenDynamic, adLockReadOnly)
+'   Call raZig.Open("SELECT * FROM `diagnosen` WHERE pat_id = " & Pat_id & " AND icd LIKE '" & "F17" & "%" & "' AND diagsicherheit IN (""G"",""V"",""Z"")  AND COALESCE(Dggel,0)=0 ", DBCn, adOpenDynamic, adLockReadOnly)
    myFrag raZig, "SELECT DiagText,DiagSicherheit FROM diagview WHERE pat_id = " & Pat_id & " AND gzicd LIKE 'F17%'"
    If Not raZig.EOF Then
     DiText = raZig!DiagText
@@ -5599,28 +5599,28 @@ fehler:
     End Select
  End Function ' doTabakSt
  
- Function doTabakStAlt(text) As ZigSt  ' TabakStatus "parsen"
+ Function doTabakStAlt(Text) As ZigSt  ' TabakStatus "parsen"
   Dim KommaStelle%, FrüherStelle%, bisStelle%, MinusStelle%, LJStelle% ' 0 = keiner, 1 = früher, 2 = aktuell, 3 = vor mehr als 15 Jahren
   Dim jahrk$, obdatum%, Datu As Date, sp$()
   Dim rSn$, rSnpos&
   On Error GoTo fehler
-  If Not IsNull(text) Then
-   text = Trim$(text)
-   rSnpos = InStr(text, "RauchenSienoch")
+  If Not IsNull(Text) Then
+   Text = Trim$(Text)
+   rSnpos = InStr(Text, "RauchenSienoch")
    If rSnpos > 0 Then
-    rSn = Mid$(text, rSnpos + 16)
+    rSn = Mid$(Text, rSnpos + 16)
     If InStrB(rSn, "RauchenSienoch") <> 0 Then rSn = Mid$(rSn, InStr(rSn, "RauchenSienoch") + 16)
    End If
-   If Left$(text, 1) = "j" Then
-    sp = Split(text, "Frühergeraucht?")
+   If Left$(Text, 1) = "j" Then
+    sp = Split(Text, "Frühergeraucht?")
     If Trim$(sp(0)) = ",wieviel?" Or obNein(Left$(sp(0), 1)) Then
      doTabakStAlt = nie
     Else
      If rSnpos > 0 Then
       If obNein(rSn) Then doTabakStAlt = früher Else If (obNein(sp(0)) Or InStrB(rSn, "j") <> 0) Then doTabakStAlt = aktuell
      Else
-      If LCase$(Left$(text, 1)) = "j" Then
-       If InStrB(text, "is") <> 0 Then
+      If LCase$(Left$(Text, 1)) = "j" Then
+       If InStrB(Text, "is") <> 0 Then
         doTabakStAlt = früher
        Else
         doTabakStAlt = aktuell
@@ -5638,18 +5638,18 @@ fehler:
     End If
    ElseIf Left$(rSn, 1) = "j" Then 'obNein(rSn) = 0 THEN 4.4.07 Pat. 1716
     doTabakStAlt = aktuell
-   ElseIf Left$(text, 1) = "n" Or text = "Frühergeraucht? n" Or text = "Frühergeraucht? -" Or Left$(text, 1) = "," Then
+   ElseIf Left$(Text, 1) = "n" Or Text = "Frühergeraucht? n" Or Text = "Frühergeraucht? -" Or Left$(Text, 1) = "," Then
     doTabakStAlt = nie
    Else
-    KommaStelle = InStr(text, ",")
-    MinusStelle = InStr(text, "-")
-    bisStelle = InStr(text, "bis")
-    LJStelle = InStr(text, "LJ")
-    FrüherStelle = InStr(text, "früher")
+    KommaStelle = InStr(Text, ",")
+    MinusStelle = InStr(Text, "-")
+    bisStelle = InStr(Text, "bis")
+    LJStelle = InStr(Text, "LJ")
+    FrüherStelle = InStr(Text, "früher")
     obdatum = 0
     If MinusStelle = 1 Or bisStelle = 1 Then
-     If MinusStelle = 1 Then jahrk = Mid$(text, 2)
-     If bisStelle = 1 Then jahrk = Mid$(text, 4)
+     If MinusStelle = 1 Then jahrk = Mid$(Text, 2)
+     If bisStelle = 1 Then jahrk = Mid$(Text, 4)
      jahrk = LTrim$(jahrk)
      If InStrB(jahrk, " ") <> 0 Then
       jahrk = Left$(jahrk, InStr(jahrk, " ") - 1)
@@ -5676,19 +5676,19 @@ fehler:
     End If
     
    End If ' MinusStelle = 1 OR bisStelle = 1 THEN
-   If Not IsNull(text) And text <> "" Then
+   If Not IsNull(Text) And Text <> "" Then
     If bisStelle > 0 Or (FrüherStelle > 0 And (KommaStelle = 0 Or (KommaStelle > 0 And KommaStelle > FrüherStelle))) Then
      doTabakStAlt = früher
     ElseIf (FrüherStelle > 0 And KommaStelle > 0 And FrüherStelle > KommaStelle) Then
      doTabakStAlt = aktuell
     Else
-     If InStrB(text, "ja") <> 0 Or InStr(text, "j") = 1 Then
+     If InStrB(Text, "ja") <> 0 Or InStr(Text, "j") = 1 Then
       doTabakStAlt = aktuell
      Else
-      If text = "n" Or text = "-" Or InStrB(text, "nein") <> 0 Or InStrB(text, "kein") <> 0 Or text = "0" Then
+      If Text = "n" Or Text = "-" Or InStrB(Text, "nein") <> 0 Or InStrB(Text, "kein") <> 0 Or Text = "0" Then
        doTabakStAlt = nie
       Else
-       If (InStrB(text, "LJ") <> 0 And MinusStelle > 0) Or (MinusStelle = 1 And obdatum) Then
+       If (InStrB(Text, "LJ") <> 0 And MinusStelle > 0) Or (MinusStelle = 1 And obdatum) Then
 '        IF Not obdatum OR (obdatum AND datu > Now + 15 * 365) THEN
 ' muß noch getestet werden
          doTabakStAlt = früher
@@ -5701,9 +5701,9 @@ fehler:
    End If
   End If ' NOT ISNULL(Text
   End If
-   If doTabakStAlt = früher And InStrB(text, "biswann:") <> 0 Then
-    bisStelle = InStr(text, "biswann:") + Len("biswann:")
-    jahrk = LTrim$(Trim$(Mid$(text, bisStelle + 1)))
+   If doTabakStAlt = früher And InStrB(Text, "biswann:") <> 0 Then
+    bisStelle = InStr(Text, "biswann:") + Len("biswann:")
+    jahrk = LTrim$(Trim$(Mid$(Text, bisStelle + 1)))
     obdatum = -1
    End If
   If doTabakStAlt = 1 And obdatum Then

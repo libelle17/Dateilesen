@@ -679,8 +679,11 @@ Begin VB.MDIForm Lese
       Begin VB.Menu DiabetikerOhneSchulungLetztesJahr 
          Caption         =   "&Diabetiker ohne Schulung letztes Jahr"
       End
-      Begin VB.Menu Therapieartenwechsel 
-         Caption         =   "&Therapieartenwechsel"
+      Begin VB.Menu TherapieartenfürallePatientenzusammenfestlegen 
+         Caption         =   "&Therapiearten für alle Patienten zusammen festlegen (40 Minuten)"
+      End
+      Begin VB.Menu Therapieartenfürallefestlegeneinernachdemanderen 
+         Caption         =   "&Therapiearten für alle festlegen (ein Pat. nach dem anderen)"
       End
       Begin VB.Menu HbA1cStatistik 
          Caption         =   "HbA&1c-Statistik (dauert ...)"
@@ -1255,7 +1258,7 @@ End Sub ' Optionen_Click()
 
 ' Testfunktionen -> PatvonMo
 Private Sub PatvonMO_Click()
- Const pNr& = 53119 ' 69377 ' 51630 ' 105 ' 18 ' 246 ' 59152 ' 1394 ' 2112
+ Const pNr& = 68316 ' 64659 ' 45 ' 69367 ' 69377 ' 53119 ' 51630 ' 105 ' 18 ' 246 ' 59152 ' 1394 ' 2112
  Call doPatvonMO(pNr)
 End Sub ' PatvonMO_Click
 
@@ -1424,7 +1427,7 @@ End Sub ' FalschAbgehakteUngueltig_Click
 ' Funktionen für Arzthelferin und Arzt -> Falsche Diabetesdiagnosen
 Private Sub FalscheDiabetesdiagnosen_Click()
  Dim rs As New ADODB.Recordset
- ' diagsicherheit unf f6010 in aktfaelle.icd schon eingebaut
+ ' diagsicherheit unf Dggel in aktfaelle.icd schon eingebaut
  myFrag rs, "SELECT f.pat_id, dmpklass, f.icd FROM `aktfaellev` f LEFT JOIN `namen` n ON f.pat_id = n.pat_id WHERE NOT (icd REGEXP '^E1[01]\.|^R73|^O24.4')"
  TabAusgeb rs, Me, , , , , , , "Falsche Diabetesdiagnosen (E12, E13, E14; bitte nach Medikation, Anammnese, Antikörpern einordnen, ggf. z.B. 'Diabetes mellitus (sekundär) [E10.91]'"
 End Sub ' FalscheDiabetesdiagnosen_Click
@@ -2136,7 +2139,7 @@ Private Sub Kontrolllisten_für_DMP_HA_Click()
  "SELECT f.pat_id, gesnameg(f.pat_id) gesnam " & vbCrLf & _
  ",COALESCE((SELECT CASE WHEN icd REGEXP '^E10' THEN 'Typ 1' WHEN icd REGEXP '^E11' THEN 'Typ 2' WHEN '^O24' THEN 'Gest' ELSE 'Sonst' END " & vbCrLf & _
  "FROM diagview " & vbCrLf & _
- "WHERE Pat_ID=f.Pat_ID AND (gicd REGEXP '^E1[0-4]\.|^R73' OR (icd='O24.4' AND f6010=0 AND diagsicherheit IN ('G',' ') AND diagdatum BETWEEN qbegs(f.quartal) AND qends(f.quartal))) " & vbCrLf & _
+ "WHERE Pat_ID=f.Pat_ID AND (gicd REGEXP '^E1[0-4]\.|^R73' OR (icd='O24.4' AND Dggel=0 AND diagsicherheit IN ('G',' ') AND diagdatum BETWEEN qbegs(f.quartal) AND qends(f.quartal))) " & vbCrLf & _
  "ORDER BY ICD " & vbCrLf & _
  "LIMIT 1),'fehlt') typ " & vbCrLf & _
  ", COALESCE((SELECT 1 FROM briefe WHERE pat_id=f.pat_id AND name RLIKE 'dmp[ -]doku' AND zeitpunkt > IF((SELECT COUNT(0) FROM eintraege WHERE pat_id=f.pat_id AND zeitpunkt>qanf())>0,qanf(),qbeg(SUBDATE(NOW(),111))) LIMIT 1),0) vdoku" & vbCrLf & _
@@ -2831,7 +2834,7 @@ Private Sub GestationsdiabetikerinnenProQuartal_Click()
  Dim rs As New ADODB.Recordset
  myFrag rs, "SELECT COUNT(0) Zahl, quartal(diagdatum) Quartal" & vbCrLf & _
             "FROM diagview d " & vbCrLf & _
-            "WHERE (d.icd='O24.4' AND d.f6010=0 AND d.diagsicherheit in ('G',' ')) " & vbCrLf & _
+            "WHERE (d.icd='O24.4' AND d.Dggel=0 AND d.diagsicherheit in ('G',' ')) " & vbCrLf & _
             "GROUP BY quartal(diagdatum)" & vbCrLf & _
             "ORDER BY MID(quartal(diagdatum),2) DESC, quartal(diagdatum) DESC;"
  TabAusgeb rs, Me, , , , , , , "Gestationsdiabetikerinnen pro Quartal", 0, True
@@ -2846,7 +2849,7 @@ Private Sub Gestationsdiabetikerinnen_Click()
  Call ProgStart
 ' Open DatNam For Output AS #327
  myFrag rs, "SELECT f.pat_id,f.fid, LEFT(CONCAT(a.nachname,' ',a.vorname),20) name, DATE_FORMAT(a.gebdat,'%d.%m.%y') AS geb, d.icd, d.diagsicherheit AS dsi, diabetestyp " & vbCrLf & _
-            "FROM `aktfvs` f LEFT JOIN `diagview` d ON f.pat_id = d.pat_id AND (d.icd='O24.4' AND d.f6010=0 AND d.diagsicherheit IN ('G',' ') AND d.diagdatum BETWEEN qbegs(f.quartal) AND qends(f.quartal))" & vbCrLf & _
+            "FROM `aktfvs` f LEFT JOIN `diagview` d ON f.pat_id = d.pat_id AND (d.icd='O24.4' AND d.Dggel=0 AND d.diagsicherheit IN ('G',' ') AND d.diagdatum BETWEEN qbegs(f.quartal) AND qends(f.quartal))" & vbCrLf & _
             "LEFT JOIN `anamnesebogen` a ON f.pat_id = a.pat_id " & vbCrLf & _
             "WHERE (NOT ISNULL(icd) OR a.diabetestyp = 'g')"
  TabAusgeb rs, Me, True, , , , , , "Gestationsdiabetikerinnen"
@@ -2914,7 +2917,7 @@ End Sub ' PioglitazonRezepte_Click
 ' Statistik -> Diabetiker ohne Schulung letztes Jahr
 Private Sub DiabetikerOhneSchulungLetztesJahr_Click()
  Dim rs As New ADODB.Recordset
- sql = "SELECT f.Pat_ID, gesname(n.pat_id) PName FROM `aktfvs` f LEFT JOIN `namen` n ON f.pat_id = n.pat_id LEFT JOIN diagview d ON f.pat_id = d.pat_id AND (d.gicd REGEXP '^E1[0-4]\.|^R73' OR (d.icd='O24.4' AND d.f6010=0 AND d.diagsicherheit IN ('G',' ') AND d.diagdatum BETWEEN qbegs(f.quartal) AND qends(f.quartal)))" & vbCrLf & _
+ sql = "SELECT f.Pat_ID, gesname(n.pat_id) PName FROM `aktfvs` f LEFT JOIN `namen` n ON f.pat_id = n.pat_id LEFT JOIN diagview d ON f.pat_id = d.pat_id AND (d.gicd REGEXP '^E1[0-4]\.|^R73' OR (d.icd='O24.4' AND d.Dggel=0 AND d.diagsicherheit IN ('G',' ') AND d.diagdatum BETWEEN qbegs(f.quartal) AND qends(f.quartal)))" & vbCrLf & _
        "LEFT JOIN `eintraege` e ON f.pat_id = e.pat_id AND art = 'schul' AND YEAR(zeitpunkt) = YEAR(SUBDATE(NOW(),INTERVAL 25 DAY)) " & vbCrLf & _
        "WHERE ISNULL(art) AND NOT ISNULL(icd) AND schgr <> 90 GROUP BY pat_id"
  myFrag rs, sql
@@ -2922,7 +2925,13 @@ Private Sub DiabetikerOhneSchulungLetztesJahr_Click()
 End Sub ' DiabetikerOhneSchulungLetztesJahr_Click
 
 ' Statistik -> Therapieartenwechsel
-Private Sub Therapieartenwechsel_Click() ' s. therart_erm
+'Private Sub Therapieartenwechsel_Click() ' s. therart_erm
+
+Private Sub TherapieartenfürallePatientenzusammenfestlegen_Click()
+  rufauf "ssh", "root@" & LiName & " mysql --defaults-extra-file=~/.mysqlpwd quelle -e'CALL fuellThaP(0)'", 2, "c:\windows\system32\openssh\", -1, 0
+End Sub ' TherapieartenfürallePatientenzusammenfestlegen_Click()
+
+Private Sub Therapieartenfürallefestlegeneinernachdemanderen_Click()
  Dim rs As New ADODB.Recordset, sql$, altpat_id&, altTherArt$, rAf&, erg&, T1!, T2!
  Const FristS$ = "25"
  Call ProgStart
@@ -2935,12 +2944,7 @@ Private Sub Therapieartenwechsel_Click() ' s. therart_erm
   myEFrag "TRUNCATE `therarten`"
 #If Not thaalt Then
 ' 22.10.22: führt bei Aufruf über Ado zumindest bis zur Mariadb-Version 10.9 immer wieder zum Server-Crash, s.ähnliche Bug-Hinweise früherer Versionen
-#Const mitfensters = False
-#If mitfensters Then
-  rufauf "ssh", "root@" & LiName & " mysql --defaults-extra-file=~/.mysqlpwd quelle -e'CALL fuellThaP(0)'", 2, "c:\windows\system32\openssh\", -1, 0
-#Else
  Call TheraErmitt(0)
-#End If
 '  myEFrag "CALL fuellThaP(0)"
 #Else
   sql = "SELECT pat_id, zp, mpnr, IF(purez OR puzu,'CSII',IF(obict=1,'ICT',IF(insu=0,IF(oad=1,'OAD','Diät'),IF(oad=1,'Komb','CT')))) therart FROM (SELECT mpü.pat_id, mpü.zeitpunkt zp, mpü.mpnr, " & _
@@ -2970,7 +2974,7 @@ Private Sub Therapieartenwechsel_Click() ' s. therart_erm
 ' ' LEFT JOIN `diagnosen` d ON f.pat_id = d.pat_id AND icd REGEXP '^E1[0-4]' AND diagsicherheit <> 'A'
  sql = "SELECT a.Pat_ID, gesname(a.pat_id) Name, ICD, AufnDat, SchGr, t.zp `Beginn`,TherArt " & _
        "FROM `aktfvs` a " & vbCrLf & _
-       "LEFT JOIN diagview d ON a.pat_id = d.pat_id AND (d.gicd REGEXP '^E1[0-4]\.|^R73' OR (d.icd='O24.4' AND d.f6010=0 AND d.diagsicherheit IN ('G',' ') AND d.diagdatum BETWEEN qbegs(a.quartal) AND qends(a.quartal)))" & _
+       "LEFT JOIN diagview d ON a.pat_id = d.pat_id AND (d.gicd REGEXP '^E1[0-4]\.|^R73' OR (d.icd='O24.4' AND d.Dggel=0 AND d.diagsicherheit IN ('G',' ') AND d.diagdatum BETWEEN qbegs(a.quartal) AND qends(a.quartal)))" & _
        "LEFT JOIN `therarten` t ON a.pat_id = t.pat_id " & _
        "WHERE (therart ='ICT' OR therart = 'CSII') AND " & _
        "zp BETWEEN " & lQAnfuEnd(FristS) ', 1)
@@ -2985,7 +2989,7 @@ Private Sub HbA1cStatistik_Click() ' HbA1c-Stastisik
  myFrag rs, "SELECT COUNT(0) Zahl, ROUND(avg(HbA1c),1) `mittl.HbA1c`, Quartal,ICD " & vbCrLf & _
  "FROM (" & vbCrLf & _
   "SELECT f.quartal, f.pat_id, MIN(d.icd) icd, l.letzter HbA1c FROM faelle f " & vbCrLf & _
-  "LEFT JOIN diagview d ON f.pat_id = d.pat_id AND (d.gicd REGEXP '^E1[0-4]\.|^R73' OR (d.icd='O24.4' AND d.f6010=0 AND d.diagsicherheit IN ('G',' ') AND d.diagdatum BETWEEN qbegs(f.quartal) AND qends(f.quartal)))" & vbCrLf & _
+  "LEFT JOIN diagview d ON f.pat_id = d.pat_id AND (d.gicd REGEXP '^E1[0-4]\.|^R73' OR (d.icd='O24.4' AND d.Dggel=0 AND d.diagsicherheit IN ('G',' ') AND d.diagdatum BETWEEN qbegs(f.quartal) AND qends(f.quartal)))" & vbCrLf & _
   "LEFT JOIN lHbA1c l ON f.pat_id = l.pat_id " & vbCrLf & _
   "WHERE NOT ISNULL(icd) GROUP BY f.quartal, f.pat_id) i " & vbCrLf & _
  "GROUP BY quartal, icd " & vbCrLf & _
@@ -3009,11 +3013,11 @@ Private Sub Einlesungen_Click()
 ' SELECT COUNT(0) zahl, i.* FROM (SELECT n.aktzeit, (select max(aktzeit) from faelle where pat_id=n.pat_id) impzeit, n.pat_id, gesname(n.pat_id) NAME, n.StByte from namen n GROUP BY n.pat_id ORDER BY stbyte DESC, impzeit DESC) i GROUP BY stbyte ORDER BY stbyte DESC;
  sql = _
  "SELECT COUNT(0) Zahl, i.Aktzeit, i.Impzeit Importzeit, Pat_id, PName" & vbCrLf & _
- ", COALESCE(e.Zp1,'') Zp1, COALESCE(e.zp4,'') Zp4, COALESCE(e.Fallzahl,'') Fallzahl, e.Datei, e.DateiAend" & vbCrLf & _
+ ", COALESCE(e.Zp1,'') Zp1, COALESCE(e.zp4,'') Zp4, COALESCE(e.Fallzahl,'') Fallzahl, REPLACE(e.Datei,'\\\\linux1\\daten\\eigene Dateien','U:') Datei, e.DateiAend" & vbCrLf & _
  "FROM (" & vbCrLf & _
  " SELECT COALESCE(aktzeit,'') Aktzeit, COALESCE((SELECT MAX(aktzeit) FROM faelle WHERE pat_id=n.pat_id),'') impzeit, IF(Pat_id=0,'',pat_id) pat_id, gesname(pat_id) PName, StByte" & vbCrLf & _
  " FROM namen n" & vbCrLf & _
- " GROUP BY pat_id ORDER BY stbyte DESC, impzeit DESC" & vbCrLf & _
+ " GROUP BY n.pat_id ORDER BY stbyte DESC, impzeit DESC" & vbCrLf & _
  ") i" & vbCrLf & _
  "LEFT JOIN eintragszahlen e ON e.stbyte = i.stbyte" & vbCrLf & _
  "GROUP BY i.stbyte ORDER BY i.stbyte DESC;"
@@ -3169,7 +3173,7 @@ Private Sub Leistungen_zu_Patient_anzeigen_Click()
  spmaxü = Array(10, 5, 200)
  pid = InputBox("Bitte PAT_ID eingeben")
  If pid <> 0 Then
-  myFrag rs, "SELECT l.QS, l.AktZeit, l.Zeitpunkt,l.Leistung, IF (ISNULL(e2.titel), e.Leistungstext,e2.titel) Titel,f5002, f5005, f5006, f5009, Med, f5015, f5016, f5021, f5026, Faktor, f5098, LANR, letzVorg, Ausn, Beme, absPos, QT, StByte, LANRid, Sachkbez, Sachkct, Zone, l.FID, l.id FROM leistungen l LEFT JOIN ebm2000plus e2 USING (leistung) LEFT JOIN EBM2010 e ON l.leistung = e.ziffer WHERE pat_id=" & CStr(pid) & " ORDER BY zeitpunkt DESC"
+  myFrag rs, "SELECT l.QS, l.AktZeit, l.Zeitpunkt,l.Leistung, IF (ISNULL(e2.titel), e.Leistungstext,e2.titel) Titel,ArtdUs, LAnzl, LUhrz, LfBegr, Med, LOrgan, LArztBf, DtlKbsV, LEntlDt, Faktor, LBSNR, LANR, letzVorg, Ausn, Beme, absPos, QT, StByte, LANRid, Sachkbez, Sachkct, Zone, l.FID, l.id FROM leistungen l LEFT JOIN ebm2000plus e2 USING (leistung) LEFT JOIN EBM2010 e ON l.leistung = e.ziffer WHERE pat_id=" & CStr(pid) & " ORDER BY zeitpunkt DESC"
   myFrag rsa, "SELECT * FROM namen WHERE pat_id=" & pid
   TabAusgeb rs, Me, , , , , spmaxü, , "Leistungen zu Pat. " & CStr(pid) & " (" & GesNamFn(rsa) & ")           "
  End If

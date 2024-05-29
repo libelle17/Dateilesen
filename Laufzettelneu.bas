@@ -757,11 +757,11 @@ Function UKPDS(ByRef aRisk As Risk, pid$, gbdt As Date, dmseit$, ByRef falDiabDa
 ' UKPDS-Risk bestimmen (2)
   aRisk.Female = obweibl
   Set rsDia = Nothing
-  myFrag rsDia, "SELECT 0 FROM `diagview` d WHERE d.pat_id = " & pid & " AND (d.gicd LIKE 'I48%')" ' AND COALESCE(d.f6010,0)=0
+  myFrag rsDia, "SELECT 0 FROM `diagview` d WHERE d.pat_id = " & pid & " AND (d.gicd LIKE 'I48%')" ' AND COALESCE(d.Dggel,0)=0
   aRisk.AtrialFibrillation = Not rsDia.BOF()
   Set rsDia = Nothing
   aRisk.EthnicGroup = 1 ' 2 = Afro-Caribbean, 3 = Asian-Indian
-  myFrag rsDia, "SELECT diagsicherheit d FROM `diagnosen` d WHERE d.pat_id = " & pid & " AND (d.icd LIKE 'F17%') AND NOT d.diagsicherheit IN ('A')" '  AND COALESCE(d.f6010,0)=0
+  myFrag rsDia, "SELECT diagsicherheit d FROM `diagnosen` d WHERE d.pat_id = " & pid & " AND (d.icd LIKE 'F17%') AND NOT d.diagsicherheit IN ('A')" '  AND COALESCE(d.Dggel,0)=0
   If rsDia.EOF Then
    aRisk.SmokingStatus = 0
   ElseIf rsDia!d = "Z" Then
@@ -1267,7 +1267,7 @@ weiter:
 hyperton:
 #Else
   Set rsDia = Nothing
-  myFrag rsDia, "SELECT 0 FROM diagview d WHERE d.pat_id = " & Pat_id & " AND d.gICD LIKE 'i10%' LIMIT 1" '  AND COALESCE(d.f6010,0)=0
+  myFrag rsDia, "SELECT 0 FROM diagview d WHERE d.pat_id = " & Pat_id & " AND d.gICD LIKE 'i10%' LIMIT 1" '  AND COALESCE(d.Dggel,0)=0
   If rsDia.EOF Then
    If pathz(RRi) < 1 Or (npathz(RRi) > 2 And pathz(RRi) < 2) Then
     normoton = True
@@ -2523,9 +2523,9 @@ keinuzu:
      If LUTSmd Then LUTSmd = myEFrag("SELECT zeitpunkt FROM eintraege WHERE art='dakluts' AND pat_id = " & Pat_id & " AND zeitpunkt >= SUBDATE(qanf(),INTERVAL 9 MONTH)").EOF
      If PAlter > 50 Then Apmd = myEFrag("SELECT 0 FROM diagview WHERE pat_id = " & Pat_id & " AND gicd RLIKE '^E1.\.5|^I79.2|^I73.'").BOF Else Apmd = 0
      If Apmd Then Apmd = myEFrag("SELECT zeitpunkt FROM eintraege WHERE art='dakap' AND pat_id = " & Pat_id & " AND zeitpunkt >= SUBDATE(qanf(),INTERVAL 9 MONTH)").EOF
-     LebMd = myEFrag("SELECT 0 FROM diagview WHERE pat_id = " & Pat_id & " AND gicd = 'K77.8'").BOF ' COALESCE(f6010,0)=0 AND
+     LebMd = myEFrag("SELECT 0 FROM diagview WHERE pat_id = " & Pat_id & " AND gicd = 'K77.8'").BOF ' COALESCE(Dggel,0)=0 AND
      If LebMd Then LebMd = myEFrag("SELECT zeitpunkt FROM eintraege WHERE art='sono' AND (inhalt LIKE '%Abdomen%' OR inhalt LIKE '%Bauch%') AND pat_id = " & Pat_id & " AND zeitpunkt >= SUBDATE(qanf(),INTERVAL 9 MONTH)").EOF
-     NiMd = myEFrag("SELECT 0 FROM diagview WHERE pat_id = " & Pat_id & " AND gicd RLIKE '^E1.*\.2|^N18|^N19|^I12\.0|^I13\.1|^I13\.2|^Z49\.[012]|^Z99\.2'").BOF ' COALESCE(f6010,0)=0 AND
+     NiMd = myEFrag("SELECT 0 FROM diagview WHERE pat_id = " & Pat_id & " AND gicd RLIKE '^E1.*\.2|^N18|^N19|^I12\.0|^I13\.1|^I13\.2|^Z49\.[012]|^Z99\.2'").BOF ' COALESCE(Dggel,0)=0 AND
      If (NPmd Or LUTSmd Or Apmd Or LebMd Or NiMd) Then
       AusS.AppVar Array(IIf(NPmd, "NPMd, ", ""), IIf(LUTSmd, "LUTSMd, ", ""), IIf(Apmd, "APMd, ", ""), IIf(LebMd, "LebMd ,", ""), IIf(NiMd, "NiMd ", ""))
      End If ' NPmd OR LUTSmd OR Apmd OR Lebmd OR NiMd

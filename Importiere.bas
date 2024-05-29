@@ -23,11 +23,12 @@ Dim numA&
 'Dim rEzä() As Adodb.Recordset
 'Public rsAnam As Adodb.Recordset
 Dim obvorgestellt As Boolean, messDatum As Date, messDatumD As Date
-Dim DText_$, ICD_$, DSic_$, DSe_$, DAt_$, DAus_$, DiBm_$, obD_%, f6010_%, f6011_$
+Dim DText_$, ICD_$, DSic_$, DSe_$, DAt_$, DAus_$, DiBm_$, obD_%, Dggel_%, KFdFA_$
 Dim Lanr&, BSNR&
 Dim FormID&
 Dim FormAbk$, FormBez$, FormVorl$, FormInh$, obFormDMP%, FormSp$
 Dim BGFallNr$ ' für dolies, neuQuartal
+Dim FormTit$ ' für Verordnungsplan usw. 8409
 Public FoIDv& ' Pseudo-Foid
 #If thaalt Then
  Public rmpn() As medplan ' nach Datum umsortierter Plan ' ausrangiert 12.12.20
@@ -64,8 +65,8 @@ Public diagdat() As Date ' = rdi(0).DiagDatum
 Public obDauer%() ' = rdi(0).obDauer
 Public obKasse%() ' = rdi(0).obKasse
 Public lKasse() As Date ' = rdi(0).lKasse
-Public f6010%() ' =rdi(0).f6010
-Public f6011$() ' =rdi(0).f6011
+Public Dggel%() ' =rdi(0).Dggel
+Public KFdFA$() ' =rdi(0).KFdFA
 Dim gk() As Boolean ' abgehakt
 Public G1%()       ' diagreihe.gi1
 Public G2%()     ' diagreihe.gi2
@@ -2279,10 +2280,10 @@ Function dolies(frm As Lese, RKennung$, rInhalt$, obSchluss%, znr&, obmitFormula
      ausrrxml = 0
      patanffid = 0 ' wird dann später bei neuquartal in 4101, 5000 oder 6200 gesetzt
     End If ' RInhalt <> rna(0).Pat_ID
-   Case 3004 ' f3004 unbekanntes Feld (tomedo: Kartentyp), ' ', 0, 2 oder 3
-    rNa(0).f3004 = rInhalt
-   Case 3006 ' f3006 CDM-Version, 5.1.0 oder 5.1.0
-    rNa(0).f3006 = rInhalt
+   Case 3004 ' KarGen unbekanntes Feld (tomedo: Kartentyp), ' ', 0, 2 oder 3
+    rNa(0).KarGen = rInhalt
+   Case 3006 ' eGKSchVer CDM-Version, 5.1.0 oder 5.1.0
+    rNa(0).eGKSchVer = rInhalt
    Case 3100 ' Namensvorsatz
     rNa(0).NVorsatz = rInhalt
 '    rAna(0).NVorsatz = rna(0).NVorsatz
@@ -2290,6 +2291,14 @@ Function dolies(frm As Lese, RKennung$, rInhalt$, obSchluss%, znr&, obmitFormula
  '  IF rAna.EditMode = 1 OR rAna.EditMode = adEditInProgress THEN
  '      rsAnam!NVorsatz = Rinhalt
  '   END IF
+   Case 3010 ' Datum der letzten Online-Prüfung
+    rFa(UBound(rFa)).DtlOnlPfg = BDTtoDateTime(rInhalt)
+   Case 3011
+    rFa(UBound(rFa)).ErgbdOnlP = rInhalt
+   Case 3012
+    rFa(UBound(rFa)).ErrorCode = rInhalt
+   Case 3013
+    rFa(UBound(rFa)).PrüfZdFd = rInhalt
    Case 3101 ' Nachname
     If rInhalt Like "zzz*" Then
      rInhalt = Mid$(rInhalt, 4)
@@ -2334,7 +2343,7 @@ Function dolies(frm As Lese, RKennung$, rInhalt$, obSchluss%, znr&, obmitFormula
    Case 3123 ' Postfach-Nummer
     rNa(0).PFNr = rInhalt
    Case 3124 ' wohl Postfach-Land
-    rNa(0).f3124 = rInhalt
+    rNa(0).PFWsLC = rInhalt
    Case 3215 ' Anschriftenzusatz, aufgeteilt
     Call aufSplit(rInhalt)
     If ArraInd > 1 Then
@@ -2355,7 +2364,8 @@ Function dolies(frm As Lese, RKennung$, rInhalt$, obSchluss%, znr&, obmitFormula
    Case 3610 ' Aufnahmedatum
     rNa(0).AufnDat = BDTtoDate(rInhalt)
     Call VorstellSetz(rNa(0).AufnDat)
-   Case 3612 ' Beruf
+'   Case 3612 ' Datum Versicherungsbeginn bei Kassenwechsel
+   Case 3620 ' Beruf
     rNa(0).Beruf = rInhalt
    Case 3625 ' Arbeitgeber
     rNa(0).Arbeitgeber = rInhalt
@@ -2399,18 +2409,18 @@ Function dolies(frm As Lese, RKennung$, rInhalt$, obSchluss%, znr&, obmitFormula
      ElseIf rNa(0).KVNr4 = "" Then
       rNa(0).KVNr4 = Left$(REPLACE$(rInhalt, "/", ""), 10)
      End If
-     Dim obrKV%, iirunde%, aktKVNr$
+     Dim obrKV%, iirunde%, aktkvnr$
      For iirunde = 1 To 4
       obrKV = -1
       Select Case iirunde
-       Case 1: aktKVNr = rNa(0).KVNr
-       Case 2: aktKVNr = rNa(0).KVNr2
-       Case 3: aktKVNr = rNa(0).KVNr3
-       Case 4: aktKVNr = rNa(0).KVNr4
+       Case 1: aktkvnr = rNa(0).KVNr
+       Case 2: aktkvnr = rNa(0).KVNr2
+       Case 3: aktkvnr = rNa(0).KVNr3
+       Case 4: aktkvnr = rNa(0).KVNr4
       End Select
-      If LenB(aktKVNr) = 0 Then Exit For ' iirunde
+      If LenB(aktkvnr) = 0 Then Exit For ' iirunde
       For j = 1 To UBound(rKv)
-       If rKv(j).KVNr = aktKVNr And rKv(j).Pat_id = rNa(0).Pat_id Then
+       If rKv(j).KVNr = aktkvnr And rKv(j).Pat_id = rNa(0).Pat_id Then
         obrKV = 0
         Exit For
        End If
@@ -2418,7 +2428,7 @@ Function dolies(frm As Lese, RKennung$, rInhalt$, obSchluss%, znr&, obmitFormula
       If obrKV Then
        ReDim Preserve rKv(UBound(rKv) + 1)
        rKv(UBound(rKv)).absPos = absPos
-       rKv(UBound(rKv)).KVNr = aktKVNr
+       rKv(UBound(rKv)).KVNr = aktkvnr
        rKv(UBound(rKv)).Pat_id = rNa(0).Pat_id
        rKv(UBound(rKv)).AktZeit = AktZeit
       End If
@@ -2500,8 +2510,10 @@ Function dolies(frm As Lese, RKennung$, rInhalt$, obSchluss%, znr&, obmitFormula
     If Not obHausBesuch Or QAnf(rInhalt) < QAnf(rFa(UBound(rFa)).Quartal) Then
      Call neuQuartal(frm, rInhalt)
     End If
+    rFa(UBound(rFa)).KartBes = 1 ' Schein fehlt vielleicht
  '   IF UBound(rfa) = 0 AND rfa(0).Pat_ID = 0 THEN ReDim Preserve rfa(UBound(rfa)) ELSE ReDim Preserve rfa(UBound(rfa) + 1)
    Case 4102 ' ausgestellt am <> letzter Vorgang (dieser nicht exportiert!)
+    rFa(UBound(rFa)).KartBes = 0 ' Schein fehlt doch nicht
     rFa(UBound(rFa)).lanrid = Lanr ' :    Lanr = 0 ' Kommentar 21.3.21
     rFa(UBound(rFa)).ausgst = BDTtoDate(rInhalt)
     Call VorstellSetz(BDTtoDate(rInhalt))
@@ -2512,7 +2524,7 @@ Function dolies(frm As Lese, RKennung$, rInhalt$, obSchluss%, znr&, obmitFormula
    Case 4107 ' Abrechnungsart, 1 oder 2
     rFa(UBound(rFa)).AbrAr = rInhalt
    Case 4108 ' ? -> allenfalls mit "103" befüllt
-    rFa(UBound(rFa)).f4108 = rInhalt
+    rFa(UBound(rFa)).ZnrMLes = rInhalt
    Case 4109 ' letzte Vorlage
     rFa(UBound(rFa)).lVorl = BDTtoDate(rInhalt)
     Call VorstellSetz(rFa(UBound(rFa)).lVorl)
@@ -2535,10 +2547,12 @@ Function dolies(frm As Lese, RKennung$, rInhalt$, obSchluss%, znr&, obmitFormula
     rFa(UBound(rFa)).PersKreis = rInhalt
    Case 4124 ' SKT-Zusatzangaben
     rFa(UBound(rFa)).SKtZusatz = rInhalt
+   Case 4126 ' SKT-Bemerkung
+    rFa(UBound(rFa)).SktBem = rInhalt
    Case 4131 ' unbek. Feld, immer 0
-    rFa(UBound(rFa)).f4131 = rInhalt
+    rFa(UBound(rFa)).bPerG = rInhalt
    Case 4132 ' unbek. Feld, 0-6
-    rFa(UBound(rFa)).f4132 = rInhalt
+    rFa(UBound(rFa)).DMPKnZ = rInhalt
    Case 4133 ' Versichtenschutzbeginn
     rFa(UBound(rFa)).VschBeg = RBDTtoDate(rInhalt)
    Case 4134 ' KKasse_2
@@ -2560,12 +2574,12 @@ Function dolies(frm As Lese, RKennung$, rInhalt$, obSchluss%, znr&, obmitFormula
       maxBhFB = rFa(UBound(rFa)).BhFB
       imaxBhFB = UBound(rFa)
      End If
-   Case 4151 ' Behandlungsfall: Progende (Musterwoman) / Wohl Ende des Behandlungsfallbeginnquartals
+   Case 4151 ' Behandlungsfall: Ende (Musterwoman) / Wohl Ende des Behandlungsfallbeginnquartals
      rFa(UBound(rFa)).BhFE1 = BDTtoDate(rInhalt)
-   Case 4152 ' Behandlungsfall: Progende (Musterwoman),bei offenem Fall 00000000, sonst z.B. 30092006 für 3/06
+   Case 4152 ' Behandlungsfall: Ende (Musterwoman),bei offenem Fall 00000000, sonst z.B. 30092006 für 3/06
      rFa(UBound(rFa)).BhFE2 = BDTtoDate(rInhalt)
    Case 4202 ' Unfall, Unfallfolgen nach 4152, bei Pat.2775,312,2470 "1"
-     rFa(UBound(rFa)).f4202 = rInhalt
+     rFa(UBound(rFa)).UnfFlg = rInhalt
    Case 4205 ' Auftrag bei Überweisung
      rFa(UBound(rFa)).Auftrag = rFa(UBound(rFa)).Auftrag & Stutz(rInhalt)
    Case 4206 ' letzter Tag der Regel
@@ -2581,7 +2595,7 @@ Function dolies(frm As Lese, RKennung$, rInhalt$, obSchluss%, znr&, obmitFormula
    Case 4209 ' Überweisungstext / Auftrag bei Privatpatienten
      rFa(UBound(rFa)).ÜwText = rInhalt
    Case 4266 ' unbekanntes Daumsfeld bisher nur bei Musterwoman
-     rFa(UBound(rFa)).f4266 = BDTtoDate(rInhalt)
+     rFa(UBound(rFa)).KurAbb = BDTtoDate(rInhalt)
      ' Überwiesen von
    Case 4247, _
         4231, 4241, 4285 ' Überweiser, hat sich offenbar von 4231 auf 4241 geändert! (31.7.05)
@@ -2599,7 +2613,7 @@ Function dolies(frm As Lese, RKennung$, rInhalt$, obSchluss%, znr&, obmitFormula
        If insrunde = 1 Then Tabl = "liuez": nnafeld = "name" Else Tabl = "ueberwvon": nnafeld = "nachname"
        KVNr = REPLACE$(Arra(5), "/", "")
        If LenB(KVNr) = 0 Then
-        KVNr = myFrag(kvnrrs, "SELECT MAX(kvnr)+1 from " & Tabl & " WHERE kvnr<700000000").Fields(0)
+        KVNr = myFrag(kvnrrs, "SELECT MAX(kvnr)+1 FROM " & Tabl & " WHERE kvnr<700000000").Fields(0)
        End If
        For uerunde = 1 To 2
 resume_4247:
@@ -2626,11 +2640,12 @@ resume_4247:
      Call aufSplit(rInhalt)
      If ArraInd > 0 Then rFa(UBound(rFa)).ÜwText = Arra(1)
    Case 4210 ' Ankreuzfeld LSR
-     rFa(UBound(rFa)).f4210 = rInhalt
+     rFa(UBound(rFa)).AkfLues = rInhalt
    Case 4211 ' Ankreuzfeld HAH
      rFa(UBound(rFa)).AkfHAH = rInhalt
    Case 4213 '  Ankreuzfeld AK
      rFa(UBound(rFa)).AkfAK = rInhalt
+'   Case 4214 ' Behandlungstag bei IVD-Leistungen
    Case 4218 ' Überwiesen von
      Call aufSplit(rInhalt)
      If ArraInd > 2 Then
@@ -2662,7 +2677,7 @@ resume_4247:
    Case 4236 ' bei stationär: klasse
      rFa(UBound(rFa)).statKlasse = rInhalt
    Case 4237 ' unbek
-     rFa(UBound(rFa)).f4237 = rInhalt
+     rFa(UBound(rFa)).KHNam = rInhalt
    Case 4238 ' bei stationär: Behandlungstage
      rFa(UBound(rFa)).statBehTage = rInhalt
    Case 4239 ' Scheingruppe, 24, 41, 90
@@ -2680,6 +2695,8 @@ resume_4247:
     End Select
    Case 4243 ' Weiterbehandelnder Arzt in Worten
      rFa(UBound(rFa)).Weiterbeh = rInhalt
+   Case 4301
+     rFa(UBound(rFa)).VermiArt = rInhalt ' Terminservice, nicht in BDT-Datei: Vermittlungscode, Tag der Terminvermittlung, ergänzende Info
    Case 4401 ' 4401, Praxisgebühr -Array
      Call aufSplit(rInhalt)
      rFa(UBound(rFa)).PGeb = Arra(1)
@@ -2697,8 +2714,8 @@ resume_4247:
      rFa(UBound(rFa)).BeschSeit = BDTtoDate(rInhalt)
    Case 4509 ' Unfallbetrieb, eigentlich aufgeteilt
      rFa(UBound(rFa)).Unfallbetrieb = rInhalt
-   Case 4570 ' f4570, unbekanntes Feld
-     rFa(UBound(rFa)).f4570 = rInhalt
+   Case 4570 ' bHeilb, unbekanntes Feld
+     rFa(UBound(rFa)).bHeilb = rInhalt
    Case 4580 ' Abrechnungsart / Privatabrechnungskatalog
      Call aufSplit(rInhalt)
      If ArraInd > 0 Then rFa(UBound(rFa)).GOÄKatNr = Arra(1)
@@ -2725,7 +2742,7 @@ resume_4247:
      If ArraInd > 6 Then rFa(UBound(rFa)).AdOrt = Arra(7)
    Case 4603 ' Überweiser BG, eigentlich aufteilt
      rFa(UBound(rFa)).ÜwBG = rInhalt
-   Case 4604  'Behandlungsfall: Progende (Musterwoman)
+   Case 4604 ' Behandlungsfall: Ende (Musterwoman)
      rFa(UBound(rFa)).BhFE = BDTtoDate(rInhalt)
    Case 5000, 6200 ' 6200 = Tagesdatum (BDT-Beschreibung ZI 1994)
     messDatum = BDTtoDate(rInhalt)
@@ -2760,17 +2777,17 @@ resume_4247:
      If ArraInd > 0 Then rLe(UBound(rLe)).letzVorg = BDTtoDate(Arra(1))
    Case 5098 ' 0000000000
     rLe(UBound(rLe)).lanrid = Lanr ' : Lanr = 0 ' Kommentar 21.3.21
-    rLe(UBound(rLe)).f5098 = rInhalt
+    rLe(UBound(rLe)).LBSNR = rInhalt
    Case 5099 ' LANR
     rLe(UBound(rLe)).Lanr = rInhalt
    Case 5002 ' Art der Untersuchung
-    rLe(UBound(rLe)).f5002 = rInhalt
+    rLe(UBound(rLe)).ArtdUs = rInhalt
    Case 5005 ' Anzahl
-    rLe(UBound(rLe)).f5005 = rInhalt
+    rLe(UBound(rLe)).LAnzl = rInhalt
    Case 5006 ' um Uhrzeit
-    rLe(UBound(rLe)).f5006 = rInhalt
+    rLe(UBound(rLe)).LUhrz = rInhalt
    Case 5009 ' freier Begründungstext
-    rLe(UBound(rLe)).f5009 = rInhalt
+    rLe(UBound(rLe)).LfBegr = rInhalt
    Case 5010 ' Medikament
     rLe(UBound(rLe)).Med = rInhalt
    Case 5011 ' Sachkostenbezeichnung
@@ -2778,15 +2795,15 @@ resume_4247:
    Case 5012 ' Sachkosten in Cent
     rLe(UBound(rLe)).Sachkct = MachNumerisch(rInhalt)
    Case 5015 ' Organ
-    rLe(UBound(rLe)).f5015 = rInhalt
+    rLe(UBound(rLe)).LOrgan = rInhalt
    Case 5016 ' Name des Arztes (Briefempfänger)
-    rLe(UBound(rLe)).f5016 = rInhalt
+    rLe(UBound(rLe)).LArztBf = rInhalt
    Case 5018 ' Zone bei Besuchen
     rLe(UBound(rLe)).Zone = rInhalt
    Case 5021 ' Datum letzte Krebsvorsorge
-    rLe(UBound(rLe)).f5021 = rInhalt
+    rLe(UBound(rLe)).DtlKbsV = rInhalt
    Case 5026 ' Entlassungsdatum
-    rLe(UBound(rLe)).f5026 = rInhalt
+    rLe(UBound(rLe)).LEntlDt = rInhalt
    Case 5062 ' Faktor
     rLe(UBound(rLe)).Faktor = rInhalt
    Case 6001, 3673 ' ICD, "ICD-Code Dauerdiagnose
@@ -2811,10 +2828,10 @@ resume_4247:
    Case 6010 ' Diagnose gelöscht (Feld dgg)
 '    If DText_ = "Harninkontinenz" Then Stop
     Call aufSplit(rInhalt)
-    If ArraInd > 0 Then If Arra(1) = "Falsch" Or Arra(1) = "False" Then f6010_ = 0 Else f6010_ = 1
+    If ArraInd > 0 Then If Arra(1) = "Falsch" Or Arra(1) = "False" Then Dggel_ = 0 Else Dggel_ = 1
    Case 6011 ' TM#?
     Call aufSplit(rInhalt)
-    If ArraInd > 0 Then f6011_ = Left$(Arra(1), 1)
+    If ArraInd > 0 Then KFdFA_ = Left$(Arra(1), 1)
        ' 27.3.07: von "dd" auf "d" abgeänderte Diagnosen werden in der BDT-Datei aufgrund eines Turbomed-Fehlers doppelt ausgegeben -> dann "d" nehmen
     Dim inr%
     obDStr = False
@@ -2824,8 +2841,8 @@ resume_4247:
 '      If rDi(inr).DiagText = DText_ Then Stop
 ' wenn die gleichartige Diagnose schon mal gefunden wurde (üblicherweise der bdd-Eintrag zu dd oder umgekehrt),
 ' dann keinen neuen Eintrag erzeugen.
-' f6010-Feld falsch = dd-Eintrag existiert (wird nur bei ausgeschalteten Kodierrichtlinien in Abrechnungsdatei geschrieben)
-' f6010-Feld wahr = nur bdd-Eintrag existiert (wird nur bei eingeschalteten Kodierrichtlinien in Abrechnungsdatei geschrieben)
+' Dggel-Feld falsch = dd-Eintrag existiert (wird nur bei ausgeschalteten Kodierrichtlinien in Abrechnungsdatei geschrieben)
+' Dggel-Feld wahr = nur bdd-Eintrag existiert (wird nur bei eingeschalteten Kodierrichtlinien in Abrechnungsdatei geschrieben)
       If rDi(inr).DiagText = DText_ _
          And rDi(inr).ICD = ICD_ _
          And rDi(inr).DiagSicherheit = DSic_ _
@@ -2834,12 +2851,12 @@ resume_4247:
          And rDi(inr).AusnBegr = DAus_ _
          And rDi(inr).intBemerk = DiBm_ _
          And (rDi(inr).obDauer = obD_ And obD_ <> 0) Then
-       If f6010_ <> 0 Then ' Einzeldiagnosen immer übermittelt
+       If Dggel_ <> 0 Then ' Einzeldiagnosen immer übermittelt
         rDi(inr).obKasse = 1
         rDi(inr).lKasse = MAXvb(rDi(inr).lKasse, messDatum)
        Else
-        rDi(inr).f6010 = 0
-       End If ' f6010_ <> 0 Or obD_ = 0 Then ' Einzeldiagnosen immer übermittelt
+        rDi(inr).Dggel = 0
+       End If ' Dggel_ <> 0 Or obD_ = 0 Then ' Einzeldiagnosen immer übermittelt
        Dim jnr%
        For jnr = 1 To UBound(Diag) ' Schattenarrays für DiagString
         If Diag(jnr) = DText_ _
@@ -2850,12 +2867,12 @@ resume_4247:
            And DiagAus(jnr) = DAus_ _
            And DiagiBm(jnr) = DiBm_ _
            And obDauer(jnr) = obD_ Then
-         If f6010_ <> 0 Or obD_ = 0 Then
+         If Dggel_ <> 0 Or obD_ = 0 Then
           obKasse(jnr) = 1
           lKasse(jnr) = MAXvb(lKasse(jnr), messDatum)
          Else
-          f6010(jnr) = 0
-         End If ' f6010_ <> 0 Or obD_ = 0 Then
+          Dggel(jnr) = 0
+         End If ' Dggel_ <> 0 Or obD_ = 0 Then
          Exit For
         End If ' Diag(jnr) = DText_
        Next jnr
@@ -2877,12 +2894,12 @@ resume_4247:
     rDi(aktDiNr).intBemerk = DiBm_
     rDi(aktDiNr).DiagDatum = messDatum
     rDi(aktDiNr).obDauer = obD_
-    rDi(aktDiNr).f6010 = f6010_
-    If f6010_ <> 0 Then
+    rDi(aktDiNr).Dggel = Dggel_
+    If Dggel_ <> 0 Then
      rDi(aktDiNr).obKasse = 1 ' Einzeldiagnosen werden immer übermittelt
      rDi(aktDiNr).lKasse = MAXvb(rDi(aktDiNr).lKasse, messDatum)
     End If
-    rDi(aktDiNr).f6011 = f6011_
+    rDi(aktDiNr).KFdFA = KFdFA_
     rDi(aktDiNr).FID = rFa(UBound(rFa)).FID
     rDi(aktDiNr).Pat_id = rNa(0).Pat_id
 '    rDi(aktDiNr).GesName = GN
@@ -2913,14 +2930,14 @@ resume_4247:
      DiagiBm(DiagNr) = DiBm_
      diagdat(DiagNr) = messDatum
      obDauer(DiagNr) = obD_
-     If f6010_ <> 0 Or obD_ = 0 Then
+     If Dggel_ <> 0 Or obD_ = 0 Then
 '      If obD_ Then
        obKasse(DiagNr) = 1 ' Einzeldiagnosen werden immer übermittelt
        lKasse(DiagNr) = MAXvb(lKasse(DiagNr), messDatum)
 '      End If
      End If
-     f6010(DiagNr) = f6010_
-     f6011(DiagNr) = f6011_
+     Dggel(DiagNr) = Dggel_
+     KFdFA(DiagNr) = KFdFA_
      DiagNr = DiagNr + 1
     End If ' obDStr
 difertig:
@@ -2932,8 +2949,8 @@ difertig:
     DAus_ = ""
     DiBm_ = ""
     obD_ = 0
-    f6010_ = 0
-    f6011_ = ""
+    Dggel_ = 0
+    KFdFA_ = ""
    Case 6201 ' Uhrzeit
     messDatum = messDatumD + BDTtoTime(rInhalt)
     If messDatum > rNa(0).lAktTM Then rNa(0).lAktTM = messDatum
@@ -2947,10 +2964,20 @@ difertig:
      Case "TM#Befund##Blutdruck":      FormUnt = BefundBlutdruck
     End Select
     If Left$(rInhalt, 10) = "TM#Befund#" And InStr(rInhalt, "#Schwangerschaft") <> 0 Then FormUnt = Schwangerschaft
+   Case 6350 ' Verordnungsplan
+      ReDim Preserve rVo(UBound(rVo) + 1)
+      rVo(UBound(rVo)).FormTitel = FormTit
+      rVo(UBound(rVo)).Pat_id = rNa(0).Pat_id
+      rVo(UBound(rVo)).Zeitpunkt = messDatum
+      rVo(UBound(rVo)).absPos = absPos
+      rVo(UBound(rVo)).AktZeit = AktZeit
+      rVo(UBound(rVo)).FID = rFa(UBound(rFa)).FID
+      rVo(UBound(rVo)).Inhalt = rInhalt
    Case 6340 ' internes XML-Formular
     Dim Wort$, Diast$, irunde%, nachstr$, umzuw$
     If InStrB(rInhalt, "KarteiSchwangerschaftsEintrag") <> 0 Then ' 9.4.22: es können auch Blutdruck und Sws in einer Zeile stehen, Pat. 64124
       ReDim Preserve rSw(UBound(rSw) + 1)
+      rSw(UBound(rSw)).FormTitel = FormTit
       rSw(UBound(rSw)).Pat_id = rNa(0).Pat_id
       rSw(UBound(rSw)).Zeitpunkt = messDatum
       rSw(UBound(rSw)).absPos = absPos
@@ -3079,6 +3106,7 @@ rEiVorb:
 '          IF InStrB(Arra(jsp), "0-23177069") <> 0 THEN Stop
            ReDim Preserve rRr(UBound(rRr) + 1)
            ausrrxml = True
+           rRr(UBound(rRr)).FormTitel = FormTit
            rRr(UBound(rRr)).Pat_id = rNa(0).Pat_id
            rRr(UBound(rRr)).Zeitpunkt = messDatum
     '       rRr(UBound(rRr)).RR = RR
@@ -3147,8 +3175,7 @@ rEiVorb:
     lRR = rInhalt & DStr
     gesRR = gesRR & IIf(LenB(gesRR) = 0, vNS, ", ") & rInhalt & DStr
     ausrrxml = 0
-  Case 6260 ' Therapie, bei uns: Eintrag Tamara Hartmann
-   Case 6260 ' Therapie, bei uns Eintrag Tamara Hartmann
+   Case 6260 ' Therapie, bei uns: Eintrag Pat. 60468
     If lKennung = 6280 Then
      rEi(UBound(rEi)).Inhalt = Left$(rEi(UBound(rEi)).Inhalt, Len(rEi(UBound(rEi)).Inhalt) - IIf(Right$(rEi(UBound(rEi)).Inhalt, 1) = "^", 1, 0)) + rInhalt
     Else
@@ -3948,6 +3975,12 @@ rEiVorb:
   Case 8421
    If obLaborEintrag Then rLa(ls).Einheit = REPLACE$(rInhalt, "³", "ü")  ' scheint die einzig angezeigte Ersetzung aus Zeichensatz() zu sein
 '   rLa(UBound(rLa)).Einheit = RInhalt
+  Case 8470
+'   rLa(UBound(rLa)).Kommentar = rLa(UBound(rLa)).Kommentar + Stutz(RInhalt)
+   If obLaborEintrag Then
+    rLa(ls).Anmkg = rLa(ls).Anmkg + Stutz(rInhalt)
+    rLa(ls).AnmkgVW = KomEinfüg&(rLa(ls).Anmkg)
+   End If ' obLaborEintrag
   Case 8480
 '   rLa(UBound(rLa)).Kommentar = rLa(UBound(rLa)).Kommentar + Stutz(RInhalt)
    If obLaborEintrag Then
@@ -3976,10 +4009,15 @@ rEiVorb:
       If InStrB(rLa(ls).Wert, " ") > 0 Then
        rLa(ls).Wert = Left$(rLa(ls).Wert, InStr(rLa(ls).Wert, " ") - 1) ' Erklärungen weg
       End If
-     End If
+     End If ' InStrB(rInhalt, "<") > 0 Then elseif elseif
     End If ' rla(ls).wert=""
-   End If
+   End If ' obLaborEintrag
 '    Call Laboreintr1
+  Case 8409 ' Überschrift für XML-Formular, wie #rr, #sws, #med
+    Call aufSplit(rInhalt)
+    If ArraInd > 0 Then FormTit = Arra(1)
+  Case 8490
+   rLa(ls).AbschlZl = rInhalt
   Case 9601 ' Zeitraum der Speicherung
    SpeicherZt = BDTtoDate(Right$(rInhalt, 8))
   Case 9602 ' Beginn der Übertragung
@@ -3991,8 +4029,6 @@ rEiVorb:
   Case 8460 ' Normalwert-Text
   Case 8461 ' Normalwert untere Grenze
   Case 8462 ' Normalwert obere Grenze
-'  Case 8470 ' Anmerkung
-'  case 8490 ' 'Abschluss-Zeile', - #Test-Ident -- nur bei header 6200 -- -; bei Pat_id 11: "Auftragsnummer DOB350B"
 ' steht noch aus:
 ' case 3750 ' Desktop-Objekt
 '  case 8409 ' Karteiartspalte für Blutdruck- und BMI-Formular
@@ -5524,14 +5560,14 @@ Function getDTyp$()
  Dim i%
  getDTyp = "?"
  For i = 1 To UBound(rDi)
-  If (rDi(i).DiagSicherheit = "G" Or rDi(i).DiagSicherheit = "" Or rDi(i).DiagSicherheit = " ") Then '  And rDi(i).f6010 = 0
+  If (rDi(i).DiagSicherheit = "G" Or rDi(i).DiagSicherheit = "" Or rDi(i).DiagSicherheit = " ") Then '  And rDi(i).Dggel = 0
    If rDi(i).ICD = "O24.4" Then
     getDTyp = "g"
     Exit For
    ElseIf rDi(i).ICD = "R73.0" Then
     getDTyp = "p"
    ElseIf rDi(i).ICD Like "E1*" Then
-    If (rDi(i).DiagText Like "*pankr*" Or rDi(i).DiagText Like "*pancr*" Or rDi(i).DiagText Like "*sekund*") And (rDi(i).DiagSicherheit = "G" Or rDi(i).DiagSicherheit = " ") Then ' And rDi(i).f6010 = 0
+    If (rDi(i).DiagText Like "*pankr*" Or rDi(i).DiagText Like "*pancr*" Or rDi(i).DiagText Like "*sekund*") And (rDi(i).DiagSicherheit = "G" Or rDi(i).DiagSicherheit = " ") Then ' And rDi(i).Dggel = 0
      getDTyp = "s"
      Exit For
     Else
@@ -5542,9 +5578,9 @@ Function getDTyp$()
       getDTyp = "1"
       Exit For
      End If ' rDi(i).ICD LIKE "E11*" THEN else
-    End If ' (rDi(i).DiagText LIKE "*pankr*" OR rDi(i).DiagText LIKE "*pancr*" OR rDi(i).DiagText LIKE "*sekund*") AND (rDi(i).DiagSicherheit = "G" OR rDi(i).DiagSicherheit = " ") AND rDi(i).f6010 = 0 THEN else
+    End If ' (rDi(i).DiagText LIKE "*pankr*" OR rDi(i).DiagText LIKE "*pancr*" OR rDi(i).DiagText LIKE "*sekund*") AND (rDi(i).DiagSicherheit = "G" OR rDi(i).DiagSicherheit = " ") AND rDi(i).Dggel = 0 THEN else
    End If ' rDi(i).ICD = "O24.4" THEN else
-  End If ' (rDi(i).DiagSicherheit = "G" OR rDi(i).DiagSicherheit = "" OR rDi(i).DiagSicherheit = " ") AND rDi(i).f6010 = 0 THEN
+  End If ' (rDi(i).DiagSicherheit = "G" OR rDi(i).DiagSicherheit = "" OR rDi(i).DiagSicherheit = " ") AND rDi(i).Dggel = 0 THEN
  Next i ' i = 1 To UBound(rDi)
 End Function ' getDTyp$()
 
@@ -5575,7 +5611,7 @@ Function MacheDiagnosen$(dmseit$) ' für AnaEintragen, MachSammelTab und DiagStri
 ' Dim Diag$()
 ' Dim ICD$()
 ' Dim DSic$()
-' Dim f6010%()
+' Dim Dggel%()
 ' Dim DiagSe$()
 ' Dim DiagAttr$()
 ' Dim diagdat() As Date
@@ -5593,8 +5629,8 @@ Function MacheDiagnosen$(dmseit$) ' für AnaEintragen, MachSammelTab und DiagStri
  ReDim obDauer(0)
  ReDim obKasse(0)
  ReDim lKasse(0)
- ReDim f6010(0)
- ReDim f6011(0)
+ ReDim Dggel(0)
+ ReDim KFdFA(0)
  ReDim gk(0)
  ReDim G1(0)
  ReDim G2(0)
@@ -5612,8 +5648,8 @@ Function MacheDiagnosen$(dmseit$) ' für AnaEintragen, MachSammelTab und DiagStri
    ReDim Preserve obDauer(DiagNr)
    ReDim Preserve obKasse(DiagNr)
    ReDim Preserve lKasse(DiagNr)
-   ReDim Preserve f6010(DiagNr)
-   ReDim Preserve f6011(DiagNr)
+   ReDim Preserve Dggel(DiagNr)
+   ReDim Preserve KFdFA(DiagNr)
    ReDim Preserve gk(DiagNr)
    ReDim Preserve G1(DiagNr)
    ReDim Preserve G2(DiagNr)
@@ -5628,8 +5664,8 @@ Function MacheDiagnosen$(dmseit$) ' für AnaEintragen, MachSammelTab und DiagStri
    obDauer(DiagNr) = rDi(runde).obDauer
    obKasse(DiagNr) = rDi(runde).obKasse
    lKasse(DiagNr) = rDi(runde).lKasse
-   f6010(DiagNr) = rDi(runde).f6010
-   f6011(DiagNr) = rDi(runde).f6011
+   Dggel(DiagNr) = rDi(runde).Dggel
+   KFdFA(DiagNr) = rDi(runde).KFdFA
    gk(DiagNr) = False
    DiagNr = DiagNr + 1
   End If
@@ -5896,13 +5932,13 @@ End Function 'RezEintr
 Function DiagString$(Pat_id$, DiagTab() As CString, Optional VorDat As Date, Optional obBrief%, Optional dmseit$) ' für dynDiag, tubriefStandalone und dodoPLZ
  Dim runde%, rdDi As New ADODB.Recordset, sql$
  On Error GoTo fehler
- sql = "SELECT DiagSicherheit, DiagText, DiagSeite, DiagAttr, d.ICD, obdauer, COALESCE(d.f6010,0) f6010, obDauer<>0 j_obdauer,obKasse,lKasse,f6011, COALESCE(diagdatum,0) DiagDatum, AusnBegr, intBemerk, g1.rf,r.gi2 " & vbCrLf & _
+ sql = "SELECT DiagSicherheit, DiagText, DiagSeite, DiagAttr, d.ICD, obdauer, COALESCE(d.Dggel,0) Dggel, obDauer<>0 j_obdauer,obKasse,lKasse,KFdFA, COALESCE(diagdatum,0) DiagDatum, AusnBegr, intBemerk, g1.rf,r.gi2 " & vbCrLf & _
        "FROM diagview d " & vbCrLf & _
        "LEFT JOIN `diagreihe` r ON d.icd = r.icd " & vbCrLf & _
        "LEFT JOIN `diagg1` g1 ON r.gi1 = g1.lfdnr " & vbCrLf & _
        "WHERE pat_id = " & Pat_id & " AND (d.obdauer <> 0 OR d.diagdatum >" & DatFor_k(VorDat) & ") " & vbCrLf & _
-       "GROUP BY LEFT(d.icd,3), DiagSicherheit, d.f6010, LEFT(diagtext,17) " & vbCrLf & _
-       "ORDER BY g1.rf,gi2 DESC,COALESCE(d.f6010,0),icd;"
+       "GROUP BY LEFT(d.icd,3), DiagSicherheit, d.Dggel, LEFT(diagtext,17) " & vbCrLf & _
+       "ORDER BY g1.rf,gi2 DESC,COALESCE(d.Dggel,0),icd;"
 
 ' rdDi.Open sql, DBCn, adOpenDynamic, adLockReadOnly
 ' SET rdDi = myEFrag(sql)
@@ -5921,8 +5957,8 @@ Function DiagString$(Pat_id$, DiagTab() As CString, Optional VorDat As Date, Opt
  ReDim obDauer(0)
  ReDim obKasse(0)
  ReDim lKasse(0)
- ReDim f6010(0)
- ReDim f6011(0)
+ ReDim Dggel(0)
+ ReDim KFdFA(0)
  ReDim gk(0)
  ReDim G1(0)
  ReDim G2(0)
@@ -5950,8 +5986,8 @@ Function DiagString$(Pat_id$, DiagTab() As CString, Optional VorDat As Date, Opt
    obDauer(runde) = IIf(IsNull(rdDi!j_obDauer), 0, -Abs(rdDi!j_obDauer))
    obKasse(runde) = IIf(IsNull(rdDi!obKasse), 0, rdDi!obKasse)
    lKasse(runde) = IIf(IsNull(rdDi!lKasse), 0, rdDi!lKasse)
-   f6010(runde) = IIf(IsNull(rdDi!f6010), 0, rdDi!f6010)
-   f6011(runde) = IIf(IsNull(rdDi!f6011), vNS, rdDi!f6011)
+   Dggel(runde) = IIf(IsNull(rdDi!Dggel), 0, rdDi!Dggel)
+   KFdFA(runde) = IIf(IsNull(rdDi!KFdFA), vNS, rdDi!KFdFA)
    G1(runde) = IIf(IsNull(rdDi!rf), 0, rdDi!rf)
    G2(runde) = IIf(IsNull(rdDi!gi2), 0, rdDi!gi2)
    gk(runde) = False
@@ -5967,8 +6003,8 @@ Function DiagString$(Pat_id$, DiagTab() As CString, Optional VorDat As Date, Opt
    ReDim Preserve obDauer(runde)
    ReDim Preserve obKasse(runde)
    ReDim Preserve lKasse(runde)
-   ReDim Preserve f6010(runde)
-   ReDim Preserve f6011(runde)
+   ReDim Preserve Dggel(runde)
+   ReDim Preserve KFdFA(runde)
    ReDim Preserve gk(runde)
    ReDim Preserve G1(runde)
    ReDim Preserve G2(runde)
@@ -6104,7 +6140,7 @@ Function MachDiagnosen(Pat_id$, DiagTab() As CString, Optional dmseit$, Optional
 ' Doppelte entfernen
     For j = 0 To DiagNr - 1
      For k = j + 1 To DiagNr - 1
-      If Diag(j) = Diag(k) And ICD(j) = ICD(k) And f6010(j) = f6010(k) Then
+      If Diag(j) = Diag(k) And ICD(j) = ICD(k) And Dggel(j) = Dggel(k) Then
        If (obDauer(k) <> 0 And obDauer(j) = 0) Then
         If (DSic(j) = "g" Or DSic(j) = " ") And (DSic(k) = "V" Or DSic(k) = "Z") Then
          Diag(k) = vNS
@@ -6158,7 +6194,7 @@ Function MachDiagnosen(Pat_id$, DiagTab() As CString, Optional dmseit$, Optional
    End If
    For runde = rua To rue
     For j = 0 To DiagNr - 1
-     If Not IsNull(ICD(j)) And ICD(j) <> "" Then ' And f6010(j) = 0
+     If Not IsNull(ICD(j)) And ICD(j) <> "" Then ' And Dggel(j) = 0
       If (Not Sort And (Diag(j) <> "" Or ICD(j) <> "")) Or _
       (Sort And (Diag(j) <> "" Or ICD(j) <> "") And _
         (Not ohneNotwend Or InStrB(Diag(j), "otwend") = 0) And _
@@ -6357,8 +6393,8 @@ Function PatInit()
  ReDim obDauer(DiagMaxZahl)
  ReDim obKasse(DiagMaxZahl)
  ReDim lKasse(DiagMaxZahl)
- ReDim f6010(DiagMaxZahl)
- ReDim f6011(DiagMaxZahl)
+ ReDim Dggel(DiagMaxZahl)
+ ReDim KFdFA(DiagMaxZahl)
  ReDim gk(DiagMaxZahl)
  ReDim G1(DiagMaxZahl)
  ReDim G2(DiagMaxZahl)
@@ -6536,6 +6572,7 @@ Select Case MsgBox("FNr: " & FNr & ", ErrNr: " & CStr(Err.Number) + vbCrLf + "La
 End Select
 End Function ' KomEinfüg&
 
+' in dolies und PraxisHbA1c
 Function LaborEintr0()
  On Error GoTo fehler
  Dim obneu%, obüber%, i%
