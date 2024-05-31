@@ -373,7 +373,7 @@ Public Function ParseMemo(FMemo$, MeStr() As memoType, Optional obDebug%, Option
 fehler:
  Dim AnwPfad$
 #If VBA6 Then
- AnwPfad = CurrentDb.Name
+ AnwPfad = CurrentDb.name
 #Else
  AnwPfad = App.path
 #End If
@@ -476,7 +476,7 @@ Public Function zeigmosystem(Optional obszn4%)
     ElseIf fMem(j).ENr Like "*.5" And fMem(j).ENr <> "1.5" Then
      EintS.EKür = fMem(j).Text
     ElseIf fMem(j).ENr Like "*.8" And fMem(j).ENr <> "1.8" Then
-     EintS.Name = fMem(j).Text
+     EintS.name = fMem(j).Text
     ElseIf fMem(j).ENr Like "*.10" And fMem(j).ENr <> "1.10" Then
      EintS.Kürz = fMem(j).Text
      EinL.sCAdd EintS
@@ -536,7 +536,7 @@ Public Function doPatvonMO(pNr&)
     ElseIf fMem(j).ENr Like "*.5" And fMem(j).ENr <> "1.5" Then
      EintS.EKür = fMem(j).Text
     ElseIf fMem(j).ENr Like "*.8" And fMem(j).ENr <> "1.8" Then
-     EintS.Name = fMem(j).Text
+     EintS.name = fMem(j).Text
     ElseIf fMem(j).ENr Like "*.10" And fMem(j).ENr <> "1.10" Then
      EintS.Kürz = fMem(j).Text
      EinL.sCAdd EintS
@@ -896,23 +896,23 @@ Public Function doPatvonMO(pNr&)
   End If ' Not rsFa.BOF Then
   lfdfl = 0 ' für nä Pat
   
-  Dim rsha As New ADODB.Recordset, rslue  As New ADODB.Recordset
+  Dim rsHa As New ADODB.Recordset, rslue  As New ADODB.Recordset
   ' -34 Überweiser, -40 Hausarzt, -32 Arzt
-  rsha.Open "SELECT FArztnralt, FAdresse, farztgruppe, FNachname, FVorname, FRelationtyp FROM patrelation r LEFT JOIN earzt a ON r.freferenzid = a.fsurogat AND freferenztyp=2 LEFT JOIN epraxis p ON a.FExtpraxisnr = p.fsurogat WHERE fpatid=" & pNr & " AND FRelationtyp IN (-34,-40,-32)", MOCon, adOpenStatic, adLockReadOnly
-  If Not rsha.BOF Then
+  rsHa.Open "SELECT FArztnralt, FAdresse, farztgruppe, FNachname, FVorname, FRelationtyp FROM patrelation r LEFT JOIN earzt a ON r.freferenzid = a.fsurogat AND freferenztyp=2 LEFT JOIN epraxis p ON a.FExtpraxisnr = p.fsurogat WHERE fpatid=" & pNr & " AND FRelationtyp IN (-34,-40,-32)", MOCon, adOpenStatic, adLockReadOnly
+  If Not rsHa.BOF Then
    Dim haru%, KVNr$
    haru = 0
    KVNr = ""
-   Do While Not rsha.EOF
+   Do While Not rsHa.EOF
     haru = haru + 1
-    If rsha!FArztnralt <> "" Then
-     KVNr = rsha!FArztnralt
-    ElseIf Not IsNull(rsha!Fadresse) Then ' mit COALESCE kommt trotzdem eine Fehlermeldung raus
+    If rsHa!FArztnralt <> "" Then
+     KVNr = rsHa!FArztnralt
+    ElseIf Not IsNull(rsHa!Fadresse) Then ' mit COALESCE kommt trotzdem eine Fehlermeldung raus
 '    Set rslue = myEFrag(, , DBCn)
      Dim NN$, VN$, Adr$
-     NN = rsha!FNachname
-     VN = rsha!fVorname
-     Adr = REPLACE$(rsha!Fadresse, "'", "")
+     NN = rsHa!FNachname
+     VN = rsHa!fVorname
+     Adr = REPLACE$(rsHa!Fadresse, "'", "")
      On Error Resume Next
      rslue.Open "SELECT kvnr FROM aktlue a WHERE nameo ='" & NN & "' AND vno='" & VN & "' AND '" & Adr & "' LIKE CONCAT('%',a.strasse,'%')", DBCn, adOpenStatic, adLockReadOnly
      If Not rslue.BOF Then
@@ -921,11 +921,11 @@ Public Function doPatvonMO(pNr&)
      On Error GoTo fehler
     End If
     If KVNr = "" Then
-     Set rslue = myEFrag("SELECT kvnr FROM aktlue a WHERE nameo ='" & rsha!FNachname & "' AND vno='" & rsha!fVorname & "' AND fachgruppe='" & rsha!farztgruppe & "'", , DBCn)
+     Set rslue = myEFrag("SELECT kvnr FROM aktlue a WHERE nameo ='" & rsHa!FNachname & "' AND vno='" & rsHa!fVorname & "' AND fachgruppe='" & rsHa!farztgruppe & "'", , DBCn)
      If Not rslue.BOF Then
       KVNr = rslue!KVNr
      Else
-      Set rslue = myEFrag("SELECT kvnr FROM aktlue a WHERE nameo ='" & rsha!FNachname & "' AND vno='" & rsha!fVorname & "'", , DBCn)
+      Set rslue = myEFrag("SELECT kvnr FROM aktlue a WHERE nameo ='" & rsHa!FNachname & "' AND vno='" & rsHa!fVorname & "'", , DBCn)
       If Not rslue.BOF Then
        KVNr = rslue!KVNr
       End If
@@ -934,24 +934,24 @@ Public Function doPatvonMO(pNr&)
     Select Case haru
      Case 1: rNa(0).KVNr = KVNr
         rNa(0).getHA0 = IIf(KVNr = "", 0, KVNr)
-        rNa(0).fnHA0 = "(" & IIf(rsha!frelationtyp = -40 Or rsha!frelationtyp = -32, "HA", "Üw")
+        rNa(0).fnHA0 = "(" & IIf(rsHa!frelationtyp = -40 Or rsHa!frelationtyp = -32, "HA", "Üw")
         If UBound(rFa) <> 0 Then rNa(0).fnHA0 = rNa(0).fnHA0 & " " & Left$(rFa(1).Quartal, 1) & Right$(rFa(1).Quartal, 2)
         rNa(0).fnHA0 = rNa(0).fnHA0 & ")"
      Case 2: rNa(0).KVNr2 = KVNr
         rNa(0).getHA1 = KVNr
-        rNa(0).fnHA1 = "(" & IIf(rsha!frelationtyp = -40 Or rsha!frelationtyp = -32, "HA", "Üw")
+        rNa(0).fnHA1 = "(" & IIf(rsHa!frelationtyp = -40 Or rsHa!frelationtyp = -32, "HA", "Üw")
         If UBound(rFa) <> 0 Then rNa(0).fnHA1 = rNa(0).fnHA1 & " " & Left$(rFa(1).Quartal, 1) & Right$(rFa(1).Quartal, 2)
         rNa(0).fnHA1 = rNa(0).fnHA1 & ")"
      Case 3: rNa(0).KVNr3 = KVNr
         rNa(0).getHA2 = KVNr
-        rNa(0).fnHA2 = "(" & IIf(rsha!frelationtyp = -40 Or rsha!frelationtyp = -32, "HA", "Üw")
+        rNa(0).fnHA2 = "(" & IIf(rsHa!frelationtyp = -40 Or rsHa!frelationtyp = -32, "HA", "Üw")
         If UBound(rFa) <> 0 Then rNa(0).fnHA2 = rNa(0).fnHA2 & " " & Left$(rFa(1).Quartal, 1) & Right$(rFa(1).Quartal, 2)
         rNa(0).fnHA2 = rNa(0).fnHA2 & ")"
      Case 4: rNa(0).KVNr4 = KVNr
     End Select
-    rsha.MoveNext
+    rsHa.MoveNext
    Loop
-  End If ' Not rsha.BOF Then
+  End If ' Not rsHa.BOF Then
   
   For j = 0 To UBound(NaStr)
    If NaStr(j).ENr Like "21.*" And NaStr(j).ENr <> "21.1" Then
@@ -978,22 +978,54 @@ Public Function doPatvonMO(pNr&)
 ' Set rsFa = Nothing
 ' Set rsFa = Nothing ' wirkt witzigerweise erst beim zweiten Mal (!?)
 '  Call rFaDump
+  Dim Art$, a1$, a2$, apos&
   Dim rsEi As New ADODB.Recordset
-  sql = "SELECT * FROM ftag WHERE fpatnr = " & pNr & " AND fstatus not IN (2,10) AND fbehgrundnr<=0"
+'  FBehgrundnr>0: Diagnosen
+'  FStatus 2: a) FEintragsart 5: Laborwerte, 50: Link, 598: Dokumente
+'  FStatus 40: Leistung
+' Eintragsarten: 1=Diagnose, 2=Diagnose, 5=meist Eintrag (außer FICDC..: "PATNRALPHA": Patientennummer numerisch, "LAR", "PLAR", "UTXT" (Überweisungstext), "MHNG" (Mahnung), wenn FStatus 2, dann Laborwert
+'                8=Verwandtschaftsverhältnisse und Notizen, 10-11=Einträge, 12=Leistungen,
+'                13=Medikamente (mit PZN in FICD..) und Hilfsmittel, 14=Med., ohne PZN,
+'                16: Medikament mit Dosierung, 17: Hilfsmittel
+'                19: AU, 20: Üw, 21: Khs-Einweisung, 50 u. 148: Link auf Datei oder Word-Dokument aus Turbomed
+'                151: z.T. Einträge, z.T. PDF-Dateien (meist: "ePDF: ...", "pdf: ..."), "bild: ...", oder Links ("link: ..."), "brief: ", alle FStatus 2
+'                166: "link: ...", 169: "brief: ...", "wbr: ..."; 501 u. 598: jpg und tif, ohne Vorsilben
+  sql = "SELECT 18900101+INTERVAL FDatum DAY+INTERVAL FZeit SECOND Zp, FICdcode Art, FText, f.* FROM ltag f WHERE fpatnr = " & pNr & " AND fstatus not IN (2,40) AND fbehgrundnr<=0"
   myFrag rsEi, sql, adOpenStatic, MOCon
   If Not rsEi.BOF Then
    Do While Not rsEi.EOF
     ReDim Preserve rEi(UBound(rEi) + 1)
     rEi(UBound(rEi)).aktZeit = aktZeit
     rEi(UBound(rEi)).Pat_id = pid
-      
-   Loop
+    rEi(UBound(rEi)).Zeitpunkt = rsEi!Zp
+    Art = rsEi!Art
+    If Art <> "" Then
+     apos = InStr(Art, "#")
+     If apos > 1 Then ' z.B. LF#LF nach Datenübertragung
+      a1 = Left$(Art, apos - 1)
+      a2 = Mid$(Art, apos + 1)
+      If a1 = a2 Then rEi(UBound(rEi)).Art = a1
+     End If ' pos > 1 Then
+     If rEi(UBound(rEi)).Art = "" Then rEi(UBound(rEi)).Art = Art
+    End If ' art<>""
+    If rEi(UBound(rEi)).Art = "" Then
+     Set EintS = New SortierEintr
+     EintS.TypNr = rsEi!FEintragsart
+     Set EintS = EinL.GetItem(EintS)
+     If Not EintS Is Nothing Then
+      rEi(UBound(rEi)).Art = EintS.Art
+     End If
+    
+    End If ' rEi(UBound(rEi)).Art = "" Then
+    rEi(UBound(rEi)).Inhalt = rsEi!FText
+    rsEi.MoveNext
+   Loop ' while not rsEi.EOF
   End If ' Not rsEi.BOF Then
 
   Dim rsDi As New ADODB.Recordset
 'myFrag rsFa, "SELECT f.fsurogat nix, COALESCE(CONVERT(f.FMemo USING latin1),'') Fm,CONCAT(f.fpatnr,', ',18900101 + INTERVAL f.fvon DAY,' - ',18900101 + INTERVAL f.fbis DAY) ueschr, f.*,a.FBezeichnung, le.FNachname FROM patfall f LEFT JOIN abrechner a ON f.FArztnr=a.FSurogat LEFT JOIN lstgerb le USING (FLstgerbnr) WHERE fpatnr=" & pNr & " ORDER BY FVon DESC", adOpenStatic, MOCon, adLockReadOnly
   sql = "WITH sel AS (SELECT fbehgrundnr from ltag WHERE fpatnr=" & pNr & " AND fbehgrundnr>0) " & _
-  "SELECT FPatnr, 18900101 + INTERVAL FDatum DAY + INTERVAL fzeit second Diagdat," & _
+  "SELECT FPatnr, 18900101 + INTERVAL FDatum DAY + INTERVAL FZeit SECOND Diagdat," & _
   "CASE F4201 WHEN 1 THEN 'R' WHEN 2 THEN 'L' WHEN 3 THEN 'B' ELSE ' ' END Seite," & _
   "CASE FKlasse MOD 15 WHEN 1 THEN 'V' WHEN 2 THEN 'G' WHEN 3 THEN 'Z' WHEN 4 THEN 'A' ELSE ' ' END Sich," & _
   "CASE FKlasse div 15 WHEN 0 THEN 'H' ELSE 'N' END Kard," & _
@@ -1030,7 +1062,7 @@ Public Function doPatvonMO(pNr&)
 fehler:
  Dim AnwPfad$
 #If VBA6 Then
- AnwPfad = CurrentDb.Name
+ AnwPfad = CurrentDb.name
 #Else
  AnwPfad = App.path
 #End If
@@ -1065,7 +1097,7 @@ Public Function suchfi(pNr&, fI$, Optional obszn4%)
      If Not (IsNull(rsu.Fields(i))) Then
 '      If CStr(rsu.Fields(i)) = fI Then
       If InStrB(LCase$(rsu.Fields(i)), LCase$(fI)) <> 0 Then
-       Debug.Print rst!Tn, rsu.Fields(i).Name, rsu.Fields(i)
+       Debug.Print rst!Tn, rsu.Fields(i).name, rsu.Fields(i)
        gefu = True
       End If
      End If
@@ -1100,7 +1132,7 @@ Public Function suchal(fI$, Optional NotObRlike%, Optional obszn4%)
   Set rsu = Nothing
   rsu.Open "SELECT * from `" & rst!Tn & "` WHERE " & rst!Cn, MOCon, adOpenStatic, adLockReadOnly
   If Not rsu.EOF Then
-   Debug.Print rst!Tn & ": " & rsu.Fields(0).Name & ": " & rsu.Fields(0)
+   Debug.Print rst!Tn & ": " & rsu.Fields(0).name & ": " & rsu.Fields(0)
   Else
 '   Debug.Print "nichts gefunden in: " & rst!Tn
   End If
@@ -1124,7 +1156,7 @@ Public Function suchal(fI$, Optional NotObRlike%, Optional obszn4%)
     For i = 0 To rsu.Fields.COUNT - 1
      If Not (IsNull(rsu.Fields(i))) Then
       If CStr(rsu.Fields(i)) = fI Then
-       Debug.Print rsu.Fields(i).Name
+       Debug.Print rsu.Fields(i).name
       End If
      End If
     Next i

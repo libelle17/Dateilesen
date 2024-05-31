@@ -11694,13 +11694,13 @@ sql = sql & _
     ", MIN(zp) erst, MAX(zp) letzt " & vbCrLf & _
     " FROM ( " & vbCrLf & _
     " SELECT pat_id, CAST(ZeitPunkt As Date) zp,fid " & vbCrLf & _
-    " FROM eintraege WHERE zeitpunkt BETWEEN DATE(CONCAT(YEAR(NOW()-INTERVAL " & frist & " DAY),'-',(QUARTER(NOW()-INTERVAL " & frist & " DAY)-1)*3+1,'-01')) AND CONCAT(YEAR(NOW()-INTERVAL " & frist & " DAY)+ quarter(NOW()-INTERVAL " & frist & " DAY) div 4 ,'-',((QUARTER(NOW()-INTERVAL " & frist & " DAY)-1)*3+4) mod 12,'-01')-INTERVAL 1 second " & vbCrLf & _
+    " FROM eintraege WHERE zeitpunkt BETWEEN DATE(CONCAT(YEAR(NOW()-INTERVAL " & frist & " DAY),'-',(QUARTER(NOW()-INTERVAL " & frist & " DAY)-1)*3+1,'-01')) AND CONCAT(YEAR(NOW()-INTERVAL " & frist & " DAY)+ quarter(NOW()-INTERVAL " & frist & " DAY) div 4 ,'-',((QUARTER(NOW()-INTERVAL " & frist & " DAY)-1)*3+4) mod 12,'-01')-INTERVAL 1 SECOND " & vbCrLf & _
     " UNION " & vbCrLf & _
     " SELECT pat_id, CAST(zeitpunkt As Date) zp,fid " & vbCrLf & _
-    " FROM leistungen WHERE zeitpunkt BETWEEN DATE(CONCAT(YEAR(NOW()-INTERVAL " & frist & " DAY),'-',(QUARTER(NOW()-INTERVAL " & frist & " DAY)-1)*3+1,'-01')) AND CONCAT(YEAR(NOW()-INTERVAL " & frist & " DAY)+ quarter(NOW()-INTERVAL " & frist & " DAY) div 4 ,'-',((QUARTER(NOW()-INTERVAL " & frist & " DAY)-1)*3+4) mod 12,'-01')-INTERVAL 1 second " & vbCrLf & _
+    " FROM leistungen WHERE zeitpunkt BETWEEN DATE(CONCAT(YEAR(NOW()-INTERVAL " & frist & " DAY),'-',(QUARTER(NOW()-INTERVAL " & frist & " DAY)-1)*3+1,'-01')) AND CONCAT(YEAR(NOW()-INTERVAL " & frist & " DAY)+ quarter(NOW()-INTERVAL " & frist & " DAY) div 4 ,'-',((QUARTER(NOW()-INTERVAL " & frist & " DAY)-1)*3+4) mod 12,'-01')-INTERVAL 1 SECOND " & vbCrLf & _
     " UNION " & vbCrLf & _
     " SELECT pat_id, CAST(zeitpunkt As Date) zp,fid " & vbCrLf & _
-    " FROM rezepteintraege WHERE zeitpunkt BETWEEN DATE(CONCAT(YEAR(NOW()-INTERVAL " & frist & " DAY),'-',(QUARTER(NOW()-INTERVAL " & frist & " DAY)-1)*3+1,'-01')) AND CONCAT(YEAR(NOW()-INTERVAL " & frist & " DAY)+ quarter(NOW()-INTERVAL " & frist & " DAY) div 4 ,'-',((QUARTER(NOW()-INTERVAL " & frist & " DAY)-1)*3+4) mod 12,'-01')-INTERVAL 1 second " & vbCrLf & _
+    " FROM rezepteintraege WHERE zeitpunkt BETWEEN DATE(CONCAT(YEAR(NOW()-INTERVAL " & frist & " DAY),'-',(QUARTER(NOW()-INTERVAL " & frist & " DAY)-1)*3+1,'-01')) AND CONCAT(YEAR(NOW()-INTERVAL " & frist & " DAY)+ quarter(NOW()-INTERVAL " & frist & " DAY) div 4 ,'-',((QUARTER(NOW()-INTERVAL " & frist & " DAY)-1)*3+4) mod 12,'-01')-INTERVAL 1 SECOND " & vbCrLf & _
     ") i " & vbCrLf & _
     "GROUP BY pat_id;"
     Call DtbCreateQueryDef(VN, Vsql)
@@ -11790,13 +11790,13 @@ sql = sql & _
     "  SELECT m.zeitpunkt zp, 'Medplan erstellt' was, f.* " & vbCrLf & _
     "   FROM aktfvs f " & vbCrLf & _
     "   LEFT JOIN medplan m ON m.pat_id = f.pat_id " & vbCrLf & _
-    "   WHERE m.zeitpunkt BETWEEN DATE(CONCAT(YEAR(NOW()-INTERVAL " & frist & " DAY),'-',(QUARTER(NOW()-INTERVAL " & frist & " DAY)-1)*3+1,'-01')) AND CONCAT(YEAR(NOW()-INTERVAL " & frist & " DAY)+ quarter(NOW()-INTERVAL " & frist & " DAY) div 4 ,'-',((QUARTER(NOW()-INTERVAL " & frist & " DAY)-1)*3+4) mod 12,'-01')-INTERVAL 1 second " & vbCrLf & _
+    "   WHERE m.zeitpunkt BETWEEN DATE(CONCAT(YEAR(NOW()-INTERVAL " & frist & " DAY),'-',(QUARTER(NOW()-INTERVAL " & frist & " DAY)-1)*3+1,'-01')) AND CONCAT(YEAR(NOW()-INTERVAL " & frist & " DAY)+ quarter(NOW()-INTERVAL " & frist & " DAY) div 4 ,'-',((QUARTER(NOW()-INTERVAL " & frist & " DAY)-1)*3+4) mod 12,'-01')-INTERVAL 1 SECOND " & vbCrLf & _
     "   GROUP BY pat_id,DATE(m.zeitpunkt) " & vbCrLf & _
     "  UNION ALL " & vbCrLf & _
     "  SELECT e.zeitpunkt zp, GROUP_CONCAT(CONCAT(art,' ',inhalt) SEPARATOR '; ') was, f.*" & vbCrLf & _
     "   FROM aktfvs f " & vbCrLf & _
     "   LEFT JOIN eintraege e ON e.pat_id = f.pat_id " & vbCrLf & _
-    "   AND e.zeitpunkt BETWEEN DATE(CONCAT(YEAR(NOW()-INTERVAL " & frist & " DAY),'-',(QUARTER(NOW()-INTERVAL " & frist & " DAY)-1)*3+1,'-01')) AND CONCAT(YEAR(NOW()-INTERVAL " & frist & " DAY)+ quarter(NOW()-INTERVAL " & frist & " DAY) div 4 ,'-',((QUARTER(NOW()-INTERVAL " & frist & " DAY)-1)*3+4) mod 12,'-01')-INTERVAL 1 second AND art IN (" & artSpezBerat & "," & artSpezEintr & "," & artSpezUS1 & ") AND NOT art IN ('re','ba','doppler','duplex','impf','inj','kva','tv','ufrag','wv','caro','colo','debr','fa','EKG','GPD','kv','LZRR','OAU','pa','pros','puls','rp','sono','ulcus','vac','ADL'," & artSpezMA & ") " & vbCrLf & _
+    "   AND e.zeitpunkt BETWEEN DATE(CONCAT(YEAR(NOW()-INTERVAL " & frist & " DAY),'-',(QUARTER(NOW()-INTERVAL " & frist & " DAY)-1)*3+1,'-01')) AND CONCAT(YEAR(NOW()-INTERVAL " & frist & " DAY)+ quarter(NOW()-INTERVAL " & frist & " DAY) div 4 ,'-',((QUARTER(NOW()-INTERVAL " & frist & " DAY)-1)*3+4) mod 12,'-01')-INTERVAL 1 SECOND AND art IN (" & artSpezBerat & "," & artSpezEintr & "," & artSpezUS1 & ") AND NOT art IN ('re','ba','doppler','duplex','impf','inj','kva','tv','ufrag','wv','caro','colo','debr','fa','EKG','GPD','kv','LZRR','OAU','pa','pros','puls','rp','sono','ulcus','vac','ADL'," & artSpezMA & ") " & vbCrLf & _
     "   GROUP BY pat_id,DATE(e.zeitpunkt) " & vbCrLf & _
     "  ) i GROUP BY pat_id,DATE(zp) " & vbCrLf
     Call DtbCreateQueryDef(VN, Vsql)
