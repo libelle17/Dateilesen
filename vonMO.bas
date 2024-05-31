@@ -5,7 +5,7 @@ Dim aru&
 
 Const MoSer$ = "wser"
 Const MoSzn$ = "szn4"
-Const parsemotxt$ = "v:\Parsememo31.txt"
+' Const parsemotxt$ = "v:\Parsememo31.txt"
 Const mestausg$ = "v:\mestr.txt"
 Public Const MOCStr$ = "DRIVER={MySQL ODBC 8.0 Unicode Driver};server=" & MoSer & ";option=0;database=medoff;uid=medoff;pwd=medoff;port=2020;"
 Public Const MOsStr$ = "DRIVER={MySQL ODBC 8.0 Unicode Driver};server=" & MoSzn & ";option=0;database=medoff;uid=medoff;pwd=medoff;port=2020;"
@@ -17,7 +17,7 @@ Type memoType ' zur Übertragung der FMemo-Felder aus Medical Office
  znr As Integer
  mx As Integer
  ebn As Integer
- enr As String
+ ENr As String
  Text As String
 End Type ' memoType
 
@@ -216,7 +216,7 @@ Public Function ebQuickSort(ByRef pvarArray() As ebType, Optional ByVal plngLeft
 End Function ' ebQuickSort
 
 ' BLOB-Felder aus Medical Office parsen
-Public Function ParseMemo(FMemo$, MeStr() As memoType, rFa() As Faelle, Optional obDebug%, Optional ÜSchr$) ' pNr&, FSur&,
+Public Function ParseMemo(FMemo$, MeStr() As memoType, Optional obDebug%, Optional ÜSchr$) ' pNr&, FSur&,
  Dim jj&, iru&
  Dim gl&, pos&, MAX&, aktmax&, altmax&, tlen&, ie&, altie&, mznr%, i&
  Dim obDruck%, txt$, ebS$
@@ -228,7 +228,8 @@ Public Function ParseMemo(FMemo$, MeStr() As memoType, rFa() As Faelle, Optional
   pos = 1
   ie = 0
   If obDebug Then
-   Open parsemotxt For Append As #255
+'   Open parsemotxt For Append As #255
+   Open "v:\" & ÜSchr & ".txt" For Output As #255
    Print #255, ÜSchr & ":"
   End If ' obDebug
   iru = 0
@@ -326,7 +327,7 @@ Public Function ParseMemo(FMemo$, MeStr() As memoType, rFa() As Faelle, Optional
      MeStr(UBound(MeStr)).znr = pos
      MeStr(UBound(MeStr)).mx = MAX
      MeStr(UBound(MeStr)).ebn = ie
-     MeStr(UBound(MeStr)).enr = ebS
+     MeStr(UBound(MeStr)).ENr = ebS
      If Asc(Right$(txt, 1)) = 0 Then txt = Left$(txt, Len(txt) - 1)
      MeStr(UBound(MeStr)).Text = txt
 '     If obDebug Then
@@ -341,7 +342,7 @@ Public Function ParseMemo(FMemo$, MeStr() As memoType, rFa() As Faelle, Optional
   Loop
   ' folende Zeilen zum Debuggen auskommentieren (in der Schleife laba ist das deutlich langsamer!)
   For i = UBound(MeStr) - 1 To 0 Step -1
-   If InStr(MeStr(i + 1).enr, MeStr(i).enr & ".") = 1 And MeStr(i + 1).enr <> MeStr(i).enr Then ' MeStr(i).patnr = MeStr(i + 1).patnr And MeStr(i).FSur = MeStr(i + 1).FSur And
+   If InStr(MeStr(i + 1).ENr, MeStr(i).ENr & ".") = 1 And MeStr(i + 1).ENr <> MeStr(i).ENr Then ' MeStr(i).patnr = MeStr(i + 1).patnr And MeStr(i).FSur = MeStr(i + 1).FSur And
     Call memoaltloe(MeStr, i, False)
    End If
   Next i
@@ -359,7 +360,7 @@ Public Function ParseMemo(FMemo$, MeStr() As memoType, rFa() As Faelle, Optional
     Else
      endsz = "!: " & MeStr(i).znr - 1 & ">" & Len(FMemo)
     End If
-    Print #255, MeStr(i).znr & "|" & MeStr(i).mx & "|" & MeStr(i).ebn & "|" & MeStr(i).enr & "|" & IIf(endse <> "10", Mid$(FMemo, MeStr(i).znr, 1), "") & "|" & endse & "|" & endsz & "| Laenge: " & Len(MeStr(i).Text) & "|" & IIf(Right$(MeStr(i).Text, 1) = Chr$(10), Left$(MeStr(i).Text, IIf(Len(MeStr(i).Text) = 0, 1, Len(MeStr(i).Text)) - 1), MeStr(i).Text)
+    Print #255, MeStr(i).znr & "|" & MeStr(i).mx & "|" & MeStr(i).ebn & "|" & MeStr(i).ENr & "|" & IIf(endse <> "10", Mid$(FMemo, MeStr(i).znr, 1), "") & "|" & endse & "|" & endsz & "| Laenge: " & Len(MeStr(i).Text) & "|" & IIf(Right$(MeStr(i).Text, 1) = Chr$(10), Left$(MeStr(i).Text, IIf(Len(MeStr(i).Text) = 0, 1, Len(MeStr(i).Text)) - 1), MeStr(i).Text)
    Next i
   End If ' obdebug
   If obDebug Then
@@ -371,7 +372,7 @@ Public Function ParseMemo(FMemo$, MeStr() As memoType, rFa() As Faelle, Optional
 fehler:
  Dim AnwPfad$
 #If VBA6 Then
- AnwPfad = CurrentDb.name
+ AnwPfad = CurrentDb.Name
 #Else
  AnwPfad = App.path
 #End If
@@ -392,7 +393,7 @@ Function MeStDruck(Eig$, MeStr() As memoType)
   Print #245, CStr(i) & Space$(4 - Len(CStr(i))) & _
   MeStr(i).znr & Space$(5 - Len(CStr(MeStr(i).znr))) & _
   MeStr(i).ebn & Space$(4 - Len(MeStr(i).ebn)) & _
-  MeStr(i).enr & Space$(19 - Len(MeStr(i).enr)) & _
+  MeStr(i).ENr & Space$(19 - Len(MeStr(i).ENr)) & _
   MeStr(i).mx & Space$(5 - Len(MeStr(i).mx)) & _
   MeStr(i).Text
  Next i
@@ -431,6 +432,66 @@ Public Function stzk(s$) As Date
  stzk = CDate(CStr(Asc(Mid$(s, 4))) & "." & CStr(Asc(Mid$(s, 3))) & "." & CStr(256 * Asc(Mid(s, 2)) + Asc(Mid(s, 1))))
 End Function ' stzk
 
+Public Function zeigmosystem(Optional obszn4%)
+ Const obDebug% = True
+ Const Fakt& = 256
+ Dim Kat() As memoType, tKat() As memoType, Abl() As memoType, fAuft() As memoType, fMem() As memoType
+ Dim rsMo As New ADODB.Recordset
+ Dim MOCon As New ADODB.Connection
+ Dim j&
+ Dim EintS As SortierEintr
+ Dim EinL As New SortierListe
+ If obszn4 Then
+  MOCon.Open MOsStr
+ Else
+  MOCon.Open MOCStr
+ End If
+ sql = "SELECT COALESCE(CONVERT(FKategorieliste USING latin1),'') FKat, COALESCE(CONVERT(Ftextkategorieliste USING latin1),'') Ftk, COALESCE(CONVERT(fAblageliste USING latin1),'') FAb, COALESCE(CONVERT(fAuftragstypenliste USING latin1),'') FAuf, COALESCE(CONVERT(FMemo USING latin1),'') Fm FROM mosystem"
+ rsMo.Open sql, MOCon, adOpenStatic, adLockReadOnly
+ If Not rsMo.BOF Then
+  If rsMo!fKat <> "" Then
+   Call ParseMemo(rsMo!fKat, Kat(), obDebug, "FMemo von fKategorieliste aus mosystem")
+  End If
+  If rsMo!ftk <> "" Then
+   Call ParseMemo(rsMo!ftk, tKat(), obDebug, "FMemo von fTextKategorieliste aus mosystem")
+  End If
+  If rsMo!fAb <> "" Then
+   Call ParseMemo(rsMo!fAb, Abl(), obDebug, "FMemo von fAblageliste aus mosystem")
+  End If
+  If rsMo!fAuf <> "" Then
+   Call ParseMemo(rsMo!fAuf, fAuft(), obDebug, "FMemo von fAuftragstypenliste aus mosystem")
+  End If
+  If rsMo!fm <> "" Then
+   Call ParseMemo(rsMo!fm, fMem(), obDebug, "FMemo von fMemo aus mosystem")
+   For j = 0 To UBound(fMem)
+    If fMem(j).ENr Like "*.2" And fMem(j).ENr <> "1.2" Then
+     Set EintS = New SortierEintr
+     EintS.TypNr = Asc(fMem(j).Text)
+     If Len(fMem(j).Text) > 1 Then
+      EintS.TypNr = EintS.TypNr + Fakt * Asc(Mid(fMem(j).Text, 2))
+     End If
+    ElseIf fMem(j).ENr Like "*.3" And fMem(j).ENr <> "1.3" Then
+     EintS.Art = fMem(j).Text
+    ElseIf fMem(j).ENr Like "*.5" And fMem(j).ENr <> "1.5" Then
+     EintS.EKür = fMem(j).Text
+    ElseIf fMem(j).ENr Like "*.8" And fMem(j).ENr <> "1.8" Then
+     EintS.Name = fMem(j).Text
+    ElseIf fMem(j).ENr Like "*.10" And fMem(j).ENr <> "1.10" Then
+     EintS.Kürz = fMem(j).Text
+     EinL.sCAdd EintS
+    End If
+   Next j
+  End If
+ End If ' Not rsNa.BOF Then
+' Suche, z.B.:
+'  Set EintS = New SortierEintr
+'  EintS.TypNr = 1002
+'  Set EintS = EinL.GetItem(EintS)
+'  If Not EintS Is Nothing Then
+'   Debug.Print EintS.Name
+'  End If
+ Debug.Print "Fertig mit zeigmosystem"
+End Function ' zeigmosystem()
 
 ' in PatvonMO_Click
 Public Function doPatvonMO(pNr&)
@@ -439,12 +500,12 @@ Public Function doPatvonMO(pNr&)
  Dim pid&, pos&, SchGr%, jj%, rAf&, aktZeit As Date
  Dim rsNa As New ADODB.Recordset, rsFa As New ADODB.Recordset
  Dim NaStr() As memoType, FaStr() As memoType, rsfaru%, j&
- pNr& = 68927 ' 151 ' 225 ' 68316 ' 65405 ' 45 ' 64659 ' 45 ' 69367 ' 69377 ' 53119 ' 51630 ' 105 ' 18 ' 246 ' 59152 ' 1394 ' 2112
+ pNr& = 151 ' 225 ' 68316 ' 65405 ' 45 ' 64659 ' 45 ' 69367 ' 69377 ' 53119 ' 51630 ' 105 ' 18 ' 246 ' 59152 ' 1394 ' 2112
  aktZeit = Now()
  pid = pNr + 100000
  Call LöschePat(pid)
  On Error Resume Next
- If obDebug Then FSO.DeleteFile parsemotxt
+' If obDebug Then FSO.DeleteFile parsemotxt
  On Error GoTo fehler
  Tinit
  Dim MOCon As New ADODB.Connection
@@ -516,11 +577,11 @@ Public Function doPatvonMO(pNr&)
   FSO.DeleteFile mestausg
   On Error GoTo fehler
   If rsNa!fm <> "" Then
-   Call ParseMemo(rsNa!fm, NaStr(), rFa(), obDebug, "FMemo von rsNa, Pat-id: " & pNr)
+   Call ParseMemo(rsNa!fm, NaStr(), obDebug, "FMemo von rsNa, Pat-id " & pNr)
 '   Call MeStDruck(CStr(pNr), NaStr)
    For j = 0 To UBound(NaStr)
 '     Debug.Print NaStr(j).enr, NaStr(j).Text
-    Select Case NaStr(j).enr
+    Select Case NaStr(j).ENr
       Case "18"
          rNa(0).Notiz = REPLACE$(LTrim$(REPLACE$(NaStr(j).Text, "Notiz:", "")), Chr$(10), vbCrLf)
       Case "21.1": ' asc( Zahl der eingetragenen Kinder
@@ -533,7 +594,8 @@ Public Function doPatvonMO(pNr&)
   End If ' rsNa!fm
 '  Call MeStDruck(CStr(pNr), NaStr)
   
-  rsFa.Open "SELECT f.fsurogat nix, COALESCE(CONVERT(f.FMemo USING latin1),'') Fm,CONCAT(f.fpatnr,', ',18900101 + INTERVAL f.fvon DAY,' - ',18900101 + INTERVAL f.fbis DAY) ueschr, f.*,a.FBezeichnung, le.FNachname FROM patfall f LEFT JOIN abrechner a ON f.FArztnr=a.FSurogat LEFT JOIN lstgerb le USING (FLstgerbnr) WHERE fpatnr=" & pNr & " ORDER BY FVon DESC", MOCon, adOpenStatic, adLockReadOnly
+'  rsFa.Open "SELECT f.fsurogat nix, COALESCE(CONVERT(f.FMemo USING latin1),'') Fm,CONCAT(f.fpatnr,', ',18900101 + INTERVAL f.fvon DAY,' - ',18900101 + INTERVAL f.fbis DAY) ueschr, f.*,a.FBezeichnung, le.FNachname FROM patfall f LEFT JOIN abrechner a ON f.FArztnr=a.FSurogat LEFT JOIN lstgerb le USING (FLstgerbnr) WHERE fpatnr=" & pNr & " ORDER BY FVon DESC", MOCon, adOpenStatic, adLockReadOnly
+  myFrag rsFa, "SELECT f.fsurogat nix, COALESCE(CONVERT(f.FMemo USING latin1),'') Fm,CONCAT(f.fpatnr,', ',18900101 + INTERVAL f.fvon DAY,' - ',18900101 + INTERVAL f.fbis DAY) ueschr, f.*,a.FBezeichnung, le.FNachname FROM patfall f LEFT JOIN abrechner a ON f.FArztnr=a.FSurogat LEFT JOIN lstgerb le USING (FLstgerbnr) WHERE fpatnr=" & pNr & " ORDER BY FVon DESC", adOpenStatic, MOCon, adLockReadOnly
 '  rsfaru = 0
   If Not rsFa.BOF Then
    Do While Not rsFa.EOF
@@ -619,7 +681,7 @@ Public Function doPatvonMO(pNr&)
          rFa(UBound(rFa)).SchGr = "99" ' frei erfunden
       End Select ' ftarif
      End Select ' fscheintyp
-    Call ParseMemo(rsFa!fm, FaStr(), rFa(), obDebug, rsFa!ueschr)  ' rsFa!fpatnr, rsFa!fsurogat,
+    Call ParseMemo(rsFa!fm, FaStr(), obDebug, "FMemo von rsFa, Pat-id " & rsFa!ueschr)  ' rsFa!fpatnr, rsFa!fsurogat,
 '    Call MeStDruck(pNr & " " & rsFa!ueschr, FaStr)
 '  For jj = 1 To UBound(rFa)
 '   If Not IsNumeric(rFa(jj).Quartal) Or Len(rFa(jj).Quartal) <> 5 Then Stop
@@ -642,7 +704,7 @@ Public Function doPatvonMO(pNr&)
 '      End If ' lfdfl = 1 Then
       
 '     Debug.Print FaStr(j).enr, FaStr(j).Text
-      Select Case FaStr(j).enr
+      Select Case FaStr(j).ENr
 '      case "2.2":           ' Namenszusatz des Hauptversicherten
 '      Case "2.3":           ' Nachname des Hauptversicherten
 '      Case "2.4":           ' Vorname  des Hauptversicherten
@@ -858,7 +920,7 @@ Public Function doPatvonMO(pNr&)
   End If ' Not rsha.BOF Then
   
   For j = 0 To UBound(NaStr)
-   If NaStr(j).enr Like "21.*" And NaStr(j).enr <> "21.1" Then
+   If NaStr(j).ENr Like "21.*" And NaStr(j).ENr <> "21.1" Then
     ReDim Preserve rSw(UBound(rSw) + 1)
     rSw(UBound(rSw)).Pat_id = rNa(0).Pat_id
     rSw(UBound(rSw)).FormTitel = "ssd"
@@ -881,7 +943,38 @@ Public Function doPatvonMO(pNr&)
   
 ' Set rsFa = Nothing
 ' Set rsFa = Nothing ' wirkt witzigerweise erst beim zweiten Mal (!?)
-  Call rFaDump
+'  Call rFaDump
+  Dim rsDi As New ADODB.Recordset
+'myFrag rsFa, "SELECT f.fsurogat nix, COALESCE(CONVERT(f.FMemo USING latin1),'') Fm,CONCAT(f.fpatnr,', ',18900101 + INTERVAL f.fvon DAY,' - ',18900101 + INTERVAL f.fbis DAY) ueschr, f.*,a.FBezeichnung, le.FNachname FROM patfall f LEFT JOIN abrechner a ON f.FArztnr=a.FSurogat LEFT JOIN lstgerb le USING (FLstgerbnr) WHERE fpatnr=" & pNr & " ORDER BY FVon DESC", adOpenStatic, MOCon, adLockReadOnly
+  sql = "WITH sel AS (SELECT fbehgrundnr from ltag WHERE fpatnr=" & pNr & " AND fbehgrundnr>0) " & _
+  "SELECT FPatnr, 18900101 + INTERVAL FDatum DAY + INTERVAL fzeit second Diagdat," & _
+  "CASE F4201 WHEN 1 THEN 'R' WHEN 2 THEN 'L' WHEN 3 THEN 'B' ELSE ' ' END Seite," & _
+  "CASE FKlasse MOD 15 WHEN 1 THEN 'V' WHEN 2 THEN 'G' WHEN 3 THEN 'Z' WHEN 4 THEN 'A' ELSE ' ' END Sich," & _
+  "CASE FKlasse div 15 WHEN 0 THEN 'H' ELSE 'N' END Kard," & _
+  "FIcdcode ICD, COALESCE(IF(RIGHT(FText,1)=0,LEFT(FText,LENGTH(FText)-1),FText),'') FText," & _
+  "CASE FStatus WHEN 1 THEN 'ak' WHEN 2 THEN 'an' WHEN 3 THEN 'hi' WHEN 4 THEN 'ab' WHEN 5 THEN 'da' ELSE ' ' END Stat," & _
+  "COALESCE(IF(RIGHT(FErlaeuterung,1)=0,LEFT(FErlaeuterung,LENGTH(FErlaeuterung)-1),FErlaeuterung),'') Zus, FNutzernr, FID, FAusnahme " & _
+  "FROM sel lt INNER JOIN behgrund b on lt.fbehgrundnr=b.FSurogat " & _
+  "WHERE NOT EXISTS (SELECT bi.* FROM sel lti INNER JOIN behgrund bi ON lti.fbehgrundnr=bi.FSurogat " & _
+  "  WHERE ficdcode=b.ficdcode AND ftext=b.ftext AND fklasse=b.FKlasse AND f4201=b.f4201 AND ((fstatus IN(1,5)AND b.fstatus IN(2,3,4))OR(fstatus=b.fstatus AND fsurogat>b.fsurogat))" & _
+  ");"
+  myFrag rsDi, sql, adOpenStatic, MOCon
+  If Not rsDi.BOF Then
+   Do While Not rsDi.EOF
+    ReDim Preserve rDi(UBound(rDi) + 1)
+    rDi(UBound(rDi)).aktZeit = aktZeit
+    rDi(UBound(rDi)).Pat_id = pid
+    rDi(UBound(rDi)).DiagDatum = rsDi!diagdat
+    rDi(UBound(rDi)).DiagSicherheit = rsDi!sich
+    rDi(UBound(rDi)).DiagText = Trim$(rsDi!FText)
+    rDi(UBound(rDi)).DiagSeite = rsDi!Seite
+    rDi(UBound(rDi)).DiagAttr = Trim$(rsDi!Zus)
+    rDi(UBound(rDi)).ICD = rsDi!ICD
+    rDi(UBound(rDi)).obDauer = IIf(rsDi!stat = "ak", 0, 1)
+    rDi(UBound(rDi)).obKasse = IIf(rsDi!stat = "ak" Or rsDi!stat = "da", 1, 0)
+    rsDi.MoveNext
+   Loop
+  End If ' Not rsDi.BOF Then
   Call alleSpeichern(lies, vonMo:=True)
   syscmd 4, "Fertig mit doPatvonMO " & pNr & " auf '" & MOCon.Properties("Server Name") & "'"
  Else
@@ -891,7 +984,7 @@ Public Function doPatvonMO(pNr&)
 fehler:
  Dim AnwPfad$
 #If VBA6 Then
- AnwPfad = CurrentDb.name
+ AnwPfad = CurrentDb.Name
 #Else
  AnwPfad = App.path
 #End If
@@ -902,7 +995,7 @@ fehler:
  End Select
 End Function ' doPatvonMO(pNr&, pid&)
 
-' kommt nirgends vor
+' nur zum Aufruf im Direktfenster
 Public Function suchfi(pNr&, fI$, Optional obszn4%)
  Dim altt$, gefu%, i&
  Dim rst As New ADODB.Recordset, rsu As New ADODB.Recordset
@@ -926,7 +1019,7 @@ Public Function suchfi(pNr&, fI$, Optional obszn4%)
      If Not (IsNull(rsu.Fields(i))) Then
 '      If CStr(rsu.Fields(i)) = fI Then
       If InStrB(LCase$(rsu.Fields(i)), LCase$(fI)) <> 0 Then
-       Debug.Print rst!Tn, rsu.Fields(i).name, rsu.Fields(i)
+       Debug.Print rst!Tn, rsu.Fields(i).Name, rsu.Fields(i)
        gefu = True
       End If
      End If
@@ -942,12 +1035,16 @@ weiter:
 End Function ' suchfi(pNr&, fI$)
 
 
-' kommt nirgends vor
-Public Function suchal(fI$, Optional NotObRlike%)
+' nur zum Aufruf im Direktfenster
+Public Function suchal(fI$, Optional NotObRlike%, Optional obszn4%)
  Dim altt$, j&
  Dim rst As New ADODB.Recordset, rsu As New ADODB.Recordset
  Dim MOCon As New ADODB.Connection
- MOCon.Open MOCStr
+ If obszn4 Then
+  MOCon.Open MOsStr
+ Else
+  MOCon.Open MOCStr
+ End If
 #If True Then
  rst.Open "SELECT TABLE_NAME tn, GROUP_CONCAT(CONCAT('CAST(',column_name,' AS CHAR)" & IIf(Not NotObRlike, " RLIKE ", "=") & "''" & fI & "''') SEPARATOR ' OR ') cn FROM information_schema.columns c WHERE table_catalog='def' AND table_schema='medoff' AND TABLE_NAME NOT RLIKE 'fsurogat' group by table_name" _
  , MOCon, adOpenStatic, adLockReadOnly
@@ -957,7 +1054,7 @@ Public Function suchal(fI$, Optional NotObRlike%)
   Set rsu = Nothing
   rsu.Open "SELECT * from `" & rst!Tn & "` WHERE " & rst!Cn, MOCon, adOpenStatic, adLockReadOnly
   If Not rsu.EOF Then
-   Debug.Print rst!Tn & ": " & rsu.Fields(0).name & ": " & rsu.Fields(0)
+   Debug.Print rst!Tn & ": " & rsu.Fields(0).Name & ": " & rsu.Fields(0)
   Else
 '   Debug.Print "nichts gefunden in: " & rst!Tn
   End If
@@ -981,7 +1078,7 @@ Public Function suchal(fI$, Optional NotObRlike%)
     For i = 0 To rsu.Fields.COUNT - 1
      If Not (IsNull(rsu.Fields(i))) Then
       If CStr(rsu.Fields(i)) = fI Then
-       Debug.Print rsu.Fields(i).name
+       Debug.Print rsu.Fields(i).Name
       End If
      End If
     Next i
@@ -1018,7 +1115,7 @@ CREATE TABLE IF NOT EXISTS tmpmpatstamm (
     enr VARCHAR(128) DEFAULT '',
     TEXT text DEFAULT '',
     PRIMARY KEY Zugriff(patnr,znr),
-    Key zuloe(PatNr, enr)
+    Key zuloe(PatNr, ENr)
 );
 DELETE FROM tmpmpatstamm WHERE pnr=0 OR patnr=pnr;
 CREATE TEMPORARY TABLE IF NOT EXISTS tmpeb(nr INT(2) PRIMARY KEY,wert INT(2)); -- temporäre Ebenentabelle
@@ -1104,7 +1201,7 @@ CREATE TABLE IF NOT EXISTS tmpmpatfall (
     enr VARCHAR(128) DEFAULT '',
     TEXT text DEFAULT '',
     PRIMARY KEY Zugriff(patnr,fsur,znr),
-    Key zuloe(PatNr, fsur, enr)
+    Key zuloe(PatNr, fsur, ENr)
 );
 DELETE FROM tmpmpatfall WHERE pnr=0 OR patnr=pnr;
 CREATE TEMPORARY TABLE if NOT EXISTS tmpeb(nr INT(2) PRIMARY KEY,wert INT(2)); -- temporäre Ebenentabelle
@@ -1194,7 +1291,7 @@ CREATE TABLE IF NOT EXISTS tmpmpatfall (
     enr VARCHAR(128) DEFAULT '',
     TEXT text DEFAULT '',
     PRIMARY KEY Zugriff(patnr,fsur,znr),
-    Key zuloe(PatNr, fsur, enr)
+    Key zuloe(PatNr, fsur, ENr)
 );
 DELETE FROM tmpmpatfall WHERE pnr=0 OR patnr=pnr;
 CREATE TEMPORARY TABLE IF NOT EXISTS tmpeb(nr INT(2) PRIMARY KEY,wert INT(2)); -- temporäre Ebenentabelle
@@ -1288,6 +1385,334 @@ schl: Loop
 -- SELECT ASCII(MID(feld,pos,1));
 END loop schl;
 SELECT erg;
+End
+
+
+CREATE DEFINER=`medoff`@`%` PROCEDURE `procmTextKategorieliste`()
+Language sql
+NOT DETERMINISTIC
+CONTAINS sql
+SQL SECURITY DEFINER
+Comment 'liest das Feld FTextKategorieliste aus mosystem in die Tabelle tmpmTextKat aus'
+tp: Begin
+DECLARE gl,pos,MAX,aktmax,altmax,tlen,ie,altie INT(10) DEFAULT 0;
+DECLARE obdruck INT(1);
+DECLARE txt VARCHAR(1024);
+-- START TRANSACTION;
+CREATE TABLE IF NOT EXISTS tmpmTextKat (
+    znr INT(2) UNSIGNED DEFAULT '0',
+    MX INT(3) UNSIGNED DEFAULT '0',
+    ebn INT(2) DEFAULT '0',
+    enr VARCHAR(128) DEFAULT '',
+    TEXT text DEFAULT '',
+    PRIMARY KEY Zugriff(znr),
+    Key zuloe(ENr)
+);
+DELETE FROM tmpmTextKat;
+CREATE TEMPORARY TABLE IF NOT EXISTS tmpeb(nr INT(2) PRIMARY KEY,wert INT(2)); -- temporäre Ebenentabelle
+laba: FOR r IN (SELECT FTextKategorieliste fmemo FROM mosystem WHERE FTextKategorieliste IS NOT NULL) DO
+ SET pos=1;
+ SET ie=0;
+ TRUNCATE tmpeb;
+labt:  Loop
+  SET obdruck=0;
+  SET tlen=CONV(HEX(CONCAT(MID(r.fmemo,pos+1,1),MID(r.fmemo,pos,1))),16,10);
+  if pos=1 then SET gl=tlen; SET MAX=gl; END if;
+  SET altmax=MAX;
+  SET aktMAX=tlen+pos+1; -- aktuell angegebene Länge aus dem und dem nä Byte
+  IF aktmax BETWEEN 0 AND gl+2 AND -- wenn die angegebene Länge vertretbar
+    (( CONV(HEX(MID(r.fmemo,aktMax,1)),16,10)=0 AND -- und an der letzten Stelle 0 steht (dann könnte es eine Länge sein), da es hier aber Ausnahmen gibt, wurde re>Max davon ausgenommen
+     aktmax<=MAX) OR pos>MAX) then -- wenn die akt.Länge nicht über die Vorbestehende hinausreicht oder d.vorbest.schon überschritten wurde
+    SET altie=ie; -- letzte Ebene
+    if aktmax<=MAX then SET ie=ie+1; END if; -- im ersten Fall wird die Ebene erhöht
+    if pos>MAX then -- im zweiten Fall wird zurückgegriffen
+     SELECT COALESCE(MAX(ebn),0)+1 INTO ie FROM tmpmTextKat WHERE mx>=aktMAX AND znr=(SELECT MAX(znr) FROM tmpmTextKat WHERE mx>=aktMAX);
+     END if;
+    if ie<=altie then -- wenn die Ebene nicht erhöht worden ist
+     if ie<altie then -- wenn sie vielmehr reduziert wurde
+      DELETE FROM tmpeb WHERE nr>ie; -- dann werden die höheren Einträge wieder gelöscht
+     END if;
+     UPDATE tmpeb SET wert=wert+1 WHERE nr=ie; -- dann wird die Zählung der akt. Ebene erhöht
+    Else
+     INSERT INTO tmpeb(nr,wert) VALUES(ie,1); -- sonst muss ein neuer Eintrag für die hohe Ebene erstellt werden
+    END if;
+    SET MAX=aktmax; -- neue vorbestehende Länge
+    SET obdruck=1; -- und drucken
+  END if;
+  IF obdruck=1
+--     OR pos=1 -- zum Debuggen der ersten Gesamt-Zeile
+--   OR TRUE -- zum Debuggen aller Zeilen
+   then
+    SET txt=MID(r.fmemo,pos+2,tlen);
+    If txt <> Repeat(Chr(0), tlen) Then
+     INSERT INTO tmpmTextKat(znr,mx,ebn,enr,TEXT) VALUES(pos,max,ie,
+       (SELECT GROUP_CONCAT(wert ORDER BY nr SEPARATOR '.') FROM tmpeb),
+--    CONCAT(MID(r.fmemo,pos,1),'|',HEX(MID(r.fmemo,pos,1)),'|',CONV(HEX(MID(r.fmemo,pos,1)),16,10),'|',CONV(HEX(CONCAT(MID(r.fmemo,pos+1,1),MID(r.fmemo,pos,1))),16,10),'|','aktMax:',aktmax, '|','Max:',altMAX,'|','Laenge: ',LENGTH(txt),'|','Endbyte:',COALESCE(CONV(HEX(MID(r.fmemo,aktMax,1)),16,10),'-'),
+--     CONCAT(IF(obdruck<>1,'- ',''),'"',
+      txt
+--    ,'"'))
+       );
+     Else
+      SET pos=pos+tlen; -- 0-Strings nicht auffieseln
+     END if;
+  END IF; -- obdruck=1
+  SET pos=pos+1;
+  if pos>=gl then LEAVE labt; END if;
+ END loop labt;
+END FOR laba;
+ -- folende Zeile zum Debuggen auskommentieren (in der Schleife laba ist das deutlich langsamer!)
+DELETE FROM tmpmTextKat WHERE enr<>'0' AND EXISTS (SELECT 0 FROM tmpmTextKat i WHERE INSTR(i.enr,CONCAT(tmpmTextKat.enr,'.'))=1 AND i.enr<>tmpmTextKat.enr);
+-- COMMIT;
+-- LEAVE tp;
+ SELECT znr, Mx, Ebn, ENr, TEXT, ASCII(TEXT)b1, ASCII(MID(TEXT,2))b2, ASCII(MID(TEXT,3))b3, ASCII(MID(TEXT,4))b4,
+ CONCAT(ASCII(MID(TEXT,4,1)),".",ASCII(MID(TEXT,3,1)),".",ASCII(MID(TEXT,2,1))*256+ASCII(TEXT)) Datum
+   FROM tmpmTextKat ORDER BY znr;
+End
+
+
+CREATE DEFINER=`medoff`@`%` PROCEDURE `procmKategorieliste`()
+Language sql
+NOT DETERMINISTIC
+CONTAINS sql
+SQL SECURITY DEFINER
+Comment 'liest das Feld FKategorieliste aus mosystem in die Tabelle tmpmTextKat aus'
+tp: Begin
+DECLARE gl,pos,MAX,aktmax,altmax,tlen,ie,altie INT(10) DEFAULT 0;
+DECLARE obdruck INT(1);
+DECLARE txt VARCHAR(1024);
+-- START TRANSACTION;
+CREATE TABLE IF NOT EXISTS tmpmKat (
+    znr INT(2) UNSIGNED DEFAULT '0',
+    MX INT(3) UNSIGNED DEFAULT '0',
+    ebn INT(2) DEFAULT '0',
+    enr VARCHAR(128) DEFAULT '',
+    TEXT text DEFAULT '',
+    PRIMARY KEY Zugriff(znr),
+    Key zuloe(ENr)
+);
+DELETE FROM tmpmTextKat;
+CREATE TEMPORARY TABLE IF NOT EXISTS tmpeb(nr INT(2) PRIMARY KEY,wert INT(2)); -- temporäre Ebenentabelle
+laba: FOR r IN (SELECT FKategorieliste fmemo FROM mosystem WHERE FKategorieliste IS NOT NULL) DO
+ SET pos=1;
+ SET ie=0;
+ TRUNCATE tmpeb;
+labt:  Loop
+  SET obdruck=0;
+  SET tlen=CONV(HEX(CONCAT(MID(r.fmemo,pos+1,1),MID(r.fmemo,pos,1))),16,10);
+  if pos=1 then SET gl=tlen; SET MAX=gl; END if;
+  SET altmax=MAX;
+  SET aktMAX=tlen+pos+1; -- aktuell angegebene Länge aus dem und dem nä Byte
+  IF aktmax BETWEEN 0 AND gl+2 AND -- wenn die angegebene Länge vertretbar
+    (( CONV(HEX(MID(r.fmemo,aktMax,1)),16,10)=0 AND -- und an der letzten Stelle 0 steht (dann könnte es eine Länge sein), da es hier aber Ausnahmen gibt, wurde re>Max davon ausgenommen
+     aktmax<=MAX) OR pos>MAX) then -- wenn die akt.Länge nicht über die Vorbestehende hinausreicht oder d.vorbest.schon überschritten wurde
+    SET altie=ie; -- letzte Ebene
+    if aktmax<=MAX then SET ie=ie+1; END if; -- im ersten Fall wird die Ebene erhöht
+    if pos>MAX then -- im zweiten Fall wird zurückgegriffen
+     SELECT COALESCE(MAX(ebn),0)+1 INTO ie FROM tmpmTextKat WHERE mx>=aktMAX AND znr=(SELECT MAX(znr) FROM tmpmTextKat WHERE mx>=aktMAX);
+     END if;
+    if ie<=altie then -- wenn die Ebene nicht erhöht worden ist
+     if ie<altie then -- wenn sie vielmehr reduziert wurde
+      DELETE FROM tmpeb WHERE nr>ie; -- dann werden die höheren Einträge wieder gelöscht
+     END if;
+     UPDATE tmpeb SET wert=wert+1 WHERE nr=ie; -- dann wird die Zählung der akt. Ebene erhöht
+    Else
+     INSERT INTO tmpeb(nr,wert) VALUES(ie,1); -- sonst muss ein neuer Eintrag für die hohe Ebene erstellt werden
+    END if;
+    SET MAX=aktmax; -- neue vorbestehende Länge
+    SET obdruck=1; -- und drucken
+  END if;
+  IF obdruck=1
+--     OR pos=1 -- zum Debuggen der ersten Gesamt-Zeile
+--   OR TRUE -- zum Debuggen aller Zeilen
+   then
+    SET txt=MID(r.fmemo,pos+2,tlen);
+    If txt <> Repeat(Chr(0), tlen) Then
+     INSERT INTO tmpmTextKat(znr,mx,ebn,enr,TEXT) VALUES(pos,max,ie,
+       (SELECT GROUP_CONCAT(wert ORDER BY nr SEPARATOR '.') FROM tmpeb),
+--    CONCAT(MID(r.fmemo,pos,1),'|',HEX(MID(r.fmemo,pos,1)),'|',CONV(HEX(MID(r.fmemo,pos,1)),16,10),'|',CONV(HEX(CONCAT(MID(r.fmemo,pos+1,1),MID(r.fmemo,pos,1))),16,10),'|','aktMax:',aktmax, '|','Max:',altMAX,'|','Laenge: ',LENGTH(txt),'|','Endbyte:',COALESCE(CONV(HEX(MID(r.fmemo,aktMax,1)),16,10),'-'),
+--     CONCAT(IF(obdruck<>1,'- ',''),'"',
+      txt
+--    ,'"'))
+       );
+     Else
+      SET pos=pos+tlen; -- 0-Strings nicht auffieseln
+     END if;
+  END IF; -- obdruck=1
+  SET pos=pos+1;
+  if pos>=gl then LEAVE labt; END if;
+ END loop labt;
+END FOR laba;
+ -- folende Zeile zum Debuggen auskommentieren (in der Schleife laba ist das deutlich langsamer!)
+DELETE FROM tmpmTextKat WHERE enr<>'0' AND EXISTS (SELECT 0 FROM tmpmTextKat i WHERE INSTR(i.enr,CONCAT(tmpmTextKat.enr,'.'))=1 AND i.enr<>tmpmTextKat.enr);
+-- COMMIT;
+-- LEAVE tp;
+ SELECT znr, Mx, Ebn, ENr, TEXT, ASCII(TEXT)b1, ASCII(MID(TEXT,2))b2, ASCII(MID(TEXT,3))b3, ASCII(MID(TEXT,4))b4,
+ CONCAT(ASCII(MID(TEXT,4,1)),".",ASCII(MID(TEXT,3,1)),".",ASCII(MID(TEXT,2,1))*256+ASCII(TEXT)) Datum
+   FROM tmpmTextKat ORDER BY znr;
+End
+
+
+CREATE DEFINER=`medoff`@`%` PROCEDURE `procmAuftragstypenliste`()
+Language sql
+NOT DETERMINISTIC
+CONTAINS sql
+SQL SECURITY DEFINER
+Comment 'liest das Feld FAuftragstypenliste aus mosystem in die Tabelle tmpmAuftrTyp aus'
+tp: Begin
+DECLARE gl,pos,MAX,aktmax,altmax,tlen,ie,altie INT(10) DEFAULT 0;
+DECLARE obdruck INT(1);
+DECLARE txt VARCHAR(1024);
+-- START TRANSACTION;
+CREATE TABLE IF NOT EXISTS tmpmAuftrTyp (
+    znr INT(2) UNSIGNED DEFAULT '0',
+    MX INT(3) UNSIGNED DEFAULT '0',
+    ebn INT(2) DEFAULT '0',
+    enr VARCHAR(128) DEFAULT '',
+    TEXT text DEFAULT '',
+    PRIMARY KEY Zugriff(znr),
+    Key zuloe(ENr)
+);
+DELETE FROM tmpmAuftrTyp;
+CREATE TEMPORARY TABLE IF NOT EXISTS tmpeb(nr INT(2) PRIMARY KEY,wert INT(2)); -- temporäre Ebenentabelle
+laba: FOR r IN (SELECT FAuftragstypenliste fmemo FROM mosystem WHERE FAuftragstypenliste IS NOT NULL) DO
+ SET pos=1;
+ SET ie=0;
+ TRUNCATE tmpeb;
+labt:  Loop
+  SET obdruck=0;
+  SET tlen=CONV(HEX(CONCAT(MID(r.fmemo,pos+1,1),MID(r.fmemo,pos,1))),16,10);
+  if pos=1 then SET gl=tlen; SET MAX=gl; END if;
+  SET altmax=MAX;
+  SET aktMAX=tlen+pos+1; -- aktuell angegebene Länge aus dem und dem nä Byte
+  IF aktmax BETWEEN 0 AND gl+2 AND -- wenn die angegebene Länge vertretbar
+    (( CONV(HEX(MID(r.fmemo,aktMax,1)),16,10)=0 AND -- und an der letzten Stelle 0 steht (dann könnte es eine Länge sein), da es hier aber Ausnahmen gibt, wurde re>Max davon ausgenommen
+     aktmax<=MAX) OR pos>MAX) then -- wenn die akt.Länge nicht über die Vorbestehende hinausreicht oder d.vorbest.schon überschritten wurde
+    SET altie=ie; -- letzte Ebene
+    if aktmax<=MAX then SET ie=ie+1; END if; -- im ersten Fall wird die Ebene erhöht
+    if pos>MAX then -- im zweiten Fall wird zurückgegriffen
+     SELECT COALESCE(MAX(ebn),0)+1 INTO ie FROM tmpmAuftrTyp WHERE mx>=aktMAX AND znr=(SELECT MAX(znr) FROM tmpmAuftrTyp WHERE mx>=aktMAX);
+     END if;
+    if ie<=altie then -- wenn die Ebene nicht erhöht worden ist
+     if ie<altie then -- wenn sie vielmehr reduziert wurde
+      DELETE FROM tmpeb WHERE nr>ie; -- dann werden die höheren Einträge wieder gelöscht
+     END if;
+     UPDATE tmpeb SET wert=wert+1 WHERE nr=ie; -- dann wird die Zählung der akt. Ebene erhöht
+    Else
+     INSERT INTO tmpeb(nr,wert) VALUES(ie,1); -- sonst muss ein neuer Eintrag für die hohe Ebene erstellt werden
+    END if;
+    SET MAX=aktmax; -- neue vorbestehende Länge
+    SET obdruck=1; -- und drucken
+  END if;
+  IF obdruck=1
+--     OR pos=1 -- zum Debuggen der ersten Gesamt-Zeile
+--   OR TRUE -- zum Debuggen aller Zeilen
+   then
+    SET txt=MID(r.fmemo,pos+2,tlen);
+    If txt <> Repeat(Chr(0), tlen) Then
+     INSERT INTO tmpmAuftrTyp(znr,mx,ebn,enr,TEXT) VALUES(pos,max,ie,
+       (SELECT GROUP_CONCAT(wert ORDER BY nr SEPARATOR '.') FROM tmpeb),
+--    CONCAT(MID(r.fmemo,pos,1),'|',HEX(MID(r.fmemo,pos,1)),'|',CONV(HEX(MID(r.fmemo,pos,1)),16,10),'|',CONV(HEX(CONCAT(MID(r.fmemo,pos+1,1),MID(r.fmemo,pos,1))),16,10),'|','aktMax:',aktmax, '|','Max:',altMAX,'|','Laenge: ',LENGTH(txt),'|','Endbyte:',COALESCE(CONV(HEX(MID(r.fmemo,aktMax,1)),16,10),'-'),
+--     CONCAT(IF(obdruck<>1,'- ',''),'"',
+      txt
+--    ,'"'))
+       );
+     Else
+      SET pos=pos+tlen; -- 0-Strings nicht auffieseln
+     END if;
+  END IF; -- obdruck=1
+  SET pos=pos+1;
+  if pos>=gl then LEAVE labt; END if;
+ END loop labt;
+END FOR laba;
+ -- folende Zeile zum Debuggen auskommentieren (in der Schleife laba ist das deutlich langsamer!)
+DELETE FROM tmpmAuftrTyp WHERE enr<>'0' AND EXISTS (SELECT 0 FROM tmpmAuftrTyp i WHERE INSTR(i.enr,CONCAT(tmpmAuftrTyp.enr,'.'))=1 AND i.enr<>tmpmAuftrTyp.enr);
+-- COMMIT;
+-- LEAVE tp;
+ SELECT znr, Mx, Ebn, ENr, TEXT, ASCII(TEXT)b1, ASCII(MID(TEXT,2))b2, ASCII(MID(TEXT,3))b3, ASCII(MID(TEXT,4))b4,
+ CONCAT(ASCII(MID(TEXT,4,1)),".",ASCII(MID(TEXT,3,1)),".",ASCII(MID(TEXT,2,1))*256+ASCII(TEXT)) Datum
+   FROM tmpmAuftrTyp ORDER BY znr;
+End
+
+
+CREATE DEFINER=`medoff`@`%` PROCEDURE `procmAblageliste`()
+Language sql
+NOT DETERMINISTIC
+CONTAINS sql
+SQL SECURITY DEFINER
+Comment 'liest das Feld FAblageliste aus mosystem in die Tabelle tmpmAbl aus'
+tp: Begin
+DECLARE gl,pos,MAX,aktmax,altmax,tlen,ie,altie INT(10) DEFAULT 0;
+DECLARE obdruck INT(1);
+DECLARE txt VARCHAR(1024);
+-- START TRANSACTION;
+CREATE TABLE IF NOT EXISTS tmpmAbl (
+    znr INT(2) UNSIGNED DEFAULT '0',
+    MX INT(3) UNSIGNED DEFAULT '0',
+    ebn INT(2) DEFAULT '0',
+    enr VARCHAR(128) DEFAULT '',
+    TEXT text DEFAULT '',
+    PRIMARY KEY Zugriff(znr),
+    Key zuloe(ENr)
+);
+DELETE FROM tmpmAbl;
+CREATE TEMPORARY TABLE IF NOT EXISTS tmpeb(nr INT(2) PRIMARY KEY,wert INT(2)); -- temporäre Ebenentabelle
+laba: FOR r IN (SELECT FAblageliste fmemo FROM mosystem WHERE FAblageliste IS NOT NULL) DO
+ SET pos=1;
+ SET ie=0;
+ TRUNCATE tmpeb;
+labt:  Loop
+  SET obdruck=0;
+  SET tlen=CONV(HEX(CONCAT(MID(r.fmemo,pos+1,1),MID(r.fmemo,pos,1))),16,10);
+  if pos=1 then SET gl=tlen; SET MAX=gl; END if;
+  SET altmax=MAX;
+  SET aktMAX=tlen+pos+1; -- aktuell angegebene Länge aus dem und dem nä Byte
+  IF aktmax BETWEEN 0 AND gl+2 AND -- wenn die angegebene Länge vertretbar
+    (( CONV(HEX(MID(r.fmemo,aktMax,1)),16,10)=0 AND -- und an der letzten Stelle 0 steht (dann könnte es eine Länge sein), da es hier aber Ausnahmen gibt, wurde re>Max davon ausgenommen
+     aktmax<=MAX) OR pos>MAX) then -- wenn die akt.Länge nicht über die Vorbestehende hinausreicht oder d.vorbest.schon überschritten wurde
+    SET altie=ie; -- letzte Ebene
+    if aktmax<=MAX then SET ie=ie+1; END if; -- im ersten Fall wird die Ebene erhöht
+    if pos>MAX then -- im zweiten Fall wird zurückgegriffen
+     SELECT COALESCE(MAX(ebn),0)+1 INTO ie FROM tmpmAbl WHERE mx>=aktMAX AND znr=(SELECT MAX(znr) FROM tmpmAbl WHERE mx>=aktMAX);
+     END if;
+    if ie<=altie then -- wenn die Ebene nicht erhöht worden ist
+     if ie<altie then -- wenn sie vielmehr reduziert wurde
+      DELETE FROM tmpeb WHERE nr>ie; -- dann werden die höheren Einträge wieder gelöscht
+     END if;
+     UPDATE tmpeb SET wert=wert+1 WHERE nr=ie; -- dann wird die Zählung der akt. Ebene erhöht
+    Else
+     INSERT INTO tmpeb(nr,wert) VALUES(ie,1); -- sonst muss ein neuer Eintrag für die hohe Ebene erstellt werden
+    END if;
+    SET MAX=aktmax; -- neue vorbestehende Länge
+    SET obdruck=1; -- und drucken
+  END if;
+  IF obdruck=1
+--     OR pos=1 -- zum Debuggen der ersten Gesamt-Zeile
+--   OR TRUE -- zum Debuggen aller Zeilen
+   then
+    SET txt=MID(r.fmemo,pos+2,tlen);
+    If txt <> Repeat(Chr(0), tlen) Then
+     INSERT INTO tmpmAbl(znr,mx,ebn,enr,TEXT) VALUES(pos,max,ie,
+       (SELECT GROUP_CONCAT(wert ORDER BY nr SEPARATOR '.') FROM tmpeb),
+--    CONCAT(MID(r.fmemo,pos,1),'|',HEX(MID(r.fmemo,pos,1)),'|',CONV(HEX(MID(r.fmemo,pos,1)),16,10),'|',CONV(HEX(CONCAT(MID(r.fmemo,pos+1,1),MID(r.fmemo,pos,1))),16,10),'|','aktMax:',aktmax, '|','Max:',altMAX,'|','Laenge: ',LENGTH(txt),'|','Endbyte:',COALESCE(CONV(HEX(MID(r.fmemo,aktMax,1)),16,10),'-'),
+--     CONCAT(IF(obdruck<>1,'- ',''),'"',
+      txt
+--    ,'"'))
+       );
+     Else
+      SET pos=pos+tlen; -- 0-Strings nicht auffieseln
+     END if;
+  END IF; -- obdruck=1
+  SET pos=pos+1;
+  if pos>=gl then LEAVE labt; END if;
+ END loop labt;
+END FOR laba;
+ -- folende Zeile zum Debuggen auskommentieren (in der Schleife laba ist das deutlich langsamer!)
+DELETE FROM tmpmAbl WHERE enr<>'0' AND EXISTS (SELECT 0 FROM tmpmAbl i WHERE INSTR(i.enr,CONCAT(tmpmAbl.enr,'.'))=1 AND i.enr<>tmpmAbl.enr);
+-- COMMIT;
+-- LEAVE tp;
+ SELECT znr, Mx, Ebn, ENr, TEXT, ASCII(TEXT)b1, ASCII(MID(TEXT,2))b2, ASCII(MID(TEXT,3))b3, ASCII(MID(TEXT,4))b4,
+ CONCAT(ASCII(MID(TEXT,4,1)),".",ASCII(MID(TEXT,3,1)),".",ASCII(MID(TEXT,2,1))*256+ASCII(TEXT)) Datum
+   FROM tmpmAbl ORDER BY znr;
 End
 
 #End If
