@@ -981,15 +981,23 @@ Public Function doPatvonMO(pNr&)
   Dim Art$, a1$, a2$, apos&
   Dim rsEi As New ADODB.Recordset
 '  FBehgrundnr>0: Diagnosen
-'  FStatus 2: a) FEintragsart 5: Laborwerte, 50: Link, 598: Dokumente
-'  FStatus 40: Leistung
-' Eintragsarten: 1=Diagnose, 2=Diagnose, 5=meist Eintrag (außer FICDC..: "PATNRALPHA": Patientennummer numerisch, "LAR", "PLAR", "UTXT" (Überweisungstext), "MHNG" (Mahnung), wenn FStatus 2, dann Laborwert
-'                8=Verwandtschaftsverhältnisse und Notizen, 10-11=Einträge, 12=Leistungen,
-'                13=Medikamente (mit PZN in FICD..) und Hilfsmittel, 14=Med., ohne PZN,
-'                16: Medikament mit Dosierung, 17: Hilfsmittel
+'   FStatus -32767: meist Eintrag, oder Notiz
+'                0: Diagnose oder Eintrag, 1: AU (=FEintragsart 19)
+'  FStatus 2:     FEintragsart 5: Laborwerte, 50: Link, 148: Word-Brief, 151: Link, 166: Link,169: Brief 598: Dokumente
+'  FStatus 3 und 4:  FEintragsart 20: Überweisung,
+'  FStatus 40 und 41: (FEintragsart 12): Leistung (bei 41 evtl. GOÄ)
+'  FStatus 100: FEintragsart 41: Unfallmeldung
+' Eintragsarten: 1=Diagnose, 2=Diagnose, 5: bei FStatus 0 meist Eintrag (außer FICDC..: "PATNRALPHA": Patientennummer numerisch, "LAR", "PLAR", "UTXT" (Überweisungstext), "MHNG" (Mahnung), "MED" (Medikamenteneintrag, wohl eMP-Eintrag, FDetails: "((EText ..."); wenn FStatus 2: dann Laborwert
+'                8=Verwandtschaftsverhältnisse und Notizen, 10-11=Einträge, 12=Leistungen (FDetails: {(Gnrliste [{( ..."),
+'                13=Medikamente (mit PZN in FICD..) und Hilfsmittel (FDetails: "{(Handelsname ..."
+'                14=Med., ohne PZN, 16: Medikament mit Dosierung
+'                17: Hilfsmittel (FDetails: {(Bezeichnung .."
 '                19: AU, 20: Üw, 21: Khs-Einweisung, 50 u. 148: Link auf Datei oder Word-Dokument aus Turbomed
 '                151: z.T. Einträge, z.T. PDF-Dateien (meist: "ePDF: ...", "pdf: ..."), "bild: ...", oder Links ("link: ..."), "brief: ", alle FStatus 2
-'                166: "link: ...", 169: "brief: ...", "wbr: ..."; 501 u. 598: jpg und tif, ohne Vorsilben
+'                166: "link: ...", 169: "brief: ...", "wbr: ..."; 501 u. 598: jpg und tif, ohne Vorsilben, z.T. mit "link: " bei Sono-Bildern
+'                1001: Eintrag (auch, aber nicht nur: sono) Zeile abgeschnitten, 1002: Eintrag aug, 1003: Blutabnahme, 1004: Einträge
+'                1005: Desktop-Notizen, 1006: Einträge
+'                2017: Diagnosen
   sql = "SELECT 18900101+INTERVAL FDatum DAY+INTERVAL FZeit SECOND Zp, FICdcode Art, FText, f.* FROM ltag f WHERE fpatnr = " & pNr & " AND fstatus not IN (2,40) AND fbehgrundnr<=0"
   myFrag rsEi, sql, adOpenStatic, MOCon
   If Not rsEi.BOF Then
