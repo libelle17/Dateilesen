@@ -291,6 +291,8 @@ Public type eintraege
  Pat_ID AS long 'Pat_ID int '3000
  ZeitPunkt AS date 'ZeitPunkt datetime '
  Art AS string 'Art varchar '6330
+ Ersteller AS string 'Ersteller varchar 'aus Medical Office
+ Änderer AS string 'Änderer varchar 'aus Medical Office
  Inhalt AS string 'Inhalt varchar '8480
  absPos AS long 'absPos int 'Zeile in der BDT-Datei
  AktZeit AS date 'AktZeit datetime 'Aktualisierungszeit
@@ -4419,6 +4421,8 @@ Public FUNCTION roEiZuw(i&, j&)
  roEi(i).Pat_ID = rEi(j).Pat_ID
  roEi(i).ZeitPunkt = rEi(j).ZeitPunkt
  roEi(i).Art = rEi(j).Art
+ roEi(i).Ersteller = rEi(j).Ersteller
+ roEi(i).Änderer = rEi(j).Änderer
  roEi(i).Inhalt = rEi(j).Inhalt
  roEi(i).absPos = rEi(j).absPos
  roEi(i).AktZeit = rEi(j).AktZeit
@@ -4434,6 +4438,8 @@ Public FUNCTION EiZUnt%(i&, j&)
  IF roEi(i).Pat_ID <> rEi(j).Pat_ID THEN gosub unter
  IF roEi(i).ZeitPunkt <> rEi(j).ZeitPunkt THEN gosub unter
  IF roEi(i).Art <> rEi(j).Art THEN gosub unter
+ IF roEi(i).Ersteller <> rEi(j).Ersteller THEN gosub unter
+ IF roEi(i).Änderer <> rEi(j).Änderer THEN gosub unter
  IF roEi(i).Inhalt <> rEi(j).Inhalt THEN gosub unter
  IF roEi(i).absPos <> rEi(j).absPos THEN gosub unter
  IF roEi(i).AktZeit <> rEi(j).AktZeit THEN gosub unter
@@ -4453,9 +4459,9 @@ Public FUNCTION eintraegeLaden()
  ON Error GoTo fehler
  pid = rNa(0).Pat_id
  sql = "SELECT COALESCE(FID,0) FID,COALESCE(Pat_ID,0) Pat_ID,COALESCE(ZeitPunkt - INTERVAL 0 DAY,CONVERT('18991230',DATE)) ZeitPunkt,COALESCE(Art,'') Art" & _
-",COALESCE(Inhalt,'') Inhalt,COALESCE(absPos,0) absPos,COALESCE(AktZeit - INTERVAL 0 DAY,CONVERT('18991230',DATE)) AktZeit,COALESCE(QS,'') QS" & _
-",COALESCE(QT,'') QT,COALESCE(StByte,0) StByte,COALESCE(id,0) id,COALESCE(inhNum,0) inhNum" & _
-" FROM `eintraege` WHERE Pat_ID=" & pid & " ORDER BY `ZeitPunkt`
+",COALESCE(Ersteller,'') Ersteller,COALESCE(Änderer,'') Änderer,COALESCE(Inhalt,'') Inhalt,COALESCE(absPos,0) absPos" & _
+",COALESCE(AktZeit - INTERVAL 0 DAY,CONVERT('18991230',DATE)) AktZeit,COALESCE(QS,'') QS,COALESCE(QT,'') QT,COALESCE(StByte,0) StByte" & _
+",COALESCE(id,0) id,COALESCE(inhNum,0) inhNum FROM `eintraege` WHERE Pat_ID=" & pid & " ORDER BY `ZeitPunkt`
  myFrag rs, sql
  If rs.EOF Then
   ReDim roEi(0)
@@ -4467,6 +4473,8 @@ Public FUNCTION eintraegeLaden()
    roEi(akt).Pat_ID = rs!Pat_ID
    roEi(akt).ZeitPunkt = rs!ZeitPunkt
    roEi(akt).Art = doUmwfSQL(rs!Art, lies.obMySQL, False)
+   roEi(akt).Ersteller = doUmwfSQL(rs!Ersteller, lies.obMySQL, False)
+   roEi(akt).Änderer = doUmwfSQL(rs!Änderer, lies.obMySQL, False)
    roEi(akt).Inhalt = doUmwfSQL(rs!Inhalt, lies.obMySQL, False)
    roEi(akt).absPos = rs!absPos
    roEi(akt).AktZeit = rs!AktZeit
@@ -4545,6 +4553,8 @@ Public FUNCTION rEiDump()
   Print #200, Left$("rEi(" & i & ").Pat_ID:" & String$(33, "."), 33) & rEi(i).Pat_ID
   Print #200, Left$("rEi(" & i & ").ZeitPunkt:" & String$(33, "."), 33) & rEi(i).ZeitPunkt
   Print #200, Left$("rEi(" & i & ").Art:" & String$(33, "."), 33) & "'" & rEi(i).Art & "'"
+  Print #200, Left$("rEi(" & i & ").Ersteller:" & String$(33, "."), 33) & "'" & rEi(i).Ersteller & "'"
+  Print #200, Left$("rEi(" & i & ").Änderer:" & String$(33, "."), 33) & "'" & rEi(i).Änderer & "'"
   Print #200, Left$("rEi(" & i & ").Inhalt:" & String$(33, "."), 33) & "'" & rEi(i).Inhalt & "'"
   Print #200, Left$("rEi(" & i & ").absPos:" & String$(33, "."), 33) & rEi(i).absPos
   Print #200, Left$("rEi(" & i & ").AktZeit:" & String$(33, "."), 33) & rEi(i).AktZeit
@@ -4568,9 +4578,9 @@ Public FUNCTION eintraegeSpeichern(SammelInsert%, BezfSp%)
  ON Error GoTo fehler
  syscmd 4, pid & ": Speichere " & Ubound(rEi)+0 & " Sätze in `eintraege`"
 ' sql0 = " INSERT " & sqlignore &  "INTO `eintraege` (FID,Pat_ID,ZeitPunkt," & _
-     "Art,Inhalt,absPos,AktZeit,QS,QT,StByte,inhNum) VALUES
+     "Art,Ersteller,Änderer,Inhalt,absPos,AktZeit,QS,QT,StByte,inhNum) VALUES
  Call csql0.AppVar(Array(" INSERT ", sqlIgnore, " INTO `eintraege` (FID,Pat_ID,ZeitPunkt," & _
-     "Art,Inhalt,absPos,AktZeit,QS,QT,StByte,inhNum)     VALUES"))
+     "Art,Ersteller,Änderer,Inhalt,absPos,AktZeit,QS,QT,StByte,inhNum)               VALUES"))
 sql:
  csql.m_Len = 0
  IF NOT Allepat THEN
@@ -4583,8 +4593,8 @@ sql:
   IF SammelInsert = 0 Or i = 1 Then
    csql.Append csql0
   END IF ' SammelInsert = 0 Or i = 1 Then
-  csql.AppVar Array("(" , rEi(i).FID, "," , rEi(i).Pat_ID, "," , DatFor_k(rEi(i).ZeitPunkt), ",'" , rEi(i).Art, "','" , rEi(i).Inhalt, "'," , rEi(i).absPos, "," , DatFor_k(rEi(i).AktZeit), ",'" , rEi(i).QS, "','" ,  _
-   rEi(i).QT, "'," , rEi(i).StByte, "," , replace$(rEi(i).inhNum,",","."), ")")
+  csql.AppVar Array("(" , rEi(i).FID, "," , rEi(i).Pat_ID, "," , DatFor_k(rEi(i).ZeitPunkt), ",'" , rEi(i).Art, "','" , rEi(i).Ersteller, "','" , rEi(i).Änderer, "','" , rEi(i).Inhalt, "'," , rEi(i).absPos, "," , DatFor_k( _
+   rEi(i).AktZeit), ",'" , rEi(i).QS, "','" , rEi(i).QT, "'," , rEi(i).StByte, "," , replace$(rEi(i).inhNum,",","."), ")")
   IF SammelInsert <> 0 AND i < ubound(rEi) Then csql.Append ","
   IF SammelInsert = 0 OR i = ubound(rEi) Then
 '    altmode = DBCn.Execute("SELECT @@global.sql_mode").Fields(0)
@@ -4624,12 +4634,14 @@ ElseIf ErrNumber = -2147467259 AND InStrB(ErrDescr, "Daten zu lang") = 0 AND InS
  Resume
 ElseIf ErrNumber = -2147217833 OR InStrB(ErrDescr, "Daten zu lang") <> 0 OR InStrB(ErrDescr, "Data too long") <> 0 THEN
  Dim rsc As Adodb.Recordset, maxi%(), k%
- redim maxi(3)
+ redim maxi(5)
  for k = iif(SammelInsert<>0,1,i) to iif(SammelInsert<>0,ubound(rEi),i)
   IF Len(rEi(k).Art) > maxi(0) THEN maxi(0) = Len(rEi(k).Art)
-  IF Len(rEi(k).Inhalt) > maxi(1) THEN maxi(1) = Len(rEi(k).Inhalt)
-  IF Len(rEi(k).QS) > maxi(2) THEN maxi(2) = Len(rEi(k).QS)
-  IF Len(rEi(k).QT) > maxi(3) THEN maxi(3) = Len(rEi(k).QT)
+  IF Len(rEi(k).Ersteller) > maxi(1) THEN maxi(1) = Len(rEi(k).Ersteller)
+  IF Len(rEi(k).Änderer) > maxi(2) THEN maxi(2) = Len(rEi(k).Änderer)
+  IF Len(rEi(k).Inhalt) > maxi(3) THEN maxi(3) = Len(rEi(k).Inhalt)
+  IF Len(rEi(k).QS) > maxi(4) THEN maxi(4) = Len(rEi(k).QS)
+  IF Len(rEi(k).QT) > maxi(5) THEN maxi(5) = Len(rEi(k).QT)
  next k
  If obTrans <> 0 Then If myEFrag("SELECT COUNT(1) FROM information_schema.innodb_trx WHERE trx_mysql_thread_id = CONNECTION_ID()", , DBCn).Fields(0) <> 0 Then ComTrans ' DBCn.CommitTrans: obtrans = 0
  nochmal:
@@ -4644,9 +4656,11 @@ ElseIf ErrNumber = -2147217833 OR InStrB(ErrDescr, "Daten zu lang") <> 0 OR InSt
      For k = IIf(SammelInsert <> 0,1, i) To IIf(SammelInsert <> 0,ubound(rEi), i)
       SELECT CASE m
        Case 0: Lese.Ausgeb "   Verkürze Inhalt von rEi.Art: '" & rEi(k).Art & "' -> '" & Left$(rEi(k).Art, maxL)  & "'",true : rEi(k).Art = Left$(rEi(k).Art, maxL)
-       Case 1: Lese.Ausgeb "   Verkürze Inhalt von rEi.Inhalt: '" & rEi(k).Inhalt & "' -> '" & Left$(rEi(k).Inhalt, maxL)  & "'",true : rEi(k).Inhalt = Left$(rEi(k).Inhalt, maxL)
-       Case 2: Lese.Ausgeb "   Verkürze Inhalt von rEi.QS: '" & rEi(k).QS & "' -> '" & Left$(rEi(k).QS, maxL)  & "'",true : rEi(k).QS = Left$(rEi(k).QS, maxL)
-       Case 3: Lese.Ausgeb "   Verkürze Inhalt von rEi.QT: '" & rEi(k).QT & "' -> '" & Left$(rEi(k).QT, maxL)  & "'",true : rEi(k).QT = Left$(rEi(k).QT, maxL)
+       Case 1: Lese.Ausgeb "   Verkürze Inhalt von rEi.Ersteller: '" & rEi(k).Ersteller & "' -> '" & Left$(rEi(k).Ersteller, maxL)  & "'",true : rEi(k).Ersteller = Left$(rEi(k).Ersteller, maxL)
+       Case 2: Lese.Ausgeb "   Verkürze Inhalt von rEi.Änderer: '" & rEi(k).Änderer & "' -> '" & Left$(rEi(k).Änderer, maxL)  & "'",true : rEi(k).Änderer = Left$(rEi(k).Änderer, maxL)
+       Case 3: Lese.Ausgeb "   Verkürze Inhalt von rEi.Inhalt: '" & rEi(k).Inhalt & "' -> '" & Left$(rEi(k).Inhalt, maxL)  & "'",true : rEi(k).Inhalt = Left$(rEi(k).Inhalt, maxL)
+       Case 4: Lese.Ausgeb "   Verkürze Inhalt von rEi.QS: '" & rEi(k).QS & "' -> '" & Left$(rEi(k).QS, maxL)  & "'",true : rEi(k).QS = Left$(rEi(k).QS, maxL)
+       Case 5: Lese.Ausgeb "   Verkürze Inhalt von rEi.QT: '" & rEi(k).QT & "' -> '" & Left$(rEi(k).QT, maxL)  & "'",true : rEi(k).QT = Left$(rEi(k).QT, maxL)
       END SELECT
      Next
     elseif maxl < 0 THEN

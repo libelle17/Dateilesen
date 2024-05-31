@@ -2,6 +2,7 @@ Attribute VB_Name = "vonMo"
 Option Explicit
 Option Compare Text
 Dim aru&
+Const Fakt& = 256
 
 Const MoSer$ = "wser"
 Const MoSzn$ = "szn4"
@@ -432,9 +433,9 @@ Public Function stzk(s$) As Date
  stzk = CDate(CStr(Asc(Mid$(s, 4))) & "." & CStr(Asc(Mid$(s, 3))) & "." & CStr(256 * Asc(Mid(s, 2)) + Asc(Mid(s, 1))))
 End Function ' stzk
 
+' zum Aufruf im Direktfenster
 Public Function zeigmosystem(Optional obszn4%)
  Const obDebug% = True
- Const Fakt& = 256
  Dim Kat() As memoType, tKat() As memoType, Abl() As memoType, fAuft() As memoType, fMem() As memoType
  Dim rsMo As New ADODB.Recordset
  Dim MOCon As New ADODB.Connection
@@ -482,7 +483,7 @@ Public Function zeigmosystem(Optional obszn4%)
     End If
    Next j
   End If
- End If ' Not rsNa.BOF Then
+ End If ' Not rsMo.BOF Then
 ' Suche, z.B.:
 '  Set EintS = New SortierEintr
 '  EintS.TypNr = 1002
@@ -495,23 +496,56 @@ End Function ' zeigmosystem()
 
 ' in PatvonMO_Click
 Public Function doPatvonMO(pNr&)
- Const obDebug% = True
- Static lfdfl&
- Dim pid&, pos&, SchGr%, jj%, rAf&, aktZeit As Date
- Dim rsNa As New ADODB.Recordset, rsFa As New ADODB.Recordset
- Dim NaStr() As memoType, FaStr() As memoType, rsfaru%, j&
+ Const obDebug% = True, obszn4% = False
+ Dim pid&, pos&, SchGr%, j&, jj%, rAf&, aktZeit As Date
  pNr& = 151 ' 225 ' 68316 ' 65405 ' 45 ' 64659 ' 45 ' 69367 ' 69377 ' 53119 ' 51630 ' 105 ' 18 ' 246 ' 59152 ' 1394 ' 2112
- aktZeit = Now()
  pid = pNr + 100000
+ Static lfdfl&
+ Dim rsNa As New ADODB.Recordset, rsFa As New ADODB.Recordset, rsMo As New ADODB.Recordset
+ Dim fMem() As memoType ', Kat() As memoType, tKat() As memoType, Abl() As memoType, fAuft() As memoType
+ Dim NaStr() As memoType, FaStr() As memoType, rsfaru%
+ Dim EintS As SortierEintr
+ Dim EinL As New SortierListe
+ aktZeit = Now()
  Call LöschePat(pid)
- On Error Resume Next
+' On Error Resume Next
 ' If obDebug Then FSO.DeleteFile parsemotxt
  On Error GoTo fehler
  Tinit
  Dim MOCon As New ADODB.Connection
- MOCon.Open MOCStr
+ If obszn4 Then
+  MOCon.Open MOsStr
+ Else
+  MOCon.Open MOCStr
+ End If
+ ' unter Ado müssen die Memo-Felder auf latin1 übersetzt werden für die Zahlen > 128 (nicht in HeidiSQL)
+ sql = "SELECT COALESCE(CONVERT(FKategorieliste USING latin1),'') FKat, COALESCE(CONVERT(Ftextkategorieliste USING latin1),'') Ftk, COALESCE(CONVERT(fAblageliste USING latin1),'') FAb, COALESCE(CONVERT(fAuftragstypenliste USING latin1),'') FAuf, COALESCE(CONVERT(FMemo USING latin1),'') Fm FROM mosystem"
+ rsMo.Open sql, MOCon, adOpenStatic, adLockReadOnly
+ If Not rsMo.BOF Then
+  If rsMo!fm <> "" Then
+   Call ParseMemo(rsMo!fm, fMem(), obDebug, "FMemo von fMemo aus mosystem")
+   For j = 0 To UBound(fMem)
+    If fMem(j).ENr Like "*.2" And fMem(j).ENr <> "1.2" Then
+     Set EintS = New SortierEintr
+     EintS.TypNr = Asc(fMem(j).Text)
+     If Len(fMem(j).Text) > 1 Then
+      EintS.TypNr = EintS.TypNr + Fakt * Asc(Mid(fMem(j).Text, 2))
+     End If
+    ElseIf fMem(j).ENr Like "*.3" And fMem(j).ENr <> "1.3" Then
+     EintS.Art = fMem(j).Text
+    ElseIf fMem(j).ENr Like "*.5" And fMem(j).ENr <> "1.5" Then
+     EintS.EKür = fMem(j).Text
+    ElseIf fMem(j).ENr Like "*.8" And fMem(j).ENr <> "1.8" Then
+     EintS.Name = fMem(j).Text
+    ElseIf fMem(j).ENr Like "*.10" And fMem(j).ENr <> "1.10" Then
+     EintS.Kürz = fMem(j).Text
+     EinL.sCAdd EintS
+    End If
+   Next j
+  End If ' MsMo!fm <> ""
+ End If ' Not rsMo.BOF Then
+ 
  ' konnte nicht genau rausfinden, wann FMemo richtig übermittelt wird, evtl. erst als zweites Feld, evtl. nicht unter dem Namen FMemo
- ' unter Ado muss es auf latin1 übersetzt werden für die Zahlen > 128
  sql = "SELECT fsurogat nix, COALESCE(CONVERT(FMemo USING latin1),'') Fm, p.* from patstamm p WHERE FSurogat=" & pNr
  rsNa.Open sql, MOCon, adOpenStatic, adLockReadOnly
  If Not rsNa.BOF Then
@@ -944,6 +978,18 @@ Public Function doPatvonMO(pNr&)
 ' Set rsFa = Nothing
 ' Set rsFa = Nothing ' wirkt witzigerweise erst beim zweiten Mal (!?)
 '  Call rFaDump
+  Dim rsEi As New ADODB.Recordset
+  sql = "SELECT * FROM ftag WHERE fpatnr = " & pNr & " AND fstatus not IN (2,10) AND fbehgrundnr<=0"
+  myFrag rsEi, sql, adOpenStatic, MOCon
+  If Not rsEi.BOF Then
+   Do While Not rsEi.EOF
+    ReDim Preserve rEi(UBound(rEi) + 1)
+    rEi(UBound(rEi)).aktZeit = aktZeit
+    rEi(UBound(rEi)).Pat_id = pid
+      
+   Loop
+  End If ' Not rsEi.BOF Then
+
   Dim rsDi As New ADODB.Recordset
 'myFrag rsFa, "SELECT f.fsurogat nix, COALESCE(CONVERT(f.FMemo USING latin1),'') Fm,CONCAT(f.fpatnr,', ',18900101 + INTERVAL f.fvon DAY,' - ',18900101 + INTERVAL f.fbis DAY) ueschr, f.*,a.FBezeichnung, le.FNachname FROM patfall f LEFT JOIN abrechner a ON f.FArztnr=a.FSurogat LEFT JOIN lstgerb le USING (FLstgerbnr) WHERE fpatnr=" & pNr & " ORDER BY FVon DESC", adOpenStatic, MOCon, adLockReadOnly
   sql = "WITH sel AS (SELECT fbehgrundnr from ltag WHERE fpatnr=" & pNr & " AND fbehgrundnr>0) " & _
