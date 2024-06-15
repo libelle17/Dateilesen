@@ -722,6 +722,9 @@ Function doMachSQL2$(TI%, ptxt$)
      Select Case rsAdSc!data_type
       Case "double", "float", 4, 5 ' float, double
        ptxt = ptxt & "replace$(" & VStr & ","","",""."")" & tze1
+' das folgende macht noch einen falschen Umbruch und wird vielleicht nicht gebraucht
+'      Case "varchar", "char", "text", "varbinary", 8, 129, 130, 200, 201, 202, 203
+'       ptxt = ptxt & "replace$(" & VStr & ",""'"",""\'"")" & tze1
       Case Else
        ptxt = ptxt & VStr & tze1
      End Select
@@ -1517,6 +1520,7 @@ End If ' aktTbn = "faelle" Then
   Print #257, "    myEFrag ""SET GLOBAL sql_mode='STRICT_TRANS_TABLES'"", , DBCn ' NO_ENGINE_SUBSTITUTION"
   Print #257, "'   Call myEFrag(csql.Value,rAf)', , adAsyncExecute) ' wegen unzureichender Fehlerverarbeitung wieder ausrangiert 19.8.23"
   Print #257, "   Call DBCn.Execute(csql.Value, rAF) ', , adAsyncExecute)"
+  Print #257, "   csql.clear"
   If aktTbn = "faelle" Then
    Print #257, "'   IF Not obFork THEN ForeignYes0"
    Print #257, "   IF rAF = 0 THEN"
@@ -2888,31 +2892,31 @@ Function doLdFD() ' Liste der fehlenden Dokumente
  Ers(17) = "\\anmeld2\Volume (F)\Turbomed gespiegelt\Dokumente"
  Ers(18) = "\\anmeld2\E\TurboMed\Dokumente"
  If LenB(PcDokPfad) = 0 Then getDokPfad
- Dim rAb As New ADODB.Recordset
+ Dim rab As New ADODB.Recordset
  Open Datei For Output As #322
 ' rAb.Open "SELECT * FROM dokumente", DBCn, adOpenDynamic, adLockReadOnly
- myFrag rAb, "SELECT * FROM dokumente"
- Do While Not rAb.EOF
-  aktDP = REPLACE$(LCase$(rAb!DokPfad), "$\turbomed\dokumente", PcDokPfad)
+ myFrag rab, "SELECT * FROM dokumente"
+ Do While Not rab.EOF
+  aktDP = REPLACE$(LCase$(rab!DokPfad), "$\turbomed\dokumente", PcDokPfad)
   If Not FSO.FileExists(aktDP) Then
    For i = 16 To 18
     Zp = REPLACE$(aktDP, PcDokPfad, Ers(i))
     If FSO.FileExists(Zp) Then
-     FileCopy Zp, rAb!DokPfad
+     FileCopy Zp, rab!DokPfad
      Print #322, "Kopiere " & Zp & " -> " & aktDP
     End If
    Next i
 '   Debug.Print aktDP
-   Print #322, rAb!Pat_id, rAb!Zeitpunkt, aktDP, rAb!DokName
-   Lese.Ausgabe = Lese.Ausgabe & vbCrLf & rAb!Pat_id & " " & rAb!Zeitpunkt & " " & aktDP & vbTab & rAb!DokName
-   tStr = sucheinVerz(rAb!DokName, pVerz)
+   Print #322, rab!Pat_id, rab!Zeitpunkt, aktDP, rab!DokName
+   Lese.Ausgabe = Lese.Ausgabe & vbCrLf & rab!Pat_id & " " & rab!Zeitpunkt & " " & aktDP & vbTab & rab!DokName
+   tStr = sucheinVerz(rab!DokName, pVerz)
    If tStr <> "" Then
     Print #322, "     gefunden in:", tStr
     Lese.Ausgabe = Lese.Ausgabe & vbCrLf & "      gefunden in: " & tStr
    End If
    DoEvents
   End If
-  rAb.Move 1
+  rab.Move 1
  Loop
  Close #322
  zeigan Datei
@@ -2970,24 +2974,24 @@ End Function ' sucheinVerz
 ' nur in Sub HausärzteBKK_Click()
 Function doHABKK(frm As Lese)
  Const sql$ = "SELECT COUNT(0) Zahl, CONCAT(l.name,' ',l.vorname,' ',l.fachgruppe,' ',l.zulg,' ',l.ort) Hausarzt, l.telefon, l.fax, übwr üw FROM `aktf` a LEFT JOIN `faelle` f ON a.fid = f.fid LEFT JOIN `kassenliste` k ON f.ik = k.ik AND f.vknr = k.vknr LEFT JOIN `aktlue` l ON übwr = l.kvnro WHERE kateg = 'BKK' AND übwr <> '' AND l.name <> 'Schade' GROUP BY üw ORDER BY Zahl DESC;"
- Dim rAb As New ADODB.Recordset
+ Dim rab As New ADODB.Recordset
  Open uVerz & "Hausärzte BKK.txt" For Output As #322
 ' rAb.Open sql, DBCn, adOpenDynamic, adLockReadOnly
- myFrag rAb, sql
- TabAusgeb rAb, Lese, True, , , , Array(0, 90, 0, 0, 0, 0), True, uVerz & "HA_BKK.txt"
+ myFrag rab, sql
+ TabAusgeb rab, Lese, True, , , , Array(0, 90, 0, 0, 0, 0), True, uVerz & "HA_BKK.txt"
 End Function ' doHABKK
 
 Function doLdFHalt(frm As Lese) ' Liste der fehlenden Hausärzte
  Const sql$ = "SELECT n.Pat_id, n.Nachname, n.Vorname, n.Gebdat, Schgr FROM `namen` n LEFT JOIN `aktfv` ON `aktfv`.pat_id = n.pat_id WHERE n.kvnr = '' AND NOT ISNULL(`aktfv`.pat_id) ORDER BY `namen`.pat_id DESC;"
- Dim rAb As New ADODB.Recordset
+ Dim rab As New ADODB.Recordset
 ' rAb.Open sql, DBCn, adOpenDynamic, adLockReadOnly
- myFrag rAb, sql
+ myFrag rab, sql
 ' TabAusgeb rAb, Lese, True, , , , , , "Fehlende Hausärzte.txt"
  Open uVerz & "Fehlende Hausärzte.txt" For Output As #322
- Do While Not rAb.EOF
-  Print #322, rAb!Pat_id, rAb!Nachname, rAb!Vorname, rAb!GebDat
-  frm.Ausgabe = frm.Ausgabe & rAb!Pat_id & " " & rAb!Nachname & " " & rAb!Vorname & " " & rAb!GebDat & vbCrLf
-  rAb.Move 1
+ Do While Not rab.EOF
+  Print #322, rab!Pat_id, rab!Nachname, rab!Vorname, rab!GebDat
+  frm.Ausgabe = frm.Ausgabe & rab!Pat_id & " " & rab!Nachname & " " & rab!Vorname & " " & rab!GebDat & vbCrLf
+  rab.Move 1
  Loop
  Close #322
  MsgBox "Fertig!"
@@ -2998,19 +3002,19 @@ Function doFÜwS(frm As Lese) ' fehlende Überweisungsscheine
  Dim sql$, AktQ$
  AktQ = ZQuart(Now() - Verspätung)
  sql = "SELECT n.Pat_id, gesname(n.pat_id) Name, GROUP_CONCAT(DISTINCT CAST(f.schgr AS char)) Schgr, LEFT(GROUP_CONCAT(DISTINCT CONCAT_WS(', ', l2.Name, LEFT(l2.vorname,1),l2.ort, l2.telefon)),31) Überweiser, LEFT(CONCAT_WS(', ',l.Name, LEFT(l.vorname,1),l.ort, l.telefon),31) Hausarzt FROM `aktf` f LEFT JOIN `briefe` b ON f.pat_id = b.pat_id AND b.name LIKE '%üw%' AND b.name LIKE '%" & Left$(AktQ, 1) & "%' AND b.name LIKE '%" & Right$(AktQ, 2) & "%' LEFT JOIN `namen` n ON f.pat_id = n.pat_id LEFT JOIN `aktlue` l ON l.kvnr = n.kvnr LEFT JOIN `faelle` f2 ON f2.fid = f.fid AND übwr <> '' LEFT JOIN `aktlue` l2 ON l2.kvnro = übwr WHERE ISNULL(b.name) AND f.schgr<>'0' GROUP BY f.pat_id"
- Dim rAb As New ADODB.Recordset
+ Dim rab As New ADODB.Recordset
 ' rAb.Open sql, DBCn, adOpenDynamic, adLockReadOnly
- myFrag rAb, sql
- TabAusgeb rAb, Lese, True, , , , , , "Fehlende Überweisungsscheine"
+ myFrag rab, sql
+ TabAusgeb rab, Lese, True, , , , , , "Fehlende Überweisungsscheine"
 End Function ' doFÜwS
 
 Function doLdFH(frm As Lese) ' Liste der fehlenden Hausärzte
 ' Const sql$ = "SELECT v.*,n.Nachname,n.Vorname,Gebdat, d.icd, IF(übwv = '', andüw, übwv) AS üw, k.kvnr, n.notiz FROM `aktfv` v LEFT JOIN `namen` n ON v.pat_id = n.pat_id LEFT JOIN `faelle` f ON v.fid = f.fid LEFT JOIN `diagnosen` d ON v.pat_id = d.pat_id AND d.icd LIKE 'E1%' LEFT JOIN kvnrue k ON v.pat_id = k.pat_id WHERE notiz = '' OR ISNULL(notiz) OR k.kvnr = '' OR ISNULL(k.kvnr) GROUP BY v.pat_id ORDER BY v.pat_id, k.lfdnr"
  Const sql$ = "SELECT n.Pat_id, n.Nachname, n.Vorname, n.Gebdat, `aktfv`.Schgr, KVNr FROM `namen` n LEFT JOIN `aktfv` ON `aktfv`.pat_id = n.pat_id WHERE n.kvnr IN ('" & KVNr & "') AND NOT ISNULL(`aktfv`.pat_id) ORDER BY n.kvnr, n.pat_id DESC"
- Dim rAb As New ADODB.Recordset
+ Dim rab As New ADODB.Recordset
 ' rAb.Open sql, DBCn, adOpenDynamic, adLockReadOnly
- myFrag rAb, sql
- TabAusgeb rAb, Lese, True, , , , , , "PatientenMitUnsAlsHausarztOhneDieMitFehlendemHausarzt"
+ myFrag rab, sql
+ TabAusgeb rab, Lese, True, , , , , , "PatientenMitUnsAlsHausarztOhneDieMitFehlendemHausarzt"
 End Function ' doldfH
 
 Function doSuchTel(frm As Lese) ' suche Telefonnummer
@@ -3019,10 +3023,10 @@ Function doSuchTel(frm As Lese) ' suche Telefonnummer
  Dim sql$, telm$
  telm = "'%" & tel & "%'"
  sql$ = "SELECT n.Pat_id, gesname(n.Pat_id) `Name mit Telnr. " & tel & "`, PrivatTel, Privattel_2, Diensttel, PrivatMobil, PrivatFax FROM `namen` n WHERE privattel LIKE " & telm & " OR privattel_2 LIKE  " & telm & " OR privatfax LIKE  " & telm & " OR diensttel LIKE  " & telm & " OR privatmobil LIKE  " & telm
- Dim rAb As New ADODB.Recordset
+ Dim rab As New ADODB.Recordset
 ' rAb.Open sql, DBCn, adOpenDynamic, adLockReadOnly
- myFrag rAb, sql
- TabAusgeb rAb, Lese, True, , , , , , "Suche Telefonnummer " + tel
+ myFrag rab, sql
+ TabAusgeb rab, Lese, True, , , , , , "Suche Telefonnummer " + tel
 End Function ' doSuchTel
 
 Function ergEBM(frm As Lese)
@@ -3079,9 +3083,9 @@ Function ergEBM(frm As Lese)
       myFrag rNa, "SELECT 0 FROM `ebm2000plus` WHERE leistung IN ('" & pRoh & "','0" & pRoh & "')"
       If rNa.BOF Then
 '       Debug.Print pRoh
-       Dim euro#, punkte#, pos&, FldI
+       Dim euro#, Punkte#, pos&, FldI
        euro = 0
-       punkte = 0
+       Punkte = 0
        FldI = rEx.Fields(2)
         pos = InStr(FldI, "|")
         If pos > 0 Then
@@ -3089,14 +3093,14 @@ Function ergEBM(frm As Lese)
         End If
        pos = InStr(FldI, " Punkte")
        If pos > 0 Then
-        punkte = CDbl(Left$(FldI, pos - 1))
+        Punkte = CDbl(Left$(FldI, pos - 1))
        Else
         pos = InStr(FldI, " Euro")
         If pos > 0 Then
          euro = CDbl(Left$(FldI, pos - 1))
         End If
        End If
-       InsKorr DBCn, DBCnS, "INSERT INTO `ebm2000plus`(Leistung,Titel,punktwert,euro) VALUES('" & pRoh & "','" & REPLACE$(rEx.Fields(1), "'", "''") & "','" & REPLACE$(CStr(punkte), ",", ".") & "','" & REPLACE$(CStr(euro), ",", ".") & "')", rAf
+       InsKorr DBCn, DBCnS, "INSERT INTO `ebm2000plus`(Leistung,Titel,punktwert,euro) VALUES('" & pRoh & "','" & REPLACE$(rEx.Fields(1), "'", "''") & "','" & REPLACE$(CStr(Punkte), ",", ".") & "','" & REPLACE$(CStr(euro), ",", ".") & "')", rAf
        dszahl = dszahl + 1
       Else
 '       Debug.Print pRoh, rNa!Leistung
@@ -5842,7 +5846,7 @@ Function fallzeig()
  myFrag rs, sql, , , , , , True, ErrNr, ErrDes
  If ErrNr <> 0 Then Exit Function
  Do While Not rs.EOF
-  AuS = Right$(Space$(6) & rs!Pat_id, 6) & "  " & Left$(rs!name & Space$(20), 20) & "  " & Left$(rs!Fanf & Space$(10), 10) & "  " & Left$(rs!SchGr & Space$(4), 4) & "" & Right$(Space$(6) & rs!FID, 6) & "  " & Left$(rs!ausgst & Space$(10), 10) & "  " & Left$(rs!AktZeit & Space$(19), 19) & "  " & Left$(rs!Quartal & Space$(7), 7) & "  " & Left$(rs!lVorl & Space$(16), 16) & "  " & Left$(rs!GebOr & Space$(5), 5)
+  AuS = Right$(Space$(6) & rs!Pat_id, 6) & "  " & Left$(rs!name & Space$(20), 20) & "  " & Left$(rs!Fanf & Space$(10), 10) & "  " & Left$(rs!SchGr & Space$(4), 4) & "" & Right$(Space$(6) & rs!FID, 6) & "  " & Left$(rs!ausgst & Space$(10), 10) & "  " & Left$(rs!aktZeit & Space$(19), 19) & "  " & Left$(rs!Quartal & Space$(7), 7) & "  " & Left$(rs!lVorl & Space$(16), 16) & "  " & Left$(rs!GebOr & Space$(5), 5)
 '  For i = 0 To rs.Fields.Count - 1
 '   AuS = IIf(lenb(AuS) = 0, vns, AuS & " ") & Left$(rs.Fields(i) & Space$(14), 14)
 '  Next i

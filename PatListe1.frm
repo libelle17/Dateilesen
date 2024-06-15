@@ -864,7 +864,7 @@ Sub aktFS()
 End Sub ' aktFS
 
 Sub alleFS()
- Dim pCol As New Collection, i&, zeile
+ Dim pCol As New Collection, i&, Zeile
 ' Dim altCol&, altRow& ' evtl. zu streichen 19.4.10
  Select Case PLArt
   Case artPat ' DMP hier Liste
@@ -880,11 +880,11 @@ Sub alleFS()
     .Row = altrow
     .col = altCol
    End With
-   For Each zeile In pCol
-    Call FertigStellen((zeile))
+   For Each Zeile In pCol
+    Call FertigStellen((Zeile))
     Pause (Pausenlänge)
     SendKeys "{ESC}", True
-   Next zeile
+   Next Zeile
   Case artHA
  End Select
 End Sub ' alleFS
@@ -979,6 +979,7 @@ Sub FertigStellenBeliebig()
  FNr = 8
  Select Case PLArt
   Case artDMP
+   MsgBox "PLArt=artDMP in FertigStellenBeliebig"
    Stop
   Case artDiag
   
@@ -999,6 +1000,7 @@ Private Sub DokuBeliebig() ' Doku zu beliebigem Patienten
  Select Case PLArt
  
   Case artDMP
+   MsgBox "PLArt=artDMP in DokuBeliebig"
    Stop
    
   Case artDiag
@@ -1116,7 +1118,7 @@ Ende:
  End With
 End Sub ' Suchen
 
-Public Sub FertigStellen(zeile&, Optional nuranzeigen%, Optional PatID&) ' nachdem BDT-Datei(en) manuell importiert wurde(n)
+Public Sub FertigStellen(Zeile&, Optional nuranzeigen%, Optional PatID&) ' nachdem BDT-Datei(en) manuell importiert wurde(n)
  Const obStumm% = 0
  FNr = 11
  Dim VorDoku$, Pat_id&, dtyp%, rs As New Recordset
@@ -1127,14 +1129,14 @@ Public Sub FertigStellen(zeile&, Optional nuranzeigen%, Optional PatID&) ' nachd
  With MFG
   .SetFocus
   alttop = .TopRow
-  altr = zeile
+  altr = Zeile
 '  altC = .col
   If PatID <> 0 Then
    Pat_id = PatID
    myFrag rs, "SELECT quartal FROM `faelle` WHERE pat_id = " & PatID & " AND bhfb < now()- " & Verspätung & " ORDER BY bhfb DESC", , DBCn
   Else
-   VorDoku = .TextMatrix(zeile, VorDokuSp)
-   Pat_id = .TextMatrix(zeile, PIDSp)
+   VorDoku = .TextMatrix(Zeile, VorDokuSp)
+   Pat_id = .TextMatrix(Zeile, PIDSp)
   End If
 '  .col = altC
  End With
@@ -1452,7 +1454,7 @@ Public Sub callMachDMPBogen(Pat_id&, Optional VorDoku$, Optional obmitauswahl%, 
         If rDok.EOF Then Exit For
         AktCol = j
 '        IF VorDokuSp = 0 THEN VorDokuSp = AktCol
-        VorDoku = rDok!art & " " & Format(rDok!DokuDatum, "dd.mm.yy")
+        VorDoku = rDok!Art & " " & Format(rDok!DokuDatum, "dd.mm.yy")
         If rDok!Ok And rDok!ausgedruckt Then
          VorDoku = VorDoku & " ok"
         ElseIf j = begcol And Not obraus Then
@@ -2755,28 +2757,28 @@ End Sub ' MFGrefresh
 
 Public Sub csvLesen(Datei$) ' für PatListe Load (Laborwerte)
   On Error GoTo fehler
-    Dim zeile$, z2$, Feld$(), f2$(), Tz$, pos%
+    Dim Zeile$, z2$, Feld$(), f2$(), Tz$, pos%
     Dim angefangen%
     Dim rAf&
     Dim znr&
     Open Datei For Input Access Read As #389
     Do While Not EOF(389)
      znr = znr + 1
-     Line Input #389, zeile$
+     Line Input #389, Zeile$
      If Tz = "" Then
-      If zeile <> "" Then
-       pos = InStr(zeile, ",")
+      If Zeile <> "" Then
+       pos = InStr(Zeile, ",")
        If pos <> 0 Then
         Tz = ","
        Else
-        pos = InStr(zeile, ";")
+        pos = InStr(Zeile, ";")
         If pos <> 0 Then
          Tz = ";"
         End If
        End If
       End If
      End If
-     Feld = Split(zeile, Tz)
+     Feld = Split(Zeile, Tz)
      If Not angefangen Then
        If UBound(Feld) > 0 Then
         If Feld(0) = "Patient" Then
@@ -3237,7 +3239,7 @@ andSp:
     myFrag rs1, "SELECT zeitpunkt,art,inhalt FROM `eintraege` WHERE (art IN ('tk','gs','wd','ah') OR inhalt LIKE '%(gs)%' OR inhalt LIKE '%(tk)%' OR inhalt LIKE '%(wd)%' OR inhalt LIKE '%(ah)%') AND pat_id = " & CStr(pid) & " ORDER BY zeitpunkt DESC LIMIT 7"
     If Not rs1.BOF Then
      Do While Not rs1.EOF
-      Select Case rs1!art
+      Select Case rs1!Art
        Case "tk": Tkz = Tkz + 1
        Case "gs": gsz = gsz + 1
        Case "wd": wdz = wdz + 1
@@ -3275,7 +3277,7 @@ andSp:
 '    .ColSel = .Cols - 1
      For j = namsp To wertsp ' .Cols - 1
       .col = j
-      Select Case rs1!art
+      Select Case rs1!Art
        Case "tk"
 tk:
         .CellBackColor = IIf(j = namsp, HellRot, MittigRosa)        ' rötlich
@@ -3689,7 +3691,7 @@ Private Sub Form_Load()
         If rDok.EOF Then Exit For
         .col = j
         If VorDokuSp = 0 Then VorDokuSp = .col
-        .Text = rDok!art & " " & Format(rDok!DokuDatum, "dd.mm.yy")
+        .Text = rDok!Art & " " & Format(rDok!DokuDatum, "dd.mm.yy")
         If rDok!Ok And rDok!ausgedruckt Then
          .Text = .Text & " ok"
         ElseIf j = begcol And Not obraus And ZQuart(BhFB) = ZQuart(Now() - Verspätung) Then ' letzte Bedingungen eingefügt 31.12.15
@@ -3698,15 +3700,15 @@ Private Sub Form_Load()
         End If
         If rDok!exportiert <> 0 Then
          .Text = .Text & " ex"
-         If rDok!art = "ED" Then .CellBackColor = Blau Else .CellBackColor = vbGelblichGrau ' blau / grau
+         If rDok!Art = "ED" Then .CellBackColor = Blau Else .CellBackColor = vbGelblichGrau ' blau / grau
         Else
-         If rDok!art = "ED" Then .CellBackColor = HellBlau
+         If rDok!Art = "ED" Then .CellBackColor = HellBlau
         End If
-        If rDok!art = "ED" Then oberst = True
+        If rDok!Art = "ED" Then oberst = True
         rDok.Move 1
        Next j
        Do While Not rDok.EOF
-        If rDok!art = "ED" Then oberst = True
+        If rDok!Art = "ED" Then oberst = True
         rDok.Move 1
        Loop
       End If ' not rdok!bof
@@ -4175,7 +4177,7 @@ Private Sub Command1_KeyDown(Index As Integer, KeyCode As Integer, Shift As Inte
  Call Key(KeyCode, Shift, Me, Me.hlese.MyDB.name)
 End Sub ' Command1_KeyDown
 
-Private Sub MFG_MouseMove(Button As Integer, Shift As Integer, x As Single, Y As Single)
+Private Sub MFG_MouseMove(Button As Integer, Shift As Integer, X As Single, Y As Single)
  Dim rs As New ADODB.Recordset, obbez%
  On Error GoTo fehler
  Select Case Me.PLArt
@@ -4284,9 +4286,9 @@ fehler:
  End Select
 End Sub ' MFG_MouseMove
 
-Private Sub MFG_MouseDown(Button As Integer, Shift As Integer, x As Single, Y As Single)
+Private Sub MFG_MouseDown(Button As Integer, Shift As Integer, X As Single, Y As Single)
  Dim MR&, MC&, altids&, altherk$, i&
- altX = x
+ altX = X
  altY = Y
  Select Case Me.PLArt
   Case artLPar
@@ -4335,10 +4337,10 @@ End Sub ' MFG_MouseDown
 '(NOT ISNULL(xpneuzuypneu(x.idypbez)) OR ISNULL(idypbez));
 'SET FOREIGN_KEY_CHECKS=1;
 
-Private Sub MFG_MouseUp(Button As Integer, Shift As Integer, x As Single, Y As Single)
+Private Sub MFG_MouseUp(Button As Integer, Shift As Integer, X As Single, Y As Single)
  Dim sqls$, sqld$, sqli$, MR&, rs As New ADODB.Recordset, i&, rAf&
  Me.MFG.MousePointer = flexDefault
- If x <> altX Or Y <> altY Then
+ If X <> altX Or Y <> altY Then
  Select Case Me.PLArt
   Case artLPar
 ' Wird Parameter Pkind mit Parameter Pelter verknüpft, so muß
@@ -4385,8 +4387,8 @@ Private Sub MFG_MouseUp(Button As Integer, Shift As Integer, x As Single, Y As S
 ' Verknüpfung nach 2) löschen
       myEFrag "DELETE FROM `laborypgl` WHERE `idypneu` = " & cb, rAf
       If rAf <> 1 Then
-       MsgBox "Fehler in MFG.Mouseup nach DELETE FROM `laborypgl` WHERE `idypneu` = " & cb
-       Stop
+       MsgBox "Fehler in MFG.Mouseup nach DELETE FROM `laborypgl` WHERE `idypneu` = " & cb & ", rAf: " & rAf
+'       Stop
       End If
       Me.MFG.TextMatrix(QuellZ, 1) = vNS
       IDS(0, QuellZ) = 0
@@ -4521,12 +4523,12 @@ Private Sub LaborFüll(Optional nachLangtext%)
  Me.MFG.col = 2
 End Sub ' LaborFüll
 
-Private Function ZeigeZahl(zeile&)
+Private Function ZeigeZahl(Zeile&)
  Dim rs1 As New ADODB.Recordset
     Set rs1 = Nothing
-    myFrag rs1, "SELECT COUNT(0) zl, `idypneu`,`idpara` FROM `laborypgl` WHERE `idypbez` = " & IDS(1, zeile)
+    myFrag rs1, "SELECT COUNT(0) zl, `idypneu`,`idpara` FROM `laborypgl` WHERE `idypbez` = " & IDS(1, Zeile)
     If Not rs1.BOF Then
-     If zeile <> 0 Then Me.MFG.Row = zeile
+     If Zeile <> 0 Then Me.MFG.Row = Zeile
      Me.MFG.col = 2
      Select Case rs1!zl
       Case 0

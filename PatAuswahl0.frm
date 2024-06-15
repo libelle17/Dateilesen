@@ -379,14 +379,6 @@ Private Sub Abr_Click()
  If IsNumeric(Me.Pat_id) Then Call tubriefStandalone(Me.PatID, False, , Me.Vorlage)
 End Sub ' Abr_Click()
 
-Private Sub PatName_DblClick()
-' Stop
-End Sub ' PatName_DblClick
-
-Private Sub PatName_DragDrop(source As Control, x As Single, Y As Single)
-' Stop
-End Sub ' PatName_DragDrop
-
 Private Sub PatName_DropDown()
  Call patname_gotfocus
 End Sub ' PatName_DropDown
@@ -412,10 +404,6 @@ Private Sub patname_gotfocus()
  Me.PatName.SelStart = Len(Me.PatName)
  Me.PatName.SelLength = 0
 End Sub ' patname_gotfocus()
-
-Private Sub PatName_KeyPress(KeyAscii As Integer)
-' Stop
-End Sub
 
 ' Knopf Thererartenanz
 Private Sub Therapiearten_Click()

@@ -221,17 +221,19 @@ Dim raFa As New ADODB.Recordset
 'rFaName = raFa.Name
 'On Error GoTo fehler
 'If rFaName = "" THEN SET rFa = TabÖff("faelle", "Auswahl")
-myFrag raFa, "SELECT * FROM `faelle` WHERE pat_id = " & Pat_id & " AND fanf > " & DatFor_k("1.7.2004") & " ORDER BY fanf"
+nochmal:
+ myFrag raFa, "SELECT * FROM `faelle` WHERE pat_id = " & Pat_id & " AND fanf > " & DatFor_k("1.7.2004") & " ORDER BY fanf"
 
 'rFa.Seek "=", Pat_id
 ' erbe = IIf(rFa!SchGr = "90", rFa!bhFb, IIf(rFa!ausgst = CDate(0), rFa!lVorl, rFa!ausgst))
 
-If Not raFa.EOF Then
+ If Not raFa.EOF Then
 ' IF rFa!Pat_id <> Pat_id THEN Exit Do
- If raFa!Fanf < erbe Or erbe = 0 Then erbe = raFa!Fanf
-Else
- Call doFAnfFuell(raFa)
-End If
+  If raFa!Fanf < erbe Or erbe = 0 Then erbe = raFa!Fanf
+ Else
+'  GoTo nochmal
+'  If doFAnfFuell(raFa) = 0 Then Exit Do ' auskommentiert 4.6.24
+ End If
 Exit Function
 fehler:
  Dim AnwPfad$

@@ -1,6 +1,6 @@
 Attribute VB_Name = "Kompilierbarkeit"
 ' aus Importiere
-Function doFAnfFuell(raFa As ADODB.Recordset, Optional obgroﬂ%)
+Function doFAnfFuell%(raFa As ADODB.Recordset, Optional obgroﬂ%)
  Dim lpid&, aktpid&, Bm$, lAusgst As Date
  Dim raSQL As New ADODB.Recordset
  On Error GoTo fehler
@@ -52,6 +52,7 @@ Function doFAnfFuell(raFa As ADODB.Recordset, Optional obgroﬂ%)
    lAusgst = raFa!ausgst
  Exit Function
 fehler:
+ If Err.Number = 3021 Then doFAnfFuell = 1: Exit Function
  Dim AnwPfad$
 #If VBA6 Then
  AnwPfad = CurrentDb.name

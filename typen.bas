@@ -219,6 +219,9 @@ Public type au
  FID AS long 'FID int 'Fall-Bezug
  Pat_ID AS long 'Pat_ID int '3000
  ZeitPunkt AS date 'ZeitPunkt datetime '6200 + 6201
+ Ersteller AS string 'Ersteller varchar 'aus Medical Office
+ Änderer AS string 'Änderer varchar 'aus Medical Office
+ Art AS string 'Art varchar 'aus Medical Office: E=Erst, F=Folge
  Beginn AS string 'Beginn varchar '6285 1. Hälfte
  Ende AS string 'Ende varchar '6285 2. Hälfte
  ICDs AS string 'ICDs varchar '6286
@@ -416,6 +419,15 @@ Public type leistungen
  Sachkbez AS string 'Sachkbez varchar '5011 Sachkostenbezeichnung
  Sachkct AS long 'Sachkct int '5012 Sach-/Materialkosten in ct
  Zone AS string 'Zone varchar '5018 Zone bei Besuchen
+ Punkte AS double 'Punkte decimal '5061 aus Medical Office
+ Lstgerbnr AS long 'Lstgerbnr int 'Lstgerbnr aus Medical Office
+ Position AS long 'Position int 'Position aus Medical Office
+ Eignung AS long 'Eignung int 'Eignung aus Medical Office
+ Pruefzeit AS long 'Pruefzeit int 'Pruefzeit aus Medical Office
+ Kalkzeit AS long 'Kalkzeit int 'Kalkzeit aus Medical Office
+ Bsnr AS long 'Bsnr int 'Bsnr aus Medical Office
+ Ersteller AS string 'Ersteller varchar 'aus Medical Office
+ Änderer AS string 'Änderer varchar 'aus Medical Office
 end type
 
 Public type medplan
@@ -1902,6 +1914,7 @@ sql:
     myEFrag "SET GLOBAL sql_mode='STRICT_TRANS_TABLES'", , DBCn ' NO_ENGINE_SUBSTITUTION
 '   Call myEFrag(csql.Value,rAf)', , adAsyncExecute) ' wegen unzureichender Fehlerverarbeitung wieder ausrangiert 19.8.23
    Call DBCn.Execute(csql.Value, rAF) ', , adAsyncExecute)
+   csql.clear
    IF obforK THEN
     Call ForeignYes0
     Call ForeignYes1
@@ -2921,6 +2934,7 @@ sql:
     myEFrag "SET GLOBAL sql_mode='STRICT_TRANS_TABLES'", , DBCn ' NO_ENGINE_SUBSTITUTION
 '   Call myEFrag(csql.Value,rAf)', , adAsyncExecute) ' wegen unzureichender Fehlerverarbeitung wieder ausrangiert 19.8.23
    Call DBCn.Execute(csql.Value, rAF) ', , adAsyncExecute)
+   csql.clear
 '   IF Not obFork THEN ForeignYes0
    IF rAF = 0 THEN
     Err.Raise 998, , "Fehler in faelleSpeichern b.Pat. " & rFa(i).Pat_id & ", Err.Number " & Err.Number & ", err.description: " & Err.Description
@@ -3302,6 +3316,9 @@ Public FUNCTION roAuZuw(i&, j&)
  roAu(i).FID = rAu(j).FID
  roAu(i).Pat_ID = rAu(j).Pat_ID
  roAu(i).ZeitPunkt = rAu(j).ZeitPunkt
+ roAu(i).Ersteller = rAu(j).Ersteller
+ roAu(i).Änderer = rAu(j).Änderer
+ roAu(i).Art = rAu(j).Art
  roAu(i).Beginn = rAu(j).Beginn
  roAu(i).Ende = rAu(j).Ende
  roAu(i).ICDs = rAu(j).ICDs
@@ -3314,6 +3331,9 @@ Public FUNCTION AuZUnt%(i&, j&)
  IF roAu(i).FID <> rAu(j).FID THEN gosub unter
  IF roAu(i).Pat_ID <> rAu(j).Pat_ID THEN gosub unter
  IF roAu(i).ZeitPunkt <> rAu(j).ZeitPunkt THEN gosub unter
+ IF roAu(i).Ersteller <> rAu(j).Ersteller THEN gosub unter
+ IF roAu(i).Änderer <> rAu(j).Änderer THEN gosub unter
+ IF roAu(i).Art <> rAu(j).Art THEN gosub unter
  IF roAu(i).Beginn <> rAu(j).Beginn THEN gosub unter
  IF roAu(i).Ende <> rAu(j).Ende THEN gosub unter
  IF roAu(i).ICDs <> rAu(j).ICDs THEN gosub unter
@@ -3330,9 +3350,10 @@ Public FUNCTION auLaden()
  Dim pid$, rs As New Recordset, akt&
  ON Error GoTo fehler
  pid = rNa(0).Pat_id
- sql = "SELECT COALESCE(FID,0) FID,COALESCE(Pat_ID,0) Pat_ID,COALESCE(ZeitPunkt - INTERVAL 0 DAY,CONVERT('18991230',DATE)) ZeitPunkt,COALESCE(Beginn,'') Beginn" & _
-",COALESCE(Ende,'') Ende,COALESCE(ICDs,'') ICDs,COALESCE(absPos,0) absPos,COALESCE(AktZeit - INTERVAL 0 DAY,CONVERT('18991230',DATE)) AktZeit" & _
-",COALESCE(StByte,0) StByte FROM `au` WHERE Pat_ID=" & pid & " ORDER BY `ZeitPunkt`
+ sql = "SELECT COALESCE(FID,0) FID,COALESCE(Pat_ID,0) Pat_ID,COALESCE(ZeitPunkt - INTERVAL 0 DAY,CONVERT('18991230',DATE)) ZeitPunkt,COALESCE(Ersteller,'') Ersteller" & _
+",COALESCE(Änderer,'') Änderer,COALESCE(Art,'') Art,COALESCE(Beginn,'') Beginn,COALESCE(Ende,'') Ende" & _
+",COALESCE(ICDs,'') ICDs,COALESCE(absPos,0) absPos,COALESCE(AktZeit - INTERVAL 0 DAY,CONVERT('18991230',DATE)) AktZeit,COALESCE(StByte,0) StByte" & _
+" FROM `au` WHERE Pat_ID=" & pid & " ORDER BY `ZeitPunkt`
  myFrag rs, sql
  If rs.EOF Then
   ReDim roAu(0)
@@ -3343,6 +3364,9 @@ Public FUNCTION auLaden()
    roAu(akt).FID = rs!FID
    roAu(akt).Pat_ID = rs!Pat_ID
    roAu(akt).ZeitPunkt = rs!ZeitPunkt
+   roAu(akt).Ersteller = doUmwfSQL(rs!Ersteller, lies.obMySQL, False)
+   roAu(akt).Änderer = doUmwfSQL(rs!Änderer, lies.obMySQL, False)
+   roAu(akt).Art = doUmwfSQL(rs!Art, lies.obMySQL, False)
    roAu(akt).Beginn = doUmwfSQL(rs!Beginn, lies.obMySQL, False)
    roAu(akt).Ende = doUmwfSQL(rs!Ende, lies.obMySQL, False)
    roAu(akt).ICDs = doUmwfSQL(rs!ICDs, lies.obMySQL, False)
@@ -3418,6 +3442,9 @@ Public FUNCTION rAuDump()
   Print #200, Left$("rAu(" & i & ").FID:" & String$(33, "."), 33) & rAu(i).FID
   Print #200, Left$("rAu(" & i & ").Pat_ID:" & String$(33, "."), 33) & rAu(i).Pat_ID
   Print #200, Left$("rAu(" & i & ").ZeitPunkt:" & String$(33, "."), 33) & rAu(i).ZeitPunkt
+  Print #200, Left$("rAu(" & i & ").Ersteller:" & String$(33, "."), 33) & "'" & rAu(i).Ersteller & "'"
+  Print #200, Left$("rAu(" & i & ").Änderer:" & String$(33, "."), 33) & "'" & rAu(i).Änderer & "'"
+  Print #200, Left$("rAu(" & i & ").Art:" & String$(33, "."), 33) & "'" & rAu(i).Art & "'"
   Print #200, Left$("rAu(" & i & ").Beginn:" & String$(33, "."), 33) & "'" & rAu(i).Beginn & "'"
   Print #200, Left$("rAu(" & i & ").Ende:" & String$(33, "."), 33) & "'" & rAu(i).Ende & "'"
   Print #200, Left$("rAu(" & i & ").ICDs:" & String$(33, "."), 33) & "'" & rAu(i).ICDs & "'"
@@ -3439,9 +3466,9 @@ Public FUNCTION auSpeichern(SammelInsert%, BezfSp%)
  ON Error GoTo fehler
  syscmd 4, pid & ": Speichere " & Ubound(rAu)+0 & " Sätze in `au`"
 ' sql0 = " INSERT " & sqlignore &  "INTO `au` (FID,Pat_ID,ZeitPunkt," & _
-     "Beginn,Ende,ICDs,absPos,AktZeit,StByte) VALUES
+     "Ersteller,Änderer,Art,Beginn,Ende,ICDs,absPos,AktZeit,StByte) VALUES
  Call csql0.AppVar(Array(" INSERT ", sqlIgnore, " INTO `au` (FID,Pat_ID,ZeitPunkt," & _
-     "Beginn,Ende,ICDs,absPos,AktZeit,StByte)            VALUES"))
+     "Ersteller,Änderer,Art,Beginn,Ende,ICDs,absPos,AktZeit,StByte)    VALUES"))
 sql:
  csql.m_Len = 0
  IF NOT Allepat THEN
@@ -3454,8 +3481,8 @@ sql:
   IF SammelInsert = 0 Or i = 1 Then
    csql.Append csql0
   END IF ' SammelInsert = 0 Or i = 1 Then
-  csql.AppVar Array("(" , rAu(i).FID, "," , rAu(i).Pat_ID, "," , DatFor_k(rAu(i).ZeitPunkt), ",'" , rAu(i).Beginn, "','" , rAu(i).Ende, "','" , rAu(i).ICDs, "'," , rAu(i).absPos, "," , DatFor_k(rAu(i).AktZeit), "," ,  _
-   rAu(i).StByte, ")")
+  csql.AppVar Array("(" , rAu(i).FID, "," , rAu(i).Pat_ID, "," , DatFor_k(rAu(i).ZeitPunkt), ",'" , rAu(i).Ersteller, "','" , rAu(i).Änderer, "','" , rAu(i).Art, "','" , rAu(i).Beginn, "','" , rAu(i).Ende, "','" ,  _
+   rAu(i).ICDs, "'," , rAu(i).absPos, "," , DatFor_k(rAu(i).AktZeit), "," , rAu(i).StByte, ")")
   IF SammelInsert <> 0 AND i < ubound(rAu) Then csql.Append ","
   IF SammelInsert = 0 OR i = ubound(rAu) Then
 '    altmode = DBCn.Execute("SELECT @@global.sql_mode").Fields(0)
@@ -3464,6 +3491,7 @@ sql:
     myEFrag "SET GLOBAL sql_mode='STRICT_TRANS_TABLES'", , DBCn ' NO_ENGINE_SUBSTITUTION
 '   Call myEFrag(csql.Value,rAf)', , adAsyncExecute) ' wegen unzureichender Fehlerverarbeitung wieder ausrangiert 19.8.23
    Call DBCn.Execute(csql.Value, rAF) ', , adAsyncExecute)
+   csql.clear
    IF obforK THEN
     Call ForeignYes0
     Call ForeignYes1
@@ -3495,11 +3523,14 @@ ElseIf ErrNumber = -2147467259 AND InStrB(ErrDescr, "Daten zu lang") = 0 AND InS
  Resume
 ElseIf ErrNumber = -2147217833 OR InStrB(ErrDescr, "Daten zu lang") <> 0 OR InStrB(ErrDescr, "Data too long") <> 0 THEN
  Dim rsc As Adodb.Recordset, maxi%(), k%
- redim maxi(2)
+ redim maxi(5)
  for k = iif(SammelInsert<>0,1,i) to iif(SammelInsert<>0,ubound(rAu),i)
-  IF Len(rAu(k).Beginn) > maxi(0) THEN maxi(0) = Len(rAu(k).Beginn)
-  IF Len(rAu(k).Ende) > maxi(1) THEN maxi(1) = Len(rAu(k).Ende)
-  IF Len(rAu(k).ICDs) > maxi(2) THEN maxi(2) = Len(rAu(k).ICDs)
+  IF Len(rAu(k).Ersteller) > maxi(0) THEN maxi(0) = Len(rAu(k).Ersteller)
+  IF Len(rAu(k).Änderer) > maxi(1) THEN maxi(1) = Len(rAu(k).Änderer)
+  IF Len(rAu(k).Art) > maxi(2) THEN maxi(2) = Len(rAu(k).Art)
+  IF Len(rAu(k).Beginn) > maxi(3) THEN maxi(3) = Len(rAu(k).Beginn)
+  IF Len(rAu(k).Ende) > maxi(4) THEN maxi(4) = Len(rAu(k).Ende)
+  IF Len(rAu(k).ICDs) > maxi(5) THEN maxi(5) = Len(rAu(k).ICDs)
  next k
  If obTrans <> 0 Then If myEFrag("SELECT COUNT(1) FROM information_schema.innodb_trx WHERE trx_mysql_thread_id = CONNECTION_ID()", , DBCn).Fields(0) <> 0 Then ComTrans ' DBCn.CommitTrans: obtrans = 0
  nochmal:
@@ -3513,9 +3544,12 @@ ElseIf ErrNumber = -2147217833 OR InStrB(ErrDescr, "Daten zu lang") <> 0 OR InSt
     IF maxL > 0 THEN
      For k = IIf(SammelInsert <> 0,1, i) To IIf(SammelInsert <> 0,ubound(rAu), i)
       SELECT CASE m
-       Case 0: Lese.Ausgeb "   Verkürze Inhalt von rAu.Beginn: '" & rAu(k).Beginn & "' -> '" & Left$(rAu(k).Beginn, maxL)  & "'",true : rAu(k).Beginn = Left$(rAu(k).Beginn, maxL)
-       Case 1: Lese.Ausgeb "   Verkürze Inhalt von rAu.Ende: '" & rAu(k).Ende & "' -> '" & Left$(rAu(k).Ende, maxL)  & "'",true : rAu(k).Ende = Left$(rAu(k).Ende, maxL)
-       Case 2: Lese.Ausgeb "   Verkürze Inhalt von rAu.ICDs: '" & rAu(k).ICDs & "' -> '" & Left$(rAu(k).ICDs, maxL)  & "'",true : rAu(k).ICDs = Left$(rAu(k).ICDs, maxL)
+       Case 0: Lese.Ausgeb "   Verkürze Inhalt von rAu.Ersteller: '" & rAu(k).Ersteller & "' -> '" & Left$(rAu(k).Ersteller, maxL)  & "'",true : rAu(k).Ersteller = Left$(rAu(k).Ersteller, maxL)
+       Case 1: Lese.Ausgeb "   Verkürze Inhalt von rAu.Änderer: '" & rAu(k).Änderer & "' -> '" & Left$(rAu(k).Änderer, maxL)  & "'",true : rAu(k).Änderer = Left$(rAu(k).Änderer, maxL)
+       Case 2: Lese.Ausgeb "   Verkürze Inhalt von rAu.Art: '" & rAu(k).Art & "' -> '" & Left$(rAu(k).Art, maxL)  & "'",true : rAu(k).Art = Left$(rAu(k).Art, maxL)
+       Case 3: Lese.Ausgeb "   Verkürze Inhalt von rAu.Beginn: '" & rAu(k).Beginn & "' -> '" & Left$(rAu(k).Beginn, maxL)  & "'",true : rAu(k).Beginn = Left$(rAu(k).Beginn, maxL)
+       Case 4: Lese.Ausgeb "   Verkürze Inhalt von rAu.Ende: '" & rAu(k).Ende & "' -> '" & Left$(rAu(k).Ende, maxL)  & "'",true : rAu(k).Ende = Left$(rAu(k).Ende, maxL)
+       Case 5: Lese.Ausgeb "   Verkürze Inhalt von rAu.ICDs: '" & rAu(k).ICDs & "' -> '" & Left$(rAu(k).ICDs, maxL)  & "'",true : rAu(k).ICDs = Left$(rAu(k).ICDs, maxL)
       END SELECT
      Next
     elseif maxl < 0 THEN
@@ -3748,6 +3782,7 @@ sql:
     myEFrag "SET GLOBAL sql_mode='STRICT_TRANS_TABLES'", , DBCn ' NO_ENGINE_SUBSTITUTION
 '   Call myEFrag(csql.Value,rAf)', , adAsyncExecute) ' wegen unzureichender Fehlerverarbeitung wieder ausrangiert 19.8.23
    Call DBCn.Execute(csql.Value, rAF) ', , adAsyncExecute)
+   csql.clear
    IF obforK THEN
     Call ForeignYes0
     Call ForeignYes1
@@ -4049,6 +4084,7 @@ sql:
     myEFrag "SET GLOBAL sql_mode='STRICT_TRANS_TABLES'", , DBCn ' NO_ENGINE_SUBSTITUTION
 '   Call myEFrag(csql.Value,rAf)', , adAsyncExecute) ' wegen unzureichender Fehlerverarbeitung wieder ausrangiert 19.8.23
    Call DBCn.Execute(csql.Value, rAF) ', , adAsyncExecute)
+   csql.clear
    IF obforK THEN
     Call ForeignYes0
     Call ForeignYes1
@@ -4330,6 +4366,7 @@ sql:
     myEFrag "SET GLOBAL sql_mode='STRICT_TRANS_TABLES'", , DBCn ' NO_ENGINE_SUBSTITUTION
 '   Call myEFrag(csql.Value,rAf)', , adAsyncExecute) ' wegen unzureichender Fehlerverarbeitung wieder ausrangiert 19.8.23
    Call DBCn.Execute(csql.Value, rAF) ', , adAsyncExecute)
+   csql.clear
    IF obforK THEN
     Call ForeignYes0
     Call ForeignYes1
@@ -4603,6 +4640,7 @@ sql:
     myEFrag "SET GLOBAL sql_mode='STRICT_TRANS_TABLES'", , DBCn ' NO_ENGINE_SUBSTITUTION
 '   Call myEFrag(csql.Value,rAf)', , adAsyncExecute) ' wegen unzureichender Fehlerverarbeitung wieder ausrangiert 19.8.23
    Call DBCn.Execute(csql.Value, rAF) ', , adAsyncExecute)
+   csql.clear
    IF obforK THEN
     Call ForeignYes0
     Call ForeignYes1
@@ -4733,6 +4771,7 @@ sql:
     myEFrag "SET GLOBAL sql_mode='STRICT_TRANS_TABLES'", , DBCn ' NO_ENGINE_SUBSTITUTION
 '   Call myEFrag(csql.Value,rAf)', , adAsyncExecute) ' wegen unzureichender Fehlerverarbeitung wieder ausrangiert 19.8.23
    Call DBCn.Execute(csql.Value, rAF) ', , adAsyncExecute)
+   csql.clear
    IF obforK THEN
     Call ForeignYes0
     Call ForeignYes1
@@ -4862,6 +4901,7 @@ sql:
     myEFrag "SET GLOBAL sql_mode='STRICT_TRANS_TABLES'", , DBCn ' NO_ENGINE_SUBSTITUTION
 '   Call myEFrag(csql.Value,rAf)', , adAsyncExecute) ' wegen unzureichender Fehlerverarbeitung wieder ausrangiert 19.8.23
    Call DBCn.Execute(csql.Value, rAF) ', , adAsyncExecute)
+   csql.clear
    IF obforK THEN
     Call ForeignYes0
     Call ForeignYes1
@@ -5123,6 +5163,7 @@ sql:
     myEFrag "SET GLOBAL sql_mode='STRICT_TRANS_TABLES'", , DBCn ' NO_ENGINE_SUBSTITUTION
 '   Call myEFrag(csql.Value,rAf)', , adAsyncExecute) ' wegen unzureichender Fehlerverarbeitung wieder ausrangiert 19.8.23
    Call DBCn.Execute(csql.Value, rAF) ', , adAsyncExecute)
+   csql.clear
    IF obforK THEN
     Call ForeignYes0
     Call ForeignYes1
@@ -5268,6 +5309,7 @@ sql:
     myEFrag "SET GLOBAL sql_mode='STRICT_TRANS_TABLES'", , DBCn ' NO_ENGINE_SUBSTITUTION
 '   Call myEFrag(csql.Value,rAf)', , adAsyncExecute) ' wegen unzureichender Fehlerverarbeitung wieder ausrangiert 19.8.23
    Call DBCn.Execute(csql.Value, rAF) ', , adAsyncExecute)
+   csql.clear
    IF obforK THEN
     Call ForeignYes0
     Call ForeignYes1
@@ -5505,6 +5547,7 @@ sql:
     myEFrag "SET GLOBAL sql_mode='STRICT_TRANS_TABLES'", , DBCn ' NO_ENGINE_SUBSTITUTION
 '   Call myEFrag(csql.Value,rAf)', , adAsyncExecute) ' wegen unzureichender Fehlerverarbeitung wieder ausrangiert 19.8.23
    Call DBCn.Execute(csql.Value, rAF) ', , adAsyncExecute)
+   csql.clear
    IF obforK THEN
     Call ForeignYes0
     Call ForeignYes1
@@ -5741,6 +5784,7 @@ sql:
     myEFrag "SET GLOBAL sql_mode='STRICT_TRANS_TABLES'", , DBCn ' NO_ENGINE_SUBSTITUTION
 '   Call myEFrag(csql.Value,rAf)', , adAsyncExecute) ' wegen unzureichender Fehlerverarbeitung wieder ausrangiert 19.8.23
    Call DBCn.Execute(csql.Value, rAF) ', , adAsyncExecute)
+   csql.clear
    IF obforK THEN
     Call ForeignYes0
     Call ForeignYes1
@@ -6017,6 +6061,7 @@ sql:
     myEFrag "SET GLOBAL sql_mode='STRICT_TRANS_TABLES'", , DBCn ' NO_ENGINE_SUBSTITUTION
 '   Call myEFrag(csql.Value,rAf)', , adAsyncExecute) ' wegen unzureichender Fehlerverarbeitung wieder ausrangiert 19.8.23
    Call DBCn.Execute(csql.Value, rAF) ', , adAsyncExecute)
+   csql.clear
    IF obforK THEN
     Call ForeignYes0
     Call ForeignYes1
@@ -6134,6 +6179,15 @@ Public FUNCTION roLeZuw(i&, j&)
  roLe(i).Sachkbez = rLe(j).Sachkbez
  roLe(i).Sachkct = rLe(j).Sachkct
  roLe(i).Zone = rLe(j).Zone
+ roLe(i).Punkte = rLe(j).Punkte
+ roLe(i).Lstgerbnr = rLe(j).Lstgerbnr
+ roLe(i).Position = rLe(j).Position
+ roLe(i).Eignung = rLe(j).Eignung
+ roLe(i).Pruefzeit = rLe(j).Pruefzeit
+ roLe(i).Kalkzeit = rLe(j).Kalkzeit
+ roLe(i).Bsnr = rLe(j).Bsnr
+ roLe(i).Ersteller = rLe(j).Ersteller
+ roLe(i).Änderer = rLe(j).Änderer
 End FUNCTION ' roLeZuw
 
 Public FUNCTION LeZUnt%(i&, j&)
@@ -6167,6 +6221,15 @@ Public FUNCTION LeZUnt%(i&, j&)
  IF roLe(i).Sachkbez <> rLe(j).Sachkbez THEN gosub unter
  IF roLe(i).Sachkct <> rLe(j).Sachkct THEN gosub unter
  IF roLe(i).Zone <> rLe(j).Zone THEN gosub unter
+ IF roLe(i).Punkte <> rLe(j).Punkte THEN gosub unter
+ IF roLe(i).Lstgerbnr <> rLe(j).Lstgerbnr THEN gosub unter
+ IF roLe(i).Position <> rLe(j).Position THEN gosub unter
+ IF roLe(i).Eignung <> rLe(j).Eignung THEN gosub unter
+ IF roLe(i).Pruefzeit <> rLe(j).Pruefzeit THEN gosub unter
+ IF roLe(i).Kalkzeit <> rLe(j).Kalkzeit THEN gosub unter
+ IF roLe(i).Bsnr <> rLe(j).Bsnr THEN gosub unter
+ IF roLe(i).Ersteller <> rLe(j).Ersteller THEN gosub unter
+ IF roLe(i).Änderer <> rLe(j).Änderer THEN gosub unter
  Exit Function
 unter:
  LeZUnt = LeZUnt + 1
@@ -6184,7 +6247,9 @@ Public FUNCTION leistungenLaden()
 ",COALESCE(Charge,'') Charge,COALESCE(LANR,'') LANR,COALESCE(letzVorg - INTERVAL 0 DAY,CONVERT('18991230',DATE)) letzVorg,COALESCE(Ausn,'') Ausn" & _
 ",COALESCE(Beme,'') Beme,COALESCE(absPos,0) absPos,COALESCE(AktZeit - INTERVAL 0 DAY,CONVERT('18991230',DATE)) AktZeit,COALESCE(QS,'') QS" & _
 ",COALESCE(QT,'') QT,COALESCE(StByte,0) StByte,COALESCE(LANRid,0) LANRid,COALESCE(Sachkbez,'') Sachkbez" & _
-",COALESCE(Sachkct,0) Sachkct,COALESCE(Zone,'') Zone FROM `leistungen` WHERE Pat_ID=" & pid & " ORDER BY `ZeitPunkt`
+",COALESCE(Sachkct,0) Sachkct,COALESCE(Zone,'') Zone,COALESCE(Punkte,0) Punkte,COALESCE(Lstgerbnr,0) Lstgerbnr" & _
+",COALESCE(Position,0) Position,COALESCE(Eignung,0) Eignung,COALESCE(Pruefzeit,0) Pruefzeit,COALESCE(Kalkzeit,0) Kalkzeit" & _
+",COALESCE(Bsnr,0) Bsnr,COALESCE(Ersteller,'') Ersteller,COALESCE(Änderer,'') Änderer FROM `leistungen` WHERE Pat_ID=" & pid & " ORDER BY `ZeitPunkt`
  myFrag rs, sql
  If rs.EOF Then
   ReDim roLe(0)
@@ -6222,6 +6287,15 @@ Public FUNCTION leistungenLaden()
    roLe(akt).Sachkbez = doUmwfSQL(rs!Sachkbez, lies.obMySQL, False)
    roLe(akt).Sachkct = rs!Sachkct
    roLe(akt).Zone = doUmwfSQL(rs!Zone, lies.obMySQL, False)
+   roLe(akt).Punkte = rs!Punkte
+   roLe(akt).Lstgerbnr = rs!Lstgerbnr
+   roLe(akt).Position = rs!Position
+   roLe(akt).Eignung = rs!Eignung
+   roLe(akt).Pruefzeit = rs!Pruefzeit
+   roLe(akt).Kalkzeit = rs!Kalkzeit
+   roLe(akt).Bsnr = rs!Bsnr
+   roLe(akt).Ersteller = doUmwfSQL(rs!Ersteller, lies.obMySQL, False)
+   roLe(akt).Änderer = doUmwfSQL(rs!Änderer, lies.obMySQL, False)
    rs.MoveNext
    IF Not rs.EOF THEN ReDim Preserve roLe(UBound(roLe) + 1)
   Loop ' While Not rs.EOF
@@ -6318,6 +6392,15 @@ Public FUNCTION rLeDump()
   Print #200, Left$("rLe(" & i & ").Sachkbez:" & String$(33, "."), 33) & "'" & rLe(i).Sachkbez & "'"
   Print #200, Left$("rLe(" & i & ").Sachkct:" & String$(33, "."), 33) & rLe(i).Sachkct
   Print #200, Left$("rLe(" & i & ").Zone:" & String$(33, "."), 33) & "'" & rLe(i).Zone & "'"
+  Print #200, Left$("rLe(" & i & ").Punkte:" & String$(33, "."), 33) & "'" & rLe(i).Punkte & "'"
+  Print #200, Left$("rLe(" & i & ").Lstgerbnr:" & String$(33, "."), 33) & rLe(i).Lstgerbnr
+  Print #200, Left$("rLe(" & i & ").Position:" & String$(33, "."), 33) & rLe(i).Position
+  Print #200, Left$("rLe(" & i & ").Eignung:" & String$(33, "."), 33) & rLe(i).Eignung
+  Print #200, Left$("rLe(" & i & ").Pruefzeit:" & String$(33, "."), 33) & rLe(i).Pruefzeit
+  Print #200, Left$("rLe(" & i & ").Kalkzeit:" & String$(33, "."), 33) & rLe(i).Kalkzeit
+  Print #200, Left$("rLe(" & i & ").Bsnr:" & String$(33, "."), 33) & rLe(i).Bsnr
+  Print #200, Left$("rLe(" & i & ").Ersteller:" & String$(33, "."), 33) & "'" & rLe(i).Ersteller & "'"
+  Print #200, Left$("rLe(" & i & ").Änderer:" & String$(33, "."), 33) & "'" & rLe(i).Änderer & "'"
  Next i
  Close #200
  zeigan ffadat
@@ -6335,11 +6418,13 @@ Public FUNCTION leistungenSpeichern(SammelInsert%, BezfSp%)
 ' sql0 = " INSERT " & sqlignore &  "INTO `leistungen` (FID,Pat_ID,ZeitPunkt," & _
      "Leistung,ArtdUs,LAnzl,LUhrz,LfBegr,Med,LOrgan,LArztBf,DtlKbsV,LEntlDt," & _
      "Faktor,LBSNR,Charge,LANR,letzVorg,Ausn,Beme,absPos,AktZeit,QS," & _
-     "QT,StByte,LANRid,Sachkbez,Sachkct,Zone) VALUES
+     "QT,StByte,LANRid,Sachkbez,Sachkct,Zone,Punkte,Lstgerbnr,Position,Eignung," & _
+     "Pruefzeit,Kalkzeit,Bsnr,Ersteller,Änderer) VALUES
  Call csql0.AppVar(Array(" INSERT ", sqlIgnore, " INTO `leistungen` (FID,Pat_ID,ZeitPunkt," & _
      "Leistung,ArtdUs,LAnzl,LUhrz,LfBegr,Med,LOrgan,LArztBf,DtlKbsV,LEntlDt," & _
      "Faktor,LBSNR,Charge,LANR,letzVorg,Ausn,Beme,absPos,AktZeit,QS," & _
-     "QT,StByte,LANRid,Sachkbez,Sachkct,Zone)            VALUES"))
+     "QT,StByte,LANRid,Sachkbez,Sachkct,Zone,Punkte,Lstgerbnr,Position,Eignung," & _
+     "Pruefzeit,Kalkzeit,Bsnr,Ersteller,Änderer)         VALUES"))
 sql:
  csql.m_Len = 0
  IF NOT Allepat THEN
@@ -6355,7 +6440,8 @@ sql:
   csql.AppVar Array("(" , rLe(i).FID, "," , rLe(i).Pat_ID, "," , DatFor_k(rLe(i).ZeitPunkt), ",'" , rLe(i).Leistung, "','" , rLe(i).ArtdUs, "','" , rLe(i).LAnzl, "','" , rLe(i).LUhrz, "','" , rLe(i).LfBegr, "','" ,  _
    rLe(i).Med, "','" , rLe(i).LOrgan, "','" , rLe(i).LArztBf, "','" , rLe(i).DtlKbsV, "','" , rLe(i).LEntlDt, "','" , rLe(i).Faktor, "','" , rLe(i).LBSNR, "','" , rLe(i).Charge, "','" , rLe(i).LANR, "'," , DatFor_k( _
    rLe(i).letzVorg), ",'" , rLe(i).Ausn, "','" , rLe(i).Beme, "'," , rLe(i).absPos, "," , DatFor_k(rLe(i).AktZeit), ",'" , rLe(i).QS, "','" , rLe(i).QT, "'," , rLe(i).StByte, "," ,  _
-   rLe(i).LANRid, ",'" , rLe(i).Sachkbez, "'," , rLe(i).Sachkct, ",'" , rLe(i).Zone, "')")
+   rLe(i).LANRid, ",'" , rLe(i).Sachkbez, "'," , rLe(i).Sachkct, ",'" , rLe(i).Zone, "'," , rLe(i).Punkte, "," , rLe(i).Lstgerbnr, "," , rLe(i).Position, "," , rLe(i).Eignung, "," ,  _
+   rLe(i).Pruefzeit, "," , rLe(i).Kalkzeit, "," , rLe(i).Bsnr, ",'" , rLe(i).Ersteller, "','" , rLe(i).Änderer, "')")
   IF SammelInsert <> 0 AND i < ubound(rLe) Then csql.Append ","
   IF SammelInsert = 0 OR i = ubound(rLe) Then
 '    altmode = DBCn.Execute("SELECT @@global.sql_mode").Fields(0)
@@ -6364,6 +6450,7 @@ sql:
     myEFrag "SET GLOBAL sql_mode='STRICT_TRANS_TABLES'", , DBCn ' NO_ENGINE_SUBSTITUTION
 '   Call myEFrag(csql.Value,rAf)', , adAsyncExecute) ' wegen unzureichender Fehlerverarbeitung wieder ausrangiert 19.8.23
    Call DBCn.Execute(csql.Value, rAF) ', , adAsyncExecute)
+   csql.clear
    IF obforK THEN
     Call ForeignYes0
     Call ForeignYes1
@@ -6395,7 +6482,7 @@ ElseIf ErrNumber = -2147467259 AND InStrB(ErrDescr, "Daten zu lang") = 0 AND InS
  Resume
 ElseIf ErrNumber = -2147217833 OR InStrB(ErrDescr, "Daten zu lang") <> 0 OR InStrB(ErrDescr, "Data too long") <> 0 THEN
  Dim rsc As Adodb.Recordset, maxi%(), k%
- redim maxi(19)
+ redim maxi(21)
  for k = iif(SammelInsert<>0,1,i) to iif(SammelInsert<>0,ubound(rLe),i)
   IF Len(rLe(k).Leistung) > maxi(0) THEN maxi(0) = Len(rLe(k).Leistung)
   IF Len(rLe(k).ArtdUs) > maxi(1) THEN maxi(1) = Len(rLe(k).ArtdUs)
@@ -6417,6 +6504,8 @@ ElseIf ErrNumber = -2147217833 OR InStrB(ErrDescr, "Daten zu lang") <> 0 OR InSt
   IF Len(rLe(k).QT) > maxi(17) THEN maxi(17) = Len(rLe(k).QT)
   IF Len(rLe(k).Sachkbez) > maxi(18) THEN maxi(18) = Len(rLe(k).Sachkbez)
   IF Len(rLe(k).Zone) > maxi(19) THEN maxi(19) = Len(rLe(k).Zone)
+  IF Len(rLe(k).Ersteller) > maxi(20) THEN maxi(20) = Len(rLe(k).Ersteller)
+  IF Len(rLe(k).Änderer) > maxi(21) THEN maxi(21) = Len(rLe(k).Änderer)
  next k
  If obTrans <> 0 Then If myEFrag("SELECT COUNT(1) FROM information_schema.innodb_trx WHERE trx_mysql_thread_id = CONNECTION_ID()", , DBCn).Fields(0) <> 0 Then ComTrans ' DBCn.CommitTrans: obtrans = 0
  nochmal:
@@ -6450,6 +6539,8 @@ ElseIf ErrNumber = -2147217833 OR InStrB(ErrDescr, "Daten zu lang") <> 0 OR InSt
        Case 17: Lese.Ausgeb "   Verkürze Inhalt von rLe.QT: '" & rLe(k).QT & "' -> '" & Left$(rLe(k).QT, maxL)  & "'",true : rLe(k).QT = Left$(rLe(k).QT, maxL)
        Case 18: Lese.Ausgeb "   Verkürze Inhalt von rLe.Sachkbez: '" & rLe(k).Sachkbez & "' -> '" & Left$(rLe(k).Sachkbez, maxL)  & "'",true : rLe(k).Sachkbez = Left$(rLe(k).Sachkbez, maxL)
        Case 19: Lese.Ausgeb "   Verkürze Inhalt von rLe.Zone: '" & rLe(k).Zone & "' -> '" & Left$(rLe(k).Zone, maxL)  & "'",true : rLe(k).Zone = Left$(rLe(k).Zone, maxL)
+       Case 20: Lese.Ausgeb "   Verkürze Inhalt von rLe.Ersteller: '" & rLe(k).Ersteller & "' -> '" & Left$(rLe(k).Ersteller, maxL)  & "'",true : rLe(k).Ersteller = Left$(rLe(k).Ersteller, maxL)
+       Case 21: Lese.Ausgeb "   Verkürze Inhalt von rLe.Änderer: '" & rLe(k).Änderer & "' -> '" & Left$(rLe(k).Änderer, maxL)  & "'",true : rLe(k).Änderer = Left$(rLe(k).Änderer, maxL)
       END SELECT
      Next
     elseif maxl < 0 THEN
@@ -6719,6 +6810,7 @@ sql:
     myEFrag "SET GLOBAL sql_mode='STRICT_TRANS_TABLES'", , DBCn ' NO_ENGINE_SUBSTITUTION
 '   Call myEFrag(csql.Value,rAf)', , adAsyncExecute) ' wegen unzureichender Fehlerverarbeitung wieder ausrangiert 19.8.23
    Call DBCn.Execute(csql.Value, rAF) ', , adAsyncExecute)
+   csql.clear
    IF obforK THEN
     Call ForeignYes0
     Call ForeignYes1
@@ -7037,6 +7129,7 @@ sql:
     myEFrag "SET GLOBAL sql_mode='STRICT_TRANS_TABLES'", , DBCn ' NO_ENGINE_SUBSTITUTION
 '   Call myEFrag(csql.Value,rAf)', , adAsyncExecute) ' wegen unzureichender Fehlerverarbeitung wieder ausrangiert 19.8.23
    Call DBCn.Execute(csql.Value, rAF) ', , adAsyncExecute)
+   csql.clear
    IF obforK THEN
     Call ForeignYes0
     Call ForeignYes1
@@ -7322,6 +7415,7 @@ sql:
     myEFrag "SET GLOBAL sql_mode='STRICT_TRANS_TABLES'", , DBCn ' NO_ENGINE_SUBSTITUTION
 '   Call myEFrag(csql.Value,rAf)', , adAsyncExecute) ' wegen unzureichender Fehlerverarbeitung wieder ausrangiert 19.8.23
    Call DBCn.Execute(csql.Value, rAF) ', , adAsyncExecute)
+   csql.clear
    IF obforK THEN
     Call ForeignYes0
     Call ForeignYes1
@@ -7457,6 +7551,7 @@ sql:
     myEFrag "SET GLOBAL sql_mode='STRICT_TRANS_TABLES'", , DBCn ' NO_ENGINE_SUBSTITUTION
 '   Call myEFrag(csql.Value,rAf)', , adAsyncExecute) ' wegen unzureichender Fehlerverarbeitung wieder ausrangiert 19.8.23
    Call DBCn.Execute(csql.Value, rAF) ', , adAsyncExecute)
+   csql.clear
    IF obforK THEN
     Call ForeignYes0
     Call ForeignYes1
@@ -7577,6 +7672,7 @@ sql:
     myEFrag "SET GLOBAL sql_mode='STRICT_TRANS_TABLES'", , DBCn ' NO_ENGINE_SUBSTITUTION
 '   Call myEFrag(csql.Value,rAf)', , adAsyncExecute) ' wegen unzureichender Fehlerverarbeitung wieder ausrangiert 19.8.23
    Call DBCn.Execute(csql.Value, rAF) ', , adAsyncExecute)
+   csql.clear
    IF obforK THEN
     Call ForeignYes0
     Call ForeignYes1
@@ -7857,6 +7953,7 @@ sql:
     myEFrag "SET GLOBAL sql_mode='STRICT_TRANS_TABLES'", , DBCn ' NO_ENGINE_SUBSTITUTION
 '   Call myEFrag(csql.Value,rAf)', , adAsyncExecute) ' wegen unzureichender Fehlerverarbeitung wieder ausrangiert 19.8.23
    Call DBCn.Execute(csql.Value, rAF) ', , adAsyncExecute)
+   csql.clear
    IF obforK THEN
     Call ForeignYes0
     Call ForeignYes1
@@ -8163,6 +8260,7 @@ sql:
     myEFrag "SET GLOBAL sql_mode='STRICT_TRANS_TABLES'", , DBCn ' NO_ENGINE_SUBSTITUTION
 '   Call myEFrag(csql.Value,rAf)', , adAsyncExecute) ' wegen unzureichender Fehlerverarbeitung wieder ausrangiert 19.8.23
    Call DBCn.Execute(csql.Value, rAF) ', , adAsyncExecute)
+   csql.clear
    IF obforK THEN
     Call ForeignYes0
     Call ForeignYes1
@@ -8586,6 +8684,7 @@ sql:
     myEFrag "SET GLOBAL sql_mode='STRICT_TRANS_TABLES'", , DBCn ' NO_ENGINE_SUBSTITUTION
 '   Call myEFrag(csql.Value,rAf)', , adAsyncExecute) ' wegen unzureichender Fehlerverarbeitung wieder ausrangiert 19.8.23
    Call DBCn.Execute(csql.Value, rAF) ', , adAsyncExecute)
+   csql.clear
    IF obforK THEN
     Call ForeignYes0
     Call ForeignYes1
@@ -8956,6 +9055,7 @@ sql:
     myEFrag "SET GLOBAL sql_mode='STRICT_TRANS_TABLES'", , DBCn ' NO_ENGINE_SUBSTITUTION
 '   Call myEFrag(csql.Value,rAf)', , adAsyncExecute) ' wegen unzureichender Fehlerverarbeitung wieder ausrangiert 19.8.23
    Call DBCn.Execute(csql.Value, rAF) ', , adAsyncExecute)
+   csql.clear
    IF obforK THEN
     Call ForeignYes0
     Call ForeignYes1
@@ -9265,6 +9365,7 @@ sql:
     myEFrag "SET GLOBAL sql_mode='STRICT_TRANS_TABLES'", , DBCn ' NO_ENGINE_SUBSTITUTION
 '   Call myEFrag(csql.Value,rAf)', , adAsyncExecute) ' wegen unzureichender Fehlerverarbeitung wieder ausrangiert 19.8.23
    Call DBCn.Execute(csql.Value, rAF) ', , adAsyncExecute)
+   csql.clear
    IF obforK THEN
     Call ForeignYes0
     Call ForeignYes1
@@ -9572,6 +9673,7 @@ sql:
     myEFrag "SET GLOBAL sql_mode='STRICT_TRANS_TABLES'", , DBCn ' NO_ENGINE_SUBSTITUTION
 '   Call myEFrag(csql.Value,rAf)', , adAsyncExecute) ' wegen unzureichender Fehlerverarbeitung wieder ausrangiert 19.8.23
    Call DBCn.Execute(csql.Value, rAF) ', , adAsyncExecute)
+   csql.clear
    IF obforK THEN
     Call ForeignYes0
     Call ForeignYes1
@@ -9871,6 +9973,7 @@ sql:
     myEFrag "SET GLOBAL sql_mode='STRICT_TRANS_TABLES'", , DBCn ' NO_ENGINE_SUBSTITUTION
 '   Call myEFrag(csql.Value,rAf)', , adAsyncExecute) ' wegen unzureichender Fehlerverarbeitung wieder ausrangiert 19.8.23
    Call DBCn.Execute(csql.Value, rAF) ', , adAsyncExecute)
+   csql.clear
    IF obforK THEN
     Call ForeignYes0
     Call ForeignYes1
@@ -10112,6 +10215,7 @@ sql:
     myEFrag "SET GLOBAL sql_mode='STRICT_TRANS_TABLES'", , DBCn ' NO_ENGINE_SUBSTITUTION
 '   Call myEFrag(csql.Value,rAf)', , adAsyncExecute) ' wegen unzureichender Fehlerverarbeitung wieder ausrangiert 19.8.23
    Call DBCn.Execute(csql.Value, rAF) ', , adAsyncExecute)
+   csql.clear
    IF obforK THEN
     Call ForeignYes0
     Call ForeignYes1
@@ -10258,6 +10362,7 @@ sql:
     myEFrag "SET GLOBAL sql_mode='STRICT_TRANS_TABLES'", , DBCn ' NO_ENGINE_SUBSTITUTION
 '   Call myEFrag(csql.Value,rAf)', , adAsyncExecute) ' wegen unzureichender Fehlerverarbeitung wieder ausrangiert 19.8.23
    Call DBCn.Execute(csql.Value, rAF) ', , adAsyncExecute)
+   csql.clear
    IF obforK THEN
     Call ForeignYes0
     Call ForeignYes1
@@ -10418,6 +10523,7 @@ sql:
     myEFrag "SET GLOBAL sql_mode='STRICT_TRANS_TABLES'", , DBCn ' NO_ENGINE_SUBSTITUTION
 '   Call myEFrag(csql.Value,rAf)', , adAsyncExecute) ' wegen unzureichender Fehlerverarbeitung wieder ausrangiert 19.8.23
    Call DBCn.Execute(csql.Value, rAF) ', , adAsyncExecute)
+   csql.clear
    IF obforK THEN
     Call ForeignYes0
     Call ForeignYes1
@@ -10582,6 +10688,7 @@ sql:
     myEFrag "SET GLOBAL sql_mode='STRICT_TRANS_TABLES'", , DBCn ' NO_ENGINE_SUBSTITUTION
 '   Call myEFrag(csql.Value,rAf)', , adAsyncExecute) ' wegen unzureichender Fehlerverarbeitung wieder ausrangiert 19.8.23
    Call DBCn.Execute(csql.Value, rAF) ', , adAsyncExecute)
+   csql.clear
    IF obforK THEN
     Call ForeignYes0
     Call ForeignYes1
@@ -10757,6 +10864,7 @@ sql:
     myEFrag "SET GLOBAL sql_mode='STRICT_TRANS_TABLES'", , DBCn ' NO_ENGINE_SUBSTITUTION
 '   Call myEFrag(csql.Value,rAf)', , adAsyncExecute) ' wegen unzureichender Fehlerverarbeitung wieder ausrangiert 19.8.23
    Call DBCn.Execute(csql.Value, rAF) ', , adAsyncExecute)
+   csql.clear
    IF obforK THEN
     Call ForeignYes0
     Call ForeignYes1
@@ -10930,6 +11038,7 @@ nextj:
     myEFrag "SET GLOBAL sql_mode='STRICT_TRANS_TABLES'", , DBCn ' NO_ENGINE_SUBSTITUTION
 '   Call myEFrag(csql.Value,rAf)', , adAsyncExecute) ' wegen unzureichender Fehlerverarbeitung wieder ausrangiert 19.8.23
    Call DBCn.Execute(csql.Value, rAF) ', , adAsyncExecute)
+   csql.clear
    IF obforK THEN
     Call ForeignYes0
     Call ForeignYes1
@@ -11075,6 +11184,7 @@ sql:
     myEFrag "SET GLOBAL sql_mode='STRICT_TRANS_TABLES'", , DBCn ' NO_ENGINE_SUBSTITUTION
 '   Call myEFrag(csql.Value,rAf)', , adAsyncExecute) ' wegen unzureichender Fehlerverarbeitung wieder ausrangiert 19.8.23
    Call DBCn.Execute(csql.Value, rAF) ', , adAsyncExecute)
+   csql.clear
    IF obforK THEN
     Call ForeignYes0
     Call ForeignYes1
@@ -11243,6 +11353,7 @@ sql:
     myEFrag "SET GLOBAL sql_mode='STRICT_TRANS_TABLES'", , DBCn ' NO_ENGINE_SUBSTITUTION
 '   Call myEFrag(csql.Value,rAf)', , adAsyncExecute) ' wegen unzureichender Fehlerverarbeitung wieder ausrangiert 19.8.23
    Call DBCn.Execute(csql.Value, rAF) ', , adAsyncExecute)
+   csql.clear
    IF obforK THEN
     Call ForeignYes0
     Call ForeignYes1

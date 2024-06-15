@@ -27,6 +27,11 @@ Type ebType
  Wert As Integer
 End Type ' ebtype
 
+Type Abrtyp ' Tabelle abrechner
+ fS As Integer
+ BSNR As Long
+End Type
+
 Declare Sub CopyMemoryPtr Lib "kernel32" Alias "RtlMoveMemory" (ByVal Destination&, ByVal Sourc&, ByVal length&)
 
 Public Sub testeb()
@@ -472,7 +477,7 @@ Public Function zeigmosystem(Optional obszn4%)
       EintS.TypNr = EintS.TypNr + Fakt * Asc(Mid(fMem(j).Text, 2))
      End If
     ElseIf fMem(j).ENr Like "*.3" And fMem(j).ENr <> "1.3" Then
-     EintS.Art = fMem(j).Text
+     EintS.art = fMem(j).Text
     ElseIf fMem(j).ENr Like "*.5" And fMem(j).ENr <> "1.5" Then
      EintS.EKür = fMem(j).Text
     ElseIf fMem(j).ENr Like "*.8" And fMem(j).ENr <> "1.8" Then
@@ -498,7 +503,7 @@ End Function ' zeigmosystem()
 Public Function doPatvonMO(pNr&)
  Const obDebug% = True, obszn4% = False
  Dim pid&, pos&, SchGr%, j&, jj%, rAf&, aktZeit As Date
- pNr& = 151 ' 225 ' 68316 ' 65405 ' 45 ' 64659 ' 45 ' 69367 ' 69377 ' 53119 ' 51630 ' 105 ' 18 ' 246 ' 59152 ' 1394 ' 2112
+ pNr& = 68316 ' 65405 ' 45 ' 64659 ' 45 ' 69367 ' 69377 ' 53119 ' 51630 ' 105 ' 18 ' 246 ' 59152 ' 1394 ' 2112 ' 151 ' 225 '
  pid = pNr + 100000
  Static lfdfl&
  Dim rsNa As New ADODB.Recordset, rsFa As New ADODB.Recordset, rsMo As New ADODB.Recordset
@@ -532,7 +537,7 @@ Public Function doPatvonMO(pNr&)
       EintS.TypNr = EintS.TypNr + Fakt * Asc(Mid(fMem(j).Text, 2))
      End If
     ElseIf fMem(j).ENr Like "*.3" And fMem(j).ENr <> "1.3" Then
-     EintS.Art = fMem(j).Text
+     EintS.art = fMem(j).Text
     ElseIf fMem(j).ENr Like "*.5" And fMem(j).ENr <> "1.5" Then
      EintS.EKür = fMem(j).Text
     ElseIf fMem(j).ENr Like "*.8" And fMem(j).ENr <> "1.8" Then
@@ -862,7 +867,7 @@ Public Function doPatvonMO(pNr&)
 ' nicht übertragen:
      Dim rhar As New ADODB.Recordset
      Dim aktkvnr$
-     myFrag rhar, "SELECT farztnralt kvnr FROM earzt a LEFT JOIN epraxis p ON p.FSurogat = a.FExtpraxisnr WHERE fbetriebsnr='" & rFa(UBound(rFa)).ÜbWVBSNR & "' AND (farztnr='" & rFa(UBound(rFa)).ÜbwLANR & "' OR " & IIf(rFa(UBound(rFa)).ÜbwLANR = "", "TRUE", "FALSE") & ")", adOpenStatic, MOCon
+     myFrag rhar, "SELECT farztnralt kvnr FROM earzt a LEFT JOIN epraxis p ON p.FSurogat = a.FExtpraxisnr WHERE farztnralt<>'' AND fbetriebsnr='" & rFa(UBound(rFa)).ÜbWVBSNR & "' AND (farztnr='" & rFa(UBound(rFa)).ÜbwLANR & "' OR " & IIf(rFa(UBound(rFa)).ÜbwLANR = "", "TRUE", "FALSE") & ")", adOpenStatic, MOCon
      If rhar Is Nothing Then
 '      Stop
      Else
@@ -978,7 +983,18 @@ Public Function doPatvonMO(pNr&)
 ' Set rsFa = Nothing
 ' Set rsFa = Nothing ' wirkt witzigerweise erst beim zweiten Mal (!?)
 '  Call rFaDump
-  Dim Art$, a1$, a2$, apos&
+
+  Dim rab() As Abrtyp
+  Dim rAbr As ADODB.Recordset
+  myFrag rAbr, "SELECT FSurogat,FBetriebsnr FROM abrechner", adOpenStatic, MOCon ' AU
+  Do While Not rAbr.EOF
+   If SafeArrayGetDim(rab) = 0 Then ReDim rab(0) Else ReDim Preserve rab(UBound(rab) + 1)
+    rab(UBound(rab)).fS = rAbr!fsurogat
+    rab(UBound(rab)).BSNR = rAbr!FBetriebsnr
+   rAbr.MoveNext
+  Loop
+
+  Dim art$, a1$, a2$, apos&, abz%
   Dim rsEi As New ADODB.Recordset
 '  FBehgrundnr>0: Diagnosen
 '   FStatus -32767: meist Eintrag, oder Notiz
@@ -998,38 +1014,188 @@ Public Function doPatvonMO(pNr&)
 '                1001: Eintrag (auch, aber nicht nur: sono) Zeile abgeschnitten, 1002: Eintrag aug, 1003: Blutabnahme, 1004: Einträge
 '                1005: Desktop-Notizen, 1006: Einträge
 '                2017: Diagnosen
-  sql = "SELECT 18900101+INTERVAL FDatum DAY+INTERVAL FZeit SECOND Zp, FICdcode Art, FText, f.* FROM ltag f WHERE fpatnr = " & pNr & " AND fstatus not IN (2,40) AND fbehgrundnr<=0"
-  myFrag rsEi, sql, adOpenStatic, MOCon
+'  sql = "SELECT 18900101+INTERVAL FDatum DAY+INTERVAL FZeit SECOND Zp, FICdcode Art, MID(fdetails,INSTR(fdetails,'ext ""')+5,LENGTH(fdetails)-2-INSTR(fdetails,'ext ""')-5) FText, FEintragsart, f.* FROM ltag f WHERE fpatnr = " & pNr & " AND ((FEintragsart=5 and FStatus=0) OR FEintragsart IN (8,10,11,151,1001,1002,1003,1004,1006)) AND fbehgrundnr<=0"
+'  Leistungen
+  sql = "SELECT 18900101+INTERVAL FDatum DAY+INTERVAL FZeit SECOND Zp, MID(18900101+INTERVAL FDatum DAY+INTERVAL FZeit SECOND,12,5) uhrz, FICdcode Art," & _
+  "COALESCE(REPLACE(MID(fdetails,INSTR(fdetails,'ext ""')+5,LENGTH(fdetails)-2-INSTR(fdetails,'ext ""')-5),'\n','; '),FText) FText," & _
+  "FEintragsart, 18900101+INTERVAL FAnorddatum DAY+INTERVAL FAnordzeit SECOND AnZp," & _
+  "na.Finitialen ua, nb.finitialen ub, REPLACE(REPLACE(FDetails,'{(Gnrliste [',''),'])}','') Lei " & _
+  "FROM ltag f LEFT JOIN nutzerneu na ON FAnordnutzernr= na.FSurogat " & _
+  "LEFT JOIN nutzerneu nb ON FAusfnutzernr= nb.FSurogat " & _
+  "WHERE FPatnr = " & pNr & _
+  " AND FEintragsart=12" ' & _
+'  " AND 18900101+INTERVAL FDatum DAY+INTERVAL FZeit SECOND >CONVERT(240601, DATE)"
+  myFrag rsEi, sql, adOpenStatic, MOCon ' AU
+  If Not rsEi.BOF Then
+   Do While Not rsEi.EOF
+    Dim Lei$, lp&, EKT%, GKT%, RKT%, w As Byte, BDTz$, Inh$, ia As Byte, b As String * 1 ' eckige Klammertiefe, runde Klammertiefe, iA= in Anführungszeichen, Buchstabe
+    Dim neuW As Byte, obWert As Byte ' Beginn eines neuen Wortes, aktuelles Wort ist Wert
+    Lei = rsEi!Lei
+    For lp = 1 To Len(Lei)
+     b = Mid$(Lei, lp)
+     Select Case b
+      Case "{"
+        If Not ia Then
+         GKT = GKT + 1
+         If GKT = 1 Then
+          ReDim Preserve rLe(UBound(rLe) + 1)
+          rLe(UBound(rLe)).Pat_id = pid
+          rLe(UBound(rLe)).aktZeit = aktZeit
+          rLe(UBound(rLe)).Zeitpunkt = rsEi!Zp
+          rLe(UBound(rLe)).QS = ZQSort(rLe(UBound(rLe)).Zeitpunkt)
+          rLe(UBound(rLe)).QT = ZQuart(rLe(UBound(rLe)).Zeitpunkt)
+          rLe(UBound(rLe)).LUhrz = rsEi!Uhrz
+          rLe(UBound(rLe)).Ersteller = rsEi!ua
+          rLe(UBound(rLe)).Änderer = rsEi!ub
+       End If ' GKT = 1 Then
+        End If ' Not ia Then
+      Case "}": If Not ia Then GKT = GKT - 1
+      Case "[": If Not ia Then EKT = EKT + 1
+      Case "]": If Not ia Then EKT = EKT - 1
+      Case "(": If Not ia Then RKT = RKT + 1: If RKT = 1 Then w = 0
+      Case ")"
+       If Not ia Then
+        RKT = RKT - 1
+        If EKT = 0 And RKT = 0 Then
+         Select Case BDTz
+          Case "5001"
+           rLe(UBound(rLe)).Leistung = Inh
+          Case "5002"
+           rLe(UBound(rLe)).ArtdUs = REPLACE$(Inh, "ArtdUs: ", "")
+          Case "5005"
+           rLe(UBound(rLe)).LAnzl = Inh
+          Case "Lkz":
+           Select Case Inh
+            Case "K": rLe(UBound(rLe)).Lanr = "933284903"
+            Case "S": rLe(UBound(rLe)).Lanr = "889690003"
+            Case Else: rLe(UBound(rLe)).Lanr = "999999900"
+           End Select
+          Case "Lstgerbnr"
+           rLe(UBound(rLe)).Lstgerbnr = Inh
+          Case "Position"
+           rLe(UBound(rLe)).Position = Inh
+          Case "Eignung"
+           rLe(UBound(rLe)).Eignung = Inh
+          Case "Pruefzeit"
+           rLe(UBound(rLe)).Pruefzeit = Inh
+          Case "Kalkzeit"
+           rLe(UBound(rLe)).Kalkzeit = Inh
+          Case "organliste"
+            rLe(UBound(rLe)).LOrgan = Inh
+          Case "begruendungsliste"
+           rLe(UBound(rLe)).LfBegr = Inh
+          Case "sachkostenliste"
+           rLe(UBound(rLe)).Sachkbez = Inh
+          Case "5061"
+             rLe(UBound(rLe)).Punkte = REPLACE$(Inh, ".", ",")
+          Case "Chargennummer"
+            rLe(UBound(rLe)).Charge = REPLACE$(Inh, "Chargennummer", "")
+          Case "Bsnr"
+           rLe(UBound(rLe)).BSNR = Inh
+           For abz = 0 To UBound(rab)
+            If rab(abz).fS = Inh Then
+             rLe(UBound(rLe)).LBSNR = rab(abz).BSNR
+             Exit For
+            End If
+           Next abz
+          Case Else
+           Debug.Print BDTz
+         End Select
+         BDTz = ""
+         Inh = ""
+        End If '  RKT = 1 Then
+       End If ' Not ia And Not EKT Then
+      Case """": ia = Not ia
+      Case " ":
+       If Not ia Then
+        If EKT = 0 And RKT = 1 Then
+         w = 1
+        Else
+         If Inh <> "" Then Inh = Inh & b
+        End If
+       Else
+        Inh = Inh & b
+       End If
+      Case Else
+       If w Then Inh = Inh & b Else BDTz = BDTz & b
+     End Select
+    Next lp
+    rsEi.MoveNext
+   Loop ' while not rsEi.EOF
+  End If ' Not rsEi.BOF Then
+
+' AU
+  sql = "SELECT 18900101+INTERVAL FDatum DAY+INTERVAL FZeit SECOND Zp, FICdcode Art," & _
+  "COALESCE(REPLACE(MID(fdetails,INSTR(fdetails,'ext ""')+5,LENGTH(fdetails)-2-INSTR(fdetails,'ext ""')-5),'\n','; '),FText) FText," & _
+  "FEintragsart, 18900101+INTERVAL FAnorddatum DAY+INTERVAL FAnordzeit SECOND AnZp," & _
+  "na.Finitialen ua, nb.finitialen ub, MID(ftext,4,1) Art, IF(MID(ftext,4,1)='E',MID(ftext,INSTR(ftext,' ')+1,8),'') von, MID(ftext,INSTR(ftext,'- ')+2,8) bis, MID(ftext,INSTR(ftext,': ')+2) diag " & _
+  "FROM ltag f LEFT JOIN nutzerneu na ON FAnordnutzernr= na.FSurogat " & _
+  "LEFT JOIN nutzerneu nb ON FAusfnutzernr= nb.FSurogat " & _
+  "WHERE FPatnr = " & pNr & _
+  " AND FEintragsart=19" & _
+  " AND fbehgrundnr<=0"
+  myFrag rsEi, sql, adOpenStatic, MOCon ' AU
+  If Not rsEi.BOF Then
+   Do While Not rsEi.EOF
+    ReDim Preserve rAu(UBound(rAu) + 1)
+    rAu(UBound(rAu)).aktZeit = aktZeit
+    rAu(UBound(rAu)).Pat_id = pid
+    rAu(UBound(rAu)).Zeitpunkt = rsEi!AnZp
+    rAu(UBound(rAu)).Ersteller = rsEi!ua
+    rAu(UBound(rAu)).Änderer = rsEi!ub
+    rAu(UBound(rAu)).art = rsEi!art
+    rAu(UBound(rAu)).Beginn = Left$(rsEi!VoN, 2) & Mid(rsEi!VoN, 4, 2) & "20" & Mid$(rsEi!VoN, 7, 2)
+    rAu(UBound(rAu)).Ende = Left$(rsEi!Bis, 2) & Mid(rsEi!Bis, 4, 2) & "20" & Mid$(rsEi!Bis, 7, 2)
+    rAu(UBound(rAu)).ICDs = rsEi!Diag
+    rsEi.MoveNext
+   Loop ' while not rsEi.EOF
+  End If ' Not rsEi.BOF Then
+  
+' Einträge
+  sql = "SELECT 18900101+INTERVAL FDatum DAY+INTERVAL FZeit SECOND Zp, FICdcode Art," & _
+  "COALESCE(REPLACE(REPLACE(MID(fdetails,INSTR(fdetails,'ext ""')+5,LENGTH(fdetails)-2-INSTR(fdetails,'ext ""')-5),'\n','; '),'''','\'''),FText) FText," & _
+  "FEintragsart, 18900101+INTERVAL FAnorddatum DAY+INTERVAL FAnordzeit SECOND AnZp," & _
+  "na.Finitialen ua, nb.finitialen ub FROM ltag f LEFT JOIN nutzerneu na ON FAnordnutzernr= na.FSurogat " & _
+  "LEFT JOIN nutzerneu nb ON FAusfnutzernr= nb.FSurogat " & _
+  "WHERE FPatnr = " & pNr & _
+  " AND ((FEintragsart=5 and FStatus=0) OR FEintragsart IN (8,10,11,151,1001,1002,1003,1004,1006))" & _
+  " AND fbehgrundnr<=0"
+  myFrag rsEi, sql, adOpenStatic, MOCon ' Einträge
   If Not rsEi.BOF Then
    Do While Not rsEi.EOF
     ReDim Preserve rEi(UBound(rEi) + 1)
     rEi(UBound(rEi)).aktZeit = aktZeit
     rEi(UBound(rEi)).Pat_id = pid
-    rEi(UBound(rEi)).Zeitpunkt = rsEi!Zp
-    Art = rsEi!Art
-    If Art <> "" Then
-     apos = InStr(Art, "#")
+    rEi(UBound(rEi)).Zeitpunkt = rsEi!AnZp
+    rEi(UBound(rEi)).QS = ZQSort(rEi(UBound(rEi)).Zeitpunkt)
+    rEi(UBound(rEi)).QT = ZQuart(rEi(UBound(rEi)).Zeitpunkt)
+    rEi(UBound(rEi)).Ersteller = rsEi!ua
+    rEi(UBound(rEi)).Änderer = rsEi!ub
+    art = rsEi!art
+    If art <> "" Then
+     apos = InStr(art, "#")
      If apos > 1 Then ' z.B. LF#LF nach Datenübertragung
-      a1 = Left$(Art, apos - 1)
-      a2 = Mid$(Art, apos + 1)
-      If a1 = a2 Then rEi(UBound(rEi)).Art = a1
+      a1 = Left$(art, apos - 1)
+      a2 = Mid$(art, apos + 1)
+      If a1 = a2 Then rEi(UBound(rEi)).art = a1
      End If ' pos > 1 Then
-     If rEi(UBound(rEi)).Art = "" Then rEi(UBound(rEi)).Art = Art
+     If rEi(UBound(rEi)).art = "" Then rEi(UBound(rEi)).art = art
     End If ' art<>""
-    If rEi(UBound(rEi)).Art = "" Then
+    If rEi(UBound(rEi)).art = "" Then
      Set EintS = New SortierEintr
      EintS.TypNr = rsEi!FEintragsart
      Set EintS = EinL.GetItem(EintS)
      If Not EintS Is Nothing Then
-      rEi(UBound(rEi)).Art = EintS.Art
+      rEi(UBound(rEi)).art = EintS.art
      End If
-    
     End If ' rEi(UBound(rEi)).Art = "" Then
     rEi(UBound(rEi)).Inhalt = rsEi!FText
+    If rEi(UBound(rEi)).art = "GEWICHT" And IsNumeric(rEi(UBound(rEi)).Inhalt) Then rEi(UBound(rEi)).Inhalt = rEi(UBound(rEi)).Inhalt & " kg"
     rsEi.MoveNext
    Loop ' while not rsEi.EOF
   End If ' Not rsEi.BOF Then
 
+' Diagnosen
   Dim rsDi As New ADODB.Recordset
 'myFrag rsFa, "SELECT f.fsurogat nix, COALESCE(CONVERT(f.FMemo USING latin1),'') Fm,CONCAT(f.fpatnr,', ',18900101 + INTERVAL f.fvon DAY,' - ',18900101 + INTERVAL f.fbis DAY) ueschr, f.*,a.FBezeichnung, le.FNachname FROM patfall f LEFT JOIN abrechner a ON f.FArztnr=a.FSurogat LEFT JOIN lstgerb le USING (FLstgerbnr) WHERE fpatnr=" & pNr & " ORDER BY FVon DESC", adOpenStatic, MOCon, adLockReadOnly
   sql = "WITH sel AS (SELECT fbehgrundnr from ltag WHERE fpatnr=" & pNr & " AND fbehgrundnr>0) " & _

@@ -629,7 +629,7 @@ Public Function mplan(pid&)
    Do While Not rTh.EOF
     mdpl(ru).m.ab = rTh!ab
     mdpl(ru).m.absPos = rTh!absPos
-    mdpl(ru).m.AktZeit = rTh!AktZeit
+    mdpl(ru).m.aktZeit = rTh!aktZeit
     mdpl(ru).m.bBed = rTh!bBed
     mdpl(ru).m.Bemerkung = rTh!Bemerkung
     mdpl(ru).m.Datum = rTh!Datum
@@ -879,6 +879,7 @@ Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "Last
 End Select
 End Function ' UKPDS
 
+' aufgerufen in dodoPLZ
 Function pruefICD%(ICDs)
  Dim i%, j%
  If SafeArrayGetDim(ICD) <> 0 Then
@@ -1991,7 +1992,9 @@ keinuzu:
   If rs(Tailli).State = 0 Then rs(Tailli).Close: rs(Tailli).Open
   If Not rs(Tailli).BOF Then Taille = MachNumerisch(rs(Tailli).Fields(1)): obTaille = True
   If obTG And TG <> 0 And obTaille And üdt.bmi <> 0 And obGGT Then
-   FLI = Round((Exp(0.953 * Log(TG) + 0.139 * üdt.bmi + 0.718 * Log(GGT) + 0.053 * Taille - 15.745) / (1 + Exp(0.953 * Log(TG) + 0.139 * üdt.bmi + 0.718 * Log(GGT) + 0.053 * Taille - 15.745))) * 100)
+   If GGT <> 0 Then
+    FLI = Round((Exp(0.953 * Log(TG) + 0.139 * üdt.bmi + 0.718 * Log(GGT) + 0.053 * Taille - 15.745) / (1 + Exp(0.953 * Log(TG) + 0.139 * üdt.bmi + 0.718 * Log(GGT) + 0.053 * Taille - 15.745))) * 100)
+   End If ' GGT
   End If ' obTG And obTaille And üdt.bmi <> 0 And obGGT Then
   If obGPT And obGOT And obTHR Then
    FIB4 = Round(PAlter * GOT / Thr / Sqr(GPT), 2)

@@ -401,7 +401,16 @@ Public Sub BDTAend_Change()
 End Sub ' BDTAend_Change
 
 Private Sub BDTaussuchen_Click()
-  Call BDTDateiDialog
+ Call BDTDateiDialog
+ If FSO.FileExists(Me.BDTDatei) Then
+  Dim gesb# ' ab 21.2.18 Grenze von long überschritten!
+  gesb = FSO.GetFile(Me.BDTDatei).size
+  If gesb > 15000000 Then
+   Me.obVglMitLetzterEinlesung = 1
+  Else
+   Me.obVglMitLetzterEinlesung = 0
+  End If
+ End If ' FSO.FileExists(Me.BDTDatei) Then
 End Sub ' BDTaussuchen_Click
 
 Private Sub BDTaussuchen_KeyDown(KeyCode%, Shift%)
@@ -457,17 +466,17 @@ Private Sub Form_Activate()
  If Me.BDTDatei = vNS Then
   Me.BDTDatei = getLDatei(hlese.dlg.lBDTDatei, "*.bdt")
  End If
+ Me.LaborDirektEinlesen = 0
+ Me.LaborQuerVerb = 0
  If FSO.FileExists(Me.BDTDatei) Then
   Dim gesb# ' ab 21.2.18 Grenze von long überschritten!
   gesb = FSO.GetFile(Me.BDTDatei).size
-  If gesb > 500000000 Then
-   Me.LaborDirektEinlesen = 1
-   Me.LaborQuerVerb = 1
+  If gesb > 15000000 Then ' 1.6.24
+   Me.obVglMitLetzterEinlesung = 1
   Else
-   Me.LaborDirektEinlesen = 0
-   Me.LaborQuerVerb = 0
+   Me.obVglMitLetzterEinlesung = 0
   End If
- End If
+ End If ' FSO.FileExists(Me.BDTDatei) Then
 '   Me.BDTDatei = getLDatei(Me.BDTDatei, "*.bdt")
 '    Me.BDTAend = FSO.GetFile(Me.BDTDatei).DateLastModified
 End Sub ' Form_Activate
@@ -482,11 +491,6 @@ Private Sub Form_GotFocus()
 ''    dlg.BDTDatei = getLDatei(dlg.BDTDatei, "*.bdt")
 ''     Me.BDTAend = FSO.GetFile(Me.BDTDatei).DateLastModified
 End Sub ' Form_GotFocus
-
-Private Sub Form_Initialize()
-'
- 
-End Sub ' Form_Initialize
 
 Private Sub komprimieren_Click()
  If Me.Visible Then Screen.MousePointer = vbHourglass
@@ -626,7 +630,7 @@ Public Function FrmLEinlesung()
    Call acon(quelleT)
    If lies.obMySQL Then Call myEFrag("USE " & hlese.MyDB)
  End If
- Me.obVglMitLetzterEinlesung = 1
+' Me.obVglMitLetzterEinlesung = 1 ' auskommentiert 1.6.24
 ' Me.obVglMitLetzterEinlesung.Enabled = False ' auskommentiert 13.5.23
 ' catx.ActiveConnection = ConStr
 ' zl = catx.Tables("eintragszahlen").Columns("dateiaend").Properties.Count
@@ -700,10 +704,6 @@ End Function ' FrmEinlesung
 
 Private Sub EmdateiBez_Click()
 End Sub ' EmdateiBez_Click()
-
-Private Sub Form_Terminate()
-'
-End Sub ' Form_Terminate
 
 Private Sub Form_Unload(Cancel%)
  hlese.Visible = True
