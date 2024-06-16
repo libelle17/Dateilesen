@@ -433,7 +433,7 @@ Public Function stzd#(s$)
  stzd = (1 + (Asc(Mid$(s, 7, 1)) Mod 16) / 16 + Asc(Mid$(s, 6, 1)) / 4096 + Asc(Mid$(s, 5, 1)) / 2 ^ 20 + Asc(Mid$(s, 4, 1)) / 2 ^ 28 + Asc(Mid$(s, 3, 1)) / 2 ^ 36 + Asc(Mid$(s, 2, 1)) / 2 ^ 44 + Asc(Mid$(s, 1, 1)) / 2 ^ 52) * 2 ^ (Int(Asc(Mid$(s, 7, 1)) / 16) + 1 + 16 * (Asc(Mid$(s, 8, 1)) - 64))
 End Function ' stzd
 
-' String zu Kalender; Formel experimentell ermittelt über Datei
+' String zu Datum ("Kalender"); Formel experimentell ermittelt über Datei
 Public Function stzk(s$) As Date
  stzk = CDate(CStr(Asc(Mid$(s, 4))) & "." & CStr(Asc(Mid$(s, 3))) & "." & CStr(256 * Asc(Mid(s, 2)) + Asc(Mid(s, 1))))
 End Function ' stzk
@@ -1016,26 +1016,38 @@ Public Function doPatvonMO(pNr&)
 '                2017: Diagnosen
 '  sql = "SELECT 18900101+INTERVAL FDatum DAY+INTERVAL FZeit SECOND Zp, FICdcode Art, MID(fdetails,INSTR(fdetails,'ext ""')+5,LENGTH(fdetails)-2-INSTR(fdetails,'ext ""')-5) FText, FEintragsart, f.* FROM ltag f WHERE fpatnr = " & pNr & " AND ((FEintragsart=5 and FStatus=0) OR FEintragsart IN (8,10,11,151,1001,1002,1003,1004,1006)) AND fbehgrundnr<=0"
 ' Medplan
-  sql = "SELECT 18900101+INTERVAL FDatum DAY+INTERVAL FZeit SECOND Zp, l.*, m.*, COALESCE(CONVERT(m.FMemo USING latin1),'') Fm FROM ltag l LEFT JOIN meddosis m ON l.FText='Dosierplan' AND l.FSurogat=m.FDosierplannr WHERE l.fpatnr=69333 AND NOT ISNULL(m.FSurogat) ORDER BY l.FSurogat, FDosierplanpos"
+  sql = "SELECT 18900101+INTERVAL FDatum DAY+INTERVAL FZeit SECOND Zp, l.*, m.*, COALESCE(CONVERT(m.FMemo USING latin1),'') Fm FROM ltag l LEFT JOIN meddosis m ON l.FText='Dosierplan' AND l.FSurogat=m.FDosierplannr WHERE l.fpatnr=69333 AND NOT ISNULL(m.FSurogat) AND FVerbindungsschluessel<>'#ZWTEXT#' ORDER BY l.FSurogat, FDosierplanpos"
   myFrag rsEi, sql, adOpenStatic, MOCon
   If Not rsEi.BOF Then
-   Dim MPNr&, altlFSur&
+   Dim MPNr&, Fldnr%, altlFSur&
    Do While Not rsEi.EOF
-    If altlFSur <> rsEi!FDosierplannr Then MPNr = MPNr + 1
+    If altlFSur <> rsEi!FDosierplannr Then MPNr = MPNr + 1: Fldnr = 1 Else Fldnr = Fldnr + 1
     ReDim Preserve rMe(UBound(rMe) + 1)
     rMe(UBound(rMe)).Pat_id = pid
     rMe(UBound(rMe)).aktZeit = aktZeit
     rMe(UBound(rMe)).Zeitpunkt = rsEi!Zp
+    rMe(UBound(rMe)).Datum = rsEi!Zp
     rMe(UBound(rMe)).MPNr = MPNr
-    rMe(UBound(rMe)).Medikament = rsEi!FMedikamentname
+    rMe(UBound(rMe)).FeldNr = Fldnr
+    If rsEi!FVerbindungsschluessel <> "#TEXT#" Or rsEi!fhinweise <> "" Then rMe(UBound(rMe)).Medikament = rsEi!FMedikamentname Else rMe(UBound(rMe)).Bemerkung = rsEi!FMedikamentname
+    If rsEi!fhinweise <> "" Then rMe(UBound(rMe)).Bemerkung = rsEi!fhinweise
     rMe(UBound(rMe)).Wirkstoff = rsEi!FWirkstoff
     If rsEi!FPzn > 0 Then rMe(UBound(rMe)).PZN = rsEi!FPzn
-    rMe(UBound(rMe)).Bemerkung = rsEi!FHinweise
     rMe(UBound(rMe)).Grund = rsEi!FGrund
     rMe(UBound(rMe)).Wirkstoff = rsEi!FWirkstoff
     altlFSur = rsEi!FDosierplannr
     If rsEi!fm <> "" Then
      Call ParseMemo(rsEi!fm, FMem(), obDebug, "FMemo aus meddosis")
+     For j = 0 To UBound(FMem)
+      Select Case FMem(j).ENr
+       Case "4": rMe(UBound(rMe)).mo = FMem(j).Text
+       Case "5": rMe(UBound(rMe)).mi = FMem(j).Text
+       Case "6": rMe(UBound(rMe)).nm = FMem(j).Text
+       Case "7": rMe(UBound(rMe)).ab = FMem(j).Text
+       Case "8": rMe(UBound(rMe)).Zn = FMem(j).Text
+       Case "12": rMe(UBound(rMe)).Datum = stzk(FMem(j).Text)
+      End Select
+     Next j
     End If
     rsEi.MoveNext
    Loop ' while not rsEi.EOF
@@ -1993,4 +2005,107 @@ DELETE FROM tmpmAbl WHERE enr<>'0' AND EXISTS (SELECT 0 FROM tmpmAbl i WHERE INS
    FROM tmpmAbl ORDER BY znr;
 End
 
+
+
+CREATE DEFINER=`medoff`@`%` PROCEDURE `procmallg`(
+    IN `tab` VARCHAR(50),
+    IN `fld` VARCHAR(50),
+    IN `pnr` INT
+)
+Language sql
+NOT DETERMINISTIC
+CONTAINS sql
+SQL SECURITY DEFINER
+Comment 'liest Memofeld <fld> aus <tab> in die Tabelle tmpm<tab> aus'
+Begin
+ DECLARE sq LONGTEXT DEFAULT CONCAT("SELECT COLUMN_NAME,TABLE_NAME INTO @sp,@tb FROM information_schema.columns "
+     "WHERE table_catalog='def' AND table_schema='medoff' AND TABLE_NAME ='", tab, "' AND COLUMN_NAME='",fld,"'");
+ SET @sp=NULL;
+ PREPARE smt FROM sq; EXECUTE smt; DEALLOCATE PREPARE smt;
+ IF @sp IS NOT NULL THEN
+   SET sq=CONCAT("CREATE OR REPLACE DEFINER=`medoff`@`%` PROCEDURE `procm",@tb,"`(IN `pnr` INT) LANGUAGE SQL NOT DETERMINISTIC CONTAINS SQL SQL SECURITY DEFINER ", CHR(10),
+   "COMMENT 'liest das Feld ",@sp," aus ",@tb," in die Tabelle tmpm",@tb," aus'", CHR(10),
+   "tp: Begin", CHR(10),
+   "DECLARE gl,pos,MAX,aktmax,altmax,tlen,ie,altie INT(10) DEFAULT 0;", CHR(10),
+   "DECLARE obdruck INT(1);", CHR(10),
+   "DECLARE txt VARCHAR(1024);", CHR(10),
+   "-- START TRANSACTION;", CHR(10),
+   "CREATE TABLE IF NOT EXISTS tmpm",@tb," (", CHR(10),
+   "    patnr INT(11) UNSIGNED NOT null,", CHR(10),
+   "    fsur INT(11) UNSIGNED NOT NULL,", CHR(10),
+   "    znr INT(2) UNSIGNED DEFAULT '0',", CHR(10),
+   "    MX INT(3) UNSIGNED DEFAULT '0',", CHR(10),
+   "    ebn INT(2) DEFAULT '0',", CHR(10),
+   "    enr VARCHAR(128) DEFAULT '',", CHR(10),
+   "    TEXT text DEFAULT '',", CHR(10),
+   "    PRIMARY KEY Zugriff(patnr,fsur,znr),", CHR(10),
+   "    Key zuloe(PatNr, fsur, enr)", CHR(10),
+   ");", CHR(10),
+   "DELETE FROM tmpm",@tb," WHERE pnr=0 OR patnr=pnr;", CHR(10),
+   "CREATE TEMPORARY TABLE IF NOT EXISTS tmpeb(nr INT(2) PRIMARY KEY,wert INT(2)); -- temporäre Ebenentabelle", CHR(10),
+   "laba: FOR r IN (SELECT fsurogat fsur, fpatnr, ",@sp," FROM ",@tb," WHERE (pnr=0 OR fpatnr=pnr) AND ",@sp," IS NOT NULL) DO", CHR(10),
+   " SET pos=1;", CHR(10),
+   " SET ie=0;", CHR(10),
+   " TRUNCATE tmpeb;", CHR(10),
+   "labt:  LOOP", CHR(10),
+   "  SET obdruck=0;", CHR(10),
+   "  SET tlen=CONV(HEX(CONCAT(MID(r.",@sp,",pos+1,1),MID(r.",@sp,",pos,1))),16,10);", CHR(10),
+   "  IF pos=1 THEN SET gl=tlen; SET MAX=gl; END IF;", CHR(10),
+   "  SET altmax=MAX;", CHR(10),
+   "  SET aktMAX=tlen+pos+1; -- aktuell angegebene Länge aus dem und dem nä Byte", CHR(10),
+   "  IF aktmax BETWEEN 0 AND gl+2 AND -- wenn die angegebene Länge vertretbar", CHR(10),
+   "    (( CONV(HEX(MID(r.",@sp,",aktMax,1)),16,10)=0 AND -- und an der letzten Stelle 0 steht (dann könnte es eine Länge sein), da es hier aber Ausnahmen gibt, wurde re>Max davon ausgenommen", CHR(10),
+   "     aktmax<=MAX) OR pos>MAX) THEN -- wenn die akt.Länge nicht über die Vorbestehende hinausreicht oder d.vorbest.schon überschritten wurde", CHR(10),
+   "    SET altie=ie; -- letzte Ebene", CHR(10),
+   "    IF aktmax<=MAX THEN SET ie=ie+1; END IF; -- im ersten Fall wird die Ebene erhöht", CHR(10),
+   "    IF pos>MAX THEN -- im zweiten Fall wird zurückgegriffen", CHR(10),
+   "     SELECT COALESCE(MAX(ebn),0)+1 INTO ie FROM tmpm",@tb," WHERE patnr=r.fpatnr and fsur=r.fsur AND mx>=aktMAX AND znr=(SELECT MAX(znr) FROM tmpm",@tb," WHERE patnr=r.fpatnr and fsur=r.fsur AND mx>=aktMAX);", CHR(10),
+   "     END IF;", CHR(10),
+   "    IF ie<=altie THEN -- wenn die Ebene nicht erhöht worden ist", CHR(10),
+   "     IF ie<altie THEN -- wenn sie vielmehr reduziert wurde", CHR(10),
+   "      DELETE FROM tmpeb WHERE nr>ie; -- dann werden die höheren Einträge wieder gelöscht", CHR(10),
+   "     END IF;", CHR(10),
+   "     UPDATE tmpeb SET wert=wert+1 WHERE nr=ie; -- dann wird die Zählung der akt. Ebene erhöht", CHR(10),
+   "    ELSE", CHR(10),
+   "     INSERT INTO tmpeb(nr,wert) VALUES(ie,1); -- sonst muss ein neuer Eintrag für die hohe Ebene erstellt werden", CHR(10),
+   "    END IF;", CHR(10),
+   "    SET MAX=aktmax; -- neue vorbestehende Länge", CHR(10),
+   "    SET obdruck=1; -- und drucken", CHR(10),
+   "  END IF;", CHR(10),
+   "  IF obdruck=1", CHR(10),
+   "--   OR pos=1 -- zum Debuggen der ersten Gesamt-Zeile", CHR(10),
+   "--   OR TRUE -- zum Debuggen aller Zeilen", CHR(10),
+   "   THEN", CHR(10),
+   "    SET txt=MID(r.",@sp,",pos+2,tlen);", CHR(10),
+   "    IF txt <> Repeat(Chr(0), tlen) THEN", CHR(10),
+   "     INSERT INTO tmpm",@tb,"(patnr,fsur,znr,mx,ebn,enr,TEXT) VALUES(r.fpatnr,r.fsur,pos,max,ie,", CHR(10),
+   "       (SELECT GROUP_CONCAT(wert ORDER BY nr SEPARATOR '.') FROM tmpeb),", CHR(10),
+   "--    CONCAT(MID(r.",@sp,",pos,1),'|',HEX(MID(r.",@sp,",pos,1)),'|',CONV(HEX(MID(r.",@sp,",pos,1)),16,10),'|',CONV(HEX(CONCAT(MID(r.",@sp,",pos+1,1),MID(r.",@sp,",pos,1))),16,10),'|','aktMax:',aktmax, '|','Max:',altMAX,'|','Laenge: ',LENGTH(txt),'|','Endbyte:',COALESCE(CONV(HEX(MID(r.",@sp,",aktMax,1)),16,10),'-'),", CHR(10),
+   "--     CONCAT(IF(obdruck<>1,'- ',''),'""',", CHR(10),
+   "      txt", CHR(10),
+   "--    ,'""'))", CHR(10),
+   "       );", CHR(10),
+   "     ELSE SET pos=pos+tlen; -- 0-Strings nicht auffieseln", CHR(10),
+   "     END IF;", CHR(10),
+   "  END IF; -- obdruck=1", CHR(10),
+   "  SET pos=pos+1;", CHR(10),
+   "  IF pos>=gl THEN LEAVE labt; END IF;", CHR(10),
+   " END LOOP labt;", CHR(10),
+   "END FOR laba;", CHR(10),
+   " -- folende Zeile zum Debuggen auskommentieren (in der Schleife laba ist das deutlich langsamer!)", CHR(10),
+   "DELETE FROM tmpm",@tb," WHERE (pnr=0 OR patnr=pnr) AND enr<>'0' AND EXISTS (SELECT 0 FROM tmpm",@tb," i WHERE i.patnr=tmpm",@tb,".patnr AND i.fsur=tmpm",@tb,".fsur AND INSTR(i.enr,CONCAT(tmpm",@tb,".enr,'.'))=1 AND i.enr<>tmpm",@tb,".enr);", CHR(10),
+   "-- folgende Variante bringt, aus der Prozedur aufgerufen, mariadb zum Absturz:", CHR(10),
+   "-- DELETE a FROM tmpm",@tb," a LEFT JOIN (SELECT LEAD(enr) OVER(PARTITION BY patnr,fsur ORDER BY znr) nenr, patnr,fsur,znr FROM tmpm",@tb,") i USING (patnr,fsur,znr) WHERE INSTR(i.nenr,a.enr)=1 AND i.nenr<>a.enr;", CHR(10),
+   "-- COMMIT;", CHR(10),
+   "-- LEAVE tp;", CHR(10),
+   " SELECT PatNr, FSur, znr, Mx, Ebn, ENr, TEXT, ASCII(TEXT)b1, ASCII(MID(TEXT,2))b2, ASCII(MID(TEXT,3))b3, ASCII(MID(TEXT,4))b4,", CHR(10),
+   "  CONCAT(ASCII(MID(TEXT,4,1)),'.',ASCII(MID(TEXT,3,1)),'.',ASCII(MID(TEXT,2,1))*256+ASCII(TEXT)) Datum", CHR(10),
+   "   FROM tmpm",@tb," WHERE pnr=0 OR patnr=pnr ORDER BY fsur DESC,znr;", CHR(10),
+   "END"
+    );
+  PREPARE smt FROM sq; EXECUTE smt; DEALLOCATE PREPARE smt;
+  SET sq=CONCAT("CALL procm",@tb,"(",pnr,")");
+  PREPARE smt FROM sq; EXECUTE smt; DEALLOCATE PREPARE smt;
+ END IF;
+End
 #End If

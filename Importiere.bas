@@ -4567,6 +4567,7 @@ Function alleSpeichern(frm As Lese, Optional vonMo%)
  Call ForeignYes1
 #End If
  Dim medi As MediCl
+ If medSL Is Nothing Then Set medSL = New SortierListe ' ergänzt 16.6.24
  For i = 1 To UBound(rMe)
   Set medi = New MediCl
   medi.Med = GetMed(rMe(i).Medikament, 0)
