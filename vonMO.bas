@@ -441,7 +441,7 @@ End Function ' stzk
 ' zum Aufruf im Direktfenster
 Public Function zeigmosystem(Optional obszn4%)
  Const obDebug% = True
- Dim Kat() As memoType, tKat() As memoType, Abl() As memoType, fAuft() As memoType, fMem() As memoType
+ Dim Kat() As memoType, tKat() As memoType, Abl() As memoType, fAuft() As memoType, FMem() As memoType
  Dim rsMo As New ADODB.Recordset
  Dim MOCon As New ADODB.Connection
  Dim j&
@@ -468,22 +468,22 @@ Public Function zeigmosystem(Optional obszn4%)
    Call ParseMemo(rsMo!fAuf, fAuft(), obDebug, "FMemo von fAuftragstypenliste aus mosystem")
   End If
   If rsMo!fm <> "" Then
-   Call ParseMemo(rsMo!fm, fMem(), obDebug, "FMemo von fMemo aus mosystem")
-   For j = 0 To UBound(fMem)
-    If fMem(j).ENr Like "*.2" And fMem(j).ENr <> "1.2" Then
+   Call ParseMemo(rsMo!fm, FMem(), obDebug, "FMemo von fMemo aus mosystem")
+   For j = 0 To UBound(FMem)
+    If FMem(j).ENr Like "*.2" And FMem(j).ENr <> "1.2" Then
      Set EintS = New SortierEintr
-     EintS.TypNr = Asc(fMem(j).Text)
-     If Len(fMem(j).Text) > 1 Then
-      EintS.TypNr = EintS.TypNr + Fakt * Asc(Mid(fMem(j).Text, 2))
+     EintS.TypNr = Asc(FMem(j).Text)
+     If Len(FMem(j).Text) > 1 Then
+      EintS.TypNr = EintS.TypNr + Fakt * Asc(Mid(FMem(j).Text, 2))
      End If
-    ElseIf fMem(j).ENr Like "*.3" And fMem(j).ENr <> "1.3" Then
-     EintS.art = fMem(j).Text
-    ElseIf fMem(j).ENr Like "*.5" And fMem(j).ENr <> "1.5" Then
-     EintS.EKür = fMem(j).Text
-    ElseIf fMem(j).ENr Like "*.8" And fMem(j).ENr <> "1.8" Then
-     EintS.name = fMem(j).Text
-    ElseIf fMem(j).ENr Like "*.10" And fMem(j).ENr <> "1.10" Then
-     EintS.Kürz = fMem(j).Text
+    ElseIf FMem(j).ENr Like "*.3" And FMem(j).ENr <> "1.3" Then
+     EintS.art = FMem(j).Text
+    ElseIf FMem(j).ENr Like "*.5" And FMem(j).ENr <> "1.5" Then
+     EintS.EKür = FMem(j).Text
+    ElseIf FMem(j).ENr Like "*.8" And FMem(j).ENr <> "1.8" Then
+     EintS.name = FMem(j).Text
+    ElseIf FMem(j).ENr Like "*.10" And FMem(j).ENr <> "1.10" Then
+     EintS.Kürz = FMem(j).Text
      EinL.sCAdd EintS
     End If
    Next j
@@ -503,11 +503,11 @@ End Function ' zeigmosystem()
 Public Function doPatvonMO(pNr&)
  Const obDebug% = True, obszn4% = False
  Dim pid&, pos&, SchGr%, j&, jj%, rAf&, aktZeit As Date
- pNr& = 68316 ' 65405 ' 45 ' 64659 ' 45 ' 69367 ' 69377 ' 53119 ' 51630 ' 105 ' 18 ' 246 ' 59152 ' 1394 ' 2112 ' 151 ' 225 '
+ pNr& = 69333 ' 68316 ' 65405 ' 45 ' 64659 ' 45 ' 69367 ' 69377 ' 53119 ' 51630 ' 105 ' 18 ' 246 ' 59152 ' 1394 ' 2112 ' 151 ' 225 '
  pid = pNr + 100000
  Static lfdfl&
  Dim rsNa As New ADODB.Recordset, rsFa As New ADODB.Recordset, rsMo As New ADODB.Recordset
- Dim fMem() As memoType ', Kat() As memoType, tKat() As memoType, Abl() As memoType, fAuft() As memoType
+ Dim FMem() As memoType ', Kat() As memoType, tKat() As memoType, Abl() As memoType, fAuft() As memoType
  Dim NaStr() As memoType, FaStr() As memoType, rsfaru%
  Dim EintS As SortierEintr
  Dim EinL As New SortierListe
@@ -528,22 +528,22 @@ Public Function doPatvonMO(pNr&)
  rsMo.Open sql, MOCon, adOpenStatic, adLockReadOnly
  If Not rsMo.BOF Then
   If rsMo!fm <> "" Then
-   Call ParseMemo(rsMo!fm, fMem(), obDebug, "FMemo von fMemo aus mosystem")
-   For j = 0 To UBound(fMem)
-    If fMem(j).ENr Like "*.2" And fMem(j).ENr <> "1.2" Then
+   Call ParseMemo(rsMo!fm, FMem(), obDebug, "FMemo von fMemo aus mosystem")
+   For j = 0 To UBound(FMem)
+    If FMem(j).ENr Like "*.2" And FMem(j).ENr <> "1.2" Then
      Set EintS = New SortierEintr
-     EintS.TypNr = Asc(fMem(j).Text)
-     If Len(fMem(j).Text) > 1 Then
-      EintS.TypNr = EintS.TypNr + Fakt * Asc(Mid(fMem(j).Text, 2))
+     EintS.TypNr = Asc(FMem(j).Text)
+     If Len(FMem(j).Text) > 1 Then
+      EintS.TypNr = EintS.TypNr + Fakt * Asc(Mid(FMem(j).Text, 2))
      End If
-    ElseIf fMem(j).ENr Like "*.3" And fMem(j).ENr <> "1.3" Then
-     EintS.art = fMem(j).Text
-    ElseIf fMem(j).ENr Like "*.5" And fMem(j).ENr <> "1.5" Then
-     EintS.EKür = fMem(j).Text
-    ElseIf fMem(j).ENr Like "*.8" And fMem(j).ENr <> "1.8" Then
-     EintS.name = fMem(j).Text
-    ElseIf fMem(j).ENr Like "*.10" And fMem(j).ENr <> "1.10" Then
-     EintS.Kürz = fMem(j).Text
+    ElseIf FMem(j).ENr Like "*.3" And FMem(j).ENr <> "1.3" Then
+     EintS.art = FMem(j).Text
+    ElseIf FMem(j).ENr Like "*.5" And FMem(j).ENr <> "1.5" Then
+     EintS.EKür = FMem(j).Text
+    ElseIf FMem(j).ENr Like "*.8" And FMem(j).ENr <> "1.8" Then
+     EintS.name = FMem(j).Text
+    ElseIf FMem(j).ENr Like "*.10" And FMem(j).ENr <> "1.10" Then
+     EintS.Kürz = FMem(j).Text
      EinL.sCAdd EintS
     End If
    Next j
@@ -989,7 +989,7 @@ Public Function doPatvonMO(pNr&)
   myFrag rAbr, "SELECT FSurogat,FBetriebsnr FROM abrechner", adOpenStatic, MOCon ' AU
   Do While Not rAbr.EOF
    If SafeArrayGetDim(rab) = 0 Then ReDim rab(0) Else ReDim Preserve rab(UBound(rab) + 1)
-    rab(UBound(rab)).fS = rAbr!fsurogat
+    rab(UBound(rab)).fS = rAbr!FSurogat
     rab(UBound(rab)).BSNR = rAbr!FBetriebsnr
    rAbr.MoveNext
   Loop
@@ -1015,6 +1015,32 @@ Public Function doPatvonMO(pNr&)
 '                1005: Desktop-Notizen, 1006: Einträge
 '                2017: Diagnosen
 '  sql = "SELECT 18900101+INTERVAL FDatum DAY+INTERVAL FZeit SECOND Zp, FICdcode Art, MID(fdetails,INSTR(fdetails,'ext ""')+5,LENGTH(fdetails)-2-INSTR(fdetails,'ext ""')-5) FText, FEintragsart, f.* FROM ltag f WHERE fpatnr = " & pNr & " AND ((FEintragsart=5 and FStatus=0) OR FEintragsart IN (8,10,11,151,1001,1002,1003,1004,1006)) AND fbehgrundnr<=0"
+' Medplan
+  sql = "SELECT 18900101+INTERVAL FDatum DAY+INTERVAL FZeit SECOND Zp, l.*, m.*, COALESCE(CONVERT(m.FMemo USING latin1),'') Fm FROM ltag l LEFT JOIN meddosis m ON l.FText='Dosierplan' AND l.FSurogat=m.FDosierplannr WHERE l.fpatnr=69333 AND NOT ISNULL(m.FSurogat) ORDER BY l.FSurogat, FDosierplanpos"
+  myFrag rsEi, sql, adOpenStatic, MOCon
+  If Not rsEi.BOF Then
+   Dim MPNr&, altlFSur&
+   Do While Not rsEi.EOF
+    If altlFSur <> rsEi!FDosierplannr Then MPNr = MPNr + 1
+    ReDim Preserve rMe(UBound(rMe) + 1)
+    rMe(UBound(rMe)).Pat_id = pid
+    rMe(UBound(rMe)).aktZeit = aktZeit
+    rMe(UBound(rMe)).Zeitpunkt = rsEi!Zp
+    rMe(UBound(rMe)).MPNr = MPNr
+    rMe(UBound(rMe)).Medikament = rsEi!FMedikamentname
+    rMe(UBound(rMe)).Wirkstoff = rsEi!FWirkstoff
+    If rsEi!FPzn > 0 Then rMe(UBound(rMe)).PZN = rsEi!FPzn
+    rMe(UBound(rMe)).Bemerkung = rsEi!FHinweise
+    rMe(UBound(rMe)).Grund = rsEi!FGrund
+    rMe(UBound(rMe)).Wirkstoff = rsEi!FWirkstoff
+    altlFSur = rsEi!FDosierplannr
+    If rsEi!fm <> "" Then
+     Call ParseMemo(rsEi!fm, FMem(), obDebug, "FMemo aus meddosis")
+    End If
+    rsEi.MoveNext
+   Loop ' while not rsEi.EOF
+  End If ' Not rsEi.BOF Then
+
 '  Leistungen
   sql = "SELECT 18900101+INTERVAL FDatum DAY+INTERVAL FZeit SECOND Zp, MID(18900101+INTERVAL FDatum DAY+INTERVAL FZeit SECOND,12,5) uhrz, FICdcode Art," & _
   "COALESCE(REPLACE(MID(fdetails,INSTR(fdetails,'ext ""')+5,LENGTH(fdetails)-2-INSTR(fdetails,'ext ""')-5),'\n','; '),FText) FText," & _
