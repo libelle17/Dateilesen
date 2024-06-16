@@ -503,7 +503,7 @@ End Function ' zeigmosystem()
 Public Function doPatvonMO(pNr&)
  Const obDebug% = True, obszn4% = False
  Dim pid&, pos&, SchGr%, j&, jj%, rAf&, aktZeit As Date
- pNr& = 69333 ' 68316 ' 65405 ' 45 ' 64659 ' 45 ' 69367 ' 69377 ' 53119 ' 51630 ' 105 ' 18 ' 246 ' 59152 ' 1394 ' 2112 ' 151 ' 225 '
+ pNr& = 64800 ' 69333 ' 68316 ' 65405 ' 45 ' 64659 ' 45 ' 69367 ' 69377 ' 53119 ' 51630 ' 105 ' 18 ' 246 ' 59152 ' 1394 ' 2112 ' 151 ' 225 '
  pid = pNr + 100000
  Static lfdfl&
  Dim rsNa As New ADODB.Recordset, rsFa As New ADODB.Recordset, rsMo As New ADODB.Recordset

@@ -1055,7 +1055,7 @@ Function AnReparieren() ' Ergänzt die in den mySQL-Tabellen vermutlich bei der S
 '   Call rsc.Open("SHOW FULL COLUMNS FROM `" & Forms(0).MyDB & "`.`anamnesebogen` WHERE field = '" & rAn.Fields(i).name & "'", dbm, adOpenStatic, adLockReadOnly)
    myFrag rsc, "SHOW FULL COLUMNS FROM `" & Forms(0).MyDB & "`.`anamnesebogen` WHERE field = '" & rAn.Fields(i).name & "'", adOpenStatic, dbm, adLockReadOnly
    syscmd acSysCmdSetStatus, myTable.Columns(rAn.Fields(i).name).Properties("Description")
-   Call myEFrag("ALTER TABLE `" & Forms(0).MyDB & "`.`anamnesebogen` modify COLUMN `" & rAn.Fields(i).name & "` " & rsc!Type & IIf(IsNull(rsc!collation), vNS, " CHARACTER SET utf8mb4 COLLATE " & rsc!collation) & " default " & IIf(IsNull(rsc!Default), " null", rsc!Default) & " comment '" & rsc!Comment & "'", , dbm) 'myTable.Columns(rAn.Fields(i).Name).Properties("Description") & "'")
+   Call myEFrag("ALTER TABLE `" & Forms(0).MyDB & "`.`anamnesebogen` MODIFY COLUMN `" & rAn.Fields(i).name & "` " & rsc!Type & IIf(IsNull(rsc!collation), vNS, " CHARACTER SET utf8mb4 COLLATE " & rsc!collation) & " default " & IIf(IsNull(rsc!Default), " null", rsc!Default) & " comment '" & rsc!Comment & "'", , dbm) 'myTable.Columns(rAn.Fields(i).Name).Properties("Description") & "'")
   Next i
  Next k
 Exit Function

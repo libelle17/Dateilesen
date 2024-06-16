@@ -4880,8 +4880,8 @@ alteMethode:
 '   rFm(i).FeldVW = rsaS!FeldVW
 ' DBCn.Execute "COMMIT"
  Next i
- ComTrans
 nachformulare:
+ ComTrans
  BegTrans
  For i = 1 To UBound(rFm)
   Dim f1 As sFeld, f2 As sFeld

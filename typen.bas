@@ -1857,7 +1857,7 @@ Public FUNCTION rNaDump()
 End FUNCTION ' namenDump
 
 Public FUNCTION namenSpeichern(SammelInsert%, BezfSp%)
- Dim i&, rAF&, Pid$, m%, sfnr%, altmode$ ',sql0$
+ Dim i&, rAF&, Pid$, m%, sfnr%, altmode$, ErrD$, ErrN& ',sql0$
  Dim csql0 As New CString, csql As New CString
  Dim rs As New ADODB.recordset
  T1 = Timer
@@ -1865,7 +1865,7 @@ Public FUNCTION namenSpeichern(SammelInsert%, BezfSp%)
  Pid = rNa(0).Pat_id
  ON Error GoTo fehler
  syscmd 4, pid & ": Speichere " & Ubound(rNa)+1 & " Sätze in `namen`"
-' sql0 = " INSERT " & sqlignore &  "INTO `namen` (Pat_ID,lfdnr,NVorsatz," & _
+' sql0 = " INSERT " & sqlignore & "INTO `namen` (Pat_ID,lfdnr,NVorsatz," & _
      "Nachname,Vorname,GebDat,KarGen,eGKSchVer,Straße,KVKStatus,Hausnr,Geschlecht,Plz," & _
      "Ort,Lkz,Anschrzus,NVors,PFPlz,PFOrt,PFNr,PFWsLC,AnschrZus_2,Postfach_2," & _
      "LK_2,Postfach,Beruf,Weggeldzone,WeggzZahl,AufnDat,kAufDat,LANR,BStNr,Titel," & _
@@ -1874,7 +1874,7 @@ Public FUNCTION namenSpeichern(SammelInsert%, BezfSp%)
      "StByteA,Cave,Notiz,obChk,NZNr,dmpklass,dmpbeg,dmpkhkklass,dmpkhkbeg,dmpcopdklass," & _
      "dmpcopdbeg,dmpabklass,dmpabbeg,dakab,HzV,HzVbeg,DS,DSbeg,getHA0,fnHA0," & _
      "getHA1,fnHA1,getHA2,fnHA2,zubenach,Verwandt,Sprache,lAktTM,Mitarbeiter) VALUES
- Call csql0.AppVar(Array(" INSERT ", sqlIgnore, " INTO `namen` (Pat_ID,lfdnr,NVorsatz," & _
+ Call csql0.AppVar(Array(" INSERT ", sqlIgnore, "INTO `namen` (Pat_ID,lfdnr,NVorsatz," & _
      "Nachname,Vorname,GebDat,KarGen,eGKSchVer,Straße,KVKStatus,Hausnr,Geschlecht,Plz," & _
      "Ort,Lkz,Anschrzus,NVors,PFPlz,PFOrt,PFNr,PFWsLC,AnschrZus_2,Postfach_2," & _
      "LK_2,Postfach,Beruf,Weggeldzone,WeggzZahl,AufnDat,kAufDat,LANR,BStNr,Titel," & _
@@ -1883,12 +1883,12 @@ Public FUNCTION namenSpeichern(SammelInsert%, BezfSp%)
      "StByteA,Cave,Notiz,obChk,NZNr,dmpklass,dmpbeg,dmpkhkklass,dmpkhkbeg,dmpcopdklass," & _
      "dmpcopdbeg,dmpabklass,dmpabbeg,dakab,HzV,HzVbeg,DS,DSbeg,getHA0,fnHA0," & _
      "getHA1,fnHA1,getHA2,fnHA2,zubenach,Verwandt,Sprache,lAktTM,Mitarbeiter)        VALUES"))
-sql:
- csql.m_Len = 0
  IF NOT Allepat THEN
    sql = "DELETE FROM `namen` WHERE Pat_ID = " & CStr(rNa(0).Pat_ID)
    Call myEFrag(sql)
  END IF ' not AllePat
+sql:
+ csql.m_Len = 0
  For i = 0 to ubound(rNa)
 '  rNa(i).AktZeit = now()
   rNa(i).StByte = CStr(AktByte)
@@ -1913,7 +1913,9 @@ sql:
 '   Call DBCn.Execute("SET GLOBAL sql_mode='STRICT_TRANS_TABLES'") ' NO_ENGINE_SUBSTITUTION
     myEFrag "SET GLOBAL sql_mode='STRICT_TRANS_TABLES'", , DBCn ' NO_ENGINE_SUBSTITUTION
 '   Call myEFrag(csql.Value,rAf)', , adAsyncExecute) ' wegen unzureichender Fehlerverarbeitung wieder ausrangiert 19.8.23
-   Call DBCn.Execute(csql.Value, rAF) ', , adAsyncExecute)
+'   Call DBCn.Execute(csql.Value, rAF) ', , adAsyncExecute)
+    InsKorr DBCn, DBCnS, csql.Value, rAf, ErrD, , ErrN
+    If ErrN Then Error ErrN
    csql.clear
    IF obforK THEN
     Call ForeignYes0
@@ -1925,8 +1927,13 @@ sql:
  syscmd 5
  Exit Function
 fehler:
-ErrDescr = Err.Description
-ErrNumber = Err.Number
+If ErrN = 0 Then
+ ErrDescr = Err.Description
+ ErrNumber = Err.Number
+Else ' ErrN = 0 Then
+ ErrDescr = errd
+ ErrNumber = ErrN
+End If ' ErrN = 0 Then else
 syscmd 4, "rNa(" & i & "/" & UBound(rNa) & "):   " & ErrDescr
 sfnr = sfnr + 1
 If sfnr > 10 then 
@@ -2071,7 +2078,7 @@ ElseIf ErrNumber = -2147217833 OR InStrB(ErrDescr, "Daten zu lang") <> 0 OR InSt
  Loop
  Call ForeignNo0
  Call ForeignNo1
- resume
+ resume sql
 ElseIf InStrB(1, ErrDescr, "gone away", vbTextCompare) <> 0 Or InStrB(ErrDescr, "ost connection") <> 0 Then
  DBCnOpen
  Resume
@@ -2861,7 +2868,7 @@ Public FUNCTION rFaDump()
 End FUNCTION ' faelleDump
 
 Public FUNCTION faelleSpeichern(SammelInsert%, BezfSp%)
- Dim i&, rAF&, Pid$, m%, sfnr%, altmode$ ',sql0$
+ Dim i&, rAF&, Pid$, m%, sfnr%, altmode$, ErrD$, ErrN& ',sql0$
 Dim j%
  Dim csql0 As New CString, csql As New CString
  Dim rs As New ADODB.recordset
@@ -2870,7 +2877,7 @@ Dim j%
  Pid = rNa(0).Pat_id
  ON Error GoTo fehler
  syscmd 4, pid & ": Speichere " & Ubound(rFa)+0 & " Sätze in `faelle`"
-' sql0 = " INSERT " & sqlignore &  "INTO `faelle` (Pat_ID,Quartal,Nachname," & _
+' sql0 = " INSERT " & sqlignore & "INTO `faelle` (Pat_ID,Quartal,Nachname," & _
      "Vorname,DtlOnlPfg,ErgbdOnlP,ErrorCode,PrüfZdFd,lfdnr,TMFNr,VKNr,bPerG,DMPKnZ," & _
      "VschBeg,VschEnd,KKasse_2,FaktPers,FaktTechn,FaktLabor,BhFB,BhFE1,BhFE2,UnfFlg," & _
      "ausgst,KtrAbrB,AbrAr,lVorl,KartBes,IK,KVKs,KVKserg,Status,Kasse," & _
@@ -2883,7 +2890,7 @@ Dim j%
      "AktZeit,Fanf,altQuart,QAnf,QEnd,QS,QT,StByte,absPos,LANRid," & _
      "ZnrMLes,BGFallNr,lGewicht,vorET,dmpVertret,dmpArztw,dmpHypos,dmpKhsA,dmpDMSchulEmpf,dmpDMSchulWahrg," & _
      "dmpHypertSchulEmpf,dmpHypertSchulWahrg,dmpKKTabakEmpf,dmpKKErnEmpf,dmpKKkTrainEmpf,dmpHbA1cZiel,dmpUewFuss,dmpEinwDM,dmphalbj,dmpMA) VALUES
- Call csql0.AppVar(Array(" INSERT ", sqlIgnore, " INTO `faelle` (Pat_ID,Quartal,Nachname," & _
+ Call csql0.AppVar(Array(" INSERT ", sqlIgnore, "INTO `faelle` (Pat_ID,Quartal,Nachname," & _
      "Vorname,DtlOnlPfg,ErgbdOnlP,ErrorCode,PrüfZdFd,lfdnr,TMFNr,VKNr,bPerG,DMPKnZ," & _
      "VschBeg,VschEnd,KKasse_2,FaktPers,FaktTechn,FaktLabor,BhFB,BhFE1,BhFE2,UnfFlg," & _
      "ausgst,KtrAbrB,AbrAr,lVorl,KartBes,IK,KVKs,KVKserg,Status,Kasse," & _
@@ -2896,12 +2903,12 @@ Dim j%
      "AktZeit,Fanf,altQuart,QAnf,QEnd,QS,QT,StByte,absPos,LANRid," & _
      "ZnrMLes,BGFallNr,lGewicht,vorET,dmpVertret,dmpArztw,dmpHypos,dmpKhsA,dmpDMSchulEmpf,dmpDMSchulWahrg," & _
      "dmpHypertSchulEmpf,dmpHypertSchulWahrg,dmpKKTabakEmpf,dmpKKErnEmpf,dmpKKkTrainEmpf,dmpHbA1cZiel,dmpUewFuss,dmpEinwDM,dmphalbj,dmpMA)   VALUES"))
-sql:
- csql.m_Len = 0
  IF NOT Allepat THEN
    sql = "DELETE FROM `faelle` WHERE Pat_ID = " & CStr(rNa(0).Pat_ID)
    Call myEFrag(sql)
  END IF ' not AllePat
+sql:
+ csql.m_Len = 0
  For i = 1 to ubound(rFa)
 '  rFa(i).AktZeit = now()
   rFa(i).StByte = CStr(AktByte)
@@ -2933,7 +2940,9 @@ sql:
 '   Call DBCn.Execute("SET GLOBAL sql_mode='STRICT_TRANS_TABLES'") ' NO_ENGINE_SUBSTITUTION
     myEFrag "SET GLOBAL sql_mode='STRICT_TRANS_TABLES'", , DBCn ' NO_ENGINE_SUBSTITUTION
 '   Call myEFrag(csql.Value,rAf)', , adAsyncExecute) ' wegen unzureichender Fehlerverarbeitung wieder ausrangiert 19.8.23
-   Call DBCn.Execute(csql.Value, rAF) ', , adAsyncExecute)
+'   Call DBCn.Execute(csql.Value, rAF) ', , adAsyncExecute)
+    InsKorr DBCn, DBCnS, csql.Value, rAf, ErrD, , ErrN
+    If ErrN Then Error ErrN
    csql.clear
 '   IF Not obFork THEN ForeignYes0
    IF rAF = 0 THEN
@@ -3070,8 +3079,13 @@ sql:
  syscmd 5
  Exit Function
 fehler:
-ErrDescr = Err.Description
-ErrNumber = Err.Number
+If ErrN = 0 Then
+ ErrDescr = Err.Description
+ ErrNumber = Err.Number
+Else ' ErrN = 0 Then
+ ErrDescr = errd
+ ErrNumber = ErrN
+End If ' ErrN = 0 Then else
 syscmd 4, "rFa(" & i & "/" & UBound(rFa) & "):   " & ErrDescr
 sfnr = sfnr + 1
 If sfnr > 10 then 
@@ -3288,7 +3302,7 @@ ElseIf ErrNumber = -2147217833 OR InStrB(ErrDescr, "Daten zu lang") <> 0 OR InSt
  Loop
  Call ForeignNo0
  Call ForeignNo1
- resume
+ resume sql
 ElseIf InStrB(1, ErrDescr, "gone away", vbTextCompare) <> 0 Or InStrB(ErrDescr, "ost connection") <> 0 Then
  DBCnOpen
  Resume
@@ -3457,7 +3471,7 @@ Public FUNCTION rAuDump()
 End FUNCTION ' auDump
 
 Public FUNCTION auSpeichern(SammelInsert%, BezfSp%)
- Dim i&, rAF&, Pid$, m%, sfnr%, altmode$ ',sql0$
+ Dim i&, rAF&, Pid$, m%, sfnr%, altmode$, ErrD$, ErrN& ',sql0$
  Dim csql0 As New CString, csql As New CString
  Dim rs As New ADODB.recordset
  T1 = Timer
@@ -3465,16 +3479,16 @@ Public FUNCTION auSpeichern(SammelInsert%, BezfSp%)
  Pid = rNa(0).Pat_id
  ON Error GoTo fehler
  syscmd 4, pid & ": Speichere " & Ubound(rAu)+0 & " Sätze in `au`"
-' sql0 = " INSERT " & sqlignore &  "INTO `au` (FID,Pat_ID,ZeitPunkt," & _
+' sql0 = " INSERT " & sqlignore & "INTO `au` (FID,Pat_ID,ZeitPunkt," & _
      "Ersteller,Änderer,Art,Beginn,Ende,ICDs,absPos,AktZeit,StByte) VALUES
- Call csql0.AppVar(Array(" INSERT ", sqlIgnore, " INTO `au` (FID,Pat_ID,ZeitPunkt," & _
+ Call csql0.AppVar(Array(" INSERT ", sqlIgnore, "INTO `au` (FID,Pat_ID,ZeitPunkt," & _
      "Ersteller,Änderer,Art,Beginn,Ende,ICDs,absPos,AktZeit,StByte)    VALUES"))
-sql:
- csql.m_Len = 0
  IF NOT Allepat THEN
    sql = "DELETE FROM `au` WHERE Pat_ID = " & CStr(rNa(0).Pat_ID)
    Call myEFrag(sql)
  END IF ' not AllePat
+sql:
+ csql.m_Len = 0
  For i = 1 to ubound(rAu)
 '  rAu(i).AktZeit = now()
   rAu(i).StByte = CStr(AktByte)
@@ -3490,7 +3504,9 @@ sql:
 '   Call DBCn.Execute("SET GLOBAL sql_mode='STRICT_TRANS_TABLES'") ' NO_ENGINE_SUBSTITUTION
     myEFrag "SET GLOBAL sql_mode='STRICT_TRANS_TABLES'", , DBCn ' NO_ENGINE_SUBSTITUTION
 '   Call myEFrag(csql.Value,rAf)', , adAsyncExecute) ' wegen unzureichender Fehlerverarbeitung wieder ausrangiert 19.8.23
-   Call DBCn.Execute(csql.Value, rAF) ', , adAsyncExecute)
+'   Call DBCn.Execute(csql.Value, rAF) ', , adAsyncExecute)
+    InsKorr DBCn, DBCnS, csql.Value, rAf, ErrD, , ErrN
+    If ErrN Then Error ErrN
    csql.clear
    IF obforK THEN
     Call ForeignYes0
@@ -3502,8 +3518,13 @@ sql:
  syscmd 5
  Exit Function
 fehler:
-ErrDescr = Err.Description
-ErrNumber = Err.Number
+If ErrN = 0 Then
+ ErrDescr = Err.Description
+ ErrNumber = Err.Number
+Else ' ErrN = 0 Then
+ ErrDescr = errd
+ ErrNumber = ErrN
+End If ' ErrN = 0 Then else
 syscmd 4, "rAu(" & i & "/" & UBound(rAu) & "):   " & ErrDescr
 sfnr = sfnr + 1
 If sfnr > 10 then 
@@ -3562,7 +3583,7 @@ ElseIf ErrNumber = -2147217833 OR InStrB(ErrDescr, "Daten zu lang") <> 0 OR InSt
  Loop
  Call ForeignNo0
  Call ForeignNo1
- resume
+ resume sql
 ElseIf InStrB(1, ErrDescr, "gone away", vbTextCompare) <> 0 Or InStrB(ErrDescr, "ost connection") <> 0 Then
  DBCnOpen
  Resume
@@ -3746,7 +3767,7 @@ Public FUNCTION rBrDump()
 End FUNCTION ' briefeDump
 
 Public FUNCTION briefeSpeichern(SammelInsert%, BezfSp%)
- Dim i&, rAF&, Pid$, m%, sfnr%, altmode$ ',sql0$
+ Dim i&, rAF&, Pid$, m%, sfnr%, altmode$, ErrD$, ErrN& ',sql0$
  Dim csql0 As New CString, csql As New CString
  Dim rs As New ADODB.recordset
  T1 = Timer
@@ -3754,18 +3775,18 @@ Public FUNCTION briefeSpeichern(SammelInsert%, BezfSp%)
  Pid = rNa(0).Pat_id
  ON Error GoTo fehler
  syscmd 4, pid & ": Speichere " & Ubound(rBr)+0 & " Sätze in `briefe`"
-' sql0 = " INSERT " & sqlignore &  "INTO `briefe` (FID,Pat_ID,ZeitPunkt," & _
+' sql0 = " INSERT " & sqlignore & "INTO `briefe` (FID,Pat_ID,ZeitPunkt," & _
      "Pfad,Art,Name,autor,Quelldatum,Typ,AktZeit,DokGroe,DokAenD,QS," & _
      "QT,absPos,StByte) VALUES
- Call csql0.AppVar(Array(" INSERT ", sqlIgnore, " INTO `briefe` (FID,Pat_ID,ZeitPunkt," & _
+ Call csql0.AppVar(Array(" INSERT ", sqlIgnore, "INTO `briefe` (FID,Pat_ID,ZeitPunkt," & _
      "Pfad,Art,Name,autor,Quelldatum,Typ,AktZeit,DokGroe,DokAenD,QS," & _
      "QT,absPos,StByte)      VALUES"))
-sql:
- csql.m_Len = 0
  IF NOT Allepat THEN
    sql = "DELETE FROM `briefe` WHERE Pat_ID = " & CStr(rNa(0).Pat_ID)
    Call myEFrag(sql)
  END IF ' not AllePat
+sql:
+ csql.m_Len = 0
  For i = 1 to ubound(rBr)
 '  rBr(i).AktZeit = now()
   rBr(i).StByte = CStr(AktByte)
@@ -3781,7 +3802,9 @@ sql:
 '   Call DBCn.Execute("SET GLOBAL sql_mode='STRICT_TRANS_TABLES'") ' NO_ENGINE_SUBSTITUTION
     myEFrag "SET GLOBAL sql_mode='STRICT_TRANS_TABLES'", , DBCn ' NO_ENGINE_SUBSTITUTION
 '   Call myEFrag(csql.Value,rAf)', , adAsyncExecute) ' wegen unzureichender Fehlerverarbeitung wieder ausrangiert 19.8.23
-   Call DBCn.Execute(csql.Value, rAF) ', , adAsyncExecute)
+'   Call DBCn.Execute(csql.Value, rAF) ', , adAsyncExecute)
+    InsKorr DBCn, DBCnS, csql.Value, rAf, ErrD, , ErrN
+    If ErrN Then Error ErrN
    csql.clear
    IF obforK THEN
     Call ForeignYes0
@@ -3793,8 +3816,13 @@ sql:
  syscmd 5
  Exit Function
 fehler:
-ErrDescr = Err.Description
-ErrNumber = Err.Number
+If ErrN = 0 Then
+ ErrDescr = Err.Description
+ ErrNumber = Err.Number
+Else ' ErrN = 0 Then
+ ErrDescr = errd
+ ErrNumber = ErrN
+End If ' ErrN = 0 Then else
 syscmd 4, "rBr(" & i & "/" & UBound(rBr) & "):   " & ErrDescr
 sfnr = sfnr + 1
 If sfnr > 10 then 
@@ -3855,7 +3883,7 @@ ElseIf ErrNumber = -2147217833 OR InStrB(ErrDescr, "Daten zu lang") <> 0 OR InSt
  Loop
  Call ForeignNo0
  Call ForeignNo1
- resume
+ resume sql
 ElseIf InStrB(1, ErrDescr, "gone away", vbTextCompare) <> 0 Or InStrB(ErrDescr, "ost connection") <> 0 Then
  DBCnOpen
  Resume
@@ -4047,7 +4075,7 @@ Public FUNCTION rDiDump()
 End FUNCTION ' diagnosenDump
 
 Public FUNCTION diagnosenSpeichern(SammelInsert%, BezfSp%)
- Dim i&, rAF&, Pid$, m%, sfnr%, altmode$ ',sql0$
+ Dim i&, rAF&, Pid$, m%, sfnr%, altmode$, ErrD$, ErrN& ',sql0$
  Dim csql0 As New CString, csql As New CString
  Dim rs As New ADODB.recordset
  T1 = Timer
@@ -4055,18 +4083,18 @@ Public FUNCTION diagnosenSpeichern(SammelInsert%, BezfSp%)
  Pid = rNa(0).Pat_id
  ON Error GoTo fehler
  syscmd 4, pid & ": Speichere " & Ubound(rDi)+0 & " Sätze in `diagnosen`"
-' sql0 = " INSERT " & sqlignore &  "INTO `diagnosen` (FID,Pat_id,DiagDatum," & _
+' sql0 = " INSERT " & sqlignore & "INTO `diagnosen` (FID,Pat_id,DiagDatum," & _
      "DiagSicherheit,DiagText,DiagSeite,DiagAttr,ICD,obDauer,intBemerk,absPos,AktZeit,StByte," & _
      "AusnBegr,Dggel,obKasse,lKasse,KFdFA) VALUES
- Call csql0.AppVar(Array(" INSERT ", sqlIgnore, " INTO `diagnosen` (FID,Pat_id,DiagDatum," & _
+ Call csql0.AppVar(Array(" INSERT ", sqlIgnore, "INTO `diagnosen` (FID,Pat_id,DiagDatum," & _
      "DiagSicherheit,DiagText,DiagSeite,DiagAttr,ICD,obDauer,intBemerk,absPos,AktZeit,StByte," & _
      "AusnBegr,Dggel,obKasse,lKasse,KFdFA)               VALUES"))
-sql:
- csql.m_Len = 0
  IF NOT Allepat THEN
    sql = "DELETE FROM `diagnosen` WHERE Pat_ID = " & CStr(rNa(0).Pat_ID)
    Call myEFrag(sql)
  END IF ' not AllePat
+sql:
+ csql.m_Len = 0
  For i = 1 to ubound(rDi)
 '  rDi(i).AktZeit = now()
   rDi(i).StByte = CStr(AktByte)
@@ -4083,7 +4111,9 @@ sql:
 '   Call DBCn.Execute("SET GLOBAL sql_mode='STRICT_TRANS_TABLES'") ' NO_ENGINE_SUBSTITUTION
     myEFrag "SET GLOBAL sql_mode='STRICT_TRANS_TABLES'", , DBCn ' NO_ENGINE_SUBSTITUTION
 '   Call myEFrag(csql.Value,rAf)', , adAsyncExecute) ' wegen unzureichender Fehlerverarbeitung wieder ausrangiert 19.8.23
-   Call DBCn.Execute(csql.Value, rAF) ', , adAsyncExecute)
+'   Call DBCn.Execute(csql.Value, rAF) ', , adAsyncExecute)
+    InsKorr DBCn, DBCnS, csql.Value, rAf, ErrD, , ErrN
+    If ErrN Then Error ErrN
    csql.clear
    IF obforK THEN
     Call ForeignYes0
@@ -4095,8 +4125,13 @@ sql:
  syscmd 5
  Exit Function
 fehler:
-ErrDescr = Err.Description
-ErrNumber = Err.Number
+If ErrN = 0 Then
+ ErrDescr = Err.Description
+ ErrNumber = Err.Number
+Else ' ErrN = 0 Then
+ ErrDescr = errd
+ ErrNumber = ErrN
+End If ' ErrN = 0 Then else
 syscmd 4, "rDi(" & i & "/" & UBound(rDi) & "):   " & ErrDescr
 sfnr = sfnr + 1
 If sfnr > 10 then 
@@ -4159,7 +4194,7 @@ ElseIf ErrNumber = -2147217833 OR InStrB(ErrDescr, "Daten zu lang") <> 0 OR InSt
  Loop
  Call ForeignNo0
  Call ForeignNo1
- resume
+ resume sql
 ElseIf InStrB(1, ErrDescr, "gone away", vbTextCompare) <> 0 Or InStrB(ErrDescr, "ost connection") <> 0 Then
  DBCnOpen
  Resume
@@ -4330,7 +4365,7 @@ Public FUNCTION rDoDump()
 End FUNCTION ' dokumenteDump
 
 Public FUNCTION dokumenteSpeichern(SammelInsert%, BezfSp%)
- Dim i&, rAF&, Pid$, m%, sfnr%, altmode$ ',sql0$
+ Dim i&, rAF&, Pid$, m%, sfnr%, altmode$, ErrD$, ErrN& ',sql0$
  Dim csql0 As New CString, csql As New CString
  Dim rs As New ADODB.recordset
  T1 = Timer
@@ -4338,18 +4373,18 @@ Public FUNCTION dokumenteSpeichern(SammelInsert%, BezfSp%)
  Pid = rNa(0).Pat_id
  ON Error GoTo fehler
  syscmd 4, pid & ": Speichere " & Ubound(rDo)+0 & " Sätze in `dokumente`"
-' sql0 = " INSERT " & sqlignore &  "INTO `dokumente` (FID,Pat_ID,ZeitPunkt," & _
+' sql0 = " INSERT " & sqlignore & "INTO `dokumente` (FID,Pat_ID,ZeitPunkt," & _
      "DokPfad,DokArt,DokName,Quelldatum,absPos,AktZeit,DokGroe,DokAenD,QS,QT," & _
      "StByte) VALUES
- Call csql0.AppVar(Array(" INSERT ", sqlIgnore, " INTO `dokumente` (FID,Pat_ID,ZeitPunkt," & _
+ Call csql0.AppVar(Array(" INSERT ", sqlIgnore, "INTO `dokumente` (FID,Pat_ID,ZeitPunkt," & _
      "DokPfad,DokArt,DokName,Quelldatum,absPos,AktZeit,DokGroe,DokAenD,QS,QT," & _
      "StByte)  VALUES"))
-sql:
- csql.m_Len = 0
  IF NOT Allepat THEN
    sql = "DELETE FROM `dokumente` WHERE Pat_ID = " & CStr(rNa(0).Pat_ID)
    Call myEFrag(sql)
  END IF ' not AllePat
+sql:
+ csql.m_Len = 0
  For i = 1 to ubound(rDo)
 '  rDo(i).AktZeit = now()
   rDo(i).StByte = CStr(AktByte)
@@ -4365,7 +4400,9 @@ sql:
 '   Call DBCn.Execute("SET GLOBAL sql_mode='STRICT_TRANS_TABLES'") ' NO_ENGINE_SUBSTITUTION
     myEFrag "SET GLOBAL sql_mode='STRICT_TRANS_TABLES'", , DBCn ' NO_ENGINE_SUBSTITUTION
 '   Call myEFrag(csql.Value,rAf)', , adAsyncExecute) ' wegen unzureichender Fehlerverarbeitung wieder ausrangiert 19.8.23
-   Call DBCn.Execute(csql.Value, rAF) ', , adAsyncExecute)
+'   Call DBCn.Execute(csql.Value, rAF) ', , adAsyncExecute)
+    InsKorr DBCn, DBCnS, csql.Value, rAf, ErrD, , ErrN
+    If ErrN Then Error ErrN
    csql.clear
    IF obforK THEN
     Call ForeignYes0
@@ -4377,8 +4414,13 @@ sql:
  syscmd 5
  Exit Function
 fehler:
-ErrDescr = Err.Description
-ErrNumber = Err.Number
+If ErrN = 0 Then
+ ErrDescr = Err.Description
+ ErrNumber = Err.Number
+Else ' ErrN = 0 Then
+ ErrDescr = errd
+ ErrNumber = ErrN
+End If ' ErrN = 0 Then else
 syscmd 4, "rDo(" & i & "/" & UBound(rDo) & "):   " & ErrDescr
 sfnr = sfnr + 1
 If sfnr > 10 then 
@@ -4435,7 +4477,7 @@ ElseIf ErrNumber = -2147217833 OR InStrB(ErrDescr, "Daten zu lang") <> 0 OR InSt
  Loop
  Call ForeignNo0
  Call ForeignNo1
- resume
+ resume sql
 ElseIf InStrB(1, ErrDescr, "gone away", vbTextCompare) <> 0 Or InStrB(ErrDescr, "ost connection") <> 0 Then
  DBCnOpen
  Resume
@@ -4606,7 +4648,7 @@ Public FUNCTION rEiDump()
 End FUNCTION ' eintraegeDump
 
 Public FUNCTION eintraegeSpeichern(SammelInsert%, BezfSp%)
- Dim i&, rAF&, Pid$, m%, sfnr%, altmode$ ',sql0$
+ Dim i&, rAF&, Pid$, m%, sfnr%, altmode$, ErrD$, ErrN& ',sql0$
  Dim csql0 As New CString, csql As New CString
  Dim rs As New ADODB.recordset
  T1 = Timer
@@ -4614,16 +4656,16 @@ Public FUNCTION eintraegeSpeichern(SammelInsert%, BezfSp%)
  Pid = rNa(0).Pat_id
  ON Error GoTo fehler
  syscmd 4, pid & ": Speichere " & Ubound(rEi)+0 & " Sätze in `eintraege`"
-' sql0 = " INSERT " & sqlignore &  "INTO `eintraege` (FID,Pat_ID,ZeitPunkt," & _
+' sql0 = " INSERT " & sqlignore & "INTO `eintraege` (FID,Pat_ID,ZeitPunkt," & _
      "Art,Ersteller,Änderer,Inhalt,absPos,AktZeit,QS,QT,StByte,inhNum) VALUES
- Call csql0.AppVar(Array(" INSERT ", sqlIgnore, " INTO `eintraege` (FID,Pat_ID,ZeitPunkt," & _
+ Call csql0.AppVar(Array(" INSERT ", sqlIgnore, "INTO `eintraege` (FID,Pat_ID,ZeitPunkt," & _
      "Art,Ersteller,Änderer,Inhalt,absPos,AktZeit,QS,QT,StByte,inhNum)               VALUES"))
-sql:
- csql.m_Len = 0
  IF NOT Allepat THEN
    sql = "DELETE FROM `eintraege` WHERE Pat_ID = " & CStr(rNa(0).Pat_ID)
    Call myEFrag(sql)
  END IF ' not AllePat
+sql:
+ csql.m_Len = 0
  For i = 1 to ubound(rEi)
 '  rEi(i).AktZeit = now()
   rEi(i).StByte = CStr(AktByte)
@@ -4639,7 +4681,9 @@ sql:
 '   Call DBCn.Execute("SET GLOBAL sql_mode='STRICT_TRANS_TABLES'") ' NO_ENGINE_SUBSTITUTION
     myEFrag "SET GLOBAL sql_mode='STRICT_TRANS_TABLES'", , DBCn ' NO_ENGINE_SUBSTITUTION
 '   Call myEFrag(csql.Value,rAf)', , adAsyncExecute) ' wegen unzureichender Fehlerverarbeitung wieder ausrangiert 19.8.23
-   Call DBCn.Execute(csql.Value, rAF) ', , adAsyncExecute)
+'   Call DBCn.Execute(csql.Value, rAF) ', , adAsyncExecute)
+    InsKorr DBCn, DBCnS, csql.Value, rAf, ErrD, , ErrN
+    If ErrN Then Error ErrN
    csql.clear
    IF obforK THEN
     Call ForeignYes0
@@ -4651,8 +4695,13 @@ sql:
  syscmd 5
  Exit Function
 fehler:
-ErrDescr = Err.Description
-ErrNumber = Err.Number
+If ErrN = 0 Then
+ ErrDescr = Err.Description
+ ErrNumber = Err.Number
+Else ' ErrN = 0 Then
+ ErrDescr = errd
+ ErrNumber = ErrN
+End If ' ErrN = 0 Then else
 syscmd 4, "rEi(" & i & "/" & UBound(rEi) & "):   " & ErrDescr
 sfnr = sfnr + 1
 If sfnr > 10 then 
@@ -4711,7 +4760,7 @@ ElseIf ErrNumber = -2147217833 OR InStrB(ErrDescr, "Daten zu lang") <> 0 OR InSt
  Loop
  Call ForeignNo0
  Call ForeignNo1
- resume
+ resume sql
 ElseIf InStrB(1, ErrDescr, "gone away", vbTextCompare) <> 0 Or InStrB(ErrDescr, "ost connection") <> 0 Then
  DBCnOpen
  Resume
@@ -4743,7 +4792,7 @@ Public FUNCTION rFiDump()
 End FUNCTION ' forminhaltform_abkDump
 
 Public FUNCTION forminhaltform_abkSpeichern(SammelInsert%, BezfSp%)
- Dim i&, rAF&, Pid$, m%, sfnr%, altmode$ ',sql0$
+ Dim i&, rAF&, Pid$, m%, sfnr%, altmode$, ErrD$, ErrN& ',sql0$
  Dim csql0 As New CString, csql As New CString
  Dim rs As New ADODB.recordset
  T1 = Timer
@@ -4751,12 +4800,12 @@ Public FUNCTION forminhaltform_abkSpeichern(SammelInsert%, BezfSp%)
  Pid = rNa(0).Pat_id
  ON Error GoTo fehler
  syscmd 4, pid & ": Speichere " & Ubound(rFi)+0 & " Sätze in `forminhaltform_abk`"
-' sql0 = " INSERT " & sqlignore &  "INTO `forminhaltform_abk` (Form_Abk) VALUES
- Call csql0.AppVar(Array(" INSERT ", sqlIgnore, " INTO `forminhaltform_abk` (Form_Abk)             VALUES"))
-sql:
- csql.m_Len = 0
+' sql0 = " INSERT " & sqlignore & "INTO `forminhaltform_abk` (Form_Abk) VALUES
+ Call csql0.AppVar(Array(" INSERT ", sqlIgnore, "INTO `forminhaltform_abk` (Form_Abk)              VALUES"))
  IF NOT Allepat THEN
  END IF ' not AllePat
+sql:
+ csql.m_Len = 0
  For i = rFi1 + 1 to ubound(rFi)
 '  rFi(i).AktZeit = now()
   IF SammelInsert = 0 Or i = rFi1 + 1 Then
@@ -4770,7 +4819,9 @@ sql:
 '   Call DBCn.Execute("SET GLOBAL sql_mode='STRICT_TRANS_TABLES'") ' NO_ENGINE_SUBSTITUTION
     myEFrag "SET GLOBAL sql_mode='STRICT_TRANS_TABLES'", , DBCn ' NO_ENGINE_SUBSTITUTION
 '   Call myEFrag(csql.Value,rAf)', , adAsyncExecute) ' wegen unzureichender Fehlerverarbeitung wieder ausrangiert 19.8.23
-   Call DBCn.Execute(csql.Value, rAF) ', , adAsyncExecute)
+'   Call DBCn.Execute(csql.Value, rAF) ', , adAsyncExecute)
+    InsKorr DBCn, DBCnS, csql.Value, rAf, ErrD, , ErrN
+    If ErrN Then Error ErrN
    csql.clear
    IF obforK THEN
     Call ForeignYes0
@@ -4783,8 +4834,13 @@ sql:
  syscmd 5
  Exit Function
 fehler:
-ErrDescr = Err.Description
-ErrNumber = Err.Number
+If ErrN = 0 Then
+ ErrDescr = Err.Description
+ ErrNumber = Err.Number
+Else ' ErrN = 0 Then
+ ErrDescr = errd
+ ErrNumber = ErrN
+End If ' ErrN = 0 Then else
 syscmd 4, "rFi(" & i & "/" & UBound(rFi) & "):   " & ErrDescr
 sfnr = sfnr + 1
 If sfnr > 10 then 
@@ -4833,7 +4889,7 @@ ElseIf ErrNumber = -2147217833 OR InStrB(ErrDescr, "Daten zu lang") <> 0 OR InSt
  Loop
  Call ForeignNo0
  Call ForeignNo1
- resume
+ resume sql
 ElseIf InStrB(1, ErrDescr, "gone away", vbTextCompare) <> 0 Or InStrB(ErrDescr, "ost connection") <> 0 Then
  DBCnOpen
  Resume
@@ -4870,7 +4926,7 @@ Public FUNCTION rFoDump()
 End FUNCTION ' formulareDump
 
 Public FUNCTION formulareSpeichern(SammelInsert%, BezfSp%)
- Dim i&, rAF&, Pid$, m%, sfnr%, altmode$ ',sql0$
+ Dim i&, rAF&, Pid$, m%, sfnr%, altmode$, ErrD$, ErrN& ',sql0$
  Dim csql0 As New CString, csql As New CString
  Dim rs As New ADODB.recordset
  T1 = Timer
@@ -4878,14 +4934,14 @@ Public FUNCTION formulareSpeichern(SammelInsert%, BezfSp%)
  Pid = rNa(0).Pat_id
  ON Error GoTo fehler
  syscmd 4, pid & ": Speichere " & Ubound(rFo)+0 & " Sätze in `formulare`"
-' sql0 = " INSERT " & sqlignore &  "INTO `formulare` (FormID,Form_Abk,FormBez," & _
+' sql0 = " INSERT " & sqlignore & "INTO `formulare` (FormID,Form_Abk,FormBez," & _
      "FormVorl,AktZeit,absPos,StByte) VALUES
- Call csql0.AppVar(Array(" INSERT ", sqlIgnore, " INTO `formulare` (FormID,Form_Abk,FormBez," & _
+ Call csql0.AppVar(Array(" INSERT ", sqlIgnore, "INTO `formulare` (FormID,Form_Abk,FormBez," & _
      "FormVorl,AktZeit,absPos,StByte)      VALUES"))
-sql:
- csql.m_Len = 0
  IF NOT Allepat THEN
  END IF ' not AllePat
+sql:
+ csql.m_Len = 0
  For i = rFo1 + 1 to ubound(rFo)
 '  rFo(i).AktZeit = now()
   rFo(i).StByte = CStr(AktByte)
@@ -4900,7 +4956,9 @@ sql:
 '   Call DBCn.Execute("SET GLOBAL sql_mode='STRICT_TRANS_TABLES'") ' NO_ENGINE_SUBSTITUTION
     myEFrag "SET GLOBAL sql_mode='STRICT_TRANS_TABLES'", , DBCn ' NO_ENGINE_SUBSTITUTION
 '   Call myEFrag(csql.Value,rAf)', , adAsyncExecute) ' wegen unzureichender Fehlerverarbeitung wieder ausrangiert 19.8.23
-   Call DBCn.Execute(csql.Value, rAF) ', , adAsyncExecute)
+'   Call DBCn.Execute(csql.Value, rAF) ', , adAsyncExecute)
+    InsKorr DBCn, DBCnS, csql.Value, rAf, ErrD, , ErrN
+    If ErrN Then Error ErrN
    csql.clear
    IF obforK THEN
     Call ForeignYes0
@@ -4913,8 +4971,13 @@ sql:
  syscmd 5
  Exit Function
 fehler:
-ErrDescr = Err.Description
-ErrNumber = Err.Number
+If ErrN = 0 Then
+ ErrDescr = Err.Description
+ ErrNumber = Err.Number
+Else ' ErrN = 0 Then
+ ErrDescr = errd
+ ErrNumber = ErrN
+End If ' ErrN = 0 Then else
 syscmd 4, "rFo(" & i & "/" & UBound(rFo) & "):   " & ErrDescr
 sfnr = sfnr + 1
 If sfnr > 10 then 
@@ -4967,7 +5030,7 @@ ElseIf ErrNumber = -2147217833 OR InStrB(ErrDescr, "Daten zu lang") <> 0 OR InSt
  Loop
  Call ForeignNo0
  Call ForeignNo1
- resume
+ resume sql
 ElseIf InStrB(1, ErrDescr, "gone away", vbTextCompare) <> 0 Or InStrB(ErrDescr, "ost connection") <> 0 Then
  DBCnOpen
  Resume
@@ -5125,7 +5188,7 @@ Public FUNCTION rFrDump()
 End FUNCTION ' forminhkopfDump
 
 Public FUNCTION forminhkopfSpeichern(SammelInsert%, BezfSp%)
- Dim i&, rAF&, Pid$, m%, sfnr%, altmode$ ',sql0$
+ Dim i&, rAF&, Pid$, m%, sfnr%, altmode$, ErrD$, ErrN& ',sql0$
  Dim csql0 As New CString, csql As New CString
  Dim rs As New ADODB.recordset
  T1 = Timer
@@ -5133,20 +5196,20 @@ Public FUNCTION forminhkopfSpeichern(SammelInsert%, BezfSp%)
  Pid = rNa(0).Pat_id
  ON Error GoTo fehler
  syscmd 4, pid & ": Speichere " & Ubound(rFr)+0 & " Sätze in `forminhkopf`"
-' sql0 = " INSERT " & sqlignore &  "INTO `forminhkopf` (FoID,FID,Pat_ID," & _
+' sql0 = " INSERT " & sqlignore & "INTO `forminhkopf` (FoID,FID,Pat_ID," & _
      "Form_ID,ZeitPunkt,AbsPos,AktZeit,StByte,Satzart,Satzlänge,LANRid) VALUES
- Call csql0.AppVar(Array(" INSERT ", sqlIgnore, " INTO `forminhkopf` (FoID,FID,Pat_ID," & _
+ Call csql0.AppVar(Array(" INSERT ", sqlIgnore, "INTO `forminhkopf` (FoID,FID,Pat_ID," & _
      "Form_ID,ZeitPunkt,AbsPos,AktZeit,StByte,Satzart,Satzlänge,LANRid)              VALUES"))
  FoIDv = 0
 erneut:
-sql:
- csql.m_Len = 0
  IF NOT Allepat THEN
 '    sql = "DELETE FROM `forminhfeld` WHERE foid IN (SELECT foid FROM `forminhkopf` WHERE pat_id = " & CStr(rNa(0).Pat_ID) & ")"
 '    Call myEFrag(sql)
    sql = "DELETE FROM `forminhkopf` WHERE Pat_ID = " & CStr(rNa(0).Pat_ID)
    Call myEFrag(sql)
  END IF ' not AllePat
+sql:
+ csql.m_Len = 0
  For i = 1 to ubound(rFr)
 '  rFr(i).AktZeit = now()
   rFr(i).StByte = CStr(AktByte)
@@ -5162,7 +5225,9 @@ sql:
 '   Call DBCn.Execute("SET GLOBAL sql_mode='STRICT_TRANS_TABLES'") ' NO_ENGINE_SUBSTITUTION
     myEFrag "SET GLOBAL sql_mode='STRICT_TRANS_TABLES'", , DBCn ' NO_ENGINE_SUBSTITUTION
 '   Call myEFrag(csql.Value,rAf)', , adAsyncExecute) ' wegen unzureichender Fehlerverarbeitung wieder ausrangiert 19.8.23
-   Call DBCn.Execute(csql.Value, rAF) ', , adAsyncExecute)
+'   Call DBCn.Execute(csql.Value, rAF) ', , adAsyncExecute)
+    InsKorr DBCn, DBCnS, csql.Value, rAf, ErrD, , ErrN
+    If ErrN Then Error ErrN
    csql.clear
    IF obforK THEN
     Call ForeignYes0
@@ -5174,8 +5239,13 @@ sql:
  syscmd 5
  Exit Function
 fehler:
-ErrDescr = Err.Description
-ErrNumber = Err.Number
+If ErrN = 0 Then
+ ErrDescr = Err.Description
+ ErrNumber = Err.Number
+Else ' ErrN = 0 Then
+ ErrDescr = errd
+ ErrNumber = ErrN
+End If ' ErrN = 0 Then else
 syscmd 4, "rFr(" & i & "/" & UBound(rFr) & "):   " & ErrDescr
 If ErrNumber = -2147217900 And ErrDescr Like "*Duplicate entry * for key 'PRIMARY'" Then
  Dim schlüssel$, pos&, iiru&, jjru&
@@ -5244,7 +5314,7 @@ ElseIf ErrNumber = -2147217833 OR InStrB(ErrDescr, "Daten zu lang") <> 0 OR InSt
  Loop
  Call ForeignNo0
  Call ForeignNo1
- resume
+ resume sql
 ElseIf InStrB(1, ErrDescr, "gone away", vbTextCompare) <> 0 Or InStrB(ErrDescr, "ost connection") <> 0 Then
  DBCnOpen
  Resume
@@ -5279,7 +5349,7 @@ Public FUNCTION rFmDump()
 End FUNCTION ' forminhfeldDump
 
 Public FUNCTION forminhfeldSpeichern(SammelInsert%, BezfSp%)
- Dim i&, rAF&, Pid$, m%, sfnr%, altmode$ ',sql0$
+ Dim i&, rAF&, Pid$, m%, sfnr%, altmode$, ErrD$, ErrN& ',sql0$
  Dim csql0 As New CString, csql As New CString
  Dim rs As New ADODB.recordset
  T1 = Timer
@@ -5287,14 +5357,14 @@ Public FUNCTION forminhfeldSpeichern(SammelInsert%, BezfSp%)
  Pid = rNa(0).Pat_id
  ON Error GoTo fehler
  syscmd 4, pid & ": Speichere " & Ubound(rFm)+0 & " Sätze in `forminhfeld`"
-' sql0 = " INSERT " & sqlignore &  "INTO `forminhfeld` (FoID,Nr,FeldNr," & _
+' sql0 = " INSERT " & sqlignore & "INTO `forminhfeld` (FoID,Nr,FeldNr," & _
      "FeldVW,FeldInhVW) VALUES
- Call csql0.AppVar(Array(" INSERT ", sqlIgnore, " INTO `forminhfeld` (FoID,Nr,FeldNr," & _
+ Call csql0.AppVar(Array(" INSERT ", sqlIgnore, "INTO `forminhfeld` (FoID,Nr,FeldNr," & _
      "FeldVW,FeldInhVW)      VALUES"))
-sql:
- csql.m_Len = 0
  IF NOT Allepat THEN
  END IF ' not AllePat
+sql:
+ csql.m_Len = 0
  For i = 1 to ubound(rFm)
 '  rFm(i).AktZeit = now()
   IF SammelInsert = 0 Or i = 1 Then
@@ -5308,7 +5378,9 @@ sql:
 '   Call DBCn.Execute("SET GLOBAL sql_mode='STRICT_TRANS_TABLES'") ' NO_ENGINE_SUBSTITUTION
     myEFrag "SET GLOBAL sql_mode='STRICT_TRANS_TABLES'", , DBCn ' NO_ENGINE_SUBSTITUTION
 '   Call myEFrag(csql.Value,rAf)', , adAsyncExecute) ' wegen unzureichender Fehlerverarbeitung wieder ausrangiert 19.8.23
-   Call DBCn.Execute(csql.Value, rAF) ', , adAsyncExecute)
+'   Call DBCn.Execute(csql.Value, rAF) ', , adAsyncExecute)
+    InsKorr DBCn, DBCnS, csql.Value, rAf, ErrD, , ErrN
+    If ErrN Then Error ErrN
    csql.clear
    IF obforK THEN
     Call ForeignYes0
@@ -5320,8 +5392,13 @@ sql:
  syscmd 5
  Exit Function
 fehler:
-ErrDescr = Err.Description
-ErrNumber = Err.Number
+If ErrN = 0 Then
+ ErrDescr = Err.Description
+ ErrNumber = Err.Number
+Else ' ErrN = 0 Then
+ ErrDescr = errd
+ ErrNumber = ErrN
+End If ' ErrN = 0 Then else
 syscmd 4, "rFm(" & i & "/" & UBound(rFm) & "):   " & ErrDescr
 sfnr = sfnr + 1
 If sfnr > 10 then 
@@ -5368,7 +5445,7 @@ ElseIf ErrNumber = -2147217833 OR InStrB(ErrDescr, "Daten zu lang") <> 0 OR InSt
  Loop
  Call ForeignNo0
  Call ForeignNo1
- resume
+ resume sql
 ElseIf InStrB(1, ErrDescr, "gone away", vbTextCompare) <> 0 Or InStrB(ErrDescr, "ost connection") <> 0 Then
  DBCnOpen
  Resume
@@ -5514,7 +5591,7 @@ Public FUNCTION rKhDump()
 End FUNCTION ' kheinweisDump
 
 Public FUNCTION kheinweisSpeichern(SammelInsert%, BezfSp%)
- Dim i&, rAF&, Pid$, m%, sfnr%, altmode$ ',sql0$
+ Dim i&, rAF&, Pid$, m%, sfnr%, altmode$, ErrD$, ErrN& ',sql0$
  Dim csql0 As New CString, csql As New CString
  Dim rs As New ADODB.recordset
  T1 = Timer
@@ -5522,16 +5599,16 @@ Public FUNCTION kheinweisSpeichern(SammelInsert%, BezfSp%)
  Pid = rNa(0).Pat_id
  ON Error GoTo fehler
  syscmd 4, pid & ": Speichere " & Ubound(rKh)+0 & " Sätze in `kheinweis`"
-' sql0 = " INSERT " & sqlignore &  "INTO `kheinweis` (FID,Pat_ID,ZeitPunkt," & _
+' sql0 = " INSERT " & sqlignore & "INTO `kheinweis` (FID,Pat_ID,ZeitPunkt," & _
      "Ziel,Diagnose,absPos,AktZeit,StByte) VALUES
- Call csql0.AppVar(Array(" INSERT ", sqlIgnore, " INTO `kheinweis` (FID,Pat_ID,ZeitPunkt," & _
+ Call csql0.AppVar(Array(" INSERT ", sqlIgnore, "INTO `kheinweis` (FID,Pat_ID,ZeitPunkt," & _
      "Ziel,Diagnose,absPos,AktZeit,StByte)               VALUES"))
-sql:
- csql.m_Len = 0
  IF NOT Allepat THEN
    sql = "DELETE FROM `kheinweis` WHERE Pat_ID = " & CStr(rNa(0).Pat_ID)
    Call myEFrag(sql)
  END IF ' not AllePat
+sql:
+ csql.m_Len = 0
  For i = 1 to ubound(rKh)
 '  rKh(i).AktZeit = now()
   rKh(i).StByte = CStr(AktByte)
@@ -5546,7 +5623,9 @@ sql:
 '   Call DBCn.Execute("SET GLOBAL sql_mode='STRICT_TRANS_TABLES'") ' NO_ENGINE_SUBSTITUTION
     myEFrag "SET GLOBAL sql_mode='STRICT_TRANS_TABLES'", , DBCn ' NO_ENGINE_SUBSTITUTION
 '   Call myEFrag(csql.Value,rAf)', , adAsyncExecute) ' wegen unzureichender Fehlerverarbeitung wieder ausrangiert 19.8.23
-   Call DBCn.Execute(csql.Value, rAF) ', , adAsyncExecute)
+'   Call DBCn.Execute(csql.Value, rAF) ', , adAsyncExecute)
+    InsKorr DBCn, DBCnS, csql.Value, rAf, ErrD, , ErrN
+    If ErrN Then Error ErrN
    csql.clear
    IF obforK THEN
     Call ForeignYes0
@@ -5558,8 +5637,13 @@ sql:
  syscmd 5
  Exit Function
 fehler:
-ErrDescr = Err.Description
-ErrNumber = Err.Number
+If ErrN = 0 Then
+ ErrDescr = Err.Description
+ ErrNumber = Err.Number
+Else ' ErrN = 0 Then
+ ErrDescr = errd
+ ErrNumber = ErrN
+End If ' ErrN = 0 Then else
 syscmd 4, "rKh(" & i & "/" & UBound(rKh) & "):   " & ErrDescr
 sfnr = sfnr + 1
 If sfnr > 10 then 
@@ -5610,7 +5694,7 @@ ElseIf ErrNumber = -2147217833 OR InStrB(ErrDescr, "Daten zu lang") <> 0 OR InSt
  Loop
  Call ForeignNo0
  Call ForeignNo1
- resume
+ resume sql
 ElseIf InStrB(1, ErrDescr, "gone away", vbTextCompare) <> 0 Or InStrB(ErrDescr, "ost connection") <> 0 Then
  DBCnOpen
  Resume
@@ -5751,7 +5835,7 @@ Public FUNCTION rLbDump()
 End FUNCTION ' lbanforderungenDump
 
 Public FUNCTION lbanforderungenSpeichern(SammelInsert%, BezfSp%)
- Dim i&, rAF&, Pid$, m%, sfnr%, altmode$ ',sql0$
+ Dim i&, rAF&, Pid$, m%, sfnr%, altmode$, ErrD$, ErrN& ',sql0$
  Dim csql0 As New CString, csql As New CString
  Dim rs As New ADODB.recordset
  T1 = Timer
@@ -5759,16 +5843,16 @@ Public FUNCTION lbanforderungenSpeichern(SammelInsert%, BezfSp%)
  Pid = rNa(0).Pat_id
  ON Error GoTo fehler
  syscmd 4, pid & ": Speichere " & Ubound(rLb)+0 & " Sätze in `lbanforderungen`"
-' sql0 = " INSERT " & sqlignore &  "INTO `lbanforderungen` (FID,Pat_ID,ZeitPunkt," & _
+' sql0 = " INSERT " & sqlignore & "INTO `lbanforderungen` (FID,Pat_ID,ZeitPunkt," & _
      "AnfText,absPos,AktZeit,StByte) VALUES
- Call csql0.AppVar(Array(" INSERT ", sqlIgnore, " INTO `lbanforderungen` (FID,Pat_ID,ZeitPunkt," & _
+ Call csql0.AppVar(Array(" INSERT ", sqlIgnore, "INTO `lbanforderungen` (FID,Pat_ID,ZeitPunkt," & _
      "AnfText,absPos,AktZeit,StByte)       VALUES"))
-sql:
- csql.m_Len = 0
  IF NOT Allepat THEN
    sql = "DELETE FROM `lbanforderungen` WHERE Pat_ID = " & CStr(rNa(0).Pat_ID)
    Call myEFrag(sql)
  END IF ' not AllePat
+sql:
+ csql.m_Len = 0
  For i = 1 to ubound(rLb)
 '  rLb(i).AktZeit = now()
   rLb(i).StByte = CStr(AktByte)
@@ -5783,7 +5867,9 @@ sql:
 '   Call DBCn.Execute("SET GLOBAL sql_mode='STRICT_TRANS_TABLES'") ' NO_ENGINE_SUBSTITUTION
     myEFrag "SET GLOBAL sql_mode='STRICT_TRANS_TABLES'", , DBCn ' NO_ENGINE_SUBSTITUTION
 '   Call myEFrag(csql.Value,rAf)', , adAsyncExecute) ' wegen unzureichender Fehlerverarbeitung wieder ausrangiert 19.8.23
-   Call DBCn.Execute(csql.Value, rAF) ', , adAsyncExecute)
+'   Call DBCn.Execute(csql.Value, rAF) ', , adAsyncExecute)
+    InsKorr DBCn, DBCnS, csql.Value, rAf, ErrD, , ErrN
+    If ErrN Then Error ErrN
    csql.clear
    IF obforK THEN
     Call ForeignYes0
@@ -5795,8 +5881,13 @@ sql:
  syscmd 5
  Exit Function
 fehler:
-ErrDescr = Err.Description
-ErrNumber = Err.Number
+If ErrN = 0 Then
+ ErrDescr = Err.Description
+ ErrNumber = Err.Number
+Else ' ErrN = 0 Then
+ ErrDescr = errd
+ ErrNumber = ErrN
+End If ' ErrN = 0 Then else
 syscmd 4, "rLb(" & i & "/" & UBound(rLb) & "):   " & ErrDescr
 sfnr = sfnr + 1
 If sfnr > 10 then 
@@ -5845,7 +5936,7 @@ ElseIf ErrNumber = -2147217833 OR InStrB(ErrDescr, "Daten zu lang") <> 0 OR InSt
  Loop
  Call ForeignNo0
  Call ForeignNo1
- resume
+ resume sql
 ElseIf InStrB(1, ErrDescr, "gone away", vbTextCompare) <> 0 Or InStrB(ErrDescr, "ost connection") <> 0 Then
  DBCnOpen
  Resume
@@ -6025,7 +6116,7 @@ Public FUNCTION rLaDump()
 End FUNCTION ' laborneuDump
 
 Public FUNCTION laborneuSpeichern(SammelInsert%, BezfSp%)
- Dim i&, rAF&, Pid$, m%, sfnr%, altmode$ ',sql0$
+ Dim i&, rAF&, Pid$, m%, sfnr%, altmode$, ErrD$, ErrN& ',sql0$
  Dim csql0 As New CString, csql As New CString
  Dim rs As New ADODB.recordset
  T1 = Timer
@@ -6033,18 +6124,18 @@ Public FUNCTION laborneuSpeichern(SammelInsert%, BezfSp%)
  Pid = rNa(0).Pat_id
  ON Error GoTo fehler
  syscmd 4, pid & ": Speichere " & Ubound(rLa)+0 & " Sätze in `laborneu`"
-' sql0 = " INSERT " & sqlignore &  "INTO `laborneu` (FID,Pat_ID,ZeitPunkt," & _
+' sql0 = " INSERT " & sqlignore & "INTO `laborneu` (FID,Pat_ID,ZeitPunkt," & _
      "FertigStGrad,Abkü,LangtextVW,Wert,Einheit,AnmkgVW,KommentarVW,AbsPos,AktZeit,Refnr," & _
      "StByte,AbschlZl) VALUES
- Call csql0.AppVar(Array(" INSERT ", sqlIgnore, " INTO `laborneu` (FID,Pat_ID,ZeitPunkt," & _
+ Call csql0.AppVar(Array(" INSERT ", sqlIgnore, "INTO `laborneu` (FID,Pat_ID,ZeitPunkt," & _
      "FertigStGrad,Abkü,LangtextVW,Wert,Einheit,AnmkgVW,KommentarVW,AbsPos,AktZeit,Refnr," & _
      "StByte,AbschlZl)       VALUES"))
-sql:
- csql.m_Len = 0
  IF NOT Allepat THEN
    sql = "DELETE FROM `laborneu` WHERE Pat_ID = " & CStr(rNa(0).Pat_ID)
    Call myEFrag(sql)
  END IF ' not AllePat
+sql:
+ csql.m_Len = 0
  For i = 1 to ubound(rLa)
 '  rLa(i).AktZeit = now()
   rLa(i).StByte = CStr(AktByte)
@@ -6060,7 +6151,9 @@ sql:
 '   Call DBCn.Execute("SET GLOBAL sql_mode='STRICT_TRANS_TABLES'") ' NO_ENGINE_SUBSTITUTION
     myEFrag "SET GLOBAL sql_mode='STRICT_TRANS_TABLES'", , DBCn ' NO_ENGINE_SUBSTITUTION
 '   Call myEFrag(csql.Value,rAf)', , adAsyncExecute) ' wegen unzureichender Fehlerverarbeitung wieder ausrangiert 19.8.23
-   Call DBCn.Execute(csql.Value, rAF) ', , adAsyncExecute)
+'   Call DBCn.Execute(csql.Value, rAF) ', , adAsyncExecute)
+    InsKorr DBCn, DBCnS, csql.Value, rAf, ErrD, , ErrN
+    If ErrN Then Error ErrN
    csql.clear
    IF obforK THEN
     Call ForeignYes0
@@ -6072,8 +6165,13 @@ sql:
  syscmd 5
  Exit Function
 fehler:
-ErrDescr = Err.Description
-ErrNumber = Err.Number
+If ErrN = 0 Then
+ ErrDescr = Err.Description
+ ErrNumber = Err.Number
+Else ' ErrN = 0 Then
+ ErrDescr = errd
+ ErrNumber = ErrN
+End If ' ErrN = 0 Then else
 syscmd 4, "rLa(" & i & "/" & UBound(rLa) & "):   " & ErrDescr
 sfnr = sfnr + 1
 If sfnr > 10 then 
@@ -6130,7 +6228,7 @@ ElseIf ErrNumber = -2147217833 OR InStrB(ErrDescr, "Daten zu lang") <> 0 OR InSt
  Loop
  Call ForeignNo0
  Call ForeignNo1
- resume
+ resume sql
 ElseIf InStrB(1, ErrDescr, "gone away", vbTextCompare) <> 0 Or InStrB(ErrDescr, "ost connection") <> 0 Then
  DBCnOpen
  Resume
@@ -6407,7 +6505,7 @@ Public FUNCTION rLeDump()
 End FUNCTION ' leistungenDump
 
 Public FUNCTION leistungenSpeichern(SammelInsert%, BezfSp%)
- Dim i&, rAF&, Pid$, m%, sfnr%, altmode$ ',sql0$
+ Dim i&, rAF&, Pid$, m%, sfnr%, altmode$, ErrD$, ErrN& ',sql0$
  Dim csql0 As New CString, csql As New CString
  Dim rs As New ADODB.recordset
  T1 = Timer
@@ -6415,22 +6513,22 @@ Public FUNCTION leistungenSpeichern(SammelInsert%, BezfSp%)
  Pid = rNa(0).Pat_id
  ON Error GoTo fehler
  syscmd 4, pid & ": Speichere " & Ubound(rLe)+0 & " Sätze in `leistungen`"
-' sql0 = " INSERT " & sqlignore &  "INTO `leistungen` (FID,Pat_ID,ZeitPunkt," & _
+' sql0 = " INSERT " & sqlignore & "INTO `leistungen` (FID,Pat_ID,ZeitPunkt," & _
      "Leistung,ArtdUs,LAnzl,LUhrz,LfBegr,Med,LOrgan,LArztBf,DtlKbsV,LEntlDt," & _
      "Faktor,LBSNR,Charge,LANR,letzVorg,Ausn,Beme,absPos,AktZeit,QS," & _
      "QT,StByte,LANRid,Sachkbez,Sachkct,Zone,Punkte,Lstgerbnr,Position,Eignung," & _
      "Pruefzeit,Kalkzeit,Bsnr,Ersteller,Änderer) VALUES
- Call csql0.AppVar(Array(" INSERT ", sqlIgnore, " INTO `leistungen` (FID,Pat_ID,ZeitPunkt," & _
+ Call csql0.AppVar(Array(" INSERT ", sqlIgnore, "INTO `leistungen` (FID,Pat_ID,ZeitPunkt," & _
      "Leistung,ArtdUs,LAnzl,LUhrz,LfBegr,Med,LOrgan,LArztBf,DtlKbsV,LEntlDt," & _
      "Faktor,LBSNR,Charge,LANR,letzVorg,Ausn,Beme,absPos,AktZeit,QS," & _
      "QT,StByte,LANRid,Sachkbez,Sachkct,Zone,Punkte,Lstgerbnr,Position,Eignung," & _
      "Pruefzeit,Kalkzeit,Bsnr,Ersteller,Änderer)         VALUES"))
-sql:
- csql.m_Len = 0
  IF NOT Allepat THEN
    sql = "DELETE FROM `leistungen` WHERE Pat_ID = " & CStr(rNa(0).Pat_ID)
    Call myEFrag(sql)
  END IF ' not AllePat
+sql:
+ csql.m_Len = 0
  For i = 1 to ubound(rLe)
 '  rLe(i).AktZeit = now()
   rLe(i).StByte = CStr(AktByte)
@@ -6449,7 +6547,9 @@ sql:
 '   Call DBCn.Execute("SET GLOBAL sql_mode='STRICT_TRANS_TABLES'") ' NO_ENGINE_SUBSTITUTION
     myEFrag "SET GLOBAL sql_mode='STRICT_TRANS_TABLES'", , DBCn ' NO_ENGINE_SUBSTITUTION
 '   Call myEFrag(csql.Value,rAf)', , adAsyncExecute) ' wegen unzureichender Fehlerverarbeitung wieder ausrangiert 19.8.23
-   Call DBCn.Execute(csql.Value, rAF) ', , adAsyncExecute)
+'   Call DBCn.Execute(csql.Value, rAF) ', , adAsyncExecute)
+    InsKorr DBCn, DBCnS, csql.Value, rAf, ErrD, , ErrN
+    If ErrN Then Error ErrN
    csql.clear
    IF obforK THEN
     Call ForeignYes0
@@ -6461,8 +6561,13 @@ sql:
  syscmd 5
  Exit Function
 fehler:
-ErrDescr = Err.Description
-ErrNumber = Err.Number
+If ErrN = 0 Then
+ ErrDescr = Err.Description
+ ErrNumber = Err.Number
+Else ' ErrN = 0 Then
+ ErrDescr = errd
+ ErrNumber = ErrN
+End If ' ErrN = 0 Then else
 syscmd 4, "rLe(" & i & "/" & UBound(rLe) & "):   " & ErrDescr
 sfnr = sfnr + 1
 If sfnr > 10 then 
@@ -6553,7 +6658,7 @@ ElseIf ErrNumber = -2147217833 OR InStrB(ErrDescr, "Daten zu lang") <> 0 OR InSt
  Loop
  Call ForeignNo0
  Call ForeignNo1
- resume
+ resume sql
 ElseIf InStrB(1, ErrDescr, "gone away", vbTextCompare) <> 0 Or InStrB(ErrDescr, "ost connection") <> 0 Then
  DBCnOpen
  Resume
@@ -6771,7 +6876,7 @@ Public FUNCTION rMeDump()
 End FUNCTION ' medplanDump
 
 Public FUNCTION medplanSpeichern(SammelInsert%, BezfSp%)
- Dim i&, rAF&, Pid$, m%, sfnr%, altmode$ ',sql0$
+ Dim i&, rAF&, Pid$, m%, sfnr%, altmode$, ErrD$, ErrN& ',sql0$
  Dim csql0 As New CString, csql As New CString
  Dim rs As New ADODB.recordset
  T1 = Timer
@@ -6779,20 +6884,20 @@ Public FUNCTION medplanSpeichern(SammelInsert%, BezfSp%)
  Pid = rNa(0).Pat_id
  ON Error GoTo fehler
  syscmd 4, pid & ": Speichere " & Ubound(rMe)+0 & " Sätze in `medplan`"
-' sql0 = " INSERT " & sqlignore &  "INTO `medplan` (FID,Pat_ID,MPNr," & _
+' sql0 = " INSERT " & sqlignore & "INTO `medplan` (FID,Pat_ID,MPNr," & _
      "ZeitPunkt,Datum,Medikament,MedAnfang,Wirkstoff,PZN,FeldNr,mo,mi,nm," & _
      "ab,zn,bBed,Bemerkung,Grund,Stärke,Einheit,Form,AbsPos,AktZeit," & _
      "StByte,ergaenzt) VALUES
- Call csql0.AppVar(Array(" INSERT ", sqlIgnore, " INTO `medplan` (FID,Pat_ID,MPNr," & _
+ Call csql0.AppVar(Array(" INSERT ", sqlIgnore, "INTO `medplan` (FID,Pat_ID,MPNr," & _
      "ZeitPunkt,Datum,Medikament,MedAnfang,Wirkstoff,PZN,FeldNr,mo,mi,nm," & _
      "ab,zn,bBed,Bemerkung,Grund,Stärke,Einheit,Form,AbsPos,AktZeit," & _
      "StByte,ergaenzt)       VALUES"))
-sql:
- csql.m_Len = 0
  IF NOT Allepat THEN
    sql = "DELETE FROM `medplan` WHERE Pat_ID = " & CStr(rNa(0).Pat_ID)
    Call myEFrag(sql)
  END IF ' not AllePat
+sql:
+ csql.m_Len = 0
  For i = 1 to ubound(rMe)
 '  rMe(i).AktZeit = now()
   rMe(i).StByte = CStr(AktByte)
@@ -6809,7 +6914,9 @@ sql:
 '   Call DBCn.Execute("SET GLOBAL sql_mode='STRICT_TRANS_TABLES'") ' NO_ENGINE_SUBSTITUTION
     myEFrag "SET GLOBAL sql_mode='STRICT_TRANS_TABLES'", , DBCn ' NO_ENGINE_SUBSTITUTION
 '   Call myEFrag(csql.Value,rAf)', , adAsyncExecute) ' wegen unzureichender Fehlerverarbeitung wieder ausrangiert 19.8.23
-   Call DBCn.Execute(csql.Value, rAF) ', , adAsyncExecute)
+'   Call DBCn.Execute(csql.Value, rAF) ', , adAsyncExecute)
+    InsKorr DBCn, DBCnS, csql.Value, rAf, ErrD, , ErrN
+    If ErrN Then Error ErrN
    csql.clear
    IF obforK THEN
     Call ForeignYes0
@@ -6821,8 +6928,13 @@ sql:
  syscmd 5
  Exit Function
 fehler:
-ErrDescr = Err.Description
-ErrNumber = Err.Number
+If ErrN = 0 Then
+ ErrDescr = Err.Description
+ ErrNumber = Err.Number
+Else ' ErrN = 0 Then
+ ErrDescr = errd
+ ErrNumber = ErrN
+End If ' ErrN = 0 Then else
 syscmd 4, "rMe(" & i & "/" & UBound(rMe) & "):   " & ErrDescr
 sfnr = sfnr + 1
 If sfnr > 10 then 
@@ -6895,7 +7007,7 @@ ElseIf ErrNumber = -2147217833 OR InStrB(ErrDescr, "Daten zu lang") <> 0 OR InSt
  Loop
  Call ForeignNo0
  Call ForeignNo1
- resume
+ resume sql
 ElseIf InStrB(1, ErrDescr, "gone away", vbTextCompare) <> 0 Or InStrB(ErrDescr, "ost connection") <> 0 Then
  DBCnOpen
  Resume
@@ -7092,7 +7204,7 @@ Public FUNCTION rReDump()
 End FUNCTION ' rezepteintraegeDump
 
 Public FUNCTION rezepteintraegeSpeichern(SammelInsert%, BezfSp%)
- Dim i&, rAF&, Pid$, m%, sfnr%, altmode$ ',sql0$
+ Dim i&, rAF&, Pid$, m%, sfnr%, altmode$, ErrD$, ErrN& ',sql0$
  Dim csql0 As New CString, csql As New CString
  Dim rs As New ADODB.recordset
  T1 = Timer
@@ -7100,18 +7212,18 @@ Public FUNCTION rezepteintraegeSpeichern(SammelInsert%, BezfSp%)
  Pid = rNa(0).Pat_id
  ON Error GoTo fehler
  syscmd 4, pid & ": Speichere " & Ubound(rRe)+0 & " Sätze in `rezepteintraege`"
-' sql0 = " INSERT " & sqlignore &  "INTO `rezepteintraege` (FID,Pat_ID,ZeitPunkt," & _
+' sql0 = " INSERT " & sqlignore & "INTO `rezepteintraege` (FID,Pat_ID,ZeitPunkt," & _
      "Rezept,RKlnm,Rezeptklasse,Rezklkurz,Rezkllang,kbez,Medikament,auti,anzl,PZN," & _
      "absPos,AktZeit,QS,QT,StByte,LANRid) VALUES
- Call csql0.AppVar(Array(" INSERT ", sqlIgnore, " INTO `rezepteintraege` (FID,Pat_ID,ZeitPunkt," & _
+ Call csql0.AppVar(Array(" INSERT ", sqlIgnore, "INTO `rezepteintraege` (FID,Pat_ID,ZeitPunkt," & _
      "Rezept,RKlnm,Rezeptklasse,Rezklkurz,Rezkllang,kbez,Medikament,auti,anzl,PZN," & _
      "absPos,AktZeit,QS,QT,StByte,LANRid)  VALUES"))
-sql:
- csql.m_Len = 0
  IF NOT Allepat THEN
    sql = "DELETE FROM `rezepteintraege` WHERE Pat_ID = " & CStr(rNa(0).Pat_ID)
    Call myEFrag(sql)
  END IF ' not AllePat
+sql:
+ csql.m_Len = 0
  For i = 1 to ubound(rRe)
 '  rRe(i).AktZeit = now()
   rRe(i).StByte = CStr(AktByte)
@@ -7128,7 +7240,9 @@ sql:
 '   Call DBCn.Execute("SET GLOBAL sql_mode='STRICT_TRANS_TABLES'") ' NO_ENGINE_SUBSTITUTION
     myEFrag "SET GLOBAL sql_mode='STRICT_TRANS_TABLES'", , DBCn ' NO_ENGINE_SUBSTITUTION
 '   Call myEFrag(csql.Value,rAf)', , adAsyncExecute) ' wegen unzureichender Fehlerverarbeitung wieder ausrangiert 19.8.23
-   Call DBCn.Execute(csql.Value, rAF) ', , adAsyncExecute)
+'   Call DBCn.Execute(csql.Value, rAF) ', , adAsyncExecute)
+    InsKorr DBCn, DBCnS, csql.Value, rAf, ErrD, , ErrN
+    If ErrN Then Error ErrN
    csql.clear
    IF obforK THEN
     Call ForeignYes0
@@ -7140,8 +7254,13 @@ sql:
  syscmd 5
  Exit Function
 fehler:
-ErrDescr = Err.Description
-ErrNumber = Err.Number
+If ErrN = 0 Then
+ ErrDescr = Err.Description
+ ErrNumber = Err.Number
+Else ' ErrN = 0 Then
+ ErrDescr = errd
+ ErrNumber = ErrN
+End If ' ErrN = 0 Then else
 syscmd 4, "rRe(" & i & "/" & UBound(rRe) & "):   " & ErrDescr
 sfnr = sfnr + 1
 If sfnr > 10 then 
@@ -7208,7 +7327,7 @@ ElseIf ErrNumber = -2147217833 OR InStrB(ErrDescr, "Daten zu lang") <> 0 OR InSt
  Loop
  Call ForeignNo0
  Call ForeignNo1
- resume
+ resume sql
 ElseIf InStrB(1, ErrDescr, "gone away", vbTextCompare) <> 0 Or InStrB(ErrDescr, "ost connection") <> 0 Then
  DBCnOpen
  Resume
@@ -7379,7 +7498,7 @@ Public FUNCTION rRrDump()
 End FUNCTION ' rrDump
 
 Public FUNCTION rrSpeichern(SammelInsert%, BezfSp%)
- Dim i&, rAF&, Pid$, m%, sfnr%, altmode$ ',sql0$
+ Dim i&, rAF&, Pid$, m%, sfnr%, altmode$, ErrD$, ErrN& ',sql0$
  Dim csql0 As New CString, csql As New CString
  Dim rs As New ADODB.recordset
  T1 = Timer
@@ -7387,18 +7506,18 @@ Public FUNCTION rrSpeichern(SammelInsert%, BezfSp%)
  Pid = rNa(0).Pat_id
  ON Error GoTo fehler
  syscmd 4, pid & ": Speichere " & Ubound(rRr)+0 & " Sätze in `rr`"
-' sql0 = " INSERT " & sqlignore &  "INTO `rr` (FID,Pat_ID,ZeitPunkt," & _
+' sql0 = " INSERT " & sqlignore & "INTO `rr` (FID,Pat_ID,ZeitPunkt," & _
      "FormTitel,RR,Puls,RRsyst,RRdiast,RRzahl,Quelle,Bemerkung,absPos,AktZeit," & _
      "StByte) VALUES
- Call csql0.AppVar(Array(" INSERT ", sqlIgnore, " INTO `rr` (FID,Pat_ID,ZeitPunkt," & _
+ Call csql0.AppVar(Array(" INSERT ", sqlIgnore, "INTO `rr` (FID,Pat_ID,ZeitPunkt," & _
      "FormTitel,RR,Puls,RRsyst,RRdiast,RRzahl,Quelle,Bemerkung,absPos,AktZeit," & _
      "StByte)  VALUES"))
-sql:
- csql.m_Len = 0
  IF NOT Allepat THEN
    sql = "DELETE FROM `rr` WHERE Pat_ID = " & CStr(rNa(0).Pat_ID)
    Call myEFrag(sql)
  END IF ' not AllePat
+sql:
+ csql.m_Len = 0
  For i = 1 to ubound(rRr)
 '  rRr(i).AktZeit = now()
   rRr(i).StByte = CStr(AktByte)
@@ -7414,7 +7533,9 @@ sql:
 '   Call DBCn.Execute("SET GLOBAL sql_mode='STRICT_TRANS_TABLES'") ' NO_ENGINE_SUBSTITUTION
     myEFrag "SET GLOBAL sql_mode='STRICT_TRANS_TABLES'", , DBCn ' NO_ENGINE_SUBSTITUTION
 '   Call myEFrag(csql.Value,rAf)', , adAsyncExecute) ' wegen unzureichender Fehlerverarbeitung wieder ausrangiert 19.8.23
-   Call DBCn.Execute(csql.Value, rAF) ', , adAsyncExecute)
+'   Call DBCn.Execute(csql.Value, rAF) ', , adAsyncExecute)
+    InsKorr DBCn, DBCnS, csql.Value, rAf, ErrD, , ErrN
+    If ErrN Then Error ErrN
    csql.clear
    IF obforK THEN
     Call ForeignYes0
@@ -7426,8 +7547,13 @@ sql:
  syscmd 5
  Exit Function
 fehler:
-ErrDescr = Err.Description
-ErrNumber = Err.Number
+If ErrN = 0 Then
+ ErrDescr = Err.Description
+ ErrNumber = Err.Number
+Else ' ErrN = 0 Then
+ ErrDescr = errd
+ ErrNumber = ErrN
+End If ' ErrN = 0 Then else
 syscmd 4, "rRr(" & i & "/" & UBound(rRr) & "):   " & ErrDescr
 sfnr = sfnr + 1
 If sfnr > 10 then 
@@ -7482,7 +7608,7 @@ ElseIf ErrNumber = -2147217833 OR InStrB(ErrDescr, "Daten zu lang") <> 0 OR InSt
  Loop
  Call ForeignNo0
  Call ForeignNo1
- resume
+ resume sql
 ElseIf InStrB(1, ErrDescr, "gone away", vbTextCompare) <> 0 Or InStrB(ErrDescr, "ost connection") <> 0 Then
  DBCnOpen
  Resume
@@ -7518,7 +7644,7 @@ Public FUNCTION rKvDump()
 End FUNCTION ' kvnrueDump
 
 Public FUNCTION kvnrueSpeichern(SammelInsert%, BezfSp%)
- Dim i&, rAF&, Pid$, m%, sfnr%, altmode$ ',sql0$
+ Dim i&, rAF&, Pid$, m%, sfnr%, altmode$, ErrD$, ErrN& ',sql0$
  Dim csql0 As New CString, csql As New CString
  Dim rs As New ADODB.recordset
  T1 = Timer
@@ -7526,16 +7652,16 @@ Public FUNCTION kvnrueSpeichern(SammelInsert%, BezfSp%)
  Pid = rNa(0).Pat_id
  ON Error GoTo fehler
  syscmd 4, pid & ": Speichere " & Ubound(rKv)+0 & " Sätze in `kvnrue`"
-' sql0 = " INSERT " & sqlignore &  "INTO `kvnrue` (Pat_ID,KVNr,absPos," & _
+' sql0 = " INSERT " & sqlignore & "INTO `kvnrue` (Pat_ID,KVNr,absPos," & _
      "AktZeit,StByte) VALUES
- Call csql0.AppVar(Array(" INSERT ", sqlIgnore, " INTO `kvnrue` (Pat_ID,KVNr,absPos," & _
+ Call csql0.AppVar(Array(" INSERT ", sqlIgnore, "INTO `kvnrue` (Pat_ID,KVNr,absPos," & _
      "AktZeit,StByte)        VALUES"))
-sql:
- csql.m_Len = 0
  IF NOT Allepat THEN
    sql = "DELETE FROM `kvnrue` WHERE Pat_ID = " & CStr(rNa(0).Pat_ID)
    Call myEFrag(sql)
  END IF ' not AllePat
+sql:
+ csql.m_Len = 0
  For i = 1 to ubound(rKv)
 '  rKv(i).AktZeit = now()
   rKv(i).StByte = CStr(AktByte)
@@ -7550,7 +7676,9 @@ sql:
 '   Call DBCn.Execute("SET GLOBAL sql_mode='STRICT_TRANS_TABLES'") ' NO_ENGINE_SUBSTITUTION
     myEFrag "SET GLOBAL sql_mode='STRICT_TRANS_TABLES'", , DBCn ' NO_ENGINE_SUBSTITUTION
 '   Call myEFrag(csql.Value,rAf)', , adAsyncExecute) ' wegen unzureichender Fehlerverarbeitung wieder ausrangiert 19.8.23
-   Call DBCn.Execute(csql.Value, rAF) ', , adAsyncExecute)
+'   Call DBCn.Execute(csql.Value, rAF) ', , adAsyncExecute)
+    InsKorr DBCn, DBCnS, csql.Value, rAf, ErrD, , ErrN
+    If ErrN Then Error ErrN
    csql.clear
    IF obforK THEN
     Call ForeignYes0
@@ -7562,8 +7690,13 @@ sql:
  syscmd 5
  Exit Function
 fehler:
-ErrDescr = Err.Description
-ErrNumber = Err.Number
+If ErrN = 0 Then
+ ErrDescr = Err.Description
+ ErrNumber = Err.Number
+Else ' ErrN = 0 Then
+ ErrDescr = errd
+ ErrNumber = ErrN
+End If ' ErrN = 0 Then else
 syscmd 4, "rKv(" & i & "/" & UBound(rKv) & "):   " & ErrDescr
 sfnr = sfnr + 1
 If sfnr > 10 then 
@@ -7612,7 +7745,7 @@ ElseIf ErrNumber = -2147217833 OR InStrB(ErrDescr, "Daten zu lang") <> 0 OR InSt
  Loop
  Call ForeignNo0
  Call ForeignNo1
- resume
+ resume sql
 ElseIf InStrB(1, ErrDescr, "gone away", vbTextCompare) <> 0 Or InStrB(ErrDescr, "ost connection") <> 0 Then
  DBCnOpen
  Resume
@@ -7642,21 +7775,21 @@ Public FUNCTION rUnDump()
 End FUNCTION ' unbekannte_kennungenDump
 
 Public FUNCTION unbekannte_kennungenSpeichern(SammelInsert%, BezfSp%)
- Dim i&, rAF&, Pid$, m%, sfnr%, altmode$ ',sql0$
+ Dim i&, rAF&, Pid$, m%, sfnr%, altmode$, ErrD$, ErrN& ',sql0$
  Dim csql0 As New CString, csql As New CString
  Dim rs As New ADODB.recordset
  T1 = Timer
  On Error Resume Next
  Pid = rNa(0).Pat_id
  syscmd 4, pid & ": Speichere " & Ubound(rUn)+0 & " Sätze in `unbekannte_kennungen`"
-' sql0 = " INSERT " & sqlignore &  "INTO `unbekannte kennungen` (Kennung,absPos,StByte," & _
+' sql0 = " INSERT " & sqlignore & "INTO `unbekannte kennungen` (Kennung,absPos,StByte," & _
      "Pat_id,Inhalt) VALUES
- Call csql0.AppVar(Array(" INSERT ", sqlIgnore, " INTO `unbekannte kennungen` (Kennung,absPos,StByte," & _
+ Call csql0.AppVar(Array(" INSERT ", sqlIgnore, "INTO `unbekannte kennungen` (Kennung,absPos,StByte," & _
      "Pat_id,Inhalt)         VALUES"))
-sql:
- csql.m_Len = 0
  IF NOT Allepat THEN
  END IF ' not AllePat
+sql:
+ csql.m_Len = 0
  For i = rUn1 + 1 to ubound(rUn)
 '  rUn(i).AktZeit = now()
   rUn(i).StByte = CStr(AktByte)
@@ -7671,7 +7804,9 @@ sql:
 '   Call DBCn.Execute("SET GLOBAL sql_mode='STRICT_TRANS_TABLES'") ' NO_ENGINE_SUBSTITUTION
     myEFrag "SET GLOBAL sql_mode='STRICT_TRANS_TABLES'", , DBCn ' NO_ENGINE_SUBSTITUTION
 '   Call myEFrag(csql.Value,rAf)', , adAsyncExecute) ' wegen unzureichender Fehlerverarbeitung wieder ausrangiert 19.8.23
-   Call DBCn.Execute(csql.Value, rAF) ', , adAsyncExecute)
+'   Call DBCn.Execute(csql.Value, rAF) ', , adAsyncExecute)
+    InsKorr DBCn, DBCnS, csql.Value, rAf, ErrD, , ErrN
+    If ErrN Then Error ErrN
    csql.clear
    IF obforK THEN
     Call ForeignYes0
@@ -7684,8 +7819,13 @@ sql:
  syscmd 5
  Exit Function
 fehler:
-ErrDescr = Err.Description
-ErrNumber = Err.Number
+If ErrN = 0 Then
+ ErrDescr = Err.Description
+ ErrNumber = Err.Number
+Else ' ErrN = 0 Then
+ ErrDescr = errd
+ ErrNumber = ErrN
+End If ' ErrN = 0 Then else
 syscmd 4, "rUn(" & i & "/" & UBound(rUn) & "):   " & ErrDescr
 sfnr = sfnr + 1
 If sfnr > 10 then 
@@ -7736,7 +7876,7 @@ ElseIf ErrNumber = -2147217833 OR InStrB(ErrDescr, "Daten zu lang") <> 0 OR InSt
  Loop
  Call ForeignNo0
  Call ForeignNo1
- resume
+ resume sql
 ElseIf InStrB(1, ErrDescr, "gone away", vbTextCompare) <> 0 Or InStrB(ErrDescr, "ost connection") <> 0 Then
  DBCnOpen
  Resume
@@ -7916,7 +8056,7 @@ Public FUNCTION rDmDump()
 End FUNCTION ' dmpreiheDump
 
 Public FUNCTION dmpreiheSpeichern(SammelInsert%, BezfSp%)
- Dim i&, rAF&, Pid$, m%, sfnr%, altmode$ ',sql0$
+ Dim i&, rAF&, Pid$, m%, sfnr%, altmode$, ErrD$, ErrN& ',sql0$
  Dim csql0 As New CString, csql As New CString
  Dim rs As New ADODB.recordset
  T1 = Timer
@@ -7924,18 +8064,18 @@ Public FUNCTION dmpreiheSpeichern(SammelInsert%, BezfSp%)
  Pid = rNa(0).Pat_id
  ON Error GoTo fehler
  syscmd 4, pid & ": Speichere " & Ubound(rDm)+0 & " Sätze in `dmpreihe`"
-' sql0 = " INSERT " & sqlignore &  "INTO `dmpreihe` (Abk,Art,KarteiDatum," & _
+' sql0 = " INSERT " & sqlignore & "INTO `dmpreihe` (Abk,Art,KarteiDatum," & _
      "exportiert,DokuDatum,obvoll,ok,ausgedruckt,NachName,VorName,GebDat,Pat_id,StByte," & _
      "AktZeit,lanrid,Zusatzdaten) VALUES
- Call csql0.AppVar(Array(" INSERT ", sqlIgnore, " INTO `dmpreihe` (Abk,Art,KarteiDatum," & _
+ Call csql0.AppVar(Array(" INSERT ", sqlIgnore, "INTO `dmpreihe` (Abk,Art,KarteiDatum," & _
      "exportiert,DokuDatum,obvoll,ok,ausgedruckt,NachName,VorName,GebDat,Pat_id,StByte," & _
      "AktZeit,lanrid,Zusatzdaten)          VALUES"))
-sql:
- csql.m_Len = 0
  IF NOT Allepat THEN
    sql = "DELETE FROM `dmpreihe` WHERE Pat_ID = " & CStr(rNa(0).Pat_ID)
    Call myEFrag(sql)
  END IF ' not AllePat
+sql:
+ csql.m_Len = 0
  For i = 1 to ubound(rDm)
 '  rDm(i).AktZeit = now()
   rDm(i).StByte = CStr(AktByte)
@@ -7952,7 +8092,9 @@ sql:
 '   Call DBCn.Execute("SET GLOBAL sql_mode='STRICT_TRANS_TABLES'") ' NO_ENGINE_SUBSTITUTION
     myEFrag "SET GLOBAL sql_mode='STRICT_TRANS_TABLES'", , DBCn ' NO_ENGINE_SUBSTITUTION
 '   Call myEFrag(csql.Value,rAf)', , adAsyncExecute) ' wegen unzureichender Fehlerverarbeitung wieder ausrangiert 19.8.23
-   Call DBCn.Execute(csql.Value, rAF) ', , adAsyncExecute)
+'   Call DBCn.Execute(csql.Value, rAF) ', , adAsyncExecute)
+    InsKorr DBCn, DBCnS, csql.Value, rAf, ErrD, , ErrN
+    If ErrN Then Error ErrN
    csql.clear
    IF obforK THEN
     Call ForeignYes0
@@ -7964,8 +8106,13 @@ sql:
  syscmd 5
  Exit Function
 fehler:
-ErrDescr = Err.Description
-ErrNumber = Err.Number
+If ErrN = 0 Then
+ ErrDescr = Err.Description
+ ErrNumber = Err.Number
+Else ' ErrN = 0 Then
+ ErrDescr = errd
+ ErrNumber = ErrN
+End If ' ErrN = 0 Then else
 syscmd 4, "rDm(" & i & "/" & UBound(rDm) & "):   " & ErrDescr
 sfnr = sfnr + 1
 If sfnr > 10 then 
@@ -8022,7 +8169,7 @@ ElseIf ErrNumber = -2147217833 OR InStrB(ErrDescr, "Daten zu lang") <> 0 OR InSt
  Loop
  Call ForeignNo0
  Call ForeignNo1
- resume
+ resume sql
 ElseIf InStrB(1, ErrDescr, "gone away", vbTextCompare) <> 0 Or InStrB(ErrDescr, "ost connection") <> 0 Then
  DBCnOpen
  Resume
@@ -8223,7 +8370,7 @@ Public FUNCTION rDeDump()
 End FUNCTION ' desktopDump
 
 Public FUNCTION desktopSpeichern(SammelInsert%, BezfSp%)
- Dim i&, rAF&, Pid$, m%, sfnr%, altmode$ ',sql0$
+ Dim i&, rAF&, Pid$, m%, sfnr%, altmode$, ErrD$, ErrN& ',sql0$
  Dim csql0 As New CString, csql As New CString
  Dim rs As New ADODB.recordset
  T1 = Timer
@@ -8231,18 +8378,18 @@ Public FUNCTION desktopSpeichern(SammelInsert%, BezfSp%)
  Pid = rNa(0).Pat_id
  ON Error GoTo fehler
  syscmd 4, pid & ": Speichere " & Ubound(rDe)+0 & " Sätze in `desktop`"
-' sql0 = " INSERT " & sqlignore &  "INTO `desktop` (IDS,Pat_ID,erstZP," & _
+' sql0 = " INSERT " & sqlignore & "INTO `desktop` (IDS,Pat_ID,erstZP," & _
      "exoL,hideT,iconPath,noteBkColor,noteFgColor,positionBottom,positionLeft,positionRight,positionTop,showAsNote," & _
      "syncInfoList,titel,toolTipText,verankert,absPos,AktZeit,StByte) VALUES
- Call csql0.AppVar(Array(" INSERT ", sqlIgnore, " INTO `desktop` (IDS,Pat_ID,erstZP," & _
+ Call csql0.AppVar(Array(" INSERT ", sqlIgnore, "INTO `desktop` (IDS,Pat_ID,erstZP," & _
      "exoL,hideT,iconPath,noteBkColor,noteFgColor,positionBottom,positionLeft,positionRight,positionTop,showAsNote," & _
      "syncInfoList,titel,toolTipText,verankert,absPos,AktZeit,StByte)  VALUES"))
-sql:
- csql.m_Len = 0
  IF NOT Allepat THEN
    sql = "DELETE FROM `desktop` WHERE Pat_ID = " & CStr(rNa(0).Pat_ID)
    Call myEFrag(sql)
  END IF ' not AllePat
+sql:
+ csql.m_Len = 0
  For i = 1 to ubound(rDe)
 '  rDe(i).AktZeit = now()
   rDe(i).StByte = CStr(AktByte)
@@ -8259,7 +8406,9 @@ sql:
 '   Call DBCn.Execute("SET GLOBAL sql_mode='STRICT_TRANS_TABLES'") ' NO_ENGINE_SUBSTITUTION
     myEFrag "SET GLOBAL sql_mode='STRICT_TRANS_TABLES'", , DBCn ' NO_ENGINE_SUBSTITUTION
 '   Call myEFrag(csql.Value,rAf)', , adAsyncExecute) ' wegen unzureichender Fehlerverarbeitung wieder ausrangiert 19.8.23
-   Call DBCn.Execute(csql.Value, rAF) ', , adAsyncExecute)
+'   Call DBCn.Execute(csql.Value, rAF) ', , adAsyncExecute)
+    InsKorr DBCn, DBCnS, csql.Value, rAf, ErrD, , ErrN
+    If ErrN Then Error ErrN
    csql.clear
    IF obforK THEN
     Call ForeignYes0
@@ -8271,8 +8420,13 @@ sql:
  syscmd 5
  Exit Function
 fehler:
-ErrDescr = Err.Description
-ErrNumber = Err.Number
+If ErrN = 0 Then
+ ErrDescr = Err.Description
+ ErrNumber = Err.Number
+Else ' ErrN = 0 Then
+ ErrDescr = errd
+ ErrNumber = ErrN
+End If ' ErrN = 0 Then else
 syscmd 4, "rDe(" & i & "/" & UBound(rDe) & "):   " & ErrDescr
 sfnr = sfnr + 1
 If sfnr > 10 then 
@@ -8331,7 +8485,7 @@ ElseIf ErrNumber = -2147217833 OR InStrB(ErrDescr, "Daten zu lang") <> 0 OR InSt
  Loop
  Call ForeignNo0
  Call ForeignNo1
- resume
+ resume sql
 ElseIf InStrB(1, ErrDescr, "gone away", vbTextCompare) <> 0 Or InStrB(ErrDescr, "ost connection") <> 0 Then
  DBCnOpen
  Resume
@@ -8638,7 +8792,7 @@ Public FUNCTION rUsDump()
 End FUNCTION ' usdmDump
 
 Public FUNCTION usdmSpeichern(SammelInsert%, BezfSp%)
- Dim i&, rAF&, Pid$, m%, sfnr%, altmode$ ',sql0$
+ Dim i&, rAF&, Pid$, m%, sfnr%, altmode$, ErrD$, ErrN& ',sql0$
  Dim csql0 As New CString, csql As New CString
  Dim rs As New ADODB.recordset
  T1 = Timer
@@ -8646,24 +8800,24 @@ Public FUNCTION usdmSpeichern(SammelInsert%, BezfSp%)
  Pid = rNa(0).Pat_id
  ON Error GoTo fehler
  syscmd 4, pid & ": Speichere " & Ubound(rUs)+0 & " Sätze in `usdm`"
-' sql0 = " INSERT " & sqlignore &  "INTO `usdm` (FID,Pat_ID,ZeitPunkt," & _
+' sql0 = " INSERT " & sqlignore & "INTO `usdm` (FID,Pat_ID,ZeitPunkt," & _
      "Art,Spritzst,Fußbef_re,Fußbef_li,Hyperk_re,Hyperk_li,Ulcera_re,Ulcera_li,Kraft_Zh_re,Kraft_Zh_li," & _
      "Kraft_Zb_re,Kraft_Zb_li,Kraft_Knie_re,Kraft_Knie_li,ASR_re,ASR_li,PSR_re,PSR_li,Oberfl_re,Oberfl_li," & _
      "MF_re,MF_li,KW_re,KW_li,Vibr_IK_re,Vibr_IK_li,Vibr_GZ_re,Vibr_GZ_li,PulsL_re,PulsL_li," & _
      "PulsKK_re,PulsKK_li,PulsAtp_re,PulsAtp_li,PulsAdp_re,PulsAdp_li,Mitarbeiter,absPos,AktZeit,QS," & _
      "QT,StByte) VALUES
- Call csql0.AppVar(Array(" INSERT ", sqlIgnore, " INTO `usdm` (FID,Pat_ID,ZeitPunkt," & _
+ Call csql0.AppVar(Array(" INSERT ", sqlIgnore, "INTO `usdm` (FID,Pat_ID,ZeitPunkt," & _
      "Art,Spritzst,Fußbef_re,Fußbef_li,Hyperk_re,Hyperk_li,Ulcera_re,Ulcera_li,Kraft_Zh_re,Kraft_Zh_li," & _
      "Kraft_Zb_re,Kraft_Zb_li,Kraft_Knie_re,Kraft_Knie_li,ASR_re,ASR_li,PSR_re,PSR_li,Oberfl_re,Oberfl_li," & _
      "MF_re,MF_li,KW_re,KW_li,Vibr_IK_re,Vibr_IK_li,Vibr_GZ_re,Vibr_GZ_li,PulsL_re,PulsL_li," & _
      "PulsKK_re,PulsKK_li,PulsAtp_re,PulsAtp_li,PulsAdp_re,PulsAdp_li,Mitarbeiter,absPos,AktZeit,QS," & _
      "QT,StByte)             VALUES"))
-sql:
- csql.m_Len = 0
  IF NOT Allepat THEN
    sql = "DELETE FROM `usdm` WHERE Pat_ID = " & CStr(rNa(0).Pat_ID)
    Call myEFrag(sql)
  END IF ' not AllePat
+sql:
+ csql.m_Len = 0
  For i = 1 to ubound(rUs)
 '  rUs(i).AktZeit = now()
   rUs(i).StByte = CStr(AktByte)
@@ -8683,7 +8837,9 @@ sql:
 '   Call DBCn.Execute("SET GLOBAL sql_mode='STRICT_TRANS_TABLES'") ' NO_ENGINE_SUBSTITUTION
     myEFrag "SET GLOBAL sql_mode='STRICT_TRANS_TABLES'", , DBCn ' NO_ENGINE_SUBSTITUTION
 '   Call myEFrag(csql.Value,rAf)', , adAsyncExecute) ' wegen unzureichender Fehlerverarbeitung wieder ausrangiert 19.8.23
-   Call DBCn.Execute(csql.Value, rAF) ', , adAsyncExecute)
+'   Call DBCn.Execute(csql.Value, rAF) ', , adAsyncExecute)
+    InsKorr DBCn, DBCnS, csql.Value, rAf, ErrD, , ErrN
+    If ErrN Then Error ErrN
    csql.clear
    IF obforK THEN
     Call ForeignYes0
@@ -8695,8 +8851,13 @@ sql:
  syscmd 5
  Exit Function
 fehler:
-ErrDescr = Err.Description
-ErrNumber = Err.Number
+If ErrN = 0 Then
+ ErrDescr = Err.Description
+ ErrNumber = Err.Number
+Else ' ErrN = 0 Then
+ ErrDescr = errd
+ ErrNumber = ErrN
+End If ' ErrN = 0 Then else
 syscmd 4, "rUs(" & i & "/" & UBound(rUs) & "):   " & ErrDescr
 sfnr = sfnr + 1
 If sfnr > 10 then 
@@ -8821,7 +8982,7 @@ ElseIf ErrNumber = -2147217833 OR InStrB(ErrDescr, "Daten zu lang") <> 0 OR InSt
  Loop
  Call ForeignNo0
  Call ForeignNo1
- resume
+ resume sql
 ElseIf InStrB(1, ErrDescr, "gone away", vbTextCompare) <> 0 Or InStrB(ErrDescr, "ost connection") <> 0 Then
  DBCnOpen
  Resume
@@ -9018,7 +9179,7 @@ Public FUNCTION rFuDump()
 End FUNCTION ' fussDump
 
 Public FUNCTION fussSpeichern(SammelInsert%, BezfSp%)
- Dim i&, rAF&, Pid$, m%, sfnr%, altmode$ ',sql0$
+ Dim i&, rAF&, Pid$, m%, sfnr%, altmode$, ErrD$, ErrN& ',sql0$
  Dim csql0 As New CString, csql As New CString
  Dim rs As New ADODB.recordset
  T1 = Timer
@@ -9026,18 +9187,18 @@ Public FUNCTION fussSpeichern(SammelInsert%, BezfSp%)
  Pid = rNa(0).Pat_id
  ON Error GoTo fehler
  syscmd 4, pid & ": Speichere " & Ubound(rFu)+0 & " Sätze in `fuss`"
-' sql0 = " INSERT " & sqlignore &  "INTO `fuss` (FID,Pat_ID,ZeitPunkt," & _
+' sql0 = " INSERT " & sqlignore & "INTO `fuss` (FID,Pat_ID,ZeitPunkt," & _
      "Art,Fußdeform,Hyper_mEin,Weiteres,Zn_Ulcus,Zn_Amput,Fuß_ang,Ulcera,Wundinfektion,nae_US," & _
      "Mitarbeiter,absPos,AktZeit,QS,QT,StByte) VALUES
- Call csql0.AppVar(Array(" INSERT ", sqlIgnore, " INTO `fuss` (FID,Pat_ID,ZeitPunkt," & _
+ Call csql0.AppVar(Array(" INSERT ", sqlIgnore, "INTO `fuss` (FID,Pat_ID,ZeitPunkt," & _
      "Art,Fußdeform,Hyper_mEin,Weiteres,Zn_Ulcus,Zn_Amput,Fuß_ang,Ulcera,Wundinfektion,nae_US," & _
      "Mitarbeiter,absPos,AktZeit,QS,QT,StByte)           VALUES"))
-sql:
- csql.m_Len = 0
  IF NOT Allepat THEN
    sql = "DELETE FROM `fuss` WHERE Pat_ID = " & CStr(rNa(0).Pat_ID)
    Call myEFrag(sql)
  END IF ' not AllePat
+sql:
+ csql.m_Len = 0
  For i = 1 to ubound(rFu)
 '  rFu(i).AktZeit = now()
   rFu(i).StByte = CStr(AktByte)
@@ -9054,7 +9215,9 @@ sql:
 '   Call DBCn.Execute("SET GLOBAL sql_mode='STRICT_TRANS_TABLES'") ' NO_ENGINE_SUBSTITUTION
     myEFrag "SET GLOBAL sql_mode='STRICT_TRANS_TABLES'", , DBCn ' NO_ENGINE_SUBSTITUTION
 '   Call myEFrag(csql.Value,rAf)', , adAsyncExecute) ' wegen unzureichender Fehlerverarbeitung wieder ausrangiert 19.8.23
-   Call DBCn.Execute(csql.Value, rAF) ', , adAsyncExecute)
+'   Call DBCn.Execute(csql.Value, rAF) ', , adAsyncExecute)
+    InsKorr DBCn, DBCnS, csql.Value, rAf, ErrD, , ErrN
+    If ErrN Then Error ErrN
    csql.clear
    IF obforK THEN
     Call ForeignYes0
@@ -9066,8 +9229,13 @@ sql:
  syscmd 5
  Exit Function
 fehler:
-ErrDescr = Err.Description
-ErrNumber = Err.Number
+If ErrN = 0 Then
+ ErrDescr = Err.Description
+ ErrNumber = Err.Number
+Else ' ErrN = 0 Then
+ ErrDescr = errd
+ ErrNumber = ErrN
+End If ' ErrN = 0 Then else
 syscmd 4, "rFu(" & i & "/" & UBound(rFu) & "):   " & ErrDescr
 sfnr = sfnr + 1
 If sfnr > 10 then 
@@ -9140,7 +9308,7 @@ ElseIf ErrNumber = -2147217833 OR InStrB(ErrDescr, "Daten zu lang") <> 0 OR InSt
  Loop
  Call ForeignNo0
  Call ForeignNo1
- resume
+ resume sql
 ElseIf InStrB(1, ErrDescr, "gone away", vbTextCompare) <> 0 Or InStrB(ErrDescr, "ost connection") <> 0 Then
  DBCnOpen
  Resume
@@ -9328,7 +9496,7 @@ Public FUNCTION rUlDump()
 End FUNCTION ' ulcusDump
 
 Public FUNCTION ulcusSpeichern(SammelInsert%, BezfSp%)
- Dim i&, rAF&, Pid$, m%, sfnr%, altmode$ ',sql0$
+ Dim i&, rAF&, Pid$, m%, sfnr%, altmode$, ErrD$, ErrN& ',sql0$
  Dim csql0 As New CString, csql As New CString
  Dim rs As New ADODB.recordset
  T1 = Timer
@@ -9336,18 +9504,18 @@ Public FUNCTION ulcusSpeichern(SammelInsert%, BezfSp%)
  Pid = rNa(0).Pat_id
  ON Error GoTo fehler
  syscmd 4, pid & ": Speichere " & Ubound(rUl)+0 & " Sätze in `ulcus`"
-' sql0 = " INSERT " & sqlignore &  "INTO `ulcus` (FID,Pat_ID,ZeitPunkt," & _
+' sql0 = " INSERT " & sqlignore & "INTO `ulcus` (FID,Pat_ID,ZeitPunkt," & _
      "Lokalisation,Seite,Größe,Beläge,Exsudat,Geruch,Wundrand,Wundumgebung,Temperatur,Fotodoku," & _
      "Wundversorgung,Mitarbeiter,absPos,AktZeit,StByte) VALUES
- Call csql0.AppVar(Array(" INSERT ", sqlIgnore, " INTO `ulcus` (FID,Pat_ID,ZeitPunkt," & _
+ Call csql0.AppVar(Array(" INSERT ", sqlIgnore, "INTO `ulcus` (FID,Pat_ID,ZeitPunkt," & _
      "Lokalisation,Seite,Größe,Beläge,Exsudat,Geruch,Wundrand,Wundumgebung,Temperatur,Fotodoku," & _
      "Wundversorgung,Mitarbeiter,absPos,AktZeit,StByte)  VALUES"))
-sql:
- csql.m_Len = 0
  IF NOT Allepat THEN
    sql = "DELETE FROM `ulcus` WHERE Pat_ID = " & CStr(rNa(0).Pat_ID)
    Call myEFrag(sql)
  END IF ' not AllePat
+sql:
+ csql.m_Len = 0
  For i = 1 to ubound(rUl)
 '  rUl(i).AktZeit = now()
   rUl(i).StByte = CStr(AktByte)
@@ -9364,7 +9532,9 @@ sql:
 '   Call DBCn.Execute("SET GLOBAL sql_mode='STRICT_TRANS_TABLES'") ' NO_ENGINE_SUBSTITUTION
     myEFrag "SET GLOBAL sql_mode='STRICT_TRANS_TABLES'", , DBCn ' NO_ENGINE_SUBSTITUTION
 '   Call myEFrag(csql.Value,rAf)', , adAsyncExecute) ' wegen unzureichender Fehlerverarbeitung wieder ausrangiert 19.8.23
-   Call DBCn.Execute(csql.Value, rAF) ', , adAsyncExecute)
+'   Call DBCn.Execute(csql.Value, rAF) ', , adAsyncExecute)
+    InsKorr DBCn, DBCnS, csql.Value, rAf, ErrD, , ErrN
+    If ErrN Then Error ErrN
    csql.clear
    IF obforK THEN
     Call ForeignYes0
@@ -9376,8 +9546,13 @@ sql:
  syscmd 5
  Exit Function
 fehler:
-ErrDescr = Err.Description
-ErrNumber = Err.Number
+If ErrN = 0 Then
+ ErrDescr = Err.Description
+ ErrNumber = Err.Number
+Else ' ErrN = 0 Then
+ ErrDescr = errd
+ ErrNumber = ErrN
+End If ' ErrN = 0 Then else
 syscmd 4, "rUl(" & i & "/" & UBound(rUl) & "):   " & ErrDescr
 sfnr = sfnr + 1
 If sfnr > 10 then 
@@ -9448,7 +9623,7 @@ ElseIf ErrNumber = -2147217833 OR InStrB(ErrDescr, "Daten zu lang") <> 0 OR InSt
  Loop
  Call ForeignNo0
  Call ForeignNo1
- resume
+ resume sql
 ElseIf InStrB(1, ErrDescr, "gone away", vbTextCompare) <> 0 Or InStrB(ErrDescr, "ost connection") <> 0 Then
  DBCnOpen
  Resume
@@ -9636,7 +9811,7 @@ Public FUNCTION rVkDump()
 End FUNCTION ' vkgdDump
 
 Public FUNCTION vkgdSpeichern(SammelInsert%, BezfSp%)
- Dim i&, rAF&, Pid$, m%, sfnr%, altmode$ ',sql0$
+ Dim i&, rAF&, Pid$, m%, sfnr%, altmode$, ErrD$, ErrN& ',sql0$
  Dim csql0 As New CString, csql As New CString
  Dim rs As New ADODB.recordset
  T1 = Timer
@@ -9644,18 +9819,18 @@ Public FUNCTION vkgdSpeichern(SammelInsert%, BezfSp%)
  Pid = rNa(0).Pat_id
  ON Error GoTo fehler
  syscmd 4, pid & ": Speichere " & Ubound(rVk)+0 & " Sätze in `vkgd`"
-' sql0 = " INSERT " & sqlignore &  "INTO `vkgd` (FID,Pat_ID,ZeitPunkt," & _
+' sql0 = " INSERT " & sqlignore & "INTO `vkgd` (FID,Pat_ID,ZeitPunkt," & _
      "Wohlempfinden,Saettigung,Zielwerterreichung,Ketonkörper,Gynaekologenbefund,Gewichtsentwicklung,HbA1c,Bewegung,Minuten,Blutdruck," & _
      "Puls,Mitarbeiter,absPos,AktZeit,StByte) VALUES
- Call csql0.AppVar(Array(" INSERT ", sqlIgnore, " INTO `vkgd` (FID,Pat_ID,ZeitPunkt," & _
+ Call csql0.AppVar(Array(" INSERT ", sqlIgnore, "INTO `vkgd` (FID,Pat_ID,ZeitPunkt," & _
      "Wohlempfinden,Saettigung,Zielwerterreichung,Ketonkörper,Gynaekologenbefund,Gewichtsentwicklung,HbA1c,Bewegung,Minuten,Blutdruck," & _
      "Puls,Mitarbeiter,absPos,AktZeit,StByte)            VALUES"))
-sql:
- csql.m_Len = 0
  IF NOT Allepat THEN
    sql = "DELETE FROM `vkgd` WHERE Pat_ID = " & CStr(rNa(0).Pat_ID)
    Call myEFrag(sql)
  END IF ' not AllePat
+sql:
+ csql.m_Len = 0
  For i = 1 to ubound(rVk)
 '  rVk(i).AktZeit = now()
   rVk(i).StByte = CStr(AktByte)
@@ -9672,7 +9847,9 @@ sql:
 '   Call DBCn.Execute("SET GLOBAL sql_mode='STRICT_TRANS_TABLES'") ' NO_ENGINE_SUBSTITUTION
     myEFrag "SET GLOBAL sql_mode='STRICT_TRANS_TABLES'", , DBCn ' NO_ENGINE_SUBSTITUTION
 '   Call myEFrag(csql.Value,rAf)', , adAsyncExecute) ' wegen unzureichender Fehlerverarbeitung wieder ausrangiert 19.8.23
-   Call DBCn.Execute(csql.Value, rAF) ', , adAsyncExecute)
+'   Call DBCn.Execute(csql.Value, rAF) ', , adAsyncExecute)
+    InsKorr DBCn, DBCnS, csql.Value, rAf, ErrD, , ErrN
+    If ErrN Then Error ErrN
    csql.clear
    IF obforK THEN
     Call ForeignYes0
@@ -9684,8 +9861,13 @@ sql:
  syscmd 5
  Exit Function
 fehler:
-ErrDescr = Err.Description
-ErrNumber = Err.Number
+If ErrN = 0 Then
+ ErrDescr = Err.Description
+ ErrNumber = Err.Number
+Else ' ErrN = 0 Then
+ ErrDescr = errd
+ ErrNumber = ErrN
+End If ' ErrN = 0 Then else
 syscmd 4, "rVk(" & i & "/" & UBound(rVk) & "):   " & ErrDescr
 sfnr = sfnr + 1
 If sfnr > 10 then 
@@ -9756,7 +9938,7 @@ ElseIf ErrNumber = -2147217833 OR InStrB(ErrDescr, "Daten zu lang") <> 0 OR InSt
  Loop
  Call ForeignNo0
  Call ForeignNo1
- resume
+ resume sql
 ElseIf InStrB(1, ErrDescr, "gone away", vbTextCompare) <> 0 Or InStrB(ErrDescr, "ost connection") <> 0 Then
  DBCnOpen
  Resume
@@ -9936,7 +10118,7 @@ Public FUNCTION rSwDump()
 End FUNCTION ' swsDump
 
 Public FUNCTION swsSpeichern(SammelInsert%, BezfSp%)
- Dim i&, rAF&, Pid$, m%, sfnr%, altmode$ ',sql0$
+ Dim i&, rAF&, Pid$, m%, sfnr%, altmode$, ErrD$, ErrN& ',sql0$
  Dim csql0 As New CString, csql As New CString
  Dim rs As New ADODB.recordset
  T1 = Timer
@@ -9944,18 +10126,18 @@ Public FUNCTION swsSpeichern(SammelInsert%, BezfSp%)
  Pid = rNa(0).Pat_id
  ON Error GoTo fehler
  syscmd 4, pid & ": Speichere " & Ubound(rSw)+0 & " Sätze in `sws`"
-' sql0 = " INSERT " & sqlignore &  "INTO `sws` (FID,Pat_ID,ZeitPunkt," & _
+' sql0 = " INSERT " & sqlignore & "INTO `sws` (FID,Pat_ID,ZeitPunkt," & _
      "FormTitel,LR,vorET,ET,efLR,erLR,kGT,MB,EndeArt,ED," & _
      "absPos,AktZeit,StByte) VALUES
- Call csql0.AppVar(Array(" INSERT ", sqlIgnore, " INTO `sws` (FID,Pat_ID,ZeitPunkt," & _
+ Call csql0.AppVar(Array(" INSERT ", sqlIgnore, "INTO `sws` (FID,Pat_ID,ZeitPunkt," & _
      "FormTitel,LR,vorET,ET,efLR,erLR,kGT,MB,EndeArt,ED," & _
      "absPos,AktZeit,StByte)               VALUES"))
-sql:
- csql.m_Len = 0
  IF NOT Allepat THEN
    sql = "DELETE FROM `sws` WHERE Pat_ID = " & CStr(rNa(0).Pat_ID)
    Call myEFrag(sql)
  END IF ' not AllePat
+sql:
+ csql.m_Len = 0
  For i = 1 to ubound(rSw)
 '  rSw(i).AktZeit = now()
   rSw(i).StByte = CStr(AktByte)
@@ -9972,7 +10154,9 @@ sql:
 '   Call DBCn.Execute("SET GLOBAL sql_mode='STRICT_TRANS_TABLES'") ' NO_ENGINE_SUBSTITUTION
     myEFrag "SET GLOBAL sql_mode='STRICT_TRANS_TABLES'", , DBCn ' NO_ENGINE_SUBSTITUTION
 '   Call myEFrag(csql.Value,rAf)', , adAsyncExecute) ' wegen unzureichender Fehlerverarbeitung wieder ausrangiert 19.8.23
-   Call DBCn.Execute(csql.Value, rAF) ', , adAsyncExecute)
+'   Call DBCn.Execute(csql.Value, rAF) ', , adAsyncExecute)
+    InsKorr DBCn, DBCnS, csql.Value, rAf, ErrD, , ErrN
+    If ErrN Then Error ErrN
    csql.clear
    IF obforK THEN
     Call ForeignYes0
@@ -9984,8 +10168,13 @@ sql:
  syscmd 5
  Exit Function
 fehler:
-ErrDescr = Err.Description
-ErrNumber = Err.Number
+If ErrN = 0 Then
+ ErrDescr = Err.Description
+ ErrNumber = Err.Number
+Else ' ErrN = 0 Then
+ ErrDescr = errd
+ ErrNumber = ErrN
+End If ' ErrN = 0 Then else
 syscmd 4, "rSw(" & i & "/" & UBound(rSw) & "):   " & ErrDescr
 sfnr = sfnr + 1
 If sfnr > 10 then 
@@ -10036,7 +10225,7 @@ ElseIf ErrNumber = -2147217833 OR InStrB(ErrDescr, "Daten zu lang") <> 0 OR InSt
  Loop
  Call ForeignNo0
  Call ForeignNo1
- resume
+ resume sql
 ElseIf InStrB(1, ErrDescr, "gone away", vbTextCompare) <> 0 Or InStrB(ErrDescr, "ost connection") <> 0 Then
  DBCnOpen
  Resume
@@ -10182,7 +10371,7 @@ Public FUNCTION rVoDump()
 End FUNCTION ' voplDump
 
 Public FUNCTION voplSpeichern(SammelInsert%, BezfSp%)
- Dim i&, rAF&, Pid$, m%, sfnr%, altmode$ ',sql0$
+ Dim i&, rAF&, Pid$, m%, sfnr%, altmode$, ErrD$, ErrN& ',sql0$
  Dim csql0 As New CString, csql As New CString
  Dim rs As New ADODB.recordset
  T1 = Timer
@@ -10190,16 +10379,16 @@ Public FUNCTION voplSpeichern(SammelInsert%, BezfSp%)
  Pid = rNa(0).Pat_id
  ON Error GoTo fehler
  syscmd 4, pid & ": Speichere " & Ubound(rVo)+0 & " Sätze in `vopl`"
-' sql0 = " INSERT " & sqlignore &  "INTO `vopl` (FID,Pat_ID,ZeitPunkt," & _
+' sql0 = " INSERT " & sqlignore & "INTO `vopl` (FID,Pat_ID,ZeitPunkt," & _
      "FormTitel,Inhalt,absPos,AktZeit,StByte) VALUES
- Call csql0.AppVar(Array(" INSERT ", sqlIgnore, " INTO `vopl` (FID,Pat_ID,ZeitPunkt," & _
+ Call csql0.AppVar(Array(" INSERT ", sqlIgnore, "INTO `vopl` (FID,Pat_ID,ZeitPunkt," & _
      "FormTitel,Inhalt,absPos,AktZeit,StByte)            VALUES"))
-sql:
- csql.m_Len = 0
  IF NOT Allepat THEN
    sql = "DELETE FROM `vopl` WHERE Pat_ID = " & CStr(rNa(0).Pat_ID)
    Call myEFrag(sql)
  END IF ' not AllePat
+sql:
+ csql.m_Len = 0
  For i = 1 to ubound(rVo)
 '  rVo(i).AktZeit = now()
   rVo(i).StByte = CStr(AktByte)
@@ -10214,7 +10403,9 @@ sql:
 '   Call DBCn.Execute("SET GLOBAL sql_mode='STRICT_TRANS_TABLES'") ' NO_ENGINE_SUBSTITUTION
     myEFrag "SET GLOBAL sql_mode='STRICT_TRANS_TABLES'", , DBCn ' NO_ENGINE_SUBSTITUTION
 '   Call myEFrag(csql.Value,rAf)', , adAsyncExecute) ' wegen unzureichender Fehlerverarbeitung wieder ausrangiert 19.8.23
-   Call DBCn.Execute(csql.Value, rAF) ', , adAsyncExecute)
+'   Call DBCn.Execute(csql.Value, rAF) ', , adAsyncExecute)
+    InsKorr DBCn, DBCnS, csql.Value, rAf, ErrD, , ErrN
+    If ErrN Then Error ErrN
    csql.clear
    IF obforK THEN
     Call ForeignYes0
@@ -10226,8 +10417,13 @@ sql:
  syscmd 5
  Exit Function
 fehler:
-ErrDescr = Err.Description
-ErrNumber = Err.Number
+If ErrN = 0 Then
+ ErrDescr = Err.Description
+ ErrNumber = Err.Number
+Else ' ErrN = 0 Then
+ ErrDescr = errd
+ ErrNumber = ErrN
+End If ' ErrN = 0 Then else
 syscmd 4, "rVo(" & i & "/" & UBound(rVo) & "):   " & ErrDescr
 sfnr = sfnr + 1
 If sfnr > 10 then 
@@ -10278,7 +10474,7 @@ ElseIf ErrNumber = -2147217833 OR InStrB(ErrDescr, "Daten zu lang") <> 0 OR InSt
  Loop
  Call ForeignNo0
  Call ForeignNo1
- resume
+ resume sql
 ElseIf InStrB(1, ErrDescr, "gone away", vbTextCompare) <> 0 Or InStrB(ErrDescr, "ost connection") <> 0 Then
  DBCnOpen
  Resume
@@ -10330,7 +10526,7 @@ Public FUNCTION rLsDump()
 End FUNCTION ' laborxsaetzeDump
 
 Public FUNCTION laborxsaetzeSpeichern(SammelInsert%, BezfSp%)
- Dim i&, rAF&, Pid$, m%, sfnr%, altmode$ ',sql0$
+ Dim i&, rAF&, Pid$, m%, sfnr%, altmode$, ErrD$, ErrN& ',sql0$
  Dim csql0 As New CString, csql As New CString
  Dim rs As New ADODB.recordset
  T1 = Timer
@@ -10338,10 +10534,10 @@ Public FUNCTION laborxsaetzeSpeichern(SammelInsert%, BezfSp%)
  Pid = rNa(0).Pat_id
  ON Error GoTo fehler
  syscmd 4, pid & ": Speichere " & Ubound(rLs)+0 & " Sätze in `laborxsaetze`"
-' sql0 = " INSERT " & sqlignore &  "INTO `laborxsaetze` (DatID,Satzart,Satzlänge," & _
+' sql0 = " INSERT " & sqlignore & "INTO `laborxsaetze` (DatID,Satzart,Satzlänge," & _
      "SatzlängeSchluss,VersionSatzb,Arztnr,Arztname,StraßePraxis,Arzt,LANR,PLZPraxis,OrtPraxis,Labor," & _
      "StraßeLabor,PLZLabor,OrtLabor,KBVPrüfnr,Zeichensatz,Kundenarztnr,Erstellungsdatum,Gesamtlänge) VALUES
- Call csql0.AppVar(Array(" INSERT ", sqlIgnore, " INTO `laborxsaetze` (DatID,Satzart,Satzlänge," & _
+ Call csql0.AppVar(Array(" INSERT ", sqlIgnore, "INTO `laborxsaetze` (DatID,Satzart,Satzlänge," & _
      "SatzlängeSchluss,VersionSatzb,Arztnr,Arztname,StraßePraxis,Arzt,LANR,PLZPraxis,OrtPraxis,Labor," & _
      "StraßeLabor,PLZLabor,OrtLabor,KBVPrüfnr,Zeichensatz,Kundenarztnr,Erstellungsdatum,Gesamtlänge)             VALUES"))
 sql:
@@ -10361,7 +10557,9 @@ sql:
 '   Call DBCn.Execute("SET GLOBAL sql_mode='STRICT_TRANS_TABLES'") ' NO_ENGINE_SUBSTITUTION
     myEFrag "SET GLOBAL sql_mode='STRICT_TRANS_TABLES'", , DBCn ' NO_ENGINE_SUBSTITUTION
 '   Call myEFrag(csql.Value,rAf)', , adAsyncExecute) ' wegen unzureichender Fehlerverarbeitung wieder ausrangiert 19.8.23
-   Call DBCn.Execute(csql.Value, rAF) ', , adAsyncExecute)
+'   Call DBCn.Execute(csql.Value, rAF) ', , adAsyncExecute)
+    InsKorr DBCn, DBCnS, csql.Value, rAf, ErrD, , ErrN
+    If ErrN Then Error ErrN
    csql.clear
    IF obforK THEN
     Call ForeignYes0
@@ -10373,8 +10571,13 @@ sql:
  syscmd 5
  Exit Function
 fehler:
-ErrDescr = Err.Description
-ErrNumber = Err.Number
+If ErrN = 0 Then
+ ErrDescr = Err.Description
+ ErrNumber = Err.Number
+Else ' ErrN = 0 Then
+ ErrDescr = errd
+ ErrNumber = ErrN
+End If ' ErrN = 0 Then else
 syscmd 4, "rLs(" & i & "/" & UBound(rLs) & "):   " & ErrDescr
 sfnr = sfnr + 1
 If sfnr > 10 then 
@@ -10460,7 +10663,7 @@ ElseIf ErrNumber = -2147217833 OR InStrB(ErrDescr, "Daten zu lang") <> 0 OR InSt
  Loop
  Call ForeignNo0
  Call ForeignNo1
- resume
+ resume sql
 ElseIf InStrB(1, ErrDescr, "gone away", vbTextCompare) <> 0 Or InStrB(ErrDescr, "ost connection") <> 0 Then
  DBCnOpen
  Resume
@@ -10495,7 +10698,7 @@ Public FUNCTION rLgDump()
 End FUNCTION ' laborxeingelDump
 
 Public FUNCTION laborxeingelSpeichern(SammelInsert%, BezfSp%)
- Dim i&, rAF&, Pid$, m%, sfnr%, altmode$ ',sql0$
+ Dim i&, rAF&, Pid$, m%, sfnr%, altmode$, ErrD$, ErrN& ',sql0$
  Dim csql0 As New CString, csql As New CString
  Dim rs As New ADODB.recordset
  T1 = Timer
@@ -10503,9 +10706,9 @@ Public FUNCTION laborxeingelSpeichern(SammelInsert%, BezfSp%)
  Pid = rNa(0).Pat_id
  ON Error GoTo fehler
  syscmd 4, pid & ": Speichere " & Ubound(rLg)+0 & " Sätze in `laborxeingel`"
-' sql0 = " INSERT " & sqlignore &  "INTO `laborxeingel` (Pfad,Name,Zp," & _
+' sql0 = " INSERT " & sqlignore & "INTO `laborxeingel` (Pfad,Name,Zp," & _
      "fertig) VALUES
- Call csql0.AppVar(Array(" INSERT ", sqlIgnore, " INTO `laborxeingel` (Pfad,Name,Zp," & _
+ Call csql0.AppVar(Array(" INSERT ", sqlIgnore, "INTO `laborxeingel` (Pfad,Name,Zp," & _
      "fertig)  VALUES"))
 sql:
  csql.m_Len = 0
@@ -10522,7 +10725,9 @@ sql:
 '   Call DBCn.Execute("SET GLOBAL sql_mode='STRICT_TRANS_TABLES'") ' NO_ENGINE_SUBSTITUTION
     myEFrag "SET GLOBAL sql_mode='STRICT_TRANS_TABLES'", , DBCn ' NO_ENGINE_SUBSTITUTION
 '   Call myEFrag(csql.Value,rAf)', , adAsyncExecute) ' wegen unzureichender Fehlerverarbeitung wieder ausrangiert 19.8.23
-   Call DBCn.Execute(csql.Value, rAF) ', , adAsyncExecute)
+'   Call DBCn.Execute(csql.Value, rAF) ', , adAsyncExecute)
+    InsKorr DBCn, DBCnS, csql.Value, rAf, ErrD, , ErrN
+    If ErrN Then Error ErrN
    csql.clear
    IF obforK THEN
     Call ForeignYes0
@@ -10534,8 +10739,13 @@ sql:
  syscmd 5
  Exit Function
 fehler:
-ErrDescr = Err.Description
-ErrNumber = Err.Number
+If ErrN = 0 Then
+ ErrDescr = Err.Description
+ ErrNumber = Err.Number
+Else ' ErrN = 0 Then
+ ErrDescr = errd
+ ErrNumber = ErrN
+End If ' ErrN = 0 Then else
 syscmd 4, "rLg(" & i & "/" & UBound(rLg) & "):   " & ErrDescr
 sfnr = sfnr + 1
 If sfnr > 10 then 
@@ -10585,7 +10795,7 @@ ElseIf ErrNumber = -2147217833 OR InStrB(ErrDescr, "Daten zu lang") <> 0 OR InSt
  Loop
  Call ForeignNo0
  Call ForeignNo1
- resume
+ resume sql
 ElseIf InStrB(1, ErrDescr, "gone away", vbTextCompare) <> 0 Or InStrB(ErrDescr, "ost connection") <> 0 Then
  DBCnOpen
  Resume
@@ -10650,7 +10860,7 @@ Public FUNCTION rLuDump()
 End FUNCTION ' laborxusDump
 
 Public FUNCTION laborxusSpeichern(SammelInsert%, BezfSp%, j&)
- Dim i&, rAF&, Pid$, m%, sfnr%, altmode$ ',sql0$
+ Dim i&, rAF&, Pid$, m%, sfnr%, altmode$, ErrD$, ErrN& ',sql0$
  Dim csql0 As New CString, csql As New CString
  Dim rs As New ADODB.recordset
  T1 = Timer
@@ -10658,12 +10868,12 @@ Public FUNCTION laborxusSpeichern(SammelInsert%, BezfSp%, j&)
  Pid = rNa(0).Pat_id
  ON Error GoTo fehler
  syscmd 4, pid & ": Speichere " & Ubound(rLu)+0 & " Sätze in `laborxus`"
-' sql0 = " INSERT " & sqlignore &  "INTO `laborxus` (DatID,SatzID,Satzart," & _
+' sql0 = " INSERT " & sqlignore & "INTO `laborxus` (DatID,SatzID,Satzart," & _
      "Satzlänge,Auftragsnummer,Auftragsschlüssel,Eingang,Berichtsdatum,Pat_id,Nachname,Vorname,GebDat,Titel," & _
      "NVorsatz,BefArt,Abrechnungstyp,GebüOrd,Auftraggeber,Patienteninformation,Geschlecht,AuftrHinw,Pat_idUrsp,Pat_idErwVNG," & _
      "Pat_idErwVN,Pat_idErwG,Pat_idErwGB,Pat_idErwGL,Pat_idLaborNeu,ZeitpunktLaborneu,ZdüP,ZdiP,LWerte,verglichen," & _
      "AfN) VALUES
- Call csql0.AppVar(Array(" INSERT ", sqlIgnore, " INTO `laborxus` (DatID,SatzID,Satzart," & _
+ Call csql0.AppVar(Array(" INSERT ", sqlIgnore, "INTO `laborxus` (DatID,SatzID,Satzart," & _
      "Satzlänge,Auftragsnummer,Auftragsschlüssel,Eingang,Berichtsdatum,Pat_id,Nachname,Vorname,GebDat,Titel," & _
      "NVorsatz,BefArt,Abrechnungstyp,GebüOrd,Auftraggeber,Patienteninformation,Geschlecht,AuftrHinw,Pat_idUrsp,Pat_idErwVNG," & _
      "Pat_idErwVN,Pat_idErwG,Pat_idErwGB,Pat_idErwGL,Pat_idLaborNeu,ZeitpunktLaborneu,ZdüP,ZdiP,LWerte,verglichen," & _
@@ -10687,7 +10897,9 @@ sql:
 '   Call DBCn.Execute("SET GLOBAL sql_mode='STRICT_TRANS_TABLES'") ' NO_ENGINE_SUBSTITUTION
     myEFrag "SET GLOBAL sql_mode='STRICT_TRANS_TABLES'", , DBCn ' NO_ENGINE_SUBSTITUTION
 '   Call myEFrag(csql.Value,rAf)', , adAsyncExecute) ' wegen unzureichender Fehlerverarbeitung wieder ausrangiert 19.8.23
-   Call DBCn.Execute(csql.Value, rAF) ', , adAsyncExecute)
+'   Call DBCn.Execute(csql.Value, rAF) ', , adAsyncExecute)
+    InsKorr DBCn, DBCnS, csql.Value, rAf, ErrD, , ErrN
+    If ErrN Then Error ErrN
    csql.clear
    IF obforK THEN
     Call ForeignYes0
@@ -10699,8 +10911,13 @@ sql:
  syscmd 5
  Exit Function
 fehler:
-ErrDescr = Err.Description
-ErrNumber = Err.Number
+If ErrN = 0 Then
+ ErrDescr = Err.Description
+ ErrNumber = Err.Number
+Else ' ErrN = 0 Then
+ ErrDescr = errd
+ ErrNumber = ErrN
+End If ' ErrN = 0 Then else
 syscmd 4, "rLu(" & i & "/" & UBound(rLu) & "):   " & ErrDescr
 sfnr = sfnr + 1
 If sfnr > 10 then 
@@ -10796,7 +11013,7 @@ ElseIf ErrNumber = -2147217833 OR InStrB(ErrDescr, "Daten zu lang") <> 0 OR InSt
  Loop
  Call ForeignNo0
  Call ForeignNo1
- resume
+ resume sql
 ElseIf InStrB(1, ErrDescr, "gone away", vbTextCompare) <> 0 Or InStrB(ErrDescr, "ost connection") <> 0 Then
  DBCnOpen
  Resume
@@ -10835,7 +11052,7 @@ Public FUNCTION rLoDump()
 End FUNCTION ' laborxbaktDump
 
 Public FUNCTION laborxbaktSpeichern(SammelInsert%, BezfSp%)
- Dim i&, rAF&, Pid$, m%, sfnr%, altmode$ ',sql0$
+ Dim i&, rAF&, Pid$, m%, sfnr%, altmode$, ErrD$, ErrN& ',sql0$
  Dim csql0 As New CString, csql As New CString
  Dim rs As New ADODB.recordset
  T1 = Timer
@@ -10843,9 +11060,9 @@ Public FUNCTION laborxbaktSpeichern(SammelInsert%, BezfSp%)
  Pid = rNa(0).Pat_id
  ON Error GoTo fehler
  syscmd 4, pid & ": Speichere " & Ubound(rLo)+0 & " Sätze in `laborxbakt`"
-' sql0 = " INSERT " & sqlignore &  "INTO `laborxbakt` (RefNr,Verf,KuQu," & _
+' sql0 = " INSERT " & sqlignore & "INTO `laborxbakt` (RefNr,Verf,KuQu," & _
      "Quelle,QSpez,AbnDat,Kommentar,Erklärung,Keimzahl) VALUES
- Call csql0.AppVar(Array(" INSERT ", sqlIgnore, " INTO `laborxbakt` (RefNr,Verf,KuQu," & _
+ Call csql0.AppVar(Array(" INSERT ", sqlIgnore, "INTO `laborxbakt` (RefNr,Verf,KuQu," & _
      "Quelle,QSpez,AbnDat,Kommentar,Erklärung,Keimzahl)  VALUES"))
 sql:
  csql.m_Len = 0
@@ -10863,7 +11080,9 @@ sql:
 '   Call DBCn.Execute("SET GLOBAL sql_mode='STRICT_TRANS_TABLES'") ' NO_ENGINE_SUBSTITUTION
     myEFrag "SET GLOBAL sql_mode='STRICT_TRANS_TABLES'", , DBCn ' NO_ENGINE_SUBSTITUTION
 '   Call myEFrag(csql.Value,rAf)', , adAsyncExecute) ' wegen unzureichender Fehlerverarbeitung wieder ausrangiert 19.8.23
-   Call DBCn.Execute(csql.Value, rAF) ', , adAsyncExecute)
+'   Call DBCn.Execute(csql.Value, rAF) ', , adAsyncExecute)
+    InsKorr DBCn, DBCnS, csql.Value, rAf, ErrD, , ErrN
+    If ErrN Then Error ErrN
    csql.clear
    IF obforK THEN
     Call ForeignYes0
@@ -10875,8 +11094,13 @@ sql:
  syscmd 5
  Exit Function
 fehler:
-ErrDescr = Err.Description
-ErrNumber = Err.Number
+If ErrN = 0 Then
+ ErrDescr = Err.Description
+ ErrNumber = Err.Number
+Else ' ErrN = 0 Then
+ ErrDescr = errd
+ ErrNumber = ErrN
+End If ' ErrN = 0 Then else
 syscmd 4, "rLo(" & i & "/" & UBound(rLo) & "):   " & ErrDescr
 sfnr = sfnr + 1
 If sfnr > 10 then 
@@ -10936,7 +11160,7 @@ ElseIf ErrNumber = -2147217833 OR InStrB(ErrDescr, "Daten zu lang") <> 0 OR InSt
  Loop
  Call ForeignNo0
  Call ForeignNo1
- resume
+ resume sql
 ElseIf InStrB(1, ErrDescr, "gone away", vbTextCompare) <> 0 Or InStrB(ErrDescr, "ost connection") <> 0 Then
  DBCnOpen
  Resume
@@ -10980,7 +11204,7 @@ Public FUNCTION rLwDump()
 End FUNCTION ' laborxwertDump
 
 Public FUNCTION laborxwertSpeichern(SammelInsert%, BezfSp%)
- Dim i&, rAF&, Pid$, m%, sfnr%, altmode$ ',sql0$
+ Dim i&, rAF&, Pid$, m%, sfnr%, altmode$, ErrD$, ErrN& ',sql0$
  Dim csql0 As New CString, csql As New CString
  Dim rs As New ADODB.recordset
  T1 = Timer
@@ -10988,10 +11212,10 @@ Public FUNCTION laborxwertSpeichern(SammelInsert%, BezfSp%)
  Pid = rNa(0).Pat_id
  ON Error GoTo fehler
  syscmd 4, pid & ": Speichere " & Ubound(rLw)+0 & " Sätze in `laborxwert`"
-' sql0 = " INSERT " & sqlignore &  "INTO `laborxwert` (RefNr,Abkü,Langname," & _
+' sql0 = " INSERT " & sqlignore & "INTO `laborxwert` (RefNr,Abkü,Langname," & _
      "Quelle,QSpez,AbnDat,Wert,Einheit,Grenzwerti,Kommentar,Teststatus,Erklärung,AuftrHinw," & _
      "nbid) VALUES
- Call csql0.AppVar(Array(" INSERT ", sqlIgnore, " INTO `laborxwert` (RefNr,Abkü,Langname," & _
+ Call csql0.AppVar(Array(" INSERT ", sqlIgnore, "INTO `laborxwert` (RefNr,Abkü,Langname," & _
      "Quelle,QSpez,AbnDat,Wert,Einheit,Grenzwerti,Kommentar,Teststatus,Erklärung,AuftrHinw," & _
      "nbid)    VALUES"))
 sql:
@@ -11037,7 +11261,9 @@ nextj:
 '   Call DBCn.Execute("SET GLOBAL sql_mode='STRICT_TRANS_TABLES'") ' NO_ENGINE_SUBSTITUTION
     myEFrag "SET GLOBAL sql_mode='STRICT_TRANS_TABLES'", , DBCn ' NO_ENGINE_SUBSTITUTION
 '   Call myEFrag(csql.Value,rAf)', , adAsyncExecute) ' wegen unzureichender Fehlerverarbeitung wieder ausrangiert 19.8.23
-   Call DBCn.Execute(csql.Value, rAF) ', , adAsyncExecute)
+'   Call DBCn.Execute(csql.Value, rAF) ', , adAsyncExecute)
+    InsKorr DBCn, DBCnS, csql.Value, rAf, ErrD, , ErrN
+    If ErrN Then Error ErrN
    csql.clear
    IF obforK THEN
     Call ForeignYes0
@@ -11050,8 +11276,13 @@ nexti:
  syscmd 5
  Exit Function
 fehler:
-ErrDescr = Err.Description
-ErrNumber = Err.Number
+If ErrN = 0 Then
+ ErrDescr = Err.Description
+ ErrNumber = Err.Number
+Else ' ErrN = 0 Then
+ ErrDescr = errd
+ ErrNumber = ErrN
+End If ' ErrN = 0 Then else
 syscmd 4, "rLw(" & i & "/" & UBound(rLw) & "):   " & ErrDescr
 sfnr = sfnr + 1
 If sfnr > 10 then 
@@ -11119,7 +11350,7 @@ ElseIf ErrNumber = -2147217833 OR InStrB(ErrDescr, "Daten zu lang") <> 0 OR InSt
  Loop
  Call ForeignNo0
  Call ForeignNo1
- resume
+ resume sql
 ElseIf InStrB(1, ErrDescr, "gone away", vbTextCompare) <> 0 Or InStrB(ErrDescr, "ost connection") <> 0 Then
  DBCnOpen
  Resume
@@ -11156,7 +11387,7 @@ Public FUNCTION rLLDump()
 End FUNCTION ' laborxleistDump
 
 Public FUNCTION laborxleistSpeichern(SammelInsert%, BezfSp%)
- Dim i&, rAF&, Pid$, m%, sfnr%, altmode$ ',sql0$
+ Dim i&, rAF&, Pid$, m%, sfnr%, altmode$, ErrD$, ErrN& ',sql0$
  Dim csql0 As New CString, csql As New CString
  Dim rs As New ADODB.recordset
  T1 = Timer
@@ -11164,9 +11395,9 @@ Public FUNCTION laborxleistSpeichern(SammelInsert%, BezfSp%)
  Pid = rNa(0).Pat_id
  ON Error GoTo fehler
  syscmd 4, pid & ": Speichere " & Ubound(rLL)+0 & " Sätze in `laborxleist`"
-' sql0 = " INSERT " & sqlignore &  "INTO `laborxleist` (RefNr,Abkü,Verf," & _
+' sql0 = " INSERT " & sqlignore & "INTO `laborxleist` (RefNr,Abkü,Verf," & _
      "EBM,goä,Anzahl,abrd) VALUES
- Call csql0.AppVar(Array(" INSERT ", sqlIgnore, " INTO `laborxleist` (RefNr,Abkü,Verf," & _
+ Call csql0.AppVar(Array(" INSERT ", sqlIgnore, "INTO `laborxleist` (RefNr,Abkü,Verf," & _
      "EBM,goä,Anzahl,abrd)   VALUES"))
 sql:
  csql.m_Len = 0
@@ -11183,7 +11414,9 @@ sql:
 '   Call DBCn.Execute("SET GLOBAL sql_mode='STRICT_TRANS_TABLES'") ' NO_ENGINE_SUBSTITUTION
     myEFrag "SET GLOBAL sql_mode='STRICT_TRANS_TABLES'", , DBCn ' NO_ENGINE_SUBSTITUTION
 '   Call myEFrag(csql.Value,rAf)', , adAsyncExecute) ' wegen unzureichender Fehlerverarbeitung wieder ausrangiert 19.8.23
-   Call DBCn.Execute(csql.Value, rAF) ', , adAsyncExecute)
+'   Call DBCn.Execute(csql.Value, rAF) ', , adAsyncExecute)
+    InsKorr DBCn, DBCnS, csql.Value, rAf, ErrD, , ErrN
+    If ErrN Then Error ErrN
    csql.clear
    IF obforK THEN
     Call ForeignYes0
@@ -11195,8 +11428,13 @@ sql:
  syscmd 5
  Exit Function
 fehler:
-ErrDescr = Err.Description
-ErrNumber = Err.Number
+If ErrN = 0 Then
+ ErrDescr = Err.Description
+ ErrNumber = Err.Number
+Else ' ErrN = 0 Then
+ ErrDescr = errd
+ ErrNumber = ErrN
+End If ' ErrN = 0 Then else
 syscmd 4, "rLL(" & i & "/" & UBound(rLL) & "):   " & ErrDescr
 sfnr = sfnr + 1
 If sfnr > 10 then 
@@ -11254,7 +11492,7 @@ ElseIf ErrNumber = -2147217833 OR InStrB(ErrDescr, "Daten zu lang") <> 0 OR InSt
  Loop
  Call ForeignNo0
  Call ForeignNo1
- resume
+ resume sql
 ElseIf InStrB(1, ErrDescr, "gone away", vbTextCompare) <> 0 Or InStrB(ErrDescr, "ost connection") <> 0 Then
  DBCnOpen
  Resume
@@ -11318,7 +11556,7 @@ Public FUNCTION rLiDump()
 End FUNCTION ' liuezDump
 
 Public FUNCTION liuezSpeichern(SammelInsert%, BezfSp%)
- Dim i&, rAF&, Pid$, m%, sfnr%, altmode$ ',sql0$
+ Dim i&, rAF&, Pid$, m%, sfnr%, altmode$, ErrD$, ErrN& ',sql0$
  Dim csql0 As New CString, csql As New CString
  Dim rs As New ADODB.recordset
  T1 = Timer
@@ -11326,11 +11564,11 @@ Public FUNCTION liuezSpeichern(SammelInsert%, BezfSp%)
  Pid = rNa(0).Pat_id
  ON Error GoTo fehler
  syscmd 4, pid & ": Speichere " & Ubound(rLi)+0 & " Sätze in `liuez`"
-' sql0 = " INSERT " & sqlignore &  "INTO `liuez` (name,vorname,titelt," & _
+' sql0 = " INSERT " & sqlignore & "INTO `liuez` (name,vorname,titelt," & _
      "fachgruppe,strasse,plz,ort,telefon,fax,kvnr,überschrift,dbnr,bstelle," & _
      "anrede,tel1,tel2,tel3,tel4,fax1,fax2,fax3,email,zulg," & _
      "arzttyp,gemmit,beme,dmpt2,dmpt1,geschlecht,titel,zusatz,ursp,aktzeit) VALUES
- Call csql0.AppVar(Array(" INSERT ", sqlIgnore, " INTO `liuez` (name,vorname,titelt," & _
+ Call csql0.AppVar(Array(" INSERT ", sqlIgnore, "INTO `liuez` (name,vorname,titelt," & _
      "fachgruppe,strasse,plz,ort,telefon,fax,kvnr,überschrift,dbnr,bstelle," & _
      "anrede,tel1,tel2,tel3,tel4,fax1,fax2,fax3,email,zulg," & _
      "arzttyp,gemmit,beme,dmpt2,dmpt1,geschlecht,titel,zusatz,ursp,aktzeit)          VALUES"))
@@ -11352,7 +11590,9 @@ sql:
 '   Call DBCn.Execute("SET GLOBAL sql_mode='STRICT_TRANS_TABLES'") ' NO_ENGINE_SUBSTITUTION
     myEFrag "SET GLOBAL sql_mode='STRICT_TRANS_TABLES'", , DBCn ' NO_ENGINE_SUBSTITUTION
 '   Call myEFrag(csql.Value,rAf)', , adAsyncExecute) ' wegen unzureichender Fehlerverarbeitung wieder ausrangiert 19.8.23
-   Call DBCn.Execute(csql.Value, rAF) ', , adAsyncExecute)
+'   Call DBCn.Execute(csql.Value, rAF) ', , adAsyncExecute)
+    InsKorr DBCn, DBCnS, csql.Value, rAf, ErrD, , ErrN
+    If ErrN Then Error ErrN
    csql.clear
    IF obforK THEN
     Call ForeignYes0
@@ -11364,8 +11604,13 @@ sql:
  syscmd 5
  Exit Function
 fehler:
-ErrDescr = Err.Description
-ErrNumber = Err.Number
+If ErrN = 0 Then
+ ErrDescr = Err.Description
+ ErrNumber = Err.Number
+Else ' ErrN = 0 Then
+ ErrDescr = errd
+ ErrNumber = ErrN
+End If ' ErrN = 0 Then else
 syscmd 4, "rLi(" & i & "/" & UBound(rLi) & "):   " & ErrDescr
 sfnr = sfnr + 1
 If sfnr > 10 then 
@@ -11471,7 +11716,7 @@ ElseIf ErrNumber = -2147217833 OR InStrB(ErrDescr, "Daten zu lang") <> 0 OR InSt
  Loop
  Call ForeignNo0
  Call ForeignNo1
- resume
+ resume sql
 ElseIf InStrB(1, ErrDescr, "gone away", vbTextCompare) <> 0 Or InStrB(ErrDescr, "ost connection") <> 0 Then
  DBCnOpen
  Resume
@@ -11540,6 +11785,7 @@ Public Function tuSpeichern(frm AS Lese, SI%, BfS%) ' frm.dlg.SammelInsert, frm.
  wechsTrans
  call auSpeichern(SI, BfS)
  call briefeSpeichern(SI, BfS)
+ ComTrans
  call diagnosenSpeichern(SI, BfS)
  call dokumenteSpeichern(SI, BfS)
  call eintraegeSpeichern(SI, BfS)
@@ -11553,7 +11799,9 @@ Public Function tuSpeichern(frm AS Lese, SI%, BfS%) ' frm.dlg.SammelInsert, frm.
  call kheinweisSpeichern(SI, BfS)
  call lbanforderungenSpeichern(SI, BfS)
  call laborneuSpeichern(SI, BfS)
+ ComTrans
  call leistungenSpeichern(SI, BfS)
+ ComTrans
  call medplanSpeichern(SI, BfS)
  call rezepteintraegeSpeichern(SI, BfS)
  call rrSpeichern(SI, BfS)
