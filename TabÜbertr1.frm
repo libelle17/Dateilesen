@@ -266,7 +266,7 @@ Sub zeigtabellen()
  Set rCn = Nothing
 ' rCn.CursorLocation = adUseServer
  On Error Resume Next
- Call rCn.Open(CnQ) '"PROVIDER=MSDASQL;driver={MySQL ODBC 3.51 Driver};server=mitte;uid=praxis;database=quelle;pwd=***REMOVED***;option=3") ' (Me.CsQ.Caption)
+ Call rCn.Open(CnQ) '"PROVIDER=MSDASQL;driver={MySQL ODBC 3.51 Driver};server=mitte;uid=...;database=quelle;pwd=...;option=3") ' (Me.CsQ.Caption)
  If Err.Number = 0 Then
 '     ON Error Resume Next
      Set rs1 = Nothing
@@ -402,7 +402,7 @@ Private Function TZahl%(Optional nurZiel%)
    myFrag rs, "SELECT " & IIf(LVobMySQL, vNS, "top 20") & " * FROM `" & LCase$(Me.Tabelle) & "` " & IIf(LVobMySQL, " LIMIT 20", ""), adOpenDynamic, CnQ
    With Me.MSHFlexGrid1
    .Clear
-   .Cols = rs.Fields.COUNT
+   .cols = rs.Fields.COUNT
    .Rows = 21
    For i = 0 To rs.Fields.COUNT - 1
     .TextMatrix(0, i) = rs.Fields(i).name
@@ -436,7 +436,7 @@ Private Function TZahl%(Optional nurZiel%)
    myFrag rs, "SELECT " & IIf(LVobMySQL, vNS, "top 20") & " * FROM `" & LCase$(Me.Tabelle) & "` " & IIf(LVobMySQL, " LIMIT 20", ""), adOpenDynamic, cnz
    With Me.MSHFlexGrid2
    .Clear
-   .Cols = rs.Fields.COUNT
+   .cols = rs.Fields.COUNT
    .Rows = 21
    For i = 0 To rs.Fields.COUNT - 1
     .TextMatrix(0, i) = rs.Fields(i).name

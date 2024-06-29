@@ -134,12 +134,12 @@ End Function ' datFormZ
 ' in Hausärzte_aus_Listenausgabe_Ueberweiser_einlesen_Click
 Public Sub doHAAkt(frm As Lese)
  Dim aktDatei$, HAStr$
- Dim XCon As New ADODB.Connection
- Dim rEx As New ADODB.Recordset
+ Dim XCon As New adodb.Connection
+ Dim rEx As New adodb.Recordset
  Dim rX As New ADOX.Catalog
- Dim rV1 As New ADODB.Recordset
- Dim rV2 As New ADODB.Recordset
- Dim rs As New ADODB.Recordset
+ Dim rV1 As New adodb.Recordset
+ Dim rV2 As New adodb.Recordset
+ Dim rs As New adodb.Recordset
  Dim rAf&, obüberhaupt%
  Dim ausg$, lauf&
  Dim F0 As File, f1 As File
@@ -176,9 +176,9 @@ Dim dbknr As ConDtb
 ' Dim LVobMySQL As Boolean
 #Const vordef = False
 #If Not vordef Then
-' Provider=MSDASQL.1;Extended Properties="DATABASE=kvaerzte;DRIVER={MySQL ODBC 5.1 Driver};OPTION=3;PWD=***REMOVED***;PORT=0;SERVER=" & LiName & ";UID=praxis"
- Dim QCn() As ADODB.Connection
- Dim HCn() As ADODB.Connection
+' Provider=MSDASQL.1;Extended Properties="DATABASE=kvaerzte;DRIVER={MySQL ODBC 5.1 Driver};OPTION=3;PWD=" & frm.dbv.pwd & ";PORT=0;SERVER=" & LiName & ";UID=" & frm.dbv.uid & ""
+ Dim QCn() As adodb.Connection
+ Dim HCn() As adodb.Connection
  Dim QCns$()
  Dim HCns$()
  Dim ccol As New Collection, Cpt, KVÄDB$
@@ -201,25 +201,25 @@ Dim dbknr As ConDtb
 gefunden:
   For Each Cpt In ccol
    If Cpt = UCase$(LiName) Then
-   Dim MyCn As ADODB.Connection, MyCn2 As New ADODB.Connection, rdb As ADODB.Recordset, rHa As New ADODB.Recordset
-   Set MyCn = New ADODB.Connection
+   Dim MyCn As adodb.Connection, MyCn2 As New adodb.Connection, rdb As adodb.Recordset, rHa As New adodb.Recordset
+   Set MyCn = New adodb.Connection
    On Error Resume Next
    Err.Clear
    Dim Port&
    For Port = 0 To 3307 Step 3307
 '    Debug.Print Cpt
     Dim CnStr$
-    CnStr = "Provider=MSDASQL.1;Extended Properties=DRIVER={" & ODBCStr() & "};OPTION=3;PWD=***REMOVED***;PORT=" & Port & ";SERVER=" & Cpt & ";UID=praxis;"
+    CnStr = "Provider=MSDASQL.1;Extended Properties=DRIVER={" & ODBCStr() & "};OPTION=3;PWD=" & frm.dbv.pwd & ";PORT=" & Port & ";SERVER=" & Cpt & ";UID=" & frm.dbv.uid & ";"
     Set MyCn = Nothing
-    Set MyCn = New ADODB.Connection
+    Set MyCn = New adodb.Connection
     MyCn.Open CnStr
     If Err.Number <> 0 Then
 '     Debug.Print "Fehler beim Öffnen der Verbindung: " & CnStr & " " & Err.Description
      frm.Ausgeb "Fehler beim Öffnen der Verbindung: " & CnStr & " " & Err.Description, True
      Err.Clear
-     CnStr = "DRIVER={" & ODBCStr() & "};server=" & Cpt & ";option=0;uid=praxis;pwd=***REMOVED***;"
+     CnStr = "DRIVER={" & ODBCStr() & "};server=" & Cpt & ";option=0;uid=" & frm.dbv.uid & ";pwd=" & frm.dbv.pwd & ";"
      Set MyCn = Nothing
-     Set MyCn = New ADODB.Connection
+     Set MyCn = New adodb.Connection
      MyCn.Open CnStr
     End If
     If Err.Number = 0 Then
@@ -291,8 +291,8 @@ gefunden:
         If Not rHa.BOF Then
          Do While Not rHa.EOF
           obüberhaupt = True
-          Set QCn(UBound(QCn)) = New ADODB.Connection
-          Set HCn(UBound(HCn)) = New ADODB.Connection
+          Set QCn(UBound(QCn)) = New adodb.Connection
+          Set HCn(UBound(HCn)) = New adodb.Connection
           QCns(UBound(QCns)) = Left$(CnStr, Len(CnStr) - 1) & ";DATABASE=" & fld & ";"""
           HCns(UBound(HCns)) = KVÄDB
           QCn(UBound(QCn)).ConnectionString = QCns(UBound(QCns))
@@ -371,8 +371,8 @@ gefunden:
    End If ' HCn(UBound(HCn)) Is Nothing Then
   End If ' QCn(UBound(QCn)) Is Nothing Then
 #Else
- Dim QCn(accDtb To q2Dtb) As ADODB.Connection
- Dim HCn(accDtb To q2Dtb) As ADODB.Connection
+ Dim QCn(accDtb To q2Dtb) As adodb.Connection
+ Dim HCn(accDtb To q2Dtb) As adodb.Connection
  Dim QCns$(accDtb To q2Dtb)
  Dim HCns$(accDtb To q2Dtb)
  If FSO.FileExists(aktDatei) Then
@@ -424,9 +424,9 @@ gefunden:
   
  Dim i%, v1sql$(5), pos%, posv%, rF0$, rF1$, ursp$
  Dim sqlakt$, f7$, f8$
- Dim HaeCon As New ADODB.Connection, rhae As New ADODB.Recordset
+ Dim HaeCon As New adodb.Connection, rhae As New adodb.Recordset
  Dim KVNr$, DBNr$, BStelle$, anrede$, tel1$, tel2$, tel3$, tel4$, fax1$, fax2$, fax3$, email$, zulg$, arzttyp$, gemmit$, beme$, dmpt2%, dmpt1%, geschlecht$, Titel$
- HaeCon.Open "Provider=MSDASQL.1;Extended Properties=""DATABASE=haerzte;DRIVER={" & ODBCStr() & "};OPTION=0;PWD=***REMOVED***;PORT=0;SERVER=" & LiName & ";UID=praxis"""
+ HaeCon.Open "Provider=MSDASQL.1;Extended Properties=""DATABASE=haerzte;DRIVER={" & ODBCStr() & "};OPTION=0;PWD=" & frm.dbv.pwd & ";PORT=0;SERVER=" & LiName & ";UID=" & frm.dbv.uid & """"
  
  Set XCon = Nothing
  XCon.Open XStra & aktDatei & XStrb
@@ -553,7 +553,7 @@ gefunden:
       geschlecht = IIf(InStrB(rEx.Fields(3), "FÄ") Or InStrB(rEx.Fields(3), "HÄ"), "w", "m")
      End If
      For dbknr = LBound(QCn) To UBound(QCn)
-      QCn(dbknr).Open QCns(dbknr)
+      If QCn(dbknr).State = 0 Then QCn(dbknr).Open QCns(dbknr)
       HCn(dbknr).Open HCns(dbknr)
       LVobMySQL = InStrB(UCase$(QCn(dbknr).ConnectionString), "MYSQL") <> 0  '(Not (cDtb = accDtb))
       LVobMySQL = True ' 11.10.15
@@ -722,8 +722,10 @@ For dbknr = LBound(QCn) To UBound(QCn)
     rV2.Move 1
    Loop ' While Not rV2.EOF
   End If ' rV2.State <> 0 Then
+  On Error GoTo schleifefertig
   rV1.Move 1
  Loop ' While Not rV1.EOF
+schleifefertig:
  Call myEFrag("UPDATE IGNORE " & LIUET & " l " & _
  "LEFT JOIN (SELECT * FROM faelle f GROUP BY übwvbsnr, übwr, übwlanr, üwnnr, üwnan, üwtit, üwvor, üwvsw, üwvid) f " & _
  "ON l.name = f.üwnan AND (l.vorname = CONCAT(f.üwvor,IF(ISNULL(f.üwvsw) OR f.üwvsw='','',' '),f.üwvsw) OR l.vorname = f.üwvsw) AND l.titelt = f.üwtit " & _
@@ -738,6 +740,8 @@ For dbknr = LBound(QCn) To UBound(QCn)
  myEFrag "DROP TABLE " & LIUEZ, rAf, QCn(dbknr)
  On Error GoTo fehler
  myEFrag "CREATE TABLE " & LIUEZ & " LIKE " & LIUET, rAf, QCn(dbknr)
+ myEFrag "ALTER TABLE " & LIUEZ & " DROP INDEX ident", rAf, QCn(dbknr)
+ myEFrag "ALTER TABLE " & LIUEZ & " ADD INDEX `ident` (`name`, `vorname`, `plz`, `tel1`) USING BTREE", rAf, QCn(dbknr)
  myEFrag "INSERT INTO " & LIUEZ & " SELECT * FROM " & LIUET & " l GROUP BY kvnr, name, vorname, plz,ort, telefon, tel1,fax, tel2, email, dmpt2, dmpt1, geschlecht", rAf, QCn(dbknr)
  myEFrag "DROP TABLE " & LIUET, rAf, QCn(dbknr)
  myEFrag "ALTER TABLE " & LIUEZ & " ADD COLUMN kvnri INTEGER(20) AS (CAST(REPLACE(kvnr,' ','') As Integer));", rAf, QCn(dbknr)
@@ -848,7 +852,7 @@ End Function ' hausaerztekomprimier()
 ' End Function
 
 Function testgetalldb()
- Dim acn() As ADODB.Connection
+ Dim acn() As adodb.Connection
  Set fI = New FürIcon
  Set fI.dbv = New DBVerb
  Call fI.dbv.getAllDB("anamnesebogen", acn(), , , True)

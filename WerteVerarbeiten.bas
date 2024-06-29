@@ -784,8 +784,8 @@ Function bittest()
  On Error GoTo fehler
  Call Lese.ProgStart
  Cn(0) = "Provider=microsoft.Jet.OLEDb.4.0;Data Source=" & QmdB & ";Jet OLEDb:Engine Type=5" ' u:\anamnese\quelle.mdb
- Cn(1) = "PROVIDER=MSDASQL;driver={" & ODBCStr & "};server=" & LiName & ";uid=praxis;pwd=***REMOVED***;database=quelle;"
- Cn(2) = "PROVIDER=MSDASQL;driver={MySQL ODBC 3.51 Driver};server=" & LiName & ";uid=praxis;pwd=***REMOVED***;database=quelle;"
+ Cn(1) = "PROVIDER=MSDASQL;driver={" & ODBCStr & "};server=" & LiName & ";uid=" & Lese.dbv.uid & ";pwd=" & Lese.dbv.pwd & ";database=quelle;"
+ Cn(2) = "PROVIDER=MSDASQL;driver={MySQL ODBC 3.51 Driver};server=" & LiName & ";uid=" & Lese.dbv.uid & ";pwd=" & Lese.dbv.pwd & ";database=quelle;"
  dtyp(0) = "bit"
  dtyp(1) = "tinyint"
  For i = LBound(Cn) To UBound(Cn)
@@ -939,7 +939,7 @@ Function KommRep() ' Kommentare reparieren
  Dim ErrNr&, ErrDes$
  On Error GoTo fehler
  Acc.Open "Provider=microsoft.Jet.OLEDb.4.0;Data Source=" & QmdB & ";Jet OLEDb:Engine Type=5"
- MyS.Open "PROVIDER=MSDASQL;driver={" & ODBCStr & "};server=" & LiName & ";uid=praxis;pwd=***REMOVED***;database=quelle;"
+ MyS.Open "PROVIDER=MSDASQL;driver={" & ODBCStr & "};server=" & LiName & ";uid=" & Lese.dbv.uid & ";pwd=" & Lese.dbv.pwd & ";database=quelle;"
  myFrag rs, "SHOW TABLES", , MyS
  xc.ActiveConnection = MyS
  xcA.ActiveConnection = Acc

@@ -420,7 +420,7 @@ Private Sub Form_Initialize()
 End Sub ' Form_Initialize
 
 Private Sub LadDaten()
-' PROVIDER=MSDASQL;dsn=MySQLpraxis;uid=praxis;pwd=***REMOVED***;database=quelle;
+' PROVIDER=MSDASQL;dsn=MySQLpraxis;uid=...;pwd=...;database=quelle;
  Dim sql$
  On Error GoTo fehler
  If Not obStart Then
@@ -605,7 +605,7 @@ Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "Last
 End Select
 End Sub ' Irfan_Click
 
-Private Sub MSHFlexGrid1_DragDrop(source As Control, X As Single, Y As Single)
+Private Sub MSHFlexGrid1_DragDrop(source As Control, x As Single, Y As Single)
 '-------------------------------------------------------------------------------------------
 ' Code in den DragDrop-, MouseDown-, MouseMove- und MouseUp-Ereignissen der Tabelle aktiviert das Ziehen von Spalten
 '-------------------------------------------------------------------------------------------
@@ -620,19 +620,19 @@ Private Sub MSHFlexGrid1_DragDrop(source As Control, X As Single, Y As Single)
     End With
 End Sub ' MSHFlexGrid1_DragDrop
 
-Private Sub MSHFlexGrid1_MouseDown(Button As Integer, Shift As Integer, X As Single, Y As Single)
+Private Sub MSHFlexGrid1_MouseDown(Button As Integer, Shift As Integer, x As Single, Y As Single)
 '-------------------------------------------------------------------------------------------
 ' Code in den DragDrop-, MouseDown-, MouseMove- und MouseUp-Ereignissen der Tabelle aktiviert das Ziehen von Spalten
 '-------------------------------------------------------------------------------------------
     If MSHFlexGrid1.MouseRow <> 0 Then Exit Sub
     If MSHFlexGrid1.MouseCol = 0 And MSHFlexGrid1.FixedCols = 1 Then Exit Sub
-    xdn = X
+    xdn = x
     ydn = Y
     m_iDragCol = -1     ' Zieh-Attribut löschen
     m_bDragOK = True
 End Sub ' MSHFlexGrid1_MouseDown
 
-Private Sub MSHFlexGrid1_MouseMove(Button As Integer, Shift As Integer, X As Single, Y As Single)
+Private Sub MSHFlexGrid1_MouseMove(Button As Integer, Shift As Integer, x As Single, Y As Single)
 '-------------------------------------------------------------------------------------------
 ' Code in den DragDrop-, MouseDown-, MouseMove- und MouseUp-Ereignissen der Tabelle aktiviert das Ziehen von Spalten
 '-------------------------------------------------------------------------------------------
@@ -640,7 +640,7 @@ Private Sub MSHFlexGrid1_MouseMove(Button As Integer, Shift As Integer, X As Sin
     If Not m_bDragOK Then Exit Sub
     If Button <> 1 Then Exit Sub                        ' falsche Schaltfläche
     If m_iDragCol <> -1 Then Exit Sub                   ' es wird bereits gezogen
-    If Abs(xdn - X) + Abs(ydn - Y) < 50 Then Exit Sub   ' noch nicht genug bewegt
+    If Abs(xdn - x) + Abs(ydn - Y) < 50 Then Exit Sub   ' noch nicht genug bewegt
     If MSHFlexGrid1.MouseRow <> 0 Then Exit Sub         ' Spaltenkopf muß gezogen werden
 
     ' wenn Sie bis hierher gekommen sind, dann starten Sie den Ziehvorgang
@@ -648,7 +648,7 @@ Private Sub MSHFlexGrid1_MouseMove(Button As Integer, Shift As Integer, X As Sin
     MSHFlexGrid1.Drag vbBeginDrag
 End Sub ' MSHFlexGrid1_MouseMove
 
-Private Sub MSHFlexGrid1_MouseUp(Button As Integer, Shift As Integer, X As Single, Y As Single)
+Private Sub MSHFlexGrid1_MouseUp(Button As Integer, Shift As Integer, x As Single, Y As Single)
 '-------------------------------------------------------------------------------------------
 ' Code in den DragDrop-, MouseDown-, MouseMove- und MouseUp-Ereignissen der Tabelle aktiviert das Ziehen von Spalten
 '-------------------------------------------------------------------------------------------

@@ -222,7 +222,7 @@ Public Function ebQuickSort(ByRef pvarArray() As ebType, Optional ByVal plngLeft
 End Function ' ebQuickSort
 
 ' BLOB-Felder aus Medical Office parsen
-Public Function ParseMemo(FMemo$, MeStr() As memoType, Optional obDebug%, Optional ÜSchr$) ' pNr&, FSur&,
+Public Function ParseMemo(FMemo$, MeStr() As memoType, Optional obdebug%, Optional ÜSchr$) ' pNr&, FSur&,
  Dim jj&, iru&
  Dim gl&, pos&, MAX&, aktmax&, altmax&, tlen&, ie&, altie&, mznr%, i&
  Dim obDruck%, txt$, ebS$
@@ -233,7 +233,7 @@ Public Function ParseMemo(FMemo$, MeStr() As memoType, Optional obDebug%, Option
  If FMemo <> "" Then
   pos = 1
   ie = 0
-  If obDebug Then
+  If obdebug Then
 '   Open parsemotxt For Append As #255
    Open "v:\" & ÜSchr & ".txt" For Output As #255
    Print #255, ÜSchr & ":"
@@ -295,7 +295,7 @@ Public Function ParseMemo(FMemo$, MeStr() As memoType, Optional obDebug%, Option
       eb(UBound(eb)).nr = ie
       eb(UBound(eb)).Wert = 1
      End If ' ie <= altie Then
-     If obDebug Then
+     If obdebug Then
       Dim kk&
       Print #255, "eb:"
       For kk = 0 To UBound(eb)
@@ -353,7 +353,7 @@ Public Function ParseMemo(FMemo$, MeStr() As memoType, Optional obDebug%, Option
    End If
   Next i
   Call memoaltloe(MeStr, -1, True)
-  If obDebug Then
+  If obdebug Then
    For i = 0 To UBound(MeStr)
     Dim endse$, endsz$
     If MeStr(i).znr <= Len(FMemo) Then
@@ -369,7 +369,7 @@ Public Function ParseMemo(FMemo$, MeStr() As memoType, Optional obDebug%, Option
     Print #255, MeStr(i).znr & "|" & MeStr(i).mx & "|" & MeStr(i).ebn & "|" & MeStr(i).ENr & "|" & IIf(endse <> "10", Mid$(FMemo, MeStr(i).znr, 1), "") & "|" & endse & "|" & endsz & "| Laenge: " & Len(MeStr(i).Text) & "|" & IIf(Right$(MeStr(i).Text, 1) = Chr$(10), Left$(MeStr(i).Text, IIf(Len(MeStr(i).Text) = 0, 1, Len(MeStr(i).Text)) - 1), MeStr(i).Text)
    Next i
   End If ' obdebug
-  If obDebug Then
+  If obdebug Then
    Print #255, vbCrLf
    Close #255
   End If ' obDebug
@@ -440,7 +440,7 @@ End Function ' stzk
 
 ' zum Aufruf im Direktfenster
 Public Function zeigmosystem(Optional obszn4%)
- Const obDebug% = True
+ Const obdebug% = True
  Dim Kat() As memoType, tKat() As memoType, Abl() As memoType, fAuft() As memoType, FMem() As memoType
  Dim rsMo As New ADODB.Recordset
  Dim MOCon As New ADODB.Connection
@@ -456,19 +456,19 @@ Public Function zeigmosystem(Optional obszn4%)
  rsMo.Open sql, MOCon, adOpenStatic, adLockReadOnly
  If Not rsMo.BOF Then
   If rsMo!fKat <> "" Then
-   Call ParseMemo(rsMo!fKat, Kat(), obDebug, "FMemo von fKategorieliste aus mosystem")
+   Call ParseMemo(rsMo!fKat, Kat(), obdebug, "FMemo von fKategorieliste aus mosystem")
   End If
   If rsMo!ftk <> "" Then
-   Call ParseMemo(rsMo!ftk, tKat(), obDebug, "FMemo von fTextKategorieliste aus mosystem")
+   Call ParseMemo(rsMo!ftk, tKat(), obdebug, "FMemo von fTextKategorieliste aus mosystem")
   End If
   If rsMo!fAb <> "" Then
-   Call ParseMemo(rsMo!fAb, Abl(), obDebug, "FMemo von fAblageliste aus mosystem")
+   Call ParseMemo(rsMo!fAb, Abl(), obdebug, "FMemo von fAblageliste aus mosystem")
   End If
   If rsMo!fAuf <> "" Then
-   Call ParseMemo(rsMo!fAuf, fAuft(), obDebug, "FMemo von fAuftragstypenliste aus mosystem")
+   Call ParseMemo(rsMo!fAuf, fAuft(), obdebug, "FMemo von fAuftragstypenliste aus mosystem")
   End If
   If rsMo!fm <> "" Then
-   Call ParseMemo(rsMo!fm, FMem(), obDebug, "FMemo von fMemo aus mosystem")
+   Call ParseMemo(rsMo!fm, FMem(), obdebug, "FMemo von fMemo aus mosystem")
    For j = 0 To UBound(FMem)
     If FMem(j).ENr Like "*.2" And FMem(j).ENr <> "1.2" Then
      Set EintS = New SortierEintr
@@ -501,8 +501,8 @@ End Function ' zeigmosystem()
 
 ' in PatvonMO_Click
 Public Function doPatvonMO(pNr&)
- Const obDebug% = True, obszn4% = False
- Dim pid&, pos&, SchGr%, j&, jj%, rAf&, aktZeit As Date
+ Const obdebug% = True, obszn4% = False
+ Dim pid&, pos&, SchGr%, j&, jj%, rAF&, aktZeit As Date
  pNr& = 64800 ' 69333 ' 68316 ' 65405 ' 45 ' 64659 ' 45 ' 69367 ' 69377 ' 53119 ' 51630 ' 105 ' 18 ' 246 ' 59152 ' 1394 ' 2112 ' 151 ' 225 '
  pid = pNr + 100000
  Static lfdfl&
@@ -528,7 +528,7 @@ Public Function doPatvonMO(pNr&)
  rsMo.Open sql, MOCon, adOpenStatic, adLockReadOnly
  If Not rsMo.BOF Then
   If rsMo!fm <> "" Then
-   Call ParseMemo(rsMo!fm, FMem(), obDebug, "FMemo von fMemo aus mosystem")
+   Call ParseMemo(rsMo!fm, FMem(), obdebug, "FMemo von fMemo aus mosystem")
    For j = 0 To UBound(FMem)
     If FMem(j).ENr Like "*.2" And FMem(j).ENr <> "1.2" Then
      Set EintS = New SortierEintr
@@ -616,7 +616,7 @@ Public Function doPatvonMO(pNr&)
   FSO.DeleteFile mestausg
   On Error GoTo fehler
   If rsNa!fm <> "" Then
-   Call ParseMemo(rsNa!fm, NaStr(), obDebug, "FMemo von rsNa, Pat-id " & pNr)
+   Call ParseMemo(rsNa!fm, NaStr(), obdebug, "FMemo von rsNa, Pat-id " & pNr)
 '   Call MeStDruck(CStr(pNr), NaStr)
    For j = 0 To UBound(NaStr)
 '     Debug.Print NaStr(j).enr, NaStr(j).Text
@@ -720,7 +720,7 @@ Public Function doPatvonMO(pNr&)
          rFa(UBound(rFa)).SchGr = "99" ' frei erfunden
       End Select ' ftarif
      End Select ' fscheintyp
-    Call ParseMemo(rsFa!fm, FaStr(), obDebug, "FMemo von rsFa, Pat-id " & rsFa!ueschr)  ' rsFa!fpatnr, rsFa!fsurogat,
+    Call ParseMemo(rsFa!fm, FaStr(), obdebug, "FMemo von rsFa, Pat-id " & rsFa!ueschr)  ' rsFa!fpatnr, rsFa!fsurogat,
 '    Call MeStDruck(pNr & " " & rsFa!ueschr, FaStr)
 '  For jj = 1 To UBound(rFa)
 '   If Not IsNumeric(rFa(jj).Quartal) Or Len(rFa(jj).Quartal) <> 5 Then Stop
@@ -882,7 +882,7 @@ Public Function doPatvonMO(pNr&)
         If Not uewv Is Nothing Then
          If uewv.BOF Then
           sql = "INSERT INTO ueberwvon(KVNr,Titel,Vorname,Zusatz,Nachname) VALUES(" & aktkvnr & ",'" & hatit & "','" & hav & "','','" & han & "')"
-          InsKorr DBCn, DBCnS, sql, rAf
+          InsKorr DBCn, DBCnS, sql, rAF
          Else ' uewv.BOF Then
           rFa(UBound(rFa)).üwvid = uewv.Fields(0)
           rFa(UBound(rFa)).ÜWNaN = uewv.Fields(1)
@@ -989,7 +989,7 @@ Public Function doPatvonMO(pNr&)
   myFrag rAbr, "SELECT FSurogat,FBetriebsnr FROM abrechner", adOpenStatic, MOCon ' AU
   Do While Not rAbr.EOF
    If SafeArrayGetDim(rab) = 0 Then ReDim rab(0) Else ReDim Preserve rab(UBound(rab) + 1)
-    rab(UBound(rab)).fS = rAbr!FSurogat
+    rab(UBound(rab)).fS = rAbr!fsurogat
     rab(UBound(rab)).BSNR = rAbr!FBetriebsnr
    rAbr.MoveNext
   Loop
@@ -1015,8 +1015,30 @@ Public Function doPatvonMO(pNr&)
 '                1005: Desktop-Notizen, 1006: Einträge
 '                2017: Diagnosen
 '  sql = "SELECT 18900101+INTERVAL FDatum DAY+INTERVAL FZeit SECOND Zp, FICdcode Art, MID(fdetails,INSTR(fdetails,'ext ""')+5,LENGTH(fdetails)-2-INSTR(fdetails,'ext ""')-5) FText, FEintragsart, f.* FROM ltag f WHERE fpatnr = " & pNr & " AND ((FEintragsart=5 and FStatus=0) OR FEintragsart IN (8,10,11,151,1001,1002,1003,1004,1006)) AND fbehgrundnr<=0"
+' Dokumente
+  sql = "SELECT 18900101+INTERVAL FDatum DAY+INTERVAL FZeit SECOND Zp, na.FUsername ua, nb.FUsername ub, l.*, d.*,IF(INSTR(FText,':') BETWEEN 1 AND 6,LEFT(FText,INSTR(FText,':')-1),'') art, IF(INSTR(FText,':') BETWEEN 1 AND 6,TRIM(MID(FText,INSTR(FText,':')+1)),FText) ename FROM ltag l INNER JOIN datafile d ON l.FSurogat=d.FReferenznr LEFT JOIN nutzerneu na ON FAnordnutzernr= na.FSurogat LEFT JOIN nutzerneu nb ON FAusfnutzernr= nb.FSurogat WHERE l.fpatnr=" & pNr & " /*AND feintragsart IN (5,50,51,148,151,166,169,501,598)*/ ORDER BY l.FSurogat, Zp"
+  myFrag rsEi, sql, adOpenStatic, MOCon
+  If Not rsEi.BOF Then
+   Do While Not rsEi.EOF
+' Typ As String 'Typ varchar '
+    ReDim Preserve rBr(UBound(rBr) + 1)
+    rBr(UBound(rBr)).Pat_id = pid
+    rBr(UBound(rBr)).aktZeit = aktZeit
+    rBr(UBound(rBr)).Zeitpunkt = rsEi!Zp
+    rBr(UBound(rBr)).name = rsEi!ename
+    rBr(UBound(rBr)).autor = rsEi!ua
+    rBr(UBound(rBr)).art = rsEi!art
+    rBr(UBound(rBr)).DokGroe = rsEi!FFilesize
+    rBr(UBound(rBr)).DokAenD = rsEi!FCreationtime
+    rBr(UBound(rBr)).Pfad = rsEi!FFilename
+    rBr(UBound(rBr)).QS = ZQSort(rBr(UBound(rBr)).Zeitpunkt)
+    rBr(UBound(rBr)).QT = ZQuart(rBr(UBound(rBr)).Zeitpunkt)
+    rBr(UBound(rBr)).Quelldatum = doQuelldatum(rBr(UBound(rBr)).name, rBr(UBound(rBr)).DokAenD)
+    rsEi.MoveNext
+   Loop ' while not rsEi.EOF
+  End If ' Not rsEi.BOF Then
 ' Medplan
-  sql = "SELECT 18900101+INTERVAL FDatum DAY+INTERVAL FZeit SECOND Zp, l.*, m.*, COALESCE(CONVERT(m.FMemo USING latin1),'') Fm FROM ltag l LEFT JOIN meddosis m ON l.FText='Dosierplan' AND l.FSurogat=m.FDosierplannr WHERE l.fpatnr=69333 AND NOT ISNULL(m.FSurogat) AND FVerbindungsschluessel<>'#ZWTEXT#' ORDER BY l.FSurogat, FDosierplanpos"
+  sql = "SELECT 18900101+INTERVAL FDatum DAY+INTERVAL FZeit SECOND Zp, l.*, m.*, COALESCE(CONVERT(m.FMemo USING latin1),'') Fm FROM ltag l INNER JOIN meddosis m ON l.FText='Dosierplan' AND l.FSurogat=m.FDosierplannr WHERE l.fpatnr=" & pNr & " AND FVerbindungsschluessel<>'#ZWTEXT#' ORDER BY l.FSurogat, FDosierplanpos"
   myFrag rsEi, sql, adOpenStatic, MOCon
   If Not rsEi.BOF Then
    Dim MPNr&, Fldnr%, altlFSur&
@@ -1037,7 +1059,7 @@ Public Function doPatvonMO(pNr&)
     rMe(UBound(rMe)).Wirkstoff = rsEi!FWirkstoff
     altlFSur = rsEi!FDosierplannr
     If rsEi!fm <> "" Then
-     Call ParseMemo(rsEi!fm, FMem(), obDebug, "FMemo aus meddosis")
+     Call ParseMemo(rsEi!fm, FMem(), obdebug, "FMemo aus meddosis")
      For j = 0 To UBound(FMem)
       Select Case FMem(j).ENr
        Case "4": rMe(UBound(rMe)).mo = FMem(j).Text
