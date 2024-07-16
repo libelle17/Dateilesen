@@ -102,7 +102,7 @@ Public PcDokPfad$
 Public Fil As File
 Public medSL As SortierListe ' für Medklass
  ' ehemals statische Variablen einzelner Prozeduren, hier für erneuten Einlesvorgang rausgezogen
-Public rsAnm As New adodb.Recordset
+Public rsAnm As New ADODB.Recordset
 Dim Quartal$ ' 4101
 Dim lfdnr& ' für Tabelle Namen / in GesLies: Zahl der eingelesenen Patienten
 Dim lKennung% ', lk%(15)
@@ -111,6 +111,8 @@ Dim lFormID& ' ID des letzten Formulars
 Dim obZweiteRunde%
 Dim lLang$, lLangVW&
 Dim lKomm$, lKommVW&
+Dim lAbschl$, lAbschlVW&
+Dim lNormb$, lNormbVW&
 Dim SpeicherZt As Date
 Dim AktQ$ ' aktuelles Quartal
 Dim obDStr% ' ob Diagnose in Diagnosestring einzutragen ist
@@ -164,7 +166,7 @@ Public qbeg As Date
 Public Function fuellilanr()
 ' LANR-Tabelle vorbereiten
   If SafeArrayGetDim(iLanr) = 0 Then ' wenn iLanr initialisiert
-   Dim rila As New adodb.Recordset
+   Dim rila As New ADODB.Recordset
    myFrag rila, "SELECT `ID`,`LANR`,krz FROM `lanrpraxis`"
    If Not rila.BOF Then
     Do While Not rila.EOF
@@ -233,7 +235,7 @@ Function doTabVorb(frm As Lese, obInhalt%, obmitFormularen%)
  Dim lauf&
  Dim i&, T2#
  On Error GoTo fehler
- Dim rs As New adodb.Recordset, rAf&
+ Dim rs As New ADODB.Recordset, rAf&
 ' Dim cn As New ADODB.Connection,
 ' cn.Open CSStr, , , 0
 ' SET rs = myEFrag("SELECT * FROM quelle.`forminhaltfeld`", rAf) ' + adAsyncExecute,,cn)
@@ -591,7 +593,7 @@ End Function ' kompakt
 'DROP VIEW eintrhist;
 'CREATE VIEW eintrhist AS SELECT * FROM eintrhist1 INNER JOIN eintrhist2 USING (id);
 Function eintrhist()
- Dim hist$, rq As New adodb.Recordset, rz1 As New adodb.Recordset, rz2 As New adodb.Recordset, rAf&
+ Dim hist$, rq As New ADODB.Recordset, rz1 As New ADODB.Recordset, rz2 As New ADODB.Recordset, rAf&
  On Error GoTo fehler
  syscmd 4, "eintrhist"
 #If True Then
@@ -623,9 +625,9 @@ Call myEFrag("INSERT INTO eintrhist2(fid,abspos,aktzeit,stbyte,id)" & vbCrLf & _
   Do While Not rq.EOF
    Do
     Set rz1 = Nothing
-    myFrag rz1, "SELECT id FROM `eintrhist1` WHERE pat_id = " & rq!Pat_id & " AND zeitpunkt = " & DatFor_k(rq!Zeitpunkt) & " AND art = '" & rq!art & "' AND inhalt = '" & UmwfSQL(rq!Inhalt) & "' AND qs = '" & rq!QS & "' AND qt = '" & rq!QT & "'"
+    myFrag rz1, "SELECT id FROM `eintrhist1` WHERE pat_id = " & rq!Pat_id & " AND zeitpunkt = " & DatFor_k(rq!Zeitpunkt) & " AND art = '" & rq!Art & "' AND inhalt = '" & UmwfSQL(rq!Inhalt) & "' AND qs = '" & rq!QS & "' AND qt = '" & rq!QT & "'"
     If rz1.BOF Then
-     InsKorr DBCn, DBCnS, "INSERT INTO `eintrhist1`(pat_id,zeitpunkt,art,inhalt,qs,qt) VALUES(" & rq!Pat_id & "," & DatFor_k(rq!Zeitpunkt) & ",'" & rq!art & "','" & UmwfSQL(rq!Inhalt) & "','" & rq!QS & "','" & rq!QT & "')", rAf
+     InsKorr DBCn, "INSERT INTO `eintrhist1`(pat_id,zeitpunkt,art,inhalt,qs,qt) VALUES(" & rq!Pat_id & "," & DatFor_k(rq!Zeitpunkt) & ",'" & rq!Art & "','" & UmwfSQL(rq!Inhalt) & "','" & rq!QS & "','" & rq!QT & "')", rAf
     Else
      Exit Do
     End If
@@ -692,7 +694,7 @@ Function GesLies(frm As Lese, BDTDatei$, BDTName$, EinlAb&, EinlBis&, obLaborDir
  Dim Zeilen&, Bytes# ' für den Anzeigevorgang, inhaltlich nicht wichtig
  Dim Cpt$, PatZnr&, VorZnr& ' Summer der Zeilen der vorangegangenen Patienten, für zeilennummer in dolies
  Dim Tm1!, Tm2!, Dauer!, DauerZ&
- Dim rsinl As New adodb.Recordset
+ Dim rsinl As New ADODB.Recordset
  On Error GoTo fehler
  
  If IsNumeric(frm.GesBytes) Then GesBytes = frm.GesBytes
@@ -944,20 +946,20 @@ Function GesLies(frm As Lese, BDTDatei$, BDTName$, EinlAb&, EinlBis&, obLaborDir
         Else ' frm.dlg.obVglMitLetzterEinlesung <> 0 AND NOT obHausBesuch THEN
          Dim rsaktZeit As Date, rsAZS$
 '         IF Not rs Is Nothing THEN IF rs.State = 1 THEN rs.Close
-         Dim rsaz As New adodb.Recordset
-         myFrag rsaz, "SELECT aktzeit,nachname,vorname,gebdat,aufndat FROM `namen` WHERE pat_id = " & altpatg
+         Dim rsAZ As New ADODB.Recordset
+         myFrag rsAZ, "SELECT aktzeit,nachname,vorname,gebdat,aufndat FROM `namen` WHERE pat_id = " & altpatg
          oblies = 0
-         If rsaz.BOF Then
+         If rsAZ.BOF Then
           oblies = -1
           rsAZS = "          -        "
          Else
-          If IsNull(rsaz!aktZeit) Or lAktZeit - rsaz!aktZeit > 0.0000115 Or (lAktZeit = 0 And rsaz!aktZeit = 0) Or FSO.GetFile(BDTDatei).size < 1000000 Then ' FileLen zu kurz 21.8.21
+          If IsNull(rsAZ!aktZeit) Or lAktZeit - rsAZ!aktZeit > 0.0000115 Or (lAktZeit = 0 And rsAZ!aktZeit = 0) Or FSO.GetFile(BDTDatei).size < 1000000 Then ' FileLen zu kurz 21.8.21
            oblies = -1
-           rsaktZeit = IIf(IsNull(rsaz!aktZeit), 0, rsaz!aktZeit)
+           rsaktZeit = IIf(IsNull(rsAZ!aktZeit), 0, rsAZ!aktZeit)
            rsAZS = Format$(rsaktZeit, "dd.mm.yyyy hh:mm:ss")
           End If
          End If ' rs.BOF Then else
-         Set rsaz = Nothing
+         Set rsAZ = Nothing
         End If ' frm.dlg.obVglMitLetzterEinlesung <> 0 AND NOT obhausbesuch THEN else
 '       altAusgabe = frm.Ausgabe
 '       aktPatAusg = lfdnr & ") " & Format$(VorStDat, "dd.mm.yy") & " - " & lAktZeit & " (eingetragen:" & rsAZS & ")" & ": (" & altpatg & ") "
@@ -1342,7 +1344,7 @@ Function GetMed(lang$, Einrück%) As CString ' mit Einrück=0 in doMedklassT, THAf
 End Function ' GetMed(Lang$, Einrück%) AS CString
 
 Function doMedklassT() ' kommt vor in MedklassT_Click
- Dim rMe As New adodb.Recordset
+ Dim rMe As New ADODB.Recordset
 ' Dim medSL As New SortierListe
  Dim medi As MediCl
  Dim mZ&, iru&
@@ -1381,7 +1383,7 @@ End Function ' doMedklassT()
  Function medklass2() ' kommt vor in GesLies(), doMedklassT()
 ' Medklass, 2. Teil
  Dim Med$, i&
- Dim rs As adodb.Recordset
+ Dim rs As ADODB.Recordset
  syscmd 4, "Klassifiziere " & CStr(medSL.COUNT) & " Medikamente"
 ' On Error Resume Next
 ' DBCn.BeginTrans: If Err.Number = 0 Then obTrans = 1
@@ -1393,7 +1395,7 @@ End Function ' doMedklassT()
   If LenB(Med) <> 0 And Med <> """" Then
    Set rs = myEFrag("SELECT 0 FROM `medarten` WHERE medikament = '" & REPLACE$(REPLACE$(Med, "'", "\\\'"), "\\\\'", "\\\'") & "'")
    If rs.BOF Then
-    InsKorr DBCn, DBCnS, "INSERT INTO `medarten`(medikament,hinzugefügt,langname,pat_id) VALUES ('" & Med & "'," & DatFor_k(Now) & ",'" & medSL.Item(i).LT & "'," & medSL.Item(i).Pat_id & ")", rAf
+    InsKorr DBCn, "INSERT INTO `medarten`(medikament,hinzugefügt,langname,pat_id) VALUES ('" & Med & "'," & DatFor_k(Now) & ",'" & medSL.Item(i).LT & "'," & medSL.Item(i).Pat_id & ")", rAf
    Else
     Set rs = myEFrag("SELECT 0 FROM `medarten` WHERE medikament = '" & Med & "' AND (pat_id = 0 OR ISNULL(pat_id))")
     If Not rs.BOF Then
@@ -1435,7 +1437,7 @@ End Function ' Medklass2
 
 Function EintragZusatz()
  Dim rAf&, erg$
- Dim rs As New adodb.Recordset, rs1 As New adodb.Recordset, dae As Date, sql$
+ Dim rs As New ADODB.Recordset, rs1 As New ADODB.Recordset, dae As Date, sql$
  On Error GoTo fehler
  Screen.MousePointer = vbHourglass
  Call Lese.ProgStart
@@ -1487,7 +1489,7 @@ End Select
 End Function ' EintragZusatz
 
 Function testload()
- Dim rs As New adodb.Recordset, rdn As New adodb.Recordset, erg$
+ Dim rs As New ADODB.Recordset, rdn As New ADODB.Recordset, erg$
  Dim T1!, T2!
  Call Lese.ProgStart
  Call myFrag(rdn, "SELECT stbyte, datei FROM `namen` LEFT JOIN `eintragszahlen` USING (stbyte) GROUP BY stbyte", DBCn)
@@ -1509,7 +1511,7 @@ Function testload()
 End Function ' testload
 
 Function getAktByte()
- Dim rs As New adodb.Recordset
+ Dim rs As New ADODB.Recordset
  On Error GoTo fehler
  Set rs = myEFrag("SELECT stbyte FROM `eintragszahlen` ORDER BY stbyte DESC")
  Call Lese.ProgStart
@@ -1541,7 +1543,7 @@ End Function ' getAktyte
 Function EintragStart&(frm As Lese) ' wird in EinlesenClick aufgerufen
  On Error GoTo fehler
  Dim sql$, DateiAend#
- Dim rs As adodb.Recordset
+ Dim rs As ADODB.Recordset
  syscmd 4, "EintragStart"
  rEzäBeg = Now
  If DBCn.State = 0 Then
@@ -1553,7 +1555,7 @@ Function EintragStart&(frm As Lese) ' wird in EinlesenClick aufgerufen
  End If
  sql = "INSERT INTO `eintragszahlen` (beginn,stbyte,datei,dateiaend,TabellenEntleeren,ZurücksetzenLAktDat,obVglMitLetzterEinlesung,Pat_IDVon,Pat_IDbis,VorladenFFI,Übertabelle,NurInTabelle,SammelInsert,bereinigeFormInhFeld, LaborDirektEinlesen,LaborDirektNeu,LaborQuerVerb,LaborQuerNeu,LaborPfadBeispiel,AlterTab,obmitEmails) " & _
        "values (" & DatFor_k(rEzäBeg) & "," & AktByte & ",'" & doUmwfSQL(frm.QDatei, lies.obMySQL) & "'," & DatFor_k(DateiAend) & "," & Abs(frm.dlg.TabellenEntleeren) & "," & Abs(frm.dlg.ZurücksetzenLAktDat) & "," & Abs(frm.dlg.obVglMitLetzterEinlesung) & ",'" & frm.dlg.Pat_IDVon & "','" & frm.dlg.Pat_IDBis & "'," & Abs(frm.dlg.VorladenFFI) & "," & Abs(frm.dlg.ÜberTabelle) & "," & Abs(frm.dlg.NurInTabelle) & "," & Abs(frm.dlg.SammelInsert) & "," & Abs(frm.dlg.bereinigeFormInhFeld) & "," & Abs(frm.dlg.LaborDirektEinlesen) & "," & Abs(frm.dlg.LaborDirektNeu) & "," & Abs(frm.dlg.LaborQuerVerb) & "," & Abs(frm.dlg.LaborQuerNeu) & ",'" & doUmwfSQL(frm.dlg.LaborPfadBeispiel, lies.obMySQL) & "'," & Abs(frm.dlg.AlterTab) & "," & Abs(frm.dlg.obmitEmails) & ")"
- InsKorr DBCn, DBCnS, sql, rAf
+ InsKorr DBCn, sql, rAf
  Exit Function
 fehler:
  Dim AnwPfad$
@@ -1624,7 +1626,7 @@ Function StatischInit()
 End Function ' StatischInit
 
 Public Function medartenhier(SL As SortierListe)
- Dim rs As New adodb.Recordset, SM As SortierMedi, T1!, T2!
+ Dim rs As New ADODB.Recordset, SM As SortierMedi, T1!, T2!
  On Error GoTo fehler
  syscmd 4, "medartenhier"
  T1 = Timer
@@ -1687,9 +1689,9 @@ Function rufThFestleg(Pat_id&, Optional Position$)
 ' myEFrag "CALL fuellThaP(" & CStr(Pat_id) & ")"
 #Else ' ausrangiert 12.12.20
  Dim altfoid&
- Dim rsNa As New adodb.Recordset
- Dim rsFm As New adodb.Recordset
- Dim rsMe As New adodb.Recordset
+ Dim rsNa As New ADODB.Recordset
+ Dim rsFm As New ADODB.Recordset
+ Dim rsMe As New ADODB.Recordset
  ReDim rTh(0)
  ReDim rNa(0)
  ReDim rFm(0)
@@ -1860,7 +1862,7 @@ Function THAfestleg() ' in dolies und geslies / parallel zu Therauskunft
 '      sD.Datum = Int(CDate("1.11.2009"))
 '      dSL.sCInit
 '      dSL.Eingrenz sD
- Dim rsAna As New adodb.Recordset
+ Dim rsAna As New ADODB.Recordset
  myFrag rsAna, "SELECT `insulinpumpe` ip FROM `anamnesebogen` a WHERE pat_id = " & rNa(0).Pat_id
  If Not rsAna.EOF Then
   If Not IsNull(rsAna!IP) Then
@@ -2181,8 +2183,8 @@ Function neuQuartal(frm As Lese, rInhalt$)
       Else
 '       rsAdo.Close
        ZielDbS = frm.dlg.MdB
-       Dim zwiCStr$
-       zwiCStr = DBCnS ' DBCn.ConnectionString
+'       Dim zwiCStr$
+'       zwiCStr = DBCn.Properties![Extended Properties] ' DBCn.ConnectionString
        If DBCn.State = 1 Then DBCn.Close
        For i = 0 To 1000
        Next i
@@ -2239,7 +2241,7 @@ Function dolies(frm As Lese, RKennung$, rInhalt$, obSchluss%, PatZnr&, GesZnr&, 
  '  FID ggf zuweisen
  Dim obPat%
  Static FNam() As String, FNam2() As String, ifn&
- Dim rsP As New adodb.Recordset ' Pharmazentralnummer
+ Dim rsP As New ADODB.Recordset ' Pharmazentralnummer
  Dim ErrNr&, ErrDes$
  Static ausrrxml!
  On Error GoTo fehler
@@ -2448,7 +2450,7 @@ Function dolies(frm As Lese, RKennung$, rInhalt$, obSchluss%, PatZnr&, GesZnr&, 
      rNa(UBound(rNa)).Verwandt = IIf(LenB(rNa(UBound(rNa)).Verwandt) = 0, vNS, rNa(UBound(rNa)).Verwandt & ",") & IIf(Arra(1) <> "", Arra(1), Arra(2) & " " & Arra(3) & " " & Arra(4) & " " & Arra(5) & " " & Arra(6) & " " & Arra(7))
    Case 3633: rNa(UBound(rNa)).zubenach = IIf(LenB(rNa(UBound(rNa)).zubenach) = 0, vNS, rNa(UBound(rNa)).zubenach & vbCrLf) & rInhalt
    Case 3634: ' Notiz, Zeile für Zeile
-    rNa(UBound(rNa)).Notiz = IIf(LenB(rNa(UBound(rNa)).Notiz) = 0, vNS, rNa(UBound(rNa)).Notiz & vbCrLf) & rInhalt
+    rNa(UBound(rNa)).notiz = IIf(LenB(rNa(UBound(rNa)).notiz) = 0, vNS, rNa(UBound(rNa)).notiz & vbCrLf) & rInhalt
    Case 3654: rNa(UBound(rNa)).Cave = IIf(LenB(rNa(UBound(rNa)).Cave) = 0, vNS, rNa(UBound(rNa)).Cave & vbCrLf) & rInhalt
    Case 3635 ' interne Zuordnung Arzt bei GP / => LANR <- interne Zordnung
     Call aufSplit(rInhalt)
@@ -2609,7 +2611,7 @@ Function dolies(frm As Lese, RKennung$, rInhalt$, obSchluss%, PatZnr&, GesZnr&, 
         rFa(UBound(rFa)).ÜWVsw = Arra(ArraInd - 2)
         rFa(UBound(rFa)).ÜWVor = Arra(ArraInd - 3)
         rFa(UBound(rFa)).ÜWTit = Arra(ArraInd - 4)
-      Dim uers As New adodb.Recordset, uerunde%, insrunde%, Tabl$, KVNr$, kvnrrs As adodb.Recordset
+      Dim uers As New ADODB.Recordset, uerunde%, insrunde%, Tabl$, KVNr$, kvnrrs As ADODB.Recordset
       Dim nnafeld$
       For insrunde = 1 To 2
        If insrunde = 1 Then Tabl = "liuez": nnafeld = "name" Else Tabl = "ueberwvon": nnafeld = "nachname"
@@ -2627,7 +2629,7 @@ resume_4247:
         If uers.EOF Then
          volleingefuegt = 0
          If insrunde = 1 Then
-          Dim vorw As adodb.Recordset
+          Dim vorw As ADODB.Recordset
           myFrag vorw, "SELECT COUNT(DISTINCT REPLACE(fax,' ','')) FROM " & Tabl & " WHERE vorname='" & Arra(2) & "' AND " & nnafeld & "='" & Arra(4) & "'", adOpenStatic, DBCn, adLockReadOnly
           If Not vorw.EOF Then
            If vorw.Fields(0) = 1 Then
@@ -2659,13 +2661,13 @@ resume_4247:
             geschlecht = vorw!geschlecht
             titelt = vorw!titelt
 '            Debug.Print vorw.source
-            InsKorr DBCn, DBCnS, "INSERT INTO " & Tabl & "(kvnr,titel,vorname,zusatz," & nnafeld & ",fachgruppe,strasse,plz,ort,telefon,fax,anrede,tel1,tel2,tel3,tel4,fax1,fax2,fax3,email,zulg,arzttyp,gemmit,beme,dmpt2,dmpt1,geschlecht,titelt,ursp,aktzeit) VALUES('" & KVNr & "','" & Arra(1) & "','" & Arra(2) & "','" & Arra(3) & "','" & Arra(4) & "','" & fachgruppe & "','" & strasse & "','" & plz & "','" & ort & "','" & telefon & "','" & fax & "','" & anrede & "','" & tel1 & "','" & tel2 & "','" & tel3 & "','" & tel4 & "','" & fax1 & "','" & fax2 & "','" & fax3 & "','" & email & "','" & zulg & "','" & arzttyp & "','" & gemmit & "','" & beme & "','" & dmpt2 & "','" & dmpt1 & "','" & geschlecht & "','" & titelt & "','" & "dolies:" & rNa(0).Pat_id & "','" & Format$(Now(), "yyyy-mm-dd hh:mm:ss") & "')", rAf
+            InsKorr DBCn, "INSERT INTO " & Tabl & "(kvnr,titel,vorname,zusatz," & nnafeld & ",fachgruppe,strasse,plz,ort,telefon,fax,anrede,tel1,tel2,tel3,tel4,fax1,fax2,fax3,email,zulg,arzttyp,gemmit,beme,dmpt2,dmpt1,geschlecht,titelt,ursp,aktzeit) VALUES('" & KVNr & "','" & Arra(1) & "','" & Arra(2) & "','" & Arra(3) & "','" & Arra(4) & "','" & fachgruppe & "','" & strasse & "','" & plz & "','" & ort & "','" & telefon & "','" & fax & "','" & anrede & "','" & tel1 & "','" & tel2 & "','" & tel3 & "','" & tel4 & "','" & fax1 & "','" & fax2 & "','" & fax3 & "','" & email & "','" & zulg & "','" & arzttyp & "','" & gemmit & "','" & beme & "','" & dmpt2 & "','" & dmpt1 & "','" & geschlecht & "','" & titelt & "','" & "dolies:" & rNa(0).Pat_id & "','" & Format$(Now(), "yyyy-mm-dd hh:mm:ss") & "')", rAf
             volleingefuegt = rAf
            End If
           End If
          End If
          If volleingefuegt = 0 Then
-          InsKorr DBCn, DBCnS, "INSERT INTO " & Tabl & "(kvnr,titel,vorname,zusatz," & nnafeld & ") VALUES('" & KVNr & "','" & Arra(1) & "','" & Arra(2) & "','" & Arra(3) & "','" & Arra(4) & "')", rAf
+          InsKorr DBCn, "INSERT INTO " & Tabl & "(kvnr,titel,vorname,zusatz," & nnafeld & ") VALUES('" & KVNr & "','" & Arra(1) & "','" & Arra(2) & "','" & Arra(3) & "','" & Arra(4) & "')", rAf
          End If
         Else ' uers.EOF
          Exit For
@@ -3112,10 +3114,10 @@ difertig:
          If LenB(Diast) <> 0 Then
           GoSub rEiVorb
           Select Case irunde
-           Case 1: rEi(UBound(rEi)).art = "gewicht": rEi(UBound(rEi)).Inhalt = Left$(Diast, MAXvb(Len(Diast) - 3, 0)) & " kg" ' g -> kg
-           Case 2: rEi(UBound(rEi)).art = "groesse": rEi(UBound(rEi)).Inhalt = Left$(Diast, Len(Diast) - 1) & " cm" ' mm -> cm
-           Case 3: rEi(UBound(rEi)).art = "taille":  rEi(UBound(rEi)).Inhalt = Left$(Diast, Len(Diast) - 1) & " cm" ' mm -> cm
-           Case 4: rEi(UBound(rEi)).art = "hüfte":   rEi(UBound(rEi)).Inhalt = Left$(Diast, Len(Diast) - 1) & " cm" ' mm -> cm
+           Case 1: rEi(UBound(rEi)).Art = "gewicht": rEi(UBound(rEi)).Inhalt = Left$(Diast, MAXvb(Len(Diast) - 3, 0)) & " kg" ' g -> kg
+           Case 2: rEi(UBound(rEi)).Art = "groesse": rEi(UBound(rEi)).Inhalt = Left$(Diast, Len(Diast) - 1) & " cm" ' mm -> cm
+           Case 3: rEi(UBound(rEi)).Art = "taille":  rEi(UBound(rEi)).Inhalt = Left$(Diast, Len(Diast) - 1) & " cm" ' mm -> cm
+           Case 4: rEi(UBound(rEi)).Art = "hüfte":   rEi(UBound(rEi)).Inhalt = Left$(Diast, Len(Diast) - 1) & " cm" ' mm -> cm
           End Select
          End If ' LenB(Diast) <> 0 Then
         End If ' p1 <> 0 AND p2 <> 0 THEN
@@ -3229,7 +3231,7 @@ rEiVorb:
      rEi(UBound(rEi)).Inhalt = Left$(rEi(UBound(rEi)).Inhalt, Len(rEi(UBound(rEi)).Inhalt) - IIf(Right$(rEi(UBound(rEi)).Inhalt, 1) = "^", 1, 0)) + rInhalt
     Else
      ReDim Preserve rEi(UBound(rEi) + 1)
-     rEi(UBound(rEi)).art = "th"
+     rEi(UBound(rEi)).Art = "th"
      rEi(UBound(rEi)).absPos = absPos
      rEi(UBound(rEi)).aktZeit = aktZeit
      rEi(UBound(rEi)).FID = rFa(UBound(rFa)).FID
@@ -3291,7 +3293,7 @@ rEiVorb:
 '      rDm(UBound(rDm)).GebDat = rNa(0).GebDat
      Case "TUG", "ADL" ' Timed Up AND Go - Test, Activity of Daily Life
         ReDim Preserve rEi(UBound(rEi) + 1)
-        rEi(UBound(rEi)).art = rInhalt
+        rEi(UBound(rEi)).Art = rInhalt
         rEi(UBound(rEi)).absPos = absPos
         rEi(UBound(rEi)).aktZeit = aktZeit
         rEi(UBound(rEi)).FID = rFa(UBound(rFa)).FID
@@ -3334,9 +3336,9 @@ rEiVorb:
       If VarType(rDm(UBound(rDm)).obvoll) = 17 Then rDm(UBound(rDm)).obvoll = 1 Else rDm(UBound(rDm)).obvoll = -1
      End If
      If InStrB(rInhalt, "Erst") > 0 Then
-      rDm(UBound(rDm)).art = "ED"
+      rDm(UBound(rDm)).Art = "ED"
      ElseIf InStrB(rInhalt, "Folge") > 0 Or InStrB(rInhalt, "Verlaufs") > 0 Then
-      rDm(UBound(rDm)).art = "FD"
+      rDm(UBound(rDm)).Art = "FD"
      End If
      If InStrB(rInhalt, "(ok") <> 0 Then
       rDm(UBound(rDm)).Ok = True
@@ -3376,7 +3378,7 @@ rEiVorb:
       End If
      Next i
      If rFoNeu And Not obmitFormularen Then
-      Dim rsf As adodb.Recordset
+      Dim rsf As ADODB.Recordset
       Call myFrag(rsf, "SELECT * FROM formulare WHERE Form_Abk='" & FormAbk & "' AND FormBez='" & FormBez & "' AND FormVorl='" & FormVorl & "' ORDER BY FormID", adOpenStatic)
       If Not rsf.BOF Then
        rFoNeu = 0
@@ -3634,7 +3636,7 @@ rEiVorb:
           Case 2 ' "p"
            rMe(UBound(rMe)).PZN = gef
            If rMe(UBound(rMe)).Medikament = "" Then
-            Dim rpzn As New adodb.Recordset
+            Dim rpzn As New ADODB.Recordset
             Set rpzn = Nothing
             myFrag rpzn, "SELECT Medikament,MedAnfang,Wirkstoff FROM quelle.medplan WHERE pzn='" & gef & "' AND COALESCE(medikament,'')<>'' LIMIT 1"
             If Not rpzn.BOF Then
@@ -3843,7 +3845,7 @@ rEiVorb:
     rBr(UBound(rBr)).absPos = absPos
     rBr(UBound(rBr)).aktZeit = aktZeit
     If ArraInd > -1 Then rBr(UBound(rBr)).Pfad = Arra(0)
-    If ArraInd > 0 Then rBr(UBound(rBr)).art = Arra(1)
+    If ArraInd > 0 Then rBr(UBound(rBr)).Art = Arra(1)
     If ArraInd > 1 Then rBr(UBound(rBr)).name = Arra(2)
     If ArraInd > 2 Then rBr(UBound(rBr)).Typ = Arra(3)
     rBr(UBound(rBr)).FID = rFa(UBound(rFa)).FID
@@ -3960,7 +3962,7 @@ rEiVorb:
     Else
      obEinweisung = False
      ReDim Preserve rEi(UBound(rEi) + 1)
-     rEi(UBound(rEi)).art = rInhalt
+     rEi(UBound(rEi)).Art = rInhalt
      rEi(UBound(rEi)).absPos = absPos
      rEi(UBound(rEi)).aktZeit = aktZeit
      rEi(UBound(rEi)).FID = rFa(UBound(rFa)).FID
@@ -3977,14 +3979,14 @@ rEiVorb:
       rKh(UBound(rKh)).Diagnose = rKh(UBound(rKh)).Diagnose + Stutz(rInhalt)
      Else '
      '     rEi(UBound(rEi)).Inhalt = LEFT(rEi(UBound(rEi)).Inhalt, Len(rEi(UBound(rEi)).Inhalt) - IIf(Right$(rEi(UBound(rEi)).Inhalt, 1) = "^", 1, 0)) + rInhalt
-      If (rEi(UBound(rEi)).art = "Hüfte" And Left$(rInhalt, 12) = "Hüftumfang: ") Or _
-         (rEi(UBound(rEi)).art = "Größe" And Left$(rInhalt, 7) = "Größe: ") Or _
-         (rEi(UBound(rEi)).art = "Gewicht" And Left$(rInhalt, 9) = "Gewicht: ") Or _
-         (rEi(UBound(rEi)).art = "taille" And Left$(rInhalt, 13) = "Bauchumfang: ") _
+      If (rEi(UBound(rEi)).Art = "Hüfte" And Left$(rInhalt, 12) = "Hüftumfang: ") Or _
+         (rEi(UBound(rEi)).Art = "Größe" And Left$(rInhalt, 7) = "Größe: ") Or _
+         (rEi(UBound(rEi)).Art = "Gewicht" And Left$(rInhalt, 9) = "Gewicht: ") Or _
+         (rEi(UBound(rEi)).Art = "taille" And Left$(rInhalt, 13) = "Bauchumfang: ") _
       Then
        ReDim Preserve rEi(UBound(rEi) - 1) ' beim internen Formular die nochmal einzelnen streichen
       Else
-       If LCase$(rEi(UBound(rEi)).art) = "dak" Then ' 4.12.19: DAK-Datum dokumentieren
+       If LCase$(rEi(UBound(rEi)).Art) = "dak" Then ' 4.12.19: DAK-Datum dokumentieren
         If rNa(0).dakab = 0 Then
          If InStr(rInhalt, ",") > 30 Then
           If IsDate(REPLACE$(Mid$(rInhalt, 30, InStr(rInhalt, ",") - 30), ",", ".")) Then
@@ -3994,8 +3996,8 @@ rEiVorb:
         End If ' rNa(0).dakab = 0 Then
        End If ' LCase$(rEi(UBound(rEi)).art) = "dak" Then ' 4.12.19: DAK-Datum dokumentieren
        rEi(UBound(rEi)).Inhalt = rEi(UBound(rEi)).Inhalt + Stutz(rInhalt)
-       Call PraxisHbA1c(rEi(UBound(rEi)).art, rEi(UBound(rEi)).Inhalt)
-       If rEi(UBound(rEi)).art = "schul" And InStrB(rEi(UBound(rEi)).Inhalt, "schulungsverein") > 0 Then
+       Call PraxisHbA1c(rEi(UBound(rEi)).Art, rEi(UBound(rEi)).Inhalt)
+       If rEi(UBound(rEi)).Art = "schul" And InStrB(rEi(UBound(rEi)).Inhalt, "schulungsverein") > 0 Then
         obMedNetz = True
        End If
        If rInhalt = "bfd" And lKennung = 6330 And InStrB(rInhalt, "icral") > 0 Then
@@ -4088,6 +4090,7 @@ rEiVorb:
     If ArraInd > 0 Then FormTit = Arra(1)
   Case 8490
    rLa(ls).AbschlZl = rInhalt
+   rLa(ls).AbschlZlVW = AZEinfüg&(rLa(ls).AbschlZl)
   Case 9601 ' Zeitraum der Speicherung
    SpeicherZt = BDTtoDate(Right$(rInhalt, 8))
   Case 9602 ' Beginn der Übertragung
@@ -4299,7 +4302,7 @@ End Function ' LeistEintr(Lg)
 
 ' aufgerufen in test7_Click
 Function test7()
- Dim rs As adodb.Recordset, DT$
+ Dim rs As ADODB.Recordset, DT$
  Set rs = myEFrag("SELECT Inhalt FROM `eintraege` WHERE pat_id = 1786 AND art=""andm""")
 ' Debug.Print rs!Inhalt
  Lese.Ausgeb rs!Inhalt, 1
@@ -4313,7 +4316,7 @@ Function fDTyp$()
  Dim DT$, i& ', erg$ ', rAn As New ADODB.Recordset
  On Error GoTo fehler
  For i = 1 To UBound(rEi)
-  If rEi(i).art = "andm" Or rEi(i).art = "andm2" Then
+  If rEi(i).Art = "andm" Or rEi(i).Art = "andm2" Then
    Dim pos&
    pos = InStr(rEi(i).Inhalt, "Diabetes Typ")
    If pos > 0 Then
@@ -4455,7 +4458,7 @@ nochmal:
 '   If IsNull(rsAdo!mprim) Then primnr = 1 Else primnr = rsAdo!mprim + 1
    primnr = myEFrag("SELECT (COALESCE(MAX(prim))+1) mprim FROM `anamnesebogen`").Fields(0)
    sql = "INSERT INTO `anamnesebogen`(pat_id,prim) VALUES(" & rNa(0).Pat_id & "," & primnr & ")"
-   InsKorr DBCn, DBCnS, sql, rAf
+   InsKorr DBCn, sql, rAf
    If obForK Then
     Call ForeignYes0
     Call ForeignYes1
@@ -4489,7 +4492,7 @@ End Function ' rsAnamOpen
 
 ' ehemals in alleSpeichern, jetzt nirgends mehr
 Function kvnrpruef()
- Dim rs As New adodb.Recordset
+ Dim rs As New ADODB.Recordset
  On Error GoTo fehler
  myFrag rs, "SELECT 0 FROM `hausaerzte` WHERE kvnr = '" & rNa(0).KVNr & "'"
  If rs.BOF Then
@@ -4523,7 +4526,7 @@ End Function ' kvnrpruef
 
 ' in alleSpeichern
 Function MedArtenPruef()
- Dim rs As New adodb.Recordset, i&, gmd$, upd$, InS$
+ Dim rs As New ADODB.Recordset, i&, gmd$, upd$, InS$
  On Error GoTo fehler
  syscmd 4, "Prüfe " & UBound(rMe) & " Medarten"
  For i = 1 To UBound(rMe)
@@ -4559,7 +4562,7 @@ End Select
 ' For i = 1 To UBound(rMe)
 '  myFrag rs, "SELECT pat_id FROM `medarten` WHERE medikament = '" & GetMed(rMe(i).Medikament, 0) & "'"
 '  If rs.BOF Then
-'   InsKorr DBCn, DBCnS, "INSERT INTO `medarten`(langname,medikament,hinzugefügt,pat_id) VALUES('" & rMe(i).Medikament & "','" & UCase$(GetMed(rMe(i).Medikament, 0)) & "'," & DatFor_k(Now) & "," & rMe(i).Pat_id & ")", rAF
+'   InsKorr DBCn, "INSERT INTO `medarten`(langname,medikament,hinzugefügt,pat_id) VALUES('" & rMe(i).Medikament & "','" & UCase$(GetMed(rMe(i).Medikament, 0)) & "'," & DatFor_k(Now) & "," & rMe(i).Pat_id & ")", rAF
 '  Else
 '   If rs!Pat_id <> rMe(i).Pat_id Then
 '    myFrag rs, "UPDATE medarten SET pat_id= " & rMe(i).Pat_id & " WHERE medikament='" & GetMed(rMe(i).Medikament, 0) & "' AND pat_id=0"
@@ -4587,7 +4590,7 @@ Function alleSpeichern(frm As Lese, Optional vonMo%)
 ' rsAnam!Vorgestellt = MYDAT(Vorgestellt)
  Dim Cpt$, i&, j&, runde%
  Dim DMSchL&
- Dim rsc As adodb.Recordset, rsaS As adodb.Recordset
+ Dim rsc As ADODB.Recordset, rsaS As ADODB.Recordset
  On Error GoTo fehler
  frm.SBez.BackColor = &HFF&
  DoEvents
@@ -4639,7 +4642,7 @@ anamneseanfang:
  On Error GoTo fehler
 nachFehler:
  Call rsAnamOpen
- Set rsc = New adodb.Recordset
+ Set rsc = New ADODB.Recordset
  Set rsc = DBCnOSchema(adSchemaColumns, Array(Empty, Empty, "anamnesebogen", Empty))
  Dim Inhalt$, Länge%
  Do While Not rsc.EOF
@@ -4760,7 +4763,7 @@ nachFehler:
   sL1.Langtext = rLa(i).Langtext
   Set sL2 = sListLpar.GetItem(sL1)
   If sL2 Is Nothing Then
-   InsKorr DBCn, DBCnS, "INSERT INTO `laborparameter` (`abkü`,`einheit`,`langtext`,`aktzeit`) VALUES('" & rLa(i).Abkü & "','" & rLa(i).Einheit & "','" & rLa(i).Langtext & "'," & DatFor_k(Now()) & ")", rAf
+   InsKorr DBCn, "INSERT INTO `laborparameter` (`abkü`,`einheit`,`langtext`,`aktzeit`) VALUES('" & rLa(i).Abkü & "','" & rLa(i).Einheit & "','" & rLa(i).Langtext & "'," & DatFor_k(Now()) & ")", rAf
 '   SET rsaS = myEFrag("SELECT abkü,eiheit,langtext FROM `laborparameter` WHERE abkü = '" & rLa(i).Abkü & "' AND einheit = '" & rLa(i).Einheit & "')")
    Call sListLpar.sCAdd(sL1)
   Else
@@ -4898,7 +4901,7 @@ alteMethode:
    Else ' lies.obMySQL
     Dim sqlakt$
     sqlakt = "SELECT feldinhvw,feldinh,stbyte FROM `forminhaltfeldinh` WHERE feldinh = '" & REPLACE$(rFm(i).FeldInh, "'", "\\'") & "'"
-    If rsaS.State = 1 Then Set rsaS = New adodb.Recordset
+    If rsaS.State = 1 Then Set rsaS = New ADODB.Recordset
 '    rsaS.Open sqlakt, DBCn, adOpenDynamic, adLockOptimistic
     myFrag rsaS, sqlakt
     If rsaS.BOF Then
@@ -4972,7 +4975,7 @@ nachformulare:
  syscmd 4, "DMP-Speichern"
 ' obhierdmp
 ' rNa(0).dmpklass = obhierdmpfn(rNa(0).Notiz, , , , rNa(0).dmpbeg, rNa(0).dmpkhkklass, rNa(0).dmpkhkbeg, rNa(0).dmpcopdklass, rNa(0).dmpcopdbeg, rNa(0).dmpcopdklass)
- obhierdmpfn rNa(0).Notiz, rNa(0).NZNr, rNa(0).dmpklass, rNa(0).dmpbeg, rNa(0).dmpkhkklass, rNa(0).dmpkhkbeg, rNa(0).dmpcopdklass, rNa(0).dmpcopdbeg, rNa(0).dmpabklass, rNa(0).dmpabbeg, rNa(0).HzV, rNa(0).HzVbeg, rNa(0).DS, rNa(0).DSbeg
+ obhierdmpfn rNa(0).notiz, rNa(0).NZNr, rNa(0).dmpklass, rNa(0).dmpbeg, rNa(0).dmpkhkklass, rNa(0).dmpkhkbeg, rNa(0).dmpcopdklass, rNa(0).dmpcopdbeg, rNa(0).dmpabklass, rNa(0).dmpabbeg, rNa(0).HzV, rNa(0).HzVbeg, rNa(0).DS, rNa(0).DSbeg
  If Not vonMo Then
   Dim Infos12$()
 '  Dim rKv1() AS kvnrue
@@ -4996,12 +4999,12 @@ nachformulare:
 '  END IF
    If Infos12(12, i) <> vNS Then
 '   myEFrag "SELECT kvnr FROM `hareal` WHERE kvnr = " & Infos12(12, i), rAF
-    Dim rKVNr As New adodb.Recordset, obFehlt%
+    Dim rKVNr As New ADODB.Recordset, obFehlt%
     myFrag rKVNr, "SELECT 0 FROM `hareal` WHERE kvnr = " & Infos12(12, i)
     obFehlt = rKVNr.EOF
     Set rKVNr = Nothing
     If obFehlt Then
-     InsKorr DBCn, DBCnS, "INSERT INTO `hareal`(Anrede,Adressat,Straße,PLZOrt,Fax,Überschrift,dmp2,dmp1,Niederlassungsgebiet,Vorname,InnereAllg,kvnr,Tel,Nachname) VALUES(" & IIf(Infos12(0, i) = "Herr", 1, 0) & ",'" & Infos12(1, i) & "','" & Infos12(2, i) & "','" & Infos12(3, i) & "','" & Infos12(4, i) & "','" & Infos12(5, i) & "'," & IIf(Infos12(6, i) = vNS, 0, 1) & "," & IIf(Infos12(7, i) = vNS, 0, 1) & ",'" & Infos12(8, i) & "','" & Infos12(9, i) & "'," & IIf(Infos12(11, i) = "", 0, 1) & "," & IIf(Infos12(12, i) = vNS, 0, Infos12(12, i)) & ",'" & Infos12(13, i) & "','" & Infos12(14, i) & "')", rAf
+     InsKorr DBCn, "INSERT INTO `hareal`(Anrede,Adressat,Straße,PLZOrt,Fax,Überschrift,dmp2,dmp1,Niederlassungsgebiet,Vorname,InnereAllg,kvnr,Tel,Nachname) VALUES(" & IIf(Infos12(0, i) = "Herr", 1, 0) & ",'" & Infos12(1, i) & "','" & Infos12(2, i) & "','" & Infos12(3, i) & "','" & Infos12(4, i) & "','" & Infos12(5, i) & "'," & IIf(Infos12(6, i) = vNS, 0, 1) & "," & IIf(Infos12(7, i) = vNS, 0, 1) & ",'" & Infos12(8, i) & "','" & Infos12(9, i) & "'," & IIf(Infos12(11, i) = "", 0, 1) & "," & IIf(Infos12(12, i) = vNS, 0, Infos12(12, i)) & ",'" & Infos12(13, i) & "','" & Infos12(14, i) & "')", rAf
     Else
      myEFrag "UPDATE `hareal` SET Anrede=" & IIf(Infos12(0, i) = "Herr", 1, 0) & ",Adressat='" & Infos12(1, i) & "',Straße='" & Infos12(2, i) & "',PLZOrt='" & Infos12(3, i) & "',Fax='" & Infos12(4, i) & "',Überschrift='" & Infos12(5, i) & "',dmp2=" & IIf(Infos12(6, i) = vNS, 0, 1) & ",dmp1=" & IIf(Infos12(7, i) = vNS, 0, 1) & ",Niederlassungsgebiet='" & Infos12(8, i) & "',Vorname='" & Infos12(9, i) & "',InnereAllg=" & IIf(Infos12(11, i) = vNS, 0, 1) & ",Tel='" & Infos12(13, i) & "',Nachname='" & Infos12(14, i) & "' WHERE kvnr = " & Infos12(12, i), rAf
     End If ' obFehlt Then
@@ -5184,7 +5187,7 @@ ElseIf Err.Number = -2147467259 Then ' Server has gone away
 ElseIf Err.Number = -2147217833 Then
 ' If obTrans <> 0 Then DBCn.CommitTrans: obTrans = 0
  ComTrans
- Set rsc = New adodb.Recordset
+ Set rsc = New ADODB.Recordset
  Set rsc = DBCnOSchema(adSchemaColumns, Array(Empty, Empty, "laborparameter", Empty))
  Do While Not rsc.EOF
 '  Debug.Print rsc!COLUMN_NAME
@@ -5249,7 +5252,7 @@ End Select
 End Function ' function getfeldinhvw
 
 Function testmedarten()
- Dim rs As New adodb.Recordset, rs1 As New adodb.Recordset, T1!, T2!
+ Dim rs As New ADODB.Recordset, rs1 As New ADODB.Recordset, T1!, T2!
  Dim SL As New SortierListe, SM As SortierMedi
  Lese.ProgStart
  medartenhier SL
@@ -5285,7 +5288,7 @@ End Function ' testmedarten
 'End FUNCTION ' testa
 
 Function kassenspeichern(frm As Lese, pid$)
- Dim i%, rs As New adodb.Recordset, Kat$, keinetrans%, UKAS$, dokat%
+ Dim i%, rs As New ADODB.Recordset, Kat$, keinetrans%, UKAS$, dokat%
  keinetrans = True
  Dim j%
  On Error GoTo fehler
@@ -5350,7 +5353,7 @@ Function kassenspeichern(frm As Lese, pid$)
     Case "2"
      GebOr = "2"
    End Select
-   InsKorr DBCn, DBCnS, "INSERT INTO `kassenliste`(vknr,ik,name,kurzname,go,kateg,eingef,pid) VALUES('" & rFa(i).VKNr & "','" & rFa(i).IK & "','" & rFa(i).Kasse & "','" & rFa(i).KKasse_2 & "','" & GebOr & "','" & Kat & "'," & Format(Now(), "yyyymmddHHMMSS") & "," & pid & ")", rAf
+   InsKorr DBCn, "INSERT INTO `kassenliste`(vknr,ik,name,kurzname,go,kateg,eingef,pid) VALUES('" & rFa(i).VKNr & "','" & rFa(i).IK & "','" & rFa(i).Kasse & "','" & rFa(i).KKasse_2 & "','" & GebOr & "','" & Kat & "'," & Format(Now(), "yyyymmddHHMMSS") & "," & pid & ")", rAf
    rFa(i).KID = myEFrag("SELECT last_insert_id()").Fields(0)
    If rFa(i).KID = 0 Then MsgBox "Fehler in kassenspeichern: last_insert_id()=0"
    Ausgeb rAf & " Kassen hinzugefügt (VK: " & rFa(i).VKNr & ", IK: " & rFa(i).IK & " => kkasse_2: " & rFa(i).KKasse_2 & "/kasse: " & rFa(i).Kasse & ")"
@@ -5398,7 +5401,7 @@ End Function ' kassenspeichern
 ' vergleicht die hiesingen Funktionen mit denen in Mysql
 Function testrr()
  Dim i&
- Dim rsr As New adodb.Recordset
+ Dim rsr As New ADODB.Recordset
  Call Lese.ProgStart
  myFrag rsr, "SELECT rrsyst(rr) rs, rrdiast(rr) rd, rrzahl(bemerkung) rz, rr, bemerkung, pat_id, zeitpunkt FROM rr ORDER BY pat_id"
  If Not rsr.BOF Then
@@ -5581,7 +5584,7 @@ End Function ' holRRzahl(Bemk$, holrrzahl%)
 
 ' aufgerufen in alleSpeichern
 Function rrParseSpeichern()
- Dim i%, RRsyst%, RRdiast%, Zp As Date, rAf&, rs As adodb.Recordset, keinfehler%, ErrNr&, ErrDes$, ab2%
+ Dim i%, RRsyst%, RRdiast%, Zp As Date, rAf&, rs As ADODB.Recordset, keinfehler%, ErrNr&, ErrDes$, ab2%
  On Error GoTo fehler
  syscmd 4, "Speichere rrParse"
  Dim csql As New CString
@@ -5936,7 +5939,7 @@ End Function ' RREintr
 ' aufgerufen in dolies() (2x)
 Function RezEintr(rez$, obLangrz%, Optional mitAutidem = True, Optional Medikament$)
  On Error GoTo fehler
- Dim RRz As New adodb.Recordset
+ Dim RRz As New ADODB.Recordset
  If Not IsNull(rez) Then
   Call aufSplit(rez)
   ReDim Preserve rRe(UBound(rRe) + 1)
@@ -6009,7 +6012,7 @@ End Function 'RezEintr
 
 ' in dodoPLZ, do_Form_Current_AnBog, tubriefStandalone
 Function DiagString$(Pat_id$, DiagTab() As CString, Optional VorDat As Date, Optional obBrief%, Optional dmseit$) ' für dynDiag, tubriefStandalone und dodoPLZ
- Dim runde%, rdDi As New adodb.Recordset, sql$
+ Dim runde%, rdDi As New ADODB.Recordset, sql$
  On Error GoTo fehler
  sql = "SELECT DiagSicherheit, DiagText, DiagSeite, DiagAttr, d.ICD, obdauer, COALESCE(d.Dggel,0) Dggel, obDauer<>0 j_obdauer,obKasse,lKasse,KFdFA, COALESCE(diagdatum,0) DiagDatum, AusnBegr, intBemerk, g1.rf,r.gi2 " & vbCrLf & _
        "FROM diagview d " & vbCrLf & _
@@ -6516,6 +6519,7 @@ Select Case MsgBox("FNr: " & FNr & ", ErrNr: " & CStr(Err.Number) + vbCrLf + "La
 End Select
 End Function 'Stutz
 
+' in dolies (1x)
 Function PraxisHbA1c(EintrArt$, EintrInh$)
  Dim Ep%, ZwS$, erg$
  If UCase$(EintrArt) = "HBA1C" Then
@@ -6564,7 +6568,7 @@ Function PraxisHbA1c(EintrArt$, EintrInh$)
 End Function ' PraxisHbA1c
 
 Function LTEinfüg&(Langtext$)
-  Dim i&, rsLT As adodb.Recordset
+  Dim i&, rsLT As ADODB.Recordset
   On Error GoTo fehler
   If Langtext = lLang Then
    LTEinfüg = lLangVW
@@ -6574,7 +6578,7 @@ Function LTEinfüg&(Langtext$)
 '   myFrag rsLT, "SELECT langtext,langtextvw FROM `laborlangtext` WHERE langtext = '" & Langtext & "'"
     Set rsLT = myEFrag("SELECT langtext,langtextvw FROM `laborlangtext` WHERE langtext = '" & Langtext & "'")
     If rsLT.EOF Then
-     InsKorr DBCn, DBCnS, "INSERT INTO `laborlangtext`(`langtext`) VALUES ('" & Langtext & "')", rAf
+     InsKorr DBCn, "INSERT INTO `laborlangtext`(`langtext`) VALUES ('" & Langtext & "')", rAf
     Else
      Exit For
     End If
@@ -6602,10 +6606,88 @@ Select Case MsgBox("FNr: " & FNr & ", ErrNr: " & CStr(Err.Number) + vbCrLf + "La
 End Select
 End Function ' LTEinfüg&(Langtext$)
 
-' verwendet in dolies, laboreintr0 und PraxisHbA1c
+Function AZEinfüg&(AbschlZl$)
+  Dim i&, rsAZ As ADODB.Recordset
+  On Error GoTo fehler
+  If AbschlZl = lAbschl Then
+   AZEinfüg = lAbschlVW
+  Else
+   For i = 1 To 2
+    If Not rsAZ Is Nothing Then If rsAZ.State = 1 Then rsAZ.Close
+'   myFrag rsAZ, "SELECT AbschlZl,AbschlZlvw FROM `laborAbschlZl` WHERE AbschlZl = '" & AbschlZl & "'"
+    Set rsAZ = myEFrag("SELECT AbschlZl,AbschlZlvw FROM `laborabschlzl` WHERE AbschlZl = '" & AbschlZl & "'")
+    If rsAZ.EOF Then
+     InsKorr DBCn, "INSERT INTO `laborabschlzl`(`AbschlZl`) VALUES ('" & AbschlZl & "')", rAf
+    Else
+     AZEinfüg = rsAZ!AbschlZlVW
+     lAbschlVW = AZEinfüg
+     lAbschl = AbschlZl
+     Exit For
+    End If
+   Next i
+  End If ' AbschlZl = lAbschl else
+ Exit Function
+fehler:
+ Dim AnwPfad$
+#If VBA6 Then
+ AnwPfad = CurrentDb.name
+#Else
+ AnwPfad = App.path
+#End If
+If Err.Number = -2147467259 Then ' Server has gone away
+ Call DBCnOpen
+ Resume
+End If
+Select Case MsgBox("FNr: " & FNr & ", ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in AZEinfüg/" + AnwPfad)
+ Case vbAbort: Call MsgBox("Höre auf"): ProgEnde
+ Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
+ Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
+End Select
+End Function ' AZEinfüg&(AbschlZl$)
+
+Function nbEinfüg&(Normber$)
+  Dim i&, rsnb As ADODB.Recordset
+  On Error GoTo fehler
+  If Normber = lNormb Then
+   nbEinfüg = lNormbVW
+  Else
+   For i = 1 To 2
+    If Not rsnb Is Nothing Then If rsnb.State = 1 Then rsnb.Close
+'   myFrag rsnb, "SELECT Normber,Normbervw FROM `laborNormber` WHERE Normber = '" & Normber & "'"
+    Set rsnb = myEFrag("SELECT Normber,Normbervw FROM `labornormber` WHERE Normber = '" & Normber & "'")
+    If rsnb.EOF Then
+     InsKorr DBCn, "INSERT INTO `labornormber`(`Normber`) VALUES ('" & Normber & "')", rAf
+    Else
+     nbEinfüg = rsnb!NormberVW
+     lNormbVW = nbEinfüg
+     lNormb = Normber
+     Exit For
+    End If
+   Next i
+  End If ' Normber = lNormb Then
+ Exit Function
+fehler:
+ Dim AnwPfad$
+#If VBA6 Then
+ AnwPfad = CurrentDb.name
+#Else
+ AnwPfad = App.path
+#End If
+If Err.Number = -2147467259 Then ' Server has gone away
+ Call DBCnOpen
+ Resume
+End If
+Select Case MsgBox("FNr: " & FNr & ", ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in nbEinfüg/" + AnwPfad)
+ Case vbAbort: Call MsgBox("Höre auf"): ProgEnde
+ Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
+ Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
+End Select
+End Function ' nbEinfüg&(Normber$)
+
+' verwendet in dolies, laboreintr0, PraxisHbA1c und doPatVonMo
 Function KomEinfüg&(Kommentar$)
   Dim i&
-  Dim rsKo As adodb.Recordset
+  Dim rsKo As ADODB.Recordset
   On Error GoTo fehler
   If Kommentar = lKomm Then
    KomEinfüg = lKommVW
@@ -6623,7 +6705,7 @@ Function KomEinfüg&(Kommentar$)
     End If
 '     Set rsKo = Nothing
     If rsKo.BOF Then
-     InsKorr DBCn, DBCnS, "INSERT INTO `laborkommentar`(Kommentar) VALUES ('" & Kommentar & "')", rAf
+     InsKorr DBCn, "INSERT INTO `laborkommentar`(Kommentar) VALUES ('" & Kommentar & "')", rAf
     Else
      Exit For
     End If
@@ -6676,7 +6758,6 @@ Function LaborEintr0()
   rLa(ls).FertigStGrad = FStG
 '  rLa(ls).Labor = AbküLabor
   rLa(ls).Abkü = Abkü
-  rLa(ls).Pat_id = rNa(0).Pat_id
   rLa(ls).aktZeit = aktZeit
   rLa(ls).FID = rFa(UBound(rFa)).FID
   rLa(ls).absPos = absPos
@@ -6686,7 +6767,7 @@ Function LaborEintr0()
   rLa(ls).KommentarVW = KomEinfüg&(rLa(ls).Kommentar)
   rLa(ls).Einheit = "kA"
   rLa(ls).Wert = vNS
- End If
+ End If ' if obLaborEintrag
  FStG = vNS: Abkü = vNS
  Exit Function
 fehler:
@@ -6970,7 +7051,7 @@ End Function ' std1(s$) As Date
 Function doQuelldatum(ByVal name$, Optional dokd As Date) As Date
  Dim rEx As New RegExp
  Dim regMC
- Dim posf%, runde%, p1%, art%
+ Dim posf%, runde%, p1%, Art%
  Const Flb$ = "Fremdlabor"
  Const m1$ = "(31\.((0|)[13578]|1[02])|30\.((0|)[1,3-9]|1[0-2])|((0|)[1-9]|[1-2][0-9])\.((0|)[0-9]|1[0-2]))\.(19|20|)([0-9]{2}) ([0-9]{6}|[0-9]{4})"
  Const m2$ = "(19|20)[0-9]{2}[01][0-9][0-3][0-9]_[0-2][0-9][0-6][0-9]{3}"
@@ -6987,24 +7068,24 @@ Function doQuelldatum(ByVal name$, Optional dokd As Date) As Date
   flname = name
  End If ' posf>0
  Do ' na
-  art = 0
+  Art = 0
   testname = flname
   Do ' r1
    p1 = REGEXP_INSTR(testname, m1)
    If p1 <> 0 Then
-    art = 1: umwname = REGEXP_SUBSTR(Mid$(testname, p1), m1)
+    Art = 1: umwname = REGEXP_SUBSTR(Mid$(testname, p1), m1)
    Else
     p1 = REGEXP_INSTR(testname, m2)
     If p1 <> 0 Then
-     art = 2: umwname = REGEXP_SUBSTR(Mid$(testname, p1), m2)
+     Art = 2: umwname = REGEXP_SUBSTR(Mid$(testname, p1), m2)
     Else
      p1 = REGEXP_INSTR(testname, m3)
      If p1 <> 0 Then
-      art = 3: umwname = REGEXP_SUBSTR(Mid$(testname, p1), m3)
+      Art = 3: umwname = REGEXP_SUBSTR(Mid$(testname, p1), m3)
      Else
       p1 = REGEXP_INSTR(testname, m4)
       If p1 <> 0 Then
-       art = 4: umwname = REGEXP_SUBSTR(Mid$(testname, p1), m4)
+       Art = 4: umwname = REGEXP_SUBSTR(Mid$(testname, p1), m4)
       End If
      End If
     End If
@@ -7014,7 +7095,7 @@ Function doQuelldatum(ByVal name$, Optional dokd As Date) As Date
    testname = Mid$(flname, Len(umwname) + 1)
    If REGEXP_INSTR(testname, "[0-9]") = 0 Then Exit Do
   Loop ' r1
-  Select Case art
+  Select Case Art
    Case 1: eDat = std1(umwname)
    Case 2: eDat = std2(umwname)
    Case 3: eDat = std3(umwname)
@@ -7031,7 +7112,7 @@ End Function ' doQuelldatum
 
 #If zutesten Then
 Public Function testqd()
- Dim rs As New adodb.Recordset, Zahl&
+ Dim rs As New ADODB.Recordset, Zahl&
  Lese.ProgStart
  rs.Open "SELECT quelldat(b.name,b.DokAenD) myd, b.* FROM briefe b", DBCn, adOpenStatic, adLockReadOnly
  DoEvents
@@ -7219,7 +7300,7 @@ End Function ' GetDatumAusString$
 ' 28.10.18: nirgends aufgerufen
 Function LöschDateiEintrag(DatID&) ' 3.2.07: Erstellt, auch schon verwendet
  Dim rAf&
- Dim rs As adodb.Recordset
+ Dim rs As ADODB.Recordset
  Set rs = myEFrag("UPDATE `laborneu` SET refnr = null WHERE refnr IN (SELECT refnr FROM `laborxus` LEFT JOIN laborxeingel ON laborxus.datid = laborxeingel.datid WHERE laborxus.datid= " & DatID & ")", rAf)
  Debug.Print rs.source, rAf
  Set rs = myEFrag("DELETE FROM `laborxleist` WHERE refnr IN (SELECT refnr FROM `laborxus` LEFT JOIN laborxeingel ON laborxus.datid = laborxeingel.datid WHERE laborxus.datid= " & DatID & ")", rAf)
@@ -7305,9 +7386,9 @@ Function testLöschAb(ab&, frm As Lese) ' s.a. LöschDateiEintrag und LabLösch
 End Function ' testLöschab
 
 Function EmailsImport(EmDatei$, frm As Lese)
- Dim con As New adodb.Connection  ' Connection
- Dim rNa As New adodb.Recordset
- Dim rEx As New adodb.Recordset
+ Dim con As New ADODB.Connection  ' Connection
+ Dim rNa As New ADODB.Recordset
+ Dim rEx As New ADODB.Recordset
  Dim rX As New ADOX.Catalog
 ' Const EmDatei$ = pverz & "Patientenübergreifendes\Emails.xls" ' Excel-Datei mit Suche aus Turbomed "*@*"
  On Error GoTo fehler
@@ -7366,9 +7447,9 @@ End Function ' Emails-Import
 Function AnPack()
  Const TName$ = "anamnesebogen"
  Dim maxFuell&, DBlen&, SpName$, ZLen$
- Dim rsc As New adodb.Recordset, rslen As New adodb.Recordset
+ Dim rsc As New ADODB.Recordset, rslen As New ADODB.Recordset
  On Error GoTo fehler
- Set rsc = New adodb.Recordset
+ Set rsc = New ADODB.Recordset
  Set rsc = DBCnOSchema(adSchemaColumns, Array(Empty, Empty, TName, Empty))
  Do
   SpName = rsc!COLUMN_NAME
@@ -7522,8 +7603,8 @@ End Function ' AnPack
 'End SELECT
 'End FUNCTION ' SpModAlt
 
-Function LaborParameter(rlAb As adodb.Recordset)
-Dim raLP As New adodb.Recordset, rlaL As New adodb.Recordset
+Function LaborParameter(rlAb As ADODB.Recordset)
+Dim raLP As New ADODB.Recordset, rlaL As New ADODB.Recordset
 Dim Abkü$, Einheit$, Langtext$
 Dim LTName$
 Dim obltvw%
@@ -7605,7 +7686,7 @@ End Function ' LaborParameter(rLab AS dao.recordset)
 #If False Then
 Function nulltest()
  Lese.ProgStart
- Dim rs As adodb.Recordset
+ Dim rs As ADODB.Recordset
  myFrag rs, "SELECT NULL erg"
  Debug.Print "nix " & IIf(IsNull(rs!erg), "null", rs!erg)
 End Function

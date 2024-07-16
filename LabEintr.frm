@@ -198,7 +198,7 @@ Private Sub abhaken_Click()
   obbof = rAd.BOF
   Set rAd = Nothing
   If obbof Then
-   InsKorr DBCn, DBCnS, "INSERT INTO `dokumente abgehakt` (abgehakt,aktzeit,dokpfad) VALUES(" & ob & "," & DatFor_k(Now) & ",'" & doUmwfSQL(Me.MSHFlexGrid1.Text, lies.obMySQL) & "')", rAf
+   InsKorr DBCn, "INSERT INTO `dokumente abgehakt` (abgehakt,aktzeit,dokpfad) VALUES(" & ob & "," & DatFor_k(Now) & ",'" & doUmwfSQL(Me.MSHFlexGrid1.Text, lies.obMySQL) & "')", rAf
   Else ' obbof
    Call myEFrag("UPDATE `dokumente abgehakt` SET abgehakt = " & ob & ", aktzeit = " & DatFor_k(Now) & " WHERE dokpfad = '" & doUmwfSQL(Me.MSHFlexGrid1.Text, lies.obMySQL) & "'", rAf)
   End If ' obbof

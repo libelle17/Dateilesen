@@ -41,7 +41,7 @@ Private Type arzttyp
 ' fachrichtung_id AS Long
  Lanr As Long
  nlart_id As Long
- AktZeit As Date
+ aktZeit As Date
 End Type
 
 Private Type BSTyp
@@ -56,7 +56,7 @@ Private Type BSTyp
  bsart_id As Long
  sprechzeiten_id As Long
  Rollst As Integer
- AktZeit As Date
+ aktZeit As Date
  name As String
 End Type
 Const ArztSuchS$ = "KVB_Arztsuche*.pdf"
@@ -77,7 +77,7 @@ Public Function doalleKVDateien()
  erg = MsgBox("Sollen wirklich alle " & SL.COUNT & " Hausarztdaten aus '" & vVerz & "' neu eingelesen werden?", vbYesNo)
  If erg = vbYes Then
   db = HADBName & "_neu"
-  Verbinde db
+  HAVerbinde db
 '  IF HALöschen THEN
    If True Then
    For i = 1 To SL.COUNT
@@ -244,12 +244,12 @@ Public Sub doHausärzteEinlesen()
  dodoHausärzteEinlesen Filename, True
 End Sub ' doHausärzteEinlesen
 
-Sub Verbinde(Optional db$)
+Sub HAVerbinde(Optional db$)
  Dim i%, ErrNr&
  On Error GoTo fehler
  If Not HACn Is Nothing Then Set HACn = Nothing
- HACnS = DBCnS
- HACn.Open HACnS ' DBCn.ConnectionString
+' HACnS = DBCnS
+ HACn.Open DBCn.Properties![Extended Properties] ' HACnS ' DBCn.ConnectionString
  If LenB(db) = 0 Then db = HADBName
  For i = 1 To 2
   If i = 1 Then On Error Resume Next
@@ -268,12 +268,12 @@ fehler:
 #Else
  AnwPfad = App.path
 #End If
-Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in Verbinde/" + AnwPfad)
+Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in HAVerbinde/" + AnwPfad)
  Case vbAbort: Call MsgBox("Höre auf"): ProgEnde
  Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
  Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
 End Select
-End Sub ' Verbinde
+End Sub ' HAVerbinde
 
 Sub dodoHausärzteEinlesen(Filename$, obRückfrage%, Optional db$)
 ' Const HADBName$ = "hausaerzte"
@@ -317,7 +317,7 @@ Sub dodoHausärzteEinlesen(Filename$, obRückfrage%, Optional db$)
 
 #Const hadbneu = 0
 #If hadbneu Then
-' IF LenB(DB) <> 0 THEN ' ist auch schon in verbinde
+' IF LenB(DB) <> 0 THEN ' ist auch schon in HAVerbinde
   Call doMach_haerzte(db, DBCn, DBVerb.Cpt)
 ' END IF
 #End If
@@ -349,10 +349,10 @@ Sub dodoHausärzteEinlesen(Filename$, obRückfrage%, Optional db$)
 ' in jeder Zeile von splitt steht eine Zeile aus der PDF-Datei
  SplitNeu Str.Value, vbCrLf, splitt, "(", ")"
  
- Verbinde db
+ HAVerbinde db
  
- Dim Absch() As AbschTyp, AbZ&
- AbZ = 0
+ Dim Absch() As AbschTyp, abz&
+ abz = 0
  ReDim Absch(0)
  Dim aktab&, LANRZeile&, aktName$ ' ob die letzte Zeile eine Facharztzeile war -> dann nicht zählen
  For aktab = LBound(splitt) To UBound(splitt)
@@ -379,12 +379,12 @@ Sub dodoHausärzteEinlesen(Filename$, obRückfrage%, Optional db$)
       LANRZeile = aktab
       For jj = 0 To 50
        If splitt(aktab - jj) Like "##### *" Then
-        Absch(AbZ).Bis = aktab - jj - 3
+        Absch(abz).Bis = aktab - jj - 3
 ' Abteilung für Hämatologie und Abteilung für Hämatologie und, internistische
 ' Onkologie
-        If Absch(AbZ).Bis > 0 Then
-         If InStr(12, splitt(Absch(AbZ).Bis), Left$(splitt(Absch(AbZ).Bis), 12)) <> 0 Then
-          Absch(AbZ).Bis = Absch(AbZ).Bis - 1
+        If Absch(abz).Bis > 0 Then
+         If InStr(12, splitt(Absch(abz).Bis), Left$(splitt(Absch(abz).Bis), 12)) <> 0 Then
+          Absch(abz).Bis = Absch(abz).Bis - 1
          End If
         End If
 '        Open "c:\lanrzeilen.txt" For Append AS #317
@@ -394,7 +394,7 @@ Sub dodoHausärzteEinlesen(Filename$, obRückfrage%, Optional db$)
        End If
       Next jj
       GoSub neuerAbschnitt
-      Absch(AbZ).art = 1
+      Absch(abz).art = 1
 
 '     ElseIf splitt(aktab) = "Ermächtigte Einrichtung" THEN
     ElseIf LANRZeile = 0 Then
@@ -421,10 +421,10 @@ Sub dodoHausärzteEinlesen(Filename$, obRückfrage%, Optional db$)
   End Select
  Next aktab
 ' GoSub neuerAbschnitt
- Absch(AbZ).Bis = UBound(splitt) - 1
+ Absch(abz).Bis = UBound(splitt) - 1
  Const AbschnDat$ = pVerz & "AbschnDat.txt"
  Open AbschnDat For Output As #340
- For aktab = 0 To AbZ
+ For aktab = 0 To abz
   Dim ausgj&
   If aktab = 0 Then ausgj = 0 Else ausgj = Absch(aktab - 1).Bis + 1
   If Left$(splitt(ausgj), 8) = "Hinweis:" Then ausgj = ausgj + 1
@@ -433,16 +433,16 @@ Sub dodoHausärzteEinlesen(Filename$, obRückfrage%, Optional db$)
  Close #340
  zeigan AbschnDat
  
- For aktab = 0 To AbZ
+ For aktab = 0 To abz
 '  IF aktab = 41 THEN Stop
   Call proTeilnehmer(splitt, Absch, aktab, HACn)
  Next aktab
  
- If AbZ > 1000 Then
+ If abz > 1000 Then
   lies.Ausgeb "Korrigiere Geschlechter ...", 0
   myEFrag "UPDATE `arzt` b LEFT JOIN (SELECT DISTINCT vorname FROM `arzt` a LEFT JOIN `nlart` ON a.nlart_id = idnlart LEFT JOIN `arzt_has_fachrichtung` ahf ON a.idarzt = ahf.arzt_id LEFT JOIN `fachrichtung` f ON idfachrichtung = fachrichtung_id WHERE fachrichtung LIKE '%ärztin%' OR fachrichtung LIKE '%eutin%' OR niederlassungsart LIKE '%eutin%') a ON b.vorname = a.vorname SET b.obweibl=1 WHERE NOT ISNULL(a.vorname)", rAf, HACn
  End If
- lies.Ausgeb (AbZ - 1) & " Ärzte aus '" & Filename & "' eingelesen; " & rAf & " davon auf weiblich geändert", 1
+ lies.Ausgeb (abz - 1) & " Ärzte aus '" & Filename & "' eingelesen; " & rAf & " davon auf weiblich geändert", 1
 ' Dim Datum As Date
 ' SplitNeu splitt(0), " ", s2
 ' For j = 0 To UBound(s2)
@@ -460,23 +460,23 @@ Sub dodoHausärzteEinlesen(Filename$, obRückfrage%, Optional db$)
  Exit Sub
  
 neuerAbschnitt: ' Abz weiterzählen, absch(abz).bis festlegen, aktName festlegen
-     If AbZ = UBound(Absch) Then
+     If abz = UBound(Absch) Then
       ReDim Preserve Absch(UBound(Absch) + 500)
      End If
-     AbZ = AbZ + 1
+     abz = abz + 1
      Return
 bisfestleg:
 '     IF AbZ > 88 THEN Debug.Print "Abz:", AbZ: Stop
      If aktab = 1 Then
-      Absch(AbZ).Bis = aktab - 2
+      Absch(abz).Bis = aktab - 2
      ElseIf InStrB(splitt(aktab - 1), " ") = 0 Then ' wenn der Name sich über zwei Zeilen zieht, dann ist in der zweiten Zeile evtl. kein Leerzeichen mehr; Angerpointner
-      Absch(AbZ).Bis = aktab - 3
+      Absch(abz).Bis = aktab - 3
       splitt(aktab - 2) = splitt(aktab - 2) & " " & splitt(aktab - 1)
       splitt(aktab - 1) = vNS
 '     ElseIf splitt(aktab) = "Abrechnung Mammographie-Screening Abrechnung Mammographie-Screening" THEN
 '      Absch(AbZ).Bis = aktab - 1
      Else
-      Absch(AbZ).Bis = aktab - 2
+      Absch(abz).Bis = aktab - 2
      End If
 '     aktab = aktab + 1 ' sonst wird "Psychotherapie" nicht zusammengezogen, s. Becker-Jakubaß
      LANRZeile = 0
@@ -736,7 +736,7 @@ Sub proTeilnehmer(ByRef splitt$(), ByRef Absch() As AbschTyp, aktab&, ByRef HACn
            Arzt.Nachname = Mid$(Arzt.Vorname, pos) & " " & Arzt.Nachname
            Arzt.Vorname = Trim$(Left$(Arzt.Vorname, pos - 1))
           End If
-          Arzt.titel_id = indIns(HACn, HACnS, "titel", "titel", s2(0), "idtitel")
+          Arzt.titel_id = indIns(HACn, "titel", "titel", s2(0), "idtitel")
          End If ' rs.bof
          lies.Ausgeb "Bearbeite: " & Arzt.Nachname & ", " & Arzt.Vorname, 0
      Else ' absch(aktab).art=0 -> 1
@@ -760,7 +760,7 @@ Sub proTeilnehmer(ByRef splitt$(), ByRef Absch() As AbschTyp, aktab&, ByRef HACn
 ' in der Zeile nach dem Namen könnte, muß aber nicht, eine Niederlassungsart stehen
      Select Case splitt(j)
       Case "Facharzt", "Hausarzt", "Fach- und Hausarzt", "Psychologischer Psychotherapeut", "Psychologische Psychotherapeutin"
-       Arzt.nlart_id = indIns(HACn, HACnS, "nlart", "niederlassungsart", splitt(j), "idnlart")
+       Arzt.nlart_id = indIns(HACn, "nlart", "niederlassungsart", splitt(j), "idnlart")
        j = j + 1
      End Select
 ' über die Zeile getrennte Fachrichtungen zusammenführen
@@ -803,7 +803,7 @@ Sub proTeilnehmer(ByRef splitt$(), ByRef Absch() As AbschTyp, aktab&, ByRef HACn
 '            Debug.Print "proTeiln. ergstr(jjj): " & ergstr(jjj)
           Case Else
 stimmt:
-           fren(UBound(fren)) = indIns(HACn, HACnS, "fachrichtung", "Fachrichtung", ergstr(jjj), "idFachrichtung")
+           fren(UBound(fren)) = indIns(HACn, "fachrichtung", "Fachrichtung", ergstr(jjj), "idFachrichtung")
            ReDim Preserve fren(UBound(fren) + 1)
          End Select
         End If
@@ -845,7 +845,7 @@ stimmt:
        ort.Append " "
        ort.Append s2(jj)
       Next jj
-      BS.Ort_id = indIns(HACn, HACnS, "ort", "Ort", ort.Value, "idOrt")
+      BS.Ort_id = indIns(HACn, "ort", "Ort", ort.Value, "idOrt")
      End If
 '     SELECT CASE splitt(j)
 '      Case "Facharzt", "Hausarzt" ' danach immer Fachrichtung
@@ -908,7 +908,7 @@ stimmt:
      BSArt = splitt(szz - 1)
 '     IF BSArt = "Angestellt in MVZ" THEN Stop
      If Left$(BSArt, 14) = "Angestellt in " Then BS.obAng = 1: BSArt = Mid$(BSArt, 15)
-     BS.bsart_id = indIns(HACn, HACnS, "bsart", "BSArt", BSArt, "idbsart")
+     BS.bsart_id = indIns(HACn, "bsart", "BSArt", BSArt, "idbsart")
      j = szz
      For jj = j + 1 To Absch(aktab).Bis
       If splitt(jj) = "LANR: BSNR:" Then LANRZeile = jj: BS.obNBS = False: Exit For
@@ -939,7 +939,7 @@ stimmt:
       If jj < j + 1 + szzz Then SZ.Append ", "
      Next jj
 '     IF Left$(SZ.Value, 6) <> "Montag" AND Left$(SZ.Value, 8) <> "Dienstag" AND Left$(SZ.Value, 8) <> "Mittwoch" AND Left$(SZ.Value, 10) <> "Donnerstag" AND Left$(SZ.Value, 7) <> "Freitag" AND SZ.Value <> "keine Angaben" THEN Stop
-     BS.sprechzeiten_id = indIns(HACn, HACnS, "sprechzeiten", "Sprechzeiten", SZ.Value, "idsprechzeiten")
+     BS.sprechzeiten_id = indIns(HACn, "sprechzeiten", "Sprechzeiten", SZ.Value, "idsprechzeiten")
 '     IF UBound(s2) <> 1 THEN Stop
      If Absch(aktab).art = 0 Then
       
@@ -1030,12 +1030,12 @@ stimmt:
       jj = jj + überspringen
      Next jj
      If Absch(aktab).art = 0 Then ' Wenn keine ermächtigte Einrichtung
-      If Arzt.titel_id = 0 Then Arzt.titel_id = indIns(HACn, HACnS, "titel", "titel", vNS, "idtitel")
-      If Arzt.nlart_id = 0 Then Arzt.nlart_id = indIns(HACn, HACnS, "nlart", "niederlassungsart", vNS, "idnlart")
+      If Arzt.titel_id = 0 Then Arzt.titel_id = indIns(HACn, "titel", "titel", vNS, "idtitel")
+      If Arzt.nlart_id = 0 Then Arzt.nlart_id = indIns(HACn, "nlart", "niederlassungsart", vNS, "idnlart")
       myFrag pTrs, "SELECT `idarzt` FROM `arzt` WHERE `LANR` = " & Arzt.Lanr, adOpenStatic, HACn, adLockReadOnly
       If pTrs.EOF Then
        Set pTrs = Nothing
-       InsKorr HACn, HACnS, "INSERT INTO `arzt`(`Nachname`,`Vorname`,`titel_id`,`LANR`,`nlart_id`,`Namenszusatz`,`aktzeit`,`seit`) VALUES('" & doUmwfSQL(Arzt.Nachname, LVobMySQL) & "','" & doUmwfSQL(Arzt.Vorname, LVobMySQL) & "'," & Arzt.titel_id & "," & Arzt.Lanr & "," & Arzt.nlart_id & ",'" & Arzt.Namenszusatz & "'," & DatFor_k(KVDate) & "," & DatFor_k(KVDate) & ")", rAf
+       InsKorr HACn, "INSERT INTO `arzt`(`Nachname`,`Vorname`,`titel_id`,`LANR`,`nlart_id`,`Namenszusatz`,`aktzeit`,`seit`) VALUES('" & doUmwfSQL(Arzt.Nachname, LVobMySQL) & "','" & doUmwfSQL(Arzt.Vorname, LVobMySQL) & "'," & Arzt.titel_id & "," & Arzt.Lanr & "," & Arzt.nlart_id & ",'" & Arzt.Namenszusatz & "'," & DatFor_k(KVDate) & "," & DatFor_k(KVDate) & ")", rAf
        Set pTrs = myEFrag("SELECT last_insert_id()", , HACn)
        If pTrs.Fields(0) = 0 Then MsgBox "Fehler in proTeilnehmer: last_insert_id()=0"
       Else
@@ -1055,24 +1055,24 @@ stimmt:
 '      HACn.Execute "commit"
       For jj = 1 To LeiUz
 'leineu:
-       idIns = indIns(HACn, HACnS, "leistungsumfang", "leistungsumfang", LeiU(jj).Value, "idleistungsumfang")
+       idIns = indIns(HACn, "leistungsumfang", "leistungsumfang", LeiU(jj).Value, "idleistungsumfang")
 '       ON Error Resume Next
-       InsKorr HACn, HACnS, "INSERT INTO `arzt_has_leistungsumfang`(`arzt_id`,`leistungsumfang_id`) VALUES(" & idIns2 & "," & idIns & ")", rAf
+       InsKorr HACn, "INSERT INTO `arzt_has_leistungsumfang`(`arzt_id`,`leistungsumfang_id`) VALUES(" & idIns2 & "," & idIns & ")", rAf
 '       IF rAF <> 1 THEN Stop
 '       GoTo leineu
 '       ON Error GoTo fehler
       Next jj
       myEFrag "DELETE FROM `arzt_has_zusatzbezeichnung` WHERE `arzt_id` = " & idIns2, rAf, HACn
       For jj = 1 To ZBz
-       idIns = indIns(HACn, HACnS, "zusatzbezeichnung", "Zusatzbezeichnung", ZB(jj).Value, "idZusatzbezeichnung")
+       idIns = indIns(HACn, "zusatzbezeichnung", "Zusatzbezeichnung", ZB(jj).Value, "idZusatzbezeichnung")
 '       ON Error Resume Next
-       InsKorr HACn, HACnS, "INSERT INTO `arzt_has_zusatzbezeichnung`(`arzt_id`,`Zusatzbezeichnung_id`) VALUES(" & idIns2 & "," & idIns & ")", rAf
+       InsKorr HACn, "INSERT INTO `arzt_has_zusatzbezeichnung`(`arzt_id`,`Zusatzbezeichnung_id`) VALUES(" & idIns2 & "," & idIns & ")", rAf
 '       ON Error GoTo fehler
       Next jj
       myEFrag "DELETE FROM `arzt_has_weiterbildung` WHERE `arzt_id` = " & idIns2, rAf, HACn
       For jj = 1 To WBz
-       idIns = indIns(HACn, HACnS, "weiterbildung", "Weiterbildung", Wb(jj).Value, "idWeiterbildung")
-       InsKorr HACn, HACnS, "INSERT INTO `arzt_has_weiterbildung`(`arzt_id`,`Weiterbildung_id`) VALUES(" & idIns2 & "," & idIns & ")", rAf
+       idIns = indIns(HACn, "weiterbildung", "Weiterbildung", Wb(jj).Value, "idWeiterbildung")
+       InsKorr HACn, "INSERT INTO `arzt_has_weiterbildung`(`arzt_id`,`Weiterbildung_id`) VALUES(" & idIns2 & "," & idIns & ")", rAf
       Next jj
       myEFrag "DELETE FROM `arzt_has_genehmigung` WHERE `arzt_id` = " & idIns2, rAf, HACn
       Dim dop%
@@ -1086,8 +1086,8 @@ stimmt:
         End If
        Next jjjj
        If Not dop Then
-        idIns = indIns(HACn, HACnS, "genehmigung", "genehmigung", Geneh(jj).Value, "idgenehmigung")
-        InsKorr HACn, HACnS, "INSERT INTO `arzt_has_genehmigung`(`arzt_id`,`genehmigung_id`) VALUES(" & idIns2 & "," & idIns & ")", rAf
+        idIns = indIns(HACn, "genehmigung", "genehmigung", Geneh(jj).Value, "idgenehmigung")
+        InsKorr HACn, "INSERT INTO `arzt_has_genehmigung`(`arzt_id`,`genehmigung_id`) VALUES(" & idIns2 & "," & idIns & ")", rAf
        End If
       Next jj
 'erneut:
@@ -1104,10 +1104,10 @@ stimmt:
         End If
        Next jjjj
        If Not dop Then
-        idIns = indIns(HACn, HACnS, "vertragsangebot", "vertragsangebot", VertA(jj).Value, "idvertragsangebot")
+        idIns = indIns(HACn, "vertragsangebot", "vertragsangebot", VertA(jj).Value, "idvertragsangebot")
 '        GoTo erneut
 '        ON Error Resume Next
-        InsKorr HACn, HACnS, "INSERT INTO `arzt_has_vertragsangebot`(`arzt_id`,`vertragsangebot_id`) VALUES(" & idIns2 & "," & idIns & ")", rAf
+        InsKorr HACn, "INSERT INTO `arzt_has_vertragsangebot`(`arzt_id`,`vertragsangebot_id`) VALUES(" & idIns2 & "," & idIns & ")", rAf
 '        ON Error GoTo fehler
        End If
       Next jj
@@ -1122,8 +1122,8 @@ stimmt:
        Next jjjj
        If Not dop Then
         If LenB(fS(jj).Value) <> 0 Then
-         idIns = indIns(HACn, HACnS, "fremdsprache", "fremdsprache", fS(jj).Value, "idfremdsprache")
-         InsKorr HACn, HACnS, "INSERT INTO `arzt_has_fremdsprache`(`arzt_id`,`fremdsprache_id`) VALUES(" & idIns2 & "," & idIns & ")", rAf
+         idIns = indIns(HACn, "fremdsprache", "fremdsprache", fS(jj).Value, "idfremdsprache")
+         InsKorr HACn, "INSERT INTO `arzt_has_fremdsprache`(`arzt_id`,`fremdsprache_id`) VALUES(" & idIns2 & "," & idIns & ")", rAf
         End If
        End If
       Next jj
@@ -1132,7 +1132,7 @@ stimmt:
        ' Fachrichtungen können offenbar versehentlich auch doppelt genannt werden (-> Eckhard Rudolf, hat 2 x Unfallchirurgie und 2 x Viszeralchirurgie)
        myFrag pTrs, "SELECT arzt_id FROM `arzt_has_fachrichtung` WHERE arzt_id = " & idIns2 & " AND fachrichtung_id = " & fren(jj), adOpenStatic, HACn, adLockReadOnly
        If pTrs.BOF Then
-        InsKorr HACn, HACnS, "INSERT INTO `arzt_has_fachrichtung`(`arzt_id`,`fachrichtung_id`) VALUES(" & idIns2 & "," & fren(jj) & ")", rAf
+        InsKorr HACn, "INSERT INTO `arzt_has_fachrichtung`(`arzt_id`,`fachrichtung_id`) VALUES(" & idIns2 & "," & fren(jj) & ")", rAf
        End If
        Set pTrs = Nothing
       Next jj
@@ -1153,7 +1153,7 @@ stimmt:
   myFrag pTrs, "SELECT `idbs` FROM `bs` WHERE `bsnr` = " & BS.BSNR, adOpenStatic, HACn, adLockReadOnly
   If pTrs.BOF Then
    Set pTrs = Nothing
-   InsKorr HACn, HACnS, "INSERT INTO `bs`(`name`,`straße`,`hausnr`,`plz`,`ort_id`,`bsnr`,`bsart_id`,`sprechzeiten_id`,`rollst`,`aktzeit`,`seit`) VALUES('" & doUmwfSQL(BS.name, LVobMySQL) & "','" & doUmwfSQL(BS.Straße.Value, LVobMySQL) & "','" & BS.Hausnr & "','" & BS.plz & "'," & BS.Ort_id & ",'" & BS.BSNR & "'," & BS.bsart_id & "," & BS.sprechzeiten_id & "," & BS.Rollst & "," & DatFor_k(KVDate) & "," & DatFor_k(KVDate) & ")", rAf
+   InsKorr HACn, "INSERT INTO `bs`(`name`,`straße`,`hausnr`,`plz`,`ort_id`,`bsnr`,`bsart_id`,`sprechzeiten_id`,`rollst`,`aktzeit`,`seit`) VALUES('" & doUmwfSQL(BS.name, LVobMySQL) & "','" & doUmwfSQL(BS.Straße.Value, LVobMySQL) & "','" & BS.Hausnr & "','" & BS.plz & "'," & BS.Ort_id & ",'" & BS.BSNR & "'," & BS.bsart_id & "," & BS.sprechzeiten_id & "," & BS.Rollst & "," & DatFor_k(KVDate) & "," & DatFor_k(KVDate) & ")", rAf
    If rAf = 0 Then MsgBox "Einrichtung: " & BS.name & ", " & BS.Straße & ", " & BS.Ort_id & " konnte nicht in bs eingefügt werden!"
    Set pTrs = myEFrag("SELECT last_insert_id()", , HACn)
    If pTrs.Fields(0) = 0 Then MsgBox "Fehler in proTeilnehmer(2): last_insert_id()=0"
@@ -1172,7 +1172,7 @@ stimmt:
 '   Set rs = Nothing
 '   rs.Open "SELECT idTel FROM `tel` WHERE `Tel` = '" & tel(jj) & "' AND bs_id = " & idIns1, HACn, adOpenStatic, adLockReadOnly
    If pTrs.BOF Then
-    InsKorr HACn, HACnS, "INSERT INTO `tel`(`Tel`,`bs_id`) VALUES('" & tel(jj) & "'," & idIns1 & ")", rAf
+    InsKorr HACn, "INSERT INTO `tel`(`Tel`,`bs_id`) VALUES('" & tel(jj) & "'," & idIns1 & ")", rAf
    End If
   Next jj
   myEFrag "DELETE FROM `fax` WHERE `bs_id` = " & idIns1, rAf, HACn
@@ -1181,7 +1181,7 @@ stimmt:
 '   Set rs = Nothing
 '   rs.Open "SELECT idFax FROM `fax` WHERE `Fax` = '" & fax(jj) & "' AND bs_id = " & idIns1, HACn, adOpenStatic, adLockReadOnly
    If pTrs.BOF Then
-    InsKorr HACn, HACnS, "INSERT INTO `fax`(`Fax`,`Faxzahl`,`bs_id`) VALUES('" & fax(jj) & "','" & REPLACE$(fax(jj), "-", "") & "'," & idIns1 & ")", rAf
+    InsKorr HACn, "INSERT INTO `fax`(`Fax`,`Faxzahl`,`bs_id`) VALUES('" & fax(jj) & "','" & REPLACE$(fax(jj), "-", "") & "'," & idIns1 & ")", rAf
    End If ' pTrs.BOF Then
   Next jj
   myEFrag "DELETE FROM `mail` WHERE `bs_id` = " & idIns1, rAf, HACn
@@ -1190,7 +1190,7 @@ stimmt:
 '   Set rs = Nothing
 '   rs.Open "SELECT `idmail` FROM `mail` WHERE `Mail` = '" & mail(jj) & "' AND bs_id = " & idIns1, HACn, adOpenStatic, adLockReadOnly
    If pTrs.BOF Then
-    InsKorr HACn, HACnS, "INSERT INTO `mail`(`mail`,`bs_id`) VALUES('" & mail(jj) & "'," & idIns1 & ")", rAf
+    InsKorr HACn, "INSERT INTO `mail`(`mail`,`bs_id`) VALUES('" & mail(jj) & "'," & idIns1 & ")", rAf
    End If
   Next jj
 '  HACn.CommitTrans
@@ -1206,7 +1206,7 @@ stimmt:
 '    Set rs = Nothing ' da ein Arzt versehentlich doppelt drin stehen kann (Georg Hochheuser)
 '    rs.Open "SELECT `obneben` FROM `arzt_has_bs` WHERE `bs_id` = " & idIns1 & " AND `arzt_id` = " & idIns2, HACn, adOpenStatic, adLockReadOnly
     If pTrs.BOF Then
-     InsKorr HACn, HACnS, "INSERT INTO `arzt_has_bs`(`bs_id`,`arzt_id`,`obneben`,`obang`,`aktzeit`,`seit`) VALUES(" & idIns1 & "," & idIns2 & "," & BS.obNBS & "," & BS.obAng & "," & DatFor_k(KVDate) & "," & DatFor_k(KVDate) & ")", rAf
+     InsKorr HACn, "INSERT INTO `arzt_has_bs`(`bs_id`,`arzt_id`,`obneben`,`obang`,`aktzeit`,`seit`) VALUES(" & idIns1 & "," & idIns2 & "," & BS.obNBS & "," & BS.obAng & "," & DatFor_k(KVDate) & "," & DatFor_k(KVDate) & ")", rAf
     End If
 '    HACn.CommitTrans
     ComTrans
@@ -1215,9 +1215,9 @@ stimmt:
 '      HACn.Execute "begin"
       myEFrag "DELETE FROM `bs_has_leistungsumfang` WHERE `bs_id` = " & idIns1, rAf, HACn
       For jj = 1 To LeiUz
-       idIns = indIns(HACn, HACnS, "leistungsumfang", "leistungsumfang", LeiU(jj).Value, "idleistungsumfang")
+       idIns = indIns(HACn, "leistungsumfang", "leistungsumfang", LeiU(jj).Value, "idleistungsumfang")
 '       ON Error Resume Next
-       InsKorr HACn, HACnS, "INSERT INTO `bs_has_leistungsumfang`(`bs_id`,`leistungsumfang_id`) VALUES(" & idIns1 & "," & idIns & ")", rAf
+       InsKorr HACn, "INSERT INTO `bs_has_leistungsumfang`(`bs_id`,`leistungsumfang_id`) VALUES(" & idIns1 & "," & idIns & ")", rAf
 '       ON Error GoTo fehler
       Next jj
       myEFrag "DELETE FROM `bs_has_genehmigung` WHERE `bs_id` = " & idIns1, rAf, HACn
@@ -1232,8 +1232,8 @@ stimmt:
         End If
        Next jjjj
        If Not dop Then
-        idIns = indIns(HACn, HACnS, "genehmigung", "genehmigung", Geneh(jj).Value, "idgenehmigung")
-        InsKorr HACn, HACnS, "INSERT INTO `bs_has_genehmigung`(`bs_id`,`genehmigung_id`) VALUES(" & idIns1 & "," & idIns & ")", rAf
+        idIns = indIns(HACn, "genehmigung", "genehmigung", Geneh(jj).Value, "idgenehmigung")
+        InsKorr HACn, "INSERT INTO `bs_has_genehmigung`(`bs_id`,`genehmigung_id`) VALUES(" & idIns1 & "," & idIns & ")", rAf
        End If
       Next jj
       myEFrag "DELETE FROM `bs_has_vertragsangebot` WHERE `bs_id` = " & idIns1, rAf, HACn
@@ -1249,10 +1249,10 @@ stimmt:
         End If
        Next jjjj
        If Not dop Then
-        idIns = indIns(HACn, HACnS, "vertragsangebot", "vertragsangebot", VertA(jj).Value, "idvertragsangebot")
+        idIns = indIns(HACn, "vertragsangebot", "vertragsangebot", VertA(jj).Value, "idvertragsangebot")
 '        GoTo erneut
 '        ON Error Resume Next
-        InsKorr HACn, HACnS, "INSERT INTO `bs_has_vertragsangebot`(`bs_id`,`vertragsangebot_id`) VALUES(" & idIns1 & "," & idIns & ")", rAf
+        InsKorr HACn, "INSERT INTO `bs_has_vertragsangebot`(`bs_id`,`vertragsangebot_id`) VALUES(" & idIns1 & "," & idIns & ")", rAf
 '        ON Error GoTo fehler
        End If
       Next jj

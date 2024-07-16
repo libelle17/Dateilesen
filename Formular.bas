@@ -892,7 +892,7 @@ Function dodo_u_Click(frm As AnBog, nr)
     Stop
    End If
    ' frm.anaRS!Pat_id
-   InsKorr DBCn, DBCnS, "INSERT INTO `fuerdiagexp`(pat_id,name,icd,diagnose,nurquart,zeitpunkt) VALUES(" & Pat_id & ",'" & frm.anaRS!Nachname & " " & frm.anaRS!Vorname & "','" & MDIICD(nr) & "','" & MDIDiag(nr) & "'," & IIf(MDIICD(nr) = "O24.4" Or (MDIICD(nr) Like "L89*" And Not MDIICD(nr) Like "L89.1*"), 1, 0) & "," & DatFor_k(Now()) & ")", rAf
+   InsKorr DBCn, "INSERT INTO `fuerdiagexp`(pat_id,name,icd,diagnose,nurquart,zeitpunkt) VALUES(" & Pat_id & ",'" & frm.anaRS!Nachname & " " & frm.anaRS!Vorname & "','" & MDIICD(nr) & "','" & MDIDiag(nr) & "'," & IIf(MDIICD(nr) = "O24.4" Or (MDIICD(nr) Like "L89*" And Not MDIICD(nr) Like "L89.1*"), 1, 0) & "," & DatFor_k(Now()) & ")", rAf
   ElseIf frm.Controls("vOptionB")(nr).Value = False Then
    ' frm.anaRS!Pat_id
    myEFrag "DELETE FROM `fuerdiagexp` WHERE pat_id = " & Pat_id & " AND icd = '" & MDIICD(nr) & "' AND diagnose = '" & MDIDiag(nr) & "'", rAf
@@ -3654,9 +3654,9 @@ For i = 177 To 180
 #If False Then
   myFrag rEintr, "SELECT * FROM `eintraege` WHERE pat_id = " & CStr(Pat_id) & " AND art IN (" & aktart & ") ORDER BY zeitpunkt DESC"
   If Not rEintr.BOF Then
-   frm.vTextB(i) = frm.vTextB(i) & rEintr!art + " vom " + Format$(rEintr!Zeitpunkt, "dd.mm.yy:") ' `eintraege`
+   frm.vTextB(i) = frm.vTextB(i) & rEintr!Art + " vom " + Format$(rEintr!Zeitpunkt, "dd.mm.yy:") ' `eintraege`
    Do While Not rEintr.EOF
-    frm.vTextB(i) = frm.vTextB(i) & rEintr!art + ": " + rEintr!Inhalt + vbCrLf ' `eintraege`
+    frm.vTextB(i) = frm.vTextB(i) & rEintr!Art + ": " + rEintr!Inhalt + vbCrLf ' `eintraege`
     rEintr.Move 1
    Loop
   End If
@@ -4229,7 +4229,7 @@ End Select
   End Function
 #End If
 
- Function PfadFestLeg$(art$, muster1$, frm As Form, Optional muster2$)
+ Function PfadFestLeg$(Art$, muster1$, frm As Form, Optional muster2$)
   Dim PFrs As ADODB.Recordset
   On Error GoTo fehler
   sql = "SELECT * FROM `dokumente` WHERE pat_id = " + CStr(frm.anaRS!Pat_id) + " AND (dokname LIKE " & "'" & muster1 & "'" & IIf(LenB(muster2) = 0, vbNullChar, " OR dokname LIKE " & "'" & muster2 + "'") + ") ORDER BY zeitpunkt DESC"
@@ -4249,7 +4249,7 @@ End Select
    fehler = Err.Number
    On Error GoTo fehler
    If fehler = 0 Then
-    If ctl.DataField Like art Then
+    If ctl.DataField Like Art Then
      If PFrs.BOF Or PcDokPfad = vNS Then
       frm.Controls(ctl).Enabled = False
      Else
@@ -4594,7 +4594,7 @@ Function do_RRParse(erg$, ByVal Pat_id, Zeitpunkt As Date, Quelle$)
 '  rsP.Seek "=", Pat_id, IIF(Zp = 0, Zeitpunkt, Zp), RRSyst, RRDiast
   myFrag rsP, "SELECT 0 FROM `rrparse` WHERE pat_id = " & Pat_id & " AND zeitpunkt = " & DatFor_k(IIf(Zp = 0, Zeitpunkt, Zp)) & " AND rrsyst = " & RRsyst & " AND rrdiast = " & RRdiast
   If rsP.BOF Then
-   InsKorr DBCn, DBCnS, "INSERT INTO `rrparse`(pat_id,zeitpunkt,rrsyst,rrdiast,quelle) VALUES(" & Pat_id & "," & DatFor_k(IIf(Zp = 0, Zeitpunkt, Zp)) & "," & RRsyst & "," & RRdiast & ",'" & REPLACE$(Quelle, "'", "''") & "')", rAf
+   InsKorr DBCn, "INSERT INTO `rrparse`(pat_id,zeitpunkt,rrsyst,rrdiast,quelle) VALUES(" & Pat_id & "," & DatFor_k(IIf(Zp = 0, Zeitpunkt, Zp)) & "," & RRsyst & "," & RRdiast & ",'" & REPLACE$(Quelle, "'", "''") & "')", rAf
   End If
  Exit Function
 fehler:
@@ -6269,7 +6269,7 @@ End Function ' getHausarzt(Pid&, Infos$())
 ''        Call myEFrag("SET foreign_key_checks = 0")
 ''        Call myEFrag("DELETE FROM `hausaerzte` WHERE id >= 753")
 ''        Call myEFrag("SET foreign_key_checks = 1")
-'        InsKorr DBCn, dbcns, "INSERT INTO `hausaerzte`(name, vorname, nachname, anschrift, kvnr, telefon, telefax, e_mail, zulassungsgebiet, arzttyp, " & _
+'        InsKorr DBCn, "INSERT INTO `hausaerzte`(name, vorname, nachname, anschrift, kvnr, telefon, telefax, e_mail, zulassungsgebiet, arzttyp, " & _
 '        "`gemeinschaftspraxis mit`" & ", beme, geschlecht,titel,straße,ort,plz,überschrift,dmpt2,dmpt1,zahl,nichtmehr,schwerpunkt,zusatzbezeichnung,bemerkung,sprechstunden) VALUES('" & rHa!anrede & " " & IIF(rHa!titel <> vNS AND NOT ISNULL(rHa!titel), rHa!titel, "Dr.med.") & " " & rHa!vorname & " " & rHa!nachname & "','" & rHa!vorname & "','" & rHa!nachname & "','" & rHa!straße & ", " & rHa!plz & " " & rHa!ort & "','" & rHa!kvnu & "','" & rHa!tel1 & "','" & rHa!fax1 & "','" & rHa!email & "','" & rHa!zulg & "','" & rHa!arzttyp & "','" & rHa!gemmit & "','" & rHa!beme & "','" & IIF(rHa!anrede = "w", "Frau", "Herr") & "','" & rHa!titel & "','" & rHa!straße & "','" & rHa!ort & "','" & rHa!plz & "',''," & IIF(InfRoh(6, runde) = "X", "1", "0") & "," & IIF(InfRoh(7, runde) = "X", "1", "0") & ",0,0,'','','','')", rAF
 '        obInsert = False
 '       END IF
@@ -6774,7 +6774,7 @@ Const sql0$ = "SELECT " & _
          If Not IsNull(rHa!Vorname) Then VN = rHa!Vorname Else VN = ""
          myFrag rsdop, "SELECT * FROM `hausaerzte` WHERE kvnr = " & rHa!kvnu & " AND nachname = '" & NN & "' AND vorname = '" & VN & "'"
          If Not rsdop.BOF Then GoTo korrigier
-         InsKorr DBCn, DBCnS, "INSERT INTO `hausaerzte`(name, vorname, nachname, anschrift, kvnr, telefon, telefax, e_mail, zulassungsgebiet, arzttyp, " & _
+         InsKorr DBCn, "INSERT INTO `hausaerzte`(name, vorname, nachname, anschrift, kvnr, telefon, telefax, e_mail, zulassungsgebiet, arzttyp, " & _
          "`gemeinschaftspraxis mit`" & ", beme, geschlecht,titel,straße,ort,plz,überschrift,dmpt2,dmpt1,zahl,nichtmehr,schwerpunkt,zusatzbezeichnung,bemerkung,sprechstunden) VALUES('" & IIf(LenB(übwerg(2, runde)) = 0 And LenB(übwerg(1, runde)) <> 0, übwerg(1, runde), rHa!anrede & " " & IIf(rHa!Titel <> vNS And Not IsNull(rHa!Titel), rHa!Titel, "Dr.med.") & " " & IIf(LenB(übwerg(1, runde)) = 0, rHa!Vorname, übwerg(2, runde)) & " " & IIf(LenB(übwerg(1, runde)) = 0, rHa!Nachname, übwerg(1, runde))) & _
          "','" & IIf(LenB(übwerg(1, runde)) = 0, rHa!Vorname, übwerg(2, runde)) & "','" & IIf(LenB(übwerg(1, runde)) = 0, rHa!Nachname, übwerg(1, runde)) & "','" & rHa!Straße & ", " & rHa!plz & " " & rHa!ort & "','" & rHa!kvnu & "','" & rHa!tel1 & "','" & rHa!fax1 & "','" & rHa!email & "','" & rHa!zulg & "','" & rHa!arzttyp & "','" & rHa!gemmit & "','" & rHa!beme & "','" & IIf(rHa!anrede = "w", "Frau", "Herr") & "','" & rHa!Titel & "','" & rHa!Straße & "','" & rHa!ort & "','" & rHa!plz & "',''," & IIf(InfRoh(6, runde) = "X", "1", "0") & "," & IIf(InfRoh(7, runde) = "X", "1", "0") & ",0,0,'','','','')", rAf
          hains(UBound(hains)).kvnu = rHa!kvnu
@@ -14264,8 +14264,8 @@ Case Else
 #End If
  End Select
  Do While Not raVL.EOF
-  Dim art$, Inhalt$, Zp$, Übs$
-  art = raVL!art
+  Dim Art$, Inhalt$, Zp$, Übs$
+  Art = raVL!Art
   Inhalt = raVL!Inhalt
   Zp = raVL!Zeitpunkt
   If Inhalt <> "Blutentnahme" And Inhalt <> "Blutabnahme" Then
@@ -14273,11 +14273,11 @@ Case Else
    If aktdat <> lzp Then
     eintraege = eintraege + Format$(aktdat, "DD.MM.YY")
    End If
-   If LCase$(krit) <> """rr""" And art = "usdm" Then
+   If LCase$(krit) <> """rr""" And Art = "usdm" Then
     eintraege = eintraege + vbTab + REPLACE$(REPLACE$(Inhalt, "^", vNS) & vbCrLf, "aktuellen Blutdruck und ggf. Puls bitte extra eingeben", vNS)
    Else
     Übs = ""
-    Select Case raVL!art
+    Select Case raVL!Art
      Case "ulcus": Übs = "Ulcus: "
      Case "wv": Übs = "Wundverband: "
      Case "debr": Übs = "Debridement: "
@@ -15222,7 +15222,7 @@ End Function ' DiagExpGesamt()
 
 Function doRückgängig()
  Dim rAf&
- InsKorr DBCn, DBCnS, "INSERT INTO `fuerdiagexp`(name,pat_id,icd,diagnose,zeitpunkt) SELECT CONCAT(nachname, ' ', vorname) AS Name, e.pat_id, icd, diagnose, übertragen FROM `diagnosen exportiert` e LEFT JOIN `namen` USING (pat_id) WHERE übertragen = (SELECT MAX(übertragen) FROM `diagnosen exportiert`)", rAf
+ InsKorr DBCn, "INSERT INTO `fuerdiagexp`(name,pat_id,icd,diagnose,zeitpunkt) SELECT CONCAT(nachname, ' ', vorname) AS Name, e.pat_id, icd, diagnose, übertragen FROM `diagnosen exportiert` e LEFT JOIN `namen` USING (pat_id) WHERE übertragen = (SELECT MAX(übertragen) FROM `diagnosen exportiert`)", rAf
  syscmd 4, rAf & " Diagnosen erneut vorbereitet"
 End Function ' doRückgängig()
 
@@ -15398,7 +15398,7 @@ Function doDiagnosenexport(Optional obTest%)
         
        If Not obTest Then
          Dim rAf&, rAfL&
-         InsKorr DBCn, DBCnS, "INSERT INTO `diagnosen`(pat_id, ICD,diagdatum,diagsicherheit,diagtext,obdauer,aktzeit) VALUES(" & Pat_id & ",'" & ICD & "'," & DatFor_k(aktdat) & ",'" & DiagSi & "','" & DiagText & "'," & IIf(obDauer = 0, 0, 1) & "," & DatFor_k(BDT.üzpt) & ")", rAf
+         InsKorr DBCn, "INSERT INTO `diagnosen`(pat_id, ICD,diagdatum,diagsicherheit,diagtext,obdauer,aktzeit) VALUES(" & Pat_id & ",'" & ICD & "'," & DatFor_k(aktdat) & ",'" & DiagSi & "','" & DiagText & "'," & IIf(obDauer = 0, 0, 1) & "," & DatFor_k(BDT.üzpt) & ")", rAf
          If rAf <> 1 Then
           MsgBox "Fehler beim Diagnoseneeinfügen für Pat. " & Pat_id & vbCrLf & "ICD: " & ICD & vbCrLf & "Diagtext:" & DiagText & vbCrLf & "Datum: " & DatFor_k(aktdat) & rAf & " Datensätze eingefügt"
          End If
@@ -15407,7 +15407,7 @@ Function doDiagnosenexport(Optional obTest%)
           If rAf <> 1 Then
            MsgBox "Fehler beim Statussetzen in `diagnosenexport` für ID: " & id & rAf & " Datensätze gesetzt"
           End If
-          InsKorr DBCn, DBCnS, "INSERT INTO `diagnosen exportiert`(pat_id,datum,icd,diagnose,übertragen) VALUES(" & Pat_id & "," & DatFor_k(aktdat) & ",'" & ICD & "','" & DiagText & "'," & DatFor_k(BDT.üzpt) & ")", rAf
+          InsKorr DBCn, "INSERT INTO `diagnosen exportiert`(pat_id,datum,icd,diagnose,übertragen) VALUES(" & Pat_id & "," & DatFor_k(aktdat) & ",'" & ICD & "','" & DiagText & "'," & DatFor_k(BDT.üzpt) & ")", rAf
           If rAf > 0 Then
            Call myEFrag("DELETE FROM `fuerdiagexp` WHERE id = " & id, rAfL)
            If rAfL <> 1 Then
@@ -15686,7 +15686,7 @@ Function doDiagnosenexport(Optional obTest%)
 ''     IF Not rDT.BOF THEN
 '     Dim rAF&, rAfL&
 '     IF Not obTest THEN
-'      InsKorr DBCn, DBCnS, "INSERT INTO `diagnosen`(pat_id,gesName,ICD,diagdatum,diagsicherheit,diagtext,obdauer,aktzeit) VALUES(" & q!Pat_id & ",'" & UmwfSQL(q!Name) & "','" & q!ICD & "'," & DatFor_k(aktdat) & ",'" & DiagSi & "','" & DiagText & "'," & IIF(BDTFeld = "3650", 1, 0) & "," & DatFor_k(BDT.üzpt) & ")", rAF
+'      InsKorr DBCn, "INSERT INTO `diagnosen`(pat_id,gesName,ICD,diagdatum,diagsicherheit,diagtext,obdauer,aktzeit) VALUES(" & q!Pat_id & ",'" & UmwfSQL(q!Name) & "','" & q!ICD & "'," & DatFor_k(aktdat) & ",'" & DiagSi & "','" & DiagText & "'," & IIF(BDTFeld = "3650", 1, 0) & "," & DatFor_k(BDT.üzpt) & ")", rAF
 '      IF rAF <> 1 THEN
 '       MsgBox "Fehler beim Diagnoseneeinfügen für Pat. " & q!Pat_id & " (" & q!GesName & ")" & vbCrLf & "ICD: " & q!ICD & vbCrLf & "Diagtext:" & q!DiagText & vbCrLf & "Datum: " & DatFor_k(aktdat) & rAF & " Datensätze eingefügt"
 '      END IF
@@ -15695,7 +15695,7 @@ Function doDiagnosenexport(Optional obTest%)
 '       IF rAF <> 1 THEN
 '        MsgBox "Fehler beim Statussetzen in `diagnosenexport` für ID: " & q!ID & rAF & " Datensätze gesetzt"
 '       END IF
-'       InsKorr DBCn, DBCnS, "INSERT INTO `diagnosen exportiert`(pat_id,datum,icd,diagnose,übertragen) VALUES(" & q!Pat_id & "," & DatFor_k(aktdat) & ",'" & q!ICD & "','" & DiagText & "'," & DatFor_k(BDT.üzpt) & ")", rAF
+'       InsKorr DBCn, "INSERT INTO `diagnosen exportiert`(pat_id,datum,icd,diagnose,übertragen) VALUES(" & q!Pat_id & "," & DatFor_k(aktdat) & ",'" & q!ICD & "','" & DiagText & "'," & DatFor_k(BDT.üzpt) & ")", rAF
 '       IF rAF > 0 THEN
 '        Call myEFrag("DELETE FROM `fuerdiagexp` WHERE id = " & q!ID, rAfL)
 '        IF rAfL <> 1 THEN
@@ -15857,7 +15857,7 @@ Function test_fdübertrag()
  Call Lese.ProgStart
  myFrag q, "SELECT * FROM `fuerdiagexp`"
  Do While Not q.EOF
-  InsKorr z, JCn, "INSERT INTO `fuerdiagexp`(name,pat_id,icd,diagnose,nurquart,zeitpunkt) VALUES('" & UmwfSQL(q!name) & "'," & q!Pat_id & ",'" & q!ICD & "','" & q!Diagnose & "'," & q!nurquart & "," & DatFor_k(Now()) & ")", rAf
+  InsKorr z, "INSERT INTO `fuerdiagexp`(name,pat_id,icd,diagnose,nurquart,zeitpunkt) VALUES('" & UmwfSQL(q!name) & "'," & q!Pat_id & ",'" & q!ICD & "','" & q!Diagnose & "'," & q!nurquart & "," & DatFor_k(Now()) & ")", rAf
   q.Move 1
  Loop
 End Function ' test_fdübertrag()

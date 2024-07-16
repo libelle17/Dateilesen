@@ -3489,22 +3489,22 @@ End Sub ' tobhier
 #End If
 
 ' in alleSpeichern() und tob()
-Sub obhierdmpfn(Notiz$, NZNr&, dmpklass&, dmpbeg As Date, Optional dmpkhkklass&, Optional dmpkhkbeg As Date, Optional dmpcopdklass&, Optional dmpcopdbeg As Date, Optional dmpabklass&, Optional dmpabbeg As Date, Optional HzV&, Optional HzVbeg As Date, Optional DS&, Optional DSbeg As Date)
+Sub obhierdmpfn(notiz$, NZNr&, dmpklass&, dmpbeg As Date, Optional dmpkhkklass&, Optional dmpkhkbeg As Date, Optional dmpcopdklass&, Optional dmpcopdbeg As Date, Optional dmpabklass&, Optional dmpabbeg As Date, Optional HzV&, Optional HzVbeg As Date, Optional DS&, Optional DSbeg As Date)
  Dim buch$, pos%, testd As Date, i%, notdat$(), ndRichtig%() ' letztes wahr, wenn notdat-Zeile für DMP verwertbar oder irrelevant
  Dim maxdHier(3) As Date, maxdHA(3) As Date, maxdNein(3) As Date, maxdAus(3) As Date
  Dim dmpArt% ' 0 = Diabetes, 1 = KHK, 2 = COPD, 3 = Asthma bronchiale
  On Error GoTo fehler
-    If LenB(Notiz) <> 0 Then
+    If LenB(notiz) <> 0 Then
      ReDim notdat(0)
      Do
-      pos = InStr(Notiz, vbCrLf)
+      pos = InStr(notiz, vbCrLf)
       If pos <> 0 Then
-       notdat(UBound(notdat)) = UCase$(Trim$(Left$(Notiz, pos - 1)))
-       Notiz = Mid$(Notiz, pos + 2)
+       notdat(UBound(notdat)) = UCase$(Trim$(Left$(notiz, pos - 1)))
+       notiz = Mid$(notiz, pos + 2)
        ReDim Preserve notdat(UBound(notdat) + 1)
       Else ' pos <> 0 Then
-       notdat(UBound(notdat)) = UCase$(Trim$(Notiz))
-       Notiz = vNS
+       notdat(UBound(notdat)) = UCase$(Trim$(notiz))
+       notiz = vNS
        Exit Do
       End If ' pos <> 0 Then else
      Loop
@@ -3563,7 +3563,7 @@ Sub obhierdmpfn(Notiz$, NZNr&, dmpklass&, dmpbeg As Date, Optional dmpkhkklass&,
      Next i
      For i = UBound(notdat) To 0 Step -1
       If ndRichtig(i) = 0 Then
-       Notiz = notdat(i) & vbCrLf & Notiz
+       notiz = notdat(i) & vbCrLf & notiz
        NZNr = i
       End If ' ndRichtig(i) = 0 Then
      Next i
@@ -3736,7 +3736,7 @@ Function einDMP(Pat_id&, Optional ICD$, Optional dszahl&, Optional Nachname$, Op
       If ((ICD Like "E11*") Or (ICD Like "E10*")) Then
       ' 5.7.10: Diese beiden Zeilen wären notwendig für die zwischenzeitliche Umfunktionierung dieser Funktion,
       ' jetzt in Tabellen `namen` (obhierdmp, obdmp, getha0, getha1, getha2) und hareal
-'       InsKorr DBCn, dbcns, "INSERT INTO `dmpausw` VALUES(" & Pat_id & ",'" & UmwfSQL(Nachname & ", " & Vorname) & "','" & Infos(12, i) & "','" & ICD & "','" & Infos(4, i) & "','" & UmwfSQL(Infos(14, i) & ", " & Infos(9, i) & ", " & Infos(3, i)) & "')", rAF
+'       InsKorr DBCn, "INSERT INTO `dmpausw` VALUES(" & Pat_id & ",'" & UmwfSQL(Nachname & ", " & Vorname) & "','" & Infos(12, i) & "','" & ICD & "','" & Infos(4, i) & "','" & UmwfSQL(Infos(14, i) & ", " & Infos(9, i) & ", " & Infos(3, i)) & "')", rAF
 '       Exit Function
        Select Case infos(12, i)
         Case "6492325" ' Reitmeier, will keine DMP-Auswertungen mehr (23.12.09)
@@ -4703,7 +4703,7 @@ Function TherAuskunft(ByVal Pat_id$, ByVal obanf%, Optional ByRef insz%, Optiona
      If DosH > 0 Then
 '      MsgBox "Medikament: " + Medi + " noch nicht in Tabelle MedArten erfaßt"
       Debug.Print "Medikament: " + medi + " noch nicht in Tabelle `medarten` erfaßt"
-      InsKorr DBCn, DBCnS, "INSERT INTO `medarten`(langname,medikament,hinzugefügt,pat_id) VALUES('" & Med(AktMz) & "','" & UCase$(medi) & "'," & DatFor_k(Now) & "," & Pat_id & ")", rAf
+      InsKorr DBCn, "INSERT INTO `medarten`(langname,medikament,hinzugefügt,pat_id) VALUES('" & Med(AktMz) & "','" & UCase$(medi) & "'," & DatFor_k(Now) & "," & Pat_id & ")", rAf
      End If
     Else
      If Not IsNull(raMa!j_antikoag) Then If raMa!j_antikoag <> 0 Then obAntikoag = True ' Bei Marcumar steht meist keine Dosierung drin

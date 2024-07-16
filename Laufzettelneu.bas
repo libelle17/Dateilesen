@@ -1101,11 +1101,11 @@ On Error GoTo fehler
  
  On Error GoTo fehler
  If LenB(DBCn) = 0 Or LenB(DBCnS) = 0 Then Call acon(quelleT) ' DBCn.ConnectionString
- myFrag rAn, "SELECT COALESCE(`diabetes seit`,'') dmseit,vorgestellt,Diabetestyp FROM `anamnesebogen` WHERE pat_id = " & Pat_id
+ myFrag rAn, "SELECT COALESCE(`diabetes seit`,'') dmseit,COALESCE(vorgestellt,(SELECT MIN(bhfb) FROM faelle WHERE pat_id=" & Pat_id & ")) vorg,Diabetestyp FROM `anamnesebogen` WHERE pat_id = " & Pat_id
  If rAn.State <> 0 Then
   If Not rAn.BOF Then
    dmseit = rAn!dmseit
-   Vorgestellt = rAn!Vorgestellt
+   Vorgestellt = rAn!Vorg
   End If
  End If
  Dim rnamBOF%
@@ -1617,9 +1617,9 @@ keinuzu:
   
   Üs(i) = "Augen-US"
   Titel(i) = "Augenärztliche Untersuchung"
-  sql(i) = "SELECT * FROM (SELECT zeitpunkt zp, inhalt wert FROM `eintraege` WHERE pat_id = " & Pat_id & " AND ((art IN (" & artspezG & ") AND ((inhalt LIKE '%augenb%' AND NOT inhalt LIKE '%augenbl%' AND NOT inhalt LIKE '%augen') OR (inhalt LIKE '%augenarzt%' OR inhalt LIKE '%augenärzt%') OR (inhalt LIKE '% aa%' AND NOT inhalt LIKE '% aag%' AND NOT inhalt LIKE '% aa.%') OR art = 'aug')) OR (art = 'aa' OR art = 'augen'))" & " AND zeitpunkt > " & DatFor_k(Now() - 550) & ") u1 " & _
-     "UNION SELECT * FROM (SELECT zeitpunkt zp, dokname wert FROM `dokumente` WHERE pat_id = " & Pat_id & " AND dokname LIKE '%augen%' AND zeitpunkt > " & DatFor_k(Now() - 550) & ") u2 " & _
-     "UNION SELECT * FROM (SELECT vorgestellt zp, CONCAT(`Augensp zuletzt`,': ',`Augensp Befund`) wert FROM `anamnesebogen` WHERE pat_id = " & Pat_id & " AND NOT ISNULL(`Augensp zuletzt`)) u3 " & _
+  sql(i) = "SELECT * FROM (SELECT zeitpunkt zp, inhalt wert FROM `eintraege` WHERE pat_id = " & Pat_id & " AND ((art IN (" & artspezG & ") AND ((inhalt LIKE '%augenb%' AND NOT inhalt LIKE '%augenbl%' AND NOT inhalt LIKE '%augen') OR (inhalt LIKE '%augenarzt%' OR inhalt LIKE '%augenärzt%') OR (inhalt LIKE '% aa%' AND NOT inhalt LIKE '% aag%' AND NOT inhalt LIKE '% aa.%') OR art = 'aug')) OR (art = 'aa' OR art = 'augen'))" & "/* AND zeitpunkt > " & DatFor_k(Now() - 550) & " */" & ") u1 " & _
+     "UNION SELECT * FROM (SELECT zeitpunkt zp, dokname wert FROM `dokumente` WHERE pat_id = " & Pat_id & " AND dokname LIKE '%augen%' /* AND zeitpunkt > " & DatFor_k(Now() - 550) & " */" & ") u2 " & _
+     "UNION SELECT * FROM (SELECT COALESCE(vorgestellt,(SELECT MIN(bhfb) FROM faelle WHERE pat_id=" & Pat_id & ")) zp, CONCAT(`Augensp zuletzt`,': ',`Augensp Befund`) wert FROM `anamnesebogen` WHERE pat_id = " & Pat_id & " AND NOT ISNULL(`Augensp zuletzt`)) u3 " & _
      "ORDER BY zp DESC"
   Weite(i) = "7%"
   Fqmin(i) = IIf(obreti Or aRisk.HbA1c > 7.5, 1, 0.5) ' geändert 30.1.23 von 1
@@ -2276,7 +2276,7 @@ keinuzu:
 #End If
   ' 255,204,229 = #ffcce5 rötlich; 229,204,255 = #E5CCFF bläulich; #ffffcc gelblich
   AusS.AppVar (Array(" ", IIf(dmtyp = "1" Or dmtyp = "2" Or dmtyp = "g", "<span style='background-color:" & IIf(dmtyp = "1", "#ffd9e8", IIf(dmtyp = "g", "#ffffde", "#efe0ff")) & "'", ""), "<B><span title='", VName, " ", NName, ", ", rnam!strasse, ", ", rnam!plz, " ", rnam!ort, ", Tel1: ", rnam!PrivatTel, ", Tel2: ", rnam!PrivatTel_2, ", Mobil:", rnam!PrivatMobil, ", Fax: ", rnam!PrivatFax, ", Diensttel: ", rnam!DienstTel & ", Email: ", rnam!email, "'>", IIf(vorET > Now(), "<span class='schwanger'>", ""), _
-  GesNamFn(rnam), "</span></B>, *", Format(rnam!GebDat, "d.m.yy"), " (", PAlter, "a), <span style='color:blue'><span class='unauff'>&nbsp;&nbsp;Pat_id: </span>", Pat_id, "</span><span id = 'unauff'>,", IIf(obdm, "&nbsp;&nbsp;D.m.seit: ", ""), IIf(obdm, dmseit, ""), ",&nbsp;&nbsp;vorgestellt: ", Format(Vorgestellt, "d.m.yy"), ",&nbsp;&nbsp;für: </span>", Format(Datum, "d.m.yy"), " <span style='font-size:smaller'>", Format(Uhrzeit, "hh:mm"), ",</span>&nbsp;&nbsp;&nbsp;<span class='unauff'>", rnam!Notiz, ",&nbsp;&nbsp;&nbsp;", IIf(obdm, "Therapie zuletzt: ", ""), "</span>", IIf(obdm, therart, ""), "<span " & dmpfarbe & ">", DmPStr, "</span></h1>", vbCrLf))
+  GesNamFn(rnam), "</span></B>, *", Format(rnam!GebDat, "d.m.yy"), " (", PAlter, "a), <span style='color:blue'><span class='unauff'>&nbsp;&nbsp;Pat_id: </span>", Pat_id, "</span><span id = 'unauff'>,", IIf(obdm, "&nbsp;&nbsp;D.m.seit: ", ""), IIf(obdm, dmseit, ""), ",&nbsp;&nbsp;vorgestellt: ", Format(Vorgestellt, "d.m.yy"), ",&nbsp;&nbsp;für: </span>", Format(Datum, "d.m.yy"), " <span style='font-size:smaller'>", Format(Uhrzeit, "hh:mm"), ",</span>&nbsp;&nbsp;&nbsp;<span class='unauff'>", rnam!notiz, ",&nbsp;&nbsp;&nbsp;", IIf(obdm, "Therapie zuletzt: ", ""), "</span>", IIf(obdm, therart, ""), "<span " & dmpfarbe & ">", DmPStr, "</span></h1>", vbCrLf))
 ' TherapieArtEinzelnFestlegen(CLng(Pat_ID), rAn) & "</span></h1>" ' VName, " ", NName
   ' * 2.73792574745373E-03 ' 1/365,24
   AusS.AppVar (Array("</h1>", vbCrLf))
@@ -3179,7 +3179,7 @@ Function eintraege(ByVal Pat_id$, ByRef AusS As CString)
    Do While Not rse.EOF
     AusS.AppVar Array(" <tr>", vbCrLf)
     AusS.AppVar Array("  <td class='lnn'>" & rse!Datum & "</td>", vbCrLf)
-    AusS.AppVar Array("  <td class='lnn'>" & rse!art & "</td>", vbCrLf)
+    AusS.AppVar Array("  <td class='lnn'>" & rse!Art & "</td>", vbCrLf)
     AusS.AppVar Array("  <td>" & rse!Inhalt & "</td>", vbCrLf)
     AusS.AppVar Array(" </tr>", vbCrLf)
     rse.MoveNext
@@ -3194,7 +3194,7 @@ Function eintraege(ByVal Pat_id$, ByRef AusS As CString)
    Do While Not rse.EOF
     AusS.AppVar Array(" <tr>", vbCrLf)
     AusS.AppVar Array("  <td class='lnn'>" & rse!Datum & "</td>", vbCrLf)
-    AusS.AppVar Array("  <td class='lnn'>" & rse!art & "</td>", vbCrLf)
+    AusS.AppVar Array("  <td class='lnn'>" & rse!Art & "</td>", vbCrLf)
     AusS.AppVar Array("  <td>" & rse!Inhalt & "</td>", vbCrLf)
     AusS.AppVar Array(" </tr>", vbCrLf)
     rse.MoveNext
