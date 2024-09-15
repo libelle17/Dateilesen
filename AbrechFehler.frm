@@ -791,7 +791,7 @@ Public Function ZeigSQL() ' Abrechnungsfehler
 'Const nname$ = "LEFT(CONCAT(IF(n.titel='','',CONCAT(n.titel,' ')),IF(n.nvorsatz='','',CONCAT(n.nvorsatz,' ')),n.nachname,', ',n.vorname),25) Name, "
 Dim FristS$
 AktQ = Me.Quartal
-FristS = Str(Int(Now() - QEnd(AktQ) + 1))
+FristS = Str(Int(Now() - fctQEnd(AktQ) + 1))
 Static aktf$, qanfS$, qendS$
 On Error GoTo fehler
 AWlf = 0
@@ -812,8 +812,8 @@ Else ' me.private = 0 => Kassenpatienten
  End If
  
  If aktfDirekt <> 0 Or InStrB(Lese.dbv.CnStr, "MySQL") = 0 Then ' .wCn.ConnectionString ' 28.12.08
-  qanfS = DatFor_k(QAnf(AktQ))
-  qendS = DatFor_k(QEnd(AktQ) + 1)
+  qanfS = DatFor_k(fctQAnf(AktQ))
+  qendS = DatFor_k(fctQEnd(AktQ) + 1)
  Else
   qanfS = "TIMESTAMP((CONCAT(YEAR((NOW() - INTERVAL " & FristS & " DAY))¡ '-'¡ (intacc(((month((NOW() - INTERVAL " & FristS & " DAY)) - 1) divmy 3) * 3) + 1), '-01'))) "
   qendS = "TIMESTAMP((CONCAT(YEAR((NOW() - INTERVAL " & FristS & " DAY))¡'-'¡(intacc(((month((NOW() - INTERVAL " & FristS & " DAY)) - 1) divmy 3) * 3) + 1),'-01') + INTERVAL 3 MONTH)) "

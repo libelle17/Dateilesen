@@ -84,8 +84,8 @@ Public Function tuAbstand(frist$, Abst%, Optional Zuk% = 0)
   End If
   frist = Verspätung
  End If
- qa = QAnf(QuartalStr(Now() - frist - Abst))
- qe = QEnd(QuartalStr(Now() - frist + Zuk))
+ qa = fctQAnf(QuartalStr(Now() - frist - Abst))
+ qe = fctQEnd(QuartalStr(Now() - frist + Zuk))
  tuAbstand = Year(qa) & Right$("0" & Month(qa), 2) & Right$("0" & Day(qa), 2) & " AND " & Year(qe) & Right$("0" & Month(qe), 2) & Right$("0" & Day(qe), 2) & "235959"
 End Function ' tuAbstand
 
@@ -99,7 +99,7 @@ Public Function qtAnf$(frist$)
   End If
   frist = Verspätung
  End If
- qa = QAnf(QuartalStr(Now() - frist - Abst))
+ qa = fctQAnf(QuartalStr(Now() - frist - Abst))
  qtAnf = Year(qa) & Right$("0" & Month(qa), 2) & Right$("0" & Day(qa), 2)
 End Function ' qtAnf$(frist$)
 
@@ -112,7 +112,7 @@ Public Function qtEnd$(frist$)
   End If
   frist = Verspätung
  End If
- qe = QEnd(QuartalStr(Now() - frist - Abst))
+ qe = fctQEnd(QuartalStr(Now() - frist - Abst))
  qtEnd = Year(qe) & Right$("0" & Month(qe), 2) & Right$("0" & Day(qe), 2) & "235959"
 End Function ' qtEnd$(frist$)
 
@@ -457,7 +457,7 @@ Function obAutoIncr%(Tabl$, rs As ADODB.Recordset)
  Else
   Static catx As New ADOX.Catalog
   If catx.ActiveConnection Is Nothing Then
-   catx.ActiveConnection = rs.ActiveConnection.Properties![extended properties] ' DBCnS ' DBCn.ConnectionString
+   catx.ActiveConnection = rs.ActiveConnection.Properties![Extended Properties] ' DBCnS ' DBCn.ConnectionString
   End If
   On Error Resume Next
   Spalt = rs!COLUMN_NAME
@@ -2149,7 +2149,7 @@ Public Function Vergleiche(frm As Lese) ' Vergleich der Datenbankstrukturen
 '  IF i > 0 THEN
 '  IF Not cn Is Nothing THEN SET cn = Nothing 'If cn.State = 1 THEN cn.Close
   Set aktCn = Nothing
-  aktCn.Open DBCn.Properties![extended properties] ' DBCnS ' DBCn.ConnectionString
+  aktCn.Open DBCn.Properties![Extended Properties] ' DBCnS ' DBCn.ConnectionString
 '  END IF
   For j = 0 To TbZ2
    If i > 0 Then
@@ -3156,7 +3156,7 @@ fehler:
 #Else
  AnwPfad = App.path
 #End If
-Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "aufgefangener Fehler in EmailsImport/" + AnwPfad)
+Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "aufgefangener Fehler in ergEBM/" + AnwPfad)
  Case vbAbort: Call MsgBox("Höre auf"): ProgEnde
  Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
  Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
@@ -5384,11 +5384,11 @@ Function fzsfuell(frm As Lese, abstand&, Optional obgestern) ' Abstand: 999 => u
 '    sql = "DELETE FROM `fallzahlstand` WHERE quartal = " & Qt & " AND tage = " & abstand
 '    myEFrag sql, rAF
     Dim qbg$, qed$, vqu$, vqbg$, vqed$
-    qbg = Format(QAnf(QT), "yyyymmdd")
-    qed = Format(IIf(abstand = 9999, DateAdd("m", 3, QAnf(QT)), QAnf(QT) + abstand + 1) - 1 / 60 / 24 / 24, "'yyyy-mm-dd HH:MM:SS'")
+    qbg = Format(fctQAnf(QT), "yyyymmdd")
+    qed = Format(IIf(abstand = 9999, DateAdd("m", 3, fctQAnf(QT)), fctQAnf(QT) + abstand + 1) - 1 / 60 / 24 / 24, "'yyyy-mm-dd HH:MM:SS'")
     vqu = (((Left$(QT, 1) + 2) Mod 4) + 1) & (Mid$(QT, 2) - IIf(Left$(QT, 1) = 1, 1, 0))
-    vqbg = Format(QAnf(vqu), "yyyymmdd")
-    vqed = Format(IIf(abstand = 9999, DateAdd("m", 3, QAnf(vqu)), QAnf(vqu) + abstand + 1) - 1 / 60 / 24 / 24, "'yyyy-mm-dd HH:MM:SS'")
+    vqbg = Format(fctQAnf(vqu), "yyyymmdd")
+    vqed = Format(IIf(abstand = 9999, DateAdd("m", 3, fctQAnf(vqu)), fctQAnf(vqu) + abstand + 1) - 1 / 60 / 24 / 24, "'yyyy-mm-dd HH:MM:SS'")
     sql = "INSERT INTO `fallzahlstand`(Quartal,Tage,Kassenpat,KassenpatRel,KassenpatSchade,KassenpatSchadeRel,KassenpatKothny,KassenpatKothnyRel,DM,DmRel,GDM,Neue,NeueDM,NeueDmRel,NeueSchade,NeueKothny,Doppler,Duplex,Sonos,Schul,aktzeit,arbt,arbtKothny,arbtSchade,BriefeSchade,BriefeKothny,dmBriefeSchade,dmBriefeKothny) " & vbCrLf & _
      "SELECT i.quartal," & abstand & " Tage,kassenpat " & vbCrLf & _
      ",IF(Kassenpatvor=0,'0',ROUND(ROUND(kassenpat / Kassenpatvor,3)*100-100,1)) KassenpatRel" & vbCrLf & _
@@ -5441,7 +5441,7 @@ Function fzsfuell(frm As Lese, abstand&, Optional obgestern) ' Abstand: 999 => u
      "FROM (SELECT Quartal, COUNT(0) kassenpat,  " & vbCrLf & _
      "(SELECT COUNT(DISTINCT pat_id) FROM `faelle` WHERE schgr <> '90' AND quartal = vorquartal " & VQBed & " GROUP BY quartal) Kassenpatvor,  " & vbCrLf & _
      "(SELECT COUNT(DISTINCT pat_id) FROM `faelle` f WHERE schgr <> '90' AND quartal = i.quartal " & QBedi & " AND EXISTS (SELECT 0 FROM `diagnosen` d WHERE d.pat_id = f.pat_id AND d.icd RLIKE '^E1[0-4]\.|^O24\.' AND d.diagsicherheit RLIKE '[^Z^A^V]' AND COALESCE(d.Dggel,0)=0) GROUP BY quartal) Diabetes, " & vbCrLf & _
-     "(SELECT COUNT(DISTINCT e.pat_id) Zahl FROM `eintraege` e LEFT JOIN `faelle` f ON e.pat_id = f.pat_id WHERE schgr <> '90' AND (art IN ('" & IIf(QAnf(Quartal) > #1/1/2006#, "gs", "gs','notiz") & "','doppler','duplex') OR inhalt LIKE '%(gs)%') " & zpQBed & " AND CONCAT((month(e.zeitpunkt)+2) div 3, YEAR(e.zeitpunkt)) = i.Quartal) davonSchade, " & vbCrLf & _
+     "(SELECT COUNT(DISTINCT e.pat_id) Zahl FROM `eintraege` e LEFT JOIN `faelle` f ON e.pat_id = f.pat_id WHERE schgr <> '90' AND (art IN ('" & IIf(fctQAnf(Quartal) > #1/1/2006#, "gs", "gs','notiz") & "','doppler','duplex') OR inhalt LIKE '%(gs)%') " & zpQBed & " AND CONCAT((month(e.zeitpunkt)+2) div 3, YEAR(e.zeitpunkt)) = i.Quartal) davonSchade, " & vbCrLf & _
      "(SELECT COUNT(DISTINCT e.pat_id) Zahl FROM `eintraege` e LEFT JOIN `faelle` f ON e.pat_id = f.pat_id WHERE schgr <> '90' AND (art = 'tk' OR inhalt LIKE '%(tk)%') " & zpQBed & " AND CONCAT((month(e.zeitpunkt)+2) div 3, YEAR(e.zeitpunkt)) = i.Quartal) davonKothny, " & vbCrLf & _
      "(SELECT COUNT(DISTINCT d.pat_id) Zahl FROM `diagnosen` d LEFT JOIN `faelle` f ON d.fid = f.fid WHERE d.icd = 'O24.4' AND d.diagsicherheit RLIKE '[^V^Z^A]' AND COALESCE(d.Dggel,0)=0 AND f.quartal = i.quartal) GDM, " & vbCrLf & _
      "SUM(erst) neue, SUM(erstdm) neuedm, " & vbCrLf & _
@@ -5466,13 +5466,13 @@ Function fzsfuell(frm As Lese, abstand&, Optional obgestern) ' Abstand: 999 => u
 #If False Then
   Dim RsI As New ADODB.Recordset
 '    sql = "UPDATE `fallzahlstand` SET arbt = (SELECT COUNT(0) arbt FROM (SELECT DATE(zeitpunkt) tag, COUNT(0) zahl FROM `eintraege` e WHERE zeitpunkt BETWEEN STR_TO_DATE(CONCAT(MID(" & Qt & ",2),(LEFT(" & Qt & ",1)-1)*3+1,'/1'),'%Y%c/%d') AND adddate(STR_TO_DATE(CONCAT(MID(" & Qt & ",2),(LEFT(" & Qt & ",1)-1)*3+1,'/1'),'%Y%c/%d')," & abstand & ") AND art IN ('tk','gs','notiz') GROUP BY DATE(zeitpunkt)) i WHERE zahl > 5) WHERE quartal = " & Qt & " AND tage = " & abstand
-'    sql = "SELECT eart, COUNT(0) zahl FROM (SELECT * FROM (SELECT name,pat_id,DATE(zeitpunkt) zp,(SELECT MAX(art) FROM `eintraege` e WHERE e.pat_id = `briefe`.pat_id AND art IN ('tk','gs') AND zeitpunkt = (SELECT MAX(zeitpunkt) FROM `eintraege` e WHERE e.pat_id = `briefe`.pat_id AND art IN ('tk','gs') AND zeitpunkt < `briefe`.zeitpunkt)) eart FROM `briefe` WHERE not name LIKE '%dmp-%' AND (name LIKE '%brief%' OR name LIKE '%nachricht%') AND art IN ('wbr','brief')) i WHERE NOT ISNULL(eart) GROUP BY pat_id, eart, zp) i WHERE zp BETWEEN '" & Format(QAnf(quartal), "yyyy-mm-dd") & "' AND '" & IIf(abstand = 9999, Format(qend(quartal), "yyyy-mm-dd"), Format(QAnf(quartal) + abstand, "yyyy-mm-dd")) & "' GROUP BY eart"
+'    sql = "SELECT eart, COUNT(0) zahl FROM (SELECT * FROM (SELECT name,pat_id,DATE(zeitpunkt) zp,(SELECT MAX(art) FROM `eintraege` e WHERE e.pat_id = `briefe`.pat_id AND art IN ('tk','gs') AND zeitpunkt = (SELECT MAX(zeitpunkt) FROM `eintraege` e WHERE e.pat_id = `briefe`.pat_id AND art IN ('tk','gs') AND zeitpunkt < `briefe`.zeitpunkt)) eart FROM `briefe` WHERE not name LIKE '%dmp-%' AND (name LIKE '%brief%' OR name LIKE '%nachricht%') AND art IN ('wbr','brief')) i WHERE NOT ISNULL(eart) GROUP BY pat_id, eart, zp) i WHERE zp BETWEEN '" & Format(fctQAnf(quartal), "yyyy-mm-dd") & "' AND '" & IIf(abstand = 9999, Format(fctQEnd(quartal), "yyyy-mm-dd"), Format(fctQAnf(quartal) + abstand, "yyyy-mm-dd")) & "' GROUP BY eart"
     
     ' ktag fehlerhaft
     csql0 = "UPDATE `fallzahlstand` SET "
-    '" arbt = (SELECT COUNT(0) arbt FROM (SELECT DATE(zeitpunkt), COUNT(0) zahl FROM `eintraege` WHERE zeitpunkt BETWEEN " & DatFor_k(qanf(Qt)) & " AND " & IIf(abstand = 9999, DatFor_k(qend(Qt) + 1), DatFor_k(qanf(Qt) + abstand + 1)) & " AND art IN ('tk','gs','notiz') GROUP BY DATE(zeitpunkt)) i WHERE zahl > 5), " & _
-                                     "arbtkothny = (SELECT COUNT(0) arbt FROM (SELECT DATE(zeitpunkt), COUNT(0) zahl FROM `eintraege` WHERE zeitpunkt BETWEEN " & DatFor_k(qanf(Qt)) & " AND " & IIf(abstand = 9999, DatFor_k(qend(Qt) + 1), DatFor_k(qanf(Qt) + abstand + 1)) & " AND art IN ('tk') GROUP BY DATE(zeitpunkt)) i WHERE zahl > 5), " & _
-                                     "arbtschade = (SELECT COUNT(0) arbt FROM (SELECT DATE(zeitpunkt), COUNT(0) zahl FROM `eintraege` WHERE zeitpunkt BETWEEN " & DatFor_k(qanf(Qt)) & " AND " & IIf(abstand = 9999, DatFor_k(qend(Qt) + 1), DatFor_k(qanf(Qt) + abstand + 1)) & " AND art IN ('" & IIf(qanf(Qt) > #1/1/2006#, "gs", "gs','notiz") & "') GROUP BY DATE(zeitpunkt)) i WHERE zahl > 5) "
+    '" arbt = (SELECT COUNT(0) arbt FROM (SELECT DATE(zeitpunkt), COUNT(0) zahl FROM `eintraege` WHERE zeitpunkt BETWEEN " & DatFor_k(fctQAnf(Qt)) & " AND " & IIf(abstand = 9999, DatFor_k(fctQEnd(Qt) + 1), DatFor_k(fctQAnf(Qt) + abstand + 1)) & " AND art IN ('tk','gs','notiz') GROUP BY DATE(zeitpunkt)) i WHERE zahl > 5), " & _
+                                     "arbtkothny = (SELECT COUNT(0) arbt FROM (SELECT DATE(zeitpunkt), COUNT(0) zahl FROM `eintraege` WHERE zeitpunkt BETWEEN " & DatFor_k(fctQAnf(Qt)) & " AND " & IIf(abstand = 9999, DatFor_k(fctQEnd(Qt) + 1), DatFor_k(fctQAnf(Qt) + abstand + 1)) & " AND art IN ('tk') GROUP BY DATE(zeitpunkt)) i WHERE zahl > 5), " & _
+                                     "arbtschade = (SELECT COUNT(0) arbt FROM (SELECT DATE(zeitpunkt), COUNT(0) zahl FROM `eintraege` WHERE zeitpunkt BETWEEN " & DatFor_k(fctQAnf(Qt)) & " AND " & IIf(abstand = 9999, DatFor_k(fctQEnd(Qt) + 1), DatFor_k(fctQAnf(Qt) + abstand + 1)) & " AND art IN ('" & IIf(fctQAnf(Qt) > #1/1/2006#, "gs", "gs','notiz") & "') GROUP BY DATE(zeitpunkt)) i WHERE zahl > 5) "
 ' dann unten weiter ' 19.8.21: quelldatum statt zeitpunkt, wegen Index
 '  AND COALESCE(d.Dggel,0)=0
     sql = "SELECT eart, dm, COUNT(0) zahl FROM (" & _
@@ -5486,7 +5486,7 @@ Function fzsfuell(frm As Lese, abstand&, Optional obgestern) ' Abstand: 999 => u
        "LEFT JOIN diagview d ON b.pat_id = d.pat_id AND (d.gicd REGEXP '^E1[0-4]\.|^R73' OR (d.icd='O24.4' AND d.Dggel=0 AND d.diagsicherheit IN ('G',' ')))" & _
        "WHERE not name LIKE '%dmp-%' AND (name LIKE '%brief%' OR name LIKE '%nachricht%') AND art IN ('wbr','brief') " & _
                 ") i WHERE NOT ISNULL(eart) GROUP BY pat_id, eart, zp, dm " & _
-                ") i WHERE zp BETWEEN " & DatFor_k(QAnf(QT)) & " AND " & IIf(abstand = 9999, DatFor_k(QEnd(QT) + 1), DatFor_k(QAnf(QT) + abstand + 1)) & " GROUP BY eart,dm "
+                ") i WHERE zp BETWEEN " & DatFor_k(fctQAnf(QT)) & " AND " & IIf(abstand = 9999, DatFor_k(fctQEnd(QT) + 1), DatFor_k(fctQAnf(QT) + abstand + 1)) & " GROUP BY eart,dm "
     Dim obCnOffen%
     If Not DBCn Is Nothing Then If DBCn.State = 1 Then obCnOffen = -1
     If obCnOffen Then DBCn.Close
@@ -5539,10 +5539,10 @@ End Function ' fzsfuell(Optional obgestern)
 '    abstand = vrs!tage
 '    s0 = 0: s1 = 0: k0 = 0: k1 = 0
 '#If False THEN
-'    sql = "UPDATE `fallzahlstand` SET arbt = (SELECT COUNT(0) arbt FROM (SELECT DATE(zeitpunkt) tag, COUNT(0) zahl FROM `eintraege` e WHERE zeitpunkt BETWEEN '" & Format(QAnf(quartal), "yyyy-mm-dd") & "' AND '" & IIf(abstand = 9999, Format(qend(quartal), "yyyy-mm-dd"), Format(QAnf(quartal) + abstand, "yyyy-mm-dd")) & "' AND art IN ('tk','gs','notiz') GROUP BY DATE(zeitpunkt)) i WHERE zahl > 5) WHERE quartal = '" & Qt & "' AND tage = " & abstand
+'    sql = "UPDATE `fallzahlstand` SET arbt = (SELECT COUNT(0) arbt FROM (SELECT DATE(zeitpunkt) tag, COUNT(0) zahl FROM `eintraege` e WHERE zeitpunkt BETWEEN '" & Format(fctQAnf(quartal), "yyyy-mm-dd") & "' AND '" & IIf(abstand = 9999, Format(fctQEnd(quartal), "yyyy-mm-dd"), Format(fctQAnf(quartal) + abstand, "yyyy-mm-dd")) & "' AND art IN ('tk','gs','notiz') GROUP BY DATE(zeitpunkt)) i WHERE zahl > 5) WHERE quartal = '" & Qt & "' AND tage = " & abstand
 '    myEFrag sql, rAF
 '#END IF
-''    sql = "SELECT eart, COUNT(0) zahl FROM (SELECT * FROM (SELECT name,pat_id,DATE(zeitpunkt) zp,(SELECT MAX(art) FROM `eintraege` e WHERE e.pat_id = briefe.pat_id AND art IN ('tk','gs') AND zeitpunkt = (SELECT MAX(zeitpunkt) FROM `eintraege` e WHERE e.pat_id = `briefe`.pat_id AND art IN ('tk','gs') AND zeitpunkt < `briefe`.zeitpunkt)) eart FROM `briefe` WHERE not name LIKE '%dmp-%' AND (name LIKE '%brief%' OR name LIKE '%nachricht%') AND art IN ('wbr','brief')) i WHERE NOT ISNULL(eart) GROUP BY pat_id, eart, zp) i WHERE zp BETWEEN '" & Format(QAnf(quartal), "yyyy-mm-dd") & "' AND '" & IIf(abstand = 9999, Format(qend(quartal), "yyyy-mm-dd"), Format(QAnf(quartal) + abstand, "yyyy-mm-dd")) & "' GROUP BY eart"
+''    sql = "SELECT eart, COUNT(0) zahl FROM (SELECT * FROM (SELECT name,pat_id,DATE(zeitpunkt) zp,(SELECT MAX(art) FROM `eintraege` e WHERE e.pat_id = briefe.pat_id AND art IN ('tk','gs') AND zeitpunkt = (SELECT MAX(zeitpunkt) FROM `eintraege` e WHERE e.pat_id = `briefe`.pat_id AND art IN ('tk','gs') AND zeitpunkt < `briefe`.zeitpunkt)) eart FROM `briefe` WHERE not name LIKE '%dmp-%' AND (name LIKE '%brief%' OR name LIKE '%nachricht%') AND art IN ('wbr','brief')) i WHERE NOT ISNULL(eart) GROUP BY pat_id, eart, zp) i WHERE zp BETWEEN '" & Format(fctQAnf(quartal), "yyyy-mm-dd") & "' AND '" & IIf(abstand = 9999, Format(fctQEnd(quartal), "yyyy-mm-dd"), Format(fctQAnf(quartal) + abstand, "yyyy-mm-dd")) & "' GROUP BY eart"
 '    sql = "SELECT eart, dm, COUNT(0) zahl FROM (" & _
 '       "SELECT name,pat_id,zp,eart,dm FROM (" & _
 '            "SELECT name,b.pat_id,DATE(b.zeitpunkt) zp," & _
@@ -5554,7 +5554,7 @@ End Function ' fzsfuell(Optional obgestern)
 ' "LEFT JOIN `diagnosen` d ON b.pat_id = d.pat_id AND d.icd RLIKE '^E1[0-4]\.|^O24\.' AND d.diagsicherheit IN ('G',' ') AND COALESCE(d.Dggel,0)=0 " & _
 ' "WHERE not name LIKE '%dmp-%' AND (name LIKE '%brief%' OR name LIKE '%nachricht%') AND art IN ('wbr','brief') " & _
 '                ") i WHERE NOT ISNULL(eart) GROUP BY pat_id, eart, zp, dm " & _
-'                ") i WHERE zp BETWEEN '" & Format(QAnf(quartal), "yyyy-mm-dd") & "' AND '" & IIf(abstand = 9999, Format(qend(quartal), "yyyy-mm-dd"), Format(QAnf(quartal) + abstand, "yyyy-mm-dd")) & "' GROUP BY eart,dm "
+'                ") i WHERE zp BETWEEN '" & Format(fctQAnf(quartal), "yyyy-mm-dd") & "' AND '" & IIf(abstand = 9999, Format(fctQEnd(quartal), "yyyy-mm-dd"), Format(fctQAnf(quartal) + abstand, "yyyy-mm-dd")) & "' GROUP BY eart,dm "
 '
 '    myFrag RsI, sql
 '    IF Not RsI.BOF THEN

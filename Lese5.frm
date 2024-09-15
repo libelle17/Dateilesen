@@ -1043,14 +1043,20 @@ Private Sub DMP_Übersicht_Click()
  Dim quart$
  quart = InputBox("Quartal?", "Quartalseingabe", Left$(ZQuart(Now() - vgbVerspätung), 1) & Right$(ZQuart(Now() - vgbVerspätung), 2))
  sql = "SELECT NachName, VorName, GebDat, Pat_id, LanrID, Karteidatum, DATE(exportiert) EXP, DATE(dokudatum) Doku, Abk, Art " & vbCrLf & _
- "FROM dmpreihe e WHERE karteidatum BETWEEN " & Format(QAnf(quart), "YYYYmmdd") & " AND " & Format(QEnd(quart), "YYYYmmdd") & " AND exportiert<>18991230 ORDER BY lanrid, REPLACE(nachname,'€','C'), vorname, gebdat;"
+ "FROM dmpreihe e WHERE karteidatum BETWEEN " & Format(fctQAnf(quart), "YYYYmmdd") & " AND " & Format(fctQEnd(quart), "YYYYmmdd") & " AND exportiert<>18991230 ORDER BY lanrid, REPLACE(nachname,'€','C'), vorname, gebdat;"
  myFrag rs, sql
  TabAusgeb rs, Me, , , , , , , "DMP-Dok'en " & quart & ", nach LANRID, Nachname, Vorname, Geb'dat sortiert", , True, , , , , True
 End Sub ' DMP_Übersicht_Click()
 
+' vorher schwarz-weiße Scans nach p:\dmp\ verschieben, dann parsetif.sh laufen lassen
+' für erneutes Scannen:
+' DELETE FROM dmprm WHERE einlid ..., DELETE FROM dmpeinl WHERE id ...
+' in p:\dmp\ die *.tif-Dateien usw. zu den einzulesenden Dateien löschen
 Private Sub DMPRückmeldungsfehler_Click()
 Dim rs As New ADODB.Recordset
-sql = "SELECT r.pat_id,gesname(r.pat_id) PName,Karteidatum,Date(Dokudatum) DokuDatum,date(exportiert) exp,Art,Abk,Aktzeit FROM dmpreihe r LEFT JOIN dmprm m ON r.pat_id=npid AND if(right(abk,1) IN ('1','2'),CONCAT(r.art,RIGHT(abk,1))=m.dokuart,CONCAT(LEFT(art,1),MID(abk,5))=m.dokuart)" & vbCrLf & _
+sql = "SELECT r.pat_id,gesname(r.pat_id) PName,Karteidatum,Date(Dokudatum) DokuDatum,date(exportiert) exp,Art,Abk,Aktzeit " & vbCrLf & _
+"FROM dmpreihe r " & vbCrLf & _
+"LEFT JOIN dmprm m ON r.pat_id=npid AND if(right(abk,1) IN ('1','2'),CONCAT(r.art,RIGHT(abk,1))=m.dokuart,CONCAT(LEFT(art,1),MID(abk,5))=m.dokuart)" & vbCrLf & _
 "WHERE quartal(dokudatum) = vorquart(quartal(NOW()),1)" & vbCrLf & _
 "AND ISNULL(npid)" & vbCrLf & _
 "ORDER BY pat_id" & vbCrLf & _
@@ -1147,12 +1153,16 @@ Private Sub MedOffZpSetzen_Click()
 End Sub ' MedOffZpSetzen_Click
 
 ' zeigt Tabellenänderung in medoff an, nachdem zum letzten Mal MedOffZpSetzen_Click aufgerufen wurde
+' EDV -> Medoff Tabzahl
 Private Sub MedOffTabZahl_Click()
  Const datnam$ = "v:\moaend.txt"
  Dim rcol As New ADODB.Recordset, raen As New ADODB.Recordset
  Dim lzp As Date
- Dim TabZ&, aktTNr&, Tn$, tr&, jS$, cols$, colN$, sql$, runde%, Prim$, colz& ', AnzS$
+ Dim mt$
+ Dim TabZ&, aktTNr&, Tn$, tr&, jS$, cols$, c2$, colN$, sql$, runde%, Prim$, colz& ', AnzS$
  Dim Wt() ' Werte
+ Dim MeStr() As memoType
+ Dim endse$, endsz$
  On Error Resume Next
  MOCon.Open MOCHier
  On Error GoTo pfadfehler
@@ -1162,11 +1172,11 @@ Private Sub MedOffTabZahl_Click()
  lzp = DBCn.Execute("SELECT COALESCE((SELECT letzt FROM mozp),0)").Fields(0)
  Debug.Print "letzter Zeitpunkt: ", lzp
  Set rsco = Nothing
- sql = "SELECT TABLE_NAME, TABLE_ROWS From information_schema.tables WHERE table_schema = 'medoff' AND table_name NOT LIKE '%_fsurogat_seq'"
+ sql = "SELECT TABLE_NAME, TABLE_ROWS FROM information_schema.tables WHERE table_schema = 'medoff' AND table_name NOT LIKE '%_fsurogat_seq'"
  rsco.Open "SELECT COUNT(0) z FROM (" & sql & ") i", MOCon, adOpenStatic, adLockReadOnly
  TabZ = rsco!z
  Set rsco = Nothing
- rsco.Open "SELECT TABLE_NAME, TABLE_ROWS From information_schema.tables WHERE table_schema = 'medoff' AND table_name NOT LIKE '%_fsurogat_seq'", MOCon, adOpenStatic, adLockReadOnly
+ rsco.Open "SELECT TABLE_NAME, TABLE_ROWS FROM information_schema.tables WHERE table_schema = 'medoff' AND table_name NOT LIKE '%_fsurogat_seq'", MOCon, adOpenStatic, adLockReadOnly
  aktTNr = 0
  Do While Not rsco.EOF
   Tn = rsco!table_name
@@ -1175,23 +1185,29 @@ Private Sub MedOffTabZahl_Click()
 '  tr = rsco!table_rows
   Debug.Print Tn
   Set rcol = Nothing
-  cols = "": colN = "": colz = 0
-  rcol.Open "SELECT column_name FROM information_schema.columns WHERE table_schema = 'medoff' and TABLE_NAME='" & Tn & "' ORDER BY ordinal_position", MOCon, adOpenStatic, adLockReadOnly
+  cols = "": c2 = "": colN = "": colz = 0
+  rcol.Open "SELECT column_name cn,data_type='longblob' obm FROM information_schema.columns WHERE table_schema = 'medoff' AND TABLE_NAME='" & Tn & "' ORDER BY ordinal_position", MOCon, adOpenStatic, adLockReadOnly
   Do While Not rcol.EOF
-   colN = IIf(colN = "", rcol.Fields(0), colN & "," & rcol.Fields(0))
+   colN = IIf(colN = "", rcol!Cn, colN & "," & rcol!Cn)
    colz = colz + 1
    If cols <> "" Then cols = cols & ",' ',"
-   cols = cols & "CONCAT('" & rcol.Fields(0) & ":',CONVERT(COALESCE(LEFT(" & rcol.Fields(0) & ",20),'') USING 'utf8mb4'))"
+   ' COALESCE(CONVERT(FKategorieliste USING latin1),'')
+   cols = cols & "CONCAT('" & rcol!Cn & ":',CONVERT(COALESCE(LEFT(" & rcol!Cn & ",20),'') USING 'utf8mb4'))"
+   If c2 <> "" Then c2 = c2 & ","
+   If rcol.Fields(1) Then
+    c2 = c2 & "COALESCE(CONVERT(" & rcol!Cn & " USING latin1),'') " & rcol!Cn
+   Else
+    c2 = c2 & rcol!Cn
+   End If
    rcol.MoveNext
   Loop
   ReDim Wt(colz)
   Prim = MOCon.Execute("SELECT GROUP_CONCAT(DISTINCT COLUMN_NAME) sp FROM information_schema.key_column_usage i WHERE CONSTRAINT_NAME='PRIMARY' AND table_schema='medoff' AND table_name='" & Tn & "' AND column_name NOT IN ('row_start','row_end') GROUP BY table_catalog,table_schema,TABLE_NAME ORDER BY table_catalog,table_schema,table_name,ordinal_position").Fields(0)
 '  sql = "SELECT CONCAT(" & cols & ",' ',row_start,' ',row_end) FROM `" & Tn & "` WHERE row_start>" & Format(lzp, "yyyymmddHHMMSS") ' FOR SYSTEM_TIME BETWEEN " & Format(lzp, "yyyymmddHHMMSS") & " AND NOW()"
-  sql = "SELECT * FROM (SELECT CONCAT(" & cols & ",' ',row_start,' ',row_end) sp, row_start, LEAD(row_start,1) OVER (PARTITION BY " & Prim & " ORDER BY row_start) nrs, LAG(row_start,1) OVER (PARTITION BY " & Prim & " ORDER BY row_start) vrs, a.* FROM `" & Tn & "` FOR system_time ALL a) i WHERE row_start>" & Format(lzp, "yyyymmddHHMMSS") & " or nrs>" & Format(lzp, "yyyymmddHHMMSS") & " ORDER BY " & Prim & ",row_start;"
   Const Offs% = 4 ' Offset der ersten Spalte aus a.*
   runde = 0
+  sql = "SELECT * FROM (SELECT CONCAT(" & cols & ",' ',row_start,' ',row_end) sp, row_start, LEAD(row_start,1) OVER (PARTITION BY " & Prim & " ORDER BY row_start) nrs, LAG(row_start,1) OVER (PARTITION BY " & Prim & " ORDER BY row_start) vrs, " & c2 & " FROM `" & Tn & "` FOR system_time ALL a) i WHERE row_start>" & Format(lzp, "yyyymmddHHMMSS") & " or nrs>" & Format(lzp, "yyyymmddHHMMSS") & " ORDER BY " & Prim & ",row_start;"
   raen.Open sql, MOCon, adOpenStatic, adLockReadOnly
-'  If Tn = "patfall" Then Stop
   Do While Not raen.EOF
    If runde = 0 Then
     tr = MOCon.Execute("SELECT COUNT(0) FROM `" & Tn & "`").Fields(0)
@@ -1202,19 +1218,41 @@ Private Sub MedOffTabZahl_Click()
    rcol.MoveFirst
    colz = 0
    Do While Not rcol.EOF
+    If Tn = "patstamm" And raen.Fields(colz + Offs).name = "FMemo" Then Stop
     If runde = 0 Then
      If IsNull(raen.Fields(colz + Offs)) Then Wt(colz) = "NULL" Else Wt(colz) = raen.Fields(colz + Offs)
     ElseIf Not IsNull(raen!vrs) Then ' wenn Datensatz nicht neu eingefügt wurde
      If CStr(Wt(colz)) <> CStr(IIf(IsNull(raen.Fields(colz + Offs)), "NULL", raen.Fields(colz + Offs))) Then
-      Print #220, rcol.Fields(0) & ": " & Wt(colz) & " -> " & raen.Fields(colz + Offs)
-     End If
-    End If
+      Print #220, rcol.Fields(0) & ": " & Wt(colz) & vbCrLf & " -> " & Space$(Len(rcol.Fields(0)) - 2) & raen.Fields(colz + Offs)
+      If raen.Fields(colz + Offs).Type = adLongVarBinary Or raen.Fields(colz + Offs).Type = adLongVarChar Then ' 205
+       Dim wtcolz$, i&, pru%
+       For pru = 0 To 1
+        If pru = 0 Then
+         wtcolz = Wt(colz)
+        Else
+         wtcolz = raen.Fields(colz + Offs)
+         Print #220, " -> "
+        End If
+        Call ParseMemo(wtcolz, MeStr)
+        For i = 0 To UBound(MeStr)
+         mt = MeStr(i).Text & String(4, Chr(0))
+         Print #220, MeStr(i).znr & "|" & MeStr(i).mx & "|" & MeStr(i).ebn & "|" & MeStr(i).ENr & "|" & IIf(MeStr(i).endse <> "10", Mid$(wtcolz, MeStr(i).znr, 1), "") & "|" & MeStr(i).endse & "|" & MeStr(i).endsz & "| Laenge: " & Len(mt) & "|" & IIf(Right$(mt, 1) = Chr$(10), Left$(mt, IIf(Len(mt) = 0, 1, Len(mt)) - 1), mt), _
+         Asc(mt), Asc(Mid(mt, 2)), Asc(Mid(mt, 3)), Asc(Mid(mt, 4)), _
+         Asc(Mid(mt, 4, 1)) & "." & Asc(Mid(mt, 3, 1)) & "." & Asc(Mid(mt, 2, 1)) * 256 + Asc(mt)
+        Next i
+        If pru = 1 Then
+         Print #220, ""
+        End If
+       Next pru
+      End If ' raen.Fields(colz + Offs).Type = adLongVarBinary Or raen.Fields(colz + Offs).Type = adLongVarChar Then ' 205
+     End If ' CStr(Wt(colz)) <> CStr(IIf(IsNull(raen.Fields(colz + Offs)), "NULL", raen.Fields(colz + Offs))) Then
+    End If ' runde = 0 else
     colz = colz + 1
     rcol.MoveNext
-   Loop
+   Loop ' While Not rcol.EOF
    runde = 1
    raen.MoveNext
-  Loop
+  Loop ' While Not raen.EOF
   Set raen = Nothing
 ' On Error Resume Next
 ' MOCon.Execute "ALTER TABLE `" & Tn & "` ADD SYSTEM VERSIONING"
@@ -1224,7 +1262,7 @@ Private Sub MedOffTabZahl_Click()
 '   DBCn.Execute "INSERT INTO moprot(server,datum,table_name,table_rows) VALUES('" & moser & "'," & jS & ",'" & tn & "','" & tr & "')"
 '  End If
   rsco.MoveNext
- Loop
+ Loop ' While Not rsco.EOF
  Close #220
  Set rsco = Nothing
  zeigan datnam
@@ -4177,7 +4215,7 @@ Sub doGNR_Statistiken_einl_Click(Optional obneu = 0)
       Dat1 = CDate(Mid$(F0, pZeitr + 26, 10))
       q0 = QuartalStr(Dat0)
       q1 = QuartalStr(Dat1)
-      If q0 <> q1 Or Dat0 <> QAnf(q0) Or Dat1 <> QEnd(q1) Then
+      If q0 <> q1 Or Dat0 <> fctQAnf(q0) Or Dat1 <> fctQEnd(q1) Then
 '       Stop
       Else
        Set rTest = Nothing

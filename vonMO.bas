@@ -20,6 +20,8 @@ Type memoType ' zur Übertragung der FMemo-Felder aus Medical Office
  ebn As Integer
  ENr As String
  Text As String
+ endse As String
+ endsz As String
 End Type ' memoType
 
 Type ebType
@@ -254,8 +256,12 @@ Public Function ParseMemo(FMemo$, MeStr() As memoType, Optional obDebug%, Option
     If pos > MAX Then
      obnaechst = True
     Else
-     If (Asc(Mid$(FMemo, aktmax, 1)) = 0 And aktmax <= MAX) Then
-      obnaechst = True
+     If aktmax <= MAX Then
+     ' zuvor:   If (Asc(Mid$(FMemo, aktmax, 1)) = 0 And aktmax <= MAX) Then obnaechst = true
+      If aktmax > Len(FMemo) Then
+      ElseIf Asc(Mid$(FMemo, aktmax, 1)) = 0 Then
+       obnaechst = True
+      End If
      End If
     End If ' pos > MAX
     If obnaechst Then
@@ -353,22 +359,21 @@ Public Function ParseMemo(FMemo$, MeStr() As memoType, Optional obDebug%, Option
    End If
   Next i
   Call memoaltloe(MeStr, -1, True)
-  If obDebug Then
-   For i = 0 To UBound(MeStr)
-    Dim endse$, endsz$
-    If MeStr(i).znr <= Len(FMemo) Then
-     endse = Asc(Mid$(FMemo, MeStr(i).znr, 1))
-    Else
-     endse = "!: " & MeStr(i).znr & ">" & Len(FMemo)
-    End If
-    If MeStr(i).znr <= Len(FMemo) - 1 Then
-     endsz = Asc(Mid$(FMemo, MeStr(i).znr + 1, 1)) * 256& + Asc(Mid$(FMemo, MeStr(i).znr, 1))
-    Else
-     endsz = "!: " & MeStr(i).znr - 1 & ">" & Len(FMemo)
-    End If
-    Print #255, MeStr(i).znr & "|" & MeStr(i).mx & "|" & MeStr(i).ebn & "|" & MeStr(i).ENr & "|" & IIf(endse <> "10", Mid$(FMemo, MeStr(i).znr, 1), "") & "|" & endse & "|" & endsz & "| Laenge: " & Len(MeStr(i).Text) & "|" & IIf(Right$(MeStr(i).Text, 1) = Chr$(10), Left$(MeStr(i).Text, IIf(Len(MeStr(i).Text) = 0, 1, Len(MeStr(i).Text)) - 1), MeStr(i).Text)
-   Next i
-  End If ' obdebug
+  For i = 0 To UBound(MeStr)
+   If MeStr(i).znr <= Len(FMemo) Then
+    MeStr(i).endse = Asc(Mid$(FMemo, MeStr(i).znr, 1))
+   Else
+    MeStr(i).endse = "!: " & MeStr(i).znr & ">" & Len(FMemo)
+   End If
+   If MeStr(i).znr <= Len(FMemo) - 1 Then
+    MeStr(i).endsz = Asc(Mid$(FMemo, MeStr(i).znr + 1, 1)) * 256& + Asc(Mid$(FMemo, MeStr(i).znr, 1))
+   Else
+    MeStr(i).endsz = "!: " & MeStr(i).znr - 1 & ">" & Len(FMemo)
+   End If
+   If obDebug Then
+    Print #255, MeStr(i).znr & "|" & MeStr(i).mx & "|" & MeStr(i).ebn & "|" & MeStr(i).ENr & "|" & IIf(MeStr(i).endse <> "10", Mid$(FMemo, MeStr(i).znr, 1), "") & "|" & MeStr(i).endse & "|" & MeStr(i).endsz & "| Laenge: " & Len(MeStr(i).Text) & "|" & IIf(Right$(MeStr(i).Text, 1) = Chr$(10), Left$(MeStr(i).Text, IIf(Len(MeStr(i).Text) = 0, 1, Len(MeStr(i).Text)) - 1), MeStr(i).Text)
+   End If ' obDebug
+  Next i
   If obDebug Then
    Print #255, vbCrLf
    Close #255
@@ -501,9 +506,9 @@ End Function ' zeigmosystem()
 
 ' in PatvonMO_Click
 Public Function doPatvonMO(pNr&)
+ Dim pid&, pos&, SchGr%, j&, jj%, rAf&, rInh$, Puls$, Bem$ ' , aktZeit As Date
  Const obDebug% = True, obszn4% = False
- Dim pid&, pos&, SchGr%, j&, jj%, rAf&, aktZeit As Date
- pNr& = 98 ' 63635 ' 64800 ' 69333 ' 68316 ' 65405 ' 45 ' 64659 ' 45 ' 69367 ' 69377 ' 53119 ' 51630 ' 105 ' 18 ' 246 ' 59152 ' 1394 ' 2112 ' 151 ' 225 '
+ pNr& = 63635 ' 67180 ' 63635 ' 64800 ' 69333 ' 68316 ' 65405 ' 45 ' 64659 ' 45 ' 69367 ' 69377 ' 53119 ' 51630 ' 105 ' 18 ' 246 ' 59152 ' 1394 ' 2112 ' 151 ' 225 '
  pid = pNr + 100000
  Static lfdfl&
  Dim rsNa As New ADODB.Recordset, rsFa As New ADODB.Recordset, rsMo As New ADODB.Recordset
@@ -512,6 +517,10 @@ Public Function doPatvonMO(pNr&)
  Dim EintS As SortierEintr
  Dim EinL As New SortierListe
  aktZeit = Now()
+' BegTrans
+ Call Tinit
+ Call doTabVorb(Lese, 0, 0) ' obVorber, obmitFormularen)
+' ComTrans
  Call LöschePat(pid)
 ' On Error Resume Next
 ' If obDebug Then FSO.DeleteFile parsemotxt
@@ -523,8 +532,10 @@ Public Function doPatvonMO(pNr&)
  Else
   MOCon.Open MOCStr
  End If
+ syscmd 4, "Lade MOSystem"
  ' unter Ado müssen die Memo-Felder auf latin1 übersetzt werden für die Zahlen > 128 (nicht in HeidiSQL)
- sql = "SELECT COALESCE(CONVERT(FKategorieliste USING latin1),'') FKat, COALESCE(CONVERT(Ftextkategorieliste USING latin1),'') Ftk, COALESCE(CONVERT(fAblageliste USING latin1),'') FAb, COALESCE(CONVERT(fAuftragstypenliste USING latin1),'') FAuf, COALESCE(CONVERT(FMemo USING latin1),'') Fm FROM mosystem"
+ sql = "SELECT COALESCE(CONVERT(FKategorieliste USING latin1),'') FKat, COALESCE(CONVERT(Ftextkategorieliste USING latin1),'') Ftk, COALESCE(CONVERT(fAblageliste USING latin1),'') FAb, COALESCE(CONVERT(fAuftragstypenliste USING latin1),'') FAuf, COALESCE(CONVERT(FMemo USING latin1),'') Fm " & vbCrLf & _
+ "FROM mosystem"
  rsMo.Open sql, MOCon, adOpenStatic, adLockReadOnly
  If Not rsMo.BOF Then
   If rsMo!fm <> "" Then
@@ -550,6 +561,7 @@ Public Function doPatvonMO(pNr&)
   End If ' MsMo!fm <> ""
  End If ' Not rsMo.BOF Then
  
+ syscmd 4, "befülle Tabelle rna"
  ' konnte nicht genau rausfinden, wann FMemo richtig übermittelt wird, evtl. erst als zweites Feld, evtl. nicht unter dem Namen FMemo
  sql = "SELECT fsurogat nix, COALESCE(CONVERT(FMemo USING latin1),'') Fm, p.* from patstamm p WHERE FSurogat=" & pNr
  rsNa.Open sql, MOCon, adOpenStatic, adLockReadOnly
@@ -661,6 +673,8 @@ Public Function doPatvonMO(pNr&)
     If rsFa!FVorhanden <> " " And rsFa!FVorhanden <> "" Then
       rFa(UBound(rFa)).KartBes = rsFa!FVorhanden
     End If
+    
+    syscmd 4, "befülle Tabelle rfa"
 '    rFa(UBound(rFa)).lanrid = IIf(rsFa!FLstgerbnr = 3, 2, 1) ' 2 = Schade, 3 = Kothny
     rFa(UBound(rFa)).lanrid = IIf(InStrB(rsFa!FNachname, "Kothny") <> 0, 2, 1) ' 2 = Schade, 3 = Kothny
     Select Case rsFa!fscheintyp
@@ -994,6 +1008,7 @@ Public Function doPatvonMO(pNr&)
    rAbr.MoveNext
   Loop
 
+  syscmd 4, "bearbeite Einträge"
   Dim Art$, a1$, a2$, apos&, abz%
   Dim rsEi As New ADODB.Recordset
 '  FBehgrundnr>0: Diagnosen
@@ -1019,15 +1034,19 @@ Public Function doPatvonMO(pNr&)
 '        FLstGerbNr 1,2 oder 4
   sql = _
 "SELECT" & vbCrLf & _
-"IF(INSTR(FDetails,'Testid'),MID(FDetails,LOCATE('Testid',FDetails)+LENGTH('Testid')+2,LOCATE('""',FDetails,LOCATE('Testid',FDetails)+LENGTH('Testid')+2)-LOCATE('Testid',FDetails)-LENGTH('Testid')-2),'') Testid," & vbCrLf & _
-"IF(INSTR(FDetails,'Testname'),MID(FDetails,LOCATE('Testname',FDetails)+LENGTH('Testname')+2,LOCATE('""',FDetails,LOCATE('Testname',FDetails)+LENGTH('Testname')+2)-LOCATE('Testname',FDetails)-LENGTH('Testname')-2),'') Testname," & vbCrLf & _
-"IF(INSTR(FDetails,'Erggenau'),MID(FDetails,LOCATE('Erggenau',FDetails)+LENGTH('Erggenau')+1,LOCATE(')',FDetails,LOCATE('Erggenau',FDetails)+LENGTH('Erggenau')+1)-LOCATE('Erggenau',FDetails)-LENGTH('Erggenau')-1),'') Erggenau," & vbCrLf & _
-"IF(INSTR(FDetails,'Normtext'),MID(FDetails,LOCATE('Normtext',FDetails)+LENGTH('Normtext')+2,LOCATE('""',FDetails,LOCATE('Normtext',FDetails)+LENGTH('Normtext')+2)-LOCATE('Normtext',FDetails)-LENGTH('Normtext')-2),'') Normtext," & vbCrLf & _
-"IF(INSTR(FDetails,'EWert'),MID(FDetails,LOCATE('EWert',FDetails)+LENGTH('EWert')+1,LOCATE(')',FDetails,LOCATE('EWert',FDetails)+LENGTH('EWert')+1)-LOCATE('EWert',FDetails)-LENGTH('EWert')-1),'') EWert," & vbCrLf & _
-"IF(INSTR(FDetails,'Etext'),MID(FDetails,LOCATE('Etext',FDetails)+LENGTH('Etext')+2,LOCATE('""',FDetails,LOCATE('Etext',FDetails)+LENGTH('Etext')+2)-LOCATE('Etext',FDetails)-LENGTH('Etext')-2),'') Etext," & vbCrLf & _
-"IF(INSTR(FDetails,'Einheit'),MID(FDetails,LOCATE('Einheit',FDetails)+LENGTH('Einheit')+2,LOCATE('""',FDetails,LOCATE('Einheit',FDetails)+LENGTH('Einheit')+2)-LOCATE('Einheit',FDetails)-LENGTH('Einheit')-2),'') Einheit," & vbCrLf & _
-"IF(INSTR(FDetails,'Testhinweis'),MID(FDetails,LOCATE('Testhinweis',FDetails)+LENGTH('Testhinweis')+2,LOCATE('""',FDetails,LOCATE('Testhinweis',FDetails)+LENGTH('Testhinweis')+2)-LOCATE('Testhinweis',FDetails)-LENGTH('Testhinweis')-2),'') Testhinweis," & vbCrLf & _
-"18900101+INTERVAL FDatum DAY+INTERVAL FZeit SECOND Zp, na.FUsername ua, nb.FUsername ub, l.*, IF(INSTR(FText,':') BETWEEN 1 AND 6,LEFT(FText,INSTR(FText,':')-1),'') art, IF(INSTR(FText,':') BETWEEN 1 AND 6,TRIM(MID(FText,INSTR(FText,':')+1)),FText) ename FROM ltag l LEFT JOIN nutzerneu na ON FAnordnutzernr= na.FSurogat LEFT JOIN nutzerneu nb ON FAusfnutzernr= nb.FSurogat WHERE l.fpatnr=64800 AND l.fStatus IN (2) AND FEintragsart IN (5) ORDER BY l.FSurogat, Zp;"
+"IF(INSTR(FDet,'Testid'),MID(FDet,LOCATE('Testid',FDet)+LENGTH('Testid')+2,LOCATE('""',FDet,LOCATE('Testid',FDet)+LENGTH('Testid')+2)-LOCATE('Testid',FDet)-LENGTH('Testid')-2),'') Testid," & vbCrLf & _
+"IF(INSTR(FDet,'Testname'),MID(FDet,LOCATE('Testname',FDet)+LENGTH('Testname')+2,LOCATE('""',FDet,LOCATE('Testname',FDet)+LENGTH('Testname')+2)-LOCATE('Testname',FDet)-LENGTH('Testname')-2),'') Testname," & vbCrLf & _
+"IF(INSTR(FDet,'Erggenau'),MID(FDet,LOCATE('Erggenau',FDet)+LENGTH('Erggenau')+1,LOCATE(')',FDet,LOCATE('Erggenau',FDet)+LENGTH('Erggenau')+1)-LOCATE('Erggenau',FDet)-LENGTH('Erggenau')-1),'') Erggenau," & vbCrLf & _
+"IF(INSTR(FDet,'Normtext'),MID(FDet,LOCATE('Normtext',FDet)+LENGTH('Normtext')+2,LOCATE('""',FDet,LOCATE('Normtext',FDet)+LENGTH('Normtext')+2)-LOCATE('Normtext',FDet)-LENGTH('Normtext')-2),'') Normtext," & vbCrLf & _
+"IF(INSTR(FDet,'EWert'),MID(FDet,LOCATE('EWert',FDet)+LENGTH('EWert')+1,LOCATE(')',FDet,LOCATE('EWert',FDet)+LENGTH('EWert')+1)-LOCATE('EWert',FDet)-LENGTH('EWert')-1),'') EWert," & vbCrLf & _
+"IF(INSTR(FDet,'Etext'),MID(FDet,LOCATE('Etext',FDet)+LENGTH('Etext')+2,LOCATE('""',FDet,LOCATE('Etext',FDet)+LENGTH('Etext')+2)-LOCATE('Etext',FDet)-LENGTH('Etext')-2),'') Etext," & vbCrLf & _
+"IF(INSTR(FDet,'(Einheit'),MID(FDet,LOCATE('(Einheit',FDet)+LENGTH('(Einheit')+2,LOCATE('""',FDet,LOCATE('(Einheit',FDet)+LENGTH('(Einheit')+2)-LOCATE('(Einheit',FDet)-LENGTH('(Einheit')-2),'') Einheit," & vbCrLf & _
+"IF(INSTR(FDet,'Testhinweis'),MID(FDet,LOCATE('Testhinweis',FDet)+LENGTH('Testhinweis')+2,LOCATE('""',FDet,LOCATE('Testhinweis',FDet)+LENGTH('Testhinweis')+2)-LOCATE('Testhinweis',FDet)-LENGTH('Testhinweis')-2),'') Testhinweis," & vbCrLf & _
+"18900101+INTERVAL FDatum DAY+INTERVAL FZeit SECOND Zp, na.FUsername ua, nb.FUsername ub, l.*, IF(INSTR(FText,':') BETWEEN 1 AND 6,LEFT(FText,INSTR(FText,':')-1),'') art, IF(INSTR(FText,':') BETWEEN 1 AND 6,TRIM(MID(FText,INSTR(FText,':')+1)),FText) ename " & vbCrLf & _
+"FROM (SELECT REPLACE(REPLACE(FDetails,'\n',' '),'\""','""') FDet, l.* FROM ltag l) l " & vbCrLf & _
+"LEFT JOIN nutzerneu na ON FAnordnutzernr= na.FSurogat " & vbCrLf & _
+"LEFT JOIN nutzerneu nb ON FAusfnutzernr= nb.FSurogat " & vbCrLf & _
+"WHERE l.fpatnr=" & pNr & " AND l.fStatus IN (2) AND FEintragsart IN (5) ORDER BY l.FSurogat, Zp;"
   
   myFrag rsEi, sql, adOpenStatic, MOCon
   If Not rsEi.BOF Then
@@ -1062,7 +1081,13 @@ Public Function doPatvonMO(pNr&)
 
 '  sql = "SELECT 18900101+INTERVAL FDatum DAY+INTERVAL FZeit SECOND Zp, FICdcode Art, MID(fdetails,INSTR(fdetails,'ext ""')+5,LENGTH(fdetails)-2-INSTR(fdetails,'ext ""')-5) FText, FEintragsart, f.* FROM ltag f WHERE fpatnr = " & pNr & " AND ((FEintragsart=5 and FStatus=0) OR FEintragsart IN (8,10,11,151,1001,1002,1003,1004,1006)) AND fbehgrundnr<=0"
 ' Dokumente
-  sql = "SELECT 18900101+INTERVAL FDatum DAY+INTERVAL FZeit SECOND Zp, na.FUsername ua, nb.FUsername ub, l.*, d.*,IF(INSTR(FText,':') BETWEEN 1 AND 6,LEFT(FText,INSTR(FText,':')-1),'') art, IF(INSTR(FText,':') BETWEEN 1 AND 6,TRIM(MID(FText,INSTR(FText,':')+1)),FText) ename FROM ltag l INNER JOIN datafile d ON l.FSurogat=d.FReferenznr LEFT JOIN nutzerneu na ON FAnordnutzernr= na.FSurogat LEFT JOIN nutzerneu nb ON FAusfnutzernr= nb.FSurogat WHERE l.fpatnr=" & pNr & " /*AND feintragsart IN (5,50,51,148,151,166,169,501,598)*/ ORDER BY l.FSurogat, Zp"
+  sql = "SELECT 18900101+INTERVAL FDatum DAY+INTERVAL FZeit SECOND Zp, na.FUsername ua, nb.FUsername ub, l.*, d.*,IF(INSTR(FText,':') BETWEEN 1 AND 6,LEFT(FText,INSTR(FText,':')-1),'') art, IF(INSTR(FText,':') BETWEEN 1 AND 6,TRIM(MID(FText,INSTR(FText,':')+1)),FText) ename " & vbCrLf & _
+  "FROM ltag l " & vbCrLf & _
+  "INNER JOIN datafile d ON l.FSurogat=d.FReferenznr " & vbCrLf & _
+  "LEFT JOIN nutzerneu na ON FAnordnutzernr= na.FSurogat " & vbCrLf & _
+  "LEFT JOIN nutzerneu nb ON FAusfnutzernr= nb.FSurogat " & vbCrLf & _
+  "WHERE l.fpatnr=" & pNr & " /*AND feintragsart IN (5,50,51,148,151,166,169,501,598)*/ " & vbCrLf & _
+  "ORDER BY l.FSurogat, Zp"
   myFrag rsEi, sql, adOpenStatic, MOCon
   If Not rsEi.BOF Then
    Do While Not rsEi.EOF
@@ -1083,8 +1108,14 @@ Public Function doPatvonMO(pNr&)
     rsEi.MoveNext
    Loop ' while not rsEi.EOF
   End If ' Not rsEi.BOF Then
+  
 ' Medplan
-  sql = "SELECT 18900101+INTERVAL FDatum DAY+INTERVAL FZeit SECOND Zp, l.*, m.*, COALESCE(CONVERT(m.FMemo USING latin1),'') Fm FROM ltag l INNER JOIN meddosis m ON l.FText='Dosierplan' AND l.FSurogat=m.FDosierplannr WHERE l.fpatnr=" & pNr & " AND FVerbindungsschluessel<>'#ZWTEXT#' ORDER BY l.FSurogat, FDosierplanpos"
+  sql = "SELECT 18900101+INTERVAL FDatum DAY+INTERVAL FZeit SECOND Zp, na.FUsername ua, REPLACE(FDosiertext,CHR(0),'') FDt, REPLACE(FHinweise,CHR(0),'') FHw, REPLACE(FBemerkung,CHR(0),'') FBm, l.*, m.*, COALESCE(CONVERT(m.FMemo USING latin1),'') Fm " & vbCrLf & _
+        "FROM ltag l INNER JOIN meddosis m ON l.FText='Dosierplan' AND l.FSurogat=m.FDosierplannr " & vbCrLf & _
+        "LEFT JOIN nutzerneu na ON FNutzernr= na.FSurogat " & vbCrLf & _
+        "WHERE l.fpatnr=" & pNr & " AND FVerbindungsschluessel<>'#ZWTEXT#' " & vbCrLf & _
+        "ORDER BY l.FSurogat, FDosierplanpos"
+' '#ZWTEXT#' sind Zwischenüberschriften, z.B. "Bedarfsmedikation"; der numerische Verbindungsschlüssel scheint ansonsten redundant gegenüber l.FSurogat=m.FDosierplannr
   myFrag rsEi, sql, adOpenStatic, MOCon
   If Not rsEi.BOF Then
    Dim MPNr&, Fldnr%, altlFSur&
@@ -1092,41 +1123,65 @@ Public Function doPatvonMO(pNr&)
     If altlFSur <> rsEi!FDosierplannr Then MPNr = MPNr + 1: Fldnr = 1 Else Fldnr = Fldnr + 1
     ReDim Preserve rMe(UBound(rMe) + 1)
     rMe(UBound(rMe)).Pat_id = pid
+    rMe(UBound(rMe)).Nutzer = rsEi!ua
     rMe(UBound(rMe)).aktZeit = aktZeit
     rMe(UBound(rMe)).Zeitpunkt = rsEi!Zp
     rMe(UBound(rMe)).Datum = rsEi!Zp
     rMe(UBound(rMe)).MPNr = MPNr
     rMe(UBound(rMe)).FeldNr = Fldnr
-    If rsEi!FVerbindungsschluessel <> "#TEXT#" Or rsEi!fhinweise <> "" Then rMe(UBound(rMe)).Medikament = rsEi!FMedikamentname Else rMe(UBound(rMe)).Bemerkung = rsEi!FMedikamentname
-    If rsEi!fhinweise <> "" Then rMe(UBound(rMe)).Bemerkung = rsEi!fhinweise
+    If rsEi!FVerbindungsschluessel <> "#TEXT#" Or rsEi!FHinweise <> "" Then
+     rMe(UBound(rMe)).Medikament = rsEi!FMedikamentname
+     rMe(UBound(rMe)).MedAnfang = GetMed(rMe(UBound(rMe)).Medikament, 0).Value
+    Else
+     rMe(UBound(rMe)).Bemerkung = rsEi!FMedikamentname ' Inhalt einer Freitextzeile
+    End If
     rMe(UBound(rMe)).Wirkstoff = rsEi!FWirkstoff
     If rsEi!FPzn > 0 Then rMe(UBound(rMe)).PZN = rsEi!FPzn
     rMe(UBound(rMe)).Grund = rsEi!FGrund
-    rMe(UBound(rMe)).Wirkstoff = rsEi!FWirkstoff
+    rMe(UBound(rMe)).Einheit = rsEi!FPackeinheit
+    rMe(UBound(rMe)).Form = rsEi!FDosierform
+    rMe(UBound(rMe)).Stärke = rsEi!FWirkstaerke
+    On Error Resume Next
+    rMe(UBound(rMe)).Menge = rsEi!FStartmenge
+    On Error GoTo fehler
     altlFSur = rsEi!FDosierplannr
     If rsEi!fm <> "" Then
      Call ParseMemo(rsEi!fm, FMem(), obDebug, "FMemo aus meddosis")
      For j = 0 To UBound(FMem)
       Select Case FMem(j).ENr
+       Case "2": rMe(UBound(rMe)).Einheit = FMem(j).Text
        Case "4": rMe(UBound(rMe)).mo = FMem(j).Text
        Case "5": rMe(UBound(rMe)).mi = FMem(j).Text
        Case "6": rMe(UBound(rMe)).nm = FMem(j).Text
        Case "7": rMe(UBound(rMe)).ab = FMem(j).Text
        Case "8": rMe(UBound(rMe)).Zn = FMem(j).Text
+       Case "9": rMe(UBound(rMe)).Bemerkung = IIf(rMe(UBound(rMe)).Bemerkung = "", "", rMe(UBound(rMe)).Bemerkung & "; ") & "geb.ZZ: " & FMem(j).Text
        Case "12": rMe(UBound(rMe)).Datum = stzk(FMem(j).Text)
+       Case "14": rMe(UBound(rMe)).Bemerkung = IIf(rMe(UBound(rMe)).Bemerkung = "", "", rMe(UBound(rMe)).Bemerkung & "; ") & "Komm.: " & FMem(j).Text
+       Case "18": rMe(UBound(rMe)).Bemerkung = IIf(rMe(UBound(rMe)).Bemerkung = "", "", rMe(UBound(rMe)).Bemerkung & "; ") & "Abghw: " & FMem(j).Text
       End Select
      Next j
     End If
+    If rsEi!fdt <> "" Then rMe(UBound(rMe)).Bemerkung = IIf(rMe(UBound(rMe)).Bemerkung = "", "", rMe(UBound(rMe)).Bemerkung & "; ") & rsEi!fdt
+    If rsEi!FHw <> "" Then rMe(UBound(rMe)).Bemerkung = IIf(rMe(UBound(rMe)).Bemerkung = "", "", rMe(UBound(rMe)).Bemerkung & "; ") & rsEi!FHw
+    If rsEi!FBm <> "" Then rMe(UBound(rMe)).Bemerkung = IIf(rMe(UBound(rMe)).Bemerkung = "", "", rMe(UBound(rMe)).Bemerkung & "; ") & "Bem: " & rsEi!FBm
+    
+    If rMe(UBound(rMe)).mo = "" Then If rsEi!FModosis <> -1.7E+308 Then rMe(UBound(rMe)).mo = rsEi!FModosis
+    If rMe(UBound(rMe)).mi = "" Then If rsEi!Fmidosis <> -1.7E+308 Then rMe(UBound(rMe)).mi = rsEi!Fmidosis
+    If rMe(UBound(rMe)).nm = "" Then If rsEi!Fnmdosis <> -1.7E+308 Then rMe(UBound(rMe)).nm = rsEi!Fnmdosis
+    If rMe(UBound(rMe)).ab = "" Then If rsEi!Fabdosis <> -1.7E+308 Then rMe(UBound(rMe)).ab = rsEi!Fabdosis
+    If rMe(UBound(rMe)).Zn = "" Then If rsEi!FNadosis <> -1.7E+308 Then rMe(UBound(rMe)).Zn = rsEi!FNadosis
     rsEi.MoveNext
    Loop ' while not rsEi.EOF
   End If ' Not rsEi.BOF Then
 
 '  Leistungen
   sql = "SELECT 18900101+INTERVAL FDatum DAY+INTERVAL FZeit SECOND Zp, MID(18900101+INTERVAL FDatum DAY+INTERVAL FZeit SECOND,12,5) uhrz, FICdcode Art," & _
-  "COALESCE(REPLACE(MID(fdetails,INSTR(fdetails,'ext ""')+5,LENGTH(fdetails)-2-INSTR(fdetails,'ext ""')-5),'\n','; '),FText) FText," & _
+  "COALESCE(REPLACE(MID(FDetails,INSTR(FDetails,'ext ""')+5,LENGTH(FDetails)-2-INSTR(FDetails,'ext ""')-5),'\n','; '),FText) FText," & _
   "FEintragsart, 18900101+INTERVAL FAnorddatum DAY+INTERVAL FAnordzeit SECOND AnZp," & _
   "na.Finitialen ua, nb.finitialen ub, REPLACE(REPLACE(FDetails,'{(Gnrliste [',''),'])}','') Lei " & _
-  "FROM ltag f LEFT JOIN nutzerneu na ON FAnordnutzernr= na.FSurogat " & _
+  "FROM ltag l " & vbCrLf & _
+  "LEFT JOIN nutzerneu na ON FAnordnutzernr= na.FSurogat " & _
   "LEFT JOIN nutzerneu nb ON FAusfnutzernr= nb.FSurogat " & _
   "WHERE FPatnr = " & pNr & _
   " AND FEintragsart=12" ' & _
@@ -1198,12 +1253,14 @@ Public Function doPatvonMO(pNr&)
             rLe(UBound(rLe)).Charge = REPLACE$(Inh, "Chargennummer", "")
           Case "Bsnr"
            rLe(UBound(rLe)).BSNR = Inh
-           For abz = 0 To UBound(rab)
-            If rab(abz).fS = Inh Then
-             rLe(UBound(rLe)).LBSNR = rab(abz).BSNR
-             Exit For
-            End If
-           Next abz
+           If SafeArrayGetDim(rab) <> 0 Then
+            For abz = 0 To UBound(rab)
+             If rab(abz).fS = Inh Then
+              rLe(UBound(rLe)).LBSNR = rab(abz).BSNR
+              Exit For
+             End If
+            Next abz
+           End If
           Case Else
            Debug.Print BDTz
          End Select
@@ -1235,7 +1292,8 @@ Public Function doPatvonMO(pNr&)
   "COALESCE(REPLACE(MID(fdetails,INSTR(fdetails,'ext ""')+5,LENGTH(fdetails)-2-INSTR(fdetails,'ext ""')-5),'\n','; '),FText) FText," & _
   "FEintragsart, 18900101+INTERVAL FAnorddatum DAY+INTERVAL FAnordzeit SECOND AnZp," & _
   "na.Finitialen ua, nb.finitialen ub, MID(ftext,4,1) Art, IF(MID(ftext,4,1)='E',MID(ftext,INSTR(ftext,' ')+1,8),'') von, MID(ftext,INSTR(ftext,'- ')+2,8) bis, MID(ftext,INSTR(ftext,': ')+2) diag " & _
-  "FROM ltag f LEFT JOIN nutzerneu na ON FAnordnutzernr= na.FSurogat " & _
+  "FROM ltag f " & vbCrLf & _
+  "LEFT JOIN nutzerneu na ON FAnordnutzernr= na.FSurogat " & _
   "LEFT JOIN nutzerneu nb ON FAusfnutzernr= nb.FSurogat " & _
   "WHERE FPatnr = " & pNr & _
   " AND FEintragsart=19" & _
@@ -1246,7 +1304,7 @@ Public Function doPatvonMO(pNr&)
     ReDim Preserve rAu(UBound(rAu) + 1)
     rAu(UBound(rAu)).aktZeit = aktZeit
     rAu(UBound(rAu)).Pat_id = pid
-    rAu(UBound(rAu)).Zeitpunkt = rsEi!AnZp
+    rAu(UBound(rAu)).Zeitpunkt = rsEi!anzp
     rAu(UBound(rAu)).Ersteller = rsEi!ua
     rAu(UBound(rAu)).Änderer = rsEi!ub
     rAu(UBound(rAu)).Art = rsEi!Art
@@ -1270,19 +1328,27 @@ Public Function doPatvonMO(pNr&)
   myFrag rsEi, sql, adOpenStatic, MOCon ' Einträge
   If Not rsEi.BOF Then
    Do While Not rsEi.EOF
+    messDatum = rsEi!anzp
+    Art = rsEi!Art
     Select Case UCase$(Art)
      Case "RR", "RRVGL"
-      
+      rInh = rsEi!FText
+      Bem = rInh
+'      If InStrB(rInh, "P") <> 0 Then Stop
+      Puls = holPuls(rInh, Bem) ' ändert u.U. rInh
+      RREintr rInh
+      If InStr(Bem, rInh) = 1 Then Bem = Mid$(Bem, Len(rInh) + 1)
+      rRr(UBound(rRr)).Bemerkung = Bem
+      If IsNumeric(Puls) Then rRr(UBound(rRr)).Puls = Puls
      Case Else
       ReDim Preserve rEi(UBound(rEi) + 1)
       rEi(UBound(rEi)).aktZeit = aktZeit
       rEi(UBound(rEi)).Pat_id = pid
-      rEi(UBound(rEi)).Zeitpunkt = rsEi!AnZp
+      rEi(UBound(rEi)).Zeitpunkt = messDatum
       rEi(UBound(rEi)).QS = ZQSort(rEi(UBound(rEi)).Zeitpunkt)
       rEi(UBound(rEi)).QT = ZQuart(rEi(UBound(rEi)).Zeitpunkt)
       rEi(UBound(rEi)).Ersteller = rsEi!ua
       rEi(UBound(rEi)).Änderer = rsEi!ub
-      Art = rsEi!Art
       If Art <> "" Then
        apos = InStr(Art, "#")
        If apos > 1 Then ' z.B. LF#LF nach Datenübertragung
@@ -1302,8 +1368,8 @@ Public Function doPatvonMO(pNr&)
       End If ' rEi(UBound(rEi)).Art = "" Then
       rEi(UBound(rEi)).Inhalt = rsEi!FText
       If rEi(UBound(rEi)).Art = "GEWICHT" And IsNumeric(rEi(UBound(rEi)).Inhalt) Then rEi(UBound(rEi)).Inhalt = rEi(UBound(rEi)).Inhalt & " kg"
-      rsEi.MoveNext
     End Select ' ucase$(art)
+    rsEi.MoveNext
    Loop ' while not rsEi.EOF
   End If ' Not rsEi.BOF Then
 

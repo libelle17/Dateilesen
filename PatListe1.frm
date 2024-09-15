@@ -1251,7 +1251,7 @@ Sub doFS(nuranzeigen%, Optional ohneakt% = False)
   Pause (Pausenlänge)
   SendKeys " ", True
   Pause (Pausenlänge)
-  SendKeys " " & Format(MINvb(Now(), QEnd(ZQuart(Now() - Verspätung))), "ddmmyyyy") & "{TAB}", True
+  SendKeys " " & Format(MINvb(Now(), fctQEnd(ZQuart(Now() - Verspätung))), "ddmmyyyy") & "{TAB}", True
   Pause (Pausenlänge)
   SendKeys "%O", True
   Pause (Pausenlänge)
@@ -1454,7 +1454,7 @@ Public Sub callMachDMPBogen(Pat_id&, Optional VorDoku$, Optional obmitauswahl%, 
         If rDok.EOF Then Exit For
         AktCol = j
 '        IF VorDokuSp = 0 THEN VorDokuSp = AktCol
-        VorDoku = rDok!art & " " & Format(rDok!DokuDatum, "dd.mm.yy")
+        VorDoku = rDok!Art & " " & Format(rDok!DokuDatum, "dd.mm.yy")
         If rDok!Ok And rDok!ausgedruckt Then
          VorDoku = VorDoku & " ok"
         ElseIf j = begcol And Not obraus Then
@@ -1473,7 +1473,7 @@ Public Sub callMachDMPBogen(Pat_id&, Optional VorDoku$, Optional obmitauswahl%, 
      End If
  End If
  If dtyp = 2 Then If VorDoku = vNS Then BogArtVar = typ2neu Else BogArtVar = typ2alt Else If VorDoku = vNS Then BogArtVar = typ1neu Else BogArtVar = typ1alt
- DokuDat = MINvb(Now(), QEnd(ZQuart(Now() - Verspätung)))
+ DokuDat = MINvb(Now(), fctQEnd(ZQuart(Now() - Verspätung)))
  If obmitauswahl Then
   dmpba.Option1(BogArtVar - 1) = True
   Set dmpba.vater = Me
@@ -1663,15 +1663,15 @@ Public Sub domachDMPBogen(Pat_id&, BogArtlV As BogArtTyp, DokuDat As Date, Optio
   If auswlanr.Lanr = 0 Then Exit Sub
  End If ' autolanr Then else
  
-' DokuDat = qend(ZQuart(NOW() - Verspätung))
+' DokuDat = fctQEnd(ZQuart(NOW() - Verspätung))
  DokuDatS = Format(DokuDat, "dd.mm.yyyy")
  
 ' myFrag rsAnam, "SELECT * FROM `anamnesebogen` WHERE pat_id = " & Pat_id
 ' myFrag rnam, "SELECT * FROM `namen` WHERE pat_id = " & Pat_id
  Dim lVorl As Date
- myFrag rfal, "SELECT " & IIf(Not LVobMySQL, "top 1", "") & " * FROM `faelle` WHERE pat_id = " & Pat_id & " AND bhfb <= " & DatFor_k(MINvb(Now(), QEnd(ZQuart(Now() - Verspätung)))) & " ORDER BY bhfb DESC, schgr" & IIf(LVobMySQL, " LIMIT 1", "")
+ myFrag rfal, "SELECT " & IIf(Not LVobMySQL, "top 1", "") & " * FROM `faelle` WHERE pat_id = " & Pat_id & " AND bhfb <= " & DatFor_k(MINvb(Now(), fctQEnd(ZQuart(Now() - Verspätung)))) & " ORDER BY bhfb DESC, schgr" & IIf(LVobMySQL, " LIMIT 1", "")
  lVorl = rfal!lVorl
- myFrag rform, "SELECT " & IIf(Not LVobMySQL, "top 1", "") & " `feldinh` FROM `formular` WHERE pat_id = " & Pat_id & " AND Feld = 'Kasse' AND `zeitpunkt` <= " & DatFor_k(MINvb(Now(), QEnd(ZQuart(Now - Verspätung)))) & " AND feldinh LIKE '%'" & " ORDER BY zeitpunkt DESC" & IIf(LVobMySQL, " LIMIT 1", "") ' & aktdc.vknr & "%'"  geht nicht gut: VKNr nicht unbedingt aktuell in `faelle` (s.Pat_id 51)
+ myFrag rform, "SELECT " & IIf(Not LVobMySQL, "top 1", "") & " `feldinh` FROM `formular` WHERE pat_id = " & Pat_id & " AND Feld = 'Kasse' AND `zeitpunkt` <= " & DatFor_k(MINvb(Now(), fctQEnd(ZQuart(Now - Verspätung)))) & " AND feldinh LIKE '%'" & " ORDER BY zeitpunkt DESC" & IIf(LVobMySQL, " LIMIT 1", "") ' & aktdc.vknr & "%'"  geht nicht gut: VKNr nicht unbedingt aktuell in `faelle` (s.Pat_id 51)
 ' Ermittlung der 'Kasse' aus Rezepten oder Überweisungen oder vorherigen DMP-Dokus usw.
  Call DMPAusgeb0(aktDC, CStr(Pat_id), Not obStumm, , DokuDat) ' dort wird DMPString aufgerufen
  Dim Kasse$
@@ -1692,7 +1692,7 @@ Public Sub domachDMPBogen(Pat_id&, BogArtlV As BogArtTyp, DokuDat As Date, Optio
  Set rform = Nothing
  
  
-' myFrag rform, "SELECT " & IIf(Not LVobMySQL, "top 1", "") & " feldinh FROM `formular` WHERE pat_id = " & Pat_id & " AND Feld = 'Status' AND zeitpunkt <= " & DatFor_k(min(NOW(), qend(ZQuart(Now - Verspätung)))) & " AND feldinh LIKE '% %'" & " ORDER BY zeitpunkt DESC" & IIf(LVobMySQL, " LIMIT 1", "")
+' myFrag rform, "SELECT " & IIf(Not LVobMySQL, "top 1", "") & " feldinh FROM `formular` WHERE pat_id = " & Pat_id & " AND Feld = 'Status' AND zeitpunkt <= " & DatFor_k(min(NOW(), fctQEnd(ZQuart(Now - Verspätung)))) & " AND feldinh LIKE '% %'" & " ORDER BY zeitpunkt DESC" & IIf(LVobMySQL, " LIMIT 1", "")
 ' IF Not rform.BOF THEN
 '  Status = rform!FeldInh
 ' Else
@@ -1700,7 +1700,7 @@ Public Sub domachDMPBogen(Pat_id&, BogArtlV As BogArtTyp, DokuDat As Date, Optio
 ' END IF
 ' SET rform = Nothing
  
- ' QAnf(ZQuart(NOW() - verspätung))
+ ' fctQAnf(ZQuart(NOW() - verspätung))
  
  #Const zumdebug = 0
  #If zumdebug = 1 Then
@@ -1841,7 +1841,7 @@ Public Sub domachDMPBogen(Pat_id&, BogArtlV As BogArtTyp, DokuDat As Date, Optio
    BDT.FIAdd "DM" & DmT & "." & IIf(obErstD, "E", "F") & "D"
    BDT.FFAdd "DokuVersion"
    ' 5.4.15: für 3/15 muss mit DokuVersion 10/14 dokumentiert werden, wer weiß, mit welcher künftig ...
-   BDT.FIAdd DokuVersion ' Format(QAnf(QuartalStr(DokuDat - 92)), "yyyymm") '=> haut nicht ganz hin
+   BDT.FIAdd DokuVersion ' Format(fctQAnf(QuartalStr(DokuDat - 92)), "yyyymm") '=> haut nicht ganz hin
    Dim EinschrWg$
    Select Case DmT
     Case 1: EinschrWg = "1"
@@ -2160,14 +2160,14 @@ Public Sub domachDMPBogen(Pat_id&, BogArtlV As BogArtTyp, DokuDat As Date, Optio
    
    BDT.FFAdd "Strasse"
    BDT.FIAdd aktDC.strasse
-'   ErstellDat = Format(min(NOW(), qend(ZQuart(qend(ZQuart(Now - Verspätung))) + 1)), "ddmmyyyy")
-   'ErstellDat = Format(qend(ZQuart(qend(ZQuart(Now - Verspätung)) + 1)), "ddmmyyyy") ' 7.12.10
+'   ErstellDat = Format(min(NOW(), fctQEnd(ZQuart(fctQEnd(ZQuart(Now - Verspätung))) + 1)), "ddmmyyyy")
+   'ErstellDat = Format(fctQEnd(ZQuart(fctQEnd(ZQuart(Now - Verspätung)) + 1)), "ddmmyyyy") ' 7.12.10
    If ab1023 Then
     BDT.FFAdd "TeilnahmeHinweisAngezeigt"
     BDT.FIAdd "DM" & DmT
    End If
    If Not ab315 Then
-    ErstellDat = Format(QEnd(ZQuart(DokuDat)), "ddmmyyyy") ' 15.8.15
+    ErstellDat = Format(fctQEnd(ZQuart(DokuDat)), "ddmmyyyy") ' 15.8.15
     For i = 0 To 7
      BDT.FFAdd "TerminDM" & DmT & "#" & i
      BDT.FIAdd Mid$(ErstellDat, i + 1, 1)
@@ -2293,7 +2293,7 @@ Public Sub domachDMPBogen(Pat_id&, BogArtlV As BogArtTyp, DokuDat As Date, Optio
    ZsD = ZsD & "<BisDatumderGueltigkeit>" & Year(Now) + 1 & "-" & Right$("0" & Month(Now), 2) & "</BisDatumderGueltigkeit>"
 ' auskommentiert am 30.6.15, da bei Woltmann Fehler dadurch erzeugt ("Wenn eine Angabe im Feld KVK-Einlesedatum erfolgte, dann darf die Angabe der Statusergänzung nicht fehlen.")
    If ab0921 Then
-    ZsD = ZsD & "<KVKEinlesedatum>" & Format(MAXvb(QAnf(ZQuart(DokuDat)), lVorl), "yyyy-mm-dd") & "</KVKEinlesedatum>"
+    ZsD = ZsD & "<KVKEinlesedatum>" & Format(MAXvb(fctQAnf(ZQuart(DokuDat)), lVorl), "yyyy-mm-dd") & "</KVKEinlesedatum>"
    End If
    ZsD = ZsD & "<WohnsitzLaendercode>D</WohnsitzLaendercode>"
    If ab0921 Then
@@ -2670,8 +2670,8 @@ Public Sub domachDMPBogen(Pat_id&, BogArtlV As BogArtTyp, DokuDat As Date, Optio
     End If
 '   IF 1 = 1 THEN
     Dim dmpdat$, dmpdatop$
-    dmpdat = Format$(MIN(QEnd(ZQuart(Now - Verspätung)), Now), "dd.mm.yy")
-    dmpdatop = Format$(MIN(QEnd(ZQuart(Now - Verspätung)), Now), "ddmmyyyy")
+    dmpdat = Format$(MIN(fctQEnd(ZQuart(Now - Verspätung)), Now), "dd.mm.yy")
+    dmpdatop = Format$(MIN(fctQEnd(ZQuart(Now - Verspätung)), Now), "ddmmyyyy")
     Dim DatName$, DNn$
     DatName = pVerz & aktDC.Nachname & " " & aktDC.Vorname & " (PID" & aktDC.Pat_id & "), DMP-Formular vom " & dmpdat & ".pdf"
     DNn = Dir(DatName)
@@ -3239,7 +3239,7 @@ andSp:
     myFrag rs1, "SELECT zeitpunkt,art,inhalt FROM `eintraege` WHERE (art IN ('tk','gs','wd','ah') OR inhalt LIKE '%(gs)%' OR inhalt LIKE '%(tk)%' OR inhalt LIKE '%(wd)%' OR inhalt LIKE '%(ah)%') AND pat_id = " & CStr(pid) & " ORDER BY zeitpunkt DESC LIMIT 7"
     If Not rs1.BOF Then
      Do While Not rs1.EOF
-      Select Case rs1!art
+      Select Case rs1!Art
        Case "tk": Tkz = Tkz + 1
        Case "gs": gsz = gsz + 1
        Case "wd": wdz = wdz + 1
@@ -3277,7 +3277,7 @@ andSp:
 '    .ColSel = .Cols - 1
      For j = namsp To wertsp ' .Cols - 1
       .col = j
-      Select Case rs1!art
+      Select Case rs1!Art
        Case "tk"
 tk:
         .CellBackColor = IIf(j = namsp, HellRot, MittigRosa)        ' rötlich
@@ -3585,7 +3585,7 @@ Private Sub Form_Load()
      sql = "SELECT f.bhfb, dmpbeg notiz, dmpklass, tkz, n.pat_id, n.nachname, n.vorname, icd, kurzname " & _
       "FROM `namen` n " & _
       "LEFT JOIN `diagview` d ON n.pat_id = d.pat_id AND gicd RLIKE '^E1[0-4]' " & _
-      "LEFT JOIN `faelle` f ON f.pat_id = n.pat_id AND bhfb = (SELECT MAX(bhfb) FROM `faelle` WHERE pat_id = n.pat_id AND bhfb < " & DatFor_k(MINvb(Now(), QEnd(ZQuart(Now() - Verspätung)))) & ") " & _
+      "LEFT JOIN `faelle` f ON f.pat_id = n.pat_id AND bhfb = (SELECT MAX(bhfb) FROM `faelle` WHERE pat_id = n.pat_id AND bhfb < " & DatFor_k(MINvb(Now(), fctQEnd(ZQuart(Now() - Verspätung)))) & ") " & _
       "LEFT JOIN `anamnesebogen` a ON n.pat_id = a.pat_id " & _
       "LEFT JOIN `kassenliste` k ON k.ik = f.ik AND k.vknr = f.vknr "
       If Me.ohneTermine Then sql = sql & "LEFT JOIN termine t ON t.pid = n.pat_id AND DATE(t.zp) BETWEEN now() AND qende(NOW()) "
@@ -3691,7 +3691,7 @@ Private Sub Form_Load()
         If rDok.EOF Then Exit For
         .col = j
         If VorDokuSp = 0 Then VorDokuSp = .col
-        .Text = rDok!art & " " & Format(rDok!DokuDatum, "dd.mm.yy")
+        .Text = rDok!Art & " " & Format(rDok!DokuDatum, "dd.mm.yy")
         If rDok!Ok And rDok!ausgedruckt Then
          .Text = .Text & " ok"
         ElseIf j = begcol And Not obraus And ZQuart(BhFB) = ZQuart(Now() - Verspätung) Then ' letzte Bedingungen eingefügt 31.12.15
@@ -3700,15 +3700,15 @@ Private Sub Form_Load()
         End If
         If rDok!exportiert <> 0 Then
          .Text = .Text & " ex"
-         If rDok!art = "ED" Then .CellBackColor = Blau Else .CellBackColor = vbGelblichGrau ' blau / grau
+         If rDok!Art = "ED" Then .CellBackColor = Blau Else .CellBackColor = vbGelblichGrau ' blau / grau
         Else
-         If rDok!art = "ED" Then .CellBackColor = HellBlau
+         If rDok!Art = "ED" Then .CellBackColor = HellBlau
         End If
-        If rDok!art = "ED" Then oberst = True
+        If rDok!Art = "ED" Then oberst = True
         rDok.Move 1
        Next j
        Do While Not rDok.EOF
-        If rDok!art = "ED" Then oberst = True
+        If rDok!Art = "ED" Then oberst = True
         rDok.Move 1
        Loop
       End If ' not rdok!bof

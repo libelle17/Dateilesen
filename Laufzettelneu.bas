@@ -1888,7 +1888,7 @@ keinuzu:
 ' Nachschulungen festlegen
   If Not rs(Schuli).BOF Then
 ' 9.7.22: da das offenbar statt für Nachschulung für erneute Schulung verwendet wird, Erhöhung von 1 auf > 4 Jahre
-   If QEnd(ZQuart(Now)) - QAnf(ZQuart(rs(Schuli)!Zp)) > 4 * 365 Then
+   If fctQEnd(ZQuart(Now)) - fctQAnf(ZQuart(rs(Schuli)!Zp)) > 4 * 365 Then
     obnach = True
    End If
   End If
@@ -2326,7 +2326,7 @@ keinuzu:
     myFrag rLei, "SELECT zeitpunkt FROM `leistungen` WHERE pat_id = " & Pat_id & " AND leistung = '01732' ORDER BY zeitpunkt DESC"
     If rLei.BOF Then
      obGU = True
-    ElseIf QAnf(ZQuart(Now())) - QAnf(ZQuart(rLei!Zeitpunkt)) >= 2 * 365 Then
+    ElseIf fctQAnf(ZQuart(Now())) - fctQAnf(ZQuart(rLei!Zeitpunkt)) >= 2 * 365 Then
      obGU = True
     End If
     If obGU = True Then
@@ -2871,7 +2871,7 @@ keinuzu:
         If gefunden And rund(i) <> -1 Then
          Wert = Round(MachNumerisch(Wert), rund(i))
         End If
-        Zp = QAnf(ZQuart(zpu))
+        Zp = fctQAnf(ZQuart(zpu))
         If j = 1 Then
 ' wenn z.B. nicht in diesem Quartal (fqmin(i)=4) und auch nicht jünger als die Hälfte des entsprechenden Abstandes, dann rot
          If Fqmin(i) <> 0 Then

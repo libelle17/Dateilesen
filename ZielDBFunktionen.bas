@@ -90,7 +90,7 @@ Public Const artSpezBerat$ = artSpezÄrzte & ",'wr','jl','ga','ih','cr','tn','be'
 ' kb = Katja Butz
 ' mn = Milande Nana
 
-Public Const artSpezMA$ = "'tst','ke','hz','ns','mh','ag','ph','pq','er','ds','st','eb','us','sn','vb','mip','mm','rc','ik','ks','sb','cb','th','sp','ir','as','sa','sta','eg','ans','mc','rb','mi','gr','bs','sf','fs','eo','cd','mk','nb','sas','mf','bt'"
+Public Const artSpezMA$ = "'tst','ke','hz','ns','mh','ag','ph','pq','er','ds','st','eb','us','sn','vb','mip','mm','rc','ik','ks','sb','cb','th','sp','ir','as','sa','sta','eg','ans','mc','rb','mi','gr','bs','sf','fs','eo','cd','mk','nb','sas','mf','bt','ab','sh','an'"
 ' tst = Tamara Sturm
 ' cr = Cornelia Reindl
 '' eb = Elmas Balkan / Gürbüz
@@ -136,6 +136,9 @@ Public Const artSpezMA$ = "'tst','ke','hz','ns','mh','ag','ph','pq','er','ds','s
 ' sas = Sabrina Strasser
 ' mf = Melina Fischhold
 ' bt = Brigitte Tziutzukis
+' ab = Ayten Bülbül
+' sh = Sibora Hasani
+' an = Amssatou Ndjamawe
 '
 ' Einträge, die nicht automatisch mit einer Organuntersuchung verbunden sind
 Public Const artSpezEintr$ = "'notiz','mbf','telef'," & artSpezBerat & "," & artSpezMA & _
@@ -935,7 +938,7 @@ Dim fiabfr$
 ' Beim ersten Aufruf von diI muß Pid enthalten sein
 ' Dim aktdc.ab315%, aktdc.ab317%, aktdc.ab1023%
 
-If Not DokuDat Then DokuDat = MINvb(Now(), QEnd(ZQuart(Now() - Verspätung)))
+If Not DokuDat Then DokuDat = MINvb(Now(), fctQEnd(ZQuart(Now() - Verspätung)))
 aktDC.x_DokuDat = DokuDat
 ErgebDatei$ = aVerz & "DMP.txt"
 aktDC.ab315 = (DokuDat > #6/30/2015#)
@@ -1097,7 +1100,7 @@ If aktDC.Lkz = "" Then aktDC.Lkz = "D"
 aktDC.Postleitzahl = "D " & aktDC.plz & " " & aktDC.ort ' 1.1.15 Länderkennzeichen
 
 #If False Then ' 29.6.15, Woltmann
- myFrag rform, "SELECT " & IIf(Not LVobMySQL, "top 1", "") & " feldinh FROM `formular` WHERE pat_id = " & Pat_id & " AND Feld = 'KVKGueltig' AND zeitpunkt <= " & DatFor_k(MINvb(Now(), QEnd(ZQuart(Now - Verspätung)))) & " AND feldinh LIKE '%/%'" & " ORDER BY zeitpunkt DESC" & IIf(LVobMySQL, " LIMIT 1", "")
+ myFrag rform, "SELECT " & IIf(Not LVobMySQL, "top 1", "") & " feldinh FROM `formular` WHERE pat_id = " & Pat_id & " AND Feld = 'KVKGueltig' AND zeitpunkt <= " & DatFor_k(MINvb(Now(), fctQEnd(ZQuart(Now - Verspätung)))) & " AND feldinh LIKE '%/%'" & " ORDER BY zeitpunkt DESC" & IIf(LVobMySQL, " LIMIT 1", "")
  If Not rform.BOF Then
   Postleitzahl = Left$(Postleitzahl & Space$(25), 25) & rform!FeldInh
  Else
@@ -2192,23 +2195,23 @@ If aktDC.dtyp = "2" Then If mitStr Then TabPr "Lasertherapie:", IIf(aktDC.oblase
   End If
   
 ' 3. Reiter
- If diI("Z49", , QAnf(ZQuart(DokuDat))) Then
+ If diI("Z49", , fctQAnf(ZQuart(DokuDat))) Then
   aktDC.neuDial = True
   Set raDT = Nothing
  End If
- If diI("H54", , QAnf(ZQuart(DokuDat)), , "diagseite IN (' ','B')") Then
+ If diI("H54", , fctQAnf(ZQuart(DokuDat)), , "diagseite IN (' ','B')") Then
   aktDC.neuErbl = True
   Set raDT = Nothing
  End If
- If diI("Z44", , QAnf(ZQuart(DokuDat)), True) Then
+ If diI("Z44", , fctQAnf(ZQuart(DokuDat)), True) Then
   aktDC.neuAmp = True
   Set raDT = Nothing
  End If
- If diI("I21", , QAnf(ZQuart(DokuDat)), True) Then
+ If diI("I21", , fctQAnf(ZQuart(DokuDat)), True) Then
   aktDC.neuMI = True
   Set raDT = Nothing
  End If
- If diI("I61 I62 I63 I64", , QAnf(ZQuart(DokuDat)), True) Then
+ If diI("I61 I62 I63 I64", , fctQAnf(ZQuart(DokuDat)), True) Then
   aktDC.neuApo = True
   Set raDT = Nothing
  End If
@@ -2238,7 +2241,7 @@ If aktDC.dtyp = "2" Then If mitStr Then TabPr "Lasertherapie:", IIf(aktDC.oblase
   End If
   If mitStr Then TabPr "Schw.Hypoglyk./12 Mon:", aktDC.x_HypoStr
  Else ' Vgst > DokuDat - 92 Then else
-  myFrag rs, "SELECT COUNT(0) AS ct FROM `eintraege` WHERE pat_id = " & pid & " AND art = 'hypo' AND zeitpunkt >= " & DatFor_k(QAnf(ZQuart(DokuDat)))
+  myFrag rs, "SELECT COUNT(0) AS ct FROM `eintraege` WHERE pat_id = " & pid & " AND art = 'hypo' AND zeitpunkt >= " & DatFor_k(fctQAnf(ZQuart(DokuDat)))
   aktDC.hypoZKK = rs!ct
   Set rs = Nothing
   If IsNumeric(aktDC.dmpHypos) Then If aktDC.dmpHypos <> 0 Then aktDC.hypoZ = aktDC.dmpHypos
@@ -2247,7 +2250,7 @@ If aktDC.dtyp = "2" Then If mitStr Then TabPr "Lasertherapie:", IIf(aktDC.oblase
    aktDC.x_HypoStr = aktDC.hypoZ
   Else ' aktDC.hypoZ else
    aktDC.x_HypoStr = "keine"
-   myFrag rs, "SELECT GROUP_CONCAT(REPLACE(inhalt,'kommt ','komme ')) FROM `eintraege` WHERE pat_id = " & pid & " AND art = 'uzu' AND zeitpunkt >= " & DatFor_k(QAnf(ZQuart(DokuDat)))
+   myFrag rs, "SELECT GROUP_CONCAT(REPLACE(inhalt,'kommt ','komme ')) FROM `eintraege` WHERE pat_id = " & pid & " AND art = 'uzu' AND zeitpunkt >= " & DatFor_k(fctQAnf(ZQuart(DokuDat)))
    If Not rs.BOF Then
     aktDC.x_HypoStr = aktDC.x_HypoStr & " ('Unterzucker?': " & rs.Fields(0) & ")"
    End If ' not rs.bof
@@ -2285,7 +2288,7 @@ If aktDC.dtyp = "2" Then If mitStr Then TabPr "Lasertherapie:", IIf(aktDC.oblase
   End If
   Set raKH = Nothing
 ' nur ein Datensatz 2008
-  myFrag rs, "SELECT COUNT(0) ct FROM `eintraege` WHERE pat_id = " & pid & " AND art = 'kra' AND zeitpunkt >= " & DatFor_k(QAnf(ZQuart(DokuDat)))
+  myFrag rs, "SELECT COUNT(0) ct FROM `eintraege` WHERE pat_id = " & pid & " AND art = 'kra' AND zeitpunkt >= " & DatFor_k(fctQAnf(ZQuart(DokuDat)))
   aktDC.krZKK = rs!ct
   Set rs = Nothing
   If (IsNumeric(aktDC.dmpKhsA)) Then If aktDC.dmpKhsA <> 0 Then aktDC.krZKK = aktDC.dmpKhsA
@@ -3184,7 +3187,7 @@ Function dododoPorto(Arztnr&)
    Dim geeignet%
    geeignet = geeignet + 1
    DateiDatum = FileDateTime(Verz & Datei)
-   If DateiDatum >= QAnf(ZQuart(Now() - Verspätung)) And DateiDatum <= QEnd(ZQuart(Now() - Verspätung)) Then
+   If DateiDatum >= fctQAnf(ZQuart(Now() - Verspätung)) And DateiDatum <= fctQEnd(ZQuart(Now() - Verspätung)) Then
     Pidpos = InStr(Datei, " PID ") + 5
     pidp2 = InStr(Pidpos, Datei, " ")
     pid = Mid$(Datei, Pidpos, pidp2 - Pidpos)
@@ -3217,12 +3220,12 @@ Function dododoPorto(Arztnr&)
       Zahl = Zahl + LeistungsExport1(BDT, pid, "40110", Datum, CDate("18:00"), True, Arztnr)
      End If
     End If ' InStrB(Datei, " DMP-Daten ") <> 0 THEN elseif
-   End If ' DateiDatum >= QAnf(ZQuart(NOW() - Verspätung)) AND DateiDatum <= qend(ZQuart(NOW() - Verspätung)) THEN
+   End If ' DateiDatum >= fctQAnf(ZQuart(NOW() - Verspätung)) AND DateiDatum <= fctQEnd(ZQuart(NOW() - Verspätung)) THEN
   End If ' InStrB(Datei, " PID ") <> 0 AND InStrB(LCase$(Datei), ".pdf") <> 0 THEN
   Datei = Dir
  Loop ' While LenB(Datei) <> 0
  
-' sql = "SELECT b.* FROM (SELECT pat_id, DATE(zeitpunkt) AS datum, time(zeitpunkt) AS zeit FROM `briefe` b WHERE (name LIKE '%brief%' OR name LIKE '%nachricht%') AND zeitpunkt BETWEEN " & lQAnfuEnd(Str(Verspätung)) & " GROUP BY pat_id, DATE(zeitpunkt)) AS b LEFT JOIN `leistungen` l ON b.pat_id = l.pat_id  AND leistung LIKE '4012%' WHERE ISNULL(leistung)" ' DatFor_k(QAnf(ZQuart(NOW() - Verspätung))) & " AND " & DatFor_k(qend(ZQuart(NOW() - Verspätung)))
+' sql = "SELECT b.* FROM (SELECT pat_id, DATE(zeitpunkt) AS datum, time(zeitpunkt) AS zeit FROM `briefe` b WHERE (name LIKE '%brief%' OR name LIKE '%nachricht%') AND zeitpunkt BETWEEN " & lQAnfuEnd(Str(Verspätung)) & " GROUP BY pat_id, DATE(zeitpunkt)) AS b LEFT JOIN `leistungen` l ON b.pat_id = l.pat_id  AND leistung LIKE '4012%' WHERE ISNULL(leistung)" ' DatFor_k(fctQAnf(ZQuart(NOW() - Verspätung))) & " AND " & DatFor_k(fctQEnd(ZQuart(NOW() - Verspätung)))
 ' ktag fehlerhaft
  sql = "SELECT b.* FROM (SELECT pat_id, DATE(zeitpunkt) Datum, TIME(zeitpunkt) zeit FROM `briefe` b WHERE (name LIKE '%brief%' OR name LIKE '%nachricht%') AND zeitpunkt BETWEEN  CONCAT(YEAR(NOW()-INTERVAL  25 DAY),'-',(QUARTER(NOW()-INTERVAL  25 DAY)-1)*3+1,'-01') AND CONCAT(YEAR(NOW()-INTERVAL  25 DAY)+ quarter(NOW()-INTERVAL  25 DAY) div 4 ,'-',((QUARTER(NOW()-INTERVAL  25 DAY)-1)*3+4) mod 12,'-01')-INTERVAL 0 day  GROUP BY pat_id, DATE(zeitpunkt)) AS b LEFT JOIN `leistungen` l ON b.pat_id = l.pat_id  AND DATE(l.zeitpunkt) = b.datum AND leistung LIKE '4012%' WHERE ISNULL(leistung)"
  Set rs = Nothing
@@ -3267,12 +3270,12 @@ Function tuBriefeLeiDok(frm As Lese, Optional Arztnr&)
  Dim sql2$
  Dim rf As New ADODB.Recordset, rB As New ADODB.Recordset, rl As New ADODB.Recordset
  sql1 = "SELECT MIN(bhfb) AS bfb, MIN(schgr) AS schgr, pat_id, MIN(fid) AS fid FROM `faelle` WHERE schgr IN ('21','23','24','00') AND quartal = """ & ZQuart(Now - Verspätung) & """ GROUP BY pat_id"
-' sql1 = "SELECT f.fid AS fid, DATE(b.zeitpunkt) AS tag, b.* FROM `briefe` b LEFT JOIN `faelle` f ON b.pat_id = f.pat_id WHERE quartal = '" & ZQuart(Now - Verspätung) & "' AND schgr IN ('21','23','24','00') AND b.zeitpunkt >= " & DatFor_k(QAnf(ZQuart(NOW() - 20))) & " AND name LIKE '%.doc' AND (name LIKE '%brief%' OR name LIKE '%dmp-daten%' OR name LIKE '%nachricht an%') ORDER BY b.pat_id,b.zeitpunkt;"
+' sql1 = "SELECT f.fid AS fid, DATE(b.zeitpunkt) AS tag, b.* FROM `briefe` b LEFT JOIN `faelle` f ON b.pat_id = f.pat_id WHERE quartal = '" & ZQuart(Now - Verspätung) & "' AND schgr IN ('21','23','24','00') AND b.zeitpunkt >= " & DatFor_k(fctQAnf(ZQuart(NOW() - 20))) & " AND name LIKE '%.doc' AND (name LIKE '%brief%' OR name LIKE '%dmp-daten%' OR name LIKE '%nachricht an%') ORDER BY b.pat_id,b.zeitpunkt;"
 ' Call LeistungsExport0
  myFrag rf, sql1
  Do While Not rf.EOF
 '  IF rF!Pat_id = 2155 THEN
-  sql1 = "SELECT * FROM `briefe` WHERE pat_id = " & rf!Pat_id & " AND zeitpunkt >= " & DatFor_k(QAnf(ZQuart(Now() - 20))) & " AND name LIKE '%.doc' AND (name LIKE '%brief%' OR name LIKE '%nachricht an%') AND zeitpunkt >= " & DatFor_k(#10/16/2007#)
+  sql1 = "SELECT * FROM `briefe` WHERE pat_id = " & rf!Pat_id & " AND zeitpunkt >= " & DatFor_k(fctQAnf(ZQuart(Now() - 20))) & " AND name LIKE '%.doc' AND (name LIKE '%brief%' OR name LIKE '%nachricht an%') AND zeitpunkt >= " & DatFor_k(#10/16/2007#)
   Set rB = Nothing
 '  rB.Open sql1, DBCn, adOpenDynamic, adLockReadOnly
   myFrag rB, sql1
@@ -3284,7 +3287,7 @@ Function tuBriefeLeiDok(frm As Lese, Optional Arztnr&)
     Call LeistungsExport1(rf!Pat_id, "40110", MINvb(DateValue(rB!Zeitpunkt), #12/31/2007#), CDate("18:00"), , , Arztnr)
    End If
   Else
-   sql1 = "SELECT * FROM `briefe` WHERE pat_id = " & rf!Pat_id & " AND zeitpunkt >= " & DatFor_k(QAnf(ZQuart(Now() - 20))) & " AND name LIKE '%.doc' AND (name LIKE '%dmp-daten%') AND zeitpunkt >= " & DatFor_k(#10/16/2007#)
+   sql1 = "SELECT * FROM `briefe` WHERE pat_id = " & rf!Pat_id & " AND zeitpunkt >= " & DatFor_k(fctQAnf(ZQuart(Now() - 20))) & " AND name LIKE '%.doc' AND (name LIKE '%dmp-daten%') AND zeitpunkt >= " & DatFor_k(#10/16/2007#)
    Set rB = Nothing
    myFrag rB, sql1
    If Not rB.EOF Then
@@ -3352,8 +3355,8 @@ Function alleDMPLeiDok(frm As Lese, Optional Arztnr&)
   End If
   If obzutr Then
     Set rMV = Nothing
-'    rMV.Open "SELECT * FROM `leistungen` WHERE pat_id = " & rsa!Pat_id & " AND leistung = 1601 AND zeitpunkt >= " & DatFor_k(QAnf(ZQuart(Now - Verspätung))) & " AND zeitpunkt < " & DatFor_k(QEnd(ZQuart(Now - Verspätung))), DBCn, adOpenDynamic, adLockReadOnly
-    myFrag rMV, "SELECT * FROM `leistungen` WHERE pat_id = " & rsa!Pat_id & " AND leistung = 1601 AND zeitpunkt >= " & DatFor_k(QAnf(ZQuart(Now - Verspätung))) & " AND zeitpunkt < " & DatFor_k(QEnd(ZQuart(Now - Verspätung)))
+'    rMV.Open "SELECT * FROM `leistungen` WHERE pat_id = " & rsa!Pat_id & " AND leistung = 1601 AND zeitpunkt >= " & DatFor_k(fctQAnf(ZQuart(Now - Verspätung))) & " AND zeitpunkt < " & DatFor_k(fctQEnd(ZQuart(Now - Verspätung))), DBCn, adOpenDynamic, adLockReadOnly
+    myFrag rMV, "SELECT * FROM `leistungen` WHERE pat_id = " & rsa!Pat_id & " AND leistung = 1601 AND zeitpunkt >= " & DatFor_k(fctQAnf(ZQuart(Now - Verspätung))) & " AND zeitpunkt < " & DatFor_k(fctQEnd(ZQuart(Now - Verspätung)))
     If Not rMV.BOF Then obzutr = 0
   End If
   If obzutr Then
@@ -3800,7 +3803,7 @@ Function doAnwalt(Pat_id&)
  Do While Not rBr.EOF
   Datei = zVerz & Mid$(rBr!Pfad, 3)
   If FSO.FileExists(Datei) Then
-   FSO.CopyFile Datei, pVerz & "anwalt\Dokument_" & nr & "_" & rBr!name & IIf(rBr!art = "wbr", ".doc", IIf(rBr!art = "pdf", ".pdf", ""))
+   FSO.CopyFile Datei, pVerz & "anwalt\Dokument_" & nr & "_" & rBr!name & IIf(rBr!Art = "wbr", ".doc", IIf(rBr!Art = "pdf", ".pdf", ""))
    Lese.Ausgeb "Dokument '" & rBr!name & "', vom " & rBr!Zeitpunkt & ", Pfad: " & rBr!Pfad & " kopiert!", False
    nr = nr + 1
   Else
@@ -4041,7 +4044,7 @@ Sub doRestlicheBriefe(frm As Lese, ab&)
  myFrag rP, "SELECT DISTINCT pat_id FROM `faelle` WHERE quartal = '" & Quartal & "' AND pat_id >= " & ab & " ORDER BY pat_id "
  Do While Not rP.EOF
   Set rB = Nothing
-  sql = "SELECT * FROM `briefe` WHERE pat_id = " & rP!Pat_id & " AND zeitpunkt > " & DatFor_k(QAnf(Quartal)) & " AND ((name LIKE '%Brief an %Dr%' OR name LIKE '%Arztbrief%' OR name LIKE 'Brief an HA%' OR name LIKE 'Brief an HAe%') AND name NOT LIKE '%Entwurf%')"
+  sql = "SELECT * FROM `briefe` WHERE pat_id = " & rP!Pat_id & " AND zeitpunkt > " & DatFor_k(fctQAnf(Quartal)) & " AND ((name LIKE '%Brief an %Dr%' OR name LIKE '%Arztbrief%' OR name LIKE 'Brief an HA%' OR name LIKE 'Brief an HAe%') AND name NOT LIKE '%Entwurf%')"
 '  Call rB.Open(sql, DBCn, adOpenDynamic, adLockReadOnly)
   myFrag rB, sql
   If rB.BOF Then
@@ -4655,8 +4658,8 @@ Function TherAuskunft(ByVal Pat_id$, ByVal obanf%, Optional ByRef insz%, Optiona
  mpz = 0
  ReDim MPNr(mpz)
  If Qmax <> vNS Then
-  MP0 = MedPlanNr(Pat_id, obAkt:=True, VorDat:=QAnf(Qmax), NurNr:=True)
-  MPe = MedPlanNr(Pat_id, obAkt:=True, VorDat:=QEnd(Qmax) + 1, NurNr:=True)
+  MP0 = MedPlanNr(Pat_id, obAkt:=True, VorDat:=fctQAnf(Qmax), NurNr:=True)
+  MPe = MedPlanNr(Pat_id, obAkt:=True, VorDat:=fctQEnd(Qmax) + 1, NurNr:=True)
   Set raMa = Nothing
   myFrag raMa, "SELECT DISTINCT mpnr FROM `medplan` WHERE pat_id = " & Pat_id & " AND mpnr >= " & MP0 & " AND mpnr <= " & MPe & " ORDER BY mpnr"
   Do While Not raMa.EOF
