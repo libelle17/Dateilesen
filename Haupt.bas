@@ -167,7 +167,7 @@ Function machAbKü$()
  tbn(16) = "Rezepteintraege"
  tbn(17) = "RR"
  tbn(18) = "KVNrUe"
- tbn(19) = "unbekannte kennungen"
+ tbn(19) = "unbek_kenn"
  tbn(20) = "dmpreihe"
  tbn(21) = "desktop"
  tbn(22) = "usdm"
@@ -344,6 +344,8 @@ Function doMacheTypen(Tabelle$) ' aufgerufen aus MacheTypen
    Case "tinyint", 16, 17:           Art = Art + "byte"
 '   Case 11:              Art = Art + "boolean" könnte in String "Wahr" o.ä. umgewandelt werden
    Case "bit", "smallint", 2, 11, 18:        Art = Art + "integer" ' z.T.: "boolean"
+   Case "bigint"  ' neu 18.9.24 für faealle->vermicode
+          Art = Art + "double"
    Case "int", 3, 19:            Art = Art + "long" '20+21 -> double
    Case "float", 4:                Art = Art + "single"
    Case "decimal", "double", 5, 20, 21, 131, 139: Art = Art + "double"
@@ -944,7 +946,7 @@ Function MacheTypen(frm As Lese)
  tbnS = " tbn = Array("
  For i = 0 To TbZ1
   Select Case LCase$(tbn(i))
-   Case "forminhaltform_abk", "formulare", "forminhfeld", "unbekannte kennungen"
+   Case "forminhaltform_abk", "formulare", "forminhfeld", "unbek_kenn"
    Case Else
     tbnS = tbnS & """" & LCase$(tbn(i)) & """"
     If i <> TbZ1 Then tbnS = tbnS & ", "
@@ -1380,7 +1382,7 @@ End If ' aktTbn = "faelle" Then
   Print #257, " Pid = rNa(0).Pat_id"
   If aktTbn = "unbekannte_kennungen" Then
   Else
-   Print #257, " ON Error GoTo fehler"
+   Print #257, " On Error GoTo fehler"
   End If
   Print #257, " syscmd 4, pid & "": Speichere "" & Ubound(r" & Tbk(i) & ")+" & IIf(aktTbn = "namen", 1, 0) & " & "" Sätze in `" & aktTbn & "`"""
 '  Print #257, " DBCnOpen CSStr"
@@ -2924,7 +2926,7 @@ Function doLdFD() ' Liste der fehlenden Dokumente
  Dim rab As New ADODB.Recordset
  Open Datei For Output As #322
 ' rAb.Open "SELECT * FROM dokumente", DBCn, adOpenDynamic, adLockReadOnly
- myFrag rab, "SELECT * FROM dokumente"
+ myFrag rab, "SELECT Pat_id, Zeitpunkt, Name DokName, DokPfad FROM briefe"
  Do While Not rab.EOF
   aktDP = REPLACE$(LCase$(rab!DokPfad), "$\turbomed\dokumente", PcDokPfad)
   If Not FSO.FileExists(aktDP) Then
@@ -2946,7 +2948,7 @@ Function doLdFD() ' Liste der fehlenden Dokumente
    DoEvents
   End If
   rab.Move 1
- Loop
+ Loop ' While Not rab.EOF
  Close #322
  zeigan Datei
  MsgBox "Fertig!"
@@ -3221,7 +3223,7 @@ End Function ' ergEBM(frm As Lese)
 #If False Then
 Function holDA(frm As Lese) ' kommt vor in DokumenteAbgehaktkopieren_Click()
  Dim sqldel$, rAf&, GesZahl&
- Const TabN$ = "dokumente abgehakt"
+ Const TabN$ = "br_abgehakt"
  Const sF$ = "dokpfad"
  Dim rq As New ADODB.Recordset ', f1 AS ADODB.Field, f2 AS ADODB.Field,
  Dim runde&, Pat_id&, i%
@@ -3405,7 +3407,7 @@ Function dokpfadänder(frm As Lese)
   For runde = 1 To 3
    Select Case runde
     Case 1: db = "dokumente": fld = "dokpfad"
-    Case 2: db = "dokumente abgehakt": fld = "dokpfad"
+    Case 2: db = "br_abgehakt": fld = "dokpfad"
     Case 3: db = "briefe": fld = "pfad"
    End Select
    If cdTB = accDtb Then
@@ -3453,7 +3455,7 @@ End Function ' dokpfadänder
 ' For cdTB = accDtb To q2Dtb
 '  Set Cn = acon(quelleT, cdTB)
 '  For runde = 1 To 2
-'   If runde = 1 Then db = "dokumente" Else db = "dokumente abgehakt"
+'   If runde = 1 Then db = "dokumente" Else db = "br_abgehakt"
 '   If cdTB = accDtb Then
 '    Set rs = Nothing
 ''    rs.Open "SELECT * FROM " & "`" & db & "`" & " WHERE dokpfad LIKE '%\\" & pu & "%'", Cn, adOpenDynamic, adLockOptimistic
@@ -5573,7 +5575,7 @@ End Function ' fzsfuell(Optional obgestern)
 ' END IF
 'End FUNCTION ' nachfuell
 
-Function dofallzahlstand(frm As Lese, Optional obgestern$) ' in GesLies und Fallzahlstand_Click
+Function dofallzahlstand(frm As Lese, Optional obgestern$) ' in GesLies, AlleFallzahlstände_Click und Fallzahlstand_Click
  Dim sql$, rs As New ADODB.Recordset, runde%, FNr&, rAf&
  Dim abstand&, heute As Date
  Dim csql As CString

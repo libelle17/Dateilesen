@@ -733,14 +733,8 @@ Begin VB.MDIForm Lese
       Begin VB.Menu AlleFallzahlstände 
          Caption         =   "Alle Fallzahlst&ände"
       End
-      Begin VB.Menu Leistungen_zu_Patient_anzeigen 
-         Caption         =   "&Leistungen zu Patient anzeigen"
-      End
-      Begin VB.Menu Therapiearten_anzeigen 
-         Caption         =   "&Therapiearten anzeigen"
-      End
       Begin VB.Menu DokumenteInDatenbank 
-         Caption         =   "&Dokumente in Datenbank"
+         Caption         =   "&Turbomed-Dokumente in Tabelle dokumente eintragen"
       End
       Begin VB.Menu AnamnesebogenPacken 
          Caption         =   "Anamnesebogen pa&cken (Stringfeldlängen optimieren)"
@@ -1218,7 +1212,7 @@ Private Sub MedOffTabZahl_Click()
    rcol.MoveFirst
    colz = 0
    Do While Not rcol.EOF
-    If Tn = "patstamm" And raen.Fields(colz + Offs).name = "FMemo" Then Stop
+'    If Tn = "patstamm" And raen.Fields(colz + Offs).name = "FMemo" Then Stop
     If runde = 0 Then
      If IsNull(raen.Fields(colz + Offs)) Then Wt(colz) = "NULL" Else Wt(colz) = raen.Fields(colz + Offs)
     ElseIf Not IsNull(raen!vrs) Then ' wenn Datensatz nicht neu eingefügt wurde
@@ -1234,12 +1228,14 @@ Private Sub MedOffTabZahl_Click()
          Print #220, " -> "
         End If
         Call ParseMemo(wtcolz, MeStr)
-        For i = 0 To UBound(MeStr)
-         mt = MeStr(i).Text & String(4, Chr(0))
-         Print #220, MeStr(i).znr & "|" & MeStr(i).mx & "|" & MeStr(i).ebn & "|" & MeStr(i).ENr & "|" & IIf(MeStr(i).endse <> "10", Mid$(wtcolz, MeStr(i).znr, 1), "") & "|" & MeStr(i).endse & "|" & MeStr(i).endsz & "| Laenge: " & Len(mt) & "|" & IIf(Right$(mt, 1) = Chr$(10), Left$(mt, IIf(Len(mt) = 0, 1, Len(mt)) - 1), mt), _
-         Asc(mt), Asc(Mid(mt, 2)), Asc(Mid(mt, 3)), Asc(Mid(mt, 4)), _
-         Asc(Mid(mt, 4, 1)) & "." & Asc(Mid(mt, 3, 1)) & "." & Asc(Mid(mt, 2, 1)) * 256 + Asc(mt)
-        Next i
+        If SafeArrayGetDim(MeStr) <> 0 Then
+         For i = 0 To UBound(MeStr)
+          mt = MeStr(i).Text & String(4, Chr(0))
+          Print #220, MeStr(i).znr & "|" & MeStr(i).mx & "|" & MeStr(i).ebn & "|" & MeStr(i).ENr & "|" & IIf(MeStr(i).endse <> "10", Mid$(wtcolz, MeStr(i).znr, 1), "") & "|" & MeStr(i).endse & "|" & MeStr(i).endsz & "| Laenge: " & Len(mt) & "|" & IIf(Right$(mt, 1) = Chr$(10), Left$(mt, IIf(Len(mt) = 0, 1, Len(mt)) - 1), mt), _
+          Asc(mt), Asc(Mid(mt, 2)), Asc(Mid(mt, 3)), Asc(Mid(mt, 4)), _
+          Asc(Mid(mt, 4, 1)) & "." & Asc(Mid(mt, 3, 1)) & "." & Asc(Mid(mt, 2, 1)) * 256 + Asc(mt)
+         Next i
+        End If ' SafeArrayGetDim(MeStr) <> 0 Then
         If pru = 1 Then
          Print #220, ""
         End If
@@ -1446,21 +1442,21 @@ Public Sub FalschAbgehakteUngueltig_Click()
  Dim rAf&, zwg&, zug&, rs As New ADODB.Recordset, rl As New ADODB.Recordset
  Call ProgStart
  Me.Ausgeb "FalschAbgehakteUngültig ...", False
- myFrag rs, "SELECT --abgehakt ab, --ungueltig ug, pat_id, d.dokpfad, quelldatum qd FROM `dokumente abgehakt` da INNER JOIN `dokumente` d ON da.dokpfad = d.dokpfad"
+ myFrag rs, "SELECT --abgehakt ab, --ungueltig ug, pat_id, b.pfad, quelldatum qd FROM `br_abgehakt` da INNER JOIN briefe b ON da.dokpfad = b.pfad"
  Do While Not rs.EOF
   Set rl = Nothing
   myFrag rl, "SELECT pat_id FROM `laborneu` WHERE pat_id = " & rs!Pat_id & " AND " & SelDatum("zeitpunkt", rs!qd)
   If rl.EOF And rs!ug <> 1 Then
-   myEFrag "UPDATE `dokumente abgehakt` SET ungueltig = 1 WHERE dokpfad = '" & doUmwfSQL(rs!DokPfad, lies.obMySQL) & "'", rAf
+   myEFrag "UPDATE `br_abgehakt` SET ungueltig = 1 WHERE dokpfad = '" & doUmwfSQL(rs!DokPfad, lies.obMySQL) & "'", rAf
    zug = zug + rAf
    If rAf = 0 Then
-    MsgBox "Fehler beim Auffinden von " & doUmwfSQL(rs!DokPfad, lies.obMySQL) & " in `dokumente abgehakt` (Orginaldokpfad: " & rs!DokPfad & ")"
+    MsgBox "Fehler beim Auffinden von " & doUmwfSQL(rs!DokPfad, lies.obMySQL) & " in `br_abgehakt` (Orginaldokpfad: " & rs!DokPfad & ")"
    End If
   ElseIf Not rl.EOF And rs!ug <> 0 Then
-   myEFrag "UPDATE `dokumente abgehakt` SET ungueltig = 0 WHERE dokpfad = '" & doUmwfSQL(rs!DokPfad, lies.obMySQL) & "'", rAf
+   myEFrag "UPDATE `br_abgehakt` SET ungueltig = 0 WHERE dokpfad = '" & doUmwfSQL(rs!DokPfad, lies.obMySQL) & "'", rAf
    zwg = zwg + rAf
    If rAf = 0 Then
-    MsgBox "Fehler beim Auffinden von " & doUmwfSQL(rs!DokPfad, lies.obMySQL) & " in `dokumente abgehakt` (Orginaldokpfad: " & rs!DokPfad & ")"
+    MsgBox "Fehler beim Auffinden von " & doUmwfSQL(rs!DokPfad, lies.obMySQL) & " in `br_abgehakt` (Orginaldokpfad: " & rs!DokPfad & ")"
    End If
   End If
   rs.Move 1
@@ -1992,11 +1988,11 @@ Dim rDok As New ADODB.Recordset, IViewPfad$, KStr$, FPfad$, FNam$, DokPfad$, erg
       Set rDok = Nothing
 nochmal:
       DokName = REPLACE$(REPLACE$(Nam, " ", "%"), "Wärmflasch,", "Wärmflasche,") & "%'"
-      sql = "SELECT * FROM `dokumente` WHERE dokname LIKE '" & DokName
+      sql = "SELECT Pfad FROM briefe WHERE name LIKE '" & DokName
       myFrag rDok, sql
       If rDok.BOF Then
        Open APfad For Append As #311
-       Print #311, "Fehlt in Tabelle `dokumente`: '" & DokName & "'"
+       Print #311, "Fehlt in Tabelle briefe: '" & DokName & "'"
        Close #311
        Set rDok = Nothing
 '       GoTo nochmal
@@ -2023,7 +2019,7 @@ nochmal:
         Close #311
        End If
        Do While Not rDok.EOF
-        DokPfad = REPLACE$(LCase$(rDok!DokPfad), "$\turbomed\dokumente", PcDokPfad)
+        DokPfad = REPLACE$(LCase$(rDok!Pfad), "$\turbomed\dokumente", PcDokPfad)
         If FSO.FileExists(DokPfad) Then
 '        KStr = "cmd /c ren """ & DokPfad & """ """ & DokPfad & "_kaputt"""
 '        Shell KStr, vbNormalFocus
@@ -2732,10 +2728,10 @@ End Sub ' Überweiserstatistik_Click
 ' Statistik -> &Überweiserstatistik d.letzten 2a
 Private Sub Überweiserstatistik2_Click()
  Dim rs As New ADODB.Recordset
- sql = "SELECT COUNT(0) `Überw.Pat.`, übwvlanr, Titel, Vorname, Name,Fachgruppe,Straße,PLZ,Ort, GROUP_CONCAT(DISTINCT pid) PIDs FROM (" & _
+ sql = "SELECT COUNT(0) `Überw.Pat.`, übwvlanr, Fax, CONCAT(Name,' ',Vorname,' ',Titel) HName,Fachgruppe,Straße,PLZ,Ort, GROUP_CONCAT(DISTINCT pid) PIDs FROM (" & _
           "SELECT übwvlanr, IF(ISNULL(l.titelt),f.üwtit,l.titelt) Titel," & _
           "if(ISNULL(l.vorname),f.üwvor,l.vorname) Vorname, IF(ISNULL(l.name),f.üwnan,l.name) Name," & _
-          "if(ISNULL(l.name),'',l.fachgruppe) Fachgruppe, IF(ISNULL(l.name),'',l.strasse) Straße," & _
+          "if(ISNULL(l.name),'',l.fachgruppe) Fachgruppe, l.fax, IF(ISNULL(l.name),'',l.strasse) Straße," & _
           "if(ISNULL(l.name),'',l.plz) PLZ, IF(ISNULL(l.name),'',l.ort) Ort," & _
           "GROUP_CONCAT(DISTINCT pat_id) pid, l.id lid " & _
           "FROM faelle f " & _
@@ -3211,32 +3207,32 @@ Private Sub AlleFallzahlstände_Click()
  dofallzahlstand Me, "-"
 End Sub ' AlleFallzahlstände_Click
 
-' EDV -> Leistungen zu Patient anzeigen
-Private Sub Leistungen_zu_Patient_anzeigen_Click()
- Dim rs As New ADODB.Recordset, rsa As New ADODB.Recordset, spmaxü
- Dim pid$
- spmaxü = Array(10, 5, 200)
- pid = InputBox("Bitte PAT_ID eingeben")
- If pid <> 0 Then
-  myFrag rs, "SELECT l.QS, l.AktZeit, l.Zeitpunkt,l.Leistung, IF (ISNULL(e2.titel), e.Leistungstext,e2.titel) Titel,ArtdUs, LAnzl, LUhrz, LfBegr, Med, LOrgan, LArztBf, DtlKbsV, LEntlDt, Faktor, LBSNR, LANR, letzVorg, Ausn, Beme, absPos, QT, StByte, LANRid, Sachkbez, Sachkct, Zone, l.FID, l.id FROM leistungen l LEFT JOIN ebm2000plus e2 USING (leistung) LEFT JOIN EBM2010 e ON l.leistung = e.ziffer WHERE pat_id=" & CStr(pid) & " ORDER BY zeitpunkt DESC"
-  myFrag rsa, "SELECT * FROM namen WHERE pat_id=" & pid
-  TabAusgeb rs, Me, , , , , spmaxü, , "Leistungen zu Pat. " & CStr(pid) & " (" & GesNamFn(rsa) & ")           "
- End If
-End Sub ' Leistungen_zu_Patient_anzeigen_Click
+' EDV -> Leistungen zu Patient anzeigen => 28.9.24 verschoben zu PatAuswahl -> Leistungen_Click
+'Private Sub Leistungen_zu_Patient_anzeigen_Click()
+' Dim rs As New ADODB.Recordset, rsa As New ADODB.Recordset, spmaxü
+' Dim pid$
+' spmaxü = Array(10, 5, 200)
+' pid = InputBox("Bitte PAT_ID eingeben")
+' If pid <> 0 Then
+'  myFrag rs, "SELECT l.QS, l.AktZeit, l.Zeitpunkt,l.Leistung, IF (ISNULL(e2.titel), e.Leistungstext,e2.titel) Titel,ArtdUs, LAnzl, LUhrz, LfBegr, Med, LOrgan, LArztBf, DtlKbsV, LEntlDt, Faktor, LBSNR, LANR, letzVorg, Ausn, Beme, absPos, QT, StByte, LANRid, Sachkbez, Sachkct, Zone, l.FID, l.id FROM leistungen l LEFT JOIN ebm2000plus e2 USING (leistung) LEFT JOIN EBM2010 e ON l.leistung = e.ziffer WHERE pat_id=" & CStr(pid) & " ORDER BY zeitpunkt DESC"
+'  myFrag rsa, "SELECT * FROM namen WHERE pat_id=" & pid
+'  TabAusgeb rs, Me, , , , , spmaxü, , "Leistungen zu Pat. " & CStr(pid) & " (" & GesNamFn(rsa) & ")           "
+' End If ' pid <> 0 Then
+'End Sub ' Leistungen_zu_Patient_anzeigen_Click
 
-' EDV -> Therapiearten anzeigen
-Private Sub Therapiearten_anzeigen_Click()
- Dim rs As New ADODB.Recordset, spmaxü
- Dim pid$
- spmaxü = Array(10, 5, 200)
- pid = InputBox("Bitte PAT_ID eingeben")
- If pid <> 0 Then
-  myFrag rs, "SELECT * FROM therarten WHERE pat_id=" & CStr(pid) & " ORDER BY zp DESC, mpnr DESC"
-  TabAusgeb rs, Me, , , , , spmaxü, , "Therapiearten von Pat. " & CStr(pid) '& " (" & gesname(PID) & ")"
- End If
-End Sub ' Therapiearten_anzeigen_Click
+' EDV -> Therapiearten anzeigen => in PatAuswahl verschoben
+'Private Sub Therapiearten_anzeigen_Click()
+' Dim rs As New ADODB.Recordset, spmaxü
+' Dim pid$
+' spmaxü = Array(10, 5, 200)
+' pid = InputBox("Bitte PAT_ID eingeben")
+' If pid <> 0 Then
+'  myFrag rs, "SELECT * FROM therarten WHERE pat_id=" & CStr(pid) & " ORDER BY zp DESC, mpnr DESC"
+'  TabAusgeb rs, Me, , , , , spmaxü, , "Therapiearten von Pat. " & CStr(pid) '& " (" & gesname(PID) & ")"
+' End If
+'End Sub ' Therapiearten_anzeigen_Click
 
-' EDV -> Dokumente in Datenbank
+' EDV -> Turbomed-Dokumente in Tabelle dokumente eintragen
 Private Sub DokumenteInDatenbank_Click()
  Const TMDok$ = "tmdok"
  Dim idt As TMIniDatei, DPfad$
@@ -3619,10 +3615,10 @@ End Sub ' ViewsErstellen_Click()
 ' EDV -> Falsche Dokumente
 Private Sub FalscheDokumente_Click()
  Dim sql$, rs As New ADODB.Recordset, erg$(), dokn$, dokr$, i%, rs2 As New ADODB.Recordset, Pat_id&
- sql = "SELECT d.pat_id, dokname FROM dokumente d LEFT JOIN namen n ON d.pat_id = n.pat_id LIMIT 10000"
+ sql = "SELECT d.pat_id, name FROM briefe b LEFT JOIN namen n ON b.pat_id = n.pat_id LIMIT 10000"
  myFrag rs, sql
  Do While Not rs.EOF
-  dokn = rs!DokName
+  dokn = rs!name
   dokr = REPLACE$(dokn, ",", " ")
   For i = 1 To 10
    dokr = REPLACE$(dokr, "  ", " ")
@@ -3648,6 +3644,7 @@ Private Sub korrQD_Click() ' Quelldatum für alle Dokumente korrigieren
  Dim rs As New ADODB.Recordset, nQD As Date, rAf&, rsum&
  Call ProgStart
  myEFrag "UPDATE dokumente SET quelldatum=quelldat(dokname,DokAenD);", rsum
+ myEFrag "UPDATE briefe SET quelldatum=quelldat(name,DokAenD);", rsum
 ' myFrag rs, "SELECT * FROM `dokumente`"
 ' Do While Not rs.EOF
 '  nQD = doQuelldatum(rs!DokName)
@@ -3721,15 +3718,15 @@ Private Sub DokumenteAbgehaktPrüfen_Click()
  Loop
  Open ErgDat For Output As #7
  Call ProgStart
- myFrag rs, "SELECT dokname, da.*, d.* FROM `dokumente abgehakt` da LEFT JOIN `dokumente` d USING (dokpfad) ORDER BY d.pat_id, d.zeitpunkt"
+ myFrag rs, "SELECT name, da.*, b.* FROM `br_abgehakt` da LEFT JOIN briefe b WHERE da.dokpfad = b.pfad ORDER BY b.pat_id, b.zeitpunkt"
  Do While Not rs.EOF
   Dim eDat As Date
-  If Not IsNull(rs!DokName) Then
-   eDat = GetDatumAusString(rs!DokName)
+  If Not IsNull(rs!name) Then
+   eDat = GetDatumAusString(rs!name)
 '   Debug.Print eDat & ", " & rs!DokName
    If eDat = 0 Then
-    Debug.Print n, rs!Pat_id, rs!Zeitpunkt, rs!DokName
-    Print #7, n, rs!Pat_id, rs!Zeitpunkt, rs!DokName
+    Debug.Print n, rs!Pat_id, rs!Zeitpunkt, rs!name
+    Print #7, n, rs!Pat_id, rs!Zeitpunkt, rs!name
     n = n + 1
    Else
     n1 = n1 + 1
@@ -3766,10 +3763,10 @@ End Sub ' tabfuell_Click
 Private Sub DokumenteNeuAbhaken_Click()
  Dim rs As New ADODB.Recordset, rAf&
  Call ProgStart
- Call myEFrag("DELETE FROM `dokumente abgehakt`", rAf)
- 'Call myEFrag("INSERT INTO `dokumente abgehakt`(aktzeit,abgehakt,dokpfad) SELECT now() AS aktzeit,1 AS abgehakt, replace$(replace$(dokpfad,'\\','\\\\'),'\'','\\\'') FROM (SELECT * FROM (SELECT pat_id, zeitpunkt FROM labor1 GROUP BY pat_id, zeitpunkt ORDER BY pat_id, zeitpunkt) AS i LEFT JOIN (SELECT pat_id, DATE(quelldatum) AS zeitpunkt, dokpfad, dokname FROM `dokumente` d WHERE dokname LIKE '%fremdlabor%') AS d USING (pat_id,zeitpunkt)) AS i WHERE NOT ISNULL(dokpfad)", rAF)
+ Call myEFrag("DELETE FROM `br_abgehakt`", rAf)
+ 'Call myEFrag("INSERT INTO `br_abgehakt`(aktzeit,abgehakt,dokpfad) SELECT now() AS aktzeit,1 AS abgehakt, replace$(replace$(dokpfad,'\\','\\\\'),'\'','\\\'') FROM (SELECT * FROM (SELECT pat_id, zeitpunkt FROM labor1 GROUP BY pat_id, zeitpunkt ORDER BY pat_id, zeitpunkt) AS i LEFT JOIN (SELECT pat_id, DATE(quelldatum) AS zeitpunkt, dokpfad, dokname FROM `dokumente` d WHERE dokname LIKE '%fremdlabor%') AS d USING (pat_id,zeitpunkt)) AS i WHERE NOT ISNULL(dokpfad)", rAF)
  Debug.Print "gelöscht:", rAf
- InsKorr DBCn, "INSERT INTO `dokumente abgehakt`(aktzeit,abgehakt,dokpfad) " & vbCrLf & _
+ InsKorr DBCn, "INSERT INTO `br_abgehakt`(aktzeit,abgehakt,dokpfad) " & vbCrLf & _
  "SELECT now() AS aktzeit,1 AS abgehakt, pfad FROM (" & vbCrLf & _
  "SELECT * FROM (" & vbCrLf & _
  "SELECT pat_id, zeitpunkt FROM labor1a GROUP BY pat_id, zeitpunkt ORDER BY pat_id, zeitpunkt) AS i " & vbCrLf & _

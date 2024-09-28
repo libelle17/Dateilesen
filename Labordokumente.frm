@@ -1,393 +1,377 @@
 VERSION 5.00
-Begin VB.Form Labordokumente
+Begin VB.Form Labordokumente 
    BorderStyle     =   3  'Fester Dialog
    Caption         =   "Labordokumente"
-   ClientHeight    =   1211
+   ClientHeight    =   1215
    ClientLeft      =   45
    ClientTop       =   330
-   ClientWidth     =   19623
-   KeyPreview = -1         'True
-   LinkTopic = "Labordokumente"
-   MaxButton = 0           'False
-   MinButton = 0           'False
-   ScaleHeight = 465
-   ScaleWidth = 1680
-   Begin VB.Label vLab
-      Caption         =   "Pat_id"
+   ClientWidth     =   19620
+   KeyPreview      =   -1  'True
+   LinkTopic       =   "Labordokumente"
+   MaxButton       =   0   'False
+   MinButton       =   0   'False
+   ScaleHeight     =   1215
+   ScaleWidth      =   19620
+   Begin VB.TextBox vTextB 
+      BackColor       =   &H00C0C0C0&
+      DataField       =   "Pat_id"
+      Height          =   256
       Index           =   1
-      TabIndex        =   1
-      BackColor       =   -2147483633
-      Height          =   240
       Left            =   57
-      Top             =   57
-      Width           =   456
-   End
-   Begin VB.Label vLab
-      Caption         =   "Nachname"
-      Index           =   2
-      TabIndex        =   2
-      BackColor       =   -2147483633
-      Height          =   240
-      Left            =   570
-      Top             =   57
-      Width           =   1083
-   End
-   Begin VB.Label vLab
-      Caption         =   "Vorname"
-      Index           =   3
-      TabIndex        =   3
-      BackColor       =   -2147483633
-      Height          =   240
-      Left            =   1710
-      Top             =   57
-      Width           =   1083
-   End
-   Begin VB.Label vLab
-      Caption         =   "ZeitPunkt"
-      Index           =   4
-      TabIndex        =   4
-      BackColor       =   -2147483633
-      Height          =   240
-      Left            =   2834
-      Top             =   1
-      Width           =   1569
-   End
-   Begin VB.Label vLab
-      Caption         =   "DokName"
-      Index           =   5
-      TabIndex        =   5
-      BackColor       =   -2147483633
-      Height          =   240
-      Left            =   5993
-      Top             =   0
-      Width           =   5727
-   End
-   Begin VB.Label vLab
-      Caption         =   "Dok-Größe"
-      Index           =   6
-      TabIndex        =   6
-      BackColor       =   -2147483633
-      Height          =   240
-      Left            =   11776
-      Top             =   0
-      Width           =   1992
-   End
-   Begin VB.Label vLab
-      Caption         =   "AktZeit"
-      Index           =   7
-      TabIndex        =   7
-      BackColor       =   -2147483633
-      Height          =   240
-      Left            =   4406
-      Top             =   0
-      Width           =   1539
-   End
-   Begin VB.Label vLab
-      Caption         =   "DokPfad"
-      Index           =   8
-      TabIndex        =   8
-      BackColor       =   -2147483633
-      Height          =   240
-      Left            =   17858
-      Top             =   0
-      Width           =   1422
-   End
-   Begin VB.TextBox vTextB
-      DataField = "Pat_id"
-      Index           =   1
       TabIndex        =   9
-      BackColor       =   12632256
-      Height          =   256
-      Left            =   57
       Top             =   0
       Width           =   456
    End
-   Begin VB.TextBox vTextB
-      DataField = "Nachname"
+   Begin VB.TextBox vTextB 
+      BackColor       =   &H0046A3FF&
+      DataField       =   "Nachname"
+      Height          =   256
       Index           =   2
-      TabIndex        =   10
-      BackColor       =   4629503
-      Height          =   256
       Left            =   570
+      TabIndex        =   10
       Top             =   0
       Width           =   1083
    End
-   Begin VB.TextBox vTextB
-      DataField = "Vorname"
+   Begin VB.TextBox vTextB 
+      BackColor       =   &H00C0C0C0&
+      DataField       =   "Vorname"
+      Height          =   256
       Index           =   3
-      TabIndex        =   11
-      BackColor       =   12632256
-      Height          =   256
       Left            =   1710
+      TabIndex        =   11
       Top             =   0
       Width           =   1083
    End
-   Begin VB.TextBox vTextB
-      DataField = "ZeitPunkt"
-      Index           =   4
-      TabIndex        =   12
-      BackColor       =   12632256
+   Begin VB.TextBox vTextB 
+      BackColor       =   &H00C0C0C0&
+      DataField       =   "ZeitPunkt"
       Height          =   256
+      Index           =   4
       Left            =   2850
+      TabIndex        =   12
       Top             =   0
       Width           =   1629
    End
-   Begin VB.TextBox vTextB
-      DataField = "DokName"
-      Index           =   5
-      TabIndex        =   13
-      BackColor       =   12632256
+   Begin VB.TextBox vTextB 
+      BackColor       =   &H00C0C0C0&
+      DataField       =   "DokName"
       Height          =   256
+      Index           =   5
       Left            =   6236
+      TabIndex        =   13
       Top             =   0
       Width           =   5727
    End
-   Begin VB.TextBox vTextB
-      DataField = "DokPfad"
-      Index           =   6
-      TabIndex        =   14
-      BackColor       =   12632256
+   Begin VB.TextBox vTextB 
+      BackColor       =   &H00C0C0C0&
+      DataField       =   "DokPfad"
       Height          =   256
+      Index           =   6
       Left            =   17631
+      TabIndex        =   14
       Top             =   0
       Width           =   1992
    End
-   Begin VB.CommandButton vCommandB
+   Begin VB.CommandButton vCommandB 
       Caption         =   "Anzeigen"
-      Index           =   1
-      TabIndex        =   15
       Height          =   313
+      Index           =   1
       Left            =   14117
+      TabIndex        =   15
       Top             =   0
       Width           =   855
    End
-   Begin VB.CommandButton vCommandB
+   Begin VB.CommandButton vCommandB 
       Caption         =   "PhotoImpact"
-      Index           =   2
-      TabIndex        =   16
       Height          =   314
+      Index           =   2
       Left            =   15760
+      TabIndex        =   16
       Top             =   0
       Width           =   786
    End
-   Begin VB.TextBox vTextB
-      DataField = ""
-      Index           =   7
-      TabIndex        =   17
-      BackColor       =   -2147483643
+   Begin VB.TextBox vTextB 
       Height          =   256
+      Index           =   7
       Left            =   17178
+      TabIndex        =   17
       Top             =   0
       Width           =   164
    End
-   Begin VB.TextBox vTextB
-      DataField = ""
-      Index           =   8
-      TabIndex        =   18
-      BackColor       =   -2147483643
+   Begin VB.TextBox vTextB 
       Height          =   256
+      Index           =   8
       Left            =   16951
+      TabIndex        =   18
       Top             =   0
       Width           =   167
    End
-   Begin VB.TextBox vTextB
-      DataField = ""
-      Index           =   9
-      TabIndex        =   19
-      BackColor       =   -2147483643
+   Begin VB.TextBox vTextB 
       Height          =   256
+      Index           =   9
       Left            =   17405
+      TabIndex        =   19
       Top             =   0
       Width           =   170
    End
-   Begin VB.TextBox vTextB
-      DataField = ""
-      Index           =   10
-      TabIndex        =   20
-      BackColor       =   -2147483643
+   Begin VB.TextBox vTextB 
       Height          =   256
+      Index           =   10
       Left            =   16611
+      TabIndex        =   20
       Top             =   0
       Width           =   227
    End
-   Begin VB.TextBox vTextB
-      DataField = "AktZeit"
-      Index           =   11
-      TabIndex        =   21
-      BackColor       =   12632256
+   Begin VB.TextBox vTextB 
+      BackColor       =   &H00C0C0C0&
+      DataField       =   "AktZeit"
       Height          =   256
+      Index           =   11
       Left            =   4535
+      TabIndex        =   21
       Top             =   0
       Width           =   1644
    End
-   Begin VB.CommandButton vCommandB
+   Begin VB.CommandButton vCommandB 
       Caption         =   "Abhak"
-      Index           =   3
-      TabIndex        =   22
       Height          =   314
+      Index           =   3
       Left            =   15023
+      TabIndex        =   22
       Top             =   0
       Width           =   666
    End
-   Begin VB.TextBox vTextB
-      DataField = "DokGroe"
-      Index           =   12
-      TabIndex        =   23
-      BackColor       =   12632256
+   Begin VB.TextBox vTextB 
+      BackColor       =   &H00C0C0C0&
+      DataField       =   "DokGroe"
       Height          =   256
+      Index           =   12
       Left            =   12075
+      TabIndex        =   23
       Top             =   0
       Width           =   1992
    End
-   Begin VB.PictureBox picButtons
-      Align = 2              'Unten ausrichten
-      Appearance = 0         '2D
-      BorderStyle = 0        'Kein
-      ForeColor = &H80000008
-      Height = 300
-      Left = 0
-      ScaleHeight = 300
-      ScaleWidth = 7875
-      TabIndex = 386
-      Top = 10515
-      Width = 7875
-      Begin VB.CommandButton cmdAdd
-         Caption = "Hinzufügen"
-         Height = 300
-         Left = 59
-         TabIndex = 1387
-         Top = 0
-         Width = 1095
+   Begin VB.PictureBox picButtons 
+      Align           =   2  'Unten ausrichten
+      Appearance      =   0  '2D
+      BorderStyle     =   0  'Kein
+      ForeColor       =   &H80000008&
+      Height          =   300
+      Left            =   0
+      ScaleHeight     =   300
+      ScaleWidth      =   19620
+      TabIndex        =   0
+      Top             =   615
+      Width           =   19620
+      Begin VB.CommandButton cmdAdd 
+         Caption         =   "Hinzufügen"
+         Height          =   300
+         Left            =   59
+         TabIndex        =   24
+         Top             =   0
+         Width           =   1095
       End
-      Begin VB.CommandButton cmdEdit
-         Caption = "Bearbeiten"
-         Height = 300
-         Left = 1213
-         TabIndex = 1388
-         Top = 0
-         Width = 1095
+      Begin VB.CommandButton cmdEdit 
+         Caption         =   "Bearbeiten"
+         Height          =   300
+         Left            =   1213
+         TabIndex        =   25
+         Top             =   0
+         Width           =   1095
       End
-      Begin VB.CommandButton cmdDelete
-         Caption = "Löschen"
-         Height = 300
-         Left = 2367
-         TabIndex = 1389
-         Top = 0
-         Width = 1095
+      Begin VB.CommandButton cmdDelete 
+         Caption         =   "Löschen"
+         Height          =   300
+         Left            =   2367
+         TabIndex        =   26
+         Top             =   0
+         Width           =   1095
       End
-      Begin VB.CommandButton cmdRefresh
-         Caption = "neu lesen"
-         Height = 300
-         Left = 3521
-         TabIndex = 1390
-         Top = 0
-         Width = 1095
+      Begin VB.CommandButton cmdRefresh 
+         Caption         =   "neu lesen"
+         Height          =   300
+         Left            =   3521
+         TabIndex        =   27
+         Top             =   0
+         Width           =   1095
       End
-      Begin VB.CommandButton cmdClose
-         Caption = "S&chließen"
-         Height = 300
-         Left = 4675
-         TabIndex = 1391
-         Top = 0
-         Width = 1095
+      Begin VB.CommandButton cmdClose 
+         Caption         =   "S&chließen"
+         Height          =   300
+         Left            =   4675
+         TabIndex        =   28
+         Top             =   0
+         Width           =   1095
       End
-      Begin VB.CommandButton cmdUpdate
-         Caption = "Aktualisieren"
-         Height = 300
-         Left = 59
-         TabIndex = 1392
-         Top = 0
-         Visible = 0             'False
-         Width = 1095
+      Begin VB.CommandButton cmdUpdate 
+         Caption         =   "Aktualisieren"
+         Height          =   300
+         Left            =   59
+         TabIndex        =   29
+         Top             =   0
+         Visible         =   0   'False
+         Width           =   1095
       End
-      Begin VB.CommandButton cmdCancel
-         Caption = "Abbrechen"
-         Height = 300
-         Left = 1213
-         TabIndex = 1393
-         Top = 0
-         Visible = 0             'False
-         Width = 1095
+      Begin VB.CommandButton cmdCancel 
+         Caption         =   "Abbrechen"
+         Height          =   300
+         Left            =   1213
+         TabIndex        =   30
+         Top             =   0
+         Visible         =   0   'False
+         Width           =   1095
       End
    End
-   Begin VB.PictureBox picStatBox
-      Align = 2              'Unten ausrichten
-      Appearance = 0         '2D
-      BorderStyle = 0        'Kein
-      ForeColor = &H80000008
-      Height = 300
-      Left = 0
-      ScaleHeight = 300
-      ScaleWidth = 7875
-      TabIndex = 380
-      Top = 10815
-      Width = 7875
-      Begin VB.CommandButton Suchen
-         Caption = "&Suchen"
-         Height = 255
-         Left = 4920
-         TabIndex = 440
-         Top = 0
-         Width = 735
+   Begin VB.PictureBox picStatBox 
+      Align           =   2  'Unten ausrichten
+      Appearance      =   0  '2D
+      BorderStyle     =   0  'Kein
+      ForeColor       =   &H80000008&
+      Height          =   300
+      Left            =   0
+      ScaleHeight     =   300
+      ScaleWidth      =   19620
+      TabIndex        =   31
+      Top             =   915
+      Width           =   19620
+      Begin VB.CommandButton Suchen 
+         Caption         =   "&Suchen"
+         Height          =   255
+         Left            =   4920
+         TabIndex        =   32
+         Top             =   0
+         Width           =   735
       End
-      Begin VB.TextBox suche
-         Height = 285
-         Left = 5640
-         TabIndex = 441
-         Top = 0
-         Width = 2655
+      Begin VB.TextBox suche 
+         Height          =   285
+         Left            =   5640
+         TabIndex        =   33
+         Top             =   0
+         Width           =   2655
       End
-      Begin VB.CommandButton cmdFirst
-         Height = 300
-         Left = 0
-         Picture         =   "AnTest.frx":0000
-         Style = 1              'Grafisch
-         TabIndex = 1381
-         Top = 0
-         UseMaskColor = -1       'True
-         Width = 345
+      Begin VB.CommandButton cmdFirst 
+         Height          =   300
+         Left            =   0
+         Picture         =   "Labordokumente.frx":0000
+         Style           =   1  'Grafisch
+         TabIndex        =   34
+         Top             =   0
+         UseMaskColor    =   -1  'True
+         Width           =   345
       End
-      Begin VB.CommandButton cmdPrevious
-         Caption = "&ü"
-         Height = 300
-         Left = 345
-         Picture         =   "AnTest.frx":0342
-         Style = 1              'Grafisch
-         TabIndex = 1382
-         Top = 0
-         UseMaskColor = -1       'True
-         Width = 345
+      Begin VB.CommandButton cmdPrevious 
+         Caption         =   "&ü"
+         Height          =   300
+         Left            =   345
+         Picture         =   "Labordokumente.frx":0342
+         Style           =   1  'Grafisch
+         TabIndex        =   35
+         Top             =   0
+         UseMaskColor    =   -1  'True
+         Width           =   345
       End
-      Begin VB.CommandButton cmdNext
-         Caption = "&ä"
-         Height = 300
-         Left = 4200
-         Picture         =   "AnTest.frx":0684
-         Style = 1              'Grafisch
-         TabIndex = 1383
-         Top = 0
-         UseMaskColor = -1       'True
-         Width = 345
+      Begin VB.CommandButton cmdNext 
+         Caption         =   "&ä"
+         Height          =   300
+         Left            =   4200
+         Picture         =   "Labordokumente.frx":0684
+         Style           =   1  'Grafisch
+         TabIndex        =   36
+         Top             =   0
+         UseMaskColor    =   -1  'True
+         Width           =   345
       End
-      Begin VB.CommandButton cmdLast
-         Height = 300
-         Left = 4545
-         Picture         =   "AnTest.frx":09C6
-         Style = 1              'Grafisch
-         TabIndex = 1384
-         Top = 0
-         UseMaskColor = -1       'True
-         Width = 345
+      Begin VB.CommandButton cmdLast 
+         Height          =   300
+         Left            =   4545
+         Picture         =   "Labordokumente.frx":09C6
+         Style           =   1  'Grafisch
+         TabIndex        =   37
+         Top             =   0
+         UseMaskColor    =   -1  'True
+         Width           =   345
       End
-      Begin VB.Label lblStatus
-         BackColor = &HFFFFFF
-         BorderStyle = 1        'Fest Einfach
-         Height = 285
-         Left = 690
-         TabIndex = 1385
-         Top = 0
-         Width = 3360
+      Begin VB.Label lblStatus 
+         BackColor       =   &H00FFFFFF&
+         BorderStyle     =   1  'Fest Einfach
+         Height          =   285
+         Left            =   690
+         TabIndex        =   38
+         Top             =   0
+         Width           =   3360
       End
+   End
+   Begin VB.Label vLab 
+      Caption         =   "Pat_id"
+      Height          =   240
+      Index           =   1
+      Left            =   57
+      TabIndex        =   1
+      Top             =   57
+      Width           =   456
+   End
+   Begin VB.Label vLab 
+      Caption         =   "Nachname"
+      Height          =   240
+      Index           =   2
+      Left            =   570
+      TabIndex        =   2
+      Top             =   57
+      Width           =   1083
+   End
+   Begin VB.Label vLab 
+      Caption         =   "Vorname"
+      Height          =   240
+      Index           =   3
+      Left            =   1710
+      TabIndex        =   3
+      Top             =   57
+      Width           =   1083
+   End
+   Begin VB.Label vLab 
+      Caption         =   "ZeitPunkt"
+      Height          =   240
+      Index           =   4
+      Left            =   2834
+      TabIndex        =   4
+      Top             =   1
+      Width           =   1569
+   End
+   Begin VB.Label vLab 
+      Caption         =   "DokName"
+      Height          =   240
+      Index           =   5
+      Left            =   5993
+      TabIndex        =   5
+      Top             =   0
+      Width           =   5727
+   End
+   Begin VB.Label vLab 
+      Caption         =   "Dok-Größe"
+      Height          =   240
+      Index           =   6
+      Left            =   11776
+      TabIndex        =   6
+      Top             =   0
+      Width           =   1992
+   End
+   Begin VB.Label vLab 
+      Caption         =   "AktZeit"
+      Height          =   240
+      Index           =   7
+      Left            =   4406
+      TabIndex        =   7
+      Top             =   0
+      Width           =   1539
+   End
+   Begin VB.Label vLab 
+      Caption         =   "DokPfad"
+      Height          =   240
+      Index           =   8
+      Left            =   17858
+      TabIndex        =   8
+      Top             =   0
+      Width           =   1422
    End
 End
 Attribute VB_Name = "Labordokumente"
@@ -444,11 +428,11 @@ Private Sub cmdAdd_Click()
 fehler:
  Dim AnwPfad$
 #If VBA6 Then
- AnwPfad = CurrentDb.Name
+ AnwPfad = CurrentDb.name
 #Else
  AnwPfad = App.path
 #End If
- Select Case MsgBox("FNr: " + CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.Source), "", CStr(Err.Source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in cmdAdd_Click/" + AnwPfad)
+ Select Case MsgBox("FNr: " + CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), "", CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in cmdAdd_Click/" + AnwPfad)
   Case vbAbort: Call MsgBox("Höre auf"): End
   Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
   Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
@@ -466,11 +450,11 @@ Private Sub cmdDelete_Click()
 fehler:
  Dim AnwPfad$
 #If VBA6 Then
- AnwPfad = CurrentDb.Name
+ AnwPfad = CurrentDb.name
 #Else
  AnwPfad = App.path
 #End If
- Select Case MsgBox("FNr: " + CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.Source), "", CStr(Err.Source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in cmdDelete_Click/" + AnwPfad)
+ Select Case MsgBox("FNr: " + CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), "", CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in cmdDelete_Click/" + AnwPfad)
   Case vbAbort: Call MsgBox("Höre auf"): End
   Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
   Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
@@ -485,11 +469,11 @@ Private Sub cmdRefresh_Click()
 fehler:
  Dim AnwPfad$
 #If VBA6 Then
- AnwPfad = CurrentDb.Name
+ AnwPfad = CurrentDb.name
 #Else
  AnwPfad = App.path
 #End If
- Select Case MsgBox("FNr: " + CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.Source), "", CStr(Err.Source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in cmdRefresh_Click/" + AnwPfad)
+ Select Case MsgBox("FNr: " + CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), "", CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in cmdRefresh_Click/" + AnwPfad)
   Case vbAbort: Call MsgBox("Höre auf"): End
   Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
   Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
@@ -505,11 +489,11 @@ Private Sub cmdEdit_Click()
 fehler:
  Dim AnwPfad$
 #If VBA6 Then
- AnwPfad = CurrentDb.Name
+ AnwPfad = CurrentDb.name
 #Else
  AnwPfad = App.path
 #End If
- Select Case MsgBox("FNr: " + CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.Source), "", CStr(Err.Source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in cmdEdit_Click/" + AnwPfad)
+ Select Case MsgBox("FNr: " + CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), "", CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in cmdEdit_Click/" + AnwPfad)
   Case vbAbort: Call MsgBox("Höre auf"): End
   Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
   Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
@@ -544,11 +528,11 @@ Private Sub cmdUpdate_Click()
 fehler:
  Dim AnwPfad$
 #If VBA6 Then
- AnwPfad = CurrentDb.Name
+ AnwPfad = CurrentDb.name
 #Else
  AnwPfad = App.path
 #End If
- Select Case MsgBox("FNr: " + CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.Source), "", CStr(Err.Source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in cmdUpdate_Click/" + AnwPfad)
+ Select Case MsgBox("FNr: " + CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), "", CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in cmdUpdate_Click/" + AnwPfad)
   Case vbAbort: Call MsgBox("Höre auf"): End
   Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
   Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
@@ -567,11 +551,11 @@ Private Sub cmdFirst_Click()
 fehler:
  Dim AnwPfad$
 #If VBA6 Then
- AnwPfad = CurrentDb.Name
+ AnwPfad = CurrentDb.name
 #Else
  AnwPfad = App.path
 #End If
- Select Case MsgBox("FNr: " + CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.Source), "", CStr(Err.Source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in cmdFirst_Click/" + AnwPfad)
+ Select Case MsgBox("FNr: " + CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), "", CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in cmdFirst_Click/" + AnwPfad)
   Case vbAbort: Call MsgBox("Höre auf"): End
   Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
   Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
@@ -586,11 +570,11 @@ Private Sub cmdLast_Click()
 fehler:
  Dim AnwPfad$
 #If VBA6 Then
- AnwPfad = CurrentDb.Name
+ AnwPfad = CurrentDb.name
 #Else
  AnwPfad = App.path
 #End If
- Select Case MsgBox("FNr: " + CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.Source), "", CStr(Err.Source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in cmdLast_Click/" + AnwPfad)
+ Select Case MsgBox("FNr: " + CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), "", CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in cmdLast_Click/" + AnwPfad)
   Case vbAbort: Call MsgBox("Höre auf"): End
   Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
   Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
@@ -611,11 +595,11 @@ Private Sub cmdNext_Click()
 fehler:
  Dim AnwPfad$
 #If VBA6 Then
- AnwPfad = CurrentDb.Name
+ AnwPfad = CurrentDb.name
 #Else
  AnwPfad = App.path
 #End If
- Select Case MsgBox("FNr: " + CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.Source), "", CStr(Err.Source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in cmdNext_Click/" + AnwPfad)
+ Select Case MsgBox("FNr: " + CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), "", CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in cmdNext_Click/" + AnwPfad)
   Case vbAbort: Call MsgBox("Höre auf"): End
   Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
   Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
@@ -636,11 +620,11 @@ Private Sub cmdPrevious_Click()
 fehler:
  Dim AnwPfad$
 #If VBA6 Then
- AnwPfad = CurrentDb.Name
+ AnwPfad = CurrentDb.name
 #Else
  AnwPfad = App.path
 #End If
- Select Case MsgBox("FNr: " + CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.Source), "", CStr(Err.Source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in cmdPrevious_Click/" + AnwPfad)
+ Select Case MsgBox("FNr: " + CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), "", CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in cmdPrevious_Click/" + AnwPfad)
   Case vbAbort: Call MsgBox("Höre auf"): End
   Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
   Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
@@ -660,9 +644,10 @@ Private Sub SetButtons(bVal As Boolean)
   cmdLast.Enabled = bVal
   cmdPrevious.Enabled = bVal
 End Sub ' SetButtons
-Private Sub Form_KeyDown(KeyCode As Integer, Shift As Integer)
- Call doKeyDown(Me, KeyCode, Shift)
-End Sub
+
+'Private Sub Form_KeyDown(KeyCode As Integer, Shift As Integer)
+' Call doKeyDown(Me, KeyCode, Shift)
+' End Sub
 
 Private Sub Suchen_Click()
  On Error GoTo fehler
@@ -678,15 +663,15 @@ Private Sub Suchen_Click()
   Me.suche.SetFocus
   SuchStringGeändert = True
  End If
- exit sub
+ Exit Sub
 fehler:
  Dim AnwPfad$
 #If VBA6 Then
- AnwPfad = CurrentDb.Name
+ AnwPfad = CurrentDb.name
 #Else
  AnwPfad = App.path
 #End If
- Select Case MsgBox("FNr: " + CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.Source), "", CStr(Err.Source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in Suchen_Click/" + AnwPfad)
+ Select Case MsgBox("FNr: " + CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), "", CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in Suchen_Click/" + AnwPfad)
   Case vbAbort: Call MsgBox("Höre auf"): End
   Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
   Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
@@ -784,15 +769,15 @@ End Function
 Private Sub Zeitpunkt_KeyPress(KeyCode%)
   Call Taste(KeyCode, 0, Me)
 End Sub
-Private Sub vTextB_Click(Index as Integer)
- Select case Index
+Private Sub vTextB_Click(Index As Integer)
+ Select Case Index
   Case 10 ' abgehakt
    Call do_abgehakt_Click(Me)
  End Select ' Index
 End Sub 'Private Sub vTextB_Click(Index as Integer)
 
-Private Sub vTextB_KeyPress(Index as Integer, KeyAscii As Integer)
- Select case Index
+Private Sub vTextB_KeyPress(Index As Integer, KeyAscii As Integer)
+ Select Case Index
   Case 1 ' Pat_id
     Call Taste(KeyCode, 0, Me)
   Case 2 ' Nachname
@@ -810,8 +795,8 @@ Private Sub vTextB_KeyPress(Index as Integer, KeyAscii As Integer)
  End Select ' Index
 End Sub 'Private Sub vTextB_KeyPress(Index as Integer, KeyAscii As Integer)
 
-Private Sub vCommandB_Click(Index as Integer)
- Select case Index
+Private Sub vCommandB_Click(Index As Integer)
+ Select Case Index
   Case 1 ' Anzeigen
    Call do_anzeigen_click(Me)
   Case 2 ' PhotoImpact
@@ -821,8 +806,8 @@ Private Sub vCommandB_Click(Index as Integer)
  End Select ' Index
 End Sub 'Private Sub vCommandB_Click(Index as Integer)
 
-Private Sub vCommandB_KeyDown(Index as Integer, KeyCode As Integer, Shift As Integer)
- Select case Index
+Private Sub vCommandB_KeyDown(Index As Integer, KeyCode As Integer, Shift As Integer)
+ Select Case Index
   Case 1 ' Anzeigen
     Call Taste(KeyCode, Shift, Me)
   Case 2 ' PhotoImpact
@@ -830,8 +815,8 @@ Private Sub vCommandB_KeyDown(Index as Integer, KeyCode As Integer, Shift As Int
  End Select ' Index
 End Sub 'Private Sub vCommandB_KeyDown(Index as Integer, KeyCode As Integer, Shift As Integer)
 
-Private Sub vCommandB_KeyPress(Index as Integer, KeyAscii As Integer)
- Select case Index
+Private Sub vCommandB_KeyPress(Index As Integer, KeyAscii As Integer)
+ Select Case Index
   Case 1 ' Anzeigen
     Call Taste(KeyCode, 0, Me)
   Case 2 ' PhotoImpact
@@ -847,7 +832,7 @@ Private Sub Form_Resize()
 '  cmdLast.Left = cmdNext.Left + 340
 End Sub
 
-Private Sub Form_Unload(Cancel as Integer)
+Private Sub Form_Unload(Cancel As Integer)
   Screen.MousePointer = vbDefault
 End Sub 'Private Sub Form_Unload()
 ' vLab(1)        :Pat_id_Bezeichnungsfeld

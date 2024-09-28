@@ -5,19 +5,57 @@ Begin VB.Form PatAuswahl
    ClientHeight    =   14370
    ClientLeft      =   3840
    ClientTop       =   435
-   ClientWidth     =   12285
+   ClientWidth     =   14415
    LinkTopic       =   "PatAuswahl"
    MinButton       =   0   'False
    ScaleHeight     =   14370
-   ScaleWidth      =   12285
+   ScaleWidth      =   14415
    ShowInTaskbar   =   0   'False
+   Begin VB.TextBox Vorbriefe 
+      Height          =   2415
+      Left            =   120
+      MultiLine       =   -1  'True
+      ScrollBars      =   2  'Vertikal
+      TabIndex        =   24
+      Text            =   "PatAuswahl0.frx":0000
+      Top             =   4680
+      Width           =   12015
+   End
+   Begin VB.TextBox Diagnosen 
+      Height          =   2895
+      Left            =   7560
+      MultiLine       =   -1  'True
+      ScrollBars      =   2  'Vertikal
+      TabIndex        =   17
+      Text            =   "PatAuswahl0.frx":000A
+      Top             =   1680
+      Width           =   4695
+   End
+   Begin VB.TextBox Faelle 
+      Height          =   3135
+      Left            =   120
+      MultiLine       =   -1  'True
+      ScrollBars      =   2  'Vertikal
+      TabIndex        =   9
+      Text            =   "PatAuswahl0.frx":0014
+      Top             =   1440
+      Width           =   7335
+   End
+   Begin VB.CommandButton Leistungen 
+      Caption         =   "&Leistungen"
+      Height          =   315
+      Left            =   6120
+      TabIndex        =   32
+      Top             =   720
+      Width           =   975
+   End
    Begin VB.CommandButton Therapiearten 
       Caption         =   "&Therartenanz."
       Height          =   315
-      Left            =   7440
+      Left            =   4920
       TabIndex        =   31
       Top             =   720
-      Width           =   1455
+      Width           =   1215
    End
    Begin VB.TextBox Zeilenzahl 
       Height          =   285
@@ -31,7 +69,7 @@ Begin VB.Form PatAuswahl
    Begin VB.CommandButton VorDat 
       Caption         =   "Vor&Dat.ermit"
       Height          =   255
-      Left            =   7440
+      Left            =   4920
       TabIndex        =   28
       Top             =   480
       Width           =   1095
@@ -39,30 +77,23 @@ Begin VB.Form PatAuswahl
    Begin VB.CommandButton Abr 
       Caption         =   "A&br"
       Height          =   375
-      Left            =   6840
+      Left            =   4440
       TabIndex        =   26
       Top             =   600
       Width           =   495
    End
-   Begin VB.ListBox Vorbriefe 
-      Height          =   2400
-      Left            =   360
-      TabIndex        =   24
-      Top             =   4680
-      Width           =   11895
-   End
    Begin VB.CommandButton Patientenlaufzettel 
       Caption         =   "&PLZ"
       Height          =   375
-      Left            =   6290
+      Left            =   3840
       TabIndex        =   23
       Top             =   600
-      Width           =   495
+      Width           =   615
    End
    Begin VB.CommandButton inTm 
       Caption         =   "T&urb"
       Height          =   375
-      Left            =   5760
+      Left            =   3360
       TabIndex        =   22
       Top             =   600
       Width           =   495
@@ -84,13 +115,6 @@ Begin VB.Form PatAuswahl
       TabIndex        =   20
       Top             =   0
       Width           =   2295
-   End
-   Begin VB.ListBox Diagnosen 
-      Height          =   2790
-      Left            =   7560
-      TabIndex        =   17
-      Top             =   1800
-      Width           =   4695
    End
    Begin VB.ComboBox Vorlage 
       Height          =   315
@@ -127,14 +151,7 @@ Begin VB.Form PatAuswahl
       Left            =   1440
       TabIndex        =   3
       Top             =   600
-      Width           =   4215
-   End
-   Begin VB.ListBox Faelle 
-      Height          =   2985
-      Left            =   120
-      TabIndex        =   9
-      Top             =   1560
-      Width           =   7335
+      Width           =   1935
    End
    Begin VB.TextBox pat_idDaten 
       Enabled         =   0   'False
@@ -197,7 +214,7 @@ Begin VB.Form PatAuswahl
       Height          =   255
       Left            =   8040
       TabIndex        =   19
-      Top             =   1560
+      Top             =   1440
       Width           =   4215
    End
    Begin VB.Label ArztLbl 
@@ -205,7 +222,7 @@ Begin VB.Form PatAuswahl
       Height          =   255
       Left            =   7560
       TabIndex        =   18
-      Top             =   1560
+      Top             =   1440
       Width           =   300
    End
    Begin VB.Label VorlageLab 
@@ -255,7 +272,7 @@ Begin VB.Form PatAuswahl
       Top             =   600
       Width           =   1215
    End
-   Begin VB.Label Label1 
+   Begin VB.Label Auswahl_Label 
       Caption         =   "&Auswahl mit F4:"
       Height          =   255
       Left            =   120
@@ -287,25 +304,30 @@ Public nichtherricht%
 Private Sub Angeforderte_Click(Index As Integer)
  Dim rs As New ADODB.Recordset
  Dim arztbed$
+ Dim VorBr$
 ' SELECT CASE Index
 '  Case 0: arztbed = "(e.art IN ('tk','ARCHIE2','APK') OR e.inhalt LIKE '%(tk)%')"
 '  Case 1: arztbed = "(e.art IN ('gs','doppler','duplex') OR e.inhalt LIKE '%(gs)%')"
 ' END SELECT
- DoCmd.Maximize
- Me.Faelle.Clear
- Me.Diagnosen.Clear
- Me.FaellepHA.Clear
- Me.Vorbriefe.Clear
+'  DoCmd.Maximize
+ Me.Faelle = ""
+' Me.Faelle.Clear
+ Me.Diagnosen = ""
+' Me.Diagnosen.Clear
+' Me.FaellepHA.Clear
+ Me.Vorbriefe = ""
+' Me.Vorbriefe.Clear
 ' myFrag rs, "SELECT f.pat_id, LEFT(CONCAT(n.nachname,',',n.vorname,IF(n.titel='','',','),n.titel,IF(n.nvorsatz='','',' '),n.nvorsatz),24) AS name, DATE_FORMAT(f.bhfb,'%d.%m.%y') BhFB, IF(e.art IN ('gs','doppler','duplex') OR e.inhalt LIKE '%(gs)%','gs','tk') arzt, f.auftrag, f.verdacht, f.befund FROM faelle f LEFT JOIN namen n ON f.pat_id = n.pat_id LEFT JOIN briefe b ON f.pat_id = b.pat_id AND name LIKE '%brief%' AND b.zeitpunkt > f.bhfb LEFT JOIN eintraege e ON e.pat_id = f.pat_id AND " & arztbed & " WHERE (auftrag LIKE '%beten%' OR auftrag LIKE '%bitte%' OR verdacht LIKE '%beten%' OR verdacht LIKE '%bitte%' OR befund LIKE '%beten%' OR befund LIKE '%bitte%') AND ISNULL(b.name) GROUP BY f.pat_id ORDER BY arzt, f.bhfb, f.pat_id, e.zeitpunkt DESC"
 ' myFrag rs, "SELECT f.pat_id, LEFT(CONCAT(n.nachname,',',n.vorname,IF(n.titel='','',','),n.titel,IF(n.nvorsatz='','',' '),n.nvorsatz),24) AS name, DATE_FORMAT(f.bhfb,'%d.%m.%y') BhFB, IF(e.art IN ('gs','doppler','duplex') OR e.inhalt LIKE '%(gs)%','gs','tk') arzt, f.auftrag, f.verdacht, f.befund FROM faelle f LEFT JOIN namen n ON f.pat_id = n.pat_id LEFT JOIN briefe b ON f.pat_id = b.pat_id AND name LIKE '%brief%' AND b.zeitpunkt > f.bhfb LEFT JOIN eintraege e ON e.pat_id = f.pat_id AND " & arztbed & " LEFT JOIN `faxeinp`.`outa` o ON o.pid = f.pat_id AND o.transe > f.bhfb AND o.docname LIKE '%brief%' WHERE (auftrag LIKE '%beten%' OR auftrag LIKE '%bitte%' OR verdacht LIKE '%beten%' OR verdacht LIKE '%bitte%' OR befund LIKE '%beten%' OR befund LIKE '%bitte%') AND ISNULL(b.name) AND ISNULL(o.transe) GROUP BY f.pat_id ORDER BY f.pat_id, e.zeitpunkt DESC"
 myFrag rs, "SELECT * FROM (SELECT f.pat_id, LEFT(CONCAT(n.nachname,',',n.vorname,IF(n.titel='','',','),n.titel,IF(n.nvorsatz='','',' '),n.nvorsatz),24) AS name, DATE_FORMAT(f.bhfb,'%d.%m.%y') BhFB, (SELECT COUNT(0) FROM eintraege e WHERE pat_id = f.pat_id AND (e.art IN ('gs','doppler','duplex') OR e.inhalt LIKE '%(gs)%')) gsz, (SELECT MAX(zeitpunkt) FROM eintraege e WHERE pat_id = f.pat_id AND (e.art IN ('gs','doppler','duplex') OR e.inhalt LIKE '%(gs)%')) gsl, (SELECT COUNT(0) FROM eintraege e WHERE pat_id = f.pat_id AND (e.art IN ('tk') OR e.inhalt LIKE '%(tk)%')) tkz, (SELECT MAX(zeitpunkt) FROM eintraege e WHERE pat_id = f.pat_id AND (e.art IN ('tk') OR e.inhalt LIKE '%(tk)%')) tkl," & _
         "f.auftrag, f.verdacht, f.befund FROM faelle f LEFT JOIN namen n ON f.pat_id = n.pat_id LEFT JOIN briefe b ON f.pat_id = b.pat_id AND name LIKE '%brief%' AND b.zeitpunkt > f.bhfb LEFT JOIN `faxeinp`.`outa` o ON o.pid = f.pat_id AND o.transe > f.bhfb AND o.docname LIKE '%brief% ' WHERE (auftrag LIKE '%beten%' OR auftrag LIKE '%bitte%' OR verdacht LIKE '%beten%' OR verdacht LIKE '%bitte%' OR befund LIKE '%beten%' OR befund LIKE '%bitte%') AND ISNULL(b.name) AND ISNULL(o.transe) GROUP BY f.pat_id) i WHERE " & IIf(Index = 0, "tkz", "gsz") & "<>0 ORDER BY pat_id"
  If Not rs.BOF Then
   Do While Not rs.EOF
-   Me.Vorbriefe.AddItem rs!Pat_id & Space$(1.7 * (5 - Len(rs!Pat_id))) & " " & Left$(rs!name, 20) & Space$(IIf(Len(rs!name) >= 20, 1, 1.5 * (20 - Len(rs!name)))) & "   (" & IIf(rs!gsz <> 0, IIf(rs!gsl > rs!tkl Or (rs!gsz > (3 * rs!Tkz)), " GS: ", " gs: ") & rs!gsz & " K.,zul.: " & Format(rs!gsl, "Dd.mm.yy") & IIf(rs!Tkz <> 0, ", ", ""), Space$(40)) & IIf(rs!Tkz <> 0, IIf(rs!tkl > rs!gsl Or (rs!Tkz > (3 * rs!gsz)), "  TK: ", "  tk: ") & rs!Tkz & " K.,zul.: " & Format(rs!tkl, "Dd.mm.yy"), Space$(40)) & ")     " & rs!BhFB & "          " & rs!Auftrag & " " & rs!Verdacht & " " & rs!Befund
+   VorBr = VorBr & IIf(VorBr = "", "", vbCrLf) & Left$(rs!Pat_id & Space$(1.7 * (6 - Len(rs!Pat_id))) & " " & Left$(rs!name, 20) & Space$(IIf(Len(rs!name) >= 20, 1, 1.5 * (20 - Len(rs!name)))) & "   (" & IIf(rs!gsz <> 0, IIf(rs!gsl > rs!tkl Or (rs!gsz > (3 * rs!Tkz)), " GS: ", " gs: ") & rs!gsz & " K.,zul.: " & Format(rs!gsl, "Dd.mm.yy") & IIf(rs!Tkz <> 0, ", ", ""), Space$(40)) & IIf(rs!Tkz <> 0, IIf(rs!tkl > rs!gsl Or (rs!Tkz > (3 * rs!gsz)), "  TK: ", "  tk: ") & rs!Tkz & " K.,zul.: " & Format(rs!tkl, "Dd.mm.yy"), Space$(40)) & ")     " & rs!BhFB & "          " & rs!Auftrag & " " & rs!Verdacht & " " & rs!Befund, 175)
    rs.MoveNext
   Loop
  End If ' Not rs.BOF
+ Me.Vorbriefe = VorBr
 End Sub ' Angeforderte_click
 
 Private Sub CancelButton_Click()
@@ -365,6 +387,16 @@ End Sub ' HAAusw_GotFocus()
 Private Sub inTM_Click()
  If IsNumeric(Me.Pat_id) Then inTMAnz Me.Pat_id
 End Sub 'inTM_Click()
+
+Private Sub Leistungen_Click()
+ Dim rs As New ADODB.Recordset, rsa As New ADODB.Recordset, spmaxü
+ spmaxü = Array(10, 5, 200)
+ If Pat_id <> 0 Then
+  myFrag rs, "SELECT l.QS, l.AktZeit, l.Zeitpunkt,l.Leistung, IF (ISNULL(e2.titel), e.Leistungstext,e2.titel) Titel,ArtdUs, LAnzl, LUhrz, LfBegr, Med, LOrgan, LArztBf, DtlKbsV, LEntlDt, Faktor, LBSNR, LANR, letzVorg, Ausn, Beme, absPos, QT, StByte, LANRid, Sachkbez, Sachkct, Zone, l.FID, l.id FROM leistungen l LEFT JOIN ebm2000plus e2 USING (leistung) LEFT JOIN EBM2010 e ON l.leistung = e.ziffer WHERE pat_id=" & CStr(Pat_id) & " ORDER BY zeitpunkt DESC"
+  myFrag rsa, "SELECT * FROM namen WHERE pat_id=" & Pat_id
+  TabAusgeb rs, Me, , , , , spmaxü, , "Leistungen zu Pat. " & CStr(Pat_id) & " (" & GesNamFn(rsa) & ")           ", , True
+ End If ' pat_id <> 0 Then
+End Sub ' Leistungen_Click()
 
 Private Sub Patientenlaufzettel_Click()
  Dim zzn%
@@ -515,8 +547,10 @@ Private Sub Form_Load()
     Me.Vorlage.Visible = False
   End Select
   
-  Me.Faelle.Clear
-  Me.Diagnosen.Clear
+'  Me.Faelle.Clear
+  Me.Faelle = ""
+'  Me.Diagnosen.Clear
+  Me.Diagnosen = ""
   Me.Arzt = vNS
   If Not lies.obMySQL Then
    Call KVAccSuch
@@ -657,6 +691,7 @@ Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "Last
 End Select
 End Function ' AuswName
 
+' pat_id_dropdown
 Function AuswPat_id(frm As PatAuswahl)
  Dim zwi$, i&
  On Error GoTo fehler
@@ -857,7 +892,7 @@ End Sub ' Pat_ID_Change()
 
 Private Sub do_Pat_ID_Change(Optional mitVorDat%)
  Const MaxLauf& = 100
- Dim lauf&
+ Dim lauf&, sql$
  Dim rNaA As New ADODB.Recordset
  Dim rFaA As New ADODB.Recordset
  Dim rDi As New ADODB.Recordset
@@ -887,10 +922,14 @@ Private Sub do_Pat_ID_Change(Optional mitVorDat%)
   If Me.Pat_id <> Me.VorBriefID Or InStrB(Me.PatName, "|") <> 0 Then ' aufwändiges Raussuchen des Vorbriefdatums nur+immer bei Auswahl aus der Patientenliste mit der Maus
 '   Call acon(HaT)
    If LenB(DBCn) = 0 Or DBCn = "" Then Call acon(quelleT)
-   Me.Faelle.Clear
-   Me.Diagnosen.Clear
-   Me.Vorbriefe.Clear
-   If LenB(Me.HAAusw) = 0 Then Me.Vorbriefe.Clear
+'   Me.Faelle.Clear
+   Me.Faelle = ""
+'   Me.Diagnosen.Clear
+   Me.Diagnosen = ""
+'   Me.Vorbriefe.Clear
+   Me.Vorbriefe = ""
+   If LenB(Me.HAAusw) = 0 Then Me.Vorbriefe = "" ' Me.Vorbriefe.Clear
+   
    Me.Hausarzt = vNS
    Me.Arzt = vNS
    If LenB(DBCnS) = 0 Then ' DBCn.ConnectionString = "" THEN
@@ -907,49 +946,87 @@ vorabfra1:
    Else
     On Error GoTo fehler
     Me.pat_idDaten = rNaA!Nachname & ", " & rNaA!Vorname + ",*" + Format$(rNaA!GebDat, "D.M.YY") + " | " + CStr(rNaA!Pat_id)
-' Call KVÄVorb
-'    Call acon(HaT)
-'    rFaA.Open "SELECT Übwr, BhfB, bhFE1, SchGr, Name, Kateg, ÜwnNr, ÜwNaN, ÜwVor FROM `faelle` LEFT JOIN (SELECT vknr, ik, kateg, name FROM `kassenliste` GROUP by ik,vknr) AS kl ON `faelle`.vknr = kl.vknr AND faelle.ik=kl.ik WHERE pat_id = " & Me.PatID & " ORDER BY bhfb DESC", DBCn, adOpenDynamic, adLockReadOnly
-    myFrag rFaA, "SELECT Übwr, BhfB, bhFE1, SchGr, Name, Kateg, ÜwnNr, ÜwNaN, ÜwVor FROM `faelle` LEFT JOIN (SELECT vknr, ik, kateg, name FROM `kassenliste` GROUP by ik,vknr) AS kl ON `faelle`.vknr = kl.vknr AND faelle.ik=kl.ik WHERE pat_id = " & Me.PatID & " ORDER BY bhfb DESC"
-    If Not rFaA.BOF Then
-     Do While Not rFaA.EOF
-      HAStr = vNS
-      If Not rFaA!Übwr = vNS Then
-       Set rKVA = Nothing
- '    rKVA.Open "SELECT -dmpt1 AS j_dmpt1, -dmpt2 AS j_dmpt2, `hae`.* FROM `hae` WHERE kvnr = '" & LEFT(rFaA!Übwr, 2) & "/" & right$(rFaA!Übw, 5) & "'", HAECn, adOpenDynamic, adLockReadOnly
-       Dim infos$()
-       Call getHausarzt(Me.Pat_id, infos)
-       Me.Hausarzt = infos(10, 0) & ":  " & infos(1, 0) & " " & infos(3, 0) & " " & infos(4, 0) & "  " & IIf(infos(6, 0) = "X", "DMP2", vNS) & " " & IIf(infos(7, 0) = "X", "DMP1", vNS)
- '      rKVA.Open "SELECT HAName, Ort, Email, Tel1, Fax1k, DMPT1, DMPT2 FROM `hae` WHERE kvnr = '" & LEFT(rFaA!Übw, 2) & "/" & Right$(rFaA!Übw, 5) & "'", HAECn, adOpenDynamic, adLockReadOnly
- '      IF Not rKVA.BOF AND NOT obHA AND NOT rFaA!Übw = "" & KVNR & "" THEN
-'        HAStr = rKVA!haname & ", " & rKVA!Ort & IIf(NOT ISNULL(rKVA!Email) AND LenB(rKVA!Email) <> 0, " Email: " & rKVA!Email, "") & _
- '               "   Tel: " & replace$(IIf(ISNULL(rKVA!tel1), vNS, rKVA!tel1), " ", "") & "  Fax: " & IIf(ISNULL(rKVA!fax1k), vNS, rKVA!fax1k)
- '       Dim obDMP2%, obDMP1%
- '       Do While Not rKVA.EOF
- ' '      IF rKVA!j_dmpt2 <> 0 THEN obDMP2 = True
- '        IF rKVA!dmpt2 <> 0 THEN obDMP2 = True
- ' '      IF rKVA!j_dmpt1 <> 0 THEN obDMP1 = True
- '        IF rKVA!dmpt1 <> 0 THEN obDMP1 = True
- '        rKVA.Move 1
- '       Loop
- '       HAStr = HAStr & "  DMP 2: " & IIf(obDMP2, "+", "-") & "  1: " & IIf(obDMP1, "+", "-")
- '       Me.Hausarzt = HAStr
-        obHA = -1
- '      END IF
-      End If
-      Me.Faelle.AddItem (rFaA!BhFB & " - " & rFaA!BhFE1 & " " & rFaA!SchGr & "  " & Left$(IIf(IsNull(rFaA!name), vNS, rFaA!name), 20) & " " & IIf(IsNull(rFaA!Kateg), vNS, rFaA!Kateg) & "  " & rFaA!ÜWNNr & " " & rFaA!ÜWNaN & " " & rFaA!ÜWVor)
-      rFaA.Move 1
-     Loop
-    End If ' Not rFaA.BOF THEN
-    myFrag rDi, "SELECT diagsicherheit, icd, diagtext, DATE_FORMAT(diagdatum,'%d.%m.%y') diagdatum, obdauer " & vbCrLf & _
-                "FROM diagview d " & vbCrLf & _
-                "WHERE pat_id = " & Me.PatID & " GROUP BY diagsicherheit, icd, diagtext, obdauer ORDER BY icd" ' AND COALESCE(d.Dggel,0)=0
-    If Not rDi.BOF Then
-     Do While Not rDi.EOF
-      Me.Diagnosen.AddItem rDi!DiagSicherheit & " " & rDi!DiagDatum & " " & IIf(rDi!obDauer = 0, "f", "d") & " " & Left$(rDi!ICD & Space$(7), 7) & rDi!DiagText
-      rDi.MoveNext
-     Loop
-    End If
+    sql = _
+    "SELECT" & vbCrLf & _
+    "COALESCE(GROUP_CONCAT(" & vbCrLf & _
+    " CONCAT(DATE_FORMAT(bhfb,'%d.%m.%y'),' - ',DATE_FORMAT(bhfe1,'%d.%m.%y'),' ',LPAD(schgr,2,' '),' ',RPAD(COALESCE(NAME,''),20,' '),' ',COALESCE(kateg,' '),' ',ÜWNNr,' ',ÜWNaN,' ',ÜWVor)" & vbCrLf & _
+    " ORDER BY bhfb DESC" & vbCrLf & _
+    " SEPARATOR '\r\n'" & vbCrLf & _
+    "),'') fael" & vbCrLf & _
+    "FROM faelle f" & vbCrLf & _
+    "LEFT JOIN" & vbCrLf & _
+    "kassenliste kl ON f.vknr = kl.vknr AND f.ik=kl.ik" & vbCrLf & _
+    "WHERE Pat_id = " & Me.Pat_id
+'    Me.Faelle.AddItem myEFrag(sql)!fael
+    Me.Faelle = myEFrag(sql)!fael
+'    Me.Text1 = myEFrag(sql)!fael
+    sql = _
+    "SELECT" & vbCrLf & _
+    "COALESCE(CONCAT(fnHA0,': ',adressat,' ',plzort,' ',fax,' ',IF(dmp2,'DMP2','    '),' ',IF(dmp1,'DMP1','    ')),'') ha" & vbCrLf & _
+    "FROM namen n" & vbCrLf & _
+    "LEFT JOIN hareal h ON h.kvnr IN (getHA0,getHA1,getHA2) AND h.kvnr<>0" & vbCrLf & _
+    "WHERE n.Pat_id = " & Me.PatID & vbCrLf & _
+    "ORDER BY if(h.kvnr=getha0,0,if(h.kvnr=getha1,1,2))" & vbCrLf & _
+    "LIMIT 1;"
+    Me.Hausarzt = myEFrag(sql)!HA
+    
+    
+'' Call KVÄVorb
+''    Call acon(HaT)
+''    rFaA.Open "SELECT Übwr, BhfB, bhFE1, SchGr, Name, Kateg, ÜwnNr, ÜwNaN, ÜwVor FROM `faelle` LEFT JOIN (SELECT vknr, ik, kateg, name FROM `kassenliste` GROUP by ik,vknr) AS kl ON `faelle`.vknr = kl.vknr AND faelle.ik=kl.ik WHERE pat_id = " & Me.PatID & " ORDER BY bhfb DESC", DBCn, adOpenDynamic, adLockReadOnly
+'    myFrag rFaA, "SELECT Übwr, BhfB, bhFE1, SchGr, Name, Kateg, ÜwnNr, ÜwNaN, ÜwVor FROM `faelle` LEFT JOIN (SELECT vknr, ik, kateg, name FROM `kassenliste` GROUP by ik,vknr) AS kl ON `faelle`.vknr = kl.vknr AND faelle.ik=kl.ik WHERE pat_id = " & Me.PatID & " ORDER BY bhfb DESC"
+'    If Not rFaA.BOF Then
+'     Do While Not rFaA.EOF
+'      HAStr = vNS
+'      If Not rFaA!Übwr = vNS Then
+'       Set rKVA = Nothing
+' '    rKVA.Open "SELECT -dmpt1 AS j_dmpt1, -dmpt2 AS j_dmpt2, `hae`.* FROM `hae` WHERE kvnr = '" & LEFT(rFaA!Übwr, 2) & "/" & right$(rFaA!Übw, 5) & "'", HAECn, adOpenDynamic, adLockReadOnly
+'       Dim infos$()
+'       Call getHausarzt(Me.Pat_id, infos)
+'       Me.Hausarzt = infos(10, 0) & ":  " & infos(1, 0) & " " & infos(3, 0) & " " & infos(4, 0) & "  " & IIf(infos(6, 0) = "X", "DMP2", vNS) & " " & IIf(infos(7, 0) = "X", "DMP1", vNS)
+' '      rKVA.Open "SELECT HAName, Ort, Email, Tel1, Fax1k, DMPT1, DMPT2 FROM `hae` WHERE kvnr = '" & LEFT(rFaA!Übw, 2) & "/" & Right$(rFaA!Übw, 5) & "'", HAECn, adOpenDynamic, adLockReadOnly
+' '      IF Not rKVA.BOF AND NOT obHA AND NOT rFaA!Übw = "" & KVNR & "" THEN
+''        HAStr = rKVA!haname & ", " & rKVA!Ort & IIf(NOT ISNULL(rKVA!Email) AND LenB(rKVA!Email) <> 0, " Email: " & rKVA!Email, "") & _
+' '               "   Tel: " & replace$(IIf(ISNULL(rKVA!tel1), vNS, rKVA!tel1), " ", "") & "  Fax: " & IIf(ISNULL(rKVA!fax1k), vNS, rKVA!fax1k)
+' '       Dim obDMP2%, obDMP1%
+' '       Do While Not rKVA.EOF
+' ' '      IF rKVA!j_dmpt2 <> 0 THEN obDMP2 = True
+' '        IF rKVA!dmpt2 <> 0 THEN obDMP2 = True
+' ' '      IF rKVA!j_dmpt1 <> 0 THEN obDMP1 = True
+' '        IF rKVA!dmpt1 <> 0 THEN obDMP1 = True
+' '        rKVA.Move 1
+' '       Loop
+' '       HAStr = HAStr & "  DMP 2: " & IIf(obDMP2, "+", "-") & "  1: " & IIf(obDMP1, "+", "-")
+' '       Me.Hausarzt = HAStr
+'        obHA = -1
+' '      END IF
+'      End If
+'      Me.Faelle.AddItem (rFaA!BhFB & " - " & rFaA!BhFE1 & " " & rFaA!SchGr & "  " & Left$(IIf(IsNull(rFaA!name), vNS, rFaA!name), 20) & " " & IIf(IsNull(rFaA!Kateg), vNS, rFaA!Kateg) & "  " & rFaA!ÜWNNr & " " & rFaA!ÜWNaN & " " & rFaA!ÜWVor)
+'      rFaA.Move 1
+'     Loop
+'    End If ' Not rFaA.BOF THEN
+    sql = _
+    "SELECT" & vbCrLf & _
+    "GROUP_CONCAT(" & vbCrLf & _
+    " CONCAT(DiagSicherheit,' ',DATE_FORMAT(DiagDatum,'%d.%m.%y'),' ',If(obDauer = 0,'f','d'),' ',RPAD(icd,7,' '),' ',DiagText)" & vbCrLf & _
+    " ORDER BY icd" & vbCrLf & _
+    " SEPARATOR '\r\n'" & vbCrLf & _
+    ") diag" & vbCrLf & _
+    "From diagview" & vbCrLf & _
+    "Where Pat_id = " & Me.Pat_id ' & vbCrLf & _
+'    "GROUP BY diagsicherheit, icd, diagtext, obdauer"
+    Me.Diagnosen = myEFrag(sql)!Diag
+'    sql = "SELECT diagsicherheit, icd, diagtext, DATE_FORMAT(diagdatum,'%d.%m.%y') diagdatum, obdauer " & vbCrLf & _
+'                "FROM diagview d " & vbCrLf & _
+'                "WHERE pat_id = " & Me.PatID & " GROUP BY diagsicherheit, icd, diagtext, obdauer ORDER BY icd" ' AND COALESCE(d.Dggel,0)=0
+'
+'    myFrag rDi, sql
+'    If Not rDi.BOF Then
+'     Do While Not rDi.EOF
+'      Me.Diagnosen.AddItem rDi!DiagSicherheit & " " & rDi!DiagDatum & " " & IIf(rDi!obDauer = 0, "f", "d") & " " & Left$(rDi!ICD & Space$(7), 7) & rDi!DiagText
+'      rDi.MoveNext
+'     Loop
+'    End If
     Zulp = 0
     lbeh = 0
     Me.Arzt.BackColor = &H80FF&
@@ -985,32 +1062,44 @@ vorabfra1:
     End If ' rein.state<>0
    
 '   IF LenB(Me.HAAusw) = 0 THEN
-     Dim rs As New ADODB.Recordset
-     myFrag rs, "SELECT transe, docname , RCFax, pages, fsize, Retries FROM `faxeinp`.`outa` o WHERE docname RLIKE 'PID " & Pat_id & "[^0123456789]' ORDER BY transe DESC"
-     If rs.State <> 0 Then
-      If Not rs.BOF Then
-       Do While Not rs.EOF
-        If rs!transe >= Zulp Then Me.nötig.BackColor = &HFF0000 ' blau
-        Me.Vorbriefe.AddItem "gefaxt: " & rs!transe & "  |  " & rs!docName & "  |  " & rs!rcfax & "  |  " & rs!Pages & "  |  " & rs!fsize & "  |  " & rs!Retries
-        rs.MoveNext
-       Loop
-      End If ' Not rs.BOF THEN
-     End If ' rs.state<>0
-     Dim vd As Date
-     Dim zeitp1 As Date, name$
-'     IF hlese.Aktion = BriefSchreiben AND InStrB(Me.PatName, "|") <> 0 THEN ' aufwändiges Raussuchen des Vorbriefdatums nur+immer bei Auswahl aus der Patientenliste mit der Maus
-      If mitVorDat Then
-      vd = GetVorDat(Pat_id, -1, -1, 0, zeitp1, name)
-      If vd <> 0 Then
-       If vd >= Zulp Then Me.nötig.BackColor = &HFF0000 ' blau
-       Me.Vorbriefe.AddItem "Kart'k'eintr v.: " & zeitp1 & ": " & name & ", geschrieben: " & vd
-      End If
-     Else
-      vd = GetVorDat(Pat_id, -1, -1, -1, zeitp1, name)
-     End If ' hlese.Aktion = BriefSchreiben THEN
+    sql = _
+    "SELECT" & vbCrLf & _
+    "COALESCE(GROUP_CONCAT(" & vbCrLf & _
+    "CONCAT('gefaxt: ',transe,'  |  ',docName,'  |  ',rcfax,'  |  ',Pages,'  |  ',fsize,'  |  ',Retries)" & vbCrLf & _
+    "ORDER BY transe DESC" & vbCrLf & _
+    "SEPARATOR '\r\n'" & vbCrLf & _
+    "),'') gef" & vbCrLf & _
+    "FROM `faxeinp`.`outa` o WHERE pid=" & Me.Pat_id
+    Me.Vorbriefe = myEFrag(sql)!gef
+
+'     Dim rs As New ADODB.Recordset
+''     myFrag rs, "SELECT transe, docname , RCFax, pages, fsize, Retries FROM `faxeinp`.`outa` o WHERE docname RLIKE 'PID " & Pat_id & "[^0123456789]' ORDER BY transe DESC"
+'     myFrag rs, "SELECT transe, docname , RCFax, pages, fsize, Retries FROM `faxeinp`.`outa` o WHERE pid=" & Pat_id & " ORDER BY transe DESC"
+'     If rs.State <> 0 Then
+'      If Not rs.BOF Then
+'       Do While Not rs.EOF
+'        If rs!transe >= Zulp Then Me.nötig.BackColor = &HFF0000 ' blau
+'        Me.Vorbriefe.AddItem "gefaxt: " & rs!transe & "  |  " & rs!docName & "  |  " & rs!rcfax & "  |  " & rs!Pages & "  |  " & rs!fsize & "  |  " & rs!Retries
+'        rs.MoveNext
+'       Loop
+'      End If ' Not rs.BOF THEN
+'     End If ' rs.state<>0
+'
+'     Dim vd As Date
+'     Dim zeitp1 As Date, name$
+''     IF hlese.Aktion = BriefSchreiben AND InStrB(Me.PatName, "|") <> 0 THEN ' aufwändiges Raussuchen des Vorbriefdatums nur+immer bei Auswahl aus der Patientenliste mit der Maus
+'      If mitVorDat Then
+'      vd = GetVorDat(Pat_id, -1, -1, 0, zeitp1, name)
+'      If vd <> 0 Then
+'       If vd >= Zulp Then Me.nötig.BackColor = &HFF0000 ' blau
+'       Me.Vorbriefe.AddItem "Kart'k'eintr v.: " & zeitp1 & ": " & name & ", geschrieben: " & vd
+'      End If
+'     Else
+'      vd = GetVorDat(Pat_id, -1, -1, -1, zeitp1, name)
+'     End If ' hlese.Aktion = BriefSchreiben THEN
   '   END IF ' LenB(Me.HAAusw) = 0 THEN
    End If ' rNaA.EOF
-   Dim sql$, rdesk As New ADODB.Recordset
+   Dim rdesk As New ADODB.Recordset
    sql = "SELECT (0) FROM desktop WHERE pat_id = " & Me.Pat_id & " AND titel LIKE '%kein%Bericht%'"
    Set rdesk = Nothing
    myFrag rdesk, sql

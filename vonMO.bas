@@ -353,27 +353,29 @@ Public Function ParseMemo(FMemo$, MeStr() As memoType, Optional obDebug%, Option
    If pos >= gl Then Exit Do
   Loop
   ' folende Zeilen zum Debuggen auskommentieren (in der Schleife laba ist das deutlich langsamer!)
-  For i = UBound(MeStr) - 1 To 0 Step -1
-   If InStr(MeStr(i + 1).ENr, MeStr(i).ENr & ".") = 1 And MeStr(i + 1).ENr <> MeStr(i).ENr Then ' MeStr(i).patnr = MeStr(i + 1).patnr And MeStr(i).FSur = MeStr(i + 1).FSur And
-    Call memoaltloe(MeStr, i, False)
-   End If
-  Next i
-  Call memoaltloe(MeStr, -1, True)
-  For i = 0 To UBound(MeStr)
-   If MeStr(i).znr <= Len(FMemo) Then
-    MeStr(i).endse = Asc(Mid$(FMemo, MeStr(i).znr, 1))
-   Else
-    MeStr(i).endse = "!: " & MeStr(i).znr & ">" & Len(FMemo)
-   End If
-   If MeStr(i).znr <= Len(FMemo) - 1 Then
-    MeStr(i).endsz = Asc(Mid$(FMemo, MeStr(i).znr + 1, 1)) * 256& + Asc(Mid$(FMemo, MeStr(i).znr, 1))
-   Else
-    MeStr(i).endsz = "!: " & MeStr(i).znr - 1 & ">" & Len(FMemo)
-   End If
-   If obDebug Then
-    Print #255, MeStr(i).znr & "|" & MeStr(i).mx & "|" & MeStr(i).ebn & "|" & MeStr(i).ENr & "|" & IIf(MeStr(i).endse <> "10", Mid$(FMemo, MeStr(i).znr, 1), "") & "|" & MeStr(i).endse & "|" & MeStr(i).endsz & "| Laenge: " & Len(MeStr(i).Text) & "|" & IIf(Right$(MeStr(i).Text, 1) = Chr$(10), Left$(MeStr(i).Text, IIf(Len(MeStr(i).Text) = 0, 1, Len(MeStr(i).Text)) - 1), MeStr(i).Text)
-   End If ' obDebug
-  Next i
+  If SafeArrayGetDim(MeStr) <> 0 Then
+   For i = UBound(MeStr) - 1 To 0 Step -1
+    If InStr(MeStr(i + 1).ENr, MeStr(i).ENr & ".") = 1 And MeStr(i + 1).ENr <> MeStr(i).ENr Then ' MeStr(i).patnr = MeStr(i + 1).patnr And MeStr(i).FSur = MeStr(i + 1).FSur And
+     Call memoaltloe(MeStr, i, False)
+    End If
+   Next i
+   Call memoaltloe(MeStr, -1, True)
+   For i = 0 To UBound(MeStr)
+    If MeStr(i).znr <= Len(FMemo) Then
+     MeStr(i).endse = Asc(Mid$(FMemo, MeStr(i).znr, 1))
+    Else
+     MeStr(i).endse = "!: " & MeStr(i).znr & ">" & Len(FMemo)
+    End If
+    If MeStr(i).znr <= Len(FMemo) - 1 Then
+     MeStr(i).endsz = Asc(Mid$(FMemo, MeStr(i).znr + 1, 1)) * 256& + Asc(Mid$(FMemo, MeStr(i).znr, 1))
+    Else
+     MeStr(i).endsz = "!: " & MeStr(i).znr - 1 & ">" & Len(FMemo)
+    End If
+    If obDebug Then
+     Print #255, MeStr(i).znr & "|" & MeStr(i).mx & "|" & MeStr(i).ebn & "|" & MeStr(i).ENr & "|" & IIf(MeStr(i).endse <> "10", Mid$(FMemo, MeStr(i).znr, 1), "") & "|" & MeStr(i).endse & "|" & MeStr(i).endsz & "| Laenge: " & Len(MeStr(i).Text) & "|" & IIf(Right$(MeStr(i).Text, 1) = Chr$(10), Left$(MeStr(i).Text, IIf(Len(MeStr(i).Text) = 0, 1, Len(MeStr(i).Text)) - 1), MeStr(i).Text)
+    End If ' obDebug
+   Next i
+  End If ' SafeArrayGetDim(MeStr)
   If obDebug Then
    Print #255, vbCrLf
    Close #255
@@ -507,8 +509,8 @@ End Function ' zeigmosystem()
 ' in PatvonMO_Click
 Public Function doPatvonMO(pNr&)
  Dim pid&, pos&, SchGr%, j&, jj%, rAf&, rInh$, Puls$, Bem$ ' , aktZeit As Date
- Const obDebug% = True, obszn4% = False
- pNr& = 63635 ' 67180 ' 63635 ' 64800 ' 69333 ' 68316 ' 65405 ' 45 ' 64659 ' 45 ' 69367 ' 69377 ' 53119 ' 51630 ' 105 ' 18 ' 246 ' 59152 ' 1394 ' 2112 ' 151 ' 225 '
+ Const obDebug% = True, obszn4% = True
+ pNr& = 68393 ' 63635 ' 67180 ' 63635 ' 64800 ' 69333 ' 68316 ' 65405 ' 45 ' 64659 ' 45 ' 69367 ' 69377 ' 53119 ' 51630 ' 105 ' 18 ' 246 ' 59152 ' 1394 ' 2112 ' 151 ' 225 '
  pid = pNr + 100000
  Static lfdfl&
  Dim rsNa As New ADODB.Recordset, rsFa As New ADODB.Recordset, rsMo As New ADODB.Recordset
@@ -590,6 +592,9 @@ Public Function doPatvonMO(pNr&)
   ' nicht enthalten/nicht befüllt: Anschrzus, PFPlz,anschrzus_2,postfach_2,lk_2,postfach,beruf,Weggeldzone,
   rNa(0).WeggzZahl = IIf(rsNa!FEntfernung = "", 0, rsNa!FEntfernung) ' bei Pat. 1219 doch nicht die Weggeldzone als Zahl
   rNa(0).Titel = rsNa!FTitel
+  rNa(0).Swz = rsNa!FSchangerzahl
+  rNa(0).Gbz = rsNa!FGeburtzahl
+  rNa(0).Kiz = rsNa!FKinderzahl
  
   rNa(0).PrivatTel = rsNa!FTelefonprivat
   pos = InStr(rNa(0).PrivatTel, " (")
@@ -636,6 +641,7 @@ Public Function doPatvonMO(pNr&)
       Case "18"
          rNa(0).notiz = REPLACE$(LTrim$(REPLACE$(NaStr(j).Text, "Notiz:", "")), Chr$(10), vbCrLf)
       Case "21.1": ' asc( Zahl der eingetragenen Kinder
+         rNa(0).ZdeK = Asc(NaStr(j).Text)
       Case "25"
         If NaStr(j).Text <> 0 Then
          SchGr = 90
@@ -643,6 +649,8 @@ Public Function doPatvonMO(pNr&)
     End Select
    Next j
   End If ' rsNa!fm
+  
+   
 '  Call MeStDruck(CStr(pNr), NaStr)
   
 '  rsFa.Open "SELECT f.fsurogat nix, COALESCE(CONVERT(f.FMemo USING latin1),'') Fm,CONCAT(f.fpatnr,', ',18900101 + INTERVAL f.fvon DAY,' - ',18900101 + INTERVAL f.fbis DAY) ueschr, f.*,a.FBezeichnung, le.FNachname FROM patfall f LEFT JOIN abrechner a ON f.FArztnr=a.FSurogat LEFT JOIN lstgerb le USING (FLstgerbnr) WHERE fpatnr=" & pNr & " ORDER BY FVon DESC", MOCon, adOpenStatic, adLockReadOnly
@@ -669,7 +677,7 @@ Public Function doPatvonMO(pNr&)
     If rsFa!fabgerechnet <> 0 Then rFa(UBound(rFa)).BhFE2 = CDate("1.1.1890") + rsFa!fabgerechnet
     rFa(UBound(rFa)).BhFE = rFa(UBound(rFa)).BhFE2
     rFa(UBound(rFa)).IK = Right$(rsFa!Fik, 7)
-    rFa(UBound(rFa)).abrArzt = rsFa!FBezeichnung
+    If Not IsNull(rsFa!FBezeichnung) Then rFa(UBound(rFa)).abrArzt = rsFa!FBezeichnung
     If rsFa!FVorhanden <> " " And rsFa!FVorhanden <> "" Then
       rFa(UBound(rFa)).KartBes = rsFa!FVorhanden
     End If
@@ -815,8 +823,12 @@ Public Function doPatvonMO(pNr&)
        Case "4.21": rFa(UBound(rFa)).VermiArt = Left$(FaStr(j).Text, 1) ' 4.22: Zusatzinfo, 4.23: Vermittlungscode, 4.24: Datum d. Terminvermittulung
            ' dabei (Vermittlungsart 6) auch noch FAmbulStat auf 1 gesetzt (?)
        Case "4.22":          rFa(UBound(rFa)).VermiZusatz = Trim$(FaStr(j).Text)
-       Case "4.23":          rFa(UBound(rFa)).VermiCode = Trim$(FaStr(j).Text)
-       Case "4.24":          rFa(UBound(rFa)).VermiDatum = stzd(FaStr(j).Text)
+       Case "4.23":
+                             rFa(UBound(rFa)).VermiCode = Trim$(FaStr(j).Text)
+       Case "4.24":
+'                             On Error Resume Next
+                             rFa(UBound(rFa)).VermiDatum = stzk(FaStr(j).Text)
+'                             On Error GoTo fehler
        Case "4.25": ' Unfalltag zu 4.6, nicht in Turbomed
 '       Case "5"                ' immer Ascii 4, auf szn4 und wser
 ' falsch:    If Asc(Left$(FaStr(j).Text, 1)) > 31 Then
@@ -915,6 +927,26 @@ Public Function doPatvonMO(pNr&)
   End If ' Not rsFa.BOF Then
   lfdfl = 0 ' für nä Pat
   
+  For j = 0 To UBound(NaStr)
+   If NaStr(j).ENr Like "21.*" And NaStr(j).ENr <> "21.1" Then
+    ReDim Preserve rSw(UBound(rSw) + 1)
+    rSw(UBound(rSw)).Pat_id = rNa(0).Pat_id
+    rSw(UBound(rSw)).FormTitel = "ssd"
+    rSw(UBound(rSw)).vorET = stzk(NaStr(j).Text)
+    rSw(UBound(rSw)).lR = rSw(UBound(rSw)).vorET - 280
+    rSw(UBound(rSw)).MB = rSw(UBound(rSw)).vorET - 42
+    rSw(UBound(rSw)).aktZeit = aktZeit
+    For jj = 1 To UBound(rFa)
+     If rFa(jj).BhFB < rSw(UBound(rSw)).vorET And rFa(jj).BhFE1 > rSw(UBound(rSw)).vorET - 268 Then
+      rFa(jj).vorET = rSw(UBound(rSw)).vorET
+      rFa(jj).letzteRegel = rSw(UBound(rSw)).lR
+     End If
+    Next jj
+   End If
+  Next j
+ 
+ 
+  
   Dim rsHa As New ADODB.Recordset, rslue  As New ADODB.Recordset
   ' -34 Überweiser, -40 Hausarzt, -32 Arzt
   rsHa.Open "SELECT FArztnralt, FAdresse, farztgruppe, FNachname, FVorname, FRelationtyp FROM patrelation r LEFT JOIN earzt a ON r.freferenzid = a.fsurogat AND freferenztyp=2 LEFT JOIN epraxis p ON a.FExtpraxisnr = p.fsurogat WHERE fpatid=" & pNr & " AND FRelationtyp IN (-34,-40,-32)", MOCon, adOpenStatic, adLockReadOnly
@@ -972,23 +1004,6 @@ Public Function doPatvonMO(pNr&)
    Loop
   End If ' Not rsHa.BOF Then
   
-  For j = 0 To UBound(NaStr)
-   If NaStr(j).ENr Like "21.*" And NaStr(j).ENr <> "21.1" Then
-    ReDim Preserve rSw(UBound(rSw) + 1)
-    rSw(UBound(rSw)).Pat_id = rNa(0).Pat_id
-    rSw(UBound(rSw)).FormTitel = "ssd"
-    rSw(UBound(rSw)).vorET = stzk(NaStr(j).Text)
-    rSw(UBound(rSw)).lR = rSw(UBound(rSw)).vorET - 280
-    rSw(UBound(rSw)).MB = rSw(UBound(rSw)).vorET - 42
-    rSw(UBound(rSw)).aktZeit = aktZeit
-    For jj = 1 To UBound(rFa)
-     If rFa(jj).BhFB < rSw(UBound(rSw)).vorET And rFa(jj).BhFE1 > rSw(UBound(rSw)).vorET - 268 Then
-      rFa(jj).vorET = rSw(UBound(rSw)).vorET
-      rFa(jj).letzteRegel = rSw(UBound(rSw)).lR
-     End If
-    Next jj
-   End If
-  Next j
  
  ' KVnr: fpatrelation, dort fpatid= fpatnr, freferenztyp 2 = Hausarzt (0=Arbeitgeber), freferenzid = earzt.fsurogat,
  ' dort FExtpraxisnr = epraxis.fsurogat
@@ -1330,6 +1345,9 @@ Public Function doPatvonMO(pNr&)
    Do While Not rsEi.EOF
     messDatum = rsEi!anzp
     Art = rsEi!Art
+'    If Art Like "VKGD*" Then
+'     ReDim Preserve rVk(UBound(rVk) + 1)
+'    Else
     Select Case UCase$(Art)
      Case "RR", "RRVGL"
       rInh = rsEi!FText
@@ -1369,6 +1387,7 @@ Public Function doPatvonMO(pNr&)
       rEi(UBound(rEi)).Inhalt = rsEi!FText
       If rEi(UBound(rEi)).Art = "GEWICHT" And IsNumeric(rEi(UBound(rEi)).Inhalt) Then rEi(UBound(rEi)).Inhalt = rEi(UBound(rEi)).Inhalt & " kg"
     End Select ' ucase$(art)
+'    End If ' Art like ...
     rsEi.MoveNext
    Loop ' while not rsEi.EOF
   End If ' Not rsEi.BOF Then
@@ -1462,6 +1481,7 @@ weiter:
   rst.MoveNext
  Loop ' While Not rst.EOF
  syscmd 4, "Fertig mit suchfi " & pNr& & " " & fI$
+ Debug.Print "Fertig mit Suchfi(" & pNr & "," & fI & "," & obszn4 & ")"
 End Function ' suchfi(pNr&, fI$)
 
 
@@ -1519,6 +1539,7 @@ Public Function suchal(fI$, Optional NotObRlike%, Optional obszn4%)
  Loop ' While Not rst.EOF
 #End If
  syscmd 4, "Fertig mit suchfal " & fI & " " & NotObRlike%
+ Debug.Print "Fertig mit Suchal(" & fI & "," & NotObRlike & "," & obszn4 & ")"
 End Function ' suchal
 
 

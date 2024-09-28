@@ -613,12 +613,12 @@ End Function ' DtbCreateQueryDef
 Function do_Labor_Click(frm As Form)
  On Error GoTo fehler
  Call do_Click_Vorbereit
- 'sql = "SELECT dl.`Pat_ID` AS Pat_id, `Namen`.`Nachname` AS Nachname, `Namen`.`Vorname` AS Vorname, dl.`ZeitPunkt`, dl.`DokName`, dl.`AbsPos`, dl.`AktZeit`, dl.`DokPfad`, dl.`dokgroe`, `Dokumente abgehakt`.`abgehakt` " & _
- "FROM `namen` INNER JOIN ((SELECT * FROM `dokumente` WHERE dokname LIKE ""*labor*"") AS dl LEFT JOIN `Dokumente abgehakt` ON dl.`DokPfad`=`Dokumente abgehakt`.`DokPfad`) ON `Namen`.`Pat_ID`=`Dl`.`Pat_ID` " & _
+ 'sql = "SELECT dl.`Pat_ID` AS Pat_id, `Namen`.`Nachname` AS Nachname, `Namen`.`Vorname` AS Vorname, dl.`ZeitPunkt`, dl.`DokName`, dl.`AbsPos`, dl.`AktZeit`, dl.`DokPfad`, dl.`dokgroe`, `br_abgehakt`.`abgehakt` " & _
+ "FROM `namen` INNER JOIN ((SELECT * FROM `dokumente` WHERE dokname LIKE ""*labor*"") AS dl LEFT JOIN `br_abgehakt` ON dl.`DokPfad`=`br_abgehakt`.`DokPfad`) ON `Namen`.`Pat_ID`=`Dl`.`Pat_ID` " & _
  "ORDER BY `Namen`.`Nachname`, `Namen`.`Vorname`, dl.`ZeitPunkt`;"
- sql = "SELECT dl.Pat_ID AS Pat_id, Nachname, Vorname, ZeitPunkt, dl.DokName, dl.AbsPos, dl.AktZeit, dl.DokPfad, dokgroe, abgehakt " & _
- "FROM (`dokumente` dl LEFT JOIN `dokumente abgehakt` da ON dl.DokPfad=da.DokPfad) LEFT JOIN `namen` na ON na.Pat_ID=dl.Pat_ID " & _
- "WHERE DokName LIKE '%labor%' AND dl.pat_id = " + CStr(frm!vTextB(1)) + _
+ sql = "SELECT dl.Pat_ID AS Pat_id, Nachname, Vorname, ZeitPunkt, dl.Name DokName, dl.AbsPos, dl.AktZeit, dl.Pfad DokPfad, dokgroe, abgehakt " & _
+ "FROM (briefe dl LEFT JOIN `br_abgehakt` da ON dl.Pfad=da.DokPfad) LEFT JOIN `namen` na ON na.Pat_ID=dl.Pat_ID " & _
+ "WHERE Name LIKE '%labor%' AND dl.pat_id = " + CStr(frm!vTextB(1)) + _
  " ORDER BY Nachname, Vorname, ZeitPunkt DESC;"
 
  Call DtbCreateQueryDef("LaborDokumente eP", sql)
@@ -648,7 +648,7 @@ Function do_DokDown(frm As Form) ' kommt nirgends vor
  If FSO Is Nothing Then Set FSO = CreateObject("Scripting.FileSystemObject")
  Oneu = frm.Nachname + "_" + frm.Vorname + "_" + Format$(frm.GebDat, "dd/mm/yyyy")
  Call VerzPrüf(pVerz & Oneu)
- sql = "SELECT """ + frm.Nachname + """ AS nachname,""" + frm.Vorname + """ AS vorname, * FROM `dokumente` WHERE dokname NOT LIKE ""*labor*"" AND dokname NOT LIKE ""*heckliste*"" AND dokname NOT LIKE ""*namnese*"" AND pat_id = " + CStr(frm!Pat_id) + " ORDER BY zeitpunkt DESC"
+ sql = "SELECT """ + frm.Nachname + """ Nachname,""" + frm.Vorname + """ Vorname, b.* FROM briefe b WHERE name NOT LIKE ""%labor%"" AND name NOT LIKE ""%heckliste%"" AND name NOT LIKE ""%namnese%"" AND pat_id = " + CStr(frm!Pat_id) + " ORDER BY zeitpunkt DESC"
 ' SET rDok = Dtb.OpenRecordset(sql, dbOpenDynaset)
  myFrag rDok, sql
  On Error Resume Next
@@ -672,13 +672,16 @@ End Select
 End Function ' do_DokDown
 #End If
 
+' in AnBog
 Function do_Dokumente_Click(frm As Form)
  On Error GoTo fehler
  Call do_Click_Vorbereit
- sql = "SELECT """ + frm.Nachname + """ AS nachname,""" + frm.Vorname + """ AS vorname, * FROM " & "`" & QMdbAkt & "`" & ".`dokumente` WHERE dokname NOT LIKE ""*labor*"" AND dokname NOT LIKE ""*heckliste*"" AND dokname NOT LIKE ""*namnese*"" AND NOT (dokname LIKE ""*BZ*"" OR dokname LIKE ""*RR*"" OR dokname LIKE ""*blutdr*"") AND pat_id = " & CStr(frm!Pat_id) + " ORDER BY zeitpunkt DESC"
+ sql = "SELECT """ + frm.Nachname + """ nachname,""" + frm.Vorname + """ vorname, b.* FROM " & "`" & QMdbAkt & "`" & ".briefe b WHERE name NOT LIKE ""%labor%"" AND name NOT LIKE ""%heckliste%"" AND name NOT LIKE ""%namnese%"" AND NOT (name LIKE ""%BZ%"" OR name LIKE ""%RR%"" OR name LIKE ""%blutdr%"") AND pat_id = " & CStr(frm!Pat_id) + " ORDER BY zeitpunkt DESC"
  Call DtbCreateQueryDef("LaborDokumente eP", sql)
- DoCmd.OpenForm "LaborDokumente eP"
- Forms![LaborDokumente ep].Caption = "Sonstige Dokumente zu " + frm.Nachname & " " & frm.Vorname
+' DoCmd.OpenForm "LaborDokumente eP"
+ DoCmd.OpenForm "LaborDokumente"
+' Forms![LaborDokumente ep].Caption = "Sonstige Dokumente zu " + frm.Nachname & " " & frm.Vorname
+ Forms![Labordokumente].Caption = "Sonstige Dokumente zu " + frm.Nachname & " " & frm.Vorname
  Exit Function
 fehler:
  Dim AnwPfad$
@@ -694,10 +697,11 @@ Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "Last
 End Select
 End Function ' do_Dokumente_Click(frm AS Form)
 
+' in vCommandB_Click
 Function do_Briefe_Click(frm As Form)
  On Error GoTo fehler
  Call do_Click_Vorbereit
- sql = "SELECT """ + frm.Nachname + """ AS nachname,""" + frm.Vorname + """ AS vorname, pfad AS DokPfad, name AS DokName, art AS DokArt, * FROM `" + QMdbAkt + "`.`briefe` WHERE pat_id = " + CStr(frm!Pat_id) + " ORDER BY zeitpunkt DESC"
+ sql = "SELECT """ + frm.Nachname + """ nachname,""" + frm.Vorname + """ vorname, pfad DokPfad, name DokName, art DokArt, b.* FROM `" + QMdbAkt + "`.`briefe` b WHERE pat_id = " + CStr(frm!Pat_id) + " ORDER BY zeitpunkt DESC"
  Call DtbCreateQueryDef("LaborDokumente eP", sql)
  DoCmd.OpenForm "LaborDokumente eP", acNormal, , "17=17"
  Forms![LaborDokumente ep].Caption = "Briefe zu " + frm.Nachname & " " & frm.Vorname
@@ -717,10 +721,11 @@ Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "Last
 End Select
 End Function ' do_Briefe_Click(frm AS Form)
 
+' in vCommandb_Click
 Function do_BZKurven_Click(frm As Form)
  On Error GoTo fehler
  Call do_Click_Vorbereit
- Call DtbCreateQueryDef("LaborDokumente eP", "SELECT """ + frm.Nachname + """ AS nachname,""" + frm.Vorname + """ AS vorname, * FROM `" + QMdbAkt + "`.`dokumente` WHERE (dokname LIKE ""*BZ*"" OR dokname LIKE ""*RR*"" OR dokname LIKE ""*blutdr*"") AND pat_id = " + CStr(frm!Pat_id) + " ORDER BY zeitpunkt DESC")
+ Call DtbCreateQueryDef("LaborDokumente eP", "SELECT """ + frm.Nachname + """ nachname,""" + frm.Vorname + """ vorname, b.* FROM `" + QMdbAkt + "`.briefe b WHERE (ame LIKE ""%BZ%"" OR name LIKE ""%RR%"" OR name LIKE ""%blutdr%"") AND pat_id = " + CStr(frm!Pat_id) + " ORDER BY zeitpunkt DESC")
  DoCmd.OpenForm "LaborDokumente eP", acNormal, , "17=17"
  Forms![LaborDokumente ep].Caption = "Blutzuckerkurven zu " + frm.Nachname & " " & frm.Vorname
  ' irfan
@@ -737,13 +742,14 @@ Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "Last
  Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
  Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
 End Select
-End Function ' do_Briefe_Click(frm AS Form)
+End Function ' do_BZKurven_Click(frm AS Form)
 
+' in vCommandB_Click
 Function do_AugenBefunde_Click(frm As Form)
  On Error GoTo fehler
  Call do_Click_Vorbereit
- Call DtbCreateQueryDef("LaborDokumente eP", "SELECT """ + frm.Nachname + """ AS nachname,""" + frm.Vorname + """ AS vorname, zeitpunkt, aktzeit, dokname, dokpfad, dokart, pat_id FROM `" + QMdbAkt + "`.`dokumente` WHERE (dokname LIKE ""*augenb`!l`*"" OR dokname LIKE ""*augen`aä`rzt*"" OR dokname LIKE ""*aa*"") AND pat_id = " + CStr(frm!Pat_id) + _
-                                                " UNION SELECT """ + frm.Nachname + """ AS nachname,""" + frm.Vorname + """ AS vorname, zeitpunkt, aktzeit, inhalt AS DokName, art AS dokpfad, art AS DokArt, pat_id FROM `" + QMdbAkt + "`.`eintraege` WHERE (inhalt LIKE ""*augenb`!l`*"" OR inhalt LIKE ""*augen`aä`rzt*"" OR inhalt LIKE ""* aa`!g`*"") AND pat_id = " + CStr(frm!Pat_id) + " ORDER BY zeitpunkt DESC")
+ Call DtbCreateQueryDef("LaborDokumente eP", "SELECT """ + frm.Nachname + """ nachname,""" + frm.Vorname + """ vorname, zeitpunkt, aktzeit, name dokname, pfad dokpfad, dokart, pat_id FROM `" + QMdbAkt + "`.briefe b WHERE (name LIKE ""%augenb`!l`%"" OR name LIKE ""%augen`aä`rzt%"" OR name LIKE ""%aa%"") AND pat_id = " + CStr(frm!Pat_id) + _
+                                                " UNION SELECT """ + frm.Nachname + """ nachname,""" + frm.Vorname + """ vorname, zeitpunkt, aktzeit, inhalt DokName, art dokpfad, art DokArt, pat_id FROM `" + QMdbAkt + "`.`eintraege` WHERE (inhalt LIKE ""%augenb`!l`%"" OR inhalt LIKE ""%augen`aä`rzt%"" OR inhalt LIKE ""% aa`!g`%"") AND pat_id = " + CStr(frm!Pat_id) + " ORDER BY zeitpunkt DESC")
  DoCmd.OpenForm "LaborDokumente eP", acNormal, , "17=17"
  Forms![LaborDokumente ep].Caption = "Augendokumente zu " + frm.Nachname & " " & frm.Vorname
  Exit Function
@@ -3265,16 +3271,16 @@ syscmd 4, "Formularvorbereitung 12 " & frm.anaRS!Nachname & ", " & frm.anaRS!Vor
  syscmd 4, "Formularvorbereitung 13a " & frm.anaRS!Nachname & ", " & frm.anaRS!Vorname
  'lz = Dtb.OpenRecordset("SELECT COUNT(0) AS ct FROM `" + QMdbAkt + "`.LaborDokumente WHERE pat_id = " + CStr(frm.Pat_id))!ct
  sql = "SELECT COUNT(0) AS ct " & _
- "FROM (`dokumente` AS dl LEFT JOIN `dokumente abgehakt` AS da ON dl.DokPfad=da.DokPfad) " & _
- "WHERE DokName LIKE '%labor%' AND dl.pat_id = " & CStr(Pat_id)
+ "FROM (briefe dl LEFT JOIN `br_abgehakt` da ON dl.Pfad=da.DokPfad) " & _
+ "WHERE Name LIKE '%labor%' AND dl.pat_id = " & CStr(Pat_id)
  Set rsLab = Nothing
  myFrag rsLab, sql
  If Not rsLab.BOF Then lz = rsLab!ct
  syscmd 4, "Formularvorbereitung 13b " & frm.anaRS!Nachname & ", " & frm.anaRS!Vorname
 ' lzu = Dtb.OpenRecordset("SELECT COUNT(0) AS ct FROM `" + QMdbAkt + "`.LaborDokumente WHERE pat_id = " + CStr(frm.Pat_id) + " AND abgehakt")!ct
  sql = "SELECT COUNT(0) AS ct " & _
- "FROM (`dokumente` AS dl LEFT JOIN `dokumente abgehakt` AS da ON dl.DokPfad=da.DokPfad) " & _
- "WHERE DokName LIKE '%labor%' AND abgehakt AND dl.pat_id = " & CStr(Pat_id)
+ "FROM (briefe dl LEFT JOIN `br_abgehakt` da ON dl.Pfad=da.DokPfad) " & _
+ "WHERE Name LIKE '%labor%' AND abgehakt AND dl.pat_id = " & CStr(Pat_id)
  Set rsLab = Nothing
  myFrag rsLab, sql
  If Not rsLab.BOF Then lzu = rsLab!ct
@@ -3325,7 +3331,7 @@ syscmd 4, "Formularvorbereitung 12 " & frm.anaRS!Nachname & ", " & frm.anaRS!Vor
 ' und für Blutzuckerkurven
  Dim maxzp As Date
  maxzp = 0
- sql = "SELECT COUNT(0) AS ct, MAX(zeitpunkt) AS mzp FROM `dokumente` WHERE dokname LIKE '%BZ%' AND pat_id = " & CStr(Pat_id)
+ sql = "SELECT COUNT(0) ct, MAX(zeitpunkt) mzp FROM briefe WHERE name LIKE '%BZ%' AND pat_id = " & CStr(Pat_id)
  Set rsLab = Nothing
  myFrag rsLab, sql
  If Not rsLab.BOF Then
@@ -3352,7 +3358,7 @@ syscmd 4, "Formularvorbereitung 12 " & frm.anaRS!Nachname & ", " & frm.anaRS!Vor
  lz = 0
  maxzp = 0
  Set rsLab = Nothing
- sql = "SELECT COUNT(0) AS ct,MAX(zeitpunkt) AS mzp FROM `dokumente` WHERE ((dokname LIKE '%augenb%' AND NOT dokname LIKE '%augenbl%') OR dokname LIKE '%augenarzt%' OR dokname LIKE '%augenärzt%' OR dokname LIKE '%aa') AND pat_id = " & CStr(Pat_id) ' dokname REGEXP '.*augenb[^l].*'
+ sql = "SELECT COUNT(0) ct,MAX(zeitpunkt) mzp FROM briefe b WHERE ((name LIKE '%augenb%' AND NOT name LIKE '%augenbl%') OR name LIKE '%augenarzt%' OR name LIKE '%augenärzt%' OR name LIKE '%aa') AND pat_id = " & CStr(Pat_id) ' name REGEXP '.*augenb[^l].*'
  Set rsLab = Nothing
  myFrag rsLab, sql
  If Not rsLab.BOF Then
@@ -4229,10 +4235,11 @@ End Select
   End Function
 #End If
 
+' in do_An1Aufruf_click, do_An2Aufruf_click, do_AnAAufruf_click, do_An1Aufruf_click, do_CheckAufruf_click, do_Form_Current2
  Function PfadFestLeg$(Art$, muster1$, frm As Form, Optional muster2$)
   Dim PFrs As ADODB.Recordset
   On Error GoTo fehler
-  sql = "SELECT * FROM `dokumente` WHERE pat_id = " + CStr(frm.anaRS!Pat_id) + " AND (dokname LIKE " & "'" & muster1 & "'" & IIf(LenB(muster2) = 0, vbNullChar, " OR dokname LIKE " & "'" & muster2 + "'") + ") ORDER BY zeitpunkt DESC"
+  sql = "SELECT * FROM briefe WHERE pat_id = " + CStr(frm.anaRS!Pat_id) + " AND (name LIKE " & "'" & muster1 & "'" & IIf(LenB(muster2) = 0, vbNullChar, " OR name LIKE " & "'" & muster2 + "'") + ") ORDER BY zeitpunkt DESC"
   On Error GoTo fehler
 '  Call dtbInit
 '  SET rDok = Dtb.OpenRecordset(sql, dbOpenDynaset)
@@ -5320,6 +5327,7 @@ Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "Last
 End Select
 End Function ' Einrück
 
+#If wennsvorkommt Then
 Function do_Fremdlabor_Form_Current(frm As Form)
   Dim dFrs As ADODB.Recordset
   On Error GoTo fehler
@@ -5339,7 +5347,7 @@ Function do_Fremdlabor_Form_Current(frm As Form)
 '   IF Not dFrs.NoMatch THEN
 ' frm.anaRS!Pat_id
 '   dFrs.Open "SELECT * FROM `dokumente` WHERE pat_id = " & Pat_id & " AND dokpfad = '" & frm.anaRS!DokPfad & "'", DBCn, adOpenDynamic, adLockReadOnly
-   myFrag dFrs, "SELECT * FROM `dokumente` WHERE pat_id = " & Pat_id & " AND dokpfad = '" & frm.anaRS!DokPfad & "'"
+   myFrag dFrs, "SELECT * FROM briefe WHERE pat_id = " & Pat_id & " AND pfad = '" & frm.anaRS!DokPfad & "'"
    If Not dFrs.BOF Then
     frm.anaRS!Eintragsdatum = dFrs!Zeitpunkt
    End If ' dFrs.NoMatch THEN
@@ -5364,6 +5372,7 @@ Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "Last
  Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
 End Select
 End Function ' do_Fremdlabor_Form_Current(frm As Form)
+#End If
 
 Function makeDatPfad(frm As Form)
  On Error GoTo fehler
@@ -5443,11 +5452,11 @@ End Function ' do_LaborDokumente_Form_Current(frm As Form)
 
 Function do_LaborDokumente_form_load(frm As Form)
  On Error GoTo fehler
-' SET raDokab = TabÖff("Dokumente abgehakt", "DokPfad")
+' SET raDokab = TabÖff("br_abgehakt", "DokPfad")
  Dim raDokab As ADODB.Recordset ' Abgehakte Dokumente
 ' Set raDokab = Nothing
-' Call raDokab.Open("SELECT -ob AS j_ob, d.* FROM `Dokumente abgehakt` d", DBCn, adOpenDynamic, adLockReadOnly)
- myFrag raDokab, "SELECT -ob j_ob, d.* FROM `Dokumente abgehakt` d"
+' Call raDokab.Open("SELECT -ob AS j_ob, d.* FROM `br_abgehakt` d", DBCn, adOpenDynamic, adLockReadOnly)
+ myFrag raDokab, "SELECT -ob j_ob, d.* FROM `br_abgehakt` d"
  Exit Function
 fehler:
  Dim AnwPfad$
@@ -5936,16 +5945,26 @@ End Select
 End Sub ' FaxSend
 
 Function tha12()
- Call Lese.ProgStart
  Dim h$()
+ Call Lese.ProgStart
  Call getHausarzt(1576, h)
  Call Lese.ProgEnde
 End Function ' tha12
 
+' in einDMP, dodoFollowUp, doUngeschriebeneBriefe, PatAuswahl.do_Pat_ID_Change, tha12
 Function getHausarzt(pid&, infos$()) ' Bildet aus den Infos in `namen` und `hareal` die alte gleichnamige Funktion nach, die jetzt noch unter getHausarztAlt zur Verfügung steht
 ' 5.12.12: 15. Feld briefmail
+
+' SELECT pat_id pid, if(h.anrede,"Herr","Frau"), Adressat, h.Straße, PLZOrt, Fax, Überschrift, if(dmp2,'X','') dmp2,
+' if(dmp1,'X','') dmp1, Niederlassungsgebiet, h.Vorname, Funktion, if(InnereAllg,'X','') InnereAllg, h.kvnr, Tel, h.Nachname
+' FROM `namen`
+' LEFT JOIN hareal h ON h.kvnr IN (getHA0,getHA1,getHA2) AND h.kvnr<>0
+' Where Pat_id = pid
+' ORDER BY pat_id,if(h.kvnr=getha0,0,if(h.kvnr=getha1,1,2))
+' ;
+
  Dim rs As New ADODB.Recordset, rs1 As New ADODB.Recordset, i&, j&
- Dim HA(2) As Long, fnHA(2) As String
+ Dim HA&(2), fnHA$(2)
  On Error GoTo fehler
  myFrag rs, "SELECT getHA0, fnHA0, getHA1, fnHA1, getHA2, fnHA2 FROM `namen` WHERE pat_id = " & pid
  If Not rs.EOF Then
@@ -7007,12 +7026,13 @@ Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(FNr) + vbCrLf + "LastDLLErro
 End Select
 End Function ' doVorhandene
 
+' in DuplexKontrollieren_Click
 Function doDuplexkontrollieren()
  Dim rs As New ADODB.Recordset, begD As Date, sql$, begDStr$
  begDStr = InputBox("Ab welchem Datum?")
  If IsDate(begDStr) Then
   begD = CDate(begDStr)
-  sql = "SELECT pat_id, zeitpunkt, MIN(dokname) AS DokName, quelldatum, COUNT(0) AS zahl FROM `dokumente` WHERE dokname LIKE '%SonoBild%' AND quelldatum >= " & DatFor_k(begD) & " GROUP BY pat_id, zeitpunkt,DATE(quelldatum) ORDER BY quelldatum"
+  sql = "SELECT pat_id, zeitpunkt, MIN(name) DokName, quelldatum, COUNT(0) zahl FROM briefe b WHERE name LIKE '%SonoBild%' AND quelldatum >= " & DatFor_k(begD) & " GROUP BY pat_id, zeitpunkt,DATE(quelldatum) ORDER BY quelldatum"
 '  rs.Open sql, DBCn, adOpenDynamic, adLockReadOnly
   myFrag rs, sql
   TabAusgeb rs, Lese, True, , , , , , "Duplexkontrolle " & begDStr & " - " & Date
@@ -9516,7 +9536,7 @@ w2:
     End If
     If obNephrologe Then
      Set rDial = Nothing
-     myFrag rDial, "SELECT dokname FROM `dokumente` WHERE pat_id = " & Pat_id & " AND (dokname LIKE '%Arenz%' OR dokname LIKE '%Stenglein%' OR dokname LIKE '%Habersetzer%' OR dokname LIKE '%Nephrol%')"
+     myFrag rDial, "SELECT 0 FROM briefe WHERE pat_id = " & Pat_id & " AND (name LIKE '%Arenz%' OR name LIKE '%Stenglein%' OR name LIKE '%Habersetzer%' OR name LIKE '%Nephrol%')"
      If Not rDial.BOF Then obNephrologe = False
     End If
    
@@ -14747,12 +14767,12 @@ End Function ' Datenbankkontrolle
 Function AlleBriefe()
 ' Dim q AS DAO.QueryDef
  Call do_Click_Vorbereit
- sql = "SELECT `anamnesebogen`.nachname +"",""+`anamnesebogen`.vorname AS Nachname, cstr(`anamnesebogen`.diabetestyp) AS vorname, `briefe`.pfad AS DokPfad, `briefe`.name AS DokName, `briefe`.art AS DokArt, `briefe`.* FROM `" + QMdbAkt + "`.`briefe` LEFT JOIN `" + QMdbAkt + "`.`anamnesebogen` ON `briefe`.pat_id = `anamnesebogen`.pat_id WHERE `briefe`.name LIKE ""Brief an*"" AND NOT cstr(diabetestyp) IN (""1"", ""2"",""g"",""s"") ORDER BY zeitpunkt DESC"
+ sql = "SELECT a.nachname +"",""+a.vorname Nachname, cstr(a.diabetestyp) vorname, b.pfad AS DokPfad, b.name DokName, b.art DokArt, b.* FROM `" + QMdbAkt + "`.`briefe` b LEFT JOIN `" + QMdbAkt + "`.Anamnesebogen a ON `briefe`.pat_id = a.pat_id WHERE `briefe`.name LIKE ""Brief an*"" AND NOT cstr(diabetestyp) IN (""1"", ""2"",""g"",""s"") ORDER BY zeitpunkt DESC"
  Call DtbCreateQueryDef("LaborDokumente eP", sql)
  DoCmd.OpenForm "LaborDokumente eP", acNormal, , "17=17"
  Forms![LaborDokumente ep].Caption = "Alle Briefe"
  ' irfan
-End Function ' do_Briefe_Click(frm AS Form)
+End Function ' AlleBriefe()
 
 #If zutesten Then
 Function FormAusg()

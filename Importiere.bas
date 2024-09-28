@@ -314,7 +314,7 @@ vorabfrag:
  ' Next i
  End If ' obInhalt
  
- Set rs = myEFrag("SELECT DISTINCT kennung FROM `unbekannte kennungen`", rAf)
+ Set rs = myEFrag("SELECT DISTINCT kennung FROM `unbek_kenn`", rAf)
  Do While Not rs.EOF
   If SafeArrayGetDim(rUn) = 0 Then
    ReDim rUn(0)
@@ -359,13 +359,14 @@ vorabfrag:
  If UBound(rFi) = 0 Then
   syscmd 4, "Lade forminhaltform_abk vor (2)"
   rFi(0).Form_AbkVW = 0
-  Set rs = myEFrag("SELECT Form_Abk,Form_AbkVW FROM forminhaltform_abk ORDER BY form_abkvw")
+  Set rs = myEFrag("SELECT Form_Abk,FormBez,Form_AbkVW FROM forminhaltform_abk ORDER BY form_abkvw")
  ' myFrag rs, "SELECT * FROM forminhaltform_abk ORDER BY form_abkvw"
   If Not rs.BOF Then
    rs.MoveFirst
    Do While Not rs.EOF
     ReDim Preserve rFi(UBound(rFi) + 1)
     rFi(UBound(rFi)).Form_Abk = IIf(IsNull(rs!Form_Abk), vNS, rs!Form_Abk)
+    rFi(UBound(rFi)).FormBez = IIf(IsNull(rs!Form_Abk), vNS, rs!FormBez)
     rFi(UBound(rFi)).Form_AbkVW = rs!Form_AbkVW
     rs.MoveNext
    Loop ' While Not rs.EOF
@@ -2152,6 +2153,7 @@ Public Function holPuls$(ByRef rIh$, Optional ByRef Bem$)
 '       rRr(UBound(rRr)).RR = rIh
 '       rRr(UBound(rRr)).Bemerkung = "" ' 21.9.20; stimmt doch nicht
       End If
+      If holPuls = "" Then holPuls = 0
 End Function ' holPuls
 
 #If False Then
@@ -3382,7 +3384,7 @@ rEiVorb:
       expdat = Mid$(rInhalt, exppos + 14, 10)
       rDm(UBound(rDm)).exportiert = CDate(expdat)
      End If
-    End If
+    End If ' If Instrb(FormBez, "ezept") <> 0 then elseif elseif
    Case 6297 ' Formular-Vorlage (Windows-Pfad)
     FormVorl = rInhalt 'replace$(RInhalt, "€", " ")
 ' Kommt irgendwie nicht mehr vor 13.5.23
@@ -3398,7 +3400,7 @@ rEiVorb:
 '     Else
       pMpnr = pMpnr + 1
 '     END IF
-    Else ' FormBez = "Medikamentenplan"
+    Else ' FormBez = "Medikamentenplan" Or FormBez = "cgm_bmp" Then else
      rFoNeu = -1
      For i = 1 To UBound(rFo)
       If rFo(i).Form_Abk = FormAbk And rFo(i).FormBez = FormBez And (rFo(i).FormVorl = FormVorl Or doUmwfSQL(rFo(i).FormVorl, lies.obMySQL) = FormVorl) Then
@@ -3422,8 +3424,8 @@ rEiVorb:
        lFormID = rsf!FormID
        rFo(UBound(rFo)).FormVorl = rsf!FormVorl
        rFo(UBound(rFo)).StByte = rsf!StByte
-      End If
-     End If
+      End If ' Not rsf.BOF Then
+     End If ' rFoNeu And Not obmitFormularen Then
      If rFoNeu Then
       ReDim Preserve rFo(UBound(rFo) + 1)
       rFo(UBound(rFo)).Form_Abk = FormAbk
@@ -3438,7 +3440,7 @@ rEiVorb:
      End If ' rFoNeu Then
      rFoAbkNeu = -1
      For i = 1 To UBound(rFi)
-      If UCase$(rFi(i).Form_Abk) = UCase$(FormAbk) Then
+      If UCase$(rFi(i).Form_Abk) = UCase$(FormAbk) And UCase$(rFi(i).FormBez) = UCase$(FormBez) Then
        rFoAbkNeu = 0
        Exit For
       End If
@@ -3446,6 +3448,7 @@ rEiVorb:
      If rFoAbkNeu Then
       ReDim Preserve rFi(UBound(rFi) + 1)
       rFi(UBound(rFi)).Form_Abk = FormAbk
+      rFi(UBound(rFi)).FormBez = FormBez
      End If
      rFm_Nr = 0
      jetztKopf = True
