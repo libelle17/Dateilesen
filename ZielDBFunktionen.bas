@@ -339,7 +339,7 @@ Public Const AuffArtSql = vbCrLf & _
 Public sql$, sql1$ ' SQL-Text für alle möglichen Abfragen
 Dim QMdbAkt$, nzw$
 Dim DmPStrS As New CString
-Dim Pat_id& ' für dii(
+Dim Pat_ID& ' für dii(
 Public Enum DFSNiveau
  stNichts%
  St0%
@@ -368,6 +368,13 @@ Public Enum TherapieArt
  glp1ict
  ict
  csii
+End Enum
+Public Enum DMPEnum
+  unb = 0
+  nein
+  HA
+  hier
+  ausg
 End Enum
 'Dim rDT AS DAO.Recordset
 'Dim rFot AS DAO.Recordset ' solange Fotos noch in Access-Datenbank
@@ -409,7 +416,7 @@ Public Enum AntidiabMedType
 End Enum
 
 Public Type DMPClass
- Pat_id As Long
+ Pat_ID As Long
  Nachname As String
  Vorname As String
  NVorsatz As String
@@ -626,7 +633,7 @@ Public Function LetztLab(pid&, Abkü$, Einh$, Zp As Date) As labtyp
  On Error GoTo fehler
  ' bei neuem Patienten sein ganzes Labor einlesen
  If pid <> altPID Then
-  Dim rsl As New ADODB.Recordset ' Labor
+  Dim rsl As New adodb.Recordset ' Labor
   Set rsl = hollabor(PatID:=pid, Abkü:="", zpkl:=0, wertkl:=0, obnachgruppe:=0, Zahl:=lwZahl)
   If Not rsl.BOF And lwZahl Then
    ReDim lab(lwZahl)
@@ -684,7 +691,7 @@ Public Function LabPat(LA As LabArt, pid&, Optional naechster%) As labtyp
  On Error GoTo fehler
  ' bei neuem Patienten sein ganzes Labor einlesen
  If pid <> altPID Then
-  Dim rsl As New ADODB.Recordset ' Labor
+  Dim rsl As New adodb.Recordset ' Labor
   Dim i&
   Set rsl = hollabor(pid, "", 0, 0, 0, lwZahl)
   If Not rsl.BOF And lwZahl Then
@@ -875,9 +882,9 @@ End Function ' obLabI%(LA AS LabArt, lt AS labtyp) ' ob Labor interessant
 ' END FUNCTION ' latinis$(artSpez$)
 
 Public Sub rrpruef()
- Dim rs As New ADODB.Recordset
+ Dim rs As New adodb.Recordset
  Dim ad As DMPClass
- Dim raAna As New ADODB.Recordset
+ Dim raAna As New adodb.Recordset
  Lese.ProgStart
  myFrag rs, "SELECT pat_id, gesname(pat_id) Name,(SELECT MAX(zeitpunkt)from rr WHERE pat_id=n.pat_id) rr1 FROM namen n ORDER BY pat_id DESC" ' WHERE pat_id <60050
  While Not rs.EOF
@@ -885,14 +892,14 @@ Public Sub rrpruef()
 '  Call DMPString$(rs!Pat_id, ad, , , IIf(ISNULL(rs!RR1), Now(), rs!RR1), 0)
   Set raAna = Nothing
   If obAdo Then
-   myFrag raAna, "SELECT patAlter(ana.pat_id) PAlter, ana.* FROM `anamnesebogen` ana WHERE pat_id = " & rs!Pat_id, adOpenKeyset, DBCn, adLockReadOnly
+   myFrag raAna, "SELECT patAlter(ana.pat_id) PAlter, ana.* FROM `anamnesebogen` ana WHERE pat_id = " & rs!Pat_ID, adOpenKeyset, DBCn, adLockReadOnly
   Else
 '   Call raAna.Open("SELECT patAlter(ana.pat_id) PAlter, ana.* FROM `anamnesebogen` ana WHERE pat_id = " & rs!Pat_id, DBCn, adOpenDynamic, adLockReadOnly)
-   myFrag raAna, "SELECT patAlter(ana.pat_id) PAlter, ana.* FROM `anamnesebogen` ana WHERE pat_id = " & rs!Pat_id
+   myFrag raAna, "SELECT patAlter(ana.pat_id) PAlter, ana.* FROM `anamnesebogen` ana WHERE pat_id = " & rs!Pat_ID
   End If
   ad.RRsyst = 0
   ad.RRdiast = 0
-  ad.PrRR = GetPrRR(rs!Pat_id, raAna, ad.RRsyst, ad.RRdiast, obdiastkorr:=True)
+  ad.PrRR = GetPrRR(rs!Pat_ID, raAna, ad.RRsyst, ad.RRdiast, obdiastkorr:=True)
   If ad.RRsyst > 300 Or ad.RRsyst < 50 Or ad.RRdiast > 180 Or ad.RRdiast < 30 Then
    If Not IsNull(rs!RR1) Then
     MsgBox "falscher Blutdruck: " & ad.RRsyst & " " & ad.RRdiast
@@ -914,21 +921,21 @@ Function DMPString$(pid&, üdt As DMPClass, Optional ohneVorDMP%, Optional mitBez
 ' Dim aktDC.obglib AS AntidiabMedType, aktDC.obmetf AS Boolean, aktDC.obgluci AS Boolean, aktDC.obshglin AS Boolean, aktDC.obglit AS Boolean, aktDC.obsonstAD AS boolean, _
      aktDC.obins AS Boolean, aktDC.obanal AS Boolean, aktDC.obhmg AS Boolean, aktDC.obantihyp AS Boolean, aktDC.obthro AS Boolean
 'Dim rEi AS DAO.Recordset, rLaU AS DAO.Recordset, rKH AS DAO.Recordset
-Dim raEi As New ADODB.Recordset, raKH As New ADODB.Recordset
+Dim raEi As New adodb.Recordset, raKH As New adodb.Recordset
 'Dim raLau As New ADODB.Recordset, raLaum As New ADODB.Recordset
 Dim Labs As labtyp, LabSm As labtyp
-Dim rUlc As New ADODB.Recordset
-Dim rfuss As New ADODB.Recordset
-Dim rfal As New ADODB.Recordset
-Dim lapp As New ADODB.Recordset
+Dim rUlc As New adodb.Recordset
+Dim rfuss As New adodb.Recordset
+Dim rfal As New adodb.Recordset
+Dim lapp As New adodb.Recordset
 'Dim ralauSql$
 Dim aktDC As DMPClass
 'Dim rdo AS DAO.Recordset
 'Dim rado As New ADODB.Recordset
-Dim raAna As New ADODB.Recordset
-Dim raDT As New ADODB.Recordset
-Dim rs As New ADODB.Recordset
-Dim rsAnam As New ADODB.Recordset
+Dim raAna As New adodb.Recordset
+Dim raDT As New adodb.Recordset
+Dim rs As New adodb.Recordset
+Dim rsAnam As New adodb.Recordset
 Dim DMSchulz%, HSchulz%
 Dim Tbl
 'Dim lsql$
@@ -1086,7 +1093,7 @@ AspZul = tfeld(![augensp zuletzt])
 AspBef = tfeld(![augensp befund])
 UzuPm = tfeld(![Unterzucker pM])
 
-aktDC.Pat_id = pid
+aktDC.Pat_ID = pid
 'If IsNull(!Nachname) Then ' so am 2.9.08 ereignet
 ' aktDC.Nachname = rsAnam!Nachname
 ' aktDC.Vorname = rsAnam!Vorname
@@ -1094,13 +1101,13 @@ aktDC.Pat_id = pid
 ' aktDC.Nachname = !Nachname
 ' aktDC.Vorname = !Vorname
 'End If
-Pat_id = pid ' Pat_id = modulübergreifend
+Pat_ID = pid ' Pat_id = modulübergreifend
 
 If aktDC.Lkz = "" Then aktDC.Lkz = "D"
 aktDC.Postleitzahl = "D " & aktDC.plz & " " & aktDC.ort ' 1.1.15 Länderkennzeichen
 
 #If False Then ' 29.6.15, Woltmann
- myFrag rform, "SELECT " & IIf(Not LVobMySQL, "top 1", "") & " feldinh FROM `formular` WHERE pat_id = " & Pat_id & " AND Feld = 'KVKGueltig' AND zeitpunkt <= " & DatFor_k(MINvb(Now(), fctQEnd(ZQuart(Now - Verspätung)))) & " AND feldinh LIKE '%/%'" & " ORDER BY zeitpunkt DESC" & IIf(LVobMySQL, " LIMIT 1", "")
+ myFrag rform, "SELECT " & IIf(Not LVobMySQL, "top 1", "") & " feldinh FROM `formular` WHERE pat_id = " & Pat_ID & " AND Feld = 'KVKGueltig' AND zeitpunkt <= " & DatFor_k(MINvb(Now(), fctQEnd(ZQuart(Now - Verspätung)))) & " AND feldinh LIKE '%/%'" & " ORDER BY zeitpunkt DESC" & IIf(LVobMySQL, " LIMIT 1", "")
  If Not rform.BOF Then
   Postleitzahl = Left$(Postleitzahl & Space$(25), 25) & rform!FeldInh
  Else
@@ -1131,7 +1138,7 @@ aktDC.Postleitzahl = "D " & aktDC.plz & " " & aktDC.ort ' 1.1.15 Länderkennzeich
   aktDC.dmpEinwDM = LCase$(rfal!dmpEinwDM)
  End If ' Not rfal.BOF Then
  If Not IsNumeric(aktDC.dmpHbA1cZiel) Then
-  Dim rHb As New ADODB.Recordset
+  Dim rHb As New adodb.Recordset
   myFrag rHb, "SELECT REPLACE(dmphba1cziel,'.',',') FROM faelle WHERE pat_id = " & pid & " AND dmphba1cziel REGEXP '^-?[+]?[.,0-9]+$' ORDER BY bhfb DESC"
   If Not rHb.BOF Then
    aktDC.dmpHbA1cZiel = rHb.Fields(0)
@@ -1139,7 +1146,7 @@ aktDC.Postleitzahl = "D " & aktDC.plz & " " & aktDC.ort ' 1.1.15 Länderkennzeich
   Set rHb = Nothing
  End If ' Not IsNumeric(aktDC.dmpHbA1cZiel) Then
  aktDC.dmphalbj = "n" ' LCase$(rfal!dmphalbj)
- Dim rDMPh As New ADODB.Recordset
+ Dim rDMPh As New adodb.Recordset
   myFrag rDMPh, "SELECT MAX(dmphalbj) FROM faelle f0 WHERE pat_id = " & pid & " AND bhfb = (SELECT MAX(bhfb) FROM faelle f WHERE f.pat_id = " & pid & " AND dmphalbj<>'')"
   If Not rDMPh.BOF Then If Not IsNull(rDMPh.Fields(0)) Then aktDC.dmphalbj = rDMPh.Fields(0)
  Set rDMPh = Nothing
@@ -1188,7 +1195,7 @@ aktDC.x_DoklangName = REPLACE$(aktDC.x_DokName, "*", "geb. ")
  Call TherAuskunft(CStr(pid), 0, aktDC.insz, VorDat, aktDC.obIns, aktDC.obAnal, aktDC.obGlib, aktDC.obmetf, aktDC.obGlucI, aktDC.obSHGlin, aktDC.obGlit, aktDC.obDpp4, aktDC.obGlp1, aktDC.obSglt2, aktDC.obSonstAD, aktDC.obHMG, aktDC.obAntihyp, aktDC.obACEH, aktDC.obBetabl, aktDC.obThro, aktDC.obOAK, , , , aktDC.obDiur, aktDC.obAT1)
  'if mitstr THEN TabPr "Diagnosespez. Medik.: ", IIf(!`DiabetesMedikament 1` <> "" AND NOT ISNULL(!`DiabetesMedikament 1`), "  ja", "nein")
  If aktDC.dtyp = "1" And Not aktDC.obIns And Not aktDC.obAnal Then ' Medikamentenplan fehlt oder keine Dosierung angegeben
-  Dim rez As New ADODB.Recordset, rezSQL$
+  Dim rez As New adodb.Recordset, rezSQL$
   rezSQL = "SELECT * FROM (SELECT *,LEFT(medikament,instr(medikament,"" "")-1) AS medanf FROM `rezepteintraege` ) AS rez LEFT JOIN `medarten` ON rez.medanf = `medarten`.medikament WHERE rez.pat_id = 150 AND (ins OR anal) ORDER BY zeitpunkt DESC;"
 '  IF Not lies.obMySQL THEN rezSQL = replace$(rezSQL, "collate latin1_german2_ci ", vNS)
   myFrag rez, rezSQL
@@ -1344,7 +1351,7 @@ aktDC.x_DoklangName = REPLACE$(aktDC.x_DokName, "*", "geb. ")
 '  END IF
 ' END IF
  aktDC.obRauch = diI("F17.1")
- aktDC.Tabak = (WieTabak(Pat_id) = aktuell)
+ aktDC.Tabak = (WieTabak(Pat_ID) = aktuell)
  If mitStr Then TabPr "Raucher:", IIf(aktDC.Tabak, "  ja", "nein")
  If Not IsNull(Größe) Then
   aktDC.kgr = Round(REPLACE$(IIf(Größe < 10, Größe * 100, Größe), ".", ","), 0)
@@ -1570,8 +1577,8 @@ If True Then ' lwZahl
 ' raLaU.Find "Abkü IN (""CREAT"",""KRE02"", ""KREA"", ""KREA02"", ""KRES"")"
 '  IF raLau.EOF THEN
   If Labs.Abkü = "" Then
-   Dim rEintr As New ADODB.Recordset
-   myFrag rEintr, "SELECT * FROM `eintraege` WHERE art = ""urin"" AND inhalt LIKE ""%micral%"" AND Pat_ID = " & aktDC.Pat_id & " ORDER BY zeitpunkt DESC"
+   Dim rEintr As New adodb.Recordset
+   myFrag rEintr, "SELECT * FROM `eintraege` WHERE art = ""urin"" AND inhalt LIKE ""%micral%"" AND Pat_ID = " & aktDC.Pat_ID & " ORDER BY zeitpunkt DESC"
    If Not rEintr.EOF Then
     aktDC.x_DMPUAlb = Mid$(rEintr!Inhalt, InStr(1, rEintr!Inhalt, "micral", vbTextCompare)) & " (" & Format$(rEintr!Zeitpunkt, "dd/mm/yy") & ")"
    End If ' Not rEintr.EOF Then
@@ -1618,7 +1625,7 @@ If True Then ' lwZahl
  On Error Resume Next
  ReDim rNa(0)
  On Error GoTo fehler
- rNa(0).Pat_id = pid
+ rNa(0).Pat_ID = pid
  Call usdmAlt(True)
  Dim trp As Boolean, tlp As Boolean, drp As Boolean, dlp As Boolean
  Dim Mfrep%, Mflip%
@@ -1737,7 +1744,7 @@ If True Then ' lwZahl
     If aktDC.obIns = 0 And aktDC.obAnal = 0 Then
      aktDC.inj = "0"
     Else
-     Dim rusdm As New ADODB.Recordset
+     Dim rusdm As New adodb.Recordset
      myFrag rusdm, "SELECT spritzst FROM usdm WHERE pat_id = " & pid & " AND zeitpunkt = (SELECT MAX(zeitpunkt) FROM usdm WHERE pat_id = " & pid & " AND zeitpunkt < " & Format(DokuDat + 1, "yyyymmdd") & ")"
      If rusdm.BOF Then
       aktDC.inj = "0"
@@ -1839,11 +1846,11 @@ If Not rUlc.BOF Then aktDC.Infekt = 1
 
 If aktDC.Infekt Or aktDC.ulcus < 2 Then aktDC.NaeUs = 2
 
-Dim raltu As New ADODB.Recordset
+Dim raltu As New adodb.Recordset
 myFrag raltu, "SELECT icd FROM diagview d WHERE pat_id = " & pid & " AND icd RLIKE '^L89\.[234]' AND ((diagdatum < qanf() AND diagsicherheit<>'A') OR diagsicherheit='Z')"
 If Not raltu.BOF Then aktDC.ZnUlcus = 1
 
-Dim ranamp As New ADODB.Recordset
+Dim ranamp As New adodb.Recordset
 myFrag ranamp, "SELECT NOT ISNULL(amputation) AND amputation NOT IN ('n','-','','entfällt','/','--','nn','u','.-') AND amputation NOT LIKE '?%' AND amputation not RLIKE '^n[ .]' AND amputation not RLIKE 'nein' amp FROM anamnesebogen a WHERE pat_id = " & pid
 If Not ranamp.EOF And ranamp!amp = 1 Then aktDC.ZnAmput = 1
   
@@ -1866,7 +1873,7 @@ If Not ranamp.EOF And ranamp!amp = 1 Then aktDC.ZnAmput = 1
   End If ' mitstr
  End If ' aktdc.ab317 Then
  
- Dim raFa As New ADODB.Recordset
+ Dim raFa As New adodb.Recordset
  Dim diIsql$
  diIsql = "SELECT ICD, DiagSeite, DiagDatum FROM diagview WHERE pat_id = " & pid & " AND gicd RLIKE '^M14.6|^T79\.|^L89\.|^T89\.|^T87.4|^Z44.1'" '  AND COALESCE(Dggel,0)=0 " ' M14.6 = Charcot, M14.2 = Arthorpathie
  Dim lddat As Date
@@ -1928,10 +1935,10 @@ If Not ranamp.EOF And ranamp!amp = 1 Then aktDC.ZnAmput = 1
 '  END Enum
 
   If lies.obMySQL Then
-   sql = "SELECT * FROM diagview WHERE (obdauer <> 0 OR (obdauer = 0 AND CONCAT(((month(diagdatum)+2) div 3)¡ YEAR(diagdatum)) = '" & ZQuart(DokuDat) & "')) AND diagsicherheit<>'A' AND pat_id = " & aktDC.Pat_id ' AND COALESCE(Dggel,0)=0
+   sql = "SELECT * FROM diagview WHERE (obdauer <> 0 OR (obdauer = 0 AND CONCAT(((month(diagdatum)+2) div 3)¡ YEAR(diagdatum)) = '" & ZQuart(DokuDat) & "')) AND diagsicherheit<>'A' AND pat_id = " & aktDC.Pat_ID ' AND COALESCE(Dggel,0)=0
    sql = REPLACE$(sql, "¡", ",")
   Else
-   sql = "SELECT * FROM diagview WHERE (obdauer <> 0 OR (obdauer = 0 AND (int((month(diagdatum)+2) / 3) & YEAR(diagdatum)) = '" & ZQuart(DokuDat) & "')) AND diagsicherheit<>'A' AND pat_id = " & aktDC.Pat_id ' AND COALESCE(Dggel,0)=0
+   sql = "SELECT * FROM diagview WHERE (obdauer <> 0 OR (obdauer = 0 AND (int((month(diagdatum)+2) / 3) & YEAR(diagdatum)) = '" & ZQuart(DokuDat) & "')) AND diagsicherheit<>'A' AND pat_id = " & aktDC.Pat_ID ' AND COALESCE(Dggel,0)=0
    sql = REPLACE$(REPLACE$(sql, "CONCAT", ""), "¡", " & ")
   End If
   
@@ -1963,7 +1970,7 @@ If Not ranamp.EOF And ranamp!amp = 1 Then aktDC.ZnAmput = 1
 '  sql = "SELECT * FROM `" & stftdb & "`.jpg WHERE pat_id = " & CStr(PID) & " AND cstr(int(month(patdatum)/3)+1) & YEAR(patdatum) = """ & ZQuart(DokuDat) & """"
 '  SET rafot = aktDCb.OpenRecordset(sql)
   
-  Dim raFot As New ADODB.Recordset
+  Dim raFot As New adodb.Recordset
 #If False Then
 'If lese.obMySQL THEN
 ' IF FtCn.State = 0 THEN
@@ -2396,7 +2403,7 @@ If aktDC.dtyp = "2" Then If mitStr Then TabPr "Lasertherapie:", IIf(aktDC.oblase
 ' SET raLau = hollabor(Pat_id, "^HBA[1C]", 0, 22)
  If lwZahl Then
   alt_la = LabArt0 ' falls schon mal mit gleichen Parametern aufgerufen
-  Labs = LabPat(LA_HbA1c, Pat_id)
+  Labs = LabPat(LA_HbA1c, Pat_ID)
   Dim zpd1$, zpdL$, zpr1$, zprL$
 ' IF Not raLau.BOF THEN
   If Labs.Abkü <> "" Then
@@ -2404,9 +2411,9 @@ If aktDC.dtyp = "2" Then If mitStr Then TabPr "Lasertherapie:", IIf(aktDC.oblase
     pos = InStr(Labs.WertSg, ">") ' Pat_id 744
     If pos > 0 Then Labs.WertSg = Mid$(Labs.WertSg, pos + 1)
     If Labs.WertSg >= 8# Then
-     DMSchulz = SchulzBest(CStr(Pat_id), zpd1, zpdL, DokuDat - 2 * 365)
+     DMSchulz = SchulzBest(CStr(Pat_ID), zpd1, zpdL, DokuDat - 2 * 365)
      If ((aktDC.tart = OAD Or aktDC.tart = offen Or aktDC.tart = Diät) And DMSchulz < 4) Or DMSchulz < 6 Then
-      If zplschul(Pat_id) < DokuDat - 92 Then
+      If zplschul(Pat_ID) < DokuDat - 92 Then
 '    Debug.Print Pat_id
        If aktDC.GebDat > DokuDat - 365 * 83 Then  ' Schulung nicht mehr unbedingt über 83 Jahre empfehlen
         aktDC.SE(0) = DokuDat ' SE(2) Schulung empfohlen
@@ -2583,20 +2590,20 @@ If aktDC.dtyp = "2" Then If mitStr Then TabPr "Lasertherapie:", IIf(aktDC.oblase
  
  If aktDC.dtyp = "1" Or Not aktDC.ab1023 Then
   Dim AugUDat As Date
-  Dim rBr As New ADODB.Recordset
+  Dim rBr As New adodb.Recordset
   aktDC.x_Aug = vNS
 ' SET rdo = aktDCb.OpenRecordset("SELECT * FROM `" + QMdbAkt + "`.`dokumente` WHERE pat_id = " & CStr(Pat_id) + " AND zeitpunkt > DokuDat - 550 ORDER BY zeitpunkt DESC", dbOpenDynaset) ' 1,5 Jahre
 ' rBr.Open "SELECT Quelldatum,Name,Zeitpunkt FROM `briefe` WHERE pat_id = " & CStr(aktDC.Pat_id) & " AND zeitpunkt > " & DatFor_k(DokuDat - 550) & " AND name LIKE '%augen%' ORDER BY quelldatum DESC, zeitpunkt DESC", DBCn, adOpenDynamic, adLockReadOnly
-  myFrag rBr, "SELECT Quelldatum,Name,Zeitpunkt FROM `briefe` WHERE pat_id = " & CStr(aktDC.Pat_id) & " AND zeitpunkt > " & DatFor_k(DokuDat - 550) & " AND name LIKE '%augen%' ORDER BY quelldatum DESC, zeitpunkt DESC"
+  myFrag rBr, "SELECT Quelldatum,Name,Zeitpunkt FROM `briefe` WHERE pat_id = " & CStr(aktDC.Pat_ID) & " AND zeitpunkt > " & DatFor_k(DokuDat - 550) & " AND name LIKE '%augen%' ORDER BY quelldatum DESC, zeitpunkt DESC"
   If Not rBr.BOF Then
    AugUDat = rBr!Quelldatum
    If AugUDat = CDate(0) Then AugUDat = DatInStr(rBr!name, Year(rBr!Zeitpunkt))
    aktDC.x_Aug = "Befund vo" + IIf(AugUDat = CDate(0), "n " + Format$(rBr!Zeitpunkt, "yyyy"), "m " + Format$(AugUDat, "dd/mm/yy")) + " vorliegend"
    If AugUDat = CDate(0) Then AugUDat = rBr!Zeitpunkt ' dann war die letzte Untersuchung vermutlich frühestens am 1.1. des Scan-Jahres
   Else
-   Dim rAEin As New ADODB.Recordset
+   Dim rAEin As New adodb.Recordset
 '   rAEin.Open "SELECT ZeitPunkt FROM eintraege WHERE pat_id = " & CStr(aktDC.Pat_id) & " AND zeitpunkt > " & DatFor_k(DokuDat - 550) & " AND art='aug' AND (NOT inhalt RLIKE 'nie|nicht|lange|länger|(kein|will|wird|macht).*Termin' OR inhalt RLIKE 'Veränd|in Ordnung') ORDER BY zeitpunkt DESC", DBCn, adOpenDynamic, adLockReadOnly
-   myFrag rAEin, "SELECT ZeitPunkt FROM eintraege WHERE pat_id = " & CStr(aktDC.Pat_id) & " AND zeitpunkt > " & DatFor_k(DokuDat - 550) & " AND art='aug' AND (NOT inhalt RLIKE 'nie|nicht|lange|länger|(kein|will|wird|macht).*Termin' OR inhalt RLIKE 'Veränd|in Ordnung') ORDER BY zeitpunkt DESC"
+   myFrag rAEin, "SELECT ZeitPunkt FROM eintraege WHERE pat_id = " & CStr(aktDC.Pat_ID) & " AND zeitpunkt > " & DatFor_k(DokuDat - 550) & " AND art='aug' AND (NOT inhalt RLIKE 'nie|nicht|lange|länger|(kein|will|wird|macht).*Termin' OR inhalt RLIKE 'Veränd|in Ordnung') ORDER BY zeitpunkt DESC"
    If Not rAEin.BOF Then
     AugUDat = rAEin!Zeitpunkt
    End If
@@ -2617,8 +2624,8 @@ If aktDC.dtyp = "2" Then If mitStr Then TabPr "Lasertherapie:", IIf(aktDC.oblase
    aktDC.x_Aug = aktDC.x_Aug & IIf(LenB(aktDC.x_Aug) <> 0, vbCrLf & vbTab, "") & "Eintrag am " & Format$(raEi!Zeitpunkt, "d/m/yy") & ":" + vbTab + raEi!Inhalt
    raEi.Move 1
   Loop
-  Dim uebw As ADODB.Recordset 'DAO.Recordset
-  Set uebw = New ADODB.Recordset '' 22.3.2012 wegen Möglichkeit Fehler
+  Dim uebw As adodb.Recordset 'DAO.Recordset
+  Set uebw = New adodb.Recordset '' 22.3.2012 wegen Möglichkeit Fehler
 '  fiabfr = "SELECT Pat_ID, FID, Form_ID, ZeitPunkt, Nr, FeldNr, Feld, FeldInh, form_abk FROM (((`forminhfeld` LEFT JOIN `forminhkopf` ON `forminhfeld`.foid=`forminhkopf`.foid) LEFT JOIN `formulare` ON `formulare`.formid=`forminhkopf`.form_id) LEFT JOIN `forminhaltfeld` ON `forminhfeld`.feldvw=`forminhaltfeld`.feldvw) LEFT JOIN `forminhaltfeldinh` ON `forminhfeld`.feldinhvw=`forminhaltfeldinh`.feldinhvw "
 '  Call uebw.Open(fiabfr & " WHERE pat_id = " & CStr(Pid) + " AND form_abk = ""uew"" AND feld = ""Ueberweisung_an"" AND feldinh = ""Augenheilkunde"" AND zeitpunkt > " & DatFor_k(DokuDat - 550) & " ORDER BY zeitpunkt DESC", DBCn, adOpenDynamic, adLockReadOnly)
 ' ohne Indexvorgabe Aufruf 0,4s durch Auswahl von Feldinh als Index, falls Bedingung feldinh = 'Augenheilkunde' enthalten
@@ -2634,7 +2641,7 @@ If aktDC.dtyp = "2" Then If mitStr Then TabPr "Lasertherapie:", IIf(aktDC.oblase
            "LEFT JOIN formulare f ON f.FormID=k.form_id" & vbCrLf & _
            "LEFT JOIN forminhaltfeld fif ON fif.FeldVW=fi.feldvw" & vbCrLf & _
            "LEFT JOIN forminhaltfeldinh fifi ON fifi.FeldInhVW=fi.FeldInhVW" & vbCrLf & _
-           "WHERE pat_id=" & Pat_id & " AND form_abk='uew' AND feld='ueberweisung_an' AND feldinh='Augenheilkunde' AND zeitpunkt>" & DatFor_k(DokuDat - 550) & vbCrLf & _
+           "WHERE pat_id=" & Pat_ID & " AND form_abk='uew' AND feld='ueberweisung_an' AND feldinh='Augenheilkunde' AND zeitpunkt>" & DatFor_k(DokuDat - 550) & vbCrLf & _
            "ORDER BY zeitpunkt DESC LIMIT 1;"
   myFrag uebw, fiabfr
 ' SET uebw = aktDCb.OpenRecordset(, dbOpenDynaset)
@@ -2852,17 +2859,17 @@ End Function ' ImportFolderHerricht()
 'End FUNCTION ' LeistungsExport0
 
 ' in doDiagnosenExport und Leistungsexport1
-Function FallExport(BDT As BDTSchreib, Pat_id&, Datu As Date, ByRef Lanr&, Optional nurKasse%, Optional Arztnr&)
- Dim rFa As New ADODB.Recordset
+Function FallExport(BDT As BDTSchreib, Pat_ID&, Datu As Date, ByRef Lanr&, Optional nurKasse%, Optional Arztnr&)
+ Dim rFa As New adodb.Recordset
  Dim op$
  On Error GoTo fehler
- myFrag rFa, "SELECT * FROM `faelle` f LEFT JOIN `lanrpraxis` l ON f.lanrid = l.id WHERE pat_id = " & Pat_id & " AND bhfb<=" & DatFor_k(Datu) & " AND (bhfe1 >= " & DatFor_k(Datu) & " OR bhfe1=18991230) " & IIf(nurKasse, " AND schgr <> '90' ", "") & " ORDER BY bhfe1"
+ myFrag rFa, "SELECT * FROM `faelle` f LEFT JOIN `lanrpraxis` l ON f.lanrid = l.id WHERE pat_id = " & Pat_ID & " AND bhfb<=" & DatFor_k(Datu) & " AND (bhfe1 >= " & DatFor_k(Datu) & " OR bhfe1=18991230) " & IIf(nurKasse, " AND schgr <> '90' ", "") & " ORDER BY bhfe1"
  If rFa.BOF Then ' wenn kein Fall in die Zeitschiene paßt, dann den letzten vor dem Datum nehmen
   Set rFa = Nothing
-  myFrag rFa, "SELECT * FROM `faelle` f LEFT JOIN `lanrpraxis` l ON f.lanrid = l.id WHERE pat_id = " & Pat_id & " AND bhfb<=" & DatFor_k(Datu) & IIf(nurKasse, " AND schgr <> '90' ", "") & " ORDER BY bhfe1 DESC"
+  myFrag rFa, "SELECT * FROM `faelle` f LEFT JOIN `lanrpraxis` l ON f.lanrid = l.id WHERE pat_id = " & Pat_ID & " AND bhfb<=" & DatFor_k(Datu) & IIf(nurKasse, " AND schgr <> '90' ", "") & " ORDER BY bhfe1 DESC"
   If rFa.BOF Then ' wenn kein Fall in die Zeitschiene paßt, dann den letzten nehmen
    Set rFa = Nothing
-   myFrag rFa, "SELECT * FROM `faelle` f LEFT JOIN `lanrpraxis` l ON f.lanrid = l.id WHERE pat_id = " & Pat_id & IIf(nurKasse, " AND schgr <> '90' ", "") & " ORDER BY bhfe1 DESC"
+   myFrag rFa, "SELECT * FROM `faelle` f LEFT JOIN `lanrpraxis` l ON f.lanrid = l.id WHERE pat_id = " & Pat_ID & IIf(nurKasse, " AND schgr <> '90' ", "") & " ORDER BY bhfe1 DESC"
    If rFa.BOF Then
     Exit Function
    End If
@@ -2872,7 +2879,7 @@ Function FallExport(BDT As BDTSchreib, Pat_id&, Datu As Date, ByRef Lanr&, Optio
  FallExport = 1
  Lanr = IIf(IsNull(rFa!Lanr), 0, rFa!Lanr)
  Call BDT.Satzart(IIf(rFa!SchGr = "90", "0190", "0102")) ' 80000 Satzidentifikation
- Call BDT.PatID(rFa!Pat_id)
+ Call BDT.PatID(rFa!Pat_ID)
      BDT.SAdd "3635", "TM#" & rFa!Lanr
      BDT.SAdd "3636", "TM#" & BSNR
      BDT.SAdd "4101", rFa!Quartal
@@ -2946,14 +2953,14 @@ Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "Last
 End Select
 End Function ' FallExport
 
-Function LeistungsExport1(BDT As BDTSchreib, Pat_id&, Leist$, Datu As Date, Optional QUZeit$, Optional nurKasse%, Optional Arztnr&)
- Dim rNa As New ADODB.Recordset, Lanr&
- myFrag rNa, "SELECT * FROM `namen` WHERE pat_id = " & Pat_id
- Lese.Ausgeb "Trage Leistung " & Leist & " für Pat_ID " & Pat_id & " (" & rNa!Nachname & ", " & rNa!Vorname & ") mit Datum " & Format$(Datu, "dd.mm.yyyy") & " ein.", True
+Function LeistungsExport1(BDT As BDTSchreib, Pat_ID&, Leist$, Datu As Date, Optional QUZeit$, Optional nurKasse%, Optional Arztnr&)
+ Dim rNa As New adodb.Recordset, Lanr&
+ myFrag rNa, "SELECT * FROM `namen` WHERE pat_id = " & Pat_ID
+ Lese.Ausgeb "Trage Leistung " & Leist & " für Pat_ID " & Pat_ID & " (" & rNa!Nachname & ", " & rNa!Vorname & ") mit Datum " & Format$(Datu, "dd.mm.yyyy") & " ein.", True
  Open pVerz & LEDatei For Append As #347
- Print #347, Pat_id & ": " & rNa!Nachname & ", " & rNa!Vorname & ", " & Format(Datu, "dd.mm.yyyy")
+ Print #347, Pat_ID & ": " & rNa!Nachname & ", " & rNa!Vorname & ", " & Format(Datu, "dd.mm.yyyy")
  Close #347
- If FallExport(BDT, Pat_id, Datu, Lanr, nurKasse, Arztnr) <> 1 Then Exit Function
+ If FallExport(BDT, Pat_ID, Datu, Lanr, nurKasse, Arztnr) <> 1 Then Exit Function
  LeistungsExport1 = 1
      BDT.DAdd "5000", Datu
      Dim UZeit$
@@ -2989,21 +2996,21 @@ End Select
 End Function ' LeistungsExport1
 
 #If False Then
-Function LeistungsExport1a(BDT As BDTSchreib, Pat_id&, Leist$, Datu As Date, Optional QUZeit$, Optional nurKasse%, Optional Arztnr%)
+Function LeistungsExport1a(BDT As BDTSchreib, Pat_ID&, Leist$, Datu As Date, Optional QUZeit$, Optional nurKasse%, Optional Arztnr%)
 ' Dim q AS DAO.Recordset
- Dim rFa As New ADODB.Recordset, rNa As New ADODB.Recordset
+ Dim rFa As New adodb.Recordset, rNa As New adodb.Recordset
  Dim op$
  On Error GoTo fehler
 ' SET rFa = TabÖff("faelle", "Auswahl")
- myFrag rFa, "SELECT * FROM `faelle` f LEFT JOIN `lanrpraxis` l ON f.lanrid = l.id WHERE pat_id = " & Pat_id & " AND bhfe1 >= " & DatFor_k(Datu) & IIf(nurKasse, " AND schgr <> '90' ", "") & " ORDER BY bhfe1"
+ myFrag rFa, "SELECT * FROM `faelle` f LEFT JOIN `lanrpraxis` l ON f.lanrid = l.id WHERE pat_id = " & Pat_ID & " AND bhfe1 >= " & DatFor_k(Datu) & IIf(nurKasse, " AND schgr <> '90' ", "") & " ORDER BY bhfe1"
  If rFa.BOF Then ' wenn kein Fall in die Zeitschiene paßt, dann den letzten nehmen
   Set rFa = Nothing
-  myFrag rFa, "SELECT * FROM `faelle` f LEFT JOIN `lanrpraxis` l ON f.lanrid = l.id WHERE pat_id = " & Pat_id & IIf(nurKasse, " AND schgr <> '90' ", "") & " ORDER BY bhfe1 DESC"
+  myFrag rFa, "SELECT * FROM `faelle` f LEFT JOIN `lanrpraxis` l ON f.lanrid = l.id WHERE pat_id = " & Pat_ID & IIf(nurKasse, " AND schgr <> '90' ", "") & " ORDER BY bhfe1 DESC"
  End If
  If rFa.BOF Then Exit Function
  If Arztnr <> 0 And rFa!lanrid <> Arztnr Then Exit Function
- myFrag rNa, "SELECT * FROM `namen` WHERE pat_id = " & Pat_id
- Lese.Ausgeb "Trage Leistung " & Leist & " für Pat_ID " & Pat_id & " (" & rNa!Nachname & ", " & rNa!Vorname & ") mit Datum " & Format$(Datu, "dd.mm.yyyy") & " ein.", True
+ myFrag rNa, "SELECT * FROM `namen` WHERE pat_id = " & Pat_ID
+ Lese.Ausgeb "Trage Leistung " & Leist & " für Pat_ID " & Pat_ID & " (" & rNa!Nachname & ", " & rNa!Vorname & ") mit Datum " & Format$(Datu, "dd.mm.yyyy") & " ein.", True
  LeistungsExport1a = 1
  Call BDT.Satzart(IIf(rFa!SchGr = "90", "0190", "0102")) ' 80000 Satzidentifikation
 ' bei 0101 entstehen bei zwei Aufrufen fehlerfrei zwei neue Kassenfaelle, jeder mit der Leistung
@@ -3013,7 +3020,7 @@ Function LeistungsExport1a(BDT As BDTSchreib, Pat_id&, Leist$, Datu As Date, Opt
 '     Print #310, zsu(op)
 '     op = format$(3 + 4 + 5, "000") + "8100" + CStr(f!s8100)
 '     Print #310, zsu(op)
- Call BDT.PatID(rFa!Pat_id)
+ Call BDT.PatID(rFa!Pat_ID)
 '#If False THEN
 '     IF 1 = 0 THEN 'Auswirkung bisher nicht geprüft 31.7.05 (3x)
 '      op = Format$(3 + 4 + Len(n!NVorsatz), "000") + "3100" + CStr(n!NVorsatz)
@@ -3158,7 +3165,7 @@ Function dododoPorto(Arztnr&)
  Dim Verz$
  Verz$ = pVerz & "gefaxt\"
  Dim BDT As New BDTSchreib
- Dim rs As New ADODB.Recordset, Zahl&, Zahl1&
+ Dim rs As New adodb.Recordset, Zahl&, Zahl1&
  Dim DateiDatum As Date
  Dim Datei$, Pidpos&, pidp2%, pid&, Datum As Date, i&
 #Const Manuell = True
@@ -3233,7 +3240,7 @@ Function dododoPorto(Arztnr&)
  myFrag rs, sql
  Zahl1 = 0
  Do While Not rs.EOF
-  Zahl1 = Zahl1 + LeistungsExport1(BDT, rs!Pat_id, "40111", rs!Datum, CDate(rs!Zeit), True, Arztnr)
+  Zahl1 = Zahl1 + LeistungsExport1(BDT, rs!Pat_ID, "40111", rs!Datum, CDate(rs!Zeit), True, Arztnr)
   rs.Move 1
  Loop
  BDT.Schreib
@@ -3269,14 +3276,14 @@ End Function ' dodoPorto
 Function tuBriefeLeiDok(frm As Lese, Optional Arztnr&)
  On Error GoTo fehler
  Dim sql2$
- Dim rf As New ADODB.Recordset, rB As New ADODB.Recordset, rl As New ADODB.Recordset
+ Dim rf As New adodb.Recordset, rB As New adodb.Recordset, rl As New adodb.Recordset
  sql1 = "SELECT MIN(bhfb) AS bfb, MIN(schgr) AS schgr, pat_id, MIN(fid) AS fid FROM `faelle` WHERE schgr IN ('21','23','24','00') AND quartal = """ & ZQuart(Now - Verspätung) & """ GROUP BY pat_id"
 ' sql1 = "SELECT f.fid AS fid, DATE(b.zeitpunkt) AS tag, b.* FROM `briefe` b LEFT JOIN `faelle` f ON b.pat_id = f.pat_id WHERE quartal = '" & ZQuart(Now - Verspätung) & "' AND schgr IN ('21','23','24','00') AND b.zeitpunkt >= " & DatFor_k(fctQAnf(ZQuart(NOW() - 20))) & " AND name LIKE '%.doc' AND (name LIKE '%brief%' OR name LIKE '%dmp-daten%' OR name LIKE '%nachricht an%') ORDER BY b.pat_id,b.zeitpunkt;"
 ' Call LeistungsExport0
  myFrag rf, sql1
  Do While Not rf.EOF
 '  IF rF!Pat_id = 2155 THEN
-  sql1 = "SELECT * FROM `briefe` WHERE pat_id = " & rf!Pat_id & " AND zeitpunkt >= " & DatFor_k(fctQAnf(ZQuart(Now() - 20))) & " AND name LIKE '%.doc' AND (name LIKE '%brief%' OR name LIKE '%nachricht an%') AND zeitpunkt >= " & DatFor_k(#10/16/2007#)
+  sql1 = "SELECT * FROM `briefe` WHERE pat_id = " & rf!Pat_ID & " AND zeitpunkt >= " & DatFor_k(fctQAnf(ZQuart(Now() - 20))) & " AND name LIKE '%.doc' AND (name LIKE '%brief%' OR name LIKE '%nachricht an%') AND zeitpunkt >= " & DatFor_k(#10/16/2007#)
   Set rB = Nothing
 '  rB.Open sql1, DBCn, adOpenDynamic, adLockReadOnly
   myFrag rB, sql1
@@ -3285,10 +3292,10 @@ Function tuBriefeLeiDok(frm As Lese, Optional Arztnr&)
    myFrag rl, "SELECT * FROM `leistungen` WHERE fid = " & rf!FID & " AND leistung IN ('01601')"
    If rl.BOF Then
 '    Call LeistungsExport1(rF!Pat_id, "01601", MIN(DateValue(rB!Zeitpunkt), #12/31/2007#), CDate("18:00"))
-    Call LeistungsExport1(rf!Pat_id, "40110", MINvb(DateValue(rB!Zeitpunkt), #12/31/2007#), CDate("18:00"), , , Arztnr)
+    Call LeistungsExport1(rf!Pat_ID, "40110", MINvb(DateValue(rB!Zeitpunkt), #12/31/2007#), CDate("18:00"), , , Arztnr)
    End If
   Else
-   sql1 = "SELECT * FROM `briefe` WHERE pat_id = " & rf!Pat_id & " AND zeitpunkt >= " & DatFor_k(fctQAnf(ZQuart(Now() - 20))) & " AND name LIKE '%.doc' AND (name LIKE '%dmp-daten%') AND zeitpunkt >= " & DatFor_k(#10/16/2007#)
+   sql1 = "SELECT * FROM `briefe` WHERE pat_id = " & rf!Pat_ID & " AND zeitpunkt >= " & DatFor_k(fctQAnf(ZQuart(Now() - 20))) & " AND name LIKE '%.doc' AND (name LIKE '%dmp-daten%') AND zeitpunkt >= " & DatFor_k(#10/16/2007#)
    Set rB = Nothing
    myFrag rB, sql1
    If Not rB.EOF Then
@@ -3296,7 +3303,7 @@ Function tuBriefeLeiDok(frm As Lese, Optional Arztnr&)
     myFrag rl, "SELECT * FROM `leistungen` WHERE fid = " & rf!FID & " AND leistung IN ('01600')"
     If rl.BOF Then
 '     Call LeistungsExport1(rF!Pat_id, "01600", MIN(DateValue(rB!Zeitpunkt), #12/31/2007#), CDate("18:00"))
-     Call LeistungsExport1(rf!Pat_id, "40110", MINvb(DateValue(rB!Zeitpunkt), #12/31/2007#), CDate("18:00"), , , Arztnr)
+     Call LeistungsExport1(rf!Pat_ID, "40110", MINvb(DateValue(rB!Zeitpunkt), #12/31/2007#), CDate("18:00"), , , Arztnr)
     End If
    End If
   End If
@@ -3321,7 +3328,7 @@ End Function ' tuBriefeLeiDok
 
 Function alleDMPLeiDok(frm As Lese, Optional Arztnr&)
  Dim DefDB$
- Dim rsa As New ADODB.Recordset, rMV As New ADODB.Recordset
+ Dim rsa As New adodb.Recordset, rMV As New adodb.Recordset
  On Error GoTo fehler
 ' sql1 = "SELECT schgr, `faelle`.bhfb AS bfb, `faelle`.Pat_id, `faelle`.nachname, `faelle`.vorname, `hae`.vorname AS hvv, `hae`.nachname AS hvn, `hae`.fax1, hausaerzte.telefax, üwnnr FROM (((`faelle` INNER JOIN `diagnosen` ON `faelle`.pat_id = `diagnosen`.pat_id) LEFT JOIN `anamnesebogen` ON `faelle`.pat_id = `anamnesebogen`.pat_id) LEFT JOIN `kvaerzte`.`hae` ON CONCAT(MID(`faelle`.üwnnr,1,2)¡""/""¡MID(`faelle`.üwnnr,3,5)) = `hae`.KVNR) LEFT JOIN " & DefDB & ".`hausaerzte` ON `faelle`.üwnnr = `hausaerzte`.kvnr WHERE quartal = """ & ZQuart(Now - Verspätung) & """ AND schgr IN (""24"",""23"",""21"",""00"") AND tkz = 0 ORDER BY nachname, vorname, schgr"
  sql1 = "SELECT bhfb AS bfb, schgr, pat_id FROM `faelle` WHERE schgr IN (""24"",""23"",""21"",""00"") AND quartal = """ & ZQuart(Now - Verspätung) & """ "
@@ -3348,7 +3355,7 @@ Function alleDMPLeiDok(frm As Lese, Optional Arztnr&)
  Do While Not rsa.EOF
   obzutr = -1
   If rsa!SchGr = "00" Then ' bei eigenen nur die im DMP, da diese vermutlich noch einen anderen Hausarzt haben
-    OkSql = "SELECT * FROM ((((`forminhkopf` LEFT JOIN `formulare` ON `forminhkopf`.form_id = `formulare`.formid) LEFT JOIN `forminhfeld` ON `forminhfeld`.foid = `forminhkopf`.foid) LEFT JOIN `forminhaltfeld` ON `forminhaltfeld`.feldvw = `forminhfeld`.feldvw) LEFT JOIN `forminhaltfeldinh` ON `forminhaltfeldinh`.feldinhvw = `forminhfeld`.feldinhvw) LEFT JOIN `namen` ON `forminhkopf`.pat_id = `namen`.pat_id WHERE form_abk LIKE ""DMPDTYP" & "%" & """ AND feld LIKE """ & "%" & "datum"" AND `namen`.Pat_id = " & rsa!Pat_id & ";"
+    OkSql = "SELECT * FROM ((((`forminhkopf` LEFT JOIN `formulare` ON `forminhkopf`.form_id = `formulare`.formid) LEFT JOIN `forminhfeld` ON `forminhfeld`.foid = `forminhkopf`.foid) LEFT JOIN `forminhaltfeld` ON `forminhaltfeld`.feldvw = `forminhfeld`.feldvw) LEFT JOIN `forminhaltfeldinh` ON `forminhaltfeldinh`.feldinhvw = `forminhfeld`.feldinhvw) LEFT JOIN `namen` ON `forminhkopf`.pat_id = `namen`.pat_id WHERE form_abk LIKE ""DMPDTYP" & "%" & """ AND feld LIKE """ & "%" & "datum"" AND `namen`.Pat_id = " & rsa!Pat_ID & ";"
     Set rMV = Nothing
 '    rMV.Open OkSql, DBCn, adOpenDynamic, adLockReadOnly
     myFrag rMV, OkSql
@@ -3357,12 +3364,12 @@ Function alleDMPLeiDok(frm As Lese, Optional Arztnr&)
   If obzutr Then
     Set rMV = Nothing
 '    rMV.Open "SELECT * FROM `leistungen` WHERE pat_id = " & rsa!Pat_id & " AND leistung = 1601 AND zeitpunkt >= " & DatFor_k(fctQAnf(ZQuart(Now - Verspätung))) & " AND zeitpunkt < " & DatFor_k(fctQEnd(ZQuart(Now - Verspätung))), DBCn, adOpenDynamic, adLockReadOnly
-    myFrag rMV, "SELECT * FROM `leistungen` WHERE pat_id = " & rsa!Pat_id & " AND leistung = 1601 AND zeitpunkt >= " & DatFor_k(fctQAnf(ZQuart(Now - Verspätung))) & " AND zeitpunkt < " & DatFor_k(fctQEnd(ZQuart(Now - Verspätung)))
+    myFrag rMV, "SELECT * FROM `leistungen` WHERE pat_id = " & rsa!Pat_ID & " AND leistung = 1601 AND zeitpunkt >= " & DatFor_k(fctQAnf(ZQuart(Now - Verspätung))) & " AND zeitpunkt < " & DatFor_k(fctQEnd(ZQuart(Now - Verspätung)))
     If Not rMV.BOF Then obzutr = 0
   End If
   If obzutr Then
    If anfang Then
-    If rsa!Pat_id <> AltID Then
+    If rsa!Pat_ID <> AltID Then
 ' in MVZ nur die schicken, die nicht schon bei mir eingeschrieben
       Dim DaT As Date
       DaT = CDate("30.6.07")
@@ -3370,10 +3377,10 @@ Function alleDMPLeiDok(frm As Lese, Optional Arztnr&)
        DaT = CDate("30.6.07")
       End If
 '      Call LeistungsExport1(BDT, rsA!Pat_id, "01601", DaT, CDate("18:00"))
-      Call LeistungsExport1(BDT, rsa!Pat_id, "40110", DaT, CDate("18:00"), , Arztnr)
+      Call LeistungsExport1(BDT, rsa!Pat_ID, "40110", DaT, CDate("18:00"), , Arztnr)
       FZahl = FZahl + 1
     End If
-    AltID = rsa!Pat_id
+    AltID = rsa!Pat_ID
    End If
    anfang = True
   Else
@@ -3493,7 +3500,7 @@ End Sub ' tobhier
 #End If
 
 ' in alleSpeichern() und tob()
-Sub obhierdmpfn(notiz$, NZNr&, dmpklass&, dmpbeg As Date, Optional dmpkhkklass&, Optional dmpkhkbeg As Date, Optional dmpcopdklass&, Optional dmpcopdbeg As Date, Optional dmpabklass&, Optional dmpabbeg As Date, Optional HzV&, Optional HzVbeg As Date, Optional DS&, Optional DSbeg As Date)
+Sub obhierdmpfn(notiz$, NZNr&, dmpklass As DMPEnum, dmpbeg As Date, Optional dmpkhkklass&, Optional dmpkhkbeg As Date, Optional dmpcopdklass&, Optional dmpcopdbeg As Date, Optional dmpabklass&, Optional dmpabbeg As Date, Optional HzV&, Optional HzVbeg As Date, Optional DS&, Optional DSbeg As Date)
  Dim buch$, pos%, testd As Date, i%, notdat$(), ndRichtig%() ' letztes wahr, wenn notdat-Zeile für DMP verwertbar oder irrelevant
  Dim maxdHier(3) As Date, maxdHA(3) As Date, maxdNein(3) As Date, maxdAus(3) As Date
  Dim dmpArt% ' 0 = Diabetes, 1 = KHK, 2 = COPD, 3 = Asthma bronchiale
@@ -3572,35 +3579,35 @@ Sub obhierdmpfn(notiz$, NZNr&, dmpklass&, dmpbeg As Date, Optional dmpkhkklass&,
       End If ' ndRichtig(i) = 0 Then
      Next i
      For dmpArt = 3 To 0 Step -1
-        dmpklass = 0
+        dmpklass = unb
         If maxdAus(dmpArt) > maxdHier(dmpArt) And maxdAus(dmpArt) > maxdHA(dmpArt) And maxdAus(dmpArt) > maxdHA(dmpArt) And maxdAus(dmpArt) <> 0 Then
-         dmpklass = 4
+         dmpklass = ausg
          dmpbeg = maxdAus(dmpArt)
         ElseIf maxdHier(dmpArt) > maxdHA(dmpArt) And maxdHier(dmpArt) >= maxdNein(dmpArt) And maxdHier(dmpArt) <> 0 Then
-          dmpklass = 3
+          dmpklass = hier
           dmpbeg = maxdHier(dmpArt)
         ElseIf maxdNein(dmpArt) > maxdHA(dmpArt) And maxdNein(dmpArt) <> 0 Then
-          dmpklass = 1
+          dmpklass = nein
           dmpbeg = maxdNein(dmpArt)
         ElseIf maxdHA(dmpArt) <> 0 Then
-          dmpklass = 2
+          dmpklass = HA
           dmpbeg = maxdHA(dmpArt)
-        End If
-        If dmpklass <> 0 Then
+        End If ' maxdAus( ...
+        If dmpklass <> unbek Then
          If dmpArt = 1 Then
           dmpkhkklass = dmpklass
           dmpkhkbeg = dmpbeg
-          dmpklass = 0
+          dmpklass = unb
           dmpbeg = 0
          ElseIf dmpArt = 2 Then
           dmpcopdklass = dmpklass
           dmpcopdbeg = dmpbeg
-          dmpklass = 0
+          dmpklass = unb
           dmpbeg = 0
          ElseIf dmpArt = 3 Then
           dmpabklass = dmpklass
           dmpabbeg = dmpbeg
-          dmpklass = 0
+          dmpklass = unb
           dmpbeg = 0
          End If
         End If
@@ -3622,7 +3629,7 @@ End Select
 End Sub      ' obhierdmpfn
 
 Function doVerdächtigeÜberweiser()
- Dim sql$, rf As New ADODB.Recordset, infos$(), taskid&, HAi%, AktQ$, obverd%
+ Dim sql$, rf As New adodb.Recordset, infos$(), taskid&, HAi%, AktQ$, obverd%
  Dim Datei$
  Datei$ = pVerz & "VerdächtigeÜberweiser.txt"
  AktQ = Left$(ZQuart(Now() - 14), 1) & Right$(ZQuart(Now() - 14), 2) ' 109
@@ -3634,7 +3641,7 @@ Function doVerdächtigeÜberweiser()
 '   Call getHausarztAlt(Pid:=rF!Pat_id, Infos:=Infos(), obHAPrio:=False)
    Dim rFa() As Faelle
    Dim rKv1() As kvnrue
-   getHausarzt1 infos, rFa, rKv1, False, rf!Pat_id
+   getHausarzt1 infos, rFa, rKv1, False, rf!Pat_ID
    HAi = 0
    obverd = False
    Do
@@ -3644,12 +3651,12 @@ Function doVerdächtigeÜberweiser()
    Loop
    If Not obverd Then If HAi <> 0 And InStrB(infos(10, 0), AktQ) <> 0 And infos(1, 0) <> infos(1, HAi) Then obverd = True
    If obverd Then
-    Print #355, rf!Pat_id & ": " & rf!Nachname & ", " & rf!Vorname & ":"
+    Print #355, rf!Pat_ID & ": " & rf!Nachname & ", " & rf!Vorname & ":"
     Print #355, "  " & Left$(infos(10, 0) & Space$(10), 10) & ": " & infos(1, 0)
     If Not HAi > UBound(infos, 2) Then Print #355, "  " & Left$(infos(10, HAi) & Space$(10), 10) & ": " & infos(1, HAi)
-    Ausgeb "verdächtig: " & rf!Pat_id & ": " & rf!Nachname & ", " & rf!Vorname
+    Ausgeb "verdächtig: " & rf!Pat_ID & ": " & rf!Nachname & ", " & rf!Vorname
    Else
-    Ausgeb "in Ordnung: " & rf!Pat_id & ": " & rf!Nachname & ", " & rf!Vorname
+    Ausgeb "in Ordnung: " & rf!Pat_ID & ": " & rf!Nachname & ", " & rf!Vorname
    End If
 '   Stop
    rf.Move 1
@@ -3722,14 +3729,14 @@ End Function
 'End FUNCTION ' allDMPs
 
 ' in Lese.los
-Function einDMP(Pat_id&, Optional ICD$, Optional dszahl&, Optional Nachname$, Optional Vorname$, Optional ÜWNNr$, Optional frm As Lese)
+Function einDMP(Pat_ID&, Optional ICD$, Optional dszahl&, Optional Nachname$, Optional Vorname$, Optional ÜWNNr$, Optional frm As Lese)
  Dim FaxNr$, infos$() ' Frau/Herrn, Vorn+Nachn, Straße, PLZ+Ort, Faxnr, S.g./Liebe, DMPTyp2, DMPTyp1
  Dim aktPatGefaxt$()
  Dim i%, j&, obdoppelt%, rAf&
  Dim docName$, Adressat$, fax1$, anfang%, runde%
  Const maxverschieden% = 1 ' maximale Zahl verschiedener Ärzte, an die Infos geschickt werden
     ReDim aktPatGefaxt(0)
-     Call getHausarzt(pid:=Pat_id, infos:=infos()) ' , obHAPrio:=True)
+     Call getHausarzt(pid:=Pat_ID, infos:=infos()) ' , obHAPrio:=True)
 '     Dim rs As New adodb.Recordset
 '     myFrag rs, "SELECT getha FROM `namen` WHERE pat_id = " & Pat_id
 '     IF rs.EOF THEN Stop
@@ -3765,7 +3772,7 @@ Function einDMP(Pat_id&, Optional ICD$, Optional dszahl&, Optional Nachname$, Op
 '            Call Ausgeb(Pat_id & ": " & Nachname & ", " & Vorname & ", " & fax1 & ", " & ÜWNNr)
             DoEvents
             Adressat = infos(10, i) & " " & infos(1, i)
-            docName = do_DMPAusgebStandAlone(Pat_id, fax1, Adressat)
+            docName = do_DMPAusgebStandAlone(Pat_ID, fax1, Adressat)
             If False Then
              Call FaxSend(docName, Adressat, fax1)
             End If
@@ -3797,15 +3804,15 @@ Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "Last
 End Select
 End Function ' einDMP
 
-Function doAnwalt(Pat_id&)
- Dim rBr As New ADODB.Recordset, nr&, Datei$
+Function doAnwalt(Pat_ID&)
+ Dim rBr As New adodb.Recordset, nr&, Datei$
  On Error GoTo fehler
  nr = 1
- myFrag rBr, "SELECT Pfad,Name,Art,Zeitpunkt FROM briefe WHERE pat_id=" & Pat_id & " ORDER BY ZEITPUNKT"
+ myFrag rBr, "SELECT Pfad,Name,Art,Zeitpunkt FROM briefe WHERE pat_id=" & Pat_ID & " ORDER BY ZEITPUNKT"
  Do While Not rBr.EOF
   Datei = zVerz & Mid$(rBr!Pfad, 3)
   If FSO.FileExists(Datei) Then
-   FSO.CopyFile Datei, pVerz & "anwalt\Dokument_" & nr & "_" & rBr!name & IIf(rBr!Art = "wbr", ".doc", IIf(rBr!Art = "pdf", ".pdf", ""))
+   FSO.CopyFile Datei, pVerz & "anwalt\Dokument_" & nr & "_" & rBr!name & IIf(rBr!art = "wbr", ".doc", IIf(rBr!art = "pdf", ".pdf", ""))
    Lese.Ausgeb "Dokument '" & rBr!name & "', vom " & rBr!Zeitpunkt & ", Pfad: " & rBr!Pfad & " kopiert!", False
    nr = nr + 1
   Else
@@ -3954,8 +3961,8 @@ End Function
 Sub dodoFollowUp(frm As Lese)
  Dim infos$()
  Dim sql$, sql1$
- Dim rP As New ADODB.Recordset
- Dim rB As New ADODB.Recordset
+ Dim rP As New adodb.Recordset
+ Dim rB As New adodb.Recordset
  Dim Zp As Date, Quartal$
  On Error GoTo fehler
  Zp = Now - 30
@@ -3964,15 +3971,15 @@ Sub dodoFollowUp(frm As Lese)
 ' Call rP.Open("SELECT DISTINCT f.pat_id AS pat_id FROM `faelle` f LEFT JOIN `anamnesebogen` a ON f.pat_id = a.pat_id WHERE not schgr IN ('41','42','43')  AND tkz = 0 ORDER BY f.pat_id DESC;", DBCn, adOpenDynamic, adLockReadOnly)
  myFrag rP, "SELECT DISTINCT f.pat_id AS pat_id FROM `faelle` f LEFT JOIN `anamnesebogen` a ON f.pat_id = a.pat_id WHERE not schgr IN ('41','42','43')  AND tkz = 0 ORDER BY f.pat_id DESC;"
  Do While Not rP.EOF
-  Call getHausarzt(rP!Pat_id, infos())
+  Call getHausarzt(rP!Pat_ID, infos())
   If infos(1, 0) <> vNS And Not infos(1, 0) Like "*Schade" Then
    Set rB = Nothing
-   sql = "SELECT * FROM `briefe` WHERE pat_id = " & rP!Pat_id & " AND ((name LIKE '%Brief an %Dr%' OR name LIKE '%Arztbrief%' OR name LIKE 'Brief an HA%' OR name LIKE 'Brief an HAe%' OR name LIKE 'Brief an %') AND name NOT LIKE '%Entwurf%') ORDER BY zeitpunkt DESC"
+   sql = "SELECT * FROM `briefe` WHERE pat_id = " & rP!Pat_ID & " AND ((name LIKE '%Brief an %Dr%' OR name LIKE '%Arztbrief%' OR name LIKE 'Brief an HA%' OR name LIKE 'Brief an HAe%' OR name LIKE 'Brief an %') AND name NOT LIKE '%Entwurf%') ORDER BY zeitpunkt DESC"
 '   Call rB.Open(sql, DBCn, adOpenDynamic, adLockReadOnly)
    myFrag rB, sql
    If Not rB.BOF Then
-    If DateValue(lebe(rP!Pat_id)) - rB!Zeitpunkt > 365 Then
-     Call tubriefStandalone(rP!Pat_id, True)
+    If DateValue(lebe(rP!Pat_ID)) - rB!Zeitpunkt > 365 Then
+     Call tubriefStandalone(rP!Pat_ID, True)
     End If
    End If
   End If
@@ -3997,8 +4004,8 @@ End Sub ' dodoFollowUp(frm AS Lese)
 Sub doUngeschriebeneBriefe(frm As Lese)
  Dim infos$()
  Dim sql$, sql1$
- Dim rP As New ADODB.Recordset
- Dim rB As New ADODB.Recordset
+ Dim rP As New adodb.Recordset
+ Dim rB As New adodb.Recordset
  Dim Zp As Date, Quartal$
  On Error GoTo fehler
  Zp = Now - 30
@@ -4007,14 +4014,14 @@ Sub doUngeschriebeneBriefe(frm As Lese)
 ' Call rP.Open("SELECT DISTINCT f.pat_id AS pat_id FROM `faelle` f LEFT JOIN `anamnesebogen` a ON f.pat_id = a.pat_id WHERE not schgr IN ('41','42','43')  AND tkz = 0  ORDER BY f.pat_id DESC;", DBCn, adOpenDynamic, adLockReadOnly)
  myFrag rP, "SELECT DISTINCT f.pat_id AS pat_id FROM `faelle` f LEFT JOIN `anamnesebogen` a ON f.pat_id = a.pat_id WHERE not schgr IN ('41','42','43')  AND tkz = 0  ORDER BY f.pat_id DESC;"
  Do While Not rP.EOF
-  Call getHausarzt(rP!Pat_id, infos())
+  Call getHausarzt(rP!Pat_ID, infos())
   If infos(1, 0) <> vNS And Not infos(1, 0) Like "*Schade" Then
    Set rB = Nothing
-   sql = "SELECT * FROM `briefe` WHERE pat_id = " & rP!Pat_id & " AND ((name LIKE '%Brief an %Dr%' OR name LIKE '%Arztbrief%' OR name LIKE 'Brief an HA%' OR name LIKE 'Brief an HAe%' OR name LIKE 'Brief an %') AND name NOT LIKE '%Entwurf%')"
+   sql = "SELECT * FROM `briefe` WHERE pat_id = " & rP!Pat_ID & " AND ((name LIKE '%Brief an %Dr%' OR name LIKE '%Arztbrief%' OR name LIKE 'Brief an HA%' OR name LIKE 'Brief an HAe%' OR name LIKE 'Brief an %') AND name NOT LIKE '%Entwurf%')"
 '   Call rB.Open(sql, DBCn, adOpenDynamic, adLockReadOnly)
    myFrag rB, sql
    If rB.BOF Then
-    Call tubriefStandalone(rP!Pat_id, True)
+    Call tubriefStandalone(rP!Pat_ID, True)
    End If
   End If
 weiter:
@@ -4037,8 +4044,8 @@ End Sub ' doRestlicheBriefe
 
 Sub doRestlicheBriefe(frm As Lese, ab&)
  Dim sql$, sql1$
- Dim rP As New ADODB.Recordset
- Dim rB As New ADODB.Recordset
+ Dim rP As New adodb.Recordset
+ Dim rB As New adodb.Recordset
  Dim Zp As Date, Quartal$
  On Error GoTo fehler
  Zp = Now - 30
@@ -4048,11 +4055,11 @@ Sub doRestlicheBriefe(frm As Lese, ab&)
  myFrag rP, "SELECT DISTINCT pat_id FROM `faelle` WHERE quartal = '" & Quartal & "' AND pat_id >= " & ab & " ORDER BY pat_id "
  Do While Not rP.EOF
   Set rB = Nothing
-  sql = "SELECT * FROM `briefe` WHERE pat_id = " & rP!Pat_id & " AND zeitpunkt > " & DatFor_k(fctQAnf(Quartal)) & " AND ((name LIKE '%Brief an %Dr%' OR name LIKE '%Arztbrief%' OR name LIKE 'Brief an HA%' OR name LIKE 'Brief an HAe%') AND name NOT LIKE '%Entwurf%')"
+  sql = "SELECT * FROM `briefe` WHERE pat_id = " & rP!Pat_ID & " AND zeitpunkt > " & DatFor_k(fctQAnf(Quartal)) & " AND ((name LIKE '%Brief an %Dr%' OR name LIKE '%Arztbrief%' OR name LIKE 'Brief an HA%' OR name LIKE 'Brief an HAe%') AND name NOT LIKE '%Entwurf%')"
 '  Call rB.Open(sql, DBCn, adOpenDynamic, adLockReadOnly)
   myFrag rB, sql
   If rB.BOF Then
-   Call tubriefStandalone(rP!Pat_id, True)
+   Call tubriefStandalone(rP!Pat_ID, True)
   End If
   rP.Move 1
  Loop
@@ -4145,13 +4152,13 @@ End Sub ' FaxSend
 
 
 ' in einDMP, doStart
-Public Function do_DMPAusgebStandAlone(Pat_id&, Optional fax1$, Optional Adressat$)
+Public Function do_DMPAusgebStandAlone(Pat_ID&, Optional fax1$, Optional Adressat$)
  Dim docName$, DT As DMPClass
  On Error GoTo fehler
  If fax1 = "08131 25169" Then fax1 = "08131 273373" ' Dr. Stolzki falsche Faxnummer
  If InStrB(fax1, "6119199") <> 0 Or InStrB(fax1, "91191") Then fax1 = "6119198"
  FNr = 0
- Dim rsAnam As New ADODB.Recordset
+ Dim rsAnam As New adodb.Recordset
  Dim sverz$, guv$, dxml$
 #If Not wordalt Then
  Const uvz$ = "2145\", uvuv$ = uvz & "neu\"
@@ -4165,7 +4172,7 @@ Public Function do_DMPAusgebStandAlone(Pat_id&, Optional fax1$, Optional Adressa
  Else
   sverz = pVerz & "zufaxen\" & uvz
  End If ' fax1 = vns
- myFrag rsAnam, "SELECT CONCAT('" & UmwfSQL(sverz) & "',COALESCE(MAX(gesname(pat_id)),''),', PID ','" & Pat_id & "','" & ", DMP-Daten vom " & Format$(Now, "DD/MM/YY hh.mm.ss") & IIf(Adressat <> "" And Not IsNull(Adressat), " für " & Adressat, "") & IIf(LenB(fax1) = 0, vNS, " an Fax " & fax1) & ".doc') FROM `anamnesebogen` WHERE pat_id = " & Pat_id
+ myFrag rsAnam, "SELECT CONCAT('" & UmwfSQL(sverz) & "',COALESCE(MAX(gesname(pat_id)),''),', PID ','" & Pat_ID & "','" & ", DMP-Daten vom " & Format$(Now, "DD/MM/YY hh.mm.ss") & IIf(Adressat <> "" And Not IsNull(Adressat), " für " & Adressat, "") & IIf(LenB(fax1) = 0, vNS, " an Fax " & fax1) & ".doc') FROM `anamnesebogen` WHERE pat_id = " & Pat_ID
  If Not rsAnam.BOF Then
   docName = rsAnam.Fields(0)
  End If
@@ -4183,7 +4190,7 @@ Public Function do_DMPAusgebStandAlone(Pat_id&, Optional fax1$, Optional Adressa
  Const AbE5$ = "<w:p><w:pPr><w:pStyle w:val=""Normal""/><w:tabs><w:tab w:val=""clear"" w:pos=""1701""/><w:tab w:val=""left"" w:pos=""3118"" w:leader=""dot""/></w:tabs><w:spacing w:before=""57"" w:after=""0""/><w:ind w:hanging=""400"" w:left=""400"" w:right=""0""/><w:rPr/></w:pPr><w:r><w:rPr><w:rFonts w:cs=""Arial"" w:ascii=""Arial"" w:hAnsi=""Arial""/><w:b/><w:i/><w:szCs w:val=""24""/></w:rPr><w:t>"
  Dim ag As New CString
  Dim oSh As New IWshShell_Class
- Call DMPString$(Pat_id, DT, , True, , False)
+ Call DMPString$(Pat_ID, DT, , True, , False)
 ' robocopy geht nicht, stellt nicht alle Unterverzeichnisse her, behauptet dann, sie seien schon da
 ' oSh.rUn "robocopy """ & uVerz & "programmierung\dateilesen\zudocx\\"" """ & pVerz & "zufaxen\" & uvz & "neu"" /s /copy:dat /r:3 /w:2", 0, True
  oSh.rUn "xcopy """ & uVerz & "programmierung\dateilesen\zudocx\*.*"" """ & pVerz & "zufaxen\" & uvz & "neu\"" /s /d /k /y /h /r /c", 0, True
@@ -4198,7 +4205,7 @@ Public Function do_DMPAusgebStandAlone(Pat_id&, Optional fax1$, Optional Adressa
 ' ag.Append REPLACE$(REPLACE$(REPLACE$(DT.x_gesName, "'", "&#8217;"), "ß", "&#223;"), "*", "&#9733;")
  ag.Append sonz(DT.x_GesName)
  ag.Append "</w:t></w:r><w:r><w:rPr><w:rFonts w:cs=""Arial"" w:ascii=""Arial"" w:hAnsi=""Arial""/><w:b/><w:i/><w:vanish/><w:szCs w:val=""24""/></w:rPr><w:t xml:space=""preserve""> (Pat'nr "
- ag.Append Pat_id
+ ag.Append Pat_ID
  ag.Append ")</w:t></w:r><w:r><w:rPr><w:rFonts w:cs=""Arial"" w:ascii=""Arial"" w:hAnsi=""Arial""/><w:b/><w:i/><w:szCs w:val=""24""/></w:rPr><w:t>, DMP-Informatione</w:t></w:r><w:r><w:rPr><w:rFonts w:cs=""Arial"" w:ascii=""Arial"" w:hAnsi=""Arial""/><w:szCs w:val=""24""/></w:rPr><w:t>n für "
  ag.AppVar Array(Format(DT.x_DokuDat, "d.m.yy"), ":", AbsE)
  ag.AppVar Array(AbE1, sonz(DT.x_DmTyp), AbE2, sonz(DT.daseit), AbsE)
@@ -4275,7 +4282,7 @@ vorgetword:
   VorZahl = dc.Range.END
   FNr = 1
  End With ' WApp
- dc.Range.Insertafter VorString & REPLACE$(DMPString$(Pat_id, DT, , True), vbCrLf & vbCrLf, vbCrLf)
+ dc.Range.Insertafter VorString & REPLACE$(DMPString$(Pat_ID, DT, , True), vbCrLf & vbCrLf, vbCrLf)
  Set mR1 = dc.content
  With mR1.Find
   .clearformatting
@@ -4320,11 +4327,11 @@ vorgetword:
 
 #End If ' not wordalt else
  
- Dim mrs As New ADODB.Recordset
+ Dim mrs As New adodb.Recordset
  Set mrs = Nothing
 '  sql = "SELECT `medarten`.*, `medplan`.medikament AS mmedikament,bemerkung,mo,mi,nm,ab,zn,--bbed AS j_bbed FROM `medplan` LEFT JOIN `medarten` ON `medplan`.medanfang = `medarten`.medikament WHERE `medplan`.mpnr = (SELECT MAX(mpnr) FROM `medplan` WHERE pat_id = " & Pat_id & " AND zeitpunkt = (SELECT MAX(zeitpunkt) FROM `medplan` WHERE pat_id = " & CStr(Pat_id) & ")) AND NOT ISNULL(`medplan`.medikament) AND `medplan`.medikament <> '' AND `medplan`.pat_id = " & Pat_id
 ' `medplan`.medikament AS mmedikament,mo,mi,nm,ab,zn
- sql = "SELECT DATE(zeitpunkt) AS zp FROM `medplan` LEFT JOIN `medarten` ON `medplan`.medanfang = `medarten`.medikament WHERE `medplan`.pat_id = " & Pat_id & " AND `medplan`.mpnr = (SELECT MAX(mpnr) FROM `medplan` WHERE pat_id = " & Pat_id & " AND zeitpunkt = (SELECT MAX(zeitpunkt) FROM `medplan` WHERE pat_id = " & CStr(Pat_id) & ")) AND NOT ISNULL(`medplan`.medikament) AND `medplan`.medikament <> '' AND `medplan`.pat_id = " & Pat_id & " GROUP BY zeitpunkt"
+ sql = "SELECT DATE(zeitpunkt) AS zp FROM `medplan` LEFT JOIN `medarten` ON `medplan`.medanfang = `medarten`.medikament WHERE `medplan`.pat_id = " & Pat_ID & " AND `medplan`.mpnr = (SELECT MAX(mpnr) FROM `medplan` WHERE pat_id = " & Pat_ID & " AND zeitpunkt = (SELECT MAX(zeitpunkt) FROM `medplan` WHERE pat_id = " & CStr(Pat_ID) & ")) AND NOT ISNULL(`medplan`.medikament) AND `medplan`.medikament <> '' AND `medplan`.pat_id = " & Pat_ID & " GROUP BY zeitpunkt"
  myFrag mrs, sql
  If Not mrs.BOF Then
 
@@ -4333,7 +4340,7 @@ vorgetword:
  ag.AppVar Array("Med.", Format(mrs!Zp, "d.m.yy"), ":")
  ag.Append "</w:t></w:r>"
  ag.Append "<w:r><w:rPr><w:rFonts w:cs=""Courier New"" w:ascii=""Courier New"" w:hAnsi=""Courier New""/><w:sz w:val=""16""/><w:szCs w:val=""24""/></w:rPr><w:t xml:space=""preserve"">      mo mi nm ab zn </w:t><w:br/>"
- sql = "SELECT CONCAT(LEFT(CONCAT(TRIM(`medplan`.medikament),REPEAT('.',17)),17),LPAD(mo,3,'.'),LPAD(mi,3,'.'),LPAD(nm,3,'.'),LPAD(ab,3,'.'),LPAD(zn,3,'.')) FROM `medplan` LEFT JOIN `medarten` ON `medplan`.medanfang = `medarten`.medikament WHERE `medplan`.Pat_id = " & CStr(Pat_id) & " AND `medplan`.mpnr = (SELECT MAX(mpnr) FROM `medplan` WHERE pat_id = " & CStr(Pat_id) & " AND zeitpunkt = (SELECT MAX(zeitpunkt) FROM `medplan` WHERE pat_id = " & CStr(Pat_id) & ")) AND NOT ISNULL(`medplan`.medikament) AND `medplan`.medikament <> '' AND `medplan`.pat_id = " & CStr(Pat_id)
+ sql = "SELECT CONCAT(LEFT(CONCAT(TRIM(`medplan`.medikament),REPEAT('.',17)),17),LPAD(mo,3,'.'),LPAD(mi,3,'.'),LPAD(nm,3,'.'),LPAD(ab,3,'.'),LPAD(zn,3,'.')) FROM `medplan` LEFT JOIN `medarten` ON `medplan`.medanfang = `medarten`.medikament WHERE `medplan`.Pat_id = " & CStr(Pat_ID) & " AND `medplan`.mpnr = (SELECT MAX(mpnr) FROM `medplan` WHERE pat_id = " & CStr(Pat_ID) & " AND zeitpunkt = (SELECT MAX(zeitpunkt) FROM `medplan` WHERE pat_id = " & CStr(Pat_ID) & ")) AND NOT ISNULL(`medplan`.medikament) AND `medplan`.medikament <> '' AND `medplan`.pat_id = " & CStr(Pat_ID)
  Set mrs = Nothing
  myFrag mrs, sql
  If Not mrs.BOF Then
@@ -4344,7 +4351,7 @@ vorgetword:
  End If ' Not mrs.BOF Then
  ag.Append "</w:r></w:p>"
 #Else
-  sql = "SELECT LEFT(`medplan`.medikament,16) `Med." & Format(mrs!Zp, "d.m.yy") & ":`,mo,mi,nm,ab,zn FROM `medplan` LEFT JOIN `medarten` ON `medplan`.medanfang = `medarten`.medikament WHERE `medplan`.Pat_id = " & CStr(Pat_id) & " AND `medplan`.mpnr = (SELECT MAX(mpnr) FROM `medplan` WHERE pat_id = " & CStr(Pat_id) & " AND zeitpunkt = (SELECT MAX(zeitpunkt) FROM `medplan` WHERE pat_id = " & CStr(Pat_id) & ")) AND NOT ISNULL(`medplan`.medikament) AND `medplan`.medikament <> '' AND `medplan`.pat_id = " & CStr(Pat_id)
+  sql = "SELECT LEFT(`medplan`.medikament,16) `Med." & Format(mrs!Zp, "d.m.yy") & ":`,mo,mi,nm,ab,zn FROM `medplan` LEFT JOIN `medarten` ON `medplan`.medanfang = `medarten`.medikament WHERE `medplan`.Pat_id = " & CStr(Pat_ID) & " AND `medplan`.mpnr = (SELECT MAX(mpnr) FROM `medplan` WHERE pat_id = " & CStr(Pat_ID) & " AND zeitpunkt = (SELECT MAX(zeitpunkt) FROM `medplan` WHERE pat_id = " & CStr(Pat_ID) & ")) AND NOT ISNULL(`medplan`.medikament) AND `medplan`.medikament <> '' AND `medplan`.pat_id = " & CStr(Pat_ID)
   Set mrs = Nothing
   myFrag mrs, sql
   dc.Range.Insertafter vbCrLf & TabAusgeb(mrs, Lese, , Chr$(11), , , , , , , True).Value
@@ -4407,7 +4414,7 @@ vorgetword:
  End If ' Not mrs.BOF Then
 
  Dim DiagTab() As CString, gesD$
- gesD = DiagString$(CStr(Pat_id), DiagTab, Now() - 180, True)
+ gesD = DiagString$(CStr(Pat_ID), DiagTab, Now() - 180, True)
 #If Not wordalt Then
  ag.Append "<w:p><w:pPr><w:pStyle w:val=""Normal""/><w:tabs><w:tab w:val=""clear"" w:pos=""1701""/><w:tab w:val=""left"" w:pos=""5102"" w:leader=""dot""/></w:tabs><w:spacing w:before=""170"" w:after=""0""/><w:rPr><w:rFonts w:ascii=""Courier New"" w:hAnsi=""Courier New"" w:cs=""Courier New""/><w:sz w:val=""16""/><w:szCs w:val=""24""/></w:rPr></w:pPr><w:r><w:br w:type=""column""/></w:r><w:r><w:rPr><w:rFonts w:cs=""Courier New"" w:ascii=""Courier New"" w:hAnsi=""Courier New""/><w:b/><w:sz w:val=""16""/><w:szCs w:val=""24""/><w:u w:val=""single""/></w:rPr><w:t>"
  ag.Append "Diagnosen:</w:t></w:r></w:p><w:p><w:pPr><w:pStyle w:val=""Normal""/><w:tabs><w:tab w:val=""clear"" w:pos=""1701""/><w:tab w:val=""left"" w:pos=""5102"" w:leader=""dot""/></w:tabs><w:rPr><w:rFonts w:ascii=""Courier New"" w:hAnsi=""Courier New"" w:cs=""Courier New""/><w:sz w:val=""16""/><w:szCs w:val=""24""/></w:rPr></w:pPr><w:r><w:rPr><w:rFonts w:cs=""Courier New"" w:ascii=""Courier New"" w:hAnsi=""Courier New""/><w:sz w:val=""16""/><w:szCs w:val=""24""/></w:rPr>"
@@ -4566,15 +4573,15 @@ Select Case LCase$(Inh)
 End Select
 End Function ' dtyp
 
-Function DSeit(rsAnam As ADODB.Recordset, Optional objahr%)
- Dim rsDS As New ADODB.Recordset
+Function DSeit(rsAnam As adodb.Recordset, Optional objahr%)
+ Dim rsDS As New adodb.Recordset
  On Error GoTo fehler
     If IsNull(rsAnam("Diabetes seit")) Then
       DSeit = "?"
     ElseIf LCase$(rsAnam("Diabetes seit")) = "bu" Then
 '      DSeit = format$(rsAnam!Vorgestellt, "mm\/yy")
 '      DSeit = format$(Dtb.OpenRecordset("SELECT fanf FROM `faelle` WHERE fid = (SELECT MIN(fid) FROM `faelle` WHERE pat_id = " + CStr(rsAnam!Pat_id) + ")")!Fanf, "mm\/yy")
-      myFrag rsDS, "SELECT fanf FROM `faelle` WHERE fid = (SELECT MIN(fid) FROM `faelle` WHERE pat_id = " + CStr(rsAnam!Pat_id) + ")"
+      myFrag rsDS, "SELECT fanf FROM `faelle` WHERE fid = (SELECT MIN(fid) FROM `faelle` WHERE pat_id = " + CStr(rsAnam!Pat_ID) + ")"
       If Not rsDS.EOF Then
        DSeit = Format$(rsDS!Fanf, IIf(objahr, "yyyy", "mm\/yy"))
       End If
@@ -4625,12 +4632,12 @@ Function obPosi(s) As Boolean
 End Function ' obPosi(S) AS Boolean
 
 Public Function neuTher()
- Dim rNa As New ADODB.Recordset
+ Dim rNa As New adodb.Recordset
  Call Lese.ProgStart
  myFrag rNa, "SELECT pat_id,gesname(pat_id) name FROM namen"
  Do While Not rNa.EOF
 '  Debug.Print rNa!Pat_id, rNa!name
-  myEFrag "SELECT therartn(" & rNa!Pat_id & ")"
+  myEFrag "SELECT therartn(" & rNa!Pat_ID & ")"
   rNa.MoveNext
   DoEvents
  Loop
@@ -4639,7 +4646,7 @@ End Function ' neuTher()
 ' wird in TherArt() aufgerufen, wo anhand des Diabetestyps und von Formularen Pumpentherapien ermittelt werden, sodann hiermit die übrigen Therapieformen
 ' parallel zu ThaFestleg
 ' aufgerufen in DMPString, Epikrise (2x) und Labordateianzeig
-Function TherAuskunft(ByVal Pat_id$, ByVal obanf%, Optional ByRef insz%, Optional ByVal VorDat As Date, _
+Function TherAuskunft(ByVal Pat_ID$, ByVal obanf%, Optional ByRef insz%, Optional ByVal VorDat As Date, _
  Optional ByRef obIns As Boolean, Optional ByRef obAnal As Boolean, Optional ByRef obGlib As AntidiabMedType, _
  Optional ByRef obmetf As AntidiabMedType, Optional ByRef obGlucI As AntidiabMedType, _
  Optional ByRef obSHGlin As AntidiabMedType, Optional ByRef obGlit As AntidiabMedType, _
@@ -4651,7 +4658,7 @@ Function TherAuskunft(ByVal Pat_id$, ByVal obanf%, Optional ByRef insz%, Optiona
  Optional ByRef obAT1%) As TherapieArt
 ' Dim rMA AS DAO.Recordset
  Dim obNIns% 'ob Normalinsulin
- Dim raMa As New ADODB.Recordset
+ Dim raMa As New adodb.Recordset
  Dim AktMz%, medi$, rAf&
  Dim MPNr&(), MP0&, MPe&, mpz&, i&, MPNrl& ' erste und letzte, laufende MedPlan-Nummer des Quartals
  On Error GoTo fehler
@@ -4662,10 +4669,10 @@ Function TherAuskunft(ByVal Pat_id$, ByVal obanf%, Optional ByRef insz%, Optiona
  mpz = 0
  ReDim MPNr(mpz)
  If Qmax <> vNS Then
-  MP0 = MedPlanNr(Pat_id, obAkt:=True, VorDat:=fctQAnf(Qmax), NurNr:=True)
-  MPe = MedPlanNr(Pat_id, obAkt:=True, VorDat:=fctQEnd(Qmax) + 1, NurNr:=True)
+  MP0 = MedPlanNr(Pat_ID, obAkt:=True, VorDat:=fctQAnf(Qmax), NurNr:=True)
+  MPe = MedPlanNr(Pat_ID, obAkt:=True, VorDat:=fctQEnd(Qmax) + 1, NurNr:=True)
   Set raMa = Nothing
-  myFrag raMa, "SELECT DISTINCT mpnr FROM `medplan` WHERE pat_id = " & Pat_id & " AND mpnr >= " & MP0 & " AND mpnr <= " & MPe & " ORDER BY mpnr"
+  myFrag raMa, "SELECT DISTINCT mpnr FROM `medplan` WHERE pat_id = " & Pat_ID & " AND mpnr >= " & MP0 & " AND mpnr <= " & MPe & " ORDER BY mpnr"
   Do While Not raMa.EOF
    mpz = mpz + 1
    ReDim Preserve MPNr(mpz)
@@ -4676,17 +4683,17 @@ Function TherAuskunft(ByVal Pat_id$, ByVal obanf%, Optional ByRef insz%, Optiona
   mpz = 1
   ReDim MPNr(mpz)
   If obanf Then
-   Call MedPlanAusAna(Pat_id)
+   Call MedPlanAusAna(Pat_ID)
   ElseIf obanf = 1 Then
-   MPNr(0) = MedPlanNr(Pat_id, -1)
+   MPNr(0) = MedPlanNr(Pat_ID, -1)
   Else
-   MPNr(0) = MedPlanNr(Pat_id, Not obanf, VorDat)
+   MPNr(0) = MedPlanNr(Pat_ID, Not obanf, VorDat)
   End If
  End If
  
  For i = 1 To mpz 'MPNrl = MPNrA To MPNrE
   If Qmax <> "" Then
-   Call MedPlanNr(Pat_id, True, , , nr:=MPNr(i)) ' dann die übrigen Variablen hier jeweils neu befüllen
+   Call MedPlanNr(Pat_ID, True, , , nr:=MPNr(i)) ' dann die übrigen Variablen hier jeweils neu befüllen
   End If
   obGlib = adnein: obmetf = adnein: obGlucI = adnein: obSHGlin = adnein: obGlit = adnein: obDpp4 = adnein: obGlp1 = adnein: obSglt2 = adnein: obSonstAD = adnein
   obIns = 0: obAnal = 0: obHMG = 0: obAntihyp = 0: obACEH = 0: obBetabl = 0: obThro = 0
@@ -4710,7 +4717,7 @@ Function TherAuskunft(ByVal Pat_id$, ByVal obanf%, Optional ByRef insz%, Optiona
      If DosH > 0 Then
 '      MsgBox "Medikament: " + Medi + " noch nicht in Tabelle MedArten erfaßt"
       Debug.Print "Medikament: " + medi + " noch nicht in Tabelle `medarten` erfaßt"
-      InsKorr DBCn, "INSERT INTO `medarten`(langname,medikament,hinzugefügt,pat_id) VALUES('" & Med(AktMz) & "','" & UCase$(medi) & "'," & DatFor_k(Now) & "," & Pat_id & ")", rAf
+      InsKorr DBCn, "INSERT INTO `medarten`(langname,medikament,hinzugefügt,pat_id) VALUES('" & Med(AktMz) & "','" & UCase$(medi) & "'," & DatFor_k(Now) & "," & Pat_ID & ")", rAf
      End If
     Else
      If Not IsNull(raMa!j_antikoag) Then If raMa!j_antikoag <> 0 Then obAntikoag = True ' Bei Marcumar steht meist keine Dosierung drin
@@ -4813,11 +4820,11 @@ Dim tonRunde%
 End Function ' TherAuskunft(pat_id, obanf%, insz, Optional obIns, Optional obAnal, Optional obGlib, Optional obMetf, Optional obGlucI, Optional obSHGlin, Optional obGlit, Optional obSonstAD, Optional obHMG, Optional obAntihyp, Optional obThro)
 
 Function diI%(icd_str$, Optional pid, Optional abDat As Date, Optional auchZ As Boolean, Optional Weiteres$, Optional ByRef ICD$, Optional ByRef diagdat As Date)
- Dim raDT As New ADODB.Recordset, raFa As New ADODB.Recordset
+ Dim raDT As New adodb.Recordset, raFa As New adodb.Recordset
  Dim diIsql$
  On Error GoTo fehler
- If Not IsMissing(pid) Then Pat_id = CLng(pid)
- If Pat_id = 0 Then
+ If Not IsMissing(pid) Then Pat_ID = CLng(pid)
+ If Pat_ID = 0 Then
   MsgBox "Stop in diI durch Pat_id = 0"
   Stop
   Exit Function
@@ -4835,9 +4842,9 @@ Function diI%(icd_str$, Optional pid, Optional abDat As Date, Optional auchZ As 
    If i = SpliZ - 1 Then icdsql = icdsql & ")" Else icdsql = icdsql & " OR "
   Next i
  End If
- diIsql = "SELECT " & IIf(lies.obMySQL, vNS, "top 1 ") & "* FROM `diagnosen` WHERE pat_id = " & Pat_id & " AND " & icdsql & " AND diagsicherheit IN ('G','V',''" & IIf(auchZ, ",'Z'", "") & ") " & IIf(abDat <> 0, " AND diagdatum >= " & DatFor_k(abDat), "") & IIf(LenB(Weiteres) <> 0, " AND " & Weiteres, "") '  AND COALESCE(Dggel,0)=0
+ diIsql = "SELECT " & IIf(lies.obMySQL, vNS, "top 1 ") & "* FROM `diagnosen` WHERE pat_id = " & Pat_ID & " AND " & icdsql & " AND diagsicherheit IN ('G','V',''" & IIf(auchZ, ",'Z'", "") & ") " & IIf(abDat <> 0, " AND diagdatum >= " & DatFor_k(abDat), "") & IIf(LenB(Weiteres) <> 0, " AND " & Weiteres, "") '  AND COALESCE(Dggel,0)=0
  Dim lddat As Date
- myFrag raFa, "SELECT MAX(bhfb) AS lddat FROM `faelle` WHERE pat_id = " & Pat_id
+ myFrag raFa, "SELECT MAX(bhfb) AS lddat FROM `faelle` WHERE pat_id = " & Pat_ID
  If Not raFa.BOF Then
   lddat = IIf(IsNull(raFa!lddat), 0, raFa!lddat)
   diIsql = diIsql & " AND (obdauer <> 0 OR diagdatum >= " & DatFor_k(lddat) & ")"
@@ -4866,12 +4873,12 @@ End Function 'diI(icd_str, PID) AS Boolean
 
 ' 9.9.15: Parameter nach PID eingebaut, obwohl diese bisher nicht gebraucht wurden
 Function diT%(diagtxt$, Optional pid, Optional abDat As Date, Optional auchZ As Boolean, Optional Weiteres$, Optional ByRef ICD$, Optional ByRef diagdat As Date)
- Dim raDT As New ADODB.Recordset
- Dim raFa As New ADODB.Recordset
+ Dim raDT As New adodb.Recordset
+ Dim raFa As New adodb.Recordset
  Dim diTsql$
  On Error GoTo fehler
- If Not IsMissing(pid) Then Pat_id = pid
- If Pat_id = 0 Then
+ If Not IsMissing(pid) Then Pat_ID = pid
+ If Pat_ID = 0 Then
   MsgBox "Stop in diT durch Pat_id = 0"
   Stop
   Exit Function
@@ -4889,9 +4896,9 @@ Function diT%(diagtxt$, Optional pid, Optional abDat As Date, Optional auchZ As 
    If i = SpliZ - 1 Then dtxtsql = dtxtsql & ")" Else dtxtsql = dtxtsql & " OR "
   Next i
  End If
- diTsql = "SELECT " & IIf(lies.obMySQL, vNS, "top 1 ") & "* FROM `diagnosen` WHERE pat_id = " & Pat_id & " AND " & dtxtsql & " AND diagsicherheit IN ('G','V',''" & IIf(auchZ, ",'Z'", "") & ") " & IIf(abDat <> 0, " AND diagdatum >= " & DatFor_k(abDat), "") & IIf(LenB(Weiteres) <> 0, " AND " & Weiteres, "") ' AND COALESCE(Dggel,0)=0
+ diTsql = "SELECT " & IIf(lies.obMySQL, vNS, "top 1 ") & "* FROM `diagnosen` WHERE pat_id = " & Pat_ID & " AND " & dtxtsql & " AND diagsicherheit IN ('G','V',''" & IIf(auchZ, ",'Z'", "") & ") " & IIf(abDat <> 0, " AND diagdatum >= " & DatFor_k(abDat), "") & IIf(LenB(Weiteres) <> 0, " AND " & Weiteres, "") ' AND COALESCE(Dggel,0)=0
  Dim lddat As Date
- myFrag raFa, "SELECT MAX(bhfb) lddat FROM `faelle` WHERE pat_id = " & Pat_id
+ myFrag raFa, "SELECT MAX(bhfb) lddat FROM `faelle` WHERE pat_id = " & Pat_ID
  If Not raFa.BOF Then
   If Not IsNull(raFa!lddat) Then
    lddat = raFa!lddat
@@ -5039,14 +5046,14 @@ li = Trim$(li)
 End Function ' SensSplit(SensStrg, re$, li$)
 
 ' in Epikrise, rrpruef und DMPString
- Public Function GetPrRR$(ByVal pid$, rsAnahier As ADODB.Recordset, RRsyst%, RRdiast%, Optional obdiastkorr% = 0)
+ Public Function GetPrRR$(ByVal pid$, rsAnahier As adodb.Recordset, RRsyst%, RRdiast%, Optional obdiastkorr% = 0)
  '  Dim rrr AS DAO.Recordset
 '  SET rrr = TabÖff("RR", "Auswahl")
 '  rrr.Seek "=", CStr(rs!Pat_id)
   On Error GoTo fehler
   GetPrRR = vNS
 '  rarr.Open "SELECT * FROM rr WHERE pat_id = " & rsAnahier!Pat_id & " ORDER BY zeitpunkt DESC", DBCn, adOpenDynamic, adLockReadOnly
-  Dim rarr As New ADODB.Recordset
+  Dim rarr As New adodb.Recordset
 '  rarr.Open "SELECT rs,rd FROM (SELECT rrsyst(rr) rs, rrdiast(rr) rd, zeitpunkt FROM rr WHERE Pat_id = " & rsAnahier!Pat_id & ") i WHERE rs<>0 AND rd<>0 ORDER BY zeitpunkt DESC", DBCn, adOpenDynamic, adLockReadOnly
   myFrag rarr, "SELECT rs,rd FROM (SELECT rrsyst(rr) rs, rrdiast(rr) rd, zeitpunkt FROM rr WHERE Pat_id = " & pid & ") i WHERE rs<>0 AND rd<>0 ORDER BY zeitpunkt DESC"
   If rarr.EOF Then
@@ -5096,10 +5103,10 @@ fehler:
 End Function ' GetPrRR
 
 #If False Then
-Function SchulzBest%(Pat_id&, zp1$, zpl$, Optional abDat)
-  Dim sqls$, lapp As New ADODB.Recordset
+Function SchulzBest%(Pat_ID&, zp1$, zpl$, Optional abDat)
+  Dim sqls$, lapp As New adodb.Recordset
   On Error GoTo fehler
-  sqls$ = "SELECT * FROM `eintraege` WHERE pat_id = " & CStr(Pat_id) + " AND art = ""schul"" "
+  sqls$ = "SELECT * FROM `eintraege` WHERE pat_id = " & CStr(Pat_ID) + " AND art = ""schul"" "
   If Not IsMissing(abDat) Then If Now > CDate("15.10.05") Then sqls = sqls + "and Zeitpunkt >= " & DatFor_k(abDat) & " "
   sqls = sqls + "ORDER BY zeitpunkt"
 '  lapp.Open sqls, DBCn, adOpenDynamic, adLockReadOnly
@@ -5129,22 +5136,22 @@ End Select
 End Function 'SchulzBest
 #End If
 
-Function rrEmpf$(RRsyst%, RRdiast%, Pat_id$, Optional freq%)
+Function rrEmpf$(RRsyst%, RRdiast%, Pat_ID$, Optional freq%)
   Dim gwSyst%, gwDiast%, Verzei$, Datei$, taskid&
   Dim erg$
   Call Lese.ProgStart
-  If Not diI("I10", Pat_id) Then
+  If Not diI("I10", Pat_ID) Then
    If RRsyst > 149 Or RRdiast > 100 Then
 '    IF MsgBox("Achtung: Fehlt Diagnose Hypertonie bei Pat_id = " & CStr(Pat_id) & "?", vbYesNo) = vbYes THEN
 '     MsgBox "Bitte in Turbomed eintragen"
 '    END IF
     Verzei = pVerz & "plz\tmp\"
-    Datei = Verzei & "Hypertoniehinweis Pat." & Pat_id & ".txt"
+    Datei = Verzei & "Hypertoniehinweis Pat." & Pat_ID & ".txt"
     VerzPrüf Verzei
     erg = Dir(Datei)
     If LenB(erg) = 0 Then
      Open Datei For Output As #371
-     Print #371, "Pat." & Pat_id & " hat RR eingetragen von: " & RRsyst & "/" & RRdiast & "."
+     Print #371, "Pat." & Pat_ID & " hat RR eingetragen von: " & RRsyst & "/" & RRdiast & "."
      Print #371, "   Diagnose I10 aber nicht gefunden."
      Print #371, "   " & Now()
      Close #371
@@ -5159,7 +5166,7 @@ Function rrEmpf$(RRsyst%, RRdiast%, Pat_id$, Optional freq%)
    rrEmpf = "halten"
   Else
    If RRsyst > 0 Then
-    If diI("N08.3", Pat_id) And Not obkNeph Then
+    If diI("N08.3", Pat_ID) And Not obkNeph Then
      gwSyst = 121
      gwDiast = 81
     Else
@@ -5206,11 +5213,11 @@ Function DatInStr(teststr$, Optional Jahr) As Date
  End If
 End Function ' DatInStr(TestStr$, Optional jahr) As Date
 
-Function MedPlanAusAna(ByVal Pat_id$)
- Dim rsNa As New ADODB.Recordset, i%, j%, inkl%, k%, dosstr$, dosier$()
+Function MedPlanAusAna(ByVal Pat_ID$)
+ Dim rsNa As New adodb.Recordset, i%, j%, inkl%, k%, dosstr$, dosier$()
  On Error GoTo fehler
 ' SET rsna = TabÖff("Anamnesebogen", "Pat_id")
- myFrag rsNa, "SELECT * FROM `anamnesebogen` WHERE pat_id = " & Pat_id, adOpenStatic
+ myFrag rsNa, "SELECT * FROM `anamnesebogen` WHERE pat_id = " & Pat_ID, adOpenStatic
 ' rsNa.Seek "=", Pat_id
  MedZahl = 0
  If rsNa.EOF Then Exit Function
@@ -5280,8 +5287,8 @@ End Select
 End Function 'MedPlanAusAna
 
 ' Wählt den ersten oder den aktuellen Medikamentenplan aus obakt = true = aktuellen, obakt = false = ersten
-Function MedPlanNr&(ByVal Pat_id$, ByVal obAkt, Optional ByVal VorDat As Date, Optional ByVal NurNr%, Optional ByVal nr&)
- Dim raFIM As New ADODB.Recordset
+Function MedPlanNr&(ByVal Pat_ID$, ByVal obAkt, Optional ByVal VorDat As Date, Optional ByVal NurNr%, Optional ByVal nr&)
+ Dim raFIM As New adodb.Recordset
  On Error GoTo fehler
 ' sql1 = "SELECT " & IIf(obAkt, "max", "min") & "(mpnr) FROM `medplan` WHERE pat_id = " + CStr(Pat_id)
 ' IF vordat <> CDate(0) THEN sql1 = sql1 + " AND zeitpunkt < " & DatFor_k(vordat + 1)
@@ -5291,7 +5298,7 @@ Function MedPlanNr&(ByVal Pat_id$, ByVal obAkt, Optional ByVal VorDat As Date, O
   MedPlanNr = nr
  Else
 '  sql1 = "SELECT " & IIf(obAkt, "max", "min") & "(mpnr) AS mpmax FROM `medplan` WHERE pat_id = " + CStr(Pat_id)
-  sql1 = "SELECT " & IIf(obAkt, "max", "min") & "(mpnr) mpmax FROM medplan mp1 WHERE pat_id = " & Pat_id & " AND zeitpunkt = (SELECT " & IIf(obAkt, "max", "min") & "(zeitpunkt) FROM medplan mp0 WHERE pat_id = mp1.pat_id)"
+  sql1 = "SELECT " & IIf(obAkt, "max", "min") & "(mpnr) mpmax FROM medplan mp1 WHERE pat_id = " & Pat_ID & " AND zeitpunkt = (SELECT " & IIf(obAkt, "max", "min") & "(zeitpunkt) FROM medplan mp0 WHERE pat_id = mp1.pat_id)"
   If VorDat <> CDate(0) Then sql1 = sql1 + " AND zeitpunkt < " & DatFor_k(VorDat + 1)
 '  raFIM.Open sql1, DBCn, adOpenDynamic, adLockReadOnly
   myFrag raFIM, sql1
@@ -5303,7 +5310,7 @@ Function MedPlanNr&(ByVal Pat_id$, ByVal obAkt, Optional ByVal VorDat As Date, O
    Exit Function
   End If
  End If
- sql1 = "SELECT * FROM `medplan` WHERE pat_id = " & Pat_id & " AND mpnr = " & MedPlanNr
+ sql1 = "SELECT * FROM `medplan` WHERE pat_id = " & Pat_ID & " AND mpnr = " & MedPlanNr
  Set raFIM = Nothing
 ' raFIM.Open sql1, DBCn, adOpenDynamic, adLockReadOnly
  myFrag raFIM, sql1
@@ -5490,13 +5497,13 @@ End Function ' dodoRRParse
 #End If
 
 ' in DMPString
-Function WieTabak(Pat_id&) As ZigSt
-  Dim raZig As New ADODB.Recordset
+Function WieTabak(Pat_ID&) As ZigSt
+  Dim raZig As New adodb.Recordset
   Dim DiText$, DiSich$
-  WieTabak = doTabakSt(Pat_id)
-  If Pat_id <> 0 Then
+  WieTabak = doTabakSt(Pat_ID)
+  If Pat_ID <> 0 Then
 '   Call raZig.Open("SELECT * FROM `diagnosen` WHERE pat_id = " & Pat_id & " AND icd LIKE '" & "F17" & "%" & "' AND diagsicherheit IN (""G"",""V"",""Z"")  AND COALESCE(Dggel,0)=0 ", DBCn, adOpenDynamic, adLockReadOnly)
-   myFrag raZig, "SELECT DiagText,DiagSicherheit FROM diagview WHERE pat_id = " & Pat_id & " AND gzicd LIKE 'F17%'"
+   myFrag raZig, "SELECT DiagText,DiagSicherheit FROM diagview WHERE pat_id = " & Pat_ID & " AND gzicd LIKE 'F17%'"
    If Not raZig.EOF Then
     DiText = raZig!DiagText
     DiSich = raZig!DiagSicherheit
@@ -5510,20 +5517,20 @@ Function WieTabak(Pat_id&) As ZigSt
 End Function ' WieTabak
 
 Function testvergleicheT()
- Dim rs As New ADODB.Recordset, AusS$, e1 As ZigSt, E2 As ZigSt, e1W$, e2W$, Zahl&
+ Dim rs As New adodb.Recordset, AusS$, e1 As ZigSt, E2 As ZigSt, e1W$, e2W$, Zahl&
  Call Lese.ProgStart
  Open pVerz & "tabakst.txt" For Output As #331
  myFrag rs, "SELECT d.icd, d.diagsicherheit, a.* FROM `anamnesebogen` a LEFT JOIN `diagnosen` d ON a.pat_id = d.pat_id AND d.icd LIKE 'F17%'"
  Do While Not rs.EOF
-  e1 = doTabakSt(rs!Pat_id)
+  e1 = doTabakSt(rs!Pat_ID)
   E2 = doTabakStAlt(rs!Tabak)
   If e1 = aktuell Then e1W = "Aktuell" Else If e1 = früher Then e1W = "Früher " Else If e1 = nie Then e1W = "Nie    " Else e1W = "VorLang"
   If E2 = aktuell Then e2W = "Aktuell" Else If E2 = früher Then e2W = "Früher " Else If E2 = nie Then e2W = "Nie    " Else e2W = "VorLang"
-  If e1 <> E2 And Not (rs!tabakex = "j" And E2 = nie) And rs!Pat_id <> 51 And rs!Pat_id <> 602 And Not (e1 = früher And E2 = vorlangem And IsNumeric(rs!tabakbis)) And Not (e1 = nie And (E2 = früher Or E2 = aktuell)) And Not (e1 = vorlangem And E2 = früher) And Not (e1 = früher And E2 = vorlangem) Then
+  If e1 <> E2 And Not (rs!tabakex = "j" And E2 = nie) And rs!Pat_ID <> 51 And rs!Pat_ID <> 602 And Not (e1 = früher And E2 = vorlangem And IsNumeric(rs!tabakbis)) And Not (e1 = nie And (E2 = früher Or E2 = aktuell)) And Not (e1 = vorlangem And E2 = früher) And Not (e1 = früher And E2 = vorlangem) Then
 '  IF e1 = früher AND e2 = vorlangem AND IsNumeric(rs!tabakbis) THEN
 '  IF e1 = früher AND e2 = vorlangem THEN
   If True Then
-   AusS = e1W & " " & e2W & " " & Right$(Space(5) & rs!Pat_id, 5) & " " & Left$(rs!Nachname & Space(15), 15)
+   AusS = e1W & " " & e2W & " " & Right$(Space(5) & rs!Pat_ID, 5) & " " & Left$(rs!Nachname & Space(15), 15)
    AusS = AusS & Left$(rs!ICD & rs!DiagSicherheit & Space(7), 7) & " "
    AusS = AusS & Left$(rs!Tabak & Space(70), 70) & " "
    AusS = AusS & Left$(rs!tabakakt & Space(15), 10) & " "
@@ -5542,11 +5549,11 @@ Function testvergleicheT()
  Call Shell("notepad " & pVerz & "tabakst.txt", vbMaximizedFocus)
 End Function ' testvergleicheT
 
- Function doTabakSt(Pat_id&) As ZigSt
-  Dim rs As New ADODB.Recordset, tStr$
+ Function doTabakSt(Pat_ID&) As ZigSt
+  Dim rs As New adodb.Recordset, tStr$
   On Error GoTo fehler
   Call Lese.ProgStart
-  myFrag rs, "SELECT vorgestellt, tabakex,tabakakt,tabakbis,tabakmenge FROM `anamnesebogen` WHERE pat_id = " & Pat_id, adOpenStatic
+  myFrag rs, "SELECT vorgestellt, tabakex,tabakakt,tabakbis,tabakmenge FROM `anamnesebogen` WHERE pat_id = " & Pat_ID, adOpenStatic
   If rs!tabakakt = "j" Or InStrB(rs!tabakakt, "gelegentlich") <> 0 Or InStrB(rs!tabakakt, "ja") <> 0 Then
    doTabakSt = aktuell
   ElseIf IsNull(rs!tabakex) Then
@@ -5979,7 +5986,7 @@ Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "Last
 End Select
 End Function ' ZSU
 
-Public Sub inTMAnz(Pat_id&)
+Public Sub inTMAnz(Pat_ID&)
 On Error GoTo fehler
 #Const defAutoIt = False
 #If defAutoIt Then
@@ -6004,7 +6011,7 @@ On Error GoTo fehler
     Call cAutoit.WinWaitActive("TurboMed", "")
     Dim pstr$, i%
     If False Then
-     pstr = Pat_id 'adoRS!Pat_id
+     pstr = Pat_ID 'adoRS!Pat_id
      For i = 1 To Len(pstr)
       Call cAutoit.send(" ")
       Call cAutoit.send(Mid$(pstr, i, 1))
@@ -6045,7 +6052,7 @@ On Error GoTo fehler
   Pause (Pausenlänge)
   SendKeys "p", True
   Pause (Pausenlänge)
-  SendKeys "{bs}" & Pat_id & "", True
+  SendKeys "{bs}" & Pat_ID & "", True
   Pause (Pausenlänge)
   SendKeys "{ENTER}", True
   Pause (Pausenlänge)
@@ -6092,10 +6099,10 @@ End Function ' GetRandomNum
 'End Function
 
 ' zahl liefert die Zahl der Datensätze zurück, wenn nicht -1 übergeben wird
-Public Function hollabor(Optional PatID& = 0, Optional Abkü$ = "", Optional zpkl As Date = 0, Optional wertkl& = 0, Optional obnachgruppe% = 0, Optional ByRef Zahl& = -1, Optional Einheit$ = "", Optional gz& = -1, Optional dzz& = -1, Optional dSL As SortierListe, Optional obUpdate%) As ADODB.Recordset
- Static rs As New ADODB.Recordset, sql$
+Public Function hollabor(Optional PatID& = 0, Optional Abkü$ = "", Optional zpkl As Date = 0, Optional wertkl& = 0, Optional obnachgruppe% = 0, Optional ByRef Zahl& = -1, Optional Einheit$ = "", Optional gz& = -1, Optional dzz& = -1, Optional dSL As SortierListe, Optional obUpdate%) As adodb.Recordset
+ Static rs As New adodb.Recordset, sql$
  Static altPID&, altzahl&, altab$, altzpkl#, altwk&, altobng%, alteh$, altgz&, altdz&
- Static CursorTp As ADODB.CursorTypeEnum, LockTp As ADODB.LockTypeEnum
+ Static CursorTp As adodb.CursorTypeEnum, LockTp As adodb.LockTypeEnum
  Dim SD As SortierDatum
  Static hdSL As New SortierListe ' dzz = datumszahl, wenn nicht nach Gruppen gruppiert (also nach Zeitpunkt sortiert)
  Dim vgru$ ' vorherige Gruppe
@@ -6210,7 +6217,7 @@ End Select
 End Function ' hollabor
 
 Public Function testlab(pid&)
- Dim rs As New ADODB.Recordset
+ Dim rs As New adodb.Recordset
  Lese.ProgStart
 ' myEFrag ("SET @patid=" & pid)
 ' myFrag rs, "SELECT * FROM geslab"
@@ -6225,7 +6232,7 @@ End Function ' testlab(pid&)
 Public Function testhl()
 ' für HAAkt z.B. geht das nicht, da es kein Lese enthält
 ' Call Lese.ProgStart
- Dim rs As ADODB.Recordset
+ Dim rs As adodb.Recordset
  Set rs = hollabor(14, "")
 ' für HAAkt z.B. geht das nicht, da es kein Lese enthält
 ' TabAusgeb rs, Lese, True, , , , , , "Labor 14"

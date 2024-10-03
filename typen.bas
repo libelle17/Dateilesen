@@ -83,6 +83,7 @@ Public type namen
  zubenach AS string 'zubenach varchar '3633
  Verwandt AS string 'Verwandt varchar '3632
  Sprache AS string 'Sprache varchar '3628
+ SDatum AS date 'SDatum datetime 'Sterbedatum
  lAktTM AS date 'lAktTM datetime 'letzte Aktualisierung in Turbomed
  Mitarbeiter AS long 'Mitarbeiter int 'ob Pat. Mitarbeiter ist
  Swz AS integer 'Swz smallint 'Schwangerschaftszahl aus MO
@@ -308,12 +309,6 @@ Public type eintraege
  StByte AS long 'StByte int 'Ordnungsnr. der Datenübertragung
  id AS long 'id int '
  inhNum AS double 'inhNum double 'Inhalt numerisch
-end type
-
-Public type forminhaltform_abk
- Form_AbkVW AS long 'Form_AbkVW int '
- Form_Abk AS string 'Form_Abk varchar '
- FormBez AS string 'FormBez longtext '
 end type
 
 Public type formulare
@@ -1078,7 +1073,6 @@ Public rBr() AS briefe
 Public rDi() AS diagnosen
 Public rDo() AS dokumente
 Public rEi() AS eintraege
-Public rFi() AS forminhaltform_abk
 Public rFo() AS formulare' kommt vor in: formulareSpeichern, doTabVorb, dolies
 Public rFr() AS forminhkopf
 Public rFm() AS forminhfeld
@@ -1115,7 +1109,6 @@ Public roBr() AS briefe
 Public roDi() AS diagnosen
 Public roDo() AS dokumente
 Public roEi() AS eintraege
-Public roFi() AS forminhaltform_abk
 Public roFo() AS formulare
 Public roFr() AS forminhkopf
 Public roFm() AS forminhfeld
@@ -1156,7 +1149,6 @@ Public FUNCTION Tinit()
  ReDim rDi(0)
  ReDim rDo(0)
  ReDim rEi(0)
- IF wdh = 0 THEN ReDim rFi(0)
  IF wdh = 0 THEN ReDim rFo(0)
  ReDim rFr(0)
  ReDim rFm(0)
@@ -1258,7 +1250,6 @@ Public FUNCTION AllesLösch(frm AS lese)
  call doEntleer(frm, "forminhfeld")
  call doEntleer(frm, "forminhkopf")
  call doEntleer(frm, "formulare")
- call doEntleer(frm, "forminhaltform_abk")
  call doEntleer(frm, "eintraege")
  call doEntleer(frm, "dokumente")
  call doEntleer(frm, "diagnosen")
@@ -1509,6 +1500,7 @@ Public FUNCTION roNaZuw(i&, j&)
  roNa(i).zubenach = rNa(j).zubenach
  roNa(i).Verwandt = rNa(j).Verwandt
  roNa(i).Sprache = rNa(j).Sprache
+ roNa(i).SDatum = rNa(j).SDatum
  roNa(i).lAktTM = rNa(j).lAktTM
  roNa(i).Mitarbeiter = rNa(j).Mitarbeiter
  roNa(i).Swz = rNa(j).Swz
@@ -1598,6 +1590,7 @@ Public FUNCTION NaZUnt%(i&, j&)
  IF roNa(i).zubenach <> rNa(j).zubenach THEN gosub unter
  IF roNa(i).Verwandt <> rNa(j).Verwandt THEN gosub unter
  IF roNa(i).Sprache <> rNa(j).Sprache THEN gosub unter
+ IF roNa(i).SDatum <> rNa(j).SDatum THEN gosub unter
  IF roNa(i).lAktTM <> rNa(j).lAktTM THEN gosub unter
  IF roNa(i).Mitarbeiter <> rNa(j).Mitarbeiter THEN gosub unter
  IF roNa(i).Swz <> rNa(j).Swz THEN gosub unter
@@ -1634,8 +1627,8 @@ Public FUNCTION namenLaden()
 ",COALESCE(HzVbeg - INTERVAL 0 DAY,CONVERT('18991230',DATE)) HzVbeg,COALESCE(DS,0) DS,COALESCE(DSbeg - INTERVAL 0 DAY,CONVERT('18991230',DATE)) DSbeg,COALESCE(getHA0,0) getHA0" & _
 ",COALESCE(fnHA0,'') fnHA0,COALESCE(getHA1,0) getHA1,COALESCE(fnHA1,'') fnHA1,COALESCE(getHA2,0) getHA2" & _
 ",COALESCE(fnHA2,'') fnHA2,COALESCE(zubenach,'') zubenach,COALESCE(Verwandt,'') Verwandt,COALESCE(Sprache,'') Sprache" & _
-",COALESCE(lAktTM - INTERVAL 0 DAY,CONVERT('18991230',DATE)) lAktTM,COALESCE(Mitarbeiter,0) Mitarbeiter,COALESCE(Swz,0) Swz,COALESCE(Gbz,0) Gbz" & _
-",COALESCE(Kiz,0) Kiz,COALESCE(ZdeK,0) ZdeK FROM `namen` WHERE Pat_ID=" & pid & " ORDER BY `kAufDat`
+",COALESCE(SDatum - INTERVAL 0 DAY,CONVERT('18991230',DATE)) SDatum,COALESCE(lAktTM - INTERVAL 0 DAY,CONVERT('18991230',DATE)) lAktTM,COALESCE(Mitarbeiter,0) Mitarbeiter,COALESCE(Swz,0) Swz" & _
+",COALESCE(Gbz,0) Gbz,COALESCE(Kiz,0) Kiz,COALESCE(ZdeK,0) ZdeK FROM `namen` WHERE Pat_ID=" & pid & " ORDER BY `kAufDat`
  myFrag rs, sql
  ReDim roNa(1)
  If Not rs.EOF Then
@@ -1721,6 +1714,7 @@ Public FUNCTION namenLaden()
    roNa(akt).zubenach = doUmwfSQL(rs!zubenach, lies.obMySQL, False)
    roNa(akt).Verwandt = doUmwfSQL(rs!Verwandt, lies.obMySQL, False)
    roNa(akt).Sprache = doUmwfSQL(rs!Sprache, lies.obMySQL, False)
+   roNa(akt).SDatum = rs!SDatum
    roNa(akt).lAktTM = rs!lAktTM
    roNa(akt).Mitarbeiter = rs!Mitarbeiter
    roNa(akt).Swz = rs!Swz
@@ -1873,6 +1867,7 @@ Public FUNCTION rNaDump()
   Print #200, Left$("rNa(" & i & ").zubenach:" & String$(33, "."), 33) & "'" & rNa(i).zubenach & "'"
   Print #200, Left$("rNa(" & i & ").Verwandt:" & String$(33, "."), 33) & "'" & rNa(i).Verwandt & "'"
   Print #200, Left$("rNa(" & i & ").Sprache:" & String$(33, "."), 33) & "'" & rNa(i).Sprache & "'"
+  Print #200, Left$("rNa(" & i & ").SDatum:" & String$(33, "."), 33) & rNa(i).SDatum
   Print #200, Left$("rNa(" & i & ").lAktTM:" & String$(33, "."), 33) & rNa(i).lAktTM
   Print #200, Left$("rNa(" & i & ").Mitarbeiter:" & String$(33, "."), 33) & rNa(i).Mitarbeiter
   Print #200, Left$("rNa(" & i & ").Swz:" & String$(33, "."), 33) & rNa(i).Swz
@@ -1893,16 +1888,6 @@ Public FUNCTION namenSpeichern(SammelInsert%, BezfSp%)
  Pid = rNa(0).Pat_id
  On Error GoTo fehler
  syscmd 4, pid & ": Speichere " & Ubound(rNa)+1 & " Sätze in `namen`"
-' sql0 = " INSERT " & sqlignore & "INTO `namen` (Pat_ID,lfdnr,NVorsatz," & _
-     "Nachname,Vorname,GebDat,KarGen,eGKSchVer,Straße,KVKStatus,Hausnr,Geschlecht,Plz," & _
-     "Ort,Lkz,Anschrzus,NVors,PFPlz,PFOrt,PFNr,PFWsLC,AnschrZus_2,Postfach_2," & _
-     "LK_2,Postfach,Beruf,Weggeldzone,WeggzZahl,AufnDat,kAufDat,LANR,BStNr,Titel," & _
-     "Versichertennummer,PrivatTel,KVNr,KVNr2,KVNr3,KVNr4,PrivatTel_2,PrivatFax,DienstTel,PrivatMobil," & _
-     "Email,Arbeitgeber,AnAllgda,An1da,An2da,Checkda,DMTypaD,AktZeit,absPos,StByte," & _
-     "StByteA,Cave,notiz,obChk,NZNr,dmpklass,dmpbeg,dmpkhkklass,dmpkhkbeg,dmpcopdklass," & _
-     "dmpcopdbeg,dmpabklass,dmpabbeg,dakab,HzV,HzVbeg,DS,DSbeg,getHA0,fnHA0," & _
-     "getHA1,fnHA1,getHA2,fnHA2,zubenach,Verwandt,Sprache,lAktTM,Mitarbeiter,Swz," & _
-     "Gbz,Kiz,ZdeK) VALUES
  Call csql0.AppVar(Array(" INSERT ", sqlIgnore, "INTO `namen` (Pat_ID,lfdnr,NVorsatz," & _
      "Nachname,Vorname,GebDat,KarGen,eGKSchVer,Straße,KVKStatus,Hausnr,Geschlecht,Plz," & _
      "Ort,Lkz,Anschrzus,NVors,PFPlz,PFOrt,PFNr,PFWsLC,AnschrZus_2,Postfach_2," & _
@@ -1911,8 +1896,8 @@ Public FUNCTION namenSpeichern(SammelInsert%, BezfSp%)
      "Email,Arbeitgeber,AnAllgda,An1da,An2da,Checkda,DMTypaD,AktZeit,absPos,StByte," & _
      "StByteA,Cave,notiz,obChk,NZNr,dmpklass,dmpbeg,dmpkhkklass,dmpkhkbeg,dmpcopdklass," & _
      "dmpcopdbeg,dmpabklass,dmpabbeg,dakab,HzV,HzVbeg,DS,DSbeg,getHA0,fnHA0," & _
-     "getHA1,fnHA1,getHA2,fnHA2,zubenach,Verwandt,Sprache,lAktTM,Mitarbeiter,Swz," & _
-     "Gbz,Kiz,ZdeK)          VALUES"))
+     "getHA1,fnHA1,getHA2,fnHA2,zubenach,Verwandt,Sprache,SDatum,lAktTM,Mitarbeiter," & _
+     "Swz,Gbz,Kiz,ZdeK)      VALUES"))
  IF NOT Allepat THEN
    sql = "DELETE FROM `namen` WHERE Pat_ID = " & CStr(rNa(0).Pat_ID)
    Call myEFrag(sql)
@@ -1920,7 +1905,6 @@ Public FUNCTION namenSpeichern(SammelInsert%, BezfSp%)
 sql:
  csql.m_Len = 0
  For i = 0 to ubound(rNa)
-'  rNa(i).AktZeit = now()
   rNa(i).StByte = CStr(AktByte)
 setz:
   IF SammelInsert = 0 Or i = 0 Then
@@ -1936,17 +1920,13 @@ setz:
    rNa(i).Cave, "','" , rNa(i).notiz, "','" , rNa(i).obChk, "'," , rNa(i).NZNr, "," , rNa(i).dmpklass, "," , DatFor_k(rNa(i).dmpbeg), "," , rNa(i).dmpkhkklass, "," , DatFor_k(rNa(i).dmpkhkbeg), "," ,  _
    rNa(i).dmpcopdklass, "," , DatFor_k(rNa(i).dmpcopdbeg), "," , rNa(i).dmpabklass, "," , DatFor_k(rNa(i).dmpabbeg), "," , DatFor_k(rNa(i).dakab), "," , rNa(i).HzV, "," , DatFor_k(rNa(i).HzVbeg), "," ,  _
    rNa(i).DS, "," , DatFor_k(rNa(i).DSbeg), "," , rNa(i).getHA0, ",'" , rNa(i).fnHA0, "'," , rNa(i).getHA1, ",'" , rNa(i).fnHA1, "'," , rNa(i).getHA2, ",'" , rNa(i).fnHA2, "','" ,  _
-   rNa(i).zubenach, "','" , rNa(i).Verwandt, "','" , rNa(i).Sprache, "'," , DatFor_k(rNa(i).lAktTM), "," , rNa(i).Mitarbeiter, "," , rNa(i).Swz, "," , rNa(i).Gbz, "," , rNa(i).Kiz, "," , rNa(i).ZdeK, ")")
+   rNa(i).zubenach, "','" , rNa(i).Verwandt, "','" , rNa(i).Sprache, "'," , DatFor_k(rNa(i).SDatum), "," , DatFor_k(rNa(i).lAktTM), "," , rNa(i).Mitarbeiter, "," , rNa(i).Swz, "," , rNa(i).Gbz, "," ,  _
+   rNa(i).Kiz, "," , rNa(i).ZdeK, ")")
   IF SammelInsert <> 0 AND i < ubound(rNa) Then csql.Append ","
   IF SammelInsert = 0 OR i = ubound(rNa) Then
-'    altmode = DBCn.Execute("SELECT @@global.sql_mode").Fields(0)
     altmode = myEFrag("SELECT @@global.sql_mode", , DBCn).Fields(0)
-'   Call DBCn.Execute("SET GLOBAL sql_mode='STRICT_TRANS_TABLES'") ' NO_ENGINE_SUBSTITUTION
     myEFrag "SET GLOBAL sql_mode='STRICT_TRANS_TABLES'", , DBCn ' NO_ENGINE_SUBSTITUTION
-'   Call myEFrag(csql.Value,rAf)', , adAsyncExecute) ' wegen unzureichender Fehlerverarbeitung wieder ausrangiert 19.8.23
-'   Call DBCn.Execute(csql.Value, rAF) ', , adAsyncExecute) ' ausrangiert 16.6.24 wegen fehlender Feldverlängerung
     InsKorr DBCn, csql.Value, rAf, ErrD, , ErrN
-'    If ErrN Then Error ErrN
     If ErrN Then
      If SammelInsert = 1 And ErrN = -2147217900 Then
       SammelInsert = 0
@@ -2920,19 +2900,6 @@ Dim j%
  Pid = rNa(0).Pat_id
  On Error GoTo fehler
  syscmd 4, pid & ": Speichere " & Ubound(rFa)+0 & " Sätze in `faelle`"
-' sql0 = " INSERT " & sqlignore & "INTO `faelle` (Pat_ID,Quartal,Nachname," & _
-     "Vorname,DtlOnlPfg,ErgbdOnlP,ErrorCode,PrüfZdFd,lfdnr,TMFNr,VKNr,bPerG,DMPKnZ," & _
-     "VschBeg,VschEnd,KKasse_2,FaktPers,FaktTechn,FaktLabor,BhFB,BhFE1,BhFE2,UnfFlg," & _
-     "ausgst,KtrAbrB,AbrAr,lVorl,KartBes,IK,KVKs,KVKserg,Status,Kasse," & _
-     "KID,GebOr,AbrGb,PersKreis,SKtZusatz,SktBem,letzteRegel,ÜwText,AkfLues,AkfHAH," & _
-     "AkfAB0,AkfAK,statNuller,ÜbwV,ÜbWVLANR,ÜbWVBSNR,ÜbWVKVNR,AndÜw,Übwr,ÜbwLANR," & _
-     "ÜWZiel,ÜWNNr,ÜWNaN,ÜWTit,ÜWVor,ÜWVsw,üwvid,Auftrag,Verdacht,Befund," & _
-     "statKlasse,KHNam,statBehTage,SchGr,Weiterbeh,KurAbb,VermiArt,VermiCode,VermiDatum,VermiZusatz," & _
-     "PGeb,PGebErg,Mahnfrist,Unfallort,BeschAls,BeschSeit,Unfallbetrieb,bHeilb,GOÄKatNr,GOÄKatName," & _
-     "abrArzt,privVers,AdNam,AdStr,AdPlz,AdOrt,ÜwBG,BhFE,s8000,s8100," & _
-     "AktZeit,Fanf,altQuart,QAnf,QEnd,QS,QT,StByte,absPos,LANRid," & _
-     "ZnrMLes,BGFallNr,lGewicht,vorET,dmpVertret,dmpArztw,dmpHypos,dmpKhsA,dmpDMSchulEmpf,dmpDMSchulWahrg," & _
-     "dmpHypertSchulEmpf,dmpHypertSchulWahrg,dmpKKTabakEmpf,dmpKKErnEmpf,dmpKKkTrainEmpf,dmpHbA1cZiel,dmpUewFuss,dmpEinwDM,dmphalbj,dmpMA) VALUES
  Call csql0.AppVar(Array(" INSERT ", sqlIgnore, "INTO `faelle` (Pat_ID,Quartal,Nachname," & _
      "Vorname,DtlOnlPfg,ErgbdOnlP,ErrorCode,PrüfZdFd,lfdnr,TMFNr,VKNr,bPerG,DMPKnZ," & _
      "VschBeg,VschEnd,KKasse_2,FaktPers,FaktTechn,FaktLabor,BhFB,BhFE1,BhFE2,UnfFlg," & _
@@ -2953,7 +2920,6 @@ Dim j%
 sql:
  csql.m_Len = 0
  For i = 1 to ubound(rFa)
-'  rFa(i).AktZeit = now()
   rFa(i).StByte = CStr(AktByte)
 setz:
   IF SammelInsert = 0 Or i = 1 Then
@@ -2978,19 +2944,17 @@ setz:
    rFa(i).dmphalbj, "','" , rFa(i).dmpMA, "')")
   IF SammelInsert <> 0 AND i < ubound(rFa) Then csql.Append ","
   IF SammelInsert = 0 OR i = ubound(rFa) Then
-'   If Not obForK Then ForeignNo0
-'    altmode = DBCn.Execute("SELECT @@global.sql_mode").Fields(0)
     altmode = myEFrag("SELECT @@global.sql_mode", , DBCn).Fields(0)
-'   Call DBCn.Execute("SET GLOBAL sql_mode='STRICT_TRANS_TABLES'") ' NO_ENGINE_SUBSTITUTION
     myEFrag "SET GLOBAL sql_mode='STRICT_TRANS_TABLES'", , DBCn ' NO_ENGINE_SUBSTITUTION
-'   Call myEFrag(csql.Value,rAf)', , adAsyncExecute) ' wegen unzureichender Fehlerverarbeitung wieder ausrangiert 19.8.23
-'   Call DBCn.Execute(csql.Value, rAF) ', , adAsyncExecute) ' ausrangiert 16.6.24 wegen fehlender Feldverlängerung
     InsKorr DBCn, csql.Value, rAf, ErrD, , ErrN
-'    If ErrN Then Error ErrN
     If ErrN Then
      If SammelInsert = 1 And ErrN = -2147217900 Then
       SammelInsert = 0
       GoTo sql
+     ElseIf InStrB(ErrD, "Duplicate") <> 0 Then
+      rFa(i).FID = myEFrag("SELECT MAX(FID)+1 FROM `faelle`", , DBCn).Fields(0)
+      csql.m_Len = 0
+      GoTo setz
      Else ' SammelInsert = 1 And ErrN = -2147217900 Then elseif
       Error ErrN
      End If ' SammelInsert = 1 And ErrN = -2147217900 Then else
@@ -3531,8 +3495,6 @@ Public FUNCTION auSpeichern(SammelInsert%, BezfSp%)
  Pid = rNa(0).Pat_id
  On Error GoTo fehler
  syscmd 4, pid & ": Speichere " & Ubound(rAu)+0 & " Sätze in `au`"
-' sql0 = " INSERT " & sqlignore & "INTO `au` (FID,Pat_ID,ZeitPunkt," & _
-     "Ersteller,Änderer,Art,Beginn,Ende,ICDs,absPos,AktZeit,StByte) VALUES
  Call csql0.AppVar(Array(" INSERT ", sqlIgnore, "INTO `au` (FID,Pat_ID,ZeitPunkt," & _
      "Ersteller,Änderer,Art,Beginn,Ende,ICDs,absPos,AktZeit,StByte)    VALUES"))
  IF NOT Allepat THEN
@@ -3542,7 +3504,6 @@ Public FUNCTION auSpeichern(SammelInsert%, BezfSp%)
 sql:
  csql.m_Len = 0
  For i = 1 to ubound(rAu)
-'  rAu(i).AktZeit = now()
   rAu(i).StByte = CStr(AktByte)
 setz:
   IF SammelInsert = 0 Or i = 1 Then
@@ -3552,14 +3513,9 @@ setz:
    rAu(i).ICDs, "'," , rAu(i).absPos, "," , DatFor_k(rAu(i).AktZeit), "," , rAu(i).StByte, ")")
   IF SammelInsert <> 0 AND i < ubound(rAu) Then csql.Append ","
   IF SammelInsert = 0 OR i = ubound(rAu) Then
-'    altmode = DBCn.Execute("SELECT @@global.sql_mode").Fields(0)
     altmode = myEFrag("SELECT @@global.sql_mode", , DBCn).Fields(0)
-'   Call DBCn.Execute("SET GLOBAL sql_mode='STRICT_TRANS_TABLES'") ' NO_ENGINE_SUBSTITUTION
     myEFrag "SET GLOBAL sql_mode='STRICT_TRANS_TABLES'", , DBCn ' NO_ENGINE_SUBSTITUTION
-'   Call myEFrag(csql.Value,rAf)', , adAsyncExecute) ' wegen unzureichender Fehlerverarbeitung wieder ausrangiert 19.8.23
-'   Call DBCn.Execute(csql.Value, rAF) ', , adAsyncExecute) ' ausrangiert 16.6.24 wegen fehlender Feldverlängerung
     InsKorr DBCn, csql.Value, rAf, ErrD, , ErrN
-'    If ErrN Then Error ErrN
     If ErrN Then
      If SammelInsert = 1 And ErrN = -2147217900 Then
       SammelInsert = 0
@@ -3836,9 +3792,6 @@ Public FUNCTION briefeSpeichern(SammelInsert%, BezfSp%)
  Pid = rNa(0).Pat_id
  On Error GoTo fehler
  syscmd 4, pid & ": Speichere " & Ubound(rBr)+0 & " Sätze in `briefe`"
-' sql0 = " INSERT " & sqlignore & "INTO `briefe` (FID,Pat_ID,ZeitPunkt," & _
-     "Pfad,Art,Name,autor,Quelldatum,Typ,AktZeit,DokGroe,DokAenD,QS," & _
-     "QT,absPos,StByte) VALUES
  Call csql0.AppVar(Array(" INSERT ", sqlIgnore, "INTO `briefe` (FID,Pat_ID,ZeitPunkt," & _
      "Pfad,Art,Name,autor,Quelldatum,Typ,AktZeit,DokGroe,DokAenD,QS," & _
      "QT,absPos,StByte)      VALUES"))
@@ -3849,7 +3802,6 @@ Public FUNCTION briefeSpeichern(SammelInsert%, BezfSp%)
 sql:
  csql.m_Len = 0
  For i = 1 to ubound(rBr)
-'  rBr(i).AktZeit = now()
   rBr(i).StByte = CStr(AktByte)
 setz:
   IF SammelInsert = 0 Or i = 1 Then
@@ -3859,14 +3811,9 @@ setz:
    rBr(i).Typ, "'," , DatFor_k(rBr(i).AktZeit), "," , rBr(i).DokGroe, "," , DatFor_k(rBr(i).DokAenD), ",'" , rBr(i).QS, "','" , rBr(i).QT, "'," , rBr(i).absPos, "," , rBr(i).StByte, ")")
   IF SammelInsert <> 0 AND i < ubound(rBr) Then csql.Append ","
   IF SammelInsert = 0 OR i = ubound(rBr) Then
-'    altmode = DBCn.Execute("SELECT @@global.sql_mode").Fields(0)
     altmode = myEFrag("SELECT @@global.sql_mode", , DBCn).Fields(0)
-'   Call DBCn.Execute("SET GLOBAL sql_mode='STRICT_TRANS_TABLES'") ' NO_ENGINE_SUBSTITUTION
     myEFrag "SET GLOBAL sql_mode='STRICT_TRANS_TABLES'", , DBCn ' NO_ENGINE_SUBSTITUTION
-'   Call myEFrag(csql.Value,rAf)', , adAsyncExecute) ' wegen unzureichender Fehlerverarbeitung wieder ausrangiert 19.8.23
-'   Call DBCn.Execute(csql.Value, rAF) ', , adAsyncExecute) ' ausrangiert 16.6.24 wegen fehlender Feldverlängerung
     InsKorr DBCn, csql.Value, rAf, ErrD, , ErrN
-'    If ErrN Then Error ErrN
     If ErrN Then
      If SammelInsert = 1 And ErrN = -2147217900 Then
       SammelInsert = 0
@@ -4157,9 +4104,6 @@ Public FUNCTION diagnosenSpeichern(SammelInsert%, BezfSp%)
  Pid = rNa(0).Pat_id
  On Error GoTo fehler
  syscmd 4, pid & ": Speichere " & Ubound(rDi)+0 & " Sätze in `diagnosen`"
-' sql0 = " INSERT " & sqlignore & "INTO `diagnosen` (FID,Pat_id,DiagDatum," & _
-     "DiagSicherheit,DiagText,DiagSeite,DiagAttr,ICD,obDauer,intBemerk,absPos,AktZeit,StByte," & _
-     "AusnBegr,Dggel,obKasse,lKasse,KFdFA) VALUES
  Call csql0.AppVar(Array(" INSERT ", sqlIgnore, "INTO `diagnosen` (FID,Pat_id,DiagDatum," & _
      "DiagSicherheit,DiagText,DiagSeite,DiagAttr,ICD,obDauer,intBemerk,absPos,AktZeit,StByte," & _
      "AusnBegr,Dggel,obKasse,lKasse,KFdFA)               VALUES"))
@@ -4170,7 +4114,6 @@ Public FUNCTION diagnosenSpeichern(SammelInsert%, BezfSp%)
 sql:
  csql.m_Len = 0
  For i = 1 to ubound(rDi)
-'  rDi(i).AktZeit = now()
   rDi(i).StByte = CStr(AktByte)
 setz:
   IF SammelInsert = 0 Or i = 1 Then
@@ -4181,14 +4124,9 @@ setz:
    rDi(i).lKasse), ",'" , rDi(i).KFdFA, "')")
   IF SammelInsert <> 0 AND i < ubound(rDi) Then csql.Append ","
   IF SammelInsert = 0 OR i = ubound(rDi) Then
-'    altmode = DBCn.Execute("SELECT @@global.sql_mode").Fields(0)
     altmode = myEFrag("SELECT @@global.sql_mode", , DBCn).Fields(0)
-'   Call DBCn.Execute("SET GLOBAL sql_mode='STRICT_TRANS_TABLES'") ' NO_ENGINE_SUBSTITUTION
     myEFrag "SET GLOBAL sql_mode='STRICT_TRANS_TABLES'", , DBCn ' NO_ENGINE_SUBSTITUTION
-'   Call myEFrag(csql.Value,rAf)', , adAsyncExecute) ' wegen unzureichender Fehlerverarbeitung wieder ausrangiert 19.8.23
-'   Call DBCn.Execute(csql.Value, rAF) ', , adAsyncExecute) ' ausrangiert 16.6.24 wegen fehlender Feldverlängerung
     InsKorr DBCn, csql.Value, rAf, ErrD, , ErrN
-'    If ErrN Then Error ErrN
     If ErrN Then
      If SammelInsert = 1 And ErrN = -2147217900 Then
       SammelInsert = 0
@@ -4460,9 +4398,6 @@ Public FUNCTION dokumenteSpeichern(SammelInsert%, BezfSp%)
  Pid = rNa(0).Pat_id
  On Error GoTo fehler
  syscmd 4, pid & ": Speichere " & Ubound(rDo)+0 & " Sätze in `dokumente`"
-' sql0 = " INSERT " & sqlignore & "INTO `dokumente` (FID,Pat_ID,ZeitPunkt," & _
-     "DokPfad,DokArt,DokName,Quelldatum,absPos,AktZeit,DokGroe,DokAenD,QS,QT," & _
-     "StByte) VALUES
  Call csql0.AppVar(Array(" INSERT ", sqlIgnore, "INTO `dokumente` (FID,Pat_ID,ZeitPunkt," & _
      "DokPfad,DokArt,DokName,Quelldatum,absPos,AktZeit,DokGroe,DokAenD,QS,QT," & _
      "StByte)  VALUES"))
@@ -4473,7 +4408,6 @@ Public FUNCTION dokumenteSpeichern(SammelInsert%, BezfSp%)
 sql:
  csql.m_Len = 0
  For i = 1 to ubound(rDo)
-'  rDo(i).AktZeit = now()
   rDo(i).StByte = CStr(AktByte)
 setz:
   IF SammelInsert = 0 Or i = 1 Then
@@ -4483,14 +4417,9 @@ setz:
    rDo(i).absPos, "," , DatFor_k(rDo(i).AktZeit), "," , rDo(i).DokGroe, "," , DatFor_k(rDo(i).DokAenD), ",'" , rDo(i).QS, "','" , rDo(i).QT, "'," , rDo(i).StByte, ")")
   IF SammelInsert <> 0 AND i < ubound(rDo) Then csql.Append ","
   IF SammelInsert = 0 OR i = ubound(rDo) Then
-'    altmode = DBCn.Execute("SELECT @@global.sql_mode").Fields(0)
     altmode = myEFrag("SELECT @@global.sql_mode", , DBCn).Fields(0)
-'   Call DBCn.Execute("SET GLOBAL sql_mode='STRICT_TRANS_TABLES'") ' NO_ENGINE_SUBSTITUTION
     myEFrag "SET GLOBAL sql_mode='STRICT_TRANS_TABLES'", , DBCn ' NO_ENGINE_SUBSTITUTION
-'   Call myEFrag(csql.Value,rAf)', , adAsyncExecute) ' wegen unzureichender Fehlerverarbeitung wieder ausrangiert 19.8.23
-'   Call DBCn.Execute(csql.Value, rAF) ', , adAsyncExecute) ' ausrangiert 16.6.24 wegen fehlender Feldverlängerung
     InsKorr DBCn, csql.Value, rAf, ErrD, , ErrN
-'    If ErrN Then Error ErrN
     If ErrN Then
      If SammelInsert = 1 And ErrN = -2147217900 Then
       SammelInsert = 0
@@ -4752,8 +4681,6 @@ Public FUNCTION eintraegeSpeichern(SammelInsert%, BezfSp%)
  Pid = rNa(0).Pat_id
  On Error GoTo fehler
  syscmd 4, pid & ": Speichere " & Ubound(rEi)+0 & " Sätze in `eintraege`"
-' sql0 = " INSERT " & sqlignore & "INTO `eintraege` (FID,Pat_ID,ZeitPunkt," & _
-     "Art,Ersteller,Änderer,Inhalt,absPos,AktZeit,QS,QT,StByte,inhNum) VALUES
  Call csql0.AppVar(Array(" INSERT ", sqlIgnore, "INTO `eintraege` (FID,Pat_ID,ZeitPunkt," & _
      "Art,Ersteller,Änderer,Inhalt,absPos,AktZeit,QS,QT,StByte,inhNum)               VALUES"))
  IF NOT Allepat THEN
@@ -4763,7 +4690,6 @@ Public FUNCTION eintraegeSpeichern(SammelInsert%, BezfSp%)
 sql:
  csql.m_Len = 0
  For i = 1 to ubound(rEi)
-'  rEi(i).AktZeit = now()
   rEi(i).StByte = CStr(AktByte)
 setz:
   IF SammelInsert = 0 Or i = 1 Then
@@ -4773,14 +4699,9 @@ setz:
    rEi(i).AktZeit), ",'" , rEi(i).QS, "','" , rEi(i).QT, "'," , rEi(i).StByte, "," , replace$(rEi(i).inhNum,",","."), ")")
   IF SammelInsert <> 0 AND i < ubound(rEi) Then csql.Append ","
   IF SammelInsert = 0 OR i = ubound(rEi) Then
-'    altmode = DBCn.Execute("SELECT @@global.sql_mode").Fields(0)
     altmode = myEFrag("SELECT @@global.sql_mode", , DBCn).Fields(0)
-'   Call DBCn.Execute("SET GLOBAL sql_mode='STRICT_TRANS_TABLES'") ' NO_ENGINE_SUBSTITUTION
     myEFrag "SET GLOBAL sql_mode='STRICT_TRANS_TABLES'", , DBCn ' NO_ENGINE_SUBSTITUTION
-'   Call myEFrag(csql.Value,rAf)', , adAsyncExecute) ' wegen unzureichender Fehlerverarbeitung wieder ausrangiert 19.8.23
-'   Call DBCn.Execute(csql.Value, rAF) ', , adAsyncExecute) ' ausrangiert 16.6.24 wegen fehlender Feldverlängerung
     InsKorr DBCn, csql.Value, rAf, ErrD, , ErrN
-'    If ErrN Then Error ErrN
     If ErrN Then
      If SammelInsert = 1 And ErrN = -2147217900 Then
       SammelInsert = 0
@@ -4887,151 +4808,6 @@ END IF ' ErrNumber =
  END SELECT
 End FUNCTION ' eintraegeSpeichern
 
-Public FUNCTION rFiDump()
- Dim i&, ffa&
- Const ffadat$ = "\\linux1\daten\down\rFidump.txt"
- Open ffadat For Output As #200
- For i = 1 To UBound(rFi)
-  Print #200, vbCrLf & "i: " & i
-  Print #200, Left$("rFi(" & i & ").Form_AbkVW:" & String$(33, "."), 33) & rFi(i).Form_AbkVW
-  Print #200, Left$("rFi(" & i & ").Form_Abk:" & String$(33, "."), 33) & "'" & rFi(i).Form_Abk & "'"
-  Print #200, Left$("rFi(" & i & ").FormBez:" & String$(33, "."), 33) & "'" & rFi(i).FormBez & "'"
- Next i
- Close #200
- zeigan ffadat
-End FUNCTION ' forminhaltform_abkDump
-
-Public FUNCTION forminhaltform_abkSpeichern(SammelInsert%, BezfSp%)
- Dim i&, rAF&, Pid$, m%, sfnr%, altmode$, ErrD$, ErrN& ',sql0$
- Dim csql0 As New CString, csql As New CString
- Dim rs As New ADODB.recordset
- T1 = Timer
- On Error Resume Next
- Pid = rNa(0).Pat_id
- On Error GoTo fehler
- syscmd 4, pid & ": Speichere " & Ubound(rFi)+0 & " Sätze in `forminhaltform_abk`"
-' sql0 = " INSERT " & sqlignore & "INTO `forminhaltform_abk` (Form_Abk,FormBez) VALUES
- Call csql0.AppVar(Array(" INSERT ", sqlIgnore, "INTO `forminhaltform_abk` (Form_Abk,FormBez)      VALUES"))
- IF NOT Allepat THEN
- END IF ' not AllePat
-sql:
- csql.m_Len = 0
- For i = rFi1 + 1 to ubound(rFi)
-'  rFi(i).AktZeit = now()
-setz:
-  IF SammelInsert = 0 Or i = rFi1 + 1 Then
-   csql.Append csql0
-  End If ' SammelInsert = 0 Or i = rFi1 + 1 Then
-  csql.AppVar Array("('" , rFi(i).Form_Abk, "','" , rFi(i).FormBez, "')")
-  IF SammelInsert <> 0 AND i < ubound(rFi) Then csql.Append ","
-  IF SammelInsert = 0 OR i = ubound(rFi) Then
-'    altmode = DBCn.Execute("SELECT @@global.sql_mode").Fields(0)
-    altmode = myEFrag("SELECT @@global.sql_mode", , DBCn).Fields(0)
-'   Call DBCn.Execute("SET GLOBAL sql_mode='STRICT_TRANS_TABLES'") ' NO_ENGINE_SUBSTITUTION
-    myEFrag "SET GLOBAL sql_mode='STRICT_TRANS_TABLES'", , DBCn ' NO_ENGINE_SUBSTITUTION
-'   Call myEFrag(csql.Value,rAf)', , adAsyncExecute) ' wegen unzureichender Fehlerverarbeitung wieder ausrangiert 19.8.23
-'   Call DBCn.Execute(csql.Value, rAF) ', , adAsyncExecute) ' ausrangiert 16.6.24 wegen fehlender Feldverlängerung
-    InsKorr DBCn, csql.Value, rAf, ErrD, , ErrN
-'    If ErrN Then Error ErrN
-    If ErrN Then
-     If SammelInsert = 1 And ErrN = -2147217900 Then
-      SammelInsert = 0
-      GoTo sql
-     ElseIf InStrB(ErrD, "Duplicate") <> 0 Then
-      rFi(i).Form_AbkVW = myEFrag("SELECT MAX(Form_AbkVW)+1 FROM `forminhaltform_abk`", , DBCn).Fields(0)
-      csql.m_Len = 0
-      GoTo setz
-     Else ' SammelInsert = 1 And ErrN = -2147217900 Then elseif
-      Error ErrN
-     End If ' SammelInsert = 1 And ErrN = -2147217900 Then else
-    End If ' ErrN
-   csql.clear
-   IF obforK THEN
-    Call ForeignYes0
-    Call ForeignYes1
-   END IF ' obforK THEN
-  END IF ' SammelInsert = 0 OR i = ubound(rFi)
-  DoEvents
- Next i
- rFi1 = UBound(rFi)
- syscmd 5
- Exit Function
-fehler:
-If ErrN = 0 Then
- ErrDescr = Err.Description
- ErrNumber = Err.Number
-Else ' ErrN = 0 Then
- ErrDescr = errd
- ErrNumber = ErrN
-End If ' ErrN = 0 Then else
-syscmd 4, "rFi(" & i & "/" & UBound(rFi) & "):   " & ErrDescr
-sfnr = sfnr + 1
-If sfnr > 10 then 
- Lese.Ausgeb sfnr & " Fehler in ""forminhaltform_abkSpeichern()"" bei Pat. " & rNa(0).Pat_id & ", gebe auf (ErrDes: " & ErrDescr & ")", True
- sfnr = 0
- Resume Next
-End if ' sfnr > 10
-IF ErrNumber = -2147217900 AND (InStrB(ErrDescr, "Doppelter Eintrag") <> 0 Or InStrB(ErrDescr, "Duplicate") <> 0) Then
- Call Shell(App.path + "\..\nachricht\nachricht.exe " & App.EXEName & " Doppelter Eintrag bei: " & vbCrLf & csql.Value)
- Resume Next
-ElseIf ErrNumber = -2147467259 AND InStrB(ErrDescr, "Daten zu lang") = 0 AND InStrB(ErrDescr, "Data too long") = 0 THEN ' -2147467259 ' [MySQL][ODBC 3.51 Driver][mysqld-5.1.32-log]Cannot add OR update a child row: a FOREIGN KEY constraint fails
- IF InStrB(ErrDescr, "'READ-COMMITTED'") <> 0 THEN
-  myEFrag "SET SESSION TRANSACTION ISOLATION LEVEL REPEATABLE READ", rAF
- Else
-  Call doBezFeh(csql.Value, BezfSp, ErrDescr)
- END IF
- Resume
-ElseIf ErrNumber = -2147217833 OR InStrB(ErrDescr, "Daten zu lang") <> 0 OR InStrB(ErrDescr, "Data too long") <> 0 THEN
- Dim rsc As Adodb.Recordset, maxi%(), k%
- redim maxi(1)
- for k = iif(SammelInsert<>0,rFi1 + 1,i) to iif(SammelInsert<>0,ubound(rFi),i)
-  IF Len(rFi(k).Form_Abk) > maxi(0) THEN maxi(0) = Len(rFi(k).Form_Abk)
-  IF Len(rFi(k).FormBez) > maxi(1) THEN maxi(1) = Len(rFi(k).FormBez)
- next k
- If obTrans <> 0 Then If myEFrag("SELECT COUNT(1) FROM information_schema.innodb_trx WHERE trx_mysql_thread_id = CONNECTION_ID()", , DBCn).Fields(0) <> 0 Then ComTrans ' DBCn.CommitTrans: obtrans = 0
- nochmal:
- SET rsc = New ADODB.Recordset
- SET rsc = DBCnOSchema(adSchemaColumns, Array(Empty, Empty, "forminhaltform_abk", Empty))
- m = 0
- Do While Not rsc.EOF
-  SELECT CASE rsc!data_type
-   Case "varchar", "longtext", "mediumtext", "char", "text", "varbinary", 8, 129, 130, 200, 201, 202, 203, "set", "enum", "blob", "longblob", 0, 9, 12, 13, 72, 128, 132, 138, 204, 205
-    maxL = SpMod(maxi(m), "forminhaltform_abk", rsc)
-    IF maxL > 0 THEN
-     For k = IIf(SammelInsert <> 0,rFi1 + 1, i) To IIf(SammelInsert <> 0,ubound(rFi), i)
-      SELECT CASE m
-       Case 0: Lese.Ausgeb "   Verkürze Inhalt von rFi.Form_Abk: '" & rFi(k).Form_Abk & "' -> '" & Left$(rFi(k).Form_Abk, maxL)  & "'",true : rFi(k).Form_Abk = Left$(rFi(k).Form_Abk, maxL)
-       Case 1: Lese.Ausgeb "   Verkürze Inhalt von rFi.FormBez: '" & rFi(k).FormBez & "' -> '" & Left$(rFi(k).FormBez, maxL)  & "'",true : rFi(k).FormBez = Left$(rFi(k).FormBez, maxL)
-      END SELECT
-     Next
-    elseif maxl < 0 THEN
-     goto nochmal
-    END IF
-    m = m + 1
-  END SELECT
-  IF rsc.State = 0 THEN Exit Do
-  rsc.Move 1
- Loop
- Call ForeignNo0
- Call ForeignNo1
- resume sql
-ElseIf InStrB(1, ErrDescr, "gone away", vbTextCompare) <> 0 Or InStrB(ErrDescr, "ost connection") <> 0 Then
- DBCnOpen
- Resume
-END IF ' ErrNumber = 
- Dim AnwPfad$
-#If VBA6 THEN
- AnwPfad = currentDB.Name
-#Else
- AnwPfad = App.Path
-#END IF
- SELECT CASE MsgBox("FNr: " + CStr(ErrNumber) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " & IIf(ISNULL(Err.Source), vNS, CStr(Err.Source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "aufgefangener Fehler in forminhaltform_abkSpeichern/" + AnwPfad)
-  Case vbAbort: Call MsgBox(" Höre auf "): Progende
-  Case vbRetry: Call MsgBox("Versuche nochmal"): If ErrNumber = 998 Then Resume sql Else Resume
-  Case vbIgnore: Call MsgBox(" Setze fort "): Resume Next
- END SELECT
-End FUNCTION ' forminhaltform_abkSpeichern
-
 Public FUNCTION rFoDump()
  Dim i&, ffa&
  Const ffadat$ = "\\linux1\daten\down\rFodump.txt"
@@ -5054,42 +4830,33 @@ Public FUNCTION formulareSpeichern(SammelInsert%, BezfSp%)
  Dim i&, rAF&, Pid$, m%, sfnr%, altmode$, ErrD$, ErrN& ',sql0$
  Dim csql0 As New CString, csql As New CString
  Dim rs As New ADODB.recordset
+ Dim neuFormID&, j&
  T1 = Timer
  On Error Resume Next
  Pid = rNa(0).Pat_id
  On Error GoTo fehler
  syscmd 4, pid & ": Speichere " & Ubound(rFo)+0 & " Sätze in `formulare`"
-' sql0 = " INSERT " & sqlignore & "INTO `formulare` (FormID,Form_Abk,FormBez," & _
-     "FormVorl,AktZeit,absPos,StByte) VALUES
- Call csql0.AppVar(Array(" INSERT ", sqlIgnore, "INTO `formulare` (FormID,Form_Abk,FormBez," & _
-     "FormVorl,AktZeit,absPos,StByte)      VALUES"))
+ Call csql0.AppVar(Array(" INSERT ", sqlIgnore, "INTO `formulare` (Form_Abk,FormBez,FormVorl," & _
+     "AktZeit,absPos,StByte)               VALUES"))
  IF NOT Allepat THEN
  END IF ' not AllePat
 sql:
  csql.m_Len = 0
  For i = rFo1 + 1 to ubound(rFo)
-'  rFo(i).AktZeit = now()
+ If rFo(i).FormID < 0 Then
   rFo(i).StByte = CStr(AktByte)
 setz:
-  IF SammelInsert = 0 Or i = rFo1 + 1 Then
    csql.Append csql0
-  End If ' SammelInsert = 0 Or i = rFo1 + 1 Then
-  csql.AppVar Array("(" , rFo(i).FormID, ",'" , rFo(i).Form_Abk, "','" , rFo(i).FormBez, "','" , rFo(i).FormVorl, "'," , DatFor_k(rFo(i).AktZeit), "," , rFo(i).absPos, "," , rFo(i).StByte, ")")
-  IF SammelInsert <> 0 AND i < ubound(rFo) Then csql.Append ","
-  IF SammelInsert = 0 OR i = ubound(rFo) Then
-'    altmode = DBCn.Execute("SELECT @@global.sql_mode").Fields(0)
+  csql.AppVar Array("('" , rFo(i).Form_Abk, "','" , rFo(i).FormBez, "','" , rFo(i).FormVorl, "'," , DatFor_k(rFo(i).AktZeit), "," , rFo(i).absPos, "," , rFo(i).StByte, ")")
     altmode = myEFrag("SELECT @@global.sql_mode", , DBCn).Fields(0)
-'   Call DBCn.Execute("SET GLOBAL sql_mode='STRICT_TRANS_TABLES'") ' NO_ENGINE_SUBSTITUTION
     myEFrag "SET GLOBAL sql_mode='STRICT_TRANS_TABLES'", , DBCn ' NO_ENGINE_SUBSTITUTION
-'   Call myEFrag(csql.Value,rAf)', , adAsyncExecute) ' wegen unzureichender Fehlerverarbeitung wieder ausrangiert 19.8.23
-'   Call DBCn.Execute(csql.Value, rAF) ', , adAsyncExecute) ' ausrangiert 16.6.24 wegen fehlender Feldverlängerung
     InsKorr DBCn, csql.Value, rAf, ErrD, , ErrN
-'    If ErrN Then Error ErrN
+    neuFormID = myEFrag("SELECT formid FROM formulare WHERE Form_Abk='" & rFo(i).Form_Abk & "' AND FormBez='" & rFo(i).FormBez & "' AND LCASE(FormVorl)='" & lcase$(rFo(i).FormVorl) & "'").Fields(0)
+    For j = 1 To UBound(rFr)
+     If rFr(j).Form_ID = rFo(i).FormID Then rFr(j).Form_ID = neuFormID
+    Next j
     If ErrN Then
-     If SammelInsert = 1 And ErrN = -2147217900 Then
-      SammelInsert = 0
-      GoTo sql
-     ElseIf InStrB(ErrD, "Duplicate") <> 0 Then
+     If InStrB(ErrD, "Duplicate") <> 0 Then
       rFo(i).FormID = myEFrag("SELECT MAX(FormID)+1 FROM `formulare`", , DBCn).Fields(0)
       csql.m_Len = 0
       GoTo setz
@@ -5102,8 +4869,8 @@ setz:
     Call ForeignYes0
     Call ForeignYes1
    END IF ' obforK THEN
-  END IF ' SammelInsert = 0 OR i = ubound(rFo)
   DoEvents
+ End If ' If rFo(i).FormID < 0 Then
  Next i
  rFo1 = UBound(rFo)
  syscmd 5
@@ -5334,8 +5101,6 @@ Public FUNCTION forminhkopfSpeichern(SammelInsert%, BezfSp%)
  Pid = rNa(0).Pat_id
  On Error GoTo fehler
  syscmd 4, pid & ": Speichere " & Ubound(rFr)+0 & " Sätze in `forminhkopf`"
-' sql0 = " INSERT " & sqlignore & "INTO `forminhkopf` (FoID,FID,Pat_ID," & _
-     "Form_ID,ZeitPunkt,AbsPos,AktZeit,StByte,Satzart,Satzlänge,LANRid) VALUES
  Call csql0.AppVar(Array(" INSERT ", sqlIgnore, "INTO `forminhkopf` (FoID,FID,Pat_ID," & _
      "Form_ID,ZeitPunkt,AbsPos,AktZeit,StByte,Satzart,Satzlänge,LANRid)              VALUES"))
  FoIDv = 0
@@ -5349,7 +5114,6 @@ erneut:
 sql:
  csql.m_Len = 0
  For i = 1 to ubound(rFr)
-'  rFr(i).AktZeit = now()
   rFr(i).StByte = CStr(AktByte)
 setz:
   IF SammelInsert = 0 Or i = 1 Then
@@ -5359,14 +5123,9 @@ setz:
    rFr(i).Satzart, "','" , rFr(i).Satzlänge, "'," , rFr(i).LANRid, ")")
   IF SammelInsert <> 0 AND i < ubound(rFr) Then csql.Append ","
   IF SammelInsert = 0 OR i = ubound(rFr) Then
-'    altmode = DBCn.Execute("SELECT @@global.sql_mode").Fields(0)
     altmode = myEFrag("SELECT @@global.sql_mode", , DBCn).Fields(0)
-'   Call DBCn.Execute("SET GLOBAL sql_mode='STRICT_TRANS_TABLES'") ' NO_ENGINE_SUBSTITUTION
     myEFrag "SET GLOBAL sql_mode='STRICT_TRANS_TABLES'", , DBCn ' NO_ENGINE_SUBSTITUTION
-'   Call myEFrag(csql.Value,rAf)', , adAsyncExecute) ' wegen unzureichender Fehlerverarbeitung wieder ausrangiert 19.8.23
-'   Call DBCn.Execute(csql.Value, rAF) ', , adAsyncExecute) ' ausrangiert 16.6.24 wegen fehlender Feldverlängerung
     InsKorr DBCn, csql.Value, rAf, ErrD, , ErrN
-'    If ErrN Then Error ErrN
     If ErrN Then
      If SammelInsert = 1 And ErrN = -2147217900 Then
       SammelInsert = 0
@@ -5508,8 +5267,6 @@ Public FUNCTION forminhfeldSpeichern(SammelInsert%, BezfSp%)
  Pid = rNa(0).Pat_id
  On Error GoTo fehler
  syscmd 4, pid & ": Speichere " & Ubound(rFm)+0 & " Sätze in `forminhfeld`"
-' sql0 = " INSERT " & sqlignore & "INTO `forminhfeld` (FoID,Nr,FeldNr," & _
-     "FeldVW,FeldInhVW) VALUES
  Call csql0.AppVar(Array(" INSERT ", sqlIgnore, "INTO `forminhfeld` (FoID,Nr,FeldNr," & _
      "FeldVW,FeldInhVW)      VALUES"))
  IF NOT Allepat THEN
@@ -5517,7 +5274,6 @@ Public FUNCTION forminhfeldSpeichern(SammelInsert%, BezfSp%)
 sql:
  csql.m_Len = 0
  For i = 1 to ubound(rFm)
-'  rFm(i).AktZeit = now()
 setz:
   IF SammelInsert = 0 Or i = 1 Then
    csql.Append csql0
@@ -5525,14 +5281,9 @@ setz:
   csql.AppVar Array("(" , rFm(i).FoID, "," , rFm(i).Nr, "," , rFm(i).FeldNr, "," , rFm(i).FeldVW, "," , rFm(i).FeldInhVW, ")")
   IF SammelInsert <> 0 AND i < ubound(rFm) Then csql.Append ","
   IF SammelInsert = 0 OR i = ubound(rFm) Then
-'    altmode = DBCn.Execute("SELECT @@global.sql_mode").Fields(0)
     altmode = myEFrag("SELECT @@global.sql_mode", , DBCn).Fields(0)
-'   Call DBCn.Execute("SET GLOBAL sql_mode='STRICT_TRANS_TABLES'") ' NO_ENGINE_SUBSTITUTION
     myEFrag "SET GLOBAL sql_mode='STRICT_TRANS_TABLES'", , DBCn ' NO_ENGINE_SUBSTITUTION
-'   Call myEFrag(csql.Value,rAf)', , adAsyncExecute) ' wegen unzureichender Fehlerverarbeitung wieder ausrangiert 19.8.23
-'   Call DBCn.Execute(csql.Value, rAF) ', , adAsyncExecute) ' ausrangiert 16.6.24 wegen fehlender Feldverlängerung
     InsKorr DBCn, csql.Value, rAf, ErrD, , ErrN
-'    If ErrN Then Error ErrN
     If ErrN Then
      If SammelInsert = 1 And ErrN = -2147217900 Then
       SammelInsert = 0
@@ -5759,8 +5510,6 @@ Public FUNCTION kheinweisSpeichern(SammelInsert%, BezfSp%)
  Pid = rNa(0).Pat_id
  On Error GoTo fehler
  syscmd 4, pid & ": Speichere " & Ubound(rKh)+0 & " Sätze in `kheinweis`"
-' sql0 = " INSERT " & sqlignore & "INTO `kheinweis` (FID,Pat_ID,ZeitPunkt," & _
-     "Ziel,Diagnose,absPos,AktZeit,StByte) VALUES
  Call csql0.AppVar(Array(" INSERT ", sqlIgnore, "INTO `kheinweis` (FID,Pat_ID,ZeitPunkt," & _
      "Ziel,Diagnose,absPos,AktZeit,StByte)               VALUES"))
  IF NOT Allepat THEN
@@ -5770,7 +5519,6 @@ Public FUNCTION kheinweisSpeichern(SammelInsert%, BezfSp%)
 sql:
  csql.m_Len = 0
  For i = 1 to ubound(rKh)
-'  rKh(i).AktZeit = now()
   rKh(i).StByte = CStr(AktByte)
 setz:
   IF SammelInsert = 0 Or i = 1 Then
@@ -5779,14 +5527,9 @@ setz:
   csql.AppVar Array("(" , rKh(i).FID, "," , rKh(i).Pat_ID, "," , DatFor_k(rKh(i).ZeitPunkt), ",'" , rKh(i).Ziel, "','" , rKh(i).Diagnose, "'," , rKh(i).absPos, "," , DatFor_k(rKh(i).AktZeit), "," , rKh(i).StByte, ")")
   IF SammelInsert <> 0 AND i < ubound(rKh) Then csql.Append ","
   IF SammelInsert = 0 OR i = ubound(rKh) Then
-'    altmode = DBCn.Execute("SELECT @@global.sql_mode").Fields(0)
     altmode = myEFrag("SELECT @@global.sql_mode", , DBCn).Fields(0)
-'   Call DBCn.Execute("SET GLOBAL sql_mode='STRICT_TRANS_TABLES'") ' NO_ENGINE_SUBSTITUTION
     myEFrag "SET GLOBAL sql_mode='STRICT_TRANS_TABLES'", , DBCn ' NO_ENGINE_SUBSTITUTION
-'   Call myEFrag(csql.Value,rAf)', , adAsyncExecute) ' wegen unzureichender Fehlerverarbeitung wieder ausrangiert 19.8.23
-'   Call DBCn.Execute(csql.Value, rAF) ', , adAsyncExecute) ' ausrangiert 16.6.24 wegen fehlender Feldverlängerung
     InsKorr DBCn, csql.Value, rAf, ErrD, , ErrN
-'    If ErrN Then Error ErrN
     If ErrN Then
      If SammelInsert = 1 And ErrN = -2147217900 Then
       SammelInsert = 0
@@ -6012,8 +5755,6 @@ Public FUNCTION lbanforderungenSpeichern(SammelInsert%, BezfSp%)
  Pid = rNa(0).Pat_id
  On Error GoTo fehler
  syscmd 4, pid & ": Speichere " & Ubound(rLb)+0 & " Sätze in `lbanforderungen`"
-' sql0 = " INSERT " & sqlignore & "INTO `lbanforderungen` (FID,Pat_ID,ZeitPunkt," & _
-     "AnfText,absPos,AktZeit,StByte) VALUES
  Call csql0.AppVar(Array(" INSERT ", sqlIgnore, "INTO `lbanforderungen` (FID,Pat_ID,ZeitPunkt," & _
      "AnfText,absPos,AktZeit,StByte)       VALUES"))
  IF NOT Allepat THEN
@@ -6023,7 +5764,6 @@ Public FUNCTION lbanforderungenSpeichern(SammelInsert%, BezfSp%)
 sql:
  csql.m_Len = 0
  For i = 1 to ubound(rLb)
-'  rLb(i).AktZeit = now()
   rLb(i).StByte = CStr(AktByte)
 setz:
   IF SammelInsert = 0 Or i = 1 Then
@@ -6032,14 +5772,9 @@ setz:
   csql.AppVar Array("(" , rLb(i).FID, "," , rLb(i).Pat_ID, "," , DatFor_k(rLb(i).ZeitPunkt), ",'" , rLb(i).AnfText, "'," , rLb(i).absPos, "," , DatFor_k(rLb(i).AktZeit), "," , rLb(i).StByte, ")")
   IF SammelInsert <> 0 AND i < ubound(rLb) Then csql.Append ","
   IF SammelInsert = 0 OR i = ubound(rLb) Then
-'    altmode = DBCn.Execute("SELECT @@global.sql_mode").Fields(0)
     altmode = myEFrag("SELECT @@global.sql_mode", , DBCn).Fields(0)
-'   Call DBCn.Execute("SET GLOBAL sql_mode='STRICT_TRANS_TABLES'") ' NO_ENGINE_SUBSTITUTION
     myEFrag "SET GLOBAL sql_mode='STRICT_TRANS_TABLES'", , DBCn ' NO_ENGINE_SUBSTITUTION
-'   Call myEFrag(csql.Value,rAf)', , adAsyncExecute) ' wegen unzureichender Fehlerverarbeitung wieder ausrangiert 19.8.23
-'   Call DBCn.Execute(csql.Value, rAF) ', , adAsyncExecute) ' ausrangiert 16.6.24 wegen fehlender Feldverlängerung
     InsKorr DBCn, csql.Value, rAf, ErrD, , ErrN
-'    If ErrN Then Error ErrN
     If ErrN Then
      If SammelInsert = 1 And ErrN = -2147217900 Then
       SammelInsert = 0
@@ -6306,9 +6041,6 @@ Public FUNCTION laborneuSpeichern(SammelInsert%, BezfSp%)
  Pid = rNa(0).Pat_id
  On Error GoTo fehler
  syscmd 4, pid & ": Speichere " & Ubound(rLa)+0 & " Sätze in `laborneu`"
-' sql0 = " INSERT " & sqlignore & "INTO `laborneu` (FID,Pat_ID,ZeitPunkt," & _
-     "FertigStGrad,Abkü,LangtextVW,Wert,Einheit,AnmkgVW,KommentarVW,AbsPos,AktZeit,Refnr," & _
-     "StByte,AbschlZlVW,NormberVW) VALUES
  Call csql0.AppVar(Array(" INSERT ", sqlIgnore, "INTO `laborneu` (FID,Pat_ID,ZeitPunkt," & _
      "FertigStGrad,Abkü,LangtextVW,Wert,Einheit,AnmkgVW,KommentarVW,AbsPos,AktZeit,Refnr," & _
      "StByte,AbschlZlVW,NormberVW)         VALUES"))
@@ -6319,7 +6051,6 @@ Public FUNCTION laborneuSpeichern(SammelInsert%, BezfSp%)
 sql:
  csql.m_Len = 0
  For i = 1 to ubound(rLa)
-'  rLa(i).AktZeit = now()
   rLa(i).StByte = CStr(AktByte)
 setz:
   IF SammelInsert = 0 Or i = 1 Then
@@ -6329,14 +6060,9 @@ setz:
    rLa(i).AnmkgVW, "," , rLa(i).KommentarVW, "," , rLa(i).AbsPos, "," , DatFor_k(rLa(i).AktZeit), "," , rLa(i).Refnr, "," , rLa(i).StByte, "," , rLa(i).AbschlZlVW, "," , rLa(i).NormberVW, ")")
   IF SammelInsert <> 0 AND i < ubound(rLa) Then csql.Append ","
   IF SammelInsert = 0 OR i = ubound(rLa) Then
-'    altmode = DBCn.Execute("SELECT @@global.sql_mode").Fields(0)
     altmode = myEFrag("SELECT @@global.sql_mode", , DBCn).Fields(0)
-'   Call DBCn.Execute("SET GLOBAL sql_mode='STRICT_TRANS_TABLES'") ' NO_ENGINE_SUBSTITUTION
     myEFrag "SET GLOBAL sql_mode='STRICT_TRANS_TABLES'", , DBCn ' NO_ENGINE_SUBSTITUTION
-'   Call myEFrag(csql.Value,rAf)', , adAsyncExecute) ' wegen unzureichender Fehlerverarbeitung wieder ausrangiert 19.8.23
-'   Call DBCn.Execute(csql.Value, rAF) ', , adAsyncExecute) ' ausrangiert 16.6.24 wegen fehlender Feldverlängerung
     InsKorr DBCn, csql.Value, rAf, ErrD, , ErrN
-'    If ErrN Then Error ErrN
     If ErrN Then
      If SammelInsert = 1 And ErrN = -2147217900 Then
       SammelInsert = 0
@@ -6706,11 +6432,6 @@ Public FUNCTION leistungenSpeichern(SammelInsert%, BezfSp%)
  Pid = rNa(0).Pat_id
  On Error GoTo fehler
  syscmd 4, pid & ": Speichere " & Ubound(rLe)+0 & " Sätze in `leistungen`"
-' sql0 = " INSERT " & sqlignore & "INTO `leistungen` (FID,Pat_ID,ZeitPunkt," & _
-     "Leistung,ArtdUs,LAnzl,LUhrz,LfBegr,Med,LOrgan,LArztBf,DtlKbsV,LEntlDt," & _
-     "Faktor,LBSNR,Charge,LANR,letzVorg,Ausn,Beme,absPos,AktZeit,QS," & _
-     "QT,StByte,LANRid,Sachkbez,Sachkct,Zone,Punkte,Lstgerbnr,Position,Eignung," & _
-     "Pruefzeit,Kalkzeit,Bsnr,Ersteller,Änderer) VALUES
  Call csql0.AppVar(Array(" INSERT ", sqlIgnore, "INTO `leistungen` (FID,Pat_ID,ZeitPunkt," & _
      "Leistung,ArtdUs,LAnzl,LUhrz,LfBegr,Med,LOrgan,LArztBf,DtlKbsV,LEntlDt," & _
      "Faktor,LBSNR,Charge,LANR,letzVorg,Ausn,Beme,absPos,AktZeit,QS," & _
@@ -6723,7 +6444,6 @@ Public FUNCTION leistungenSpeichern(SammelInsert%, BezfSp%)
 sql:
  csql.m_Len = 0
  For i = 1 to ubound(rLe)
-'  rLe(i).AktZeit = now()
   rLe(i).StByte = CStr(AktByte)
 setz:
   IF SammelInsert = 0 Or i = 1 Then
@@ -6736,14 +6456,9 @@ setz:
    rLe(i).Pruefzeit, "," , rLe(i).Kalkzeit, "," , rLe(i).Bsnr, ",'" , rLe(i).Ersteller, "','" , rLe(i).Änderer, "')")
   IF SammelInsert <> 0 AND i < ubound(rLe) Then csql.Append ","
   IF SammelInsert = 0 OR i = ubound(rLe) Then
-'    altmode = DBCn.Execute("SELECT @@global.sql_mode").Fields(0)
     altmode = myEFrag("SELECT @@global.sql_mode", , DBCn).Fields(0)
-'   Call DBCn.Execute("SET GLOBAL sql_mode='STRICT_TRANS_TABLES'") ' NO_ENGINE_SUBSTITUTION
     myEFrag "SET GLOBAL sql_mode='STRICT_TRANS_TABLES'", , DBCn ' NO_ENGINE_SUBSTITUTION
-'   Call myEFrag(csql.Value,rAf)', , adAsyncExecute) ' wegen unzureichender Fehlerverarbeitung wieder ausrangiert 19.8.23
-'   Call DBCn.Execute(csql.Value, rAF) ', , adAsyncExecute) ' ausrangiert 16.6.24 wegen fehlender Feldverlängerung
     InsKorr DBCn, csql.Value, rAf, ErrD, , ErrN
-'    If ErrN Then Error ErrN
     If ErrN Then
      If SammelInsert = 1 And ErrN = -2147217900 Then
       SammelInsert = 0
@@ -7098,10 +6813,6 @@ Public FUNCTION medplanSpeichern(SammelInsert%, BezfSp%)
  Pid = rNa(0).Pat_id
  On Error GoTo fehler
  syscmd 4, pid & ": Speichere " & Ubound(rMe)+0 & " Sätze in `medplan`"
-' sql0 = " INSERT " & sqlignore & "INTO `medplan` (FID,Pat_ID,MPNr," & _
-     "ZeitPunkt,Datum,Medikament,MedAnfang,Wirkstoff,PZN,FeldNr,mo,mi,nm," & _
-     "ab,zn,bBed,Bemerkung,Grund,Stärke,Einheit,Form,Menge,Nutzer," & _
-     "AbsPos,AktZeit,StByte,ergaenzt) VALUES
  Call csql0.AppVar(Array(" INSERT ", sqlIgnore, "INTO `medplan` (FID,Pat_ID,MPNr," & _
      "ZeitPunkt,Datum,Medikament,MedAnfang,Wirkstoff,PZN,FeldNr,mo,mi,nm," & _
      "ab,zn,bBed,Bemerkung,Grund,Stärke,Einheit,Form,Menge,Nutzer," & _
@@ -7113,7 +6824,6 @@ Public FUNCTION medplanSpeichern(SammelInsert%, BezfSp%)
 sql:
  csql.m_Len = 0
  For i = 1 to ubound(rMe)
-'  rMe(i).AktZeit = now()
   rMe(i).StByte = CStr(AktByte)
 setz:
   IF SammelInsert = 0 Or i = 1 Then
@@ -7125,14 +6835,9 @@ setz:
    rMe(i).StByte, "," , cstr(-(rMe(i).ergaenzt<>0)) , ")")
   IF SammelInsert <> 0 AND i < ubound(rMe) Then csql.Append ","
   IF SammelInsert = 0 OR i = ubound(rMe) Then
-'    altmode = DBCn.Execute("SELECT @@global.sql_mode").Fields(0)
     altmode = myEFrag("SELECT @@global.sql_mode", , DBCn).Fields(0)
-'   Call DBCn.Execute("SET GLOBAL sql_mode='STRICT_TRANS_TABLES'") ' NO_ENGINE_SUBSTITUTION
     myEFrag "SET GLOBAL sql_mode='STRICT_TRANS_TABLES'", , DBCn ' NO_ENGINE_SUBSTITUTION
-'   Call myEFrag(csql.Value,rAf)', , adAsyncExecute) ' wegen unzureichender Fehlerverarbeitung wieder ausrangiert 19.8.23
-'   Call DBCn.Execute(csql.Value, rAF) ', , adAsyncExecute) ' ausrangiert 16.6.24 wegen fehlender Feldverlängerung
     InsKorr DBCn, csql.Value, rAf, ErrD, , ErrN
-'    If ErrN Then Error ErrN
     If ErrN Then
      If SammelInsert = 1 And ErrN = -2147217900 Then
       SammelInsert = 0
@@ -7438,9 +7143,6 @@ Public FUNCTION rezepteintraegeSpeichern(SammelInsert%, BezfSp%)
  Pid = rNa(0).Pat_id
  On Error GoTo fehler
  syscmd 4, pid & ": Speichere " & Ubound(rRe)+0 & " Sätze in `rezepteintraege`"
-' sql0 = " INSERT " & sqlignore & "INTO `rezepteintraege` (FID,Pat_ID,ZeitPunkt," & _
-     "Rezept,RKlnm,Rezeptklasse,Rezklkurz,Rezkllang,kbez,Medikament,auti,anzl,PZN," & _
-     "absPos,AktZeit,QS,QT,StByte,LANRid) VALUES
  Call csql0.AppVar(Array(" INSERT ", sqlIgnore, "INTO `rezepteintraege` (FID,Pat_ID,ZeitPunkt," & _
      "Rezept,RKlnm,Rezeptklasse,Rezklkurz,Rezkllang,kbez,Medikament,auti,anzl,PZN," & _
      "absPos,AktZeit,QS,QT,StByte,LANRid)  VALUES"))
@@ -7451,7 +7153,6 @@ Public FUNCTION rezepteintraegeSpeichern(SammelInsert%, BezfSp%)
 sql:
  csql.m_Len = 0
  For i = 1 to ubound(rRe)
-'  rRe(i).AktZeit = now()
   rRe(i).StByte = CStr(AktByte)
 setz:
   IF SammelInsert = 0 Or i = 1 Then
@@ -7462,14 +7163,9 @@ setz:
    rRe(i).QT, "'," , rRe(i).StByte, "," , rRe(i).LANRid, ")")
   IF SammelInsert <> 0 AND i < ubound(rRe) Then csql.Append ","
   IF SammelInsert = 0 OR i = ubound(rRe) Then
-'    altmode = DBCn.Execute("SELECT @@global.sql_mode").Fields(0)
     altmode = myEFrag("SELECT @@global.sql_mode", , DBCn).Fields(0)
-'   Call DBCn.Execute("SET GLOBAL sql_mode='STRICT_TRANS_TABLES'") ' NO_ENGINE_SUBSTITUTION
     myEFrag "SET GLOBAL sql_mode='STRICT_TRANS_TABLES'", , DBCn ' NO_ENGINE_SUBSTITUTION
-'   Call myEFrag(csql.Value,rAf)', , adAsyncExecute) ' wegen unzureichender Fehlerverarbeitung wieder ausrangiert 19.8.23
-'   Call DBCn.Execute(csql.Value, rAF) ', , adAsyncExecute) ' ausrangiert 16.6.24 wegen fehlender Feldverlängerung
     InsKorr DBCn, csql.Value, rAf, ErrD, , ErrN
-'    If ErrN Then Error ErrN
     If ErrN Then
      If SammelInsert = 1 And ErrN = -2147217900 Then
       SammelInsert = 0
@@ -7745,9 +7441,6 @@ Public FUNCTION rrSpeichern(SammelInsert%, BezfSp%)
  Pid = rNa(0).Pat_id
  On Error GoTo fehler
  syscmd 4, pid & ": Speichere " & Ubound(rRr)+0 & " Sätze in `rr`"
-' sql0 = " INSERT " & sqlignore & "INTO `rr` (FID,Pat_ID,ZeitPunkt," & _
-     "FormTitel,RR,Puls,RRsyst,RRdiast,RRzahl,Quelle,Bemerkung,absPos,AktZeit," & _
-     "StByte) VALUES
  Call csql0.AppVar(Array(" INSERT ", sqlIgnore, "INTO `rr` (FID,Pat_ID,ZeitPunkt," & _
      "FormTitel,RR,Puls,RRsyst,RRdiast,RRzahl,Quelle,Bemerkung,absPos,AktZeit," & _
      "StByte)  VALUES"))
@@ -7758,7 +7451,6 @@ Public FUNCTION rrSpeichern(SammelInsert%, BezfSp%)
 sql:
  csql.m_Len = 0
  For i = 1 to ubound(rRr)
-'  rRr(i).AktZeit = now()
   rRr(i).StByte = CStr(AktByte)
 setz:
   IF SammelInsert = 0 Or i = 1 Then
@@ -7768,14 +7460,9 @@ setz:
    rRr(i).RRzahl, ",'" , rRr(i).Quelle, "','" , rRr(i).Bemerkung, "'," , rRr(i).absPos, "," , DatFor_k(rRr(i).AktZeit), "," , rRr(i).StByte, ")")
   IF SammelInsert <> 0 AND i < ubound(rRr) Then csql.Append ","
   IF SammelInsert = 0 OR i = ubound(rRr) Then
-'    altmode = DBCn.Execute("SELECT @@global.sql_mode").Fields(0)
     altmode = myEFrag("SELECT @@global.sql_mode", , DBCn).Fields(0)
-'   Call DBCn.Execute("SET GLOBAL sql_mode='STRICT_TRANS_TABLES'") ' NO_ENGINE_SUBSTITUTION
     myEFrag "SET GLOBAL sql_mode='STRICT_TRANS_TABLES'", , DBCn ' NO_ENGINE_SUBSTITUTION
-'   Call myEFrag(csql.Value,rAf)', , adAsyncExecute) ' wegen unzureichender Fehlerverarbeitung wieder ausrangiert 19.8.23
-'   Call DBCn.Execute(csql.Value, rAF) ', , adAsyncExecute) ' ausrangiert 16.6.24 wegen fehlender Feldverlängerung
     InsKorr DBCn, csql.Value, rAf, ErrD, , ErrN
-'    If ErrN Then Error ErrN
     If ErrN Then
      If SammelInsert = 1 And ErrN = -2147217900 Then
       SammelInsert = 0
@@ -7900,8 +7587,6 @@ Public FUNCTION kvnrueSpeichern(SammelInsert%, BezfSp%)
  Pid = rNa(0).Pat_id
  On Error GoTo fehler
  syscmd 4, pid & ": Speichere " & Ubound(rKv)+0 & " Sätze in `kvnrue`"
-' sql0 = " INSERT " & sqlignore & "INTO `kvnrue` (Pat_ID,KVNr,absPos," & _
-     "AktZeit,StByte) VALUES
  Call csql0.AppVar(Array(" INSERT ", sqlIgnore, "INTO `kvnrue` (Pat_ID,KVNr,absPos," & _
      "AktZeit,StByte)        VALUES"))
  IF NOT Allepat THEN
@@ -7911,7 +7596,6 @@ Public FUNCTION kvnrueSpeichern(SammelInsert%, BezfSp%)
 sql:
  csql.m_Len = 0
  For i = 1 to ubound(rKv)
-'  rKv(i).AktZeit = now()
   rKv(i).StByte = CStr(AktByte)
 setz:
   IF SammelInsert = 0 Or i = 1 Then
@@ -7920,14 +7604,9 @@ setz:
   csql.AppVar Array("(" , rKv(i).Pat_ID, ",'" , rKv(i).KVNr, "'," , rKv(i).absPos, "," , DatFor_k(rKv(i).AktZeit), "," , rKv(i).StByte, ")")
   IF SammelInsert <> 0 AND i < ubound(rKv) Then csql.Append ","
   IF SammelInsert = 0 OR i = ubound(rKv) Then
-'    altmode = DBCn.Execute("SELECT @@global.sql_mode").Fields(0)
     altmode = myEFrag("SELECT @@global.sql_mode", , DBCn).Fields(0)
-'   Call DBCn.Execute("SET GLOBAL sql_mode='STRICT_TRANS_TABLES'") ' NO_ENGINE_SUBSTITUTION
     myEFrag "SET GLOBAL sql_mode='STRICT_TRANS_TABLES'", , DBCn ' NO_ENGINE_SUBSTITUTION
-'   Call myEFrag(csql.Value,rAf)', , adAsyncExecute) ' wegen unzureichender Fehlerverarbeitung wieder ausrangiert 19.8.23
-'   Call DBCn.Execute(csql.Value, rAF) ', , adAsyncExecute) ' ausrangiert 16.6.24 wegen fehlender Feldverlängerung
     InsKorr DBCn, csql.Value, rAf, ErrD, , ErrN
-'    If ErrN Then Error ErrN
     If ErrN Then
      If SammelInsert = 1 And ErrN = -2147217900 Then
       SammelInsert = 0
@@ -8024,107 +7703,6 @@ END IF ' ErrNumber =
  END SELECT
 End FUNCTION ' kvnrueSpeichern
 
-Public FUNCTION roUnZuw(i&, j&)
- roUn(i).Kennung = rUn(j).Kennung
- roUn(i).absPos = rUn(j).absPos
- roUn(i).StByte = rUn(j).StByte
- roUn(i).Pat_id = rUn(j).Pat_id
- roUn(i).Inhalt = rUn(j).Inhalt
- roUn(i).Zeitpunkt = rUn(j).Zeitpunkt
-End FUNCTION ' roUnZuw
-
-Public FUNCTION UnZUnt%(i&, j&)
- IF roUn(i).Kennung <> rUn(j).Kennung THEN gosub unter
- IF roUn(i).absPos <> rUn(j).absPos THEN gosub unter
- IF roUn(i).StByte <> rUn(j).StByte THEN gosub unter
- IF roUn(i).Pat_id <> rUn(j).Pat_id THEN gosub unter
- IF roUn(i).Inhalt <> rUn(j).Inhalt THEN gosub unter
- IF roUn(i).Zeitpunkt <> rUn(j).Zeitpunkt THEN gosub unter
- Exit Function
-unter:
- UnZUnt = UnZUnt + 1
- Return
-End FUNCTION ' UnZUnt
-
-Public FUNCTION unbek_kennLaden()
- Dim pid$, rs As New Recordset, akt&
- ON Error GoTo fehler
- pid = rNa(0).Pat_id
- sql = "SELECT COALESCE(Kennung,'') Kennung,COALESCE(absPos,0) absPos,COALESCE(StByte,0) StByte,COALESCE(Pat_id,0) Pat_id" & _
-",COALESCE(Inhalt,'') Inhalt,COALESCE(Zeitpunkt - INTERVAL 0 DAY,CONVERT('18991230',DATE)) Zeitpunkt FROM `unbek_kenn` WHERE Pat_ID=" & pid & " ORDER BY `ZeitPunkt`
- myFrag rs, sql
- If rs.EOF Then
-  ReDim roUn(0)
- Else ' rs.EOF Then
-  ReDim roUn(1)
-  Do While Not rs.EOF
-   akt = UBound(roUn)
-   roUn(akt).Kennung = doUmwfSQL(rs!Kennung, lies.obMySQL, False)
-   roUn(akt).absPos = rs!absPos
-   roUn(akt).StByte = rs!StByte
-   roUn(akt).Pat_id = rs!Pat_id
-   roUn(akt).Inhalt = doUmwfSQL(rs!Inhalt, lies.obMySQL, False)
-   roUn(akt).Zeitpunkt = rs!Zeitpunkt
-   rs.MoveNext
-   IF Not rs.EOF THEN ReDim Preserve roUn(UBound(roUn) + 1)
-  Loop ' While Not rs.EOF
- End If ' If rs.EOF
- Exit Function
-fehler:
- Dim AnwPfad$
- #If VBA6 THEN
- AnwPfad = currentDB.Name
- #Else
- AnwPfad = App.Path
- #END IF
- SELECT CASE MsgBox("FNr: " + CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " & IIf(ISNULL(Err.Source), vNS, CStr(Err.Source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "aufgefangener Fehler in unbek_kennLaden/" + AnwPfad)
-  Case vbAbort: Call MsgBox(" 2Höre auf "): Progende
-  Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
-  Case vbIgnore: Call MsgBox(" Setze fort "): Resume Next
- END SELECT
-End FUNCTION ' unbek_kennLaden
-
-Function unbek_kennEinf
- Dim rbeg&, roendpe&, ri&, roi&
- On Error GoTo fehler
- IF UBound(rUn) > 0 THEN
-  For ri = 1 To UBound(rUn)
-   IF rUn(ri).ZeitPunkt >= qbeg Then ' aktqanf()
-    rbeg = ri
-    Exit For
-   END IF
-  Next ri
-  IF rbeg <> 0 THEN
-   For roendpe = 0 To UBound(roUn)
-    IF roUn(roendpe).ZeitPunkt >= qbeg THEN
-     Exit For
-    END IF
-   Next roendpe
-   IF roendpe <= UBound(roFa) THEN
-    ReDim Preserve roUn(roendpe - 1)
-   END IF ' IF roendpe <= UBound(roFa) THEN
-   ReDim Preserve roUn(roendpe + UBound(rUn) - rbeg)
-   For ri = rbeg To UBound(rUn)
-    Call roUnZuw(roendpe + ri - rbeg, ri)
-   Next ri
-  END IF ' IF rbeg <> 0 THEN
- END IF ' IF UBound(rFa) > 0 THEN
- rUn = roUn
- Exit Function
-fehler:
- Dim AnwPfad$
- #If VBA6 THEN
- AnwPfad = CurrentDb.name
- #Else
- AnwPfad = App.path
- #END IF
- Select Case MsgBox("FNr: " + CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " & IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "aufgefangener Fehler in unbek_kennEinf/" + AnwPfad)
-  Case vbAbort: Call MsgBox(" Höre auf "): Progende
-  Case vbRetry: Call MsgBox(" Versuche nochmal"): Resume
-  Case vbIgnore: Call MsgBox(" Setze fort "): Resume Next
- END Select
-End FUNCTION ' unbek_kennEinf
-
 Public FUNCTION rUnDump()
  Dim i&, ffa&
  Const ffadat$ = "\\linux1\daten\down\rUndump.txt"
@@ -8149,36 +7727,25 @@ Public FUNCTION unbek_kennSpeichern(SammelInsert%, BezfSp%)
  T1 = Timer
  On Error Resume Next
  Pid = rNa(0).Pat_id
- On Error GoTo fehler
  syscmd 4, pid & ": Speichere " & Ubound(rUn)+0 & " Sätze in `unbek_kenn`"
-' sql0 = " INSERT " & sqlignore & "INTO `unbek_kenn` (Kennung,absPos,StByte," & _
-     "Pat_id,Inhalt,Zeitpunkt) VALUES
  Call csql0.AppVar(Array(" INSERT ", sqlIgnore, "INTO `unbek_kenn` (Kennung,absPos,StByte," & _
      "Pat_id,Inhalt,Zeitpunkt)             VALUES"))
  IF NOT Allepat THEN
-   sql = "DELETE FROM `unbek_kenn` WHERE Pat_ID = " & CStr(rNa(0).Pat_ID)
-   Call myEFrag(sql)
  END IF ' not AllePat
 sql:
  csql.m_Len = 0
- For i = 1 to ubound(rUn)
-'  rUn(i).AktZeit = now()
+ For i = rUn1 + 1 to ubound(rUn)
   rUn(i).StByte = CStr(AktByte)
 setz:
-  IF SammelInsert = 0 Or i = 1 Then
+  IF SammelInsert = 0 Or i = rUn1 + 1 Then
    csql.Append csql0
-  End If ' SammelInsert = 0 Or i = 1 Then
+  End If ' SammelInsert = 0 Or i = rUn1 + 1 Then
   csql.AppVar Array("('" , rUn(i).Kennung, "'," , rUn(i).absPos, "," , rUn(i).StByte, "," , rUn(i).Pat_id, ",'" , rUn(i).Inhalt, "'," , DatFor_k(rUn(i).Zeitpunkt), ")")
   IF SammelInsert <> 0 AND i < ubound(rUn) Then csql.Append ","
   IF SammelInsert = 0 OR i = ubound(rUn) Then
-'    altmode = DBCn.Execute("SELECT @@global.sql_mode").Fields(0)
     altmode = myEFrag("SELECT @@global.sql_mode", , DBCn).Fields(0)
-'   Call DBCn.Execute("SET GLOBAL sql_mode='STRICT_TRANS_TABLES'") ' NO_ENGINE_SUBSTITUTION
     myEFrag "SET GLOBAL sql_mode='STRICT_TRANS_TABLES'", , DBCn ' NO_ENGINE_SUBSTITUTION
-'   Call myEFrag(csql.Value,rAf)', , adAsyncExecute) ' wegen unzureichender Fehlerverarbeitung wieder ausrangiert 19.8.23
-'   Call DBCn.Execute(csql.Value, rAF) ', , adAsyncExecute) ' ausrangiert 16.6.24 wegen fehlender Feldverlängerung
     InsKorr DBCn, csql.Value, rAf, ErrD, , ErrN
-'    If ErrN Then Error ErrN
     If ErrN Then
      If SammelInsert = 1 And ErrN = -2147217900 Then
       SammelInsert = 0
@@ -8195,6 +7762,7 @@ setz:
   END IF ' SammelInsert = 0 OR i = ubound(rUn)
   DoEvents
  Next i
+ rUn1 = UBound(rUn)
  syscmd 5
  Exit Function
 fehler:
@@ -8225,7 +7793,7 @@ ElseIf ErrNumber = -2147467259 AND InStrB(ErrDescr, "Daten zu lang") = 0 AND InS
 ElseIf ErrNumber = -2147217833 OR InStrB(ErrDescr, "Daten zu lang") <> 0 OR InStrB(ErrDescr, "Data too long") <> 0 THEN
  Dim rsc As Adodb.Recordset, maxi%(), k%
  redim maxi(1)
- for k = iif(SammelInsert<>0,1,i) to iif(SammelInsert<>0,ubound(rUn),i)
+ for k = iif(SammelInsert<>0,rUn1 + 1,i) to iif(SammelInsert<>0,ubound(rUn),i)
   IF Len(rUn(k).Kennung) > maxi(0) THEN maxi(0) = Len(rUn(k).Kennung)
   IF Len(rUn(k).Inhalt) > maxi(1) THEN maxi(1) = Len(rUn(k).Inhalt)
  next k
@@ -8239,7 +7807,7 @@ ElseIf ErrNumber = -2147217833 OR InStrB(ErrDescr, "Daten zu lang") <> 0 OR InSt
    Case "varchar", "longtext", "mediumtext", "char", "text", "varbinary", 8, 129, 130, 200, 201, 202, 203, "set", "enum", "blob", "longblob", 0, 9, 12, 13, 72, 128, 132, 138, 204, 205
     maxL = SpMod(maxi(m), "unbek_kenn", rsc)
     IF maxL > 0 THEN
-     For k = IIf(SammelInsert <> 0,1, i) To IIf(SammelInsert <> 0,ubound(rUn), i)
+     For k = IIf(SammelInsert <> 0,rUn1 + 1, i) To IIf(SammelInsert <> 0,ubound(rUn), i)
       SELECT CASE m
        Case 0: Lese.Ausgeb "   Verkürze Inhalt von rUn.Kennung: '" & rUn(k).Kennung & "' -> '" & Left$(rUn(k).Kennung, maxL)  & "'",true : rUn(k).Kennung = Left$(rUn(k).Kennung, maxL)
        Case 1: Lese.Ausgeb "   Verkürze Inhalt von rUn.Inhalt: '" & rUn(k).Inhalt & "' -> '" & Left$(rUn(k).Inhalt, maxL)  & "'",true : rUn(k).Inhalt = Left$(rUn(k).Inhalt, maxL)
@@ -8443,9 +8011,6 @@ Public FUNCTION dmpreiheSpeichern(SammelInsert%, BezfSp%)
  Pid = rNa(0).Pat_id
  On Error GoTo fehler
  syscmd 4, pid & ": Speichere " & Ubound(rDm)+0 & " Sätze in `dmpreihe`"
-' sql0 = " INSERT " & sqlignore & "INTO `dmpreihe` (Abk,Art,KarteiDatum," & _
-     "exportiert,DokuDatum,obvoll,ok,ausgedruckt,NachName,VorName,GebDat,Pat_id,StByte," & _
-     "AktZeit,lanrid,Zusatzdaten) VALUES
  Call csql0.AppVar(Array(" INSERT ", sqlIgnore, "INTO `dmpreihe` (Abk,Art,KarteiDatum," & _
      "exportiert,DokuDatum,obvoll,ok,ausgedruckt,NachName,VorName,GebDat,Pat_id,StByte," & _
      "AktZeit,lanrid,Zusatzdaten)          VALUES"))
@@ -8456,7 +8021,6 @@ Public FUNCTION dmpreiheSpeichern(SammelInsert%, BezfSp%)
 sql:
  csql.m_Len = 0
  For i = 1 to ubound(rDm)
-'  rDm(i).AktZeit = now()
   rDm(i).StByte = CStr(AktByte)
 setz:
   IF SammelInsert = 0 Or i = 1 Then
@@ -8467,14 +8031,9 @@ setz:
    rDm(i).lanrid, ",'" , rDm(i).Zusatzdaten, "')")
   IF SammelInsert <> 0 AND i < ubound(rDm) Then csql.Append ","
   IF SammelInsert = 0 OR i = ubound(rDm) Then
-'    altmode = DBCn.Execute("SELECT @@global.sql_mode").Fields(0)
     altmode = myEFrag("SELECT @@global.sql_mode", , DBCn).Fields(0)
-'   Call DBCn.Execute("SET GLOBAL sql_mode='STRICT_TRANS_TABLES'") ' NO_ENGINE_SUBSTITUTION
     myEFrag "SET GLOBAL sql_mode='STRICT_TRANS_TABLES'", , DBCn ' NO_ENGINE_SUBSTITUTION
-'   Call myEFrag(csql.Value,rAf)', , adAsyncExecute) ' wegen unzureichender Fehlerverarbeitung wieder ausrangiert 19.8.23
-'   Call DBCn.Execute(csql.Value, rAF) ', , adAsyncExecute) ' ausrangiert 16.6.24 wegen fehlender Feldverlängerung
     InsKorr DBCn, csql.Value, rAf, ErrD, , ErrN
-'    If ErrN Then Error ErrN
     If ErrN Then
      If SammelInsert = 1 And ErrN = -2147217900 Then
       SammelInsert = 0
@@ -8766,9 +8325,6 @@ Public FUNCTION desktopSpeichern(SammelInsert%, BezfSp%)
  Pid = rNa(0).Pat_id
  On Error GoTo fehler
  syscmd 4, pid & ": Speichere " & Ubound(rDe)+0 & " Sätze in `desktop`"
-' sql0 = " INSERT " & sqlignore & "INTO `desktop` (IDS,Pat_ID,erstZP," & _
-     "exoL,hideT,iconPath,noteBkColor,noteFgColor,positionBottom,positionLeft,positionRight,positionTop,showAsNote," & _
-     "syncInfoList,titel,toolTipText,verankert,absPos,AktZeit,StByte) VALUES
  Call csql0.AppVar(Array(" INSERT ", sqlIgnore, "INTO `desktop` (IDS,Pat_ID,erstZP," & _
      "exoL,hideT,iconPath,noteBkColor,noteFgColor,positionBottom,positionLeft,positionRight,positionTop,showAsNote," & _
      "syncInfoList,titel,toolTipText,verankert,absPos,AktZeit,StByte)  VALUES"))
@@ -8779,7 +8335,6 @@ Public FUNCTION desktopSpeichern(SammelInsert%, BezfSp%)
 sql:
  csql.m_Len = 0
  For i = 1 to ubound(rDe)
-'  rDe(i).AktZeit = now()
   rDe(i).StByte = CStr(AktByte)
 setz:
   IF SammelInsert = 0 Or i = 1 Then
@@ -8790,14 +8345,9 @@ setz:
    rDe(i).toolTipText, "'," , rDe(i).verankert, "," , rDe(i).absPos, "," , DatFor_k(rDe(i).AktZeit), "," , rDe(i).StByte, ")")
   IF SammelInsert <> 0 AND i < ubound(rDe) Then csql.Append ","
   IF SammelInsert = 0 OR i = ubound(rDe) Then
-'    altmode = DBCn.Execute("SELECT @@global.sql_mode").Fields(0)
     altmode = myEFrag("SELECT @@global.sql_mode", , DBCn).Fields(0)
-'   Call DBCn.Execute("SET GLOBAL sql_mode='STRICT_TRANS_TABLES'") ' NO_ENGINE_SUBSTITUTION
     myEFrag "SET GLOBAL sql_mode='STRICT_TRANS_TABLES'", , DBCn ' NO_ENGINE_SUBSTITUTION
-'   Call myEFrag(csql.Value,rAf)', , adAsyncExecute) ' wegen unzureichender Fehlerverarbeitung wieder ausrangiert 19.8.23
-'   Call DBCn.Execute(csql.Value, rAF) ', , adAsyncExecute) ' ausrangiert 16.6.24 wegen fehlender Feldverlängerung
     InsKorr DBCn, csql.Value, rAf, ErrD, , ErrN
-'    If ErrN Then Error ErrN
     If ErrN Then
      If SammelInsert = 1 And ErrN = -2147217900 Then
       SammelInsert = 0
@@ -9201,12 +8751,6 @@ Public FUNCTION usdmSpeichern(SammelInsert%, BezfSp%)
  Pid = rNa(0).Pat_id
  On Error GoTo fehler
  syscmd 4, pid & ": Speichere " & Ubound(rUs)+0 & " Sätze in `usdm`"
-' sql0 = " INSERT " & sqlignore & "INTO `usdm` (FID,Pat_ID,ZeitPunkt," & _
-     "Art,Spritzst,Fußbef_re,Fußbef_li,Hyperk_re,Hyperk_li,Ulcera_re,Ulcera_li,Kraft_Zh_re,Kraft_Zh_li," & _
-     "Kraft_Zb_re,Kraft_Zb_li,Kraft_Knie_re,Kraft_Knie_li,ASR_re,ASR_li,PSR_re,PSR_li,Oberfl_re,Oberfl_li," & _
-     "MF_re,MF_li,KW_re,KW_li,Vibr_IK_re,Vibr_IK_li,Vibr_GZ_re,Vibr_GZ_li,PulsL_re,PulsL_li," & _
-     "PulsKK_re,PulsKK_li,PulsAtp_re,PulsAtp_li,PulsAdp_re,PulsAdp_li,Mitarbeiter,absPos,AktZeit,QS," & _
-     "QT,StByte) VALUES
  Call csql0.AppVar(Array(" INSERT ", sqlIgnore, "INTO `usdm` (FID,Pat_ID,ZeitPunkt," & _
      "Art,Spritzst,Fußbef_re,Fußbef_li,Hyperk_re,Hyperk_li,Ulcera_re,Ulcera_li,Kraft_Zh_re,Kraft_Zh_li," & _
      "Kraft_Zb_re,Kraft_Zb_li,Kraft_Knie_re,Kraft_Knie_li,ASR_re,ASR_li,PSR_re,PSR_li,Oberfl_re,Oberfl_li," & _
@@ -9220,7 +8764,6 @@ Public FUNCTION usdmSpeichern(SammelInsert%, BezfSp%)
 sql:
  csql.m_Len = 0
  For i = 1 to ubound(rUs)
-'  rUs(i).AktZeit = now()
   rUs(i).StByte = CStr(AktByte)
 setz:
   IF SammelInsert = 0 Or i = 1 Then
@@ -9234,14 +8777,9 @@ setz:
    rUs(i).PulsAdp_li, "','" , rUs(i).Mitarbeiter, "'," , rUs(i).absPos, "," , DatFor_k(rUs(i).AktZeit), ",'" , rUs(i).QS, "','" , rUs(i).QT, "'," , rUs(i).StByte, ")")
   IF SammelInsert <> 0 AND i < ubound(rUs) Then csql.Append ","
   IF SammelInsert = 0 OR i = ubound(rUs) Then
-'    altmode = DBCn.Execute("SELECT @@global.sql_mode").Fields(0)
     altmode = myEFrag("SELECT @@global.sql_mode", , DBCn).Fields(0)
-'   Call DBCn.Execute("SET GLOBAL sql_mode='STRICT_TRANS_TABLES'") ' NO_ENGINE_SUBSTITUTION
     myEFrag "SET GLOBAL sql_mode='STRICT_TRANS_TABLES'", , DBCn ' NO_ENGINE_SUBSTITUTION
-'   Call myEFrag(csql.Value,rAf)', , adAsyncExecute) ' wegen unzureichender Fehlerverarbeitung wieder ausrangiert 19.8.23
-'   Call DBCn.Execute(csql.Value, rAF) ', , adAsyncExecute) ' ausrangiert 16.6.24 wegen fehlender Feldverlängerung
     InsKorr DBCn, csql.Value, rAf, ErrD, , ErrN
-'    If ErrN Then Error ErrN
     If ErrN Then
      If SammelInsert = 1 And ErrN = -2147217900 Then
       SammelInsert = 0
@@ -9601,9 +9139,6 @@ Public FUNCTION fussSpeichern(SammelInsert%, BezfSp%)
  Pid = rNa(0).Pat_id
  On Error GoTo fehler
  syscmd 4, pid & ": Speichere " & Ubound(rFu)+0 & " Sätze in `fuss`"
-' sql0 = " INSERT " & sqlignore & "INTO `fuss` (FID,Pat_ID,ZeitPunkt," & _
-     "Art,Fußdeform,Hyper_mEin,Weiteres,Zn_Ulcus,Zn_Amput,Fuß_ang,Ulcera,Wundinfektion,nae_US," & _
-     "Mitarbeiter,absPos,AktZeit,QS,QT,StByte) VALUES
  Call csql0.AppVar(Array(" INSERT ", sqlIgnore, "INTO `fuss` (FID,Pat_ID,ZeitPunkt," & _
      "Art,Fußdeform,Hyper_mEin,Weiteres,Zn_Ulcus,Zn_Amput,Fuß_ang,Ulcera,Wundinfektion,nae_US," & _
      "Mitarbeiter,absPos,AktZeit,QS,QT,StByte)           VALUES"))
@@ -9614,7 +9149,6 @@ Public FUNCTION fussSpeichern(SammelInsert%, BezfSp%)
 sql:
  csql.m_Len = 0
  For i = 1 to ubound(rFu)
-'  rFu(i).AktZeit = now()
   rFu(i).StByte = CStr(AktByte)
 setz:
   IF SammelInsert = 0 Or i = 1 Then
@@ -9625,14 +9159,9 @@ setz:
    rFu(i).QS, "','" , rFu(i).QT, "'," , rFu(i).StByte, ")")
   IF SammelInsert <> 0 AND i < ubound(rFu) Then csql.Append ","
   IF SammelInsert = 0 OR i = ubound(rFu) Then
-'    altmode = DBCn.Execute("SELECT @@global.sql_mode").Fields(0)
     altmode = myEFrag("SELECT @@global.sql_mode", , DBCn).Fields(0)
-'   Call DBCn.Execute("SET GLOBAL sql_mode='STRICT_TRANS_TABLES'") ' NO_ENGINE_SUBSTITUTION
     myEFrag "SET GLOBAL sql_mode='STRICT_TRANS_TABLES'", , DBCn ' NO_ENGINE_SUBSTITUTION
-'   Call myEFrag(csql.Value,rAf)', , adAsyncExecute) ' wegen unzureichender Fehlerverarbeitung wieder ausrangiert 19.8.23
-'   Call DBCn.Execute(csql.Value, rAF) ', , adAsyncExecute) ' ausrangiert 16.6.24 wegen fehlender Feldverlängerung
     InsKorr DBCn, csql.Value, rAf, ErrD, , ErrN
-'    If ErrN Then Error ErrN
     If ErrN Then
      If SammelInsert = 1 And ErrN = -2147217900 Then
       SammelInsert = 0
@@ -9931,9 +9460,6 @@ Public FUNCTION ulcusSpeichern(SammelInsert%, BezfSp%)
  Pid = rNa(0).Pat_id
  On Error GoTo fehler
  syscmd 4, pid & ": Speichere " & Ubound(rUl)+0 & " Sätze in `ulcus`"
-' sql0 = " INSERT " & sqlignore & "INTO `ulcus` (FID,Pat_ID,ZeitPunkt," & _
-     "Lokalisation,Seite,Größe,Beläge,Exsudat,Geruch,Wundrand,Wundumgebung,Temperatur,Fotodoku," & _
-     "Wundversorgung,Mitarbeiter,absPos,AktZeit,StByte) VALUES
  Call csql0.AppVar(Array(" INSERT ", sqlIgnore, "INTO `ulcus` (FID,Pat_ID,ZeitPunkt," & _
      "Lokalisation,Seite,Größe,Beläge,Exsudat,Geruch,Wundrand,Wundumgebung,Temperatur,Fotodoku," & _
      "Wundversorgung,Mitarbeiter,absPos,AktZeit,StByte)  VALUES"))
@@ -9944,7 +9470,6 @@ Public FUNCTION ulcusSpeichern(SammelInsert%, BezfSp%)
 sql:
  csql.m_Len = 0
  For i = 1 to ubound(rUl)
-'  rUl(i).AktZeit = now()
   rUl(i).StByte = CStr(AktByte)
 setz:
   IF SammelInsert = 0 Or i = 1 Then
@@ -9955,14 +9480,9 @@ setz:
    rUl(i).absPos, "," , DatFor_k(rUl(i).AktZeit), "," , rUl(i).StByte, ")")
   IF SammelInsert <> 0 AND i < ubound(rUl) Then csql.Append ","
   IF SammelInsert = 0 OR i = ubound(rUl) Then
-'    altmode = DBCn.Execute("SELECT @@global.sql_mode").Fields(0)
     altmode = myEFrag("SELECT @@global.sql_mode", , DBCn).Fields(0)
-'   Call DBCn.Execute("SET GLOBAL sql_mode='STRICT_TRANS_TABLES'") ' NO_ENGINE_SUBSTITUTION
     myEFrag "SET GLOBAL sql_mode='STRICT_TRANS_TABLES'", , DBCn ' NO_ENGINE_SUBSTITUTION
-'   Call myEFrag(csql.Value,rAf)', , adAsyncExecute) ' wegen unzureichender Fehlerverarbeitung wieder ausrangiert 19.8.23
-'   Call DBCn.Execute(csql.Value, rAF) ', , adAsyncExecute) ' ausrangiert 16.6.24 wegen fehlender Feldverlängerung
     InsKorr DBCn, csql.Value, rAf, ErrD, , ErrN
-'    If ErrN Then Error ErrN
     If ErrN Then
      If SammelInsert = 1 And ErrN = -2147217900 Then
       SammelInsert = 0
@@ -10255,9 +9775,6 @@ Public FUNCTION vkgdSpeichern(SammelInsert%, BezfSp%)
  Pid = rNa(0).Pat_id
  On Error GoTo fehler
  syscmd 4, pid & ": Speichere " & Ubound(rVk)+0 & " Sätze in `vkgd`"
-' sql0 = " INSERT " & sqlignore & "INTO `vkgd` (FID,Pat_ID,ZeitPunkt," & _
-     "Wohlempfinden,Saettigung,Zielwerterreichung,Ketonkörper,Gynaekologenbefund,Gewichtsentwicklung,HbA1c,Bewegung,Minuten,Blutdruck," & _
-     "Puls,Mitarbeiter,absPos,AktZeit,StByte) VALUES
  Call csql0.AppVar(Array(" INSERT ", sqlIgnore, "INTO `vkgd` (FID,Pat_ID,ZeitPunkt," & _
      "Wohlempfinden,Saettigung,Zielwerterreichung,Ketonkörper,Gynaekologenbefund,Gewichtsentwicklung,HbA1c,Bewegung,Minuten,Blutdruck," & _
      "Puls,Mitarbeiter,absPos,AktZeit,StByte)            VALUES"))
@@ -10268,7 +9785,6 @@ Public FUNCTION vkgdSpeichern(SammelInsert%, BezfSp%)
 sql:
  csql.m_Len = 0
  For i = 1 to ubound(rVk)
-'  rVk(i).AktZeit = now()
   rVk(i).StByte = CStr(AktByte)
 setz:
   IF SammelInsert = 0 Or i = 1 Then
@@ -10279,14 +9795,9 @@ setz:
    rVk(i).Mitarbeiter, "'," , rVk(i).absPos, "," , DatFor_k(rVk(i).AktZeit), "," , rVk(i).StByte, ")")
   IF SammelInsert <> 0 AND i < ubound(rVk) Then csql.Append ","
   IF SammelInsert = 0 OR i = ubound(rVk) Then
-'    altmode = DBCn.Execute("SELECT @@global.sql_mode").Fields(0)
     altmode = myEFrag("SELECT @@global.sql_mode", , DBCn).Fields(0)
-'   Call DBCn.Execute("SET GLOBAL sql_mode='STRICT_TRANS_TABLES'") ' NO_ENGINE_SUBSTITUTION
     myEFrag "SET GLOBAL sql_mode='STRICT_TRANS_TABLES'", , DBCn ' NO_ENGINE_SUBSTITUTION
-'   Call myEFrag(csql.Value,rAf)', , adAsyncExecute) ' wegen unzureichender Fehlerverarbeitung wieder ausrangiert 19.8.23
-'   Call DBCn.Execute(csql.Value, rAF) ', , adAsyncExecute) ' ausrangiert 16.6.24 wegen fehlender Feldverlängerung
     InsKorr DBCn, csql.Value, rAf, ErrD, , ErrN
-'    If ErrN Then Error ErrN
     If ErrN Then
      If SammelInsert = 1 And ErrN = -2147217900 Then
       SammelInsert = 0
@@ -10571,9 +10082,6 @@ Public FUNCTION swsSpeichern(SammelInsert%, BezfSp%)
  Pid = rNa(0).Pat_id
  On Error GoTo fehler
  syscmd 4, pid & ": Speichere " & Ubound(rSw)+0 & " Sätze in `sws`"
-' sql0 = " INSERT " & sqlignore & "INTO `sws` (FID,Pat_ID,ZeitPunkt," & _
-     "FormTitel,LR,vorET,ET,efLR,erLR,kGT,MB,EndeArt,ED," & _
-     "absPos,AktZeit,StByte) VALUES
  Call csql0.AppVar(Array(" INSERT ", sqlIgnore, "INTO `sws` (FID,Pat_ID,ZeitPunkt," & _
      "FormTitel,LR,vorET,ET,efLR,erLR,kGT,MB,EndeArt,ED," & _
      "absPos,AktZeit,StByte)               VALUES"))
@@ -10584,7 +10092,6 @@ Public FUNCTION swsSpeichern(SammelInsert%, BezfSp%)
 sql:
  csql.m_Len = 0
  For i = 1 to ubound(rSw)
-'  rSw(i).AktZeit = now()
   rSw(i).StByte = CStr(AktByte)
 setz:
   IF SammelInsert = 0 Or i = 1 Then
@@ -10595,14 +10102,9 @@ setz:
    rSw(i).StByte, ")")
   IF SammelInsert <> 0 AND i < ubound(rSw) Then csql.Append ","
   IF SammelInsert = 0 OR i = ubound(rSw) Then
-'    altmode = DBCn.Execute("SELECT @@global.sql_mode").Fields(0)
     altmode = myEFrag("SELECT @@global.sql_mode", , DBCn).Fields(0)
-'   Call DBCn.Execute("SET GLOBAL sql_mode='STRICT_TRANS_TABLES'") ' NO_ENGINE_SUBSTITUTION
     myEFrag "SET GLOBAL sql_mode='STRICT_TRANS_TABLES'", , DBCn ' NO_ENGINE_SUBSTITUTION
-'   Call myEFrag(csql.Value,rAf)', , adAsyncExecute) ' wegen unzureichender Fehlerverarbeitung wieder ausrangiert 19.8.23
-'   Call DBCn.Execute(csql.Value, rAF) ', , adAsyncExecute) ' ausrangiert 16.6.24 wegen fehlender Feldverlängerung
     InsKorr DBCn, csql.Value, rAf, ErrD, , ErrN
-'    If ErrN Then Error ErrN
     If ErrN Then
      If SammelInsert = 1 And ErrN = -2147217900 Then
       SammelInsert = 0
@@ -10837,8 +10339,6 @@ Public FUNCTION voplSpeichern(SammelInsert%, BezfSp%)
  Pid = rNa(0).Pat_id
  On Error GoTo fehler
  syscmd 4, pid & ": Speichere " & Ubound(rVo)+0 & " Sätze in `vopl`"
-' sql0 = " INSERT " & sqlignore & "INTO `vopl` (FID,Pat_ID,ZeitPunkt," & _
-     "FormTitel,Inhalt,absPos,AktZeit,StByte) VALUES
  Call csql0.AppVar(Array(" INSERT ", sqlIgnore, "INTO `vopl` (FID,Pat_ID,ZeitPunkt," & _
      "FormTitel,Inhalt,absPos,AktZeit,StByte)            VALUES"))
  IF NOT Allepat THEN
@@ -10848,7 +10348,6 @@ Public FUNCTION voplSpeichern(SammelInsert%, BezfSp%)
 sql:
  csql.m_Len = 0
  For i = 1 to ubound(rVo)
-'  rVo(i).AktZeit = now()
   rVo(i).StByte = CStr(AktByte)
 setz:
   IF SammelInsert = 0 Or i = 1 Then
@@ -10857,14 +10356,9 @@ setz:
   csql.AppVar Array("(" , rVo(i).FID, "," , rVo(i).Pat_ID, "," , DatFor_k(rVo(i).ZeitPunkt), ",'" , rVo(i).FormTitel, "','" , rVo(i).Inhalt, "'," , rVo(i).absPos, "," , DatFor_k(rVo(i).AktZeit), "," , rVo(i).StByte, ")")
   IF SammelInsert <> 0 AND i < ubound(rVo) Then csql.Append ","
   IF SammelInsert = 0 OR i = ubound(rVo) Then
-'    altmode = DBCn.Execute("SELECT @@global.sql_mode").Fields(0)
     altmode = myEFrag("SELECT @@global.sql_mode", , DBCn).Fields(0)
-'   Call DBCn.Execute("SET GLOBAL sql_mode='STRICT_TRANS_TABLES'") ' NO_ENGINE_SUBSTITUTION
     myEFrag "SET GLOBAL sql_mode='STRICT_TRANS_TABLES'", , DBCn ' NO_ENGINE_SUBSTITUTION
-'   Call myEFrag(csql.Value,rAf)', , adAsyncExecute) ' wegen unzureichender Fehlerverarbeitung wieder ausrangiert 19.8.23
-'   Call DBCn.Execute(csql.Value, rAF) ', , adAsyncExecute) ' ausrangiert 16.6.24 wegen fehlender Feldverlängerung
     InsKorr DBCn, csql.Value, rAf, ErrD, , ErrN
-'    If ErrN Then Error ErrN
     If ErrN Then
      If SammelInsert = 1 And ErrN = -2147217900 Then
       SammelInsert = 0
@@ -11001,16 +10495,12 @@ Public FUNCTION laborxsaetzeSpeichern(SammelInsert%, BezfSp%)
  Pid = rNa(0).Pat_id
  On Error GoTo fehler
  syscmd 4, pid & ": Speichere " & Ubound(rLs)+0 & " Sätze in `laborxsaetze`"
-' sql0 = " INSERT " & sqlignore & "INTO `laborxsaetze` (DatID,Satzart,Satzlänge," & _
-     "SatzlängeSchluss,VersionSatzb,Arztnr,Arztname,StraßePraxis,Arzt,LANR,PLZPraxis,OrtPraxis,Labor," & _
-     "StraßeLabor,PLZLabor,OrtLabor,KBVPrüfnr,Zeichensatz,Kundenarztnr,Erstellungsdatum,Gesamtlänge) VALUES
  Call csql0.AppVar(Array(" INSERT ", sqlIgnore, "INTO `laborxsaetze` (DatID,Satzart,Satzlänge," & _
      "SatzlängeSchluss,VersionSatzb,Arztnr,Arztname,StraßePraxis,Arzt,LANR,PLZPraxis,OrtPraxis,Labor," & _
      "StraßeLabor,PLZLabor,OrtLabor,KBVPrüfnr,Zeichensatz,Kundenarztnr,Erstellungsdatum,Gesamtlänge)             VALUES"))
 sql:
  csql.m_Len = 0
  For i = 0 to ubound(rLs)
-'  rLs(i).AktZeit = now()
 setz:
   IF SammelInsert = 0 Or i = 0 Then
    csql.Append csql0
@@ -11020,14 +10510,9 @@ setz:
    rLs(i).OrtLabor, "','" , rLs(i).KBVPrüfnr, "','" , rLs(i).Zeichensatz, "','" , rLs(i).Kundenarztnr, "','" , rLs(i).Erstellungsdatum, "','" , rLs(i).Gesamtlänge, "')")
   IF SammelInsert <> 0 AND i < ubound(rLs) Then csql.Append ","
   IF SammelInsert = 0 OR i = ubound(rLs) Then
-'    altmode = DBCn.Execute("SELECT @@global.sql_mode").Fields(0)
     altmode = myEFrag("SELECT @@global.sql_mode", , DBCn).Fields(0)
-'   Call DBCn.Execute("SET GLOBAL sql_mode='STRICT_TRANS_TABLES'") ' NO_ENGINE_SUBSTITUTION
     myEFrag "SET GLOBAL sql_mode='STRICT_TRANS_TABLES'", , DBCn ' NO_ENGINE_SUBSTITUTION
-'   Call myEFrag(csql.Value,rAf)', , adAsyncExecute) ' wegen unzureichender Fehlerverarbeitung wieder ausrangiert 19.8.23
-'   Call DBCn.Execute(csql.Value, rAF) ', , adAsyncExecute) ' ausrangiert 16.6.24 wegen fehlender Feldverlängerung
     InsKorr DBCn, csql.Value, rAf, ErrD, , ErrN
-'    If ErrN Then Error ErrN
     If ErrN Then
      If SammelInsert = 1 And ErrN = -2147217900 Then
       SammelInsert = 0
@@ -11186,14 +10671,11 @@ Public FUNCTION laborxeingelSpeichern(SammelInsert%, BezfSp%)
  Pid = rNa(0).Pat_id
  On Error GoTo fehler
  syscmd 4, pid & ": Speichere " & Ubound(rLg)+0 & " Sätze in `laborxeingel`"
-' sql0 = " INSERT " & sqlignore & "INTO `laborxeingel` (Pfad,Name,Zp," & _
-     "fertig) VALUES
  Call csql0.AppVar(Array(" INSERT ", sqlIgnore, "INTO `laborxeingel` (Pfad,Name,Zp," & _
      "fertig)  VALUES"))
 sql:
  csql.m_Len = 0
  For i = 1 to ubound(rLg)
-'  rLg(i).AktZeit = now()
 setz:
   IF SammelInsert = 0 Or i = 1 Then
    csql.Append csql0
@@ -11201,14 +10683,9 @@ setz:
   csql.AppVar Array("('" , rLg(i).Pfad, "','" , rLg(i).Name, "'," , DatFor_k(rLg(i).Zp), "," , cstr(-(rLg(i).fertig<>0)) , ")")
   IF SammelInsert <> 0 AND i < ubound(rLg) Then csql.Append ","
   IF SammelInsert = 0 OR i = ubound(rLg) Then
-'    altmode = DBCn.Execute("SELECT @@global.sql_mode").Fields(0)
     altmode = myEFrag("SELECT @@global.sql_mode", , DBCn).Fields(0)
-'   Call DBCn.Execute("SET GLOBAL sql_mode='STRICT_TRANS_TABLES'") ' NO_ENGINE_SUBSTITUTION
     myEFrag "SET GLOBAL sql_mode='STRICT_TRANS_TABLES'", , DBCn ' NO_ENGINE_SUBSTITUTION
-'   Call myEFrag(csql.Value,rAf)', , adAsyncExecute) ' wegen unzureichender Fehlerverarbeitung wieder ausrangiert 19.8.23
-'   Call DBCn.Execute(csql.Value, rAF) ', , adAsyncExecute) ' ausrangiert 16.6.24 wegen fehlender Feldverlängerung
     InsKorr DBCn, csql.Value, rAf, ErrD, , ErrN
-'    If ErrN Then Error ErrN
     If ErrN Then
      If SammelInsert = 1 And ErrN = -2147217900 Then
       SammelInsert = 0
@@ -11361,11 +10838,6 @@ Public FUNCTION laborxusSpeichern(SammelInsert%, BezfSp%, j&)
  Pid = rNa(0).Pat_id
  On Error GoTo fehler
  syscmd 4, pid & ": Speichere " & Ubound(rLu)+0 & " Sätze in `laborxus`"
-' sql0 = " INSERT " & sqlignore & "INTO `laborxus` (DatID,SatzID,Satzart," & _
-     "Satzlänge,Auftragsnummer,Auftragsschlüssel,Eingang,Berichtsdatum,Pat_id,Nachname,Vorname,GebDat,Titel," & _
-     "NVorsatz,BefArt,Abrechnungstyp,GebüOrd,Auftraggeber,Patienteninformation,Geschlecht,AuftrHinw,Pat_idUrsp,Pat_idErwVNG," & _
-     "Pat_idErwVN,Pat_idErwG,Pat_idErwGB,Pat_idErwGL,Pat_idLaborNeu,ZeitpunktLaborneu,ZdüP,ZdiP,LWerte,verglichen," & _
-     "AfN) VALUES
  Call csql0.AppVar(Array(" INSERT ", sqlIgnore, "INTO `laborxus` (DatID,SatzID,Satzart," & _
      "Satzlänge,Auftragsnummer,Auftragsschlüssel,Eingang,Berichtsdatum,Pat_id,Nachname,Vorname,GebDat,Titel," & _
      "NVorsatz,BefArt,Abrechnungstyp,GebüOrd,Auftraggeber,Patienteninformation,Geschlecht,AuftrHinw,Pat_idUrsp,Pat_idErwVNG," & _
@@ -11374,7 +10846,6 @@ Public FUNCTION laborxusSpeichern(SammelInsert%, BezfSp%, j&)
 sql:
  csql.m_Len = 0
  For i = j to j
-'  rLu(i).AktZeit = now()
 setz:
   IF SammelInsert = 0 Or i = j Then
    csql.Append csql0
@@ -11386,14 +10857,9 @@ setz:
    rLu(i).ZdüP, "," , rLu(i).ZdiP, ",'" , rLu(i).LWerte, "'," , DatFor_k(rLu(i).verglichen), "," , rLu(i).AfN, ")")
   IF SammelInsert <> 0 AND i < j Then csql.Append ","
   IF SammelInsert = 0 OR i = j Then
-'    altmode = DBCn.Execute("SELECT @@global.sql_mode").Fields(0)
     altmode = myEFrag("SELECT @@global.sql_mode", , DBCn).Fields(0)
-'   Call DBCn.Execute("SET GLOBAL sql_mode='STRICT_TRANS_TABLES'") ' NO_ENGINE_SUBSTITUTION
     myEFrag "SET GLOBAL sql_mode='STRICT_TRANS_TABLES'", , DBCn ' NO_ENGINE_SUBSTITUTION
-'   Call myEFrag(csql.Value,rAf)', , adAsyncExecute) ' wegen unzureichender Fehlerverarbeitung wieder ausrangiert 19.8.23
-'   Call DBCn.Execute(csql.Value, rAF) ', , adAsyncExecute) ' ausrangiert 16.6.24 wegen fehlender Feldverlängerung
     InsKorr DBCn, csql.Value, rAf, ErrD, , ErrN
-'    If ErrN Then Error ErrN
     If ErrN Then
      If SammelInsert = 1 And ErrN = -2147217900 Then
       SammelInsert = 0
@@ -11566,14 +11032,11 @@ Public FUNCTION laborxbaktSpeichern(SammelInsert%, BezfSp%)
  Pid = rNa(0).Pat_id
  On Error GoTo fehler
  syscmd 4, pid & ": Speichere " & Ubound(rLo)+0 & " Sätze in `laborxbakt`"
-' sql0 = " INSERT " & sqlignore & "INTO `laborxbakt` (RefNr,Verf,KuQu," & _
-     "Quelle,QSpez,AbnDat,Kommentar,Erklärung,Keimzahl) VALUES
  Call csql0.AppVar(Array(" INSERT ", sqlIgnore, "INTO `laborxbakt` (RefNr,Verf,KuQu," & _
      "Quelle,QSpez,AbnDat,Kommentar,Erklärung,Keimzahl)  VALUES"))
 sql:
  csql.m_Len = 0
  For i = 1 to ubound(rLo)
-'  rLo(i).AktZeit = now()
 setz:
   IF SammelInsert = 0 Or i = 1 Then
    csql.Append csql0
@@ -11582,14 +11045,9 @@ setz:
    rLo(i).Keimzahl, "')")
   IF SammelInsert <> 0 AND i < ubound(rLo) Then csql.Append ","
   IF SammelInsert = 0 OR i = ubound(rLo) Then
-'    altmode = DBCn.Execute("SELECT @@global.sql_mode").Fields(0)
     altmode = myEFrag("SELECT @@global.sql_mode", , DBCn).Fields(0)
-'   Call DBCn.Execute("SET GLOBAL sql_mode='STRICT_TRANS_TABLES'") ' NO_ENGINE_SUBSTITUTION
     myEFrag "SET GLOBAL sql_mode='STRICT_TRANS_TABLES'", , DBCn ' NO_ENGINE_SUBSTITUTION
-'   Call myEFrag(csql.Value,rAf)', , adAsyncExecute) ' wegen unzureichender Fehlerverarbeitung wieder ausrangiert 19.8.23
-'   Call DBCn.Execute(csql.Value, rAF) ', , adAsyncExecute) ' ausrangiert 16.6.24 wegen fehlender Feldverlängerung
     InsKorr DBCn, csql.Value, rAf, ErrD, , ErrN
-'    If ErrN Then Error ErrN
     If ErrN Then
      If SammelInsert = 1 And ErrN = -2147217900 Then
       SammelInsert = 0
@@ -11727,16 +11185,12 @@ Public FUNCTION laborxwertSpeichern(SammelInsert%, BezfSp%)
  Pid = rNa(0).Pat_id
  On Error GoTo fehler
  syscmd 4, pid & ": Speichere " & Ubound(rLw)+0 & " Sätze in `laborxwert`"
-' sql0 = " INSERT " & sqlignore & "INTO `laborxwert` (RefNr,Abkü,Langname," & _
-     "Quelle,QSpez,AbnDat,Wert,Einheit,Grenzwerti,Kommentar,Teststatus,Erklärung,AuftrHinw," & _
-     "nbid) VALUES
  Call csql0.AppVar(Array(" INSERT ", sqlIgnore, "INTO `laborxwert` (RefNr,Abkü,Langname," & _
      "Quelle,QSpez,AbnDat,Wert,Einheit,Grenzwerti,Kommentar,Teststatus,Erklärung,AuftrHinw," & _
      "nbid)    VALUES"))
 sql:
  csql.m_Len = 0
  For i = 1 to ubound(rLw)
-'  rLw(i).AktZeit = now()
     Dim j&
     For j = 1 To i - 1
     IF rLw(i).RefNr <> rLw(j).RefNr THEN GoTo nextj
@@ -11772,14 +11226,9 @@ setz:
    rLw(i).Grenzwerti, "','" , rLw(i).Kommentar, "','" , rLw(i).Teststatus, "','" , rLw(i).Erklärung, "','" , rLw(i).AuftrHinw, "'," , rLw(i).nbid, ")")
   IF SammelInsert <> 0 AND i < ubound(rLw) Then csql.Append ","
   IF SammelInsert = 0 OR i = ubound(rLw) Then
-'    altmode = DBCn.Execute("SELECT @@global.sql_mode").Fields(0)
     altmode = myEFrag("SELECT @@global.sql_mode", , DBCn).Fields(0)
-'   Call DBCn.Execute("SET GLOBAL sql_mode='STRICT_TRANS_TABLES'") ' NO_ENGINE_SUBSTITUTION
     myEFrag "SET GLOBAL sql_mode='STRICT_TRANS_TABLES'", , DBCn ' NO_ENGINE_SUBSTITUTION
-'   Call myEFrag(csql.Value,rAf)', , adAsyncExecute) ' wegen unzureichender Fehlerverarbeitung wieder ausrangiert 19.8.23
-'   Call DBCn.Execute(csql.Value, rAF) ', , adAsyncExecute) ' ausrangiert 16.6.24 wegen fehlender Feldverlängerung
     InsKorr DBCn, csql.Value, rAf, ErrD, , ErrN
-'    If ErrN Then Error ErrN
     If ErrN Then
      If SammelInsert = 1 And ErrN = -2147217900 Then
       SammelInsert = 0
@@ -11919,14 +11368,11 @@ Public FUNCTION laborxleistSpeichern(SammelInsert%, BezfSp%)
  Pid = rNa(0).Pat_id
  On Error GoTo fehler
  syscmd 4, pid & ": Speichere " & Ubound(rLL)+0 & " Sätze in `laborxleist`"
-' sql0 = " INSERT " & sqlignore & "INTO `laborxleist` (RefNr,Abkü,Verf," & _
-     "EBM,goä,Anzahl,abrd) VALUES
  Call csql0.AppVar(Array(" INSERT ", sqlIgnore, "INTO `laborxleist` (RefNr,Abkü,Verf," & _
      "EBM,goä,Anzahl,abrd)   VALUES"))
 sql:
  csql.m_Len = 0
  For i = 1 to ubound(rLL)
-'  rLL(i).AktZeit = now()
 setz:
   IF SammelInsert = 0 Or i = 1 Then
    csql.Append csql0
@@ -11934,14 +11380,9 @@ setz:
   csql.AppVar Array("(" , rLL(i).RefNr, ",'" , rLL(i).Abkü, "','" , rLL(i).Verf, "','" , rLL(i).EBM, "','" , rLL(i).goä, "','" , rLL(i).Anzahl, "','" , rLL(i).abrd, "')")
   IF SammelInsert <> 0 AND i < ubound(rLL) Then csql.Append ","
   IF SammelInsert = 0 OR i = ubound(rLL) Then
-'    altmode = DBCn.Execute("SELECT @@global.sql_mode").Fields(0)
     altmode = myEFrag("SELECT @@global.sql_mode", , DBCn).Fields(0)
-'   Call DBCn.Execute("SET GLOBAL sql_mode='STRICT_TRANS_TABLES'") ' NO_ENGINE_SUBSTITUTION
     myEFrag "SET GLOBAL sql_mode='STRICT_TRANS_TABLES'", , DBCn ' NO_ENGINE_SUBSTITUTION
-'   Call myEFrag(csql.Value,rAf)', , adAsyncExecute) ' wegen unzureichender Fehlerverarbeitung wieder ausrangiert 19.8.23
-'   Call DBCn.Execute(csql.Value, rAF) ', , adAsyncExecute) ' ausrangiert 16.6.24 wegen fehlender Feldverlängerung
     InsKorr DBCn, csql.Value, rAf, ErrD, , ErrN
-'    If ErrN Then Error ErrN
     If ErrN Then
      If SammelInsert = 1 And ErrN = -2147217900 Then
       SammelInsert = 0
@@ -12097,10 +11538,6 @@ Public FUNCTION liuezSpeichern(SammelInsert%, BezfSp%)
  Pid = rNa(0).Pat_id
  On Error GoTo fehler
  syscmd 4, pid & ": Speichere " & Ubound(rLi)+0 & " Sätze in `liuez`"
-' sql0 = " INSERT " & sqlignore & "INTO `liuez` (name,vorname,titelt," & _
-     "fachgruppe,strasse,plz,ort,telefon,fax,kvnr,überschrift,dbnr,bstelle," & _
-     "anrede,tel1,tel2,tel3,tel4,fax1,fax2,fax3,email,zulg," & _
-     "arzttyp,gemmit,beme,dmpt2,dmpt1,geschlecht,titel,zusatz,ursp,aktzeit) VALUES
  Call csql0.AppVar(Array(" INSERT ", sqlIgnore, "INTO `liuez` (name,vorname,titelt," & _
      "fachgruppe,strasse,plz,ort,telefon,fax,kvnr,überschrift,dbnr,bstelle," & _
      "anrede,tel1,tel2,tel3,tel4,fax1,fax2,fax3,email,zulg," & _
@@ -12108,7 +11545,6 @@ Public FUNCTION liuezSpeichern(SammelInsert%, BezfSp%)
 sql:
  csql.m_Len = 0
  For i = 1 to ubound(rLi)
-'  rLi(i).AktZeit = now()
 setz:
   IF SammelInsert = 0 Or i = 1 Then
    csql.Append csql0
@@ -12119,14 +11555,9 @@ setz:
    rLi(i).dmpt2, "," , rLi(i).dmpt1, ",'" , rLi(i).geschlecht, "','" , rLi(i).titel, "','" , rLi(i).zusatz, "','" , rLi(i).ursp, "'," , DatFor_k(rLi(i).aktzeit), ")")
   IF SammelInsert <> 0 AND i < ubound(rLi) Then csql.Append ","
   IF SammelInsert = 0 OR i = ubound(rLi) Then
-'    altmode = DBCn.Execute("SELECT @@global.sql_mode").Fields(0)
     altmode = myEFrag("SELECT @@global.sql_mode", , DBCn).Fields(0)
-'   Call DBCn.Execute("SET GLOBAL sql_mode='STRICT_TRANS_TABLES'") ' NO_ENGINE_SUBSTITUTION
     myEFrag "SET GLOBAL sql_mode='STRICT_TRANS_TABLES'", , DBCn ' NO_ENGINE_SUBSTITUTION
-'   Call myEFrag(csql.Value,rAf)', , adAsyncExecute) ' wegen unzureichender Fehlerverarbeitung wieder ausrangiert 19.8.23
-'   Call DBCn.Execute(csql.Value, rAF) ', , adAsyncExecute) ' ausrangiert 16.6.24 wegen fehlender Feldverlängerung
     InsKorr DBCn, csql.Value, rAf, ErrD, , ErrN
-'    If ErrN Then Error ErrN
     If ErrN Then
      If SammelInsert = 1 And ErrN = -2147217900 Then
       SammelInsert = 0
@@ -12293,11 +11724,6 @@ Public FUNCTION tuLaden
  call diagnosenLaden
  call dokumenteLaden
  call eintraegeLaden
-'  IF not lese.obmysql THEN
-'   IF obTrans <> 0 THEN Call DBCn.CommitTrans: obtrans = 0
-'    Call DBCn.BeginTrans: obTrans = 1
-'  END IF ' not lese.obmysql 
-   wechsTrans
  call forminhkopfLaden
  call kheinweisLaden
  call lbanforderungenLaden
@@ -12306,7 +11732,6 @@ Public FUNCTION tuLaden
  call medplanLaden
  call rezepteintraegeLaden
  call rrLaden
- call unbek_kennLaden
  call dmpreiheLaden
  call desktopLaden
  call usdmLaden
@@ -12336,8 +11761,6 @@ Public Function tuSpeichern(frm AS Lese, SI%, BfS%) ' frm.dlg.SammelInsert, frm.
  call diagnosenSpeichern(SI, BfS)
  call dokumenteSpeichern(SI, BfS)
  call eintraegeSpeichern(SI, BfS)
- call forminhaltform_abkSpeichern(SI, BfS)
- wechsTrans
  sqlIGNORE = " IGNORE "
  call formulareSpeichern(SI, BfS)
  sqlIGNORE = ""

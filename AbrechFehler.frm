@@ -1353,7 +1353,7 @@ sql(AWlf) = sql(AWlf) & _
  ' AND COALESCE(Dggel,0)=0
 sql(AWlf) = "" & _
 "SELECT f.pat_id, gesname(f.pat_id) PName " & vbCrLf & _
-",(SELECT concat(feldinh,'   ',zeitpunkt) FROM formular WHERE pat_id=f.pat_id AND formvorl='\$\\TurboMed\\Formulare\\Patientenmenue\\ADL.tmf' AND feldnr IN (20,21,22) AND feld='txtdyn' ORDER BY zeitpunkt DESC, foid DESC LIMIT 1) Harnkontinenzpunkte " & vbCrLf & _
+",(SELECT concat(feldinh,'   ',zeitpunkt) FROM formular WHERE pat_id=f.pat_id AND LCASE(formvorl)='\$\\turbomed\\formulare\\patientenmenue\\adl.tmf' AND feldnr IN (20,21,22) AND feld='txtdyn' ORDER BY zeitpunkt DESC, foid DESC LIMIT 1) Harnkontinenzpunkte " & vbCrLf & _
 ",(SELECT icd FROM diagview d WHERE pat_id=f.pat_id AND gicd LIKE 'R32%' LIMIT 1) R32 " & vbCrLf & _
 "FROM aktfv f " & vbCrLf & _
 "HAVING LEFT(Harnkontinenzpunkte,2)<>10 AND ISNULL(R32);"

@@ -109,6 +109,7 @@ Dim lfdnr& ' für Tabelle Namen / in GesLies: Zahl der eingelesenen Patienten
 Dim lKennung% ', lk%(15)
 Dim jetztKopf%, rFm_Nr&, jetztCGM%
 Dim lFormID& ' ID des letzten Formulars
+Dim nextFormID& ' nächste FormID
 Dim obZweiteRunde%
 Dim lLang$, lLangVW&
 Dim lKomm$, lKommVW&
@@ -326,6 +327,11 @@ vorabfrag:
  Loop
  rUn1 = UBound(rUn)
  
+ ' Formulare pflege:
+ ' UPDATE forminhkopf fk LEFT JOIN formulare f ON form_id=formid SET form_id = (SELECT MIN(formid) FROM formulare WHERE form_abk=f.form_abk AND formbez=f.formbez AND lcase(formvorl)=lcase(f.formvorl));
+ ' DELETE f FROM formulare f INNER JOIN (SELECT * FROM (SELECT MIN(formid) OVER (PARTITION BY form_abk,formbez,lcase(formvorl)) mf, formid,form_abk,formbez, formvorl FROM formulare) f having mf<>formid) i ON f.formid=i.formid;
+ ' DELETE fi FROM forminhfeld fi LEFT JOIN forminhkopf k USING (foid) WHERE ISNULL(k.FoID);
+ 
  If obmitFormularen Then
   rFo(0).FormID = 0
   If UBound(rFo) = 0 Then
@@ -356,23 +362,23 @@ vorabfrag:
  rFo1 = UBound(rFo)
  
  
- If UBound(rFi) = 0 Then
-  syscmd 4, "Lade forminhaltform_abk vor (2)"
-  rFi(0).Form_AbkVW = 0
-  Set rs = myEFrag("SELECT Form_Abk,FormBez,Form_AbkVW FROM forminhaltform_abk ORDER BY form_abkvw")
- ' myFrag rs, "SELECT * FROM forminhaltform_abk ORDER BY form_abkvw"
-  If Not rs.BOF Then
-   rs.MoveFirst
-   Do While Not rs.EOF
-    ReDim Preserve rFi(UBound(rFi) + 1)
-    rFi(UBound(rFi)).Form_Abk = IIf(IsNull(rs!Form_Abk), vNS, rs!Form_Abk)
-    rFi(UBound(rFi)).FormBez = IIf(IsNull(rs!Form_Abk), vNS, rs!FormBez)
-    rFi(UBound(rFi)).Form_AbkVW = rs!Form_AbkVW
-    rs.MoveNext
-   Loop ' While Not rs.EOF
-  End If
-  rFi1 = UBound(rFi)
- End If ' rfil=0
+' If UBound(rFi) = 0 Then
+'  syscmd 4, "Lade forminhaltform_abk vor (2)"
+'  rFi(0).Form_AbkVW = 0
+'  Set rs = myEFrag("SELECT Form_Abk,FormBez,Form_AbkVW FROM forminhaltform_abk ORDER BY form_abkvw")
+' ' myFrag rs, "SELECT * FROM forminhaltform_abk ORDER BY form_abkvw"
+'  If Not rs.BOF Then
+'   rs.MoveFirst
+'   Do While Not rs.EOF
+'    ReDim Preserve rFi(UBound(rFi) + 1)
+'    rFi(UBound(rFi)).Form_Abk = IIf(IsNull(rs!Form_Abk), vNS, rs!Form_Abk)
+'    rFi(UBound(rFi)).FormBez = IIf(IsNull(rs!Form_Abk), vNS, rs!FormBez)
+'    rFi(UBound(rFi)).Form_AbkVW = rs!Form_AbkVW
+'    rs.MoveNext
+'   Loop ' While Not rs.EOF
+'  End If
+'  rFi1 = UBound(rFi)
+' End If ' rfil=0
  Exit Function
 F0:
  If Err.Number = 3704 And lauf < MaxLauf Then ' Der Vorgang ist für ein geschlossenes Objekt nicht zugelassen.
@@ -642,9 +648,9 @@ Call myEFrag("INSERT INTO eintrhist2(fid,abspos,aktzeit,stbyte,id)" & vbCrLf & _
   Do While Not rq.EOF
    Do
     Set rz1 = Nothing
-    myFrag rz1, "SELECT id FROM `eintrhist1` WHERE pat_id = " & rq!Pat_id & " AND zeitpunkt = " & DatFor_k(rq!Zeitpunkt) & " AND art = '" & rq!Art & "' AND inhalt = '" & UmwfSQL(rq!Inhalt) & "' AND qs = '" & rq!QS & "' AND qt = '" & rq!QT & "'"
+    myFrag rz1, "SELECT id FROM `eintrhist1` WHERE pat_id = " & rq!Pat_ID & " AND zeitpunkt = " & DatFor_k(rq!Zeitpunkt) & " AND art = '" & rq!art & "' AND inhalt = '" & UmwfSQL(rq!Inhalt) & "' AND qs = '" & rq!QS & "' AND qt = '" & rq!QT & "'"
     If rz1.BOF Then
-     InsKorr DBCn, "INSERT INTO `eintrhist1`(pat_id,zeitpunkt,art,inhalt,qs,qt) VALUES(" & rq!Pat_id & "," & DatFor_k(rq!Zeitpunkt) & ",'" & rq!Art & "','" & UmwfSQL(rq!Inhalt) & "','" & rq!QS & "','" & rq!QT & "')", rAf
+     InsKorr DBCn, "INSERT INTO `eintrhist1`(pat_id,zeitpunkt,art,inhalt,qs,qt) VALUES(" & rq!Pat_ID & "," & DatFor_k(rq!Zeitpunkt) & ",'" & rq!art & "','" & UmwfSQL(rq!Inhalt) & "','" & rq!QS & "','" & rq!QT & "')", rAf
     Else
      Exit Do
     End If
@@ -1391,7 +1397,7 @@ Function doMedklassT()
   End If
 #End If
   medi.LT = rMe!Medikament
-  medi.Pat_id = rMe!Pat_id
+  medi.Pat_ID = rMe!Pat_ID
   Call medSL.sCAdd(medi, True)
   DoEvents
   rMe.Move 1
@@ -1416,11 +1422,11 @@ End Function ' doMedklassT()
   If LenB(Med) <> 0 And Med <> """" Then
    Set rs = myEFrag("SELECT 0 FROM `medarten` WHERE medikament = '" & REPLACE$(REPLACE$(Med, "'", "\\\'"), "\\\\'", "\\\'") & "'")
    If rs.BOF Then
-    InsKorr DBCn, "INSERT INTO `medarten`(medikament,hinzugefügt,langname,pat_id) VALUES ('" & Med & "'," & DatFor_k(Now) & ",'" & medSL.Item(i).LT & "'," & medSL.Item(i).Pat_id & ")", rAf
+    InsKorr DBCn, "INSERT INTO `medarten`(medikament,hinzugefügt,langname,pat_id) VALUES ('" & Med & "'," & DatFor_k(Now) & ",'" & medSL.Item(i).LT & "'," & medSL.Item(i).Pat_ID & ")", rAf
    Else
     Set rs = myEFrag("SELECT 0 FROM `medarten` WHERE medikament = '" & Med & "' AND (pat_id = 0 OR ISNULL(pat_id))")
     If Not rs.BOF Then
-     Call myEFrag("UPDATE `medarten` SET pat_id = " & medSL.Item(i).Pat_id & " WHERE medikament = '" & Med & "'", rAf)
+     Call myEFrag("UPDATE `medarten` SET pat_id = " & medSL.Item(i).Pat_ID & " WHERE medikament = '" & Med & "'", rAf)
     End If
 ' , Langname = '" & medSL.Item(i).LT & "'
     Set rs = myEFrag("SELECT 0 FROM `medarten` WHERE medikament = '" & Med & "' AND (langname = '' OR ISNULL(langname))")
@@ -1696,16 +1702,16 @@ Function thtest()
 End Function ' thtest
 
 ' in TherapieartenFestlegen_Click(), thtest()
-Function rufThFestleg(Pat_id&, Optional Position$)
- syscmd acSysCmdSetStatus, "ermittle und speichere Therapiearten für Pat. " & Pat_id & Position
+Function rufThFestleg(Pat_ID&, Optional Position$)
+ syscmd acSysCmdSetStatus, "ermittle und speichere Therapiearten für Pat. " & Pat_ID & Position
 #If Not thaalt Then
  'RunCommandLine ("ssh root@" & LiName & " mysql --defaults-extra-file=~/.mysqlpwd quelle -e'CALL fuellThaP(" & CStr(Pat_id) & ")'")
 ' 22.10.22: führt bei Aufruf über Ado zumindest bis zur Mariadb-Version 10.9 immer wieder zum Server-Crash, s.ähnliche Bug-Hinweise früherer Versionen
 #Const mitfensterr = False
 #If mitfensterr Then
- rufauf "ssh", "root@" & LiName & " mysql --defaults-extra-file=~/.mysqlpwd quelle -e'CALL fuellThaP(" & CStr(Pat_id) & ")'", 2, "c:\windows\system32\openssh\", -1, 0
+ rufauf "ssh", "root@" & LiName & " mysql --defaults-extra-file=~/.mysqlpwd quelle -e'CALL fuellThaP(" & CStr(Pat_ID) & ")'", 2, "c:\windows\system32\openssh\", -1, 0
 #Else
- Call TheraErmitt(CStr(Pat_id), , Position)
+ Call TheraErmitt(CStr(Pat_ID), , Position)
 #End If
 ' myEFrag "CALL fuellThaP(" & CStr(Pat_id) & ")"
 #Else ' ausrangiert 12.12.20
@@ -1717,10 +1723,10 @@ Function rufThFestleg(Pat_id&, Optional Position$)
  ReDim rNa(0)
  ReDim rFm(0)
  ReDim rMe(0)
- rNa(0).Pat_id = Pat_id
- myFrag rsNa, "SELECT aufndat FROM `namen` WHERE pat_id = " & Pat_id
+ rNa(0).Pat_ID = Pat_ID
+ myFrag rsNa, "SELECT aufndat FROM `namen` WHERE pat_id = " & Pat_ID
  If Not rsNa.BOF Then rNa(0).AufnDat = rsNa!AufnDat
- myFrag rsFm, "SELECT foid,feldinh,feld,zeitpunkt FROM `formular` WHERE pat_id = " & Pat_id & " AND feld IN ('medikament','txtmedkey') ORDER BY foid, feldnr"
+ myFrag rsFm, "SELECT foid,feldinh,feld,zeitpunkt FROM `formular` WHERE pat_id = " & Pat_ID & " AND feld IN ('medikament','txtmedkey') ORDER BY foid, feldnr"
  If Not rsFm.BOF Then
   Do While Not rsFm.EOF()
    ReDim Preserve rFm(UBound(rFm) + 1)
@@ -1736,7 +1742,7 @@ Function rufThFestleg(Pat_id&, Optional Position$)
    rsFm.MoveNext
   Loop
  End If
- myFrag rsMe, "SELECT MPNr, Zeitpunkt, AktZeit, Medikament, Mo, Mi, NM, Ab, ZN, StByte FROM `medplan` WHERE pat_id = " & Pat_id & " ORDER BY zeitpunkt, mpnr"
+ myFrag rsMe, "SELECT MPNr, Zeitpunkt, AktZeit, Medikament, Mo, Mi, NM, Ab, ZN, StByte FROM `medplan` WHERE pat_id = " & Pat_ID & " ORDER BY zeitpunkt, mpnr"
  If Not rsMe.BOF Then
   Do While Not rsMe.EOF()
    ReDim Preserve rMe(UBound(rMe) + 1)
@@ -1777,7 +1783,7 @@ Function rmeSort()
    If rMe(i).Zeitpunkt = adat Then
     ReDim Preserve rmpn(UBound(rmpn) + 1)
     rmpn(UBound(rmpn)).FID = rMe(i).FID
-    rmpn(UBound(rmpn)).Pat_id = rMe(i).Pat_id
+    rmpn(UBound(rmpn)).Pat_ID = rMe(i).Pat_ID
     rmpn(UBound(rmpn)).MPNr = rMe(i).MPNr
     rmpn(UBound(rmpn)).Zeitpunkt = rMe(i).Zeitpunkt
     rmpn(UBound(rmpn)).Datum = rMe(i).Datum
@@ -1884,7 +1890,7 @@ Function THAfestleg() ' in dolies und geslies / parallel zu Therauskunft
 '      dSL.sCInit
 '      dSL.Eingrenz sD
  Dim rsAna As New ADODB.Recordset
- myFrag rsAna, "SELECT `insulinpumpe` ip FROM `anamnesebogen` a WHERE pat_id = " & rNa(0).Pat_id
+ myFrag rsAna, "SELECT `insulinpumpe` ip FROM `anamnesebogen` a WHERE pat_id = " & rNa(0).Pat_ID
  If Not rsAna.EOF Then
   If Not IsNull(rsAna!IP) Then
    If rsAna!IP <> 0 Then
@@ -1894,7 +1900,7 @@ Function THAfestleg() ' in dolies und geslies / parallel zu Therauskunft
     If UBound(rTh) < 2 Or (Tha <> rTh(UBound(rTh)).therart And Int(rNa(0).AufnDat) <> Int(rTh(UBound(rTh)).Zp)) Then _
        ReDim Preserve rTh(UBound(rTh) + 1)
     rTh(UBound(rTh)).MPNr = 0
-    rTh(UBound(rTh)).Pat_id = rNa(0).Pat_id
+    rTh(UBound(rTh)).Pat_ID = rNa(0).Pat_ID
     rTh(UBound(rTh)).therart = Tha
     rTh(UBound(rTh)).absPos = absPos
     rTh(UBound(rTh)).Zp = rNa(0).AufnDat
@@ -1998,7 +2004,7 @@ thains:
      If UBound(rTh) < 2 Or (Tha <> rTh(UBound(rTh)).therart And Int(altZp) <> Int(rTh(UBound(rTh)).Zp)) Then _
        ReDim Preserve rTh(UBound(rTh) + 1)
      rTh(UBound(rTh)).MPNr = altMPNr
-     rTh(UBound(rTh)).Pat_id = rNa(0).Pat_id
+     rTh(UBound(rTh)).Pat_ID = rNa(0).Pat_ID
      rTh(UBound(rTh)).therart = Tha
      rTh(UBound(rTh)).Grund = Grund
      rTh(UBound(rTh)).insart = insart
@@ -2173,9 +2179,9 @@ Public Function theraktakt() ' Therapiearten auf einmal aktualisieren 11.7.10, s
  myFrag rsa, "SELECT pat_id FROM `therarten` GROUP BY pat_id"
  Do While Not rsa.EOF
   Set rs1 = Nothing
-  myFrag rs1, "SELECT therart FROM `therarten` WHERE pat_id = " & rsa!Pat_id & " ORDER BY zp DESC,mpnr DESC LIMIT 1"
+  myFrag rs1, "SELECT therart FROM `therarten` WHERE pat_id = " & rsa!Pat_ID & " ORDER BY zp DESC,mpnr DESC LIMIT 1"
   If Not rs1.BOF Then
-   myEFrag "UPDATE `anamnesebogen` SET therakt = '" & rs1!therart & "' WHERE pat_id = " & rsa!Pat_id & " AND therakt <> '" & rs1!therart & "'", rAf
+   myEFrag "UPDATE `anamnesebogen` SET therakt = '" & rs1!therart & "' WHERE pat_id = " & rsa!Pat_ID & " AND therakt <> '" & rs1!therart & "'", rAf
 '   Debug.Print rsa!Pat_id, rs1!therart, rAF
   End If
   rsa.MoveNext
@@ -2205,7 +2211,7 @@ Function neuQuartal(frm As Lese, rInhalt$)
     f8000 = vNS
     rFa(UBound(rFa)).s8100 = f8100
     f8100 = vNS
-    rFa(UBound(rFa)).Pat_id = rNa(0).Pat_id
+    rFa(UBound(rFa)).Pat_ID = rNa(0).Pat_ID
     rFa(UBound(rFa)).Vorname = rNa(0).Vorname
     rFa(UBound(rFa)).Nachname = rNa(0).Nachname
     rFa(UBound(rFa)).aktZeit = aktZeit
@@ -2277,7 +2283,7 @@ Function dolies(frm As Lese, RKennung$, rInhalt$, obSchluss%, PatZnr&, GesZnr&, 
  Dim p1&, p2&
  Static aktDiNr%, keinEintrag%
  Static IKrz$
- Dim rFoNeu%, rFoAbkNeu% ' ob Formular/Abkürzungseintrag neu
+ Dim rFoNeu% ' , rFoAbkNeu% ' ob Formular/Abkürzungseintrag neu
  '  FID ggf zuweisen
  Dim obPat%
  Static FNam() As String, FNam2() As String, ifn&
@@ -2301,10 +2307,10 @@ Function dolies(frm As Lese, RKennung$, rInhalt$, obSchluss%, PatZnr&, GesZnr&, 
     If rInhalt = "" Then
      rInhalt = 0
     End If
-    If rInhalt <> rNa(0).Pat_id Then ' da 3000 pro Pat. öfter vorkommt
+    If rInhalt <> rNa(0).Pat_ID Then ' da 3000 pro Pat. öfter vorkommt
 '     lPatNeu = -1
 #If thaalt Then
-     If rNa(0).Pat_id <> 0 Then
+     If rNa(0).Pat_ID <> 0 Then
       Call THAfestleg ' ausrangiert 12.12.20
      End If
 #End If
@@ -2319,7 +2325,7 @@ Function dolies(frm As Lese, RKennung$, rInhalt$, obSchluss%, PatZnr&, GesZnr&, 
      myEFrag "UPDATE namen SET stbytea = " & AktByte & " WHERE pat_id = " & rInhalt ' 17.11.19 um Programmabbrüchen während Import nachspüren zu können
      rNa(0).StByteA = AktByte
      rNa(0).lfdnr = lfdnr
-     rNa(0).Pat_id = rInhalt
+     rNa(0).Pat_ID = rInhalt
      rNa(0).aktZeit = lAktZeit
      Call PatInit
      ausrrxml = 0
@@ -2465,7 +2471,7 @@ Function dolies(frm As Lese, RKennung$, rInhalt$, obSchluss%, PatZnr&, GesZnr&, 
       End Select
       If LenB(aktkvnr) = 0 Then Exit For ' iirunde
       For j = 1 To UBound(rKv)
-       If rKv(j).KVNr = aktkvnr And rKv(j).Pat_id = rNa(0).Pat_id Then
+       If rKv(j).KVNr = aktkvnr And rKv(j).Pat_ID = rNa(0).Pat_ID Then
         obrKV = 0
         Exit For
        End If
@@ -2474,7 +2480,7 @@ Function dolies(frm As Lese, RKennung$, rInhalt$, obSchluss%, PatZnr&, GesZnr&, 
        ReDim Preserve rKv(UBound(rKv) + 1)
        rKv(UBound(rKv)).absPos = absPos
        rKv(UBound(rKv)).KVNr = aktkvnr
-       rKv(UBound(rKv)).Pat_id = rNa(0).Pat_id
+       rKv(UBound(rKv)).Pat_ID = rNa(0).Pat_ID
        rKv(UBound(rKv)).aktZeit = aktZeit
       End If
      Next iirunde
@@ -2515,7 +2521,7 @@ Function dolies(frm As Lese, RKennung$, rInhalt$, obSchluss%, PatZnr&, GesZnr&, 
     End If ' InStr(FormVorl, "Kassenrezept") <> 0 Or InStr(FormVorl, "Privatrezept") <> 0 Then
    Case 3750 ' Desktopobjekt
     ReDim Preserve rDe(UBound(rDe) + 1)
-    rDe(UBound(rDe)).Pat_id = rNa(0).Pat_id
+    rDe(UBound(rDe)).Pat_ID = rNa(0).Pat_ID
     rDe(UBound(rDe)).aktZeit = aktZeit
     Dim ZStr$
     ZStr = ZwischenStr(rInhalt, "<erstellungsZeitpunkt>", "<")
@@ -2701,7 +2707,7 @@ resume_4247:
             geschlecht = vorw!geschlecht
             titelt = vorw!titelt
 '            Debug.Print vorw.source
-            InsKorr DBCn, "INSERT INTO " & Tabl & "(kvnr,titel,vorname,zusatz," & nnafeld & ",fachgruppe,strasse,plz,ort,telefon,fax,anrede,tel1,tel2,tel3,tel4,fax1,fax2,fax3,email,zulg,arzttyp,gemmit,beme,dmpt2,dmpt1,geschlecht,titelt,ursp,aktzeit) VALUES('" & KVNr & "','" & Arra(1) & "','" & Arra(2) & "','" & Arra(3) & "','" & Arra(4) & "','" & fachgruppe & "','" & strasse & "','" & plz & "','" & ort & "','" & telefon & "','" & fax & "','" & anrede & "','" & tel1 & "','" & tel2 & "','" & tel3 & "','" & tel4 & "','" & fax1 & "','" & fax2 & "','" & fax3 & "','" & email & "','" & zulg & "','" & arzttyp & "','" & gemmit & "','" & beme & "','" & dmpt2 & "','" & dmpt1 & "','" & geschlecht & "','" & titelt & "','" & "dolies:" & rNa(0).Pat_id & "','" & Format$(Now(), "yyyy-mm-dd hh:mm:ss") & "')", rAf
+            InsKorr DBCn, "INSERT INTO " & Tabl & "(kvnr,titel,vorname,zusatz," & nnafeld & ",fachgruppe,strasse,plz,ort,telefon,fax,anrede,tel1,tel2,tel3,tel4,fax1,fax2,fax3,email,zulg,arzttyp,gemmit,beme,dmpt2,dmpt1,geschlecht,titelt,ursp,aktzeit) VALUES('" & KVNr & "','" & Arra(1) & "','" & Arra(2) & "','" & Arra(3) & "','" & Arra(4) & "','" & fachgruppe & "','" & strasse & "','" & plz & "','" & ort & "','" & telefon & "','" & fax & "','" & anrede & "','" & tel1 & "','" & tel2 & "','" & tel3 & "','" & tel4 & "','" & fax1 & "','" & fax2 & "','" & fax3 & "','" & email & "','" & zulg & "','" & arzttyp & "','" & gemmit & "','" & beme & "','" & dmpt2 & "','" & dmpt1 & "','" & geschlecht & "','" & titelt & "','" & "dolies:" & rNa(0).Pat_ID & "','" & Format$(Now(), "yyyy-mm-dd hh:mm:ss") & "')", rAf
             volleingefuegt = rAf
            End If
           End If
@@ -2984,7 +2990,7 @@ resume_4247:
     End If
     rDi(aktDiNr).KFdFA = KFdFA_
     rDi(aktDiNr).FID = rFa(UBound(rFa)).FID
-    rDi(aktDiNr).Pat_id = rNa(0).Pat_id
+    rDi(aktDiNr).Pat_ID = rNa(0).Pat_ID
 '    rDi(aktDiNr).GesName = GN
     rDi(aktDiNr).absPos = absPos
     rDi(aktDiNr).aktZeit = aktZeit
@@ -3050,7 +3056,7 @@ difertig:
    Case 6350 ' Verordnungsplan
       ReDim Preserve rVo(UBound(rVo) + 1)
       rVo(UBound(rVo)).FormTitel = FormTit
-      rVo(UBound(rVo)).Pat_id = rNa(0).Pat_id
+      rVo(UBound(rVo)).Pat_ID = rNa(0).Pat_ID
       rVo(UBound(rVo)).Zeitpunkt = messDatum
       rVo(UBound(rVo)).absPos = absPos
       rVo(UBound(rVo)).aktZeit = aktZeit
@@ -3061,7 +3067,7 @@ difertig:
     If InStrB(rInhalt, "KarteiSchwangerschaftsEintrag") <> 0 Then ' 9.4.22: es können auch Blutdruck und Sws in einer Zeile stehen, Pat. 64124
       ReDim Preserve rSw(UBound(rSw) + 1)
       rSw(UBound(rSw)).FormTitel = FormTit
-      rSw(UBound(rSw)).Pat_id = rNa(0).Pat_id
+      rSw(UBound(rSw)).Pat_ID = rNa(0).Pat_ID
       rSw(UBound(rSw)).Zeitpunkt = messDatum
       rSw(UBound(rSw)).absPos = absPos
       rSw(UBound(rSw)).aktZeit = aktZeit
@@ -3154,10 +3160,10 @@ difertig:
          If LenB(Diast) <> 0 Then
           GoSub rEiVorb
           Select Case irunde
-           Case 1: rEi(UBound(rEi)).Art = "gewicht": rEi(UBound(rEi)).Inhalt = Left$(Diast, MAXvb(Len(Diast) - 3, 0)) & " kg" ' g -> kg
-           Case 2: rEi(UBound(rEi)).Art = "groesse": rEi(UBound(rEi)).Inhalt = Left$(Diast, Len(Diast) - 1) & " cm" ' mm -> cm
-           Case 3: rEi(UBound(rEi)).Art = "taille":  rEi(UBound(rEi)).Inhalt = Left$(Diast, Len(Diast) - 1) & " cm" ' mm -> cm
-           Case 4: rEi(UBound(rEi)).Art = "hüfte":   rEi(UBound(rEi)).Inhalt = Left$(Diast, Len(Diast) - 1) & " cm" ' mm -> cm
+           Case 1: rEi(UBound(rEi)).art = "gewicht": rEi(UBound(rEi)).Inhalt = Left$(Diast, MAXvb(Len(Diast) - 3, 0)) & " kg" ' g -> kg
+           Case 2: rEi(UBound(rEi)).art = "groesse": rEi(UBound(rEi)).Inhalt = Left$(Diast, Len(Diast) - 1) & " cm" ' mm -> cm
+           Case 3: rEi(UBound(rEi)).art = "taille":  rEi(UBound(rEi)).Inhalt = Left$(Diast, Len(Diast) - 1) & " cm" ' mm -> cm
+           Case 4: rEi(UBound(rEi)).art = "hüfte":   rEi(UBound(rEi)).Inhalt = Left$(Diast, Len(Diast) - 1) & " cm" ' mm -> cm
           End Select
          End If ' LenB(Diast) <> 0 Then
         End If ' p1 <> 0 AND p2 <> 0 THEN
@@ -3169,7 +3175,7 @@ rEiVorb:
         rEi(UBound(rEi)).absPos = absPos
         rEi(UBound(rEi)).aktZeit = aktZeit
         rEi(UBound(rEi)).FID = rFa(UBound(rFa)).FID
-        rEi(UBound(rEi)).Pat_id = rNa(0).Pat_id
+        rEi(UBound(rEi)).Pat_ID = rNa(0).Pat_ID
         rEi(UBound(rEi)).Zeitpunkt = messDatum
         rEi(UBound(rEi)).QS = ZQSort(rEi(UBound(rEi)).Zeitpunkt)
         rEi(UBound(rEi)).QT = ZQuart(rEi(UBound(rEi)).Zeitpunkt)
@@ -3188,7 +3194,7 @@ rEiVorb:
            ReDim Preserve rRr(UBound(rRr) + 1)
            ausrrxml = True
            rRr(UBound(rRr)).FormTitel = FormTit
-           rRr(UBound(rRr)).Pat_id = rNa(0).Pat_id
+           rRr(UBound(rRr)).Pat_ID = rNa(0).Pat_ID
            rRr(UBound(rRr)).Zeitpunkt = messDatum
     '       rRr(UBound(rRr)).RR = RR
            rRr(UBound(rRr)).absPos = absPos
@@ -3263,11 +3269,11 @@ rEiVorb:
      rEi(UBound(rEi)).Inhalt = Left$(rEi(UBound(rEi)).Inhalt, Len(rEi(UBound(rEi)).Inhalt) - IIf(Right$(rEi(UBound(rEi)).Inhalt, 1) = "^", 1, 0)) + rInhalt
     Else
      ReDim Preserve rEi(UBound(rEi) + 1)
-     rEi(UBound(rEi)).Art = "th"
+     rEi(UBound(rEi)).art = "th"
      rEi(UBound(rEi)).absPos = absPos
      rEi(UBound(rEi)).aktZeit = aktZeit
      rEi(UBound(rEi)).FID = rFa(UBound(rFa)).FID
-     rEi(UBound(rEi)).Pat_id = rNa(0).Pat_id
+     rEi(UBound(rEi)).Pat_ID = rNa(0).Pat_ID
      rEi(UBound(rEi)).Zeitpunkt = messDatum
      rEi(UBound(rEi)).QS = ZQSort(rEi(UBound(rEi)).Zeitpunkt)
      rEi(UBound(rEi)).QT = ZQuart(rEi(UBound(rEi)).Zeitpunkt)
@@ -3278,7 +3284,7 @@ rEiVorb:
      rLb(UBound(rLb)).AnfText = Left$(rLb(UBound(rLb)).AnfText, Len(rLb(UBound(rLb)).AnfText) - IIf(Right$(rLb(UBound(rLb)).AnfText, 1) = "^", 1, 0)) + rInhalt
     Else
      ReDim Preserve rLb(UBound(rLb) + 1)
-     rLb(UBound(rLb)).Pat_id = rNa(0).Pat_id
+     rLb(UBound(rLb)).Pat_ID = rNa(0).Pat_ID
      rLb(UBound(rLb)).Zeitpunkt = messDatum
      rLb(UBound(rLb)).AnfText = rInhalt
      rLb(UBound(rLb)).FID = rFa(UBound(rFa)).FID
@@ -3287,7 +3293,7 @@ rEiVorb:
     End If
    Case 6285 ' AU-Dauer
     ReDim Preserve rAu(UBound(rAu) + 1)
-    rAu(UBound(rAu)).Pat_id = rNa(0).Pat_id
+    rAu(UBound(rAu)).Pat_ID = rNa(0).Pat_ID
     rAu(UBound(rAu)).Zeitpunkt = messDatum
     rAu(UBound(rAu)).Beginn = Left$(rInhalt, 8)
     rAu(UBound(rAu)).Ende = Right$(rInhalt, 8)
@@ -3301,7 +3307,7 @@ rEiVorb:
     End If
    Case 6291 ' Krankenhauseinweisung
     ReDim Preserve rKh(UBound(rKh) + 1)
-    rKh(UBound(rKh)).Pat_id = rNa(0).Pat_id
+    rKh(UBound(rKh)).Pat_ID = rNa(0).Pat_ID
     rKh(UBound(rKh)).Zeitpunkt = messDatum
     rKh(UBound(rKh)).Ziel = rInhalt
     rKh(UBound(rKh)).absPos = absPos
@@ -3316,7 +3322,7 @@ rEiVorb:
       obFormDMP = True
       ReDim Preserve rDm(UBound(rDm) + 1)
       rDm(UBound(rDm)).Abk = rInhalt
-      rDm(UBound(rDm)).Pat_id = rNa(0).Pat_id
+      rDm(UBound(rDm)).Pat_ID = rNa(0).Pat_ID
       rDm(UBound(rDm)).KarteiDatum = messDatum
       rDm(UBound(rDm)).aktZeit = aktZeit
       rDm(UBound(rDm)).lanrid = Lanr ' : Lanr = 0 ' Kommentar 21.3.21
@@ -3324,15 +3330,15 @@ rEiVorb:
 '      rDm(UBound(rDm)).VorName = rNa(0).VorName
 '      rDm(UBound(rDm)).GebDat = rNa(0).GebDat
      Case "TUG", "ADL" ' Timed Up AND Go - Test, Activity of Daily Life
-        ReDim Preserve rEi(UBound(rEi) + 1)
-        rEi(UBound(rEi)).Art = rInhalt
-        rEi(UBound(rEi)).absPos = absPos
-        rEi(UBound(rEi)).aktZeit = aktZeit
-        rEi(UBound(rEi)).FID = rFa(UBound(rFa)).FID
-        rEi(UBound(rEi)).Pat_id = rNa(0).Pat_id
-        rEi(UBound(rEi)).Zeitpunkt = messDatum
-        rEi(UBound(rEi)).QS = ZQSort(rEi(UBound(rEi)).Zeitpunkt)
-        rEi(UBound(rEi)).QT = ZQuart(rEi(UBound(rEi)).Zeitpunkt)
+      ReDim Preserve rEi(UBound(rEi) + 1)
+      rEi(UBound(rEi)).art = rInhalt
+      rEi(UBound(rEi)).absPos = absPos
+      rEi(UBound(rEi)).aktZeit = aktZeit
+      rEi(UBound(rEi)).FID = rFa(UBound(rFa)).FID
+      rEi(UBound(rEi)).Pat_ID = rNa(0).Pat_ID
+      rEi(UBound(rEi)).Zeitpunkt = messDatum
+      rEi(UBound(rEi)).QS = ZQSort(rEi(UBound(rEi)).Zeitpunkt)
+      rEi(UBound(rEi)).QT = ZQuart(rEi(UBound(rEi)).Zeitpunkt)
      Case Else
       obFormDMP = False
     End Select ' case rInhalt
@@ -3368,9 +3374,9 @@ rEiVorb:
       If VarType(rDm(UBound(rDm)).obvoll) = 17 Then rDm(UBound(rDm)).obvoll = 1 Else rDm(UBound(rDm)).obvoll = -1
      End If
      If InStrB(rInhalt, "Erst") > 0 Then
-      rDm(UBound(rDm)).Art = "ED"
+      rDm(UBound(rDm)).art = "ED"
      ElseIf InStrB(rInhalt, "Folge") > 0 Or InStrB(rInhalt, "Verlaufs") > 0 Then
-      rDm(UBound(rDm)).Art = "FD"
+      rDm(UBound(rDm)).art = "FD"
      End If
      If InStrB(rInhalt, "(ok") <> 0 Then
       rDm(UBound(rDm)).Ok = True
@@ -3386,7 +3392,7 @@ rEiVorb:
      End If
     End If ' If Instrb(FormBez, "ezept") <> 0 then elseif elseif
    Case 6297 ' Formular-Vorlage (Windows-Pfad)
-    FormVorl = rInhalt 'replace$(RInhalt, "€", " ")
+    FormVorl = Trim$(rInhalt) 'replace$(RInhalt, "€", " ")
 ' Kommt irgendwie nicht mehr vor 13.5.23
     If FormBez = "Medikamentenplan" Or FormBez = "cgm_bmp" Then
 ' "Medikamentenplan"_1
@@ -3403,15 +3409,26 @@ rEiVorb:
     Else ' FormBez = "Medikamentenplan" Or FormBez = "cgm_bmp" Then else
      rFoNeu = -1
      For i = 1 To UBound(rFo)
-      If rFo(i).Form_Abk = FormAbk And rFo(i).FormBez = FormBez And (rFo(i).FormVorl = FormVorl Or doUmwfSQL(rFo(i).FormVorl, lies.obMySQL) = FormVorl) Then
+      If rFo(i).Form_Abk = FormAbk And rFo(i).FormBez = FormBez And (LCase$(rFo(i).FormVorl) = LCase$(FormVorl) Or LCase$(doUmwfSQL(rFo(i).FormVorl, lies.obMySQL)) = LCase$(FormVorl)) Then
        rFoNeu = 0
        lFormID = rFo(i).FormID
-       Exit For
+       GoTo fgefunden
       End If
      Next i
+'     For i = 1 To UBound(rFo)
+'      If rFo(i).Form_Abk = FormAbk And rFo(i).FormBez = FormBez Then
+'       If absPos = 54323 And FormAbk = "eDMPDM1" Then
+'        Debug.Print rFo(i).FormVorl
+'        Debug.Print FormVorl
+'        Debug.Print doUmwfSQL(rFo(i).FormVorl, lies.obMySQL)
+'        Stop
+'       End If
+'      End If
+'     Next i
+fgefunden:
      If rFoNeu And Not obmitFormularen Then
       Dim rsf As ADODB.Recordset
-      Call myFrag(rsf, "SELECT * FROM formulare WHERE Form_Abk='" & FormAbk & "' AND FormBez='" & FormBez & "' AND FormVorl='" & FormVorl & "' ORDER BY FormID", adOpenStatic)
+      Call myFrag(rsf, "SELECT * FROM formulare WHERE Form_Abk='" & FormAbk & "' AND FormBez='" & FormBez & "' AND LCASE(FormVorl)='" & LCase$(FormVorl) & "' ORDER BY FormID", adOpenStatic)
       If Not rsf.BOF Then
        rFoNeu = 0
        ReDim Preserve rFo(UBound(rFo) + 1)
@@ -3433,26 +3450,28 @@ rEiVorb:
       rFo(UBound(rFo)).aktZeit = aktZeit
       rFo(UBound(rFo)).FormBez = FormBez
 '      If rsf!FormID = 55 Then Stop
-      rFo(UBound(rFo)).FormID = rFo(UBound(rFo) - 1).FormID + 1 ' muss noch in `forminhkopf` angpasst werden, wird deshalb dort negativ gespeichert
+      If nextFormID = 0 Then nextFormID = -myEFrag("SELECT MAX(formid)+1 FROM formulare").Fields(0) Else nextFormID = nextFormID - 1
+      rFo(UBound(rFo)).FormID = nextFormID
+      ' rFo(UBound(rFo) - 1).FormID 1   ' muss noch in `forminhkopf` angpasst werden, wird deshalb dort negativ gespeichert
       lFormID = rFo(UBound(rFo)).FormID
       rFo(UBound(rFo)).FormVorl = FormVorl
       rFo(UBound(rFo)).StByte = AktByte
      End If ' rFoNeu Then
-     rFoAbkNeu = -1
-     For i = 1 To UBound(rFi)
-      If UCase$(rFi(i).Form_Abk) = UCase$(FormAbk) And UCase$(rFi(i).FormBez) = UCase$(FormBez) Then
-       rFoAbkNeu = 0
-       Exit For
-      End If
-     Next i
-     If rFoAbkNeu Then
-      ReDim Preserve rFi(UBound(rFi) + 1)
-      rFi(UBound(rFi)).Form_Abk = FormAbk
-      rFi(UBound(rFi)).FormBez = FormBez
-     End If
+'     rFoAbkNeu = -1
+'     For i = 1 To UBound(rFi)
+'      If UCase$(rFi(i).Form_Abk) = UCase$(FormAbk) And UCase$(rFi(i).FormBez) = UCase$(FormBez) Then
+'       rFoAbkNeu = 0
+'       Exit For
+'      End If
+'     Next i
+'     If rFoAbkNeu Then
+'      ReDim Preserve rFi(UBound(rFi) + 1)
+'      rFi(UBound(rFi)).Form_Abk = FormAbk
+'      rFi(UBound(rFi)).FormBez = FormBez
+'     End If
      rFm_Nr = 0
      jetztKopf = True
-    End If ' FormBez = "Medikamentenplan"
+    End If ' ' FormBez = "Medikamentenplan" Or FormBez = "cgm_bmp" Then else
    Case 6298 ' Formularfeld und ggf. Spalte, "Feld"
     FormSp = rInhalt ' nur für DMP-Bogen und Kasse benötigt, auch TUG und ADL, auch Überweisung an, Langrezept
     Call aufSplit(rInhalt)
@@ -3490,7 +3509,7 @@ rEiVorb:
       rFr(UBound(rFr)).aktZeit = aktZeit
       rFr(UBound(rFr)).FID = rFa(UBound(rFa)).FID
       rFr(UBound(rFr)).Form_ID = lFormID '-lFormID ' negative Speicherung, da der Wert noch nach der Datenbankspeicherung von rFo angepaßt werden muss
-      rFr(UBound(rFr)).Pat_id = rNa(0).Pat_id
+      rFr(UBound(rFr)).Pat_ID = rNa(0).Pat_ID
       rFr(UBound(rFr)).StByte = AktByte
       rFr(UBound(rFr)).Zeitpunkt = messDatum
       rFr(UBound(rFr)).Satzart = f8000
@@ -3599,9 +3618,9 @@ rEiVorb:
         If IsDate(FormInh) Then
          rDm(UBound(rDm)).GebDat = FormInh
         End If
-       End If
-      End If
-     End If
+       End If ' if Len(FormInh) > 1 Then
+      End If ' rDm(UBound(rDm)).DokuDatum = 0 Then elseif
+     End If ' if FormInh Like "?" Then elseif ...
     End If ' obFormDMP
     If jetztCGM Then
      jetztCGM = 0
@@ -3878,11 +3897,11 @@ rEiVorb:
     rBr(UBound(rBr)).absPos = absPos
     rBr(UBound(rBr)).aktZeit = aktZeit
     If ArraInd > -1 Then rBr(UBound(rBr)).Pfad = Arra(0)
-    If ArraInd > 0 Then rBr(UBound(rBr)).Art = Arra(1)
+    If ArraInd > 0 Then rBr(UBound(rBr)).art = Arra(1)
     If ArraInd > 1 Then rBr(UBound(rBr)).name = Arra(2)
     If ArraInd > 2 Then rBr(UBound(rBr)).Typ = Arra(3)
     rBr(UBound(rBr)).FID = rFa(UBound(rFa)).FID
-    rBr(UBound(rBr)).Pat_id = rNa(0).Pat_id
+    rBr(UBound(rBr)).Pat_ID = rNa(0).Pat_ID
     rBr(UBound(rBr)).Zeitpunkt = messDatum
     rBr(UBound(rBr)).QT = ZQuart(rBr(UBound(rBr)).Zeitpunkt)
     rBr(UBound(rBr)).QS = ZQSort(rBr(UBound(rBr)).Zeitpunkt)
@@ -3971,16 +3990,14 @@ rEiVorb:
     rDo(UBound(rDo)).absPos = absPos
     rDo(UBound(rDo)).aktZeit = aktZeit
     rDo(UBound(rDo)).FID = rFa(UBound(rFa)).FID
-    rDo(UBound(rDo)).Pat_id = rNa(0).Pat_id
+    rDo(UBound(rDo)).Pat_ID = rNa(0).Pat_ID
     rDo(UBound(rDo)).Zeitpunkt = messDatum
     rDo(UBound(rDo)).QS = ZQSort(rDo(UBound(rDo)).Zeitpunkt)
     rDo(UBound(rDo)).QT = ZQuart(rDo(UBound(rDo)).Zeitpunkt)
     rDo(UBound(rDo)).Quelldatum = doQuelldatum(rDo(UBound(rDo)).DokName, messDatum)
    Case 6330 ' eintraege: Art
-    keinEintrag = 0
-    If rInhalt = "DiagTxt" Then
-     obEinweisung = True
-    ElseIf rInhalt = "lar" Then
+    If rInhalt = "lar" Then
+     keinEintrag = True
      If SafeArrayGetDim(RezInhalt) = 0 Then ' wenn zwei 6330lar-Zeilen kommen, z.B. bei Pat. 2
 '      Debug.Print "Rezinhalt bei BDT 6330 nicht initialisiert in Zeile " & GesZnr & " bei Pat. " & rNa(0).Pat_id
      Else ' SafeArrayGetDim(RezZeile) = 0 Then
@@ -3991,20 +4008,24 @@ rEiVorb:
       Next i
      End If ' SafeArrayGetDim(RezZeile) = 0 Then
      Erase RezInhalt
-     keinEintrag = True
-    Else
-     obEinweisung = False
-     ReDim Preserve rEi(UBound(rEi) + 1)
-     rEi(UBound(rEi)).Art = rInhalt
-     rEi(UBound(rEi)).absPos = absPos
-     rEi(UBound(rEi)).aktZeit = aktZeit
-     rEi(UBound(rEi)).FID = rFa(UBound(rFa)).FID
-     rEi(UBound(rEi)).Pat_id = rNa(0).Pat_id
-     rEi(UBound(rEi)).Zeitpunkt = messDatum
-     rEi(UBound(rEi)).QS = ZQSort(rEi(UBound(rEi)).Zeitpunkt)
-     rEi(UBound(rEi)).QT = ZQuart(rEi(UBound(rEi)).Zeitpunkt)
-     If rInhalt Like "*. sitzung*" Then DMSchL = DMSchL + 1
-    End If
+    Else ' rInhalt = "lar" Then
+     keinEintrag = 0
+     If rInhalt = "DiagTxt" Then
+      obEinweisung = True
+     Else ' rInhalt = "DiagTxt" Then
+      obEinweisung = False
+      ReDim Preserve rEi(UBound(rEi) + 1)
+      rEi(UBound(rEi)).art = rInhalt
+      rEi(UBound(rEi)).absPos = absPos
+      rEi(UBound(rEi)).aktZeit = aktZeit
+      rEi(UBound(rEi)).FID = rFa(UBound(rFa)).FID
+      rEi(UBound(rEi)).Pat_ID = rNa(0).Pat_ID
+      rEi(UBound(rEi)).Zeitpunkt = messDatum
+      rEi(UBound(rEi)).QS = ZQSort(rEi(UBound(rEi)).Zeitpunkt)
+      rEi(UBound(rEi)).QT = ZQuart(rEi(UBound(rEi)).Zeitpunkt)
+      If rInhalt Like "*. sitzung*" Then DMSchL = DMSchL + 1
+     End If ' rInhalt = "DiagTxt" Then else
+    End If ' rInhalt = "lar" Then else
    Case 6331 ' eintraege: Inhalt
 '    EintrInh = EintrInh + Stutz(RInhalt)
     If Not keinEintrag Then
@@ -4012,25 +4033,30 @@ rEiVorb:
       rKh(UBound(rKh)).Diagnose = rKh(UBound(rKh)).Diagnose + Stutz(rInhalt)
      Else '
      '     rEi(UBound(rEi)).Inhalt = LEFT(rEi(UBound(rEi)).Inhalt, Len(rEi(UBound(rEi)).Inhalt) - IIf(Right$(rEi(UBound(rEi)).Inhalt, 1) = "^", 1, 0)) + rInhalt
-      If (rEi(UBound(rEi)).Art = "Hüfte" And Left$(rInhalt, 12) = "Hüftumfang: ") Or _
-         (rEi(UBound(rEi)).Art = "Größe" And Left$(rInhalt, 7) = "Größe: ") Or _
-         (rEi(UBound(rEi)).Art = "Gewicht" And Left$(rInhalt, 9) = "Gewicht: ") Or _
-         (rEi(UBound(rEi)).Art = "taille" And Left$(rInhalt, 13) = "Bauchumfang: ") _
+      If (rEi(UBound(rEi)).art = "Hüfte" And Left$(rInhalt, 12) = "Hüftumfang: ") Or _
+         (rEi(UBound(rEi)).art = "Größe" And Left$(rInhalt, 7) = "Größe: ") Or _
+         (rEi(UBound(rEi)).art = "Gewicht" And Left$(rInhalt, 9) = "Gewicht: ") Or _
+         (rEi(UBound(rEi)).art = "taille" And Left$(rInhalt, 13) = "Bauchumfang: ") _
       Then
        ReDim Preserve rEi(UBound(rEi) - 1) ' beim internen Formular die nochmal einzelnen streichen
-      Else
-       If LCase$(rEi(UBound(rEi)).Art) = "dak" Then ' 4.12.19: DAK-Datum dokumentieren
+      Else ' (rEi(UBound(rEi)).art = "Hüfte" ...
+       rEi(UBound(rEi)).Inhalt = rEi(UBound(rEi)).Inhalt + Stutz(rInhalt)
+       If UCase$(rEi(UBound(rEi)).art) = "HBA1C" Then
+        Call PraxisHbA1c(rEi(UBound(rEi)).art, rEi(UBound(rEi)).Inhalt)
+       ElseIf rEi(UBound(rEi)).art = "txt" Then
+        If rInhalt Like "Sterbedatum: *" Then
+         rNa(0).SDatum = CDate(Mid$(rInhalt, 14))
+        End If ' rInhalt Like "Sterbedatum: *" Then
+       ElseIf LCase$(rEi(UBound(rEi)).art) = "dak" Then ' 4.12.19: DAK-Datum dokumentieren
         If rNa(0).dakab = 0 Then
          If InStr(rInhalt, ",") > 30 Then
           If IsDate(REPLACE$(Mid$(rInhalt, 30, InStr(rInhalt, ",") - 30), ",", ".")) Then
            rNa(0).dakab = CDate(REPLACE$(Mid$(rInhalt, 30, InStr(rInhalt, ",") - 30), ",", "."))
-          End If
+          End If ' IsDate(REPLACE$(Mid$(rInhalt, 30, InStr(rInhalt, ",") - 30), ",", ".")) Then
          End If ' If InStr(rInhalt, ",") > 30 Then
         End If ' rNa(0).dakab = 0 Then
        End If ' LCase$(rEi(UBound(rEi)).art) = "dak" Then ' 4.12.19: DAK-Datum dokumentieren
-       rEi(UBound(rEi)).Inhalt = rEi(UBound(rEi)).Inhalt + Stutz(rInhalt)
-       Call PraxisHbA1c(rEi(UBound(rEi)).Art, rEi(UBound(rEi)).Inhalt)
-       If rEi(UBound(rEi)).Art = "schul" And InStrB(rEi(UBound(rEi)).Inhalt, "schulungsverein") > 0 Then
+       If rEi(UBound(rEi)).art = "schul" And InStrB(rEi(UBound(rEi)).Inhalt, "schulungsverein") > 0 Then
         obMedNetz = True
        End If
        If rInhalt = "bfd" And lKennung = 6330 And InStrB(rInhalt, "icral") > 0 Then
@@ -4178,7 +4204,7 @@ rEiVorb:
    ReDim Preserve rUn(UBound(rUn) + 1)
    rUn(UBound(rUn)).absPos = absPos
    rUn(UBound(rUn)).Kennung = RKennung
-   rUn(UBound(rUn)).Pat_id = rNa(0).Pat_id
+   rUn(UBound(rUn)).Pat_ID = rNa(0).Pat_ID
    rUn(UBound(rUn)).Inhalt = rInhalt
  End Select ' Clng(kennung)
  lKennung = RKennung
@@ -4249,7 +4275,7 @@ Function MPerg()
        rMe(UBound(rMe)).absPos = absPos
        rMe(UBound(rMe)).StByte = AktByte
        rMe(UBound(rMe)).aktZeit = aktZeit
-       rMe(UBound(rMe)).Pat_id = rNa(0).Pat_id
+       rMe(UBound(rMe)).Pat_ID = rNa(0).Pat_ID
        rMe(UBound(rMe)).FID = rFa(UBound(rFa)).FID
        rMe(UBound(rMe)).Zeitpunkt = messDatum
        rMe(UBound(rMe)).Datum = MPDatum
@@ -4315,7 +4341,7 @@ Function LeistEintr0(lG)
  On Error GoTo fehler
  If Not IsNull(lG) Then
   ReDim Preserve rLe(UBound(rLe) + 1)
-  rLe(UBound(rLe)).Pat_id = rNa(0).Pat_id
+  rLe(UBound(rLe)).Pat_ID = rNa(0).Pat_ID
   rLe(UBound(rLe)).Zeitpunkt = messDatum
   rLe(UBound(rLe)).Leistung = lG
   rLe(UBound(rLe)).QS = ZQSort(messDatum)
@@ -4356,7 +4382,7 @@ Function fctfDTyp$()
  Dim DT$, i& ', erg$ ', rAn As New ADODB.Recordset
  On Error GoTo fehler
  For i = 1 To UBound(rEi)
-  If rEi(i).Art = "andm" Or rEi(i).Art = "andm2" Then
+  If rEi(i).art = "andm" Or rEi(i).art = "andm2" Then
    Dim pos&
    pos = InStr(rEi(i).Inhalt, "Diabetes Typ")
    If pos > 0 Then
@@ -4449,10 +4475,10 @@ Function fFanfFuell()
    Else
     If rFa(i).lVorl <> 0 Then
      rFa(i).Fanf = rFa(i).lVorl
-    ElseIf rFa(i).Pat_id = 2 And rFa(i).Nachname Like "Muster*" Then
+    ElseIf rFa(i).Pat_ID = 2 And rFa(i).Nachname Like "Muster*" Then
      rFa(i).Fanf = #7/1/2004#
     Else
-     If obÜProt Then Print #322, rFa(i).Pat_id & ": Hatnäckiger Fall bei der Fallanfangsfestlegung"
+     If obÜProt Then Print #322, rFa(i).Pat_ID & ": Hatnäckiger Fall bei der Fallanfangsfestlegung"
      rFa(i).Fanf = rFa(i).BhFB
     End If
    End If
@@ -4492,7 +4518,7 @@ nochmal:
   If Not rsAnm Is Nothing Then If rsAnm.State = 1 Then rsAnm.Close
 '  Call rsAnm.Open("SELECT -obmednetz AS j_obmednetz, -tkz AS j_tkz, a.* FROM `anamnesebogen` a WHERE pat_id = " & rNa(0).Pat_id, DBCn, adOpenDynamic, adLockOptimistic)
 '  Call rsAnm.Open("SELECT COALESCE(`diabetes seit`,'') `diabetes seit`, a.* FROM `anamnesebogen` a WHERE pat_id = " & rNa(0).Pat_id, DBCn, adOpenDynamic, adLockOptimistic)
-  myFrag rsAnm, "SELECT COALESCE(`diabetes seit`,'') `diabetes seit`, a.* FROM `anamnesebogen` a WHERE pat_id = " & rNa(0).Pat_id, adOpenDynamic, DBCn, adLockOptimistic
+  myFrag rsAnm, "SELECT COALESCE(`diabetes seit`,'') `diabetes seit`, a.* FROM `anamnesebogen` a WHERE pat_id = " & rNa(0).Pat_ID, adOpenDynamic, DBCn, adLockOptimistic
   If rsAnm.BOF Then
    Dim primnr&
 '   If Not rsAdo Is Nothing Then If rsAdo.State = 1 Then rsAdo.Close
@@ -4500,7 +4526,7 @@ nochmal:
 '   SET rsAdo = myEFrag("SELECT MAX(prim) AS mprim FROM `anamnesebogen`")
 '   If IsNull(rsAdo!mprim) Then primnr = 1 Else primnr = rsAdo!mprim + 1
    primnr = myEFrag("SELECT (COALESCE(MAX(prim))+1) mprim FROM `anamnesebogen`").Fields(0)
-   sql = "INSERT INTO `anamnesebogen`(pat_id,prim) VALUES(" & rNa(0).Pat_id & "," & primnr & ")"
+   sql = "INSERT INTO `anamnesebogen`(pat_id,prim) VALUES(" & rNa(0).Pat_ID & "," & primnr & ")"
    InsKorr DBCn, sql, rAf
    If obForK Then
     Call ForeignYes0
@@ -4579,10 +4605,10 @@ Function MedArtenPruef()
   If upd <> "" Then upd = upd & ","
   upd = upd & "'" & gmd & "'"
   If InS <> "" Then InS = InS & ","
-  InS = InS & "('" & rMe(i).Medikament & "','" & UCase$(gmd) & "'," & DatFor_k(Now) & "," & rMe(i).Pat_id & ")"
+  InS = InS & "('" & rMe(i).Medikament & "','" & UCase$(gmd) & "'," & DatFor_k(Now) & "," & rMe(i).Pat_ID & ")"
  Next i
  If UBound(rMe) > 0 Then
-  myFrag rs, "UPDATE medarten SET pat_id= " & rMe(1).Pat_id & " WHERE pat_id=0 AND medikament IN (" & upd & ")", , , , , rAf
+  myFrag rs, "UPDATE medarten SET pat_id= " & rMe(1).Pat_ID & " WHERE pat_id=0 AND medikament IN (" & upd & ")", , , , , rAf
 '  Call DBCn.Execute("UPDATE medarten SET pat_id= " & rMe(1).Pat_id & " WHERE pat_id=0 AND medikament IN (" & upd & ")", rAF)
  End If ' UBound(rMe) > 0 Then
  If Trim(InS) <> "" Then
@@ -4653,7 +4679,7 @@ Function alleSpeichern(frm As Lese, Optional vonMo%)
  Call ForeignNo0
  Call ForeignNo1
 #End If
- myEFrag "UPDATE `medarten` SET pat_id = 0 WHERE pat_id = " & rNa(0).Pat_id, rAf
+ myEFrag "UPDATE `medarten` SET pat_id = 0 WHERE pat_id = " & rNa(0).Pat_ID, rAf
 #If ohnebezug Then ' auskommentiert 22.10.22
  Call ForeignYes0
  Call ForeignYes1
@@ -4664,14 +4690,14 @@ Function alleSpeichern(frm As Lese, Optional vonMo%)
   Set medi = New MediCl
   medi.Med = GetMed(rMe(i).Medikament, 0)
   medi.LT = rMe(i).Medikament
-  medi.Pat_id = rNa(0).Pat_id
+  medi.Pat_ID = rNa(0).Pat_ID
   Call medSL.sCAdd(medi, True)
  Next i
  For i = 1 To UBound(rRe)
   Set medi = New MediCl
   medi.Med = GetMed(rRe(i).Medikament, 3)
   medi.LT = rRe(i).Medikament
-  medi.Pat_id = rNa(0).Pat_id
+  medi.Pat_ID = rNa(0).Pat_ID
   Call medSL.sCAdd(medi, True)
  Next i
 
@@ -5057,7 +5083,7 @@ nachformulare:
    End If ' Infos12(12, i) <> vNS Then
   Next i
  End If ' not vonMO
- Call kassenSpeichern(frm, CStr(rNa(0).Pat_id))
+ Call kassenSpeichern(frm, CStr(rNa(0).Pat_ID))
 ' Call kvnrpruef
 ' On Error Resume Next
 ' If obTrans <> 0 Then Call DBCn.CommitTrans: obTrans = 0
@@ -5119,7 +5145,7 @@ nachformulare:
   For i = 1 To UBound(rSw)
    obneu = True
    For j = 1 To UBound(rSw2)
-    If rSw2(j).Pat_id = rSw(i).Pat_id And rSw2(j).vorET = rSw(i).vorET And rSw2(j).ET = rSw(i).ET Then
+    If rSw2(j).Pat_ID = rSw(i).Pat_ID And rSw2(j).vorET = rSw(i).vorET And rSw2(j).ET = rSw(i).ET Then
      obneu = 0
      Exit For
     End If
@@ -5147,8 +5173,8 @@ nachformulare:
  ' korrigiertes Aufnahmedatum(2)
  Dim altesAufnDat As Date
 ' altesAufnDat = DBCn.Execute("SELECT kaufdat FROM namen WHERE pat_id=" & CStr(rNa(0).Pat_id)).Fields(0)
- altesAufnDat = myEFrag("select COALESCE((SELECT kaufdat FROM namen WHERE pat_id=" & CStr(rNa(0).Pat_id) & "),0) i").Fields(0)
- myEFrag "UPDATE namen n LEFT JOIN (SELECT pat_id, MIN(bhfb) bhfb, MIN(fanf) fanf FROM faelle f GROUP BY pat_id) f ON n.pat_id=f.pat_id SET kAufDat=date(IF(fanf>bhfb,fanf,bhfb)) WHERE f.pat_id=" & CStr(rNa(0).Pat_id), rAf
+ altesAufnDat = myEFrag("select COALESCE((SELECT kaufdat FROM namen WHERE pat_id=" & CStr(rNa(0).Pat_ID) & "),0) i").Fields(0)
+ myEFrag "UPDATE namen n LEFT JOIN (SELECT pat_id, MIN(bhfb) bhfb, MIN(fanf) fanf FROM faelle f GROUP BY pat_id) f ON n.pat_id=f.pat_id SET kAufDat=date(IF(fanf>bhfb,fanf,bhfb)) WHERE f.pat_id=" & CStr(rNa(0).Pat_ID), rAf
  If rAf <> 0 Then
  ' nachzupruefen: 67794, 67795
 '  MsgBox "Fehler bei der Aufnahmedatumskorrektur" ' wenn das nie kommt, kann die vorige Zeile auskommentiert werden
@@ -5169,14 +5195,14 @@ nachformulare:
 '  pidsftha = pidsftha & CStr(rNa(0).Pat_id)
 ' End If ' pidsftha <> "''" Then
 ' syscmd 4, "Bestimme Therapiearten für " & IIf(pidsftha = "''", "alle Patienten", pidsftha)
-syscmd 4, "Bestimme Therapiearten für " & CStr(rNa(0).Pat_id)
+syscmd 4, "Bestimme Therapiearten für " & CStr(rNa(0).Pat_ID)
 #Const mitfensterges = False
 #If mitfensterges Then
 ' 29.8.23: würde gehen
 ' hier kann nötig sein:  innodb_lock_wait_timeout=200 in my.cnf
-  rufauf "ssh", "root@" & LiName & " mariadb --defaults-extra-file=~/.mysqlpwd quelle -e'CALL fuellThaP(" & CStr(rNa(0).Pat_id) & ")'", 2, "c:\windows\system32\openssh\", -1, 0
+  rufauf "ssh", "root@" & LiName & " mariadb --defaults-extra-file=~/.mysqlpwd quelle -e'CALL fuellThaP(" & CStr(rNa(0).Pat_ID) & ")'", 2, "c:\windows\system32\openssh\", -1, 0
 #Else
-  Call TheraErmitt(CStr(rNa(0).Pat_id))
+  Call TheraErmitt(CStr(rNa(0).Pat_ID))
 #End If
 ' myEFrag "CALL fuellThaP(" & CStr(rNa(0).Pat_id) & ")"
 syscmd 5
@@ -5643,7 +5669,7 @@ Function rrParseSpeichern()
   If dodoRRParse(rRr(i).RR, RRsyst, RRdiast, Zp) = 0 Then
    Debug.Print "nicht parsbarer Blutdruck: ", rRr(i).RR
   Else
-   csql.AppVar Array(IIf(ab2, ",", ""), "(", rRr(i).Pat_id, ",", DatFor_k(IIf(Zp = 0, rRr(i).Zeitpunkt, Zp)), ",", RRsyst, ",", RRdiast, ",'", "Tabelle RR", "')")
+   csql.AppVar Array(IIf(ab2, ",", ""), "(", rRr(i).Pat_ID, ",", DatFor_k(IIf(Zp = 0, rRr(i).Zeitpunkt, Zp)), ",", RRsyst, ",", RRdiast, ",'", "Tabelle RR", "')")
    ab2 = True
   End If
  Next i
@@ -5652,7 +5678,7 @@ Function rrParseSpeichern()
   If ErrNr Then
    syscmd 4, "Speichere rrParse, alte Methode"
    For i = 1 To UBound(rRr)
-    Call do_RRParse(rRr(i).RR, rRr(i).Pat_id, rRr(i).Zeitpunkt, "Tabelle RR")
+    Call do_RRParse(rRr(i).RR, rRr(i).Pat_ID, rRr(i).Zeitpunkt, "Tabelle RR")
    Next i
   End If
  End If ' ab2
@@ -5795,7 +5821,7 @@ Function MacheDiagnosen$(dmseit$) ' für AnaEintragen, MachSammelTab und DiagStri
   End If
  Next runde
  Dim DTab() As CString ' Fake
- MacheDiagnosen = MachDiagnosen(Str$(rNa(0).Pat_id), DTab, dmseit, ohneTab:=True, Sort:=True)
+ MacheDiagnosen = MachDiagnosen(Str$(rNa(0).Pat_ID), DTab, dmseit, ohneTab:=True, Sort:=True)
  Exit Function
 fehler:
  Dim AnwPfad$
@@ -5975,7 +6001,7 @@ End Function ' aufSplit
 Function RREintr(RR)
  On Error GoTo fehler
  ReDim Preserve rRr(UBound(rRr) + 1)
- rRr(UBound(rRr)).Pat_id = rNa(0).Pat_id
+ rRr(UBound(rRr)).Pat_ID = rNa(0).Pat_ID
  rRr(UBound(rRr)).Zeitpunkt = messDatum
  rRr(UBound(rRr)).RR = RR
  rRr(UBound(rRr)).absPos = absPos
@@ -5997,7 +6023,7 @@ Function RezEintr(rez$, obLangrz%, Optional mitAutidem = True, Optional Medikame
  If Not IsNull(rez) Then
   Call aufSplit(rez)
   ReDim Preserve rRe(UBound(rRe) + 1)
-  rRe(UBound(rRe)).Pat_id = rNa(0).Pat_id
+  rRe(UBound(rRe)).Pat_ID = rNa(0).Pat_ID
   rRe(UBound(rRe)).Zeitpunkt = messDatum
   rRe(UBound(rRe)).QS = ZQSort(messDatum)
   rRe(UBound(rRe)).QT = ZQuart(messDatum)
@@ -6065,14 +6091,14 @@ End Select
 End Function 'RezEintr
 
 ' in dodoPLZ, do_Form_Current_AnBog, tubriefStandalone
-Function DiagString$(Pat_id$, DiagTab() As CString, Optional VorDat As Date, Optional obBrief%, Optional dmseit$) ' für dynDiag, tubriefStandalone und dodoPLZ
+Function DiagString$(Pat_ID$, DiagTab() As CString, Optional VorDat As Date, Optional obBrief%, Optional dmseit$) ' für dynDiag, tubriefStandalone und dodoPLZ
  Dim runde%, rdDi As New ADODB.Recordset, sql$
  On Error GoTo fehler
  sql = "SELECT DiagSicherheit, DiagText, DiagSeite, DiagAttr, d.ICD, obdauer, COALESCE(d.Dggel,0) Dggel, obDauer<>0 j_obdauer,obKasse,lKasse,KFdFA, COALESCE(diagdatum,0) DiagDatum, AusnBegr, intBemerk, g1.rf,r.gi2 " & vbCrLf & _
        "FROM diagview d " & vbCrLf & _
        "LEFT JOIN `diagreihe` r ON d.icd = r.icd " & vbCrLf & _
        "LEFT JOIN `diagg1` g1 ON r.gi1 = g1.lfdnr " & vbCrLf & _
-       "WHERE pat_id = " & Pat_id & " AND (d.obdauer <> 0 OR d.diagdatum >" & DatFor_k(VorDat) & ") " & vbCrLf & _
+       "WHERE pat_id = " & Pat_ID & " AND (d.obdauer <> 0 OR d.diagdatum >" & DatFor_k(VorDat) & ") " & vbCrLf & _
        "GROUP BY LEFT(d.icd,3), DiagSicherheit, d.Dggel, LEFT(diagtext,17) " & vbCrLf & _
        "ORDER BY g1.rf,gi2 DESC,COALESCE(d.Dggel,0),icd;"
 
@@ -6154,7 +6180,7 @@ Function DiagString$(Pat_id$, DiagTab() As CString, Optional VorDat As Date, Opt
        Print #313, Format(Takt - Tvor, "0.00") & "      " & Format(Takt - T0, "0.00") & " (" & dnr & ", in DiagString)"
 #End If
  DiagNr = runde
- DiagString = MachDiagnosen(Pat_id, DiagTab, dmseit)
+ DiagString = MachDiagnosen(Pat_ID, DiagTab, dmseit)
 #If debu <> 0 Then
        Tvor = Takt: Takt = Timer
        dnr = dnr + 1
@@ -6177,12 +6203,12 @@ End Select
 End Function ' DiagString$(Pat_id&)
 
 ' in DiagString, MacheDiagnosen
-Function MachDiagnosen(Pat_id$, DiagTab() As CString, Optional dmseit$, Optional ohneTab%, Optional Sort%) As CString ' für DiagString
+Function MachDiagnosen(Pat_ID$, DiagTab() As CString, Optional dmseit$, Optional ohneTab%, Optional Sort%) As CString ' für DiagString
     Dim j&, k&, runde%, obkNeph%
     Dim aktD As CString
 '    Dim did As New ADODB.Recordset
     On Error GoTo fehler
-    obkNeph = obKeineNephropathie(Pat_id)
+    obkNeph = obKeineNephropathie(Pat_ID)
     If Not ohneTab Then ReDim DiagTab(0)
     For j = 0 To DiagNr - 1
      If Not IsNull(ICD(j)) And ICD(j) <> "" Then
@@ -6395,7 +6421,7 @@ End Select
 End Function ' machDiagnosen$()
 
 ' in do_Form_Current2, tubriefStandalone, MachDiagnosen
-Function obKeineNephropathie%(Pat_id$, Optional obMakroAlb%)
+Function obKeineNephropathie%(Pat_ID$, Optional obMakroAlb%)
  Dim lAlbS$, lKreS$, sql$
 ' Dim rsAdo As New ADODB.Recordset
  Dim Labs As labtyp
@@ -6415,7 +6441,7 @@ Function obKeineNephropathie%(Pat_id$, Optional obMakroAlb%)
 ' IF Not rsAdo.EOF THEN lAlbS = rsAdo!wert
 
  alt_la = LabArt0 ' falls schon mal mit gleichen Parametern aufgerufen
- Labs = LabPat(LA_AlbCre, CLng(Pat_id)) ' erster Aufruf: 0,34s
+ Labs = LabPat(LA_AlbCre, CLng(Pat_ID)) ' erster Aufruf: 0,34s
  If Labs.Abkü <> "" Then lAlbS = Labs.WertSg
  
  On Error GoTo fehler
@@ -6433,7 +6459,7 @@ Function obKeineNephropathie%(Pat_id$, Optional obMakroAlb%)
 ' SET rsAdo = LabEPat(Krea, Pat_id)
 ' IF Not rsAdo.EOF THEN lKreS = rsAdo!wert
  alt_la = LabArt0 ' falls schon mal mit gleichen Parametern aufgerufen
- Labs = LabPat(LA_Krea, CLng(Pat_id))
+ Labs = LabPat(LA_Krea, CLng(Pat_ID))
  If Labs.Abkü <> "" Then lKreS = Labs.WertSg
 ' lKreS = Dtb.OpenRecordset("SELECT iif(ISNULL(wert),iif(ISNULL(kommentar),"""",kommentar),wert) AS erg FROM (" + sql + ") AS sql1 WHERE abkü IN (""CREAT"",""KRE02"", ""KREA"", ""KREA02"", ""KRES"") ORDER BY zeitpunkt DESC")!erg
  On Error GoTo fehler
@@ -6581,7 +6607,7 @@ End Function 'Stutz
 ' in dolies (1x)
 Function PraxisHbA1c(EintrArt$, EintrInh$)
  Dim Ep%, ZwS$, erg$
- If UCase$(EintrArt) = "HBA1C" Then
+' If UCase$(EintrArt) = "HBA1C" Then ' nach außen verlagert 3.10.24
   FStG = "E"
   Abkü = "HBA1C"
   AbküLabor = "Eigenlabor"
@@ -6622,8 +6648,8 @@ Function PraxisHbA1c(EintrArt$, EintrInh$)
     rLa(ls).KommentarVW = KomEinfüg("Praxis-HbA1c")
 '    rLa(ls).Kommentar = "Praxis-HbA1c"
    End If
-  End If
- End If
+  End If ' obLaborEintrag Then
+' End If ' UCase$(EintrArt) = "HBA1C" Then
 End Function ' PraxisHbA1c
 
 ' in LaborEintr0, doPatvonMO, doLies, PraxisHbA1c
@@ -6815,7 +6841,7 @@ Function LaborEintr0()
  obLaborEintrag = (obneu Or obüber)
  If obLaborEintrag Then
   If obneu Then ReDim Preserve rLa(UBound(rLa) + 1): ls = UBound(rLa)
-  rLa(ls).Pat_id = rNa(0).Pat_id
+  rLa(ls).Pat_ID = rNa(0).Pat_ID
   rLa(ls).Zeitpunkt = messDatum
   rLa(ls).FertigStGrad = FStG
 '  rLa(ls).Labor = AbküLabor
@@ -7117,7 +7143,7 @@ End Function ' std4(s$) As Date
 Function doQuelldatum(ByVal name$, Optional dokd As Date) As Date
  Dim rEx As New RegExp
  Dim regMC
- Dim posf%, runde%, p1%, Art%
+ Dim posf%, runde%, p1%, art%
  Const Flb$ = "Fremdlabor"
  Const m1$ = "(31\.((0|)[13578]|1[02])|30\.((0|)[1,3-9]|1[0-2])|((0|)[1-9]|[1-2][0-9])\.((0|)[0-9]|1[0-2]))\.(19|20|)([0-9]{2}) ([0-9]{6}|[0-9]{4})"
  Const m2$ = "(19|20)[0-9]{2}[01][0-9][0-3][0-9]_[0-2][0-9][0-6][0-9]{3}"
@@ -7134,24 +7160,24 @@ Function doQuelldatum(ByVal name$, Optional dokd As Date) As Date
   flname = name
  End If ' posf>0
  Do ' na
-  Art = 0
+  art = 0
   testname = flname
   Do ' r1
    p1 = REGEXP_INSTR(testname, m1)
    If p1 <> 0 Then
-    Art = 1: umwname = REGEXP_SUBSTR(Mid$(testname, p1), m1)
+    art = 1: umwname = REGEXP_SUBSTR(Mid$(testname, p1), m1)
    Else
     p1 = REGEXP_INSTR(testname, m2)
     If p1 <> 0 Then
-     Art = 2: umwname = REGEXP_SUBSTR(Mid$(testname, p1), m2)
+     art = 2: umwname = REGEXP_SUBSTR(Mid$(testname, p1), m2)
     Else
      p1 = REGEXP_INSTR(testname, m3)
      If p1 <> 0 Then
-      Art = 3: umwname = REGEXP_SUBSTR(Mid$(testname, p1), m3)
+      art = 3: umwname = REGEXP_SUBSTR(Mid$(testname, p1), m3)
      Else
       p1 = REGEXP_INSTR(testname, m4)
       If p1 <> 0 Then
-       Art = 4: umwname = REGEXP_SUBSTR(Mid$(testname, p1), m4)
+       art = 4: umwname = REGEXP_SUBSTR(Mid$(testname, p1), m4)
       End If
      End If
     End If
@@ -7161,7 +7187,7 @@ Function doQuelldatum(ByVal name$, Optional dokd As Date) As Date
    testname = Mid$(flname, Len(umwname) + 1)
    If REGEXP_INSTR(testname, "[0-9]") = 0 Then Exit Do
   Loop ' r1
-  Select Case Art
+  Select Case art
    Case 1: eDat = std1(umwname)
    Case 2: eDat = std2(umwname)
    Case 3: eDat = std3(umwname)

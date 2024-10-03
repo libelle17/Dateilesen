@@ -16,7 +16,7 @@ Public RegStelle$
 Public Const RegWurzel$ = "Software\GSProducts\"
 Public FPos& ' Fehlerposition
 'Public dlg AS Dialog
-Const TbZ1% = 27 ' 28 (therarten)
+Const TbZ1% = 26 ' 27 (FormInhaltForm_Abk) ' 28 (therarten)
 Const TbZ2% = TbZ1 + 8
 'Public Lese1
 Public AllePat% ' alle Patienten sind in der Datei
@@ -155,27 +155,48 @@ Function machAbKü$()
  tbn(4) = "Diagnosen"
  tbn(5) = "Dokumente"
  tbn(6) = "eintraege"
- tbn(7) = "FormInhaltForm_Abk"
- tbn(8) = "Formulare"
- tbn(9) = "FormInhKopf" 'altNeu"
- tbn(10) = "FormInhFeld"
- tbn(11) = "KHEinweis"
- tbn(12) = "LBAnforderungen"
- tbn(13) = "laborneu"
- tbn(14) = "Leistungen"
- tbn(15) = "MedPlan"
- tbn(16) = "Rezepteintraege"
- tbn(17) = "RR"
- tbn(18) = "KVNrUe"
- tbn(19) = "unbek_kenn"
- tbn(20) = "dmpreihe"
- tbn(21) = "desktop"
- tbn(22) = "usdm"
- tbn(23) = "fuss"
- tbn(24) = "ulcus"
- tbn(25) = "vkgd"
- tbn(26) = "sws"
- tbn(27) = "vopl"
+ tbn(7) = "Formulare"
+ tbn(8) = "FormInhKopf" 'altNeu"
+ tbn(9) = "FormInhFeld"
+ tbn(10) = "KHEinweis"
+ tbn(11) = "LBAnforderungen"
+ tbn(12) = "laborneu"
+ tbn(13) = "Leistungen"
+ tbn(14) = "MedPlan"
+ tbn(15) = "Rezepteintraege"
+ tbn(16) = "RR"
+ tbn(17) = "KVNrUe"
+ tbn(18) = "unbek_kenn"
+ tbn(19) = "dmpreihe"
+ tbn(20) = "desktop"
+ tbn(21) = "usdm"
+ tbn(22) = "fuss"
+ tbn(23) = "ulcus"
+ tbn(24) = "vkgd"
+ tbn(25) = "sws"
+ tbn(26) = "vopl"
+ 
+' tbn(7) = "FormInhaltForm_Abk"
+' tbn(8) = "Formulare"
+' tbn(9) = "FormInhKopf" 'altNeu"
+' tbn(10) = "FormInhFeld"
+' tbn(11) = "KHEinweis"
+' tbn(12) = "LBAnforderungen"
+' tbn(13) = "laborneu"
+' tbn(14) = "Leistungen"
+' tbn(15) = "MedPlan"
+' tbn(16) = "Rezepteintraege"
+' tbn(17) = "RR"
+' tbn(18) = "KVNrUe"
+' tbn(19) = "unbek_kenn"
+' tbn(20) = "dmpreihe"
+' tbn(21) = "desktop"
+' tbn(22) = "usdm"
+' tbn(23) = "fuss"
+' tbn(24) = "ulcus"
+' tbn(25) = "vkgd"
+' tbn(26) = "sws"
+' tbn(27) = "vopl"
 ' tbn(26) = "therarten"
  tbn(TbZ1 + 1) = "laborxsaetze"
  tbn(TbZ1 + 2) = "laborxeingel"
@@ -839,8 +860,8 @@ Function ZPFeld$(i%)
   Case 0: ZPFeld = "kAufDat" ' Namen, na
   Case 1: ZPFeld = "fanf" ' Faelle, fa
   Case 4: ZPFeld = "DiagDatum" ' Diagnosen, di
-  Case 20: ZPFeld = "Dokudatum" ' dmpreihe, dm
-  Case 21: ZPFeld = "erstZP" ' desktop, de
+  Case 19: ZPFeld = "Dokudatum" ' dmpreihe, dm
+  Case 20: ZPFeld = "erstZP" ' desktop, de
   Case Else: ZPFeld = "ZeitPunkt"
  End Select
 End Function ' ZPFeld
@@ -901,7 +922,7 @@ Function MacheTypen(frm As Lese)
 ' Print #257, " ReDim rFm(0)"
  For i = 0 To TbZ1
   Select Case Tbk(i)
-   Case "Fo", "Fi"
+   Case "Fo" ' , "Fi"
    Print #257, " IF wdh = 0 THEN ReDim r" + Tbk(i) + "(0)"
    Case Else
    Print #257, " ReDim r" + Tbk(i) + "(0)"
@@ -916,10 +937,10 @@ Function MacheTypen(frm As Lese)
  syscmd 4, "Mache Typen (5) ..."
  For i = TbZ1 + 1 To TbZ2 - 1
   Select Case Tbk(i)
-   Case "Fo", "Fi"
-   Print #257, " IF wdh = 0 THEN ReDim r" + Tbk(i) + "(0)"
+'   Case "Fo" ' , "Fi"
+'    Print #257, " IF wdh = 0 THEN ReDim r" + Tbk(i) + "(0)"
    Case Else
-   Print #257, " ReDim r" + Tbk(i) + "(0)"
+    Print #257, " ReDim r" + Tbk(i) + "(0)"
   End Select
  Next i
  syscmd 4, "Mache Typen (6) ..."
@@ -946,7 +967,7 @@ Function MacheTypen(frm As Lese)
  tbnS = " tbn = Array("
  For i = 0 To TbZ1
   Select Case LCase$(tbn(i))
-   Case "forminhaltform_abk", "formulare", "forminhfeld", "unbek_kenn"
+   Case "formulare", "forminhfeld", "unbek_kenn" ', "forminhaltform_abk",
    Case Else
     tbnS = tbnS & """" & LCase$(tbn(i)) & """"
     If i <> TbZ1 Then tbnS = tbnS & ", "
@@ -1085,7 +1106,7 @@ Function MacheTypen(frm As Lese)
  For i = 0 To TbZ2 - 1
   aktTbn = LCase$(REPLACE$(tbn(i), " ", "_"))
   Select Case aktTbn
-   Case "forminhaltform_abk", "formulare", "forminhfeld", "kvnrue", "laborxeingel", "laborxus", "laborxbakt", "laborxwert", "laborxwert", "laborxleist", "laborxsaetze", "liuez", "unbekannte_kennungen"
+   Case "formulare", "forminhfeld", "kvnrue", "laborxeingel", "laborxus", "laborxbakt", "laborxwert", "laborxwert", "laborxleist", "laborxsaetze", "liuez", "unbek_kenn" ' "forminhaltform_abk",
    Case Else
    aktTbk = Tbk(i)
    Print #257, ""
@@ -1341,7 +1362,7 @@ End If ' aktTbn = "faelle" Then
    Print #257, "  Case vbIgnore: Call MsgBox("" Setze fort ""): Resume Next"
    Print #257, " END Select"
    Print #257, "End FUNCTION ' " & aktTbn & "Einf"
-  End Select ' aktTbn <> "forminhaltform_abk" AND aktTbn <> "formulare" AND aktTbn <> "forminhFeld" AND aktTbn <> "unbekannte_kennungen" THEN
+  End Select ' aktTbn <> "forminhaltform_abk" AND aktTbn <> "formulare" AND aktTbn <> "forminhFeld" AND aktTbn <> "unbek_kenn" THEN
   Print #257, ""
   Print #257, "Public FUNCTION r" & Tbk(i) & "Dump()"
    Print #257, " Dim i&, ffa&"
@@ -1374,13 +1395,16 @@ End If ' aktTbn = "faelle" Then
   Print #257, " Dim i&, rAF&, Pid$, m%, sfnr%, altmode$, ErrD$, ErrN& ',sql0$" ', DBCn As New adodb.Connection ' SpeicherFehler-Nr."
   If aktTbn = "faelle" Then
    Print #257, "Dim j%"
-  End If
+  End If ' aktTbn = "faelle" Then
   Print #257, " Dim csql0 As New CString, csql As New CString"
   Print #257, " Dim rs As New ADODB.recordset"
+  If aktTbn = "formulare" Then
+   Print #257, " Dim neuFormID&, j&"
+  End If ' aktTbn = "formulare" Then
   Print #257, " T1 = Timer"
   Print #257, " On Error Resume Next"
   Print #257, " Pid = rNa(0).Pat_id"
-  If aktTbn = "unbekannte_kennungen" Then
+  If aktTbn = "unbek_kenn" Then
   Else
    Print #257, " On Error GoTo fehler"
   End If
@@ -1390,7 +1414,7 @@ End If ' aktTbn = "faelle" Then
 '  Print #257, " IF lese.obmysql THEN ON Error GoTo fehler ELSE ON Error Resume Next"
   Dim InsBefFld$, NobAI% ' True = es existiert ein Feld ohne AutoIncrement
   InsBefFld = doMachSQL0(tbn(i), NobAI)
-   Print #257, "' sql0 =" & IIf(Not SammelIns, " "" INSERT "" & sqlignore & ", "") & """INTO `" & LCase$(tbn(i)) & "`" & _
+'   Print #257, "' sql0 =" & IIf(Not SammelIns, " "" INSERT "" & sqlignore & ", "") & """INTO `" & LCase$(tbn(i)) & "`" & _
               IIf(aktTbn = "forminhfeld" Or NobAI, InsBefFld, "") + " VALUES"
    Print #257, " Call csql0.AppVar(Array("" INSERT "", sqlIgnore, ""INTO `" & LCase$(tbn(i)) & "`" & IIf(aktTbn = "forminhfeld" Or NobAI, InsBefFld, ""), " VALUES""))"
    If SammelIns Then
@@ -1400,8 +1424,8 @@ End If ' aktTbn = "faelle" Then
   Select Case aktTbn
    Case "namen", "laborxsaetze": ianf = "0"
    Case "formulare": ianf = "rFo1 + 1"
-   Case "forminhaltform_abk": ianf = "rFi1 + 1"
-   Case "unbekannte_kennungen": ianf = "rUn1 + 1"
+'   Case "forminhaltform_abk": ianf = "rFi1 + 1"
+   Case "unbek_kenn": ianf = "rUn1 + 1"
    Case "laborxus": ianf = "j"
 '   Case "laborxwert", "laborxbakt", "laborxleist": iAnf = "j"
    Case Else: ianf = "1"
@@ -1421,7 +1445,7 @@ End If ' aktTbn = "faelle" Then
    Print #257, " IF NOT Allepat THEN"
 '  Print #257, "  ON error resume next"
    Select Case aktTbn
-    Case "formulare", "forminhaltform_abk", "forminhfeld", "unbekannte_kennungen"
+    Case "formulare", "forminhfeld", "unbek_kenn" ' , "forminhaltform_abk"
     Case Else
 ' Folgendes aus Performancegründen vor Compactdatabase gesammelt
      Select Case aktTbn
@@ -1446,10 +1470,13 @@ End If ' aktTbn = "faelle" Then
   Print #257, "sql:"
   Print #257, " csql.m_Len = 0"
   Print #257, " For i = " & ianf & " to " & iend
-  Print #257, "'  r" + Tbk(i) + "(i).AktZeit = now()"
+  If aktTbn = "formulare" Then
+   Print #257, " If rFo(i).FormID < 0 Then"
+  End If ' aktTbn = "formulare" Then
+'  Print #257, "'  r" + Tbk(i) + "(i).AktZeit = now()"
   If i <= TbZ1 Then
    Select Case aktTbn
-    Case "forminhfeld", "forminhaltform_abk"
+    Case "forminhfeld" ' , "forminhaltform_abk"
     Case Else
      Print #257, "  r" + Tbk(i) + "(i).StByte = CStr(AktByte)"
    End Select
@@ -1498,43 +1525,57 @@ End If ' aktTbn = "faelle" Then
   
  syscmd 4, "Mache Typen (16) ..."
   Print #257, "setz:"
-  Print #257, "  IF SammelInsert = 0 Or i = " & ianf & " Then"
+  If aktTbn <> "formulare" Then
+   Print #257, "  IF SammelInsert = 0 Or i = " & ianf & " Then"
+  End If ' aktTbn <> "formulare" Then
   Print #257, "   csql.Append csql0"
-  Print #257, "  End If ' SammelInsert = 0 Or i = " & ianf & " Then"
+  If aktTbn <> "formulare" Then
+   Print #257, "  End If ' SammelInsert = 0 Or i = " & ianf & " Then"
+  End If ' aktTbn <> "formulare" Then
   
   sql = "  csql.AppVar Array(""("
   Call doMachSQL2(i, sql)
  syscmd 4, "Mache Typen (17) ..."
   Print #257, sql & ")"
   
-  Print #257, "  IF SammelInsert <> 0 AND i < " & iend & " Then csql.Append "","""
-  Print #257, "  IF SammelInsert = 0 OR i = " & iend & " Then"
+  If aktTbn <> "formulare" Then
+   Print #257, "  IF SammelInsert <> 0 AND i < " & iend & " Then csql.Append "","""
+   Print #257, "  IF SammelInsert = 0 OR i = " & iend & " Then"
+  End If ' aktTbn <> "formulare" Then
   
   If SammelIns Then Print #257, "   If lese.obmysql Then"
   If SammelIns Then Print #257, "    If i < " & iend & " Then sql = sql & "","""
   If SammelIns Then Print #257, "   Else"
 '  Print #257, "  Call myEFrag(sql,rAf)', , adAsyncExecute)"
   If aktTbn = "faelle" Then
-   Print #257, "'   If Not obForK Then ForeignNo0"
+'   Print #257, "'   If Not obForK Then ForeignNo0"
   End If ' aktTbn = "faelle" Then
-  Print #257, "'    altmode = DBCn.Execute(""SELECT @@global.sql_mode"").Fields(0)"
+'  Print #257, "'    altmode = DBCn.Execute(""SELECT @@global.sql_mode"").Fields(0)"
   Print #257, "    altmode = myEFrag(""SELECT @@global.sql_mode"", , DBCn).Fields(0)"
-  Print #257, "'   Call DBCn.Execute(""SET GLOBAL sql_mode='STRICT_TRANS_TABLES'"") ' NO_ENGINE_SUBSTITUTION"
+'  Print #257, "'   Call DBCn.Execute(""SET GLOBAL sql_mode='STRICT_TRANS_TABLES'"") ' NO_ENGINE_SUBSTITUTION"
   Print #257, "    myEFrag ""SET GLOBAL sql_mode='STRICT_TRANS_TABLES'"", , DBCn ' NO_ENGINE_SUBSTITUTION"
-  Print #257, "'   Call myEFrag(csql.Value,rAf)', , adAsyncExecute) ' wegen unzureichender Fehlerverarbeitung wieder ausrangiert 19.8.23"
-  Print #257, "'   Call DBCn.Execute(csql.Value, rAF) ', , adAsyncExecute) ' ausrangiert 16.6.24 wegen fehlender Feldverlängerung"
+'  Print #257, "'   Call myEFrag(csql.Value,rAf)', , adAsyncExecute) ' wegen unzureichender Fehlerverarbeitung wieder ausrangiert 19.8.23"
+'  Print #257, "'   Call DBCn.Execute(csql.Value, rAF) ', , adAsyncExecute) ' ausrangiert 16.6.24 wegen fehlender Feldverlängerung"
   Print #257, "    InsKorr DBCn, csql.Value, rAf, ErrD, , ErrN"
-  Print #257, "'    If ErrN Then Error ErrN"
+  If aktTbn = "formulare" Then
+   Print #257, "    neuFormID = myEFrag(""SELECT formid FROM formulare WHERE Form_Abk='"" & rFo(i).Form_Abk & ""' AND FormBez='"" & rFo(i).FormBez & ""' AND LCASE(FormVorl)='"" & lcase$(rFo(i).FormVorl) & ""'"").Fields(0)"
+   Print #257, "    For j = 1 To UBound(rFr)"
+   Print #257, "     If rFr(j).Form_ID = rFo(i).FormID Then rFr(j).Form_ID = neuFormID"
+   Print #257, "    Next j"
+  End If ' aktTbn = "formulare" Then
+'  Print #257, "'    If ErrN Then Error ErrN"
   Print #257, "    If ErrN Then"
-  Print #257, "     If SammelInsert = 1 And ErrN = -2147217900 Then"
-  Print #257, "      SammelInsert = 0"
-  Print #257, "      GoTo sql"
+  If aktTbn <> "formulare" Then
+   Print #257, "     If SammelInsert = 1 And ErrN = -2147217900 Then"
+   Print #257, "      SammelInsert = 0"
+   Print #257, "      GoTo sql"
+  End If ' aktTbn<> "forulare"
   Dim fld$, ErrNr&, ErrD$, rfld As ADODB.Recordset
   Set rfld = myEFrag("SELECT c.COLUMN_NAME FROM information_schema.TABLE_CONSTRAINTS k JOIN INFORMATION_SCHEMA.KEY_COLUMN_USAGE c USING (CONSTRAINT_SCHEMA,TABLE_NAME,CONSTRAINT_NAME) WHERE k.CONSTRAINT_CATALOG='def' AND k.CONSTRAINT_SCHEMA='" & DBCn.DefaultDatabase & "' AND LCASE(k.TABLE_NAME)='" & LCase$(tbn(i)) & "' AND k.CONSTRAINT_TYPE IN ('PRIMARY KEY','UNIQUE')", , DBCn, , ErrNr, ErrD)
   If Not rfld Is Nothing Then
   If Not rfld.BOF Then
   fld = rfld.Fields(0)
-  Print #257, "     ElseIf InStrB(ErrD, ""Duplicate"") <> 0 Then"
+  Print #257, "     " & IIf(aktTbn = "formulare", "", "Else") & "If InStrB(ErrD, ""Duplicate"") <> 0 Then"
   Print #257, "      r" & Tbk(i) & "(i)." & fld & " = myEFrag(""SELECT MAX(" & fld & ")+1 FROM `" & LCase$(tbn(i)) & "`"", , DBCn).Fields(0)"
   Print #257, "      csql.m_Len = 0"
   Print #257, "      GoTo setz"
@@ -1611,18 +1652,23 @@ End If ' aktTbn = "faelle" Then
    Print #257, "    csql.m_len = 0"
    Print #257, "   END IF ' IF SammelInsert = 0 Then"
   End If ' aktTbn = "faelle" Then
-  Print #257, "  END IF ' SammelInsert = 0 OR i = " & iend
+  If aktTbn <> "formulare" Then
+   Print #257, "  END IF ' SammelInsert = 0 OR i = " & iend
+  End If ' aktTbn <> "formulare" Then
   If SammelIns Then Print #257, "  END IF"
   If noDup(i) Then
    Print #257, "nexti:"
   End If
   Print #257, "  DoEvents"
+  If aktTbn = "formulare" Then
+   Print #257, " End If ' If rFo(i).FormID < 0 Then"
+  End If ' aktTbn = "formulare" Then
   Print #257, " Next i"
   Dim iiAnf$
   Select Case aktTbn
    Case "formulare": iiAnf = "rFo1"
-   Case "forminhaltform_abk": iiAnf = "rFi1"
-   Case "unbekannte_kennungen": iiAnf = "rUn1"
+'   Case "forminhaltform_abk": iiAnf = "rFi1"
+   Case "unbek_kenn": iiAnf = "rUn1"
    Case Else: iiAnf = vNS
   End Select
   If iiAnf <> "" Then
@@ -1805,11 +1851,11 @@ End If ' aktTbn = "faelle" Then
  Print #257, "Public FUNCTION tuLaden"
  For i = 0 To TbZ1
   aktTbn = LCase$(REPLACE$(tbn(i), " ", "_"))
-  If aktTbn <> "forminhaltform_abk" And aktTbn <> "formulare" And aktTbn <> "forminhfeld" And aktTbn <> "unbekannte_kennungen" And aktTbn <> "kvnrue" Then
+  If aktTbn <> "formulare" And aktTbn <> "forminhfeld" And aktTbn <> "unbek_kenn" And aktTbn <> "kvnrue" Then ' and aktTbn <> "forminhaltform_abk" And
    Print #257, " call " & aktTbn & "Laden"
   End If
   Select Case aktTbn
-  Case "faelle", "forminhaltform_abk"
+  Case "faelle" ' , "forminhaltform_abk"
   Print #257, "'  IF not lese.obmysql THEN"
   Print #257, "'   IF obTrans <> 0 THEN Call DBCn.CommitTrans: obtrans = 0"
   Print #257, "'    Call DBCn.BeginTrans: obTrans = 1"
@@ -1843,7 +1889,7 @@ End If ' aktTbn = "faelle" Then
    Print #257, " sqlIGNORE = """""
   End If
   Select Case aktTbn
-   Case "faelle", "forminhaltform_abk"
+   Case "faelle" ' , "forminhaltform_abk"
 '    Print #257, "   IF not lese.obmysql THEN"
 '    Print #257, "    IF obTrans <> 0 THEN Call DBCn.CommitTrans: obtrans = 0"
 '    Print #257, "    Call DBCn.BeginTrans: obTrans = 1"
@@ -2048,6 +2094,7 @@ Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "Last
 End Select
 End Function ' BooleanFld(frm AS Lese)
 
+' in TabVergleich_Click
 Public Function VergleichTab(frm As Lese) ' Vergleich der Datenbankfüllungen
  Const SpBr% = 20
  Dim ErrNr&, ErrDes$
@@ -2129,6 +2176,7 @@ Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "Last
 End Select
 End Function ' VergleichTab
 
+' in Vergleichen_Click
 Public Function Vergleiche(frm As Lese) ' Vergleich der Datenbankstrukturen
  Const SpBr% = 34
  Dim ErrNr&, ErrDes$
@@ -3335,6 +3383,7 @@ End Function ' holAb
 'End SELECT
 'End Function
 
+' in WSt0Erg_Click
 Public Function doWSt0Erg()
  Dim rs As New ADODB.Recordset
  ' COALESCE(d.Dggel,0)=0 AND
@@ -6039,7 +6088,7 @@ Function gewEintrag()
 End Function ' gewEintrag()
 #End If ' vonnirgends
 
-Public Function ZahlEintrag() ' &Zahlen aus Einträgen ermitteln
+Public Function ZahlEintrag() ' &Zahlen aus Einträgen Feld inhnum eintragen
  Dim rn As New ADODB.Recordset, rf As New ADODB.Recordset, rE As New ADODB.Recordset, gew0 As New CString, gewStr As New CString, buch$, i&, gew#, za%, kz%, ZZ%, kzm% ' Ziffer (als letztes) angehängt, Kommazahl, Ziffernzahl, keine Ziffer mehr
  Dim bearbeitet&, vorhanden&, sql$, rafSum&, rAf&
  Lese.ProgStart
@@ -6055,7 +6104,7 @@ Public Function ZahlEintrag() ' &Zahlen aus Einträgen ermitteln
   rE.MoveNext
   bearbeitet = bearbeitet + 1
   Lese.Ausgeb bearbeitet & "/" & vorhanden & " Datensätze bearbeitet, " & rafSum & " geändert", 0
- Loop
+ Loop ' While Not rE.EOF
 End Function ' zahlEintrag()
 
 #If False Then
@@ -6130,6 +6179,7 @@ Function testrisk()
 End Function ' testrisk
 #End If
 
+' in KassenLesen_Click
 Public Sub LiesKassen()
 Call liesExcel(pVerz & "Patientenübergreifendes\Listenausgabe_Krankenkassen.xls", 5, "kassen")
 myEFrag "DROP TABLE IF EXISTS kassenliste"
@@ -6166,6 +6216,7 @@ sql = "CREATE TABLE `kassenliste` (" & vbCrLf & _
   Forms(0).Ausgeb "Fertig mit Lieskassen!", True
 End Sub ' LiesKassen
 
+' in KassenkategorienBestimmen_Click
 Public Sub RufKassenKategorienBestimmen()
  Call Lese.ProgStart
  DoKassenkategorienBestimmen
