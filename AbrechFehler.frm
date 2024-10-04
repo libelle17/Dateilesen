@@ -2556,7 +2556,7 @@ sql(AWlf) = _
  "GROUP BY Pat_id,Fototag,L3Tag"
  
 sql(AWlf) = _
-" SELECT ia.Pat_id, ia.Name, ia.ICD,ia.FotoTag," & vbCrLf & _
+" SELECT ia.Pat_id, ia.PName, ia.ICD,ia.FotoTag," & vbCrLf & _
 " IF(INSTR(kvinh,'bds')<>0 AND L13z<>2 AND LFLeist<>'02311','zu wenige 02313', " & vbCrLf & _
 "   IF(INSTR(wvinh,'bds')<>0 AND LFz<>2,'zu wenige 02311/02312', " & vbCrLf & _
 "     IF(ISNULL(LFLeist),'02311/02312 dazu', " & vbCrLf & _
@@ -2573,9 +2573,9 @@ sql(AWlf) = _
 "   ) " & vbCrLf & _
 " ) Fehler " & vbCrLf & _
 ",ia.FotoStad, LFLeist `02311/02312`, LFz lfZahl,WVInh, L13Leist `02313`,L13z L13Zahl,KVInh, " & vbCrLf & _
-"L00Leist `02300`, L00tLeist, L00tz,L97Leist `97314/97324`, ia.name " & vbCrLf & _
+"L00Leist `02300`, L00tLeist, L00tz,L97Leist `97314/97324`, ia.PName " & vbCrLf & _
 " FROM ( " & vbCrLf & _
-"  SELECT f.pat_id, d.icd, f.fid, wv.inhalt WVInh, kv.inhalt KVInh, gesname(f.pat_id) Name," & vbCrLf & _
+"  SELECT f.pat_id, d.icd, f.fid, wv.inhalt WVInh, kv.inhalt KVInh, gesname(f.pat_id) PName," & vbCrLf & _
 "  lf.lei LFLeist,COALESCE(lf.z,0) LFz,L13.lei L13Leist,COALESCE(L13.z,0) L13z,L00.leistung L00Leist,L00t.leistung L00tLeist, COALESCE(L00t.z,0) L00tz, L97.leistung L97Leist," & vbCrLf & _
 "  MAX(MID(b.name,b.Fpos+4,2)) FotoStad,  b.QD FotoTag,  b.name name " & vbCrLf & _
 "  FROM aktfvs f " & vbCrLf & _
