@@ -2,15 +2,15 @@ VERSION 5.00
 Object = "{0ECD9B60-23AA-11D0-B351-00A0C9055D8E}#6.0#0"; "MSHFLXGD.OCX"
 Begin VB.Form PatListe 
    Caption         =   "Patientenliste"
-   ClientHeight    =   10425
+   ClientHeight    =   14625
    ClientLeft      =   510
    ClientTop       =   1245
-   ClientWidth     =   15120
+   ClientWidth     =   18960
    FillColor       =   &H80000005&
    Icon            =   "PatListe1.frx":0000
    LinkTopic       =   "PatListe"
-   ScaleHeight     =   10425
-   ScaleWidth      =   15120
+   ScaleHeight     =   14625
+   ScaleWidth      =   18960
    Begin VB.CommandButton Command2 
       Caption         =   "Command2"
       Height          =   255
@@ -199,6 +199,26 @@ Begin VB.Form PatListe
       _Band(0).Cols   =   2
    End
    Begin VB.Label ErklärungLbl 
+      BackColor       =   &H00FFFFFF&
+      Caption         =   "tot"
+      Height          =   255
+      Index           =   10
+      Left            =   0
+      TabIndex        =   36
+      Top             =   0
+      Width           =   855
+   End
+   Begin VB.Label ErklärungLbl 
+      BackColor       =   &H000000FF&
+      Caption         =   "ausgeschrieben"
+      Height          =   255
+      Index           =   9
+      Left            =   18195
+      TabIndex        =   35
+      Top             =   1320
+      Width           =   855
+   End
+   Begin VB.Label ErklärungLbl 
       BackColor       =   &H00FFFF00&
       Caption         =   "and.DMP"
       Height          =   240
@@ -212,34 +232,34 @@ Begin VB.Form PatListe
       Caption         =   "Doku-Spalte"
       Height          =   255
       Index           =   3
-      Left            =   18120
+      Left            =   18195
       TabIndex        =   32
-      Top             =   3720
+      Top             =   3840
       Width           =   975
    End
    Begin VB.Label SpalteLbl 
-      Caption         =   "letzter Fall-Spalte"
+      Caption         =   "Bhfb-Spalte"
       Height          =   255
       Index           =   2
-      Left            =   18120
+      Left            =   18195
       TabIndex        =   31
-      Top             =   2880
+      Top             =   3120
       Width           =   1575
    End
    Begin VB.Label SpalteLbl 
       Caption         =   "ICD-Spalte"
       Height          =   255
       Index           =   1
-      Left            =   18120
+      Left            =   18195
       TabIndex        =   30
-      Top             =   2040
+      Top             =   2280
       Width           =   975
    End
    Begin VB.Label SpalteLbl 
-      Caption         =   "Nachnamen-Spalte"
+      Caption         =   "Nachn'-Spalte"
       Height          =   255
       Index           =   0
-      Left            =   18120
+      Left            =   18195
       TabIndex        =   29
       Top             =   600
       Width           =   975
@@ -249,9 +269,9 @@ Begin VB.Form PatListe
       Caption         =   "Erstdoku fehlt"
       Height          =   255
       Index           =   7
-      Left            =   18120
+      Left            =   18195
       TabIndex        =   28
-      Top             =   4440
+      Top             =   4680
       Width           =   1335
    End
    Begin VB.Label ErklärungLbl 
@@ -259,9 +279,9 @@ Begin VB.Form PatListe
       Caption         =   "ED=Erstdoku"
       Height          =   255
       Index           =   6
-      Left            =   18120
+      Left            =   18195
       TabIndex        =   27
-      Top             =   4200
+      Top             =   4440
       Width           =   855
    End
    Begin VB.Label ErklärungLbl 
@@ -269,9 +289,9 @@ Begin VB.Form PatListe
       Caption         =   "FD=Folgedoku"
       Height          =   255
       Index           =   5
-      Left            =   18120
+      Left            =   18195
       TabIndex        =   26
-      Top             =   3960
+      Top             =   4200
       Width           =   1335
    End
    Begin VB.Label ErklärungLbl 
@@ -281,7 +301,7 @@ Begin VB.Form PatListe
       Index           =   4
       Left            =   18195
       TabIndex        =   25
-      Top             =   3120
+      Top             =   3360
       Width           =   855
    End
    Begin VB.Label ErklärungLbl 
@@ -291,7 +311,7 @@ Begin VB.Form PatListe
       Index           =   3
       Left            =   18195
       TabIndex        =   24
-      Top             =   2280
+      Top             =   2520
       Width           =   855
    End
    Begin VB.Label ErklärungLbl 
@@ -301,7 +321,7 @@ Begin VB.Form PatListe
       Index           =   2
       Left            =   18195
       TabIndex        =   23
-      Top             =   1560
+      Top             =   1800
       Width           =   855
    End
    Begin VB.Label ErklärungLbl 
@@ -311,7 +331,7 @@ Begin VB.Form PatListe
       Index           =   1
       Left            =   18195
       TabIndex        =   22
-      Top             =   1320
+      Top             =   1560
       Width           =   855
    End
    Begin VB.Label ErklärungLbl 
@@ -455,7 +475,7 @@ Dim fgespei%(MTBeg To MTMax) ' Farbe gespeichert
 Private Declare Sub Sleep Lib "kernel32" (ByVal ms&)
 Dim KeyC%
 Dim SuchStr$
-Dim aktc&, aktr&, altr&, alttop&, altC&
+Dim aktc&, aktr&, altR&, alttop&, altC&
 Enum BogArtTyp
  typ1neu = 1
  typ2neu
@@ -463,7 +483,7 @@ Enum BogArtTyp
  typ2alt
 End Enum
 Enum ArtTyp
- artPat = 1 ' DMP hier Liste
+ artpat = 1 ' DMP hier Liste
  artDiag    ' Diagnosen sortieren
  artLab     ' pathologische Laborwerte anschauen
  artDMP     ' DMP-Infos an Hausärzte faxen
@@ -497,6 +517,7 @@ Const MFGLabCols% = 9
 Dim MFGCW&(), MFGTopRow&, MFGRow&, MFGLeftCol&, MFGCol&, MFGLabSort%
 Public obMitZähler% ' 0 = ohne Zähler, 1 = mit Zähler
 Dim obPidSp%
+Dim rDPat As New ADODB.Recordset
 Private Declare Function ShellExecute Lib "shell32.dll" _
         Alias "ShellExecuteA" (ByVal hwnd As Long, ByVal _
         lpOperation As String, ByVal lpFile As String, ByVal _
@@ -609,7 +630,7 @@ sql0 = "SELECT COUNT(0) Zahl, i.* FROM (SELECT n.getha0 ÜWNNR, h.fax, h.Anrede, 
    PatZuHAS.obDMPInfo = -rs0!obDMPInfo
    PatZuHAS.gewählt = -rs0!obDMPInfo
    PatZuHAS.name = rs0!name
-   PatZuHAS.Pat_id = rs0!Pat_id
+   PatZuHAS.Pat_ID = rs0!Pat_ID
    PatZuHAS.ÜwNm = rs0!Adressat
    PatZuHAS.ÜWNr = rs0!ÜWNNr
    PatZuHASL.sCAdd PatZuHAS
@@ -674,7 +695,7 @@ Public Sub TopAusricht()
   FNr = 4
   With MFG
     On Error Resume Next
-    If .Row - altr > (.Height / .CellHeight * 0.9) Then
+    If .Row - altR > (.Height / .CellHeight * 0.9) Then
      .TopRow = .Row - 1
     End If
   End With
@@ -724,16 +745,16 @@ Sub doStart() 'DMP-Infos an Hausärzte faxen starten
 '          IF aktPatGefaxt(j) = fax1 THEN obdoppelt = True
 '         Next j
          If Not obdoppelt Then
-          syscmd 4, "Erstelle: " & " " & PatZuHASL.Item(i).Pat_id & " " & PatZuHASL.Item(i).name & " " & fax1 & " " & PatZuHASL.Item(i).ÜWNr
+          syscmd 4, "Erstelle: " & " " & PatZuHASL.Item(i).Pat_ID & " " & PatZuHASL.Item(i).name & " " & fax1 & " " & PatZuHASL.Item(i).ÜWNr
 '          IF runde = 1 THEN
 '          Else
 '           IF pat_id = 1974 THEN
            anfang = True
 '           END IF
            If anfang Then
-            Call Ausgeb(PatZuHASL.Item(i).Pat_id & ": " & PatZuHASL.Item(i).name & ", " & fax1 & ", " & PatZuHASL.Item(i).ÜWNr)
+            Call Ausgeb(PatZuHASL.Item(i).Pat_ID & ": " & PatZuHASL.Item(i).name & ", " & fax1 & ", " & PatZuHASL.Item(i).ÜWNr)
             DoEvents
-            docName = do_DMPAusgebStandAlone(PatZuHASL.Item(i).Pat_id, fax1, ÜwNm)
+            docName = do_DMPAusgebStandAlone(PatZuHASL.Item(i).Pat_ID, fax1, ÜwNm)
            End If ' 1 = 0
            aktPatGefaxt(UBound(aktPatGefaxt)) = fax1
            ReDim Preserve aktPatGefaxt(UBound(aktPatGefaxt) + 1)
@@ -792,7 +813,7 @@ Public Sub Command1_Click(Index As Integer)
     Case 6: Call farberklärung ' hier Farberklärung
    End Select
    
-  Case artPat ' DMP hier Liste
+  Case artpat ' DMP hier Liste
    Select Case Index
     Case 0: Call dokuErstelle
     Case 1: Call FertigStellen(Me.MFG.Row, True) ' in TurbomedAnzeigen
@@ -857,7 +878,7 @@ Sub GesZF()
  Datei = uVerz & "tmimport\" & "DMP_Import_" & Format(Now(), "yyyy-mm-dd_hh-mm-ss") & ".BDT"
  For i = 1 To GesColl.COUNT
   With MFG
-   altr = .Row
+   altR = .Row
    VorDoku = .TextMatrix(i, VorDokuSp)
    NachN = .TextMatrix(i, NachNameSp)
    VorN = .TextMatrix(i, NachNameSp + 1)
@@ -866,7 +887,7 @@ Sub GesZF()
    .col = NachNameSp
    callMachDMPBogen GesColl(i), NachN, VorN, .CellBackColor = vbWhite, .CellBackColor = HellRot, .TextMatrix(i, ICDSp), False, immeranhaeng, True, Datei
    .col = altC
-   .Row = altr
+   .Row = altR
   End With ' MFG
   immeranhaeng = True
  Next i
@@ -881,7 +902,7 @@ Sub alleFS()
  Dim pCol As New Collection, i&, zeile
 ' Dim altCol&, altRow& ' evtl. zu streichen 19.4.10
  Select Case PLArt
-  Case artPat ' DMP hier Liste
+  Case artpat ' DMP hier Liste
    FNr = 6
    With Me.MFG
     .col = 0
@@ -910,9 +931,9 @@ Sub Auffrisch()
 End Sub ' Auffrisch()
 
 Private Sub plz()
- Dim Pat_id$
- Pat_id = MFG.TextMatrix(MFG.Row, PIDSp)
- Call dodoplz(Pat_id, plzVz, Now, Now - Int(Now), True)
+ Dim Pat_ID$
+ Pat_ID = MFG.TextMatrix(MFG.Row, PIDSp)
+ Call dodoplz(Pat_ID, plzVz, Now, Now - Int(Now), True)
 End Sub ' Anleitung
 
 
@@ -1000,7 +1021,7 @@ Sub FertigStellenBeliebig()
    Stop
   Case artDiag
   
-  Case artPat ' DMP hier Liste
+  Case artpat ' DMP hier Liste
    erg = InputBox("Bitte Pat-ID eingeben:", "Eingabe der Patientennummer", Me.MFG.TextMatrix(Me.MFG.Row, 1))
    If IsNumeric(erg) Then
     Call FertigStellen(0, , CLng(erg))
@@ -1023,13 +1044,13 @@ Private Sub DokuBeliebig() ' Doku zu beliebigem Patienten
    
   Case artDiag
   
-  Case artPat ' DMP hier Liste
+  Case artpat ' DMP hier Liste
    erg = InputBox("Bitte Pat-ID eingeben:", "Eingabe der Patientennummer", Me.MFG.TextMatrix(Me.MFG.Row, DPatIDSp))
    
    If IsNumeric(erg) Then
     With MFG
      alttop = .TopRow
-     altr = .Row
+     altR = .Row
      Call MFG_leavecell
      If erg = .TextMatrix(.Row, DPatIDSp) Then VorDoku = .TextMatrix(.Row, VorDokuSp)
      NachN = .TextMatrix(.Row, NachNameSp)
@@ -1040,7 +1061,7 @@ Private Sub DokuBeliebig() ' Doku zu beliebigem Patienten
      .col = altC
      FNr = 9
      .SetFocus
-     For aktr = altr + 1 To .Rows - 1
+     For aktr = altR + 1 To .Rows - 1
       .Row = aktr
       .col = NachNameSp
       If .CellBackColor = DunkelRot Or .CellBackColor = HellRot Then ' Hellrot eingefügt 3.10.24
@@ -1065,7 +1086,7 @@ Public Sub Nächster()
   MFG.SetFocus
   If MFG.Row < MFG.Rows - 1 Then
    alttop = MFG.TopRow
-   altr = MFG.Row
+   altR = MFG.Row
    Call MFG_leavecell
    aktr = MFG.Row + 1
    MFG.Row = aktr
@@ -1079,7 +1100,7 @@ Public Sub Voriger()
   MFG.SetFocus
   If MFG.Row > 1 Then
    alttop = MFG.TopRow
-   altr = MFG.Row
+   altR = MFG.Row
    Call MFG_leavecell
    aktr = MFG.Row - 1
    MFG.Row = aktr
@@ -1096,7 +1117,7 @@ Public Sub NächsterGleichartiger()
  aktZA = getBogArtTyp
  With MFG
   alttop = .TopRow
-  altr = .Row
+  altR = .Row
   Call MFG_leavecell
   For aktr = .Row + 1 To .Rows - 1
    .Row = aktr
@@ -1106,7 +1127,7 @@ Public Sub NächsterGleichartiger()
     Exit Sub
    End If
   Next
-  .Row = altr
+  .Row = altR
   Call mfg_entercell
  End With
  
@@ -1147,7 +1168,7 @@ End Sub ' Suchen
 Public Sub FertigStellen(zeile&, Optional nuranzeigen%, Optional PatID&) ' nachdem BDT-Datei(en) manuell importiert wurde(n)
  Const obStumm% = 0
  FNr = 11
- Dim VorDoku$, Pat_id&, dtyp%, rs As New Recordset
+ Dim VorDoku$, Pat_ID&, dtyp%, rs As New Recordset
 ' Dim aktDC AS DMPClass
  Dim j%
  Dim rTyp As New ADODB.Recordset
@@ -1155,19 +1176,19 @@ Public Sub FertigStellen(zeile&, Optional nuranzeigen%, Optional PatID&) ' nachd
  With MFG
   .SetFocus
   alttop = .TopRow
-  altr = zeile
+  altR = zeile
 '  altC = .col
   If PatID <> 0 Then
-   Pat_id = PatID
+   Pat_ID = PatID
    myFrag rs, "SELECT quartal FROM `faelle` WHERE pat_id = " & PatID & " AND bhfb < NOW()- " & Verspätung & " ORDER BY bhfb DESC", , DBCn
   Else
    VorDoku = .TextMatrix(zeile, VorDokuSp)
-   Pat_id = .TextMatrix(zeile, PIDSp)
+   Pat_ID = .TextMatrix(zeile, PIDSp)
   End If
 '  .col = altC
  End With
 ' Call DMPAusgeb0(aktDC, Pat_id, Not obstumm)
- zwiFS Pat_id, nuranzeigen
+ zwiFS Pat_ID, nuranzeigen
  Exit Sub
 fehler:
  Dim AnwPfad$
@@ -1183,7 +1204,7 @@ fehler:
  End Select
 End Sub ' FertigStellen
 
-Sub zwiFS(Pat_id&, nuranzeigen%)
+Sub zwiFS(Pat_ID&, nuranzeigen%)
  Dim hnd&
  On Error GoTo fehler
  hnd = FensterHandle("TurboMed")
@@ -1209,7 +1230,7 @@ Sub zwiFS(Pat_id&, nuranzeigen%)
 '  Pause (Pausenlänge)
   SendKeys "p", True
   Pause (Pausenlänge)
-  SendKeys "{bs}" & Pat_id & "", True
+  SendKeys "{bs}" & Pat_ID & "", True
   
   Call doFS(nuranzeigen, True)
  End If
@@ -1431,7 +1452,7 @@ End Sub
 
 ' in Command1_Click(artPat)
 Public Sub dokuErstelle() ' Erstelle
- Dim VorDoku$, Pat_id&, NachN$, VorN$
+ Dim VorDoku$, Pat_ID&, NachN$, VorN$
  FNr = 15
  Select Case PLArt
  
@@ -1446,21 +1467,21 @@ Public Sub dokuErstelle() ' Erstelle
    With MFG
     .SetFocus
     alttop = .TopRow
-    altr = .Row
+    altR = .Row
     VorDoku = .TextMatrix(.Row, VorDokuSp)
-    Pat_id = .TextMatrix(.Row, PIDSp)
+    Pat_ID = .TextMatrix(.Row, PIDSp)
     NachN = .TextMatrix(.Row, NachNameSp)
     VorN = .TextMatrix(.Row, NachNameSp + 1)
     altC = .col
     .col = NachNameSp
-    Call callMachDMPBogen(Pat_id, NachN, VorN, .CellBackColor = vbWhite, .CellBackColor = HellRot, .TextMatrix(.Row, ICDSp))
+    Call callMachDMPBogen(Pat_ID, NachN, VorN, .CellBackColor = vbWhite, .CellBackColor = HellRot, .TextMatrix(.Row, ICDSp))
     .col = altC
    End With ' MFG
  End Select
 End Sub ' dokuErstelle
 
 ' in Command2_Click, GesZF, DokuBeliebig, dokuErstelle
-Public Sub callMachDMPBogen(Pat_id&, NachN$, VorN$, obtot%, obneu%, icd$, Optional obmitauswahl%, Optional immeranhaeng%, Optional obStumm%, Optional Datei$)  ' Erstelle
+Public Sub callMachDMPBogen(Pat_ID&, NachN$, VorN$, obtot%, obneu%, ICD$, Optional obmitauswahl%, Optional immeranhaeng%, Optional obStumm%, Optional Datei$)  ' Erstelle
 ' Dim rTyp As New ADODB.Recordset
  Dim dmpba As New DMPBogenauswahl
  Dim dtyp%
@@ -1468,13 +1489,13 @@ Public Sub callMachDMPBogen(Pat_id&, NachN$, VorN$, obtot%, obneu%, icd$, Option
  FNr = 16
 ' myFrag rTyp, "SELECT icd FROM diagnosen d WHERE d.pat_id = " & Pat_id & " AND d.diagsicherheit <> 'A' AND d.icd LIKE 'E1%' ORDER BY icd", adOpenStatic, DBCn, adLockReadOnly ' AND COALESCE(d.Dggel,0)=0
 ' If Not rTyp.EOF Then dtyp = Mid$(rTyp!ICD, 3, 1) + 1
- dtyp = Mid(icd, 3, 1) + 1
+ dtyp = Mid(ICD, 3, 1) + 1
 #If False Then
  If VorDoku = "" Then
       Dim rDok As New ADODB.Recordset
       Dim begcol%, j%, AktCol%, obraus%
 '      rDok.Open "SELECT `DokuDatum`, `Art`, `ausgedruckt`, `OK`, `exportiert` FROM `dmpreihe` dr WHERE pat_id = " & Pat_id & "  AND (dr.Abk LIKE 'eDMPDM%' OR dr.Abk LIKE 'DMPDTYP%') ORDER BY `DokuDatum` DESC", DBCn, adOpenDynamic, adLockReadOnly
-      myFrag rDok, "SELECT `DokuDatum`, `Art`, `ausgedruckt`, `OK`, `exportiert` FROM `dmpreihe` dr WHERE pat_id = " & Pat_id & "  AND (dr.Abk LIKE 'eDMPDM%' OR dr.Abk LIKE 'DMPDTYP%') ORDER BY `DokuDatum` DESC"
+      myFrag rDok, "SELECT `DokuDatum`, `Art`, `ausgedruckt`, `OK`, `exportiert` FROM `dmpreihe` dr WHERE pat_id = " & Pat_ID & "  AND (dr.Abk LIKE 'eDMPDM%' OR dr.Abk LIKE 'DMPDTYP%') ORDER BY `DokuDatum` DESC"
       If Not rDok.BOF Then
        begcol = VorDokuSp - 1
 '       IF ZQSort(NOW() - 120) > ZQSort(rDok!DokuDatum) THEN ' Now() - rDok!DokuDatum > 120 THEN ' 21. des übernä Monats
@@ -1521,14 +1542,14 @@ Public Sub callMachDMPBogen(Pat_id&, NachN$, VorN$, obtot%, obneu%, icd$, Option
 '   Exit Sub
 '  Else
 '   dmpba.Caption = "Erstelle DMP-Bogen zu " & Pat_id & " (" & rs!n & ", " & rs!V & ")"
-   dmpba.Caption = "Erstelle DMP-Bogen zu " & Pat_id & " (" & NachN & ", " & VorN & ")"
+   dmpba.Caption = "Erstelle DMP-Bogen zu " & Pat_ID & " (" & NachN & ", " & VorN & ")"
    dmpba.DokuDatum = DokuDat
    dmpba.Show vbModal, Me
 '  BogArtVar = dmpba.Option1
    If BogArtVar = 0 Then Exit Sub
 '  End If
  End If ' obmitauswahl Then
- Call domachDMPBogen(Pat_id, BogArtVar, DokuDat, immeranhaeng, Not obmitauswahl, obStumm, Datei)
+ Call domachDMPBogen(Pat_ID, BogArtVar, DokuDat, immeranhaeng, Not obmitauswahl, obStumm, Datei)
 End Sub ' callMachDMPBogen(Pat_id&, Optional VorDoku$, Optional obmitauswahl%, optional immeranhaeng)
 
 
@@ -1594,26 +1615,26 @@ Private Sub Command2_Click()
     Input #388, erg
     pos = InStr(erg, "3000")
     If pos = 4 Then
-     Dim Pat_id$
-     Pat_id = Mid$(erg, pos + 4)
+     Dim Pat_ID$
+     Pat_ID = Mid$(erg, pos + 4)
 '     Debug.Print Pat_id
 #If True Then
      With MFG
       alttop = .TopRow
-      altr = .Row
+      altR = .Row
       altC = .col
       VorDoku = .TextMatrix(.Row, VorDokuSp)
-      Pat_id = .TextMatrix(.Row, PIDSp)
+      Pat_ID = .TextMatrix(.Row, PIDSp)
       NachN = .TextMatrix(.Row, NachNameSp)
       VorN = .TextMatrix(.Row, NachNameSp + 1)
       .col = NachNameSp
-      callMachDMPBogen CLng(Pat_id), NachN, VorN, .CellBackColor = vbWhite, .CellBackColor = HellRot, .TextMatrix(.Row, ICDSp), 0, True, True, Datei
+      callMachDMPBogen CLng(Pat_ID), NachN, VorN, .CellBackColor = vbWhite, .CellBackColor = HellRot, .TextMatrix(.Row, ICDSp), 0, True, True, Datei
       .col = altC
      End With ' MFG
      
 #Else
     ElseIf InStr(erg, "-Dokumentation Diabetes") > 0 Then
-     If Pat_id <> "" Then
+     If Pat_ID <> "" Then
       pos = InStr(10, erg, "Typ 2")
       Dim p2%
       p2 = InStr(erg, "Folge")
@@ -1628,13 +1649,13 @@ Private Sub Command2_Click()
        bog = typ2alt
       End If
        Dim pid&
-       pid = CLng(Pat_id)
+       pid = CLng(Pat_ID)
        Select Case pid
         Case 184, 349, 1445, 1259, 1510, 1954, 59884, 53126, 53381, 7822, 31850, 38909, 59693, 59649, 51594, 59492, 59487, 53617, 53619, 53895, 54045, 59347, 59347, 1530
         Case Else
-         domachDMPBogen CLng(Pat_id), bog, CDate(Now() - 1), True, True, True, Datei
+         domachDMPBogen CLng(Pat_ID), bog, CDate(Now() - 1), True, True, True, Datei
        End Select
-      Pat_id = ""
+      Pat_ID = ""
      End If
 #End If
      'machdmpbogen(pat_id,boga
@@ -1646,7 +1667,7 @@ End Sub ' Command2_Click()
 
 ' in callMachDMPBogen und auskommentiert in Command2_Click
 ' die Konstanten DokuVersion und Datenerfassung müssen jedes Quartal überprüft und ggf. geändert werden!
-Public Sub domachDMPBogen(Pat_id&, BogArtlV As BogArtTyp, DokuDat As Date, Optional immeranhaeng%, Optional autolanr%, Optional obStumm%, Optional Datei)  ' Erstelle
+Public Sub domachDMPBogen(Pat_ID&, BogArtlV As BogArtTyp, DokuDat As Date, Optional immeranhaeng%, Optional autolanr%, Optional obStumm%, Optional Datei)  ' Erstelle
  If Datei = "" Then Datei = uVerz & "tmimport\" & DMP_Import
  Const DokuVersion$ = "201410"
 ' Dim rsAnam As New ADODB.Recordset
@@ -1701,13 +1722,13 @@ Public Sub domachDMPBogen(Pat_id&, BogArtlV As BogArtTyp, DokuDat As Date, Optio
  
  Dim rlanr As New ADODB.Recordset
  If autolanr Then
-  myFrag rlanr, "SELECT p.lanr FROM lanrpraxis p WHERE id = IF((SELECT MIN(lanrid) FROM faelle WHERE pat_id = " & Pat_id & " AND qanf = (SELECT MAX(qanf) FROM faelle WHERE pat_id = " & Pat_id & "))>0,(SELECT MIN(lanrid) FROM faelle WHERE pat_id = " & Pat_id & " AND qanf = (SELECT MAX(qanf) FROM faelle WHERE pat_id = " & Pat_id & ")),1)"
+  myFrag rlanr, "SELECT p.lanr FROM lanrpraxis p WHERE id = IF((SELECT MIN(lanrid) FROM faelle WHERE pat_id = " & Pat_ID & " AND qanf = (SELECT MAX(qanf) FROM faelle WHERE pat_id = " & Pat_ID & "))>0,(SELECT MIN(lanrid) FROM faelle WHERE pat_id = " & Pat_ID & " AND qanf = (SELECT MAX(qanf) FROM faelle WHERE pat_id = " & Pat_ID & ")),1)"
   If Not rlanr.BOF Then
    auswlanr.Lanr = rlanr!Lanr
    Set rlanr = Nothing
   End If
  Else ' autolanr Then
-  auswlanr.PrepPatid Pat_id
+  auswlanr.PrepPatid Pat_ID
   auswlanr.Show 1, Me
   auswlanr.Visible = False
   If auswlanr.Lanr = 0 Then Exit Sub
@@ -1719,11 +1740,11 @@ Public Sub domachDMPBogen(Pat_id&, BogArtlV As BogArtTyp, DokuDat As Date, Optio
 ' myFrag rsAnam, "SELECT * FROM `anamnesebogen` WHERE pat_id = " & Pat_id
 ' myFrag rnam, "SELECT * FROM `namen` WHERE pat_id = " & Pat_id
  Dim lVorl As Date
- myFrag rfal, "SELECT " & IIf(Not LVobMySQL, "top 1", "") & " * FROM `faelle` WHERE pat_id = " & Pat_id & " AND bhfb <= " & DatFor_k(MINvb(Now(), fctQEnd(ZQuart(Now() - Verspätung)))) & " ORDER BY bhfb DESC, schgr" & IIf(LVobMySQL, " LIMIT 1", "")
+ myFrag rfal, "SELECT " & IIf(Not LVobMySQL, "top 1", "") & " * FROM `faelle` WHERE pat_id = " & Pat_ID & " AND bhfb <= " & DatFor_k(MINvb(Now(), fctQEnd(ZQuart(Now() - Verspätung)))) & " ORDER BY bhfb DESC, schgr" & IIf(LVobMySQL, " LIMIT 1", "")
  lVorl = rfal!lVorl
- myFrag rform, "SELECT " & IIf(Not LVobMySQL, "top 1", "") & " `feldinh` FROM `formular` WHERE pat_id = " & Pat_id & " AND Feld = 'Kasse' AND `zeitpunkt` <= " & DatFor_k(MINvb(Now(), fctQEnd(ZQuart(Now - Verspätung)))) & " AND feldinh LIKE '%'" & " ORDER BY zeitpunkt DESC" & IIf(LVobMySQL, " LIMIT 1", "") ' & aktdc.vknr & "%'"  geht nicht gut: VKNr nicht unbedingt aktuell in `faelle` (s.Pat_id 51)
+ myFrag rform, "SELECT " & IIf(Not LVobMySQL, "top 1", "") & " `feldinh` FROM `formular` WHERE pat_id = " & Pat_ID & " AND Feld = 'Kasse' AND `zeitpunkt` <= " & DatFor_k(MINvb(Now(), fctQEnd(ZQuart(Now - Verspätung)))) & " AND feldinh LIKE '%'" & " ORDER BY zeitpunkt DESC" & IIf(LVobMySQL, " LIMIT 1", "") ' & aktdc.vknr & "%'"  geht nicht gut: VKNr nicht unbedingt aktuell in `faelle` (s.Pat_id 51)
 ' Ermittlung der 'Kasse' aus Rezepten oder Überweisungen oder vorherigen DMP-Dokus usw.
- Call DMPAusgeb0(aktDC, CStr(Pat_id), Not obStumm, , DokuDat) ' dort wird DMPString aufgerufen
+ Call DMPAusgeb0(aktDC, CStr(Pat_ID), Not obStumm, , DokuDat) ' dort wird DMPString aufgerufen
  Dim Kasse$
  If Not rform.BOF Then
   Kasse = rform!FeldInh ' Trim$(replace$(rform!FeldInh, aktdc.vknr, ""))
@@ -1754,7 +1775,7 @@ Public Sub domachDMPBogen(Pat_id&, BogArtlV As BogArtTyp, DokuDat As Date, Optio
  
  #Const zumdebug = 0
  #If zumdebug = 1 Then
-  Call DMPString$(Pat_id, aktDC, , , DokuDat, 0)
+  Call DMPString$(Pat_ID, aktDC, , , DokuDat, 0)
  #End If
  Call BDT.ImportFolderHerricht(hVerz, Mid(Datei, Len(Datei) - InStr(StrReverse(Datei), "\") + 2))
  
@@ -1764,7 +1785,7 @@ Public Sub domachDMPBogen(Pat_id&, BogArtlV As BogArtTyp, DokuDat As Date, Optio
   Call BDT.BDTKo2(auswlanr.Lanr)
  End If ' LenB(erg) = 0
  BDT.Satzart "6200" ' Falldaten
- BDT.PatID Pat_id
+ BDT.PatID Pat_ID
  If aktDC.NVorsatz <> "" Then
   BDT.NVorsatz aktDC.NVorsatz
  End If
@@ -1938,8 +1959,8 @@ Public Sub domachDMPBogen(Pat_id&, BogArtlV As BogArtTyp, DokuDat As Date, Optio
     BDT.FIAdd Mid$(ErstellDat, i + 1, 1)
    Next i
    Dim testvar$
-   testvar = Format(Pat_id, "0000000")
-   For i = 7 - Len(CStr(Pat_id)) To 6
+   testvar = Format(Pat_ID, "0000000")
+   For i = 7 - Len(CStr(Pat_ID)) To 6
     BDT.FFAdd "FallNummerDM" & DmT & "#" & i
     BDT.FIAdd Mid$(testvar, i + 1, 1)
    Next i
@@ -2267,7 +2288,7 @@ Public Sub domachDMPBogen(Pat_id&, BogArtlV As BogArtTyp, DokuDat As Date, Optio
    Dim Zusatzdaten$, SuchStr$
    
    Dim rDMP As New ADODB.Recordset
-   myFrag rDMP, "SELECT zusatzdaten z FROM dmpreihe WHERE pat_id = " & Pat_id & "  AND (Abk LIKE 'eDMPDM%' OR Abk LIKE 'DMPDTYP%') ORDER BY karteidatum"
+   myFrag rDMP, "SELECT zusatzdaten z FROM dmpreihe WHERE pat_id = " & Pat_ID & "  AND (Abk LIKE 'eDMPDM%' OR Abk LIKE 'DMPDTYP%') ORDER BY karteidatum"
    If Not rDMP.BOF Then
     Zusatzdaten = rDMP!z
     SuchStr = "<Patient><publicID>"
@@ -2696,7 +2717,7 @@ Public Sub domachDMPBogen(Pat_id&, BogArtlV As BogArtTyp, DokuDat As Date, Optio
   Pause (Pausenlänge)
 '  SendKeys "p", True
 '  Pause (Pausenlänge)
-  SendKeys Pat_id & vNS, True
+  SendKeys Pat_ID & vNS, True
   Pause (Pausenlänge)
   SendKeys "{ENTER}", True
   Pause (1000)
@@ -2723,7 +2744,7 @@ Public Sub domachDMPBogen(Pat_id&, BogArtlV As BogArtTyp, DokuDat As Date, Optio
     dmpdat = Format$(MIN(fctQEnd(ZQuart(Now - Verspätung)), Now), "dd.mm.yy")
     dmpdatop = Format$(MIN(fctQEnd(ZQuart(Now - Verspätung)), Now), "ddmmyyyy")
     Dim DatName$, DNn$
-    DatName = pVerz & aktDC.Nachname & " " & aktDC.Vorname & " (PID" & aktDC.Pat_id & "), DMP-Formular vom " & dmpdat & ".pdf"
+    DatName = pVerz & aktDC.Nachname & " " & aktDC.Vorname & " (PID" & aktDC.Pat_ID & "), DMP-Formular vom " & dmpdat & ".pdf"
     DNn = Dir(DatName)
     If DNn <> "" Then Kill DatName
     DatName = REPLACE$(REPLACE$(DatName, "(", "{(}"), ")", "{)}")
@@ -2783,7 +2804,7 @@ Private Sub MFGrefresh()
  aicd = vNS
  MFG.Row = 1
  Do While Not rs.EOF
-  If rs!icd <> aicd Then MFG.Row = MFG.Row + 1: MFG.col = 0: MFG = rs!icd: MFG.col = GruSp: MFG = rs!dg1: MFG.col = MFG.col + 1: MFG = rs!gi2: aicd = rs!icd
+  If rs!ICD <> aicd Then MFG.Row = MFG.Row + 1: MFG.col = 0: MFG = rs!ICD: MFG.col = GruSp: MFG = rs!dg1: MFG.col = MFG.col + 1: MFG = rs!gi2: aicd = rs!ICD
   MFG.col = MFG.col + 1
   MFG = rs!DiagText
   rs.Move 1
@@ -2958,23 +2979,23 @@ Sub LabordateiAnzeig(Datei$)
  "ORDER BY l.pat_id,l.name,gruppe,reihe,id"
  '  ",IF(RANK() OVER(PARTITION BY pat_id ORDER BY l.pat_id,gruppe,reihe,id)=1,l.NAME,'') ueName" & vbCrLf & _
 
- Dim Pat_id&, dtyp$
+ Dim Pat_ID&, dtyp$
 
  If Not rc.BOF And True Then
   .Rows = rc!Zahl + 1
   i = 1
   Do While Not rc.EOF
-    If Not IsNull(rc!Pat_id) Then
-     Pat_id = rc!Pat_id
+    If Not IsNull(rc!Pat_ID) Then
+     Pat_ID = rc!Pat_ID
      dtyp = rc!ityp
-     If Pat_id <> vorPID Then vorFarbe = IIf(vorFarbe = vbWhite, vbGräulich, vbWhite) '&H8000000F&=vbgelblichgrau
+     If Pat_ID <> vorPID Then vorFarbe = IIf(vorFarbe = vbWhite, vbGräulich, vbWhite) '&H8000000F&=vbgelblichgrau
      Sp1Farbe = vorFarbe
      If dtyp = "1" Then Sp1Farbe = &HCCCCFF Else If dtyp = "2" Then Sp1Farbe = &HFFCCCC
      'If Not IsNull(rc!obsws) Then If dtyp = "1" Or dtyp = "2" Then Sp1Farbe = vbGoldenRod Else Sp1Farbe = 2139610 ' RGB(218, 165, 32)
      If Not IsNull(rc!obsws) Then Sp1Farbe = vbGoldenRod
-     vorPID = Pat_id
+     vorPID = Pat_ID
      .Row = i
-     .col = Pat_IDSp:    .Text = rc!Pat_id:      .CellBackColor = Abs(Sp1Farbe)
+     .col = Pat_IDSp:    .Text = rc!Pat_ID:      .CellBackColor = Abs(Sp1Farbe)
      .col = namsp:       .Text = rc!name:        .CellBackColor = rc!namsp
      .col = parsp:       .Text = rc!LT:          .CellBackColor = rc!wertsp
      .col = wertsp:      .Text = rc!Wert:        .CellBackColor = rc!wertsp
@@ -3097,7 +3118,7 @@ Sub LabordateiAnzeig(Datei$)
      myFrag rs2, "SELECT pat_id " & sql
      If Not rs2.EOF Then
       Do While Not rs2.EOF
-       pide = pide & IIf(pide = vNS, vNS, ",") & rs2!Pat_id
+       pide = pide & IIf(pide = vNS, vNS, ",") & rs2!Pat_ID
        rs2.MoveNext
       Loop
       Set rs2 = Nothing
@@ -3116,7 +3137,7 @@ Sub LabordateiAnzeig(Datei$)
     End If
 '    .TextMatrix(i, namsp) = .TextMatrix(i, namsp) & " (" & ROUND((NOW() - rs2!GebDat) * 2.73792574745373E-03, 0) & " a)" ' 1/365,24
     .TextMatrix(i, namsp) = .TextMatrix(i, namsp) & " (" & AlterBei(Now(), rs2!GebDat) & " a)"
-    pid = rs2!Pat_id
+    pid = rs2!Pat_ID
     gschl = rs2!geschlecht
     .TextMatrix(i, Pat_IDSp) = pid
     Dim rTerm As ADODB.Recordset
@@ -3458,7 +3479,7 @@ Private Sub Form_Load()
  gehezu = 1
  obtb = -1
  Select Case Me.PLArt
-  Case artPat ' DMP hier Liste
+  Case artpat ' DMP hier Liste
    For i = 0 To Me.ErklärungLbl.COUNT - 1
     Me.ErklärungLbl(i).Visible = True
    Next i
@@ -3623,8 +3644,8 @@ Private Sub Form_Load()
     Case artHA ' Hausärzte korrigieren
      Dim rHa As New ADODB.Recordset
      sql = "SELECT"
-    Case artPat ' DMP hier Liste
-     Dim rDPat As New ADODB.Recordset, lfdnr&, cbcol&, k&
+    Case artpat ' DMP hier Liste
+     Dim lfdnr&, cbcol&, k&
      Dim rDok As New ADODB.Recordset
     ' sql = "SELECT n.*, icd, kurzname FROM `namen` n LEFT JOIN `diagnosen` d ON n.pat_id = d.pat_id LEFT JOIN lfaelle f ON n.pat_id = f.pat_id LEFT JOIN `kassenliste` k ON k.ik = f.ik AND k.vknr = f.vknr WHERE notiz LIKE '%DMP hier%' AND (icd LIKE 'E1%' AND NOT icd LIKE 'E15%' AND NOT icd LIKE 'E16%') AND diagsicherheit NOT IN ('Z','A') AND NOT kurzname LIKE 'AOK%' ORDER BY n.pat_id"
 '     sql = "SELECT f.bhfb, notiz, obhierdmp, tkz, n.pat_id, n.nachname, n.vorname, icd, kurzname FROM `namen` n LEFT JOIN `diagnosen` d ON n.pat_id = d.pat_id LEFT JOIN (SELECT f.pat_id, f.fid, f.schgr, f.bhfb, f.ik, f.vknr, f.quartal FROM (SELECT * FROM (SELECT BhFB AS mbhfb, bhfe1, Pat_ID AS pid, quartal FROM `faelle` f WHERE bhfb < " & DatFor_k(min(NOW(), qend(ZQuart(NOW() - Verspätung)))) & " ORDER BY pid, bhfb DESC) l GROUP BY pid DESC) l LEFT JOIN `faelle` f ON f.pat_id = l.pid AND f.bhfb = l.mbhfb GROUP BY pat_id) f ON n.pat_id = f.pat_id LEFT JOIN `anamnesebogen` a ON n.pat_id = a.pat_id LEFT JOIN `kassenliste` k ON k.ik = f.ik AND k.vknr = f.vknr WHERE (notiz LIKE '%DMP hier%' OR obhierdmp) AND icd RLIKE '^E1[0-4]' AND diagsicherheit NOT IN ('Z','A') AND NOT ISNULL (f.bhfb) GROUP BY n.pat_id ORDER BY n.pat_id"
@@ -3645,7 +3666,7 @@ Private Sub Form_Load()
       "LEFT JOIN `anamnesebogen` a ON n.pat_id = a.pat_id " & vbCrLf & _
       "LEFT JOIN `kassenliste` k ON k.ik = f.ik AND k.vknr = f.vknr " & vbCrLf
       If Me.ohneTermine Then sql = sql & "LEFT JOIN termine t ON t.pid = n.pat_id AND DATE(t.zp) BETWEEN NOW() AND qende(NOW()) " & vbCrLf
-      sql = sql & "WHERE (notiz LIKE '%DMP hier%' OR dmpklass = 3) AND NOT ISNULL (f.bhfb) AND (SDatum IS NULL OR SDatum>qbeg(NOW() - INTERVAL " & Verspätung & " DAY))" & vbCrLf
+      sql = sql & "WHERE (notiz LIKE '%DMP hier%' OR dmpklass = 3) AND NOT ISNULL (f.bhfb) AND (SDatum IS NULL OR SDatum=18993012 OR SDatum>qbeg(NOW() - INTERVAL " & Verspätung & " DAY))" & vbCrLf
       If Me.ohneTermine Then sql = sql & "and ISNULL(t.zp)" & vbCrLf ' AND a.tkz = 0 "
       sql = sql & "GROUP BY n.pat_id " & vbCrLf & _
       "ORDER BY n.pat_id"
@@ -3661,7 +3682,7 @@ Private Sub Form_Load()
       "   SELECT n.pat_id, qbeg(MAX(dokudatum) OVER(PARTITION BY pat_id)) qb" & vbCrLf & _
       "   ,COALESCE(MIN(art) OVER(PARTITION BY pat_id)='ED',0) oberst" & vbCrLf & _
       "   ,f.bhfb, dmpbeg notiz, dmpklass, dr.dokudatum, ROW_NUMBER() OVER(PARTITION BY dr.pat_id ORDER BY dr.dokudatum DESC) rn" & vbCrLf & _
-      "   ,a.tkz, n.nachname, n.vorname, d.icd, k.kurzname,dr.art,dr.ok,dr.exportiert" & vbCrLf & _
+      "   ,a.tkz, n.nachname, n.vorname, d.icd, k.kurzname,dr.art,dr.ok,dr.exportiert,n.SDatum" & vbCrLf & _
       "   FROM `namen` n" & vbCrLf & _
       "   LEFT JOIN `diagview` d ON n.pat_id = d.pat_id AND gicd RLIKE '^E1[0-4]'" & vbCrLf & _
       "   LEFT JOIN `faelle` f ON f.pat_id = n.pat_id AND bhfb = (SELECT MAX(bhfb) FROM `faelle` WHERE pat_id = n.pat_id AND bhfb < qende(NOW() - INTERVAL " & Verspätung & " DAY))" & vbCrLf & _
@@ -3671,7 +3692,7 @@ Private Sub Form_Load()
       sql = sql & _
       "   LEFT JOIN dmpreihe dr ON dr.Pat_id=n.pat_id AND (dr.Abk LIKE 'eDMPDM%' OR dr.Abk LIKE 'DMPDTYP%')" & vbCrLf & _
       "   WHERE (notiz LIKE '%DMP hier%' OR dmpklass = 3) AND NOT ISNULL (f.bhfb)" & vbCrLf & _
-      "     AND (SDatum IS NULL OR SDatum>qbeg(qbeg(NOW() - INTERVAL " & Verspätung & " DAY)- INTERVAL 1 DAY))" & vbCrLf & _
+      "     AND (SDatum IS NULL OR SDatum=18991230 OR SDatum>qbeg(qbeg(NOW() - INTERVAL " & Verspätung & " DAY)- INTERVAL 1 DAY))" & vbCrLf & _
       "     AND NOT (f.bhfb<qbeg(qbeg(NOW() - INTERVAL " & Verspätung & " DAY)- INTERVAL 1 DAY) AND tkz)" & vbCrLf & _
       "     AND n.pat_id<100000" & vbCrLf & _
       "  ) i" & vbCrLf & _
@@ -3691,7 +3712,7 @@ Private Sub Form_Load()
      myFrag rDPat, sql, adOpenStatic, DBCn, adLockReadOnly, 18 * dokuzahl ' Maximale Buchstabenzahl
      .Rows = rDPat!Zahl + 2
      Do While Not rDPat.EOF
-      pid = rDPat!Pat_id
+      pid = rDPat!Pat_ID
       BhFB = rDPat!BhFB
       dmpklass = rDPat!dmpklass
       Tkz = rDPat!Tkz
@@ -3745,8 +3766,8 @@ Private Sub Form_Load()
       
       .col = .col + 1
       If ICDSp = 0 Then ICDSp = .col
-      .Text = IIf(IsNull(rDPat!icd), "!-!", rDPat!icd)
-      .CellBackColor = IIf(rDPat!icd Like "E11*", cbcol, vbYellow)
+      .Text = IIf(IsNull(rDPat!ICD), "!-!", rDPat!ICD)
+      .CellBackColor = IIf(rDPat!ICD Like "E11*", cbcol, vbYellow)
       
       .col = .col + 1
 '      If IsNull(rDPat!notiz) Then
@@ -3778,7 +3799,7 @@ Private Sub Form_Load()
         begcol = begcol + 1
         If Not obraus And ZQuart(BhFB) = ZQuart(Now() - Verspätung) Then ' 2.Bedingung eingefügt: 31.12.15
          obrot = True
-         .toolTipText = ZQuart(rDok!DokuDatum) & " <> " & ZQuart(Now() - Verspätung) & " (falsches Quartal)"
+'         .toolTipText = ZQuart(rDok!DokuDatum) & " <> " & ZQuart(Now() - Verspätung) & " (falsches Quartal)"
         End If
        End If
        For j = begcol To .cols - 1
@@ -3789,7 +3810,7 @@ Private Sub Form_Load()
         If rDok!Ok And rDok!ausgedruckt Then
          .Text = .Text & " ok"
         ElseIf j = begcol And Not obraus And ZQuart(BhFB) = ZQuart(Now() - Verspätung) Then ' letzte Bedingungen eingefügt 31.12.15
-         .toolTipText = "Doku fehlt"
+'         .toolTipText = "Doku fehlt"
          obrot = True ' Wenn Pat. rausgeflogen, dann fehlt auch aktuelle Erstdoku
         End If
         If rDok!exportiert <> 0 Then
@@ -3821,7 +3842,6 @@ Private Sub Form_Load()
        .Text = dokus(j - begcol)
        If j = begcol Then
         If InStrB(.Text, "ok") = 0 Then
-         .toolTipText = "Doku fehlt"
          obrot = True ' Wenn Pat. rausgeflogen, dann fehlt auch aktuelle Erstdoku
          If ZQuart(BhFB) = ZQuart(Now() - Verspätung) Then ' letzte Bedingungen eingefügt 31.12.15
          End If ' j = begcol And Not obraus And ZQuart(BhFB) = ZQuart(Now() - Verspätung) Then
@@ -3840,20 +3860,19 @@ Private Sub Form_Load()
       Next j
 #End If
       ' not obraus and
-      If obraus Or (oberst = 0 And ZQuart(BhFB) = ZQuart(Now() - Verspätung)) Then ' letzte Bedingung eingefügt 31.12.15
+      If obraus Then ' wieder reduziert 4.10.24
+'      Or (oberst = 0 And ZQuart(BhFB) = ZQuart(Now() - Verspätung)) Then ' letzte Bedingung eingefügt 31.12.15
        .col = begcol
        .CellBackColor = DunkelRot
        obhellrot = True
        obrot = False
-       .toolTipText = "Doku fehlt"
-      End If
+      End If ' obraus then
       If (obrot Or obhellrot) And (Tkz = 0 Or ZQuart(BhFB) >= ZQuart(Now() - Verspätung)) Then '  And dmpklass = hier And Tkz = 0 Then
-       Dim ttt$
-       ttt = .toolTipText
-       .col = NachNameSp
-       If obrot Then .CellBackColor = DunkelRot Else .CellBackColor = HellRot
-       .toolTipText = ttt
-      End If
+       For j = NachNameSp To NachNameSp + 2 * -(ZQuart(BhFB) >= ZQuart(Now() - Verspätung)) ' Nachname, Vorname, Kasse
+        .col = j
+        If obrot Then .CellBackColor = DunkelRot Else .CellBackColor = HellRot
+       Next j
+      End If ' (obrot Or obhellrot) And
       .Row = .Row + 1
       rDPat.Move 1
      Loop ' While Not rDPat.EOF
@@ -3863,8 +3882,8 @@ Private Sub Form_Load()
     .TextMatrix(0, NachNameSp) = "Nachname"
     .TextMatrix(0, 3) = "Vorname"
     .TextMatrix(0, 4) = "Kasse"
-    .TextMatrix(0, 5) = "BHFB"
     .TextMatrix(0, ICDSp) = "ICD"
+    .TextMatrix(0, ICDSp + 1) = "BHFB"
     .TextMatrix(0, 7) = "lFall"
     .TextMatrix(0, VorDokuSp) = "lDoku"
     Call SizeColumns(MFG, Me)
@@ -3980,7 +3999,7 @@ Sub AlleMark(ob%) ' Alle Markieren, alle Demarkieren
   For i = 1 To PatZuHASL.COUNT
    If PatZuHASL.Item(i).gewählt <> 0 Then
 '    myFrag rfax, "SELECT docname, o.* FROM faxeinp.`outa` o WHERE docname LIKE '%pid " & PatZuHASL.Item(i).Pat_id & ", dmp-daten%' AND datediff(NOW(),submt) < " & Diff & " ORDER BY submt DESC"
-    myFrag rfax, "SELECT docname, o.* FROM `faxeinp`.`outa` o WHERE erfolg<>0 AND pid = " & PatZuHASL.Item(i).Pat_id & " AND docname LIKE '%dmp-daten%' AND datediff(NOW(),submt) < " & diff & " ORDER BY submt DESC"
+    myFrag rfax, "SELECT docname, o.* FROM `faxeinp`.`outa` o WHERE erfolg<>0 AND pid = " & PatZuHASL.Item(i).Pat_ID & " AND docname LIKE '%dmp-daten%' AND datediff(NOW(),submt) < " & diff & " ORDER BY submt DESC"
     If rfax.State <> 0 Then
      If Not rfax.EOF Then
       PatZuHASL.Item(i).gewählt = 0
@@ -4100,7 +4119,7 @@ Public Sub MFG_Click()
        Do
         If k > PatZuHASL.COUNT Then Exit Do
         If PatZuHASL.Item(k).ÜWNr <> Me.MFG.TextMatrix(Me.MFG.Row, üwnrcol) Then Exit Do
-        Me.MFG.AddItem k & String(PlusCol + 1, vbTab) & PatZuHASL.Item(k).ÜWNr & vbTab & IIf(PatZuHASL.Item(k).gewählt, "X", "") & vbTab & PatZuHASL.Item(k).name & vbTab & PatZuHASL.Item(k).Pat_id & vbTab, j + 1
+        Me.MFG.AddItem k & String(PlusCol + 1, vbTab) & PatZuHASL.Item(k).ÜWNr & vbTab & IIf(PatZuHASL.Item(k).gewählt, "X", "") & vbTab & PatZuHASL.Item(k).name & vbTab & PatZuHASL.Item(k).Pat_ID & vbTab, j + 1
         k = k + 1
         j = j + 1
        Loop
@@ -4126,7 +4145,7 @@ Public Sub MFG_Click()
    If MFG.col = GruSp Or MFG.col = GruSp + 1 Then
      obtb = 0
    End If
-  Case artPat ' DMP hier Liste
+  Case artpat ' DMP hier Liste
    If Me.MFG.col = zahlcol Then
     Me.MFG.CellFontBold = Not Me.MFG.CellFontBold
     If MFG.CellBackColor = vbYellow Then
@@ -4232,7 +4251,7 @@ Public Sub mfg_entercell()
  End Select
  If noenter = 0 Then
   If fgespei(MFGTyp) = 0 Then
-   If Not (Me.PLArt = artPat And Me.MFG.col = zahlcol) Then
+   If Not (Me.PLArt = artpat And Me.MFG.col = zahlcol) Then
     altFarbe(MFGTyp) = Me.MFG.CellBackColor
     Me.MFG.CellBackColor = vbYellow
    End If
@@ -4272,7 +4291,7 @@ Private Sub MFG_leavecell()
  End Select
  If noenter = 0 Then
   If altFarbe(MFGTyp) <> 0 Then ' am Anfang
-   If Not (PLArt = artPat And Me.MFG.col = zahlcol) Then
+   If Not (PLArt = artpat And Me.MFG.col = zahlcol) Then
     Me.MFG.CellBackColor = IIf(Me.MFG.Row = 0, vbActiveBorder, altFarbe(MFGTyp))
    End If
   End If
@@ -4307,16 +4326,55 @@ Private Sub Command1_KeyDown(Index As Integer, KeyCode As Integer, Shift As Inte
 End Sub ' Command1_KeyDown
 
 Private Sub MFG_MouseMove(Button As Integer, Shift As Integer, x As Single, Y As Single)
- Dim rs As New ADODB.Recordset, obbez%
+ Dim rs As New ADODB.Recordset, obbez%, altR&, altC&
+ Static altMCol&, altMRow&
  On Error GoTo fehler
+ With Me.MFG
+ If .MouseCol <> altMCol Or .MouseRow <> altMRow Then
+  altMCol = .MouseCol
+  altMRow = .MouseRow
+ .toolTipText = ""
  Select Case Me.PLArt
+  Case artpat
+   If .MouseCol > 0 And .MouseCol <= .cols And .MouseRow > 0 And .MouseRow <= .Rows Then
+    altC = .col
+    altR = .Row
+    .col = NachNameSp
+    .Row = .MouseRow
+    If .CellBackColor = HellRot Then
+     .toolTipText = "wohl ausgeschrieben"
+    ElseIf .CellBackColor = DunkelRot Then
+     .toolTipText = "Doku fehlt"
+    ElseIf .CellBackColor = vbWhite Then
+     rDPat.MoveFirst
+     .col = PIDSp
+'     If rDPat.Supports(adSeek) Then
+'      rDPat.Index = "pat_id"
+'      rDPat.Seek .Text, adSeekFirstEQ
+'      If Not rDPat.EOF Then
+'       .toolTipText = rDPat!SDatum
+'      End If
+'     Else ' rDPat.Supports(adSeek) Then
+      Do While Not rDPat.EOF
+'       Debug.Print rDPat!Pat_id
+       If rDPat!Pat_ID = .Text Then
+        .toolTipText = "Sterbedatum " & rDPat!SDatum
+        Exit Do
+       End If
+       rDPat.MoveNext
+      Loop ' While Not rDPat.EOF
+'     End If ' rDPat.Supports(adSeek) Then
+    End If ' .CellBackColor
+    .col = altC
+    .Row = altR
+   End If ' .MouseCol > 0 And .MouseCol <= .cols And .MouseRow > 0 And .MouseRow <= .Rows Then
   Case artLPar
-   altrow = Me.MFG.Row
-   altCol = Me.MFG.col
+   altrow = .Row
+   altCol = .col
    obbez = 0
-   Select Case Me.MFG.MouseCol
+   Select Case .MouseCol
     Case parsp
-     If Me.MFG.TextMatrix(Me.MFG.MouseRow, 8) = "x" Then
+     If .TextMatrix(.MouseRow, 8) = "x" Then
       myFrag rs, "SELECT bez1.abkü, bez2.abkü, CONCAT(GROUP_CONCAT(' ',IF(ISNULL(bez1.abkü),''," & vbCrLf & _
                      "CONCAT(bez1.abkü, ' [',bez1.einheit, ']'))),', '," & vbCrLf & _
                      "GROUP_CONCAT(' ',IF(ISNULL(bez2.abkü),'',CONCAT(bez2.abkü, ' [',bez2.einheit, ']')))) Zuge " & vbCrLf & _
@@ -4332,14 +4390,13 @@ Private Sub MFG_MouseMove(Button As Integer, Shift As Integer, x As Single, Y As
       End If
      End If
      If obbez Then
-      Me.MFG.toolTipText = rs!zuge
+      .toolTipText = rs!zuge
      Else
-      Me.MFG.toolTipText = MFG.MouseRow & " " & IDS(0, MFG.MouseRow) & " " & IDS(1, MFG.MouseRow)
+      .toolTipText = MFG.MouseRow & " " & IDS(0, MFG.MouseRow) & " " & IDS(1, MFG.MouseRow)
      End If
    End Select
  
  Case artLab
-  With Me.MFG
   .toolTipText = vNS
   If .toolTipText = "" Then
   If IsNumeric(.TextMatrix(.MouseRow, Pat_IDSp)) Then
@@ -4388,9 +4445,10 @@ vorher:
    End Select
    End If
   End If ' isNumeric(.TextMatrix ...
-  End With
- End Select ' case me.mfg.mousecol
- Exit Sub
+ End Select ' case .mousecol
+ End If ' .MouseCol <> altMCol Or .MouseRow <> altMRow Then
+ End With ' ME.MFG
+ Exit Sub ' MFG_MouseMove
 fehler:
  Dim FNr&, FLastDLLError&, FSource$, FDescr$
  FNr = Err.Number

@@ -82,7 +82,7 @@ Function doGenMachDB()
  Open "u:\programmierung\dateilesen\faxeinp.bas_prot.txt" for Output as #302
  obProt = (Err.Number = 0)
  On Error goto fehler
- cnzCStr = "PROVIDER=MSDASQL;driver={MySQL ODBC 3.51 Driver};server=Linux;uid=mysql;pwd=***REMOVED***;"
+ cnzCStr = "PROVIDER=MSDASQL;driver={MySQL ODBC 3.51 Driver};server=Linux;uid=mysql;pwd=97a5o6;"
  cnz.open cnzCStr
  call doEx("create database if not exists `" & DBN & "` character set latin1 collate latin1_german2_ci;",0)
  call doEx("grant all privileges on `" & DBN & "`.* to 'praxis'@'%' with grant option",0)

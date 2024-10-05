@@ -187,7 +187,7 @@ Sub zeigtabellen()
  Set rCn = Nothing
 ' rCn.CursorLocation = adUseServer
  On Error Resume Next
- Call rCn.Open(CnQ) '"PROVIDER=MSDASQL;driver={MySQL ODBC 3.51 Driver};server=mitte;uid=praxis;database=quelle;pwd=***REMOVED***;option=3") ' (Me.CsQ.Caption)
+ Call rCn.Open(CnQ) '"PROVIDER=MSDASQL;driver={MySQL ODBC 3.51 Driver};server=mitte;uid=praxis;database=quelle;pwd=sonne;option=3") ' (Me.CsQ.Caption)
  If Err.Number = 0 Then
 '     On Error Resume Next
      Set rs1 = Nothing

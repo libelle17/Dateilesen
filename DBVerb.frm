@@ -366,7 +366,7 @@ Begin VB.Form DBVerb
       Top             =   120
       Width           =   495
    End
-   Begin VB.TextBox Paï¿½wort 
+   Begin VB.TextBox Paßwort 
       Height          =   285
       IMEMode         =   3  'DISABLE
       Left            =   2520
@@ -434,8 +434,8 @@ Begin VB.Form DBVerb
       Top             =   1680
       Width           =   1575
    End
-   Begin VB.Label Paï¿½Lab 
-      Caption         =   "P&aï¿½wort:"
+   Begin VB.Label PaßLab 
+      Caption         =   "P&aßwort:"
       Height          =   255
       Left            =   120
       TabIndex        =   7
@@ -481,7 +481,7 @@ Option Explicit
 Private Declare Function gethostbyname Lib "WSOCK32.DLL" (ByVal HostName$) As Long
 Private Declare Sub RtlMoveMemory Lib "kernel32" (hpvDest As Any, ByVal hpvSource&, ByVal cbCopy&)
 Public ausaCStr%
-Public obQuelle% ' ob aCStr mit quelle o.ï¿½. aufgerufen wurde
+Public obQuelle% ' ob aCStr mit quelle o.ä. aufgerufen wurde
 
 Private Type HostDeType
 hName As Long
@@ -491,22 +491,22 @@ hLength As Integer
 hAddrList As Long
 End Type
 
-Const ï¿½1$ = "Datenbank-Verbindung herstellen"
+Const Ü1$ = "Datenbank-Verbindung herstellen"
 Const NL0$ = "Nur Computer mit MySQL auf&listen", NL1$ = "Alle Computer auf&listen"
 Const RegWurzel$ = "Software\GSProducts\"
-Const CptLï¿½nge% = 15
+Const CptLänge% = 15
 Public CoStr$, CnStr$
 'Dim rTs As New ADODB.Connection
 'Dim rTo As New ADODB.Connection
 Dim Cpts As New Collection, CptN As New Collection
 Dim obNurLauf%
-Dim Comp ' Laufvariable fï¿½r Computer
-Dim lCpt$, lBenutzer$, lPaï¿½wort$, luid$, lpwd$, lODBC$, lDaBa$, altCpt$, altODBC$
-Public changeStill% ' Verï¿½nderungen still vornehmen => keine Folgeereignisse
+Dim Comp ' Laufvariable für Computer
+Dim lCpt$, lBenutzer$, lPaßwort$, luid$, lpwd$, lODBC$, lDaBa$, altCpt$, altODBC$
+Public changeStill% ' Veränderungen still vornehmen => keine Folgeereignisse
 Dim Opt&
 Public RegPos$
-Public ï¿½2$ ' soll DBVerb innerhalb eines Programms mit verschiedenen Inhalten gefï¿½llt werden, dann kann hier Unterscheidung getroffen werden (fï¿½r ï¿½berschrift und Registry)
-Private BedTbl$() ' Tabellen, die in der Datenbank vorhanden sein mï¿½ssen
+Public Ü2$ ' soll DBVerb innerhalb eines Programms mit verschiedenen Inhalten gefüllt werden, dann kann hier Unterscheidung getroffen werden (für Überschrift und Registry)
+Private BedTbl$() ' Tabellen, die in der Datenbank vorhanden sein müssen
 Private tTbl%()
 Public wCn As New ADODB.Connection
 Attribute wCn.VB_VarHelpID = -1
@@ -515,7 +515,7 @@ Dim zuRaisen%
 Dim altAusgabe As New CString
 Private obAbbruch%
 'Private Declare Sub Sleep Lib "kernel32" (ByVal dwMilliseconds&)
-Public Sub rï¿½cksetzBedTbl()
+Public Sub rücksetzBedTbl()
  ReDim BedTbl(0)
 End Sub
 Public Sub setzBedTbl(Wert$)
@@ -554,10 +554,10 @@ End Function
 Function ShowAllDomains(Optional obneu%) As Collection
   Dim oNameSpace  As Object
   Dim oDomain     As Object
-  Dim zuprï¿½fen%
+  Dim zuprüfen%
   On Error GoTo fehler
-  If obneu Or CptN Is Nothing Then zuprï¿½fen = True Else If CptN.Count = 0 Then zuprï¿½fen = True
-  If zuprï¿½fen Then
+  If obneu Or CptN Is Nothing Then zuprüfen = True Else If CptN.Count = 0 Then zuprüfen = True
+  If zuprüfen Then
    Set oNameSpace = GetObject("WinNT:")
    For Each oDomain In oNameSpace
 '    Debug.Print oDomain.Name
@@ -570,7 +570,7 @@ Function ShowAllDomains(Optional obneu%) As Collection
 fehler:
   ' vermutlich ist kein WMI installiert
  Select Case MsgBox("FNr: " & FNr & ", ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vbNullString, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description + vbCrLf + "Fehlerposition: " + CStr(FPos), vbAbortRetryIgnore, "Aufgefangener Fehler in ShowAllDomains/" + App.path)
-  Case vbAbort: Call MsgBox("Hï¿½re auf"): Ende
+  Case vbAbort: Call MsgBox("Höre auf"): Ende
   Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
   Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
  End Select
@@ -584,7 +584,7 @@ Public Sub ShowAllComputers(ByVal strDomain$)
   On Error Resume Next
   
   For Each oComputer In PrimDomainContr
-    Cpts.Add Left$(oComputer.Name & Space$(CptLï¿½nge), CptLï¿½nge) & "| " & HostByName$(oComputer.Name)
+    Cpts.Add Left$(oComputer.Name & Space$(CptLänge), CptLänge) & "| " & HostByName$(oComputer.Name)
     CptN.Add UCase$(oComputer.Name)
 '    Debug.Print oComputer.Name
   Next
@@ -594,7 +594,7 @@ Public Sub ShowAllComputers(ByVal strDomain$)
 fehler:
   ' vermutlich ist kein WMI installiert
  Select Case MsgBox("FNr: " & FNr & ", ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vbNullString, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description + vbCrLf + "Fehlerposition: " + CStr(FPos), vbAbortRetryIgnore, "Aufgefangener Fehler in ShowAllComputers/" + App.path)
-  Case vbAbort: Call MsgBox("Hï¿½re auf"): Ende
+  Case vbAbort: Call MsgBox("Höre auf"): Ende
   Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
   Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
  End Select
@@ -643,7 +643,7 @@ End Sub
 Private Sub Datei_Click()
  Dim fileflags As FileOpenConstants
  Dim filefilter$
- CommonDialog1.DialogTitle = "Datenbankdatei auswï¿½hlen:"
+ CommonDialog1.DialogTitle = "Datenbankdatei auswählen:"
  'Set the default file name and filter
  CommonDialog1.InitDir = uVerz
  CommonDialog1.Filename = ""
@@ -674,7 +674,7 @@ Private Sub DBKennw_GotFocus()
 End Sub
 
 Private Sub Form_Deactivate()
- ï¿½2 = ""
+ Ü2 = ""
  ReDim BedTbl(0)
 End Sub
 
@@ -694,15 +694,15 @@ Private Sub Form_Paint()
 '
 End Sub
 
-Private Sub Paï¿½wort_Change()
+Private Sub Paßwort_Change()
   If Not changeStill Then Call Verbind
 End Sub
 
-Private Sub Paï¿½wort_Click()
- Static altpaï¿½wort$
- If Paï¿½wort <> altpaï¿½wort Then If Not changeStill Then Call Verbind
- altpaï¿½wort = Paï¿½wort
-End Sub ' Paï¿½wort_Click
+Private Sub Paßwort_Click()
+ Static altpaßwort$
+ If Paßwort <> altpaßwort Then If Not changeStill Then Call Verbind
+ altpaßwort = Paßwort
+End Sub ' Paßwort_Click
 
 Private Sub daba_Change()
  If Not changeStill Then
@@ -744,13 +744,13 @@ Private Sub odbcAngl()
   changeStill = True
   If LenB(Me.Benutzer) = 0 Then
    Me.Benutzer = "admin"
-   Me.Paï¿½wort = ""
+   Me.Paßwort = ""
   End If
   changeStill = altChangeStill
-'  Me.Paï¿½wort = ""
+'  Me.Paßwort = ""
   Me.uid.Visible = False
   Me.pwd.Visible = False
-  Me.Paï¿½wort.Visible = True
+  Me.Paßwort.Visible = True
   Me.Benutzer.Visible = True
   Me.DBKennw.Visible = True
   Me.DBKennwLab.Visible = True
@@ -773,7 +773,7 @@ Private Sub odbcAngl()
   changeStill = altChangeStill
   Me.uid.Visible = True
   Me.pwd.Visible = True
-  Me.Paï¿½wort.Visible = False
+  Me.Paßwort.Visible = False
   Me.Benutzer.Visible = False
   Me.Cpt.Visible = True
   Me.CptLabel.Visible = True
@@ -842,7 +842,7 @@ Private Sub Form_KeyDown(keyCode As Integer, Shift As Integer)
  Exit Sub
 fehler:
  Select Case MsgBox("FNr: " & FNr & ", ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vbNullString, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description + vbCrLf + "Fehlerposition: " + CStr(FPos), vbAbortRetryIgnore, "Aufgefangener Fehler in Form_KeyDown/" + App.path)
-  Case vbAbort: Call MsgBox("Hï¿½re auf"): Ende
+  Case vbAbort: Call MsgBox("Höre auf"): Ende
   Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
   Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
  End Select
@@ -887,7 +887,7 @@ Private Sub NurLauf_Click()
 fehler:
   ' vermutlich ist kein WMI installiert
 Select Case MsgBox("FNr: " & FNr & ", ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vbNullString, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description + vbCrLf + "Fehlerposition: " + CStr(FPos), vbAbortRetryIgnore, "Aufgefangener Fehler in NurLauf_Click/" + App.path)
-  Case vbAbort: Call MsgBox("Hï¿½re auf"): Ende
+  Case vbAbort: Call MsgBox("Höre auf"): Ende
   Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
   Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
  End Select
@@ -919,7 +919,7 @@ Private Sub CptListeGanz()
  Exit Sub
 fehler:
  Select Case MsgBox("FNr: " & FNr & ", ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vbNullString, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description + vbCrLf + "Fehlerposition: " + CStr(FPos), vbAbortRetryIgnore, "Aufgefangener Fehler in CptListeGanz/" + App.path)
-  Case vbAbort: Call MsgBox("Hï¿½re auf"): Ende
+  Case vbAbort: Call MsgBox("Höre auf"): Ende
   Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
   Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
  End Select
@@ -936,7 +936,7 @@ Private Sub Form_Load()
  Exit Sub
 fehler:
  Select Case MsgBox("FNr: " & FNr & ", ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vbNullString, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description + vbCrLf + "Fehlerposition: " + CStr(FPos), vbAbortRetryIgnore, "Aufgefangener Fehler in Form_Load/" + App.path)
-  Case vbAbort: Call MsgBox("Hï¿½re auf"): Ende
+  Case vbAbort: Call MsgBox("Höre auf"): Ende
   Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
   Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
  End Select
@@ -949,28 +949,28 @@ Private Sub Form_Activate()
  Exit Sub
 fehler:
  Select Case MsgBox("FNr: " & FNr & ", ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vbNullString, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description + vbCrLf + "Fehlerposition: " + CStr(FPos), vbAbortRetryIgnore, "Aufgefangener Fehler in Form_Activate/" + App.path)
-  Case vbAbort: Call MsgBox("Hï¿½re auf"): Ende
+  Case vbAbort: Call MsgBox("Höre auf"): Ende
   Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
   Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
  End Select
 End Sub ' Form_Activate()
 
-Private Sub RegLaden(ï¿½$, Optional nuranfangs%)
+Private Sub RegLaden(Ü$, Optional nuranfangs%)
  Dim neuS$, neuB&
- Static angefangen%, altï¿½$
+ Static angefangen%, altÜ$
  Dim cR As New Registry
- If Not nuranfangs Or Not angefangen Or altï¿½ <> ï¿½ Then
+ If Not nuranfangs Or Not angefangen Or altÜ <> Ü Then
   On Error Resume Next
   changeStill = True
   RegPos = RegWurzel & App.EXEName & "\DBVerb"
-  If LenB(ï¿½2) <> 0 Then RegPos = RegPos & "\" & ï¿½
+  If LenB(Ü2) <> 0 Then RegPos = RegPos & "\" & Ü
   neuS = cR.ReadKey("ODBC", RegPos, HKEY_CURRENT_USER)
 '  neuS = fWertLesen(HCU, RegPos, "ODBC")
   If LenB(neuS) <> 0 Then Me.ODBC = neuS
-  neuS = cR.ReadKey("Paï¿½wort", RegPos, HKEY_CURRENT_USER)
-'  neuS = fWertLesen(HCU, RegPos, "Paï¿½wort")
-'  If neuS <> "" Then ' Kommentar 15.8.09 wg. Faxdopp, fï¿½r Access Paï¿½wort leer
-   Me.Paï¿½wort = neuS
+  neuS = cR.ReadKey("Paßwort", RegPos, HKEY_CURRENT_USER)
+'  neuS = fWertLesen(HCU, RegPos, "Paßwort")
+'  If neuS <> "" Then ' Kommentar 15.8.09 wg. Faxdopp, für Access Paßwort leer
+   Me.Paßwort = neuS
 '  End If
   neuS = cR.ReadKey("Datenbank", RegPos, HKEY_CURRENT_USER)
 '  neuS = fWertLesen(HCU, RegPos, "Datenbank")
@@ -1001,12 +1001,12 @@ Private Sub RegLaden(ï¿½$, Optional nuranfangs%)
   Call setzeOpt
   changeStill = False
   angefangen = True
-  altï¿½ = ï¿½
+  altÜ = Ü
  End If ' not nuranfangs or not angefangen
  Exit Sub
 fehler:
  Select Case MsgBox("FNr: " & FNr & ", ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vbNullString, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description + vbCrLf + "Fehlerposition: " + CStr(FPos), vbAbortRetryIgnore, "Aufgefangener Fehler in RegLaden/" + App.path)
-  Case vbAbort: Call MsgBox("Hï¿½re auf"): Ende
+  Case vbAbort: Call MsgBox("Höre auf"): Ende
   Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
   Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
  End Select
@@ -1017,27 +1017,27 @@ Public Sub RegSpeichern()
   cR.WriteKey Me.ODBC, "ODBC", RegPos, HKEY_CURRENT_USER, REG_SZ
 '  Call fStSpei(HCU, RegPos, "ODBC", Me.ODBC)
   cR.WriteKey Me.Cpt, "Server", RegPos, HKEY_CURRENT_USER, REG_SZ
-'  Call fStSpei(HCU, RegPos, "Server", Me.Cpt)        ' fï¿½r MySQL
+'  Call fStSpei(HCU, RegPos, "Server", Me.Cpt)        ' für MySQL
   cR.WriteKey Me.Benutzer, "Benutzer", RegPos, HKEY_CURRENT_USER, REG_SZ
-'  Call fStSpei(HCU, RegPos, "Benutzer", Me.Benutzer) ' fï¿½r MySQL
+'  Call fStSpei(HCU, RegPos, "Benutzer", Me.Benutzer) ' für MySQL
   cR.WriteKey Me.pwd, "pwd", RegPos, HKEY_CURRENT_USER, REG_SZ
-'  Call fStSpei(HCU, RegPos, "pwd", Me.pwd)         ' fï¿½r MySQL
+'  Call fStSpei(HCU, RegPos, "pwd", Me.pwd)         ' für MySQL
   cR.WriteKey Me.DaBa, "Datenbank", RegPos, HKEY_CURRENT_USER, REG_SZ
-'  Call fStSpei(HCU, RegPos, "Datenbank", Me.DaBa) ' fï¿½r MySQL
+'  Call fStSpei(HCU, RegPos, "Datenbank", Me.DaBa) ' für MySQL
   cR.WriteKey Opt, "options", RegPos, HKEY_CURRENT_USER, REG_DWORD
-'  Call fdwSpei(HCU, RegPos, "options", Opt)       ' fï¿½r MySQL
+'  Call fdwSpei(HCU, RegPos, "options", Opt)       ' für MySQL
   cR.WriteKey Me.uid, "uid", RegPos, HKEY_CURRENT_USER, REG_SZ
-'  Call fStSpei(HCU, RegPos, "uid", Me.uid)         ' fï¿½r Access
-  cR.WriteKey Me.Paï¿½wort, "Paï¿½wort", RegPos, HKEY_CURRENT_USER, REG_SZ
-'  Call fStSpei(HCU, RegPos, "Paï¿½wort", Me.Paï¿½wort)   ' fï¿½r Access
+'  Call fStSpei(HCU, RegPos, "uid", Me.uid)         ' für Access
+  cR.WriteKey Me.Paßwort, "Paßwort", RegPos, HKEY_CURRENT_USER, REG_SZ
+'  Call fStSpei(HCU, RegPos, "Paßwort", Me.Paßwort)   ' für Access
   cR.WriteKey Me.Datei, "Datei", RegPos, HKEY_CURRENT_USER, REG_SZ
-'  Call fStSpei(HCU, RegPos, "Datei", Me.Datei)    ' fï¿½r Access
+'  Call fStSpei(HCU, RegPos, "Datei", Me.Datei)    ' für Access
   cR.WriteKey Me.DBKennw, "DBKennw", RegPos, HKEY_CURRENT_USER, REG_SZ
-'  Call fStSpei(HCU, RegPos, "DBKennw", Me.DBKennw) ' fï¿½r Access
+'  Call fStSpei(HCU, RegPos, "DBKennw", Me.DBKennw) ' für Access
  Exit Sub
 fehler:
  Select Case MsgBox("FNr: " & FNr & ", ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vbNullString, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description + vbCrLf + "Fehlerposition: " + CStr(FPos), vbAbortRetryIgnore, "Aufgefangener Fehler in RegSpeichern/" + App.path)
-  Case vbAbort: Call MsgBox("Hï¿½re auf"): Ende
+  Case vbAbort: Call MsgBox("Höre auf"): Ende
   Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
   Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
  End Select
@@ -1045,14 +1045,14 @@ End Sub ' RegSpeichern
 Private Sub Form_Unload(Cancel As Integer)
  On Error GoTo fehler
  If Cancel Then
-  Call RegLaden(ï¿½2)
+  Call RegLaden(Ü2)
  Else
   Call RegSpeichern
  End If
  Exit Sub
 fehler:
  Select Case MsgBox("FNr: " & FNr & ", ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vbNullString, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description + vbCrLf + "Fehlerposition: " + CStr(FPos), vbAbortRetryIgnore, "Aufgefangener Fehler in Form_Unload/" + App.path)
-  Case vbAbort: Call MsgBox("Hï¿½re auf"): Ende
+  Case vbAbort: Call MsgBox("Höre auf"): Ende
   Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
   Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
  End Select
@@ -1083,7 +1083,7 @@ End Sub
 Function doVerbind%(Optional Tabelle$, Optional ErrDes$)
   Dim s1$, s2$
   Dim rX As New ADOX.Catalog, rxt As ADOX.Table
-  ' CnStr = ggf. mit Datenbank, CoStr = ohne, ConStr = mit gesterntem Paï¿½wort
+  ' CnStr = ggf. mit Datenbank, CoStr = ohne, ConStr = mit gesterntem Paßwort
   On Error Resume Next
     If LenB(Me.ODBC) = 0 Then
      If LenB(Me.CnStr) <> 0 Then
@@ -1100,7 +1100,7 @@ Function doVerbind%(Optional Tabelle$, Optional ErrDes$)
      End If
     End If
     If InStrB(Me.ODBC, "MySQL") <> 0 Then
-     CnStr = "DRIVER={" & Me.ODBC & "};server=" & Trim$(Left(Me.Cpt, CptLï¿½nge)) & ";"
+     CnStr = "DRIVER={" & Me.ODBC & "};server=" & Trim$(Left(Me.Cpt, CptLänge)) & ";"
      Call rechneOpt
      CnStr = CnStr & "option=" & Opt & ";"
      CoStr = CnStr
@@ -1118,17 +1118,17 @@ Function doVerbind%(Optional Tabelle$, Optional ErrDes$)
      Constr = CnStr
      If LenB(Me.DBKennw) <> 0 Then
       CnStr = CnStr & "Jet OLEDB:Database Password="
-      Constr = CnStr & String$(Len(Me.Paï¿½wort), "*") & ";"
+      Constr = CnStr & String$(Len(Me.Paßwort), "*") & ";"
       CnStr = CnStr & Me.DBKennw & ";"
      End If
      CnStr = CnStr & "user id=" & Me.Benutzer & ";password="
      Constr = Constr & "user id=" & Me.Benutzer & ";password="
      CoStr = CnStr
-     CnStr = CnStr & Me.Paï¿½wort & ";"
-     CoStr = CoStr & Me.Paï¿½wort & ";"
-     Constr = Constr & String$(Len(Me.Paï¿½wort), "*") & ";"
+     CnStr = CnStr & Me.Paßwort & ";"
+     CoStr = CoStr & Me.Paßwort & ";"
+     Constr = Constr & String$(Len(Me.Paßwort), "*") & ";"
     End If
-'    CnStr = CnStr & "user id=" & Me.Benutzer & ";password=" ' geht auch, aber wer weiï¿½, ob's nicht Fehler macht
+'    CnStr = CnStr & "user id=" & Me.Benutzer & ";password=" ' geht auch, aber wer weiß, ob's nicht Fehler macht
 '    Constr = Constr & "user id=" & Me.Benutzer & ";password="
     
     zuRaisen = True
@@ -1188,7 +1188,7 @@ Sub zeigtabellen()
  Set rSch = Nothing
 ' rCn.CursorLocation = adUseServer
  On Error Resume Next
- Call rCn.Open(CnStr) '"PROVIDER=MSDASQL;driver={MySQL ODBC 3.51 Driver};server=mitte;uid=praxis;database=quelle;pwd=***REMOVED***;option=3") ' (CoStr)
+ Call rCn.Open(CnStr) '"PROVIDER=MSDASQL;driver={MySQL ODBC 3.51 Driver};server=mitte;uid=praxis;database=quelle;pwd=sonne;option=3") ' (CoStr)
  If Err.Number = 0 Then
   On Error Resume Next
   Set rSch = rCn.OpenSchema(adSchemaCatalogs) ' bei Access -> Fehler
@@ -1281,7 +1281,7 @@ Sub zeigtabellen()
  Exit Sub
 fehler:
 Select Case MsgBox("FNr: " & FNr & ", ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vbNullString, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description + vbCrLf + "Fehlerposition: " + CStr(FPos), vbAbortRetryIgnore, "Aufgefangener Fehler in Verbind/" + App.path)
-  Case vbAbort: Call MsgBox("Hï¿½re auf"): Ende
+  Case vbAbort: Call MsgBox("Höre auf"): Ende
   Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
   Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
  End Select
@@ -1291,7 +1291,7 @@ Sub Verbind()
  Dim i&, erg%, altUser$
  Dim rs As New ADODB.Recordset, rs1 As New ADODB.Recordset
 ' If Me.Cpt = "" Then Call RegLaden
- If UCase$(Me.Cpt) <> UCase$(lCpt) Or UCase$(Me.Benutzer) <> UCase$(lBenutzer) Or Me.Paï¿½wort <> lPaï¿½wort Or UCase$(lODBC) <> UCase$(Me.ODBC) Or UCase$(Me.uid) <> UCase$(luid) Or UCase$(Me.pwd) <> UCase$(lpwd) Then
+ If UCase$(Me.Cpt) <> UCase$(lCpt) Or UCase$(Me.Benutzer) <> UCase$(lBenutzer) Or Me.Paßwort <> lPaßwort Or UCase$(lODBC) <> UCase$(Me.ODBC) Or UCase$(Me.uid) <> UCase$(luid) Or UCase$(Me.pwd) <> UCase$(lpwd) Then
   Screen.MousePointer = vbHourglass
   On Error Resume Next
   Me.Image1Ersatz = "nicht verbunden"
@@ -1364,12 +1364,12 @@ Sub Verbind()
  End If
  lCpt = Me.Cpt
  lBenutzer = Me.Benutzer
- lPaï¿½wort = Me.Paï¿½wort
+ lPaßwort = Me.Paßwort
  lDaBa = Me.DaBa
  Exit Sub
 fehler:
 Select Case MsgBox("FNr: " & FNr & ", ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vbNullString, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description + vbCrLf + "Fehlerposition: " + CStr(FPos), vbAbortRetryIgnore, "Aufgefangener Fehler in Verbind/" + App.path)
-  Case vbAbort: Call MsgBox("Hï¿½re auf"): Ende
+  Case vbAbort: Call MsgBox("Höre auf"): Ende
   Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
   Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
  End Select
@@ -1401,7 +1401,7 @@ Public Sub listOdbc()
  strComputer = "."
  On Error Resume Next
  Set objRegistry = GetObject("winmgmts:\\" & strComputer & "\root\default:StdRegProv")
- If Err.Number <> 0 Then ' wnenn wmi nicht lï¿½ut
+ If Err.Number <> 0 Then ' wnenn wmi nicht läut
   On Error GoTo fehler
   cR.EnumerateValues Sch, schz, Inh, "SOFTWARE\ODBC\ODBCINST.INI\ODBC Drivers", HKEY_LOCAL_MACHINE
 '  Call regEnumVal("SOFTWARE\ODBC\ODBCINST.INI\ODBC Drivers", Sch, Inh)
@@ -1411,7 +1411,7 @@ Public Sub listOdbc()
   Next i
 '  Me.ODBC.AddItem "MySQL ODBC 3.51 Driver"
 '  Me.ODBC.AddItem "MySQL ODBC 5.1 Driver"
-'  Me.ODBC.AddItem "Achtung: WMI-Dienst nicht gestartet; Auswahl kï¿½nnte nicht den verfï¿½gbaren Treibern entsprechen!"
+'  Me.ODBC.AddItem "Achtung: WMI-Dienst nicht gestartet; Auswahl könnte nicht den verfügbaren Treibern entsprechen!"
  Else
   On Error GoTo fehler
   strKeyPath = "SOFTWARE\ODBC\ODBCINST.INI\ODBC Drivers"
@@ -1420,7 +1420,7 @@ Public Sub listOdbc()
   For runde = 0 To 3
    For i = 0 To UBound(arrValueNames)
     sV = arrValueNames(i)
-    ' rrunde = richtige Runde fï¿½r jeden Treiber; zuerst die ï¿½brigen nach Sortierung, dann die interessanten nach Stand
+    ' rrunde = richtige Runde für jeden Treiber; zuerst die übrigen nach Sortierung, dann die interessanten nach Stand
     If InStrB(sV, "MySQL") <> 0 Then
      rrunde = 1
     ElseIf InStrB(sV, "Microsoft Access-Treiber") <> 0 Then
@@ -1451,38 +1451,38 @@ Public Sub listOdbc()
  Exit Sub
 fehler:
 Select Case MsgBox("FNr: " & FNr & ", ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vbNullString, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description + vbCrLf + "Fehlerposition: " + CStr(FPos), vbAbortRetryIgnore, "Aufgefangener Fehler in listODBC/" + App.path)
-  Case vbAbort: Call MsgBox("Hï¿½re auf"): Ende
+  Case vbAbort: Call MsgBox("Höre auf"): Ende
   Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
   Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
  End Select
 End Sub
 
-Private Sub Paï¿½wort_GotFocus()
- Me.Paï¿½wort.SelStart = 0
- Me.Paï¿½wort.SelLength = Len(Me.Paï¿½wort)
+Private Sub Paßwort_GotFocus()
+ Me.Paßwort.SelStart = 0
+ Me.Paßwort.SelLength = Len(Me.Paßwort)
 End Sub
 
 Private Sub Programmende_Click()
 ' Stop
  Ende
 End Sub
-Private Function ï¿½berschrift(ï¿½$)
- Me.ï¿½2 = ï¿½
- Me.Caption = App.Title & IIf(LenB(ï¿½2) <> 0, " (" & ï¿½2 & ")", "") & ": " & ï¿½1
+Private Function Überschrift(Ü$)
+ Me.Ü2 = Ü
+ Me.Caption = App.Title & IIf(LenB(Ü2) <> 0, " (" & Ü2 & ")", "") & ": " & Ü1
 ' Call Verbind
 End Function
-Function cnVorb$(DBName$, TBName$, Optional ï¿½$, Optional obregneu%, Optional RegNichtLaden%)
+Function cnVorb$(DBName$, TBName$, Optional Ü$, Optional obregneu%, Optional RegNichtLaden%)
   Dim ErrNumber&, altChangeStill%
   Dim cR As New Registry
   Static innen%
   On Error GoTo fehler
   If Not innen Then
    If TBName <> "--multi" Then
-    Call Me.rï¿½cksetzBedTbl
+    Call Me.rücksetzBedTbl
     Call Me.setzBedTbl(TBName)
    End If
-   Call ï¿½berschrift(ï¿½)
-   If Not RegNichtLaden Then Call RegLaden(ï¿½, nuranfangs:=IIf(obregneu, False, True))
+   Call Überschrift(Ü)
+   If Not RegNichtLaden Then Call RegLaden(Ü, nuranfangs:=IIf(obregneu, False, True))
    If LenB(DBName) <> 0 Then
     altChangeStill = changeStill
     changeStill = True
@@ -1507,9 +1507,9 @@ Function cnVorb$(DBName$, TBName$, Optional ï¿½$, Optional obregneu%, Optional R
 '   Call Form_Load
 '  End If
    cnVorb = Me.CnStr ' .wCn.ConnectionString ' 28.12.08
-   If LCase(Left(ï¿½, 5)) = "admin" Then
-    cR.WriteKey "", "Paï¿½wort", RegPos, HKEY_CURRENT_USER, REG_SZ
-'    Call fStSpei(HCU, RegPos, "Paï¿½wort", "")
+   If LCase(Left(Ü, 5)) = "admin" Then
+    cR.WriteKey "", "Paßwort", RegPos, HKEY_CURRENT_USER, REG_SZ
+'    Call fStSpei(HCU, RegPos, "Paßwort", "")
    End If
   End If
   Exit Function
@@ -1521,23 +1521,23 @@ fehler:
  AnwPfad = App.path
 #End If
 Select Case MsgBox("FNr: " & FNr & ", ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vbNullString, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in cnVorb/" + AnwPfad)
- Case vbAbort: Call MsgBox("Hï¿½re auf"): Ende
+ Case vbAbort: Call MsgBox("Höre auf"): Ende
  Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
  Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
 End Select
 End Function ' cnVorb
 
-Function Auswahl$(DBName$, TBName$, Optional ï¿½$)
+Function Auswahl$(DBName$, TBName$, Optional Ü$)
  Dim altCn$
  On Error Resume Next
  altCn = Me.CnStr ' .wCn.ConnectionString ' 28.12.08
  On Error GoTo fehler
  If TBName <> "--multi" Then
-  Call Me.rï¿½cksetzBedTbl
+  Call Me.rücksetzBedTbl
   Call Me.setzBedTbl(TBName)
  End If
- Call ï¿½berschrift(ï¿½)
- Call RegLaden(ï¿½, nuranfangs:=True)
+ Call Überschrift(Ü)
+ Call RegLaden(Ü, nuranfangs:=True)
  If LenB(DBName) <> 0 Then Me.DaBa = DBName ' hier Load me enthalten
  Call doVerbind
 zeig:
@@ -1569,7 +1569,7 @@ fehler:
  AnwPfad = App.path
 #End If
 Select Case MsgBox("FNr: " & FNr & ", ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vbNullString, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in Auswahl/" + AnwPfad)
- Case vbAbort: Call MsgBox("Hï¿½re auf"): Ende
+ Case vbAbort: Call MsgBox("Höre auf"): Ende
  Case vbRetry: Call MsgBox("Versuche nochmal"):
   If Err.Number = -2147467259 Then
    Resume zeig
@@ -1596,7 +1596,7 @@ Public Function Ausgeb(Text$, obDauer%)
  End If
 End Function ' Ausgeb
 
-Function getAllDB%(Tabl$, acn() As ADODB.Connection, Optional uid$ = "praxis", Optional pwd$ = "***REMOVED***", Optional obLeere%, Optional acSt)
+Function getAllDB%(Tabl$, acn() As ADODB.Connection, Optional uid$ = "praxis", Optional pwd$ = "sonne", Optional obLeere%, Optional acSt)
  Dim Cpt, db$, eintragen%, Stri(1) As New CString, i%, runde%
  Dim MyCn As ADODB.Connection, rdb As ADODB.Recordset, rHa As New ADODB.Recordset
  ReDim acn(0)
@@ -1672,7 +1672,7 @@ fehler:
  AnwPfad = App.path
 #End If
 Select Case MsgBox("FNr: " & FNr & ", ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vbNullString, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in getAllDB/" + AnwPfad)
- Case vbAbort: Call MsgBox("Hï¿½re auf"): Ende
+ Case vbAbort: Call MsgBox("Höre auf"): Ende
  Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
  Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
 End Select

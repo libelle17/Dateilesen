@@ -4125,12 +4125,12 @@ Function doMach_quelle(DBn$) ' Datenbankname
  Open App.path & "\MachDB.bas_prot.txt" For Output As #302
  obProt = (Err.Number = 0)
  On Error goto fehler
- cnzCStr = "PROVIDER=MSDASQL;driver={MySQL ODBC 3.51 Driver};server=" & GetServer(DBCn) & ";uid=mysql;pwd=***REMOVED***;"
+ cnzCStr = "PROVIDER=MSDASQL;driver={MySQL ODBC 3.51 Driver};server=" & GetServer(DBCn) & ";uid=mysql;pwd=97a5o6;"
  set cnz = Nothing
  cnz.open cnzCStr
  call doex("create database if not exists `" & DBN & "` character set latin1 collate latin1_german2_ci;",0)
- call doex("grant all privileges on `" & DBN & "`.* to 'praxis'@'%' identified by '***REMOVED***' with grant option",0)
- call doex("grant all privileges on `" & DBN & "`.* to 'praxis'@'localhost' identified by '***REMOVED***' with grant option",0)
+ call doex("grant all privileges on `" & DBN & "`.* to 'praxis'@'%' identified by 'sonne' with grant option",0)
+ call doex("grant all privileges on `" & DBN & "`.* to 'praxis'@'localhost' identified by 'sonne' with grant option",0)
  call doex("use `" & DBN & "`",0)
  call doex("SET SESSION TRANSACTION ISOLATION LEVEL REPEATABLE READ",0)
  FüllStr0

@@ -47,8 +47,8 @@ Begin VB.Form LabEin2
       ForeColor       =   -2147483640
       Orientation     =   0
       Enabled         =   -1
-      Connect         =   "PROVIDER=MSDASQL;dsn=MySQLpraxis;uid=praxis;pwd=***REMOVED***;database=quelle;"
-      OLEDBString     =   "PROVIDER=MSDASQL;dsn=MySQLpraxis;uid=praxis;pwd=***REMOVED***;database=quelle;"
+      Connect         =   "PROVIDER=MSDASQL;dsn=MySQLpraxis;uid=praxis;pwd=sonne;database=quelle;"
+      OLEDBString     =   "PROVIDER=MSDASQL;dsn=MySQLpraxis;uid=praxis;pwd=sonne;database=quelle;"
       OLEDBFile       =   ""
       DataSourceName  =   ""
       OtherAttributes =   ""

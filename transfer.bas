@@ -5,10 +5,10 @@ Option Explicit
 'Option Compare Database
 'Public Const DBn$ = "quelle3"
 Public Const opti& = 1 + 2 + 4 + 8 + 131072 ' 131118, 32 ' + 2048 + 16384
-' Const CS$ = "DRIVER={MySQL ODBC 3.51 Driver};server=linux;uid=mysql;pwd=***REMOVED***;OPTION=" & opti
-' Public Const CP$ = "DRIVER={MySQL ODBC 3.51 Driver};server=linux;database=" + DBn + ";uid=praxis;pwd=***REMOVED***;OPTION=" & opti
+' Const CS$ = "DRIVER={MySQL ODBC 3.51 Driver};server=linux;uid=mysql;pwd=97a5o6;OPTION=" & opti
+' Public Const CP$ = "DRIVER={MySQL ODBC 3.51 Driver};server=linux;database=" + DBn + ";uid=praxis;pwd=sonne;OPTION=" & opti
 Const ZwiAnhg$ = "_Zwi"
-Const CSStr$ = "DRIVER={MySQL ODBC 3.51 Driver};server=linux;uid=mysql;pwd=***REMOVED***;OPTION=" & opti
+Const CSStr$ = "DRIVER={MySQL ODBC 3.51 Driver};server=linux;uid=mysql;pwd=97a5o6;OPTION=" & opti
 Const tmpRel$ = "tmpRelAbfragen" ' Zwischenspeicher für die Relationen in Access
 Const accRel$ = "_AccRel" ' Anhang für Relationenname aus Access
 
@@ -343,8 +343,8 @@ Function domachVerknTab(Tabl$, db$) ' Dienstprogramm (erstellt eine Verknüpfung)
 gefunden:
    On Error GoTo 0
    Set td = CurrentDb.CreateTableDef(tdname)
-   td.Connect = "ODBC;DRIVER={MySQL ODBC 3.51 Driver};server=linux;database=" + db + ";OPTION=" + CStr(opti) + ";uid=praxis;pwd=***REMOVED***"
-' td.Connect = "ODBC;Provider=MSDASQL.1;DRIVER={MySQL ODBC 3.51 Driver};Extended Properties=""DATABASE=" + DB + ";OPTION=131118;PWD=***REMOVED***;PORT=0;SERVER=linux;UID=praxis""" 'geht auch
+   td.Connect = "ODBC;DRIVER={MySQL ODBC 3.51 Driver};server=linux;database=" + db + ";OPTION=" + CStr(opti) + ";uid=praxis;pwd=sonne"
+' td.Connect = "ODBC;Provider=MSDASQL.1;DRIVER={MySQL ODBC 3.51 Driver};Extended Properties=""DATABASE=" + DB + ";OPTION=131118;PWD=sonne;PORT=0;SERVER=linux;UID=praxis""" 'geht auch
 ' td.Connect = "ODBC;DSN=My1"
 ' td.Name = td.Name + CStr(Len(td.Connect))
    td.SourceTableName = LCase(Tabl)

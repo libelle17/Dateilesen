@@ -528,7 +528,7 @@ Function LaborString$(Pat_id&)
 Public Sub DMPAusgeb0(aktDC As DMPClass, Optional Pat_id$, Optional obAnzeig As Boolean = True, Optional obnurDMPString = False, Optional DokuDat As Date)
  'DMPAusgeb0 =
  Dim DMPStrhier$
- Dim errn%
+ Dim ErrN%
  DMPStrhier = DMPString$(CLng(Pat_id), aktDC, , , DokuDat, Not obnurDMPString)
  If obnurDMPString Then Exit Sub
  Dim ErgebDatei$
@@ -537,9 +537,9 @@ Public Sub DMPAusgeb0(aktDC As DMPClass, Optional Pat_id$, Optional obAnzeig As 
  Kill ErgebDatei
  Err.Clear
  Open ErgebDatei For Output Access Write Lock Write As #1
- errn = Err.Number
+ ErrN = Err.Number
  On Error GoTo fehler
- If errn <> 0 Then
+ If ErrN <> 0 Then
   Open REPLACE$(ErgebDatei, "p:", LiServer & "daten\Patientendokumente") For Output Access Write Lock Write As #1
  End If
  Print #1, DMPStrhier

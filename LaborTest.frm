@@ -260,7 +260,7 @@ Private Sub Form_Load()
   Call aCStr(quelleT, qDtb)
   DBCn.CursorLocation = adUseClient
 '  db.CursorLocation = adUseClient
-'  db.Open "PROVIDER=MSDASQL;driver={MySQL ODBC 3.51 Driver};server=linux1;uid=praxis;pwd=***REMOVED***;database=quelle;"
+'  db.Open "PROVIDER=MSDASQL;driver={MySQL ODBC 3.51 Driver};server=linux1;uid=praxis;pwd=sonne;database=quelle;"
   Set adoRS = New ADODB.Recordset
   erg = InputBox("Bitte Pat_id eingeben:", "Pat_id-Eingabe", "0")
   If erg <> 0 Then

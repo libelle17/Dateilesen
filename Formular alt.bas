@@ -5,7 +5,7 @@ Const übertragen$ = "übertragen"
 Dim obstumm%
 #Const mitab = True ' auch noch in Lese
 #If mitab Then
-Public Const CStrMy$ = "DRIVER={MySQL ODBC 3.51 Driver};server=linux;user=praxis;pwd=***REMOVED***;database="
+Public Const CStrMy$ = "DRIVER={MySQL ODBC 3.51 Driver};server=linux;user=praxis;pwd=sonne;database="
 #End If
 'Public Const wdLineStyleSingle% = 1
 'Public Const wdWindowStateMaximize% = 1

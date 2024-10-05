@@ -453,8 +453,8 @@ Begin VB.Form HAmaKVNR
       ForeColor       =   -2147483640
       Orientation     =   0
       Enabled         =   -1
-      Connect         =   "PROVIDER=MSDASQL;driver={MySQL ODBC 3.51 Driver};server=linux;uid=praxis;pwd=***REMOVED***;database=quelle;"
-      OLEDBString     =   "PROVIDER=MSDASQL;driver={MySQL ODBC 3.51 Driver};server=linux;uid=praxis;pwd=***REMOVED***;database=quelle;"
+      Connect         =   "PROVIDER=MSDASQL;driver={MySQL ODBC 3.51 Driver};server=linux;uid=praxis;pwd=sonne;database=quelle;"
+      OLEDBString     =   "PROVIDER=MSDASQL;driver={MySQL ODBC 3.51 Driver};server=linux;uid=praxis;pwd=sonne;database=quelle;"
       OLEDBFile       =   ""
       DataSourceName  =   ""
       OtherAttributes =   ""

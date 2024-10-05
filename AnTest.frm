@@ -3583,7 +3583,7 @@ Private Sub Form_Load()
   Dim db As Connection
   Set db = New Connection
   db.CursorLocation = adUseClient
-  db.Open "PROVIDER=MSDASQL;driver={MySQL ODBC 3.51 Driver};server=linux;uid=praxis;pwd=***REMOVED***;database=quelle;"
+  db.Open "PROVIDER=MSDASQL;driver={MySQL ODBC 3.51 Driver};server=linux;uid=praxis;pwd=sonne;database=quelle;"
 
   Set adoPrimaryRS = New Recordset
   adoPrimaryRS.Open "select * from anamnesebogen", db, adOpenStatic, adLockOptimistic

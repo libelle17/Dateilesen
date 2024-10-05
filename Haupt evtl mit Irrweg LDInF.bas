@@ -3,8 +3,8 @@ Option Explicit
 Public Const opti& = 2 + 8 + 32 ' 131118, 32 ' + 2048 + 16384
 Public Const opti1& = 8 + 32 + 2048 + 131072 + 1048576 + 2097152
 Public Const opti2& = 1 + 2 + 8 + 32 + 2048 + 131072 + 1048576 + 2097152
-Public Const CSStr$ = "DRIVER={MySQL ODBC 3.51 Driver};server=linux;uid=praxis;pwd=***REMOVED***;OPTION=" & opti ' database=quelle1;
-Public Const CStrMy$ = "DRIVER={MySQL ODBC 3.51 Driver};server=linux;user=praxis;pwd=***REMOVED***;database="
+Public Const CSStr$ = "DRIVER={MySQL ODBC 3.51 Driver};server=linux;uid=praxis;pwd=sonne;OPTION=" & opti ' database=quelle1;
+Public Const CStrMy$ = "DRIVER={MySQL ODBC 3.51 Driver};server=linux;user=praxis;pwd=sonne;database="
 Public Const CStrAcc$ = "Provider=Microsoft.Jet.OLEDB.4.0;Data Source="
 Public ConStr$ ' Connection String
 Public DBCn As New ADODB.Connection
@@ -704,7 +704,7 @@ End Function ' zeigdateien
 Public Function ConstrFestleg(ByVal Art%, Optional dlg As Dialog) ' dlg ist für art= 0 und 1 nötig
  Const opti& = 2 + 4 + 8   ' 131118, 32 ' 1 + 2048 + 16384 + 131072
  On Error GoTo fehler
-'ConStr$ = "DRIVER={MySQL ODBC 3.51 Driver};server=linux;uid=praxis;pwd=***REMOVED***;option=" & opti
+'ConStr$ = "DRIVER={MySQL ODBC 3.51 Driver};server=linux;uid=praxis;pwd=sonne;option=" & opti
  Select Case Art
   Case 0
    If dlg.obAcc Then

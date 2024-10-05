@@ -2020,7 +2020,7 @@ End Sub ' MDIForm_Unload(Cancel As Integer)
 #If False Then
 Public Function ConstrFestleg(ByVal art As ConDtb, Optional hlese As Lese)   ' dlg ist für art= 0 und 1 nötig
  On Error GoTo fehler
-'ConStr$ = "DRIVER={MySQL ODBC 3.51 Driver};server=linux;uid=praxis;pwd=***REMOVED***;option=" & opti
+'ConStr$ = "DRIVER={MySQL ODBC 3.51 Driver};server=linux;uid=praxis;pwd=sonne;option=" & opti
  Select Case art
   Case 0
    If hlese.obAcc Then
