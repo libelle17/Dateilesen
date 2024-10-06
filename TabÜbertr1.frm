@@ -306,7 +306,7 @@ End Sub
 
 Private Sub Start_Click()
  Dim rQCn As New ADODB.Connection, rZCn As New ADODB.Connection, erg, CurCat$, Frage$
- Dim rsq As New ADODB.Recordset, InS$, AuiFd$, FListe$, rAf&
+ Dim rsq As New ADODB.Recordset, InS$, AuiFd$, FListe$, rAF&
  On Error GoTo fehler
  rQCn.Open CnQ
  rZCn.Open cnz
@@ -355,7 +355,7 @@ Private Sub Start_Click()
  Exit Sub
 fehler:
  If InStrB(Err.Description, "Transaction level 'READ-COMMITTED'") <> 0 Then
-  myEFrag "SET SESSION TRANSACTION ISOLATION LEVEL REPEATABLE READ", rAf, rZCn
+  myEFrag "SET SESSION TRANSACTION ISOLATION LEVEL REPEATABLE READ", rAF, rZCn
   Resume
  End If
  Dim AnwPfad$
@@ -383,6 +383,8 @@ Private Sub Tabelle_Change()
 End Sub
 
 Private Function TZahl%(Optional nurZiel%)
+ Dim Cn As New ADODB.Connection, Cnzc As New ADODB.Connection
+ Cn.Open CnQ
  Dim rs As New ADODB.Recordset, i%, j%
  TZahl = True
  If nurZiel = 0 Then ZQ = vNS
@@ -391,15 +393,15 @@ Private Function TZahl%(Optional nurZiel%)
 ' ON Error Resume Next
  If Me.Tabelle <> "" Then
   If CnQ <> "" And nurZiel = 0 Then
-   myFrag rs, "SELECT * FROM information_schema.TABLEs t WHERE table_schema = '" & CurDB(CnQ) & "' AND table_name = '" & LCase$(Tabelle) & "'", adOpenStatic, CnQ, adLockReadOnly
+   myFrag rs, "SELECT * FROM information_schema.TABLEs t WHERE table_schema = '" & CurDB(Cn) & "' AND table_name = '" & LCase$(Tabelle) & "'", adOpenStatic, Cn, adLockReadOnly
    If rs.BOF Then Exit Function
 '   Set rs = Nothing
-   myFrag rs, "SELECT COUNT(0) ct FROM `" & LCase$(Tabelle) & "`", adOpenStatic, CnQ, adLockReadOnly
+   myFrag rs, "SELECT COUNT(0) ct FROM `" & LCase$(Tabelle) & "`", adOpenStatic, Cn, adLockReadOnly
    ZQ = rs!ct
    LVobMySQL = (InStrB(LCase$(CnQ), "mysql") > 0)
    Set rs = Nothing
 '   rs.Open "SELECT " & IIf(LVobMySQL, vNS, "top 20") & " * FROM `" & LCase$(Me.Tabelle) & "` " & IIf(LVobMySQL, " LIMIT 20", ""), CnQ, adOpenDynamic, adLockReadOnly
-   myFrag rs, "SELECT " & IIf(LVobMySQL, vNS, "top 20") & " * FROM `" & LCase$(Me.Tabelle) & "` " & IIf(LVobMySQL, " LIMIT 20", ""), adOpenDynamic, CnQ
+   myFrag rs, "SELECT " & IIf(LVobMySQL, vNS, "top 20") & " * FROM `" & LCase$(Me.Tabelle) & "` " & IIf(LVobMySQL, " LIMIT 20", ""), adOpenDynamic, Cn
    With Me.MSHFlexGrid1
    .Clear
    .cols = rs.Fields.COUNT
@@ -420,7 +422,8 @@ Private Function TZahl%(Optional nurZiel%)
   If cnz <> "" Then
    Set rs = Nothing
    On Error Resume Next
-   myFrag rs, "SELECT COUNT(0) ct FROM `" & LCase$(Me.Tabelle) & "`", adOpenStatic, cnz, adLockReadOnly
+   Cnzc.Open cnz
+   myFrag rs, "SELECT COUNT(0) ct FROM `" & LCase$(Me.Tabelle) & "`", adOpenStatic, Cnzc, adLockReadOnly
    On Error GoTo fehler
    If rs.State = 0 Then
     MsgBox "Tabelle `" & Me.Tabelle & "` existiert nicht unter '" & cnz
@@ -433,7 +436,7 @@ Private Function TZahl%(Optional nurZiel%)
    LVobMySQL = (InStrB(LCase$(cnz), "mysql") > 0)
    Set rs = Nothing
 '   rs.Open "SELECT " & IIf(LVobMySQL, vNS, "top 20") & " * FROM `" & LCase$(Me.Tabelle) & "` " & IIf(LVobMySQL, " LIMIT 20", ""), cnz, adOpenDynamic, adLockReadOnly
-   myFrag rs, "SELECT " & IIf(LVobMySQL, vNS, "top 20") & " * FROM `" & LCase$(Me.Tabelle) & "` " & IIf(LVobMySQL, " LIMIT 20", ""), adOpenDynamic, cnz
+   myFrag rs, "SELECT " & IIf(LVobMySQL, vNS, "top 20") & " * FROM `" & LCase$(Me.Tabelle) & "` " & IIf(LVobMySQL, " LIMIT 20", ""), adOpenDynamic, Cnzc
    With Me.MSHFlexGrid2
    .Clear
    .cols = rs.Fields.COUNT
@@ -646,15 +649,15 @@ Public Function TIns&(ZCn As ADODB.Connection, TabN$, rq, AuiFd$, FListe$, ByRef
    Next i
    sql2 = Left$(sql2, Len(sql2) - 1) & ")"
 '   sql1 = LEFT(sql1, Len(sql1) - 1) & ") " & sql2
-   Dim rAf&
+   Dim rAF&
 '   zcn.CursorLocation = adUseClient
-   Call myEFrag(sql2, rAf, ZCn)
-   If rAf = 0 Or (rAf <> 1 And rAf < 100 And RsI = 0) Then Err.Raise 999, , "Fehler in TIns: Falsche Zahl an Datensätzen aktualisiert: " & rAf
-   If rAf <> 1 Then TIns = 1
+   Call myEFrag(sql2, rAF, ZCn)
+   If rAF = 0 Or (rAF <> 1 And rAF < 100 And RsI = 0) Then Err.Raise 999, , "Fehler in TIns: Falsche Zahl an Datensätzen aktualisiert: " & rAF
+   If rAF <> 1 Then TIns = 1
    Exit Function
 fehler:
  If InStrB(Err.Description, "Transaction level 'READ-COMMITTED'") <> 0 Then
-  myEFrag "SET SESSION TRANSACTION ISOLATION LEVEL REPEATABLE READ", rAf, ZCn
+  myEFrag "SET SESSION TRANSACTION ISOLATION LEVEL REPEATABLE READ", rAF, ZCn
   Resume
  End If
  Dim AnwPfad$

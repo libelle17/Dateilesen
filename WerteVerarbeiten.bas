@@ -562,7 +562,7 @@ End Sub      ' DMPAusgeb0
 
 #If False Then
 Function TherapieArtEinzelnFestlegen(Pat_id&, Optional rsAna As ADODB.Recordset) ' in TherapieArtenFestlegen und alleSpeichern
-Dim nTher$, rAf&, rAnPatID&, Anzeige$, Fanf As Date
+Dim nTher$, rAF&, rAnPatID&, Anzeige$, Fanf As Date
 On Error Resume Next
 Fanf = rsAna!Fanf
 On Error GoTo fehler
@@ -583,9 +583,9 @@ If Not rsAna.EOF Then
  If nTher <> rsAna!Ther1 Or IsNull(rsAna!Ther1) Then
   Anzeige = Pat_id & ": Ther1: " & rsAna!Ther1 & " -> " & nTher
   Call syscmd(acSysCmdSetStatus, Anzeige)
-  Call myEFrag("UPDATE `anamnesebogen` SET ther1 = '" & nTher & "' WHERE pat_id = " & Pat_id, rAf)
-  If rAf <> 1 Then
-   Anzeige = "   Fehler beim Update von Ther1 bei " & Pat_id & ": rAF = " & rAf
+  Call myEFrag("UPDATE `anamnesebogen` SET ther1 = '" & nTher & "' WHERE pat_id = " & Pat_id, rAF)
+  If rAF <> 1 Then
+   Anzeige = "   Fehler beim Update von Ther1 bei " & Pat_id & ": rAF = " & rAF
    Call syscmd(acSysCmdSetStatus, Anzeige)
   End If
  End If
@@ -594,9 +594,9 @@ If Not rsAna.EOF Then
 '  Anzeige = Pat_id & " " & rsAna!NachName & " " & rsAna!VorName & ": TherAkt: " & rsAna!TherAkt & " -> " & nTher
   Anzeige = Pat_id & " " & ": TherAkt: " & rsAna!TherAkt & " -> " & nTher
   Call syscmd(acSysCmdSetStatus, Anzeige)
-  Call myEFrag("UPDATE `anamnesebogen` SET therakt = '" & nTher & "' WHERE pat_id = " & Pat_id, rAf)
-  If rAf <> 1 Then
-   Anzeige = "   Fehler beim Update von TherAkt bei " & Pat_id & ": rAF = " & rAf
+  Call myEFrag("UPDATE `anamnesebogen` SET therakt = '" & nTher & "' WHERE pat_id = " & Pat_id, rAF)
+  If rAF <> 1 Then
+   Anzeige = "   Fehler beim Update von TherAkt bei " & Pat_id & ": rAF = " & rAF
    Call syscmd(acSysCmdSetStatus, Anzeige)
   End If
  End If
@@ -778,7 +778,7 @@ End Function ' bittest1
 
 #If zutesten Then
 Function bittest()
- Dim rAf&, Cn$(2), dtyp$(1), i%, j%
+ Dim rAF&, Cn$(2), dtyp$(1), i%, j%
  Dim rs As New ADODB.Recordset
  Dim Vb As New ADODB.Connection
  On Error GoTo fehler
@@ -910,7 +910,7 @@ Sub FormRestoreSource()
  If altRecordSource <> "" Then
   Forms(Anmnbi).anaRS.Close
 '  Forms(Anmnbi).anaRS.Open altRecordSource, Lese.dbv.CnStr, adOpenDynamic, adLockOptimistic
-  myFrag Forms(Anmnbi).anaRS, altRecordSource, adOpenDynamic, Lese.dbv.CnStr
+  myFrag Forms(Anmnbi).anaRS, altRecordSource, adOpenDynamic, Lese.dbv.wCn
  End If
 End Sub ' FormRestoreSource()
 
