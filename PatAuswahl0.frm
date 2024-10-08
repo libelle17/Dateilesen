@@ -310,7 +310,7 @@ Public briefneu%
 Public nichtherricht%
 
 Private Sub Angeforderte_Click(Index As Integer)
- Dim rs As New adodb.Recordset
+ Dim rs As New ADODB.Recordset
  Dim arztbed$
  Dim VorBr$
 ' SELECT CASE Index
@@ -401,7 +401,7 @@ Private Sub inTM_Click()
 End Sub 'inTM_Click()
 
 Private Sub Leistungen_Click()
- Dim rs As New adodb.Recordset, rsa As New adodb.Recordset, spmaxü
+ Dim rs As New ADODB.Recordset, rsa As New ADODB.Recordset, spmaxü
  spmaxü = Array(10, 5, 200)
  If Pat_ID <> 0 Then
   myFrag rs, "SELECT l.QS, l.AktZeit, l.Zeitpunkt,l.Leistung, IF (ISNULL(e2.titel), e.Leistungstext,e2.titel) Titel,ArtdUs, LAnzl, LUhrz, LfBegr, Med, LOrgan, LArztBf, DtlKbsV, LEntlDt, Faktor, LBSNR, LANR, letzVorg, Ausn, Beme, absPos, QT, StByte, LANRid, Sachkbez, Sachkct, Zone, l.FID, l.id FROM leistungen l LEFT JOIN ebm2000plus e2 USING (leistung) LEFT JOIN EBM2010 e ON l.leistung = e.ziffer WHERE pat_id=" & CStr(Pat_ID) & " ORDER BY zeitpunkt DESC"
@@ -451,7 +451,7 @@ End Sub ' patname_gotfocus()
 
 ' Knopf Thererartenanz
 Private Sub Therapiearten_Click()
- Dim rs As New adodb.Recordset, spmaxü
+ Dim rs As New ADODB.Recordset, spmaxü
  spmaxü = Array(10, 5, 200)
  If Me.Pat_ID <> 0 Then
   myFrag rs, "SELECT * FROM therarten WHERE pat_id=" & CStr(Me.Pat_ID) & " ORDER BY zp DESC, mpnr DESC"
@@ -476,7 +476,7 @@ End Sub ' Vorlage_GotFocus
 Private Sub HAAusw_KeyDown(KeyCode As Integer, Shift As Integer)
  Call Key(KeyCode, Shift, Me)
  If KeyCode = 13 Then
-  Dim rNaA As New adodb.Recordset
+  Dim rNaA As New ADODB.Recordset
   Dim sql$, KVNr$
   sql = "SELECT kvnr FROM hareal WHERE adressat LIKE '%" & Me.HAAusw & "%'"
   myFrag rNaA, sql
@@ -582,7 +582,7 @@ End Sub ' Form_Load
 ' kommt vor in doPatNameChange, SchreibDatensatz und FDC_indvorWechsel
 Function getPat_id&(PatName$)
  Dim Spl$(), sql$
- Dim rNaA As New adodb.Recordset
+ Dim rNaA As New ADODB.Recordset
  On Error GoTo fehler
  If IsNull(PatName) Or PatName = vNS Then
   getPat_id = -1
@@ -645,7 +645,7 @@ altobTrans:
 ' Dim sLi As New SortierListe
  #End If
  On Error GoTo fehler
- Dim rNaA As New adodb.Recordset
+ Dim rNaA As New ADODB.Recordset
 ' myFrag rNaA, "SELECT nachname, vorname, gebdat, pat_id FROM `namen` ORDER BY nachname, vorname, gebdat;"
  #If EinmalDB Then
  sql = "SELECT pat_id, CAST(CONCAT(CAST(nachname AS CHAR)¡ "", ""¡ vorname¡ "",*""¡ DATE_FORMAT(gebdat,'%e.%c.%Y')¡ "" | ""¡ pat_id) AS char) f0, CONCAT(pat_id¡"" | ""¡ CAST(nachname AS char)¡ "", ""¡ vorname¡ "",*""¡ DATE_FORMAT(gebdat,'%e.%c.%Y')) AS f1 FROM `namen` ORDER BY nachname, vorname, gebdat;"
@@ -709,7 +709,7 @@ Function AuswPat_id(frm As PatAuswahl)
  On Error GoTo fehler
  'Dim cnADO As New ADODB.Connection
  'cnADO.Open ConStr
- Dim rNaA As New adodb.Recordset
+ Dim rNaA As New ADODB.Recordset
 ' sql = "SELECT CONCAT(pat_id¡"" : ""¡ nachname¡ "", ""¡ vorname¡ "",*""¡ DATE_FORMAT(gebdat,'%e.%c.%Y')) AS f1 FROM `namen` ORDER BY pat_id;"
 ' IF Forms(0).obMySQL THEN
 '  sql = replace$(sql, "¡", ",")
@@ -755,7 +755,7 @@ Function AuswHA(frm As PatAuswahl)
  DoEvents
  'Dim cnADO As New ADODB.Connection
  'cnADO.Open ConStr
- Dim rHS As New adodb.Recordset, rKVNr As New adodb.Recordset
+ Dim rHS As New ADODB.Recordset, rKVNr As New ADODB.Recordset
  myFrag rKVNr, "SELECT DISTINCT kvnr FROM `namen` UNION SELECT DISTINCT übwr FROM `faelle`" ' DISTINCT könnte hier entfallen, ist durch UNION impliziert
  If Not Forms(0).obMySQL Then
    Call acon(HaT)
@@ -866,7 +866,7 @@ Private Sub HAAusw_Click()
 End Sub ' HAAusw_Click()
 
 Private Sub HAAusw_Change()
- Dim rNaA As New adodb.Recordset
+ Dim rNaA As New ADODB.Recordset
  Dim sql$, KVNr$
  KVNr = Mid$(Me.HAAusw, InStr(Me.HAAusw, "KVNr") + 5, 7)
  If KVNr <> vNS Then
@@ -905,12 +905,12 @@ End Sub ' Pat_ID_Change()
 Private Sub do_Pat_ID_Change(Optional mitVorDat%)
  Const MaxLauf& = 100
  Dim lauf&, sql$
- Dim rNaA As New adodb.Recordset
- Dim rFaA As New adodb.Recordset
- Dim rDi As New adodb.Recordset
- Dim rEin As New adodb.Recordset
+ Dim rNaA As New ADODB.Recordset
+ Dim rFaA As New ADODB.Recordset
+ Dim rDi As New ADODB.Recordset
+ Dim rEin As New ADODB.Recordset
  Dim HAStr$, obHA%
- Static rKVA As New adodb.Recordset
+ Static rKVA As New ADODB.Recordset
  Static innen%
  Dim pos&
  If innen Then Exit Sub
@@ -1111,7 +1111,7 @@ vorabfra1:
 '     End If ' hlese.Aktion = BriefSchreiben THEN
   '   END IF ' LenB(Me.HAAusw) = 0 THEN
    End If ' rNaA.EOF
-   Dim rdesk As New adodb.Recordset
+   Dim rdesk As New ADODB.Recordset
    sql = "SELECT (0) FROM desktop WHERE pat_id = " & Me.Pat_ID & " AND titel LIKE '%kein%Bericht%'"
    Set rdesk = Nothing
    myFrag rdesk, sql
@@ -1168,7 +1168,7 @@ Private Sub PatName_Click()
 End Sub ' PatName_Click()
 
 Private Sub PatName_Change()
- Dim rs As New adodb.Recordset, sn$(), s1$
+ Dim rs As New ADODB.Recordset, sn$(), s1$
 ' Me.Pat_id = getPat_id(Me.PatName)
  If InStrB(Me.PatName, ",") <> 0 Or InStrB(Me.PatName, " ") <> 0 Then
   SplitNeu Me.PatName, ",", sn

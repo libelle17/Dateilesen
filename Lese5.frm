@@ -738,7 +738,7 @@ Begin VB.MDIForm Lese
          Index           =   1
       End
       Begin VB.Menu SeltenerGebrauchtes 
-         Caption         =   "&Seltener gebrauchtes"
+         Caption         =   "S&eltener gebrauchtes"
          Begin VB.Menu MachDB 
             Caption         =   "&MachDB"
          End
@@ -805,7 +805,7 @@ Begin VB.MDIForm Lese
          Caption         =   "&Turbomed-Dokumente in Tabelle dokumente eintragen"
       End
       Begin VB.Menu ZahlEintrag 
-         Caption         =   "&Zahlen aus Einträgen in Feld inhnum eintragen"
+         Caption         =   "Z&ahlen aus Einträgen in Feld inhnum eintragen"
       End
       Begin VB.Menu WSt0Erg 
          Caption         =   "&Fußsyndrome Wagner-Stadium 0 nach Quartalsdiagnosen ergänzen"
@@ -876,6 +876,9 @@ Begin VB.MDIForm Lese
       End
       Begin VB.Menu MedOffSystemVersioning 
          Caption         =   "&MedOffSystemVersioning hinzufügen"
+      End
+      Begin VB.Menu MedOffRemoveVersioning 
+         Caption         =   "MedOffSystemVersioning entfernen"
       End
       Begin VB.Menu MedOffZpSetzen 
          Caption         =   "Med&OffZpSetzen"
@@ -954,9 +957,9 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
 Option Explicit
-Const MoSer$ = "wser" ' "szn4"
+Const MoWSer$ = "wser" ' "szn4"
 Const MoHier$ = "szn4"
-Const MOCStr$ = "DRIVER={MySQL ODBC 8.0 Unicode Driver};server=" & MoSer & ";option=0;database=medoff;uid=medoff;pwd=medoff;port=2020;"
+Const MOCStr$ = "DRIVER={MySQL ODBC 8.0 Unicode Driver};server=" & MoWSer & ";option=0;database=medoff;uid=medoff;pwd=medoff;port=2020;"
 Const MOCHier$ = "DRIVER={MySQL ODBC 8.0 Unicode Driver};server=" & MoHier & ";option=0;database=medoff;uid=medoff;pwd=medoff;port=2020;"
 Public MOCon As New ADODB.Connection
 Public rsco As New ADODB.Recordset
@@ -969,6 +972,7 @@ Public ple As New LabEintr
 Public pal As New PatListe
 Public haanz As New Hausarztanzeigen
 Public Tü As New TabÜbertr
+Public mos As New MOSuch
 'Public ple2 As New LabEin2
 'Public ple3 As New LabEin3
 Const HADBName$ = "haerzte"
@@ -1069,37 +1073,43 @@ End Sub ' DMPRückmeldungsfehler_Click
 
 ' EDV -> Formulare bereinigen
 Private Sub Formulare_bereinigen_Click()
- Dim rAF&
+ Dim rAf&
  sql = "DELETE FROM forminhaltfeld WHERE NOT EXISTS (SELECT 1 FROM forminhfeld where feldvw = forminhaltfeld.feldvw LIMIT 1)"
  syscmd 4, sql
- myEFrag sql, rAF
+ myEFrag sql, rAf
  sql = "DELETE f FROM forminhfeld f LEFT JOIN forminhkopf k USING (foid) WHERE k.foid IS NULL;"
  syscmd 4, sql
- myEFrag sql, rAF
+ myEFrag sql, rAf
  sql = "DELETE fif FROM forminhaltfeldinh WHERE NOT EXISTS (SELECT 1 FROM forminhfeld WHERE feldinhvw = forminhaltfeldinh.feldinhvw LIMIT 1)"
  ' fif LEFT JOIN forminhfeld fi USING (feldinhvw) WHERE fi.feldinhvw IS NULL;"
  syscmd 4, sql
- myEFrag sql, rAF
+ myEFrag sql, rAf
  syscmd 4, "Fertig mit Bereinigen der Formulare"
 End Sub ' Formulare_bereinigen_Click()
 
+' EDV -> MedOff-&Suche
 Private Sub MedOffSuche_Click()
- Dim mos As New MOSuch
  Load mos
  mos.Show
+ 
 End Sub ' Sub MedOffSuche_Click()
 
-Private Sub MedOffSystemVersioning_Click()
+' in MedOffSystemVersioning_Click, MedOffRemoveVersioning_Click
+Private Sub MOSV(ja%)
  Dim rsco As New ADODB.Recordset
+ Set MOCon = Nothing
  MOCon.Open MOCHier
  On Error GoTo fehler
- rsco.Open "SELECT TABLE_NAME From information_schema.tables WHERE table_schema = 'medoff'", MOCon, adOpenStatic, adLockReadOnly
+ rsco.Open "SELECT TABLE_NAME From information_schema.tables WHERE table_schema = 'medoff' AND TABLE_TYPE<>'SEQUENCE' AND TABLE_TYPE" & IIf(ja = 0, "=", "<>") & "'SYSTEM VERSIONED'", MOCon, adOpenStatic, adLockReadOnly
  Do While Not rsco.EOF
+  Debug.Print "Tabelle: " & rsco!table_name
   On Error Resume Next
-  MOCon.Execute ("ALTER TABLE `" & rsco!table_name & "` ADD SYSTEM VERSIONING")
+  MOCon.Execute ("ALTER TABLE `" & rsco!table_name & "` " & IIf(ja = 0, "DROP", "ADD") & " SYSTEM VERSIONING")
+'   Debug.Print rsco!table_name
   On Error GoTo fehler
   rsco.MoveNext
  Loop ' While Not rsco.EOF
+ syscmd 4, "Fertig mit MOSV(" & ja & ")"
  Debug.Print "Fertig"
  Exit Sub
 fehler:
@@ -1114,21 +1124,32 @@ fehler:
   DBCn.Open
   Resume
  End If ' Err.Number = -2147467259 Then
- Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in MedOffSystemVersioning/" + AnwPfad)
+ Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in MOSV()/" + AnwPfad)
   Case vbAbort: Call MsgBox("Höre auf"): ProgEnde
   Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
   Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
  End Select
 End Sub ' MedOffSystemVersioning_Click()
 
+' EDV -> MedOffSystemVersioning hinzufügen
+Private Sub MedOffSystemVersioning_Click()
+ Call MOSV(True)
+End Sub ' MedOffSystemVersioning_Click()
+
+' EDV -> MedOffSystemVersioning entfernen
+Private Sub MedOffRemoveVersioning_Click()
+ Call MOSV(False)
+End Sub ' MedOffRemoveVersioning_Click()
+
+' EDV -> MedOffZpSetzen
 Private Sub MedOffZpSetzen_Click()
  Dim vorhin As Date, Tn$, tr&, jS$
  jS = DatFor_k(Now())
  On Error Resume Next
  MOCon.Open MOCHier
  On Error GoTo 0
-' vorhin = DBCn.Execute("SELECT COALESCE((SELECT datum FROM moprot WHERE server='" & MoSer & "' LIMIT 1),0)").Fields(0)
- vorhin = myEFrag("SELECT COALESCE((SELECT datum FROM moprot WHERE server='" & MoSer & "' LIMIT 1),0)", , DBCn).Fields(0)
+' vorhin = DBCn.Execute("SELECT COALESCE((SELECT datum FROM moprot WHERE server='" & MoHier & "' LIMIT 1),0)").Fields(0)
+ vorhin = myEFrag("SELECT COALESCE((SELECT datum FROM moprot WHERE server='" & MoHier & "' ORDER BY datum DESC LIMIT 1),0)", , DBCn).Fields(0)
 ' DBCn.BeginTrans
 ' DBCn.Execute "TRUNCATE mozp;"
 ' DBCn.Execute "INSERT INTO mozp VALUES(now());"
@@ -1146,12 +1167,12 @@ Private Sub MedOffZpSetzen_Click()
    obabfr = -1
   Else
    tr = MOCon.Execute("SELECT COUNT(0) FROM `" & Tn & "`").Fields(0)
-   If tr <> myEFrag("SELECT COALESCE((SELECT table_rows FROM moprot WHERE server='" & MoSer & "' AND table_name='" & Tn & "' AND datum=(SELECT MAX(datum) FROM moprot WHERE server='" & MoSer & "' AND table_name='" & Tn & "')),0)", , DBCn).Fields(0) Then
+   If tr <> myEFrag("SELECT COALESCE((SELECT table_rows FROM moprot WHERE server='" & MoHier & "' AND table_name='" & Tn & "' AND datum=(SELECT MAX(datum) FROM moprot WHERE server='" & MoHier & "' AND table_name='" & Tn & "')),0)", , DBCn).Fields(0) Then
     obabfr = -1
    End If
   End If
   If obabfr Then
-   myEFrag "INSERT INTO moprot(server,datum,table_name,table_rows) VALUES('" & MoSer & "'," & jS & ",'" & Tn & "','" & tr & "')", , DBCn
+   myEFrag "INSERT INTO moprot(server,datum,table_name,table_rows) VALUES('" & MoHier & "'," & jS & ",'" & Tn & "','" & tr & "')", , DBCn
   End If
   rsco.MoveNext
  Loop
@@ -1164,7 +1185,7 @@ End Sub ' MedOffZpSetzen_Click
 Private Sub MedOffTabZahl_Click()
  Const datnam$ = "v:\moaend.txt"
  Dim lzp As Date
- Dim TabZ&, aktTNr&, Tn$, jS$, sql$ ', AnzS$
+ Dim aktTNr&, Tn$, jS$, sql$ ', AnzS$
  Dim endse$, endsz$
  On Error Resume Next
  MOCon.Open MOCHier
@@ -1175,27 +1196,28 @@ Private Sub MedOffTabZahl_Click()
  lzp = DBCn.Execute("SELECT COALESCE((SELECT letzt FROM mozp),0)").Fields(0)
  Debug.Print "letzter Zeitpunkt: ", lzp
  Set rsco = Nothing
- sql = "SELECT TABLE_NAME, TABLE_ROWS FROM information_schema.tables WHERE table_schema = 'medoff' AND table_name NOT LIKE '%_fsurogat_seq'"
- rsco.Open "SELECT COUNT(0) z FROM (" & sql & ") i", MOCon, adOpenStatic, adLockReadOnly
- TabZ = rsco!z
- Set rsco = Nothing
+ sql = "SELECT COUNT(0) OVER() TabZ, TABLE_NAME, TABLE_ROWS, table_type='SYSTEM VERSIONED' obv FROM information_schema.tables WHERE table_schema = 'medoff' AND TABLE_TYPE<>'SEQUENCE'"
  rsco.Open sql, MOCon, adOpenStatic, adLockReadOnly
  aktTNr = 0
  Do While Not rsco.EOF
   Tn = rsco!table_name
   aktTNr = aktTNr + 1
-  syscmd 4, aktTNr & "/" & TabZ & ", Tabelle: " & Tn
+  If rsco!obv <> 0 Then
+   syscmd 4, aktTNr & "/" & rsco!TabZ & ", Tabelle: " & Tn
 '  tr = rsco!table_rows
-  Debug.Print Tn
+   Debug.Print Tn
+'   If aktTNr <> 1 Then Print #220, ""
 '  sql = "SELECT CONCAT(" & cols & ",' ',row_start,' ',row_end) FROM `" & Tn & "` WHERE row_start>" & Format(lzp, "yyyymmddHHMMSS") ' FOR SYSTEM_TIME BETWEEN " & Format(lzp, "yyyymmddHHMMSS") & " AND NOW()"
-' Function moausgeb(raen As ADODB.Recordset, Tn$, prim$, obsyst%, Offs%, Bedg$)
-  Call moausgeb(MOCon, Tn, True, "row_start>" & Format(lzp, "yyyymmddHHMMSS") & " or nrs>" & Format(lzp, "yyyymmddHHMMSS"))
+   Call moausgeb(MOCon, Tn, True, "row_start>" & Format(lzp, "yyyymmddHHMMSS") & " or nrs>" & Format(lzp, "yyyymmddHHMMSS"))
+  Else
+   Debug.Print "Nicht versionioniert: " & Tn
+  End If ' rsco!obv
 ' On Error Resume Next
 ' MOCon.Execute "ALTER TABLE `" & Tn & "` ADD SYSTEM VERSIONING"
 ' On Error GoTo fehler
-'  If vorhin = 0 Or tr <> DBCn.Execute("SELECT table_rows FROM moprot WHERE server='" & moser & "' AND table_name='" & tn & "' AND datum=(SELECT MAX(datum) FROM moprot WHERE server='" & moser & "' AND table_name='" & tn & "')").Fields(0) Then
+'  If vorhin = 0 Or tr <> DBCn.Execute("SELECT table_rows FROM moprot WHERE server='" & MoHier & "' AND table_name='" & tn & "' AND datum=(SELECT MAX(datum) FROM moprot WHERE server='" & MoHier & "' AND table_name='" & tn & "')").Fields(0) Then
 '   If vorhin <> 0 Then AnzS = IIf(AnzS = "", tn, AnzS & vbCrLf & tn)
-'   DBCn.Execute "INSERT INTO moprot(server,datum,table_name,table_rows) VALUES('" & moser & "'," & jS & ",'" & tn & "','" & tr & "')"
+'   DBCn.Execute "INSERT INTO moprot(server,datum,table_name,table_rows) VALUES('" & MoHier & "'," & jS & ",'" & tn & "','" & tr & "')"
 '  End If
   rsco.MoveNext
  Loop ' While Not rsco.EOF
@@ -1379,23 +1401,23 @@ End Sub ' LaborEintragen_Click
 
 ' Funktionen für Arzthelferin und Arzt -> Falsch abgehakte Dokumente ungültig stempeln
 Public Sub FalschAbgehakteUngueltig_Click()
- Dim rAF&, zwg&, zug&, rs As New ADODB.Recordset, rl As New ADODB.Recordset
+ Dim rAf&, zwg&, zug&, rs As New ADODB.Recordset, rl As New ADODB.Recordset
  Call ProgStart
  Me.Ausgeb "FalschAbgehakteUngültig ...", False
  myFrag rs, "SELECT --abgehakt ab, --ungueltig ug, pat_id, b.pfad, quelldatum qd FROM `br_abgehakt` da INNER JOIN briefe b ON da.dokpfad = b.pfad"
  Do While Not rs.EOF
   Set rl = Nothing
-  myFrag rl, "SELECT pat_id FROM `laborneu` WHERE pat_id = " & rs!Pat_id & " AND " & SelDatum("zeitpunkt", rs!qd)
+  myFrag rl, "SELECT pat_id FROM `laborneu` WHERE pat_id = " & rs!Pat_ID & " AND " & SelDatum("zeitpunkt", rs!qd)
   If rl.EOF And rs!ug <> 1 Then
-   myEFrag "UPDATE `br_abgehakt` SET ungueltig = 1 WHERE dokpfad = '" & doUmwfSQL(rs!DokPfad, lies.obMySQL) & "'", rAF
-   zug = zug + rAF
-   If rAF = 0 Then
+   myEFrag "UPDATE `br_abgehakt` SET ungueltig = 1 WHERE dokpfad = '" & doUmwfSQL(rs!DokPfad, lies.obMySQL) & "'", rAf
+   zug = zug + rAf
+   If rAf = 0 Then
     MsgBox "Fehler beim Auffinden von " & doUmwfSQL(rs!DokPfad, lies.obMySQL) & " in `br_abgehakt` (Orginaldokpfad: " & rs!DokPfad & ")"
    End If
   ElseIf Not rl.EOF And rs!ug <> 0 Then
-   myEFrag "UPDATE `br_abgehakt` SET ungueltig = 0 WHERE dokpfad = '" & doUmwfSQL(rs!DokPfad, lies.obMySQL) & "'", rAF
-   zwg = zwg + rAF
-   If rAF = 0 Then
+   myEFrag "UPDATE `br_abgehakt` SET ungueltig = 0 WHERE dokpfad = '" & doUmwfSQL(rs!DokPfad, lies.obMySQL) & "'", rAf
+   zwg = zwg + rAf
+   If rAf = 0 Then
     MsgBox "Fehler beim Auffinden von " & doUmwfSQL(rs!DokPfad, lies.obMySQL) & " in `br_abgehakt` (Orginaldokpfad: " & rs!DokPfad & ")"
    End If
   End If
@@ -1556,7 +1578,7 @@ If Not rs.BOF Then
 '   myFrag rsa, sqla
     Dim lwZahl&, aktlwx&
     Dim lab() As labtyp
-    Set rsa = hollabor(rs!Pat_id, "", 0, 0, 0, lwZahl)
+    Set rsa = hollabor(rs!Pat_ID, "", 0, 0, 0, lwZahl)
     If Not rsa.BOF And lwZahl Then
      ReDim lab(lwZahl)
      aktlwx = 0
@@ -1589,7 +1611,7 @@ If Not rs.BOF Then
       Next aktlwx
 '  sqla = "SELECT DATE(zeitpunkt) zp, IF(ISNULL(wert),IF(ISNULL(kommentar),'',kommentar),wert) Wert FROM `laborneu` ln LEFT JOIN laborkommentar lk ON ln.kommentarvw = lk.kommentarvw WHERE ((abkü IN ('ALBCRE','ALBKRE','ALBQ','ALBUM','ALBUP') AND einheit LIKE 'mg/g %') OR (abkü IN ('ALBU','ALBUMU') AND (einheit = 'mg/l' OR einheit = ''))) AND pat_id = 262 UNION SELECT DATE(u.eingang) zp, IF(ISNULL(w.wert),IF(ISNULL(w.kommentar),'',w.kommentar),w.wert) Wert FROM `laborxus` u LEFT JOIN laborxwert w ON u.refnr = w.refnr WHERE ((abkü IN ('ALBCRE','ALBKRE','ALBQ','ALBUM','ALBUP') AND einheit LIKE 'mg/g %') OR (abkü IN ('ALBU','ALBUMU') AND (einheit = 'mg/l' OR einheit = ''))) AND pat_id = 262 GROUP BY zp ORDER BY zp DESC;"
       If obNP Then
-       myEFrag ("INSERT INTO ni_abr(pat_id,DmICD,maxHbA1c,maxGluc,eGFR,npICD,niICD,pZ,nZ,gesZ,minDat,maxAlb,kasse) VALUES(" & rs!Pat_id & ",'" & rs!DmICD & "','" & REPLACE$(IIf(IsNull(rs!maxHbA1c), 0, rs!maxHbA1c), ",", ".") & "','" & REPLACE(IIf(IsNull(rs!maxGluc), "0", rs!maxGluc), ",", ".") & "','" & REPLACE(rs!eGFR, ",", ".") & "','" & IIf(IsNull(rs!npICD), "", rs!npICD) & "','" & IIf(IsNull(rs!niICD), "", rs!niICD) & "'," & pz & "," & nz & "," & gesZ & "," & Format(Zp, "YYYYMMDD") & "," & REPLACE$(maxAlb, ",", ".") & ",'" & rs!Kasse & "')")
+       myEFrag ("INSERT INTO ni_abr(pat_id,DmICD,maxHbA1c,maxGluc,eGFR,npICD,niICD,pZ,nZ,gesZ,minDat,maxAlb,kasse) VALUES(" & rs!Pat_ID & ",'" & rs!DmICD & "','" & REPLACE$(IIf(IsNull(rs!maxHbA1c), 0, rs!maxHbA1c), ",", ".") & "','" & REPLACE(IIf(IsNull(rs!maxGluc), "0", rs!maxGluc), ",", ".") & "','" & REPLACE(rs!eGFR, ",", ".") & "','" & IIf(IsNull(rs!npICD), "", rs!npICD) & "','" & IIf(IsNull(rs!niICD), "", rs!niICD) & "'," & pz & "," & nz & "," & gesZ & "," & Format(Zp, "YYYYMMDD") & "," & REPLACE$(maxAlb, ",", ".") & ",'" & rs!Kasse & "')")
       End If ' obNP
      End If ' lwzahl
     End If ' not rsa.BOF
@@ -1741,7 +1763,7 @@ Private Sub WiedereinbestellungenDMP_Click()
    Set r2 = Nothing
    ' wegen falscher Fremdlabore gestrichen: einheit = '%'
 '   r2.Open "SELECT * FROM (SELECT * FROM `labor2a` WHERE pat_id = " & r1!Pat_id & " AND abkü RLIKE '^hba[1c]' AND CAST(wert AS decimal) < 22 UNION SELECT * FROM `labor1a` WHERE pat_id = " & r1!Pat_id & " AND abkü RLIKE '^hba[1c]' AND CAST(wert AS decimal) < 22) i GROUP BY pat_id,zeitpunkt,abkü,wert,einheit,nb ORDER BY zeitpunkt DESC LIMIT 1", dbv.wCn, adOpenStatic, adLockReadOnly
-   Set r2 = hollabor(r1!Pat_id, "HBA[1C]", 0, 22)
+   Set r2 = hollabor(r1!Pat_ID, "HBA[1C]", 0, 22)
    Zp = vNS
    obDruck = True
    If Not r2.EOF Then
@@ -1750,7 +1772,7 @@ Private Sub WiedereinbestellungenDMP_Click()
    End If
    If obDruck Then
 '    AusgStr = Right$(Space$(4) & r1!Pat_id, 4) & " " & LEFT(r1!Nachname & Space$(15), 15) & " " & LEFT(r1!Vorname & Space$(11), 11) & "   " & IIf(obhierdmp(r1!Notiz), "X", " ") & " (" & LEFT(IIf(ISNULL(r1!Notiz) OR LenB(r1!Notiz) = 0, r1!rname, replace$(replace$(r1!Notiz, vbCr, ""), vbLf, "")) & ")" & Space$(42), 42) & " " & LEFT(r1!BhFB & Space$(10), 10) & " " & Zp
-    ausgStr = Right$(Space$(4) & r1!Pat_id, 4) & " " & Left$(r1!Nachname & Space$(15), 15) & " " & Left$(r1!Vorname & Space$(11), 11) & "   " & IIf(r1!dmpklass = hier, "X", " ") & " (" & Left$(IIf(IsNull(r1!notiz) Or LenB(r1!notiz) = 0, r1!rname, REPLACE$(REPLACE$(r1!notiz, vbCr, ""), vbLf, "")) & ")" & Space$(42), 42) & " " & Left$(r1!BhFB & Space$(10), 10) & " " & Zp
+    ausgStr = Right$(Space$(4) & r1!Pat_ID, 4) & " " & Left$(r1!Nachname & Space$(15), 15) & " " & Left$(r1!Vorname & Space$(11), 11) & "   " & IIf(r1!dmpklass = hier, "X", " ") & " (" & Left$(IIf(IsNull(r1!notiz) Or LenB(r1!notiz) = 0, r1!rname, REPLACE$(REPLACE$(r1!notiz, vbCr, ""), vbLf, "")) & ")" & Space$(42), 42) & " " & Left$(r1!BhFB & Space$(10), 10) & " " & Zp
 '    Debug.Print AusgStr
     Me.Ausgeb ausgStr & vbCrLf & altAusgabe, True
     Print #339, ausgStr
@@ -1784,9 +1806,9 @@ End Sub ' Hausärzte_aus_Listenausgabe_Ueberweiser_einlesen_Click
 
 ' Funktionen für Arzthelferin und Arzt -> Hausärzte mit alter KV-Nr ergänzen
 Private Sub HausärztemitalterKVNrergänzen_Click()
- Dim fha As New frmalthae, rAF&, rs As New ADODB.Recordset
+ Dim fha As New frmalthae, rAf&, rs As New ADODB.Recordset
  ' erst mal die leeren KV-Nummern einfügen
- InsKorr DBCn, "INSERT INTO `althae` (kvnu,kvnr) SELECT kvnu, kvnr FROM (SELECT n.kvnr kvnu, LEFT(n.kvnr,2),'/',RIGHT(n.kvnr,5) kvnr, HAName hHA, CONCAT_WS(', ',l.name, l.vorname) lHA FROM `aktfvs` f LEFT JOIN `namen` n ON f.pat_id = n.pat_id LEFT JOIN `aktlue` l ON n.kvnr = l.kvnro LEFT JOIN althae h ON n.kvnr = h.kvnu GROUP BY n.pat_id) innen WHERE (ISNULL(lha) OR lha='') AND (ISNULL(hha) OR hha='') AND kvnu <> '' AND NOT EXISTS (SELECT kvnu FROM althae WHERE kvnu = innen.kvnu)", rAF
+ InsKorr DBCn, "INSERT INTO `althae` (kvnu,kvnr) SELECT kvnu, kvnr FROM (SELECT n.kvnr kvnu, LEFT(n.kvnr,2),'/',RIGHT(n.kvnr,5) kvnr, HAName hHA, CONCAT_WS(', ',l.name, l.vorname) lHA FROM `aktfvs` f LEFT JOIN `namen` n ON f.pat_id = n.pat_id LEFT JOIN `aktlue` l ON n.kvnr = l.kvnro LEFT JOIN althae h ON n.kvnr = h.kvnu GROUP BY n.pat_id) innen WHERE (ISNULL(lha) OR lha='') AND (ISNULL(hha) OR hha='') AND kvnu <> '' AND NOT EXISTS (SELECT kvnu FROM althae WHERE kvnu = innen.kvnu)", rAf
 ' SET fha.datprimaryRS = n
 ' Call fha.vorbereit
  myFrag rs, "SELECT GROUP_CONCAT(kvnu) nrn FROM (SELECT n.kvnr kvnu, HAName hHA, CONCAT_WS(', ',l.name, l.vorname) lHA FROM `aktfvs` f LEFT JOIN `namen` n ON f.pat_id = n.pat_id LEFT JOIN `aktlue` l ON n.kvnr = l.kvnro LEFT JOIN althae h ON n.kvnr = h.kvnu GROUP BY n.pat_id) innen WHERE (ISNULL(lha) OR lha='') AND (ISNULL(hha) OR hha='') AND kvnu <> ''"
@@ -1870,7 +1892,7 @@ Private Sub FalscheKarteikarteneinträge_Click()
    Print #327, String$(80, "_")
    altArt = rs!art
   End If
-  Print #327, Right$(Space$(4) & rs!Pat_id, 4) & "|" & Left$(rs!Zeitpunkt & Space$(19), 19) & "|" & Left$(rs!art & Space$(10), 10) & "|" & Left$(rs!Inhalt, 50)
+  Print #327, Right$(Space$(4) & rs!Pat_ID, 4) & "|" & Left$(rs!Zeitpunkt & Space$(19), 19) & "|" & Left$(rs!art & Space$(10), 10) & "|" & Left$(rs!Inhalt, 50)
   rs.Move 1
  Loop
  Close #327
@@ -2173,7 +2195,7 @@ End Sub ' Kontrolllisten_für_DMP_HA_Click
 
 ' ...für Arzt -> Unverwertbare DMP-Einträge
 Private Sub UnverwertbareDMPEinträge_Click() ' Unverwertbare DMP-Einträge
- Dim rs As New ADODB.Recordset, rez As New ADODB.Recordset, Pat_id&, ausgStr$, TA1$, STA1$(), i&
+ Dim rs As New ADODB.Recordset, rez As New ADODB.Recordset, Pat_ID&, ausgStr$, TA1$, STA1$(), i&
  Dim SpMin%(2)
  SpMin%(0) = 6
  Call ProgStart
@@ -2355,8 +2377,8 @@ End Sub ' Briefschreibenneu_Click
 
 Private Sub Briefnochmal_Click()
  Call ProgStart
- If Me.pataw.Pat_id = "" Then Me.pataw.Pat_id = 681
- Call tubriefStandalone(Me.pataw.Pat_id, 0, "", "", 0, True, True)
+ If Me.pataw.Pat_ID = "" Then Me.pataw.Pat_ID = 681
+ Call tubriefStandalone(Me.pataw.Pat_ID, 0, "", "", 0, True, True)
 ' Aktion = nix
  Call ProgEnde
 End Sub ' Briefnochmal_Click
@@ -2391,7 +2413,7 @@ Private Sub NachzuholendeLaborimporte_Click()
  If Not rs.BOF Then
   lfdnr = 1
   Do While Not rs.EOF
-   Print #301, Right$("   " & lfdnr, 3) & ": Pat: " & Right$("   " & rs!Pat_id, 4) & " Auftrag: " & Right$("       " & rs!Auftragsnummer, 11) & " " & rs!Eingang & " " & IIf(Len(rs!Pfad) < 50, Right$(Space$(50) & rs!Pfad, 50), rs!Pfad) & " (Pat: " & rs!Nachname & ", " & rs!Vorname & " Werte: " & Trim$(rs!LWerte) & ")"
+   Print #301, Right$("   " & lfdnr, 3) & ": Pat: " & Right$("   " & rs!Pat_ID, 4) & " Auftrag: " & Right$("       " & rs!Auftragsnummer, 11) & " " & rs!Eingang & " " & IIf(Len(rs!Pfad) < 50, Right$(Space$(50) & rs!Pfad, 50), rs!Pfad) & " (Pat: " & rs!Nachname & ", " & rs!Vorname & " Werte: " & Trim$(rs!LWerte) & ")"
 '   Print #301, lfdnr & ": Pat: " & rs!Pat_id & " (" & rs!Nachname & ", " & rs!Vorname & "), für: " & rs!Eingang & ", Auftragsnummer: " & rs!Auftragsnummer & " (Werte: " & rs!LWerte & ")"
 '   Print #301, "   dann importieren: " & rs!Pfad
    lfdnr = lfdnr + 1
@@ -2503,14 +2525,14 @@ End Sub ' Faxe_gescheitert_Click
 
 ' ...für Arzt -> Pat. löschen
 Private Sub Pat_loeschen_Click()
- Dim Pat_id&, erg&
- Pat_id = InputBox("Welchen Patienten wollen Sie löschen?")
+ Dim Pat_ID&, erg&
+ Pat_ID = InputBox("Welchen Patienten wollen Sie löschen?")
  Dim rsPat As New ADODB.Recordset
- myFrag rsPat, "SELECT gesname(" & Pat_id & ")"
+ myFrag rsPat, "SELECT gesname(" & Pat_ID & ")"
  If Not rsPat.BOF() Then
-  erg = MsgBox("Wollen Sie wirklich den Patienten `" & Pat_id & " (" & rsPat.Fields(0) & ")` löschen?", vbYesNo)
+  erg = MsgBox("Wollen Sie wirklich den Patienten `" & Pat_ID & " (" & rsPat.Fields(0) & ")` löschen?", vbYesNo)
   If erg = vbYes Then
-   Call LöschePat(Pat_id, True)
+   Call LöschePat(Pat_ID, True)
   End If ' erg = vbYes
  End If ' Not rsPat.BOF() Then
 End Sub ' Pat_loeschen_Click
@@ -2536,7 +2558,7 @@ Private Sub PLZfuerMedikament_Click()
   myFrag rs, "SELECT DISTINCT pat_id FROM medplan WHERE medikament LIKE '" & Med & "%' ORDER BY pat_id DESC"
   If Not rs.BOF Then
    Do While Not rs.EOF
-    dodoplz rs!Pat_id, plzVz
+    dodoplz rs!Pat_ID, plzVz
     rs.MoveNext
    Loop
   End If
@@ -2562,7 +2584,7 @@ Private Sub DoppelteDiagnosen_Click()
  i = 0
  Do While Not rs.EOF
   i = i + 1
-  Print #327, Right$("    " & i, 4) & " " & Left$(rs!ct & "  ", 2) & " " & Right$("     " & rs!Pat_id, 5) & " " & Left$(rs!gesname & Space$(30), 30) & " " & Left$(rs!ICD & "      ", 6) & " " & rs!SI & " " & rs!SE & " " & Left$(rs!tx & Space$(50), 50)
+  Print #327, Right$("    " & i, 4) & " " & Left$(rs!ct & "  ", 2) & " " & Right$("     " & rs!Pat_ID, 5) & " " & Left$(rs!gesname & Space$(30), 30) & " " & Left$(rs!ICD & "      ", 6) & " " & rs!SI & " " & rs!SE & " " & Left$(rs!tx & Space$(50), 50)
   rs.Move 1
  Loop
  Print #327, "Fertig!"
@@ -2692,8 +2714,8 @@ End Sub ' Überweiserstatistik2_Click
 
 ' Statistik -> Schulungsstatistik nach Schulungsart
 Private Sub Schulungsstatistik_Click()
- Dim col As New Collection, el, rs As New ADODB.Recordset, ausg$, TA1$, spmax%(5), rAF&
- myEFrag "INSERT INTO `ebm2000plus`(leistung,titel,euro) SELECT g.leistung, g.erklärung, g.wert FROM `genehmigungen` g LEFT JOIN `ebm2000plus` e ON g.leistung=e.leistung WHERE ISNULL(e.leistung)", rAF
+ Dim col As New Collection, el, rs As New ADODB.Recordset, ausg$, TA1$, spmax%(5), rAf&
+ myEFrag "INSERT INTO `ebm2000plus`(leistung,titel,euro) SELECT g.leistung, g.erklärung, g.wert FROM `genehmigungen` g LEFT JOIN `ebm2000plus` e ON g.leistung=e.leistung WHERE ISNULL(e.leistung)", rAf
  myFrag rs, "SELECT leistung FROM `genehmigungen` WHERE obschulung<>0"
  Do While Not rs.EOF
   ausg = rs!Leistung
@@ -2824,7 +2846,7 @@ End Sub ' GestationsdiabetikerinnenProQuartal_Click
 ' Statistik -> Gestationsdiabetikerinnen
 Private Sub Gestationsdiabetikerinnen_Click()
 ' SELECT f.pat_id,f.fid, LEFT(CONCAT(a.nachname,' ',a.vorname),20) AS name, DATE_FORMAT(a.gebdat,'%d.%m.%y') AS geb, d.icd, d.diagsicherheit AS dsi, diabetestyp FROM `aktfvs` f LEFT JOIN `diagnosen` d ON f.fid = d.fid AND icd = 'O24.4' AND diagsicherheit NOT IN ('A','Z') LEFT JOIN `anamnesebogen` a ON f.pat_id = a.pat_id WHERE (NOT ISNULL(icd) OR a.diabetestyp = 'g');
- Dim rs As New ADODB.Recordset, rez As New ADODB.Recordset, Pat_id&, ausgStr$, TA1$, STA1$(), i&
+ Dim rs As New ADODB.Recordset, rez As New ADODB.Recordset, Pat_ID&, ausgStr$, TA1$, STA1$(), i&
  Dim SpMin%(2)
  SpMin%(0) = 6
  Call ProgStart
@@ -2867,7 +2889,7 @@ Private Sub PLZausListe_Click()
   If Not rs.BOF Then
    Do While Not rs.EOF
     Zahl = Zahl + 1
-    dodoplz rs!Pat_id, plzVz, , , , rs!T1Zp & " - " & rs!T2Zp & " (gs " & rs!gsz & ", tk " & rs!Tkz & ")", 0
+    dodoplz rs!Pat_ID, plzVz, , , , rs!T1Zp & " - " & rs!T2Zp & " (gs " & rs!gsz & ", tk " & rs!Tkz & ")", 0
     rs.MoveNext
    Loop
   End If
@@ -2913,7 +2935,7 @@ End Sub ' TherapieartenfürallePatientenzusammenfestlegen_Click()
 
 ' für Arzt -> Therapiearten festlegen -> Therapiearten für alle festlegen (einen nach dem anderen)
 Private Sub Therapieartenfürallefestlegeneinernachdemanderen_Click()
- Dim rs As New ADODB.Recordset, sql$, altpat_id&, altTherArt$, rAF&, erg&, T1!, T2!
+ Dim rs As New ADODB.Recordset, sql$, altpat_id&, altTherArt$, rAf&, erg&, T1!, T2!
  Const FristS$ = "25"
  Call ProgStart
  erg = MsgBox("Mit Neuauswertung der Therapiearten?", vbYesNo + vbQuestion + vbDefaultButton2, "Rückfrage")
@@ -2940,9 +2962,9 @@ Private Sub Therapieartenfürallefestlegeneinernachdemanderen_Click()
         "FROM `medplan` mpü GROUP BY mpü.pat_id, mpü.mpnr, mpü.zeitpunkt) i"
   myFrag rs, sql
   Do While Not rs.EOF
-   If rs!Pat_id <> altpat_id Or rs!therart <> altTherArt Then
-    InsKorr DBCn, "INSERT INTO `therarten`(pat_id,zp,mpnr,therart) VALUES(" & rs!Pat_id & "," & DatFor_k(rs!Zp) & "," & rs!MPNr & ",'" & rs!therart & "')", rAF
-    altpat_id = rs!Pat_id
+   If rs!Pat_ID <> altpat_id Or rs!therart <> altTherArt Then
+    InsKorr DBCn, "INSERT INTO `therarten`(pat_id,zp,mpnr,therart) VALUES(" & rs!Pat_ID & "," & DatFor_k(rs!Zp) & "," & rs!MPNr & ",'" & rs!therart & "')", rAf
+    altpat_id = rs!Pat_ID
     altTherArt = rs!therart
    End If
    rs.Move 1
@@ -3078,7 +3100,7 @@ End Sub ' Quartalsvergleich_Click
 ' künftig ähnlich:
 ' SELECT gesname(th.pat_id) Name, th.Pat_id, DATE_FORMAT(th.zp,'%d.%m.%Y') CSII_hier_seit, (SELECT DATE_FORMAT(MAX(bhfb),'%d.%m.%Y') FROM faelle f WHERE f.pat_id= th.pat_id) BhFB FROM therarten th LEFT JOIN anamnesebogen a ON th.pat_id = a.pat_id WHERE therart = 'CSII' AND zp = (SELECT MAX(zp) FROM therarten t WHERE t.pat_id = th.pat_id) AND tkz=0;
 Private Sub Pumpenträgerliste_Click() ' s. therart_erm
- Dim rs As New ADODB.Recordset, rez As New ADODB.Recordset, Pat_id&, ausgStr$, datnam$, TA1$, STA1$(), i&
+ Dim rs As New ADODB.Recordset, rez As New ADODB.Recordset, Pat_ID&, ausgStr$, datnam$, TA1$, STA1$(), i&
  Dim SpMin%(2)
  SpMin%(0) = 6
  Call ProgStart
@@ -3095,11 +3117,11 @@ Private Sub Pumpenträgerliste_Click() ' s. therart_erm
  Do While Not rs.EOF
  ' pumpentr
   Set rez = Nothing
-  Pat_id = rs!Pat_id
+  Pat_ID = rs!Pat_ID
   ' ,'txtmedKey'
   sql = forminhalt & " WHERE form_abk IN ('lar','plar') AND feld IN ('medikament','txtmedKey') AND " & _
         "(feldinh LIKE '%reservoir% OR feldinh LIKE '%Rapid D Link%' OR feldinh LIKE '%Rap D Li%' OR feldinh LIKE '%Rapid-D Li%' OR feldinh LIKE '%TenderL%' OR feldinh LIKE '%FlexL%' OR feldinh LIKE '%Check Spirit%' OR feldinh LIKE '%Insight%' OR feldinh LIKE '%Chek Spirit%' OR feldinh LIKE '%Pumpenträg%' OR feldinh LIKE '%Kunststoffampu%' OR feldinh LIKE '%Spritzampull%' OR feldinh LIKE '%batteriefachdeckel%' OR feldinh LIKE '%H-Tron%' OR feldinh LIKE '%D-Tron%' OR feldinh LIKE '%Paradigm%' OR feldinh LIKE '%CSII%' OR feldinh LIKE '%linpumpe%' OR feldinh LIKE '%omnipod%' OR feldinh LIKE '%ypso pump%' OR feldinh LIKE '%MiniMed%' OR feldinh LIKE '%640G%' OR feldinh LIKE '%CareLink%' OR Feldinh LIKE '%Mio %' OR feldinh LIKE '%Quick%set%' OR feldinh LIKE '%Silhouette%' OR feldinh LIKE '%Sure-T%' OR feldinh LIKE '%Sure T%' OR feldinh LIKE '%Paradigm%' OR feldinh LIKE '% Veo%' OR feldinh LIKE '%Animas%' OR feldinh LIKE '%Car%idge%') AND NOT feldinh LIKE  AND NOT feldinh LIKE '%menveo%'" & _
-        "AND zeitpunkt > " & DatFor_k(rs!BhFB - 640) & " AND pat_id = " & Pat_id & " ORDER BY zeitpunkt DESC LIMIT 10"
+        "AND zeitpunkt > " & DatFor_k(rs!BhFB - 640) & " AND pat_id = " & Pat_ID & " ORDER BY zeitpunkt DESC LIMIT 10"
   myFrag rez, "SELECT Pat_ID, Zeitpunkt, Feldinh FROM (" & sql & ") i"
   Print #326, STA1(i)
   Print #326, TabAusgeb(rEinl:=rez, AusgebFrm:=Me, obMitausgeb:=False, ohneKopfZ:=True, SpMinÜ:=SpMin).Value
@@ -3314,7 +3336,7 @@ Private Sub TherapieartenEinzelübervb6Festlegen_Click() ' Therapiearten festlege
  Do While Not rsAna.EOF
   aktzahl = aktzahl + 1
 '  Call TherapieArtEinzelnFestlegen(rsAna!Pat_id, rsAna)
-  Call rufThFestleg(rsAna!Pat_id, " (" & aktzahl & "/" & patzahl & ")")
+  Call rufThFestleg(rsAna!Pat_ID, " (" & aktzahl & "/" & patzahl & ")")
   rsAna.Move 1
  Loop
  Ausgeb "Fertig mit Festlegen der Therapiearten", True
@@ -3372,7 +3394,7 @@ End Sub ' Excelliste_Click
 
 ' EDV -> falschen Laboreintrag zu Pat. löschen
 Private Sub falschenLaboreintragZuPatlöschen_Click()
- Dim PIDStr$, pid&, TagStr$, Tag As Date, erg$, PName$, ltxt$, rAF&
+ Dim PIDStr$, pid&, TagStr$, Tag As Date, erg$, PName$, ltxt$, rAf&
  Dim rs As New Recordset
  PIDStr = InputBox("Bitte Pat_ID eingeben", "1.Rückfrage", 0)
  If Not IsNumeric(PIDStr) Then Exit Sub
@@ -3402,17 +3424,17 @@ Private Sub falschenLaboreintragZuPatlöschen_Click()
    erg = MsgBox("Löschen? " & ltxt, vbYesNo)
    If erg = vbYes Then
     Print #59, ltxt
-    myEFrag "DELETE FROM laborybakt WHERE usid = " & rs!id, rAF
-    ltxt = rAF & " Sätze aus laborybakt gelöscht"
+    myEFrag "DELETE FROM laborybakt WHERE usid = " & rs!id, rAf
+    ltxt = rAf & " Sätze aus laborybakt gelöscht"
     Print #59, ltxt
-    myEFrag "DELETE FROM laboryleist WHERE usid = " & rs!id, rAF
-    ltxt = rAF & " Sätze aus laboryleist gelöscht"
+    myEFrag "DELETE FROM laboryleist WHERE usid = " & rs!id, rAf
+    ltxt = rAf & " Sätze aus laboryleist gelöscht"
     Print #59, ltxt
-    myEFrag "DELETE FROM laborywert WHERE usid = " & rs!id, rAF
-    ltxt = rAF & " Sätze aus laborywert gelöscht"
+    myEFrag "DELETE FROM laborywert WHERE usid = " & rs!id, rAf
+    ltxt = rAf & " Sätze aus laborywert gelöscht"
     Print #59, ltxt
-    myEFrag "DELETE FROM laboryus WHERE usid = " & rs!id, rAF
-    ltxt = rAF & " Sätze aus laboryus gelöscht"
+    myEFrag "DELETE FROM laboryus WHERE usid = " & rs!id, rAf
+    ltxt = rAf & " Sätze aus laboryus gelöscht"
     Print #59, ltxt
    End If
    rs.MoveNext
@@ -3438,7 +3460,7 @@ End Sub ' Laborvergleich_Click
 
 ' EDV -> Labor (direkt -> ""X"") l&öschen ab
 Private Sub LaborLöschenAb_Click()
- Dim sql$, rs As New ADODB.Recordset, rAF&
+ Dim sql$, rs As New ADODB.Recordset, rAf&
  Dim DatumS$, Datum As Date, nr&
  Dim krit0$, krit1$, krit2$, krit3$, erg$
  Do
@@ -3490,7 +3512,7 @@ Private Sub LaborLöschenAb_Click()
  ' myEFrag "DELETE FROM `laborxwert` WHERE refnr IN " & krit0, rAF
  ' myEFrag "DELETE FROM `laborxbakt` WHERE refnr IN " & krit0, rAF
  ' myEFrag "DELETE FROM `laborxleist` WHERE refnr IN " & krit0, rAF
- myEFrag "DELETE d FROM laborydat d LEFT JOIN laboryus u ON u.datid = d.datid WHERE eingang >= " & Format(Datum, "yyyymmdd"), rAF
+ myEFrag "DELETE d FROM laborydat d LEFT JOIN laboryus u ON u.datid = d.datid WHERE eingang >= " & Format(Datum, "yyyymmdd"), rAf
 End Sub ' LaborLöschenAB
 
 ' EDV -> DMP-Liste erstellen
@@ -3554,7 +3576,7 @@ End Sub ' ViewsErstellen_Click()
 
 ' EDV -> Falsche Dokumente
 Private Sub FalscheDokumente_Click()
- Dim sql$, rs As New ADODB.Recordset, erg$(), dokn$, dokr$, i%, rs2 As New ADODB.Recordset, Pat_id&
+ Dim sql$, rs As New ADODB.Recordset, erg$(), dokn$, dokr$, i%, rs2 As New ADODB.Recordset, Pat_ID&
  sql = "SELECT d.pat_id, name FROM briefe b LEFT JOIN namen n ON b.pat_id = n.pat_id LIMIT 10000"
  myFrag rs, sql
  Do While Not rs.EOF
@@ -3565,11 +3587,11 @@ Private Sub FalscheDokumente_Click()
   Next
   SplitNeu dokr, " ", erg
   If UBound(erg) > 1 Then
-   Pat_id = rs!Pat_id
+   Pat_ID = rs!Pat_ID
    Set rs2 = Nothing
-   myFrag rs2, "SELECT * FROM namen WHERE nachname = "" & erg(0) & "" AND vorname = "" & erg(1) & "" AND pat_id <> " & Pat_id
+   myFrag rs2, "SELECT * FROM namen WHERE nachname = "" & erg(0) & "" AND vorname = "" & erg(1) & "" AND pat_id <> " & Pat_ID
    If Not rs2.EOF() Then
-    Debug.Print rs2!Pat_id, erg(0), erg(1), Pat_id, rs!DokName
+    Debug.Print rs2!Pat_ID, erg(0), erg(1), Pat_ID, rs!DokName
    End If
   End If
   rs.MoveNext
@@ -3581,7 +3603,7 @@ End Sub ' FalscheDokumente_Click
 
 ' EDV -> Quelldatum für alle Dokumente korrigieren
 Private Sub korrQD_Click() ' Quelldatum für alle Dokumente korrigieren
- Dim rs As New ADODB.Recordset, nQD As Date, rAF&, rsum&
+ Dim rs As New ADODB.Recordset, nQD As Date, rAf&, rsum&
  Call ProgStart
  myEFrag "UPDATE dokumente SET quelldatum=quelldat(dokname,DokAenD);", rsum
  myEFrag "UPDATE briefe SET quelldatum=quelldat(name,DokAenD);", rsum
@@ -3602,7 +3624,7 @@ End Sub ' korrQD_Click
 
 ' EDV -> Quelldatum für alle Briefe korrigieren
 Private Sub korrQB_Click() ' Quelldatum für alle Briefe korrigieren
- Dim rs As New ADODB.Recordset, nQD As Date, rAF&, rsum&
+ Dim rs As New ADODB.Recordset, nQD As Date, rAf&, rsum&
  Call ProgStart
  myEFrag "UPDATE quelle.briefe SET quelldatum=quelldat(name,DokAenD);", rsum
 ' myFrag rs; "SELECT * FROM `briefe`"
@@ -3668,8 +3690,8 @@ Private Sub DokumenteAbgehaktPrüfen_Click()
    eDat = GetDatumAusString(rs!name)
 '   Debug.Print eDat & ", " & rs!DokName
    If eDat = 0 Then
-    Debug.Print n, rs!Pat_id, rs!Zeitpunkt, rs!name
-    Print #7, n, rs!Pat_id, rs!Zeitpunkt, rs!name
+    Debug.Print n, rs!Pat_ID, rs!Zeitpunkt, rs!name
+    Print #7, n, rs!Pat_ID, rs!Zeitpunkt, rs!name
     n = n + 1
    Else
     n1 = n1 + 1
@@ -3704,25 +3726,25 @@ End Sub ' tabfuell_Click
 
 ' EDV -> Dokumente neu abhaken
 Private Sub DokumenteNeuAbhaken_Click()
- Dim rs As New ADODB.Recordset, rAF&
+ Dim rs As New ADODB.Recordset, rAf&
  Call ProgStart
- Call myEFrag("DELETE FROM `br_abgehakt`", rAF)
+ Call myEFrag("DELETE FROM `br_abgehakt`", rAf)
  'Call myEFrag("INSERT INTO `br_abgehakt`(aktzeit,abgehakt,dokpfad) SELECT now() AS aktzeit,1 AS abgehakt, replace$(replace$(dokpfad,'\\','\\\\'),'\'','\\\'') FROM (SELECT * FROM (SELECT pat_id, zeitpunkt FROM labor1 GROUP BY pat_id, zeitpunkt ORDER BY pat_id, zeitpunkt) AS i LEFT JOIN (SELECT pat_id, DATE(quelldatum) AS zeitpunkt, dokpfad, dokname FROM `dokumente` d WHERE dokname LIKE '%fremdlabor%') AS d USING (pat_id,zeitpunkt)) AS i WHERE NOT ISNULL(dokpfad)", rAF)
- Debug.Print "gelöscht:", rAF
+ Debug.Print "gelöscht:", rAf
  InsKorr DBCn, "INSERT INTO `br_abgehakt`(aktzeit,abgehakt,dokpfad) " & vbCrLf & _
  "SELECT now() AS aktzeit,1 AS abgehakt, pfad FROM (" & vbCrLf & _
  "SELECT * FROM (" & vbCrLf & _
  "SELECT pat_id, zeitpunkt FROM labor1a GROUP BY pat_id, zeitpunkt ORDER BY pat_id, zeitpunkt) AS i " & vbCrLf & _
  "LEFT JOIN (SELECT pat_id, DATE(quelldatum) AS zeitpunkt, pfad, name FROM `briefe` d " & vbCrLf & _
  "WHERE name LIKE '%fremdlabor%') AS d " & vbCrLf & _
- "using (pat_id,zeitpunkt)) AS i WHERE NOT ISNULL(pfad)", rAF
- Debug.Print "eingefügt:", rAF
+ "using (pat_id,zeitpunkt)) AS i WHERE NOT ISNULL(pfad)", rAf
+ Debug.Print "eingefügt:", rAf
  Beep 1000, 1000
 End Sub ' DokumenteNeuAbhaken_Click
 
 ' EDV -> hareal neu aufbauen und namen.getha-Felder befüllen
 Private Sub harealNeu_Click() ' `hareal` neu aufbauen
- Dim rAF&, ohd%, od%, infos$()
+ Dim rAf&, ohd%, od%, infos$()
  Dim i&
  ProgStart
  '  0: Frau/Herrn
@@ -3752,26 +3774,26 @@ Private Sub harealNeu_Click() ' `hareal` neu aufbauen
 '  Call getHausarztAlt(rs!pat_id, Infos, True)
   Dim rFa() As Faelle
   Dim rKv1() As kvnrue
-  getHausarzt1 infos, rFa, rKv1, , rs!Pat_id
+  getHausarzt1 infos, rFa, rKv1, , rs!Pat_ID
   If LenB(infos(12, 0)) <> 0 Then
    For i = 0 To UBound(infos, 2)
 '    IF Infos(4, i) = "08131-85028" THEN Stop
     If i < 3 Then
-     myEFrag "UPDATE `namen` SET getha" & CStr(i) & " = " & IIf(infos(12, i) = vNS, 0, infos(12, i)) & ", fnHA" & CStr(i) & " = '" & IIf(infos(10, i) = vNS, 0, infos(10, i)) & "' WHERE pat_id = " & rs!Pat_id, rAF
+     myEFrag "UPDATE `namen` SET getha" & CStr(i) & " = " & IIf(infos(12, i) = vNS, 0, infos(12, i)) & ", fnHA" & CStr(i) & " = '" & IIf(infos(10, i) = vNS, 0, infos(10, i)) & "' WHERE pat_id = " & rs!Pat_ID, rAf
     End If
 '    IF False THEN
      If infos(12, i) <> vNS Then
-      myEFrag "SELECT kvnr FROM `hareal` WHERE LEFT(kvnr,7) = " & Left$(infos(12, i), 7) & " AND vorname = '" & infos(9, i) & "' AND nachname = '" & infos(14, i) & "'", rAF
-      If rAF = 0 Then
-       InsKorr DBCn, "INSERT INTO `hareal`(Anrede,Adressat,Straße,PLZOrt,Fax,Überschrift,dmp2,dmp1,Niederlassungsgebiet,Vorname,InnereAllg,kvnr,Tel,Nachname) VALUES(" & IIf(infos(0, i) = "Herr", 1, 0) & ",'" & infos(1, i) & "','" & infos(2, i) & "','" & infos(3, i) & "','" & infos(4, i) & "','" & infos(5, i) & "'," & IIf(infos(6, i) = vNS, 0, 1) & "," & IIf(infos(7, i) = vNS, 0, 1) & ",'" & infos(8, i) & "','" & infos(9, i) & "'," & IIf(infos(11, i) = "", 0, 1) & "," & IIf(infos(12, i) = vNS, 0, infos(12, i)) & ",'" & infos(13, i) & "','" & infos(14, i) & "')", rAF
+      myEFrag "SELECT kvnr FROM `hareal` WHERE LEFT(kvnr,7) = " & Left$(infos(12, i), 7) & " AND vorname = '" & infos(9, i) & "' AND nachname = '" & infos(14, i) & "'", rAf
+      If rAf = 0 Then
+       InsKorr DBCn, "INSERT INTO `hareal`(Anrede,Adressat,Straße,PLZOrt,Fax,Überschrift,dmp2,dmp1,Niederlassungsgebiet,Vorname,InnereAllg,kvnr,Tel,Nachname) VALUES(" & IIf(infos(0, i) = "Herr", 1, 0) & ",'" & infos(1, i) & "','" & infos(2, i) & "','" & infos(3, i) & "','" & infos(4, i) & "','" & infos(5, i) & "'," & IIf(infos(6, i) = vNS, 0, 1) & "," & IIf(infos(7, i) = vNS, 0, 1) & ",'" & infos(8, i) & "','" & infos(9, i) & "'," & IIf(infos(11, i) = "", 0, 1) & "," & IIf(infos(12, i) = vNS, 0, infos(12, i)) & ",'" & infos(13, i) & "','" & infos(14, i) & "')", rAf
 '       IF rAF = 0 THEN Stop
       Else
-       myEFrag "UPDATE `hareal` SET Anrede=" & IIf(infos(0, i) = "Herr", 1, 0) & ",Adressat='" & infos(1, i) & "',Straße='" & infos(2, i) & "',PLZOrt='" & infos(3, i) & "',Fax='" & infos(4, i) & "',Überschrift='" & infos(5, i) & "',dmp2=" & IIf(infos(6, i) = vNS, 0, 1) & ",dmp1=" & IIf(infos(7, i) = vNS, 0, 1) & ",Niederlassungsgebiet='" & infos(8, i) & "',Vorname='" & infos(9, i) & "',InnereAllg=" & IIf(infos(11, i) = vNS, 0, 1) & ",Tel='" & infos(13, i) & "',Nachname='" & infos(14, i) & "' WHERE kvnr = " & infos(12, i) & " AND vorname = '" & infos(9, i) & "' AND nachname = '" & infos(14, i) & "'", rAF
+       myEFrag "UPDATE `hareal` SET Anrede=" & IIf(infos(0, i) = "Herr", 1, 0) & ",Adressat='" & infos(1, i) & "',Straße='" & infos(2, i) & "',PLZOrt='" & infos(3, i) & "',Fax='" & infos(4, i) & "',Überschrift='" & infos(5, i) & "',dmp2=" & IIf(infos(6, i) = vNS, 0, 1) & ",dmp1=" & IIf(infos(7, i) = vNS, 0, 1) & ",Niederlassungsgebiet='" & infos(8, i) & "',Vorname='" & infos(9, i) & "',InnereAllg=" & IIf(infos(11, i) = vNS, 0, 1) & ",Tel='" & infos(13, i) & "',Nachname='" & infos(14, i) & "' WHERE kvnr = " & infos(12, i) & " AND vorname = '" & infos(9, i) & "' AND nachname = '" & infos(14, i) & "'", rAf
 '       IF rAF = 0 THEN Stop
       End If
 '     END IF
     End If
-    Lese.Ausgeb "Pat_id: " & rs!Pat_id & ": geändert: " & rAF, False, True
+    Lese.Ausgeb "Pat_id: " & rs!Pat_ID & ": geändert: " & rAf, False, True
    Next i
   End If
   rs.Move 1
@@ -3804,7 +3826,7 @@ End Sub ' alleHausärzteEinlesen
 
 ' EDV -> Punktwerte EBM2010
 Private Sub Punktwerte_Click()
- Dim Str$, Zahl#, pos&, rAF&
+ Dim Str$, Zahl#, pos&, rAf&
 ProgStart
 Dim rs As New ADODB.Recordset
 myFrag rs, "SELECT * FROM `EBM2010`"
@@ -3835,8 +3857,8 @@ Do While Not rs.EOF
   Debug.Print rs!pwerte, Str
   Stop
  End If
- myEFrag "UPDATE `EBM2010` SET euro = '" & REPLACE(Zahl, ",", ".") & "' WHERE myid = " & rs!myid, rAF
- If rAF <> 1 And Zahl <> rs!euro Then
+ myEFrag "UPDATE `EBM2010` SET euro = '" & REPLACE(Zahl, ",", ".") & "' WHERE myid = " & rs!myid, rAf
+ If rAf <> 1 And Zahl <> rs!euro Then
   MsgBox "Fehler in Punktwerte_Click: rAF <> 1 AND Zahl <> rs!Euro"
   Stop
  End If
@@ -3884,7 +3906,7 @@ Private Sub CallUSDM_Click()
  ReDim rNa(0)
  erg = InputBox("Bitte Patientenummer eingeben!")
  If Not IsNumeric(erg) Then Exit Sub
- rNa(0).Pat_id = erg
+ rNa(0).Pat_ID = erg
  Call usdmAlt(True)
  Call ProgEnde
 End Sub ' CallUSDM_Click
@@ -3980,16 +4002,16 @@ End Sub ' test_Click
 
 ' Testfunktionen -> Gewichte
 Private Sub Gewichte_Click()
- Dim sql$, rs As New ADODB.Recordset, rAF&
+ Dim sql$, rs As New ADODB.Recordset, rAf&
   On Error Resume Next
-  myEFrag "DROP TABLE `gewicht`", rAF
+  myEFrag "DROP TABLE `gewicht`", rAf
   On Error GoTo 0
   myEFrag "CREATE TABLE `gewicht`(id integer(10) auto_increment key, FID int(10), Pat_ID int(10), ZeitPunkt datetime, Gewicht DECIMAL(5,1), absPos int(10), AktZeit datetime, QS varchar(5), QT varchar(5), StByte int(10), inhNum double)"
  sql = "SELECT * FROM eintraege WHERE lower(art) = 'gewicht'"
  myFrag rs, sql
  Do While Not rs.EOF
-  sql = "INSERT INTO `gewicht`(FID,Pat_ID,ZeitPunkt,Gewicht,absPos,AktZeit,QS,QT,StByte,inhNum) VALUES(" & rs!FID & "," & rs!Pat_id & "," & Format(rs!Zeitpunkt, "yyyymmddHHMMSS") & "," & REPLACE(MachNumerisch(rs!Inhalt, 0), ",", ".") & "," & rs!absPos & "," & Format(rs!aktZeit, "yyyymmddHHMMSS") & ",'" & rs!QS & "','" & rs!QT & "'," & rs!StByte & "," & rs!inhNum & ")"
-  myEFrag sql, rAF
+  sql = "INSERT INTO `gewicht`(FID,Pat_ID,ZeitPunkt,Gewicht,absPos,AktZeit,QS,QT,StByte,inhNum) VALUES(" & rs!FID & "," & rs!Pat_ID & "," & Format(rs!Zeitpunkt, "yyyymmddHHMMSS") & "," & REPLACE(MachNumerisch(rs!Inhalt, 0), ",", ".") & "," & rs!absPos & "," & Format(rs!aktZeit, "yyyymmddHHMMSS") & ",'" & rs!QS & "','" & rs!QT & "'," & rs!StByte & "," & rs!inhNum & ")"
+  myEFrag sql, rAf
   rs.Move 1
  Loop
  Lese.Ausgeb "Fertig mit Gewichte_Click!", True
@@ -4029,7 +4051,7 @@ Private Sub calldoGenMachDB_Click()
  Dim DBn$
  DBn = InputBox("Datenbankname", "Eingabe der Datenbank", "quelle")
  If LenB(DBn) <> 0 Then
-#Const Modul_MachDBquelle_bas_dabei = True
+'#Const Modul_MachDBquelle_bas_dabei = True
 #If Modul_MachDBquelle_bas_dabei Then
   Call doMach_quelle(DBn, DBCn, DBVerb.Cpt, False)
 #End If
@@ -4107,7 +4129,7 @@ Sub doGNR_Statistiken_einl_Click(Optional obneu = 0)
  Const GStat$ = "GNRStat"
  Const GZahl$ = "GNRZahl"
  Dim fgnr%, fleigru%, fpunkte%, feuro%, fm%, ff%, fr%, FZahl%, fmin%, FNr% ' Feldnummern
- Dim rX As New ADOX.Catalog, sql$, ka%, ke%, runde%, angefangen%, obAnfang%, i&, rAF&, erg$, labxtb$, DateiDat As Date
+ Dim rX As New ADOX.Catalog, sql$, ka%, ke%, runde%, angefangen%, obAnfang%, i&, rAf&, erg$, labxtb$, DateiDat As Date
  Dim doeintr%, statid&
  Dim XCon As New ADODB.Connection
  Dim rEx As New ADODB.Recordset, rs As New ADODB.Recordset, rTest As New ADODB.Recordset
@@ -4119,11 +4141,11 @@ Sub doGNR_Statistiken_einl_Click(Optional obneu = 0)
   labxtb = "labor_xls" & Int(CDbl(Now()) * 1000000)
   myEFrag ("DROP TABLE `" & GStat & "`")
   On Error GoTo fehler
-  myEFrag "CREATE TABLE `" & GStat & "` (id integer(10) auto_increment key, datei varchar(255), dateidat datetime, qinv int(5) comment 'Quartal nach Jahr', index qinv(qinv))", rAF
+  myEFrag "CREATE TABLE `" & GStat & "` (id integer(10) auto_increment key, datei varchar(255), dateidat datetime, qinv int(5) comment 'Quartal nach Jahr', index qinv(qinv))", rAf
   On Error Resume Next
   myEFrag ("DROP TABLE `" & GZahl & "`")
   On Error GoTo fehler
-  myEFrag "CREATE TABLE `" & GZahl & "` (id integer(10) auto_increment key, statid integer(10), gnr varchar(20), leigru varchar(10), punkte integer(5), euro DECIMAL(5,2), m integer(5), f integer(5), r integer(5), zahl integer(10), wert DECIMAL(9,2), uwert DECIMAL(9,2), min integer(10))", rAF
+  myEFrag "CREATE TABLE `" & GZahl & "` (id integer(10) auto_increment key, statid integer(10), gnr varchar(20), leigru varchar(10), punkte integer(5), euro DECIMAL(5,2), m integer(5), f integer(5), r integer(5), zahl integer(10), wert DECIMAL(9,2), uwert DECIMAL(9,2), min integer(10))", rAf
  End If
  
  erg = Dir(Verz & "\GNR-Statistik*")
@@ -4169,7 +4191,7 @@ Sub doGNR_Statistiken_einl_Click(Optional obneu = 0)
          myEFrag ("DELETE FROM `" & GStat & "` WHERE id = " & rTest!id)
         End If
        End If
-       InsKorr DBCn, "INSERT INTO `" & GStat & "` (datei,dateidat,qinv) VALUES ('" & UmwfSQL(Verz & "\" & erg) & "'," & DatFor_k(DateiDat) & ",'" & Mid$(q0, 2) & Left$(q0, 1) & "')", rAF
+       InsKorr DBCn, "INSERT INTO `" & GStat & "` (datei,dateidat,qinv) VALUES ('" & UmwfSQL(Verz & "\" & erg) & "'," & DatFor_k(DateiDat) & ",'" & Mid$(q0, 2) & Left$(q0, 1) & "')", rAf
        Set rTest = Nothing
 '       Set rTest = myEFrag("SELECT last_insert_id()")
        Set rTest = myEFrag("SELECT id FROM `" & GStat & "` WHERE DATEI='" & UmwfSQL(Verz & "\" & erg) & "'")
@@ -4208,7 +4230,7 @@ Sub doGNR_Statistiken_einl_Click(Optional obneu = 0)
       euro = "0" & REPLACE$(rEx.Fields(feuro), ".", ",")
       Wert = euro * Zahl
       uwert = IIf((euro = 18.75 Or euro = 19.05 Or euro = 14.25) And Left$(rEx.Fields(fgnr), 1) = "9", 75, euro) * Zahl
-      InsKorr DBCn, "INSERT INTO `" & GZahl & "` (statid,gnr,leigru,punkte,euro,m,f,r,zahl,wert,uwert,min) VALUES (" & statid & ",'" & rEx.Fields(fgnr) & "','" & rEx.Fields(fleigru) & "'," & Punkte & "," & REPLACE(euro, ",", ".") & "," & m & "," & F & "," & r & "," & Zahl & "," & REPLACE(Wert, ",", ".") & "," & REPLACE(uwert, ",", ".") & "," & MIN & ")", rAF
+      InsKorr DBCn, "INSERT INTO `" & GZahl & "` (statid,gnr,leigru,punkte,euro,m,f,r,zahl,wert,uwert,min) VALUES (" & statid & ",'" & rEx.Fields(fgnr) & "','" & rEx.Fields(fleigru) & "'," & Punkte & "," & REPLACE(euro, ",", ".") & "," & m & "," & F & "," & r & "," & Zahl & "," & REPLACE(Wert, ",", ".") & "," & REPLACE(uwert, ",", ".") & "," & MIN & ")", rAf
     End If ' InStrB(F0, "Erstellt am") = 1 Then elseif elseif doeintr = 2
    End If ' NOT ISNULL(rEx.Fields(0)) Then
 '   Debug.Print rEx.Fields(0) ' , rEx.Fields(1), rEx.Fields(2), rEx.Fields(3), rEx.Fields(4), rEx.Fields(5), rEx.Fields(6), rEx.Fields(7), rEx.Fields(8), rEx.Fields(9), rEx.Fields(10), rEx.Fields(11), rEx.Fields(12)
@@ -4240,10 +4262,10 @@ End Sub ' doGNR_Statistiken_einl_Click
 
 ' in DokumenteInDatenbank_Click
 Private Sub dverz(DPfad$)
- Dim FSOPfad As Folder, Fil As File, SubF As Folder, rAF&
+ Dim FSOPfad As Folder, Fil As File, SubF As Folder, rAf&
  Set FSOPfad = FSO.GetFolder(DPfad)
  For Each Fil In FSOPfad.Files
-  InsKorr DBCn, "INSERT INTO `Dokumente`(Pfad,Datei,größe,geändert) VALUES('" & doUmwfSQL(DPfad, True) & "','" & doUmwfSQL(Fil.name, True) & "'," & Fil.size & "," & DatFor_k(Fil.DateLastModified) & ")", rAF
+  InsKorr DBCn, "INSERT INTO `Dokumente`(Pfad,Datei,größe,geändert) VALUES('" & doUmwfSQL(DPfad, True) & "','" & doUmwfSQL(Fil.name, True) & "'," & Fil.size & "," & DatFor_k(Fil.DateLastModified) & ")", rAf
  Next Fil
  For Each SubF In FSOPfad.SubFolders
   Call dverz(SubF.path)
@@ -4447,9 +4469,9 @@ Sub machODBCMy()
 End Sub ' machODBCMy
 
 ' in los
-Public Sub ZeigGefaxteAn(Pat_id&, Optional PatName$)
+Public Sub ZeigGefaxteAn(Pat_ID&, Optional PatName$)
  Dim rs As New ADODB.Recordset
- myFrag rs, "SELECT transe `Übertragungsende`, docname `Dokumentname`, RCFax, pages `Seiten`, fsize `Größe`,Retries FROM `faxeinp`.`outa` o WHERE docname LIKE '%PID " & Pat_id & "%' ORDER BY transe DESC"
+ myFrag rs, "SELECT transe `Übertragungsende`, docname `Dokumentname`, RCFax, pages `Seiten`, fsize `Größe`,Retries FROM `faxeinp`.`outa` o WHERE docname LIKE '%PID " & Pat_ID & "%' ORDER BY transe DESC"
  TabAusgeb rs, Me, True, , , , , , vNS
  Me.Ausgeb "Gefaxt wurden an: " & PatName, 1
 End Sub 'ZeitGefaxteAn
@@ -4470,9 +4492,9 @@ Public Sub los()
     If IsNumeric(Me.pataw.Zeilenzahl) Then zzn = CInt(Me.pataw.Zeilenzahl)
    Call dodoplz(Me.pataw.PatID, plzVz, Now, Now - Int(Now), True, "", zzn, obRueck)
   Case DMPZettel
-   Call einDMP(Me.pataw.Pat_id)
+   Call einDMP(Me.pataw.Pat_ID)
   Case Anwalt
-   Call doAnwalt(Me.pataw.Pat_id)
+   Call doAnwalt(Me.pataw.Pat_ID)
  End Select
 End Sub ' los
 
@@ -4486,7 +4508,7 @@ Private Sub DMPForts_Click()
  Ausw.Find "pat_id = " & lDMPPat_id, , adSearchBackward, 1
  If Not Ausw.EOF Then
   Ausw.Move 1
-  Call doCallDMP(Ausw!Pat_id)
+  Call doCallDMP(Ausw!Pat_ID)
  End If
 End Sub ' DMPForts_Click
 
@@ -4495,7 +4517,7 @@ Public Sub doCallDMP(ByVal pid&)
  Dim dmpstD$, erg$, DT As DMPClass ' Dateiname
  Dim rsNa As New ADODB.Recordset
  ReDim rNa(0)
- rNa(0).Pat_id = pid
+ rNa(0).Pat_ID = pid
  myFrag rsNa, "SELECT * FROM `namen` WHERE pat_id = " & pid
  If Not rsNa.BOF And Not IsNull(rsNa!Nachname) And Not IsNull(rsNa!Vorname) Then
   dmpstD = GesNamFn(rsNa) & " (" & pid & ") "
@@ -4503,7 +4525,7 @@ Public Sub doCallDMP(ByVal pid&)
   dmpstD = pVerz & "DmpString "
  End If
  rsNa.Close
- erg = DMPString$(rNa(0).Pat_id, DT)
+ erg = DMPString$(rNa(0).Pat_ID, DT)
  If lies.obMySQL Then
   dmpstD = dmpstD & Me.MyDB
  Else
@@ -5066,7 +5088,7 @@ Private Sub mdiForm_Load()
  .flags = .flags Or FileOpenConstants.cdlOFNPathMustExist
  End With
  
- Dim Verbi As New MCn, rAF&
+ Dim Verbi As New MCn, rAf&
  Call Verbi.init(DBCnS)
  Dim maxpid&
 
