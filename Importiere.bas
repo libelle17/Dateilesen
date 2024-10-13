@@ -97,7 +97,7 @@ Public MedNr%
 Public MedZahl%, obHergang%, pMpnr& ' für Medikamentenplan: ..., patientenspez. mpnr
 Dim obmed As Boolean, lDos%, MedArt$
 Dim ZeileNr% ' wenn mehrere 6299 auf ein 6298 folgen, dann können alle eingetragen werden
-Dim rAF& ' records affected
+Dim rAf& ' records affected
 Public Const obForeign% = True
 Public PcDokPfad$
 Public Fil As File
@@ -195,8 +195,8 @@ Public Function holiAzu&(ByVal Lanr&) ' hole interne Arztzuordnungsnummer
     End If ' iLanr(i).Lanr = Arra(1) Then
    Next i ' For i = 0 To UBound(iLanr)
   End If ' SafeArrayGetDim(iLanr) <> 0 Then
-  myEFrag "INSERT INTO `lanrpraxis`(lanr,Nachname,Vorname,Titel,Anschrz,Strasse,Hausnummer,PLZ,Stadt,Telefon,Telefax,Abteilung,Name,KVNr,BSNR,Betriebsstaettename) VALUES(" & Lanr & ",'','','','','','','','','','','','','','','')", rAF
-  If rAF = 1 Then
+  myEFrag "INSERT INTO `lanrpraxis`(lanr,Nachname,Vorname,Titel,Anschrz,Strasse,Hausnummer,PLZ,Stadt,Telefon,Telefax,Abteilung,Name,KVNr,BSNR,Betriebsstaettename) VALUES(" & Lanr & ",'','','','','','','','','','','','','','','')", rAf
+  If rAf = 1 Then
    holiAzu = myEFrag("SELECT last_insert_id() id")!id
    If holiAzu = 0 Then MsgBox "Fehler in holiazu: last_insert_id()=0"
    
@@ -240,7 +240,7 @@ Function doTabVorb(frm As Lese, obInhalt%, obmitFormularen%)
  Dim lauf&
  Dim i&, T2#
  On Error GoTo fehler
- Dim rs As New ADODB.Recordset, rAF&
+ Dim rs As New ADODB.Recordset, rAf&
 ' Dim cn As New ADODB.Connection,
 ' cn.Open CSStr, , , 0
 ' SET rs = myEFrag("SELECT * FROM quelle.`forminhaltfeld`", rAf) ' + adAsyncExecute,,cn)
@@ -288,7 +288,7 @@ vorabfrag:
  If obInhalt Then
  ' Call rs.Open("quelle.forminhaltfeldinh", cn, adOpenStatic, adLockReadOnly)
   syscmd 4, "Lade Formularinhalte vor"
-  Set rs = myEFrag("SELECT feldinh,feldinhvw FROM `forminhaltfeldinh`", rAF) ', adAsyncExecute)
+  Set rs = myEFrag("SELECT feldinh,feldinhvw FROM `forminhaltfeldinh`", rAf) ', adAsyncExecute)
   frm.Bytes = "(FormInhaltFeldInh)"
   Do While Not rs.EOF
    Set sFldI = New sFeldInh
@@ -315,7 +315,7 @@ vorabfrag:
  ' Next i
  End If ' obInhalt
  
- Set rs = myEFrag("SELECT DISTINCT kennung FROM `unbek_kenn`", rAF)
+ Set rs = myEFrag("SELECT DISTINCT kennung FROM `unbek_kenn`", rAf)
  Do While Not rs.EOF
   If SafeArrayGetDim(rUn) = 0 Then
    ReDim rUn(0)
@@ -616,7 +616,7 @@ End Function ' kompakt
 
 ' in GesLies
 Function fctEintrHist()
- Dim hist$, rq As New ADODB.Recordset, rz1 As New ADODB.Recordset, rz2 As New ADODB.Recordset, rAF&
+ Dim hist$, rq As New ADODB.Recordset, rz1 As New ADODB.Recordset, rz2 As New ADODB.Recordset, rAf&
  On Error GoTo fehler
  syscmd 4, "eintrhist"
 #If True Then
@@ -626,14 +626,14 @@ Call myEFrag("INSERT INTO eintrhist1(pat_id,zeitpunkt,art,inhalt,qs,qt)" & vbCrL
 "WHERE pat_id IN (SELECT pat_id FROM namen WHERE nachname RLIKE " & ExtraPatienten & " AND art<>'PKon')" & vbCrLf & _
 "AND NOT EXISTS" & vbCrLf & _
 "(SELECT 0 FROM eintrhist1 WHERE pat_id=e.Pat_ID AND zeitpunkt=e.zeitpunkt AND art=e.art AND inhalt=e.Inhalt AND qs=e.qs AND qt=e.qt)" _
-, rAF, DBCn)
+, rAf, DBCn)
 Call myEFrag("INSERT INTO eintrhist2(fid,abspos,aktzeit,stbyte,id)" & vbCrLf & _
 "SELECT e.fid,e.abspos,e.aktzeit,e.stbyte,eh.id" & vbCrLf & _
 "FROM eintraege e LEFT JOIN eintrhist1 eh USING (pat_id,zeitpunkt,art,inhalt,qs,qt)" & vbCrLf & _
 "WHERE e.pat_id IN (SELECT pat_id FROM namen WHERE nachname RLIKE " & ExtraPatienten & " AND art<>'PKon')" & vbCrLf & _
 "AND NOT EXISTS" & vbCrLf & _
 "(SELECT 0 FROM eintrhist2 FORCE INDEX (FälleEinträge) WHERE fid=e.fid AND abspos=e.abspos AND aktzeit=e.aktzeit AND stbyte=e.stbyte AND id=eh.id)" _
-, rAF, DBCn)
+, rAf, DBCn)
 #Else
  Set rq = myEFrag("SELECT GROUP_CONCAT(pat_id) FROM `namen` WHERE nachname RLIKE " & ExtraPatienten, , , , , , 1000)
  While IsNull(rq.Fields(0))
@@ -650,7 +650,7 @@ Call myEFrag("INSERT INTO eintrhist2(fid,abspos,aktzeit,stbyte,id)" & vbCrLf & _
     Set rz1 = Nothing
     myFrag rz1, "SELECT id FROM `eintrhist1` WHERE pat_id = " & rq!Pat_ID & " AND zeitpunkt = " & DatFor_k(rq!Zeitpunkt) & " AND art = '" & rq!art & "' AND inhalt = '" & UmwfSQL(rq!Inhalt) & "' AND qs = '" & rq!QS & "' AND qt = '" & rq!QT & "'"
     If rz1.BOF Then
-     InsKorr DBCn, "INSERT INTO `eintrhist1`(pat_id,zeitpunkt,art,inhalt,qs,qt) VALUES(" & rq!Pat_ID & "," & DatFor_k(rq!Zeitpunkt) & ",'" & rq!art & "','" & UmwfSQL(rq!Inhalt) & "','" & rq!QS & "','" & rq!QT & "')", rAF
+     InsKorr DBCn, "INSERT INTO `eintrhist1`(pat_id,zeitpunkt,art,inhalt,qs,qt) VALUES(" & rq!Pat_ID & "," & DatFor_k(rq!Zeitpunkt) & ",'" & rq!art & "','" & UmwfSQL(rq!Inhalt) & "','" & rq!QS & "','" & rq!QT & "')", rAf
     Else
      Exit Do
     End If
@@ -658,7 +658,7 @@ Call myEFrag("INSERT INTO eintrhist2(fid,abspos,aktzeit,stbyte,id)" & vbCrLf & _
    Set rz2 = Nothing
    myFrag rz2, "SELECT id FROM `eintrhist2` WHERE fid = " & rq!FID & " AND abspos = " & rq!absPos & " AND aktzeit = " & DatFor_k(rq!aktZeit) & " AND stbyte = " & rq!StByte & " AND id = " & rz1!id
    If rz2.BOF Then
-    myEFrag "INSERT INTO `eintrhist2`(fid,abspos,aktzeit,stbyte,id) VALUES(" & rq!FID & "," & rq!absPos & "," & DatFor_k(rq!aktZeit) & "," & rq!StByte & "," & rz1!id & ")", rAF
+    myEFrag "INSERT INTO `eintrhist2`(fid,abspos,aktzeit,stbyte,id) VALUES(" & rq!FID & "," & rq!absPos & "," & DatFor_k(rq!aktZeit) & "," & rq!StByte & "," & rz1!id & ")", rAf
    End If
    rq.Move 1
   Loop ' While Not rq.EOF
@@ -731,19 +731,19 @@ Function GesLies(frm As Lese, BDTDatei$, BDTName$, EinlAb&, EinlBis&, obLaborDir
  If frm.dlg.obBDT Then
   If frm.dlg.ÜberTabelle <> 0 Then
    frm.Ausgeb "Entferne Vortabelle `" & DefDB(DBCn) & "`.`inlalt` ...", False
-   myEFrag "DROP TABLE IF EXISTS `inlalt`", rAF
+   myEFrag "DROP TABLE IF EXISTS `inlalt`", rAf
    frm.Ausgeb "Kopiere Tabelle `" & DefDB(DBCn) & "`.`inlk` in Vortabelle `" & DefDB(DBCn) & "`.`inlalt` ...", False
    On Error Resume Next
-   myEFrag "RENAME TABLE `inlk` to `inlalt`", rAF
+   myEFrag "RENAME TABLE `inlk` to `inlalt`", rAf
    On Error GoTo fehler
    frm.Ausgeb "Erstelle Tabelle `" & DefDB(DBCn) & "`.`inlk` ...", False
-   myEFrag "CREATE TABLE IF NOT EXISTS `inlk` (id int(10) UNSIGNED NOT NULL KEY AUTO_INCREMENT, stbyte int(10), breite char(3) NOT NULL, kennung char(4) NOT NULL, inhalt varchar(10000) NOT NULL, PRIMARY KEY (id), KEY kennunginhalt (kennung,inhalt(6))) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_german2_ci", rAF
+   myEFrag "CREATE TABLE IF NOT EXISTS `inlk` (id int(10) UNSIGNED NOT NULL KEY AUTO_INCREMENT, stbyte int(10), breite char(3) NOT NULL, kennung char(4) NOT NULL, inhalt varchar(10000) NOT NULL, PRIMARY KEY (id), KEY kennunginhalt (kennung,inhalt(6))) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_german2_ci", rAf
    frm.Ausgeb "Leere Tabelle `" & DefDB(DBCn) & "`.`inlk` ...", False
-   myEFrag "DELETE FROM inlk", rAF
+   myEFrag "DELETE FROM inlk", rAf
    frm.Ausgeb "Stelle Zähler in Tabelle `" & DefDB(DBCn) & "`.`inlk` ...", False
-   myEFrag "ALTER TABLE `inlk` auto_increment=0", rAF
+   myEFrag "ALTER TABLE `inlk` auto_increment=0", rAf
    frm.Ausgeb "Lade Daten in Tabelle `" & DefDB(DBCn) & "`.`inlk` (mit: LOAD DATA INFILE), kann dauern ...", False
-   myEFrag "LOAD DATA INFILE '/DATA/eigene Dateien/TMExport/" & BDTName & "' INTO TABLE `inlk` fields terminated by '' enclosed by '' lines terminated by '\r\n'  (breite,kennung,inhalt)", rAF
+   myEFrag "LOAD DATA INFILE '/DATA/eigene Dateien/TMExport/" & BDTName & "' INTO TABLE `inlk` fields terminated by '' enclosed by '' lines terminated by '\r\n'  (breite,kennung,inhalt)", rAf
    If frm.dlg.NurInTabelle Then
     Exit Function
    End If
@@ -1220,7 +1220,7 @@ syscmd 5
   If frm.dlg.obBDT Then
    frm.Ausgeb "Ergänze Namen im Anmnesebogen ...", False
    If LenB(sqliif) = 0 Then Zinit (LVobMySQL)
-   myEFrag "UPDATE `anamnesebogen` a INNER JOIN `namen` n ON a.pat_id = n.pat_id  SET a.nachname = n.nachname, a.vorname = n.vorname, a.anrede = " & sqliif & "(n.geschlecht='m','Herr','Frau'), a.titel = n.titel, a.gebdat = n.gebdat WHERE (a.nachname = '' OR ISNULL(a.nachname))", rAF
+   myEFrag "UPDATE `anamnesebogen` a INNER JOIN `namen` n ON a.pat_id = n.pat_id  SET a.nachname = n.nachname, a.vorname = n.vorname, a.anrede = " & sqliif & "(n.geschlecht='m','Herr','Frau'), a.titel = n.titel, a.gebdat = n.gebdat WHERE (a.nachname = '' OR ISNULL(a.nachname))", rAf
    If frm.dlg.bereinigeFormInhFeld <> 0 Then
     ' 11.10.20: als contab-job ausgelagert
 '    frm.Ausgeb "Lösche waise Sätze aus forminhfeld ...", False
@@ -1393,7 +1393,7 @@ Function doMedklassT()
 #Const medikorr = 1
 #If medikorr Then
   If rMe!MedAnfang <> medi.Med Then
-   myEFrag "UPDATE `medplan` SET medanfang = UPPER('" & medi.Med & "') WHERE medikament = '" & rMe!Medikament & "'", rAF
+   myEFrag "UPDATE `medplan` SET medanfang = UPPER('" & medi.Med & "') WHERE medikament = '" & rMe!Medikament & "'", rAf
   End If
 #End If
   medi.LT = rMe!Medikament
@@ -1422,18 +1422,18 @@ End Function ' doMedklassT()
   If LenB(Med) <> 0 And Med <> """" Then
    Set rs = myEFrag("SELECT 0 FROM `medarten` WHERE medikament = '" & REPLACE$(REPLACE$(Med, "'", "\\\'"), "\\\\'", "\\\'") & "'")
    If rs.BOF Then
-    InsKorr DBCn, "INSERT INTO `medarten`(medikament,hinzugefügt,langname,pat_id) VALUES ('" & Med & "'," & DatFor_k(Now) & ",'" & medSL.Item(i).LT & "'," & medSL.Item(i).Pat_ID & ")", rAF
+    InsKorr DBCn, "INSERT INTO `medarten`(medikament,hinzugefügt,langname,pat_id) VALUES ('" & Med & "'," & DatFor_k(Now) & ",'" & medSL.Item(i).LT & "'," & medSL.Item(i).Pat_ID & ")", rAf
    Else
     Set rs = myEFrag("SELECT 0 FROM `medarten` WHERE medikament = '" & Med & "' AND (pat_id = 0 OR ISNULL(pat_id))")
     If Not rs.BOF Then
-     Call myEFrag("UPDATE `medarten` SET pat_id = " & medSL.Item(i).Pat_ID & " WHERE medikament = '" & Med & "'", rAF)
+     Call myEFrag("UPDATE `medarten` SET pat_id = " & medSL.Item(i).Pat_ID & " WHERE medikament = '" & Med & "'", rAf)
     End If
 ' , Langname = '" & medSL.Item(i).LT & "'
     Set rs = myEFrag("SELECT 0 FROM `medarten` WHERE medikament = '" & Med & "' AND (langname = '' OR ISNULL(langname))")
     If Not rs.BOF Then
-     Call myEFrag("UPDATE `medarten` SET LangName = '" & medSL.Item(i).LT & "' WHERE medikament = '" & Med & "'", rAF)
+     Call myEFrag("UPDATE `medarten` SET LangName = '" & medSL.Item(i).LT & "' WHERE medikament = '" & Med & "'", rAf)
     End If
-    Call myEFrag("UPDATE `medarten` SET anzahl = " & medSL.Item(i).mvPatZahl & " WHERE medikament = '" & Med & "'", rAF)
+    Call myEFrag("UPDATE `medarten` SET anzahl = " & medSL.Item(i).mvPatZahl & " WHERE medikament = '" & Med & "'", rAf)
    End If
   End If
  Next i
@@ -1452,7 +1452,7 @@ fehler:
  AnwPfad = App.path
 #End If
 If InStrB(Err.Description, "Transaction level 'READ-COMMITTED'") <> 0 Then
- myEFrag "SET SESSION TRANSACTION ISOLATION LEVEL REPEATABLE READ", rAF
+ myEFrag "SET SESSION TRANSACTION ISOLATION LEVEL REPEATABLE READ", rAf
  Resume
 End If
 Select Case MsgBox("FNr: " & FNr & ", ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in medklass2/" + AnwPfad)
@@ -1463,7 +1463,7 @@ End Select
 End Function ' Medklass2
 
 Function EintragZusatz()
- Dim rAF&, erg$
+ Dim rAf&, erg$
  Dim rs As New ADODB.Recordset, rs1 As New ADODB.Recordset, dae As Date, sql$
  On Error GoTo fehler
  Screen.MousePointer = vbHourglass
@@ -1481,10 +1481,10 @@ Function EintragZusatz()
      If rs1!DateiAend <> dae Then
  '    sql = "UPDATE " & IIf(LVobMySQL, vns, " top 1 ") & "`" & DefDB(dbcn) & "`.`eintragszahlen` SET DateiAend = " & DatFor_k(dae) & " WHERE Datei = '" & umwfSQL(rs!Datei) & "'" & IIf(LVobMySQL, " LIMIT 1", "")
       sql = "UPDATE `eintragszahlen` SET DateiAend = " & DatFor_k(dae) & " WHERE beginn = " & DatFor_k(rs1!Beginn)
-      Call myEFrag(sql, rAF)
-      If rAF <> 1 Then
+      Call myEFrag(sql, rAf)
+      If rAf <> 1 Then
        Tüt 1200, 1000
-       MsgBox "Fehler bei `eintragszahlen`.beginn = " & rs1!Beginn & ", dae = " & dae & "(rAF=" & rAF & " statt 1 bei update"
+       MsgBox "Fehler bei `eintragszahlen`.beginn = " & rs1!Beginn & ", dae = " & dae & "(rAF=" & rAf & " statt 1 bei update"
 '       Debug.Print rs1!Beginn, dae
        Exit Function
       End If ' rAF <> 1
@@ -1505,7 +1505,7 @@ fehler:
  AnwPfad = App.path
 #End If
 If InStrB(Err.Description, "Transaction level 'READ-COMMITTED'") <> 0 Then
- myEFrag "SET SESSION TRANSACTION ISOLATION LEVEL REPEATABLE READ", rAF
+ myEFrag "SET SESSION TRANSACTION ISOLATION LEVEL REPEATABLE READ", rAf
  Resume
 End If
 Select Case MsgBox("FNr: " & FNr & ", ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in EintragZusatz/" + AnwPfad)
@@ -1526,7 +1526,7 @@ Function testload()
   If LenB(erg) <> 0 Then
 '   myEFrag "LOAD DATA INFILE '/DATA/eigene Dateien/TMExport/" & erg & "' INTO TABLE `inlk` fields terminated by '' enclosed by '' lines terminated by '\r\n'  (breite,kennung,inhalt) SET StByte = " & AktByte & ", pat_id = IF(kennung=3000,inhalt,0)", rAF
    T1 = Timer
-   myEFrag "LOAD DATA INFILE '/DATA/eigene Dateien/TMExport/" & erg & "' INTO TABLE `inlk` fields terminated by '' enclosed by '' lines terminated by '\r\n'  (breite,kennung,inhalt) SET StByte = " & AktByte, rAF
+   myEFrag "LOAD DATA INFILE '/DATA/eigene Dateien/TMExport/" & erg & "' INTO TABLE `inlk` fields terminated by '' enclosed by '' lines terminated by '\r\n'  (breite,kennung,inhalt) SET StByte = " & AktByte, rAf
 '  myEFrag "LOAD DATA INFILE '/DATA/eigene Dateien/TMExport/Temiz x0119153.BDT' INTO TABLE `inlk` fields terminated by '' enclosed by '' lines terminated by '\r\n'  (breite,kennung,inhalt) SET StByte = " & AktByte & ", pat_id = IF(kennung=3000,inhalt,0)", rAF
    T2 = Timer
    DoEvents
@@ -1582,7 +1582,7 @@ Function EintragStart&(frm As Lese) ' wird in EinlesenClick aufgerufen
  End If
  sql = "INSERT INTO `eintragszahlen` (beginn,stbyte,datei,dateiaend,TabellenEntleeren,ZurücksetzenLAktDat,obVglMitLetzterEinlesung,Pat_IDVon,Pat_IDbis,VorladenFFI,Übertabelle,NurInTabelle,SammelInsert,bereinigeFormInhFeld, LaborDirektEinlesen,LaborDirektNeu,LaborQuerVerb,LaborQuerNeu,LaborPfadBeispiel,AlterTab,obmitEmails) " & _
        "values (" & DatFor_k(rEzäBeg) & "," & AktByte & ",'" & doUmwfSQL(frm.QDatei, lies.obMySQL) & "'," & DatFor_k(DateiAend) & "," & Abs(frm.dlg.TabellenEntleeren) & "," & Abs(frm.dlg.ZurücksetzenLAktDat) & "," & Abs(frm.dlg.obVglMitLetzterEinlesung) & ",'" & frm.dlg.Pat_IDVon & "','" & frm.dlg.Pat_IDBis & "'," & Abs(frm.dlg.VorladenFFI) & "," & Abs(frm.dlg.ÜberTabelle) & "," & Abs(frm.dlg.NurInTabelle) & "," & Abs(frm.dlg.SammelInsert) & "," & Abs(frm.dlg.bereinigeFormInhFeld) & "," & Abs(frm.dlg.LaborDirektEinlesen) & "," & Abs(frm.dlg.LaborDirektNeu) & "," & Abs(frm.dlg.LaborQuerVerb) & "," & Abs(frm.dlg.LaborQuerNeu) & ",'" & doUmwfSQL(frm.dlg.LaborPfadBeispiel, lies.obMySQL) & "'," & Abs(frm.dlg.AlterTab) & "," & Abs(frm.dlg.obmitEmails) & ")"
- InsKorr DBCn, sql, rAF
+ InsKorr DBCn, sql, rAf
  Exit Function
 fehler:
  Dim AnwPfad$
@@ -1622,7 +1622,7 @@ fehler:
  AnwPfad = App.path
 #End If
 If InStrB(Err.Description, "Transaction level 'READ-COMMITTED'") <> 0 Then
- myEFrag "SET SESSION TRANSACTION ISOLATION LEVEL REPEATABLE READ", rAF
+ myEFrag "SET SESSION TRANSACTION ISOLATION LEVEL REPEATABLE READ", rAf
  Resume
 ElseIf InStrB(Err.Description, "gone away") <> 0 Then
  Call Lese.ProgStart
@@ -2174,14 +2174,14 @@ Public Function theraktakt() ' Therapiearten auf einmal aktualisieren 11.7.10, s
 #End If
 ' myEFrag "CALL fuellThaP(0)"
 #Else
- Dim rsa As New Recordset, rs1 As New Recordset, rs2 As New Recordset, rAF&
+ Dim rsa As New Recordset, rs1 As New Recordset, rs2 As New Recordset, rAf&
  Lese.ProgStart
  myFrag rsa, "SELECT pat_id FROM `therarten` GROUP BY pat_id"
  Do While Not rsa.EOF
   Set rs1 = Nothing
   myFrag rs1, "SELECT therart FROM `therarten` WHERE pat_id = " & rsa!Pat_ID & " ORDER BY zp DESC,mpnr DESC LIMIT 1"
   If Not rs1.BOF Then
-   myEFrag "UPDATE `anamnesebogen` SET therakt = '" & rs1!therart & "' WHERE pat_id = " & rsa!Pat_ID & " AND therakt <> '" & rs1!therart & "'", rAF
+   myEFrag "UPDATE `anamnesebogen` SET therakt = '" & rs1!therart & "' WHERE pat_id = " & rsa!Pat_ID & " AND therakt <> '" & rs1!therart & "'", rAf
 '   Debug.Print rsa!Pat_id, rs1!therart, rAF
   End If
   rsa.MoveNext
@@ -2682,7 +2682,7 @@ resume_4247:
             Dim fachgruppe$, strasse$, plz$, ort$, telefon$, fax$, anrede$, tel1$, tel2$, tel3$, tel4$, fax1$, fax2$, fax3$, email$, zulg$, arzttyp$, gemmit$, beme$, dmpt2$, dmpt1$, geschlecht$, titelt$
             Set vorw = Nothing
             myFrag vorw, "SELECT * FROM " & Tabl & " WHERE fax IS NOT NULL AND vorname='" & Arra(2) & "' AND " & nnafeld & "='" & Arra(4) & "'", adOpenStatic, DBCn, adLockReadOnly
-            Set vorw = myEFrag("SELECT * FROM " & Tabl & " WHERE fax IS NOT NULL AND vorname='" & Arra(2) & "' AND " & nnafeld & "='" & Arra(4) & "'", rAF, DBCn)
+            Set vorw = myEFrag("SELECT * FROM " & Tabl & " WHERE fax IS NOT NULL AND vorname='" & Arra(2) & "' AND " & nnafeld & "='" & Arra(4) & "'", rAf, DBCn)
             fachgruppe = vorw!fachgruppe
             strasse = vorw!strasse
             plz = vorw!plz
@@ -2707,13 +2707,13 @@ resume_4247:
             geschlecht = vorw!geschlecht
             titelt = vorw!titelt
 '            Debug.Print vorw.source
-            InsKorr DBCn, "INSERT INTO " & Tabl & "(kvnr,titel,vorname,zusatz," & nnafeld & ",fachgruppe,strasse,plz,ort,telefon,fax,anrede,tel1,tel2,tel3,tel4,fax1,fax2,fax3,email,zulg,arzttyp,gemmit,beme,dmpt2,dmpt1,geschlecht,titelt,ursp,aktzeit) VALUES('" & KVNr & "','" & Arra(1) & "','" & Arra(2) & "','" & Arra(3) & "','" & Arra(4) & "','" & fachgruppe & "','" & strasse & "','" & plz & "','" & ort & "','" & telefon & "','" & fax & "','" & anrede & "','" & tel1 & "','" & tel2 & "','" & tel3 & "','" & tel4 & "','" & fax1 & "','" & fax2 & "','" & fax3 & "','" & email & "','" & zulg & "','" & arzttyp & "','" & gemmit & "','" & beme & "','" & dmpt2 & "','" & dmpt1 & "','" & geschlecht & "','" & titelt & "','" & "dolies:" & rNa(0).Pat_ID & "','" & Format$(Now(), "yyyy-mm-dd hh:mm:ss") & "')", rAF
-            volleingefuegt = rAF
+            InsKorr DBCn, "INSERT INTO " & Tabl & "(kvnr,titel,vorname,zusatz," & nnafeld & ",fachgruppe,strasse,plz,ort,telefon,fax,anrede,tel1,tel2,tel3,tel4,fax1,fax2,fax3,email,zulg,arzttyp,gemmit,beme,dmpt2,dmpt1,geschlecht,titelt,ursp,aktzeit) VALUES('" & KVNr & "','" & Arra(1) & "','" & Arra(2) & "','" & Arra(3) & "','" & Arra(4) & "','" & fachgruppe & "','" & strasse & "','" & plz & "','" & ort & "','" & telefon & "','" & fax & "','" & anrede & "','" & tel1 & "','" & tel2 & "','" & tel3 & "','" & tel4 & "','" & fax1 & "','" & fax2 & "','" & fax3 & "','" & email & "','" & zulg & "','" & arzttyp & "','" & gemmit & "','" & beme & "','" & dmpt2 & "','" & dmpt1 & "','" & geschlecht & "','" & titelt & "','" & "dolies:" & rNa(0).Pat_ID & "','" & Format$(Now(), "yyyy-mm-dd hh:mm:ss") & "')", rAf
+            volleingefuegt = rAf
            End If
           End If
          End If
          If volleingefuegt = 0 Then
-          InsKorr DBCn, "INSERT INTO " & Tabl & "(kvnr,titel,vorname,zusatz," & nnafeld & ") VALUES('" & KVNr & "','" & Arra(1) & "','" & Arra(2) & "','" & Arra(3) & "','" & Arra(4) & "')", rAF
+          InsKorr DBCn, "INSERT INTO " & Tabl & "(kvnr,titel,vorname,zusatz," & nnafeld & ") VALUES('" & KVNr & "','" & Arra(1) & "','" & Arra(2) & "','" & Arra(3) & "','" & Arra(4) & "')", rAf
          End If
         Else ' uers.EOF
          Exit For
@@ -3617,7 +3617,7 @@ fgefunden:
        If Len(FormInh) > 1 Then
         If IsDate(FormInh) Then
          rDm(UBound(rDm)).GebDat = FormInh
-        End If
+        End If ' IsDate(FormInh) Then
        End If ' if Len(FormInh) > 1 Then
       End If ' rDm(UBound(rDm)).DokuDatum = 0 Then elseif
      End If ' if FormInh Like "?" Then elseif ...
@@ -3637,9 +3637,9 @@ fgefunden:
        ReDim Preserve Arra(ArraInd)
        Arra(ArraInd) = Mid$(rInhalt, Pos1, pos2 - Pos1)
 '       Debug.Print Pos1, pos2, Arra(ArraInd)
-      Else
+      Else ' pos2 Then
        pos2 = Pos1
-      End If
+      End If ' pos2 Then else
      Loop
 '     Dim FNam() AS String, ifn&
 '     FNam = ASMod("a", "w", "p", "m", "d", "v", "h", "i", "r", "s", "t", "du", "fd")
@@ -3718,8 +3718,8 @@ fgefunden:
         End If ' gef <> "" THEN
 '        Debug.Print gef, FNam(ifn)
        End If ' (ps1 <> 0) THEN
-      Next
-     Next
+      Next ifn ' = 0 To UBound(FNam)
+     Next mnr ' = 1 To ArraInd
 ' komplette Freitextzeilen
      Call aufSplit(rInhalt, "<X ")
      MedZahl = ArraInd
@@ -3745,7 +3745,7 @@ fgefunden:
       Next ' ifn = 0 To UBound(FNam2)
      Next ' mnr = 1 To ArraInd
     ElseIf FormBez = "Medikamentenplan" Then
-    Else
+    Else ' jetztCGM Then Elseif
      ReDim Preserve rFm(UBound(rFm) + 1)
      rFm(UBound(rFm)).FeldInh = FormInh
      rFm(UBound(rFm)).Feld = Arra(0)
@@ -3754,20 +3754,20 @@ fgefunden:
       If IsNumeric(Arra(1)) Then
        rFm(UBound(rFm)).FeldNr = Arra(1) ' 7.10.08, Pat. 1524
       End If
-     Else
+     Else ' ArraInd > 0 Then Else
       rFm(UBound(rFm)).FeldNr = ZeileNr ' damit mehrere 6299 auf ein 6298 kommen können
-     End If
+     End If ' ArraInd > 0 Then
      rFm(UBound(rFm)).nr = rFm_Nr
      rFm_Nr = rFm_Nr + 1
      rFm(UBound(rFm)).Foid = FoIDv - 1 '-FoID 'negative Speicherung, da der Wert noch nach der Datenbankspeicherung von rFr angepaßt werden muss
-    End If
+    End If ' jetztCGM Then elseif else
 '    Call FormInhEintrag(rtr.AbsolutePosition)
 ' $\TurboMed\Formulare\Patientenmenue\DMP Erst-Dokumentation Diabetes mellitus Typ 2.tmf
 ' $\TurboMed\Formulare\Patientenmenue\eDMP Datenerfassung.tmf
     If FormBez Like "Erst-Dokumentation Diabetes mellitus Typ 2*" Then
 ' $\TurboMed\Formulare\Patientenmenue\DMP Folge-Dokumentation Diabetes mellitus Typ 2.tmf
     ElseIf FormBez Like "Folge-Dokumentation Diabetes mellitus Typ 2*" Then
-    Else
+    Else ' FormBez Like "Erst-Dokumentation Diabetes mellitus Typ 2*" Then Elseif
      Select Case FormBez
       Case "cgm_bmp"
         If FormSp = "CreationDate" Then
@@ -3884,12 +3884,12 @@ fgefunden:
       Case Else
        If obÜProt Then Print #322, "FormBez: " + FormBez + " in do_DatenEintragen bisher nicht berücksichtigt!"
 '     Debug.Print "Formbezeichnung: " + FormBez
-     End Select
+     End Select ' Case FormBez
     End If ' FormBez Like "Erst-Dokumentation Diabetes mellitus Typ 2*" Then else else else
     Select Case FormAbk
      Case "DMPDTYP2", "DMPDTYP1", "eDMPDM2", "eDMPDM1"
       If dmpdat = 0 Or dmpdat < messDatum Then dmpdat = messDatum
-    End Select
+    End Select ' Case FormAbk
     ZeileNr = ZeileNr + 1
    Case 6324 ' Brief mit Pfad
     Call aufSplit(rInhalt)
@@ -3947,7 +3947,7 @@ fgefunden:
     rDo(UBound(rDo)).DokPfad = rDo(UBound(rDo)).DokPfad + Stutz(rInhalt)
     If Right$(rInhalt, 1) = "^" Then
      obZweiteRunde = -1
-    Else
+    Else ' Right$(rInhalt, 1) = "^" Then
      obZweiteRunde = 0
      If LenB(PcDokPfad) = 0 Then getDokPfad
      Datei = rDo(UBound(rDo)).DokPfad
@@ -3978,11 +3978,11 @@ fgefunden:
        rDo(UBound(rDo)).DokGroe = Fil.size
        rDo(UBound(rDo)).DokAenD = Fil.DateLastModified
       End If
-     Else
+     Else ' FSO.FileExists(REPLACE$(LCase$(Datei), "$\turbomed\dokumente", PcDokPfad)) Then
 ' Entwicklung: hier kann das Fehlt-Kennzeichen gesetzt werden und evtl.
 '       rDo(UBound(rDo)).DokPfad = Datei 'stehen
-     End If
-    End If
+     End If ' FSO.FileExists(REPLACE$(LCase$(Datei), "$\turbomed\dokumente", PcDokPfad)) Then Else
+    End If ' Right$(rInhalt, 1) = "^" Then
    Case 6326 ' Dokumentart (Windows-Dateityp)
     rDo(UBound(rDo)).DokArt = rInhalt
    Case 6327, 6300 ' Dokumentname / 6300 = ohne Ortsangabe (11.12.06: 6300 kommt nicht (mehr) vor)
@@ -4527,7 +4527,7 @@ nochmal:
 '   If IsNull(rsAdo!mprim) Then primnr = 1 Else primnr = rsAdo!mprim + 1
    primnr = myEFrag("SELECT (COALESCE(MAX(prim))+1) mprim FROM `anamnesebogen`").Fields(0)
    sql = "INSERT INTO `anamnesebogen`(pat_id,prim) VALUES(" & rNa(0).Pat_ID & "," & primnr & ")"
-   InsKorr DBCn, sql, rAF
+   InsKorr DBCn, sql, rAf
    If obForK Then
     Call ForeignYes0
     Call ForeignYes1
@@ -4570,14 +4570,14 @@ Function kvnrpruef()
   Set rs = Nothing
   myFrag rs, "SELECT 0 FROM `aktlue` WHERE kvnro = '" & rNa(0).KVNr & "'"
   If rs.BOF Then
-   myEFrag "INSERT INTO `hausaerzte`(kvnr) VALUES('" & rNa(0).KVNr & "')", rAF
+   myEFrag "INSERT INTO `hausaerzte`(kvnr) VALUES('" & rNa(0).KVNr & "')", rAf
   Else
    On Error Resume Next
-   myEFrag "INSERT INTO `hausaerzte`(überschrift,name,vorname,nachname,anschrift,kvnr,telefon,telefax,e_mail,zulassungsgebiet,arzttyp,`Gemeinschaftspraxis mit`,titel,geschlecht,`straße`,plz,ort,dmpt2,dmpt1) SELECT überschrift, CONCAT_WS(' ',anrede,titelt,vorname,name),vorname,name,CONCAT_WS(', ',strasse,CONCAT_WS(' ',plz,ort)),kvnr,telefon,fax,email,fachgruppe,arzttyp,gemmit,titel,geschlecht,strasse,plz,ort,dmpt2,dmpt1  FROM `aktlue` WHERE kvnro = '" & rNa(0).KVNr & "'", rAF
+   myEFrag "INSERT INTO `hausaerzte`(überschrift,name,vorname,nachname,anschrift,kvnr,telefon,telefax,e_mail,zulassungsgebiet,arzttyp,`Gemeinschaftspraxis mit`,titel,geschlecht,`straße`,plz,ort,dmpt2,dmpt1) SELECT überschrift, CONCAT_WS(' ',anrede,titelt,vorname,name),vorname,name,CONCAT_WS(', ',strasse,CONCAT_WS(' ',plz,ort)),kvnr,telefon,fax,email,fachgruppe,arzttyp,gemmit,titel,geschlecht,strasse,plz,ort,dmpt2,dmpt1  FROM `aktlue` WHERE kvnro = '" & rNa(0).KVNr & "'", rAf
    On Error GoTo fehler
   End If
 '  Debug.Print rAF
-  syscmd 4, rAF & " Sätze in `hausaerzte` eingefügt"
+  syscmd 4, rAf & " Sätze in `hausaerzte` eingefügt"
  End If ' rs.BOF
  Exit Function
 fehler:
@@ -4608,11 +4608,11 @@ Function MedArtenPruef()
   InS = InS & "('" & rMe(i).Medikament & "','" & UCase$(gmd) & "'," & DatFor_k(Now) & "," & rMe(i).Pat_ID & ")"
  Next i
  If UBound(rMe) > 0 Then
-  myFrag rs, "UPDATE medarten SET pat_id= " & rMe(1).Pat_ID & " WHERE pat_id=0 AND medikament IN (" & upd & ")", , , , , rAF
+  myFrag rs, "UPDATE medarten SET pat_id= " & rMe(1).Pat_ID & " WHERE pat_id=0 AND medikament IN (" & upd & ")", , , , , rAf
 '  Call DBCn.Execute("UPDATE medarten SET pat_id= " & rMe(1).Pat_id & " WHERE pat_id=0 AND medikament IN (" & upd & ")", rAF)
  End If ' UBound(rMe) > 0 Then
  If Trim(InS) <> "" Then
-  myFrag rs, "INSERT IGNORE INTO medarten (langname,medikament,hinzugefügt,pat_id) VALUES" & InS, , , , , rAF
+  myFrag rs, "INSERT IGNORE INTO medarten (langname,medikament,hinzugefügt,pat_id) VALUES" & InS, , , , , rAf
  End If ' Trim(InS) <> "" Then
  syscmd 5
  Exit Function
@@ -4674,12 +4674,12 @@ Function alleSpeichern(frm As Lese, Optional vonMo%)
  BegTrans
 ' Medklass, redesigned, erster Teil
 ' Call ForeignNo
- myEFrag "SET SESSION TRANSACTION ISOLATION LEVEL REPEATABLE READ", rAF
+ myEFrag "SET SESSION TRANSACTION ISOLATION LEVEL REPEATABLE READ", rAf
 #If ohnebezug Then ' auskommentiert 22.10.22, da es den Patienten 0 gibt
  Call ForeignNo0
  Call ForeignNo1
 #End If
- myEFrag "UPDATE `medarten` SET pat_id = 0 WHERE pat_id = " & rNa(0).Pat_ID, rAF
+ myEFrag "UPDATE `medarten` SET pat_id = 0 WHERE pat_id = " & rNa(0).Pat_ID, rAf
 #If ohnebezug Then ' auskommentiert 22.10.22
  Call ForeignYes0
  Call ForeignYes1
@@ -4835,7 +4835,7 @@ nachFehler:
   sL1.Langtext = rLa(i).Langtext
   Set sL2 = sListLpar.GetItem(sL1)
   If sL2 Is Nothing Then
-   InsKorr DBCn, "INSERT INTO `laborparameter` (`abkü`,`einheit`,`langtext`,`aktzeit`) VALUES('" & rLa(i).Abkü & "','" & rLa(i).Einheit & "','" & rLa(i).Langtext & "'," & DatFor_k(Now()) & ")", rAF
+   InsKorr DBCn, "INSERT INTO `laborparameter` (`abkü`,`einheit`,`langtext`,`aktzeit`) VALUES('" & rLa(i).Abkü & "','" & rLa(i).Einheit & "','" & rLa(i).Langtext & "'," & DatFor_k(Now()) & ")", rAf
 '   SET rsaS = myEFrag("SELECT abkü,eiheit,langtext FROM `laborparameter` WHERE abkü = '" & rLa(i).Abkü & "' AND einheit = '" & rLa(i).Einheit & "')")
    Call sListLpar.sCAdd(sL1)
   Else
@@ -4856,7 +4856,7 @@ nachFehler:
   If i < UBound(rFm) Then cisql.Append ","
  Next i
 ' DBCn.Execute cisql.Value, rAf
- myEFrag cisql.Value, rAF
+ myEFrag cisql.Value, rAf
  syscmd 4, "Formular-Speichern, neue Methode (2)"
 ' DBCn.Execute ("START TRANSACTION")
  BegTrans
@@ -4873,7 +4873,7 @@ nachFehler:
 '    If rsaS Is Nothing Then Else If rsaS.State = 1 Then rsaS.Close
     Set rsaS = myEFrag("SELECT feldinhvw FROM `forminhaltfeldinh` WHERE feldinh = '" & REPLACE$(rFm(i).FeldInh, "'", "\\'") & "'")
     If rsaS.BOF Then
-     Call myEFrag("INSERT INTO forminhaltfeldinh(feldinh,stbyte) VALUES('" & REPLACE$(rFm(i).FeldInh, "'", "\\'") & "'," & AktByte & ")", rAF)
+     Call myEFrag("INSERT INTO forminhaltfeldinh(feldinh,stbyte) VALUES('" & REPLACE$(rFm(i).FeldInh, "'", "\\'") & "'," & AktByte & ")", rAf)
     Else
      fi1.FeldInhVW = rsaS.Fields(0)
      rFm(i).FeldInhVW = fi1.FeldInhVW
@@ -4948,7 +4948,7 @@ alteMethode:
    fdi1.FeldInh = rFm(i).FeldInh
    Set fdi2 = sListFldInh.GetItem(fdi1)
    If fdi2 Is Nothing Then
-    myEFrag "INSERT INTO `forminhaltfeldinh` (feldinh,stbyte) VALUES('" & REPLACE$(rFm(i).FeldInh, "'", "\\'") & "'," & AktByte & ")", rAF
+    myEFrag "INSERT INTO `forminhaltfeldinh` (feldinh,stbyte) VALUES('" & REPLACE$(rFm(i).FeldInh, "'", "\\'") & "'," & AktByte & ")", rAf
 'nochmal:
     Set rsaS = myEFrag("SELECT feldinhvw,feldinh FROM `forminhaltfeldinh` WHERE feldinh = '" & REPLACE$(rFm(i).FeldInh, "'", "\\'") & "'")
     If rsaS.EOF Then
@@ -4965,7 +4965,7 @@ alteMethode:
     For j = 1 To 2
      Set rsaS = myEFrag("SELECT feldinhvw,feldinh FROM `forminhaltfeldinh` WHERE feldinh = '" & REPLACE$(rFm(i).FeldInh, "'", "\\'") & "'")
      If rsaS.BOF Then
-      Set rsaS = myEFrag("INSERT INTO `forminhaltfeldinh` (feldinh,stbyte) VALUES('" & REPLACE$(rFm(i).FeldInh, "'", "\\'") & "'," & AktByte & ")", rAF)
+      Set rsaS = myEFrag("INSERT INTO `forminhaltfeldinh` (feldinh,stbyte) VALUES('" & REPLACE$(rFm(i).FeldInh, "'", "\\'") & "'," & AktByte & ")", rAf)
      Else
       Exit For
      End If
@@ -5076,9 +5076,9 @@ nachformulare:
     obFehlt = rKVNr.EOF
     Set rKVNr = Nothing
     If obFehlt Then
-     InsKorr DBCn, "INSERT INTO `hareal`(Anrede,Adressat,Straße,PLZOrt,Fax,Überschrift,dmp2,dmp1,Niederlassungsgebiet,Vorname,InnereAllg,kvnr,Tel,Nachname) VALUES(" & IIf(Infos12(0, i) = "Herr", 1, 0) & ",'" & Infos12(1, i) & "','" & Infos12(2, i) & "','" & Infos12(3, i) & "','" & Infos12(4, i) & "','" & Infos12(5, i) & "'," & IIf(Infos12(6, i) = vNS, 0, 1) & "," & IIf(Infos12(7, i) = vNS, 0, 1) & ",'" & Infos12(8, i) & "','" & Infos12(9, i) & "'," & IIf(Infos12(11, i) = "", 0, 1) & "," & IIf(Infos12(12, i) = vNS, 0, Infos12(12, i)) & ",'" & Infos12(13, i) & "','" & Infos12(14, i) & "')", rAF
+     InsKorr DBCn, "INSERT INTO `hareal`(Anrede,Adressat,Straße,PLZOrt,Fax,Überschrift,dmp2,dmp1,Niederlassungsgebiet,Vorname,InnereAllg,kvnr,Tel,Nachname) VALUES(" & IIf(Infos12(0, i) = "Herr", 1, 0) & ",'" & Infos12(1, i) & "','" & Infos12(2, i) & "','" & Infos12(3, i) & "','" & Infos12(4, i) & "','" & Infos12(5, i) & "'," & IIf(Infos12(6, i) = vNS, 0, 1) & "," & IIf(Infos12(7, i) = vNS, 0, 1) & ",'" & Infos12(8, i) & "','" & Infos12(9, i) & "'," & IIf(Infos12(11, i) = "", 0, 1) & "," & IIf(Infos12(12, i) = vNS, 0, Infos12(12, i)) & ",'" & Infos12(13, i) & "','" & Infos12(14, i) & "')", rAf
     Else
-     myEFrag "UPDATE `hareal` SET Anrede=" & IIf(Infos12(0, i) = "Herr", 1, 0) & ",Adressat='" & Infos12(1, i) & "',Straße='" & Infos12(2, i) & "',PLZOrt='" & Infos12(3, i) & "',Fax='" & Infos12(4, i) & "',Überschrift='" & Infos12(5, i) & "',dmp2=" & IIf(Infos12(6, i) = vNS, 0, 1) & ",dmp1=" & IIf(Infos12(7, i) = vNS, 0, 1) & ",Niederlassungsgebiet='" & Infos12(8, i) & "',Vorname='" & Infos12(9, i) & "',InnereAllg=" & IIf(Infos12(11, i) = vNS, 0, 1) & ",Tel='" & Infos12(13, i) & "',Nachname='" & Infos12(14, i) & "' WHERE kvnr = " & Infos12(12, i), rAF
+     myEFrag "UPDATE `hareal` SET Anrede=" & IIf(Infos12(0, i) = "Herr", 1, 0) & ",Adressat='" & Infos12(1, i) & "',Straße='" & Infos12(2, i) & "',PLZOrt='" & Infos12(3, i) & "',Fax='" & Infos12(4, i) & "',Überschrift='" & Infos12(5, i) & "',dmp2=" & IIf(Infos12(6, i) = vNS, 0, 1) & ",dmp1=" & IIf(Infos12(7, i) = vNS, 0, 1) & ",Niederlassungsgebiet='" & Infos12(8, i) & "',Vorname='" & Infos12(9, i) & "',InnereAllg=" & IIf(Infos12(11, i) = vNS, 0, 1) & ",Tel='" & Infos12(13, i) & "',Nachname='" & Infos12(14, i) & "' WHERE kvnr = " & Infos12(12, i), rAf
     End If ' obFehlt Then
    End If ' Infos12(12, i) <> vNS Then
   Next i
@@ -5174,8 +5174,8 @@ nachformulare:
  Dim altesAufnDat As Date
 ' altesAufnDat = DBCn.Execute("SELECT kaufdat FROM namen WHERE pat_id=" & CStr(rNa(0).Pat_id)).Fields(0)
  altesAufnDat = myEFrag("select COALESCE((SELECT kaufdat FROM namen WHERE pat_id=" & CStr(rNa(0).Pat_ID) & "),0) i").Fields(0)
- myEFrag "UPDATE namen n LEFT JOIN (SELECT pat_id, MIN(bhfb) bhfb, MIN(fanf) fanf FROM faelle f GROUP BY pat_id) f ON n.pat_id=f.pat_id SET kAufDat=date(IF(fanf>bhfb,fanf,bhfb)) WHERE f.pat_id=" & CStr(rNa(0).Pat_ID), rAF
- If rAF <> 0 Then
+ myEFrag "UPDATE namen n LEFT JOIN (SELECT pat_id, MIN(bhfb) bhfb, MIN(fanf) fanf FROM faelle f GROUP BY pat_id) f ON n.pat_id=f.pat_id SET kAufDat=date(IF(fanf>bhfb,fanf,bhfb)) WHERE f.pat_id=" & CStr(rNa(0).Pat_ID), rAf
+ If rAf <> 0 Then
  ' nachzupruefen: 67794, 67795
 '  MsgBox "Fehler bei der Aufnahmedatumskorrektur" ' wenn das nie kommt, kann die vorige Zeile auskommentiert werden
  End If
@@ -5213,8 +5213,8 @@ syscmd 5
   "(SELECT kateg,go,ik,vknr FROM `kassenliste`" & vbCrLf & _
   " WHERE kateg <> '' GROUP BY ik,vknr) k2 ON k.vknr = k2.vknr AND k.ik=k2.ik " & vbCrLf & _
   "SET k.kateg=k2.kateg, k.go=k2.go, geaen=" & Format(Now(), "yyyymmddHHMMSS") & vbCrLf & _
-  " WHERE k.kateg = '' AND k2.kateg IS NOT NULL", rAF
-  Ausgeb rAF & " Kassenkategorien anhand der VK-Nummern eingefügt"
+  " WHERE k.kateg = '' AND k2.kateg IS NOT NULL", rAf
+  Ausgeb rAf & " Kassenkategorien anhand der VK-Nummern eingefügt"
 '  Call Lese.KassenkategorienBestimmen_Click
   Kassengeändert = 0
   syscmd 5
@@ -5429,10 +5429,10 @@ Function kassenSpeichern(frm As Lese, pid$)
     Case "2"
      GebOr = "2"
    End Select
-   InsKorr DBCn, "INSERT INTO `kassenliste`(vknr,ik,name,kurzname,go,kateg,eingef,pid) VALUES('" & rFa(i).VKNr & "','" & rFa(i).IK & "','" & rFa(i).Kasse & "','" & rFa(i).KKasse_2 & "','" & GebOr & "','" & Kat & "'," & Format(Now(), "yyyymmddHHMMSS") & "," & pid & ")", rAF
+   InsKorr DBCn, "INSERT INTO `kassenliste`(vknr,ik,name,kurzname,go,kateg,eingef,pid) VALUES('" & rFa(i).VKNr & "','" & rFa(i).IK & "','" & rFa(i).Kasse & "','" & rFa(i).KKasse_2 & "','" & GebOr & "','" & Kat & "'," & Format(Now(), "yyyymmddHHMMSS") & "," & pid & ")", rAf
    rFa(i).KID = myEFrag("SELECT last_insert_id()").Fields(0)
    If rFa(i).KID = 0 Then MsgBox "Fehler in kassenspeichern: last_insert_id()=0"
-   Ausgeb rAF & " Kassen hinzugefügt (VK: " & rFa(i).VKNr & ", IK: " & rFa(i).IK & " => kkasse_2: " & rFa(i).KKasse_2 & "/kasse: " & rFa(i).Kasse & ")"
+   Ausgeb rAf & " Kassen hinzugefügt (VK: " & rFa(i).VKNr & ", IK: " & rFa(i).IK & " => kkasse_2: " & rFa(i).KKasse_2 & "/kasse: " & rFa(i).Kasse & ")"
    Kassengeändert = True
    If keinetrans = 0 Then
 '    DBCn.BeginTrans: obTrans = 1
@@ -5445,11 +5445,11 @@ Function kassenSpeichern(frm As Lese, pid$)
 '   If keinetrans = 0 Then keinetrans = Err.Number
    Call ComTrans(DBCn, , keinetrans)
    On Error GoTo fehler
-   rAF = 0
+   rAf = 0
    sql = "UPDATE `kassenliste` SET name = '" & rFa(i).Kasse & "', kurzname = '" & rFa(i).KKasse_2 & "', kateg = '" & Kat & "',geaen=" & Format(Now(), "yyyymmddHHMMSS") & " WHERE vknr = '" & rFa(i).VKNr & "' AND ik = '" & rFa(i).IK & "'"
 '   Debug.Print sql
-   Call myEFrag(sql, rAF)
-   Ausgeb rAF & " Kassen mit Namen/Kategorie versehen (" & rFa(i).VKNr & ", IK: " & rFa(i).IK & " => kkasse_2: " & rFa(i).KKasse_2 & " /kasse: " & rFa(i).Kasse & " /Kateg: " & Kat & ")"
+   Call myEFrag(sql, rAf)
+   Ausgeb rAf & " Kassen mit Namen/Kategorie versehen (" & rFa(i).VKNr & ", IK: " & rFa(i).IK & " => kkasse_2: " & rFa(i).KKasse_2 & " /kasse: " & rFa(i).Kasse & " /Kateg: " & Kat & ")"
    Kassengeändert = True
    If keinetrans = 0 Then
 '    DBCn.BeginTrans: obTrans = 1
@@ -5660,7 +5660,7 @@ End Function ' holRRzahl(Bemk$, holrrzahl%)
 
 ' aufgerufen in alleSpeichern
 Function rrParseSpeichern()
- Dim i%, RRsyst%, RRdiast%, Zp As Date, rAF&, rs As ADODB.Recordset, keinfehler%, ErrNr&, ErrDes$, ab2%
+ Dim i%, RRsyst%, RRdiast%, Zp As Date, rAf&, rs As ADODB.Recordset, keinfehler%, ErrNr&, ErrDes$, ab2%
  On Error GoTo fehler
  syscmd 4, "Speichere rrParse"
  Dim csql As New CString
@@ -5674,7 +5674,7 @@ Function rrParseSpeichern()
   End If
  Next i
  If ab2 Then
-  myFrag rs, csql.Value, , , , , rAF, , ErrNr, ErrDes
+  myFrag rs, csql.Value, , , , , rAf, , ErrNr, ErrDes
   If ErrNr Then
    syscmd 4, "Speichere rrParse, alte Methode"
    For i = 1 To UBound(rRr)
@@ -6664,7 +6664,7 @@ Function LTEinfüg&(Langtext$)
 '   myFrag rsLT, "SELECT langtext,langtextvw FROM `laborlangtext` WHERE langtext = '" & Langtext & "'"
     Set rsLT = myEFrag("SELECT langtext,langtextvw FROM `laborlangtext` WHERE langtext = '" & Langtext & "'")
     If rsLT.EOF Then
-     InsKorr DBCn, "INSERT INTO `laborlangtext`(`langtext`) VALUES ('" & Langtext & "')", rAF
+     InsKorr DBCn, "INSERT INTO `laborlangtext`(`langtext`) VALUES ('" & Langtext & "')", rAf
     Else
      Exit For
     End If
@@ -6704,7 +6704,7 @@ Function AZEinfüg&(AbschlZl$)
 '   myFrag rsAZ, "SELECT AbschlZl,AbschlZlvw FROM `laborAbschlZl` WHERE AbschlZl = '" & AbschlZl & "'"
     Set rsAZ = myEFrag("SELECT AbschlZl,AbschlZlvw FROM `laborabschlzl` WHERE AbschlZl = '" & AbschlZl & "'")
     If rsAZ.EOF Then
-     InsKorr DBCn, "INSERT INTO `laborabschlzl`(`AbschlZl`) VALUES ('" & AbschlZl & "')", rAF
+     InsKorr DBCn, "INSERT INTO `laborabschlzl`(`AbschlZl`) VALUES ('" & AbschlZl & "')", rAf
     Else
      AZEinfüg = rsAZ!AbschlZlVW
      lAbschlVW = AZEinfüg
@@ -6744,7 +6744,7 @@ Function nbEinfüg&(Normber$)
 '   myFrag rsnb, "SELECT Normber,Normbervw FROM `laborNormber` WHERE Normber = '" & Normber & "'"
     Set rsnb = myEFrag("SELECT Normber,Normbervw FROM `labornormber` WHERE Normber = '" & Normber & "'")
     If rsnb.EOF Then
-     InsKorr DBCn, "INSERT INTO `labornormber`(`Normber`) VALUES ('" & Normber & "')", rAF
+     InsKorr DBCn, "INSERT INTO `labornormber`(`Normber`) VALUES ('" & Normber & "')", rAf
     Else
      nbEinfüg = rsnb!NormberVW
      lNormbVW = nbEinfüg
@@ -6786,14 +6786,14 @@ Function KomEinfüg&(Kommentar$)
     ' nicht nachvollziehbare Besonderheit bei:
 ' 8430 Serum Erregerspezifische IgG-Ak nachweisbar. Der Befund ist serologisch mit einer aktuellen oder länger zurückliegenden Infektion odereiner Immunisierung vereinbar. Zur Abklärung der aktuellen Infektion (falls klinisch der Verdacht besteht), empfiehlt sich die Bestim- mung
 '   hier geht auch bei Access nur "%", nicht "*"!
-     Set rsKo = myEFrag("SELECT Kommentar,Kommentarvw FROM laborkommentar WHERE Kommentar LIKE """ & Kommentar & "%" & """", rAF)
+     Set rsKo = myEFrag("SELECT Kommentar,Kommentarvw FROM laborkommentar WHERE Kommentar LIKE """ & Kommentar & "%" & """", rAf)
     Else
-     Set rsKo = myEFrag("SELECT Kommentar,Kommentarvw FROM laborkommentar WHERE Kommentar = '" & Kommentar & "'", rAF)
+     Set rsKo = myEFrag("SELECT Kommentar,Kommentarvw FROM laborkommentar WHERE Kommentar = '" & Kommentar & "'", rAf)
 '     Call myEFrag("SELECT Kommentar,Kommentarvw FROM laborkommentar WHERE Kommentar = '" & Kommentar & "'", rAf)
     End If
 '     Set rsKo = Nothing
     If rsKo.BOF Then
-     InsKorr DBCn, "INSERT INTO `laborkommentar`(Kommentar) VALUES ('" & Kommentar & "')", rAF
+     InsKorr DBCn, "INSERT INTO `laborkommentar`(Kommentar) VALUES ('" & Kommentar & "')", rAf
     Else
      Exit For
     End If
@@ -7393,28 +7393,28 @@ End Function ' GetDatumAusString$
 #If löschen Then
 ' 28.10.18: nirgends aufgerufen
 Function LöschDateiEintrag(DatID&) ' 3.2.07: Erstellt, auch schon verwendet
- Dim rAF&
+ Dim rAf&
  Dim rs As ADODB.Recordset
- Set rs = myEFrag("UPDATE `laborneu` SET refnr = null WHERE refnr IN (SELECT refnr FROM `laborxus` LEFT JOIN laborxeingel ON laborxus.datid = laborxeingel.datid WHERE laborxus.datid= " & DatID & ")", rAF)
- Debug.Print rs.source, rAF
- Set rs = myEFrag("DELETE FROM `laborxleist` WHERE refnr IN (SELECT refnr FROM `laborxus` LEFT JOIN laborxeingel ON laborxus.datid = laborxeingel.datid WHERE laborxus.datid= " & DatID & ")", rAF)
- Debug.Print rs.source, rAF
+ Set rs = myEFrag("UPDATE `laborneu` SET refnr = null WHERE refnr IN (SELECT refnr FROM `laborxus` LEFT JOIN laborxeingel ON laborxus.datid = laborxeingel.datid WHERE laborxus.datid= " & DatID & ")", rAf)
+ Debug.Print rs.source, rAf
+ Set rs = myEFrag("DELETE FROM `laborxleist` WHERE refnr IN (SELECT refnr FROM `laborxus` LEFT JOIN laborxeingel ON laborxus.datid = laborxeingel.datid WHERE laborxus.datid= " & DatID & ")", rAf)
+ Debug.Print rs.source, rAf
  Call ForeignNo0
  Call ForeignNo1
- Set rs = myEFrag("DELETE FROM `laborxwert` WHERE refnr IN (SELECT refnr FROM `laborxus` LEFT JOIN laborxeingel ON laborxus.datid = laborxeingel.datid WHERE laborxus.datid= " & DatID & ")", rAF)
+ Set rs = myEFrag("DELETE FROM `laborxwert` WHERE refnr IN (SELECT refnr FROM `laborxus` LEFT JOIN laborxeingel ON laborxus.datid = laborxeingel.datid WHERE laborxus.datid= " & DatID & ")", rAf)
 ' Call ForeignYes
- Debug.Print rs.source, rAF
- Set rs = myEFrag("DELETE FROM `laborxbakt` WHERE refnr IN (SELECT refnr FROM `laborxus` LEFT JOIN `laborxeingel` ON `laborxus`.datid = `laborxeingel`.datid WHERE `laborxus`.datid= " & DatID & ")", rAF)
- Debug.Print rs.source, rAF
+ Debug.Print rs.source, rAf
+ Set rs = myEFrag("DELETE FROM `laborxbakt` WHERE refnr IN (SELECT refnr FROM `laborxus` LEFT JOIN `laborxeingel` ON `laborxus`.datid = `laborxeingel`.datid WHERE `laborxus`.datid= " & DatID & ")", rAf)
+ Debug.Print rs.source, rAf
 ' Call ForeignNo
- Set rs = myEFrag("DELETE FROM `laborxsaetze` WHERE satzid IN (SELECT satzid FROM `laborxus` LEFT JOIN `laborxeingel` ON `laborxus`.datid = `laborxeingel`.datid WHERE `laborxus`.datid= " & DatID & ")", rAF)
+ Set rs = myEFrag("DELETE FROM `laborxsaetze` WHERE satzid IN (SELECT satzid FROM `laborxus` LEFT JOIN `laborxeingel` ON `laborxus`.datid = `laborxeingel`.datid WHERE `laborxus`.datid= " & DatID & ")", rAf)
  Call ForeignYes0
  Call ForeignYes1
- Debug.Print rs.source, rAF
- Set rs = myEFrag("DELETE FROM `laborxus` WHERE datid = " & DatID, rAF)
- Debug.Print rs.source, rAF
- Set rs = myEFrag("DELETE FROM `laborxeingel` WHERE datid = " & DatID, rAF)
- Debug.Print rs.source, rAF
+ Debug.Print rs.source, rAf
+ Set rs = myEFrag("DELETE FROM `laborxus` WHERE datid = " & DatID, rAf)
+ Debug.Print rs.source, rAf
+ Set rs = myEFrag("DELETE FROM `laborxeingel` WHERE datid = " & DatID, rAf)
+ Debug.Print rs.source, rAf
  Exit Function
 fehler:
  Dim AnwPfad$
@@ -7493,7 +7493,7 @@ Function EmailsImport(EmDatei$, frm As Lese)
  End If
  If EmDatei <> "" Then
  con.Open "Provider=Microsoft.Jet.OLEDB.4.0;Extended Properties=""Excel 8.0;HDR=No;IMEX=2"";Data Source=" & EmDatei & ";" ' TABLE=Adressen$"
- Dim runde%, i%, pFeld$, eFeld$, obAnfang%, pNr&, pRoh$, email$, ka%, ke%, rAF&
+ Dim runde%, i%, pFeld$, eFeld$, obAnfang%, pNr&, pRoh$, email$, ka%, ke%, rAf&
   rX.ActiveConnection = con
   rEx.Open "`" & rX.Tables(rX.Tables.COUNT - 1).name & "`", con ' Hier Excel, nicht lies.obmysql = 0!
   Do While Not rEx.EOF
@@ -7504,7 +7504,7 @@ Function EmailsImport(EmDatei$, frm As Lese)
     ke = InStr(pRoh, ")")
     If ka > 0 And ke > 0 Then
      pNr = CLng(Mid$(pRoh, ka + 1, ke - ka - 1))
-     Call myEFrag("UPDATE `namen` SET email = '" & rEx.Fields(eFeld) & "' WHERE pat_id = " & pNr, rAF)
+     Call myEFrag("UPDATE `namen` SET email = '" & rEx.Fields(eFeld) & "' WHERE pat_id = " & pNr, rAf)
 ' wenn Name noch nicht da
 '     IF rAf <> 1 THEN Err.Raise 999, , "Fehler beim Einfügen der Email-Adresse '" & rEx.Fields(eFeld) & "' zum Patienten Nr. " & pNr
     End If

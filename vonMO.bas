@@ -516,10 +516,10 @@ Public Function zeigmosystem(Optional obszn4%)
 End Function ' zeigmosystem()
 
 ' in PatvonMO_Click
-Public Function doPatvonMO(pNr&)
+Public Function doPatvonMO(pNr&, Optional obmitFormularen%)
  Dim pid&, pos&, SchGr%, j&, jj%, rAf&, rInh$, Puls$, Bem$ ' , aktZeit As Date
  Const obDebug% = True, obszn4% = True
- pNr& = 68393 ' 63635 ' 67180 ' 63635 ' 64800 ' 69333 ' 68316 ' 65405 ' 45 ' 64659 ' 45 ' 69367 ' 69377 ' 53119 ' 51630 ' 105 ' 18 ' 246 ' 59152 ' 1394 ' 2112 ' 151 ' 225 '
+ pNr& = 69618 ' 68393 ' 63635 ' 67180 ' 63635 ' 64800 ' 69333 ' 68316 ' 65405 ' 45 ' 64659 ' 45 ' 69367 ' 69377 ' 53119 ' 51630 ' 105 ' 18 ' 246 ' 59152 ' 1394 ' 2112 ' 151 ' 225 '
  pid = pNr + 100000
  Static lfdfl&
  Dim rsNa As New ADODB.Recordset, rsFa As New ADODB.Recordset, rsMo As New ADODB.Recordset
@@ -789,9 +789,17 @@ Public Function doPatvonMO(pNr&)
        Case "3.2.2.3.4.4":    rFa(UBound(rFa)).Nachname = FaStr(j).Text
        Case "3.2.2.3.4.3":    rFa(UBound(rFa)).Vorname = FaStr(j).Text
        Case "3.2.2.4.2": ' gibt es nur auf szn4
-           rFa(UBound(rFa)).VschBeg = CDate(Format$(FaStr(j).Text, "##\.##\.####"))
+           If FaStr(j).Text Like "20######" Then
+            rFa(UBound(rFa)).VschBeg = CDate(Format$(FaStr(j).Text, "####\.##\.##"))
+          Else
+            rFa(UBound(rFa)).VschBeg = CDate(Format$(FaStr(j).Text, "##\.##\.####"))
+           End If
        Case "3.2.2.4.3": ' gibt es nur auf wser
-            rFa(UBound(rFa)).VschEnd = CDate(Format$(FaStr(j).Text, "####\.##\.##")) '
+           If FaStr(j).Text Like "20######" Then
+            rFa(UBound(rFa)).VschEnd = CDate(Format$(FaStr(j).Text, "####\.##\.##"))
+           Else
+            rFa(UBound(rFa)).VschEnd = CDate(Format$(FaStr(j).Text, "##\.##\.####"))
+           End If
 '           rFa(UBound(rFa)).VschEnd = CDate(Left$(FaStr(j).Text, 4) & "." & Mid$(FaStr(j).Text, 5, 2) & "." & Mid$(FaStr(j).Text, 7, 2))
         Case "3.2.2.4.4.4": ' ist wieder auf beiden gleich
             rFa(UBound(rFa)).KKasse_2 = FaStr(j).Text
@@ -953,8 +961,7 @@ Public Function doPatvonMO(pNr&)
     Next jj
    End If
   Next j
- 
- 
+  
   
   Dim rsHa As New ADODB.Recordset, rslue  As New ADODB.Recordset
   ' -34 Überweiser, -40 Hausarzt, -32 Arzt
@@ -1027,7 +1034,7 @@ Public Function doPatvonMO(pNr&)
   myFrag rAbr, "SELECT FSurogat,FBetriebsnr FROM abrechner", adOpenStatic, MOCon ' AU
   Do While Not rAbr.EOF
    If SafeArrayGetDim(rab) = 0 Then ReDim rab(0) Else ReDim Preserve rab(UBound(rab) + 1)
-    rab(UBound(rab)).fS = rAbr!FSurogat
+    rab(UBound(rab)).fS = rAbr!fsurogat
     rab(UBound(rab)).BSNR = rAbr!FBetriebsnr
    rAbr.MoveNext
   Loop
@@ -1035,6 +1042,8 @@ Public Function doPatvonMO(pNr&)
   syscmd 4, "bearbeite Einträge"
   Dim art$, a1$, a2$, apos&, abz%
   Dim rsEi As New ADODB.Recordset
+  Dim rFoNeu%, FormAbk$, FormBez$, lFormID&, i&, nextFormID&, rFm_Nr&
+  Dim FoIDv& ' Pseudo-Foid
 '  FBehgrundnr>0: Diagnosen
 '   FStatus -32767: meist Eintrag, oder Notiz
 '                0: Diagnose oder Eintrag, 1: AU (=FEintragsart 19)
@@ -1057,6 +1066,104 @@ Public Function doPatvonMO(pNr&)
 '        FDurchfNutzernr immer -2147483647, FEintragsnr immer -2147483647
 '        FLstGerbNr 1,2 oder 4
   sql = _
+"SELECT 18900101+INTERVAL l.FDatum DAY+INTERVAL l.FZeit SECOND Zp, na.FUsername ua, nb.FUsername ub, l.*, IF(INSTR(FText,':') BETWEEN 1 AND 6,LEFT(FText,INSTR(FText,':')-1),'') art, IF(INSTR(FText,':') BETWEEN 1 AND 6,TRIM(MID(FText,INSTR(FText,':')+1)),FText) ename" & vbCrLf & _
+", COALESCE(CONVERT(b.FMemo USING latin1),'') CFMemo, b.*" & vbCrLf & _
+"FROM (SELECT l.*" & vbCrLf & _
+"FROM ltag l) l" & vbCrLf & _
+"LEFT JOIN nutzerneu na ON FAnordnutzernr= na.FSurogat" & vbCrLf & _
+"LEFT JOIN nutzerneu nb ON FAusfnutzernr= nb.FSurogat" & vbCrLf & _
+"LEFT JOIN beschein b ON b.FSurogat = l.FEintragsnr" & vbCrLf & _
+"WHERE NOT ISNULL(b.FSurogat)" & vbCrLf & _
+"AND l.fpatnr=" & pNr
+  myFrag rsEi, sql, adOpenStatic, MOCon
+  If Not rsEi.BOF Then
+   Do While Not rsEi.EOF
+    rFoNeu = -1
+    FormAbk = rsEi!FEintragsart
+    FormBez = rsEi!FText
+    For i = 1 To UBound(rFo)
+     If rFo(i).Form_Abk = FormAbk And rFo(i).FormBez = FormBez Then
+      rFoNeu = 0
+      lFormID = rFo(i).FormID
+      GoTo fgefunden
+     End If ' rFo(i).Form_Abk =
+    Next i ' = 1 To UBound(rFo)
+fgefunden:
+    If rFoNeu And Not obmitFormularen Then
+     Dim rsf As ADODB.Recordset
+     Call myFrag(rsf, "SELECT * FROM formulare WHERE Form_Abk='" & FormAbk & "' AND FormBez='" & FormBez & "' ORDER BY FormID", adOpenStatic)
+     If Not rsf.BOF Then
+      rFoNeu = 0
+      ReDim Preserve rFo(UBound(rFo) + 1)
+      rFo(UBound(rFo)).absPos = rsf!absPos
+      rFo(UBound(rFo)).aktZeit = rsf!aktZeit
+      rFo(UBound(rFo)).Form_Abk = IIf(IsNull(rsf!Form_Abk), vNS, rsf!Form_Abk)
+      rFo(UBound(rFo)).FormBez = rsf!FormBez
+      rFo(UBound(rFo)).FormID = rsf!FormID
+      lFormID = rsf!FormID
+      rFo(UBound(rFo)).StByte = rsf!StByte
+     End If ' Not rsf.BOF Then
+    End If ' rFoNeu And Not obmitFormularen Then
+    If rFoNeu Then
+     ReDim Preserve rFo(UBound(rFo) + 1)
+     rFo(UBound(rFo)).Form_Abk = FormAbk
+     rFo(UBound(rFo)).aktZeit = aktZeit
+     rFo(UBound(rFo)).FormBez = FormBez
+     If nextFormID = 0 Then nextFormID = -myEFrag("SELECT MAX(formid)+1 FROM formulare").Fields(0) Else nextFormID = nextFormID - 1
+     rFo(UBound(rFo)).FormID = nextFormID
+     ' rFo(UBound(rFo) - 1).FormID 1   ' muss noch in `forminhkopf` angpasst werden, wird deshalb dort negativ gespeichert
+     lFormID = rFo(UBound(rFo)).FormID
+     Call myFrag(rsf, "SELECT Form_AbkVW FROM forminhaltform_abk WHERE Form_Abk ='" & FormAbk & "' AND FormBez='" & FormBez & "'", adOpenStatic)
+     If rsf.BOF Then
+      InsKorr DBCn, "INSERT INTO forminhaltform_abk(Form_Abk,FormBez) VALUES('" & FormAbk & "','" & FormBez & "')", rAf
+     End If
+    End If ' rFoNeu Then
+    rFm_Nr = rFm_Nr + 1
+    
+    ReDim Preserve rFr(UBound(rFr) + 1)
+    rFr(UBound(rFr)).aktZeit = aktZeit
+    rFr(UBound(rFr)).Form_ID = lFormID '-lFormID ' negative Speicherung, da der Wert noch nach der Datenbankspeicherung von rFo angepaßt werden muss
+    rFr(UBound(rFr)).Pat_ID = pid
+    rFr(UBound(rFr)).Zeitpunkt = rsEi!Zp
+    rFr(UBound(rFr)).lanrid = IIf(rsEi!FLstgerbnr = 3, 2, 1) ' 2 = Schade, 3 = Kothny
+    If FoIDv = 0 Then
+     FoIDv = myEFrag("SELECT (COALESCE(MAX(foid))+1) mfoid FROM `forminhkopf`").Fields(0)
+    End If
+    rFr(UBound(rFr)).Foid = FoIDv ' Pseudo-Foid
+    FoIDv = FoIDv + 1
+    
+    ' FormVorl unbekannt
+    If rsEi!CFMemo <> "" Then
+     Dim mt$, mdat$
+     Call ParseMemo(rsEi!CFMemo, FMem(), obDebug, "FMemo aus beschein")
+     For j = 0 To UBound(FMem)
+      ReDim Preserve rFm(UBound(rFm) + 1)
+      rFm(UBound(rFm)).nr = rFm_Nr
+      rFm_Nr = rFm_Nr + 1
+      rFm(UBound(rFm)).Feld = FMem(j).ENr
+      mt = FMem(j).Text & String(4, Chr(0))
+      mdat = Asc(Mid(mt, 4, 1)) & "." & Asc(Mid(mt, 3, 1)) & "." & Asc(Mid(mt, 2, 1)) * 256 + Asc(mt)
+      If IsDate(mdat) Then
+       mt = mdat
+      Else
+       mt = Left$(mt, Len(mt) - 4)
+       Do
+        If LenB(mt) = 0 Then Exit Do
+        If Asc(Right$(mt, 1)) < 10 Then mt = Left$(mt, Len(mt) - 1) Else Exit Do ' 3 kommt auch vor
+       Loop
+       If Right$(mt, 1) = Chr$(10) Then mt = Left$(mt, Len(mt) - 1)
+      End If
+      rFm(UBound(rFm)).FeldInh = mt
+      rFm(UBound(rFm)).FeldNr = j
+      rFm(UBound(rFm)).Foid = FoIDv - 1 '-FoID 'negative Speicherung, da der Wert noch nach der Datenbankspeicherung von rFr angepaßt werden muss
+     Next j
+    End If ' rsEi!CFMemo <> "" Then
+    rsEi.MoveNext
+   Loop ' while not rsEi.EOF
+  End If ' Not rsEi.BOF Then
+
+
+  sql = _
 "SELECT" & vbCrLf & _
 "IF(INSTR(FDet,'Testid'),MID(FDet,LOCATE('Testid',FDet)+LENGTH('Testid')+2,LOCATE('""',FDet,LOCATE('Testid',FDet)+LENGTH('Testid')+2)-LOCATE('Testid',FDet)-LENGTH('Testid')-2),'') Testid," & vbCrLf & _
 "IF(INSTR(FDet,'Testname'),MID(FDet,LOCATE('Testname',FDet)+LENGTH('Testname')+2,LOCATE('""',FDet,LOCATE('Testname',FDet)+LENGTH('Testname')+2)-LOCATE('Testname',FDet)-LENGTH('Testname')-2),'') Testname," & vbCrLf & _
@@ -1067,7 +1174,8 @@ Public Function doPatvonMO(pNr&)
 "IF(INSTR(FDet,'(Einheit'),MID(FDet,LOCATE('(Einheit',FDet)+LENGTH('(Einheit')+2,LOCATE('""',FDet,LOCATE('(Einheit',FDet)+LENGTH('(Einheit')+2)-LOCATE('(Einheit',FDet)-LENGTH('(Einheit')-2),'') Einheit," & vbCrLf & _
 "IF(INSTR(FDet,'Testhinweis'),MID(FDet,LOCATE('Testhinweis',FDet)+LENGTH('Testhinweis')+2,LOCATE('""',FDet,LOCATE('Testhinweis',FDet)+LENGTH('Testhinweis')+2)-LOCATE('Testhinweis',FDet)-LENGTH('Testhinweis')-2),'') Testhinweis," & vbCrLf & _
 "18900101+INTERVAL FDatum DAY+INTERVAL FZeit SECOND Zp, na.FUsername ua, nb.FUsername ub, l.*, IF(INSTR(FText,':') BETWEEN 1 AND 6,LEFT(FText,INSTR(FText,':')-1),'') art, IF(INSTR(FText,':') BETWEEN 1 AND 6,TRIM(MID(FText,INSTR(FText,':')+1)),FText) ename " & vbCrLf & _
-"FROM (SELECT REPLACE(REPLACE(FDetails,'\n',' '),'\""','""') FDet, l.* FROM ltag l) l " & vbCrLf & _
+"FROM (SELECT REPLACE(REPLACE(FDetails,'\n',' '),'\""','""') FDet, l.* " & vbCrLf & _
+"FROM ltag l) l " & vbCrLf & _
 "LEFT JOIN nutzerneu na ON FAnordnutzernr= na.FSurogat " & vbCrLf & _
 "LEFT JOIN nutzerneu nb ON FAusfnutzernr= nb.FSurogat " & vbCrLf & _
 "WHERE l.fpatnr=" & pNr & " AND l.fStatus IN (2) AND FEintragsart IN (5) ORDER BY l.FSurogat, Zp;"
@@ -1491,6 +1599,7 @@ Public Function moausgeb(MOCon As ADODB.Connection, Tn$, obsyst%, Bedg$)
    raen.Open sql, MOCon, adOpenStatic, adLockReadOnly
    runde = 0 ' bei Versioning in Runde 0 die vorherigen Werte in wt() merken, in Runde 1 beide drucken
    Do While Not raen.EOF
+'    If Tn = "beschein" Then Stop
     If runde = 0 Then
      tr = MOCon.Execute("SELECT COUNT(0) FROM `" & Tn & "`").Fields(0)
      ausgb = Tn & " ("
@@ -1504,17 +1613,21 @@ Public Function moausgeb(MOCon As ADODB.Connection, Tn$, obsyst%, Bedg$)
     colZ = 0
     Do While Not rcol.EOF
  '    If Tn = "patstamm" And raen.Fields(colz + Offs).name = "FMemo" Then Stop
+'     If Tn = "beschein" And rcol.Fields(0) = "FMemo" Then Stop
      If colZ + Offs >= raen.Fields.COUNT Then Exit Do
      If runde = 0 Then
       If IsNull(raen.Fields(colZ + Offs)) Then Wt(colZ) = "NULL" Else Wt(colZ) = raen.Fields(colZ + Offs)
-     ElseIf Not IsNull(raen!vrs) Then ' wenn Datensatz nicht neu eingefügt wurde
+     End If ' runde = 0 Then
+     If (runde <> 0 And Not IsNull(raen!vrs)) Or _
+        (runde = 0 And IsNull(raen!vrs)) Then ' wenn Datensatz neu eingefügt wurde, Runde 0, sonst Runde 1
+'      If IsNull(raen!vrs) Then Stop
       If IsNull(raen.Fields(colZ + Offs)) Then ausgb = "NULL" Else ausgb = REPLACE$(REPLACE$(raen.Fields(colZ + Offs), Chr(10), ""), Chr(13), "<nl>")
-      If Not obsyst Or CStr(Wt(colZ)) <> CStr(IIf(IsNull(raen.Fields(colZ + Offs)), "NULL", raen.Fields(colZ + Offs))) Then
-'       If rcol.Fields(0) = "Fmemo" Then Stop
-       Print #220, rcol.Fields(0) & ": " & IIf(obsyst <> 0, Wt(colZ) & vbCrLf & " -> ", "") & Space$(Len(rcol.Fields(0)) - 2) & ausgb
+'      If rcol.Fields(0) = "FMemo" Then Stop
+      If Not obsyst Or runde = 0 Or CStr(Wt(colZ)) <> CStr(IIf(IsNull(raen.Fields(colZ + Offs)), "NULL", raen.Fields(colZ + Offs))) Then
+       Print #220, rcol.Fields(0) & ": " & IIf(runde = 0, "", IIf(obsyst <> 0, Wt(colZ) & vbCrLf & " -> ", "") & Space$(Len(rcol.Fields(0)) - 2)) & ausgb
        If raen.Fields(colZ + Offs).Type = adLongVarBinary Or raen.Fields(colZ + Offs).Type = adLongVarChar Then ' 205
         Dim wtcolz$, i&, pru%
-        For pru = 0 To IIf(obsyst <> 0, 1, 0)
+        For pru = 0 To IIf(obsyst <> 0 And runde <> 0, 1, 0)
          If pru = 0 Then
           wtcolz = Wt(colZ)
          Else
