@@ -811,6 +811,7 @@ Private Sub TabellenEntleeren_Click()
  Call AuswEnable
 End Sub ' TabellenEntleeren_Click
 
+' in ZurücksetzenLAktDat_Click, TabellenEntleeren_Click, obVglMitLetzterEinlesung_Click
 Private Function AuswEnable()
  Me.TabellenEntleeren.Enabled = True
  Me.ZurücksetzenLAktDat.Enabled = True

@@ -3314,7 +3314,7 @@ rEiVorb:
     rKh(UBound(rKh)).FID = rFa(UBound(rFa)).FID
     rKh(UBound(rKh)).aktZeit = aktZeit
    Case 6295 ' Formularabkürzung
-    FormAbk = rInhalt
+    FormAbk = rInhalt ' bei KH-Einweisung "kh"
 '    If FormAbk Like "uew" Then Stop
     Select Case rInhalt
      Case "DMPDTYP2", "DMPDTYP1", "DMPKHK", "DMPAB", "DMPCOPD", "DMPB2", "DMPK2", _
@@ -3540,24 +3540,45 @@ fgefunden:
         RezInhalt(UBound(RezInhalt)) = rInhalt
        End If ' rInhalt <> "-  -  -  -" Then
       End If ' Arra(0) = "medikament" Then else
-    Select Case FormBez
-     Case "Lang-Rezept"
-      If FormInh = "X" And Arra(0) = "Check2" Then
-        Select Case Arra(1)
-         Case "4"
-          auti(0) = 1
-         Case "5"
-          auti(1) = 1
-         Case "6"
-          auti(2) = 1
-        End Select
-       End If
-     Case "Rezept"
+    Select Case FormAbk
+     Case "kh"
       Select Case Arra(0)
-       Case "IV_MED_AUTIDEM"
-        auti(Arra(1) - 1) = FormInh
-       Case "IV_MED_ANZAHL"
-        anzl(Arra(1) - 1) = FormInh
+       Case "Check1"
+        If FormInh = "X" Then
+         Select Case Arra(1)
+          Case "1": rKh(UBound(rKh)).obNot = 1
+          Case "0": rKh(UBound(rKh)).obBeleg = 1
+         End Select
+        End If ' FormInh = "X" Then
+       Case "Befund"
+        If Arra(1) = "0" Then rKh(UBound(rKh)).Befund = FormInh Else rKh(UBound(rKh)).Befund = rKh(UBound(rKh)).Befund & FormInh
+       Case "BisMas"
+        If Arra(1) = "0" Then rKh(UBound(rKh)).BisMas = FormInh Else rKh(UBound(rKh)).BisMas = rKh(UBound(rKh)).BisMas & FormInh
+       Case "FraStel"
+        If Arra(1) = "0" Then rKh(UBound(rKh)).FraStel = FormInh Else rKh(UBound(rKh)).FraStel = rKh(UBound(rKh)).FraStel & FormInh
+       Case "MitBef"
+        If Arra(1) = "0" Then rKh(UBound(rKh)).MitBef = FormInh Else rKh(UBound(rKh)).MitBef = rKh(UBound(rKh)).MitBef & FormInh
+      End Select
+     Case Else
+      Select Case FormBez
+       Case "Lang-Rezept"
+        If FormInh = "X" And Arra(0) = "Check2" Then
+         Select Case Arra(1)
+          Case "4"
+           auti(0) = 1
+          Case "5"
+           auti(1) = 1
+          Case "6"
+           auti(2) = 1
+         End Select
+        End If ' FormInh = "X" And Arra(0) = "Check2" Then
+       Case "Rezept"
+        Select Case Arra(0)
+         Case "IV_MED_AUTIDEM"
+          auti(Arra(1) - 1) = FormInh
+         Case "IV_MED_ANZAHL"
+          anzl(Arra(1) - 1) = FormInh
+        End Select
       End Select
     End Select
     Select Case FormSp
@@ -4011,7 +4032,7 @@ fgefunden:
     Else ' rInhalt = "lar" Then
      keinEintrag = 0
      If rInhalt = "DiagTxt" Then
-      obEinweisung = True
+      obEinweisung = True ' kommt erst kurz vor Schluss der Einweisung
      Else ' rInhalt = "DiagTxt" Then
       obEinweisung = False
       ReDim Preserve rEi(UBound(rEi) + 1)
@@ -4914,7 +4935,7 @@ nachFehler:
  ausg1 = getfeldinhvw(eing.Value, AktByte)
 #Else
 ' ausg = DBCn.Execute("CALL getfeldinhvw('" & eing & "'," & AktByte & ")").Fields(0)
- ausg = myEFrag("CALL getfeldinhvw('" & eing & "'," & AktByte & ")").Fields(0)
+ ausg = myEFrag("CALL getfeldinhvw('" & REPLACE$(eing, "'", "''") & "'," & AktByte & ")").Fields(0)
  If ausg1 <> "" And ausg <> ausg1 Then Stop
 #End If
 #End If
@@ -5174,7 +5195,7 @@ nachformulare:
  Dim altesAufnDat As Date
 ' altesAufnDat = DBCn.Execute("SELECT kaufdat FROM namen WHERE pat_id=" & CStr(rNa(0).Pat_id)).Fields(0)
  altesAufnDat = myEFrag("select COALESCE((SELECT kaufdat FROM namen WHERE pat_id=" & CStr(rNa(0).Pat_ID) & "),0) i").Fields(0)
- myEFrag "UPDATE namen n LEFT JOIN (SELECT pat_id, MIN(bhfb) bhfb, MIN(fanf) fanf FROM faelle f GROUP BY pat_id) f ON n.pat_id=f.pat_id SET kAufDat=date(IF(fanf>bhfb,fanf,bhfb)) WHERE f.pat_id=" & CStr(rNa(0).Pat_ID), rAf
+ myEFrag "UPDATE namen n LEFT JOIN (SELECT pat_id, MIN(bhfb) bhfb, MIN(fanf) fanf FROM faelle f GROUP BY pat_id) f ON n.pat_id=f.pat_id SET kAufDat=DATE(IF(fanf>bhfb,fanf,bhfb)) WHERE f.pat_id=" & CStr(rNa(0).Pat_ID), rAf
  If rAf <> 0 Then
  ' nachzupruefen: 67794, 67795
 '  MsgBox "Fehler bei der Aufnahmedatumskorrektur" ' wenn das nie kommt, kann die vorige Zeile auskommentiert werden
