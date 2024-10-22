@@ -20,7 +20,7 @@ Function doFAnfFuell%(raFa As ADODB.Recordset, Optional obgroß%)
      End If
     End If
     If IsNull(raFa!Fanf) Or raFa!Fanf = CDate(0) Then
-     sql = "SELECT * FROM `eintraege` WHERE pat_id = " & CStr(raFa!Pat_id) & " AND zeitpunkt >= " & DatFor_k(Format$(raFa!BhFB, "DD.MM.YY")) & " "
+     sql = "SELECT * FROM `eintraege` WHERE pat_id = " & CStr(raFa!Pat_ID) & " AND zeitpunkt >= " & DatFor_k(Format$(raFa!BhFB, "DD.MM.YY")) & " "
      If Not IsNull(raFa!BhFE1) And raFa!BhFE1 <> CDate(0) Then
       sql = sql + " AND zeitpunkt <= " + DatFor_k(Format$(raFa!BhFE1, "DD.MM.YY")) & " "
      End If
@@ -38,11 +38,11 @@ Function doFAnfFuell%(raFa As ADODB.Recordset, Optional obgroß%)
      Else
       If Not IsNull(raFa!lVorl) And raFa!lVorl <> CDate(0) Then
        raFa!Fanf = raFa!lVorl
-      ElseIf raFa!Pat_id = 2 And raFa!Nachname Like "Muster*" Then
+      ElseIf raFa!Pat_ID = 2 And raFa!Nachname Like "Muster*" Then
        raFa!Fanf = #7/1/2004#
       Else
 '       Stop ' hartnäckiger Fall
-       syscmd acSysCmdSetStatus, "doFAnfFuell: für " & CStr(raFa!Pat_id) & " nur BhFB zu nehmen, hartnäckiger Fall"
+       syscmd acSysCmdSetStatus, "doFAnfFuell: für " & CStr(raFa!Pat_ID) & " nur BhFB zu nehmen, hartnäckiger Fall"
        raFa!Fanf = raFa!BhFB
       End If
      End If

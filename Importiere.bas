@@ -4935,7 +4935,7 @@ nachFehler:
  ausg1 = getfeldinhvw(eing.Value, AktByte)
 #Else
 ' ausg = DBCn.Execute("CALL getfeldinhvw('" & eing & "'," & AktByte & ")").Fields(0)
- ausg = myEFrag("CALL getfeldinhvw('" & REPLACE$(eing, "'", "''") & "'," & AktByte & ")").Fields(0)
+ ausg = myEFrag("CALL getfeldinhvw('" & REPLACE$(REPLACE$(eing, "\'", "\\'"), "'", "''") & "'," & AktByte & ")").Fields(0)
  If ausg1 <> "" And ausg <> ausg1 Then Stop
 #End If
 #End If

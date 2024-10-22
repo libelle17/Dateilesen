@@ -293,7 +293,7 @@ End Sub ' form_load
 
 Private Sub DateiBearbeiten_Click()
 ' Const XStra = "Provider=Microsoft.Jet.OLEDB.4.0;Data Source="
- Dim sql$, ka%, ke%, runde%, angefangen%, obAnfang%, rAF&
+ Dim sql$, ka%, ke%, runde%, angefangen%, obAnfang%, rAf&
  Dim rEx As New ADODB.Recordset, rs As New ADODB.Recordset
  Select Case FenArt
   Case 1
@@ -329,7 +329,7 @@ Private Sub DateiBearbeiten_Click()
       Set rsl = Nothing
       myFrag rsl, "SELECT COUNT(0) ct FROM `laborparameter` WHERE abkü = '" & UmwfSQL(rEx.Fields(0)) & "' AND langtext = '" & UmwfSQL(rEx.Fields(1)) & "' AND einheit = '" & UmwfSQL(rEx.Fields(2)) & "'"
       If rsl!ct = 1 Then
-       myEFrag "UPDATE `laborparameter` SET labor = '" & UmwfSQL(rEx.Fields(3)) & "' WHERE abkü = '" & UmwfSQL(rEx.Fields(0)) & "' AND langtext = '" & UmwfSQL(rEx.Fields(1)) & "' AND einheit = '" & UmwfSQL(rEx.Fields(2)) & "'", rAF
+       myEFrag "UPDATE `laborparameter` SET labor = '" & UmwfSQL(rEx.Fields(3)) & "' WHERE abkü = '" & UmwfSQL(rEx.Fields(0)) & "' AND langtext = '" & UmwfSQL(rEx.Fields(1)) & "' AND einheit = '" & UmwfSQL(rEx.Fields(2)) & "'", rAf
       ElseIf rsl!ct > 1 Then
        Stop
       End If
@@ -359,7 +359,7 @@ Private Sub DateiBearbeiten_Click()
 '           Call LeistungsExport0
            angefangen = True
           End If
-          Call PatTeste(rs!Pat_id)
+          Call PatTeste(rs!Pat_ID)
          End If ' rs.EOF Then
         End If ' ka > 0 And ke > 0 Then
        End If ' InStrB(rEx.Fields(2), "Es ist kein Bericht vorhanden") > 0 Then
@@ -399,16 +399,16 @@ End Select
 End Sub ' DateiBearbeiten_Click()
 
 ' aufgerufen in DateiBearbeiten_Click()
-Public Sub PatTeste(Pat_id&)
+Public Sub PatTeste(Pat_ID&)
  Dim rs As New ADODB.Recordset, rl As New ADODB.Recordset
  Dim BDT As New BDTSchreib
 ' Static obstart%
- myFrag rs, "SELECT 0 FROM `faelle` f LEFT JOIN `leistungen` l ON f.fid = l.fid WHERE f.pat_id = " & Pat_id & " AND leistung IN (01600,01601) AND quartal = '42007';"
+ myFrag rs, "SELECT 0 FROM `faelle` f LEFT JOIN `leistungen` l ON f.fid = l.fid WHERE f.pat_id = " & Pat_ID & " AND leistung IN (01600,01601) AND quartal = '42007';"
  If rs.EOF Then
   Set rs = Nothing
-  myFrag rs, "SELECT SchGr,FID FROM `faelle` f WHERE f.pat_id = " & Pat_id & " AND quartal = '42007'"
+  myFrag rs, "SELECT SchGr,FID FROM `faelle` f WHERE f.pat_id = " & Pat_ID & " AND quartal = '42007'"
   If rs.EOF Then
-   MsgBox "Stop in PatTeste: " & vbCrLf & "rs.EOF" & vbCrLf & "sql: " & sql & vbCrLf & "Pat_id: " & Pat_id
+   MsgBox "Stop in PatTeste: " & vbCrLf & "rs.EOF" & vbCrLf & "sql: " & sql & vbCrLf & "Pat_id: " & Pat_ID
    Stop
   ElseIf rs!SchGr <> "00" Then
 '   Debug.Print Pat_id
@@ -424,11 +424,11 @@ Public Sub PatTeste(Pat_id&)
    End If
    Call BDT.BDTKopf
    Open pVerz & "unkorrigiert\Nochzuschreiben.txt" For Append As #334
-   Print #334, Pat_id
+   Print #334, Pat_ID
    Close #334
 '   IF obstart THEN
 '    Call LeistungsExport1(BDT, Pat_id, "01601", Datum, CDate("18:00"))
-    Call LeistungsExport1(BDT, Pat_id, "40110", Datum, CDate("18:00"), , 0)
+    Call LeistungsExport1(BDT, Pat_ID, "40110", Datum, CDate("18:00"), , 0)
     '   END IF
   End If
  End If

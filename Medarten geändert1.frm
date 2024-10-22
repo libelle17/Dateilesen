@@ -1360,8 +1360,8 @@ Private Sub anaRS_MoveComplete(ByVal adReason As ADODB.EventReasonEnum, ByVal pE
    lblStatus.Caption = CStr(anaRS.AbsolutePosition)
    Call do_Form_Current_Medarten(Me)
    Dim rs As New ADODB.Recordset
-   If IsNumeric(anaRS!Pat_id) Then
-    myFrag rs, "SELECT CONCAT(IF(n.titel='','',CONCAT(n.titel,' ')), IF(n.nvorsatz='','',CONCAT(n.nvorsatz,' ')), n.nachname,',',n.vorname) Name FROM `namen` n WHERE pat_id = " & anaRS!Pat_id
+   If IsNumeric(anaRS!Pat_ID) Then
+    myFrag rs, "SELECT CONCAT(IF(n.titel='','',CONCAT(n.titel,' ')), IF(n.nvorsatz='','',CONCAT(n.nvorsatz,' ')), n.nachname,',',n.vorname) Name FROM `namen` n WHERE pat_id = " & anaRS!Pat_ID
     If Not rs.BOF Then
      Me.PName = rs!name
     End If ' Not rs.BOF Then

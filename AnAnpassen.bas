@@ -72,14 +72,14 @@ Function AnTrennZeichen()
  G4(17) = "aktuellen Blutdruck und"
  
  For i = 1 To UBound(rEi)
-  Select Case rEi(i).Art
+  Select Case rEi(i).art
    Case "anal", "andm", "usal", "usdm", "usdm1", "usdm2"
     H0.Clear
     h1.Clear
     H0 = rEi(i).Inhalt
     midakt = 1
   End Select
-  Select Case rEi(i).Art
+  Select Case rEi(i).art
    Case "anal"
     For j = 0 To UBound(G1)
      midnext = H0.Instr(G1(j))
@@ -117,9 +117,9 @@ Function AnTrennZeichen()
      midakt = midnext
     Next j
   End Select
-  Select Case rEi(i).Art
+  Select Case rEi(i).art
    Case "anal", "andm", "usal", "usdm", "usdm1", "usdm2"
-    If rEi(i).Art <> "usdm" Or h1 = "" Then h1.Append H0.Mid(midakt) ' OR h1="" 10.11.19 wg. PID 52832
+    If rEi(i).art <> "usdm" Or h1 = "" Then h1.Append H0.Mid(midakt) ' OR h1="" 10.11.19 wg. PID 52832
     rEi(i).Inhalt = h1
   End Select
  Next i
@@ -147,7 +147,7 @@ Function dmpErg()
  Dim Wert$()
  Dim p1&, pe1&, p2&, p2t&, j&, k&, m&, rFai&, WertLen&, npe1k& ' Index auf trz zur Bestimmung der nächsten Trennzeichenlänge für pe1
  For j = 1 To UBound(rEi)
-  If rEi(j).Art = "dmperg" Then
+  If rEi(j).art = "dmperg" Then
    Call Kusd(trz, Wert, j)
    
    rFai = 0
@@ -428,7 +428,7 @@ Function KernUsd(ByRef trz, ByRef Wert$(), j&)
       Wert(k) = Trim$(Mid$(rEi(j).Inhalt, pe1, WertLen))
       Offs(k) = pe1
      Else
-      If rEi(j).Art <> "vkgd" Then
+      If rEi(j).art <> "vkgd" Then
        MsgBox "Unerwarteter Zustand in KernUsd: rEi(" & j & ").art <> 'vkgd' (" & rEi(j).vkgd & ")"
       End If
       p2 = p1 ' wenn eins ausgelassen war, dann das darauf folgende noch berücksichtigen
@@ -483,10 +483,10 @@ End Function ' kernusd
 #End If 'false
 
 Function rUsRest(j&)
-   rUs(UBound(rUs)).Pat_id = rEi(j).Pat_id
+   rUs(UBound(rUs)).Pat_ID = rEi(j).Pat_ID
    rUs(UBound(rUs)).FID = rEi(j).FID
    rUs(UBound(rUs)).Zeitpunkt = rEi(j).Zeitpunkt
-   rUs(UBound(rUs)).Art = rEi(j).Art
+   rUs(UBound(rUs)).art = rEi(j).art
    rUs(UBound(rUs)).absPos = rEi(j).absPos
    rUs(UBound(rUs)).QS = rEi(j).QS
    rUs(UBound(rUs)).QT = rEi(j).QT
@@ -494,10 +494,10 @@ Function rUsRest(j&)
    rUs(UBound(rUs)).aktZeit = rEi(j).aktZeit
 End Function ' rUsRest
 Function rFuRest(j&)
-   rFu(UBound(rFu)).Pat_id = rEi(j).Pat_id
+   rFu(UBound(rFu)).Pat_ID = rEi(j).Pat_ID
    rFu(UBound(rFu)).FID = rEi(j).FID
    rFu(UBound(rFu)).Zeitpunkt = rEi(j).Zeitpunkt
-   rFu(UBound(rFu)).Art = rEi(j).Art
+   rFu(UBound(rFu)).art = rEi(j).art
    rFu(UBound(rFu)).absPos = rEi(j).absPos
    rFu(UBound(rFu)).QS = rEi(j).QS
    rFu(UBound(rFu)).QT = rEi(j).QT
@@ -505,7 +505,7 @@ Function rFuRest(j&)
    rFu(UBound(rFu)).aktZeit = rEi(j).aktZeit
 End Function ' rUsRest
 Function rVkRest(j&)
-   rVk(UBound(rVk)).Pat_id = rEi(j).Pat_id
+   rVk(UBound(rVk)).Pat_ID = rEi(j).Pat_ID
    rVk(UBound(rVk)).FID = rEi(j).FID
    rVk(UBound(rVk)).Zeitpunkt = rEi(j).Zeitpunkt
 '   rvk(UBound(rvk)).Art = rEi(j).Art
@@ -516,7 +516,7 @@ Function rVkRest(j&)
    rVk(UBound(rVk)).aktZeit = rEi(j).aktZeit
 End Function ' rUsRest
 Function rUlRest(j&)
-   rUl(UBound(rUl)).Pat_id = rEi(j).Pat_id
+   rUl(UBound(rUl)).Pat_ID = rEi(j).Pat_ID
    rUl(UBound(rUl)).FID = rEi(j).FID
    rUl(UBound(rUl)).Zeitpunkt = rEi(j).Zeitpunkt
 '   rUl(UBound(rUl)).Art = rEi(j).Art
@@ -551,7 +551,7 @@ Function usdm0()
              "aktuellen Blutdruck und ggf. Puls bitte extra eingeben; Mitarbeiter:", "")
              
  For j = 1 To UBound(rEi)
-  If rEi(j).Art = "usdm" Then
+  If rEi(j).art = "usdm" Then
    If rUs(UBound(rUs)).absPos <> 0 Or UBound(rUs) = 0 Then ReDim Preserve rUs(UBound(rUs) + 1)
    Dim Wert$()
 '   IF j = 198 THEN Stop ' Pid 1115
@@ -636,7 +636,7 @@ Function usdm1()
              ", Puls Adp.(Fußrü): re:", ", li:", _
              ", Mitarbeiter:", "")
  For j = 1 To UBound(rEi)
-  If rEi(j).Art = "usdm1" Then
+  If rEi(j).art = "usdm1" Then
    If rUs(UBound(rUs)).absPos <> 0 Or UBound(rUs) = 0 Then ReDim Preserve rUs(UBound(rUs) + 1)
    Dim Wert$()
    Call Kusd(trz, Wert, j)
@@ -711,7 +711,7 @@ Function usdm2()
              "; Puls Adp.(Fußrü): re:", "; li:", _
              "; Mitarbeiter:", "")
  For j = 1 To UBound(rEi)
-  If rEi(j).Art = "usdm2" Then
+  If rEi(j).art = "usdm2" Then
    If rUs(UBound(rUs)).absPos <> 0 Or UBound(rUs) = 0 Then ReDim Preserve rUs(UBound(rUs) + 1)
    Dim Wert$()
    Call Kusd(trz, Wert, j)
@@ -771,7 +771,7 @@ Function USfuss()
              "Wundinfektion:", "nä US:", _
              "Mitarbeiter:", "")
  For j = 1 To UBound(rEi)
-  If rEi(j).Art = "fuß" And rEi(j).Zeitpunkt > #7/17/2017 8:00:00 AM# Then
+  If rEi(j).art = "fuß" And rEi(j).Zeitpunkt > #7/17/2017 8:00:00 AM# Then
    If rFu(UBound(rFu)).absPos <> 0 Or UBound(rFu) = 0 Then ReDim Preserve rFu(UBound(rFu) + 1)
    Dim Wert$()
    Call Kusd(trz, Wert, j)
@@ -818,7 +818,7 @@ Function usVKGD()
              "; (", "")
 '             Debug.Print UBound(trz)
  For j = 1 To UBound(rEi)
-  If rEi(j).Art = "vkgd" Then
+  If rEi(j).art = "vkgd" Then
    If rVk(UBound(rVk)).absPos <> 0 Or UBound(rVk) = 0 Then ReDim Preserve rVk(UBound(rVk) + 1)
    Dim Wert$()
    Call Kusd(trz, Wert, j)
@@ -865,7 +865,7 @@ Function usVKGD2()
              "; (", "")
 '             Debug.Print UBound(trz)
  For j = 1 To UBound(rEi)
-  If rEi(j).Art = "vkgd2" Then
+  If rEi(j).art = "vkgd2" Then
    If rVk(UBound(rVk)).absPos <> 0 Or UBound(rVk) = 0 Then ReDim Preserve rVk(UBound(rVk) + 1)
    Dim Wert$()
    Call Kusd(trz, Wert, j)
@@ -913,7 +913,7 @@ Function USUlcus()
              "Mitarbeiter:", "")
 '             Debug.Print UBound(trz)
  For j = 1 To UBound(rEi)
-  If rEi(j).Art = "ulcus" Then
+  If rEi(j).art = "ulcus" Then
    If rUl(UBound(rUl)).absPos <> 0 Or UBound(rUl) = 0 Then ReDim Preserve rUl(UBound(rUl) + 1)
    Dim Wert$()
    Call Kusd(trz, Wert, j)
@@ -964,7 +964,7 @@ Function USUlcusa()
              "Mitarbeiter:", "")
 '             Debug.Print UBound(trz)
  For j = 1 To UBound(rEi)
-  If rEi(j).Art = "ulcus" Then
+  If rEi(j).art = "ulcus" Then
    If rUl(UBound(rUl)).absPos <> 0 Or UBound(rUl) = 0 Then ReDim Preserve rUl(UBound(rUl) + 1)
    Dim Wert$()
    Call Kusd(trz, Wert, j)
@@ -1016,7 +1016,7 @@ Function AnAlle() ' -> im Menü als "Anamnesedatenblatt -> Anamnesen ergänzen"
  Call usAl
 'Jetzt noch Größe und Gewicht ggf. nachtragen
  For j = 1 To UBound(rEi)
-  Select Case UCase$(rEi(j).Art)
+  Select Case UCase$(rEi(j).art)
    Case "GROESSE", "GRÖSSE", "GRÖßE"
     If rsAnm.Fields(16) = 0 Or IsNull(rsAnm.Fields(16)) Then ' Größe 6.3.13
      zurZahl = vNS
@@ -1581,7 +1581,7 @@ Function do_anImp(imin%, imax%, tr$(), Fd$(), makro$, Optional tfd1, Optional tf
 ' rEi.Seek "=", Pat_id, makro
  If Not kDB Then
   For i = 1 To UBound(rEi)
-   If rEi(i).Art = makro Then
+   If rEi(i).art = makro Then
     im = i
     Exit For
    End If
@@ -1616,7 +1616,7 @@ Function do_anImp(imin%, imax%, tr$(), Fd$(), makro$, Optional tfd1, Optional tf
    sp(0) = rEi(im).Inhalt
   Else
    Dim rEin As New ADODB.Recordset
-   myFrag rEin, "SELECT zeitpunkt,inhalt FROM `eintraege` WHERE art = """ & makro & """ AND pat_id = " & rNa(0).Pat_id & " ORDER BY zeitpunkt DESC;"
+   myFrag rEin, "SELECT zeitpunkt,inhalt FROM `eintraege` WHERE art = """ & makro & """ AND pat_id = " & rNa(0).Pat_ID & " ORDER BY zeitpunkt DESC;"
    If Not rEin.BOF Then
     sp(0) = rEin!Inhalt
     AbIDate = rEin!Zeitpunkt
@@ -1998,7 +1998,7 @@ If Err.Number = -2147217887 Then ' Das Feld ist zu klein für die Datenmenge, die
 '    Call myEFrag("UPDATE `anamnesebogen` SET " & "`" & SpName & "`" & " = """ & replace$(NeuInh, """", """""") & """ WHERE pat_id = " & rNa(0).Pat_id, AfN)
 '   END IF
    If Not SpMod(Len(NeuInh), "anamnesebogen", rsc, NeuInh) Then ' dann Memo-Feld
-    Call myEFrag("UPDATE `anamnesebogen` SET `" & SpName & "` = """ & REPLACE$(NeuInh, """", """""") & """ WHERE pat_id = " & rNa(0).Pat_id, AfN)
+    Call myEFrag("UPDATE `anamnesebogen` SET `" & SpName & "` = """ & REPLACE$(NeuInh, """", """""") & """ WHERE pat_id = " & rNa(0).Pat_ID, AfN)
    End If
    If rsAnm.State = 0 Then myFrag rsAnm, ZCStr, adOpenStatic, DBCn, adLockOptimistic
    MerkNeuInh = NeuInh
@@ -2008,7 +2008,7 @@ If Err.Number = -2147217887 Then ' Das Feld ist zu klein für die Datenmenge, die
  Loop
 End If
 If rsAnm.State = 0 Then
- myFrag rsAnm, "SELECT * FROM `anamnesebogen` WHERE pat_id = " & rNa(0).Pat_id, adOpenStatic, DBCn, adLockOptimistic
+ myFrag rsAnm, "SELECT * FROM `anamnesebogen` WHERE pat_id = " & rNa(0).Pat_ID, adOpenStatic, DBCn, adLockOptimistic
  Resume
 End If
 Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in do_anImp/" + AnwPfad)
@@ -2107,7 +2107,7 @@ Function MachNumerisch#(ByVal ST$, Optional erstDatum%)
         Case "87, im Dezember 93"
          ST = "87"
         Case Else
-         Err.Raise 999, , "Unbehandelter Fall in machnumerisch: " & stor & " bei Pat.: " & rNa(0).Pat_id
+         Err.Raise 999, , "Unbehandelter Fall in machnumerisch: " & stor & " bei Pat.: " & rNa(0).Pat_ID
          MsgBox stneu & " nicht numerisch zu bekommen (machmumerisch)"
          ST = "0"
        End Select

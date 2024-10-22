@@ -137,51 +137,51 @@ Private Sub Form_Unload(Cancel As Integer)
  cR.WriteKey Istgleich, IstGleich_Schl, RegPos, HKEY_CURRENT_USER, REG_SZ
 End Sub ' Form_Unload(Cancel As Integer)
 
-Private Sub Option1_KeyDown(keycode As Integer, Shift As Integer)
- KeyDown keycode
+Private Sub Option1_KeyDown(KeyCode As Integer, Shift As Integer)
+ KeyDown KeyCode
 End Sub ' Option1_KeyDown(keycode As Integer, Shift As Integer)
 
-Private Sub IstGleich_KeyDown(keycode As Integer, Shift As Integer)
- KeyDown keycode
+Private Sub IstGleich_KeyDown(KeyCode As Integer, Shift As Integer)
+ KeyDown KeyCode
 End Sub ' IstGleich_KeyDown(keycode As Integer, Shift As Integer)
 
 Private Sub Abbruch_Click()
  Unload Me
 End Sub ' Abbruch_Click()
 
-Private Sub KeyDown(keycode%)
- If keycode = 27 Then
+Private Sub KeyDown(KeyCode%)
+ If KeyCode = 27 Then
   Call Abbruch_Click
  End If
 End Sub
 
-Private Sub Form_KeyDown(keycode As Integer, Shift As Integer)
- KeyDown keycode
+Private Sub Form_KeyDown(KeyCode As Integer, Shift As Integer)
+ KeyDown KeyCode
 End Sub
 
-Private Sub MOServer_KeyDown(keycode As Integer, Shift As Integer)
- KeyDown keycode
+Private Sub MOServer_KeyDown(KeyCode As Integer, Shift As Integer)
+ KeyDown KeyCode
 End Sub
 
-Private Sub Pat_ID_KeyDown(keycode As Integer, Shift As Integer)
- KeyDown keycode
+Private Sub Pat_ID_KeyDown(KeyCode As Integer, Shift As Integer)
+ KeyDown KeyCode
 End Sub
 
 
-Private Sub SuchString_KeyDown(keycode As Integer, Shift As Integer)
- KeyDown keycode
+Private Sub SuchString_KeyDown(KeyCode As Integer, Shift As Integer)
+ KeyDown KeyCode
 End Sub
 
-Private Sub SuchArt_KeyDown(keycode As Integer, Shift As Integer)
- KeyDown keycode
+Private Sub SuchArt_KeyDown(KeyCode As Integer, Shift As Integer)
+ KeyDown KeyCode
 End Sub
 
-Private Sub Start_KeyDown(keycode As Integer, Shift As Integer)
- KeyDown keycode
+Private Sub Start_KeyDown(KeyCode As Integer, Shift As Integer)
+ KeyDown KeyCode
 End Sub
 
-Private Sub Abbruch_KeyDown(keycode As Integer, Shift As Integer)
- KeyDown keycode
+Private Sub Abbruch_KeyDown(KeyCode As Integer, Shift As Integer)
+ KeyDown KeyCode
 End Sub
 
 Private Sub Start_Click()

@@ -475,7 +475,7 @@ Dim fgespei%(MTBeg To MTMax) ' Farbe gespeichert
 Private Declare Sub Sleep Lib "kernel32" (ByVal ms&)
 Dim KeyC%
 Dim SuchStr$
-Dim aktc&, aktr&, altR&, alttop&, altC&
+Dim aktc&, aktr&, altr&, alttop&, altC&
 Enum BogArtTyp
  typ1neu = 1
  typ2neu
@@ -695,7 +695,7 @@ Public Sub TopAusricht()
   FNr = 4
   With MFG
     On Error Resume Next
-    If .Row - altR > (.Height / .CellHeight * 0.9) Then
+    If .Row - altr > (.Height / .CellHeight * 0.9) Then
      .TopRow = .Row - 1
     End If
   End With
@@ -878,7 +878,7 @@ Sub GesZF()
  Datei = uVerz & "tmimport\" & "DMP_Import_" & Format(Now(), "yyyy-mm-dd_hh-mm-ss") & ".BDT"
  For i = 1 To GesColl.COUNT
   With MFG
-   altR = .Row
+   altr = .Row
    VorDoku = .TextMatrix(i, VorDokuSp)
    NachN = .TextMatrix(i, NachNameSp)
    VorN = .TextMatrix(i, NachNameSp + 1)
@@ -887,7 +887,7 @@ Sub GesZF()
    .col = NachNameSp
    callMachDMPBogen GesColl(i), NachN, VorN, .CellBackColor = vbWhite, .CellBackColor = HellRot, .TextMatrix(i, ICDSp), False, immeranhaeng, True, Datei
    .col = altC
-   .Row = altR
+   .Row = altr
   End With ' MFG
   immeranhaeng = True
  Next i
@@ -1050,7 +1050,7 @@ Private Sub DokuBeliebig() ' Doku zu beliebigem Patienten
    If IsNumeric(erg) Then
     With MFG
      alttop = .TopRow
-     altR = .Row
+     altr = .Row
      Call MFG_leavecell
      If erg = .TextMatrix(.Row, DPatIDSp) Then VorDoku = .TextMatrix(.Row, VorDokuSp)
      NachN = .TextMatrix(.Row, NachNameSp)
@@ -1061,7 +1061,7 @@ Private Sub DokuBeliebig() ' Doku zu beliebigem Patienten
      .col = altC
      FNr = 9
      .SetFocus
-     For aktr = altR + 1 To .Rows - 1
+     For aktr = altr + 1 To .Rows - 1
       .Row = aktr
       .col = NachNameSp
       If .CellBackColor = DunkelRot Or .CellBackColor = HellRot Then ' Hellrot eingefügt 3.10.24
@@ -1086,7 +1086,7 @@ Public Sub Nächster()
   MFG.SetFocus
   If MFG.Row < MFG.Rows - 1 Then
    alttop = MFG.TopRow
-   altR = MFG.Row
+   altr = MFG.Row
    Call MFG_leavecell
    aktr = MFG.Row + 1
    MFG.Row = aktr
@@ -1100,7 +1100,7 @@ Public Sub Voriger()
   MFG.SetFocus
   If MFG.Row > 1 Then
    alttop = MFG.TopRow
-   altR = MFG.Row
+   altr = MFG.Row
    Call MFG_leavecell
    aktr = MFG.Row - 1
    MFG.Row = aktr
@@ -1117,7 +1117,7 @@ Public Sub NächsterGleichartiger()
  aktZA = getBogArtTyp
  With MFG
   alttop = .TopRow
-  altR = .Row
+  altr = .Row
   Call MFG_leavecell
   For aktr = .Row + 1 To .Rows - 1
    .Row = aktr
@@ -1127,7 +1127,7 @@ Public Sub NächsterGleichartiger()
     Exit Sub
    End If
   Next
-  .Row = altR
+  .Row = altr
   Call mfg_entercell
  End With
  
@@ -1176,7 +1176,7 @@ Public Sub FertigStellen(zeile&, Optional nuranzeigen%, Optional PatID&) ' nachd
  With MFG
   .SetFocus
   alttop = .TopRow
-  altR = zeile
+  altr = zeile
 '  altC = .col
   If PatID <> 0 Then
    Pat_ID = PatID
@@ -1467,7 +1467,7 @@ Public Sub dokuErstelle() ' Erstelle
    With MFG
     .SetFocus
     alttop = .TopRow
-    altR = .Row
+    altr = .Row
     VorDoku = .TextMatrix(.Row, VorDokuSp)
     Pat_ID = .TextMatrix(.Row, PIDSp)
     NachN = .TextMatrix(.Row, NachNameSp)
@@ -1621,7 +1621,7 @@ Private Sub Command2_Click()
 #If True Then
      With MFG
       alttop = .TopRow
-      altR = .Row
+      altr = .Row
       altC = .col
       VorDoku = .TextMatrix(.Row, VorDokuSp)
       Pat_ID = .TextMatrix(.Row, PIDSp)
@@ -2340,7 +2340,7 @@ Public Sub domachDMPBogen(Pat_ID&, BogArtlV As BogArtTyp, DokuDat As Date, Optio
    If rkvber.State = 0 Then
     kvbereich = "71"
    ElseIf Not rkvber.BOF Then
-    kvbereich = rkvber!kv
+    kvbereich = rkvber!KV
    Else
     kvbereich = "71"
    End If
@@ -2601,8 +2601,8 @@ Public Sub domachDMPBogen(Pat_ID&, BogArtlV As BogArtTyp, DokuDat As Date, Optio
     SendStr = SendStr & IIf(aktDC.mau = ndok, " ", "") & "{TAB}" & IIf(aktDC.mau = auff, " ", "") & "{TAB}" & IIf(aktDC.mau = unauff, " ", "") & "{TAB 2}"
     SendStr = SendStr & Format$(aktDC.hypoZAn, "00") & "0000"
     SendStr = SendStr & IIf(aktDC.oblaser, " {TAB 2}", "{TAB} {TAB}")
-    SendStr = SendStr & IIf(aktDC.obIns, IIf(aktDC.tart <> csii, "{TAB} {TAB 2}", "{TAB 3} "), " {TAB 3}") & "{TAB}"
-    SendStr = SendStr & IIf(aktDC.obAnal, IIf(aktDC.tart <> csii, "{TAB} {TAB 2}", "{TAB 3} "), " {TAB 3}") & "{TAB}"
+    SendStr = SendStr & IIf(aktDC.obIns, IIf(aktDC.tart <> CSII, "{TAB} {TAB 2}", "{TAB 3} "), " {TAB 3}") & "{TAB}"
+    SendStr = SendStr & IIf(aktDC.obAnal, IIf(aktDC.tart <> CSII, "{TAB} {TAB 2}", "{TAB 3} "), " {TAB 3}") & "{TAB}"
     SendStr = SendStr & IIf(aktDC.obHMG, " {TAB}", "{TAB}")
     SendStr = SendStr & IIf(aktDC.obAntihyp, " {TAB}", "{TAB}")
     SendStr = SendStr & IIf(aktDC.obThro, " {TAB}", "{TAB}")
@@ -2650,8 +2650,8 @@ Public Sub domachDMPBogen(Pat_ID&, BogArtlV As BogArtTyp, DokuDat As Date, Optio
     SendStr2 = SendStr2 & IIf(aktDC.mau = ndok, " ", "") & "{TAB}" & IIf(aktDC.mau = auff, " ", "") & "{TAB}" & IIf(aktDC.mau = unauff, " ", "") & "{TAB 2}"
     SendStr2 = SendStr2 & Format$(aktDC.hypoZAn, "0") & "00"
     SendStr2 = SendStr2 & IIf(aktDC.oblaser, " {TAB 2}", "{TAB} {TAB}")
-    SendStr2 = SendStr2 & IIf(aktDC.obIns, IIf(aktDC.tart <> csii, "{TAB} {TAB 2}", "{TAB 3} "), " {TAB 3}") & "{TAB}"
-    SendStr2 = SendStr2 & IIf(aktDC.obAnal, IIf(aktDC.tart <> csii, "{TAB} {TAB 2}", "{TAB 3} "), " {TAB 3}") & "{TAB}"
+    SendStr2 = SendStr2 & IIf(aktDC.obIns, IIf(aktDC.tart <> CSII, "{TAB} {TAB 2}", "{TAB 3} "), " {TAB 3}") & "{TAB}"
+    SendStr2 = SendStr2 & IIf(aktDC.obAnal, IIf(aktDC.tart <> CSII, "{TAB} {TAB 2}", "{TAB 3} "), " {TAB 3}") & "{TAB}"
     SendStr2 = SendStr2 & IIf(aktDC.obHMG, " {TAB}", "{TAB}")
     SendStr2 = SendStr2 & IIf(aktDC.obAntihyp, " {TAB}", "{TAB}")
     SendStr2 = SendStr2 & IIf(aktDC.obThro, " {TAB}", "{TAB}")
@@ -3100,16 +3100,16 @@ Sub LabordateiAnzeig(Datei$)
 '   .TextMatrix(i, wertsp) = Left$(.TextMatrix(i, wertsp), pos - 1)
 '  END IF
   
-  If altPatient = rs!patient Then
+  If altPatient = rs!Patient Then
    .TextMatrix(i, namsp) = .TextMatrix(i - 1, namsp)
    .TextMatrix(i, Pat_IDSp) = .TextMatrix(i - 1, Pat_IDSp)
    .TextMatrix(i, terminsp) = .TextMatrix(i - 1, terminsp)
    GoTo andSp
   Else ' altPatient = rs!patient THEN
    pid = 0
-   .TextMatrix(i, namsp) = rs!patient
+   .TextMatrix(i, namsp) = rs!Patient
    Set rs1 = Nothing
-   sql = "FROM `namen` WHERE TRIM(CONCAT(titel,' ',vorname,' ',nvors, IF(nvors='','',' '),nachname)) = '" & UmwfSQL(rs!patient) & "'"
+   sql = "FROM `namen` WHERE TRIM(CONCAT(titel,' ',vorname,' ',nvors, IF(nvors='','',' '),nachname)) = '" & UmwfSQL(rs!Patient) & "'"
    myFrag rs1, "SELECT COUNT(0) ct " & sql
    If rs1!ct > 0 Then
     Set rs2 = Nothing
@@ -3369,7 +3369,7 @@ gs:
    End If ' rs!ct = 0
 mehrdeutig:
   End If ' altPatient = rs!patient THEN
-  altPatient = rs!patient
+  altPatient = rs!Patient
   i = i + 1
   rs.Move 1
  Loop
@@ -4326,7 +4326,7 @@ Private Sub Command1_KeyDown(Index As Integer, KeyCode As Integer, Shift As Inte
 End Sub ' Command1_KeyDown
 
 Private Sub MFG_MouseMove(Button As Integer, Shift As Integer, x As Single, Y As Single)
- Dim rs As New ADODB.Recordset, obbez%, altR&, altC&
+ Dim rs As New ADODB.Recordset, obbez%, altr&, altC&
  Static altMCol&, altMRow&
  On Error GoTo fehler
  With Me.MFG
@@ -4338,7 +4338,7 @@ Private Sub MFG_MouseMove(Button As Integer, Shift As Integer, x As Single, Y As
   Case artpat
    If .MouseCol > 0 And .MouseCol <= .cols And .MouseRow > 0 And .MouseRow <= .Rows Then
     altC = .col
-    altR = .Row
+    altr = .Row
     .col = NachNameSp
     .Row = .MouseRow
     If .CellBackColor = HellRot Then
@@ -4366,7 +4366,7 @@ Private Sub MFG_MouseMove(Button As Integer, Shift As Integer, x As Single, Y As
 '     End If ' rDPat.Supports(adSeek) Then
     End If ' .CellBackColor
     .col = altC
-    .Row = altR
+    .Row = altr
    End If ' .MouseCol > 0 And .MouseCol <= .cols And .MouseRow > 0 And .MouseRow <= .Rows Then
   Case artLPar
    altrow = .Row
