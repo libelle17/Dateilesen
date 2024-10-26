@@ -229,7 +229,7 @@ End Sub ' abhaken_Click
 
 Private Sub inTurbomedAnzeigen_Click() ' in Turbomed anzeigen
  Const obStumm% = 0
- Dim hnd&, Pat_ID& ' , dtyp%, alttop&, altr&
+ Dim hnd&, Pat_id& ' , dtyp%, alttop&, altr&
  Const Pat_IDSp& = 1
 ' Dim DT As DMPClass, j%
 ' Dim rTyp As New ADODB.Recordset
@@ -239,7 +239,7 @@ Private Sub inTurbomedAnzeigen_Click() ' in Turbomed anzeigen
 '  alttop = .TopRow
 '  altr = .Row
 '  altC = .col
-  Pat_ID = .TextMatrix(.Row, Pat_IDSp)
+  Pat_id = .TextMatrix(.Row, Pat_IDSp)
 '  .col = altC
  End With
 ' Call DMPAusgeb0(dt, Pat_id, Not obstumm)
@@ -265,7 +265,7 @@ Private Sub inTurbomedAnzeigen_Click() ' in Turbomed anzeigen
 '  Pause (Pausenlänge)
   SendKeys "p", True
   Pause (Pausenlänge)
-  SendKeys "" & "{bs}" & Pat_ID & "", True
+  SendKeys "" & "{bs}" & Pat_id & "", True
   Pause (Pausenlänge)
   SendKeys "{ENTER}", True
   Pause (Pausenlänge)

@@ -71,7 +71,7 @@ Sub HAzählen()
   While Not pa.EOF
  '  HA.FindFirst "KVNr = '" & pa!HANr & "'"
    Set HA = Nothing
-'   Call HA.Open("SELECT * FROM `hae` WHERE kvnr = '" & Left$(Replace$(pa!KVNr, "/", ""), 7) & "'", DBCn, adOpenDynamic, adLockOptimistic)
+'   Call HA.Open("SELECT * FROM `hae` WHERE kvnr = '" & Left$(replace$(pa!KVNr, "/", ""), 7) & "'", DBCn, adOpenDynamic, adLockOptimistic)
    myFrag HA, "SELECT * FROM `hae` WHERE kvnr = '" & Left$(REPLACE$(pa!KVNr, "/", ""), 7) & "'"
    If IsNull(pa!HANr) Or pa!HANr = vNS Then
     Na = Na + 1

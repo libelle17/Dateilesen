@@ -249,7 +249,7 @@ Sub HAVerbinde(Optional db$)
  On Error GoTo fehler
  If Not HACn Is Nothing Then Set HACn = Nothing
 ' HACnS = DBCnS
- HACn.Open DBCn.Properties![Extended Properties] ' HACnS ' DBCn.ConnectionString
+ HACn.Open DBCn.Properties![extended properties] ' HACnS ' DBCn.ConnectionString
  If LenB(db) = 0 Then db = HADBName
  For i = 1 To 2
   If i = 1 Then On Error Resume Next

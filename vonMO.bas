@@ -519,7 +519,7 @@ End Function ' zeigmosystem()
 Public Function doPatvonMO(pNr&, Optional obmitFormularen%)
  Dim pid&, pos&, SchGr%, j&, jj%, rAf&, rInh$, Puls$, Bem$ ' , aktZeit As Date
  Const obDebug% = True, obszn4% = True
- pNr& = 69618 ' 68393  ' 69618 ' 63635 ' 67180 ' 63635 ' 64800 ' 69333 ' 68316 ' 65405 ' 45 ' 64659 ' 45 ' 69367 ' 69377 ' 53119 ' 51630 ' 105 ' 18 ' 246 ' 59152 ' 1394 ' 2112 ' 151 ' 225 '
+'  pNr& = 68393  ' 69618 ' 63635 ' 67180 ' 63635 ' 64800 ' 69333 ' 68316 ' 65405 ' 45 ' 64659 ' 45 ' 69367 ' 69377 ' 53119 ' 51630 ' 105 ' 18 ' 246 ' 59152 ' 1394 ' 2112 ' 151 ' 225 '
  pid = pNr + 100000
  Static lfdfl&
  Dim rsNa As New ADODB.Recordset, rsFa As New ADODB.Recordset, rsMo As New ADODB.Recordset
@@ -1048,46 +1048,6 @@ Public Function doPatvonMO(pNr&, Optional obmitFormularen%)
   Dim FoIDv& ' Pseudo-Foid
   Dim mt$, mdat$
   
-#If False Then
-  syscmd 4, "bearbeite laborneu"
-sql = _
-"SELECT 18900101+INTERVAL l.FDatum DAY+INTERVAL l.FZeit SECOND Zp, na.FUsername ua, nb.FUsername ub, l.*" & vbCrLf & _
-", IF(INSTR(a.FText,':') BETWEEN 1 AND 6,TRIM(MID(a.FText,INSTR(a.FText,':')+1)),a.FText) EName" & vbCrLf & _
-", IF(INSTR(l.FDetails,'Einheit ""')<>0,MID(l.fdetails,INSTR(l.fdetails,'Einheit ""')+LENGTH('Einheit ""'),INSTR(SUBSTRING_INDEX(l.fdetails,'Einheit ""',-1),'""')-1),'') Einheit" & vbCrLf & _
-", IF(INSTR(l.FDetails,'Ewert ')<>0,MID(l.fdetails,INSTR(l.fdetails,'Ewert ')+LENGTH('Ewert '),INSTR(SUBSTRING_INDEX(l.fdetails,'Ewert ',-1),')')-1),'') EWert" & vbCrLf & _
-", IF(INSTR(l.FDetails,'Normtext ""')<>0,MID(l.fdetails,INSTR(l.fdetails,'Normtext ""')+LENGTH('Normtext ""'),INSTR(SUBSTRING_INDEX(l.fdetails,'Normtext ""',-1),'""')-1),IF(INSTR(l.FDetails,'Normwertog ')<>0,CONCAT('0-',MID(l.fdetails,INSTR(l.fdetails,'Normwertog ')+LENGTH('Normwertog '),INSTR(SUBSTRING_INDEX(l.fdetails,'Normwertog ',-1),')')-1)),IF(INSTR(l.FDetails,'Normwertug ')<>0,CONCAT(MID(l.fdetails,INSTR(l.fdetails,'Normwertug ')+LENGTH('Normwertug '),INSTR(SUBSTRING_INDEX(l.fdetails,'Normwertug ',-1),')')-1),'-'),''))) Normtext" & vbCrLf & _
-", IF(INSTR(l.FDetails,'Normwertog ')<>0,MID(l.fdetails,INSTR(l.fdetails,'Normwertog ')+LENGTH('Normwertog '),INSTR(SUBSTRING_INDEX(l.fdetails,'Normwertog ',-1),')')-1),'') Normwertog" & vbCrLf & _
-", IF(INSTR(l.FDetails,'Normwertug ')<>0,MID(l.fdetails,INSTR(l.fdetails,'Normwertug ')+LENGTH('Normwertug '),INSTR(SUBSTRING_INDEX(l.fdetails,'Normwertug ',-1),')')-1),'') Normwertug" & vbCrLf & _
-", a.*" & vbCrLf & _
-"FROM (SELECT l.*" & vbCrLf & _
-"FROM ltag l) l" & vbCrLf & _
-"LEFT JOIN nutzerneu na ON FAnordnutzernr= na.FSurogat" & vbCrLf & _
-"LEFT JOIN nutzerneu nb ON FAusfnutzernr= nb.FSurogat" & vbCrLf & _
-"LEFT JOIN nauftrag a ON a.FSchluessel=l.FIcdcode" & vbCrLf & _
-"WHERE feintragsart=5 AND a.FSchluessel IS NOT NULL" & vbCrLf & _
-"  AND a.ftext NOT RLIKE 'Bltdruck|Blutdruck|Gewicht|Puls|Größe|umfang|temperatur|caro|sono|Body-Mass'" & vbCrLf & _
-"  AND l.fpatnr=" & pNr
-  myFrag rsEi, sql, adOpenStatic, MOCon
-  If Not rsEi.BOF Then
-   Do While Not rsEi.EOF
-    ReDim Preserve rLa(UBound(rLa) + 1)
-    rLa(UBound(rLa)).Pat_ID = pid
-    rLa(UBound(rLa)).aktZeit = aktZeit
-    rLa(UBound(rLa)).Zeitpunkt = rsEi!Zp
-    rLa(UBound(rLa)).Langtext = vNS
-    rLa(UBound(rLa)).LangtextVW = LTEinfüg&(rsEi!EName)
-    rLa(UBound(rLa)).Abkü = rsEi!fschluessel
-    If IsNumeric(rsEi!ewert) Then
-      rLa(UBound(rLa)).Wert = CDbl(REPLACE$(rsEi!ewert, ".", ","))
-    Else
-      rLa(UBound(rLa)).Wert = rsEi!ewert
-    End If
-    rLa(UBound(rLa)).NormberVW = nbEinfüg(rsEi!normtext)
-    rLa(UBound(rLa)).Einheit = rsEi!Einheit
-    rsEi.MoveNext
-   Loop ' while not rsEi.EOF
-  End If ' Not rsEi.BOF Then
-#End If
   
   syscmd 4, "bearbeite Formulare"
 '  FBehgrundnr>0: Diagnosen
@@ -1124,8 +1084,9 @@ sql = _
   myFrag rsEi, sql, adOpenStatic, MOCon
   If Not rsEi.BOF Then
    Do While Not rsEi.EOF
-    If rsEi!CFMemo <> "" Then
-     Call ParseMemo(rsEi!CFMemo, FMem(), obDebug, "FMemo aus beschein")
+    If rsEi!cfmemo <> "" Then
+'     If rsEi!fsurogat = 16045 Then Stop
+     Call ParseMemo(rsEi!cfmemo, FMem(), obDebug, "FMemo aus beschein")
     End If ' rsEi!CFMemo <> ""
     Select Case rsEi!FEintragsart
      Case 21 ' Krankenhauseinweisung
@@ -1221,7 +1182,7 @@ fgefunden:
       FoIDv = FoIDv + 1
    
     ' FormVorl unbekannt
-      If rsEi!CFMemo <> "" Then ' ParseMemo oben
+      If rsEi!cfmemo <> "" Then ' ParseMemo oben
        For j = 0 To UBound(FMem)
         ReDim Preserve rFm(UBound(rFm) + 1)
         rFm(UBound(rFm)).nr = rFm_Nr
@@ -1235,7 +1196,8 @@ fgefunden:
          mt = Left$(mt, Len(mt) - 4)
          Do
           If LenB(mt) = 0 Then Exit Do
-          If Asc(Right$(mt, 1)) < 10 Then mt = Left$(mt, Len(mt) - 1) Else Exit Do ' 3 kommt auch vor
+'          If Asc(Right$(mt, 1)) < 10 Then mt = Left$(mt, Len(mt) - 1) Else Exit Do ' 3 kommt auch vor
+          If Asc(Right$(mt, 1)) = 0 Then mt = Left$(mt, Len(mt) - 1) Else Exit Do ' 3 kommt auch vor
          Loop
          If Right$(mt, 1) = Chr$(10) Then mt = Left$(mt, Len(mt) - 1)
         End If
@@ -1314,52 +1276,6 @@ sql = _
    Loop ' while not rsEi.EOF
   End If ' Not rsEi.BOF Then
 
-#If False Then
-sql = _
-"SELECT" & vbCrLf & _
-"IF(INSTR(FDet,'Testid'),MID(FDet,LOCATE('Testid',FDet)+LENGTH('Testid')+2,LOCATE('""',FDet,LOCATE('Testid',FDet)+LENGTH('Testid')+2)-LOCATE('Testid',FDet)-LENGTH('Testid')-2),'') Testid," & vbCrLf & _
-"IF(INSTR(FDet,'Testname'),MID(FDet,LOCATE('Testname',FDet)+LENGTH('Testname')+2,LOCATE('""',FDet,LOCATE('Testname',FDet)+LENGTH('Testname')+2)-LOCATE('Testname',FDet)-LENGTH('Testname')-2),'') Testname," & vbCrLf & _
-"IF(INSTR(FDet,'Erggenau'),MID(FDet,LOCATE('Erggenau',FDet)+LENGTH('Erggenau')+1,LOCATE(')',FDet,LOCATE('Erggenau',FDet)+LENGTH('Erggenau')+1)-LOCATE('Erggenau',FDet)-LENGTH('Erggenau')-1),'') Erggenau," & vbCrLf & _
-"IF(INSTR(FDet,'Normtext'),MID(FDet,LOCATE('Normtext',FDet)+LENGTH('Normtext')+2,LOCATE('""',FDet,LOCATE('Normtext',FDet)+LENGTH('Normtext')+2)-LOCATE('Normtext',FDet)-LENGTH('Normtext')-2),'') Normtext," & vbCrLf & _
-"IF(INSTR(FDet,'EWert'),MID(FDet,LOCATE('EWert',FDet)+LENGTH('EWert')+1,LOCATE(')',FDet,LOCATE('EWert',FDet)+LENGTH('EWert')+1)-LOCATE('EWert',FDet)-LENGTH('EWert')-1),'') EWert," & vbCrLf & _
-"IF(INSTR(FDet,'Etext'),MID(FDet,LOCATE('Etext',FDet)+LENGTH('Etext')+2,LOCATE('""',FDet,LOCATE('Etext',FDet)+LENGTH('Etext')+2)-LOCATE('Etext',FDet)-LENGTH('Etext')-2),'') Etext," & vbCrLf & _
-"IF(INSTR(FDet,'(Einheit'),MID(FDet,LOCATE('(Einheit',FDet)+LENGTH('(Einheit')+2,LOCATE('""',FDet,LOCATE('(Einheit',FDet)+LENGTH('(Einheit')+2)-LOCATE('(Einheit',FDet)-LENGTH('(Einheit')-2),'') Einheit," & vbCrLf & _
-"IF(INSTR(FDet,'Testhinweis'),MID(FDet,LOCATE('Testhinweis',FDet)+LENGTH('Testhinweis')+2,LOCATE('""',FDet,LOCATE('Testhinweis',FDet)+LENGTH('Testhinweis')+2)-LOCATE('Testhinweis',FDet)-LENGTH('Testhinweis')-2),'') Testhinweis," & vbCrLf & _
-"18900101+INTERVAL FDatum DAY+INTERVAL FZeit SECOND Zp, na.FUsername ua, nb.FUsername ub, l.*, IF(INSTR(FText,':') BETWEEN 1 AND 6,LEFT(FText,INSTR(FText,':')-1),'') art, IF(INSTR(FText,':') BETWEEN 1 AND 6,TRIM(MID(FText,INSTR(FText,':')+1)),FText) ename " & vbCrLf & _
-"FROM (SELECT REPLACE(REPLACE(FDetails,'\n',' '),'\""','""') FDet, l.* " & vbCrLf & _
-"FROM ltag l) l " & vbCrLf & _
-"LEFT JOIN nutzerneu na ON FAnordnutzernr= na.FSurogat " & vbCrLf & _
-"LEFT JOIN nutzerneu nb ON FAusfnutzernr= nb.FSurogat " & vbCrLf & _
-"WHERE l.fpatnr=" & pNr & " AND l.fStatus IN (2) AND FEintragsart IN (5) ORDER BY l.FSurogat, Zp;"
-  myFrag rsEi, sql, adOpenStatic, MOCon
-  If Not rsEi.BOF Then
-   Do While Not rsEi.EOF
-    ReDim Preserve rLa(UBound(rLa) + 1): ls = UBound(rLa)
-    rLa(ls).Pat_ID = pid
-    rLa(ls).Zeitpunkt = rsEi!Zp
-'    rLa(ls).FertigStGrad = FStG
-'  rLa(ls).Labor = AbküLabor
-    rLa(ls).Abkü = rsEi!testid
-    rLa(ls).aktZeit = aktZeit
-'    rLa(ls).FID = rFa(UBound(rFa)).FID
-'    rLa(ls).absPos = absPos
-    rLa(ls).Langtext = rsEi!testname
-    rLa(ls).LangtextVW = LTEinfüg&(rLa(ls).Langtext)
-    rLa(ls).Kommentar = rsEi!Testhinweis
-    rLa(ls).KommentarVW = KomEinfüg&(rLa(ls).Kommentar)
-    rLa(ls).Einheit = rsEi!Einheit
-    rLa(ls).Normber = rsEi!normtext
-    rLa(ls).NormberVW = nbEinfüg&(rLa(ls).Normber)
-    rLa(ls).AbschlZl = rsEi!etext
-    rLa(ls).AbschlZlVW = AZEinfüg&(rLa(ls).AbschlZl)
-    rLa(ls).Wert = rsEi!ewert
-    While Right$(rLa(ls).Wert, 1) = "0" And Right$(rLa(ls).Wert, 2) <> ".0"
-     rLa(ls).Wert = Left$(rLa(ls).Wert, Len(rLa(ls).Wert) - 1)
-    Wend
-    rsEi.MoveNext
-   Loop ' while not rsEi.EOF
-  End If ' Not rsEi.BOF Then
-#End If
 
   syscmd 4, "bearbeite briefe"
 '  sql = "SELECT 18900101+INTERVAL FDatum DAY+INTERVAL FZeit SECOND Zp, FICdcode Art, MID(fdetails,INSTR(fdetails,'ext ""')+5,LENGTH(fdetails)-2-INSTR(fdetails,'ext ""')-5) FText, FEintragsart, f.* FROM ltag f WHERE fpatnr = " & pNr & " AND ((FEintragsart=5 and FStatus=0) OR FEintragsart IN (8,10,11,151,1001,1002,1003,1004,1006)) AND fbehgrundnr<=0"

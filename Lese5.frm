@@ -994,6 +994,7 @@ Enum AktionTyp
  Patientenlaufzetteleinzeln
  DMPZettel
  Anwalt
+ PatvonMO
 End Enum
 Public Aktion As AktionTyp
 Public SpPat_id&, SpName$ ' Sonderpatient Pat_id
@@ -1073,18 +1074,18 @@ End Sub ' DMPRückmeldungsfehler_Click
 
 ' EDV -> Formulare bereinigen
 Private Sub Formulare_bereinigen_Click()
- Dim rAf&
+ Dim rAf1&, rAf2&, rAf3&
  sql = "DELETE FROM forminhaltfeld WHERE NOT EXISTS (SELECT 1 FROM forminhfeld where feldvw = forminhaltfeld.feldvw LIMIT 1)"
  syscmd 4, sql
- myEFrag sql, rAf
+ myEFrag sql, rAf1
  sql = "DELETE f FROM forminhfeld f LEFT JOIN forminhkopf k USING (foid) WHERE k.foid IS NULL;"
  syscmd 4, sql
- myEFrag sql, rAf
+ myEFrag sql, rAf2
  sql = "DELETE fif FROM forminhaltfeldinh WHERE NOT EXISTS (SELECT 1 FROM forminhfeld WHERE feldinhvw = forminhaltfeldinh.feldinhvw LIMIT 1)"
  ' fif LEFT JOIN forminhfeld fi USING (feldinhvw) WHERE fi.feldinhvw IS NULL;"
  syscmd 4, sql
- myEFrag sql, rAf
- syscmd 4, "Fertig mit Bereinigen der Formulare"
+ myEFrag sql, rAf3
+ syscmd 4, "Fertig mit Bereinigen der Formulare, " & rAf1 & " forminhaltfeld-Einträge, " & rAf2 & " forminhfeld-Einträge und " & rAf3 & " forminhaltfeldinh-Einträge gelöscht"
 End Sub ' Formulare_bereinigen_Click()
 
 ' EDV -> MedOff-&Suche
@@ -1261,8 +1262,19 @@ End Sub ' Optionen_Click()
 
 ' Testfunktionen -> PatvonMo
 Private Sub PatvonMO_Click()
- Const pNr& = 68316 ' 64659 ' 45 ' 69367 ' 69377 ' 53119 ' 51630 ' 105 ' 18 ' 246 ' 59152 ' 1394 ' 2112
- Call doPatvonMO(pNr)
+' Const pNr& = 68316 ' 64659 ' 45 ' 69367 ' 69377 ' 53119 ' 51630 ' 105 ' 18 ' 246 ' 59152 ' 1394 ' 2112
+ Aktion = PatvonMO
+ Set pataw.hlese = Me
+ pataw.obRueck = True ' für PLZ-Knopf
+ obRueck = True ' für OK-Knopf
+ pataw.ZeilenzahlL.Visible = True
+ pataw.Zeilenzahl.Visible = True
+ '  pNr& = 68393  ' 69618 ' 63635 ' 67180 ' 63635 ' 64800 ' 69333 ' 68316 ' 65405 ' 45 ' 64659 ' 45 ' 69367 ' 69377 ' 53119 ' 51630 ' 105 ' 18 ' 246 ' 59152 ' 1394 ' 2112 ' 151 ' 225 '
+ pataw.Pat_ID.AddItem 68393
+ pataw.Pat_ID.AddItem 69618
+ pataw.Pat_ID.AddItem 64659
+ pataw.Show
+' Call doPatvonMO(pNr)
 End Sub ' PatvonMO_Click
 
 ' sucht nach einem String in den Medical Office-Datenbanken
@@ -4479,23 +4491,27 @@ End Sub 'ZeitGefaxteAn
 ' aufgerufen in patauswahl: Sub OKButton_Click()
 Public Sub los()
  Dim zzn%
- Select Case Aktion
-  Case GefaxteAnzeigen
-   Call ZeigGefaxteAn(Me.pataw.PatID, Me.pataw.PatName)
-  Case Briefschreiben
-   Call tubriefStandalone(Me.pataw.PatID, False, , Me.pataw.Vorlage, , Me.pataw.briefneu, Me.pataw.nichtherricht)
-  Case RestlicheBriefe
-   Call doRestlicheBriefe(Me, Me.pataw.PatID)
-  Case Patientenlaufzetteleinzeln
+ If IsNumeric(Me.pataw.Pat_ID) Then
+  Select Case Aktion
+   Case GefaxteAnzeigen
+    Call ZeigGefaxteAn(Me.pataw.PatID, Me.pataw.PatName)
+   Case Briefschreiben
+    Call tubriefStandalone(Me.pataw.PatID, False, , Me.pataw.Vorlage, , Me.pataw.briefneu, Me.pataw.nichtherricht)
+   Case RestlicheBriefe
+    Call doRestlicheBriefe(Me, Me.pataw.PatID)
+   Case Patientenlaufzetteleinzeln
 '   Call doPLZeinzeln(Me.pataw.PatID)
-    zzn = 8
-    If IsNumeric(Me.pataw.Zeilenzahl) Then zzn = CInt(Me.pataw.Zeilenzahl)
-   Call dodoplz(Me.pataw.PatID, plzVz, Now, Now - Int(Now), True, "", zzn, obRueck)
-  Case DMPZettel
-   Call einDMP(Me.pataw.Pat_ID)
-  Case Anwalt
-   Call doAnwalt(Me.pataw.Pat_ID)
- End Select
+     zzn = 8
+     If IsNumeric(Me.pataw.Zeilenzahl) Then zzn = CInt(Me.pataw.Zeilenzahl)
+    Call dodoplz(Me.pataw.PatID, plzVz, Now, Now - Int(Now), True, "", zzn, obRueck)
+   Case DMPZettel
+    Call einDMP(Me.pataw.Pat_ID)
+   Case Anwalt
+    Call doAnwalt(Me.pataw.Pat_ID)
+   Case PatvonMO
+    Call doPatvonMO(Me.pataw.Pat_ID)
+  End Select ' Case Aktion
+ End If ' IsNumeric(Me.pataw.Pat_ID) Then
 End Sub ' los
 
 Private Sub DMPForts_Click()

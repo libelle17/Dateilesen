@@ -3999,10 +3999,10 @@ fgefunden:
        rDo(UBound(rDo)).DokGroe = Fil.size
        rDo(UBound(rDo)).DokAenD = Fil.DateLastModified
       End If
-     Else ' FSO.FileExists(REPLACE$(LCase$(Datei), "$\turbomed\dokumente", PcDokPfad)) Then
+     Else ' FSO.FileExists(replace$(LCase$(Datei), "$\turbomed\dokumente", PcDokPfad)) Then
 ' Entwicklung: hier kann das Fehlt-Kennzeichen gesetzt werden und evtl.
 '       rDo(UBound(rDo)).DokPfad = Datei 'stehen
-     End If ' FSO.FileExists(REPLACE$(LCase$(Datei), "$\turbomed\dokumente", PcDokPfad)) Then Else
+     End If ' FSO.FileExists(replace$(LCase$(Datei), "$\turbomed\dokumente", PcDokPfad)) Then Else
     End If ' Right$(rInhalt, 1) = "^" Then
    Case 6326 ' Dokumentart (Windows-Dateityp)
     rDo(UBound(rDo)).DokArt = rInhalt
@@ -4073,7 +4073,7 @@ fgefunden:
          If InStr(rInhalt, ",") > 30 Then
           If IsDate(REPLACE$(Mid$(rInhalt, 30, InStr(rInhalt, ",") - 30), ",", ".")) Then
            rNa(0).dakab = CDate(REPLACE$(Mid$(rInhalt, 30, InStr(rInhalt, ",") - 30), ",", "."))
-          End If ' IsDate(REPLACE$(Mid$(rInhalt, 30, InStr(rInhalt, ",") - 30), ",", ".")) Then
+          End If ' IsDate(replace$(Mid$(rInhalt, 30, InStr(rInhalt, ",") - 30), ",", ".")) Then
          End If ' If InStr(rInhalt, ",") > 30 Then
         End If ' rNa(0).dakab = 0 Then
        End If ' LCase$(rEi(UBound(rEi)).art) = "dak" Then ' 4.12.19: DAK-Datum dokumentieren
@@ -4905,7 +4905,7 @@ nachFehler:
   Else ' fi2 Is Nothing Then
    rFm(i).FeldInhVW = fi2.FeldInhVW
   End If ' fi2 Is Nothing Then else
-'  rFm(i).FeldVW = DBCn.Execute("SELECT FeldInhVW FROM forminhaltfeldinh WHERE feldinh ='" & REPLACE$(rFm(i).FeldInh, "'", "\\'") & "'").Fields(0)
+'  rFm(i).FeldVW = DBCn.Execute("SELECT FeldInhVW FROM forminhaltfeldinh WHERE feldinh ='" & replace$(rFm(i).FeldInh, "'", "\\'") & "'").Fields(0)
  Next i
 ' DBCn.Execute "COMMIT"
  ComTrans
@@ -4932,10 +4932,10 @@ nachFehler:
  ausg = myEFrag("SELECT @vw").Fields(0)
 #Else
 #If fehlersuch Then
- ausg1 = getfeldinhvw(eing.Value, AktByte)
+ ausg1 = getfeldinhvw(REPLACE(REPLACE$(REPLACE$(eing.Value, "\'", "\\'"), "'", "''"), Chr$(0), " "), AktByte)
 #Else
-' ausg = DBCn.Execute("CALL getfeldinhvw('" & eing & "'," & AktByte & ")").Fields(0)
- ausg = myEFrag("CALL getfeldinhvw('" & REPLACE$(REPLACE$(eing, "\'", "\\'"), "'", "''") & "'," & AktByte & ")").Fields(0)
+' ausg = myEFrag("CALL getfeldinhvw('" & REPLACE$(REPLACE$(eing.Value, "\'", "\\'"), "'", "''") & "'," & AktByte & ")").Fields(0)
+ ausg = myEFrag("CALL getfeldinhvw('" & REPLACE(REPLACE$(REPLACE$(eing.Value, "\'", "\\'"), "'", "''"), Chr$(0), "") & "'," & AktByte & ")").Fields(0)
  If ausg1 <> "" And ausg <> ausg1 Then Stop
 #End If
 #End If
@@ -5315,9 +5315,9 @@ Function getfeldinhvw$(Felder$, StByte&)
   If InStrB(elem, "'") Then Stop
   For iru = 1 To 2
 ' wegen häufigen Aufrufs nicht durch MyEFrag ersetzt
-   aktvw = DBCn.Execute("SELECT COALESCE((SELECT feldinhvw FROM forminhaltfeldinh WHERE feldinh ='" & elem & "' LIMIT 1),0)").Fields(0)
+   aktvw = DBCn.Execute("SELECT COALESCE((SELECT feldinhvw FROM forminhaltfeldinh WHERE feldinh=CONVERT('" & elem & "',BINARY)r LIMIT 1),0)").Fields(0)
    If aktvw = 0 Then
-    DBCn.Execute "INSERT INTO forminhaltfeldinh(feldinh,stbyte) VALUES('" & elem & "'," & StByte & ");"
+    DBCn.Execute "INSERT INTO forminhaltfeldinh(feldinh,stbyte) VALUES(CONVERT('" & elem & "',BINARY)," & StByte & ");"
 '    aktvw = DBCn.Execute("select last_insert_id()").Fields(0)
    Else
     Exit For

@@ -428,7 +428,7 @@ Private Sub PatName_DropDown()
 End Sub ' PatName_DropDown
 
 Private Sub pat_id_dropdown()
- If Not Pat_IDGewählt Then
+ If hlese.Aktion <> PatvonMO And Not Pat_IDGewählt Then
   Call Me.AuswPat_id(Me)
   Pat_IDGewählt = True
  End If
@@ -461,7 +461,7 @@ End Sub ' Therapiearten_Click()
 
 Private Sub VorDat_Click() 'Vordaten der Briefe raussuchen
  do_Pat_ID_Change (True)
-End Sub
+End Sub ' VorDat_Click
 
 Private Sub Vorlage_GotFocus()
   Select Case hlese.Aktion
@@ -537,7 +537,7 @@ Private Sub Form_Load()
   If Me.Visible Then Screen.MousePointer = vbHourglass
   DoEvents
   If hlese Is Nothing Then Set hlese = Lese
-  Me.Caption = "Patientenauswahl " & IIf(lies.obMySQL, "MySQL: " & Lese.MyDB, Lese.dlg.MdB)
+  Me.Caption = "Patientenauswahl " & Switch(hlese.Aktion = Anwalt, "Anwalt", hlese.Aktion = Briefschreiben, "Briefschreiben", hlese.Aktion = DMPZettel, "DMPZettel", hlese.Aktion = GefaxteAnzeigen, "GefaxteAnzeigen", hlese.Aktion = Patientenlaufzetteleinzeln, "Patientenlaufzetteleinzeln", hlese.Aktion = PatvonMO, "PatvonMO", hlese.Aktion = RestlicheBriefe, "Restliche Briefe", True, "nix") & IIf(lies.obMySQL, ", MySQL: " & Lese.MyDB, Lese.dlg.MdB)
 '  Call AuswName(Me)
 '  Call AuswHA(Me)
 #If EinmalDB Then
@@ -635,6 +635,7 @@ Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "Last
 End Select
 End Function ' getPat_id
 
+' in patname_gotfocus
 Function AuswName(frm As PatAuswahl)
  Dim zwi$, i&, t$
  syscmd 4, "Wähle Patientien aus"
@@ -827,6 +828,7 @@ Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "Last
 End Select
 End Function ' AuswHA
 
+' in Vorlage_GotFocus
 Function AuswVorlage(frm As PatAuswahl)
  Dim zwi$, sql$, i%, hier%, ItemStr$, Verz$
  Dim kvPfad$, p1&, p2&
@@ -898,10 +900,12 @@ Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "Last
 End Select
 End Sub ' haausw_change
 
+' auch in Pat_id_Click
 Private Sub Pat_ID_Change()
  Call do_Pat_ID_Change
 End Sub ' Pat_ID_Change()
 
+' in Pat_ID_Change, VorDat_Click
 Private Sub do_Pat_ID_Change(Optional mitVorDat%)
  Const MaxLauf& = 100
  Dim lauf&, sql$
@@ -1136,7 +1140,7 @@ fehler:
 #Else
  AnwPfad = App.path
 #End If
-Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in Pat_ID_Change()/" + AnwPfad)
+Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in do_Pat_ID_Change()/" + AnwPfad)
  Case vbAbort: Call MsgBox("Höre auf"): ProgEnde
  Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
  Case vbIgnore: Call MsgBox("Setze fort"): Resume Next

@@ -483,7 +483,7 @@ End Function ' kernusd
 #End If 'false
 
 Function rUsRest(j&)
-   rUs(UBound(rUs)).Pat_ID = rEi(j).Pat_ID
+   rUs(UBound(rUs)).Pat_id = rEi(j).Pat_id
    rUs(UBound(rUs)).FID = rEi(j).FID
    rUs(UBound(rUs)).Zeitpunkt = rEi(j).Zeitpunkt
    rUs(UBound(rUs)).art = rEi(j).art
@@ -494,7 +494,7 @@ Function rUsRest(j&)
    rUs(UBound(rUs)).aktZeit = rEi(j).aktZeit
 End Function ' rUsRest
 Function rFuRest(j&)
-   rFu(UBound(rFu)).Pat_ID = rEi(j).Pat_ID
+   rFu(UBound(rFu)).Pat_id = rEi(j).Pat_id
    rFu(UBound(rFu)).FID = rEi(j).FID
    rFu(UBound(rFu)).Zeitpunkt = rEi(j).Zeitpunkt
    rFu(UBound(rFu)).art = rEi(j).art
@@ -505,7 +505,7 @@ Function rFuRest(j&)
    rFu(UBound(rFu)).aktZeit = rEi(j).aktZeit
 End Function ' rUsRest
 Function rVkRest(j&)
-   rVk(UBound(rVk)).Pat_ID = rEi(j).Pat_ID
+   rVk(UBound(rVk)).Pat_id = rEi(j).Pat_id
    rVk(UBound(rVk)).FID = rEi(j).FID
    rVk(UBound(rVk)).Zeitpunkt = rEi(j).Zeitpunkt
 '   rvk(UBound(rvk)).Art = rEi(j).Art
@@ -516,7 +516,7 @@ Function rVkRest(j&)
    rVk(UBound(rVk)).aktZeit = rEi(j).aktZeit
 End Function ' rUsRest
 Function rUlRest(j&)
-   rUl(UBound(rUl)).Pat_ID = rEi(j).Pat_ID
+   rUl(UBound(rUl)).Pat_id = rEi(j).Pat_id
    rUl(UBound(rUl)).FID = rEi(j).FID
    rUl(UBound(rUl)).Zeitpunkt = rEi(j).Zeitpunkt
 '   rUl(UBound(rUl)).Art = rEi(j).Art
@@ -1616,7 +1616,7 @@ Function do_anImp(imin%, imax%, tr$(), Fd$(), makro$, Optional tfd1, Optional tf
    sp(0) = rEi(im).Inhalt
   Else
    Dim rEin As New ADODB.Recordset
-   myFrag rEin, "SELECT zeitpunkt,inhalt FROM `eintraege` WHERE art = """ & makro & """ AND pat_id = " & rNa(0).Pat_ID & " ORDER BY zeitpunkt DESC;"
+   myFrag rEin, "SELECT zeitpunkt,inhalt FROM `eintraege` WHERE art = """ & makro & """ AND pat_id = " & rNa(0).Pat_id & " ORDER BY zeitpunkt DESC;"
    If Not rEin.BOF Then
     sp(0) = rEin!Inhalt
     AbIDate = rEin!Zeitpunkt
@@ -1998,7 +1998,7 @@ If Err.Number = -2147217887 Then ' Das Feld ist zu klein für die Datenmenge, die
 '    Call myEFrag("UPDATE `anamnesebogen` SET " & "`" & SpName & "`" & " = """ & replace$(NeuInh, """", """""") & """ WHERE pat_id = " & rNa(0).Pat_id, AfN)
 '   END IF
    If Not SpMod(Len(NeuInh), "anamnesebogen", rsc, NeuInh) Then ' dann Memo-Feld
-    Call myEFrag("UPDATE `anamnesebogen` SET `" & SpName & "` = """ & REPLACE$(NeuInh, """", """""") & """ WHERE pat_id = " & rNa(0).Pat_ID, AfN)
+    Call myEFrag("UPDATE `anamnesebogen` SET `" & SpName & "` = """ & REPLACE$(NeuInh, """", """""") & """ WHERE pat_id = " & rNa(0).Pat_id, AfN)
    End If
    If rsAnm.State = 0 Then myFrag rsAnm, ZCStr, adOpenStatic, DBCn, adLockOptimistic
    MerkNeuInh = NeuInh
@@ -2008,7 +2008,7 @@ If Err.Number = -2147217887 Then ' Das Feld ist zu klein für die Datenmenge, die
  Loop
 End If
 If rsAnm.State = 0 Then
- myFrag rsAnm, "SELECT * FROM `anamnesebogen` WHERE pat_id = " & rNa(0).Pat_ID, adOpenStatic, DBCn, adLockOptimistic
+ myFrag rsAnm, "SELECT * FROM `anamnesebogen` WHERE pat_id = " & rNa(0).Pat_id, adOpenStatic, DBCn, adLockOptimistic
  Resume
 End If
 Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in do_anImp/" + AnwPfad)
@@ -2107,7 +2107,7 @@ Function MachNumerisch#(ByVal ST$, Optional erstDatum%)
         Case "87, im Dezember 93"
          ST = "87"
         Case Else
-         Err.Raise 999, , "Unbehandelter Fall in machnumerisch: " & stor & " bei Pat.: " & rNa(0).Pat_ID
+         Err.Raise 999, , "Unbehandelter Fall in machnumerisch: " & stor & " bei Pat.: " & rNa(0).Pat_id
          MsgBox stneu & " nicht numerisch zu bekommen (machmumerisch)"
          ST = "0"
        End Select

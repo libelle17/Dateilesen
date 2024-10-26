@@ -134,12 +134,12 @@ End Function ' datFormZ
 ' in Hausärzte_aus_Listenausgabe_Ueberweiser_einlesen_Click
 Public Sub doHAAkt(frm As Lese)
  Dim aktDatei$, HAStr$
- Dim XCon As New adodb.Connection
- Dim rEx As New adodb.Recordset
+ Dim XCon As New ADODB.Connection
+ Dim rEx As New ADODB.Recordset
  Dim rX As New ADOX.Catalog
- Dim rV1 As New adodb.Recordset
- Dim rV2 As New adodb.Recordset
- Dim rs As New adodb.Recordset
+ Dim rV1 As New ADODB.Recordset
+ Dim rV2 As New ADODB.Recordset
+ Dim rs As New ADODB.Recordset
  Dim rAf&, obüberhaupt%
  Dim ausg$, lauf&
  Dim F0 As File, f1 As File
@@ -177,8 +177,8 @@ Dim dbknr As ConDtb
 #Const vordef = False
 #If Not vordef Then
 ' Provider=MSDASQL.1;Extended Properties="DATABASE=kvaerzte;DRIVER={MySQL ODBC 5.1 Driver};OPTION=3;PWD=" & frm.dbv.pwd & ";PORT=0;SERVER=" & LiName & ";UID=" & frm.dbv.uid & ""
- Dim QCn() As adodb.Connection
- Dim HCn() As adodb.Connection
+ Dim QCn() As ADODB.Connection
+ Dim HCn() As ADODB.Connection
  Dim QCns$()
  Dim HCns$()
  Dim ccol As New Collection, Cpt, KVÄDB$
@@ -201,8 +201,8 @@ Dim dbknr As ConDtb
 gefunden:
   For Each Cpt In ccol
    If Cpt = UCase$(LiName) Then
-   Dim MyCn As adodb.Connection, MyCn2 As New adodb.Connection, rdb As adodb.Recordset, rHa As New adodb.Recordset
-   Set MyCn = New adodb.Connection
+   Dim MyCn As ADODB.Connection, MyCn2 As New ADODB.Connection, rdb As ADODB.Recordset, rHa As New ADODB.Recordset
+   Set MyCn = New ADODB.Connection
    On Error Resume Next
    Err.Clear
    Dim Port&
@@ -211,7 +211,7 @@ gefunden:
     Dim CnStr$
     CnStr = "Provider=MSDASQL.1;Extended Properties=DRIVER={" & ODBCStr() & "};OPTION=3;PWD=" & frm.dbv.pwd & ";PORT=" & Port & ";SERVER=" & Cpt & ";UID=" & frm.dbv.uid & ";"
     Set MyCn = Nothing
-    Set MyCn = New adodb.Connection
+    Set MyCn = New ADODB.Connection
     MyCn.Open CnStr
     If Err.Number <> 0 Then
 '     Debug.Print "Fehler beim Öffnen der Verbindung: " & CnStr & " " & Err.Description
@@ -219,7 +219,7 @@ gefunden:
      Err.Clear
      CnStr = "DRIVER={" & ODBCStr() & "};server=" & Cpt & ";option=0;uid=" & frm.dbv.uid & ";pwd=" & frm.dbv.pwd & ";"
      Set MyCn = Nothing
-     Set MyCn = New adodb.Connection
+     Set MyCn = New ADODB.Connection
      MyCn.Open CnStr
     End If
     If Err.Number = 0 Then
@@ -291,8 +291,8 @@ gefunden:
         If Not rHa.BOF Then
          Do While Not rHa.EOF
           obüberhaupt = True
-          Set QCn(UBound(QCn)) = New adodb.Connection
-          Set HCn(UBound(HCn)) = New adodb.Connection
+          Set QCn(UBound(QCn)) = New ADODB.Connection
+          Set HCn(UBound(HCn)) = New ADODB.Connection
           QCns(UBound(QCns)) = Left$(CnStr, Len(CnStr) - 1) & ";DATABASE=" & fld & ";"""
           HCns(UBound(HCns)) = KVÄDB
           QCn(UBound(QCn)).ConnectionString = QCns(UBound(QCns))
@@ -371,8 +371,8 @@ gefunden:
    End If ' HCn(UBound(HCn)) Is Nothing Then
   End If ' QCn(UBound(QCn)) Is Nothing Then
 #Else
- Dim QCn(accDtb To q2Dtb) As adodb.Connection
- Dim HCn(accDtb To q2Dtb) As adodb.Connection
+ Dim QCn(accDtb To q2Dtb) As ADODB.Connection
+ Dim HCn(accDtb To q2Dtb) As ADODB.Connection
  Dim QCns$(accDtb To q2Dtb)
  Dim HCns$(accDtb To q2Dtb)
  If FSO.FileExists(aktDatei) Then
@@ -424,7 +424,7 @@ gefunden:
   
  Dim i%, v1sql$(5), pos%, posv%, rF0$, rF1$, ursp$
  Dim sqlakt$, f7$, f8$
- Dim HaeCon As New adodb.Connection, rhae As New adodb.Recordset
+ Dim HaeCon As New ADODB.Connection, rhae As New ADODB.Recordset
  Dim KVNr$, DBNr$, BStelle$, anrede$, tel1$, tel2$, tel3$, tel4$, fax1$, fax2$, fax3$, email$, zulg$, arzttyp$, gemmit$, beme$, dmpt2%, dmpt1%, geschlecht$, Titel$
  HaeCon.Open "Provider=MSDASQL.1;Extended Properties=""DATABASE=haerzte;DRIVER={" & ODBCStr() & "};OPTION=0;PWD=" & frm.dbv.pwd & ";PORT=0;SERVER=" & LiName & ";UID=" & frm.dbv.uid & """"
  
@@ -852,7 +852,7 @@ End Function ' hausaerztekomprimier()
 ' End Function
 
 Function testgetalldb()
- Dim acn() As adodb.Connection
+ Dim acn() As ADODB.Connection
  Set fI = New FürIcon
  Set fI.dbv = New DBVerb
  Call fI.dbv.getAllDB("anamnesebogen", acn(), , , True)

@@ -5180,6 +5180,7 @@ sql(AWlf) = "ü"
 ' AwN(AWlf) = "Falsche Zahl Grundpauschalen 0301x"
 #End If
 
+' #Const mitcovid = 1
 #If mitcovid Then
 ' 148
  AwN(AWlf) = "Falsche Zahl Genesenenzertifikatabrechnungen 88371 (lauto) (vorher 36)"
@@ -5500,18 +5501,44 @@ sql(AWlf) = "" & _
  maxs(AWlf) = 60
  AWlf = AWlf + 1
  
+ 
 ' 159, neuView
 #Else
 ' 151
+#End If
+
+#If mitcovid Then
+' 159
+#Else
+' 151
+#End If
+AwN(AWlf) = "Covid-Impfabrechnung ohne Angabe der Ordnungsnummer der Impfung zur Leistung"
+sql(AWlf) = "" & vbCrLf & _
+"SELECT f.pat_id, gesname(f.pat_id) PName, Zeitpunkt, leistung, lfbegr " & vbCrLf & _
+"FROM aktfv f LEFT JOIN leistungen l USING (pat_id) " & vbCrLf & _
+"WHERE leistung LIKE '88%' AND zeitpunkt>qanf() AND lfbegr NOT RLIKE '^[0-9]+$'" & vbCrLf & _
+"ORDER BY f.pat_id DESC;" & vbCrLf & _
+""
+mins(AWlf) = 10
+maxs(AWlf) = 60
+AWlf = AWlf + 1
+
+
+
+#If mitcovid Then
+' 160
+#Else
+' 152
 #End If
 AwN(AWlf) = "DAK-Modul"
 sql(AWlf) = "ü"
  AWlf = AWlf + 1
  
+
 #If mitcovid Then
-' 160
+' 161
 #Else
-' 152
+' 153
 #End If
 AwN(AWlf) = "Keinem Patienten zugeordnete DAK-Faxe /KKH-Faxe(bitte im MySQL-Query-Browser zuordnen über 'SELECT pid,docname,eind FROM faxeinp.outa WHERE eind=...') (vorher 89)"
 sql(AWlf) = "" & vbCrLf & _
@@ -5523,9 +5550,9 @@ sql(AWlf) = "" & vbCrLf & _
  AWlf = AWlf + 1
 
 #If mitcovid Then
-' 161
+' 162
 #Else
-' 153
+' 154
 #End If
 AwN(AWlf) = "Evtl. nicht angekommene oder fehlerhaft benannte DAK/KKH/HEK-Einverständnis-Faxe (nicht berücksichtigbar: Techniker Kk.) (vorher 90)"
 ' 07433967297004 = neue Nr. DAK
@@ -5554,9 +5581,9 @@ sql(AWlf) = "" & vbCrLf & _
  AWlf = AWlf + 1
 
 #If mitcovid Then
-' 162
+' 163
 #Else
-' 154
+' 155
 #End If
 AwN(AWlf) = "Evtl. fehlende DAK(/KKH/HEK/TK)-Makros (vorher 91)"
 sql(AWlf) = "" & vbCrLf & _
@@ -5597,9 +5624,9 @@ sql(AWlf) = "" & vbCrLf & _
 '#END IF
 
 #If mitcovid Then
-' 163 DAK-Module
+' 164 DAK-Module
 #Else
-' 155 DAK-Module
+' 156 DAK-Module
 #End If
  sql(AWlf) = LiesDatei(uVerz & "dakges.qbquery")
  sql(AWlf) = Mid$(sql(AWlf), InStr(1, sql(AWlf), "SELECT", vbTextCompare))
@@ -5609,9 +5636,9 @@ sql(AWlf) = "" & vbCrLf & _
  AWlf = AWlf + 1
  
 #If mitcovid Then
- ' 164 DAK Neuropathie zur Kontrolle
+ ' 165 DAK Neuropathie zur Kontrolle
 #Else
- ' 156 DAK Neuropathie zur Kontrolle
+ ' 157 DAK Neuropathie zur Kontrolle
 #End If
  sql(AWlf) = LiesDatei(uVerz & "daknp.qbquery")
  sql(AWlf) = Mid$(sql(AWlf), InStr(1, sql(AWlf), "SELECT", vbTextCompare))
@@ -5621,9 +5648,9 @@ sql(AWlf) = "" & vbCrLf & _
  AWlf = AWlf + 1
  
 #If mitcovid Then
- ' 165 DAK LUTS zur Kontrolle
+ ' 166 DAK LUTS zur Kontrolle
 #Else
- ' 157 DAK LUTS zur Kontrolle
+ ' 158 DAK LUTS zur Kontrolle
 #End If
  sql(AWlf) = LiesDatei(uVerz & "daklu.qbquery")
  sql(AWlf) = Mid$(sql(AWlf), InStr(1, sql(AWlf), "SELECT", vbTextCompare))
@@ -5633,9 +5660,9 @@ sql(AWlf) = "" & vbCrLf & _
  AWlf = AWlf + 1
  
 #If mitcovid Then
- ' 166 DAK Angiopathie zur Kontrolle
+ ' 167 DAK Angiopathie zur Kontrolle
 #Else
- ' 158 DAK Angiopathie zur Kontrolle
+ ' 159 DAK Angiopathie zur Kontrolle
 #End If
  sql(AWlf) = LiesDatei(uVerz & "dakap.qbquery")
  sql(AWlf) = Mid$(sql(AWlf), InStr(sql(AWlf), "select"))
@@ -5645,9 +5672,9 @@ sql(AWlf) = "" & vbCrLf & _
  AWlf = AWlf + 1
  
 #If mitcovid Then
- ' 167 DAK Hepatopathie zur Kontrolle
+ ' 168 DAK Hepatopathie zur Kontrolle
 #Else
- ' 159 DAK Hepatopathie zur Kontrolle
+ ' 160 DAK Hepatopathie zur Kontrolle
 #End If
  sql(AWlf) = LiesDatei(uVerz & "dakfl.qbquery")
  sql(AWlf) = Mid$(sql(AWlf), InStr(sql(AWlf), "select"))
@@ -5657,9 +5684,9 @@ sql(AWlf) = "" & vbCrLf & _
  AWlf = AWlf + 1
  
 #If mitcovid Then
- ' 168 DAK Nephropathie zur Kontrolle
+ ' 169 DAK Nephropathie zur Kontrolle
 #Else
- ' 160 DAK Nephropathie zur Kontrolle
+ ' 161 DAK Nephropathie zur Kontrolle
 #End If
  sql(AWlf) = LiesDatei(uVerz & "dakne.qbquery")
  sql(AWlf) = Mid$(sql(AWlf), InStr(sql(AWlf), "select"))
@@ -5672,9 +5699,9 @@ Dim ob_tkeinschr$, ob_tkversandt$
 ob_tkeinschr = "'tk.*(Modul|Programm)'"
 ob_tkversandt = "'tk.*(geschickt|gefaxt)'"
 #If mitcovid Then
-' 169
+' 170
 #Else
-' 161
+' 162
 #End If
  AwN(AWlf) = "TK-Modul-Einschreibungen (" & ob_tkeinschr & ") ohne Versandeintrag (" & ob_tkversandt & ") (vorher 152)"
 sql(AWlf) = "" & _
@@ -5689,9 +5716,9 @@ sql(AWlf) = "" & _
  AWlf = AWlf + 1
 
 #If mitcovid Then
-' 170
+' 171
 #Else
-' 162
+' 163
 #End If
  AwN(AWlf) = "ergänzende Listen"
 sql(AWlf) = "ü"
@@ -5700,9 +5727,9 @@ sql(AWlf) = "ü"
  AWlf = AWlf + 1
   
 #If mitcovid Then
-' 171
+' 172
 #Else
-' 163
+' 164
 #End If
  AwN(AWlf) = "Leistung 01435 zu Fall mit Grundpauschale oder taggleicher sonstiger Leistung"
 sql(AWlf) = "" & _
@@ -6333,6 +6360,7 @@ Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "Last
 End Select
 End Function      ' ZeigSQL
 
+' in mitSQL_Click, tuStart_Click, ZeigSQL
 Public Function dowr$(ByVal txt$)
  Dim pos&, zwi$
  Do While txt <> vNS
@@ -6348,7 +6376,8 @@ Public Function dowr$(ByVal txt$)
  Loop
 End Function ' dowr
 
-Public Sub TopAusricht()
+' Form_Resize
+Public Sub ObenAusricht()
  On Error GoTo fehler
   With MFG
     If .Row - altr > (.Height / .CellHeight * 0.9) Then
@@ -6367,21 +6396,23 @@ fehler:
 #Else
  AnwPfad = App.path
 #End If
-Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in TopAusricht/" + AnwPfad)
+Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in ObenAusricht/" + AnwPfad)
  Case vbAbort: Call MsgBox("Höre auf"): ProgEnde
  Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
  Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
 End Select
-End Sub ' TopAusricht
+End Sub ' ObenAusricht
 
+' in Form_Load
 Private Sub Form_Resize()
 ' Me.Hintergrund.Top = 0
 ' Me.Hintergrund.Height = Me.Height - 700
  MFG.Height = Me.Height - MFG.Top - 400
  MFG.Width = Me.Width - MFG.Left - 400
- Call Me.TopAusricht
+ Call Me.ObenAusricht
 End Sub ' Private Sub Form_Resize()
 
+' in Form_Unload, tuStart_click
 Public Sub EinstSpeichern()
  Dim Zahl() As Byte
  ReDim Zahl(AWz)
@@ -6395,6 +6426,7 @@ Public Sub EinstSpeichern()
  End If ' not nichtspeichern then
 End Sub ' Public Sub EinstSpeichern()
 
+' tuStart_click
 Public Sub SQLvorZeigSQL()
   For AWlf = 1 To AWz
    If (MFG.TextMatrix(AWlf, 1) = "X" And sql(AWlf - 1) <> "-") Then

@@ -690,6 +690,7 @@ Private Function getBogArtTyp() As BogArtTyp
  End With
 End Function ' getBogArtTyp() AS BogArtTyp
 
+' in Form_Resize, DokuBeliebig, Nächster, Voriger, NächsterGleichartiger, Suchen, FormResize
 Public Sub TopAusricht()
   Dim i%, firstvis%
   FNr = 4
@@ -2142,11 +2143,11 @@ Public Sub domachDMPBogen(Pat_ID&, BogArtlV As BogArtTyp, DokuDat As Date, Optio
    BDT.FIAdd "y"                   ' 1.1.15
    BDT.FFAdd "Nachname"
    BDT.FIAdd aktDC.Nachname
-   BDT.FFAdd "NetzhautDM" & DmT & "#" & IIf(aktDC.aug = durchg, "0", IIf(aktDC.aug = ndurch, "1", "2"))
+   BDT.FFAdd "NetzhautDM" & DmT & "#" & Switch(aktDC.aug = durchg, "0", aktDC.aug = ndurch, "1", True, "2")
    BDT.FIAdd "X"
    BDT.FFAdd "Postleitzahl"
    BDT.FIAdd aktDC.Postleitzahl
-   BDT.FFAdd "PulsstatusDM" & DmT & "#" & IIf(aktDC.Puls = ndok, "0", IIf(aktDC.Puls = unauff, "1", "2"))
+   BDT.FFAdd "PulsstatusDM" & DmT & "#" & Switch(aktDC.Puls = ndok, "0", aktDC.Puls = unauff, "1", True, "2")
    BDT.FIAdd "X"
    RRS = Format(aktDC.RRdiast, "000")
    For i = 0 To 2 ' hier wirklich 0
@@ -2183,7 +2184,7 @@ Public Sub domachDMPBogen(Pat_ID&, BogArtlV As BogArtTyp, DokuDat As Date, Optio
      BDT.FIAdd "X"
     End If ' DmT = "2" Then
    End If ' ab1023 Then
-   BDT.FFAdd "SensibilitaetDM" & DmT & "#" & IIf(aktDC.sens = ndok, "0", IIf(aktDC.sens = unauff, "1", "2"))
+   BDT.FFAdd "SensibilitaetDM" & DmT & "#" & Switch(aktDC.sens = ndok, "0", aktDC.sens = unauff, "1", True, "2")
    BDT.FIAdd "X"
    If aktDC.FEn(7) Then ' Nephropathie
     BDT.FFAdd "SpaetfolgenDM" & DmT & "#0"
@@ -2259,7 +2260,7 @@ Public Sub domachDMPBogen(Pat_ID&, BogArtlV As BogArtTyp, DokuDat As Date, Optio
    BDT.FFAdd "UlcusDM" & DmT & "#" & aktDC.ulcus
    BDT.FIAdd "X"
    If Not ab1023 Or BogArtlV = typ1alt Or BogArtlV = typ1neu Then
-    BDT.FFAdd "UrinDM" & DmT & "#" & IIf(aktDC.mau = ndok, "0", IIf(aktDC.mau = auff, "1", "2"))
+    BDT.FFAdd "UrinDM" & DmT & "#" & Switch(aktDC.mau = ndok, "0", aktDC.mau = auff, "1", True, "2")
     BDT.FIAdd "X"
    End If ' Not ab1023 Then
    BDT.FFAdd "Versichertennr"
@@ -2373,7 +2374,7 @@ Public Sub domachDMPBogen(Pat_ID&, BogArtlV As BogArtTyp, DokuDat As Date, Optio
    ' 30.6.15
    ZsD = ZsD & "<DMPKennzeichnung>" & IIf(ab0619 Or ab1118, "0", "") & IIf(BogArtlV = typ2alt Or BogArtlV = typ2neu, "1", "4") & "</DMPKennzeichnung>"
    ZsD = ZsD & "<VersSchutzBeginn>" & Format(aktDC.VschBeg, "yyyy-mm-dd") & "</VersSchutzBeginn>"
-   ZsD = ZsD & "</Krankenversicherung><Software><KBVPruefnummer>F0312265</KBVPruefnummer><Name>TurboMed EDV GmbH</Name><Version>" & IIf(ab0423, "23.2.1.5780", IIf(ab0921, "21.3.1.5080", IIf(ab0619, "19.2.1.4087", IIf(ab1118, "18.4.1.3886", IIf(ab0418, "18.2.2.3686", "15.2.1.2774"))))) & "</Version></Software></ZusatzDaten>"
+   ZsD = ZsD & "</Krankenversicherung><Software><KBVPruefnummer>F0312265</KBVPruefnummer><Name>TurboMed EDV GmbH</Name><Version>" & Switch(ab0423, "23.2.1.5780", ab0921, "21.3.1.5080", ab0619, "19.2.1.4087", ab1118, "18.4.1.3886", ab0418, "18.2.2.3686", True, "15.2.1.2774") & "</Version></Software></ZusatzDaten>"
    BDT.FIAdd ZsD
    
    If ab315 Then
@@ -2448,8 +2449,8 @@ Public Sub domachDMPBogen(Pat_ID&, BogArtlV As BogArtTyp, DokuDat As Date, Optio
      SendStr = SendStr & IIf(aktDC.FEn(j), " ", "") & "{TAB}"
     Next j
     SendStr = SendStr & IIf(aktDC.Tabak, " {TAB 2}", "{TAB} {TAB}")
-    SendStr = SendStr & IIf(aktDC.kgr < 10, "00", IIf(aktDC.kgr < 100, "0", "")) & aktDC.kgr
-    SendStr = SendStr & IIf(aktDC.gewi < 10, "00", IIf(aktDC.gewi < 100, "0", "")) & aktDC.gewi
+    SendStr = SendStr & Switch(aktDC.kgr < 10, "00", aktDC.kgr < 100, "0", True, "") & aktDC.kgr
+    SendStr = SendStr & Switch(aktDC.gewi < 10, "00", aktDC.gewi < 100, "0", True, "") & aktDC.gewi
 '    SendStr = SendStr & " {TAB 2}" ' altersgemäße körperliche Entwicklung
     SendStr = SendStr & IIf(aktDC.Puls = ndok, " ", "") & "{TAB}" & IIf(aktDC.Puls = unauff, " ", "") & "{TAB}" & IIf(aktDC.Puls = auff, " ", "") & "{TAB 2}"
     SendStr = SendStr & IIf(aktDC.sens = ndok, " ", "") & "{TAB}" & IIf(aktDC.sens = unauff, " ", "") & "{TAB}" & IIf(aktDC.sens = auff Or aktDC.sens = pathdok, " ", "") & "{TAB 2}"
@@ -2486,14 +2487,14 @@ Public Sub domachDMPBogen(Pat_ID&, BogArtlV As BogArtTyp, DokuDat As Date, Optio
     SendStr = SendStr & IIf(aktDC.oblaser, " {TAB 2}", "{TAB} {TAB}")
     SendStr = SendStr & Format$(aktDC.hypoZAn, "00") & "00" ' stat Aufenthalte wegen schwerer Hypos
     If aktDC.dspmed Then
-     SendStr = SendStr & IIf(aktDC.obGlib = adja, " {TAB 3}", IIf(aktDC.obGlib = adki, "{TAB} {TAB} {TAB}", "{TAB} {TAB 2}"))
-     SendStr = SendStr & IIf(aktDC.obmetf = adja, " {TAB 3}", IIf(aktDC.obmetf = adki, "{TAB} {TAB} {TAB}", "{TAB} {TAB 2}"))
-     SendStr = SendStr & IIf(aktDC.obGlucI = adja, " {TAB 3}", IIf(aktDC.obGlucI = adki, "{TAB} {TAB} {TAB}", "{TAB} {TAB 2}"))
-     SendStr = SendStr & IIf(aktDC.obSHGlin = adja, " {TAB 3}", IIf(aktDC.obSHGlin = adki, "{TAB} {TAB} {TAB}", "{TAB} {TAB 2}"))
-     SendStr = SendStr & IIf(aktDC.obGlit = adja, " {TAB 3}", IIf(aktDC.obGlit = adki, "{TAB} {TAB} {TAB}", "{TAB} {TAB 2}"))
-     SendStr = SendStr & IIf(aktDC.obIns, IIf(aktDC.insz > 2, "{TAB} {TAB 2}", "{TAB 2} {TAB}"), " {TAB 3}")
-     SendStr = SendStr & IIf(aktDC.obAnal, IIf(aktDC.insz > 2, "{TAB} {TAB 2}", "{TAB 2} {TAB}"), " {TAB 3}")
-    End If
+     SendStr = SendStr & Switch(aktDC.obGlib = adja, " {TAB 3}", aktDC.obGlib = adki, "{TAB} {TAB} {TAB}", True, "{TAB} {TAB 2}")
+     SendStr = SendStr & Switch(aktDC.obmetf = adja, " {TAB 3}", aktDC.obmetf = adki, "{TAB} {TAB} {TAB}", True, "{TAB} {TAB 2}")
+     SendStr = SendStr & Switch(aktDC.obGlucI = adja, " {TAB 3}", aktDC.obGlucI = adki, "{TAB} {TAB} {TAB}", True, "{TAB} {TAB 2}")
+     SendStr = SendStr & Switch(aktDC.obSHGlin = adja, " {TAB 3}", aktDC.obSHGlin = adki, "{TAB} {TAB} {TAB}", True, "{TAB} {TAB 2}")
+     SendStr = SendStr & Switch(aktDC.obGlit = adja, " {TAB 3}", aktDC.obGlit = adki, "{TAB} {TAB} {TAB}", True, "{TAB} {TAB 2}")
+     SendStr = SendStr & Switch(Not aktDC.obIns, " {TAB 3}", aktDC.insz > 2, "{TAB} {TAB 2}", True, "{TAB 2} {TAB}")
+     SendStr = SendStr & Switch(Not aktDC.obAnal, " {TAB 3}", aktDC.insz > 2, "{TAB} {TAB 2}", True, "{TAB 2} {TAB}")
+    End If ' aktDC.dspmed Then
     SendStr = SendStr & IIf(aktDC.obHMG, " ", "") & "{TAB}"
     SendStr = SendStr & IIf(aktDC.obAntihyp, " ", "") & "{TAB}"
     SendStr = SendStr & IIf(aktDC.obThro, " ", "") & "{TAB}"
@@ -2502,7 +2503,7 @@ Public Sub domachDMPBogen(Pat_ID&, BogArtlV As BogArtTyp, DokuDat As Date, Optio
     SendStr = SendStr & IIf(aktDC.bmi >= 25, " {TAB 2}", "{TAB} {TAB}")
     SendStr = SendStr & IIf(aktDC.hbEmpf = halten, " {TAB 3}", "{TAB} {TAB 2}")
     SendStr = SendStr & IIf(aktDC.rrEmpf = halten, " {TAB 2}", "{TAB} {TAB}")
-    SendStr = SendStr & IIf(aktDC.aug = durchg, " {TAB 3}", IIf(aktDC.aug = ndurch, "{TAB} {TAB 2}", "{TAB 2} {TAB}"))
+    SendStr = SendStr & Switch(aktDC.aug = durchg, " {TAB 3}", aktDC.aug = ndurch, "{TAB} {TAB 2}", True, "{TAB 2} {TAB}")
     SendStr = SendStr & " {TAB 14} {TAB 2}"
    
    Case typ2alt
@@ -2513,7 +2514,7 @@ Public Sub domachDMPBogen(Pat_ID&, BogArtlV As BogArtTyp, DokuDat As Date, Optio
      SendStr2 = SendStr2 & IIf(aktDC.FEn(j) And Not aktDC.FE(j), " ", "") & "{TAB}"
     Next j
     SendStr2 = SendStr2 & IIf(aktDC.Tabak, " {TAB 2}", "{TAB} {TAB}")
-    SendStr2 = SendStr2 & IIf(aktDC.gewi < 10, "00", IIf(aktDC.gewi < 100, "0", "")) & aktDC.gewi
+    SendStr2 = SendStr2 & Switch(aktDC.gewi < 10, "00", aktDC.gewi < 100, "0", True, "") & aktDC.gewi
 '    sendstr2 = sendstr2 & " {TAB 2}" ' altersgemäße körperliche Entwicklung
     SendStr2 = SendStr2 & IIf(aktDC.Puls = ndok, " ", "") & "{TAB}" & IIf(aktDC.Puls = unauff, " ", "") & "{TAB}" & IIf(aktDC.Puls = auff, " ", "") & "{TAB 2}"
     SendStr2 = SendStr2 & IIf(aktDC.sens = ndok, " ", "") & "{TAB}" & IIf(aktDC.sens = unauff, " ", "") & "{TAB}" & IIf(aktDC.sens = auff Or aktDC.sens = pathdok, " ", "") & "{TAB 2}"
@@ -2601,8 +2602,8 @@ Public Sub domachDMPBogen(Pat_ID&, BogArtlV As BogArtTyp, DokuDat As Date, Optio
     SendStr = SendStr & IIf(aktDC.mau = ndok, " ", "") & "{TAB}" & IIf(aktDC.mau = auff, " ", "") & "{TAB}" & IIf(aktDC.mau = unauff, " ", "") & "{TAB 2}"
     SendStr = SendStr & Format$(aktDC.hypoZAn, "00") & "0000"
     SendStr = SendStr & IIf(aktDC.oblaser, " {TAB 2}", "{TAB} {TAB}")
-    SendStr = SendStr & IIf(aktDC.obIns, IIf(aktDC.tart <> CSII, "{TAB} {TAB 2}", "{TAB 3} "), " {TAB 3}") & "{TAB}"
-    SendStr = SendStr & IIf(aktDC.obAnal, IIf(aktDC.tart <> CSII, "{TAB} {TAB 2}", "{TAB 3} "), " {TAB 3}") & "{TAB}"
+    SendStr = SendStr & IIf(aktDC.obIns, IIf(aktDC.tart <> csii, "{TAB} {TAB 2}", "{TAB 3} "), " {TAB 3}") & "{TAB}"
+    SendStr = SendStr & IIf(aktDC.obAnal, IIf(aktDC.tart <> csii, "{TAB} {TAB 2}", "{TAB 3} "), " {TAB 3}") & "{TAB}"
     SendStr = SendStr & IIf(aktDC.obHMG, " {TAB}", "{TAB}")
     SendStr = SendStr & IIf(aktDC.obAntihyp, " {TAB}", "{TAB}")
     SendStr = SendStr & IIf(aktDC.obThro, " {TAB}", "{TAB}")
@@ -2650,8 +2651,8 @@ Public Sub domachDMPBogen(Pat_ID&, BogArtlV As BogArtTyp, DokuDat As Date, Optio
     SendStr2 = SendStr2 & IIf(aktDC.mau = ndok, " ", "") & "{TAB}" & IIf(aktDC.mau = auff, " ", "") & "{TAB}" & IIf(aktDC.mau = unauff, " ", "") & "{TAB 2}"
     SendStr2 = SendStr2 & Format$(aktDC.hypoZAn, "0") & "00"
     SendStr2 = SendStr2 & IIf(aktDC.oblaser, " {TAB 2}", "{TAB} {TAB}")
-    SendStr2 = SendStr2 & IIf(aktDC.obIns, IIf(aktDC.tart <> CSII, "{TAB} {TAB 2}", "{TAB 3} "), " {TAB 3}") & "{TAB}"
-    SendStr2 = SendStr2 & IIf(aktDC.obAnal, IIf(aktDC.tart <> CSII, "{TAB} {TAB 2}", "{TAB 3} "), " {TAB 3}") & "{TAB}"
+    SendStr2 = SendStr2 & IIf(aktDC.obIns, IIf(aktDC.tart <> csii, "{TAB} {TAB 2}", "{TAB 3} "), " {TAB 3}") & "{TAB}"
+    SendStr2 = SendStr2 & IIf(aktDC.obAnal, IIf(aktDC.tart <> csii, "{TAB} {TAB 2}", "{TAB 3} "), " {TAB 3}") & "{TAB}"
     SendStr2 = SendStr2 & IIf(aktDC.obHMG, " {TAB}", "{TAB}")
     SendStr2 = SendStr2 & IIf(aktDC.obAntihyp, " {TAB}", "{TAB}")
     SendStr2 = SendStr2 & IIf(aktDC.obThro, " {TAB}", "{TAB}")
