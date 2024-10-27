@@ -655,8 +655,8 @@ Public Function doPatvonMO(pNr&, Optional obmitFormularen%)
         If NaStr(j).Text <> 0 Then
          SchGr = 90
         End If
-    End Select
-   Next j
+    End Select ' Case NaStr(j).ENr
+   Next j ' j = 0 To UBound(NaStr)
   End If ' rsNa!fm
   
    
@@ -1028,8 +1028,6 @@ Public Function doPatvonMO(pNr&, Optional obmitFormularen%)
 ' Set rsFa = Nothing
 ' Set rsFa = Nothing ' wirkt witzigerweise erst beim zweiten Mal (!?)
 '  Call rFaDump
-
-  
   
   Dim rab() As Abrtyp
   Dim rAbr As ADODB.Recordset
@@ -1040,7 +1038,6 @@ Public Function doPatvonMO(pNr&, Optional obmitFormularen%)
     rab(UBound(rab)).BSNR = rAbr!FBetriebsnr
    rAbr.MoveNext
   Loop
-
 
   Dim art$, a1$, a2$, apos&, abz%
   Dim rsEi As New ADODB.Recordset
@@ -1071,24 +1068,78 @@ Public Function doPatvonMO(pNr&, Optional obmitFormularen%)
 ' Labor: FEintragsart immer 5, FStatus immer 2, FStatusergaenzung immer 0, FBehgrundnr immer 0,
 '        FDurchfNutzernr immer -2147483647, FEintragsnr immer -2147483647
 '        FLstGerbNr 1,2 oder 4
+
   sql = _
 "SELECT 18900101+INTERVAL l.FDatum DAY+INTERVAL l.FZeit SECOND Zp, na.FUsername ua, nb.FUsername ub, l.*, IF(INSTR(FText,':') BETWEEN 1 AND 6,LEFT(FText,INSTR(FText,':')-1),'') art, IF(INSTR(FText,':') BETWEEN 1 AND 6,TRIM(MID(FText,INSTR(FText,':')+1)),FText) ename" & vbCrLf & _
-", COALESCE(CONVERT(b.FMemo USING latin1),'') CFMemo, b.*" & vbCrLf & _
+", COALESCE(CONVERT(b.FMemo USING latin1),'') BFMemo, l.FEintragsart lFE, b.FEintragsart bFE, b.FSurogat bFSu, b.*" & vbCrLf & _
+", l.FEintragsart IN(13,14,16,17,18,2004,2005,2006,2007,2029) obRezE" & vbCrLf & _
+", IF(FText RLIKE '^[ ]*[0-9]+[ ]*x.*',SUBSTRING_INDEX(FText,'x',1),1) Anz" & vbCrLf & _
+", REGEXP_REPLACE(REGEXP_REPLACE(FText,'^([ ]*[0-9]+[ ]*x[ ]*)?(.*)[ ]*$','\2'),'([ ]*\(.*\)[ ]*)*$','') Med" & vbCrLf & _
+", REGEXP_REPLACE(FText,'^([ ]*[0-9]+[ ]*x[ ]*)?.*\((.*)\)[ ]*$','\2') Rezkl" & vbCrLf & _
+", IF(INSTR(l.FDetails,'(Nonoutidem ""'),MID(l.FDetails,INSTR(l.FDetails,'(Nonoutidem ""')+LENGTH('(Nonoutidem ""'),INSTR(SUBSTRING_INDEX(l.FDetails,'(Nonoutidem ""',-1),'"")')-1),'') nonoi" & vbCrLf & _
+", IF(INSTR(l.FDetails,'(Anzahl '),MID(l.FDetails,INSTR(l.FDetails,'(Anzahl ')+LENGTH('(Anzahl '),INSTR(SUBSTRING_INDEX(l.FDetails,'(Anzahl ',-1),')')-1),'') Anzahl" & vbCrLf & _
+", IF(INSTR(l.FDetails,'(Packungszahl '),MID(l.FDetails,INSTR(l.FDetails,'(Packungszahl ')+LENGTH('(Packungszahl '),INSTR(SUBSTRING_INDEX(l.FDetails,'(Packungszahl ',-1),')')-1),'') Packungszahl" & vbCrLf & _
+", IF(INSTR(l.FDetails,'(Rezeptart '),MID(l.FDetails,INSTR(l.FDetails,'(Rezeptart ')+LENGTH('(Rezeptart '),INSTR(SUBSTRING_INDEX(l.FDetails,'(Rezeptart ',-1),')')-1),'') Rezeptart" & vbCrLf & _
 "FROM (SELECT l.*" & vbCrLf & _
 "FROM ltag l) l" & vbCrLf & _
 "LEFT JOIN nutzerneu na ON FAnordnutzernr= na.FSurogat" & vbCrLf & _
 "LEFT JOIN nutzerneu nb ON FAusfnutzernr= nb.FSurogat" & vbCrLf & _
 "LEFT JOIN beschein b ON b.FSurogat = l.FEintragsnr" & vbCrLf & _
-"WHERE NOT ISNULL(b.FSurogat)" & vbCrLf & _
-"AND l.fpatnr=" & pNr
+"WHERE l.fpatnr=" & pNr & vbCrLf & _
+"HAVING (NOT ISNULL(bFE)OR(obRezE))" & vbCrLf & _
+""
+' ", IF(FText RLIKE '^[ ]*[0-9]+[ ]*x.*',MID(FText,INSTR(FText,'x')+1),FText) Med" & vbCrLf & _
+", IF(FText RLIKE '.*(.)',LEFT(SUBSTRING_INDEX(FText,'(',-1),INSTR(SUBSTRING_INDEX(FText,'(',-1),')')-1),0) Rezkl" & vbCrLf & _
+
   myFrag rsEi, sql, adOpenStatic, MOCon
   If Not rsEi.BOF Then
    Do While Not rsEi.EOF
-    If rsEi!cfmemo <> "" Then
+    If rsEi!BFMemo <> "" Then
 '     If rsEi!fsurogat = 16045 Then Stop
-     Call ParseMemo(rsEi!cfmemo, FMem(), obDebug, "FMemo aus beschein")
-    End If ' rsEi!CFMemo <> ""
-    Select Case rsEi!FEintragsart
+     Call ParseMemo(rsEi!BFMemo, FMem(), obDebug, "FMemo aus beschein")
+    End If ' rsEi!BFMemo <> ""
+    If rsEi!obRezE Then ' Rezepteintrag
+     ReDim Preserve rRe(UBound(rRe) + 1)
+     rRe(UBound(rRe)).aktZeit = aktZeit
+     rRe(UBound(rRe)).Pat_ID = pid
+     rRe(UBound(rRe)).Pat_ID = pid
+     rRe(UBound(rRe)).Zeitpunkt = rsEi!Zp
+     rRe(UBound(rRe)).Medikament = rsEi!Med
+     rRe(UBound(rRe)).PZN = rsEi!ficdcode
+     rRe(UBound(rRe)).lanrid = rsEi!FArztnr
+     rRe(UBound(rRe)).anzl = Switch(rsEi!anz <> "", rsEi!anz, rsEi!Anzahl <> "", rsEi!Anzahl, rsEi!packungszahl <> "", rsEi!packungszahl, True, "")
+     rRe(UBound(rRe)).FEintragsart = rsEi!lFE
+     Select Case rsEi!RezKl
+      Case "K": rRe(UBound(rRe)).Rezklkurz = "rp": rRe(UBound(rRe)).Rezkllang = "Kassenrp"
+      Case "P": rRe(UBound(rRe)).Rezklkurz = "prp": rRe(UBound(rRe)).Rezkllang = "Privatrp"
+      Case "S": rRe(UBound(rRe)).Rezklkurz = "sp": rRe(UBound(rRe)).Rezkllang = "Sprechstundenbedarf"
+      Case "M": rRe(UBound(rRe)).Rezklkurz = "mu": rRe(UBound(rRe)).Rezkllang = "Muster"
+      Case "F": rRe(UBound(rRe)).Rezklkurz = "fr": rRe(UBound(rRe)).Rezkllang = "Fremd"
+      Case "V": rRe(UBound(rRe)).Rezklkurz = "vk": rRe(UBound(rRe)).Rezkllang = "Verkauf"
+      Case "SM": rRe(UBound(rRe)).Rezklkurz = "sm": rRe(UBound(rRe)).Rezkllang = "Sebstmedikation"
+      Case "BTM":
+        rRe(UBound(rRe)).Rezklkurz = "btm": rRe(UBound(rRe)).Rezkllang = "BTM-Rezept"
+     End Select
+     If IsNumeric(rsEi!Rezeptart) Then rRe(UBound(rRe)).Rezeptart = rsEi!Rezeptart
+     If rsEi!nonoi <> "" Then rRe(UBound(rRe)).auti = rsEi!nonoi
+    
+     If rsEi!BFMemo <> "" Then
+'      rRe(UBound(rRe)).auti = 1 ' manchmal in Turbomed auch 2
+      For j = 0 To UBound(FMem)
+       Select Case FMem(j).ENr
+        Case "6.2.3"
+         rRe(UBound(rRe)).anzl = Asc(FMem(j).Text)
+        Case "6.2.4"
+         If Asc(FMem(j).Text) = 1 Then rRe(UBound(rRe)).auti = 1
+        Case "6.2.5"
+         rRe(UBound(rRe)).Medikament = Trim$(FMem(j).Text)
+        Case "6.2.8"
+         If rRe(UBound(rRe)).PZN = "" And FMem(j).Text <> "0" Then rRe(UBound(rRe)).PZN = FMem(j).Text
+       End Select
+      Next j
+     End If ' rsEi!BFMemo<>""
+    Else ' rsEi!obRezE Then ' Rezepteintrag
+    Select Case rsEi!lFE
      Case 21 ' Krankenhauseinweisung
       ReDim Preserve rKh(UBound(rKh) + 1)
       rKh(UBound(rKh)).Pat_ID = pid
@@ -1125,10 +1176,9 @@ Public Function doPatvonMO(pNr&, Optional obmitFormularen%)
          rKh(UBound(rKh)).MitBef = mt
        End Select
       Next j
-     
      Case Else ' Formular
       rFoNeu = -1
-      FormAbk = rsEi!FEintragsart
+      FormAbk = rsEi!lFE
       FormBez = rsEi!FText
       For i = 1 To UBound(rFo)
        If rFo(i).Form_Abk = FormAbk And rFo(i).FormBez = FormBez Then
@@ -1182,7 +1232,7 @@ fgefunden:
       FoIDv = FoIDv + 1
    
     ' FormVorl unbekannt
-      If rsEi!cfmemo <> "" Then ' ParseMemo oben
+      If rsEi!BFMemo <> "" Then ' ParseMemo oben
        For j = 0 To UBound(FMem)
         ReDim Preserve rFm(UBound(rFm) + 1)
         rFm(UBound(rFm)).nr = rFm_Nr
@@ -1205,8 +1255,9 @@ fgefunden:
         rFm(UBound(rFm)).FeldNr = j
         rFm(UBound(rFm)).Foid = FoIDv - 1 '-FoID 'negative Speicherung, da der Wert noch nach der Datenbankspeicherung von rFr angepaﬂt werden muss
        Next j
-      End If ' rsEi!CFMemo <> "" Then
+      End If ' rsEi!BFMemo <> "" Then
     End Select ' Case rsEi!FEintragsart
+    End If ' rsEi!obRezE Then ' Rezepteintrag else
     rsEi.MoveNext
    Loop ' while not rsEi.EOF
   End If ' Not rsEi.BOF Then
@@ -1245,7 +1296,7 @@ sql = _
     rLa(ls).Zeitpunkt = rsEi!Zp
 '   rLa(ls).FertigStGrad = FStG
 '   rLa(ls).Labor = Abk¸Labor
-    rLa(ls).Abk¸ = IIf(rsEi!testid = "", rsEi!fICDCode, rsEi!testid) ' nauftrag->FSchluessel
+    rLa(ls).Abk¸ = IIf(rsEi!testid = "", rsEi!ficdcode, rsEi!testid) ' nauftrag->FSchluessel
     rLa(ls).aktZeit = aktZeit
 '    rLa(ls).FID = rFa(UBound(rFa)).FID
 '    rLa(ls).absPos = absPos

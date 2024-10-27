@@ -369,6 +369,7 @@ Private Sub FaellepHA_KeyDown(KeyCode As Integer, Shift As Integer)
 End Sub ' FaellepHA_KeyDown
 
 Private Sub Form_Activate()
+ Me.Caption = "Patientenauswahl " & Switch(hlese.Aktion = Anwalt, "Anwalt", hlese.Aktion = Briefschreiben, "Briefschreiben", hlese.Aktion = DMPZettel, "DMPZettel", hlese.Aktion = GefaxteAnzeigen, "GefaxteAnzeigen", hlese.Aktion = Patientenlaufzetteleinzeln, "Patientenlaufzetteleinzeln", hlese.Aktion = PatvonMO, "PatvonMO", hlese.Aktion = RestlicheBriefe, "Restliche Briefe", True, "nix") & IIf(lies.obMySQL, ", MySQL: " & Lese.MyDB, Lese.dlg.MdB)
  Me.Pat_ID.SetFocus
  If Me.obRueck Then Me.Patientenlaufzettel.FontItalic = True Else Me.Patientenlaufzettel.FontItalic = False
  On Error Resume Next
@@ -515,7 +516,7 @@ Private Sub Vorlage_KeyDown(KeyCode As Integer, Shift As Integer)
  Call Key(KeyCode, Shift, Me)
 End Sub ' Vorlage_KeyDown(KeyCode As Integer, Shift As Integer)
 
-Private Sub OKButton_Click()
+Public Sub OKButton_Click()
  Me.Visible = False
  cR.WriteKey Me.Vorlage, "Vorlage", RegPos, HKEY_CURRENT_USER, REG_SZ
  Me.hlese.los
@@ -537,7 +538,6 @@ Private Sub Form_Load()
   If Me.Visible Then Screen.MousePointer = vbHourglass
   DoEvents
   If hlese Is Nothing Then Set hlese = Lese
-  Me.Caption = "Patientenauswahl " & Switch(hlese.Aktion = Anwalt, "Anwalt", hlese.Aktion = Briefschreiben, "Briefschreiben", hlese.Aktion = DMPZettel, "DMPZettel", hlese.Aktion = GefaxteAnzeigen, "GefaxteAnzeigen", hlese.Aktion = Patientenlaufzetteleinzeln, "Patientenlaufzetteleinzeln", hlese.Aktion = PatvonMO, "PatvonMO", hlese.Aktion = RestlicheBriefe, "Restliche Briefe", True, "nix") & IIf(lies.obMySQL, ", MySQL: " & Lese.MyDB, Lese.dlg.MdB)
 '  Call AuswName(Me)
 '  Call AuswHA(Me)
 #If EinmalDB Then
