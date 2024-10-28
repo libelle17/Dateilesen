@@ -490,7 +490,7 @@ Public type rezepteintraege
  StByte AS long 'StByte int 'Statusbyte
  LANRid AS long 'LANRid int 'Bezug auf lanrpraxis.id
  id AS long 'id int '
- FEintragsart AS string 'FEintragsart varchar 'ltag.FEintragsart
+ FEintragsart AS string 'FEintragsart varchar 'ltag.FEintragsart; 17=Hilfsmittel, 18=Physiotherapie etc.,  2029 = Diga
  Rezeptart AS byte 'Rezeptart tinyint 'Rezeptart in ltag.FDetails
 end type
 
@@ -837,6 +837,7 @@ Public type liuez
  telefon AS string 'telefon varchar '
  fax AS string 'fax varchar '
  kvnr AS string 'kvnr varchar '
+ LANR AS string 'LANR varchar '
  id AS long 'id int '
  überschrift AS string 'überschrift varchar '
  dbnr AS string 'dbnr varchar '
@@ -11553,6 +11554,7 @@ Public FUNCTION rLiDump()
   Print #200, Left$("rLi(" & i & ").telefon:" & String$(33, "."), 33) & "'" & rLi(i).telefon & "'"
   Print #200, Left$("rLi(" & i & ").fax:" & String$(33, "."), 33) & "'" & rLi(i).fax & "'"
   Print #200, Left$("rLi(" & i & ").kvnr:" & String$(33, "."), 33) & "'" & rLi(i).kvnr & "'"
+  Print #200, Left$("rLi(" & i & ").LANR:" & String$(33, "."), 33) & "'" & rLi(i).LANR & "'"
   Print #200, Left$("rLi(" & i & ").id:" & String$(33, "."), 33) & rLi(i).id
   Print #200, Left$("rLi(" & i & ").überschrift:" & String$(33, "."), 33) & "'" & rLi(i).überschrift & "'"
   Print #200, Left$("rLi(" & i & ").dbnr:" & String$(33, "."), 33) & "'" & rLi(i).dbnr & "'"
@@ -11592,9 +11594,10 @@ Public FUNCTION liuezSpeichern(SammelInsert%, BezfSp%)
  On Error GoTo fehler
  syscmd 4, pid & ": Speichere " & Ubound(rLi)+0 & " Sätze in `liuez`"
  Call csql0.AppVar(Array(" INSERT ", sqlIgnore, "INTO `liuez` (name,vorname,titelt," & _
-     "fachgruppe,strasse,plz,ort,telefon,fax,kvnr,überschrift,dbnr,bstelle," & _
-     "anrede,tel1,tel2,tel3,tel4,fax1,fax2,fax3,email,zulg," & _
-     "arzttyp,gemmit,beme,dmpt2,dmpt1,geschlecht,titel,zusatz,ursp,aktzeit)          VALUES"))
+     "fachgruppe,strasse,plz,ort,telefon,fax,kvnr,LANR,überschrift,dbnr," & _
+     "bstelle,anrede,tel1,tel2,tel3,tel4,fax1,fax2,fax3,email," & _
+     "zulg,arzttyp,gemmit,beme,dmpt2,dmpt1,geschlecht,titel,zusatz,ursp," & _
+     "aktzeit)               VALUES"))
 sql:
  csql.m_Len = 0
  For i = 1 to ubound(rLi)
@@ -11603,9 +11606,9 @@ setz:
    csql.Append csql0
   End If ' SammelInsert = 0 Or i = 1 Then
   csql.AppVar Array("('" , rLi(i).name, "','" , rLi(i).vorname, "','" , rLi(i).titelt, "','" , rLi(i).fachgruppe, "','" , rLi(i).strasse, "','" , rLi(i).plz, "','" , rLi(i).ort, "','" , rLi(i).telefon, "','" ,  _
-   rLi(i).fax, "','" , rLi(i).kvnr, "','" , rLi(i).überschrift, "','" , rLi(i).dbnr, "','" , rLi(i).bstelle, "','" , rLi(i).anrede, "','" , rLi(i).tel1, "','" , rLi(i).tel2, "','" , rLi(i).tel3, "','" ,  _
-   rLi(i).tel4, "','" , rLi(i).fax1, "','" , rLi(i).fax2, "','" , rLi(i).fax3, "','" , rLi(i).email, "','" , rLi(i).zulg, "','" , rLi(i).arzttyp, "','" , rLi(i).gemmit, "','" , rLi(i).beme, "'," ,  _
-   rLi(i).dmpt2, "," , rLi(i).dmpt1, ",'" , rLi(i).geschlecht, "','" , rLi(i).titel, "','" , rLi(i).zusatz, "','" , rLi(i).ursp, "'," , DatFor_k(rLi(i).aktzeit), ")")
+   rLi(i).fax, "','" , rLi(i).kvnr, "','" , rLi(i).LANR, "','" , rLi(i).überschrift, "','" , rLi(i).dbnr, "','" , rLi(i).bstelle, "','" , rLi(i).anrede, "','" , rLi(i).tel1, "','" , rLi(i).tel2, "','" ,  _
+   rLi(i).tel3, "','" , rLi(i).tel4, "','" , rLi(i).fax1, "','" , rLi(i).fax2, "','" , rLi(i).fax3, "','" , rLi(i).email, "','" , rLi(i).zulg, "','" , rLi(i).arzttyp, "','" , rLi(i).gemmit, "','" ,  _
+   rLi(i).beme, "'," , rLi(i).dmpt2, "," , rLi(i).dmpt1, ",'" , rLi(i).geschlecht, "','" , rLi(i).titel, "','" , rLi(i).zusatz, "','" , rLi(i).ursp, "'," , DatFor_k(rLi(i).aktzeit), ")")
   IF SammelInsert <> 0 AND i < ubound(rLi) Then csql.Append ","
   IF SammelInsert = 0 OR i = ubound(rLi) Then
     altmode = myEFrag("SELECT @@global.sql_mode", , DBCn).Fields(0)
@@ -11660,7 +11663,7 @@ ElseIf ErrNumber = -2147467259 AND InStrB(ErrDescr, "Daten zu lang") = 0 AND InS
  Resume
 ElseIf ErrNumber = -2147217833 OR InStrB(ErrDescr, "Daten zu lang") <> 0 OR InStrB(ErrDescr, "Data too long") <> 0 THEN
  Dim rsc As Adodb.Recordset, maxi%(), k%
- redim maxi(29)
+ redim maxi(30)
  for k = iif(SammelInsert<>0,1,i) to iif(SammelInsert<>0,ubound(rLi),i)
   IF Len(rLi(k).name) > maxi(0) THEN maxi(0) = Len(rLi(k).name)
   IF Len(rLi(k).vorname) > maxi(1) THEN maxi(1) = Len(rLi(k).vorname)
@@ -11672,26 +11675,27 @@ ElseIf ErrNumber = -2147217833 OR InStrB(ErrDescr, "Daten zu lang") <> 0 OR InSt
   IF Len(rLi(k).telefon) > maxi(7) THEN maxi(7) = Len(rLi(k).telefon)
   IF Len(rLi(k).fax) > maxi(8) THEN maxi(8) = Len(rLi(k).fax)
   IF Len(rLi(k).kvnr) > maxi(9) THEN maxi(9) = Len(rLi(k).kvnr)
-  IF Len(rLi(k).überschrift) > maxi(10) THEN maxi(10) = Len(rLi(k).überschrift)
-  IF Len(rLi(k).dbnr) > maxi(11) THEN maxi(11) = Len(rLi(k).dbnr)
-  IF Len(rLi(k).bstelle) > maxi(12) THEN maxi(12) = Len(rLi(k).bstelle)
-  IF Len(rLi(k).anrede) > maxi(13) THEN maxi(13) = Len(rLi(k).anrede)
-  IF Len(rLi(k).tel1) > maxi(14) THEN maxi(14) = Len(rLi(k).tel1)
-  IF Len(rLi(k).tel2) > maxi(15) THEN maxi(15) = Len(rLi(k).tel2)
-  IF Len(rLi(k).tel3) > maxi(16) THEN maxi(16) = Len(rLi(k).tel3)
-  IF Len(rLi(k).tel4) > maxi(17) THEN maxi(17) = Len(rLi(k).tel4)
-  IF Len(rLi(k).fax1) > maxi(18) THEN maxi(18) = Len(rLi(k).fax1)
-  IF Len(rLi(k).fax2) > maxi(19) THEN maxi(19) = Len(rLi(k).fax2)
-  IF Len(rLi(k).fax3) > maxi(20) THEN maxi(20) = Len(rLi(k).fax3)
-  IF Len(rLi(k).email) > maxi(21) THEN maxi(21) = Len(rLi(k).email)
-  IF Len(rLi(k).zulg) > maxi(22) THEN maxi(22) = Len(rLi(k).zulg)
-  IF Len(rLi(k).arzttyp) > maxi(23) THEN maxi(23) = Len(rLi(k).arzttyp)
-  IF Len(rLi(k).gemmit) > maxi(24) THEN maxi(24) = Len(rLi(k).gemmit)
-  IF Len(rLi(k).beme) > maxi(25) THEN maxi(25) = Len(rLi(k).beme)
-  IF Len(rLi(k).geschlecht) > maxi(26) THEN maxi(26) = Len(rLi(k).geschlecht)
-  IF Len(rLi(k).titel) > maxi(27) THEN maxi(27) = Len(rLi(k).titel)
-  IF Len(rLi(k).zusatz) > maxi(28) THEN maxi(28) = Len(rLi(k).zusatz)
-  IF Len(rLi(k).ursp) > maxi(29) THEN maxi(29) = Len(rLi(k).ursp)
+  IF Len(rLi(k).LANR) > maxi(10) THEN maxi(10) = Len(rLi(k).LANR)
+  IF Len(rLi(k).überschrift) > maxi(11) THEN maxi(11) = Len(rLi(k).überschrift)
+  IF Len(rLi(k).dbnr) > maxi(12) THEN maxi(12) = Len(rLi(k).dbnr)
+  IF Len(rLi(k).bstelle) > maxi(13) THEN maxi(13) = Len(rLi(k).bstelle)
+  IF Len(rLi(k).anrede) > maxi(14) THEN maxi(14) = Len(rLi(k).anrede)
+  IF Len(rLi(k).tel1) > maxi(15) THEN maxi(15) = Len(rLi(k).tel1)
+  IF Len(rLi(k).tel2) > maxi(16) THEN maxi(16) = Len(rLi(k).tel2)
+  IF Len(rLi(k).tel3) > maxi(17) THEN maxi(17) = Len(rLi(k).tel3)
+  IF Len(rLi(k).tel4) > maxi(18) THEN maxi(18) = Len(rLi(k).tel4)
+  IF Len(rLi(k).fax1) > maxi(19) THEN maxi(19) = Len(rLi(k).fax1)
+  IF Len(rLi(k).fax2) > maxi(20) THEN maxi(20) = Len(rLi(k).fax2)
+  IF Len(rLi(k).fax3) > maxi(21) THEN maxi(21) = Len(rLi(k).fax3)
+  IF Len(rLi(k).email) > maxi(22) THEN maxi(22) = Len(rLi(k).email)
+  IF Len(rLi(k).zulg) > maxi(23) THEN maxi(23) = Len(rLi(k).zulg)
+  IF Len(rLi(k).arzttyp) > maxi(24) THEN maxi(24) = Len(rLi(k).arzttyp)
+  IF Len(rLi(k).gemmit) > maxi(25) THEN maxi(25) = Len(rLi(k).gemmit)
+  IF Len(rLi(k).beme) > maxi(26) THEN maxi(26) = Len(rLi(k).beme)
+  IF Len(rLi(k).geschlecht) > maxi(27) THEN maxi(27) = Len(rLi(k).geschlecht)
+  IF Len(rLi(k).titel) > maxi(28) THEN maxi(28) = Len(rLi(k).titel)
+  IF Len(rLi(k).zusatz) > maxi(29) THEN maxi(29) = Len(rLi(k).zusatz)
+  IF Len(rLi(k).ursp) > maxi(30) THEN maxi(30) = Len(rLi(k).ursp)
  next k
  nochmal:
  SET rsc = New ADODB.Recordset
@@ -11714,26 +11718,27 @@ ElseIf ErrNumber = -2147217833 OR InStrB(ErrDescr, "Daten zu lang") <> 0 OR InSt
        Case 7: Lese.Ausgeb "   Verkürze Inhalt von rLi.telefon: '" & rLi(k).telefon & "' -> '" & Left$(rLi(k).telefon, maxL)  & "'",true : rLi(k).telefon = Left$(rLi(k).telefon, maxL)
        Case 8: Lese.Ausgeb "   Verkürze Inhalt von rLi.fax: '" & rLi(k).fax & "' -> '" & Left$(rLi(k).fax, maxL)  & "'",true : rLi(k).fax = Left$(rLi(k).fax, maxL)
        Case 9: Lese.Ausgeb "   Verkürze Inhalt von rLi.kvnr: '" & rLi(k).kvnr & "' -> '" & Left$(rLi(k).kvnr, maxL)  & "'",true : rLi(k).kvnr = Left$(rLi(k).kvnr, maxL)
-       Case 10: Lese.Ausgeb "   Verkürze Inhalt von rLi.überschrift: '" & rLi(k).überschrift & "' -> '" & Left$(rLi(k).überschrift, maxL)  & "'",true : rLi(k).überschrift = Left$(rLi(k).überschrift, maxL)
-       Case 11: Lese.Ausgeb "   Verkürze Inhalt von rLi.dbnr: '" & rLi(k).dbnr & "' -> '" & Left$(rLi(k).dbnr, maxL)  & "'",true : rLi(k).dbnr = Left$(rLi(k).dbnr, maxL)
-       Case 12: Lese.Ausgeb "   Verkürze Inhalt von rLi.bstelle: '" & rLi(k).bstelle & "' -> '" & Left$(rLi(k).bstelle, maxL)  & "'",true : rLi(k).bstelle = Left$(rLi(k).bstelle, maxL)
-       Case 13: Lese.Ausgeb "   Verkürze Inhalt von rLi.anrede: '" & rLi(k).anrede & "' -> '" & Left$(rLi(k).anrede, maxL)  & "'",true : rLi(k).anrede = Left$(rLi(k).anrede, maxL)
-       Case 14: Lese.Ausgeb "   Verkürze Inhalt von rLi.tel1: '" & rLi(k).tel1 & "' -> '" & Left$(rLi(k).tel1, maxL)  & "'",true : rLi(k).tel1 = Left$(rLi(k).tel1, maxL)
-       Case 15: Lese.Ausgeb "   Verkürze Inhalt von rLi.tel2: '" & rLi(k).tel2 & "' -> '" & Left$(rLi(k).tel2, maxL)  & "'",true : rLi(k).tel2 = Left$(rLi(k).tel2, maxL)
-       Case 16: Lese.Ausgeb "   Verkürze Inhalt von rLi.tel3: '" & rLi(k).tel3 & "' -> '" & Left$(rLi(k).tel3, maxL)  & "'",true : rLi(k).tel3 = Left$(rLi(k).tel3, maxL)
-       Case 17: Lese.Ausgeb "   Verkürze Inhalt von rLi.tel4: '" & rLi(k).tel4 & "' -> '" & Left$(rLi(k).tel4, maxL)  & "'",true : rLi(k).tel4 = Left$(rLi(k).tel4, maxL)
-       Case 18: Lese.Ausgeb "   Verkürze Inhalt von rLi.fax1: '" & rLi(k).fax1 & "' -> '" & Left$(rLi(k).fax1, maxL)  & "'",true : rLi(k).fax1 = Left$(rLi(k).fax1, maxL)
-       Case 19: Lese.Ausgeb "   Verkürze Inhalt von rLi.fax2: '" & rLi(k).fax2 & "' -> '" & Left$(rLi(k).fax2, maxL)  & "'",true : rLi(k).fax2 = Left$(rLi(k).fax2, maxL)
-       Case 20: Lese.Ausgeb "   Verkürze Inhalt von rLi.fax3: '" & rLi(k).fax3 & "' -> '" & Left$(rLi(k).fax3, maxL)  & "'",true : rLi(k).fax3 = Left$(rLi(k).fax3, maxL)
-       Case 21: Lese.Ausgeb "   Verkürze Inhalt von rLi.email: '" & rLi(k).email & "' -> '" & Left$(rLi(k).email, maxL)  & "'",true : rLi(k).email = Left$(rLi(k).email, maxL)
-       Case 22: Lese.Ausgeb "   Verkürze Inhalt von rLi.zulg: '" & rLi(k).zulg & "' -> '" & Left$(rLi(k).zulg, maxL)  & "'",true : rLi(k).zulg = Left$(rLi(k).zulg, maxL)
-       Case 23: Lese.Ausgeb "   Verkürze Inhalt von rLi.arzttyp: '" & rLi(k).arzttyp & "' -> '" & Left$(rLi(k).arzttyp, maxL)  & "'",true : rLi(k).arzttyp = Left$(rLi(k).arzttyp, maxL)
-       Case 24: Lese.Ausgeb "   Verkürze Inhalt von rLi.gemmit: '" & rLi(k).gemmit & "' -> '" & Left$(rLi(k).gemmit, maxL)  & "'",true : rLi(k).gemmit = Left$(rLi(k).gemmit, maxL)
-       Case 25: Lese.Ausgeb "   Verkürze Inhalt von rLi.beme: '" & rLi(k).beme & "' -> '" & Left$(rLi(k).beme, maxL)  & "'",true : rLi(k).beme = Left$(rLi(k).beme, maxL)
-       Case 26: Lese.Ausgeb "   Verkürze Inhalt von rLi.geschlecht: '" & rLi(k).geschlecht & "' -> '" & Left$(rLi(k).geschlecht, maxL)  & "'",true : rLi(k).geschlecht = Left$(rLi(k).geschlecht, maxL)
-       Case 27: Lese.Ausgeb "   Verkürze Inhalt von rLi.titel: '" & rLi(k).titel & "' -> '" & Left$(rLi(k).titel, maxL)  & "'",true : rLi(k).titel = Left$(rLi(k).titel, maxL)
-       Case 28: Lese.Ausgeb "   Verkürze Inhalt von rLi.zusatz: '" & rLi(k).zusatz & "' -> '" & Left$(rLi(k).zusatz, maxL)  & "'",true : rLi(k).zusatz = Left$(rLi(k).zusatz, maxL)
-       Case 29: Lese.Ausgeb "   Verkürze Inhalt von rLi.ursp: '" & rLi(k).ursp & "' -> '" & Left$(rLi(k).ursp, maxL)  & "'",true : rLi(k).ursp = Left$(rLi(k).ursp, maxL)
+       Case 10: Lese.Ausgeb "   Verkürze Inhalt von rLi.LANR: '" & rLi(k).LANR & "' -> '" & Left$(rLi(k).LANR, maxL)  & "'",true : rLi(k).LANR = Left$(rLi(k).LANR, maxL)
+       Case 11: Lese.Ausgeb "   Verkürze Inhalt von rLi.überschrift: '" & rLi(k).überschrift & "' -> '" & Left$(rLi(k).überschrift, maxL)  & "'",true : rLi(k).überschrift = Left$(rLi(k).überschrift, maxL)
+       Case 12: Lese.Ausgeb "   Verkürze Inhalt von rLi.dbnr: '" & rLi(k).dbnr & "' -> '" & Left$(rLi(k).dbnr, maxL)  & "'",true : rLi(k).dbnr = Left$(rLi(k).dbnr, maxL)
+       Case 13: Lese.Ausgeb "   Verkürze Inhalt von rLi.bstelle: '" & rLi(k).bstelle & "' -> '" & Left$(rLi(k).bstelle, maxL)  & "'",true : rLi(k).bstelle = Left$(rLi(k).bstelle, maxL)
+       Case 14: Lese.Ausgeb "   Verkürze Inhalt von rLi.anrede: '" & rLi(k).anrede & "' -> '" & Left$(rLi(k).anrede, maxL)  & "'",true : rLi(k).anrede = Left$(rLi(k).anrede, maxL)
+       Case 15: Lese.Ausgeb "   Verkürze Inhalt von rLi.tel1: '" & rLi(k).tel1 & "' -> '" & Left$(rLi(k).tel1, maxL)  & "'",true : rLi(k).tel1 = Left$(rLi(k).tel1, maxL)
+       Case 16: Lese.Ausgeb "   Verkürze Inhalt von rLi.tel2: '" & rLi(k).tel2 & "' -> '" & Left$(rLi(k).tel2, maxL)  & "'",true : rLi(k).tel2 = Left$(rLi(k).tel2, maxL)
+       Case 17: Lese.Ausgeb "   Verkürze Inhalt von rLi.tel3: '" & rLi(k).tel3 & "' -> '" & Left$(rLi(k).tel3, maxL)  & "'",true : rLi(k).tel3 = Left$(rLi(k).tel3, maxL)
+       Case 18: Lese.Ausgeb "   Verkürze Inhalt von rLi.tel4: '" & rLi(k).tel4 & "' -> '" & Left$(rLi(k).tel4, maxL)  & "'",true : rLi(k).tel4 = Left$(rLi(k).tel4, maxL)
+       Case 19: Lese.Ausgeb "   Verkürze Inhalt von rLi.fax1: '" & rLi(k).fax1 & "' -> '" & Left$(rLi(k).fax1, maxL)  & "'",true : rLi(k).fax1 = Left$(rLi(k).fax1, maxL)
+       Case 20: Lese.Ausgeb "   Verkürze Inhalt von rLi.fax2: '" & rLi(k).fax2 & "' -> '" & Left$(rLi(k).fax2, maxL)  & "'",true : rLi(k).fax2 = Left$(rLi(k).fax2, maxL)
+       Case 21: Lese.Ausgeb "   Verkürze Inhalt von rLi.fax3: '" & rLi(k).fax3 & "' -> '" & Left$(rLi(k).fax3, maxL)  & "'",true : rLi(k).fax3 = Left$(rLi(k).fax3, maxL)
+       Case 22: Lese.Ausgeb "   Verkürze Inhalt von rLi.email: '" & rLi(k).email & "' -> '" & Left$(rLi(k).email, maxL)  & "'",true : rLi(k).email = Left$(rLi(k).email, maxL)
+       Case 23: Lese.Ausgeb "   Verkürze Inhalt von rLi.zulg: '" & rLi(k).zulg & "' -> '" & Left$(rLi(k).zulg, maxL)  & "'",true : rLi(k).zulg = Left$(rLi(k).zulg, maxL)
+       Case 24: Lese.Ausgeb "   Verkürze Inhalt von rLi.arzttyp: '" & rLi(k).arzttyp & "' -> '" & Left$(rLi(k).arzttyp, maxL)  & "'",true : rLi(k).arzttyp = Left$(rLi(k).arzttyp, maxL)
+       Case 25: Lese.Ausgeb "   Verkürze Inhalt von rLi.gemmit: '" & rLi(k).gemmit & "' -> '" & Left$(rLi(k).gemmit, maxL)  & "'",true : rLi(k).gemmit = Left$(rLi(k).gemmit, maxL)
+       Case 26: Lese.Ausgeb "   Verkürze Inhalt von rLi.beme: '" & rLi(k).beme & "' -> '" & Left$(rLi(k).beme, maxL)  & "'",true : rLi(k).beme = Left$(rLi(k).beme, maxL)
+       Case 27: Lese.Ausgeb "   Verkürze Inhalt von rLi.geschlecht: '" & rLi(k).geschlecht & "' -> '" & Left$(rLi(k).geschlecht, maxL)  & "'",true : rLi(k).geschlecht = Left$(rLi(k).geschlecht, maxL)
+       Case 28: Lese.Ausgeb "   Verkürze Inhalt von rLi.titel: '" & rLi(k).titel & "' -> '" & Left$(rLi(k).titel, maxL)  & "'",true : rLi(k).titel = Left$(rLi(k).titel, maxL)
+       Case 29: Lese.Ausgeb "   Verkürze Inhalt von rLi.zusatz: '" & rLi(k).zusatz & "' -> '" & Left$(rLi(k).zusatz, maxL)  & "'",true : rLi(k).zusatz = Left$(rLi(k).zusatz, maxL)
+       Case 30: Lese.Ausgeb "   Verkürze Inhalt von rLi.ursp: '" & rLi(k).ursp & "' -> '" & Left$(rLi(k).ursp, maxL)  & "'",true : rLi(k).ursp = Left$(rLi(k).ursp, maxL)
       END SELECT
      Next
     elseif maxl < 0 THEN

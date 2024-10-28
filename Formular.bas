@@ -8156,7 +8156,7 @@ vonvorne:
       Exit For
      End If
     Next i
-   End If
+   End If ' (0 / 1) + (Not Not rKv) = 0 Then Else
    If (0 / 1) + (Not Not rKv) = 0 Or obrKvzugew = 0 Then
     myFrag rK, "SELECT kvnr FROM `kvnrue` WHERE pat_id = " & rFa(1).Pat_ID & IIf(auchwir, "", " AND kvnr NOT IN ('','" & KVNr & "','" & BSNR & "','889690003','933284903')") & " ORDER BY lfdnr"
     If Not rK.BOF Then
