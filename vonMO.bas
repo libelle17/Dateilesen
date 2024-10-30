@@ -1006,7 +1006,7 @@ Public Function doPatvonMO(pNr&, Optional obmitFormularen%)
      sql = "SELECT COUNT(0) OVER() zahl, a.* FROM liuez a WHERE kvnr='" & KVNr & "' ORDER BY ID"
      Set rslue = myEFrag(sql, rAf, DBCn)
      If rslue.BOF Then
-      sql = "INSERT INTO liuez(kvnr,name,vorname,titelt,fachgruppe,strasse,plz,ort,telefon,fax,anrede,lanr,ursp,aktzeit) VALUES('" & _
+      sql = "INSERT INTO liuez(kvnr,namfachge,vorname,titelt,fachgruppe,strasse,plz,ort,telefon,fax,anrede,lanr,ursp,aktzeit) VALUES('" & _
            KVNr & "','" & NN & "','" & VN & "','" & rsHa!ftitel & "','" & rsHa!FArztgruppe & "','" & Str & " " & HsNr & "','" & plz & "','" & ort & "','" & Tel & "','" & fax & "','" & IIf(InStrB(rsHa!fanrede, "Frau") <> 0, "Frau", "Herr") & "','" & rsHa!FArztnr & "','" & "MO" & "'," & DatFor_k(aktZeit) & ")"
       Call myEFrag(sql, rAf, DBCn)
      Else ' rslue.BOF Then
@@ -1017,7 +1017,7 @@ Public Function doPatvonMO(pNr&, Optional obmitFormularen%)
        Call myEFrag(sql, rAf, DBCn)
       End If ' rs!name <> NN
       If rslue!Zahl > 1 Then
-       sql = "DELETE d FROM liuez d LEFT JOIN liuez b ON d.kvnr=b.kvnr AND d.id>b.id AND b.id=(SELECT MIN(id) FROM liuez WHERE kvnr=d.kvnr) WHERE b.id is NOT NULL AND d.kvnr=" & KVNr
+       sql = "DELETE d from liuez d INNER JOIN (SELECT kvnr, id, RANK() OVER(PARTITION BY kvnr ORDER BY id) rang FROM liuez) b ON d.kvnr=b.kvnr AND b.rang=1 AND d.id>b.id WHERE d.kvnr=" & KVNr
        Call myEFrag(sql, rAf, DBCn)
       End If ' rslue!Zahl > 1 Then
      End If ' rslue.BOF Then
