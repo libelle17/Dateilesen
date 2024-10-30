@@ -6576,9 +6576,9 @@ Function getHausarzt1(infos$(), rFa() As Faelle, rKv() As kvnrue, Optional obHAP
           myEFrag "UPDATE `liuez` SET kvnr = " & rFa(1).Übwr & " WHERE id = " & rListena!id, rAf
 '          Debug.Print rAF
          End If
-        Else
+        Else ' rListena!KVNr = vNS Then
          InfRoh(12, runde) = rListena!KVNr
-        End If
+        End If ' rListena!KVNr = vNS Then Else
         On Error GoTo fehler
        If IsNull(rListena!fachgruppe) Then InfRoh(8, runde) = vNS Else InfRoh(8, runde) = rListena!fachgruppe
        If IsNull(rListena!Vorname) Then InfRoh(9, runde) = vNS Else InfRoh(9, runde) = rListena!Vorname
@@ -6589,7 +6589,7 @@ Function getHausarzt1(infos$(), rFa() As Faelle, rKv() As kvnrue, Optional obHAP
          myFrag rfax, "SELECT tel FROM " & HADBName & ".bs bsr LEFT JOIN " & HADBName & ".arzt_has_bs ahbr ON bsr.idbs = ahbr.bs_id LEFT JOIN " & HADBName & ".arzt a ON a.idarzt = ahbr.arzt_id LEFT JOIN " & HADBName & ".arzt_has_bs ahb ON a.idarzt = ahb.arzt_id LEFT JOIN " & HADBName & ".bs ON bs.idbs = ahb.bs_id LEFT JOIN " & HADBName & ".tel ON tel.bs_id = bsr.idbs WHERE (CONCAT(LEFT(bs.bsnr,7),'00') = '" & rFa(UBound(rFa)).ÜbWVBSNR & "' OR bs.bsnr='" & rFa(UBound(rFa)).ÜbWVBSNR & "') AND NOT ISNULL(tel) AND a.obehem=0"
          If Not rfax.BOF Then
           If Not IsNull(rListena!name) Then ' 4.7.17 kein Fax an NULL!
-           InfRoh(4, runde) = rfax!tel
+           InfRoh(4, runde) = rfax!Tel
           End If ' NOT ISNULL(rListena!name) Then '
          End If ' Not rfax.BOF Then
        Else ' IsNull(rListena!telefon) Then
@@ -6893,7 +6893,7 @@ korrigier:
       End If
       pos = pos - 1
 '      Exit For ' auskommentiert 1.11.14
-     End If
+     End If ' InStrB(InfRoh(10, runde), "HA") <> 0 Then
     Next runde
     ' m = 103: Tj(m) = Timer ': for p = 0 To m - 1: Tj(m) = Tj(m) - Tj(p): Next p
 ' dann der Rest in der Reihenfolge
@@ -6921,7 +6921,7 @@ korrigier:
        Next i
       End If
       pos = pos - 1
-     End If
+     End If ' InfRoh(11, runde) = "X" Or InStrB(InfRoh(10, runde), "HA") <> 0 Then
     Next runde
     ' m = 104: Tj(m) = Timer ': for p = 0 To m - 1: Tj(m) = Tj(m) - Tj(p): Next p
 ' Wenn erste Position leer, schaut's unschön aus

@@ -983,33 +983,44 @@ Public Function doPatvonMO(pNr&, Optional obmitFormularen%)
     Adr = REPLACE$(rsHa!Adr, "'", "")
     If rsHa!FArztnralt <> "" Then
      KVNr = rsHa!FArztnralt
-     Set rslue = myEFrag("SELECT * FROM liuez a WHERE kvnr='" & KVNr & "'", , DBCn)
-'     If rslue.BOF Or True Then
-     If rslue.BOF Then
-      If rsHa!Adr <> "" Then
-       Str = "": HsNr = "": plz = "": ort = "": Tel = "": fax = "": Lkz = ""
-       Call ParseMemo(rsHa!Adr, FMem(), obDebug, "FAdresse aus epraxis")
-       For j = 0 To UBound(FMem)
-        Select Case FMem(j).ENr
-         Case "3": Str = FMem(j).Text ' Straﬂe
-         Case "4": HsNr = FMem(j).Text ' Hausnummer
-         Case "5": plz = FMem(j).Text ' Postleitzahl
-         Case "6": ort = FMem(j).Text ' Ort
-         Case "8": ' "5" ?
-         Case "9.1": ' unbekannte ascii-Ziffer
-         Case "9.2": Tel = FMem(j).Text ' Telefonnummer
-         Case "10.1": ' unbekannte ascii-Ziffer
-         Case "10.2": fax = FMem(j).Text ' Faxnummer
-         Case "12": Lkz = FMem(j).Text ' L‰nderkennzeichen
-         Case "6.2.3"
+     If rsHa!Adr <> "" Then
+      Str = "": HsNr = "": plz = "": ort = "": Tel = "": fax = "": Lkz = ""
+      Call ParseMemo(rsHa!Adr, FMem(), obDebug, "FAdresse aus epraxis")
+      For j = 0 To UBound(FMem)
+       Select Case FMem(j).ENr
+        Case "3": Str = FMem(j).Text ' Straﬂe
+        Case "4": HsNr = FMem(j).Text ' Hausnummer
+        Case "5": plz = FMem(j).Text ' Postleitzahl
+        Case "6": ort = FMem(j).Text ' Ort
+        Case "8": ' "5" ?
+        Case "9.1": ' unbekannte ascii-Ziffer
+        Case "9.2": Tel = FMem(j).Text ' Telefonnummer
+        Case "10.1": ' unbekannte ascii-Ziffer
+        Case "10.2": fax = FMem(j).Text ' Faxnummer
+        Case "12": Lkz = FMem(j).Text ' L‰nderkennzeichen
+        Case "6.2.3"
 '          rRe(UBound(rRe)).anzl = Asc(FMem(j).Text)
-        End Select
-       Next j
-      End If ' j = 0 To UBound(FMem)
-      Call myEFrag("INSERT INTO liuez(kvnr,name,vorname,titelt,fachgruppe,strasse,plz,ort,telefon,fax,anrede,lanr,ursp,aktzeit) VALUES('" & KVNr & "','" & NN & "','" & VN & "','" & rsHa!ftitel & "','" & rsHa!FArztgruppe & "','" & Str & " " & HsNr & "','" & plz & "','" & ort & "','" & Tel & "','" & fax & "','" & IIf(InStrB(rsHa!fanrede, "Frau") <> 0, "Frau", "Herr") & "','" & rsHa!FArztnr & "','" & "MO" & "'," & DatFor_k(aktZeit) & ")", rAf, DBCn)
-     Else
+       End Select
+      Next j ' j = 0 To UBound(FMem)
+     End If ' rsHa!Adr <> "" Then
+     sql = "SELECT COUNT(0) OVER() zahl, a.* FROM liuez a WHERE kvnr='" & KVNr & "' ORDER BY ID"
+     Set rslue = myEFrag(sql, rAf, DBCn)
+     If rslue.BOF Then
+      sql = "INSERT INTO liuez(kvnr,name,vorname,titelt,fachgruppe,strasse,plz,ort,telefon,fax,anrede,lanr,ursp,aktzeit) VALUES('" & _
+           KVNr & "','" & NN & "','" & VN & "','" & rsHa!ftitel & "','" & rsHa!FArztgruppe & "','" & Str & " " & HsNr & "','" & plz & "','" & ort & "','" & Tel & "','" & fax & "','" & IIf(InStrB(rsHa!fanrede, "Frau") <> 0, "Frau", "Herr") & "','" & rsHa!FArztnr & "','" & "MO" & "'," & DatFor_k(aktZeit) & ")"
+      Call myEFrag(sql, rAf, DBCn)
+     Else ' rslue.BOF Then
      ' Update
-     End If
+      If rslue!name <> NN Or rslue!Vorname <> VN Or rslue!titelt <> rsHa!ftitel Or rslue!fachgruppe <> rsHa!FArztgruppe Or rslue!strasse <> Str & " " & HsNr Or rslue!plz <> plz Or rslue!ort <> ort Or rslue!telefon <> Tel Or rslue!fax <> fax Or rslue!anrede <> IIf(InStrB(rsHa!fanrede, "Frau") <> 0, "Frau", "Herr") Or rslue!Lanr <> rsHa!FArztnr Then
+        sql = "UPDATE liuez SET name='" & NN & "',vorname='" & VN & "',titelt='" & rsHa!ftitel & "',fachgruppe='" & rsHa!FArztgruppe & "',strasse='" & Str & " " & HsNr & "',plz='" & plz & "',ort='" & ort & "',telefon='" & Tel & "',fax='" & fax & "',anrede='" & IIf(InStrB(rsHa!fanrede, "Frau") <> 0, "Frau", "Herr") & "',lanr='" & rsHa!FArztnr & "',ursp='MO',aktzeit=" & DatFor_k(aktZeit) & "" & vbCrLf & _
+       "WHERE kvnr='" & KVNr & "'"
+       Call myEFrag(sql, rAf, DBCn)
+      End If ' rs!name <> NN
+      If rslue!Zahl > 1 Then
+       sql = "DELETE d FROM liuez d LEFT JOIN liuez b ON d.kvnr=b.kvnr AND d.id>b.id AND b.id=(SELECT MIN(id) FROM liuez WHERE kvnr=d.kvnr) WHERE b.id is NOT NULL AND d.kvnr=" & KVNr
+       Call myEFrag(sql, rAf, DBCn)
+      End If ' rslue!Zahl > 1 Then
+     End If ' rslue.BOF Then
     ElseIf Not IsNull(rsHa!FAdresse) Then ' mit COALESCE kommt trotzdem eine Fehlermeldung raus
 '    Set rslue = myEFrag(, , DBCn)
      On Error Resume Next

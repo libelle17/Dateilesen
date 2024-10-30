@@ -1058,6 +1058,7 @@ End Sub ' DMP_Übersicht_Click()
 ' für erneutes Scannen:
 ' DELETE FROM dmprm WHERE einlid ..., DELETE FROM dmpeinl WHERE id ...
 ' in p:\dmp\ die *.tif-Dateien usw. zu den einzulesenden Dateien löschen
+' für Arzt -> DMP-Rückmeldungsfehler
 Private Sub DMPRückmeldungsfehler_Click()
 Dim rs As New ADODB.Recordset
 sql = "SELECT r.pat_id,gesname(r.pat_id) PName,Karteidatum,Date(Dokudatum) DokuDatum,date(exportiert) exp,Art,Abk,Aktzeit " & vbCrLf & _
@@ -3785,7 +3786,7 @@ Private Sub harealNeu_Click() ' `hareal` neu aufbauen
  Do While Not rs.EOF
   ReDim infos(0)
 '  Call getHausarztAlt(rs!pat_id, Infos, True)
-  Dim rFa() As Faelle
+  Dim rFa() As faelle
   Dim rKv1() As kvnrue
   getHausarzt1 infos, rFa, rKv1, , rs!Pat_ID
   If LenB(infos(12, 0)) <> 0 Then
@@ -4359,7 +4360,7 @@ Private Sub falschebriefelöschen_Click()
     FSO.DeleteFile (Fil.path)
    Else
 '     Call getHausarztAlt(Pid, Infos())
-     Dim rFa() As Faelle
+     Dim rFa() As faelle
      Dim rKv1() As kvnrue
      getHausarzt1 infos(), rFa, rKv1, , pid
      If LenB(infos(1, 0)) = 0 Then
