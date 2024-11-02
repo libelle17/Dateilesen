@@ -579,7 +579,7 @@ Public Function doPatvonMO(pNr&, Optional obmitFormularen%)
  If Not rsNa.BOF Then
  
   rNa(0).aktZeit = aktZeit
-  rNa(0).Pat_ID = pid ' = pNr
+  rNa(0).Pat_id = pid ' = pNr
   rNa(0).lfdnr = -1 ' Import aus MO
   rNa(0).Nachname = rsNa!FNachname
   rNa(0).NVorsatz = rsNa!FNamensvorsatz
@@ -671,7 +671,7 @@ Public Function doPatvonMO(pNr&, Optional obmitFormularen%)
     ReDim Preserve rFa(UBound(rFa) + 1)
     rFa(UBound(rFa)).aktZeit = aktZeit
     rFa(UBound(rFa)).lfdnr = lfdfl
-    rFa(UBound(rFa)).Pat_ID = pid
+    rFa(UBound(rFa)).Pat_id = pid
     rFa(UBound(rFa)).AbrAr = ""
     rFa(UBound(rFa)).VermiArt = 0
     rFa(UBound(rFa)).bPerG = "0"
@@ -947,7 +947,7 @@ Public Function doPatvonMO(pNr&, Optional obmitFormularen%)
   For j = 0 To UBound(NaStr)
    If NaStr(j).ENr Like "21.*" And NaStr(j).ENr <> "21.1" Then
     ReDim Preserve rSw(UBound(rSw) + 1)
-    rSw(UBound(rSw)).Pat_ID = rNa(0).Pat_ID
+    rSw(UBound(rSw)).Pat_id = rNa(0).Pat_id
     rSw(UBound(rSw)).FormTitel = "ssd"
     rSw(UBound(rSw)).vorET = stzk(NaStr(j).Text)
     rSw(UBound(rSw)).lR = rSw(UBound(rSw)).vorET - 280
@@ -1149,8 +1149,8 @@ Public Function doPatvonMO(pNr&, Optional obmitFormularen%)
     If rsEi!obRezE Then ' Rezepteintrag
      ReDim Preserve rRe(UBound(rRe) + 1)
      rRe(UBound(rRe)).aktZeit = aktZeit
-     rRe(UBound(rRe)).Pat_ID = pid
-     rRe(UBound(rRe)).Pat_ID = pid
+     rRe(UBound(rRe)).Pat_id = pid
+     rRe(UBound(rRe)).Pat_id = pid
      rRe(UBound(rRe)).Zeitpunkt = rsEi!Zp
      rRe(UBound(rRe)).Medikament = rsEi!Med
      rRe(UBound(rRe)).PZN = rsEi!ficdcode
@@ -1190,7 +1190,7 @@ Public Function doPatvonMO(pNr&, Optional obmitFormularen%)
     Select Case rsEi!lFE
      Case 21 ' Krankenhauseinweisung
       ReDim Preserve rKh(UBound(rKh) + 1)
-      rKh(UBound(rKh)).Pat_ID = pid
+      rKh(UBound(rKh)).Pat_id = pid
       rKh(UBound(rKh)).Zeitpunkt = rsEi!Zp
       rKh(UBound(rKh)).aktZeit = aktZeit
       For j = 0 To UBound(FMem)
@@ -1270,7 +1270,7 @@ fgefunden:
       ReDim Preserve rFr(UBound(rFr) + 1)
       rFr(UBound(rFr)).aktZeit = aktZeit
       rFr(UBound(rFr)).Form_ID = lFormID '-lFormID ' negative Speicherung, da der Wert noch nach der Datenbankspeicherung von rFo angepaßt werden muss
-      rFr(UBound(rFr)).Pat_ID = pid
+      rFr(UBound(rFr)).Pat_id = pid
       rFr(UBound(rFr)).Zeitpunkt = rsEi!Zp
       rFr(UBound(rFr)).lanrid = IIf(rsEi!FLstgerbnr = 3, 2, 1) ' 2 = Schade, 3 = Kothny
       If FoIDv = 0 Then
@@ -1310,7 +1310,7 @@ fgefunden:
    Loop ' while not rsEi.EOF
   End If ' Not rsEi.BOF Then
 
-  syscmd 4, "bearbeite Labor"
+  syscmd 4, "bearbeite Labor 0"
 sql = _
 "SELECT" & vbCrLf & _
 " IF(INSTR(FDetails,'Normwertug '),MID(FDetails,INSTR(FDetails,'Normwertug ')+LENGTH('Normwertug '),INSTR(SUBSTRING_INDEX(FDetails,'Normwertug ',-1),')')-1)," & vbCrLf & _
@@ -1341,12 +1341,21 @@ sql = sql & _
 "    AND i.ftext NOT RLIKE 'Bltdruck|Blutdruck|Gewicht|Puls|Größe|umfang|temperatur|caro|sono|Body-Mass|angd|aufgd|bzvgl'))" & vbCrLf & _
 " ORDER BY i.FSurogat, Zp" & vbCrLf & _
 ";"
+' witzigerweise verzichtet das Programm mit dieser vorausgeschalteten Schleife auf lange Wartezeit (?!)
+' dazu ist sowohl der doppelte Aufruf als auch der doppelte Durchlauf nötig
+  myFrag rsEi, sql, adOpenStatic, MOCon
+  If Not rsEi.BOF Then
+   Do While Not rsEi.EOF
+    rsEi.MoveNext
+   Loop
+  End If
+  syscmd 4, "bearbeite Labor 1"
   myFrag rsEi, sql, adOpenStatic, MOCon
   If Not rsEi.BOF Then
    Do While Not rsEi.EOF
     Dim ls&
     ReDim Preserve rLa(UBound(rLa) + 1): ls = UBound(rLa)
-    rLa(ls).Pat_ID = pid
+    rLa(ls).Pat_id = pid
     rLa(ls).Zeitpunkt = rsEi!Zp
 '   rLa(ls).FertigStGrad = FStG
 '   rLa(ls).Labor = AbküLabor
@@ -1400,7 +1409,7 @@ sql = sql & _
    Do While Not rsEi.EOF
 ' Typ As String 'Typ varchar '
     ReDim Preserve rBr(UBound(rBr) + 1)
-    rBr(UBound(rBr)).Pat_ID = pid
+    rBr(UBound(rBr)).Pat_id = pid
     rBr(UBound(rBr)).aktZeit = aktZeit
     rBr(UBound(rBr)).Zeitpunkt = rsEi!Zp
     rBr(UBound(rBr)).name = rsEi!EName
@@ -1430,7 +1439,7 @@ sql = sql & _
    Do While Not rsEi.EOF
     If altlFSur <> rsEi!FDosierplannr Then MPNr = MPNr + 1: Fldnr = 1 Else Fldnr = Fldnr + 1
     ReDim Preserve rMe(UBound(rMe) + 1)
-    rMe(UBound(rMe)).Pat_ID = pid
+    rMe(UBound(rMe)).Pat_id = pid
     rMe(UBound(rMe)).Nutzer = rsEi!ua
     rMe(UBound(rMe)).aktZeit = aktZeit
     rMe(UBound(rMe)).Zeitpunkt = rsEi!Zp
@@ -1509,7 +1518,7 @@ sql = sql & _
          GKT = GKT + 1
          If GKT = 1 Then
           ReDim Preserve rLe(UBound(rLe) + 1)
-          rLe(UBound(rLe)).Pat_ID = pid
+          rLe(UBound(rLe)).Pat_id = pid
           rLe(UBound(rLe)).aktZeit = aktZeit
           rLe(UBound(rLe)).Zeitpunkt = rsEi!Zp
           rLe(UBound(rLe)).QS = ZQSort(rLe(UBound(rLe)).Zeitpunkt)
@@ -1613,7 +1622,7 @@ sql = sql & _
    Do While Not rsEi.EOF
     ReDim Preserve rAu(UBound(rAu) + 1)
     rAu(UBound(rAu)).aktZeit = aktZeit
-    rAu(UBound(rAu)).Pat_ID = pid
+    rAu(UBound(rAu)).Pat_id = pid
     rAu(UBound(rAu)).Zeitpunkt = rsEi!anzp
     rAu(UBound(rAu)).Ersteller = rsEi!ua
     rAu(UBound(rAu)).Änderer = rsEi!ub
@@ -1625,15 +1634,49 @@ sql = sql & _
    Loop ' while not rsEi.EOF
   End If ' Not rsEi.BOF Then
   
-' Einträge
-  sql = "SELECT 18900101+INTERVAL FDatum DAY+INTERVAL FZeit SECOND Zp, FICdcode Art," & _
-  "COALESCE(REPLACE(REPLACE(MID(fdetails,INSTR(fdetails,'ext ""')+5,LENGTH(fdetails)-2-INSTR(fdetails,'ext ""')-5),'\n','; '),'''','\'''),FText) FText," & _
-  "FEintragsart, 18900101+INTERVAL FAnorddatum DAY+INTERVAL FAnordzeit SECOND AnZp," & _
-  "na.Finitialen ua, nb.finitialen ub " & _
-  "FROM ltag f LEFT JOIN nutzerneu na ON FAnordnutzernr= na.FSurogat " & _
-  "LEFT JOIN nutzerneu nb ON FAusfnutzernr= nb.FSurogat " & _
-  "WHERE FPatnr = " & pNr & _
-  " AND ((FEintragsart=5 and FStatus=0) OR FEintragsart IN (8,10,11,151,1001,1002,1003,1004,1006))" & _
+' Blutdruck
+  sql = "SELECT 18900101+INTERVAL FDatum DAY+INTERVAL FZeit SECOND Zp, REGEXP_REPLACE(FICdcode,'(\w+)#\1','\1') Art, FText" & vbCrLf & _
+  ", REGEXP_REPLACE(FText,'^(?>[^0-9]|[4-9](?![0-9])|[0-2](?![0-9]{2}))*\b((?:[4-9][0-9]|[0-3][0-9]{2})(?:-[0-9]{2,3}){0,2}) */? *(?:über )?((?:[3-9][0-9]|[0-2][0-9]{2})(?:-[0-9]{2,3}){0,2})?(?:(?:[^PH]|H(?!F))*(?:Puls|P(?=[0-9 :.])|HF))?:? *([0-9]{1,3}(?:-[0-9]{2,3})?)? *(.*)','\1‡\2‡\3‡\4') Erg" & vbCrLf & _
+  ", REGEXP_REPLACE(ftext,'^(?:[^l]|l(?!e))*(?:let?zten *(\d{1,3}))?.*$','\1') zahl" & vbCrLf & _
+  ", FEintragsart, 18900101+INTERVAL FAnorddatum DAY+INTERVAL FAnordzeit SECOND AnZp" & vbCrLf & _
+  ", na.Finitialen ua, nb.finitialen ub " & vbCrLf & _
+  "FROM ltag f " & vbCrLf & _
+  "LEFT JOIN nutzerneu na ON FAnordnutzernr= na.FSurogat " & vbCrLf & _
+  "LEFT JOIN nutzerneu nb ON FAusfnutzernr= nb.FSurogat " & vbCrLf & _
+  "WHERE FPatnr = " & pNr & vbCrLf & _
+  " AND REGEXP_REPLACE(FICdcode,'(\w+)#\1','\1') IN ('RR','RRVGL')" & vbCrLf & _
+  " AND ((FEintragsart=5 AND FStatus=0))" & vbCrLf & _
+  " AND fbehgrundnr<=0"
+  myFrag rsEi, sql, adOpenStatic, MOCon ' Einträge
+  Dim spl$()
+  If Not rsEi.BOF Then
+   Do While Not rsEi.EOF
+    messDatum = rsEi!anzp
+    art = rsEi!art
+    Call aufSplit(rsEi!erg, "‡")
+    RREintr rInh
+    rRr(UBound(rRr)).RR = rsEi!FText ' REPLACE$(rsEi!erg, "‡", " ")
+    rRr(UBound(rRr)).RRsyst = Arra(0)
+    rRr(UBound(rRr)).RRdiast = Arra(1)
+    rRr(UBound(rRr)).Puls = IIf(Arra(2) = "", 0, Arra(2))
+    rRr(UBound(rRr)).Bemerkung = Arra(3)
+    rRr(UBound(rRr)).Quelle = "MO"
+    If rsEi!Zahl <> "" Then rRr(UBound(rRr)).RRzahl = rsEi!Zahl
+    rsEi.MoveNext
+   Loop ' while not rsEi.EOF
+  End If ' Not rsEi.BOF Then
+
+' andere Einträge
+  sql = "SELECT 18900101+INTERVAL FDatum DAY+INTERVAL FZeit SECOND Zp, REGEXP_REPLACE(FICdcode,'(\w+)#\1','\1') Art," & vbCrLf & _
+  "IF(INSTR(fdetails,'Etext ""'),MID(FDetails,LOCATE('Etext',FDetails)+LENGTH('Etext')+2,LOCATE('""',FDetails,LOCATE('Etext',FDetails)+LENGTH('Etext')+2)-LOCATE('Etext',FDetails)-LENGTH('Etext')-2),ftext) Erg," & vbCrLf & _
+  "FEintragsart, 18900101+INTERVAL FAnorddatum DAY+INTERVAL FAnordzeit SECOND AnZp," & vbCrLf & _
+  "na.Finitialen ua, nb.finitialen ub " & vbCrLf & _
+  "FROM ltag f " & vbCrLf & _
+  "LEFT JOIN nutzerneu na ON FAnordnutzernr= na.FSurogat " & vbCrLf & _
+  "LEFT JOIN nutzerneu nb ON FAusfnutzernr= nb.FSurogat " & vbCrLf & _
+  "WHERE FPatnr = " & pNr & vbCrLf & _
+  " AND ((FEintragsart=5 AND FStatus=0) OR FEintragsart IN (8,10,11,151,1001,1002,1003,1004,1006))" & vbCrLf & _
+  " AND NOT REGEXP_REPLACE(FICdcode,'(\w+)#\1','\1') IN ('RR','RRVGL')" & vbCrLf & _
   " AND fbehgrundnr<=0"
   myFrag rsEi, sql, adOpenStatic, MOCon ' Einträge
   If Not rsEi.BOF Then
@@ -1650,13 +1693,16 @@ sql = sql & _
 '      If InStrB(rInh, "P") <> 0 Then Stop
       Puls = holPuls(rInh, Bem) ' ändert u.U. rInh
       RREintr rInh
-      If InStr(Bem, rInh) = 1 Then Bem = Mid$(Bem, Len(rInh) + 1)
+      If Bem <> rInh And InStr(Bem, rInh) = 1 Then Bem = Mid$(Bem, Len(rInh) + 1)
       rRr(UBound(rRr)).Bemerkung = Bem
       If IsNumeric(Puls) Then rRr(UBound(rRr)).Puls = Puls
      Case Else
+      If UCase$(art) = "TEXT" And InStrB(rsEi!fdetails, "dokumentation") <> 0 And InStrB(rsEi!fdetails, "dmp") <> 0 Then
+      
+      Else ' UCase$(art) = "TEXT" And InStrB(rsEi!fdetails, "dokumentation") <> 0 And InStrB(rsEi!fdetails, "dmp") <> 0 Then
       ReDim Preserve rEi(UBound(rEi) + 1)
       rEi(UBound(rEi)).aktZeit = aktZeit
-      rEi(UBound(rEi)).Pat_ID = pid
+      rEi(UBound(rEi)).Pat_id = pid
       rEi(UBound(rEi)).Zeitpunkt = messDatum
       rEi(UBound(rEi)).QS = ZQSort(rEi(UBound(rEi)).Zeitpunkt)
       rEi(UBound(rEi)).QT = ZQuart(rEi(UBound(rEi)).Zeitpunkt)
@@ -1681,6 +1727,7 @@ sql = sql & _
       End If ' rEi(UBound(rEi)).Art = "" Then
       rEi(UBound(rEi)).Inhalt = rsEi!FText
       If rEi(UBound(rEi)).art = "GEWICHT" And IsNumeric(rEi(UBound(rEi)).Inhalt) Then rEi(UBound(rEi)).Inhalt = rEi(UBound(rEi)).Inhalt & " kg"
+      End If ' UCase$(art) = "TEXT" And InStrB(rsEi!fdetails, "dokumentation") <> 0 And InStrB(rsEi!fdetails, "dmp") <> 0 Then Else
     End Select ' ucase$(art)
 '    End If ' Art like ...
     rsEi.MoveNext
@@ -1708,7 +1755,7 @@ sql = sql & _
    Do While Not rsDi.EOF
     ReDim Preserve rDi(UBound(rDi) + 1)
     rDi(UBound(rDi)).aktZeit = aktZeit
-    rDi(UBound(rDi)).Pat_ID = pid
+    rDi(UBound(rDi)).Pat_id = pid
     rDi(UBound(rDi)).DiagDatum = rsDi!diagdat
     rDi(UBound(rDi)).DiagSicherheit = rsDi!sich
     rDi(UBound(rDi)).DiagText = Trim$(rsDi!FText)
