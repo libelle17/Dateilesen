@@ -19,16 +19,19 @@ Option Explicit
 'Private mvarInhalt AS Variant 'lokale Kopie
 Private mvAbkü$
 Private mvLabor$
-Private mvLangtext$
+Public Langtext$
 Private mvEinheit$
-Private mvkleinheit$
+Private mvklEinheit$
+Private mvNBm$
+Private mvoNm$
+Private mvuNm$
 Private mvarIndex As Long 'lokale Kopie
+
 Public Property Let Index(ByVal vData As Long)
 'wird beim Zuweisen eines Werts zu der Eigenschaft auf der linken Seite einer Zuweisung verwendet.
 'Syntax: X.index = 5
     mvarIndex = vData
 End Property
-
 
 Public Property Get Index() As Long
 'wird beim Ermitteln eines Eigenschaftswertes auf der rechten Seite einer Zuweisung verwendet.
@@ -43,7 +46,11 @@ End Property ' Get SortVar()
 Public Function istKleinerAls(ByRef E2) As Boolean
 Attribute istKleinerAls.VB_Description = "Wahr, wenn das erste Element größer ist"
  On Error GoTo fehler
- If mvAbkü < E2.Abkü Or (mvAbkü = E2.Abkü And mvkleinheit < E2.klEinheit) Then
+ If mvAbkü < E2.Abkü Or (mvAbkü = E2.Abkü And mvklEinheit < E2.klEinheit) Or _
+ (mvAbkü = E2.Abkü And mvklEinheit = E2.klEinheit) And ( _
+    (E2.oNm <> "" And mvoNm < E2.oNm) Or _
+    ((E2.oNm <> "" And mvoNm = E2.oNm) And (E2.uNm <> "" And mvuNm < E2.uNm)) _
+ ) Then
   istKleinerAls = -1
  Else
   istKleinerAls = 0
@@ -62,9 +69,16 @@ Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "Last
  Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
 End Select
 End Function '  istKleinerAls
+
 Public Function unGleich(ByRef E2) As Boolean
  On Error GoTo fehler
- If mvAbkü <> E2.Abkü Or (mvAbkü = E2.Abkü And mvkleinheit <> E2.klEinheit) Then unGleich = True
+ If mvAbkü <> E2.Abkü Or (mvAbkü = E2.Abkü And mvklEinheit <> E2.klEinheit) Or _
+ (mvAbkü = E2.Abkü And mvklEinheit = E2.klEinheit) And ( _
+    ((E2.oNm <> "" And mvoNm <> E2.oNm)) Or _
+    ((E2.oNm <> "" And mvoNm = E2.oNm) And (E2.uNm <> "" And mvuNm <> E2.uNm)) _
+ ) Then
+  unGleich = True
+ End If
  Exit Function
 fehler:
  Dim AnwPfad$
@@ -79,6 +93,7 @@ Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "Last
  Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
 End Select
 End Function ' unGleich
+
 Public Property Let Abkü(ByVal vData As Variant)
 'wird beim Zuweisen eines Werts zu der Eigenschaft auf der linken Seite einer Zuweisung verwendet.
 'Syntax: X.FeldInh = 5
@@ -108,6 +123,7 @@ Public Property Get Abkü() As Variant
        Abkü = mvAbkü
 '    END IF
 End Property
+
 Public Property Let Labor(ByVal vData As Variant)
 'wird beim Zuweisen eines Werts zu der Eigenschaft auf der linken Seite einer Zuweisung verwendet.
 'Syntax: X.FeldInh = 5
@@ -138,30 +154,12 @@ Public Property Get Labor() As Variant
 '    END IF
 End Property
 
-Public Property Let Langtext(ByVal vData As Variant)
-'wird beim Zuweisen eines Werts zu der Eigenschaft auf der linken Seite einer Zuweisung verwendet.
-'Syntax: X.FeldInhVW = 5
-    mvLangtext = vData
-End Property
-
-
-Public Property Get Langtext() As Variant
-'wird beim Ermitteln eines Eigenschaftswertes auf der rechten Seite einer Zuweisung verwendet.
-'Syntax: Debug.Print X.FeldInhVW
-'    IF IsObject(mvFeldInhVW) THEN
-'        SET FeldInhVW = mvFeldInhVW
-'    Else
-        Langtext = mvLangtext
-'    END IF
-End Property
-
 Public Property Let Einheit(ByVal vData As Variant)
 'wird beim Zuweisen eines Werts zu der Eigenschaft auf der linken Seite einer Zuweisung verwendet.
 'Syntax: X.FeldInhVW = 5
     mvEinheit = vData
-    mvkleinheit = LCase$(vData)
+    mvklEinheit = LCase$(vData)
 End Property
-
 
 Public Property Get Einheit() As Variant
 'wird beim Ermitteln eines Eigenschaftswertes auf der rechten Seite einer Zuweisung verwendet.
@@ -179,7 +177,58 @@ Public Property Get klEinheit() As Variant
 '    IF IsObject(mvFeldInhVW) THEN
 '        SET FeldInhVW = mvFeldInhVW
 '    Else
-        klEinheit = mvkleinheit
+        klEinheit = mvklEinheit
+'    END IF
+End Property
+
+Public Property Let NBm(ByVal vData As Variant)
+'wird beim Zuweisen eines Werts zu der Eigenschaft auf der linken Seite einer Zuweisung verwendet.
+'Syntax: X.FeldInh = 5
+ mvNBm = UCase$(vData)
+ Exit Property
+End Property
+
+Public Property Get NBm() As Variant
+'wird beim Ermitteln eines Eigenschaftswertes auf der rechten Seite einer Zuweisung verwendet.
+'Syntax: Debug.Print X.FeldInh
+'    IF IsObject(mvFeldInh) THEN
+'        SET FeldInh = mvFeldInh
+'    Else
+       NBm = mvNBm
+'    END IF
+End Property
+
+Public Property Let oNm(ByVal vData As Variant)
+'wird beim Zuweisen eines Werts zu der Eigenschaft auf der linken Seite einer Zuweisung verwendet.
+'Syntax: X.FeldInh = 5
+ mvoNm = UCase$(vData)
+ Exit Property
+End Property
+
+Public Property Get oNm() As Variant
+'wird beim Ermitteln eines Eigenschaftswertes auf der rechten Seite einer Zuweisung verwendet.
+'Syntax: Debug.Print X.FeldInh
+'    IF IsObject(mvFeldInh) THEN
+'        SET FeldInh = mvFeldInh
+'    Else
+       oNm = mvoNm
+'    END IF
+End Property
+
+Public Property Let uNm(ByVal vData As Variant)
+'wird beim Zuweisen eines Werts zu der Eigenschaft auf der linken Seite einer Zuweisung verwendet.
+'Syntax: X.FeldInh = 5
+ mvuNm = UCase$(vData)
+ Exit Property
+End Property
+
+Public Property Get uNm() As Variant
+'wird beim Ermitteln eines Eigenschaftswertes auf der rechten Seite einer Zuweisung verwendet.
+'Syntax: Debug.Print X.FeldInh
+'    IF IsObject(mvFeldInh) THEN
+'        SET FeldInh = mvFeldInh
+'    Else
+       uNm = mvuNm
 '    END IF
 End Property
 

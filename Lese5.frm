@@ -1272,6 +1272,7 @@ Private Sub PatvonMO_Click()
  pataw.Zeilenzahl.Visible = True
  '  pNr& = 68393  ' 69618 ' 63635 ' 67180 ' 63635 ' 64800 ' 69333 ' 68316 ' 65405 ' 45 ' 64659 ' 45 ' 69367
  ' 69377 ' 53119 ' 51630 ' 105 ' 18 ' 246 ' 59152 ' 1394 ' 2112 ' 151 ' 225 '
+ pataw.Pat_ID.AddItem 51534
  pataw.Pat_ID.AddItem 68393
  pataw.Pat_ID.AddItem 69618
  pataw.Pat_ID.AddItem 67180
@@ -3786,7 +3787,7 @@ Private Sub harealNeu_Click() ' `hareal` neu aufbauen
  Do While Not rs.EOF
   ReDim infos(0)
 '  Call getHausarztAlt(rs!pat_id, Infos, True)
-  Dim rFa() As faelle
+  Dim rFa() As Faelle
   Dim rKv1() As kvnrue
   getHausarzt1 infos, rFa, rKv1, , rs!Pat_ID
   If LenB(infos(12, 0)) <> 0 Then
@@ -4360,7 +4361,7 @@ Private Sub falschebriefelöschen_Click()
     FSO.DeleteFile (Fil.path)
    Else
 '     Call getHausarztAlt(Pid, Infos())
-     Dim rFa() As faelle
+     Dim rFa() As Faelle
      Dim rKv1() As kvnrue
      getHausarzt1 infos(), rFa, rKv1, , pid
      If LenB(infos(1, 0)) = 0 Then

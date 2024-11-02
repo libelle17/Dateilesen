@@ -233,6 +233,42 @@ Function ASMod(ParamArray tokens()) As String()
     ASMod = arr
 End Function ' ASMod
 
+Function laborparvorladen()
+ On Error GoTo fehler
+ Dim rs As New ADODB.Recordset, rAf&
+ If sListLpar.COUNT = 0 Then
+ syscmd 4, "Lade Laborparameter vor"
+ Set rs = myEFrag("SELECT COALESCE(abkü,'')abkü,COALESCE(labor,'')labor,COALESCE(langtext,'')langtext,COALESCE(einheit,'')einheit,COALESCE(nBm,'')nBm,COALESCE(uNm,'')uNm,COALESCE(oNm,'')oNm FROM `laborparameter`", rAf)
+  Do While Not rs.EOF
+   Set sLp = New sLpar
+   sLp.Abkü = rs!Abkü ' IIf(IsNull(rs.Fields(0)), vNS, rs.Fields(0)) ' Abkü 6.3.13
+   sLp.Labor = rs!Labor ' IIf(IsNull(rs!Labor), vNS, rs!Labor)
+   sLp.Langtext = rs!Langtext ' IIf(IsNull(rs!Langtext), vNS, rs!Langtext)
+   sLp.Einheit = rs!Einheit ' IIf(IsNull(rs!Einheit), vNS, rs!Einheit)
+   sLp.NBm = rs!NBm ' IIf(IsNull(rs!NBm), vNS, rs!NBm)
+   sLp.oNm = rs!oNm ' IIf(IsNull(rs!oNm), vNS, rs!oNm)
+   sLp.uNm = rs!uNm ' IIf(IsNull(rs!uNm), vNS, rs!uNm)
+   Call sListLpar.sCAdd(sLp, -1)
+   rs.Move 1
+  Loop ' While Not rs.EOF
+  rs.Close
+  syscmd 5
+ End If ' sListLpar.count = 0
+ Exit Function
+fehler:
+ Dim AnwPfad$
+#If VBA6 Then
+ AnwPfad = CurrentDb.name
+#Else
+ AnwPfad = App.path
+#End If
+Select Case MsgBox("FNr: " & FNr & ", ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in laborparvorladen/" + AnwPfad)
+ Case vbAbort: Call MsgBox("Höre auf"): ProgEnde
+ Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
+ Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
+End Select
+End Function ' laborparvorladen
+
 ' Tabellen vorbereiten für BDT-Import
 ' in Geslies, PatvonMO
 Function doTabVorb(frm As Lese, obInhalt%, obmitFormularen%)
@@ -245,21 +281,7 @@ Function doTabVorb(frm As Lese, obInhalt%, obmitFormularen%)
 ' cn.Open CSStr, , , 0
 ' SET rs = myEFrag("SELECT * FROM quelle.`forminhaltfeld`", rAf) ' + adAsyncExecute,,cn)
 ' Call rs.Open("quelle.`forminhaltfeld`", cn, adOpenStatic, adLockReadOnly)
- If sListLpar.COUNT = 0 Then
- syscmd 4, "Lade Laborparameter vor"
- Set rs = myEFrag("SELECT abkü, labor, langtext, einheit FROM `laborparameter`")
- Do While Not rs.EOF
-  Set sLp = New sLpar
-  sLp.Abkü = IIf(IsNull(rs.Fields(0)), vNS, rs.Fields(0)) ' Abkü 6.3.13
-  sLp.Labor = IIf(IsNull(rs!Labor), vNS, rs!Labor)
-  sLp.Einheit = IIf(IsNull(rs!Einheit), vNS, rs!Einheit)
-  sLp.Langtext = IIf(IsNull(rs!Langtext), vNS, rs!Langtext)
-  Call sListLpar.sCAdd(sLp, -1)
-  rs.Move 1
- Loop
- rs.Close
- syscmd 5
- End If ' sListLpar.count = 0
+ Call laborparvorladen
  On Error GoTo F0
 vorabfrag:
  lauf = lauf + 1
@@ -4130,6 +4152,16 @@ fgefunden:
   Case 8421
    If obLaborEintrag Then rLa(ls).Einheit = REPLACE$(rInhalt, "³", "ü")  ' scheint die einzig angezeigte Ersetzung aus Zeichensatz() zu sein
 '   rLa(UBound(rLa)).Einheit = RInhalt
+  Case 8460 ' Normalwert-Text
+   rLa(ls).Normber = rInhalt
+  Case 8461 ' Normalwert untere Grenze
+   rLa(ls).uNm = rInhalt
+  Case 8462 ' Normalwert obere Grenze
+   If rLa(ls).oNm = "" Then
+    rLa(ls).oNm = rInhalt
+   Else ' rLa(ls).oNG = "" Then
+    rLa(ls).obpath = rInhalt
+   End If ' rLa(ls).oNG = "" Then Else
   Case 8470
 '   rLa(UBound(rLa)).Kommentar = rLa(UBound(rLa)).Kommentar + Stutz(RInhalt)
    If obLaborEintrag Then
@@ -4181,13 +4213,8 @@ fgefunden:
    Call myEFrag("UPDATE `eintragszahlen` SET speicherzt = " & DatFor_k(SpeicherZt) & " WHERE beginn = " & DatFor_k(rEzäBeg) & vNS, numA)
 '  Case 4211 ' Ankreuzfeld HAH
 '  Case 5010 ' Medikament
-'  10.1.10: folgende 5 Zeilen in unbekannten Kennungen gerade entdeckt, noch nicht implementiert
-  Case 8460 ' Normalwert-Text
-  Case 8461 ' Normalwert untere Grenze
-  Case 8462 ' Normalwert obere Grenze
+'  10.1.10: folgende 5 Zeilen in unbekannten Kennungen gerade entdeckt, noch nicht implementiert: 8460, 4861, 8462 ...
 ' steht noch aus:
-' case 3750 ' Desktop-Objekt
-'  case 8409 ' Karteiartspalte für Blutdruck- und BMI-Formular
   Case 9100 ' Arztnummer des Absenders
   Case 9103 ' Erstellungsdatum
 '     NAktZeit = BDTtoDate(RInhalt)
@@ -4681,6 +4708,52 @@ Function aktQAnf(Optional diff%) As Date
  aktQAnf = CDate("01." & mon & "." & Year(jetzt))
 End Function ' aktqanf() As Date
 
+Function laborparameterSpeichern()
+ Dim i&
+ On Error GoTo fehler
+ syscmd 4, "Laborparameter-Speichern"
+ For i = 1 To UBound(rLa)
+'  If rsaS Is Nothing Then Else If rsaS.State = 1 Then rsaS.Close
+  Dim sL1 As sLpar, sL2 As sLpar
+  Set sL1 = New sLpar
+  sL1.Abkü = rLa(i).Abkü
+'  sL1.Labor = rLa(i).Labor
+  sL1.Einheit = rLa(i).Einheit
+  sL1.Langtext = rLa(i).Langtext
+'  If rNa(0).geschlecht = "m" Then
+   sL1.NBm = rLa(i).Normber
+   sL1.oNm = rLa(i).oNm
+   sL1.uNm = rLa(i).uNm
+'  Else
+'   sL1.NBw = rLa(i).Normber
+'   sL1.oNw = rLa(i).oNG
+'   sL1.unW = rLa(i).uNG
+'  End If
+  Set sL2 = sListLpar.GetItem(sL1)
+  If sL2 Is Nothing Then
+' /* & IIf(rNa(0).geschlecht = "m", "NBm,oNBm,uNBm", "NBw,oNBw,uNBw") */
+   InsKorr DBCn, "INSERT INTO `laborparameter` (`abkü`,`einheit`,`langtext`,`aktzeit`,NBm,oNm,uNm" & ") VALUES('" & rLa(i).Abkü & "','" & rLa(i).Einheit & "','" & rLa(i).Langtext & "'," & DatFor_k(Now()) & ",'" & rLa(i).Normber & "','" & rLa(i).oNm & "','" & rLa(i).uNm & "')", rAf
+   If rAf <> 1 Then Stop
+'   SET rsaS = myEFrag("SELECT abkü,eiheit,langtext FROM `laborparameter` WHERE abkü = '" & rLa(i).Abkü & "' AND einheit = '" & rLa(i).Einheit & "')")
+   Call sListLpar.sCAdd(sL1)
+  Else
+  End If
+ Next i
+ Exit Function
+fehler:
+  Dim AnwPfad$
+#If VBA6 Then
+ AnwPfad = CurrentDb.name
+#Else
+ AnwPfad = App.path
+#End If
+Select Case MsgBox("FNr: " & FNr & ", ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in laborparameterSpeichern/" + AnwPfad)
+ Case vbAbort: Call MsgBox("Höre auf"): ProgEnde
+ Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
+ Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
+End Select
+End Function ' laborparameterSpeichern
+
 ' Aufruf in GesLies und doPatvonMO
 Function alleSpeichern(frm As Lese, Optional vonMo%)
 ' rsAnam!Vorgestellt = MYDAT(Vorgestellt)
@@ -4847,30 +4920,14 @@ nachFehler:
 ' eintragen
  frm.SBez = "."
  DoEvents
- 
- syscmd 4, "Labor-Speichern"
- For i = 1 To UBound(rLa)
-'  If rsaS Is Nothing Then Else If rsaS.State = 1 Then rsaS.Close
-  Dim sL1 As sLpar, sL2 As sLpar
-  Set sL1 = New sLpar
-  sL1.Abkü = rLa(i).Abkü
-'  sL1.Labor = rLa(i).Labor
-  sL1.Einheit = rLa(i).Einheit
-  sL1.Langtext = rLa(i).Langtext
-  Set sL2 = sListLpar.GetItem(sL1)
-  If sL2 Is Nothing Then
-   InsKorr DBCn, "INSERT INTO `laborparameter` (`abkü`,`einheit`,`langtext`,`aktzeit`) VALUES('" & rLa(i).Abkü & "','" & rLa(i).Einheit & "','" & rLa(i).Langtext & "'," & DatFor_k(Now()) & ")", rAf
-'   SET rsaS = myEFrag("SELECT abkü,eiheit,langtext FROM `laborparameter` WHERE abkü = '" & rLa(i).Abkü & "' AND einheit = '" & rLa(i).Einheit & "')")
-   Call sListLpar.sCAdd(sL1)
-  Else
-  End If
- Next i
+ Call laborparameterSpeichern
  
 ' DBCn.BeginTrans: obTrans = 1
 #If False Or serversturztauchohneprocedurenichtab Then
 ' Lost connection to MySQL server during query
 ' lässt sich ggf. durch dbcn.connect ermöglichen
 ' dauert mit Transaktion 19s, ohne 30s:
+ syscmd 4, "serversturztauchohneprocedurenichtab"
  Dim cisql As New CString
  On Error GoTo vers1
  syscmd 4, "Formular-Speichern, neue Methode (1)"
@@ -4915,9 +4972,11 @@ nachFehler:
  Set rsaS = Nothing
  GoTo nachformulare
 #End If
+
 #If True Or serverstuerztnichtab Then
 ' lässt sich auch nicht durch dbcn.connect ermöglichen
 ' Lost connection to MySQL server during query
+ syscmd 4, "serversturztnichtab"
  Dim eing As New CString, ausg$, ausg1$
  syscmd 4, "Speichere forminhaltfeldinh, Methode 2"
  eing.Clear
@@ -5193,6 +5252,43 @@ nachformulare:
   altAufnDat = rNa(0).kAufDat
   rNa(0).kAufDat = IIf(mfanf > mbhfb, mfanf, mbhfb)
  End If
+ If UBound(rFa) > 0 Then ' 1.11.24
+  For i = 1 To UBound(rDi)
+   If rDi(i).FID = 0 Then
+    rDi(i).FID = rFa(1).FID
+   Else
+    Exit For
+   End If
+  Next i
+  For i = 1 To UBound(rFr)
+   If rFr(i).FID = 0 Then
+    rFr(i).FID = rFa(1).FID
+   Else
+'    Exit For
+   End If
+  Next i
+  For i = 1 To UBound(rRe)
+   If rRe(i).FID = 0 Then
+    rRe(i).FID = rFa(1).FID
+   Else
+'    Exit For
+   End If
+  Next i
+  For i = 1 To UBound(rRr)
+   If rRr(i).FID = 0 Then
+    rRr(i).FID = rFa(1).FID
+   Else
+    Exit For
+   End If
+  Next i
+  For i = 1 To UBound(rUs)
+   If rUs(i).FID = 0 Then
+    rUs(i).FID = rFa(1).FID
+   Else
+    Exit For
+   End If
+  Next i
+ End If ' UBound(rFa) > 0 Then
  Call tuSpeichern(frm, frm.dlg.SammelInsert, frm.dlg.BeziehungsfehlerSpeichern)
  ' korrigiertes Aufnahmedatum(2)
  Dim altesAufnDat As Date
@@ -6686,6 +6782,7 @@ Function LTEinfüg&(Langtext$)
    For i = 1 To 2
     If Not rsLT Is Nothing Then If rsLT.State = 1 Then rsLT.Close
 '   myFrag rsLT, "SELECT langtext,langtextvw FROM `laborlangtext` WHERE langtext = '" & Langtext & "'"
+resu:
     Set rsLT = myEFrag("SELECT langtext,langtextvw FROM `laborlangtext` WHERE langtext = '" & Langtext & "'")
     If rsLT.EOF Then
      InsKorr DBCn, "INSERT INTO `laborlangtext`(`langtext`) VALUES ('" & Langtext & "')", rAf
@@ -6711,7 +6808,7 @@ If Err.Number = -2147467259 Then ' Server has gone away
 End If
 Select Case MsgBox("FNr: " & FNr & ", ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in LTEinfüg/" + AnwPfad)
  Case vbAbort: Call MsgBox("Höre auf"): ProgEnde
- Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
+ Case vbRetry: Call MsgBox("Versuche nochmal"): Resume resu
  Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
 End Select
 End Function ' LTEinfüg&(Langtext$)
@@ -6726,6 +6823,7 @@ Function AZEinfüg&(AbschlZl$)
    For i = 1 To 2
     If Not rsAZ Is Nothing Then If rsAZ.State = 1 Then rsAZ.Close
 '   myFrag rsAZ, "SELECT AbschlZl,AbschlZlvw FROM `laborAbschlZl` WHERE AbschlZl = '" & AbschlZl & "'"
+resu:
     Set rsAZ = myEFrag("SELECT AbschlZl,AbschlZlvw FROM `laborabschlzl` WHERE AbschlZl = '" & AbschlZl & "'")
     If rsAZ.EOF Then
      InsKorr DBCn, "INSERT INTO `laborabschlzl`(`AbschlZl`) VALUES ('" & AbschlZl & "')", rAf
@@ -6751,7 +6849,7 @@ If Err.Number = -2147467259 Then ' Server has gone away
 End If
 Select Case MsgBox("FNr: " & FNr & ", ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in AZEinfüg/" + AnwPfad)
  Case vbAbort: Call MsgBox("Höre auf"): ProgEnde
- Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
+ Case vbRetry: Call MsgBox("Versuche nochmal"): Resume resu
  Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
 End Select
 End Function ' AZEinfüg&(AbschlZl$)
@@ -6766,6 +6864,7 @@ Function nbEinfüg&(Normber$)
    For i = 1 To 2
     If Not rsnb Is Nothing Then If rsnb.State = 1 Then rsnb.Close
 '   myFrag rsnb, "SELECT Normber,Normbervw FROM `laborNormber` WHERE Normber = '" & Normber & "'"
+resu:
     Set rsnb = myEFrag("SELECT Normber,Normbervw FROM `labornormber` WHERE Normber = '" & Normber & "'")
     If rsnb.EOF Then
      InsKorr DBCn, "INSERT INTO `labornormber`(`Normber`) VALUES ('" & Normber & "')", rAf
@@ -6791,14 +6890,14 @@ If Err.Number = -2147467259 Then ' Server has gone away
 End If
 Select Case MsgBox("FNr: " & FNr & ", ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in nbEinfüg/" + AnwPfad)
  Case vbAbort: Call MsgBox("Höre auf"): ProgEnde
- Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
+ Case vbRetry: Call MsgBox("Versuche nochmal"): Resume resu:
  Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
 End Select
 End Function ' nbEinfüg&(Normber$)
 
 ' verwendet in dolies, laboreintr0, PraxisHbA1c und doPatVonMo
 Function KomEinfüg&(Kommentar$)
-  Dim i&
+  Dim i&, sqlh$, rAFh&
   Dim rsKo As ADODB.Recordset
   On Error GoTo fehler
   If Kommentar = lKomm Then
@@ -6810,14 +6909,16 @@ Function KomEinfüg&(Kommentar$)
     ' nicht nachvollziehbare Besonderheit bei:
 ' 8430 Serum Erregerspezifische IgG-Ak nachweisbar. Der Befund ist serologisch mit einer aktuellen oder länger zurückliegenden Infektion odereiner Immunisierung vereinbar. Zur Abklärung der aktuellen Infektion (falls klinisch der Verdacht besteht), empfiehlt sich die Bestim- mung
 '   hier geht auch bei Access nur "%", nicht "*"!
-     Set rsKo = myEFrag("SELECT Kommentar,Kommentarvw FROM laborkommentar WHERE Kommentar LIKE """ & Kommentar & "%" & """", rAf)
+     sqlh = "SELECT Kommentar,Kommentarvw FROM laborkommentar WHERE Kommentar LIKE """ & Kommentar & "%" & """"
     Else
-     Set rsKo = myEFrag("SELECT Kommentar,Kommentarvw FROM laborkommentar WHERE Kommentar = '" & Kommentar & "'", rAf)
-'     Call myEFrag("SELECT Kommentar,Kommentarvw FROM laborkommentar WHERE Kommentar = '" & Kommentar & "'", rAf)
+     sqlh = "SELECT Kommentar,Kommentarvw FROM laborkommentar WHERE Kommentar = '" & Kommentar & "'"
+'     Call myEFrag("SELECT Kommentar,Kommentarvw FROM laborkommentar WHERE Kommentar = '" & Kommentar & "'", rAfh)
     End If
+resu:
+    Set rsKo = myEFrag(sqlh, rAFh)
 '     Set rsKo = Nothing
     If rsKo.BOF Then
-     InsKorr DBCn, "INSERT INTO `laborkommentar`(Kommentar) VALUES ('" & Kommentar & "')", rAf
+     InsKorr DBCn, "INSERT INTO `laborkommentar`(Kommentar) VALUES ('" & Kommentar & "')", rAFh
     Else
      Exit For
     End If
@@ -6840,7 +6941,7 @@ If Err.Number = -2147467259 Then ' Server has gone away
 End If
 Select Case MsgBox("FNr: " & FNr & ", ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in KomEinfüg/" + AnwPfad)
  Case vbAbort: Call MsgBox("Höre auf"): ProgEnde
- Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
+ Case vbRetry: Call MsgBox("Versuche nochmal"): Resume resu:
  Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
 End Select
 End Function ' KomEinfüg&
@@ -7723,88 +7824,88 @@ End Function ' AnPack
 'End SELECT
 'End FUNCTION ' SpModAlt
 
-#If alt Then
-' in Laboreintr1
-Function fctLaborParameter(rlAb As ADODB.Recordset)
-Dim raLP As New ADODB.Recordset, rlaL As New ADODB.Recordset
-Dim Abkü$, Einheit$, Langtext$
-Dim LTName$
-Dim obltvw%
-On Error Resume Next
-LTName = rlAb.Fields("langtextvw").name
-obltvw = IIf(Err.Number = 0, -1, 0)
-On Error GoTo fehler
-Abkü = IIf(IsNull(rlAb!Abkü), vNS, Trim$(rlAb!Abkü)) 'If ISNULL(rLab!Abkü) THEN rLab!Abkü = vns
-Einheit = Zeichensatz(IIf(IsNull(rlAb!Einheit), vNS, Trim$(rlAb!Einheit))) ' IF ISNULL(rLab!Einheit) THEN rLab!Einheit = vns
-If Einheit = "" Then Einheit = "kA" ' 2.10.: ist so in Turbomed, => auch für die Direktübernahme so hindrehen
-Langtext = vNS
-If obltvw Then
-' SET rlaL = TabÖff("LaborLangtext", "LangtextVW")
- Set rlaL = Nothing
-' rlaL.Open "laborlangtext", DBCn, adOpenDynamic, adLockReadOnly
- myFrag rlaL, "SELECT 0 FROM laborlangtext LIMIT 1"
- If Not rlaL Is Nothing And Not IsNull(rlAb!LangtextVW) Then
-'  rlaL.Seek "=", rlAb!LangtextVW
-  Set rlaL = Nothing
-'  rlaL.Open "SELECT Langtext FROM `laborlangtext` WHERE langtextvw = " & rlAb!LangtextVW, DBCn, adOpenDynamic, adLockReadOnly
-  myFrag rlaL, "SELECT Langtext FROM `laborlangtext` WHERE langtextvw = " & rlAb!LangtextVW
-  If Not rlaL.EOF Then
-   Langtext = rlaL!Langtext
-  End If
- End If
-Else
- Langtext = IIf(IsNull(rlAb!Langtext), vNS, rlAb!Langtext)
-End If
-'Set raLP = TabÖff("LaborParameter", "Abkü")
-Set raLP = Nothing
-' Call raLP.Open("laborparameter", DBCn, adOpenDynamic, adLockReadOnly)
-If Abkü <> "" Then
-' rLP.Seek "=", Abkü, Einheit
- myFrag raLP, "SELECT abkü,einheit,langtext,aktzeit FROM laborparameter WHERE abkü = '" & Abkü & "' LIMIT 1"
- If raLP.BOF Then
-  raLP.AddNew
- End If
- If raLP.EditMode = 2 Then
-  If obÜP Then Print #322, "Neuer Laborparameter: " + Abkü + " `" + Einheit + "`"
-  raLP!Abkü = Abkü
-  raLP!Einheit = Einheit
- ElseIf (raLP!Langtext <> Langtext) Then 'Or (rLP!Kommentar <> rLab!Kommentar AND NOT ISNULL(rLab!Kommentar)) THEN
-'  raLP.Edit
- Else
-'  rLPbm = rLP.Bookmark
-  GoTo Fertig:
- End If
- If raLP.EditMode = 1 Or raLP.EditMode = 2 Then
-  If Not IsNull(Langtext) And Langtext <> "" Then
-   raLP!Langtext = Langtext
-  End If
-'  rLP!Kommentar = rLab!Kommentar
-  raLP!aktZeit = Now
-  raLP.Update
-'  rLPbm = rLP.LastModified
- End If
-End If
- GoTo Fertig
-test:
- MsgBox "Hier Fehler bei Einheit"
- Resume
-Fertig:
- raLP.Close
- Exit Function
-fehler:
- Dim AnwPfad$
-#If VBA6 Then
- AnwPfad = CurrentDb.name
-#Else
- AnwPfad = App.path
-#End If
-Select Case MsgBox("FNr: " & FNr & ", ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in fctLaborParameter/" + AnwPfad)
- Case vbAbort: Call MsgBox("Höre auf"): ProgEnde
- Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
- Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
-End Select
-End Function ' fctLaborParameter(rLab AS dao.recordset)
-#End If
+'#If alt Then
+'' in Laboreintr1
+'Function fctLaborParameter(rlAb As ADODB.Recordset)
+'Dim raLP As New ADODB.Recordset, rlaL As New ADODB.Recordset
+'Dim Abkü$, Einheit$, Langtext$
+'Dim LTName$
+'Dim obltvw%
+'On Error Resume Next
+'LTName = rlAb.Fields("langtextvw").name
+'obltvw = IIf(Err.Number = 0, -1, 0)
+'On Error GoTo fehler
+'Abkü = IIf(IsNull(rlAb!Abkü), vNS, Trim$(rlAb!Abkü)) 'If ISNULL(rLab!Abkü) THEN rLab!Abkü = vns
+'Einheit = Zeichensatz(IIf(IsNull(rlAb!Einheit), vNS, Trim$(rlAb!Einheit))) ' IF ISNULL(rLab!Einheit) THEN rLab!Einheit = vns
+'If Einheit = "" Then Einheit = "kA" ' 2.10.: ist so in Turbomed, => auch für die Direktübernahme so hindrehen
+'Langtext = vNS
+'If obltvw Then
+'' SET rlaL = TabÖff("LaborLangtext", "LangtextVW")
+' Set rlaL = Nothing
+'' rlaL.Open "laborlangtext", DBCn, adOpenDynamic, adLockReadOnly
+' myFrag rlaL, "SELECT 0 FROM laborlangtext LIMIT 1"
+' If Not rlaL Is Nothing And Not IsNull(rlAb!LangtextVW) Then
+''  rlaL.Seek "=", rlAb!LangtextVW
+'  Set rlaL = Nothing
+''  rlaL.Open "SELECT Langtext FROM `laborlangtext` WHERE langtextvw = " & rlAb!LangtextVW, DBCn, adOpenDynamic, adLockReadOnly
+'  myFrag rlaL, "SELECT Langtext FROM `laborlangtext` WHERE langtextvw = " & rlAb!LangtextVW
+'  If Not rlaL.EOF Then
+'   Langtext = rlaL!Langtext
+'  End If
+' End If
+'Else
+' Langtext = IIf(IsNull(rlAb!Langtext), vNS, rlAb!Langtext)
+'End If
+''Set raLP = TabÖff("LaborParameter", "Abkü")
+'Set raLP = Nothing
+'' Call raLP.Open("laborparameter", DBCn, adOpenDynamic, adLockReadOnly)
+'If Abkü <> "" Then
+'' rLP.Seek "=", Abkü, Einheit
+' myFrag raLP, "SELECT abkü,einheit,langtext,aktzeit FROM laborparameter WHERE abkü = '" & Abkü & "' LIMIT 1"
+' If raLP.BOF Then
+'  raLP.AddNew
+' End If
+' If raLP.EditMode = 2 Then
+'  If obÜP Then Print #322, "Neuer Laborparameter: " + Abkü + " `" + Einheit + "`"
+'  raLP!Abkü = Abkü
+'  raLP!Einheit = Einheit
+' ElseIf (raLP!Langtext <> Langtext) Then 'Or (rLP!Kommentar <> rLab!Kommentar AND NOT ISNULL(rLab!Kommentar)) THEN
+''  raLP.Edit
+' Else
+''  rLPbm = rLP.Bookmark
+'  GoTo Fertig:
+' End If
+' If raLP.EditMode = 1 Or raLP.EditMode = 2 Then
+'  If Not IsNull(Langtext) And Langtext <> "" Then
+'   raLP!Langtext = Langtext
+'  End If
+''  rLP!Kommentar = rLab!Kommentar
+'  raLP!aktZeit = Now
+'  raLP.Update
+''  rLPbm = rLP.LastModified
+' End If
+'End If
+' GoTo Fertig
+'test:
+' MsgBox "Hier Fehler bei Einheit"
+' Resume
+'Fertig:
+' raLP.Close
+' Exit Function
+'fehler:
+' Dim AnwPfad$
+'#If VBA6 Then
+' AnwPfad = CurrentDb.name
+'#Else
+' AnwPfad = App.path
+'#End If
+'Select Case MsgBox("FNr: " & FNr & ", ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in fctLaborParameter/" + AnwPfad)
+' Case vbAbort: Call MsgBox("Höre auf"): ProgEnde
+' Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
+' Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
+'End Select
+'End Function ' fctLaborParameter(rLab AS dao.recordset)
+'#End If
 
 #If False Then
 Function nulltest()

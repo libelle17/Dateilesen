@@ -394,9 +394,13 @@ Function doMacheTypen(Tabelle$) ' aufgerufen aus MacheTypen
   Print #257, art
   If colN Like "Feld*VW" Or colN = "LangtextVW" Or colN = "KommentarVW" Or colN = "AnmkgVW" Or colN = "AbschlZlVW" Or colN = "NormberVW" Then
    Print #257, " " + Left$(colN, Len(colN) - 2) + " AS string ' nur Hilfsfeld, nicht in Datenbank"
-  End If
+   If colN = "NormberVW" Then
+    Print #257, " uNm AS string ' nur Hilfsfeld, nicht in Datenbank"
+    Print #257, " oNm AS string ' nur Hilfsfeld, nicht in Datenbank"
+   End If ' colN = "NormberVW" Then
+  End If ' colN Like "Feld*VW"
   rsAdSc.MoveNext
- Loop
+ Loop ' While Not rsAdSc.EOF
 #If False Then
 ' IF lies.obmysql THEN
   Set rsAdo = myEFrag("SHOW columns FROM `" & Tabl & "`")
@@ -1468,7 +1472,7 @@ End If ' aktTbn = "faelle" Then
      If aktTbn <> "namen" Then
 '      Print #257, "    END IF ' Not rs.BOF THEN"
      End If
-   End Select
+   End Select ' Case aktTbn
    Print #257, " END IF ' not AllePat"
   End If ' i <= tbz1
   Print #257, "sql:"
@@ -1870,6 +1874,7 @@ End If ' aktTbn = "faelle" Then
  syscmd 4, "Mache Typen (27) ..."
  Print #257, "End Function ' tuLaden"
  Print #257, ""
+ Print #257, "' in alleSpeichern"
  Print #257, "Public Function tuSpeichern(frm AS Lese, SI%, BfS%) ' frm.dlg.SammelInsert, frm.dlg.BeziehungsfehlerSpeichern"
  Print #257, " Dim rAf&, altsi$,altsam%"
  Print #257, " altsi = sqlIGNORE"
@@ -2287,6 +2292,7 @@ Function TabFuellSnSh() ' Tabfüll; Tabellenfüllungen ermitteln
  Do While Not rs.EOF
   Set rsct = Nothing
   On Error Resume Next
+resu:
   myFrag rsct, "SELECT COUNT(0) ct FROM `" & rs!table_name & "`", , , , , , True, ErrNr, ErrDes
   If ErrNr <> 0 Then
 '   ErrDes = Err.Description
@@ -2308,10 +2314,11 @@ fehler:
 #End If
 Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "aufgefangener Fehler in Tabfüll/" + AnwPfad)
  Case vbAbort: Call MsgBox("Höre auf"): ProgEnde
- Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
+ Case vbRetry: Call MsgBox("Versuche nochmal"): If ErrNr Then Resume resu Else Resume
  Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
 End Select
 End Function ' TabFuellSnSh
+
 Function Zeichensatz$(Roh$)
 Dim i%, ZS$, bq$, bz$
  On Error GoTo fehler
