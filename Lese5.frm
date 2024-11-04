@@ -1066,7 +1066,7 @@ sql = "SELECT r.pat_id,gesname(r.pat_id) PName,Karteidatum,Date(Dokudatum) DokuD
 "LEFT JOIN dmprm m ON r.pat_id=npid AND if(right(abk,1) IN ('1','2'),CONCAT(r.art,RIGHT(abk,1))=m.dokuart,CONCAT(LEFT(art,1),MID(abk,5))=m.dokuart)" & vbCrLf & _
 "WHERE quartal(dokudatum) = vorquart(quartal(NOW()),1)" & vbCrLf & _
 "AND ISNULL(npid)" & vbCrLf & _
-"ORDER BY pat_id" & vbCrLf & _
+"ORDER BY PName" & vbCrLf & _
 ";"
 rs.Open sql, DBCn, adOpenStatic, adLockReadOnly
 Call TabAusgeb(rs, Me, , , , , , True, "Nicht erkannte DMP-Rückmeldungen")
@@ -3287,13 +3287,13 @@ End Sub ' holMedArten_Click
 
 ' EDV -> Laborparameter von u:\Anamnese\Quelle.mdb kopieren
 ' unsichtbar
-#If False Then
-Private Sub holLaborParameter_Click() ' nicht sichtbar: "&Laborparameter von u:\Anamnese\Quelle.mdb kopieren
- Call ProgStart
- Call holAllg(Me, "laborparameter", vNS, 0)
- Call ProgEnde
-End Sub ' holLaborParameter_Click
-#End If
+'#If False Then
+'Private Sub holLaborParameter_Click() ' nicht sichtbar: "&Laborparameter von u:\Anamnese\Quelle.mdb kopieren
+' Call ProgStart
+' Call holAllg(Me, "laborparameter", vNS, 0)
+' Call ProgEnde
+'End Sub ' holLaborParameter_Click
+'#End If
 
 ' EDV -> Tabellen (Datenbank) kopieren
 Private Sub TabKop_Click() ' Tabelle kopieren

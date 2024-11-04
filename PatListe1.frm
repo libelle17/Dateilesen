@@ -3070,6 +3070,11 @@ Sub LabordateiAnzeig(Datei$)
  "LEFT JOIN laborparameter lp ON abkü= SUBSTRING_INDEX(lx.fehlerart,':',1) " & _
  "AND einheit=SUBSTRING_INDEX(MID(fehlerart,LENGTH(SUBSTRING_INDEX(fehlerart,' ',1))+2),' (',1) " & _
  "ORDER BY patient, fehlerart", adOpenStatic
+ 
+'  "AND nbm=SUBSTRING_INDEX(MID(fehlerart,LENGTH(SUBSTRING_INDEX(fehlerart,' ',1))+2),' (',1) " & _ ' ?
+
+ '  " AND lp.id=(SELECT MIN(id) FROM laborparameter WHERE abkü=l.parameter AND einheit=l.Einheit AND nbm=l.normbereich)" & vbCrLf & _
+
  i = 1
  Do While Not rs.EOF
 '  .TextMatrix(i, wertsp) = rs!fehlerart

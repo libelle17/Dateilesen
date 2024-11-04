@@ -16,6 +16,102 @@ Dim rAf& ' records affected
   Normbereich As String
   uid As Long
  End Type ' rlwType2
+ 
+' in LaborDirektImport, dolies
+Public Function ngfestleg(Inhalt$, tt1n As CString, tt2n As CString) ' Normgrenzenfestleg
+              Dim tt1$, tt2$, buch$, pos&, p2&, i1&, i2&
+              Const notnu$ = "0123456789,."
+   On Error GoTo fehler
+erneut:
+              tt1n.Clear
+              tt2n.Clear
+              pos = InStr(Inhalt, "-")
+              If pos <> 0 Then
+               tt1 = Trim$(Left$(Inhalt, pos - 1))
+               For i1 = 1 To Len(tt1)
+                buch = Mid$(tt1, i1, 1)
+                If buch = " " Then tt1n.Clear
+                If InStrB(notnu, buch) <> 0 Then tt1n.Append buch
+               Next i1
+               tt2 = Trim$(Mid$(Inhalt, pos + 1))
+               For i2 = 1 To Len(tt2)
+                buch = Mid$(tt2, i2, 1)
+                If buch = " " Then Exit For
+                If InStrB(notnu, buch) <> 0 Then tt2n.Append buch
+               Next i2
+              Else
+               pos = InStr(Inhalt, "bis")
+               If pos <> 0 Then
+                tt2 = Trim$(Mid$(Inhalt, pos + 4))
+                For i2 = 1 To Len(tt2)
+                 buch = Mid$(tt2, i2, 1)
+                 If buch = " " Then Exit For
+                 If InStrB(notnu, buch) <> 0 Then tt2n.Append buch
+                Next i2
+               Else
+                pos = InStr(Inhalt, "ab ")
+                If pos <> 0 Then
+                 tt1 = Trim$(Mid$(Inhalt, pos + 4))
+                 For i1 = 1 To Len(tt1)
+                  buch = Mid$(tt1, i1, 1)
+                  If buch = " " Then Exit For
+                  If InStrB(notnu, buch) <> 0 Then tt1n.Append buch
+                 Next i1
+                Else
+                 p2 = InStr(Inhalt, ">")
+                 pos = InStr(Inhalt, "<")
+                 If p2 <> 0 Or (p2 = 0 And pos <> 0 And InStrB(Inhalt, "chwere") <> 0) Then ' Schwere Pankreasinsuffizienz:        < 100 µg/g Stuhl
+                  If p2 <> 0 And pos <> 0 And p2 > pos Then
+                   tt2 = Trim$(Mid$(Inhalt, pos + 1, p2 - pos - 1))
+                   For i2 = 1 To Len(tt2)
+                    buch = Mid$(tt2, i2, 1)
+                    If buch = "=" Then Exit For
+                    If InStrB(notnu, buch) <> 0 Then tt2n.Append buch
+                   Next i2
+                  ElseIf pos = 0 Then
+                   tt1 = Trim$(Mid$(Inhalt, p2 + 1))
+                   For i1 = 1 To Len(tt1)
+                    buch = Mid$(tt1, i1, 1)
+                    If buch = " " Then Exit For
+                    If InStrB(notnu, buch) <> 0 Then tt1n.Append buch
+                   Next
+                  End If
+                 ElseIf pos <> 0 Then
+                  tt2 = Trim$(Mid$(Inhalt, pos + 1))
+                  For i2 = 1 To Len(tt2)
+                   buch = Mid$(tt2, i2, 1)
+                   If buch = " " Then Exit For
+                   If InStrB(notnu, buch) <> 0 Then tt2n.Append buch
+                  Next i2
+                 Else
+                  If InStrB(Inhalt, "oxisch") <> 0 Or InStrB(Inhalt, "renztiter") <> 0 Then
+                   tt2 = Inhalt
+                   For i2 = 1 To Len(tt2)
+                    buch = Mid$(tt2, i2, 1)
+                    If tt2n.Value <> vNS And buch = " " Then Exit For
+                    If InStrB(notnu, buch) <> 0 Then tt2n.Append buch
+                   Next i2
+                  End If
+                 End If
+                End If
+               End If
+              End If
+'              GoTo erneut
+ Exit Function
+fehler:
+ Dim AnwPfad$
+#If VBA6 Then
+ AnwPfad = CurrentDb.name
+#Else
+ AnwPfad = App.path
+#End If
+Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in ngfestleg/" + AnwPfad)
+ Case vbAbort: Call MsgBox("Höre auf"): ProgEnde
+ Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
+ Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
+End Select
+End Function ' ngfestleg(Inhalt$, tt1n$, tt2n$)
+ 
 
 ' 4.9.06: Wird in NachArbeit aufgerufen
 Public Function LaborDirektImport(frm As Lese, absPos&, SammelInsert%, BezfSpei%, LPBeisp$, Optional oballe% = 0)
@@ -187,7 +283,7 @@ On Error GoTo fehler
       absPos = absPos + 1
       lenge = Left$(ltxt, 3)
       Kennung = Mid$(ltxt, 4, 4)
-      Inhalt = REPLACE$(doUmwfSQL(Mid$(ltxt, 8), Lese.obMySQL), "³", "ü") ' Zeichensatz( ist meist falsch, nur das ü stimmt in Karlsfeld nicht
+      Inhalt = Zeichensatz$(doUmwfSQL(Mid$(ltxt, 8), Lese.obMySQL)) ' Zeichensatz( ist meist falsch, nur das ü stimmt in Karlsfeld nicht
       DebugZähler = DebugZähler + 1
         Select Case Kennung
          Case 8000
@@ -283,11 +379,11 @@ On Error GoTo fehler
                erwZ = erwZ + 1
                Select Case runde
                 Case 1
-                 rLu(UBound(rLu)).Pat_idErwVNG = rLu(UBound(rLu)).Pat_idErwVNG & IIf(IsNull(rLu(UBound(rLu)).Pat_idErwVNG) Or LenB(rLu(UBound(rLu)).Pat_idErwVNG) = 0, vNS, "/") & CStr(rs!Pat_id)
+                 rLu(UBound(rLu)).Pat_idErwVNG = rLu(UBound(rLu)).Pat_idErwVNG & IIf(IsNull(rLu(UBound(rLu)).Pat_idErwVNG) Or LenB(rLu(UBound(rLu)).Pat_idErwVNG) = 0, vNS, "/") & CStr(rs!Pat_ID)
                 Case 2
-                 rLu(UBound(rLu)).Pat_idErwVN = rLu(UBound(rLu)).Pat_idErwVN & IIf(IsNull(rLu(UBound(rLu)).Pat_idErwVN) Or LenB(rLu(UBound(rLu)).Pat_idErwVN) = 0, vNS, "/") & CStr(rs!Pat_id)
+                 rLu(UBound(rLu)).Pat_idErwVN = rLu(UBound(rLu)).Pat_idErwVN & IIf(IsNull(rLu(UBound(rLu)).Pat_idErwVN) Or LenB(rLu(UBound(rLu)).Pat_idErwVN) = 0, vNS, "/") & CStr(rs!Pat_ID)
                End Select
-               merkPat_ID = rs!Pat_id
+               merkPat_ID = rs!Pat_ID
               End If
               rs.Move 1
               If rs.EOF Then Exit Do
@@ -299,7 +395,7 @@ On Error GoTo fehler
            Next runde
           End If ' ISNULL...
           If erwZ = 1 Then
-           rLu(UBound(rLu)).Pat_id = merkPat_ID
+           rLu(UBound(rLu)).Pat_ID = merkPat_ID
            rLu(UBound(rLu)).Pat_idUrsp = "E"
           Else
            glZ = 0 ' Zahl der Patienten mit passendem Geburtstag, zu denen ein zeitlich passendes Labor in den anderen Labortabellen gefunden wurde
@@ -315,31 +411,31 @@ On Error GoTo fehler
             Do
              glZoL = glZoL + 1
              erwZ = erwZ + 1
-             rLu(UBound(rLu)).Pat_idErwG = rLu(UBound(rLu)).Pat_idErwG & IIf(IsNull(rLu(UBound(rLu)).Pat_idErwG) Or LenB(rLu(UBound(rLu)).Pat_idErwG) = 0, vNS, "/") & CStr(rs!Pat_id)
+             rLu(UBound(rLu)).Pat_idErwG = rLu(UBound(rLu)).Pat_idErwG & IIf(IsNull(rLu(UBound(rLu)).Pat_idErwG) Or LenB(rLu(UBound(rLu)).Pat_idErwG) = 0, vNS, "/") & CStr(rs!Pat_ID)
 '             BmoL = rsAnam.Bookmark
              If rs!Vorgestellt <= rLu(UBound(rLu)).Eingang + 5 Then ' mit etwas Reserve für Wochenende usw.
 '              bmLocker = rsAnam.Bookmark
               glZLocker = glZLocker + 1
               If glZLocker = 1 Then
-                merkPat_ID = rs!Pat_id
+                merkPat_ID = rs!Pat_ID
               End If
-              rLu(UBound(rLu)).Pat_idErwGB = rLu(UBound(rLu)).Pat_idErwGB & IIf(IsNull(rLu(UBound(rLu)).Pat_idErwGB) Or LenB(rLu(UBound(rLu)).Pat_idErwGB) = 0, vNS, "/") & rs!Pat_id
+              rLu(UBound(rLu)).Pat_idErwGB = rLu(UBound(rLu)).Pat_idErwGB & IIf(IsNull(rLu(UBound(rLu)).Pat_idErwGB) Or LenB(rLu(UBound(rLu)).Pat_idErwGB) = 0, vNS, "/") & rs!Pat_ID
               If rs1.State = 1 Then rs1.Close
-              myFrag rs1, "SELECT * FROM `laborneu` WHERE pat_id = " & rs!Pat_id & " AND zeitpunkt >= " & DatFor_k(rLu(UBound(rLu)).Eingang - 5) & " AND zeitpunkt <= " & DatFor_k(rLu(UBound(rLu)).Eingang + 15)
+              myFrag rs1, "SELECT * FROM `laborneu` WHERE pat_id = " & rs!Pat_ID & " AND zeitpunkt >= " & DatFor_k(rLu(UBound(rLu)).Eingang - 5) & " AND zeitpunkt <= " & DatFor_k(rLu(UBound(rLu)).Eingang + 15)
               If Not rs1.BOF Then
  '              Bm = rsAnam.Bookmark
                glZ = glZ + 1
                If glZ = 1 Then
-                merkPat_ID = rs!Pat_id
+                merkPat_ID = rs!Pat_ID
                End If
-               rLu(UBound(rLu)).Pat_idErwGL = rLu(UBound(rLu)).Pat_idErwGL & IIf(IsNull(rLu(UBound(rLu)).Pat_idErwGL) Or LenB(rLu(UBound(rLu)).Pat_idErwGL) = 0, vNS, "/") & rs!Pat_id
+               rLu(UBound(rLu)).Pat_idErwGL = rLu(UBound(rLu)).Pat_idErwGL & IIf(IsNull(rLu(UBound(rLu)).Pat_idErwGL) Or LenB(rLu(UBound(rLu)).Pat_idErwGL) = 0, vNS, "/") & rs!Pat_ID
               End If
              End If
              rs.Move 1
              If rs.EOF Then Exit Do
             Loop
             If glZLocker = 1 Or glZ = 1 Then
-             rLu(UBound(rLu)).Pat_id = merkPat_ID
+             rLu(UBound(rLu)).Pat_ID = merkPat_ID
              rLu(UBound(rLu)).Pat_idUrsp = "E"
             End If
            End If
@@ -369,86 +465,12 @@ On Error GoTo fehler
          Case 8418: rLw(UBound(rLw)).Teststatus = Inhalt: rLw2(UBound(rLw2)).e.Teststatus = Inhalt
          Case 8420: rLw(UBound(rLw)).Wert = Inhalt:       rLw2(UBound(rLw2)).e.Wert = Inhalt
          Case 8421: rLw(UBound(rLw)).Einheit = Inhalt:    rLw2(UBound(rLw2)).e.Einheit = Inhalt
+                    rLw2(UBound(rLw2)).Normbereich = ""
          Case 8422: rLw(UBound(rLw)).Grenzwerti = Inhalt: rLw2(UBound(rLw2)).e.Grenzwerti = Inhalt
          Case 8460:
-              Dim tt1$, tt2$, buch$, pos&, p2&, tt1n As New CString, tt2n As New CString, i1&, i2&
-              Const notnu$ = "0123456789,."
-              rLw2(UBound(rLw2)).Normbereich = Inhalt
-erneut:
-              tt1n.Clear
-              tt2n.Clear
-              pos = InStr(Inhalt, "-")
-              If pos <> 0 Then
-               tt1 = Trim$(Left$(Inhalt, pos - 1))
-               For i1 = 1 To Len(tt1)
-                buch = Mid$(tt1, i1, 1)
-                If buch = " " Then tt1n.Clear
-                If InStrB(notnu, buch) <> 0 Then tt1n.Append buch
-               Next i1
-               tt2 = Trim$(Mid$(Inhalt, pos + 1))
-               For i2 = 1 To Len(tt2)
-                buch = Mid$(tt2, i2, 1)
-                If buch = " " Then Exit For
-                If InStrB(notnu, buch) <> 0 Then tt2n.Append buch
-               Next i2
-              Else
-               pos = InStr(Inhalt, "bis")
-               If pos <> 0 Then
-                tt2 = Trim$(Mid$(Inhalt, pos + 4))
-                For i2 = 1 To Len(tt2)
-                 buch = Mid$(tt2, i2, 1)
-                 If buch = " " Then Exit For
-                 If InStrB(notnu, buch) <> 0 Then tt2n.Append buch
-                Next i2
-               Else
-                pos = InStr(Inhalt, "ab ")
-                If pos <> 0 Then
-                 tt1 = Trim$(Mid$(Inhalt, pos + 4))
-                 For i1 = 1 To Len(tt1)
-                  buch = Mid$(tt1, i1, 1)
-                  If buch = " " Then Exit For
-                  If InStrB(notnu, buch) <> 0 Then tt1n.Append buch
-                 Next i1
-                Else
-                 p2 = InStr(Inhalt, ">")
-                 pos = InStr(Inhalt, "<")
-                 If p2 <> 0 Or (p2 = 0 And pos <> 0 And InStrB(Inhalt, "chwere") <> 0) Then ' Schwere Pankreasinsuffizienz:        < 100 µg/g Stuhl
-                  If p2 <> 0 And pos <> 0 And p2 > pos Then
-                   tt2 = Trim$(Mid$(Inhalt, pos + 1, p2 - pos - 1))
-                   For i2 = 1 To Len(tt2)
-                    buch = Mid$(tt2, i2, 1)
-                    If buch = "=" Then Exit For
-                    If InStrB(notnu, buch) <> 0 Then tt2n.Append buch
-                   Next i2
-                  ElseIf pos = 0 Then
-                   tt1 = Trim$(Mid$(Inhalt, p2 + 1))
-                   For i1 = 1 To Len(tt1)
-                    buch = Mid$(tt1, i1, 1)
-                    If buch = " " Then Exit For
-                    If InStrB(notnu, buch) <> 0 Then tt1n.Append buch
-                   Next
-                  End If
-                 ElseIf pos <> 0 Then
-                  tt2 = Trim$(Mid$(Inhalt, pos + 1))
-                  For i2 = 1 To Len(tt2)
-                   buch = Mid$(tt2, i2, 1)
-                   If buch = " " Then Exit For
-                   If InStrB(notnu, buch) <> 0 Then tt2n.Append buch
-                  Next i2
-                 Else
-                  If InStrB(Inhalt, "oxisch") <> 0 Or InStrB(Inhalt, "renztiter") <> 0 Then
-                   tt2 = Inhalt
-                   For i2 = 1 To Len(tt2)
-                    buch = Mid$(tt2, i2, 1)
-                    If tt2n.Value <> vNS And buch = " " Then Exit For
-                    If InStrB(notnu, buch) <> 0 Then tt2n.Append buch
-                   Next i2
-                  End If
-                 End If
-                End If
-               End If
-              End If
-'              GoTo erneut
+              If rLw2(UBound(rLw2)).Normbereich = "" Then rLw2(UBound(rLw2)).Normbereich = Inhalt  ' die Folgezeilen lassen wir erst mal aus
+              Dim tt1n As New CString, tt2n As New CString
+              Call ngfestleg(Inhalt, tt1n, tt2n)
               rLw2(UBound(rLw2)).NormU = tt1n
               rLw2(UBound(rLw2)).NormO = tt2n
          Case 8461:
@@ -550,9 +572,9 @@ erneut:
             For i = 1 To UBound(rLw2)
              Set rs = Nothing
              If LenB(rLw2(i).e.Einheit) = 0 Then rLw2(i).e.Einheit = "kA"
-             myFrag rs, "SELECT 0 FROM `laborparameter` WHERE abkü = '" & rLw2(i).e.Abkü & "' AND einheit = '" & rLw2(i).e.Einheit & "'"
+             myFrag rs, "SELECT 0 FROM `laborparameter` WHERE abkü = '" & rLw2(i).e.Abkü & "' AND einheit = '" & rLw2(i).e.Einheit & "' AND nbm = '" & rLw2(i).Normbereich & "'" ' Normbereich ergänzt 4.11.24
              If rs.BOF Then
-              InsKorr DBCn, "INSERT INTO `laborparameter`(`abkü`,`einheit`,`langtext`,`aktzeit`) VALUES('" & rLw2(i).e.Abkü & "','" & rLw2(i).e.Einheit & "','" & rLw2(i).e.Langname & "'," & DatFor_k(Now()) & ")", rAf
+              InsKorr DBCn, "INSERT INTO `laborparameter`(`abkü`,`einheit`,`langtext`,`aktzeit`,nbm) VALUES('" & rLw2(i).e.Abkü & "','" & rLw2(i).e.Einheit & "','" & rLw2(i).e.Langname & "'," & DatFor_k(Now()) & ",'" & rLw2(i).Normbereich & "')", rAf
              End If
              
              Dim laborid&
@@ -781,7 +803,7 @@ nochmal:
      Do
       If rLN.BOF Or rLN.EOF Then Exit Do
        debugzl = debugzl + 1
-       Print #300, "  " & debugzl & ": rLN!Pat_id: " & rLN!Pat_id, rLN!Abkü, rLN!Wert, rLN!Zeitpunkt, rLN!abstand, IIf(rLN!abstand < 32, vNS, "Nicht berücksichtigt: Abstand zu groß")
+       Print #300, "  " & debugzl & ": rLN!Pat_id: " & rLN!Pat_ID, rLN!Abkü, rLN!Wert, rLN!Zeitpunkt, rLN!abstand, IIf(rLN!abstand < 32, vNS, "Nicht berücksichtigt: Abstand zu groß")
       rLN.Move 1
      Loop
      If Not rLN.BOF Then
@@ -795,7 +817,7 @@ nochmal:
        If Abs(rLN!Zeitpunkt - rLX!Eingang) < 32 Then ' 1 Monat Grenze
 ' SL = Liste der Patienten, die für die aktuelle Laborzusammenstellung in Frage kommen
         Set sPI = New SortierPat_ID
-        sPI.Pat_id = rLN!Pat_id
+        sPI.Pat_ID = rLN!Pat_ID
         sPI.Zeitpunkt = rLN!Zeitpunkt
         Call SL.Add(sPI)
        End If
@@ -809,7 +831,7 @@ nochmal:
 '      For Each sPI In SL
        For i = 1 To SL.COUNT
         Set sPI = SL.Item(i)
-        If sPI.Pat_id = rLN!Pat_id And sPI.Zeitpunkt = rLN!Zeitpunkt Then
+        If sPI.Pat_ID = rLN!Pat_ID And sPI.Zeitpunkt = rLN!Zeitpunkt Then
          sPI.Knz = -1
          Exit For
         End If
@@ -839,7 +861,7 @@ nochmal:
     If debugbit Then
      Print #300, vbCrLf & " in der Liste befinden sich momentan (SL.Count): " & SL.COUNT & IIf(SL.COUNT > 0, ", und zwar:", "!!!!")
      For i = 1 To SL.COUNT
-      Print #300, "   Pat_id: " & SL.Item(i).Pat_id
+      Print #300, "   Pat_id: " & SL.Item(i).Pat_ID
      Next i
      Print #300, "Gesamt-Abkürzungs-String: " & GesAbk
      Print #300, ""
@@ -862,27 +884,27 @@ nochmal:
     SLPat_id = -1
     If SL.COUNT = 0 Then
     ElseIf SL.COUNT = 1 Then
-     SLPat_id = SL.Item(1).Pat_id
+     SLPat_id = SL.Item(1).Pat_ID
      rLNZeitpunkt = SL.Item(1).Zeitpunkt
      nPat_idlaborneu = SLPat_id
-    ElseIf rLX!Pat_id <> 0 And Not IsNull(rLX!Pat_id) Then ' wenn die Laborwertekombination für mehrere Patienten stimmen würde, aber der richtige schon aus Namen/Geburtsdatum hervorgeht => diesen davon nehmen
+    ElseIf rLX!Pat_ID <> 0 And Not IsNull(rLX!Pat_ID) Then ' wenn die Laborwertekombination für mehrere Patienten stimmen würde, aber der richtige schon aus Namen/Geburtsdatum hervorgeht => diesen davon nehmen
      For i = 1 To SL.COUNT
-      If SL.Item(i).Pat_id = rLX!Pat_id Then
-       SLPat_id = SL.Item(i).Pat_id
+      If SL.Item(i).Pat_ID = rLX!Pat_ID Then
+       SLPat_id = SL.Item(i).Pat_ID
        rLNZeitpunkt = SL.Item(i).Zeitpunkt
        nPat_idlaborneu = SLPat_id
        Exit For
       End If
      Next
     Else ' wenn also unbekannt ist, welcher Patient der richtige ist
-     nPat_idlaborneu = SL.Item(1).Pat_id
+     nPat_idlaborneu = SL.Item(1).Pat_ID
      For i = 2 To SL.COUNT
-      nPat_idlaborneu = nPat_idlaborneu & "/" & SL.Item(i).Pat_id
+      nPat_idlaborneu = nPat_idlaborneu & "/" & SL.Item(i).Pat_ID
      Next
     End If
     
     If SLPat_id <> -1 Then ' SL.Count = 1
-     nPat_ID = IIf(IsNull(rLX!Pat_id), 0, rLX!Pat_id)
+     nPat_ID = IIf(IsNull(rLX!Pat_ID), 0, rLX!Pat_ID)
      nPat_idUrsp = IIf(IsNull(rLX!Pat_idUrsp), vNS, rLX!Pat_idUrsp)
 '    IF SL.Count = 1 THEN
      If nPat_ID = 0 Then

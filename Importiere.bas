@@ -233,6 +233,7 @@ Function ASMod(ParamArray tokens()) As String()
     ASMod = arr
 End Function ' ASMod
 
+' in doTabVorb
 Function laborparvorladen()
  On Error GoTo fehler
  Dim rs As New ADODB.Recordset, rAf&
@@ -4135,7 +4136,7 @@ fgefunden:
     Call LaborEintr0
   Case 8411 ' Labor: Langtext
     If obLaborEintrag And rInhalt <> "" Then
-     rLa(ls).Langtext = REPLACE$(rInhalt, "³", "ü") ' scheint die einzig angezeigte Ersetzung aus Zeichensatz() zu sein
+     rLa(ls).Langtext = Zeichensatz(rInhalt) ' scheint die einzig angezeigte Ersetzung aus Zeichensatz() zu sein
      rLa(ls).LangtextVW = LTEinfüg&(rLa(ls).Langtext)
     End If
 '    rLa(UBound(rLa)).Langtext = ZeichenSatz(RInhalt)
@@ -4150,18 +4151,39 @@ fgefunden:
      End If
     End If
   Case 8421
-   If obLaborEintrag Then rLa(ls).Einheit = REPLACE$(rInhalt, "³", "ü")  ' scheint die einzig angezeigte Ersetzung aus Zeichensatz() zu sein
+   If obLaborEintrag Then rLa(ls).Einheit = Zeichensatz(rInhalt)  ' scheint die einzig angezeigte Ersetzung aus Zeichensatz() zu sein
 '   rLa(UBound(rLa)).Einheit = RInhalt
   Case 8460 ' Normalwert-Text
-   rLa(ls).Normber = rInhalt
+   If obLaborEintrag Then
+'    If rInhalt Like "Sek*" Then Stop
+'    rLa(ls).Normber = Stutz(rInhalt)
+    If Asc(Right$(rInhalt, 1)) = 94 Then
+     rLa(ls).Normber = rLa(ls).Normber & Left$(rInhalt, Len(rInhalt) - 1)
+    Else
+     rLa(ls).Normber = rLa(ls).Normber & rInhalt
+     rLa(ls).NormberVW = nbEinfüg&(rLa(ls).Normber)
+    End If
+    Dim tt1n As New CString, tt2n As New CString
+    Call ngfestleg(rInhalt, tt1n, tt2n)
+    rLa(UBound(rLa)).uNm = tt1n
+    rLa(UBound(rLa)).oNm = tt2n
+   End If ' obLaborEintrag
   Case 8461 ' Normalwert untere Grenze
-   rLa(ls).uNm = rInhalt
+   If obLaborEintrag And rInhalt <> "" Then
+    If rLa(ls).uNm = "" Then
+     rLa(ls).uNm = rInhalt
+    Else ' rLa(ls).oNG = "" Then
+     rLa(ls).obpath = rInhalt
+    End If ' rLa(ls).oNG = "" Then Else
+   End If ' obLaborEintrag
   Case 8462 ' Normalwert obere Grenze
-   If rLa(ls).oNm = "" Then
-    rLa(ls).oNm = rInhalt
-   Else ' rLa(ls).oNG = "" Then
-    rLa(ls).obpath = rInhalt
-   End If ' rLa(ls).oNG = "" Then Else
+   If Not obLaborEintrag And rInhalt <> "" And Not (rInhalt = "0" And rLa(ls).oNm <> "0") Then
+    If rLa(ls).oNm = "" Then
+     rLa(ls).oNm = rInhalt
+    Else ' rLa(ls).oNG = "" Then
+     rLa(ls).obpath = rInhalt
+    End If ' rLa(ls).oNG = "" Then Else
+   End If ' obLaborEintrag
   Case 8470
 '   rLa(UBound(rLa)).Kommentar = rLa(UBound(rLa)).Kommentar + Stutz(RInhalt)
    If obLaborEintrag Then
@@ -4708,6 +4730,7 @@ Function aktQAnf(Optional diff%) As Date
  aktQAnf = CDate("01." & mon & "." & Year(jetzt))
 End Function ' aktqanf() As Date
 
+' in alleSpeichern
 Function laborparameterSpeichern()
  Dim i&
  On Error GoTo fehler
@@ -6854,6 +6877,7 @@ Select Case MsgBox("FNr: " & FNr & ", ErrNr: " & CStr(Err.Number) + vbCrLf + "La
 End Select
 End Function ' AZEinfüg&(AbschlZl$)
 
+
 ' in  doPatvonMO
 Function nbEinfüg&(Normber$)
   Dim i&, rsnb As ADODB.Recordset
@@ -6976,6 +7000,8 @@ Function LaborEintr0()
   rLa(ls).LangtextVW = LTEinfüg&(rLa(ls).Langtext)
   rLa(ls).Kommentar = vNS
   rLa(ls).KommentarVW = KomEinfüg&(rLa(ls).Kommentar)
+  rLa(ls).Normber = vNS
+  rLa(ls).NormberVW = nbEinfüg&(rLa(ls).Normber)
   rLa(ls).Einheit = "kA"
   rLa(ls).Wert = vNS
  End If ' if obLaborEintrag
