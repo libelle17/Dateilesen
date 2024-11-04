@@ -517,7 +517,7 @@ End Function ' zeigmosystem()
 
 ' in PatvonMO_Click
 Public Function doPatvonMO(pNr&, Optional obmitFormularen%)
- Dim pid&, pos&, SchGr%, j&, jj%, rAf&, rInh$, Puls$, Bem$ ' , aktZeit As Date
+ Dim pid&, pos&, pneu&, SchGr%, j&, jj%, rAf&, rInh$, Puls$, Bem$ ' , aktZeit As Date
  Const obDebug% = True, obszn4% = True
 '  pNr& = 68393  ' 69618 ' 63635 ' 67180 ' 63635 ' 64800 ' 69333 ' 68316 ' 65405 ' 45 ' 64659 ' 45 ' 69367 ' 69377 ' 53119 ' 51630 ' 105 ' 18 ' 246 ' 59152 ' 1394 ' 2112 ' 151 ' 225 '
  pid = pNr + 100000
@@ -579,7 +579,7 @@ Public Function doPatvonMO(pNr&, Optional obmitFormularen%)
  If Not rsNa.BOF Then
  
   rNa(0).aktZeit = aktZeit
-  rNa(0).Pat_id = pid ' = pNr
+  rNa(0).Pat_ID = pid ' = pNr
   rNa(0).lfdnr = -1 ' Import aus MO
   rNa(0).Nachname = rsNa!FNachname
   rNa(0).NVorsatz = rsNa!FNamensvorsatz
@@ -663,7 +663,15 @@ Public Function doPatvonMO(pNr&, Optional obmitFormularen%)
 '  Call MeStDruck(CStr(pNr), NaStr)
   
 '  rsFa.Open "SELECT f.fsurogat nix, COALESCE(CONVERT(f.FMemo USING latin1),'') Fm,CONCAT(f.fpatnr,', ',18900101 + INTERVAL f.fvon DAY,' - ',18900101 + INTERVAL f.fbis DAY) ueschr, f.*,a.FBezeichnung, le.FNachname FROM patfall f LEFT JOIN abrechner a ON f.FArztnr=a.FSurogat LEFT JOIN lstgerb le USING (FLstgerbnr) WHERE fpatnr=" & pNr & " ORDER BY FVon DESC", MOCon, adOpenStatic, adLockReadOnly
-  myFrag rsFa, "SELECT f.fsurogat nix, COALESCE(CONVERT(f.FMemo USING latin1),'') Fm,CONCAT(f.fpatnr,', ',18900101 + INTERVAL f.fvon DAY,' - ',18900101 + INTERVAL f.fbis DAY) ueschr, f.*,a.FBezeichnung, le.FNachname FROM patfall f LEFT JOIN abrechner a ON f.FArztnr=a.FSurogat LEFT JOIN lstgerb le USING (FLstgerbnr) WHERE fpatnr=" & pNr & " ORDER BY FVon DESC", adOpenStatic, MOCon, adLockReadOnly
+ sql = "SELECT f.fsurogat nix, COALESCE(CONVERT(f.FMemo USING latin1),'') Fm" & vbCrLf & _
+ ", CONCAT(f.fpatnr,', ',18900101 + INTERVAL f.fvon DAY,' - ',18900101 + INTERVAL f.fbis DAY) ueschr" & vbCrLf & _
+ ", f.*,a.FBezeichnung, le.FNachname" & vbCrLf & _
+ "FROM patfall f " & vbCrLf & _
+ "LEFT JOIN abrechner a ON f.FArztnr=a.FSurogat" & vbCrLf & _
+ "LEFT JOIN lstgerb le USING (FLstgerbnr)" & vbCrLf & _
+ "WHERE fpatnr=" & pNr & vbCrLf & _
+ "ORDER BY FVon DESC"
+  myFrag rsFa, sql, adOpenStatic, MOCon, adLockReadOnly
 '  rsfaru = 0
   If Not rsFa.BOF Then
    Do While Not rsFa.EOF
@@ -671,7 +679,7 @@ Public Function doPatvonMO(pNr&, Optional obmitFormularen%)
     ReDim Preserve rFa(UBound(rFa) + 1)
     rFa(UBound(rFa)).aktZeit = aktZeit
     rFa(UBound(rFa)).lfdnr = lfdfl
-    rFa(UBound(rFa)).Pat_id = pid
+    rFa(UBound(rFa)).Pat_ID = pid
     rFa(UBound(rFa)).AbrAr = ""
     rFa(UBound(rFa)).VermiArt = 0
     rFa(UBound(rFa)).bPerG = "0"
@@ -910,7 +918,11 @@ Public Function doPatvonMO(pNr&, Optional obmitFormularen%)
 ' nicht übertragen:
      Dim rhar As New ADODB.Recordset
      Dim aktKVNr$
-     myFrag rhar, "SELECT farztnralt kvnr FROM earzt a LEFT JOIN epraxis p ON p.FSurogat = a.FExtpraxisnr WHERE farztnralt<>'' AND fbetriebsnr='" & rFa(UBound(rFa)).ÜbWVBSNR & "' AND (farztnr='" & rFa(UBound(rFa)).ÜbwLANR & "' OR " & IIf(rFa(UBound(rFa)).ÜbwLANR = "", "TRUE", "FALSE") & ")", adOpenStatic, MOCon
+     sql = "SELECT farztnralt kvnr FROM earzt a" & vbCrLf & _
+           "LEFT JOIN epraxis p ON p.FSurogat = a.FExtpraxisnr" & vbCrLf & _
+           "WHERE farztnralt<>'' AND fbetriebsnr='" & rFa(UBound(rFa)).ÜbWVBSNR & "'" & vbCrLf & _
+           "AND (farztnr='" & rFa(UBound(rFa)).ÜbwLANR & "' OR " & IIf(rFa(UBound(rFa)).ÜbwLANR = "", "TRUE", "FALSE") & ")"
+     myFrag rhar, sql, adOpenStatic, MOCon
      If rhar Is Nothing Then
 '      Stop
      Else
@@ -947,7 +959,7 @@ Public Function doPatvonMO(pNr&, Optional obmitFormularen%)
   For j = 0 To UBound(NaStr)
    If NaStr(j).ENr Like "21.*" And NaStr(j).ENr <> "21.1" Then
     ReDim Preserve rSw(UBound(rSw) + 1)
-    rSw(UBound(rSw)).Pat_id = rNa(0).Pat_id
+    rSw(UBound(rSw)).Pat_ID = rNa(0).Pat_ID
     rSw(UBound(rSw)).FormTitel = "ssd"
     rSw(UBound(rSw)).vorET = stzk(NaStr(j).Text)
     rSw(UBound(rSw)).lR = rSw(UBound(rSw)).vorET - 280
@@ -1117,6 +1129,7 @@ Public Function doPatvonMO(pNr&, Optional obmitFormularen%)
 
   sql = _
 "SELECT 18900101+INTERVAL l.FDatum DAY+INTERVAL l.FZeit SECOND Zp, na.FUsername ua, nb.FUsername ub, l.*, IF(INSTR(FText,':') BETWEEN 1 AND 6,LEFT(FText,INSTR(FText,':')-1),'') art, IF(INSTR(FText,':') BETWEEN 1 AND 6,TRIM(MID(FText,INSTR(FText,':')+1)),FText) ename" & vbCrLf & _
+", l.FStatus lFSt, FText" & vbCrLf & _
 ", COALESCE(CONVERT(b.FMemo USING latin1),'') BFMemo, l.FEintragsart lFE, b.FEintragsart bFE, b.FSurogat bFSu, b.*" & vbCrLf & _
 ", l.FEintragsart IN(13,14,16,17,18,2004,2005,2006,2007,2029) obRezE" & vbCrLf & _
 ", IF(FText RLIKE '^[ ]*[0-9]+[ ]*x.*',SUBSTRING_INDEX(FText,'x',1),1) Anz" & vbCrLf & _
@@ -1146,11 +1159,48 @@ Public Function doPatvonMO(pNr&, Optional obmitFormularen%)
 '     If rsEi!fsurogat = 16045 Then Stop
      Call ParseMemo(rsEi!BFMemo, FMem(), obDebug, "FMemo aus beschein")
     End If ' rsEi!BFMemo <> ""
-    If rsEi!obRezE Then ' Rezepteintrag
+    If rsEi!ficdcode = "" And Not IsNull(rsEi!bfsu) And (InStrB(rsEi!FText, "Dokumentation") Or InStrB(rsEi!FText, "Teilnahme")) Then
+       ReDim Preserve rDm(UBound(rDm) + 1)
+       rDm(UBound(rDm)).aktZeit = aktZeit
+       rDm(UBound(rDm)).Pat_ID = pid
+'       pos = InStr(rsEi!FText, "#")
+'       If pos > 0 Then rDm(UBound(rDm)).Abk = Left$(rsEi!FText, pos - 1)
+       rDm(UBound(rDm)).art = IIf(InStrB(rsEi!FText, "Erst"), "ED", "FD")
+       rDm(UBound(rDm)).Abk = rsEi!FText
+       rDm(UBound(rDm)).Ok = rsEi!lFSt
+'       rDm(UBound(rDm)).ausgedruckt = IIf(InStrB(rsEi!erg, "ausgedruckt"), 1, 0)
+'       pos = 1
+'       Do
+'        pneu = InStr(pos + 1, rsEi!erg, "exportiert am")
+'        If pneu = 0 Then Exit Do Else pos = pneu
+'       Loop
+'       If pos > 1 Then rDm(UBound(rDm)).exportiert = CDate(Mid$(rsEi!erg, pos + 14, 10))
+       rDm(UBound(rDm)).KarteiDatum = CDate(rsEi!Zp)
+'       rDm(UBound(rDm)).obvoll = IIf(InStrB(rsEi!erg, "vollständig"), 1, 0)
+'       rDm(UBound(rDm)).Ok = IIf(InStrB(rsEi!erg, "(ok"), 1, 0)
+       rDm(UBound(rDm)).lanrid = rsEi!FArztnr
+       rDm(UBound(rDm)).Nachname = rNa(0).Nachname
+       rDm(UBound(rDm)).Vorname = rNa(0).Vorname
+       rDm(UBound(rDm)).GebDat = rNa(0).GebDat
+       For j = 0 To UBound(FMem)
+        Select Case FMem(j).ENr
+         Case "75":
+                rDm(UBound(rDm)).uDat = stzk(FMem(j).Text)
+         Case "96":
+                rDm(UBound(rDm)).DokuDatum = stzk(FMem(j).Text)
+'         Case "121":
+'                Stop
+         Case "137":
+                rDm(UBound(rDm)).Druckdatum = stzk(FMem(j).Text)
+         Case "139":
+                rDm(UBound(rDm)).exportiert = stzk(FMem(j).Text)
+        End Select
+       Next j
+    ElseIf rsEi!obRezE Then ' Rezepteintrag
      ReDim Preserve rRe(UBound(rRe) + 1)
      rRe(UBound(rRe)).aktZeit = aktZeit
-     rRe(UBound(rRe)).Pat_id = pid
-     rRe(UBound(rRe)).Pat_id = pid
+     rRe(UBound(rRe)).Pat_ID = pid
+     rRe(UBound(rRe)).Pat_ID = pid
      rRe(UBound(rRe)).Zeitpunkt = rsEi!Zp
      rRe(UBound(rRe)).Medikament = rsEi!Med
      rRe(UBound(rRe)).PZN = rsEi!ficdcode
@@ -1190,7 +1240,7 @@ Public Function doPatvonMO(pNr&, Optional obmitFormularen%)
     Select Case rsEi!lFE
      Case 21 ' Krankenhauseinweisung
       ReDim Preserve rKh(UBound(rKh) + 1)
-      rKh(UBound(rKh)).Pat_id = pid
+      rKh(UBound(rKh)).Pat_ID = pid
       rKh(UBound(rKh)).Zeitpunkt = rsEi!Zp
       rKh(UBound(rKh)).aktZeit = aktZeit
       For j = 0 To UBound(FMem)
@@ -1270,7 +1320,7 @@ fgefunden:
       ReDim Preserve rFr(UBound(rFr) + 1)
       rFr(UBound(rFr)).aktZeit = aktZeit
       rFr(UBound(rFr)).Form_ID = lFormID '-lFormID ' negative Speicherung, da der Wert noch nach der Datenbankspeicherung von rFo angepaßt werden muss
-      rFr(UBound(rFr)).Pat_id = pid
+      rFr(UBound(rFr)).Pat_ID = pid
       rFr(UBound(rFr)).Zeitpunkt = rsEi!Zp
       rFr(UBound(rFr)).lanrid = IIf(rsEi!FLstgerbnr = 3, 2, 1) ' 2 = Schade, 3 = Kothny
       If FoIDv = 0 Then
@@ -1355,7 +1405,7 @@ sql = sql & _
    Do While Not rsEi.EOF
     Dim ls&
     ReDim Preserve rLa(UBound(rLa) + 1): ls = UBound(rLa)
-    rLa(ls).Pat_id = pid
+    rLa(ls).Pat_ID = pid
     rLa(ls).Zeitpunkt = rsEi!Zp
 '   rLa(ls).FertigStGrad = FStG
 '   rLa(ls).Labor = AbküLabor
@@ -1409,7 +1459,7 @@ sql = sql & _
    Do While Not rsEi.EOF
 ' Typ As String 'Typ varchar '
     ReDim Preserve rBr(UBound(rBr) + 1)
-    rBr(UBound(rBr)).Pat_id = pid
+    rBr(UBound(rBr)).Pat_ID = pid
     rBr(UBound(rBr)).aktZeit = aktZeit
     rBr(UBound(rBr)).Zeitpunkt = rsEi!Zp
     rBr(UBound(rBr)).name = rsEi!EName
@@ -1439,7 +1489,7 @@ sql = sql & _
    Do While Not rsEi.EOF
     If altlFSur <> rsEi!FDosierplannr Then MPNr = MPNr + 1: Fldnr = 1 Else Fldnr = Fldnr + 1
     ReDim Preserve rMe(UBound(rMe) + 1)
-    rMe(UBound(rMe)).Pat_id = pid
+    rMe(UBound(rMe)).Pat_ID = pid
     rMe(UBound(rMe)).Nutzer = rsEi!ua
     rMe(UBound(rMe)).aktZeit = aktZeit
     rMe(UBound(rMe)).Zeitpunkt = rsEi!Zp
@@ -1518,7 +1568,7 @@ sql = sql & _
          GKT = GKT + 1
          If GKT = 1 Then
           ReDim Preserve rLe(UBound(rLe) + 1)
-          rLe(UBound(rLe)).Pat_id = pid
+          rLe(UBound(rLe)).Pat_ID = pid
           rLe(UBound(rLe)).aktZeit = aktZeit
           rLe(UBound(rLe)).Zeitpunkt = rsEi!Zp
           rLe(UBound(rLe)).QS = ZQSort(rLe(UBound(rLe)).Zeitpunkt)
@@ -1622,7 +1672,7 @@ sql = sql & _
    Do While Not rsEi.EOF
     ReDim Preserve rAu(UBound(rAu) + 1)
     rAu(UBound(rAu)).aktZeit = aktZeit
-    rAu(UBound(rAu)).Pat_id = pid
+    rAu(UBound(rAu)).Pat_ID = pid
     rAu(UBound(rAu)).Zeitpunkt = rsEi!anzp
     rAu(UBound(rAu)).Ersteller = rsEi!ua
     rAu(UBound(rAu)).Änderer = rsEi!ub
@@ -1648,7 +1698,7 @@ sql = sql & _
   " AND ((FEintragsart=5 AND FStatus=0))" & vbCrLf & _
   " AND fbehgrundnr<=0"
   myFrag rsEi, sql, adOpenStatic, MOCon ' Einträge
-  Dim spl$()
+  Dim Spl$()
   If Not rsEi.BOF Then
    Do While Not rsEi.EOF
     messDatum = rsEi!anzp
@@ -1667,11 +1717,11 @@ sql = sql & _
   End If ' Not rsEi.BOF Then
 
 ' andere Einträge
-  sql = "SELECT 18900101+INTERVAL FDatum DAY+INTERVAL FZeit SECOND Zp, REGEXP_REPLACE(FICdcode,'(\w+)#\1','\1') Art," & vbCrLf & _
-  "IF(INSTR(fdetails,'Etext ""'),MID(FDetails,LOCATE('Etext',FDetails)+LENGTH('Etext')+2,LOCATE('""',FDetails,LOCATE('Etext',FDetails)+LENGTH('Etext')+2)-LOCATE('Etext',FDetails)-LENGTH('Etext')-2),ftext) Erg," & vbCrLf & _
-  "FEintragsart, 18900101+INTERVAL FAnorddatum DAY+INTERVAL FAnordzeit SECOND AnZp," & vbCrLf & _
-  "na.Finitialen ua, nb.finitialen ub " & vbCrLf & _
-  "FROM ltag f " & vbCrLf & _
+  sql = "SELECT 18900101+INTERVAL FDatum DAY+INTERVAL FZeit SECOND Zp, REGEXP_REPLACE(FICdcode,'(\w+)#\1','\1') Art" & vbCrLf & _
+  ", IF(INSTR(fdetails,'Etext ""'),MID(FDetails,LOCATE('Etext',FDetails)+LENGTH('Etext')+2,LOCATE('""',FDetails,LOCATE('Etext',FDetails)+LENGTH('Etext')+2)-LOCATE('Etext',FDetails)-LENGTH('Etext')-2),ftext) Erg" & vbCrLf & _
+  ", FText, FEintragsart, 18900101+INTERVAL FAnorddatum DAY+INTERVAL FAnordzeit SECOND AnZp" & vbCrLf & _
+  ", na.Finitialen ua, nb.finitialen ub, l.FArztnr" & vbCrLf & _
+  "FROM ltag l " & vbCrLf & _
   "LEFT JOIN nutzerneu na ON FAnordnutzernr= na.FSurogat " & vbCrLf & _
   "LEFT JOIN nutzerneu nb ON FAusfnutzernr= nb.FSurogat " & vbCrLf & _
   "WHERE FPatnr = " & pNr & vbCrLf & _
@@ -1697,12 +1747,32 @@ sql = sql & _
       rRr(UBound(rRr)).Bemerkung = Bem
       If IsNumeric(Puls) Then rRr(UBound(rRr)).Puls = Puls
      Case Else
-      If UCase$(art) = "TEXT" And InStrB(rsEi!fdetails, "dokumentation") <> 0 And InStrB(rsEi!fdetails, "dmp") <> 0 Then
-      
+     'dmpreihe
+      If UCase$(art) = "TEXT" And InStrB(rsEi!erg, "dokumentation") <> 0 And InStrB(rsEi!FText, "dmp") <> 0 Then
+       ReDim Preserve rDm(UBound(rDm) + 1)
+       rDm(UBound(rDm)).aktZeit = aktZeit
+       rDm(UBound(rDm)).Pat_ID = pid
+       pos = InStr(rsEi!FText, "#")
+       If pos > 0 Then rDm(UBound(rDm)).Abk = Left$(rsEi!FText, pos - 1)
+       rDm(UBound(rDm)).art = IIf(InStrB(rsEi!erg, "Erst"), "ED", "FD")
+       rDm(UBound(rDm)).ausgedruckt = IIf(InStrB(rsEi!erg, "ausgedruckt"), 1, 0)
+       pos = 1
+       Do
+        pneu = InStr(pos + 1, rsEi!erg, "exportiert am")
+        If pneu = 0 Then Exit Do Else pos = pneu
+       Loop
+       If pos > 1 Then rDm(UBound(rDm)).exportiert = CDate(Mid$(rsEi!erg, pos + 14, 10))
+       rDm(UBound(rDm)).KarteiDatum = CDate(rsEi!Zp)
+       rDm(UBound(rDm)).obvoll = IIf(InStrB(rsEi!erg, "vollständig"), 1, 0)
+       rDm(UBound(rDm)).Ok = IIf(InStrB(rsEi!erg, "(ok"), 1, 0)
+       rDm(UBound(rDm)).lanrid = rsEi!FArztnr
+       rDm(UBound(rDm)).Nachname = rNa(0).Nachname
+       rDm(UBound(rDm)).Vorname = rNa(0).Vorname
+       rDm(UBound(rDm)).GebDat = rNa(0).GebDat
       Else ' UCase$(art) = "TEXT" And InStrB(rsEi!fdetails, "dokumentation") <> 0 And InStrB(rsEi!fdetails, "dmp") <> 0 Then
       ReDim Preserve rEi(UBound(rEi) + 1)
       rEi(UBound(rEi)).aktZeit = aktZeit
-      rEi(UBound(rEi)).Pat_id = pid
+      rEi(UBound(rEi)).Pat_ID = pid
       rEi(UBound(rEi)).Zeitpunkt = messDatum
       rEi(UBound(rEi)).QS = ZQSort(rEi(UBound(rEi)).Zeitpunkt)
       rEi(UBound(rEi)).QT = ZQuart(rEi(UBound(rEi)).Zeitpunkt)
@@ -1755,7 +1825,7 @@ sql = sql & _
    Do While Not rsDi.EOF
     ReDim Preserve rDi(UBound(rDi) + 1)
     rDi(UBound(rDi)).aktZeit = aktZeit
-    rDi(UBound(rDi)).Pat_id = pid
+    rDi(UBound(rDi)).Pat_ID = pid
     rDi(UBound(rDi)).DiagDatum = rsDi!diagdat
     rDi(UBound(rDi)).DiagSicherheit = rsDi!sich
     rDi(UBound(rDi)).DiagText = Trim$(rsDi!FText)

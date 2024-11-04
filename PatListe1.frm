@@ -2973,7 +2973,8 @@ Sub LabordateiAnzeig(Datei$)
  ",l.*,s.pat_id obsws, COALESCE(ityp,'') ityp, COALESCE(lp.langtext,l.parameter) lt" & vbCrLf & _
  "FROM labpatel p " & vbCrLf & _
  "LEFT JOIN labpath l ON l.elID=p.id" & vbCrLf & _
- "LEFT JOIN laborparameter lp ON l.Parameter=lp.`Abkü` AND l.Einheit=lp.Einheit " & vbCrLf & _
+ "LEFT JOIN laborparameter lp ON l.Parameter=lp.`Abkü` AND l.Einheit=lp.Einheit and lp.nbm=l.normbereich" & vbCrLf & _
+ " AND lp.id=(SELECT MIN(id) FROM laborparameter WHERE abkü=l.parameter AND einheit=l.Einheit AND nbm=l.normbereich)" & vbCrLf & _
  "LEFT JOIN sws s ON s.pat_id=l.pat_id AND s.voret>qanf() AND s.voret>now()" & vbCrLf & _
  "LEFT JOIN dtypen dt ON dt.pat_id=l.pat_id" & vbCrLf & _
  "WHERE p.Name='" & FSO.GetFileName(Datei) & "' " & vbCrLf & _
