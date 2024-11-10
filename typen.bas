@@ -551,6 +551,7 @@ Public type dmpreihe
  Zusatzdaten AS string 'Zusatzdaten varchar 'Zusatzdaten
  Druckdatum AS date 'Druckdatum datetime 'in MO Feld 137
  uDat AS date 'uDat datetime 'in MO Feld 75
+ eGFR AS byte 'eGFR tinyint 'in Mo Feld 121, 1. Byte
 end type
 
 Public type desktop
@@ -7928,6 +7929,7 @@ Public FUNCTION roDmZuw(i&, j&)
  roDm(i).Zusatzdaten = rDm(j).Zusatzdaten
  roDm(i).Druckdatum = rDm(j).Druckdatum
  roDm(i).uDat = rDm(j).uDat
+ roDm(i).eGFR = rDm(j).eGFR
 End FUNCTION ' roDmZuw
 
 Public FUNCTION DmZUnt%(i&, j&)
@@ -7949,6 +7951,7 @@ Public FUNCTION DmZUnt%(i&, j&)
  IF roDm(i).Zusatzdaten <> rDm(j).Zusatzdaten THEN gosub unter
  IF roDm(i).Druckdatum <> rDm(j).Druckdatum THEN gosub unter
  IF roDm(i).uDat <> rDm(j).uDat THEN gosub unter
+ IF roDm(i).eGFR <> rDm(j).eGFR THEN gosub unter
  Exit Function
 unter:
  DmZUnt = DmZUnt + 1
@@ -7963,7 +7966,7 @@ Public FUNCTION dmpreiheLaden()
 ",COALESCE(DokuDatum - INTERVAL 0 DAY,CONVERT('18991230',DATE)) DokuDatum,COALESCE(obvoll,0) obvoll,COALESCE(ok,0) ok,COALESCE(ausgedruckt,0) ausgedruckt" & _
 ",COALESCE(NachName,'') NachName,COALESCE(VorName,'') VorName,COALESCE(GebDat - INTERVAL 0 DAY,CONVERT('18991230',DATE)) GebDat,COALESCE(Pat_id,0) Pat_id" & _
 ",COALESCE(StByte,0) StByte,COALESCE(AktZeit - INTERVAL 0 DAY,CONVERT('18991230',DATE)) AktZeit,COALESCE(lanrid,0) lanrid,COALESCE(Zusatzdaten,'') Zusatzdaten" & _
-",COALESCE(Druckdatum - INTERVAL 0 DAY,CONVERT('18991230',DATE)) Druckdatum,COALESCE(uDat - INTERVAL 0 DAY,CONVERT('18991230',DATE)) uDat FROM `dmpreihe` WHERE Pat_ID=" & pid & " ORDER BY `Dokudatum`
+",COALESCE(Druckdatum - INTERVAL 0 DAY,CONVERT('18991230',DATE)) Druckdatum,COALESCE(uDat - INTERVAL 0 DAY,CONVERT('18991230',DATE)) uDat,COALESCE(eGFR,0) eGFR FROM `dmpreihe` WHERE Pat_ID=" & pid & " ORDER BY `Dokudatum`
  myFrag rs, sql
  If rs.EOF Then
   ReDim roDm(0)
@@ -7989,6 +7992,7 @@ Public FUNCTION dmpreiheLaden()
    roDm(akt).Zusatzdaten = doUmwfSQL(rs!Zusatzdaten, lies.obMySQL, False)
    roDm(akt).Druckdatum = rs!Druckdatum
    roDm(akt).uDat = rs!uDat
+   roDm(akt).eGFR = rs!eGFR
    rs.MoveNext
    IF Not rs.EOF THEN ReDim Preserve roDm(UBound(roDm) + 1)
   Loop ' While Not rs.EOF
@@ -8073,6 +8077,7 @@ Public FUNCTION rDmDump()
   Print #200, Left$("rDm(" & i & ").Zusatzdaten:" & String$(33, "."), 33) & "'" & rDm(i).Zusatzdaten & "'"
   Print #200, Left$("rDm(" & i & ").Druckdatum:" & String$(33, "."), 33) & rDm(i).Druckdatum
   Print #200, Left$("rDm(" & i & ").uDat:" & String$(33, "."), 33) & rDm(i).uDat
+  Print #200, Left$("rDm(" & i & ").eGFR:" & String$(33, "."), 33) & rDm(i).eGFR
  Next i
  Close #200
  zeigan ffadat
@@ -8089,7 +8094,7 @@ Public FUNCTION dmpreiheSpeichern(SammelInsert%, BezfSp%)
  syscmd 4, pid & ": Speichere " & Ubound(rDm)+0 & " Sätze in `dmpreihe`"
  Call csql0.AppVar(Array(" INSERT ", sqlIgnore, "INTO `dmpreihe` (Abk,Art,KarteiDatum," & _
      "exportiert,DokuDatum,obvoll,ok,ausgedruckt,NachName,VorName,GebDat,Pat_id,StByte," & _
-     "AktZeit,lanrid,Zusatzdaten,Druckdatum,uDat)        VALUES"))
+     "AktZeit,lanrid,Zusatzdaten,Druckdatum,uDat,eGFR)   VALUES"))
  IF NOT Allepat THEN
    sql = "DELETE FROM `dmpreihe` WHERE Pat_ID = " & CStr(rNa(0).Pat_ID)
    Call myEFrag(sql)
@@ -8104,7 +8109,7 @@ setz:
   End If ' SammelInsert = 0 Or i = 1 Then
   csql.AppVar Array("('" , rDm(i).Abk, "','" , rDm(i).Art, "'," , DatFor_k(rDm(i).KarteiDatum), "," , DatFor_k(rDm(i).exportiert), "," , DatFor_k(rDm(i).DokuDatum), "," , cstr(-(rDm(i).obvoll<>0)) , "," , cstr(-( _
    rDm(i).ok<>0)) , "," , cstr(-(rDm(i).ausgedruckt<>0)) , ",'" , rDm(i).NachName, "','" , rDm(i).VorName, "'," , DatFor_k(rDm(i).GebDat), "," , rDm(i).Pat_id, "," , rDm(i).StByte, "," , DatFor_k(rDm(i).AktZeit), "," ,  _
-   rDm(i).lanrid, ",'" , rDm(i).Zusatzdaten, "'," , DatFor_k(rDm(i).Druckdatum), "," , DatFor_k(rDm(i).uDat), ")")
+   rDm(i).lanrid, ",'" , rDm(i).Zusatzdaten, "'," , DatFor_k(rDm(i).Druckdatum), "," , DatFor_k(rDm(i).uDat), "," , rDm(i).eGFR, ")")
   IF SammelInsert <> 0 AND i < ubound(rDm) Then csql.Append ","
   IF SammelInsert = 0 OR i = ubound(rDm) Then
     altmode = myEFrag("SELECT @@global.sql_mode", , DBCn).Fields(0)
