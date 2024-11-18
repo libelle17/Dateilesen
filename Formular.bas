@@ -10119,7 +10119,7 @@ Vsql = _
 ",TRIM(IF(w.Abkü='ALBUM' AND Wert='' AND k.Text LIKE 'nicht berechenb%','< 20',IF(TRIM(Wert) REGEXP '^[0-9]+\\,?[0-9]*$', REPLACE(Wert,',','.'),Wert))) Wert" & vbCrLf & _
 ",w.Einheit " & vbCrLf & _
 ",CONCAT(IF(ISNULL(e.text) OR e.text RLIKE '^:[ /\\*:]*$','',IF(e.text RLIKE '^:[ /\\*]*:'" & vbCrLf & _
-",CONCAT(MID(e.text,LOCATE(':',e.text,2)+1),';'),IF(e.text='.','',IF(e.text='','',CONCAT(e.text,';'))))),IF(ISNULL(k.text),'',k.text)) Kommentar " & vbCrLf & _
+",CONCAT(MID(e.text,LOCATE(':',e.text,2)+1),';'),IF(e.text='.','',IF(e.text='','',CONCAT(e.text,';'))))),IF(ISNULL(k.text),'',k.text)) Kommentar/*, n.id*/ " & vbCrLf & _
 ",n.NB, n.uNg" & vbCrLf & _
 ",IF(w.abkü='LDL' AND w.einheit='mg/dl','100',n.oNg) oNg" & vbCrLf & _
 ",l.Labor, Pfad, d.DatID " & vbCrLf & _
@@ -10252,7 +10252,7 @@ Vsql = _
 "l.Langtext, " & vbCrLf & _
 "TRIM(IF(n.Abkü='ALBUM' AND n.Wert='' AND k.Kommentar LIKE 'nicht berechenb%','< 20',IF(TRIM(n.Wert) REGEXP '^[0-9]+\\,?[0-9]*$', REPLACE(n.Wert,',','.'),n.Wert))) Wert," & vbCrLf & _
 "n.Einheit," & vbCrLf & _
-"IF(ISNULL(k.Kommentar),'',k.Kommentar) Kommentar,nb.normbervw," & vbCrLf & _
+"IF(ISNULL(k.Kommentar),'',k.Kommentar) Kommentar,/*nb.normbervw,*/" & vbCrLf & _
 "NBm NB," & vbCrLf & _
 "IF(nb.uNm IS NULL OR nb.uNm='' OR (nb.uNm='0' AND p.uNm<>''),p.uNm,nb.uNm) uNg," & vbCrLf & _
 "IF(nb.oNm IS NULL OR nb.oNm='' OR (nb.oNm='0' AND p.oNm<>''),p.oNm,nb.oNm) oNg," & vbCrLf & _

@@ -517,7 +517,7 @@ End Function ' zeigmosystem()
 
 ' in PatvonMO_Click
 Public Function doPatvonMO(pNr&, Optional obmitFormularen%)
- Dim pid&, pos&, pneu&, SchGr%, j&, jj%, rAf&, rInh$, Puls$, Bem$ ' , aktZeit As Date
+ Dim pid&, pos&, pneu&, SchGr%, j&, jj%, rAf&, Puls$, Bem$ ' , rInh$, aktZeit As Date
  Const obDebug% = True, obszn4% = True
 '  pNr& = 68393  ' 69618 ' 63635 ' 67180 ' 63635 ' 64800 ' 69333 ' 68316 ' 65405 ' 45 ' 64659 ' 45 ' 69367 ' 69377 ' 53119 ' 51630 ' 105 ' 18 ' 246 ' 59152 ' 1394 ' 2112 ' 151 ' 225 '
  pid = pNr + 100000
@@ -1159,7 +1159,7 @@ Public Function doPatvonMO(pNr&, Optional obmitFormularen%)
 '     If rsEi!fsurogat = 16045 Then Stop
      Call ParseMemo(rsEi!BFMemo, FMem(), obDebug, "FMemo aus beschein")
     End If ' rsEi!BFMemo <> ""
-    If rsEi!ficdcode = "" And Not IsNull(rsEi!bfsu) And (InStrB(rsEi!FText, "Dokumentation") Or InStrB(rsEi!FText, "Teilnahme")) Then
+    If rsEi!FICdcode = "" And Not IsNull(rsEi!bfsu) And (InStrB(rsEi!FText, "Dokumentation") Or InStrB(rsEi!FText, "Teilnahme")) Then
        ReDim Preserve rDm(UBound(rDm) + 1)
        rDm(UBound(rDm)).aktZeit = aktZeit
        rDm(UBound(rDm)).Pat_ID = pid
@@ -1203,7 +1203,7 @@ Public Function doPatvonMO(pNr&, Optional obmitFormularen%)
      rRe(UBound(rRe)).Pat_ID = pid
      rRe(UBound(rRe)).Zeitpunkt = rsEi!Zp
      rRe(UBound(rRe)).Medikament = rsEi!Med
-     rRe(UBound(rRe)).PZN = rsEi!ficdcode
+     rRe(UBound(rRe)).PZN = rsEi!FICdcode
      rRe(UBound(rRe)).lanrid = rsEi!FArztnr
      rRe(UBound(rRe)).anzl = Switch(rsEi!anz <> "", rsEi!anz, rsEi!Anzahl <> "", rsEi!Anzahl, rsEi!packungszahl <> "", rsEi!packungszahl, True, "")
      rRe(UBound(rRe)).FEintragsart = rsEi!lFE
@@ -1409,7 +1409,7 @@ sql = sql & _
     rLa(ls).Zeitpunkt = rsEi!Zp
 '   rLa(ls).FertigStGrad = FStG
 '   rLa(ls).Labor = AbküLabor
-    rLa(ls).Abkü = IIf(rsEi!testid = "", rsEi!ficdcode, rsEi!testid) ' nauftrag->FSchluessel
+    rLa(ls).Abkü = IIf(rsEi!testid = "", rsEi!FICdcode, rsEi!testid) ' nauftrag->FSchluessel
     rLa(ls).aktZeit = aktZeit
 '    rLa(ls).FID = rFa(UBound(rFa)).FID
 '    rLa(ls).absPos = absPos
@@ -1685,6 +1685,7 @@ sql = sql & _
   End If ' Not rsEi.BOF Then
   
 ' Blutdruck
+#If False Then
   sql = "SELECT 18900101+INTERVAL FDatum DAY+INTERVAL FZeit SECOND Zp, REGEXP_REPLACE(FICdcode,'(\w+)#\1','\1') Art, FText" & vbCrLf & _
   ", REGEXP_REPLACE(FText,'^(?>[^0-9]|[4-9](?![0-9])|[0-2](?![0-9]{2}))*\b((?:[4-9][0-9]|[0-3][0-9]{2})(?:-[0-9]{2,3}){0,2}) */? *(?:über )?((?:[3-9][0-9]|[0-2][0-9]{2})(?:-[0-9]{2,3}){0,2})?(?:(?:[^PH]|H(?!F))*(?:Puls|P(?=[0-9 :.])|HF))?:? *([0-9]{1,3}(?:-[0-9]{2,3})?)? *(.*)','\1‡\2‡\3‡\4') Erg" & vbCrLf & _
   ", REGEXP_REPLACE(ftext,'^(?:[^l]|l(?!e))*(?:let?zten *(\d{1,3}))?.*$','\1') zahl" & vbCrLf & _
@@ -1704,7 +1705,7 @@ sql = sql & _
     messDatum = rsEi!anzp
     art = rsEi!art
     Call aufSplit(rsEi!erg, "‡")
-    RREintr rInh
+    Call RREintr
     rRr(UBound(rRr)).RR = rsEi!FText ' REPLACE$(rsEi!erg, "‡", " ")
     rRr(UBound(rRr)).RRsyst = Arra(0)
     rRr(UBound(rRr)).RRdiast = Arra(1)
@@ -1715,20 +1716,25 @@ sql = sql & _
     rsEi.MoveNext
    Loop ' while not rsEi.EOF
   End If ' Not rsEi.BOF Then
+#End If
 
 ' andere Einträge
-  sql = "SELECT 18900101+INTERVAL FDatum DAY+INTERVAL FZeit SECOND Zp, REGEXP_REPLACE(FICdcode,'(\w+)#\1','\1') Art" & vbCrLf & _
-  ", IF(INSTR(fdetails,'Etext ""'),MID(FDetails,LOCATE('Etext',FDetails)+LENGTH('Etext')+2,LOCATE('""',FDetails,LOCATE('Etext',FDetails)+LENGTH('Etext')+2)-LOCATE('Etext',FDetails)-LENGTH('Etext')-2),ftext) Erg" & vbCrLf & _
-  ", FText, FEintragsart, 18900101+INTERVAL FAnorddatum DAY+INTERVAL FAnordzeit SECOND AnZp" & vbCrLf & _
+  sql = "SELECT 18900101+INTERVAL FDatum DAY+INTERVAL FZeit SECOND Zp" & vbCrLf & _
+  ", IF (FText RLIKE '^(\w+)#\1:', REGEXP_REPLACE(FText,'(\w+)#\1:.*','\1'),REGEXP_REPLACE(FICdcode,'(\w+)#\1','\1')) Art" & vbCrLf & _
+  ", IF(INSTR(FDetails,'Etext ""'),MID(FDetails,LOCATE('Etext',FDetails)+LENGTH('Etext')+2,LOCATE('""',FDetails,LOCATE('Etext',FDetails)+LENGTH('Etext')+2)-LOCATE('Etext',FDetails)-LENGTH('Etext')-2),FText) Erg" & vbCrLf & _
+  ", FText, FDetails, FICDCode, FEintragsart, 18900101+INTERVAL FAnorddatum DAY+INTERVAL FAnordzeit SECOND AnZp" & vbCrLf & _
   ", na.Finitialen ua, nb.finitialen ub, l.FArztnr" & vbCrLf & _
+  ", REGEXP_REPLACE(IF(INSTR(FDetails,'Etext ""'),MID(FDetails,LOCATE('Etext',FDetails)+LENGTH('Etext')+2,LOCATE('""',FDetails,LOCATE('Etext',FDetails)+LENGTH('Etext')+2)-LOCATE('Etext',FDetails)-LENGTH('Etext')-2),FText),'^(?>[^0-9]|[4-9](?![0-9])|[0-2](?![0-9]{2}))*\b((?:[4-9][0-9]|[0-3][0-9]{2})(?:-[0-9]{2,3}){0,2}) */? *(?:über )?((?:[3-9][0-9]|[0-2][0-9]{2})(?:-[0-9]{2,3}){0,2})?(?:(?:[^PH]|H(?!F))*(?:Puls|P(?=[0-9 :.])|HF))?:? *([0-9]{1,3}(?:-[0-9]{2,3})?)? *(.*)','\1‡\2‡\3‡\4') Erg0" & vbCrLf & _
+  ", REGEXP_REPLACE(IF(INSTR(FDetails,'Etext ""'),MID(FDetails,LOCATE('Etext',FDetails)+LENGTH('Etext')+2,LOCATE('""',FDetails,LOCATE('Etext',FDetails)+LENGTH('Etext')+2)-LOCATE('Etext',FDetails)-LENGTH('Etext')-2),FText),'^(?:[^l]|l(?!e))*(?:let?zten *(\d{1,3}))?.*$','\1') zahl" & vbCrLf & _
   "FROM ltag l " & vbCrLf & _
   "LEFT JOIN nutzerneu na ON FAnordnutzernr= na.FSurogat " & vbCrLf & _
   "LEFT JOIN nutzerneu nb ON FAusfnutzernr= nb.FSurogat " & vbCrLf & _
   "WHERE FPatnr = " & pNr & vbCrLf & _
   " AND ((FEintragsart=5 AND FStatus=0) OR FEintragsart IN (8,10,11,151,1001,1002,1003,1004,1006))" & vbCrLf & _
-  " AND NOT REGEXP_REPLACE(FICdcode,'(\w+)#\1','\1') IN ('RR','RRVGL')" & vbCrLf & _
+  "-- AND REGEXP_REPLACE(FICdcode,'(\w+)#\1','\1') IN ('RR','RRVGL')" & vbCrLf & _
   " AND fbehgrundnr<=0"
   myFrag rsEi, sql, adOpenStatic, MOCon ' Einträge
+  Dim Spl$()
   If Not rsEi.BOF Then
    Do While Not rsEi.EOF
     messDatum = rsEi!anzp
@@ -1738,22 +1744,45 @@ sql = sql & _
 '    Else
     Select Case UCase$(art)
      Case "RR", "RRVGL"
-      rInh = rsEi!FText
-      Bem = rInh
+      Call aufSplit(rsEi!erg0, "‡")
+      Call RREintr
+      rRr(UBound(rRr)).RR = rsEi!erg ' REPLACE$(rsEi!erg, "‡", " ")
+      If IsNumeric(Arra(0)) Then rRr(UBound(rRr)).RRsyst = Arra(0)
+      If ArraInd > 0 Then If IsNumeric(Arra(1)) Then rRr(UBound(rRr)).RRdiast = Arra(1)
+      If ArraInd > 1 Then rRr(UBound(rRr)).Puls = IIf(Arra(2) = "", 0, Arra(2))
+      If ArraInd > 2 Then rRr(UBound(rRr)).Bemerkung = Arra(3)
+      rRr(UBound(rRr)).Quelle = "MO"
+      If rsEi!Zahl <> "" Then rRr(UBound(rRr)).RRzahl = rsEi!Zahl
+'      rInh = rsEi!erg
+      rRr(UBound(rRr)).Bemerkung = rsEi!erg
+      
+'      Debug.Print ""
+'      Debug.Print "Erg: " & rsEi!erg
+'      Debug.Print "Erg0:" & rsEi!erg0
+'      Debug.Print "Zahl:" & rsEi!Zahl
+'      Debug.Print "FText:" & rsEi!FText
+'      Debug.Print "FDetails: " & rsEi!FDetails
+'      Debug.Print "FICDCode: " & rsEi!FICdcode
+'      Debug.Print "Art: " & rsEi!art
+'      Debug.Print "rInh: " & rInh
+'      Puls = holPuls(rInh, Bem) ' ändert u.U. rInh
+'      Debug.Print "Puls: " & Puls
+'      rInh = rsEi!erg0
+'      Bem = rInh
 '      If InStrB(rInh, "P") <> 0 Then Stop
-      Puls = holPuls(rInh, Bem) ' ändert u.U. rInh
-      RREintr rInh
-      If Bem <> rInh And InStr(Bem, rInh) = 1 Then Bem = Mid$(Bem, Len(rInh) + 1)
-      rRr(UBound(rRr)).Bemerkung = Bem
-      If IsNumeric(Puls) Then rRr(UBound(rRr)).Puls = Puls
+'      RREintr
+'      rRr(UBound(rRr)).RR = rInh
+'      If Bem <> rInh And InStr(Bem, rInh) = 1 Then Bem = Mid$(Bem, Len(rInh) + 1)
+'      rRr(UBound(rRr)).Bemerkung = Bem
+'      If IsNumeric(Puls) Then rRr(UBound(rRr)).Puls = Puls
      Case Else
      'dmpreihe
       If UCase$(art) = "TEXT" And InStrB(rsEi!erg, "dokumentation") <> 0 And InStrB(rsEi!FText, "dmp") <> 0 Then
        ReDim Preserve rDm(UBound(rDm) + 1)
        rDm(UBound(rDm)).aktZeit = aktZeit
        rDm(UBound(rDm)).Pat_ID = pid
-       pos = InStr(rsEi!FText, "#")
-       If pos > 0 Then rDm(UBound(rDm)).Abk = Left$(rsEi!FText, pos - 1)
+       pos = InStr(rsEi!erg, "#")
+       If pos > 0 Then rDm(UBound(rDm)).Abk = Left$(rsEi!erg, pos - 1)
        rDm(UBound(rDm)).art = IIf(InStrB(rsEi!erg, "Erst"), "ED", "FD")
        rDm(UBound(rDm)).ausgedruckt = IIf(InStrB(rsEi!erg, "ausgedruckt"), 1, 0)
        pos = 1
@@ -1778,13 +1807,31 @@ sql = sql & _
       rEi(UBound(rEi)).QT = ZQuart(rEi(UBound(rEi)).Zeitpunkt)
       rEi(UBound(rEi)).Ersteller = rsEi!ua
       rEi(UBound(rEi)).Änderer = rsEi!ub
+      rEi(UBound(rEi)).Inhalt = rsEi!erg
+      rEi(UBound(rEi)).absPos = 1
+'      If art = "usdm2" Then Stop
       If art <> "" Then
-       apos = InStr(art, "#")
-       If apos > 1 Then ' z.B. LF#LF nach Datenübertragung
-        a1 = Left$(art, apos - 1)
-        a2 = Mid$(art, apos + 1)
-        If a1 = a2 Then rEi(UBound(rEi)).art = a1
-       End If ' pos > 1 Then
+       If art = "TEXT" Then
+        If rEi(UBound(rEi)).Inhalt Like "*[#]*:*" Then
+         apos = InStr(rEi(UBound(rEi)).Inhalt, "#")
+         If apos > 1 Then ' z.B. LF#LF nach Datenübertragung
+          a1 = Left$(rEi(UBound(rEi)).Inhalt, apos - 1)
+          a2 = Mid$(rEi(UBound(rEi)).Inhalt, apos + 1, InStr(apos + 1, rEi(UBound(rEi)).Inhalt, ":") - apos - 1)
+          If a1 = a2 Then
+           rEi(UBound(rEi)).art = a1
+           apos = InStr(rEi(UBound(rEi)).Inhalt, ":")
+           rEi(UBound(rEi)).Inhalt = Trim$(Mid$(rEi(UBound(rEi)).Inhalt, apos + 1))
+          End If ' a1 = a2 Then
+         End If ' pos > 1 Then
+        End If ' Inhalt Like "*[#]*:*" Then
+       Else ' art = "TEXT" Then
+        apos = InStr(art, "#")
+        If apos > 1 Then ' z.B. LF#LF nach Datenübertragung
+         a1 = Left$(art, apos - 1)
+         a2 = Mid$(art, apos + 1)
+         If a1 = a2 Then rEi(UBound(rEi)).art = a1
+        End If ' pos > 1 Then
+       End If ' art = "TEXT" Then else
        If rEi(UBound(rEi)).art = "" Then rEi(UBound(rEi)).art = art
       End If ' art<>""
       If rEi(UBound(rEi)).art = "" Then
@@ -1795,7 +1842,6 @@ sql = sql & _
         rEi(UBound(rEi)).art = EintS.art
        End If ' Not EintS Is Nothing Then
       End If ' rEi(UBound(rEi)).Art = "" Then
-      rEi(UBound(rEi)).Inhalt = rsEi!FText
       If rEi(UBound(rEi)).art = "GEWICHT" And IsNumeric(rEi(UBound(rEi)).Inhalt) Then rEi(UBound(rEi)).Inhalt = rEi(UBound(rEi)).Inhalt & " kg"
       End If ' UCase$(art) = "TEXT" And InStrB(rsEi!fdetails, "dokumentation") <> 0 And InStrB(rsEi!fdetails, "dmp") <> 0 Then Else
     End Select ' ucase$(art)

@@ -3217,16 +3217,10 @@ rEiVorb:
       Dim jsp%
       For jsp = 0 To ArraInd
           If Arra(jsp) = "" Then Exit For
-           ReDim Preserve rRr(UBound(rRr) + 1)
+           Call RREintr
            ausrrxml = True
            rRr(UBound(rRr)).FormTitel = FormTit
-           rRr(UBound(rRr)).Pat_ID = rNa(0).Pat_ID
-           rRr(UBound(rRr)).Zeitpunkt = messDatum
     '       rRr(UBound(rRr)).RR = RR
-           rRr(UBound(rRr)).absPos = absPos
-           rRr(UBound(rRr)).aktZeit = aktZeit
-           rRr(UBound(rRr)).FID = rFa(UBound(rFa)).FID
-    '       Call RREintr
            For irunde = 1 To 5
             Select Case irunde
              Case 1: Wort = "SystolischerWert"
@@ -3281,10 +3275,10 @@ rEiVorb:
     If ausrrxml And messDatum = rRr(UBound(rRr)).Zeitpunkt Then
     ' 25.9.16: in KarteiZusatzdatenEintrag steht der falsche Blutdruck
       rRr(UBound(rRr)).Puls = holPuls(rInhalt) ' ändert u.U. rInhalt
-      rRr(UBound(rRr)).RR = rInhalt
     Else
-      Call RREintr(rInhalt)
+      Call RREintr
     End If
+    rRr(UBound(rRr)).RR = rInhalt
     DStr = " (" + Format$(messDatum, "dd/mm/yy") + ")"
     If arr = vNS Then arr = rInhalt & DStr
     lRR = rInhalt & DStr
@@ -3799,7 +3793,7 @@ fgefunden:
      If ArraInd > 0 Then
 '      rFm(UBound(rFm)).FeldNr = Arra(1)
       If IsNumeric(Arra(1)) Then
-       rFm(UBound(rFm)).FeldNr = Arra(1) ' 7.10.08, Pat. 1524
+       If InStrB(FormSp, "#") <> 0 Then rFm(UBound(rFm)).FeldNr = Arra(1) ' 7.10.08, Pat. 1524 ' Bedingung 11.11.24
       End If
      Else ' ArraInd > 0 Then Else
       rFm(UBound(rFm)).FeldNr = ZeileNr ' damit mehrere 6299 auf ein 6298 kommen können
@@ -4853,7 +4847,7 @@ nachFehler:
 ' On Error GoTo fehler
  BegTrans
  Dim dmseit$
- dmseit = rsAnm![Diabetes seit]
+ If Not IsNull(rsAnm![Diabetes seit]) Then dmseit = rsAnm![Diabetes seit]
  If rsAnm!Nachname <> rNa(0).Nachname Or IsNull(rsAnm!Nachname) Then rsAnm!Nachname = rNa(0).Nachname
  If rsAnm!Vorname <> rNa(0).Vorname Or IsNull(rsAnm!Vorname) Then rsAnm!Vorname = rNa(0).Vorname
  If rsAnm!GebDat <> rNa(0).GebDat Or IsNull(rsAnm!GebDat) Then rsAnm!GebDat = rNa(0).GebDat
@@ -4889,7 +4883,7 @@ nachFehler:
  If rsAnm!Versicherungsart <> rFa(UBound(rFa)).SchGr Or IsNull(rsAnm!Versicherungsart) Then rsAnm!Versicherungsart = rFa(UBound(rFa)).SchGr
  Dim DiagStr$
  Dim rsDiag$
- rsDiag = rsAnm!Diagnosen
+ If Not IsNull(rsAnm!Diagnosen) Then rsDiag = rsAnm!Diagnosen
  DiagStr = MacheDiagnosen(dmseit)
  If rsDiag <> DiagStr Then
   On Error Resume Next
@@ -6138,13 +6132,13 @@ End Function ' aufSplit
 'End SELECT
 'End FUNCTION ' ZQuart$(Datum As Date) ' Für Abfragen mit Fallzuordnung
 
-' in dolies, doPatvonMO
-Function RREintr(RR)
+' in dolies 2x, doPatvonMO
+Function RREintr()
  On Error GoTo fehler
  ReDim Preserve rRr(UBound(rRr) + 1)
  rRr(UBound(rRr)).Pat_ID = rNa(0).Pat_ID
  rRr(UBound(rRr)).Zeitpunkt = messDatum
- rRr(UBound(rRr)).RR = RR
+' rRr(UBound(rRr)).RR = RR
  rRr(UBound(rRr)).absPos = absPos
  rRr(UBound(rRr)).aktZeit = aktZeit
  rRr(UBound(rRr)).FID = rFa(UBound(rFa)).FID
@@ -6876,24 +6870,24 @@ End Function ' AZEinfüg&(AbschlZl$)
 
 
 ' in  doPatvonMO
-Function nbEinfüg&(Normber$, uNg$, oNg$)
+Function nbEinfüg&(Normber$, uNG$, oNG$)
   Dim i&, ErrNr&, rsNb As ADODB.Recordset
   On Error GoTo fehler
-  If Normber = lNormb And luNm = uNg And loNm = oNg Then
+  If Normber = lNormb And luNm = uNG And loNm = oNG Then
    nbEinfüg = lNormbVW
   Else ' Normber = lNormb And luNm = uNg And loNm = oNg Then
    For i = 1 To 2
     If Not rsNb Is Nothing Then If rsNb.State = 1 Then rsNb.Close
 '   myFrag rsnb, "SELECT Normber,Normbervw FROM `laborNormber` WHERE Normber = '" & Normber & "'"
-    Set rsNb = myEFrag("SELECT Normbervw FROM `labornormber` WHERE Normber = '" & Normber & "' AND uNm = '" & uNg & "' AND oNm = '" & oNg & "'")
+    Set rsNb = myEFrag("SELECT Normbervw FROM `labornormber` WHERE Normber = '" & Normber & "' AND uNm = '" & uNG & "' AND oNm = '" & oNG & "'")
     If rsNb.EOF Then
-     InsKorr DBCn, "INSERT INTO `labornormber`(`Normber`,uNm,oNm) VALUES ('" & Normber & "','" & uNg & "','" & oNg & "')", rAf, , , ErrNr
+     InsKorr DBCn, "INSERT INTO `labornormber`(`Normber`,uNm,oNm) VALUES ('" & Normber & "','" & uNG & "','" & oNG & "')", rAf, , , ErrNr
     Else ' rsNb.EOF Then
      nbEinfüg = rsNb!NormberVW
      lNormbVW = nbEinfüg
      lNormb = Normber
-     luNm = uNg
-     loNm = oNg
+     luNm = uNG
+     loNm = oNG
      Exit For
     End If ' rsNb.EOF Then else
    Next i ' i = 1 to 2

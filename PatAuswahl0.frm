@@ -1162,12 +1162,17 @@ Private Sub Pat_id_Click()
 End Sub ' Pat_id_Click()
 
 Private Sub PatName_Click()
+ Static altPatID&
 ' erst wenn Leerzeichen oder Komma enthalten, Infos raussuchen
  If InStrB(Me.PatName, ",") <> 0 Or InStrB(Me.PatName, " ") <> 0 Then
   Me.Pat_ID = getPat_id(Me.PatName)
  End If
  If InStrB(Me.PatName, "|") <> 0 Then ' aufwändiges Raussuchen des Vorbriefdatums nur+immer bei Auswahl aus der Patientenliste mit der Maus
   Call Pat_ID_Change
+  If Me.Pat_ID <> altPatID Then
+   Me.hlese.los
+   altPatID = Me.Pat_ID
+  End If
  End If
 End Sub ' PatName_Click()
 
