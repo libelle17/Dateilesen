@@ -1097,7 +1097,7 @@ Public Function doPatvonMO(pNr&, Optional obmitFormularen%)
    rAbr.MoveNext
   Loop
 
-  Dim art$, a1$, a2$, apos&, abz%
+  Dim art$, neuart%, a1$, a2$, apos&, abz%
   Dim rsEi As New ADODB.Recordset
   Dim rFoNeu%, FormAbk$, FormBez$, lFormID&, i&, nextFormID&, rFm_Nr&
   Dim FoIDv& ' Pseudo-Foid
@@ -1154,10 +1154,14 @@ Public Function doPatvonMO(pNr&, Optional obmitFormularen%)
   myFrag rsEi, sql, adOpenStatic, MOCon
   If Not rsEi.BOF Then
   ' das BTM in "... (BTM) (K)" noch verwerten
+   Dim rseiru&
+   rseiru = 0
    Do While Not rsEi.EOF
-    If rsEi!BFMemo <> "" Then
+    rseiru = rseiru + 1
+    If rsEi!bfmemo <> "" Then
 '     If rsEi!fsurogat = 16045 Then Stop
-     Call ParseMemo(rsEi!BFMemo, FMem(), obDebug, "FMemo aus beschein")
+'     If rseiru = 3 Then Stop
+     Call ParseMemo(rsEi!bfmemo, FMem(), obDebug, "FMemo aus beschein")
     End If ' rsEi!BFMemo <> ""
     If rsEi!FICdcode = "" And Not IsNull(rsEi!bfsu) And (InStrB(rsEi!FText, "Dokumentation") Or InStrB(rsEi!FText, "Teilnahme")) Then
        ReDim Preserve rDm(UBound(rDm) + 1)
@@ -1182,20 +1186,22 @@ Public Function doPatvonMO(pNr&, Optional obmitFormularen%)
        rDm(UBound(rDm)).Nachname = rNa(0).Nachname
        rDm(UBound(rDm)).Vorname = rNa(0).Vorname
        rDm(UBound(rDm)).GebDat = rNa(0).GebDat
-       For j = 0 To UBound(FMem)
-        Select Case FMem(j).ENr
-         Case "75":
+       If SafeArrayGetDim(FMem) <> 0 Then
+        For j = 0 To UBound(FMem)
+         Select Case FMem(j).ENr
+          Case "75":
                 rDm(UBound(rDm)).uDat = stzk(FMem(j).Text)
-         Case "96":
+          Case "96":
                 rDm(UBound(rDm)).DokuDatum = stzk(FMem(j).Text)
 '         Case "121":
 '                Stop
-         Case "137":
+          Case "137":
                 rDm(UBound(rDm)).Druckdatum = stzk(FMem(j).Text)
-         Case "139":
+          Case "139":
                 rDm(UBound(rDm)).exportiert = stzk(FMem(j).Text)
-        End Select
-       Next j
+         End Select
+        Next j
+       End If ' SafeArryGetDim(FMem)
     ElseIf rsEi!obRezE Then ' Rezepteintrag
      ReDim Preserve rRe(UBound(rRe) + 1)
      rRe(UBound(rRe)).aktZeit = aktZeit
@@ -1221,7 +1227,7 @@ Public Function doPatvonMO(pNr&, Optional obmitFormularen%)
      If IsNumeric(rsEi!Rezeptart) Then rRe(UBound(rRe)).Rezeptart = rsEi!Rezeptart
      If rsEi!nonoi <> "" Then rRe(UBound(rRe)).auti = rsEi!nonoi
     
-     If rsEi!BFMemo <> "" Then
+     If rsEi!bfmemo <> "" Then
 '      rRe(UBound(rRe)).auti = 1 ' manchmal in Turbomed auch 2
       For j = 0 To UBound(FMem)
        Select Case FMem(j).ENr
@@ -1330,7 +1336,7 @@ fgefunden:
       FoIDv = FoIDv + 1
    
     ' FormVorl unbekannt
-      If rsEi!BFMemo <> "" Then ' ParseMemo oben
+      If rsEi!bfmemo <> "" Then ' ParseMemo oben
        For j = 0 To UBound(FMem)
         ReDim Preserve rFm(UBound(rFm) + 1)
         rFm(UBound(rFm)).nr = rFm_Nr
@@ -1721,44 +1727,56 @@ sql = sql & _
 ' andere Einträge
   sql = "SELECT 18900101+INTERVAL FDatum DAY+INTERVAL FZeit SECOND Zp" & vbCrLf & _
   ", IF (FText RLIKE '^(\w+)#\1:', REGEXP_REPLACE(FText,'(\w+)#\1:.*','\1'),REGEXP_REPLACE(FICdcode,'(\w+)#\1','\1')) Art" & vbCrLf & _
-  ", IF(INSTR(FDetails,'Etext ""'),MID(FDetails,LOCATE('Etext',FDetails)+LENGTH('Etext')+2,LOCATE('""',FDetails,LOCATE('Etext',FDetails)+LENGTH('Etext')+2)-LOCATE('Etext',FDetails)-LENGTH('Etext')-2),FText) Erg" & vbCrLf & _
-  ", FText, FDetails, FICDCode, FEintragsart, 18900101+INTERVAL FAnorddatum DAY+INTERVAL FAnordzeit SECOND AnZp" & vbCrLf & _
-  ", na.Finitialen ua, nb.finitialen ub, l.FArztnr" & vbCrLf & _
-  ", REGEXP_REPLACE(IF(INSTR(FDetails,'Etext ""'),MID(FDetails,LOCATE('Etext',FDetails)+LENGTH('Etext')+2,LOCATE('""',FDetails,LOCATE('Etext',FDetails)+LENGTH('Etext')+2)-LOCATE('Etext',FDetails)-LENGTH('Etext')-2),FText),'^(?>[^0-9]|[4-9](?![0-9])|[0-2](?![0-9]{2}))*\b((?:[4-9][0-9]|[0-3][0-9]{2})(?:-[0-9]{2,3}){0,2}) */? *(?:über )?((?:[3-9][0-9]|[0-2][0-9]{2})(?:-[0-9]{2,3}){0,2})?(?:(?:[^PH]|H(?!F))*(?:Puls|P(?=[0-9 :.])|HF))?:? *([0-9]{1,3}(?:-[0-9]{2,3})?)? *(.*)','\1‡\2‡\3‡\4') Erg0" & vbCrLf & _
-  ", REGEXP_REPLACE(IF(INSTR(FDetails,'Etext ""'),MID(FDetails,LOCATE('Etext',FDetails)+LENGTH('Etext')+2,LOCATE('""',FDetails,LOCATE('Etext',FDetails)+LENGTH('Etext')+2)-LOCATE('Etext',FDetails)-LENGTH('Etext')-2),FText),'^(?:[^l]|l(?!e))*(?:let?zten *(\d{1,3}))?.*$','\1') zahl" & vbCrLf & _
-  "FROM ltag l " & vbCrLf & _
-  "LEFT JOIN nutzerneu na ON FAnordnutzernr= na.FSurogat " & vbCrLf & _
-  "LEFT JOIN nutzerneu nb ON FAusfnutzernr= nb.FSurogat " & vbCrLf & _
+  ", FDet, FICDCode, FEintragsart, 18900101+INTERVAL FAnorddatum DAY+INTERVAL FAnordzeit SECOND AnZp" & vbCrLf & _
+  ", na.Finitialen ua, nb.finitialen ub, l.FArztnr, FText, FDetails" & vbCrLf & _
+  ", REGEXP_REPLACE(FDet,'^(?>[^0-9]|[4-9](?![0-9])|[0-2](?![0-9]{2}))*\b((?:[4-9][0-9]|[0-3][0-9]{2})(?:-[0-9]{2,3}){0,2}) */? *(?:über )?((?:[3-9][0-9]|[0-2][0-9]{2})(?:-[0-9]{2,3}){0,2})?(?:(?:[^PH]|H(?!F))*(?:Puls|P(?=[0-9 :.])|HF))?:? *([0-9]{1,3}(?:-[0-9]{2,3})?)? *(.*)','\1‡\2‡\3‡\4') FArray" & vbCrLf & _
+  ", REGEXP_REPLACE(FDet,'^(?:[^l]|l(?!e))*(?:let?zten *(\d{1,3}))?.*$','\1') zahl" & vbCrLf & _
+  "FROM (" & vbCrLf & _
+  " SELECT IF(INSTR(FDetails,'text ""'),MID(FDetails,LOCATE('text',FDetails)+LENGTH('text')+2,LOCATE('""',FDetails,LOCATE('text',FDetails)+LENGTH('text')+2)-LOCATE('text',FDetails)-LENGTH('text')-2),FText) FDet, ltag.*" & vbCrLf & _
+  " from ltag) l" & vbCrLf & _
+  "LEFT JOIN nutzerneu na ON FAnordnutzernr = na.FSurogat" & vbCrLf & _
+  "LEFT JOIN nutzerneu nb ON FAusfnutzernr = nb.FSurogat" & vbCrLf & _
   "WHERE FPatnr = " & pNr & vbCrLf & _
-  " AND ((FEintragsart=5 AND FStatus=0) OR FEintragsart IN (8,10,11,151,1001,1002,1003,1004,1006))" & vbCrLf & _
+  " AND ((FEintragsart=5 AND FStatus=0) OR FEintragsart IN (8,10,11,151) OR FEintragsart>1000)" & vbCrLf & _
   "-- AND REGEXP_REPLACE(FICdcode,'(\w+)#\1','\1') IN ('RR','RRVGL')" & vbCrLf & _
   " AND fbehgrundnr<=0"
+' FEintragsart>1000 sind die selbst definierten Kategorien in mosystem
   myFrag rsEi, sql, adOpenStatic, MOCon ' Einträge
   Dim Spl$()
   If Not rsEi.BOF Then
    Do While Not rsEi.EOF
     messDatum = rsEi!anzp
     art = rsEi!art
+    neuart = 0
+    If art = "" Then ' bei Kategorien die art aus mosystem holen
+     Set EintS = New SortierEintr
+     EintS.TypNr = rsEi!FEintragsart
+     Set EintS = EinL.GetItem(EintS)
+     If Not EintS Is Nothing Then
+      art = EintS.art
+      neuart = True
+     End If ' Not EintS Is Nothing Then
+    End If ' rEi(UBound(rEi)).Art = "" Then
 '    If Art Like "VKGD*" Then
 '     ReDim Preserve rVk(UBound(rVk) + 1)
 '    Else
     Select Case UCase$(art)
      Case "RR", "RRVGL"
-      Call aufSplit(rsEi!erg0, "‡")
+      Call aufSplit(rsEi!FArray, "‡")
       Call RREintr
-      rRr(UBound(rRr)).RR = rsEi!erg ' REPLACE$(rsEi!erg, "‡", " ")
+      rRr(UBound(rRr)).RR = rsEi!FDet ' REPLACE$(rsEi!FArray, "‡", " ")
       If IsNumeric(Arra(0)) Then rRr(UBound(rRr)).RRsyst = Arra(0)
       If ArraInd > 0 Then If IsNumeric(Arra(1)) Then rRr(UBound(rRr)).RRdiast = Arra(1)
       If ArraInd > 1 Then rRr(UBound(rRr)).Puls = IIf(Arra(2) = "", 0, Arra(2))
       If ArraInd > 2 Then rRr(UBound(rRr)).Bemerkung = Arra(3)
       rRr(UBound(rRr)).Quelle = "MO"
       If rsEi!Zahl <> "" Then rRr(UBound(rRr)).RRzahl = rsEi!Zahl
-'      rInh = rsEi!erg
-      rRr(UBound(rRr)).Bemerkung = rsEi!erg
+'      rInh = rsEi!FDet
+      rRr(UBound(rRr)).Bemerkung = rsEi!FDet
       
 '      Debug.Print ""
-'      Debug.Print "Erg: " & rsEi!erg
-'      Debug.Print "Erg0:" & rsEi!erg0
+'      Debug.Print "FDet: " & rsEi!FDet
+'      Debug.Print "FArray:" & rsEi!FArray
 '      Debug.Print "Zahl:" & rsEi!Zahl
 '      Debug.Print "FText:" & rsEi!FText
 '      Debug.Print "FDetails: " & rsEi!FDetails
@@ -1767,7 +1785,7 @@ sql = sql & _
 '      Debug.Print "rInh: " & rInh
 '      Puls = holPuls(rInh, Bem) ' ändert u.U. rInh
 '      Debug.Print "Puls: " & Puls
-'      rInh = rsEi!erg0
+'      rInh = rsEi!FDet
 '      Bem = rInh
 '      If InStrB(rInh, "P") <> 0 Then Stop
 '      RREintr
@@ -1777,23 +1795,23 @@ sql = sql & _
 '      If IsNumeric(Puls) Then rRr(UBound(rRr)).Puls = Puls
      Case Else
      'dmpreihe
-      If UCase$(art) = "TEXT" And InStrB(rsEi!erg, "dokumentation") <> 0 And InStrB(rsEi!FText, "dmp") <> 0 Then
+      If UCase$(art) = "TEXT" And InStrB(rsEi!FDet, "dokumentation") <> 0 And InStrB(rsEi!FText, "dmp") <> 0 Then
        ReDim Preserve rDm(UBound(rDm) + 1)
        rDm(UBound(rDm)).aktZeit = aktZeit
        rDm(UBound(rDm)).Pat_ID = pid
-       pos = InStr(rsEi!erg, "#")
-       If pos > 0 Then rDm(UBound(rDm)).Abk = Left$(rsEi!erg, pos - 1)
-       rDm(UBound(rDm)).art = IIf(InStrB(rsEi!erg, "Erst"), "ED", "FD")
-       rDm(UBound(rDm)).ausgedruckt = IIf(InStrB(rsEi!erg, "ausgedruckt"), 1, 0)
+       pos = InStr(rsEi!FArray, "#")
+       If pos > 0 Then rDm(UBound(rDm)).Abk = Left$(rsEi!FArray, pos - 1)
+       rDm(UBound(rDm)).art = IIf(InStrB(rsEi!FDet, "Erst"), "ED", "FD")
+       rDm(UBound(rDm)).ausgedruckt = IIf(InStrB(rsEi!FDet, "ausgedruckt"), 1, 0)
        pos = 1
        Do
-        pneu = InStr(pos + 1, rsEi!erg, "exportiert am")
+        pneu = InStr(pos + 1, rsEi!FDet, "exportiert am")
         If pneu = 0 Then Exit Do Else pos = pneu
        Loop
-       If pos > 1 Then rDm(UBound(rDm)).exportiert = CDate(Mid$(rsEi!erg, pos + 14, 10))
+       If pos > 1 Then rDm(UBound(rDm)).exportiert = CDate(Mid$(rsEi!FDet, pos + 14, 10))
        rDm(UBound(rDm)).KarteiDatum = CDate(rsEi!Zp)
-       rDm(UBound(rDm)).obvoll = IIf(InStrB(rsEi!erg, "vollständig"), 1, 0)
-       rDm(UBound(rDm)).Ok = IIf(InStrB(rsEi!erg, "(ok"), 1, 0)
+       rDm(UBound(rDm)).obvoll = IIf(InStrB(rsEi!FDet, "vollständig"), 1, 0)
+       rDm(UBound(rDm)).Ok = IIf(InStrB(rsEi!FDet, "(ok"), 1, 0)
        rDm(UBound(rDm)).lanrid = rsEi!FArztnr
        rDm(UBound(rDm)).Nachname = rNa(0).Nachname
        rDm(UBound(rDm)).Vorname = rNa(0).Vorname
@@ -1807,8 +1825,8 @@ sql = sql & _
       rEi(UBound(rEi)).QT = ZQuart(rEi(UBound(rEi)).Zeitpunkt)
       rEi(UBound(rEi)).Ersteller = rsEi!ua
       rEi(UBound(rEi)).Änderer = rsEi!ub
-      rEi(UBound(rEi)).Inhalt = rsEi!erg
-      rEi(UBound(rEi)).absPos = 1
+      rEi(UBound(rEi)).Inhalt = rsEi!FDet
+      rEi(UBound(rEi)).absPos = IIf(neuart <> 0, -1, 1)
 '      If art = "usdm2" Then Stop
       If art <> "" Then
        If art = "TEXT" Then
@@ -1834,14 +1852,6 @@ sql = sql & _
        End If ' art = "TEXT" Then else
        If rEi(UBound(rEi)).art = "" Then rEi(UBound(rEi)).art = art
       End If ' art<>""
-      If rEi(UBound(rEi)).art = "" Then
-       Set EintS = New SortierEintr
-       EintS.TypNr = rsEi!FEintragsart
-       Set EintS = EinL.GetItem(EintS)
-       If Not EintS Is Nothing Then
-        rEi(UBound(rEi)).art = EintS.art
-       End If ' Not EintS Is Nothing Then
-      End If ' rEi(UBound(rEi)).Art = "" Then
       If rEi(UBound(rEi)).art = "GEWICHT" And IsNumeric(rEi(UBound(rEi)).Inhalt) Then rEi(UBound(rEi)).Inhalt = rEi(UBound(rEi)).Inhalt & " kg"
       End If ' UCase$(art) = "TEXT" And InStrB(rsEi!fdetails, "dokumentation") <> 0 And InStrB(rsEi!fdetails, "dmp") <> 0 Then Else
     End Select ' ucase$(art)
@@ -2091,8 +2101,12 @@ Public Function suchal(fI$, Optional notObRlike%, Optional mserv$)
  Open D1 For Output As #318
  MOCon.Open MOAnfStr & mserv
 #If True Then
- rst.Open "SELECT TABLE_NAME tn, GROUP_CONCAT(CONCAT('CAST(',column_name,' AS CHAR)" & IIf(Not notObRlike, " RLIKE ", "=") & "''" & fI & "''') SEPARATOR ' OR ') cn FROM information_schema.columns c WHERE table_catalog='def' AND table_schema='medoff' AND TABLE_TYPE<>'SEQUENCE' GROUP BY table_name" _
+' rst.Open "SELECT TABLE_NAME tn, GROUP_CONCAT(CONCAT('CAST(',column_name,' AS CHAR)" & IIf(Not notObRlike, " RLIKE ", "=") & "''" & fI & "''') SEPARATOR ' OR ') cn FROM information_schema.columns c WHERE table_catalog='def' AND table_schema='medoff' AND TABLE_TYPE<>'SEQUENCE' GROUP BY table_name" _
  , MOCon, adOpenStatic, adLockReadOnly
+ sql = "SELECT c.TABLE_NAME tn, GROUP_CONCAT(CONCAT('CAST(',COLUMN_NAME,' AS CHAR)" & IIf(Not notObRlike, " RLIKE ", "=") & "''" & fI & "''') SEPARATOR ' OR ') cn FROM information_schema.COLUMNS c" & vbCrLf & _
+       "LEFT JOIN information_schema.TABLES t ON c.TABLE_CATALOG=t.TABLE_CATALOG AND c.TABLE_SCHEMA=t.TABLE_SCHEMA AND c.TABLE_NAME= t.TABLE_NAME" & vbCrLf & _
+       "WHERE t.table_catalog='def' AND t.table_schema='medoff' AND t.TABLE_TYPE<>'SEQUENCE' GROUP BY t.TABLE_NAME"
+ rst.Open sql, MOCon, adOpenStatic, adLockReadOnly
  Do While Not rst.EOF
 '  Debug.Print rst!Tn, rst!Cn
   DoEvents

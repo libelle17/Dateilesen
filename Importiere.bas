@@ -87,7 +87,7 @@ Dim FStG$, Abkü$, AbküLabor$ ' , Wert$ ', Einheit$ ' , Kommentar$, Langtext$
 Dim obLaborEintrag% ' nicht bei vorläufigen Befunden nach den endgültigen
 Dim AlbErhöht$, AlbDat As Date
 Dim lHbA1c$, lHbA1cDat As Date  ' für Anamnesebogen
-Dim absPos&
+Dim abspos&
 Dim DStr$ ' Datumsudt.mwandel-String für Blutdruckangabe
 Dim MPDatum As Date
 'Public Med$(), Dos$()
@@ -679,9 +679,9 @@ Call myEFrag("INSERT INTO eintrhist2(fid,abspos,aktzeit,stbyte,id)" & vbCrLf & _
     End If
    Loop
    Set rz2 = Nothing
-   myFrag rz2, "SELECT id FROM `eintrhist2` WHERE fid = " & rq!FID & " AND abspos = " & rq!absPos & " AND aktzeit = " & DatFor_k(rq!aktZeit) & " AND stbyte = " & rq!StByte & " AND id = " & rz1!id
+   myFrag rz2, "SELECT id FROM `eintrhist2` WHERE fid = " & rq!FID & " AND abspos = " & rq!abspos & " AND aktzeit = " & DatFor_k(rq!aktZeit) & " AND stbyte = " & rq!StByte & " AND id = " & rz1!id
    If rz2.BOF Then
-    myEFrag "INSERT INTO `eintrhist2`(fid,abspos,aktzeit,stbyte,id) VALUES(" & rq!FID & "," & rq!absPos & "," & DatFor_k(rq!aktZeit) & "," & rq!StByte & "," & rz1!id & ")", rAf
+    myEFrag "INSERT INTO `eintrhist2`(fid,abspos,aktzeit,stbyte,id) VALUES(" & rq!FID & "," & rq!abspos & "," & DatFor_k(rq!aktZeit) & "," & rq!StByte & "," & rz1!id & ")", rAf
    End If
    rq.Move 1
   Loop ' While Not rq.EOF
@@ -1233,7 +1233,7 @@ syscmd 5
 #If biowinbackup Then
  syscmd 4, "Prüfe " & frm.dlg.LaborPfadBeispiel
  If Not BrichAb And (FSO.FileExists(frm.dlg.LaborPfadBeispiel) Or FSO.FileExists(frm.dlg.LaborPfadBeispiel)) Then
-  If obLaborDirekt Then Call LaborDirektImport(frm, absPos, frm.dlg.SammelInsert, frm.dlg.BeziehungsfehlerSpeichern, frm.dlg.LaborPfadBeispiel, obLDneu)
+  If obLaborDirekt Then Call LaborDirektImport(frm, abspos, frm.dlg.SammelInsert, frm.dlg.BeziehungsfehlerSpeichern, frm.dlg.LaborPfadBeispiel, obLDneu)
   Call Eintragszl(5)
   If obLaborQuer Then Call LaborErgPatId(frm, obLQneu)
   Call Eintragszl(6)
@@ -1825,7 +1825,7 @@ Function rmeSort()
     rmpn(UBound(rmpn)).Stärke = rMe(i).Stärke
     rmpn(UBound(rmpn)).Einheit = rMe(i).Einheit
     rmpn(UBound(rmpn)).Form = rMe(i).Form
-    rmpn(UBound(rmpn)).absPos = rMe(i).absPos
+    rmpn(UBound(rmpn)).abspos = rMe(i).abspos
     rmpn(UBound(rmpn)).aktZeit = rMe(i).aktZeit
     rmpn(UBound(rmpn)).StByte = rMe(i).StByte
    End If
@@ -1925,7 +1925,7 @@ Function THAfestleg() ' in dolies und geslies / parallel zu Therauskunft
     rTh(UBound(rTh)).MPNr = 0
     rTh(UBound(rTh)).Pat_ID = rNa(0).Pat_ID
     rTh(UBound(rTh)).therart = Tha
-    rTh(UBound(rTh)).absPos = absPos
+    rTh(UBound(rTh)).abspos = abspos
     rTh(UBound(rTh)).Zp = rNa(0).AufnDat
     rTh(UBound(rTh)).Grund = Grund
     altTha = Tha
@@ -2031,7 +2031,7 @@ thains:
      rTh(UBound(rTh)).therart = Tha
      rTh(UBound(rTh)).Grund = Grund
      rTh(UBound(rTh)).insart = insart
-     rTh(UBound(rTh)).absPos = absPos
+     rTh(UBound(rTh)).abspos = abspos
      rTh(UBound(rTh)).aktZeit = aktZeit
      rTh(UBound(rTh)).Zp = IIf(puzuz, DatLetzRez, altZp) ' nachhak <> 0 And
      dsangehängt = True
@@ -2297,7 +2297,7 @@ End Select
 End Function ' neuQuartal
 
 ' in dolies, doPatvonMO
-Public Sub addierrKV(Pat_ID&, aktKVNr$, aktZeit As Date, absPos&)
+Public Sub addierrKV(Pat_ID&, aktKVNr$, aktZeit As Date, abspos&)
  Dim j&
  For j = 1 To UBound(rKv)
   If rKv(j).KVNr = aktKVNr And rKv(j).Pat_ID = rNa(0).Pat_ID Then
@@ -2305,7 +2305,7 @@ Public Sub addierrKV(Pat_ID&, aktKVNr$, aktZeit As Date, absPos&)
   End If
  Next j ' j = 1 To UBound(rKv)
  ReDim Preserve rKv(UBound(rKv) + 1)
- rKv(UBound(rKv)).absPos = absPos
+ rKv(UBound(rKv)).abspos = abspos
  rKv(UBound(rKv)).KVNr = aktKVNr
  rKv(UBound(rKv)).Pat_ID = rNa(0).Pat_ID
  rKv(UBound(rKv)).aktZeit = aktZeit
@@ -2331,7 +2331,7 @@ Function dolies(frm As Lese, RKennung$, rInhalt$, obSchluss%, PatZnr&, GesZnr&, 
  On Error GoTo fehler
  If SafeArrayGetDim(FNam) = 0 Then FNam = ASMod("a", "w", "p", "m", "d", "v", "h", "i", "r", "s", "t", "du", "fd")
  If SafeArrayGetDim(FNam2) = 0 Then FNam2 = ASMod("t")
- absPos = absPos + 1
+ abspos = abspos + 1
 ' If Left$(RKennung, 4) = "4101" Then Stop
   aktZeit = Now ' 27.12.06: wird für die Tabelle `namen` jetzt aus dem Feld 9103 gezogen
 ' Exit Function
@@ -2508,7 +2508,7 @@ Function dolies(frm As Lese, RKennung$, rInhalt$, obSchluss%, PatZnr&, GesZnr&, 
        Case 4: aktKVNr = rNa(0).KVNr4
       End Select
       If LenB(aktKVNr) = 0 Then Exit For ' iirunde
-      Call addierrKV(rNa(0).Pat_ID, aktKVNr, aktZeit, absPos)
+      Call addierrKV(rNa(0).Pat_ID, aktKVNr, aktZeit, abspos)
      Next iirunde
 '    END IF
    Case 3631 ' Weggeldzone
@@ -3018,7 +3018,7 @@ resume_4247:
     rDi(aktDiNr).FID = rFa(UBound(rFa)).FID
     rDi(aktDiNr).Pat_ID = rNa(0).Pat_ID
 '    rDi(aktDiNr).GesName = GN
-    rDi(aktDiNr).absPos = absPos
+    rDi(aktDiNr).abspos = abspos
     rDi(aktDiNr).aktZeit = aktZeit
     If obDStr Then
      Diag(DiagNr) = DText_
@@ -3084,7 +3084,7 @@ difertig:
       rVo(UBound(rVo)).FormTitel = FormTit
       rVo(UBound(rVo)).Pat_ID = rNa(0).Pat_ID
       rVo(UBound(rVo)).Zeitpunkt = messDatum
-      rVo(UBound(rVo)).absPos = absPos
+      rVo(UBound(rVo)).abspos = abspos
       rVo(UBound(rVo)).aktZeit = aktZeit
       rVo(UBound(rVo)).FID = rFa(UBound(rFa)).FID
       rVo(UBound(rVo)).Inhalt = rInhalt
@@ -3095,7 +3095,7 @@ difertig:
       rSw(UBound(rSw)).FormTitel = FormTit
       rSw(UBound(rSw)).Pat_ID = rNa(0).Pat_ID
       rSw(UBound(rSw)).Zeitpunkt = messDatum
-      rSw(UBound(rSw)).absPos = absPos
+      rSw(UBound(rSw)).abspos = abspos
       rSw(UBound(rSw)).aktZeit = aktZeit
       rSw(UBound(rSw)).FID = rFa(UBound(rFa)).FID
       For irunde = 1 To 9
@@ -3198,7 +3198,7 @@ difertig:
 rEiVorb:
         ReDim Preserve rEi(UBound(rEi) + 1)
 '        rEi(UBound(rEi)).Art = rInhalt
-        rEi(UBound(rEi)).absPos = absPos
+        rEi(UBound(rEi)).abspos = abspos
         rEi(UBound(rEi)).aktZeit = aktZeit
         rEi(UBound(rEi)).FID = rFa(UBound(rFa)).FID
         rEi(UBound(rEi)).Pat_ID = rNa(0).Pat_ID
@@ -3290,7 +3290,7 @@ rEiVorb:
     Else
      ReDim Preserve rEi(UBound(rEi) + 1)
      rEi(UBound(rEi)).art = "th"
-     rEi(UBound(rEi)).absPos = absPos
+     rEi(UBound(rEi)).abspos = abspos
      rEi(UBound(rEi)).aktZeit = aktZeit
      rEi(UBound(rEi)).FID = rFa(UBound(rFa)).FID
      rEi(UBound(rEi)).Pat_ID = rNa(0).Pat_ID
@@ -3308,7 +3308,7 @@ rEiVorb:
      rLb(UBound(rLb)).Zeitpunkt = messDatum
      rLb(UBound(rLb)).AnfText = rInhalt
      rLb(UBound(rLb)).FID = rFa(UBound(rFa)).FID
-     rLb(UBound(rLb)).absPos = absPos
+     rLb(UBound(rLb)).abspos = abspos
      rLb(UBound(rLb)).aktZeit = aktZeit
     End If
    Case 6285 ' AU-Dauer
@@ -3330,7 +3330,7 @@ rEiVorb:
     rKh(UBound(rKh)).Pat_ID = rNa(0).Pat_ID
     rKh(UBound(rKh)).Zeitpunkt = messDatum
     rKh(UBound(rKh)).Ziel = rInhalt
-    rKh(UBound(rKh)).absPos = absPos
+    rKh(UBound(rKh)).abspos = abspos
     rKh(UBound(rKh)).FID = rFa(UBound(rFa)).FID
     rKh(UBound(rKh)).aktZeit = aktZeit
    Case 6295 ' Formularabkürzung
@@ -3352,7 +3352,7 @@ rEiVorb:
      Case "TUG", "ADL" ' Timed Up AND Go - Test, Activity of Daily Life
       ReDim Preserve rEi(UBound(rEi) + 1)
       rEi(UBound(rEi)).art = rInhalt
-      rEi(UBound(rEi)).absPos = absPos
+      rEi(UBound(rEi)).abspos = abspos
       rEi(UBound(rEi)).aktZeit = aktZeit
       rEi(UBound(rEi)).FID = rFa(UBound(rFa)).FID
       rEi(UBound(rEi)).Pat_ID = rNa(0).Pat_ID
@@ -3452,7 +3452,7 @@ fgefunden:
       If Not rsf.BOF Then
        rFoNeu = 0
        ReDim Preserve rFo(UBound(rFo) + 1)
-       rFo(UBound(rFo)).absPos = rsf!absPos
+       rFo(UBound(rFo)).abspos = rsf!abspos
        rFo(UBound(rFo)).aktZeit = rsf!aktZeit
        rFo(UBound(rFo)).Form_Abk = IIf(IsNull(rsf!Form_Abk), vNS, rsf!Form_Abk)
        rFo(UBound(rFo)).FormBez = rsf!FormBez
@@ -3466,7 +3466,7 @@ fgefunden:
      If rFoNeu Then
       ReDim Preserve rFo(UBound(rFo) + 1)
       rFo(UBound(rFo)).Form_Abk = FormAbk
-      rFo(UBound(rFo)).absPos = absPos
+      rFo(UBound(rFo)).abspos = abspos
       rFo(UBound(rFo)).aktZeit = aktZeit
       rFo(UBound(rFo)).FormBez = FormBez
 '      If rsf!FormID = 55 Then Stop
@@ -3525,7 +3525,7 @@ fgefunden:
     Else
      If jetztKopf Then
       ReDim Preserve rFr(UBound(rFr) + 1)
-      rFr(UBound(rFr)).absPos = absPos
+      rFr(UBound(rFr)).abspos = abspos
       rFr(UBound(rFr)).aktZeit = aktZeit
       rFr(UBound(rFr)).FID = rFa(UBound(rFa)).FID
       rFr(UBound(rFr)).Form_ID = lFormID '-lFormID ' negative Speicherung, da der Wert noch nach der Datenbankspeicherung von rFo angepaßt werden muss
@@ -3935,7 +3935,7 @@ fgefunden:
    Case 6324 ' Brief mit Pfad
     Call aufSplit(rInhalt)
     ReDim Preserve rBr(UBound(rBr) + 1)
-    rBr(UBound(rBr)).absPos = absPos
+    rBr(UBound(rBr)).abspos = abspos
     rBr(UBound(rBr)).aktZeit = aktZeit
     If ArraInd > -1 Then rBr(UBound(rBr)).Pfad = Arra(0)
     If ArraInd > 0 Then rBr(UBound(rBr)).art = Arra(1)
@@ -4028,7 +4028,7 @@ fgefunden:
     rDo(UBound(rDo)).DokArt = rInhalt
    Case 6327, 6300 ' Dokumentname / 6300 = ohne Ortsangabe (11.12.06: 6300 kommt nicht (mehr) vor)
     rDo(UBound(rDo)).DokName = rDo(UBound(rDo)).DokName + Stutz(rInhalt)
-    rDo(UBound(rDo)).absPos = absPos
+    rDo(UBound(rDo)).abspos = abspos
     rDo(UBound(rDo)).aktZeit = aktZeit
     rDo(UBound(rDo)).FID = rFa(UBound(rFa)).FID
     rDo(UBound(rDo)).Pat_ID = rNa(0).Pat_ID
@@ -4057,7 +4057,7 @@ fgefunden:
       obEinweisung = False
       ReDim Preserve rEi(UBound(rEi) + 1)
       rEi(UBound(rEi)).art = rInhalt
-      rEi(UBound(rEi)).absPos = absPos
+      rEi(UBound(rEi)).abspos = abspos
       rEi(UBound(rEi)).aktZeit = aktZeit
       rEi(UBound(rEi)).FID = rFa(UBound(rFa)).FID
       rEi(UBound(rEi)).Pat_ID = rNa(0).Pat_ID
@@ -4262,7 +4262,7 @@ fgefunden:
 '  Case 201, 202, 203, 204, 205, 215, 216, 208, 209 ' KV-Nummer, meine Adresse
   Case Else ' Unbekannte Kennung
    ReDim Preserve rUn(UBound(rUn) + 1)
-   rUn(UBound(rUn)).absPos = absPos
+   rUn(UBound(rUn)).abspos = abspos
    rUn(UBound(rUn)).Kennung = RKennung
    rUn(UBound(rUn)).Pat_ID = rNa(0).Pat_ID
    rUn(UBound(rUn)).Inhalt = rInhalt
@@ -4332,7 +4332,7 @@ Function MPerg()
        ReDim Preserve rMe(UBound(rMe) + 1)
        MedZahl = MedZahl + 1
        rMe(UBound(rMe)).FeldNr = MedZahl
-       rMe(UBound(rMe)).absPos = absPos
+       rMe(UBound(rMe)).abspos = abspos
        rMe(UBound(rMe)).StByte = AktByte
        rMe(UBound(rMe)).aktZeit = aktZeit
        rMe(UBound(rMe)).Pat_ID = rNa(0).Pat_ID
@@ -4406,7 +4406,7 @@ Function LeistEintr0(lG)
   rLe(UBound(rLe)).Leistung = lG
   rLe(UBound(rLe)).QS = ZQSort(messDatum)
   rLe(UBound(rLe)).QT = ZQuart(messDatum)
-  rLe(UBound(rLe)).absPos = absPos
+  rLe(UBound(rLe)).abspos = abspos
   rLe(UBound(rLe)).aktZeit = aktZeit
   rLe(UBound(rLe)).FID = rFa(UBound(rFa)).FID
  End If
@@ -6139,7 +6139,7 @@ Function RREintr()
  rRr(UBound(rRr)).Pat_ID = rNa(0).Pat_ID
  rRr(UBound(rRr)).Zeitpunkt = messDatum
 ' rRr(UBound(rRr)).RR = RR
- rRr(UBound(rRr)).absPos = absPos
+ rRr(UBound(rRr)).abspos = abspos
  rRr(UBound(rRr)).aktZeit = aktZeit
  rRr(UBound(rRr)).FID = rFa(UBound(rFa)).FID
  Exit Function
@@ -6207,7 +6207,7 @@ Function RezEintr(rez$, obLangrz%, Optional mitAutidem = True, Optional Medikame
   rRe(UBound(rRe)).FID = rFa(UBound(rFa)).FID
   rRe(UBound(rRe)).aktZeit = aktZeit
   rRe(UBound(rRe)).Rezept = Arra(0)
-  rRe(UBound(rRe)).absPos = absPos
+  rRe(UBound(rRe)).abspos = abspos
   rRe(UBound(rRe)).lanrid = Lanr ' : Lanr = 0 ' Kommentar 21.3.21
  End If
  Exit Function
@@ -6989,7 +6989,7 @@ Function LaborEintr0()
   rLa(ls).Abkü = Abkü
   rLa(ls).aktZeit = aktZeit
   rLa(ls).FID = rFa(UBound(rFa)).FID
-  rLa(ls).absPos = absPos
+  rLa(ls).abspos = abspos
   rLa(ls).Langtext = vNS
   rLa(ls).LangtextVW = LTEinfüg&(rLa(ls).Langtext)
   rLa(ls).Kommentar = vNS

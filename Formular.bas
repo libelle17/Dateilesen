@@ -10118,8 +10118,8 @@ Vsql = _
 "SELECT Pat_id, eingang Zeitpunkt, befart FertigStGrad, w.Abkü, w.langtext Langtext" & vbCrLf & _
 ",TRIM(IF(w.Abkü='ALBUM' AND Wert='' AND k.Text LIKE 'nicht berechenb%','< 20',IF(TRIM(Wert) REGEXP '^[0-9]+\\,?[0-9]*$', REPLACE(Wert,',','.'),Wert))) Wert" & vbCrLf & _
 ",w.Einheit " & vbCrLf & _
-",CONCAT(IF(ISNULL(e.text) OR e.text RLIKE '^:[ /\\*:]*$','',IF(e.text RLIKE '^:[ /\\*]*:'" & vbCrLf & _
-",CONCAT(MID(e.text,LOCATE(':',e.text,2)+1),';'),IF(e.text='.','',IF(e.text='','',CONCAT(e.text,';'))))),IF(ISNULL(k.text),'',k.text)) Kommentar/*, n.id*/ " & vbCrLf & _
+",CONCAT(IF(e.text IS NULL OR e.text RLIKE '^:[ /\\*:]*$','',IF(e.text RLIKE '^:[ /\\*]*:'" & vbCrLf & _
+" ,CONCAT(MID(e.text,LOCATE(':',e.text,2)+1),';'),IF(e.text='.','',IF(e.text='','',CONCAT(e.text,';'))))),IF(k.text IS NULL,'',k.text)) Kommentar/*, n.id*/ " & vbCrLf & _
 ",n.NB, n.uNg" & vbCrLf & _
 ",IF(w.abkü='LDL' AND w.einheit='mg/dl','100',n.oNg) oNg" & vbCrLf & _
 ",l.Labor, Pfad, d.DatID " & vbCrLf & _

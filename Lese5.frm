@@ -1185,7 +1185,8 @@ End Sub ' MedOffZpSetzen_Click
 ' zeigt Tabellenänderung in medoff an, nachdem zum letzten Mal MedOffZpSetzen_Click aufgerufen wurde
 ' EDV -> Medoff Tabzahl
 Private Sub MedOffTabZahl_Click()
- Const datnam$ = "v:\moaend.txt"
+ Dim datnam$
+ datnam$ = "v:\moaend_" & Format$(Now(), "yyyymmdd_hhmm") & ".txt"
  Dim lzp As Date
  Dim aktTNr&, Tn$, jS$, sql$ ', AnzS$
  Dim endse$, endsz$
@@ -1272,6 +1273,7 @@ Private Sub PatvonMO_Click()
  pataw.Zeilenzahl.Visible = True
  '  pNr& = 68393  ' 69618 ' 63635 ' 67180 ' 63635 ' 64800 ' 69333 ' 68316 ' 65405 ' 45 ' 64659 ' 45 ' 69367
  ' 69377 ' 53119 ' 51630 ' 105 ' 18 ' 246 ' 59152 ' 1394 ' 2112 ' 151 ' 225 '
+ pataw.Pat_ID.AddItem 52690
  pataw.Pat_ID.AddItem 51534
  pataw.Pat_ID.AddItem 68393
  pataw.Pat_ID.AddItem 69618

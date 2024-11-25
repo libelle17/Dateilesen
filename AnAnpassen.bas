@@ -5,6 +5,7 @@ Public AbI$() ' AbschnittInhalt
 Public AbIDate As Date
 Public G1$(4), G2$(30), G3$(5), G4$(17)
 
+' in alleSpeichern
 Function AnTrennZeichen()
  Dim H0 As New CString, h1 As New CString, i&, midakt&, midnext&, j&
  G1(0) = "Wichtige bisherige Krankheiten und Operationen:"
@@ -125,6 +126,7 @@ Function AnTrennZeichen()
  Next i
 End Function ' AnTrennZeichen
 
+' in alleSpeichern
 Function dmpErg()
  Dim trz
  On Error GoTo fehler
@@ -210,6 +212,7 @@ Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "Last
  Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
 End Select
 End Function ' dmperg
+
 ' in usdm0, usdm1, usdm2, usfuss, usulcus, usvkgd, usvkgd2 sowie dmperg
 ' fuer: usdm, fuss, ulcus, vkgd, faelle
 Function Kusd(ByRef trz, ByRef Wert$(), j&)
@@ -346,7 +349,8 @@ Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "Last
  Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
  Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
 End Select
-End Function
+End Function ' Kusd
+
 #If False Then
 ' in usdm0, usdm1, usdm2, usfuss, usulcus, usvkgd, usvkgd2 sowie dmperg
 Function KernUsd(ByRef trz, ByRef Wert$(), j&)
@@ -487,48 +491,53 @@ Function rUsRest(j&)
    rUs(UBound(rUs)).FID = rEi(j).FID
    rUs(UBound(rUs)).Zeitpunkt = rEi(j).Zeitpunkt
    rUs(UBound(rUs)).art = rEi(j).art
-   rUs(UBound(rUs)).absPos = rEi(j).absPos
+   rUs(UBound(rUs)).abspos = rEi(j).abspos
    rUs(UBound(rUs)).QS = rEi(j).QS
    rUs(UBound(rUs)).QT = rEi(j).QT
    rUs(UBound(rUs)).StByte = rEi(j).StByte
    rUs(UBound(rUs)).aktZeit = rEi(j).aktZeit
 End Function ' rUsRest
+
 Function rFuRest(j&)
    rFu(UBound(rFu)).Pat_ID = rEi(j).Pat_ID
    rFu(UBound(rFu)).FID = rEi(j).FID
    rFu(UBound(rFu)).Zeitpunkt = rEi(j).Zeitpunkt
    rFu(UBound(rFu)).art = rEi(j).art
-   rFu(UBound(rFu)).absPos = rEi(j).absPos
+   rFu(UBound(rFu)).abspos = rEi(j).abspos
    rFu(UBound(rFu)).QS = rEi(j).QS
    rFu(UBound(rFu)).QT = rEi(j).QT
    rFu(UBound(rFu)).StByte = rEi(j).StByte
    rFu(UBound(rFu)).aktZeit = rEi(j).aktZeit
 End Function ' rUsRest
+
 Function rVkRest(j&)
    rVk(UBound(rVk)).Pat_ID = rEi(j).Pat_ID
    rVk(UBound(rVk)).FID = rEi(j).FID
    rVk(UBound(rVk)).Zeitpunkt = rEi(j).Zeitpunkt
 '   rvk(UBound(rvk)).Art = rEi(j).Art
-   rVk(UBound(rVk)).absPos = rEi(j).absPos
+   rVk(UBound(rVk)).abspos = rEi(j).abspos
 '   rvk(UBound(rvk)).QS = rEi(j).QS
 '   rvk(UBound(rvk)).QT = rEi(j).QT
    rVk(UBound(rVk)).StByte = rEi(j).StByte
    rVk(UBound(rVk)).aktZeit = rEi(j).aktZeit
 End Function ' rUsRest
+
 Function rUlRest(j&)
    rUl(UBound(rUl)).Pat_ID = rEi(j).Pat_ID
    rUl(UBound(rUl)).FID = rEi(j).FID
    rUl(UBound(rUl)).Zeitpunkt = rEi(j).Zeitpunkt
 '   rUl(UBound(rUl)).Art = rEi(j).Art
-   rUl(UBound(rUl)).absPos = rEi(j).absPos
+   rUl(UBound(rUl)).abspos = rEi(j).abspos
 '   rUl(UBound(rUl)).QS = rEi(j).QS
 '   rUl(UBound(rUl)).QT = rEi(j).QT
    rUl(UBound(rUl)).StByte = rEi(j).StByte
    rUl(UBound(rUl)).aktZeit = rEi(j).aktZeit
 End Function ' rUsRest
 
+' in alleSpeichern
 Function usdm0()
  Dim trz, j&
+ Dim trzn
  On Error GoTo fehler
  trz = Array("Liphypertrophien: re:", ", li:", _
              "Fuﬂbefund (Inspektion): re:", "li:", _
@@ -549,55 +558,101 @@ Function usdm0()
              "Puls der re A.tib.post.: re:", ", li:", _
              "Puls der re A.dors.ped.: re:", ", li:", _
              "aktuellen Blutdruck und ggf. Puls bitte extra eingeben; Mitarbeiter:", "")
+ trzn = Array("Spritzstellen (Bauch/OS):", ", Ort:", _
+              "; Kraft Zehenheber: re:", "; li:", _
+              ";  Kraft Zehenbeuger: re:", "; li:", _
+              "; Kraft Knie: re:", "; li:", _
+              ";  ASR (Ferse): re:", "; li:", _
+              "; PSR (Knie): re:", "; li:", _
+              "; Monofilament Fuﬂsohle(/5): re:", "; li:", _
+              "; Kalt-Warm(/5): re:", "; li:", _
+              "; Vibr. Innenknˆ. (/8); re:", "; li:", _
+              ";  Vibr. Groﬂzehenballen (/8): re:", "; li:", _
+              "; Puls Leiste: re:", "; li:", _
+              "; Puls Kniekehle: re:", "; li:", _
+              "; Puls Atp.(Innenkn): re:", "; li:", _
+              "; Puls Adp.(Fuﬂr¸): re:", "; li:", _
+              "; Mitarbeiter:", "")
              
  For j = 1 To UBound(rEi)
   If LCase$(rEi(j).art) = "usdm" Then
-   If rUs(UBound(rUs)).absPos <> 0 Or UBound(rUs) = 0 Then ReDim Preserve rUs(UBound(rUs) + 1)
+   If rUs(UBound(rUs)).abspos <> 0 Or UBound(rUs) = 0 Then ReDim Preserve rUs(UBound(rUs) + 1)
    Dim Wert$()
 '   IF j = 198 THEN Stop ' Pid 1115
-   Call Kusd(trz, Wert, j)
+   Call Kusd(IIf(rEi(j).abspos = -1, trzn, trz), Wert, j)
    Call rUsRest(j)
-   If (Wert(0) <> "u" Or rUs(UBound(rUs)).Spritzst = "") And InStr(Wert(0), "~") = 0 Or _
+   If UBound(Wert) = 28 Then
+    If (Wert(0) <> "u" Or rUs(UBound(rUs)).Spritzst = "") And InStr(Wert(0), "~") = 0 Or _
       (Wert(1) <> "u" Or rUs(UBound(rUs)).Spritzst = "") And InStr(Wert(1), "~") = 0 _
       Then rUs(UBound(rUs)).Spritzst = Wert(0) & "|" & Wert(1)
-   If (Wert(2) <> "u" Or rUs(UBound(rUs)).Fuﬂbef_re = "") And InStr(Wert(2), "~") = 0 Then rUs(UBound(rUs)).Fuﬂbef_re = Wert(2)
-   If (Wert(3) <> "u" Or rUs(UBound(rUs)).Fuﬂbef_li = "") And InStr(Wert(3), "~") = 0 Then rUs(UBound(rUs)).Fuﬂbef_li = Wert(3)
-   If (Wert(4) <> "u" Or rUs(UBound(rUs)).Hyperk_re = "") And InStr(Wert(4), "~") = 0 Then rUs(UBound(rUs)).Hyperk_re = Wert(4)
-   If (Wert(5) <> "u" Or rUs(UBound(rUs)).Hyperk_li = "") And InStr(Wert(5), "~") = 0 Then rUs(UBound(rUs)).Hyperk_li = Wert(5)
-   If (Wert(6) <> "u" Or rUs(UBound(rUs)).Ulcera_re = "") And InStr(Wert(6), "~") = 0 Then rUs(UBound(rUs)).Ulcera_re = Wert(6)
-   If (Wert(7) <> "u" Or rUs(UBound(rUs)).Ulcera_li = "") And InStr(Wert(7), "~") = 0 Then rUs(UBound(rUs)).Ulcera_li = Wert(7)
-   If (Wert(8) <> "u" Or rUs(UBound(rUs)).Kraft_Zh_re = "") And InStr(Wert(8), "~") = 0 Then rUs(UBound(rUs)).Kraft_Zh_re = Wert(8)
-   If (Wert(9) <> "u" Or rUs(UBound(rUs)).Kraft_Zh_li = "") And InStr(Wert(9), "~") = 0 Then rUs(UBound(rUs)).Kraft_Zh_li = Wert(9)
-   If (Wert(10) <> "u" Or rUs(UBound(rUs)).Kraft_Zb_re = "") And InStr(Wert(10), "~") = 0 Then rUs(UBound(rUs)).Kraft_Zb_re = Wert(10)
-   If (Wert(11) <> "u" Or rUs(UBound(rUs)).Kraft_Zb_li = "") And InStr(Wert(11), "~") = 0 Then rUs(UBound(rUs)).Kraft_Zb_li = Wert(11)
-   If (Wert(12) <> "u" Or rUs(UBound(rUs)).Kraft_Knie_re = "") And InStr(Wert(12), "~") = 0 Then rUs(UBound(rUs)).Kraft_Knie_re = Wert(12)
-   If (Wert(13) <> "u" Or rUs(UBound(rUs)).Kraft_Knie_li = "") And InStr(Wert(13), "~") = 0 Then rUs(UBound(rUs)).Kraft_Knie_li = Wert(13)
-   If (Wert(14) <> "u" Or rUs(UBound(rUs)).ASR_re = "") And InStr(Wert(14), "~") = 0 Then rUs(UBound(rUs)).ASR_re = Wert(14)
-   If (Wert(15) <> "u" Or rUs(UBound(rUs)).ASR_li = "") And InStr(Wert(15), "~") = 0 Then rUs(UBound(rUs)).ASR_li = Wert(15)
-   If (Wert(16) <> "u" Or rUs(UBound(rUs)).PSR_re = "") And InStr(Wert(16), "~") = 0 Then rUs(UBound(rUs)).PSR_re = Wert(16)
-   If (Wert(17) <> "u" Or rUs(UBound(rUs)).PSR_li = "") And InStr(Wert(17), "~") = 0 Then rUs(UBound(rUs)).PSR_li = Wert(17)
-   
-   If (Wert(18) <> "u" Or rUs(UBound(rUs)).PSR_li = "") And InStr(Wert(18), "~") = 0 Then rUs(UBound(rUs)).Oberfl_re = Wert(18)
-   If (Wert(19) <> "u" Or rUs(UBound(rUs)).PSR_li = "") And InStr(Wert(19), "~") = 0 Then rUs(UBound(rUs)).Oberfl_li = Wert(19)
-
-   If (Wert(20) <> "u" Or rUs(UBound(rUs)).MF_re = "") And InStr(Wert(20), "~") = 0 Then rUs(UBound(rUs)).MF_re = Wert(20) & IIf(IsNumeric(Wert(20)), "/5", "")
-   If (Wert(21) <> "u" Or rUs(UBound(rUs)).MF_li = "") And InStr(Wert(21), "~") = 0 Then rUs(UBound(rUs)).MF_li = Wert(21) & IIf(IsNumeric(Wert(21)), "/5", "")
-   If (Wert(22) <> "u" Or rUs(UBound(rUs)).KW_re = "") And InStr(Wert(22), "~") = 0 Then rUs(UBound(rUs)).KW_re = Wert(22) & IIf(IsNumeric(Wert(22)), "/5", "")
-   If (Wert(23) <> "u" Or rUs(UBound(rUs)).KW_li = "") And InStr(Wert(23), "~") = 0 Then rUs(UBound(rUs)).KW_li = Wert(23) & IIf(IsNumeric(Wert(23)), "/5", "")
-   If (Wert(24) <> "u" Or rUs(UBound(rUs)).Vibr_IK_re = "") And InStr(Wert(24), "~") = 0 Then rUs(UBound(rUs)).Vibr_IK_re = Wert(24) & IIf(IsNumeric(Wert(24)), "/8", "")
-   If (Wert(25) <> "u" Or rUs(UBound(rUs)).Vibr_IK_li = "") And InStr(Wert(25), "~") = 0 Then rUs(UBound(rUs)).Vibr_IK_li = Wert(25) & IIf(IsNumeric(Wert(25)), "/8", "")
-   If (Wert(26) <> "u" Or rUs(UBound(rUs)).Vibr_GZ_re = "") And InStr(Wert(26), "~") = 0 Then rUs(UBound(rUs)).Vibr_GZ_re = Wert(26) & IIf(IsNumeric(Wert(26)), "/8", "")
-   If (Wert(27) <> "u" Or rUs(UBound(rUs)).Vibr_GZ_li = "") And InStr(Wert(27), "~") = 0 Then rUs(UBound(rUs)).Vibr_GZ_li = Wert(27) & IIf(IsNumeric(Wert(27)), "/8", "")
-   If (Wert(28) <> "u" Or rUs(UBound(rUs)).PulsL_re = "") And InStr(Wert(28), "~") = 0 Then rUs(UBound(rUs)).PulsL_re = Wert(28)
-   If (Wert(29) <> "u" Or rUs(UBound(rUs)).PulsL_li = "") And InStr(Wert(29), "~") = 0 Then rUs(UBound(rUs)).PulsL_li = Wert(29)
-   If (Wert(30) <> "u" Or rUs(UBound(rUs)).PulsKK_re = "") And InStr(Wert(30), "~") = 0 Then rUs(UBound(rUs)).PulsKK_re = Wert(30)
-   If (Wert(31) <> "u" Or rUs(UBound(rUs)).PulsKK_li = "") And InStr(Wert(31), "~") = 0 Then rUs(UBound(rUs)).PulsKK_li = Wert(31)
-   If (Wert(32) <> "u" Or rUs(UBound(rUs)).PulsAtp_re = "") And InStr(Wert(32), "~") = 0 Then rUs(UBound(rUs)).PulsAtp_re = Wert(32)
-   If (Wert(33) <> "u" Or rUs(UBound(rUs)).PulsAtp_li = "") And InStr(Wert(33), "~") = 0 Then rUs(UBound(rUs)).PulsAtp_li = Wert(33)
-   If (Wert(34) <> "u" Or rUs(UBound(rUs)).PulsAdp_re = "") And InStr(Wert(34), "~") = 0 Then rUs(UBound(rUs)).PulsAdp_re = Wert(34)
-   If (Wert(35) <> "u" Or rUs(UBound(rUs)).PulsAdp_li = "") And InStr(Wert(35), "~") = 0 Then rUs(UBound(rUs)).PulsAdp_li = Wert(35)
-   If (Wert(36) <> "u" Or rUs(UBound(rUs)).Mitarbeiter = "") And InStr(Wert(36), "~") = 0 Then rUs(UBound(rUs)).Mitarbeiter = Wert(36)
-  End If
+    If (Wert(2) <> "u" Or rUs(UBound(rUs)).Kraft_Zh_re = "") And InStr(Wert(2), "~") = 0 Then rUs(UBound(rUs)).Kraft_Zh_re = Wert(2)
+    If (Wert(3) <> "u" Or rUs(UBound(rUs)).Kraft_Zh_li = "") And InStr(Wert(3), "~") = 0 Then rUs(UBound(rUs)).Kraft_Zh_li = Wert(3)
+    If (Wert(4) <> "u" Or rUs(UBound(rUs)).Kraft_Zb_re = "") And InStr(Wert(4), "~") = 0 Then rUs(UBound(rUs)).Kraft_Zb_re = Wert(4)
+    If (Wert(5) <> "u" Or rUs(UBound(rUs)).Kraft_Zb_li = "") And InStr(Wert(5), "~") = 0 Then rUs(UBound(rUs)).Kraft_Zb_li = Wert(5)
+    If (Wert(6) <> "u" Or rUs(UBound(rUs)).Kraft_Knie_re = "") And InStr(Wert(6), "~") = 0 Then rUs(UBound(rUs)).Kraft_Knie_re = Wert(6)
+    If (Wert(7) <> "u" Or rUs(UBound(rUs)).Kraft_Knie_li = "") And InStr(Wert(7), "~") = 0 Then rUs(UBound(rUs)).Kraft_Knie_li = Wert(7)
+    If (Wert(8) <> "u" Or rUs(UBound(rUs)).ASR_re = "") And InStr(Wert(8), "~") = 0 Then rUs(UBound(rUs)).ASR_re = Wert(8)
+    If (Wert(9) <> "u" Or rUs(UBound(rUs)).ASR_li = "") And InStr(Wert(9), "~") = 0 Then rUs(UBound(rUs)).ASR_li = Wert(9)
+    If (Wert(10) <> "u" Or rUs(UBound(rUs)).PSR_re = "") And InStr(Wert(10), "~") = 0 Then rUs(UBound(rUs)).PSR_re = Wert(10)
+    If (Wert(11) <> "u" Or rUs(UBound(rUs)).PSR_li = "") And InStr(Wert(11), "~") = 0 Then rUs(UBound(rUs)).PSR_li = Wert(11)
+    If (Wert(12) <> "u" Or rUs(UBound(rUs)).MF_re = "") And InStr(Wert(12), "~") = 0 Then rUs(UBound(rUs)).MF_re = Wert(12) & IIf(IsNumeric(Wert(12)), "/5", "")
+    If (Wert(13) <> "u" Or rUs(UBound(rUs)).MF_li = "") And InStr(Wert(13), "~") = 0 Then rUs(UBound(rUs)).MF_li = Wert(13) & IIf(IsNumeric(Wert(13)), "/5", "")
+    If (Wert(14) <> "u" Or rUs(UBound(rUs)).KW_re = "") And InStr(Wert(14), "~") = 0 Then rUs(UBound(rUs)).KW_re = Wert(14) & IIf(IsNumeric(Wert(14)), "/5", "")
+    If (Wert(15) <> "u" Or rUs(UBound(rUs)).KW_li = "") And InStr(Wert(15), "~") = 0 Then rUs(UBound(rUs)).KW_li = Wert(15) & IIf(IsNumeric(Wert(15)), "/5", "")
+    If (Wert(16) <> "u" Or rUs(UBound(rUs)).Vibr_IK_re = "") And InStr(Wert(16), "~") = 0 Then rUs(UBound(rUs)).Vibr_IK_re = Wert(16) & IIf(IsNumeric(Wert(16)), "/8", "")
+    If (Wert(17) <> "u" Or rUs(UBound(rUs)).Vibr_IK_li = "") And InStr(Wert(17), "~") = 0 Then rUs(UBound(rUs)).Vibr_IK_li = Wert(17) & IIf(IsNumeric(Wert(17)), "/8", "")
+    If (Wert(18) <> "u" Or rUs(UBound(rUs)).Vibr_GZ_re = "") And InStr(Wert(18), "~") = 0 Then rUs(UBound(rUs)).Vibr_GZ_re = Wert(18) & IIf(IsNumeric(Wert(18)), "/8", "")
+    If (Wert(19) <> "u" Or rUs(UBound(rUs)).Vibr_GZ_li = "") And InStr(Wert(19), "~") = 0 Then rUs(UBound(rUs)).Vibr_GZ_li = Wert(19) & IIf(IsNumeric(Wert(19)), "/8", "")
+    If (Wert(20) <> "u" Or rUs(UBound(rUs)).PulsL_re = "") And InStr(Wert(20), "~") = 0 Then rUs(UBound(rUs)).PulsL_re = Wert(20)
+    If (Wert(21) <> "u" Or rUs(UBound(rUs)).PulsL_li = "") And InStr(Wert(21), "~") = 0 Then rUs(UBound(rUs)).PulsL_li = Wert(21)
+    If (Wert(22) <> "u" Or rUs(UBound(rUs)).PulsKK_re = "") And InStr(Wert(22), "~") = 0 Then rUs(UBound(rUs)).PulsKK_re = Wert(22)
+    If (Wert(23) <> "u" Or rUs(UBound(rUs)).PulsKK_li = "") And InStr(Wert(23), "~") = 0 Then rUs(UBound(rUs)).PulsKK_li = Wert(23)
+    If (Wert(24) <> "u" Or rUs(UBound(rUs)).PulsAtp_re = "") And InStr(Wert(24), "~") = 0 Then rUs(UBound(rUs)).PulsAtp_re = Wert(24)
+    If (Wert(25) <> "u" Or rUs(UBound(rUs)).PulsAtp_li = "") And InStr(Wert(25), "~") = 0 Then rUs(UBound(rUs)).PulsAtp_li = Wert(25)
+    If (Wert(26) <> "u" Or rUs(UBound(rUs)).PulsAdp_re = "") And InStr(Wert(26), "~") = 0 Then rUs(UBound(rUs)).PulsAdp_re = Wert(26)
+    If (Wert(27) <> "u" Or rUs(UBound(rUs)).PulsAdp_li = "") And InStr(Wert(27), "~") = 0 Then rUs(UBound(rUs)).PulsAdp_li = Wert(27)
+    If (Wert(28) <> "u" Or rUs(UBound(rUs)).Mitarbeiter = "") And InStr(Wert(28), "~") = 0 Then rUs(UBound(rUs)).Mitarbeiter = Wert(28)
+   Else
+    If (Wert(0) <> "u" Or rUs(UBound(rUs)).Spritzst = "") And InStr(Wert(0), "~") = 0 Or _
+      (Wert(1) <> "u" Or rUs(UBound(rUs)).Spritzst = "") And InStr(Wert(1), "~") = 0 _
+      Then rUs(UBound(rUs)).Spritzst = Wert(0) & "|" & Wert(1)
+    If (Wert(2) <> "u" Or rUs(UBound(rUs)).Fuﬂbef_re = "") And InStr(Wert(2), "~") = 0 Then rUs(UBound(rUs)).Fuﬂbef_re = Wert(2)
+    If (Wert(3) <> "u" Or rUs(UBound(rUs)).Fuﬂbef_li = "") And InStr(Wert(3), "~") = 0 Then rUs(UBound(rUs)).Fuﬂbef_li = Wert(3)
+    If (Wert(4) <> "u" Or rUs(UBound(rUs)).Hyperk_re = "") And InStr(Wert(4), "~") = 0 Then rUs(UBound(rUs)).Hyperk_re = Wert(4)
+    If (Wert(5) <> "u" Or rUs(UBound(rUs)).Hyperk_li = "") And InStr(Wert(5), "~") = 0 Then rUs(UBound(rUs)).Hyperk_li = Wert(5)
+    If (Wert(6) <> "u" Or rUs(UBound(rUs)).Ulcera_re = "") And InStr(Wert(6), "~") = 0 Then rUs(UBound(rUs)).Ulcera_re = Wert(6)
+    If (Wert(7) <> "u" Or rUs(UBound(rUs)).Ulcera_li = "") And InStr(Wert(7), "~") = 0 Then rUs(UBound(rUs)).Ulcera_li = Wert(7)
+    If (Wert(8) <> "u" Or rUs(UBound(rUs)).Kraft_Zh_re = "") And InStr(Wert(8), "~") = 0 Then rUs(UBound(rUs)).Kraft_Zh_re = Wert(8)
+    If (Wert(9) <> "u" Or rUs(UBound(rUs)).Kraft_Zh_li = "") And InStr(Wert(9), "~") = 0 Then rUs(UBound(rUs)).Kraft_Zh_li = Wert(9)
+    If (Wert(10) <> "u" Or rUs(UBound(rUs)).Kraft_Zb_re = "") And InStr(Wert(10), "~") = 0 Then rUs(UBound(rUs)).Kraft_Zb_re = Wert(10)
+    If (Wert(11) <> "u" Or rUs(UBound(rUs)).Kraft_Zb_li = "") And InStr(Wert(11), "~") = 0 Then rUs(UBound(rUs)).Kraft_Zb_li = Wert(11)
+    If (Wert(12) <> "u" Or rUs(UBound(rUs)).Kraft_Knie_re = "") And InStr(Wert(12), "~") = 0 Then rUs(UBound(rUs)).Kraft_Knie_re = Wert(12)
+    If (Wert(13) <> "u" Or rUs(UBound(rUs)).Kraft_Knie_li = "") And InStr(Wert(13), "~") = 0 Then rUs(UBound(rUs)).Kraft_Knie_li = Wert(13)
+    If (Wert(14) <> "u" Or rUs(UBound(rUs)).ASR_re = "") And InStr(Wert(14), "~") = 0 Then rUs(UBound(rUs)).ASR_re = Wert(14)
+    If (Wert(15) <> "u" Or rUs(UBound(rUs)).ASR_li = "") And InStr(Wert(15), "~") = 0 Then rUs(UBound(rUs)).ASR_li = Wert(15)
+    If (Wert(16) <> "u" Or rUs(UBound(rUs)).PSR_re = "") And InStr(Wert(16), "~") = 0 Then rUs(UBound(rUs)).PSR_re = Wert(16)
+    If (Wert(17) <> "u" Or rUs(UBound(rUs)).PSR_li = "") And InStr(Wert(17), "~") = 0 Then rUs(UBound(rUs)).PSR_li = Wert(17)
+    If (Wert(18) <> "u" Or rUs(UBound(rUs)).Oberfl_re = "") And InStr(Wert(18), "~") = 0 Then rUs(UBound(rUs)).Oberfl_re = Wert(18)
+    If (Wert(19) <> "u" Or rUs(UBound(rUs)).Oberfl_li = "") And InStr(Wert(19), "~") = 0 Then rUs(UBound(rUs)).Oberfl_li = Wert(19)
+    If (Wert(20) <> "u" Or rUs(UBound(rUs)).MF_re = "") And InStr(Wert(20), "~") = 0 Then rUs(UBound(rUs)).MF_re = Wert(20) & IIf(IsNumeric(Wert(20)), "/5", "")
+    If (Wert(21) <> "u" Or rUs(UBound(rUs)).MF_li = "") And InStr(Wert(21), "~") = 0 Then rUs(UBound(rUs)).MF_li = Wert(21) & IIf(IsNumeric(Wert(21)), "/5", "")
+    If (Wert(22) <> "u" Or rUs(UBound(rUs)).KW_re = "") And InStr(Wert(22), "~") = 0 Then rUs(UBound(rUs)).KW_re = Wert(22) & IIf(IsNumeric(Wert(22)), "/5", "")
+    If (Wert(23) <> "u" Or rUs(UBound(rUs)).KW_li = "") And InStr(Wert(23), "~") = 0 Then rUs(UBound(rUs)).KW_li = Wert(23) & IIf(IsNumeric(Wert(23)), "/5", "")
+    If (Wert(24) <> "u" Or rUs(UBound(rUs)).Vibr_IK_re = "") And InStr(Wert(24), "~") = 0 Then rUs(UBound(rUs)).Vibr_IK_re = Wert(24) & IIf(IsNumeric(Wert(24)), "/8", "")
+    If (Wert(25) <> "u" Or rUs(UBound(rUs)).Vibr_IK_li = "") And InStr(Wert(25), "~") = 0 Then rUs(UBound(rUs)).Vibr_IK_li = Wert(25) & IIf(IsNumeric(Wert(25)), "/8", "")
+    If (Wert(26) <> "u" Or rUs(UBound(rUs)).Vibr_GZ_re = "") And InStr(Wert(26), "~") = 0 Then rUs(UBound(rUs)).Vibr_GZ_re = Wert(26) & IIf(IsNumeric(Wert(26)), "/8", "")
+    If (Wert(27) <> "u" Or rUs(UBound(rUs)).Vibr_GZ_li = "") And InStr(Wert(27), "~") = 0 Then rUs(UBound(rUs)).Vibr_GZ_li = Wert(27) & IIf(IsNumeric(Wert(27)), "/8", "")
+    If (Wert(28) <> "u" Or rUs(UBound(rUs)).PulsL_re = "") And InStr(Wert(28), "~") = 0 Then rUs(UBound(rUs)).PulsL_re = Wert(28)
+    If (Wert(29) <> "u" Or rUs(UBound(rUs)).PulsL_li = "") And InStr(Wert(29), "~") = 0 Then rUs(UBound(rUs)).PulsL_li = Wert(29)
+    If (Wert(30) <> "u" Or rUs(UBound(rUs)).PulsKK_re = "") And InStr(Wert(30), "~") = 0 Then rUs(UBound(rUs)).PulsKK_re = Wert(30)
+    If (Wert(31) <> "u" Or rUs(UBound(rUs)).PulsKK_li = "") And InStr(Wert(31), "~") = 0 Then rUs(UBound(rUs)).PulsKK_li = Wert(31)
+    If (Wert(32) <> "u" Or rUs(UBound(rUs)).PulsAtp_re = "") And InStr(Wert(32), "~") = 0 Then rUs(UBound(rUs)).PulsAtp_re = Wert(32)
+    If (Wert(33) <> "u" Or rUs(UBound(rUs)).PulsAtp_li = "") And InStr(Wert(33), "~") = 0 Then rUs(UBound(rUs)).PulsAtp_li = Wert(33)
+    If (Wert(34) <> "u" Or rUs(UBound(rUs)).PulsAdp_re = "") And InStr(Wert(34), "~") = 0 Then rUs(UBound(rUs)).PulsAdp_re = Wert(34)
+    If (Wert(35) <> "u" Or rUs(UBound(rUs)).PulsAdp_li = "") And InStr(Wert(35), "~") = 0 Then rUs(UBound(rUs)).PulsAdp_li = Wert(35)
+    If (Wert(36) <> "u" Or rUs(UBound(rUs)).Mitarbeiter = "") And InStr(Wert(36), "~") = 0 Then rUs(UBound(rUs)).Mitarbeiter = Wert(36)
+   End If ' UBound(Wert) >= 36 Then
+  End If ' LCase$(rEi(j).art) = "usdm" Then
  Next j
  Exit Function
 fehler:
@@ -637,7 +692,7 @@ Function usdm1()
              ", Mitarbeiter:", "")
  For j = 1 To UBound(rEi)
   If rEi(j).art = "usdm1" Then
-   If rUs(UBound(rUs)).absPos <> 0 Or UBound(rUs) = 0 Then ReDim Preserve rUs(UBound(rUs) + 1)
+   If rUs(UBound(rUs)).abspos <> 0 Or UBound(rUs) = 0 Then ReDim Preserve rUs(UBound(rUs) + 1)
    Dim Wert$()
    Call Kusd(trz, Wert, j)
    Call rUsRest(j)
@@ -712,7 +767,7 @@ Function usdm2()
              "; Mitarbeiter:", "")
  For j = 1 To UBound(rEi)
   If rEi(j).art = "usdm2" Then
-   If rUs(UBound(rUs)).absPos <> 0 Or UBound(rUs) = 0 Then ReDim Preserve rUs(UBound(rUs) + 1)
+   If rUs(UBound(rUs)).abspos <> 0 Or UBound(rUs) = 0 Then ReDim Preserve rUs(UBound(rUs) + 1)
    Dim Wert$()
    Call Kusd(trz, Wert, j)
    Call rUsRest(j)
@@ -772,7 +827,7 @@ Function USfuss()
              "Mitarbeiter:", "")
  For j = 1 To UBound(rEi)
   If rEi(j).art = "fuﬂ" And rEi(j).Zeitpunkt > #7/17/2017 8:00:00 AM# Then
-   If rFu(UBound(rFu)).absPos <> 0 Or UBound(rFu) = 0 Then ReDim Preserve rFu(UBound(rFu) + 1)
+   If rFu(UBound(rFu)).abspos <> 0 Or UBound(rFu) = 0 Then ReDim Preserve rFu(UBound(rFu) + 1)
    Dim Wert$()
    Call Kusd(trz, Wert, j)
    Call rFuRest(j)
@@ -819,7 +874,7 @@ Function usVKGD()
 '             Debug.Print UBound(trz)
  For j = 1 To UBound(rEi)
   If rEi(j).art = "vkgd" Then
-   If rVk(UBound(rVk)).absPos <> 0 Or UBound(rVk) = 0 Then ReDim Preserve rVk(UBound(rVk) + 1)
+   If rVk(UBound(rVk)).abspos <> 0 Or UBound(rVk) = 0 Then ReDim Preserve rVk(UBound(rVk) + 1)
    Dim Wert$()
    Call Kusd(trz, Wert, j)
    Call rVkRest(j)
@@ -866,7 +921,7 @@ Function usVKGD2()
 '             Debug.Print UBound(trz)
  For j = 1 To UBound(rEi)
   If rEi(j).art = "vkgd2" Then
-   If rVk(UBound(rVk)).absPos <> 0 Or UBound(rVk) = 0 Then ReDim Preserve rVk(UBound(rVk) + 1)
+   If rVk(UBound(rVk)).abspos <> 0 Or UBound(rVk) = 0 Then ReDim Preserve rVk(UBound(rVk) + 1)
    Dim Wert$()
    Call Kusd(trz, Wert, j)
    Call rVkRest(j)
@@ -914,7 +969,7 @@ Function USUlcus()
 '             Debug.Print UBound(trz)
  For j = 1 To UBound(rEi)
   If rEi(j).art = "ulcus" Then
-   If rUl(UBound(rUl)).absPos <> 0 Or UBound(rUl) = 0 Then ReDim Preserve rUl(UBound(rUl) + 1)
+   If rUl(UBound(rUl)).abspos <> 0 Or UBound(rUl) = 0 Then ReDim Preserve rUl(UBound(rUl) + 1)
    Dim Wert$()
    Call Kusd(trz, Wert, j)
    Call rUlRest(j)
@@ -965,7 +1020,7 @@ Function USUlcusa()
 '             Debug.Print UBound(trz)
  For j = 1 To UBound(rEi)
   If rEi(j).art = "ulcus" Then
-   If rUl(UBound(rUl)).absPos <> 0 Or UBound(rUl) = 0 Then ReDim Preserve rUl(UBound(rUl) + 1)
+   If rUl(UBound(rUl)).abspos <> 0 Or UBound(rUl) = 0 Then ReDim Preserve rUl(UBound(rUl) + 1)
    Dim Wert$()
    Call Kusd(trz, Wert, j)
    Call rUlRest(j)
