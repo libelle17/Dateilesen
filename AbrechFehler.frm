@@ -346,7 +346,7 @@ Private Sub Form_Load()
 ' Call ZeigSQL
  
  Call SizeColumns(MFG, Me)
- Me.MFG.AllowUserResizing = flexResizeBoth
+ Me.MFG.AllowUserResizing = 3 ' flexResizeBoth, in C:\Windows\SysWow64\MSHFLXGD.oca
 ' Me.KeyPreview = True
 
  Me.Visible = True '

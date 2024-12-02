@@ -4042,7 +4042,7 @@ Sub AlleMark(ob%) ' Alle Markieren, alle Demarkieren
   Next i
  End If
  zähleDMPPat
- Me.MFG.MousePointer = flexDefault
+ Me.MFG.MousePointer = 0 ' flexDefault, in C:\Windows\SysWow64\MSHFLXGD.oca
  Exit Sub
 fehler:
  Dim AnwPfad$
@@ -4189,7 +4189,7 @@ Public Sub MFG_Click()
    ctrl.Clear
    myFrag rs, "SELECT * FROM `diagg1` ORDER BY rf", adOpenStatic, DBCn, adLockOptimistic
    Do While Not rs.EOF
-    ctrl.AddItem (rs!gruppe)
+    ctrl.AddItem (rs!Gruppe)
     rs.Move 1
    Loop
    If AnfCode <> 0 Then
@@ -4533,7 +4533,7 @@ End Sub ' MFG_MouseDown
 
 Private Sub MFG_MouseUp(Button As Integer, Shift As Integer, x As Single, Y As Single)
  Dim sqls$, sqld$, sqli$, MR&, rs As New ADODB.Recordset, i&, rAf&
- Me.MFG.MousePointer = flexDefault
+ Me.MFG.MousePointer = 0 ' flexDefault, in C:\Windows\SysWow64\MSHFLXGD.oca
  If x <> altX Or Y <> altY Then
  Select Case Me.PLArt
   Case artLPar

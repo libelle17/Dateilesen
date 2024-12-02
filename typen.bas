@@ -470,6 +470,7 @@ Public type medplan
  AktZeit AS date 'AktZeit datetime 'Aktualisierungszeit
  StByte AS long 'StByte int 'Ordnungsnummer der Datenübertragung
  ergaenzt AS integer 'ergaenzt bit 'PZN ergaenzt von pznbdt (bdtnachw)
+ mpart AS byte 'mpart tinyint '1=alter MP, 2=bmp, 3=emp
 end type
 
 Public type rezepteintraege
@@ -6684,6 +6685,7 @@ Public FUNCTION roMeZuw(i&, j&)
  roMe(i).AktZeit = rMe(j).AktZeit
  roMe(i).StByte = rMe(j).StByte
  roMe(i).ergaenzt = rMe(j).ergaenzt
+ roMe(i).mpart = rMe(j).mpart
 End FUNCTION ' roMeZuw
 
 Public FUNCTION MeZUnt%(i&, j&)
@@ -6714,6 +6716,7 @@ Public FUNCTION MeZUnt%(i&, j&)
  IF roMe(i).AktZeit <> rMe(j).AktZeit THEN gosub unter
  IF roMe(i).StByte <> rMe(j).StByte THEN gosub unter
  IF roMe(i).ergaenzt <> rMe(j).ergaenzt THEN gosub unter
+ IF roMe(i).mpart <> rMe(j).mpart THEN gosub unter
  Exit Function
 unter:
  MeZUnt = MeZUnt + 1
@@ -6730,7 +6733,8 @@ Public FUNCTION medplanLaden()
 ",COALESCE(nm,'') nm,COALESCE(ab,'') ab,COALESCE(zn,'') zn,COALESCE(bBed,0) bBed" & _
 ",COALESCE(Bemerkung,'') Bemerkung,COALESCE(Grund,'') Grund,COALESCE(Stärke,'') Stärke,COALESCE(Einheit,'') Einheit" & _
 ",COALESCE(Form,'') Form,COALESCE(Menge,0) Menge,COALESCE(Nutzer,'') Nutzer,COALESCE(AbsPos,0) AbsPos" & _
-",COALESCE(AktZeit - INTERVAL 0 DAY,CONVERT('18991230',DATE)) AktZeit,COALESCE(StByte,0) StByte,COALESCE(ergaenzt,0) ergaenzt FROM `medplan` WHERE Pat_ID=" & pid & " ORDER BY `ZeitPunkt`
+",COALESCE(AktZeit - INTERVAL 0 DAY,CONVERT('18991230',DATE)) AktZeit,COALESCE(StByte,0) StByte,COALESCE(ergaenzt,0) ergaenzt,COALESCE(mpart,0) mpart" & _
+" FROM `medplan` WHERE Pat_ID=" & pid & " ORDER BY `ZeitPunkt`
  myFrag rs, sql
  If rs.EOF Then
   ReDim roMe(0)
@@ -6765,6 +6769,7 @@ Public FUNCTION medplanLaden()
    roMe(akt).AktZeit = rs!AktZeit
    roMe(akt).StByte = rs!StByte
    roMe(akt).ergaenzt = rs!ergaenzt
+   roMe(akt).mpart = rs!mpart
    rs.MoveNext
    IF Not rs.EOF THEN ReDim Preserve roMe(UBound(roMe) + 1)
   Loop ' While Not rs.EOF
@@ -6858,6 +6863,7 @@ Public FUNCTION rMeDump()
   Print #200, Left$("rMe(" & i & ").AktZeit:" & String$(33, "."), 33) & rMe(i).AktZeit
   Print #200, Left$("rMe(" & i & ").StByte:" & String$(33, "."), 33) & rMe(i).StByte
   Print #200, Left$("rMe(" & i & ").ergaenzt:" & String$(33, "."), 33) & rMe(i).ergaenzt
+  Print #200, Left$("rMe(" & i & ").mpart:" & String$(33, "."), 33) & rMe(i).mpart
  Next i
  Close #200
  zeigan ffadat
@@ -6875,7 +6881,7 @@ Public FUNCTION medplanSpeichern(SammelInsert%, BezfSp%)
  Call csql0.AppVar(Array(" INSERT ", sqlIgnore, "INTO `medplan` (FID,Pat_ID,MPNr," & _
      "ZeitPunkt,Datum,Medikament,MedAnfang,Wirkstoff,PZN,FeldNr,mo,mi,nm," & _
      "ab,zn,bBed,Bemerkung,Grund,Stärke,Einheit,Form,Menge,Nutzer," & _
-     "AbsPos,AktZeit,StByte,ergaenzt)      VALUES"))
+     "AbsPos,AktZeit,StByte,ergaenzt,mpart)              VALUES"))
  IF NOT Allepat THEN
    sql = "DELETE FROM `medplan` WHERE Pat_ID = " & CStr(rNa(0).Pat_ID)
    Call myEFrag(sql)
@@ -6891,7 +6897,7 @@ setz:
   csql.AppVar Array("(" , rMe(i).FID, "," , rMe(i).Pat_ID, "," , rMe(i).MPNr, "," , DatFor_k(rMe(i).ZeitPunkt), "," , DatFor_k(rMe(i).Datum), ",'" , rMe(i).Medikament, "','" , rMe(i).MedAnfang, "','" , rMe(i).Wirkstoff, "'," ,  _
    rMe(i).PZN, "," , rMe(i).FeldNr, ",'" , rMe(i).mo, "','" , rMe(i).mi, "','" , rMe(i).nm, "','" , rMe(i).ab, "','" , rMe(i).zn, "'," , cstr(-(rMe(i).bBed<>0)) , ",'" , rMe(i).Bemerkung, "','" ,  _
    rMe(i).Grund, "','" , rMe(i).Stärke, "','" , rMe(i).Einheit, "','" , rMe(i).Form, "'," , rMe(i).Menge, ",'" , rMe(i).Nutzer, "'," , rMe(i).AbsPos, "," , DatFor_k(rMe(i).AktZeit), "," ,  _
-   rMe(i).StByte, "," , cstr(-(rMe(i).ergaenzt<>0)) , ")")
+   rMe(i).StByte, "," , cstr(-(rMe(i).ergaenzt<>0)) , "," , rMe(i).mpart, ")")
   IF SammelInsert <> 0 AND i < ubound(rMe) Then csql.Append ","
   IF SammelInsert = 0 OR i = ubound(rMe) Then
     altmode = myEFrag("SELECT @@global.sql_mode", , DBCn).Fields(0)
