@@ -1132,6 +1132,7 @@ On Error GoTo fehler
  GebDat = rnam!GebDat
  PAlter = AlterBei(Now(), rnam!GebDat)
  Dim DiagTab() As CString
+anfang:
  m = 2: TI(m) = Timer: For p = 0 To m - 1: TI(m) = TI(m) - TI(p): Next p
  Call DiagString(Pat_ID, DiagTab, , , dmseit) ' 0,35s
  Call UKPDS(aRisk, Pat_ID, GebDat, dmseit, falDiabDau, obweibl)
