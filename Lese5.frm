@@ -1275,6 +1275,7 @@ Private Sub PatvonMO_Click()
  pataw.Zeilenzahl.Visible = True
  '  pNr& = 68393  ' 69618 ' 63635 ' 67180 ' 63635 ' 64800 ' 69333 ' 68316 ' 65405 ' 45 ' 64659 ' 45 ' 69367
  ' 69377 ' 53119 ' 51630 ' 105 ' 18 ' 246 ' 59152 ' 1394 ' 2112 ' 151 ' 225 '
+ pataw.Pat_ID.AddItem 1797
  pataw.Pat_ID.AddItem 52690
  pataw.Pat_ID.AddItem 51534
  pataw.Pat_ID.AddItem 68393
@@ -1286,8 +1287,13 @@ End Sub ' PatvonMO_Click
 
 ' EDV -> Medpläne alt für MO exportieren
 Private Sub Medpläne_alt_für_MO_exportieren_Click()
+ Call do_Medpläne_alt_für_MO_exportieren_Click ' (True)
+End Sub ' Medpläne_alt_für_MO_exportieren_Click()
+
+' in Medpläne_alt_für_MO_exportieren_Click
+Private Sub do_Medpläne_alt_für_MO_exportieren_Click(Optional xmlneu%)
  Const Untervz$ = "c:\TMExport\", uuvz$ = "Briefe\", Gvz$ = Untervz & uuvz
- Dim ausgbdt$, mpdt$, csmp As New CString
+ Dim ausgbdt$, mpdt$, csmp As New CString, machxml%
  Dim BDT As New BDTSchreib
  On Error GoTo fehler
  If Not FSO.FolderExists(Gvz) Then FSO.CreateFolder (Gvz)
@@ -1298,7 +1304,9 @@ Private Sub Medpläne_alt_für_MO_exportieren_Click()
        ", RANK() OVER (PARTITION BY mp.pat_id ORDER BY mpnr,feldnr) prang" & vbCrLf & _
        ",lp.lanr,CONCAT(lp.vorname,' ',lp.nachname) lnam,bsnr,f.lanrid, n.Vorname,n.nachname, UCASE(n.geschlecht) gschl, Versichertennummer vn, DATE_FORMAT(n.gebdat,'%Y%m%d') geb, mp.*" & vbCrLf & _
        "FROM medplan mp LEFT JOIN faelle f USING (fid) LEFT JOIN namen n ON n.pat_id=f.pat_id LEFT JOIN lanrpraxis lp ON lp.id=lanrid" & vbCrLf & _
-       "WHERE /* mp.pat_id=14 AND */ mpart=1" & vbCrLf & _
+       "WHERE /* mp.pat_id BETWEEN 61422 AND 100000 AND */ mpart=1" & vbCrLf & _
+       "AND (sdatum IS NULL OR sdatum=18991230)" & vbCrLf & _
+       "AND EXISTS (SELECT 0 FROM faelle WHERE pat_id=n.pat_id AND bhfb> 20201231)" & vbCrLf & _
        ") i ORDER BY pat_id, mpnr, feldnr"
  myFrag rMP, sql, adOpenDynamic, DBCn, adLockReadOnly
  If Not rMP.BOF Then
@@ -1306,6 +1314,7 @@ Private Sub Medpläne_alt_für_MO_exportieren_Click()
   Call BDT.Start(Untervz, "MP")
   Do While Not rMP.EOF
    If rMP!prang = 1 Then
+    syscmd 4, "Exportiere Medpläne von Pat. " & rMP!Pat_ID & " (" & rMP!Nachname & ", " & rMP!Vorname & ")"
     Call BDT.SAdd("8000", "0020", True) ' Satzart
     Call BDT.SAdd("8100", rMP!MPzl * 12 + 50) ' Satzlänge
     Call BDT.SAdd("9100", rMP!BSNR) ' Arztnummer des Absenders
@@ -1334,20 +1343,21 @@ Private Sub Medpläne_alt_für_MO_exportieren_Click()
     Call BDT.SAdd("8100", rMP!MPzl * 12 + 6)
    End If ' rMP!prang = 1 then
    If rMP!rang = 1 Then
+    GoSub schreiben
     mpdt = uuvz & rMP!Pat_ID & "_" & Format(rMP!Zeitpunkt, "yyyymmdd_HHMM") & ".xml"
-    On Error Resume Next
-    csmp.Append "</S></MP>"
-    Print #240, REPLACE$(REPLACE$(REPLACE$(REPLACE$(REPLACE$(REPLACE$(REPLACE$(REPLACE$(REPLACE$(REPLACE$(csmp, "ä", "ae"), "ö", "oe"), "ü", "ue"), "ß", "ss"), "½", "1/2"), "¼", "1/4"), "¾", "3/4"), "Ä", "Ae"), "Ö", "Oe"), "Ü", "Ue")
-    Close #240
-    FSO.DeleteFile Untervz & mpdt, True
-    On Error GoTo fehler
-    Open Untervz & mpdt For Output As #240
-    csmp.Clear
-    csmp.Append "<MP v=""026"" a=""1"" z=""1"" l=""de-DE"">"
-    csmp.Append "<P g=""" & rMP!Vorname & """ f=""" & rMP!Nachname & """ egk=""" & rMP!VN & """ b=""" & rMP!Geb & """/>"
-    csmp.Append "<A lanr=""" & rMP!Lanr & """ n=""" & rMP!lnam & """ s=""Mittermayerstrasse 13"" z=""85221"" c=""Dachau"" p=""08131 / 616 380"" e=""diabetologie@dachau-mail.de"" t=""0001-01-01T00:00:00""/>"
-    csmp.Append "<O/>"
-    csmp.Append "<S c=""412"">"
+    If xmlneu Then
+     If FSO.FileExists(Untervz & mpdt) Then FSO.DeleteFile Untervz & mpdt, True
+    End If ' xmlneu
+    machxml = Not FSO.FileExists(Untervz & mpdt)
+    If machxml Then
+     Open Untervz & mpdt For Output As #240
+     csmp.Clear
+     csmp.Append "<MP v=""026"" a=""1"" z=""1"" l=""de-DE"">"
+     csmp.Append "<P g=""" & rMP!Vorname & """ f=""" & rMP!Nachname & """ egk=""" & rMP!VN & """ b=""" & rMP!Geb & """/>"
+     csmp.Append "<A lanr=""" & rMP!Lanr & """ n=""" & rMP!lnam & """ s=""Mittermayerstrasse 13"" z=""85221"" c=""Dachau"" p=""08131 / 616 380"" e=""diabetologie@dachau-mail.de"" t=""0001-01-01T00:00:00""/>"
+     csmp.Append "<O/>"
+     csmp.Append "<S c=""412"">"
+    End If ' machxml Then
     Call BDT.SAdd("6200", Format(rMP!Zeitpunkt, "yyyymmdd HHMMSS"))
     Call BDT.SAdd("9901", "CreateTime:" & Format(rMP!Zeitpunkt, "yyyy-mm-dd HH:MM:SS"))
     Call BDT.SAdd("9901", "CreateUser:" & "sturm")
@@ -1362,19 +1372,27 @@ Private Sub Medpläne_alt_für_MO_exportieren_Click()
     Call BDT.SAdd("6321", mpdt)
     Call BDT.SAdd("6322", "64")
    End If ' rMP!rang = 1 Then
-   csmp.Append "<M " & IIf(rMP!PZN <> 0, "p=""" & rMP!PZN & """", " a=""" & rMP!Medikament & """") & IIf(rMP!mo <> "", " m=""" & rMP!mo & """", "") & IIf(rMP!mi <> "", " d=""" & rMP!mi & """", "") & IIf(rMP!ab <> "", " v=""" & rMP!ab & """", "") & IIf(rMP!Zn <> "", " h=""" & rMP!Zn & """", "") & IIf(rMP!Bemerkung <> "", " i=""" & Trim$(rMP!Bemerkung) & """", "") & IIf(rMP!Grund <> "", " r=""" & rMP!Grund & """", "") & IIf(rMP!nm <> "", " x=""nachmittags: " & rMP!nm & """", "") & " />"
+   If machxml Then
+    csmp.Append "<M " & IIf(rMP!PZN <> 0, "p=""" & rMP!PZN & """", " a=""" & rMP!Medikament & """") & IIf(rMP!mo <> "", " m=""" & rMP!mo & """", "") & IIf(rMP!mi <> "", " d=""" & rMP!mi & """", "") & IIf(rMP!ab <> "", " v=""" & rMP!ab & """", "") & IIf(rMP!Zn <> "", " h=""" & rMP!Zn & """", "") & IIf(rMP!Bemerkung <> "", " i=""" & Trim$(rMP!Bemerkung) & """", "") & IIf(rMP!Grund <> "", " r=""" & rMP!Grund & """", "") & IIf(rMP!nm <> "", " x=""nachmittags: " & rMP!nm & """", "") & " />"
+   End If ' machxml Then
+   DoEvents
    rMP.MoveNext
   Loop ' While Not rMP.EOF
-  Call BDT.Schreib
-  Close #310
-  On Error Resume Next
-  csmp.Append "</S></MP>"
-  Print #240, csmp
-  Close #240
-  On Error GoTo fehler
+'  Call BDT.Schreib
+'  Close #310
+  GoSub schreiben
  End If ' Not rMP.BOF Then
  syscmd 4, "Fertig mit Medpläne alt für MO exportieren in " & ausgbdt
  Exit Sub
+schreiben:
+ On Error Resume Next
+ csmp.Append "</S></MP>"
+ Print #240, REPLACE$(REPLACE$(REPLACE$(REPLACE$(REPLACE$(REPLACE$(REPLACE$(REPLACE$(REPLACE$(REPLACE$(REPLACE$(csmp, "ä", "ae"), "ö", "oe"), "ü", "ue"), "ß", "ss"), "½", "1/2"), "¼", "1/4"), "¾", "3/4"), "Ä", "Ae"), "Ö", "Oe"), "Ü", "Ue"), "µ", "mic")
+ Close #240
+ On Error GoTo fehler
+ Call BDT.Schreib(True)
+ Call BDT.init
+ Return
 fehler:
  Dim AnwPfad$
 #If VBA6 Then

@@ -20,10 +20,14 @@ Const hKVNR$ = KVNr
 Const hBSNR$ = BSNR
 
 Private Sub Class_Initialize()
+ Call init
+End Sub ' Class_Initialize
+
+Public Function init()
  ' create the t() array
  ZZ = -1
  üzpt = Now()
-End Sub ' Class_Initialize
+End Function
 
 Private Function callVerzPrüf(Verz$)
  Dim erg$
@@ -230,7 +234,9 @@ Public Sub Schreib(Optional anhängen%)
   Open DMPImp For Append As #327
   ErrN = Err.Number
   On Error GoTo 0
-  If ErrN <> 0 Then Open REPLACE$(LCase$(DMPImp), "u:", LiServer & "daten\eigene Dateien") For Append As #327
+  If ErrN <> 0 Then
+   Open REPLACE$(LCase$(DMPImp), "u:", LiServer & "daten\eigene Dateien") For Append As #327
+  End If
  Else
   Open DMPImp For Output As #327
  End If

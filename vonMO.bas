@@ -3,6 +3,7 @@ Option Explicit
 Option Compare Text
 Dim aru&
 Const Fakt& = 256
+Public Const pidoffs& = 100000
 
 Const MoWServ$ = "wser"
 Const MoSzn4$ = "szn4"
@@ -432,9 +433,9 @@ Public Function testfloat()
  cvptr = VarPtr(c)
  cptr = StrPtr(c)
  cvptr = VarPtr(c)
- Dim MOCon As New ADODB.Connection
+ Dim MOCon As New adodb.Connection
  MOCon.Open MOAnfStr & MoWServ
- Dim rt As New ADODB.Recordset
+ Dim rt As New adodb.Recordset
  rt.Open "select text from tmpmpatfall where patnr=53119 and enr='5.22'", MOCon, adOpenStatic, adLockReadOnly
 ' Debug.Print rt.Fields(0)
 ' CopyMemoryPtr VarPtr(d), VarPtr(rt.Fields(0)), 8
@@ -458,8 +459,8 @@ End Function ' stzk
 Public Function zeigmosystem(Optional obszn4%)
  Const obDebug% = True
  Dim Kat() As memoType, tKat() As memoType, Abl() As memoType, fAuft() As memoType, FMem() As memoType
- Dim rsMo As New ADODB.Recordset
- Dim MOCon As New ADODB.Connection
+ Dim rsMo As New adodb.Recordset
+ Dim MOCon As New adodb.Connection
  Dim j&
  Dim EintS As SortierEintr
  Dim EinL As New SortierListe
@@ -515,14 +516,16 @@ Public Function zeigmosystem(Optional obszn4%)
  Debug.Print "Fertig mit zeigmosystem"
 End Function ' zeigmosystem()
 
+
+
 ' in PatvonMO_Click
 Public Function doPatvonMO(pNr&, Optional obmitFormularen%)
  Dim pid&, pos&, pneu&, SchGr%, j&, jj%, rAf&, Puls$, Bem$ ' , rInh$, aktZeit As Date
  Const obDebug% = True, obszn4% = True
 '  pNr& = 68393  ' 69618 ' 63635 ' 67180 ' 63635 ' 64800 ' 69333 ' 68316 ' 65405 ' 45 ' 64659 ' 45 ' 69367 ' 69377 ' 53119 ' 51630 ' 105 ' 18 ' 246 ' 59152 ' 1394 ' 2112 ' 151 ' 225 '
- pid = pNr + 100000
+ pid = pNr + pidoffs
  Static lfdfl&
- Dim rsNa As New ADODB.Recordset, rsFa As New ADODB.Recordset, rsMo As New ADODB.Recordset
+ Dim rsNa As New adodb.Recordset, rsFa As New adodb.Recordset, rsMo As New adodb.Recordset
  Dim FMem() As memoType ', Kat() As memoType, tKat() As memoType, Abl() As memoType, fAuft() As memoType
  Dim NaStr() As memoType, FaStr() As memoType, rsfaru%
  Dim EintS As SortierEintr
@@ -532,12 +535,43 @@ Public Function doPatvonMO(pNr&, Optional obmitFormularen%)
  Call Tinit
  Call doTabVorb(Lese, 0, 0) ' obVorber, obmitFormularen)
 ' ComTrans
+ syscmd 4, "richte desktopkop her"
+ myEFrag "DELETE FROM desktopkop where pat_id=" & pid
+ Dim spal$
+ spal = myEFrag("SELECT GROUP_CONCAT(COLUMN_NAME) FROM information_schema.columns c WHERE TABLE_NAME='desktop' AND table_catalog='def' AND TABLE_schema='quelle' AND column_key<>'PRI'", , , , , , 15000).Fields(0)
+ myEFrag "INSERT INTO desktopkop(" & spal & ") SELECT " & REPLACE$(spal, "Pat_ID", "Pat_ID+" & CStr(pidoffs) & "") & " FROM desktop WHERE pat_id=" & pNr
+ Dim rDesk As adodb.Recordset
+ Dim aDesk() As desktop
+ Set rDesk = myEFrag("SELECT CONCAT(tooltiptext,'\\n',titel) tit, d.* FROM desktop d WHERE pat_id=" & pNr & " ORDER BY erstZP", rAf)
+ Do While Not rDesk.EOF
+  If SafeArrayGetDim(aDesk) Then ReDim Preserve aDesk(UBound(aDesk) + 1) Else ReDim aDesk(0)
+  aDesk(UBound(aDesk)).erstZP = rDesk!erstZP
+  aDesk(UBound(aDesk)).absPos = rDesk!absPos
+  aDesk(UBound(aDesk)).aktZeit = rDesk!aktZeit
+  aDesk(UBound(aDesk)).exoL = rDesk!exoL
+  aDesk(UBound(aDesk)).hideT = rDesk!hideT
+  aDesk(UBound(aDesk)).iconPath = rDesk!iconPath
+  aDesk(UBound(aDesk)).IDS = rDesk!IDS
+  aDesk(UBound(aDesk)).noteBkColor = rDesk!noteBkColor
+  aDesk(UBound(aDesk)).noteFgColor = rDesk!noteFgColor
+  aDesk(UBound(aDesk)).Pat_ID = pid
+  aDesk(UBound(aDesk)).positionBottom = rDesk!positionBottom
+  aDesk(UBound(aDesk)).positionLeft = rDesk!positionLeft
+  aDesk(UBound(aDesk)).positionRight = rDesk!positionRight
+  aDesk(UBound(aDesk)).positionTop = rDesk!positionTop
+  aDesk(UBound(aDesk)).showAsNote = rDesk!showAsNote
+  aDesk(UBound(aDesk)).syncInfoList = rDesk!syncInfoList
+  aDesk(UBound(aDesk)).Titel = rDesk!tit
+  aDesk(UBound(aDesk)).toolTipText = rDesk!toolTipText
+  aDesk(UBound(aDesk)).verankert = rDesk!verankert
+  rDesk.MoveNext
+ Loop
  Call LöschePat(pid)
 ' On Error Resume Next
 ' If obDebug Then FSO.DeleteFile parsemotxt
  On Error GoTo fehler
  Tinit
- Dim MOCon As New ADODB.Connection
+ Dim MOCon As New adodb.Connection
  If obszn4 Then
   MOCon.Open MOAnfStr & MoSzn4
  Else
@@ -647,10 +681,13 @@ Public Function doPatvonMO(pNr&, Optional obmitFormularen%)
    For j = 0 To UBound(NaStr)
 '     Debug.Print NaStr(j).enr, NaStr(j).Text
     Select Case NaStr(j).ENr
-      Case "18"
-         rNa(0).notiz = REPLACE$(LTrim$(REPLACE$(NaStr(j).Text, "Notiz:", "")), Chr$(10), vbCrLf)
+      Case "2" ' Notiz in der Patientenbearbeitung
+         rNa(0).notiz = NaStr(j).Text
+      Case "18" ' Notiz im dynamic view
+         rNa(0).notiz = REPLACE$(REPLACE$(LTrim$(IIf(Left$(LTrim$(NaStr(j).Text), 6) = "Notiz:", Mid$(LTrim$(NaStr(j).Text), 7), NaStr(j).Text)), vbCrLf, Chr$(10)), Chr$(10), vbCrLf) & IIf(rNa(0).notiz = "", "", vbCrLf & rNa(0).notiz)
       Case "21.1": ' asc( Zahl der eingetragenen Kinder
          rNa(0).ZdeK = Asc(NaStr(j).Text)
+'     case "22": ' 71101, 02602, 68415, , 72601, 95301
       Case "25"
         If NaStr(j).Text <> 0 Then
          SchGr = 90
@@ -759,7 +796,7 @@ Public Function doPatvonMO(pNr&, Optional obmitFormularen%)
          rFa(UBound(rFa)).SchGr = "99" ' frei erfunden
       End Select ' ftarif
      End Select ' fscheintyp
-    Call ParseMemo(rsFa!fm, FaStr(), obDebug, "FMemo von rsFa, Pat-id " & rsFa!ueschr)  ' rsFa!fpatnr, rsFa!fsurogat,
+     Call ParseMemo(rsFa!fm, FaStr(), obDebug, "FMemo von rsFa, Pat-id " & rsFa!ueschr)  ' rsFa!fpatnr, rsFa!fsurogat,
 '    Call MeStDruck(pNr & " " & rsFa!ueschr, FaStr)
 '  For jj = 1 To UBound(rFa)
 '   If Not IsNumeric(rFa(jj).Quartal) Or Len(rFa(jj).Quartal) <> 5 Then Stop
@@ -916,7 +953,7 @@ Public Function doPatvonMO(pNr&, Optional obmitFormularen%)
       End Select ' Case FaStr(j).enr
      Next j
 ' nicht übertragen:
-     Dim rhar As New ADODB.Recordset
+     Dim rhar As New adodb.Recordset
      Dim aktKVNr$
      sql = "SELECT farztnralt kvnr FROM earzt a" & vbCrLf & _
            "LEFT JOIN epraxis p ON p.FSurogat = a.FExtpraxisnr" & vbCrLf & _
@@ -931,7 +968,7 @@ Public Function doPatvonMO(pNr&, Optional obmitFormularen%)
        rFa(UBound(rFa)).ÜbWVKVNR = aktKVNr
        rFa(UBound(rFa)).Übwr = aktKVNr
        rFa(UBound(rFa)).ÜWNNr = aktKVNr
-       Dim uewv As New ADODB.Recordset
+       Dim uewv As New adodb.Recordset
        For j = 1 To 2
         myFrag uewv, "SELECT ID,Nachname,Vorname,Titel FROM ueberwvon WHERE kvnr=" & aktKVNr, adOpenStatic, DBCn
         If Not uewv Is Nothing Then
@@ -959,7 +996,7 @@ Public Function doPatvonMO(pNr&, Optional obmitFormularen%)
   For j = 0 To UBound(NaStr)
    If NaStr(j).ENr Like "21.*" And NaStr(j).ENr <> "21.1" Then
     ReDim Preserve rSw(UBound(rSw) + 1)
-    rSw(UBound(rSw)).Pat_ID = rNa(0).Pat_ID
+    rSw(UBound(rSw)).Pat_ID = pid
     rSw(UBound(rSw)).FormTitel = "ssd"
     rSw(UBound(rSw)).vorET = stzk(NaStr(j).Text)
     rSw(UBound(rSw)).lR = rSw(UBound(rSw)).vorET - 280
@@ -975,7 +1012,7 @@ Public Function doPatvonMO(pNr&, Optional obmitFormularen%)
   Next j
   
   
-  Dim rsHa As New ADODB.Recordset, rslue  As New ADODB.Recordset
+  Dim rsHa As New adodb.Recordset, rslue  As New adodb.Recordset
   ' -34 Überweiser, -40 Hausarzt, -32 Arzt
   sql = "SELECT FArztnralt, FAdresse, FArztgruppe, a.FAnrede, FTitel, FArztnr, FNachname, FVorname, FRelationtyp,COALESCE(CONVERT(FAdresse,CHAR),'') Adr" & vbCrLf & _
       "FROM patrelation r " & vbCrLf & _
@@ -1088,7 +1125,7 @@ Public Function doPatvonMO(pNr&, Optional obmitFormularen%)
 '  Call rFaDump
   
   Dim rab() As Abrtyp
-  Dim rAbr As ADODB.Recordset
+  Dim rAbr As adodb.Recordset
   myFrag rAbr, "SELECT FSurogat,FBetriebsnr FROM abrechner", adOpenStatic, MOCon ' AU
   Do While Not rAbr.EOF
    If SafeArrayGetDim(rab) = 0 Then ReDim rab(0) Else ReDim Preserve rab(UBound(rab) + 1)
@@ -1098,7 +1135,7 @@ Public Function doPatvonMO(pNr&, Optional obmitFormularen%)
   Loop
 
   Dim art$, neuart%, a1$, a2$, apos&, abz%
-  Dim rsEi As New ADODB.Recordset
+  Dim rsEi As New adodb.Recordset
   Dim rFoNeu%, FormAbk$, FormBez$, lFormID&, i&, nextFormID&, rFm_Nr&
   Dim FoIDv& ' Pseudo-Foid
   Dim mt$, mdat$
@@ -1206,7 +1243,6 @@ Public Function doPatvonMO(pNr&, Optional obmitFormularen%)
      ReDim Preserve rRe(UBound(rRe) + 1)
      rRe(UBound(rRe)).aktZeit = aktZeit
      rRe(UBound(rRe)).Pat_ID = pid
-     rRe(UBound(rRe)).Pat_ID = pid
      rRe(UBound(rRe)).Zeitpunkt = rsEi!Zp
      rRe(UBound(rRe)).Medikament = rsEi!Med
      rRe(UBound(rRe)).PZN = rsEi!FICdcode
@@ -1293,7 +1329,7 @@ Public Function doPatvonMO(pNr&, Optional obmitFormularen%)
       Next i ' = 1 To UBound(rFo)
 fgefunden:
       If rFoNeu And Not obmitFormularen Then
-       Dim rsf As ADODB.Recordset
+       Dim rsf As adodb.Recordset
        Call myFrag(rsf, "SELECT * FROM formulare WHERE Form_Abk='" & FormAbk & "' AND FormBez='" & FormBez & "' ORDER BY FormID", adOpenStatic)
        If Not rsf.BOF Then
         rFoNeu = 0
@@ -1376,13 +1412,13 @@ sql = _
 ", i.* FROM (" & vbCrLf & _
 "SELECT" & vbCrLf & _
 "  18900101+INTERVAL l.FDatum DAY+INTERVAL l.FZeit SECOND Zp" & vbCrLf & _
-", IF(INSTR(FDetails,'Testid'),MID(FDetails,LOCATE('Testid',FDetails)+LENGTH('Testid')+2,LOCATE('""',REPLACE(FDetails,'\""','\'''),LOCATE('Testid',FDetails)+LENGTH('Testid')+2)-LOCATE('Testid',FDetails)-LENGTH('Testid')-2),'') testid" & vbCrLf & _
-", IF(IF(INSTR(l.FDetails,'Testname ""'),MID(l.FDetails,INSTR(l.FDetails,'Testname ""')+LENGTH('Testname ""'),INSTR(SUBSTRING_INDEX(l.FDetails,'Testname ""',-1),'""')-1),'')<>'',IF(INSTR(l.FDetails,'Testname ""')<>0,MID(l.FDetails,INSTR(l.FDetails,'Testname ""')+LENGTH('Testname ""'),INSTR(SUBSTRING_INDEX(l.FDetails,'Testname ""',-1),'""')-1),''),IF(INSTR(l.FDetails,'(Text ""')<>0,MID(l.FDetails,INSTR(l.FDetails,'(Text ""')+LENGTH('(Text ""'),INSTR(SUBSTRING_INDEX(l.FDetails,'(Text ""',-1),'""')-1),'')) Testname" & vbCrLf & _
-", IF(INSTR(l.FDetails,'Einheit ""'),MID(l.FDetails,INSTR(l.FDetails,'Einheit ""')+LENGTH('Einheit ""'),INSTR(SUBSTRING_INDEX(l.FDetails,'Einheit ""',-1),'""')-1),'') Einheit" & vbCrLf & _
-", IF(INSTR(l.FDetails,'Ewert '),MID(l.FDetails,INSTR(l.FDetails,'Ewert ')+LENGTH('Ewert '),INSTR(SUBSTRING_INDEX(l.FDetails,'Ewert ',-1),')')-1),'') EWert" & vbCrLf & _
-", IF(INSTR(l.FDetails,'Normtext ""'),MID(l.FDetails,INSTR(l.FDetails,'Normtext ""')+LENGTH('Normtext ""'),INSTR(SUBSTRING_INDEX(l.FDetails,'Normtext ""',-1),'""')-1),IF(INSTR(l.FDetails,'Normwertog ')<>0,CONCAT('0-',MID(l.FDetails,INSTR(l.FDetails,'Normwertog ')+LENGTH('Normwertog '),INSTR(SUBSTRING_INDEX(l.FDetails,'Normwertog ',-1),'"")')-0)),IF(INSTR(l.FDetails,'Normwertug ')<>0,CONCAT(MID(l.FDetails,INSTR(l.FDetails,'Normwertug ')+LENGTH('Normwertug '),INSTR(SUBSTRING_INDEX(l.FDetails,'Normwertug ',-1),'"")')-0),'-'),''))) Normtext" & vbCrLf & _
-", IF(INSTR(FDetails,'Testhinweis'),MID(FDetails,LOCATE('Testhinweis',FDetails)+LENGTH('Testhinweis')+2,LOCATE('""',REPLACE(FDetails,'\""','\'''),LOCATE('Testhinweis',FDetails)+LENGTH('Testhinweis')+2)-LOCATE('Testhinweis',FDetails)-LENGTH('Testhinweis')-2),'') Testhinweis" & vbCrLf & _
-", IF(INSTR(FDetails,'Etext'),MID(FDetails,LOCATE('Etext',FDetails)+LENGTH('Etext')+2,LOCATE('""',FDetails,LOCATE('Etext',FDetails)+LENGTH('Etext')+2)-LOCATE('Etext',FDetails)-LENGTH('Etext')-2),'') Etext" & vbCrLf & _
+", REPLACE(IF(INSTR(FDetails,'Testid'),MID(FDetails,LOCATE('Testid',FDetails)+LENGTH('Testid')+2,LOCATE('""',REPLACE(FDetails,'\""','\'''),LOCATE('Testid',FDetails)+LENGTH('Testid')+2)-LOCATE('Testid',FDetails)-LENGTH('Testid')-2),''),'''','\''') testid" & vbCrLf & _
+", REPLACE(IF(IF(INSTR(l.FDetails,'Testname ""'),MID(l.FDetails,INSTR(l.FDetails,'Testname ""')+LENGTH('Testname ""'),INSTR(SUBSTRING_INDEX(l.FDetails,'Testname ""',-1),'""')-1),'')<>'',IF(INSTR(l.FDetails,'Testname ""')<>0,MID(l.FDetails,INSTR(l.FDetails,'Testname ""')+LENGTH('Testname ""'),INSTR(SUBSTRING_INDEX(l.FDetails,'Testname ""',-1),'""')-1),''),IF(INSTR(l.FDetails,'(Text ""')<>0,MID(l.FDetails,INSTR(l.FDetails,'(Text ""')+LENGTH('(Text ""'),INSTR(SUBSTRING_INDEX(l.FDetails,'(Text ""',-1),'""')-1),'')),'''','\''') Testname" & vbCrLf & _
+", REPLACE(IF(INSTR(l.FDetails,'Einheit ""'),MID(l.FDetails,INSTR(l.FDetails,'Einheit ""')+LENGTH('Einheit ""'),INSTR(SUBSTRING_INDEX(l.FDetails,'Einheit ""',-1),'""')-1),''),'''','\''') Einheit" & vbCrLf & _
+", REPLACE(IF(INSTR(l.FDetails,'Ewert '),MID(l.FDetails,INSTR(l.FDetails,'Ewert ')+LENGTH('Ewert '),INSTR(SUBSTRING_INDEX(l.FDetails,'Ewert ',-1),')')-1),''),'''','\''') EWert" & vbCrLf & _
+", REPLACE(IF(INSTR(l.FDetails,'Normtext ""'),MID(l.FDetails,INSTR(l.FDetails,'Normtext ""')+LENGTH('Normtext ""'),INSTR(SUBSTRING_INDEX(l.FDetails,'Normtext ""',-1),'""')-1),IF(INSTR(l.FDetails,'Normwertog ')<>0,CONCAT('0-',MID(l.FDetails,INSTR(l.FDetails,'Normwertog ')+LENGTH('Normwertog '),INSTR(SUBSTRING_INDEX(l.FDetails,'Normwertog ',-1),'"")')-0)),IF(INSTR(l.FDetails,'Normwertug ')<>0,CONCAT(MID(l.FDetails,INSTR(l.FDetails,'Normwertug ')+LENGTH('Normwertug '),INSTR(SUBSTRING_INDEX(l.FDetails,'Normwertug ',-1),'"")')-0),'-'),''))),'''','\''') Normtext" & vbCrLf & _
+", REPLACE(IF(INSTR(FDetails,'Testhinweis'),MID(FDetails,LOCATE('Testhinweis',FDetails)+LENGTH('Testhinweis')+2,LOCATE('""',REPLACE(FDetails,'\""','\'''),LOCATE('Testhinweis',FDetails)+LENGTH('Testhinweis')+2)-LOCATE('Testhinweis',FDetails)-LENGTH('Testhinweis')-2),''),'''','\''') Testhinweis" & vbCrLf & _
+", REPLACE(IF(INSTR(FDetails,'Etext'),MID(FDetails,LOCATE('Etext',FDetails)+LENGTH('Etext')+2,LOCATE('""',REPLACE(FDetails,'\""','\'''),LOCATE('Etext',FDetails)+LENGTH('Etext')+2)-LOCATE('Etext',FDetails)-LENGTH('Etext')-2),''),'''','\''') Etext" & vbCrLf & _
 ", l.*" & vbCrLf & _
 ", na.FUsername ua, nb.FUsername ub" & vbCrLf & _
 " FROM ltag l" & vbCrLf & _
@@ -1551,9 +1587,9 @@ sql = sql & _
   syscmd 4, "bearbeite Leistungen"
 '  Leistungen
   sql = "SELECT 18900101+INTERVAL FDatum DAY+INTERVAL FZeit SECOND Zp, MID(18900101+INTERVAL FDatum DAY+INTERVAL FZeit SECOND,12,5) uhrz, FICdcode Art," & _
-  "COALESCE(REPLACE(MID(FDetails,INSTR(FDetails,'ext ""')+5,LENGTH(FDetails)-2-INSTR(FDetails,'ext ""')-5),'\n','; '),FText) FText," & _
+  "REPLACE(COALESCE(REPLACE(MID(FDetails,INSTR(FDetails,'ext ""')+5,LENGTH(FDetails)-2-INSTR(FDetails,'ext ""')-5),'\n','; '),FText),'''','\''') FText," & _
   "FEintragsart, 18900101+INTERVAL FAnorddatum DAY+INTERVAL FAnordzeit SECOND AnZp," & _
-  "na.Finitialen ua, nb.finitialen ub, REPLACE(REPLACE(FDetails,'{(Gnrliste [',''),'])}','') Lei " & _
+  "COALESCE(na.FInitialen,'') ua, COALESCE(nb.FInitialen,'') ub, REPLACE(REPLACE(REPLACE(FDetails,'{(Gnrliste [',''),'])}',''),'''','\''') Lei " & _
   "FROM ltag l " & vbCrLf & _
   "LEFT JOIN nutzerneu na ON FAnordnutzernr= na.FSurogat " & _
   "LEFT JOIN nutzerneu nb ON FAusfnutzernr= nb.FSurogat " & _
@@ -1582,7 +1618,7 @@ sql = sql & _
           rLe(UBound(rLe)).LUhrz = rsEi!Uhrz
           rLe(UBound(rLe)).Ersteller = rsEi!ua
           rLe(UBound(rLe)).Änderer = rsEi!ub
-       End If ' GKT = 1 Then
+         End If ' GKT = 1 Then
         End If ' Not ia Then
       Case "}": If Not ia Then GKT = GKT - 1
       Case "[": If Not ia Then EKT = EKT + 1
@@ -1664,9 +1700,9 @@ sql = sql & _
   syscmd 4, "bearbeite AUen"
 ' AU
   sql = "SELECT 18900101+INTERVAL FDatum DAY+INTERVAL FZeit SECOND Zp, FICdcode Art," & _
-  "COALESCE(REPLACE(MID(fdetails,INSTR(fdetails,'ext ""')+5,LENGTH(fdetails)-2-INSTR(fdetails,'ext ""')-5),'\n','; '),FText) FText," & _
+  "REPLACE(COALESCE(REPLACE(MID(fdetails,INSTR(fdetails,'ext ""')+5,LENGTH(fdetails)-2-INSTR(fdetails,'ext ""')-5),'\n','; '),FText),'''','\''') FText," & _
   "FEintragsart, 18900101+INTERVAL FAnorddatum DAY+INTERVAL FAnordzeit SECOND AnZp," & _
-  "na.Finitialen ua, nb.finitialen ub, MID(ftext,4,1) Art, IF(MID(ftext,4,1)='E',MID(ftext,INSTR(ftext,' ')+1,8),'') von, MID(ftext,INSTR(ftext,'- ')+2,8) bis, MID(ftext,INSTR(ftext,': ')+2) diag " & _
+  "COALESCE(na.FInitialen,'') ua, COALESCE(nb.FInitialen,'') ub, MID(ftext,4,1) Art, IF(MID(ftext,4,1)='E',MID(ftext,INSTR(ftext,' ')+1,8),'') von, MID(ftext,INSTR(ftext,'- ')+2,8) bis, MID(ftext,INSTR(ftext,': ')+2) diag " & _
   "FROM ltag f " & vbCrLf & _
   "LEFT JOIN nutzerneu na ON FAnordnutzernr= na.FSurogat " & _
   "LEFT JOIN nutzerneu nb ON FAusfnutzernr= nb.FSurogat " & _
@@ -1696,7 +1732,7 @@ sql = sql & _
   ", REGEXP_REPLACE(FText,'^(?>[^0-9]|[4-9](?![0-9])|[0-2](?![0-9]{2}))*\b((?:[4-9][0-9]|[0-3][0-9]{2})(?:-[0-9]{2,3}){0,2}) */? *(?:über )?((?:[3-9][0-9]|[0-2][0-9]{2})(?:-[0-9]{2,3}){0,2})?(?:(?:[^PH]|H(?!F))*(?:Puls|P(?=[0-9 :.])|HF))?:? *([0-9]{1,3}(?:-[0-9]{2,3})?)? *(.*)','\1‡\2‡\3‡\4') Erg" & vbCrLf & _
   ", REGEXP_REPLACE(ftext,'^(?:[^l]|l(?!e))*(?:let?zten *(\d{1,3}))?.*$','\1') zahl" & vbCrLf & _
   ", FEintragsart, 18900101+INTERVAL FAnorddatum DAY+INTERVAL FAnordzeit SECOND AnZp" & vbCrLf & _
-  ", na.Finitialen ua, nb.finitialen ub " & vbCrLf & _
+  ", COALESCE(na.FInitialen,'') ua, COALESCE(nb.FInitialen,'') ub " & vbCrLf & _
   "FROM ltag f " & vbCrLf & _
   "LEFT JOIN nutzerneu na ON FAnordnutzernr= na.FSurogat " & vbCrLf & _
   "LEFT JOIN nutzerneu nb ON FAusfnutzernr= nb.FSurogat " & vbCrLf & _
@@ -1728,11 +1764,11 @@ sql = sql & _
   sql = "SELECT 18900101+INTERVAL FDatum DAY+INTERVAL FZeit SECOND Zp" & vbCrLf & _
   ", IF (FText RLIKE '^(\w+)#\1:', REGEXP_REPLACE(FText,'(\w+)#\1:.*','\1'),REGEXP_REPLACE(FICdcode,'(\w+)#\1','\1')) Art" & vbCrLf & _
   ", FDet, FICDCode, FEintragsart, 18900101+INTERVAL FAnorddatum DAY+INTERVAL FAnordzeit SECOND AnZp" & vbCrLf & _
-  ", na.Finitialen ua, nb.finitialen ub, l.FArztnr, FText, FDetails" & vbCrLf & _
+  ", COALESCE(na.FInitialen,'') ua, COALESCE(nb.FInitialen,'') ub, l.FArztnr, FText, FDetails" & vbCrLf & _
   ", REGEXP_REPLACE(FDet,'^(?>[^0-9]|[4-9](?![0-9])|[0-2](?![0-9]{2}))*\b((?:[4-9][0-9]|[0-3][0-9]{2})(?:-[0-9]{2,3}){0,2}) */? *(?:über )?((?:[3-9][0-9]|[0-2][0-9]{2})(?:-[0-9]{2,3}){0,2})?(?:(?:[^PH]|H(?!F))*(?:Puls|P(?=[0-9 :.])|HF))?:? *([0-9]{1,3}(?:-[0-9]{2,3})?)? *(.*)','\1‡\2‡\3‡\4') FArray" & vbCrLf & _
   ", REGEXP_REPLACE(FDet,'^(?:[^l]|l(?!e))*(?:let?zten *(\d{1,3}))?.*$','\1') zahl" & vbCrLf & _
   "FROM (" & vbCrLf & _
-  " SELECT IF(INSTR(FDetails,'text ""'),MID(FDetails,LOCATE('text',FDetails)+LENGTH('text')+2,LOCATE('""',FDetails,LOCATE('text',FDetails)+LENGTH('text')+2)-LOCATE('text',FDetails)-LENGTH('text')-2),FText) FDet, ltag.*" & vbCrLf & _
+  " SELECT REPLACE(IF(INSTR(FDetails,'text ""'),MID(FDetails,LOCATE('text',FDetails)+LENGTH('text')+2,LOCATE('""',REPLACE(FDetails,'\""','\'''),LOCATE('text',FDetails)+LENGTH('text')+2)-LOCATE('text',FDetails)-LENGTH('text')-2),FText),'''','\''') FDet, ltag.*" & vbCrLf & _
   " from ltag) l" & vbCrLf & _
   "LEFT JOIN nutzerneu na ON FAnordnutzernr = na.FSurogat" & vbCrLf & _
   "LEFT JOIN nutzerneu nb ON FAusfnutzernr = nb.FSurogat" & vbCrLf & _
@@ -1761,10 +1797,42 @@ sql = sql & _
 '     ReDim Preserve rVk(UBound(rVk) + 1)
 '    Else
     Select Case UCase$(art)
+     Case "ICON" ' Desktop-Notiz
+      ReDim Preserve rDe(UBound(rDe) + 1)
+      rDe(UBound(rDe)).Pat_ID = pid
+      rDe(UBound(rDe)).aktZeit = aktZeit
+      rDe(UBound(rDe)).Titel = rsEi!fdet
+      rDe(UBound(rDe)).erstZP = rsEi!Zp
+      If SafeArrayGetDim(aDesk) <> 0 Then
+       Dim k&
+       For k = 0 To UBound(aDesk)
+        If pNr = aDesk(k).Pat_ID And Format$(rDe(UBound(rDe)).erstZP, "yyyymmddhhmm") = Format$(aDesk(k).erstZP, "yyyymmddhhmm") Then
+'        And InStrB(rDe(UBound(rDe)).Titel, aDesk(k).Titel) <> 0 Then
+         rDe(UBound(rDe)).absPos = aDesk(k).absPos
+         rDe(UBound(rDe)).erstZP = aDesk(k).erstZP
+         rDe(UBound(rDe)).Titel = aDesk(k).Titel
+         rDe(UBound(rDe)).aktZeit = aDesk(k).aktZeit
+         rDe(UBound(rDe)).exoL = aDesk(k).exoL
+         rDe(UBound(rDe)).hideT = aDesk(k).hideT
+         rDe(UBound(rDe)).iconPath = aDesk(k).iconPath
+         rDe(UBound(rDe)).IDS = aDesk(k).IDS
+         rDe(UBound(rDe)).noteBkColor = aDesk(k).noteBkColor
+         rDe(UBound(rDe)).noteFgColor = aDesk(k).noteFgColor
+         rDe(UBound(rDe)).positionBottom = aDesk(k).positionBottom
+         rDe(UBound(rDe)).positionLeft = aDesk(k).positionLeft
+         rDe(UBound(rDe)).positionRight = aDesk(k).positionRight
+         rDe(UBound(rDe)).positionTop = aDesk(k).positionTop
+         rDe(UBound(rDe)).showAsNote = aDesk(k).showAsNote
+         rDe(UBound(rDe)).syncInfoList = aDesk(k).syncInfoList
+         rDe(UBound(rDe)).toolTipText = aDesk(k).toolTipText
+         rDe(UBound(rDe)).verankert = aDesk(k).verankert
+        End If
+       Next k
+      End If ' SafeArrayGetDim(aDesk) <> 0 Then
      Case "RR", "RRVGL"
       Call aufSplit(rsEi!FArray, "‡")
       Call RREintr
-      rRr(UBound(rRr)).RR = rsEi!FDet ' REPLACE$(rsEi!FArray, "‡", " ")
+      rRr(UBound(rRr)).RR = rsEi!fdet ' REPLACE$(rsEi!FArray, "‡", " ")
       If IsNumeric(Arra(0)) Then rRr(UBound(rRr)).RRsyst = Arra(0)
       If ArraInd > 0 Then If IsNumeric(Arra(1)) Then rRr(UBound(rRr)).RRdiast = Arra(1)
       If ArraInd > 1 Then rRr(UBound(rRr)).Puls = IIf(Arra(2) = "", 0, Arra(2))
@@ -1772,7 +1840,7 @@ sql = sql & _
       rRr(UBound(rRr)).Quelle = "MO"
       If rsEi!Zahl <> "" Then rRr(UBound(rRr)).RRzahl = rsEi!Zahl
 '      rInh = rsEi!FDet
-      rRr(UBound(rRr)).Bemerkung = rsEi!FDet
+      rRr(UBound(rRr)).Bemerkung = rsEi!fdet
       
 '      Debug.Print ""
 '      Debug.Print "FDet: " & rsEi!FDet
@@ -1795,23 +1863,23 @@ sql = sql & _
 '      If IsNumeric(Puls) Then rRr(UBound(rRr)).Puls = Puls
      Case Else
      'dmpreihe
-      If UCase$(art) = "TEXT" And InStrB(rsEi!FDet, "dokumentation") <> 0 And InStrB(rsEi!FText, "dmp") <> 0 Then
+      If UCase$(art) = "TEXT" And InStrB(rsEi!fdet, "dokumentation") <> 0 And InStrB(rsEi!FText, "dmp") <> 0 Then
        ReDim Preserve rDm(UBound(rDm) + 1)
        rDm(UBound(rDm)).aktZeit = aktZeit
        rDm(UBound(rDm)).Pat_ID = pid
        pos = InStr(rsEi!FArray, "#")
        If pos > 0 Then rDm(UBound(rDm)).Abk = Left$(rsEi!FArray, pos - 1)
-       rDm(UBound(rDm)).art = IIf(InStrB(rsEi!FDet, "Erst"), "ED", "FD")
-       rDm(UBound(rDm)).ausgedruckt = IIf(InStrB(rsEi!FDet, "ausgedruckt"), 1, 0)
+       rDm(UBound(rDm)).art = IIf(InStrB(rsEi!fdet, "Erst"), "ED", "FD")
+       rDm(UBound(rDm)).ausgedruckt = IIf(InStrB(rsEi!fdet, "ausgedruckt"), 1, 0)
        pos = 1
        Do
-        pneu = InStr(pos + 1, rsEi!FDet, "exportiert am")
+        pneu = InStr(pos + 1, rsEi!fdet, "exportiert am")
         If pneu = 0 Then Exit Do Else pos = pneu
        Loop
-       If pos > 1 Then rDm(UBound(rDm)).exportiert = CDate(Mid$(rsEi!FDet, pos + 14, 10))
+       If pos > 1 Then rDm(UBound(rDm)).exportiert = CDate(Mid$(rsEi!fdet, pos + 14, 10))
        rDm(UBound(rDm)).KarteiDatum = CDate(rsEi!Zp)
-       rDm(UBound(rDm)).obvoll = IIf(InStrB(rsEi!FDet, "vollständig"), 1, 0)
-       rDm(UBound(rDm)).Ok = IIf(InStrB(rsEi!FDet, "(ok"), 1, 0)
+       rDm(UBound(rDm)).obvoll = IIf(InStrB(rsEi!fdet, "vollständig"), 1, 0)
+       rDm(UBound(rDm)).Ok = IIf(InStrB(rsEi!fdet, "(ok"), 1, 0)
        rDm(UBound(rDm)).lanrid = rsEi!FArztnr
        rDm(UBound(rDm)).Nachname = rNa(0).Nachname
        rDm(UBound(rDm)).Vorname = rNa(0).Vorname
@@ -1825,7 +1893,8 @@ sql = sql & _
       rEi(UBound(rEi)).QT = ZQuart(rEi(UBound(rEi)).Zeitpunkt)
       rEi(UBound(rEi)).Ersteller = rsEi!ua
       rEi(UBound(rEi)).Änderer = rsEi!ub
-      rEi(UBound(rEi)).Inhalt = rsEi!FDet
+'      If InStrB(rsEi!fdet, "Lexotanil und") <> 0 Then Stop
+      rEi(UBound(rEi)).Inhalt = rsEi!fdet
       rEi(UBound(rEi)).absPos = IIf(neuart <> 0, -1, 1)
 '      If art = "usdm2" Then Stop
       If art <> "" Then
@@ -1838,6 +1907,7 @@ sql = sql & _
           If a1 = a2 Then
            rEi(UBound(rEi)).art = a1
            apos = InStr(rEi(UBound(rEi)).Inhalt, ":")
+'           If InStrB(rsEi!fdet, "Lexotanil und") <> 0 Then Stop
            rEi(UBound(rEi)).Inhalt = Trim$(Mid$(rEi(UBound(rEi)).Inhalt, apos + 1))
           End If ' a1 = a2 Then
          End If ' pos > 1 Then
@@ -1852,6 +1922,7 @@ sql = sql & _
        End If ' art = "TEXT" Then else
        If rEi(UBound(rEi)).art = "" Then rEi(UBound(rEi)).art = art
       End If ' art<>""
+'      If InStrB(rsEi!fdet, "Lexotanil und") <> 0 Then Stop
       If rEi(UBound(rEi)).art = "GEWICHT" And IsNumeric(rEi(UBound(rEi)).Inhalt) Then rEi(UBound(rEi)).Inhalt = rEi(UBound(rEi)).Inhalt & " kg"
       End If ' UCase$(art) = "TEXT" And InStrB(rsEi!fdetails, "dokumentation") <> 0 And InStrB(rsEi!fdetails, "dmp") <> 0 Then Else
     End Select ' ucase$(art)
@@ -1860,9 +1931,38 @@ sql = sql & _
    Loop ' while not rsEi.EOF
   End If ' Not rsEi.BOF Then
 
+  syscmd 4, "bearbeite Erinnerungen"
+' Erinnerungen => Desktop
+  sql = "SELECT 18900101+INTERVAL FDatum DAY datum, COALESCE(CONVERT(FMemo USING latin1),'') Fm, e.* FROM erinnerung e WHERE FPatnr = " & pNr
+  myFrag rsEi, sql, adOpenStatic, MOCon ' Einträge
+  If Not rsEi.BOF Then
+   Do While Not rsEi.EOF
+    ReDim Preserve rDe(UBound(rDe) + 1)
+    rDe(UBound(rDe)).Pat_ID = pid
+    rDe(UBound(rDe)).erstZP = rsEi!Datum
+    rDe(UBound(rDe)).Titel = rsEi!FText
+    If rsEi!fm <> "" Then
+     Call ParseMemo(rsEi!fm, FMem(), obDebug, "FMemo von fMemo aus Erinnerung")
+     For j = 0 To UBound(FMem)
+       Select Case FMem(j).ENr
+        Case "2.2.5" ' Datum
+         rDe(UBound(rDe)).erstZP = stzk(FMem(j).Text)
+        Case "2.2.6": ' Uhrzeit
+         'Debug.Print FMem(j).Text
+         rDe(UBound(rDe)).erstZP = rDe(UBound(rDe)).erstZP + Asc(Mid(FMem(j).Text, 1)) / 24 + Asc(Mid(FMem(j).Text, 2)) / 24 / 60
+'         rDe(UBound(rDe)).erstZP
+       End Select
+     Next j
+    End If ' rsEi!FMemo <> "" Then
+    rsEi.MoveNext
+   Loop ' while not rsEi.EOF
+  End If ' Not rsEi.BOF Then
+' Brief an Pat. => Patienteninfo kommt auch noch dazu
+' termin in zutun bzw. termin
+  
   syscmd 4, "bearbeite Diagnosen"
 ' Diagnosen
-  Dim rsDi As New ADODB.Recordset
+  Dim rsDi As New adodb.Recordset
 'myFrag rsFa, "SELECT f.fsurogat nix, COALESCE(CONVERT(f.FMemo USING latin1),'') Fm,CONCAT(f.fpatnr,', ',18900101 + INTERVAL f.fvon DAY,' - ',18900101 + INTERVAL f.fbis DAY) ueschr, f.*,a.FBezeichnung, le.FNachname FROM patfall f LEFT JOIN abrechner a ON f.FArztnr=a.FSurogat LEFT JOIN lstgerb le USING (FLstgerbnr) WHERE fpatnr=" & pNr & " ORDER BY FVon DESC", adOpenStatic, MOCon, adLockReadOnly
   sql = "WITH sel AS (SELECT fbehgrundnr from ltag WHERE fpatnr=" & pNr & " AND fbehgrundnr>0) " & _
   "SELECT FPatnr, 18900101 + INTERVAL FDatum DAY + INTERVAL FZeit SECOND Diagdat," & _
@@ -1915,8 +2015,8 @@ End Function ' doPatvonMO(pNr&, pid&)
 
 
 ' in MedOffTabZahl_Click (obsyst=true) und suchfi (obsyst=false)
-Public Function moausgeb(MOCon As ADODB.Connection, Tn$, obsyst%, Bedg$)
-  Dim rcol As New ADODB.Recordset, raen As New ADODB.Recordset
+Public Function moausgeb(MOCon As adodb.Connection, Tn$, obsyst%, Bedg$)
+  Dim rcol As New adodb.Recordset, raen As New adodb.Recordset
   Dim runde%, tr&, colN$, colZ&, cols$, c2s$, sql$, Prim$, MOSvr$, ausgb$
   Dim MeStr() As memoType
   Dim Wt() ' Werte
@@ -2039,8 +2139,8 @@ End Function ' moausgeb
 ' und aus Start(MOSuch)
 Public Function suchfi(pNr&, fI$, notObRlike%, mserv$)
  Dim altt$, gefu%, i&
- Dim rst As New ADODB.Recordset, rsu As New ADODB.Recordset, RsI As New ADODB.Recordset
- Dim MOCon As New ADODB.Connection
+ Dim rst As New adodb.Recordset, rsu As New adodb.Recordset, RsI As New adodb.Recordset
+ Dim MOCon As New adodb.Connection
  Dim D1$, fn$, ausgStr$, ausgTNr%
  D1 = "\\linux1\daten\down\suchfi_" & pNr & "_" & fI & "_" & mserv
  Open D1 For Output As #220
@@ -2094,8 +2194,8 @@ End Function ' suchfi(pNr&, fI$)
 ' nur zum Aufruf im Direktfenster
 Public Function suchal(fI$, Optional notObRlike%, Optional mserv$)
  Dim altt$, j&
- Dim rst As New ADODB.Recordset, rsu As New ADODB.Recordset
- Dim MOCon As New ADODB.Connection
+ Dim rst As New adodb.Recordset, rsu As New adodb.Recordset
+ Dim MOCon As New adodb.Connection
  Dim D1$
  D1 = "\\linux1\daten\down\suchal_" & fI & "_" & notObRlike & "_" & mserv
  Open D1 For Output As #318
