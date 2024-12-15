@@ -433,9 +433,9 @@ Public Function testfloat()
  cvptr = VarPtr(c)
  cptr = StrPtr(c)
  cvptr = VarPtr(c)
- Dim MOCon As New adodb.Connection
+ Dim MOCon As New ADODB.Connection
  MOCon.Open MOAnfStr & MoWServ
- Dim rt As New adodb.Recordset
+ Dim rt As New ADODB.Recordset
  rt.Open "select text from tmpmpatfall where patnr=53119 and enr='5.22'", MOCon, adOpenStatic, adLockReadOnly
 ' Debug.Print rt.Fields(0)
 ' CopyMemoryPtr VarPtr(d), VarPtr(rt.Fields(0)), 8
@@ -459,8 +459,8 @@ End Function ' stzk
 Public Function zeigmosystem(Optional obszn4%)
  Const obDebug% = True
  Dim Kat() As memoType, tKat() As memoType, Abl() As memoType, fAuft() As memoType, FMem() As memoType
- Dim rsMo As New adodb.Recordset
- Dim MOCon As New adodb.Connection
+ Dim rsMo As New ADODB.Recordset
+ Dim MOCon As New ADODB.Connection
  Dim j&
  Dim EintS As SortierEintr
  Dim EinL As New SortierListe
@@ -525,7 +525,7 @@ Public Function doPatvonMO(pNr&, Optional obmitFormularen%)
 '  pNr& = 68393  ' 69618 ' 63635 ' 67180 ' 63635 ' 64800 ' 69333 ' 68316 ' 65405 ' 45 ' 64659 ' 45 ' 69367 ' 69377 ' 53119 ' 51630 ' 105 ' 18 ' 246 ' 59152 ' 1394 ' 2112 ' 151 ' 225 '
  pid = pNr + pidoffs
  Static lfdfl&
- Dim rsNa As New adodb.Recordset, rsFa As New adodb.Recordset, rsMo As New adodb.Recordset
+ Dim rsNa As New ADODB.Recordset, rsFa As New ADODB.Recordset, rsMo As New ADODB.Recordset
  Dim FMem() As memoType ', Kat() As memoType, tKat() As memoType, Abl() As memoType, fAuft() As memoType
  Dim NaStr() As memoType, FaStr() As memoType, rsfaru%
  Dim EintS As SortierEintr
@@ -540,38 +540,38 @@ Public Function doPatvonMO(pNr&, Optional obmitFormularen%)
  Dim spal$
  spal = myEFrag("SELECT GROUP_CONCAT(COLUMN_NAME) FROM information_schema.columns c WHERE TABLE_NAME='desktop' AND table_catalog='def' AND TABLE_schema='quelle' AND column_key<>'PRI'", , , , , , 15000).Fields(0)
  myEFrag "INSERT INTO desktopkop(" & spal & ") SELECT " & REPLACE$(spal, "Pat_ID", "Pat_ID+" & CStr(pidoffs) & "") & " FROM desktop WHERE pat_id=" & pNr
- Dim rDesk As adodb.Recordset
+ Dim rdesk As ADODB.Recordset
  Dim aDesk() As desktop
- Set rDesk = myEFrag("SELECT CONCAT(tooltiptext,'\\n',titel) tit, d.* FROM desktop d WHERE pat_id=" & pNr & " ORDER BY erstZP", rAf)
- Do While Not rDesk.EOF
+ Set rdesk = myEFrag("SELECT CONCAT(tooltiptext,'\\n',titel) tit, d.* FROM desktop d WHERE pat_id=" & pNr & " ORDER BY erstZP", rAf)
+ Do While Not rdesk.EOF
   If SafeArrayGetDim(aDesk) Then ReDim Preserve aDesk(UBound(aDesk) + 1) Else ReDim aDesk(0)
-  aDesk(UBound(aDesk)).erstZP = rDesk!erstZP
-  aDesk(UBound(aDesk)).absPos = rDesk!absPos
-  aDesk(UBound(aDesk)).aktZeit = rDesk!aktZeit
-  aDesk(UBound(aDesk)).exoL = rDesk!exoL
-  aDesk(UBound(aDesk)).hideT = rDesk!hideT
-  aDesk(UBound(aDesk)).iconPath = rDesk!iconPath
-  aDesk(UBound(aDesk)).IDS = rDesk!IDS
-  aDesk(UBound(aDesk)).noteBkColor = rDesk!noteBkColor
-  aDesk(UBound(aDesk)).noteFgColor = rDesk!noteFgColor
+  aDesk(UBound(aDesk)).erstZP = rdesk!erstZP
+  aDesk(UBound(aDesk)).absPos = rdesk!absPos
+  aDesk(UBound(aDesk)).aktZeit = rdesk!aktZeit
+  aDesk(UBound(aDesk)).exoL = rdesk!exoL
+  aDesk(UBound(aDesk)).hideT = rdesk!hideT
+  aDesk(UBound(aDesk)).iconPath = rdesk!iconPath
+  aDesk(UBound(aDesk)).IDS = rdesk!IDS
+  aDesk(UBound(aDesk)).noteBkColor = rdesk!noteBkColor
+  aDesk(UBound(aDesk)).noteFgColor = rdesk!noteFgColor
   aDesk(UBound(aDesk)).Pat_ID = pid
-  aDesk(UBound(aDesk)).positionBottom = rDesk!positionBottom
-  aDesk(UBound(aDesk)).positionLeft = rDesk!positionLeft
-  aDesk(UBound(aDesk)).positionRight = rDesk!positionRight
-  aDesk(UBound(aDesk)).positionTop = rDesk!positionTop
-  aDesk(UBound(aDesk)).showAsNote = rDesk!showAsNote
-  aDesk(UBound(aDesk)).syncInfoList = rDesk!syncInfoList
-  aDesk(UBound(aDesk)).Titel = rDesk!tit
-  aDesk(UBound(aDesk)).toolTipText = rDesk!toolTipText
-  aDesk(UBound(aDesk)).verankert = rDesk!verankert
-  rDesk.MoveNext
+  aDesk(UBound(aDesk)).positionBottom = rdesk!positionBottom
+  aDesk(UBound(aDesk)).positionLeft = rdesk!positionLeft
+  aDesk(UBound(aDesk)).positionRight = rdesk!positionRight
+  aDesk(UBound(aDesk)).positionTop = rdesk!positionTop
+  aDesk(UBound(aDesk)).showAsNote = rdesk!showAsNote
+  aDesk(UBound(aDesk)).syncInfoList = rdesk!syncInfoList
+  aDesk(UBound(aDesk)).Titel = rdesk!tit
+  aDesk(UBound(aDesk)).toolTipText = rdesk!toolTipText
+  aDesk(UBound(aDesk)).verankert = rdesk!verankert
+  rdesk.MoveNext
  Loop
  Call LöschePat(pid)
 ' On Error Resume Next
 ' If obDebug Then FSO.DeleteFile parsemotxt
  On Error GoTo fehler
  Tinit
- Dim MOCon As New adodb.Connection
+ Dim MOCon As New ADODB.Connection
  If obszn4 Then
   MOCon.Open MOAnfStr & MoSzn4
  Else
@@ -584,7 +584,7 @@ Public Function doPatvonMO(pNr&, Optional obmitFormularen%)
  rsMo.Open sql, MOCon, adOpenStatic, adLockReadOnly
  If Not rsMo.BOF Then
   If rsMo!fm <> "" Then
-   Call ParseMemo(rsMo!fm, FMem(), obDebug, "FMemo von fMemo aus mosystem")
+   Call ParseMemo(rsMo!fm, FMem(), obDebug, "FMemo aus mosystem")
    For j = 0 To UBound(FMem)
     If FMem(j).ENr Like "*.2" And FMem(j).ENr <> "1.2" Then
      Set EintS = New SortierEintr
@@ -699,6 +699,7 @@ Public Function doPatvonMO(pNr&, Optional obmitFormularen%)
    
 '  Call MeStDruck(CStr(pNr), NaStr)
   
+    syscmd 4, "befülle Tabelle rfa"
 '  rsFa.Open "SELECT f.fsurogat nix, COALESCE(CONVERT(f.FMemo USING latin1),'') Fm,CONCAT(f.fpatnr,', ',18900101 + INTERVAL f.fvon DAY,' - ',18900101 + INTERVAL f.fbis DAY) ueschr, f.*,a.FBezeichnung, le.FNachname FROM patfall f LEFT JOIN abrechner a ON f.FArztnr=a.FSurogat LEFT JOIN lstgerb le USING (FLstgerbnr) WHERE fpatnr=" & pNr & " ORDER BY FVon DESC", MOCon, adOpenStatic, adLockReadOnly
  sql = "SELECT f.fsurogat nix, COALESCE(CONVERT(f.FMemo USING latin1),'') Fm" & vbCrLf & _
  ", CONCAT(f.fpatnr,', ',18900101 + INTERVAL f.fvon DAY,' - ',18900101 + INTERVAL f.fbis DAY) ueschr" & vbCrLf & _
@@ -736,7 +737,6 @@ Public Function doPatvonMO(pNr&, Optional obmitFormularen%)
       rFa(UBound(rFa)).KartBes = rsFa!FVorhanden
     End If
     
-    syscmd 4, "befülle Tabelle rfa"
 '    rFa(UBound(rFa)).lanrid = IIf(rsFa!FLstgerbnr = 3, 2, 1) ' 2 = Schade, 3 = Kothny
     rFa(UBound(rFa)).lanrid = IIf(InStrB(rsFa!FNachname, "Kothny") <> 0, 2, 1) ' 2 = Schade, 3 = Kothny
     Select Case rsFa!fscheintyp
@@ -868,7 +868,7 @@ Public Function doPatvonMO(pNr&, Optional obmitFormularen%)
        Case "3.3":            rNa(0).KarGen = FaStr(j).Text ' Kartentyp, 0, 2, 3
        Case "3.4":
             rFa(UBound(rFa)).lVorl = stzk(FaStr(j).Text)
-            rFa(UBound(rFa)).ausgst = rFa(UBound(rFa)).lVorl
+            rFa(UBound(rFa)).ausgst = rFa(UBound(rFa)).lVorl ' wird nachher ggf. von 10.7 überschrieben
 '            Call VorstellSetz(rFa(UBound(rFa)).lVorl)
        Case "4.2":            rFa(UBound(rFa)).VKNr = FaStr(j).Text
 '       Case "4.3":             ' Kostenträgergruppe BDT 2018, in Turbomed nicht in der Falldatei
@@ -905,9 +905,9 @@ Public Function doPatvonMO(pNr&, Optional obmitFormularen%)
        Case "5.24"
            rFa(UBound(rFa)).FaktLabor = stzd(FaStr(j).Text)
        Case "5.3" ' ?
-           Debug.Print stzd(FaStr(j).Text)
+           Debug.Print "rFa " & FaStr(j).ENr & ": " & stzd(FaStr(j).Text)
        Case "5.4" ' ? (identisch mit 5.3, nicht Rechnungsbetrag)
-           Debug.Print stzd(FaStr(j).Text)
+           Debug.Print "rFa " & FaStr(j).ENr & ": " & stzd(FaStr(j).Text)
 '       Case "5.26" ' Punktwert 5,82873
 '           Debug.Print stzd(FaStr(j).Text)
 '       Case "5.27" ' Punktwert 5,82873
@@ -937,8 +937,9 @@ Public Function doPatvonMO(pNr&, Optional obmitFormularen%)
             rFa(UBound(rFa)).ÜWNaN = han
             rFa(UBound(rFa)).ÜWTit = hatit
             rFa(UBound(rFa)).ÜWVor = hav
-       Case "10.7"
-           Debug.Print stzk(FaStr(j).Text)
+       Case "10.7" ' Ausstellungsdatum
+           rFa(UBound(rFa)).ausgst = stzk(FaStr(j).Text)
+'           Debug.Print "rFa " & FaStr(j).ENr & ": " & stzk(FaStr(j).Text)
        Case "10.8": rFa(UBound(rFa)).Verdacht = FaStr(j).Text
        Case "10.9": rFa(UBound(rFa)).Auftrag = FaStr(j).Text
 '       Case "10.10"   ' kommt selten vor, immer "0"
@@ -953,7 +954,7 @@ Public Function doPatvonMO(pNr&, Optional obmitFormularen%)
       End Select ' Case FaStr(j).enr
      Next j
 ' nicht übertragen:
-     Dim rhar As New adodb.Recordset
+     Dim rhar As New ADODB.Recordset
      Dim aktKVNr$
      sql = "SELECT farztnralt kvnr FROM earzt a" & vbCrLf & _
            "LEFT JOIN epraxis p ON p.FSurogat = a.FExtpraxisnr" & vbCrLf & _
@@ -968,7 +969,7 @@ Public Function doPatvonMO(pNr&, Optional obmitFormularen%)
        rFa(UBound(rFa)).ÜbWVKVNR = aktKVNr
        rFa(UBound(rFa)).Übwr = aktKVNr
        rFa(UBound(rFa)).ÜWNNr = aktKVNr
-       Dim uewv As New adodb.Recordset
+       Dim uewv As New ADODB.Recordset
        For j = 1 To 2
         myFrag uewv, "SELECT ID,Nachname,Vorname,Titel FROM ueberwvon WHERE kvnr=" & aktKVNr, adOpenStatic, DBCn
         If Not uewv Is Nothing Then
@@ -1012,7 +1013,7 @@ Public Function doPatvonMO(pNr&, Optional obmitFormularen%)
   Next j
   
   
-  Dim rsHa As New adodb.Recordset, rslue  As New adodb.Recordset
+  Dim rsHa As New ADODB.Recordset, rslue  As New ADODB.Recordset
   ' -34 Überweiser, -40 Hausarzt, -32 Arzt
   sql = "SELECT FArztnralt, FAdresse, FArztgruppe, a.FAnrede, FTitel, FArztnr, FNachname, FVorname, FRelationtyp,COALESCE(CONVERT(FAdresse,CHAR),'') Adr" & vbCrLf & _
       "FROM patrelation r " & vbCrLf & _
@@ -1057,7 +1058,7 @@ Public Function doPatvonMO(pNr&, Optional obmitFormularen%)
      If rslue.BOF Then
       sql = "INSERT INTO liuez(kvnr,namfachge,vorname,titelt,fachgruppe,strasse,plz,ort,telefon,fax,anrede,lanr,ursp,aktzeit) VALUES('" & _
            KVNr & "','" & NN & "','" & VN & "','" & rsHa!ftitel & "','" & rsHa!FArztgruppe & "','" & Str & " " & HsNr & "','" & plz & "','" & ort & "','" & tel & "','" & fax & "','" & IIf(InStrB(rsHa!fanrede, "Frau") <> 0, "Frau", "Herr") & "','" & rsHa!FArztnr & "','" & "MO" & "'," & DatFor_k(aktZeit) & ")"
-      Call myEFrag(sql, rAf, DBCn)
+      InsKorr DBCn, sql, rAf
      Else ' rslue.BOF Then
      ' Update
       If rslue!name <> NN Or rslue!Vorname <> VN Or rslue!titelt <> rsHa!ftitel Or rslue!fachgruppe <> rsHa!FArztgruppe Or rslue!strasse <> Str & " " & HsNr Or rslue!plz <> plz Or rslue!ort <> ort Or rslue!telefon <> tel Or rslue!fax <> fax Or rslue!anrede <> IIf(InStrB(rsHa!fanrede, "Frau") <> 0, "Frau", "Herr") Or rslue!Lanr <> rsHa!FArztnr Then
@@ -1125,7 +1126,7 @@ Public Function doPatvonMO(pNr&, Optional obmitFormularen%)
 '  Call rFaDump
   
   Dim rab() As Abrtyp
-  Dim rAbr As adodb.Recordset
+  Dim rAbr As ADODB.Recordset
   myFrag rAbr, "SELECT FSurogat,FBetriebsnr FROM abrechner", adOpenStatic, MOCon ' AU
   Do While Not rAbr.EOF
    If SafeArrayGetDim(rab) = 0 Then ReDim rab(0) Else ReDim Preserve rab(UBound(rab) + 1)
@@ -1135,7 +1136,7 @@ Public Function doPatvonMO(pNr&, Optional obmitFormularen%)
   Loop
 
   Dim art$, neuart%, a1$, a2$, apos&, abz%
-  Dim rsEi As New adodb.Recordset
+  Dim rsEi As New ADODB.Recordset
   Dim rFoNeu%, FormAbk$, FormBez$, lFormID&, i&, nextFormID&, rFm_Nr&
   Dim FoIDv& ' Pseudo-Foid
   Dim mt$, mdat$
@@ -1329,7 +1330,7 @@ Public Function doPatvonMO(pNr&, Optional obmitFormularen%)
       Next i ' = 1 To UBound(rFo)
 fgefunden:
       If rFoNeu And Not obmitFormularen Then
-       Dim rsf As adodb.Recordset
+       Dim rsf As ADODB.Recordset
        Call myFrag(rsf, "SELECT * FROM formulare WHERE Form_Abk='" & FormAbk & "' AND FormBez='" & FormBez & "' ORDER BY FormID", adOpenStatic)
        If Not rsf.BOF Then
         rFoNeu = 0
@@ -1635,6 +1636,8 @@ sql = sql & _
            rLe(UBound(rLe)).ArtdUs = REPLACE$(Inh, "ArtdUs: ", "")
           Case "5005"
            rLe(UBound(rLe)).LAnzl = Inh
+          Case "5006"
+           rLe(UBound(rLe)).LUhrz = Format(Inh, "##:##:##")
           Case "Lkz":
            Select Case Inh
             Case "K": rLe(UBound(rLe)).Lanr = "933284903"
@@ -1671,8 +1674,14 @@ sql = sql & _
              End If
             Next abz
            End If
+          Case "Kennzeichen_arzt_technik" ' "A"
+           rLe(UBound(rLe)).Kennzeichen_arzt_technik = Inh
+          Case "Auftragsschluessel" ' "EXP"
+           rLe(UBound(rLe)).Auftragsschluessel = Inh
+          Case "Auftragstext" ' experimenteller Auftrag
+           rLe(UBound(rLe)).Auftragstext = Inh
           Case Else
-           Debug.Print BDTz
+           Debug.Print "Leistungen: BDTz: " & BDTz & ": " & Inh
          End Select
          BDTz = ""
          Inh = ""
@@ -1962,19 +1971,19 @@ sql = sql & _
   
   syscmd 4, "bearbeite Diagnosen"
 ' Diagnosen
-  Dim rsDi As New adodb.Recordset
+  Dim rsDi As New ADODB.Recordset
 'myFrag rsFa, "SELECT f.fsurogat nix, COALESCE(CONVERT(f.FMemo USING latin1),'') Fm,CONCAT(f.fpatnr,', ',18900101 + INTERVAL f.fvon DAY,' - ',18900101 + INTERVAL f.fbis DAY) ueschr, f.*,a.FBezeichnung, le.FNachname FROM patfall f LEFT JOIN abrechner a ON f.FArztnr=a.FSurogat LEFT JOIN lstgerb le USING (FLstgerbnr) WHERE fpatnr=" & pNr & " ORDER BY FVon DESC", adOpenStatic, MOCon, adLockReadOnly
-  sql = "WITH sel AS (SELECT fbehgrundnr from ltag WHERE fpatnr=" & pNr & " AND fbehgrundnr>0) " & _
-  "SELECT FPatnr, 18900101 + INTERVAL FDatum DAY + INTERVAL FZeit SECOND Diagdat," & _
-  "CASE F4201 WHEN 1 THEN 'R' WHEN 2 THEN 'L' WHEN 3 THEN 'B' ELSE ' ' END Seite," & _
-  "CASE FKlasse MOD 15 WHEN 1 THEN 'V' WHEN 2 THEN 'G' WHEN 3 THEN 'Z' WHEN 4 THEN 'A' ELSE ' ' END Sich," & _
-  "CASE FKlasse div 15 WHEN 0 THEN 'H' ELSE 'N' END Kard," & _
-  "FIcdcode ICD, COALESCE(IF(RIGHT(FText,1)=0,LEFT(FText,LENGTH(FText)-1),FText),'') FText," & _
-  "CASE FStatus WHEN 1 THEN 'ak' WHEN 2 THEN 'an' WHEN 3 THEN 'hi' WHEN 4 THEN 'ab' WHEN 5 THEN 'da' ELSE ' ' END Stat," & _
-  "COALESCE(IF(RIGHT(FErlaeuterung,1)=0,LEFT(FErlaeuterung,LENGTH(FErlaeuterung)-1),FErlaeuterung),'') Zus, FNutzernr, FID, FAusnahme " & _
-  "FROM sel lt INNER JOIN behgrund b on lt.fbehgrundnr=b.FSurogat " & _
-  "WHERE NOT EXISTS (SELECT bi.* FROM sel lti INNER JOIN behgrund bi ON lti.fbehgrundnr=bi.FSurogat " & _
-  "  WHERE ficdcode=b.ficdcode AND ftext=b.ftext AND fklasse=b.FKlasse AND f4201=b.f4201 AND ((fstatus IN(1,5)AND b.fstatus IN(2,3,4))OR(fstatus=b.fstatus AND fsurogat>b.fsurogat))" & _
+  sql = "WITH sel AS (SELECT fbehgrundnr from ltag WHERE fpatnr=" & pNr & " AND fbehgrundnr>0)" & vbCrLf & _
+  "SELECT FPatnr, 18900101 + INTERVAL FDatum DAY + INTERVAL FZeit SECOND Diagdat," & vbCrLf & _
+  "CASE F4201 WHEN 1 THEN 'R' WHEN 2 THEN 'L' WHEN 3 THEN 'B' ELSE ' ' END Seite," & vbCrLf & _
+  "CASE FKlasse MOD 15 WHEN 1 THEN 'V' WHEN 2 THEN 'G' WHEN 3 THEN 'Z' WHEN 4 THEN 'A' ELSE ' ' END Sich," & vbCrLf & _
+  "CASE FKlasse div 15 WHEN 0 THEN 'H' ELSE 'N' END Kard," & vbCrLf & _
+  "FIcdcode ICD, COALESCE(IF(RIGHT(FText,1)=0,LEFT(FText,LENGTH(FText)-1),FText),'') FText," & vbCrLf & _
+  "CASE FStatus WHEN 1 THEN 'ak' WHEN 2 THEN 'an' WHEN 3 THEN 'hi' WHEN 4 THEN 'ab' WHEN 5 THEN 'da' ELSE ' ' END Stat," & vbCrLf & _
+  "COALESCE(IF(RIGHT(FErlaeuterung,1)=0,LEFT(FErlaeuterung,LENGTH(FErlaeuterung)-1),FErlaeuterung),'') Zus, FNutzernr, FID, FAusnahme" & vbCrLf & _
+  "FROM sel lt INNER JOIN behgrund b on lt.fbehgrundnr=b.FSurogat" & vbCrLf & _
+  "WHERE NOT EXISTS (SELECT bi.* FROM sel lti INNER JOIN behgrund bi ON lti.fbehgrundnr=bi.FSurogat" & vbCrLf & _
+  "  WHERE ficdcode=b.ficdcode AND ftext=b.ftext AND fklasse=b.FKlasse AND f4201=b.f4201 AND ((fstatus IN(1,5)AND b.fstatus IN(2,3,4))OR(fstatus=b.fstatus AND fsurogat>b.fsurogat))" & vbCrLf & _
   ");"
   myFrag rsDi, sql, adOpenStatic, MOCon
   If Not rsDi.BOF Then
@@ -1993,11 +2002,48 @@ sql = sql & _
     rsDi.MoveNext
    Loop
   End If ' Not rsDi.BOF Then
+  
+  syscmd 4, "bearbeite Termine und Zutunliste"
+' Termine und Zutunlisten
+  sql = "SELECT 18900101 + INTERVAL t.FDatumvon DAY + INTERVAL t.FZeitvon SECOND ab," & vbCrLf & _
+        "18900101 + INTERVAL t.FDatumbis DAY + INTERVAL t.FZeitbis SECOND bis," & vbCrLf & _
+        "t.fbemerkung, COALESCE(CONVERT(t.FMemo USING latin1),'') Memo" & vbCrLf & _
+        ", tz.fname, IF(tz.fvorlauf=-32767,0,tz.FVorlauf)TArt, tz.ftyp, t.*, tz.*" & vbCrLf & _
+        "FROM termin t" & vbCrLf & _
+        "LEFT JOIN tzone tz ON t.FZonenid=tz.FSurogat" & vbCrLf & _
+        "WHERE fpatnr = " & pNr & vbCrLf & _
+        "ORDER BY ab,bis;"
+  myFrag rsEi, sql, adOpenStatic, MOCon
+  If Not rsEi.BOF Then
+   sql = ""
+   myEFrag "DELETE FROM termine WHERE pid = " & pid
+   Do While Not rsEi.EOF
+    Dim behgr$
+    behgr = ""
+    If rsEi!memo <> "" Then
+     Call ParseMemo(rsEi!memo, FMem(), obDebug, "FMemo von Termine aus mosystem")
+     For j = 0 To UBound(FMem)
+      Select Case FMem(j).ENr
+       Case "20": behgr = FMem(j).Text ' Straße
+      End Select
+     Next j
+    End If ' rsMo!fm <> "" Then
+    If sql = "" Then
+     sql = "INSERT INTO termine(pid,zp,raum,zusatz,FVorlauf,aktzeit)VALUES"
+    Else ' sql = "" Then
+     sql = sql & ","
+    End If ' sql = "" Then
+    sql = sql & "(" & pid & ",'" & rsEi!ab & "','" & rsEi!FName & "','" & rsEi!FBemerkung & IIf(behgr = "", "", "; " & behgr) & "'," & rsEi!tart & ",'" & Format(aktZeit, "yyyy-mm-dd HH:MM:SS") & "')"
+    rsEi.MoveNext
+   Loop
+   InsKorr DBCn, sql, rAf
+  End If ' Not rsEi.BOF Then
   Call alleSpeichern(lies, vonMo:=True)
   syscmd 4, "Fertig mit doPatvonMO " & pNr & " auf '" & MOCon.Properties("Server Name") & "'"
  Else
   syscmd 4, "doPatvonMO: " & pNr & " nicht in patstamm auf '" & MOCon.Properties("Server Name") & "' gefunden!"
  End If '  If Not rsNa.BOF Then
+ 
  Exit Function
 fehler:
  Dim AnwPfad$
@@ -2015,8 +2061,8 @@ End Function ' doPatvonMO(pNr&, pid&)
 
 
 ' in MedOffTabZahl_Click (obsyst=true) und suchfi (obsyst=false)
-Public Function moausgeb(MOCon As adodb.Connection, Tn$, obsyst%, Bedg$)
-  Dim rcol As New adodb.Recordset, raen As New adodb.Recordset
+Public Function moausgeb(MOCon As ADODB.Connection, Tn$, obsyst%, Bedg$)
+  Dim rcol As New ADODB.Recordset, raen As New ADODB.Recordset
   Dim runde%, tr&, colN$, colZ&, cols$, c2s$, sql$, Prim$, MOSvr$, ausgb$
   Dim MeStr() As memoType
   Dim Wt() ' Werte
@@ -2139,8 +2185,8 @@ End Function ' moausgeb
 ' und aus Start(MOSuch)
 Public Function suchfi(pNr&, fI$, notObRlike%, mserv$)
  Dim altt$, gefu%, i&
- Dim rst As New adodb.Recordset, rsu As New adodb.Recordset, RsI As New adodb.Recordset
- Dim MOCon As New adodb.Connection
+ Dim rst As New ADODB.Recordset, rsu As New ADODB.Recordset, RsI As New ADODB.Recordset
+ Dim MOCon As New ADODB.Connection
  Dim D1$, fn$, ausgStr$, ausgTNr%
  D1 = "\\linux1\daten\down\suchfi_" & pNr & "_" & fI & "_" & mserv
  Open D1 For Output As #220
@@ -2194,8 +2240,8 @@ End Function ' suchfi(pNr&, fI$)
 ' nur zum Aufruf im Direktfenster
 Public Function suchal(fI$, Optional notObRlike%, Optional mserv$)
  Dim altt$, j&
- Dim rst As New adodb.Recordset, rsu As New adodb.Recordset
- Dim MOCon As New adodb.Connection
+ Dim rst As New ADODB.Recordset, rsu As New ADODB.Recordset
+ Dim MOCon As New ADODB.Connection
  Dim D1$
  D1 = "\\linux1\daten\down\suchal_" & fI & "_" & notObRlike & "_" & mserv
  Open D1 For Output As #318

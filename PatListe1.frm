@@ -359,7 +359,7 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
 Option Explicit
-Public pRs As ADODB.Recordset ' zugewiesen in Tabausgeb, verwendet in TabAusFüll
+Public pRs As adodb.Recordset ' zugewiesen in Tabausgeb, verwendet in TabAusFüll
 Public hlese As Lese
 Public AnfCode%
 Public labxtb$
@@ -517,7 +517,7 @@ Const MFGLabCols% = 9
 Dim MFGCW&(), MFGTopRow&, MFGRow&, MFGLeftCol&, MFGCol&, MFGLabSort%
 Public obMitZähler% ' 0 = ohne Zähler, 1 = mit Zähler
 Dim obPidSp%
-Dim rDPat As New ADODB.Recordset
+Dim rDPat As New adodb.Recordset
 Private Declare Function ShellExecute Lib "shell32.dll" _
         Alias "ShellExecuteA" (ByVal hwnd As Long, ByVal _
         lpOperation As String, ByVal lpFile As String, ByVal _
@@ -576,7 +576,7 @@ End Sub ' TabAusFüll()
 
 ' in Form_Load
 Private Sub DMPFüll() ' für: Alle &DMP-Dokumente an Hausärzte faxen ' s. DMP_Dokumente_an_HA_Nachweis_Click
- Dim rs0 As New ADODB.Recordset, rs1 As New ADODB.Recordset, sql0$, sql1$, i&
+ Dim rs0 As New adodb.Recordset, rs1 As New adodb.Recordset, sql0$, sql1$, i&
  
  Static gafehler%
  On Error GoTo fehler
@@ -630,7 +630,7 @@ sql0 = "SELECT COUNT(0) Zahl, i.* FROM (SELECT n.getha0 ÜWNNR, h.fax, h.Anrede, 
    PatZuHAS.obDMPInfo = -rs0!obDMPInfo
    PatZuHAS.gewählt = -rs0!obDMPInfo
    PatZuHAS.name = rs0!name
-   PatZuHAS.Pat_id = rs0!Pat_id
+   PatZuHAS.Pat_ID = rs0!Pat_ID
    PatZuHAS.ÜwNm = rs0!Adressat
    PatZuHAS.ÜWNr = rs0!ÜWNNr
    PatZuHASL.sCAdd PatZuHAS
@@ -746,16 +746,16 @@ Sub doStart() 'DMP-Infos an Hausärzte faxen starten
 '          IF aktPatGefaxt(j) = fax1 THEN obdoppelt = True
 '         Next j
          If Not obdoppelt Then
-          syscmd 4, "Erstelle: " & " " & PatZuHASL.Item(i).Pat_id & " " & PatZuHASL.Item(i).name & " " & fax1 & " " & PatZuHASL.Item(i).ÜWNr
+          syscmd 4, "Erstelle: " & " " & PatZuHASL.Item(i).Pat_ID & " " & PatZuHASL.Item(i).name & " " & fax1 & " " & PatZuHASL.Item(i).ÜWNr
 '          IF runde = 1 THEN
 '          Else
 '           IF pat_id = 1974 THEN
            anfang = True
 '           END IF
            If anfang Then
-            Call Ausgeb(PatZuHASL.Item(i).Pat_id & ": " & PatZuHASL.Item(i).name & ", " & fax1 & ", " & PatZuHASL.Item(i).ÜWNr)
+            Call Ausgeb(PatZuHASL.Item(i).Pat_ID & ": " & PatZuHASL.Item(i).name & ", " & fax1 & ", " & PatZuHASL.Item(i).ÜWNr)
             DoEvents
-            docName = do_DMPAusgebStandAlone(PatZuHASL.Item(i).Pat_id, fax1, ÜwNm)
+            docName = do_DMPAusgebStandAlone(PatZuHASL.Item(i).Pat_ID, fax1, ÜwNm)
            End If ' 1 = 0
            aktPatGefaxt(UBound(aktPatGefaxt)) = fax1
            ReDim Preserve aktPatGefaxt(UBound(aktPatGefaxt) + 1)
@@ -895,10 +895,12 @@ Sub GesZF()
  MsgBox "Fertig mit DMP gesamt!"
 End Sub ' GesZF
 
+' Command1_Click
 Sub aktFS()
  Call doFS(False)
 End Sub ' aktFS
 
+' Command1_Click
 Sub alleFS()
  Dim pCol As New Collection, i&, zeile
 ' Dim altCol&, altRow& ' evtl. zu streichen 19.4.10
@@ -925,6 +927,7 @@ Sub alleFS()
  End Select
 End Sub ' alleFS
 
+' in Command1_Click, zurück
 Sub Auffrisch()
  Unload Me
  fgespei(MFGTyp) = 0
@@ -932,9 +935,9 @@ Sub Auffrisch()
 End Sub ' Auffrisch()
 
 Private Sub plz()
- Dim Pat_id$
- Pat_id = MFG.TextMatrix(MFG.Row, PIDSp)
- Call dodoplz(Pat_id, plzVz, Now, Now - Int(Now), True)
+ Dim Pat_ID$
+ Pat_ID = MFG.TextMatrix(MFG.Row, PIDSp)
+ Call dodoplz(Pat_ID, plzVz, Now, Now - Int(Now), True)
 End Sub ' Anleitung
 
 
@@ -1169,10 +1172,10 @@ End Sub ' Suchen
 Public Sub FertigStellen(zeile&, Optional nuranzeigen%, Optional PatID&) ' nachdem BDT-Datei(en) manuell importiert wurde(n)
  Const obStumm% = 0
  FNr = 11
- Dim VorDoku$, Pat_id&, dtyp%, rs As New Recordset
+ Dim VorDoku$, Pat_ID&, dtyp%, rs As New Recordset
 ' Dim aktDC AS DMPClass
  Dim j%
- Dim rTyp As New ADODB.Recordset
+ Dim rTyp As New adodb.Recordset
  On Error GoTo fehler
  With MFG
   .SetFocus
@@ -1180,16 +1183,16 @@ Public Sub FertigStellen(zeile&, Optional nuranzeigen%, Optional PatID&) ' nachd
   altr = zeile
 '  altC = .col
   If PatID <> 0 Then
-   Pat_id = PatID
+   Pat_ID = PatID
    myFrag rs, "SELECT quartal FROM `faelle` WHERE pat_id = " & PatID & " AND bhfb < NOW()- " & Verspätung & " ORDER BY bhfb DESC", , DBCn
   Else
    VorDoku = .TextMatrix(zeile, VorDokuSp)
-   Pat_id = .TextMatrix(zeile, PIDSp)
+   Pat_ID = .TextMatrix(zeile, PIDSp)
   End If
 '  .col = altC
  End With
 ' Call DMPAusgeb0(aktDC, Pat_id, Not obstumm)
- zwiFS Pat_id, nuranzeigen
+ zwiFS Pat_ID, nuranzeigen
  Exit Sub
 fehler:
  Dim AnwPfad$
@@ -1205,7 +1208,7 @@ fehler:
  End Select
 End Sub ' FertigStellen
 
-Sub zwiFS(Pat_id&, nuranzeigen%)
+Sub zwiFS(Pat_ID&, nuranzeigen%)
  Dim hnd&
  On Error GoTo fehler
  hnd = FensterHandle("TurboMed")
@@ -1231,7 +1234,7 @@ Sub zwiFS(Pat_id&, nuranzeigen%)
 '  Pause (Pausenlänge)
   SendKeys "p", True
   Pause (Pausenlänge)
-  SendKeys "{bs}" & Pat_id & "", True
+  SendKeys "{bs}" & Pat_ID & "", True
   
   Call doFS(nuranzeigen, True)
  End If
@@ -1453,7 +1456,7 @@ End Sub
 
 ' in Command1_Click(artPat)
 Public Sub dokuErstelle() ' Erstelle
- Dim VorDoku$, Pat_id&, NachN$, VorN$
+ Dim VorDoku$, Pat_ID&, NachN$, VorN$
  FNr = 15
  Select Case PLArt
  
@@ -1470,19 +1473,19 @@ Public Sub dokuErstelle() ' Erstelle
     alttop = .TopRow
     altr = .Row
     VorDoku = .TextMatrix(.Row, VorDokuSp)
-    Pat_id = .TextMatrix(.Row, PIDSp)
+    Pat_ID = .TextMatrix(.Row, PIDSp)
     NachN = .TextMatrix(.Row, NachNameSp)
     VorN = .TextMatrix(.Row, NachNameSp + 1)
     altC = .col
     .col = NachNameSp
-    Call callMachDMPBogen(Pat_id, NachN, VorN, .CellBackColor = vbWhite, .CellBackColor = HellRot, .TextMatrix(.Row, ICDSp))
+    Call callMachDMPBogen(Pat_ID, NachN, VorN, .CellBackColor = vbWhite, .CellBackColor = HellRot, .TextMatrix(.Row, ICDSp))
     .col = altC
    End With ' MFG
  End Select
 End Sub ' dokuErstelle
 
 ' in Command2_Click, GesZF, DokuBeliebig, dokuErstelle
-Public Sub callMachDMPBogen(Pat_id&, NachN$, VorN$, obtot%, obneu%, ICD$, Optional obmitauswahl%, Optional immeranhaeng%, Optional obStumm%, Optional Datei$)  ' Erstelle
+Public Sub callMachDMPBogen(Pat_ID&, NachN$, VorN$, obtot%, obneu%, ICD$, Optional obmitauswahl%, Optional immeranhaeng%, Optional obStumm%, Optional Datei$)  ' Erstelle
 ' Dim rTyp As New ADODB.Recordset
  Dim dmpba As New DMPBogenauswahl
  Dim dtyp%
@@ -1493,10 +1496,10 @@ Public Sub callMachDMPBogen(Pat_id&, NachN$, VorN$, obtot%, obneu%, ICD$, Option
  dtyp = Mid(ICD, 3, 1) + 1
 #If False Then
  If VorDoku = "" Then
-      Dim rDok As New ADODB.Recordset
+      Dim rDok As New adodb.Recordset
       Dim begcol%, j%, AktCol%, obraus%
 '      rDok.Open "SELECT `DokuDatum`, `Art`, `ausgedruckt`, `OK`, `exportiert` FROM `dmpreihe` dr WHERE pat_id = " & Pat_id & "  AND (dr.Abk LIKE 'eDMPDM%' OR dr.Abk LIKE 'DMPDTYP%') ORDER BY `DokuDatum` DESC", DBCn, adOpenDynamic, adLockReadOnly
-      myFrag rDok, "SELECT `DokuDatum`, `Art`, `ausgedruckt`, `OK`, `exportiert` FROM `dmpreihe` dr WHERE pat_id = " & Pat_id & "  AND (dr.Abk LIKE 'eDMPDM%' OR dr.Abk LIKE 'DMPDTYP%') ORDER BY `DokuDatum` DESC"
+      myFrag rDok, "SELECT `DokuDatum`, `Art`, `ausgedruckt`, `OK`, `exportiert` FROM `dmpreihe` dr WHERE pat_id = " & Pat_ID & "  AND (dr.Abk LIKE 'eDMPDM%' OR dr.Abk LIKE 'DMPDTYP%') ORDER BY `DokuDatum` DESC"
       If Not rDok.BOF Then
        begcol = VorDokuSp - 1
 '       IF ZQSort(NOW() - 120) > ZQSort(rDok!DokuDatum) THEN ' Now() - rDok!DokuDatum > 120 THEN ' 21. des übernä Monats
@@ -1543,14 +1546,14 @@ Public Sub callMachDMPBogen(Pat_id&, NachN$, VorN$, obtot%, obneu%, ICD$, Option
 '   Exit Sub
 '  Else
 '   dmpba.Caption = "Erstelle DMP-Bogen zu " & Pat_id & " (" & rs!n & ", " & rs!V & ")"
-   dmpba.Caption = "Erstelle DMP-Bogen zu " & Pat_id & " (" & NachN & ", " & VorN & ")"
+   dmpba.Caption = "Erstelle DMP-Bogen zu " & Pat_ID & " (" & NachN & ", " & VorN & ")"
    dmpba.DokuDatum = DokuDat
    dmpba.Show vbModal, Me
 '  BogArtVar = dmpba.Option1
    If BogArtVar = 0 Then Exit Sub
 '  End If
  End If ' obmitauswahl Then
- Call domachDMPBogen(Pat_id, BogArtVar, DokuDat, immeranhaeng, Not obmitauswahl, obStumm, Datei)
+ Call domachDMPBogen(Pat_ID, BogArtVar, DokuDat, immeranhaeng, Not obmitauswahl, obStumm, Datei)
 End Sub ' callMachDMPBogen(Pat_id&, Optional VorDoku$, Optional obmitauswahl%, optional immeranhaeng)
 
 
@@ -1616,8 +1619,8 @@ Private Sub Command2_Click()
     Input #388, erg
     pos = InStr(erg, "3000")
     If pos = 4 Then
-     Dim Pat_id$
-     Pat_id = Mid$(erg, pos + 4)
+     Dim Pat_ID$
+     Pat_ID = Mid$(erg, pos + 4)
 '     Debug.Print Pat_id
 #If True Then
      With MFG
@@ -1625,17 +1628,17 @@ Private Sub Command2_Click()
       altr = .Row
       altC = .col
       VorDoku = .TextMatrix(.Row, VorDokuSp)
-      Pat_id = .TextMatrix(.Row, PIDSp)
+      Pat_ID = .TextMatrix(.Row, PIDSp)
       NachN = .TextMatrix(.Row, NachNameSp)
       VorN = .TextMatrix(.Row, NachNameSp + 1)
       .col = NachNameSp
-      callMachDMPBogen CLng(Pat_id), NachN, VorN, .CellBackColor = vbWhite, .CellBackColor = HellRot, .TextMatrix(.Row, ICDSp), 0, True, True, Datei
+      callMachDMPBogen CLng(Pat_ID), NachN, VorN, .CellBackColor = vbWhite, .CellBackColor = HellRot, .TextMatrix(.Row, ICDSp), 0, True, True, Datei
       .col = altC
      End With ' MFG
      
 #Else
     ElseIf InStr(erg, "-Dokumentation Diabetes") > 0 Then
-     If Pat_id <> "" Then
+     If Pat_ID <> "" Then
       pos = InStr(10, erg, "Typ 2")
       Dim p2%
       p2 = InStr(erg, "Folge")
@@ -1650,13 +1653,13 @@ Private Sub Command2_Click()
        bog = typ2alt
       End If
        Dim pid&
-       pid = CLng(Pat_id)
+       pid = CLng(Pat_ID)
        Select Case pid
         Case 184, 349, 1445, 1259, 1510, 1954, 59884, 53126, 53381, 7822, 31850, 38909, 59693, 59649, 51594, 59492, 59487, 53617, 53619, 53895, 54045, 59347, 59347, 1530
         Case Else
-         domachDMPBogen CLng(Pat_id), bog, CDate(Now() - 1), True, True, True, Datei
+         domachDMPBogen CLng(Pat_ID), bog, CDate(Now() - 1), True, True, True, Datei
        End Select
-      Pat_id = ""
+      Pat_ID = ""
      End If
 #End If
      'machdmpbogen(pat_id,boga
@@ -1668,13 +1671,13 @@ End Sub ' Command2_Click()
 
 ' in callMachDMPBogen und auskommentiert in Command2_Click
 ' die Konstanten DokuVersion und Datenerfassung müssen jedes Quartal überprüft und ggf. geändert werden!
-Public Sub domachDMPBogen(Pat_id&, BogArtlV As BogArtTyp, DokuDat As Date, Optional immeranhaeng%, Optional autolanr%, Optional obStumm%, Optional Datei)  ' Erstelle
+Public Sub domachDMPBogen(Pat_ID&, BogArtlV As BogArtTyp, DokuDat As Date, Optional immeranhaeng%, Optional autolanr%, Optional obStumm%, Optional Datei)  ' Erstelle
  If Datei = "" Then Datei = uVerz & "tmimport\" & DMP_Import
  Const DokuVersion$ = "201410"
 ' Dim rsAnam As New ADODB.Recordset
 ' Dim rnam As New ADODB.Recordset
- Dim rfal As New ADODB.Recordset
- Dim rform As New ADODB.Recordset
+ Dim rfal As New adodb.Recordset
+ Dim rform As New adodb.Recordset
  Dim hnd&
  Dim aktDC As DMPClass, j%, pos%
 ' Dim RRsyst%, RRdiast%
@@ -1721,15 +1724,15 @@ Public Sub domachDMPBogen(Pat_id&, BogArtlV As BogArtTyp, DokuDat As Date, Optio
  End If ' LenB(erg) <> 0 Then
  Dim auswlanr As New LANRauswahl
  
- Dim rlanr As New ADODB.Recordset
+ Dim rlanr As New adodb.Recordset
  If autolanr Then
-  myFrag rlanr, "SELECT p.lanr FROM lanrpraxis p WHERE id = IF((SELECT MIN(lanrid) FROM faelle WHERE pat_id = " & Pat_id & " AND qanf = (SELECT MAX(qanf) FROM faelle WHERE pat_id = " & Pat_id & "))>0,(SELECT MIN(lanrid) FROM faelle WHERE pat_id = " & Pat_id & " AND qanf = (SELECT MAX(qanf) FROM faelle WHERE pat_id = " & Pat_id & ")),1)"
+  myFrag rlanr, "SELECT p.lanr FROM lanrpraxis p WHERE id = IF((SELECT MIN(lanrid) FROM faelle WHERE pat_id = " & Pat_ID & " AND qanf = (SELECT MAX(qanf) FROM faelle WHERE pat_id = " & Pat_ID & "))>0,(SELECT MIN(lanrid) FROM faelle WHERE pat_id = " & Pat_ID & " AND qanf = (SELECT MAX(qanf) FROM faelle WHERE pat_id = " & Pat_ID & ")),1)"
   If Not rlanr.BOF Then
    auswlanr.Lanr = rlanr!Lanr
    Set rlanr = Nothing
   End If
  Else ' autolanr Then
-  auswlanr.PrepPatid Pat_id
+  auswlanr.PrepPatid Pat_ID
   auswlanr.Show 1, Me
   auswlanr.Visible = False
   If auswlanr.Lanr = 0 Then Exit Sub
@@ -1741,11 +1744,11 @@ Public Sub domachDMPBogen(Pat_id&, BogArtlV As BogArtTyp, DokuDat As Date, Optio
 ' myFrag rsAnam, "SELECT * FROM `anamnesebogen` WHERE pat_id = " & Pat_id
 ' myFrag rnam, "SELECT * FROM `namen` WHERE pat_id = " & Pat_id
  Dim lVorl As Date
- myFrag rfal, "SELECT " & IIf(Not LVobMySQL, "top 1", "") & " * FROM `faelle` WHERE pat_id = " & Pat_id & " AND bhfb <= " & DatFor_k(MINvb(Now(), fctQEnd(ZQuart(Now() - Verspätung)))) & " ORDER BY bhfb DESC, schgr" & IIf(LVobMySQL, " LIMIT 1", "")
+ myFrag rfal, "SELECT " & IIf(Not LVobMySQL, "top 1", "") & " * FROM `faelle` WHERE pat_id = " & Pat_ID & " AND bhfb <= " & DatFor_k(MINvb(Now(), fctQEnd(ZQuart(Now() - Verspätung)))) & " ORDER BY bhfb DESC, schgr" & IIf(LVobMySQL, " LIMIT 1", "")
  lVorl = rfal!lVorl
- myFrag rform, "SELECT " & IIf(Not LVobMySQL, "top 1", "") & " `feldinh` FROM `formular` WHERE pat_id = " & Pat_id & " AND Feld = 'Kasse' AND `zeitpunkt` <= " & DatFor_k(MINvb(Now(), fctQEnd(ZQuart(Now - Verspätung)))) & " AND feldinh LIKE '%'" & " ORDER BY zeitpunkt DESC" & IIf(LVobMySQL, " LIMIT 1", "") ' & aktdc.vknr & "%'"  geht nicht gut: VKNr nicht unbedingt aktuell in `faelle` (s.Pat_id 51)
+ myFrag rform, "SELECT " & IIf(Not LVobMySQL, "top 1", "") & " `feldinh` FROM `formular` WHERE pat_id = " & Pat_ID & " AND Feld = 'Kasse' AND `zeitpunkt` <= " & DatFor_k(MINvb(Now(), fctQEnd(ZQuart(Now - Verspätung)))) & " AND feldinh LIKE '%'" & " ORDER BY zeitpunkt DESC" & IIf(LVobMySQL, " LIMIT 1", "") ' & aktdc.vknr & "%'"  geht nicht gut: VKNr nicht unbedingt aktuell in `faelle` (s.Pat_id 51)
 ' Ermittlung der 'Kasse' aus Rezepten oder Überweisungen oder vorherigen DMP-Dokus usw.
- Call DMPAusgeb0(aktDC, CStr(Pat_id), Not obStumm, , DokuDat) ' dort wird DMPString aufgerufen
+ Call DMPAusgeb0(aktDC, CStr(Pat_ID), Not obStumm, , DokuDat) ' dort wird DMPString aufgerufen
  Dim Kasse$
  If Not rform.BOF Then
   Kasse = rform!FeldInh ' Trim$(replace$(rform!FeldInh, aktdc.vknr, ""))
@@ -1776,7 +1779,7 @@ Public Sub domachDMPBogen(Pat_id&, BogArtlV As BogArtTyp, DokuDat As Date, Optio
  
  #Const zumdebug = 0
  #If zumdebug = 1 Then
-  Call DMPString$(Pat_id, aktDC, , , DokuDat, 0)
+  Call DMPString$(Pat_ID, aktDC, , , DokuDat, 0)
  #End If
  Call BDT.ImportFolderHerricht(hVerz, Mid(Datei, Len(Datei) - InStr(StrReverse(Datei), "\") + 2))
  
@@ -1786,7 +1789,7 @@ Public Sub domachDMPBogen(Pat_id&, BogArtlV As BogArtTyp, DokuDat As Date, Optio
   Call BDT.BDTKo2(auswlanr.Lanr)
  End If ' LenB(erg) = 0
  BDT.Satzart "6200" ' Falldaten
- BDT.PatID Pat_id
+ BDT.PatID Pat_ID
  If aktDC.NVorsatz <> "" Then
   BDT.NVorsatz aktDC.NVorsatz
  End If
@@ -1960,8 +1963,8 @@ Public Sub domachDMPBogen(Pat_id&, BogArtlV As BogArtTyp, DokuDat As Date, Optio
     BDT.FIAdd Mid$(ErstellDat, i + 1, 1)
    Next i
    Dim testvar$
-   testvar = Format(Pat_id, "0000000")
-   For i = 7 - Len(CStr(Pat_id)) To 6
+   testvar = Format(Pat_ID, "0000000")
+   For i = 7 - Len(CStr(Pat_ID)) To 6
     BDT.FFAdd "FallNummerDM" & DmT & "#" & i
     BDT.FIAdd Mid$(testvar, i + 1, 1)
    Next i
@@ -2097,7 +2100,7 @@ Public Sub domachDMPBogen(Pat_id&, BogArtlV As BogArtTyp, DokuDat As Date, Optio
    
    BDT.FFAdd "Ik"
 '   BDT.FIAdd "10" & rfal!IK    ' 1.1.15: Vorsatz von "10" empirisch bei PID 18613 ermittelt, in IK-Liste scheint es bei den DMP-Kassen 10 zu sein, bei LKK auch 11
-   Dim rik As New ADODB.Recordset, IKs$, ikname$, ikprae$
+   Dim rik As New adodb.Recordset, IKs$, ikname$, ikprae$
    myFrag rik, "SELECT ikprae,name FROM IKs WHERE ik = '" & aktDC.IK & "'"
    If Not rik.BOF Then
     ikprae = rik!ikprae
@@ -2288,8 +2291,8 @@ Public Sub domachDMPBogen(Pat_id&, BogArtlV As BogArtTyp, DokuDat As Date, Optio
    Dim publicID$
    Dim Zusatzdaten$, SuchStr$
    
-   Dim rDMP As New ADODB.Recordset
-   myFrag rDMP, "SELECT zusatzdaten z FROM dmpreihe WHERE pat_id = " & Pat_id & "  AND (Abk LIKE 'eDMPDM%' OR Abk LIKE 'DMPDTYP%') ORDER BY karteidatum"
+   Dim rDMP As New adodb.Recordset
+   myFrag rDMP, "SELECT zusatzdaten z FROM dmpreihe WHERE pat_id = " & Pat_ID & "  AND (Abk LIKE 'eDMPDM%' OR Abk LIKE 'DMPDTYP%') ORDER BY karteidatum"
    If Not rDMP.BOF Then
     Zusatzdaten = rDMP!z
     SuchStr = "<Patient><publicID>"
@@ -2336,7 +2339,7 @@ Public Sub domachDMPBogen(Pat_id&, BogArtlV As BogArtTyp, DokuDat As Date, Optio
    Set rik = Nothing
    
 ' Hier der KV-Bereich
-   Dim kvbereich$, rkvber As New ADODB.Recordset
+   Dim kvbereich$, rkvber As New adodb.Recordset
    myFrag rkvber, "SELECT kv FROM plz WHERE plz = " & aktDC.plz
    If rkvber.State = 0 Then
     kvbereich = "71"
@@ -2718,7 +2721,7 @@ Public Sub domachDMPBogen(Pat_id&, BogArtlV As BogArtTyp, DokuDat As Date, Optio
   Pause (Pausenlänge)
 '  SendKeys "p", True
 '  Pause (Pausenlänge)
-  SendKeys Pat_id & vNS, True
+  SendKeys Pat_ID & vNS, True
   Pause (Pausenlänge)
   SendKeys "{ENTER}", True
   Pause (1000)
@@ -2745,7 +2748,7 @@ Public Sub domachDMPBogen(Pat_id&, BogArtlV As BogArtTyp, DokuDat As Date, Optio
     dmpdat = Format$(MIN(fctQEnd(ZQuart(Now - Verspätung)), Now), "dd.mm.yy")
     dmpdatop = Format$(MIN(fctQEnd(ZQuart(Now - Verspätung)), Now), "ddmmyyyy")
     Dim DatName$, DNn$
-    DatName = pVerz & aktDC.Nachname & " " & aktDC.Vorname & " (PID" & aktDC.Pat_id & "), DMP-Formular vom " & dmpdat & ".pdf"
+    DatName = pVerz & aktDC.Nachname & " " & aktDC.Vorname & " (PID" & aktDC.Pat_ID & "), DMP-Formular vom " & dmpdat & ".pdf"
     DNn = Dir(DatName)
     If DNn <> "" Then Kill DatName
     DatName = REPLACE$(REPLACE$(DatName, "(", "{(}"), ")", "{)}")
@@ -2783,7 +2786,7 @@ End Sub ' domachDMPBogen
 Private Sub MFGrefresh()
  Dim i&
  Dim aicd$
- Dim rs As New ADODB.Recordset
+ Dim rs As New adodb.Recordset
  FNr = 18
  On Error GoTo fehler
  GruSp = 1
@@ -2899,8 +2902,8 @@ Public Sub ExcelLesen(Datei$) ' für PatListe Load (Laborwerte)
  Const XStra = "Provider=Microsoft.Jet.OLEDB.4.0;Data Source="
  Const XStrb = ";Extended Properties=""Excel 8.0;HDR=no;IMEX=1"""
  Dim rX As New ADOX.Catalog, sql$, ka%, ke%, runde%, angefangen%, obAnfang%, i&, rAf&
- Dim XCon As New ADODB.Connection
- Dim rEx As New ADODB.Recordset, rs As New ADODB.Recordset
+ Dim XCon As New adodb.Connection
+ Dim rEx As New adodb.Recordset, rs As New adodb.Recordset
  FNr = 19
  On Error GoTo fehler
  DBCnS = DBCn
@@ -2943,12 +2946,12 @@ End Sub ' ExcelLesen
 
 ' in Form_Load
 Sub LabordateiAnzeig(Datei$)
- Dim rs As New ADODB.Recordset, i&, vorDp$, pos&, rs1 As New ADODB.Recordset, j&, DateiDatStr$, sql$
+ Dim rs As New adodb.Recordset, i&, vorDp$, pos&, rs1 As New adodb.Recordset, j&, DateiDatStr$, sql$
  Dim pid&, vorPID&, gschl$, DateiDat As Date, vorFarbe&, Sp1Farbe&, vorDPneu$, vorEinh$
  Dim fdt$, buch$, altPatient$ ' FileDateTime
- Dim rs2 As New ADODB.Recordset
+ Dim rs2 As New adodb.Recordset
  Dim pide$  ' PID von Pat. gleichen Namens
- Dim rsgl As New ADODB.Recordset
+ Dim rsgl As New adodb.Recordset
  
  FNr = 20
  On Error GoTo fehler
@@ -2968,7 +2971,7 @@ Sub LabordateiAnzeig(Datei$)
  .TextMatrix(0, ficdsp) = "ICD"
  .TextMatrix(0, terminsp) = "Termine"
  .TextMatrix(0, labhwsp) = "Laborhinweise"
- Dim rc As New ADODB.Recordset
+ Dim rc As New adodb.Recordset
  myFrag rc, "SELECT COUNT(0) OVER() Zahl" & vbCrLf & _
  ",l.*,s.pat_id obsws, COALESCE(ityp,'') ityp, COALESCE(lp.langtext,l.parameter) lt" & vbCrLf & _
  "FROM labpatel p " & vbCrLf & _
@@ -2981,23 +2984,23 @@ Sub LabordateiAnzeig(Datei$)
  "ORDER BY l.pat_id,l.name,gruppe,reihe,id"
  '  ",IF(RANK() OVER(PARTITION BY pat_id ORDER BY l.pat_id,gruppe,reihe,id)=1,l.NAME,'') ueName" & vbCrLf & _
 
- Dim Pat_id&, dtyp$
+ Dim Pat_ID&, dtyp$
 
  If Not rc.BOF And True Then
   .Rows = rc!Zahl + 1
   i = 1
   Do While Not rc.EOF
-    If Not IsNull(rc!Pat_id) Then
-     Pat_id = rc!Pat_id
+    If Not IsNull(rc!Pat_ID) Then
+     Pat_ID = rc!Pat_ID
      dtyp = rc!ityp
-     If Pat_id <> vorPID Then vorFarbe = IIf(vorFarbe = vbWhite, vbGräulich, vbWhite) '&H8000000F&=vbgelblichgrau
+     If Pat_ID <> vorPID Then vorFarbe = IIf(vorFarbe = vbWhite, vbGräulich, vbWhite) '&H8000000F&=vbgelblichgrau
      Sp1Farbe = vorFarbe
      If dtyp = "1" Then Sp1Farbe = &HCCCCFF Else If dtyp = "2" Then Sp1Farbe = &HFFCCCC
      'If Not IsNull(rc!obsws) Then If dtyp = "1" Or dtyp = "2" Then Sp1Farbe = vbGoldenRod Else Sp1Farbe = 2139610 ' RGB(218, 165, 32)
      If Not IsNull(rc!obsws) Then Sp1Farbe = vbGoldenRod
-     vorPID = Pat_id
+     vorPID = Pat_ID
      .Row = i
-     .col = Pat_IDSp:    .Text = rc!Pat_id:      .CellBackColor = Abs(Sp1Farbe)
+     .col = Pat_IDSp:    .Text = rc!Pat_ID:      .CellBackColor = Abs(Sp1Farbe)
      .col = namsp:       .Text = rc!name:        .CellBackColor = rc!namsp
      .col = parsp:       .Text = rc!LT:          .CellBackColor = rc!wertsp
      .col = wertsp:      .Text = rc!Wert:        .CellBackColor = rc!wertsp
@@ -3125,7 +3128,7 @@ Sub LabordateiAnzeig(Datei$)
      myFrag rs2, "SELECT pat_id " & sql
      If Not rs2.EOF Then
       Do While Not rs2.EOF
-       pide = pide & IIf(pide = vNS, vNS, ",") & rs2!Pat_id
+       pide = pide & IIf(pide = vNS, vNS, ",") & rs2!Pat_ID
        rs2.MoveNext
       Loop
       Set rs2 = Nothing
@@ -3144,11 +3147,12 @@ Sub LabordateiAnzeig(Datei$)
     End If
 '    .TextMatrix(i, namsp) = .TextMatrix(i, namsp) & " (" & ROUND((NOW() - rs2!GebDat) * 2.73792574745373E-03, 0) & " a)" ' 1/365,24
     .TextMatrix(i, namsp) = .TextMatrix(i, namsp) & " (" & AlterBei(Now(), rs2!GebDat) & " a)"
-    pid = rs2!Pat_id
+    pid = rs2!Pat_ID
     gschl = rs2!geschlecht
     .TextMatrix(i, Pat_IDSp) = pid
-    Dim rTerm As ADODB.Recordset
-    myFrag rTerm, "SELECT COALESCE(TRIM(GROUP_CONCAT(CONCAT(DATE_FORMAT(zp,'%d.%m.%y'),' ',LEFT(raum,3)) ORDER BY zp SEPARATOR '  ')),'') term FROM termine t WHERE zp >= DATE(NOW()) AND pid = " & CStr(pid) & ";", adOpenStatic
+    Dim rTerm As adodb.Recordset
+    myFrag rTerm, "SELECT COALESCE(TRIM(GROUP_CONCAT(CONCAT(DATE_FORMAT(zp,'%d.%m.%y'),' ',LEFT(raum,3)) ORDER BY zp SEPARATOR '  ')),'') term " & vbCrLf & _
+                  "FROM termine t WHERE zp >= DATE(NOW()) AND pid = " & CStr(pid) & ";", adOpenStatic
     If Not rTerm.BOF And Not IsNull(rTerm!term) Then
      .TextMatrix(i, terminsp) = rTerm!term
     End If ' not rTerm.bof
@@ -3292,7 +3296,7 @@ andSp:
          .col = medsp
          .TextMatrix(i, medsp) = "Anämie!"
          If .TextMatrix(i, 0) <> "" Then
-         Dim radg As New ADODB.Recordset
+         Dim radg As New adodb.Recordset
          ' falls Anämie diagnostiziert
          Set radg = myEFrag("SELECT icd FROM `diagnosen` d WHERE d.pat_id = " & .TextMatrix(i, 0) & " AND d.diagtext LIKE '%anämie%' AND d.diagsicherheit NOT IN ('A','Z') AND d.obdauer<>0") ' AND COALESCE(d.Dggel,0)=0
  '        myEFrag "SET GROUP_CONCAT_MAX_LEN = 255"
@@ -3649,11 +3653,11 @@ Private Sub Form_Load()
      End If
      Me.MFG.Visible = True
     Case artHA ' Hausärzte korrigieren
-     Dim rHa As New ADODB.Recordset
+     Dim rHa As New adodb.Recordset
      sql = "SELECT"
     Case artpat ' DMP hier Liste
      Dim lfdnr&, cbcol&, k&
-     Dim rDok As New ADODB.Recordset
+     Dim rDok As New adodb.Recordset
     ' sql = "SELECT n.*, icd, kurzname FROM `namen` n LEFT JOIN `diagnosen` d ON n.pat_id = d.pat_id LEFT JOIN lfaelle f ON n.pat_id = f.pat_id LEFT JOIN `kassenliste` k ON k.ik = f.ik AND k.vknr = f.vknr WHERE notiz LIKE '%DMP hier%' AND (icd LIKE 'E1%' AND NOT icd LIKE 'E15%' AND NOT icd LIKE 'E16%') AND diagsicherheit NOT IN ('Z','A') AND NOT kurzname LIKE 'AOK%' ORDER BY n.pat_id"
 '     sql = "SELECT f.bhfb, notiz, obhierdmp, tkz, n.pat_id, n.nachname, n.vorname, icd, kurzname FROM `namen` n LEFT JOIN `diagnosen` d ON n.pat_id = d.pat_id LEFT JOIN (SELECT f.pat_id, f.fid, f.schgr, f.bhfb, f.ik, f.vknr, f.quartal FROM (SELECT * FROM (SELECT BhFB AS mbhfb, bhfe1, Pat_ID AS pid, quartal FROM `faelle` f WHERE bhfb < " & DatFor_k(min(NOW(), qend(ZQuart(NOW() - Verspätung)))) & " ORDER BY pid, bhfb DESC) l GROUP BY pid DESC) l LEFT JOIN `faelle` f ON f.pat_id = l.pid AND f.bhfb = l.mbhfb GROUP BY pat_id) f ON n.pat_id = f.pat_id LEFT JOIN `anamnesebogen` a ON n.pat_id = a.pat_id LEFT JOIN `kassenliste` k ON k.ik = f.ik AND k.vknr = f.vknr WHERE (notiz LIKE '%DMP hier%' OR obhierdmp) AND icd RLIKE '^E1[0-4]' AND diagsicherheit NOT IN ('Z','A') AND NOT ISNULL (f.bhfb) GROUP BY n.pat_id ORDER BY n.pat_id"
     ' sql = "SELECT n.*, icd, kurzname FROM `namen` n LEFT JOIN `diagnosen` d ON n.pat_id = d.pat_id LEFT JOIN lfaelle f ON n.pat_id = f.pat_id LEFT JOIN `kassenliste` k ON k.ik = f.ik AND k.vknr = f.vknr WHERE notiz LIKE '%DMP hier%' AND (icd LIKE 'E1%' AND NOT icd LIKE 'E15%' AND NOT icd LIKE 'E16%') AND diagsicherheit NOT IN ('Z','A') AND kurzname LIKE 'AOK%' ORDER BY n.pat_id"
@@ -3682,7 +3686,7 @@ Private Sub Form_Load()
       sql = "" & vbCrLf & _
       "SELECT i.*,COUNT(*) OVER() zahl FROM (" & vbCrLf & _
       " SELECT" & vbCrLf & _
-      " COALESCE(CONCAT(IF(qb>qbeg(qbeg(NOW() - INTERVAL " & Verspätung & " DAY) - INTERVAL 1 DAY),'',IF(qb>qbeg(qbeg(qbeg(NOW()- INTERVAL " & Verspätung & " DAY)- INTERVAL 1 DAY) -INTERVAL 1 DAY),',',',,'))," & vbCrLf & _
+      " COALESCE(CONCAT(IF(qb>qbeg(qbeg(NOW() - INTERVAL " & Verspätung & " DAY) - INTERVAL 1 DAY),'',IF(qb>qbeg(qbeg(qbeg(NOW()- INTERVAL " & Verspätung & " DAY)- INTERVAL 1 DAY) -INTERVAL 1 DAY),',',IF(qb>qbeg(qbeg(qbeg(qbeg(NOW()- INTERVAL " & Verspätung & " DAY)- INTERVAL 1 DAY) -INTERVAL 1 DAY) -INTERVAL 1 DAY),',,',',,,')))," & vbCrLf & _
       " GROUP_CONCAT(DISTINCT CONCAT(art,'_',DATE_FORMAT(dokudatum,'%d.%m.%y'),'_',IF(ok=1,'ok','__'),'_',IF(exportiert>20000101,'ex','__'))ORDER BY dokudatum DESC)),',,,') dokus" & vbCrLf & _
       " , i.* FROM (" & vbCrLf & _
       "  SELECT * FROM (" & vbCrLf & _
@@ -3702,8 +3706,9 @@ Private Sub Form_Load()
       "     AND (SDatum IS NULL OR SDatum=18991230 OR SDatum>qbeg(qbeg(NOW() - INTERVAL " & Verspätung & " DAY)- INTERVAL 1 DAY))" & vbCrLf & _
       "     AND NOT (f.bhfb<qbeg(qbeg(NOW() - INTERVAL " & Verspätung & " DAY)- INTERVAL 1 DAY) AND tkz)" & vbCrLf & _
       "     AND n.pat_id<" & pidoffs & "" & vbCrLf & _
+      "     AND bhfb> NOW() - INTERVAL 387 DAY" & vbCrLf & _
       "  ) i" & vbCrLf & _
-      "  HAVING rn<" & dokuzahl + 1 & " AND bhfb> NOW() - INTERVAL 387 DAY" & vbCrLf & _
+      "  HAVING rn<" & dokuzahl + 1 & vbCrLf & _
       " ) i" & vbCrLf & _
       " GROUP BY pat_id" & vbCrLf & _
       ") i" & vbCrLf & _
@@ -3719,7 +3724,7 @@ Private Sub Form_Load()
      myFrag rDPat, sql, adOpenStatic, DBCn, adLockReadOnly, 18 * dokuzahl ' Maximale Buchstabenzahl
      .Rows = rDPat!Zahl + 2
      Do While Not rDPat.EOF
-      pid = rDPat!Pat_id
+      pid = rDPat!Pat_ID
       BhFB = rDPat!BhFB
       dmpklass = rDPat!dmpklass
       Tkz = rDPat!Tkz
@@ -3839,7 +3844,7 @@ Private Sub Form_Load()
       dokus = Split(rDPat!dokus, ",")
       oberst = rDPat!oberst
       obraus = False
-      If dokus(0) = "" Then If dokus(1) = "" Then obraus = True
+      If dokus(0) = "" Then If dokus(1) = "" Then If dokus(2) = "" Then obraus = True ' 10.12.24: erweitert um dokus(2), da Pat. erst im übernächsten Quartal rausfliegen
       begcol = .col + 1
 '      If pid = 2169 Then Stop ' 926 Or pid = 2652 Then Stop
       For j = begcol To begcol + UBound(dokus)
@@ -3989,7 +3994,7 @@ End Sub ' zähleDMPPat()
 Sub AlleMark(ob%) ' Alle Markieren, alle Demarkieren
  Dim i&, sum&, j&, k&, übrig%, HaslZl&, rAf&
  Dim diffs$, diff&
- Dim rfax As New ADODB.Recordset
+ Dim rfax As New adodb.Recordset
  On Error GoTo fehler
  If ob < 2 Then
   For i = 1 To PatZuHASL.COUNT
@@ -4006,7 +4011,7 @@ Sub AlleMark(ob%) ' Alle Markieren, alle Demarkieren
   For i = 1 To PatZuHASL.COUNT
    If PatZuHASL.Item(i).gewählt <> 0 Then
 '    myFrag rfax, "SELECT docname, o.* FROM faxeinp.`outa` o WHERE docname LIKE '%pid " & PatZuHASL.Item(i).Pat_id & ", dmp-daten%' AND datediff(NOW(),submt) < " & Diff & " ORDER BY submt DESC"
-    myFrag rfax, "SELECT docname, o.* FROM `faxeinp`.`outa` o WHERE erfolg<>0 AND pid = " & PatZuHASL.Item(i).Pat_id & " AND docname LIKE '%dmp-daten%' AND datediff(NOW(),submt) < " & diff & " ORDER BY submt DESC"
+    myFrag rfax, "SELECT docname, o.* FROM `faxeinp`.`outa` o WHERE erfolg<>0 AND pid = " & PatZuHASL.Item(i).Pat_ID & " AND docname LIKE '%dmp-daten%' AND datediff(NOW(),submt) < " & diff & " ORDER BY submt DESC"
     If rfax.State <> 0 Then
      If Not rfax.EOF Then
       PatZuHASL.Item(i).gewählt = 0
@@ -4060,7 +4065,7 @@ fehler:
 End Sub ' AlleMark(ob%)
 
 Public Sub MFG_Click()
- Dim ctrl As Control, Fd0$, Fd1$, i%, rs As New ADODB.Recordset, j&, k&
+ Dim ctrl As Control, Fd0$, Fd1$, i%, rs As New adodb.Recordset, j&, k&
  FNr = 22
  On Error GoTo fehler
  If cRow(MFGTyp) = cRowSel(MFGTyp) Then
@@ -4126,7 +4131,7 @@ Public Sub MFG_Click()
        Do
         If k > PatZuHASL.COUNT Then Exit Do
         If PatZuHASL.Item(k).ÜWNr <> Me.MFG.TextMatrix(Me.MFG.Row, üwnrcol) Then Exit Do
-        Me.MFG.AddItem k & String(PlusCol + 1, vbTab) & PatZuHASL.Item(k).ÜWNr & vbTab & IIf(PatZuHASL.Item(k).gewählt, "X", "") & vbTab & PatZuHASL.Item(k).name & vbTab & PatZuHASL.Item(k).Pat_id & vbTab, j + 1
+        Me.MFG.AddItem k & String(PlusCol + 1, vbTab) & PatZuHASL.Item(k).ÜWNr & vbTab & IIf(PatZuHASL.Item(k).gewählt, "X", "") & vbTab & PatZuHASL.Item(k).name & vbTab & PatZuHASL.Item(k).Pat_ID & vbTab, j + 1
         k = k + 1
         j = j + 1
        Loop
@@ -4333,7 +4338,7 @@ Private Sub Command1_KeyDown(Index As Integer, KeyCode As Integer, Shift As Inte
 End Sub ' Command1_KeyDown
 
 Private Sub MFG_MouseMove(Button As Integer, Shift As Integer, x As Single, Y As Single)
- Dim rs As New ADODB.Recordset, obbez%, altr&, altC&
+ Dim rs As New adodb.Recordset, obbez%, altr&, altC&
  Static altMCol&, altMRow&
  On Error GoTo fehler
  With Me.MFG
@@ -4364,7 +4369,7 @@ Private Sub MFG_MouseMove(Button As Integer, Shift As Integer, x As Single, Y As
 '     Else ' rDPat.Supports(adSeek) Then
       Do While Not rDPat.EOF
 '       Debug.Print rDPat!Pat_id
-       If rDPat!Pat_id = .Text Then
+       If rDPat!Pat_ID = .Text Then
         .toolTipText = "Sterbedatum " & rDPat!SDatum
         Exit Do
        End If
@@ -4532,7 +4537,7 @@ End Sub ' MFG_MouseDown
 'SET FOREIGN_KEY_CHECKS=1;
 
 Private Sub MFG_MouseUp(Button As Integer, Shift As Integer, x As Single, Y As Single)
- Dim sqls$, sqld$, sqli$, MR&, rs As New ADODB.Recordset, i&, rAf&
+ Dim sqls$, sqld$, sqli$, MR&, rs As New adodb.Recordset, i&, rAf&
  Me.MFG.MousePointer = 0 ' flexDefault, in C:\Windows\SysWow64\MSHFLXGD.oca
  If x <> altX Or Y <> altY Then
  Select Case Me.PLArt
@@ -4636,7 +4641,7 @@ End Sub ' mouseup
 
 
 Private Sub LaborFüll(Optional nachLangtext%)
- Dim rs0 As New ADODB.Recordset, sql0$, sql1$, i&
+ Dim rs0 As New adodb.Recordset, sql0$, sql1$, i&
  FNr = 2
  sql0 = "SELECT * FROM " & vbCrLf & _
         "(SELECT CONCAT(lp.abkü, ' [', lp.einheit,']') bezug, i.abkü,i.einheit,i.nb," & vbCrLf & _
@@ -4718,7 +4723,7 @@ Private Sub LaborFüll(Optional nachLangtext%)
 End Sub ' LaborFüll
 
 Private Function ZeigeZahl(zeile&)
- Dim rs1 As New ADODB.Recordset
+ Dim rs1 As New adodb.Recordset
     Set rs1 = Nothing
     myFrag rs1, "SELECT COUNT(0) zl, `idypneu`,`idpara` FROM `laborypgl` WHERE `idypbez` = " & IDS(1, zeile)
     If Not rs1.BOF Then
