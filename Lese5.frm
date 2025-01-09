@@ -363,6 +363,9 @@ Begin VB.MDIForm Lese
       Begin VB.Menu Abbrechen 
          Caption         =   "Abbre&chen (vor Speichern eines Patienten)"
       End
+      Begin VB.Menu Übertragung_aus_MO 
+         Caption         =   "&Übertragung aus MO"
+      End
       Begin VB.Menu LaborEintragen 
          Caption         =   "Labor &eintragen"
       End
@@ -964,7 +967,7 @@ Const MoWSer$ = "wser" ' "szn4"
 Const MoHier$ = "szn4"
 Const MOCStr$ = "DRIVER={MySQL ODBC 8.0 Unicode Driver};server=" & MoWSer & ";option=0;database=medoff;uid=medoff;pwd=medoff;port=2020;"
 Const MOCHier$ = "DRIVER={MySQL ODBC 8.0 Unicode Driver};server=" & MoHier & ";option=0;database=medoff;uid=medoff;pwd=medoff;port=2020;"
-Public MOCon As New ADODB.Connection
+' Public MOCon As New ADODB.Connection
 Public rsco As New ADODB.Recordset
 Public dlg As New Dialog
 Public opt As New Optionen
@@ -996,7 +999,7 @@ Enum AktionTyp
  RestlicheBriefe
  Patientenlaufzetteleinzeln
  DMPZettel
- anwalt
+ Anwalt
  PatvonMO
 End Enum
 Public Aktion As AktionTyp
@@ -1343,7 +1346,7 @@ Private Sub do_Medpläne_alt_für_MO_exportieren_Click(Optional xmlneu%)
     Call BDT.SAdd("8100", rMP!MPzl * 12 + 6)
    End If ' rMP!prang = 1 then
    If rMP!rang = 1 Then
-    GoSub schreiben
+    GoSub Schreiben
     mpdt = uuvz & rMP!Pat_ID & "_" & Format(rMP!Zeitpunkt, "yyyymmdd_HHMM") & ".xml"
     If xmlneu Then
      If FSO.FileExists(Untervz & mpdt) Then FSO.DeleteFile Untervz & mpdt, True
@@ -1380,11 +1383,11 @@ Private Sub do_Medpläne_alt_für_MO_exportieren_Click(Optional xmlneu%)
   Loop ' While Not rMP.EOF
 '  Call BDT.Schreib
 '  Close #310
-  GoSub schreiben
+  GoSub Schreiben
  End If ' Not rMP.BOF Then
  syscmd 4, "Fertig mit Medpläne alt für MO exportieren in " & ausgbdt
  Exit Sub
-schreiben:
+Schreiben:
  On Error Resume Next
  csmp.Append "</S></MP>"
  Print #240, REPLACE$(REPLACE$(REPLACE$(REPLACE$(REPLACE$(REPLACE$(REPLACE$(REPLACE$(REPLACE$(REPLACE$(REPLACE$(csmp, "ä", "ae"), "ö", "oe"), "ü", "ue"), "ß", "ss"), "½", "1/2"), "¼", "1/4"), "¾", "3/4"), "Ä", "Ae"), "Ö", "Oe"), "Ü", "Ue"), "µ", "mic")
@@ -1490,6 +1493,27 @@ Private Sub SuchInSpaltenInMO_Click()
  Close #325
  zeigan datnam
 End Sub ' SuchInSpaltenInMO_Click
+
+Private Sub Übertragung_aus_MO_Click()
+ Dim abstand&, rAb As ADODB.Recordset
+ abstand = InputBox("Seit wie vielen Tagen sollen alle Patienten aus MO übertragen werden?", "Rückfrage Import aus MO", "0")
+ If abstand <> 0 Then
+  MOConInit
+  sql = "SELECT fpatnr FROM dbsprot d" & vbCrLf & _
+        "LEFT JOIN patstamm p ON p.FSurogat = d.FPatnr" & vbCrLf & _
+        "WHERE 18900101 + INTERVAL FDatum DAY + INTERVAL FUhrzeit SECOND > NOW() - INTERVAL " & CStr(abstand) & " DAY" & vbCrLf & _
+        "AND ftablename NOT IN ('datafile','d2dmail')" & vbCrLf & _
+        "AND p.FSurogat IS NOT NULL" & vbCrLf & _
+        "GROUP BY fpatnr;"
+  myFrag rAb, sql, adOpenStatic, MOCon, adLockReadOnly
+  Do While Not rAb.EOF
+   syscmd 4, "Übertrage Pat. " & CStr(abstand)
+   doPatvonMO (rAb!fpatnr)
+   rAb.MoveNext
+  Loop
+  syscmd 4, "Fertig mit Übertragung aus MO aller Patienten seit " & CStr(abstand) & " Tagen"
+ End If ' abstand <> 0 Then
+End Sub ' Übertragung_aus_MO_Click()
 
 Private Sub Ziffer30u31Ausschlüsse_Click()
   Dim rs As New ADODB.Recordset, spmax%(3)
@@ -2168,7 +2192,7 @@ End Sub ' VerhunzteFotosEinfärben_Click
 ' Funktionen für Arzthelferin und Arzt -> Anwaltsunterlagen für Pat. zusammenstellen
 Private Sub Anwaltsunterlagen_für_Pat_zusammenstellen_Click()
  Call ProgStart
- Aktion = anwalt
+ Aktion = Anwalt
  Set pataw.hlese = Me
  pataw.obRueck = False
  obRueck = False
@@ -3472,7 +3496,7 @@ Private Sub TherapieartenEinzelübervb6Festlegen_Click() ' Therapiearten festlege
 ' rsAna.Open "SELECT pat_id,diabetestyp,insulinpumpe,ther1,therakt FROM `anamnesebogen`", DBCn, adOpenStatic, adLockOptimistic
 ' rsAna.Open "SELECT an.pat_id, diabetestyp,insulinpumpe,ther1,therakt, (SELECT MAX(fanf) FROM `faelle` WHERE pat_id = an.pat_id) fanf FROM `anamnesebogen` an LEFT JOIN `faelle` f ON an.pat_id = f.pat_id GROUP BY pat_id ORDER BY (SELECT MAX(fanf) FROM `faelle` WHERE pat_id = an.pat_id) DESC", DBCn, adOpenStatic, adLockOptimistic
  Dim patzahl&, aktzahl&
- patzahl = myEFrag("select count(0) from namen", , DBCn).Fields(0)
+ patzahl = myEFrag("SELECT COUNT(0) FROM namen", , DBCn).Fields(0)
  aktzahl = 0
  myFrag rsAna, "SELECT n.pat_id, gesname(n.pat_id), MIN(f.fanf) FROM namen n LEFT JOIN faelle f ON n.pat_id = f.pat_id WHERE f.pat_id>000 AND f.pat_id <= 70000 GROUP BY n.pat_id ORDER BY fanf DESC"
  Do While Not rsAna.EOF
@@ -4636,7 +4660,7 @@ Public Sub los()
     Call dodoplz(Me.pataw.PatID, plzVz, Now, Now - Int(Now), True, "", zzn, obRueck)
    Case DMPZettel
     Call einDMP(Me.pataw.Pat_ID)
-   Case anwalt
+   Case Anwalt
     Call doAnwalt(Me.pataw.Pat_ID)
    Case PatvonMO
     Call doPatvonMO(Me.pataw.Pat_ID)

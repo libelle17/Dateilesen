@@ -1949,7 +1949,6 @@ sql(AWlf) = "" & vbCrLf & _
 "((langname REGEXP 'basal[^r]' OR langname LIKE '%basal') AND NOT langname LIKE '%rapid%') OR " & vbCrLf & _
 "langname LIKE '%abasa%' OR " & vbCrLf & _
 "langname LIKE '%suliq%' OR " & vbCrLf & _
-"langname LIKE '%lant%' OR " & vbCrLf & _
 "langname LIKE '%levi%' OR " & vbCrLf & _
 "langname LIKE '%leve%' OR " & vbCrLf & _
 "langname LIKE '%phan%' OR " & vbCrLf & _
@@ -1964,7 +1963,7 @@ sql(AWlf) = "" & vbCrLf & _
 "langname LIKE '% sem %' OR " & vbCrLf
 sql(AWlf) = sql(AWlf) & _
 "(langname LIKE '%nacht%' AND NOT langname LIKE '%mg/dl%') OR " & vbCrLf & _
-"Langname RLIKE 'lan[tg][^e]' OR " & vbCrLf & _
+"(Langname RLIKE 'lan[tg][^e]' AND NOT Langname LIKE '%Apidra + Lantus%') OR " & vbCrLf & _
 "langname LIKE '%lanuts%' OR langname LIKE '%lanus%' OR langname LIKE '%lanctus%' OR " & vbCrLf & _
 "langname LIKE '%xult%' OR " & vbCrLf & _
 "langname LIKE '%verz%' OR " & vbCrLf & _

@@ -268,16 +268,16 @@ Function therinit()
  "      FROM wmedplan x LEFT JOIN medarten ma ON x.medanfang= ma.medikament" & vbCrLf & _
  "      WHERE (inpid='0' OR x.pat_id IN (inpid))" & vbCrLf
  psql(3) = psql(3) & _
- "      GROUP BY x.pat_id,mpnr,x.zeitpunkt,ma.id -- z.B. versch.Toujeo-Zeilen für v. Zuckerwerte" & vbCrLf & _
+ "      GROUP BY x.pat_id,x.zeitpunkt,mpnr,ma.id -- z.B. versch.Toujeo-Zeilen für v. Zuckerwerte" & vbCrLf & _
  "     ) i" & vbCrLf & _
  "    ) i" & vbCrLf & _
- "   ) i GROUP BY pid,MPNr,zp -- 13.12.21: gleiche MPNr für versch. Zeitpunkte! wohl durch HB_-Import" & vbCrLf & _
+ "   ) i GROUP BY pid,zp,MPNr -- 13.12.21: gleiche MPNr für versch. Zeitpunkte! wohl durch HB_-Import" & vbCrLf & _
  "  ) i" & vbCrLf & _
  " ) i" & vbCrLf & _
  ") -- with ...; letzte Therapieart, letzter Zeitpunkt: " & vbCrLf & _
  "SELECT d.*" & vbCrLf & _
  ", COALESCE(ldso.thart,'') lathart -- letzte andere Therapieart" & vbCrLf & _
- ", RANK() over (PARTITION BY pid ORDER BY zp,mpnr) thrang" & vbCrLf & _
+ ", RANK() OVER (PARTITION BY pid ORDER BY zp,mpnr) thrang" & vbCrLf & _
  ", COALESCE(LAG(d.zp,1) OVER (PARTITION BY pid ORDER BY zp,MPNr),'1900-01-01') lzp" & vbCrLf & _
  ", COALESCE(LAG(d.ia,1) OVER (PARTITION BY pid ORDER BY zp,MPNr),'-10') lia" & vbCrLf & _
  "FROM dsort d LEFT JOIN dsort ldso -- letztes (anderes) dsort" & vbCrLf & _
@@ -292,7 +292,7 @@ Function therinit()
  "GROUP BY pid,zp,thart" & vbCrLf & _
  "ORDER BY pid,zp,MPNr" & vbCrLf & _
  ") i WHERE thart<>lthart" & vbCrLf
- psql(3) = psql(3) & _
+' psql(3) = psql(3) & _
  "" & vbCrLf & _
  "" & vbCrLf & _
  "" & vbCrLf & _

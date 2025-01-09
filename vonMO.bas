@@ -1,15 +1,15 @@
 Attribute VB_Name = "vonMo"
 Option Explicit
 Option Compare Text
-Dim aru&
 Const Fakt& = 256
 Public Const pidoffs& = 100000
-
-Const MoWServ$ = "wser"
-Const MoSzn4$ = "szn4"
+Public Const obszn4% = True
+Public Const MoWServ$ = "wser"
+Public Const MoSzn4$ = "szn4"
+Public Const MOAnfStr$ = "DRIVER={MySQL ODBC 8.0 Unicode Driver};option=0;database=medoff;uid=medoff;pwd=medoff;port=2020;server="
+Public MOCon As New ADODB.Connection
 ' Const parsemotxt$ = "v:\Parsememo31.txt"
 Const mestausg$ = "v:\mestr.txt"
-Public Const MOAnfStr$ = "DRIVER={MySQL ODBC 8.0 Unicode Driver};option=0;database=medoff;uid=medoff;pwd=medoff;port=2020;server="
 'Public Const MOCStr$ = "DRIVER={MySQL ODBC 8.0 Unicode Driver};server=" & MoSer & ";option=0;database=medoff;uid=medoff;pwd=medoff;port=2020;"
 'Public Const MOsStr$ = "DRIVER={MySQL ODBC 8.0 Unicode Driver};server=" & MoSzn & ";option=0;database=medoff;uid=medoff;pwd=medoff;port=2020;"
 ' Public MOCon As New ADODB.Connection
@@ -37,6 +37,7 @@ Type Abrtyp ' Tabelle abrechner
 End Type
 
 Declare Sub CopyMemoryPtr Lib "kernel32" Alias "RtlMoveMemory" (ByVal Destination&, ByVal Sourc&, ByVal length&)
+Dim aru&
 
 ' wird nicht verwendet
 Public Sub testeb()
@@ -455,6 +456,17 @@ Public Function stzk(s$) As Date
  stzk = CDate(CStr(Asc(Mid$(s, 4))) & "." & CStr(Asc(Mid$(s, 3))) & "." & CStr(256 * Asc(Mid(s, 2)) + Asc(Mid(s, 1))))
 End Function ' stzk
 
+' in Übertragung_aus_MO_Click, zeigmosystem, doPatvonMO
+Public Function MOConInit()
+  If MOCon = "" Then
+   If obszn4 Then
+    MOCon.Open MOAnfStr & MoSzn4
+   Else ' obszn4
+    MOCon.Open MOAnfStr & MoWServ
+   End If ' obszn4 else
+  End If ' MOCon = "" Then
+End Function ' MOConInit
+
 ' zum Aufruf im Direktfenster
 Public Function zeigmosystem(Optional obszn4%)
  Const obDebug% = True
@@ -464,11 +476,7 @@ Public Function zeigmosystem(Optional obszn4%)
  Dim j&
  Dim EintS As SortierEintr
  Dim EinL As New SortierListe
- If obszn4 Then
-  MOCon.Open MOAnfStr & MoSzn4
- Else
-  MOCon.Open MOAnfStr & MoWServ
- End If
+ MOConInit
  sql = "SELECT COALESCE(CONVERT(FKategorieliste USING latin1),'') FKat, COALESCE(CONVERT(Ftextkategorieliste USING latin1),'') Ftk, COALESCE(CONVERT(fAblageliste USING latin1),'') FAb, COALESCE(CONVERT(fAuftragstypenliste USING latin1),'') FAuf, COALESCE(CONVERT(FMemo USING latin1),'') Fm FROM mosystem"
  rsMo.Open sql, MOCon, adOpenStatic, adLockReadOnly
  If Not rsMo.BOF Then
@@ -517,11 +525,10 @@ Public Function zeigmosystem(Optional obszn4%)
 End Function ' zeigmosystem()
 
 
-
 ' in PatvonMO_Click
 Public Function doPatvonMO(pNr&, Optional obmitFormularen%)
  Dim pid&, pos&, pneu&, SchGr%, j&, jj%, rAf&, Puls$, Bem$ ' , rInh$, aktZeit As Date
- Const obDebug% = True, obszn4% = True
+ Const obDebug% = True
 '  pNr& = 68393  ' 69618 ' 63635 ' 67180 ' 63635 ' 64800 ' 69333 ' 68316 ' 65405 ' 45 ' 64659 ' 45 ' 69367 ' 69377 ' 53119 ' 51630 ' 105 ' 18 ' 246 ' 59152 ' 1394 ' 2112 ' 151 ' 225 '
  pid = pNr + pidoffs
  Static lfdfl&
@@ -571,12 +578,7 @@ Public Function doPatvonMO(pNr&, Optional obmitFormularen%)
 ' If obDebug Then FSO.DeleteFile parsemotxt
  On Error GoTo fehler
  Tinit
- Dim MOCon As New ADODB.Connection
- If obszn4 Then
-  MOCon.Open MOAnfStr & MoSzn4
- Else
-  MOCon.Open MOAnfStr & MoWServ
- End If
+ MOConInit
  syscmd 4, "Lade MOSystem"
  ' unter Ado müssen die Memo-Felder auf latin1 übersetzt werden für die Zahlen > 128 (nicht in HeidiSQL)
  sql = "SELECT COALESCE(CONVERT(FKategorieliste USING latin1),'') FKat, COALESCE(CONVERT(Ftextkategorieliste USING latin1),'') Ftk, COALESCE(CONVERT(fAblageliste USING latin1),'') FAb, COALESCE(CONVERT(fAuftragstypenliste USING latin1),'') FAuf, COALESCE(CONVERT(FMemo USING latin1),'') Fm " & vbCrLf & _
@@ -994,23 +996,26 @@ Public Function doPatvonMO(pNr&, Optional obmitFormularen%)
   End If ' Not rsFa.BOF Then
   lfdfl = 0 ' für nä Pat
   
-  For j = 0 To UBound(NaStr)
-   If NaStr(j).ENr Like "21.*" And NaStr(j).ENr <> "21.1" Then
-    ReDim Preserve rSw(UBound(rSw) + 1)
-    rSw(UBound(rSw)).Pat_ID = pid
-    rSw(UBound(rSw)).FormTitel = "ssd"
-    rSw(UBound(rSw)).vorET = stzk(NaStr(j).Text)
-    rSw(UBound(rSw)).lR = rSw(UBound(rSw)).vorET - 280
-    rSw(UBound(rSw)).MB = rSw(UBound(rSw)).vorET - 42
-    rSw(UBound(rSw)).aktZeit = aktZeit
-    For jj = 1 To UBound(rFa)
-     If rFa(jj).BhFB < rSw(UBound(rSw)).vorET And rFa(jj).BhFE1 > rSw(UBound(rSw)).vorET - 268 Then
-      rFa(jj).vorET = rSw(UBound(rSw)).vorET
-      rFa(jj).letzteRegel = rSw(UBound(rSw)).lR
-     End If
-    Next jj
-   End If
-  Next j
+  
+  If rsNa!fm <> "" Then
+   For j = 0 To UBound(NaStr)
+    If NaStr(j).ENr Like "21.*" And NaStr(j).ENr <> "21.1" Then
+     ReDim Preserve rSw(UBound(rSw) + 1)
+     rSw(UBound(rSw)).Pat_ID = pid
+     rSw(UBound(rSw)).FormTitel = "ssd"
+     rSw(UBound(rSw)).vorET = stzk(NaStr(j).Text)
+     rSw(UBound(rSw)).lR = rSw(UBound(rSw)).vorET - 280
+     rSw(UBound(rSw)).MB = rSw(UBound(rSw)).vorET - 42
+     rSw(UBound(rSw)).aktZeit = aktZeit
+     For jj = 1 To UBound(rFa)
+      If rFa(jj).BhFB < rSw(UBound(rSw)).vorET And rFa(jj).BhFE1 > rSw(UBound(rSw)).vorET - 268 Then
+       rFa(jj).vorET = rSw(UBound(rSw)).vorET
+       rFa(jj).letzteRegel = rSw(UBound(rSw)).lR
+      End If
+     Next jj
+    End If ' NaStr(j).ENr Like "21.*" And NaStr(j).ENr <> "21.1" Then
+   Next j
+  End If ' rsNa!fm <> ""
   
   
   Dim rsHa As New ADODB.Recordset, rslue  As New ADODB.Recordset
@@ -1125,13 +1130,13 @@ Public Function doPatvonMO(pNr&, Optional obmitFormularen%)
 ' Set rsFa = Nothing ' wirkt witzigerweise erst beim zweiten Mal (!?)
 '  Call rFaDump
   
-  Dim rab() As Abrtyp
+  Dim rAb() As Abrtyp
   Dim rAbr As ADODB.Recordset
   myFrag rAbr, "SELECT FSurogat,FBetriebsnr FROM abrechner", adOpenStatic, MOCon ' AU
   Do While Not rAbr.EOF
-   If SafeArrayGetDim(rab) = 0 Then ReDim rab(0) Else ReDim Preserve rab(UBound(rab) + 1)
-    rab(UBound(rab)).fS = rAbr!fsurogat
-    rab(UBound(rab)).BSNR = rAbr!FBetriebsnr
+   If SafeArrayGetDim(rAb) = 0 Then ReDim rAb(0) Else ReDim Preserve rAb(UBound(rAb) + 1)
+    rAb(UBound(rAb)).fS = rAbr!fsurogat
+    rAb(UBound(rAb)).BSNR = rAbr!FBetriebsnr
    rAbr.MoveNext
   Loop
 
@@ -1666,10 +1671,10 @@ sql = sql & _
             rLe(UBound(rLe)).Charge = REPLACE$(Inh, "Chargennummer", "")
           Case "Bsnr"
            rLe(UBound(rLe)).BSNR = Inh
-           If SafeArrayGetDim(rab) <> 0 Then
-            For abz = 0 To UBound(rab)
-             If rab(abz).fS = Inh Then
-              rLe(UBound(rLe)).LBSNR = rab(abz).BSNR
+           If SafeArrayGetDim(rAb) <> 0 Then
+            For abz = 0 To UBound(rAb)
+             If rAb(abz).fS = Inh Then
+              rLe(UBound(rLe)).LBSNR = rAb(abz).BSNR
               Exit For
              End If
             Next abz
