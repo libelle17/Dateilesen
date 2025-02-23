@@ -1074,9 +1074,8 @@ sql = "SELECT r.pat_id,gesname(r.pat_id) PName,Karteidatum,Date(Dokudatum) DokuD
 "AND ISNULL(npid)" & vbCrLf & _
 "ORDER BY PName" & vbCrLf & _
 ";"
-rs.Open sql, DBCn, adOpenStatic, adLockReadOnly
+myFrag rs, sql
 Call TabAusgeb(rs, Me, , , , , , True, "Nicht erkannte DMP-Rückmeldungen")
-
 End Sub ' DMPRückmeldungsfehler_Click
 
 ' EDV -> Formulare bereinigen
@@ -5509,7 +5508,7 @@ End Select
 End Function ' ConstrFestleg
 #End If
 
-Public Function Ausgeb(Text$, obDauer%, Optional obDebug%)
+Function Ausgeb(Text$, obDauer%, Optional obDebug%)
  Me.Ausgabe = Text & vbCrLf & altAusgabe
  If obDauer <> 0 Then
   altAusgabe = Me.Ausgabe

@@ -1889,15 +1889,19 @@ End If ' aktTbn = "faelle" Then
   aktTbn = LCase$(REPLACE$(tbn(i), " ", "_"))
   If aktTbn = "formulare" Then
    Print #257, " sqlIGNORE = "" IGNORE """
+   Print #257, " Call ForeignNo0 ' 3.2.25"
+   Print #257, " Call ForeignNo1 ' 3.2.25"
   ElseIf aktTbn = "faelle" Then
    Print #257, " SI = 0"
    Print #257, " ComTrans"
   End If
-  Print #257, " call " & aktTbn & "Speichern(SI, BfS)"
+  Print #257, " Call " & aktTbn & "Speichern(SI, BfS)"
   If aktTbn = "faelle" Then
    Print #257, " SI = altsam"
   End If
   If aktTbn = "formulare" Then
+   Print #257, " Call ForeignYes0 ' 3.2.25"
+   Print #257, " Call ForeignYes1 ' 3.2.25"
    Print #257, " sqlIGNORE = """""
   End If
   Select Case aktTbn
@@ -5959,7 +5963,7 @@ Function fallzeig()
 ' For i = 0 To rs.Fields.Count - 1
 '  AuS = IIf(lenb(AuS) = 0, vns, AuS & " ") & Left$(rs.Fields(i).Name & Space$(14), 14)
 ' Next i
- Ausgeb (AuS)
+ Ausgeb AuS, 0
  Exit Function
 fehler:
  Exit Function

@@ -1390,10 +1390,10 @@ Function GetMed(lang$, Einrück%) As CString ' mit Einrück=0 in doMedklassT, THAf
     links = Left$(GetMed, lzpos - 1)
     Select Case links
      Case "BERLINSULIN H "
-      lzpos = GetMed.Instr(" ", 1 + MAXvb(Len(links) + 1, Einrück))
+      lzpos = GetMed.Instr(" ", MAXvb(Len(links) + 1, Einrück))
       While GetMed.Mid(lzpos, 1) = " " And lzpos <= GetMed.length: lzpos = lzpos + 1: Wend
     End Select ' links
-    GetMed.Cut (lzpos - 1)
+    If lzpos > 1 Then GetMed.Cut (lzpos - 1)
    End If ' lzpos > 0
    GetMed = Trim$(GetMed)
   End If
@@ -5373,7 +5373,7 @@ syscmd 5
   " WHERE kateg <> '' GROUP BY ik,vknr) k2 ON k.vknr = k2.vknr AND k.ik=k2.ik " & vbCrLf & _
   "SET k.kateg=k2.kateg, k.go=k2.go, geaen=" & Format(Now(), "yyyymmddHHMMSS") & vbCrLf & _
   " WHERE k.kateg = '' AND k2.kateg IS NOT NULL", rAf
-  Ausgeb rAf & " Kassenkategorien anhand der VK-Nummern eingefügt"
+  Ausgeb rAf & " Kassenkategorien anhand der VK-Nummern eingefügt", -1
 '  Call Lese.KassenkategorienBestimmen_Click
   Kassengeändert = 0
   syscmd 5
@@ -5591,7 +5591,7 @@ Function kassenSpeichern(frm As Lese, pid$)
    InsKorr DBCn, "INSERT INTO `kassenliste`(vknr,ik,name,kurzname,go,kateg,eingef,pid) VALUES('" & rFa(i).VKNr & "','" & rFa(i).IK & "','" & rFa(i).Kasse & "','" & rFa(i).KKasse_2 & "','" & GebOr & "','" & Kat & "'," & Format(Now(), "yyyymmddHHMMSS") & "," & pid & ")", rAf
    rFa(i).KID = myEFrag("SELECT last_insert_id()").Fields(0)
    If rFa(i).KID = 0 Then MsgBox "Fehler in kassenspeichern: last_insert_id()=0"
-   Ausgeb rAf & " Kassen hinzugefügt (VK: " & rFa(i).VKNr & ", IK: " & rFa(i).IK & " => kkasse_2: " & rFa(i).KKasse_2 & "/kasse: " & rFa(i).Kasse & ")"
+   Ausgeb rAf & " Kassen hinzugefügt (VK: " & rFa(i).VKNr & ", IK: " & rFa(i).IK & " => kkasse_2: " & rFa(i).KKasse_2 & "/kasse: " & rFa(i).Kasse & ")", -1
    Kassengeändert = True
    If keinetrans = 0 Then
 '    DBCn.BeginTrans: obTrans = 1
@@ -5608,7 +5608,7 @@ Function kassenSpeichern(frm As Lese, pid$)
    sql = "UPDATE `kassenliste` SET name = '" & rFa(i).Kasse & "', kurzname = '" & rFa(i).KKasse_2 & "', kateg = '" & Kat & "',geaen=" & Format(Now(), "yyyymmddHHMMSS") & " WHERE vknr = '" & rFa(i).VKNr & "' AND ik = '" & rFa(i).IK & "'"
 '   Debug.Print sql
    Call myEFrag(sql, rAf)
-   Ausgeb rAf & " Kassen mit Namen/Kategorie versehen (" & rFa(i).VKNr & ", IK: " & rFa(i).IK & " => kkasse_2: " & rFa(i).KKasse_2 & " /kasse: " & rFa(i).Kasse & " /Kateg: " & Kat & ")"
+   Ausgeb rAf & " Kassen mit Namen/Kategorie versehen (" & rFa(i).VKNr & ", IK: " & rFa(i).IK & " => kkasse_2: " & rFa(i).KKasse_2 & " /kasse: " & rFa(i).Kasse & " /Kateg: " & Kat & ")", -1
    Kassengeändert = True
    If keinetrans = 0 Then
 '    DBCn.BeginTrans: obTrans = 1

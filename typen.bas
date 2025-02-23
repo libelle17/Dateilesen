@@ -11864,42 +11864,46 @@ Public Function tuSpeichern(frm AS Lese, SI%, BfS%) ' frm.dlg.SammelInsert, frm.
  altsam = SI
  sqlIGNORE = ""
  ON Error GoTo fehler
- call namenSpeichern(SI, BfS)
+ Call namenSpeichern(SI, BfS)
  SI = 0
  ComTrans
- call faelleSpeichern(SI, BfS)
+ Call faelleSpeichern(SI, BfS)
  SI = altsam
  wechsTrans
- call auSpeichern(SI, BfS)
- call briefeSpeichern(SI, BfS)
+ Call auSpeichern(SI, BfS)
+ Call briefeSpeichern(SI, BfS)
  ComTrans
- call diagnosenSpeichern(SI, BfS)
- call dokumenteSpeichern(SI, BfS)
- call eintraegeSpeichern(SI, BfS)
+ Call diagnosenSpeichern(SI, BfS)
+ Call dokumenteSpeichern(SI, BfS)
+ Call eintraegeSpeichern(SI, BfS)
  sqlIGNORE = " IGNORE "
- call formulareSpeichern(SI, BfS)
+ Call ForeignNo0 ' 3.2.25
+ Call ForeignNo1 ' 3.2.25
+ Call formulareSpeichern(SI, BfS)
+ Call ForeignYes0 ' 3.2.25
+ Call ForeignYes1 ' 3.2.25
  sqlIGNORE = ""
- call forminhkopfSpeichern(SI, BfS)
- call forminhfeldSpeichern(SI, BfS)
- call kheinweisSpeichern(SI, BfS)
- call lbanforderungenSpeichern(SI, BfS)
- call laborneuSpeichern(SI, BfS)
+ Call forminhkopfSpeichern(SI, BfS)
+ Call forminhfeldSpeichern(SI, BfS)
+ Call kheinweisSpeichern(SI, BfS)
+ Call lbanforderungenSpeichern(SI, BfS)
+ Call laborneuSpeichern(SI, BfS)
  ComTrans
- call leistungenSpeichern(SI, BfS)
+ Call leistungenSpeichern(SI, BfS)
  ComTrans
- call medplanSpeichern(SI, BfS)
- call rezepteintraegeSpeichern(SI, BfS)
- call rrSpeichern(SI, BfS)
- call kvnrueSpeichern(SI, BfS)
- call unbek_kennSpeichern(SI, BfS)
- call dmpreiheSpeichern(SI, BfS)
- call desktopSpeichern(SI, BfS)
- call usdmSpeichern(SI, BfS)
- call fussSpeichern(SI, BfS)
- call ulcusSpeichern(SI, BfS)
- call vkgdSpeichern(SI, BfS)
- call swsSpeichern(SI, BfS)
- call voplSpeichern(SI, BfS)
+ Call medplanSpeichern(SI, BfS)
+ Call rezepteintraegeSpeichern(SI, BfS)
+ Call rrSpeichern(SI, BfS)
+ Call kvnrueSpeichern(SI, BfS)
+ Call unbek_kennSpeichern(SI, BfS)
+ Call dmpreiheSpeichern(SI, BfS)
+ Call desktopSpeichern(SI, BfS)
+ Call usdmSpeichern(SI, BfS)
+ Call fussSpeichern(SI, BfS)
+ Call ulcusSpeichern(SI, BfS)
+ Call vkgdSpeichern(SI, BfS)
+ Call swsSpeichern(SI, BfS)
+ Call voplSpeichern(SI, BfS)
  Call myEFrag("UPDATE `namen` SET aktZeit = " & DatFor_k(rNa(0).AktZeit) & " WHERE pat_id = " & rNa(0).Pat_ID,rAf)
  IF rAf <> 1 THEN 
   frm.Ausgeb "Fehler bei der Setzung des Aktualisierungsdatum bei " & rNa(0).Pat_ID & " " & rNa(0).Nachname & " " & rNa(0).Vorname, true
