@@ -877,6 +877,12 @@ Begin VB.MDIForm Lese
       Begin VB.Menu Medpläne_alt_für_MO_exportieren 
          Caption         =   "Medpläne alt für MO exportieren"
       End
+      Begin VB.Menu DMP_in_MO_importieren_1 
+         Caption         =   "&DMP in MO importieren 1"
+      End
+      Begin VB.Menu DMP_in_MO_importieren_2 
+         Caption         =   "&DMP in MO importieren 2"
+      End
       Begin VB.Menu MedOffSuche 
          Caption         =   "MedOff-&Suche"
       End
@@ -1009,6 +1015,113 @@ Attribute dbv.VB_VarHelpID = -1
 Public obRueck%
 'Public WithEvents qdb AS QuelleDBC
 
+Const dmpVerz$ = "u:\TMImport\MO" ' DMP-Verzeichnis
+Const bVerz$ = dmpVerz & "\backup" ' backup-Verzeichni
+Const arch$ = "DMPArchiv.zip" ' Import-Datei, Name von MO gefordert
+Const z7$ = """C:\Program Files\7-zip\7z""" ' Pfad zu 7z
+
+
+' EDV -> &DMP in MO importieren Click
+Private Sub DMP_in_MO_importieren_1_Click()
+   Dim archn$ ' Archiv neu (nach Umbenennen zum Archiv-Archiv
+   Dim dpf$ ' Datenpflegeprogramm
+   Dim ii&, jj&, kk&, Lfw$, taskid&
+   If Dir(bVerz, vbDirectory) = "" Then MkDir bVerz ' FSO.CreateFolder
+   If Dir(bVerz, vbDirectory) = "" Then Exit Sub
+   If Dir(dmpVerz & "\" & arch) <> "" Then ' FSO.FileExists
+    archn = Left$(arch, InStrRev(arch, ".") - 1) & Format(FileDateTime(dmpVerz & "\" & arch), "_YYMMDD_HHmmss.zip") ' FSO.GETBasename"
+    Name dmpVerz & "\" & arch As bVerz & "\" & archn
+   End If ' Dir(arch) <> "" Then
+   Call ausfsyn("cmd /c " & z7 & " a " & dmpVerz & "\" & arch & " " & dmpVerz & "\*.e*", vbNormalFocus)
+   If Dir(dmpVerz & "\" & arch) <> "" Then
+    Call ausfsyn("cmd /c ""move " & dmpVerz & "\*.e* " & """""" & bVerz & """""""", vbHide)
+    For ii = 0 To 2
+     Lfw = Chr(67 + ii) ' C:\, D:\ E:\
+     dpf = Lfw & ":\medoff\med95pf.exe"
+     If Dir(dpf) <> "" Then Exit For
+     dpf = Lfw & ":\indamed\med95pf.exe"
+     If Dir(dpf) <> "" Then Exit For
+    Next ii
+    If Dir(dpf) <> "" Then
+     taskid = Shell(dpf, vbMaximizedFocus)
+'     Sleep 1000
+'     AppActivate taskid
+'     Sendkeys "c"
+'     Sendkeys "{ENTER}"
+    End If ' dir(dpf)<>""
+   End If ' Dir(bVerz, vbDirectory) Then
+End Sub ' DMP_in_MO_importieren_Click()
+
+Private Sub DMP_in_MO_importieren_2_Click()
+Dim line$, Spli, Zahl&, pos&, dn$, pid$
+ ausfsyn "cmd /c " & z7 & " l " & dmpVerz & "\" & arch & " > " & dmpVerz & "\prot.txt", vbHide
+ Open dmpVerz & "\prot.txt" For Input As #178
+ Do While Not EOF(178)
+  Input #178, line
+  If line Like "*_*_*" Then
+'  Debug.Print line
+  Spli = Split(line, " ")
+  If UBound(Spli) > 15 Then
+   dn = Spli(UBound(Spli))
+   pos = InStr(dn, "_") + 1
+   pid = Mid(dn, pos, InStr(pos, dn, "_") - pos)
+   Call korrigier(pid, dn)
+   Zahl = Zahl + 1
+  End If
+  End If
+ Loop
+ Close #178
+' Debug.Print zahl
+End Sub ' DMP_in_MO_importieren_2_Click()
+
+Private Sub korrigier(pid$, dn$)
+ Dim line$, pos&, origd As Date, sql$
+ Dim rsco As New ADODB.Recordset
+ If pid = "68012" Then
+ Open bVerz$ & "\" & dn For Input As #177
+ Do While Not EOF(177)
+  Input #177, line
+  pos = InStr(line, "<origination_dttm V=")
+  If pos Then
+   origd = DateValue(Mid(line, pos + 21, 10))
+   Debug.Print origd
+  End If
+  Loop
+ Close #177
+ Set MOCon = Nothing
+ MOCon.Open MOCHier
+ sql = "SELECT * FROM beschein b where fpatnr=" & pid & " and fmemo RLIKE fpatnr" & vbCrLf & _
+   "AND fsurogat=(SELECT feintragsnr FROM ltag l WHERE fpatnr=b.fpatnr and feintragsnr IN (SELECT fsurogat FROM beschein where fpatnr=l.fpatnr and fmemo RLIKE fpatnr ORDER BY fsurogat DESC)" & vbCrLf & _
+   "AND 18900101 + interval fdatum DAY+INTERVAL fzeit SECOND = " & Format(origd, "yyyymmdd") & "  + INTERVAL 28800 SECOND)"
+ rsco.Open sql, MOCon, adOpenStatic, adLockReadOnly
+ Debug.Print rsco.Fields(0)
+ Set rsco = Nothing
+ sql = "SELECT 18900101 + interval fdatum DAY+INTERVAL fzeit second datum, l.* FROM ltag l WHERE fpatnr=" & pid & " and feintragsnr IN (SELECT fsurogat FROM beschein where fpatnr=l.fpatnr and fmemo RLIKE fpatnr ORDER BY fsurogat DESC)" & vbCrLf & _
+ "AND 18900101 + interval fdatum DAY+INTERVAL fzeit SECOND = " & Format(origd, "yyyymmdd") & " + INTERVAL 28800 SECOND;"
+ rsco.Open sql, MOCon, adOpenStatic, adLockReadOnly
+ Debug.Print rsco.Fields(0)
+ Set rsco = Nothing
+ End If
+End Sub
+
+Private Function ausfsyn&(Befehl$, Focus As VbAppWinStyle)
+ Dim RetVal&
+ Dim wsh As IWshShell
+ Dim WaitForTermination%
+ Set wsh = New IWshShell_Class
+ WaitForTermination = True
+ ausfsyn = wsh.rUn(Befehl, Focus, WaitForTermination)
+ Set wsh = Nothing
+End Function ' ausfsyn
+
+Public Sub Sendkeys(Text As Variant, Optional wait As Boolean = False)
+   Dim WshShell As Object
+   Set WshShell = CreateObject("wscript.shell")
+   WshShell.Sendkeys CStr(Text), wait
+   Set WshShell = Nothing
+End Sub ' Sendkeys(text As Variant, Optional wait As Boolean = False)
+
+
 ' Datei -> Datenbankverbindung Patientendaten
 Private Sub Datenbankverbindung_Click()
 ' Call dbv.rücksetzBedTbl
@@ -1048,6 +1161,7 @@ Private Sub Datenbank_Click()
  dlg.Show
  Screen.MousePointer = vbDefault
 End Sub ' Datenbank_Click
+
 
 ' für Arzt -> DMP Übersicht
 Private Sub DMP_Übersicht_Click()
@@ -1363,7 +1477,7 @@ Private Sub do_Medpläne_alt_für_MO_exportieren_Click(Optional xmlneu%)
     Call BDT.SAdd("6200", Format(rMP!Zeitpunkt, "yyyymmdd HHMMSS"))
     Call BDT.SAdd("9901", "CreateTime:" & Format(rMP!Zeitpunkt, "yyyy-mm-dd HH:MM:SS"))
     Call BDT.SAdd("9901", "CreateUser:" & "sturm")
-    Call BDT.SAdd("9901", "UpdateTime:" & Format(rMP!Datum, "yyyy-mm-dd HH:MM:SS"))
+    Call BDT.SAdd("9901", "UpdateTime:" & Format(rMP!datum, "yyyy-mm-dd HH:MM:SS"))
     Call BDT.SAdd("9901", "UpdateUser:" & "sturm")
     Call BDT.SAdd("5098", rMP!BSNR)
     Call BDT.SAdd("5099", rMP!Lanr)
@@ -3370,7 +3484,7 @@ Private Sub DokumenteInDatenbank_Click()
  myEFrag "CREATE DATABASE IF NOT EXISTS `" & TMDok & "` DEFAULT CHARACTER SET 'utf8mb4' COLLATE 'utf8mb4_german2_ci'"
  myEFrag "USE `" & TMDok & "`"
  myEFrag "CREATE TABLE IF NOT EXISTS `tmdok`.`Dokumente` (  `id` INT(11) NOT NULL KEY AUTO_INCREMENT,  `Pfad` varchar(255),  `Datei` varchar(255),  `Größe` int(11) DEFAULT NULL,  `geändert` datetime DEFAULT NULL,  KEY `Name` (`Pfad`,`Datei`),  KEY `Größe` (`Größe`),  KEY `geändert` (`geändert`)) ENGINE=InnoDB DEFAULT CHARSET='utf8mb4' COLLATE=utf8mb4_german2_ci ROW_FORMAT=DYNAMIC"
- Call dverz(DPfad)
+ Call dVerz(DPfad)
 End Sub ' DokumenteInDatenbank_Click
 
 ' EDV -> Anamnesebogen pa&cken (Stringfeldlängen optimieren)
@@ -3626,58 +3740,58 @@ End Sub ' Laborvergleich_Click
 ' EDV -> Labor (direkt -> ""X"") l&öschen ab
 Private Sub LaborLöschenAb_Click()
  Dim sql$, rs As New ADODB.Recordset, rAf&
- Dim DatumS$, Datum As Date, nr&
+ Dim DatumS$, datum As Date, nr&
  Dim krit0$, krit1$, krit2$, krit3$, erg$
  Do
   DatumS = InputBox("ab welchem Datum löschen?")
   If IsDate(DatumS) Then Exit Do
  Loop
- Datum = CDate(DatumS)
+ datum = CDate(DatumS)
  
  Ausgeb "", True
  
  Set rs = Nothing
- myFrag rs, "SELECT COUNT(0) FROM labor2a WHERE zeitpunkt >= " & Format(Datum, "yyyymmdd")
+ myFrag rs, "SELECT COUNT(0) FROM labor2a WHERE zeitpunkt >= " & Format(datum, "yyyymmdd")
  nr = 0
  If Not rs.BOF Then nr = rs.Fields(0)
  Ausgeb "Aus laborywert würden gelöscht: " & nr & " Sätze", True
  
  Set rs = Nothing
- myFrag rs, "SELECT COUNT(0) FROM labor2bakt WHERE eingang >= " & Format(Datum, "yyyymmdd")
+ myFrag rs, "SELECT COUNT(0) FROM labor2bakt WHERE eingang >= " & Format(datum, "yyyymmdd")
  nr = 0
  If Not rs.BOF Then nr = rs.Fields(0)
  Ausgeb "Aus laborybakt würden gelöscht: " & nr & " Sätze", True
  
  Set rs = Nothing
- myFrag rs, "SELECT COUNT(0) FROM laboryleist l LEFT JOIN laboryus u ON l.usid=u.id WHERE eingang >= " & Format(Datum, "yyyymmdd")
+ myFrag rs, "SELECT COUNT(0) FROM laboryleist l LEFT JOIN laboryus u ON l.usid=u.id WHERE eingang >= " & Format(datum, "yyyymmdd")
  nr = 0
  If Not rs.BOF Then nr = rs.Fields(0)
  Ausgeb "Aus laboryleist würden gelöscht: " & nr & " Sätze", True
  
  Set rs = Nothing
- myFrag rs, "SELECT COUNT(0) FROM `laboryus` WHERE eingang>= " & Format(Datum, "yyyymmdd")
+ myFrag rs, "SELECT COUNT(0) FROM `laboryus` WHERE eingang>= " & Format(datum, "yyyymmdd")
  nr = 0
  If Not rs.BOF Then nr = rs.Fields(0)
  Ausgeb "Aus laboryus würden gelöscht: " & nr & " Sätze", True
  
  Set rs = Nothing
- myFrag rs, "SELECT COUNT(DISTINCT d.satzid) FROM laborysaetze d LEFT JOIN laboryus u ON u.satzid = d.satzid WHERE eingang >= " & Format(Datum, "yyyymmdd")
+ myFrag rs, "SELECT COUNT(DISTINCT d.satzid) FROM laborysaetze d LEFT JOIN laboryus u ON u.satzid = d.satzid WHERE eingang >= " & Format(datum, "yyyymmdd")
  nr = 0
  If Not rs.BOF Then nr = rs.Fields(0)
  Ausgeb "Aus laborysaetze würden gelöscht: " & nr & " Sätze", True
  
  Set rs = Nothing
- myFrag rs, "SELECT COUNT(DISTINCT d.datid) FROM laborydat d LEFT JOIN laboryus u ON u.datid = d.datid WHERE eingang >= " & Format(Datum, "yyyymmdd")
+ myFrag rs, "SELECT COUNT(DISTINCT d.datid) FROM laborydat d LEFT JOIN laboryus u ON u.datid = d.datid WHERE eingang >= " & Format(datum, "yyyymmdd")
  nr = 0
  If Not rs.BOF Then nr = rs.Fields(0)
  Ausgeb "Aus laborydat würden gelöscht: " & nr & " Sätze", True
  
- erg = MsgBox("Wollen Sie wirklich alle LaboreINträge ab " & Datum & " löschen?", vbYesNo Or vbDefaultButton2, "Rückfrage")
+ erg = MsgBox("Wollen Sie wirklich alle LaboreINträge ab " & datum & " löschen?", vbYesNo Or vbDefaultButton2, "Rückfrage")
  If erg = vbNo Then Exit Sub
  ' myEFrag "DELETE FROM `laborxwert` WHERE refnr IN " & krit0, rAF
  ' myEFrag "DELETE FROM `laborxbakt` WHERE refnr IN " & krit0, rAF
  ' myEFrag "DELETE FROM `laborxleist` WHERE refnr IN " & krit0, rAF
- myEFrag "DELETE d FROM laborydat d LEFT JOIN laboryus u ON u.datid = d.datid WHERE eingang >= " & Format(Datum, "yyyymmdd"), rAf
+ myEFrag "DELETE d FROM laborydat d LEFT JOIN laboryus u ON u.datid = d.datid WHERE eingang >= " & Format(datum, "yyyymmdd"), rAf
 End Sub ' LaborLöschenAB
 
 ' EDV -> DMP-Liste erstellen
@@ -3991,35 +4105,35 @@ End Sub ' alleHausärzteEinlesen
 
 ' EDV -> Punktwerte EBM2010
 Private Sub Punktwerte_Click()
- Dim Str$, Zahl#, pos&, rAf&
+ Dim str$, Zahl#, pos&, rAf&
 ProgStart
 Dim rs As New ADODB.Recordset
 myFrag rs, "SELECT * FROM `EBM2010`"
 Do While Not rs.EOF
- Str = rs!pwerte
+ str = rs!pwerte
  Do
-  pos = InStr(Str, "|")
+  pos = InStr(str, "|")
   If pos <> 0 Then
-   Str = Mid$(Str, pos + 1)
+   str = Mid$(str, pos + 1)
   Else
    Exit Do
   End If
  Loop
- Str = REPLACE(Str, " Euro", vNS)
- If IsNumeric(Str) Then
-  Zahl = CDbl(REPLACE(Str, ".", ""))
- ElseIf InStrB(Str, " Punkte") <> 0 Then
-  Str = REPLACE$(Str, " Punkte", vNS)
-  If IsNumeric(Str) Then
-   Zahl = CDbl(REPLACE(Str, ".", "")) * 0.03505
+ str = REPLACE(str, " Euro", vNS)
+ If IsNumeric(str) Then
+  Zahl = CDbl(REPLACE(str, ".", ""))
+ ElseIf InStrB(str, " Punkte") <> 0 Then
+  str = REPLACE$(str, " Punkte", vNS)
+  If IsNumeric(str) Then
+   Zahl = CDbl(REPLACE(str, ".", "")) * 0.03505
   Else
-   Debug.Print rs!pwerte, Str
+   Debug.Print rs!pwerte, str
    Stop
   End If
- ElseIf InStrB(Str, " unbewertet") <> 0 Or rs!pwerte = vNS Then
+ ElseIf InStrB(str, " unbewertet") <> 0 Or rs!pwerte = vNS Then
   Zahl = 0
  Else
-  Debug.Print rs!pwerte, Str
+  Debug.Print rs!pwerte, str
   Stop
  End If
  myEFrag "UPDATE `EBM2010` SET euro = '" & REPLACE(Zahl, ",", ".") & "' WHERE myid = " & rs!myid, rAf
@@ -4426,14 +4540,14 @@ fehler:
 End Sub ' doGNR_Statistiken_einl_Click
 
 ' in DokumenteInDatenbank_Click
-Private Sub dverz(DPfad$)
+Private Sub dVerz(DPfad$)
  Dim FSOPfad As Folder, Fil As File, SubF As Folder, rAf&
  Set FSOPfad = FSO.GetFolder(DPfad)
  For Each Fil In FSOPfad.Files
   InsKorr DBCn, "INSERT INTO `Dokumente`(Pfad,Datei,größe,geändert) VALUES('" & doUmwfSQL(DPfad, True) & "','" & doUmwfSQL(Fil.name, True) & "'," & Fil.size & "," & DatFor_k(Fil.DateLastModified) & ")", rAf
  Next Fil
  For Each SubF In FSOPfad.SubFolders
-  Call dverz(SubF.path)
+  Call dVerz(SubF.path)
  Next SubF
 End Sub ' dverz(DPfad$)
 
