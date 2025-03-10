@@ -1030,7 +1030,11 @@ Private Sub DMP_in_MO_importieren_1_Click()
    If Dir(bVerz, vbDirectory) = "" Then Exit Sub
    If Dir(dmpVerz & "\" & arch) <> "" Then ' FSO.FileExists
     archn = Left$(arch, InStrRev(arch, ".") - 1) & Format(FileDateTime(dmpVerz & "\" & arch), "_YYMMDD_HHmmss.zip") ' FSO.GETBasename"
-    Name dmpVerz & "\" & arch As bVerz & "\" & archn
+    If Dir(bVerz & "\" & archn) = "" Then
+     Name dmpVerz & "\" & arch As bVerz & "\" & archn
+    Else
+     Kill bVerz & "\" & archn
+    End If
    End If ' Dir(arch) <> "" Then
    Call ausfsyn("cmd /c " & z7 & " a " & dmpVerz & "\" & arch & " " & dmpVerz & "\*.e*", vbNormalFocus)
    If Dir(dmpVerz & "\" & arch) <> "" Then
@@ -1053,7 +1057,7 @@ Private Sub DMP_in_MO_importieren_1_Click()
 End Sub ' DMP_in_MO_importieren_Click()
 
 Private Sub DMP_in_MO_importieren_2_Click()
-Dim line$, Spli, Zahl&, pos&, dn$, pid$
+Dim line$, Spli, Zahl&, pos&, DN$, pid$
  ausfsyn "cmd /c " & z7 & " l " & dmpVerz & "\" & arch & " > " & dmpVerz & "\prot.txt", vbHide
  Open dmpVerz & "\prot.txt" For Input As #178
  Do While Not EOF(178)
@@ -1062,10 +1066,10 @@ Dim line$, Spli, Zahl&, pos&, dn$, pid$
 '  Debug.Print line
   Spli = Split(line, " ")
   If UBound(Spli) > 15 Then
-   dn = Spli(UBound(Spli))
-   pos = InStr(dn, "_") + 1
-   pid = Mid(dn, pos, InStr(pos, dn, "_") - pos)
-   Call korrigier(pid, dn)
+   DN = Spli(UBound(Spli))
+   pos = InStr(DN, "_") + 1
+   pid = Mid(DN, pos, InStr(pos, DN, "_") - pos)
+   Call korrigier(pid, DN)
    Zahl = Zahl + 1
   End If
   End If
@@ -1074,35 +1078,81 @@ Dim line$, Spli, Zahl&, pos&, dn$, pid$
 ' Debug.Print zahl
 End Sub ' DMP_in_MO_importieren_2_Click()
 
-Private Sub korrigier(pid$, dn$)
- Dim line$, pos&, origd As Date, sql$
+' in DMP_in_MO_importieren_2_Click()
+Private Sub korrigier(pid$, DN$)
+ Dim line$, pos&, origd As Date, sql$, rAf&, wieSGLT%, wieGLP%, geaen%
  Dim rsco As New ADODB.Recordset
+ Dim MeStr() As memoType
  If pid = "68012" Then
- Open bVerz$ & "\" & dn For Input As #177
+ Open bVerz$ & "\" & DN For Input As #177
  Do While Not EOF(177)
   Input #177, line
-  pos = InStr(line, "<origination_dttm V=")
-  If pos Then
-   origd = DateValue(Mid(line, pos + 21, 10))
-   Debug.Print origd
-  End If
-  Loop
+  If origd = 0 Then
+   pos = InStr(line, "<origination_dttm V=")
+   If pos Then
+    origd = DateValue(Mid(line, pos + 21, 10))
+    Debug.Print "Origd: " & origd
+   End If
+  Else ' origd = 0 Then
+   If wieSGLT = 0 Then
+    pos = InStr(line, "SGLT2-Inhibitor""/>")
+    If pos Then
+     If InStrB(pos, line, "V=""Ja""") Then wieSGLT = 1 Else wieSGLT = 2
+    End If ' pos Then
+   Else ' wieSGLT = 0 Then
+    pos = InStr(line, "GLP-1-Rezeptoragonist""/>")
+    If pos Then
+     If InStrB(pos, line, "V=""Ja""") Then wieGLP = 1 Else wieGLP = 2
+     Exit Do
+    End If ' pos Then
+   End If ' wieSGLT = 0 Then Else
+  End If ' origd = 0 Then Else
+ Loop ' While Not EOF(177)
  Close #177
- Set MOCon = Nothing
- MOCon.Open MOCHier
- sql = "SELECT * FROM beschein b where fpatnr=" & pid & " and fmemo RLIKE fpatnr" & vbCrLf & _
-   "AND fsurogat=(SELECT feintragsnr FROM ltag l WHERE fpatnr=b.fpatnr and feintragsnr IN (SELECT fsurogat FROM beschein where fpatnr=l.fpatnr and fmemo RLIKE fpatnr ORDER BY fsurogat DESC)" & vbCrLf & _
-   "AND 18900101 + interval fdatum DAY+INTERVAL fzeit SECOND = " & Format(origd, "yyyymmdd") & "  + INTERVAL 28800 SECOND)"
- rsco.Open sql, MOCon, adOpenStatic, adLockReadOnly
- Debug.Print rsco.Fields(0)
- Set rsco = Nothing
+ MOConInit
  sql = "SELECT 18900101 + interval fdatum DAY+INTERVAL fzeit second datum, l.* FROM ltag l WHERE fpatnr=" & pid & " and feintragsnr IN (SELECT fsurogat FROM beschein where fpatnr=l.fpatnr and fmemo RLIKE fpatnr ORDER BY fsurogat DESC)" & vbCrLf & _
  "AND 18900101 + interval fdatum DAY+INTERVAL fzeit SECOND = " & Format(origd, "yyyymmdd") & " + INTERVAL 28800 SECOND;"
  rsco.Open sql, MOCon, adOpenStatic, adLockReadOnly
+ If Not rsco.BOF Then
+ Debug.Print rsco!fsurogat
+ ' IF(FAusfnutzernr IN (SELECT FSurogat FROM nutzerneu WHERE FTyp=0) OR FAusfnutzernr=0,FAusfnutzernr,0)"
+ sql = "UPDATE ltag SET FDurchfnutzernr=IF(FDurchfnutzernr IN (SELECT FSurogat FROM nutzerneu WHERE FTyp=0) OR FDurchfnutzernr=0,FDurchfnutzernr,FAnordnutzernr)" & vbCrLf & _
+ ", FDurchfnutzernr=FAnordnutzernr" & vbCrLf & _
+ ", FAusfnutzernr=0" & vbCrLf & _
+ ", FBehgrundnr=(SELECT FSurogat FROM behgrund WHERE FPatnr=ltag.FPatnr AND FKlasse=2 ORDER BY FICDCode RLIKE '^E1[0-4]',FStatus DESC LIMIT 1)" & vbCrLf & _
+ ", FStatus=0" & vbCrLf & _
+ ", FArztnr=COALESCE((SELECT FArztnr FROM patfall WHERE FPatnr=ltag.FPatnr AND ltag.FDatum BETWEEN FVon AND FBis AND FArztnr IN (SELECT FSurogat FROM abrechner) LIMIT 1),(SELECT FSurogat FROM abrechner ORDER BY FSurogat LIMIT 1))" & vbCrLf & _
+ ", FScheinnr=COALESCE((SELECT FSurogat FROM patfall WHERE FPatnr=ltag.FPatnr ORDER BY ltag.FDatum BETWEEN FVon AND FBis DESC, FVon DESC LIMIT 1),FScheinnr)" & vbCrLf & _
+ ", FLstgerbnr=COALESCE((SELECT FLstgerbnr FROM patfall WHERE FPatnr=ltag.FPatnr AND FLstgerbnr IN (SELECT FLstgerbnr FROM lstgerb) ORDER BY ltag.FDatum BETWEEN FVon AND FBis DESC, FVon DESC LIMIT 1),(SELECT FLstgerbnr FROM lstgerb ORDER BY FLstgerbnr LIMIT 1))" & vbCrLf & _
+ ", FBetriebsnr=COALESCE((SELECT FBsnr FROM patfall WHERE FPatnr=ltag.FPatnr AND FBetriebsnr IN (SELECT FSurogat FROM abrechner) ORDER BY ltag.FDatum BETWEEN FVon AND FBis DESC, FVon DESC LIMIT 1),(SELECT FSurogat FROM abrechner ORDER BY FSurogat LIMIT 1))" & vbCrLf & _
+ "WHERE fpatnr=" & pid & " and feintragsnr IN (SELECT fsurogat FROM beschein where fpatnr=ltag.fpatnr and fmemo RLIKE fpatnr ORDER BY fsurogat DESC)" & vbCrLf & _
+ "AND 18900101 + interval fdatum DAY+INTERVAL fzeit SECOND = " & Format(origd, "yyyymmdd") & " + INTERVAL 28800 SECOND;"
+ Call MOCon.Execute(sql, rAf)
+ Set rsco = Nothing
+ sql = "SELECT * FROM beschein b WHERE fpatnr=" & pid & " AND FMemo RLIKE fpatnr" & vbCrLf & _
+   "AND fsurogat=(SELECT feintragsnr FROM ltag l WHERE fpatnr=b.fpatnr AND feintragsnr IN (SELECT fsurogat FROM beschein WHERE fpatnr=l.fpatnr AND FMemo RLIKE fpatnr ORDER BY fsurogat DESC)" & vbCrLf & _
+   "AND 18900101 + INTERVAL FDatum DAY+INTERVAL FZeit SECOND = " & Format(origd, "yyyymmdd") & "  + INTERVAL 28800 SECOND LIMIT 1)"
+ rsco.Open sql, MOCon, adOpenStatic, adLockReadOnly
+ If DN Like "*.E?D2" Then
+  geaen = geaen + WechsMemo("beschein", rsco!fsurogat, "FMemo", "151", CStr(wieSGLT), 0, MeStr, , "SGLT-2-Hemmer")
+  geaen = geaen + WechsMemo("beschein", rsco!fsurogat, "FMemo", "152", CStr(wieGLP), 0, MeStr, , "GLP-1-Analoga")
+  If Not geaen Then
+   sql = "UPDATE beschein SET FMemo=CONCAT(CHR((LENGTH(FMemo)-2+14) MOD 256),CHR((LENGTH(FMemo)-2+14) DIV 256),MID(FMemo,3),CHR(2),CHR(0),CHR(" & wieSGLT & "),CHR(0),CHR(2),CHR(0),CHR(" & wieGLP & "),CHR(0))" & vbCrLf & _
+   "WHERE fpatnr=" & pid & " AND FMemo RLIKE fpatnr" & vbCrLf & _
+   "AND fsurogat=(SELECT feintragsnr FROM ltag l WHERE fpatnr=beschein.fpatnr AND feintragsnr IN (SELECT fsurogat FROM beschein WHERE fpatnr=l.fpatnr AND FMemo RLIKE fpatnr ORDER BY fsurogat DESC)" & vbCrLf & _
+   "AND 18900101 + INTERVAL FDatum DAY+INTERVAL FZeit SECOND = " & Format(origd, "yyyymmdd") & "  + INTERVAL 28800 SECOND LIMIT 1)"
+   Call MOCon.Execute(sql, rAf)
+  End If ' Not geaen
+  Call WechsMemo("beschein", rsco!fsurogat, "FMemo", "137", Format(Now(), "yyyymmdd"), 2, MeStr, , "GLP-1-Analoga")
+ ElseIf DN Like "*.E?D1" Then
+  Call WechsMemo("beschein", rsco!fsurogat, "FMemo", "91", Format(Now(), "yyyymmdd"), 0, MeStr, , "GLP-1-Analoga")
+ End If
  Debug.Print rsco.Fields(0)
  Set rsco = Nothing
+ End If ' not rsco.bof
  End If
-End Sub
+ syscmd 4, " korrigier() für " & pid & " mit Datei " & DN & " ausgeführt"
+End Sub ' korrigier(pid$, dn$)
 
 Private Function ausfsyn&(Befehl$, Focus As VbAppWinStyle)
  Dim RetVal&
@@ -1212,7 +1262,6 @@ End Sub ' Formulare_bereinigen_Click()
 Private Sub MedOffSuche_Click()
  Load mos
  mos.Show
- 
 End Sub ' Sub MedOffSuche_Click()
 
 ' in MedOffSystemVersioning_Click, MedOffRemoveVersioning_Click
@@ -1477,7 +1526,7 @@ Private Sub do_Medpläne_alt_für_MO_exportieren_Click(Optional xmlneu%)
     Call BDT.SAdd("6200", Format(rMP!Zeitpunkt, "yyyymmdd HHMMSS"))
     Call BDT.SAdd("9901", "CreateTime:" & Format(rMP!Zeitpunkt, "yyyy-mm-dd HH:MM:SS"))
     Call BDT.SAdd("9901", "CreateUser:" & "sturm")
-    Call BDT.SAdd("9901", "UpdateTime:" & Format(rMP!datum, "yyyy-mm-dd HH:MM:SS"))
+    Call BDT.SAdd("9901", "UpdateTime:" & Format(rMP!Datum, "yyyy-mm-dd HH:MM:SS"))
     Call BDT.SAdd("9901", "UpdateUser:" & "sturm")
     Call BDT.SAdd("5098", rMP!BSNR)
     Call BDT.SAdd("5099", rMP!Lanr)
@@ -3740,58 +3789,58 @@ End Sub ' Laborvergleich_Click
 ' EDV -> Labor (direkt -> ""X"") l&öschen ab
 Private Sub LaborLöschenAb_Click()
  Dim sql$, rs As New ADODB.Recordset, rAf&
- Dim DatumS$, datum As Date, nr&
+ Dim DatumS$, Datum As Date, nr&
  Dim krit0$, krit1$, krit2$, krit3$, erg$
  Do
   DatumS = InputBox("ab welchem Datum löschen?")
   If IsDate(DatumS) Then Exit Do
  Loop
- datum = CDate(DatumS)
+ Datum = CDate(DatumS)
  
  Ausgeb "", True
  
  Set rs = Nothing
- myFrag rs, "SELECT COUNT(0) FROM labor2a WHERE zeitpunkt >= " & Format(datum, "yyyymmdd")
+ myFrag rs, "SELECT COUNT(0) FROM labor2a WHERE zeitpunkt >= " & Format(Datum, "yyyymmdd")
  nr = 0
  If Not rs.BOF Then nr = rs.Fields(0)
  Ausgeb "Aus laborywert würden gelöscht: " & nr & " Sätze", True
  
  Set rs = Nothing
- myFrag rs, "SELECT COUNT(0) FROM labor2bakt WHERE eingang >= " & Format(datum, "yyyymmdd")
+ myFrag rs, "SELECT COUNT(0) FROM labor2bakt WHERE eingang >= " & Format(Datum, "yyyymmdd")
  nr = 0
  If Not rs.BOF Then nr = rs.Fields(0)
  Ausgeb "Aus laborybakt würden gelöscht: " & nr & " Sätze", True
  
  Set rs = Nothing
- myFrag rs, "SELECT COUNT(0) FROM laboryleist l LEFT JOIN laboryus u ON l.usid=u.id WHERE eingang >= " & Format(datum, "yyyymmdd")
+ myFrag rs, "SELECT COUNT(0) FROM laboryleist l LEFT JOIN laboryus u ON l.usid=u.id WHERE eingang >= " & Format(Datum, "yyyymmdd")
  nr = 0
  If Not rs.BOF Then nr = rs.Fields(0)
  Ausgeb "Aus laboryleist würden gelöscht: " & nr & " Sätze", True
  
  Set rs = Nothing
- myFrag rs, "SELECT COUNT(0) FROM `laboryus` WHERE eingang>= " & Format(datum, "yyyymmdd")
+ myFrag rs, "SELECT COUNT(0) FROM `laboryus` WHERE eingang>= " & Format(Datum, "yyyymmdd")
  nr = 0
  If Not rs.BOF Then nr = rs.Fields(0)
  Ausgeb "Aus laboryus würden gelöscht: " & nr & " Sätze", True
  
  Set rs = Nothing
- myFrag rs, "SELECT COUNT(DISTINCT d.satzid) FROM laborysaetze d LEFT JOIN laboryus u ON u.satzid = d.satzid WHERE eingang >= " & Format(datum, "yyyymmdd")
+ myFrag rs, "SELECT COUNT(DISTINCT d.satzid) FROM laborysaetze d LEFT JOIN laboryus u ON u.satzid = d.satzid WHERE eingang >= " & Format(Datum, "yyyymmdd")
  nr = 0
  If Not rs.BOF Then nr = rs.Fields(0)
  Ausgeb "Aus laborysaetze würden gelöscht: " & nr & " Sätze", True
  
  Set rs = Nothing
- myFrag rs, "SELECT COUNT(DISTINCT d.datid) FROM laborydat d LEFT JOIN laboryus u ON u.datid = d.datid WHERE eingang >= " & Format(datum, "yyyymmdd")
+ myFrag rs, "SELECT COUNT(DISTINCT d.datid) FROM laborydat d LEFT JOIN laboryus u ON u.datid = d.datid WHERE eingang >= " & Format(Datum, "yyyymmdd")
  nr = 0
  If Not rs.BOF Then nr = rs.Fields(0)
  Ausgeb "Aus laborydat würden gelöscht: " & nr & " Sätze", True
  
- erg = MsgBox("Wollen Sie wirklich alle LaboreINträge ab " & datum & " löschen?", vbYesNo Or vbDefaultButton2, "Rückfrage")
+ erg = MsgBox("Wollen Sie wirklich alle LaboreINträge ab " & Datum & " löschen?", vbYesNo Or vbDefaultButton2, "Rückfrage")
  If erg = vbNo Then Exit Sub
  ' myEFrag "DELETE FROM `laborxwert` WHERE refnr IN " & krit0, rAF
  ' myEFrag "DELETE FROM `laborxbakt` WHERE refnr IN " & krit0, rAF
  ' myEFrag "DELETE FROM `laborxleist` WHERE refnr IN " & krit0, rAF
- myEFrag "DELETE d FROM laborydat d LEFT JOIN laboryus u ON u.datid = d.datid WHERE eingang >= " & Format(datum, "yyyymmdd"), rAf
+ myEFrag "DELETE d FROM laborydat d LEFT JOIN laboryus u ON u.datid = d.datid WHERE eingang >= " & Format(Datum, "yyyymmdd"), rAf
 End Sub ' LaborLöschenAB
 
 ' EDV -> DMP-Liste erstellen
