@@ -6,7 +6,7 @@ Begin VB.MDIForm Lese
    ClientHeight    =   6360
    ClientLeft      =   270
    ClientTop       =   1275
-   ClientWidth     =   15240
+   ClientWidth     =   15120
    Icon            =   "Lese5.frx":0000
    LinkTopic       =   "Lese"
    Picture         =   "Lese5.frx":030A
@@ -15,10 +15,10 @@ Begin VB.MDIForm Lese
       Height          =   6015
       Left            =   0
       ScaleHeight     =   5955
-      ScaleWidth      =   15180
+      ScaleWidth      =   15060
       TabIndex        =   0
       Top             =   0
-      Width           =   15240
+      Width           =   15120
       Begin VB.TextBox DurchschnDauer 
          BackColor       =   &H80000018&
          ForeColor       =   &H008080FF&
@@ -1266,17 +1266,22 @@ End Sub ' Sub MedOffSuche_Click()
 
 ' in MedOffSystemVersioning_Click, MedOffRemoveVersioning_Click
 Private Sub MOSV(ja%)
- Dim rsco As New ADODB.Recordset
+ Dim rsco As New ADODB.Recordset, rAf&
+ syscmd 4, "Führe aus: systemversioning: MOSV(" & ja & ")"
  Set MOCon = Nothing
  MOCon.Open MOCHier
  On Error GoTo fehler
  rsco.Open "SELECT TABLE_NAME From information_schema.tables WHERE table_schema = 'medoff' AND TABLE_TYPE<>'SEQUENCE' AND TABLE_TYPE" & IIf(ja = 0, "=", "<>") & "'SYSTEM VERSIONED'", MOCon, adOpenStatic, adLockReadOnly
  Do While Not rsco.EOF
-  Debug.Print "Tabelle: " & rsco!table_name
-  On Error Resume Next
-  MOCon.Execute ("ALTER TABLE `" & rsco!table_name & "` " & IIf(ja = 0, "DROP", "ADD") & " SYSTEM VERSIONING")
+  Select Case rsco!table_namep
+   Case "d2dmail", "dbsid", "dbsparam"
+   Case Else
+    Debug.Print "Tabelle: " & rsco!table_name
+    On Error Resume Next
+    MOCon.Execute "ALTER TABLE `" & rsco!table_name & "` " & IIf(ja = 0, "DROP", "ADD") & " SYSTEM VERSIONING", rAf
 '   Debug.Print rsco!table_name
-  On Error GoTo fehler
+    On Error GoTo fehler
+  End Select
   rsco.MoveNext
  Loop ' While Not rsco.EOF
  syscmd 4, "Fertig mit MOSV(" & ja & ")"
@@ -1462,14 +1467,15 @@ Private Sub do_Medpläne_alt_für_MO_exportieren_Click(Optional xmlneu%)
  Dim BDT As New BDTSchreib
  On Error GoTo fehler
  If Not FSO.FolderExists(Gvz) Then FSO.CreateFolder (Gvz)
- ausgbdt = Untervz & "MP" & Format(Now(), "yyyymmdd_HHMM") & ".BDT"
+ ausgbdt = Untervz & "MP" & " " & Format$(BDT.üzpt, "dd/mm/yy HH.MM") & ".BDT"
+ syscmd 4, "Exportiere gleich Medikamentenpläne in " & ausgbdt
  Dim rMP As ADODB.Recordset
  sql = "SELECT SUM(CASE WHEN rang=1 THEN 1 ELSE 0 END) OVER() MPzl, i.* FROM (" & vbCrLf & _
        "SELECT RANK() OVER (PARTITION BY pat_id,mpnr ORDER BY feldnr) rang" & vbCrLf & _
        ", RANK() OVER (PARTITION BY mp.pat_id ORDER BY mpnr,feldnr) prang" & vbCrLf & _
        ",lp.lanr,CONCAT(lp.vorname,' ',lp.nachname) lnam,bsnr,f.lanrid, n.Vorname,n.nachname, UCASE(n.geschlecht) gschl, Versichertennummer vn, DATE_FORMAT(n.gebdat,'%Y%m%d') geb, mp.*" & vbCrLf & _
        "FROM medplan mp LEFT JOIN faelle f USING (fid) LEFT JOIN namen n ON n.pat_id=f.pat_id LEFT JOIN lanrpraxis lp ON lp.id=lanrid" & vbCrLf & _
-       "WHERE /* mp.pat_id BETWEEN 61422 AND 100000 AND */ mpart=1" & vbCrLf & _
+       "WHERE /* mp.pat_id=56 AND */ mp.pat_id BETWEEN 61422 AND 100000 AND mpart=1" & vbCrLf & _
        "AND (sdatum IS NULL OR sdatum=18991230)" & vbCrLf & _
        "AND EXISTS (SELECT 0 FROM faelle WHERE pat_id=n.pat_id AND bhfb> 20201231)" & vbCrLf & _
        ") i ORDER BY pat_id, mpnr, feldnr"
@@ -1479,7 +1485,7 @@ Private Sub do_Medpläne_alt_für_MO_exportieren_Click(Optional xmlneu%)
   Call BDT.Start(Untervz, "MP")
   Do While Not rMP.EOF
    If rMP!prang = 1 Then
-    syscmd 4, "Exportiere Medpläne von Pat. " & rMP!Pat_ID & " (" & rMP!Nachname & ", " & rMP!Vorname & ")"
+    syscmd 4, "Exportiere Medpläne von Pat. " & rMP!Pat_ID & " (" & rMP!Nachname & ", " & rMP!Vorname & ") in " & BDT.DMPImp
     Call BDT.SAdd("8000", "0020", True) ' Satzart
     Call BDT.SAdd("8100", rMP!MPzl * 12 + 50) ' Satzlänge
     Call BDT.SAdd("9100", rMP!BSNR) ' Arztnummer des Absenders
@@ -4154,35 +4160,35 @@ End Sub ' alleHausärzteEinlesen
 
 ' EDV -> Punktwerte EBM2010
 Private Sub Punktwerte_Click()
- Dim str$, Zahl#, pos&, rAf&
+ Dim Str$, Zahl#, pos&, rAf&
 ProgStart
 Dim rs As New ADODB.Recordset
 myFrag rs, "SELECT * FROM `EBM2010`"
 Do While Not rs.EOF
- str = rs!pwerte
+ Str = rs!pwerte
  Do
-  pos = InStr(str, "|")
+  pos = InStr(Str, "|")
   If pos <> 0 Then
-   str = Mid$(str, pos + 1)
+   Str = Mid$(Str, pos + 1)
   Else
    Exit Do
   End If
  Loop
- str = REPLACE(str, " Euro", vNS)
- If IsNumeric(str) Then
-  Zahl = CDbl(REPLACE(str, ".", ""))
- ElseIf InStrB(str, " Punkte") <> 0 Then
-  str = REPLACE$(str, " Punkte", vNS)
-  If IsNumeric(str) Then
-   Zahl = CDbl(REPLACE(str, ".", "")) * 0.03505
+ Str = REPLACE(Str, " Euro", vNS)
+ If IsNumeric(Str) Then
+  Zahl = CDbl(REPLACE(Str, ".", ""))
+ ElseIf InStrB(Str, " Punkte") <> 0 Then
+  Str = REPLACE$(Str, " Punkte", vNS)
+  If IsNumeric(Str) Then
+   Zahl = CDbl(REPLACE(Str, ".", "")) * 0.03505
   Else
-   Debug.Print rs!pwerte, str
+   Debug.Print rs!pwerte, Str
    Stop
   End If
- ElseIf InStrB(str, " unbewertet") <> 0 Or rs!pwerte = vNS Then
+ ElseIf InStrB(Str, " unbewertet") <> 0 Or rs!pwerte = vNS Then
   Zahl = 0
  Else
-  Debug.Print rs!pwerte, str
+  Debug.Print rs!pwerte, Str
   Stop
  End If
  myEFrag "UPDATE `EBM2010` SET euro = '" & REPLACE(Zahl, ",", ".") & "' WHERE myid = " & rs!myid, rAf

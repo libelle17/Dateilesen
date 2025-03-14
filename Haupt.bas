@@ -5279,7 +5279,7 @@ End Sub ' SizeColumns
 Function doWirt()
  Dim DNam$
  DNam$ = pVerz & "Wirt.txt"
- Dim Pat_ID$, rs As New ADODB.Recordset, Faelle As New ADODB.Recordset
+ Dim Pat_ID$, rs As New ADODB.Recordset, faelle As New ADODB.Recordset
 ' Dim lies As New Lese
  Load Lese
  Lese.obMySQL = True
@@ -5287,9 +5287,9 @@ Function doWirt()
  Open DNam For Output As #303
  Call acon(quelleT)
 ' Call Faelle.Open("SELECT DISTINCT pat_id FROM `faelle` WHERE quartal LIKE '_2005' AND schgr <> '90'", DBCn, adOpenDynamic, adLockReadOnly)
- myFrag Faelle, "SELECT DISTINCT pat_id FROM `faelle` WHERE quartal LIKE '_2005' AND schgr <> '90'"
- Do While Not Faelle.EOF
-  Pat_ID = CStr(Faelle!Pat_ID)
+ myFrag faelle, "SELECT DISTINCT pat_id FROM `faelle` WHERE quartal LIKE '_2005' AND schgr <> '90'"
+ Do While Not faelle.EOF
+  Pat_ID = CStr(faelle!Pat_ID)
 '  SET rs = Nothing
 '  myFrag rs, "SELECT * FROM `namen` WHERE pat_id = " & Pat_id
   Set rs = Nothing
@@ -5306,7 +5306,7 @@ Function doWirt()
    rs.Move 1
   Loop
   DoEvents
-  Faelle.Move 1
+  faelle.Move 1
  Loop
  Close #303
  zeigan DNam, vbNormalFocus
@@ -6008,7 +6008,7 @@ Function getHatest(pid&)
  Dim infos$()
  Lese.ProgStart
 ' getHausarztAlt 52022, Infos
- Dim rFa() As Faelle
+ Dim rFa() As faelle
  Dim rKv1() As kvnrue
  getHausarzt1 infos, rFa, rKv1, , pid
  Stop

@@ -416,7 +416,7 @@ Public Function fbumdreh() ' Fallbeginnumdreh
  Dim sql$, rsMO As New ADODB.Recordset
  Dim MeStr() As memoType
  MOConInit
- sql = "SELECT fsurogat f FROM patfall WHERE fpatnr=63933"
+ sql = "SELECT fsurogat f FROM patfall WHERE fpatnr=68012"
  rsMO.Open sql, MOCon, adOpenStatic, adLockReadOnly
  If Not rsMO.BOF Then
   Do While Not rsMO.EOF
@@ -541,7 +541,7 @@ Public Function WechsMemo(TabName$, snr&, mfeld$, anENr$, neu$, art$, MeStr() As
       Debug.Print "txt: '" & Left$(txt, 8) & "'"
       reppos = pos
       If obUmdreh Then
-        If Mid$(txt, 5, 1) = "2" Then
+        If Mid$(txt, 5, 1) = "2" Or Mid$(txt, 5, 2) = "19" Then
          neus = Mid$(txt, 5, 4) & Left$(txt, 4)
 '         Debug.Print neu
         Else ' Mid$(
@@ -1452,7 +1452,7 @@ Public Function doPatvonMO(pNr&, Optional obmitFormularen%)
 '       If pos > 0 Then rDm(UBound(rDm)).Abk = Left$(rsEi!FText, pos - 1)
        rDm(UBound(rDm)).art = IIf(InStrB(rsEi!FText, "Erst"), "ED", "FD")
        rDm(UBound(rDm)).Abk = rsEi!FText
-       rDm(UBound(rDm)).Ok = rsEi!lFSt
+       rDm(UBound(rDm)).OK = rsEi!lFSt
 '       rDm(UBound(rDm)).ausgedruckt = IIf(InStrB(rsEi!erg, "ausgedruckt"), 1, 0)
 '       pos = 1
 '       Do
@@ -2131,7 +2131,7 @@ sql = sql & _
        If pos > 1 Then rDm(UBound(rDm)).exportiert = CDate(Mid$(rsEi!fdet, pos + 14, 10))
        rDm(UBound(rDm)).KarteiDatum = CDate(rsEi!Zp)
        rDm(UBound(rDm)).obvoll = IIf(InStrB(rsEi!fdet, "vollständig"), 1, 0)
-       rDm(UBound(rDm)).Ok = IIf(InStrB(rsEi!fdet, "(ok"), 1, 0)
+       rDm(UBound(rDm)).OK = IIf(InStrB(rsEi!fdet, "(ok"), 1, 0)
        rDm(UBound(rDm)).lanrid = rsEi!FArztnr
        rDm(UBound(rDm)).Nachname = rNa(0).Nachname
        rDm(UBound(rDm)).Vorname = rNa(0).Vorname
