@@ -373,6 +373,7 @@ Public hlese As Lese
 Public AnfCode%
 Public labxtb$
 Public ohneTermine
+Public LabDatum As Date ' 23.3.25
 ' für LabordateiAnzeig und mfg_mousemove
 ' Const Pat_IDSp% = 0
 ' Const NamSp% = 1
@@ -494,7 +495,7 @@ End Enum
 Enum ArtTyp
  artpat = 1 ' DMP hier Liste
  artDiag    ' Diagnosen sortieren
- artLab     ' pathologische Laborwerte anschauen
+ artlab     ' pathologische Laborwerte anschauen
  artDMP     ' DMP-Infos an Hausärzte faxen
  artLPar    ' Laborparameter
  artTabAus  ' Tabausgeb
@@ -812,7 +813,7 @@ Public Sub Command1_Click(Index As Integer)
     Case 1: Call dodoplz(Me.MFG.TextMatrix(Me.MFG.Row, PIDSp), plzVz, Now, Now - Int(Now), True)  ' Patientenlaufzettel erstellen
    End Select
    
-  Case artLab
+  Case artlab
    Select Case Index
     Case 0: Call verschieb(pVerz & "KothnyLabor")
     Case 1: Call verschieb(pVerz & "SchadeLabor")
@@ -930,7 +931,7 @@ Sub alleFS()
    For Each zeile In pCol
     Call FertigStellen((zeile))
     Pause (Pausenlänge)
-    SendKeys "{ESC}", True
+    Sendkeys "{ESC}", True
    Next zeile
   Case artHA
  End Select
@@ -1049,7 +1050,7 @@ End Sub ' FertigStellenBeliebig()
 ' in Command1_Click (artPat)
 Private Sub DokuBeliebig() ' Doku zu beliebigem Patienten
  Dim erg As Variant, VorDoku$, NachN$, VorN$, ICD$
- Dim rna As ADODB.Recordset
+ Dim rNa As ADODB.Recordset
  Select Case PLArt
  
   Case artDMP
@@ -1072,11 +1073,11 @@ Private Sub DokuBeliebig() ' Doku zu beliebigem Patienten
       VorN = .TextMatrix(.Row, NachNameSp + 1)
       ICD = .TextMatrix(.Row, ICDSp)
      Else
-      myFrag rna, "SELECT nachname,vorname,gICD FROM namen n LEFT JOIN diagview d ON d.pat_id=n.pat_id AND (d.gicd REGEXP '^E1[0-4]') WHERE n.pat_id=" & erg, adOpenStatic, DBCn
-      If Not rna.BOF Then
-       NachN = rna!Nachname
-       VorN = rna!Vorname
-       ICD = rna!gicd
+      myFrag rNa, "SELECT nachname,vorname,gICD FROM namen n LEFT JOIN diagview d ON d.pat_id=n.pat_id AND (d.gicd REGEXP '^E1[0-4]') WHERE n.pat_id=" & erg, adOpenStatic, DBCn
+      If Not rNa.BOF Then
+       NachN = rNa!Nachname
+       VorN = rNa!Vorname
+       ICD = rNa!gicd
       End If ' Not rna.BOF Then
      End If ' erg <> Me.MFG.TextMatrix(Me.MFG.Row, dpatidsp) Then
      altC = .col
@@ -1238,23 +1239,23 @@ Sub zwiFS(Pat_ID&, nuranzeigen%)
   On Error GoTo fehler
   Pause (Pausenlänge)
   On Error Resume Next
-  SendKeys "{ESC}", True
+  Sendkeys "{ESC}", True
   Pause (Pausenlänge)
-  SendKeys "{ESC}", True
+  Sendkeys "{ESC}", True
   Pause (Pausenlänge)
-  SendKeys "{ESC}", True
+  Sendkeys "{ESC}", True
   Pause (Pausenlänge)
-  SendKeys "{ENTER}", True
+  Sendkeys "{ENTER}", True
   Pause (Pausenlänge)
-  SendKeys "{F12}", True
+  Sendkeys "{F12}", True
   Pause (Pausenlänge)
 '  SendKeys "{ESC}", True
 '  Pause (Pausenlänge)
 '  SendKeys "{ESC}", True
 '  Pause (Pausenlänge)
-  SendKeys "p", True
+  Sendkeys "p", True
   Pause (Pausenlänge)
-  SendKeys "{bs}" & Pat_ID & "", True
+  Sendkeys "{bs}" & Pat_ID & "", True
   
   Call doFS(nuranzeigen, True)
  End If
@@ -1281,56 +1282,56 @@ Sub doFS(nuranzeigen%, Optional ohneakt% = False)
   Me.Text1.Enabled = False
   If Not ohneakt Then AppActivate "TurboMed", True
   Pause (Pausenlänge)
-  SendKeys "{ENTER}", True
+  Sendkeys "{ENTER}", True
   Pause (Pausenlänge)
-  SendKeys "{F3}", True
+  Sendkeys "{F3}", True
   Pause (Pausenlänge)
   If nuranzeigen <> 0 Then
 '   AppActivate "TurboMed", True
    If Me.Text1.Visible <> 0 Then
     If IsNumeric(Me.Text1) Then
      If CDbl(Me.Text1) < 10 Then
-      SendKeys "%{F" & Me.Text1 & "}", True
+      Sendkeys "%{F" & Me.Text1 & "}", True
      Else
-      SendKeys "{F5}", True
+      Sendkeys "{F5}", True
       Pause (Pausenlänge)
-      SendKeys "{DOWN " & Me.Text1 - 2 & "}", True ' Filter DMP wählen
+      Sendkeys "{DOWN " & Me.Text1 - 2 & "}", True ' Filter DMP wählen
       Pause (Pausenlänge)
      End If
     Else
-     SendKeys "%{F1}", True
+     Sendkeys "%{F1}", True
     End If
    Else
-    SendKeys "%{F1}", True
+    Sendkeys "%{F1}", True
    End If
    Pause (Pausenlänge)
    Exit Sub
   End If
-  SendKeys "{F5}", True
+  Sendkeys "{F5}", True
   Pause (Pausenlänge)
-  SendKeys "{DOWN " & Me.Text1 - 2 & "}", True ' Filter DMP wählen
+  Sendkeys "{DOWN " & Me.Text1 - 2 & "}", True ' Filter DMP wählen
   Pause (Pausenlänge)
-  SendKeys "{Enter}", True
+  Sendkeys "{Enter}", True
   Pause (Pausenlänge)
-  SendKeys "{Enter}", True
+  Sendkeys "{Enter}", True
   Pause (Pausenlänge)
-  SendKeys "%D", True
+  Sendkeys "%D", True
   Pause (Pausenlänge)
-  SendKeys " ", True
+  Sendkeys " ", True
   Pause (Pausenlänge)
-  SendKeys "%O", True
+  Sendkeys "%O", True
   Pause (Pausenlänge)
-  SendKeys " ", True
+  Sendkeys " ", True
   Pause (Pausenlänge)
-  SendKeys " " & Format(MINvb(Now(), fctQEnd(ZQuart(Now() - Verspätung))), "ddmmyyyy") & "{TAB}", True
+  Sendkeys " " & Format(MINvb(Now(), fctQEnd(ZQuart(Now() - Verspätung))), "ddmmyyyy") & "{TAB}", True
   Pause (Pausenlänge)
-  SendKeys "%O", True
+  Sendkeys "%O", True
   Pause (Pausenlänge)
-  SendKeys " ", True
+  Sendkeys " ", True
   Pause (Pausenlänge)
-  SendKeys " ", True
+  Sendkeys " ", True
   Pause (Pausenlänge)
-  SendKeys " ", True
+  Sendkeys " ", True
   Pause (Pausenlänge)
 '  AppActivate "C:\TurboMed\Tmp", True
 '  Pause (Pausenlänge)
@@ -1757,7 +1758,7 @@ Public Sub domachDMPBogen(Pat_ID&, BogArtlV As BogArtTyp, DokuDat As Date, Optio
    auswlanr.HNR = rlanr!Hausnummer
    auswlanr.ZIP = rlanr!plz
    auswlanr.CTY = rlanr!Stadt
-   auswlanr.tel = rlanr!telefon
+   auswlanr.TEL = rlanr!telefon
    Set rlanr = Nothing
   End If ' Not rlanr.BOF
  Else ' autolanr Then
@@ -2880,7 +2881,7 @@ Public Sub domachDMPBogen(Pat_ID&, BogArtlV As BogArtTyp, DokuDat As Date, Optio
   End If
   On Error GoTo fehler
   Pause (Pausenlänge)
-  SendKeys "{ESC}", True
+  Sendkeys "{ESC}", True
   Pause (Pausenlänge)
 '  hnd = FensterHandle("Hinweis")
 '  IF hnd <> 0 THEN
@@ -2894,24 +2895,24 @@ Public Sub domachDMPBogen(Pat_ID&, BogArtlV As BogArtTyp, DokuDat As Date, Optio
 '   END IF
 '   ON Error GoTo fehler
 '  END IF
-  SendKeys "{ESC}", True
+  Sendkeys "{ESC}", True
   Pause (Pausenlänge)
-  SendKeys "{ESC}", True
+  Sendkeys "{ESC}", True
   Pause (Pausenlänge)
   hnd = FensterHandle("TurboMed - `Kartei")
   If hnd <> 0 Then
    On Error Resume Next
    AppActivate "TurboMed - `Kartei", False
    Pause (Pausenlänge)
-   SendKeys "{ESC}", True
+   Sendkeys "{ESC}", True
    Pause (Pausenlänge)
    hnd = FensterHandle("TurboMed - `Fehler")
    If hnd <> 0 Then
     AppActivate "TurboMed - `Fehler", False
     Pause (Pausenlänge)
-    SendKeys "{ENTER}", True
+    Sendkeys "{ENTER}", True
     Pause (Pausenlänge)
-    SendKeys "{ESC}", True
+    Sendkeys "{ESC}", True
     Pause (Pausenlänge)
    End If
    On Error GoTo fehler
@@ -2919,14 +2920,14 @@ Public Sub domachDMPBogen(Pat_ID&, BogArtlV As BogArtTyp, DokuDat As Date, Optio
 '  MsgBox "Fertig!"
 '  Exit Sub
 '  SendKeys "{TAB}+{TAB}" & "%p" & "{BS}" & "%p" & "{BS}" & "%p" & "{BS}"
-  SendKeys "p" & "{BS}", True
+  Sendkeys "p" & "{BS}", True
 '  SendKeys "{ESC}", True
   Pause (Pausenlänge)
 '  SendKeys "p", True
 '  Pause (Pausenlänge)
-  SendKeys Pat_ID & vNS, True
+  Sendkeys Pat_ID & vNS, True
   Pause (Pausenlänge)
-  SendKeys "{ENTER}", True
+  Sendkeys "{ENTER}", True
   Pause (1000)
 '  SendKeys "{ENTER}", True
 '  Pause (Pausenlänge)
@@ -2937,14 +2938,14 @@ Public Sub domachDMPBogen(Pat_ID&, BogArtlV As BogArtTyp, DokuDat As Date, Optio
   Exit Sub
  End If
  If SendStr <> "" Then
-    SendKeys SendStr, True
+    Sendkeys SendStr, True
     If SendStr1a <> "" Then
      Pause (Pausenlänge)
-     SendKeys SendStr1a, True
+     Sendkeys SendStr1a, True
     End If
     If SendStr2 <> "" Then
      Pause (Pausenlänge)
-     SendKeys SendStr2, True
+     Sendkeys SendStr2, True
     End If
 '   IF 1 = 1 THEN
     Dim dmpdat$, dmpdatop$
@@ -2957,13 +2958,13 @@ Public Sub domachDMPBogen(Pat_ID&, BogArtlV As BogArtTyp, DokuDat As Date, Optio
     DatName = REPLACE$(REPLACE$(DatName, "(", "{(}"), ")", "{)}")
     AppActivate "TurboMed", False
     Pause (Pausenlänge)
-    SendKeys dmpdatop & "{DEL 8}" & dmpdat
+    Sendkeys dmpdatop & "{DEL 8}" & dmpdat
     Pause (1000)
-    SendKeys "{TAB}%P", True
+    Sendkeys "{TAB}%P", True
     Pause (Pausenlänge)
-    SendKeys "%O%(DD)aa{ENTER}", True
+    Sendkeys "%O%(DD)aa{ENTER}", True
     Pause (Pausenlänge)
-    SendKeys DatName & "{ENTER}n{ENTER}{F3}{ENTER}", True
+    Sendkeys DatName & "{ENTER}n{ENTER}{F3}{ENTER}", True
 '   END IF
  End If
  MFG.SetFocus
@@ -3155,7 +3156,7 @@ Sub LabordateiAnzeig(Datei$)
  Dim rs2 As New ADODB.Recordset
  Dim pide$  ' PID von Pat. gleichen Namens
  Dim rsgl As New ADODB.Recordset
- 
+
  FNr = 20
  On Error GoTo fehler
  vorFarbe = vbWhite
@@ -3175,7 +3176,94 @@ Sub LabordateiAnzeig(Datei$)
  .TextMatrix(0, terminsp) = "Termine"
  .TextMatrix(0, labhwsp) = "Laborhinweise"
  Dim rc As New ADODB.Recordset
- myFrag rc, "SELECT COUNT(0) OVER() Zahl" & vbCrLf & _
+ Dim Datum As Date
+ If True Then
+  sql = _
+ "SELECT COUNT(0) OVER() Zahl" & vbCrLf & _
+ ",l.*,s.pat_id obsws, COALESCE(ityp,'') ityp, COALESCE(lp.langtext,l.parameter) lt" & vbCrLf & _
+ "FROM labpatel p " & vbCrLf & _
+ "LEFT JOIN labpath l ON l.elID=p.id" & vbCrLf & _
+ "LEFT JOIN laborparameter lp ON l.Parameter=lp.`Abkü` AND l.Einheit=lp.Einheit and lp.nbm=l.normbereich" & vbCrLf & _
+ " AND lp.id=(SELECT MIN(id) FROM laborparameter WHERE abkü=l.parameter AND einheit=l.Einheit AND nbm=l.normbereich)" & vbCrLf & _
+ "LEFT JOIN sws s ON s.pat_id=l.pat_id AND s.voret>qanf() AND s.voret>now()" & vbCrLf & _
+ "LEFT JOIN dtypen dt ON dt.pat_id=l.pat_id" & vbCrLf & _
+ "WHERE DATE(Dateidat)=" & Format(LabDatum, "YYYYmmdd") & vbCrLf & _
+ "ORDER BY l.pat_id,l.name,gruppe,reihe,id"
+ ElseIf Datei Like "*.ldt" Then
+  Datum = Left(FSO.GetBaseName(Datei), 10)
+  sql = "SELECT COUNT(0) OVER () Zahl, gesname(l.pat_id) Name" & vbCrLf & _
+", case when gicd RLIKE '^E10' then '1' when gicd RLIKE '^E11' then '2' when gicd RLIKE 'O24.4' then 'g' END ityp" & vbCrLf & _
+", Abkü Parameter, Wert, einheit" & vbCrLf & _
+", (SELECT wert FROM labor2a WHERE pat_id=l.pat_id AND abkü=l.abkü AND einheit=l.Einheit and zeitpunkt=(SELECT MAX(zeitpunkt) FROM labor2a WHERE pat_id=l.pat_id AND abkü=l.abkü AND einheit=l.Einheit AND zeitpunkt<l.zeitpunkt) LIMIT 1) vorwert_1" & vbCrLf & _
+", '' vorwert_2" & vbCrLf & _
+", NB Normbereich, Kommentar Laborhinw, '' Hinweise" & vbCrLf & _
+",  l.* , s.pat_id obsws, d.*" & vbCrLf & _
+"FROM labor2a l" & vbCrLf & _
+"LEFT JOIN diagview d ON d.pat_id=l.pat_id AND gicd RLIKE '^E1[01]|O24.4'" & vbCrLf & _
+"LEFT JOIN sws s ON s.pat_id=l.pat_id AND s.voret>qanf() AND s.voret>now()" & vbCrLf & _
+"WHERE grenzwerti<>'' and l.zeitpunkt =" & Format(Datum, "yyyymmdd") & vbCrLf & _
+";"
+
+sql = _
+"SELECT i.*" & vbCrLf & _
+",   CASE" & vbCrLf & _
+"        WHEN TKZ<>0 AND GSZ=0 AND wdz=0 AND ahz=0 THEN 14772545 -- //vbmittelblau, RGB(65, 105, 225) ' http://www.am.uni-duesseldorf.de/de/Links/Tools/farbtabelle.html" & vbCrLf & _
+"        WHEN tkz=0 AND gsz<>0 AND wdz=0 AND ahz=0 THEN 65535 -- // gelb, &HFFFF&" & vbCrLf & _
+"        WHEN tkz=0 AND gsz=0 AND ahz<>0 THEN 8553215 -- // vbwagnerahrot, RGB(255,130,130)," & vbCrLf & _
+"        WHEN tkz=0 AND gsz=0 AND wdz<>0 THEN 6974207 --  // vbwagnerrot, RGB(255,106,106)," & vbCrLf & _
+"        WHEN tkz<>0 AND gsz<>0 AND wdz=0 and ahz=0 THEN 7451452 -- // vbwagnergrün, RGB(60,179,113)" & vbCrLf & _
+"        WHEN tkz<>0 AND gsz=0 AND (wdz<>0 OR ahz<>0) THEN 13850042 -- // vbmittellila, rgb(186,85,211)" & vbCrLf & _
+"        WHEN tkz=0 AND gsz<>0 AND (wdz<>0 OR ahz<>0) THEN 33023 -- // orange, &H80FF&" & vbCrLf & _
+"        WHEN tkz<>0 AND gsz<>0 AND (wdz<>0 OR ahz<>0) THEN 755384 -- // vbmittelbraun, RGB(184,134,11)" & vbCrLf & _
+"        WHEN obk<>0 THEN 16767449 -- // hellblau" & vbCrLf & _
+"        WHEN obs<>0 THEN 12648447 -- // vbhellgelb" & vbCrLf & _
+"        ELSE 16777215 -- // FFFFFF" & vbCrLf & _
+"    END namsp" & vbCrLf & _
+",   CASE" & vbCrLf & _
+"        WHEN TKZ<>0 AND GSZ=0 AND WDZ=0 and ahz=0 THEN 16767449 -- // hellblau, &HFFD9D9" & vbCrLf & _
+"        WHEN tkz=0 AND gsz<>0 AND wdz=0 and ahz=0 THEN 12648447 -- // vbhellgelb, &HC0FFFF" & vbCrLf & _
+"        WHEN tkz=0 AND gsz=0 AND ahz<>0 THEN 11195135 -- // mittigahrosa, &HFFD2AA" & vbCrLf & _
+"        WHEN tkz=0 AND gsz=0 AND wdz<>0 THEN 12632319 -- // mittigrosa, &HC0C0FF" & vbCrLf & _
+"        WHEN tkz<>0 AND gsz<>0 AND wdz=0 and ahz=0 THEN 8454016 -- // vbhellgrün, &H80FF80" & vbCrLf & _
+"        WHEN tkz<>0 AND gsz=0 AND (wdz<>0 or ahz<>0) THEN 14053594 -- // vbhelllila, rgb(218,112,214)" & vbCrLf & _
+"        WHEN tkz=0 AND gsz<>0 AND (wdz<>0 or ahz<>0) THEN 8438015 -- // hellorange &H80C0FF" & vbCrLf & _
+"        WHEN tkz<>0 AND gsz<>0 AND (wdz<>0 or ahz<>0) THEN 2139610 -- // hellbraun RGB(218,165,32)" & vbCrLf & _
+"        ELSE 16777215" & vbCrLf
+sql = sql & _
+"    END wertsp" & vbCrLf & _
+", 55 hinwsp, 66 ficdsp, 77 termsp, '' Hinweise, '' ficd, '' Termine, '' labhinw" & vbCrLf & _
+"FROM (" & vbCrLf & _
+"SELECT COUNT(0) OVER () Zahl, gesname(l.pat_id) NAME" & vbCrLf & _
+", case when gicd RLIKE '^E10' then '1' when gicd RLIKE '^E11' then '2' when gicd RLIKE 'O24.4' then 'g' else '' END ityp -- viel schneller als dtypen" & vbCrLf & _
+", l.Abkü Parameter, Wert, l.einheit, COALESCE(lp.langtext,l.`Abkü`) lt" & vbCrLf & _
+", COALESCE((SELECT wert FROM labor2a WHERE pat_id=l.pat_id AND abkü=l.abkü AND einheit=l.Einheit and zeitpunkt=(SELECT MAX(zeitpunkt) FROM labor2a WHERE pat_id=l.pat_id AND abkü=l.abkü AND einheit=l.Einheit AND zeitpunkt<l.zeitpunkt) LIMIT 1),'') vorwert_1" & vbCrLf & _
+", COALESCE((SELECT wert FROM labor2a WHERE pat_id=l.pat_id AND abkü=l.abkü AND einheit=l.Einheit and zeitpunkt=(SELECT MAX(zeitpunkt) FROM labor2a WHERE pat_id=l.pat_id AND abkü=l.abkü AND einheit=l.Einheit AND zeitpunkt<(SELECT MAX(zeitpunkt) FROM labor2a WHERE pat_id=l.pat_id AND abkü=l.abkü AND einheit=l.Einheit AND zeitpunkt<l.zeitpunkt)) LIMIT 1),'') vorwert_2" & vbCrLf & _
+"-- , dt.*" & vbCrLf & _
+", NB Normbereich, Kommentar Laborhinw, '' Hinweise" & vbCrLf & _
+",  s.pat_id obsws, d.*" & vbCrLf & _
+"        ,SUM((art='gs' OR inhalt LIKE '%(gs)%') AND rang<8) gsz" & vbCrLf & _
+"        ,SUM((art='tk' OR inhalt LIKE '%(tk)%') AND rang<8) tkz" & vbCrLf & _
+"        ,SUM((art='wd' OR inhalt LIKE '%(wd)%') AND rang<8) wdz" & vbCrLf & _
+"        ,SUM((art='ah' OR inhalt LIKE '%(ah)%') AND rang<8) ahz" & vbCrLf & _
+"        ,COALESCE((SELECT 1 FROM desktop WHERE pat_id=l.pat_id AND iconpath RLIKE '4eckblau' AND showasnote=0 LIMIT 1),0) obk" & vbCrLf & _
+"        ,COALESCE((SELECT 1 FROM desktop WHERE pat_id =l.pat_id AND iconpath RLIKE '4eckgelb' AND showasnote=0 LIMIT 1),0) obs" & vbCrLf & _
+"FROM labor2a l" & vbCrLf & _
+"LEFT JOIN laborparameter lp ON l.`Abkü`=lp.`Abkü` AND l.Einheit=lp.Einheit and lp.nbm=l.nb" & vbCrLf
+sql = sql & _
+"AND lp.id=(SELECT MIN(id) FROM laborparameter WHERE abkü=l.abkü AND einheit=l.Einheit AND nbm=l.nb)" & vbCrLf & _
+"LEFT JOIN diagview d ON d.pat_id=l.pat_id AND gicd RLIKE '^E1[01]|O24.4'" & vbCrLf & _
+"LEFT JOIN sws s ON s.pat_id=l.pat_id AND s.voret>qanf() AND s.voret>NOW()" & vbCrLf & _
+"LEFT JOIN (SELECT RANK() OVER(PARTITION BY pat_id ORDER BY zeitpunkt DESC ) rang, e.* FROM eintraege e) eai ON eai.pat_id=l.pat_id AND (art in ('tk','gs','wd','ah') OR inhalt RLIKE '\((gs|tk|wd|ah)\)')" & vbCrLf & _
+"WHERE grenzwerti<>'' and l.zeitpunkt =" & Format(Datum, "yyyymmdd") & vbCrLf & _
+"GROUP BY l.pat_id, l.wert,l.abkü,l.einheit,l.nb,l.zeitpunkt" & vbCrLf & _
+") i" & vbCrLf & _
+";"
+
+
+
+ Else
+  sql = _
+ "SELECT COUNT(0) OVER() Zahl" & vbCrLf & _
  ",l.*,s.pat_id obsws, COALESCE(ityp,'') ityp, COALESCE(lp.langtext,l.parameter) lt" & vbCrLf & _
  "FROM labpatel p " & vbCrLf & _
  "LEFT JOIN labpath l ON l.elID=p.id" & vbCrLf & _
@@ -3187,6 +3275,8 @@ Sub LabordateiAnzeig(Datei$)
  "ORDER BY l.pat_id,l.name,gruppe,reihe,id"
  '  ",IF(RANK() OVER(PARTITION BY pat_id ORDER BY l.pat_id,gruppe,reihe,id)=1,l.NAME,'') ueName" & vbCrLf & _
 
+ End If
+ myFrag rc, sql
  Dim Pat_ID&, dtyp$
 
  If Not rc.BOF And True Then
@@ -3204,15 +3294,15 @@ Sub LabordateiAnzeig(Datei$)
      vorPID = Pat_ID
      .Row = i
      .col = Pat_IDSp:    .Text = rc!Pat_ID:      .CellBackColor = Abs(Sp1Farbe)
-     .col = namsp:       .Text = rc!name:        .CellBackColor = rc!namsp
-     .col = parsp:       .Text = rc!LT:          .CellBackColor = rc!wertsp
-     .col = wertsp:      .Text = rc!Wert:        .CellBackColor = rc!wertsp
+     .col = namsp:       .Text = rc!name:        .CellBackColor = IIf(rc!namsp = 0, Abs(Sp1Farbe), rc!namsp)
+     .col = parsp:       .Text = rc!LT:          .CellBackColor = IIf(rc!wertsp = 0, Abs(Sp1Farbe), rc!wertsp)
+     .col = wertsp:      .Text = rc!Wert:        .CellBackColor = IIf(rc!wertsp = 0, Abs(Sp1Farbe), rc!wertsp)
      .col = einhsp:       .Text = rc!Einheit:     .CellBackColor = vorFarbe
      .col = vorwsp1:     .Text = rc!vorwert_1:   .CellBackColor = vorFarbe
      .col = vorwsp2:     .Text = rc!vorwert_2:   .CellBackColor = vorFarbe
      .col = nbsp:        .Text = rc!Normbereich: .CellBackColor = vorFarbe
-     .col = medsp:       .Text = rc!Hinweise:    .CellBackColor = IIf(rc!hinwsp = vbWhite, vorFarbe, rc!hinwsp)
-     .col = ficdsp:      .Text = rc!ficd:        .CellBackColor = IIf(rc!ficdsp = vbWhite, vorFarbe, rc!ficdsp)
+     .col = medsp:       .Text = rc!Hinweise:    .CellBackColor = IIf(rc!hinwsp = vbWhite Or rc!hinwsp = 0, vorFarbe, rc!hinwsp)
+     .col = ficdsp:      .Text = rc!ficd:        .CellBackColor = IIf(rc!ficdsp = vbWhite Or rc!ficdsp = 0, vorFarbe, rc!ficdsp)
      .col = terminsp:    .Text = rc!Termine:     .CellBackColor = IIf(rc!termsp = 0, vbWhite, rc!termsp)
      .col = labhwsp:     .Text = rc!labhinw:     .CellBackColor = vorFarbe
      i = i + 1
@@ -3233,7 +3323,7 @@ Sub LabordateiAnzeig(Datei$)
 'flexAlignRightCenter 7 Default for numbers. The column content is aligned right, center.
 'flexAlignRightBottom 8 The column content is aligned right, bottom.
 'flexAlignGeneral 9 The column content is of general alignment. This is "left, center" for strings AND "right, center" for numbers.
- Else
+ ElseIf False Then
     Call csvLesen(Datei)
 '   Call ExcelLesen(Datei)
  DateiDatStr = Datei
@@ -3245,6 +3335,7 @@ Sub LabordateiAnzeig(Datei$)
  If pos <> 0 Then
   j = InStr(pos + 1, DateiDatStr, ".xls")
   If j = 0 Then j = InStr(pos + 1, DateiDatStr, ".csv")
+  If j = 0 Then j = InStr(pos + 1, DateiDatStr, ".ldt")
 '  i = InStr(pos + 1, DateiDatStr, " ")
 '  IF i <> 0 AND i < j THEN j = i  ' Labor Kasse 18.10.18.csv
   DateiDatStr = Trim$(Mid$(DateiDatStr, pos, j - pos))
@@ -3759,8 +3850,8 @@ Private Sub Form_Load()
    Me.Text1.Visible = True
    Call SizeColumns(MFG, Me, True, 5000)
    
-  Case artLab ' pathologische Laborwerte ausgeben
-   Me.Caption = "Pathologische Laborwerte (" & Me.LabDat & ")"
+  Case artlab ' pathologische Laborwerte ausgeben
+   Me.Caption = "Pathologische Laborwerte (" & Me.LabDatum & ")"
    Me.Command1(0).Caption = "Datei zu &Kothny verschieben"
    Me.Command1(1).Caption = "Datei zu &Schade verschieben"
    Me.Command1(2).Caption = "Datei zu &Labor alt verschieben"
@@ -3909,7 +4000,7 @@ Private Sub Form_Load()
       "   WHERE (/*notiz LIKE '%DMP hier%' OR */dmpklass = 3) AND NOT ISNULL (f.bhfb)" & vbCrLf & _
       "     AND (SDatum IS NULL OR SDatum=18991230 OR SDatum>qbeg(qbeg(NOW() - INTERVAL " & Verspätung & " DAY)- INTERVAL 1 DAY))" & vbCrLf & _
       "     AND NOT (f.bhfb<qbeg(qbeg(NOW() - INTERVAL " & Verspätung & " DAY)- INTERVAL 1 DAY) AND tkz)" & vbCrLf & _
-      "     AND n.pat_id<" & pidoffs & "" & vbCrLf & _
+      "     AND (" & CStr(Lese.pidoffs) & "=0 OR n.pat_id<" & Lese.pidoffs & ")" & vbCrLf & _
       "     AND bhfb> NOW() - INTERVAL 387 DAY" & vbCrLf & _
       "  ) i" & vbCrLf & _
       "  WHERE rn<" & dokuzahl + 1 & vbCrLf & _
@@ -4383,7 +4474,7 @@ Public Sub MFG_Click()
     End If
     Me.Command1(14).Caption = Me.GesZl & " &Ges"
    End If ' Me.MFG.col = zahlcol Then
-  Case artLab
+  Case artlab
    If IsNumeric(Me.MFG.TextMatrix(Me.MFG.MouseRow, Pat_IDSp)) Then
     Select Case Me.MFG.MouseCol
      Case 0: Call FertigStellen(Me.MFG.MouseRow, True) ' in Turbomed anzeigen
@@ -4614,7 +4705,7 @@ Private Sub MFG_MouseMove(Button As Integer, Shift As Integer, x As Single, Y As
      End If
    End Select
  
- Case artLab
+ Case artlab
   .toolTipText = vNS
   If .toolTipText = "" Then
   If IsNumeric(.TextMatrix(.MouseRow, Pat_IDSp)) Then

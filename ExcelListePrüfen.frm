@@ -436,18 +436,18 @@ End Sub ' PatTeste
 
 ' aufgerufen in Form_Load
 Public Sub RegLaden()
- Dim neuS$, neuB&
+ Dim neus$, neuB&
  On Error Resume Next
  changeStill = True
  RegPos = RegWurzel & App.EXEName & "\DBVerb"
  Select Case FenArt
-  Case 0: neuS = fWertLesen(HCU, RegPos, "Datei")
-  Case 1: neuS = fWertLesen(HCU, RegPos, "BDatei")
+  Case 0: neus = fWertLesen(HCU, RegPos, "Datei")
+  Case 1: neus = fWertLesen(HCU, RegPos, "BDatei")
  End Select
- If neuS <> "" Then Me.Datei = neuS
- neuS = fWertLesen(HCU, RegPos, "Conn")
+ If neus <> "" Then Me.Datei = neus
+ neus = fWertLesen(HCU, RegPos, "Conn")
  
- If neuS <> "" Then Me.Conn = neuS
+ If neus <> "" Then Me.Conn = neus
  changeStill = False
  Exit Sub
 fehler:
@@ -472,7 +472,7 @@ fehler:
   Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
   Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
  End Select
-End Sub
+End Sub ' RegSpeichern
 
 Private Sub Form_Unload(Cancel As Integer)
  Call Me.RegSpeichern

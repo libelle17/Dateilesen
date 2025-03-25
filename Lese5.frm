@@ -19,21 +19,38 @@ Begin VB.MDIForm Lese
       TabIndex        =   0
       Top             =   0
       Width           =   15120
+      Begin VB.ComboBox MOServer 
+         Height          =   315
+         ItemData        =   "Lese5.frx":0614
+         Left            =   12000
+         List            =   "Lese5.frx":0616
+         TabIndex        =   31
+         Top             =   3960
+         Width           =   1575
+      End
+      Begin VB.CheckBox MOBetr 
+         Caption         =   "M&O-Betrieb:"
+         Height          =   375
+         Left            =   10680
+         TabIndex        =   30
+         Top             =   3960
+         Width           =   1335
+      End
       Begin VB.TextBox DurchschnDauer 
          BackColor       =   &H80000018&
          ForeColor       =   &H008080FF&
          Height          =   285
          Left            =   16920
-         TabIndex        =   31
+         TabIndex        =   28
          Top             =   3960
          Width           =   1215
       End
       Begin VB.ComboBox MyDB 
          Height          =   315
-         ItemData        =   "Lese5.frx":0614
-         Left            =   9840
-         List            =   "Lese5.frx":0616
-         TabIndex        =   21
+         ItemData        =   "Lese5.frx":0618
+         Left            =   9000
+         List            =   "Lese5.frx":061A
+         TabIndex        =   20
          Top             =   3960
          Width           =   1575
       End
@@ -42,7 +59,7 @@ Begin VB.MDIForm Lese
          ForeColor       =   &H0000FFFF&
          Height          =   285
          Left            =   0
-         TabIndex        =   28
+         TabIndex        =   25
          Top             =   4680
          Width           =   19095
       End
@@ -50,7 +67,7 @@ Begin VB.MDIForm Lese
          Caption         =   "D&MP Fortsetzen"
          Height          =   375
          Left            =   16800
-         TabIndex        =   27
+         TabIndex        =   24
          Top             =   4320
          Width           =   1455
       End
@@ -59,39 +76,15 @@ Begin VB.MDIForm Lese
          Enabled         =   0   'False
          Height          =   285
          Left            =   7080
-         TabIndex        =   26
-         Top             =   3960
-         Width           =   1815
-      End
-      Begin VB.TextBox Ziel 
-         BackColor       =   &H00FFFFFF&
-         Height          =   285
-         Left            =   12360
          TabIndex        =   23
          Top             =   3960
-         Width           =   3135
+         Width           =   1815
       End
       Begin VB.CommandButton ÜbertrageCd 
          Caption         =   "&Übertrage"
          Height          =   275
          Left            =   0
          TabIndex        =   18
-         Top             =   3960
-         Width           =   855
-      End
-      Begin VB.OptionButton obAcc 
-         Caption         =   "Access"
-         Height          =   275
-         Left            =   11520
-         TabIndex        =   22
-         Top             =   3960
-         Width           =   855
-      End
-      Begin VB.OptionButton obMySQL 
-         Caption         =   "M&ySQL"
-         Height          =   275
-         Left            =   9000
-         TabIndex        =   20
          Top             =   3960
          Width           =   855
       End
@@ -107,7 +100,7 @@ Begin VB.MDIForm Lese
          Left            =   15210
          ScaleHeight     =   255
          ScaleWidth      =   255
-         TabIndex        =   24
+         TabIndex        =   21
          Top             =   4350
          Width           =   315
          Begin VB.Label SBez 
@@ -115,7 +108,7 @@ Begin VB.MDIForm Lese
             Caption         =   "S"
             Height          =   225
             Left            =   30
-            TabIndex        =   25
+            TabIndex        =   22
             Top             =   30
             Width           =   195
          End
@@ -250,14 +243,14 @@ Begin VB.MDIForm Lese
          Caption         =   "Durschn.Dauer[s]:"
          Height          =   255
          Left            =   15600
-         TabIndex        =   32
+         TabIndex        =   29
          Top             =   3960
          Width           =   1335
       End
       Begin VB.Label Version 
          Height          =   255
          Left            =   15600
-         TabIndex        =   30
+         TabIndex        =   27
          Top             =   4320
          Width           =   1695
       End
@@ -265,7 +258,7 @@ Begin VB.MDIForm Lese
          Caption         =   "hier könnte der Connection-String stehen"
          Height          =   975
          Left            =   0
-         TabIndex        =   29
+         TabIndex        =   26
          Top             =   4920
          Width           =   18975
          WordWrap        =   -1  'True
@@ -898,6 +891,9 @@ Begin VB.MDIForm Lese
       Begin VB.Menu MedOffTabZahl 
          Caption         =   "MedOffTab&Zahl"
       End
+      Begin VB.Menu PiDzuord 
+         Caption         =   "PIDzuord Turbomed<->MO"
+      End
    End
    Begin VB.Menu Testfunktionen 
       Caption         =   "&Testfunktionen"
@@ -969,10 +965,12 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
 Option Explicit
-Const MoWSer$ = "wser" ' "szn4"
-Const MoHier$ = "szn4"
-Const MOCStr$ = "DRIVER={MySQL ODBC 8.0 Unicode Driver};server=" & MoWSer & ";option=0;database=medoff;uid=medoff;pwd=medoff;port=2020;"
-Const MOCHier$ = "DRIVER={MySQL ODBC 8.0 Unicode Driver};server=" & MoHier & ";option=0;database=medoff;uid=medoff;pwd=medoff;port=2020;"
+' Const MoWSer$ = "wser" ' "szn4"
+Const MOVServ$ = "szn4"
+Const MoVConS = "DRIVER={MySQL ODBC 8.0 Unicode Driver};server=" & MOVServ & ";option=0;database=medoff;uid=medoff;pwd=medoff;port=2020;"
+Dim MOVCon As New ADODB.Connection
+'Const MOCStr$ = "DRIVER={MySQL ODBC 8.0 Unicode Driver};server=" & MoWSer & ";option=0;database=medoff;uid=medoff;pwd=medoff;port=2020;"
+'Const MOCHier$ = "DRIVER={MySQL ODBC 8.0 Unicode Driver};server=" & MOVServ & ";option=0;database=medoff;uid=medoff;pwd=medoff;port=2020;"
 ' Public MOCon As New ADODB.Connection
 Public rsco As New ADODB.Recordset
 Public dlg As New Dialog
@@ -988,6 +986,12 @@ Public mos As New MOSuch
 'Public ple2 As New LabEin2
 'Public ple3 As New LabEin3
 Const HADBName$ = "haerzte"
+Dim rAf&
+#Const mitacc = False ' 14.3.25
+#If mitacc Then
+#Else
+Public obMySQL% ' immer true seit 14.3.25
+#End If
 #Const mitab = True ' auch in Formular
 #If mitab Then
 Public anBogÜ As New AnBog
@@ -1013,6 +1017,7 @@ Public SpPat_id&, SpName$ ' Sonderpatient Pat_id
 Public WithEvents dbv As DBVerb
 Attribute dbv.VB_VarHelpID = -1
 Public obRueck%
+Public pidoffs& ' Offset bei der Patientenübertragung aus Medical Office, ggf. 100000
 'Public WithEvents qdb AS QuelleDBC
 
 Const dmpVerz$ = "u:\TMImport\MO" ' DMP-Verzeichnis
@@ -1112,7 +1117,8 @@ Private Sub korrigier(pid$, DN$)
  MOConInit
  sql = "SELECT 18900101 + interval fdatum DAY+INTERVAL fzeit second datum, l.* FROM ltag l WHERE fpatnr=" & pid & " and feintragsnr IN (SELECT fsurogat FROM beschein where fpatnr=l.fpatnr and fmemo RLIKE fpatnr ORDER BY fsurogat DESC)" & vbCrLf & _
  "AND 18900101 + interval fdatum DAY+INTERVAL fzeit SECOND = " & Format(origd, "yyyymmdd") & " + INTERVAL 28800 SECOND;"
- rsco.Open sql, MOCon, adOpenStatic, adLockReadOnly
+' rsco.Open sql, MOCon, adOpenStatic, adLockReadOnly
+ Set rsco = myEFrag(sql, rAf, MOCon)
  If Not rsco.BOF Then
  Debug.Print rsco!fsurogat
  ' IF(FAusfnutzernr IN (SELECT FSurogat FROM nutzerneu WHERE FTyp=0) OR FAusfnutzernr=0,FAusfnutzernr,0)"
@@ -1127,12 +1133,14 @@ Private Sub korrigier(pid$, DN$)
  ", FBetriebsnr=COALESCE((SELECT FBsnr FROM patfall WHERE FPatnr=ltag.FPatnr AND FBetriebsnr IN (SELECT FSurogat FROM abrechner) ORDER BY ltag.FDatum BETWEEN FVon AND FBis DESC, FVon DESC LIMIT 1),(SELECT FSurogat FROM abrechner ORDER BY FSurogat LIMIT 1))" & vbCrLf & _
  "WHERE fpatnr=" & pid & " and feintragsnr IN (SELECT fsurogat FROM beschein where fpatnr=ltag.fpatnr and fmemo RLIKE fpatnr ORDER BY fsurogat DESC)" & vbCrLf & _
  "AND 18900101 + interval fdatum DAY+INTERVAL fzeit SECOND = " & Format(origd, "yyyymmdd") & " + INTERVAL 28800 SECOND;"
- Call MOCon.Execute(sql, rAf)
+' Call MOCon.Execute(sql, rAf)
+ Call myEFrag(sql, rAf, MOCon)
  Set rsco = Nothing
  sql = "SELECT * FROM beschein b WHERE fpatnr=" & pid & " AND FMemo RLIKE fpatnr" & vbCrLf & _
    "AND fsurogat=(SELECT feintragsnr FROM ltag l WHERE fpatnr=b.fpatnr AND feintragsnr IN (SELECT fsurogat FROM beschein WHERE fpatnr=l.fpatnr AND FMemo RLIKE fpatnr ORDER BY fsurogat DESC)" & vbCrLf & _
    "AND 18900101 + INTERVAL FDatum DAY+INTERVAL FZeit SECOND = " & Format(origd, "yyyymmdd") & "  + INTERVAL 28800 SECOND LIMIT 1)"
- rsco.Open sql, MOCon, adOpenStatic, adLockReadOnly
+' rsco.Open sql, MOCon, adOpenStatic, adLockReadOnly
+ Set rsco = myEFrag(sql, rAf, MOCon)
  If DN Like "*.E?D2" Then
   geaen = geaen + WechsMemo("beschein", rsco!fsurogat, "FMemo", "151", CStr(wieSGLT), 0, MeStr, , "SGLT-2-Hemmer")
   geaen = geaen + WechsMemo("beschein", rsco!fsurogat, "FMemo", "152", CStr(wieGLP), 0, MeStr, , "GLP-1-Analoga")
@@ -1141,7 +1149,8 @@ Private Sub korrigier(pid$, DN$)
    "WHERE fpatnr=" & pid & " AND FMemo RLIKE fpatnr" & vbCrLf & _
    "AND fsurogat=(SELECT feintragsnr FROM ltag l WHERE fpatnr=beschein.fpatnr AND feintragsnr IN (SELECT fsurogat FROM beschein WHERE fpatnr=l.fpatnr AND FMemo RLIKE fpatnr ORDER BY fsurogat DESC)" & vbCrLf & _
    "AND 18900101 + INTERVAL FDatum DAY+INTERVAL FZeit SECOND = " & Format(origd, "yyyymmdd") & "  + INTERVAL 28800 SECOND LIMIT 1)"
-   Call MOCon.Execute(sql, rAf)
+'   Call MOCon.Execute(sql, rAf)
+   Call myEFrag(sql, rAf, MOCon)
   End If ' Not geaen
   Call WechsMemo("beschein", rsco!fsurogat, "FMemo", "137", Format(Now(), "yyyymmdd"), 2, MeStr, , "GLP-1-Analoga")
  ElseIf DN Like "*.E?D1" Then
@@ -1180,6 +1189,7 @@ Private Sub Datenbankverbindung_Click()
 ' SET cn = Nothing
 ' cn.Open dbv.CnStr
  Call dbv.Auswahl("", "anamnesebogen", "Patientendaten")
+#If mitacc Then
  obStart = True
  If InStrB(UCase$(dbv.CnStr), "MYSQL") > 0 Then
   Me.obMySQL = True
@@ -1188,6 +1198,7 @@ Private Sub Datenbankverbindung_Click()
   Me.obMySQL = False
   Me.obAcc = True
  End If
+#End If ' mitacc
  obStart = False
 ' Unload Me
 ' Me.Show
@@ -1258,27 +1269,44 @@ Private Sub Formulare_bereinigen_Click()
  syscmd 4, "Fertig mit Bereinigen der Formulare, " & rAf1 & " forminhaltfeld-Einträge, " & rAf2 & " forminhfeld-Einträge und " & rAf3 & " forminhaltfeldinh-Einträge gelöscht"
 End Sub ' Formulare_bereinigen_Click()
 
+Private Sub MDIForm_Initialize()
+#If mitacc Then
+#Else
+  obMySQL = True
+#End If
+End Sub
+
 ' EDV -> MedOff-&Suche
 Private Sub MedOffSuche_Click()
  Load mos
  mos.Show
 End Sub ' Sub MedOffSuche_Click()
 
+Sub MoVersInit()
+ If MOVCon Is Nothing Or MOVCon = "" Then MOVCon.Open MoVConS
+End Sub ' MoVersInit()
+
+
 ' in MedOffSystemVersioning_Click, MedOffRemoveVersioning_Click
 Private Sub MOSV(ja%)
  Dim rsco As New ADODB.Recordset, rAf&
  syscmd 4, "Führe aus: systemversioning: MOSV(" & ja & ")"
- Set MOCon = Nothing
- MOCon.Open MOCHier
+' Set MOVCon = Nothing
  On Error GoTo fehler
- rsco.Open "SELECT TABLE_NAME From information_schema.tables WHERE table_schema = 'medoff' AND TABLE_TYPE<>'SEQUENCE' AND TABLE_TYPE" & IIf(ja = 0, "=", "<>") & "'SYSTEM VERSIONED'", MOCon, adOpenStatic, adLockReadOnly
+ MoVersInit
+' MOVCon.Open MOCHier
+' rsco.Open "SELECT TABLE_NAME From information_schema.tables WHERE table_schema = 'medoff' AND TABLE_TYPE<>'SEQUENCE' AND TABLE_TYPE" & IIf(ja = 0, "=", "<>") & "'SYSTEM VERSIONED'", MOVCon, adOpenStatic, adLockReadOnly
+ sql = "SELECT TABLE_NAME From information_schema.tables WHERE table_schema = 'medoff' AND TABLE_TYPE<>'SEQUENCE' AND TABLE_TYPE" & IIf(ja = 0, "=", "<>") & "'SYSTEM VERSIONED'"
+ Set rsco = myEFrag(sql, rAf, MOVCon)
  Do While Not rsco.EOF
-  Select Case rsco!table_namep
-   Case "d2dmail", "dbsid", "dbsparam"
+  Select Case rsco!table_name
+   Case "d2dmail", "dbsid", "dbsidepoch", "dbsparam", "formular"
    Case Else
     Debug.Print "Tabelle: " & rsco!table_name
     On Error Resume Next
-    MOCon.Execute "ALTER TABLE `" & rsco!table_name & "` " & IIf(ja = 0, "DROP", "ADD") & " SYSTEM VERSIONING", rAf
+'    MOVCon.Execute "ALTER TABLE `" & rsco!table_name & "` " & IIf(ja = 0, "DROP", "ADD") & " SYSTEM VERSIONING", rAf
+    sql = "ALTER TABLE `" & rsco!table_name & "` " & IIf(ja = 0, "DROP", "ADD") & " SYSTEM VERSIONING"
+    Call myEFrag(sql, rAf, MOVCon)
 '   Debug.Print rsco!table_name
     On Error GoTo fehler
   End Select
@@ -1319,12 +1347,13 @@ End Sub ' MedOffRemoveVersioning_Click()
 ' EDV -> MedOffZpSetzen
 Private Sub MedOffZpSetzen_Click()
  Dim vorhin As Date, Tn$, tr&, jS$
- jS = DatFor_k(Now())
- On Error Resume Next
- MOCon.Open MOCHier
+' On Error Resume Next
+' MOVCon.Open MOCHier
  On Error GoTo 0
-' vorhin = DBCn.Execute("SELECT COALESCE((SELECT datum FROM moprot WHERE server='" & MoHier & "' LIMIT 1),0)").Fields(0)
- vorhin = myEFrag("SELECT COALESCE((SELECT datum FROM moprot WHERE server='" & MoHier & "' ORDER BY datum DESC LIMIT 1),0)", , DBCn).Fields(0)
+ jS = DatFor_k(Now())
+ MoVersInit
+' vorhin = DBCn.Execute("SELECT COALESCE((SELECT datum FROM moprot WHERE server='" & MOVServ & "' LIMIT 1),0)").Fields(0)
+ vorhin = myEFrag("SELECT COALESCE((SELECT datum FROM moprot WHERE server='" & MOVServ & "' ORDER BY datum DESC LIMIT 1),0)", , DBCn).Fields(0)
 ' DBCn.BeginTrans
 ' DBCn.Execute "TRUNCATE mozp;"
 ' DBCn.Execute "INSERT INTO mozp VALUES(now());"
@@ -1332,7 +1361,9 @@ Private Sub MedOffZpSetzen_Click()
  myEFrag "TRUNCATE mozp;", , DBCn
  myEFrag "INSERT INTO mozp VALUES(now());", , DBCn
  Set rsco = Nothing
- rsco.Open "SELECT TABLE_NAME, TABLE_ROWS From information_schema.tables WHERE table_schema = 'medoff' AND table_name NOT LIKE '%_fsurogat_seq'", MOCon, adOpenStatic, adLockReadOnly
+' rsco.Open "SELECT TABLE_NAME, TABLE_ROWS From information_schema.tables WHERE table_schema = 'medoff' AND table_name NOT LIKE '%_fsurogat_seq'", MOVCon, adOpenStatic, adLockReadOnly
+ sql = "SELECT TABLE_NAME, TABLE_ROWS From information_schema.tables WHERE table_schema = 'medoff' AND table_name NOT LIKE '%_fsurogat_seq'"
+ Set rsco = myEFrag(sql, rAf, MOVCon)
  Do While Not rsco.EOF
   Tn = rsco!table_name
 '  tr = rsco!table_rows
@@ -1341,13 +1372,14 @@ Private Sub MedOffZpSetzen_Click()
   If vorhin = 0 Then
    obabfr = -1
   Else
-   tr = MOCon.Execute("SELECT COUNT(0) FROM `" & Tn & "`").Fields(0)
-   If tr <> myEFrag("SELECT COALESCE((SELECT table_rows FROM moprot WHERE server='" & MoHier & "' AND table_name='" & Tn & "' AND datum=(SELECT MAX(datum) FROM moprot WHERE server='" & MoHier & "' AND table_name='" & Tn & "')),0)", , DBCn).Fields(0) Then
+'   tr = MOVCon.Execute("SELECT COUNT(0) FROM `" & Tn & "`").Fields(0)
+   tr = myEFrag("SELECT COUNT(0) FROM `" & Tn & "`", rAf, MOVCon).Fields(0)
+   If tr <> myEFrag("SELECT COALESCE((SELECT table_rows FROM moprot WHERE server='" & MOVServ & "' AND table_name='" & Tn & "' AND datum=(SELECT MAX(datum) FROM moprot WHERE server='" & MOVServ & "' AND table_name='" & Tn & "')),0)", , DBCn).Fields(0) Then
     obabfr = -1
    End If
   End If
   If obabfr Then
-   myEFrag "INSERT INTO moprot(server,datum,table_name,table_rows) VALUES('" & MoHier & "'," & jS & ",'" & Tn & "','" & tr & "')", , DBCn
+   myEFrag "INSERT INTO moprot(server,datum,table_name,table_rows) VALUES('" & MOVServ & "'," & jS & ",'" & Tn & "','" & tr & "')", , DBCn
   End If
   rsco.MoveNext
  Loop
@@ -1364,7 +1396,8 @@ Private Sub MedOffTabZahl_Click()
  Dim aktTNr&, Tn$, jS$, sql$ ', AnzS$
  Dim endse$, endsz$
  On Error Resume Next
- MOCon.Open MOCHier
+ MoVersInit
+' MOVCon.Open MOCHier
  On Error GoTo pfadfehler
  Open datnam For Output As #220
  On Error GoTo fehler
@@ -1373,7 +1406,8 @@ Private Sub MedOffTabZahl_Click()
  Debug.Print "letzter Zeitpunkt: ", lzp
  Set rsco = Nothing
  sql = "SELECT COUNT(0) OVER() TabZ, TABLE_NAME, TABLE_ROWS, table_type='SYSTEM VERSIONED' obv FROM information_schema.tables WHERE table_schema = 'medoff' AND TABLE_TYPE<>'SEQUENCE'"
- rsco.Open sql, MOCon, adOpenStatic, adLockReadOnly
+ Set rsco = myEFrag(sql, rAf, MOVCon)
+' rsco.Open sql, MOVCon, adOpenStatic, adLockReadOnly
  aktTNr = 0
  Do While Not rsco.EOF
   Tn = rsco!table_name
@@ -1384,16 +1418,16 @@ Private Sub MedOffTabZahl_Click()
    Debug.Print Tn
 '   If aktTNr <> 1 Then Print #220, ""
 '  sql = "SELECT CONCAT(" & cols & ",' ',row_start,' ',row_end) FROM `" & Tn & "` WHERE row_start>" & Format(lzp, "yyyymmddHHMMSS") ' FOR SYSTEM_TIME BETWEEN " & Format(lzp, "yyyymmddHHMMSS") & " AND NOW()"
-   Call moausgeb(MOCon, Tn, True, "row_start>" & Format(lzp, "yyyymmddHHMMSS") & " or nrs>" & Format(lzp, "yyyymmddHHMMSS"))
+   Call moausgeb(MOVCon, Tn, True, "row_start>" & Format(lzp, "yyyymmddHHMMSS") & " or nrs>" & Format(lzp, "yyyymmddHHMMSS"))
   Else
    Debug.Print "Nicht versionioniert: " & Tn
   End If ' rsco!obv
 ' On Error Resume Next
-' MOCon.Execute "ALTER TABLE `" & Tn & "` ADD SYSTEM VERSIONING"
+' MOVCon.Execute "ALTER TABLE `" & Tn & "` ADD SYSTEM VERSIONING"
 ' On Error GoTo fehler
-'  If vorhin = 0 Or tr <> DBCn.Execute("SELECT table_rows FROM moprot WHERE server='" & MoHier & "' AND table_name='" & tn & "' AND datum=(SELECT MAX(datum) FROM moprot WHERE server='" & MoHier & "' AND table_name='" & tn & "')").Fields(0) Then
+'  If vorhin = 0 Or tr <> DBCn.Execute("SELECT table_rows FROM moprot WHERE server='" & MOVServ & "' AND table_name='" & tn & "' AND datum=(SELECT MAX(datum) FROM moprot WHERE server='" & MOVServ & "' AND table_name='" & tn & "')").Fields(0) Then
 '   If vorhin <> 0 Then AnzS = IIf(AnzS = "", tn, AnzS & vbCrLf & tn)
-'   DBCn.Execute "INSERT INTO moprot(server,datum,table_name,table_rows) VALUES('" & MoHier & "'," & jS & ",'" & tn & "','" & tr & "')"
+'   DBCn.Execute "INSERT INTO moprot(server,datum,table_name,table_rows) VALUES('" & MOVServ & "'," & jS & ",'" & tn & "','" & tr & "')"
 '  End If
   rsco.MoveNext
  Loop ' While Not rsco.EOF
@@ -1428,6 +1462,11 @@ Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "Last
  Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
 End Select
 End Sub ' MedOffTabZahl_Click
+
+Private Sub MOBetr_Click()
+ pidoffs = IIf(MOBetr = 0, 100000, 0)
+ Debug.Print "Click pidoffs: " & pidoffs
+End Sub ' MOBetr_Click()
 
 ' Datei -> Optionen
 Private Sub Optionen_Click()
@@ -1473,9 +1512,9 @@ Private Sub do_Medpläne_alt_für_MO_exportieren_Click(Optional xmlneu%)
  sql = "SELECT SUM(CASE WHEN rang=1 THEN 1 ELSE 0 END) OVER() MPzl, i.* FROM (" & vbCrLf & _
        "SELECT RANK() OVER (PARTITION BY pat_id,mpnr ORDER BY feldnr) rang" & vbCrLf & _
        ", RANK() OVER (PARTITION BY mp.pat_id ORDER BY mpnr,feldnr) prang" & vbCrLf & _
-       ",lp.lanr,CONCAT(lp.vorname,' ',lp.nachname) lnam,bsnr,f.lanrid, n.Vorname,n.nachname, UCASE(n.geschlecht) gschl, Versichertennummer vn, DATE_FORMAT(n.gebdat,'%Y%m%d') geb, mp.*" & vbCrLf & _
+       ",lp.lanr,CONCAT(lp.vorname,' ',lp.nachname) lnam,n.FPatnr,bsnr,f.lanrid, n.Vorname,n.nachname, UCASE(n.geschlecht) gschl, Versichertennummer vn, DATE_FORMAT(n.gebdat,'%Y%m%d') geb, mp.*" & vbCrLf & _
        "FROM medplan mp LEFT JOIN faelle f USING (fid) LEFT JOIN namen n ON n.pat_id=f.pat_id LEFT JOIN lanrpraxis lp ON lp.id=lanrid" & vbCrLf & _
-       "WHERE /* mp.pat_id=56 AND */ mp.pat_id BETWEEN 61422 AND 100000 AND mpart=1" & vbCrLf & _
+       "WHERE  mp.pat_id=14 AND  mp.pat_id BETWEEN 1 AND 100000 AND mpart=1 AND n.FPatnr<>0" & vbCrLf & _
        "AND (sdatum IS NULL OR sdatum=18991230)" & vbCrLf & _
        "AND EXISTS (SELECT 0 FROM faelle WHERE pat_id=n.pat_id AND bhfb> 20201231)" & vbCrLf & _
        ") i ORDER BY pat_id, mpnr, feldnr"
@@ -1507,7 +1546,7 @@ Private Sub do_Medpläne_alt_für_MO_exportieren_Click(Optional xmlneu%)
     Call BDT.SAdd("5099", rMP!Lanr)
     Call BDT.SAdd("9901", "ArztNr.:" & rMP!lanrid)
     Call BDT.SAdd("9901", "Kuerzel:" & rMP!lanrid)
-    Call BDT.SAdd("3000", rMP!Pat_ID)
+    Call BDT.SAdd("3000", rMP!fpatnr) ' Pat_ID)
     Call BDT.SAdd("3110", rMP!gschl)
     Call BDT.SAdd("3635", rMP!lanrid & "#" & rMP!lnam)
     Call BDT.SAdd("8000", "6200", True)
@@ -1515,7 +1554,7 @@ Private Sub do_Medpläne_alt_für_MO_exportieren_Click(Optional xmlneu%)
    End If ' rMP!prang = 1 then
    If rMP!rang = 1 Then
     GoSub Schreiben
-    mpdt = uuvz & rMP!Pat_ID & "_" & Format(rMP!Zeitpunkt, "yyyymmdd_HHMM") & ".xml"
+    mpdt = uuvz & rMP!fpatnr & "_" & Format(rMP!Zeitpunkt, "yyyymmdd_HHMM") & ".xml"
     If xmlneu Then
      If FSO.FileExists(Untervz & mpdt) Then FSO.DeleteFile Untervz & mpdt, True
     End If ' xmlneu
@@ -1578,6 +1617,41 @@ fehler:
  End Select
 End Sub ' Medpläne_alt_für_MO_exportieren_Click()
 
+Private Sub PiDzuord_Click()
+ Dim rnam As ADODB.Recordset, rPS As New ADODB.Recordset, zei&
+ MOConInit
+ sql = "SELECT Pat_ID,Nachname,Vorname,GebDat FROM namen WHERE pat_id BETWEEN 1 and 99999 ORDER BY pat_id"
+ Call myFrag(rnam, sql)
+ Do While Not rnam.EOF
+  zei = zei + 1
+'  Debug.Print zei, rNam!Pat_ID
+  sql = "SELECT fsurogat FROM patstamm WHERE FNachname='" & doUmwfSQL(rnam!Nachname, False) & "' AND FVorname='" & rnam!Vorname & "' AND FGeburtsdatum=DATE(" & Format(rnam!GebDat, "yyyymmdd") & ") AND FSurogat=" & rnam!Pat_ID
+  Call myFrag(rPS, sql, adOpenStatic, MOCon)
+  If rPS.BOF Then
+   sql = "SELECT fsurogat,FNachname,FVorname,FGeburtsdatum FROM patstamm WHERE FNachname='" & doUmwfSQL(rnam!Nachname, False) & "' AND FVorname='" & rnam!Vorname & "' AND FGeburtsdatum=DATE(" & Format(rnam!GebDat, "yyyymmdd") & ")"
+   Call myFrag(rPS, sql, adOpenStatic, MOCon)
+   If Not rPS.BOF Then
+    If rPS!fsurogat <> rnam!Pat_ID Then
+     Debug.Print "Unterschied: " & rPS!fsurogat & " " & rPS!FNachname & " "; rPS!FVorname & " " & rPS!fGeburtsdatum & " <> " & rnam!Pat_ID & " " & rnam!Nachname & " " & rnam!Vorname & " " & rnam!GebDat
+     DBCn.Execute "UPDATE namen SET FPatnr=" & rPS!fsurogat & " WHERE pat_id=" & rnam!Pat_ID, rAf
+     If rAf = 0 Then
+      Debug.Print "rAf 0 bei " & rnam!Pat_ID & " vs. " & rPS!fsurogat
+     End If
+    End If
+   Else
+'   Debug.Print "nicht gefunden: " & sql
+   End If
+  Else
+   DBCn.Execute "UPDATE namen SET FPatnr=pat_id WHERE pat_id=" & rnam!Pat_ID, rAf
+   If rAf = 0 Then
+    Debug.Print "rAf 0 bei " & rnam!Pat_ID
+   End If
+  End If
+  rnam.MoveNext
+ Loop
+ Debug.Print "Fertig"
+End Sub ' PiDzuord_Click()
+
 ' sucht nach einem String in den Medical Office-Datenbanken
 Private Sub SuchInSpaltenInMO_Click()
  Const DBName$ = "medoff"
@@ -1585,10 +1659,11 @@ Private Sub SuchInSpaltenInMO_Click()
  Const StringDT$ = "'varchar','text','longtext','longblob'"
  Const NumDT$ = "'tinyint','smallint','int','double','bigint'"
  Const DatDT$ = "'datetime'"
- Dim MOCon As New ADODB.Connection
+' Dim MOCon As New ADODB.Connection
  Dim rst As ADODB.Recordset, rsc As ADODB.Recordset, rsu As ADODB.Recordset
  Dim SuchS$, Tbl$, art%, zru&, fru&, ZStr$, sql$, PatNr$, PatBed$ ' 0=String, 1=Zahl, 2=Datum, Zeilenrunde, Feldrunde, Zeilenstring, Patientennummer, Patientenbedingung
- MOCon.Open MOCStr
+ MOConInit
+' MOCon.Open MOCStr
  Do
   PatNr = InputBox("PatNr", "PatNr, falls nur bei bestimmtem Pat. gesucht werden soll:")
  Loop Until PatNr = "" Or IsNumeric(PatNr)
@@ -1662,6 +1737,7 @@ Private Sub SuchInSpaltenInMO_Click()
  zeigan datnam
 End Sub ' SuchInSpaltenInMO_Click
 
+' Funktion für Arzthelferin und Arzt -> Übertragung aus MO
 Private Sub Übertragung_aus_MO_Click()
  Dim abstand&, rAb As ADODB.Recordset
  abstand = InputBox("Seit wie vielen Tagen sollen alle Patienten aus MO übertragen werden?", "Rückfrage Import aus MO", "0")
@@ -4764,6 +4840,7 @@ Private Sub MyDB_LostFocus()
  Call MyDB_Change
 End Sub ' MyDB_LostFocus
 
+#If mitacc Then
 Private Sub obAcc_Click()
  If Not obStart Then
   If Me.Visible Then Screen.MousePointer = vbHourglass
@@ -4796,6 +4873,7 @@ Private Sub obMySQL_Click()
   If Me.Visible Then Screen.MousePointer = 0
  End If
 End Sub ' obMySQL_Click
+#End If ' mitacc
 
 ' in QuelleDB.aCStr und obMySQL_Click
 Sub machODBCMy()
@@ -4866,8 +4944,10 @@ Public Sub doCallDMP(ByVal pid&)
  erg = DMPString$(rNa(0).Pat_ID, DT)
  If lies.obMySQL Then
   dmpstD = dmpstD & Me.MyDB
+#If mitacc Then
  Else
   dmpstD = dmpstD & REPLACE$(REPLACE$(dlg.MdB, "\", "_"), ":", ".")
+#End If
  End If
  dmpstD = Environ("userprofile") & "\documents\" & dmpstD & " " & Format$(Date, "dd.mm.yy") & ".txt"
  Open dmpstD For Output As #391
@@ -5025,6 +5105,7 @@ Private Sub nachCd_KeyDown(KeyCode As Integer, Shift As Integer)
  Call Key(KeyCode, Shift, Me)
 End Sub
 
+#If mitacc Then
 Private Sub obAcc_KeyDown(KeyCode As Integer, Shift As Integer)
  Call Key(KeyCode, Shift, Me)
 End Sub
@@ -5032,6 +5113,7 @@ End Sub
 Private Sub obMy_KeyDown(KeyCode As Integer, Shift As Integer)
  Call Key(KeyCode, Shift, Me)
 End Sub
+#End If ' mitacc
 
 Private Sub Picture2_KeyDown(KeyCode As Integer, Shift As Integer)
  Call Key(KeyCode, Shift, Me)
@@ -5061,6 +5143,7 @@ Private Sub Zeilen_KeyDown(KeyCode As Integer, Shift As Integer)
  Call Key(KeyCode, Shift, Me)
 End Sub ' Zeilen_KeyDown
 
+#If mitacc Then
 Private Sub Ziel_Change()
  dlg.MdB = Me.Ziel
  If Me.obAcc Then
@@ -5076,6 +5159,18 @@ Private Sub Ziel_KeyDown(KeyCode As Integer, Shift As Integer)
  dlg.MdB = Me.Ziel
  Call Key(KeyCode, Shift, Me)
 End Sub ' Ziel_KeyDown
+
+#Else
+
+Private Sub MOServer_KeyDown(KeyCode As Integer, Shift As Integer)
+ Call Key(KeyCode, Shift, Me)
+End Sub ' Ziel_KeyDown
+
+Private Sub MOBetr_KeyDown(KeyCode As Integer, Shift As Integer)
+ Call Key(KeyCode, Shift, Me)
+End Sub ' Ziel_KeyDown
+
+#End If ' mitacc
 
 Private Sub Picture1_KeyDown(KeyCode%, Shift%)
 ' IF KeyCode = 27 THEN End
@@ -5262,6 +5357,7 @@ Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "Last
 End Select
 End Function ' HolEinstFeld
 
+#If mitacc Then
 Private Sub dbv_wCnAendern(CnStr$)
  On Error GoTo fehler
  ConStri = dbv.Constr
@@ -5324,6 +5420,7 @@ Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "Last
  Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
 End Select
 End Sub ' dbv_wCnAendern
+#End If ' mitacc
 
 ' mdiForm_Load
 Private Sub Konstanten()
@@ -5464,8 +5561,12 @@ Private Sub mdiForm_Load()
  Call Me.MyDB.AddItem("quelle")
  Call Me.MyDB.AddItem("quelle1")
  Call Me.MyDB.AddItem("quelle2")
+ Call Me.MOServer.AddItem("wser")
+ Call Me.MOServer.AddItem("szn4")
  If Command = "auto" Then
+#If mitacc Then
   Me.dlg.obAcc = True
+#End If ' mitacc
   Me.dlg.obVglMitLetzterEinlesung = 1
   Me.dlg.LaborDirektEinlesen = 1
   Me.dlg.LaborQuerVerb = 1
@@ -5597,9 +5698,13 @@ Private Sub mdiForm_Resize()
  Me.DMPForts.Top = Me.ÜbertrageCd.Top
  Me.QDatei.Top = Me.ÜbertrageCd.Top
  Me.QDatum.Top = Me.ÜbertrageCd.Top
+ Me.MOServer.Top = Me.ÜbertrageCd.Top
+ Me.MOBetr.Top = Me.ÜbertrageCd.Top
+#If mitacc Then
  Me.obMySQL.Top = Me.ÜbertrageCd.Top
  Me.obAcc.Top = Me.ÜbertrageCd.Top
  Me.Ziel.Top = Me.ÜbertrageCd.Top
+#End If ' mitacc
  Me.ZeilenBez.Top = Me.Height - 5745 + 4645 - Me.Fuß.Height - Me.ConStri.Height
  Me.Zeilen.Top = Me.ZeilenBez.Top
  Me.BytesBez.Top = Me.ZeilenBez.Top + 20
@@ -5650,6 +5755,7 @@ Public Function ConstrFestleg(ByVal art As ConDtb, Optional hlese As Lese)   ' d
     End If
    End If
  End Select
+#If mitacc Then
  Dim MdB$
  If art = 1 Then
  ' ConStr = CStrAcc + """" + dlg.MdB + """"
@@ -5660,6 +5766,7 @@ Public Function ConstrFestleg(ByVal art As ConDtb, Optional hlese As Lese)   ' d
 ' Else
 '  MdB = vns
  End If
+#End If ' mitacc
  Call doConstrFestleg(art, obStart, hlese.Ziel, Me)
  Exit Function
 fehler:
@@ -5675,7 +5782,7 @@ Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "Last
  Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
 End Select
 End Function ' ConstrFestleg
-#End If
+#End If ' False
 
 Function Ausgeb(Text$, obDauer%, Optional obDebug%)
  Me.Ausgabe = Text & vbCrLf & altAusgabe

@@ -382,9 +382,11 @@ Public ConstrCn$
 Public WithEvents dbv As DBVerb
 Attribute dbv.VB_VarHelpID = -1
 
+#If mitacc Then
 Private Sub AccAussuchen_Click()
  Call AccTest
 End Sub ' AccAussuchen_Click
+#End If
 
 Private Sub AccAussuchen_KeyDown(KeyCode%, Shift%)
  Call Key(KeyCode, Shift, Me)
@@ -435,6 +437,7 @@ Private Sub DatenbankAuswahl_Click()
  Call Me.BDTAend_Change
 End Sub ' DatenbankAuswahl_Click
 
+#If mitacc Then
 Private Sub dbv_wCnAendern(CnStr As String)
  Static altCnStr$
  If CnStr <> altCnStr Then ' 13.4.08
@@ -452,6 +455,7 @@ Private Sub dbv_wCnAendern(CnStr As String)
  End If
  obStart = False
 End Sub ' dbv_wCnAendern(CnStr AS String)
+#End If ' mitacc
 
 Private Sub EmailsAussuchen_Click()
   Call EmDateiDialog
@@ -534,12 +538,16 @@ End Sub ' LDateiAend_Change
 
 Private Sub MdB_Change()
  dbv.Datei = Me.MdB
+#If mitacc Then
  hlese.Ziel = Me.MdB
+#End If ' mitacc
 End Sub ' MdB_Change
 
 Private Sub MdB_Click()
  dbv.Datei = Me.MdB
+#If mitacc Then
  hlese.Ziel = Me.MdB
+#End If ' mitacc
 End Sub ' MdB_Click
 
 Private Sub obMySQL_KeyDown(KeyCode%, Shift%)
@@ -559,6 +567,7 @@ Private Sub obAcc_GotFocus()
 ' Call AccTest
 End Sub ' obAcc_GotFocus
 
+#If mitacc Then
 Private Function AccTest()
  If (Not imAufbauLese And Not imAufbauDialog) Or Me.MdB = "" Then
   Call MdBFestleg
@@ -569,6 +578,7 @@ Private Function AccTest()
 ' Call acon(QuelleT, accDtb)
 ' IF Not obStart THEN Call hlese.HolEinstvonDB
 End Function ' AccTest
+#End If ' mitacc
 
 Private Sub obBDT_Click()
  If Not imAufbauDialog And Me.BDTDatei = "" Then
@@ -712,13 +722,17 @@ Private Sub Form_Unload(Cancel%)
 End Sub ' form_unload
 
 Private Sub MdB_KeyDown(KeyCode%, Shift%)
+#If mitacc Then
  hlese.Ziel = Me.MdB
+#End If ' mitacc
  Call Key(KeyCode, Shift, Me)
 End Sub ' MdB_KeyDown
 
+#If mitacc Then
 Private Sub obAcc_DblClick()
  Call AccTest
 End Sub ' obAcc_DblClick
+#End If
 
 Private Sub obBDT_KeyDown(KeyCode%, Shift%)
  Call Key(KeyCode, Shift, Me)
@@ -746,6 +760,7 @@ Private Sub doobMyQuelle_Click(nr%)
   If Me.Visible Then Screen.MousePointer = vbDefault
 End Sub ' doobMyQuelle_Click
 
+#If mitacc Then
 Private Sub obAcc_Click()
   Dim altChangeStill%
   If Not obStart Then
@@ -770,6 +785,7 @@ Private Sub obAcc_Click()
   Set Lese.pataw = Nothing
   If Not obStart Then If Me.Visible Then Screen.MousePointer = vbDefault
 End Sub ' obAcc_Click()
+#End If
 
 Private Sub obMySQL_Click()
  If Me.obMySQL <> False And Me.dbv.ODBC Like "*Access*" Then Me.obMySQL = False
@@ -941,6 +957,7 @@ Function BDTDateiDialog()
  End If
 End Function ' BDTDateiDialog()
 
+#If mitacc Then
 Public Function MdBFestleg()
   Dim cat As New ADOX.Catalog
   With Me.CommonDialogDialog
@@ -969,6 +986,7 @@ Public Function MdBFestleg()
    End If
   End With
 End Function ' MdBFestleg
+#End If
 
 ' in Start_Click
 Public Sub Einlies()

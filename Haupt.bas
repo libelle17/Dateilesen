@@ -1968,6 +1968,7 @@ Public Function HolReg(hlese As Lese)
  On Error GoTo fehler
  obStart = True
  RegStelle = RegWurzel & App.EXEName
+ #If mitacc Then
  hlese.Ziel = getReg(1, RegStelle, "MdB")
  reg = getReg(1, RegStelle, "obAcc")
  If reg = "" Or reg = "Falsch" Or reg = "False" Then
@@ -1976,18 +1977,19 @@ Public Function HolReg(hlese As Lese)
     hlese.obAcc = reg
  End If
  hlese.obMySQL = Not hlese.obAcc
+ #End If
  reg = getReg(1, RegStelle, "obMyQuelle")
- If reg = "" Or reg = "Falsch" Or reg = "False" Then
+ If reg = "" Or reg = 0 Or reg = "Falsch" Or reg = "False" Then
  Else
     hlese.MyDB = "quelle"
  End If
  reg = getReg(1, RegStelle, "obMyQuelle1")
- If reg = "" Or reg = "Falsch" Or reg = "False" Then
+ If reg = "" Or reg = 0 Or reg = "Falsch" Or reg = "False" Then
  Else
     hlese.MyDB = "quelle1"
  End If
  reg = getReg(1, RegStelle, "obMyQuell2")
- If reg = "" Or reg = "Falsch" Or reg = "False" Then
+ If reg = "" Or reg = 0 Or reg = "Falsch" Or reg = "False" Then
  Else
     hlese.MyDB = "quelle2"
  End If
@@ -2003,6 +2005,7 @@ Public Function HolReg(hlese As Lese)
  hlese.dlg.ConstrCn = getReg(1, RegStelle, "ConStr")
  hlese.dbv.CnStr = hlese.dlg.ConstrCn
  hlese.dbv.Constr = hlese.dlg.ConStrLabel
+#If mitacc Then
  hlese.dlg.MdB = hlese.Ziel
  hlese.dlg.obAcc = hlese.obAcc
  If hlese.obAcc Then
@@ -2010,6 +2013,7 @@ Public Function HolReg(hlese As Lese)
  Else
   hlese.dlg.obMySQL = True
  End If
+ #End If
  obStart = False
 ' Call hlese.ConstrFestleg(0, hlese)
  Dim pServ$
@@ -2031,6 +2035,10 @@ Public Function HolReg(hlese As Lese)
  reg = getReg(1, RegStelle, "Debugdatei")
  DebugDatei = uVerz & "anamnese\debug.txt"
  If reg <> "" Then hlese.snst.DebugDatei = reg Else hlese.snst.DebugDatei = DebugDatei
+ reg = getReg(1, RegStelle, "obBetr")
+ If reg <> "" Then hlese.MOBetr = reg Else hlese.MOBetr = 1
+ reg = getReg(1, RegStelle, "MOServer")
+ If reg <> "" Then hlese.MOServer = reg Else If hlese.MOBetr = 1 Then hlese.MOServer = "wser"
  obStart = False
 ' dlg.hlese.Ziel = dlg.MdB
 ' Call hlese.ZeigDateien
@@ -2051,11 +2059,13 @@ End Function ' HolReg(dlg AS Dialog)
 
 Public Function PutReg(hlese As Lese)
  RegStelle = RegWurzel & App.EXEName
+#If mitacc Then
  Call fStSpei(HCU, RegStelle, "obAcc", hlese.obAcc)
+ Call fStSpei(HCU, RegStelle, "MdB", hlese.Ziel)
+#End If
  Call fStSpei(HCU, RegStelle, "obMyQuelle", hlese.obMySQL And hlese.MyDB = "quelle")
  Call fStSpei(HCU, RegStelle, "obMyQuelle1", hlese.obMySQL And hlese.MyDB = "quelle1")
  Call fStSpei(HCU, RegStelle, "obMyQuelle2", hlese.obMySQL And hlese.MyDB = "quelle2")
- Call fStSpei(HCU, RegStelle, "MdB", hlese.Ziel)
  Call fStSpei(HCU, RegStelle, "Email-Datei", hlese.dlg.EmDatei)
  Call fStSpei(HCU, RegStelle, "Datei für nachzuholende Laborimporte", hlese.snst.DateiNachzuholen)
  Call fStSpei(HCU, RegStelle, "Quelle für Anamnesebögen", hlese.snst.QuelleAnamneseBögen)
@@ -2063,6 +2073,8 @@ Public Function PutReg(hlese As Lese)
  Call fStSpei(HCU, RegStelle, "ConStri", hlese.dbv.Constr)
  Call fStSpei(HCU, RegStelle, "ConStr", hlese.dlg.ConstrCn)
  Call fStSpei(HCU, RegStelle, "ConStrLabel", hlese.dlg.ConStrLabel)
+ Call fStSpei(HCU, RegStelle, "obBetr", hlese.MOBetr)
+ Call fStSpei(HCU, RegStelle, "MOServer", hlese.MOServer)
 ' Call hlese.ZeigDateien
 End Function ' PubReg
 
@@ -2771,9 +2783,11 @@ Function ForeignNo0()
   If lies.obMySQL Then
 '   DBCn.Execute "SET foreign_key_checks = 0"
    Call myEFrag("SET foreign_key_checks = 0")
+#If mitacc Then
   Else
    ZielDbS = Lese.dlg.MdB
    Call BezLöschA
+#End If
   End If
   ForeignKAus0 = 1
  End If ' ForeignKAus0 = 0 Then
@@ -2802,9 +2816,11 @@ Function ForeignNo1()
 '   Dim rAf&
 '   DBCn.Execute "SET foreign_key_checks = 0", rAf
    Call myEFrag("SET foreign_key_checks = 0", rAf)
+#If mitacc Then
   Else
    ZielDbS = Lese.dlg.MdB
    Call BezLöschA
+#End If ' mitacc
   End If ' lies.obMySQL Then
   ForeignKAus1 = 1
  End If ' ForeignKAus1 = 0 Then
@@ -2815,9 +2831,11 @@ Function ForeignYes0()
   If lies.obMySQL Then
    Call myEFrag("SET foreign_key_checks = 1")
 '   DBCn.Execute "SET foreign_key_checks = 1"
+#If mitacc Then
   Else
    ZielDbS = Lese.dlg.MdB
    Call BezHerstA
+#End If ' mitacc
   End If ' lies.obMySQL Then
   ForeignKAus0 = 0
  End If ' ForeignKAus0 = 1 Then
@@ -2828,14 +2846,17 @@ Function ForeignYes1()
   If lies.obMySQL Then
    Call myEFrag("SET foreign_key_checks = 1")
 '   DBCn.Execute "SET foreign_key_checks = 1"
+#If mitacc Then
   Else
    ZielDbS = Lese.dlg.MdB
    Call BezHerstA
+#End If ' mitacc
   End If
   ForeignKAus1 = 0
  End If
 End Function ' ForeignNo()
 
+#If mitacc Then
 ' 21.9.08 aus AccDBMach kopiert
 Public Sub BezLöschA()
  Dim rel, i%, j% ', ZielDB AS DAO.Database
@@ -2883,6 +2904,7 @@ fehler:
   Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
  End Select
 End Sub ' BezLöschA()
+#End If ' mitacc
 
 Public Function BezHerstA()
  ' 1: 1:1-Beziehung (dbRelationUnique)
@@ -5279,7 +5301,7 @@ End Sub ' SizeColumns
 Function doWirt()
  Dim DNam$
  DNam$ = pVerz & "Wirt.txt"
- Dim Pat_ID$, rs As New ADODB.Recordset, faelle As New ADODB.Recordset
+ Dim Pat_ID$, rs As New ADODB.Recordset, Faelle As New ADODB.Recordset
 ' Dim lies As New Lese
  Load Lese
  Lese.obMySQL = True
@@ -5287,9 +5309,9 @@ Function doWirt()
  Open DNam For Output As #303
  Call acon(quelleT)
 ' Call Faelle.Open("SELECT DISTINCT pat_id FROM `faelle` WHERE quartal LIKE '_2005' AND schgr <> '90'", DBCn, adOpenDynamic, adLockReadOnly)
- myFrag faelle, "SELECT DISTINCT pat_id FROM `faelle` WHERE quartal LIKE '_2005' AND schgr <> '90'"
- Do While Not faelle.EOF
-  Pat_ID = CStr(faelle!Pat_ID)
+ myFrag Faelle, "SELECT DISTINCT pat_id FROM `faelle` WHERE quartal LIKE '_2005' AND schgr <> '90'"
+ Do While Not Faelle.EOF
+  Pat_ID = CStr(Faelle!Pat_ID)
 '  SET rs = Nothing
 '  myFrag rs, "SELECT * FROM `namen` WHERE pat_id = " & Pat_id
   Set rs = Nothing
@@ -5306,7 +5328,7 @@ Function doWirt()
    rs.Move 1
   Loop
   DoEvents
-  faelle.Move 1
+  Faelle.Move 1
  Loop
  Close #303
  zeigan DNam, vbNormalFocus
@@ -6008,7 +6030,7 @@ Function getHatest(pid&)
  Dim infos$()
  Lese.ProgStart
 ' getHausarztAlt 52022, Infos
- Dim rFa() As faelle
+ Dim rFa() As Faelle
  Dim rKv1() As kvnrue
  getHausarzt1 infos, rFa, rKv1, , pid
  Stop

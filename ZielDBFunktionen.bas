@@ -66,7 +66,7 @@ Public Med$(), Dos$(), MedNr%, MedZahl%
 Public lBehDat As Date
 ' aus AbrechFehler
 
-Public Const artSpezÄrzte$ = "'ni','gstel','gs','rz','ep','bga','tk','APK','wd','ah'"
+Public Const artSpezÄrzte$ = "'ni','gstel','gs','rz','ep','bga','tk','APK','wd','ah','ta','tb','tt','tn'"
 ' ni = Notiz intern
 ' gstel = Telefonat Gerald Schade
 ' gs = Gerald Schade
@@ -1642,9 +1642,9 @@ If True Then ' lwZahl
  End If 'lwzahl
  
  On Error Resume Next
- ReDim rna(0)
+ ReDim rNa(0)
  On Error GoTo fehler
- rna(0).Pat_ID = pid
+ rNa(0).Pat_ID = pid
  Call usdmAlt(True)
  Dim trp As Boolean, tlp As Boolean, drp As Boolean, dlp As Boolean
  Dim Mfrep%, Mflip%
@@ -2973,11 +2973,11 @@ End Select
 End Function ' FallExport
 
 Function LeistungsExport1(BDT As BDTSchreib, Pat_ID&, Leist$, Datu As Date, Optional QUZeit$, Optional nurKasse%, Optional Arztnr&)
- Dim rna As New ADODB.Recordset, Lanr&
- myFrag rna, "SELECT * FROM `namen` WHERE pat_id = " & Pat_ID
- Lese.Ausgeb "Trage Leistung " & Leist & " für Pat_ID " & Pat_ID & " (" & rna!Nachname & ", " & rna!Vorname & ") mit Datum " & Format$(Datu, "dd.mm.yyyy") & " ein.", True
+ Dim rNa As New ADODB.Recordset, Lanr&
+ myFrag rNa, "SELECT * FROM `namen` WHERE pat_id = " & Pat_ID
+ Lese.Ausgeb "Trage Leistung " & Leist & " für Pat_ID " & Pat_ID & " (" & rNa!Nachname & ", " & rNa!Vorname & ") mit Datum " & Format$(Datu, "dd.mm.yyyy") & " ein.", True
  Open pVerz & LEDatei For Append As #347
- Print #347, Pat_ID & ": " & rna!Nachname & ", " & rna!Vorname & ", " & Format(Datu, "dd.mm.yyyy")
+ Print #347, Pat_ID & ": " & rNa!Nachname & ", " & rNa!Vorname & ", " & Format(Datu, "dd.mm.yyyy")
  Close #347
  If FallExport(BDT, Pat_ID, Datu, Lanr, nurKasse, Arztnr) <> 1 Then Exit Function
  LeistungsExport1 = 1
@@ -3017,7 +3017,7 @@ End Function ' LeistungsExport1
 #If False Then
 Function LeistungsExport1a(BDT As BDTSchreib, Pat_ID&, Leist$, Datu As Date, Optional QUZeit$, Optional nurKasse%, Optional Arztnr%)
 ' Dim q AS DAO.Recordset
- Dim rFa As New ADODB.Recordset, rna As New ADODB.Recordset
+ Dim rFa As New ADODB.Recordset, rNa As New ADODB.Recordset
  Dim op$
  On Error GoTo fehler
 ' SET rFa = TabÖff("faelle", "Auswahl")
@@ -3028,8 +3028,8 @@ Function LeistungsExport1a(BDT As BDTSchreib, Pat_ID&, Leist$, Datu As Date, Opt
  End If
  If rFa.BOF Then Exit Function
  If Arztnr <> 0 And rFa!lanrid <> Arztnr Then Exit Function
- myFrag rna, "SELECT * FROM `namen` WHERE pat_id = " & Pat_ID
- Lese.Ausgeb "Trage Leistung " & Leist & " für Pat_ID " & Pat_ID & " (" & rna!Nachname & ", " & rna!Vorname & ") mit Datum " & Format$(Datu, "dd.mm.yyyy") & " ein.", True
+ myFrag rNa, "SELECT * FROM `namen` WHERE pat_id = " & Pat_ID
+ Lese.Ausgeb "Trage Leistung " & Leist & " für Pat_ID " & Pat_ID & " (" & rNa!Nachname & ", " & rNa!Vorname & ") mit Datum " & Format$(Datu, "dd.mm.yyyy") & " ein.", True
  LeistungsExport1a = 1
  Call BDT.Satzart(IIf(rFa!SchGr = "90", "0190", "0102")) ' 80000 Satzidentifikation
 ' bei 0101 entstehen bei zwei Aufrufen fehlerfrei zwei neue Kassenfaelle, jeder mit der Leistung
@@ -4655,13 +4655,13 @@ Function obPosi(s) As Boolean
 End Function ' obPosi(S) AS Boolean
 
 Public Function neuTher()
- Dim rna As New ADODB.Recordset
+ Dim rNa As New ADODB.Recordset
  Call Lese.ProgStart
- myFrag rna, "SELECT pat_id,gesname(pat_id) name FROM namen"
- Do While Not rna.EOF
+ myFrag rNa, "SELECT pat_id,gesname(pat_id) name FROM namen"
+ Do While Not rNa.EOF
 '  Debug.Print rNa!Pat_id, rNa!name
-  myEFrag "SELECT therartn(" & rna!Pat_ID & ")"
-  rna.MoveNext
+  myEFrag "SELECT therartn(" & rNa!Pat_ID & ")"
+  rNa.MoveNext
   DoEvents
  Loop
 End Function ' neuTher()
@@ -6063,25 +6063,25 @@ On Error GoTo fehler
   AppActivate "TURBOMED", True
   If Err.Number <> 0 Then Exit Sub
   Pause (Pausenlänge)
-  SendKeys "{ESC}", True
+  Sendkeys "{ESC}", True
   Pause (Pausenlänge)
-  SendKeys "{ESC}", True
+  Sendkeys "{ESC}", True
   Pause (Pausenlänge)
-  SendKeys "{ESC}", True
+  Sendkeys "{ESC}", True
   Pause (Pausenlänge)
-  SendKeys "{ENTER}", True
+  Sendkeys "{ENTER}", True
   Pause (Pausenlänge)
-  SendKeys "{F12}", True
+  Sendkeys "{F12}", True
   Pause (Pausenlänge)
-  SendKeys "p", True
+  Sendkeys "p", True
   Pause (Pausenlänge)
-  SendKeys "{bs}" & Pat_ID & "", True
+  Sendkeys "{bs}" & Pat_ID & "", True
   Pause (Pausenlänge)
-  SendKeys "{ENTER}", True
+  Sendkeys "{ENTER}", True
   Pause (Pausenlänge)
-  SendKeys "{F3}", True
+  Sendkeys "{F3}", True
   Pause (Pausenlänge)
-  SendKeys "%{F1}", True
+  Sendkeys "%{F1}", True
   On Error GoTo fehler
 '  Pause (Pausenlänge)
 '  AppActivate "TurboMed", True
@@ -6265,10 +6265,10 @@ Public Function testhl()
 End Function
 '#END IF
 
-Public Function zuZahl$(str$)
+Public Function zuZahl$(Str$)
  Dim i&, erg$, buch$
- For i = 1 To Len(str)
-  buch = Mid$(str, i, 1)
+ For i = 1 To Len(Str)
+  buch = Mid$(Str, i, 1)
   If buch Like "[0-9,.]" Then
    If buch = "." Then buch = ","
    erg = erg & buch

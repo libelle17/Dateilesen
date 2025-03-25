@@ -11,6 +11,14 @@ Begin VB.Form PatAuswahl
    ScaleHeight     =   14370
    ScaleWidth      =   14415
    ShowInTaskbar   =   0   'False
+   Begin VB.CheckBox ohneDaten 
+      Caption         =   "ohne Daten&übermittlung"
+      Height          =   195
+      Left            =   6120
+      TabIndex        =   34
+      Top             =   480
+      Width           =   2175
+   End
    Begin VB.CommandButton DMPString 
       Caption         =   "D&MP-String"
       Height          =   315
@@ -272,7 +280,7 @@ Begin VB.Form PatAuswahl
       Top             =   1080
       Width           =   1215
    End
-   Begin VB.Label Label2 
+   Begin VB.Label Eingabe_Patid_Label 
       Caption         =   "&Eingabe Pat_ID:"
       Height          =   255
       Left            =   120

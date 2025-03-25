@@ -23,6 +23,7 @@ Begin VB.Form PathLabForm
    End
    Begin VB.CommandButton Auswahl 
       Caption         =   "&Auswahl"
+      Enabled         =   0   'False
       Height          =   255
       Left            =   8040
       TabIndex        =   2
@@ -53,7 +54,7 @@ Begin VB.Form PathLabForm
       Width           =   1215
    End
    Begin VB.Label LabordateiLab 
-      Caption         =   "&Labordatei"
+      Caption         =   "&Datum"
       Height          =   255
       Left            =   120
       TabIndex        =   0
@@ -103,7 +104,7 @@ End Sub ' CancelButton_Click()
 Private Sub Form_Initialize()
  Titel = "Labor-Excel-Datei auswählen:"
 ' Filter = "Excel-Dateien(*.xls)|*.xls|Alle Dateien (*.*)|*.*"
- Filter = "CSV-Dateien(*.csv)|*.csv|Alle Dateien (*.*)|*.*"
+ Filter = "LDT-Dateien(*.ldt)|*.ldt|CSV-Dateien(*.csv)|*.csv|Alle Dateien (*.*)|*.*"
  initDir = pVerz
  weiter = True
 End Sub ' Form_Initialize()
@@ -119,12 +120,18 @@ End Sub ' Form_KeyPress(KeyAscii As Integer)
 
 Private Sub OKButton_Click() ' -> Pathologische Laborwerte anschauen
  If weiter Then
- If FSO.FileExists(Me.Labordatei) Then
-  ePL.PLArt = artLab
-  Set ePL.hlese = eLese
-  ePL.LabDat = Me.Labordatei
-  ePL.Show
- End If
+  If IsDate(Me.Labordatei) Then
+   ePL.PLArt = artlab
+   Set ePL.hlese = eLese
+   ePL.LabDatum = Me.Labordatei
+   ePL.Show
+  End If
+' If FSO.FileExists(Me.Labordatei) Then
+'  ePL.PLArt = artlab
+'  Set ePL.hlese = eLese
+'  ePL.LabDat = Me.Labordatei
+'  ePL.Show
+' End If
  Else
   erg = Me.Labordatei
   Unload Me

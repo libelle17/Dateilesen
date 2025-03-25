@@ -201,6 +201,7 @@ End Sub ' RunCommandLine
 Function doPatientenlaufzettel(Optional obohnerueckfrage% = 0, Optional obphp% = 0) ' aufgerufen aus: Patientenlaufzettel_Click() und MDIForm_Activate
     ' für PDF lesen
 '#Const obadobe = 1
+Dim Cn As ADODB.Connection
 #If obadobe = 1 Then
  Dim PDTextS As Acrobat.CAcroPDTextSELECT
  Dim Result&, PDDoc As Acrobat.CAcroPDDoc
@@ -223,22 +224,25 @@ Function doPatientenlaufzettel(Optional obohnerueckfrage% = 0, Optional obphp% =
 ' alte löschen
  
 ' Prüfen, ob Termine gespeichert wurden und mit dem C-Programm "termine" (auf <LiName>) ausgelesen wurden
- 
- If obphp <> 0 Then plzVerz = phpV Else plzVerz = plzVz
- Filename = plzVz & "TMFTools.pdf"
- FTextname = plzVz & "TMFTools.pdf.txt"
+ If Lese.MOBetr <> 0 Then
+  obausdb = True
+ Else
+  If obphp <> 0 Then plzVerz = phpV Else plzVerz = plzVz
+  Filename = plzVz & "TMFTools.pdf"
+  FTextname = plzVz & "TMFTools.pdf.txt"
 ' IF Dir(plzVerz) <> vNS AND Dir(FTextname) <> vNS THEN
- If FSO.FolderExists(plzVz) And FSO.FileExists(FTextname) Then
-  If FileDateTime(Filename) <= FileDateTime(FTextname) Then
-   obausdb = True
+  If FSO.FolderExists(plzVz) And FSO.FileExists(FTextname) Then
+    If FileDateTime(Filename) <= FileDateTime(FTextname) Then
+    obausdb = True
+   End If
   End If
- End If
- If Not obausdb And FSO.FileExists(Filename) Then
+  If Not obausdb And FSO.FileExists(Filename) Then
 '   doplink
 ' 22.10.22: führt bei Aufruf über Ado zumindest bis zur Mariadb-Version 10.9 immer wieder zum Server-Crash, s.ähnliche Bug-Hinweise früherer Versionen
-  rufauf "ssh", "root@" & LiName & " termine", 2, "c:\windows\system32\openssh\", -1, 1
+   rufauf "ssh", "root@" & LiName & " termine", 2, "c:\windows\system32\openssh\", -1, 1
 '  RunCommandLine ("plink root@" & LiName & " termine")
- End If ' Not obausdb And FSO.FileExists(Filename) Then
+  End If ' Not obausdb And FSO.FileExists(Filename) Then
+ End If ' Lese.MoBetr
  
 ' verschiedene Daten bestimmen
  Dim rTerm As New ADODB.Recordset
@@ -266,7 +270,10 @@ Function doPatientenlaufzettel(Optional obohnerueckfrage% = 0, Optional obphp% =
   If obohnerueckfrage Then
    s2(0) = jetzt
   Else ' obohnerueckfrage THEN
-   dats = InputBox("Terminkalender gespeichert um: " & FileDateTime(Filename) & vbCrLf & "aktuelle Internetzeit: " & InetD & vbCrLf & "aktuelle Serverzeit:   " & ServD & vbCrLf & "aktuelle PC-Zeit:       " & Date & " " & Time & vbCrLf & vbCrLf & "bitte Patientenlaufzettel erstellen für: ", "Datumsfestlegung zur Patientenlaufzettelerstellung", Int(InetD))
+   Dim Üschr$
+   If Lese.MOBetr = 0 Then Üschr = "Terminkalender gespeichert um: " & FileDateTime(Filename) & vbCrLf Else Üschr = ""
+   Üschr = Üschr & "aktuelle Internetzeit: " & InetD & vbCrLf & "aktuelle Serverzeit:   " & ServD & vbCrLf & "aktuelle PC-Zeit:       " & Date & " " & Time & vbCrLf & vbCrLf & "bitte Patientenlaufzettel erstellen für: "
+   dats = InputBox(Üschr, "Datumsfestlegung zur Patientenlaufzettelerstellung", Int(InetD))
    If Not IsDate(dats) Then Exit Function
    s2(0) = CDate(dats)
   End If ' obohnerueckfrage THEN
@@ -360,15 +367,22 @@ DoEvents
   Dim hinzu&, sql$, iru&, noch&, unoch&
   For hinzu = 0 To 45
    Datum = CDate(s2(0)) + hinzu
-   sql = "SELECT PID, DATE(zp) Datum, MIN(TIME(zp)) Uhrzeit, GROUP_CONCAT(DISTINCT raum SEPARATOR ' ') Arzt,GROUP_CONCAT(DISTINCT Zusatz SEPARATOR ' ') Zusatz FROM termine t WHERE " & SelDatum("zp", Datum) & " AND pid<>0 GROUP BY pid"
-   myFrag rTerm, "SELECT COUNT(0) zl FROM (" & sql & ") i"
-   If Not rTerm.EOF Then
+   If Lese.MOBetr = 0 Then
+    Set Cn = DBCn
+    sql = "SELECT PID, DATE(zp) Datum, MIN(TIME(zp)) Uhrzeit, GROUP_CONCAT(DISTINCT raum SEPARATOR ' ') Arzt,GROUP_CONCAT(DISTINCT Zusatz SEPARATOR ' ') Zusatz FROM termine t WHERE " & SelDatum("zp", Datum) & " AND pid<>0 GROUP BY pid"
+   Else
+    MOConInit
+    Set Cn = MOCon
+    sql = "SELECT fpatnr pid, DATE(18900101 + INTERVAL t.FDatumvon DAY + INTERVAL t.FZeitvon SECOND) datum, CONVERT(SEC_TO_TIME(t.fzeitvon),CHAR) uhrzeit, t.fbemerkung zusatz, tz.fname arzt FROM termin t LEFT JOIN tzone tz ON t.FZonenid=tz.FSurogat WHERE DATE(18900101 + INTERVAL t.FDatumvon DAY + INTERVAL t.FZeitvon SECOND)=date(" & Format(Datum, "yyyymmdd") & ") AND fpatnr>0 GROUP BY fpatnr ORDER BY fpatnr"
+   End If
+   myFrag rTerm, "SELECT COUNT(0) zl FROM (" & sql & ") i", adOpenStatic, Cn
+   If Not rTerm.BOF Then
     noch = rTerm!zl
     unoch = noch
     If noch <> 0 Then
      syscmd 4, "zu erstellen: " & noch & " Patientenlaufzettel für " & s2(0) & " in " & plzVerz
      ReDim plzDat(noch - 1)
-     myFrag rTerm, sql
+     myFrag rTerm, sql, adOpenStatic, Cn
      iru = 0
      Do While Not rTerm.EOF
       plzDat(iru).pid = rTerm!pid
