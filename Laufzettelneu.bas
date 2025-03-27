@@ -201,7 +201,7 @@ End Sub ' RunCommandLine
 Function doPatientenlaufzettel(Optional obohnerueckfrage% = 0, Optional obphp% = 0) ' aufgerufen aus: Patientenlaufzettel_Click() und MDIForm_Activate
     ' für PDF lesen
 '#Const obadobe = 1
-Dim Cn As ADODB.Connection
+Dim Cn As adodb.Connection
 #If obadobe = 1 Then
  Dim PDTextS As Acrobat.CAcroPDTextSELECT
  Dim Result&, PDDoc As Acrobat.CAcroPDDoc
@@ -245,7 +245,7 @@ Dim Cn As ADODB.Connection
  End If ' Lese.MoBetr
  
 ' verschiedene Daten bestimmen
- Dim rTerm As New ADODB.Recordset
+ Dim rTerm As New adodb.Recordset
  Dim jetzt As Date
  Dim InetD As Date
  Dim ServD As Date
@@ -270,10 +270,10 @@ Dim Cn As ADODB.Connection
   If obohnerueckfrage Then
    s2(0) = jetzt
   Else ' obohnerueckfrage THEN
-   Dim Üschr$
-   If Lese.MOBetr = 0 Then Üschr = "Terminkalender gespeichert um: " & FileDateTime(Filename) & vbCrLf Else Üschr = ""
-   Üschr = Üschr & "aktuelle Internetzeit: " & InetD & vbCrLf & "aktuelle Serverzeit:   " & ServD & vbCrLf & "aktuelle PC-Zeit:       " & Date & " " & Time & vbCrLf & vbCrLf & "bitte Patientenlaufzettel erstellen für: "
-   dats = InputBox(Üschr, "Datumsfestlegung zur Patientenlaufzettelerstellung", Int(InetD))
+   Dim ÜSchr$
+   If Lese.MOBetr = 0 Then ÜSchr = "Terminkalender gespeichert um: " & FileDateTime(Filename) & vbCrLf Else ÜSchr = ""
+   ÜSchr = ÜSchr & "aktuelle Internetzeit: " & InetD & vbCrLf & "aktuelle Serverzeit:   " & ServD & vbCrLf & "aktuelle PC-Zeit:       " & Date & " " & Time & vbCrLf & vbCrLf & "bitte Patientenlaufzettel erstellen für: "
+   dats = InputBox(ÜSchr, "Datumsfestlegung zur Patientenlaufzettelerstellung", Int(InetD))
    If Not IsDate(dats) Then Exit Function
    s2(0) = CDate(dats)
   End If ' obohnerueckfrage THEN
@@ -622,7 +622,7 @@ End Function ' letztGFR#(PID&)
 '  END Function
 Public Function mplan(pid&)
 ' bei Auswahl aller Medikamentenpläne (Pat_id 1564: 4165 Einträge) Dauer: 0,64s
- Dim rTh As New ADODB.Recordset, mpz%, ru%
+ Dim rTh As New adodb.Recordset, mpz%, ru%
  Static altPID&
  On Error GoTo fehler
  If pid <> altPID Then
@@ -727,7 +727,7 @@ Function UKPDS(ByRef aRisk As Risk, pid$, gbdt As Date, dmseit$, ByRef falDiabDa
 ' 1.11.14 vorgezogen
 ' UKPDS-Risk bestimmen (1)
   Dim diabseit As Date
-  Dim rsDia As New ADODB.Recordset
+  Dim rsDia As New adodb.Recordset
   aRisk.AgeDiagDiabetes = MAXvb((erbe(pid) - gbdt) * 0.002737925747, 20) ' / 365.24 ' bei Active-X-Fehler: an der Kommandozeile "regsvr32 u:\programmierung\riskeng.ocx" laufen lassen
   aRisk.DurationDiagnosedDiabetes = 0
   falDiabDau = -1
@@ -791,7 +791,7 @@ Function UKPDS(ByRef aRisk As Risk, pid$, gbdt As Date, dmseit$, ByRef falDiabDa
   Set rsDia = Nothing
   myFrag rsDia, "SELECT avg(rrsyst) s, avg(rrdiast) d FROM (SELECT rrsyst,rrdiast FROM rrparse WHERE pat_id = " & pid & " ORDER BY zeitpunkt DESC LIMIT 6) i"
   If Not rsDia.BOF Then
-   If Not IsNull(rsDia!s) Then aRisk.BloodPressure = rsDia!s
+   If Not IsNull(rsDia!S) Then aRisk.BloodPressure = rsDia!S
   End If
   aRisk.HbA1c_Precision = 0
   If lwZahl Then
@@ -1029,9 +1029,9 @@ On Error GoTo fehler
 ' bis hier 0,4s
  m = 1: TI(m) = Timer: For p = 0 To m - 1: TI(m) = TI(m) - TI(p): Next
 
- Dim rnam As New ADODB.Recordset, rAn As New ADODB.Recordset, rFl As ADODB.Recordset, rFlb As New ADODB.Recordset
- Dim rsDia As New ADODB.Recordset, rsMB As New ADODB.Recordset, rTha As New ADODB.Recordset
- Dim rHAV As New ADODB.Recordset
+ Dim rnam As New adodb.Recordset, rAn As New adodb.Recordset, rFl As adodb.Recordset, rFlb As New adodb.Recordset
+ Dim rsDia As New adodb.Recordset, rsMB As New adodb.Recordset, rTha As New adodb.Recordset
+ Dim rHAV As New adodb.Recordset
  Dim i&, Größe!, Gewicht!, Wert$, WertNum!, j&, k&, ianf&, iend&, FlbZ&, aktlwx&  ', lSQL$ ' bmi!, bmiS$,
  Dim angefx&, gefunden&
  Dim AusS As New CString
@@ -1076,7 +1076,7 @@ On Error GoTo fehler
 ' Dim obAvan% ' ob Avandia verordnet wird
 ' Dim wasAvan$ ' was genau verordnet wurde
  Dim falDiabDau% ' falsche Diabetesdauer (`Diabetes seit` in der der Anamnese)
- Dim rs(pzl) As New ADODB.Recordset, rszahl As New ADODB.Recordset
+ Dim rs(pzl) As New adodb.Recordset, rszahl As New adodb.Recordset
  Dim sql$(pzl) ' werden hinter "' Recordsets öffnen" verwendet
  Dim kritnr(pzl) As LabArt ' Kriterium Nr. für die Filternr
  Dim rsz&(pzl) ' vorhandene Zahl
@@ -1297,7 +1297,7 @@ hyperton:
 '  zMAX(0) = 6: zMAX(1) = 6: zMAX(2) = 4: zMAX(3) = 4: zMAX(4) = 6: zMAX(5) = 4: zMAX(6) = 8
   For i = 0 To pzl: zmax(i) = zmaxges: Next i '8
 '  lsql = "SELECT * FROM (SELECT * FROM `labor2a` WHERE pat_id = " & Pat_ID & " UNION SELECT * FROM `labor1a` WHERE pat_id = " & Pat_ID & ") i GROUP BY pat_id,zeitpunkt,abkü,wert,einheit,nb" ' 29.10.18 ,einheit,nb"
-  Dim rsl As New ADODB.Recordset ' Labor
+  Dim rsl As New adodb.Recordset ' Labor
   Dim lwZahl&
   Dim lab() As labtyp
   Dim obLabzugew%
@@ -1380,7 +1380,7 @@ hyperton:
   grenze(i) = 6.5
   If Not obdm Then nurpath(i) = 3
   i = i + 1
-  Dim OADUzu As New ADODB.Recordset
+  Dim OADUzu As New adodb.Recordset
   Select Case therart
    Case "CSII", "ICT", "CT", "Komb", "GLP1Ins", "GLP1ICT", "OAD", "GLP1"
     If therart = "OAD" Then
@@ -2334,7 +2334,7 @@ keinuzu:
   If obpath(0) Then AusS.AppVar (Array("<div class='cave'>Hausarzt nicht in Turbomed eingetragen</div>", vbCrLf))
   
   Dim obGU%
-  Dim rLei As New ADODB.Recordset
+  Dim rLei As New adodb.Recordset
   obGU = 0
   
   If obLeist Then
@@ -2373,7 +2373,7 @@ keinuzu:
 '      AusS.AppVar (Array("<div class='unauff'>DMP-Diabetes: hier ", "</div>", vbCrLf))
 '   END SELECT
 '  END IF
-  Dim rsauf As New ADODB.Recordset, BhFB$, Auftrag$, Verdacht$, Befund$
+  Dim rsauf As New adodb.Recordset, BhFB$, Auftrag$, Verdacht$, Befund$
   BhFB = vNS
   Auftrag = vNS
   Verdacht = vNS
@@ -2399,7 +2399,7 @@ keinuzu:
   Next i
   AusS.AppVar Array(" $_SESSION['obtelnr']=1;", vbCrLf)
   If iob(3) Then iStri(3).AppVar Array(" $_SESSION['obtelnr']=0;", vbCrLf)
-  Dim razu As New ADODB.Recordset
+  Dim razu As New adodb.Recordset
   myFrag razu, "SELECT (obs AND lanrid<>1) OR (obk AND lanrid<>2) obfalsch," & vbCrLf & _
      "CONCAT('Desktop: ', IF(obs,'gelb,',''),IF(obk,'blau,',''), ' Arztzuord.: ',IF(lanrid=1,'Schade','Kothny')) wiefalar FROM (" & vbCrLf & _
      "SELECT COALESCE((SELECT 1 FROM desktop WHERE pat_id = f.pat_id AND iconpath RLIKE '4eckblau' AND showasnote=0 LIMIT 1),0) obk," & vbCrLf & _
@@ -2500,9 +2500,9 @@ keinuzu:
 '  IF obAvan THEN AusS.AppVar (Array("    <span class='cave'>&nbsp;", wasAvan, ",&nbsp;&nbsp;</span>", vbCrLf))
   If falDiabDau Then AusS.AppVar (Array("    <span class='cave'>&nbsp;bitte `Diabetes seit` im Anamnesemakro überprüfen: soll Jahreszahl oder Datum sein,&nbsp;&nbsp;</span>", vbCrLf))
 ' Barthel-Index
-  Dim rsdd As New ADODB.Recordset
+  Dim rsdd As New adodb.Recordset
   myFrag rsdd, "SELECT icd FROM diagview d WHERE d.pat_id = " & Pat_ID & " AND (d.gICD RLIKE '^F0[0-3]|^G20')"
-  Dim rse As ADODB.Recordset
+  Dim rse As adodb.Recordset
   If rFlSchGr <> 90 And (PAlter >= 70 Or Not rsdd.BOF) Then
    Set rse = Nothing ' 13.4.21: wenn im Folgenden nicht _latin1 bei inhalt steht, kommt bei der virtuallen Spalte Unsinn raus
    myFrag rse, "SELECT DATE(zeitpunkt) datum, art, inhalt FROM `eintraege` WHERE zeitpunkt > DATE_SUB(NOW(), INTERVAL 150 DAY) AND Art = 'ADL' AND pat_id = " & Pat_ID & " ORDER BY zeitpunkt DESC"
@@ -2521,7 +2521,7 @@ keinuzu:
   If obdm Then
    ' bei der Techniker nicht, wenn Pat. in der hausarztzentrierten Versorgung
    If rFlkrkasse Like "DAK*" Or rFlkrkasse Like "KKH*" Or rFlkrkasse Like "Kaufmännische K*" Or (rFlKateg = "EK" And (((rFlkrkasse Like "*TK*" Or rFlkrkasse Like "*Techniker*") And rnam!HzV <> 1) Or rFlkrkasse Like "*hans*")) Then
-    Dim rDF As ADODB.Recordset
+    Dim rDF As adodb.Recordset
     Set rDF = Nothing
     myFrag rDF, "SELECT CASE substr(inhalt,6,2) WHEN 'HA' THEN 'HA' WHEN 'hi' THEN 'hier' WHEN 'ne' THEN 'nein' ELSE '?' END wo," & _
      "DATE_FORMAT(zeitpunkt,'%d.%m.%y'), e.* FROM eintraege e WHERE art='dak' " & _
@@ -2628,7 +2628,7 @@ keinuzu:
   
   If rFlSchGr <> 90 Then ' nicht bei Privaten
 ' TH:Kombinationstherapie DPP4-Hemmer aufspalten
-   Dim rdpp4 As New ADODB.Recordset
+   Dim rdpp4 As New adodb.Recordset
    myFrag rdpp4, "SELECT IF(therart IN ('ICT','CSII','CT','GLP1Ins','GLP1ICT','GLP1'),CONCAT('Therapieart ',therart,', bitte ',mp.medikament,' ',IF(metf,'um','ab'),'setzen!'),CONCAT('Kombinationstablette ',mp.medikament,' bitte aufspalten!')) Anw FROM namen f " & vbCrLf & _
    "LEFT JOIN therarten th ON f.pat_id=th.pat_id AND mpnr=(SELECT mpnr FROM therarten WHERE pat_id=f.pat_id ORDER BY zp DESC,mpnr DESC LIMIT 1) " & vbCrLf & _
    "LEFT JOIN lmp mp ON f.pat_id = mp.pat_id " & vbCrLf & _
@@ -2958,7 +2958,7 @@ keinuzu:
   If obdm Then TabZ = MAXvb(TabZ, 2)
 
 ' Termine eintragen
-  Dim rTerm As New ADODB.Recordset
+  Dim rTerm As New adodb.Recordset
   Set rTerm = Nothing
   ' myFrag rTerm, "SELECT COUNT(0)-1 zahl FROM termine t WHERE zp >= DATE(NOW()) AND pid = " & Pat_id
   ' TabZ = MAX(TabZ, rTerm!Zahl)
@@ -3088,7 +3088,7 @@ keinuzu:
   Next j
   AusS.AppVar (Array("</Table>", vbCrLf))
   m = 38: TI(m) = Timer: For p = 0 To m - 1: TI(m) = TI(m) - TI(p): Next p
-  Call eintraege(Pat_ID, AusS)
+  Call plzeintraege(Pat_ID, AusS)
   
   On Error Resume Next
   For i = 0 To 100
@@ -3183,9 +3183,9 @@ End Select
 End Function ' dodoPLZ
 
 ' in dodoPlz (ausgelagert)
-Function eintraege(ByVal Pat_ID$, ByRef AusS As CString)
+Function plzeintraege(ByVal Pat_ID$, ByRef AusS As CString)
 ' Einträge
-  Dim rse As ADODB.Recordset
+  Dim rse As adodb.Recordset
   Dim i&, DatNr&, p%
   On Error GoTo fehler
   ' ktag wieder korrumpiert
@@ -3259,7 +3259,7 @@ End Function ' eintraege
 
 ' for dodoPLZ und LaborIns1 <- tuBriefStandAlone
 Sub LaborInsPLZ(Pat_ID$, SelbstStatus%, raDatBOF%, ByRef Matr$(), ByRef MForm%(), ByRef mBreiten$()) 'Word.Document, Pat_id&)
- Dim raLw As New ADODB.Recordset, raDat As New ADODB.Recordset, rLaU As New ADODB.Recordset, ls$
+ Dim raLw As New adodb.Recordset, raDat As New adodb.Recordset, rLaU As New adodb.Recordset, ls$
  Dim dSL As SortierListe
 ' Zeilenzahl bestimmen
  Dim ZZ&, gschl$, Vgl$, altGruppe%, Nb$ ' Normbereich
@@ -3308,7 +3308,7 @@ nochmal:
  'm = 1: Tj(m) = Timer: For p = 0 To m - 1: Tj(m) = Tj(m) - Tj(p): Next p
  Dim lz&, gz&, dz&
  ' wenn hollabor vorher einmal mit dem selben Pat. ohne obnachgruppe aufgerufen wurde, geht diese Funktion 0,3s schneller
- Set raLw = hollabor(CLng(Pat_ID), "", 0, 0, obnachgruppe:=True, Zahl:=lz, Einheit:="", gz:=gz, dzz:=dz, dSL:=dSL) ' , obUpdate:=True)
+ Set raLw = hollabor(CLng(Pat_ID), "", 0, 0, obnachgruppe:=True, Zahl:=lz, Einheit:="", gz:=gz, dzz:=dz, dSL:=dSL, obneu:=True) ' , obUpdate:=True)
  'm = 2: Tj(m) = Timer: For p = 0 To m - 1: Tj(m) = Tj(m) - Tj(p): Next p
  ZZ = lz + gz
 ' ZZ = myEFrag("SELECT COUNT(0)+COUNT(DISTINCT gruppe) Zahl FROM (SELECT * FROM geslaba WHERE (reihe <> 999 OR ISNULL(reihe)) GROUP BY Gruppe, Reihe, Abkü, Einheit,uNg,oNg ORDER BY gruppe, reihe) i")!Zahl
@@ -3390,7 +3390,7 @@ nochmal1:
  syscmd 4, "Labor (1) nach Datumseintragung"
  'm = 4: Tj(m) = Timer: For p = 0 To m - 1: Tj(m) = Tj(m) - Tj(p): Next p
  
- Dim rlp As New ADODB.Recordset
+ Dim rlp As New adodb.Recordset
  j = 1
  altgru = -1
  Dim raLwSource$

@@ -4,7 +4,7 @@ Dim ag As New CString
 Dim donr$
 Dim bmnr&
 Public Const KVNr = "6419153"
-Public Const bsnr = KVNr & "00"
+Public Const BSNR = KVNr & "00"
 
 Const HADBName$ = "haerzte"
 Type hatyp
@@ -4621,9 +4621,9 @@ End Function ' do_RRParse(erg$, rsP AS dao.recordset, Pat_id$, ZeitPunkt As Date
 
 #If zutesten Then
 Function testrp(p$)
- Dim s%, d%
- Call dodoRRParse(p, s, d)
- Debug.Print s, d
+ Dim S%, d%
+ Call dodoRRParse(p, S, d)
+ Debug.Print S, d
 End Function ' testrp(p$)
 #End If
 
@@ -6432,7 +6432,7 @@ Function getHausarzt1(infos$(), rFa() As Faelle, rKv() As kvnrue, Optional obHAP
 ' Dim rNa As New ADODB.Recordset
 ' Dim FaxNr$, infos$() ' Frau/Herrn, Vorn+Nachn, Straﬂe, PLZ+Ort, Faxnr, S.g./Liebe, DMPTyp2, DMPTyp1
  Dim rHa As New adodb.Recordset, rHi As New adodb.Recordset, rAf&
- Dim FD$, iru%
+ Dim Fd$, iru%
  On Error GoTo fehler
 #Const mo = 1
 #If mo Then
@@ -6454,52 +6454,10 @@ Function getHausarzt1(infos$(), rFa() As Faelle, rKv() As kvnrue, Optional obHAP
  ' 14: Nachname,
  ' 15: Email
  MOConInit
- myFrag rHa, "SELECT ea.*,ep.* FROM patrelation pr JOIN earzt ea ON pr.FReferenzid= ea.FSurogat LEFT JOIN epraxis ep ON ea.FExtpraxisnr=ep.FSurogat WHERE pr.fpatid=" & Pat_ID, adOpenStatic, MOCon
- If rHa.BOF Then
-  myFrag rHa, "SELECT FData FROM patrelation pr WHERE pr.fpatid=" & Pat_ID, adOpenStatic, MOCon
-  If Not rHa.BOF Then
-   FD = rHa!FData
-   If FD <> "{}" Then
-    Dim datf, pr
-    datf = Split(FD, ") (")
-    If UBound(datf) > 0 Then
-     datf(0) = REPLACE$(datf(0), "{(", "")
-     datf(UBound(datf)) = REPLACE$(datf(UBound(datf)), ")}", "")
-     For iru = 0 To UBound(datf)
-      pr = Split(datf(iru), " """)
-      If UBound(pr) > 0 Then
-       pr(1) = Left$(pr(1), Len(pr(1)) - 1)
-       Select Case pr(0)
-        Case "Nachname": infos(1, 0) = pr(1)
-        Case "Vorname": infos(1, 0) = "Dr. med. " & pr(1) & " " & infos(1, 0)
-'       Case "Titel":
-        Case "Geschlecht"
-            If pr(1) = "1" Then
-              infos(0, 0) = "Herrn"
-              infos(5, 0) = "Sehr geehrter "
-            Else
-              infos(0, 0) = "Frau"
-              infos(5, 0) = "Sehr geehrte "
-            End If
-        Case "Strasse": infos(2, 0) = pr(1)
-        Case "Plz": infos(3, 0) = pr(1) & " "
-        Case "Ort": infos(3, 0) = infos(3, 0) & pr(1)
-        Case "Fax": infos(4, 0) = pr(1)
-       End Select
-      End If
-     Next iru
-    End If ' UBound(datf) > 0 Then
-    If infos(0, 0) = "" Then infos(0, 0) = "Frau/Herrn"
-    If infos(5, 0) = "" Then infos(5, 0) = "Sehr geehrte/r "
-   End If
-  End If ' Not rHa.bof Then
- Else ' rHa.BOF Then
-  Debug.Print "Anfang"
-  Debug.Print "Ende"
- End If ' rHa.BOF Then Else
  Dim infi%, ebsnr$, mru&, nru&, FMem() As memoType, FMi() As memoType
- If infos(1, 0) = "" Then infi = 0 Else infi = 1
- myFrag rHa, "SELECT COALESCE(CONVERT(FMemo USING latin1),'') Fm FROM patfall WHERE FPatnr=" & Pat_ID & " ORDER BY FVon DESC", adOpenStatic, MOCon
+ infi = 0
+ ' 1) ‹berweiser aus dem Memofeld von FPatfall, bis zu 3-4 F‰lle zur¸ck
+ myFrag rHa, "SELECT COALESCE(CONVERT(FMemo USING latin1),'') Fm FROM patfall WHERE FPatnr=" & Pat_ID & " ORDER BY FVon DESC LIMIT 4", adOpenStatic, MOCon
  If Not rHa.BOF Then
   Do While Not rHa.EOF
    Call ParseMemo(rHa!fm, FMem(), , "FMemo aus patfall, FPatnr " & Pat_ID)
@@ -6507,11 +6465,19 @@ Function getHausarzt1(infos$(), rFa() As Faelle, rKv() As kvnrue, Optional obHAP
     If FMem(mru).ENr = "10.2" Then
      ebsnr = FMem(mru).Text
      If Not IsNumeric(ebsnr) Then GoTo weiter
-      myFrag rHi, "SELECT FBezeichnung FBez, COALESCE(CONVERT(FAdresse USING latin1),'') FA FROM epraxis WHERE FBetriebsnr='" & ebsnr & "'", adOpenStatic, MOCon
+      myFrag rHi, "SELECT FBezeichnung FBez, COALESCE(CONVERT(FAdresse USING latin1),'') FA, CONCAT(FAnrede,' Kolleg',IF(INSTR(FAnrede,'Frau')<>0,'in','e')) anrl, IF(INSTR(FAnrede,'Frau')<>0,'Frau','Herrn') anrk FROM epraxis WHERE FBetriebsnr='" & ebsnr & "'", adOpenStatic, MOCon
       If Not rHi.BOF Then
+       infos(5, infi) = rHi!anrl
+       infos(0, infi) = rHi!anrk
+       Dim VorN$, NachN$, FB$, namspl
+       FB = rHi!FBez
+       If Left$(FB, 5) = "Prof." Then FB = Mid$(FB, 6)
+       If Left$(FB, 8) = "Dr. med." Then FB = Mid$(FB, 9) Else If Left$(FB, 7) = "Dr.med." Then FB = Mid$(FB, 8) Else If Left$(FB, 3) = "Dr." Then FB = Mid$(FB, 4)
+       FB = Trim$(FB)
+       namspl = Split(FB)
+       If UBound(namspl) > 0 Then infos(9, infi) = namspl(0): infos(14, infi) = namspl(UBound(namspl))
        Call ParseMemo(rHi!FA, FMi(), , "FAdresse aus epraxis " & ebsnr)
        infos(1, infi) = "Dr.med. " & Trim$(rHi!FBez)
-       infos(0, infi) = "Frau/Herrn"
        For nru = 0 To UBound(FMi)
         If FMi(nru).ENr = "3" Then ' Strasse
          infos(2, infi) = FMi(nru).Text
@@ -6525,15 +6491,88 @@ Function getHausarzt1(infos$(), rFa() As Faelle, rKv() As kvnrue, Optional obHAP
        Next nru
        Exit Do
       End If
-     
-     GoTo fertig:
+     GoTo Fertig:
     End If
    Next mru
 weiter:
    rHa.MoveNext
   Loop
  End If ' Not rHa.BOF Then
-fertig:
+Fertig:
+
+ If infos(1, 0) = "" Then infi = 0 Else infi = 1
+' 2) (Haus)arzt aus Beziehungen
+ myFrag rHa, "SELECT COALESCE(CONVERT(FAdresse USING latin1),'') FA, ea.FAnrede anrk,(SELECT CASE WHEN ea.FAnrede='Herrn' THEN 'Sehr geehrter Herr Kollege' WHEN ea.FAnrede='Frau' THEN 'Sehr geehrte Frau Kollegin' ELSE 'Sehr geehrte/r Frau/Herr Kollege/in' END anrl FROM earzt WHERE fvorname=ea.fvorname LIMIT 1) anrl, ea.*,ep.* FROM patrelation pr JOIN earzt ea ON pr.FReferenzid= ea.FSurogat LEFT JOIN epraxis ep ON ea.FExtpraxisnr=ep.FSurogat WHERE pr.fpatid=" & Pat_ID, adOpenStatic, MOCon
+ If rHa.BOF Then
+ ' a) Arzt nicht mehr in Arztdatei gespeichert, nur noch im Beziehungspuffer
+  myFrag rHa, "SELECT FData FROM patrelation pr WHERE pr.fpatid=" & Pat_ID, adOpenStatic, MOCon
+  If Not rHa.BOF Then
+   Fd = rHa!FData
+   If Fd <> "{}" Then
+    Dim datf, pr
+    datf = Split(Fd, ") (")
+    If UBound(datf) > 0 Then
+     datf(0) = REPLACE$(datf(0), "{(", "")
+     datf(UBound(datf)) = REPLACE$(datf(UBound(datf)), ")}", "")
+     For iru = 0 To UBound(datf)
+      pr = Split(datf(iru), " """)
+      If UBound(pr) > 0 Then
+       pr(1) = Left$(pr(1), Len(pr(1)) - 1)
+       Select Case pr(0)
+        Case "Nachname": infos(1, infi) = pr(1): infos(14, infi) = pr(1)
+        Case "Vorname": infos(1, infi) = "Dr. med. " & pr(1) & " " & infos(1, infi): infos(9, infi) = pr(1)
+        Dim rGs As adodb.Recordset
+        myFrag rGs, "SELECT IF(FAnrede='\N','',FAnrede) anrk FROM earzt WHERE FVorname='" & pr(1) & "' LIMIT 1", adOpenStatic, MOCon
+        If Not rGs.EOF Then
+         infos(0, infi) = rGs!anrk
+         If infos(0, infi) <> "" Then
+          If infos(0, infi) = "Frau" Then infos(5, infi) = "Sehr geehrte Frau Kollegin" Else infos(5, infi) = "Sehr geehrter Herr Kollege"
+         End If
+        End If
+'       Case "Titel":
+        Case "Geschlecht"
+            If pr(1) = "1" Then
+              infos(0, infi) = "Herrn"
+              infos(5, infi) = "Sehr geehrter Herr Kollege"
+            Else
+              infos(0, infi) = "Frau"
+              infos(5, infi) = "Sehr geehrte Frau Kollegin"
+            End If
+        Case "Strasse": infos(2, infi) = pr(1)
+        Case "Plz": infos(3, infi) = pr(1) & " "
+        Case "Ort": infos(3, infi) = infos(3, infi) & pr(1)
+        Case "Fax": infos(4, infi) = pr(1)
+       End Select
+      End If
+     Next iru
+    End If ' UBound(datf) > 0 Then
+    If infos(0, infi) = "" Then infos(0, infi) = "Frau/Herrn"
+    If infos(5, infi) = "" Then infos(5, infi) = "Sehr geehrte/r Frau/Herr Kollege/in"
+   End If
+  End If ' Not rHa.bof Then
+ Else ' rHa.BOF Then
+ ' b) Arzt in Arztdatei gespeichert
+  infos(0, infi) = rHa!anrk
+  infos(1, infi) = "Dr.med. " & rHa!FVorname & " " & rHa!FNachname
+  infos(9, infi) = rHa!FVorname
+  infos(14, infi) = rHa!FNachname
+  Call ParseMemo(rHa!FA, FMem(), , "FAdresse aus earzt" & Pat_ID)
+  Debug.Print "Ende"
+  For mru = 0 To UBound(FMem)
+   If FMem(mru).ENr = "3" Then ' Strasse
+    infos(2, infi) = FMem(mru).Text & " "
+   ElseIf FMem(mru).ENr = "4" Then ' Hausnr
+    infos(2, infi) = infos(2, infi) & FMem(mru).Text
+   ElseIf FMem(mru).ENr = "5" Then ' PLZ
+    infos(3, infi) = FMem(mru).Text & " "
+   ElseIf FMem(mru).ENr = "6" Then ' Ort
+    infos(3, infi) = infos(3, infi) & FMem(mru).Text
+   ElseIf FMem(mru).ENr = "10.2" Then ' Faxnr
+    infos(4, infi) = FMem(mru).Text
+   End If
+  Next mru
+  infos(5, infi) = rHa!anrl
+ End If ' rHa.BOF Then Else
  
 #Else
  Dim rHaBOF%
@@ -7609,6 +7648,7 @@ neufestleg:
     With dc.bookmarks
 '    SET dc = .ActiveDocument
     VorDat = GetVorDat(Pat_ID, obStumm)
+'    VorDat = #1/15/2024#
     If nurLabor = 0 Then
 On Error Resume Next
      Dim bzahl%
@@ -7736,7 +7776,7 @@ On Error GoTo fehler
     bmTxt(17) = "%Nacht"
     
     For Ereih = 1 To 19
-'     IF Ereih = 5 THEN Stop
+'     If Ereih = 5 Then Stop
      TMn = "e" + CStr(Ereih)
      TZMn = "ez" + CStr(Ereih)
      krit = vNS
@@ -7757,7 +7797,7 @@ On Error GoTo fehler
       Else
        krit = Left$(krit, Len(krit) - 1) '+ """"
       End If
-      Inhalt = eintraege(Pat_ID, krit, VorDat)
+      Inhalt = kkeintraege(Pat_ID, krit, VorDat)
      End If
      Select Case Ereih
       Case bmTaille ' Bauchumfang / Taille
@@ -8041,6 +8081,7 @@ Function BMRd(dc As Object, Bm, Text$, Optional obSichtbar%)
  neulen = Len(Text)
  bmname = Bm.name
  Bm.Range = Text
+ ' hier kommt der Fehler "von den Clients getrennt":
  Call dc.bookmarks.Add(bmname, dc.Range(Start, Start + neulen))
  If obSichtbar Then dc.bookmarks(bmname).Range.Font.Hidden = False
  Exit Function
@@ -8222,7 +8263,7 @@ vonvorne:
          Exit For
         End If
        Next i
-       If Not obalt And Feld <> KVNr And Feld <> bsnr And Feld <> "889690003" And Feld <> "933284903" Then
+       If Not obalt And Feld <> KVNr And Feld <> BSNR And Feld <> "889690003" And Feld <> "933284903" Then
         stand = stand + 1
         ReDim Preserve ‹w1(4, stand) ' 0 = KV-Nr, 1 = Nachname, 2 = Vorname, 3 = Position
         ‹w1ini = True
@@ -8271,7 +8312,7 @@ vonvorne:
     Next i
    End If ' (0 / 1) + (Not Not rKv) = 0 Then Else
    If (0 / 1) + (Not Not rKv) = 0 Or obrKvzugew = 0 Then
-    myFrag rK, "SELECT kvnr FROM `kvnrue` WHERE pat_id = " & rFa(1).Pat_ID & IIf(auchwir, "", " AND kvnr NOT IN ('','" & KVNr & "','" & bsnr & "','889690003','933284903')") & " ORDER BY lfdnr"
+    myFrag rK, "SELECT kvnr FROM `kvnrue` WHERE pat_id = " & rFa(1).Pat_ID & IIf(auchwir, "", " AND kvnr NOT IN ('','" & KVNr & "','" & BSNR & "','889690003','933284903')") & " ORDER BY lfdnr"
     If Not rK.BOF Then
      Do While Not rK.EOF()
        obalt = 0
@@ -8383,8 +8424,8 @@ Function ‹w12$(Pat_ID&, ‹w1$()) ' Saubere Funktion zum Ermitteln der ‹berweisern
     End If
     If UBound(bhb) = maxFZ Then Exit Do
     
-    Dim fertig%
-    fertig = 0
+    Dim Fertig%
+    Fertig = 0
     For runde = 2 To 2
      Select Case runde
       Case 1: Feld = "And‹w"
@@ -8393,8 +8434,8 @@ Function ‹w12$(Pat_ID&, ‹w1$()) ' Saubere Funktion zum Ermitteln der ‹berweisern
 '      Case 3: Feld = "‹bwvkvnr"
      End Select
      If Not IsNull(raFa.Fields(Feld)) Then
-      If raFa.Fields(Feld) <> "0000000" And LenB(raFa.Fields(Feld)) <> 0 And Not fertig Then
-       If runde = 2 Then fertig = True
+      If raFa.Fields(Feld) <> "0000000" And LenB(raFa.Fields(Feld)) <> 0 And Not Fertig Then
+       If runde = 2 Then Fertig = True
        obalt = 0
        For i = 0 To stand
         If ‹w1(0, i) = raFa.Fields(Feld) Then
@@ -8519,13 +8560,13 @@ Function GetVorDat(Pat_ID$, obStumm%, Optional obschlieﬂ%, Optional ohne÷ffnen%,
   If ohne÷ffnen <> 0 Or Not Wapp Is Nothing Then
 '   Call dtbInit
 '   sql = "SELECT COUNT(0) AS ct FROM `" + QMdbAkt + "`.`briefe relevant` WHERE pat_id = " & CStr(Pat_id)
-   sql = "SELECT COUNT(0) AS ct FROM `briefe` WHERE (name LIKE ""%Brief an %Dr%"" OR name LIKE ""%Arztbrief%"" OR name LIKE ""Brief an HA%"" OR name LIKE ""Brief an HAe%"") AND NOT pfad LIKE '%.pdf' AND name NOT LIKE ""%Entwurf%"" AND pat_id = " & Pat_ID
+   sql = "SELECT COUNT(0) AS ct FROM `briefe` WHERE (name LIKE ""%Brief an %Dr%"" OR (name LIKE ""%Arztbrief%"" AND NOT name LIKE ""%: Arztbrief%"") OR name LIKE ""Brief an HA%"" OR name LIKE ""Brief an HAe%"") AND NOT pfad LIKE '%.pdf' AND name NOT LIKE ""%Entwurf%"" AND pat_id = " & Pat_ID
    myFrag BRz, sql
 '   IF Dtb.OpenRecordset(sql)!ct > 0 THEN
    
    If BRz!ct > 0 Then
 '    lBrNam = Dtb.OpenRecordset("SELECT pfad FROM `" + QMdbAkt + "`.`briefe relevant` WHERE pat_id = " & CStr(Pat_id))!Pfad
-    sql = "SELECT pfad, zeitpunkt, name FROM `briefe` WHERE (name LIKE ""%Brief an %Dr%"" OR name LIKE ""%Arztbrief%"" OR name LIKE ""Brief an HA%"" OR name LIKE ""Brief an HAe%"") AND NOT pfad LIKE '%.pdf' AND name NOT LIKE ""%Entwurf%"" AND pat_id = " & Pat_ID & " ORDER BY zeitpunkt DESC"
+    sql = "SELECT pfad, zeitpunkt, name FROM `briefe` WHERE (name LIKE ""%Brief an %Dr%"" OR (name LIKE ""%Arztbrief%"" AND NOT name LIKE ""%: Arztbrief%"") OR name LIKE ""Brief an HA%"" OR name LIKE ""Brief an HAe%"") AND NOT pfad LIKE '%.pdf' AND name NOT LIKE ""%Entwurf%"" AND pat_id = " & Pat_ID & " ORDER BY zeitpunkt DESC"
     Set BRz = Nothing
     myFrag BRz, sql
     zeitp1 = BRz!Zeitpunkt
@@ -8641,22 +8682,23 @@ habDC:
    Dim RestDa%
    For i = 1 To 19
     On Error Resume Next
+'    If i = 5 Then Stop
     Set r2 = dc.bookmarks("ez" & i)
     If Err.Number = 0 Then
      On Error GoTo fehler
      RestDa = 0
      Set pakt = r2.Range.paragraphs(1).Next
      Do While pakt.Range.Text <> vbCr
-      If Left$(pakt.Range, 1) <> vbTab And Not IsDate(Left$(pakt.Range, 8)) Then GoTo fertig
+      If Left$(pakt.Range, 1) <> vbTab And Not IsDate(Left$(pakt.Range, 8)) Then GoTo Fertig
       If IsDate(Left$(pakt.Range, 8)) And IsNumeric(Left$(pakt.Range, 8)) Then ' Erg‰nzung isnumeric 27.4.08 Jˆrger
        If CDate(Left$(pakt.Range, 8)) > VorDat Then
          RestDa = True
-         GoTo fertig
+         GoTo Fertig
        End If
       End If
       Set pakt = pakt.Next
      Loop
-fertig:
+Fertig:
      On Error Resume Next
      If RestDa Then
       dc.Range(r2.Range.paragraphs(1).Range.Next.Start, pakt.Range.Start).Font.Hidden = True ' 23.10.12: pakt.range.start statt pakt.range.start-1, um Leerzeile unter ‹berschrift zu vermeiden
@@ -14391,7 +14433,7 @@ End Sub ' Tabelle
 'Function Verlauf$(Pat_id&)
 ' Verlauf = eintraege(Pat_id, """notiz"",""telef"",""med""")
 'End FUNCTION ' Verlauf$(Pat_id&)
-Function eintraege$(Pat_ID$, krit$, Optional VorDat As Date)
+Function kkeintraege$(Pat_ID$, krit$, Optional VorDat As Date)
 #Const obAlte = True
  Dim raVL As New adodb.Recordset, lzp As Date, aktdat As Date
  On Error GoTo fehler
@@ -14400,17 +14442,17 @@ Function eintraege$(Pat_ID$, krit$, Optional VorDat As Date)
   Case """rr"""
 '   SET raVL = Dtb.OpenRecordset("SELECT zeitpunkt,rr AS inhalt FROM `" + QMdbAkt + "`.rr WHERE pat_id = " & pat_id + " ORDER BY zeitpunkt")
 '   raVL.Open "SELECT zeitpunkt,""rr"" art, IF(ISNULL(bemerkung) OR bemerkung='',rr,CONCAT(rr,' (',bemerkung,')')) inhalt FROM rr WHERE pat_id = " & Pat_id + " ORDER BY zeitpunkt", DBCn, adOpenDynamic, adLockReadOnly
-   myFrag raVL, "SELECT zeitpunkt,""rr"" art, IF(ISNULL(bemerkung) OR bemerkung='',rr,CONCAT(rr,' (',bemerkung,')')) inhalt FROM rr WHERE pat_id = " & Pat_ID + " ORDER BY zeitpunkt"
+   myFrag raVL, "SELECT zeitpunkt,""rr"" art, REPLACE(REPLACE(IF(ISNULL(bemerkung) OR bemerkung='' OR bemerkung=rr,rr,CONCAT(rr,' (',bemerkung,')')),'\n',' '),'\r',' ') inhalt FROM rr WHERE pat_id = " & Pat_ID + " ORDER BY zeitpunkt"
   Case """rr"",""puls"""
 '   raVL.Open "SELECT * FROM (SELECT zeitpunkt, 'rr' art, IF(ISNULL(bemerkung) OR bemerkung='',rr, CONCAT(rr,' (',bemerkung,')')) inhalt FROM rr WHERE pat_id = " & Pat_id & " UNION SELECT zeitpunkt,art,inhalt FROM `eintraege` WHERE pat_id = " & Pat_id & " AND art IN (""rr"",""puls"")) innen ORDER BY zeitpunkt", DBCn, adOpenDynamic, adLockReadOnly
-   myFrag raVL, "SELECT * FROM (SELECT zeitpunkt, 'rr' art, IF(ISNULL(bemerkung) OR bemerkung='',rr, CONCAT(rr,' (',bemerkung,')')) inhalt FROM rr WHERE pat_id = " & Pat_ID & " UNION SELECT zeitpunkt,art,inhalt FROM `eintraege` WHERE pat_id = " & Pat_ID & " AND art IN (""rr"",""puls"")) innen ORDER BY zeitpunkt"
+   myFrag raVL, "SELECT * FROM (SELECT zeitpunkt, 'rr' art, REPLACE(REPLACE(IF(ISNULL(bemerkung) OR bemerkung='' OR bemerkung=rr,rr, CONCAT(rr,' (',bemerkung,')')),'\n',' '),'\r',' ') inhalt FROM rr WHERE pat_id = " & Pat_ID & " UNION SELECT zeitpunkt,art,inhalt FROM `eintraege` WHERE pat_id = " & Pat_ID & " AND art IN (""rr"",""puls"")) innen ORDER BY zeitpunkt"
 Case Else
 '   SET raVL = Dtb.OpenRecordset("SELECT zeitpunkt,inhalt,art FROM `" + QMdbAkt + "`.`eintraege` WHERE pat_id = " & pat_id + " AND art IN (" & Krit & ") ORDER BY zeitpunkt")
 #If Not obAlte Then
 '   raVL.Open "SELECT zeitpunkt,inhalt,art FROM `eintraege` WHERE pat_id = " & Pat_id + " AND art IN (" & krit & ") AND zeitpunkt > " & DatFor_k(VorDat) & " ORDER BY zeitpunkt", DBCn, adOpenDynamic, adLockReadOnly
    myFrag raVL, "SELECT zeitpunkt,inhalt,art FROM `eintraege` WHERE pat_id = " & Pat_ID + " AND art IN (" & krit & ") AND zeitpunkt > " & DatFor_k(VorDat) & " ORDER BY zeitpunkt"
 #Else
-   myFrag raVL, "SELECT zeitpunkt,inhalt,art FROM `eintraege` WHERE pat_id = " & Pat_ID + " AND art IN (" & krit & ") ORDER BY zeitpunkt"
+   myFrag raVL, "SELECT zeitpunkt,REPLACE(REPLACE(inhalt,'\n',' '),'\r',' ') inhalt,art FROM `eintraege` WHERE pat_id = " & Pat_ID + " AND art IN (" & krit & ") ORDER BY zeitpunkt"
 #End If
  End Select
  Do While Not raVL.EOF
@@ -14421,10 +14463,10 @@ Case Else
   If Inhalt <> "Blutentnahme" And Inhalt <> "Blutabnahme" Then
    aktdat = DateValue(Zp)
    If aktdat <> lzp Then
-    eintraege = eintraege + Format$(aktdat, "DD.MM.YY")
+    kkeintraege = kkeintraege + Format$(aktdat, "DD.MM.YY")
    End If
    If LCase$(krit) <> """rr""" And art = "usdm" Then
-    eintraege = eintraege + vbTab + REPLACE$(REPLACE$(Inhalt, "^", vNS) & vbCrLf, "aktuellen Blutdruck und ggf. Puls bitte extra eingeben", vNS)
+    kkeintraege = kkeintraege + vbTab + REPLACE$(REPLACE$(Inhalt, "^", vNS) & vbCrLf, "aktuellen Blutdruck und ggf. Puls bitte extra eingeben", vNS)
    Else
     ‹bs = ""
     Select Case raVL!art
@@ -14442,7 +14484,7 @@ Case Else
      Case "beruf": ‹bs = "Beruf: "
     End Select
     Inhalt = ‹bs & Inhalt
-    eintraege = eintraege + vbTab + REPLACE$(Inhalt, "^", vNS) & vbCrLf
+    kkeintraege = kkeintraege + vbTab + REPLACE$(Inhalt, "^", vNS) & vbCrLf
    End If
    lzp = DateValue(Zp)
   End If
@@ -14456,12 +14498,12 @@ fehler:
 #Else
  AnwPfad = App.path
 #End If
-Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in eintraege/" + AnwPfad)
+Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in kkeintraege/" + AnwPfad)
  Case vbAbort: Call MsgBox("Hˆre auf"): ProgEnde
  Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
  Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
 End Select
-End Function ' eintraege$(Pat_id&, Krit$)
+End Function ' kkeintraege$(Pat_id&, Krit$)
 
 'Function haakt() ' Haus‰rzte aus dem Internet erg‰nzen (Knopf)
 ' Dim rHa AS DAO.Recordset, geht%
@@ -15524,7 +15566,7 @@ Function doDiagnosenexport(Optional obTest%)
         BDT.TAdd "6201", aktdat
         BDT.SAdd "6203", "TM#?##"
         BDT.SAdd "3635", "TM#" & rFa!Lanr
-        BDT.SAdd "3636", "TM#" & bsnr
+        BDT.SAdd "3636", "TM#" & BSNR
         Dim DiagSi$ ', DiagText$
 '        ICD = ICD
         DiagSi = "G"

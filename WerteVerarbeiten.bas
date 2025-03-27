@@ -4,7 +4,7 @@ Option Explicit
 Dim DmPStr$
 'Dim rDT AS DAO.Recordset
 Dim SStr$
-Dim Pat_id&
+Dim Pat_ID&
 'Enum DFSNiveau
 '   stNichts%
 '   St0%
@@ -18,7 +18,7 @@ Dim Pat_id&
 '  END Enum
 
 Sub werteAnzeig()
-Dim Abfr As New ADODB.Recordset
+Dim Abfr As New adodb.Recordset
 Dim i&, runde%
 Dim bisher()
 Dim bCt%, aktbCt%
@@ -82,7 +82,7 @@ Sub werteAusGeb(Optional obStumm As Boolean = False)
 ' DoCmd.maximize
 ' ID = forms!Anamnesebogen!Pat_ID
 'END IF
-Dim rs As New ADODB.Recordset
+Dim rs As New adodb.Recordset
 Dim DT As DMPClass
 Call Formmerk
 Call FormAufruf
@@ -142,12 +142,12 @@ fehler:
 End Sub ' Diagnosenausgeb
 #End If
 
-Function AusgDiag$(Pat_id&, Optional ohneNotwend%)
- Dim rsNa As ADODB.Recordset
+Function AusgDiag$(Pat_ID&, Optional ohneNotwend%)
+ Dim rsNa As adodb.Recordset
  Dim Spl$(), j%
 ' SET rsNa = TabÖff("Anamnesebogen", "Pat_ID")
  Set rsNa = Nothing
- myFrag rsNa, "SELECT Diagnosen FROM `anamnesebogen` WHERE pat_id = " & Pat_id
+ myFrag rsNa, "SELECT Diagnosen FROM `anamnesebogen` WHERE pat_id = " & Pat_ID
  If Not rsNa.EOF Then
   Spl = Split(rsNa!Diagnosen, vbVerticalTab)
   For j = 0 To UBound(Spl)
@@ -183,9 +183,9 @@ If id = 0 Then
   id = Forms(Anmnbi)(ABPat_ID)
  End If
 End If
-Pat_id = id
+Pat_ID = id
 Open ErgebDatei For Output Access Write Lock Write As #2
-lbehD = lebe(Pat_id)
+lbehD = lebe(Pat_ID)
 Print #2, CStr(Forms(Anmnbi).anaRS!Vorgestellt) + IIf(lBehDat <> CDate(0), ", zuletzt am " + Format$(lbehD, "dd/mm/yy") + ",", "")
 Close #2
 Exit Sub
@@ -205,24 +205,24 @@ End Sub ' behDatAusgeb
 #End If
 
 ' aufgerufen in lebe, behDauerStr, UKPDS
-Function erbe(ByVal Pat_id&) As Date
+Function erbe(ByVal Pat_ID&) As Date
 'Static rFa AS DAO.Recordset
 'Set rFa = TabÖff("faelle", "ErstF")
-Dim rsAnam As New ADODB.Recordset
+Dim rsAnam As New adodb.Recordset
 On Error GoTo fehler
 'Call rsAnam.Open("SELECT aufndat FROM `namen` WHERE pat_id = " & Pat_id, DBCn, adOpenDynamic, adLockOptimistic)
-myFrag rsAnam, "SELECT aufndat FROM `namen` WHERE pat_id = " & Pat_id
+myFrag rsAnam, "SELECT aufndat FROM `namen` WHERE pat_id = " & Pat_ID
 If rsAnam.EOF Then Exit Function
 erbe = rsAnam!AufnDat
 If erbe > #7/1/2004# Then Exit Function
 
 Dim rFaName$
-Dim raFa As New ADODB.Recordset
+Dim raFa As New adodb.Recordset
 'rFaName = raFa.Name
 'On Error GoTo fehler
 'If rFaName = "" THEN SET rFa = TabÖff("faelle", "Auswahl")
 nochmal:
- myFrag raFa, "SELECT * FROM `faelle` WHERE pat_id = " & Pat_id & " AND fanf > " & DatFor_k("1.7.2004") & " ORDER BY fanf"
+ myFrag raFa, "SELECT * FROM `faelle` WHERE pat_id = " & Pat_ID & " AND fanf > " & DatFor_k("1.7.2004") & " ORDER BY fanf"
 
 'rFa.Seek "=", Pat_id
 ' erbe = IIf(rFa!SchGr = "90", rFa!bhFb, IIf(rFa!ausgst = CDate(0), rFa!lVorl, rFa!ausgst))
@@ -250,13 +250,13 @@ fehler:
 End Function ' erbe(byVal Pat_id&) As Date
 
 ' in lebetest und do_Form_Current_Anbog
-Function lebe(ByVal Pat_id&) As Date ' Letzte Behandlung
-Dim lbehD As Date, rLb As New ADODB.Recordset
+Function lebe(ByVal Pat_ID&) As Date ' Letzte Behandlung
+Dim lbehD As Date, rLb As New adodb.Recordset
 On Error GoTo fehler
-lebe = erbe(Pat_id)
+lebe = erbe(Pat_ID)
 'lbehD = Dtb.OpenRecordset("SELECT MAX(zeitpunkt) AS zp FROM `" + QmdbAkt + "`.`medplan` WHERE pat_id = " + CStr(Pat_id), dbOpenDynaset)!zp
 Set rLb = Nothing
-myFrag rLb, "SELECT MAX(zeitpunkt) AS zp FROM `medplan` WHERE pat_id = " + CStr(Pat_id)
+myFrag rLb, "SELECT MAX(zeitpunkt) AS zp FROM `medplan` WHERE pat_id = " + CStr(Pat_ID)
 If rLb.EOF Then
  Exit Function
 Else
@@ -267,7 +267,7 @@ End If
 If lbehD > lebe Then lebe = lbehD
 'lbehD = Dtb.OpenRecordset("SELECT MAX(zeitpunkt) AS zp FROM `" + QmdbAkt + "`.`eintraege` WHERE (" & artspezG & ") OR LEFT(art,2)=""rr"" OR LEFT(art,2)=""bz"") AND pat_id = " + CStr(Pat_id), dbOpenDynaset)!zp
 Set rLb = Nothing
-myFrag rLb, "SELECT MAX(zeitpunkt) AS zp FROM `eintraege` WHERE " + "(art IN (" & artspezG & ") OR LEFT(art,2)=""rr"" OR LEFT(art,2)=""bz"") AND pat_id = " + CStr(Pat_id)
+myFrag rLb, "SELECT MAX(zeitpunkt) AS zp FROM `eintraege` WHERE " + "(art IN (" & artspezG & ") OR LEFT(art,2)=""rr"" OR LEFT(art,2)=""bz"") AND pat_id = " + CStr(Pat_ID)
 If Not rLb.BOF Then
  If Not IsNull(rLb!Zp) Then
   lbehD = rLb!Zp
@@ -290,10 +290,10 @@ fehler:
  End Select
 End Function ' lebe
 
-Function behDauerStr$(Pat_id, lbeh As Date) ' nur in tubriefStandalone
+Function behDauerStr$(Pat_ID, lbeh As Date) ' nur in tubriefStandalone
  Dim D1 As Date, D2 As Date
  On Error GoTo fehler
- D1 = DateValue(erbe(Pat_id))
+ D1 = DateValue(erbe(Pat_ID))
  D2 = lbeh ' DateValue(lebe(Pat_id))
  If D1 = D2 Then
   behDauerStr = "am " + Format$(D1, "d.m.YY")
@@ -345,8 +345,8 @@ fehler:
  End Select
 End Sub ' LaborAusgeb
  
-Function LaborString$(Pat_id&)
- Dim raLw As New ADODB.Recordset, raDat As New ADODB.Recordset, ls$, raLU As New ADODB.Recordset
+Function LaborString$(Pat_ID&)
+ Dim raLw As New adodb.Recordset, raDat As New adodb.Recordset, ls$, raLU As New adodb.Recordset
 ' zeilenzahl bestimmen
  Dim ZZ&, rz$, gschl$, Vgl$, altGruppe%, Nb$ ' Normbereich
  Dim u!, o! ' oberer und unterer Grenzwert numerisch
@@ -363,12 +363,12 @@ Function LaborString$(Pat_id&)
 'Set rLU = Dtb.OpenRecordset(sql)
 ' SET raLU = Nothing
 ' raLU.Open sql, DBCn, adOpenDynamic, adLockReadOnly
- Set raLU = hollabor(Pat_id)
+ Set raLU = hollabor(Pat_ID)
  
  gschl = vNS
  altGruppe = 0
  Set raLw = Nothing
- myFrag raLw, "SELECT 0 FROM `namen` WHERE pat_id = " & Pat_id
+ myFrag raLw, "SELECT 0 FROM `namen` WHERE pat_id = " & Pat_ID
 ' SET rLw = TabÖff("Namen", "Pat_id")
 ' ralw.Seek "=", Pat_id
  If Not raLw.EOF Then
@@ -411,10 +411,10 @@ Function LaborString$(Pat_id&)
  myFrag raDat, sql1
  ls = CStr(rz) & vbCrLf
 #Else
- ZZ = myEFrag("CALL geslabkatz(" & Pat_id & ",'abkü')")!Zahl + _
-      myEFrag("CALL geslabkatz(" & Pat_id & ",'gruppe')")!Zahl
- rz = myEFrag("CALL geslabkatz(" & Pat_id & ",'zeitpunkt')")!Zahl
- myFrag raDat, "CALL geslabkatg(" & Pat_id & ",'zeitpunkt')"
+ ZZ = myEFrag("CALL geslabkatz(" & Pat_ID & ",'abkü')")!Zahl + _
+      myEFrag("CALL geslabkatz(" & Pat_ID & ",'gruppe')")!Zahl
+ rz = myEFrag("CALL geslabkatz(" & Pat_ID & ",'zeitpunkt')")!Zahl
+ myFrag raDat, "CALL geslabkatg(" & Pat_ID & ",'zeitpunkt')"
 #End If
  If raDat.BOF Then Exit Function
  
@@ -436,12 +436,12 @@ Function LaborString$(Pat_id&)
 ' raLw.Open sql1, DBCn, adOpenDynamic, adLockReadOnly
   myFrag raLw, sql1
 #Else
- myFrag raLw, "CALL geslabdp(" & Pat_id & ",'GROUP BY zeitpunkt DESC,abkü,einheit ORDER BY gruppe,reihe,zeitpunkt')"
+ myFrag raLw, "CALL geslabdp(" & Pat_ID & ",'GROUP BY zeitpunkt DESC,abkü,einheit ORDER BY gruppe,reihe,zeitpunkt')"
 #End If
 ' ralw.moveFirst
  Do While Not raLw.EOF
-   If Not IsNull(raLw!gruppe) Then
-    If Val(raLw!gruppe) <> altGruppe Then
+   If Not IsNull(raLw!Gruppe) Then
+    If Val(raLw!Gruppe) <> altGruppe Then
      ls = ls & vbCrLf
     End If
    End If
@@ -468,8 +468,8 @@ Function LaborString$(Pat_id&)
     End If
    End If
    If uNG = "" And oNG = "" Then
-    If Not IsNull(raLw!unm) Then uNG = REPLACE$(raLw!unm, "1:", "")
-    If Not IsNull(raLw!onm) Then oNG = REPLACE$(raLw!onm, "1:", "")
+    If Not IsNull(raLw!uNm) Then uNG = REPLACE$(raLw!uNm, "1:", "")
+    If Not IsNull(raLw!oNm) Then oNG = REPLACE$(raLw!oNm, "1:", "")
    End If
 #End If
    If Not IsNull(raLw!uNG) Then uNG = REPLACE$(raLw!uNG, "1:", "")
@@ -500,18 +500,18 @@ Function LaborString$(Pat_id&)
      Nb = IIf(IsNull(raLw!unw), vNS, raLw!unw) + "-" + IIf(IsNull(raLw!onw), vNS, raLw!onw)
     End If
    End If
-   If Nb = "" And (raLw!unm <> "" Or raLw!onm <> "") Then
-    Nb = IIf(IsNull(raLw!unm), vNS, raLw!unm) + "-" + IIf(IsNull(raLw!onm), vNS, raLw!onm)
+   If Nb = "" And (raLw!uNm <> "" Or raLw!oNm <> "") Then
+    Nb = IIf(IsNull(raLw!uNm), vNS, raLw!uNm) + "-" + IIf(IsNull(raLw!oNm), vNS, raLw!oNm)
    End If
 #End If
    If Nb = "" And (raLw!uNG <> "" Or raLw!oNG <> "") Then
     Nb = IIf(IsNull(raLw!uNG), vNS, raLw!uNG) + "-" + IIf(IsNull(raLw!oNG), vNS, raLw!oNG)
    End If
    ls = ls + Nb & vbCrLf
-   If IsNull(raLw!gruppe) Then
+   If IsNull(raLw!Gruppe) Then
     altGruppe = 0
    Else
-    altGruppe = Val(raLw!gruppe)
+    altGruppe = Val(raLw!Gruppe)
    End If
    raLw.Move 1
  Loop
@@ -525,14 +525,14 @@ Function LaborString$(Pat_id&)
  End Function ' LaborString
  
  ' noch in werteAusGeb und doMachDMPBogen
-Public Sub DMPAusgeb0(aktDC As DMPClass, Optional Pat_id$, Optional obAnzeig As Boolean = True, Optional obnurDMPString = False, Optional DokuDat As Date)
+Public Sub DMPAusgeb0(aktDC As DMPClass, Optional Pat_ID$, Optional obAnzeig As Boolean = True, Optional obnurDMPString = False, Optional DokuDat As Date)
  'DMPAusgeb0 =
  Dim DMPStrhier$
  Dim ErrN%
- DMPStrhier = DMPString$(CLng(Pat_id), aktDC, , , DokuDat, Not obnurDMPString)
+ DMPStrhier = DMPString$(CLng(Pat_ID), aktDC, , , DokuDat, Not obnurDMPString)
  If obnurDMPString Then Exit Sub
  Dim ErgebDatei$
- ErgebDatei$ = pVerz & "dmp\" & Pat_id & " DmP.txt"
+ ErgebDatei$ = pVerz & "dmp\" & Pat_ID & " DmP.txt"
  On Error Resume Next
  Kill ErgebDatei
  Err.Clear
@@ -561,42 +561,42 @@ fehler:
 End Sub      ' DMPAusgeb0
 
 #If False Then
-Function TherapieArtEinzelnFestlegen(Pat_id&, Optional rsAna As ADODB.Recordset) ' in TherapieArtenFestlegen und alleSpeichern
+Function TherapieArtEinzelnFestlegen(Pat_ID&, Optional rsAna As adodb.Recordset) ' in TherapieArtenFestlegen und alleSpeichern
 Dim nTher$, rAf&, rAnPatID&, Anzeige$, Fanf As Date
 On Error Resume Next
 Fanf = rsAna!Fanf
 On Error GoTo fehler
-Call syscmd(acSysCmdSetStatus, "Therapiearten festlegen für Patient " & Pat_id & ", Fallanfang: " & Format(Fanf, "d.m.yy"))
+Call syscmd(acSysCmdSetStatus, "Therapiearten festlegen für Patient " & Pat_ID & ", Fallanfang: " & Format(Fanf, "d.m.yy"))
 On Error Resume Next
-rAnPatID = rsAna!Pat_id
+rAnPatID = rsAna!Pat_ID
 On Error GoTo fehler
-If rAnPatID <> Pat_id Then
- Set rsAna = New ADODB.Recordset
+If rAnPatID <> Pat_ID Then
+ Set rsAna = New adodb.Recordset
 ' rsAna.Open "SELECT pat_id,nachname, vorname, diabetestyp,-insulinpumpe AS j_insulinpumpe,ther1,therakt FROM `anamnesebogen` WHERE pat_id = " & Pat_id, DbCn, adOpenStatic, adLockOptimistic
  Lese.ProgStart
- myFrag rsAna, "SELECT pat_id,nachname, vorname, diabetestyp,insulinpumpe, ther1,therakt FROM `anamnesebogen` WHERE pat_id = " & Pat_id, adOpenStatic, DBCn, adLockOptimistic
+ myFrag rsAna, "SELECT pat_id,nachname, vorname, diabetestyp,insulinpumpe, ther1,therakt FROM `anamnesebogen` WHERE pat_id = " & Pat_ID, adOpenStatic, DBCn, adLockOptimistic
  If rsAna.BOF Then Exit Function
 End If ' rAnPatID
 On Error GoTo fehler
 If Not rsAna.EOF Then
- nTher = TherUmw(therart_erm(Pat_id, -1, rsAna))
+ nTher = TherUmw(therart_erm(Pat_ID, -1, rsAna))
  If nTher <> rsAna!Ther1 Or IsNull(rsAna!Ther1) Then
-  Anzeige = Pat_id & ": Ther1: " & rsAna!Ther1 & " -> " & nTher
+  Anzeige = Pat_ID & ": Ther1: " & rsAna!Ther1 & " -> " & nTher
   Call syscmd(acSysCmdSetStatus, Anzeige)
-  Call myEFrag("UPDATE `anamnesebogen` SET ther1 = '" & nTher & "' WHERE pat_id = " & Pat_id, rAf)
+  Call myEFrag("UPDATE `anamnesebogen` SET ther1 = '" & nTher & "' WHERE pat_id = " & Pat_ID, rAf)
   If rAf <> 1 Then
-   Anzeige = "   Fehler beim Update von Ther1 bei " & Pat_id & ": rAF = " & rAf
+   Anzeige = "   Fehler beim Update von Ther1 bei " & Pat_ID & ": rAF = " & rAf
    Call syscmd(acSysCmdSetStatus, Anzeige)
   End If
  End If
- nTher = TherUmw(therart_erm(Pat_id, 0, rsAna))
+ nTher = TherUmw(therart_erm(Pat_ID, 0, rsAna))
  If nTher <> rsAna!TherAkt Or IsNull(rsAna!TherAkt) Then
 '  Anzeige = Pat_id & " " & rsAna!NachName & " " & rsAna!VorName & ": TherAkt: " & rsAna!TherAkt & " -> " & nTher
-  Anzeige = Pat_id & " " & ": TherAkt: " & rsAna!TherAkt & " -> " & nTher
+  Anzeige = Pat_ID & " " & ": TherAkt: " & rsAna!TherAkt & " -> " & nTher
   Call syscmd(acSysCmdSetStatus, Anzeige)
-  Call myEFrag("UPDATE `anamnesebogen` SET therakt = '" & nTher & "' WHERE pat_id = " & Pat_id, rAf)
+  Call myEFrag("UPDATE `anamnesebogen` SET therakt = '" & nTher & "' WHERE pat_id = " & Pat_ID, rAf)
   If rAf <> 1 Then
-   Anzeige = "   Fehler beim Update von TherAkt bei " & Pat_id & ": rAF = " & rAf
+   Anzeige = "   Fehler beim Update von TherAkt bei " & Pat_ID & ": rAF = " & rAf
    Call syscmd(acSysCmdSetStatus, Anzeige)
   End If
  End If
@@ -625,11 +625,11 @@ End Function ' TherapieArtEinzelnFestlegen(Pat_id&)
 #End If
 
 #If False Then
-Function testTherArt$(Optional Pat_id&, Optional obanf%)
- Dim rsNa As New ADODB.Recordset
+Function testTherArt$(Optional Pat_ID&, Optional obanf%)
+ Dim rsNa As New adodb.Recordset
  Call Lese.ProgStart
- If Pat_id = 0 Then Pat_id = 748
- testTherArt = TherUmw(therart_erm(Pat_id, obanf, rsNa, CDate("17.11.04")))
+ If Pat_ID = 0 Then Pat_ID = 748
+ testTherArt = TherUmw(therart_erm(Pat_ID, obanf, rsNa, CDate("17.11.04")))
  Call Lese.ProgEnde
 End Function ' testtherart$()
 #End If
@@ -766,7 +766,7 @@ Public Function bittest1()
  'SetDBCn Nothing
  DBCnS = vNS
  If LenB(DBCn) = 0 Or LenB(DBCnS) = 0 Then Call acon(quelleT)  ' DBCn.ConnectionString
- Dim rs As New ADODB.Recordset
+ Dim rs As New adodb.Recordset
  On Error Resume Next
  myFrag rs, "SELECT Bit FROM test.test"
  If rs.State <> 0 Then
@@ -779,8 +779,8 @@ End Function ' bittest1
 #If zutesten Then
 Function bittest()
  Dim rAf&, Cn$(2), dtyp$(1), i%, j%
- Dim rs As New ADODB.Recordset
- Dim Vb As New ADODB.Connection
+ Dim rs As New adodb.Recordset
+ Dim Vb As New adodb.Connection
  On Error GoTo fehler
  Call Lese.ProgStart
  Cn(0) = "Provider=microsoft.Jet.OLEDb.4.0;Data Source=" & QmdB & ";Jet OLEDb:Engine Type=5" ' u:\anamnese\quelle.mdb
@@ -931,8 +931,8 @@ If obAnzeig Then zeigan ErgebDatei, vbNormalFocus
 End Sub ' do_GibwerteAus(Optional obAnzeig AS boolean = True)
 
 Function KommRep() ' Kommentare reparieren
- Dim Acc As New ADODB.Connection, MyS As New ADODB.Connection, ErrNo&
- Dim rs As New ADODB.Recordset, T1 As New ADODB.Recordset, T2 As New ADODB.Recordset, komm$
+ Dim Acc As New adodb.Connection, MyS As New adodb.Connection, ErrNo&
+ Dim rs As New adodb.Recordset, T1 As New adodb.Recordset, T2 As New adodb.Recordset, komm$
  Dim xc As New ADOX.Catalog, xr As New ADOX.Table
  Dim xcA As New ADOX.Catalog, xrA As New ADOX.Table
  Dim lauf As Variant
@@ -1029,9 +1029,9 @@ End Function ' KommRep
 Function AnReparieren() ' Ergänzt die in den mySQL-Tabellen vermutlich bei der Spaltenbreitenanpassung verlorenen Kommentare aus u:\anamnese\quelle.mdb
 'ALTER TABLE `quelle1`.`anamnesebogen` mODIFY COLUMN `Grund für Vorstellung` VARCHAR(479) CHARACTER SET latin1 COLLATE latin1_german2_ci DEFAULT NULL COmmENT '^Grund für Vorstellung';
  Dim i&
- Dim DbA As New ADODB.Connection
- Dim dbm As New ADODB.Connection
- Dim rAn As New ADODB.Recordset
+ Dim DbA As New adodb.Connection
+ Dim dbm As New adodb.Connection
+ Dim rAn As New adodb.Recordset
  Dim CStr1$
  On Error GoTo fehler
 ' Call doConstrFestleg(1, 1)
@@ -1050,7 +1050,7 @@ Function AnReparieren() ' Ergänzt die in den mySQL-Tabellen vermutlich bei der S
   myDbx.ActiveConnection = DbA
   Set myTable = myDbx.Tables("anamnesebogen")
   For i = 0 To myTable.Columns.COUNT - 1
-   Dim rsc As ADODB.Recordset
+   Dim rsc As adodb.Recordset
 '   Set rsc = Nothing
 '   Call rsc.Open("SHOW FULL COLUMNS FROM `" & Forms(0).MyDB & "`.`anamnesebogen` WHERE field = '" & rAn.Fields(i).name & "'", dbm, adOpenStatic, adLockReadOnly)
    myFrag rsc, "SHOW FULL COLUMNS FROM `" & Forms(0).MyDB & "`.`anamnesebogen` WHERE field = '" & rAn.Fields(i).name & "'", adOpenStatic, dbm, adLockReadOnly
@@ -1066,7 +1066,7 @@ fehler:
 #Else
  AnwPfad = App.path
 #End If
-Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in machwertString/" + AnwPfad)
+Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in AnReparieren/" + AnwPfad)
  Case vbAbort: Call MsgBox("Höre auf"): ProgEnde
  Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
  Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
@@ -1080,7 +1080,8 @@ Function obN%(fldv$)
  End Select
 End Function ' obN%
 
-Function machwertString$(Pat_id$, Optional obAnzeig As Boolean = False) ' Anamnese für brief
+' aufgerufen in tubriefstandalone und do_GibwerteAus
+Function machwertString$(Pat_ID$, Optional obAnzeig As Boolean = False) ' Anamnese für brief
 Dim FNr&
 Dim te$, Tü$, Add$, Tneu$, Descr$
 Dim fld, fldv$
@@ -1099,7 +1100,7 @@ On Error GoTo fehler
 #If obmwSdao Then
  Dim rAn As DAO.Recordset
  Set rAn = TabÖff("Anamnesebogen", "Pat_id") 'Forms(Anmnb).RecordsetClone
- rAn.Seek "=", CLng(Pat_id)
+ rAn.Seek "=", CLng(Pat_ID)
 'ran.FindFirst ("Pat_ID = " + CStr(AktID)) 'CStr(ID))
  If rAn.Nomatch Then GoTo schluss
 #Else
@@ -1112,9 +1113,9 @@ On Error GoTo fehler
   myDbx.ActiveConnection = DBCn
   Set myTable = myDbx.Tables("anamnesebogen")
  End If
- Dim rAn As New ADODB.Recordset
+ Dim rAn As New adodb.Recordset
 ' myFrag rAn, "SELECT -obbzausgew AS j_obbzausgew, -obosaufgek AS j_obosaufgek, -obpodaufgek AS j_obpodaufgek, -obmblausgeh AS j_obmblausgeh, -obschulaufgek AS j_obschulaufgek, -obdmpaufgekl AS j_obdmpaufgekl, -obmednetz AS j_obmednetz, -ob AS j_ob, -oban1eing AS j_oban1eing, -oban2eing AS j_oban2eing, -obanaeing AS j_obanaeing, -obcheck AS j_obcheck, -[Bypaß kardial] AS `j_bypass kardial` , -`bypaß peripher` AS `j_bypaß peripher`, -tkz AS j_tkz, -insulinpumpe AS j_insulinpumpe, -dialyse AS j_dialyse, a.* FROM `anamnesebogen` a WHERE pat_id = " & Pat_id
- myFrag rAn, "SELECT * FROM `anamnesebogen` WHERE pat_id = " & Pat_id, adOpenStatic
+ myFrag rAn, "SELECT * FROM `anamnesebogen` WHERE pat_id = " & Pat_ID, adOpenStatic
  If rAn.BOF Then GoTo schluss
 #End If
 te = vNS
@@ -1125,7 +1126,7 @@ For k = IIf(obAnzeig, 0, 7) To rAn.Fields.COUNT - 1
  On Error Resume Next
 ' Descr = Dtb.TableDefs(fld.SourceTable).Fields(fld.SourceField).Properties("Description")
  If lies.obMySQL Then
-  Dim rsc As New ADODB.Recordset
+  Dim rsc As New adodb.Recordset
   Set rsc = Nothing
   myFrag rsc, "SHOW FULL COLUMNS FROM `anamnesebogen` WHERE field = '" & rAn.Fields(k).name & "'", , , , , , , FNr
   Descr = rsc!Comment
@@ -1572,9 +1573,11 @@ te = UCase$(Left$(te, 1)) + Mid$(te, 2)
 If te <> "" Then
  If Right$(te, 3) <> "." & vbCrLf Then te = Left$(te, Len(te) - 2) + "." & vbCrLf
 End If
-te = te + myEFrag("SELECT COALESCE(group_concat(concat(case when art LIKE 'Alk%' THEN 'Alkhol' when art LIKE 'fa%' AND art<>'fams' THEN 'Familienanamnese' when art LIKE 'rauch%' OR art LIKE 'nik%' THEN 'Tabak' end,' (',DATE_FORMAT(zeitpunkt,'%d.%m.%y'),'):','\t', Inhalt,'\n') SEPARATOR ''),'') FROM eintraege WHERE pat_id =" & Pat_id & "").Fields(0)
+te = te + myEFrag("SELECT COALESCE(group_concat(concat(case when art LIKE 'Alk%' THEN 'Alkhol' when art LIKE 'fa%' AND art<>'fams' THEN 'Familienanamnese' when art LIKE 'rauch%' OR art LIKE 'nik%' THEN 'Tabak' end,' (',DATE_FORMAT(zeitpunkt,'%d.%m.%y'),'):','\t', Inhalt,'\n') SEPARATOR ''),'') FROM eintraege WHERE pat_id =" & Pat_ID & "").Fields(0)
 '  AND (art LIKE 'fa%' OR art LIKE 'rauch%' OR art LIKE 'nik%' OR art LIKE 'alk%') AND art<>'fams' ' braucht's offenbar nicht
-machwertString = te
+If te <> "Diabetes Typ 2.\nGröße:  cm, Gewicht:  kg  0 kg/m²." Then machwertString = te
+If InStrB(te, "Größe:  cm, Gewicht:  kg  0 kg/m².") = 0 Then machwertString = te
+machwertString = machwertString & IIf(machwertString = "", "", vbCrLf) & kkeintraege(Pat_ID, "'ana','anal','angd','andm','usal','usdm','ta','fa','vormed','neuro','alko','rauch'")
 schluss:
 rAn.Close
 Exit Function
