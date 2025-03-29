@@ -873,8 +873,11 @@ Begin VB.MDIForm Lese
       Begin VB.Menu DMP_in_MO_importieren_1 
          Caption         =   "&DMP in MO importieren 1"
       End
-      Begin VB.Menu DMP_in_MO_importieren_2 
-         Caption         =   "&DMP in MO importieren 2"
+      Begin VB.Menu DMP_in_MO_importieren_2a 
+         Caption         =   "&DMP in MO importieren 2a"
+      End
+      Begin VB.Menu DMP_in_MO_importieren_2b 
+         Caption         =   "&DMP in MO importieren 2b"
       End
       Begin VB.Menu MedOffSuche 
          Caption         =   "MedOff-&Suche"
@@ -1020,7 +1023,8 @@ Public obRueck%
 Public pidoffs& ' Offset bei der Patientenübertragung aus Medical Office, ggf. 100000
 'Public WithEvents qdb AS QuelleDBC
 
-Const dmpVerz$ = "u:\TMImport\MO" ' DMP-Verzeichnis
+Const dmpVerz$ = "u:\TMImport\MO"
+Public dmpVz$
 Const bVerz$ = dmpVerz & "\backup" ' backup-Verzeichni
 Const arch$ = "DMPArchiv.zip" ' Import-Datei, Name von MO gefordert
 Const z7$ = """C:\Program Files\7-zip\7z""" ' Pfad zu 7z
@@ -1033,6 +1037,22 @@ Private Sub DMP_in_MO_importieren_1_Click()
    Dim ii&, jj&, kk&, Lfw$, taskid&
    If Dir(bVerz, vbDirectory) = "" Then MkDir bVerz ' FSO.CreateFolder
    If Dir(bVerz, vbDirectory) = "" Then Exit Sub
+   Dim ldt$
+   ldt = dmpVerz & "\Liste.txt"
+   Open ldt For Output As #141
+   Print #141, "Bearbeitet um " & Format(Now(), "dd.mm.YY HH:MM:SS")
+   Dim dmpdt$, p1%, p2%
+   dmpdt = Dir(dmpVerz & "\*_*_*.?V*", vbNormal)
+   Do While dmpdt <> ""
+    If dmpdt Like "*_*_*.?V*" Then
+    p1 = InStr(dmpdt, "_")
+    p2 = InStr(p1 + 1, dmpdt, "_")
+    Print #141, Mid(dmpdt, p1 + 1, p2 - p1 - 1)
+    End If ' dmpdt Like "*_*_*.?V*" Then
+    dmpdt = Dir
+   Loop
+   Close #141
+   
    If Dir(dmpVerz & "\" & arch) <> "" Then ' FSO.FileExists
     archn = Left$(arch, InStrRev(arch, ".") - 1) & Format(FileDateTime(dmpVerz & "\" & arch), "_YYMMDD_HHmmss.zip") ' FSO.GETBasename"
     If Dir(bVerz & "\" & archn) = "" Then
@@ -1059,36 +1079,83 @@ Private Sub DMP_in_MO_importieren_1_Click()
 '     Sendkeys "{ENTER}"
     End If ' dir(dpf)<>""
    End If ' Dir(bVerz, vbDirectory) Then
+   zeigan ldt
 End Sub ' DMP_in_MO_importieren_Click()
 
-Private Sub DMP_in_MO_importieren_2_Click()
-Dim line$, Spli, Zahl&, pos&, DN$, pid$
+Private Sub DMP_in_MO_importieren_2a_Click()
+ Call DMP_in_MO_importieren_2_Click(False)
+End Sub ' DMP_in_MO_importieren_2a_Click()
+
+Private Sub DMP_in_MO_importieren_2b_Click()
+ Call DMP_in_MO_importieren_2_Click(True)
+End Sub ' DMP_in_MO_importieren_2b_Click()
+
+Private Sub DMP_in_MO_importieren_2_Click(nurltag%)
+ Dim line$, Spli, Zahl&, pos&, DN$, pid$, gespid$
  ausfsyn "cmd /c " & z7 & " l " & dmpVerz & "\" & arch & " > " & dmpVerz & "\prot.txt", vbHide
  Open dmpVerz & "\prot.txt" For Input As #178
  Do While Not EOF(178)
   Input #178, line
   If line Like "*_*_*" Then
 '  Debug.Print line
-  Spli = Split(line, " ")
-  If UBound(Spli) > 15 Then
-   DN = Spli(UBound(Spli))
-   pos = InStr(DN, "_") + 1
-   pid = Mid(DN, pos, InStr(pos, DN, "_") - pos)
-   Call korrigier(pid, DN)
-   Zahl = Zahl + 1
-  End If
-  End If
+   Spli = Split(line, " ")
+   If UBound(Spli) > 15 Then
+    DN = Spli(UBound(Spli))
+    pos = InStr(DN, "_") + 1
+    pid = Mid(DN, pos, InStr(pos, DN, "_") - pos)
+    Call DMPkorrigier(pid, DN, nurltag)
+    Zahl = Zahl + 1
+    If Zahl < 25 Then gespid = gespid & IIf(gespid = "", "", ", ") & pid Else If Zahl = 25 Then gespid = gespid & "..."
+   End If ' UBound(Spli) > 15 Then
+  End If ' line Like "*_*_*" Then
  Loop
  Close #178
-' Debug.Print zahl
+ syscmd 4, "DMP-Doku'n für " & CStr(Zahl) & " korrigiert (" & gespid & ")"
 End Sub ' DMP_in_MO_importieren_2_Click()
 
+#If untersuch Then
+Fehlerermittlung:
+1. Import eines DMP-Formulars bei einem Patienten, dann korrigier laufen lassen
+2. Import eines weiteren, manuell korrigieren
+3: Import eines Dritten, nicht korrigieren
+dann folgende Abfrage:
+
+WITH
+fs AS
+(SELECT RANK() OVER(PARTITION BY l.FPatnr ORDER BY l.fsurogat DESC) rang, b.fsurogat fsur FROM ltag l
+                                                                    LEFT JOIN beschein b ON b.FSurogat = l.FEintragsnr
+                                WHERE l.FEintragsart IN (27144/*T1Dm*/, 27188/*T2Dm*/)  AND l.fpatnr=2747)
+SELECT nr
+,ASCii(MID(t1.m,nr,1)) bu1,MID(t1.m,nr,1) b1
+,ASCII(MID(t1.m,nr,1)) kzahl, ASCII(MID(t1.m,nr,1))+ASCII(MID(t1.m,nr+1,1))*256 gz1
+,IF( ASCII(MID(t1.m,nr+1,1))*256+ASCII(MID(t1.m,nr,1)) BETWEEN 100 AND 5100 AND ASCII(MID(t1.m,nr+2,1)) BETWEEN 1 AND 12 AND ASCII(MID(t1.m,nr+3,1)) BETWEEN 1 AND 31,  CONCAT(ASCII(MID(t1.m,nr+3,1)),".",ASCII(MID(t1.m,nr+2,1)),".",ASCII(MID(t1.m,nr+1,1))*256+ASCII(MID(t1.m,nr,1))),'') Dt1
+,IF(MID(t1.m,nr)=0 AND MID(t1.m,nr+1)<>0 AND MID(t1.m,nr+2)<>0 AND MID(t1.m,nr+3)<>0 AND MID(t1.m,nr+4)<>0 AND MID(t1.m,nr+5)<>0 AND MID(t1.m,nr+6)<>0,ROUND(1 + (ASCII(MID(t1.m, nr+7, 1)) Mod 16)/16 + ASCII(MID(t1.m, nr+6, 1))/4096 + ASCII(MID(t1.m, nr+5, 1))/POWER(2,20) + ASCII(MID(t1.m, nr+4, 1))/POWER(2,28)+ASCII(MID(t1.m, nr+3, 1))/POWER(2,36)+ASCII(MID(t1.m, nr+2, 1))/POWER(2,44) + ASCII(MID(t1.m, nr+1, 1))/POWER(2,52) * POWER(2,(FLOOR(ASCII(MID(t1.m, nr+7, 1)) / 16) + 1 + 16 * (ASCII(MID(t1.m, nr+8, 1)) - 64))),8),'') Br1
+,ASCii(MID(t2.m,nr,1)) bu2,MID(t2.m,nr,1) b2
+,ASCII(MID(t2.m,nr,1)) kzl1, ASCII(MID(t2.m,nr,1))+ASCII(MID(t2.m,nr+1,1))*256 gzl2
+,IF( ASCII(MID(t2.m,nr+1,1))*256+ASCII(MID(t2.m,nr,1)) BETWEEN 100 AND 5100 AND ASCII(MID(t2.m,nr+2,1)) BETWEEN 1 AND 12 AND ASCII(MID(t2.m,nr+3,1)) BETWEEN 1 AND 31,  CONCAT(ASCII(MID(t2.m,nr+3,1)),".",ASCII(MID(t2.m,nr+2,1)),".",ASCII(MID(t2.m,nr+1,1))*256+ASCII(MID(t2.m,nr,1))),'') Dt2
+,IF(MID(t1.m,nr)=0 AND MID(t2.m,nr+1)<>0 AND MID(t2.m,nr+2)<>0 AND MID(t2.m,nr+3)<>0 AND MID(t2.m,nr+4)<>0 AND MID(t2.m,nr+5)<>0 AND MID(t2.m,nr+6)<>0,ROUND(1 + (ASCII(MID(t2.m, nr+7, 1)) Mod 16)/16 + ASCII(MID(t2.m, nr+6, 1))/4096 + ASCII(MID(t2.m, nr+5, 1))/POWER(2,20) + ASCII(MID(t2.m, nr+4, 1))/POWER(2,28)+ASCII(MID(t2.m, nr+3, 1))/POWER(2,36)+ASCII(MID(t2.m, nr+2, 1))/POWER(2,44) + ASCII(MID(t2.m, nr+1, 1))/POWER(2,52) * POWER(2,(FLOOR(ASCII(MID(t2.m, nr+7, 1)) / 16) + 1 + 16 * (ASCII(MID(t2.m, nr+8, 1)) - 64))),8),'') Br2
+,ASCii(MID(t3.m,nr,1)) bu3,MID(t3.m,nr,1) b3
+,ASCII(MID(t3.m,nr,1)) kzl3, ASCII(MID(t3.m,nr,1))+ASCII(MID(t3.m,nr+1,1))*256 gz3
+,IF( ASCII(MID(t3.m,nr+1,1))*256+ASCII(MID(t3.m,nr,1)) BETWEEN 100 AND 5100 AND ASCII(MID(t3.m,nr+2,1)) BETWEEN 1 AND 12 AND ASCII(MID(t3.m,nr+3,1)) BETWEEN 1 AND 31,  CONCAT(ASCII(MID(t3.m,nr+3,1)),".",ASCII(MID(t3.m,nr+2,1)),".",ASCII(MID(t3.m,nr+1,1))*256+ASCII(MID(t3.m,nr,1))),'') Dt3
+,IF(MID(t3.m,nr)=0 AND MID(t3.m,nr+1)<>0 AND MID(t3.m,nr+2)<>0 AND MID(t3.m,nr+3)<>0 AND MID(t3.m,nr+4)<>0 AND MID(t3.m,nr+5)<>0 AND MID(t3.m,nr+6)<>0,ROUND(1 + (ASCII(MID(t3.m, nr+7, 1)) Mod 16)/16 + ASCII(MID(t3.m, nr+6, 1))/4096 + ASCII(MID(t3.m, nr+5, 1))/POWER(2,20) + ASCII(MID(t3.m, nr+4, 1))/POWER(2,28)+ASCII(MID(t3.m, nr+3, 1))/POWER(2,36)+ASCII(MID(t3.m, nr+2, 1))/POWER(2,44) + ASCII(MID(t3.m, nr+1, 1))/POWER(2,52) * POWER(2,(FLOOR(ASCII(MID(t3.m, nr+7, 1)) / 16) + 1 + 16 * (ASCII(MID(t3.m, nr+8, 1)) - 64))),8),'') Br3
+From
+(WITH RECURSIVE zeil(nr) AS (SELECT 1 UNION ALL SELECT nr + 1 FROM zeil) SELECT nr from zeil) nr
+JOIN (SELECT fmemo m FROM beschein WHERE fsurogat=(SELECT fsur FROM fs WHERE rang=1)) t1 ON TRUE -- nror Programmaufruf, mit SGLT-2-Fehler
+JOIN (SELECT fmemo m FROM beschein WHERE fsurogat=(SELECT fsur FROM fs WHERE rang=2)) t2 ON TRUE -- manuell korrigiert
+JOIN (SELECT  fmemo m FROM beschein WHERE fsurogat=(SELECT fsur FROM fs WHERE rang=3)) t3 ON TRUE -- unkorrigiert
+ Where nr < length(T1.m) Or nr < length(T2.m) Or nr < length(t3.m)
+-- HAVING b1<>b2 OR b1<>b3
+ ;
+
+#End If
+
 ' in DMP_in_MO_importieren_2_Click()
-Private Sub korrigier(pid$, DN$)
+Private Sub DMPkorrigier(pid$, DN$, nurltag%)
  Dim line$, pos&, origd As Date, sql$, rAf&, wieSGLT%, wieGLP%, geaen%
  Dim rsco As New ADODB.Recordset
  Dim MeStr() As memoType
- If pid = "68012" Then
+ On Error GoTo fehler
+ If True Or pid = "68012" Then
  Open bVerz$ & "\" & DN For Input As #177
  Do While Not EOF(177)
   Input #177, line
@@ -1115,53 +1182,76 @@ Private Sub korrigier(pid$, DN$)
  Loop ' While Not EOF(177)
  Close #177
  MOConInit
- sql = "SELECT 18900101 + interval fdatum DAY+INTERVAL fzeit second datum, l.* FROM ltag l WHERE fpatnr=" & pid & " and feintragsnr IN (SELECT fsurogat FROM beschein where fpatnr=l.fpatnr and fmemo RLIKE fpatnr ORDER BY fsurogat DESC)" & vbCrLf & _
- "AND 18900101 + interval fdatum DAY+INTERVAL fzeit SECOND = " & Format(origd, "yyyymmdd") & " + INTERVAL 28800 SECOND;"
+ ' sql = "SELECT 18900101 + INTERVAL fdatum DAY+INTERVAL fzeit SECOND datum, l.* FROM ltag l WHERE fpatnr=" & pid & " AND feintragsnr IN (SELECT MAX(b.fsurogat) FROM beschein b RIGHT JOIN ltag lt ON b.FSurogat = lt.FEintragsnr WHERE lt.fpatnr=l.fpatnr AND l.FEintragsart IN (27144,27188) ORDER BY l.fsurogat DESC)"
+ sql = "SELECT 18900101 + INTERVAL l.fdatum DAY+INTERVAL l.fzeit SECOND datum, l.FSurogat FSu, b.FSurogat BFsu, l.* FROM ltag l LEFT JOIN beschein b ON l.FEintragsnr=b.fsurogat WHERE l.fpatnr=" & pid & " AND l.FEintragsart IN (27144,27188) AND b.fsurogat IS NOT NULL " & vbCrLf & _
+ "AND 18900101 + INTERVAL l.fdatum DAY+INTERVAL l.fzeit SECOND =" & Format(origd, "yyyymmdd") & " + INTERVAL 28800 SECOND " & vbCrLf & _
+ "ORDER BY l.fsurogat DESC LIMIT 1;"
 ' rsco.Open sql, MOCon, adOpenStatic, adLockReadOnly
  Set rsco = myEFrag(sql, rAf, MOCon)
  If Not rsco.BOF Then
- Debug.Print rsco!fsurogat
+ Debug.Print rsco!Fsu, rsco!bfsu
  ' IF(FAusfnutzernr IN (SELECT FSurogat FROM nutzerneu WHERE FTyp=0) OR FAusfnutzernr=0,FAusfnutzernr,0)"
- sql = "UPDATE ltag SET FDurchfnutzernr=IF(FDurchfnutzernr IN (SELECT FSurogat FROM nutzerneu WHERE FTyp=0) OR FDurchfnutzernr=0,FDurchfnutzernr,FAnordnutzernr)" & vbCrLf & _
- ", FDurchfnutzernr=FAnordnutzernr" & vbCrLf & _
- ", FAusfnutzernr=0" & vbCrLf & _
- ", FBehgrundnr=(SELECT FSurogat FROM behgrund WHERE FPatnr=ltag.FPatnr AND FKlasse=2 ORDER BY FICDCode RLIKE '^E1[0-4]',FStatus DESC LIMIT 1)" & vbCrLf & _
- ", FStatus=0" & vbCrLf & _
- ", FArztnr=COALESCE((SELECT FArztnr FROM patfall WHERE FPatnr=ltag.FPatnr AND ltag.FDatum BETWEEN FVon AND FBis AND FArztnr IN (SELECT FSurogat FROM abrechner) LIMIT 1),(SELECT FSurogat FROM abrechner ORDER BY FSurogat LIMIT 1))" & vbCrLf & _
- ", FScheinnr=COALESCE((SELECT FSurogat FROM patfall WHERE FPatnr=ltag.FPatnr ORDER BY ltag.FDatum BETWEEN FVon AND FBis DESC, FVon DESC LIMIT 1),FScheinnr)" & vbCrLf & _
- ", FLstgerbnr=COALESCE((SELECT FLstgerbnr FROM patfall WHERE FPatnr=ltag.FPatnr AND FLstgerbnr IN (SELECT FLstgerbnr FROM lstgerb) ORDER BY ltag.FDatum BETWEEN FVon AND FBis DESC, FVon DESC LIMIT 1),(SELECT FLstgerbnr FROM lstgerb ORDER BY FLstgerbnr LIMIT 1))" & vbCrLf & _
- ", FBetriebsnr=COALESCE((SELECT FBsnr FROM patfall WHERE FPatnr=ltag.FPatnr AND FBetriebsnr IN (SELECT FSurogat FROM abrechner) ORDER BY ltag.FDatum BETWEEN FVon AND FBis DESC, FVon DESC LIMIT 1),(SELECT FSurogat FROM abrechner ORDER BY FSurogat LIMIT 1))" & vbCrLf & _
- "WHERE fpatnr=" & pid & " and feintragsnr IN (SELECT fsurogat FROM beschein where fpatnr=ltag.fpatnr and fmemo RLIKE fpatnr ORDER BY fsurogat DESC)" & vbCrLf & _
- "AND 18900101 + interval fdatum DAY+INTERVAL fzeit SECOND = " & Format(origd, "yyyymmdd") & " + INTERVAL 28800 SECOND;"
+ sql = "UPDATE ltag l LEFT JOIN beschein b ON l.FEintragsnr=b.FSurogat " & vbCrLf & _
+ " SET l.FDurchfnutzernr=IF(l.FDurchfnutzernr IN (SELECT FSurogat FROM nutzerneu WHERE FTyp=0) OR l.FDurchfnutzernr=0,l.FDurchfnutzernr,l.FAnordnutzernr)" & vbCrLf & _
+ ", l.FDurchfnutzernr=l.FAnordnutzernr" & vbCrLf & _
+ ", l.FAusfnutzernr=0" & vbCrLf & _
+ ", l.FBehgrundnr=(SELECT FSurogat FROM behgrund WHERE FPatnr=l.FPatnr AND FKlasse=2 ORDER BY FICDCode RLIKE '^E1[0-4]',FStatus DESC LIMIT 1)" & vbCrLf & _
+ ", l.FStatus=0" & vbCrLf & _
+ ", l.FArztnr=COALESCE((SELECT FArztnr FROM patfall WHERE FPatnr=l.FPatnr AND l.FDatum BETWEEN FVon AND FBis AND FArztnr IN (SELECT FSurogat FROM abrechner) LIMIT 1),(SELECT FSurogat FROM abrechner ORDER BY FSurogat LIMIT 1))" & vbCrLf & _
+ ", l.FScheinnr=COALESCE((SELECT FSurogat FROM patfall WHERE FPatnr=l.FPatnr AND FVersichertennummer<>'' ORDER BY l.FDatum BETWEEN FVon AND FBis DESC, FVon DESC LIMIT 1),FScheinnr)" & vbCrLf & _
+ ", l.FLstgerbnr=COALESCE((SELECT FLstgerbnr FROM patfall WHERE FPatnr=l.FPatnr AND FLstgerbnr IN (SELECT FLstgerbnr FROM lstgerb) ORDER BY l.FDatum BETWEEN FVon AND FBis DESC, FVon DESC LIMIT 1),(SELECT FLstgerbnr FROM lstgerb ORDER BY FLstgerbnr LIMIT 1))" & vbCrLf & _
+ ", l.FBetriebsnr=COALESCE((SELECT FBsnr FROM patfall WHERE FPatnr=l.FPatnr AND FBetriebsnr IN (SELECT FSurogat FROM abrechner) ORDER BY l.FDatum BETWEEN FVon AND FBis DESC, FVon DESC LIMIT 1),(SELECT FSurogat FROM abrechner ORDER BY FSurogat LIMIT 1))" & vbCrLf & _
+ "WHERE l.FSurogat=" & rsco!Fsu
+' "WHERE l.FPatnr=" & pid & " AND l.FEintragsart IN (27144,27188) AND b.fsurogat IS NOT NULL " & vbCrLf & _
+ "AND 18900101 + INTERVAL fdatum DAY+INTERVAL fzeit SECOND = " & Format(origd, "yyyymmdd") & " + INTERVAL 28800 SECOND " & vbCrLf & _
+ "ORDER BY l.FSurogat DESC LIMIT 1"
 ' Call MOCon.Execute(sql, rAf)
  Call myEFrag(sql, rAf, MOCon)
- Set rsco = Nothing
- sql = "SELECT * FROM beschein b WHERE fpatnr=" & pid & " AND FMemo RLIKE fpatnr" & vbCrLf & _
-   "AND fsurogat=(SELECT feintragsnr FROM ltag l WHERE fpatnr=b.fpatnr AND feintragsnr IN (SELECT fsurogat FROM beschein WHERE fpatnr=l.fpatnr AND FMemo RLIKE fpatnr ORDER BY fsurogat DESC)" & vbCrLf & _
-   "AND 18900101 + INTERVAL FDatum DAY+INTERVAL FZeit SECOND = " & Format(origd, "yyyymmdd") & "  + INTERVAL 28800 SECOND LIMIT 1)"
-' rsco.Open sql, MOCon, adOpenStatic, adLockReadOnly
- Set rsco = myEFrag(sql, rAf, MOCon)
- If DN Like "*.E?D2" Then
-  geaen = geaen + WechsMemo("beschein", rsco!fsurogat, "FMemo", "151", CStr(wieSGLT), 0, MeStr, , "SGLT-2-Hemmer")
-  geaen = geaen + WechsMemo("beschein", rsco!fsurogat, "FMemo", "152", CStr(wieGLP), 0, MeStr, , "GLP-1-Analoga")
-  If Not geaen Then
-   sql = "UPDATE beschein SET FMemo=CONCAT(CHR((LENGTH(FMemo)-2+14) MOD 256),CHR((LENGTH(FMemo)-2+14) DIV 256),MID(FMemo,3),CHR(2),CHR(0),CHR(" & wieSGLT & "),CHR(0),CHR(2),CHR(0),CHR(" & wieGLP & "),CHR(0))" & vbCrLf & _
-   "WHERE fpatnr=" & pid & " AND FMemo RLIKE fpatnr" & vbCrLf & _
-   "AND fsurogat=(SELECT feintragsnr FROM ltag l WHERE fpatnr=beschein.fpatnr AND feintragsnr IN (SELECT fsurogat FROM beschein WHERE fpatnr=l.fpatnr AND FMemo RLIKE fpatnr ORDER BY fsurogat DESC)" & vbCrLf & _
-   "AND 18900101 + INTERVAL FDatum DAY+INTERVAL FZeit SECOND = " & Format(origd, "yyyymmdd") & "  + INTERVAL 28800 SECOND LIMIT 1)"
-'   Call MOCon.Execute(sql, rAf)
-   Call myEFrag(sql, rAf, MOCon)
-  End If ' Not geaen
-  Call WechsMemo("beschein", rsco!fsurogat, "FMemo", "137", Format(Now(), "yyyymmdd"), 2, MeStr, , "GLP-1-Analoga")
- ElseIf DN Like "*.E?D1" Then
-  Call WechsMemo("beschein", rsco!fsurogat, "FMemo", "91", Format(Now(), "yyyymmdd"), 0, MeStr, , "GLP-1-Analoga")
- End If
- Debug.Print rsco.Fields(0)
+ If Not nurltag Then
+   If DN Like "*.E?D2" Then
+    geaen = geaen + WechsMemo("beschein", rsco!FSurogat, "FMemo", "151", CStr(wieSGLT), 0, MeStr, , "SGLT-2-Hemmer")
+    geaen = geaen + WechsMemo("beschein", rsco!FSurogat, "FMemo", "152", CStr(wieGLP), 0, MeStr, , "GLP-1-Analoga")
+    If Not geaen Then
+     sql = "UPDATE beschein SET FMemo=CONCAT(CHR((LENGTH(FMemo)-2+14) MOD 256),CHR((LENGTH(FMemo)-2+14) DIV 256),MID(FMemo,3),CHR(2),CHR(0),CHR(" & wieSGLT & "),CHR(0),CHR(2),CHR(0),CHR(" & wieGLP & "),CHR(0))" & vbCrLf & _
+     "WHERE FSurogat = " & rsco!bfsu
+'     "WHERE fpatnr=" & pid & " AND FMemo RLIKE fpatnr" & vbCrLf & _
+     "AND fsurogat=(SELECT feintragsnr FROM ltag l WHERE fpatnr=beschein.fpatnr AND feintragsnr IN (SELECT fsurogat FROM beschein WHERE fpatnr=l.fpatnr AND FMemo RLIKE fpatnr ORDER BY fsurogat DESC)" & vbCrLf & _
+     "AND 18900101 + INTERVAL FDatum DAY+INTERVAL FZeit SECOND = " & Format(origd, "yyyymmdd") & "  + INTERVAL 28800 SECOND LIMIT 1)"
+'    Call MOCon.Execute(sql, rAf)
+     Call myEFrag(sql, rAf, MOCon)
+    End If ' Not geaen
+    Call WechsMemo("beschein", rsco!FSurogat, "FMemo", "137", Format(Now(), "yyyymmdd"), 2, MeStr, , "Erstelldatum")
+'    sql = "UPDATE beschein SET FMemo=CONCAT(LEFT(FMemo,254),MID(FMemo,355,2),MID(FMemo,257,98),MID(FMemo,255,2),MID(FMemo,357)) " & vbCrLf & _
+     "WHERE FSurogat = " & rsco!bfsu
+'     Call myEFrag(sql, rAf, MOCon)
+   ElseIf DN Like "*.E?D1" Then
+    Call WechsMemo("beschein", rsco!FSurogat, "FMemo", "91", Format(Now(), "yyyymmdd"), 0, MeStr, , "Erstelldatum")
+   End If
+   Debug.Print rsco.Fields(0)
+ End If ' nurltag
  Set rsco = Nothing
  End If ' not rsco.bof
  End If
- syscmd 4, " korrigier() für " & pid & " mit Datei " & DN & " ausgeführt"
-End Sub ' korrigier(pid$, dn$)
+ syscmd 4, " DMPkorrigier() für " & pid & " mit Datei " & DN & " ausgeführt"
+ Exit Sub
+fehler:
+ Dim AnwPfad$
+#If VBA6 Then
+ AnwPfad = CurrentDb.name
+#Else
+ AnwPfad = App.path
+#End If
+ If Err.Number = -2147467259 Then
+  DBCn.Close
+  DBCn.Open
+  Resume
+ End If ' Err.Number = -2147467259 Then
+ Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in DMPkorrigier()/" + AnwPfad)
+  Case vbAbort: Call MsgBox("Höre auf"): ProgEnde
+  Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
+  Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
+ End Select
+End Sub ' DMPkorrigier(pid$, dn$)
 
 Private Function ausfsyn&(Befehl$, Focus As VbAppWinStyle)
  Dim RetVal&
@@ -1222,6 +1312,7 @@ Private Sub Datenbank_Click()
  dlg.Show
  Screen.MousePointer = vbDefault
 End Sub ' Datenbank_Click
+
 
 
 ' für Arzt -> DMP Übersicht
@@ -1631,11 +1722,11 @@ Private Sub PiDzuord_Click()
    sql = "SELECT fsurogat,FNachname,FVorname,FGeburtsdatum FROM patstamm WHERE FNachname='" & doUmwfSQL(rnam!Nachname, False) & "' AND FVorname='" & rnam!Vorname & "' AND FGeburtsdatum=DATE(" & Format(rnam!GebDat, "yyyymmdd") & ")"
    Call myFrag(rPS, sql, adOpenStatic, MOCon)
    If Not rPS.BOF Then
-    If rPS!fsurogat <> rnam!Pat_ID Then
-     Debug.Print "Unterschied: " & rPS!fsurogat & " " & rPS!FNachname & " "; rPS!FVorname & " " & rPS!fGeburtsdatum & " <> " & rnam!Pat_ID & " " & rnam!Nachname & " " & rnam!Vorname & " " & rnam!GebDat
-     DBCn.Execute "UPDATE namen SET FPatnr=" & rPS!fsurogat & " WHERE pat_id=" & rnam!Pat_ID, rAf
+    If rPS!FSurogat <> rnam!Pat_ID Then
+     Debug.Print "Unterschied: " & rPS!FSurogat & " " & rPS!FNachname & " "; rPS!FVorname & " " & rPS!fGeburtsdatum & " <> " & rnam!Pat_ID & " " & rnam!Nachname & " " & rnam!Vorname & " " & rnam!GebDat
+     DBCn.Execute "UPDATE namen SET FPatnr=" & rPS!FSurogat & " WHERE pat_id=" & rnam!Pat_ID, rAf
      If rAf = 0 Then
-      Debug.Print "rAf 0 bei " & rnam!Pat_ID & " vs. " & rPS!fsurogat
+      Debug.Print "rAf 0 bei " & rnam!Pat_ID & " vs. " & rPS!FSurogat
      End If
     End If
    Else
@@ -5425,6 +5516,7 @@ End Sub ' dbv_wCnAendern
 ' mdiForm_Load
 Private Sub Konstanten()
  Dim Cpt$
+ dmpVz$ = dmpVerz ' "u:\TMImport\MO"
  Cpt = LCase$(CptName)
  Select Case Cpt
   Case "pc08", "gerald03"

@@ -2470,9 +2470,9 @@ Public Sub domachDMPBogen(Pat_ID&, BogArtlV As BogArtTyp, DokuDat As Date, Optio
    BDT.FIAdd "X"
  End Select ' Case BogArtlV
  Call BDT.Schreib(anhängen:=True)
- Const movz$ = "U:\TMImport\MO"
  Dim mofl$
- mofl = movz & "\641915300_" & Pat_ID & "_" & Format(DokuDat, "yyyymmdd") & ".E" & IIf(obErstD, "E", "V") & "D" & DmT
+ ' "U:\TMImport\MO"
+ mofl = Lese.dmpVz & "\641915300_" & Pat_ID & "_" & Format(DokuDat, "yyyymmdd") & ".E" & IIf(obErstD, "E", "V") & "D" & DmT
  Open mofl For Output As #176
  Print #176, "<?xml version=""1.0"" encoding=""ISO-8859-15"" standalone=""yes""?>"
  Print #176, "<levelone xmlns=""urn::hl7-org/cda"" xmlns:sciphox=""urn::sciphox-org/sciphox"" xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance"">"
