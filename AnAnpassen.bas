@@ -491,7 +491,7 @@ Function rUsRest(j&)
    rUs(UBound(rUs)).FID = rEi(j).FID
    rUs(UBound(rUs)).Zeitpunkt = rEi(j).Zeitpunkt
    rUs(UBound(rUs)).art = rEi(j).art
-   rUs(UBound(rUs)).abspos = rEi(j).abspos
+   rUs(UBound(rUs)).absPos = rEi(j).absPos
    rUs(UBound(rUs)).QS = rEi(j).QS
    rUs(UBound(rUs)).QT = rEi(j).QT
    rUs(UBound(rUs)).StByte = rEi(j).StByte
@@ -503,7 +503,7 @@ Function rFuRest(j&)
    rFu(UBound(rFu)).FID = rEi(j).FID
    rFu(UBound(rFu)).Zeitpunkt = rEi(j).Zeitpunkt
    rFu(UBound(rFu)).art = rEi(j).art
-   rFu(UBound(rFu)).abspos = rEi(j).abspos
+   rFu(UBound(rFu)).absPos = rEi(j).absPos
    rFu(UBound(rFu)).QS = rEi(j).QS
    rFu(UBound(rFu)).QT = rEi(j).QT
    rFu(UBound(rFu)).StByte = rEi(j).StByte
@@ -515,7 +515,7 @@ Function rVkRest(j&)
    rVk(UBound(rVk)).FID = rEi(j).FID
    rVk(UBound(rVk)).Zeitpunkt = rEi(j).Zeitpunkt
 '   rvk(UBound(rvk)).Art = rEi(j).Art
-   rVk(UBound(rVk)).abspos = rEi(j).abspos
+   rVk(UBound(rVk)).absPos = rEi(j).absPos
 '   rvk(UBound(rvk)).QS = rEi(j).QS
 '   rvk(UBound(rvk)).QT = rEi(j).QT
    rVk(UBound(rVk)).StByte = rEi(j).StByte
@@ -527,7 +527,7 @@ Function rUlRest(j&)
    rUl(UBound(rUl)).FID = rEi(j).FID
    rUl(UBound(rUl)).Zeitpunkt = rEi(j).Zeitpunkt
 '   rUl(UBound(rUl)).Art = rEi(j).Art
-   rUl(UBound(rUl)).abspos = rEi(j).abspos
+   rUl(UBound(rUl)).absPos = rEi(j).absPos
 '   rUl(UBound(rUl)).QS = rEi(j).QS
 '   rUl(UBound(rUl)).QT = rEi(j).QT
    rUl(UBound(rUl)).StByte = rEi(j).StByte
@@ -576,10 +576,10 @@ Function usdm0()
              
  For j = 1 To UBound(rEi)
   If LCase$(rEi(j).art) = "usdm" Then
-   If rUs(UBound(rUs)).abspos <> 0 Or UBound(rUs) = 0 Then ReDim Preserve rUs(UBound(rUs) + 1)
+   If rUs(UBound(rUs)).absPos <> 0 Or UBound(rUs) = 0 Then ReDim Preserve rUs(UBound(rUs) + 1)
    Dim Wert$()
 '   IF j = 198 THEN Stop ' Pid 1115
-   Call Kusd(IIf(rEi(j).abspos = -1, trzn, trz), Wert, j)
+   Call Kusd(IIf(rEi(j).absPos = -1, trzn, trz), Wert, j)
    Call rUsRest(j)
    If UBound(Wert) = 28 Then
     If (Wert(0) <> "u" Or rUs(UBound(rUs)).Spritzst = "") And InStr(Wert(0), "~") = 0 Or _
@@ -692,7 +692,7 @@ Function usdm1()
              ", Mitarbeiter:", "")
  For j = 1 To UBound(rEi)
   If rEi(j).art = "usdm1" Then
-   If rUs(UBound(rUs)).abspos <> 0 Or UBound(rUs) = 0 Then ReDim Preserve rUs(UBound(rUs) + 1)
+   If rUs(UBound(rUs)).absPos <> 0 Or UBound(rUs) = 0 Then ReDim Preserve rUs(UBound(rUs) + 1)
    Dim Wert$()
    Call Kusd(trz, Wert, j)
    Call rUsRest(j)
@@ -767,7 +767,7 @@ Function usdm2()
              "; Mitarbeiter:", "")
  For j = 1 To UBound(rEi)
   If rEi(j).art = "usdm2" Then
-   If rUs(UBound(rUs)).abspos <> 0 Or UBound(rUs) = 0 Then ReDim Preserve rUs(UBound(rUs) + 1)
+   If rUs(UBound(rUs)).absPos <> 0 Or UBound(rUs) = 0 Then ReDim Preserve rUs(UBound(rUs) + 1)
    Dim Wert$()
    Call Kusd(trz, Wert, j)
    Call rUsRest(j)
@@ -827,7 +827,7 @@ Function USfuss()
              "Mitarbeiter:", "")
  For j = 1 To UBound(rEi)
   If rEi(j).art = "fuß" And rEi(j).Zeitpunkt > #7/17/2017 8:00:00 AM# Then
-   If rFu(UBound(rFu)).abspos <> 0 Or UBound(rFu) = 0 Then ReDim Preserve rFu(UBound(rFu) + 1)
+   If rFu(UBound(rFu)).absPos <> 0 Or UBound(rFu) = 0 Then ReDim Preserve rFu(UBound(rFu) + 1)
    Dim Wert$()
    Call Kusd(trz, Wert, j)
    Call rFuRest(j)
@@ -874,7 +874,7 @@ Function usVKGD()
 '             Debug.Print UBound(trz)
  For j = 1 To UBound(rEi)
   If rEi(j).art = "vkgd" Then
-   If rVk(UBound(rVk)).abspos <> 0 Or UBound(rVk) = 0 Then ReDim Preserve rVk(UBound(rVk) + 1)
+   If rVk(UBound(rVk)).absPos <> 0 Or UBound(rVk) = 0 Then ReDim Preserve rVk(UBound(rVk) + 1)
    Dim Wert$()
    Call Kusd(trz, Wert, j)
    Call rVkRest(j)
@@ -921,7 +921,7 @@ Function usVKGD2()
 '             Debug.Print UBound(trz)
  For j = 1 To UBound(rEi)
   If rEi(j).art = "vkgd2" Then
-   If rVk(UBound(rVk)).abspos <> 0 Or UBound(rVk) = 0 Then ReDim Preserve rVk(UBound(rVk) + 1)
+   If rVk(UBound(rVk)).absPos <> 0 Or UBound(rVk) = 0 Then ReDim Preserve rVk(UBound(rVk) + 1)
    Dim Wert$()
    Call Kusd(trz, Wert, j)
    Call rVkRest(j)
@@ -969,7 +969,7 @@ Function USUlcus()
 '             Debug.Print UBound(trz)
  For j = 1 To UBound(rEi)
   If rEi(j).art = "ulcus" Then
-   If rUl(UBound(rUl)).abspos <> 0 Or UBound(rUl) = 0 Then ReDim Preserve rUl(UBound(rUl) + 1)
+   If rUl(UBound(rUl)).absPos <> 0 Or UBound(rUl) = 0 Then ReDim Preserve rUl(UBound(rUl) + 1)
    Dim Wert$()
    Call Kusd(trz, Wert, j)
    Call rUlRest(j)
@@ -1020,7 +1020,7 @@ Function USUlcusa()
 '             Debug.Print UBound(trz)
  For j = 1 To UBound(rEi)
   If rEi(j).art = "ulcus" Then
-   If rUl(UBound(rUl)).abspos <> 0 Or UBound(rUl) = 0 Then ReDim Preserve rUl(UBound(rUl) + 1)
+   If rUl(UBound(rUl)).absPos <> 0 Or UBound(rUl) = 0 Then ReDim Preserve rUl(UBound(rUl) + 1)
    Dim Wert$()
    Call Kusd(trz, Wert, j)
    Call rUlRest(j)
@@ -1618,7 +1618,7 @@ End Function 'AnAl
 Function do_anImp(imin%, imax%, tr$(), Fd$(), makro$, Optional tfd1, Optional tfd2, Optional kDB%)  ' Testfeld, kein Datenbankeintrag
 ' Dim rsAnm AS DAO.Recordset, _
      rEi AS DAO.Recordset
- Dim NeuInh$, fld$
+ Dim neuinh$, fld$
  Dim i&, j%, k%, im&
  Dim s$, trennz$, tz2$
  Dim sp$(), spe$()
@@ -1812,20 +1812,20 @@ doppelt:
      End If
      If FproZielFeld = 2 Then
       If InStrB(fld, "Menge") <> 0 Then
-       NeuInh = IIf(LenB(AbI(i - imin)) = 0, "0", IIf(AbI(i - imin) = "-", "0", AbI(i - imin))) & " " & "-" & " " & rsAnm.Fields(Fd(izuvor))
-       rsAnm.Fields(fld) = NeuInh
+       neuinh = IIf(LenB(AbI(i - imin)) = 0, "0", IIf(AbI(i - imin) = "-", "0", AbI(i - imin))) & " " & "-" & " " & rsAnm.Fields(Fd(izuvor))
+       GoSub neuinh
       Else
        If tr(i - 1) = "li:" Or tr(i - 1) = "li" Then
 '        rsAnm.Fields(fd(i-imin)) = abn(i-imin) & " " & abi(i-imin) + "/" + rsAnm.Fields(fd(i-1))
-        NeuInh = AbI(i - imin) + " | " + rsAnm.Fields(Fd(i - 1))
-        rsAnm.Fields(fld) = NeuInh
+        neuinh = AbI(i - imin) + " | " + rsAnm.Fields(Fd(i - 1))
+        GoSub neuinh
        Else
         If AbI(izuvor - imin) = vNS Then
-         NeuInh = AbN(i - imin) & " " & AbI(i - imin) ' falls vorwert leer => von vorne anfangen
+         neuinh = AbN(i - imin) & " " & AbI(i - imin) ' falls vorwert leer => von vorne anfangen
         Else
-         NeuInh = AbI(i - imin) + " ," + AbN(izuvor - imin) & " " & LTrim$(rsAnm.Fields(Fd(izuvor)))
+         neuinh = AbI(i - imin) + " ," + AbN(izuvor - imin) & " " & LTrim$(rsAnm.Fields(Fd(izuvor)))
         End If
-        rsAnm.Fields(fld) = NeuInh
+        GoSub neuinh
        End If
       End If
      Else ' => FproZielFeld = 1
@@ -1856,19 +1856,19 @@ doppelt:
         If InStrB(fld, "Essenszeit") <> 0 Or InStrB(fld, "Broteinheiten") <> 0 Then
          spe = Split(AbI(i - imin), "/")
          If UBound(spe) = -1 Then
-          NeuInh = AbI(i - imin)
-          rsAnm.Fields(fld) = NeuInh
+          neuinh = AbI(i - imin)
+          GoSub neuinh
          Else
           If UBound(spe) = 0 Then
            spe = Split(spe(0), " ")
           End If
-          NeuInh = gKw(spe(0), rsAnm.Fields(fld).Type)
-          rsAnm.Fields(fld) = NeuInh
+          neuinh = gKw(spe(0), rsAnm.Fields(fld).Type)
+          GoSub neuinh
           If UBound(spe) > 0 Then
-           NeuInh = spe(1)
+           neuinh = spe(1)
            On Error GoTo f1
            fld = nächstes(fld)
-           rsAnm.Fields(fld) = NeuInh
+           GoSub neuinh
            On Error GoTo fehler
           End If
          End If
@@ -1887,25 +1887,25 @@ doppelt:
            End Select
          End Select ' fd(i-imin)
            If InStrB(fld, "Menge") <> 0 Then
-            NeuInh = IIf(AbI(i - imin) = "-", "0", AbI(i - imin)) 'replace$(AbI(i - imin), "-", "0")
-            rsAnm.Fields(fld) = NeuInh
+            neuinh = IIf(AbI(i - imin) = "-", "0", AbI(i - imin)) 'replace$(AbI(i - imin), "-", "0")
+            GoSub neuinh
            ElseIf makro = "anal" And fld = "Grund für Vorstellung" Then
             If IsNull(rsAnm.Fields(fld)) Then
-              NeuInh = AbI(i - imin)
-              rsAnm.Fields(fld) = NeuInh
+              neuinh = AbI(i - imin)
+              GoSub neuinh
             Else
              If AbI(i - imin) <> vNS And InStrB(rsAnm.Fields(fld), AbI(i - imin)) = 0 Then
               If tr(i - 1) = "li:" Then
 '              rsAnm.Fields(fd(i-imin)) = abn(i-imin) & " " & abi(i-imin) + "/" + rsAnm.Fields(fd(i - 1))
-               NeuInh = AbI(i - imin) + " | " + rsAnm.Fields(Fd(i - 1))
-               rsAnm.Fields(fld) = NeuInh
+               neuinh = AbI(i - imin) + " | " + rsAnm.Fields(Fd(i - 1))
+               GoSub neuinh
               Else
 ' bitte prüfen, ob die Reihenfolge stimmt, deshalb stop
                If rsAnm.Fields(fld).name <> "Grund für Vorstellung" Then
                 MsgBox "Unerwarteter Zustand do_anImp: " & vbCrLf & "rsAnm.Fields(fld).name (<> ""Grund für Vorstellung""):" & rsAnm.Fields(fld).name
                End If
-               NeuInh = LTrim$(rsAnm.Fields(fld) & " " & AbI(i - imin))
-               rsAnm.Fields(fld) = NeuInh
+               neuinh = LTrim$(rsAnm.Fields(fld) & " " & AbI(i - imin))
+               GoSub neuinh
               End If
              End If
             End If
@@ -1915,12 +1915,12 @@ doppelt:
                   adTinyInt, adSmallInt, adInteger, adSingle, adDouble, adBigInt, adUnsignedBigInt, _
                   adNumeric, adVarNumeric, adCurrency, adDecimal
 '            Case 2,17,  16, 2, 3, 4, 5, 20, 21, 131, 139, 6, 14
-              NeuInh = AbI(i - imin)
-              rsAnm.Fields(fld) = MachNumerisch(NeuInh)
+              neuinh = AbI(i - imin)
+              rsAnm.Fields(fld) = MachNumerisch(neuinh)
              Case adUnsignedSmallInt, adUnsignedInt
 '             Case 18, 19
-              NeuInh = AbI(i - imin)
-              rsAnm.Fields(fld) = Abs(MachNumerisch(NeuInh))
+              neuinh = AbI(i - imin)
+              rsAnm.Fields(fld) = Abs(MachNumerisch(neuinh))
              Case adDate, adFileTime, adDBDate, adDBTime, adDBTimeStamp
 '             Case 7, 64, 133, 134, 135
               If Not IsDate(AbI(i - imin)) Then
@@ -1932,8 +1932,8 @@ doppelt:
               adIDispatch, adVariant, adIUnknown, adGUID, adBinary, adUserDefined, adPropVariant, _
               adVarBinary, adLongVarBinary, adError, adArray
 '            Case 8, 129, 130, 200, 201, 202, 203, 0, 9, 12, 13, 72, 128, 132, 138, 204, 205, 10, 8192
-              NeuInh = AbI(i - imin)
-              rsAnm.Fields(fld).Value = Left$(NeuInh, rsAnm.Fields(fld).DefinedSize)
+              neuinh = AbI(i - imin)
+              rsAnm.Fields(fld).Value = Left$(neuinh, rsAnm.Fields(fld).DefinedSize)
             End Select
            Else
             FproZielFeld = 2
@@ -1945,17 +1945,17 @@ doppelt:
              FproZielFeld = 1
             End If
             If FproZielFeld = 1 Then
-              NeuInh = AbI(i - imin)
+              neuinh = AbI(i - imin)
               Select Case rsAnm.Fields(fld).Type
                Case 11, adUnsignedTinyInt, 16, 2, 3, 4, 5, 20, 21, 131, 139, 6, 14, 7, 64, 133, 134, 135
-                 NeuInh = CDbl(IIf(LenB(NeuInh) = 0, "0", NeuInh))
-                 rsAnm.Fields(fld) = NeuInh
+                 neuinh = CDbl(IIf(LenB(neuinh) = 0, "0", neuinh))
+                 GoSub neuinh
                Case adUnsignedTinyInt, 18, 19
-                 NeuInh = CDbl(IIf(LenB(NeuInh) = 0, "0", NeuInh))
-                 rsAnm.Fields(fld) = Abs(NeuInh)
+                 neuinh = CDbl(IIf(LenB(neuinh) = 0, "0", neuinh))
+                 rsAnm.Fields(fld) = Abs(neuinh)
                Case 8, 129, 130, 200, 201, 202, 203, 0, 9, 12, 13, 72, 128, 132, 138, 204, 205
-                 NeuInh = CStr(NeuInh)
-                 rsAnm.Fields(fld) = NeuInh
+                 neuinh = CStr(neuinh)
+                 GoSub neuinh
               End Select
             End If
            End If
@@ -1972,19 +1972,19 @@ weiter:
   If makro = "andm" Then
    For k = 4 To 2 Step -1
     If IsNull(rsAnm.Fields("DiabetesMedikament " + CStr(k) + " Menge")) Or (rsAnm.Fields("DiabetesMedikament " + CStr(k) + " Menge") = "0 - 0 - 0 - ") Then 'And rsAnm.Fields("DiabetesMedikament " + CStr(K)) = "") THEN
-     NeuInh = vNS
+     neuinh = vNS
      fld = "DiabetesMedikament " + CStr(k) + " Menge"
-     rsAnm.Fields(fld) = NeuInh
+     GoSub neuinh
     End If
    Next k
    For k = 4 To 2 Step -1
     If rsAnm.Fields("DiabetesMedikament " + CStr(k) + " Menge") <> vNS And rsAnm.Fields("DiabetesMedikament " + CStr(k - 1) + " Menge") = vNS Then
-     NeuInh = rsAnm.Fields("DiabetesMedikament " + CStr(k) + " Menge")
+     neuinh = rsAnm.Fields("DiabetesMedikament " + CStr(k) + " Menge")
      fld = "DiabetesMedikament " + CStr(k - 1) + " Menge"
-     rsAnm.Fields(fld) = NeuInh
-     NeuInh = vNS
+     GoSub neuinh
+     neuinh = vNS
      fld = "DiabetesMedikament " + CStr(k) + " Menge"
-     rsAnm.Fields(fld) = NeuInh
+     rsAnm.Fields(fld) = neuinh
     End If
    Next k
    If IsNull(rsAnm.Fields("Angina pectoris")) Then rsAnm.Fields("Angina pectoris") = vNS
@@ -1993,17 +1993,17 @@ weiter:
    If IsNull(rsAnm.Fields("Herzschwäche")) Then rsAnm.Fields("Herzschwäche") = vNS
    If IsNull(rsAnm.Fields("Bypass kardial")) Then rsAnm.Fields("Bypass kardial") = 0
    If Not obNein(rsAnm.Fields("Angina pectoris")) Or Not obNein(rsAnm!Herzinfarkt) Or Not obNein(rsAnm.Fields("PTCA oder Stent")) Or Not obNein(rsAnm.Fields("Bypass kardial")) Or Not obNein(rsAnm!Herzschwäche) Then
-    NeuInh = "j"
+    neuinh = "j"
     fld = "Herzkrankheit"
-    rsAnm.Fields(fld) = NeuInh
+    rsAnm.Fields(fld) = neuinh
    ElseIf rsAnm.Fields("Angina pectoris") = vNS And rsAnm!Herzinfarkt = vNS And rsAnm.Fields("PTCA oder Stent") = vNS And rsAnm.Fields("Bypass kardial") = 0 And rsAnm!Herzschwäche = vNS Then
-    NeuInh = vNS
+    neuinh = vNS
     fld = "Herzkrankheit"
-    rsAnm.Fields(fld) = NeuInh
+    rsAnm.Fields(fld) = neuinh
    Else
-    NeuInh = "-"
+    neuinh = "-"
     fld = "Herzkrankheit"
-    rsAnm.Fields(fld) = NeuInh
+    rsAnm.Fields(fld) = neuinh
    End If
   End If ' makro = "andm"
 ' Nacharbeiten: Wenn Herzkrankheit Beschreibung positiv => dann auch Herzkrankheit
@@ -2020,6 +2020,14 @@ weiter:
  End If ' Not rEi.NoMatch AND NOT rsAnm.NoMatch THEN
 End If ' not kdm
 Exit Function
+neuinh:
+If Right$(neuinh, 5) = "\r \r" Then
+ neuinh = Left$(neuinh, Len(neuinh) - 5)
+ElseIf Right$(neuinh, 2) = "\r" Then
+ neuinh = Left$(neuinh, Len(neuinh) - 2)
+End If
+rsAnm.Fields(fld) = neuinh
+Return
 Dim Feld$
 f1:
 ' Debug.Print fld, NeuInh
@@ -2040,9 +2048,9 @@ If Err.Number = -2147217887 Then ' Das Feld ist zu klein für die Datenmenge, die
  Dim ZCStr$, DBStrAlt$, SpName$
  ZCStr = rsAnm.source
  Versuch = Versuch + 1
- If MerkNeuInh <> NeuInh Then Versuch = 0
+ If MerkNeuInh <> neuinh Then Versuch = 0
  If Versuch > 5 Then
-  If NeuInh > vNS Then NeuInh = Left$(NeuInh, Len(NeuInh) - 1)
+  If neuinh > vNS Then neuinh = Left$(neuinh, Len(neuinh) - 1)
  End If
  If fld = vNS Then fld = Fd(i)
  Do
@@ -2052,11 +2060,11 @@ If Err.Number = -2147217887 Then ' Das Feld ist zu klein für die Datenmenge, die
 '   IF Not SpModAlt(NeuInh, "anamnesebogen", rsc) THEN ' dann Memo-Feld
 '    Call myEFrag("UPDATE `anamnesebogen` SET " & "`" & SpName & "`" & " = """ & replace$(NeuInh, """", """""") & """ WHERE pat_id = " & rNa(0).Pat_id, AfN)
 '   END IF
-   If Not SpMod(Len(NeuInh), "anamnesebogen", rsc, NeuInh) Then ' dann Memo-Feld
-    Call myEFrag("UPDATE `anamnesebogen` SET `" & SpName & "` = """ & REPLACE$(NeuInh, """", """""") & """ WHERE pat_id = " & rNa(0).Pat_ID, AfN)
+   If Not SpMod(Len(neuinh), "anamnesebogen", rsc, neuinh) Then ' dann Memo-Feld
+    Call myEFrag("UPDATE `anamnesebogen` SET `" & SpName & "` = """ & REPLACE$(neuinh, """", """""") & """ WHERE pat_id = " & rNa(0).Pat_ID, AfN)
    End If
    If rsAnm.State = 0 Then myFrag rsAnm, ZCStr, adOpenStatic, DBCn, adLockOptimistic
-   MerkNeuInh = NeuInh
+   MerkNeuInh = neuinh
    If AfN > 0 Then Resume Next Else Resume
   End If
   rsc.Move 1
@@ -2376,6 +2384,7 @@ Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "Last
  Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
 End Select
 End Function ' nächstes(ez$)
+
 Function obNein%(antw$)
  Dim a$
  On Error GoTo fehler
@@ -2402,6 +2411,7 @@ Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "Last
  Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
 End Select
 End Function ' obNein
+
 Function obUnbek%(antw$)
  Dim a$
  On Error GoTo fehler
@@ -2436,7 +2446,7 @@ Function gKw$(ST$, Optional Typ)
  Else
   Do
    p1 = InStr(gKw, "{")
-   pe = InStr(gKw, "}")
+   pe = InStr(p1 + 1, gKw, "}")
    If pe = 0 Then pe = Len(gKw)
    If p1 > 0 And pe > p1 Then
     gKw = Left$(gKw, p1 - 1) + Mid$(gKw, pe + 1)

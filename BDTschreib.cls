@@ -246,7 +246,7 @@ Public Sub Schreib(Optional anhängen%)
  Close #327
 End Sub ' Schreib
 
-' in doBriefeBerichtspflicht, doDiagnostenexport, doMachDMPBogen, dododoPorto, abrFAusg, alleDMPLeiDok, PatTeste
+' in dobriefeBerichtspflicht, doDiagnostenexport, doMachDMPBogen, dododoPorto, abrFAusg, alleDMPLeiDok, PatTeste
 Public Sub BDTKopf()
   Call Satzart("0020") ' Satzart
   Call Arztnummer(hKVNR)  ' Arztnummer des Absenders

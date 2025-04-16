@@ -948,7 +948,7 @@ Private Sub plz()
  Dim Pat_ID$
  Pat_ID = MFG.TextMatrix(MFG.Row, PIDSp)
  Call dodoplz(Pat_ID, plzVz, Now, Now - Int(Now), True)
-End Sub ' Anleitung
+End Sub ' plz
 
 
 Private Sub Form_Activate()
@@ -1230,12 +1230,28 @@ fehler:
 End Sub ' FertigStellen
 
 Sub zwiFS(Pat_ID&, nuranzeigen%)
- Dim hnd&
+ Dim hnd&, AnwName$, erg$
  On Error GoTo fehler
- hnd = FensterHandle("TurboMed")
+#If True Then
+ AnwName = "Medical Office"
+ hnd = FensterHandle(AnwName, , , erg)
  If hnd <> 0 Then
   On Error GoTo activatefehler
-  AppActivate "TurboMed", True
+  AppActivate erg, True
+  On Error Resume Next
+  Pause (Pausenlänge)
+  Sendkeys "+{F4}", True
+  Pause (Pausenlänge)
+  Sendkeys Pat_ID & "", True
+  Pause (Pausenlänge)
+  Sendkeys "{ENTER}", True
+  Pause (Pausenlänge)
+#Else
+ AnwName = "Turbomed"
+ hnd = FensterHandle(AnwName)
+ If hnd <> 0 Then
+  On Error GoTo activatefehler
+  AppActivate AnwName, True
   On Error GoTo fehler
   Pause (Pausenlänge)
   On Error Resume Next
@@ -1256,12 +1272,12 @@ Sub zwiFS(Pat_ID&, nuranzeigen%)
   Sendkeys "p", True
   Pause (Pausenlänge)
   Sendkeys "{bs}" & Pat_ID & "", True
-  
   Call doFS(nuranzeigen, True)
- End If
+#End If
+ End If ' hnd <> 0 Then
  Exit Sub
 activatefehler:
- MsgBox "Fehler bei AppActivate 'TurboMed'"
+ MsgBox "Fehler bei AppActivate '" & AnwName & "'"
  Resume Next
 fehler:
  Dim AnwPfad$
@@ -1359,6 +1375,7 @@ fehler:
  End Select
 End Sub      ' doFS
 
+' aufgerufen in Command1_Click bei artpat (DMP hier Liste)
 Private Sub zurück()
  Dim erg$, erg1$, erg2$
  FNr = 13
@@ -1536,7 +1553,7 @@ Public Sub callMachDMPBogen(Pat_ID&, NachN$, VorN$, obtot%, obneu%, ICD$, Option
         AktCol = j
 '        IF VorDokuSp = 0 THEN VorDokuSp = AktCol
         VorDoku = rDok!art & " " & Format(rDok!DokuDatum, "dd.mm.yy")
-        If rDok!Ok And rDok!ausgedruckt Then
+        If rDok!OK And rDok!ausgedruckt Then
          VorDoku = VorDoku & " ok"
         ElseIf j = begcol And Not obraus Then
 '         obrot = True ' Wenn Pat. rausgeflogen, dann fehlt auch aktuelle Erstdoku
@@ -3178,6 +3195,35 @@ Sub LabordateiAnzeig(Datei$)
  Dim rc As New ADODB.Recordset
  Dim Datum As Date
  If True Then
+ sql = "SELECT" & vbCrLf & _
+"COUNT(0) OVER() zahl, w.*,u.*,sw.pat_id obsws, COALESCE(ityp,'') ityp, COALESCE(p.langtext,w.abkü) lt," & vbCrLf & _
+"u.Pat_id, concat(gesname(u.pat_id),' (',patalter(u.pat_id),'a)') Name, eingang Zeitpunkt, befart FertigStGrad, w.Abkü, w.langtext Langtext" & vbCrLf & _
+",TRIM(IF(w.Abkü='ALBUM' AND Wert='' AND k.Text LIKE 'nicht berechenb%','< 20',IF(TRIM(Wert) REGEXP '^[0-9]+\\,?[0-9]*$', REPLACE(Wert,',','.'),Wert))) Wert" & vbCrLf & _
+",w.Einheit,w.Grenzwerti" & vbCrLf & _
+",CONCAT(IF(e.text IS NULL OR e.text RLIKE '^:[ /\\*:]*$','',IF(e.text RLIKE '^:[ /\\*]*:'" & vbCrLf & _
+",CONCAT(MID(e.text,LOCATE(':',e.text,2)+1),';'),IF(e.text='.','',IF(e.text='','',CONCAT(e.text,';'))))),IF(k.text IS NULL,'',k.text)) Kommentar/*, n.id*/" & vbCrLf & _
+",n.NB, n.uNg" & vbCrLf & _
+",IF(w.abkü='LDL' AND w.einheit='mg/dl','100',n.oNg) oNg" & vbCrLf & _
+",l.Labor" & vbCrLf & _
+", Pfad, d.DatID, d.Dateidat" & vbCrLf & _
+",p.Gruppe, p.Reihe,2 Qu" & vbCrLf & _
+"FROM laboryus u" & vbCrLf & _
+"LEFT JOIN laborywert w ON w.usid=u.id" & vbCrLf & _
+"LEFT JOIN laboryhinw e ON e.id=w.erklid" & vbCrLf & _
+"LEFT JOIN laboryhinw k ON k.id=w.kommid" & vbCrLf & _
+"LEFT JOIN laborypnb n ON n.id=w.nbid" & vbCrLf & _
+"LEFT JOIN laborysaetze s ON s.satzid=u.satzid" & vbCrLf & _
+"LEFT JOIN laborydat d ON d.datid=u.datid" & vbCrLf & _
+"LEFT JOIN laboryplab l ON l.id=s.labid" & vbCrLf & _
+"LEFT JOIN laborparameter p ON p.abkü=w.abkü AND p.einheit=IF(w.einheit IN ('','\'kA\''),'kA',w.einheit)" & vbCrLf & _
+"      AND p.id = (SELECT id FROM laborparameter WHERE abkü=w.`Abkü` AND einheit=IF(w.einheit IN ('','\'kA\''),'kA',w.Einheit) ORDER BY gruppe DESC, reihe DESC LIMIT 1)" & vbCrLf & _
+"LEFT JOIN sws sw ON sw.pat_id=u.pat_id AND sw.voret>qanf() AND sw.voret>now()" & vbCrLf & _
+"LEFT JOIN dtypen dt ON dt.pat_id=u.pat_id" & vbCrLf
+sql = sql & _
+"WHERE ((wert<>'' AND wert IS NOT NULL) OR (e.text<>'' AND e.text IS NOT NULL))" & vbCrLf & _
+"AND grenzwerti<>'' AND dateidat=" & Format(LabDatum, "YYYYmmdd")
+
+ ElseIf True Then
   sql = _
  "SELECT COUNT(0) OVER() Zahl" & vbCrLf & _
  ",l.*,s.pat_id obsws, COALESCE(ityp,'') ityp, COALESCE(lp.langtext,l.parameter) lt" & vbCrLf & _
@@ -3300,11 +3346,11 @@ sql = sql & _
      .col = einhsp:       .Text = rc!Einheit:     .CellBackColor = vorFarbe
      .col = vorwsp1:     .Text = rc!vorwert_1:   .CellBackColor = vorFarbe
      .col = vorwsp2:     .Text = rc!vorwert_2:   .CellBackColor = vorFarbe
-     .col = nbsp:        .Text = rc!Normbereich: .CellBackColor = vorFarbe
+     .col = nbsp:        .Text = Left$(rc!Nb, 25): .CellBackColor = vorFarbe
      .col = medsp:       .Text = rc!Hinweise:    .CellBackColor = IIf(rc!hinwsp = vbWhite Or rc!hinwsp = 0, vorFarbe, rc!hinwsp)
      .col = ficdsp:      .Text = rc!ficd:        .CellBackColor = IIf(rc!ficdsp = vbWhite Or rc!ficdsp = 0, vorFarbe, rc!ficdsp)
      .col = terminsp:    .Text = rc!Termine:     .CellBackColor = IIf(rc!termsp = 0, vbWhite, rc!termsp)
-     .col = labhwsp:     .Text = rc!labhinw:     .CellBackColor = vorFarbe
+     .col = labhwsp:     .Text = rc!Kommentar:   .CellBackColor = vorFarbe
      i = i + 1
     End If
     rc.MoveNext
@@ -4114,7 +4160,7 @@ Private Sub Form_Load()
         .col = j
         If VorDokuSp = 0 Then VorDokuSp = .col
         .Text = rDok!art & " " & Format(rDok!DokuDatum, "dd.mm.yy")
-        If rDok!Ok And rDok!ausgedruckt Then
+        If rDok!OK And rDok!ausgedruckt Then
          .Text = .Text & " ok"
         ElseIf j = begcol And Not obraus And ZQuart(BhFB) = ZQuart(Now() - Verspätung) Then ' letzte Bedingungen eingefügt 31.12.15
 '         .toolTipText = "Doku fehlt"

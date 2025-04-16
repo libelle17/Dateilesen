@@ -118,7 +118,7 @@ Private Sub Form_KeyPress(KeyAscii As Integer)
  End Select
 End Sub ' Form_KeyPress(KeyAscii As Integer)
 
-Private Sub OKButton_Click() ' -> Pathologische Laborwerte anschauen
+Private Sub OKButton_Click() ' -> Pathologische Laborwerte anschauen -> LabordateiAnzeig(Me.LabDat)
  If weiter Then
   If IsDate(Me.Labordatei) Then
    ePL.PLArt = artlab

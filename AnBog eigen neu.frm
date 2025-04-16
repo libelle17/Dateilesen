@@ -4817,12 +4817,12 @@ fehler:
  Dim rs As New ADODB.Recordset
  myFrag rs, "SELECT pat_id, gesname(pat_id) GesName  FROM `anamnesebogen` a WHERE pat_id IN (" & Me.PidRange & ") ORDER BY pat_id DESC"
  If Not rs.BOF Then
-  Do While rs!Pat_id >= anaRS!Pat_id And Not rs.EOF
+  Do While rs!Pat_ID >= anaRS!Pat_ID And Not rs.EOF
    rs.MoveNext
   Loop
  End If ' not rs.BOF
  If Not rs.EOF Then
-  MsgBox "Nächster Patient: " & rs!Pat_id & ", " & rs!gesname
+  MsgBox "Nächster Patient: " & rs!Pat_ID & ", " & rs!gesname
  End If
  Resume Next
  Dim AnwPfad$
@@ -4849,12 +4849,12 @@ fehler:
  Dim rs As New ADODB.Recordset
  myFrag rs, "SELECT pat_id, GesName(Pat_id) GesName  FROM `anamnesebogen` a WHERE pat_id IN (" & Me.PidRange & ") ORDER BY pat_id DESC"
  If Not rs.BOF Then
-  Do While rs!Pat_id >= anaRS!Pat_id And Not rs.EOF
+  Do While rs!Pat_ID >= anaRS!Pat_ID And Not rs.EOF
    rs.MoveNext
   Loop
  End If ' Not rs.BOF Then
  If Not rs.EOF Then
-  MsgBox "Nächster Patient: " & rs!Pat_id & ", " & rs!gesname
+  MsgBox "Nächster Patient: " & rs!Pat_ID & ", " & rs!gesname
  End If
  Resume Next
  Dim AnwPfad$
@@ -4925,7 +4925,7 @@ fehler:
 ' rs.Open anBogCS, DBCn, adOpenDynamic, adLockOptimistic
  myFrag rs, anBogCS
  If Not rs.BOF Then
-  Do While rs!Pat_id > anaRS!Pat_id And Not rs.EOF
+  Do While rs!Pat_ID > anaRS!Pat_ID And Not rs.EOF
    rs.MoveNext
   Loop
  End If ' not rs.BOF
@@ -4937,7 +4937,7 @@ fehler:
  frm.anaRS.CursorLocation = adUseClient
 ' frm.anaRS.Open anBogCS, db, adOpenDynamic, adLockOptimistic
  myFrag frm.anaRS, anBogCS, adOpenDynamic, db
- If Not frm.anaRS.BOF Then anaRS.Find "pat_id=" & rs!Pat_id
+ If Not frm.anaRS.BOF Then anaRS.Find "pat_id=" & rs!Pat_ID
  ohneänd = False
 ' IF Not rs.EOF THEN
 '  MsgBox "Nächster Patient: " & rs!Pat_id & ", " & rs!GesName
@@ -5061,7 +5061,7 @@ Private Sub Suchen_Click()
    End If
    myFrag suchrs, "SELECT pat_id FROM `anamnesebogen` WHERE nachname LIKE '" & namen(0) & "%' AND vorname LIKE '" & namen(1) & "%'"
    If Not suchrs.BOF Then
-    anaRS.Find " Pat_id = " & suchrs!Pat_id, 0, adSearchBackward, adBookmarkLast
+    anaRS.Find " Pat_id = " & suchrs!Pat_ID, 0, adSearchBackward, adBookmarkLast
    End If
 '   IF InStrB(LCase$(anaRS!Nachname), LCase$(namen(0))) <> 1 OR InStrB(LCase$(anaRS!Vorname), LCase$(namen(1))) <> 1 THEN
 '    anaRS.Find " Pat_id >= " & suchrs!Pat_id, 0, adSearchForward, adBookmarkFirst
