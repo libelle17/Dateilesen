@@ -1384,6 +1384,7 @@ sql(AWlf) = "" & _
  AWlf = AWlf + 1
  
 ' 24
+' kann man mit nur 'schwindel' und .. AND schw.art NOT IN ('andm','andm2') auch zum Finden falsch kategorisierter Diabetesanamnesen verwenden
  AwN(AWlf) = "Möglicherweise nachzutragender Altersschwindel R42 (vorher 63)"
  sql(AWlf) = "SELECT v.pat_id, gesname(v.pat_id) Name, patAlter(v.pat_id) PAlter " & vbCrLf & _
             ",(SELECT COUNT(art) FROM eintraege WHERE pat_id = v.pat_id AND art = 'tk') tk " & vbCrLf & _
@@ -1397,7 +1398,7 @@ sql(AWlf) = "" & _
             "LEFT JOIN eintraege adl ON v.pat_id = adl.pat_id AND adl.art = 'ADL'  AND adl.zeitpunkt = (SELECT MAX(zeitpunkt) FROM eintraege WHERE pat_id = v.pat_id AND art = 'ADL')" & vbCrLf & _
             "LEFT JOIN diagview dd ON v.pat_id = dd.pat_id AND dd.gicd RLIKE '^F0[0123]|^G20' " & vbCrLf & _
             "LEFT JOIN diagview schwd ON v.pat_id = schwd.pat_id AND schwd.gicd LIKE 'R42%' " & vbCrLf & _
-            "LEFT JOIN eintraege schw ON v.pat_id = schw.pat_id AND schw.inhalt LIKE '%schwindel%' AND schw.inhalt NOT LIKE '%nicht schwindel%' AND schw.inhalt NOT LIKE '%kein schwindel%' AND schw.inhalt NOT LIKE '%keinen schwindel%' AND schw.inhalt NOT LIKE '%ohne schwindel%' AND schw.art NOT IN ('andm','andm2') " & vbCrLf & _
+            "LEFT JOIN eintraege schw ON v.pat_id = schw.pat_id AND schw.inhalt RLIKE /*'schwindel'*/ '(?<!nicht |kein |keinen |ohne )schwindel(?! beim Aufstehen[?] nein| beim Aufstehen[?]  S)' /*AND schw.art NOT IN ('andm','andm2')*/  " & vbCrLf & _
             "LEFT JOIN medplan mp ON v.pat_id = mp.pat_id AND (medikament LIKE '%dimen%' OR (medikament LIKE '%vert%' AND medikament NOT LIKE '%verteil%' AND medikament NOT LIKE '%vertr%' AND medikament NOT LIKE '%Hevert%') " & vbCrLf & _
                   "OR medikament LIKE '%vasomotal%' OR medikament LIKE '%betahistin%' OR medikament LIKE '%quamen%' OR medikament LIKE '%fluna%' OR medikament LIKE '%natil%' OR medikament LIKE '%sibelium%') " & vbCrLf & _
             "WHERE (DATEDIFF(" & qtAnf(FristS) & ", n.GebDat) > 70 * 365 OR NOT ISNULL(dd.ICD)) AND ISNULL(schwd.icd) AND ((NOT ISNULL(schw.inhalt) OR NOT ISNULL(mp.medikament))) " & vbCrLf & _
@@ -1412,6 +1413,7 @@ sql(AWlf) = "" & _
  sql(AWlf) = "SELECT v.pat_id, gesname(v.pat_id) Name " & vbCrLf & _
             ",(SELECT COUNT(art) FROM eintraege WHERE pat_id = v.pat_id AND art = 'tk') tk " & vbCrLf & _
             ",(SELECT COUNT(art) FROM eintraege WHERE pat_id = v.pat_id AND art = 'gs') gs " & vbCrLf & _
+            ",dd.gicd,pfld.gicd" & vbCrLf & _
             ",CONCAT(LPAD(MID(tug.inhalt,1,INSTR(tug.inhalt,' ')),4,' '), 's/ ', LPAD(MID(adl.inhalt,17),3,' '),' P') Tests " & vbCrLf & _
             ",DATE(pfl.zeitpunkt) Zpt, pfl.inhalt Inkontinenztext " & vbCrLf & _
             "FROM aktfvs v " & vbCrLf & _
@@ -1421,7 +1423,7 @@ sql(AWlf) = "" & _
             "LEFT JOIN eintraege adl ON v.pat_id = adl.pat_id AND adl.art = 'ADL'  AND adl.zeitpunkt = (SELECT MAX(zeitpunkt) FROM eintraege WHERE pat_id = v.pat_id AND art = 'ADL')" & vbCrLf & _
             "LEFT JOIN diagview dd ON v.pat_id = dd.pat_id AND dd.gicd RLIKE '^F0[0123]|^G20' " & vbCrLf & _
             "LEFT JOIN diagview pfld ON v.pat_id = pfld.pat_id AND pfld.gicd IN ('R15','R32') " & vbCrLf & _
-            "LEFT JOIN eintraege pfl ON v.pat_id = pfl.pat_id AND pfl.inhalt RLIKE 'inkont[^r]' AND NOT pfl.inhalt RLIKE 'keine.*inkont[^r]' AND NOT pfl.inhalt RLIKE 'Stuhlkontrolle *Kontinent *10 *10' AND NOT pfl.inhalt RLIKE 'Urinkontrolle *Kontinent *10 *10'" & vbCrLf & _
+            "LEFT JOIN eintraege pfl ON v.pat_id = pfl.pat_id AND pfl.inhalt RLIKE 'inkont[^r]' AND NOT pfl.inhalt RLIKE 'keine *inkont[^r]' AND NOT (pfl.inhalt RLIKE 'inkontinent *(5|0)' AND NOT pfl.inhalt RLIKE 'inkontinent *(5|0) *(5|0)')" & vbCrLf & _
             "WHERE (DATEDIFF(" & qtAnf(FristS) & ", n.GebDat) > 70 * 365 OR NOT ISNULL(dd.ICD)) AND NOT ISNULL(pfl.inhalt) AND ISNULL(pfld.icd)" & vbCrLf & _
             "AND pfl.zeitpunkt >SUBDATE(" & qtAnf(FristS) & ",INTERVAL 1 YEAR) " & vbCrLf & _
             "GROUP BY pat_id, pfl.id;"
@@ -3690,7 +3692,7 @@ sql(AWlf) = "SELECT Pat_ID, Name, Messzeitpunkt, `01812`, Soll, `01777`, `Vor-01
 ", einh `OGTT-Dokumentation` " & vbCrLf & _
 "FROM ( " & vbCrLf & _
       "SELECT COALESCE(SUM(ogtt.lzahl),0) `01777` " & vbCrLf & _
-      ", COALESCE((SELECT MAX(IF(inhalt RLIKE 'ja am|t *ja|am *[0-9]' OR inhalt LIKE '%chgeführt? ja%',1,IF(inhalt RLIKE 'nein am|- am|-,' OR inhalt LIKE '%chgeführt? nein%',0,'?'))) FROM eintraege WHERE pat_id = f.pat_id AND art RLIKE '^angd|^50g$' AND DATE(zeitpunkt)=DATE(e.zeitpunkt)),1) ob50 " & vbCrLf & _
+      ", COALESCE((SELECT MAX(IF(inhalt RLIKE 'ja am|t *ja|am *[0-9]' OR inhalt LIKE '%chgeführt? ja%',1,IF(inhalt RLIKE 'nein am|- am|-,' OR inhalt LIKE '%chgeführt? nein%',0,'?'))) FROM eintraege WHERE pat_id = f.pat_id AND art RLIKE '^angd|^50g$' AND DATE(zeitpunkt)=DATE(e.zeitpunkt)),'u') ob50 " & vbCrLf & _
       ", COALESCE(SUM(gluc.lzahl),0) `01812`, " & vbCrLf & _
       "et.letzteRegel, " & vbCrLf & _
       "gesname(f.pat_id) Name, DATE(e.zeitpunkt) Messzeitpunkt, e.inhalt einh, e.fid fid, e.pat_id pat_id " & vbCrLf & _
@@ -3707,7 +3709,7 @@ sql(AWlf) = "SELECT Pat_ID, Name, Messzeitpunkt, `01812`, Soll, `01777`, `Vor-01
       "AND EXISTS (SELECT 0 FROM sws WHERE pat_id=f.pat_id AND e.zeitpunkt BETWEEN voret - INTERVAL 280 day AND voret) " & vbCrLf & _
             "GROUP BY e.fid,e.zeitpunkt) i " & vbCrLf & _
       "WHERE ((SELECT MAX(kateg) FROM kassenliste WHERE vknr=i.vknr AND ik=i.ik)<>'SHV' AND " & vbCrLf & _
-              "`01777`<>(IF(`Vor-01777`=0 AND ob50=1,1,0)))" & vbCrLf & _
+              "`01777`<>(IF(`Vor-01777`=0 AND ob50 IN(1,'u'),1,0)))" & vbCrLf & _
       "OR `01812` < Soll"
  mins(AWlf) = 10
  maxs(AWlf) = 60
@@ -4456,7 +4458,7 @@ sql(AWlf) = _
 ", Inhalt" & vbCrLf & _
 "FROM aktfv f" & vbCrLf & _
 "LEFT JOIN eintraege e ON e.pat_id=f.pat_id AND e.art IN ('sono')" & vbCrLf & _
-"AND (e.inhalt RLIKE 'Abd|leber|[^o]nier') " & vbCrLf & _
+"AND (e.inhalt RLIKE 'Abdom|[^k]leber|(?<!o|r|den )nier(?!eng)') " & vbCrLf & _
 "AND e.zeitpunkt BETWEEN qanf() AND qend()" & vbCrLf & _
 "WHERE NOT ISNULL(e.Pat_id)" & vbCrLf & _
 "HAVING `sonozl(33042/A)`=0;"

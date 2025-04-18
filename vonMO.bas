@@ -783,21 +783,28 @@ Public Function zeigmosystem(Optional obszn4%)
 End Function ' zeigmosystem()
 
 ' in Markierungen_Click
-Public Function doMarkierungen()
+Public Function doMarkierungen(Optional fPatNr&, Optional nurfrag%)
  Dim rMo As ADODB.Recordset, rDl As ADODB.Recordset, rAf&, mZl&
  MOConInit
- Dim rNa() As namen
- ReDim rNa(0)
+' Dim rNa() As namen
+' ReDim rNa(0)
+ If SafeArrayGetDim(rNa) = 0 Then ReDim rNa(0)
  sql = _
  "SELECT pm.FPatnr, ROW_NUMBER() OVER(ORDER BY fpatnr DESC,FMarkiernr) rg, COUNT(0) OVER() zl, LAST_VALUE(FMarkiernr) OVER(PARTITION BY FPatnr)=FMarkiernr speichern, pm.FMarkiernr,m.FText " & vbCrLf & _
  "FROM patmark pm " & vbCrLf & _
- "JOIN markier m ON pm.FMarkiernr=m.FSurogat" & vbCrLf & _
+ "JOIN markier m ON pm.FMarkiernr=m.FSurogat" & vbCrLf
+ If fPatNr <> 0 Then
+  sql = sql & _
+  "WHERE fpatnr=" & fPatNr & vbCrLf
+ End If ' fpatnr <> 0 Then
+ sql = sql & _
  "ORDER BY fpatnr DESC;"
  Set rMo = myEFrag(sql, rAf, MOCon)
  If Not rMo.BOF Then
   Do While Not rMo.EOF
-   rNa(0).Pat_ID = rMo!fpatnr
+   rNa(0).Pat_ID = rMo!fPatNr
    infoAuswert rNa, rMo!FText
+   If nurfrag Then Exit Function
    If rMo!speichern <> 0 Then
     sql = ""
     If rNa(0).obk <> 0 Then sql = sql & ",obk=1"
@@ -842,10 +849,10 @@ Public Sub doNotizen()
   Do While Not rMo.EOF
    FDet = REPLACE$(rMo!FDet, "\r\n", vbCrLf)
    obhierdmpfn FDet, rNa(0).NZNr, rNa(0).dmpklass, rNa(0).dmpbeg, rNa(0).dmpkhkklass, rNa(0).dmpkhkbeg, rNa(0).dmpcopdklass, rNa(0).dmpcopdbeg, rNa(0).dmpabklass, rNa(0).dmpabbeg, rNa(0).HzV, rNa(0).HzVbeg, rNa(0).DS, rNa(0).DSbeg
-   sql = "UPDATE namen SET NZNr=" & rNa(0).NZNr & ",dmpklass=" & rNa(0).dmpklass & ",dmpbeg='" & Format(rNa(0).dmpbeg, "yyyymmdd") & "',dmpkhkklass=" & rNa(0).dmpkhkklass & ",dmpkhkbeg='" & Format(rNa(0).dmpkhkbeg, "yyyymmdd") & "',dmpcopdklass=" & rNa(0).dmpcopdklass & ",dmpcopdbeg='" & Format(rNa(0).dmpcopdbeg, "yyyymmdd") & "',dmpabklass=" & rNa(0).dmpabklass & ",dmpabbeg='" & Format(rNa(0).dmpabbeg, "yyyymmdd") & "',HzV=" & rNa(0).HzV & ",HzVbeg='" & Format(rNa(0).HzVbeg, "yyyymmdd") & "',DS=" & rNa(0).DS & ",DSbeg='" & Format(rNa(0).DSbeg, "yyyymmdd") & "' WHERE pat_id=" & rMo!fpatnr
+   sql = "UPDATE namen SET NZNr=" & rNa(0).NZNr & ",dmpklass=" & rNa(0).dmpklass & ",dmpbeg='" & Format(rNa(0).dmpbeg, "yyyymmdd") & "',dmpkhkklass=" & rNa(0).dmpkhkklass & ",dmpkhkbeg='" & Format(rNa(0).dmpkhkbeg, "yyyymmdd") & "',dmpcopdklass=" & rNa(0).dmpcopdklass & ",dmpcopdbeg='" & Format(rNa(0).dmpcopdbeg, "yyyymmdd") & "',dmpabklass=" & rNa(0).dmpabklass & ",dmpabbeg='" & Format(rNa(0).dmpabbeg, "yyyymmdd") & "',HzV=" & rNa(0).HzV & ",HzVbeg='" & Format(rNa(0).HzVbeg, "yyyymmdd") & "',DS=" & rNa(0).DS & ",DSbeg='" & Format(rNa(0).DSbeg, "yyyymmdd") & "' WHERE pat_id=" & rMo!fPatNr
    myEFrag sql, rAf, DBCn, , ErrNr, ErrDes
    If ErrNr <> 0 Then
-    syscmd 4, "Bei PatNr: " & rMo!fpatnr & ": Fehler & " & ErrNr & ": " & ErrDes
+    syscmd 4, "Bei PatNr: " & rMo!fPatNr & ": Fehler & " & ErrNr & ": " & ErrDes
    Else
     syscmd 4, "Notiz " & rMo!rg & " von " & rMo!zl & " eingetragen (geänderte Sätze: " & rAf & ")"
    End If ' ErrNr <> 0 Then
@@ -1145,6 +1152,7 @@ Public Function doPatvonMO(fPtNr&, Optional obmitFormularen%)
 '   If Not IsNumeric(rFa(jj).Quartal) Or Len(rFa(jj).Quartal) <> 5 Then Stop
 '  Next jj
 '    If rsfaru = 0 Then
+     Dim buch$
      For j = 0 To UBound(FaStr)
 '      If lfdfl = 1 Then
 '       Select Case FaStr(j).enr
@@ -1210,7 +1218,10 @@ Public Function doPatvonMO(fPtNr&, Optional obmitFormularen%)
        Case "3.2.5.2":        rFa(UBound(rFa)).DtlOnlPfg = BDTtoDateTime(Left$(FaStr(j).Text, 14))
        Case "3.2.5.3":        rFa(UBound(rFa)).ErgbdOnlP = Asc(Left$(FaStr(j).Text, 1))
        Case "3.2.5.4":
-                              rFa(UBound(rFa)).ErrorCode = Asc(Mid$(FaStr(j).Text, 2)) * 256 + Asc(Mid$(FaStr(j).Text, 1)) ' Pat. 60726 ("G/")
+                              buch = Mid$(FaStr(j).Text, 2)
+                              If buch = "" Then buch = Chr$(0)
+                              rFa(UBound(rFa)).ErrorCode = Asc(buch) * 256& + Asc(Mid$(FaStr(j).Text, 1)) ' Pat. 60726 ("G/")
+                              
        Case "3.2.5.5":        rFa(UBound(rFa)).PrüfZdFd = FaStr(j).Text
        Case "3.3":            rNa(0).KarGen = FaStr(j).Text ' Kartentyp, 0, 2, 3
        Case "3.4":
@@ -2590,7 +2601,7 @@ Sub richtdiag()
  myFrag rPt, "SELECT COUNT(0) OVER() zahl, FPatnr FROM ltag WHERE FEintragsart=12 GROUP BY FPatnr", adOpenStatic, MOCon
  If Not rPt.BOF Then
   Do While Not rPt.EOF
-   rNa(0).Pat_ID = rPt!fpatnr
+   rNa(0).Pat_ID = rPt!fPatNr
    aktz = aktz + 1
    myFrag rPid, "SELECT 0 FROM faelle WHERE pat_id=" & rNa(0).Pat_ID & " LIMIT 1", adOpenStatic
    If Not rPid.BOF() Then
@@ -2755,7 +2766,7 @@ Sub richtleist()
  myFrag rPt, "SELECT COUNT(0) OVER() zahl, FPatnr FROM ltag WHERE FEintragsart=12 GROUP BY FPatnr", adOpenStatic, MOCon
  If Not rPt.BOF Then
   Do While Not rPt.EOF
-   rNa(0).Pat_ID = rPt!fpatnr
+   rNa(0).Pat_ID = rPt!fPatNr
    aktz = aktz + 1
    myFrag rPid, "SELECT 0 FROM faelle WHERE pat_id=" & rNa(0).Pat_ID & " LIMIT 1", adOpenStatic
    If Not rPid.BOF() Then
@@ -2789,10 +2800,26 @@ fehler:
  End Select
 End Sub ' richtleist
 
+Sub callMOLei()
+ MOConInit
+ Dim rsL As New ADODB.Recordset, i&
+' rsL.Open "select count(0) over() zahl, fpatnr from ltag where feintragsart=12 and fpatnr<68608 group by fpatnr order by fpatnr desc", MOCon, adOpenStatic, adLockReadOnly
+ rsL.Open "select count(0) over() zahl, fpatnr from ltag where feintragsart=12 and fpatnr<53194 group by fpatnr order by fpatnr desc", MOCon, adOpenStatic, adLockReadOnly
+ Do While Not rsL.EOF
+  i = i + 1
+  ReDim rLe(0)
+  Debug.Print "-----------> " & i & "/" & rsL!Zahl, rsL!fPatNr
+  MOLeistungen rsL!fPatNr
+  rsL.MoveNext
+ Loop
+ Debug.Print "Fertig!"
+End Sub
+
 ' in doPatvonMo
 Sub MOLeistungen(fPtNr&, Optional pid& = -1)
   Dim rsEi As ADODB.Recordset
   Dim abz%
+  Dim rAf&
   On Error GoTo fehler
   syscmd 4, "bearbeite Leistungen"
   
@@ -2808,16 +2835,19 @@ Sub MOLeistungen(fPtNr&, Optional pid& = -1)
   
   If pid = -1 Then pid = fPtNr
 '  Leistungen
-  sql = "SELECT 18900101+INTERVAL FDatum DAY+INTERVAL FZeit SECOND Zp, MID(18900101+INTERVAL FDatum DAY+INTERVAL FZeit SECOND,12,5) uhrz, FICdcode Art," & _
-  "REPLACE(COALESCE(REPLACE(MID(FDetails,INSTR(FDetails,'ext ""')+5,LENGTH(FDetails)-2-INSTR(FDetails,'ext ""')-5),'\n','; '),FText),'''','\''') FText," & _
-  "FEintragsart, 18900101+INTERVAL FAnorddatum DAY+INTERVAL FAnordzeit SECOND AnZp," & _
-  "COALESCE(na.FInitialen,'') ua, COALESCE(nb.FInitialen,'') ub, REPLACE(REPLACE(REPLACE(FDetails,'{(Gnrliste [',''),'])}',''),'''','\''') Lei " & _
+  sql = "SELECT 18900101+INTERVAL FDatum DAY+INTERVAL FZeit SECOND Zp, MID(18900101+INTERVAL FDatum DAY+INTERVAL FZeit SECOND,12,5) uhrz, FICdcode Art," & vbCrLf & _
+  "REPLACE(COALESCE(REPLACE(MID(FDetails,INSTR(FDetails,'ext ""')+5,LENGTH(FDetails)-2-INSTR(FDetails,'ext ""')-5),'\n','; '),FText),'''','\''') FText," & vbCrLf & _
+  "FEintragsart, 18900101+INTERVAL FAnorddatum DAY+INTERVAL FAnordzeit SECOND AnZp," & vbCrLf & _
+  "COALESCE(na.FInitialen,'') ua, COALESCE(nb.FInitialen,'') ub, REPLACE(REPLACE(REPLACE(FDetails,'{(Gnrliste [',''),'])}',''),'''','\''') Lei " & vbCrLf & _
   "FROM ltag l " & vbCrLf & _
-  "LEFT JOIN nutzerneu na ON FAnordnutzernr= na.FSurogat " & _
-  "LEFT JOIN nutzerneu nb ON FAusfnutzernr= nb.FSurogat " & _
-  "WHERE FPatnr = " & fPtNr & _
-  " AND FEintragsart=12" ' & _
+  "LEFT JOIN nutzerneu na ON FAnordnutzernr= na.FSurogat " & vbCrLf & _
+  "LEFT JOIN nutzerneu nb ON FAusfnutzernr= nb.FSurogat " & vbCrLf & _
+  "WHERE FPatnr = " & fPtNr & vbCrLf & _
+  " AND FEintragsart=12" ' &  vbcrlf & _
 '  " AND 18900101+INTERVAL FDatum DAY+INTERVAL FZeit SECOND >CONVERT(240601, DATE)"
+'  "AND FDetails RLIKE '(""97271E""|""92392F""|""92392B"")'" & vbCrLf & _
+'  "AND CONVERT(18900101+INTERVAL FDatum DAY+INTERVAL FZeit SECOND, date) BETWEEN 20250101 AND 20250401" & vbCrLf & _
+
   myFrag rsEi, sql, adOpenStatic, MOCon ' AU
   If Not rsEi.BOF Then
    Do While Not rsEi.EOF
@@ -2866,9 +2896,10 @@ Sub MOLeistungen(fPtNr&, Optional pid& = -1)
            rLe(UBound(rLe)).Zone = Inh
           Case "Lkz":
            Select Case Inh
-            Case "K": rLe(UBound(rLe)).Lanr = "933284903"
-            Case "S": rLe(UBound(rLe)).Lanr = "889690003"
-            Case Else: rLe(UBound(rLe)).Lanr = "999999900"
+            Case "K", "tk": rLe(UBound(rLe)).Lanr = "933284903": rLe(UBound(rLe)).lanrid = 2
+            Case "S", "gs": rLe(UBound(rLe)).Lanr = "889690003": rLe(UBound(rLe)).lanrid = 1
+            Case "H", "ah": rLe(UBound(rLe)).Lanr = "177828303": rLe(UBound(rLe)).lanrid = 5
+            Case Else: rLe(UBound(rLe)).Lanr = "999999900": rLe(UBound(rLe)).lanrid = 4
            End Select
           Case "Lstgerbnr"
            rLe(UBound(rLe)).Lstgerbnr = Inh
@@ -2945,6 +2976,13 @@ Sub MOLeistungen(fPtNr&, Optional pid& = -1)
     rsEi.MoveNext
    Loop ' while not rsEi.EOF
   End If ' Not rsEi.BOF Then
+ Dim jj&
+' DBCn.BeginTrans
+' For jj = 1 To UBound(rLe)
+'  DBCn.Execute "update leistungen set lanrid = " & rLe(jj).lanrid & ",lanr=" & rLe(jj).Lanr & " where pat_id=" & rLe(jj).Pat_ID & " and leistung = '" & rLe(jj).Leistung & "' and position=" & rLe(jj).Position & " and zeitpunkt='" & Format(rLe(jj).Zeitpunkt, "yyyymmddHHMMSS") & "'", rAf
+''  Debug.Print jj, rLe(jj).lanrid, rLe(jj).Pat_ID, rLe(jj).Leistung, rLe(jj).Position, rLe(jj).Zeitpunkt, rAf
+' Next jj
+' DBCn.CommitTrans
  Exit Sub
 fehler:
  Dim AnwPfad$

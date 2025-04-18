@@ -1634,7 +1634,7 @@ Private Sub do_Medpläne_alt_für_MO_exportieren_Click(Optional xmlneu%)
   Call BDT.Start(Untervz, "MP")
   Do While Not rMP.EOF
    If rMP!prang = 1 Then
-    syscmd 4, "Exportiere Medpläne von Pat. " & rMP!Pat_ID & " (" & rMP!NachName & ", " & rMP!Vorname & ") in " & BDT.DMPImp
+    syscmd 4, "Exportiere Medpläne von Pat. " & rMP!Pat_ID & " (" & rMP!Nachname & ", " & rMP!Vorname & ") in " & BDT.DMPImp
     Call BDT.SAdd("8000", "0020", True) ' Satzart
     Call BDT.SAdd("8100", rMP!MPzl * 12 + 50) ' Satzlänge
     Call BDT.SAdd("9100", rMP!BSNR) ' Arztnummer des Absenders
@@ -1673,7 +1673,7 @@ Private Sub do_Medpläne_alt_für_MO_exportieren_Click(Optional xmlneu%)
      Open Untervz & mpdt For Output As #240
      csmp.Clear
      csmp.Append "<MP v=""026"" a=""1"" z=""1"" l=""de-DE"">"
-     csmp.Append "<P g=""" & rMP!Vorname & """ f=""" & rMP!NachName & """ egk=""" & rMP!VN & """ b=""" & rMP!Geb & """/>"
+     csmp.Append "<P g=""" & rMP!Vorname & """ f=""" & rMP!Nachname & """ egk=""" & rMP!VN & """ b=""" & rMP!Geb & """/>"
      csmp.Append "<A lanr=""" & rMP!Lanr & """ n=""" & rMP!lnam & """ s=""Mittermayerstrasse 13"" z=""85221"" c=""Dachau"" p=""08131 / 616 380"" e=""diabetologie@dachau-mail.de"" t=""0001-01-01T00:00:00""/>"
      csmp.Append "<O/>"
      csmp.Append "<S c=""412"">"
@@ -1735,14 +1735,14 @@ Private Sub PiDzuord_Click()
  Do While Not rnam.EOF
   zei = zei + 1
 '  Debug.Print zei, rNam!Pat_ID
-  sql = "SELECT fsurogat FROM patstamm WHERE FNachname='" & doUmwfSQL(rnam!NachName, False) & "' AND FVorname='" & rnam!Vorname & "' AND FGeburtsdatum=DATE(" & Format(rnam!GebDat, "yyyymmdd") & ") AND FSurogat=" & rnam!Pat_ID
+  sql = "SELECT fsurogat FROM patstamm WHERE FNachname='" & doUmwfSQL(rnam!Nachname, False) & "' AND FVorname='" & rnam!Vorname & "' AND FGeburtsdatum=DATE(" & Format(rnam!GebDat, "yyyymmdd") & ") AND FSurogat=" & rnam!Pat_ID
   Call myFrag(rPS, sql, adOpenStatic, MOCon)
   If rPS.BOF Then
-   sql = "SELECT fsurogat,FNachname,FVorname,FGeburtsdatum FROM patstamm WHERE FNachname='" & doUmwfSQL(rnam!NachName, False) & "' AND FVorname='" & rnam!Vorname & "' AND FGeburtsdatum=DATE(" & Format(rnam!GebDat, "yyyymmdd") & ")"
+   sql = "SELECT fsurogat,FNachname,FVorname,FGeburtsdatum FROM patstamm WHERE FNachname='" & doUmwfSQL(rnam!Nachname, False) & "' AND FVorname='" & rnam!Vorname & "' AND FGeburtsdatum=DATE(" & Format(rnam!GebDat, "yyyymmdd") & ")"
    Call myFrag(rPS, sql, adOpenStatic, MOCon)
    If Not rPS.BOF Then
     If rPS!fsurogat <> rnam!Pat_ID Then
-     Debug.Print "Unterschied: " & rPS!fsurogat & " " & rPS!fnachname & " "; rPS!FVorname & " " & rPS!fGeburtsdatum & " <> " & rnam!Pat_ID & " " & rnam!NachName & " " & rnam!Vorname & " " & rnam!GebDat
+     Debug.Print "Unterschied: " & rPS!fsurogat & " " & rPS!fnachname & " "; rPS!FVorname & " " & rPS!fGeburtsdatum & " <> " & rnam!Pat_ID & " " & rnam!Nachname & " " & rnam!Vorname & " " & rnam!GebDat
      DBCn.Execute "UPDATE namen SET FPatnr=" & rPS!fsurogat & " WHERE pat_id=" & rnam!Pat_ID, rAf
      If rAf = 0 Then
       Debug.Print "rAf 0 bei " & rnam!Pat_ID & " vs. " & rPS!fsurogat
@@ -1856,7 +1856,7 @@ If False Then
  "FROM patfall f " & vbCrLf & _
  "LEFT JOIN patstamm p ON p.FSurogat = f.FPatnr" & vbCrLf & _
  "WHERE 18900101 + INTERVAL f.fvon DAY BETWEEN 20250101 AND 20250331 AND fscheintyp<>1" & vbCrLf & _
- "AND fpatnr<70307" & vbCrLf & _
+ "AND fpatnr=69364" & vbCrLf & _
  "GROUP BY fpatnr" & vbCrLf & _
  "ORDER BY fpatnr DESC"
  ' "and fpatnr=67692" & vbCrLf & _
@@ -2320,7 +2320,7 @@ Private Sub WiedereinbestellungenDMP_Click()
    End If
    If obDruck Then
 '    AusgStr = Right$(Space$(4) & r1!Pat_id, 4) & " " & LEFT(r1!Nachname & Space$(15), 15) & " " & LEFT(r1!Vorname & Space$(11), 11) & "   " & IIf(obhierdmp(r1!Notiz), "X", " ") & " (" & LEFT(IIf(ISNULL(r1!Notiz) OR LenB(r1!Notiz) = 0, r1!rname, replace$(replace$(r1!Notiz, vbCr, ""), vbLf, "")) & ")" & Space$(42), 42) & " " & LEFT(r1!BhFB & Space$(10), 10) & " " & Zp
-    ausgStr = Right$(Space$(4) & r1!Pat_ID, 4) & " " & Left$(r1!NachName & Space$(15), 15) & " " & Left$(r1!Vorname & Space$(11), 11) & "   " & IIf(r1!dmpklass = hier, "X", " ") & " (" & Left$(IIf(IsNull(r1!notiz) Or LenB(r1!notiz) = 0, r1!rname, REPLACE$(REPLACE$(r1!notiz, vbCr, ""), vbLf, "")) & ")" & Space$(42), 42) & " " & Left$(r1!BhFB & Space$(10), 10) & " " & Zp
+    ausgStr = Right$(Space$(4) & r1!Pat_ID, 4) & " " & Left$(r1!Nachname & Space$(15), 15) & " " & Left$(r1!Vorname & Space$(11), 11) & "   " & IIf(r1!dmpklass = hier, "X", " ") & " (" & Left$(IIf(IsNull(r1!notiz) Or LenB(r1!notiz) = 0, r1!rname, REPLACE$(REPLACE$(r1!notiz, vbCr, ""), vbLf, "")) & ")" & Space$(42), 42) & " " & Left$(r1!BhFB & Space$(10), 10) & " " & Zp
 '    Debug.Print AusgStr
     Me.Ausgeb ausgStr & vbCrLf & altAusgabe, True
     Print #339, ausgStr
@@ -2964,7 +2964,7 @@ Private Sub NachzuholendeLaborimporte_Click()
  If Not rs.BOF Then
   lfdnr = 1
   Do While Not rs.EOF
-   Print #301, Right$("   " & lfdnr, 3) & ": Pat: " & Right$("   " & rs!Pat_ID, 4) & " Auftrag: " & Right$("       " & rs!Auftragsnummer, 11) & " " & rs!Eingang & " " & IIf(Len(rs!Pfad) < 50, Right$(Space$(50) & rs!Pfad, 50), rs!Pfad) & " (Pat: " & rs!NachName & ", " & rs!Vorname & " Werte: " & Trim$(rs!LWerte) & ")"
+   Print #301, Right$("   " & lfdnr, 3) & ": Pat: " & Right$("   " & rs!Pat_ID, 4) & " Auftrag: " & Right$("       " & rs!Auftragsnummer, 11) & " " & rs!Eingang & " " & IIf(Len(rs!Pfad) < 50, Right$(Space$(50) & rs!Pfad, 50), rs!Pfad) & " (Pat: " & rs!Nachname & ", " & rs!Vorname & " Werte: " & Trim$(rs!LWerte) & ")"
 '   Print #301, lfdnr & ": Pat: " & rs!Pat_id & " (" & rs!Nachname & ", " & rs!Vorname & "), für: " & rs!Eingang & ", Auftragsnummer: " & rs!Auftragsnummer & " (Werte: " & rs!LWerte & ")"
 '   Print #301, "   dann importieren: " & rs!Pfad
    lfdnr = lfdnr + 1
@@ -3971,7 +3971,7 @@ Private Sub falschenLaboreintragZuPatlöschen_Click()
  If Not rs.BOF Then
   Open pVerz & "löschegleich " & Format(Now(), "yyyymmdd_MMHHSS") & ".txt" For Output As #59
   Do While Not rs.EOF
-   ltxt = "USID: " & rs!id & ", DatID: " & rs!DatID & ", Name: " & rs!NachName & ", Vorname: " & rs!Vorname & ", Geb: " & rs!GebDat & ", Eingang: " & rs!Eingang & vbCrLf & "aus Datei: " & rs!Pfad & vbCrLf & rs!LWerte & vbCrLf & "Baktzahl: " & rs!bzl & ", Leistzahl: " & rs!lzl & ", USZahl: " & rs!uzl & ", Wertzahl: " & rs!bzw
+   ltxt = "USID: " & rs!id & ", DatID: " & rs!DatID & ", Name: " & rs!Nachname & ", Vorname: " & rs!Vorname & ", Geb: " & rs!GebDat & ", Eingang: " & rs!Eingang & vbCrLf & "aus Datei: " & rs!Pfad & vbCrLf & rs!LWerte & vbCrLf & "Baktzahl: " & rs!bzl & ", Leistzahl: " & rs!lzl & ", USZahl: " & rs!uzl & ", Wertzahl: " & rs!bzw
    erg = MsgBox("Löschen? " & ltxt, vbYesNo)
    If erg = vbYes Then
     Print #59, ltxt
@@ -4203,7 +4203,7 @@ Private Sub Apothekenrezepte_Click()
  Open Datei For Output As #333
  myFrag rs, "SELECT foid, nachname, vorname, DATE(gebdat) AS geb, fr.zeitpunkt AS Zeitp, fa.feldinh AS text FROM `formular` fr LEFT JOIN `formular` fa USING (foid) LEFT JOIN `namen` ON fr.pat_id = `namen`.pat_id WHERE fr.feldinh LIKE '%Gerald Schade;' AND NOT ISNULL(fr.pat_id) AND fr.formvorl LIKE '%rezept%' AND ((fr.formvorl LIKE '%lang%' AND fa.feld = 'medikament') OR (fr.formvorl NOT LIKE '%lang%' AND fa.nr IN (4,8,9,10,11))) AND fr.zeitpunkt BETWEEN '2008-02-01' AND now() AND NOT fa.feldinh LIKE '%-  -%'"
  Do While Not rs.EOF
-  Print #333, rs!Foid & ";" & rs!NachName & ";" & rs!Vorname & ";" & rs!Geb & ";" & rs!Zeitp & ";" & rs!Text
+  Print #333, rs!Foid & ";" & rs!Nachname & ";" & rs!Vorname & ";" & rs!Geb & ";" & rs!Zeitp & ";" & rs!Text
   rs.Move 1
  Loop
  Close #333
@@ -5138,7 +5138,7 @@ Public Sub doCallDMP(ByVal pid&)
  ReDim rNa(0)
  rNa(0).Pat_ID = pid
  myFrag rsNa, "SELECT * FROM `namen` WHERE pat_id = " & pid
- If Not rsNa.BOF And Not IsNull(rsNa!NachName) And Not IsNull(rsNa!Vorname) Then
+ If Not rsNa.BOF And Not IsNull(rsNa!Nachname) And Not IsNull(rsNa!Vorname) Then
   dmpstD = GesNamFn(rsNa) & " (" & pid & ") "
  Else
   dmpstD = pVerz & "DmpString "

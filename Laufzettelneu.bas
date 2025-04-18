@@ -1108,7 +1108,7 @@ On Error GoTo fehler
  Dim UKtip$ ' String für Tip-Tool zu UKPDS-Risk
  Dim therart$ ' letzte Therapieart
  Dim dmtyp$
- Dim obdm%, obweibl%, obdement%, GebDat As Date, PrivatTel$, PrivatTel_2$, PrivatMobil$, PrivatFax$, DienstTel$, Email$, HzV$
+ Dim obdm%, obweibl%, obdement%, GebDat As Date, PrivatTel$, PrivatTel_2$, PrivatMobil$, PrivatFax$, DienstTel$, email$, HzV$
  Dim obart%, obherzi%, obneph%, obreti% ' Arteriosklerose, Herzinsuffizienz, Nephropathie, Retinopathie
  Dim ru% ' Runde
  Dim dmseit$, icdh$ ' ICD-Hauptteil
@@ -1177,7 +1177,7 @@ On Error GoTo fehler
  dmpkhkbeg = rnam!dmpkhkbeg
  dmpcopdbeg = rnam!dmpcopdbeg
  dmpabbeg = rnam!dmpabbeg
- NName = rnam!NachName
+ NName = rnam!Nachname
  VName = rnam!Vorname
  obweibl = (rnam!geschlecht = "w")
  GebDat = rnam!GebDat
@@ -1186,7 +1186,7 @@ On Error GoTo fehler
  PrivatMobil = rnam!PrivatMobil
  PrivatFax = rnam!PrivatFax
  DienstTel = rnam!DienstTel
- Email = rnam!Email
+ email = rnam!email
  HzV = rnam!HzV
  PAlter = AlterBei(Now(), rnam!GebDat)
  Dim DiagTab() As CString
@@ -2335,8 +2335,9 @@ keinuzu:
   End If
 #End If
   ' 255,204,229 = #ffcce5 rötlich; 229,204,255 = #E5CCFF bläulich; #ffffcc gelblich
-  AusS.AppVar (Array(" ", IIf(dmtyp = "1" Or dmtyp = "2" Or dmtyp = "g", "<span style='background-color:" & IIf(dmtyp = "1", "#ffd9e8", IIf(dmtyp = "g", "#ffffde", "#efe0ff")) & "'", ""), "<B><span title='", VName, " ", NName, ", ", rnam!strasse, ", ", rnam!Plz, " ", rnam!Ort, ", Tel1: ", PrivatTel, ", Tel2: ", PrivatTel_2, ", Mobil:", PrivatMobil, ", Fax: ", PrivatFax, ", Diensttel: ", DienstTel & ", Email: ", Email, "'>", IIf(vorET > Now(), "<span class='schwanger'>", ""), _
-  GesNamFn(rnam), "</span></B>, *", Format(rnam!GebDat, "d.m.yy"), " (", PAlter, "a), <span style='color:blue'><span class='unauff'>&nbsp;&nbsp;Pat_id: </span>", Pat_ID, "</span><span id = 'unauff'>,", IIf(obdm, "&nbsp;&nbsp;D.m.seit: ", ""), IIf(obdm, dmseit, ""), ",&nbsp;&nbsp;vorgestellt: ", Format(Vorgestellt, "d.m.yy"), ",&nbsp;&nbsp;für: </span>", Format(Datum, "d.m.yy"), " <span style='font-size:smaller'>", Format(Uhrzeit, "hh:mm"), ",</span>&nbsp;&nbsp;&nbsp;<span class='unauff'>", rnam!notiz, ",&nbsp;&nbsp;&nbsp;", IIf(obdm, "Therapie zuletzt: ", ""), "</span>", IIf(obdm, therart, ""), "<span " & dmpfarbe & ">", DmPStr, "</span></h1>", vbCrLf))
+  doMarkierungen CLng(Pat_ID), True
+  AusS.AppVar (Array(" ", IIf(dmtyp = "1" Or dmtyp = "2" Or dmtyp = "g", "<span style='background-color:" & IIf(dmtyp = "1", "#ffd9e8", IIf(dmtyp = "g", "#ffffde", "#efe0ff")) & "'", ""), "<B><span title='", VName, " ", NName, ", ", rnam!strasse, ", ", rnam!plz, " ", rnam!ort, ", Tel1: ", PrivatTel, ", Tel2: ", PrivatTel_2, ", Mobil:", PrivatMobil, ", Fax: ", PrivatFax, ", Diensttel: ", DienstTel & ", Email: ", email, "'>", IIf(vorET > Now(), "<span class='schwanger'>", ""), _
+  GesNamFn(rnam), "</span></B>, *", Format(rnam!GebDat, "d.m.yy"), " (", PAlter, "a), <span style='color:blue'><span class='unauff'>&nbsp;&nbsp;Pat_id: </span>", Pat_ID, "</span><span id = 'unauff'>,", IIf(obdm, "&nbsp;&nbsp;D.m.seit: ", ""), IIf(obdm, dmseit, ""), ",&nbsp;&nbsp;vorgestellt: ", Format(Vorgestellt, "d.m.yy"), ",&nbsp;&nbsp;für: </span>", Format(Datum, "d.m.yy"), " <span style='font-size:smaller'>", Format(Uhrzeit, "hh:mm"), ",</span>&nbsp;&nbsp;&nbsp;<span class='unauff'>", rnam!notiz, ",&nbsp;&nbsp;&nbsp;", IIf(obdm, "Therapie zuletzt: ", ""), "</span>", IIf(obdm, therart, ""), "<span " & dmpfarbe & ">", DmPStr, IIf(rNa(0).obk <> 0, " &#x1F7E6;", ""), IIf(rNa(0).obs <> 0, "&#x1F7E8;", ""), IIf(rNa(0).obh <> 0, "&#x1F7E9;", ""), "</span></h1>", vbCrLf))
 ' TherapieArtEinzelnFestlegen(CLng(Pat_ID), rAn) & "</span></h1>" ' VName, " ", NName
   ' * 2.73792574745373E-03 ' 1/365,24
   AusS.AppVar (Array("</h1>", vbCrLf))
@@ -2416,7 +2417,7 @@ keinuzu:
   If (obphp <> 0) Then
    AusS.AppVar (Array("<?php ", vbCrLf))
    AusS.AppVar (Array(" $pat_id=", Pat_ID, ";", vbCrLf))
-   AusS.AppVar Array(" $_SESSION['tel']=""T:", PrivatTel, ",T2:", PrivatTel_2, ",M:", PrivatMobil, ",Fx:", PrivatFax, ",D:", DienstTel, ",E:", Email, """;", vbCrLf)
+   AusS.AppVar Array(" $_SESSION['tel']=""T:", PrivatTel, ",T2:", PrivatTel_2, ",M:", PrivatMobil, ",Fx:", PrivatFax, ",D:", DienstTel, ",E:", email, """;", vbCrLf)
    AusS.AppVar Array(" $telnr=1;", vbCrLf)
 
 ' Liste der ganz fehlenden Parameter
