@@ -80,8 +80,7 @@ Dim $KopieIn   ; Kopie der Datei in
 Dim $iKopIn, $iKopAusw, $KopIn
 Dim $idokakt ; zum Fokussieren auf Dokumentenliste
 Dim $iSort ; Dateisortierung
-Dim $sql
-Dim $usr[0], $pwd[0], $passwd
+Dim $sql, $usr[0], $pwd[0], $passwd
 Dim $lgwFl = 0 ;
 Dim $markD ; Array markierter Dateien
 Dim $ursn, $dtnn ; gesammelte ursprüngliche und zu verarbeitende Dateien
@@ -1383,8 +1382,9 @@ Func DBEintrag($ix, $gebDat, $Ort, $Pid, $kopart) ; Rückgabe: 1 = Erfolg; $kopar
 					EndIf ; $kopart Then
 					$sql = _
 "INSERT INTO tmbrie(fid,pat_id,tm_pat_id,zeitpunkt,quelldatum,Pfad,Art,NAME,Autor,AktZeit,DokGroe,DokAenD,StByte,qs,qt)" & @CRLF & _
-"VALUES(COALESCE((SELECT MAX(fid) FROM faelle WHERE pat_id=" & $pid & " AND laend BETWEEN bhfb AND bhfe1),COALESCE((SELECT MAX(fid) FROM faelle WHERE pat_id=" & $pid & " AND laend > bhfb),(SELECT MAX(fid) FROM faelle WHERE pat_id=" & $pid & ")))," & @CRLF & _
- $pid & ",pidtm(" & $pid & "),'" & $jetzt & "',quelldat('" & doUmwfSQL($patName[$ix]) & "','" & $dlaend[$mDix] & "'),CONCAT('p:\\eingelesen\\',YEAR('" & $dlaend[$mDix] & "'),'\\','" & doUmwfSQL($patName[$ix]) & "'),'" & $typ[$mDix] & "','" & doUmwfSQL($patName[$ix]) & "','" & $Kuerzel & "',NOW()," & StringReplace($dgroe[$mDix], ".", "") & ",'" & $dlaend[$mDix] & "',-11,zqsort('" & $dlaend[$mDix] & "'),zquart('" & $dlaend[$mDix] & "'))"
+"VALUES(COALESCE((SELECT MAX(fid) FROM faelle WHERE pat_id=" & $pid & " AND '" & $dlaend[$mDix] & "' BETWEEN bhfb AND bhfe1),COALESCE((SELECT MAX(fid) FROM faelle WHERE pat_id=" & $pid & " AND '" & $dlaend[$mDix] & "'> bhfb),(SELECT MAX(fid) FROM faelle WHERE pat_id=" & $pid & ")))," & @CRLF & _
+ $pid & ",pidtm(" & $pid & "),'" & $jetzt & "',quelldat('" & doUmwfSQL($datName[$ix]) & "','" & $dlaend[$mDix] & "'),CONCAT('p:\\eingelesen\\',YEAR('" & $dlaend[$mDix] & "'),'\\','" & doUmwfSQL($datName[$ix]) & "'),'" & $typ[$mDix] & "','" & doUmwfSQL($datName[$ix]) & "','" & $Kuerzel & "',NOW()," & StringReplace($dgroe[$mDix], ".", "") & ",'" & $dlaend[$mDix] & "',-11,zqsort('" & $dlaend[$mDix] & "'),zquart('" & $dlaend[$mDix] & "'))"
+;					ConsoleWrite("sql: " & $sql & @LF)
 					FragProt($sql)
 					$sql = _
 							"INSERT INTO dokprotlist(kPatN,ntum,nImp,urspnm,Patientenname,Gebdat,Ort,Pat_ID,urspName,datName,lAend,groesse,Typ,Mitarbeiter,PC,Benutzer,eingetragen" & (($kopart And $idstr[0]) ? ",ZielVZID" : "") & (($kopart = 2 And $idstr[1]) ? ",SicherVZID" : "") & ")" & @CRLF & _
@@ -1467,7 +1467,7 @@ EndFunc   ;==>VPatUn
 Func zeichneHaupt() ; für $idHaupt
 	$idHaupt = GUICreate("", 220, 250, 100, 200, BitOR($WS_MAXIMIZEBOX, $WS_SIZEBOX, $WS_SYSMENU, $WS_MINIMIZEBOX, $WS_SIZEBOX, $WS_TABSTOP, $WS_EX_CONTROLPARENT), $WS_EX_ACCEPTFILES)
 	GUISetState(@SW_HIDE, $idHaupt)
-	WinSetTitle($idHaupt, "", "Dateien in '" & $Pfad & "' benennen (Pat. aus " & $cSvr[$cRd] & ", User: " & $cUsr[$cRd] & ", Db: " & $cDb[$cRd] & ", Port: " & $cPrt[$cRd] & ")")
+	WinSetTitle($idHaupt, "", "Dateien in '" & $Pfad & "' benennen (Version 1.2; Pat. aus " & $cSvr[$cRd] & ", User: " & $cUsr[$cRd] & ", Db: " & $cDb[$cRd] & ", Port: " & $cPrt[$cRd] & ")")
 	GUIRegisterMsg($WM_SIZE, 'WM_SIZE')
 	If $mitImport then
 		GUISetBkColor(0x00E0FFFF) ; will change background color
@@ -2305,59 +2305,75 @@ Func WM_NOTIFY($hWnd, $iMsg, $wParam, $lParam)
 					Case $NM_DBLCLK, $NM_CLICK, -101 ; -3, -2
 						Local $gwNr = GUICtrlRead($idDtn) ; Reihenfolgenummer des ggf. gewählten Datei-Eintrags
 						If $gwNr Then
-							ConsoleWrite("gwNr: " & $gwNr & @LF)
+;							ConsoleWrite("gwNr: " & $gwNr & @LF)
 							Local $gwDa = GUICtrlRead($gwNr) ; Datei-Eintrag
-							ConsoleWrite("gwDA: " & $gwDa & @LF)
-
-							ControlSetText($idHaupt, "", $idPatWahl, "")
-							Local $TzA[] = [" ","_",", ",","], $gefunden=0
-							local $gEntr
+;							ConsoleWrite("gwDA: " & $gwDa & @LF)
+;							ControlSetText($idHaupt, "", $idPatWahl, "")
+							Local $TzA[] = [" ","_",", ",",","Befund_"], $gefunden
+							Local $gEntr
 							$gEntr = _GetEntries($idDtn)
-							local $merkname
+							Local $merkname, $merkiy
 							$merkname=""
 							For $iy = 0 to UBound($gEntr)-1
-								consolewrite("$aDL[$gEntr[" & $iy & "]]: " & $aDL[$gEntr[$iy]] & @lf)
+;								ConsoleWrite("$aDL[$gEntr[" & $iy & "]]: " & $aDL[$gEntr[$iy]] & @lf)
+								$gefunden=0
 								For $Tz In $TzA
-									Local $pos = StringInStr($aDL[$gEntr[$iy]], $Tz, 0, 2)
-									If $pos Then
-										Local $pna = StringSplit(StringLeft($aDL[$gEntr[$iy]], $pos), $Tz)
+									Local $pos 
+									If $Tz="Befund_" Then
+										If StringLeft($aDL[$gEntr[$iy]],7)="Befund_" Then $pos=-1
+									Else
+									  $pos = StringInStr($aDL[$gEntr[$iy]], $Tz, 0, 2)
+									EndIf
+;									ConsoleWrite("pos: " & $pos & ", Tz: <" & $Tz & ">" & @LF)
+									If $pos<>0 Then
+										Local $pnan 
+										If $pos=-1 Then
+											ReDim $pnan[3]
+;											ConsoleWrite("pos -1" & @LF)
+											For $iz=9 To StringLen($aDL[$gEntr[$iy]])
+;										        ConsoleWrite("iz: " & $iz & ", Stringmid: " & StringMid($aDL[$gEntr[$iy]],$iz,1) & @LF)
+												If StringIsUpper(StringMid($aDL[$gEntr[$iy]],$iz,1)) Then
+													$pnan[2]=StringMid($aDL[$gEntr[$iy]],8,$iz-8)
+													$pnan[1]=stringmid($aDL[$gEntr[$iy]],$iz,StringInStr($aDL[$gEntr[$iy]]," ")-$iz)
+;													ConsoleWrite("pna[1]: " & $pna[1] & ", pna[2]: " & $pna[2] & @LF)
+													ExitLoop
+												EndIf
+											Next; $iz
+										Else
+											$pnan = StringSplit(StringLeft($aDL[$gEntr[$iy]], $pos), $Tz)
+										EndIf; $pos=-1 Else 
+;											ConsoleWrite("!!!!! Hier Befund_" & @LF)
 										;							ConsoleWrite(">>>>>>>>>> " & $pna[1] & ", " & $pna[2] & @LF)
 										For $j = 0 To 1
-											Local $suchstr=StringLeft($pna[1+$j],StringLen($pna[1+$j])-(StringRight($pna[1+$j],1)=","?1:0)) & ", " & StringLeft($pna[2-$j],StringLen($pna[2-$j])-(StringRight($pna[2-$j],1)=","?1:0)) & " (1)"
-;                                            ConsoleWrite("Namensuche: " & $suchstr & @LF)
+											Local $suchstr=StringLeft($pnan[1+$j],StringLen($pnan[1+$j])-(StringRight($pnan[1+$j],1)=","?1:0)) & ", " & StringLeft($pnan[2-$j],StringLen($pnan[2-$j])-(StringRight($pnan[2-$j],1)=","?1:0)) & " (1)"
+;                                            ConsoleWrite("NamensuchString: " & $suchstr & ": ")
 											If _GUICtrlComboBox_SelectString($idpatwahl,$suchstr) <> -1 Then
-;												consolewrite("gefunden!!!!!!!!!" & @lf)
-												if $merkname = "" then
+;												ConsoleWrite("gefunden" & @lf)
+												$gefunden = 1
+												If $merkname = "" then
 													$merkname = GUICtrlRead($idpatwahl)
-													$gefunden = 1
-													ExitLoop
-												ElseIf $merkname <> GUICtrlRead($idpatwahl) and GUICtrlRead($idpatwahl)<>"" Then
-													ConsoleWrite("Merkname: " & $merkname & ", GUICtrlRead($idpatwahl): " & GUICtrlRead($idpatwahl) & @lf)
+;													ConsoleWrite("Merkname zugewiesen: " & $merkname & @LF)
+													$merkiy=$iy
+												ElseIf $merkname <> GUICtrlRead($idpatwahl) and GUICtrlRead($idpatwahl)<>"" and $iy<>$merkiy Then
+;													ConsoleWrite("Merkname: " & $merkname & ", GUICtrlRead($idpatwahl): " & GUICtrlRead($idpatwahl) & @lf)
 													MsgBox(64,"Warnung","Wohl Dateien verschiedener Patienten ausgewählt!")
 													_GUICtrlListView_SetItemSelected($idDtn, -1, False)
+													ControlSetText($idHaupt, "", $idPatWahl, "")
 													Return 0
-												endif
+												EndIf
+												ExitLoop
+;											Else
+;												ConsoleWrite("nicht gefunden" & @lf)
 											EndIf
 										Next; $j
+;										ConsoleWrite("Nach innerer Schleife, gefunden: <" & $gefunden & ">" & @LF)
+										If $gefunden Then 
+;											ConsoleWrite("nach gefunden mit Tz: " & $Tz & @LF)
+											ExitLoop
+										EndIf
 									EndIf; $pos
 								Next ; $Tz
 							Next; $iy
-;							$gefunden=0
-;							For $Tz In $TzA
-;								Local $pos = StringInStr($gwDa, $Tz, 0, 2)
-;								If $pos Then
-;									Local $pna = StringSplit(StringLeft($gwDa, $pos), $Tz)
-;									;							ConsoleWrite(">>>>>>>>>> " & $pna[1] & ", " & $pna[2] & @LF)
-;									For $j = 0 To 1
-;										If _GUICtrlComboBox_SelectString($idPatWahl, $pna[1+$j] & ", " & $pna[2-$j]) <> -1 Then
-;											ConsoleWrite("fand: " & GUICtrlRead($idpatwahl) & @lf)
-;											$gefunden=1
-;											ExitLoop
-;										EndIf
-;									Next; $j
-;									If $gefunden Then ExitLoop
-;								EndIf; $pos
-;							Next ; $Tz
 							If Not $gefunden Then ControlSetText($idHaupt, "", $idPatWahl, "")
 
 							Local $gwIx = StringMid($gwDa, StringInStr($gwDa, "|", 0, -2) + 1)

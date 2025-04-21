@@ -7457,6 +7457,13 @@ Function std4(s$, dokd As Date) As Date
  If std4 > dokd Then std4 = DateAdd("yyyy", -1, std4)
 End Function ' std4(s$) As Date
 
+' in doQuelldatum
+Function std5(s$) As Date
+' edat=STR_TO_DATE(umwname,'%Y%m%d_%H%i%s')
+ On Error Resume Next
+ std2 = CDate(s)
+End Function ' std2(s$) As Date
+
 
 ' notwendig für diese Funktion: Verweis auf Microsoft VBScript Regular Expressions: c:\windows\syswow64\vbscript.dll\3
 ' aufgerufen in doLies (2x), doPatvonMO
@@ -7470,6 +7477,7 @@ Function doQuelldatum(ByVal name$, Optional dokd As Date) As Date
  Const m2$ = "(19|20)[0-9]{2}[01][0-9][0-3][0-9]_[0-2][0-9][0-6][0-9]{3}"
  Const m3$ = "(31\.((0|)[13578]|1[02])|30\.((0|)[1,3-9]|1[0-2])|((0|)[1-9]|[1-2][0-9])\.((0|)[0-9]|1[0-2]))\.(19|20|)([0-9]{2})( ([0-9]|[0-2][0-9])[.:][0-9]{2}([.:][0-9]{2}|)|)"
  Const m4$ = "(31\.((0|)[13578]|1[02])|30\.((0|)[1,3-9]|1[0-2])|((0|)[1-9]|[1-2][0-9])\.((0|)[0-9]|1[0-2]))\."
+ Const m5$ = "[0-9]{2,4}-[0-9]{2}-[0-3][0-9](?!_)"
  Dim flname$, testname$, umwname$
  Dim eDat As Date
  posf = InStr(1, name, Flb, vbTextCompare)
@@ -7499,6 +7507,11 @@ Function doQuelldatum(ByVal name$, Optional dokd As Date) As Date
       p1 = REGEXP_INSTR(testname, m4)
       If p1 <> 0 Then
        art = 4: umwname = REGEXP_SUBSTR(Mid$(testname, p1), m4)
+      Else
+       p1 = REGEXP_INSTR(testname, m5)
+       If p1 <> 0 Then
+        art = 5: umwname = REGEXP_SUBSTR(Mid$(testname, p1), m5)
+       End If
       End If
      End If
     End If
@@ -7513,6 +7526,7 @@ Function doQuelldatum(ByVal name$, Optional dokd As Date) As Date
    Case 2: eDat = std2(umwname)
    Case 3: eDat = std3(umwname)
    Case 4: eDat = std4(umwname, dokd)
+   Case 5: eDat = std5(umwname)
    Case Else: eDat = 0
   End Select
   If runde = 1 Or posf = 0 Or eDat <> 0 Then Exit Do
