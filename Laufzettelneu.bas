@@ -2427,10 +2427,12 @@ keinuzu:
   AusS.AppVar Array(" $_SESSION['obtelnr']=1;", vbCrLf)
   If iob(3) Then iStri(3).AppVar Array(" $_SESSION['obtelnr']=0;", vbCrLf)
   Dim razu As New ADODB.Recordset
-  myFrag razu, "SELECT (obs AND lanrid<>1) OR (obk AND lanrid<>2) obfalsch," & vbCrLf & _
-     "CONCAT('Desktop: ', IF(obs,'gelb,',''),IF(obk,'blau,',''), ' Arztzuord.: ',IF(lanrid=1,'Schade','Kothny')) wiefalar FROM (" & vbCrLf & _
-     "SELECT COALESCE((SELECT 1 FROM desktop WHERE pat_id = f.pat_id AND iconpath RLIKE '4eckblau' AND showasnote=0 LIMIT 1),0) obk," & vbCrLf & _
+  myFrag razu, "SELECT (obs AND lanrid<>1) OR (obk AND lanrid<>2) OR (obh AND lanrid<>5) obfalsch," & vbCrLf & _
+     "CONCAT('Desktop: ', IF(obs,'gelb,',''),IF(obk,'blau,',''),IF(obh,'gruen,',''),' Arztzuord.: ',IF(lanrid=1,'Schade',IF(lanrid=5,'Hammerschmidt','Kothny'))) wiefalar FROM (" & vbCrLf & _
+     "SELECT " & vbCrLf & _
+     "COALESCE((SELECT 1 FROM desktop WHERE pat_id = f.pat_id AND iconpath RLIKE '4eckblau' AND showasnote=0 LIMIT 1),0) obk," & vbCrLf & _
      "COALESCE((SELECT 1 FROM desktop WHERE pat_id = f.pat_id AND iconpath RLIKE '4eckgelb' AND showasnote=0 LIMIT 1),0) obs," & vbCrLf & _
+     "COALESCE((SELECT 1 FROM desktop WHERE pat_id = f.pat_id AND iconpath RLIKE '4EckHellgruen' AND showasnote=0 LIMIT 1),0) obh," & vbCrLf & _
      "lanrid,f.pat_id FROM faelle f  WHERE pat_id=" & Pat_ID & " ORDER BY bhfb DESC LIMIT 1) i"
   If Not razu.EOF Then
    AusS.AppVar Array(" $_SESSION['falarzt']=", IIf(razu!obfalsch, "1", "0"), ";", vbCrLf)

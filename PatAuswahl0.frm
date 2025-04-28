@@ -11,16 +11,24 @@ Begin VB.Form PatAuswahl
    ScaleHeight     =   14370
    ScaleWidth      =   14415
    ShowInTaskbar   =   0   'False
-   Begin VB.CommandButton PlzMitImp 
-      Caption         =   "&Import u PLZ"
+   Begin VB.CommandButton Übertragung 
+      Caption         =   "&Übertr."
       Height          =   315
       Left            =   8040
+      TabIndex        =   36
+      Top             =   720
+      Width           =   735
+   End
+   Begin VB.CommandButton PlzMitImp 
+      Caption         =   "Ü.u PL&Z"
+      Height          =   315
+      Left            =   8760
       TabIndex        =   35
       Top             =   720
-      Width           =   1215
+      Width           =   855
    End
    Begin VB.CheckBox ohneDaten 
-      Caption         =   "ohne Daten&übermittlung"
+      Caption         =   "&ohne Datenübermittlung"
       Height          =   195
       Left            =   6120
       TabIndex        =   34
@@ -142,7 +150,7 @@ Begin VB.Form PatAuswahl
    End
    Begin VB.ComboBox Vorlage 
       Height          =   315
-      Left            =   9600
+      Left            =   9840
       TabIndex        =   16
       Top             =   600
       Width           =   2535
@@ -252,7 +260,7 @@ Begin VB.Form PatAuswahl
    Begin VB.Label VorlageLab 
       Caption         =   "&Vorlage:"
       Height          =   255
-      Left            =   9000
+      Left            =   9240
       TabIndex        =   4
       Top             =   600
       Width           =   615
@@ -333,7 +341,7 @@ Private Sub Angeforderte_Click(Index As Integer)
  Dim VorBr$
 ' SELECT CASE Index
 '  Case 0: arztbed = "(e.art IN ('tk','ARCHIE2','APK') OR e.inhalt LIKE '%(tk)%')"
-'  Case 1: arztbed = "(e.art IN ('gs','doppler','duplex') OR e.inhalt LIKE '%(gs)%')"
+'  Case 1: arztbed = "(e.art IN ('gs','doppler','dop','duplex') OR e.inhalt LIKE '%(gs)%')"
 ' END SELECT
 '  DoCmd.Maximize
  Me.Faelle = ""
@@ -343,9 +351,9 @@ Private Sub Angeforderte_Click(Index As Integer)
 ' Me.FaellepHA.Clear
  Me.Vorbriefe = ""
 ' Me.Vorbriefe.Clear
-' myFrag rs, "SELECT f.pat_id, LEFT(CONCAT(n.nachname,',',n.vorname,IF(n.titel='','',','),n.titel,IF(n.nvorsatz='','',' '),n.nvorsatz),24) AS name, DATE_FORMAT(f.bhfb,'%d.%m.%y') BhFB, IF(e.art IN ('gs','doppler','duplex') OR e.inhalt LIKE '%(gs)%','gs','tk') arzt, f.auftrag, f.verdacht, f.befund FROM faelle f LEFT JOIN namen n ON f.pat_id = n.pat_id LEFT JOIN tmbrie b ON f.pat_id = b.pat_id AND name LIKE '%brief%' AND b.zeitpunkt > f.bhfb LEFT JOIN eintraege e ON e.pat_id = f.pat_id AND " & arztbed & " WHERE (auftrag LIKE '%beten%' OR auftrag LIKE '%bitte%' OR verdacht LIKE '%beten%' OR verdacht LIKE '%bitte%' OR befund LIKE '%beten%' OR befund LIKE '%bitte%') AND ISNULL(b.name) GROUP BY f.pat_id ORDER BY arzt, f.bhfb, f.pat_id, e.zeitpunkt DESC"
-' myFrag rs, "SELECT f.pat_id, LEFT(CONCAT(n.nachname,',',n.vorname,IF(n.titel='','',','),n.titel,IF(n.nvorsatz='','',' '),n.nvorsatz),24) AS name, DATE_FORMAT(f.bhfb,'%d.%m.%y') BhFB, IF(e.art IN ('gs','doppler','duplex') OR e.inhalt LIKE '%(gs)%','gs','tk') arzt, f.auftrag, f.verdacht, f.befund FROM faelle f LEFT JOIN namen n ON f.pat_id = n.pat_id LEFT JOIN tmbrie b ON f.pat_id = b.pat_id AND name LIKE '%brief%' AND b.zeitpunkt > f.bhfb LEFT JOIN eintraege e ON e.pat_id = f.pat_id AND " & arztbed & " LEFT JOIN `faxeinp`.`outa` o ON o.pid = f.pat_id AND o.transe > f.bhfb AND o.docname LIKE '%brief%' WHERE (auftrag LIKE '%beten%' OR auftrag LIKE '%bitte%' OR verdacht LIKE '%beten%' OR verdacht LIKE '%bitte%' OR befund LIKE '%beten%' OR befund LIKE '%bitte%') AND ISNULL(b.name) AND ISNULL(o.transe) GROUP BY f.pat_id ORDER BY f.pat_id, e.zeitpunkt DESC"
-myFrag rs, "SELECT * FROM (SELECT f.pat_id, LEFT(CONCAT(n.nachname,',',n.vorname,IF(n.titel='','',','),n.titel,IF(n.nvorsatz='','',' '),n.nvorsatz),24) AS name, DATE_FORMAT(f.bhfb,'%d.%m.%y') BhFB, (SELECT COUNT(0) FROM eintraege e WHERE pat_id = f.pat_id AND (e.art IN ('gs','doppler','duplex') OR e.inhalt LIKE '%(gs)%')) gsz, (SELECT MAX(zeitpunkt) FROM eintraege e WHERE pat_id = f.pat_id AND (e.art IN ('gs','doppler','duplex') OR e.inhalt LIKE '%(gs)%')) gsl, (SELECT COUNT(0) FROM eintraege e WHERE pat_id = f.pat_id AND (e.art IN ('tk') OR e.inhalt LIKE '%(tk)%')) tkz, (SELECT MAX(zeitpunkt) FROM eintraege e WHERE pat_id = f.pat_id AND (e.art IN ('tk') OR e.inhalt LIKE '%(tk)%')) tkl," & _
+' myFrag rs, "SELECT f.pat_id, LEFT(CONCAT(n.nachname,',',n.vorname,IF(n.titel='','',','),n.titel,IF(n.nvorsatz='','',' '),n.nvorsatz),24) AS name, DATE_FORMAT(f.bhfb,'%d.%m.%y') BhFB, IF(e.art IN ('gs','doppler','dop','duplex') OR e.inhalt LIKE '%(gs)%','gs','tk') arzt, f.auftrag, f.verdacht, f.befund FROM faelle f LEFT JOIN namen n ON f.pat_id = n.pat_id LEFT JOIN tmbrie b ON f.pat_id = b.pat_id AND name LIKE '%brief%' AND b.zeitpunkt > f.bhfb LEFT JOIN eintraege e ON e.pat_id = f.pat_id AND " & arztbed & " WHERE (auftrag LIKE '%beten%' OR auftrag LIKE '%bitte%' OR verdacht LIKE '%beten%' OR verdacht LIKE '%bitte%' OR befund LIKE '%beten%' OR befund LIKE '%bitte%') AND ISNULL(b.name) GROUP BY f.pat_id ORDER BY arzt, f.bhfb, f.pat_id, e.zeitpunkt DESC"
+' myFrag rs, "SELECT f.pat_id, LEFT(CONCAT(n.nachname,',',n.vorname,IF(n.titel='','',','),n.titel,IF(n.nvorsatz='','',' '),n.nvorsatz),24) AS name, DATE_FORMAT(f.bhfb,'%d.%m.%y') BhFB, IF(e.art IN ('gs','doppler','dop','duplex') OR e.inhalt LIKE '%(gs)%','gs','tk') arzt, f.auftrag, f.verdacht, f.befund FROM faelle f LEFT JOIN namen n ON f.pat_id = n.pat_id LEFT JOIN tmbrie b ON f.pat_id = b.pat_id AND name LIKE '%brief%' AND b.zeitpunkt > f.bhfb LEFT JOIN eintraege e ON e.pat_id = f.pat_id AND " & arztbed & " LEFT JOIN `faxeinp`.`outa` o ON o.pid = f.pat_id AND o.transe > f.bhfb AND o.docname LIKE '%brief%' WHERE (auftrag LIKE '%beten%' OR auftrag LIKE '%bitte%' OR verdacht LIKE '%beten%' OR verdacht LIKE '%bitte%' OR befund LIKE '%beten%' OR befund LIKE '%bitte%') AND ISNULL(b.name) AND ISNULL(o.transe) GROUP BY f.pat_id ORDER BY f.pat_id, e.zeitpunkt DESC"
+ myFrag rs, "SELECT * FROM (SELECT f.pat_id, LEFT(CONCAT(n.nachname,',',n.vorname,IF(n.titel='','',','),n.titel,IF(n.nvorsatz='','',' '),n.nvorsatz),24) AS name, DATE_FORMAT(f.bhfb,'%d.%m.%y') BhFB, (SELECT COUNT(0) FROM eintraege e WHERE pat_id = f.pat_id AND (e.art IN ('gs','doppler','dop','duplex') OR (e.art='tb' AND e.ersteller='gs') OR e.inhalt LIKE '%(gs)%')) gsz, (SELECT MAX(zeitpunkt) FROM eintraege e WHERE pat_id = f.pat_id AND (e.art IN ('gs','doppler','dop','duplex') OR (e.art='tb' AND e.ersteller='gs') OR e.inhalt LIKE '%(gs)%')) gsl, (SELECT COUNT(0) FROM eintraege e WHERE pat_id = f.pat_id AND (e.art IN ('tk') OR e.inhalt LIKE '%(tk)%')) tkz, (SELECT MAX(zeitpunkt) FROM eintraege e WHERE pat_id = f.pat_id AND (e.art IN ('tk') OR e.inhalt LIKE '%(tk)%')) tkl," & _
         "f.auftrag, f.verdacht, f.befund FROM faelle f LEFT JOIN namen n ON f.pat_id = n.pat_id LEFT JOIN tmbrie b ON f.pat_id = b.pat_id AND name LIKE '%brief%' AND b.zeitpunkt > f.bhfb LEFT JOIN `faxeinp`.`outa` o ON o.pid = f.pat_id AND o.transe > f.bhfb AND o.docname LIKE '%brief% ' WHERE (auftrag LIKE '%beten%' OR auftrag LIKE '%bitte%' OR verdacht LIKE '%beten%' OR verdacht LIKE '%bitte%' OR befund LIKE '%beten%' OR befund LIKE '%bitte%') AND ISNULL(b.name) AND ISNULL(o.transe) GROUP BY f.pat_id) i WHERE " & IIf(Index = 0, "tkz", "gsz") & "<>0 ORDER BY pat_id"
  If Not rs.BOF Then
   Do While Not rs.EOF
@@ -363,6 +371,7 @@ End Sub ' CancelButton_Click
 Private Sub CancelButton_KeyDown(KeyCode As Integer, Shift As Integer)
  Call Key(KeyCode, Shift, Me)
 End Sub ' CancelButton_KeyDown
+
 
 Private Sub DMPString_Click()
  Lese.doCallDMP (Me.Pat_ID)
@@ -415,6 +424,12 @@ Private Sub HAAusw_GotFocus()
  If Not haGewählt Then Call AuswHA(Me)
 End Sub ' HAAusw_GotFocus()
 
+Private Sub Übertragung_Click()
+ If IsNumeric(Me.Pat_ID) Then
+  Call doPatvonMO(Me.Pat_ID)
+ End If ' IsNumeric(Me.Pat_id) Then
+End Sub ' Import_Click()
+
 Private Sub inTM_Click()
  If IsNumeric(Me.Pat_ID) Then inTMAnz Me.Pat_ID
 End Sub 'inTM_Click()
@@ -428,6 +443,7 @@ Private Sub Leistungen_Click()
   TabAusgeb rs, Me, , , , , spmaxü, , "Leistungen zu Pat. " & CStr(Pat_ID) & " (" & GesNamFn(rsa) & ")           ", , True
  End If ' pat_id <> 0 Then
 End Sub ' Leistungen_Click()
+
 
 Private Sub Patientenlaufzettel_Click()
  Dim zzn%
@@ -485,6 +501,7 @@ Private Sub Therapiearten_Click()
  End If ' If Me.Pat_id <> 0 Then
 End Sub ' Therapiearten_Click()
 
+
 Private Sub VorDat_Click() 'Vordaten der Briefe raussuchen
  do_Pat_ID_Change (True)
 End Sub ' VorDat_Click
@@ -523,7 +540,7 @@ Private Sub HAAusw_KeyDown(KeyCode As Integer, Shift As Integer)
     Me.Zahl = 0
     Do While Not rNaA.EOF
      Me.Zahl = Me.Zahl + 1
-     Me.FaellepHA.AddItem rNaA!Pat_ID & " " & rNaA!Quartal & " " & rNaA!NachName & " " & rNaA!Vorname & " " & rNaA!GebDat
+     Me.FaellepHA.AddItem rNaA!Pat_ID & " " & rNaA!Quartal & " " & rNaA!Nachname & " " & rNaA!Vorname & " " & rNaA!GebDat
      rNaA.Move 1
     Loop
     Call Me.FaellepHA_Click
@@ -831,7 +848,7 @@ Function AuswHA(frm As PatAuswahl)
    myFrag rHS, sql
    If Not rHS.BOF Then
 ' Nachname, Titel, Vorname, KVNr, Tel1, Fax1, Straße, PLZ, Ort
-    ItemStr = rHS!NachName & ", " & rHS!Titel & ", " & rHS!Vorname & ", KVNr:" & rHS!KVNr & ", T." & rHS!tel1 & " F." & rHS!fax1 & ", " & rHS!Straße & ", " & rHS!plz & " " & rHS!ort
+    ItemStr = rHS!Nachname & ", " & rHS!Titel & ", " & rHS!Vorname & ", KVNr:" & rHS!KVNr & ", T." & rHS!tel1 & " F." & rHS!fax1 & ", " & rHS!Straße & ", " & rHS!plz & " " & rHS!ort
     For i = 0 To frm.HAAusw.ListCount
      If frm.HAAusw.List(i) > ItemStr Then
       Call frm.HAAusw.AddItem(ItemStr, i)
@@ -914,7 +931,7 @@ Private Sub HAAusw_Change()
  Me.Zahl = 0
  Do While Not rNaA.EOF
   Me.Zahl = Me.Zahl + 1
-  Me.FaellepHA.AddItem rNaA!Pat_ID & " " & rNaA!Quartal & " " & rNaA!NachName & " " & rNaA!Vorname & " " & rNaA!GebDat
+  Me.FaellepHA.AddItem rNaA!Pat_ID & " " & rNaA!Quartal & " " & rNaA!Nachname & " " & rNaA!Vorname & " " & rNaA!GebDat
   rNaA.Move 1
  Loop
  Call Me.FaellepHA_Click
@@ -990,7 +1007,7 @@ vorabfra1:
     Me.pat_idDaten = vNS
    Else
     On Error GoTo fehler
-    Me.pat_idDaten = rNaA!NachName & ", " & rNaA!Vorname + ",*" + Format$(rNaA!GebDat, "D.M.YY") + " | " + CStr(rNaA!Pat_ID)
+    Me.pat_idDaten = rNaA!Nachname & ", " & rNaA!Vorname + ",*" + Format$(rNaA!GebDat, "D.M.YY") + " | " + CStr(rNaA!Pat_ID)
     sql = _
     "SELECT" & vbCrLf & _
     "COALESCE(GROUP_CONCAT(" & vbCrLf & _
@@ -1076,7 +1093,7 @@ vorabfra1:
     lbeh = 0
     Me.Arzt.BackColor = &H80FF&
     Me.nötig.BackColor = &HFF& ' rot
-    myFrag rEin, "SELECT COUNT(0) tk, DATE_FORMAT(MAX(zeitpunkt),'%e.%c.%y') zp FROM `eintraege` WHERE (art IN ('tk','ARCHIE2','APK') OR inhalt LIKE '%(tk)%') AND pat_id = " & Me.Pat_ID
+    myFrag rEin, "SELECT COUNT(0) tk, DATE_FORMAT(MAX(zeitpunkt),'%e.%c.%y') zp FROM `eintraege` WHERE (art IN('tk','ARCHIE2','APK')OR(art='tb' AND ersteller='tk') OR inhalt LIKE '%(tk)%') AND pat_id = " & Me.Pat_ID
     If rEin.State <> 0 Then
      If Not rEin.BOF Then
       If rEin!tk <> 0 Then
@@ -1088,7 +1105,7 @@ vorabfra1:
      End If ' Not rEin.BOF Then
     End If ' rEin.State <> 0 Then
     Set rEin = Nothing
-    myFrag rEin, "SELECT COUNT(0) gs, DATE_FORMAT(MAX(zeitpunkt),'%e.%c.%y') zp FROM `eintraege` WHERE ((art IN ('gs','doppler','duplex') AND NOT inhalt LIKE '%(tk)%') OR inhalt LIKE '%(gs)%') AND pat_id = " & Me.Pat_ID
+    myFrag rEin, "SELECT COUNT(0) gs, DATE_FORMAT(MAX(zeitpunkt),'%e.%c.%y') zp FROM `eintraege` WHERE (((art IN ('gs','doppler','dop','duplex') OR (art='tb' AND ersteller='gs')) AND NOT inhalt LIKE '%(tk)%') OR inhalt LIKE '%(gs)%') AND pat_id = " & Me.Pat_ID
     If rEin.State <> 0 Then
      If Not rEin.BOF Then
       If rEin!gs <> 0 Then

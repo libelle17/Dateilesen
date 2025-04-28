@@ -805,7 +805,7 @@ Else ' me.private = 0 => Kassenpatienten
 ' BetrPausch = "'97350A','97360A','97350B','97360B','97370B','97371B', '97310','97320','97321','97312','97322','97313','97323','97333'"
  Const BetrPausch$ = "'97310','97312','97320','97321','97322','97333'"
  If aktfDirekt <> 0 Then
-  aktf = " (SELECT pat_id,nachname,vorname,quartal,fid,schgr,goäkatnr,ik,vknr FROM `faelle` WHERE schgr <> '90' AND NOT goäkatnr IN ('40','41') AND nachname <> 'Bereitschaftsdienst' AND quartal = '" & AktQ & "') AS f "
+  aktf = "(SELECT pat_id,nachname,vorname,quartal,fid,schgr,goäkatnr,ik,vknr FROM `faelle` WHERE schgr <> '90' AND NOT goäkatnr IN ('40','41') AND nachname <> 'Bereitschaftsdienst' AND quartal = '" & AktQ & "') AS f "
  Else
   aktf = "(SELECT pat_id,nachname,vorname, quartal,fid,schgr,goäkatnr,ik,vknr FROM `faelle` WHERE schgr <> '90' AND NOT goäkatnr IN ('40','41') AND nachname <> 'Bereitschaftsdienst' AND quartal = (SELECTmy CONCAT(intacc(((month(SUBDATE(NOW(),INTERVAL " & FristS & " DAY))-1) divmy 3) + 1) ¡ YEAR(SUBDATE(NOW(),INTERVAL " & FristS & " DAY)))) " & vbCrLf & _
          "ORDER BY pat_id, fid DESC, schgr) AS f "
@@ -953,7 +953,7 @@ sql(AWlf) = vbCrLf & _
              "LEFT JOIN anaktk az ON az.pid=d.pat_id" & vbCrLf & _
              "LEFT JOIN faelle f ON f.pat_id = d.pat_id AND d.diagdatum BETWEEN qanf() AND qend() " & vbCrLf & _
              "LEFT JOIN `diagview` r ON d.pat_id = r.pat_id AND r.gicd RLIKE '^E1[01]'" & vbCrLf & _
-             "WHERE d.gzICDok RLIKE '^E1[234]' AND ISNULL(r.gicd) AND schgr<> 90" ' AND COALESCE(d.Dggel,0)=0
+             "WHERE d.gzICDok RLIKE '^E1[234]' AND ISNULL(r.gicd) AND d.diagsicherheit NOT IN ('A','Z') AND schgr<> 90" ' AND COALESCE(d.Dggel,0)=0
  mins(AWlf) = 5
  maxs(AWlf) = 18
  AWlf = AWlf + 1
@@ -979,12 +979,12 @@ AwN(AWlf) = "Möglicherweise doppelte Diabetesdiagnosen (vorher 8)"
 sql(AWlf) = "SELECT pid, gesnameg(pid) PName, wer, zahl, icd, e.Art " & vbCrLf & _
             "FROM (" & vbCrLf & _
             "SELECT f.Pat_ID PID, wer, COUNT(0) Zahl, GROUP_CONCAT(CONCAT(icd,diagsicherheit,diagattr)) ICD, " & vbCrLf & _
-            "(SELECT MAX(zeitpunkt) FROM `eintraege` WHERE pat_id = f.pat_id AND (art IN ('gs','tk') OR inhalt LIKE '%(gs)%' OR inhalt LIKE '%(tk)%')) lEintr " & vbCrLf & _
+            "(SELECT MAX(zeitpunkt) FROM `eintraege` WHERE pat_id = f.pat_id AND (art IN ('gs','tk','ah')OR(art='tb'AND ersteller IN ('gs','tk','ah')) OR inhalt LIKE '%(gs)%' OR inhalt LIKE '%(tk)%' OR inhalt LIKE '%(ah)%')) lEintr " & vbCrLf & _
             "FROM `aktfvs` f " & vbCrLf & _
             "LEFT JOIN anaktk az ON az.pid=f.pat_id" & vbCrLf & _
             "LEFT JOIN `diageview` d ON d.pat_id = f.pat_id AND ((d.gicd REGEXP '^E1[0-4]\.|^R73' AND d.obdauer<>0 AND d.diagsicherheit='G') OR (d.icd='O24.4' AND d.Dggel=0 AND d.diagsicherheit IN ('G',' ') AND d.diagdatum BETWEEN qbegs(f.quartal) AND qends(f.quartal)))" & vbCrLf & _
             "GROUP BY f.pat_id HAVING zahl<>1) i " & vbCrLf & _
-            "LEFT JOIN `eintraege` e ON i.pid = e.pat_id AND e.zeitpunkt = i.leintr AND (art IN ('tk','gs') OR inhalt LIKE '%(tk)%' OR inhalt LIKE '%(gs)%') " & vbCrLf & _
+            "LEFT JOIN `eintraege` e ON i.pid = e.pat_id AND e.zeitpunkt = i.leintr AND (art IN ('tk','gs','ah')OR(art='tb'AND ersteller IN ('gs','tk','ah')) OR inhalt LIKE '%(tk)%' OR inhalt LIKE '%(gs)%' OR inhalt LIKE '%(ah)%') " & vbCrLf & _
             "WHERE NOT (icd RLIKE 'E1[01].7[^5]' AND icd RLIKE 'E1[01].75') AND NOT (icd RLIKE 'E1[01].7[^4]' AND icd RLIKE 'E1[01].74') AND NOT (icd RLIKE 'E1[01].2' AND icd RLIKE 'E1[01].[^2]') " & vbCrLf & _
             "GROUP BY pid,leintr" & vbCrLf & _
             "HAVING NOT ICD RLIKE 'O24.4.*R73.0' AND NOT ICD RLIKE 'R73.0.*O24.4'"
@@ -1204,23 +1204,25 @@ sql(AWlf) = _
 ' 17
  AwN(AWlf) = "Pat. mit 'DMP HA' ohne Diabetes-ICD oder ohne nachweisbaren Überweiser (vorher 132)"
  ' AND COALESCE(Dggel,0)=0
+ ' n.getha0
+ 
 sql(AWlf) = _
 "SELECT * FROM (SELECT f.pat_id, gesnameg(f.pat_id)" & vbCrLf & _
 ", COALESCE((SELECT ICD FROM diagview" & vbCrLf & _
 "  WHERE Pat_ID=f.Pat_ID AND gICD REGEXP '^E1[01]' AND (obDauer<>0 OR pat_id = f.pat_id AND diagdatum BETWEEN qanf() AND qend()) " & vbCrLf & _
 "  ORDER BY ICD " & vbCrLf & _
 "  LIMIT 1),'fehlt') ICD " & vbCrLf & _
-",n.getha0 kvnr, CONCAT(h.name,', ',h.vorname,', ',h.ort) Üw " & vbCrLf & _
+",f.übwvbsnr kvnr, CONCAT(h.name,', ',h.vorname,', ',h.ort) Üw " & vbCrLf & _
 ",Eintr,dt Desktop,termin,Azu " & vbCrLf & _
 "FROM (" & vbCrLf & _
 "  SELECT f.*, CASE WHEN gszul>tkzul AND gsz>tkz THEN 'gs' WHEN gszul<tkzul AND gsz<tkz THEN 'tk' ELSE '' END Eintr " & vbCrLf & _
 "  FROM ( " & vbCrLf & _
-"   SELECT f.pat_id,f.fid,f.quartal,f.schgr,f.goäkatnr,f.nachname " & vbCrLf & _
-"   , COALESCE((SELECT CASE WHEN lanrid=1 THEN 'gs' WHEN lanrid=2 THEN 'tk' END FROM faelle WHERE pat_id=f.pat_id AND lanrid IN (1,2) ORDER BY bhfb DESC LIMIT 1),'') Azu " & vbCrLf & _
-"   , (SELECT COUNT(0) FROM eintraege WHERE ((art IN ('gs','doppler','duplex') AND NOT inhalt LIKE '%(tk)%') OR inhalt LIKE '%(gs)%') AND pat_id = f.pat_id AND zeitpunkt>SUBDATE(CURRENT_TIMESTAMP(),365)) gsz " & vbCrLf & _
-"   , COALESCE((SELECT DATE(MAX(zeitpunkt)) FROM eintraege WHERE ((art IN ('gs','doppler','duplex') AND NOT inhalt LIKE '%(tk)%') OR inhalt LIKE '%(gs)%') AND pat_id = f.pat_id AND zeitpunkt>SUBDATE(CURRENT_TIMESTAMP(),365)),0) gszul " & vbCrLf & _
-"   , (SELECT COUNT(0) FROM eintraege WHERE (art IN ('tk','ARCHIE2','APK') OR inhalt LIKE '%(tk)%') AND pat_id = f.pat_id AND zeitpunkt>SUBDATE(CURRENT_TIMESTAMP(),365)) tkz " & vbCrLf & _
-"   , COALESCE((SELECT DATE(MAX(zeitpunkt)) FROM eintraege WHERE (art IN ('tk','ARCHIE2','APK') OR inhalt LIKE '%(tk)%') AND pat_id = f.pat_id AND zeitpunkt>SUBDATE(CURRENT_TIMESTAMP(),365)),0) tkzul " & vbCrLf & _
+"   SELECT f.pat_id,f.fid,f.quartal,f.schgr,f.goäkatnr,f.nachname,f.übwvlanr,f.übwvbsnr " & vbCrLf & _
+"   , COALESCE((SELECT CASE WHEN lanrid=1 THEN 'gs' WHEN lanrid=2 THEN 'tk' WHEN lanrid=5 THEN 'ah' ELSE '?' END FROM faelle WHERE pat_id=f.pat_id AND lanrid IN (1,2,5) ORDER BY bhfb DESC LIMIT 1),'') Azu " & vbCrLf & _
+"   , (SELECT COUNT(0) FROM eintraege WHERE (((art IN ('gs','doppler','dop','duplex') OR (art='tb' AND ersteller='gs')) AND NOT inhalt LIKE '%(tk)%') OR inhalt LIKE '%(gs)%') AND pat_id = f.pat_id AND zeitpunkt>SUBDATE(CURRENT_TIMESTAMP(),365)) gsz " & vbCrLf & _
+"   , COALESCE((SELECT DATE(MAX(zeitpunkt)) FROM eintraege WHERE (((art IN ('gs','doppler','dop','duplex') OR (art='tb' AND ersteller='gs')) AND NOT inhalt LIKE '%(tk)%') OR inhalt LIKE '%(gs)%') AND pat_id = f.pat_id AND zeitpunkt>SUBDATE(CURRENT_TIMESTAMP(),365)),0) gszul " & vbCrLf & _
+"   , (SELECT COUNT(0) FROM eintraege WHERE ((art IN ('tk','ARCHIE2','APK') OR (art='tb' AND ersteller='tk')) OR inhalt LIKE '%(tk)%') AND pat_id = f.pat_id AND zeitpunkt>SUBDATE(CURRENT_TIMESTAMP(),365)) tkz " & vbCrLf & _
+"   , COALESCE((SELECT DATE(MAX(zeitpunkt)) FROM eintraege WHERE ((art IN ('tk','ARCHIE2','APK') OR (art='tb' AND ersteller='tk')) OR inhalt LIKE '%(tk)%') AND pat_id = f.pat_id AND zeitpunkt>SUBDATE(CURRENT_TIMESTAMP(),365)),0) tkzul " & vbCrLf & _
 "   , COALESCE((SELECT CONCAT(MAX(IF(raum='Schade','gs','tk')),' ', DATE_FORMAT(MAX(zp),'%e.%c.%y')) FROM termine t WHERE pid = f.pat_id AND zp =(SELECT MIN(zp) FROM termine WHERE zp>=CURRENT_TIMESTAMP() AND pid=t.pid AND raum IN ('Kothny','Schade') AND NOT zusatz RLIKE 'doppler|duplex')),'') Termin " & vbCrLf & _
 "   ,TRIM(CONCAT(IF(obtk,'tk ',''),IF(obgs,'gs ',''),IF(obdw,'wd|ah ',''))) dt " & vbCrLf & _
 "   FROM faelle f " & vbCrLf & _
@@ -1229,7 +1231,7 @@ sql(AWlf) = _
 " ) f " & vbCrLf
 sql(AWlf) = sql(AWlf) & _
 "LEFT JOIN namen n USING (pat_id) " & vbCrLf & _
-"LEFT JOIN liuez h ON h.kvnri=n.getha0 AND n.getha0<>0 " & vbCrLf & _
+"LEFT JOIN liuez h ON h.kvnri=f.übwvbsnr AND f.übwvbsnr<>0 " & vbCrLf & _
 "LEFT JOIN `desktop` dt ON n.pat_id = dt.pat_id AND dt.titel LIKE '%kein%bericht%' " & vbCrLf & _
 "WHERE f.quartal IN ( " & vbCrLf & _
 "(SELECT CONCAT((MONTH(CURRENT_TIMESTAMP() - INTERVAL 21 DAY) - 1) DIV 3 + 1, YEAR(CURRENT_TIMESTAMP() - INTERVAL 21 DAY))), " & vbCrLf & _
@@ -1366,9 +1368,10 @@ sql(AWlf) = "" & _
  AwN(AWlf) = "Möglicherweise nachzutragende Pflegestufendiagnose Z74.9 (vorher 62)"
 ' AND COALESCE(dd.Dggel,0)=0
  sql(AWlf) = "SELECT v.pat_id, gesname(v.pat_id) Name, patAlter(v.pat_id) PAlter " & vbCrLf & _
-            ",(SELECT COUNT(art) FROM eintraege WHERE pat_id = v.pat_id AND art = 'tk') tk " & vbCrLf & _
-            ",(SELECT COUNT(art) FROM eintraege WHERE pat_id = v.pat_id AND art = 'gs') gs " & vbCrLf & _
-            ",CONCAT(LPAD(MID(tug.inhalt,1,INSTR(tug.inhalt,' ')),4,' '), 's/ ', LPAD(MID(adl.inhalt,17),3,' '),' P') Tests " & vbCrLf & _
+            ",(SELECT COUNT(art) FROM eintraege WHERE pat_id = v.pat_id AND (art = 'tk'OR(art='tb'And ersteller='tk'))) tk " & vbCrLf & _
+            ",(SELECT COUNT(art) FROM eintraege WHERE pat_id = v.pat_id AND (art = 'gs'OR(art='tb'And ersteller='gs'))) gs " & vbCrLf & _
+            ",(SELECT COUNT(art) FROM eintraege WHERE pat_id = v.pat_id AND (art = 'ah'OR(art='tb'And ersteller='ah'))) ah " & vbCrLf & _
+            ",CONCAT(LPAD(REGEXP_REPLACE(tug.inhalt,'.*benötigte Zeit\: *([0-9]+) Sek.*','\\1'),3,' '),'s/ ', LPAD(REGEXP_REPLACE(adl.inhalt,'.*Gesamtpunktzahl [(]max. 100[)] *([0-9]+) *','\\1'),3,' ')) Tests " & vbCrLf & _
             ",GROUP_CONCAT(pfl.inhalt SEPARATOR ' | ') Pflegestufentext " & vbCrLf & _
             "FROM aktfvs v " & vbCrLf & _
             "LEFT JOIN eintraege tug ON v.pat_id = tug.pat_id AND tug.art = 'TUG'  AND tug.zeitpunkt = (SELECT MAX(zeitpunkt) FROM eintraege WHERE pat_id = v.pat_id AND art = 'TUG')" & vbCrLf & _
@@ -1387,9 +1390,10 @@ sql(AWlf) = "" & _
 ' kann man mit nur 'schwindel' und .. AND schw.art NOT IN ('andm','andm2') auch zum Finden falsch kategorisierter Diabetesanamnesen verwenden
  AwN(AWlf) = "Möglicherweise nachzutragender Altersschwindel R42 (vorher 63)"
  sql(AWlf) = "SELECT v.pat_id, gesname(v.pat_id) Name, patAlter(v.pat_id) PAlter " & vbCrLf & _
-            ",(SELECT COUNT(art) FROM eintraege WHERE pat_id = v.pat_id AND art = 'tk') tk " & vbCrLf & _
-            ",(SELECT COUNT(art) FROM eintraege WHERE pat_id = v.pat_id AND art = 'gs') gs " & vbCrLf & _
-            ",CONCAT(LPAD(MID(tug.inhalt,1,INSTR(tug.inhalt,' ')),4,' '), 's/ ', LPAD(MID(adl.inhalt,17),3,' '),' P') Tests " & vbCrLf & _
+            ",(SELECT COUNT(art) FROM eintraege WHERE pat_id = v.pat_id AND (art = 'tk'OR(art='tb'And ersteller='tk'))) tk " & vbCrLf & _
+            ",(SELECT COUNT(art) FROM eintraege WHERE pat_id = v.pat_id AND (art = 'gs'OR(art='tb'And ersteller='gs'))) gs " & vbCrLf & _
+            ",(SELECT COUNT(art) FROM eintraege WHERE pat_id = v.pat_id AND (art = 'ah'OR(art='tb'And ersteller='ah'))) ah " & vbCrLf & _
+            ",CONCAT(LPAD(REGEXP_REPLACE(tug.inhalt,'.*benötigte Zeit\: *([0-9]+) Sek.*','\\1'),3,' '),'s/ ', LPAD(REGEXP_REPLACE(adl.inhalt,'.*Gesamtpunktzahl [(]max. 100[)] *([0-9]+) *','\\1'),3,' ')) Tests " & vbCrLf & _
             ",DATE(schw.zeitpunkt) Zp, schw.inhalt Schw " & vbCrLf & _
             ",GROUP_CONCAT(DISTINCT mp.medikament) Schwindelmedikament " & vbCrLf & _
             "FROM aktfvs v " & vbCrLf & _
@@ -1411,10 +1415,11 @@ sql(AWlf) = "" & _
 ' 25
  AwN(AWlf) = "Möglicherweise nachzutragende Stuhlinkontinenz R15 oder Harninkontinenz R32 (vorher 64)"
  sql(AWlf) = "SELECT v.pat_id, gesname(v.pat_id) Name " & vbCrLf & _
-            ",(SELECT COUNT(art) FROM eintraege WHERE pat_id = v.pat_id AND art = 'tk') tk " & vbCrLf & _
-            ",(SELECT COUNT(art) FROM eintraege WHERE pat_id = v.pat_id AND art = 'gs') gs " & vbCrLf & _
+            ",(SELECT COUNT(art) FROM eintraege WHERE pat_id = v.pat_id AND (art = 'tk'OR(art='tb'And ersteller='tk'))) tk " & vbCrLf & _
+            ",(SELECT COUNT(art) FROM eintraege WHERE pat_id = v.pat_id AND (art = 'gs'OR(art='tb'And ersteller='gs'))) gs " & vbCrLf & _
+            ",(SELECT COUNT(art) FROM eintraege WHERE pat_id = v.pat_id AND (art = 'ah'OR(art='tb'And ersteller='ah'))) ah " & vbCrLf & _
             ",dd.gicd,pfld.gicd" & vbCrLf & _
-            ",CONCAT(LPAD(MID(tug.inhalt,1,INSTR(tug.inhalt,' ')),4,' '), 's/ ', LPAD(MID(adl.inhalt,17),3,' '),' P') Tests " & vbCrLf & _
+            ",CONCAT(LPAD(REGEXP_REPLACE(tug.inhalt,'.*benötigte Zeit\: *([0-9]+) Sek.*','\\1'),3,' '),'s/ ', LPAD(REGEXP_REPLACE(adl.inhalt,'.*Gesamtpunktzahl [(]max. 100[)] *([0-9]+) *','\\1'),3,' ')) Tests " & vbCrLf & _
             ",DATE(pfl.zeitpunkt) Zpt, pfl.inhalt Inkontinenztext " & vbCrLf & _
             "FROM aktfvs v " & vbCrLf & _
             "LEFT JOIN faelle f ON v.fid = f.fid " & vbCrLf & _
@@ -1434,9 +1439,10 @@ sql(AWlf) = "" & _
 ' 26
  AwN(AWlf) = "Möglicherweise nachzutragender Demenz F01-F03 oder Verwirrtheit R41.0 (vorher 65)"
  sql(AWlf) = "SELECT v.pat_id, gesname(v.pat_id) Name, patalter(v.pat_id) PAlter " & vbCrLf & _
-            ",IF((SELECT MAX(art) FROM eintraege WHERE pat_id = v.pat_id AND art='tk') IS NULL,'',(SELECT CONCAT(LPAD(CAST(COUNT(art) AS char),4,' '),' ',DATE_FORMAT(MAX(zeitpunkt),'-%d.%m.%y')) FROM eintraege WHERE pat_id = v.pat_id AND art = 'tk')) tk " & vbCrLf & _
-            ",IF((SELECT MAX(art) FROM eintraege WHERE pat_id = v.pat_id AND art='gs') IS NULL,'',(SELECT CONCAT(LPAD(CAST(COUNT(art) AS char),4,' '),' ',DATE_FORMAT(MAX(zeitpunkt),'-%d.%m.%y')) FROM eintraege WHERE pat_id = v.pat_id AND art = 'gs')) gs " & vbCrLf & _
-            ",CONCAT(LPAD(MID(tug.inhalt,1,INSTR(tug.inhalt,' ')),4,' '), 's/ ', LPAD(MID(adl.inhalt,17),3,' '),' P') Tests " & vbCrLf & _
+            ",IF((SELECT MAX(art) FROM eintraege WHERE pat_id = v.pat_id AND (art='tk'OR(art='tb'AND ersteller='tk')))IS NULL,'',(SELECT CONCAT(LPAD(CAST(COUNT(art) AS char),4,' '),DATE_FORMAT(MAX(zeitpunkt),'(-%d.%m.%y)')) FROM eintraege WHERE pat_id = v.pat_id AND (art = 'tk'OR(art='tb'AND ersteller='tk')))) tk " & vbCrLf & _
+            ",IF((SELECT MAX(art) FROM eintraege WHERE pat_id = v.pat_id AND (art='gs'OR(art='tb'AND ersteller='gs')))IS NULL,'',(SELECT CONCAT(LPAD(CAST(COUNT(art) AS char),4,' '),DATE_FORMAT(MAX(zeitpunkt),'(-%d.%m.%y)')) FROM eintraege WHERE pat_id = v.pat_id AND (art = 'gs'OR(art='tb'AND ersteller='gs')))) gs " & vbCrLf & _
+            ",IF((SELECT MAX(art) FROM eintraege WHERE pat_id = v.pat_id AND (art='ah'OR(art='tb'AND ersteller='ah')))IS NULL,'',(SELECT CONCAT(LPAD(CAST(COUNT(art) AS char),4,' '),DATE_FORMAT(MAX(zeitpunkt),'(-%d.%m.%y)')) FROM eintraege WHERE pat_id = v.pat_id AND (art = 'ah'OR(art='tb'AND ersteller='ah')))) ah " & vbCrLf & _
+            ",CONCAT(LPAD(REGEXP_REPLACE(tug.inhalt,'.*benötigte Zeit\: *([0-9]+) Sek.*','\\1'),3,' '),'s/ ', LPAD(REGEXP_REPLACE(adl.inhalt,'.*Gesamtpunktzahl [(]max. 100[)] *([0-9]+) *','\\1'),3,' ')) Tests " & vbCrLf & _
             ",DATE(schw.zeitpunkt) Zpt, schw.inhalt DemenzInhalt " & vbCrLf & _
             ",GROUP_CONCAT(DISTINCT mp.medikament) Medikament " & vbCrLf & _
             "FROM aktfvs v " & vbCrLf & _
@@ -1458,9 +1464,10 @@ sql(AWlf) = "" & _
 ' 27
  AwN(AWlf) = "Möglicherweise nachzutragendes chronisches Schmerzsyndrom R52.2 oder F45.51 (psych) (vorher 66)"
  sql(AWlf) = "SELECT v.pat_id, gesname(v.pat_id) Name " & vbCrLf & _
-            ",(SELECT COUNT(art) FROM eintraege WHERE pat_id = v.pat_id AND art = 'tk') tk " & vbCrLf & _
-            ",(SELECT COUNT(art) FROM eintraege WHERE pat_id = v.pat_id AND art = 'gs') gs " & vbCrLf & _
-            ",CONCAT(LPAD(MID(tug.inhalt,1,INSTR(tug.inhalt,' ')),4,' '), 's/ ', LPAD(MID(adl.inhalt,17),3,' '),' P') Tests " & vbCrLf & _
+            ",IF((SELECT MAX(art) FROM eintraege WHERE pat_id = v.pat_id AND (art='tk'OR(art='tb'AND ersteller='tk')))IS NULL,'',(SELECT CONCAT(LPAD(CAST(COUNT(art) AS char),4,' '),DATE_FORMAT(MAX(zeitpunkt),'(-%d.%m.%y)')) FROM eintraege WHERE pat_id = v.pat_id AND (art = 'tk'OR(art='tb'AND ersteller='tk')))) tk " & vbCrLf & _
+            ",IF((SELECT MAX(art) FROM eintraege WHERE pat_id = v.pat_id AND (art='gs'OR(art='tb'AND ersteller='gs')))IS NULL,'',(SELECT CONCAT(LPAD(CAST(COUNT(art) AS char),4,' '),DATE_FORMAT(MAX(zeitpunkt),'(-%d.%m.%y)')) FROM eintraege WHERE pat_id = v.pat_id AND (art = 'gs'OR(art='tb'AND ersteller='gs')))) gs " & vbCrLf & _
+            ",IF((SELECT MAX(art) FROM eintraege WHERE pat_id = v.pat_id AND (art='ah'OR(art='tb'AND ersteller='ah')))IS NULL,'',(SELECT CONCAT(LPAD(CAST(COUNT(art) AS char),4,' '),DATE_FORMAT(MAX(zeitpunkt),'(-%d.%m.%y)')) FROM eintraege WHERE pat_id = v.pat_id AND (art = 'ah'OR(art='tb'AND ersteller='ah')))) ah " & vbCrLf & _
+            ",CONCAT(LPAD(REGEXP_REPLACE(tug.inhalt,'.*benötigte Zeit\: *([0-9]+) Sek.*','\\1'),3,' '),'s/ ', LPAD(REGEXP_REPLACE(adl.inhalt,'.*Gesamtpunktzahl [(]max. 100[)] *([0-9]+) *','\\1'),3,' ')) Tests " & vbCrLf & _
             ",pfl.art, DATE(pfl.zeitpunkt) Zpt, pfl.inhalt Schmerztext " & vbCrLf & _
             "FROM aktfvs v " & vbCrLf & _
             "LEFT JOIN faelle f ON v.fid = f.fid " & vbCrLf & _
@@ -1480,9 +1487,10 @@ sql(AWlf) = "" & _
 ' 28
  AwN(AWlf) = "Möglicherweise nachzutragende Fallneigung R29.6 (vorher 67)"
  sql(AWlf) = "SELECT v.pat_id, gesname(v.pat_id) Name, patAlter(v.pat_id) PAlter " & vbCrLf & _
-            ",(SELECT COUNT(art) FROM eintraege WHERE pat_id = v.pat_id AND art = 'tk') tk " & vbCrLf & _
-            ",(SELECT COUNT(art) FROM eintraege WHERE pat_id = v.pat_id AND art = 'gs') gs " & vbCrLf & _
-            ",CONCAT(LPAD(MID(tug.inhalt,1,INSTR(tug.inhalt,' ')),4,' '), 's/ ', LPAD(MID(adl.inhalt,17),3,' '),' P') Tests " & vbCrLf & _
+            ",IF((SELECT MAX(art) FROM eintraege WHERE pat_id = v.pat_id AND (art='tk'OR(art='tb'AND ersteller='tk')))IS NULL,'',(SELECT CONCAT(LPAD(CAST(COUNT(art) AS char),4,' '),DATE_FORMAT(MAX(zeitpunkt),'(-%d.%m.%y)')) FROM eintraege WHERE pat_id = v.pat_id AND (art = 'tk'OR(art='tb'AND ersteller='tk')))) tk " & vbCrLf & _
+            ",IF((SELECT MAX(art) FROM eintraege WHERE pat_id = v.pat_id AND (art='gs'OR(art='tb'AND ersteller='gs')))IS NULL,'',(SELECT CONCAT(LPAD(CAST(COUNT(art) AS char),4,' '),DATE_FORMAT(MAX(zeitpunkt),'(-%d.%m.%y)')) FROM eintraege WHERE pat_id = v.pat_id AND (art = 'gs'OR(art='tb'AND ersteller='gs')))) gs " & vbCrLf & _
+            ",IF((SELECT MAX(art) FROM eintraege WHERE pat_id = v.pat_id AND (art='ah'OR(art='tb'AND ersteller='ah')))IS NULL,'',(SELECT CONCAT(LPAD(CAST(COUNT(art) AS char),4,' '),DATE_FORMAT(MAX(zeitpunkt),'(-%d.%m.%y)')) FROM eintraege WHERE pat_id = v.pat_id AND (art = 'ah'OR(art='tb'AND ersteller='ah')))) ah " & vbCrLf & _
+            ",CONCAT(LPAD(REGEXP_REPLACE(tug.inhalt,'.*benötigte Zeit\: *([0-9]+) Sek.*','\\1'),3,' '),'s/ ', LPAD(REGEXP_REPLACE(adl.inhalt,'.*Gesamtpunktzahl [(]max. 100[)] *([0-9]+) *','\\1'),3,' ')) Tests " & vbCrLf & _
             ",pfl.art, DATE(pfl.zeitpunkt) Zpt, pfl.inhalt Sturztext " & vbCrLf & _
             "FROM aktfvs v " & vbCrLf & _
             "LEFT JOIN faelle f ON v.fid = f.fid " & vbCrLf & _
@@ -1502,9 +1510,10 @@ sql(AWlf) = "" & _
 ' 29
  AwN(AWlf) = "Möglicherweise nachzutragende Bettlägrigkeit R26.3 (vorher 68)"
  sql(AWlf) = "SELECT v.pat_id, gesname(v.pat_id) Name, patalter(v.pat_id) PAlter " & vbCrLf & _
-            ",(SELECT COUNT(art) FROM eintraege WHERE pat_id = v.pat_id AND art = 'tk') tk " & vbCrLf & _
-            ",(SELECT COUNT(art) FROM eintraege WHERE pat_id = v.pat_id AND art = 'gs') gs " & vbCrLf & _
-            ",CONCAT(LPAD(MID(tug.inhalt,1,INSTR(tug.inhalt,' ')),4,' '), 's/ ', LPAD(MID(adl.inhalt,17),3,' '),' P') Tests " & vbCrLf & _
+            ",(SELECT COUNT(art) FROM eintraege WHERE pat_id = v.pat_id AND (art = 'tk'OR(art='tb'And ersteller='tk'))) tk " & vbCrLf & _
+            ",(SELECT COUNT(art) FROM eintraege WHERE pat_id = v.pat_id AND (art = 'gs'OR(art='tb'And ersteller='gs'))) gs " & vbCrLf & _
+            ",(SELECT COUNT(art) FROM eintraege WHERE pat_id = v.pat_id AND (art = 'ah'OR(art='tb'And ersteller='ah'))) ah " & vbCrLf & _
+            ",CONCAT(LPAD(REGEXP_REPLACE(tug.inhalt,'.*benötigte Zeit\: *([0-9]+) Sek.*','\\1'),3,' '),'s/ ', LPAD(REGEXP_REPLACE(adl.inhalt,'.*Gesamtpunktzahl [(]max. 100[)] *([0-9]+) *','\\1'),3,' ')) Tests " & vbCrLf & _
             ",DATE(pfl.zeitpunkt) Zpt, pfl.inhalt Bettlägrigkeitstext " & vbCrLf & _
             "FROM aktfvs v " & vbCrLf & _
             "LEFT JOIN faelle f ON v.fid = f.fid " & vbCrLf & _
@@ -1524,9 +1533,10 @@ sql(AWlf) = "" & _
  ' 30
  AwN(AWlf) = "Möglicherweise nachzutragende verminderte körperliche Aktivität R68.8 (vorher 69)"
  sql(AWlf) = "SELECT v.pat_id, gesname(v.pat_id) Name, patalter(v.pat_id) PAlter " & vbCrLf & _
-            ",(SELECT COUNT(art) FROM eintraege WHERE pat_id = v.pat_id AND art = 'tk') tk " & vbCrLf & _
-            ",(SELECT COUNT(art) FROM eintraege WHERE pat_id = v.pat_id AND art = 'gs') gs " & vbCrLf & _
-            ",CONCAT(LPAD(MID(tug.inhalt,1,INSTR(tug.inhalt,' ')),4,' '), 's/ ', LPAD(MID(adl.inhalt,17),3,' '),' P') Tests " & vbCrLf & _
+            ",(SELECT COUNT(art) FROM eintraege WHERE pat_id = v.pat_id AND (art = 'tk'OR(art='tb'And ersteller='tk'))) tk " & vbCrLf & _
+            ",(SELECT COUNT(art) FROM eintraege WHERE pat_id = v.pat_id AND (art = 'gs'OR(art='tb'And ersteller='gs'))) gs " & vbCrLf & _
+            ",(SELECT COUNT(art) FROM eintraege WHERE pat_id = v.pat_id AND (art = 'ah'OR(art='tb'And ersteller='ah'))) ah " & vbCrLf & _
+            ",CONCAT(LPAD(REGEXP_REPLACE(tug.inhalt,'.*benötigte Zeit\: *([0-9]+) Sek.*','\\1'),3,' '),'s/ ', LPAD(REGEXP_REPLACE(adl.inhalt,'.*Gesamtpunktzahl [(]max. 100[)] *([0-9]+) *','\\1'),3,' ')) Tests " & vbCrLf & _
             ",DATE(pfl.zeitpunkt) Zpt, pfl.inhalt Aktivitätstext " & vbCrLf & _
             "FROM aktfvs v " & vbCrLf & _
             "LEFT JOIN faelle f ON v.fid = f.fid " & vbCrLf & _
@@ -1546,9 +1556,10 @@ sql(AWlf) = "" & _
  ' 31
  AwN(AWlf) = "Möglicherweise nachzutragende multifaktorielle Mobilitätsstörung R26.8 (vorher 70)"
  sql(AWlf) = "SELECT v.pat_id, gesname(v.pat_id) Name, patalter(v.pat_id) PAlter " & vbCrLf & _
-            ",IF((SELECT MAX(art) FROM eintraege WHERE pat_id = v.pat_id AND art='tk') IS NULL,'',(SELECT CONCAT(LPAD(CAST(COUNT(art) AS char),4,' '),' ',DATE_FORMAT(MAX(zeitpunkt),'-%d.%m.%y')) FROM eintraege WHERE pat_id = v.pat_id AND art = 'tk')) tk " & vbCrLf & _
-            ",IF((SELECT MAX(art) FROM eintraege WHERE pat_id = v.pat_id AND art='gs') IS NULL,'',(SELECT CONCAT(LPAD(CAST(COUNT(art) AS char),4,' '),' ',DATE_FORMAT(MAX(zeitpunkt),'-%d.%m.%y')) FROM eintraege WHERE pat_id = v.pat_id AND art = 'gs')) gs " & vbCrLf & _
-            ",CONCAT(LPAD(MID(tug.inhalt,1,INSTR(tug.inhalt,' ')),4,' '), 's/ ', LPAD(MID(adl.inhalt,17),3,' '),' P') Tests " & vbCrLf & _
+            ",IF((SELECT MAX(art) FROM eintraege WHERE pat_id = v.pat_id AND (art='tk'OR(art='tb'AND ersteller='tk')))IS NULL,'',(SELECT CONCAT(LPAD(CAST(COUNT(art) AS char),4,' '),DATE_FORMAT(MAX(zeitpunkt),'(-%d.%m.%y)')) FROM eintraege WHERE pat_id = v.pat_id AND (art = 'tk'OR(art='tb'AND ersteller='tk')))) tk " & vbCrLf & _
+            ",IF((SELECT MAX(art) FROM eintraege WHERE pat_id = v.pat_id AND (art='gs'OR(art='tb'AND ersteller='gs')))IS NULL,'',(SELECT CONCAT(LPAD(CAST(COUNT(art) AS char),4,' '),DATE_FORMAT(MAX(zeitpunkt),'(-%d.%m.%y)')) FROM eintraege WHERE pat_id = v.pat_id AND (art = 'gs'OR(art='tb'AND ersteller='gs')))) gs " & vbCrLf & _
+            ",IF((SELECT MAX(art) FROM eintraege WHERE pat_id = v.pat_id AND (art='ah'OR(art='tb'AND ersteller='ah')))IS NULL,'',(SELECT CONCAT(LPAD(CAST(COUNT(art) AS char),4,' '),DATE_FORMAT(MAX(zeitpunkt),'(-%d.%m.%y)')) FROM eintraege WHERE pat_id = v.pat_id AND (art = 'ah'OR(art='tb'AND ersteller='ah')))) ah " & vbCrLf & _
+            ",CONCAT(LPAD(REGEXP_REPLACE(tug.inhalt,'.*benötigte Zeit\: *([0-9]+) Sek.*','\\1'),3,' '),'s/ ', LPAD(REGEXP_REPLACE(adl.inhalt,'.*Gesamtpunktzahl [(]max. 100[)] *([0-9]+) *','\\1'),3,' ')) Tests " & vbCrLf & _
             ",DATE(pfl.zeitpunkt) Zpt, pfl.inhalt Mobilitätstext " & vbCrLf & _
             ",DATE(tug.zeitpunkt)," & qtAnf(FristS) & ",DATE(" & qtEnd(FristS) & ") " & vbCrLf & _
             "FROM aktfvs v " & vbCrLf & _
@@ -1569,9 +1580,10 @@ sql(AWlf) = "" & _
 ' 32
  AwN(AWlf) = "Möglicherweise nachzutragende Dysphagie R13.9 (vorher 71)"
  sql(AWlf) = "SELECT v.pat_id, gesname(v.pat_id) Name, patalter(v.pat_id) PAlter " & vbCrLf & _
-            ",(SELECT COUNT(art) FROM eintraege WHERE pat_id = v.pat_id AND art = 'tk') tk " & vbCrLf & _
-            ",(SELECT COUNT(art) FROM eintraege WHERE pat_id = v.pat_id AND art = 'gs') gs " & vbCrLf & _
-            ",CONCAT(LPAD(MID(tug.inhalt,1,INSTR(tug.inhalt,' ')),4,' '), 's/ ', LPAD(MID(adl.inhalt,17),3,' '),' P') Tests " & vbCrLf & _
+            ",IF((SELECT MAX(art) FROM eintraege WHERE pat_id = v.pat_id AND (art='tk'OR(art='tb'AND ersteller='tk')))IS NULL,'',(SELECT CONCAT(LPAD(CAST(COUNT(art) AS char),4,' '),DATE_FORMAT(MAX(zeitpunkt),'(-%d.%m.%y)')) FROM eintraege WHERE pat_id = v.pat_id AND (art = 'tk'OR(art='tb'AND ersteller='tk')))) tk " & vbCrLf & _
+            ",IF((SELECT MAX(art) FROM eintraege WHERE pat_id = v.pat_id AND (art='gs'OR(art='tb'AND ersteller='gs')))IS NULL,'',(SELECT CONCAT(LPAD(CAST(COUNT(art) AS char),4,' '),DATE_FORMAT(MAX(zeitpunkt),'(-%d.%m.%y)')) FROM eintraege WHERE pat_id = v.pat_id AND (art = 'gs'OR(art='tb'AND ersteller='gs')))) gs " & vbCrLf & _
+            ",IF((SELECT MAX(art) FROM eintraege WHERE pat_id = v.pat_id AND (art='ah'OR(art='tb'AND ersteller='ah')))IS NULL,'',(SELECT CONCAT(LPAD(CAST(COUNT(art) AS char),4,' '),DATE_FORMAT(MAX(zeitpunkt),'(-%d.%m.%y)')) FROM eintraege WHERE pat_id = v.pat_id AND (art = 'ah'OR(art='tb'AND ersteller='ah')))) ah " & vbCrLf & _
+            ",CONCAT(LPAD(REGEXP_REPLACE(tug.inhalt,'.*benötigte Zeit\: *([0-9]+) Sek.*','\\1'),3,' '),'s/ ', LPAD(REGEXP_REPLACE(adl.inhalt,'.*Gesamtpunktzahl [(]max. 100[)] *([0-9]+) *','\\1'),3,' ')) Tests " & vbCrLf & _
             ",DATE(pfl.zeitpunkt) Zpt, pfl.inhalt Dysphagietext " & vbCrLf & _
             "FROM aktfvs v " & vbCrLf & _
             "LEFT JOIN faelle f ON v.fid = f.fid " & vbCrLf & _
@@ -1594,8 +1606,9 @@ sql(AWlf) = "" & _
 
  AwN(AWlf) = "Patienten mit Barthel- und TUG-Test, die als gesund eingestuft sind (keine icd in ('Z74.9','G20.10','G20.20','R26.8','R29.6','R42','R32','R15','R13.9','R26.3','R41.0','R41.3','R52.2','F45.41','G30.9','F29','F32.9','F69','F79.9','R41.3','R63.4','R53','M62.50','R26.8','R68.8') OR pfld.icd RLIKE '^F0[012]') (vorher 72)"
  sql(AWlf) = "SELECT v.pat_id, gesname(v.pat_id) Name, patalter(v.pat_id) PAlter " & vbCrLf & _
-            ",IF((SELECT MAX(art) FROM eintraege WHERE pat_id = v.pat_id AND art='tk') IS NULL,'',(SELECT CONCAT(LPAD(CAST(COUNT(art) AS char),4,' '),' ',DATE_FORMAT(MAX(zeitpunkt),'-%d.%m.%y')) FROM eintraege WHERE pat_id = v.pat_id AND art = 'tk')) tk " & vbCrLf & _
-            ",IF((SELECT MAX(art) FROM eintraege WHERE pat_id = v.pat_id AND art='gs') IS NULL,'',(SELECT CONCAT(LPAD(CAST(COUNT(art) AS char),4,' '),' ',DATE_FORMAT(MAX(zeitpunkt),'-%d.%m.%y')) FROM eintraege WHERE pat_id = v.pat_id AND art = 'gs')) gs " & vbCrLf & _
+            ",(SELECT COUNT(art) FROM eintraege WHERE pat_id = v.pat_id AND (art = 'tk'OR(art='tb'And ersteller='tk'))) tk " & vbCrLf & _
+            ",(SELECT COUNT(art) FROM eintraege WHERE pat_id = v.pat_id AND (art = 'gs'OR(art='tb'And ersteller='gs'))) gs " & vbCrLf & _
+            ",(SELECT COUNT(art) FROM eintraege WHERE pat_id = v.pat_id AND (art = 'ah'OR(art='tb'And ersteller='ah'))) ah " & vbCrLf & _
             ",CONCAT(LPAD(REGEXP_REPLACE(tug.inhalt,'.*benötigte Zeit\: *([0-9]+) Sek.*','\\1'),3,' '),'s/ ', LPAD(REGEXP_REPLACE(adl.inhalt,'.*Gesamtpunktzahl [(]max. 100[)] *([0-9]+) *','\\1'),3,' ')) Tests" & vbCrLf & _
             "FROM aktfvs v " & vbCrLf & _
             "LEFT JOIN faelle f ON v.fid = f.fid " & vbCrLf & _
@@ -1676,8 +1689,8 @@ sql(AWlf) = "SELECT n.Pat_id, gesnameg(n.pat_id) Name,f.Schgr,KVNr,f.VKNr,ICD" &
 "  FROM ( " & vbCrLf & _
 "   SELECT f.pat_id " & vbCrLf & _
 "   , COALESCE((SELECT CASE WHEN lanrid=1 THEN 'gs' WHEN lanrid=2 THEN 'tk' END FROM faelle WHERE pat_id=f.pat_id AND lanrid IN (1,2) AND bhfb <= qend() ORDER BY bhfb DESC LIMIT 1),'') Azu " & vbCrLf & _
-"   , (SELECT COUNT(0) FROM eintraege WHERE ((art IN ('gs','doppler','duplex') AND NOT inhalt LIKE '%(tk)%') OR inhalt LIKE '%(gs)%') AND pat_id = f.pat_id AND zeitpunkt>SUBDATE(CURRENT_TIMESTAMP(),365)) gsz " & vbCrLf & _
-"   , COALESCE((SELECT DATE(MAX(zeitpunkt)) FROM eintraege WHERE ((art IN ('gs','doppler','duplex') AND NOT inhalt LIKE '%(tk)%') OR inhalt LIKE '%(gs)%') AND pat_id = f.pat_id AND zeitpunkt>SUBDATE(CURRENT_TIMESTAMP(),365)),0) gszul " & vbCrLf & _
+"   , (SELECT COUNT(0) FROM eintraege WHERE ((art IN ('gs','doppler','dop','duplex') AND NOT inhalt LIKE '%(tk)%') OR inhalt LIKE '%(gs)%') AND pat_id = f.pat_id AND zeitpunkt>SUBDATE(CURRENT_TIMESTAMP(),365)) gsz " & vbCrLf & _
+"   , COALESCE((SELECT DATE(MAX(zeitpunkt)) FROM eintraege WHERE ((art IN ('gs','doppler','dop','duplex') AND NOT inhalt LIKE '%(tk)%') OR inhalt LIKE '%(gs)%') AND pat_id = f.pat_id AND zeitpunkt>SUBDATE(CURRENT_TIMESTAMP(),365)),0) gszul " & vbCrLf & _
 "   , (SELECT COUNT(0) FROM eintraege WHERE (art IN ('tk','ARCHIE2','APK') OR inhalt LIKE '%(tk)%') AND pat_id = f.pat_id AND zeitpunkt>SUBDATE(CURRENT_TIMESTAMP(),365)) tkz " & vbCrLf & _
 "   , COALESCE((SELECT DATE(MAX(zeitpunkt)) FROM eintraege WHERE (art IN ('tk','ARCHIE2','APK') OR inhalt LIKE '%(tk)%') AND pat_id = f.pat_id AND zeitpunkt>SUBDATE(CURRENT_TIMESTAMP(),365)),0) tkzul " & vbCrLf & _
 "   , COALESCE((SELECT CONCAT(CASE WHEN raum='Schade' THEN 'gs' WHEN raum='Kothny' THEN 'tk' WHEN raum='Wagner' THEN 'wd' WHEN raum LIKE 'Hamm%' THEN 'ah' ELSE '' END,' ', DATE_FORMAT(zp,'%e.%c.%y'),' ',REPLACE(REPLACE(LEFT(zusatz,IF(LENGTH(zusatz)-1<25,LENGTH(zusatz)-1,25)),chr(10),''),chr(13),'')) FROM termine t WHERE pid = f.pat_id AND raum<>'Labor' AND zp =(SELECT MIN(zp) FROM termine WHERE zp>=CURRENT_TIMESTAMP() AND pid=t.pid AND raum RLIKE 'Kothny|Schade|Wagner|^Hamm' AND NOT zusatz RLIKE 'doppler|duplex|carotis') AND aktzeit=(SELECT MAX(aktzeit) FROM termine WHERE pid=t.pid AND raum<>'Labor' AND zp=t.zp) LIMIT 1),'') Termin " & vbCrLf & _
@@ -1706,11 +1719,11 @@ sql(AWlf) = _
 "    SELECT f.*, CASE WHEN gszul>tkzul AND gsz>tkz THEN 'gs' WHEN gszul<tkzul AND gsz<tkz THEN 'tk' ELSE '' END Eintr " & vbCrLf & _
 "    FROM ( " & vbCrLf & _
 "     SELECT f.pat_id " & vbCrLf & _
-"     , COALESCE((SELECT CASE WHEN lanrid=1 THEN 'gs' WHEN lanrid=2 THEN 'tk' END FROM `faelle` WHERE pat_id=f.pat_id AND lanrid IN (1,2) AND bhfb <= qend() ORDER BY bhfb DESC LIMIT 1),'') Azu " & vbCrLf & _
-"     , (SELECT COUNT(0) FROM eintraege WHERE ((art IN ('gs','doppler','duplex') AND NOT inhalt LIKE '%(tk)%') OR inhalt LIKE '%(gs)%') AND pat_id = f.pat_id AND zeitpunkt>SUBDATE(CURRENT_TIMESTAMP(),365)) gsz " & vbCrLf & _
-"     , COALESCE((SELECT DATE(MAX(zeitpunkt)) FROM eintraege WHERE ((art IN ('gs','doppler','duplex') AND NOT inhalt LIKE '%(tk)%') OR inhalt LIKE '%(gs)%') AND pat_id = f.pat_id AND zeitpunkt>SUBDATE(CURRENT_TIMESTAMP(),365)),0) gszul " & vbCrLf & _
-"     , (SELECT COUNT(0) FROM eintraege WHERE (art IN ('tk','ARCHIE2','APK') OR inhalt LIKE '%(tk)%') AND pat_id = f.pat_id AND zeitpunkt>SUBDATE(CURRENT_TIMESTAMP(),365)) tkz " & vbCrLf & _
-"     , COALESCE((SELECT DATE(MAX(zeitpunkt)) FROM eintraege WHERE (art IN ('tk','ARCHIE2','APK') OR inhalt LIKE '%(tk)%') AND pat_id = f.pat_id AND zeitpunkt>SUBDATE(CURRENT_TIMESTAMP(),365)),0) tkzul " & vbCrLf & _
+"     , COALESCE((SELECT CASE WHEN lanrid=1 THEN 'gs' WHEN lanrid=2 THEN 'tk' WHEN lanrid=5 THEN 'ah' ELSE '?' END FROM `faelle` WHERE pat_id=f.pat_id AND lanrid IN (1,2,5) AND bhfb <= qend() ORDER BY bhfb DESC LIMIT 1),'') Azu " & vbCrLf & _
+"     , (SELECT COUNT(0) FROM eintraege WHERE (((art IN ('gs','doppler','dop','duplex') OR (art='tb' AND ersteller='gs')) AND NOT inhalt LIKE '%(tk)%') OR inhalt LIKE '%(gs)%') AND pat_id = f.pat_id AND zeitpunkt>SUBDATE(CURRENT_TIMESTAMP(),365)) gsz " & vbCrLf & _
+"     , COALESCE((SELECT DATE(MAX(zeitpunkt)) FROM eintraege WHERE (((art IN ('gs','doppler','dop','duplex') OR (art='tb' AND ersteller='gs')) AND NOT inhalt LIKE '%(tk)%') OR inhalt LIKE '%(gs)%') AND pat_id = f.pat_id AND zeitpunkt>SUBDATE(CURRENT_TIMESTAMP(),365)),0) gszul " & vbCrLf & _
+"     , (SELECT COUNT(0) FROM eintraege WHERE ((art IN ('tk','ARCHIE2','APK') OR (art='tb' AND ersteller='tk')) OR inhalt LIKE '%(tk)%') AND pat_id = f.pat_id AND zeitpunkt>SUBDATE(CURRENT_TIMESTAMP(),365)) tkz " & vbCrLf & _
+"     , COALESCE((SELECT DATE(MAX(zeitpunkt)) FROM eintraege WHERE ((art IN ('tk','ARCHIE2','APK') OR (art='tb' AND ersteller='tk')) OR inhalt LIKE '%(tk)%') AND pat_id = f.pat_id AND zeitpunkt>SUBDATE(CURRENT_TIMESTAMP(),365)),0) tkzul " & vbCrLf & _
 "     , COALESCE((SELECT CONCAT(CASE WHEN raum='Schade' THEN 'gs' WHEN raum='Kothny' THEN 'tk' WHEN raum='Wagner' THEN 'wd' WHEN raum LIKE 'Hamm%' THEN 'ah' ELSE '' END,' ', DATE_FORMAT(zp,'%e.%c.%y'),' ',REPLACE(REPLACE(LEFT(zusatz,IF(LENGTH(zusatz)-1<25,LENGTH(zusatz)-1,25)),chr(10),''),chr(13),'')) FROM termine t WHERE pid = f.pat_id AND raum<>'Labor' AND zp =(SELECT MIN(zp) FROM termine WHERE zp>=CURRENT_TIMESTAMP() AND pid=t.pid AND raum RLIKE 'Kothny|Schade|Wagner|^Hamm' AND NOT zusatz RLIKE 'doppler|duplex|carotis|belastung|SD Sono|SD-Sono|Arterien|Venen') AND aktzeit=(SELECT MAX(aktzeit) FROM termine WHERE pid=t.pid AND raum<>'Labor' AND zp=t.zp) LIMIT 1),'') Termin " & vbCrLf
 sql(AWlf) = sql(AWlf) & _
 "     ,REPLACE(TRIM(CONCAT(IF(obtk,'tk ',''),IF(obgs,'gs ',''),IF(obdw,'wd',IF(obah,'ah','')))),' ','|') dt " & vbCrLf & _
@@ -1724,18 +1737,18 @@ sql(AWlf) = sql(AWlf) & _
 ";"
 
 #Else
- sql(AWlf) = "SELECT Pat_id,Name, IF(Lanrid=1,'gs','tk') LANRid,IF(Eintrag=1,'gs','tk') Eintrag " & vbCrLf & _
-             ", (SELECT IF(COUNT(0)=0,'-',CONCAT(CAST(LPAD(COUNT(0),03,' ') AS char), ',zul.',DATE_FORMAT(MAX(zeitpunkt),'%e.%c.%y'))) FROM `eintraege` WHERE ((art IN ('gs','doppler','duplex') AND NOT inhalt LIKE '%(tk)%') OR inhalt LIKE '%(gs)%') AND pat_id = i.pat_id) Schade " & vbCrLf & _
-             ", (SELECT IF(COUNT(0)=0,'-',CONCAT(CAST(LPAD(COUNT(0),03,' ') AS char), ',zul.',DATE_FORMAT(MAX(zeitpunkt),'%e.%c.%y'))) FROM `eintraege` WHERE (art IN ('tk','ARCHIE2','APK') OR inhalt LIKE '%(tk)%') AND pat_id = i.pat_id) Kothny " & vbCrLf & _
+' sql(AWlf) = "SELECT Pat_id,Name, CASE WHEN lanrid=1 THEN 'gs' WHEN lanrid=2 THEN 'tk' WHEN lanrid=5 THEN 'ah' ELSE '?' END LANRid,IF(Eintrag=1,'gs','tk') Eintrag " & vbCrLf & _
+             ", (SELECT IF(COUNT(0)=0,'-',CONCAT(CAST(LPAD(COUNT(0),03,' ') AS char), ',zul.',DATE_FORMAT(MAX(zeitpunkt),'%e.%c.%y'))) FROM `eintraege` WHERE (((art IN ('gs','doppler','dop','duplex') OR (art='tb' AND ersteller='gs')) AND NOT inhalt LIKE '%(tk)%') OR inhalt LIKE '%(gs)%') AND pat_id = i.pat_id) Schade " & vbCrLf & _
+             ", (SELECT IF(COUNT(0)=0,'-',CONCAT(CAST(LPAD(COUNT(0),03,' ') AS char), ',zul.',DATE_FORMAT(MAX(zeitpunkt),'%e.%c.%y'))) FROM `eintraege` WHERE ((art IN ('tk','ARCHIE2','APK') OR (art='tb' AND ersteller='tk')) OR inhalt LIKE '%(tk)%') AND pat_id = i.pat_id) Kothny " & vbCrLf & _
              ", (SELECT CONCAT(MAX(raum),' ', DATE_FORMAT(MAX(zp),'%e.%c.%y')) FROM termine  t WHERE pid = i.pat_id AND zp =(SELECT MIN(zp) FROM termine t0 WHERE t0.zp>" & qtAnf(FristS) & " AND t0.pid=t.pid AND raum IN ('Kothny','Schade') )) Termin " & vbCrLf & _
              ", Schgr " & vbCrLf & _
              ", dt Desktop " & vbCrLf & _
              "FROM ( " & vbCrLf & _
              "SELECT pat_id,Name, DATE_FORMAT(qanf,'%e.%c.%y') QAnf,DATE_FORMAT(qend,'%e.%c.%y') qend, IF(Schgr=24,'Ü',IF(schgr=0 AND NOT goäkatnr IN ('40','41'),'O',CAST(schgr AS char))) Schgr,LANRid,GROUP_CONCAT(DISTINCT wer) Eintrag, dt FROM ( " & vbCrLf & _
-             "SELECT af.fid, f.qanf, f.qend, f.schgr, f.pat_id, f.goäkatnr, gesname(f.pat_id) Name, f.lanrid, IF(art IN ('gs','doppler','duplex') OR inhalt LIKE '%(gs)%','1',IF(art IN ('tk','ARCHIE2','APK') OR inhalt LIKE '%(tk)%','2','0')) wer " & vbCrLf & _
+             "SELECT af.fid, f.qanf, f.qend, f.schgr, f.pat_id, f.goäkatnr, gesname(f.pat_id) Name, f.lanrid, IF(art IN (('gs','doppler','dop','duplex') OR (art='tb' AND ersteller='gs')) OR inhalt LIKE '%(gs)%','1',IF(art IN ('tk','ARCHIE2','APK') OR inhalt LIKE '%(tk)%','2','0')) wer " & vbCrLf & _
              ",TRIM(CONCAT(IF(obtk,'tk ',''),IF(obgs,'gs ',''),IF(obdw,'wd|ah ',''))) dt" & vbCrLf & _
              "FROM `aktfvs` af LEFT JOIN `faelle` f ON af.fid = f.fid " & vbCrLf & _
-             "LEFT JOIN `eintraege` e ON e.pat_id = f.pat_id AND (art IN ('gs','doppler','duplex','tk','ARCHIE2','APK') OR inhalt LIKE '%(tk)%' OR inhalt LIKE '%(gs)%') AND e.zeitpunkt >= f.qanf AND e.zeitpunkt <= f.qend " & vbCrLf & _
+             "LEFT JOIN `eintraege` e ON e.pat_id = f.pat_id AND (((art IN ('gs','doppler','dop','duplex','tk','ARCHIE2','APK') OR (art='tb' AND ersteller IN ('gs','tk','ah'))) OR inhalt LIKE '%(tk)%' OR inhalt LIKE '%(gs)%') AND e.zeitpunkt >= f.qanf AND e.zeitpunkt <= f.qend " & vbCrLf & _
              "LEFT JOIN anakt ON anakt.pat_id=af.pat_id" & vbCrLf & _
              ") i " & vbCrLf & _
              "GROUP BY fid,pat_id) i " & vbCrLf & _
@@ -1784,7 +1797,7 @@ sql(AWlf) = _
      ") AS innen " & vbCrLf & _
     "LEFT JOIN " & vbCrLf & _
       "(SELECT pat_id pid, art, inhalt, zeitpunkt ezp FROM `eintraege` " & vbCrLf & _
-          "WHERE art IN ('doppler','duplex','sono') AND zeitpunkt BETWEEN " & lQAnfuEnd(FristS) & ") AS eint " & vbCrLf & _
+          "WHERE (art IN ('doppler','dop','duplex','sono')OR(art='tb'AND ersteller='gs')) AND zeitpunkt BETWEEN " & lQAnfuEnd(FristS) & ") AS eint " & vbCrLf & _
           "ON innen.pat_id = eint.pid AND DATE(ezp) = innen.udat " & vbCrLf & _
     "WHERE udat BETWEEN " & lQAnfuEnd(FristS) & " AND ISNULL(ezp)" ' , 1)
  mins(AWlf) = 10
@@ -1845,7 +1858,7 @@ sql(AWlf) = "" & vbCrLf & _
 
 AwN(AWlf) = "Nicht nachweisbar eingescannte und importierte Überweisungsscheine (vorher 47)"
  sql(AWlf) = "SELECT  a.pat_id,gesnameg(a.pat_id) Name, ausgst, lvorl FROM `aktfvs` a " & vbCrLf & _
- "LEFT JOIN (SELECT pat_id, pfad, zeitpunkt, name FROM `tmbrie` UNION SELECT pat_id, datname, laend, datname FROM `dokprotlist`) b " & vbCrLf & _
+ "LEFT JOIN (SELECT pat_id, pfad, zeitpunkt, name FROM `tmbrie`) b " & vbCrLf & _
  "ON b.pat_ID = a.pat_id AND (b.name LIKE '%Üw%" & Left$(AktQ, 1) & "%" & Right$(AktQ, 2) & "%' OR name LIKE '%Uew%" & Left$(AktQ, 1) & "%" & Right$(AktQ, 2) & "%')" & vbCrLf & _
  "LEFT JOIN `namen` n ON a.pat_id = n.pat_id " & vbCrLf & _
  "LEFT JOIN `faelle` f ON a.fid = f.fid WHERE ISNULL(name) AND a.schgr = 24 " & vbCrLf & _
@@ -1881,7 +1894,7 @@ sql(AWlf) = "" & vbCrLf & _
  AwN(AWlf) = "Atypisch klassifizierte Doppler/Duplex-Untersuchungen (Halsschlagadern, Halsvenen, Thoraxvenen, Darmarterien, Beinarterien, Beinvenen, Nierenarterien, Temporalarterien, Abdomen, Armvenen, Armarterien, Belastung) (vorher 87, vorher 113)"
  sql(AWlf) = vbCrLf & _
  "SELECT DISTINCT pat_id, gesname(pat_id) PName, COUNT(0) zahl, MIN(zeitpunkt) Zt1,MAX(zeitpunkt) Zt2, GROUP_CONCAT(LEFT(inhalt,20) SEPARATOR ' | ') Inhalt " & vbCrLf & _
- "FROM eintraege WHERE art IN ('doppler','duplex') " & vbCrLf & _
+ "FROM eintraege WHERE art IN ('doppler','dop','duplex') " & vbCrLf & _
  "AND inhalt NOT LIKE 'Halsschlagadern%' " & vbCrLf & _
  "AND inhalt NOT LIKE 'Halsart%' " & vbCrLf & _
  "AND inhalt NOT LIKE 'Halsvenen%' " & vbCrLf & _
@@ -2100,14 +2113,22 @@ sql(AWlf) = "" & _
  
 ' 57
 AwN(AWlf) = "Möglicherweise fehlende Libre- bzw. CGM-Icons auf dem Patientendesktop (vorher 147)"
-sql(AWlf) = "" & _
+'sql(AWlf) = "" & _
 "SELECT n.pat_id PID, gesname(n.pat_id) PName " & vbCrLf & _
 ",COALESCE((SELECT LEFT(titel,6) FROM desktop WHERE pat_id=n.pat_id AND iconPath LIKE '%CGM.ico%' LIMIT 1),'-') Icon " & vbCrLf & _
-", COALESCE((SELECT CONCAT(DATE(zeitpunkt),' ',LEFT(name,40)) FROM tmbrie WHERE pat_id=n.pat_id AND name RLIKE 'libre|dexcom|cgm|clarity|medtronic|care link|eversen' AND NOT name RLIKE 'cgm bmp' AND zeitpunkt> qanf() - INTERVAL 3 month ORDER BY qdm desc LIMIT 1),'') Einles " & vbCrLf & _
+", COALESCE((SELECT CONCAT(DATE(zeitpunkt),' ',LEFT(name,40)) FROM tmbrie WHERE pat_id=n.pat_id AND name RLIKE 'libre|dexcom|cgm|clarity|medtronic|care link|eversen' AND NOT name RLIKE 'cgm bmp' AND zeitpunkt> qanf() - INTERVAL 3 month ORDER BY qdm DESC LIMIT 1),'') Einles " & vbCrLf & _
 ", COALESCE((SELECT CONCAT(DATE(zeitpunkt),' ',LEFT(feldinh,40)) FROM formular WHERE pat_id=n.pat_id AND form_abk='lar' AND feld='medikament' AND feldinh RLIKE 'Guardian|CGM StartSet|Enlite|Dexcom|Dexom|Eversen|CGM|Libre' AND zeitpunkt>qanf()-INTERVAL 3 MONTH ORDER BY zeitpunkt desc LIMIT 1),'') Rezept " & vbCrLf & _
 "FROM namen n " & vbCrLf & _
 "HAVING icon='-' AND (einles<>'' OR Rezept<>'') " & vbCrLf & _
 ";"
+sql(AWlf) = "" & _
+"SELECT n.pat_id PID, gesname(n.pat_id) PName" & vbCrLf & _
+", COALESCE((SELECT CONCAT(DATE(zeitpunkt),' ',LEFT(name,40)) FROM tmbrie WHERE pat_id=n.pat_id AND name RLIKE 'libre|dexcom|cgm|clarity|medtronic|care link|eversen' AND NOT name RLIKE 'cgm bmp' AND zeitpunkt> qanf() - INTERVAL 3 month ORDER BY qdm DESC LIMIT 1),'') Einles " & vbCrLf & _
+", COALESCE((SELECT CONCAT(DATE(zeitpunkt),' ',LEFT(feldinh,40)) FROM formular WHERE pat_id=n.pat_id AND form_abk='lar' AND feld='medikament' AND feldinh RLIKE 'Guardian|CGM StartSet|Enlite|Dexcom|Dexom|Eversen|CGM|Libre' AND zeitpunkt>qanf()-INTERVAL 3 MONTH ORDER BY zeitpunkt desc LIMIT 1),'') Rezept " & vbCrLf & _
+"FROM namen n" & vbCrLf & _
+"WHERE cgm=0 AND COALESCE(sdatum>19000101,0)=0 AND n.pat_id<>0" & vbCrLf & _
+"HAVING (einles<>'' OR Rezept<>'') "
+
  mins(AWlf) = 10
  maxs(AWlf) = 60
  AWlf = AWlf + 1
@@ -2143,8 +2164,41 @@ sql(AWlf) = "ü"
  AWlf = AWlf + 1
 
 ' 61
-AwN(AWlf) = "Möglicherweise zu Unrecht dem Bayerischen Landesinstitut für Gesundheit zugeordnete Leistungen (vorher 139)"
- sql(AWlf) = "" & _
+ AwN(AWlf) = "Fehlende Arzt-Markierungen"
+sql(AWlf) = _
+"SELECT pat_id,PName" & vbCrLf & _
+",LPAD(REGEXP_REPLACE(COALESCE(CONVERT(SUM(obtk),CHAR),''),'^0$',''),7,' ') EintrTKz, COALESCE(IF(SUM(obtk)=0,'',tkzp),'') tkzp" & vbCrLf & _
+",LPAD(REGEXP_REPLACE(COALESCE(CONVERT(SUM(obgs),CHAR),''),'^0$',''),7,' ') EintrGSz ,COALESCE(IF(SUM(obgs)=0,'',gszp),'') gszp" & vbCrLf & _
+",LPAD(REGEXP_REPLACE(COALESCE(CONVERT(SUM(obah),CHAR),''),'^0$',''),7,' ') EintrAHz ,COALESCE(IF(SUM(obah)=0,'',ahzp),'') ahzp" & vbCrLf & _
+"/*,COALESCE((SELECT 'x' FROM desktop WHERE pat_id=n.pat_id AND iconpath LIKE '%4eckblau%' AND showasnote=0 LIMIT 1),'') icon_k" & vbCrLf & _
+",COALESCE((SELECT 'x' FROM desktop WHERE pat_id =n.pat_id AND iconpath LIKE '%4eckgelb%' AND showasnote=0 LIMIT 1),'') icon_s" & vbCrLf & _
+",COALESCE((SELECT 'x' FROM desktop WHERE pat_id =n.pat_id AND iconpath LIKE '%4eckHellgruen%' AND showasnote=0 LIMIT 1),'') icon_h" & vbCrLf & _
+",COALESCE((SELECT 1 FROM desktop WHERE pat_id =n.pat_id AND iconpath LIKE '%4eckmagneta%' AND showasnote=0 LIMIT 1),'') icon_w*/" & vbCrLf & _
+",COALESCE((SELECT CONCAT(CASE WHEN raum='Schade' THEN 'gs' WHEN raum='Kothny' THEN 'tk' WHEN raum='Wagner' THEN 'wd' WHEN raum LIKE 'Hamm%' THEN 'ah' ELSE '' END,' ', DATE_FORMAT(zp,'%e.%c.%y'),' ',REPLACE(REPLACE(LEFT(zusatz,IF(LENGTH(zusatz)-1<25,LENGTH(zusatz)-1,25)),chr(10),''),chr(13),'')) FROM termine t WHERE pid = n.pat_id AND raum<>'Labor' AND zp =(SELECT MIN(zp) FROM termine WHERE zp>=CURRENT_TIMESTAMP() AND pid=t.pid AND raum RLIKE 'Kothny|Schade|Wagner|^Hamm' AND NOT zusatz RLIKE 'doppler|duplex|carotis|belastung|SD Sono|SD-Sono|Arterien|Venen') AND aktzeit=(SELECT MAX(aktzeit) FROM termine WHERE pid=t.pid AND raum<>'Labor' AND zp=t.zp) LIMIT 1),'') Termin" & vbCrLf & _
+"FROM (" & vbCrLf & _
+"SELECT n.pat_id, gesname(n.pat_id) PName,ersteller,obk,obs,obh" & vbCrLf & _
+",FIRST_VALUE(e.zeitpunkt) OVER(PARTITION BY e.pat_id ORDER BY obtk DESC,zeitpunkt DESC) tkzp" & vbCrLf & _
+",FIRST_VALUE(e.zeitpunkt) OVER(PARTITION BY e.pat_id ORDER BY obgs DESC,zeitpunkt DESC) gszp" & vbCrLf & _
+",FIRST_VALUE(e.zeitpunkt) OVER(PARTITION BY e.pat_id ORDER BY obah DESC,zeitpunkt DESC) ahzp" & vbCrLf & _
+",RANK() OVER(PARTITION BY pat_id ORDER BY zeitpunkt DESC) rang, e.art, e.zeitpunkt, e.inhalt,obtk,obgs,obah" & vbCrLf & _
+"FROM namen n " & vbCrLf & _
+"LEFT JOIN (SELECT e.*" & vbCrLf & _
+",art ='tk' OR (art='tb' AND ersteller ='tk') OR inhalt LIKE '%(tk)%' obtk" & vbCrLf & _
+",art ='gs' OR (art='tb' AND ersteller ='gs') OR inhalt LIKE '%(gs)%' obgs" & vbCrLf & _
+",art ='ah' OR (art='tb' AND ersteller ='ah') OR inhalt LIKE '%(ah)%' obah" & vbCrLf & _
+"FROM eintraege e" & vbCrLf
+sql(AWlf) = sql(AWlf) & _
+") e ON e.pat_id=n.Pat_ID AND (art IN ('tk','gs','wd','ah') OR (art='tb' AND ersteller IN ('tk','gs','wd','ah')) OR inhalt RLIKE '\\((gs|tk|wd|ah)\\)')" & vbCrLf & _
+"WHERE EXISTS(SELECT 0 FROM faelle WHERE pat_id=n.pat_id AND bhfb>20240101 LIMIT 1)" & vbCrLf & _
+"AND obk=0 AND obs=0 AND obh=0" & vbCrLf & _
+") n" & vbCrLf & _
+"WHERE rang<16" & vbCrLf & _
+"GROUP BY pat_id"
+' "-- and n.pat_id=47" & vbCrLf & _
+
+
+'AwN(AWlf) = "Möglicherweise zu Unrecht dem Bayerischen Landesinstitut für Gesundheit zugeordnete Leistungen (vorher 139)"
+' sql(AWlf) = "" & _
 "SELECT f.Pat_ID, gesname(f.pat_id) PName, f.Schgr, f.BhFB, l.Zeitpunkt,l.leistung,COALESCE(l.LZahl,0) LZahl,l.LfBegr Begründung,l.LOrgan Organ,l.Faktor " & vbCrLf & _
 "FROM faelle f " & vbCrLf & _
 "LEFT JOIN leistungen l ON l.fid=f.fid AND DATE(l.zeitpunkt) BETWEEN f.bhfb AND f.bhfe1 " & vbCrLf & _
@@ -3122,8 +3176,9 @@ AwN(AWlf) = "Fehlende 32025 für Blutzuckermessungen (bz, bzvgl, ogtt) außerhalb 
  AwN(AWlf) = "Eventuell fehlende 97146 (Neumanifestation mit Ernährungsberatung, BMI + ggf. Augen-Üw) (vorher 61)"
  sql(AWlf) = "SELECT v.Pat_id, gesnameg(v.pat_id) Name, DsJ, `Diabetes seit` " & vbCrLf & _
             ",d.icd " & vbCrLf & _
-            ",IF((SELECT MAX(art) FROM eintraege WHERE pat_id = v.pat_id AND art='tk') IS NULL,'',(SELECT CONCAT(LPAD(CAST(COUNT(art) AS char),4,' '),' ',DATE_FORMAT(MAX(zeitpunkt),'-%d.%m.%y')) FROM eintraege WHERE pat_id = v.pat_id AND art = 'tk')) tk " & vbCrLf & _
-            ",IF((SELECT MAX(art) FROM eintraege WHERE pat_id = v.pat_id AND art='gs') IS NULL,'',(SELECT CONCAT(LPAD(CAST(COUNT(art) AS char),4,' '),' ',DATE_FORMAT(MAX(zeitpunkt),'-%d.%m.%y')) FROM eintraege WHERE pat_id = v.pat_id AND art = 'gs')) gs " & vbCrLf & _
+            ",IF((SELECT MAX(art) FROM eintraege WHERE pat_id = v.pat_id AND (art='tk'OR(art='tb'AND ersteller='tk')))IS NULL,'',(SELECT CONCAT(LPAD(CAST(COUNT(art) AS char),4,' '),DATE_FORMAT(MAX(zeitpunkt),'(-%d.%m.%y)')) FROM eintraege WHERE pat_id = v.pat_id AND (art = 'tk'OR(art='tb'AND ersteller='tk')))) tk " & vbCrLf & _
+            ",IF((SELECT MAX(art) FROM eintraege WHERE pat_id = v.pat_id AND (art='gs'OR(art='tb'AND ersteller='gs')))IS NULL,'',(SELECT CONCAT(LPAD(CAST(COUNT(art) AS char),4,' '),DATE_FORMAT(MAX(zeitpunkt),'(-%d.%m.%y)')) FROM eintraege WHERE pat_id = v.pat_id AND (art = 'gs'OR(art='tb'AND ersteller='gs')))) gs " & vbCrLf & _
+            ",IF((SELECT MAX(art) FROM eintraege WHERE pat_id = v.pat_id AND (art='ah'OR(art='tb'AND ersteller='ah')))IS NULL,'',(SELECT CONCAT(LPAD(CAST(COUNT(art) AS char),4,' '),DATE_FORMAT(MAX(zeitpunkt),'(-%d.%m.%y)')) FROM eintraege WHERE pat_id = v.pat_id AND (art = 'ah'OR(art='tb'AND ersteller='ah')))) ah " & vbCrLf & _
             ",IF(NOT d.icd RLIKE '^E1[01]' OR ISNULL(d.icd),'E10 oder E11','') ICD_zutun " & vbCrLf & _
             ",'ggf.97146 dazu' Leistung_zutun " & vbCrLf & _
             "FROM aktfvs v " & vbCrLf & _
@@ -3259,7 +3314,7 @@ AwN(AWlf) = "Möglicherweise fehlende 03355 (lauto) (vorher 98)"
 "LEFT JOIN tmbrie b ON b.pat_id=f.pat_id AND name LIKE '%libre%' AND IF(b.quelldatum=18991230,b.zeitpunkt,b.quelldatum)>SUBDATE(" & qtAnf(FristS) & ",INTERVAL 6 MONTH) " & vbCrLf & _
 "LEFT JOIN eintraege e ON e.pat_id=f.pat_id AND e.inhalt RLIKE 'cgm|eversen|guardian|enlite|dexcom|libre' AND NOT e.inhalt LIKE '%vorgestellt%will%nicht%' AND e.zeitpunkt>SUBDATE(" & qtAnf(FristS) & ",274) " & vbCrLf & _
 "LEFT JOIN formular fr ON fr.pat_id=f.pat_id AND fr.form_abk='lar' AND fr.feld='medikament' AND fr.feldinh RLIKE 'Guardian|CGM StartSet|Enlite|Dexcom|Dexcom|Eversen|CGM|Libre' AND fr.zeitpunkt>SUBDATE(" & qtAnf(FristS) & ",INTERVAL 12 MONTH) " & vbCrLf & _
-"LEFT JOIN eintraege kon ON kon.pat_id=f.pat_id AND kon.zeitpunkt BETWEEN " & lqanfuend(FristS) & " AND kon.art IN (" & artSpezBerat & ",'usdm2','sem','uzu','hypo','notiz','rauch','debr','anal','andm','usal','sono','doppler','duplex','ulcus','wv','kv')" & vbCrLf & _
+"LEFT JOIN eintraege kon ON kon.pat_id=f.pat_id AND kon.zeitpunkt BETWEEN " & lqanfuend(FristS) & " AND kon.art IN (" & artSpezBerat & ",'usdm2','sem','uzu','hypo','notiz','rauch','debr','anal','andm','usal','sono','doppler','dop','duplex','ulcus','wv','kv')" & vbCrLf & _
 "LEFT JOIN leistungen l ON l.pat_id=f.pat_id AND l.leistung='03355' AND DATE(l.zeitpunkt)=DATE(kon.zeitpunkt) " & vbCrLf & _
 "WHERE (NOT ISNULL(b.name) OR (NOT ISNULL(e.inhalt) AND e.zeitpunkt>SUBDATE(" & qtAnf(FristS) & ",INTERVAL 12 MONTH)) " & vbCrLf & _
 "OR NOT ISNULL(fr.feldinh) " & vbCrLf & _
@@ -4299,7 +4354,7 @@ sql(AWlf) = _
 ", COALESCE((SELECT SUM(lzahl) FROM leistungen WHERE pat_id=f.pat_id AND DATE(zeitpunkt)=DATE(e.ZeitPunkt) AND leistung='33060'),0) `cwzl(33060)`" & vbCrLf & _
 ", Inhalt" & vbCrLf & _
 "FROM aktfv f" & vbCrLf & _
-"LEFT JOIN eintraege e ON e.pat_id=f.pat_id AND e.art IN ('doppler','duplex') " & vbCrLf & _
+"LEFT JOIN eintraege e ON e.pat_id=f.pat_id AND e.art IN ('doppler','dop','duplex') " & vbCrLf & _
 "AND (e.inhalt RLIKE 'hals|arotis|ACI|A.car.|Carot' OR (inhalt RLIKE '%acc%' AND NOT inhalt RLIKE 'saph|ACC\.')) " & vbCrLf & _
 "AND e.zeitpunkt BETWEEN qanf() AND qend()" & vbCrLf & _
 "WHERE NOT ISNULL(e.Pat_id)" & vbCrLf & _
@@ -4313,7 +4368,7 @@ sql(AWlf) = _
 "LEFT JOIN `anamnesebogen` a ON f.`pat_id`= a.`pat_id` " & vbCrLf & _
 "LEFT JOIN (SELECT * FROM " & vbCrLf & _
 "(((SELECT pat_id AS pid,  LEFT(art,7) AS art, inhalt, zeitpunkt AS ezp, DATE(zeitpunkt) zp FROM `eintraege` e " & vbCrLf & _
-"WHERE art IN ('doppler','duplex') AND zeitpunkt BETWEEN " & lQAnfuEnd(FristS) & ") AS eint " & vbCrLf & _
+"WHERE art IN ('doppler','dop','duplex') AND zeitpunkt BETWEEN " & lQAnfuEnd(FristS) & ") AS eint " & vbCrLf & _
 "LEFT JOIN (SELECT pat_id AS cwpat_id, fid AS cwfid, DATE(zeitpunkt) cwltag, leistung AS cw FROM `leistungen` WHERE leistung IN ('33060')) AS cw " & vbCrLf & _
 "ON eint.pid = cw.cwpat_id AND eint.zp = cw.cwltag) " & vbCrLf & _
 "LEFT JOIN (SELECT pat_id AS komprpat_id, fid AS komprfid, DATE(zeitpunkt) komprltag, leistung AS kompr FROM `leistungen` WHERE leistung IN ('33076')) AS kompr " & vbCrLf & _
@@ -4337,7 +4392,7 @@ sql(AWlf) = _
 ", COALESCE((SELECT SUM(lzahl) FROM leistungen WHERE pat_id=f.pat_id AND DATE(zeitpunkt)=DATE(e.ZeitPunkt) AND leistung='33061'),0) `cwzl(33061)`" & vbCrLf & _
 ", Inhalt" & vbCrLf & _
 "FROM aktfv f" & vbCrLf & _
-"LEFT JOIN eintraege e ON e.pat_id=f.pat_id AND e.art IN ('doppler','duplex')" & vbCrLf & _
+"LEFT JOIN eintraege e ON e.pat_id=f.pat_id AND e.art IN ('doppler','dop','duplex')" & vbCrLf & _
 "AND (e.inhalt RLIKE '^Bein|Belastung|A.d.|A.t.|biph|monoph|postst|Fußart|IDR|A. fem.|A.fem.|in Ruhe|in Ruhe|aorta' AND NOT e.inhalt RLIKE 'halsvenen|^halsschlagadern|halsart|Nierenarterien') " & vbCrLf & _
 "AND e.zeitpunkt BETWEEN qanf() AND qend()" & vbCrLf & _
 "WHERE NOT ISNULL(e.Pat_id)" & vbCrLf & _
@@ -4345,7 +4400,7 @@ sql(AWlf) = _
 'sql(AWlf) = _
 "SELECT f.pat_id, gesname(f.pat_id),e.zeitpunkt, e.art,e.inhalt " & vbCrLf & _
 " FROM aktfvs f " & vbCrLf & _
-" LEFT JOIN eintraege e ON e.pat_id=f.pat_id AND e.art IN ('doppler','duplex') " & vbCrLf & _
+" LEFT JOIN eintraege e ON e.pat_id=f.pat_id AND e.art IN ('doppler','dop','duplex') " & vbCrLf & _
 "   AND e.zeitpunkt BETWEEN " & lQAnfuEnd(FristS) & " " & vbCrLf & _
 "   AND e.inhalt RLIKE '^Bein|Belastung|A.d.|A.t.|biph|monoph|postst|Fußart|IDR|A. fem.|A.fem.|in Ruhe|in Ruhe|aorta' " & vbCrLf & _
 "   AND NOT e.inhalt RLIKE '^halsschlagadern|Nierenarterien' " & vbCrLf & _
@@ -4358,7 +4413,7 @@ sql(AWlf) = _
 "LEFT JOIN `anamnesebogen` a ON f.`pat_id`= a.`pat_id` " & vbCrLf & _
 "LEFT JOIN (SELECT * FROM " & vbCrLf & _
 "(((SELECT pat_id AS pid,  LEFT(art,7) AS art, inhalt, zeitpunkt AS ezp, DATE(zeitpunkt) AS tag FROM `eintraege` e " & vbCrLf & _
-"WHERE art IN ('doppler','duplex') AND zeitpunkt BETWEEN " & lQAnfuEnd(FristS) & ") AS eint " & vbCrLf & _
+"WHERE art IN ('doppler','dop','duplex') AND zeitpunkt BETWEEN " & lQAnfuEnd(FristS) & ") AS eint " & vbCrLf & _
 "LEFT JOIN (SELECT pat_id AS cwpat_id, fid AS cwfid, DATE(zeitpunkt) AS cwltag, leistung AS cw FROM `leistungen` WHERE leistung IN ('33061')) AS cw " & vbCrLf & _
 "ON eint.pid = cw.cwpat_id AND eint.tag = cw.cwltag) " & vbCrLf & _
 "LEFT JOIN (SELECT pat_id AS komprpat_id, fid AS komprfid, DATE(zeitpunkt) AS komprltag, leistung AS kompr FROM `leistungen` WHERE leistung IN ('33076')) AS kompr " & vbCrLf & _
@@ -4400,7 +4455,7 @@ sql(AWlf) = _
 ", COALESCE((SELECT SUM(lzahl) FROM leistungen WHERE pat_id=f.pat_id AND DATE(zeitpunkt)=DATE(e.ZeitPunkt) AND leistung IN ('33042','33042A')),0) `sonozl(33042/A)`" & vbCrLf & _
 ", Inhalt" & vbCrLf & _
 "FROM aktfv f" & vbCrLf & _
-"LEFT JOIN eintraege e ON e.pat_id=f.pat_id AND e.art IN ('doppler','duplex')" & vbCrLf & _
+"LEFT JOIN eintraege e ON e.pat_id=f.pat_id AND e.art IN ('doppler','dop','duplex')" & vbCrLf & _
 "AND (e.inhalt RLIKE '([^o]|^)Nieren|Mesent') " & vbCrLf & _
 "AND e.zeitpunkt BETWEEN qanf() AND qend()" & vbCrLf & _
 "WHERE NOT ISNULL(e.Pat_id)" & vbCrLf & _
@@ -4414,7 +4469,7 @@ sql(AWlf) = _
 "LEFT JOIN `anamnesebogen` a ON f.`pat_id`= a.`pat_id` " & vbCrLf & _
 "LEFT JOIN (SELECT * FROM " & vbCrLf & _
 "(((SELECT pat_id AS pid,  LEFT(art,7) AS art, inhalt, zeitpunkt AS ezp, DATE(zeitpunkt) zp, fid FROM `eintraege` e " & vbCrLf & _
-"WHERE art IN ('doppler','duplex') AND zeitpunkt BETWEEN " & lQAnfuEnd(FristS) & ") AS eint " & vbCrLf & _
+"WHERE art IN ('doppler','dop','duplex') AND zeitpunkt BETWEEN " & lQAnfuEnd(FristS) & ") AS eint " & vbCrLf & _
 "LEFT JOIN (SELECT pat_id AS cwpat_id, fid AS cwfid, DATE(zeitpunkt) cwltag, leistung AS cw FROM `leistungen` WHERE leistung IN ('33061')) AS cw " & vbCrLf & _
 "ON eint.pid = cw.cwpat_id AND eint.zp = cw.cwltag) " & vbCrLf & _
 "LEFT JOIN (SELECT pat_id AS komprpat_id, fid AS komprfid, DATE(zeitpunkt) komprltag, leistung AS kompr FROM `leistungen` WHERE leistung IN ('33076')) AS kompr " & vbCrLf & _
@@ -4507,8 +4562,9 @@ sql(AWlf) = _
 ' ktag fehlerhaft
  AwN(AWlf) = "Mögliche Kandidaten für Atemnotpauschale (J44.[018][01] plus J96.1[019] (vorher 86)"
  sql(AWlf) = "SELECT f.pat_id,gesname(f.pat_id) Name, patAlter(f.pat_id) PAlter " & vbCrLf & _
-       ",(SELECT COUNT(art) FROM eintraege WHERE pat_id = f.pat_id AND art = 'tk') tk " & vbCrLf & _
-       ",(SELECT COUNT(art) FROM eintraege WHERE pat_id = f.pat_id AND art = 'gs') gs " & vbCrLf & _
+       ",IF((SELECT MAX(art) FROM eintraege WHERE pat_id = v.pat_id AND (art='tk'OR(art='tb'AND ersteller='tk')))IS NULL,'',(SELECT CONCAT(LPAD(CAST(COUNT(art) AS char),4,' '),DATE_FORMAT(MAX(zeitpunkt),'(-%d.%m.%y)')) FROM eintraege WHERE pat_id = v.pat_id AND (art = 'tk'OR(art='tb'AND ersteller='tk')))) tk " & vbCrLf & _
+       ",IF((SELECT MAX(art) FROM eintraege WHERE pat_id = v.pat_id AND (art='gs'OR(art='tb'AND ersteller='gs')))IS NULL,'',(SELECT CONCAT(LPAD(CAST(COUNT(art) AS char),4,' '),DATE_FORMAT(MAX(zeitpunkt),'(-%d.%m.%y)')) FROM eintraege WHERE pat_id = v.pat_id AND (art = 'gs'OR(art='tb'AND ersteller='gs')))) gs " & vbCrLf & _
+       ",IF((SELECT MAX(art) FROM eintraege WHERE pat_id = v.pat_id AND (art='ah'OR(art='tb'AND ersteller='ah')))IS NULL,'',(SELECT CONCAT(LPAD(CAST(COUNT(art) AS char),4,' '),DATE_FORMAT(MAX(zeitpunkt),'(-%d.%m.%y)')) FROM eintraege WHERE pat_id = v.pat_id AND (art = 'ah'OR(art='tb'AND ersteller='ah')))) ah " & vbCrLf & _
        ", GROUP_CONCAT(DISTINCT jd.icd) COPDicd, GROUP_CONCAT(DISTINCT dd.icd) RIicd, GROUP_CONCAT(DISTINCT LEFT(dd.diagtext,17)) `Resp.Ins.`,DATE(e.zeitpunkt) zpt, e.inhalt Eintrag, LEFT(k.name,20) Kasse  " & vbCrLf & _
        "FROM aktfvs v " & vbCrLf & _
        "LEFT JOIN kassenliste k ON v.vknr = k.vknr AND v.ik=k.ik " & vbCrLf & _
@@ -4584,7 +4640,7 @@ sql(AWlf) = _
 ", COALESCE((SELECT SUM(lzahl) FROM leistungen WHERE pat_id=f.pat_id AND DATE(zeitpunkt)=DATE(e.ZeitPunkt) AND leistung IN ('33042','33042A')),0) `sonozl(33042/A)`" & vbCrLf & _
 ", Inhalt" & vbCrLf & _
 "FROM aktfv f" & vbCrLf & _
-"LEFT JOIN eintraege e ON e.pat_id=f.pat_id AND e.art IN ('doppler','duplex')" & vbCrLf & _
+"LEFT JOIN eintraege e ON e.pat_id=f.pat_id AND e.art IN ('doppler','dop','duplex')" & vbCrLf & _
 "AND (e.inhalt NOT RLIKE 'hals|arotis|aci|A.car.|ACC|Carot|A.d.|A.t.|biph|monoph|postst|Fußart|IDR|A.fem.|A. fem.|in Ruhe|Nieren|Vene|Varik|V.s.|Thrombos|reflux') " & vbCrLf & _
 "AND e.zeitpunkt BETWEEN qanf() AND qend()" & vbCrLf & _
 "WHERE NOT ISNULL(e.Pat_id)" & vbCrLf & _
@@ -4595,7 +4651,7 @@ sql(AWlf) = _
 "LEFT JOIN `anamnesebogen` a ON f.`pat_id`= a.`pat_id` " & vbCrLf & _
 "LEFT JOIN (SELECT * FROM " & vbCrLf & _
 "(((SELECT pat_id AS pid, art, inhalt, zeitpunkt AS ezp, DATE(zeitpunkt) zp FROM `eintraege` e " & vbCrLf & _
-"WHERE art IN ('doppler','duplex') AND zeitpunkt BETWEEN " & lQAnfuEnd(FristS) & ") AS eint " & vbCrLf & _
+"WHERE art IN ('doppler','dop','duplex') AND zeitpunkt BETWEEN " & lQAnfuEnd(FristS) & ") AS eint " & vbCrLf & _
 "LEFT JOIN (SELECT pat_id AS cwpat_id, fid AS cwfid, DATE(zeitpunkt) cwltag, leistung AS cw FROM `leistungen` WHERE leistung IN ('33061')) AS cw " & vbCrLf & _
 "ON eint.pid = cw.cwpat_id AND eint.zp = cw.cwltag) " & vbCrLf & _
 "LEFT JOIN (SELECT pat_id AS komprpat_id, fid AS komprfid, DATE(zeitpunkt) komprltag, leistung AS kompr FROM `leistungen` WHERE leistung IN ('33076')) AS kompr " & vbCrLf & _
@@ -4655,13 +4711,15 @@ AWlf = AWlf + 1
  AwN(AWlf) = "Fehlende Leistung 03360 für Barthel- und TUG-Test (lauto) (vorher 73)"
  sql(AWlf) = "SELECT * FROM ( " & vbCrLf & _
  "SELECT v.pat_id PID, COALESCE(SUM(lz.lzahl),0)*COUNT(DISTINCT lz.id)/COUNT(lz.id) LZ, GROUP_CONCAT(DISTINCT lz.zeitpunkt) lzzp, gesname(v.pat_id) Name, patalter(v.pat_id) PAlter " & vbCrLf & _
-            ",(SELECT COUNT(art) FROM eintraege WHERE pat_id = v.pat_id AND art = 'tk') tk " & vbCrLf & _
-            ",(SELECT COUNT(art) FROM eintraege WHERE pat_id = v.pat_id AND art = 'gs') gs " & vbCrLf & _
-            ",CONCAT(LPAD(MID(tug.inhalt,1,INSTR(tug.inhalt,' ')),4,' '), 's/ ', LPAD(MID(adl.inhalt,17),3,' '),' P') Tests " & vbCrLf & _
+            ",(SELECT COUNT(art) FROM eintraege WHERE pat_id = v.pat_id AND (art = 'tk'OR(art='tb'AND ersteller='tk'))) tk " & vbCrLf & _
+            ",(SELECT COUNT(art) FROM eintraege WHERE pat_id = v.pat_id AND (art = 'gs'OR(art='tb'AND ersteller='gs'))) gs " & vbCrLf & _
+            ",(SELECT COUNT(art) FROM eintraege WHERE pat_id = v.pat_id AND (art = 'ah'OR(art='tb'AND ersteller='ah'))) ah " & vbCrLf & _
+            ",CONCAT(LPAD(REGEXP_REPLACE(tug.inhalt,'.*benötigte Zeit\: *([0-9]+) Sek.*','\\1'),3,' '),'s/ ', LPAD(REGEXP_REPLACE(adl.inhalt,'.*Gesamtpunktzahl [(]max. 100[)] *([0-9]+) *','\\1'),3,' ')) Tests " & vbCrLf & _
             ",GROUP_CONCAT(DISTINCT tug.zeitpunkt) tugzp " & vbCrLf & _
             ",GROUP_CONCAT(DISTINCT adl.zeitpunkt) adlzp " & vbCrLf & _
             ",(SELECT DATE(zeitpunkt) FROM leistungen WHERE pat_id=v.pat_id AND zeitpunkt>=qanf() ORDER BY zeitpunkt LIMIT 1) LEIDAT, '03360 dazu' LEIFEHLER,v.LANRID " & vbCrLf & _
-            "FROM aktfvs v " & vbCrLf & _
+            "FROM aktfvs v " & vbCrLf
+ sql(AWlf) = sql(AWlf) & _
             "LEFT JOIN faelle f ON v.fid = f.fid " & vbCrLf & _
             "LEFT JOIN namen n ON v.pat_id = n.pat_id " & vbCrLf & _
             "LEFT JOIN eintraege tug ON v.pat_id = tug.pat_id AND tug.art = 'TUG'  AND tug.zeitpunkt = (SELECT MAX(zeitpunkt) FROM eintraege WHERE pat_id = v.pat_id AND art = 'TUG')" & vbCrLf & _
@@ -4685,9 +4743,10 @@ AWlf = AWlf + 1
 ' 133
  AwN(AWlf) = "Leistung 03360 für Barthel- und TUG-Test bei Patienten ohne Pflegediagnose (vorher 74)"
  sql(AWlf) = "SELECT v.pat_id, gesname(v.pat_id) Name, patalter(v.pat_id) PAlter " & vbCrLf & _
-            ",(SELECT COUNT(art) FROM eintraege WHERE pat_id = v.pat_id AND art = 'tk') tk " & vbCrLf & _
-            ",(SELECT COUNT(art) FROM eintraege WHERE pat_id = v.pat_id AND art = 'gs') gs " & vbCrLf & _
-            ",CONCAT(LPAD(MID(tug.inhalt,1,INSTR(tug.inhalt,' ')),4,' '), 's/ ', LPAD(MID(adl.inhalt,17),3,' '),' P') Tests " & vbCrLf & _
+            ",(SELECT COUNT(art) FROM eintraege WHERE pat_id = v.pat_id AND (art = 'tk'OR(art='tb'AND ersteller='tk'))) tk " & vbCrLf & _
+            ",(SELECT COUNT(art) FROM eintraege WHERE pat_id = v.pat_id AND (art = 'gs'OR(art='tb'AND ersteller='gs'))) gs " & vbCrLf & _
+            ",(SELECT COUNT(art) FROM eintraege WHERE pat_id = v.pat_id AND (art = 'ah'OR(art='tb'AND ersteller='ah'))) ah " & vbCrLf & _
+            ",CONCAT(LPAD(REGEXP_REPLACE(tug.inhalt,'.*benötigte Zeit\: *([0-9]+) Sek.*','\\1'),3,' '),'s/ ', LPAD(REGEXP_REPLACE(adl.inhalt,'.*Gesamtpunktzahl [(]max. 100[)] *([0-9]+) *','\\1'),3,' ')) Tests " & vbCrLf & _
             "FROM aktfvs v " & vbCrLf & _
             "LEFT JOIN faelle f ON v.fid = f.fid " & vbCrLf & _
             "LEFT JOIN namen n ON v.pat_id = n.pat_id " & vbCrLf & _
@@ -4736,11 +4795,12 @@ AWlf = AWlf + 1
  ' 134
  AwN(AWlf) = "Fehlende 03362 (hausärztlich-geriatrischer Betreuungskomplex) (lauto) (vorher 75)"
  sql(AWlf) = "SELECT v.pat_id PID, gesname(v.pat_id) Name, patalter(v.pat_id) PAlter " & vbCrLf & _
-            ",(SELECT COUNT(art) FROM eintraege WHERE pat_id = v.pat_id AND art = 'tk') tk " & vbCrLf & _
-            ",(SELECT COUNT(art) FROM eintraege WHERE pat_id = v.pat_id AND art = 'gs') gs " & vbCrLf & _
+            ",(SELECT COUNT(art) FROM eintraege WHERE pat_id = v.pat_id AND (art = 'tk'OR(art='tb'AND ersteller='tk'))) tk " & vbCrLf & _
+            ",(SELECT COUNT(art) FROM eintraege WHERE pat_id = v.pat_id AND (art = 'gs'OR(art='tb'AND ersteller='gs'))) gs " & vbCrLf & _
+            ",(SELECT COUNT(art) FROM eintraege WHERE pat_id = v.pat_id AND (art = 'ah'OR(art='ah'AND ersteller='ah'))) ah " & vbCrLf & _
             ",CONCAT(pfld.icd,'(',pfld.diagtext,')') `Pflegediagnose`" & vbCrLf & _
             ", '03362 dazu' LEIFEHLER, DATE(letzt) LEIDAT " & vbCrLf & _
-            ",CONCAT(LPAD(MID(tug.inhalt,1,INSTR(tug.inhalt,' ')),4,' '), 's/ ', LPAD(MID(adl.inhalt,17),3,' '),' P') Tests " & vbCrLf & _
+            ",CONCAT(LPAD(REGEXP_REPLACE(tug.inhalt,'.*benötigte Zeit\: *([0-9]+) Sek.*','\\1'),3,' '),'s/ ', LPAD(REGEXP_REPLACE(adl.inhalt,'.*Gesamtpunktzahl [(]max. 100[)] *([0-9]+) *','\\1'),3,' ')) Tests " & vbCrLf & _
             ",v.koz KZahl, czp Kontakte, v.art KontaktArt, v.LANRID " & vbCrLf & _
             "FROM aktfkvs v " & vbCrLf & _
             "LEFT JOIN faelle f ON v.fid = f.fid " & vbCrLf & _
@@ -4775,12 +4835,14 @@ sql(AWlf) = sql(AWlf) & _
 ' 135
  AwN(AWlf) = "möglicherweise unberechtigte 03362 (vorher 76)"
  sql(AWlf) = "SELECT v.pat_id, gesname(v.pat_id) Name, patalter(v.pat_id) PAlter " & vbCrLf & _
-            ",IF((SELECT MAX(art) FROM eintraege WHERE pat_id = v.pat_id AND art='tk') IS NULL,'',(SELECT CONCAT(LPAD(CAST(COUNT(art) AS char),4,' '),' ',DATE_FORMAT(MAX(zeitpunkt),'-%d.%m.%y')) FROM eintraege WHERE pat_id = v.pat_id AND art = 'tk')) tk " & vbCrLf & _
-            ",IF((SELECT MAX(art) FROM eintraege WHERE pat_id = v.pat_id AND art='gs') IS NULL,'',(SELECT CONCAT(LPAD(CAST(COUNT(art) AS char),4,' '),' ',DATE_FORMAT(MAX(zeitpunkt),'-%d.%m.%y')) FROM eintraege WHERE pat_id = v.pat_id AND art = 'gs')) gs " & vbCrLf & _
-            ",CONCAT(LPAD(MID(tug.inhalt,1,INSTR(tug.inhalt,' ')),4,' '), 's/ ', LPAD(MID(adl.inhalt,17),3,' '),' P') Tests " & vbCrLf & _
+            ",(SELECT COUNT(art) FROM eintraege WHERE pat_id = v.pat_id AND (art = 'tk'OR(art='tb'AND ersteller='tk'))) tk " & vbCrLf & _
+            ",(SELECT COUNT(art) FROM eintraege WHERE pat_id = v.pat_id AND (art = 'gs'OR(art='tb'AND ersteller='gs'))) gs " & vbCrLf & _
+            ",(SELECT COUNT(art) FROM eintraege WHERE pat_id = v.pat_id AND (art = 'ah'OR(art='ah'AND ersteller='ah'))) ah " & vbCrLf & _
+            ",CONCAT(LPAD(REGEXP_REPLACE(tug.inhalt,'.*benötigte Zeit\: *([0-9]+) Sek.*','\\1'),3,' '),'s/ ', LPAD(REGEXP_REPLACE(adl.inhalt,'.*Gesamtpunktzahl [(]max. 100[)] *([0-9]+) *','\\1'),3,' ')) Tests " & vbCrLf & _
             ",CONCAT(IF(v.koz+(IF(ISNULL(l2.leistung),0,1))<=1,'Kontaktzahl ','            '),IF(ISNULL(pfld.icd),'Diagnose ','         ') ) Fehler " & vbCrLf & _
             ", h.letzter ltzt_HbA1c,v.czp Kontakte,v.art KontaktArt " & vbCrLf & _
-            "FROM aktfkvs v " & vbCrLf & _
+            "FROM aktfkvs v " & vbCrLf
+sql(AWlf) = sql(AWlf) & _
             "LEFT JOIN faelle f ON v.fid = f.fid " & vbCrLf & _
             "LEFT JOIN leistungen l2 ON v.fid=l2.fid AND l2.leistung LIKE '03221%' " & vbCrLf & _
             "LEFT JOIN namen n ON v.pat_id = n.pat_id " & vbCrLf & _
@@ -4832,8 +4894,8 @@ sql(AWlf) = sql(AWlf) & _
  sql(AWlf) = "SELECT f.pat_id, gesname(f.pat_id) Gesname, DATE(l.zeitpunkt), l.leistung, l1.leistung " & vbCrLf & _
             ",f.koz KZahl, czp Kontakte,f.art Kontaktart " & vbCrLf & _
             "FROM aktfkvs f " & vbCrLf & _
-"       LEFT JOIN leistungen l ON f.pat_id = l.pat_id AND l.leistung = '03362' " & vbCrLf & _
-"       LEFT JOIN leistungen l1 ON f.fid = l1.fid AND l1.leistung IN ('03000','03001','03002','03003','03004','03005','03030') " & vbCrLf & _
+"       LEFT JOIN leistungen l ON f.pat_id = l.pat_id AND l.leistung = '03362' AND l.zeitpunkt BETWEEN qanf() AND qend()" & vbCrLf & _
+"       LEFT JOIN leistungen l1 ON f.pat_id = l1.pat_id AND l1.leistung IN ('03000','03001','03002','03003','03004','03005','03030') AND l1.zeitpunkt BETWEEN qanf() AND qend()" & vbCrLf & _
 " WHERE NOT ISNULL(l.leistung) AND NOT ISNULL(l1.leistung) AND DATE(l.zeitpunkt)=DATE(l1.zeitpunkt); "
  
  mins(AWlf) = 10
@@ -5602,8 +5664,9 @@ AwN(AWlf) = "Evtl. fehlende DAK(/KKH/HEK/TK)-Makros (vorher 91)"
 sql(AWlf) = "" & vbCrLf & _
 "SELECT docname, pid, n.pat_id, gesname(n.pat_id) Name, DATE_FORMAT(transe,'%d.%m.%Y') gefaxt " & vbCrLf & _
 ", wia(n.pat_id) iArzt " & vbCrLf & _
-",IF((SELECT MAX(art) FROM eintraege WHERE pat_id = n.pat_id AND art='tk') IS NULL,'',(SELECT CONCAT(LPAD(CAST(COUNT(art) AS char),4,' '),' ',DATE_FORMAT(MAX(zeitpunkt),'-%d.%m.%y')) FROM eintraege WHERE pat_id = n.pat_id AND art = 'tk')) tk " & vbCrLf & _
-",IF((SELECT MAX(art) FROM eintraege WHERE pat_id = n.pat_id AND art='gs') IS NULL,'',(SELECT CONCAT(LPAD(CAST(COUNT(art) AS char),4,' '),' ',DATE_FORMAT(MAX(zeitpunkt),'-%d.%m.%y')) FROM eintraege WHERE pat_id = n.pat_id AND art = 'gs')) gs " & vbCrLf & _
+            ",IF((SELECT MAX(art) FROM eintraege WHERE pat_id = v.pat_id AND (art='tk'OR(art='tb'AND ersteller='tk')))IS NULL,'',(SELECT CONCAT(LPAD(CAST(COUNT(art) AS char),4,' '),DATE_FORMAT(MAX(zeitpunkt),'(-%d.%m.%y)')) FROM eintraege WHERE pat_id = v.pat_id AND (art = 'tk'OR(art='tb'AND ersteller='tk')))) tk " & vbCrLf & _
+            ",IF((SELECT MAX(art) FROM eintraege WHERE pat_id = v.pat_id AND (art='gs'OR(art='tb'AND ersteller='gs')))IS NULL,'',(SELECT CONCAT(LPAD(CAST(COUNT(art) AS char),4,' '),DATE_FORMAT(MAX(zeitpunkt),'(-%d.%m.%y)')) FROM eintraege WHERE pat_id = v.pat_id AND (art = 'gs'OR(art='tb'AND ersteller='gs')))) gs " & vbCrLf & _
+            ",IF((SELECT MAX(art) FROM eintraege WHERE pat_id = v.pat_id AND (art='ah'OR(art='tb'AND ersteller='ah')))IS NULL,'',(SELECT CONCAT(LPAD(CAST(COUNT(art) AS char),4,' '),DATE_FORMAT(MAX(zeitpunkt),'(-%d.%m.%y)')) FROM eintraege WHERE pat_id = v.pat_id AND (art = 'ah'OR(art='tb'AND ersteller='ah')))) ah " & vbCrLf & _
 "FROM faxeinp.outa " & vbCrLf & _
 "LEFT JOIN namen n ON n.pat_id=pid " & vbCrLf & _
 "LEFT JOIN eintraege e ON pid = e.pat_id AND (art= 'dak') " & vbCrLf & _

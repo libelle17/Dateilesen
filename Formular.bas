@@ -567,8 +567,10 @@ Sub EliminierWortplusZahl(ByRef SqlU As CString, ByRef Wort$)
  End If
 End Sub ' EliminierWortplusZahl(ByRef SqlU As CString, ByRef Wort$)
 
-Function DtbCreateQueryDef$(QName$, sql$)
+' in doViewsErstellen, do_Labor_Click, do_Briefe_Click usw.
+Function DtbCreateQueryDef$(QName$, sql$, Optional Conx As ADODB.Connection)
  Dim csql As CString
+ If Conx Is Nothing Then Set Conx = DBCn
  If sql <> vNS Then
  Set csql = SqlU(sql, ((LVobMySQL)))
  If Not LVobMySQL Then
@@ -576,7 +578,7 @@ Function DtbCreateQueryDef$(QName$, sql$)
 '  Dim Cmd$ ' As New ADODB.Command
   Dim V As ADOX.view
 '  SET Cmd.ActiveConnection = DBCn
-  Set cat.ActiveConnection = DBCn
+  Set cat.ActiveConnection = Conx
   On Error GoTo fehler
 '  SET Cmd = Nothing
 '  Cmd.CommandText =
@@ -597,13 +599,26 @@ Function DtbCreateQueryDef$(QName$, sql$)
  Else
   On Error GoTo fehler
   If LVobMySQL And LenB(ifexists) = 0 Then Zinit (LVobMySQL)
-  Call myEFrag("DROP TABLE " & ifexists & " `" & QName & "`;")
-  Call myEFrag("DROP VIEW " & ifexists & " `" & QName & "`;")
+  Call myEFrag("DROP TABLE " & ifexists & " `" & QName & "`;", , Conx)
+  Call myEFrag("DROP VIEW " & ifexists & " `" & QName & "`;", , Conx)
   On Error GoTo fehler
   Dim cvrs As Recordset
-  
-  Call myEFrag("CREATE OR REPLACE ALGORITHM=UNDEFINED DEFINER=`" & Forms(0).dbv.uid & "`@`%` SQL SECURITY DEFINER VIEW `" & QName & "` AS " & csql)
-  Set cvrs = myEFrag("SHOW TABLES WHERE `tables_in_" & DefDB(DBCn) & "` LIKE '" & QName & "'")
+  Dim benu$
+  Dim p1&, p2&
+  benu = Conx.Properties("extended properties")
+  p1 = InStr(benu, "UID=")
+  If p1 <> 0 Then
+   p1 = p1 + 4
+   p2 = InStr(p1, benu, ";")
+   If p2 <> 0 Then
+    benu = Mid$(benu, p1, p2 - p1)
+   End If ' p2 <> 0 Then
+  End If ' p1 <> 0 Then
+  If benu = "" Then benu = Forms(0).dbv.uid
+  Dim ErrNr&, ErrDes$
+  Call myEFrag("CREATE OR REPLACE ALGORITHM=UNDEFINED DEFINER=`" & benu & "`@`%` SQL SECURITY DEFINER VIEW `" & QName & "` AS " & csql, , Conx, , ErrNr, ErrDes)
+'  If ErrNr Then Debug.Print ErrNr, ErrDes
+  Set cvrs = myEFrag("SHOW TABLES WHERE `tables_in_" & DefDB(Conx) & "` LIKE '" & QName & "'", , Conx)
   If cvrs.BOF Then
    Lese.Ausgeb QName & " konnte nicht erstellt werden.", True
   Else
@@ -3414,11 +3429,11 @@ syscmd 4, "Formularvorbereitung 12 " & frm.anaRS!Nachname & ", " & frm.anaRS!Vor
        Print #313, Format(Takt - Tvor, "0.00") & "      " & Format(Takt - T0, "0.00") & " (" & dnr & ")"
 #End If
  Dim rMA As New ADODB.Recordset, zp0 As Date, zp1 As Date, zp2 As Date, zp3 As Date
- myFrag rMA, "SELECT COUNT(0) ct, COALESCE(MAX(zeitpunkt),0) mzp FROM `eintraege` WHERE art IN ('tk','ARCHIE2','APK') AND pat_id = " & CStr(Pat_ID)
+ myFrag rMA, "SELECT COUNT(0) ct, COALESCE(MAX(zeitpunkt),0) mzp FROM `eintraege` WHERE (art IN ('tk','ARCHIE2','APK') OR (art='tb' AND ersteller='tk') OR inhalt LIKE '%(tk)%') AND pat_id = " & CStr(Pat_ID)
  frm.MA0Zahl = rMA!ct ' Kothny
  zp0 = rMA!mzp
  Set rMA = Nothing
- myFrag rMA, "SELECT COUNT(0) ct, COALESCE(MAX(zeitpunkt),0) mzp FROM `eintraege` WHERE (art IN ('gs','doppler','duplex') OR inhalt LIKE '%(gs)%') AND pat_id = " & CStr(Pat_ID)
+ myFrag rMA, "SELECT COUNT(0) ct, COALESCE(MAX(zeitpunkt),0) mzp FROM `eintraege` WHERE (art IN ('gs','doppler','dop','duplex') OR (art='tb' AND ersteller='gs') OR inhalt LIKE '%(gs)%') AND pat_id = " & CStr(Pat_ID)
  frm.MA1Zahl = rMA!ct ' Schade
  zp1 = rMA!mzp
  Set rMA = Nothing
@@ -3426,7 +3441,7 @@ syscmd 4, "Formularvorbereitung 12 " & frm.anaRS!Nachname & ", " & frm.anaRS!Vor
  frm.MA2Zahl = rMA!ct ' Wagner
  zp2 = rMA!mzp
  Set rMA = Nothing
- myFrag rMA, "SELECT COUNT(0) ct, COALESCE(MAX(zeitpunkt),0) mzp FROM `eintraege` WHERE (art IN ('ah') OR inhalt LIKE '%(ah)%') AND pat_id = " & CStr(Pat_ID)
+ myFrag rMA, "SELECT COUNT(0) ct, COALESCE(MAX(zeitpunkt),0) mzp FROM `eintraege` WHERE (art IN ('ah') OR (art='tb' AND ersteller='ah') OR inhalt LIKE '%(ah)%') AND pat_id = " & CStr(Pat_ID)
  frm.MA3Zahl = rMA!ct ' Wagner
  zp3 = rMA!mzp
  Set rMA = Nothing
@@ -3673,7 +3688,7 @@ Dim rEintr As New ADODB.Recordset, i&, aktart$
 For i = 177 To 180
   frm.vTextB(i) = vNS
   Select Case i
-   Case 177: aktart = "'doppler','duplex'"
+   Case 177: aktart = "'doppler','dop','duplex'"
    Case 178: aktart = "'anal','andm','andm2'"
    Case 179: aktart = "'sono','sd'"
    Case 180: aktart = artSpezEintr
@@ -3708,7 +3723,7 @@ Next i
 '   Loop
 '  END IF
 '  SET rEintr = Nothing
-'  myFrag rEintr, "SELECT * FROM `eintraege` WHERE pat_id = " + CStr(Pat_id) + " AND art IN ('doppler','duplex') ORDER BY zeitpunkt DESC"
+'  myFrag rEintr, "SELECT * FROM `eintraege` WHERE pat_id = " + CStr(Pat_id) + " AND art IN ('doppler','dop','duplex') ORDER BY zeitpunkt DESC"
 '  IF Not rEintr.BOF THEN
 '   frm.vTextB(177) = frm.vTextB(177) & rEintr!Art + " vom " + Format$(rEintr!Zeitpunkt, "dd.mm.yy:")
 '   Do While Not rEintr.EOF
@@ -3824,7 +3839,7 @@ End Function ' sensib
         "FROM namen n " & _
         "LEFT JOIN usdm u ON n.pat_id = u.pat_id AND u.zeitpunkt=(SELECT MAX(zeitpunkt) FROM usdm u1 WHERE u1.pat_id = u.pat_id) " & _
         "LEFT JOIN diagview d ON d.pat_id = n.pat_id AND d.gICD RLIKE '^I7[034]\.' AND d.id1 = (SELECT MAX(id1) FROM diagview d0 WHERE d0.pat_id = d.pat_id AND (d.gICD RLIKE '^I7[034]\.')) " & _
-        "LEFT JOIN eintraege e ON e.pat_id = n.pat_id AND e.art IN ('doppler','duplex') AND e.inhalt LIKE '%beina%' AND e.zeitpunkt=(SELECT MAX(zeitpunkt) FROM eintraege e0 WHERE e0.pat_id = e.pat_id AND e.art IN ('doppler','duplex') AND e.inhalt LIKE '%beina%') " & _
+        "LEFT JOIN eintraege e ON e.pat_id = n.pat_id AND e.art IN ('doppler','dop','duplex') AND e.inhalt LIKE '%beina%' AND e.zeitpunkt=(SELECT MAX(zeitpunkt) FROM eintraege e0 WHERE e0.pat_id = e.pat_id AND e.art IN ('doppler','dop','duplex') AND e.inhalt LIKE '%beina%') " & _
         "WHERE n.Pat_id = " & Pat_ID
   myFrag rpuls, sql
   If Not rpuls.BOF Then
@@ -7270,7 +7285,7 @@ Function dobriefeBerichtspflicht()
  End If
  On Error GoTo fehler
 ' aus FUNCTION EmailsImport(EmDatei$)
- Dim con As New ADODB.Connection  ' Connection
+ Dim Con As New ADODB.Connection  ' Connection
  Dim rNa As New ADODB.Recordset
  Dim rEx As New ADODB.Recordset
  Dim rX As New ADOX.Catalog
@@ -7282,10 +7297,10 @@ Function dobriefeBerichtspflicht()
    Call acon(quelleT, qDtb)
  End If
  If QDat <> vNS Then
- con.Open "Provider=Microsoft.Jet.OLEDB.4.0;Extended Properties=""Excel 8.0;HDR=No;IMEX=1"";Data Source=" & QDat & ";" ' TABLE=Adressen$"
+ Con.Open "Provider=Microsoft.Jet.OLEDB.4.0;Extended Properties=""Excel 8.0;HDR=No;IMEX=1"";Data Source=" & QDat & ";" ' TABLE=Adressen$"
  Dim runde%, i%, zFeld$, lFeld$, obAnfang%, pNr%, pRoh
-  rX.ActiveConnection = con
-  rEx.Open "`" & rX.Tables(rX.Tables.COUNT - 1).name & "`", con ' Hier Excel, nicht lies.obmysql = 0!
+  rX.ActiveConnection = Con
+  rEx.Open "`" & rX.Tables(rX.Tables.COUNT - 1).name & "`", Con ' Hier Excel, nicht lies.obmysql = 0!
   Do While Not rEx.EOF
 '  Debug.Print runde
    If obAnfang Then
@@ -8629,8 +8644,7 @@ Function GetVorDat(Pat_ID$, obStumm%, Optional obschließ%, Optional ohneÖffnen%,
 '    sql = "SELECT pfad, zeitpunkt, name FROM `tmbrie` WHERE (name LIKE '%Brief an %Dr%' OR (name LIKE '%Arztbrief%' AND NOT name LIKE '%: Arztbrief%') OR name LIKE 'Brief an HA%' OR name LIKE 'Brief an HAe%') AND NOT pfad LIKE '%.pdf' AND name NOT LIKE '%Entwurf%' AND pat_id = " & Pat_ID & " ORDER BY zeitpunkt DESC"
     sql = _
     "SELECT * FROM " & vbCrLf & _
-    "(SELECT pfad, zeitpunkt, name FROM `tmbrie` WHERE pat_id=" & Pat_ID & " UNION " & vbCrLf & _
-    " SELECT datname, laend, datname FROM `dokprotlist` WHERE pat_id=" & Pat_ID & ") i" & vbCrLf & _
+    "(SELECT pfad, zeitpunkt, name FROM `tmbrie` WHERE pat_id=" & Pat_ID & ")i" & vbCrLf & _
     "WHERE (name LIKE '%Brief an %Dr%' OR (name LIKE '%Arztbrief%' AND NOT name LIKE '%: Arztbrief%') OR name LIKE 'Brief an HA%' OR name LIKE 'Brief an HAe%') " & vbCrLf & _
     "AND NOT pfad LIKE '%.pdf' AND name NOT LIKE '%Entwurf%' " & vbCrLf & _
     "ORDER BY zeitpunkt DESC" ' 8.4.25
@@ -10268,6 +10282,379 @@ Loop
 'Vsql = "SELECT BhFB mbhfb, bhfe1, Pat_ID pid FROM `faelle` f ORDER BY pat_id, bhfb;"
 'Call DtbCreateQueryDef(VN, Vsql)
 'vz = vz + 1
+MOConInit
+VN = "vgs_mosystem"
+Vsql = _
+"SELECT COALESCE(CONVERT(FKategorieliste USING latin1),'') FKat, COALESCE(CONVERT(Ftextkategorieliste USING latin1),'') Ftk, COALESCE(CONVERT(fAblageliste USING latin1),'') FAb, COALESCE(CONVERT(fAuftragstypenliste USING latin1),'') FAuf, COALESCE(CONVERT(FMemo USING latin1),'') Fm" & vbCrLf & _
+"FROM mosystem"
+Call DtbCreateQueryDef(VN, Vsql, MOCon)
+vz = vz + 1
+
+VN = "vgs_namen"
+Vsql = _
+"SELECT COALESCE(CONVERT(p.FMemo USING latin1),'') Fm, COALESCE(m.FText,'') mftxt, p.* from patstamm p" & vbCrLf & _
+"LEFT JOIN patmark pm ON p.FSurogat=pm.FPatnr" & vbCrLf & _
+"LEFT JOIN markier m ON pm.FMarkiernr=m.FSurogat" '  WHERE p.FSurogat=" & fPtNr
+Call DtbCreateQueryDef(VN, Vsql, MOCon)
+vz = vz + 1
+
+VN = "vgs_faelle"
+Vsql = _
+ "SELECT f.fsurogat nix, COALESCE(CONVERT(f.FMemo USING latin1),'') Fm" & vbCrLf & _
+ ", CONCAT(f.fpatnr,', ',18900101 + INTERVAL f.fvon DAY,' - ',18900101 + INTERVAL f.fbis DAY) ueschr" & vbCrLf & _
+ ", f.*,a.FBezeichnung, le.FNachname" & vbCrLf & _
+ "FROM patfall f " & vbCrLf & _
+ "LEFT JOIN lstgerb le USING (FLstgerbnr)" & vbCrLf & _
+ "LEFT JOIN patfall p0 ON f.fpatnr=p0.FPatnr AND  p0.fscheintyp=0 AND p0.ftarif=0 AND p0.fvon=49308" & vbCrLf & _
+ "LEFT JOIN abrechner a ON f.FArztnr=a.FSurogat" & vbCrLf & _
+ "WHERE " & vbCrLf & _
+ "NOT (f.fvon=49308 AND ((f.fscheintyp=0 AND f.ftarif=0) OR (p0.FPatnr IS NOT NULL AND f.FScheinart=7)))" & vbCrLf & _
+ "ORDER BY FVon DESC" ' Ausschluss der unbekannt-Fälle des 1.Quartals 2025 nach der Migration und der begeleitenden Privatfälle
+' f.fpatnr=" & fPtNr & " AND " vbCrLf
+Call DtbCreateQueryDef(VN, Vsql, MOCon)
+vz = vz + 1
+
+VN = "vgs_formulare"
+'  FBehgrundnr>0: Diagnosen
+'   FStatus -32767: meist Eintrag, oder Notiz
+'                0: Diagnose oder Eintrag, 1: AU (=FEintragsart 19)
+'  FStatus 2:     FEintragsart 5: Laborwerte, 50: Link, 148: Word-Brief, 151: Link, 166: Link,169: Brief 598: Dokumente
+'  FStatus 3 und 4:  FEintragsart 20: Überweisung,
+'  FStatus 40 und 41: (FEintragsart 12): Leistung (bei 41 evtl. GOÄ)
+'  FStatus 100: FEintragsart 41: Unfallmeldung
+' Eintragsarten: 1=Diagnose akut, 2=Diagnose inaktiv, 5: bei FStatus 0 meist Eintrag (außer FICDC..: "PATNRALPHA": Patientennummer numerisch, "LAR", "PLAR", "UTXT" (Überweisungstext), "MHNG" (Mahnung), "MED" (Medikamenteneintrag, wohl eMP-Eintrag, FDetails: "((EText ..."); wenn FStatus 2: dann Laborwert
+'                8=Verwandtschaftsverhältnisse und Notizen, 9=Anamnese, 10-11=Einträge, 12=Leistungen (FDetails: {(Gnrliste [{( ..."),
+'                13=Medikamente (mit PZN in FICD..) und Hilfsmittel (FDetails: "{(Handelsname ..."
+'                14=Med., ohne PZN, 16: Medikament mit Dosierung
+'                17: Hilfsmittel (FDetails: {(Bezeichnung .."
+'                19: AU, 20: Üw, 21: Khs-Einweisung, 50 u. 148: Link auf Datei oder Word-Dokument aus Turbomed
+'                151: z.T. Einträge, z.T. PDF-Dateien (meist: "ePDF: ...", "pdf: ..."), "bild: ...", oder Links ("link: ..."), "brief: ", alle FStatus 2
+'                166: "link: ...", 169: "brief: ...", "wbr: ..."; 501 u. 598: jpg und tif, ohne Vorsilben, z.T. mit "link: " bei Sono-Bildern
+'                1001: Eintrag (auch, aber nicht nur: sono) Zeile abgeschnitten, 1002: Eintrag aug, 1003: Blutabnahme, 1004: Einträge
+'                1005: Desktop-Notizen, 1006: Einträge
+'                1053: Überweisungstexte
+'                2017: Diagnosen Dauer
+' Labor: FEintragsart immer 5, FStatus immer 2, FStatusergaenzung immer 0, FBehgrundnr immer 0,
+'        FDurchfNutzernr immer -2147483647, FEintragsnr immer -2147483647
+'        FLstGerbNr 1,2 oder 4
+' Feintragsart: (diesbezüglich in ltag und beschein gleich)
+' 27143: DMP-Doku COPD
+' 27144: DMP-Doku Typ 1
+' 27188: DMP-Doku Typ 2
+' 27193: Asthma bronchiale
+' 27216: Herzinsuffizienz
+' 27217: chronischer Rückenschmerz
+Vsql = _
+"SELECT 18900101+INTERVAL l.FDatum DAY+INTERVAL l.FZeit SECOND Zp, na.FUsername ua, nb.FUsername ub, l.*, IF(INSTR(FText,':') BETWEEN 1 AND 6,LEFT(FText,INSTR(FText,':')-1),'') art, IF(INSTR(FText,':') BETWEEN 1 AND 6,TRIM(MID(FText,INSTR(FText,':')+1)),FText) ename" & vbCrLf & _
+", l.FStatus lFSt, FText FTxt" & vbCrLf & _
+", COALESCE(CONVERT(b.FMemo USING latin1),'') BFMemo, l.FEintragsart lFE, b.FEintragsart bFE, b.FSurogat bFSu" & vbCrLf & _
+", b.FPatnr bpid,b.FDatum bdatum,b.FZeit bfzeit,b.FBehgrundnr fFBehg,b.FEintragsart bFEintra,b.FVon,b.FBis,b.FStatus bfStatus,b.FAnordnutzernr bFAno,b.FAusfnutzernr bFausf,b.FMemo" & vbCrLf & _
+", l.FEintragsart IN(13,14,16,17,18,2004,2005,2006,2007,2029) obRezE" & vbCrLf & _
+", IF(FText RLIKE '^[ ]*[0-9]+[ ]*x.*',SUBSTRING_INDEX(FText,'x',1),1) Anz" & vbCrLf & _
+", REGEXP_REPLACE(REGEXP_REPLACE(FText,'^([ ]*[0-9]+[ ]*x[ ]*)?(.*)[ ]*$','\2'),'([ ]*\(.*\)[ ]*)*$','') Med" & vbCrLf & _
+", REGEXP_REPLACE(FText,'^([ ]*[0-9]+[ ]*x[ ]*)?.*\((.*)\)[ ]*$','\2') Rezkl" & vbCrLf & _
+", REGEXP_REPLACE(REGEXP_REPLACE(REGEXP_REPLACE(FText,'^[^(]*',''),'[ ]*\([^)]*\)[ ]*$',''),'\(([^)]*)\)','\1') Rkl0" & vbCrLf & _
+", IF(INSTR(l.FDetails,'(Nonoutidem ""'),MID(l.FDetails,INSTR(l.FDetails,'(Nonoutidem ""')+LENGTH('(Nonoutidem ""'),INSTR(SUBSTRING_INDEX(l.FDetails,'(Nonoutidem ""',-1),'"")')-1),'') nonoi" & vbCrLf & _
+", IF(INSTR(l.FDetails,'(Anzahl '),MID(l.FDetails,INSTR(l.FDetails,'(Anzahl ')+LENGTH('(Anzahl '),INSTR(SUBSTRING_INDEX(l.FDetails,'(Anzahl ',-1),')')-1),'') Anzahl" & vbCrLf & _
+", IF(INSTR(l.FDetails,'(Packungszahl '),MID(l.FDetails,INSTR(l.FDetails,'(Packungszahl ')+LENGTH('(Packungszahl '),INSTR(SUBSTRING_INDEX(l.FDetails,'(Packungszahl ',-1),')')-1),'') Packungszahl" & vbCrLf & _
+", IF(INSTR(l.FDetails,'(Rezeptart '),MID(l.FDetails,INSTR(l.FDetails,'(Rezeptart ')+LENGTH('(Rezeptart '),INSTR(SUBSTRING_INDEX(l.FDetails,'(Rezeptart ',-1),')')-1),'') Rezeptart" & vbCrLf & _
+"FROM (SELECT l.*" & vbCrLf & _
+"FROM ltag l) l" & vbCrLf & _
+"LEFT JOIN nutzerneu na ON FAnordnutzernr= na.FSurogat" & vbCrLf & _
+"LEFT JOIN nutzerneu nb ON FAusfnutzernr= nb.FSurogat" & vbCrLf & _
+"LEFT JOIN beschein b ON b.FSurogat = l.FEintragsnr" & vbCrLf & _
+"HAVING (NOT ISNULL(bFE)OR(obRezE))" & vbCrLf & _
+""
+' "WHERE l.fpatnr=" & fPtNr & vbCrLf
+Call DtbCreateQueryDef(VN, Vsql, MOCon)
+vz = vz + 1
+
+
+VN = "vgs_labor"
+Vsql = _
+"SELECT" & vbCrLf & _
+" IF(INSTR(FDetails,'Normwertug '),MID(FDetails,INSTR(FDetails,'Normwertug ')+LENGTH('Normwertug '),INSTR(SUBSTRING_INDEX(FDetails,'Normwertug ',-1),')')-1)," & vbCrLf & _
+"REGEXP_REPLACE(REGEXP_REPLACE(REGEXP_REPLACE(REGEXP_REPLACE(REGEXP_REPLACE(REGEXP_REPLACE(normtext,'.*(grenzwertig|Graubereich|Warnbereich).*','0'),'^([^ ]* ?[^ :]* ?[^:]*:? *)?bis +([0-9.,:]*[0-9.,]+).*$','0'),'^[^>]*>=? *([0-9.,]*) *= *pos.*$','0'),'^([^0-9]*|[^:]*:) *([0-9.,]*) *-.*[0-9].*$','\2'),'(1: )?.*<=?.*','\10'),'.*>=? *([^ ]*).*$','\1')) Normwertug" & vbCrLf & _
+",IF(INSTR(FDetails,'Normwertog '),MID(FDetails,INSTR(FDetails,'Normwertog ')+LENGTH('Normwertog '),INSTR(SUBSTRING_INDEX(FDetails,'Normwertog ',-1),')')-1)," & vbCrLf & _
+"REGEXP_REPLACE(REGEXP_REPLACE(REGEXP_REPLACE(REGEXP_REPLACE(REGEXP_REPLACE(normtext,'^([^ ]* ?[^ :]* ?[^:]*:? *)?bis +([0-9.,:]*[0-9.,]+).*$','\2'),'^[^>]*>=? *([0-9.,]*) *= *pos.*$','\1'),'^[^-]*- *([0-9.,]*).*$','\1'),'(1: )?.*<=? *([^ ]*)','\1\2'),'.*>=? *([^ ]*) *$','')) Normwertog" & vbCrLf & _
+", i.* FROM (" & vbCrLf & _
+"SELECT" & vbCrLf & _
+"  18900101+INTERVAL l.FDatum DAY+INTERVAL l.FZeit SECOND Zp" & vbCrLf & _
+", REPLACE(IF(INSTR(FDetails,'Testid'),MID(FDetails,LOCATE('Testid',FDetails)+LENGTH('Testid')+2,LOCATE('""',REPLACE(FDetails,'\""','\'''),LOCATE('Testid',FDetails)+LENGTH('Testid')+2)-LOCATE('Testid',FDetails)-LENGTH('Testid')-2),''),'''','\''') testid" & vbCrLf & _
+", REPLACE(IF(IF(INSTR(l.FDetails,'Testname ""'),MID(l.FDetails,INSTR(l.FDetails,'Testname ""')+LENGTH('Testname ""'),INSTR(SUBSTRING_INDEX(l.FDetails,'Testname ""',-1),'""')-1),'')<>'',IF(INSTR(l.FDetails,'Testname ""')<>0,MID(l.FDetails,INSTR(l.FDetails,'Testname ""')+LENGTH('Testname ""'),INSTR(SUBSTRING_INDEX(l.FDetails,'Testname ""',-1),'""')-1),''),IF(INSTR(l.FDetails,'(Text ""')<>0,MID(l.FDetails,INSTR(l.FDetails,'(Text ""')+LENGTH('(Text ""'),INSTR(SUBSTRING_INDEX(l.FDetails,'(Text ""',-1),'""')-1),'')),'''','\''') Testname" & vbCrLf & _
+", REPLACE(IF(INSTR(l.FDetails,'Einheit ""'),MID(l.FDetails,INSTR(l.FDetails,'Einheit ""')+LENGTH('Einheit ""'),INSTR(SUBSTRING_INDEX(l.FDetails,'Einheit ""',-1),'""')-1),''),'''','\''') Einheit" & vbCrLf & _
+", REPLACE(IF(INSTR(l.FDetails,'Ewert '),MID(l.FDetails,INSTR(l.FDetails,'Ewert ')+LENGTH('Ewert '),INSTR(SUBSTRING_INDEX(l.FDetails,'Ewert ',-1),')')-1),   SUBSTRING_INDEX(IF(INSTR(FDetails,'Etext'),MID(FDetails,LOCATE('Etext',FDetails)+LENGTH('Etext')+2,LOCATE('""',REPLACE(FDetails,'\""','\'''),LOCATE('Etext',FDetails)+LENGTH('Etext')+2)-LOCATE('Etext',FDetails)-LENGTH('Etext')-2),''),'\n',1)   ),'''','\''') EWert" & vbCrLf & _
+", REPLACE(IF(INSTR(l.FDetails,'Normtext ""'),MID(l.FDetails,INSTR(l.FDetails,'Normtext ""')+LENGTH('Normtext ""'),INSTR(SUBSTRING_INDEX(l.FDetails,'Normtext ""',-1),'""')-1),IF(INSTR(l.FDetails,'Normwertog ')<>0,CONCAT('0-',MID(l.FDetails,INSTR(l.FDetails,'Normwertog ')+LENGTH('Normwertog '),INSTR(SUBSTRING_INDEX(l.FDetails,'Normwertog ',-1),'"")')-0)),IF(INSTR(l.FDetails,'Normwertug ')<>0,CONCAT(MID(l.FDetails,INSTR(l.FDetails,'Normwertug ')+LENGTH('Normwertug '),INSTR(SUBSTRING_INDEX(l.FDetails,'Normwertug ',-1),'"")')-0),'-'),''))),'''','\''') Normtext" & vbCrLf & _
+", REPLACE(IF(INSTR(FDetails,'Testhinweis'),MID(FDetails,LOCATE('Testhinweis',FDetails)+LENGTH('Testhinweis')+2,LOCATE('""',REPLACE(FDetails,'\""','\'''),LOCATE('Testhinweis',FDetails)+LENGTH('Testhinweis')+2)-LOCATE('Testhinweis',FDetails)-LENGTH('Testhinweis')-2),''),'''','\''') Testhinweis" & vbCrLf & _
+", REPLACE(IF(INSTR(FDetails,'Etext'),MID(FDetails,LOCATE('Etext',FDetails)+LENGTH('Etext')+2,LOCATE('""',REPLACE(FDetails,'\""','\'''),LOCATE('Etext',FDetails)+LENGTH('Etext')+2)-LOCATE('Etext',FDetails)-LENGTH('Etext')-2),''),'''','\''') Etext" & vbCrLf & _
+", l.*" & vbCrLf & _
+", na.FUsername ua, nb.FUsername ub" & vbCrLf & _
+" FROM ltag l" & vbCrLf & _
+"LEFT JOIN nutzerneu na ON FAnordnutzernr= na.FSurogat" & vbCrLf & _
+"LEFT JOIN nutzerneu nb ON FAusfnutzernr= nb.FSurogat" & vbCrLf
+Vsql = Vsql & _
+"WHERE FEintragsart=5" & vbCrLf & _
+"-- AND fstatus IN (0,2)" & vbCrLf & _
+") i" & vbCrLf & _
+" HAVING (testid<>'' OR (testid='' AND INSTR(FDetails,'Etext ""')=0 " & vbCrLf & _
+"    AND i.ftext NOT RLIKE 'Bltdruck|Blutdruck|Gewicht|Puls|Größe|umfang|temperatur|caro|sono|Body-Mass|angd|aufgd|bzvgl'))" & vbCrLf & _
+" ORDER BY i.FSurogat, Zp" & vbCrLf & _
+";"
+' " AND l.fpatnr=" & fPtNr & vbCrLf
+Call DtbCreateQueryDef(VN, Vsql, MOCon)
+vz = vz + 1
+
+
+VN = "vgs_briefe"
+Vsql = _
+  "SELECT 18900101+INTERVAL FDatum DAY+INTERVAL FZeit SECOND Zp, na.FUsername ua, nb.FUsername ub" & vbCrLf & _
+  ", l.FSurogat lFSur,l.FPatnr,l.FDatum,l.FZeit,l.FEintragsart,l.FAnorddatum,l.FAnordzeit,l.FAnordnutzernr,l.FDurchfnutzernr,l.FAusfnutzernr,l.FBehgrundnr,l.FEintragsnr,l.FIcdcode,l.FText,l.FMehrzeilig,l.FStatus lFStatus,l.FStatusergaenzung,l.FArztnr,l.FScheinnr,l.FLstgerbnr,l.FBetriebsnr,l.FDetails,l.FFlags" & vbCrLf & _
+  ", d.FSurogat dFSur,d.FReferenznr,d.FReferenztable,d.FRevisionsnr,d.FStatus,d.FPosition,d.FCreationtime,d.FFilename,d.FFilesize,d.FHashcode,d.FMainsurogat,d.FNutzer" & vbCrLf & _
+  ",IF(INSTR(FText,':') BETWEEN 1 AND 6,LEFT(FText,INSTR(FText,':')-1),'') art, IF(INSTR(FText,':') BETWEEN 1 AND 6,TRIM(MID(FText,INSTR(FText,':')+1)),FText) ename " & vbCrLf & _
+  "FROM ltag l " & vbCrLf & _
+  "INNER JOIN datafile d ON l.FSurogat=d.FReferenznr " & vbCrLf & _
+  "LEFT JOIN nutzerneu na ON FAnordnutzernr= na.FSurogat " & vbCrLf & _
+  "LEFT JOIN nutzerneu nb ON FAusfnutzernr= nb.FSurogat " & vbCrLf & _
+  "ORDER BY l.FSurogat, Zp"
+'   "WHERE l.fpatnr=" & fPtNr & " /*AND feintragsart IN (5,50,51,148,151,166,169,501,598)*/ " & vbCrLf
+Call DtbCreateQueryDef(VN, Vsql, MOCon)
+vz = vz + 1
+
+
+VN = "vgs_medpläne"
+Vsql = _
+  "SELECT 18900101+INTERVAL FDatum DAY+INTERVAL FZeit SECOND Zp, COALESCE(na.FUsername,'') ua, REPLACE(FDosiertext,CHR(0),'') FDt, REPLACE(FHinweise,CHR(0),'') FHw, REPLACE(FBemerkung,CHR(0),'') FBm" & vbCrLf & _
+  ", l.FSurogat lFSur,l.FPatnr lFPatnr,l.FDatum,l.FZeit,l.FEintragsart,l.FAnorddatum,l.FAnordzeit,l.FAnordnutzernr,l.FDurchfnutzernr,l.FAusfnutzernr,l.FBehgrundnr,l.FEintragsnr,l.FIcdcode,l.FText,l.FMehrzeilig,l.FStatus,l.FStatusergaenzung,l.FArztnr lFArztnr,l.FScheinnr,l.FLstgerbnr,l.FBetriebsnr,l.FDetails,l.FFlags" & vbCrLf & _
+  ", m.FSurogat mFSur,m.FPatnr mFPatnr,m.FVerbindungsschluessel,m.FDosierplannr,m.FDosierplanpos,m.FStartdatum,m.FEndedatum,m.FModosis,m.FMidosis,m.FNmdosis,m.FAbdosis,m.FNadosis,m.FMedikamentname,m.FDosierform,m.FPackeinheit,m.FDosiertext,m.FBemerkung,m.FStartmenge,m.FNutzernr,m.FGrundpreis,m.FArztnr,m.FDosierfaktor,m.FLetztverordam,m.FLetztverordum,m.FWirkstoff,m.FWirkstaerke,m.FHinweise,m.FGrund,m.FDruck,m.FPzn,m.FMemo" & vbCrLf & _
+  ", COALESCE(CONVERT(m.FMemo USING latin1),'') Fm " & vbCrLf & _
+  "FROM ltag l INNER JOIN meddosis m ON l.FText='Dosierplan' AND l.FSurogat=m.FDosierplannr " & vbCrLf & _
+  "LEFT JOIN nutzerneu na ON FNutzernr= na.FSurogat " & vbCrLf & _
+  "WHERE FVerbindungsschluessel<>'#ZWTEXT#' " & vbCrLf & _
+  "ORDER BY l.FSurogat, FDosierplanpos"
+' l.fpatnr=" & fPtNr & " AND
+Call DtbCreateQueryDef(VN, Vsql, MOCon)
+vz = vz + 1
+
+
+VN = "vgs_au"
+Vsql = _
+  "SELECT 18900101+INTERVAL FDatum DAY+INTERVAL FZeit SECOND Zp, FICdcode aArt," & vbCrLf & _
+  "REPLACE(COALESCE(REPLACE(MID(fdetails,INSTR(fdetails,'ext ""')+5,LENGTH(fdetails)-2-INSTR(fdetails,'ext ""')-5),'\n','; '),FText),'''','\''') FText," & vbCrLf & _
+  "FEintragsart, 18900101+INTERVAL FAnorddatum DAY+INTERVAL FAnordzeit SECOND AnZp," & vbCrLf & _
+  "COALESCE(na.FInitialen,'') ua, COALESCE(nb.FInitialen,'') ub, MID(ftext,4,1) Art, IF(MID(ftext,4,1)='E',MID(ftext,INSTR(ftext,' ')+1,8),'') von, MID(ftext,INSTR(ftext,'- ')+2,8) bis, MID(ftext,INSTR(ftext,': ')+2) diag " & vbCrLf & _
+  "FROM ltag f " & vbCrLf & _
+  "LEFT JOIN nutzerneu na ON FAnordnutzernr= na.FSurogat " & vbCrLf & _
+  "LEFT JOIN nutzerneu nb ON FAusfnutzernr= nb.FSurogat " & vbCrLf & _
+  "WHERE " & vbCrLf & _
+  " FEintragsart=19" & vbCrLf & _
+  " AND fbehgrundnr<=0"
+' FPatnr = " & fPtNr & " AND "
+Call DtbCreateQueryDef(VN, Vsql, MOCon)
+vz = vz + 1
+
+
+VN = "vgs_blutdruck"
+Vsql = _
+  "SELECT 18900101+INTERVAL FDatum DAY+INTERVAL FZeit SECOND Zp, REGEXP_REPLACE(FICdcode,'(\w+)#\1','\1') Art, FText" & vbCrLf & _
+  ", REGEXP_REPLACE(FText,'^(?>[^0-9]|[4-9](?![0-9])|[0-2](?![0-9]{2}))*\b((?:[4-9][0-9]|[0-3][0-9]{2})(?:-[0-9]{2,3}){0,2}) */? *(?:über )?((?:[3-9][0-9]|[0-2][0-9]{2})(?:-[0-9]{2,3}){0,2})?(?:(?:[^PH]|H(?!F))*(?:Puls|P(?=[0-9 :.])|HF))?:? *([0-9]{1,3}(?:-[0-9]{2,3})?)? *(.*)','\1‡\2‡\3‡\4') Erg" & vbCrLf & _
+  ", REGEXP_REPLACE(ftext,'^(?:[^l]|l(?!e))*(?:let?zten *(\d{1,3}))?.*$','\1') zahl" & vbCrLf & _
+  ", FEintragsart, 18900101+INTERVAL FAnorddatum DAY+INTERVAL FAnordzeit SECOND AnZp" & vbCrLf & _
+  ", COALESCE(na.FInitialen,'') ua, COALESCE(nb.FInitialen,'') ub " & vbCrLf & _
+  "FROM ltag f " & vbCrLf & _
+  "LEFT JOIN nutzerneu na ON FAnordnutzernr= na.FSurogat " & vbCrLf & _
+  "LEFT JOIN nutzerneu nb ON FAusfnutzernr= nb.FSurogat " & vbCrLf & _
+  "WHERE REGEXP_REPLACE(FICdcode,'(\w+)#\1','\1') IN ('RR','RRVGL')" & vbCrLf & _
+  " AND ((FEintragsart=5 AND FStatus=0))" & vbCrLf & _
+  " AND fbehgrundnr<=0"
+' FPatnr = " & fPtNr & vbCrLf & _
+  " AND
+Call DtbCreateQueryDef(VN, Vsql, MOCon)
+vz = vz + 1
+
+
+VN = "vgs_notizen"
+Vsql = _
+ "SELECT FPatnr, ROW_NUMBER() OVER(ORDER BY fpatnr DESC) rg, COUNT(0) OVER() zl" & vbCrLf & _
+ ", GROUP_CONCAT(REPLACE(IF(INSTR(FDetails,'text ""'),MID(FDetails,LOCATE('text',FDetails)+LENGTH('text')+2,LOCATE('""',REPLACE(FDetails,'\""','\'''),LOCATE('text',FDetails)+LENGTH('text')+2)-LOCATE('text',FDetails)-LENGTH('text')-2),FText),'''','\''') separator '\r\n') FDet " & vbCrLf & _
+ " FROM ltag l" & vbCrLf & _
+ "WHERE FEintragsart=1105" & vbCrLf & _
+ " GROUP BY fpatnr -- ,fsurogat"
+Call DtbCreateQueryDef(VN, Vsql, MOCon)
+vz = vz + 1
+' " & fPtNr & " = 0 OR fPatNr=" & fPtNr & ") AND" & vbCrLf & _
+ "
+ 
+VN = "vgs_eintraege"
+Vsql = _
+  "SELECT FPatnr, 18900101+INTERVAL FDatum DAY+INTERVAL FZeit SECOND Zp" & vbCrLf & _
+  ", IF (FText RLIKE '^(\w+)#\1:', REGEXP_REPLACE(FText,'(\w+)#\1:.*','\1'),REGEXP_REPLACE(FICdcode,'(\w+)#\1','\1')) Art" & vbCrLf & _
+  ", IF(rWert=FDetails OR rWert IS NULL,FDet,rWert) Wert, FDet, FICDCode, FEintragsart, 18900101+INTERVAL FAnorddatum DAY+INTERVAL FAnordzeit SECOND AnZp" & vbCrLf & _
+  ", COALESCE(na.FInitialen,'') ua, COALESCE(nb.FInitialen,'') ub, l.FLstgerbnr, FText, FDetails" & vbCrLf & _
+  ", REGEXP_REPLACE(FDet,'^(?>[^0-9]|[4-9](?![0-9])|[0-2](?![0-9]{2}))*\b((?:[4-9][0-9]|[0-3][0-9]{2})(?:-[0-9]{2,3}){0,2}) */? *(?:über )?((?:[3-9][0-9]|[0-2][0-9]{2})(?:-[0-9]{2,3}){0,2})?(?:(?:[^PH]|H(?!F))*(?:Puls|P(?=[0-9 :.])|HF))?:? *([0-9]{1,3}(?:-[0-9]{2,3})?)? *(.*)','\1‡\2‡\3‡\4') FArray" & vbCrLf & _
+  ", REGEXP_REPLACE(FDet,'^(?:[^l]|l(?!e))*(?:let?zten *(\d{1,3}))?.*$','\1') zahl" & vbCrLf & _
+  "FROM (" & vbCrLf & _
+  " SELECT REPLACE(IF(INSTR(FDetails,'text ""'),MID(FDetails,LOCATE('text',FDetails)+LENGTH('text')+2,LOCATE('""',REPLACE(FDetails,'\""','\'''),LOCATE('text',FDetails)+LENGTH('text')+2)-LOCATE('text',FDetails)-LENGTH('text')-2),FText),'''','\''') FDet" & vbCrLf & _
+  ",REGEXP_REPLACE(FDetails,'^.*?(?:Ewert ""?(?:Dieser Eintrag wurde manuell erzeugt.|([\d,]+(?:\b|\.?\d+?))\.?0*\b(?:\\n[^""]*)?)""?(?#<- hintere 0er löschen).*(?:Einheit( )""([^""]*)"")?|\((?:T|Et)ext ""([^""]*)"").*$','\1\2\3\4') rWert" & vbCrLf & _
+  ", ltag.*" & vbCrLf & _
+  " FROM ltag) l" & vbCrLf & _
+  "LEFT JOIN nutzerneu na ON FAnordnutzernr = na.FSurogat" & vbCrLf & _
+  "LEFT JOIN nutzerneu nb ON FAusfnutzernr = nb.FSurogat" & vbCrLf & _
+  "WHERE ((FEintragsart=5 AND FStatus=0) OR FEintragsart IN (8,9,10,11,151) OR FEintragsart>1000)" & vbCrLf & _
+  "-- AND REGEXP_REPLACE(FICdcode,'(\w+)#\1','\1') IN ('RR','RRVGL')" & vbCrLf & _
+  " AND FBehgrundnr<=0"
+' FEintragsart>1000 sind die selbst definierten Kategorien in mosystem
+' FPatnr = " & fPtNr & vbCrLf & _
+  " AND
+Call DtbCreateQueryDef(VN, Vsql, MOCon)
+vz = vz + 1
+
+
+VN = "vgs_erinnerungen"
+Vsql = _
+ "SELECT 18900101+INTERVAL FDatum DAY datum, COALESCE(CONVERT(FMemo USING latin1),'') Fm, e.* FROM erinnerung e"
+ ' WHERE FPatnr = " & fPtNr
+Call DtbCreateQueryDef(VN, Vsql, MOCon)
+vz = vz + 1
+
+VN = "vgs_termine"
+Vsql = _
+  "SELECT 18900101 + INTERVAL t.FDatumvon DAY + INTERVAL t.FZeitvon SECOND ab," & vbCrLf & _
+  "18900101 + INTERVAL t.FDatumbis DAY + INTERVAL t.FZeitbis SECOND bis," & vbCrLf & _
+  "t.fbemerkung tFBem, COALESCE(CONVERT(t.FMemo USING latin1),'') Memo" & vbCrLf & _
+  ", tz.fname, IF(tz.fvorlauf=-32767,0,tz.FVorlauf)TArt, tz.ftyp" & vbCrLf & _
+  ", t.FSurogat tFSur,t.FZonenid,t.FDatumvon,t.FZeitvon,t.FDatumbis,t.FZeitbis,t.FTerminiert,t.FKommdatum,t.FKommzeit,t.FBehandlungsdatum,t.FBehandlungszeit,t.FErledigtdatum,t.FErledigtzeit,t.FAlarmdatum,t.FAlarmzeit,t.FPatnr,t.FAnordnutzernr,t.FAusfnutzernr,t.FAttribute,t.FText,t.FBemerkung,t.FFarbe,t.FFontname,t.FFontsize,t.FFontstyle,t.FFontcolor,t.FAusrichtung,t.FStatus,t.FTermintyp,t.FBelegungsart,t.FHauptterminid,t.FSerienterminid,t.FSeriencounter,t.FTerminartid,t.FMultiday,t.FMemo tFMem" & vbCrLf & _
+  ", tz.FSurogat tzFSur,tz.FName tzFName,tz.FMovon1,tz.FMobis1,tz.FDivon1,tz.FDibis1,tz.FMivon1,tz.FMibis1,tz.FDovon1,tz.FDobis1,tz.FFrvon1,tz.FFrbis1,tz.FSavon1,tz.FSabis1,tz.FSovon1,tz.FSobis1,tz.FMovon2,tz.FMobis2,tz.FDivon2,tz.FDibis2,tz.FMivon2,tz.FMibis2,tz.FDovon2,tz.FDobis2,tz.FFrvon2,tz.FFrbis2,tz.FSavon2,tz.FSabis2,tz.FSovon2,tz.FSobis2,tz.FZeitraster,tz.FMo,tz.FDi,tz.FMi,tz.FDon,tz.FFr,tz.FSa,tz.FSo,tz.FVorlauf,tz.FFreifarbe,tz.FTerminfarbe,tz.FEintrag,tz.FKapazitaet,tz.FParallelerlaubt,tz.FInaktivvon,tz.FInaktivbis,tz.FMemo tzFMemo" & vbCrLf & _
+  "FROM termin t" & vbCrLf & _
+  "LEFT JOIN tzone tz ON t.FZonenid=tz.FSurogat" & vbCrLf & _
+  "ORDER BY ab,bis;"
+'   "WHERE fpatnr = " & fPtNr & vbCrLf
+Call DtbCreateQueryDef(VN, Vsql, MOCon)
+vz = vz + 1
+
+
+VN = "vgs_diagnosen"
+' Diagnosen
+' FStatus: 1=akut, 5=Dauer, 2=anamnest, 3=historisch, 4=abgeschlossen
+' FKlasse: 2=gesichert, 1=V.a., 3=Z.n., 4=Ausschluss
+' FEintragsart:
+'    1:                ak,       ,A,G,V,Z         H            (711)
+'    2:                ab,       ,A,G,V,Z         H         (114107)
+'    3:                an,            G,Z         H             (10)
+'    4:                hi,          G,V,Z         H             (71)
+'   13:    ab,ak,an,da,hi(1x),   ,A,G,V,Z         H           (4630)
+'   14:             ak,da,        A,G,V,Z         H            (162)
+'   15:                da,              G         H              (2)
+'   17:          ab,ak,da,        A,G,V,Z         H            (590)
+'   18:          ak,an,da,          G,V,Z         H            (141)
+'   19:             ak,da,            G,Z         H             (11)
+'   20:             ak,da,         ,G,V,Z         H            (323)
+'   21:             ak,da,            G,V         H             (16)
+'   22:                da,          G,V,Z         H              (8)
+'   23:             ak,da,            G,Z         H             (26)
+' 2004:             ak,da,         ,G,V,Z         H            (274)
+' 2005:          ak,da,hi,        A,G,V,Z         H            (309)
+' 2006:             ak,da,              G         H              (5)
+' 2017:                da,       ,A,G,V,Z       H,N         (138268)
+'20002:                da,              G         H              (1)
+'20004:                da,              G         H              (1)
+'20012:                da,            G,V         H              (3)
+'27144:             ak,da,           ,G,Z         H             (46)
+'27187:                da,              G         H              (5)
+'27188:             ak,da,         ,G,V,Z         H            (378)
+'27193:                da,              G         H              (1)
+'27216:                da,              G         H              (1)
+'27217:                da,          G,V,Z         H              (7)
+'29957:                da,            G,Z         H             (18)
+'30465:                da,              G         H              (3)
+'30535:                da,              G         H              (1)
+'30540:                da,              G         H              (1)
+'30543:                da,              G         H              (1)
+' über:
+'WITH sel AS (SELECT fbehgrundnr fb,FEintragsart ea from ltag /*WHERE fpatnr=197 *//* AND fbehgrundnr>0*/)
+'SELECT GROUP_CONCAT(zusi SEPARATOR '') gzus FROM (
+'SELECT
+'CONCAT('''',LPAD(ea,5),': '
+',LPAD(GROUP_CONCAT(DISTINCT CASE FStatus WHEN 1 THEN 'ak' WHEN 2 THEN 'an' WHEN 3 THEN 'hi' WHEN 4 THEN 'ab' WHEN 5 THEN 'da' ELSE ' ' END),17),','
+',LPAD(GROUP_CONCAT(DISTINCT CASE FKlasse MOD 15 WHEN 1 THEN 'V' WHEN 2 THEN 'G' WHEN 3 THEN 'Z' WHEN 4 THEN 'A' ELSE ' ' END),15)
+',LPAD(GROUP_CONCAT(DISTINCT CASE FKlasse div 15 WHEN 0 THEN 'H' ELSE 'N' END),10)
+',LPAD(CONCAT('(',COUNT(0),')'),17),CHR(13)
+') zusi,
+'COUNT(0) OVER() gesz, COUNT(0) zahl, FPatnr, 18900101 + INTERVAL FDatum DAY + INTERVAL FZeit SECOND Diagdat,
+'CASE F4201 WHEN 1 THEN 'R' WHEN 2 THEN 'L' WHEN 3 THEN 'B' ELSE ' ' END Seite,
+'GROUP_CONCAT(DISTINCT CASE FKlasse MOD 15 WHEN 1 THEN 'V' WHEN 2 THEN 'G' WHEN 3 THEN 'Z' WHEN 4 THEN 'A' ELSE ' ' END) Sich,
+'GROUP_CONCAT(DISTINCT CASE FKlasse div 15 WHEN 0 THEN 'H' ELSE 'N' END) Kard,
+'FIcdcode ICD, lt.ea, COALESCE(IF(RIGHT(FText,1)=0,LEFT(FText,LENGTH(FText)-1),FText),'') FText,
+'GROUP_CONCAT(DISTINCT CASE FStatus WHEN 1 THEN 'ak' WHEN 2 THEN 'an' WHEN 3 THEN 'hi' WHEN 4 THEN 'ab' WHEN 5 THEN 'da' ELSE ' ' END) Stat,
+'COALESCE(IF(RIGHT(FErlaeuterung,1)=0,LEFT(FErlaeuterung,LENGTH(FErlaeuterung)-1),FErlaeuterung),'') Zus, FNutzernr, FID, FAusnahme
+'FROM sel lt INNER JOIN behgrund b on lt.fb=b.FSurogat
+'-- WHERE NOT EXISTS (SELECT bi.* FROM sel lti INNER JOIN behgrund bi ON lti.fb=bi.FSurogat
+'--   WHERE ficdcode=b.ficdcode AND ftext=b.ftext AND fklasse=b.FKlasse AND f4201=b.f4201 AND ((fstatus IN(1,5)AND b.fstatus IN(2,3,4))OR(fstatus=b.fstatus AND fsurogat>b.fsurogat)))
+'GROUP BY ea ORDER BY cast(ea AS INTEGER)
+') i;
+
+'myFrag rsFa, "SELECT f.fsurogat nix, COALESCE(CONVERT(f.FMemo USING latin1),'') Fm,CONCAT(f.fpatnr,', ',18900101 + INTERVAL f.fvon DAY,' - ',18900101 + INTERVAL f.fbis DAY) ueschr, f.*,a.FBezeichnung, le.FNachname FROM patfall f LEFT JOIN abrechner a ON f.FArztnr=a.FSurogat LEFT JOIN lstgerb le USING (FLstgerbnr) WHERE fpatnr=" & fPtNr & " ORDER BY FVon DESC", adOpenStatic, MOCon, adLockReadOnly
+  Vsql = _
+  "WITH sel AS (SELECT fbehgrundnr fb,FEintragsart ea,FIcdcode ICD FROM ltag)" & vbCrLf & _
+  "SELECT FPatnr, 18900101 + INTERVAL FDatum DAY + INTERVAL FZeit SECOND Diagdat," & vbCrLf & _
+  "CASE F4201 WHEN 1 THEN 'R' WHEN 2 THEN 'L' WHEN 3 THEN 'B' ELSE ' ' END Seite," & vbCrLf & _
+  "CASE FKlasse MOD 15 WHEN 1 THEN 'V' WHEN 2 THEN 'G' WHEN 3 THEN 'Z' WHEN 4 THEN 'A' ELSE ' ' END Sich," & vbCrLf & _
+  "CASE FKlasse div 15 WHEN 0 THEN 'H' ELSE 'N' END Kard," & vbCrLf & _
+  "ICD, COALESCE(IF(RIGHT(FText,1)=0,LEFT(FText,LENGTH(FText)-1),FText),'') FText," & vbCrLf & _
+  "CASE FStatus WHEN 1 THEN 'ak' WHEN 2 THEN 'an' WHEN 3 THEN 'hi' WHEN 4 THEN 'ab' WHEN 5 THEN 'da' ELSE ' ' END Stat," & vbCrLf & _
+  "COALESCE(IF(RIGHT(FErlaeuterung,1)=0,LEFT(FErlaeuterung,LENGTH(FErlaeuterung)-1),FErlaeuterung),'') Zus, FNutzernr, FID, FAusnahme, ea" & vbCrLf & _
+  "FROM sel lt INNER JOIN behgrund b ON lt.fb=b.FSurogat" & vbCrLf & _
+  "WHERE FStatus<>3 AND lt.ICD=b.FIcdcode" & vbCrLf & _
+  ";"
+' WHERE fpatnr=" & fPtNr & "
+Call DtbCreateQueryDef(VN, Vsql, MOCon)
+vz = vz + 1
+
+
+VN = "vgs_ha"
+' -34 Überweiser, -40 Hausarzt, -32 Arzt
+Vsql = _
+  "SELECT COALESCE(FArztnralt,'')FArztnralt,COALESCE(FAdresse,'')FAdresse,COALESCE(FArztgruppe,'')FArztgruppe, " & vbCrLf & _
+  "     COALESCE(a.FAnrede,'')FAnrede, COALESCE(FTitel,'')FTitel, " & vbCrLf & _
+  "     COALESCE(FArztnr,'')FArztnr, COALESCE(FNachname,'')FNachname, COALESCE(FVorname,'')FVorname, " & vbCrLf & _
+  "     COALESCE(FRelationtyp,'')FRelationtyp,COALESCE(CONVERT(FAdresse USING latin1),'')Adr," & vbCrLf & _
+  "     COALESCE(IF(a.FAnrede='\N','',a.FAnrede),'')anrk " & vbCrLf & _
+      "FROM patrelation r " & vbCrLf & _
+      "JOIN earzt a ON a.fsurogat = r.freferenzid AND r.freferenztyp=2 " & vbCrLf & _
+      "LEFT JOIN epraxis p ON a.FExtpraxisnr = p.fsurogat " & vbCrLf & _
+      "WHERE r.FRelationtyp IN (-34,-40,-32)"
+' fpatid=" & fPtNr & " AND
+Call DtbCreateQueryDef(VN, Vsql, MOCon)
+vz = vz + 1
+
+VN = "vgs_leistungen"
+'  Leistungen
+Vsql = _
+  "SELECT 18900101+INTERVAL FDatum DAY+INTERVAL FZeit SECOND Zp, MID(18900101+INTERVAL FDatum DAY+INTERVAL FZeit SECOND,12,5) uhrz, FICdcode Art," & vbCrLf & _
+  "REPLACE(COALESCE(REPLACE(MID(FDetails,INSTR(FDetails,'ext ""')+5,LENGTH(FDetails)-2-INSTR(FDetails,'ext ""')-5),'\n','; '),FText),'''','\''') FText," & vbCrLf & _
+  "FEintragsart, 18900101+INTERVAL FAnorddatum DAY+INTERVAL FAnordzeit SECOND AnZp," & vbCrLf & _
+  "COALESCE(na.FInitialen,'') ua, COALESCE(nb.FInitialen,'') ub, REPLACE(REPLACE(REPLACE(FDetails,'{(Gnrliste [',''),'])}',''),'''','\''') Lei " & vbCrLf & _
+  "FROM ltag l " & vbCrLf & _
+  "LEFT JOIN nutzerneu na ON FAnordnutzernr= na.FSurogat " & vbCrLf & _
+  "LEFT JOIN nutzerneu nb ON FAusfnutzernr= nb.FSurogat " & vbCrLf & _
+  "LEFT JOIN patfall pf ON l.fscheinnr=pf.FSurogat" & vbCrLf & _
+  "WHERE FEintragsart=12" & vbCrLf & _
+  " AND FAbgerechnet<>3652" ' gesperrt
+' l.FPatnr = " & fPtNr & vbCrLf & _
+  " AND
+Call DtbCreateQueryDef(VN, Vsql, MOCon)
+vz = vz + 1
+
+
+VN = "vgs_markierungen"
+Vsql = _
+ "SELECT pm.FPatnr, ROW_NUMBER() OVER(ORDER BY fpatnr DESC,FMarkiernr) rg, COUNT(0) OVER() zl, LAST_VALUE(FMarkiernr) OVER(PARTITION BY FPatnr)=FMarkiernr speichern, pm.FMarkiernr,m.FText " & vbCrLf & _
+ "FROM patmark pm " & vbCrLf & _
+ "JOIN markier m ON pm.FMarkiernr=m.FSurogat" & vbCrLf
+Call DtbCreateQueryDef(VN, Vsql, MOCon)
+vz = vz + 1
+
+
+
 
 
 VN = "_lfaelle"
@@ -10557,7 +10944,7 @@ VN = "__kontakttage"
 ' Vsql = "SELECT pat_id,FIRST(zeitpunkt) FROM `eintraege` e WHERE ZeitPunkt BETWEEN cDATE(CONCAT(YEAR(SUBDATE(NOW(),INTERVAL " & frist & " DAY))¡'-'¡intacc((month(SUBDATE(NOW(),INTERVAL " & frist & " DAY))-1)divmy 3)*3+1¡'-01')) AND cDATE(ADDDATE(CONCAT(YEAR(SUBDATE(NOW(),INTERVAL " & frist & " DAY))¡'-'¡intacc((month(SUBDATE(NOW(),INTERVAL " & frist & " DAY))-1)divmy 3)*3+1¡'-01'), INTERVAL 3 MONTH)) AND e.Art IN (" & artspezG & ") GROUP BY e.Pat_ID,intaccdatemy(zeitpunkt)"
 'ELSE
 ''SELECT `e`.`Pat_ID` AS `pat_id`,`e`.`ZeitPunkt` AS `zeitpunkt` FROM `quelle1`.`eintraege` `e` WHERE ((`e`.`ZeitPunkt` BETWEEN CONCAT(YEAR((NOW() - INTERVAL 14 DAY)),'-',((((month((NOW() - INTERVAL 14 DAY)) - 1) DIV 3) * 3) + 1),'-01') AND CONCAT((YEAR((NOW() - INTERVAL 14 DAY)) + ROUND((((((month((NOW() - INTERVAL 14 DAY)) - 1) DIV 3) * 3) + 4) / 12),0)),'-',(((((month((NOW() - INTERVAL 14 DAY)) - 1) DIV 3) * 3) + 4) % 12),'-01')) AND (`e`.`Art` in
-''('notiz','telef','ni','gstel','gs','rz','ep','bga','tk','APK','wr','ga','tst','cr','ke','hz','mh','ag','ph','pq','er','ds','st','eb','fa','bz','rp','uzu','hypo','colo','aug','beweg','pros','impf','gyn','caro','beruf','ap','mu','rauch','alko','fams','schula','ass','kra','proc','au','GPD','ba','ARCHIE2','gewicht','gewi','rrvgl','bzvgl','bzm','bztp','bks','anal','andm','usal','usdm','doppler','duplex','sono','sd','UKG','Größe','HbA1c','hyper','fuß','keto','wv','ulc','kv','debr','EKG','LZRR','Lufu','lactoset','trop','temp','oGTT','gpt','bmi','urin','taille','hüfte','puls ','GDT','bef'))) GROUP BY `e`.`Pat_ID`,CAST(`e`.`ZeitPunkt` As Date)
+''('notiz','telef','ni','gstel','gs','rz','ep','bga','tk','APK','wr','ga','tst','cr','ke','hz','mh','ag','ph','pq','er','ds','st','eb','fa','bz','rp','uzu','hypo','colo','aug','beweg','pros','impf','gyn','caro','beruf','ap','mu','rauch','alko','fams','schula','ass','kra','proc','au','GPD','ba','ARCHIE2','gewicht','gewi','rrvgl','bzvgl','bzm','bztp','bks','anal','andm','usal','usdm','doppler','dop','duplex','sono','sd','UKG','Größe','HbA1c','hyper','fuß','keto','wv','ulc','kv','debr','EKG','LZRR','Lufu','lactoset','trop','temp','oGTT','gpt','bmi','urin','taille','hüfte','puls ','GDT','bef'))) GROUP BY `e`.`Pat_ID`,CAST(`e`.`ZeitPunkt` As Date)
 ' Vsql = "SELECT pat_id,FIRST(zeitpunkt) FROM `eintraege` e WHERE ZeitPunkt BETWEEN cDATE(CONCAT(YEAR(SUBDATE(NOW(),INTERVAL " & frist & " DAY))¡'-'¡intacc((month(SUBDATE(NOW(),INTERVAL " & frist & " DAY))-1)divmy 3)*3+1¡'-01')) AND cDATE(       (CONCAT(YEAR(SUBDATE(NOW(),INTERVAL " & frist & " DAY)) + ROUND((intacc((month(SUBDATE(NOW(),INTERVAL " & frist & " DAY))-1)divmy 3)*3+4) / 12)¡'-'¡(intacc((month(SUBDATE(NOW(),INTERVAL " & frist & " DAY))-1)divmy 3)*3+4) mod 12¡'-01')                  )) AND e.Art IN (" & artspezG & ") GROUP BY e.Pat_ID,intaccdatemy(zeitpunkt)"
 'END IF
 Vsql = "SELECT pat_id, first(zeitpunkt) FROM `eintraege` e WHERE zeitpunkt " & DiesQ() & " AND e.Art IN (" & artspezG & ") GROUP BY e.Pat_ID,intaccdatemy(zeitpunkt)"
@@ -11226,42 +11613,42 @@ vz = vz + 1
 VN = "anaktk"
 Vsql = "" & _
 "SELECT CASE " & vbCrLf & _
-"WHEN (obtk OR (NOT obtk AND NOT obgs AND NOT obdw AND NOT obah)) AND (COALESCE(tkbis>gsbis-INTERVAL 3 MONTH,1) OR gszahl<5) AND COALESCE(tkbis>ahbis-INTERVAL 3 MONTH,1) THEN 'tk'" & vbCrLf & _
-"WHEN (obgs OR (NOT obtk AND NOT obgs AND NOT obdw AND NOT obah)) AND COALESCE(gsbis>tkbis-INTERVAL 3 MONTH,1) AND COALESCE(gsbis>ahbis-INTERVAL 3 MONTH,1) THEN 'gs'" & vbCrLf & _
-"WHEN (obdw AND NOT obtk AND NOT obgs AND NOT obah) AND tkzahl<6 AND gszahl<6 AND ahzahl=0 THEN '-'" & vbCrLf & _
-"WHEN (obah OR (NOT obtk AND NOT obgs AND NOT obdw AND NOT obah)) AND COALESCE(ahbis>tkbis-INTERVAL 3 MONTH,1) AND COALESCE(ahbis>gsbis-INTERVAL 3 MONTH,1) THEN 'ah'" & vbCrLf & _
+"WHEN (obtk OR (NOT obtk AND NOT obgs AND NOT obwd AND NOT obah)) AND (COALESCE(tkbis>gsbis-INTERVAL 3 MONTH,1) OR gszahl<5) AND COALESCE(tkbis>ahbis-INTERVAL 3 MONTH,1) THEN 'tk'" & vbCrLf & _
+"WHEN (obgs OR (NOT obtk AND NOT obgs AND NOT obwd AND NOT obah)) AND COALESCE(gsbis>tkbis-INTERVAL 3 MONTH,1) AND COALESCE(gsbis>ahbis-INTERVAL 3 MONTH,1) THEN 'gs'" & vbCrLf & _
+"WHEN (obwd AND NOT obtk AND NOT obgs AND NOT obah) AND tkzahl<6 AND gszahl<6 AND ahzahl=0 THEN '-'" & vbCrLf & _
+"WHEN (obah OR (NOT obtk AND NOT obgs AND NOT obwd AND NOT obah)) AND COALESCE(ahbis>tkbis-INTERVAL 3 MONTH,1) AND COALESCE(ahbis>gsbis-INTERVAL 3 MONTH,1) THEN 'ah'" & vbCrLf & _
 "WHEN tkbis>gsbis AND tkbis>ahbis AND tkzahl>0 THEN 'tk'" & vbCrLf & _
 "WHEN gsbis>tkbis AND gsbis>ahbis AND gszahl>5 THEN 'gs'" & vbCrLf & _
 "WHEN ahbis>tkbis AND ahbis>tkbis AND ahzahl>0 THEN 'ah'" & vbCrLf & _
-"WHEN obtk AND NOT obgs AND NOT obdw AND NOT obah AND gszahl<6 AND dwzahl=0 AND ahzahl=0 THEN 'tk'" & vbCrLf & _
-"WHEN obah AND NOT obgs AND NOT obtk AND NOT obdw AND gszahl<6 AND dwzahl=0 AND ahzahl=0 THEN 'ah'" & vbCrLf & _
+"WHEN obtk AND NOT obgs AND NOT obwd AND NOT obah AND gszahl<6 AND dwzahl=0 AND ahzahl=0 THEN 'tk'" & vbCrLf & _
+"WHEN obah AND NOT obgs AND NOT obtk AND NOT obwd AND gszahl<6 AND dwzahl=0 AND ahzahl=0 THEN 'ah'" & vbCrLf & _
 "" & vbCrLf & _
 "" & vbCrLf & _
-"WHEN NOT obtk AND NOT obgs AND NOT obdw AND NOT obah AND tkbis=0 AND gsbis=0 AND dwbis=0 AND ahbis=0 THEN '-'" & vbCrLf & _
+"WHEN NOT obtk AND NOT obgs AND NOT obwd AND NOT obah AND tkbis=0 AND gsbis=0 AND dwbis=0 AND ahbis=0 THEN '-'" & vbCrLf & _
 "ELSE '' END wer" & vbCrLf
 Vsql = Vsql & _
-", i.* FROM (SELECT a.`Prim` `Prim`,a.`Pat_id` PID" & vbCrLf & _
-", COALESCE((SELECT '1' FROM desktop WHERE pat_id = a.pat_id AND iconpath RLIKE '4eckblau' AND showasnote=0 LIMIT 1),'') obtk " & vbCrLf & _
-", COALESCE((SELECT '1' FROM desktop WHERE pat_id = a.pat_id AND iconpath RLIKE '4eckgelb' AND showasnote=0 LIMIT 1),'') obgs " & vbCrLf & _
-", COALESCE((SELECT '1' FROM desktop WHERE pat_id = a.pat_id AND iconpath RLIKE '4eckmagneta' AND showasnote=0 LIMIT 1),'') obdw " & vbCrLf & _
-", COALESCE((SELECT '1' FROM desktop WHERE pat_id = a.pat_id AND iconpath RLIKE '4EckHellgruen' AND showasnote=0 LIMIT 1),'') obah " & vbCrLf & _
-", COALESCE((SELECT MAX(zeitpunkt) FROM eintraege WHERE pat_id=a.pat_id AND art='tk'),0) tkbis" & vbCrLf & _
-", COALESCE((SELECT MAX(zeitpunkt) FROM eintraege WHERE pat_id=a.pat_id AND art='gs'),0) gsbis" & vbCrLf & _
-", COALESCE((SELECT MAX(zeitpunkt) FROM eintraege WHERE pat_id=a.pat_id AND art='dw'),0) dwbis" & vbCrLf & _
-", COALESCE((SELECT MAX(zeitpunkt) FROM eintraege WHERE pat_id=a.pat_id AND art='ah'),0) ahbis" & vbCrLf & _
-", (SELECT COUNT(0) FROM eintraege WHERE pat_id=a.pat_id AND art='tk') tkzahl" & vbCrLf & _
-", (SELECT COUNT(0) FROM eintraege WHERE pat_id=a.pat_id AND art='gs') gszahl" & vbCrLf & _
-", (SELECT COUNT(0) FROM eintraege WHERE pat_id=a.pat_id AND art='dw') dwzahl" & vbCrLf & _
-", (SELECT COUNT(0) FROM eintraege WHERE pat_id=a.pat_id AND art='ah') ahzahl" & vbCrLf & _
-"FROM anamnesebogen a" & vbCrLf & _
+", i.* FROM (SELECT a.`Pat_id` PID" & vbCrLf & _
+", IF(a.obk OR a.obs OR a.obh,IF(a.obk,'1',''),COALESCE((SELECT '1' FROM desktop WHERE pat_id = a.pat_id AND iconpath RLIKE '4eckblau' AND showasnote=0 LIMIT 1),'')) obtk " & vbCrLf & _
+", IF(a.obk OR a.obs OR a.obh,IF(a.obs,'1',''),COALESCE((SELECT '1' FROM desktop WHERE pat_id = a.pat_id AND iconpath RLIKE '4eckgelb' AND showasnote=0 LIMIT 1),'')) obgs " & vbCrLf & _
+", IF(a.obk OR a.obs OR a.obh,'',              COALESCE((SELECT '1' FROM desktop WHERE pat_id = a.pat_id AND iconpath RLIKE '4eckmagneta' AND showasnote=0 LIMIT 1),'')) obwd " & vbCrLf & _
+", IF(a.obk OR a.obs OR a.obh,IF(a.obh,'1',''),COALESCE((SELECT '1' FROM desktop WHERE pat_id = a.pat_id AND iconpath RLIKE '4EckHellgruen' AND showasnote=0 LIMIT 1),'')) obah " & vbCrLf & _
+", COALESCE((SELECT MAX(zeitpunkt) FROM eintraege WHERE pat_id=a.pat_id AND (art='tk' OR (art='tb' AND ersteller='tk'))),0) tkbis" & vbCrLf & _
+", COALESCE((SELECT MAX(zeitpunkt) FROM eintraege WHERE pat_id=a.pat_id AND (art='gs' OR (art='tb' AND ersteller='gs'))),0) gsbis" & vbCrLf & _
+", COALESCE((SELECT MAX(zeitpunkt) FROM eintraege WHERE pat_id=a.pat_id AND art='wd'),0) dwbis" & vbCrLf & _
+", COALESCE((SELECT MAX(zeitpunkt) FROM eintraege WHERE pat_id=a.pat_id AND (art='ah' OR (art='tb' AND ersteller='ah'))),0) ahbis" & vbCrLf & _
+", (SELECT COUNT(0) FROM eintraege WHERE pat_id=a.pat_id AND (art='tk' OR (art='tb' AND ersteller='tk'))) tkzahl" & vbCrLf & _
+", (SELECT COUNT(0) FROM eintraege WHERE pat_id=a.pat_id AND (art='gs' OR (art='tb' AND ersteller='gs'))) gszahl" & vbCrLf & _
+", (SELECT COUNT(0) FROM eintraege WHERE pat_id=a.pat_id AND art='wd') dwzahl" & vbCrLf & _
+", (SELECT COUNT(0) FROM eintraege WHERE pat_id=a.pat_id AND (art='ah' OR (art='tb' AND ersteller='ah'))) ahzahl" & vbCrLf & _
+"FROM namen a" & vbCrLf & _
 "GROUP BY a.pat_id) i"
 
 
 '", (SELECT COUNT(0) FROM eintraege WHERE pat_id=a.pat_id AND (art='tk' OR (inhalt LIKE '%(tk)%'))) tkzahl" & vbCrLf & _
 ", (SELECT COUNT(0) FROM eintraege WHERE pat_id=a.pat_id AND (art='gs' OR (inhalt LIKE '%(gs)%'))) gszahl" & vbCrLf & _
 
-' ", (SELECT COUNT(0) FROM eintraege WHERE pat_id=a.pat_id AND (art='tk' OR (art IN ('angd','aufgd','auto','ba','bla','bzvgl','colo','debr','doppler','duplex','ictauf','ih','ik','inj','insgd','kv','ni','rrvgl','sono','tst','tv','vac','vkgd','vkgd2','wr','wv') AND inhalt LIKE '%(tk)%'))) tkzahl" & vbCrLf & _
-", (SELECT COUNT(0) FROM eintraege WHERE pat_id=a.pat_id AND (art='gs' OR (art IN ('angd','aufgd','auto','ba','bla','bzvgl','colo','debr','doppler','duplex','ictauf','ih','ik','inj','insgd','kv','ni','rrvgl','sono','tst','tv','vac','vkgd','vkgd2','wr','wv') AND inhalt LIKE '%(gs)%'))) gszahl" & vbCrLf & _
+' ", (SELECT COUNT(0) FROM eintraege WHERE pat_id=a.pat_id AND (art='tk' OR (art IN ('angd','aufgd','auto','ba','bla','bzvgl','colo','debr','doppler','dop','duplex','ictauf','ih','ik','inj','insgd','kv','ni','rrvgl','sono','tst','tv','vac','vkgd','vkgd2','wr','wv') AND inhalt LIKE '%(tk)%'))) tkzahl" & vbCrLf & _
+", (SELECT COUNT(0) FROM eintraege WHERE pat_id=a.pat_id AND (art='gs' OR (art IN ('angd','aufgd','auto','ba','bla','bzvgl','colo','debr','doppler','dop','duplex','ictauf','ih','ik','inj','insgd','kv','ni','rrvgl','sono','tst','tv','vac','vkgd','vkgd2','wr','wv') AND inhalt LIKE '%(gs)%'))) gszahl" & vbCrLf & _
 
 
 Call DtbCreateQueryDef(VN, Vsql)
@@ -11354,6 +11741,7 @@ sql = "CREATE DEFINER=`praxis`@`%` FUNCTION `pidueb`( pid INT(6) UNSIGNED) RETUR
  "  CASE" & Chr$(13) & _
  "   WHEN pid=  695 THEN RETURN 70246;" & vbCrLf & _
  "   WHEN pid=63815 THEN RETURN 63814;" & vbCrLf & _
+ "   WHEN pid=67032 THEN RETURN 70268;" & vbCrLf & _
  "   WHEN pid=66672 THEN RETURN 70267;" & vbCrLf & _
  "   WHEN pid=70030 THEN RETURN 70273;" & vbCrLf & _
  "   WHEN pid=70035 THEN RETURN 70274;" & vbCrLf & _
@@ -11386,6 +11774,7 @@ sql = "CREATE DEFINER=`praxis`@`%` FUNCTION `pidtm`( fPatNr INT(6) UNSIGNED) RET
  "   WHEN fPatNr=70246 THEN RETURN   695;" & vbCrLf & _
  "   WHEN fPatNr=63814 THEN RETURN 63815;" & vbCrLf & _
  "   WHEN fPatNr=70267 THEN RETURN 66672;" & vbCrLf & _
+ "   WHEN fPatNr=70268 THEN RETURN 67032;" & vbCrLf & _
  "   WHEN fPatNr=70273 THEN RETURN 70030;" & vbCrLf & _
  "   WHEN fPatNr=70274 THEN RETURN 70035;" & vbCrLf & _
  "   WHEN fPatNr=70275 THEN RETURN 70180;" & vbCrLf & _
@@ -12092,7 +12481,7 @@ sql = sql & _
     "   FROM aktfvs f " & vbCrLf & _
     "   JOIN eintraege e ON e.pat_id = f.pat_id " & vbCrLf & _
     "   AND e.zeitpunkt " & DiesQ() & vbCrLf & _
-    "   AND art IN (" & artSpezBerat & "," & artSpezEintr & "," & artSpezUS1 & ") AND NOT art IN ('re','ba','doppler','duplex','impf','inj','kva','tv','ufrag','wv','caro','colo','debr','fa','EKG','GPD','kv','LZRR','OAU','pa','pros','puls','rp','sono','ulcus','vac','ADL'," & artSpezMA & ") AND art<>'tv'" & vbCrLf & _
+    "   AND art IN (" & artSpezBerat & "," & artSpezEintr & "," & artSpezUS1 & ") AND NOT art IN ('re','ba','doppler','dop','duplex','impf','inj','kva','tv','ufrag','wv','caro','colo','debr','fa','EKG','GPD','kv','LZRR','OAU','pa','pros','puls','rp','sono','ulcus','vac','ADL'," & artSpezMA & ") AND art<>'tv'" & vbCrLf & _
     "   GROUP BY pat_id,DATE(e.zeitpunkt) " & vbCrLf & _
     "  ) i GROUP BY pat_id,dt " & vbCrLf
     ' quartal(..) = DiesQ() 29s ggü 55s mit .. zeitpunkt BETWEEN qanf() AND qend()
@@ -12130,7 +12519,7 @@ sql = sql & _
     "  SELECT e.zeitpunkt zp, GROUP_CONCAT(CONCAT(art,' ',inhalt) SEPARATOR '; ') was, f.*" & vbCrLf & _
     "   FROM aktfvs f " & vbCrLf & _
     "   LEFT JOIN eintraege e ON e.pat_id = f.pat_id " & vbCrLf & _
-    "   AND e.zeitpunkt BETWEEN DATE(CONCAT(YEAR(NOW()-INTERVAL " & frist & " DAY),'-',(QUARTER(NOW()-INTERVAL " & frist & " DAY)-1)*3+1,'-01')) AND CONCAT(YEAR(NOW()-INTERVAL " & frist & " DAY)+ quarter(NOW()-INTERVAL " & frist & " DAY) div 4 ,'-',((QUARTER(NOW()-INTERVAL " & frist & " DAY)-1)*3+4) mod 12,'-01')-INTERVAL 1 SECOND AND art IN (" & artSpezBerat & "," & artSpezEintr & "," & artSpezUS1 & ") AND NOT art IN ('re','ba','doppler','duplex','impf','inj','kva','tv','ufrag','wv','caro','colo','debr','fa','EKG','GPD','kv','LZRR','OAU','pa','pros','puls','rp','sono','ulcus','vac','ADL'," & artSpezMA & ") " & vbCrLf & _
+    "   AND e.zeitpunkt BETWEEN DATE(CONCAT(YEAR(NOW()-INTERVAL " & frist & " DAY),'-',(QUARTER(NOW()-INTERVAL " & frist & " DAY)-1)*3+1,'-01')) AND CONCAT(YEAR(NOW()-INTERVAL " & frist & " DAY)+ quarter(NOW()-INTERVAL " & frist & " DAY) div 4 ,'-',((QUARTER(NOW()-INTERVAL " & frist & " DAY)-1)*3+4) mod 12,'-01')-INTERVAL 1 SECOND AND art IN (" & artSpezBerat & "," & artSpezEintr & "," & artSpezUS1 & ") AND NOT art IN ('re','ba','doppler','dop','duplex','impf','inj','kva','tv','ufrag','wv','caro','colo','debr','fa','EKG','GPD','kv','LZRR','OAU','pa','pros','puls','rp','sono','ulcus','vac','ADL'," & artSpezMA & ") " & vbCrLf & _
     "   GROUP BY pat_id,DATE(e.zeitpunkt) " & vbCrLf & _
     "  ) i GROUP BY pat_id,DATE(zp) " & vbCrLf
     Call DtbCreateQueryDef(VN, Vsql)
@@ -12677,20 +13066,29 @@ sql = "CREATE DEFINER=`praxis`@`%` FUNCTION `wia`( pid INT(6) UNSIGNED ) RETURNS
     "    READS SQL DATA " & vbCrLf & _
     "    COMMENT 'wahrscheinlicher interner Arzt'" & vbCrLf & _
     "BEGIN" & vbCrLf & _
-    "  DECLARE gsz, tkz, ddiff INT;" & vbCrLf & _
-    "  DECLARE lgs, ltk DATE;" & vbCrLf & _
-    "  DECLARE curgs CURSOR FOR SELECT COUNT(0), MAX(zeitpunkt) FROM eintraege e WHERE pat_id = pid AND (e.art='gs' OR e.inhalt LIKE '%: gs' OR e.inhalt LIKE '%(gs)%');" & vbCrLf & _
-    "  DECLARE curtk CURSOR FOR SELECT COUNT(0), MAX(zeitpunkt) FROM eintraege e WHERE pat_id = pid AND (e.art='tk' OR e.inhalt LIKE '%: tk' OR e.inhalt LIKE '%(tk)%');" & vbCrLf & _
+    "  DECLARE gsz, tkz, ahz, ddiff INT;" & vbCrLf & _
+    "  DECLARE lgs, ltk, lah DATE;" & vbCrLf & _
+    "  DECLARE curgs CURSOR FOR SELECT COUNT(0), MAX(zeitpunkt) FROM eintraege e WHERE pat_id = pid AND (e.art='gs' OR (e.art='tb' AND e.ersteller='gs') OR e.inhalt LIKE '%: gs' OR e.inhalt LIKE '%(gs)%');" & vbCrLf & _
+    "  DECLARE curtk CURSOR FOR SELECT COUNT(0), MAX(zeitpunkt) FROM eintraege e WHERE pat_id = pid AND (e.art='tk' OR (e.art='tb' AND e.ersteller='tk') OR e.inhalt LIKE '%: tk' OR e.inhalt LIKE '%(tk)%');" & vbCrLf & _
+    "  DECLARE curah CURSOR FOR SELECT COUNT(0), MAX(zeitpunkt) FROM eintraege e WHERE pat_id = pid AND (e.art='ah' OR (e.art='tb' AND e.ersteller='ah') OR e.inhalt LIKE '%: ah' OR e.inhalt LIKE '%(ah)%');" & vbCrLf & _
     "  OPEN curgs; FETCH curgs INTO gsz, lgs; CLOSE curgs;" & vbCrLf & _
     "  OPEN curtk; FETCH curtk INTO tkz, ltk; CLOSE curtk;" & vbCrLf & _
-    "  IF gsz=0 AND tkz>0 THEN RETURN 'tk'; END IF;" & vbCrLf & _
-    "  IF gsz>0 AND tkz=0 THEN RETURN 'gs'; END IF;" & vbCrLf & _
-    "  IF gsz=0 AND tkz=0 THEN RETURN '-'; END IF;" & vbCrLf & _
+    "  OPEN curah; FETCH curah INTO ahz, lah; CLOSE curah;" & vbCrLf & _
+    "  IF gsz=0 AND tkz>0 AND ahz=0 THEN RETURN 'tk'; END IF;" & vbCrLf & _
+    "  IF gsz>0 AND tkz=0 AND ahz=0 THEN RETURN 'gs'; END IF;" & vbCrLf & _
+    "  IF gsz=0 AND tkz=0 AND ahz>0 THEN RETURN 'ah'; END IF;" & vbCrLf & _
+    "  IF gsz=0 AND tkz=0 AND ahz=0 THEN RETURN '-'; END IF;" & vbCrLf & _
     "  SET ddiff = DATEdiff(lgs,ltk);" & vbCrLf & _
     "  IF ddiff > 90 THEN RETURN 'gs'; END IF;" & vbCrLf & _
     "  IF ddiff < -90 THEN RETURN 'tk'; END IF;" & vbCrLf & _
     "  IF gsz> 4 * tkz THEN RETURN 'gs'; END IF;" & vbCrLf & _
-    "  IF tkz> 4 * gsz THEN RETURN 'tk'; END IF;" & vbCrLf & _
+    "  IF tkz> 4 * gsz THEN RETURN 'tk'; END IF;" & vbCrLf
+sql = sql & _
+    "  SET ddiff = DATEdiff(lgs,lah);" & vbCrLf & _
+    "  IF ddiff > 90 THEN RETURN 'gs'; END IF;" & vbCrLf & _
+    "  IF ddiff < -90 THEN RETURN 'ah'; END IF;" & vbCrLf & _
+    "  IF gsz> 4 * tkz AND tkz<>0 THEN RETURN 'gs'; END IF;" & vbCrLf & _
+    "  IF tkz> 4 * gsz AND gsz<>0 THEN RETURN 'ah'; END IF;" & vbCrLf & _
     "  RETURN '?';" & vbCrLf & _
     "End"
 myEFrag (sql)

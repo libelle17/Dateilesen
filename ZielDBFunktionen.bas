@@ -92,7 +92,7 @@ Public Const artSpezBerat$ = artSpezÄrzte & ",'wr','jl','ga','ih','cr','tn','be'
 ' lt = Luisa Tepe
 ' sk = Sarah Kreis
 
-Public Const artSpezMA$ = "'tst','ke','hz','ns','mh','ag','ph','pq','er','ds','st','eb','us','sn','vb','mip','mm','rc','ik','ks','sb','cb','th','sp','ir','as','sa','sta','eg','ans','mc','rb','mi','gr','bs','sf','fs','eo','cd','mk','nb','sas','mf','bt','ab','sh','an'"
+Public Const artSpezMA$ = "'tst','ke','hz','ns','mh','ag','ph','pq','er','ds','st','eb','us','sn','vb','mip','mm','rc','ik','ks','sb','cb','th','sp','ir','as','sa','sta','eg','ans','mc','rb','mi','gr','bs','sf','fs','eo','cd','mk','nb','sas','mf','bt','ab','sh','an','tb'"
 ' tst = Tamara Sturm
 ' cr = Cornelia Reindl
 '' eb = Elmas Balkan / Gürbüz
@@ -141,6 +141,7 @@ Public Const artSpezMA$ = "'tst','ke','hz','ns','mh','ag','ph','pq','er','ds','s
 ' ab = Ayten Bülbül
 ' sh = Sibora Hasani
 ' an = Amssatou Ndjamawe
+' tb = Texteintrag Befund
 '
 ' Einträge, die nicht automatisch mit einer Organuntersuchung verbunden sind
 Public Const artSpezEintr$ = "'notiz','mbf','telef'," & artSpezBerat & "," & artSpezMA & _
@@ -223,7 +224,7 @@ Public Const artSpezUS0$ = "'gewicht','gewi','gew','rrvgl','rrvgln','bzvgl','bzv
 
 ' Einträge mit Untersuchungen, die nicht vorne im Patientenlaufzettel stehen
 Public Const artSpezUS1$ = "'bzm','bztp','bks','anal','andm','andm2','angd','angd2','usal','usdm','usdm1','usdm2','bauch','ufrag','uabfrag'" & _
-",'cgma','doppler','duplex','belastun'" & _
+",'cgma','doppler','dop','duplex','belastun'" & _
 ",'sono','sd','UKG','Größe','groe','HbA1c','hyper','keto','wv','vw','kv','komp','kompr','debr','ulc','ulcus','EKG','LZRR','Lufu','gpt'" & _
 ",'lactoset','trop','temp','oGTT','bmi','hüfte','rr','puls','GDT','bef','OAU','OA','inj','inf','ht','htt','ADL','TUG','who','vac','vacc','grippe','fbef','fbild'"
 ' bzm = Blutzuckermessung
@@ -333,10 +334,14 @@ Public Const artSpezSonst$ = "'PKon','kva','rcg','dd','dg','ddg','bddg','rdg','l
 
 Public Const artspezG$ = artSpezEintr & "," & artSpezUS
 Public Const AuffArtSql = vbCrLf & _
- "SELECT art, Pat_ID, gesname(pat_id) Name, Zeitpunkt, Inhalt FROM eintraege " & vbCrLf & _
- "WHERE NOT art IN (" & artspezG & "," & artSpezSonst & ") " & vbCrLf & _
- "AND zeitpunkt > 20161231 " & vbCrLf & _
- "ORDER BY zeitpunkt DESC; "
+ "SELECT art, Pat_ID, gesname(pat_id) Name, Zeitpunkt, Ersteller, Inhalt FROM eintraege e FORCE INDEX (art)" & vbCrLf & _
+ "WHERE NOT art IN (" & artspezG & "," & artSpezSonst & vbCrLf & _
+ ",'pdf','utxt','UEBLABOR','EDMPDM2','EDMPDM1','med','ts','gw','ana','RRS','RRD','mp','HEILMITTEL','tm','EARZT','ANFLABOR','HMPHYSIK','dmph','covze','iplan','DIAGTXT','link','tf','ABS','ti','EDMPKHK','REHASPORT','ssd','usd','BTM','sob','EDMPAB','tc','son','ATT','DIABEM','BRIEF','AUWEITER','AWHB'," & vbCrLf & _
+ "'BILD','COVGE','DOKUAB','dup','EDMPCOPD','gluv','HKPFLEGE','HMERGO','KRBEFOERD','rrv','BSCH','EXTERN','foto','jc','vk','vp')" & vbCrLf & _
+ "AND NOT art RLIKE '^[0-9]*$'" & vbCrLf & _
+ "AND NOT (art LIKE 'X%' AND ersteller IN ('hm','gs'))" & vbCrLf & _
+ "AND zeitpunkt > 20231231 " & vbCrLf & _
+ "ORDER BY art,zeitpunkt DESC; "
 'Public Const artinartspez$ = "(art IN " & artSpez
 Public sql$, sql1$ ' SQL-Text für alle möglichen Abfragen
 Dim QMdbAkt$, nzw$
@@ -419,7 +424,7 @@ End Enum
 
 Public Type DMPClass
  Pat_ID As Long
- NachName As String
+ Nachname As String
  Vorname As String
  NVorsatz As String
  NVors As String
@@ -429,8 +434,8 @@ Public Type DMPClass
  Hausnr As String
  Versichertennummer As String * 13
  VKNr As String * 5
- Plz As String * 5
- Ort As String
+ plz As String * 5
+ ort As String
  Lkz As String * 5
  PFPlz As String
  PFOrt As String
@@ -1028,13 +1033,14 @@ If obAdo Then
 Else
  myFrag rsAnam, "SELECT gesnameg(pat_id) gn, n.* FROM `namen` n WHERE pat_id = " & pid, adOpenStatic
 End If
+If Not rsAnam.BOF Then
 aktDC.x_GesName = rsAnam!gn ' GesNamFn(rsAnam) & ", *" & Format$(aktDC.GebDat, "dd.mm.yyyy")
-aktDC.NachName = rsAnam!NachName
+aktDC.Nachname = rsAnam!Nachname
 aktDC.Vorname = rsAnam!Vorname
 aktDC.GebDat = rsAnam!GebDat
 aktDC.Titel = rsAnam!Titel
-aktDC.Plz = rsAnam!Plz
-aktDC.Ort = rsAnam!Ort
+aktDC.plz = rsAnam!plz
+aktDC.ort = rsAnam!ort
 aktDC.Lkz = rsAnam!Lkz
 aktDC.PFPlz = rsAnam!PFPlz
 aktDC.PFOrt = rsAnam!PFOrt
@@ -1048,7 +1054,7 @@ aktDC.KVKStatus = rsAnam!KVKStatus
 aktDC.strasse = rsAnam!strasse
 aktDC.Hausnr = rsAnam!Hausnr
 aktDC.Versichertennummer = Trim$(rsAnam!Versichertennummer)
-
+End If
 If obAdo Then
 ' raAna.Open "SELECT patAlter(ana.pat_id) PAlter, ana.* FROM `anamnesebogen` ana WHERE pat_id = " & pid, DBCn, adOpenKeyset, adLockReadOnly
  myFrag raAna, "SELECT patAlter(ana.pat_id) PAlter, ana.*, COALESCE(MAX(Ulcera),'')='' AND COALESCE(MAX(`Puls Atp`),'')='' AND COALESCE(MAX(`Puls Adp`),'')='' AND COALESCE(MAX(`Vibration IK`),'')='' AND COALESCE(MAX(`Vibration Großzehe`),'')='' AND COALESCE(MAX(`Kalt-Warm`),'')='' anaNdok FROM `anamnesebogen` ana WHERE pat_id = " & pid, adOpenStatic, DBCn, adLockReadOnly
@@ -1115,7 +1121,7 @@ aktDC.SW(0) = Not !Schulfehlt
 Pat_ID = pid ' Pat_id = modulübergreifend
 
 If aktDC.Lkz = "" Then aktDC.Lkz = "D"
-aktDC.Postleitzahl = "D " & aktDC.Plz & " " & aktDC.Ort ' 1.1.15 Länderkennzeichen
+aktDC.Postleitzahl = "D " & aktDC.plz & " " & aktDC.ort ' 1.1.15 Länderkennzeichen
 
 #If False Then ' 29.6.15, Woltmann
  myFrag rform, "SELECT " & IIf(Not LVobMySQL, "top 1", "") & " feldinh FROM `formular` WHERE pat_id = " & Pat_ID & " AND Feld = 'KVKGueltig' AND zeitpunkt <= " & DatFor_k(MINvb(Now(), fctQEnd(ZQuart(Now - Verspätung)))) & " AND feldinh LIKE '%/%'" & " ORDER BY zeitpunkt DESC" & IIf(LVobMySQL, " LIMIT 1", "")
@@ -2976,9 +2982,9 @@ End Function ' FallExport
 Function LeistungsExport1(BDT As BDTSchreib, Pat_ID&, Leist$, Datu As Date, Optional QUZeit$, Optional nurKasse%, Optional Arztnr&)
  Dim rNa As New ADODB.Recordset, Lanr&
  myFrag rNa, "SELECT * FROM `namen` WHERE pat_id = " & Pat_ID
- Lese.Ausgeb "Trage Leistung " & Leist & " für Pat_ID " & Pat_ID & " (" & rNa!NachName & ", " & rNa!Vorname & ") mit Datum " & Format$(Datu, "dd.mm.yyyy") & " ein.", True
+ Lese.Ausgeb "Trage Leistung " & Leist & " für Pat_ID " & Pat_ID & " (" & rNa!Nachname & ", " & rNa!Vorname & ") mit Datum " & Format$(Datu, "dd.mm.yyyy") & " ein.", True
  Open pVerz & LEDatei For Append As #347
- Print #347, Pat_ID & ": " & rNa!NachName & ", " & rNa!Vorname & ", " & Format(Datu, "dd.mm.yyyy")
+ Print #347, Pat_ID & ": " & rNa!Nachname & ", " & rNa!Vorname & ", " & Format(Datu, "dd.mm.yyyy")
  Close #347
  If FallExport(BDT, Pat_ID, Datu, Lanr, nurKasse, Arztnr) <> 1 Then Exit Function
  LeistungsExport1 = 1
@@ -3030,7 +3036,7 @@ Function LeistungsExport1a(BDT As BDTSchreib, Pat_ID&, Leist$, Datu As Date, Opt
  If rFa.BOF Then Exit Function
  If Arztnr <> 0 And rFa!lanrid <> Arztnr Then Exit Function
  myFrag rNa, "SELECT * FROM `namen` WHERE pat_id = " & Pat_ID
- Lese.Ausgeb "Trage Leistung " & Leist & " für Pat_ID " & Pat_ID & " (" & rNa!NachName & ", " & rNa!Vorname & ") mit Datum " & Format$(Datu, "dd.mm.yyyy") & " ein.", True
+ Lese.Ausgeb "Trage Leistung " & Leist & " für Pat_ID " & Pat_ID & " (" & rNa!Nachname & ", " & rNa!Vorname & ") mit Datum " & Format$(Datu, "dd.mm.yyyy") & " ein.", True
  LeistungsExport1a = 1
  Call BDT.Satzart(IIf(rFa!SchGr = "90", "0190", "0102")) ' 80000 Satzidentifikation
 ' bei 0101 entstehen bei zwei Aufrufen fehlerfrei zwei neue Kassenfaelle, jeder mit der Leistung
@@ -3672,12 +3678,12 @@ Function doVerdächtigeÜberweiser()
    Loop
    If Not obverd Then If HAi <> 0 And InStrB(infos(10, 0), AktQ) <> 0 And infos(1, 0) <> infos(1, HAi) Then obverd = True
    If obverd Then
-    Print #355, rf!Pat_ID & ": " & rf!NachName & ", " & rf!Vorname & ":"
+    Print #355, rf!Pat_ID & ": " & rf!Nachname & ", " & rf!Vorname & ":"
     Print #355, "  " & Left$(infos(10, 0) & Space$(10), 10) & ": " & infos(1, 0)
     If Not HAi > UBound(infos, 2) Then Print #355, "  " & Left$(infos(10, HAi) & Space$(10), 10) & ": " & infos(1, HAi)
-    Ausgeb "verdächtig: " & rf!Pat_ID & ": " & rf!NachName & ", " & rf!Vorname, -1
+    Ausgeb "verdächtig: " & rf!Pat_ID & ": " & rf!Nachname & ", " & rf!Vorname, -1
    Else
-    Ausgeb "in Ordnung: " & rf!Pat_ID & ": " & rf!NachName & ", " & rf!Vorname, -1
+    Ausgeb "in Ordnung: " & rf!Pat_ID & ": " & rf!Nachname & ", " & rf!Vorname, -1
    End If
 '   Stop
    rf.Move 1
@@ -3750,7 +3756,7 @@ End Function
 'End FUNCTION ' allDMPs
 
 ' in Lese.los
-Function einDMP(Pat_ID&, Optional ICD$, Optional dszahl&, Optional NachName$, Optional Vorname$, Optional ÜWNNr$, Optional frm As Lese)
+Function einDMP(Pat_ID&, Optional ICD$, Optional dszahl&, Optional Nachname$, Optional Vorname$, Optional ÜWNNr$, Optional frm As Lese)
  Dim Faxnr$, infos$() ' Frau/Herrn, Vorn+Nachn, Straße, PLZ+Ort, Faxnr, S.g./Liebe, DMPTyp2, DMPTyp1
  Dim aktPatGefaxt$()
  Dim i%, j&, obdoppelt%, rAf&
@@ -4581,7 +4587,7 @@ End Function ' zqtest
 ' in DMPString
 Function GesNamFn$(ByVal rs) ' AS DAO.Recordset) ' s.a. GesName(
  On Error GoTo fehler
-   GesNamFn = rs!NachName & ", " & IIf(IsNull(rs!Titel), vNS, rs!Titel) + IIf(IsNull(rs!Titel) Or LenB(rs!Titel) = 0, vNS, ", ") + rs!Vorname
+   GesNamFn = rs!Nachname & ", " & IIf(IsNull(rs!Titel), vNS, rs!Titel) + IIf(IsNull(rs!Titel) Or LenB(rs!Titel) = 0, vNS, ", ") + rs!Vorname
    On Error Resume Next
    GesNamFn = rs!NVorsatz + IIf(LenB(rs!NVorsatz) = 0, vNS, " ") + GesNamFn
    On Error GoTo fehler
@@ -5567,7 +5573,7 @@ Function testvergleicheT()
 '  IF e1 = früher AND e2 = vorlangem AND IsNumeric(rs!tabakbis) THEN
 '  IF e1 = früher AND e2 = vorlangem THEN
   If True Then
-   AusS = e1W & " " & e2W & " " & Right$(Space(5) & rs!Pat_ID, 5) & " " & Left$(rs!NachName & Space(15), 15)
+   AusS = e1W & " " & e2W & " " & Right$(Space(5) & rs!Pat_ID, 5) & " " & Left$(rs!Nachname & Space(15), 15)
    AusS = AusS & Left$(rs!ICD & rs!DiagSicherheit & Space(7), 7) & " "
    AusS = AusS & Left$(rs!Tabak & Space(70), 70) & " "
    AusS = AusS & Left$(rs!tabakakt & Space(15), 10) & " "

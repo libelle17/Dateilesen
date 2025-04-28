@@ -36,7 +36,7 @@ Public Enum KeyModeConstants
   kmName
   kmPath
 End Enum
-Dim ForeignKAus0%, ForeignKAus1%, rAf&
+Public ForeignKAus0%, ForeignKAus1%, rAf&
 Public KVÄDatei1$, BriefZiel$, AutoBriefZiel$, AutoBriefProtok$
 'Public Const KVÄDatei1$ = AnamneseVerZeichnis1 + "KV-Ärzte neu.mdb"
 'Public Const BriefZiel$ = pVerz
@@ -951,7 +951,7 @@ Function MacheTypen(frm As Lese)
  Next i
  syscmd 4, "Mache Typen (6) ..."
  Print #257, " wdh = -1"
- Print #257, "End FUNCTION ' Tinit"
+ Print #257, "End FUNCTION ' LabInit"
  Print #257, ""
  Print #257, "' in AllesLösch, LabLösch"
  Print #257, "Public FUNCTION doEntleer(frm AS lese, Tbl$)"
@@ -1399,7 +1399,7 @@ End If ' aktTbn = "faelle" Then
    Case "laborxus" ' , "laborxwert", "laborxbakt", "laborxleist"
     pText = pText + ", j&"
   End Select ' Case aktTbn
-  pText = pText & ", Optional rAf&, Optional sfkco%"
+  pText = pText & ", Optional rAf&, Optional sfkco%, Optional tbnm=""" & aktTbn & """"
   Print #257, pText & ")"
   Print #257, " Dim i&, rAFi&, Pid$, m%, sfnr%, altmode$, ErrD$, ErrN& ',sql0$" ', DBCn As New adodb.Connection ' SpeicherFehler-Nr."
   If aktTbn = "faelle" Then
@@ -1417,7 +1417,7 @@ End If ' aktTbn = "faelle" Then
   Else
    Print #257, " On Error GoTo fehler"
   End If
-  Print #257, " syscmd 4, pid & "": Speichere "" & Ubound(r" & Tbk(i) & ")+" & IIf(aktTbn = "namen", 1, 0) & " & "" Sätze in `" & aktTbn & "`"""
+  Print #257, " syscmd 4, pid & "": Speichere "" & Ubound(r" & Tbk(i) & ")+" & IIf(aktTbn = "namen", 1, 0) & " & "" Sätze in `"" & tbnm & ""`"""
 '  Print #257, " DBCnOpen CSStr"
 '  Print #257, " Call myEFrag(""use quelle1"")"
 '  Print #257, " IF lese.obmysql THEN ON Error GoTo fehler ELSE ON Error Resume Next"
@@ -1425,7 +1425,8 @@ End If ' aktTbn = "faelle" Then
   InsBefFld = doMachSQL0(tbn(i), NobAI)
 '   Print #257, "' sql0 =" & IIf(Not SammelIns, " "" INSERT "" & sqlignore & ", "") & """INTO `" & LCase$(tbn(i)) & "`" & _
               IIf(aktTbn = "forminhfeld" Or NobAI, InsBefFld, "") + " VALUES"
-   Print #257, " Call csql0.AppVar(Array("" INSERT "", sqlIgnore, ""INTO `" & LCase$(tbn(i)) & "`" & IIf(aktTbn = "forminhfeld" Or NobAI, InsBefFld, ""), " VALUES""))"
+' INTO `" & LCase$(tbn(i)) & "`
+   Print #257, " Call csql0.AppVar(Array("" INSERT "", sqlIgnore, ""INTO `"" & LCase$(tbnm) & ""`" & IIf(aktTbn = "forminhfeld" Or NobAI, InsBefFld, ""), " VALUES""))"
    If SammelIns Then
     Print #257, " IF lese.obmysql THEN sql" & IIf(SammelIns, vNS, "0") & " = ""INSERT IGNORE "" & sql0 ELSE sql0 = ""INSERT "" & sql0"
    End If
@@ -1469,7 +1470,8 @@ End If ' aktTbn = "faelle" Then
 '      Print #257, "'    IF Not rs.BOF THEN"
 '      Print #257, "'     SET rs = nothing"
 '     End If
-     Print #257, "   sql = ""DELETE FROM `" & LCase$(tbn(i)) & "` WHERE Pat_ID = """ & " & CStr(rNa(0).Pat_ID)"
+' DELETE FROM `" & LCase$(tbn(i)) & "`
+     Print #257, "   sql = ""DELETE FROM `"" & LCase$(tbnm) & ""` WHERE Pat_ID = """ & " & CStr(rNa(0).Pat_ID)"
      Print #257, "   Call myEFrag(sql)"
      If aktTbn <> "namen" Then
 '      Print #257, "    END IF ' Not rs.BOF THEN"
@@ -1586,7 +1588,8 @@ End If ' aktTbn = "faelle" Then
   If Not rfld.BOF Then
   fld = rfld.Fields(0)
   Print #257, "     " & IIf(aktTbn = "formulare", "", "Else") & "If InStrB(ErrD, ""Duplicate"") <> 0 Then"
-  Print #257, "      r" & Tbk(i) & "(i)." & fld & " = myEFrag(""SELECT MAX(" & fld & ")+1 FROM `" & LCase$(tbn(i)) & "`"", , DBCn).Fields(0)"
+  ' 1 FROM `" & LCase$(tbn(i)) & "`
+  Print #257, "      r" & Tbk(i) & "(i)." & fld & " = myEFrag(""SELECT MAX(" & fld & ")+1 FROM `"" & LCase$(tbnm) & ""`"", , DBCn).Fields(0)"
   Print #257, "      csql.m_Len = 0"
   Print #257, "      GoTo setz"
   End If ' Not rfld.BOF Then
@@ -1770,12 +1773,14 @@ End If ' aktTbn = "faelle" Then
  syscmd 4, "Mache Typen (23) ..."
   Print #257, " nochmal:"
   Print #257, " SET rsc = New ADODB.Recordset"
-  Print #257, " SET rsc = DBCnOSchema(adSchemaColumns, Array(Empty, Empty, """ & LCase$(tbn(i)) & """, Empty))"
+  ' Array(Empty, Empty, """ & LCase$(tbn(i)) & """, Empty))"
+  Print #257, " SET rsc = DBCnOSchema(adSchemaColumns, Array(Empty, Empty, LCase$(tbnm), Empty))"
   Print #257, " m = 0"
   Print #257, " Do While Not rsc.EOF"
   Print #257, "  SELECT CASE rsc!data_type"
   Print #257, "   Case ""varchar"", ""longtext"", ""mediumtext"", ""char"", ""text"", ""varbinary"", 8, 129, 130, 200, 201, 202, 203, ""set"", ""enum"", ""blob"", ""longblob"", 0, 9, 12, 13, 72, 128, 132, 138, 204, 205"
-  Print #257, "    maxL = SpMod(maxi(m), """ & LCase$(tbn(i)) & """, rsc)"
+ ' SpMod(maxi(m), """ & LCase$(tbn(i)) & """, rsc)"
+  Print #257, "    maxL = SpMod(maxi(m), LCase$(tbnm), rsc)"
   Print #257, "    IF maxL > 0 THEN"
   Print #257, "     For k = IIf(SammelInsert <> 0," & ianf & ", i) To IIf(SammelInsert <> 0," & iend & ", i)"
   Print #257, "      SELECT CASE m"
@@ -2794,7 +2799,7 @@ Function ForeignNo0()
  If ForeignKAus0 = 0 Then
   If lies.obMySQL Then
 '   DBCn.Execute "SET foreign_key_checks = 0"
-   Call myEFrag("SET foreign_key_checks = 0")
+   Call myEFrag("SET GLOBAL foreign_key_checks = 0")
 #If mitacc Then
   Else
    ZielDbS = Lese.dlg.MdB
@@ -2827,7 +2832,7 @@ Function ForeignNo1()
   If lies.obMySQL Then
 '   Dim rAf&
 '   DBCn.Execute "SET foreign_key_checks = 0", rAf
-   Call myEFrag("SET foreign_key_checks = 0", rAf)
+   Call myEFrag("SET GLOBAL foreign_key_checks = 0", rAf)
 #If mitacc Then
   Else
    ZielDbS = Lese.dlg.MdB
@@ -5435,13 +5440,13 @@ End Function ' doHilfsmittelklassifikationen
 ' in dofallzahlstand und GesLies
 Function fzsfuell(frm As Lese, abstand&, Optional obgestern) ' Abstand: 999 => unbekannt, 9999 => ohne abstand
   Dim sql$, vrs As New ADODB.Recordset, runde%, FNr&, rAf&
-  Dim s0&, s1&, k0&, k1&, QT$
+  Dim s0&, s1&, k0&, k1&, H0&, h1&, QT$
   Dim csql0 As CString
   Dim rsse() As rstype
   On Error GoTo fehler
   Screen.MousePointer = vbHourglass
   If abstand = 999 Then ' code für unbekannt
-   s0 = 0: s1 = 0: k0 = 0: k1 = 0
+   s0 = 0: s1 = 0: k0 = 0: k1 = 0: H0 = 0: h1 = 0
    sql = "SELECT to_days(SUBDATE(NOW(),INTERVAL " & obgestern & " DAY))-to_days((CONCAT(YEAR(SUBDATE(NOW(),INTERVAL " & obgestern & " DAY)),'-',((month(SUBDATE(NOW(),INTERVAL " & obgestern & " DAY))-1)div 3)*3+1,'-01'))) abstand"
    myFrag vrs, sql
    abstand = vrs!abstand
@@ -5519,21 +5524,21 @@ Function fzsfuell(frm As Lese, abstand&, Optional obgestern) ' Abstand: 999 => u
     ",COALESCE((SELECT COUNT(DISTINCT pat_id) FROM faelle WHERE quartal=" & QT & " AND schgr<>'90' AND fanf BETWEEN " & qbg & " AND " & qed & "),0) Kassenpat" & vbCrLf & _
     ",COALESCE((SELECT COUNT(DISTINCT pat_id) FROM faelle WHERE quartal=" & vqu & " AND schgr<>'90' AND fanf BETWEEN " & vqbg & " AND " & vqed & "),0) Kassenpatvor" & vbCrLf & _
     ",COALESCE((SELECT COUNT(DISTINCT pat_id) FROM faelle f WHERE quartal=" & QT & " AND schgr<>'90' AND fanf BETWEEN " & qbg & " AND " & qed & " AND EXISTS (SELECT 0 FROM `diagnosen` d WHERE d.pat_id = f.pat_id AND d.icd RLIKE '^E1[0-4]\.' AND d.diagsicherheit IN ('G',' ') AND obdauer<>0) GROUP BY quartal),0) DM" & vbCrLf & _
-    ",COALESCE((SELECT COUNT(DISTINCT pat_id) FROM faelle f WHERE quartal=" & QT & " AND schgr<>'90' AND fanf BETWEEN " & qbg & " AND " & qed & " AND EXISTS (SELECT 0 FROM eintraege WHERE pat_id= f.pat_id AND zeitpunkt BETWEEN " & qbg & " AND " & qed & " AND (art IN ('gs','doppler','duplex') OR inhalt LIKE '%(gs)%') AND NOT inhalt LIKE '%(wd)%' AND NOT inhalt LIKE '%(ah)%') GROUP BY quartal),0) davonSchade" & vbCrLf & _
-    ",COALESCE((SELECT COUNT(DISTINCT pat_id) FROM faelle f WHERE quartal=" & QT & " AND schgr<>'90' AND fanf BETWEEN " & qbg & " AND " & qed & " AND EXISTS (SELECT 0 FROM eintraege WHERE pat_id= f.pat_id AND zeitpunkt BETWEEN " & qbg & " AND " & qed & " AND (art IN ('tk') OR inhalt LIKE '%(tk)%')) GROUP BY quartal),0) davonKothny" & vbCrLf & _
+    ",COALESCE((SELECT COUNT(DISTINCT pat_id) FROM faelle f WHERE quartal=" & QT & " AND schgr<>'90' AND fanf BETWEEN " & qbg & " AND " & qed & " AND EXISTS (SELECT 0 FROM eintraege WHERE pat_id= f.pat_id AND zeitpunkt BETWEEN " & qbg & " AND " & qed & " AND (art IN ('gs','doppler','dop','duplex') OR (art='tb' AND ersteller='gs') OR inhalt LIKE '%(gs)%') AND NOT inhalt LIKE '%(wd)%' AND NOT inhalt LIKE '%(ah)%') GROUP BY quartal),0) davonSchade" & vbCrLf & _
+    ",COALESCE((SELECT COUNT(DISTINCT pat_id) FROM faelle f WHERE quartal=" & QT & " AND schgr<>'90' AND fanf BETWEEN " & qbg & " AND " & qed & " AND EXISTS (SELECT 0 FROM eintraege WHERE pat_id= f.pat_id AND zeitpunkt BETWEEN " & qbg & " AND " & qed & " AND (art='tk' OR (art='tb' AND ersteller='tk') OR inhalt LIKE '%(tk)%')) GROUP BY quartal),0) davonKothny" & vbCrLf & _
     ",COALESCE((SELECT COUNT(DISTINCT pat_id) FROM diagnosen WHERE icd='O24.4' AND diagdatum BETWEEN " & qbg & " AND " & qed & " AND diagsicherheit IN ('G',' ') AND Dggel=0),0) GDM" & vbCrLf & _
     ",COALESCE((SELECT COUNT(DISTINCT pat_id) FROM faelle f WHERE quartal=" & QT & " AND schgr<>'90' AND fanf BETWEEN " & qbg & " AND " & qed & " AND EXISTS (SELECT 0 FROM eintraege WHERE pat_id= f.pat_id AND zeitpunkt BETWEEN " & qbg & " AND " & qed & " AND (SELECT MIN(fanf) FROM faelle WHERE pat_id=f.pat_id)=f.fanf) GROUP BY quartal),0) neue" & vbCrLf & _
     ",COALESCE((SELECT COUNT(DISTINCT pat_id) FROM faelle f WHERE quartal=" & QT & " AND schgr<>'90' AND fanf BETWEEN " & qbg & " AND " & qed & " AND EXISTS (SELECT 0 FROM eintraege WHERE pat_id= f.pat_id AND zeitpunkt BETWEEN " & qbg & " AND " & qed & " AND (SELECT MIN(fanf) FROM faelle WHERE pat_id=f.pat_id)=f.fanf) AND EXISTS (SELECT 0 FROM diagview d WHERE d.pat_id = f.pat_id AND d.gICD RLIKE '^E1[0-4]\.' AND obdauer<>0) GROUP BY quartal),0) neueDM" & vbCrLf & _
-    ",COALESCE((SELECT COUNT(DISTINCT pat_id) FROM faelle f WHERE quartal=" & QT & " AND schgr<>'90' AND fanf BETWEEN " & qbg & " AND " & qed & " AND EXISTS (SELECT 0 FROM eintraege WHERE pat_id= f.pat_id AND zeitpunkt BETWEEN " & qbg & " AND " & qed & " AND ((art IN ('gs','doppler','duplex') OR inhalt LIKE '%(gs)%') AND NOT inhalt LIKE '%(wd)%' AND NOT inhalt LIKE '%(ah)%') AND (SELECT MIN(fanf) FROM faelle WHERE pat_id=f.pat_id)=f.fanf) GROUP BY quartal),0) neueSchade" & vbCrLf & _
-    ",COALESCE((SELECT COUNT(DISTINCT pat_id) FROM faelle f WHERE quartal=" & QT & " AND schgr<>'90' AND fanf BETWEEN " & qbg & " AND " & qed & " AND EXISTS (SELECT 0 FROM eintraege WHERE pat_id= f.pat_id AND zeitpunkt BETWEEN " & qbg & " AND " & qed & " AND (art IN ('tk') OR inhalt LIKE '%(tk)%') AND (SELECT MIN(fanf) FROM faelle WHERE pat_id=f.pat_id)=f.fanf) GROUP BY quartal),0) neueKothny" & vbCrLf & _
-    ",COALESCE((SELECT COUNT(0) FROM `eintraege` e WHERE e.art = 'doppler' AND zeitpunkt BETWEEN " & qbg & " AND " & qed & "),0) Doppler" & vbCrLf & _
+    ",COALESCE((SELECT COUNT(DISTINCT pat_id) FROM faelle f WHERE quartal=" & QT & " AND schgr<>'90' AND fanf BETWEEN " & qbg & " AND " & qed & " AND EXISTS (SELECT 0 FROM eintraege WHERE pat_id= f.pat_id AND zeitpunkt BETWEEN " & qbg & " AND " & qed & " AND ((art IN ('gs','doppler','dop','duplex') OR (art='tb' AND ersteller='gs') OR inhalt LIKE '%(gs)%') AND NOT inhalt LIKE '%(wd)%' AND NOT inhalt LIKE '%(ah)%') AND (SELECT MIN(fanf) FROM faelle WHERE pat_id=f.pat_id)=f.fanf) GROUP BY quartal),0) neueSchade" & vbCrLf & _
+    ",COALESCE((SELECT COUNT(DISTINCT pat_id) FROM faelle f WHERE quartal=" & QT & " AND schgr<>'90' AND fanf BETWEEN " & qbg & " AND " & qed & " AND EXISTS (SELECT 0 FROM eintraege WHERE pat_id= f.pat_id AND zeitpunkt BETWEEN " & qbg & " AND " & qed & " AND (art='tk' OR (art='tb' AND ersteller='tk') OR inhalt LIKE '%(tk)%') AND (SELECT MIN(fanf) FROM faelle WHERE pat_id=f.pat_id)=f.fanf) GROUP BY quartal),0) neueKothny" & vbCrLf & _
+    ",COALESCE((SELECT COUNT(0) FROM `eintraege` e WHERE e.art IN ('doppler','dop') AND zeitpunkt BETWEEN " & qbg & " AND " & qed & "),0) Doppler" & vbCrLf & _
     ",COALESCE((SELECT COUNT(0) FROM `eintraege` e WHERE e.art = 'duplex' AND zeitpunkt BETWEEN " & qbg & " AND " & qed & "),0) Duplex" & vbCrLf & _
     ",COALESCE((SELECT COUNT(0) FROM `eintraege` e WHERE e.art = 'sono' AND zeitpunkt BETWEEN " & qbg & " AND " & qed & "),0) Sonos" & vbCrLf & _
     ",COALESCE((SELECT COUNT(0) FROM `eintraege` e WHERE e.art = 'schul' AND zeitpunkt BETWEEN " & qbg & " AND " & qed & "),0) Schul" & vbCrLf
     sql = sql & _
     ",COALESCE((SELECT COUNT(0) FROM (SELECT COUNT(0) zahl FROM eintraege WHERE art IN (" & artSpezBerat & "," & artSpezMA & ") AND zeitpunkt BETWEEN " & qbg & " AND " & qed & " GROUP BY DATE(zeitpunkt)) i WHERE zahl>10),0) arbt" & vbCrLf & _
-    ",COALESCE((SELECT COUNT(0) FROM (SELECT COUNT(0) zahl FROM eintraege WHERE art IN ('tk') AND zeitpunkt BETWEEN " & qbg & " AND " & qed & " GROUP BY DATE(zeitpunkt)) i WHERE zahl>5),0) arbtKothny" & vbCrLf & _
-    ",COALESCE((SELECT COUNT(0) FROM (SELECT COUNT(0) zahl FROM eintraege WHERE art IN ('gs') AND zeitpunkt BETWEEN " & qbg & " AND " & qed & " GROUP BY DATE(zeitpunkt)) i WHERE zahl>5),0) arbtSchade" & vbCrLf & _
+    ",COALESCE((SELECT COUNT(0) FROM (SELECT COUNT(0) zahl FROM eintraege WHERE (art='tk' OR (art='tb' AND ersteller='tk')) AND zeitpunkt BETWEEN " & qbg & " AND " & qed & " GROUP BY DATE(zeitpunkt)) i WHERE zahl>5),0) arbtKothny" & vbCrLf & _
+    ",COALESCE((SELECT COUNT(0) FROM (SELECT COUNT(0) zahl FROM eintraege WHERE (art='gs' OR (art='tb' AND ersteller='gs')) AND zeitpunkt BETWEEN " & qbg & " AND " & qed & " GROUP BY DATE(zeitpunkt)) i WHERE zahl>5),0) arbtSchade" & vbCrLf & _
     ",COALESCE((SELECT COUNT(0) FROM tmbrie WHERE autor='gs' AND (name LIKE '%brief%' OR name LIKE '%nachricht%') AND quelldatum BETWEEN " & qbg & " AND " & qed & "),0) briefeSchade" & vbCrLf & _
     ",COALESCE((SELECT COUNT(0) FROM tmbrie WHERE autor='tk' AND (name LIKE '%brief%' OR name LIKE '%nachricht%') AND quelldatum BETWEEN " & qbg & " AND " & qed & "),0) briefeKothny" & vbCrLf & _
     ",COALESCE((SELECT COUNT(0) FROM tmbrie b INNER JOIN diagview d ON d.pat_id=b.pat_id AND d.gicd RLIKE '^E1[0-4]\.' AND obdauer<>0 WHERE autor='gs' AND (name LIKE '%brief%' OR name LIKE '%nachricht%') AND quelldatum BETWEEN " & qbg & " AND " & qed & "),0) dmbriefeSchade" & vbCrLf & _
@@ -5553,11 +5558,11 @@ Function fzsfuell(frm As Lese, abstand&, Optional obgestern) ' Abstand: 999 => u
      "FROM (SELECT Quartal, COUNT(0) kassenpat,  " & vbCrLf & _
      "(SELECT COUNT(DISTINCT pat_id) FROM `faelle` WHERE schgr <> '90' AND quartal = vorquartal " & VQBed & " GROUP BY quartal) Kassenpatvor,  " & vbCrLf & _
      "(SELECT COUNT(DISTINCT pat_id) FROM `faelle` f WHERE schgr <> '90' AND quartal = i.quartal " & QBedi & " AND EXISTS (SELECT 0 FROM `diagnosen` d WHERE d.pat_id = f.pat_id AND d.icd RLIKE '^E1[0-4]\.|^O24\.' AND d.diagsicherheit RLIKE '[^Z^A^V]' AND COALESCE(d.Dggel,0)=0) GROUP BY quartal) Diabetes, " & vbCrLf & _
-     "(SELECT COUNT(DISTINCT e.pat_id) Zahl FROM `eintraege` e LEFT JOIN `faelle` f ON e.pat_id = f.pat_id WHERE schgr <> '90' AND (art IN ('" & IIf(fctQAnf(Quartal) > #1/1/2006#, "gs", "gs','notiz") & "','doppler','duplex') OR inhalt LIKE '%(gs)%') " & zpQBed & " AND CONCAT((month(e.zeitpunkt)+2) div 3, YEAR(e.zeitpunkt)) = i.Quartal) davonSchade, " & vbCrLf & _
+     "(SELECT COUNT(DISTINCT e.pat_id) Zahl FROM `eintraege` e LEFT JOIN `faelle` f ON e.pat_id = f.pat_id WHERE schgr <> '90' AND (art IN ('" & IIf(fctQAnf(Quartal) > #1/1/2006#, "gs", "gs','notiz") & "','doppler','dop','duplex') OR inhalt LIKE '%(gs)%') " & zpQBed & " AND CONCAT((month(e.zeitpunkt)+2) div 3, YEAR(e.zeitpunkt)) = i.Quartal) davonSchade, " & vbCrLf & _
      "(SELECT COUNT(DISTINCT e.pat_id) Zahl FROM `eintraege` e LEFT JOIN `faelle` f ON e.pat_id = f.pat_id WHERE schgr <> '90' AND (art = 'tk' OR inhalt LIKE '%(tk)%') " & zpQBed & " AND CONCAT((month(e.zeitpunkt)+2) div 3, YEAR(e.zeitpunkt)) = i.Quartal) davonKothny, " & vbCrLf & _
      "(SELECT COUNT(DISTINCT d.pat_id) Zahl FROM `diagnosen` d LEFT JOIN `faelle` f ON d.fid = f.fid WHERE d.icd = 'O24.4' AND d.diagsicherheit RLIKE '[^V^Z^A]' AND COALESCE(d.Dggel,0)=0 AND f.quartal = i.quartal) GDM, " & vbCrLf & _
      "SUM(erst) neue, SUM(erstdm) neuedm, " & vbCrLf & _
-     "(SELECT COUNT(DISTINCT e.pat_id) Zahl FROM `eintraege` e LEFT JOIN `faelle` f ON e.pat_id = f.pat_id WHERE schgr <> '90' AND (art IN ('gs','doppler','duplex') OR inhalt LIKE '%(gs)%') " & zpQBed & " AND CONCAT((month(e.zeitpunkt)+2) div 3, YEAR(e.zeitpunkt)) = i.Quartal AND (SELECT MIN(fanf) FROM `faelle` f1 WHERE f1.pat_id = e.pat_id) = (SELECT MIN(fanf) FROM `faelle` f1 WHERE f1.pat_id = e.pat_id AND fanf >= (CONCAT(YEAR(e.zeitpunkt),'-',month(e.zeitpunkt) - ((month(e.zeitpunkt)-1) mod 3),'-01')) )) neueSchade, " & vbCrLf & _
+     "(SELECT COUNT(DISTINCT e.pat_id) Zahl FROM `eintraege` e LEFT JOIN `faelle` f ON e.pat_id = f.pat_id WHERE schgr <> '90' AND (art IN ('gs','doppler','dop','duplex') OR inhalt LIKE '%(gs)%') " & zpQBed & " AND CONCAT((month(e.zeitpunkt)+2) div 3, YEAR(e.zeitpunkt)) = i.Quartal AND (SELECT MIN(fanf) FROM `faelle` f1 WHERE f1.pat_id = e.pat_id) = (SELECT MIN(fanf) FROM `faelle` f1 WHERE f1.pat_id = e.pat_id AND fanf >= (CONCAT(YEAR(e.zeitpunkt),'-',month(e.zeitpunkt) - ((month(e.zeitpunkt)-1) mod 3),'-01')) )) neueSchade, " & vbCrLf & _
      "(SELECT COUNT(DISTINCT e.pat_id) Zahl FROM `eintraege` e LEFT JOIN `faelle` f ON e.pat_id = f.pat_id WHERE schgr <> '90' AND (art IN ('tk') OR inhalt LIKE '%(tk)%') " & zpQBed & " AND CONCAT((month(e.zeitpunkt)+2) div 3, YEAR(e.zeitpunkt)) = i.Quartal AND (SELECT MIN(fanf) FROM `faelle` f1 WHERE f1.pat_id = e.pat_id) = (SELECT MIN(fanf) FROM `faelle` f1 WHERE f1.pat_id = e.pat_id AND fanf >= (CONCAT(YEAR(e.zeitpunkt),'-',month(e.zeitpunkt) - ((month(e.zeitpunkt)-1) mod 3),'-01')) )) neueKothny, " & vbCrLf & _
      "(SELECT COUNT(0) FROM `eintraege` e WHERE e.art = 'doppler' " & zpQBed & " AND CONCAT((month(e.zeitpunkt)+2) div 3, YEAR(e.zeitpunkt)) = i.Quartal) Doppler, " & vbCrLf & _
      "(SELECT COUNT(0) FROM `eintraege` e WHERE e.art = 'duplex' " & zpQBed & " AND CONCAT((month(e.zeitpunkt)+2) div 3, YEAR(e.zeitpunkt)) = i.Quartal) Duplex, " & vbCrLf & _
@@ -5589,9 +5594,9 @@ Function fzsfuell(frm As Lese, abstand&, Optional obgestern) ' Abstand: 999 => u
 '  AND COALESCE(d.Dggel,0)=0
     sql = "SELECT eart, dm, COUNT(0) zahl FROM (" & _
        "SELECT name,pat_id,zp,eart,dm FROM (" & _
-            "SELECT name,b.pat_id,b.quelldatum zp," & _
+            "SELECT name,b.pat_id,b.quelldatum zp, b.Ersteller" & _
             "(SELECT MAX(art) FROM `eintraege` e " & _
-             "WHERE e.pat_id = b.pat_id AND art IN ('tk','gs') AND zeitpunkt = (SELECT MAX(zeitpunkt) FROM `eintraege` e WHERE e.pat_id = b.pat_id AND art IN ('tk','gs') AND zeitpunkt < b.zeitpunkt) " & _
+             "WHERE e.pat_id = b.pat_id AND art IN ('tk','gs','ah','tb') AND zeitpunkt = (SELECT MAX(zeitpunkt) FROM `eintraege` e WHERE e.pat_id = b.pat_id AND (art IN ('tk','gs','ah')OR (art='tb'AND ersteller in ('tk','gs','ah'))) AND zeitpunkt < b.zeitpunkt) " & _
             ") eart," & _
          "NOT ISNULL(icd) dm " & _
        "FROM `tmbrie` b " & _
@@ -5606,10 +5611,18 @@ Function fzsfuell(frm As Lese, abstand&, Optional obgestern) ' Abstand: 999 => u
     myFrag RsI, sql
     
     If Not RsI.BOF Then
+     s0 = 0: s1 = 0: k0 = 0: k1 = 0: H0 = 0: h1 = 0
      Do While Not RsI.EOF
       Select Case RsI!eArt
-       Case "gs": If RsI!dm = 0 Then s0 = RsI!Zahl Else s1 = RsI!Zahl
-       Case "tk": If RsI!dm = 0 Then k0 = RsI!Zahl Else k1 = RsI!Zahl
+       Case "gs": If RsI!dm = 0 Then s0 = s0 + RsI!Zahl Else s1 = s1 + RsI!Zahl
+       Case "tk": If RsI!dm = 0 Then k0 = k0 + RsI!Zahl Else k1 = k1 + RsI!Zahl
+       Case "ah": If RsI!dm = 0 Then H0 = H0 + RsI!Zahl Else h1 = h1 + RsI!Zahl
+       Case "tb":
+        Select Case RsI!Ersteller
+         Case "gs": If RsI!dm = 0 Then s0 = s0 + RsI!Zahl Else s1 = s1 + RsI!Zahl
+         Case "tk": If RsI!dm = 0 Then k0 = k0 + RsI!Zahl Else k1 = k1 + RsI!Zahl
+         Case "ah": If RsI!dm = 0 Then H0 = H0 + RsI!Zahl Else h1 = h1 + RsI!Zahl
+        End Select
       End Select
       RsI.MoveNext
      Loop
@@ -5741,11 +5754,11 @@ End Function ' fallzahlstand
           "FROM (SELECT Quartal, COUNT(0) kassenpat,  " & _
           "(SELECT COUNT(DISTINCT pat_id) FROM `faelle` WHERE schgr <> '90' AND quartal = vorquartal AND to_days(fanf)-to_days((CONCAT(MID(vorquartal,2,4),'-',(LEFT(vorquartal,1)-1)*3+1,'-01'))) BETWEEN 0 AND " & abstand & " GROUP BY quartal) Kassenpatvor,  " & _
           "(SELECT COUNT(DISTINCT pat_id) FROM `faelle` f WHERE schgr <> '90' AND quartal = i.quartal AND to_days(fanf)-to_days((CONCAT(MID(i.quartal,2,4),'-',(LEFT(i.quartal,1)-1)*3+1,'-01'))) BETWEEN 0 AND " & abstand & " AND exists (SELECT 0 FROM `diagnosen` d WHERE pat_id = f.pat_id AND d.icd RLIKE '^E1[0-4]\.|^O24\.' AND diagsicherheit RLIKE '[^Z^A^V]' AND COALESCE(Dggel,0)=0) GROUP BY quartal) Diabetes, " & _
-          "(SELECT COUNT(DISTINCT e.pat_id) Zahl FROM `eintraege` e LEFT JOIN `faelle` f ON e.pat_id = f.pat_id WHERE schgr <> '90' AND (art IN ('gs','doppler','duplex') OR inhalt LIKE '%(gs)%') AND to_days(e.zeitpunkt)-to_days((CONCAT(YEAR(e.zeitpunkt),'-',month(e.zeitpunkt) - ((month(e.zeitpunkt)-1) mod 3),'-01'))) BETWEEN 0 AND " & abstand & " AND CONCAT((month(e.zeitpunkt)+2) div 3, YEAR(e.zeitpunkt)) = i.Quartal) davonSchade, " & _
+          "(SELECT COUNT(DISTINCT e.pat_id) Zahl FROM `eintraege` e LEFT JOIN `faelle` f ON e.pat_id = f.pat_id WHERE schgr <> '90' AND (art IN ('gs','doppler','dop','duplex') OR inhalt LIKE '%(gs)%') AND to_days(e.zeitpunkt)-to_days((CONCAT(YEAR(e.zeitpunkt),'-',month(e.zeitpunkt) - ((month(e.zeitpunkt)-1) mod 3),'-01'))) BETWEEN 0 AND " & abstand & " AND CONCAT((month(e.zeitpunkt)+2) div 3, YEAR(e.zeitpunkt)) = i.Quartal) davonSchade, " & _
           "(SELECT COUNT(DISTINCT e.pat_id) Zahl FROM `eintraege` e LEFT JOIN `faelle` f ON e.pat_id = f.pat_id WHERE schgr <> '90' AND (art = 'tk' OR inhalt LIKE '%(tk)%') AND to_days(e.zeitpunkt)-to_days((CONCAT(YEAR(e.zeitpunkt),'-',month(e.zeitpunkt) - ((month(e.zeitpunkt)-1) mod 3),'-01'))) BETWEEN 0 AND " & abstand & " AND CONCAT((month(e.zeitpunkt)+2) div 3, YEAR(e.zeitpunkt)) = i.Quartal) davonKothny, " & _
           "(SELECT COUNT(DISTINCT d.pat_id) Zahl FROM `diagnosen` d LEFT JOIN `faelle` f ON d.fid = f.fid WHERE d.icd = 'O24.4' AND d.diagsicherheit RLIKE '[^V^Z^A]' AND COALESCE(d.Dggel,0)=0 AND f.quartal = i.quartal) GDM, " & _
           "SUM(erst) neue, SUM(erstdm) neuedm, " & _
-          "(SELECT COUNT(DISTINCT e.pat_id) Zahl FROM `eintraege` e LEFT JOIN `faelle` f ON e.pat_id = f.pat_id WHERE schgr <> '90' AND (art IN ('gs','doppler','duplex') OR inhalt LIKE '%(gs)%') AND to_days(e.zeitpunkt)- to_days((CONCAT(YEAR(e.zeitpunkt),'-',month(e.zeitpunkt) - ((month(e.zeitpunkt)-1) mod 3),'-01'))) BETWEEN 0 AND " & abstand & " AND CONCAT((month(e.zeitpunkt)+2) div 3, YEAR(e.zeitpunkt)) = i.Quartal AND (SELECT MIN(fanf) FROM `faelle` f1 WHERE f1.pat_id = e.pat_id) = (SELECT MIN(fanf) FROM `faelle` f1 WHERE f1.pat_id = e.pat_id AND fanf >= (CONCAT(YEAR(e.zeitpunkt),'-',month(e.zeitpunkt) - ((month(e.zeitpunkt)-1) mod 3),'-01')) )) neueSchade, " & _
+          "(SELECT COUNT(DISTINCT e.pat_id) Zahl FROM `eintraege` e LEFT JOIN `faelle` f ON e.pat_id = f.pat_id WHERE schgr <> '90' AND (art IN ('gs','doppler','dop','duplex') OR inhalt LIKE '%(gs)%') AND to_days(e.zeitpunkt)- to_days((CONCAT(YEAR(e.zeitpunkt),'-',month(e.zeitpunkt) - ((month(e.zeitpunkt)-1) mod 3),'-01'))) BETWEEN 0 AND " & abstand & " AND CONCAT((month(e.zeitpunkt)+2) div 3, YEAR(e.zeitpunkt)) = i.Quartal AND (SELECT MIN(fanf) FROM `faelle` f1 WHERE f1.pat_id = e.pat_id) = (SELECT MIN(fanf) FROM `faelle` f1 WHERE f1.pat_id = e.pat_id AND fanf >= (CONCAT(YEAR(e.zeitpunkt),'-',month(e.zeitpunkt) - ((month(e.zeitpunkt)-1) mod 3),'-01')) )) neueSchade, " & _
           "(SELECT COUNT(DISTINCT e.pat_id) Zahl FROM `eintraege` e LEFT JOIN `faelle` f ON e.pat_id = f.pat_id WHERE schgr <> '90' AND (art IN ('tk') OR inhalt LIKE '%(tk)%') AND to_days(e.zeitpunkt)-to_days((CONCAT(YEAR(e.zeitpunkt),'-',month(e.zeitpunkt) - ((month(e.zeitpunkt)-1) mod 3),'-01'))) BETWEEN 0 AND " & abstand & " AND CONCAT((month(e.zeitpunkt)+2) div 3, YEAR(e.zeitpunkt)) = i.Quartal AND (SELECT MIN(fanf) FROM `faelle` f1 WHERE f1.pat_id = e.pat_id) = (SELECT MIN(fanf) FROM `faelle` f1 WHERE f1.pat_id = e.pat_id AND fanf >= (CONCAT(YEAR(e.zeitpunkt),'-',month(e.zeitpunkt) - ((month(e.zeitpunkt)-1) mod 3),'-01')) )) neueKothny, " & _
           "(SELECT COUNT(0) FROM `eintraege` e WHERE e.art = 'doppler' AND to_days(e.zeitpunkt)- to_days((CONCAT(YEAR(e.zeitpunkt),'-',month(e.zeitpunkt) - ((month(e.zeitpunkt)-1) mod 3),'-01'))) BETWEEN 0 AND " & abstand & " AND CONCAT((month(e.zeitpunkt)+2) div 3, YEAR(e.zeitpunkt)) = i.Quartal) Doppler, " & _
           "(SELECT COUNT(0) FROM `eintraege` e WHERE e.art = 'duplex' AND to_days(e.zeitpunkt)- to_days((CONCAT(YEAR(e.zeitpunkt),'-',month(e.zeitpunkt) - ((month(e.zeitpunkt)-1) mod 3),'-01'))) BETWEEN 0 AND " & abstand & " AND CONCAT((month(e.zeitpunkt)+2) div 3, YEAR(e.zeitpunkt)) = i.Quartal) Duplex, " & _
@@ -5759,14 +5772,14 @@ End Function ' fallzahlstand
 
 '' sql = _
  "SELECT Quartal, COUNT(0) `Kassenpat.,`, " & _
- "(SELECT COUNT(distinct(e.pat_id)) Zahl FROM `eintraege` e LEFT JOIN `faelle` f ON e.fid = f.fid WHERE schgr <> '90' AND art IN ('gs','doppler','duplex') " & _
+ "(SELECT COUNT(distinct(e.pat_id)) Zahl FROM `eintraege` e LEFT JOIN `faelle` f ON e.fid = f.fid WHERE schgr <> '90' AND art IN ('gs','doppler','dop','duplex') " & _
  "and to_days(e.zeitpunkt)-to_days((CONCAT(YEAR(e.zeitpunkt),'-',month(e.zeitpunkt) - ((month(e.zeitpunkt)-1) mod 3),'-01'))) BETWEEN 0 AND " & abstand & " " & _
  "and CONCAT((month(e.zeitpunkt)+2) div 3, YEAR(e.zeitpunkt)) = i.Quartal) `davon Schade,`, " & _
  "(SELECT COUNT(distinct(e.pat_id)) Zahl FROM `eintraege` e LEFT JOIN `faelle` f ON e.fid = f.fid WHERE schgr <> '90' AND art = 'tk' " & _
  "and to_days(e.zeitpunkt)-to_days((CONCAT(YEAR(e.zeitpunkt),'-',month(e.zeitpunkt) - ((month(e.zeitpunkt)-1) mod 3),'-01'))) BETWEEN 0 AND " & abstand & " " & _
  "and CONCAT((month(e.zeitpunkt)+2) div 3, YEAR(e.zeitpunkt)) = i.Quartal) `Kothny;`, " & _
  "SUM(erst) `neue Kassenpat.,`, " & _
- "(SELECT COUNT(distinct(e.pat_id)) Zahl FROM `eintraege` e LEFT JOIN `faelle` f ON e.fid = f.fid WHERE schgr <> '90' AND art IN ('gs','doppler','duplex') " & _
+ "(SELECT COUNT(distinct(e.pat_id)) Zahl FROM `eintraege` e LEFT JOIN `faelle` f ON e.fid = f.fid WHERE schgr <> '90' AND art IN ('gs','doppler','dop','duplex') " & _
  "and to_days(e.zeitpunkt)-to_days((CONCAT(YEAR(e.zeitpunkt),'-',month(e.zeitpunkt) - ((month(e.zeitpunkt)-1) mod 3),'-01'))) BETWEEN 0 AND " & abstand & " " & _
  "and CONCAT((month(e.zeitpunkt)+2) div 3, YEAR(e.zeitpunkt)) = i.Quartal AND (SELECT MIN(fanf) FROM `faelle` f1 WHERE f1.pat_id = e.pat_id) = (SELECT MIN(fanf) FROM `faelle` f1 WHERE f1.pat_id = e.pat_id AND fanf >= (CONCAT(YEAR(e.zeitpunkt),'-',month(e.zeitpunkt) - ((month(e.zeitpunkt)-1) mod 3),'-01')) )) `davon Schade,`, " & _
  "(SELECT COUNT(distinct(e.pat_id)) Zahl FROM `eintraege` e LEFT JOIN `faelle` f ON e.fid = f.fid WHERE schgr <> '90' AND art IN ('tk') " & _
@@ -5777,14 +5790,14 @@ End Function ' fallzahlstand
 "FROM `faelle` f WHERE schgr <> '90' AND to_days(fanf)-to_days((CONCAT(MID(quartal,2,4),'-',(LEFT(quartal,1)-1)*3+1,'-01'))) BETWEEN 0 AND " & abstand & " AND substr(quartal,2,4)> '2008' AND quartal <> '12009'  GROUP BY quartal, pat_id) i GROUP BY quartal ORDER BY substr(Quartal,2,4) DESC,LEFT(Quartal,1) DESC"
   
 ''sql = "SELECT Quartal, COUNT(0) `Kassenpat.`, " & _
- "(SELECT COUNT(distinct(e.pat_id)) Zahl FROM `eintraege` e LEFT JOIN `faelle` f ON e.fid = f.fid WHERE schgr <> '90' AND art IN ('gs','doppler','duplex') " & _
+ "(SELECT COUNT(distinct(e.pat_id)) Zahl FROM `eintraege` e LEFT JOIN `faelle` f ON e.fid = f.fid WHERE schgr <> '90' AND art IN ('gs','doppler','dop','duplex') " & _
  "and to_days(e.zeitpunkt)-to_days((CONCAT(YEAR(e.zeitpunkt),'-',month(e.zeitpunkt) - ((month(e.zeitpunkt)-1) mod 3),'-01'))) BETWEEN 0 AND to_days(SUBDATE(NOW(),INTERVAL " & obgestern & " DAY))-to_days((CONCAT(YEAR(SUBDATE(NOW(),INTERVAL " & obgestern & " DAY)),'-',((month(SUBDATE(NOW(),INTERVAL " & obgestern & " DAY))-1)div 3)*3+1,'-01'))) " & _
  "and CONCAT((month(e.zeitpunkt)+2) div 3, YEAR(e.zeitpunkt)) = i.Quartal) `davon Schade`, " & _
  "(SELECT COUNT(distinct(e.pat_id)) Zahl FROM `eintraege` e LEFT JOIN `faelle` f ON e.fid = f.fid WHERE schgr <> '90' AND art = 'tk' " & _
  "and to_days(e.zeitpunkt)-to_days((CONCAT(YEAR(e.zeitpunkt),'-',month(e.zeitpunkt) - ((month(e.zeitpunkt)-1) mod 3),'-01'))) BETWEEN 0 AND to_days(SUBDATE(NOW(),INTERVAL " & obgestern & " DAY))-to_days((CONCAT(YEAR(SUBDATE(NOW(),INTERVAL " & obgestern & " DAY)),'-',((month(SUBDATE(NOW(),INTERVAL " & obgestern & " DAY))-1)div 3)*3+1,'-01'))) " & _
  "and CONCAT((month(e.zeitpunkt)+2) div 3, YEAR(e.zeitpunkt)) = i.Quartal) `Kothny`, " & _
  "SUM(erst) `neue Kassenpat.`, " & _
- "(SELECT COUNT(distinct(e.pat_id)) Zahl FROM `eintraege` e LEFT JOIN `faelle` f ON e.fid = f.fid WHERE schgr <> '90' AND art IN ('gs','doppler','duplex') " & _
+ "(SELECT COUNT(distinct(e.pat_id)) Zahl FROM `eintraege` e LEFT JOIN `faelle` f ON e.fid = f.fid WHERE schgr <> '90' AND art IN ('gs','doppler','dop','duplex') " & _
  "and to_days(e.zeitpunkt)-to_days((CONCAT(YEAR(e.zeitpunkt),'-',month(e.zeitpunkt) - ((month(e.zeitpunkt)-1) mod 3),'-01'))) BETWEEN 0 AND to_days(SUBDATE(NOW(),INTERVAL " & obgestern & " DAY))-to_days((CONCAT(YEAR(SUBDATE(NOW(),INTERVAL " & obgestern & " DAY)),'-',((month(SUBDATE(NOW(),INTERVAL " & obgestern & " DAY))-1)div 3)*3+1,'-01'))) " & _
  "and CONCAT((month(e.zeitpunkt)+2) div 3, YEAR(e.zeitpunkt)) = i.Quartal AND (SELECT MIN(fanf) FROM `faelle` f1 WHERE f1.pat_id = e.pat_id) = (SELECT MIN(fanf) FROM `faelle` f1 WHERE f1.pat_id = e.pat_id AND fanf >= (CONCAT(YEAR(e.zeitpunkt),'-',month(e.zeitpunkt) - ((month(e.zeitpunkt)-1) mod 3),'-01')) )) `davon Schade`, " & _
  "(SELECT COUNT(distinct(e.pat_id)) Zahl FROM `eintraege` e LEFT JOIN `faelle` f ON e.fid = f.fid WHERE schgr <> '90' AND art IN ('tk') " & _

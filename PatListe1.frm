@@ -1553,7 +1553,7 @@ Public Sub callMachDMPBogen(Pat_ID&, NachN$, VorN$, obtot%, obneu%, ICD$, Option
         AktCol = j
 '        IF VorDokuSp = 0 THEN VorDokuSp = AktCol
         VorDoku = rDok!art & " " & Format(rDok!DokuDatum, "dd.mm.yy")
-        If rDok!OK And rDok!ausgedruckt Then
+        If rDok!Ok And rDok!ausgedruckt Then
          VorDoku = VorDoku & " ok"
         ElseIf j = begcol And Not obraus Then
 '         obrot = True ' Wenn Pat. rausgeflogen, dann fehlt auch aktuelle Erstdoku
@@ -3287,10 +3287,10 @@ sql = sql & _
 "-- , dt.*" & vbCrLf & _
 ", NB Normbereich, Kommentar Laborhinw, '' Hinweise" & vbCrLf & _
 ",  s.pat_id obsws, d.*" & vbCrLf & _
-"        ,SUM((art='gs' OR inhalt LIKE '%(gs)%') AND rang<8) gsz" & vbCrLf & _
-"        ,SUM((art='tk' OR inhalt LIKE '%(tk)%') AND rang<8) tkz" & vbCrLf & _
+"        ,SUM((art IN ('gs') OR (art='tb' AND ersteller='gs') OR inhalt LIKE '%(gs)%') AND rang<8) gsz" & vbCrLf & _
+"        ,SUM((art='tk' OR (art='tb' AND ersteller='tk') OR inhalt LIKE '%(tk)%') AND rang<8) tkz" & vbCrLf & _
 "        ,SUM((art='wd' OR inhalt LIKE '%(wd)%') AND rang<8) wdz" & vbCrLf & _
-"        ,SUM((art='ah' OR inhalt LIKE '%(ah)%') AND rang<8) ahz" & vbCrLf & _
+"        ,SUM((art='ah' OR (art='tb' AND ersteller='ah') OR inhalt LIKE '%(ah)%') AND rang<8) ahz" & vbCrLf & _
 "        ,COALESCE((SELECT 1 FROM desktop WHERE pat_id=l.pat_id AND iconpath RLIKE '4eckblau' AND showasnote=0 LIMIT 1),0) obk" & vbCrLf & _
 "        ,COALESCE((SELECT 1 FROM desktop WHERE pat_id =l.pat_id AND iconpath RLIKE '4eckgelb' AND showasnote=0 LIMIT 1),0) obs" & vbCrLf & _
 "FROM labor2a l" & vbCrLf & _
@@ -3299,7 +3299,7 @@ sql = sql & _
 "AND lp.id=(SELECT MIN(id) FROM laborparameter WHERE abkü=l.abkü AND einheit=l.Einheit AND nbm=l.nb)" & vbCrLf & _
 "LEFT JOIN diagview d ON d.pat_id=l.pat_id AND gicd RLIKE '^E1[01]|O24.4'" & vbCrLf & _
 "LEFT JOIN sws s ON s.pat_id=l.pat_id AND s.voret>qanf() AND s.voret>NOW()" & vbCrLf & _
-"LEFT JOIN (SELECT RANK() OVER(PARTITION BY pat_id ORDER BY zeitpunkt DESC ) rang, e.* FROM eintraege e) eai ON eai.pat_id=l.pat_id AND (art in ('tk','gs','wd','ah') OR inhalt RLIKE '\((gs|tk|wd|ah)\)')" & vbCrLf & _
+"LEFT JOIN (SELECT RANK() OVER(PARTITION BY pat_id ORDER BY zeitpunkt DESC ) rang, e.* FROM eintraege e) eai ON eai.pat_id=l.pat_id AND (art IN ('tk','gs','wd','ah') OR (art='tb' AND ersteller IN ('tk','gs','wd','ah')) OR inhalt RLIKE '\\((gs|tk|wd|ah)\\)')" & vbCrLf & _
 "WHERE grenzwerti<>'' and l.zeitpunkt =" & Format(Datum, "yyyymmdd") & vbCrLf & _
 "GROUP BY l.pat_id, l.wert,l.abkü,l.einheit,l.nb,l.zeitpunkt" & vbCrLf & _
 ") i" & vbCrLf & _
@@ -3659,7 +3659,7 @@ andSp:
     Tkz = 0: gsz = 0: wdz = 0: ahz = 0
     Set rs1 = Nothing
     ' Diane
-    myFrag rs1, "SELECT zeitpunkt,art,inhalt FROM `eintraege` WHERE (art IN ('tk','gs','wd','ah') OR inhalt LIKE '%(gs)%' OR inhalt LIKE '%(tk)%' OR inhalt LIKE '%(wd)%' OR inhalt LIKE '%(ah)%') AND pat_id = " & CStr(pid) & " ORDER BY zeitpunkt DESC LIMIT 7"
+    myFrag rs1, "SELECT zeitpunkt,art,inhalt FROM `eintraege` WHERE (art IN ('tk','gs','wd','ah') OR (art='tb' AND ersteller IN ('tk','gs','wd','ah')) OR inhalt LIKE '%(gs)%' OR inhalt LIKE '%(tk)%' OR inhalt LIKE '%(wd)%' OR inhalt LIKE '%(ah)%') AND pat_id = " & CStr(pid) & " ORDER BY zeitpunkt DESC LIMIT 7"
     If Not rs1.BOF Then
      Do While Not rs1.EOF
       Select Case rs1!art
@@ -4160,7 +4160,7 @@ Private Sub Form_Load()
         .col = j
         If VorDokuSp = 0 Then VorDokuSp = .col
         .Text = rDok!art & " " & Format(rDok!DokuDatum, "dd.mm.yy")
-        If rDok!OK And rDok!ausgedruckt Then
+        If rDok!Ok And rDok!ausgedruckt Then
          .Text = .Text & " ok"
         ElseIf j = begcol And Not obraus And ZQuart(BhFB) = ZQuart(Now() - Verspätung) Then ' letzte Bedingungen eingefügt 31.12.15
 '         .toolTipText = "Doku fehlt"

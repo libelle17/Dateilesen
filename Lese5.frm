@@ -395,6 +395,9 @@ Begin VB.MDIForm Lese
             Caption         =   "03230-Zahl einzeln"
          End
       End
+      Begin VB.Menu Doppelzeilen_in_Notizen_auflisten 
+         Caption         =   "&Doppelzeilen in Notizen auflisten"
+      End
       Begin VB.Menu Abrechnungsfehler 
          Caption         =   "&Abrechnungsfehler"
       End
@@ -643,7 +646,7 @@ Begin VB.MDIForm Lese
          Caption         =   "&Überweiserstatistik d.letzten 2a"
       End
       Begin VB.Menu Schulungsstatistik 
-         Caption         =   "S&chulungsstatistik nach Schulungsart"
+         Caption         =   "Sch&ulungsstatistik nach Schulungsart"
       End
       Begin VB.Menu GruppenschulungsstatisiknachZiffernzahlproQuartal 
          Caption         =   "&Gruppenschulungsstatisik nach Ziffernzahl pro Quartal"
@@ -716,6 +719,9 @@ Begin VB.MDIForm Lese
       End
       Begin VB.Menu GNR_Statistik 
          Caption         =   "&GNR-Statistik"
+      End
+      Begin VB.Menu Con_Datei_einlesen 
+         Caption         =   "&Con-Datei einlesen"
       End
       Begin VB.Menu Quartalsvergleich 
          Caption         =   "&Quartalsvergleich"
@@ -962,6 +968,12 @@ Begin VB.MDIForm Lese
       Begin VB.Menu Notizen 
          Caption         =   "&Notizen"
       End
+      Begin VB.Menu richtdiag 
+         Caption         =   "&Diagnosen"
+      End
+      Begin VB.Menu Leistungen 
+         Caption         =   "&Leistungen"
+      End
    End
    Begin VB.Menu Fenster 
       Caption         =   "Fe&nster"
@@ -1038,6 +1050,16 @@ Const bVerz$ = dmpVerz & "\backup" ' backup-Verzeichni
 Const arch$ = "DMPArchiv.zip" ' Import-Datei, Name von MO gefordert
 Const z7$ = """C:\Program Files\7-zip\7z""" ' Pfad zu 7z
 
+' Statistik -> Con-Datei einlesen
+Private Sub Con_Datei_einlesen_Click()
+ CommonDialogLese.Filter = "Abrechnungsdateien (*.con)|*.con|Alle Dateien(*.*)|*.*"
+' CommonDialogLese.DefaultExt = "con"
+ CommonDialogLese.Filename = "*.con"
+ CommonDialogLese.initDir = "T:\KV-Abrechnungen"
+ CommonDialogLese.DialogTitle = "Wähle Datei"
+ CommonDialogLese.ShowOpen
+ Call doConAnal(CommonDialogLese.Filename)
+End Sub ' Con_Datei_einlesen_Click()
 
 ' EDV -> &DMP in MO importieren Click
 Private Sub DMP_in_MO_importieren_1_Click()
@@ -1353,6 +1375,25 @@ myFrag rs, sql
 Call TabAusgeb(rs, Me, , , , , , True, "Nicht erkannte DMP-Rückmeldungen")
 End Sub ' DMPRückmeldungsfehler_Click
 
+Private Sub Doppelzeilen_in_Notizen_auflisten_Click()
+  Dim rs As New ADODB.Recordset, spmax%(3)
+  spmax(0) = 6
+  spmax(1) = 200
+  sql = "SELECT fpatnr, FDet" & vbCrLf & _
+ "FROM (" & vbCrLf & _
+ "SELECT FPatnr, ROW_NUMBER() OVER(ORDER BY fpatnr DESC) rg, COUNT(0) OVER() zl" & vbCrLf & _
+ ", REPLACE(IF(INSTR(FDetails,'text ""'),MID(FDetails,LOCATE('text',FDetails)+LENGTH('text')+2,LOCATE('""',REPLACE(FDetails,'\""','\'''),LOCATE('text',FDetails)+LENGTH('text')+2)-LOCATE('text',FDetails)-LENGTH('text')-2),FText),'''','\''') FDetU" & vbCrLf & _
+ ", TRIM(TRAILING '\n' FROM TRIM(TRAILING ' ' FROM TRIM(TRAILING '\r' FROM TRIM(TRAILING '\n' FROM TRIM(TRAILING ' ' FROM TRIM(TRAILING '\r' FROM TRIM(TRAILING '\n' FROM REPLACE(IF(INSTR(FDetails,'text ""'),MID(FDetails,LOCATE('text',FDetails)+LENGTH('text')+2,LOCATE('""',REPLACE(FDetails,'\""','\'''),LOCATE('text',FDetails)+LENGTH('text')+2)-LOCATE('text',FDetails)-LENGTH('text')-2),FText),'''','\''')))))))) FDet" & vbCrLf & _
+ " FROM ltag l" & vbCrLf & _
+ "WHERE" & vbCrLf & _
+ " FEintragsart=1105" & vbCrLf & _
+ ") i WHERE INSTR(fdet,'\n') BETWEEN 1 and length(fdet)-2" & vbCrLf & _
+ " ORDER BY fpatnr;" & vbCrLf
+ MOConInit
+ myFrag rs, sql, adOpenStatic, MOCon
+Call TabAusgeb(rs, Me, , , , , spmax, True, "Zu trennende Doppelzeilen in MO-Notizen")
+End Sub ' Doppelzeilen_in_Notizen_auflisten_Click()
+
 ' EDV -> Formulare bereinigen
 Private Sub Formulare_bereinigen_Click()
  Dim rAf1&, rAf2&, rAf3&
@@ -1368,6 +1409,10 @@ Private Sub Formulare_bereinigen_Click()
  myEFrag sql, rAf3
  syscmd 4, "Fertig mit Bereinigen der Formulare, " & rAf1 & " forminhaltfeld-Einträge, " & rAf2 & " forminhfeld-Einträge und " & rAf3 & " forminhaltfeldinh-Einträge gelöscht"
 End Sub ' Formulare_bereinigen_Click()
+' Übertragungen -> Leistungen
+Private Sub Leistungen_Click()
+ richtleist
+End Sub ' Leistungen_Click()
 
 ' Übertragungen -> Markierungen
 Private Sub Markierungen_Click()
@@ -1656,7 +1701,7 @@ Private Sub do_Medpläne_alt_für_MO_exportieren_Click(Optional xmlneu%)
     Call BDT.SAdd("5099", rMP!Lanr)
     Call BDT.SAdd("9901", "ArztNr.:" & rMP!lanrid)
     Call BDT.SAdd("9901", "Kuerzel:" & rMP!lanrid)
-    Call BDT.SAdd("3000", rMP!fpatnr) ' Pat_ID)
+    Call BDT.SAdd("3000", rMP!fPatNr) ' Pat_ID)
     Call BDT.SAdd("3110", rMP!gschl)
     Call BDT.SAdd("3635", rMP!lanrid & "#" & rMP!lnam)
     Call BDT.SAdd("8000", "6200", True)
@@ -1664,7 +1709,7 @@ Private Sub do_Medpläne_alt_für_MO_exportieren_Click(Optional xmlneu%)
    End If ' rMP!prang = 1 then
    If rMP!rang = 1 Then
     GoSub Schreiben
-    mpdt = uuvz & rMP!fpatnr & "_" & Format(rMP!Zeitpunkt, "yyyymmdd_HHMM") & ".xml"
+    mpdt = uuvz & rMP!fPatNr & "_" & Format(rMP!Zeitpunkt, "yyyymmdd_HHMM") & ".xml"
     If xmlneu Then
      If FSO.FileExists(Untervz & mpdt) Then FSO.DeleteFile Untervz & mpdt, True
     End If ' xmlneu
@@ -1761,6 +1806,11 @@ Private Sub PiDzuord_Click()
  Loop
  Debug.Print "Fertig"
 End Sub ' PiDzuord_Click()
+
+' Übertragungen -> Diagnosen
+Private Sub richtdiag_Click()
+ Call turichtdiag
+End Sub ' richtdiag_Click
 
 ' sucht nach einem String in den Medical Office-Datenbanken
 Private Sub SuchInSpaltenInMO_Click()
@@ -1886,9 +1936,9 @@ End If
    Do While Not rAb.EOF
     abzahl = rAb!Zahl
     aktz = aktz + 1
-    anzs = "Übertragung von MO bei Pat. Nr. " & rAb!fpatnr & " (" & rAb!Nam & ") = " & aktz & "/" & rAb!Zahl
+    anzs = "Übertragung von MO bei Pat. Nr. " & rAb!fPatNr & " (" & rAb!Nam & ") = " & aktz & "/" & rAb!Zahl
     Ausgeb "Beginne mit " & anzs, False
-    doPatvonMO (rAb!fpatnr)
+    doPatvonMO (rAb!fPatNr)
     Ausgeb "Fertig mit " & anzs, True
     rAb.MoveNext
    Loop
@@ -2050,7 +2100,7 @@ End Sub ' Statistik_03355_Click
 Private Sub Statistik_zu_03230nachPatient_Click()
  Const Zahl% = 3
  Dim rs As New ADODB.Recordset
- myFrag rs, "SELECT f.pat_id, gesname(f.pat_id) PName, DATE(zeitpunkt) Tag, CASE WHEN l.lanrid=1 THEN 'gs' WHEN l.lanrid=2 THEN 'tk' END Arzt, SUM(lzahl) Zahl " & vbCrLf & _
+ myFrag rs, "SELECT f.pat_id, gesname(f.pat_id) PName, DATE(zeitpunkt) Tag, CASE WHEN l.lanrid=1 THEN 'gs' WHEN l.lanrid=2 THEN 'tk' WHEN l.lanrid=5 THEN 'ah' ELSE '?' END Arzt, SUM(lzahl) Zahl " & vbCrLf & _
          "FROM aktfv f LEFT JOIN leistungen l ON l.pat_id=f.pat_id AND l.zeitpunkt BETWEEN qanf() AND qend()" & vbCrLf & _
          "WHERE leistung='03230' GROUP BY f.pat_id HAVING SUM(lzahl)>= " & Zahl & ";"
  TabAusgeb rs, Me, , , , , , , "03230 nach Patient ab " & Zahl & " Leistungen", 1
@@ -2059,7 +2109,7 @@ End Sub ' Statistik_zu_03230nachPatient_Click
 ' Funktionen für Arzthelferin und Arzt -> Statistiken zu 03230 -> 03230-Zahl nach Tag
 Private Sub Statistik_zu_03230nachTag_Click()
  Dim rs As New ADODB.Recordset
- myFrag rs, "SELECT f.pat_id, gesname(f.pat_id) PName, DATE(zeitpunkt) Tag, sum(lzahl) Zahl, ROUND(sum(lzahl)/6,1) Stunden" & vbCrLf & _
+ myFrag rs, "SELECT f.pat_id, gesname(f.pat_id) PName, DATE(zeitpunkt) Tag, SUM(lzahl) Zahl, ROUND(SUM(lzahl)/6,1) Stunden" & vbCrLf & _
          "FROM aktfv f LEFT JOIN leistungen l ON f.pat_id=l.pat_id AND l.zeitpunkt BETWEEN qanf() AND qend()" & vbCrLf & _
          "WHERE leistung='03230' GROUP BY DATE(zeitpunkt) ORDER BY DATE(zeitpunkt);"
  TabAusgeb rs, Me, , , , , , , "03230 nach Tag ", 1
@@ -2068,7 +2118,7 @@ End Sub ' Statistik_zu_03230nachTag_Click
 ' Funktionen für Arzthelferin und Arzt -> Statistiken zu 03230 -> 03230-Zahl nach Tag und Arzt
 Private Sub Statistik_zu_03230nachTagundArzt_Click()
  Dim rs As New ADODB.Recordset
- myFrag rs, "SELECT f.pat_id, gesname(f.pat_id) PName, DATE(zeitpunkt) Tag, CASE WHEN l.lanrid=1 THEN 'gs' WHEN l.lanrid=2 THEN 'tk' END Arzt, sum(lzahl) Zahl, ROUND(sum(lzahl)/6,1) Stunden" & vbCrLf & _
+ myFrag rs, "SELECT f.pat_id, gesname(f.pat_id) PName, DATE(zeitpunkt) Tag, CASE WHEN l.lanrid=1 THEN 'gs' WHEN l.lanrid=2 THEN 'tk' WHEN l.lanrid=5 THEN 'ah' ELSE '?' END Arzt, sum(lzahl) Zahl, ROUND(sum(lzahl)/6,1) Stunden" & vbCrLf & _
          "FROM aktfv f LEFT JOIN leistungen l ON f.pat_id=l.pat_id AND l.zeitpunkt BETWEEN qanf() AND qend()" & vbCrLf & _
          "WHERE leistung='03230' GROUP BY DATE(zeitpunkt),l.lanrid ORDER BY DATE(zeitpunkt);"
  TabAusgeb rs, Me, , , , , , , "03230 nach Tag und Arzt", 1
@@ -2077,7 +2127,7 @@ End Sub ' Statistik_zu_03230nachTagundArzt_Click
 ' Funktionen für Arzthelferin und Arzt -> Statistiken zu 03230 -> 03230-Zahl nach Arzt
 Private Sub Statistik_zu_03230nachArzt_Click()
  Dim rs As New ADODB.Recordset
- myFrag rs, "SELECT CASE WHEN l.lanrid=1 THEN 'gs' WHEN l.lanrid=2 THEN 'tk' END Arzt, sum(lzahl) Zahl, ROUND(sum(lzahl)/6,1) Stunden " & vbCrLf & _
+ myFrag rs, "SELECT CASE WHEN l.lanrid=1 THEN 'gs' WHEN l.lanrid=2 THEN 'tk' WHEN l.lanrid=5 THEN 'ah' ELSE '?' END Arzt, SUM(lzahl) Zahl, ROUND(sum(lzahl)/6,1) Stunden " & vbCrLf & _
          "FROM aktfv f LEFT JOIN leistungen l ON f.pat_id=l.pat_id AND l.zeitpunkt BETWEEN qanf() AND qend()" & vbCrLf & _
          "WHERE leistung='03230' GROUP BY l.lanrid WITH ROLLUP;"
  TabAusgeb rs, Me, , , , , , , "03230 nach Arzt", 1
@@ -2086,7 +2136,7 @@ End Sub ' Statistik_zu_03230nachArzt_Click
 ' Statistik_zu_03230_einzeln
 Private Sub Statistik_zu_03230_einzeln_Click()
  Dim rs As New ADODB.Recordset
- myFrag rs, "SELECT f.pat_id, gesname(f.pat_id) PName, zeitpunkt zp, CASE WHEN l.lanrid=1 THEN 'gs' WHEN l.lanrid=2 THEN 'tk' END Arzt, lzahl " & vbCrLf & _
+ myFrag rs, "SELECT f.pat_id, gesname(f.pat_id) PName, zeitpunkt zp, CASE WHEN l.lanrid=1 THEN 'gs' WHEN l.lanrid=2 THEN 'tk' WHEN l.lanrid=5 THEN 'ah' ELSE '?' END Arzt, lzahl " & vbCrLf & _
          "FROM aktfv f LEFT JOIN leistungen l ON f.pat_id=l.pat_id AND l.zeitpunkt BETWEEN qanf() AND qend()" & vbCrLf & _
          "WHERE leistung='03230' ORDER BY f.pat_id, l.zeitpunkt;"
  TabAusgeb rs, Me, , , , , , , "03230 nach Arzt", 1
@@ -3429,8 +3479,9 @@ Private Sub PLZausListe_Click()
         "GROUP BY pat_id ORDER BY t2.zp DESC; "
 ' liefert auf SQL-Ebene z.T. falsche Ergebnisse für gsz und tkz (jeweils die gleiche hohe Zahl), liegt wohl am Group (müßte noch tk.id und gs.id enthalten
   sql = "SELECT t1.pat_id, gesnameg(t1.pat_id) Name, t1.therart, " & _
-          "(SELECT COUNT(0) FROM eintraege WHERE pat_id = t1.pat_id AND art = 'gs') gsz, " & _
-          "(SELECT COUNT(0) FROM eintraege WHERE pat_id = t1.pat_id AND art = 'tk') tkz, " & _
+          "(SELECT COUNT(0) FROM eintraege WHERE pat_id = t1.pat_id AND (art = 'gs'OR(art='tb'AND ersteller='gs'))) gsz, " & _
+          "(SELECT COUNT(0) FROM eintraege WHERE pat_id = t1.pat_id AND (art = 'tk'OR(art='tb'AND ersteller='tk'))) tkz, " & _
+          "(SELECT COUNT(0) FROM eintraege WHERE pat_id = t1.pat_id AND (art = 'ah'OR(art='tb'AND ersteller='ah'))) ahz, " & _
           "t1.zp t1zp,t2.therart,t2.zp t2zp FROM therarten t1 " & _
         "LEFT JOIN therarten t2 ON t1.pat_id = t2.pat_id AND t2.zp> t1.zp " & _
         "WHERE NOT ISNULL(t2.zp) AND t1.therart IN ('ict','ct','Komb') AND t2.therart IN ('diät','oad') " & _
@@ -4574,8 +4625,9 @@ Private Sub Gewichtsabnahmekandidaten_Click()
  sql = "SELECT tict.pat_id, " & _
  "LEFT(CONCAT(IF(n.titel='','',CONCAT(n.titel,' ')),IF(n.nvorsatz='','',CONCAT(n.nvorsatz,' ')),n.nachname,', ',n.vorname),25) Name, " & _
  "tict.zp zpicd,toad.zp zpoad, gmax.gewicht maxgew, gmax.ZeitPunkt maxzp, gmin.gewicht mingew, gmin.ZeitPunkt minzp, mp.medikament, d.icd Typ2ICD, " & _
- "(SELECT COUNT(art) FROM eintraege WHERE pat_id = tict.pat_id AND art = 'tk') etkz, " & _
- "(SELECT COUNT(art) FROM eintraege WHERE pat_id = tict.pat_id AND art = 'gs') egsz " & _
+ "(SELECT COUNT(art) FROM eintraege WHERE pat_id = tict.pat_id AND (art = 'tk'OR(art='tb'AND ersteller='tk'))) etkz, " & _
+ "(SELECT COUNT(art) FROM eintraege WHERE pat_id = tict.pat_id AND (art = 'gs'OR(art='tb'AND ersteller='gs'))) egsz " & _
+ "(SELECT COUNT(art) FROM eintraege WHERE pat_id = tict.pat_id AND (art = 'ah'OR(art='tb'AND ersteller='ah'))) eahz " & _
  "FROM therarten tict LEFT JOIN therarten toad ON toad.pat_id = tict.pat_id AND toad.zp > tict.zp " & _
  "LEFT JOIN (SELECT g.pat_id, g.gewicht, g.zeitpunkt FROM gewicht g JOIN (SELECT pat_id, MAX(gewicht) gewicht FROM gewicht GROUP BY pat_id) g2 ON g.pat_id = g2.pat_id AND g.gewicht= g2.gewicht GROUP BY pat_id) gmax ON gmax.pat_id = tict.pat_id " & _
  "LEFT JOIN (SELECT g.pat_id, g.gewicht, g.zeitpunkt FROM gewicht g JOIN (SELECT pat_id, MIN(gewicht) gewicht FROM gewicht GROUP BY pat_id) g2 ON g.pat_id = g2.pat_id AND g.gewicht= g2.gewicht GROUP BY pat_id) gmin ON gmin.pat_id = tict.pat_id " & _
