@@ -28,6 +28,7 @@ Begin VB.Form PathLabForm
       Left            =   8040
       TabIndex        =   2
       Top             =   120
+      Visible         =   0   'False
       Width           =   1095
    End
    Begin VB.TextBox Labordatei 

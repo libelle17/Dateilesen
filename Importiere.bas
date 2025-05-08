@@ -3281,7 +3281,7 @@ rEiVorb:
               Case 2: rRr(UBound(rRr)).RR = rRr(UBound(rRr)).RR & "/" & Diast
               Case 3: rRr(UBound(rRr)).Puls = IIf(LenB(Diast) = 0, "0", Diast)
               Case 4: rRr(UBound(rRr)).Quelle = Diast
-              Case 5: rRr(UBound(rRr)).Bemerkung = Diast
+              Case 5: rRr(UBound(rRr)).Bemerkung = doUmwfSQL(Diast, True)
              End Select
             End If ' p1 <> 0 AND p2 <> 0 THEN
            Next irunde
@@ -4769,7 +4769,7 @@ End Function ' fFAnfFuell
 
 ' in alleSpeichern (2x)
 Function rsAnamOpen()
- Dim i%, sql$
+ Dim i%, sql$, ErrNr&, ErrDes$
  On Error Resume Next
  If Not rsAnm Is Nothing Then If rsAnm.State = 1 Then If rsAnm.EditMode <> 0 Then rsAnm.CancelUpdate: rsAnm.Close
  On Error GoTo fehler
@@ -4780,7 +4780,7 @@ nochmal:
   If Not rsAnm Is Nothing Then If rsAnm.State = 1 Then rsAnm.Close
 '  Call rsAnm.Open("SELECT -obmednetz AS j_obmednetz, -tkz AS j_tkz, a.* FROM `anamnesebogen` a WHERE pat_id = " & rNa(0).Pat_id, DBCn, adOpenDynamic, adLockOptimistic)
 '  Call rsAnm.Open("SELECT COALESCE(`diabetes seit`,'') `diabetes seit`, a.* FROM `anamnesebogen` a WHERE pat_id = " & rNa(0).Pat_id, DBCn, adOpenDynamic, adLockOptimistic)
-  myFrag rsAnm, "SELECT COALESCE(`diabetes seit`,'') `diabetes seit`, a.* FROM `anamnesebogen` a WHERE pat_id = " & rNa(0).Pat_ID, adOpenDynamic, DBCn, adLockOptimistic
+  myFrag rsAnm, "SELECT COALESCE(`diabetes seit`,'') `diabetes seit`, a.* FROM `anamnesebogen` a WHERE pat_id = " & rNa(0).Pat_ID, adOpenDynamic, DBCn, adLockOptimistic, , rAf, , ErrNr, ErrDes
   If rsAnm.BOF Then
    Dim primnr&
 '   If Not rsAdo Is Nothing Then If rsAdo.State = 1 Then rsAdo.Close
@@ -4967,7 +4967,7 @@ End Select
 End Function ' laborparameterSpeichern
 
 ' Aufruf in GesLies und doPatvonMO
-Function alleSpeichern(frm As Lese, Optional vonMo%)
+Function alleSpeichern(frm As Lese, Optional vonMo%, Optional ohneAktDat%, Optional ohneLabor%)
 ' rsAnam!Vorgestellt = MYDAT(Vorgestellt)
  Dim Cpt$, i&, j&, runde%
  Dim DMSchL&
@@ -5505,7 +5505,7 @@ nachformulare:
    End If
   Next i
  End If ' UBound(rFa) > 0 Then
- Call tuSpeichern(frm, frm.dlg.SammelInsert, frm.dlg.BeziehungsfehlerSpeichern)
+ Call tuSpeichern(frm, frm.dlg.SammelInsert, frm.dlg.BeziehungsfehlerSpeichern, ohneAktDat, ohneLabor)
  ' korrigiertes Aufnahmedatum(2)
  Dim altesAufnDat As Date
 ' altesAufnDat = DBCn.Execute("SELECT kaufdat FROM namen WHERE pat_id=" & CStr(rNa(0).Pat_id)).Fields(0)

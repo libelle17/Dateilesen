@@ -6623,9 +6623,9 @@ Fertig:
  Else ' rHa.BOF Then
  ' b) Arzt in Arztdatei gespeichert
   infos(0, infi) = rHa!anrk
-  infos(1, infi) = "Dr.med. " & rHa!FVorname & " " & rHa!fnachname
+  infos(1, infi) = "Dr.med. " & rHa!FVorname & " " & rHa!FNachname
   infos(9, infi) = rHa!FVorname
-  infos(14, infi) = rHa!fnachname
+  infos(14, infi) = rHa!FNachname
   infos(10, infi) = "HA"
   Call ParseMemo(rHa!FA, FMem(), , "FAdresse aus earzt" & Pat_ID)
   Debug.Print "Ende"
@@ -7285,7 +7285,7 @@ Function dobriefeBerichtspflicht()
  End If
  On Error GoTo fehler
 ' aus FUNCTION EmailsImport(EmDatei$)
- Dim Con As New ADODB.Connection  ' Connection
+ Dim con As New ADODB.Connection  ' Connection
  Dim rNa As New ADODB.Recordset
  Dim rEx As New ADODB.Recordset
  Dim rX As New ADOX.Catalog
@@ -7297,10 +7297,10 @@ Function dobriefeBerichtspflicht()
    Call acon(quelleT, qDtb)
  End If
  If QDat <> vNS Then
- Con.Open "Provider=Microsoft.Jet.OLEDB.4.0;Extended Properties=""Excel 8.0;HDR=No;IMEX=1"";Data Source=" & QDat & ";" ' TABLE=Adressen$"
+ con.Open "Provider=Microsoft.Jet.OLEDB.4.0;Extended Properties=""Excel 8.0;HDR=No;IMEX=1"";Data Source=" & QDat & ";" ' TABLE=Adressen$"
  Dim runde%, i%, zFeld$, lFeld$, obAnfang%, pNr%, pRoh
-  rX.ActiveConnection = Con
-  rEx.Open "`" & rX.Tables(rX.Tables.COUNT - 1).name & "`", Con ' Hier Excel, nicht lies.obmysql = 0!
+  rX.ActiveConnection = con
+  rEx.Open "`" & rX.Tables(rX.Tables.COUNT - 1).name & "`", con ' Hier Excel, nicht lies.obmysql = 0!
   Do While Not rEx.EOF
 '  Debug.Print runde
    If obAnfang Then
@@ -7503,7 +7503,7 @@ Public Sub tubriefStandalone(pid&, obStumm%, Optional Zielverz$, Optional Vorlag
  On Error GoTo fehler
  Pat_ID = CStr(pid)
  VorDat = GetVorDat(Pat_ID, obStumm)
- If Lese.MOBetr And Not Lese.pataw.ohneDaten Then doPatvonMO pid
+ If Lese.MOBetr And Not Lese.pataw.ohneDaten Then doPatvonMO pid, , obpruef:=True, obtransp:=True
 '  sverz = pverz
  If Zielverz = vNS Then
   sverz = BriefZiel
@@ -7540,11 +7540,15 @@ Public Sub tubriefStandalone(pid&, obStumm%, Optional Zielverz$, Optional Vorlag
  gesName = raAn!gesName
  dmseit = raAn!dmseit
  syscmd acSysCmdSetStatus, "Erstelle Brief für " & gesName & ": 1) Hausarzt ..."
- Dim rFa() As Faelle
+' Dim rFa() As Faelle ' auskommentiert 28.4.25
 ' Dim rKv1() As kvnrue
  Dim Faxnr$, infos$() ' Frau/Herrn, Vorn+Nachn, Straße, PLZ+Ort, Faxnr, S.g./Liebe, DMPTyp2, DMPTyp1
  
 ' Call getHausarzt1(infos(), rFa, rKv, 1, IIf(Pat_ID = rsNa!fpatnr Or rsNa!fpatnr = 0, Pat_ID, rsNa!fpatnr), 0, 2) ', True)
+ If SafeArrayGetDim(rNa) = 0 Then
+  ReDim rNa(0) ' 28.4.25 Index außerhalb des gültigen Bereichs
+  ReDim rFa(0)
+ End If
  Call getHausarzt1(infos(), rFa, rKv, 1, Pat_ID, 0, 2)  ', True)
   
 '  SET rHa = TabÖff("Hausaerzte", "KVNR")
@@ -10327,7 +10331,11 @@ VN = "vgs_formulare"
 '                13=Medikamente (mit PZN in FICD..) und Hilfsmittel (FDetails: "{(Handelsname ..."
 '                14=Med., ohne PZN, 16: Medikament mit Dosierung
 '                17: Hilfsmittel (FDetails: {(Bezeichnung .."
-'                19: AU, 20: Üw, 21: Khs-Einweisung, 50 u. 148: Link auf Datei oder Word-Dokument aus Turbomed
+'                19: AU,
+'                20: Üw,
+'                21: Khs-Einweisung,
+'                50 u. 148: Link auf Datei oder Word-Dokument aus Turbomed
+'                52: Link überwiegend auf eml-Datei, eArztbrief
 '                151: z.T. Einträge, z.T. PDF-Dateien (meist: "ePDF: ...", "pdf: ..."), "bild: ...", oder Links ("link: ..."), "brief: ", alle FStatus 2
 '                166: "link: ...", 169: "brief: ...", "wbr: ..."; 501 u. 598: jpg und tif, ohne Vorsilben, z.T. mit "link: " bei Sono-Bildern
 '                1001: Eintrag (auch, aber nicht nur: sono) Zeile abgeschnitten, 1002: Eintrag aug, 1003: Blutabnahme, 1004: Einträge
@@ -11202,7 +11210,7 @@ End If
 Call DtbCreateQueryDef(VN, Vsql)
 vz = vz + 1
 
-
+'  für Patliste.DMPFüll (DMP-Infos an HÄ faxen)
 VN = "aktfaellev"
 Vsql = "SELECT * FROM `aktfaelle` GROUP BY pat_id"
 Call DtbCreateQueryDef(VN, Vsql)

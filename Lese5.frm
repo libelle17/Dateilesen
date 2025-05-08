@@ -1787,7 +1787,7 @@ Private Sub PiDzuord_Click()
    Call myFrag(rPS, sql, adOpenStatic, MOCon)
    If Not rPS.BOF Then
     If rPS!fsurogat <> rnam!Pat_ID Then
-     Debug.Print "Unterschied: " & rPS!fsurogat & " " & rPS!fnachname & " "; rPS!FVorname & " " & rPS!fGeburtsdatum & " <> " & rnam!Pat_ID & " " & rnam!Nachname & " " & rnam!Vorname & " " & rnam!GebDat
+     Debug.Print "Unterschied: " & rPS!fsurogat & " " & rPS!FNachname & " "; rPS!FVorname & " " & rPS!FGeburtsdatum & " <> " & rnam!Pat_ID & " " & rnam!Nachname & " " & rnam!Vorname & " " & rnam!GebDat
      DBCn.Execute "UPDATE namen SET FPatnr=" & rPS!fsurogat & " WHERE pat_id=" & rnam!Pat_ID, rAf
      If rAf = 0 Then
       Debug.Print "rAf 0 bei " & rnam!Pat_ID & " vs. " & rPS!fsurogat
@@ -1899,7 +1899,8 @@ End Sub ' SuchInSpaltenInMO_Click
 
 ' Funktion für Arzthelferin und Arzt -> Übertragung aus MO
 Private Sub Übertragung_aus_MO_Click()
- Dim abstand&, rAb As ADODB.Recordset, aktz&, anzs$, unter$, unts$
+ Dim abstand$, rab As ADODB.Recordset, aktz&, anzs$, unter$, unts$, raz As ADODB.Recordset
+Const ohneLabor% = False ' True
 If False Then
  sql = _
  "SELECT COUNT(0) OVER() zahl, f.fpatnr,Concat(Fnachname,', ',FVorname,' *',FGeburtsdatum) nam,18900101 + INTERVAL f.fvon DAY von,18900101 + INTERVAL f.fbis DAY bis" & vbCrLf & _
@@ -1915,37 +1916,47 @@ Else
  abstand = InputBox("Seit wie vielen Tagen sollen alle Patienten aus MO übertragen werden?", "1. Rückfrage Import aus MO", "0")
  unter = InputBox("Soll mit einer Patientennummer begonnen werden?", "2. Rückfrage Import aus MO", "")
  If unter <> "" Then unts = "AND FPatnr<=" & unter & vbCrLf
- If abstand = 0 Then Exit Sub
-  sql = "SELECT COUNT(0) OVER() zahl, fpatnr,Concat(Fnachname,', ',FVorname,' *',FGeburtsdatum) nam FROM dbsprot d" & vbCrLf & _
+ If abstand = "" Or abstand = "0" Then Exit Sub
+  sql = "SELECT i.* FROM (" & vbCrLf & _
+        "SELECT COUNT(0) OVER() zahl, FPatnr,CONCAT(Fnachname,', ',FVorname,' *',FGeburtsdatum) nam" & vbCrLf & _
+        ", MAX(18900101 + INTERVAL FDatum DAY + INTERVAL FUhrzeit SECOND) laend" & vbCrLf & _
+        ", RANK() OVER(ORDER BY fpatnr DESC) rang" & vbCrLf & _
+        "FROM dbsprot d" & vbCrLf & _
         "LEFT JOIN patstamm p ON p.FSurogat = d.FPatnr" & vbCrLf & _
-        "WHERE 18900101 + INTERVAL FDatum DAY + INTERVAL FUhrzeit SECOND > NOW() - INTERVAL " & CStr(abstand) & " DAY" & vbCrLf & _
+        "WHERE 18900101 + INTERVAL FDatum DAY + INTERVAL FUhrzeit SECOND > NOW() - INTERVAL " & CStr(CDbl(abstand)) & " DAY" & vbCrLf & _
         unts & _
         "AND ftablename IN ('ltag','termin')" & vbCrLf & _
         "AND p.FSurogat IS NOT NULL" & vbCrLf & _
-        "GROUP BY fpatnr" & vbCrLf & _
+        "GROUP BY fpatnr)i" & vbCrLf & _
         "ORDER BY fpatnr DESC;"
 ' AND ftablename NOT IN ('datafile','d2dmail','med95ini','mail','nutzerneu','markier','earzt','epraxis','tzone','ldtarc','globalitems','zertifikat','nutzerzugriff','patfall','patrelation')
 End If
   MOConInit
   Ausgeb "Suche mir die Patienten zusammen ...", False
-  myFrag rAb, sql, adOpenStatic, MOCon, adLockReadOnly
+  myFrag rab, sql, adOpenStatic, MOCon, adLockReadOnly
   Dim abzahl&
-  If Not rAb.BOF Then
-   Ausgeb "Übertrage " & rAb!Zahl & " Pat. seit " & CStr(abstand) & " Tagen", True
-   syscmd 4, "Übertrage " & rAb!Zahl & " Pat. seit " & CStr(abstand) & " Tagen"
-   Do While Not rAb.EOF
-    abzahl = rAb!Zahl
-    aktz = aktz + 1
-    anzs = "Übertragung von MO bei Pat. Nr. " & rAb!fPatNr & " (" & rAb!Nam & ") = " & aktz & "/" & rAb!Zahl
-    Ausgeb "Beginne mit " & anzs, False
-    doPatvonMO (rAb!fPatNr)
-    Ausgeb "Fertig mit " & anzs, True
-    rAb.MoveNext
+  If Not rab.BOF Then
+   Ausgeb "Übertrage " & rab!Zahl & " Pat. seit " & CStr(CDbl(abstand)) & " Tagen", True
+   syscmd 4, "Übertrage " & rab!Zahl & " Pat. seit " & CStr(CDbl(abstand)) & " Tagen"
+   Do While Not rab.EOF
+    abzahl = rab!Zahl
+    aktz = rab!rang
+    anzs = "Übertragung von MO bei Pat. Nr. " & rab!fPatNr & " (" & rab!Nam & ") = " & aktz & "/" & abzahl
+    myFrag raz, "SELECT COALESCE(aktzeit,18990101) aktzeit FROM namen WHERE pat_id=" & rab!fPatNr, , DBCn, adLockReadOnly, , rAf
+    Dim lImp$
+    If raz.EOF Then lImp = "-" Else lImp = Format(raz!aktZeit, "dd.mm.yy HH:MM:SS")
+    If Not raz.EOF Then If raz!aktZeit > rab!laend Then Ausgeb rab!fPatNr & " zul.geänd.: " & rab!laend & ", schon importiert: " & lImp, True: GoTo weiter
+    Ausgeb "Beginne mit " & anzs & " (zul.geänd.: " & rab!laend & ", importiert: " & lImp & ")", False
+    doPatvonMO rab!fPatNr, , , ohneLabor
+    Ausgeb "Fertig mit " & anzs & " (zul.geänd.: " & rab!laend & ", importiert: " & lImp & ")", True
+weiter:
+    rab.MoveNext
    Loop
   End If ' Not rAb.BOF Then
-  Ausgeb "Fertig mit Übertragung aus MO von " & abzahl & " Patienten seit " & CStr(abstand) & " Tagen", True
-  syscmd 4, "Fertig mit Übertragung aus MO von " & abzahl & " Patienten seit " & CStr(abstand) & " Tagen"
+  Ausgeb "Fertig mit Übertragung aus MO von " & abzahl & " Patienten seit " & CStr(CDbl(abstand)) & " Tagen", True
+  syscmd 4, "Fertig mit Übertragung aus MO von " & abzahl & " Patienten seit " & CStr(CDbl(abstand)) & " Tagen"
 End Sub ' Übertragung_aus_MO_Click()
+
 
 Private Sub Ziffer30u31Ausschlüsse_Click()
   Dim rs As New ADODB.Recordset, spmax%(3)

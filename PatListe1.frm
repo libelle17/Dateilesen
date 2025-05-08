@@ -596,13 +596,14 @@ Private Sub DMPFüll() ' für: Alle &DMP-Dokumente an Hausärzte faxen ' s. DMP_Dok
 sql0 = "SELECT COUNT(0) Zahl, i.* FROM (SELECT n.getha0 ÜWNNR, h.fax, h.Anrede, " & _
        "CONCAT_WS(', ',h.Name, h.Vorname, h.titelt) Adressat, IF(arzttyp='HA',1,0) innereallg " & _
        ", ISNULL(hk.kvnr) obdmpinfo " & _
-       "FROM aktfaellev f " & _
+       "FROM aktfv fv LEFT JOIN faelle f USING (fid)" & _
        "LEFT JOIN namen n ON f.pat_id = n.pat_id " & _
-       "LEFT JOIN liuez h ON h.kvnri=n.getha0 AND n.getha0<>0 " & _
-       "LEFT JOIN `hakeinedmpinfo` hk ON n.getha0=hk.kvnr " & _
+       "LEFT JOIN liuez h ON h.kvnri=f.übwvbsnr AND f.übwvbsnr not in ('0','') " & _
+       "LEFT JOIN `hakeinedmpinfo` hk ON f.übwvbsnr=hk.kvnr " & _
        "LEFT JOIN `desktop` dt ON n.pat_id = dt.pat_id AND dt.titel LIKE '%kein%bericht%' " & _
        "WHERE ISNULL(dt.titel) AND n.dmpklass = 2 AND f.icd RLIKE '^E1[0-4]\.' AND h.kvnr<>'' " & _
        "GROUP BY f.pat_id) i GROUP BY üwnnr ORDER BY adressat"
+'       "LEFT JOIN liuez h ON h.kvnri=n.getha0 AND n.getha0<>0 " & _
 
  myFrag rs0, sql0
  Do While Not rs0.EOF
@@ -3195,8 +3196,40 @@ Sub LabordateiAnzeig(Datei$)
  Dim rc As New ADODB.Recordset
  Dim Datum As Date
  If True Then
- sql = "SELECT" & vbCrLf & _
-"COUNT(0) OVER() zahl, w.*,u.*,sw.pat_id obsws, COALESCE(ityp,'') ityp, COALESCE(p.langtext,w.abkü) lt," & vbCrLf & _
+' sql = "SELECT" & vbCrLf & _
+' "COUNT(0) OVER() zahl, w.*,u.*
+sql = _
+"SELECT" & vbCrLf & _
+"COUNT(0) OVER() zahl, w.*,u.ID,u.UsLfd,u.DatID,u.SatzID,u.Satzart,u.Satzlänge,u.Auftragsnummer,u.Auftragsschlüssel,u.Eingang,u.Berichtsdatum,u.Pat_ID,u.Nachname,u.Vorname,u.GebDat,u.Titel,u.NVorsatz,u.NVors2,u.BefArt,u.Abrechnungstyp,u.GebüOrd,u.Auftraggeber,u.Patienteninformation,u.Geschlecht,u.Pat_id_0,u.Pat_id_1,u.Pat_id_2,u.Pat_id_3,u.Pat_id_4,u.Pat_id_5,u.Pat_id_6,u.Pat_id_7,u.ZeitpunktLaborneu,u.Pat_id_Laborneu,u.verglichen,u.AfN,u.z7,u.SQL7,u.termsp,u.Termine,u.TM_Pat_id,u.ID,u.UsLfd,u.DatID,u.SatzID,u.Satzart,u.Satzlänge,u.Auftragsnummer,u.Auftragsschlüssel,u.Eingang,u.Berichtsdatum,u.Pat_ID,u.TM_Pat_ID,u.Nachname,u.Vorname,u.GebDat,u.Titel,u.NVorsatz,u.NVors2,u.BefArt,u.Abrechnungstyp,u.GebüOrd,u.Auftraggeber,u.Patienteninformation,u.Geschlecht,u.Pat_id_0,u.Pat_id_1,u.Pat_id_2,u.Pat_id_3,u.Pat_id_4,u.Pat_id_5,u.Pat_id_6,u.Pat_id_7,u.ZeitpunktLaborneu,u.Pat_id_Laborneu,u.verglichen,u.AfN,u.z7,u.SQL7," & vbCrLf & _
+"  CASE" & vbCrLf & _
+"        WHEN obk<>0 AND obs=0 AND false=0 AND obh=0 THEN 14772545 -- //vbmittelblau, RGB(65, 105, 225) ' http://www.am.uni-duesseldorf.de/de/Links/Tools/farbtabelle.html' & vbCrLf & _" & vbCrLf & _
+"        WHEN obk=0 AND obs<>0 AND false=0 AND obh=0 THEN 65535 -- // gelb, &HFFFF& & vbCrLf & _" & vbCrLf & _
+"        WHEN obk=0 AND obs=0 AND obh<>0 THEN 8553215 -- // vbwagnerahrot, RGB(255,130,130), & vbCrLf & _" & vbCrLf & _
+"        WHEN obk=0 AND obs=0 AND false<>0 THEN 6974207 --  // vbwagnerrot, RGB(255,106,106), & vbCrLf & _" & vbCrLf & _
+"        WHEN obk<>0 AND obs<>0 AND false=0 and obh=0 THEN 7451452 -- // vbwagnergrün, RGB(60,179,113) & vbCrLf & _" & vbCrLf & _
+"        WHEN obk<>0 AND obs=0 AND (false<>0 OR obh<>0) THEN 13850042 -- // vbmittellila, rgb(186,85,211) & vbCrLf & _" & vbCrLf & _
+"        WHEN obk=0 AND obs<>0 AND (false<>0 OR obh<>0) THEN 33023 -- // orange, &H80FF& & vbCrLf & _" & vbCrLf & _
+"        WHEN obk<>0 AND obs<>0 AND (false<>0 OR obh<>0) THEN 755384 -- // vbmittelbraun, RGB(184,134,11) & vbCrLf & _" & vbCrLf & _
+"        WHEN obk<>0 THEN 16767449 -- // hellblau & vbCrLf & _" & vbCrLf & _
+"        WHEN obs<>0 THEN 12648447 -- // vbhellgelb & vbCrLf & _" & vbCrLf & _
+"        ELSE 16777215 -- // FFFFFF & vbCrLf & _" & vbCrLf & _
+"    END namsp" & vbCrLf & _
+",   CASE" & vbCrLf & _
+"        WHEN obk<>0 AND obs=0 AND false=0 and obh=0 THEN 16767449 -- // hellblau, &HFFD9D9 & vbCrLf & _" & vbCrLf & _
+"        WHEN obk=0 AND obs<>0 AND false=0 and obh=0 THEN 12648447 -- // vbhellgelb, &HC0FFFF & vbCrLf & _" & vbCrLf & _
+"        WHEN obk=0 AND obs=0 AND obh<>0 THEN 11195135 -- // mittigahrosa, &HFFD2AA & vbCrLf & _" & vbCrLf & _
+"        WHEN obk=0 AND obs=0 AND false<>0 THEN 12632319 -- // mittigrosa, &HC0C0FF & vbCrLf & _" & vbCrLf & _
+"        WHEN obk<>0 AND obs<>0 AND false=0 and obh=0 THEN 8454016 -- // vbhellgrün, &H80FF80 & vbCrLf & _" & vbCrLf & _
+"        WHEN obk<>0 AND obs=0 AND (false<>0 or obh<>0) THEN 14053594 -- // vbhelllila, rgb(218,112,214) & vbCrLf & _" & vbCrLf
+
+sql = sql & _
+"        WHEN obk=0 AND obs<>0 AND (false<>0 or obh<>0) THEN 8438015 -- // hellorange &H80C0FF & vbCrLf & _" & vbCrLf & _
+"        WHEN obk<>0 AND obs<>0 AND (false<>0 or obh<>0) THEN 2139610 -- // hellbraun RGB(218,165,32) & vbCrLf & _" & vbCrLf & _
+"        ELSE 16777215" & vbCrLf & _
+"    END wertsp" & vbCrLf
+
+sql = sql & _
+",sw.pat_id obsws, COALESCE(ityp,'') ityp, COALESCE(p.langtext,w.abkü) lt," & vbCrLf & _
 "u.Pat_id, concat(gesname(u.pat_id),' (',patalter(u.pat_id),'a)') Name, eingang Zeitpunkt, befart FertigStGrad, w.Abkü, w.langtext Langtext" & vbCrLf & _
 ",TRIM(IF(w.Abkü='ALBUM' AND Wert='' AND k.Text LIKE 'nicht berechenb%','< 20',IF(TRIM(Wert) REGEXP '^[0-9]+\\,?[0-9]*$', REPLACE(Wert,',','.'),Wert))) Wert" & vbCrLf & _
 ",w.Einheit,w.Grenzwerti" & vbCrLf & _
@@ -3208,6 +3241,7 @@ Sub LabordateiAnzeig(Datei$)
 ", Pfad, d.DatID, d.Dateidat" & vbCrLf & _
 ",p.Gruppe, p.Reihe,2 Qu" & vbCrLf & _
 "FROM laboryus u" & vbCrLf & _
+"LEFT JOIN namen na ON na.pat_id=u.pat_id" & vbCrLf & _
 "LEFT JOIN laborywert w ON w.usid=u.id" & vbCrLf & _
 "LEFT JOIN laboryhinw e ON e.id=w.erklid" & vbCrLf & _
 "LEFT JOIN laboryhinw k ON k.id=w.kommid" & vbCrLf & _
@@ -3811,6 +3845,7 @@ Private Sub invis(ab%)
  Next i
 End Sub ' invis
 
+' DMPhierListe_Click
 Private Sub Form_Load()
  Dim sql$, i%, erg$, j&, gehezu&, rAf&, pid$, BhFB As Date, dmpklass As DMPEnum, Tkz%
 ' #Const obpcol = True
@@ -4068,7 +4103,9 @@ Private Sub Form_Load()
       pid = rDPat!Pat_ID
       BhFB = rDPat!BhFB
       dmpklass = rDPat!dmpklass
+      On Error Resume Next
       Tkz = rDPat!Tkz
+      On Error GoTo fehler
       .col = DNrSp
   '   IF rDPat!Pat_id = 2901 THEN Stop
 '      IF obhierdmp(rDPat!Notiz) AND rDPat!Tkz = 0 THEN cbcol = dunkelrosa ELSE cbcol = vbWhite

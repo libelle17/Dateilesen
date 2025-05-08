@@ -967,13 +967,14 @@ Function MacheTypen(frm As Lese)
  Print #257, "End FUNCTION ' doEntleer"
  Print #257, ""
  Print #257, "' in Pat_loeschen_Click, doPatvonMO"
- Print #257, "Public Sub LöschePat(PID&, Optional obAnzeig%)"
+ Print #257, "Public Sub LöschePat(PID&, Optional obAnzeig%, Optional ohneLabor%)"
  Print #257, " Dim Tb, tbn, rAf&, ergeb$"
  Print #257, " syscmd 4, ""Lösche Pat. "" & pid"
  Dim tbnS$
  tbnS = " tbn = Array("
  For i = 0 To TbZ1
   Select Case LCase$(tbn(i))
+   Case "laborneu"
    Case "formulare", "forminhfeld", "unbek_kenn" ', "forminhaltform_abk",
    Case Else
     tbnS = tbnS & """" & LCase$(tbn(i)) & """"
@@ -981,8 +982,13 @@ Function MacheTypen(frm As Lese)
   End Select
  Next i
  tbnS = tbnS & ")"
+' tbn = Array("namen", "faelle", "au", "briefe", "diagnosen", "dokumente", "eintraege", "forminhkopf", "kheinweis", "lbanforderungen", "leistungen", "medplan", "rezepteintraege", "rr", "kvnrue", "dmpreihe", "desktop", "usdm", "fuss", "ulcus", "vkgd", "sws", "vopl")
  Print #257, " ON Error GoTo fehler"
  Print #257, tbnS
+ Print #257, " If Not ohneLabor Then"
+ Print #257, "  ReDim Preserve tbn(UBound(tbn) + 1)"
+ Print #257, "  tbn(UBound(tbn)) = ""laborneu"""
+ Print #257, " End If ' Not ohneLabor Then"
  Print #257, " myEFrag ""DELETE fif FROM forminhfeld fif LEFT JOIN forminhkopf fk USING (foid) WHERE pat_ID="" & pid, rAf"
  Print #257, " For Each Tb In tbn"
  Print #257, "  myEFrag ""DELETE FROM `"" & Tb & ""` WHERE PAT_ID = "" & PID, rAf"
@@ -1884,7 +1890,7 @@ End If ' aktTbn = "faelle" Then
  Print #257, "End Function ' tuLaden"
  Print #257, ""
  Print #257, "' in alleSpeichern"
- Print #257, "Public Function tuSpeichern(frm AS Lese, SI%, BfS%) ' frm.dlg.SammelInsert, frm.dlg.BeziehungsfehlerSpeichern"
+ Print #257, "Public Function tuSpeichern(frm AS Lese, SI%, BfS%, Optional ohneAktDat%, Optional ohneLabor%) ' frm.dlg.SammelInsert, frm.dlg.BeziehungsfehlerSpeichern"
  Print #257, " Dim rAf&, altsi$,altsam%"
  Print #257, " altsi = sqlIGNORE"
  Print #257, " sqlIGNORE = """""
@@ -1901,7 +1907,12 @@ End If ' aktTbn = "faelle" Then
    Print #257, " SI = 0"
    Print #257, " ComTrans"
   End If
-  Print #257, " Call " & aktTbn & "Speichern(SI, BfS)"
+  Select Case aktTbn
+   Case "laborneu"
+    Print #257, " If Not ohneLabor Then Call " & aktTbn & "Speichern(SI, BfS)"
+   Case Else
+    Print #257, " Call " & aktTbn & "Speichern(SI, BfS)"
+  End Select
   If aktTbn = "faelle" Then
    Print #257, " SI = altsam"
   End If
@@ -1920,12 +1931,14 @@ End If ' aktTbn = "faelle" Then
    Case "briefe", "laborneu", "leistungen"
     Print #257, " ComTrans"
   End Select
- Next i
+ Next i ' For i = 0 To TbZ1
  syscmd 4, "Mache Typen (28) ..."
- Print #257, " Call myEFrag(""UPDATE `namen` SET aktZeit = "" & DatFor_k(rNa(0).AktZeit) & "" WHERE pat_id = "" & rNa(0).Pat_ID,rAf)"
- Print #257, " IF rAf <> 1 THEN "
- Print #257, "  frm.Ausgeb ""Fehler bei der Setzung des Aktualisierungsdatum bei "" & rNa(0).Pat_ID & "" "" & rNa(0).Nachname & "" "" & rNa(0).Vorname, true"
- Print #257, " END IF ' rAf <> 0"
+ Print #257, " If Not ohneAktDat Then"
+ Print #257, "  Call myEFrag(""UPDATE `namen` SET aktZeit = "" & DatFor_k(rNa(0).AktZeit) & "" WHERE pat_id = "" & rNa(0).Pat_ID,rAf)"
+ Print #257, "  IF rAf <> 1 THEN "
+ Print #257, "   frm.Ausgeb ""Fehler bei der Setzung des Aktualisierungsdatum bei "" & rNa(0).Pat_ID & "" "" & rNa(0).Nachname & "" "" & rNa(0).Vorname, true"
+ Print #257, "  End If ' rAf <> 0"
+ Print #257, " End If ' not ohneAktDat"
  Print #257, " sqlIGNORE = altsi"
  Print #257, " Exit Function"
  Print #257, "fehler:"
@@ -3030,31 +3043,31 @@ Function doLdFD() ' Liste der fehlenden Dokumente
  Ers(17) = "\\anmeld2\Volume (F)\Turbomed gespiegelt\Dokumente"
  Ers(18) = "\\anmeld2\E\TurboMed\Dokumente"
  If LenB(PcDokPfad) = 0 Then getDokPfad
- Dim rAb As New ADODB.Recordset
+ Dim rab As New ADODB.Recordset
  Open Datei For Output As #322
 ' rAb.Open "SELECT * FROM dokumente", DBCn, adOpenDynamic, adLockReadOnly
- myFrag rAb, "SELECT Pat_id, Zeitpunkt, Name DokName, DokPfad FROM tmbrie"
- Do While Not rAb.EOF
-  aktDP = REPLACE$(LCase$(rAb!DokPfad), "$\turbomed\dokumente", PcDokPfad)
+ myFrag rab, "SELECT Pat_id, Zeitpunkt, Name DokName, DokPfad FROM tmbrie"
+ Do While Not rab.EOF
+  aktDP = REPLACE$(LCase$(rab!DokPfad), "$\turbomed\dokumente", PcDokPfad)
   If Not FSO.FileExists(aktDP) Then
    For i = 16 To 18
     Zp = REPLACE$(aktDP, PcDokPfad, Ers(i))
     If FSO.FileExists(Zp) Then
-     FileCopy Zp, rAb!DokPfad
+     FileCopy Zp, rab!DokPfad
      Print #322, "Kopiere " & Zp & " -> " & aktDP
     End If
    Next i
 '   Debug.Print aktDP
-   Print #322, rAb!Pat_ID, rAb!Zeitpunkt, aktDP, rAb!DokName
-   Lese.Ausgabe = Lese.Ausgabe & vbCrLf & rAb!Pat_ID & " " & rAb!Zeitpunkt & " " & aktDP & vbTab & rAb!DokName
-   tStr = sucheinVerz(rAb!DokName, pVerz)
+   Print #322, rab!Pat_ID, rab!Zeitpunkt, aktDP, rab!DokName
+   Lese.Ausgabe = Lese.Ausgabe & vbCrLf & rab!Pat_ID & " " & rab!Zeitpunkt & " " & aktDP & vbTab & rab!DokName
+   tStr = sucheinVerz(rab!DokName, pVerz)
    If tStr <> "" Then
     Print #322, "     gefunden in:", tStr
     Lese.Ausgabe = Lese.Ausgabe & vbCrLf & "      gefunden in: " & tStr
    End If
    DoEvents
   End If
-  rAb.Move 1
+  rab.Move 1
  Loop ' While Not rab.EOF
  Close #322
  zeigan Datei
@@ -3112,24 +3125,24 @@ End Function ' sucheinVerz
 ' nur in Sub HausärzteBKK_Click()
 Function doHABKK(frm As Lese)
  Const sql$ = "SELECT COUNT(0) Zahl, CONCAT(l.name,' ',l.vorname,' ',l.fachgruppe,' ',l.zulg,' ',l.ort) Hausarzt, l.telefon, l.fax, übwr üw FROM `aktf` a LEFT JOIN `faelle` f ON a.fid = f.fid LEFT JOIN `kassenliste` k ON f.ik = k.ik AND f.vknr = k.vknr LEFT JOIN `aktlue` l ON übwr = l.kvnro WHERE kateg = 'BKK' AND übwr <> '' AND l.name <> 'Schade' GROUP BY üw ORDER BY Zahl DESC;"
- Dim rAb As New ADODB.Recordset
+ Dim rab As New ADODB.Recordset
  Open uVerz & "Hausärzte BKK.txt" For Output As #322
 ' rAb.Open sql, DBCn, adOpenDynamic, adLockReadOnly
- myFrag rAb, sql
- TabAusgeb rAb, Lese, True, , , , Array(0, 90, 0, 0, 0, 0), True, uVerz & "HA_BKK.txt"
+ myFrag rab, sql
+ TabAusgeb rab, Lese, True, , , , Array(0, 90, 0, 0, 0, 0), True, uVerz & "HA_BKK.txt"
 End Function ' doHABKK
 
 Function doLdFHalt(frm As Lese) ' Liste der fehlenden Hausärzte
  Const sql$ = "SELECT n.Pat_id, n.Nachname, n.Vorname, n.Gebdat, Schgr FROM `namen` n LEFT JOIN `aktfv` ON `aktfv`.pat_id = n.pat_id WHERE n.kvnr = '' AND NOT ISNULL(`aktfv`.pat_id) ORDER BY `namen`.pat_id DESC;"
- Dim rAb As New ADODB.Recordset
+ Dim rab As New ADODB.Recordset
 ' rAb.Open sql, DBCn, adOpenDynamic, adLockReadOnly
- myFrag rAb, sql
+ myFrag rab, sql
 ' TabAusgeb rAb, Lese, True, , , , , , "Fehlende Hausärzte.txt"
  Open uVerz & "Fehlende Hausärzte.txt" For Output As #322
- Do While Not rAb.EOF
-  Print #322, rAb!Pat_ID, rAb!Nachname, rAb!Vorname, rAb!GebDat
-  frm.Ausgabe = frm.Ausgabe & rAb!Pat_ID & " " & rAb!Nachname & " " & rAb!Vorname & " " & rAb!GebDat & vbCrLf
-  rAb.Move 1
+ Do While Not rab.EOF
+  Print #322, rab!Pat_ID, rab!Nachname, rab!Vorname, rab!GebDat
+  frm.Ausgabe = frm.Ausgabe & rab!Pat_ID & " " & rab!Nachname & " " & rab!Vorname & " " & rab!GebDat & vbCrLf
+  rab.Move 1
  Loop
  Close #322
  MsgBox "Fertig!"
@@ -3140,19 +3153,19 @@ Function doFÜwS(frm As Lese) ' fehlende Überweisungsscheine
  Dim sql$, AktQ$
  AktQ = ZQuart(Now() - Verspätung)
  sql = "SELECT n.Pat_id, gesname(n.pat_id) Name, GROUP_CONCAT(DISTINCT CAST(f.schgr AS char)) Schgr, LEFT(GROUP_CONCAT(DISTINCT CONCAT_WS(', ', l2.Name, LEFT(l2.vorname,1),l2.ort, l2.telefon)),31) Überweiser, LEFT(CONCAT_WS(', ',l.Name, LEFT(l.vorname,1),l.ort, l.telefon),31) Hausarzt FROM `aktf` f LEFT JOIN `tmbrie` b ON f.pat_id = b.pat_id AND b.name LIKE '%üw%' AND b.name LIKE '%" & Left$(AktQ, 1) & "%' AND b.name LIKE '%" & Right$(AktQ, 2) & "%' LEFT JOIN `namen` n ON f.pat_id = n.pat_id LEFT JOIN `aktlue` l ON l.kvnr = n.kvnr LEFT JOIN `faelle` f2 ON f2.fid = f.fid AND übwr <> '' LEFT JOIN `aktlue` l2 ON l2.kvnro = übwr WHERE ISNULL(b.name) AND f.schgr<>'0' GROUP BY f.pat_id"
- Dim rAb As New ADODB.Recordset
+ Dim rab As New ADODB.Recordset
 ' rAb.Open sql, DBCn, adOpenDynamic, adLockReadOnly
- myFrag rAb, sql
- TabAusgeb rAb, Lese, True, , , , , , "Fehlende Überweisungsscheine"
+ myFrag rab, sql
+ TabAusgeb rab, Lese, True, , , , , , "Fehlende Überweisungsscheine"
 End Function ' doFÜwS
 
 Function doLdFH(frm As Lese) ' Liste der fehlenden Hausärzte
 ' Const sql$ = "SELECT v.*,n.Nachname,n.Vorname,Gebdat, d.icd, IF(übwv = '', andüw, übwv) AS üw, k.kvnr, n.notiz FROM `aktfv` v LEFT JOIN `namen` n ON v.pat_id = n.pat_id LEFT JOIN `faelle` f ON v.fid = f.fid LEFT JOIN `diagnosen` d ON v.pat_id = d.pat_id AND d.icd LIKE 'E1%' LEFT JOIN kvnrue k ON v.pat_id = k.pat_id WHERE notiz = '' OR ISNULL(notiz) OR k.kvnr = '' OR ISNULL(k.kvnr) GROUP BY v.pat_id ORDER BY v.pat_id, k.lfdnr"
  Const sql$ = "SELECT n.Pat_id, n.Nachname, n.Vorname, n.Gebdat, `aktfv`.Schgr, KVNr FROM `namen` n LEFT JOIN `aktfv` ON `aktfv`.pat_id = n.pat_id WHERE n.kvnr IN ('" & KVNr & "') AND NOT ISNULL(`aktfv`.pat_id) ORDER BY n.kvnr, n.pat_id DESC"
- Dim rAb As New ADODB.Recordset
+ Dim rab As New ADODB.Recordset
 ' rAb.Open sql, DBCn, adOpenDynamic, adLockReadOnly
- myFrag rAb, sql
- TabAusgeb rAb, Lese, True, , , , , , "PatientenMitUnsAlsHausarztOhneDieMitFehlendemHausarzt"
+ myFrag rab, sql
+ TabAusgeb rab, Lese, True, , , , , , "PatientenMitUnsAlsHausarztOhneDieMitFehlendemHausarzt"
 End Function ' doldfH
 
 ' in suchTel_Click
@@ -3162,10 +3175,10 @@ Function doSuchTel(frm As Lese) ' suche Telefonnummer
  Dim sql$, telm$
  telm = "'%" & TEL & "%'"
  sql$ = "SELECT n.Pat_id, gesname(n.Pat_id) `Name mit Telnr. " & TEL & "`, PrivatTel, Privattel_2, Diensttel, PrivatMobil, PrivatFax FROM `namen` n WHERE privattel LIKE " & telm & " OR privattel_2 LIKE  " & telm & " OR privatfax LIKE  " & telm & " OR diensttel LIKE  " & telm & " OR privatmobil LIKE  " & telm
- Dim rAb As New ADODB.Recordset
+ Dim rab As New ADODB.Recordset
 ' rAb.Open sql, DBCn, adOpenDynamic, adLockReadOnly
- myFrag rAb, sql
- TabAusgeb rAb, Lese, True, , , , , , "Suche Telefonnummer " + TEL
+ myFrag rab, sql
+ TabAusgeb rab, Lese, True, , , , , , "Suche Telefonnummer " + TEL
 End Function ' doSuchTel
 
 Function ergEBM(frm As Lese)
