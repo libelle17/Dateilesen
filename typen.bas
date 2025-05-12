@@ -85,6 +85,7 @@ Public type namen
  Verwandt AS string 'Verwandt varchar '3632
  Sprache AS string 'Sprache varchar '3628
  SDatum AS date 'SDatum datetime 'Sterbedatum
+ inaktiv AS byte 'inaktiv tinyint '1=tot, 2=verzogen, 4=Sonstige
  lAktTM AS date 'lAktTM datetime 'letzte Aktualisierung in Turbomed
  Mitarbeiter AS long 'Mitarbeiter int 'ob Pat. Mitarbeiter ist
  Swz AS integer 'Swz smallint 'Schwangerschaftszahl aus MO
@@ -554,6 +555,7 @@ end type
 
 Public type dmpreihe
  Abk AS string 'Abk varchar 'Abkürzung der DMP-Art
+ DMPArt AS byte 'DMPArt tinyint '0=keine, 1=DM1, 2=DM2, 3=KHK, 4=COPD, 5=Asthma, 6=Herzi, 7=Rückensz, 8=Brustkrebs
  Art AS string 'Art varchar 'ED = Erstdoku, FD = Folgedoku
  KarteiDatum AS date 'KarteiDatum date 'Datum des Karteikarteneintrags der Dokumentation
  exportiert AS date 'exportiert datetime 'Datum des Exports, in Mo Feld 139
@@ -1545,6 +1547,7 @@ Public FUNCTION roNaZuw(i&, j&)
  roNa(i).Verwandt = rNa(j).Verwandt
  roNa(i).Sprache = rNa(j).Sprache
  roNa(i).SDatum = rNa(j).SDatum
+ roNa(i).inaktiv = rNa(j).inaktiv
  roNa(i).lAktTM = rNa(j).lAktTM
  roNa(i).Mitarbeiter = rNa(j).Mitarbeiter
  roNa(i).Swz = rNa(j).Swz
@@ -1645,6 +1648,7 @@ Public FUNCTION NaZUnt%(i&, j&)
  IF roNa(i).Verwandt <> rNa(j).Verwandt THEN gosub unter
  IF roNa(i).Sprache <> rNa(j).Sprache THEN gosub unter
  IF roNa(i).SDatum <> rNa(j).SDatum THEN gosub unter
+ IF roNa(i).inaktiv <> rNa(j).inaktiv THEN gosub unter
  IF roNa(i).lAktTM <> rNa(j).lAktTM THEN gosub unter
  IF roNa(i).Mitarbeiter <> rNa(j).Mitarbeiter THEN gosub unter
  IF roNa(i).Swz <> rNa(j).Swz THEN gosub unter
@@ -1690,11 +1694,11 @@ Public FUNCTION namenLaden()
 ",COALESCE(HzV,0) HzV,COALESCE(HzVbeg - INTERVAL 0 DAY,CONVERT('18991230',DATE)) HzVbeg,COALESCE(DS,0) DS,COALESCE(DSbeg - INTERVAL 0 DAY,CONVERT('18991230',DATE)) DSbeg" & _
 ",COALESCE(getHA0,0) getHA0,COALESCE(fnHA0,'') fnHA0,COALESCE(getHA1,0) getHA1,COALESCE(fnHA1,'') fnHA1" & _
 ",COALESCE(getHA2,0) getHA2,COALESCE(fnHA2,'') fnHA2,COALESCE(zubenach,'') zubenach,COALESCE(Verwandt,'') Verwandt" & _
-",COALESCE(Sprache,'') Sprache,COALESCE(SDatum - INTERVAL 0 DAY,CONVERT('18991230',DATE)) SDatum,COALESCE(lAktTM - INTERVAL 0 DAY,CONVERT('18991230',DATE)) lAktTM,COALESCE(Mitarbeiter,0) Mitarbeiter" & _
-",COALESCE(Swz,0) Swz,COALESCE(Gbz,0) Gbz,COALESCE(Kiz,0) Kiz,COALESCE(ZdeK,0) ZdeK" & _
-",COALESCE(obk,0) obk,COALESCE(obs,0) obs,COALESCE(obh,0) obh,COALESCE(antikoag,0) antikoag" & _
-",COALESCE(dmt1,0) dmt1,COALESCE(gdm,0) gdm,COALESCE(kdm,0) kdm,COALESCE(cgm,0) cgm" & _
-",COALESCE(insanw,0) insanw FROM `namen` WHERE Pat_ID=" & pid & " ORDER BY `kAufDat`
+",COALESCE(Sprache,'') Sprache,COALESCE(SDatum - INTERVAL 0 DAY,CONVERT('18991230',DATE)) SDatum,COALESCE(inaktiv,0) inaktiv,COALESCE(lAktTM - INTERVAL 0 DAY,CONVERT('18991230',DATE)) lAktTM" & _
+",COALESCE(Mitarbeiter,0) Mitarbeiter,COALESCE(Swz,0) Swz,COALESCE(Gbz,0) Gbz,COALESCE(Kiz,0) Kiz" & _
+",COALESCE(ZdeK,0) ZdeK,COALESCE(obk,0) obk,COALESCE(obs,0) obs,COALESCE(obh,0) obh" & _
+",COALESCE(antikoag,0) antikoag,COALESCE(dmt1,0) dmt1,COALESCE(gdm,0) gdm,COALESCE(kdm,0) kdm" & _
+",COALESCE(cgm,0) cgm,COALESCE(insanw,0) insanw FROM `namen` WHERE Pat_ID=" & pid & " ORDER BY `kAufDat`
  myFrag rs, sql
  ReDim roNa(1)
  If Not rs.EOF Then
@@ -1782,6 +1786,7 @@ Public FUNCTION namenLaden()
    roNa(akt).Verwandt = doUmwfSQL(rs!Verwandt, lies.obMySQL, False)
    roNa(akt).Sprache = doUmwfSQL(rs!Sprache, lies.obMySQL, False)
    roNa(akt).SDatum = rs!SDatum
+   roNa(akt).inaktiv = rs!inaktiv
    roNa(akt).lAktTM = rs!lAktTM
    roNa(akt).Mitarbeiter = rs!Mitarbeiter
    roNa(akt).Swz = rs!Swz
@@ -1945,6 +1950,7 @@ Public FUNCTION rNaDump()
   Print #200, Left$("rNa(" & i & ").Verwandt:" & String$(33, "."), 33) & "'" & rNa(i).Verwandt & "'"
   Print #200, Left$("rNa(" & i & ").Sprache:" & String$(33, "."), 33) & "'" & rNa(i).Sprache & "'"
   Print #200, Left$("rNa(" & i & ").SDatum:" & String$(33, "."), 33) & rNa(i).SDatum
+  Print #200, Left$("rNa(" & i & ").inaktiv:" & String$(33, "."), 33) & rNa(i).inaktiv
   Print #200, Left$("rNa(" & i & ").lAktTM:" & String$(33, "."), 33) & rNa(i).lAktTM
   Print #200, Left$("rNa(" & i & ").Mitarbeiter:" & String$(33, "."), 33) & rNa(i).Mitarbeiter
   Print #200, Left$("rNa(" & i & ").Swz:" & String$(33, "."), 33) & rNa(i).Swz
@@ -1982,9 +1988,9 @@ Public FUNCTION namenSpeichern(SammelInsert%, BezfSp%, Optional rAf&, Optional s
      "PrivatMobil,Email,Arbeitgeber,AnAllgda,An1da,An2da,Checkda,DMTypaD,AktZeit,absPos," & _
      "StByte,StByteA,Cave,notiz,obChk,NZNr,dmpklass,dmpbeg,dmpkhkklass,dmpkhkbeg," & _
      "dmpcopdklass,dmpcopdbeg,dmpabklass,dmpabbeg,dakab,HzV,HzVbeg,DS,DSbeg,getHA0," & _
-     "fnHA0,getHA1,fnHA1,getHA2,fnHA2,zubenach,Verwandt,Sprache,SDatum,lAktTM," & _
-     "Mitarbeiter,Swz,Gbz,Kiz,ZdeK,obk,obs,obh,antikoag,dmt1," & _
-     "gdm,kdm,cgm,insanw)    VALUES"))
+     "fnHA0,getHA1,fnHA1,getHA2,fnHA2,zubenach,Verwandt,Sprache,SDatum,inaktiv," & _
+     "lAktTM,Mitarbeiter,Swz,Gbz,Kiz,ZdeK,obk,obs,obh,antikoag," & _
+     "dmt1,gdm,kdm,cgm,insanw)             VALUES"))
  IF NOT Allepat THEN
    sql = "DELETE FROM `" & LCase$(tbnm) & "` WHERE Pat_ID = " & CStr(rNa(0).Pat_ID)
    Call myEFrag(sql)
@@ -2007,8 +2013,8 @@ setz:
    rNa(i).StByteA, ",'" , rNa(i).Cave, "','" , rNa(i).notiz, "','" , rNa(i).obChk, "'," , rNa(i).NZNr, "," , rNa(i).dmpklass, "," , DatFor_k(rNa(i).dmpbeg), "," , rNa(i).dmpkhkklass, "," , DatFor_k( _
    rNa(i).dmpkhkbeg), "," , rNa(i).dmpcopdklass, "," , DatFor_k(rNa(i).dmpcopdbeg), "," , rNa(i).dmpabklass, "," , DatFor_k(rNa(i).dmpabbeg), "," , DatFor_k(rNa(i).dakab), "," , rNa(i).HzV, "," , DatFor_k( _
    rNa(i).HzVbeg), "," , rNa(i).DS, "," , DatFor_k(rNa(i).DSbeg), "," , rNa(i).getHA0, ",'" , rNa(i).fnHA0, "'," , rNa(i).getHA1, ",'" , rNa(i).fnHA1, "'," , rNa(i).getHA2, ",'" ,  _
-   rNa(i).fnHA2, "','" , rNa(i).zubenach, "','" , rNa(i).Verwandt, "','" , rNa(i).Sprache, "'," , DatFor_k(rNa(i).SDatum), "," , DatFor_k(rNa(i).lAktTM), "," , rNa(i).Mitarbeiter, "," , rNa(i).Swz, "," ,  _
-   rNa(i).Gbz, "," , rNa(i).Kiz, "," , rNa(i).ZdeK, "," , cstr(-(rNa(i).obk<>0)) , "," , cstr(-(rNa(i).obs<>0)) , "," , cstr(-(rNa(i).obh<>0)) , "," , cstr(-(rNa(i).antikoag<>0)) , "," , cstr(-( _
+   rNa(i).fnHA2, "','" , rNa(i).zubenach, "','" , rNa(i).Verwandt, "','" , rNa(i).Sprache, "'," , DatFor_k(rNa(i).SDatum), "," , rNa(i).inaktiv, "," , DatFor_k(rNa(i).lAktTM), "," , rNa(i).Mitarbeiter, "," ,  _
+   rNa(i).Swz, "," , rNa(i).Gbz, "," , rNa(i).Kiz, "," , rNa(i).ZdeK, "," , cstr(-(rNa(i).obk<>0)) , "," , cstr(-(rNa(i).obs<>0)) , "," , cstr(-(rNa(i).obh<>0)) , "," , cstr(-(rNa(i).antikoag<>0)) , "," , cstr(-( _
    rNa(i).dmt1<>0)) , "," , cstr(-(rNa(i).gdm<>0)) , "," , cstr(-(rNa(i).kdm<>0)) , "," , rNa(i).cgm, "," , rNa(i).insanw, ")")
   IF SammelInsert <> 0 AND i < ubound(rNa) Then csql.Append ","
   IF SammelInsert = 0 OR i = ubound(rNa) Then
@@ -8040,6 +8046,7 @@ End FUNCTION ' unbek_kennSpeichern
 
 Public FUNCTION roDmZuw(i&, j&)
  roDm(i).Abk = rDm(j).Abk
+ roDm(i).DMPArt = rDm(j).DMPArt
  roDm(i).Art = rDm(j).Art
  roDm(i).KarteiDatum = rDm(j).KarteiDatum
  roDm(i).exportiert = rDm(j).exportiert
@@ -8062,6 +8069,7 @@ End FUNCTION ' roDmZuw
 
 Public FUNCTION DmZUnt%(i&, j&)
  IF roDm(i).Abk <> rDm(j).Abk THEN gosub unter
+ IF roDm(i).DMPArt <> rDm(j).DMPArt THEN gosub unter
  IF roDm(i).Art <> rDm(j).Art THEN gosub unter
  IF roDm(i).KarteiDatum <> rDm(j).KarteiDatum THEN gosub unter
  IF roDm(i).exportiert <> rDm(j).exportiert THEN gosub unter
@@ -8090,11 +8098,12 @@ Public FUNCTION dmpreiheLaden()
  Dim pid$, rs As New Recordset, akt&
  ON Error GoTo fehler
  pid = rNa(0).Pat_id
- sql = "SELECT COALESCE(Abk,'') Abk,COALESCE(Art,'') Art,COALESCE(KarteiDatum - INTERVAL 0 DAY,CONVERT('18991230',DATE)) KarteiDatum,COALESCE(exportiert - INTERVAL 0 DAY,CONVERT('18991230',DATE)) exportiert" & _
-",COALESCE(DokuDatum - INTERVAL 0 DAY,CONVERT('18991230',DATE)) DokuDatum,COALESCE(obvoll,0) obvoll,COALESCE(ok,0) ok,COALESCE(ausgedruckt,0) ausgedruckt" & _
-",COALESCE(NachName,'') NachName,COALESCE(VorName,'') VorName,COALESCE(GebDat - INTERVAL 0 DAY,CONVERT('18991230',DATE)) GebDat,COALESCE(Pat_id,0) Pat_id" & _
-",COALESCE(StByte,0) StByte,COALESCE(AktZeit - INTERVAL 0 DAY,CONVERT('18991230',DATE)) AktZeit,COALESCE(lanrid,0) lanrid,COALESCE(Zusatzdaten,'') Zusatzdaten" & _
-",COALESCE(Druckdatum - INTERVAL 0 DAY,CONVERT('18991230',DATE)) Druckdatum,COALESCE(uDat - INTERVAL 0 DAY,CONVERT('18991230',DATE)) uDat,COALESCE(eGFR,0) eGFR FROM `dmpreihe` WHERE Pat_ID=" & pid & " ORDER BY `Dokudatum`
+ sql = "SELECT COALESCE(Abk,'') Abk,COALESCE(DMPArt,0) DMPArt,COALESCE(Art,'') Art,COALESCE(KarteiDatum - INTERVAL 0 DAY,CONVERT('18991230',DATE)) KarteiDatum" & _
+",COALESCE(exportiert - INTERVAL 0 DAY,CONVERT('18991230',DATE)) exportiert,COALESCE(DokuDatum - INTERVAL 0 DAY,CONVERT('18991230',DATE)) DokuDatum,COALESCE(obvoll,0) obvoll,COALESCE(ok,0) ok" & _
+",COALESCE(ausgedruckt,0) ausgedruckt,COALESCE(NachName,'') NachName,COALESCE(VorName,'') VorName,COALESCE(GebDat - INTERVAL 0 DAY,CONVERT('18991230',DATE)) GebDat" & _
+",COALESCE(Pat_id,0) Pat_id,COALESCE(StByte,0) StByte,COALESCE(AktZeit - INTERVAL 0 DAY,CONVERT('18991230',DATE)) AktZeit,COALESCE(lanrid,0) lanrid" & _
+",COALESCE(Zusatzdaten,'') Zusatzdaten,COALESCE(Druckdatum - INTERVAL 0 DAY,CONVERT('18991230',DATE)) Druckdatum,COALESCE(uDat - INTERVAL 0 DAY,CONVERT('18991230',DATE)) uDat,COALESCE(eGFR,0) eGFR" & _
+" FROM `dmpreihe` WHERE Pat_ID=" & pid & " ORDER BY `Dokudatum`
  myFrag rs, sql
  If rs.EOF Then
   ReDim roDm(0)
@@ -8103,6 +8112,7 @@ Public FUNCTION dmpreiheLaden()
   Do While Not rs.EOF
    akt = UBound(roDm)
    roDm(akt).Abk = doUmwfSQL(rs!Abk, lies.obMySQL, False)
+   roDm(akt).DMPArt = rs!DMPArt
    roDm(akt).Art = doUmwfSQL(rs!Art, lies.obMySQL, False)
    roDm(akt).KarteiDatum = rs!KarteiDatum
    roDm(akt).exportiert = rs!exportiert
@@ -8188,6 +8198,7 @@ Public FUNCTION rDmDump()
  For i = 1 To UBound(rDm)
   Print #200, vbCrLf & "i: " & i
   Print #200, Left$("rDm(" & i & ").Abk:" & String$(33, "."), 33) & "'" & rDm(i).Abk & "'"
+  Print #200, Left$("rDm(" & i & ").DMPArt:" & String$(33, "."), 33) & rDm(i).DMPArt
   Print #200, Left$("rDm(" & i & ").Art:" & String$(33, "."), 33) & "'" & rDm(i).Art & "'"
   Print #200, Left$("rDm(" & i & ").KarteiDatum:" & String$(33, "."), 33) & rDm(i).KarteiDatum
   Print #200, Left$("rDm(" & i & ").exportiert:" & String$(33, "."), 33) & rDm(i).exportiert
@@ -8220,9 +8231,9 @@ Public FUNCTION dmpreiheSpeichern(SammelInsert%, BezfSp%, Optional rAf&, Optiona
  Pid = rNa(0).Pat_id
  On Error GoTo fehler
  syscmd 4, pid & ": Speichere " & Ubound(rDm)+0 & " Sätze in `" & tbnm & "`"
- Call csql0.AppVar(Array(" INSERT ", sqlIgnore, "INTO `" & LCase$(tbnm) & "` (Abk,Art,KarteiDatum," & _
-     "exportiert,DokuDatum,obvoll,ok,ausgedruckt,NachName,VorName,GebDat,Pat_id,StByte," & _
-     "AktZeit,lanrid,Zusatzdaten,Druckdatum,uDat,eGFR)   VALUES"))
+ Call csql0.AppVar(Array(" INSERT ", sqlIgnore, "INTO `" & LCase$(tbnm) & "` (Abk,DMPArt,Art," & _
+     "KarteiDatum,exportiert,DokuDatum,obvoll,ok,ausgedruckt,NachName,VorName,GebDat,Pat_id," & _
+     "StByte,AktZeit,lanrid,Zusatzdaten,Druckdatum,uDat,eGFR)          VALUES"))
  IF NOT Allepat THEN
    sql = "DELETE FROM `" & LCase$(tbnm) & "` WHERE Pat_ID = " & CStr(rNa(0).Pat_ID)
    Call myEFrag(sql)
@@ -8235,9 +8246,9 @@ setz:
   IF SammelInsert = 0 Or i = 1 Then
    csql.Append csql0
   End If ' SammelInsert = 0 Or i = 1 Then
-  csql.AppVar Array("('" , rDm(i).Abk, "','" , rDm(i).Art, "'," , DatFor_k(rDm(i).KarteiDatum), "," , DatFor_k(rDm(i).exportiert), "," , DatFor_k(rDm(i).DokuDatum), "," , cstr(-(rDm(i).obvoll<>0)) , "," , cstr(-( _
-   rDm(i).ok<>0)) , "," , cstr(-(rDm(i).ausgedruckt<>0)) , ",'" , rDm(i).NachName, "','" , rDm(i).VorName, "'," , DatFor_k(rDm(i).GebDat), "," , rDm(i).Pat_id, "," , rDm(i).StByte, "," , DatFor_k(rDm(i).AktZeit), "," ,  _
-   rDm(i).lanrid, ",'" , rDm(i).Zusatzdaten, "'," , DatFor_k(rDm(i).Druckdatum), "," , DatFor_k(rDm(i).uDat), "," , rDm(i).eGFR, ")")
+  csql.AppVar Array("('" , rDm(i).Abk, "'," , rDm(i).DMPArt, ",'" , rDm(i).Art, "'," , DatFor_k(rDm(i).KarteiDatum), "," , DatFor_k(rDm(i).exportiert), "," , DatFor_k(rDm(i).DokuDatum), "," , cstr(-(rDm(i).obvoll<>0)) , "," , cstr(-( _
+   rDm(i).ok<>0)) , "," , cstr(-(rDm(i).ausgedruckt<>0)) , ",'" , rDm(i).NachName, "','" , rDm(i).VorName, "'," , DatFor_k(rDm(i).GebDat), "," , rDm(i).Pat_id, "," , rDm(i).StByte, "," , DatFor_k( _
+   rDm(i).AktZeit), "," , rDm(i).lanrid, ",'" , rDm(i).Zusatzdaten, "'," , DatFor_k(rDm(i).Druckdatum), "," , DatFor_k(rDm(i).uDat), "," , rDm(i).eGFR, ")")
   IF SammelInsert <> 0 AND i < ubound(rDm) Then csql.Append ","
   IF SammelInsert = 0 OR i = ubound(rDm) Then
     altmode = myEFrag("SELECT @@global.sql_mode", , DBCn).Fields(0)

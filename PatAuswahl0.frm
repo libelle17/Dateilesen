@@ -217,7 +217,7 @@ Begin VB.Form PatAuswahl
       Width           =   375
    End
    Begin VB.Label ZeilenzahlL 
-      Caption         =   "&Zeilen"
+      Caption         =   "Zeilen"
       Height          =   255
       Left            =   7200
       TabIndex        =   29

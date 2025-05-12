@@ -208,6 +208,45 @@ Begin VB.Form PatListe
       _Band(0).Cols   =   2
    End
    Begin VB.Label ErklärungLbl 
+      BackColor       =   &H000080FF&
+      Caption         =   "DMP unbek"
+      Height          =   255
+      Index           =   13
+      Left            =   18195
+      TabIndex        =   41
+      Top             =   2760
+      Width           =   1695
+   End
+   Begin VB.Label ErklärungLbl 
+      BackColor       =   &H008080FF&
+      Caption         =   "fertig"
+      Height          =   255
+      Index           =   12
+      Left            =   18195
+      TabIndex        =   40
+      Top             =   2520
+      Width           =   1695
+   End
+   Begin VB.Label ErklärungLbl 
+      BackColor       =   &H008080FF&
+      Caption         =   "in DMP_Import.BDT"
+      Height          =   255
+      Index           =   11
+      Left            =   18195
+      TabIndex        =   39
+      Top             =   840
+      Width           =   1700
+   End
+   Begin VB.Label SpalteLbl 
+      Caption         =   "Lfdnr-Spalte"
+      Height          =   255
+      Index           =   4
+      Left            =   18195
+      TabIndex        =   38
+      Top             =   600
+      Width           =   975
+   End
+   Begin VB.Label ErklärungLbl 
       BackColor       =   &H00FFFFFF&
       Caption         =   "tot"
       Height          =   255
@@ -224,7 +263,7 @@ Begin VB.Form PatListe
       Index           =   9
       Left            =   18195
       TabIndex        =   35
-      Top             =   1320
+      Top             =   2040
       Width           =   855
    End
    Begin VB.Label ErklärungLbl 
@@ -234,7 +273,7 @@ Begin VB.Form PatListe
       Index           =   8
       Left            =   18195
       TabIndex        =   34
-      Top             =   1080
+      Top             =   1800
       Width           =   855
    End
    Begin VB.Label SpalteLbl 
@@ -243,7 +282,7 @@ Begin VB.Form PatListe
       Index           =   3
       Left            =   18195
       TabIndex        =   32
-      Top             =   3840
+      Top             =   4680
       Width           =   975
    End
    Begin VB.Label SpalteLbl 
@@ -252,7 +291,7 @@ Begin VB.Form PatListe
       Index           =   2
       Left            =   18195
       TabIndex        =   31
-      Top             =   3120
+      Top             =   4080
       Width           =   1575
    End
    Begin VB.Label SpalteLbl 
@@ -261,16 +300,16 @@ Begin VB.Form PatListe
       Index           =   1
       Left            =   18195
       TabIndex        =   30
-      Top             =   2280
+      Top             =   3480
       Width           =   975
    End
    Begin VB.Label SpalteLbl 
-      Caption         =   "Nachn'-Spalte"
+      Caption         =   "PID/Nachn'-Spalte"
       Height          =   255
       Index           =   0
       Left            =   18195
       TabIndex        =   29
-      Top             =   600
+      Top             =   1320
       Width           =   975
    End
    Begin VB.Label ErklärungLbl 
@@ -280,7 +319,7 @@ Begin VB.Form PatListe
       Index           =   7
       Left            =   18195
       TabIndex        =   28
-      Top             =   4680
+      Top             =   5360
       Width           =   1335
    End
    Begin VB.Label ErklärungLbl 
@@ -290,7 +329,7 @@ Begin VB.Form PatListe
       Index           =   6
       Left            =   18195
       TabIndex        =   27
-      Top             =   4440
+      Top             =   5160
       Width           =   855
    End
    Begin VB.Label ErklärungLbl 
@@ -300,7 +339,7 @@ Begin VB.Form PatListe
       Index           =   5
       Left            =   18195
       TabIndex        =   26
-      Top             =   4200
+      Top             =   4920
       Width           =   1335
    End
    Begin VB.Label ErklärungLbl 
@@ -310,7 +349,7 @@ Begin VB.Form PatListe
       Index           =   4
       Left            =   18195
       TabIndex        =   25
-      Top             =   3360
+      Top             =   4320
       Width           =   855
    End
    Begin VB.Label ErklärungLbl 
@@ -320,7 +359,7 @@ Begin VB.Form PatListe
       Index           =   3
       Left            =   18195
       TabIndex        =   24
-      Top             =   2520
+      Top             =   3720
       Width           =   855
    End
    Begin VB.Label ErklärungLbl 
@@ -330,7 +369,7 @@ Begin VB.Form PatListe
       Index           =   2
       Left            =   18195
       TabIndex        =   23
-      Top             =   1800
+      Top             =   3000
       Width           =   855
    End
    Begin VB.Label ErklärungLbl 
@@ -340,7 +379,7 @@ Begin VB.Form PatListe
       Index           =   1
       Left            =   18195
       TabIndex        =   22
-      Top             =   1560
+      Top             =   2280
       Width           =   855
    End
    Begin VB.Label ErklärungLbl 
@@ -350,7 +389,7 @@ Begin VB.Form PatListe
       Index           =   0
       Left            =   18195
       TabIndex        =   21
-      Top             =   840
+      Top             =   1560
       Width           =   855
    End
    Begin VB.Label Label1 
@@ -1414,8 +1453,9 @@ Nächster:
  End If
 End Sub ' zurück
 
+' in command1_click und doFS
 Private Sub htmlb(Optional obStumm%) ' HTML-Dateien bewahren
-  Dim TempDir$, erg$, UnterVerz$(), vz, lin$, lina$, dmpArt$, NN$, VN$, Geb$, aktdat$, Zahl&
+  Dim TempDir$, erg$, UnterVerz$(), vz, lin$, lina$, DMPArt$, NN$, VN$, Geb$, aktdat$, Zahl&
   Dim Ziel$
   FNr = 14
   Ziel$ = pVerz
@@ -1438,7 +1478,7 @@ Private Sub htmlb(Optional obStumm%) ' HTML-Dateien bewahren
     If LenB(erg) = 0 Then Exit Do
     If InStrB(erg, ".html") <> 0 Then
      lina = vNS
-     dmpArt = vNS
+     DMPArt = vNS
      NN = vNS
      VN = vNS
      Geb = vNS
@@ -1448,9 +1488,9 @@ Private Sub htmlb(Optional obStumm%) ' HTML-Dateien bewahren
       lina = lin
       Input #329, lin
       If InStrB(lina, """DMP-Header""") <> 0 Then
-       dmpArt = lin
-       dmpArt = Mid$(dmpArt, InStr(dmpArt, "<h1>") + 4)
-       dmpArt = Left$(dmpArt, InStr(dmpArt, "</h1>") - 1)
+       DMPArt = lin
+       DMPArt = Mid$(DMPArt, InStr(DMPArt, "<h1>") + 4)
+       DMPArt = Left$(DMPArt, InStr(DMPArt, "</h1>") - 1)
       ElseIf InStrB(lina, "Vorname") <> 0 Then
        NN = lin
        NN = Mid$(NN, InStr(NN, "<div class=""header_value"">") + Len("<div class=""header_value"">"))
@@ -1465,9 +1505,9 @@ Private Sub htmlb(Optional obStumm%) ' HTML-Dateien bewahren
      Loop
      Close #329
      On Error Resume Next
-     Kill Ziel & NN & ", geb. " & Geb & ", DMP-" & dmpArt & ".html"
+     Kill Ziel & NN & ", geb. " & Geb & ", DMP-" & DMPArt & ".html"
      On Error GoTo fehler
-     FileCopy aktdat, Ziel & NN & ", geb. " & Geb & ", DMP-" & dmpArt & ".html"
+     FileCopy aktdat, Ziel & NN & ", geb. " & Geb & ", DMP-" & DMPArt & ".html"
      Zahl = Zahl + 1
      Kill aktdat
 '     Debug.Print erg & " " & dmpArt & " " & NN & " " & Geb
@@ -3850,11 +3890,11 @@ Private Sub Form_Load()
  Dim sql$, i%, erg$, j&, gehezu&, rAf&, pid$, BhFB As Date, dmpklass As DMPEnum, Tkz%
 ' #Const obpcol = True
  Dim d$, dokus$()
-#If obpcol Then
- Dim pCol As New Collection
-#Else
+'#If obpcol Then
+' Dim pCol As New Collection
+'#Else
  Dim psl As New SortierListe, pstr As SortierString
-#End If
+'#End If
  
 ' syscmd 4, "bitte ca. 10 Sekunden warten ..."
  Me.WindowState = vbMaximized
@@ -4039,7 +4079,7 @@ Private Sub Form_Load()
     ' sql = "SELECT n.*, icd, kurzname FROM `namen` n LEFT JOIN `diagnosen` d ON n.pat_id = d.pat_id LEFT JOIN lfaelle f ON n.pat_id = f.pat_id LEFT JOIN `kassenliste` k ON k.ik = f.ik AND k.vknr = f.vknr WHERE notiz LIKE '%DMP hier%' AND (icd LIKE 'E1%' AND NOT icd LIKE 'E15%' AND NOT icd LIKE 'E16%') AND diagsicherheit NOT IN ('Z','A') AND kurzname LIKE 'AOK%' ORDER BY n.pat_id"
 '     sql = "SELECT f.bhfb, dmpbeg AS notiz, dmpklass, tkz, n.pat_id, n.nachname, n.vorname, icd, kurzname FROM `namen` n LEFT JOIN `diagnosen` d ON n.pat_id = d.pat_id AND icd RLIKE '^E1[0-4]' AND diagsicherheit NOT IN ('Z','A') LEFT JOIN (SELECT f.pat_id, f.fid, f.schgr, f.bhfb, f.ik, f.vknr, f.quartal FROM (SELECT * FROM (SELECT BhFB AS mbhfb, bhfe1, Pat_ID AS pid, quartal FROM `faelle` f WHERE bhfb < " & DatFor_k(min(NOW(), qend(ZQuart(NOW() - Verspätung)))) & " ORDER BY pid, bhfb DESC) l GROUP BY pid DESC) l LEFT JOIN `faelle` f ON f.pat_id = l.pid AND f.bhfb = l.mbhfb GROUP BY pat_id) f ON n.pat_id = f.pat_id LEFT JOIN `anamnesebogen` a ON n.pat_id = a.pat_id LEFT JOIN `kassenliste` k ON k.ik = f.ik AND k.vknr = f.vknr WHERE (notiz LIKE '%DMP hier%' OR dmpklass = 3) AND NOT ISNULL (f.bhfb) GROUP BY n.pat_id ORDER BY n.pat_id"
 ' ' AND COALESCE(d.Dggel,0)=0
- Me.WindowState = vbMinimized
+     Me.WindowState = vbMinimized
 ' , STR_TO_DATE(MID(inhalt,LOCATE(':',inhalt)+2),'%d.%m.%Y') sterd
 '      "HAVING sterd IS NULL OR sterd>qbeg(NOW() - INTERVAL 21 DAY)" & vbCrLf
 '#Const aufzwei = 1
@@ -4069,20 +4109,20 @@ Private Sub Form_Load()
       "   SELECT n.pat_id, qbeg(MAX(dokudatum) OVER(PARTITION BY pat_id)) qb" & vbCrLf & _
       "   ,COALESCE(MIN(art) OVER(PARTITION BY pat_id)='ED',0) oberst" & vbCrLf & _
       "   ,f.bhfb, dmpbeg notiz, dmpklass, dr.dokudatum, ROW_NUMBER() OVER(PARTITION BY dr.pat_id ORDER BY dr.dokudatum DESC) rn" & vbCrLf & _
-      "   ,a.tkz, n.nachname, n.vorname, d.icd, k.kurzname,dr.art,dr.ok,dr.exportiert,n.SDatum" & vbCrLf & _
+      "   ,n.inaktiv=1 tkz, n.nachname, n.vorname, d.icd, k.kurzname,dr.art,dr.ok,dr.exportiert,n.SDatum, dr.dmpart" & vbCrLf & _
       "   FROM `namen` n" & vbCrLf & _
       "   LEFT JOIN `diagview` d ON n.pat_id = d.pat_id AND gicd RLIKE '^E1[0-4]'" & vbCrLf & _
       "   LEFT JOIN `faelle` f ON f.pat_id = n.pat_id AND bhfb = (SELECT MAX(bhfb) FROM `faelle` WHERE pat_id = n.pat_id AND bhfb < qende(NOW() - INTERVAL " & Verspätung & " DAY))" & vbCrLf & _
-      "   LEFT JOIN `anamnesebogen` a ON n.pat_id = a.pat_id" & vbCrLf & _
       "   LEFT JOIN `kassenliste` k ON k.ik = f.ik AND k.vknr = f.vknr" & vbCrLf
       If Me.ohneTermine Then sql = sql & "   LEFT JOIN termine t ON t.pid = n.pat_id AND DATE(t.zp) BETWEEN NOW() AND qende(NOW()) " & vbCrLf
       sql = sql & _
-      "   LEFT JOIN dmpreihe dr ON dr.Pat_id=n.pat_id AND dr.Abk  RLIKE '^(eDMPDM|DMPDTYP)'" & vbCrLf & _
-      "   WHERE (/*notiz LIKE '%DMP hier%' OR */dmpklass = 3) AND NOT ISNULL (f.bhfb)" & vbCrLf & _
+      "   LEFT JOIN dmpreihe dr ON dr.Pat_id=n.pat_id AND dr.dmpart<>0 -- dr.Abk  RLIKE '^(eDMPDM|DMPD(TYP|M2)|(Erst|Verlaufs)-Dokumentation Diabetes)'" & vbCrLf & _
+      "   WHERE (/*notiz LIKE '%DMP hier%' OR */dmpklass <> 2) AND NOT ISNULL (f.bhfb)" & vbCrLf & _
       "     AND (SDatum IS NULL OR SDatum=18991230 OR SDatum>qbeg(qbeg(NOW() - INTERVAL " & Verspätung & " DAY)- INTERVAL 1 DAY))" & vbCrLf & _
-      "     AND NOT (f.bhfb<qbeg(qbeg(NOW() - INTERVAL " & Verspätung & " DAY)- INTERVAL 1 DAY) AND tkz)" & vbCrLf & _
+      "     AND NOT (f.bhfb<qbeg(qbeg(NOW() - INTERVAL " & Verspätung & " DAY)- INTERVAL 1 DAY) AND inaktiv=1)" & vbCrLf & _
       "     AND (" & CStr(Lese.pidoffs) & "=0 OR n.pat_id<" & Lese.pidoffs & ")" & vbCrLf & _
       "     AND bhfb> NOW() - INTERVAL 387 DAY" & vbCrLf & _
+      "     AND schgr<>90 " & vbCrLf & _
       "  ) i" & vbCrLf & _
       "  WHERE rn<" & dokuzahl + 1 & vbCrLf & _
       " ) i" & vbCrLf & _
@@ -4090,6 +4130,12 @@ Private Sub Form_Load()
       ") i" & vbCrLf & _
       "ORDER BY pat_id"
 #End If
+' 11.5.25: bei dmpreihe bleiben noch: abk RLIKE '^(DMP Teilnahmeerklärung|DMP(KHK)|EDMP(AB|COPD|KHK)|(Erst|Verlaufs)-Dokumentation (COPD|koronare|Asthma|Brustkrebs|Chronische(r Rückenschmerz| Herzinsuffizienz)))'
+'      "     AND n.pat_id IN (64367,64371,64477,64488) OR n.pat_id between 59986 and 60000" & vbCrLf & _
+      "     AND n.pat_id between 63267 and 64000" & vbCrLf & _
+
+'      "   LEFT JOIN `anamnesebogen` a ON n.pat_id = a.pat_id" & vbCrLf & _
+
      With MFG
 '     myFrag rDPat, "SELECT COUNT(0) FROM (" & sql & ") AS innen", adOpenStatic, DBCn, adLockReadOnly
 '     .Rows = rDPat.Fields(0) + 2
@@ -4101,64 +4147,70 @@ Private Sub Form_Load()
      .Rows = rDPat!Zahl + 2
      Do While Not rDPat.EOF
       pid = rDPat!Pat_ID
+'      If pid = 64488 Then Stop
       BhFB = rDPat!BhFB
       dmpklass = rDPat!dmpklass
-      On Error Resume Next
+'      On Error Resume Next
       Tkz = rDPat!Tkz
-      On Error GoTo fehler
+'      On Error GoTo fehler
       .col = DNrSp
   '   IF rDPat!Pat_id = 2901 THEN Stop
 '      IF obhierdmp(rDPat!Notiz) AND rDPat!Tkz = 0 THEN cbcol = dunkelrosa ELSE cbcol = vbWhite
+      cbcol = 0
       If Tkz <> 0 Then
        cbcol = vbWhite ' tot
-      ElseIf dmpklass = hier Then
+      ElseIf dmpklass = hier Or dmpklass = ausg Or dmpklass = nein Then
        cbcol = DunkelRosa ' DMP hier
-      Else
+      ElseIf rDPat!DMPArt < 1 Or rDPat!DMPArt > 2 Then
        cbcol = vbCyan ' and.DMP
+      ElseIf dmpklass = unb Then
+       cbcol = Orange ' DMP HA, unbek usw.
+      Else
+       Stop
       End If
       .Text = lfdnr
       .CellBackColor = vbWhite
 ' in der ersten Spalte die schon exportierten färben
-#If obpcol Then
-      For k = 1 To pCol.COUNT
-       If pCol.Item(k) = pid Then
-        .CellBackColor = DunkelRosa
-        If cbcol = DunkelRosa Then gehezu = .Row
-        Exit For
-       End If
-      Next k
-#Else
+'#If obpcol Then
+'      For k = 1 To pCol.COUNT
+'       If pCol.Item(k) = pid Then
+'        .CellBackColor = DunkelRosa
+'        If cbcol = DunkelRosa Then gehezu = .Row
+'        Exit For
+'       End If
+'      Next k
+'#Else
       Set pstr = New SortierString
       pstr.Stri = pid
       If psl.SuchItem(pstr) Then
         .CellBackColor = DunkelRosa
         If cbcol = DunkelRosa Then gehezu = .Row
       End If
-#End If
+'#End If
       If GruSp = 0 Then GruSp = .col
    '   .CellBackColor = cbcol
       lfdnr = lfdnr + 1
       .col = .col + 1
       If PIDSp = 0 Then PIDSp = .col
       .Text = pid
-      .CellBackColor = cbcol
+      .CellBackColor = cbcol ' 10790143 = dunkelrosa
       .col = .col + 1
       If NachNameSp = 0 Then NachNameSp = .col
-      .Text = rDPat!Nachname
-      If cbcol <> vbWhite And cbcol <> DunkelRosa And cbcol <> vbCyan Then Stop
-      .CellBackColor = cbcol
+      If Tkz Then .Text = rDPat!Nachname & " (+ " & Format(rDPat!SDatum, "d.m.yy") & ")" Else .Text = rDPat!Nachname
+'      If cbcol <> vbWhite And cbcol <> DunkelRosa And cbcol <> vbCyan Then Stop
+      .CellBackColor = cbcol ' 10790143 = dunkelrosa
       .col = .col + 1
       .Text = rDPat!Vorname
       .CellBackColor = cbcol
       .col = .col + 1
       .Text = IIf(IsNull(rDPat!kurzname), vNS, rDPat!kurzname)
-      .CellBackColor = cbcol
+      .CellBackColor = cbcol ' 10790143 = dunkelrosa
       
       .col = .col + 1
       If ICDSp = 0 Then ICDSp = .col
       .Text = IIf(IsNull(rDPat!ICD), "!-!", rDPat!ICD)
       .CellBackColor = IIf(rDPat!ICD Like "E11*", cbcol, vbYellow)
-      
+'GoTo weiter
       .col = .col + 1
 '      If IsNull(rDPat!notiz) Then
 '       .Text = vNS
@@ -4176,52 +4228,55 @@ Private Sub Form_Load()
       obrot = 0
       obhellrot = 0
       oberst = 0
-#If aufzwei Then
-'      rDok.Open "SELECT `DokuDatum`, `Art`, `ausgedruckt`, `OK`, `exportiert` FROM `dmpreihe` dr WHERE pat_id = " & pid & " AND (dr.Abk LIKE 'eDMPDM%' OR dr.Abk LIKE 'DMPDTYP%') ORDER BY `DokuDatum` DESC", DBCn, adOpenDynamic, adLockReadOnly
-      myFrag rDok, "SELECT `DokuDatum`, `Art`, `ausgedruckt`, `OK`, `exportiert` FROM `dmpreihe` dr WHERE pat_id = " & pid & " AND (dr.Abk LIKE 'eDMPDM%' OR dr.Abk LIKE 'DMPDTYP%') ORDER BY `DokuDatum` DESC", adOpenStatic, DBCn, adLockReadOnly
-      If Not rDok.BOF Then
-       begcol = .col + 1
-       If ZQSort(Now() - 210) > ZQSort(rDok!DokuDatum) Then ' Now() - rDok!DokuDatum > 120 THEN ' 21. des übernä Monats
-        obraus = True
-        begcol = begcol + 1
-       End If
-       If ZQuart(Now() - Verspätung) <> ZQuart(rDok!DokuDatum) Then
-        begcol = begcol + 1
-        If Not obraus And ZQuart(BhFB) = ZQuart(Now() - Verspätung) Then ' 2.Bedingung eingefügt: 31.12.15
-         obrot = True
-'         .toolTipText = ZQuart(rDok!DokuDatum) & " <> " & ZQuart(Now() - Verspätung) & " (falsches Quartal)"
-        End If
-       End If
-       For j = begcol To .cols - 1
-        If rDok.EOF Then Exit For
-        .col = j
-        If VorDokuSp = 0 Then VorDokuSp = .col
-        .Text = rDok!art & " " & Format(rDok!DokuDatum, "dd.mm.yy")
-        If rDok!Ok And rDok!ausgedruckt Then
-         .Text = .Text & " ok"
-        ElseIf j = begcol And Not obraus And ZQuart(BhFB) = ZQuart(Now() - Verspätung) Then ' letzte Bedingungen eingefügt 31.12.15
-'         .toolTipText = "Doku fehlt"
-         obrot = True ' Wenn Pat. rausgeflogen, dann fehlt auch aktuelle Erstdoku
-        End If
-        If rDok!exportiert <> 0 Then
-         .Text = .Text & " ex"
-         If rDok!art = "ED" Then .CellBackColor = Blau Else .CellBackColor = vbGelblichGrau ' blau / grau
-        Else
-         If rDok!art = "ED" Then .CellBackColor = HellBlau
-        End If
-        If rDok!art = "ED" Then oberst = True
-        rDok.Move 1
-       Next j
-       Do While Not rDok.EOF
-        If rDok!art = "ED" Then oberst = True
-        rDok.Move 1
-       Loop ' While Not rDok.EOF
-      End If ' not rdok!bof
-      Set rDok = Nothing
-#Else
+' GoTo weiter
+'#If aufzwei Then
+''      rDok.Open "SELECT `DokuDatum`, `Art`, `ausgedruckt`, `OK`, `exportiert` FROM `dmpreihe` dr WHERE pat_id = " & pid & " AND (dr.Abk LIKE 'eDMPDM%' OR dr.Abk LIKE 'DMPDTYP%') ORDER BY `DokuDatum` DESC", DBCn, adOpenDynamic, adLockReadOnly
+'      myFrag rDok, "SELECT `DokuDatum`, `Art`, `ausgedruckt`, `OK`, `exportiert` FROM `dmpreihe` dr WHERE pat_id = " & pid & " AND (dr.Abk LIKE 'eDMPDM%' OR dr.Abk LIKE 'DMPDTYP%') ORDER BY `DokuDatum` DESC", adOpenStatic, DBCn, adLockReadOnly
+'      If Not rDok.BOF Then
+'       begcol = .col + 1
+'       If ZQSort(Now() - 210) > ZQSort(rDok!DokuDatum) Then ' Now() - rDok!DokuDatum > 120 THEN ' 21. des übernä Monats
+'        obraus = True
+'        begcol = begcol + 1
+'       End If
+'       If ZQuart(Now() - Verspätung) <> ZQuart(rDok!DokuDatum) Then
+'        begcol = begcol + 1
+'        If Not obraus And ZQuart(BhFB) = ZQuart(Now() - Verspätung) Then ' 2.Bedingung eingefügt: 31.12.15
+'         obrot = True
+''         .toolTipText = ZQuart(rDok!DokuDatum) & " <> " & ZQuart(Now() - Verspätung) & " (falsches Quartal)"
+'        End If
+'       End If
+'       For j = begcol To .cols - 1
+'        If rDok.EOF Then Exit For
+'        .col = j
+'        If VorDokuSp = 0 Then VorDokuSp = .col
+'        .Text = rDok!art & " " & Format(rDok!DokuDatum, "dd.mm.yy")
+'        If rDok!Ok And rDok!ausgedruckt Then
+'         .Text = .Text & " ok"
+'        ElseIf j = begcol And Not obraus And ZQuart(BhFB) = ZQuart(Now() - Verspätung) Then ' letzte Bedingungen eingefügt 31.12.15
+''         .toolTipText = "Doku fehlt"
+'         obrot = True ' Wenn Pat. rausgeflogen, dann fehlt auch aktuelle Erstdoku
+'        End If
+'        If rDok!exportiert <> 0 Then
+'         .Text = .Text & " ex"
+'         If rDok!art = "ED" Then .CellBackColor = Blau Else .CellBackColor = vbGelblichGrau ' blau / grau
+'        Else
+'         If rDok!art = "ED" Then .CellBackColor = HellBlau
+'        End If
+'        If rDok!art = "ED" Then oberst = True
+'        rDok.Move 1
+'       Next j
+'       Do While Not rDok.EOF
+'        If rDok!art = "ED" Then oberst = True
+'        rDok.Move 1
+'       Loop ' While Not rDok.EOF
+'      End If ' not rdok!bof
+'      Set rDok = Nothing
+'#Else
       dokus = Split(rDPat!dokus, ",")
       oberst = rDPat!oberst
-      obraus = False
+      On Error Resume Next ' 67366
+      obraus = (rDPat!DMPArt = ausg)
+      On Error GoTo fehler
       If dokus(0) = "" Then If dokus(1) = "" Then If dokus(2) = "" Then obraus = True ' 10.12.24: erweitert um dokus(2), da Pat. erst im übernächsten Quartal rausfliegen
       begcol = .col + 1
 '      If pid = 2169 Then Stop ' 926 Or pid = 2652 Then Stop
@@ -4248,7 +4303,7 @@ Private Sub Form_Load()
         If obed Then .CellBackColor = HellBlau
        End If
       Next j
-#End If
+'#End If
       ' not obraus and
       If obraus Then ' wieder reduziert 4.10.24
 '      Or (oberst = 0 And ZQuart(BhFB) = ZQuart(Now() - Verspätung)) Then ' letzte Bedingung eingefügt 31.12.15
@@ -4257,12 +4312,14 @@ Private Sub Form_Load()
        obhellrot = True
        obrot = False
       End If ' obraus then
+'GoTo weiter
       If (obrot Or obhellrot) And (Tkz = 0 Or ZQuart(BhFB) >= ZQuart(Now() - Verspätung)) Then '  And dmpklass = hier And Tkz = 0 Then
        For j = NachNameSp To NachNameSp + 2 * -(ZQuart(BhFB) >= ZQuart(Now() - Verspätung)) ' Nachname, Vorname, Kasse
         .col = j
         If obrot Then .CellBackColor = DunkelRot Else .CellBackColor = HellRot
        Next j
       End If ' (obrot Or obhellrot) And
+weiter:
       .Row = .Row + 1
       rDPat.Move 1
      Loop ' While Not rDPat.EOF
@@ -4556,11 +4613,14 @@ Public Sub MFG_Click()
        GesColl.Add Me.MFG.Text
     End If
     Me.Command1(14).Caption = Me.GesZl & " &Ges"
+    waehleinMO (Me.MFG.TextMatrix(cRowSel(MFGTyp), ccol(MFGTyp)))
    End If ' Me.MFG.col = zahlcol Then
   Case artlab
    If IsNumeric(Me.MFG.TextMatrix(Me.MFG.MouseRow, Pat_IDSp)) Then
     Select Case Me.MFG.MouseCol
-     Case 0: Call FertigStellen(Me.MFG.MouseRow, True) ' in Turbomed anzeigen
+     Case 0:
+'       Call FertigStellen(Me.MFG.MouseRow, True) ' in Turbomed anzeigen
+        waehleinMO (Me.MFG.TextMatrix(Me.MFG.MouseRow, Pat_IDSp))
      Case 1: Call dodoplz(Me.MFG.TextMatrix(Me.MFG.MouseRow, Pat_IDSp), plzVz, Now, Now - Int(Now), True, , , True)
     End Select
    End If
@@ -4630,6 +4690,61 @@ fehler:
  End Select
  Exit Sub
 End Sub ' MFG_Click
+
+' geht zumindest mit ausgeschalteter Benutzerkontensteuerung oft
+' "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System"
+' => Doppelklicken Sie auf den Eintrag "EnableLUA". Ändern Sie den Wert auf "0". Starten Sie Ihren PC neu.
+Public Function waehleinMO(Pat_ID&)
+    Dim hnd&, j&, k&, i%
+    Debug.Print "Lade '" & Pat_ID & "'"
+    hnd = FensterHandle("Medical Office - Zentrale")
+    If hnd <> 0 Then
+      Shell "c:\indamed\medoff.exe"
+      Pause 2000
+      hnd = FensterHandle("Medical Office - Zentrale")
+    End If
+    If hnd <> 0 Then
+     AppActivate "Medical Office - Zentrale", True
+     If Err.Number <> 0 Then Exit Function
+     Pausenlänge = 10
+     For j = 600 To 600 Step 100
+      For k = 0 To 0 Step 10
+       Mausklick 0, j, k ' Screen.Width / 2, Screen.Height / 2
+       Mausklick vbLeftButton, j, k ' Screen.Width / 2, Screen.Height / 2
+'       MsgBox "j: " & j & " k: " & k
+'       AppActivate "Medical Office - Zentrale", True
+       Pause (Pausenlänge)
+      Next k
+     Next j
+     DoEvents
+     ' SendK VK_F4
+     Sendkeys "{F4}", False
+     DoEvents
+     Pause (Pausenlänge)
+     Sendkeys Pat_ID, False
+'     For i = 1 To Len(CStr(Pat_ID))
+'      SendK Mid(CStr(Pat_ID), i, 1)
+'     Next i
+     Pause (Pausenlänge)
+     DoEvents
+'     SendK vk_return
+     Sendkeys "{ENTER}", False
+     DoEvents
+     Pause (Pausenlänge)
+'     SendK vk_return '
+     Sendkeys "{ENTER}", False
+    End If
+End Function ' waehleinmo
+
+#If gehtnichtgut Then
+Public Sub SendKey(Text As Variant, Optional wait As Boolean = False)
+   Dim WshShell As Object
+   Set WshShell = CreateObject("wscript.shell")
+   WshShell.Sendkeys CStr(Text), wait
+   Set WshShell = Nothing
+End Sub ' Sendkeys(text As Variant, Optional wait As Boolean = False)
+#End If ' gehtnichtgut
+
 
 Public Sub mfg_entercell()
  FNr = 24
