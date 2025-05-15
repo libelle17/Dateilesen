@@ -3530,7 +3530,7 @@ End Sub ' tobhier
 Sub obhierdmpfn(notiz$, NZNr&, dmpklass As DMPEnum, dmpbeg As Date, Optional dmpkhkklass&, Optional dmpkhkbeg As Date, Optional dmpcopdklass&, Optional dmpcopdbeg As Date, Optional dmpabklass&, Optional dmpabbeg As Date, Optional HzV&, Optional HzVbeg As Date, Optional DS&, Optional DSbeg As Date)
  Dim buch$, pos%, testd As Date, i%, notdat$(), ndRichtig%() ' letztes wahr, wenn notdat-Zeile für DMP verwertbar oder irrelevant
  Dim maxdHier(3) As Date, maxdHA(3) As Date, maxdNein(3) As Date, maxdAus(3) As Date
- Dim dmpArt% ' 0 = Diabetes, 1 = KHK, 2 = COPD, 3 = Asthma bronchiale
+ Dim DMPArt% ' 0 = Diabetes, 1 = KHK, 2 = COPD, 3 = Asthma bronchiale
  On Error GoTo fehler
     If LenB(notiz) <> 0 Then
      ReDim notdat(0)
@@ -3576,26 +3576,26 @@ Sub obhierdmpfn(notiz$, NZNr&, dmpklass As DMPEnum, dmpbeg As Date, Optional dmp
 '      IF InStrB(notdat(i), "DMP") = 0 THEN
 '       ndRichtig(i) = True ' a) für DMP irrelevant
       ElseIf InStrB(notdat(i), "DMP") = 1 Then
-       dmpArt = 0
-       If InStrB(notdat(i), "KHK") <> 0 Then dmpArt = 1 Else If InStrB(notdat(i), "COPD") <> 0 Then dmpArt = 2 Else If (InStrB(notdat(i), "ASTHMA") <> 0 Or InStrB(notdat(i), "AB") <> 0) Then dmpArt = 3
+       DMPArt = 0
+       If InStrB(notdat(i), "KHK") <> 0 Then DMPArt = 1 Else If InStrB(notdat(i), "COPD") <> 0 Then DMPArt = 2 Else If (InStrB(notdat(i), "ASTHMA") <> 0 Or InStrB(notdat(i), "AB") <> 0) Then DMPArt = 3
        If testd <> 0 Then
         If InStrB(notdat(i), "HIER") <> 0 Or InStrB(notdat(i), "BEI UNS") <> 0 Then
-         maxdHier(dmpArt) = MAXvb(maxdHier(dmpArt), testd)
+         maxdHier(DMPArt) = MAXvb(maxdHier(DMPArt), testd)
         ElseIf InStrB(notdat(i), " HA") <> 0 Or InStrB(notdat(i), " HÄ") <> 0 Then
-         maxdHA(dmpArt) = MAXvb(maxdHA(dmpArt), testd)
+         maxdHA(DMPArt) = MAXvb(maxdHA(DMPArt), testd)
         ElseIf InStrB(notdat(i), "NEIN") <> 0 Then
-         maxdNein(dmpArt) = MAXvb(maxdNein(dmpArt), testd)
+         maxdNein(DMPArt) = MAXvb(maxdNein(DMPArt), testd)
         ElseIf InStrB(notdat(i), "AUSGESCHRIEBEN") <> 0 Then
-         maxdAus(dmpArt) = MAXvb(maxdAus(dmpArt), testd)
+         maxdAus(DMPArt) = MAXvb(maxdAus(DMPArt), testd)
         Else ' z.B. DMP MVZ
-         maxdHA(dmpArt) = MAXvb(maxdHA(dmpArt), testd)
+         maxdHA(DMPArt) = MAXvb(maxdHA(DMPArt), testd)
          ndRichtig(i) = False ' b2) und "hier", " HA" oder "nein" enthalten
         End If ' instrb(notdat(i), ...
        End If ' test<>0
        If InStrB(notdat(i), "NEIN") <> 0 Then
-        maxdNein(dmpArt) = Now() - 365
+        maxdNein(DMPArt) = Now() - 365
        ElseIf InStrB(notdat(i), "AUSGESCHRIEBEN") <> 0 Then
-        maxdAus(dmpArt) = Now() - 365
+        maxdAus(DMPArt) = Now() - 365
        End If ' InStrB(notdat(i), "NEIN") <> 0 THEN
       End If ' instrb(notdat(i), ...
      Next i
@@ -3605,40 +3605,40 @@ Sub obhierdmpfn(notiz$, NZNr&, dmpklass As DMPEnum, dmpbeg As Date, Optional dmp
        NZNr = i
       End If ' ndRichtig(i) = 0 Then
      Next i
-     For dmpArt = 3 To 0 Step -1
+     For DMPArt = 3 To 0 Step -1
         dmpklass = unb
-        If maxdAus(dmpArt) > maxdHier(dmpArt) And maxdAus(dmpArt) > maxdHA(dmpArt) And maxdAus(dmpArt) > maxdHA(dmpArt) And maxdAus(dmpArt) <> 0 Then
+        If maxdAus(DMPArt) > maxdHier(DMPArt) And maxdAus(DMPArt) > maxdHA(DMPArt) And maxdAus(DMPArt) > maxdHA(DMPArt) And maxdAus(DMPArt) <> 0 Then
          dmpklass = ausg
-         dmpbeg = maxdAus(dmpArt)
-        ElseIf maxdHier(dmpArt) > maxdHA(dmpArt) And maxdHier(dmpArt) >= maxdNein(dmpArt) And maxdHier(dmpArt) <> 0 Then
+         dmpbeg = maxdAus(DMPArt)
+        ElseIf maxdHier(DMPArt) > maxdHA(DMPArt) And maxdHier(DMPArt) >= maxdNein(DMPArt) And maxdHier(DMPArt) <> 0 Then
           dmpklass = hier
-          dmpbeg = maxdHier(dmpArt)
-        ElseIf maxdNein(dmpArt) > maxdHA(dmpArt) And maxdNein(dmpArt) <> 0 Then
+          dmpbeg = maxdHier(DMPArt)
+        ElseIf maxdNein(DMPArt) > maxdHA(DMPArt) And maxdNein(DMPArt) <> 0 Then
           dmpklass = nein
-          dmpbeg = maxdNein(dmpArt)
-        ElseIf maxdHA(dmpArt) <> 0 Then
+          dmpbeg = maxdNein(DMPArt)
+        ElseIf maxdHA(DMPArt) <> 0 Then
           dmpklass = HA
-          dmpbeg = maxdHA(dmpArt)
+          dmpbeg = maxdHA(DMPArt)
         End If ' maxdAus( ...
         If dmpklass <> unbek Then
-         If dmpArt = 1 Then
+         If DMPArt = 1 Then
           dmpkhkklass = dmpklass
           dmpkhkbeg = dmpbeg
           dmpklass = unb
           dmpbeg = 0
-         ElseIf dmpArt = 2 Then
+         ElseIf DMPArt = 2 Then
           dmpcopdklass = dmpklass
           dmpcopdbeg = dmpbeg
           dmpklass = unb
           dmpbeg = 0
-         ElseIf dmpArt = 3 Then
+         ElseIf DMPArt = 3 Then
           dmpabklass = dmpklass
           dmpabbeg = dmpbeg
           dmpklass = unb
           dmpbeg = 0
          End If
         End If
-     Next dmpArt
+     Next DMPArt
     End If ' LenB(Notiz) <> 0 THEN
  Exit Sub
 fehler:
@@ -4480,7 +4480,8 @@ vorgetword:
 '  .Application.WindowState = wdWindowStateMaximize
 '  .Activate
 #End If ' wordalt
- Ausgeb "DMP-Doku erstellt: " & docName, -1
+ Lese.Ausgeb "DMP-Doku erstellt: " & docName, -1
+ syscmd 4, "DMP-Doku erstellt: " & docName
  do_DMPAusgebStandAlone = docName
  Exit Function
 fehler:

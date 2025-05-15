@@ -632,15 +632,15 @@ Private Sub DMPFüll() ' für: Alle &DMP-Dokumente an Hausärzte faxen ' s. DMP_Dok
  FNr = 2
 '' sql0 = "SELECT COUNT(0) Zahl, d0.adressat, d0.üwnnr, d0.fax FROM dmpausw d0 GROUP BY d0.üwnnr"
 ' sql0 = "SELECT COUNT(0) Zahl, n.getha0 ÜWNNr, h.fax, IF(h.anrede,'Herr','Frau') Anrede, CONCAT_WS(', ',h.nachname,h.vorname,LEFT(h.adressat,instr(h.adressat,h.vorname)-1)) Adressat, IF(innereallg,1,0) innereallg FROM `aktfaellev` f LEFT JOIN `namen` n ON f.pat_id = n.pat_id LEFT JOIN `hareal` h ON n.getha0 = h.kvnr LEFT JOIN `desktop` dt ON n.pat_id = dt.pat_id AND dt.titel LIKE '%kein%bericht%' WHERE ISNULL(dt.titel) AND n.dmpklass = 2 AND f.icd RLIKE '^E1[0-4]\.' GROUP BY getha0" ' AND ((dmp1<>0 AND icd RLIKE '^E1[0234]') OR (dmp2<>0 AND icd RLIKE '^E1[1234]'))
-sql0 = "SELECT COUNT(0) Zahl, i.* FROM (SELECT n.getha0 ÜWNNR, h.fax, h.Anrede, " & _
-       "CONCAT_WS(', ',h.Name, h.Vorname, h.titelt) Adressat, IF(arzttyp='HA',1,0) innereallg " & _
-       ", ISNULL(hk.kvnr) obdmpinfo " & _
-       "FROM aktfv fv LEFT JOIN faelle f USING (fid)" & _
-       "LEFT JOIN namen n ON f.pat_id = n.pat_id " & _
-       "LEFT JOIN liuez h ON h.kvnri=f.übwvbsnr AND f.übwvbsnr not in ('0','') " & _
-       "LEFT JOIN `hakeinedmpinfo` hk ON f.übwvbsnr=hk.kvnr " & _
-       "LEFT JOIN `desktop` dt ON n.pat_id = dt.pat_id AND dt.titel LIKE '%kein%bericht%' " & _
-       "WHERE ISNULL(dt.titel) AND n.dmpklass = 2 AND f.icd RLIKE '^E1[0-4]\.' AND h.kvnr<>'' " & _
+sql0 = "SELECT COUNT(0) Zahl, i.* FROM (SELECT n.getha0 ÜWNNR, h.fax, h.Anrede, " & vbCrLf & _
+       "CONCAT_WS(', ',h.Name, h.Vorname, h.titelt) Adressat, IF(arzttyp='HA',1,0) innereallg " & vbCrLf & _
+       ", ISNULL(hk.kvnr) obdmpinfo " & vbCrLf & _
+       "FROM aktfv fv LEFT JOIN faelle f USING (fid)" & vbCrLf & _
+       "LEFT JOIN namen n ON f.pat_id = n.pat_id " & vbCrLf & _
+       "LEFT JOIN liuez h ON h.kvnri=f.übwvbsnr AND f.übwvbsnr not in ('0','') " & vbCrLf & _
+       "LEFT JOIN `hakeinedmpinfo` hk ON f.übwvbsnr=hk.kvnr " & vbCrLf & _
+       "LEFT JOIN `desktop` dt ON n.pat_id = dt.pat_id AND dt.titel LIKE '%kein%bericht%' " & vbCrLf & _
+       "WHERE ISNULL(dt.titel) AND n.dmpklass = 2 AND f.icd RLIKE '^E1[0-4]\.' AND h.kvnr<>'' " & vbCrLf & _
        "GROUP BY f.pat_id) i GROUP BY üwnnr ORDER BY adressat"
 '       "LEFT JOIN liuez h ON h.kvnri=n.getha0 AND n.getha0<>0 " & _
 
@@ -3414,7 +3414,7 @@ sql = sql & _
      vorPID = Pat_ID
      .Row = i
      .col = Pat_IDSp:    .Text = rc!Pat_ID:      .CellBackColor = Abs(Sp1Farbe)
-     .col = namsp:       .Text = rc!name:        .CellBackColor = IIf(rc!namsp = 0, Abs(Sp1Farbe), rc!namsp)
+     .col = namsp:       On Error Resume Next: .Text = rc!name: On Error GoTo fehler: .CellBackColor = IIf(rc!namsp = 0, Abs(Sp1Farbe), rc!namsp)
      .col = parsp:       .Text = rc!LT:          .CellBackColor = IIf(rc!wertsp = 0, Abs(Sp1Farbe), rc!wertsp)
      .col = wertsp:      .Text = rc!Wert:        .CellBackColor = IIf(rc!wertsp = 0, Abs(Sp1Farbe), rc!wertsp)
      .col = einhsp:       .Text = rc!Einheit:     .CellBackColor = vorFarbe
@@ -4696,15 +4696,25 @@ End Sub ' MFG_Click
 ' => Doppelklicken Sie auf den Eintrag "EnableLUA". Ändern Sie den Wert auf "0". Starten Sie Ihren PC neu.
 Public Function waehleinMO(Pat_ID&)
     Dim hnd&, j&, k&, i%
+    Const MOZ$ = "Medical Office - Zentrale"
+    On Error GoTo fehler
     Debug.Print "Lade '" & Pat_ID & "'"
-    hnd = FensterHandle("Medical Office - Zentrale")
+    For i = 1 To 5
+        hnd = FensterHandle(MOZ)
+        If hnd = 0 And i < 5 Then
+         On Error Resume Next
+          Select Case i
+           Case 1: Shell "c:\medoff\medoff.exe"
+           Case 2: Shell "c:\indamed\medoff.exe"
+           Case 3: Shell "d:\medoff\medoff.exe"
+           Case 4: Shell "d:\indamed\medoff.exe"
+          End Select
+          Pause 2000
+         On Error GoTo fehler
+        End If ' hnd = 0 And i < 5 Then
+    Next i
     If hnd <> 0 Then
-      Shell "c:\indamed\medoff.exe"
-      Pause 2000
-      hnd = FensterHandle("Medical Office - Zentrale")
-    End If
-    If hnd <> 0 Then
-     AppActivate "Medical Office - Zentrale", True
+     AppActivate MOZ, True
      If Err.Number <> 0 Then Exit Function
      Pausenlänge = 10
      For j = 600 To 600 Step 100
@@ -4734,6 +4744,19 @@ Public Function waehleinMO(Pat_ID&)
 '     SendK vk_return '
      Sendkeys "{ENTER}", False
     End If
+ Exit Function
+fehler:
+ Dim AnwPfad$
+#If VBA6 Then
+ AnwPfad = CurrentDb.name
+#Else
+ AnwPfad = App.path
+#End If
+ Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in waehleinMO/" + AnwPfad)
+  Case vbAbort: Call MsgBox("Höre auf"): ProgEnde
+  Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
+  Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
+ End Select
 End Function ' waehleinmo
 
 #If gehtnichtgut Then

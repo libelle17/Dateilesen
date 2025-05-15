@@ -100,16 +100,16 @@ Public Sub ebloe(ByRef AryVar() As ebType, ByVal RemoveWhich&, obloe%)
     '// The size of the array elements
     '// In the case of string arrays, they are
     '// simply 32 bit pointers to BSTR's.
-    Dim byteLen As Byte
+    Dim ByteLen As Byte
     Static loezahl%
     ' byteLen = 4   '// String pointers are 4 bytes
     '// The copymemory operation is not necessary unless
     '// we are working with an array element that is not
     '// at the end of the array
     If RemoveWhich >= 0 And RemoveWhich < UBound(AryVar) Then
-        byteLen = VarPtr(AryVar(1)) - VarPtr(AryVar(0))
+        ByteLen = VarPtr(AryVar(1)) - VarPtr(AryVar(0))
         '// Copy the block of string pointers starting at the position after the removed item back one spot.
-        CopyMemoryPtr ByVal VarPtr(AryVar(RemoveWhich)), ByVal VarPtr(AryVar(RemoveWhich + 1)), (byteLen) * (UBound(AryVar) - RemoveWhich)
+        CopyMemoryPtr ByVal VarPtr(AryVar(RemoveWhich)), ByVal VarPtr(AryVar(RemoveWhich + 1)), (ByteLen) * (UBound(AryVar) - RemoveWhich)
         loezahl = loezahl + 1
     End If
    '// If we are removing the last array element
@@ -129,16 +129,16 @@ Public Sub memoloe(ByRef AryVar() As memoType, ByVal RemoveWhich&, obloe%)
     '// The size of the array elements
     '// In the case of string arrays, they are
     '// simply 32 bit pointers to BSTR's.
-    Dim byteLen As Byte
+    Dim ByteLen As Byte
     Static loezahl%
     ' byteLen = 4   '// String pointers are 4 bytes
     '// The copymemory operation is not necessary unless
     '// we are working with an array element that is not
     '// at the end of the array
     If RemoveWhich >= 0 And RemoveWhich < UBound(AryVar) Then
-        byteLen = VarPtr(AryVar(1)) - VarPtr(AryVar(0))
+        ByteLen = VarPtr(AryVar(1)) - VarPtr(AryVar(0))
         '// Copy the block of string pointers starting at the position after the removed item back one spot.
-        CopyMemoryPtr ByVal VarPtr(AryVar(RemoveWhich)), ByVal VarPtr(AryVar(RemoveWhich + 1)), (byteLen) * (UBound(AryVar) - RemoveWhich)
+        CopyMemoryPtr ByVal VarPtr(AryVar(RemoveWhich)), ByVal VarPtr(AryVar(RemoveWhich + 1)), (ByteLen) * (UBound(AryVar) - RemoveWhich)
         loezahl = loezahl + 1
     End If
    '// If we are removing the last array element
@@ -891,6 +891,10 @@ End Function ' doMarkierungen()
 Public Sub doNotizen(Optional fPtNr& = 0, Optional mitSpeichern% = True)
  Dim rMo As ADODB.Recordset, rDl As ADODB.Recordset, rAf&, mZl&, FDet$
  Dim ErrNr&, ErrDes$
+ If SafeArrayGetDim(rNa) = 0 Then
+  ReDim rNa(0)
+  rNa(0).Pat_ID = fPtNr
+ End If
  MOConInit
 ' Dim rNa() As namen
 ' ReDim rNa(0)
@@ -922,6 +926,19 @@ Public Sub doNotizen(Optional fPtNr& = 0, Optional mitSpeichern% = True)
   syscmd 4, "Notizen bei " & mZl & " Patienten durch Übertragung von MO auf PraxisDB geändert."
  End If ' Not rMo.BOF Then
 End Sub ' doÜbertrag
+
+Public Function hatrans()
+ Dim rMo As ADODB.Recordset
+ Call Lese.ProgStart
+ MOConInit
+ Set rMo = myEFrag("SELECT fsurogat, 18900101+INTERVAL finaktivseit DAY seit FROM patstamm WHERE finaktivgrund=1;", rAf, MOCon)
+' Do While Not rMo.EOF
+'  myEFrag "UPDATE namen SET SDatum='" & rMo.Fields(1) & "', inaktiv=1 WHERE pat_id=" & rMo.Fields(0), rAf
+'  Debug.Print rMo.Fields(0), rAf, rMo.Fields(1)
+'  rMo.MoveNext
+' Loop
+ 
+End Function
 
 ' war nur zum einmaligen Aufruf
 'Public Function inakt()
@@ -975,7 +992,7 @@ Public Function doPatvonMO(fPtNr&, Optional obmitFormularen%, Optional obpruef%,
         "FROM dbsprot d" & vbCrLf & _
         "WHERE d.FPatnr=" & fPtNr & vbCrLf & _
         "AND FTablename IN ('ltag','termin')" & vbCrLf & _
-        "AND FXmlinhalt NOT RLIKE 'arztbrief|Erledigtdatum'"
+        "AND (fxmlinhalt IS NULL OR FXmlinhalt NOT RLIKE 'arztbrief|Erledigtdatum')"
 ' AND ftablename NOT IN ('datafile','d2dmail','med95ini','mail','nutzerneu','markier','earzt','epraxis','tzone','ldtarc','globalitems','zertifikat','nutzerzugriff','patfall','patrelation')
   MOConInit
   myFrag rab, sql, adOpenStatic, MOCon, adLockReadOnly
@@ -985,13 +1002,13 @@ Public Function doPatvonMO(fPtNr&, Optional obmitFormularen%, Optional obpruef%,
     If Not raz.EOF Then
      If raz!aktZeit > rab!laend Then
       If obtransp Then
-       MsgBox sql & vbCrLf & "Patient wurde in MO zuletzt geändert: " & Format(rab!laend, "dd.mm.yyyy HH:MM:SS") & "," & vbCrLf & _
+'       MsgBox sql & vbCrLf & "Patient wurde in MO zuletzt geändert: " & Format(rab!laend, "dd.mm.yyyy HH:MM:SS") & "," & vbCrLf & _
        "zuletzt importiert: " & Format(raz!aktZeit, "dd.mm.yyyy HH:MM:SS") & " => braucht nicht übertragen zu werden"
       End If
       Exit Function
      Else
       If obtransp Then
-       MsgBox sql & vbCrLf & "Patient wurde in MO zuletzt geändert: " & Format(rab!laend, "dd.mm.yyyy HH:MM:SS") & "," & vbCrLf & _
+'       MsgBox sql & vbCrLf & "Patient wurde in MO zuletzt geändert: " & Format(rab!laend, "dd.mm.yyyy HH:MM:SS") & "," & vbCrLf & _
        "zuletzt importiert: " & Format(raz!aktZeit, "dd.mm.yyyy HH:MM:SS") & " => wird übertragen"
       End If
      End If
@@ -1005,7 +1022,7 @@ Public Function doPatvonMO(fPtNr&, Optional obmitFormularen%, Optional obpruef%,
  Call doTabVorb(Lese, 0, 0) ' obVorber, obmitFormularen)
 ' ComTrans
  syscmd 4, "richte desktopkop her"
- myEFrag "DELETE FROM desktopkop where pat_id=" & pid
+ myEFrag "DELETE FROM desktopkop WHERE pat_id=" & pid
  Dim spal$
  spal = myEFrag("SELECT GROUP_CONCAT(COLUMN_NAME) FROM information_schema.columns c WHERE TABLE_NAME='desktop' AND table_catalog='def' AND TABLE_schema='quelle' AND column_key<>'PRI'", , , , , , 15000).Fields(0)
  myEFrag "INSERT INTO desktopkop(" & spal & ") SELECT " & REPLACE$(spal, "Pat_ID", "Pat_ID+" & CStr(Lese.pidoffs) & "") & " FROM desktop WHERE pat_id=" & pid
@@ -2154,11 +2171,17 @@ fgefunden:
       EintS.TypNr = rsEi!FEintragsart ' Fehler bei: 1138
       Set EintS = EinK.GetItem(EintS)
 '      Debug.Print EintS.Kürz
+'      On Error Resume Next ' , Fehler bei 70328
+      If EintS Is Nothing Then
+       Debug.Print "Eintragsart nicht gefunden: " & rsEi!FEintragsart
+      Else
       Select Case EintS.TypNr
        Case 1138
        Case Else
         art = EintS.Kürz
       End Select
+      End If
+'      On Error GoTo fehler
      End If ' Not EintS Is Nothing Then
     End If ' rEi(UBound(rEi)).Art = "" Then
 '    If Art Like "VKGD*" Then

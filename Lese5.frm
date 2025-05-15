@@ -398,6 +398,24 @@ Begin VB.MDIForm Lese
       Begin VB.Menu Doppelzeilen_in_Notizen_auflisten 
          Caption         =   "&Doppelzeilen in Notizen auflisten"
       End
+      Begin VB.Menu Notizen_übertragen 
+         Caption         =   "&Notizen übertragen"
+         Begin VB.Menu Notizen_übertragen_vorbereiten 
+            Caption         =   "Notizen übertragen vorbereiten (ca. 1 min)"
+         End
+         Begin VB.Menu Notizen_übertragen_aktuelles_Quartal 
+            Caption         =   "Notizen übertragen aktuelles Quartal"
+         End
+         Begin VB.Menu Notizen_übertragen_akt_u_letztes_Quartal 
+            Caption         =   "Notizen übertragen akt.u.letztes Quartal"
+         End
+         Begin VB.Menu Notizen_übertragen_4_Quartale 
+            Caption         =   "Notizen übertragen 4 Quartale"
+         End
+         Begin VB.Menu Notizen_übertragen_alle 
+            Caption         =   "Notizen übertragen alle"
+         End
+      End
       Begin VB.Menu Abrechnungsfehler 
          Caption         =   "&Abrechnungsfehler"
       End
@@ -1375,6 +1393,7 @@ myFrag rs, sql
 Call TabAusgeb(rs, Me, , , , , , True, "Nicht erkannte DMP-Rückmeldungen")
 End Sub ' DMPRückmeldungsfehler_Click
 
+' Funktion für Arzthelferin und Arzt -> Doppelzeilen in Notizen auflisten
 Private Sub Doppelzeilen_in_Notizen_auflisten_Click()
   Dim rs As New ADODB.Recordset, spmax%(3)
   spmax(0) = 6
@@ -1393,6 +1412,75 @@ Private Sub Doppelzeilen_in_Notizen_auflisten_Click()
  myFrag rs, sql, adOpenStatic, MOCon
 Call TabAusgeb(rs, Me, , , , , spmax, True, "Zu trennende Doppelzeilen in MO-Notizen")
 End Sub ' Doppelzeilen_in_Notizen_auflisten_Click()
+
+
+' Funktion für Arzthelferin und Arzt -> Notizen_übertragen_vorbereiten_Click
+Private Sub Notizen_übertragen_vorbereiten_Click()
+ syscmd 4, "Bereite den Notizenübertrag vor mit 'CALL procmpatstamm(0)'"
+ MOConInit
+ myEFrag "CALL procmpatstamm(0)", rAf, MOCon
+ syscmd 4, "Fertig mit Notizenübertrag ('CALL procmpatstamm(0)')"
+End Sub ' Notizen_übertragen_vorbereiten_Click()
+
+' Funktion für Arzthelferin und Arzt -> Notizen_übertragen_aktuelles_Quartal_Click
+Private Sub Notizen_übertragen_aktuelles_Quartal_Click()
+  Dim rs As New ADODB.Recordset, spmax%(3)
+  spmax(0) = 6
+  spmax(1) = 500
+  sql = _
+  "SELECT patnr,TRIM(text) text, '','','' FROM tmpmpatstamm t" & vbCrLf & _
+  "LEFT JOIN patfall f ON t.patnr=f.fpatnr" & vbCrLf & _
+  "WHERE enr=18 AND TEXT RLIKE ' DS |DMP'" & vbCrLf & _
+  "AND 18900101+INTERVAL fvon DAY >= DATE(CONCAT(YEAR(NOW()-INTERVAL 21 DAY),'-',(QUARTER(NOW()-INTERVAL 21 DAY)-1)*3+1,'-01'))" & vbCrLf
+ MOConInit
+ myFrag rs, sql, adOpenStatic, MOCon
+ Call TabAusgeb(rs, Me, , , , , spmax, True, "zu übertragende Notizen von Patienten des aktuellen Quartals")
+End Sub ' Notizen_übertragen_aktuelles_Quartal_Click()
+
+' Funktion für Arzthelferin und Arzt -> Notizen_übertragen_akt_u_letztes_Quartal_Click
+Private Sub Notizen_übertragen_akt_u_letztes_Quartal_Click()
+  Dim rs As New ADODB.Recordset, spmax%(3)
+  spmax(0) = 6
+  spmax(1) = 500
+  sql = _
+  "SELECT patnr,TRIM(text) text FROM tmpmpatstamm t" & vbCrLf & _
+  "LEFT JOIN patfall f ON t.patnr=f.fpatnr" & vbCrLf & _
+  "WHERE enr=18 AND TEXT RLIKE ' DS |DMP'" & vbCrLf & _
+  "AND 18900101+INTERVAL fvon DAY >= DATE(CONCAT(YEAR(NOW()-INTERVAL 113 DAY),'-',(QUARTER(NOW()-INTERVAL 113 DAY)-1)*3+1,'-01'))" & vbCrLf
+ MOConInit
+ myFrag rs, sql, adOpenStatic, MOCon
+ Call TabAusgeb(rs, Me, , , , , spmax, True, "zu übertragende Notizen von Patienten des aktuellen und vorigen Quartals")
+End Sub ' Notizen_übertragen_akt_u_letztes_Quartal_Click()
+
+
+' Funktion für Arzthelferin und Arzt -> Notizen_übertragen_4_Quartale_Click
+Private Sub Notizen_übertragen_4_Quartale_Click()
+  Dim rs As New ADODB.Recordset, spmax%(3)
+  spmax(0) = 6
+  spmax(1) = 500
+  sql = _
+  "SELECT patnr,TRIM(text) text FROM tmpmpatstamm t" & vbCrLf & _
+  "LEFT JOIN patfall f ON t.patnr=f.fpatnr" & vbCrLf & _
+  "WHERE enr=18 AND TEXT RLIKE ' DS |DMP'" & vbCrLf & _
+  "AND 18900101+INTERVAL fvon DAY >= DATE(CONCAT(YEAR(NOW()-INTERVAL 295 DAY),'-',(QUARTER(NOW()-INTERVAL 295 DAY)-1)*3+1,'-01'))" & vbCrLf
+ MOConInit
+ myFrag rs, sql, adOpenStatic, MOCon
+ Call TabAusgeb(rs, Me, , , , , spmax, True, "zu übertragende Notizen von Patienten der letzten 4 Quartale")
+End Sub
+
+' Funktion für Arzthelferin und Arzt -> Notizen_übertragen_alle_Click
+Private Sub Notizen_übertragen_alle_Click()
+  Dim rs As New ADODB.Recordset, spmax%(3)
+  spmax(0) = 6
+  spmax(1) = 500
+  sql = _
+  "SELECT patnr,TRIM(text) text FROM tmpmpatstamm t" & vbCrLf & _
+  "WHERE enr=18 AND TEXT RLIKE ' DS |DMP'"
+ MOConInit
+ myFrag rs, sql, adOpenStatic, MOCon
+ Call TabAusgeb(rs, Me, , , , , spmax, True, "zu übertragende Notizen aller Patienten")
+End Sub ' Notizen_übertragen_alle_Click()
+
 
 ' EDV -> Formulare bereinigen
 Private Sub Formulare_bereinigen_Click()
@@ -1622,6 +1710,7 @@ Private Sub MOBetr_Click()
  pidoffs = IIf(MOBetr = 0, 100000, 0)
  Debug.Print "Click pidoffs: " & pidoffs
 End Sub ' MOBetr_Click()
+
 
 ' Datei -> Optionen
 Private Sub Optionen_Click()
