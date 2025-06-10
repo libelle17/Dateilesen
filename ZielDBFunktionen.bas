@@ -2,9 +2,9 @@ Attribute VB_Name = "ZielDBFunktionen"
 Option Explicit
 
 Declare Function Tüt& Lib "kernel32" Alias "Beep" (ByVal dwFreq As Long, ByVal dwDuration As Long)
-Declare Function OpenClipboard& Lib "user32" (ByVal hwnd&)
-Declare Function CloseClipboard& Lib "user32" ()
-Declare Function GetClipboardData& Lib "user32" (ByVal wFormat&)
+Declare Function OpenClipboard& Lib "User32" (ByVal hwnd&)
+Declare Function CloseClipboard& Lib "User32" ()
+Declare Function GetClipboardData& Lib "User32" (ByVal wFormat&)
 Declare Function GlobalLock& Lib "kernel32" (ByVal hMem&)
 Declare Function GlobalUnlock& Lib "kernel32" (ByVal hMem&)
 Declare Function lstrcpy& Lib "kernel32" (ByVal lpString1 As Any, ByVal lpString2 As Any)
@@ -223,7 +223,7 @@ Public Const artSpezUS0$ = "'gewicht','gewi','gew','rrvgl','rrvgln','bzvgl','bzv
 ' urin = Urin-Teststreifenergebnis
 
 ' Einträge mit Untersuchungen, die nicht vorne im Patientenlaufzettel stehen
-Public Const artSpezUS1$ = "'bzm','bztp','bks','anal','andm','andm2','angd','angd2','usal','usdm','usdm1','usdm2','bauch','ufrag','uabfrag'" & _
+Public Const artSpezUS1$ = "'bzm','bztp','bks','anal','andm','andm2','angd','angd2','usal','usd','usdm','usdm1','usdm2','bauch','ufrag','uabfrag'" & _
 ",'cgma','doppler','dop','duplex','belastun'" & _
 ",'sono','sd','UKG','Größe','groe','HbA1c','hyper','keto','wv','vw','kv','komp','kompr','debr','ulc','ulcus','EKG','LZRR','Lufu','gpt'" & _
 ",'lactoset','trop','temp','oGTT','bmi','hüfte','rr','puls','GDT','bef','OAU','OA','inj','inf','ht','htt','ADL','TUG','who','vac','vacc','grippe','fbef','fbild'"
@@ -1384,7 +1384,7 @@ aktDC.x_DoklangName = REPLACE$(aktDC.x_DokName, "*", "geb. ")
  End If ' Not IsNull(!Größe) Then
  
 ' raEi.Open "SELECT * FROM `eintraege` WHERE pat_id = " & pid & " AND art = ""Gewicht"" ORDER BY zeitpunkt DESC", DBCn, adOpenDynamic, adLockReadOnly
- myFrag raEi, "SELECT * FROM `eintraege` WHERE pat_id = " & pid & " AND art = ""Gewicht"" ORDER BY zeitpunkt DESC"
+ myFrag raEi, "SELECT * FROM `eintraege` WHERE pat_id = " & pid & " AND art RLIKE '^gew$|^gw$|^gewi' ORDER BY zeitpunkt DESC"
  If Not raEi.EOF Then
   Dim gewi$
   gewi = Trim$(REPLACE$(REPLACE$(LCase$(raEi!Inhalt), "kg", ""), ".", ","))
@@ -2436,17 +2436,19 @@ If aktDC.dtyp = "2" Then If mitStr Then TabPr "Lasertherapie:", IIf(aktDC.oblase
    If Labs.WertSg <> vNS Then
     pos = InStr(Labs.WertSg, ">") ' Pat_id 744
     If pos > 0 Then Labs.WertSg = Mid$(Labs.WertSg, pos + 1)
-    If Labs.WertSg >= 8# Then
-     DMSchulz = SchulzBest(CStr(Pat_ID), zpd1, zpdL, DokuDat - 2 * 365)
-     If ((aktDC.tart = OAD Or aktDC.tart = offen Or aktDC.tart = Diät) And DMSchulz < 4) Or DMSchulz < 6 Then
-      If zplschul(Pat_ID) < DokuDat - 92 Then
+    If IsNumeric(Labs.WertSg) Then
+     If Labs.WertSg >= 8# Then
+      DMSchulz = SchulzBest(CStr(Pat_ID), zpd1, zpdL, DokuDat - 2 * 365)
+      If ((aktDC.tart = OAD Or aktDC.tart = offen Or aktDC.tart = Diät) And DMSchulz < 4) Or DMSchulz < 6 Then
+       If zplschul(Pat_ID) < DokuDat - 92 Then
 '    Debug.Print Pat_id
-       If aktDC.GebDat > DokuDat - 365 * 83 Then  ' Schulung nicht mehr unbedingt über 83 Jahre empfehlen
-        aktDC.SE(0) = DokuDat ' SE(2) Schulung empfohlen
-       End If ' aktDC.GebDat > DokuDat - 365
-      End If ' zplschul(Pat_ID) < DokuDat - 92 Then
-     End If ' ((aktDC.tart = OAD Or aktDC.tart = offen
-    End If ' Labs.WertSg >= 8# Then
+        If aktDC.GebDat > DokuDat - 365 * 83 Then  ' Schulung nicht mehr unbedingt über 83 Jahre empfehlen
+         aktDC.SE(0) = DokuDat ' SE(2) Schulung empfohlen
+        End If ' aktDC.GebDat > DokuDat - 365
+       End If ' zplschul(Pat_ID) < DokuDat - 92 Then
+      End If ' ((aktDC.tart = OAD Or aktDC.tart = offen
+     End If ' Labs.WertSg >= 8# Then
+    End If ' IsNumeric(Labs.WertSg) Then
    End If ' Labs.WertSg <> vNS Then
   End If ' Labs.Abkü <> "" Then
  End If ' lwzahl
@@ -4205,7 +4207,7 @@ Public Function do_DMPAusgebStandAlone(Pat_ID&, Optional fax1$, Optional Adressa
  Else
   sverz = pVerz & "zufaxen\" & uvz
  End If ' fax1 = vns
- myFrag rsAnam, "SELECT CONCAT('" & UmwfSQL(sverz) & "',COALESCE(MAX(gesname(pat_id)),''),', PID ','" & Pat_ID & "','" & ", DMP-Daten vom " & Format$(Now, "DD/MM/YY hh.mm.ss") & IIf(Adressat <> "" And Not IsNull(Adressat), " für " & Adressat, "") & IIf(LenB(fax1) = 0, vNS, " an Fax " & fax1) & ".doc') FROM `anamnesebogen` WHERE pat_id = " & Pat_ID
+ myFrag rsAnam, "SELECT CONCAT('" & UmwfSQL(sverz) & "',COALESCE(MAX(gesname(pat_id)),''),', PID ','" & Pat_ID & "','" & ", DMP-Daten vom " & Format$(Now, "DD/MM/YY hh.mm.ss") & IIf(Adressat <> "" And Not IsNull(Adressat), " für " & Adressat, "") & IIf(LenB(fax1) = 0, vNS, " an Fax " & REPLACE$(fax1, "\N", "")) & ".doc') FROM `anamnesebogen` WHERE pat_id = " & Pat_ID
  If Not rsAnam.BOF Then
   docName = rsAnam.Fields(0)
  End If

@@ -5,12 +5,12 @@ Begin VB.Form PatListe
    ClientHeight    =   14625
    ClientLeft      =   510
    ClientTop       =   1245
-   ClientWidth     =   18960
+   ClientWidth     =   15120
    FillColor       =   &H80000005&
    Icon            =   "PatListe1.frx":0000
    LinkTopic       =   "PatListe"
    ScaleHeight     =   14625
-   ScaleWidth      =   18960
+   ScaleWidth      =   15120
    Begin VB.CommandButton Command1 
       Caption         =   "Command1"
       Height          =   375
@@ -632,34 +632,94 @@ Private Sub DMPFüll() ' für: Alle &DMP-Dokumente an Hausärzte faxen ' s. DMP_Dok
  FNr = 2
 '' sql0 = "SELECT COUNT(0) Zahl, d0.adressat, d0.üwnnr, d0.fax FROM dmpausw d0 GROUP BY d0.üwnnr"
 ' sql0 = "SELECT COUNT(0) Zahl, n.getha0 ÜWNNr, h.fax, IF(h.anrede,'Herr','Frau') Anrede, CONCAT_WS(', ',h.nachname,h.vorname,LEFT(h.adressat,instr(h.adressat,h.vorname)-1)) Adressat, IF(innereallg,1,0) innereallg FROM `aktfaellev` f LEFT JOIN `namen` n ON f.pat_id = n.pat_id LEFT JOIN `hareal` h ON n.getha0 = h.kvnr LEFT JOIN `desktop` dt ON n.pat_id = dt.pat_id AND dt.titel LIKE '%kein%bericht%' WHERE ISNULL(dt.titel) AND n.dmpklass = 2 AND f.icd RLIKE '^E1[0-4]\.' GROUP BY getha0" ' AND ((dmp1<>0 AND icd RLIKE '^E1[0234]') OR (dmp2<>0 AND icd RLIKE '^E1[1234]'))
-sql0 = "SELECT COUNT(0) Zahl, i.* FROM (SELECT n.getha0 ÜWNNR, h.fax, h.Anrede, " & vbCrLf & _
+'sql0 = "SELECT COUNT(0) Zahl, i.* FROM (SELECT n.getha0 ÜWNNR, h.fax, h.Anrede, " & vbCrLf & _
        "CONCAT_WS(', ',h.Name, h.Vorname, h.titelt) Adressat, IF(arzttyp='HA',1,0) innereallg " & vbCrLf & _
        ", ISNULL(hk.kvnr) obdmpinfo " & vbCrLf & _
        "FROM aktfv fv LEFT JOIN faelle f USING (fid)" & vbCrLf & _
+       "LEFT JOIN dtypen t ON t.pat_id=fv.pat_id" & vbCrLf & _
        "LEFT JOIN namen n ON f.pat_id = n.pat_id " & vbCrLf & _
        "LEFT JOIN liuez h ON h.kvnri=f.übwvbsnr AND f.übwvbsnr not in ('0','') " & vbCrLf & _
        "LEFT JOIN `hakeinedmpinfo` hk ON f.übwvbsnr=hk.kvnr " & vbCrLf & _
        "LEFT JOIN `desktop` dt ON n.pat_id = dt.pat_id AND dt.titel LIKE '%kein%bericht%' " & vbCrLf & _
-       "WHERE ISNULL(dt.titel) AND n.dmpklass = 2 AND f.icd RLIKE '^E1[0-4]\.' AND h.kvnr<>'' " & vbCrLf & _
+       "WHERE ISNULL(dt.titel) AND n.dmpklass = 2 AND ityp in (1,2) AND h.kvnr<>'' " & vbCrLf & _
        "GROUP BY f.pat_id) i GROUP BY üwnnr ORDER BY adressat"
 '       "LEFT JOIN liuez h ON h.kvnri=n.getha0 AND n.getha0<>0 " & _
+' zum Experimentieren: in v:\DMPanH1.sql:
+sql0 = "" & _
+"SELECT -- diagzahl,andZahl,rangü," & vbCrLf & _
+"Pat_id,Name,Schgr,IF(übwvbsnr='',COALESCE(BSNRÜ,BSNRH),übwvbsnr)ÜWNNR,IF(übwvlanr='',COALESCE(LANRÜ,LANRH),übwvlanr)ÜWLAN,dmpklass,ityp" & vbCrLf & _
+",COUNT(0) OVER(PARTITION BY ÜWNNR)Zahl" & vbCrLf & _
+",ROW_NUMBER() OVER(PARTITION BY /*übwvbsnr*/IF(faxü IS NULL,BezH,Bezü) ORDER BY pat_id)pRang" & vbCrLf & _
+",TRIM(TRAILING CHR(0) FROM COALESCE(COALESCE(faxü,faxh),''))Fax,CONCAT(LEFT(TRIM(REPLACE(COALESCE(IF(faxü IS NULL,orth,ortü),''),chr(0),'')),200),': ',COALESCE(IF(faxü IS NULL,BezH,Bezü),''))Adressat,IF(faxü IS NULL,AnrH,Anrü)Anr,COALESCE(BSNRH,BSNRÜ)BSNR,IF(faxü IS NULL,LANRH,LANRÜ)LANR" & vbCrLf & _
+"-- ,faxü -- ,BezÜ,AdrÜ,AnrÜ,EmailÜ" & vbCrLf & _
+"-- ,BSNRÜ,LANRÜ,KIMü,rFSurH" & vbCrLf & _
+"-- ,eafsH,NachnH,VornH,BezH" & vbCrLf & _
+"-- ,BSNRH,LANRH,faxh" & vbCrLf & _
+", obdmpinfo" & vbCrLf & _
+"FROM (" & vbCrLf & _
+"SELECT" & vbCrLf & _
+"  COUNT(0) OVER(PARTITION BY f.pat_id,f.fid) diagzahl" & vbCrLf & _
+" ,COUNT(0) OVER(PARTITION BY f.pat_id) andZahl" & vbCrLf & _
+" ,ROW_NUMBER() OVER(PARTITION BY f.pat_id,f.fid ORDER BY pü.faxü DESC) rangü" & vbCrLf & _
+" ,f.pat_id,COALESCE(gesname(f.pat_id),'')Name, f.schgr, f.übwvbsnr, f.übwvlanr, n.dmpklass,t.ityp" & vbCrLf & _
+" ,pü.FSurogat,pü.FBezeichnung BezÜ/*,pü.FArztnralt KVNrÜ*/,pü.ortü,pü.faxü,pü.FAdresse Adrü,pü.FEmail EmailÜ,pü.FBetriebsnr BSNRÜ,pü.FKvConnect KIMü" & vbCrLf & _
+" -- ,ea.rfsur rFSurH,ea.fsurogat eafsH" & vbCrLf & _
+" ,ph.FBezeichnung BezH, ph.FBetriebsnr BSNRH, ph.orth,ph.faxH" & vbCrLf & _
+"/*,ea.fnachname NachnH, ea.fvorname VornH*/,ea.FArztnr LANRH,ea.FAnrede AnrH" & vbCrLf & _
+" , ISNULL(hk.kvnr) obdmpinfo " & vbCrLf & _
+"-- Überweiser-Arzt:" & vbCrLf & _
+" ,COALESCE((SELECT FAnrede FROM earzt ea WHERE ea.FExtpraxisnr=pü.FSurogat ORDER BY((ea.FArztnr =f.`ÜbWVLANR` AND f.übwvlanr<>'')OR(ea.FArztnr<>f.`ÜbWVLANR` AND f.übwvlanr=''))DESC,ea.FArztnr LIMIT 1),pü.FAnrede)AnrÜ" & vbCrLf & _
+" ,         (SELECT FArztnr FROM earzt ea WHERE ea.FExtpraxisnr=pü.FSurogat ORDER BY((ea.FArztnr =f.`ÜbWVLANR` AND f.übwvlanr<>'')OR(ea.FArztnr<>f.`ÜbWVLANR` AND f.übwvlanr=''))DESC,ea.FArztnr LIMIT 1)LANRÜ" & vbCrLf
+sql0 = sql0 & _
+" FROM aktfv a " & vbCrLf & _
+" LEFT JOIN namen n USING (pat_id)" & vbCrLf & _
+" JOIN faelle f USING (fid)" & vbCrLf & _
+"-- Überweiser-Praxis:" & vbCrLf & _
+" LEFT JOIN (SELECT" & vbCrLf & _
+"         (SELECT TRIM(TEXT)FROM tmpmepraxis WHERE fsur=p.fsurogat AND enr =10.2 LIMIT 1)faxü" & vbCrLf & _
+"         ,(SELECT TRIM(TEXT)FROM tmpmepraxis WHERE fsur=p.fsurogat AND enr =6 LIMIT 1)ortü, p.*" & vbCrLf & _
+"            FROM epraxis p) pü ON pü.FBetriebsnr=f.übwvbsnr" & vbCrLf & _
+"-- Hausärzte:" & vbCrLf & _
+" LEFT JOIN" & vbCrLf & _
+" (SELECT fpatid,freferenzid,r.fsurogat rfsur,ea.* from patrelation r JOIN earzt ea ON ea.fsurogat = r.freferenzid AND r.FReferenztyp=2 GROUP BY fpatid) ea" & vbCrLf & _
+" ON ea.FPatid=a.pat_id" & vbCrLf & _
+" LEFT JOIN (SELECT (SELECT TRIM(TEXT) FROM tmpmepraxis WHERE fsur=p.fsurogat AND enr =10.2 LIMIT 1)faxh,(SELECT TRIM(TEXT) FROM tmpmepraxis WHERE fsur=p.fsurogat AND enr =6 LIMIT 1)orth, p.* from epraxis p) ph ON ea.FExtpraxisnr = ph.fsurogat" & vbCrLf & _
+" LEFT JOIN dtypen t ON t.pat_id=a.pat_id" & vbCrLf & _
+" LEFT JOIN `hakeinedmpinfo` hk ON  f.übwvbsnr=hk.kvnr" & vbCrLf & _
+" WHERE" & vbCrLf & _
+" -- f.schgr=24 AND" & vbCrLf & _
+" dmpklass IN (0,1,2)" & vbCrLf & _
+" AND ityp IN (1,2)" & vbCrLf & _
+" -- AND pü.FBetriebsnr IS NULL AND NOT übwvbsnr IS NULL AND übwvbsnr<>''" & vbCrLf & _
+")i" & vbCrLf & _
+"-- WHERE faxü IS null" & vbCrLf & _
+"-- WHERE rangü=1" & vbCrLf
+sql0 = sql0 & _
+"-- AND andzahl<>1 -- and diagzahl<>1" & vbCrLf & _
+"ORDER BY ÜWNNR,pat_id" & vbCrLf & _
+";" & vbCrLf & _
+"" & vbCrLf & _
+"" & vbCrLf
 
  myFrag rs0, sql0
  Do While Not rs0.EOF
-  Set HAS = New SortierHA
-  HAS.Zahl = rs0!Zahl
-  HAS.fax = rs0!fax
-  HAS.ÜwNm = rs0!Adressat
-  HAS.ÜWNr = rs0!ÜWNNr
-  HAS.obDMPInfo = rs0!obDMPInfo
-  HAS.gewählt = -rs0!obDMPInfo
-  HASL.sCAdd HAS
-  rs0.MoveNext
- Loop
-'' sql0 = "SELECT * FROM dmpausw"
-' sql0 = "SELECT f.pat_id, CONCAT(IF(n.titel='','',CONCAT(n.titel,' ')), IF(n.nvorsatz='','',CONCAT(n.nvorsatz,' ')), n.nachname,',',n.vorname) Name, f.icd, n.getha0 ÜWNNr, h.Adressat FROM `aktfaellev` f LEFT JOIN `namen` n ON f.pat_id = n.pat_id LEFT JOIN `hareal` h ON n.getha0 = h.kvnr LEFT JOIN `desktop` dt ON n.pat_id = dt.pat_id AND dt.titel LIKE '%kein%bericht%' WHERE ISNULL(dt.titel) AND n.dmpklass = 2 AND f.icd RLIKE '^E1[0-4]\.'" ' AND ((dmp1<>0 AND icd RLIKE '^E1[0234]') OR (dmp2<>0 AND icd RLIKE '^E1[1234]'))
- ''(SELECT pat_id FROM desktop dt WHERE pat_id = n.pat_id AND dt.titel LIKE '%kein%Bericht%') kb,
- sql0 = "SELECT f.pat_id, gesname(f.pat_id) name, " & vbCrLf & _
+  If IsNull(rs0!fax) Then Stop
+  If rs0!pRang = 1 Then
+   Set HAS = New SortierHA
+   HAS.Zahl = rs0!Zahl
+   HAS.fax = rs0!fax
+   HAS.ÜwNm = IIf(IsNull(rs0!Adressat), "", rs0!Adressat)
+   HAS.ÜWNr = IIf(IsNull(rs0!ÜWNNr), "", rs0!ÜWNNr)
+   HAS.obDMPInfo = rs0!obDMPInfo
+   HAS.gewählt = -rs0!obDMPInfo
+   HASL.sCAdd HAS
+  End If ' rs0!pRang = 1 Then
+'  rs0.MoveNext
+' Loop
+''' sql0 = "SELECT * FROM dmpausw"
+'' sql0 = "SELECT f.pat_id, CONCAT(IF(n.titel='','',CONCAT(n.titel,' ')), IF(n.nvorsatz='','',CONCAT(n.nvorsatz,' ')), n.nachname,',',n.vorname) Name, f.icd, n.getha0 ÜWNNr, h.Adressat FROM `aktfaellev` f LEFT JOIN `namen` n ON f.pat_id = n.pat_id LEFT JOIN `hareal` h ON n.getha0 = h.kvnr LEFT JOIN `desktop` dt ON n.pat_id = dt.pat_id AND dt.titel LIKE '%kein%bericht%' WHERE ISNULL(dt.titel) AND n.dmpklass = 2 AND f.icd RLIKE '^E1[0-4]\.'" ' AND ((dmp1<>0 AND icd RLIKE '^E1[0234]') OR (dmp2<>0 AND icd RLIKE '^E1[1234]'))
+' ''(SELECT pat_id FROM desktop dt WHERE pat_id = n.pat_id AND dt.titel LIKE '%kein%Bericht%') kb,
+' sql0 = "SELECT f.pat_id, gesname(f.pat_id) name, " & vbCrLf & _
        "f.icd, n.getha0 Üwnnr, CONCAT_WS(', ',h.name, h.vorname, h.titelt) Adressat " & vbCrLf & _
        ", ISNULL(hk.kvnr) obdmpinfo " & vbCrLf & _
        "FROM aktfaellev f " & vbCrLf & _
@@ -669,20 +729,20 @@ sql0 = "SELECT COUNT(0) Zahl, i.* FROM (SELECT n.getha0 ÜWNNR, h.fax, h.Anrede, 
        "LEFT JOIN `desktop` dt ON n.pat_id = dt.pat_id AND dt.titel LIKE '%kein%bericht%' " & vbCrLf & _
        "WHERE ISNULL(dt.titel) AND n.dmpklass = 2 AND f.icd RLIKE '^E1[0-4]\.' AND h.kvnr<>'' " & vbCrLf & _
        "GROUP BY f.pat_id;"
- Set rs0 = Nothing
- myFrag rs0, sql0
- Do While Not rs0.EOF
-'  sql1 = "SELECT pat_id FROM `desktop` dt WHERE pat_id = " & rs0!Pat_id & " AND dt.titel LIKE '%kein%Bericht%'"
-'  SET rs1 = Nothing
-'  myFrag rs1, sql1
-'  IF rs1.BOF THEN
+' Set rs0 = Nothing
+' myFrag rs0, sql0
+' Do While Not rs0.EOF
+''  sql1 = "SELECT pat_id FROM `desktop` dt WHERE pat_id = " & rs0!Pat_id & " AND dt.titel LIKE '%kein%Bericht%'"
+''  SET rs1 = Nothing
+''  myFrag rs1, sql1
+''  IF rs1.BOF THEN
    Set PatZuHAS = New SortierPatZuHA
    PatZuHAS.obDMPInfo = -rs0!obDMPInfo
    PatZuHAS.gewählt = -rs0!obDMPInfo
    PatZuHAS.name = rs0!name
    PatZuHAS.Pat_ID = rs0!Pat_ID
-   PatZuHAS.ÜwNm = rs0!Adressat
-   PatZuHAS.ÜWNr = rs0!ÜWNNr
+   PatZuHAS.ÜwNm = IIf(IsNull(rs0!Adressat), "", rs0!Adressat) ' das COALESCE ignoriert er
+   PatZuHAS.ÜWNr = IIf(IsNull(rs0!ÜWNNr), "", rs0!ÜWNNr)
    PatZuHASL.sCAdd PatZuHAS
 '  END IF
   rs0.MoveNext
@@ -4100,7 +4160,7 @@ Private Sub Form_Load()
 #Else
       Const dokuzahl% = 12
       sql = "" & vbCrLf & _
-      "SELECT i.*,COUNT(*) OVER() zahl FROM (" & vbCrLf & _
+      "SELECT i.*,COUNT(0) OVER() zahl FROM (" & vbCrLf & _
       " SELECT" & vbCrLf & _
       " COALESCE(CONCAT(IF(qb>qbeg(qbeg(NOW() - INTERVAL " & Verspätung & " DAY) - INTERVAL 1 DAY),'',IF(qb>qbeg(qbeg(qbeg(NOW()- INTERVAL " & Verspätung & " DAY)- INTERVAL 1 DAY) -INTERVAL 1 DAY),',',IF(qb>qbeg(qbeg(qbeg(qbeg(NOW()- INTERVAL " & Verspätung & " DAY)- INTERVAL 1 DAY) -INTERVAL 1 DAY) -INTERVAL 1 DAY),',,',',,,')))," & vbCrLf & _
       " GROUP_CONCAT(DISTINCT CONCAT(art,'_',DATE_FORMAT(dokudatum,'%d.%m.%y'),'_',IF(ok=1,'ok','__'),'_',IF(exportiert>20000101,'ex','__'))ORDER BY dokudatum DESC)),',,,') dokus" & vbCrLf & _
@@ -4116,10 +4176,10 @@ Private Sub Form_Load()
       "   LEFT JOIN `kassenliste` k ON k.ik = f.ik AND k.vknr = f.vknr" & vbCrLf
       If Me.ohneTermine Then sql = sql & "   LEFT JOIN termine t ON t.pid = n.pat_id AND DATE(t.zp) BETWEEN NOW() AND qende(NOW()) " & vbCrLf
       sql = sql & _
-      "   LEFT JOIN dmpreihe dr ON dr.Pat_id=n.pat_id AND dr.dmpart<>0 -- dr.Abk  RLIKE '^(eDMPDM|DMPD(TYP|M2)|(Erst|Verlaufs)-Dokumentation Diabetes)'" & vbCrLf & _
-      "   WHERE (/*notiz LIKE '%DMP hier%' OR */dmpklass <> 2) AND NOT ISNULL (f.bhfb)" & vbCrLf & _
-      "     AND (SDatum IS NULL OR SDatum=18991230 OR SDatum>qbeg(qbeg(NOW() - INTERVAL " & Verspätung & " DAY)- INTERVAL 1 DAY))" & vbCrLf & _
-      "     AND NOT (f.bhfb<qbeg(qbeg(NOW() - INTERVAL " & Verspätung & " DAY)- INTERVAL 1 DAY) AND inaktiv=1)" & vbCrLf & _
+      "   LEFT JOIN dmpreihe dr ON dr.Pat_id=n.pat_id AND dr.dmpart IN(1,2) -- dr.Abk  RLIKE '^(eDMPDM|DMPD(TYP|M2)|(Erst|Verlaufs)-Dokumentation Diabetes)'" & vbCrLf & _
+      "   WHERE (/*notiz LIKE '%DMP hier%' OR */dmpklass <> 2) AND NOT ISNULL(f.bhfb)" & vbCrLf & _
+      "     AND (SDatum IS NULL OR SDatum=18991230 OR SDatum>qbeg(qbeg(NOW()-INTERVAL " & Verspätung & " DAY)- INTERVAL 1 DAY))" & vbCrLf & _
+      "     AND NOT (f.bhfb<qbeg(qbeg(NOW() - INTERVAL " & Verspätung & " DAY)-INTERVAL 1 DAY) AND inaktiv=1)" & vbCrLf & _
       "     AND (" & CStr(Lese.pidoffs) & "=0 OR n.pat_id<" & Lese.pidoffs & ")" & vbCrLf & _
       "     AND bhfb> NOW() - INTERVAL 387 DAY" & vbCrLf & _
       "     AND schgr<>90 " & vbCrLf & _
@@ -4480,9 +4540,11 @@ Sub AlleMark(ob%) ' Alle Markieren, alle Demarkieren
  End If
  If ob < 2 Then
   For i = 1 To Me.MFG.Rows - 1
-   If LenB(Me.MFG.TextMatrix(i, PlusCol)) = 0 Then Me.MFG.TextMatrix(i, gew2col) = IIf(IIf(ob, HASL.Item(i).obDMPInfo, 0), "X", vNS) Else Me.MFG.TextMatrix(i, gewcol) = IIf(IIf(ob, HASL.Item(i).obDMPInfo, 0), "X", vNS)
+   If i <= HASL.COUNT Then
+    If LenB(Me.MFG.TextMatrix(i, PlusCol)) = 0 Then Me.MFG.TextMatrix(i, gew2col) = IIf(IIf(ob, HASL.Item(i).obDMPInfo, 0), "X", vNS) Else Me.MFG.TextMatrix(i, gewcol) = IIf(IIf(ob, HASL.Item(i).obDMPInfo, 0), "X", vNS)
+   End If ' i <= HASL.COUNT Then
   Next i
- End If
+ End If ' ob < 2 Then
  zähleDMPPat
  Me.MFG.MousePointer = 0 ' flexDefault, in C:\Windows\SysWow64\MSHFLXGD.oca
  Exit Sub

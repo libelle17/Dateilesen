@@ -496,7 +496,7 @@ Begin VB.MDIForm Lese
          Visible         =   0   'False
       End
       Begin VB.Menu DiabetesQuartalsdiagnosenInDauerdiagnosenUmwandeln 
-         Caption         =   "&Diabetes-Quartalsdiagnosen in Dauerdiagnosen umwandeln (manuell)"
+         Caption         =   "Diabetes-&Quartalsdiagnosen in Dauerdiagnosen umwandeln (manuell)"
       End
       Begin VB.Menu DMPSend 
          Caption         =   "Alle &DMP-Dokumente an Hausärzte in p:\zufaxen erstellen"
@@ -992,6 +992,9 @@ Begin VB.MDIForm Lese
       Begin VB.Menu Leistungen 
          Caption         =   "&Leistungen"
       End
+      Begin VB.Menu Hausärzte_von_MO_nach_Linux_übertragen 
+         Caption         =   "Haus&ärzte von MO nach Linux übertragen"
+      End
    End
    Begin VB.Menu Fenster 
       Caption         =   "Fe&nster"
@@ -1414,6 +1417,11 @@ Call TabAusgeb(rs, Me, , , , , spmax, True, "Zu trennende Doppelzeilen in MO-Not
 End Sub ' Doppelzeilen_in_Notizen_auflisten_Click()
 
 
+' Für Übertragungen -> Haus&ärzte von MO nach Linux übertragen
+Private Sub Hausärzte_von_MO_nach_Linux_übertragen_Click()
+ Call hatrans
+End Sub ' Hausärzte_von_MO_nach_Linux_übertragen_Click()
+
 ' Funktion für Arzthelferin und Arzt -> Notizen_übertragen_vorbereiten_Click
 Private Sub Notizen_übertragen_vorbereiten_Click()
  syscmd 4, "Bereite den Notizenübertrag vor mit 'CALL procmpatstamm(0)'"
@@ -1767,7 +1775,7 @@ Private Sub do_Medpläne_alt_für_MO_exportieren_Click(Optional xmlneu%)
   If Not FSO.FolderExists(Untervz) Then FSO.CreateFolder Untervz
   Call BDT.Start(Untervz, "MP")
   Do While Not rMP.EOF
-   If rMP!prang = 1 Then
+   If rMP!pRang = 1 Then
     syscmd 4, "Exportiere Medpläne von Pat. " & rMP!Pat_ID & " (" & rMP!Nachname & ", " & rMP!Vorname & ") in " & BDT.DMPImp
     Call BDT.SAdd("8000", "0020", True) ' Satzart
     Call BDT.SAdd("8100", rMP!MPzl * 12 + 50) ' Satzlänge
@@ -1990,6 +1998,7 @@ End Sub ' SuchInSpaltenInMO_Click
 Private Sub Übertragung_aus_MO_Click()
  Dim abstand$, rab As ADODB.Recordset, aktz&, anzs$, unter$, unts$, raz As ADODB.Recordset
 Const ohneLabor% = False ' True
+Const obpruef% = True
 If False Then
  sql = _
  "SELECT COUNT(0) OVER() zahl, f.fpatnr,Concat(Fnachname,', ',FVorname,' *',FGeburtsdatum) nam,18900101 + INTERVAL f.fvon DAY von,18900101 + INTERVAL f.fbis DAY bis" & vbCrLf & _
@@ -2015,6 +2024,7 @@ Else
         "WHERE 18900101 + INTERVAL FDatum DAY + INTERVAL FUhrzeit SECOND > NOW() - INTERVAL " & CStr(CDbl(abstand)) & " DAY" & vbCrLf & _
         unts & _
         "AND ftablename IN ('ltag','termin')" & vbCrLf & _
+        "AND (FXmlinhalt IS NULL OR FXmlinhalt NOT RLIKE 'arztbrief|Erledigtdatum')" & vbCrLf & _
         "AND p.FSurogat IS NOT NULL" & vbCrLf & _
         "GROUP BY fpatnr)i" & vbCrLf & _
         "ORDER BY fpatnr DESC;"
@@ -2034,9 +2044,9 @@ End If
     myFrag raz, "SELECT COALESCE(aktzeit,18990101) aktzeit FROM namen WHERE pat_id=" & rab!fPatNr, , DBCn, adLockReadOnly, , rAf
     Dim lImp$
     If raz.EOF Then lImp = "-" Else lImp = Format(raz!aktZeit, "dd.mm.yy HH:MM:SS")
-    If Not raz.EOF Then If raz!aktZeit > rab!laend Then Ausgeb rab!fPatNr & " zul.geänd.: " & rab!laend & ", schon importiert: " & lImp, True: GoTo weiter
+    If obpruef Then If Not raz.EOF Then If raz!aktZeit > rab!laend Then Ausgeb rab!fPatNr & " zul.geänd.: " & rab!laend & ", schon importiert: " & lImp, True: GoTo weiter
     Ausgeb "Beginne mit " & anzs & " (zul.geänd.: " & rab!laend & ", importiert: " & lImp & ")", False
-    doPatvonMO rab!fPatNr, , , ohneLabor
+    doPatvonMO rab!fPatNr, , obpruef, ohneLabor
     Ausgeb "Fertig mit " & anzs & " (zul.geänd.: " & rab!laend & ", importiert: " & lImp & ")", True
 weiter:
     rab.MoveNext
@@ -2873,7 +2883,7 @@ Private Sub Kontrolllisten_für_DMP_HA_Click()
   FileJoin vVerz & qd & "3.rtf", Ziel
 w2:
   If rdh.EOF Then Exit Do
-  Ziel = pVerz & ZielVz & "DMP-Rückfrage an Dr.med." & rdh!name & ", " & rdh!Vorname & " an Fax " & rdh!fax & ".rtf"
+  Ziel = pVerz & ZielVz & "DMP-Rückfrage an Dr.med." & rdh!name & ", " & rdh!Vorname & " an Fax " & REPLACE$(rdh!fax, "\N", "") & ".rtf"
   syscmd 4, Ziel
   FSO.CopyFile vVerz & qd & "1.rtf", Ziel, True
   Open Ziel For Append As #312

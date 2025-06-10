@@ -77,7 +77,8 @@ Dim DiagNr%
 
 Const DiagMaxZahl% = 40
 ' Variablen für Anamnesebogen
-Dim DMSchulz%, DMSchL%, RRSchulz%, dmpdat As Date, Tkz%, VorStDat As Date, obMedNetz%
+Dim DMSchulz%, DMSchL%, RRSchulz%, dmpdat As Date, Tkz%, obMedNetz%
+Public VorStDat As Date  ' public  1.6.25
 'Dim obMedPlan%, obMedPlanGelesen%
 Dim NEin0% ' Nameneintr0 wurde aufgerufen
 Dim arr$, gesRR$, lRR$  ' gesamter, Anfangs- und letzter Blutdruck
@@ -5105,6 +5106,7 @@ nachFehler:
  Call usdm0
  Call usdm1
  Call usdm2
+ Call usd
  Call USfuss
  Call USUlcus
  Call usVKGD

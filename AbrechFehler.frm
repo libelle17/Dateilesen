@@ -752,7 +752,7 @@ Public Function ZeigSprivat(FristS$)
  sql(AWlf) = "SELECT n.pat_id AS pat_id, gesname(n.pat_id) Name, e.zeitpunkt AS zeitpunkt, e.art AS art, inhalt " & vbCrLf & _
  "FROM `eintraege` e LEFT JOIN `namen` n ON e.pat_id = n.pat_id " & vbCrLf & _
  "LEFT JOIN `faelle` f ON e.fid = f.fid " & vbCrLf & _
- "WHERE ((art LIKE '%usdm%'))" & vbCrLf & _
+ "WHERE ((art LIKE '%usd%'))" & vbCrLf & _
  "AND (false OR NOT EXISTS (SELECT pat_id FROM `eintraege` bez WHERE art = 'rech' AND pat_id = e.pat_id AND zeitpunkt > e.zeitpunkt)) " & vbCrLf & _
  "AND NOT EXISTS (SELECT pat_id FROM `leistungen` WHERE pat_id = e.pat_id AND DATE(zeitpunkt) = DATE(e.zeitpunkt) AND leistung IN ('800')) " & vbCrLf & _
  "AND n.nachname <> 'ZuTun' AND n.pat_id <> 2 AND n.pat_id <> 2 AND schgr = 90 AND zeitpunkt > (SELECT MAX(zeitpunkt) FROM `eintraege` WHERE pat_id = e.pat_id AND art = 'pvs' AND NOT inhalt LIKE '%storniert%')"
@@ -2547,7 +2547,7 @@ sql(AWlf) = _
  " ,COALESCE(GROUP_CONCAT(DISTINCT CONCAT(e.art,':',e.Inhalt)),'') Debr_akt" & vbCrLf & _
  " FROM aktfv f LEFT JOIN namen USING (pat_id)" & vbCrLf & _
  " LEFT JOIN eintraege e ON e.pat_id=f.pat_id AND e.zeitpunkt BETWEEN qanf() AND qend() AND (e.inhalt LIKE '%ebrid%' OR e.art LIKE 'debr%' OR (e.inhalt LIKE '%resekt%' AND NOT e.inhalt RLIKE 'Leber.*rese[ck]t|Resektionshöhle|Gebärmutterrese|Segmentresekt|Teilresekt|Linksresekt|Totalresekt|Prostataresekt|SD-resekt|Mucosaresektion|Nachresektion|Resektion der Schild|Strumaresekt|Schilddrüsenresekt|Gallenblase[n]{0,1}resektion|Elektroresektion|wurzelresektion|Nierenresektion|Pan[ck]reas.*resektion|trumektomie|igmaresektion|Resektion Leberzyste|Resektionsbereich|Pan[ck]reaskopfresektion|Re[ck]tumrese[ck]t|darmresekt|olonresekt|olon-resekt|milzresekt|Rese[ck]tion Lunge'))" & vbCrLf & _
- " LEFT JOIN eintraege fu ON fu.pat_id=f.pat_id AND fu.zeitpunkt BETWEEN qanf() AND qend() AND fu.Art RLIKE 'fuss|fuß|usdm|ulcus'" & vbCrLf & _
+ " LEFT JOIN eintraege fu ON fu.pat_id=f.pat_id AND fu.zeitpunkt BETWEEN qanf() AND qend() AND fu.Art RLIKE 'fuss|fuß|usd|ulcus'" & vbCrLf & _
  " LEFT JOIN eintraege u ON u.pat_id=f.pat_id AND u.zeitpunkt BETWEEN qanf() AND qend() AND u.Art = 'ulcus'" & vbCrLf & _
  " LEFT JOIN diagview d ON d.pat_id=f.pat_id AND d.obdauer<>0 AND d.gICD REGEXP '^E1[0-4]\.'" & vbCrLf & _
  " LEFT JOIN diagview n ON n.pat_id=f.pat_id AND n.obdauer<>0 AND n.gICD = 'G63.2'" & vbCrLf & _

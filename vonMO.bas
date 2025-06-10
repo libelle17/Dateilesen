@@ -41,6 +41,43 @@ End Type
 Declare Sub CopyMemoryPtr Lib "kernel32" Alias "RtlMoveMemory" (ByVal Destination&, ByVal Sourc&, ByVal length&)
 Dim aru&
 
+Public Function explor()
+Const Filename$ = "P:\dok\69926\"
+Const wart& = 100
+Dim cmd$
+On Error GoTo fehler
+cmd = "C:\Windows\explorer.exe /select,""" & Filename & """"
+cmd = "C:\Windows\explorer.exe """ & Filename & """"
+Dim objShell As Object
+Set objShell = CreateObject("WScript.Shell")
+With objShell
+    .rUn cmd, 1, False
+    Sleep 1000
+'    .Sendkeys "% x"
+'    Sleep wart
+    DoEvents
+    .Sendkeys "%"
+    Sleep wart
+    DoEvents
+    .Sendkeys "a"
+'    Sleep wart
+    .Sendkeys "o{Down}{Enter}"
+End With
+ Exit Function
+fehler:
+ Dim AnwPfad$
+#If VBA6 Then
+ AnwPfad = CurrentDb.name
+#Else
+ AnwPfad = App.path
+#End If
+ Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in exp/" + AnwPfad)
+  Case vbAbort: Call MsgBox("Höre auf"): ProgEnde
+  Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
+  Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
+ End Select
+End Function
+
 ' wird nicht verwendet
 Public Sub testeb()
  Dim eb() As ebType
@@ -257,7 +294,10 @@ Public Function ParseMemo(FMemo$, MeStr() As memoType, Optional obDebug%, Option
   Do ' Schleife labt
    iru = iru + 1
    obDruck = 0
+   On Error Resume Next
    tlen = Asc(Mid$(FMemo, pos + 1, 1)) * 256& + Asc(Mid$(FMemo, pos, 1))
+   If Err.Number <> 0 Then tlen = 0
+   On Error GoTo fehler
    If pos = 1 Then gl = tlen: MAX = gl
    altmax = MAX
    aktmax = tlen + pos + 1 ' aktuell angegebene Länge aus dem und dem nä Byte
@@ -695,7 +735,9 @@ End Function ' stzd
 
 ' String zu Datum ("Kalender"); Formel experimentell ermittelt über Datei
 Public Function stzk(s$) As Date
- stzk = CDate(CStr(Asc(Mid$(s, 4))) & "." & CStr(Asc(Mid$(s, 3))) & "." & CStr(256 * Asc(Mid(s, 2)) + Asc(Mid(s, 1))))
+ Dim DatS$
+ DatS = CStr(Asc(Mid$(s, 4))) & "." & CStr(Asc(Mid$(s, 3))) & "." & CStr(256 * Asc(Mid(s, 2)) + Asc(Mid(s, 1)))
+ If IsDate(DatS) Then stzk = CDate(DatS) Else stzk = 0
 End Function ' stzk
 
 ' in Übertragung_aus_MO_Click, zeigmosystem, doPatvonMO
@@ -870,7 +912,7 @@ sql = sql & _
     sql = sql & ",gdm=" & IIf(rNa(0).gdm = 0, "0", "1")
     sql = sql & ",kdm=" & IIf(rNa(0).kdm = 0, "0", "1")
     sql = sql & ",cgm=" & IIf(rNa(0).cgm = 0, "0", rNa(0).cgm)
-    sql = sql & ",insAnw=" & IIf(rNa(0).insAnw = 0, "0", rNa(0).insAnw)
+    sql = sql & ",insAnw=" & IIf(rNa(0).insanw = 0, "0", rNa(0).insanw)
     If sql <> "" Then
      sql = "UPDATE namen SET " & Mid$(sql, 2) & " WHERE pat_id=" & rNa(0).Pat_ID
      myEFrag sql, rAf, DBCn
@@ -927,18 +969,103 @@ Public Sub doNotizen(Optional fPtNr& = 0, Optional mitSpeichern% = True)
  End If ' Not rMo.BOF Then
 End Sub ' doÜbertrag
 
-Public Function hatrans()
- Dim rMo As ADODB.Recordset
- Call Lese.ProgStart
- MOConInit
- Set rMo = myEFrag("SELECT fsurogat, 18900101+INTERVAL finaktivseit DAY seit FROM patstamm WHERE finaktivgrund=1;", rAf, MOCon)
-' Do While Not rMo.EOF
-'  myEFrag "UPDATE namen SET SDatum='" & rMo.Fields(1) & "', inaktiv=1 WHERE pat_id=" & rMo.Fields(0), rAf
-'  Debug.Print rMo.Fields(0), rAf, rMo.Fields(1)
-'  rMo.MoveNext
-' Loop
+' in HATrans
+Public Function tbtrans(Tbl$)
+  Static pwd$
+  On Error GoTo fehler
+  syscmd 4, "HATrans: Übertrage " & Tbl
+  If pwd = "" Then pwd = InputBox("bitte Passwort für root auf Linux eingeben", "Passworteingabe")
+  Shell """c:\program files\putty\plink.exe"" -pw " & pwd & " -batch root@linux1 ""mariadb-dump --defaults-extra-file=~/.modbpwd medoff " & Tbl & "|mariadb --defaults-extra-file=~/.mariadbpwd quelle"""
+#If False Then
+  Dim rMo As ADODB.Recordset, rq As ADODB.Recordset, ErrNr&, ErrDes$, einzeln%, sp0$, sp1$, iru%
+  Call Lese.ProgStart
+  MOConInit
  
-End Function
+ sql = "SELECT GROUP_CONCAT(COLUMN_NAME), GROUP_CONCAT(CONCAT('COALESCE(',IF(column_type='longblob',CONCAT('REPLACE(LEFT(CONVERT(',COLUMN_NAME,' USING latin1),10000000),''\'',''\\'')'),COLUMN_NAME),','''')')) FROM information_schema.columns WHERE table_schema='medoff' and TABLE_NAME='" & Tbl & "' ORDER BY ordinal_position"
+' sql = "SELECT GROUP_CONCAT(COLUMN_NAME), GROUP_CONCAT(CONCAT('COALESCE(REPLACE(REPLACE(',COLUMN_NAME,',''\n'',''''),''\r'',''''),'''')')) FROM information_schema.columns WHERE table_schema='medoff' and TABLE_NAME='" & tbl & "' ORDER BY ordinal_position"
+ myFrag rMo, sql, adOpenStatic, MOCon, adLockReadOnly, 10000000, rAf, , ErrNr, ErrDes
+ If Not rMo.BOF Then
+  sp0 = rMo.Fields(0)
+  sp1 = rMo.Fields(1)
+  myFrag rq, "TRUNCATE `" & Tbl & "`", adOpenStatic, DBCn, adLockReadOnly, 10000000, rAf
+  For iru = 1 To 2
+   If iru = 2 Then einzeln = True
+   sql = _
+   "SELECT CONCAT('INSERT IGNORE INTO `" & Tbl & "`(" & vbCrLf & _
+   sp0 & vbCrLf & _
+    ") VALUES('''" & vbCrLf & _
+   "," & IIf(einzeln, "", "GROUP_CONCAT(") & "CONCAT_WS(''','''," & sp1 & ")" & IIf(einzeln, "", " SEPARATOR '''),(''')") & vbCrLf & _
+   ",''')') FROM `" & Tbl & "`"
+'   "SELECT CONVERT(CONCAT('INSERT IGNORE INTO `" & tbl & "`(" & vbCrLf & _
+'   ",''')') USING utf8mb4) FROM `" & tbl & "`"
+
+   myFrag rMo, sql, adOpenStatic, MOCon, adLockReadOnly, 10000000, rAf
+   If Not rMo.EOF Then
+    Do While Not rMo.EOF
+'     DBCn.Execute rMo.Fields(0), rAf
+     myFrag rq, rMo.Fields(0), , DBCn, adLockReadOnly, 10000000, rAf, , ErrNr, ErrDes
+     If ErrNr Then
+      Debug.Print ErrNr, ErrDes
+'      Exit Do
+     End If
+     rMo.MoveNext
+    Loop
+    If ErrNr = 0 Then Exit For
+   End If 'Not rMo.EOF Then
+  Next iru
+ End If ' Not rMo.BOF Then
+#End If
+ syscmd 4, "Fertig mit Übertragung von " & Tbl
+ Exit Function
+fehler:
+ Dim AnwPfad$
+#If VBA6 Then
+ AnwPfad = CurrentDb.name
+#Else
+ AnwPfad = App.path
+#End If
+ Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in tbtrans/" + AnwPfad)
+  Case vbAbort: Call MsgBox("Höre auf"): ProgEnde
+  Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
+  Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
+ End Select
+End Function ' tbtrans(tbl$)
+
+' für Arzt -> Hausärzte_von_MO_nach_Linux_übertragen_Click()
+Public Function hatrans()
+ Dim ErrNr&, ErrDes$
+ On Error GoTo fehler
+ syscmd 4, "HATras: Werfe die Datenbankverbindungen an"
+ Lese.ProgStart
+ MOConInit
+ If MsgBox("soll promepraxis(0) aufgerufen werden (dauert mind. 7 min)?", vbYesNo, "Rückfrage") = vbYes Then
+  syscmd 4, "HATrans: Extrahierte FAdresse (kann mindestens 7 Minuten dauern)"
+  myEFrag "call procmepraxis(0)", rAf, MOCon, , ErrNr, ErrDes, 10000000
+  If ErrNr Then
+   syscmd 4, "Fehler " & ErrNr & ": " & ErrDes
+  End If
+ End If ' true
+ If ErrNr = 0 Then
+  tbtrans "earzt"
+  tbtrans "tmpmepraxis"
+  tbtrans "epraxis"
+  tbtrans "patrelation"
+  syscmd 4, "Fertig mit HATrans"
+ End If
+ Exit Function
+fehler:
+ Dim AnwPfad$
+#If VBA6 Then
+ AnwPfad = CurrentDb.name
+#Else
+ AnwPfad = App.path
+#End If
+ Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in HATrans/" + AnwPfad)
+  Case vbAbort: Call MsgBox("Höre auf"): ProgEnde
+  Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
+  Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
+ End Select
+End Function ' hatrans
 
 ' war nur zum einmaligen Aufruf
 'Public Function inakt()
@@ -983,6 +1110,7 @@ Public Function doPatvonMO(fPtNr&, Optional obmitFormularen%, Optional obpruef%,
  Dim NaStr() As memoType, FaStr() As memoType, rsfaru%
  Dim EintS As SortierEintr
  Static EinL As New SortierListe, EinK As New SortierListe
+ MOConInit
  If obpruef Then ' prüft, ob Import Neues brächte
   Dim rab As ADODB.Recordset, raz As ADODB.Recordset
 ' dbsprot.fPrimaryKey ist varchar(35), ltag.FSurogat int(11), somit laesst sich kein vorhandere Index verwenden
@@ -994,25 +1122,24 @@ Public Function doPatvonMO(fPtNr&, Optional obmitFormularen%, Optional obpruef%,
         "AND FTablename IN ('ltag','termin')" & vbCrLf & _
         "AND (fxmlinhalt IS NULL OR FXmlinhalt NOT RLIKE 'arztbrief|Erledigtdatum')"
 ' AND ftablename NOT IN ('datafile','d2dmail','med95ini','mail','nutzerneu','markier','earzt','epraxis','tzone','ldtarc','globalitems','zertifikat','nutzerzugriff','patfall','patrelation')
-  MOConInit
   myFrag rab, sql, adOpenStatic, MOCon, adLockReadOnly
   If Not rab.EOF Then
    If Not IsNull(rab!laend) Then
     myFrag raz, "SELECT COALESCE(aktzeit,18990101) aktzeit FROM namen WHERE pat_id=" & fPtNr, , DBCn, adLockReadOnly, , rAf
     If Not raz.EOF Then
      If raz!aktZeit > rab!laend Then
-      If obtransp Then
+'      If obtransp Then
 '       MsgBox sql & vbCrLf & "Patient wurde in MO zuletzt geändert: " & Format(rab!laend, "dd.mm.yyyy HH:MM:SS") & "," & vbCrLf & _
        "zuletzt importiert: " & Format(raz!aktZeit, "dd.mm.yyyy HH:MM:SS") & " => braucht nicht übertragen zu werden"
-      End If
+'      End If
       Exit Function
-     Else
-      If obtransp Then
+'     Else ' raz!aktZeit > rab!laend Then
+'      If obtransp Then
 '       MsgBox sql & vbCrLf & "Patient wurde in MO zuletzt geändert: " & Format(rab!laend, "dd.mm.yyyy HH:MM:SS") & "," & vbCrLf & _
        "zuletzt importiert: " & Format(raz!aktZeit, "dd.mm.yyyy HH:MM:SS") & " => wird übertragen"
-      End If
-     End If
-    End If
+'      End If
+     End If ' raz!aktZeit > rab!laend Then
+    End If ' Not raz.EOF Then
    End If ' Not IsNull(rab!laend) Then
   End If ' not rab.eof
  End If ' obpruef
@@ -1057,7 +1184,6 @@ Public Function doPatvonMO(fPtNr&, Optional obmitFormularen%, Optional obpruef%,
 ' If obDebug Then FSO.DeleteFile parsemotxt
  On Error GoTo fehler
  Tinit
- MOConInit
  If EinL.COUNT = 0 Then
   syscmd 4, "Lade MOSystem"
  ' unter Ado müssen die Memo-Felder auf latin1 übersetzt werden für die Zahlen > 128 (nicht in HeidiSQL)
@@ -1388,13 +1514,16 @@ Public Function doPatvonMO(fPtNr&, Optional obmitFormularen%, Optional obpruef%,
        Case "3.2.2.3.4.3":    rFa(UBound(rFa)).Vorname = FaStr(j).Text
        Case "3.2.2.4.2": ' Versicherungsschutzbeginn
           If FaStr(j).Text Like "20######" Then
+            On Error Resume Next
             rFa(UBound(rFa)).VschBeg = CDate(Format$(FaStr(j).Text, "####\.##\.##"))
-          Else
+            If rFa(UBound(rFa)).VschBeg = 0 Then rFa(UBound(rFa)).VschBeg = CDate(Format$(FaStr(j).Text, "##\.##\.####"))
+            On Error GoTo fehler
+          Else ' FaStr(j).Text Like "20######" Then
             On Error Resume Next
             rFa(UBound(rFa)).VschBeg = CDate(Format$(FaStr(j).Text, "##\.##\.####"))
             If rFa(UBound(rFa)).VschBeg = 0 Then rFa(UBound(rFa)).VschBeg = CDate(Format$(FaStr(j).Text, "####\.##\.##"))
             On Error GoTo fehler
-           End If
+           End If ' FaStr(j).Text Like "20######" Then else
        Case "3.2.2.4.3": ' VK gültig bis ' gibt es nur auf wser
            If FaStr(j).Text Like "20######" Then
             rFa(UBound(rFa)).VschEnd = CDate(Format$(FaStr(j).Text, "####\.##\.##"))
@@ -1573,7 +1702,7 @@ Public Function doPatvonMO(fPtNr&, Optional obmitFormularen%, Optional obpruef%,
 ' hier rNa fertig
 
  
- ' KVnr: fpatrelation, dort fpatid= fpatnr, freferenztyp 2 = Hausarzt (0=Arbeitgeber), freferenzid = earzt.fsurogat,
+ ' KVnr: fpatrelation, dort fpatid= FPatnr, FReferenztyp 2 = Hausarzt (0=Arbeitgeber), freferenzid = earzt.fsurogat,
  ' dort FExtpraxisnr = epraxis.fsurogat
   
   
@@ -1696,26 +1825,51 @@ sql = sql & _
        rDm(UBound(rDm)).Nachname = rNa(0).Nachname
        rDm(UBound(rDm)).Vorname = rNa(0).Vorname
        rDm(UBound(rDm)).GebDat = rNa(0).GebDat
+       Dim testdat As Date
        Debug.Print rsEi!FText
        If SafeArrayGetDim(FMem) <> 0 Then
         If rsEi!obdmr <> 0 Then
-         If rsEi!obt2r <> 0 Then rDm(UBound(rDm)).DMPArt = 2 Else rDm(UBound(rDm)).DMPArt = 1
-         For j = 0 To UBound(FMem)
-          Select Case FMem(j).ENr
-           Case "75": ' vermutlich Formularversion
+         If rsEi!obt2r <> 0 Then ' Typ 2
+          rDm(UBound(rDm)).DMPArt = 2
+          For j = 0 To UBound(FMem)
+           Select Case FMem(j).ENr
+            Case "75": ' vermutlich Formularversion
                 rDm(UBound(rDm)).uDat = stzk(FMem(j).Text)
-           Case "96":
+            Case "96": ' bei Typ 1: 6
                 If Not Len(FMem(j).Text) = 1 And Asc(FMem(j).Text) = 1 Then
                    rDm(UBound(rDm)).DokuDatum = stzk(FMem(j).Text)
                 End If
-'         Case "121":
+'           Case "121":
 '                Stop
-           Case "137":
-                rDm(UBound(rDm)).Druckdatum = stzk(FMem(j).Text)
-           Case "139":
-                rDm(UBound(rDm)).exportiert = stzk(FMem(j).Text)
-          End Select
-         Next j
+            Case "117", "137" ' bei Typ 1: 91
+                testdat = stzk(FMem(j).Text)
+                If testdat Then rDm(UBound(rDm)).Druckdatum = testdat
+            Case "119", "139" ' ' bei Typ 1: 104
+                testdat = stzk(FMem(j).Text)
+                If testdat Then rDm(UBound(rDm)).exportiert = testdat
+           End Select
+          Next j
+         Else ' rsEi!obt2r <> 0 Then: Typ 1
+          rDm(UBound(rDm)).DMPArt = 1
+          For j = 0 To UBound(FMem)
+           Select Case FMem(j).ENr
+            Case "4" ' vermutlich Formularversion, bei Typ 1: 4
+                 rDm(UBound(rDm)).uDat = stzk(FMem(j).Text)
+            Case "6"
+                If Not Len(FMem(j).Text) = 1 And Asc(FMem(j).Text) = 1 Then
+                   rDm(UBound(rDm)).DokuDatum = stzk(FMem(j).Text)
+                End If
+'           Case "121":
+'                Stop
+            Case "91"
+                testdat = stzk(FMem(j).Text)
+                If testdat Then rDm(UBound(rDm)).Druckdatum = testdat
+            Case "104"
+                testdat = stzk(FMem(j).Text)
+                If testdat Then rDm(UBound(rDm)).exportiert = testdat
+           End Select
+          Next j
+         End If ' rsEi!obt2r <> 0 Then
         ElseIf rsEi!obKHr <> 0 Then 'koronare Herz
          rDm(UBound(rDm)).DMPArt = 3
          For j = 0 To UBound(FMem)
@@ -1730,8 +1884,10 @@ sql = sql & _
 '                Stop
            Case "66":
                 rDm(UBound(rDm)).Druckdatum = stzk(FMem(j).Text)
-           Case "72":
-                rDm(UBound(rDm)).exportiert = stzk(FMem(j).Text)
+           Case "72" ' , "91":
+'                If IsDate(stzk(FMem(j).Text)) Then
+                  rDm(UBound(rDm)).exportiert = stzk(FMem(j).Text)
+'                End If
           End Select
          Next j
         ElseIf rsEi!obcor <> 0 Then ' COPD
@@ -1787,7 +1943,7 @@ sql = sql & _
       Case 4: rRe(UBound(rRe)).lanrid = 5 ' Hammerschmidt
       Case Else: rRe(UBound(rRe)).lanrid = 4 ' unbek
      End Select
-     rRe(UBound(rRe)).anzl = Switch(rsEi!anz <> "", rsEi!anz, rsEi!Anzahl <> "", rsEi!Anzahl, rsEi!packungszahl <> "", rsEi!packungszahl, True, "")
+     rRe(UBound(rRe)).anzl = Switch(rsEi!anz <> "" And IsNumeric(rsEi!anz), rsEi!anz, rsEi!Anzahl <> "", rsEi!Anzahl, rsEi!packungszahl <> "", rsEi!packungszahl, True, 0)
      rRe(UBound(rRe)).FEintragsart = rsEi!lFE
      rRe(UBound(rRe)).kbez = rsEi!rkl0
      Select Case rsEi!RezKl
@@ -2120,7 +2276,7 @@ fgefunden:
 ' andere Einträge, Desktop-Notizen, RR, DMP-Reihe (2)
   sql = "SELECT 18900101+INTERVAL FDatum DAY+INTERVAL FZeit SECOND Zp" & vbCrLf & _
   ", IF (FText RLIKE '^(\w+)#\1:', REGEXP_REPLACE(FText,'(\w+)#\1:.*','\1'),REGEXP_REPLACE(FICdcode,'(\w+)#\1','\1')) Art" & vbCrLf & _
-  ", IF(rWert=FDetails OR rWert IS NULL,FDet,rWert) Wert, FDet, FICDCode, FEintragsart, 18900101+INTERVAL FAnorddatum DAY+INTERVAL FAnordzeit SECOND AnZp" & vbCrLf & _
+  ", REPLACE(REPLACE(REPLACE(IF(rWert=FDetails OR rWert IS NULL,FDet,rWert),'\t',''),'\r',''),'\n',' ') Wert, FDet, FICDCode, FEintragsart, 18900101+INTERVAL FAnorddatum DAY+INTERVAL FAnordzeit SECOND AnZp" & vbCrLf & _
   ", COALESCE(na.FInitialen,'') ua, COALESCE(nb.FInitialen,'') ub, l.FLstgerbnr, FText, FDetails" & vbCrLf & _
   ", REGEXP_REPLACE(FDet,'^(?>[^0-9]|[4-9](?![0-9])|[0-2](?![0-9]{2}))*\b((?:[4-9][0-9]|[0-3][0-9]{2})(?:-[0-9]{2,3}){0,2}) */? *(?:über )?((?:[3-9][0-9]|[0-2][0-9]{2})(?:-[0-9]{2,3}){0,2})?(?:(?:[^PH]|H(?!F))*(?:Puls|P(?=[0-9 :.])|HF))?:? *([0-9]{1,3}(?:-[0-9]{2,3})?)? *(.*)','\1‡\2‡\3‡\4') FArray" & vbCrLf & _
   ", REGEXP_REPLACE(FDet,'^(?:[^l]|l(?!e))*(?:let?zten *(\d{1,3}))?.*$','\1') zahl" & vbCrLf & _
@@ -2145,7 +2301,8 @@ fgefunden:
     messDatum = rsEi!anzp
     art = rsEi!art
     neuart = 0
-'      If rsEi!FEintragsart = 1053 Then Stop
+'    If rsEi!FEintragsart = 1129 Then Stop
+'    If rsEi!FEintragsart = 1105 Then Stop
     If art = "" Then ' bei Kategorien die art aus mosystem holen
      Set EintS = New SortierEintr
      EintS.TypNr = rsEi!FEintragsart
@@ -2308,7 +2465,6 @@ fgefunden:
         rDm(UBound(rDm)).Vorname = rNa(0).Vorname
         rDm(UBound(rDm)).GebDat = rNa(0).GebDat
        End If ' rsEi!FIcdcode Like "*dmp*" And rsEi!FIcdcode <> "DMPERG" Then else
-      
       Else ' (rsEi!FIcdcode Like "*dmp*" And rsEi!FIcdcode <> "DMPERG") Or _
       (UCase$(art) = "TEXT" And InStrB(rsEi!Wert, "dokumentation") <> 0 And InStrB(rsEi!FText, "dmp") <> 0) Then
       ' Einträge
@@ -2321,7 +2477,8 @@ fgefunden:
        rEi(UBound(rEi)).Ersteller = rsEi!ua
        rEi(UBound(rEi)).Änderer = rsEi!ub
 '      If InStrB(rsEi!fdet, "Lexotanil und") <> 0 Then Stop
-       rEi(UBound(rEi)).Inhalt = doUmwfSQL(REPLACE$(REPLACE$(rsEi!Wert, "\n", " "), "\r", ""), True)
+'       rEi(UBound(rEi)).Inhalt = doUmwfSQL(REPLACE$(REPLACE$(rsEi!Wert, "\n", " "), "\r", ""), True)
+       rEi(UBound(rEi)).Inhalt = doUmwfSQL(rsEi!Wert, True)
        rEi(UBound(rEi)).absPos = IIf(neuart <> 0, -1, 1)
 '      If art = "usdm2" Then Stop
        If art <> "" Then
@@ -2535,8 +2692,13 @@ sql = sql & _
   End If ' Not rsEi.BOF Then
  End If ' not ohnelabor then
 #End If ' laborlangsam Then
-  
-  Call alleSpeichern(lies, vonMo:=True, ohneAktDat:=True, ohneLabor:=ohneLabor)
+ Call VorstellSetz(rAna(0).Vorgestellt)
+ For i = 1 To UBound(rEi)
+  If rEi(i).Zeitpunkt > #6/30/2004# And (VorStDat = 0 Or VorStDat > rEi(i).Zeitpunkt) Then
+   VorStDat = rEi(i).Zeitpunkt
+  End If
+ Next i
+ Call alleSpeichern(lies, vonMo:=True, ohneAktDat:=True, ohneLabor:=ohneLabor)
   
 #If Not laborlangsam Then
  If Not ohneLabor Then
@@ -2595,7 +2757,7 @@ sql = sql & _
 " ORDER BY i.FSurogat, Zp) i" & vbCrLf & _
 ") i" & vbCrLf & _
 ";"
-  myFrag rsEi, sql, adOpenStatic, MOCon, adLockReadOnly, 10000000, rAf
+  myFrag rsEi, sql, adOpenStatic, MOCon, adLockReadOnly, 100000000, rAf
   If Not rsEi.BOF Then
    For i = 0 To 4
     If Not IsNull(rsEi.Fields(i)) Then
@@ -2606,7 +2768,7 @@ sql = sql & _
       meldTxt = "Labor 1: " & rAf & " Sätze aus " & rsEi.Fields(i).name & " eingefügt."
       Debug.Print meldTxt
       syscmd 4, meldTxt
-      If rAf = 0 And i = 4 Then Stop
+      If rAf = 0 And i = 4 Then MsgBox ("Group-concat reicht nicht"): Stop
      End If
     End If
    Next i
@@ -2620,7 +2782,7 @@ sql = sql & _
    syscmd 4, "! Fehler bei doPatvonMO " & fPtNr & " auf '" & MOCon.Properties("Server Name") & "' !"
   End If
  Else
-  syscmd 4, "doPatvonMO: " & fPtNr & " nicht in patstamm auf '" & MOCon.Properties("Server Name") & "' gefunden!"
+  syscmd 4, "doPatvonMO: auf Server '" & Lese.MOServer & "' " & fPtNr & " nicht in patstamm auf '" & MOCon.Properties("Server Name") & "' gefunden!"
  End If '  If Not rsNa.BOF Then
  Exit Function
 fehler:
@@ -2893,25 +3055,25 @@ Public Sub markAuswert(ByRef rNa() As namen, txt$)
      rNa(0).cgm = 6
 ' 1=Novopen, 2=Combo, 3=Insight, 4=Kaleido, 5=Medt.780, 6=Omnipod 5, 7=Dash, 8=TSlim, 9=Ypsopump
     Case "Novopen"
-     rNa(0).insAnw = 1
+     rNa(0).insanw = 1
     Case "Accu Chek Spirit Combo"
-     rNa(0).insAnw = 2
+     rNa(0).insanw = 2
     Case "AccuChek Insight Yourloops"
-     rNa(0).insAnw = 3
+     rNa(0).insanw = 3
     Case "Kaleido Glooko"
-     rNa(0).insAnw = 4
+     rNa(0).insanw = 4
     Case "Medtronic 780 pdf Patient"
-     rNa(0).insAnw = 5
+     rNa(0).insanw = 5
     Case "Omnipod 5 Glooko"
-     rNa(0).insAnw = 6
+     rNa(0).insanw = 6
     Case "Omnipod Dash auslesen"
-     rNa(0).insAnw = 7
+     rNa(0).insanw = 7
     Case "TSlim-Glooko Backoffice auslesen"
-     rNa(0).insAnw = 8
+     rNa(0).insanw = 8
     Case "Ypsopump-Glooko"
-     rNa(0).insAnw = 9
+     rNa(0).insanw = 9
     Case "Dana"
-     rNa(0).insAnw = 10
+     rNa(0).insanw = 10
    End Select ' Txt
 End Sub ' markAuswert
 

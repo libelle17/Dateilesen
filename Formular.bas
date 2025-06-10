@@ -152,9 +152,9 @@ Public labPos% ' Laborwert positiv: -1 = positiv, 0 = negativ, 1 = V.a. positiv
 'Declare FUNCTION FindWindow Lib "user32" Alias _
 '"FindWindowA" (ByVal lpClassName$, _
 '                    ByVal lpWindowName&)&
-Declare Function SendMessage& Lib "user32" Alias "SendMessageA" (ByVal hwnd&, ByVal wMsg&, ByVal wParam&, ByVal lParam&)
+Declare Function SendMessage& Lib "User32" Alias "SendMessageA" (ByVal hwnd&, ByVal wMsg&, ByVal wParam&, ByVal lParam&)
 ' für das Winword-Beispiel
-Declare Function FindWindow& Lib "user32" Alias "FindWindowA" (ByVal lpClassName$, ByVal lpWindowName$)
+Declare Function FindWindow& Lib "User32" Alias "FindWindowA" (ByVal lpClassName$, ByVal lpWindowName$)
                     
 'Store these declarations in the form wh
 ' ich is making the calls to Word
@@ -167,9 +167,9 @@ Public Declare Function sndPlaySound32& Lib "winmm.dll" Alias "sndPlaySoundA" (B
 'Public WinDir$
 Public Const CF_TEXT = 1
 Public Const MAXSIZE = 4096
-Declare Function OpenClipboard& Lib "user32" (ByVal hwnd&)
-Declare Function CloseClipboard& Lib "user32" ()
-Declare Function GetClipboardData& Lib "user32" (ByVal wFormat&)
+Declare Function OpenClipboard& Lib "User32" (ByVal hwnd&)
+Declare Function CloseClipboard& Lib "User32" ()
+Declare Function GetClipboardData& Lib "User32" (ByVal wFormat&)
 Declare Function GlobalLock& Lib "kernel32" (ByVal hMem&)
 Declare Function GlobalUnlock& Lib "kernel32" (ByVal hMem&)
 Declare Function lstrcpy& Lib "kernel32" (ByVal lpString1 As Any, ByVal lpString2 As Any)
@@ -5954,7 +5954,7 @@ Set FaxDoc = FaxServer.CreateDocument(DateiName)
     FaxDoc.SenderOfficePhone = "616380"
     FaxDoc.SenderTitle = vNS
     FaxDoc.ServerCoverpage = 1
-    FaxDoc.Filename = docName
+    FaxDoc.filename = docName
     FaxDoc.DisplayName = docName
     strJobID = FaxDoc.send
 '    MsgBox FaxServer.ArchiveDirectory
@@ -6964,7 +6964,7 @@ Const sql0$ = "SELECT " & _
        If InfRoh(9, runde) = vNS Then If Not IsNull(rhae!Vorname) Then InfRoh(9, runde) = rhae!Vorname
        If InfRoh(14, runde) = vNS Then If Not IsNull(rhae!name) Then InfRoh(14, runde) = rhae!name
        If InfRoh(4, runde) = vNS And Not IsNull(rhae!telefax) Then InfRoh(4, runde) = rhae!telefax
-        Select Case rhae!Überschrift
+        Select Case rhae!überschrift
          Case "L": InfRoh(5, runde) = IIf(InfRoh(0, runde) = "Frau", "Liebe", "Lieber") & " " & InfRoh(9, runde) ' nicht: rHae!Geschlecht = "w"
          Case "H": InfRoh(5, runde) = "Hallo " + InfRoh(9, runde)
          Case Else: InfRoh(5, runde) = IIf(InfRoh(0, runde) = "Frau", "Sehr geehrte Frau Kollegin", "Sehr geehrter Herr Kollege")
@@ -8859,7 +8859,7 @@ Function ArBName$(sverz, Nachname$, Vorname$, Pat_ID$, infos$())
    End If
   End If
  Next i
- ArBName = Left$(ArBName, 255 - Len(sverz) - Len(Faxnr) - 4) & Faxnr & ".doc"
+ ArBName = Left$(ArBName, 255 - Len(sverz) - Len(Faxnr) - 4) & REPLACE$(Faxnr, "\N", "") & ".doc"
  Exit Function
 fehler:
  Dim AnwPfad$
@@ -10661,9 +10661,140 @@ Vsql = _
 Call DtbCreateQueryDef(VN, Vsql, MOCon)
 vz = vz + 1
 
+sql = "DROP PROCEDURE IF EXISTS `medoff`.`procmepraxis`"
+myEFrag sql, rAf, MOCon
+sql = _
+"CREATE DEFINER=`medoff`@`%` PROCEDURE `procmepraxis`(" & vbCrLf & _
+"    IN `pnr` INT" & vbCrLf & _
+")" & vbCrLf & _
+"LANGUAGE SQL" & vbCrLf & _
+"NOT DETERMINISTIC" & vbCrLf & _
+"CONTAINS SQL" & vbCrLf & _
+"SQL SECURITY DEFINER" & vbCrLf & _
+"COMMENT 'liest das Feld FAdresse aus epraxis in die Tabelle tmpmepraxis aus'" & vbCrLf & _
+"tp: Begin" & vbCrLf & _
+"DECLARE gl,pos,MAX,aktmax,altmax,tlen,ie,altie INT(10) DEFAULT 0;" & vbCrLf & _
+"DECLARE obdruck INT(1);" & vbCrLf & _
+"DECLARE txt LONGTEXT;" & vbCrLf & _
+"DECLARE CONTINUE HANDLER FOR SQLEXCEPTION" & vbCrLf & _
+" SELECT FSur, znr, Mx, Ebn, ENr, TEXT, ASCII(TEXT)b1, ASCII(MID(TEXT,2))b2, ASCII(MID(TEXT,3))b3, ASCII(MID(TEXT,4))b4," & vbCrLf & _
+"  CONCAT(ASCII(MID(TEXT,4,1)),'.',ASCII(MID(TEXT,3,1)),'.',ASCII(MID(TEXT,2,1))*256+ASCII(TEXT)) Datum" & vbCrLf & _
+"   FROM tmpmepraxis WHERE pnr=0 OR FSur=pnr ORDER BY fsur DESC,znr;" & vbCrLf & _
+"-- START TRANSACTION;" & vbCrLf
+sql = sql & _
+"CREATE TABLE IF NOT EXISTS tmpmepraxis (" & vbCrLf & _
+"    fsur INT(11) UNSIGNED NOT NULL," & vbCrLf & _
+"    znr INT(2) UNSIGNED DEFAULT '0'," & vbCrLf & _
+"    MX INT(3) UNSIGNED DEFAULT '0'," & vbCrLf & _
+"    ebn INT(2) DEFAULT '0'," & vbCrLf & _
+"    enr VARCHAR(128) DEFAULT ''," & vbCrLf & _
+"    TEXT text DEFAULT ''," & vbCrLf & _
+"    PRIMARY KEY Zugriff(fsur,znr)," & vbCrLf & _
+"    Key zuloe(fsur, enr)" & vbCrLf & _
+");" & vbCrLf & _
+"DELETE FROM tmpmepraxis WHERE fsur=0 OR fsur=pnr;" & vbCrLf & _
+"CREATE TEMPORARY TABLE IF NOT EXISTS tmpeb(nr INT(2) PRIMARY KEY,wert INT(2)); -- temporäre Ebenentabelle" & vbCrLf & _
+"laba: FOR r IN (SELECT fsurogat fsur, FAdresse FROM epraxis WHERE (pnr=0 OR FSurogat=pnr) AND FAdresse IS NOT NULL) DO" & vbCrLf & _
+" SET pos=1;" & vbCrLf & _
+" SET ie=0;" & vbCrLf & _
+" TRUNCATE tmpeb;" & vbCrLf & _
+"labt:  LOOP" & vbCrLf
+sql = sql & _
+"  SET obdruck=0;" & vbCrLf & _
+"  SET tlen=CONV(HEX(CONCAT(MID(r.FAdresse,pos+1,1),MID(r.FAdresse,pos,1))),16,10);" & vbCrLf & _
+"  IF pos=1 THEN SET gl=tlen; SET MAX=gl; END IF;" & vbCrLf & _
+"  SET altmax=MAX;" & vbCrLf & _
+"  SET aktMAX=tlen+pos+1; -- aktuell angegebene Länge aus dem und dem nä Byte" & vbCrLf & _
+"  IF aktmax BETWEEN 0 AND gl+2 AND -- wenn die angegebene Länge vertretbar" & vbCrLf & _
+"    (( CONV(HEX(MID(r.FAdresse,aktMax,1)),16,10)=0 AND -- und an der letzten Stelle 0 steht (dann könnte es eine Länge sein), da es hier aber Ausnahmen gibt, wurde re>Max davon ausgenommen" & vbCrLf & _
+"     aktmax<=MAX) OR pos>MAX) THEN -- wenn die akt.Länge nicht über die Vorbestehende hinausreicht oder d.vorbest.schon überschritten wurde" & vbCrLf & _
+"    SET altie=ie; -- letzte Ebene" & vbCrLf & _
+"    IF aktmax<=MAX THEN SET ie=ie+1; END IF; -- im ersten Fall wird die Ebene erhöht" & vbCrLf & _
+"    IF pos>MAX THEN -- im zweiten Fall wird zurückgegriffen" & vbCrLf & _
+"     SELECT COALESCE(MAX(ebn),0)+1 INTO ie FROM tmpmepraxis WHERE fsur=r.fsur AND mx>=aktMAX AND znr=(SELECT MAX(znr) FROM tmpmepraxis WHERE fsur=r.fsur AND mx>=aktMAX);" & vbCrLf & _
+"     END IF;" & vbCrLf & _
+"    IF ie<=altie THEN -- wenn die Ebene nicht erhöht worden ist" & vbCrLf & _
+"     IF ie<altie THEN -- wenn sie vielmehr reduziert wurde" & vbCrLf & _
+"      DELETE FROM tmpeb WHERE nr>ie; -- dann werden die höheren Einträge wieder gelöscht" & vbCrLf & _
+"     END IF;" & vbCrLf
+sql = sql & _
+"     UPDATE tmpeb SET wert=wert+1 WHERE nr=ie; -- dann wird die Zählung der akt. Ebene erhöht" & vbCrLf & _
+"    ELSE" & vbCrLf & _
+"     INSERT INTO tmpeb(nr,wert) VALUES(ie,1); -- sonst muss ein neuer Eintrag für die hohe Ebene erstellt werden" & vbCrLf & _
+"    END IF;" & vbCrLf & _
+"    SET MAX=aktmax; -- neue vorbestehende Länge" & vbCrLf & _
+"    SET obdruck=1; -- und drucken" & vbCrLf & _
+"  END IF;" & vbCrLf & _
+"  IF obdruck=1" & vbCrLf & _
+"--   OR pos=1 -- zum Debuggen der ersten Gesamt-Zeile" & vbCrLf & _
+"--   OR TRUE -- zum Debuggen aller Zeilen" & vbCrLf & _
+"   THEN" & vbCrLf & _
+"    SET txt=MID(r.FAdresse,pos+2,tlen);" & vbCrLf & _
+"    IF txt <> Repeat(Chr(0), tlen) THEN" & vbCrLf & _
+"     INSERT INTO tmpmepraxis(fsur,znr,mx,ebn,enr,TEXT) VALUES(r.fsur,pos,max,ie," & vbCrLf & _
+"       (SELECT GROUP_CONCAT(wert ORDER BY nr SEPARATOR '.') FROM tmpeb)," & vbCrLf & _
+"--    CONCAT(MID(r.FAdresse,pos,1),'|',HEX(MID(r.FAdresse,pos,1)),'|',CONV(HEX(MID(r.FAdresse,pos,1)),16,10),'|',CONV(HEX(CONCAT(MID(r.FAdresse,pos+1,1),MID(r.FAdresse,pos,1))),16,10),'|','aktMax:',aktmax, '|','Max:',altMAX,'|','Laenge: ',LENGTH(txt),'|','Endbyte:',COALESCE(CONV(HEX(MID(r.FAdresse,aktMax,1)),16,10),'-')," & vbCrLf & _
+"--     CONCAT(IF(obdruck<>1,'- ',''),'""'," & vbCrLf
+sql = sql & _
+"      txt" & vbCrLf & _
+"--    ,'""'))" & vbCrLf & _
+"       );" & vbCrLf & _
+"     ELSE SET pos=pos+tlen; -- 0-Strings nicht auffieseln" & vbCrLf & _
+"     END IF;" & vbCrLf & _
+"  END IF; -- obdruck=1" & vbCrLf & _
+"  SET pos=pos+1;" & vbCrLf & _
+"  IF pos>=gl THEN LEAVE labt; END IF;" & vbCrLf & _
+" END LOOP labt;" & vbCrLf & _
+"END FOR laba;" & vbCrLf & _
+"-- folgende Zeile zum Debuggen auskommentieren (in der Schleife laba ist das deutlich langsamer!)" & vbCrLf & _
+"DELETE FROM tmpmepraxis WHERE (pnr=0 OR fsur=pnr) AND enr<>'0' AND EXISTS (SELECT 0 FROM tmpmepraxis i WHERE i.fsur=tmpmepraxis.fsur AND INSTR(i.enr,CONCAT(tmpmepraxis.enr,'.'))=1 AND i.enr<>tmpmepraxis.enr);" & vbCrLf & _
+"-- folgende Variante bringt, aus der Prozedur aufgerufen, mariadb zum Absturz:" & vbCrLf & _
+"-- DELETE a FROM tmpmepraxis a LEFT JOIN (SELECT LEAD(enr) OVER(PARTITION BY patnr,fsur ORDER BY znr) nenr, patnr,fsur,znr FROM tmpmepraxis) i USING (patnr,fsur,znr) WHERE INSTR(i.nenr,a.enr)=1 AND i.nenr<>a.enr;" & vbCrLf & _
+"-- COMMIT;" & vbCrLf & _
+"-- LEAVE tp;" & vbCrLf & _
+" SELECT FSur, znr, Mx, Ebn, ENr, TEXT, ASCII(TEXT)b1, ASCII(MID(TEXT,2))b2, ASCII(MID(TEXT,3))b3, ASCII(MID(TEXT,4))b4," & vbCrLf
+sql = sql & _
+"  CONCAT(ASCII(MID(TEXT,4,1)),'.',ASCII(MID(TEXT,3,1)),'.',ASCII(MID(TEXT,2,1))*256+ASCII(TEXT)) Datum" & vbCrLf & _
+"  ,ROUND(1 + (ASCII(MID(TEXT, 7, 1)) Mod 16)/16 + ASCII(MID(TEXT, 6, 1))/4096 + ASCII(MID(TEXT, 5, 1))/POWER(2,20) + ASCII(MID(TEXT, 4, 1))/POWER(2,28)+ASCII(MID(TEXT, 3, 1))/POWER(2,36)+ASCII(MID(TEXT, 2, 1))/POWER(2,44) + ASCII(MID(TEXT, 1, 1))/POWER(2,52) * POWER(2,(FLOOR(ASCII(MID(TEXT, 7, 1)) / 16) + 1 + 16 * (ASCII(MID(TEXT, 8, 1)) - 64))),8) Bruch" & vbCrLf & _
+"   FROM tmpmepraxis ORDER BY fsur DESC,znr;" & vbCrLf & _
+"END"
+Call myEFrag(sql, rAf, MOCon)
 
 
+Dim rtmp As ADODB.Recordset
+Vsql = _
+"CREATE TABLE IF NOT EXISTS `tmpmepraxis` (" & vbCrLf & _
+"    `fsur` INT(11) UNSIGNED NOT NULL," & vbCrLf & _
+"    `znr` INT(2) UNSIGNED NOT NULL DEFAULT '0'," & vbCrLf & _
+"    `MX` INT(3) UNSIGNED NULL DEFAULT '0'," & vbCrLf & _
+"    `ebn` INT(2) NULL DEFAULT '0'," & vbCrLf & _
+"    `enr` VARCHAR(128) NULL DEFAULT '' COLLATE 'latin1_general_ci'," & vbCrLf & _
+"    `TEXT` TEXT NULL DEFAULT '' COLLATE 'latin1_general_ci'," & vbCrLf & _
+"    PRIMARY KEY (`fsur`, `znr`) USING BTREE," & vbCrLf & _
+"    INDEX `zuloe` (`fsur`, `enr`) USING BTREE" & vbCrLf & _
+")" & vbCrLf & _
+"COLLATE='latin1_general_ci'" & vbCrLf & _
+"ENGINE=InnoDB" & vbCrLf & _
+";"
+myFrag rtmp, Vsql, adOpenStatic, DBCn, , , rAf
 
+VN = "vgs_epraxis"
+Vsql = _
+"SELECT e.FSurogat,FBezeichnung,FArztnralt,FBRiefauftrag,FKundennr,FAnrede,FEmail,FHasemail,FIslabor,FBetriebsnr,FKvConnect,FVersandweg2,FUBezeichnung" & vbCrLf & _
+",REPLACE(s.TEXT,'\\N','') Str" & vbCrLf & _
+",REPLACE(p.TEXT,'\\N','') PLZ" & vbCrLf & _
+",REPLACE(o.TEXT,'\\N','') Ort" & vbCrLf & _
+",REPLACE(t.TEXT,'\\N','') Tel" & vbCrLf & _
+",REPLACE(f.text,'\\N','') Fax" & vbCrLf & _
+"FROM epraxis e" & vbCrLf & _
+"LEFT JOIN tmpmepraxis s ON e.fsurogat=s.fsur AND s.enr=3" & vbCrLf & _
+"LEFT JOIN tmpmepraxis p ON e.fsurogat=p.fsur AND p.enr=5" & vbCrLf & _
+"LEFT JOIN tmpmepraxis o ON e.fsurogat=o.fsur AND o.enr=6" & vbCrLf & _
+"LEFT JOIN tmpmepraxis t ON e.fsurogat=t.fsur AND t.enr=9.2" & vbCrLf & _
+"LEFT JOIN tmpmepraxis f ON e.fsurogat=f.fsur AND f.enr=10.2" & vbCrLf & _
+""
+Call DtbCreateQueryDef(VN, Vsql)
+vz = vz + 1
 
 VN = "_lfaelle"
 If Lese.obMySQL Then
@@ -11177,7 +11308,7 @@ If LVobMySQL Then
  Vsql = _
  "SELECT CASE WHEN dicd LIKE 'E10%' THEN '1' WHEN dicd LIKE 'E11%' THEN '2' WHEN dicd = 'O24.4' THEN 'g' ELSE '-' END dtyp, i.* FROM (" & vbCrLf & _
  " SELECT COALESCE(t.therart,'Diät') mta, rang(COALESCE(t.therart,'Diät')) rang, t.zp tzp " & vbCrLf & _
- ", (SELECT MAX(icd) FROM diagview d WHERE pat_id=f.pat_id AND ((gicd RLIKE '^E1[0-4]\.' AND obdauer<>0) OR (d.icd='O24.4' AND d.Dggel=0 AND d.diagsicherheit IN ('G',' ') AND obdauer=0 AND diagdatum BETWEEN qanf() AND qend()))) dicd " & vbCrLf & _
+ ", (SELECT MIN(icd) FROM diagview d WHERE pat_id=f.pat_id AND ((gicd RLIKE '^E1[0-4]\.' AND obdauer<>0) OR (d.icd='O24.4' AND d.Dggel=0 AND d.diagsicherheit IN ('G',' ') AND obdauer=0 AND diagdatum BETWEEN qanf() AND qend()))) dicd " & vbCrLf & _
  ", f.* " & vbCrLf & _
  " FROM aktfv f " & vbCrLf & _
  " LEFT JOIN therarten t ON t.pat_id=f.pat_id AND t.zp BETWEEN COALESCE((SELECT MAX(zp) FROM therarten WHERE pat_id=f.pat_id AND zp<qanf()),19000101) AND qend() " & vbCrLf & _
@@ -13214,7 +13345,7 @@ sql = "CREATE DEFINER=`praxis`@`%` PROCEDURE `quelle`.`fuellThaP`(IN inpid TEXT)
 '             " IF inpid IN ('','0') THEN SET inpid='SELECT DISTINCT pat_id FROM namen'; END IF;" & vbCrLf
 ' sql = sql & "-- CASE WHEN LEFT(inpid,1)='''' THEN DO 0; ELSE SET inpid=CONCAT('''',inpid); END CASE;" & vbCrLf
 ' sql = sql & "-- CASE WHEN RIGHT(inpid,1)='''' THEN DO 0; ELSE SET inpid=CONCAT(inpid,''''); END CASE;" & vbCrLf
- Dim abf$, rAf&
+ Dim abf$ ' , rAf&
  For iru = 1 To 5
   Select Case iru
    Case 3
@@ -15058,7 +15189,7 @@ Case Else
    If aktdat <> lzp Then
     kkeintraege = kkeintraege + Format$(aktdat, "DD.MM.YY")
    End If
-   If LCase$(krit) <> """rr""" And art = "usdm" Then
+   If LCase$(krit) <> """rr""" And (art = "usdm" Or art = "usd") Then
     kkeintraege = kkeintraege + vbTab + REPLACE$(REPLACE$(Inhalt, "^", vNS) & vbCrLf, "aktuellen Blutdruck und ggf. Puls bitte extra eingeben", vNS)
    Else
     Übs = ""

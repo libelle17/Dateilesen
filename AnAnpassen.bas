@@ -74,7 +74,7 @@ Function AnTrennZeichen()
  
  For i = 1 To UBound(rEi)
   Select Case rEi(i).art
-   Case "anal", "andm", "usal", "usdm", "usdm1", "usdm2"
+   Case "anal", "andm", "usal", "usd", "usdm", "usdm1", "usdm2"
     H0.Clear
     h1.Clear
     H0 = rEi(i).Inhalt
@@ -108,7 +108,7 @@ Function AnTrennZeichen()
      h1.AppVar Array(H0.Mid(midakt, midnext - midakt), "; ")
      midakt = midnext
     Next j
-   Case "usdm", "usdm1", "usdm2"
+   Case "usd", "usdm", "usdm1", "usdm2"
     For j = 0 To UBound(G4)
      midnext = H0.Instr(G4(j))
      If midnext = 0 Or midnext <= midakt Then
@@ -119,8 +119,8 @@ Function AnTrennZeichen()
     Next j
   End Select
   Select Case rEi(i).art
-   Case "anal", "andm", "usal", "usdm", "usdm1", "usdm2"
-    If rEi(i).art <> "usdm" Or h1 = "" Then h1.Append H0.Mid(midakt) ' OR h1="" 10.11.19 wg. PID 52832
+   Case "anal", "andm", "usal", "usd", "usdm", "usdm1", "usdm2"
+    If Left$(rEi(i).art, 3) <> "usd" Or h1 = "" Then h1.Append H0.Mid(midakt) ' OR h1="" 10.11.19 wg. PID 52832
     rEi(i).Inhalt = h1
   End Select
  Next i
@@ -575,7 +575,7 @@ Function usdm0()
               "; Mitarbeiter:", "")
              
  For j = 1 To UBound(rEi)
-  If LCase$(rEi(j).art) = "usdm" Then
+  If LCase$(rEi(j).art) = "usdm" And rEi(j).Zeitpunkt < #3/18/2025# Then
    If rUs(UBound(rUs)).absPos <> 0 Or UBound(rUs) = 0 Then ReDim Preserve rUs(UBound(rUs) + 1)
    Dim Wert$()
 '   IF j = 198 THEN Stop ' Pid 1115
@@ -651,6 +651,7 @@ Function usdm0()
     If (Wert(34) <> "u" Or rUs(UBound(rUs)).PulsAdp_re = "") And InStr(Wert(34), "~") = 0 Then rUs(UBound(rUs)).PulsAdp_re = Wert(34)
     If (Wert(35) <> "u" Or rUs(UBound(rUs)).PulsAdp_li = "") And InStr(Wert(35), "~") = 0 Then rUs(UBound(rUs)).PulsAdp_li = Wert(35)
     If (Wert(36) <> "u" Or rUs(UBound(rUs)).Mitarbeiter = "") And InStr(Wert(36), "~") = 0 Then rUs(UBound(rUs)).Mitarbeiter = Wert(36)
+    If rEi(j).Zeitpunkt > #3/18/2025# Then rUs(UBound(rUs)).Mitarbeiter = rEi(j).Ersteller
    End If ' UBound(Wert) >= 36 Then
   End If ' LCase$(rEi(j).art) = "usdm" Then
  Next j
@@ -730,6 +731,7 @@ Function usdm1()
    If (Wert(31) <> "u" Or rUs(UBound(rUs)).PulsAdp_re = "") And InStr(Wert(31), "~") = 0 Then rUs(UBound(rUs)).PulsAdp_re = Wert(31)
    If (Wert(32) <> "u" Or rUs(UBound(rUs)).PulsAdp_li = "") And InStr(Wert(32), "~") = 0 Then rUs(UBound(rUs)).PulsAdp_li = Wert(32)
    If (Wert(33) <> "u" Or rUs(UBound(rUs)).Mitarbeiter = "") And InStr(Wert(33), "~") = 0 Then rUs(UBound(rUs)).Mitarbeiter = Wert(33)
+   If rEi(j).Zeitpunkt > #3/18/2025# Then rUs(UBound(rUs)).Mitarbeiter = rEi(j).Ersteller
   End If
  Next j
  Exit Function
@@ -740,7 +742,7 @@ fehler:
 #Else
  AnwPfad = App.path
 #End If
-Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in usdm/" + AnwPfad)
+Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in usdm1/" + AnwPfad)
  Case vbAbort: Call MsgBox("Höre auf"): ProgEnde
  Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
  Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
@@ -766,7 +768,7 @@ Function usdm2()
              "; Puls Adp.(Fußrü): re:", "; li:", _
              "; Mitarbeiter:", "")
  For j = 1 To UBound(rEi)
-  If rEi(j).art = "usdm2" Then
+  If rEi(j).art = "usdm2" Or (rEi(j).art = "usd" And rEi(j).Zeitpunkt < #3/18/2025#) Then
    If rUs(UBound(rUs)).absPos <> 0 Or UBound(rUs) = 0 Then ReDim Preserve rUs(UBound(rUs) + 1)
    Dim Wert$()
    Call Kusd(trz, Wert, j)
@@ -799,6 +801,7 @@ Function usdm2()
    If (Wert(25) <> "u" Or rUs(UBound(rUs)).PulsAdp_re = "") And InStr(Wert(25), "~") = 0 Then rUs(UBound(rUs)).PulsAdp_re = Wert(25)
    If (Wert(26) <> "u" Or rUs(UBound(rUs)).PulsAdp_li = "") And InStr(Wert(26), "~") = 0 Then rUs(UBound(rUs)).PulsAdp_li = Wert(26)
    If (Wert(27) <> "u" Or rUs(UBound(rUs)).Mitarbeiter = "") And InStr(Wert(27), "~") = 0 Then rUs(UBound(rUs)).Mitarbeiter = Wert(27)
+   If rEi(j).Zeitpunkt > #3/18/2025# Then rUs(UBound(rUs)).Mitarbeiter = rEi(j).Ersteller
   End If
  Next j
  Exit Function
@@ -809,12 +812,84 @@ fehler:
 #Else
  AnwPfad = App.path
 #End If
-Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in usdm/" + AnwPfad)
+Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in usdm2/" + AnwPfad)
  Case vbAbort: Call MsgBox("Höre auf"): ProgEnde
  Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
  Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
 End Select
 End Function ' usdm2
+
+Function usd()
+ Dim trz, j&
+ On Error GoTo fehler
+ 
+ trz = Array("Spritzstellen (Bauch/OS):", _
+             ";  Kraft Zehenheber: re:", ",  li:", _
+             ";  Kraft Zehenbeuger: re:", ";  li:", _
+             ";  Kraft Knie: re:", ";  li:", _
+             ";   ASR (Ferse): re:", "; li:", _
+             ";  PSR (Knie): re:", "; li:", _
+             ";  Monofilament Fußsohle(/5): re:", "; li:", _
+             ";  Kalt-Warm(/5): re:", "; li:", _
+             ";  Vibr. Innenknö. (/8); re:", "; li:", _
+             ";  Vibr. Großzehenballen (/8): re:", "; li:", _
+             "  Puls Leiste: re:", "; li:", _
+             "; Puls Kniekehle: re:", "; li:", _
+             "; Puls Atp.(Innenkn): re:", "; li:", _
+             "; Puls Adp.(Fußrü): re:", "; li:", _
+             "; Mitarbeiter:", "")
+ For j = 1 To UBound(rEi)
+  If (rEi(j).art = "usd" Or rEi(j).art = "usdm") And rEi(j).Zeitpunkt >= #3/18/2025# Then
+   If rUs(UBound(rUs)).absPos <> 0 Or UBound(rUs) = 0 Then ReDim Preserve rUs(UBound(rUs) + 1)
+   Dim Wert$()
+   Call Kusd(trz, Wert, j)
+   Call rUsRest(j)
+   If (Wert(0) <> "u" Or rUs(UBound(rUs)).Spritzst = "") And InStr(Wert(0), "~") = 0 Then rUs(UBound(rUs)).Spritzst = Wert(0)
+   If (Wert(1) <> "u" Or rUs(UBound(rUs)).Kraft_Zh_re = "") And InStr(Wert(1), "~") = 0 Then rUs(UBound(rUs)).Kraft_Zh_re = Wert(1)
+   If (Wert(2) <> "u" Or rUs(UBound(rUs)).Kraft_Zh_li = "") And InStr(Wert(2), "~") = 0 Then rUs(UBound(rUs)).Kraft_Zh_li = Wert(2)
+   If (Wert(3) <> "u" Or rUs(UBound(rUs)).Kraft_Zb_re = "") And InStr(Wert(3), "~") = 0 Then rUs(UBound(rUs)).Kraft_Zb_re = Wert(3)
+   If (Wert(4) <> "u" Or rUs(UBound(rUs)).Kraft_Zb_li = "") And InStr(Wert(4), "~") = 0 Then rUs(UBound(rUs)).Kraft_Zb_li = Wert(4)
+   If (Wert(5) <> "u" Or rUs(UBound(rUs)).Kraft_Knie_re = "") And InStr(Wert(5), "~") = 0 Then rUs(UBound(rUs)).Kraft_Knie_re = Wert(5)
+   If (Wert(6) <> "u" Or rUs(UBound(rUs)).Kraft_Knie_li = "") And InStr(Wert(6), "~") = 0 Then rUs(UBound(rUs)).Kraft_Knie_li = Wert(6)
+   If (Wert(7) <> "u" Or rUs(UBound(rUs)).ASR_re = "") And InStr(Wert(7), "~") = 0 Then rUs(UBound(rUs)).ASR_re = Wert(7)
+   If (Wert(8) <> "u" Or rUs(UBound(rUs)).ASR_li = "") And InStr(Wert(8), "~") = 0 Then rUs(UBound(rUs)).ASR_li = Wert(8)
+   If (Wert(9) <> "u" Or rUs(UBound(rUs)).PSR_re = "") And InStr(Wert(9), "~") = 0 Then rUs(UBound(rUs)).PSR_re = Wert(9)
+   If (Wert(10) <> "u" Or rUs(UBound(rUs)).PSR_li = "") And InStr(Wert(10), "~") = 0 Then rUs(UBound(rUs)).PSR_li = Wert(10)
+   If (Wert(11) <> "u" Or rUs(UBound(rUs)).MF_re = "") And InStr(Wert(11), "~") = 0 Then rUs(UBound(rUs)).MF_re = Wert(11) & IIf(IsNumeric(Wert(11)), "/5", "")
+   If (Wert(12) <> "u" Or rUs(UBound(rUs)).MF_li = "") And InStr(Wert(12), "~") = 0 Then rUs(UBound(rUs)).MF_li = Wert(12) & IIf(IsNumeric(Wert(12)), "/5", "")
+   If (Wert(13) <> "u" Or rUs(UBound(rUs)).KW_re = "") And InStr(Wert(13), "~") = 0 Then rUs(UBound(rUs)).KW_re = Wert(13) & IIf(IsNumeric(Wert(13)), "/5", "")
+   If (Wert(14) <> "u" Or rUs(UBound(rUs)).KW_li = "") And InStr(Wert(14), "~") = 0 Then rUs(UBound(rUs)).KW_li = Wert(14) & IIf(IsNumeric(Wert(14)), "/5", "")
+   If (Wert(15) <> "u" Or rUs(UBound(rUs)).Vibr_IK_re = "") And InStr(Wert(15), "~") = 0 Then rUs(UBound(rUs)).Vibr_IK_re = Wert(15) & IIf(IsNumeric(Wert(15)), "/8", "")
+   If (Wert(16) <> "u" Or rUs(UBound(rUs)).Vibr_IK_li = "") And InStr(Wert(16), "~") = 0 Then rUs(UBound(rUs)).Vibr_IK_li = Wert(16) & IIf(IsNumeric(Wert(16)), "/8", "")
+   If (Wert(17) <> "u" Or rUs(UBound(rUs)).Vibr_GZ_re = "") And InStr(Wert(17), "~") = 0 Then rUs(UBound(rUs)).Vibr_GZ_re = Wert(17) & IIf(IsNumeric(Wert(17)), "/8", "")
+   If (Wert(18) <> "u" Or rUs(UBound(rUs)).Vibr_GZ_li = "") And InStr(Wert(18), "~") = 0 Then rUs(UBound(rUs)).Vibr_GZ_li = Wert(18) & IIf(IsNumeric(Wert(18)), "/8", "")
+   If (Wert(19) <> "u" Or rUs(UBound(rUs)).PulsL_re = "") And InStr(Wert(19), "~") = 0 Then rUs(UBound(rUs)).PulsL_re = Wert(19)
+   If (Wert(20) <> "u" Or rUs(UBound(rUs)).PulsL_li = "") And InStr(Wert(20), "~") = 0 Then rUs(UBound(rUs)).PulsL_li = Wert(20)
+   If (Wert(21) <> "u" Or rUs(UBound(rUs)).PulsKK_re = "") And InStr(Wert(21), "~") = 0 Then rUs(UBound(rUs)).PulsKK_re = Wert(21)
+   If (Wert(22) <> "u" Or rUs(UBound(rUs)).PulsKK_li = "") And InStr(Wert(22), "~") = 0 Then rUs(UBound(rUs)).PulsKK_li = Wert(22)
+   If (Wert(23) <> "u" Or rUs(UBound(rUs)).PulsAtp_re = "") And InStr(Wert(23), "~") = 0 Then rUs(UBound(rUs)).PulsAtp_re = Wert(23)
+   If (Wert(24) <> "u" Or rUs(UBound(rUs)).PulsAtp_li = "") And InStr(Wert(24), "~") = 0 Then rUs(UBound(rUs)).PulsAtp_li = Wert(24)
+   If (Wert(25) <> "u" Or rUs(UBound(rUs)).PulsAdp_re = "") And InStr(Wert(25), "~") = 0 Then rUs(UBound(rUs)).PulsAdp_re = Wert(25)
+   If (Wert(26) <> "u" Or rUs(UBound(rUs)).PulsAdp_li = "") And InStr(Wert(26), "~") = 0 Then rUs(UBound(rUs)).PulsAdp_li = Wert(26)
+   If (Wert(27) <> "u" Or rUs(UBound(rUs)).Mitarbeiter = "") And InStr(Wert(27), "~") = 0 Then rUs(UBound(rUs)).Mitarbeiter = Wert(27)
+   If rEi(j).Zeitpunkt > #3/18/2025# Then rUs(UBound(rUs)).Mitarbeiter = rEi(j).Ersteller
+  End If
+ Next j
+ Exit Function
+fehler:
+  Dim AnwPfad$
+#If VBA6 Then
+ AnwPfad = CurrentDb.name
+#Else
+ AnwPfad = App.path
+#End If
+Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in usdm2/" + AnwPfad)
+ Case vbAbort: Call MsgBox("Höre auf"): ProgEnde
+ Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
+ Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
+End Select
+End Function ' usdm2
+
 
 Function USfuss()
  Dim trz, j&
@@ -841,6 +916,7 @@ Function USfuss()
    If (Wert(7) <> "u" Or rFu(UBound(rFu)).Wundinfektion = "") And InStr(Wert(7), "~") = 0 Then rFu(UBound(rFu)).Wundinfektion = Wert(7)
    If (Wert(8) <> "u" Or rFu(UBound(rFu)).nae_US = "") And InStr(Wert(8), "~") = 0 Then rFu(UBound(rFu)).nae_US = Wert(8)
    If (Wert(9) <> "u" Or rFu(UBound(rFu)).Mitarbeiter = "") And InStr(Wert(9), "~") = 0 Then rFu(UBound(rFu)).Mitarbeiter = Wert(9)
+   If rEi(j).Zeitpunkt > #3/18/2025# Then rUs(UBound(rUs)).Mitarbeiter = rEi(j).Ersteller
    Dim k&
    For k = UBound(trz) - 1 To 1 Step -1
     If Wert(k) = Wert(k - 1) Then Wert(k) = ""
@@ -889,6 +965,7 @@ Function usVKGD()
    If (Wert(8) <> "u" Or rVk(UBound(rVk)).Puls = "") And InStr(Wert(8), "~") = 0 Then rVk(UBound(rVk)).Puls = Wert(8)
    If (Wert(9) <> "u" Or rVk(UBound(rVk)).Mitarbeiter = "") And InStr(Wert(9), "~") = 0 Then rVk(UBound(rVk)).Mitarbeiter = Wert(9)
    If Right$(rVk(UBound(rVk)).Mitarbeiter, 1) = ")" Then rVk(UBound(rVk)).Mitarbeiter = Left$(rVk(UBound(rVk)).Mitarbeiter, Len(rVk(UBound(rVk)).Mitarbeiter) - 1)
+   If rEi(j).Zeitpunkt > #3/18/2025# Then rUs(UBound(rUs)).Mitarbeiter = rEi(j).Ersteller
    Dim k&
    For k = UBound(trz) - 1 To 1 Step -1
     If Wert(k) = Wert(k - 1) Then Wert(k) = ""
@@ -936,6 +1013,7 @@ Function usVKGD2()
    If (Wert(8) <> "u" Or rVk(UBound(rVk)).Puls = "") And InStr(Wert(8), "~") = 0 Then rVk(UBound(rVk)).Puls = Wert(8)
    If (Wert(9) <> "u" Or rVk(UBound(rVk)).Mitarbeiter = "") And InStr(Wert(9), "~") = 0 Then rVk(UBound(rVk)).Mitarbeiter = Wert(9)
    If Right$(rVk(UBound(rVk)).Mitarbeiter, 1) = ")" Then rVk(UBound(rVk)).Mitarbeiter = Left$(rVk(UBound(rVk)).Mitarbeiter, Len(rVk(UBound(rVk)).Mitarbeiter) - 1)
+   If rEi(j).Zeitpunkt > #3/18/2025# Then rUs(UBound(rUs)).Mitarbeiter = rEi(j).Ersteller
    Dim k&
    For k = UBound(trz) - 1 To 1 Step -1
     If Wert(k) = Wert(k - 1) Then Wert(k) = ""
@@ -985,6 +1063,7 @@ Function USUlcus()
    If (Wert(9) <> "u" Or rUl(UBound(rUl)).Fotodoku = "") And InStr(Wert(9), "~") = 0 Then rUl(UBound(rUl)).Fotodoku = Wert(9)
    If (Wert(10) <> "u" Or rUl(UBound(rUl)).Wundversorgung = "") And InStr(Wert(10), "~") = 0 Then rUl(UBound(rUl)).Wundversorgung = Wert(10)
    If (Wert(11) <> "u" Or rUl(UBound(rUl)).Mitarbeiter = "") And InStr(Wert(11), "~") = 0 Then rUl(UBound(rUl)).Mitarbeiter = Wert(11)
+   If rEi(j).Zeitpunkt > #3/18/2025# Then rUs(UBound(rUs)).Mitarbeiter = rEi(j).Ersteller
    Dim k&
    For k = UBound(trz) - 1 To 1 Step -1
     If Wert(k) = Wert(k - 1) Then Wert(k) = ""
