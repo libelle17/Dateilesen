@@ -736,6 +736,7 @@ End Function ' stzd
 ' String zu Datum ("Kalender"); Formel experimentell ermittelt über Datei
 Public Function stzk(s$) As Date
  Dim DatS$
+ On Error Resume Next
  DatS = CStr(Asc(Mid$(s, 4))) & "." & CStr(Asc(Mid$(s, 3))) & "." & CStr(256 * Asc(Mid(s, 2)) + Asc(Mid(s, 1)))
  If IsDate(DatS) Then stzk = CDate(DatS) Else stzk = 0
 End Function ' stzk
@@ -1038,7 +1039,7 @@ Public Function hatrans()
  syscmd 4, "HATras: Werfe die Datenbankverbindungen an"
  Lese.ProgStart
  MOConInit
- If MsgBox("soll promepraxis(0) aufgerufen werden (dauert mind. 7 min)?", vbYesNo, "Rückfrage") = vbYes Then
+ If MsgBox("soll procmepraxis(0) aufgerufen werden (dauert mind. 7 min)?", vbYesNo, "Rückfrage") = vbYes Then
   syscmd 4, "HATrans: Extrahierte FAdresse (kann mindestens 7 Minuten dauern)"
   myEFrag "call procmepraxis(0)", rAf, MOCon, , ErrNr, ErrDes, 10000000
   If ErrNr Then
@@ -1318,7 +1319,7 @@ Public Function doPatvonMO(fPtNr&, Optional obmitFormularen%, Optional obpruef%,
   On Error GoTo fehler
   If rsNa!fm <> "" Then
 '   If fPtNr = 70338 Then Stop
-   Call ParseMemo(rsNa!fm, NaStr(), obDebug, "FMemo von rsNa, Pat-id " & fPtNr)
+   Call ParseMemo(rsNa!fm, NaStr(), obDebug, "FMemo von rsNa (patstamm), Pat-id " & fPtNr)
 '   Call MeStDruck(CStr(fPtNr), NaStr)
    If SafeArrayGetDim(NaStr) <> 0 Then
     For j = 0 To UBound(NaStr)
@@ -1474,7 +1475,7 @@ Public Function doPatvonMO(fPtNr&, Optional obmitFormularen%, Optional obpruef%,
          rFa(UBound(rFa)).SchGr = "99" ' frei erfunden
       End Select ' ftarif
      End Select ' fscheintyp
-     Call ParseMemo(rsFa!fm, FaStr(), obDebug, "FMemo von rsFa, Pat-id " & rsFa!ueschr)  ' rsFa!fpatnr, rsFa!fsurogat,
+     Call ParseMemo(rsFa!fm, FaStr(), obDebug, "FMemo von rsFa (patfall), Pat-id " & rsFa!ueschr)  ' rsFa!fpatnr, rsFa!fsurogat,
 '    Call MeStDruck(fPtNr & " " & rsFa!ueschr, FaStr)
 '  For jj = 1 To UBound(rFa)
 '   If Not IsNumeric(rFa(jj).Quartal) Or Len(rFa(jj).Quartal) <> 5 Then Stop
@@ -1526,9 +1527,15 @@ Public Function doPatvonMO(fPtNr&, Optional obmitFormularen%, Optional obpruef%,
            End If ' FaStr(j).Text Like "20######" Then else
        Case "3.2.2.4.3": ' VK gültig bis ' gibt es nur auf wser
            If FaStr(j).Text Like "20######" Then
+            On Error Resume Next
             rFa(UBound(rFa)).VschEnd = CDate(Format$(FaStr(j).Text, "####\.##\.##"))
+            If rFa(UBound(rFa)).VschEnd = 0 Then rFa(UBound(rFa)).VschEnd = CDate(Format$(FaStr(j).Text, "##\.##\.####"))
+            On Error GoTo fehler
            Else
+            On Error Resume Next
             rFa(UBound(rFa)).VschEnd = CDate(Format$(FaStr(j).Text, "##\.##\.####"))
+            If rFa(UBound(rFa)).VschEnd = 0 Then rFa(UBound(rFa)).VschEnd = CDate(Format$(FaStr(j).Text, "####\.##\.##"))
+            On Error GoTo fehler
            End If
 '           rFa(UBound(rFa)).VschEnd = CDate(Left$(FaStr(j).Text, 4) & "." & Mid$(FaStr(j).Text, 5, 2) & "." & Mid$(FaStr(j).Text, 7, 2))
         Case "3.2.2.4.4.4": ' ist wieder auf beiden gleich
@@ -1841,10 +1848,10 @@ sql = sql & _
                 End If
 '           Case "121":
 '                Stop
-            Case "117", "137" ' bei Typ 1: 91
+            Case "117", "118", "137" ' bei Typ 1: 91
                 testdat = stzk(FMem(j).Text)
                 If testdat Then rDm(UBound(rDm)).Druckdatum = testdat
-            Case "119", "139" ' ' bei Typ 1: 104
+            Case "119", "120", "139" ' ' bei Typ 1: 104
                 testdat = stzk(FMem(j).Text)
                 If testdat Then rDm(UBound(rDm)).exportiert = testdat
            End Select
@@ -2830,7 +2837,7 @@ Function holHAausMO(inf As InfoTyp, fPtNr&)
   "     COALESCE(IF(a.FAnrede='\N','',a.FAnrede),'')anrk " & vbCrLf & _
       "FROM patrelation r " & vbCrLf & _
       "JOIN earzt a ON a.fsurogat = r.freferenzid AND r.freferenztyp=2 " & vbCrLf & _
-      "LEFT JOIN epraxis p ON a.FExtpraxisnr = p.fsurogat " & vbCrLf & _
+      "LEFT JOIN epraxis p ON a.FExtpraxisnr = p.FSurogat " & vbCrLf & _
       "WHERE fpatid=" & fPtNr & " AND r.FRelationtyp IN (-34,-40,-32)"
   rsHa.Open sql, MOCon, adOpenStatic, adLockReadOnly
   If rsHa.BOF Then

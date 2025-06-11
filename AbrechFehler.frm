@@ -151,6 +151,7 @@ Dim CoSt$ ' ConnectionString
 Dim FNr&  ' FehlerNummer
 Dim AwN$() ' Auswahl-Namen
 Dim sql$() ' SQL-Befehle
+Dim obmo%() ' ob der aktuelle SQL-Befehl auf Medical Office aufgerufen werden soll
 Dim mins%() ' Minimale Ausgabebreite
 Dim maxs%() ' Maximale Ausgabebreite
 Dim aktr&, altr&, alttop&, altC&
@@ -301,6 +302,7 @@ Private Sub Form_Load()
  AWz = 200
  On Error GoTo fehler
  ReDim sql(AWz - 1)
+ ReDim obmo(AWz - 1)
  ReDim AwN(AWz - 1)
  ReDim mins(AWz - 1)
  ReDim maxs(AWz - 1)
@@ -5825,6 +5827,24 @@ sql(AWlf) = "" & _
  maxs(AWlf) = 60
  AWlf = AWlf + 1
 
+#If mitcovid Then
+' 173
+#Else
+' 165
+#End If
+ AwN(AWlf) = "Überweisungen mit unbekannten Betriebsstättennummern"
+sql(AWlf) = "" & _
+"SELECT p.fpatnr, 18900101+INTERVAL fvon DAY von, 18900101+INTERVAL fbis DAY bis, REGEXP_REPLACE(CONVERT(p.FMemo USING latin1), '[[:cntrl:]]+', ' ') patfall_FMemo, p.fsurogat " & vbCrLf & _
+"FROM patfall p" & vbCrLf & _
+"LEFT JOIN epraxis b ON p.FMemo RLIKE b.FBetriebsnr" & vbCrLf & _
+"WHERE p.FScheintyp=0 AND p.FTarif=2" & vbCrLf & _
+"AND b.FBezeichnung IS NULL AND 18900101+INTERVAL fvon DAY >= STR_TO_DATE(CONCAT(YEAR(NOW()-INTERVAL " & Verspätung & " DAY),'-',((MONTH(NOW()-INTERVAL " & Verspätung & " DAY)-1) DIV 3)*3+1,'-1'),'%Y-%m-%e')" & vbCrLf & _
+"ORDER BY fpatnr;"
+ obmo(AWlf) = True
+ mins(AWlf) = 10
+ maxs(AWlf) = 60
+ AWlf = AWlf + 1
+
 ' neuView
 AwN(AWlf) = "- Ende -"
 sql(AWlf) = "ü"
@@ -6645,6 +6665,7 @@ Private Sub Private_Click()
  End If
  AWz = 200
  ReDim sql(AWz - 1)
+ ReDim obmo(AWz - 1)
  ReDim AwN(AWz - 1)
  ReDim mins(AWz - 1)
  ReDim maxs(AWz - 1)
@@ -6716,7 +6737,7 @@ Private Sub tuStart_click(obauto%)
  For AWlf = 1 To .Rows - 1
   If sql(AWlf - 1) = "ü" Then ' Zwischenüberschrift
   ElseIf .TextMatrix(AWlf, 1) = "X" And sql(AWlf - 1) <> "-" Then
-    Do While Not AbrFausg(Str(AWlf - 1) & ". " & AwN(AWlf - 1), REPLACE$(dowr(sql(AWlf - 1)), vbLf, " "), AbrFlrDt, mins(AWlf - 1), maxs(AWlf - 1), Überschrift, obappend, AWlf - 1, obauto, angefangen, BDT)
+    Do While Not AbrFausg(Str(AWlf - 1) & ". " & AwN(AWlf - 1), REPLACE$(dowr(sql(AWlf - 1)), vbLf, " "), obmo(AWlf - 1), AbrFlrDt, mins(AWlf - 1), maxs(AWlf - 1), Überschrift, obappend, AWlf - 1, obauto, angefangen, BDT)
      Dim altAWlf%
      altAWlf = AWlf
      MsgBox "Stop in Start_Click" & vbCrLf & "AWlf: " & AWlf
@@ -6863,7 +6884,7 @@ fehler:
 End Sub ' SizeColumns
 
 ' aufgerufen in tuStart_Click
-Public Function AbrFausg(name$, sql$, Datei$, mins%, ByVal maxs%, Überschrift As CString, obappend%, sqlnr%, obauto%, ByRef angefangen%, ByRef BDT As BDTSchreib) ' Abrechnungsfehler ausgeben
+Public Function AbrFausg(name$, sql$, obmo%, Datei$, mins%, ByVal maxs%, Überschrift As CString, obappend%, sqlnr%, obauto%, ByRef angefangen%, ByRef BDT As BDTSchreib) ' Abrechnungsfehler ausgeben
  Dim ÜberschrAkt As New CString
  Dim ErrNr&, ErrDes$
  ÜberschrAkt = Überschrift
@@ -6883,7 +6904,10 @@ Public Function AbrFausg(name$, sql$, Datei$, mins%, ByVal maxs%, Überschrift As
 #End If
 '  If rE Is Nothing Then' auskommentiert 26.3.23
   Set rE = New ADODB.Recordset
-  If rc.State <> 1 Then
+  If obmo Then
+   MOConInit
+   Set rc = MOCon
+  Else '  If rc.State <> 1 Then
    Set rc = Lese.dbv.wCn
   End If
 '  If rE.State = 1 Then rE.Close ' auskommentiert 26.3.23
