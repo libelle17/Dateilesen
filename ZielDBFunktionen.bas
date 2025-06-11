@@ -336,9 +336,9 @@ Public Const artspezG$ = artSpezEintr & "," & artSpezUS
 Public Const AuffArtSql = vbCrLf & _
  "SELECT art, Pat_ID, gesname(pat_id) Name, Zeitpunkt, Ersteller, Inhalt FROM eintraege e FORCE INDEX (art)" & vbCrLf & _
  "WHERE NOT art IN (" & artspezG & "," & artSpezSonst & vbCrLf & _
- ",'pdf','utxt','UEBLABOR','EDMPDM2','EDMPDM1','med','ts','gw','ana','RRS','RRD','mp','HEILMITTEL','tm','EARZT','ANFLABOR','HMPHYSIK','dmph','covze','iplan','DIAGTXT','link','tf','ABS','ti','EDMPKHK','REHASPORT','ssd','usd','BTM','sob','EDMPAB','tc','son','ATT','DIABEM','BRIEF','AUWEITER','AWHB'," & vbCrLf & _
+ ",'pdf','utxt','UEBLABOR','med','ts','gw','ana','RRS','RRD','mp','HEILMITTEL','tm','EARZT','ANFLABOR','HMPHYSIK','dmph','covze','iplan','DIAGTXT','link','tf','ABS','ti','EDMPKHK','REHASPORT','ssd','usd','BTM','sob','EDMPAB','tc','son','ATT','DIABEM','BRIEF','AUWEITER','AWHB'," & vbCrLf & _
  "'BILD','COVGE','DOKUAB','dup','EDMPCOPD','gluv','HKPFLEGE','HMERGO','KRBEFOERD','rrv','BSCH','EXTERN','foto','jc','vk','vp')" & vbCrLf & _
- "AND NOT art RLIKE '^[0-9]*$'" & vbCrLf & _
+ "AND NOT art RLIKE '^[0-9]*$|^eDMPDM|^DMPDTYP|Dokumentation Diabetes'" & vbCrLf & _
  "AND NOT (art LIKE 'X%' AND ersteller IN ('hm','gs'))" & vbCrLf & _
  "AND zeitpunkt > 20231231 " & vbCrLf & _
  "ORDER BY art,zeitpunkt DESC; "
