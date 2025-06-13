@@ -1129,6 +1129,7 @@ abermals:
   myFrag rab, sql, adOpenStatic, MOCon, adLockReadOnly
   If Not rab.EOF Then
    If Not IsNull(rab!laend) Then
+    Set raz = Nothing ' notwendig bei Pat. 3776
     myFrag raz, "SELECT COALESCE(aktzeit,18990101) aktzeit FROM namen WHERE pat_id=" & fPtNr, , DBCn, adLockReadOnly, , rAf
     If Not raz.EOF Then
      If raz!aktZeit > rab!laend Then
