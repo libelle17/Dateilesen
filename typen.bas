@@ -100,6 +100,7 @@ Public type namen
  gdm AS integer 'gdm bit 'Gestationsdiabetes
  kdm AS integer 'kdm bit 'kein Diabetes
  cgm AS byte 'cgm tinyint '1=Libre Handy, 2=Libre Gerät, 3=Dexcom Handy, 4=Dexcom Gerät, 5=Simplera, 6=Eversense
+ insdat AS date 'insdat datetime 'Zeitpunkt der Festlegung von insanw
  insanw AS byte 'insanw tinyint '1=Novopen, 2=Combo, 3=Insight, 4=Kaleido, 5=Medt.780, 6=Omnipod 5, 7=Dash, 8=TSlim, 9=Ypsopump
 end type
 
@@ -1562,6 +1563,7 @@ Public FUNCTION roNaZuw(i&, j&)
  roNa(i).gdm = rNa(j).gdm
  roNa(i).kdm = rNa(j).kdm
  roNa(i).cgm = rNa(j).cgm
+ roNa(i).insdat = rNa(j).insdat
  roNa(i).insanw = rNa(j).insanw
 End FUNCTION ' roNaZuw
 
@@ -1663,6 +1665,7 @@ Public FUNCTION NaZUnt%(i&, j&)
  IF roNa(i).gdm <> rNa(j).gdm THEN gosub unter
  IF roNa(i).kdm <> rNa(j).kdm THEN gosub unter
  IF roNa(i).cgm <> rNa(j).cgm THEN gosub unter
+ IF roNa(i).insdat <> rNa(j).insdat THEN gosub unter
  IF roNa(i).insanw <> rNa(j).insanw THEN gosub unter
  Exit Function
 unter:
@@ -1698,7 +1701,7 @@ Public FUNCTION namenLaden()
 ",COALESCE(Mitarbeiter,0) Mitarbeiter,COALESCE(Swz,0) Swz,COALESCE(Gbz,0) Gbz,COALESCE(Kiz,0) Kiz" & _
 ",COALESCE(ZdeK,0) ZdeK,COALESCE(obk,0) obk,COALESCE(obs,0) obs,COALESCE(obh,0) obh" & _
 ",COALESCE(antikoag,0) antikoag,COALESCE(dmt1,0) dmt1,COALESCE(gdm,0) gdm,COALESCE(kdm,0) kdm" & _
-",COALESCE(cgm,0) cgm,COALESCE(insanw,0) insanw FROM `namen` WHERE Pat_ID=" & pid & " ORDER BY `kAufDat`
+",COALESCE(cgm,0) cgm,COALESCE(insdat - INTERVAL 0 DAY,CONVERT('18991230',DATE)) insdat,COALESCE(insanw,0) insanw FROM `namen` WHERE Pat_ID=" & pid & " ORDER BY `kAufDat`
  myFrag rs, sql
  ReDim roNa(1)
  If Not rs.EOF Then
@@ -1801,6 +1804,7 @@ Public FUNCTION namenLaden()
    roNa(akt).gdm = rs!gdm
    roNa(akt).kdm = rs!kdm
    roNa(akt).cgm = rs!cgm
+   roNa(akt).insdat = rs!insdat
    roNa(akt).insanw = rs!insanw
    rs.MoveNext
    IF Not rs.EOF THEN ReDim Preserve roNa(UBound(roNa) + 1)
@@ -1965,6 +1969,7 @@ Public FUNCTION rNaDump()
   Print #200, Left$("rNa(" & i & ").gdm:" & String$(33, "."), 33) & rNa(i).gdm
   Print #200, Left$("rNa(" & i & ").kdm:" & String$(33, "."), 33) & rNa(i).kdm
   Print #200, Left$("rNa(" & i & ").cgm:" & String$(33, "."), 33) & rNa(i).cgm
+  Print #200, Left$("rNa(" & i & ").insdat:" & String$(33, "."), 33) & rNa(i).insdat
   Print #200, Left$("rNa(" & i & ").insanw:" & String$(33, "."), 33) & rNa(i).insanw
  Next i
  Close #200
@@ -1990,7 +1995,7 @@ Public FUNCTION namenSpeichern(SammelInsert%, BezfSp%, Optional rAf&, Optional s
      "dmpcopdklass,dmpcopdbeg,dmpabklass,dmpabbeg,dakab,HzV,HzVbeg,DS,DSbeg,getHA0," & _
      "fnHA0,getHA1,fnHA1,getHA2,fnHA2,zubenach,Verwandt,Sprache,SDatum,inaktiv," & _
      "lAktTM,Mitarbeiter,Swz,Gbz,Kiz,ZdeK,obk,obs,obh,antikoag," & _
-     "dmt1,gdm,kdm,cgm,insanw)             VALUES"))
+     "dmt1,gdm,kdm,cgm,insdat,insanw)      VALUES"))
  IF NOT Allepat THEN
    sql = "DELETE FROM `" & LCase$(tbnm) & "` WHERE Pat_ID = " & CStr(rNa(0).Pat_ID)
    Call myEFrag(sql)
@@ -2015,7 +2020,7 @@ setz:
    rNa(i).HzVbeg), "," , rNa(i).DS, "," , DatFor_k(rNa(i).DSbeg), "," , rNa(i).getHA0, ",'" , rNa(i).fnHA0, "'," , rNa(i).getHA1, ",'" , rNa(i).fnHA1, "'," , rNa(i).getHA2, ",'" ,  _
    rNa(i).fnHA2, "','" , rNa(i).zubenach, "','" , rNa(i).Verwandt, "','" , rNa(i).Sprache, "'," , DatFor_k(rNa(i).SDatum), "," , rNa(i).inaktiv, "," , DatFor_k(rNa(i).lAktTM), "," , rNa(i).Mitarbeiter, "," ,  _
    rNa(i).Swz, "," , rNa(i).Gbz, "," , rNa(i).Kiz, "," , rNa(i).ZdeK, "," , cstr(-(rNa(i).obk<>0)) , "," , cstr(-(rNa(i).obs<>0)) , "," , cstr(-(rNa(i).obh<>0)) , "," , cstr(-(rNa(i).antikoag<>0)) , "," , cstr(-( _
-   rNa(i).dmt1<>0)) , "," , cstr(-(rNa(i).gdm<>0)) , "," , cstr(-(rNa(i).kdm<>0)) , "," , rNa(i).cgm, "," , rNa(i).insanw, ")")
+   rNa(i).dmt1<>0)) , "," , cstr(-(rNa(i).gdm<>0)) , "," , cstr(-(rNa(i).kdm<>0)) , "," , rNa(i).cgm, "," , DatFor_k(rNa(i).insdat), "," , rNa(i).insanw, ")")
   IF SammelInsert <> 0 AND i < ubound(rNa) Then csql.Append ","
   IF SammelInsert = 0 OR i = ubound(rNa) Then
     altmode = myEFrag("SELECT @@global.sql_mode", , DBCn).Fields(0)

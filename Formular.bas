@@ -5954,7 +5954,7 @@ Set FaxDoc = FaxServer.CreateDocument(DateiName)
     FaxDoc.SenderOfficePhone = "616380"
     FaxDoc.SenderTitle = vNS
     FaxDoc.ServerCoverpage = 1
-    FaxDoc.filename = docName
+    FaxDoc.Filename = docName
     FaxDoc.DisplayName = docName
     strJobID = FaxDoc.send
 '    MsgBox FaxServer.ArchiveDirectory
@@ -6964,7 +6964,7 @@ Const sql0$ = "SELECT " & _
        If InfRoh(9, runde) = vNS Then If Not IsNull(rhae!Vorname) Then InfRoh(9, runde) = rhae!Vorname
        If InfRoh(14, runde) = vNS Then If Not IsNull(rhae!name) Then InfRoh(14, runde) = rhae!name
        If InfRoh(4, runde) = vNS And Not IsNull(rhae!telefax) Then InfRoh(4, runde) = rhae!telefax
-        Select Case rhae!überschrift
+        Select Case rhae!Überschrift
          Case "L": InfRoh(5, runde) = IIf(InfRoh(0, runde) = "Frau", "Liebe", "Lieber") & " " & InfRoh(9, runde) ' nicht: rHae!Geschlecht = "w"
          Case "H": InfRoh(5, runde) = "Hallo " + InfRoh(9, runde)
          Case Else: InfRoh(5, runde) = IIf(InfRoh(0, runde) = "Frau", "Sehr geehrte Frau Kollegin", "Sehr geehrter Herr Kollege")
@@ -10495,15 +10495,16 @@ vz = vz + 1
 VN = "vgs_eintraege"
 Vsql = _
   "SELECT FPatnr, 18900101+INTERVAL FDatum DAY+INTERVAL FZeit SECOND Zp" & vbCrLf & _
+  ", FEintragsart" & vbCrLf & _
   ", IF (FText RLIKE '^(\w+)#\1:', REGEXP_REPLACE(FText,'(\w+)#\1:.*','\1'),REGEXP_REPLACE(FICdcode,'(\w+)#\1','\1')) Art" & vbCrLf & _
-  ", IF(rWert=FDetails OR rWert IS NULL,FDet,rWert) Wert, FDet, FICDCode, FEintragsart, 18900101+INTERVAL FAnorddatum DAY+INTERVAL FAnordzeit SECOND AnZp" & vbCrLf & _
+  ", IF(rWert=FDetails OR rWert IS NULL,FDet,rWert) Wert, FDet, FICDCode, 18900101+INTERVAL FAnorddatum DAY+INTERVAL FAnordzeit SECOND AnZp" & vbCrLf & _
   ", COALESCE(na.FInitialen,'') ua, COALESCE(nb.FInitialen,'') ub, l.FLstgerbnr, FText, FDetails" & vbCrLf & _
   ", REGEXP_REPLACE(FDet,'^(?>[^0-9]|[4-9](?![0-9])|[0-2](?![0-9]{2}))*\b((?:[4-9][0-9]|[0-3][0-9]{2})(?:-[0-9]{2,3}){0,2}) */? *(?:über )?((?:[3-9][0-9]|[0-2][0-9]{2})(?:-[0-9]{2,3}){0,2})?(?:(?:[^PH]|H(?!F))*(?:Puls|P(?=[0-9 :.])|HF))?:? *([0-9]{1,3}(?:-[0-9]{2,3})?)? *(.*)','\1‡\2‡\3‡\4') FArray" & vbCrLf & _
   ", REGEXP_REPLACE(FDet,'^(?:[^l]|l(?!e))*(?:let?zten *(\d{1,3}))?.*$','\1') zahl" & vbCrLf & _
   "FROM (" & vbCrLf & _
   " SELECT REPLACE(IF(INSTR(FDetails,'text ""'),MID(FDetails,LOCATE('text',FDetails)+LENGTH('text')+2,LOCATE('""',REPLACE(FDetails,'\""','\'''),LOCATE('text',FDetails)+LENGTH('text')+2)-LOCATE('text',FDetails)-LENGTH('text')-2),FText),'''','\''') FDet" & vbCrLf & _
-  ",REGEXP_REPLACE(FDetails,'^.*?(?:Ewert ""?(?:Dieser Eintrag wurde manuell erzeugt.|([\d,]+(?:\b|\.?\d+?))\.?0*\b(?:\\n[^""]*)?)""?(?#<- hintere 0er löschen).*(?:Einheit( )""([^""]*)"")?|\((?:T|Et)ext ""([^""]*)"").*$','\1\2\3\4') rWert" & vbCrLf & _
-  ", ltag.*" & vbCrLf & _
+  " ,REGEXP_REPLACE(FDetails,'^.*?(?:Ewert ""?(?:Dieser Eintrag wurde manuell erzeugt.|([\d,]+(?:\b|\.?\d+?))\.?0*\b(?:\\n[^""]*)?)""?(?#<- hintere 0er löschen).*(?:Einheit( )""([^""]*)"")?|\((?:T|Et)ext ""([^""]*)"").*$','\1\2\3\4') rWert" & vbCrLf & _
+  " ,ltag.*" & vbCrLf & _
   " FROM ltag) l" & vbCrLf & _
   "LEFT JOIN nutzerneu na ON FAnordnutzernr = na.FSurogat" & vbCrLf & _
   "LEFT JOIN nutzerneu nb ON FAusfnutzernr = nb.FSurogat" & vbCrLf & _
@@ -10637,7 +10638,7 @@ vz = vz + 1
 VN = "vgs_leistungen"
 '  Leistungen
 Vsql = _
-  "SELECT 18900101+INTERVAL FDatum DAY+INTERVAL FZeit SECOND Zp, MID(18900101+INTERVAL FDatum DAY+INTERVAL FZeit SECOND,12,5) uhrz, FICdcode Art," & vbCrLf & _
+  "SELECT l.FPatnr, 18900101+INTERVAL FDatum DAY+INTERVAL FZeit SECOND Zp, MID(18900101+INTERVAL FDatum DAY+INTERVAL FZeit SECOND,12,5) uhrz, FICdcode Art," & vbCrLf & _
   "REPLACE(COALESCE(REPLACE(MID(FDetails,INSTR(FDetails,'ext ""')+5,LENGTH(FDetails)-2-INSTR(FDetails,'ext ""')-5),'\n','; '),FText),'''','\''') FText," & vbCrLf & _
   "FEintragsart, 18900101+INTERVAL FAnorddatum DAY+INTERVAL FAnordzeit SECOND AnZp," & vbCrLf & _
   "COALESCE(na.FInitialen,'') ua, COALESCE(nb.FInitialen,'') ub, REPLACE(REPLACE(REPLACE(FDetails,'{(Gnrliste [',''),'])}',''),'''','\''') Lei " & vbCrLf & _
@@ -13368,6 +13369,7 @@ sql = "CREATE DEFINER=`praxis`@`%` PROCEDURE `quelle`.`fuellThaP`(IN inpid TEXT)
   Case 1, 3, 5
    sql = sql & _
    " PREPARE stmt FROM sqlt;" & vbCrLf & _
+   " SELECT sqlt;" & vbCrLf & _
    " EXECUTE stmt;" & vbCrLf
  End Select ' case iru
  Select Case iru
@@ -13672,6 +13674,7 @@ myEFrag sql
     
     
 ' ausführliche Performanceanalyse am 12.12.20 durchgeführt => Ergebnis aber fehlerhaft, deshalb am 13.12.21 korrigiert
+' 21.6.25: "AND medikament<>'' " eingefügt, z.B. Pat. 671
 sql = "DROP VIEW IF EXISTS `wmedplan`;"
 myEFrag sql
 'sql = "CREATE OR REPLACE ALGORITHM=UNDEFINED DEFINER=`praxis`@`%` SQL SECURITY DEFINER VIEW `wmedplan` AS " & vbCrLf & _
@@ -13680,7 +13683,7 @@ myEFrag sql
 "ON mp.pat_id=i.pat_id AND mp.zeitpunkt=i.zp AND mp.mpnr=i.mpnr;"
 sql = "CREATE OR REPLACE ALGORITHM=UNDEFINED DEFINER=`praxis`@`%` SQL SECURITY DEFINER VIEW `wmedplan` AS " & vbCrLf & _
  "SELECT * FROM medplan mp " & vbCrLf & _
- "WHERE NOT EXISTS (SELECT 0 FROM medplan WHERE pat_id=mp.pat_id AND DATE(zeitpunkt)=DATE(mp.zeitpunkt) AND (zeitpunkt>mp.zeitpunkt))" & vbCrLf & _
+ "WHERE NOT EXISTS (SELECT 0 FROM medplan WHERE pat_id=mp.pat_id AND medikament<>'' AND DATE(zeitpunkt)=DATE(mp.zeitpunkt) AND (zeitpunkt>mp.zeitpunkt))" & vbCrLf & _
  "GROUP BY pat_id, zeitpunkt, medikament "
 ' statt: ... AND (zeitpunkt>mp.zeitpunkt OR (zeitpunkt=mp.ZeitPunkt AND mpnr>mp.mpnr)))", da z.B. bei Pat. 910 dutzendweise spätere Medpläne frühere Nummern haben, wegen nachträglichem Import der alten Turbomedpläne
 myEFrag sql

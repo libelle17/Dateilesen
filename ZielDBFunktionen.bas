@@ -3534,7 +3534,7 @@ Sub obhierdmpfn(notiz$, NZNr&, dmpklass As DMPEnum, dmpbeg As Date, Optional dmp
  Dim maxdHier(3) As Date, maxdHA(3) As Date, maxdNein(3) As Date, maxdAus(3) As Date
  Dim DMPArt% ' 0 = Diabetes, 1 = KHK, 2 = COPD, 3 = Asthma bronchiale
  On Error GoTo fehler
-    If LenB(notiz) <> 0 Then
+    If LenB(Trim$(notiz)) <> 0 Then
      ReDim notdat(0)
      Do
       pos = InStr(notiz, vbCrLf)
