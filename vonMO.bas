@@ -1734,7 +1734,7 @@ abermals:
      Dim aktKVNr$
      sql = "SELECT farztnralt kvnr FROM earzt a" & vbCrLf & _
            "LEFT JOIN epraxis p ON p.FSurogat = a.FExtpraxisnr" & vbCrLf & _
-           "WHERE farztnralt<>'' AND fbetriebsnr='" & rFa(UBound(rFa)).ÜbWVBSNR & "'" & vbCrLf & _
+           "WHERE farztnralt<>'' AND FBetriebsnr='" & rFa(UBound(rFa)).ÜbWVBSNR & "'" & vbCrLf & _
            "AND (farztnr='" & rFa(UBound(rFa)).ÜbwLANR & "' OR " & IIf(rFa(UBound(rFa)).ÜbwLANR = "", "TRUE", "FALSE") & ")"
      myFrag rhar, sql, adOpenStatic, MOCon
      If rhar Is Nothing Then
@@ -1799,19 +1799,43 @@ abermals:
 '  FStatus 3 und 4:  FEintragsart 20: Überweisung,
 '  FStatus 40 und 41: (FEintragsart 12): Leistung (bei 41 evtl. GOÄ)
 '  FStatus 100: FEintragsart 41: Unfallmeldung
-' Eintragsarten: 1=Diagnose akut, 2=Diagnose inaktiv, 5: bei FStatus 0 meist Eintrag (außer FICDC..: "PATNRALPHA": Patientennummer numerisch, "LAR", "PLAR", "UTXT" (Überweisungstext), "MHNG" (Mahnung), "MED" (Medikamenteneintrag, wohl eMP-Eintrag, FDetails: "((EText ..."); wenn FStatus 2: dann Laborwert
-'                8=Verwandtschaftsverhältnisse und Notizen, 9=Anamnese, 10-11=Einträge, 12=Leistungen (FDetails: {(Gnrliste [{( ..."),
+' Eintragsarten: 1=Diagnose akut,
+'                2=Diagnose inaktiv,
+'                5: bei FStatus 0 meist Eintrag (außer FICDC..: "PATNRALPHA": Patientennummer numerisch, "LAR", "PLAR", "UTXT" (Überweisungstext), "MHNG" (Mahnung), "MED" (Medikamenteneintrag, wohl eMP-Eintrag, FDetails: "((EText ..."); wenn FStatus 2: dann Laborwert
+'                8=Freitext (tf), Verwandtschaftsverhältnisse und Notizen,
+'                9=Anamnese,
+'                10=Text-Befund (tb)
+'                11 kommt nicht vor
+'                12=Leistungen (FDetails: {(Gnrliste [{( ..."),
 '                13=Medikamente (mit PZN in FICD..) und Hilfsmittel (FDetails: "{(Handelsname ..."
-'                14=Med., ohne PZN, 16: Medikament mit Dosierung
+'                14=Med., ohne PZN,
+'                15=Medikament (md)
+'                16: Medikament (mh) mit Dosierung
 '                17: Hilfsmittel (FDetails: {(Bezeichnung .."
-'                19: AU, 20: Üw, 21: Khs-Einweisung, 50 u. 148: Link auf Datei oder Word-Dokument aus Turbomed
+'                18: Heilmittel (hp)
+'                19: AU,
+'                20: Üw,
+'                21: Khs-Einweisung,
+'                29: Text-Allergie (tl)
+'                50 u. 148: Link auf Datei oder Word-Dokument aus Turbomed
 '                151: z.T. Einträge, z.T. PDF-Dateien (meist: "ePDF: ...", "pdf: ..."), "bild: ...", oder Links ("link: ..."), "brief: ", alle FStatus 2
 '                166: "link: ...", 169: "brief: ...", "wbr: ..."; 501 u. 598: jpg und tif, ohne Vorsilben, z.T. mit "link: " bei Sono-Bildern
 '                1001: Eintrag (auch, aber nicht nur: sono) Zeile abgeschnitten, 1002: Eintrag aug, 1003: Blutabnahme, 1004: Einträge
+'                1004: Text (Text)
 '                1005: Desktop-Notizen, 1006: Einträge
+'                1019: cr
 '                1028: Icon aus Turbomed
+'                1045: tk (tk)
+'                1046: Text - tn (tn)
 '                1053: Überweisungstexte
 '                1085: Langrezept aus Turbomed
+'                1099: Text - Cave (tc)
+'                1105: Notiz ("Infos") (ti)
+'                1110: Text-Notiz (tn)
+'                1118: Text-Hinweis (th)
+'                1144: taille (taille)
+'                1148: Taille (tai)
+'                1119: Trop-Test (trop)
 '                2013: Markierung gesetzt
 '                2017: Diagnosen Dauer
 ' Labor: FEintragsart immer 5, FStatus immer 2, FStatusergaenzung immer 0, FBehgrundnr immer 0,

@@ -12579,7 +12579,7 @@ sql = sql & _
     "   FROM aktfvs f " & vbCrLf & _
     "   JOIN eintraege e ON e.pat_id = f.pat_id " & vbCrLf & _
     "   AND e.zeitpunkt " & DiesQ() & vbCrLf & _
-    "   AND art IN (" & artspezG & ") AND art<>'tv'" & vbCrLf & _
+    "   AND art IN (" & artspezG & ") AND art NOT IN ('tv','bd','ts') " & vbCrLf & _
     "   GROUP BY pat_id,DATE(e.zeitpunkt) " & vbCrLf & _
     "  UNION " & vbCrLf & _
     "  SELECT DATE(k.zeitpunkt) dt, k.zeitpunkt zp,f.pat_id,f.fid,schgr,vknr,ik,f.lanrid, 'F' Typ, CONVERT(form_abk USING UTF8MB4) COLLATE utf8mb4_german2_ci Art " & vbCrLf & _

@@ -4162,6 +4162,7 @@ Private Sub Form_Load()
       "     AND (" & CStr(Lese.pidoffs) & "=0 OR n.pat_id<" & Lese.pidoffs & ")" & vbCrLf & _
       "     AND bhfb> NOW() - INTERVAL 387 DAY" & vbCrLf & _
       "     AND schgr<>90 " & vbCrLf & _
+      "     AND kateg NOT IN ('LKK','SHV')" & vbCrLf & _
       "  ) i" & vbCrLf & _
       "  WHERE rn<" & dokuzahl + 1 & vbCrLf & _
       " ) i" & vbCrLf & _
