@@ -1798,7 +1798,7 @@ Private Sub do_Medpläne_alt_für_MO_exportieren_Click(Optional xmlneu%)
     Call BDT.SAdd("5099", rMP!Lanr)
     Call BDT.SAdd("9901", "ArztNr.:" & rMP!lanrid)
     Call BDT.SAdd("9901", "Kuerzel:" & rMP!lanrid)
-    Call BDT.SAdd("3000", rMP!fPatNr) ' Pat_ID)
+    Call BDT.SAdd("3000", rMP!FPatNr) ' Pat_ID)
     Call BDT.SAdd("3110", rMP!gschl)
     Call BDT.SAdd("3635", rMP!lanrid & "#" & rMP!lnam)
     Call BDT.SAdd("8000", "6200", True)
@@ -1806,7 +1806,7 @@ Private Sub do_Medpläne_alt_für_MO_exportieren_Click(Optional xmlneu%)
    End If ' rMP!prang = 1 then
    If rMP!rang = 1 Then
     GoSub Schreiben
-    mpdt = uuvz & rMP!fPatNr & "_" & Format(rMP!Zeitpunkt, "yyyymmdd_HHMM") & ".xml"
+    mpdt = uuvz & rMP!FPatNr & "_" & Format(rMP!Zeitpunkt, "yyyymmdd_HHMM") & ".xml"
     If xmlneu Then
      If FSO.FileExists(Untervz & mpdt) Then FSO.DeleteFile Untervz & mpdt, True
     End If ' xmlneu
@@ -1996,10 +1996,11 @@ End Sub ' SuchInSpaltenInMO_Click
 
 ' Funktion für Arzthelferin und Arzt -> Übertragung aus MO
 Private Sub Übertragung_aus_MO_Click()
- Dim rab As ADODB.Recordset, aktz&, anzs$, unter$, unts$, raz As ADODB.Recordset
-Static opt As New Übertragungsoptionen
-opt.Show vbModal
-If opt.Abbruch Then Exit Sub
+ Dim rab As ADODB.Recordset, rLab As ADODB.Recordset, aktz&, anzs$, unter$, unts$, raz As ADODB.Recordset, lsql$
+ Dim ErrNr&, ErrDes$, vglzeit$
+ Static opt As New Übertragungsoptionen
+ opt.Show vbModal
+ If opt.Abbruch Then Exit Sub
 #If False Then
  sql = _
  "SELECT COUNT(0) OVER() zahl, f.fpatnr,Concat(Fnachname,', ',FVorname,' *',FGeburtsdatum) nam,18900101 + INTERVAL f.fvon DAY von,18900101 + INTERVAL f.fbis DAY bis" & vbCrLf & _
@@ -2038,13 +2039,22 @@ If opt.Abbruch Then Exit Sub
    Do While Not rab.EOF
     abzahl = rab!Zahl
     aktz = rab!rang
-    anzs = "Übertragung von MO bei Pat. Nr. " & rab!fPatNr & " (" & rab!Nam & ") = " & aktz & "/" & abzahl
-    myFrag raz, "SELECT COALESCE(aktzeit,18990101) aktzeit FROM namen WHERE pat_id=" & rab!fPatNr, , DBCn, adLockReadOnly, , rAf
+    anzs = "Übertragung von MO bei Pat. Nr. " & rab!FPatNr & " (" & rab!Nam & ") = " & aktz & "/" & abzahl
+    myFrag raz, "SELECT COALESCE(aktzeit,18990101) aktzeit FROM namen WHERE pat_id=" & rab!FPatNr, , DBCn, adLockReadOnly, , rAf
     Dim lImp$
-    If raz.EOF Then lImp = "-" Else lImp = Format(raz!aktZeit, "dd.mm.yy HH:MM:SS")
-    If opt.erzwinge = 0 And opt.nurdiesen(0) = 0 Then If Not raz.EOF Then If raz!aktZeit > rab!laend Then Ausgeb rab!fPatNr & " zul.geänd.: " & rab!laend & ", schon importiert: " & lImp, True: GoTo weiter
+    If raz.EOF Then lImp = "-": vglzeit = "18900101" Else lImp = Format(raz!aktZeit, "dd.mm.yy HH:MM:SS"): vglzeit = Format(raz!aktZeit, "yymmddhhmmss")
+    If opt.erzwinge = 0 And opt.nurdiesen(0) = 0 Then If Not raz.EOF Then If raz!aktZeit > rab!laend Then Ausgeb rab!FPatNr & " zul.geänd.: " & rab!laend & ", schon importiert: " & lImp, True: GoTo weiter
     Ausgeb "Beginne mit " & anzs & " (zul.geänd.: " & rab!laend & ", importiert: " & lImp & ")", False
-    doPatvonMO rab!fPatNr, , opt.erzwinge = 0 And opt.nurdiesen(0) = 0, opt.mitLabor = 0
+    lsql = "SELECT 0" & vbCrLf & _
+        "FROM dbsprot d" & vbCrLf & _
+        "LEFT JOIN patstamm p ON p.FSurogat = d.FPatnr" & vbCrLf & _
+        "WHERE 18900101 + INTERVAL FDatum DAY + INTERVAL FUhrzeit SECOND > " & vglzeit & vbCrLf & _
+        "AND FPatnr=" & rab!FPatNr & vbCrLf & _
+        "AND ftablename ='ltag'" & vbCrLf & _
+        "AND (FXmlinhalt RLIKE '<Eintragsart>5</Eintragsart>')" & vbCrLf & _
+        "AND p.FSurogat IS NOT NULL"
+    myFrag rLab, lsql, adOpenStatic, MOCon, adLockReadOnly, , rAf, , ErrNr, ErrDes
+    doPatvonMO rab!FPatNr, , opt.erzwinge = 0 And opt.nurdiesen(0) = 0, opt.mitLabor = 0 Or rLab.BOF
     Ausgeb "Fertig mit " & anzs & " (zul.geänd.: " & rab!laend & ", importiert: " & lImp & ")", True
 weiter:
     rab.MoveNext

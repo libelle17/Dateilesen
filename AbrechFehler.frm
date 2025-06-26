@@ -2941,8 +2941,8 @@ sql(AWlf) = sql(AWlf) & _
  AwN(AWlf) = "03221% ohne 03220% (vorher 34)"
 sql(AWlf) = "SELECT f.pat_id, gesname(f.pat_id), l1.leistung, l0.leistung " & vbCrLf & _
 "FROM aktfvs f " & vbCrLf & _
-"LEFT JOIN leistungen l1 ON f.fid=l1.fid AND l1.leistung LIKE '%03221%' " & vbCrLf & _
-"LEFT JOIN leistungen l0 ON f.fid=l0.fid AND l0.leistung LIKE '%03220%' " & vbCrLf & _
+"LEFT JOIN leistungen l1 ON f.pat_id=l1.pat_id AND l1.zeitpunkt BETWEEN qanf() AND qend() AND l1.leistung LIKE '%03221%' " & vbCrLf & _
+"LEFT JOIN leistungen l0 ON f.pat_id=l0.pat_id AND l1.zeitpunkt BETWEEN qanf() AND qend() AND l0.leistung LIKE '%03220%' " & vbCrLf & _
 "WHERE NOT ISNULL(l1.leistung) AND ISNULL(l0.leistung);"
  mins(AWlf) = 7
  maxs(AWlf) = 20
@@ -3792,7 +3792,7 @@ sql(AWlf) = "SELECT Pat_ID, Name, Messzeitpunkt, `01812`, Soll, `01777`, `Vor-01
 ", einh `OGTT-Dokumentation` " & vbCrLf & _
 "FROM ( " & vbCrLf & _
       "SELECT COALESCE(SUM(ogtt.lzahl),0) `01777` " & vbCrLf & _
-      ", COALESCE((SELECT MAX(IF(inhalt RLIKE 'ja am|t *ja|am *[0-9]' OR inhalt LIKE '%chgeführt? ja%',1,IF(inhalt RLIKE 'nein am|- am|-,' OR inhalt LIKE '%chgeführt? nein%',0,'?'))) FROM eintraege WHERE pat_id = f.pat_id AND art RLIKE '^angd|^50g$' AND DATE(zeitpunkt)=DATE(e.zeitpunkt)),'u') ob50 " & vbCrLf & _
+      ", COALESCE((SELECT MAX(IF(inhalt RLIKE 'ja am|t *ja|am *[0-9]' OR inhalt RLIKE 'chgeführt\?.\{0,2\}ja',1,IF(inhalt RLIKE 'nein am|- am|-,' OR inhalt RLIKE 'chgeführt\?.\{0,2\}nein',0,'?'))) FROM eintraege WHERE pat_id = f.pat_id AND art RLIKE '^angd|^50g$' AND DATE(zeitpunkt)=DATE(e.zeitpunkt)),'u') ob50 " & vbCrLf & _
       ", COALESCE(SUM(gluc.lzahl),0) `01812`, " & vbCrLf & _
       "et.letzteRegel, " & vbCrLf & _
       "gesname(f.pat_id) Name, DATE(e.zeitpunkt) Messzeitpunkt, e.inhalt einh, e.fid fid, e.pat_id pat_id " & vbCrLf & _
@@ -3802,8 +3802,8 @@ sql(AWlf) = "SELECT Pat_ID, Name, Messzeitpunkt, `01812`, Soll, `01777`, `Vor-01
              "FROM eintraege e " & vbCrLf & _
             "LEFT JOIN `faelle` f ON e.fid = f.fid " & vbCrLf & _
             "LEFT JOIN (SELECT IF(LR=18991230,IF(efLR=18991230,IF(erLR=18991230,IF(voret<19500101,voret+INTERVAL 100 YEAR,voret)-INTERVAL 280 day,erlr),efLR),IF(LR<19500101,LR+INTERVAL 100 YEAR,LR)) letzteRegel, voret,pat_id FROM sws) et ON et.Pat_ID=f.pat_id AND et.voret>qanf() AND et.voret - INTERVAL 280 DAY<e.zeitpunkt" & vbCrLf & _
-            "LEFT JOIN leistungen ogtt ON f.fid = ogtt.fid AND ogtt.leistung = '01777' AND DATE(ogtt.zeitpunkt) = DATE(e.zeitpunkt) " & vbCrLf & _
-            "LEFT JOIN leistungen gluc ON f.fid = gluc.fid AND gluc.leistung = '01812' AND DATE(gluc.zeitpunkt) = DATE(e.zeitpunkt) " & vbCrLf & _
+            "LEFT JOIN leistungen ogtt ON f.pat_id = ogtt.pat_id AND ogtt.leistung = '01777' AND DATE(ogtt.zeitpunkt) = DATE(e.zeitpunkt) " & vbCrLf & _
+            "LEFT JOIN leistungen gluc ON f.pat_id = gluc.pat_id AND gluc.leistung = '01812' AND DATE(gluc.zeitpunkt) = DATE(e.zeitpunkt) " & vbCrLf & _
             "LEFT JOIN namen n ON e.pat_id = n.pat_id " & vbCrLf & _
       "WHERE f.schgr<>90 AND e.art = 'ogtt' AND e.zeitpunkt BETWEEN " & lQAnfuEnd(FristS) & " " & vbCrLf & _
       "AND EXISTS (SELECT 0 FROM sws WHERE pat_id=f.pat_id AND e.zeitpunkt BETWEEN voret - INTERVAL 280 day AND voret) " & vbCrLf & _
@@ -7043,9 +7043,10 @@ Public Function AbrFausg(name$, sql$, obmo%, Datei$, mins%, ByVal maxs%, Übersch
        Dim pos%, Lei$
        pos = InStr(rE!LEIFEHLER, " dazu")
        If pos <> 0 Then
+        Lei = Left$(rE!LEIFEHLER, pos - 1)
         If Not angefangen Then
          Set BDT = New BDTSchreib
-         If Not BDT.Start(hVerz, "Leist", 0) Then ' Arztnr) THEN
+         If Not BDT.Start(hVerz, "Leist", 0, Lei) Then ' Arztnr) THEN
           Exit Function
          End If
          Call BDT.ImportFolderHerricht
@@ -7053,7 +7054,6 @@ Public Function AbrFausg(name$, sql$, obmo%, Datei$, mins%, ByVal maxs%, Übersch
          Protdat = BDT.DMPImp
          angefangen = True
         End If
-        Lei = Left$(rE!LEIFEHLER, pos - 1)
         Dim pruefdat As Date
         pruefdat = DateValue(rE!LEIDAT) + IIf(TimeValue(rE!LEIDAT) = 0, CDate("18:00"), TimeValue(rE!LEIDAT))
         pruefdat = myEFrag("SELECT naemin(" & rE!pid & ",'" & Format$(pruefdat, "YYYYmmddHHMM") & "00')").Fields(0)
