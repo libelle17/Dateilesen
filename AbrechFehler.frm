@@ -369,6 +369,8 @@ Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "Last
 End Select
 End Sub ' Private Sub Form_Load()
 
+
+
 ' in ZeigSQL
 Public Function ZeigSprivat(FristS$)
 ' 24.10.09: ändern in WHERE bhfe = '1899-12-30' AND schgr = 90
@@ -1867,6 +1869,7 @@ sql(AWlf) = "" & vbCrLf & _
  AWlf = AWlf + 1
 
  ' 43
+ ' vorher liste_43() laufen lassen
  AwN(AWlf) = "Fehlende oder mehrdeutige Krankenkassenkategorie (INSERT INTO kassenliste (vknr, ik, NAME, kateg, anzahlik,anzahlktug, gültigvon, gültigbis,  go,kurzname,rname, eingef, geaen) SELECT vknr, ik, NAME, kateg, anzahlik,anzahlktug, gültigvon, gültigbis,  go,kurzname,rname, eingef, geaen FROM kassenliste WHERE id=...; usw.)"
  sql(AWlf) = _
 " SELECT Pat_id,PatName,Ik,VKNr,KategZahl,KategN FROM ( " & vbCrLf & _
@@ -2609,7 +2612,7 @@ sql(AWlf) = _
  "SELECT f.pat_id, dmtyp(f.pat_id) dt, gesname(f.pat_id) PName, DATE_FORMAT(e.zeitpunkt,'%e.%c.%y') Zp, GROUP_CONCAT(ndl.leistung) ndl, GROUP_CONCAT(dil.leistung) dil, e.art, e.inhalt " & vbCrLf & _
  "FROM aktfvs f " & vbCrLf & _
  "LEFT JOIN namen USING (pat_id) " & vbCrLf & _
- "LEFT JOIN eintraege e ON e.pat_id=f.pat_id AND e.zeitpunkt BETWEEN " & lQAnfuEnd(FristS) & " AND (inhalt LIKE '%ebrid%' OR art LIKE 'debr%' OR (inhalt LIKE '%resekt%' AND NOT inhalt RLIKE 'Leber.*rese[ck]t|Resektionshöhle|Resektion der Schild|Pan[ck]reas.*resekt|Resektion Leberzyste|Resektionsbereich|Re[ck]tumrese[ck]t|Rese[ck]tion Lunge|(darm|magen|milz|acg-|schilddrüsen|struma|sd-|nieren|teil|links|total|gebärmutter|mu[ck]osa|gallenblasen|elektro|wurzel|truma|igma|pan[ck]reaskopf|olon|olon-|olypen)resekt|Hypoph.*resekt')) " & vbCrLf & _
+ "LEFT JOIN eintraege e ON e.pat_id=f.pat_id AND e.zeitpunkt BETWEEN " & lQAnfuEnd(FristS) & " AND (inhalt LIKE '%ebrid%' OR art LIKE 'debr%' OR (inhalt LIKE '%resekt%' AND NOT inhalt RLIKE 'Leber.*rese[ck]t|Resektionshöhle|Resektion der Schild|Pan[ck]reas.*resekt|Resektion Leberzyste|Resektionsbereich|Re[ck]tumrese[ck]t|Rese[ck]tion Lunge|(darm|magen|milz|acg-|ICC-|schilddrüsen|struma|sd-|nieren|teil|links|total|gebärmutter|mu[ck]osa|gallenblasen|elektro|wurzel|truma|igma|pan[ck]reaskopf|olon|olon-|olypen)resekt|Hypoph.*resekt')) " & vbCrLf & _
  "LEFT JOIN leistungen ndl ON ndl.pat_id = f.pat_id AND ndl.leistung IN ('02300') AND DATE(ndl.zeitpunkt)=DATE(e.zeitpunkt)" & vbCrLf & _
  "LEFT JOIN leistungen dil ON dil.pat_id = f.pat_id AND dil.leistung IN ('02311') AND DATE(dil.zeitpunkt)=DATE(e.zeitpunkt)" & vbCrLf & _
  "LEFT JOIN leistungen dix ON dix.pat_id = f.pat_id AND dix.leistung IN ('02312') AND DATE(dix.zeitpunkt)=DATE(e.zeitpunkt)" & vbCrLf & _
@@ -3787,15 +3790,16 @@ sql(AWlf) = "ü"
 '    "LEFT JOIN namen n ON e.pat_id = n.pat_id " & vbCrLf & _
 '    "WHERE e.art = 'ogtt' AND e.zeitpunkt BETWEEN " & lqanfuend(FristS) & " AND letzteRegel<>'' AND ADDDATE(STR_TO_DATE(f.letzteRegel,'TM#%d%m%Y'),274) > e.zeitpunkt GROUP BY e.fid,e.zeitpunkt) i " & vbCrLf & _
 '    "WHERE `01777`<>(IF((SELECT SUM(IF(LAnzl='',1,LAnzl)) FROM leistungen l WHERE l.pat_id= pat_id AND DATE(l.zeitpunkt)<messzeitpunkt AND DATE(l.zeitpunkt) > `letzte Regel` AND l.leistung='01777')=0,1,0)) OR `01812` <>3 "
-sql(AWlf) = "SELECT Pat_ID, Name, Messzeitpunkt, `01812`, Soll, `01777`, `Vor-01777`" & vbCrLf & _
+sql(AWlf) = "SELECT Pat_ID, Name, Messzeitpunkt, `01812`,`Vor-01812`,Soll, `01777`, `Vor-01777`" & vbCrLf & _
 ", ob50, letzteRegel, CONCAT(DATE_FORMAT(voret - INTERVAL 280 DAY,'%d.%m.%y'),'-',DATE_FORMAT(voret,'%d.%m.%y')) `SWS-von-bis`" & vbCrLf & _
 ", einh `OGTT-Dokumentation` " & vbCrLf & _
 "FROM ( " & vbCrLf & _
       "SELECT COALESCE(SUM(ogtt.lzahl),0) `01777` " & vbCrLf & _
       ", COALESCE((SELECT MAX(IF(inhalt RLIKE 'ja am|t *ja|am *[0-9]' OR inhalt RLIKE 'chgeführt\?.\{0,2\}ja',1,IF(inhalt RLIKE 'nein am|- am|-,' OR inhalt RLIKE 'chgeführt\?.\{0,2\}nein',0,'?'))) FROM eintraege WHERE pat_id = f.pat_id AND art RLIKE '^angd|^50g$' AND DATE(zeitpunkt)=DATE(e.zeitpunkt)),'u') ob50 " & vbCrLf & _
-      ", COALESCE(SUM(gluc.lzahl),0) `01812`, " & vbCrLf & _
-      "et.letzteRegel, " & vbCrLf & _
-      "gesname(f.pat_id) Name, DATE(e.zeitpunkt) Messzeitpunkt, e.inhalt einh, e.fid fid, e.pat_id pat_id " & vbCrLf & _
+      ", COALESCE(SUM(gluc.lzahl),0) `01812`" & vbCrLf & _
+      ",COALESCE((SELECT SUM(lzahl) FROM leistungen WHERE pat_id= e.pat_id AND DATE(zeitpunkt)<DATE(e.zeitpunkt) AND DATE(zeitpunkt)> et.letzteRegel AND leistung='01812'),0) `Vor-01812`" & vbCrLf & _
+      ",et.letzteRegel" & vbCrLf & _
+      ",gesname(f.pat_id) Name, DATE(e.zeitpunkt) Messzeitpunkt, e.inhalt einh, e.fid fid, e.pat_id pat_id " & vbCrLf & _
             ",COALESCE((SELECT SUM(lzahl) FROM leistungen WHERE pat_id= e.pat_id AND DATE(zeitpunkt)<DATE(e.zeitpunkt) AND DATE(zeitpunkt)> et.letzteRegel AND leistung='01777'),0) `Vor-01777` " & vbCrLf & _
             ", et.voret, (SELECT COUNT(0) FROM eintraege WHERE pat_id=e.pat_id AND DATE(zeitpunkt)=DATE(e.zeitpunkt) AND art IN ('bzvgl','bz')) + CASE WHEN e.inhalt LIKE '%mg%mg%mg%' AND NOT e.inhalt LIKE '%mg%mg%~%mg%' THEN 3 WHEN e.inhalt LIKE '%mg%mg%' AND NOT e.inhalt LIKE '%mg%~%mg%' THEN 2 WHEN e.inhalt LIKE '%mg%' THEN 1 ELSE 0 END Soll" & vbCrLf & _
             ", f.vknr, f.ik" & vbCrLf & _
@@ -3810,7 +3814,7 @@ sql(AWlf) = "SELECT Pat_ID, Name, Messzeitpunkt, `01812`, Soll, `01777`, `Vor-01
             "GROUP BY e.fid,e.zeitpunkt) i " & vbCrLf & _
       "WHERE ((SELECT MAX(kateg) FROM kassenliste WHERE vknr=i.vknr AND ik=i.ik)<>'SHV' AND " & vbCrLf & _
               "`01777`<>(IF(`Vor-01777`=0 AND ob50 IN(1,'u'),1,0)))" & vbCrLf & _
-      "OR `01812` < Soll"
+      "OR `01812` < LEAST(Soll,8-`Vor-01812`)"
  mins(AWlf) = 10
  maxs(AWlf) = 60
  AWlf = AWlf + 1
@@ -3861,15 +3865,18 @@ sql(AWlf) = "" & vbCrLf & _
  AwN(AWlf) = "Falsche Zahl 01812 oder 32025 für Blutzuckermessungen (bz, bzvgl, ogtt) ín der Schwangerschaft (vorher 59)"
  sql(AWlf) = "SELECT * FROM (" & vbCrLf & _
  "SELECT i.pid, gesname(i.pid) Name, i.eTag Tag, i.BZZahl `BZ-Zahl`" & vbCrLf & _
- ", COALESCE(SUM(lzahl),0) `Leistungs-Zahl`, i.Art, i.Inhalt" & vbCrLf & _
+ ",COALESCE(SUM(lzahl),0) `Leistungs-Zahl`" & vbCrLf & _
+ ",COALESCE((SELECT SUM(lzahl) FROM leistungen WHERE pat_id= pid AND DATE(zeitpunkt)<=DATE(eTag) AND DATE(zeitpunkt)>et.letzteRegel AND leistung='01812'),0) `Vor-01812`" & vbCrLf & _
+ ", i.Art, i.Inhalt" & vbCrLf & _
  "FROM (SELECT f.pat_id pid, DATE(e.zeitpunkt) eTag, SUM(CASE WHEN art LIKE 'bz%' THEN 1 WHEN art= 'angd' THEN CASE WHEN inhalt RLIKE 'BZ0.*[0-9][ ]*mg.*[0-9][ ]*mg.*[0-9][ ]*mg.*Grenze' THEN 3 when inhalt RLIKE 'BZ0.*[0-9][ ]*mg.*[0-9][ ]*mg.*Grenze' THEN 2 WHEN inhalt LIKE 'BZ0.*[0-9][ ]*mg.*Grenze' THEN 1 ELSE 0 END ELSE CASE WHEN inhalt RLIKE '[0-9][ ]*mg.*[0-9][ ]*mg.*[0-9][ ]*mg' THEN 3 when inhalt RLIKE '[0-9][ ]*mg.*[0-9][ ]*mg' THEN 2 WHEN inhalt LIKE '[0-9][ ]*mg' THEN 1 ELSE 0 END END) BZZahl, e.Art, e.inhalt FROM " & vbCrLf & _
  "aktfvs f " & vbCrLf & _
  "LEFT JOIN `faelle` fl USING(fid) " & vbCrLf & _
  "LEFT JOIN BiosenMessung e ON f.pat_id = e.pat_id AND e.zeitpunkt BETWEEN " & lQAnfuEnd(FristS) & vbCrLf & _
  "WHERE NOT ISNULL(art) AND EXISTS (SELECT 0 FROM sws WHERE pat_id=f.pat_id AND e.zeitpunkt BETWEEN voret - INTERVAL 280 DAY AND voret) " & vbCrLf & _
  "GROUP BY f.pat_id, DATE(e.zeitpunkt)) i " & vbCrLf & _
+ "LEFT JOIN (SELECT IF(LR=18991230,IF(efLR=18991230,IF(erLR=18991230,IF(voret<19500101,voret+INTERVAL 100 YEAR,voret)-INTERVAL 280 day,erlr),efLR),IF(LR<19500101,LR+INTERVAL 100 YEAR,LR)) letzteRegel, voret,pat_id FROM sws) et ON et.Pat_ID=i.pid AND et.voret>qanf() AND et.voret - INTERVAL 280 DAY<eTag" & vbCrLf & _
  "LEFT JOIN leistungen l ON l.pat_id = i.pid AND leistung IN ('01812','32025') AND DATE(l.zeitpunkt) = i.eTag " & vbCrLf & _
- "GROUP BY i.pid, i.eTag) i WHERE `BZ-Zahl`>`Leistungs-Zahl`;"
+ "GROUP BY i.pid, i.eTag) i WHERE `BZ-Zahl`>`Leistungs-Zahl` AND `Vor-01812`<8;"
 ' AwN(AWlf) = "Fehlende 01812 für Blutzuckermessungen (bz, bzvgl) außerhalb der Schwangerschaft:"
 ' sql(AWlf) = "SELECT * FROM (" & vbCrLf & _
       "SELECT f.pat_id, LEFT(CONCAT(IF(n.titel='','',CONCAT(n.titel,' ')),IF(n.nvorsatz='','',CONCAT(n.nvorsatz,' ')),n.nachname,', ',n.vorname),25) Name," & vbCrLf & _
@@ -5355,19 +5362,20 @@ sql(AWlf) = "" & _
 " ON l.pat_id=f.pat_id AND DATE(l.zeitpunkt)=e.TaG " & vbCrLf
 sql(AWlf) = sql(AWlf) & _
 " AND ( " & vbCrLf & _
-"    (iart IN (1,101) AND leistung IN ('89111','89112','89112Y','89112Z','89112B')) " & vbCrLf & _
-" OR (iart IN (2,102) AND leistung IN ('89118A','89118B','89119','89119R','89120','89120R','89120V','89120X')) " & vbCrLf & _
-" OR (iart IN (3,103) AND leistung IN ('89122R','89302','89302R','89303','89303R','89303Y','89400','89400E','89400K','89500A','89500B','89600A','89600B')) " & vbCrLf & _
-" OR (iart IN (4,104) AND leistung IN ('89128A','89128B','89129A','89129B')) " & vbCrLf & _
-" OR (iart IN (5,105) AND leistung IN ('89102A','89102B','89102R','89102V','89102W','89102X')) " & vbCrLf & _
-" OR (iart IN (6,106) AND leistung IN ('89401A','89401B','89401V','89401W')) " & vbCrLf & _
-" OR (iart IN (7,107) AND leistung IN ('89124A','89124B','89124R','89201A','89201B','89201R','89400E','89400K')) " & vbCrLf & _
-" OR (iart IN (9,109) AND leistung IN ('89105A','89105B','89105R','89105V','89105W','89105X','89106A','89106B','89107A','89107B','89107R','89107V','89107W','89107X','89108A','89108B','89108R')) " & vbCrLf & _
-" OR (iart IN (10,110) AND leistung IN ('89114','89115A','89115B','89115R','89115C','89115D','89115S','89115V','89115W','89115X')) " & vbCrLf & _
-" OR (iart IN (12,112) AND leistung IN ('89110A')) " & vbCrLf & _
-" OR (iart IN (13,113) AND leistung IN ('89133Y','89133V')) " & vbCrLf & _
-" OR (iart IN (14,114) AND leistung IN ('89201A','89201B','89201R')) " & vbCrLf & _
-" OR (iart IN (16,116) AND leistung RLIKE '^89132[VWX]') " & vbCrLf
+"    (iart IN (1,101) AND leistung IN ('89111','89112','89112Y','89112Z','89112B'))" & vbCrLf & _
+" OR (iart IN (2,102) AND leistung IN ('89118A','89118B','89119','89119R','89120','89120R','89120V','89120X'))" & vbCrLf & _
+" OR (iart IN (3,103) AND leistung IN ('89122R','89302','89302R','89303','89303R','89303Y','89400','89400E','89400K','89500A','89500B','89600A','89600B'))" & vbCrLf & _
+" OR (iart IN (4,104) AND leistung IN ('89128A','89128B','89129A','89129B'))" & vbCrLf & _
+" OR (iart IN (5,105) AND leistung IN ('89102A','89102B','89102R','89102V','89102W','89102X'))" & vbCrLf & _
+" OR (iart IN (6,106) AND leistung IN ('89401A','89401B','89401V','89401W'))" & vbCrLf & _
+" OR (iart IN (7,107) AND leistung IN ('89124A','89124B','89124R','89201A','89201B','89201R','89400E','89400K'))" & vbCrLf & _
+" OR (iart IN (9,109) AND leistung IN ('89105A','89105B','89105R','89105V','89105W','89105X','89106A','89106B','89107A','89107B','89107R','89107V','89107W','89107X','89108A','89108B','89108R'))" & vbCrLf & _
+" OR (iart IN (10,110) AND leistung IN ('89114','89115A','89115B','89115R','89115C','89115D','89115S','89115V','89115W','89115X'))" & vbCrLf & _
+" OR (iart IN (12,112) AND leistung IN ('89110A'))" & vbCrLf & _
+" OR (iart IN (13,113) AND leistung IN ('89133Y','89133V'))" & vbCrLf & _
+" OR (iart IN (14,114) AND leistung IN ('89201A','89201B','89201R'))" & vbCrLf & _
+" OR (iart IN (16,116) AND leistung RLIKE '^89132[VWX]')" & vbCrLf & _
+" OR (iart IN (17,117) AND leistung IN ('89138','89137'))" & vbCrLf
 sql(AWlf) = sql(AWlf) & _
 " OR (iart IN (127) AND leistung RLIKE '^88337[ABRVWXGHK]') " & vbCrLf & _
 " OR (iart IN (121) AND leistung RLIKE '^88331[ABRVWXGHK]|88345[RX]') " & vbCrLf & _

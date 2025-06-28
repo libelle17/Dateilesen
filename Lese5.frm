@@ -2022,7 +2022,7 @@ Private Sub Übertragung_aus_MO_Click()
         "LEFT JOIN patstamm p ON p.FSurogat = d.FPatnr" & vbCrLf & _
         "WHERE 18900101 + INTERVAL FDatum DAY + INTERVAL FUhrzeit SECOND > NOW() - INTERVAL " & CStr(CDbl(REPLACE$(opt.Tage, ",", "."))) & " DAY" & vbCrLf & _
         "AND FPatnr" & unts & vbCrLf & _
-        "AND ftablename IN ('ltag','termin')" & vbCrLf & _
+        "AND ftablename IN ('ltag','termin','patstamm')" & vbCrLf & _
         "AND (FXmlinhalt IS NULL OR FXmlinhalt NOT RLIKE 'arztbrief|Erledigtdatum')" & vbCrLf & _
         "AND p.FSurogat IS NOT NULL" & vbCrLf & _
         "GROUP BY fpatnr)i" & vbCrLf & _

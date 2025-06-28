@@ -6579,3 +6579,51 @@ Public Function umlweg$(ByRef q$)
  umlweg = REPLACE$(REPLACE$(REPLACE$(REPLACE$(REPLACE$(REPLACE$(REPLACE$(q, "ä", "\'e4"), "Ä", "\'c4"), "ö", "\'f6"), "Ö", "\'d6"), "ü", "\'fc"), "Ü", "\'dc"), "ß", "\'df")
 End Function ' umlweg$
 
+' wird noch nirgends aufgerufen
+Public Function liste_43()
+Dim sql$, rs As ADODB.Recordset, ErrNr&, ErrDes$
+' für die erste Auflistung:
+' SELECT GROUP_CONCAT(CONCAT(CASE COLUMN_NAME WHEN'IK'THEN'fIK 'WHEN'pid'THEN'pat_id 'ELSE     CASE COLUMN_TYPE WHEN 'datetime'THEN CONCAT('DATE_FORMAT(COALESCE(',COLUMN_NAME,',''0''),''%y%m%d%h%m%s'')')ELSE CONCAT('COALESCE(',COLUMN_NAME,IF(NUMERIC_PRECISION IS NOT NULL,',''0'')',','''')')) END    END,COLUMN_NAME)), c.* FROM information_schema.columns c WHERE TABLE_NAME='kassenliste' and table_schema='quelle' AND EXTRA<>'auto_increment' ORDER BY ordinal_position;
+' für die zweite Auflistung:
+' SELECT GROUP_CONCAT(COLUMN_NAME) FROM information_schema.columns c WHERE TABLE_NAME='kassenliste' and table_schema='quelle' AND EXTRA<>'auto_increment' ORDER BY ordinal_position;
+' für das insert-sql:
+' SELECT GROUP_CONCAT(CONCAT('rs!',COLUMN_NAME) SEPARATOR ' & "'',''" & ') FROM information_schema.columns c WHERE TABLE_NAME='kassenliste' and table_schema='quelle' AND EXTRA<>'auto_increment' ORDER BY ordinal_position;
+Call Lese.ProgStart
+'sql = "" & _
+"SELECT VKNR,fIK IK,NAME,Kateg,COALESCE(AnzahlIK,'0')AnzahlIK,COALESCE(AnzahlKTUG,'0')AnzahlKTUG,COALESCE(GültigVon,'0')GültigVon,COALESCE(GültigBis,'0')GültigBis,GO,Kurzname,rName,Lantus2,Levemir2,Humalog,Liprolog,Novorapid,Apidra,DATE_FORMAT(eingef,'%y%m%d%h%m%s')eingef,DATE_FORMAT(geaen,'%y%m%d%h%m%s')geaen,Pat_id pid" & vbCrLf & _
+
+sql = "SELECT" & vbCrLf & _
+"COALESCE(VKNR,'')VKNR,fIK IK,COALESCE(Name,'')Name,COALESCE(Kateg,'')Kateg,COALESCE(AnzahlIK,'0')AnzahlIK,COALESCE(AnzahlKTUG,'0')AnzahlKTUG,DATE_FORMAT(COALESCE(GültigVon,'0'),'%y%m%d%h%m%s')GültigVon,DATE_FORMAT(COALESCE(GültigBis,'0'),'%y%m%d%h%m%s')GültigBis,COALESCE(GO,'')GO,COALESCE(Kurzname,'')Kurzname,COALESCE(rName,'')rName,COALESCE(Lantus2,'0')Lantus2,COALESCE(Levemir2,'0')Levemir2,COALESCE(Humalog,'0')Humalog,COALESCE(Liprolog,'0')Liprolog,COALESCE(Novorapid,'0')Novorapid,COALESCE(Apidra,'0')Apidra,DATE_FORMAT(COALESCE(eingef,'0'),'%y%m%d%h%m%s')eingef,DATE_FORMAT(COALESCE(geaen,'0'),'%y%m%d%h%m%s')geaen,pat_id pid" & vbCrLf & _
+" FROM (" & vbCrLf & _
+"SELECT Pat_id,PatName,i.Ik fIK,i.VKNr fVKNr,i.KKasse_2 fKKasse_2" & vbCrLf & _
+", ROW_NUMBER()OVER(PARTITION BY pat_id ORDER BY kl.Kurzname=i.kkasse_2 DESC) rn" & vbCrLf & _
+", kl.Kurzname=i.kkasse_2 obklgleich, kl.*" & vbCrLf & _
+"FROM (" & vbCrLf & _
+"    SELECT f.Pat_id, gesname(f.pat_id) Patname, Ik,Vknr, Kateg ,KKasse_2" & vbCrLf & _
+"   , (SELECT COUNT(DISTINCT kateg) FROM kassenliste kal WHERE kal.vknr=f.vknr AND kal.ik=f.ik) KategZahl" & vbCrLf & _
+"--   , (SELECT GROUP_CONCAT(DISTINCT kurzname) FROM kassenliste WHERE vknr=f.vknr AND kurzname<>'') kurznn" & vbCrLf & _
+"    FROM aktfv f LEFT JOIN (SELECT KKasse_2,fid from faelle) fk USING (fid)" & vbCrLf & _
+"    GROUP BY vknr,IK" & vbCrLf & _
+") i" & vbCrLf & _
+"LEFT JOIN kassenliste kl ON kl.vknr=i.vknr -- AND kl.Kurzname=i.kkasse_2" & vbCrLf & _
+"WHERE i.KategZahl=0" & vbCrLf & _
+")i" & vbCrLf & _
+"WHERE rn=1;"
+
+myFrag rs, sql, adOpenStatic, DBCn, adLockReadOnly, 1000000
+If Not rs.BOF Then
+ Do While Not rs.EOF
+  Debug.Print rs!VKNr, rs!IK, rs!name, rs!AnzahlIK
+  sql = "INSERT INTO kassenliste(VKNR,IK,NAME,Kateg,AnzahlIK,AnzahlKTUG,GültigVon,GültigBis,GO,Kurzname,rName,Lantus2,Levemir2,Humalog,Liprolog,Novorapid,Apidra,eingef,geaen,pid)VALUES('" & _
+  rs!VKNr & "','" & rs!IK & "','" & rs!name & "','" & rs!Kateg & "','" & rs!AnzahlIK & "','" & rs!AnzahlKTUG & "','" & rs!GültigVon & "','" & rs!GültigBis & "','" & rs!GO & "','" & rs!Kurzname & "','" & rs!rName & "','" & rs!Lantus2 & "','" & rs!Levemir2 & "','" & rs!Humalog & "','" & rs!Liprolog & "','" & rs!Novorapid & "','" & rs!Apidra & "','" & rs!eingef & "','" & rs!geaen & "','" & rs!pid & _
+  "')"
+  myEFrag sql, rAf, , , ErrNr, ErrDes
+  If rAf <> 1 Then
+   Debug.Print "ging nicht: " & sql
+  End If
+  rs.MoveNext
+ Loop
+End If
+Debug.Print "Fertig"
+End Function
+

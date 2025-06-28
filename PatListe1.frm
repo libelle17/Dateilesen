@@ -3279,7 +3279,7 @@ Sub LabordateiAnzeig(Datei$)
 ' "COUNT(0) OVER() zahl, w.*,u.*
 sql = _
 "SELECT" & vbCrLf & _
-"COUNT(0) OVER() zahl, w.*,u.ID,u.UsLfd,u.DatID,u.SatzID,u.Satzart,u.Satzlänge,u.Auftragsnummer,u.Auftragsschlüssel,u.Eingang,u.Berichtsdatum,u.Pat_ID,u.Nachname,u.Vorname,u.GebDat,u.Titel,u.NVorsatz,u.NVors2,u.BefArt,u.Abrechnungstyp,u.GebüOrd,u.Auftraggeber,u.Patienteninformation,u.Geschlecht,u.Pat_id_0,u.Pat_id_1,u.Pat_id_2,u.Pat_id_3,u.Pat_id_4,u.Pat_id_5,u.Pat_id_6,u.Pat_id_7,u.ZeitpunktLaborneu,u.Pat_id_Laborneu,u.verglichen,u.AfN,u.z7,u.SQL7,u.termsp,u.Termine,u.TM_Pat_id,u.ID,u.UsLfd,u.DatID,u.SatzID,u.Satzart,u.Satzlänge,u.Auftragsnummer,u.Auftragsschlüssel,u.Eingang,u.Berichtsdatum,u.Pat_ID,u.TM_Pat_ID,u.Nachname,u.Vorname,u.GebDat,u.Titel,u.NVorsatz,u.NVors2,u.BefArt,u.Abrechnungstyp,u.GebüOrd,u.Auftraggeber,u.Patienteninformation,u.Geschlecht,u.Pat_id_0,u.Pat_id_1,u.Pat_id_2,u.Pat_id_3,u.Pat_id_4,u.Pat_id_5,u.Pat_id_6,u.Pat_id_7,u.ZeitpunktLaborneu,u.Pat_id_Laborneu,u.verglichen,u.AfN,u.z7,u.SQL7," & vbCrLf & _
+"COUNT(0) OVER() zahl, w.*,IF(ficd<>''AND di.icd IS NOT NULL AND ficdsp=255,33023,fICDsp)ICDsp,u.ID,u.UsLfd,u.DatID,u.SatzID,u.Satzart,u.Satzlänge,u.Auftragsnummer,u.Auftragsschlüssel,u.Eingang,u.Berichtsdatum,u.Pat_ID,u.Nachname,u.Vorname,u.GebDat,u.Titel,u.NVorsatz,u.NVors2,u.BefArt,u.Abrechnungstyp,u.GebüOrd,u.Auftraggeber,u.Patienteninformation,u.Geschlecht,u.Pat_id_0,u.Pat_id_1,u.Pat_id_2,u.Pat_id_3,u.Pat_id_4,u.Pat_id_5,u.Pat_id_6,u.Pat_id_7,u.ZeitpunktLaborneu,u.Pat_id_Laborneu,u.verglichen,u.AfN,u.z7,u.SQL7,u.termsp,u.Termine,u.TM_Pat_id,u.ID,u.UsLfd,u.DatID,u.SatzID,u.Satzart,u.Satzlänge,u.Auftragsnummer,u.Auftragsschlüssel,u.Eingang,u.Berichtsdatum,u.Pat_ID,u.TM_Pat_ID,u.Nachname,u.Vorname,u.GebDat,u.Titel,u.NVorsatz,u.NVors2,u.BefArt,u.Abrechnungstyp,u.GebüOrd,u.Auftraggeber,u.Patienteninformation,u.Geschlecht,u.Pat_id_0,u.Pat_id_1,u.Pat_id_2,u.Pat_id_3,u.Pat_id_4,u.Pat_id_5,u.Pat_id_6,u.Pat_id_7,u.ZeitpunktLaborneu,u.Pat_id_Laborneu,u.verglichen,u.AfN,u.z7,u.SQL7," & vbCrLf & _
 "  CASE" & vbCrLf & _
 "        WHEN obk<>0 AND obs=0 AND false=0 AND obh=0 THEN 14772545 -- //vbmittelblau, RGB(65, 105, 225) ' http://www.am.uni-duesseldorf.de/de/Links/Tools/farbtabelle.html' & vbCrLf & _" & vbCrLf & _
 "        WHEN obk=0 AND obs<>0 AND false=0 AND obh=0 THEN 65535 -- // gelb, &HFFFF& & vbCrLf & _" & vbCrLf & _
@@ -3330,9 +3330,10 @@ sql = sql & _
 "LEFT JOIN laboryplab l ON l.id=s.labid" & vbCrLf & _
 "LEFT JOIN laborparameter p ON p.abkü=w.abkü AND p.einheit=IF(w.einheit IN ('','\'kA\''),'kA',w.einheit)" & vbCrLf & _
 "      AND p.id = (SELECT id FROM laborparameter WHERE abkü=w.`Abkü` AND einheit=IF(w.einheit IN ('','\'kA\''),'kA',w.Einheit) ORDER BY gruppe DESC, reihe DESC LIMIT 1)" & vbCrLf & _
-"LEFT JOIN sws sw ON sw.pat_id=u.pat_id AND sw.voret>qanf() AND sw.voret>now()" & vbCrLf & _
-"LEFT JOIN dtypen dt ON dt.pat_id=u.pat_id" & vbCrLf
+"LEFT JOIN sws sw ON sw.pat_id=u.pat_id AND sw.voret>qanf() AND sw.voret>now()" & vbCrLf
 sql = sql & _
+"LEFT JOIN (SELECT icd,pat_id FROM diagview di WHERE diagsicherheit IN ('G',' ') AND (diagdatum>qanf() OR obdauer<>0)) di ON di.pat_id=u.pat_id AND di.icd=w.fICD" & vbCrLf & _
+"LEFT JOIN dtypen dt ON dt.pat_id=u.pat_id" & vbCrLf & _
 "WHERE ((wert<>'' AND wert IS NOT NULL) OR (e.text<>'' AND e.text IS NOT NULL))" & vbCrLf & _
 "AND grenzwerti<>'' AND dateidat=" & Format(LabDatum, "YYYYmmdd")
 
@@ -3351,7 +3352,7 @@ sql = sql & _
  ElseIf Datei Like "*.ldt" Then
   Datum = Left(FSO.GetBaseName(Datei), 10)
   sql = "SELECT COUNT(0) OVER () Zahl, gesname(l.pat_id) Name" & vbCrLf & _
-", case when gicd RLIKE '^E10' then '1' when gicd RLIKE '^E11' then '2' when gicd RLIKE 'O24.4' then 'g' END ityp" & vbCrLf & _
+", CASE WHEN gicd RLIKE '^E10' THEN '1' WHEN gicd RLIKE '^E11' THEN '2' WHEN gicd RLIKE 'O24.4' THEN 'g' END ityp" & vbCrLf & _
 ", Abkü Parameter, Wert, einheit" & vbCrLf & _
 ", (SELECT wert FROM labor2a WHERE pat_id=l.pat_id AND abkü=l.abkü AND einheit=l.Einheit and zeitpunkt=(SELECT MAX(zeitpunkt) FROM labor2a WHERE pat_id=l.pat_id AND abkü=l.abkü AND einheit=l.Einheit AND zeitpunkt<l.zeitpunkt) LIMIT 1) vorwert_1" & vbCrLf & _
 ", '' vorwert_2" & vbCrLf & _
@@ -3461,7 +3462,7 @@ sql = sql & _
      .col = vorwsp2:     .Text = rc!vorwert_2:   .CellBackColor = vorFarbe
      .col = nbsp:        .Text = Left$(rc!Nb, 25): .CellBackColor = vorFarbe
      .col = medsp:       .Text = rc!Hinweise:    .CellBackColor = IIf(rc!hinwsp = vbWhite Or rc!hinwsp = 0, vorFarbe, rc!hinwsp)
-     .col = ficdsp:      .Text = rc!ficd:        .CellBackColor = IIf(rc!ficdsp = vbWhite Or rc!ficdsp = 0, vorFarbe, rc!ficdsp)
+     .col = ficdsp:      .Text = rc!ficd:        .CellBackColor = IIf(rc!ICDSp = vbWhite Or rc!ICDSp = 0, vorFarbe, rc!ICDSp)
      .col = terminsp:    .Text = rc!Termine:     .CellBackColor = IIf(rc!termsp = 0, vbWhite, rc!termsp)
      .col = labhwsp:     .Text = rc!Kommentar:   .CellBackColor = vorFarbe
      i = i + 1
