@@ -3096,11 +3096,13 @@ sql(AWlf) = "" & _
  sql(AWlf) = "SELECT f.pat_id, gesnameg(f.pat_id) Name, lz.zeitpunkt " & vbCrLf & _
               "FROM aktfvs f " & vbCrLf & _
               "LEFT JOIN namen n ON f.pat_id = n.pat_id LEFT JOIN leistungen lz ON f.pat_id = lz.pat_id " & vbCrLf & _
-              "WHERE exists (SELECT 0 FROM leistungen l WHERE l.fid = f.fid AND l.leistung = '97276') " & vbCrLf & _
+              "WHERE EXISTS (SELECT 0 FROM leistungen l WHERE l.fid = f.fid AND l.leistung = '97276') " & vbCrLf & _
                 " AND lz.leistung=97276 AND lz.zeitpunkt BETWEEN " & Khtsfl & "" & vbCrLf & _
                 " AND COALESCE((SELECT SUM(lzahl) zahl FROM leistungen " & vbCrLf & _
-                "WHERE pat_id = f.pat_id AND leistung = '97276' AND zeitpunkt > SUBDATE(" & qtAnf(FristS) & ", INTERVAL 1 YEAR)),0) > 6 " & vbCrLf & _
+                "WHERE pat_id = f.pat_id AND leistung = '97276' AND zeitpunkt BETWEEN " & Khtsfl & "),0) > 6 " & vbCrLf & _
                 "ORDER BY pat_id, lz.zeitpunkt DESC"
+'                "WHERE pat_id = f.pat_id AND leistung = '97276' AND zeitpunkt > SUBDATE(" & qtAnf(FristS) & ", INTERVAL 1 YEAR)),0) > 6 " & vbCrLf & _
+
  mins(AWlf) = 10
  maxs(AWlf) = 60
  AWlf = AWlf + 1
