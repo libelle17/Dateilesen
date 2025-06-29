@@ -4857,7 +4857,7 @@ AWlf = AWlf + 1
             ",(SELECT COUNT(art) FROM eintraege WHERE pat_id = v.pat_id AND (art = 'gs'OR(art='tb'AND ersteller='gs'))) gs " & vbCrLf & _
             ",(SELECT COUNT(art) FROM eintraege WHERE pat_id = v.pat_id AND (art = 'ah'OR(art='ah'AND ersteller='ah'))) ah " & vbCrLf & _
             ",CONCAT(pfld.icd,'(',pfld.diagtext,')') `Pflegediagnose`" & vbCrLf & _
-            ", '03362 dazu' LEIFEHLER, DATE(letzt) LEIDAT " & vbCrLf & _
+            ", '03362 dazu' LEIFEHLER, DATE(letzt)+INTERVAL IF((SELECT 1 FROM leistungen WHERE pat_id=v.pat_id AND leistung IN ('03000','03001','03002','03003','03004','03005','03030') AND DATE(zeitpunkt)=DATE(letzt)) IS NULL,0,1) DAY LEIDAT " & vbCrLf & _
             ",CONCAT(LPAD(REGEXP_REPLACE(tug.inhalt,'.*benötigte Zeit\: *([0-9]+) Sek.*','\\1'),3,' '),'s/ ', LPAD(REGEXP_REPLACE(adl.inhalt,'.*Gesamtpunktzahl [(]max. 100[)] *([0-9]+) *','\\1'),3,' ')) Tests " & vbCrLf & _
             ",v.koz KZahl, czp Kontakte, v.art KontaktArt, v.LANRID " & vbCrLf & _
             "FROM aktfkvs v " & vbCrLf & _
@@ -4902,13 +4902,13 @@ sql(AWlf) = sql(AWlf) & _
             "FROM aktfkvs v " & vbCrLf
 sql(AWlf) = sql(AWlf) & _
             "LEFT JOIN faelle f ON v.fid = f.fid " & vbCrLf & _
-            "LEFT JOIN leistungen l2 ON v.fid=l2.fid AND l2.leistung LIKE '03221%' " & vbCrLf & _
+            "LEFT JOIN leistungen l2 ON l2.pat_id=v.pat_id AND l2.zeitpunkt BETWEEN qanf()AND qend() AND l2.leistung LIKE '03221%' " & vbCrLf & _
             "LEFT JOIN namen n ON v.pat_id = n.pat_id " & vbCrLf & _
             "LEFT JOIN eintraege tug ON v.pat_id = tug.pat_id AND tug.art = 'TUG'  AND tug.zeitpunkt = (SELECT MAX(zeitpunkt) FROM eintraege WHERE pat_id = v.pat_id AND art = 'TUG')" & vbCrLf & _
             "LEFT JOIN eintraege adl ON v.pat_id = adl.pat_id AND adl.art = 'ADL'  AND adl.zeitpunkt = (SELECT MAX(zeitpunkt) FROM eintraege WHERE pat_id = v.pat_id AND art = 'ADL')" & vbCrLf & _
             "LEFT JOIN diagview dd ON v.pat_id = dd.pat_id AND dd.gicd RLIKE '^F0[0-3]|G20\.[12]|G30' " & vbCrLf & _
             "LEFT JOIN diagview pfld ON v.pat_id = pfld.pat_id AND pfld.gICD RLIKE '^F0[0-3]|^F3|^F45\.41|^F69|^F79|^G20\.[12]|^G30\.9|^M62\.50|^R1[35]|^R26\.[38]|^R29\.6|^R32|^R4[12]|^R46\.4|^R52\.[12]|^R5[34]|^R63\.4|^R68\.8|^Z74\.[09]'" & vbCrLf & _
-            "LEFT JOIN leistungen l ON v.fid = l.fid  AND l.leistung = '03362' " & vbCrLf & _
+            "LEFT JOIN leistungen l ON l.pat_id=v.pat_id AND l.zeitpunkt BETWEEN qanf()AND qend() AND l.leistung = '03362' " & vbCrLf & _
             "LEFT JOIN medplan mp ON v.pat_id = mp.pat_id " & vbCrLf & _
             "AND ((mp.zeitpunkt >= (SELECT MAX(zeitpunkt) FROM medplan WHERE zeitpunkt < " & qtAnf(FristS) & " AND pat_id = f.pat_id))  OR (SELECT MAX(zeitpunkt) FROM medplan WHERE zeitpunkt < " & qtAnf(FristS) & " AND pat_id = f.pat_id) IS NULL AND mp.zeitpunkt>=" & qtAnf(FristS) & ") " & vbCrLf & _
             "AND ((mp.zeitpunkt <  (SELECT MIN(zeitpunkt) FROM medplan WHERE zeitpunkt > " & qtEnd(FristS) & " AND pat_id = f.pat_id))  OR (SELECT MIN(zeitpunkt) FROM medplan WHERE zeitpunkt > " & qtEnd(FristS) & " AND pat_id = f.pat_id) IS NULL AND mp.zeitpunkt<=" & qtEnd(FristS) & ") " & vbCrLf & _
@@ -5650,7 +5650,7 @@ AwN(AWlf) = "Covid-Impfabrechnung ohne Angabe der Ordnungsnummer der Impfung zur
 sql(AWlf) = "" & vbCrLf & _
 "SELECT f.pat_id, gesname(f.pat_id) PName, Zeitpunkt, leistung, lfbegr " & vbCrLf & _
 "FROM aktfv f LEFT JOIN leistungen l USING (pat_id) " & vbCrLf & _
-"WHERE leistung LIKE '88%' AND zeitpunkt>qanf() AND lfbegr NOT RLIKE '^[0-9]+$'" & vbCrLf & _
+"WHERE leistung LIKE '88%' AND zeitpunkt>qanf() AND lfbegr NOT RLIKE '^[0-9]+\.'" & vbCrLf & _
 "ORDER BY f.pat_id DESC;" & vbCrLf & _
 ""
 mins(AWlf) = 10
@@ -5699,7 +5699,7 @@ sql(AWlf) = "" & vbCrLf & _
 "LEFT JOIN faelle fa ON f.fid=fa.fid " & vbCrLf & _
 "LEFT JOIN namen n ON n.pat_id = f.pat_id " & vbCrLf & _
 "LEFT JOIN eintraege e ON f.fid = e.fid " & vbCrLf & _
-"LEFT JOIN faxeinp.outa odak ON odak.docname RLIKE concat(n.nachname,'.*',n.vorname,'.*(6971042276004|7433967297004|51180684684|40656961201|404606626279)')" & vbCrLf & _
+"LEFT JOIN faxeinp.outa odak ON odak.docname RLIKE concat(n.nachname,'.*',n.vorname,'.*(6971042276004|67297004|51180684684|40656961201|404606626279)')" & vbCrLf & _
 "LEFT JOIN eintraege br ON br.pat_id=f.pat_id AND br.inhalt RLIKE 'Zusatzprogramm.*(gemailt|geschickt)'" & vbCrLf & _
 "WHERE e.art = 'dak' AND e.inhalt LIKE 'dak: hier%' AND ISNULL(odak.docname) AND ISNULL(br.pat_id) AND fa.kkasse_2 NOT RLIKE 'Techniker' AND fa.kkasse_2 <> 'TK';"
 '"LEFT JOIN faxeinp.outa odak ON odak.docname LIKE CONCAT('%',n.nachname,' %',n.vorname,'%6971042276004%') " & vbCrLf & _

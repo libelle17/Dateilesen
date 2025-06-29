@@ -2326,7 +2326,7 @@ fgefunden:
     ReDim Preserve rAu(UBound(rAu) + 1)
     rAu(UBound(rAu)).aktZeit = aktZeit
     rAu(UBound(rAu)).Pat_ID = pid
-    rAu(UBound(rAu)).Zeitpunkt = rsEi!anzp
+    rAu(UBound(rAu)).Zeitpunkt = rsEi!Zp ' rsEi!anzp ' 29.6.25 korrigiert
     rAu(UBound(rAu)).Ersteller = rsEi!ua
     rAu(UBound(rAu)).Änderer = rsEi!ub
     rAu(UBound(rAu)).art = rsEi!art
@@ -2355,7 +2355,7 @@ fgefunden:
   Dim Spl$()
   If Not rsEi.BOF Then
    Do While Not rsEi.EOF
-    messDatum = rsEi!anzp
+    messDatum = rsEi!Zp ' rsEi!anzp
     art = rsEi!art
     Call aufSplit(rsEi!erg, "‡")
     Call RREintr
@@ -2399,7 +2399,7 @@ fgefunden:
   If Not rsEi.BOF Then
    Do While Not rsEi.EOF
 '    Debug.Print "Eintragsart: " & rsEi!FEintragsart
-    messDatum = rsEi!anzp
+    messDatum = rsEi!Zp ' rsEi!anzp ' umgestellt 29.6.25
     art = rsEi!art
     neuart = 0
 '    If rsEi!FEintragsart = 1129 Then Stop
@@ -2579,6 +2579,7 @@ fgefunden:
        rEi(UBound(rEi)).Änderer = rsEi!ub
 '      If InStrB(rsEi!fdet, "Lexotanil und") <> 0 Then Stop
 '       rEi(UBound(rEi)).Inhalt = doUmwfSQL(REPLACE$(REPLACE$(rsEi!Wert, "\n", " "), "\r", ""), True)
+       Debug.Print rsEi!Wert
        rEi(UBound(rEi)).Inhalt = doUmwfSQL(rsEi!Wert, True)
        rEi(UBound(rEi)).absPos = IIf(neuart <> 0, -1, 1)
 '      If art = "usdm2" Then Stop
