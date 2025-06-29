@@ -1254,7 +1254,7 @@ sql(AWlf) = _
 "   , COALESCE((SELECT DATE(MAX(zeitpunkt)) FROM eintraege WHERE ((art IN ('tk','ARCHIE2','APK') OR (art='tb' AND ersteller='tk')) OR inhalt LIKE '%(tk)%') AND pat_id = f.pat_id AND zeitpunkt>SUBDATE(CURRENT_TIMESTAMP(),365)),0) tkzul " & vbCrLf & _
 "   , COALESCE((SELECT CONCAT(MAX(IF(raum='Schade','gs','tk')),' ', DATE_FORMAT(MAX(zp),'%e.%c.%y')) FROM termine t WHERE pid = f.pat_id AND zp =(SELECT MIN(zp) FROM termine WHERE zp>=CURRENT_TIMESTAMP() AND pid=t.pid AND raum IN ('Kothny','Schade') AND NOT zusatz RLIKE 'doppler|duplex')),'') Termin " & vbCrLf & _
 "   ,TRIM(CONCAT(IF(obtk,'tk ',''),IF(obgs,'gs ',''),IF(obdw,'wd|ah ',''))) dt " & vbCrLf & _
-"   FROM faelle f " & vbCrLf & _
+"   FROM aktfv af JOIN faelle f USING (fid)" & vbCrLf & _
 "   LEFT JOIN anakt ON anakt.pat_id=f.pat_id " & vbCrLf & _
 "  ) f " & vbCrLf & _
 " ) f " & vbCrLf
