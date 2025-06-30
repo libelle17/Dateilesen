@@ -2538,13 +2538,13 @@ keinuzu:
   Dim rse As ADODB.Recordset
   If rFlSchGr <> 90 And (PAlter >= 70 Or Not rsdd.BOF) Then
    Set rse = Nothing ' 13.4.21: wenn im Folgenden nicht _latin1 bei inhalt steht, kommt bei der virtuallen Spalte Unsinn raus
-   myFrag rse, "SELECT DATE(zeitpunkt) datum, art, inhalt FROM `eintraege` WHERE zeitpunkt > DATE_SUB(NOW(), INTERVAL 150 DAY) AND Art = 'ADL' AND pat_id = " & Pat_ID & " ORDER BY zeitpunkt DESC"
+   myFrag rse, "SELECT DATE(zeitpunkt) datum, art, inhalt FROM `eintraege` WHERE zeitpunkt > DATE_SUB(NOW(), INTERVAL 150 DAY) AND Art IN('ADL','284') AND pat_id = " & Pat_ID & " ORDER BY zeitpunkt DESC"
    If rse.BOF Then
     AusS.AppVar (Array("    <span class='cave'>&nbsp;ADL(Barthel),&nbsp;&nbsp;</span>", vbCrLf))
    End If
    Set rse = Nothing
    ' ktag fehlerhaft
-   myFrag rse, "SELECT DATE(zeitpunkt) datum, art, inhalt FROM `eintraege` WHERE zeitpunkt > DATE_SUB(NOW(), INTERVAL 150 DAY) AND Art = 'TUG' AND pat_id = " & Pat_ID & " ORDER BY zeitpunkt DESC"
+   myFrag rse, "SELECT DATE(zeitpunkt) datum, art, inhalt FROM `eintraege` WHERE zeitpunkt > DATE_SUB(NOW(), INTERVAL 150 DAY) AND Art IN('TUG','247') AND pat_id = " & Pat_ID & " ORDER BY zeitpunkt DESC"
    If rse.BOF Then
     AusS.AppVar (Array("    <span class='cave'>&nbsp;TUG(Time up AND go),&nbsp;&nbsp;</span>", vbCrLf))
    End If

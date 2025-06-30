@@ -2968,7 +2968,7 @@ End Function ' BezHerstA()
 #If False Then
 Function holAB(frm As Lese) ' kommt vor in AnamnesebogenHolen_Click
  Dim rq As New ADODB.Recordset ', f1 AS ADODB.Field, f2 AS ADODB.Field,
- Dim runde&, Pat_ID&
+ Dim runde&, Pat_id&
  frm.BytesBez = "Datensätze:"
  myFrag rq, "SELECT COUNT(0) ct FROM `anamnesebogen`", CStrAcc & frm.snst.QuelleAnamneseBögen
  frm.GesBytes = rq!ct
@@ -2983,7 +2983,7 @@ Function holAB(frm As Lese) ' kommt vor in AnamnesebogenHolen_Click
   runde = runde + 1
   If Not rsAnm Is Nothing Then If rsAnm.State = 1 Then rsAnm.Close
   rsAnm.CursorLocation = adUseClient
-  myFrag rsAnm, "SELECT * FROM `anamnesebogen` WHERE pat_id = " & rq!Pat_ID, adOpenStatic, DBCn, adLockOptimistic
+  myFrag rsAnm, "SELECT * FROM `anamnesebogen` WHERE pat_id = " & rq!Pat_id, adOpenStatic, DBCn, adLockOptimistic
   If Not rsAnm.BOF Then
    Call anaUpd(rq, rsAnm)
   Else
@@ -3058,8 +3058,8 @@ Function doLdFD() ' Liste der fehlenden Dokumente
     End If
    Next i
 '   Debug.Print aktDP
-   Print #322, rab!Pat_ID, rab!Zeitpunkt, aktDP, rab!DokName
-   Lese.Ausgabe = Lese.Ausgabe & vbCrLf & rab!Pat_ID & " " & rab!Zeitpunkt & " " & aktDP & vbTab & rab!DokName
+   Print #322, rab!Pat_id, rab!Zeitpunkt, aktDP, rab!DokName
+   Lese.Ausgabe = Lese.Ausgabe & vbCrLf & rab!Pat_id & " " & rab!Zeitpunkt & " " & aktDP & vbTab & rab!DokName
    tStr = sucheinVerz(rab!DokName, pVerz)
    If tStr <> "" Then
     Print #322, "     gefunden in:", tStr
@@ -3140,8 +3140,8 @@ Function doLdFHalt(frm As Lese) ' Liste der fehlenden Hausärzte
 ' TabAusgeb rAb, Lese, True, , , , , , "Fehlende Hausärzte.txt"
  Open uVerz & "Fehlende Hausärzte.txt" For Output As #322
  Do While Not rab.EOF
-  Print #322, rab!Pat_ID, rab!Nachname, rab!Vorname, rab!GebDat
-  frm.Ausgabe = frm.Ausgabe & rab!Pat_ID & " " & rab!Nachname & " " & rab!Vorname & " " & rab!GebDat & vbCrLf
+  Print #322, rab!Pat_id, rab!Nachname, rab!Vorname, rab!GebDat
+  frm.Ausgabe = frm.Ausgabe & rab!Pat_id & " " & rab!Nachname & " " & rab!Vorname & " " & rab!GebDat & vbCrLf
   rab.Move 1
  Loop
  Close #322
@@ -3347,7 +3347,7 @@ Function holDA(frm As Lese) ' kommt vor in DokumenteAbgehaktkopieren_Click()
  Const TabN$ = "br_abgehakt"
  Const sF$ = "dokpfad"
  Dim rq As New ADODB.Recordset ', f1 AS ADODB.Field, f2 AS ADODB.Field,
- Dim runde&, Pat_ID&, i%
+ Dim runde&, Pat_id&, i%
  frm.BytesBez = "Datensätze:"
  myFrag rq, "SELECT COUNT(0) ct FROM " & "`" & TabN & "`", CStrAcc & frm.snst.QuelleAnamneseBögen
  frm.GesBytes = rq!ct
@@ -3480,7 +3480,7 @@ Public Function doWSt0Erg()
 ' rs.Open sql, DBCn, adOpenDynamic, adLockOptimistic
  myFrag rs, sql
  Do While Not rs.EOF
-  Lese.Ausgeb Right$(Space$(6) & rs!Pat_ID, 6) & " " & Format$(rs!zpkt, "dd.mm.yy") & " " & rs!Nachname & " " & rs!Vorname, True
+  Lese.Ausgeb Right$(Space$(6) & rs!Pat_id, 6) & " " & Format$(rs!zpkt, "dd.mm.yy") & " " & rs!Nachname & " " & rs!Vorname, True
   rs.Move 1
  Loop
  Forms(0).Ausgabe = vbCrLf & "Patienten, die bis zu ihrem vorletzten Fall ein DFS >= Wagner 1 hatten und keines mit Wagner 0 als Dauerdiagnose:" & vbCrLf & altAusgabe
@@ -3508,7 +3508,7 @@ Public Function doWSt0Erg()
 ' rs.Open sql, DBCn, adOpenDynamic, adLockOptimistic
  myFrag rs, sql
  Do While Not rs.EOF
-  Lese.Ausgeb Right$(Space$(6) & rs!Pat_ID, 6) & " " & Format$(rs!zpkt, "dd.mm.yy") & " " & rs!Nachname & " " & rs!Vorname, True
+  Lese.Ausgeb Right$(Space$(6) & rs!Pat_id, 6) & " " & Format$(rs!zpkt, "dd.mm.yy") & " " & rs!Nachname & " " & rs!Vorname, True
   rs.Move 1
  Loop
  Forms(0).Ausgeb "Patienten, die bis zu ihrem vorletzten Fall ein DFS >= Wagner 1 hatten und keines mit Z.n. Wagner >= 1 als Dauerdiagnose:", True
@@ -3775,14 +3775,14 @@ nochmal:
     If Not lies.obMySQL And i Mod 1000 = 999 Then
       'sql = LEFT(sql, len(sql) - 1) & " WHERE pat_id = " & rq!Pat_id
       csql.Cut (csql.length() - 1)
-      csql.AppVar Array(" WHERE pat_id = ", rq!Pat_ID)
+      csql.AppVar Array(" WHERE pat_id = ", rq!Pat_id)
       Call myEFrag(csql.Value, rAf)
       csql = "UPDATE `" & TName & "` SET "
     End If
    Next i
 '   sql = LEFT(sql, Len(sql) - 1) & " WHERE pat_id = " & rq!Pat_id
     csql.Cut (csql.length() - 1)
-    csql.AppVar Array(",aktzeit='", Format(Now(), "yyyymmddHHMMSS"), "' WHERE pat_id = ", rq!Pat_ID)
+    csql.AppVar Array(",aktzeit='", Format(Now(), "yyyymmddHHMMSS"), "' WHERE pat_id = ", rq!Pat_id)
 '   GoTo nochmal:
    Set rq = Nothing
    Dim rtok As New ADODB.Recordset
@@ -3921,12 +3921,12 @@ Public Function TUpd(TabN$, sF$, rq As Recordset)
        Wert = vNS
     End Select
     If Not lies.obMySQL And i Mod 100 = 99 Then
-      sql = Left$(sql, Len(sql) - 1) & " WHERE pat_id = " & rq!Pat_ID
+      sql = Left$(sql, Len(sql) - 1) & " WHERE pat_id = " & rq!Pat_id
       Call myEFrag(sql, rAf)
       sql = "UPDATE " & TabN & " SET "
     End If
    Next i
-   sql = Left$(sql, Len(sql) - 1) & " WHERE pat_id = " & rq!Pat_ID
+   sql = Left$(sql, Len(sql) - 1) & " WHERE pat_id = " & rq!Pat_id
    Call myEFrag(sql, rAf)
    If rAf <> 1 Then Err.Raise 999, , "Fehler in TUpd: Falsche Zahl an Datensätzen aktualisiert: " & rAf
    Exit Function
@@ -3949,7 +3949,7 @@ Public Function anaIns(rq As Recordset)
    For i = 0 To rq.Fields.COUNT - 1
     Select Case LCase$(rq.Fields(i).name)
      Case "pat_id"
-      Wert = rq!Pat_ID
+      Wert = rq!Pat_id
      Case "prim"
       Wert = mprim
      Case Else
@@ -5332,26 +5332,26 @@ End Sub ' SizeColumns
 Function doWirt()
  Dim DNam$
  DNam$ = pVerz & "Wirt.txt"
- Dim Pat_ID$, rs As New ADODB.Recordset, Faelle As New ADODB.Recordset
+ Dim Pat_id$, rs As New ADODB.Recordset, Faelle As New ADODB.Recordset
 ' Dim lies As New Lese
  Load Lese
  Lese.obMySQL = True
- Pat_ID = 283
+ Pat_id = 283
  Open DNam For Output As #303
  Call acon(quelleT)
 ' Call Faelle.Open("SELECT DISTINCT pat_id FROM `faelle` WHERE quartal LIKE '_2005' AND schgr <> '90'", DBCn, adOpenDynamic, adLockReadOnly)
  myFrag Faelle, "SELECT DISTINCT pat_id FROM `faelle` WHERE quartal LIKE '_2005' AND schgr <> '90'"
  Do While Not Faelle.EOF
-  Pat_ID = CStr(Faelle!Pat_ID)
+  Pat_id = CStr(Faelle!Pat_id)
 '  SET rs = Nothing
 '  myFrag rs, "SELECT * FROM `namen` WHERE pat_id = " & Pat_id
   Set rs = Nothing
 '  Call rs.Open("SELECT * FROM `Formular` F WHERE FormVorl LIKE '%Kassenrezept%' AND zeitpunkt BETWEEN '2005-01-01' AND '2006-01-01' AND pat_id = " & Pat_id & " AND feld IN ('Datum','Dosierung','Medikamente') AND feldinh <> '-  -  -  -' ORDER BY foid", DBCn, adOpenDynamic, adLockReadOnly)
-  myFrag rs, "SELECT * FROM `Formular` F WHERE FormVorl LIKE '%Kassenrezept%' AND zeitpunkt BETWEEN '2005-01-01' AND '2006-01-01' AND pat_id = " & Pat_ID & " AND feld IN ('Datum','Dosierung','Medikamente') AND feldinh <> '-  -  -  -' ORDER BY foid"
+  myFrag rs, "SELECT * FROM `Formular` F WHERE FormVorl LIKE '%Kassenrezept%' AND zeitpunkt BETWEEN '2005-01-01' AND '2006-01-01' AND pat_id = " & Pat_id & " AND feld IN ('Datum','Dosierung','Medikamente') AND feldinh <> '-  -  -  -' ORDER BY foid"
   If Not rs.BOF Then
-   Print #303, vbCrLf & vbCrLf & vbCrLf & vbCrLf & "Patient: " & CStr(rs!Pat_ID) & vbCrLf
+   Print #303, vbCrLf & vbCrLf & vbCrLf & vbCrLf & "Patient: " & CStr(rs!Pat_id) & vbCrLf
    Dim DiagTab() As CString
-   Print #303, "Diagnosen: " & REPLACE$(DiagString$(Pat_ID, DiagTab, #1/1/2005#, True), vbVerticalTab, vbCrLf)
+   Print #303, "Diagnosen: " & REPLACE$(DiagString$(Pat_id, DiagTab, #1/1/2005#, True), vbVerticalTab, vbCrLf)
   End If
   Do While Not rs.EOF
    If rs!Feld = "Datum" Then Print #303, vbCrLf
@@ -5426,7 +5426,7 @@ Function doHilfsmittelklassifikationen(frm As Lese)
   altAusgabe = frm.Ausgabe
  Else
   Do While Not rs.EOF
-   frm.Ausgabe = Right$(Space$(4) & rs!Pat_ID, 4) & " " & rs!Nachname & " " & rs!Vorname & " " & rs!GebDat & " " & rs!FeldInh & " " & rs!Zeitpunkt & vbCrLf & altAusgabe
+   frm.Ausgabe = Right$(Space$(4) & rs!Pat_id, 4) & " " & rs!Nachname & " " & rs!Vorname & " " & rs!GebDat & " " & rs!FeldInh & " " & rs!Zeitpunkt & vbCrLf & altAusgabe
    altAusgabe = frm.Ausgabe
    rs.Move 1
   Loop
@@ -6013,7 +6013,7 @@ Function fallzeig()
  myFrag rs, sql, , , , , , True, ErrNr, ErrDes
  If ErrNr <> 0 Then Exit Function
  Do While Not rs.EOF
-  AuS = Right$(Space$(6) & rs!Pat_ID, 6) & "  " & Left$(rs!name & Space$(20), 20) & "  " & Left$(rs!Fanf & Space$(10), 10) & "  " & Left$(rs!SchGr & Space$(4), 4) & "" & Right$(Space$(6) & rs!FID, 6) & "  " & Left$(rs!ausgst & Space$(10), 10) & "  " & Left$(rs!aktZeit & Space$(19), 19) & "  " & Left$(rs!Quartal & Space$(7), 7) & "  " & Left$(rs!lVorl & Space$(16), 16) & "  " & Left$(rs!GebOr & Space$(5), 5)
+  AuS = Right$(Space$(6) & rs!Pat_id, 6) & "  " & Left$(rs!name & Space$(20), 20) & "  " & Left$(rs!Fanf & Space$(10), 10) & "  " & Left$(rs!SchGr & Space$(4), 4) & "" & Right$(Space$(6) & rs!FID, 6) & "  " & Left$(rs!ausgst & Space$(10), 10) & "  " & Left$(rs!aktZeit & Space$(19), 19) & "  " & Left$(rs!Quartal & Space$(7), 7) & "  " & Left$(rs!lVorl & Space$(16), 16) & "  " & Left$(rs!GebOr & Space$(5), 5)
 '  For i = 0 To rs.Fields.Count - 1
 '   AuS = IIf(lenb(AuS) = 0, vns, AuS & " ") & Left$(rs.Fields(i) & Space$(14), 14)
 '  Next i
@@ -6076,7 +6076,7 @@ Function getHatest(pid&)
  Stop
 End Function ' getHatest
 
-' aufgerufen in: gewEintrag, DiesQ, MDIForm_Load, tuAbstand, qtAnf, qtEnd
+' aufgerufen in: gewEintrag, DiesQ, MDIForm_Load, tuAbstand, qtAnf, qtEnd, TUGListe_Click, BarthelListe_Click
 Public Function holFrist()
  Dim rv As New ADODB.Recordset
  Dim FristS
@@ -6125,10 +6125,10 @@ Function gewEintrag()
  FristS = holFrist()
  myFrag rn, "SELECT pat_id FROM namen"
  Do While Not rn.EOF
-  myFrag rf, "SELECT 0 FROM `faelle` WHERE pat_id = " & rn!Pat_ID
+  myFrag rf, "SELECT 0 FROM `faelle` WHERE pat_id = " & rn!Pat_id
   If Not rf.EOF Then
    Do While Not rf.EOF
-    myFrag rE, "SELECT zeitpunkt, inhalt FROM `eintraege` e WHERE pat_id = " & rn!Pat_ID & " AND art IN ('gew','gewicht') AND zeitpunkt BETWEEN " & lQAnfuEnd(FristS) & " ORDER BY zeitpunkt DESC"
+    myFrag rE, "SELECT zeitpunkt, inhalt FROM `eintraege` e WHERE pat_id = " & rn!Pat_id & " AND art IN ('gew','gewicht') AND zeitpunkt BETWEEN " & lQAnfuEnd(FristS) & " ORDER BY zeitpunkt DESC"
     If Not rE.EOF Then
      gew0 = rE!Inhalt
      gewStr.Clear
@@ -6615,7 +6615,7 @@ If Not rs.BOF Then
  Do While Not rs.EOF
   Debug.Print rs!VKNr, rs!IK, rs!name, rs!AnzahlIK
   sql = "INSERT INTO kassenliste(VKNR,IK,NAME,Kateg,AnzahlIK,AnzahlKTUG,GültigVon,GültigBis,GO,Kurzname,rName,Lantus2,Levemir2,Humalog,Liprolog,Novorapid,Apidra,eingef,geaen,pid)VALUES('" & _
-  rs!VKNr & "','" & rs!IK & "','" & rs!name & "','" & rs!Kateg & "','" & rs!AnzahlIK & "','" & rs!AnzahlKTUG & "','" & rs!GültigVon & "','" & rs!GültigBis & "','" & rs!GO & "','" & rs!Kurzname & "','" & rs!rName & "','" & rs!Lantus2 & "','" & rs!Levemir2 & "','" & rs!Humalog & "','" & rs!Liprolog & "','" & rs!Novorapid & "','" & rs!Apidra & "','" & rs!eingef & "','" & rs!geaen & "','" & rs!pid & _
+  rs!VKNr & "','" & rs!IK & "','" & rs!name & "','" & rs!Kateg & "','" & rs!AnzahlIK & "','" & rs!AnzahlKTUG & "','" & rs!GültigVon & "','" & rs!GültigBis & "','" & rs!GO & "','" & rs!kurzname & "','" & rs!rname & "','" & rs!Lantus2 & "','" & rs!Levemir2 & "','" & rs!Humalog & "','" & rs!Liprolog & "','" & rs!Novorapid & "','" & rs!Apidra & "','" & rs!eingef & "','" & rs!geaen & "','" & rs!pid & _
   "')"
   myEFrag sql, rAf, , , ErrNr, ErrDes
   If rAf <> 1 Then

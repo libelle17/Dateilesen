@@ -1403,8 +1403,8 @@ sql(AWlf) = "" & _
             ",CONCAT(LPAD(REGEXP_REPLACE(tug.inhalt,'.*benötigte Zeit\: *([0-9]+) Sek.*','\\1'),3,' '),'s/ ', LPAD(REGEXP_REPLACE(adl.inhalt,'.*Gesamtpunktzahl [(]max. 100[)] *([0-9]+) *','\\1'),3,' ')) Tests " & vbCrLf & _
             ",GROUP_CONCAT(pfl.inhalt SEPARATOR ' | ') Pflegestufentext " & vbCrLf & _
             "FROM aktfvs v " & vbCrLf & _
-            "LEFT JOIN eintraege tug ON v.pat_id = tug.pat_id AND tug.art = 'TUG'  AND tug.zeitpunkt = (SELECT MAX(zeitpunkt) FROM eintraege WHERE pat_id = v.pat_id AND art = 'TUG')" & vbCrLf & _
-            "LEFT JOIN eintraege adl ON v.pat_id = adl.pat_id AND adl.art = 'ADL'  AND adl.zeitpunkt = (SELECT MAX(zeitpunkt) FROM eintraege WHERE pat_id = v.pat_id AND art = 'ADL')" & vbCrLf & _
+            "LEFT JOIN eintraege tug ON v.pat_id = tug.pat_id AND tug.art IN('TUG','247') AND tug.zeitpunkt = (SELECT MAX(zeitpunkt) FROM eintraege WHERE pat_id = v.pat_id AND art IN('TUG','247'))" & vbCrLf & _
+            "LEFT JOIN eintraege adl ON v.pat_id = adl.pat_id AND adl.art IN('ADL','284') AND adl.zeitpunkt = (SELECT MAX(zeitpunkt) FROM eintraege WHERE pat_id = v.pat_id AND art IN('ADL','284'))" & vbCrLf & _
             "LEFT JOIN diagview dd ON v.pat_id = dd.pat_id AND dd.gicd RLIKE '^F0[0123]|^G20' " & vbCrLf & _
             "LEFT JOIN diagview pfld ON v.pat_id = pfld.pat_id AND pfld.gicd LIKE 'Z74%' " & vbCrLf & _
             "LEFT JOIN eintraege pfl ON pfl.pat_id=v.pat_id AND  pfl.inhalt RLIKE 'pflege(grad|stufe)' AND pfl.inhalt NOT RLIKE 'Pflegegrad 3-5    \\[ \\]|Pflegestufe 2-3 \\[ \\]|(beantrag|will|soll|keine|Gatt|Ehe(mann|frau)|pflege(grad|stufe) -)'" & vbCrLf & _
@@ -1427,8 +1427,8 @@ sql(AWlf) = "" & _
             ",GROUP_CONCAT(DISTINCT mp.medikament) Schwindelmedikament " & vbCrLf & _
             "FROM aktfvs v " & vbCrLf & _
             "LEFT JOIN namen n ON v.pat_id = n.pat_id " & vbCrLf & _
-            "LEFT JOIN eintraege tug ON v.pat_id = tug.pat_id AND tug.art = 'TUG'  AND tug.zeitpunkt = (SELECT MAX(zeitpunkt) FROM eintraege WHERE pat_id = v.pat_id AND art = 'TUG')" & vbCrLf & _
-            "LEFT JOIN eintraege adl ON v.pat_id = adl.pat_id AND adl.art = 'ADL'  AND adl.zeitpunkt = (SELECT MAX(zeitpunkt) FROM eintraege WHERE pat_id = v.pat_id AND art = 'ADL')" & vbCrLf & _
+            "LEFT JOIN eintraege tug ON v.pat_id = tug.pat_id AND tug.art IN('TUG','247') AND tug.zeitpunkt = (SELECT MAX(zeitpunkt) FROM eintraege WHERE pat_id = v.pat_id AND art IN('TUG','247'))" & vbCrLf & _
+            "LEFT JOIN eintraege adl ON v.pat_id = adl.pat_id AND adl.art IN('ADL','284') AND adl.zeitpunkt = (SELECT MAX(zeitpunkt) FROM eintraege WHERE pat_id = v.pat_id AND art IN('ADL','284'))" & vbCrLf & _
             "LEFT JOIN diagview dd ON v.pat_id = dd.pat_id AND dd.gicd RLIKE '^F0[0123]|^G20' " & vbCrLf & _
             "LEFT JOIN diagview schwd ON v.pat_id = schwd.pat_id AND schwd.gicd LIKE 'R42%' " & vbCrLf & _
             "LEFT JOIN eintraege schw ON v.pat_id = schw.pat_id AND schw.inhalt RLIKE /*'schwindel'*/ '(?<!nicht |kein |keinen |ohne )schwindel(?! beim Aufstehen[?] nein| beim Aufstehen[?]  S)' /*AND schw.art NOT IN ('andm','andm2')*/  " & vbCrLf & _
@@ -1453,8 +1453,8 @@ sql(AWlf) = "" & _
             "FROM aktfvs v " & vbCrLf & _
             "LEFT JOIN faelle f ON v.fid = f.fid " & vbCrLf & _
             "LEFT JOIN namen n ON v.pat_id = n.pat_id " & vbCrLf & _
-            "LEFT JOIN eintraege tug ON v.pat_id = tug.pat_id AND tug.art = 'TUG'  AND tug.zeitpunkt = (SELECT MAX(zeitpunkt) FROM eintraege WHERE pat_id = v.pat_id AND art = 'TUG')" & vbCrLf & _
-            "LEFT JOIN eintraege adl ON v.pat_id = adl.pat_id AND adl.art = 'ADL'  AND adl.zeitpunkt = (SELECT MAX(zeitpunkt) FROM eintraege WHERE pat_id = v.pat_id AND art = 'ADL')" & vbCrLf & _
+            "LEFT JOIN eintraege tug ON v.pat_id = tug.pat_id AND tug.art IN('TUG','247') AND tug.zeitpunkt = (SELECT MAX(zeitpunkt) FROM eintraege WHERE pat_id = v.pat_id AND art IN('TUG','247'))" & vbCrLf & _
+            "LEFT JOIN eintraege adl ON v.pat_id = adl.pat_id AND adl.art IN('ADL','284') AND adl.zeitpunkt = (SELECT MAX(zeitpunkt) FROM eintraege WHERE pat_id = v.pat_id AND art IN('ADL','284'))" & vbCrLf & _
             "LEFT JOIN diagview dd ON v.pat_id = dd.pat_id AND dd.gicd RLIKE '^F0[0123]|^G20' " & vbCrLf & _
             "LEFT JOIN diagview pfld ON v.pat_id = pfld.pat_id AND pfld.gicd IN ('R15','R32') " & vbCrLf & _
             "LEFT JOIN eintraege pfl ON v.pat_id = pfl.pat_id AND pfl.inhalt RLIKE 'inkont[^r]' AND NOT pfl.inhalt RLIKE 'keine *inkont[^r]' AND NOT (pfl.inhalt RLIKE 'inkontinent *(5|0)' AND NOT pfl.inhalt RLIKE 'inkontinent *(5|0) *(5|0)')" & vbCrLf & _
@@ -1477,8 +1477,8 @@ sql(AWlf) = "" & _
             "FROM aktfvs v " & vbCrLf & _
             "LEFT JOIN faelle f ON v.fid = f.fid " & vbCrLf & _
             "LEFT JOIN namen n ON v.pat_id = n.pat_id " & vbCrLf & _
-            "LEFT JOIN eintraege tug ON v.pat_id = tug.pat_id AND tug.art = 'TUG'  AND tug.zeitpunkt = (SELECT MAX(zeitpunkt) FROM eintraege WHERE pat_id = v.pat_id AND art = 'TUG')" & vbCrLf & _
-            "LEFT JOIN eintraege adl ON v.pat_id = adl.pat_id AND adl.art = 'ADL'  AND adl.zeitpunkt = (SELECT MAX(zeitpunkt) FROM eintraege WHERE pat_id = v.pat_id AND art = 'ADL')" & vbCrLf & _
+            "LEFT JOIN eintraege tug ON v.pat_id = tug.pat_id AND tug.art IN('TUG','247') AND tug.zeitpunkt = (SELECT MAX(zeitpunkt) FROM eintraege WHERE pat_id = v.pat_id AND art IN('TUG','247'))" & vbCrLf & _
+            "LEFT JOIN eintraege adl ON v.pat_id = adl.pat_id AND adl.art IN('ADL','284') AND adl.zeitpunkt = (SELECT MAX(zeitpunkt) FROM eintraege WHERE pat_id = v.pat_id AND art IN('ADL','284'))" & vbCrLf & _
             "LEFT JOIN diagnosen dd ON v.pat_id = dd.pat_id AND dd.icd RLIKE '^F0[0-3]|^G20' AND dd.diagsicherheit NOT IN ('A','Z','V') " & vbCrLf & _
             "LEFT JOIN diagview schwd ON v.pat_id = schwd.pat_id AND schwd.gicd RLIKE '^F0[0123]|R41\.[038]' " & vbCrLf & _
             "LEFT JOIN eintraege schw ON v.pat_id = schw.pat_id AND (schw.inhalt RLIKE '[^öÖ]demen[^t]' OR schw.inhalt LIKE '%vergessl%' OR schw.inhalt LIKE '%vergeßl%' OR (schw.inhalt LIKE '%dächtn%' AND NOT schw.inhalt LIKE '%aus dem Gedächtnis%' AND NOT schw.inhalt LIKE '%Gedächtnisprotokoll%' AND NOT schw.inhalt LIKE '%nach Gedächtnis %' AND NOT schw.inhalt LIKE '%chmerzgedächtnis%') OR schw.inhalt LIKE '%verwirr%') " & vbCrLf & _
@@ -1501,8 +1501,8 @@ sql(AWlf) = "" & _
             "FROM aktfvs v " & vbCrLf & _
             "LEFT JOIN faelle f ON v.fid = f.fid " & vbCrLf & _
             "LEFT JOIN namen n ON v.pat_id = n.pat_id " & vbCrLf & _
-            "LEFT JOIN eintraege tug ON v.pat_id = tug.pat_id AND tug.art = 'TUG'  AND tug.zeitpunkt = (SELECT MAX(zeitpunkt) FROM eintraege WHERE pat_id = v.pat_id AND art = 'TUG')" & vbCrLf & _
-            "LEFT JOIN eintraege adl ON v.pat_id = adl.pat_id AND adl.art = 'ADL'  AND adl.zeitpunkt = (SELECT MAX(zeitpunkt) FROM eintraege WHERE pat_id = v.pat_id AND art = 'ADL')" & vbCrLf & _
+            "LEFT JOIN eintraege tug ON v.pat_id = tug.pat_id AND tug.art IN('TUG','247') AND tug.zeitpunkt = (SELECT MAX(zeitpunkt) FROM eintraege WHERE pat_id = v.pat_id AND art IN('TUG','247'))" & vbCrLf & _
+            "LEFT JOIN eintraege adl ON v.pat_id = adl.pat_id AND adl.art IN('ADL','284') AND adl.zeitpunkt = (SELECT MAX(zeitpunkt) FROM eintraege WHERE pat_id = v.pat_id AND art IN('ADL','284'))" & vbCrLf & _
             "LEFT JOIN diagview dd ON v.pat_id = dd.pat_id AND dd.gicd RLIKE '^F0[0123]|^G20'" & vbCrLf & _
             "LEFT JOIN diagview pfld ON v.pat_id = pfld.pat_id AND pfld.gicd IN ('R52.2','F45.51') " & vbCrLf & _
             "LEFT JOIN eintraege pfl ON v.pat_id = pfl.pat_id AND pfl.art <> 'ufrag' AND pfl.inhalt RLIKE '(?<!keine |kein )schmerz(?!frei|los)' AND NOT pfl.inhalt RLIKE 'bekommen Sie regelm|wie oft am Tag m' AND pfl.art NOT IN ('andm','andm2') AND pfl.art<>'htxt' AND pfl.zeitpunkt> SUBDATE(" & qtAnf(FristS) & ",INTERVAL 6 MONTH) " & vbCrLf & _
@@ -1524,8 +1524,8 @@ sql(AWlf) = "" & _
             "FROM aktfvs v " & vbCrLf & _
             "LEFT JOIN faelle f ON v.fid = f.fid " & vbCrLf & _
             "LEFT JOIN namen n ON v.pat_id = n.pat_id " & vbCrLf & _
-            "LEFT JOIN eintraege tug ON v.pat_id = tug.pat_id AND tug.art = 'TUG'  AND tug.zeitpunkt = (SELECT MAX(zeitpunkt) FROM eintraege WHERE pat_id = v.pat_id AND art = 'TUG')" & vbCrLf & _
-            "LEFT JOIN eintraege adl ON v.pat_id = adl.pat_id AND adl.art = 'ADL'  AND adl.zeitpunkt = (SELECT MAX(zeitpunkt) FROM eintraege WHERE pat_id = v.pat_id AND art = 'ADL')" & vbCrLf & _
+            "LEFT JOIN eintraege tug ON v.pat_id = tug.pat_id AND tug.art IN('TUG','247') AND tug.zeitpunkt = (SELECT MAX(zeitpunkt) FROM eintraege WHERE pat_id = v.pat_id AND art IN('TUG','247'))" & vbCrLf & _
+            "LEFT JOIN eintraege adl ON v.pat_id = adl.pat_id AND adl.art IN('ADL','284') AND adl.zeitpunkt = (SELECT MAX(zeitpunkt) FROM eintraege WHERE pat_id = v.pat_id AND art IN('ADL','284'))" & vbCrLf & _
             "LEFT JOIN diagview dd ON v.pat_id = dd.pat_id AND dd.gicd RLIKE '^F0[0-3]|^G20'" & vbCrLf & _
             "LEFT JOIN diagview pfld ON v.pat_id = pfld.pat_id AND pfld.gicd IN ('R29.6') " & vbCrLf & _
             "LEFT JOIN eintraege pfl ON v.pat_id = pfl.pat_id AND (pfl.inhalt RLIKE '[^h]fallneig' OR (pfl.inhalt LIKE '%sturz%' AND NOT pfl.inhalt LIKE '%hörsturz%' AND NOT pfl.inhalt LIKE '%radlsturz%' AND NOT pfl.inhalt LIKE '%radsturz%')) AND pfl.art NOT IN ('andm','andm2') " & vbCrLf & _
@@ -1547,8 +1547,8 @@ sql(AWlf) = "" & _
             "FROM aktfvs v " & vbCrLf & _
             "LEFT JOIN faelle f ON v.fid = f.fid " & vbCrLf & _
             "LEFT JOIN namen n ON v.pat_id = n.pat_id " & vbCrLf & _
-            "LEFT JOIN eintraege tug ON v.pat_id = tug.pat_id AND tug.art = 'TUG'  AND tug.zeitpunkt = (SELECT MAX(zeitpunkt) FROM eintraege WHERE pat_id = v.pat_id AND art = 'TUG')" & vbCrLf & _
-            "LEFT JOIN eintraege adl ON v.pat_id = adl.pat_id AND adl.art = 'ADL'  AND adl.zeitpunkt = (SELECT MAX(zeitpunkt) FROM eintraege WHERE pat_id = v.pat_id AND art = 'ADL')" & vbCrLf & _
+            "LEFT JOIN eintraege tug ON v.pat_id = tug.pat_id AND tug.art IN('TUG','247') AND tug.zeitpunkt = (SELECT MAX(zeitpunkt) FROM eintraege WHERE pat_id = v.pat_id AND art IN('TUG','247'))" & vbCrLf & _
+            "LEFT JOIN eintraege adl ON v.pat_id = adl.pat_id AND adl.art IN('ADL','284') AND adl.zeitpunkt = (SELECT MAX(zeitpunkt) FROM eintraege WHERE pat_id = v.pat_id AND art IN('ADL','284'))" & vbCrLf & _
             "LEFT JOIN diagview dd ON v.pat_id = dd.pat_id AND dd.gicd RLIKE '^F0[0-3]|^G20' " & vbCrLf & _
             "LEFT JOIN diagview pfld ON v.pat_id = pfld.pat_id AND pfld.gicd IN ('R26.3') " & vbCrLf & _
             "LEFT JOIN eintraege pfl ON v.pat_id = pfl.pat_id AND pfl.inhalt LIKE '%bettläg%' AND NOT (pfl.inhalt RLIKE 'Bettlägerig *0' AND NOT pfl.inhalt RLIKE 'Bettlägerig *0 *0')" & vbCrLf & _
@@ -1570,8 +1570,8 @@ sql(AWlf) = "" & _
             "FROM aktfvs v " & vbCrLf & _
             "LEFT JOIN faelle f ON v.fid = f.fid " & vbCrLf & _
             "LEFT JOIN namen n ON v.pat_id = n.pat_id " & vbCrLf & _
-            "LEFT JOIN eintraege tug ON v.pat_id = tug.pat_id AND tug.art = 'TUG'  AND tug.zeitpunkt = (SELECT MAX(zeitpunkt) FROM eintraege WHERE pat_id = v.pat_id AND art = 'TUG')" & vbCrLf & _
-            "LEFT JOIN eintraege adl ON v.pat_id = adl.pat_id AND adl.art = 'ADL'  AND adl.zeitpunkt = (SELECT MAX(zeitpunkt) FROM eintraege WHERE pat_id = v.pat_id AND art = 'ADL')" & vbCrLf & _
+            "LEFT JOIN eintraege tug ON v.pat_id = tug.pat_id AND tug.art IN('TUG','247') AND tug.zeitpunkt = (SELECT MAX(zeitpunkt) FROM eintraege WHERE pat_id = v.pat_id AND art IN('TUG','247'))" & vbCrLf & _
+            "LEFT JOIN eintraege adl ON v.pat_id = adl.pat_id AND adl.art IN('ADL','284') AND adl.zeitpunkt = (SELECT MAX(zeitpunkt) FROM eintraege WHERE pat_id = v.pat_id AND art IN('ADL','284'))" & vbCrLf & _
             "LEFT JOIN diagview dd ON v.pat_id = dd.pat_id AND dd.gicd RLIKE '^F0[0-3]|^G20' " & vbCrLf & _
             "LEFT JOIN diagview pfld ON v.pat_id = pfld.pat_id AND pfld.gicd IN ('R68.8') " & vbCrLf & _
             "LEFT JOIN eintraege pfl ON v.pat_id = pfl.pat_id AND pfl.art = 'beweg' AND (pfl.inhalt LIKE '%eingeschr%' OR pfl.inhalt LIKE '%nicht%' OR pfl.inhalt LIKE '%wenig%') AND NOT pfl.inhalt LIKE '%wetter%' " & vbCrLf & _
@@ -1594,11 +1594,11 @@ sql(AWlf) = "" & _
             "FROM aktfvs v " & vbCrLf & _
             "LEFT JOIN faelle f ON v.fid = f.fid " & vbCrLf & _
             "LEFT JOIN namen n ON v.pat_id = n.pat_id " & vbCrLf & _
-            "LEFT JOIN eintraege tug ON v.pat_id = tug.pat_id AND tug.art = 'TUG'  AND tug.zeitpunkt = (SELECT MAX(zeitpunkt) FROM eintraege WHERE pat_id = v.pat_id AND art = 'TUG')" & vbCrLf & _
-            "LEFT JOIN eintraege adl ON v.pat_id = adl.pat_id AND adl.art = 'ADL'  AND adl.zeitpunkt = (SELECT MAX(zeitpunkt) FROM eintraege WHERE pat_id = v.pat_id AND art = 'ADL')" & vbCrLf & _
+            "LEFT JOIN eintraege tug ON v.pat_id = tug.pat_id AND tug.art IN('TUG','247') AND tug.zeitpunkt = (SELECT MAX(zeitpunkt) FROM eintraege WHERE pat_id = v.pat_id AND art IN('TUG','247'))" & vbCrLf & _
+            "LEFT JOIN eintraege adl ON v.pat_id = adl.pat_id AND adl.art IN('ADL','284') AND adl.zeitpunkt = (SELECT MAX(zeitpunkt) FROM eintraege WHERE pat_id = v.pat_id AND art IN('ADL','284'))" & vbCrLf & _
             "LEFT JOIN diagview dd ON v.pat_id = dd.pat_id AND dd.gicd RLIKE '^F0[0-3]|^G20' " & vbCrLf & _
             "LEFT JOIN diagview pfld ON v.pat_id = pfld.pat_id AND pfld.gicd IN ('R26.8') " & vbCrLf & _
-            "LEFT JOIN eintraege pfl ON v.pat_id = pfl.pat_id AND pfl.art = 'TUG' AND (MID(pfl.inhalt,1,INSTR(pfl.inhalt,' ')) > 10) " & vbCrLf & _
+            "LEFT JOIN eintraege pfl ON v.pat_id = pfl.pat_id AND pfl.art IN('TUG','247') AND (MID(pfl.inhalt,1,INSTR(pfl.inhalt,' ')) > 10) " & vbCrLf & _
             "WHERE (DATEDIFF(" & qtAnf(FristS) & ", n.GebDat) > 70 * 365 OR NOT ISNULL(dd.ICD)) AND NOT ISNULL(pfl.inhalt) AND ISNULL(pfld.icd)" & vbCrLf & _
             "AND pfl.zeitpunkt >SUBDATE(" & qtAnf(FristS) & ",INTERVAL 1 YEAR) " & vbCrLf & _
             "GROUP BY pat_id ORDER BY pfl.inhalt, v.pat_id;"
@@ -1617,8 +1617,8 @@ sql(AWlf) = "" & _
             "FROM aktfvs v " & vbCrLf & _
             "LEFT JOIN faelle f ON v.fid = f.fid " & vbCrLf & _
             "LEFT JOIN namen n ON v.pat_id = n.pat_id " & vbCrLf & _
-            "LEFT JOIN eintraege tug ON v.pat_id = tug.pat_id AND tug.art = 'TUG'  AND tug.zeitpunkt = (SELECT MAX(zeitpunkt) FROM eintraege WHERE pat_id = v.pat_id AND art = 'TUG')" & vbCrLf & _
-            "LEFT JOIN eintraege adl ON v.pat_id = adl.pat_id AND adl.art = 'ADL'  AND adl.zeitpunkt = (SELECT MAX(zeitpunkt) FROM eintraege WHERE pat_id = v.pat_id AND art = 'ADL')" & vbCrLf & _
+            "LEFT JOIN eintraege tug ON v.pat_id = tug.pat_id AND tug.art IN('TUG','247') AND tug.zeitpunkt = (SELECT MAX(zeitpunkt) FROM eintraege WHERE pat_id = v.pat_id AND art IN('TUG','247'))" & vbCrLf & _
+            "LEFT JOIN eintraege adl ON v.pat_id = adl.pat_id AND adl.art IN('ADL','284') AND adl.zeitpunkt = (SELECT MAX(zeitpunkt) FROM eintraege WHERE pat_id = v.pat_id AND art IN('ADL','284'))" & vbCrLf & _
             "LEFT JOIN diagview dd ON v.pat_id = dd.pat_id AND dd.gicd RLIKE '^F0[0-3]|^G20' " & vbCrLf & _
             "LEFT JOIN diagview pfld ON v.pat_id = pfld.pat_id AND pfld.gicd IN ('R13.9') " & vbCrLf & _
             "LEFT JOIN eintraege pfl ON v.pat_id = pfl.pat_id AND ((pfl.inhalt LIKE '%schluckst%' AND NOT pfl.inhalt LIKE '%keine schluckst%') OR pfl.inhalt LIKE '%dysphag%') " & vbCrLf & _
@@ -1642,8 +1642,8 @@ sql(AWlf) = "" & _
             "FROM aktfvs v " & vbCrLf & _
             "LEFT JOIN faelle f ON v.fid = f.fid " & vbCrLf & _
             "LEFT JOIN namen n ON v.pat_id = n.pat_id " & vbCrLf & _
-            "LEFT JOIN eintraege tug ON v.pat_id = tug.pat_id AND tug.art = 'TUG'  AND tug.zeitpunkt = (SELECT MAX(zeitpunkt) FROM eintraege WHERE pat_id = v.pat_id AND art = 'TUG')" & vbCrLf & _
-            "LEFT JOIN eintraege adl ON v.pat_id = adl.pat_id AND adl.art = 'ADL'  AND adl.zeitpunkt = (SELECT MAX(zeitpunkt) FROM eintraege WHERE pat_id = v.pat_id AND art = 'ADL')" & vbCrLf & _
+            "LEFT JOIN eintraege tug ON v.pat_id = tug.pat_id AND tug.art IN('TUG','247') AND tug.zeitpunkt = (SELECT MAX(zeitpunkt) FROM eintraege WHERE pat_id = v.pat_id AND art IN('TUG','247'))" & vbCrLf & _
+            "LEFT JOIN eintraege adl ON v.pat_id = adl.pat_id AND adl.art IN('ADL','284') AND adl.zeitpunkt = (SELECT MAX(zeitpunkt) FROM eintraege WHERE pat_id = v.pat_id AND art IN('ADL','284'))" & vbCrLf & _
             "LEFT JOIN diagview dd ON v.pat_id = dd.pat_id AND dd.gicd RLIKE '^F0[0-3]|^G20' " & vbCrLf & _
             "LEFT JOIN diagview pfld ON v.pat_id = pfld.pat_id AND (pfld.gicd IN ('Z74.9','G20.10','G20.20','R26.8','R29.6','R42','R32','R15','R13.9','R26.3','R41.0','R41.3','R41.8','R52.2','F45.41','G30.9','F29','F32.9','F69','F79.9','R63.4','R53','M62.50','R26.8','R68.8') OR pfld.gicd RLIKE '^F0[012]')" & vbCrLf & _
             "WHERE (DATEDIFF(" & qtAnf(FristS) & ", n.GebDat) > 70 * 365 OR NOT ISNULL(dd.ICD)) AND ISNULL(pfld.icd) " & vbCrLf & _
@@ -4780,8 +4780,8 @@ AWlf = AWlf + 1
  sql(AWlf) = sql(AWlf) & _
             "LEFT JOIN faelle f ON v.fid = f.fid " & vbCrLf & _
             "LEFT JOIN namen n ON v.pat_id = n.pat_id " & vbCrLf & _
-            "LEFT JOIN eintraege tug ON v.pat_id = tug.pat_id AND tug.art = 'TUG'  AND tug.zeitpunkt = (SELECT MAX(zeitpunkt) FROM eintraege WHERE pat_id = v.pat_id AND art = 'TUG')" & vbCrLf & _
-            "LEFT JOIN eintraege adl ON v.pat_id = adl.pat_id AND adl.art = 'ADL'  AND adl.zeitpunkt = (SELECT MAX(zeitpunkt) FROM eintraege WHERE pat_id = v.pat_id AND art = 'ADL')" & vbCrLf & _
+            "LEFT JOIN eintraege tug ON v.pat_id=tug.pat_id AND tug.art IN('TUG','247')AND tug.zeitpunkt=(SELECT MAX(zeitpunkt)FROM eintraege WHERE pat_id=v.pat_id AND art IN('TUG','247'))" & vbCrLf & _
+            "LEFT JOIN eintraege adl ON v.pat_id=adl.pat_id AND adl.art IN('ADL','284')AND adl.zeitpunkt=(SELECT MAX(zeitpunkt) FROM eintraege WHERE pat_id = v.pat_id AND art IN('ADL','284'))" & vbCrLf & _
             "LEFT JOIN diagview dd ON v.pat_id = dd.pat_id AND dd.gicd RLIKE '^F0[0123]|^G20' " & vbCrLf & _
             "LEFT JOIN diagview pfld ON v.pat_id = pfld.pat_id AND (pfld.gicd IN ('Z74.9','G20.10','G20.20','R26.8','R29.6','R42','R32','R15','R13.9','R26.3','R41.0','R41.3','R41.8','R52.2','F45.41','G30.9','F29','F32.9','F69','F79.9','R63.4','R53','M62.50','R26.8','R68.8') OR pfld.gicd RLIKE '^F0[012]') " & vbCrLf & _
             "LEFT JOIN leistungen l ON v.fid = l.fid  AND l.leistung = '03360' " & vbCrLf & _
@@ -4808,8 +4808,8 @@ AWlf = AWlf + 1
             "FROM aktfvs v " & vbCrLf & _
             "LEFT JOIN faelle f ON v.fid = f.fid " & vbCrLf & _
             "LEFT JOIN namen n ON v.pat_id = n.pat_id " & vbCrLf & _
-            "LEFT JOIN eintraege tug ON v.pat_id = tug.pat_id AND tug.art = 'TUG'  AND tug.zeitpunkt = (SELECT MAX(zeitpunkt) FROM eintraege WHERE pat_id = v.pat_id AND art = 'TUG')" & vbCrLf & _
-            "LEFT JOIN eintraege adl ON v.pat_id = adl.pat_id AND adl.art = 'ADL'  AND adl.zeitpunkt = (SELECT MAX(zeitpunkt) FROM eintraege WHERE pat_id = v.pat_id AND art = 'ADL')" & vbCrLf & _
+            "LEFT JOIN eintraege tug ON v.pat_id = tug.pat_id AND tug.art IN('TUG','247') AND tug.zeitpunkt = (SELECT MAX(zeitpunkt) FROM eintraege WHERE pat_id = v.pat_id AND art IN('TUG','247'))" & vbCrLf & _
+            "LEFT JOIN eintraege adl ON v.pat_id = adl.pat_id AND adl.art IN('ADL','284') AND adl.zeitpunkt = (SELECT MAX(zeitpunkt) FROM eintraege WHERE pat_id = v.pat_id AND art IN('ADL','284'))" & vbCrLf & _
             "LEFT JOIN diagview dd ON v.pat_id = dd.pat_id AND dd.gicd RLIKE '^F0[0-3]|G20' " & vbCrLf & _
             "LEFT JOIN diagview pfld ON v.pat_id = pfld.pat_id AND (pfld.gicd IN ('Z74.9','G20.10','G20.20','R26.8','R29.6','R42','R32','R15','R13.9','R26.3','R41.0','R41.3','R41.8','R52.2','F45.41','G30.9','F29','F32.9','F69','F79.9','R63.4','R53','M62.50','R26.8','R68.8') OR pfld.gicd RLIKE '^F0[0-3]') " & vbCrLf & _
             "LEFT JOIN leistungen l ON v.fid = l.fid  AND l.leistung = '03360' " & vbCrLf & _
@@ -4831,8 +4831,8 @@ AWlf = AWlf + 1
 '            "FROM aktfvs v " & vbCrLf & _
 '            "LEFT JOIN faelle f ON v.fid = f.fid " & vbCrLf & _
 '            "LEFT JOIN namen n ON v.pat_id = n.pat_id " & vbCrLf & _
-'            "LEFT JOIN eintraege tug ON v.pat_id = tug.pat_id AND tug.art = 'TUG' AND DATE(tug.zeitpunkt) BETWEEN SUBDATE(" & qtAnf(FristS) & ",INTERVAL 1 YEAR) AND " & qtEnd(FristS) & " " & vbCrLf & _
-'            "LEFT JOIN eintraege adl ON v.pat_id = adl.pat_id AND adl.art = 'ADL' AND DATE(adl.zeitpunkt) BETWEEN SUBDATE(" & qtAnf(FristS) & ",INTERVAL 1 YEAR) AND " & qtEnd(FristS) & " " & vbCrLf & _
+'            "LEFT JOIN eintraege tug ON v.pat_id = tug.pat_id AND tug.art IN('TUG','247') AND DATE(tug.zeitpunkt) BETWEEN SUBDATE(" & qtAnf(FristS) & ",INTERVAL 1 YEAR) AND " & qtEnd(FristS) & " " & vbCrLf & _
+'            "LEFT JOIN eintraege adl ON v.pat_id = adl.pat_id AND adl.art IN('ADL','284') AND DATE(adl.zeitpunkt) BETWEEN SUBDATE(" & qtAnf(FristS) & ",INTERVAL 1 YEAR) AND " & qtEnd(FristS) & " " & vbCrLf & _
 '            "LEFT JOIN diagnosen dd ON v.pat_id = dd.pat_id AND (dd.icd RLIKE '^F0[0123]' OR dd.icd LIKE 'G20%') AND dd.diagsicherheit NOT IN ('A','V') AND COALESCE(dd.Dggel,0)=0 " & vbCrLf & _
 '            "LEFT JOIN diagnosen pfld ON v.pat_id = pfld.pat_id AND (pfld.icd IN ('Z74.9','G20.10','G20.20','R26.8','R29.6','R42','R32','R15','R13.9','R26.3','R41.0','R52.2','F45.41','G30.9','F29','F32.9','F69','F79.9','R41.3','R63.4','R53','M62.50','R26.8','R68.8') OR pfld.icd RLIKE '^F0[012]') AND pfld.diagsicherheit NOT IN ('A','V') AND COALESCE(pfld.Dggel,0)=0 " & vbCrLf & _
 '            "LEFT JOIN leistungen l ON v.fid = l.fid  AND l.leistung = '03362' " & vbCrLf & _
@@ -4863,8 +4863,8 @@ AWlf = AWlf + 1
             "FROM aktfkvs v " & vbCrLf & _
             "LEFT JOIN faelle f ON v.fid = f.fid " & vbCrLf & _
             "LEFT JOIN namen n ON v.pat_id = n.pat_id " & vbCrLf & _
-            "LEFT JOIN eintraege tug ON v.pat_id = tug.pat_id AND tug.art = 'TUG'  AND tug.zeitpunkt = (SELECT MAX(zeitpunkt) FROM eintraege WHERE pat_id = v.pat_id AND art = 'TUG')" & vbCrLf & _
-            "LEFT JOIN eintraege adl ON v.pat_id = adl.pat_id AND adl.art = 'ADL'  AND adl.zeitpunkt = (SELECT MAX(zeitpunkt) FROM eintraege WHERE pat_id = v.pat_id AND art = 'ADL')" & vbCrLf & _
+            "LEFT JOIN eintraege tug ON v.pat_id = tug.pat_id AND tug.art IN('TUG','247') AND tug.zeitpunkt = (SELECT MAX(zeitpunkt) FROM eintraege WHERE pat_id = v.pat_id AND art IN('TUG','247'))" & vbCrLf & _
+            "LEFT JOIN eintraege adl ON v.pat_id = adl.pat_id AND adl.art IN('ADL','284') AND adl.zeitpunkt = (SELECT MAX(zeitpunkt) FROM eintraege WHERE pat_id = v.pat_id AND art IN('ADL','284'))" & vbCrLf & _
             "LEFT JOIN diagnosen dd ON v.pat_id = dd.pat_id AND (dd.icd RLIKE '^F0[0123]' OR dd.icd LIKE 'G20%') AND dd.diagsicherheit NOT IN ('A','V','Z') " & vbCrLf & _
             "LEFT JOIN diagnosen pfld ON v.pat_id = pfld.pat_id AND (pfld.icd IN ('Z74.9','G20.10','G20.20','R26.8','R29.6','R42','R32','R15','R13.9','R26.3','R41.0','R41.3','R41.8','R52.2','F45.41','G30.9','F29','F32.9','F69','F79.9','R63.4','R53','M62.50','R26.8','R68.8') OR pfld.icd RLIKE '^F0[012]') AND pfld.diagsicherheit NOT IN ('A','V','Z') " & vbCrLf & _
             "LEFT JOIN leistungen l ON v.pat_id = l.pat_id  AND l.leistung = '03362' AND l.zeitpunkt BETWEEN qanf() AND qend()" & vbCrLf
@@ -4904,8 +4904,8 @@ sql(AWlf) = sql(AWlf) & _
             "LEFT JOIN faelle f ON v.fid = f.fid " & vbCrLf & _
             "LEFT JOIN leistungen l2 ON l2.pat_id=v.pat_id AND l2.zeitpunkt BETWEEN qanf()AND qend() AND l2.leistung LIKE '03221%' " & vbCrLf & _
             "LEFT JOIN namen n ON v.pat_id = n.pat_id " & vbCrLf & _
-            "LEFT JOIN eintraege tug ON v.pat_id = tug.pat_id AND tug.art = 'TUG'  AND tug.zeitpunkt = (SELECT MAX(zeitpunkt) FROM eintraege WHERE pat_id = v.pat_id AND art = 'TUG')" & vbCrLf & _
-            "LEFT JOIN eintraege adl ON v.pat_id = adl.pat_id AND adl.art = 'ADL'  AND adl.zeitpunkt = (SELECT MAX(zeitpunkt) FROM eintraege WHERE pat_id = v.pat_id AND art = 'ADL')" & vbCrLf & _
+            "LEFT JOIN eintraege tug ON v.pat_id = tug.pat_id AND tug.art IN('TUG','247') AND tug.zeitpunkt = (SELECT MAX(zeitpunkt) FROM eintraege WHERE pat_id = v.pat_id AND art IN('TUG','247'))" & vbCrLf & _
+            "LEFT JOIN eintraege adl ON v.pat_id = adl.pat_id AND adl.art IN('ADL','284') AND adl.zeitpunkt = (SELECT MAX(zeitpunkt) FROM eintraege WHERE pat_id = v.pat_id AND art IN('ADL','284'))" & vbCrLf & _
             "LEFT JOIN diagview dd ON v.pat_id = dd.pat_id AND dd.gicd RLIKE '^F0[0-3]|G20\.[12]|G30' " & vbCrLf & _
             "LEFT JOIN diagview pfld ON v.pat_id = pfld.pat_id AND pfld.gICD RLIKE '^F0[0-3]|^F3|^F45\.41|^F69|^F79|^G20\.[12]|^G30\.9|^M62\.50|^R1[35]|^R26\.[38]|^R29\.6|^R32|^R4[12]|^R46\.4|^R52\.[12]|^R5[34]|^R63\.4|^R68\.8|^Z74\.[09]'" & vbCrLf & _
             "LEFT JOIN leistungen l ON l.pat_id=v.pat_id AND l.zeitpunkt BETWEEN qanf()AND qend() AND l.leistung = '03362' " & vbCrLf & _
