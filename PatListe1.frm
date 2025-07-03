@@ -4137,7 +4137,7 @@ Private Sub Form_Load()
       If Me.ohneTermine Then sql = sql & "and ISNULL(t.zp)" & vbCrLf ' AND a.tkz = 0 "
       sql = sql & "GROUP BY n.pat_id " & vbCrLf & _
       "ORDER BY n.pat_id"
-#Else
+#ElseIf False Then
       Const dokuzahl% = 12
       sql = "" & vbCrLf & _
       "SELECT i.*,COUNT(0) OVER() zahl FROM (" & vbCrLf & _
@@ -4165,6 +4165,7 @@ Private Sub Form_Load()
       "     AND f.schgr<>90 " & vbCrLf & _
       "     AND k.kateg NOT IN ('LKK','SHV')" & vbCrLf & _
       "     AND k.name NOT RLIKE 'BKK SCHEUFELEN'" & vbCrLf & _
+      "     AND n.kdm=0" & vbCrLf & _
       "  ) i" & vbCrLf & _
       "  WHERE rn<" & dokuzahl + 1 & vbCrLf & _
       "    AND qb<>99990101" & vbCrLf & _
@@ -4173,6 +4174,54 @@ Private Sub Form_Load()
       ") i" & vbCrLf & _
       "ORDER BY pat_id"
       ' 99990101: Faelle 70247 usw.
+#Else
+   Const dokuzahl% = 12
+   sql = "" & _
+   "SELECT i.*,COUNT(0)OVER()zahl" & vbCrLf & _
+   "FROM(" & vbCrLf & _
+   " SELECT" & vbCrLf & _
+   " (SELECT GROUP_CONCAT(IF(dokudatum IS NULL,', ',CONCAT(art,'_',DATE_FORMAT(dokudatum,'%d.%m.%y'),'_',IF(ok=1,'ok','__'),'_',IF(exportiert>20000101,'ex','__'),', '))ORDER BY MID(qr.q,2)DESC,qr.q DESC SEPARATOR'')" & vbCrLf & _
+   "  FROM" & vbCrLf & _
+   "  (WITH RECURSIVE nrows(date) AS (" & vbCrLf & _
+   "   SELECT CURRENT_DATE-INTERVAL " & Verspätung & " DAY UNION ALL" & vbCrLf & _
+   "   SELECT DATE_ADD(date,INTERVAL-3 MONTH) FROM nrows WHERE DATE>CURRENT_DATE-INTERVAL " & CStr((dokuzahl - 1) * 3) & " MONTH)" & vbCrLf & _
+   "   SELECT DATE, quartal(DATE)q FROM nrows) qr" & vbCrLf & _
+   "   LEFT JOIN dmpreihe dr ON dr.Pat_id=n.pat_id AND dr.dmpart IN(1,2) AND quartal(dr.dokudatum)=qr.q" & vbCrLf & _
+   "    AND dr.dokudatum=(SELECT MAX(dokudatum)FROM dmpreihe WHERE pat_id=f.pat_id AND dmpart IN(1,2) AND quartal(dokudatum)=qr.q)" & vbCrLf & _
+   "  ) dokus" & vbCrLf & _
+   " ,(SELECT qbeg(MAX(dokudatum))FROM dmpreihe WHERE pat_id=f.pat_id AND dmpart IN(1,2)) qb" & vbCrLf & _
+   "-- ,ROW_NUMBER()OVER(PARTITION BY f.pat_id ORDER BY dr.DokuDatum DESC) rn" & vbCrLf & _
+   " ,COALESCE((SELECT MIN(art)='ED' FROM dmpreihe dr WHERE pat_id=f.pat_id AND dmpart IN(1,2)),0) oberst" & vbCrLf & _
+   " ,f.bhfb, dmpbeg notiz, dmpklass, dr.dokudatum" & vbCrLf & _
+   " ,n.inaktiv=1 tkz, n.nachname, n.vorname" & vbCrLf & _
+   " ,(SELECT icd FROM diagview WHERE pat_id=n.pat_id AND gicd RLIKE '^E1[0-4]' LIMIT 1) icd" & vbCrLf & _
+   " ,dr.art,dr.ok,dr.exportiert,n.SDatum, dr.dmpart" & vbCrLf & _
+   " ,f.pat_id, schgr" & vbCrLf & _
+   "-- witzigerweise die nä drei 28"" i.Vgl. zu 48"" bei: LEFT JOIN `kassenliste` k ON k.ik = f.ik AND k.vknr = f.vknr AND id=(SELECT MIN(id) FROM kassenliste WHERE ik=f.ik AND vknr=f.vknr)" & vbCrLf & _
+   " ,(SELECT kurzname FROM kassenliste WHERE ik=f.ik AND vknr=f.vknr ORDER BY id LIMIT 1/*AND id=(SELECT MIN(id) FROM kassenliste WHERE ik=f.IK AND vknr=f.VKNr)*/) kurzname" & vbCrLf
+   sql = sql & _
+   " ,(SELECT kateg FROM kassenliste WHERE ik=f.ik AND vknr=f.vknr ORDER BY id LIMIT 1/*AND id=(SELECT MIN(id) FROM kassenliste WHERE ik=f.IK AND vknr=f.VKNr)*/) kateg" & vbCrLf & _
+   " ,(SELECT name FROM kassenliste WHERE ik=f.ik AND vknr=f.vknr ORDER BY id LIMIT 1/*AND id=(SELECT MIN(id) FROM kassenliste WHERE ik=f.IK AND vknr=f.VKNr)*/) kname" & vbCrLf & _
+   " FROM faelle f" & vbCrLf & _
+   " LEFT JOIN namen n USING (pat_id)" & vbCrLf & _
+   " LEFT JOIN dmpreihe dr ON dr.Pat_id=f.pat_id AND dr.dmpart IN(1,2) AND dokudatum=(SELECT MAX(dokudatum) FROM dmpreihe WHERE pat_id=f.pat_id AND dmpart IN (1,2)) -- dr.Abk  RLIKE '^(eDMPDM|DMPD(TYP|M2)|(Erst|Verlaufs)-Dokumentation Diabetes)'" & vbCrLf & _
+   " WHERE fid=(SELECT MIN(fid) FROM faelle WHERE pat_id=f.pat_id and schgr<>90 and bhfb=(SELECT MAX(bhfb)FROM faelle WHERE pat_id=f.pat_id AND bhfb BETWEEN NOW() - INTERVAL (366+" & Verspätung & ") DAY AND qende(NOW()-INTERVAL " & Verspätung & " DAY) AND schgr<>90))" & vbCrLf & _
+   "     AND (SDatum IS NULL OR SDatum=18991230 OR SDatum>qbeg(qbeg(NOW()-INTERVAL " & Verspätung & " DAY)- INTERVAL 1 DAY))" & vbCrLf & _
+   "     AND NOT (f.bhfb<qbeg(qbeg(NOW() - INTERVAL " & Verspätung & " DAY)-INTERVAL 1 DAY) AND inaktiv=1)" & vbCrLf & _
+   "     AND (" & CStr(Lese.pidoffs) & "=0 OR n.pat_id<" & Lese.pidoffs & ")" & vbCrLf & _
+   "     AND n.kdm=0" & vbCrLf & _
+   "     AND n.dmpklass<>2" & vbCrLf & _
+   "--     AND n.pat_id=1340" & vbCrLf & _
+   ")i" & vbCrLf & _
+   "WHERE kateg NOT IN ('SHV')" & vbCrLf & _
+   "AND (kateg<>'LKK' OR NOW()-INTERVAL " & Verspätung & " DAY>20250630) -- LKK beginnt DMP" & vbCrLf & _
+   "AND kname NOT RLIKE 'BKK SCHEUFELEN' -- nicht im DMP" & vbCrLf & _
+   "AND qb<>99990101" & vbCrLf & _
+   "ORDER BY pat_id" & vbCrLf & _
+   "" & vbCrLf & _
+   "" & vbCrLf & _
+   "" & vbCrLf & _
+   "" & vbCrLf
 #End If
 ' 11.5.25: bei dmpreihe bleiben noch: abk RLIKE '^(DMP Teilnahmeerklärung|DMP(KHK)|EDMP(AB|COPD|KHK)|(Erst|Verlaufs)-Dokumentation (COPD|koronare|Asthma|Brustkrebs|Chronische(r Rückenschmerz| Herzinsuffizienz)))'
 '      "     AND n.pat_id IN (64367,64371,64477,64488) OR n.pat_id between 59986 and 60000" & vbCrLf & _
@@ -4187,6 +4236,7 @@ Private Sub Form_Load()
      .Row = 1
      Set rDPat = Nothing
      lfdnr = 0
+' hier DMP hier Liste sql abgreifen
      myFrag rDPat, sql, adOpenStatic, DBCn, adLockReadOnly, 18 * dokuzahl ' Maximale Buchstabenzahl
      .Rows = rDPat!Zahl + 2
      Do While Not rDPat.EOF
