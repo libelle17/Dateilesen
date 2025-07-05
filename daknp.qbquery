@@ -1,0 +1,51 @@
+﻿select dakab, dakzp,dakres,pat_id, nped, npvdzp, npvd, npad, npvl, Schwt, nplz, npkl, npal,npasl,npsl
+, concat(case when npal<>npsl then
+    case when npal='' then concat(npsl,' dazu')
+         when npsl='' then concat(npal,' weg')
+         else concat(npsl,' statt ',npal)
+    end
+  else ''
+  end, case when npvl<>'97562' and schwt<>'' and npasl='' then ', 97563 dazu'
+            when (npvl='97562' or schwt='') and npasl<>'' then ', 97563 weg'
+            else ''
+  end) NpLeiAend
+, if((npvl in ('97561','97562') or npsl in ('97561','97562') or nperg=2) and npvd='','G63.2 dazu','') NpDAend
+, if(dakres>dakab,concat('DAK-Makro - ',dakzp,' fehlt'),'') Makro
+from (
+select dakab, dakzp,dakres,pat_id, nped, npvdzp, npvd, npad, npvl, Schwt, nperg,nplz, npkl, npal,npasl
+, if(nplz<2, case when npkl=1 then if(npvl in ('','97560'),if(npoblg,'97561',''),'97562')
+when npkl=2 then ''
+when npkl=3 then if(npvl in ('','97560'),if(npoblg,'97561',''),'97562')
+when npkl=4 then case when nperg=1 and npad='' then if(npoblg,'97560','') when nperg=2 or npad<>'' then if(npoblg,'97561','') else '' end
+when npkl=5 then '97562'
+end,'') npsl
+from (
+select dakab,dakzp,dakres,i.pat_id, coalesce(npedt.icd,'') nped, npvdzp, npvd, npad, npvl, npal,npasl,npoblg
+, case when npvd<>'' then case when coalesce(npedt.icd,'')='' then 1
+                                       else case when npvl='' then 2 else 3 end end
+else case when npvl in ('','97560') then 4 else 5 end
+end npkl
+,schwt, case when schwt='' then 0 when instr(schwt,'stör')=0 then 1 else 2 end nperg,nplz
+from (
+select dakab,dakzp, if(dakzp<dakab or dakab in (18991230,00000000),dakzp,dakab) dakres, f.pat_id
+, mid(d.icd,5,1) dnr, date(npvdt.diagdatum) npvdzp, coalesce(npvdt.icd,'') npvd,coalesce(npadt.icd,'') npad
+, (select coalesce(max(leistung),'') leistung from leistungen where pat_id=f.pat_id and zeitpunkt<qanf() and leistung in ('97560','97561','97562')) npvl
+, (select coalesce(max(zeitpunkt),18991230)<subdate(qend(),interval 1 year) from leistungen where pat_id=f.pat_id and zeitpunkt<qanf() and leistung in ('97560','97561','97562')) npoblg
+, (select coalesce(max(leistung),'') leistung from leistungen where pat_id=f.pat_id and zeitpunkt between qanf() and qend() and leistung in ('97560','97561','97562')) npal
+, (select coalesce(max(leistung),'') leistung from leistungen where pat_id=f.pat_id and zeitpunkt between qanf() and qend() and leistung = '97563') npasl
+, (select count(0) from leistungen npb where pat_id=f.pat_id and year(zeitpunkt)=year(qanf()) and zeitpunkt<qanf() and leistung in ('97561','97562')) nplz
+, coalesce(mid(npaet.inhalt,14),'') schwt
+from
+(select dakab, (select date(min(zeitpunkt)) from eintraege where pat_id=f.pat_id and (art in ('dakap','daknp','dakluts') or (art='dak' and inhalt like 'DAK: hier%'))) dakzp, f.* from aktfv f left join namen n using (pat_id)) f
+left join faelle fa using (fid)
+left join diagnosen d on d.pat_id=f.pat_id and d.icd rlike '^E1[0-4]\.' and d.diagsicherheit in ('g',' ') AND COALESCE(d.f6010,0)=0 AND d.obdauer<>0
+left join diagnosen npvdt on npvdt.pat_id=f.pat_id and npvdt.diagdatum<qanf() and npvdt.icd in ('G59.0','G63.2','G99.0') and npvdt.diagsicherheit in ('g',' ') AND COALESCE(npvdt.f6010,0)=0 AND npvdt.obdauer<>0
+left join diagnosen npadt on npadt.pat_id=f.pat_id and npadt.diagdatum between qanf() and qend() and npadt.icd in ('G59.0','G63.2','G99.0') and npadt.diagsicherheit in ('g',' ') AND COALESCE(npadt.f6010,0)=0 AND npadt.obdauer<>0
+left join eintraege npaet on npaet.pat_id=f.pat_id and npaet.zeitpunkt between qanf() and qend() and npaet.art = 'daknp'
+where fa.kasse rlike '^TK|^Techniker|^DAK|^KKH|^Kaufm' or fa.kkasse_2 rlike '^TK|^Techniker|^DAK|^KKH|^Kaufm'
+group by f.pat_id
+) i
+left join diagnosen npedt on npedt.pat_id=i.pat_id and npedt.diagdatum<dakres and npedt.icd in ('G59.0','G63.2','G99.0') and npedt.diagsicherheit in ('g',' ') AND COALESCE(npedt.f6010,0)=0 AND npedt.obdauer<>0
+where dakres >18991230
+) i
+) i order by pat_id;

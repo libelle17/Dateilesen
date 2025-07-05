@@ -1,0 +1,49 @@
+﻿select dakab, dakzp,dakres,pat_id, lued, luvdzp, luvd, luad, luvl, LuFr, lulz, lukl, lual, lusl
+, case when lual<>lusl then
+    case when lual='' then concat(lusl,' dazu')
+         when lusl='' then concat(lual,' weg')
+         else concat(lusl,' statt ',lual)
+    end
+  else ''
+  end LuLeiAend
+, if((luvl in ('97571','97572') or lusl in ('97571','97572') or luerg=2) and luvd='','N31.1 dazu','') LuDAend
+, if(dakres>dakab,concat('DAK-Makro - ',dakzp,' fehlt'),'') Makro
+from (
+select dakab, dakzp,dakres,pat_id, lued, luvdzp, luvd, luad, luvl, LuFr, luerg,lulz, lukl, lual
+, if(lulz<2, case when lukl=1 then if(luvl in ('','97570'),if(luoblg,'97571',''),'97572')
+when lukl=2 then ''
+when lukl=3 then if(luvl in ('','97570'),if(luoblg,'97571',''),'97572')
+when lukl=4 then case when luerg=1 and luad='' then if(luoblg,'97570','') when luerg=2 or luad<>'' then if(luoblg,'97571','') else '' end
+when lukl=5 then '97572'
+end,'') lusl
+from (
+select dakab,dakzp,dakres,i.pat_id, coalesce(luedt.icd,'') lued, luvdzp, luvd, luad, luvl, lual,luoblg
+, case when luvd<>'' then case when coalesce(luedt.icd,'')='' then 1
+                                       else case when luvl='' then 2 else 3 end end
+else case when luvl in ('','97570') then 4 else 5 end
+end lukl
+,LuFr
+, case when LuFr='' then 0 when MID(LuFr,instr(LuFr,'entleeren?')+11) RLIKE '^n|^Inko' OR MID(LuFr,instr(LuFr,'Wasserlassen)?')+15) RLIKE '^öfter|^mehr|^[2-9]' OR MID(LuFr,instr(LuFr,'abgeschwächt?')+14) RLIKE '^j' OR MID(LuFr,instr(LuFr,'zu entleeren?')+14) RLIKE '^j' OR MID(LuFr,instr(LuFr,'gang auf?')+10) RLIKE '^j' OR MID(LuFr,instr(LuFr,'beschreiben)')+12) RLIKE '^j' then 2 else 1 end luerg
+,lulz
+from (
+select dakab,dakzp, if(dakzp<dakab or dakab in (18991230,00000000),dakzp,dakab) dakres, f.pat_id, mid(d.icd,5,1) dnr
+, date(luvdt.diagdatum) luvdzp, coalesce(luvdt.icd,'') luvd,coalesce(luadt.icd,'') luad
+, (select coalesce(max(leistung),'') leistung from leistungen where pat_id=f.pat_id and zeitpunkt<qanf() and leistung in ('97570','97571','97572')) luvl
+, (select coalesce(max(zeitpunkt),18991230)<subdate(qend(),interval 1 year) from leistungen where pat_id=f.pat_id and zeitpunkt<qanf() and leistung in ('97570','97571','97572')) luoblg
+, (select coalesce(max(leistung),'') leistung from leistungen where pat_id=f.pat_id and zeitpunkt between qanf() and qend() and leistung in ('97570','97571','97572')) lual
+, (select count(0) from leistungen lub where pat_id=f.pat_id and year(zeitpunkt)=year(qanf()) and zeitpunkt<qanf() and leistung in ('97571','97572')) lulz
+, coalesce(luaet.inhalt,'') LuFr
+from
+(select dakab, (select date(min(zeitpunkt)) from eintraege where pat_id=f.pat_id and (art in ('dakap','daknp','dakluts') or (art='dak' and inhalt like 'DAK: hier%'))) dakzp, f.* from aktfv f left join namen n using (pat_id)) f
+left join faelle fa using (fid)
+left join diagnosen d on d.pat_id=f.pat_id and d.icd rlike '^E1[0-4]\.' and d.diagsicherheit in ('g',' ') AND COALESCE(d.f6010,0)=0 AND d.obdauer<>0
+left join diagnosen luvdt on luvdt.pat_id=f.pat_id and luvdt.diagdatum<qanf() and luvdt.icd in ('N31.1','N31.2') and luvdt.diagsicherheit in ('g',' ') AND COALESCE(luvdt.f6010,0)=0 AND luvdt.obdauer<>0
+left join diagnosen luadt on luadt.pat_id=f.pat_id and luadt.diagdatum between qanf() and qend() and luadt.icd in ('N31.1','N31.2') and luadt.diagsicherheit in ('g',' ') AND COALESCE(luadt.f6010,0)=0 AND luadt.obdauer<>0
+left join eintraege luaet on luaet.pat_id=f.pat_id and luaet.zeitpunkt between qanf() and qend() and luaet.art = 'dakluts'
+where fa.kasse rlike '^TK|^Techniker|^DAK|^KKH|^Kaufm' or fa.kkasse_2 rlike '^TK|^Techniker|^DAK|^KKH|^Kaufm'
+group by f.pat_id
+) i
+left join diagnosen luedt on luedt.pat_id=i.pat_id and luedt.diagdatum<dakres and luedt.icd in ('N31.1','N31.2') and luedt.diagsicherheit in ('g',' ') AND COALESCE(luedt.f6010,0)=0 AND luedt.obdauer<>0
+where dakres >18991230
+) i
+) i order by lukl;

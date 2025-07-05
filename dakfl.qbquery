@@ -1,0 +1,51 @@
+﻿select dakab, dakzp,dakres,pat_id, fled, flvdzp, flvd, flad, flvl, FlFr, fllz, flkl, flal, flsl
+, case when flal<>flsl then
+    case when flal='' then concat(flsl,' dazu')
+         when flsl='' then concat(flal,' weg')
+         else concat(flsl,' statt ',flal)
+    end
+  else ''
+  end FlLeiAend
+, if((flvl in ('97591','97592') or flsl in ('97591','97592') or flerg=2) and flvd='','K77.8 dazu','') FlDAend
+, if(dakres>dakab,concat('DAK-Makro - ',dakzp,' fehlt'),'') Makro
+from (
+select dakab, dakzp,dakres,pat_id, fled, flvdzp, flvd, flad, flvl, FlFr, flerg,fllz, flkl, flal
+, if(fllz<2, case when flkl=1 then if(flvl in ('','97590'),if(floblg,'97591',''),'97592')
+when flkl=2 then ''
+when flkl=3 then if(flvl in ('','97590'),if(floblg,'97591',''),'97592')
+when flkl=4 then case when flerg=1 and flad='' then if(floblg,'97590','') when flerg=2 or flad<>'' then if(floblg,'97591','') else '' end
+when flkl=5 then '97592'
+end,'') flsl
+from (
+select dakab,dakzp,dakres,i.pat_id, coalesce(fledt.icd,'') fled, flvdzp, flvd, flad, flvl, flal,floblg
+, case when flvd<>'' then case when coalesce(fledt.icd,'')='' then 1
+                                       else case when flvl='' then 2 else 3 end end
+else case when flvl in ('','97590') then 4 else 5 end
+end flkl
+,FlFr
+, case when FlFr='' then 0
+           when FlFr RLIKE 'Leber(((?!((re|li) Niere|Nieren|Pan[ck]r)).)*?((?<!kaum ver|nicht ver)fett|(?<!leicht |kaum |nicht |keine |gering )verdicht)|.*fetteinl|zi)|Fettleber' then 2
+            else 1 end flerg
+,fllz
+from (
+select dakab,dakzp, if(dakzp<dakab or dakab in (18991230,00000000),dakzp,dakab) dakres, f.pat_id, mid(d.icd,5,1) dnr
+, date(flvdt.diagdatum) flvdzp, coalesce(flvdt.icd,'') flvd,coalesce(fladt.icd,'') flad
+, (select coalesce(max(leistung),'') leistung from leistungen where pat_id=f.pat_id and zeitpunkt<qanf() and leistung in ('97590','97591','97592')) flvl
+, (select coalesce(max(zeitpunkt),18991230)<subdate(qend(),interval 1 year) from leistungen where pat_id=f.pat_id and zeitpunkt<qanf() and leistung in ('97590','97591','97592')) floblg
+, (select coalesce(max(leistung),'') leistung from leistungen where pat_id=f.pat_id and zeitpunkt between qanf() and qend() and leistung in ('97590','97591','97592')) flal
+, (select count(0) from leistungen flb where pat_id=f.pat_id and year(zeitpunkt)=year(qanf()) and zeitpunkt<qanf() and leistung in ('97591','97592')) fllz
+, coalesce(flaet.inhalt,'') FlFr
+from
+(select dakab, (select date(min(zeitpunkt)) from eintraege where pat_id=f.pat_id and (art in ('dakap','daknp','dakflts') or (art='dak' and inhalt like 'DAK: hier%'))) dakzp, f.* from aktfv f left join namen n using (pat_id)) f
+left join faelle fa using (fid)
+left join diagnosen d on d.pat_id=f.pat_id and d.icd rlike '^E1[0-4]\.' and d.diagsicherheit in ('g',' ') AND COALESCE(d.f6010,0)=0 AND d.obdauer<>0
+left join diagnosen flvdt on flvdt.pat_id=f.pat_id and flvdt.diagdatum<qanf() and flvdt.icd='K77.8' and flvdt.diagsicherheit in ('g',' ') AND COALESCE(flvdt.f6010,0)=0 AND flvdt.obdauer<>0
+left join diagnosen fladt on fladt.pat_id=f.pat_id and fladt.diagdatum between qanf() and qend() and fladt.icd='K77.8' and fladt.diagsicherheit in ('g',' ') AND COALESCE(fladt.f6010,0)=0 AND fladt.obdauer<>0
+left join eintraege flaet on flaet.pat_id=f.pat_id and flaet.zeitpunkt between qanf() and qend() and flaet.art = 'sono' and flaet.inhalt like 'Abdomen:%'
+where fa.kasse rlike '^TK|^Techniker|^DAK|^KKH|^Kaufm' or fa.kkasse_2 rlike '^TK|^Techniker|^DAK|^KKH|^Kaufm'
+group by f.pat_id
+) i
+left join diagnosen fledt on fledt.pat_id=i.pat_id and fledt.diagdatum<dakres and fledt.icd='K77.8' and fledt.diagsicherheit in ('g',' ') AND COALESCE(fledt.f6010,0)=0 AND fledt.obdauer<>0
+where dakres >18991230
+) i
+) i order by flkl;

@@ -1,0 +1,56 @@
+﻿select dakab, dakzp,dakres,pat_id, aped, apd2, apvdzp, apvd, apad, apvl, Apt, aplz, apkl, apal, apsl
+, case when apal<>apsl then
+    case when apal='' then concat(apsl,' dazu')
+         when apsl='' then concat(apal,' weg')
+         else concat(apsl,' statt ',apal)
+    end
+  else ''
+  end ApLeiAend
+, concat(if((apvl in ('97581','97582') or apsl in ('97581','97582') or aperg=2) and apvd='' and apad='','I79.2 dazu','')
+        ,if((apvd<>'' or apad<>'') and apd2='',', I70.2 dazu',''))  ApDAend
+, if(dakres>dakab,concat('DAK-Makro - ',dakzp,' fehlt'),'') Makro
+from (
+select dakab, dakzp,dakres,pat_id, aped, apd2, apvdzp, apvd, apad, apvl, Apt, aperg,aplz, apkl, apal
+, if(aplz<2, case when apkl=1 then if(apvl in ('','97580'),if(apoblg,'97581',''),'97582')
+when apkl=2 then ''
+when apkl=3 then if(apvl in ('','97580'),if(apoblg,'97581',''),'97582')
+when apkl=4 then case when aperg=1 and apad='' then if(apoblg,'97580','') when aperg=2 or apad<>'' then if(apoblg,'97581','') else '' end
+when apkl=5 then '97582'
+end,'') apsl
+from (
+select dakab,dakzp,dakres,i.pat_id, coalesce(apedt.icd,'') aped, coalesce(apdt2.icd,'') apd2, apvdzp, apvd, apad, apvl, apal,apoblg
+, case when apvd<>'' then case when coalesce(apedt.icd,'')='' then 1
+                                       else case when apvl='' then 2 else 3 end end
+else case when apvl in ('','97580') then 4 else 5 end
+end apkl
+,apt
+, (trim(MID(apt,instr(apt,'zwingen?')+8)) like 'j%' AND NOT trim(MID(apt,instr(apt,'genauso auf?')+12)) like 'j%'
+   AND trim(MID(apt,instr(apt,'genauso?')+8)) like 'j%') OR
+   (convert(concat('0',REGEXP_REPLACE(MID(apt,instr(apt,'Rötung re:')+10),'[^0-9]','')),decimal(30,0))>5)+
+   (convert(concat('0',REGEXP_REPLACE(MID(apt,instr(apt,'li:')+3),'[^0-9]','')),decimal(30,0))>5)+
+   (convert(concat('0',REGEXP_REPLACE(MID(apt,instr(apt,'Venenfüllung: re:')+17),'[^0-9]','')),decimal(30,0))>10)+
+   (convert(concat('0',REGEXP_REPLACE(MID(apt,instr(apt,', li:')+6),'[^0-9]','')),decimal(30,0))>10) >1  aperg
+,aplz
+from (
+select dakab,dakzp, if(dakzp<dakab or dakab in (18991230,00000000),dakzp,dakab) dakres, f.pat_id, mid(d.icd,5,1) dnr
+, date(apvdt.diagdatum) apvdzp, coalesce(apvdt.icd,'') apvd,coalesce(apadt.icd,'') apad
+, (select coalesce(max(leistung),'') leistung from leistungen where pat_id=f.pat_id and zeitpunkt<qanf() and leistung in ('97580','97581','97582')) apvl
+, (select coalesce(max(zeitpunkt),18991230)<subdate(qend(),interval 1 year) from leistungen where pat_id=f.pat_id and zeitpunkt<qanf() and leistung in ('97580','97581','97582')) apoblg
+, (select coalesce(max(leistung),'') leistung from leistungen where pat_id=f.pat_id and zeitpunkt between qanf() and qend() and leistung in ('97580','97581','97582')) apal
+, (select count(0) from leistungen apb where pat_id=f.pat_id and year(zeitpunkt)=year(qanf()) and zeitpunkt<qanf() and leistung in ('97581','97582')) aplz
+, coalesce(apaet.inhalt,'') apt
+from
+(select dakab, (select date(min(zeitpunkt)) from eintraege where pat_id=f.pat_id and (art in ('dakap','daknp','dakluts') or (art='dak' and inhalt like 'DAK: hier%'))) dakzp, f.* from aktfv f left join namen n using (pat_id)) f
+left join faelle fa using (fid)
+left join diagnosen d on d.pat_id=f.pat_id and d.icd rlike '^E1[0-4]\.' and d.diagsicherheit in ('g',' ') AND COALESCE(d.f6010,0)=0 AND d.obdauer<>0
+left join diagnosen apvdt on apvdt.pat_id=f.pat_id and apvdt.diagdatum<qanf() and apvdt.icd in ('I79.2') and apvdt.diagsicherheit in ('g',' ') AND COALESCE(apvdt.f6010,0)=0 AND apvdt.obdauer<>0
+left join diagnosen apadt on apadt.pat_id=f.pat_id and apadt.diagdatum between qanf() and qend() and apadt.icd in ('I79.2') and apadt.diagsicherheit in ('g',' ') AND COALESCE(apadt.f6010,0)=0 AND apadt.obdauer<>0
+left join eintraege apaet on apaet.pat_id=f.pat_id and apaet.zeitpunkt between qanf() and qend() and apaet.art = 'dakap'
+where fa.kasse rlike '^TK|^Techniker|^DAK|^KKH|^Kaufm' or fa.kkasse_2 rlike '^TK|^Techniker|^DAK|^KKH|^Kaufm'
+group by f.pat_id
+) i
+left join diagnosen apedt on apedt.pat_id=i.pat_id and apedt.diagdatum<dakres and apedt.icd in ('I79.2') and apedt.diagsicherheit in ('g',' ') AND COALESCE(apedt.f6010,0)=0 AND apedt.obdauer<>0
+left join diagnosen apdt2 on apdt2.pat_id=i.pat_id and apdt2.icd like 'I70.2%' and apdt2.diagsicherheit in ('g',' ') AND COALESCE(apdt2.f6010,0)=0 AND apdt2.obdauer<>0
+where dakres >18991230
+) i
+) i order by pat_id;

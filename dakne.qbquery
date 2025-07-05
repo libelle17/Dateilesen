@@ -1,0 +1,48 @@
+﻿select dakab, dakzp,dakres,pat_id, need, nevdzp, nevd, nead, nevl, neerg, nelz, nekl, neal, nesl
+, case when neal<>nesl then
+    case when neal='' then concat(nesl,' dazu')
+         when nesl='' then concat(neal,' weg')
+         else concat(nesl,' statt ',neal)
+    end
+  else ''
+  end NeLeiAend
+, if((nevl in ('97601','97602') or nesl in ('97601','97602') or neerg=2) and nevd='',concat(nesd,' dazu'),'') NeDAend
+, if(dakres>dakab,concat('DAK-Makro - ',dakzp,' fehlt'),'') Makro
+from (
+select dakab, dakzp,dakres,pat_id, need, nevdzp, nevd, nead, nevl, g, neerg,nelz, nekl, neal
+, if(nelz<2, case when nekl=1 then if(nevl in ('','97600'),if(neoblg,'97601',''),'97602')
+when nekl=2 then ''
+when nekl=3 then if(nevl in ('','97600'),if(neoblg,'97601',''),'97602')
+when nekl=4 then case when neerg=1 and nead='' then if(neoblg,'97600','') when neerg=2 or nead<>'' then if(neoblg,'97601','') else '' end
+when nekl=5 then '97602'
+end,'') nesl
+, case when g < 15 then 'N18.5' when g < 30 then 'N18.4' when g<60 then 'N18.3' when g<90 then 'N18.2' else 'N18.1' end nesd
+from (
+select dakab,dakzp,dakres,i.pat_id, coalesce(needt.icd,'') need, nevdzp, nevd, nead, nevl, neal,neoblg
+, case when nevd<>'' then case when coalesce(needt.icd,'')='' then 1
+                                       else case when nevl='' then 2 else 3 end end
+else case when nevl in ('','97600') then 4 else 5 end
+end nekl
+, _lGFR(i.pat_id) g
+, obnephrop(i.pat_id) neerg
+,nelz
+from (
+select dakab,dakzp, if(dakzp<dakab or dakab in (18991230,00000000),dakzp,dakab) dakres, f.pat_id, mid(d.icd,5,1) dnr
+, date(nevdt.diagdatum) nevdzp, coalesce(nevdt.icd,'') nevd,coalesce(neadt.icd,'') nead
+, (select coalesce(max(leistung),'') leistung from leistungen where pat_id=f.pat_id and zeitpunkt<qanf() and leistung in ('97600','97601','97602')) nevl
+, (select coalesce(max(zeitpunkt),18991230)<subdate(qend(),interval 1 year) from leistungen where pat_id=f.pat_id and zeitpunkt<qanf() and leistung in ('97600','97601','97602')) neoblg
+, (select coalesce(max(leistung),'') leistung from leistungen where pat_id=f.pat_id and zeitpunkt between qanf() and qend() and leistung in ('97600','97601','97602')) neal
+, (select count(0) from leistungen neb where pat_id=f.pat_id and year(zeitpunkt)=year(qanf()) and zeitpunkt<qanf() and leistung in ('97601','97602')) nelz
+from
+(select dakab, (select date(min(zeitpunkt)) from eintraege where pat_id=f.pat_id and (art in ('dakap','daknp','daknets') or (art='dak' and inhalt like 'DAK: hier%'))) dakzp, f.* from aktfv f left join namen n using (pat_id)) f
+left join faelle fa using (fid)
+left join diagnosen d on d.pat_id=f.pat_id and d.icd rlike '^E1[0-4]\.' and d.diagsicherheit in ('g',' ') AND COALESCE(d.f6010,0)=0 AND d.obdauer<>0
+left join diagnosen nevdt on nevdt.pat_id=f.pat_id and nevdt.diagdatum<qanf() and nevdt.icd rlike '^N18\.[1-5]' and nevdt.diagsicherheit in ('g',' ') AND COALESCE(nevdt.f6010,0)=0 AND nevdt.obdauer<>0
+left join diagnosen neadt on neadt.pat_id=f.pat_id and neadt.diagdatum between qanf() and qend() and neadt.icd rlike '^N18\.[1-5]' and neadt.diagsicherheit in ('g',' ') AND COALESCE(neadt.f6010,0)=0 AND neadt.obdauer<>0
+where fa.kasse rlike '^TK|^Techniker|^DAK|^KKH|^Kaufm' or fa.kkasse_2 rlike '^TK|^Techniker|^DAK|^KKH|^Kaufm'
+group by f.pat_id
+) i
+left join diagnosen needt on needt.pat_id=i.pat_id and needt.diagdatum<dakres and needt.icd rlike '^N18\.[1-5]' and needt.diagsicherheit in ('g',' ') AND COALESCE(needt.f6010,0)=0 AND needt.obdauer<>0
+where dakres >18991230
+) i
+) i order by nekl;
