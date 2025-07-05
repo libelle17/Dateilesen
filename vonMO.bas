@@ -1167,6 +1167,10 @@ Public Function doPatvonMO(fPtNr&, Optional obmitFormularen%, Optional obpruef%,
  Dim pid&, pos&, pneu&, SchGr%, j&, jj%, rAf&, Puls$, Bem$, ErrNr&, ErrDes$ ' , rInh$, aktZeit As Date
  Dim meldTxt$
  Dim laborlangsam%
+ Dim ij&, rj& ' Laufvariable und zu befüllender Satz in rDM
+ '    Veriablen für die rDm-Befüllung:
+      Dim DMPArt%, uDat As Date, DokuDatum As Date, DruckDatum As Date, exportiert As Date
+      Dim testdat As Date
  laborlangsam = False
 abermals:
 '  fPtNr& = 68393  ' 69618 ' 63635 ' 67180 ' 63635 ' 64800 ' 69333 ' 68316 ' 65405 ' 45 ' 64659 ' 45 ' 69367 ' 69377 ' 53119 ' 51630 ' 105 ' 18 ' 246 ' 59152 ' 1394 ' 2112 ' 151 ' 225 '
@@ -1552,14 +1556,15 @@ abermals:
      For j = 0 To UBound(FaStr)
 '      If lfdfl = 1 Then
 '       Select Case FaStr(j).enr
-'        Case "3.2.2.2":        rNa(0).Versichertennummer = Trim$(FaStr(j).Text) ' Versichertennummer, s.o.
-'        Case "3.2.2.3.2":      rNa(0).GebDat = CDate(Format$(FaStr(j).Text, "####\.##\.##")), s.o.
-'        Case "3.2.2.3.3":      rNa(0).geschlecht = IIf(FaStr(j).Text = "2" Or FaStr(j).Text = "w", "w", IIf(FaStr(j).Text = "1" Or FaStr(j).Text = "m", "m", " ")), s.o.
-'        Case "3.2.2.3.6.2":    rNa(0).plz = FaStr(j).Text, s.o.
-'        Case "3.2.2.3.6.3":    rNa(0).ort = FaStr(j).Text, s.o.
-'        Case "3.2.2.3.6.4":    rNa(0).Lkz = FaStr(j).Text, s.o.
-'        Case "3.2.2.3.6.5":    rNa(0).Straße = FaStr(j).Text, s.o.
-'        Case "3.2.2.3.6.6"
+'        Case "3.2.2.2","1.3.2.2.2":          rNa(0).Versichertennummer = Trim$(FaStr(j).Text) ' Versichertennummer, s.o.
+'        Case "3.2.2.3.2","1.3.2.2.3.2":      rNa(0).GebDat = CDate(Format$(FaStr(j).Text, "####\.##\.##")), s.o.
+'        Case "3.2.2.3.3", "1.3.2.2.3.3":     rNa(0).geschlecht = IIf(FaStr(j).Text = "2" Or FaStr(j).Text = "w", "w", IIf(FaStr(j).Text = "1" Or FaStr(j).Text = "m", "m", " ")), s.o.
+'        case "1.3.2.2.3.5":                  <evtl. Bitfeld>
+'        Case "3.2.2.3.6.2","1.3.2.2.3.6.2":  rNa(0).plz = FaStr(j).Text, s.o.
+'        Case "3.2.2.3.6.3","1.3.2.2.3.6.3":  rNa(0).ort = FaStr(j).Text, s.o.
+'        Case "3.2.2.3.6.4","1.3.2.2.3.6.4":  rNa(0).Lkz = FaStr(j).Text, s.o.
+'        Case "3.2.2.3.6.5","1.3.2.2.3.6.5":  rNa(0).Straße = FaStr(j).Text, s.o.
+'        Case "3.2.2.3.6.6","1.3.2.2.3.6.6"
 '           rNa(0).Hausnr = FaStr(j).Text, s.o.
 '           If rNa(0).Hausnr <> "" Then rNa(0).Straße = rNa(0).Straße & " " & rNa(0).Hausnr, s.o.
 '       End Select ' FaStr(0).enr
@@ -1578,9 +1583,10 @@ abermals:
 '      case "2.7.6":         ' Ort
 '      case "2.8":           ' Geschlecht: "1" = männlich, "2" = weiblich
 '      case "2.9":           ' Vorsatzwort des Hauptversicherten
-       Case "3.2.2.3.4.4":    rFa(UBound(rFa)).Nachname = doUmwfSQL(FaStr(j).Text, True)
-       Case "3.2.2.3.4.3":    rFa(UBound(rFa)).Vorname = FaStr(j).Text
-       Case "3.2.2.4.2": ' Versicherungsschutzbeginn
+'         ' letzteres bei Pat. 70326:
+       Case "3.2.2.3.4.4", "1.3.2.2.3.4.4": rFa(UBound(rFa)).Nachname = doUmwfSQL(FaStr(j).Text, True)
+       Case "3.2.2.3.4.3", "1.3.2.2.3.4.3": rFa(UBound(rFa)).Vorname = FaStr(j).Text
+       Case "3.2.2.4.2", "1.3.2.2.4.2": ' Versicherungsschutzbeginn ' letzteres bei Pat. 70326
           If FaStr(j).Text Like "20######" Then
             On Error Resume Next
             rFa(UBound(rFa)).VschBeg = CDate(Format$(FaStr(j).Text, "####\.##\.##"))
@@ -1605,9 +1611,9 @@ abermals:
             On Error GoTo fehler
            End If
 '           rFa(UBound(rFa)).VschEnd = CDate(Left$(FaStr(j).Text, 4) & "." & Mid$(FaStr(j).Text, 5, 2) & "." & Mid$(FaStr(j).Text, 7, 2))
-        Case "3.2.2.4.4.4": ' ist wieder auf beiden gleich
+       Case "3.2.2.4.4.4": ' ist wieder auf beiden gleich
             rFa(UBound(rFa)).KKasse_2 = FaStr(j).Text
-      Case "3.2.2.5.4"        ' KV-Bereich, BDT 3116, wird nicht aus Turbomed übertragen
+       Case "3.2.2.5.4"        ' KV-Bereich, BDT 3116, wird nicht aus Turbomed übertragen
             rFa(UBound(rFa)).Kasse = FaStr(j).Text ' wird dann noch ergänzt unter 4.5
 '      Case "3.2.2.5.5":      ' Rechtskreis, BDT ?, 1 = normal, 9 = Ost, vermutlich nicht in Turbomed
        Case "3.2.2.5.6"
@@ -1618,25 +1624,24 @@ abermals:
            rFa(UBound(rFa)).bPerG = Right$(FaStr(j).Text, 1) ' besondere Personengruppe: MO: Kostenträger->Versicherungsdaten,Zusatzinformationen; Turbomed: Verwalten -> Allgemeine Behandlungsfalldaten
        Case "3.2.2.5.9"
            rFa(UBound(rFa)).DMPKnZ = Right$(FaStr(j).Text, 2) ' DMP-Klass: 00=-, 1=T2Dm, 2=Brustkr, 3=KHK, 4=T1Dm, 5=Asthma, 6=COPD, 7=Herzins, 8=Depr, 9=Rückensz, 10=Rheuma, 11=Osteoporose,
-       Case "3.2.4":
+       Case "3.2.4", "1.3.2.4":
             rNa(0).eGKSchVer = FaStr(j).Text ' CDM-Version, z.B. 5.1.0, 5.2.0
-       Case "3.2.5.2":        rFa(UBound(rFa)).DtlOnlPfg = BDTtoDateTime(Left$(FaStr(j).Text, 14))
-       Case "3.2.5.3":        rFa(UBound(rFa)).ErgbdOnlP = Asc(Left$(FaStr(j).Text, 1))
+       Case "3.2.5.2", "1.3.2.5.2": rFa(UBound(rFa)).DtlOnlPfg = BDTtoDateTime(Left$(FaStr(j).Text, 14))
+       Case "3.2.5.3", "1.3.2.5.3": rFa(UBound(rFa)).ErgbdOnlP = Asc(Left$(FaStr(j).Text, 1))
        Case "3.2.5.4":
                               buch = Mid$(FaStr(j).Text, 2)
                               If buch = "" Then buch = Chr$(0)
                               rFa(UBound(rFa)).ErrorCode = Asc(buch) * 256& + Asc(Mid$(FaStr(j).Text, 1)) ' Pat. 60726 ("G/")
-                              
-       Case "3.2.5.5":        rFa(UBound(rFa)).PrüfZdFd = FaStr(j).Text
+       Case "3.2.5.5", "1.3.2.5.5": rFa(UBound(rFa)).PrüfZdFd = FaStr(j).Text
        Case "3.3":            rNa(0).KarGen = FaStr(j).Text ' Kartentyp, 0, 2, 3
-       Case "3.4":
+       Case "3.4", "1.3.4": ' letzeres Pat. 70326
             rFa(UBound(rFa)).lVorl = stzk(FaStr(j).Text)
             rFa(UBound(rFa)).ausgst = rFa(UBound(rFa)).lVorl ' wird nachher ggf. von 10.7 überschrieben
 '            Call VorstellSetz(rFa(UBound(rFa)).lVorl)
-       Case "4.2":            rFa(UBound(rFa)).VKNr = FaStr(j).Text
-'       Case "4.3":             ' Kostenträgergruppe BDT 2018, in Turbomed nicht in der Falldatei
-       Case "4.4":            rFa(UBound(rFa)).KtrAbrB = Trim$(Left$(FaStr(j).Text, 2)) ' BDT 4106 unter 80000 Fällen fast immer 00, sonst 0, 00, 01, 06, 08, 1 und 2
-       Case "4.5":            rFa(UBound(rFa)).Kasse = Left$(FaStr(j).Text & Space$(27), 27) & " " & rFa(UBound(rFa)).Kasse
+       Case "4.2", "1.4.2":   rFa(UBound(rFa)).VKNr = FaStr(j).Text ' letzeres Pat. 70326
+'       Case "4.3", "1.4.3": ' Kostenträgergruppe BDT 2018, in Turbomed nicht in der Falldatei
+       Case "4.4", "1.4.4":   rFa(UBound(rFa)).KtrAbrB = Trim$(Left$(FaStr(j).Text, 2)) ' BDT 4106 unter 80000 Fällen fast immer 00, sonst 0, 00, 01, 06, 08, 1 und 2
+       Case "4.5", "1.4.5":   rFa(UBound(rFa)).Kasse = Left$(FaStr(j).Text & Space$(27), 27) & " " & rFa(UBound(rFa)).Kasse ' letzters bei Pat. 70326
        Case "4.6":            If Trim$(FaStr(j).Text) = "1" Then rFa(UBound(rFa)).UnfFlg = "1"
        Case "4.7":            rFa(UBound(rFa)).AbrGb = Format$(FaStr(j).Text, String(2, "0"))
 '                   If FaStr(j).Text <> "7" Then Stop
@@ -1682,16 +1687,16 @@ abermals:
 '       Case "8"                ' immer Ascii 4, auf szn4 und wser
 '       Case "9.2"              ' immer "0", auf szn4 und wser
 '       Case "9.8"              ' immer "0", auf szn4 und wser
-       Case "10.2"
+       Case "10.2", "1.10.2" ' letzteres bei Pat. 70326
            rFa(UBound(rFa)).ÜbWVBSNR = FaStr(j).Text ' Überweiser
-       Case "10.3"
+       Case "10.3", "1.10.3"
            rFa(UBound(rFa)).ÜWZiel = FaStr(j).Text
-       Case "10.4"
+       Case "10.4", "1.10.4"
            rFa(UBound(rFa)).ÜbwLANR = FaStr(j).Text
            rFa(UBound(rFa)).ÜbWVLANR = FaStr(j).Text
        Case "10.5" ' <BSNR>#<LANR>#<epraxis.fsurogat>#<earzt.fsurogat>
              ' Feld kommt aber auf wser nur einmal vor und auf szn4 nur viermal
-       Case "10.6"
+       Case "10.6", "1.10.6"
             Dim han$, hav$, hatit$, hapos%
             hapos = InStr(FaStr(j).Text, "med.")
             If hapos <> 0 Then han = Trim$(Mid$(FaStr(j).Text, hapos + 4)): hatit = Left$(FaStr(j).Text, hapos + 4) Else han = FaStr(j).Text: hatit = ""
@@ -1700,13 +1705,13 @@ abermals:
             rFa(UBound(rFa)).ÜWNaN = han
             rFa(UBound(rFa)).ÜWTit = hatit
             rFa(UBound(rFa)).ÜWVor = hav
-       Case "10.7" ' Ausstellungsdatum
+       Case "10.7", "1.10.7" ' Ausstellungsdatum
            rFa(UBound(rFa)).ausgst = stzk(FaStr(j).Text)
 '           Debug.Print "rFa " & FaStr(j).ENr & ": " & stzk(FaStr(j).Text)
-       Case "10.8": rFa(UBound(rFa)).Verdacht = doUmwfSQL(FaStr(j).Text, True)
-       Case "10.9": rFa(UBound(rFa)).Auftrag = doUmwfSQL(FaStr(j).Text, True)
+       Case "10.8", "1.10.8": rFa(UBound(rFa)).Verdacht = doUmwfSQL(FaStr(j).Text, True)
+       Case "10.9", "1.10.9": rFa(UBound(rFa)).Auftrag = doUmwfSQL(FaStr(j).Text, True)
 '       Case "10.10"   ' kommt selten vor, immer "0"
-       Case "10.13": rFa(UBound(rFa)).Befund = doUmwfSQL(FaStr(j).Text, True)
+       Case "10.13", "1.10.13": rFa(UBound(rFa)).Befund = doUmwfSQL(FaStr(j).Text, True)
 '       Case "13"      ' immer  Ascii 2
 '       Case "14"      ' kommt selten vor, Ascii 1 oder 4
 '       Case "15"      ' kommt selten vor, Datum in der Nähe der Behandlungsdaten stzk(, Bedeutung konnte ich nicht ermitteln
@@ -1896,140 +1901,158 @@ sql = sql & _
 '     If rseiru = 3 Then Stop
      Call ParseMemo(rsEi!bfmemo, FMem(), obDebug, "FMemo aus beschein") ' Pat. 59535, rseiru 298: FMem kann danach auch leer bleiben!
     End If ' rsEi!BFMemo <> ""
+    'dmpreihe (1); Doppeleinträge gemäß Index "eindeutig" vermeiden
     If rsEi!obdr Then
-       ReDim Preserve rDm(UBound(rDm) + 1)
-       rDm(UBound(rDm)).aktZeit = aktZeit
-       rDm(UBound(rDm)).Pat_ID = pid
-'       pos = InStr(rsEi!FText, "#")
-'       If pos > 0 Then rDm(UBound(rDm)).Abk = Left$(rsEi!FText, pos - 1)
-       rDm(UBound(rDm)).art = IIf(InStrB(rsEi!FText, "Erst"), "ED", "FD")
-       rDm(UBound(rDm)).Abk = rsEi!FText
-       rDm(UBound(rDm)).Ok = rsEi!lFSt
-'       rDm(UBound(rDm)).ausgedruckt = IIf(InStrB(rsEi!erg, "ausgedruckt"), 1, 0)
-'       pos = 1
-'       Do
-'        pneu = InStr(pos + 1, rsEi!erg, "exportiert am")
-'        If pneu = 0 Then Exit Do Else pos = pneu
-'       Loop
-'       If pos > 1 Then rDm(UBound(rDm)).exportiert = CDate(Mid$(rsEi!erg, pos + 14, 10))
-       rDm(UBound(rDm)).KarteiDatum = CDate(rsEi!Zp)
-       rDm(UBound(rDm)).DokuDatum = rDm(UBound(rDm)).KarteiDatum
-'       rDm(UBound(rDm)).obvoll = IIf(InStrB(rsEi!erg, "vollständig"), 1, 0)
-'       rDm(UBound(rDm)).Ok = IIf(InStrB(rsEi!erg, "(ok"), 1, 0)
-'       rDm(UBound(rDm)).lanrid = rsEi!farztnr
-       Select Case rsEi!FLstgerbnr
-        Case 2: rDm(UBound(rDm)).lanrid = 1 ' Schade
-        Case 3: rDm(UBound(rDm)).lanrid = 2 ' Kothny
-        Case 4: rDm(UBound(rDm)).lanrid = 5 ' Hammerschmidt
-        Case Else: rDm(UBound(rDm)).lanrid = 4 ' unbek
-       End Select
-       rDm(UBound(rDm)).Nachname = rNa(0).Nachname
-       rDm(UBound(rDm)).Vorname = rNa(0).Vorname
-       rDm(UBound(rDm)).GebDat = rNa(0).GebDat
-       Dim testdat As Date
-       Debug.Print rsEi!FText
+      DMPArt = 0
+      uDat = 0
+      DokuDatum = 0
+      DruckDatum = 0
+      exportiert = 0
+      testdat = 0
+'       Debug.Print rsEi!FText
        If SafeArrayGetDim(FMem) <> 0 Then
         If rsEi!obdmr <> 0 Then
          If rsEi!obt2r <> 0 Then ' Typ 2
-          rDm(UBound(rDm)).DMPArt = 2
+          DMPArt = 2
           For j = 0 To UBound(FMem)
            Select Case FMem(j).ENr
             Case "75": ' vermutlich Formularversion
-                rDm(UBound(rDm)).uDat = stzk(FMem(j).Text)
+                uDat = stzk(FMem(j).Text)
             Case "96": ' bei Typ 1: 6
                 If Not Len(FMem(j).Text) = 1 And Asc(FMem(j).Text) = 1 Then
-                   rDm(UBound(rDm)).DokuDatum = stzk(FMem(j).Text)
+                   DokuDatum = stzk(FMem(j).Text)
                 End If
 '           Case "121":
 '                Stop
             Case "117", "118", "137" ' bei Typ 1: 91
                 testdat = stzk(FMem(j).Text)
-                If testdat Then rDm(UBound(rDm)).Druckdatum = testdat
+                If testdat Then DruckDatum = testdat
             Case "119", "120", "139" ' ' bei Typ 1: 104
                 testdat = stzk(FMem(j).Text)
-                If testdat Then rDm(UBound(rDm)).exportiert = testdat
+                If testdat Then exportiert = testdat
            End Select
           Next j
          Else ' rsEi!obt2r <> 0 Then: Typ 1
-          rDm(UBound(rDm)).DMPArt = 1
+          DMPArt = 1
           For j = 0 To UBound(FMem)
            Select Case FMem(j).ENr
             Case "4" ' vermutlich Formularversion, bei Typ 1: 4
-                 rDm(UBound(rDm)).uDat = stzk(FMem(j).Text)
+                 uDat = stzk(FMem(j).Text)
             Case "6"
                 If Not Len(FMem(j).Text) = 1 And Asc(FMem(j).Text) = 1 Then
-                   rDm(UBound(rDm)).DokuDatum = stzk(FMem(j).Text)
+                   DokuDatum = stzk(FMem(j).Text)
                 End If
 '           Case "121":
 '                Stop
             Case "91"
                 testdat = stzk(FMem(j).Text)
-                If testdat Then rDm(UBound(rDm)).Druckdatum = testdat
+                If testdat Then DruckDatum = testdat
             Case "104"
                 testdat = stzk(FMem(j).Text)
-                If testdat Then rDm(UBound(rDm)).exportiert = testdat
+                If testdat Then exportiert = testdat
            End Select
           Next j
          End If ' rsEi!obt2r <> 0 Then
         ElseIf rsEi!obKHr <> 0 Then 'koronare Herz
-         rDm(UBound(rDm)).DMPArt = 3
+         DMPArt = 3
          For j = 0 To UBound(FMem)
           Select Case FMem(j).ENr
            Case "4": ' vermutlich Formularversion
-                rDm(UBound(rDm)).uDat = stzk(FMem(j).Text)
+                uDat = stzk(FMem(j).Text)
            Case "19":
                 If Not Len(FMem(j).Text) = 1 And Asc(FMem(j).Text) = 1 Then
-                   rDm(UBound(rDm)).DokuDatum = stzk(FMem(j).Text)
+                   DokuDatum = stzk(FMem(j).Text)
                 End If
 '         Case "121":
 '                Stop
            Case "66":
-                rDm(UBound(rDm)).Druckdatum = stzk(FMem(j).Text)
+                DruckDatum = stzk(FMem(j).Text)
            Case "72" ' , "91":
 '                If IsDate(stzk(FMem(j).Text)) Then
-                  rDm(UBound(rDm)).exportiert = stzk(FMem(j).Text)
+                  exportiert = stzk(FMem(j).Text)
 '                End If
           End Select
          Next j
         ElseIf rsEi!obcor <> 0 Then ' COPD
-         rDm(UBound(rDm)).DMPArt = 4
+         DMPArt = 4
          For j = 0 To UBound(FMem)
           Select Case FMem(j).ENr
            Case "4": ' vermutlich Formularversion
-                rDm(UBound(rDm)).uDat = stzk(FMem(j).Text)
+                uDat = stzk(FMem(j).Text)
            Case "9":
                 If Not Len(FMem(j).Text) = 1 And Asc(FMem(j).Text) = 1 Then
-                   rDm(UBound(rDm)).DokuDatum = stzk(FMem(j).Text)
+                   DokuDatum = stzk(FMem(j).Text)
                 End If
 ' Rest muss noch überprüft werden
           End Select
          Next j
         ElseIf rsEi!obasr Then ' Asthma
-         rDm(UBound(rDm)).DMPArt = 5
+         DMPArt = 5
          For j = 0 To UBound(FMem)
           Select Case FMem(j).ENr
            Case "4": ' vermutlich Formularversion
-                rDm(UBound(rDm)).uDat = stzk(FMem(j).Text)
+                uDat = stzk(FMem(j).Text)
            Case "13":
                 If Not Len(FMem(j).Text) = 1 And Asc(FMem(j).Text) = 1 Then
-                   rDm(UBound(rDm)).DokuDatum = stzk(FMem(j).Text)
+                   DokuDatum = stzk(FMem(j).Text)
                 End If
 ' Rest muss noch überprüft werden
           End Select
          Next j
         ElseIf rsEi!obhir Then ' Herzinsuffizienz
-         rDm(UBound(rDm)).DMPArt = 6
+         DMPArt = 6
 ' muss noch überprüft werden
         ElseIf rsEi!obrsr Then ' Rückenschmerz
-         rDm(UBound(rDm)).DMPArt = 7
+         DMPArt = 7
 ' muss noch überprüft werden
         ElseIf rsEi!obbkr Then ' Brustkrebs
-         rDm(UBound(rDm)).DMPArt = 8
+         DMPArt = 8
 ' muss noch überprüft werden (4 gibts)
         Else
          Debug.Print "noch was anderes"
         End If
        End If ' SafeArryGetDim(FMem)
+    
+       For ij = 1 To UBound(rDm) ' um dem eindeutigen Index gerecht zu werden
+        If rDm(ij).Pat_ID = pid And rDm(ij).DMPArt = DMPArt And rDm(ij).DokuDatum = DokuDatum Then
+         rj = ij
+         GoTo gefunden
+        End If
+       Next ij
+       rj = UBound(rDm) + 1
+       ReDim Preserve rDm(rj)
+       rDm(rj).Pat_ID = pid
+       rDm(rj).DMPArt = DMPArt
+       rDm(rj).DokuDatum = DokuDatum
+gefunden:
+       rDm(rj).aktZeit = aktZeit
+       rDm(rj).Pat_ID = pid
+'       pos = InStr(rsEi!FText, "#")
+'       If pos > 0 Then rDm(rj).Abk = Left$(rsEi!FText, pos - 1)
+       rDm(rj).art = IIf(InStrB(rsEi!FText, "Erst"), "ED", "FD")
+       rDm(rj).Abk = rsEi!FText
+       rDm(rj).Ok = rsEi!lFSt
+'       rDm(rj).ausgedruckt = IIf(InStrB(rsEi!erg, "ausgedruckt"), 1, 0)
+'       pos = 1
+'       Do
+'        pneu = InStr(pos + 1, rsEi!erg, "exportiert am")
+'        If pneu = 0 Then Exit Do Else pos = pneu
+'       Loop
+'       If pos > 1 Then rDm(rj).exportiert = CDate(Mid$(rsEi!erg, pos + 14, 10))
+       rDm(rj).KarteiDatum = CDate(rsEi!Zp)
+       rDm(rj).DokuDatum = rDm(rj).KarteiDatum
+'       rDm(rj).obvoll = IIf(InStrB(rsEi!erg, "vollständig"), 1, 0)
+'       rDm(rj).Ok = IIf(InStrB(rsEi!erg, "(ok"), 1, 0)
+'       rDm(rj).lanrid = rsEi!farztnr
+       Select Case rsEi!FLstgerbnr
+        Case 2: rDm(rj).lanrid = 1 ' Schade
+        Case 3: rDm(rj).lanrid = 2 ' Kothny
+        Case 4: rDm(rj).lanrid = 5 ' Hammerschmidt
+        Case Else: rDm(rj).lanrid = 4 ' unbek
+       End Select
+       rDm(rj).Nachname = rNa(0).Nachname
+       rDm(rj).Vorname = rNa(0).Vorname
+       rDm(rj).GebDat = rNa(0).GebDat
     ElseIf rsEi!obRezE Then ' Rezepteintrag
      ReDim Preserve rRe(UBound(rRe) + 1)
      rRe(UBound(rRe)).aktZeit = aktZeit
@@ -2516,56 +2539,70 @@ fgefunden:
 '      rRr(UBound(rRr)).Bemerkung = Bem
 '      If IsNumeric(Puls) Then rRr(UBound(rRr)).Puls = Puls
      Case Else ' dmpreihe, Eintraege
-     'dmpreihe
+     'dmpreihe (2); Doppeleinträge gemäß Index "eindeutig" vermeiden
+      DMPArt = 0
       If (rsEi!FIcdcode Like "*dmp*" And rsEi!FIcdcode <> "DMPERG") Or _
       (UCase$(art) = "TEXT" And InStrB(rsEi!Wert, "dokumentation") <> 0 And InStrB(rsEi!FText, "dmp") <> 0) Then
-       ReDim Preserve rDm(UBound(rDm) + 1)
        Select Case rsEi!art
-        Case "DMPDTYP1", "EDMPDM1": rDm(UBound(rDm)).DMPArt = 1
-        Case "DMPDTYP2", "EDMPDM2": rDm(UBound(rDm)).DMPArt = 2
-        Case "DMPKHK", "EDMPKHK": rDm(UBound(rDm)).DMPArt = 3
-        Case "EDMPCOPD": rDm(UBound(rDm)).DMPArt = 4
-        Case "EDMPAB": rDm(UBound(rDm)).DMPArt = 5
-        Case "DMPKHK": rDm(UBound(rDm)).DMPArt = 3
-        Case "DMPKHK": rDm(UBound(rDm)).DMPArt = 3
+        Case "DMPDTYP1", "EDMPDM1": DMPArt = 1
+        Case "DMPDTYP2", "EDMPDM2": DMPArt = 2
+        Case "DMPKHK", "EDMPKHK": DMPArt = 3
+        Case "EDMPCOPD": DMPArt = 4
+        Case "EDMPAB": DMPArt = 5
+        Case "DMPKHK": DMPArt = 3
+        Case "DMPKHK": DMPArt = 3
        End Select
-       rDm(UBound(rDm)).aktZeit = aktZeit
-       rDm(UBound(rDm)).Pat_ID = pid
+       
+       For ij = 1 To UBound(rDm) ' um dem eindeutigen Index gerecht zu werden
+        If rDm(ij).Pat_ID = pid And rDm(ij).DMPArt = DMPArt And rDm(ij).DokuDatum = messDatum Then
+         rj = ij
+         GoTo gef2
+        End If
+       Next ij
+       rj = UBound(rDm) + 1
+       ReDim Preserve rDm(rj)
+       rDm(rj).Pat_ID = pid
+       rDm(rj).DMPArt = DMPArt
+       rDm(rj).DokuDatum = DokuDatum
+gef2:
+       rDm(rj).aktZeit = aktZeit
+       rDm(rj).Pat_ID = pid
        
        If rsEi!FIcdcode Like "*dmp*" And rsEi!FIcdcode <> "DMPERG" Then
 '        Debug.Print rsEi!ficdcode, rsEi!Wert
-        rDm(UBound(rDm)).Abk = art
-        If InStrB(rsEi!Wert, "Erst") Then rDm(UBound(rDm)).art = "ED" Else rDm(UBound(rDm)).art = "FD"
-        rDm(UBound(rDm)).exportiert = CDate(rsEi!Exp)
-        rDm(UBound(rDm)).DokuDatum = messDatum
-        rDm(UBound(rDm)).KarteiDatum = messDatum
-        rDm(UBound(rDm)).Ok = InStrB(rsEi!Wert, "(ok")
-        rDm(UBound(rDm)).ausgedruckt = InStrB(rsEi!Wert, "ausgedruckt")
+        rDm(rj).Abk = art
+        If InStrB(rsEi!Wert, "Erst") Then rDm(rj).art = "ED" Else rDm(rj).art = "FD"
+        rDm(rj).exportiert = CDate(rsEi!Exp)
+        rDm(rj).DokuDatum = messDatum
+        rDm(rj).KarteiDatum = messDatum
+        rDm(rj).Ok = InStrB(rsEi!Wert, "(ok")
+        rDm(rj).ausgedruckt = InStrB(rsEi!Wert, "ausgedruckt")
        ElseIf UCase$(art) = "TEXT" And InStrB(rsEi!Wert, "dokumentation") <> 0 And InStrB(rsEi!FText, "dmp") <> 0 Then
         pos = InStr(rsEi!FArray, "#")
-        If pos > 0 Then rDm(UBound(rDm)).Abk = Left$(rsEi!FArray, pos - 1)
-        rDm(UBound(rDm)).art = IIf(InStrB(rsEi!FDet, "Erst"), "ED", "FD")
-        rDm(UBound(rDm)).ausgedruckt = IIf(InStrB(rsEi!FDet, "ausgedruckt"), 1, 0)
+        If pos > 0 Then rDm(rj).Abk = Left$(rsEi!FArray, pos - 1)
+        rDm(rj).art = IIf(InStrB(rsEi!FDet, "Erst"), "ED", "FD")
+        rDm(rj).ausgedruckt = IIf(InStrB(rsEi!FDet, "ausgedruckt"), 1, 0)
         pos = 1
         Do
          pneu = InStr(pos + 1, rsEi!FDet, "exportiert am")
          If pneu = 0 Then Exit Do Else pos = pneu
         Loop
-        If pos > 1 Then rDm(UBound(rDm)).exportiert = CDate(Mid$(rsEi!FDet, pos + 14, 10))
-        rDm(UBound(rDm)).KarteiDatum = CDate(rsEi!Zp)
-        rDm(UBound(rDm)).obvoll = IIf(InStrB(rsEi!FDet, "vollständig"), 1, 0)
-        rDm(UBound(rDm)).Ok = IIf(InStrB(rsEi!FDet, "(ok"), 1, 0)
- '       rDm(UBound(rDm)).lanrid = rsEi!farztnr
+        If pos > 1 Then rDm(rj).exportiert = CDate(Mid$(rsEi!FDet, pos + 14, 10))
+        rDm(rj).KarteiDatum = CDate(rsEi!Zp)
+        rDm(rj).obvoll = IIf(InStrB(rsEi!FDet, "vollständig"), 1, 0)
+        rDm(rj).Ok = IIf(InStrB(rsEi!FDet, "(ok"), 1, 0)
+ '       rDm(rj).lanrid = rsEi!farztnr
         Select Case rsEi!FLstgerbnr
-         Case 2: rDm(UBound(rDm)).lanrid = 1 ' Schade
-         Case 3: rDm(UBound(rDm)).lanrid = 2 ' Kothny
-         Case 4: rDm(UBound(rDm)).lanrid = 5 ' Hammerschmidt
-         Case Else: rDm(UBound(rDm)).lanrid = 4 ' unbek
+         Case 2: rDm(rj).lanrid = 1 ' Schade
+         Case 3: rDm(rj).lanrid = 2 ' Kothny
+         Case 4: rDm(rj).lanrid = 5 ' Hammerschmidt
+         Case Else: rDm(rj).lanrid = 4 ' unbek
         End Select
-        rDm(UBound(rDm)).Nachname = rNa(0).Nachname
-        rDm(UBound(rDm)).Vorname = rNa(0).Vorname
-        rDm(UBound(rDm)).GebDat = rNa(0).GebDat
+        rDm(rj).Nachname = rNa(0).Nachname
+        rDm(rj).Vorname = rNa(0).Vorname
+        rDm(rj).GebDat = rNa(0).GebDat
        End If ' rsEi!FIcdcode Like "*dmp*" And rsEi!FIcdcode <> "DMPERG" Then else
+       
       Else ' (rsEi!FIcdcode Like "*dmp*" And rsEi!FIcdcode <> "DMPERG") Or _
       (UCase$(art) = "TEXT" And InStrB(rsEi!Wert, "dokumentation") <> 0 And InStrB(rsEi!FText, "dmp") <> 0) Then
       ' Einträge

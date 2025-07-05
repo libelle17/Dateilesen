@@ -2054,7 +2054,7 @@ sql(AWlf) = sql(AWlf) & _
  sql(AWlf) = vbCrLf & _
  "SELECT insart,medikament,langname,pat_id FROM medarten mp WHERE insart=2 AND NOT ( " & vbCrLf & _
 "(medikament = 'Insulin 10' OR (langname REGEXP 'basal[^r]' OR langname LIKE '%basal') AND NOT langname LIKE '%rapid%') OR " & vbCrLf & _
-"langname REGEXP 'absag|abasa|suliq|lant|lev|phan|prot|tres|semgl|semil|touj|touej|tard|nph|nhp| sem |nacht((?!(mg/dl)).)*$|lan[tg][^e]|lanuts|lanus|lanctus|xult|verz|glarg|schwenk|nadel|tuj|abasa'" & vbCrLf & _
+"langname REGEXP 'absag|abasa|awi[qk]l[iy]|suliq|lant|lev|phan|prot|tres|semgl|semil|touj|touej|tard|nph|nhp| sem |nacht((?!(mg/dl)).)*$|lan[tg][^e]|lanuts|lanus|lanctus|xult|verz|glarg|schwenk|nadel|tuj|abasa'" & vbCrLf & _
 ");"
  mins(AWlf) = 10
  maxs(AWlf) = 80
@@ -2156,14 +2156,15 @@ AwN(AWlf) = "Möglicherweise fehlende Libre- bzw. CGM-Icons auf dem Patientendesk
 ";"
 sql(AWlf) = "" & _
 "SELECT n.pat_id PID, gesname(n.pat_id) PName" & vbCrLf & _
-", COALESCE((SELECT CONCAT(DATE(zeitpunkt),' ',LEFT(name,40)) FROM tmbrie WHERE pat_id=n.pat_id AND name RLIKE 'libre|dexcom|cgm|clarity|medtronic|care link|eversen' AND NOT name RLIKE 'cgm bmp' AND zeitpunkt> qanf() - INTERVAL 3 month ORDER BY qdm DESC LIMIT 1),'') Einles " & vbCrLf & _
-", COALESCE((SELECT CONCAT(DATE(zeitpunkt),' ',LEFT(feldinh,40)) FROM formular WHERE pat_id=n.pat_id AND form_abk='lar' AND feld='medikament' AND feldinh RLIKE 'Guardian|CGM StartSet|Enlite|Dexcom|Dexom|Eversen|CGM|Libre' AND zeitpunkt>qanf()-INTERVAL 3 MONTH ORDER BY zeitpunkt desc LIMIT 1),'') Rezept " & vbCrLf & _
+", COALESCE((SELECT CONCAT(DATE(zeitpunkt),' ',LEFT(name,80)) FROM tmbrie WHERE pat_id=n.pat_id AND name RLIKE 'libre|dexcom|cgm|clarity|medtronic|care link|eversen' AND NOT name RLIKE 'Ablehnung|Antrag|Gutachten|Widerspruch|Schreiben MD|barmer|cgm bmp' AND zeitpunkt> qanf() - INTERVAL 3 month ORDER BY qdm DESC LIMIT 1),'') Einles " & vbCrLf & _
+", COALESCE((SELECT CONCAT(DATE(zeitpunkt),' ',LEFT(feldinh,80)) FROM formular WHERE pat_id=n.pat_id AND form_abk='lar' AND feld='medikament' AND feldinh RLIKE 'Guardian|CGM StartSet|Enlite|Dexcom|Dexom|Eversen|CGM|Libre' AND zeitpunkt>qanf()-INTERVAL 3 MONTH ORDER BY zeitpunkt desc LIMIT 1),'') Rezept " & vbCrLf & _
 "FROM namen n" & vbCrLf & _
 "WHERE cgm=0 AND COALESCE(sdatum>19000101,0)=0 AND n.pat_id<>0" & vbCrLf & _
-"HAVING (einles<>'' OR Rezept<>'') "
+"HAVING (einles<>'' OR Rezept<>'')" & vbCrLf & _
+"ORDER BY n.pat_id"
 
  mins(AWlf) = 10
- maxs(AWlf) = 60
+ maxs(AWlf) = 100
  AWlf = AWlf + 1
 
 ' 58
@@ -2298,7 +2299,7 @@ AwN(AWlf) = "Unzufriedenstellende DMP-Klassifikation bei D.m. (vorher 17)"
 sql(AWlf) = _
 "SELECT Pat_ID,gesnameg(pat_id) Name,`Alter[a]`,Leistung,ICD, CASE WHEN dmpklass = 1 THEN 'nein' WHEN dmpklass = 2 THEN 'HA' WHEN dmpklass = 3 THEN 'hier' WHEN dmpklass = 4 THEN 'ausgeschrieben' ELSE '?' END `DMP`, Notiz,Kateg,SchGr,maxtha(pat_id)`max.Ther`,TherAkt,Ther1 FROM " & vbCrLf & _
 "(SELECT * FROM " & vbCrLf & _
-"(SELECT f.pat_id AS pat_id, gesnameg(f.pat_id) Name, DATEDIFF(" & qtAnf(FristS) & ", n.gebdat) div 365.24 `Alter[a]`, l.leistung AS Leistung, icd, dmpklass, REPLACE(REPLACE(notiz,char(13),''),char(10),'') Notiz, kateg, schgr, Therakt, Ther1  FROM " & aktf & " " & vbCrLf & _
+"(SELECT f.pat_id AS pat_id, gesnameg(f.pat_id) Name, DATEDIFF(" & qtAnf(FristS) & ", n.gebdat) div 365.24 `Alter[a]`, l.leistung AS Leistung, icd, dmpklass, REPLACE(REPLACE(notiz,char(13),''),char(10),'') Notiz, kateg, kl.name klname, schgr, Therakt, Ther1  FROM " & aktf & " " & vbCrLf & _
 "LEFT JOIN (SELECT fid,leistung FROM `leistungen` WHERE leistung IN (" & BetrPausch & ")) AS l ON f.fid = l.fid " & vbCrLf & _
 "LEFT JOIN `diagview` d ON (f.pat_id = d.pat_id AND d.obdauer <> 0) AND gicd RLIKE '^E1[0-4]\.' " & vbCrLf & _
 "LEFT JOIN `kassenliste` kl ON f.vknr = kl.vknr AND f.ik=kl.ik" & vbCrLf & _
@@ -2308,6 +2309,7 @@ sql(AWlf) = _
 "ORDER BY leistung DESC) AS innen GROUP BY pat_id) AS innen " & vbCrLf & _
 "WHERE dmpklass NOT IN (2,3,4) " & vbCrLf & _
 "AND NOT kateg IN ('LKK','PBe', 'SHV', '') " & vbCrLf & _
+"AND klname NOT RLIKE 'BKK SCHEUFELEN'" & vbCrLf & _
 "AND NOT ISNULL(icd)"
 maxs(AWlf) = 26
 AWlf = AWlf + 1
@@ -3070,8 +3072,9 @@ sql(AWlf) = "" & _
  ", COALESCE((SELECT GROUP_CONCAT(DISTINCT form_abk) frm FROM forminhkopf k  LEFT JOIN formulare fo ON k.Form_ID=fo.formid WHERE pat_id=f.pat_id AND zeitpunkt BETWEEN qanf() AND qend() AND form_abk NOT IN ('covze','covge')),'') Formulare" & vbCrLf & _
  "FROM aktfvs f" & vbCrLf & _
  "LEFT JOIN `faelle` fl USING (fid)" & vbCrLf & _
+ "LEFT JOIN namen n ON n.pat_id=f.pat_id" & vbCrLf & _
  "LEFT JOIN leistungen l ON l.pat_id = f.pat_id AND l.zeitpunkt BETWEEN qanf() AND qend() AND leistung IN ('03001','03002','03003','03004','03005','03011','03012','03013','03014','03015')" & vbCrLf & _
- "WHERE f.SchGr <> 41 AND f.VKNr <> 71800 AND fl.nachname not LIKE '%Bereitschaft%'" & vbCrLf & _
+ "WHERE f.SchGr <> 41 AND f.VKNr <> 71800 AND n.inaktiv<>4 AND fl.nachname NOT LIKE '%Bereitschaft%'" & vbCrLf & _
  "GROUP BY f.pat_id" & vbCrLf & _
  "HAVING (zahl<>0 AND (obRR=0 AND Einträge='' AND Impfeinträge<>'' AND Formulare='')) " & vbCrLf & _
  "    OR (zahl=0 AND (obRR<>0 OR Einträge<>'' OR Formulare<>''));" ' '03110', '03111', '03112', '03120', '03121', '03122'

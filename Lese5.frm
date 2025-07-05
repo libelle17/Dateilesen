@@ -420,7 +420,7 @@ Begin VB.MDIForm Lese
          Caption         =   "&Abrechnungsfehler"
       End
       Begin VB.Menu TUGListe 
-         Caption         =   "&TUGListe"
+         Caption         =   "T&UGListe"
       End
       Begin VB.Menu Barthelindexliste 
          Caption         =   "&Barthelindexliste"

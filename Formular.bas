@@ -6504,7 +6504,7 @@ Function getHausarzt1(infos$(), rFa() As Faelle, rKv() As kvnrue, Optional obHAP
    For mru = 0 To UBound(FMem)
     If FMem(mru).ENr = "3.4" Then
      üqu = ZQKurz(stzk(FMem(mru).Text))
-    ElseIf FMem(mru).ENr = "10.2" Then
+    ElseIf FMem(mru).ENr = "10.2" Or FMem(mru).ENr = "1.10.2" Then
      ebsnr = FMem(mru).Text
      If Not IsNumeric(ebsnr) Then GoTo weiter
       myFrag rHi, "SELECT FBezeichnung FBez, COALESCE(CONVERT(FAdresse USING latin1),'') FA, CONCAT(FAnrede,' Kolleg',IF(INSTR(FAnrede,'Frau')<>0,'in','e')) anrl, IF(INSTR(FAnrede,'Frau')<>0,'Frau','Herrn') anrk FROM epraxis WHERE FBetriebsnr='" & ebsnr & "'", adOpenStatic, MOCon
