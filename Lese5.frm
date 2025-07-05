@@ -4924,6 +4924,39 @@ Function FileJoin&(strFile1$, strFile2$)
     FileJoin = lFileLen
 End Function ' FileJoin
 
+' Beliebige Datei auslesen und
+' Inhalt als String zurückgeben
+Public Function ReadFile$(ByVal sFilename As String)
+#If entweder Then
+  Dim F%, zeile$
+  ' Prüfen, ob Datei existiert
+  If Dir$(sFilename, vbNormal) <> "" Then
+    ' Datei im Binärmodus öffnen
+    F = FreeFile: Open sFilename For Binary As #F
+    ' Größe ermitteln und Variable entsprechend
+    ' mit Leerzeichen füllen
+    ReadFile = Space$(LOF(F))
+    ' Gesamten Inhalt in einem "Rutsch" einlesen
+    Get #F, , ReadFile
+    ' Datei schliessen
+    Close #F
+  End If
+#ElseIf oder Then
+Dim FSO As FileSystemObject
+Dim TS As TextStream
+Dim TempS As String
+Set FSO = New FileSystemObject
+Set TS = FSO.OpenTextFile(sFilename, ForReading)
+'Use this for reading everything in one shot
+Final = TS.ReadAll
+'OR use this if you need to process each line
+Do Until TS.AtEndOfStream
+    TempS = TS.ReadLine
+Loop
+TS.Close
+#End If
+End Function ' Function ReadFile&(ByVal sFilename As String)
+
 ' in GNR_Statistiken_einl_Click
 Sub doGNR_Statistiken_einl_Click(Optional obneu = 0)
  Const XStra = "Provider=Microsoft.Jet.OLEDB.4.0;Data Source="
@@ -4951,6 +4984,104 @@ Sub doGNR_Statistiken_einl_Click(Optional obneu = 0)
   On Error GoTo fehler
   myEFrag "CREATE TABLE `" & GZahl & "` (id integer(10) auto_increment key, statid integer(10), gnr varchar(20), leigru varchar(10), punkte integer(5), euro DECIMAL(5,2), m integer(5), f integer(5), r integer(5), zahl integer(10), wert DECIMAL(9,2), uwert DECIMAL(9,2), min integer(10))", rAf
  End If
+ erg = Dir(Verz & "\gebstat*")
+ Dim datstr$
+ Dim pZeitr%, Dat0 As Date, Dat1 As Date, q0$, q1$
+ Do While erg <> ""
+  Debug.Print erg
+  datstr = REPLACE$(REPLACE$(erg, "gebstat ", ""), ".csv", "")
+  If IsDate(datstr) Then
+   q0 = QuartalStr$(CDate(datstr) - 21)
+   DateiDat = FileDateTime(Verz & "\" & erg)
+   Ausgeb erg & " " & DateiDat, True
+' kopiert von unten
+       Set rTest = Nothing
+       myFrag rTest, "SELECT id, dateidat FROM `" & GStat & "` WHERE qinv = '" & Mid$(q0, 2) & Left$(q0, 1) & "'"
+       If Not rTest.EOF Then
+        If rTest!DateiDat >= DateiDat Then ' nachher >=
+         GoTo überspring ' nur die jüngste Datei eintragen
+'         Exit Do ' nur die jüngste Datei eintragen
+        Else
+         myEFrag ("DELETE FROM `" & GZahl & "` WHERE statid = " & rTest!id)
+         myEFrag ("DELETE FROM `" & GStat & "` WHERE id = " & rTest!id)
+        End If
+       End If
+       InsKorr DBCn, "INSERT INTO `" & GStat & "` (datei,dateidat,qinv) VALUES ('" & UmwfSQL(Verz & "\" & erg) & "'," & DatFor_k(DateiDat) & ",'" & Mid$(q0, 2) & Left$(q0, 1) & "')", rAf
+       Set rTest = Nothing
+'       Set rTest = myEFrag("SELECT last_insert_id()")
+       Set rTest = myEFrag("SELECT id FROM `" & GStat & "` WHERE DATEI='" & UmwfSQL(Verz & "\" & erg) & "'")
+       statid = rTest.Fields(0)
+       If statid = 0 Then MsgBox "Fehler in doGNR_Statistiken_einl_Click: last_insert_id()=0"
+       doeintr = 1
+   
+   
+'   XCon.Open "Provider=Microsoft.Jet.OLEDB.4.0;Data Source=" & Verz & "\;Extended Properties=""text;HDR=Yes;FMT=Delimited(;)"""
+'   rEx.Open "select * from " & REPLACE$(erg, ".", "#") & "", XCon, adOpenKeyset, adLockOptimistic
+'   rEx.Open "select * from data.csv", XCon, adOpenKeyset, adLockOptimistic
+'   rEx.Open "select * from `" & rX.Tables(10).name & "`", XCon ' Hier Excel, nicht obmysql = 0!
+   Dim zeile$
+'   zeile = ReadFile(Verz & "\" & erg)
+    Dim FSO As FileSystemObject
+    Dim TS As TextStream
+    Dim arr$()
+    Set FSO = New FileSystemObject
+    Set TS = FSO.OpenTextFile(Verz & "\" & erg, ForReading) ' macht keine Zeilenabbrüche im Gegensatz zu input # ...
+    'Use this for reading everything in one shot
+    'Final = TS.ReadAll
+    'OR use this if you need to process each line
+    Dim znr&, gnrsp&, leigrsp&, pktsp&, eursp&, anzsp&, ztminsp&, lZahl&, meuro#, lstg$
+    znr = 0
+    Dim ta$, tb$
+    ta = "INSERT INTO `" & GZahl & "` (statid,"
+    tb = "VALUES"
+    Do Until TS.AtEndOfStream
+        zeile = TS.ReadLine
+        znr = znr + 1
+        SplitNeu zeile, ";", arr
+        Dim iru&, wt$
+        If znr > 1 Then
+         If znr > 2 Then tb = tb & ","
+         tb = tb & "(" & statid & ","
+        End If
+        For iru = 0 To UBound(arr)
+         wt = arr(iru)
+         If Left$(wt, 1) = """" And Right$(wt, 1) = """" Then wt = Mid$(wt, 2, Len(wt) - 2)
+         If znr = 1 Then
+          Select Case wt
+           Case "Gnr": gnrsp = iru: ta = ta & "gnr,"
+           Case "Leistungsgruppe": leigrsp = iru: ta = ta & "leigru,"
+           Case "Punktzahl": pktsp = iru: ta = ta & "punkte,"
+           Case "Einzelbetrag": eursp = iru: ta = ta & "euro,"
+           Case "Anzahl": anzsp = iru: ta = ta & "zahl,"
+           Case "Zeit_min": ztminsp = iru: ta = ta & "min,"
+          End Select
+         Else ' znr = 1 Then
+          Select Case iru
+           Case gnrsp: tb = tb & "'" & wt & "',": lstg = wt
+           Case leigrsp: tb = tb & "'" & wt & "',"
+           Case pktsp: tb = tb & "'" & REPLACE$(wt, ",", ".") & "',"
+           Case eursp: tb = tb & "'" & REPLACE$(wt, ",", ".") & "',": meuro = CDbl(wt)
+           Case anzsp: tb = tb & wt & ",": lZahl = CLng(wt)
+           Case ztminsp: tb = tb & wt & ","
+          End Select
+         End If ' znr = 1 Then
+'         Debug.Print wt
+        Next iru
+        If znr > 1 Then
+         tb = tb & "'" & REPLACE$(CStr(meuro * lZahl), ",", ".") & "',"
+         tb = tb & "'" & REPLACE$(CStr(IIf((meuro = 18.75 Or meuro = 19.05 Or meuro = 14.25) And Left$(lstg, 1) = "9", 75, meuro) * lZahl), ",", ".") & "')"
+        End If
+    Loop
+    TS.Close
+    ta = ta & "wert,uwert)"
+    InsKorr DBCn, ta & tb, rAf
+  Else
+   MsgBox erg & " falsch formatiert."
+  End If
+überspring:
+  erg = Dir
+ Loop
+ Exit Sub ' für Turbomed auskommentieren
  
  erg = Dir(Verz & "\GNR-Statistik*")
  If erg = "" Then
@@ -4975,7 +5106,6 @@ Sub doGNR_Statistiken_einl_Click(Optional obneu = 0)
    If Not IsNull(rEx.Fields(0)) Then
     F0 = rEx.Fields(0)
     If InStrB(F0, "Erstellt am") = 1 Then
-     Dim pZeitr%, Dat0 As Date, Dat1 As Date, q0$, q1$
      pZeitr = InStr(F0, "Zeitraum")
      If pZeitr <> 0 Then
       Dat0 = CDate(Mid$(F0, pZeitr + 11, 10))

@@ -4393,7 +4393,7 @@ sql(AWlf) = _
              "LEFT JOIN medarten m ON mp.medanfang = m.medikament " & vbCrLf & _
              " AND ((mp.zeitpunkt >= (SELECT MAX(zeitpunkt) FROM medplan WHERE zeitpunkt < " & qtAnf(FristS) & " AND pat_id = f.pat_id))  OR (SELECT MAX(zeitpunkt) FROM medplan WHERE zeitpunkt < " & qtAnf(FristS) & " AND pat_id = f.pat_id) IS NULL AND mp.zeitpunkt>=" & qtAnf(FristS) & ") " & vbCrLf & _
              " AND ((mp.zeitpunkt <  (SELECT MIN(zeitpunkt) FROM medplan WHERE zeitpunkt > " & qtEnd(FristS) & " AND pat_id = f.pat_id))  OR (SELECT MIN(zeitpunkt) FROM medplan WHERE zeitpunkt > " & qtEnd(FristS) & " AND pat_id = f.pat_id) IS NULL AND mp.zeitpunkt<=" & qtEnd(FristS) & ") " & vbCrLf & _
-             "LEFT JOIN leistungen l ON f.fid = l.fid AND l.leistung = '32015' " & vbCrLf & _
+             "LEFT JOIN leistungen l ON l.pat_id=f.pat_id AND l.zeitpunkt BETWEEN qanf() AND qend() AND l.leistung = '32015' " & vbCrLf & _
              "LEFT JOIN diagview d ON d.pat_id=f.pat_id AND d.gicd='Z92.1' AND d.obdauer<>0 " & vbCrLf & _
              "WHERE antikoag<>0 " & vbCrLf & _
              "GROUP BY f.pat_id" & vbCrLf & _
@@ -4787,7 +4787,7 @@ AWlf = AWlf + 1
             "LEFT JOIN eintraege adl ON v.pat_id=adl.pat_id AND adl.art IN('ADL','284')AND adl.zeitpunkt=(SELECT MAX(zeitpunkt) FROM eintraege WHERE pat_id = v.pat_id AND art IN('ADL','284'))" & vbCrLf & _
             "LEFT JOIN diagview dd ON v.pat_id = dd.pat_id AND dd.gicd RLIKE '^F0[0123]|^G20' " & vbCrLf & _
             "LEFT JOIN diagview pfld ON v.pat_id = pfld.pat_id AND (pfld.gicd IN ('Z74.9','G20.10','G20.20','R26.8','R29.6','R42','R32','R15','R13.9','R26.3','R41.0','R41.3','R41.8','R52.2','F45.41','G30.9','F29','F32.9','F69','F79.9','R63.4','R53','M62.50','R26.8','R68.8') OR pfld.gicd RLIKE '^F0[012]') " & vbCrLf & _
-            "LEFT JOIN leistungen l ON v.fid = l.fid  AND l.leistung = '03360' " & vbCrLf & _
+            "LEFT JOIN leistungen l ON l.pat_id=v.pat_id AND l.zeitpunkt BETWEEN qanf() AND qend() AND l.leistung = '03360' " & vbCrLf & _
             "LEFT JOIN leistungen lz ON v.pat_id = lz.pat_id AND lz.leistung = '03360' AND lz.zeitpunkt BETWEEN " & Khtsfl & " " & vbCrLf & _
             "WHERE (DATEDIFF(" & qtAnf(FristS) & ", n.GebDat) > 70 * 365 OR NOT ISNULL(dd.ICD)) " & vbCrLf & _
             "AND NOT ISNULL(tug.inhalt) AND NOT ISNULL(adl.inhalt) " & vbCrLf & _
@@ -4815,7 +4815,7 @@ AWlf = AWlf + 1
             "LEFT JOIN eintraege adl ON v.pat_id = adl.pat_id AND adl.art IN('ADL','284') AND adl.zeitpunkt = (SELECT MAX(zeitpunkt) FROM eintraege WHERE pat_id = v.pat_id AND art IN('ADL','284'))" & vbCrLf & _
             "LEFT JOIN diagview dd ON v.pat_id = dd.pat_id AND dd.gicd RLIKE '^F0[0-3]|G20' " & vbCrLf & _
             "LEFT JOIN diagview pfld ON v.pat_id = pfld.pat_id AND (pfld.gicd IN ('Z74.9','G20.10','G20.20','R26.8','R29.6','R42','R32','R15','R13.9','R26.3','R41.0','R41.3','R41.8','R52.2','F45.41','G30.9','F29','F32.9','F69','F79.9','R63.4','R53','M62.50','R26.8','R68.8') OR pfld.gicd RLIKE '^F0[0-3]') " & vbCrLf & _
-            "LEFT JOIN leistungen l ON v.fid = l.fid  AND l.leistung = '03360' " & vbCrLf & _
+            "LEFT JOIN leistungen l ON l.pat_id=v.pat_id AND l.zeitpunkt BETWEEN qanf() AND qend() AND l.leistung = '03360' " & vbCrLf & _
             "WHERE (DATEDIFF(" & qtAnf(FristS) & ", n.GebDat) > 70 * 365 OR NOT ISNULL(dd.ICD)) " & vbCrLf & _
             "AND NOT ISNULL(tug.inhalt) AND NOT ISNULL(adl.inhalt) " & vbCrLf & _
             "AND NOT ISNULL(l.leistung) " & vbCrLf & _
@@ -6783,7 +6783,7 @@ Private Sub Start_Click()
 End Sub ' Start_Click()
 
 Private Sub tuStart_click(obauto%)
- Dim lfSQL$, i&, StartZeit As Date, Überschrift As New CString
+ Dim lfSQL$, i&, StartZeit As Date, überschrift As New CString
  Static rc As New ADODB.Connection
  Dim rLF As ADODB.Recordset, rIn As ADODB.Recordset
  StartZeit = Now()
@@ -6798,7 +6798,7 @@ Private Sub tuStart_click(obauto%)
  
  AbrFlrDt = tAusgSg + "_" & AktQ & "_" & Format(Now, "yyyy-mm-dd.hh.mm.ss") & ".txt"
  AbrAutDt = AbrVerz & "\Abrechnungsprotokoll_" & AktQ & "_" & Format(Now, "yyyy-mm-dd.hh.mm.ss") & ".txt"
- Überschrift.AppVar Array("Abrechnungsfehler für Quartal ", AktQ, ", ODBC-Verbindung:", Lese.dbv.Constr, vbCrLf)
+ überschrift.AppVar Array("Abrechnungsfehler für Quartal ", AktQ, ", ODBC-Verbindung:", Lese.dbv.Constr, vbCrLf)
 ' Open AbrFlrDt For Output AS #359
 ' Print #359, "Abrechnungsfehler für Quartal " & aktQ
 
@@ -6824,7 +6824,7 @@ Private Sub tuStart_click(obauto%)
  For AWlf = 1 To .Rows - 1
   If sql(AWlf - 1) = "ü" Then ' Zwischenüberschrift
   ElseIf .TextMatrix(AWlf, 1) = "X" And sql(AWlf - 1) <> "-" Then
-    Do While Not AbrFausg(Str(AWlf - 1) & ". " & AwN(AWlf - 1), REPLACE$(dowr(sql(AWlf - 1)), vbLf, " "), obmo(AWlf - 1), AbrFlrDt, mins(AWlf - 1), maxs(AWlf - 1), Überschrift, obappend, AWlf - 1, obauto, angefangen, BDT)
+    Do While Not AbrFausg(Str(AWlf - 1) & ". " & AwN(AWlf - 1), REPLACE$(dowr(sql(AWlf - 1)), vbLf, " "), obmo(AWlf - 1), AbrFlrDt, mins(AWlf - 1), maxs(AWlf - 1), überschrift, obappend, AWlf - 1, obauto, angefangen, BDT)
      Dim altAWlf%
      altAWlf = AWlf
      MsgBox "Stop in Start_Click" & vbCrLf & "AWlf: " & AWlf
@@ -6832,7 +6832,7 @@ Private Sub tuStart_click(obauto%)
      Call ZeigSQL(obauto)
      AWlf = altAWlf
     Loop
-    Überschrift = vNS
+    überschrift = vNS
     obappend = True
   End If
   DoEvents
@@ -6971,10 +6971,10 @@ fehler:
 End Sub ' SizeColumns
 
 ' aufgerufen in tuStart_Click
-Public Function AbrFausg(name$, sql$, obmo%, Datei$, mins%, ByVal maxs%, Überschrift As CString, obappend%, sqlnr%, obauto%, ByRef angefangen%, ByRef BDT As BDTSchreib) ' Abrechnungsfehler ausgeben
+Public Function AbrFausg(name$, sql$, obmo%, Datei$, mins%, ByVal maxs%, überschrift As CString, obappend%, sqlnr%, obauto%, ByRef angefangen%, ByRef BDT As BDTSchreib) ' Abrechnungsfehler ausgeben
  Dim ÜberschrAkt As New CString
  Dim ErrNr&, ErrDes$
- ÜberschrAkt = Überschrift
+ ÜberschrAkt = überschrift
  On Error GoTo fehler
  Dim T1!
  Static rc As New ADODB.Connection
@@ -7026,10 +7026,10 @@ Public Function AbrFausg(name$, sql$, obmo%, Datei$, mins%, ByVal maxs%, Übersch
   Err.Clear
 '  rE.Open sql, rc, adOpenStatic, adLockReadOnly ' 24.6.09: Hier ging der Kontakt zum Server verloren, evtl. Zufall
   On Error GoTo fehler
-  Dim rAf&
+  Dim rAF&
   rc.Close
   rc.Open
-  myFrag rE, sql, adOpenStatic, rc, adLockReadOnly, maxs, rAf, True, ErrNr, ErrDes
+  myFrag rE, sql, adOpenStatic, rc, adLockReadOnly, maxs, rAF, True, ErrNr, ErrDes
   ' Listen mit (lauto)
   If obauto Then
    Dim lanrda%, leida%, ldda%, pda%, i%, Arztnr&, Zahl&, Protdat$
