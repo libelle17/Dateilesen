@@ -1,0 +1,236 @@
+﻿SELECT * FROM (
+	SELECT PID, Name, (SELECT DATE(MAX(zeitpunkt)) FROM eintraege WHERE pat_id=PID AND art IN ('dakap','dakluts','daknp')) ezp, LeiAend, DAend,
+	IF(dnr=dsnr OR dnr='7' OR (dsnr='9' AND dnr IN ('0','1','3','8')),'',CONCAT(IF(dsnr='9','(',''),left(dicd,4),dsnr,IF(dsnr='7',IF(ficd='','3','5'),'1'),' statt ',dicd,IF(dsnr='9',')',''))) nicd
+	,Makro
+	FROM (
+		SELECT PID, Name, ezp, IF(left(leiaend,2)=', ',MID(LeiAend,3),LeiAend) LeiAend,
+																				IF(left(daend,2)=', ',MID(DAend,3),DAend) DAend,dicd,dnr,ficd
+		, CASE WHEN obnp+oblu+obap+obfl+obne>1 THEN '7'
+									WHEN obnp OR oblu THEN '4'
+									WHEN obap THEN '5'
+									WHEN obfl THEN '6'
+									WHEN obne THEN '2'
+									ELSE '9' END dsnr
+		, Makro FROM (
+			SELECT pat_id PID, gesname(pat_id) Name,ezp,dicd,dnr,ficd
+-- dakab, dakzp,dakres,
+-- , nped, npvdzp, npvd, npad, npvl, Schwt, nplz, npkl, npal,npasl,npsl
+-- , lued, luvdzp, luvd, luad, luvl, LuFr, lulz, lukl, lual, lusl
+-- , aped, apd2, apvdzp, apvd, apad, apvl, Apt, aplz, apkl, apal, apsl
+-- , fled, flvdzp, flvd, flad, flvl, FlFr, fllz, flkl, flal, flsl
+-- , need, nevdzp, nevd, nead, nevl, neerg, nelz, nekl, neal, nesl
+			, CONCAT(
+					CASE WHEN npal<>npsl then
+							CASE WHEN npal='' THEN CONCAT(npsl,' dazu')
+												WHEN npsl='' THEN CONCAT(npal,' weg')
+												ELSE CONCAT(npsl,' statt ',npal)
+							END
+					ELSE ''
+					END
+					, CASE WHEN npvl<>'97562' AND schwt<>'' AND npasl='' THEN ', 97563 dazu'
+															WHEN (npvl='97562' OR schwt='') AND npasl<>'' THEN ', 97563 weg'
+															ELSE ''
+					END
+			, CASE WHEN lual<>lusl then
+							CASE WHEN lual='' THEN CONCAT(', ',lusl,' dazu')
+												WHEN lusl='' THEN CONCAT(', ',lual,' weg')
+												ELSE CONCAT(', ',lusl,' statt ',lual)
+							END
+					ELSE ''
+					END
+			, CASE WHEN apal<>apsl then
+							CASE WHEN apal='' THEN CONCAT(', ',apsl,' dazu')
+												WHEN apsl='' THEN CONCAT(', ',apal,' weg')
+												ELSE CONCAT(', ',apsl,' statt ',apal)
+							END
+					ELSE ''
+					END
+			, CASE WHEN flal<>flsl then
+							CASE WHEN flal='' THEN CONCAT(', ',flsl,' dazu')
+												WHEN flsl='' THEN CONCAT(', ',flal,' weg')
+												ELSE CONCAT(', ',flsl,' statt ',flal)
+							END
+					ELSE ''
+					END
+			, CASE WHEN neal<>nesl then
+							CASE WHEN neal='' THEN CONCAT(', ',nesl,' dazu')
+												WHEN nesl='' THEN CONCAT(', ',neal,' weg')
+												ELSE CONCAT(', ',nesl,' statt ',neal)
+							END
+					ELSE ''
+					END
+					) LeiAend
+			, CONCAT(
+					IF((npvl IN ('97561','97562') OR npsl IN ('97561','97562') OR nperg=2) AND npvd='' AND npad='','G63.2 dazu','')
+			, IF((luvl IN ('97571','97572') OR lusl IN ('97571','97572') OR luerg=2) AND luvd='' AND luad='',', N31.1 dazu','')
+			, CONCAT(IF((apvl IN ('97581','97582') OR apsl IN ('97581','97582') OR aperg=2) AND apvd='' AND apad='',', I79.2 dazu','')
+											,IF((apvd<>'' OR apad<>'') AND apd2='',', I70.2 dazu',''))
+			, IF((flvl IN ('97591','97592') OR flsl IN ('97591','97592') OR flerg=2) AND flvd='' AND flad='',', K77.8 dazu','')
+			, IF((nevl IN ('97601','97602') OR nesl IN ('97601','97602') OR neerg=2) AND nevd='' AND nead='',CONCAT(', ',nesd,' dazu'),'')
+					) DAend
+			, IF((npvl IN ('97561','97562') OR npsl IN ('97561','97562') OR nperg=2) OR npvd<>'',1,0) obnp
+			, IF((luvl IN ('97571','97572') OR lusl IN ('97571','97572') OR luerg=2) OR luvd<>'',1,0) oblu
+			, IF((apvl IN ('97581','97582') OR apsl IN ('97581','97582') OR aperg=2) OR apvd<>'',1,0) obap
+			, IF((flvl IN ('97591','97592') OR flsl IN ('97591','97592') OR flerg=2) OR flvd<>'',1,0) obfl
+			, IF((nevl IN ('97601','97602') OR nesl IN ('97601','97602') OR neerg=2) OR nevd<>'',1,0) obne
+			, IF(dakab=18991230 OR dakab=0,'DAK-Makro fehlt', IF(dakres>dakab,CONCAT('DAK-Makro - ',dakzp,' fehlt'),'')) Makro
+			FROM (
+				SELECT ezp, dakab, dakzp,dakres,pat_id,dicd,dnr,ficd
+				, nped, npvdzp, npvd, npad, npvl, Schwt, nperg,nplz, npkl, npal,npasl
+				, IF(nplz<2, CASE WHEN npkl=1 THEN IF(npvl IN ('','97560'),IF(npoblg,'97561',''),'97562')
+				WHEN npkl=2 THEN ''
+				WHEN npkl=3 THEN IF(npvl IN ('','97560'),IF(npoblg,'97561',''),'97562')
+				WHEN npkl=4 THEN CASE WHEN nperg=1 AND npad='' THEN IF(npoblg,'97560','') WHEN nperg=2 OR npad<>'' THEN IF(npoblg,'97561','') ELSE '' END
+				WHEN npkl=5 THEN '97562'
+				END,'') npsl
+				, lued, luvdzp, luvd, luad, luvl, LuFr, luerg,lulz, lukl, lual
+				, IF(lulz<2, CASE WHEN lukl=1 THEN IF(luvl IN ('','97570'),IF(luoblg,'97571',''),'97572')
+				WHEN lukl=2 THEN ''
+				WHEN lukl=3 THEN IF(luvl IN ('','97570'),IF(luoblg,'97571',''),'97572')
+				WHEN lukl=4 THEN CASE WHEN luerg=1 AND luad='' THEN IF(luoblg,'97570','') WHEN luerg=2 OR luad<>'' THEN IF(luoblg,'97571','') ELSE '' END
+				WHEN lukl=5 THEN '97572'
+				END,'') lusl
+				, aped, apd2, apvdzp, apvd, apad, apvl, Apt, aperg,aplz, apkl, apal
+				, IF(aplz<2, CASE WHEN apkl=1 THEN IF(apvl IN ('','97580'),IF(apoblg,'97581',''),'97582')
+				WHEN apkl=2 THEN ''
+				WHEN apkl=3 THEN IF(apvl IN ('','97580'),IF(apoblg,'97581',''),'97582')
+				WHEN apkl=4 THEN CASE WHEN aperg=1 AND apad='' THEN IF(apoblg,'97580','') WHEN aperg=2 OR apad<>'' THEN IF(apoblg,'97581','') ELSE '' END
+				WHEN apkl=5 THEN '97582'
+				END,'') apsl
+				, fled, flvdzp, flvd, flad, flvl, FlFr, flerg,fllz, flkl, flal
+				, IF(fllz<2, CASE WHEN flkl=1 THEN IF(flvl IN ('','97590'),IF(floblg,'97591',''),'97592')
+				WHEN flkl=2 THEN ''
+				WHEN flkl=3 THEN IF(flvl IN ('','97590'),IF(floblg,'97591',''),'97592')
+				WHEN flkl=4 THEN CASE WHEN flerg=1 AND flad='' THEN IF(floblg,'97590','') WHEN flerg=2 OR flad<>'' THEN IF(floblg,'97591','') ELSE '' END
+				WHEN flkl=5 THEN '97592'
+				END,'') flsl
+				, need, nevdzp, nevd, nead, nevl, gfr, neerg,nelz, nekl, neal
+				, IF(nelz<2, CASE WHEN nekl=1 THEN IF(nevl IN ('','97600'),IF(neoblg,'97601',''),'97602')
+				WHEN nekl=2 THEN ''
+				WHEN nekl=3 THEN IF(nevl IN ('','97600'),IF(neoblg,'97601',''),'97602')
+				WHEN nekl=4 THEN CASE WHEN neerg=1 AND nead='' THEN IF(neoblg,'97600','') WHEN neerg=2 OR nead<>'' THEN IF(neoblg,'97601','') ELSE '' END
+				WHEN nekl=5 THEN '97602'
+				END,'') nesl
+				, CASE WHEN gfr < 15 THEN 'N18.5' WHEN gfr < 30 THEN 'N18.4' WHEN gfr<60 THEN 'N18.3' WHEN gfr<90 THEN 'N18.2' ELSE 'N18.1' END nesd
+				FROM (
+					SELECT dakab,dakzp,dakres,i.pat_id,dicd,dnr,ficd
+					, COALESCE(npedt.icd,'') nped, npvdzp, npvd, npad, npvl, npal,npasl,npoblg
+					, CASE WHEN npvd<>'' THEN CASE WHEN COALESCE(npedt.icd,'')='' THEN 1
+																																												ELSE CASE WHEN npvl='' THEN 2 ELSE 3 END END
+					ELSE CASE WHEN npvl IN ('','97560') THEN 4 ELSE 5 END
+					END npkl
+					,schwt, CASE WHEN schwt='' THEN 0 WHEN instr(schwt,'stör')=0 THEN 1 ELSE 2 END nperg,nplz
+					, COALESCE(luedt.icd,'') lued, luvdzp, luvd, luad, luvl, lual,luoblg
+					, CASE WHEN luvd<>'' THEN CASE WHEN COALESCE(luedt.icd,'')='' THEN 1
+																																												ELSE CASE WHEN luvl='' THEN 2 ELSE 3 END END
+					ELSE CASE WHEN luvl IN ('','97570') THEN 4 ELSE 5 END
+					END lukl
+					,LuFr
+					, CASE WHEN LuFr='' THEN 0 WHEN MID(LuFr,instr(LuFr,'entleeren?')+11) RLIKE '^n|^Inko' OR MID(LuFr,instr(LuFr,'Wasserlassen)?')+15) RLIKE '^öfter|^mehr|^[2-9]' OR MID(LuFr,instr(LuFr,'abgeschwächt?')+14) RLIKE '^j' OR MID(LuFr,instr(LuFr,'zu entleeren?')+14) RLIKE '^j' OR MID(LuFr,instr(LuFr,'gang auf?')+10) RLIKE '^j' OR MID(LuFr,instr(LuFr,'beschreiben)')+12) RLIKE '^j' THEN 2 ELSE 1 END luerg
+					,lulz
+					, COALESCE(apedt.icd,'') aped, COALESCE(apdt2.icd,'') apd2, apvdzp, apvd, apad, apvl, apal,apoblg
+					, CASE WHEN apvd<>'' THEN CASE WHEN COALESCE(apedt.icd,'')='' THEN 1
+																																												ELSE CASE WHEN apvl='' THEN 2 ELSE 3 END END
+					ELSE CASE WHEN apvl IN ('','97580') THEN 4 ELSE 5 END
+					END apkl
+					,apt
+					, (trim(MID(apt,instr(apt,'zwingen?')+8)) LIKE 'j%' AND NOT trim(MID(apt,instr(apt,'genauso auf?')+12)) LIKE 'j%'
+								AND trim(MID(apt,instr(apt,'genauso?')+8)) LIKE 'j%') OR
+								(CONVERT(CONCAT('0',REGEXP_REPLACE(MID(apt,instr(apt,'Rötung re:')+10),'[^0-9]','')),DECIMAL(30,0))>5)+
+								(CONVERT(CONCAT('0',REGEXP_REPLACE(MID(apt,instr(apt,'li:')+3),'[^0-9]','')),DECIMAL(30,0))>5)+
+								(CONVERT(CONCAT('0',REGEXP_REPLACE(MID(apt,instr(apt,'Venenfüllung: re:')+17),'[^0-9]','')),DECIMAL(30,0))>10)+
+								(CONVERT(CONCAT('0',REGEXP_REPLACE(MID(apt,instr(apt,', li:')+6),'[^0-9]','')),DECIMAL(30,0))>10) >1  aperg
+					,aplz
+					, COALESCE(fledt.icd,'') fled, flvdzp, flvd, flad, flvl, flal,floblg
+					, CASE WHEN flvd<>'' THEN CASE WHEN COALESCE(fledt.icd,'')='' THEN 1
+																																												ELSE CASE WHEN flvl='' THEN 2 ELSE 3 END END
+					ELSE CASE WHEN flvl IN ('','97590') THEN 4 ELSE 5 END
+					END flkl
+					,FlFr
+					, CASE WHEN FlFr='' THEN 0
+																WHEN FlFr RLIKE 'Leber(((?!((re|li) Niere|Nieren|Pan[ck]r)).)*?((?<!kaum ver|nicht ver)fett|(?<!leicht |kaum |nicht |keine |gering )verdicht)|.*fetteinl|zi)|Fettleber' THEN 2
+																	ELSE 1 END flerg
+					,fllz
+					, COALESCE(needt.icd,'') need, nevdzp, nevd, nead, nevl, neal,neoblg
+					, CASE WHEN nevd<>'' THEN CASE WHEN COALESCE(needt.icd,'')='' THEN 1
+																																												ELSE CASE WHEN nevl='' THEN 2 ELSE 3 END END
+					ELSE CASE WHEN nevl IN ('','97600') THEN 4 ELSE 5 END
+					END nekl
+					, _lGFR(i.pat_id) gfr
+					, obnephrop(i.pat_id) neerg
+					,nelz, IF(dfl>IF(det>IF(dnp>dlu,dnp,dlu),det,IF(dnp>dlu,dnp,dlu)),dfl,IF(det>IF(dnp>dlu,dnp,dlu),det,IF(dnp>dlu,dnp,dlu))) ezp
+					FROM (
+					SELECT dakab,dakzp, IF(dakzp<dakab OR dakab IN (18991230,00000000),dakzp,dakab) dakres, f.pat_id,d.icd dicd,COALESCE(fuss.icd,'') ficd,MID(d.icd,5,1) dnr
+					, DATE(npvdt.diagdatum) npvdzp, COALESCE(npvdt.icd,'') npvd,COALESCE(npadt.icd,'') npad
+					, (SELECT COALESCE(MAX(leistung),'') leistung FROM leistungen WHERE pat_id=f.pat_id AND zeitpunkt<qanf() AND leistung IN ('97560','97561','97562')) npvl
+					, (SELECT COALESCE(MAX(zeitpunkt),18991230)<SUBDATE(qend(),INTERVAL 1 YEAR) FROM leistungen WHERE pat_id=f.pat_id AND zeitpunkt<qanf() AND leistung IN ('97560','97561','97562')) npoblg
+					, (SELECT COALESCE(MAX(leistung),'') leistung FROM leistungen WHERE pat_id=f.pat_id AND zeitpunkt BETWEEN qanf() AND qend() AND leistung IN ('97560','97561','97562')) npal
+					, (SELECT COALESCE(MAX(leistung),'') leistung FROM leistungen WHERE pat_id=f.pat_id AND zeitpunkt BETWEEN qanf() AND qend() AND leistung = '97563') npasl
+					, (SELECT COUNT(0) FROM leistungen npb WHERE pat_id=f.pat_id AND YEAR(zeitpunkt)=YEAR(qanf()) AND zeitpunkt<qanf() AND leistung IN ('97561','97562')) nplz
+					, COALESCE(MID(npaet.inhalt,14),'') schwt, COALESCE(DATE(npaet.zeitpunkt),0) dnp
+					, DATE(luvdt.diagdatum) luvdzp, COALESCE(luvdt.icd,'') luvd,COALESCE(luadt.icd,'') luad
+					, (SELECT COALESCE(MAX(leistung),'') leistung FROM leistungen WHERE pat_id=f.pat_id AND zeitpunkt<qanf() AND leistung IN ('97570','97571','97572')) luvl
+					, (SELECT COALESCE(MAX(zeitpunkt),18991230)<SUBDATE(qend(),INTERVAL 1 YEAR) FROM leistungen WHERE pat_id=f.pat_id AND zeitpunkt<qanf() AND leistung IN ('97570','97571','97572')) luoblg
+					, (SELECT COALESCE(MAX(leistung),'') leistung FROM leistungen WHERE pat_id=f.pat_id AND zeitpunkt BETWEEN qanf() AND qend() AND leistung IN ('97570','97571','97572')) lual
+					, (SELECT COUNT(0) FROM leistungen lub WHERE pat_id=f.pat_id AND YEAR(zeitpunkt)=YEAR(qanf()) AND zeitpunkt<qanf() AND leistung IN ('97571','97572')) lulz
+					, COALESCE(luaet.inhalt,'') LuFr, COALESCE(DATE(luaet.zeitpunkt),0) dlu
+					, DATE(apvdt.diagdatum) apvdzp, COALESCE(apvdt.icd,'') apvd,COALESCE(apadt.icd,'') apad
+					, (SELECT COALESCE(MAX(leistung),'') leistung FROM leistungen WHERE pat_id=f.pat_id AND zeitpunkt<qanf() AND leistung IN ('97580','97581','97582')) apvl
+					, (SELECT COALESCE(MAX(zeitpunkt),18991230)<SUBDATE(qend(),INTERVAL 1 YEAR) FROM leistungen WHERE pat_id=f.pat_id AND zeitpunkt<qanf() AND leistung IN ('97580','97581','97582')) apoblg
+					, (SELECT COALESCE(MAX(leistung),'') leistung FROM leistungen WHERE pat_id=f.pat_id AND zeitpunkt BETWEEN qanf() AND qend() AND leistung IN ('97580','97581','97582')) apal
+					, (SELECT COUNT(0) FROM leistungen apb WHERE pat_id=f.pat_id AND YEAR(zeitpunkt)=YEAR(qanf()) AND zeitpunkt<qanf() AND leistung IN ('97581','97582')) aplz
+					, COALESCE(apaet.inhalt,'') apt, COALESCE(DATE(apaet.zeitpunkt),0) det
+					, DATE(flvdt.diagdatum) flvdzp, COALESCE(flvdt.icd,'') flvd,COALESCE(fladt.icd,'') flad
+					, (SELECT COALESCE(MAX(leistung),'') leistung FROM leistungen WHERE pat_id=f.pat_id AND zeitpunkt<qanf() AND leistung IN ('97590','97591','97592')) flvl
+					, (SELECT COALESCE(MAX(zeitpunkt),18991230)<SUBDATE(qend(),INTERVAL 1 YEAR) FROM leistungen WHERE pat_id=f.pat_id AND zeitpunkt<qanf() AND leistung IN ('97590','97591','97592')) floblg
+					, (SELECT COALESCE(MAX(leistung),'') leistung FROM leistungen WHERE pat_id=f.pat_id AND zeitpunkt BETWEEN qanf() AND qend() AND leistung IN ('97590','97591','97592')) flal
+					, (SELECT COUNT(0) FROM leistungen flb WHERE pat_id=f.pat_id AND YEAR(zeitpunkt)=YEAR(qanf()) AND zeitpunkt<qanf() AND leistung IN ('97591','97592')) fllz
+					, COALESCE(flaet.inhalt,'') FlFr, COALESCE(DATE(flaet.zeitpunkt),0) dfl
+					, DATE(nevdt.diagdatum) nevdzp, COALESCE(nevdt.icd,'') nevd,COALESCE(neadt.icd,'') nead
+					, (SELECT COALESCE(MAX(leistung),'') leistung FROM leistungen WHERE pat_id=f.pat_id AND zeitpunkt<qanf() AND leistung IN ('97600','97601','97602')) nevl
+					, (SELECT COALESCE(MAX(zeitpunkt),18991230)<SUBDATE(qend(),INTERVAL 1 YEAR) FROM leistungen WHERE pat_id=f.pat_id AND zeitpunkt<qanf() AND leistung IN ('97600','97601','97602')) neoblg
+					, (SELECT COALESCE(MAX(leistung),'') leistung FROM leistungen WHERE pat_id=f.pat_id AND zeitpunkt BETWEEN qanf() AND qend() AND leistung IN ('97600','97601','97602')) neal
+					, (SELECT COUNT(0) FROM leistungen neb WHERE pat_id=f.pat_id AND YEAR(zeitpunkt)=YEAR(qanf()) AND zeitpunkt<qanf() AND leistung IN ('97601','97602')) nelz
+		   , IF(dakab=18991230 OR dakab=0,'DAK-Makro fehlt', IF(IF(dakzp<dakab OR dakab IN (18991230,00000000),dakzp,dakab)>dakab,CONCAT('DAK-Makro - ',dakzp,' fehlt'),'')) Makro
+					FROM (
+							SELECT dakab, (SELECT DATE(min(zeitpunkt)) 
+							FROM eintraege WHERE pat_id=f.pat_id AND art IN ('dakap','daknp','dakluts','dak') AND (art<>'dak' OR (art='dak' AND inhalt LIKE 'DAK: hier%'))) dakzp
+							, f.pat_id, f.fid
+							FROM aktfv f 
+							LEFT JOIN faelle fa ON fa.fid=f.fid
+							LEFT JOIN namen n ON n.pat_id=f.pat_id
+							WHERE fa.kasse RLIKE '^TK|^Techniker|^DAK|^KKH|^Kaufm' OR fa.kkasse_2 RLIKE '^TK|^Techniker|^DAK|^KKH|^Kaufm'
+							GROUP BY f.pat_id
+						) f
+						LEFT JOIN diagview d ON d.pat_id=f.pat_id AND d.gicdok RLIKE '^E1[0-4]\.' AND d.obdauer<>0
+						LEFT JOIN diagview fuss ON fuss.pat_id=f.pat_id AND fuss.gicdok RLIKE '^L89\.'
+						LEFT JOIN diagview npvdt ON npvdt.pat_id=f.pat_id AND npvdt.diagdatum<qanf() AND npvdt.gicdok IN ('G59.0','G63.2','G99.0') AND npvdt.obdauer<>0
+						LEFT JOIN diagview npadt ON npadt.pat_id=f.pat_id AND npadt.diagdatum BETWEEN qanf() AND qend() AND npadt.gicdok IN ('G59.0','G63.2','G99.0') AND npadt.obdauer<>0
+						LEFT JOIN eintraege npaet ON npaet.pat_id=f.pat_id AND npaet.zeitpunkt BETWEEN qanf() AND qend() AND npaet.art = 'daknp'
+						LEFT JOIN diagview luvdt ON luvdt.pat_id=f.pat_id AND luvdt.diagdatum<qanf() AND luvdt.gicdok IN ('N31.1','N31.2') AND luvdt.obdauer<>0
+						LEFT JOIN diagview luadt ON luadt.pat_id=f.pat_id AND luadt.diagdatum BETWEEN qanf() AND qend() AND luadt.gicdok IN ('N31.1','N31.2') AND luadt.obdauer<>0
+						LEFT JOIN eintraege luaet ON luaet.pat_id=f.pat_id AND luaet.zeitpunkt BETWEEN qanf() AND qend() AND luaet.art = 'dakluts'
+						LEFT JOIN diagview apvdt ON apvdt.pat_id=f.pat_id AND apvdt.diagdatum<qanf() AND apvdt.gicdok IN ('I79.2') AND apvdt.obdauer<>0
+						LEFT JOIN diagview apadt ON apadt.pat_id=f.pat_id AND apadt.diagdatum BETWEEN qanf() AND qend() AND apadt.gicdok IN ('I79.2') AND apadt.obdauer<>0
+						LEFT JOIN eintraege apaet ON apaet.pat_id=f.pat_id AND apaet.zeitpunkt BETWEEN qanf() AND qend() AND apaet.art = 'dakap'
+						LEFT JOIN diagview flvdt ON flvdt.pat_id=f.pat_id AND flvdt.diagdatum<qanf() AND flvdt.gicdok='K77.8' AND flvdt.obdauer<>0
+						LEFT JOIN diagview fladt ON fladt.pat_id=f.pat_id AND fladt.diagdatum BETWEEN qanf() AND qend() AND fladt.gicdok='K77.8' AND fladt.obdauer<>0
+						LEFT JOIN eintraege flaet ON flaet.pat_id=f.pat_id AND flaet.zeitpunkt BETWEEN qanf() AND qend() AND flaet.art = 'sono' AND flaet.inhalt LIKE 'Abdomen:%'
+						LEFT JOIN diagview nevdt ON nevdt.pat_id=f.pat_id AND nevdt.diagdatum<qanf() AND nevdt.gicdok RLIKE '^N18\.[1-5]' AND nevdt.obdauer<>0
+						LEFT JOIN diagview neadt ON neadt.pat_id=f.pat_id AND neadt.diagdatum BETWEEN qanf() AND qend() AND neadt.gicdok RLIKE '^N18\.[1-5]' AND neadt.obdauer<>0
+						GROUP BY f.pat_id
+					) i
+					LEFT JOIN diagview npedt ON npedt.pat_id=i.pat_id AND npedt.diagdatum<dakres AND npedt.gicdok IN ('G59.0','G63.2','G99.0') AND npedt.obdauer<>0
+					LEFT JOIN diagview luedt ON luedt.pat_id=i.pat_id AND luedt.diagdatum<dakres AND luedt.gicdok IN ('N31.1','N31.2') AND luedt.obdauer<>0
+					LEFT JOIN diagview apedt ON apedt.pat_id=i.pat_id AND apedt.diagdatum<dakres AND apedt.gicdok IN ('I79.2') AND apedt.obdauer<>0
+					LEFT JOIN diagview apdt2 ON apdt2.pat_id=i.pat_id AND apdt2.gicdok LIKE 'I70.2%' AND apdt2.obdauer<>0
+					LEFT JOIN diagview fledt ON fledt.pat_id=i.pat_id AND fledt.diagdatum<dakres AND fledt.gicdok='K77.8' AND fledt.obdauer<>0
+					LEFT JOIN diagview needt ON needt.pat_id=i.pat_id AND needt.diagdatum<dakres AND needt.gicdok RLIKE '^N18\.[1-5]' AND needt.obdauer<>0
+					WHERE dakres >18991230 AND Makro<>''
+				) i
+			) i
+		) i
+	) i
+-- ) i WHERE leiaend<>'' OR daend<>'' OR nicd<>'' OR makro<>''
+) i WHERE makro<>''
+GROUP BY PID ORDER BY PID;
