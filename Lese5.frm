@@ -2497,7 +2497,7 @@ Private Sub WiedereinbestellungenDMP_Click()
 "  LEFT JOIN (SELECT f.*,ROW_NUMBER() OVER(PARTITION BY pat_id ORDER BY bhfb DESC) fzn FROM faelle f" & vbCrLf & _
 "            )  f   ON f.Pat_ID=n.pat_id AND fzn=1" & vbCrLf & _
 "  LEFT JOIN (SELECT dr.*,ROW_NUMBER() OVER(PARTITION BY pat_id ORDER BY dokudatum DESC) zn FROM dmpreihe dr" & vbCrLf & _
-"              WHERE dr.dokudatum>NOW()-INTERVAL 9 MONTH AND dr.Abk RLIKE '^eDMPDM|^DMPDTYP|Dokumentation Diabetes'" & vbCrLf & _
+"              WHERE dr.dokudatum>NOW()-INTERVAL 9 MONTH AND dr.Abk RLIKE '(Erst|Verlaufs)-Dokumentation Diabetes|^dmp(dm|dtyp)|^edmp(dm)' -- '^eDMPDM|^DMPDTYP|Dokumentation Diabetes'" & vbCrLf & _
 "            ) dr ON dr.pat_id=n.pat_id AND dr.zn=1" & vbCrLf & _
 "  LEFT JOIN lHbA1c h ON h.pat_id=n.pat_id" & vbCrLf & _
 "  LEFT JOIN `anamnesebogen` a ON a.pat_id=n.pat_id" & vbCrLf & _
@@ -4985,13 +4985,13 @@ Sub doGNR_Statistiken_einl_Click(Optional obneu = 0)
   myEFrag "CREATE TABLE `" & GZahl & "` (id integer(10) auto_increment key, statid integer(10), gnr varchar(20), leigru varchar(10), punkte integer(5), euro DECIMAL(5,2), m integer(5), f integer(5), r integer(5), zahl integer(10), wert DECIMAL(9,2), uwert DECIMAL(9,2), min integer(10))", rAf
  End If
  erg = Dir(Verz & "\gebstat*")
- Dim datstr$
+ Dim DatStr$
  Dim pZeitr%, Dat0 As Date, Dat1 As Date, q0$, q1$
  Do While erg <> ""
   Debug.Print erg
-  datstr = REPLACE$(REPLACE$(erg, "gebstat ", ""), ".csv", "")
-  If IsDate(datstr) Then
-   q0 = QuartalStr$(CDate(datstr) - 21)
+  DatStr = REPLACE$(REPLACE$(erg, "gebstat ", ""), ".csv", "")
+  If IsDate(DatStr) Then
+   q0 = QuartalStr$(CDate(DatStr) - 21)
    DateiDat = FileDateTime(Verz & "\" & erg)
    Ausgeb erg & " " & DateiDat, True
 ' kopiert von unten
@@ -5031,23 +5031,23 @@ Sub doGNR_Statistiken_einl_Click(Optional obneu = 0)
     'OR use this if you need to process each line
     Dim znr&, gnrsp&, leigrsp&, pktsp&, eursp&, anzsp&, ztminsp&, lZahl&, meuro#, lstg$
     znr = 0
-    Dim ta$, tb$
+    Dim ta$, Tb$
     ta = "INSERT INTO `" & GZahl & "` (statid,"
-    tb = "VALUES"
+    Tb = "VALUES"
     Do Until TS.AtEndOfStream
         zeile = TS.ReadLine
         znr = znr + 1
         SplitNeu zeile, ";", arr
-        Dim iru&, wt$
+        Dim iru&, Wt$
         If znr > 1 Then
-         If znr > 2 Then tb = tb & ","
-         tb = tb & "(" & statid & ","
+         If znr > 2 Then Tb = Tb & ","
+         Tb = Tb & "(" & statid & ","
         End If
         For iru = 0 To UBound(arr)
-         wt = arr(iru)
-         If Left$(wt, 1) = """" And Right$(wt, 1) = """" Then wt = Mid$(wt, 2, Len(wt) - 2)
+         Wt = arr(iru)
+         If Left$(Wt, 1) = """" And Right$(Wt, 1) = """" Then Wt = Mid$(Wt, 2, Len(Wt) - 2)
          If znr = 1 Then
-          Select Case wt
+          Select Case Wt
            Case "Gnr": gnrsp = iru: ta = ta & "gnr,"
            Case "Leistungsgruppe": leigrsp = iru: ta = ta & "leigru,"
            Case "Punktzahl": pktsp = iru: ta = ta & "punkte,"
@@ -5057,32 +5057,32 @@ Sub doGNR_Statistiken_einl_Click(Optional obneu = 0)
           End Select
          Else ' znr = 1 Then
           Select Case iru
-           Case gnrsp: tb = tb & "'" & wt & "',": lstg = wt
-           Case leigrsp: tb = tb & "'" & wt & "',"
-           Case pktsp: tb = tb & "'" & REPLACE$(wt, ",", ".") & "',"
-           Case eursp: tb = tb & "'" & REPLACE$(wt, ",", ".") & "',": meuro = CDbl(wt)
-           Case anzsp: tb = tb & wt & ",": lZahl = CLng(wt)
-           Case ztminsp: tb = tb & wt & ","
+           Case gnrsp: Tb = Tb & "'" & Wt & "',": lstg = Wt
+           Case leigrsp: Tb = Tb & "'" & Wt & "',"
+           Case pktsp: Tb = Tb & "'" & REPLACE$(Wt, ",", ".") & "',"
+           Case eursp: Tb = Tb & "'" & REPLACE$(Wt, ",", ".") & "',": meuro = CDbl(Wt)
+           Case anzsp: Tb = Tb & Wt & ",": lZahl = CLng(Wt)
+           Case ztminsp: Tb = Tb & Wt & ","
           End Select
          End If ' znr = 1 Then
 '         Debug.Print wt
         Next iru
         If znr > 1 Then
-         tb = tb & "'" & REPLACE$(CStr(meuro * lZahl), ",", ".") & "',"
-         tb = tb & "'" & REPLACE$(CStr(IIf((meuro = 18.75 Or meuro = 19.05 Or meuro = 14.25) And Left$(lstg, 1) = "9", 75, meuro) * lZahl), ",", ".") & "')"
+         Tb = Tb & "'" & REPLACE$(CStr(meuro * lZahl), ",", ".") & "',"
+         Tb = Tb & "'" & REPLACE$(CStr(IIf((meuro = 18.75 Or meuro = 19.05 Or meuro = 14.25) And Left$(lstg, 1) = "9", 75, meuro) * lZahl), ",", ".") & "')"
         End If
     Loop
     TS.Close
     ta = ta & "wert,uwert)"
-    InsKorr DBCn, ta & tb, rAf
+    InsKorr DBCn, ta & Tb, rAf
   Else
    MsgBox erg & " falsch formatiert."
   End If
 überspring:
   erg = Dir
  Loop
- Exit Sub ' für Turbomed auskommentieren
- 
+
+#If turbomed Then
  erg = Dir(Verz & "\GNR-Statistik*")
  If erg = "" Then
   Verz = tVerz & "kv-abrechnungen"
@@ -5175,11 +5175,16 @@ naechstedatei:
 '  Exit Sub
   erg = Dir
  Loop
- 
+#End If ' turbomed
+
  Ausgeb "Fertig!", True
  Exit Sub
+
+#If turbomed Then
 nichtoeffnen:
  GoTo naechstedatei
+#End If ' turbomed
+
 fehler:
  Dim AnwPfad$
 #If VBA6 Then

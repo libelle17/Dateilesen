@@ -127,7 +127,7 @@ Public Function motsql() ' 13.4.21 ktag liefert falsche Ergebnisse, wenn auch in
                         "and e.zeitpunkt BETWEEN " & lQAnfuEnd$(Verspätung) & " " & vbCrLf & _
        "LEFT JOIN leistungen l0 ON l0.pat_id = f.pat_id AND l0.leistung IN ('92278','92282') AND l0.zeitpunkt>SUBDATE(qende(e.zeitpunkt),365) " & vbCrLf & _
        "LEFT JOIN namen n ON f.pat_id = n.pat_id " & vbCrLf & _
-       "WHERE NOT ISNULL(id1) AND ISNULL(l.leistung) AND ISNULL(l0.leistung) AND kl.kateg NOT IN ('LKK','SHV') AND (dmpklass<>2 OR kl.kateg='PBe') AND dmpklass IN (0,2,3) " & vbCrLf & _
+       "WHERE NOT ISNULL(id1) AND ISNULL(l.leistung) AND ISNULL(l0.leistung) AND kl.kateg NOT IN (/*'LKK',*/'SHV') AND (dmpklass<>2 OR kl.kateg='PBe') AND dmpklass IN (0,2,3) " & vbCrLf & _
        "GROUP BY f.pat_id, art, e.zeitpunkt " & vbCrLf & _
        "ORDER BY MID(icd,2,1), pat_id, e.zeitpunkt " ' STR_TO_DATE(CONCAT(YEAR(SUBDATE(NOW(),INTERVAL " & FristS & " DAY)),'/',((month(SUBDATE(NOW(),INTERVAL " & FristS & " DAY))-1) div 3)*3+1,'/1'),'%Y/%m/%d') AND SUBDATE(adddate(STR_TO_DATE(CONCAT(YEAR(SUBDATE(NOW(),INTERVAL " & FristS & " DAY)),'/',((month(SUBDATE(NOW(),INTERVAL 20 DAY))-1) div 3)*3+1,'/1'),'%Y/%m/%d'),INTERVAL 3 MONTH),INTERVAL 1 day
 ' AND COALESCE(Dggel,0)=0
