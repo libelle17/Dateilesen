@@ -3304,7 +3304,7 @@ Public Sub turichtdiag()
 '  AllePat = -1
 ' End If ' Not rPt.EOF Then
 ' DBCn.BeginTrans
- myFrag rPt, "SELECT COUNT(0) OVER() zahl, FPatnr FROM behgrund WHERE FStatus<>3 GROUP BY FPatnr ORDER BY FPatnr DESC LIMIT " & limit, adOpenStatic, MOCon
+ myFrag rPt, "SELECT COUNT(0) OVER() zahl, FPatnr FROM behgrund/* WHERE FStatus<>3*/ GROUP BY FPatnr ORDER BY FPatnr DESC LIMIT " & limit, adOpenStatic, MOCon
  If Not rPt.BOF Then
   Do While Not rPt.EOF
    rNa(0).Pat_id = rPt!FPatNr
@@ -3421,12 +3421,12 @@ Sub MODiagnosen(fPtNr&, Optional pid&)
   "CASE FStatus WHEN 1 THEN 'ak' WHEN 2 THEN 'an' WHEN 3 THEN 'hi' WHEN 4 THEN 'ab' WHEN 5 THEN 'da' ELSE ' ' END Stat," & vbCrLf & _
   "COALESCE(IF(RIGHT(FErlaeuterung,1)=0,LEFT(FErlaeuterung,LENGTH(FErlaeuterung)-1),FErlaeuterung),'') Zus, FNutzernr, FID, FAusnahme, ea" & vbCrLf & _
   "FROM sel lt INNER JOIN behgrund b ON lt.fb=b.FSurogat" & vbCrLf & _
-  "WHERE FStatus<>3 AND lt.ICD=b.FIcdcode" & vbCrLf & _
+  "WHERE NOT ((FKlasse MOD 15)MOD 10=1 AND FStatus IN(3,4)) AND lt.ICD=b.FIcdcode" & vbCrLf & _
   ";"
+  ' => Z.n. V.a. lassen wir weg
   ' akut  =      FStatus 1, stat ak, ea 1
   ' inaktiv =    FStatus 4, stat ab, ea 2
   ' dauer =      FStatus 5, stat da, ea 2017
-  ' inaktiv =    FStatus 3, stat hi, ea 4
   ' historisch = FStatus 3, Stat hi, ea 4
   ' abgeschlossen = FStatus 4, Stat ab, ea 2
 '   "WHERE NOT EXISTS (SELECT bi.* FROM sel lti INNER JOIN behgrund bi ON lti.fb=bi.FSurogat" & vbCrLf & _
@@ -3445,9 +3445,9 @@ Sub MODiagnosen(fPtNr&, Optional pid&)
     rDi(UBound(rDi)).DiagSeite = rsDi!Seite
     rDi(UBound(rDi)).DiagAttr = doUmwfSQL(rsDi!Zus, True)
     rDi(UBound(rDi)).ICD = rsDi!ICD
-    rDi(UBound(rDi)).obDauer = IIf(rsDi!stat = "ak", 0, 1)
-    If rsDi!ea = 2 Then rDi(UBound(rDi)).DiagSicherheit = "Z" ' 11.4.25
-    rDi(UBound(rDi)).obKasse = IIf(rsDi!stat = "ak" Or rsDi!stat = "da", 1, 0)
+    rDi(UBound(rDi)).obDauer = IIf(rsDi!Stat = "ak", 0, 1)
+    If rsDi!ea = 2 Or rsDi!Stat = 3 Or rsDi!Stat = 4 Then rDi(UBound(rDi)).DiagSicherheit = "Z" ' 11.4.25 ' 20.7.25: abgeschlossene Diagnosen sind auch die Inaktivierten
+    rDi(UBound(rDi)).obKasse = IIf(rsDi!Stat = "ak" Or rsDi!Stat = "da", 1, 0)
     rsDi.MoveNext
    Loop
   End If ' Not rsDi.BOF Then

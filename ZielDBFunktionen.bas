@@ -385,7 +385,7 @@ Public Enum DMPartEnum
  DMPCopd
  DMPBK
  DMPOsteo
- DMPRA
+ DMPRa
  DMPChi
  DMPRS
  DMPAd
@@ -1853,16 +1853,17 @@ End If
 ' ZnUlcus As Integer '0=nein, 1=ja
 ' ZnAmput As Integer '0=nein, 1=ja
 
+'"IF(fußdeform IN ('nein','keine','-',''),0,1) fußd,
 myFrag rfuss, "SELECT IF(nae_us LIKE '%3%Mo%',2,IF(nae_us LIKE '%6%Mo%',1,0)) NaeUS, " & _
-"IF(wundinfektion LIKE 'ja%',1,2) Infekt, " & _
-"IF(fußdeform IN ('nein','keine','-',''),0,1) fußd, " & _
-"(hyper_mEin RLIKE 'D[12345]' OR hyper_mEin LIKE 'ja%') AND hyper_mEin<>fußdeform HypermEin, " & _
+"IF(wundinfektion LIKE 'ja%',1,2) Infekt" & _
+",fußdeform RLIKE 'schwarz|verfärb|hühner|rh?agad|gangl|ausschlag|ekzem|allergie|wunde|tophi|läsion|verkrust|infekt|extrem|weicht|fehl|verhärt|entzünd|ausgepr|hammer|verschieb|Zehenüberstand|Panaritium|ab(ge)?heil|verhärt|unter|über|fehlstand|aufger|mazer|geschw|Klump|ödem|beul|schmerz|röt|clavus|ch?a?[rt]c?h?ot?(-| |)[ -]?f|Chat- cot|Blase|Druckst|eingew|Amp(\.|u)|aput|orthese|klauen' fußd" & vbCrLf & _
+",(hyper_mEin RLIKE 'D[12345]' OR hyper_mEin LIKE 'ja%') AND hyper_mEin<>fußdeform HypermEin, " & _
 "NOT zn_ulcus IN ('nein','','-') AND zn_ulcus<>fußdeform ZnUlcus, " & _
 "zn_amput NOT IN ('nein','','-') Amp, Fuß_ang " & _
 "FROM fuss " & _
 "WHERE pat_id = " & pid & _
-" AND zn_amput IN ('nein','ja') OR zn_amput<>fußdeform " & _
-" AND zeitpunkt = (SELECT MAX(zeitpunkt) FROM fuss WHERE pat_id = " & pid & " AND zeitpunkt BETWEEN qanf() AND qend() AND zeitpunkt > 20170717080000)"
+" AND (zn_amput IN ('nein','ja') OR zn_amput<>fußdeform)" & _
+" AND zeitpunkt = (SELECT MAX(zeitpunkt) FROM fuss WHERE pat_id = " & pid & " AND (zn_amput IN ('nein','ja') OR zn_amput<>fußdeform) AND zeitpunkt BETWEEN qanf() AND qend() AND zeitpunkt > 20170717080000)"
 If Not rfuss.BOF Then
  aktDC.NaeUs = rfuss!NaeUs
  aktDC.Infekt = rfuss!Infekt
@@ -1886,7 +1887,7 @@ myFrag rUlc, "SELECT pat_id FROM ulcus WHERE pat_id = " & pid & _
 " (wundumgebung RLIKE 'röt|wärm|infiz|infekt|rot|verfärb' AND NOT wundumgebung RLIKE 'keine Röt')) "
 If Not rUlc.BOF Then aktDC.Infekt = 1
 
-If aktDC.Infekt Or aktDC.ulcus < 2 Then aktDC.NaeUs = 2
+If aktDC.Infekt = 1 Or aktDC.ulcus < 2 Then aktDC.NaeUs = 2
 
 Dim raltu As New ADODB.Recordset
 myFrag raltu, "SELECT icd FROM diagview d WHERE pat_id = " & pid & " AND icd RLIKE '^L89\.[234]' AND ((diagdatum < qanf() AND diagsicherheit<>'A') OR diagsicherheit='Z')"
@@ -1905,6 +1906,7 @@ End If
    IIf(aktDC.Deform Or aktDC.Hyperk Or aktDC.ZnUlcus Or aktDC.ZnAmput, "  ja", "nein")
   aktDC.x_Ulcus = Switch(aktDC.ulcus = 0, "oberflächlich", aktDC.ulcus = 1, "tief", aktDC.ulcus = 2, "nein", 1, "nicht untersucht")
   aktDC.x_Wundinfektion = IIf(aktDC.Infekt = 0, "nicht untersucht", IIf(aktDC.Infekt = 1, "  ja", "nein"))
+  If aktDC.ZnUlcus Or aktDC.ZnAmput Or aktDC.ulcus = 0 Or aktDC.ulcus = 1 Or aktDC.Infekt = 1 Then aktDC.NaeUs = 2 ' 20.7.25
   aktDC.x_Intervall = IIf(aktDC.NaeUs = 0, "jährlich", IIf(aktDC.NaeUs = 1, "alle 6 Monate", "alle 3 Monate oder häufiger"))
   If mitStr Then
    TabPr "•  Pulsstatus: ", aktDC.x_Pulsstatus

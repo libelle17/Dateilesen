@@ -2097,7 +2097,7 @@ keinuzu:
   End If ' Not rs(Fußi).BOF Then
   m = 16: TI(m) = Timer: For p = 0 To m - 1: TI(m) = TI(m) - TI(p): Next p
   
-  If üdt.fußst = auff Or üdt.sens = auff Or üdt.sens = pathdok Or üdt.Puls = auff Or üdt.FEn(12) = True Then
+  If üdt.Infekt = 1 Or üdt.fußst = auff Or üdt.sens = auff Or üdt.sens = pathdok Or üdt.Puls = auff Or üdt.FEn(12) = True Then
    Fqmin(Fußi) = 4
 ' Wenn in diesem Quartal Neurostatus gemacht oder fällig, dann kein Fußstatus nötig
    If rs(Neuri).State = 0 Then Set rs(Neuri) = Nothing: DBCn.Close: DBCn.Open: rs(Neuri).Open sql(Neuri), DBCn
@@ -2851,6 +2851,10 @@ keinuzu:
        Fußstr = ""
        If Fqmin(Fußi) > 1 Then
         If obFußmakro And Fqminu > 1 Then Fußstr = Fußstr + "Fußmakro"
+        If üdt.Infekt = 1 Then
+         If Fußstr <> "" Then Fußstr = Fußstr + ","
+         Fußstr = Fußstr + "Wundinf"
+        End If
         If üdt.fußst = auff Then
          If Fußstr <> "" Then Fußstr = Fußstr + ","
          Fußstr = Fußstr + "Fußst"
@@ -2870,6 +2874,7 @@ keinuzu:
        End If ' Fqmin(Fußi) > 1
        If Fußstr <> "" Then Fußstr = " (" & Fußstr & ")"
       End If ' i = Fußi
+      ' Begründungen für Intervalle
       AusS.AppVar (Array("     <th title='", Titel(i), "' colspan='2'", IIf(pathol(i, 0) Or (i = Gwi And üdt.bmi > 24.9), " class='path'", " class='schmal'"), ">", Üs(i), _
       IIf(i = RRi, " (Ziel: &le;" & grenze(i) & "/" & GrenzeDiast & ")", ""), _
       IIf(i = Neuri, " (" & IIf(üdt.fußst = auff, "Fußst,", "") & IIf(üdt.sens = auff, "Sens,", "") & IIf(üdt.sens = pathdok, "ICD G63.2,", "") & IIf(üdt.Puls = auff, "Puls,", "") & IIf(üdt.FEn(12), "<span class='cave'>DFS</span>", "") & "&rArr;" & Fqmin(i) & "/a)", "")))

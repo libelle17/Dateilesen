@@ -992,6 +992,7 @@ AwN(AWlf) = "Möglicherweise doppelte Diabetesdiagnosen (vorher 8)"
             "WHERE NOT (icd RLIKE 'E1[01].7[^5]' AND icd RLIKE 'E1[01].75') AND NOT (icd RLIKE 'E1[01].7[^4]' AND icd RLIKE 'E1[01].74') AND NOT (icd RLIKE 'E1[01].2' AND icd RLIKE 'E1[01].[^2]') " & vbCrLf & _
             "GROUP BY pid,leintr" & vbCrLf & _
             "HAVING NOT ICD RLIKE 'O24.4.*R73.0' AND NOT ICD RLIKE 'R73.0.*O24.4'"
+#If langsam Then
 sql(AWlf) = "" & _
 "WITH sel AS (SELECT fbehgrundnr fb,FEintragsart ea,FIcdcode ICD FROM ltag WHERE fpatnr IN (SELECT fpatnr FROM patfall f WHERE 18900101+INTERVAL FVon DAY>=STR_TO_DATE(CONCAT(YEAR(NOW()-INTERVAL " & Verspätung & " DAY),LPAD((MONTH(NOW()-INTERVAL " & Verspätung & " DAY)-1)DIV 3*3+1,2,'0'),'01'),'%Y%m%d')))" & vbCrLf & _
 "SELECT * FROM (" & vbCrLf & _
@@ -1014,7 +1015,30 @@ sql(AWlf) = sql(AWlf) & _
 " GROUP BY FPatnr" & vbCrLf & _
 ")i WHERE icds RLIKE '\|'" & vbCrLf & _
 ";" & vbCrLf & _
-"" & vbCrLf
+""
+#Else
+sql(AWlf) = _
+"SELECT f.FPatnr" & _
+",LEFT(CONCAT(IF(FTitel='','',CONCAT(FTitel,' ')),IF(FNamensvorsatz='','',CONCAT(FNamensvorsatz,' ')),FNachname,', ',FVorname),25) PatName" & vbCrLf & _
+",GROUP_CONCAT(lt.FICDCode ORDER BY b.FDatum SEPARATOR' | ') ICDs" & vbCrLf & _
+",GROUP_CONCAT(18900101 + INTERVAL b.FDatum DAY ORDER BY b.FDatum SEPARATOR' | ') Diagdaten" & vbCrLf & _
+",GROUP_CONCAT(CASE b.FStatus WHEN 1 THEN 'ak' WHEN 2 THEN 'an' WHEN 3 THEN 'hi' WHEN 4 THEN 'ab' WHEN 5 THEN 'da' ELSE ' ' END ORDER BY b.FDatum SEPARATOR' | ')STATUS" & vbCrLf & _
+",GROUP_CONCAT(COALESCE(IF(RIGHT(FErlaeuterung,1)=0,LEFT(FErlaeuterung,LENGTH(FErlaeuterung)-1),FErlaeuterung),'')ORDER BY b.FDatum SEPARATOR ' | ') Zusätze" & vbCrLf & _
+",GROUP_CONCAT(nu.FInitialen ORDER BY b.FDatum SEPARATOR' | ') Nutzer" & vbCrLf & _
+"FROM patfall f" & vbCrLf & _
+"LEFT JOIN ltag lt USING (fpatnr)" & vbCrLf & _
+"LEFT JOIN behgrund b ON b.FSurogat=lt.FBehgrundnr" & vbCrLf & _
+"LEFT JOIN nutzerneu nu ON nu.FSurogat=b.FNutzernr" & vbCrLf & _
+" LEFT JOIN patstamm p ON p.FSurogat=b.FPatnr" & vbCrLf & _
+"WHERE f.FSurogat=(SELECT MAX(fsurogat) FROM patfall WHERE fpatnr=f.fpatnr AND 18900101+INTERVAL Fbis DAY>=STR_TO_DATE(CONCAT(YEAR(NOW()-INTERVAL " & Verspätung & " DAY),LPAD((MONTH(NOW()-INTERVAL " & Verspätung & " DAY)-1)DIV 3*3+1,2,'0'),'01'),'%Y%m%d'))" & vbCrLf & _
+"AND b.FStatus<>3 AND b.FStatus<>4 AND lt.FICDCode=b.FIcdcode" & vbCrLf & _
+"AND lt.FICDCode RLIKE '^E1[0-4]\.'" & vbCrLf & _
+"AND 18900101 + INTERVAL b.FDatum DAY + INTERVAL b.FZeit SECOND >=STR_TO_DATE(CONCAT(YEAR(NOW()-INTERVAL " & Verspätung & " DAY),LPAD((MONTH(NOW()-INTERVAL " & Verspätung & " DAY)-1)DIV 3*3+1,2,'0'),'01'),'%Y%m%d')" & vbCrLf & _
+"AND CASE (FKlasse MOD 15)MOD 10 WHEN 1 THEN 'V' WHEN 2 THEN 'G' WHEN 3 THEN 'Z' WHEN 4 THEN 'A' ELSE ' ' END IN ('G',' ')" & vbCrLf & _
+"GROUP BY FPatnr" & vbCrLf & _
+"HAVING icds RLIKE '\|'" & vbCrLf & _
+""
+#End If
 
  mins(AWlf) = 10
  maxs(AWlf) = 60
