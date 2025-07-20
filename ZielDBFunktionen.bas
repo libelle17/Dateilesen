@@ -376,6 +376,23 @@ Public Enum TherapieArt
  ict
  csii
 End Enum
+
+Public Enum DMPartEnum
+ [_First] = -1
+ DMPDm
+ DMPKhk
+ DMPAb
+ DMPCopd
+ DMPBK
+ DMPOsteo
+ DMPRA
+ DMPChi
+ DMPRS
+ DMPAd
+ DMPDep
+ [_Last]
+End Enum
+
 Public Enum DMPEnum
   unb = 0
   nein
@@ -1648,9 +1665,9 @@ If True Then ' lwZahl
  End If 'lwzahl
  
  On Error Resume Next
- ReDim rna(0)
+ ReDim rNa(0)
  On Error GoTo fehler
- rna(0).Pat_ID = pid
+ rNa(0).Pat_ID = pid
  Call usdmAlt(True)
  Dim trp As Boolean, tlp As Boolean, drp As Boolean, dlp As Boolean
  Dim Mfrep%, Mflip%
@@ -2982,11 +2999,11 @@ End Select
 End Function ' FallExport
 
 Function LeistungsExport1(BDT As BDTSchreib, Pat_ID&, Leist$, Datu As Date, Optional QUZeit$, Optional nurKasse%, Optional Arztnr&)
- Dim rna As New ADODB.Recordset, Lanr&
- myFrag rna, "SELECT * FROM `namen` WHERE pat_id = " & Pat_ID
- Lese.Ausgeb "Trage Leistung " & Leist & " für Pat_ID " & Pat_ID & " (" & rna!Nachname & ", " & rna!Vorname & ") mit Datum " & Format$(Datu, "dd.mm.yyyy") & " ein.", True
+ Dim rNa As New ADODB.Recordset, Lanr&
+ myFrag rNa, "SELECT * FROM `namen` WHERE pat_id = " & Pat_ID
+ Lese.Ausgeb "Trage Leistung " & Leist & " für Pat_ID " & Pat_ID & " (" & rNa!Nachname & ", " & rNa!Vorname & ") mit Datum " & Format$(Datu, "dd.mm.yyyy") & " ein.", True
  Open pVerz & LEDatei For Append As #347
- Print #347, Pat_ID & ": " & rna!Nachname & ", " & rna!Vorname & ", " & Format(Datu, "dd.mm.yyyy")
+ Print #347, Pat_ID & ": " & rNa!Nachname & ", " & rNa!Vorname & ", " & Format(Datu, "dd.mm.yyyy")
  Close #347
  If FallExport(BDT, Pat_ID, Datu, Lanr, nurKasse, Arztnr) <> 1 Then Exit Function
  LeistungsExport1 = 1
@@ -3026,7 +3043,7 @@ End Function ' LeistungsExport1
 #If False Then
 Function LeistungsExport1a(BDT As BDTSchreib, Pat_ID&, Leist$, Datu As Date, Optional QUZeit$, Optional nurKasse%, Optional Arztnr%)
 ' Dim q AS DAO.Recordset
- Dim rFa As New ADODB.Recordset, rna As New ADODB.Recordset
+ Dim rFa As New ADODB.Recordset, rNa As New ADODB.Recordset
  Dim op$
  On Error GoTo fehler
 ' SET rFa = TabÖff("faelle", "Auswahl")
@@ -3037,8 +3054,8 @@ Function LeistungsExport1a(BDT As BDTSchreib, Pat_ID&, Leist$, Datu As Date, Opt
  End If
  If rFa.BOF Then Exit Function
  If Arztnr <> 0 And rFa!lanrid <> Arztnr Then Exit Function
- myFrag rna, "SELECT * FROM `namen` WHERE pat_id = " & Pat_ID
- Lese.Ausgeb "Trage Leistung " & Leist & " für Pat_ID " & Pat_ID & " (" & rna!Nachname & ", " & rna!Vorname & ") mit Datum " & Format$(Datu, "dd.mm.yyyy") & " ein.", True
+ myFrag rNa, "SELECT * FROM `namen` WHERE pat_id = " & Pat_ID
+ Lese.Ausgeb "Trage Leistung " & Leist & " für Pat_ID " & Pat_ID & " (" & rNa!Nachname & ", " & rNa!Vorname & ") mit Datum " & Format$(Datu, "dd.mm.yyyy") & " ein.", True
  LeistungsExport1a = 1
  Call BDT.Satzart(IIf(rFa!SchGr = "90", "0190", "0102")) ' 80000 Satzidentifikation
 ' bei 0101 entstehen bei zwei Aufrufen fehlerfrei zwei neue Kassenfaelle, jeder mit der Leistung
@@ -3761,7 +3778,7 @@ End Function
 Function einDMP(Pat_ID&, Optional ICD$, Optional dszahl&, Optional Nachname$, Optional Vorname$, Optional ÜWNNr$, Optional frm As Lese)
  Dim Faxnr$, infos$() ' Frau/Herrn, Vorn+Nachn, Straße, PLZ+Ort, Faxnr, S.g./Liebe, DMPTyp2, DMPTyp1
  Dim aktPatGefaxt$()
- Dim i%, j&, obdoppelt%, rAF&
+ Dim i%, j&, obdoppelt%, rAf&
  Dim docName$, Adressat$, fax1$, anfang%, runde%
  Const maxverschieden% = 1 ' maximale Zahl verschiedener Ärzte, an die Infos geschickt werden
     ReDim aktPatGefaxt(0)
@@ -4678,13 +4695,13 @@ Function obPosi(s) As Boolean
 End Function ' obPosi(S) AS Boolean
 
 Public Function neuTher()
- Dim rna As New ADODB.Recordset
+ Dim rNa As New ADODB.Recordset
  Call Lese.ProgStart
- myFrag rna, "SELECT pat_id,gesname(pat_id) name FROM namen"
- Do While Not rna.EOF
+ myFrag rNa, "SELECT pat_id,gesname(pat_id) name FROM namen"
+ Do While Not rNa.EOF
 '  Debug.Print rNa!Pat_id, rNa!name
-  myEFrag "SELECT therartn(" & rna!Pat_ID & ")"
-  rna.MoveNext
+  myEFrag "SELECT therartn(" & rNa!Pat_ID & ")"
+  rNa.MoveNext
   DoEvents
  Loop
 End Function ' neuTher()
@@ -4705,7 +4722,7 @@ Function TherAuskunft(ByVal Pat_ID$, ByVal obanf%, Optional ByRef insz%, Optiona
 ' Dim rMA AS DAO.Recordset
  Dim obNIns% 'ob Normalinsulin
  Dim raMa As New ADODB.Recordset
- Dim AktMz%, medi$, rAF&
+ Dim AktMz%, medi$, rAf&
  Dim MPNr&(), MP0&, MPe&, mpz&, i&, MPNrl& ' erste und letzte, laufende MedPlan-Nummer des Quartals
  On Error GoTo fehler
  Call Lese.ProgStart
@@ -4763,7 +4780,7 @@ Function TherAuskunft(ByVal Pat_ID$, ByVal obanf%, Optional ByRef insz%, Optiona
      If DosH > 0 Then
 '      MsgBox "Medikament: " + Medi + " noch nicht in Tabelle MedArten erfaßt"
       Debug.Print "Medikament: " + medi + " noch nicht in Tabelle `medarten` erfaßt"
-      InsKorr DBCn, "INSERT INTO `medarten`(langname,medikament,hinzugefügt,pat_id) VALUES('" & Med(AktMz) & "','" & UCase$(medi) & "'," & DatFor_k(Now) & "," & Pat_ID & ")", rAF
+      InsKorr DBCn, "INSERT INTO `medarten`(langname,medikament,hinzugefügt,pat_id) VALUES('" & Med(AktMz) & "','" & UCase$(medi) & "'," & DatFor_k(Now) & "," & Pat_ID & ")", rAf
      End If
     Else
      If Not IsNull(raMa!j_antikoag) Then If raMa!j_antikoag <> 0 Then obAntikoag = True ' Bei Marcumar steht meist keine Dosierung drin
@@ -6329,18 +6346,18 @@ End Function ' zuZahl(str$)
 
 #If nurkurz Then
 Public Function dakumw()
- Dim rna As ADODB.Recordset, rei As ADODB.Recordset, rAF&, sql$, ErrNr&, ErrDes$
+ Dim rNa As ADODB.Recordset, rEi As ADODB.Recordset, rAf&, sql$, ErrNr&, ErrDes$
  Lese.ProgStart
  sql = "select pat_id,IF(DAYNAME(REPLACE(REPLACE(MID(Inhalt, 30, INSTR(Inhalt,',')-30),',','.'),':','.'))IS NULL,18991230,STR_TO_DATE(REPLACE(REPLACE(MID(Inhalt, 30, InStr(Inhalt, ',') - 30),',','.'),':','.'),'%d.%m.%y'))dakab,inhalt from eintraege where art='dak' order by pat_id, zeitpunkt"
- myFrag rei, sql, adOpenStatic, DBCn, adLockReadOnly, , rAF, , ErrNr, ErrDes
+ myFrag rEi, sql, adOpenStatic, DBCn, adLockReadOnly, , rAf, , ErrNr, ErrDes
  If ErrNr <> 0 Then Stop
- If rei!dakab = "" Then Stop
- Do While Not rei.EOF
-  sql = "update namen set dakab='" & rei!dakab & "' where pat_id=" & rei!Pat_ID
-  myFrag rna, sql, adOpenStatic, DBCn, adLockReadOnly, , rAF, , ErrNr, ErrDes
+ If rEi!dakab = "" Then Stop
+ Do While Not rEi.EOF
+  sql = "update namen set dakab='" & rEi!dakab & "' where pat_id=" & rEi!Pat_ID
+  myFrag rNa, sql, adOpenStatic, DBCn, adLockReadOnly, , rAf, , ErrNr, ErrDes
   If ErrNr <> 0 Then Stop
-  Debug.Print sql, rAF
-  rei.MoveNext
+  Debug.Print sql, rAf
+  rEi.MoveNext
  Loop
 End Function
 #End If
