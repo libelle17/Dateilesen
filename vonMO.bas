@@ -2439,6 +2439,8 @@ fgefunden:
   Dim Spl$()
   If Not rsEi.BOF Then
    Do While Not rsEi.EOF
+    If rsEi!Wert Like "Barthel-Index bei Schade, Gerald, geb. 17.12.1962*" Then Stop
+    If rsEi!Wert Like "Time-up-and-Go-Test bei Schade, Gerald, *" Then Stop
 '    Debug.Print "Eintragsart: " & rsEi!FEintragsart
     messDatum = rsEi!Zp ' rsEi!anzp ' umgestellt 29.6.25
     art = rsEi!art
