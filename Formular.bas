@@ -54,7 +54,7 @@ Const übertragen$ = "übertragen"
 Public Enum DSiTyp
  gesi& = 0
  Va&
- zn&
+ Zn&
  AuS&
 End Enum
 Dim NKrStr$(), Nflag$(), DSi() As DSiTyp ' für KRAdd
@@ -869,13 +869,13 @@ Function dodo_u_Click(frm As AnBog, nr)
   myFrag rfDE, "SELECT * FROM `fuerdiagexp` WHERE pat_id = " & Pat_ID & " AND icd RLIKE '" & icdlike & "' AND diagnose LIKE '%" & LTrim$(REPLACE$(LTrim$(REPLACE$(MDIDiag(nr), "V.a.", vNS)), "Z.n.", vNS)) & "'"
   UStumm = True
   frm.Va = 0
-  frm.zn = 0
+  frm.Zn = 0
   frm.Xtra = vNS
   If frm.Controls("vOptionB")(nr).Value <> 0 Then
    If rfDE.BOF Then
-    If MDIICD(nr) Like "*V*" Then frm.Va = 1 Else If MDIICD(nr) Like "*Z*" Then frm.zn = 1
+    If MDIICD(nr) Like "*V*" Then frm.Va = 1 Else If MDIICD(nr) Like "*Z*" Then frm.Zn = 1
    Else
-    If rfDE!ICD Like "*V*" Then frm.Va = 1 Else If rfDE!ICD Like "*Z*" Then frm.zn = 1
+    If rfDE!ICD Like "*V*" Then frm.Va = 1 Else If rfDE!ICD Like "*Z*" Then frm.Zn = 1
    End If
    For i = frm.Xtra.ListCount - 1 To 0 Step -1
     frm.Xtra.RemoveItem i
@@ -1073,7 +1073,7 @@ Function ÖffneFormular(FoName$)
  DoCmd.OpenForm FoName$ '"Anamnesebogen nach Name" dtb.Containers(2).Documents(0).Name
  DoCmd.Maximize
  On Error Resume Next
- Forms!anamnesebogen.Recordset.FindFirst "ID = " + CStr(AktID) ' Wieder alten Datensatz wählen
+ Forms!Anamnesebogen.Recordset.FindFirst "ID = " + CStr(AktID) ' Wieder alten Datensatz wählen
  On Error GoTo fehler
  Exit Function
 fehler:
@@ -1100,7 +1100,7 @@ Function ÖffneTabelle()
  AktID = Forms(Anmnb)(ABPat_ID)
  DoCmd.Close acForm, Anmnb, acSaveYes ' "Anamnesebogen nach Name"
  On Error GoTo fehler
- DoCmd.OpenTable Dtb.TableDefs!anamnesebogen.name, acViewDesign, acEdit
+ DoCmd.OpenTable Dtb.TableDefs!Anamnesebogen.name, acViewDesign, acEdit
  '(dtb.TableDefs!Anamnesebogen!Vorname).SetFocus
 ' DoCmd.GoToControl "Vorname"
  Exit Function
@@ -2142,9 +2142,9 @@ If Pat_ID <> 0 Then
  Select Case TabakStatus
   Case 0
   Case 1
-   Call KRAdd(frm, frm.anaRS!tabakex, "Nikotinabusus", "F17.1", zn, "F17.1", , , , "vTextB", 184) ' Tabak
+   Call KRAdd(frm, frm.anaRS!tabakex, "Nikotinabusus", "F17.1", Zn, "F17.1", , , , "vTextB", 184) ' Tabak
   Case 3
-   Call KRAdd(frm, frm.anaRS!tabakex, "Nikotinabusus vor langem", "F17.1", zn, "F17.1", , , , "vTextB", 184) ' Tabak
+   Call KRAdd(frm, frm.anaRS!tabakex, "Nikotinabusus vor langem", "F17.1", Zn, "F17.1", , , , "vTextB", 184) ' Tabak
   Case 2
    Call KRAdd(frm, frm.anaRS!tabakakt, "Nikotinabusus", "F17.1", gesi, "F17.1", , , , "vTextB", 186) ' "Tabak"
  End Select
@@ -2533,7 +2533,7 @@ If Pat_ID <> 0 Then
   End If
  Next i
  If catpos > 0 Then
-  Call KRAdd(frm, "Anamn", "Diab. Katarakt", "H28.0", IIf(catzn > 0, zn, gesi), "H26", "H28")
+  Call KRAdd(frm, "Anamn", "Diab. Katarakt", "H28.0", IIf(catzn > 0, Zn, gesi), "H26", "H28")
  End If
  
 #If debu <> 0 Then
@@ -3163,7 +3163,7 @@ Function do_Form_Current2(frm As AnBog, Hsre$, lcAB$, PStatPath%, pnpflNeu%, KZa
   If labPos <> 0 Then nieflNeu = -1
  End If
  If InStrB(LCase$(frm.anaRS![andere Nierenerkrankung]), "stein") <> 0 Then
-  Call KRAdd(frm, "Fragebogen", "Nierensteinleiden", "N20.0", zn, "N20", , , , "vTextB", 73) ' andere Nierenerkrankung
+  Call KRAdd(frm, "Fragebogen", "Nierensteinleiden", "N20.0", Zn, "N20", , , , "vTextB", 73) ' andere Nierenerkrankung
  End If
  
  Dim Anginap$, obKHK%, mi$, obMI%, ptca$, obPTCA%, hkBschr$
@@ -3213,10 +3213,10 @@ Function do_Form_Current2(frm As AnBog, Hsre$, lcAB$, PStatPath%, pnpflNeu%, KZa
   Call KRAdd(frm, "Fragebogen", "koronare Herzerkrankung", "I25.9", Va, "I25")
  End If
  If obPTCA = 1 Then
-  Call KRAdd(frm, "Fragebogen", "PTCA oder Stent", "Z95.5", zn, "Z95.5")
+  Call KRAdd(frm, "Fragebogen", "PTCA oder Stent", "Z95.5", Zn, "Z95.5")
  End If
- If frm.anaRS![Bypaß kardial] <> 0 Then Call KRAdd(frm, "Fragebogen", "Bypaß kardial", "Z95.1", zn)
- If obMI = 1 Then Call KRAdd(frm, "Fragebogen", "Myokardinfarkt", "I21.9", zn, "I21", "I25.2")
+ If frm.anaRS![Bypaß kardial] <> 0 Then Call KRAdd(frm, "Fragebogen", "Bypaß kardial", "Z95.1", Zn)
+ If obMI = 1 Then Call KRAdd(frm, "Fragebogen", "Myokardinfarkt", "I21.9", Zn, "I21", "I25.2")
  
  Dim hdb$
  hdb = IIf(IsNull(frm.anaRS!Hirndurchblutungsstörung), vNS, LCase$(frm.anaRS!Hirndurchblutungsstörung))
@@ -3229,9 +3229,9 @@ Function do_Form_Current2(frm As AnBog, Hsre$, lcAB$, PStatPath%, pnpflNeu%, KZa
  If Len(Schlag) > 0 And Schlag <> "-" And Schlag <> "n" Then
   If InStrB(Schlag, "gedächtnis") = 0 And InStrB(Schlag, "vergeßlich") = 0 And InStrB(Schlag, "vergesslich") = 0 And InStrB(Schlag, "entfällt") = 0 Then
    If InStrB(Schlag, "blutu") <> 0 Then
-    Call KRAdd(frm, "Fragebogen", "Hirnblutung", "I61.9", zn, "I61", "I62", , , "vTextB", 83) ' Schlaganfall
+    Call KRAdd(frm, "Fragebogen", "Hirnblutung", "I61.9", Zn, "I61", "I62", , , "vTextB", 83) ' Schlaganfall
    Else
-    Call KRAdd(frm, "Fragebogen", "Apoplexie", "I63.9", zn, "I64", "I63", , , "vTextB", 83) ' Schlaganfall
+    Call KRAdd(frm, "Fragebogen", "Apoplexie", "I63.9", Zn, "I64", "I63", , , "vTextB", 83) ' Schlaganfall
    End If
   End If
  End If
@@ -3253,13 +3253,13 @@ Function do_Form_Current2(frm As AnBog, Hsre$, lcAB$, PStatPath%, pnpflNeu%, KZa
   If labPos <> 0 Then angflNeu = -1
  End If
  If frm.anaRS![bypaß peripher] <> 0 Then
-  Call KRAdd(frm, "Fragebogen", "Bypaß peripher", "Z95.88", zn, "I73", "I74", "I70", "Z95", "vCheckB", 4) ' bypaß peripher
+  Call KRAdd(frm, "Fragebogen", "Bypaß peripher", "Z95.88", Zn, "I73", "I74", "I70", "Z95", "vCheckB", 4) ' bypaß peripher
   If labPos <> 0 Then angflNeu = -1
  End If
  Dim amput$
  amput = IIf(IsNull(frm.anaRS![Amputation]), vNS, LCase$(frm.anaRS![Amputation]))
  If Len(amput) > 1 And amput <> "-" And amput <> "n" And amput <> "entfällt" Then
-  Call KRAdd(frm, "Fragebogen", "Amputation", "Z44.1", zn, "Z44", "Z97", , , "vTextB", 87) ' Amputation
+  Call KRAdd(frm, "Fragebogen", "Amputation", "Z44.1", Zn, "Z44", "Z97", , , "vTextB", 87) ' Amputation
  End If
 #If mitab Then
  Call DiabetesDiagnose(frm, pnpflNeu, KZahlNeu, anpflNeu, nieflNeu, angflNeu, bgwflNeu, katfl, retflNeu, nasflNeu, dfsflNeu, oblhNeu)
@@ -4398,7 +4398,7 @@ Function doXtra_Click(frm As AnBog)
   Call myEFrag("UPDATE `fuerdiagexp` SET diagnose = MID(diagnose,6), zeitpunkt = " & DatFor_k(Now()) & " WHERE pat_id = " & frm.anaRS!Pat_ID & " AND (diagnose LIKE 'V.a.%' OR diagnose LIKE 'V.a.%Z.n.%')  ORDER BY id DESC LIMIT 1", rAf) ' rfDE = TabÖff("fuerDiagExp", "Suche") ' pat_id, icd
   UStumm = True
   frm.Va = 0
-  frm.zn = 0
+  frm.Zn = 0
   UStumm = False
  End If
  Exit Function
@@ -4446,7 +4446,7 @@ Function doZn_Click(frm As Form)
  Dim rAf&
  On Error GoTo fehler
  If UStumm Then Exit Function
- If frm.zn Then
+ If frm.Zn Then
   Call myEFrag("UPDATE `fuerdiagexp` SET icd = CONCAT(icd,'Z'), zeitpunkt = " & DatFor_k(Now()) & " WHERE pat_id = " & frm.anaRS!Pat_ID & " AND (not icd LIKE '%Z' AND NOT icd LIKE '%ZV') ORDER BY id DESC LIMIT 1", rAf) ' rfDE = TabÖff("fuerDiagExp", "Suche") ' pat_id, icd
   Call myEFrag("UPDATE `fuerdiagexp` SET diagnose = CONCAT('Z.n. ',diagnose), zeitpunkt = " & DatFor_k(Now()) & " WHERE pat_id = " & frm.anaRS!Pat_ID & " AND (not diagnose LIKE 'Z.n.%' AND NOT diagnose LIKE 'Z.n.%V.a.%') ORDER BY id DESC LIMIT 1", rAf) ' rfDE = TabÖff("fuerDiagExp", "Suche") ' pat_id, icd
  Else
@@ -4474,7 +4474,7 @@ Function knöpfeanpassen(frm As AnBog)
  On Error GoTo fehler
  UStumm = True
  frm.Va = 0
- frm.zn = 0
+ frm.Zn = 0
  frm.Xtra = vNS
  For nr = 1 To 23
 ' Hier noch einfügen, wenn Tabelle rfDE abgefragt werden soll
@@ -5076,7 +5076,7 @@ Function KRAdd(frm As Form, ByVal flag$, ByVal KrStr$, ZielICD$, DSiAkt As DSiTy
      obalt = -1
      For i = 1 To UBound(NKrStr)
       If i <= UBound(MDIICD) Then
-       If NKrStr(i) = KrStr And MDIICD(i) = ZielICD And DSiAkt <> zn And DSi(i) <> zn Then obalt = i: Exit For ' Rezidive zeigen
+       If NKrStr(i) = KrStr And MDIICD(i) = ZielICD And DSiAkt <> Zn And DSi(i) <> Zn Then obalt = i: Exit For ' Rezidive zeigen
       End If
      Next i
      If obalt <> -1 Then
@@ -5132,7 +5132,7 @@ Function KrSchluß(frm As AnBog)
    If DSi(i) <> gesi Then
    Select Case DSi(i)
     Case Va: frm.vTextB(168) = frm.vTextB(168) & "V.a.":      MDIICD(i) = MDIICD(i) & "V"
-    Case zn: frm.vTextB(168) = frm.vTextB(168) & "Z.n.": If Left$(MDIICD(i), 1) <> "Z" Then MDIICD(i) = MDIICD(i) & "Z"
+    Case Zn: frm.vTextB(168) = frm.vTextB(168) & "Z.n.": If Left$(MDIICD(i), 1) <> "Z" Then MDIICD(i) = MDIICD(i) & "Z"
     Case AuS: frm.vTextB(168) = frm.vTextB(168) & "Ausschl.": MDIICD(i) = MDIICD(i) & "A"
    End Select
    End If 'LenB(DSi(i)) <> 0 THEN
@@ -6465,7 +6465,7 @@ End Function ' getHausarzt(Pid&, Infos$())
 
 
 'Aufruf in: alleSpeichern, dodoPlz, harealneu falschebriefelöschen, doVerdächtigeÜberweiser,  gethatest
-Function getHausarzt1(infos$(), rFa() As faelle, rKv() As kvnrue, Optional obHAPrio%, Optional Pat_ID, Optional auchwir% = 0, Optional QZahl% = 0)
+Function getHausarzt1(infos$(), rFa() As Faelle, rKv() As kvnrue, Optional obHAPrio%, Optional Pat_ID, Optional auchwir% = 0, Optional QZahl% = 0)
 ' Dim rNa As New ADODB.Recordset
 ' Dim FaxNr$, infos$() ' Frau/Herrn, Vorn+Nachn, Straße, PLZ+Ort, Faxnr, S.g./Liebe, DMPTyp2, DMPTyp1
  Dim rHa As New ADODB.Recordset, rHi As New ADODB.Recordset, rAf&
@@ -6504,27 +6504,31 @@ Function getHausarzt1(infos$(), rFa() As faelle, rKv() As kvnrue, Optional obHAP
    For mru = 0 To UBound(FMem)
     If FMem(mru).ENr = "3.4" Then
      üqu = ZQKurz(stzk(FMem(mru).Text))
+' ich müßte dann noch 10.5 statt dessen nehmen, dann hätte ich auch die LANR
     ElseIf FMem(mru).ENr = "10.2" Or FMem(mru).ENr = "1.10.2" Then
      ebsnr = FMem(mru).Text
      If Not IsNumeric(ebsnr) Then GoTo weiter
-      myFrag rHi, "SELECT FBezeichnung FBez, COALESCE(CONVERT(FAdresse USING latin1),'') FA, CONCAT(FAnrede,' Kolleg',IF(INSTR(FAnrede,'Frau')<>0,'in','e')) anrl, IF(INSTR(FAnrede,'Frau')<>0,'Frau','Herrn') anrk FROM epraxis WHERE FBetriebsnr='" & ebsnr & "'", adOpenStatic, MOCon
+      myFrag rHi, "SELECT FBezeichnung FBez, COALESCE(CONVERT(FAdresse USING latin1),'') FA, IF(RIGHT(TRIM(FAnrede),8)='geehrter' OR RIGHT(TRIM(FAnrede),7)='geehrte' OR RIGHT(TRIM(FAnrede),6)='Lieber' OR RIGHT(TRIM(FAnrede),5)='Liebe' OR RIGHT(TRIM(FAnrede),4)IN('Herr','Frau'),CONCAT(FAnrede,' Kolleg',IF(INSTR(FAnrede,'Frau')<>0,'in','e')),FAnrede) anrl, IF(INSTR(FAnrede,'Frau')<>0,'Frau','Herrn') anrk FROM epraxis WHERE FBetriebsnr='" & ebsnr & "'", adOpenStatic, MOCon
       If Not rHi.BOF Then
        infos(10, infi) = "Üw " & üqu
        infos(5, infi) = rHi!anrl
        infos(0, infi) = rHi!anrk
        Dim VorN$, NachN$, FB$, namspl
        FB = rHi!FBez
+       infos(1, infi) = FB
+       If InStrB(infos(1, infi), "Dr.") = 0 Then infos(1, infi) = "Dr.med." & infos(1, infi)
        If Left$(FB, 5) = "Prof." Then FB = Mid$(FB, 6)
        If Left$(FB, 8) = "Dr. med." Then FB = Mid$(FB, 9) Else If Left$(FB, 7) = "Dr.med." Then FB = Mid$(FB, 8) Else If Left$(FB, 3) = "Dr." Then FB = Mid$(FB, 4)
        FB = Trim$(FB)
        namspl = Split(FB)
        If UBound(namspl) > 0 Then infos(9, infi) = namspl(0): infos(14, infi) = namspl(UBound(namspl))
        Call ParseMemo(rHi!FA, FMi(), , "FAdresse aus epraxis " & ebsnr)
-       infos(1, infi) = FB
        For nru = 0 To UBound(FMi)
         Select Case FMi(nru).ENr
          Case "3" ' Strasse
           infos(2, infi) = FMi(nru).Text
+         Case "4" ' Hausnr
+          infos(2, infi) = infos(2, infi) & " " & FMi(nru).Text
          Case "5" ' Plz
           infos(3, infi) = FMi(nru).Text & " "
          Case "6" ' Ort
@@ -6964,7 +6968,7 @@ Const sql0$ = "SELECT " & _
        If InfRoh(9, runde) = vNS Then If Not IsNull(rhae!Vorname) Then InfRoh(9, runde) = rhae!Vorname
        If InfRoh(14, runde) = vNS Then If Not IsNull(rhae!name) Then InfRoh(14, runde) = rhae!name
        If InfRoh(4, runde) = vNS And Not IsNull(rhae!telefax) Then InfRoh(4, runde) = rhae!telefax
-        Select Case rhae!Überschrift
+        Select Case rhae!überschrift
          Case "L": InfRoh(5, runde) = IIf(InfRoh(0, runde) = "Frau", "Liebe", "Lieber") & " " & InfRoh(9, runde) ' nicht: rHae!Geschlecht = "w"
          Case "H": InfRoh(5, runde) = "Hallo " + InfRoh(9, runde)
          Case Else: InfRoh(5, runde) = IIf(InfRoh(0, runde) = "Frau", "Sehr geehrte Frau Kollegin", "Sehr geehrter Herr Kollege")
@@ -8277,7 +8281,7 @@ End Sub ' HAlokal
 ' SELECT * FROM (SELECT i.pat_id ipat_id, i.fid ifid, i.bhfb ibhfb, f2.bhfb f2bhfb, IF(f2.bhfb > i.bhfb,1,0) ob FROM (SELECT pat_id, fid, bhfb, (SELECT MAX(fid) FROM `faelle` WHERE pat_id = f1.pat_id AND fid < f1.fid) mfid FROM `faelle` f1) i LEFT JOIN `faelle` f2 ON f2.fid = i.mfid) i WHERE ob <> 0;
 ' => sind sie nicht
 ' Aufruf in getHausarzt1
-Function Üwrd$(rFa() As faelle, Üw1$(), rKv() As kvnrue, Optional auchwir% = 0)
+Function Üwrd$(rFa() As Faelle, Üw1$(), rKv() As kvnrue, Optional auchwir% = 0)
 ' die Fallzeile mit dem jüngsten Behandlungsfallbeginn; rKV() AS kvnrue
 ' zunächst für das Anamneseblatt, später auch für den Brief
   Const maxFZ% = 50 ' Maximalzahl der verschiedenen Fälle
@@ -8977,7 +8981,7 @@ Function letzteMed(dc, Pat_ID$)
   Tabl.cell(runde, 3).Range = IIf(IsNull(raDat!mi), vNS, REPLACE$(REPLACE$(raDat!mi, "«", "½"), "¬", "¼"))
   Tabl.cell(runde, 4).Range = IIf(IsNull(raDat!nm), vNS, REPLACE$(REPLACE$(raDat!nm, "«", "½"), "¬", "¼"))
   Tabl.cell(runde, 5).Range = IIf(IsNull(raDat!ab), vNS, REPLACE$(REPLACE$(raDat!ab, "«", "½"), "¬", "¼"))
-  Tabl.cell(runde, 6).Range = IIf(IsNull(raDat!zn), vNS, REPLACE$(REPLACE$(raDat!zn, "«", "½"), "¬", "¼"))
+  Tabl.cell(runde, 6).Range = IIf(IsNull(raDat!Zn), vNS, REPLACE$(REPLACE$(raDat!Zn, "«", "½"), "¬", "¼"))
   Tabl.cell(runde, 7).Range = IIf(raDat!j_bBed = 0, vNS, "X")
   runde = runde + 1
   raDat.Move 1
