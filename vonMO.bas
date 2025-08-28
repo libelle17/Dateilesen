@@ -1169,7 +1169,7 @@ Public Function doPatvonMO(fPtNr&, Optional obmitFormularen%, Optional obpruef%,
  Dim laborlangsam%
  Dim ij&, rj& ' Laufvariable und zu befüllender Satz in rDM
  '    Veriablen für die rDm-Befüllung:
-      Dim DMPArt%, uDat As Date, DokuDatum As Date, DruckDatum As Date, exportiert As Date
+      Dim DMPArt%, uDat As Date, DokuDatum As Date, Druckdatum As Date, exportiert As Date
       Dim testdat As Date
  laborlangsam = False
 abermals:
@@ -1910,7 +1910,7 @@ sql = sql & _
       DMPArt = 0
       uDat = 0
       DokuDatum = 0
-      DruckDatum = 0
+      Druckdatum = 0
       exportiert = 0
       testdat = 0
 '       Debug.Print rsEi!FText
@@ -1932,13 +1932,13 @@ sql = sql & _
                 testdat = stzk(FMem(j).Text)
                 If testdat Then
                  If FMem(j).ENr = "117" Then
-                   If DruckDatum = 0 Then
-                    DruckDatum = testdat
+                   If Druckdatum = 0 Then
+                    Druckdatum = testdat
                    Else
                     exportiert = testdat
                    End If
                  Else
-                   DruckDatum = testdat
+                   Druckdatum = testdat
                  End If
                 End If
             Case "119", "120", "138", "139" ' ' bei Typ 1: 104; 136/138 = Pat. 1339; 115/117 = 2885
@@ -1960,7 +1960,7 @@ sql = sql & _
 '                Stop
             Case "91"
                 testdat = stzk(FMem(j).Text)
-                If testdat Then DruckDatum = testdat
+                If testdat Then Druckdatum = testdat
             Case "104"
                 testdat = stzk(FMem(j).Text)
                 If testdat Then exportiert = testdat
@@ -1980,7 +1980,7 @@ sql = sql & _
 '         Case "121":
 '                Stop
            Case "66":
-                DruckDatum = stzk(FMem(j).Text)
+                Druckdatum = stzk(FMem(j).Text)
            Case "72" ' , "91":
 '                If IsDate(stzk(FMem(j).Text)) Then
                   exportiert = stzk(FMem(j).Text)
@@ -2439,8 +2439,8 @@ fgefunden:
   Dim Spl$()
   If Not rsEi.BOF Then
    Do While Not rsEi.EOF
-    If rsEi!Wert Like "Barthel-Index bei Schade, Gerald, geb. 17.12.1962*" Then Stop
-    If rsEi!Wert Like "Time-up-and-Go-Test bei Schade, Gerald, *" Then Stop
+'    If rsEi!Wert Like "Barthel-Index bei Schade, Gerald, geb. 17.12.1962*" Then Stop
+'    If rsEi!Wert Like "Time-up-and-Go-Test bei Schade, Gerald, *" Then Stop
 '    Debug.Print "Eintragsart: " & rsEi!FEintragsart
     messDatum = rsEi!Zp ' rsEi!anzp ' umgestellt 29.6.25
     art = rsEi!art

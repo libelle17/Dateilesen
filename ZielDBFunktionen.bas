@@ -224,7 +224,7 @@ Public Const artSpezUS0$ = "'gewicht','gewi','gew','rrvgl','rrvgln','bzvgl','bzv
 
 ' Einträge mit Untersuchungen, die nicht vorne im Patientenlaufzettel stehen
 Public Const artSpezUS1$ = "'bzm','bztp','bks','anal','andm','andm2','angd','angd2','usal','usd','usdm','usdm1','usdm2','bauch','ufrag','uabfrag'" & _
-",'cgma','doppler','dop','duplex','belastun'" & _
+",'cgma','doppler','dop','duplex','dup','belastun'" & _
 ",'sono','sd','UKG','Größe','groe','HbA1c','hyper','keto','wv','vw','kv','komp','kompr','debr','ulc','ulcus','EKG','LZRR','Lufu','gpt'" & _
 ",'lactoset','trop','temp','oGTT','bmi','hüfte','rr','puls','GDT','bef','OAU','OA','inj','inf','ht','htt','ADL','TUG','247','284','who','vac','vacc','grippe','fbef','fbild'"
 ' bzm = Blutzuckermessung
@@ -242,6 +242,7 @@ Public Const artSpezUS1$ = "'bzm','bztp','bks','anal','andm','andm2','angd','ang
 ' cgma = CGM-Anlage
 ' doppler = Dopplerbefund bei Untersuchung mit Stiftsonde
 ' duplex = Duplexbefund
+' dup = Duplexbefund
 ' belastun = Belastungsuntersuchung
 ' sono = Sonobefund
 ' sd = Sonobefund Schilddrüse
@@ -4031,7 +4032,7 @@ Sub dodoFollowUp(frm As Lese)
    If Not rB.BOF Then
     If DateValue(lebe(rP!Pat_ID)) - rB!Zeitpunkt > 365 Then
      Lese.Aktion = Briefschreiben
-     Call tubriefStandalone(rP!Pat_ID, True)
+     Call tuBriefStandalone(rP!Pat_ID, True, , , , , , True)
     End If
    End If
   End If
@@ -4074,7 +4075,7 @@ Sub doUngeschriebeneBriefe(frm As Lese)
    myFrag rB, sql
    If rB.BOF Then
     Lese.Aktion = Briefschreiben
-    Call tubriefStandalone(rP!Pat_ID, True)
+    Call tuBriefStandalone(rP!Pat_ID, True, , , , , , True)
    End If
   End If
 weiter:
@@ -4088,13 +4089,14 @@ fehler:
 #Else
  AnwPfad = App.path
 #End If
-Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in doRestlicheBriefe/" + AnwPfad)
+Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in doUngeschriebeneBriefe/" + AnwPfad)
  Case vbAbort: Call MsgBox("Höre auf"): ProgEnde
  Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
  Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
 End Select
-End Sub ' doRestlicheBriefe
+End Sub ' UngeschriebeneBriefe_Click
 
+' in los()
 Sub doRestlicheBriefe(frm As Lese, ab&)
  Dim sql$, sql1$
  Dim rP As New ADODB.Recordset
@@ -4113,7 +4115,7 @@ Sub doRestlicheBriefe(frm As Lese, ab&)
   myFrag rB, sql
   If rB.BOF Then
    Lese.Aktion = Briefschreiben
-   Call tubriefStandalone(rP!Pat_ID, True)
+   Call tuBriefStandalone(rP!Pat_ID, True, , , , , , True)
   End If
   rP.Move 1
  Loop

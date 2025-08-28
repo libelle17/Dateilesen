@@ -103,7 +103,7 @@ End Sub ' werteAusGeb
 Sub DiagnosenAusgeb(Optional id&, Optional obAnzeig As Boolean = True)
 Const ErgebDatei$ = aVerz + "Diagnosen.txt"
 'Dim EStr$
-Dim tbl
+Dim Tbl
 ' DoCmd.Save acForm, Anmnb geht leider nicht
 If id = 0 Then
  On Error Resume Next
@@ -111,8 +111,8 @@ If id = 0 Then
  id = Forms(Anmnbi)(ABPat_ID)
  On Error GoTo fehler
  If id = 0 Then
-  For Each tbl In Dtb.TableDefs
-   DoCmd.Close acTable, tbl.name, acSaveYes
+  For Each Tbl In Dtb.TableDefs
+   DoCmd.Close acTable, Tbl.name, acSaveYes
   Next
   DoCmd.OpenForm Dtb.Containers(2).documents(0).name
   DoCmd.Maximize
@@ -165,7 +165,7 @@ End Function ' AusDiag
 
 #If False Then
 Sub behDatAusgeb(Optional id&, Optional obAnzeig As Boolean = True)
-Dim lbehD As Date, tbl As tabledef
+Dim lbehD As Date, Tbl As tabledef
 'Dim rNo As New ADODb.Recordset
 Const ErgebDatei$ = aVerz + "behDat.txt"
 On Error GoTo fehler
@@ -175,8 +175,8 @@ If id = 0 Then
  id = Forms(Anmnbi)(ABPat_ID)
  On Error GoTo fehler
  If id = 0 Then
-  For Each tbl In Dtb.TableDefs
-   DoCmd.Close acTable, tbl.name, acSaveYes
+  For Each Tbl In Dtb.TableDefs
+   DoCmd.Close acTable, Tbl.name, acSaveYes
   Next
   DoCmd.OpenForm Dtb.Containers(2).documents(0).name
   DoCmd.Maximize
@@ -290,7 +290,7 @@ fehler:
  End Select
 End Function ' lebe
 
-Function behDauerStr$(Pat_ID, lbeh As Date) ' nur in tubriefStandalone
+Function behDauerStr$(Pat_ID, lbeh As Date) ' nur in tuBriefStandalone
  Dim D1 As Date, D2 As Date
  On Error GoTo fehler
  D1 = DateValue(erbe(Pat_ID))
@@ -1080,7 +1080,7 @@ Function obN%(fldv$)
  End Select
 End Function ' obN%
 
-' aufgerufen in tubriefstandalone und do_GibwerteAus
+' aufgerufen in tuBriefStandalone und do_GibwerteAus
 Function machwertString$(Pat_ID$, Optional obAnzeig As Boolean = False) ' Anamnese für brief
 Dim FNr&
 Dim te$, Tü$, Add$, Tneu$, Descr$

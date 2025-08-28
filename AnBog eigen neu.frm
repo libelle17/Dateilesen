@@ -5141,7 +5141,7 @@ Private Sub AbfragenLad()
  ", COALESCE((SELECT 1 FROM desktop WHERE pat_id = n.pat_id AND iconpath RLIKE '4eckblau' AND showasnote=0 LIMIT 1),0) obk" & vbCrLf & _
  "FROM namen n" & vbCrLf & _
  "LEFT JOIN faelle f ON f.pat_id=n.pat_id AND quartal=(SELECT quartal FROM faelle WHERE pat_id=f.pat_id AND bhfb=(SELECT MAX(bhfb) FROM faelle WHERE pat_id=f.pat_id) LIMIT 1)" & vbCrLf & _
- "LEFT JOIN eintraege es ON es.pat_id=f.pat_id AND (es.art IN ('gs','doppler','dop','duplex')OR(es.art='tb'AND es.ersteller='gs')) AND es.zeitpunkt BETWEEN f.qanf - INTERVAL 90 DAY AND f.qend" & vbCrLf & _
+ "LEFT JOIN eintraege es ON es.pat_id=f.pat_id AND (es.art IN ('gs','doppler','dop','duplex','dup')OR(es.art='tb'AND es.ersteller='gs')) AND es.zeitpunkt BETWEEN f.qanf - INTERVAL 90 DAY AND f.qend" & vbCrLf & _
  "LEFT JOIN eintraege ek ON ek.pat_id=f.pat_id AND (ek.art = 'tk'OR(ek.art='tb'AND ek.ersteller='tk')) AND ek.zeitpunkt BETWEEN f.qanf - INTERVAL 90 DAY AND f.qend" & vbCrLf & _
  "GROUP BY f.Pat_ID) i" & vbCrLf & _
  "WHERE ekz OR obk OR esz + ekz + obs + obk = 0"
@@ -5156,7 +5156,7 @@ Private Sub AbfragenLad()
  ", COALESCE((SELECT 1 FROM desktop WHERE pat_id = n.pat_id AND iconpath RLIKE '4eckblau' AND showasnote=0 LIMIT 1),0) obk" & vbCrLf & _
  "FROM namen n" & vbCrLf & _
  "LEFT JOIN faelle f ON f.pat_id=n.pat_id AND quartal=(SELECT quartal FROM faelle WHERE pat_id=f.pat_id AND bhfb=(SELECT MAX(bhfb) FROM faelle WHERE pat_id=f.pat_id) LIMIT 1)" & vbCrLf & _
- "LEFT JOIN eintraege es ON es.pat_id=f.pat_id AND (es.art IN ('gs','doppler','dop','duplex')OR(es.art='tb'AND es.ersteller='gs')) AND es.zeitpunkt BETWEEN f.qanf - INTERVAL 90 DAY AND f.qend" & vbCrLf & _
+ "LEFT JOIN eintraege es ON es.pat_id=f.pat_id AND (es.art IN ('gs','doppler','dop','duplex','dup')OR(es.art='tb'AND es.ersteller='gs')) AND es.zeitpunkt BETWEEN f.qanf - INTERVAL 90 DAY AND f.qend" & vbCrLf & _
  "LEFT JOIN eintraege ek ON ek.pat_id=f.pat_id AND (ek.art = 'tk'OR(ek.art='tb'AND ek.ersteller='tk')) AND ek.zeitpunkt BETWEEN f.qanf - INTERVAL 90 DAY AND f.qend" & vbCrLf & _
  "GROUP BY f.Pat_ID) i" & vbCrLf & _
  "WHERE esz OR obs OR esz + ekz + obs + obk = 0"
@@ -5204,11 +5204,11 @@ Private Sub AbfragenLad()
 ' i = i + 1
  
  DQStr(i) = "Kein Diabetestyp Schade"
- DQSQL(i) = "SELECT n.pat_id FROM namen n INNER JOIN (SELECT f.pat_id, (SELECT COUNT(0) FROM `eintraege` WHERE ((art IN ('gs','doppler','dop','duplex')OR(art='tb'AND ersteller='gs')) OR inhalt LIKE '%(gs)%') AND pat_id = f.pat_id) ztk FROM `faelle` f LEFT JOIN `anamnesebogen` a ON f.pat_id = a.pat_id WHERE a.diabetestyp = '' GROUP BY f.pat_id) i  ON n.pat_id = i.pat_id  WHERE ztk <> 0 ORDER BY vorgestellt DESC"
+ DQSQL(i) = "SELECT n.pat_id FROM namen n INNER JOIN (SELECT f.pat_id, (SELECT COUNT(0) FROM `eintraege` WHERE ((art IN ('gs','doppler','dop','duplex','dup')OR(art='tb'AND ersteller='gs')) OR inhalt LIKE '%(gs)%') AND pat_id = f.pat_id) ztk FROM `faelle` f LEFT JOIN `anamnesebogen` a ON f.pat_id = a.pat_id WHERE a.diabetestyp = '' GROUP BY f.pat_id) i  ON n.pat_id = i.pat_id  WHERE ztk <> 0 ORDER BY vorgestellt DESC"
  i = i + 1
  
  DQStr(i) = "Kein Diabetestyp Schade aktuelle"
- DQSQL(i) = "SELECT pat_id FROM (SELECT f.pat_id, (SELECT COUNT(0) FROM `eintraege` WHERE ((art IN ('gs','doppler','dop','duplex')OR(art='tb'AND ersteller='gs')) OR inhalt LIKE '%(gs)%') AND pat_id = f.pat_id) ztk FROM `aktfv` f LEFT JOIN `anamnesebogen` a ON f.pat_id = a.pat_id WHERE a.diabetestyp = '' GROUP BY f.pat_id) i WHERE ztk <> 0 ORDER BY vorgestellt DESC"
+ DQSQL(i) = "SELECT pat_id FROM (SELECT f.pat_id, (SELECT COUNT(0) FROM `eintraege` WHERE ((art IN ('gs','doppler','dop','duplex','dup')OR(art='tb'AND ersteller='gs')) OR inhalt LIKE '%(gs)%') AND pat_id = f.pat_id) ztk FROM `aktfv` f LEFT JOIN `anamnesebogen` a ON f.pat_id = a.pat_id WHERE a.diabetestyp = '' GROUP BY f.pat_id) i WHERE ztk <> 0 ORDER BY vorgestellt DESC"
  i = i + 1
  
  Az = i - 1

@@ -253,7 +253,7 @@ End Sub ' form_load
 '        END IF
 ''        Call LeistungsExport1(rNa!Pat_id, "01601", CDate(leid), CDate("18:00"))
 '        Call LeistungsExport1(rNa!Pat_id, "40120", CDate(leid), CDate("18:00"), , , ArztNr)
-'        Call tubriefStandalone(rNa!Pat_id, True)
+'        Call tuBriefStandalone(rNa!Pat_id, True)
 '       END IF
 '     END IF
 '   ElseIf NOT ISNULL(rEx.Fields(0)) AND NOT ISNULL(rEx.Fields(1)) AND NOT ISNULL(rEx.Fields(2)) THEN
@@ -303,7 +303,7 @@ Private Sub DateiBearbeiten_Click()
     Input #394, pat_idS
     If IsNumeric(pat_idS) Then
      Lese.Aktion = Briefschreiben
-     Call tubriefStandalone(CLng(pat_idS), True, pVerz & "unkorrigiert\")
+     Call tuBriefStandalone(CLng(pat_idS), True, pVerz & "unkorrigiert\", , , , , True)
     End If
    Loop
    Close #394
@@ -419,7 +419,7 @@ Public Sub PatTeste(Pat_ID&)
    If rl.EOF Then Datum = #12/29/2007# Else Datum = rl!Zeitpunkt
    
 '   IF Pat_id = 792 THEN obStart = True
-'   Call tubriefStandalone(Pat_id, True, pverz & "unkorrigiert\")
+'   Call tuBriefStandalone(Pat_id, True, pverz & "unkorrigiert\")
    If Not BDT.Start(hVerz, "Leist") Then
     Exit Sub
    End If

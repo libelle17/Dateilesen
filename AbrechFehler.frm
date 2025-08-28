@@ -612,7 +612,7 @@ Public Function ZeigSprivat(FristS$)
  sql(AWlf) = "SELECT n.pat_id AS pat_id, gesname(n.pat_id) Name, e.zeitpunkt AS zeitpunkt, e.art AS art, inhalt " & vbCrLf & _
  "FROM `eintraege` e LEFT JOIN `namen` n ON e.pat_id = n.pat_id " & vbCrLf & _
  "LEFT JOIN `faelle` f ON e.fid = f.fid " & vbCrLf & _
- "WHERE ((art LIKE '%duplex%') OR (art LIKE '%sono%'))" & vbCrLf & _
+ "WHERE art RLIKE 'duplex|dup|sono'" & vbCrLf & _
  "AND (false OR NOT EXISTS (SELECT pat_id FROM `eintraege` bez WHERE art = 'rech' AND pat_id = e.pat_id AND zeitpunkt > e.zeitpunkt)) " & vbCrLf & _
  "AND NOT EXISTS (SELECT pat_id FROM `leistungen` WHERE pat_id = e.pat_id AND DATE(zeitpunkt) = DATE(e.zeitpunkt) AND leistung IN ('401')) " & vbCrLf & _
  "AND n.nachname <> 'ZuTun' AND n.pat_id <> 2 AND schgr = 90 AND zeitpunkt > (SELECT MAX(zeitpunkt) FROM `eintraege` WHERE pat_id = n.pat_id AND art = 'pvs' AND NOT inhalt LIKE '%storniert%')"
@@ -638,7 +638,7 @@ Public Function ZeigSprivat(FristS$)
  sql(AWlf) = "SELECT n.pat_id AS pat_id, gesname(n.pat_id) Name, e.zeitpunkt AS zeitpunkt, e.art AS art, inhalt " & vbCrLf & _
  "FROM `eintraege` e LEFT JOIN `namen` n ON e.pat_id = n.pat_id " & vbCrLf & _
  "LEFT JOIN `faelle` f ON e.fid = f.fid " & vbCrLf & _
- "WHERE ((art LIKE '%duplex%'))" & vbCrLf & _
+ "WHERE art RLIKE '^dup$|duplex'" & vbCrLf & _
  "AND (false OR NOT EXISTS (SELECT pat_id FROM `eintraege` bez WHERE art = 'rech' AND pat_id = e.pat_id AND zeitpunkt > e.zeitpunkt)) " & vbCrLf & _
  "AND NOT EXISTS (SELECT pat_id FROM `leistungen` WHERE pat_id = e.pat_id AND DATE(zeitpunkt) = DATE(e.zeitpunkt) AND leistung IN ('404')) " & vbCrLf & _
  "AND n.nachname <> 'ZuTun' AND n.pat_id <> 2 AND schgr = 90 AND zeitpunkt > (SELECT MAX(zeitpunkt) FROM `eintraege` WHERE pat_id = e.pat_id AND art = 'pvs' AND NOT inhalt LIKE '%storniert%')"
@@ -1276,7 +1276,7 @@ sql(AWlf) = _
 "   , COALESCE((SELECT DATE(MAX(zeitpunkt)) FROM eintraege WHERE (((art IN ('gs','doppler','dop','duplex','dup') OR (art='tb' AND ersteller='gs')) AND NOT inhalt LIKE '%(tk)%') OR inhalt LIKE '%(gs)%') AND pat_id = f.pat_id AND zeitpunkt>SUBDATE(CURRENT_TIMESTAMP(),365)),0) gszul " & vbCrLf & _
 "   , (SELECT COUNT(0) FROM eintraege WHERE ((art IN ('tk','ARCHIE2','APK') OR (art='tb' AND ersteller='tk')) OR inhalt LIKE '%(tk)%') AND pat_id = f.pat_id AND zeitpunkt>SUBDATE(CURRENT_TIMESTAMP(),365)) tkz " & vbCrLf & _
 "   , COALESCE((SELECT DATE(MAX(zeitpunkt)) FROM eintraege WHERE ((art IN ('tk','ARCHIE2','APK') OR (art='tb' AND ersteller='tk')) OR inhalt LIKE '%(tk)%') AND pat_id = f.pat_id AND zeitpunkt>SUBDATE(CURRENT_TIMESTAMP(),365)),0) tkzul " & vbCrLf & _
-"   , COALESCE((SELECT CONCAT(MAX(IF(raum='Schade','gs','tk')),' ', DATE_FORMAT(MAX(zp),'%e.%c.%y')) FROM termine t WHERE pid = f.pat_id AND zp =(SELECT MIN(zp) FROM termine WHERE zp>=CURRENT_TIMESTAMP() AND pid=t.pid AND raum IN ('Kothny','Schade') AND NOT zusatz RLIKE 'doppler|duplex')),'') Termin " & vbCrLf & _
+"   , COALESCE((SELECT CONCAT(MAX(IF(raum='Schade','gs','tk')),' ', DATE_FORMAT(MAX(zp),'%e.%c.%y')) FROM termine t WHERE pid = f.pat_id AND zp =(SELECT MIN(zp) FROM termine WHERE zp>=CURRENT_TIMESTAMP() AND pid=t.pid AND raum IN ('Kothny','Schade') AND NOT zusatz RLIKE 'doppler|duplex|dup')),'') Termin " & vbCrLf & _
 "   ,TRIM(CONCAT(IF(obtk,'tk ',''),IF(obgs,'gs ',''),IF(obdw,'wd|ah ',''))) dt " & vbCrLf & _
 "   FROM aktfv af JOIN faelle f USING (fid)" & vbCrLf & _
 "   LEFT JOIN anakt ON anakt.pat_id=f.pat_id " & vbCrLf & _
@@ -1780,7 +1780,7 @@ sql(AWlf) = _
 "     , COALESCE((SELECT DATE(MAX(zeitpunkt)) FROM eintraege WHERE (((art IN ('gs','doppler','dop','duplex','dup') OR (art='tb' AND ersteller='gs')) AND NOT inhalt LIKE '%(tk)%') OR inhalt LIKE '%(gs)%') AND pat_id = f.pat_id AND zeitpunkt>SUBDATE(CURRENT_TIMESTAMP(),365)),0) gszul " & vbCrLf & _
 "     , (SELECT COUNT(0) FROM eintraege WHERE ((art IN ('tk','ARCHIE2','APK') OR (art='tb' AND ersteller='tk')) OR inhalt LIKE '%(tk)%') AND pat_id = f.pat_id AND zeitpunkt>SUBDATE(CURRENT_TIMESTAMP(),365)) tkz " & vbCrLf & _
 "     , COALESCE((SELECT DATE(MAX(zeitpunkt)) FROM eintraege WHERE ((art IN ('tk','ARCHIE2','APK') OR (art='tb' AND ersteller='tk')) OR inhalt LIKE '%(tk)%') AND pat_id = f.pat_id AND zeitpunkt>SUBDATE(CURRENT_TIMESTAMP(),365)),0) tkzul " & vbCrLf & _
-"     , COALESCE((SELECT CONCAT(CASE WHEN raum='Schade' THEN 'gs' WHEN raum='Kothny' THEN 'tk' WHEN raum='Wagner' THEN 'wd' WHEN raum LIKE 'Hamm%' THEN 'ah' ELSE '' END,' ', DATE_FORMAT(zp,'%e.%c.%y'),' ',REPLACE(REPLACE(LEFT(zusatz,IF(LENGTH(zusatz)-1<25,LENGTH(zusatz)-1,25)),chr(10),''),chr(13),'')) FROM termine t WHERE pid = f.pat_id AND raum<>'Labor' AND zp =(SELECT MIN(zp) FROM termine WHERE zp>=CURRENT_TIMESTAMP() AND pid=t.pid AND raum RLIKE 'Kothny|Schade|Wagner|^Hamm' AND NOT zusatz RLIKE 'doppler|duplex|carotis|belastung|SD Sono|SD-Sono|Arterien|Venen') AND aktzeit=(SELECT MAX(aktzeit) FROM termine WHERE pid=t.pid AND raum<>'Labor' AND zp=t.zp) LIMIT 1),'') Termin " & vbCrLf
+"     , COALESCE((SELECT CONCAT(CASE WHEN raum='Schade' THEN 'gs' WHEN raum='Kothny' THEN 'tk' WHEN raum='Wagner' THEN 'wd' WHEN raum LIKE 'Hamm%' THEN 'ah' ELSE '' END,' ', DATE_FORMAT(zp,'%e.%c.%y'),' ',REPLACE(REPLACE(LEFT(zusatz,IF(LENGTH(zusatz)-1<25,LENGTH(zusatz)-1,25)),chr(10),''),chr(13),'')) FROM termine t WHERE pid = f.pat_id AND raum<>'Labor' AND zp =(SELECT MIN(zp) FROM termine WHERE zp>=CURRENT_TIMESTAMP() AND pid=t.pid AND raum RLIKE 'Kothny|Schade|Wagner|^Hamm' AND NOT zusatz RLIKE 'doppler|duplex|dup|carotis|belastung|SD Sono|SD-Sono|Arterien|Venen') AND aktzeit=(SELECT MAX(aktzeit) FROM termine WHERE pid=t.pid AND raum<>'Labor' AND zp=t.zp) LIMIT 1),'') Termin " & vbCrLf
 sql(AWlf) = sql(AWlf) & _
 "     ,REPLACE(TRIM(CONCAT(IF(obtk,'tk ',''),IF(obgs,'gs ',''),IF(obdw,'wd',IF(obah,'ah','')))),' ','|') dt " & vbCrLf & _
 "     FROM aktfv f " & vbCrLf & _
@@ -2234,7 +2234,7 @@ sql(AWlf) = _
 ",COALESCE((SELECT 'x' FROM desktop WHERE pat_id =n.pat_id AND iconpath LIKE '%4eckgelb%' AND showasnote=0 LIMIT 1),'') icon_s" & vbCrLf & _
 ",COALESCE((SELECT 'x' FROM desktop WHERE pat_id =n.pat_id AND iconpath LIKE '%4eckHellgruen%' AND showasnote=0 LIMIT 1),'') icon_h" & vbCrLf & _
 ",COALESCE((SELECT 1 FROM desktop WHERE pat_id =n.pat_id AND iconpath LIKE '%4eckmagneta%' AND showasnote=0 LIMIT 1),'') icon_w*/" & vbCrLf & _
-",COALESCE((SELECT CONCAT(CASE WHEN raum='Schade' THEN 'gs' WHEN raum='Kothny' THEN 'tk' WHEN raum='Wagner' THEN 'wd' WHEN raum LIKE 'Hamm%' THEN 'ah' ELSE '' END,' ', DATE_FORMAT(zp,'%e.%c.%y'),' ',REPLACE(REPLACE(LEFT(zusatz,IF(LENGTH(zusatz)-1<25,LENGTH(zusatz)-1,25)),chr(10),''),chr(13),'')) FROM termine t WHERE pid = n.pat_id AND raum<>'Labor' AND zp =(SELECT MIN(zp) FROM termine WHERE zp>=CURRENT_TIMESTAMP() AND pid=t.pid AND raum RLIKE 'Kothny|Schade|Wagner|^Hamm' AND NOT zusatz RLIKE 'doppler|duplex|carotis|belastung|SD Sono|SD-Sono|Arterien|Venen') AND aktzeit=(SELECT MAX(aktzeit) FROM termine WHERE pid=t.pid AND raum<>'Labor' AND zp=t.zp) LIMIT 1),'') Termin" & vbCrLf & _
+",COALESCE((SELECT CONCAT(CASE WHEN raum='Schade' THEN 'gs' WHEN raum='Kothny' THEN 'tk' WHEN raum='Wagner' THEN 'wd' WHEN raum LIKE 'Hamm%' THEN 'ah' ELSE '' END,' ', DATE_FORMAT(zp,'%e.%c.%y'),' ',REPLACE(REPLACE(LEFT(zusatz,IF(LENGTH(zusatz)-1<25,LENGTH(zusatz)-1,25)),chr(10),''),chr(13),'')) FROM termine t WHERE pid = n.pat_id AND raum<>'Labor' AND zp =(SELECT MIN(zp) FROM termine WHERE zp>=CURRENT_TIMESTAMP() AND pid=t.pid AND raum RLIKE 'Kothny|Schade|Wagner|^Hamm' AND NOT zusatz RLIKE 'doppler|duplex|dup|carotis|belastung|SD Sono|SD-Sono|Arterien|Venen') AND aktzeit=(SELECT MAX(aktzeit) FROM termine WHERE pid=t.pid AND raum<>'Labor' AND zp=t.zp) LIMIT 1),'') Termin" & vbCrLf & _
 "FROM (" & vbCrLf & _
 "SELECT n.pat_id, gesname(n.pat_id) PName,ersteller,obk,obs,obh" & vbCrLf & _
 ",FIRST_VALUE(e.zeitpunkt) OVER(PARTITION BY e.pat_id ORDER BY obtk DESC,zeitpunkt DESC) tkzp" & vbCrLf & _
