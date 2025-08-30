@@ -51,6 +51,15 @@ Public Const doc1$ = "<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"
           " Mittermayerstraße 13 </w:t></w:r><w:r><w:rPr><w:rFonts w:ascii=""Arial"" w:hAnsi=""Arial""/><w:i/><w:iCs/><w:sz w:val=""16""/><w:u w:val=""single""/></w:rPr><w:sym w:font=""Symbol"" w:char=""F0B7""/></w:r><w:r><w:rPr><w:rFonts w:ascii=""Arial"" w:hAnsi=""Arial""/><w:i/><w:iCs/><w:sz w:val=""16""/><w:u w:val=""single""/></w:rPr><w:t xml:space=""preserve""> 85221 Dachau</w:t></w:r></w:p>", _
  doc12$ = "<w:pPr><w:spacing w:before=""80""/><w:rPr><w:rFonts w:ascii=""Arial"" w:hAnsi=""Arial""/><w:iCs/><w:sz w:val=""16""/><w:u w:val=""single""/></w:rPr></w:pPr></w:p>"
  
+ ' hier ab 28.8.25
+ Public Const smc$ = "http://schemas.microsoft.com/", sod$ = smc & "office/drawing/", sow$ = smc & "office/word/", sow1$ = sow & "2010/", _
+              soo$ = "http://schemas.openxmlformats.org/"
+ Public Const vgb1$ = "<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes""?>" & _
+"<w:document xmlns:wpc=""" & sow1 & "wordprocessingCanvas"" xmlns:cx=""" & sod & "2014/chartex"" xmlns:cx1=""" & sod & "2015/9/8/chartex"" xmlns:cx2=""" & sod & "2015/10/21/chartex"" xmlns:cx3=""" & sod & "2016/5/9/chartex"" xmlns:cx4=""" & sod & "2016/5/10/chartex"" xmlns:cx5=""" & sod & "2016/5/11/chartex"" xmlns:cx6=""" & sod & "2016/5/12/chartex"" xmlns:cx7=""" & sod & "2016/5/13/chartex"" xmlns:cx8=""" & sod & "2016/5/14/chartex"" xmlns:mc=""" & soo & "markup-compatibility/2006"" xmlns:aink=""" & sod & "2016/ink"" xmlns:am3d=""" & sod & "2017/model3d"" xmlns:o=""urn:schemas-microsoft-com:office:office"" xmlns:r=""" & soo & "officeDocument/2006/relationships"" xmlns:m=""" & soo & "officeDocument/2006/math"" xmlns:v=""urn:schemas-microsoft-com:vml"" xmlns:wp14=""" & sow1 & "wordprocessingDrawing"" xmlns:wp=""" & soo & "drawingml/2006/wordprocessingDrawing"" xmlns:w10=""urn:schemas-microsoft-com:office:word"" xmlns:w=""" & _
+soo & "wordprocessingml/2006/main"" xmlns:w14=""" & sow1 & "wordml"" xmlns:w15=""" & sow & "2012/wordml"" xmlns:w16cex=""" & sow & "2018/wordml/cex"" xmlns:w16cid=""" & sow & "2016/wordml/cid"" xmlns:w16=""" & sow & "2018/wordml"" xmlns:w16sdtdh=""" & sow & "2020/wordml/sdtdatahash"" xmlns:w16se=""" & sow & "2015/wordml/symex"" xmlns:wpg=""" & sow1 & "wordprocessingGroup"" xmlns:wpi=""" & sow1 & "wordprocessingInk"" xmlns:wne=""" & sow & "2006/wordml"" xmlns:wps=""" & sow1 & "wordprocessingShape"" mc:Ignorable=""w14 w15 w16se w16cid w16 w16cex w16sdtdh wp14"" xml:space=""preserve"">"
+'abs1 = "<w:p w14:paraId=""4750365C"" w14:textId=""77777777"" w:rsidR=""00000000"" w:rsidRDefault=""000952CC""><w:pPr><w:pStyle w:val=""Kopf""/></w:pPr><w:r><w:rPr><w:rStyle w:val=""s28s""/></w:rPr><w:t>D</w:t></w:r><w:r><w:t>iabetologische </w:t></w:r><w:r><w:rPr><w:rStyle w:val=""s28s""/></w:rPr><w:t>G</w:t></w:r><w:r><w:t>emeinschaftspraxis </w:t></w:r></w:p>"""
+
+ 
 
 ' <w:p w14:paraId=""528D1A2F"" w14:textId=""77777777"" w:rsidR=""00000000"" w:rsidRDefault=""00C730E7"">
 

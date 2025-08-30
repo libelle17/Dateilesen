@@ -5,6 +5,7 @@ Dim DmPStr$
 'Dim rDT AS DAO.Recordset
 Dim SStr$
 Dim Pat_ID&
+Public Vgst As Date
 'Enum DFSNiveau
 '   stNichts%
 '   St0%
@@ -63,6 +64,7 @@ gibts:
  zeigan CStr(DaT(runde)), vbNormalFocus
 Next runde
 End Sub ' werteAnzeig()
+
 #If False Then
 Sub wAusgeb()
 werteAusGeb True
@@ -99,6 +101,7 @@ Call LaborAusgeb(AktID)
 Call FormAufruf
 End Sub ' werteAusGeb
 #End If
+
 #If False Then
 Sub DiagnosenAusgeb(Optional id&, Optional obAnzeig As Boolean = True)
 Const ErgebDatei$ = aVerz + "Diagnosen.txt"
@@ -204,7 +207,7 @@ fehler:
 End Sub ' behDatAusgeb
 #End If
 
-' aufgerufen in lebe, behDauerStr, UKPDS
+' aufgerufen in lebe, UKPDS
 Function erbe(ByVal Pat_ID&) As Date
 'Static rFa AS DAO.Recordset
 'Set rFa = Tab÷ff("faelle", "ErstF")
@@ -289,31 +292,6 @@ fehler:
   Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
  End Select
 End Function ' lebe
-
-Function behDauerStr$(Pat_ID, lbeh As Date) ' nur in tuBriefStandalone
- Dim D1 As Date, D2 As Date
- On Error GoTo fehler
- D1 = DateValue(erbe(Pat_ID))
- D2 = lbeh ' DateValue(lebe(Pat_id))
- If D1 = D2 Then
-  behDauerStr = "am " + Format$(D1, "d.m.YY")
- Else
-  behDauerStr = "vom " + Format$(D1, "d.m.YY") + " bis zum " + Format$(D2, "d.m.YY") + " mehrmals"
- End If
-Exit Function
-fehler:
- Dim AnwPfad$
-#If VBA6 Then
- AnwPfad = CurrentDb.name
-#Else
- AnwPfad = App.path
-#End If
- Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in behDauerStr/" + AnwPfad)
-  Case vbAbort: Call MsgBox("Hˆre auf"): ProgEnde
-  Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
-  Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
- End Select
-End Function ' behDauerStr$()
 
 Sub LaborAusgeb(Optional id&)
  Dim ErgebDatei$
@@ -881,7 +859,7 @@ Sub FormAufruf()
    altRecordSource = Forms(Anmnbi).RecordSource
    Forms(Anmnbi).RecordSource = "Anamnesebogen alle Datens‰tze"
    On Error Resume Next
-   Forms(Anmnbi).Recordset.FindFirst "ID = " + CStr(AktID) ' wieder alten Datensatz w‰hlen
+   Forms(Anmnbi).Recordset.findFirst "ID = " + CStr(AktID) ' wieder alten Datensatz w‰hlen
    On Error GoTo fehler
   End If
  End If
@@ -1095,6 +1073,7 @@ Dim bmival#, stelle%
 Dim j%, k%
 Dim obnadp As Boolean
 Dim condens$, rechts$, links$
+Vgst = 0
 #Const obmwSdao = 0
 On Error GoTo fehler
 #If obmwSdao Then
@@ -1117,6 +1096,7 @@ On Error GoTo fehler
 ' myFrag rAn, "SELECT -obbzausgew AS j_obbzausgew, -obosaufgek AS j_obosaufgek, -obpodaufgek AS j_obpodaufgek, -obmblausgeh AS j_obmblausgeh, -obschulaufgek AS j_obschulaufgek, -obdmpaufgekl AS j_obdmpaufgekl, -obmednetz AS j_obmednetz, -ob AS j_ob, -oban1eing AS j_oban1eing, -oban2eing AS j_oban2eing, -obanaeing AS j_obanaeing, -obcheck AS j_obcheck, -[Bypaﬂ kardial] AS `j_bypass kardial` , -`bypaﬂ peripher` AS `j_bypaﬂ peripher`, -tkz AS j_tkz, -insulinpumpe AS j_insulinpumpe, -dialyse AS j_dialyse, a.* FROM `anamnesebogen` a WHERE pat_id = " & Pat_id
  myFrag rAn, "SELECT * FROM `anamnesebogen` WHERE pat_id = " & Pat_ID, adOpenStatic
  If rAn.BOF Then GoTo schluss
+ Vgst = rAn!Vorgestellt
 #End If
 te = vNS
 Vorwort = vNS

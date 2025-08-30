@@ -28,7 +28,7 @@ Begin VB.Form PatAuswahl
       Width           =   855
    End
    Begin VB.CheckBox ohne‹bertr 
-      Caption         =   "o&hne ‹bertragung"
+      Caption         =   "oh&ne ‹bertragung"
       Height          =   195
       Left            =   6120
       TabIndex        =   34
