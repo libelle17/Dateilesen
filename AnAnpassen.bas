@@ -74,7 +74,7 @@ Function AnTrennZeichen()
  
  For i = 1 To UBound(rEi)
   Select Case rEi(i).art
-   Case "anal", "andm", "usal", "usd", "usdm", "usdm1", "usdm2"
+   Case "anal", "andm", "andm2", "usal", "usd", "usdm", "usdm1", "usdm2"
     H0.Clear
     h1.Clear
     H0 = rEi(i).Inhalt

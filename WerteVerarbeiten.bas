@@ -810,17 +810,20 @@ fehler:
 End Function ' bittest
 #End If
 
+' in Formular.do_Ausgabe_Click und #false: werteAusgeb
 Sub GibwerteAus(Optional obAnzeig As Boolean = True)
  do_GibwerteAus obAnzeig
 ' DiagnosenAusgeb ID, obanzeig
 ' DMPAusgeb0 ID, obanzeig
 End Sub ' (Optional obAnzeig AS boolean = True)
+
 Sub Formmerk()
 ' AktID = Forms(Anmnb)!Pat_id
  Call AnbogVar(True)
  AktID = Forms(Anmnbi)(ABPat_ID) 'Pat_IDfromForm
  altRecordSource = vNS
 End Sub ' Formmerk()
+
 Sub AnbogVar(Optional mitpat_id%)
  Dim i&, j&
  On Error Resume Next
@@ -892,6 +895,7 @@ Sub FormRestoreSource()
  End If
 End Sub ' FormRestoreSource()
 
+' in GibWerteAus
 Sub do_GibwerteAus(Optional obAnzeig As Boolean = True)
 Dim ErgebDatei$
 ErgebDatei$ = aVerz + "Anamnese.txt"
@@ -1553,11 +1557,13 @@ te = UCase$(Left$(te, 1)) + Mid$(te, 2)
 If te <> "" Then
  If Right$(te, 3) <> "." & vbCrLf Then te = Left$(te, Len(te) - 2) + "." & vbCrLf
 End If
-te = te + myEFrag("SELECT COALESCE(group_concat(concat(case when art LIKE 'Alk%' THEN 'Alkhol' when art LIKE 'fa%' AND art<>'fams' THEN 'Familienanamnese' when art LIKE 'rauch%' OR art LIKE 'nik%' THEN 'Tabak' end,' (',DATE_FORMAT(zeitpunkt,'%d.%m.%y'),'):','\t', Inhalt,'\n') SEPARATOR ''),'') FROM eintraege WHERE pat_id =" & Pat_ID & "").Fields(0)
+te = te + myEFrag("SELECT COALESCE(GROUP_CONCAT(CONCAT(CASE WHEN art LIKE 'Alk%' THEN 'Alkhol' WHEN art LIKE 'fa%' AND art<>'fams' THEN 'Familienanamnese' WHEN art LIKE 'rauch%' OR art LIKE 'nik%' THEN 'Tabak' END,' (',DATE_FORMAT(zeitpunkt,'%d.%m.%y'),'):','\t', Inhalt,'\n') SEPARATOR ''),'') FROM eintraege WHERE pat_id =" & Pat_ID & "").Fields(0)
 '  AND (art LIKE 'fa%' OR art LIKE 'rauch%' OR art LIKE 'nik%' OR art LIKE 'alk%') AND art<>'fams' ' braucht's offenbar nicht
 If te <> "Diabetes Typ 2.\nGröße:  cm, Gewicht:  kg  0 kg/m²." Then machwertString = te
 If InStrB(te, "Größe:  cm, Gewicht:  kg  0 kg/m².") = 0 Then machwertString = te
-machwertString = machwertString & IIf(machwertString = "", "", vbCrLf) & kkeintraege(Pat_ID, "'ana','anal','angd','andm','usal','usd','usdm','ta','fa','vormed','neuro','alko','rauch'")
+machwertString = machwertString & IIf(machwertString = "", "", vbCrLf) & kkeintraege(Pat_ID, "'anam','fa','fam','familie','alko','alkohol','rauch','rauchen','raucht'")
+' auskommentiert 31.8.25:
+' machwertString = machwertString & IIf(machwertString = "", "", vbCrLf) & kkeintraege(Pat_ID, "'ana','anal','angd','andm','andm2','usal','usd','usdm','usdm1','usdm2','fa','alko','alkohol','rauch','rauchen','raucht'")
 schluss:
 rAn.Close
 Exit Function
@@ -1575,6 +1581,7 @@ Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "Last
 End Select
 End Function 'machwertString
 
+' in 'machwertString und legNPFest
 Function bruchteile(fldv$, rE$, li$)
       Dim tp%  ' Trennposition
       Dim tp1% ' Trennposition 1
@@ -1596,6 +1603,8 @@ Function bruchteile(fldv$, rE$, li$)
       rE = LTrim$(Trim$(rE))
       li = LTrim$(Trim$(li))
 End Function ' bruchteile(fldv$, re$, li$)
+
+' in machWertString
 Function Spritzstelle(Abkü)
   Select Case LCase$(CStr(Abkü))
    Case "-"
@@ -1622,5 +1631,4 @@ Function Spritzstelle(Abkü)
     Spritzstelle = "wechselnd Arm/bauch"
   End Select
 End Function ' Spritzstelle(Abkü)
-
 
