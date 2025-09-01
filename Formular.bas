@@ -8469,26 +8469,45 @@ On Error GoTo fehler
     syscmd acSysCmdSetStatus, "Erstelle Brief für " & gesName & ": 6) Medikation..."
 '    Wapp.Visible = True
     Call letzteMed(dc, Pat_ID, briefNeu)
+    
+    Dim verspt$
+    If Now - lddat > 90 Then
+     If Now - lddat > 365 Then
+      verspt = "Ich bedauere die beträchtliche Verspätung des Arztbriefes." & vbCrLf
+     Else ' Now - lddat > 365 Then
+      verspt = "Ich bedauere die Verspätung des Arztbriefes." & vbCrLf
+     End If ' Now - lddat > 365 Then else
+    Else ' Now - lddat > 90 Then
+     verspt = vNS
+    End If ' Now - lddat > 90 Then else
+      
+    If briefNeu Then ' Unterschrift
+     ag.Append "<w:p><w:r><w:rPr><w:sz w:val=""24""/></w:rPr></w:r></w:p><w:p><w:r><w:rPr><w:sz w:val=""24""/></w:rPr><w:t>" & verspt & "</w:t></w:r></w:p><w:p><w:r><w:rPr><w:sz w:val=""24""/></w:rPr><w:t>Mit bestem Dank für das Vertrauen und freundlichen Grüßen,</w:t></w:r></w:p>"
+     Select Case Vorlage
+      Case "Accessbriefa.dot" ' Schade
+         ag.Append "<w:p><w:r><w:rPr><w:rStyle w:val=""s24s""/></w:rPr><w:pict w14:anchorId=""4016BD08""> <v:shapetype id=""_x0000_t75"" coordsize=""21600,21600"" o:spt=""75"" o:preferrelative=""t"" path=""m@4@5l@4@11@9@11@9@5xe"" filled=""f"" stroked=""f""> <v:stroke joinstyle=""miter""/><v:formulas><v:f eqn=""if lineDrawn pixelLineWidth 0""/><v:f eqn=""sum @0 1 0""/><v:f eqn=""sum 0 0 @1""/><v:f eqn=""prod @2 1 2""/><v:f eqn=""prod @3 21600 pixelWidth""/><v:f eqn=""prod @3 21600 pixelHeight""/><v:f eqn=""sum @0 0 1""/><v:f eqn=""prod @6 1 2""/><v:f eqn=""prod @7 21600 pixelWidth""/><v:f eqn=""sum @8 21600 0""/><v:f eqn=""prod @7 21600 pixelHeight""/><v:f eqn=""sum @10 21600 0""/></v:formulas><v:path o:extrusionok=""f"" gradientshapeok=""t"" o:connecttype=""rect""/><o:lock v:ext=""edit"" aspectratio=""t""/></v:shapetype><v:shape id=""_x0000_i1025"" type=""#_x0000_t75"" style=""width:81pt;height:55.5pt""> <v:imagedata r:id=""rId6"" o:title=""Unterschrift 2""/></v:shape></w:pict>" & _
+                   "</w:r></w:p><w:p><w:r><w:rPr><w:rStyle w:val=""s24s""/></w:rPr><w:t>Gerald Schade</w:t></w:r></w:p>"
+      Case "AccessBriefK.dot" ' Kothny
+        ag.Append "<w:p></w:p><w:p><w:r><w:rPr><w:sz w:val=""24""/></w:rPr><w:pict w14:anchorId=""5B2E22AC""> <v:shapetype id=""_x0000_t75"" coordsize=""21600,21600"" o:spt=""75"" o:preferrelative=""t"" path=""m@4@5l@4@11@9@11@9@5xe"" filled=""f"" stroked=""f""> <v:stroke joinstyle=""miter""/><v:formulas><v:f eqn=""if lineDrawn pixelLineWidth 0""/><v:f eqn=""sum @0 1 0""/><v:f eqn=""sum 0 0 @1""/><v:f eqn=""prod @2 1 2""/><v:f eqn=""prod @3 21600 pixelWidth""/><v:f eqn=""prod @3 21600 pixelHeight""/><v:f eqn=""sum @0 0 1""/><v:f eqn=""prod @6 1 2""/><v:f eqn=""prod @7 21600 pixelWidth""/><v:f eqn=""sum @8 21600 0""/><v:f eqn=""prod @7 21600 pixelHeight""/><v:f eqn=""sum @10 21600 0""/></v:formulas><v:path o:extrusionok=""f"" gradientshapeok=""t"" o:connecttype=""rect""/><o:lock v:ext=""edit"" aspectratio=""t""/></v:shapetype><v:shape id=""_x0000_i1025"" type=""#_x0000_t75"" style=""width:108.75pt;height:58.5pt""> <v:imagedata r:id=""rId6"" o:title=""kothny Unterschrift""/></v:shape></w:pict>" & _
+                   "</w:r></w:p><w:p><w:pPr><w:rPr><w:sz w:val=""24""/></w:rPr></w:pPr><w:r><w:rPr><w:sz w:val=""24""/></w:rPr><w:t>Dr. Thomas Kothny</w:t></w:r></w:p>"
+      Case "accessbriefh.dot" ' Hammerschmidt
+        ag.Append "<w:p><w:r><w:rPr><w:sz w:val=""24""/></w:rPr><w:pict w14:anchorId=""2AF1C81F""> <v:shapetype id=""_x0000_t75"" coordsize=""21600,21600"" o:spt=""75"" o:preferrelative=""t"" path=""m@4@5l@4@11@9@11@9@5xe"" filled=""f"" stroked=""f""> <v:stroke joinstyle=""miter""/><v:formulas><v:f eqn=""if lineDrawn pixelLineWidth 0""/><v:f eqn=""sum @0 1 0""/><v:f eqn=""sum 0 0 @1""/><v:f eqn=""prod @2 1 2""/><v:f eqn=""prod @3 21600 pixelWidth""/><v:f eqn=""prod @3 21600 pixelHeight""/><v:f eqn=""sum @0 0 1""/><v:f eqn=""prod @6 1 2""/><v:f eqn=""prod @7 21600 pixelWidth""/><v:f eqn=""sum @8 21600 0""/><v:f eqn=""prod @7 21600 pixelHeight""/><v:f eqn=""sum @10 21600 0""/></v:formulas><v:path o:extrusionok=""f"" gradientshapeok=""t"" o:connecttype=""rect""/><o:lock v:ext=""edit"" aspectratio=""t""/></v:shapetype><v:shape id=""_x0000_i1025"" type=""#_x0000_t75"" style=""width:165.75pt;height:30.75pt""> <v:imagedata r:id=""rId6"" o:title=""""/></v:shape></w:pict>" & _
+                  "</w:r></w:p><w:p><w:pPr><w:rPr><w:sz w:val=""24""/></w:rPr></w:pPr></w:p><w:p><w:pPr><w:rPr><w:sz w:val=""24""/></w:rPr></w:pPr><w:r><w:rPr><w:sz w:val=""24""/></w:rPr><w:t>Dr. Anna Hammerschmidt</w:t></w:r><w:r><w:rPr><w:sz w:val=""24""/></w:rPr><w:br/><w:t>Internistin, Diabetologin</w:t></w:r></w:p>"
+     End Select
+    Else
+     dc.bookmarks("DMPText").Range = verspt
+    End If ' briefneu
  End If ' nurLabor = 0
+ 
  If briefNeu Then
  Else
   syscmd acSysCmdSetStatus, "Erstelle Brief für " & gesName & ": 7) Labor..."
   Call LaborIns1(dc, Pat_ID, nurLabor, briefNeu)
  End If
- If briefNeu Then
- Else
-  If nurLabor = 0 Then
-'      dc.bookmarks("DMP").Range = vns
-      If Now - lddat > 90 Then
-       If Now - lddat > 365 Then
-        dc.bookmarks("DMPText").Range = "Ich bedauere die beträchtliche Verspätung des Arztbriefes." & vbCrLf
-       Else
-        dc.bookmarks("DMPText").Range = "Ich bedauere die Verspätung des Arztbriefes." & vbCrLf
-       End If
-      Else
-       dc.bookmarks("DMPText").Range = vNS
-      End If
-'      dc.bookmarks("DMPText").Range = vns
+ 
+ If nurLabor = 0 Then
+  If briefNeu Then
+  Else
     On Error GoTo fehler
 ' bei Wiederholungsbriefen
     syscmd acSysCmdSetStatus, "Erstelle Brief für " & gesName & ": 9) Prüfen von Vorberichten..."
@@ -8516,9 +8535,9 @@ On Error GoTo fehler
     Set suchr = dc.Range
     Call suchr.Find.Execute("Verlaufsnotizen")
     dc.Range(suchr.Start, suchr.Start).Select
-  End If ' NurLabor
 '  End With ' wapp
- End If ' briefneu else
+  End If ' briefneu else
+ End If ' NurLabor
  
 ' abschließen und aufrufen
  If briefNeu Then
