@@ -552,12 +552,12 @@ Function SqlU(sql$, obmy%) As CString
  End If
 End Function ' SqlUmw
 
-Sub EliminierWortplusZahl(ByRef SqlU As CString, ByRef Wort$)
+Sub EliminierWortplusZahl(ByRef SqlU As CString, ByRef wort$)
  Dim pos&, p2&, sp$, p2anf&
- pos = SqlU.Instr(Wort)
+ pos = SqlU.Instr(wort)
  If pos <> 0 Then
   sp = SqlU.Left(pos - 1)
-  p2 = pos + Len(Wort)
+  p2 = pos + Len(wort)
   p2anf = p2
   Do
    If Not IsNumeric(SqlU.cMid(p2, 1)) Then Exit Do
@@ -6969,7 +6969,7 @@ Const sql0$ = "SELECT " & _
        If InfRoh(9, runde) = vNS Then If Not IsNull(rhae!Vorname) Then InfRoh(9, runde) = rhae!Vorname
        If InfRoh(14, runde) = vNS Then If Not IsNull(rhae!name) Then InfRoh(14, runde) = rhae!name
        If InfRoh(4, runde) = vNS And Not IsNull(rhae!telefax) Then InfRoh(4, runde) = rhae!telefax
-        Select Case rhae!überschrift
+        Select Case rhae!Überschrift
          Case "L": InfRoh(5, runde) = IIf(InfRoh(0, runde) = "Frau", "Liebe", "Lieber") & " " & InfRoh(9, runde) ' nicht: rHae!Geschlecht = "w"
          Case "H": InfRoh(5, runde) = "Hallo " + InfRoh(9, runde)
          Case Else: InfRoh(5, runde) = IIf(InfRoh(0, runde) = "Frau", "Sehr geehrte Frau Kollegin", "Sehr geehrter Herr Kollege")
@@ -7805,24 +7805,43 @@ Public Function PKennz$(ByRef abz$, Optional reset%)
 #End If ' ohneIDs
 End Function ' Function PKennz
 
-Sub Dzus(ByRef DS() As CString, DSneu As CString)
+Sub Dzus(ByRef Ds() As CString, DSneu As CString)
  Dim i%
- For i = 0 To UBound(DS) - 1
-  DSneu.AppVar Array("<w:t>", DS(i), "</w:t><w:br/>")
+ For i = 0 To UBound(Ds) - 1
+  DSneu.AppVar Array("<w:t>", Ds(i), "</w:t><w:br/>")
  Next i
 End Sub ' Dzus
 
 ' in tuBriefStandalone
 Function einzEintr(Pat_ID$, ÜS$, erlaeut$, arten$, Optional VorDat As Date, Optional obgross%)
  Dim inhlt$
+ Dim pos&, wlen%
+ Static warr
+ Dim wort
+ If IsEmpty(warr) Then warr = Array("Halsschlagadern", "Schilddrüse", "Doppler", "Duplex", "Sonogramm")
  If arten = "" Then
   inhlt = machwertString(Pat_ID)
  Else
   inhlt = kkeintraege(Pat_ID, arten, VorDat)
  End If ' if arten
  If inhlt <> "" Then
-  ag.Append PKennz("<w:p><w:r><w:rPr><w:b/><w:rStyle w:val=""s24s""/></w:rPr><w:t xml:space=""preserve"">" & zsuh(ÜS) & "</w:t></w:r><w:r><w:rPr><w:rStyle w:val=""s16s""/></w:rPr><w:t>" & erlaeut & ":</w:t></w:r></w:p>", False)
-  ag.Append PKennz("<w:p><w:pPr><w:pStyle w:val=""hang""/></w:pPr><w:r><w:rPr><w:rStyle w:val=""s" & IIf(obgross, "24", "18") & "s""/></w:rPr><w:t>" & REPLACE$(zuh(inhlt), vbCrLf, "</w:t></w:r></w:p><w:p><w:pPr><w:pStyle w:val=""hang""/></w:pPr><w:r><w:rPr><w:rStyle w:val=""s" & IIf(obgross, "24", "18") & "s""/></w:rPr><w:t>") & "</w:t></w:r></w:p>", False)
+' ag.Append PKennz("<w:p><w:r><w:rPr><w:b/><w:rStyle w:val=""s24s""/></w:rPr><w:t xml:space=""preserve"">" & zsuh(ÜS) & "</w:t></w:r><w:r><w:rPr><w:rStyle w:val=""s16s""/></w:rPr><w:t>" & erlaeut & ":</w:t></w:r></w:p>", False)
+  ag.Append PKennz("<w:p><w:r><w:rPr><w:b/><w:rStyle w:val=""s24s""/></w:rPr><w:t>" & zsuh(ÜS) & "</w:t></w:r><w:r><w:rPr><w:rStyle w:val=""s16s""/></w:rPr><w:t>" & erlaeut & ":</w:t></w:r></w:p>", False)
+  For Each wort In warr
+   wlen = Len(wort)
+   pos = InStr(inhlt, vbTab & wort & ":")
+   If pos Then
+    Dim worts$
+    worts = wort
+    inhlt = Left$(inhlt, pos) & "</w:t><w:rPr><w:rStyle w:val=""s24s""/><w:b/><w:bCs/></w:rPr><w:t>" & zsuh(worts) & "</w:t></w:r><w:r><w:rPr><w:rStyle w:val=""s24s""/><w:b w:val=""false""/><w:bCs w:val=""false""/></w:rPr><w:t>" & _
+            zuh(Mid$(inhlt, pos + Len(wort) + 1), True, obgross)
+    GoTo Fertig
+   End If ' pos
+  Next wort
+  inhlt = zuh(inhlt, True, obgross)
+Fertig:
+  ag.Append PKennz("<w:p><w:pPr><w:pStyle w:val=""hang""/></w:pPr><w:r><w:rPr><w:rStyle w:val=""s" & IIf(obgross, "24", "18") & "s""/></w:rPr><w:t>" & REPLACE$(inhlt, vbCrLf, "</w:t></w:r></w:p><w:p><w:pPr><w:pStyle w:val=""hang""/></w:pPr><w:r><w:rPr><w:rStyle w:val=""s" & IIf(obgross, "24", "18") & "s""/></w:rPr><w:t>") & "</w:t></w:r></w:p>", False)
+'  ag.Append PKennz("<w:p><w:pPr><w:pStyle w:val=""hang""/></w:pPr><w:r><w:rPr><w:rStyle w:val=""s" & IIf(obgross, "24", "18") & "s""/></w:rPr><w:t>" & REPLACE$(zuh(inhlt, True, obgross), vbCrLf, "</w:t></w:r></w:p><w:p><w:pPr><w:pStyle w:val=""hang""/></w:pPr><w:r><w:rPr><w:rStyle w:val=""s" & IIf(obgross, "24", "18") & "s""/></w:rPr><w:t>") & "</w:t></w:r></w:p>", False)
  End If ' inhlt <> ""
 End Function ' einzEintr
 
@@ -7849,6 +7868,7 @@ Public Sub tuBriefStandalone(pid&, obStumm%, Optional Zielverz$, Optional Verfas
   
  On Error GoTo fehler
  If Date = #11/20/2011# Then nurLabor = True
+ If ProgInd = 4 Then briefNeu = 0 ' alte Methode
  Pat_ID = CStr(pid)
  VorDat0 = GetVorDat(Pat_ID, obStumm)
  If sammel = 0 Then
@@ -8575,9 +8595,18 @@ On Error GoTo fehler
  If briefNeu Then
   If Not nichtherricht Then
 ' Seitenformatierung
-   ag.Append PKennz("<w:sectPr><w:pgSz w:w=""11906"" w:h=""16838""/><w:pgMar w:top=""1417"" w:right=""850"" w:bottom=""1134"" w:left=""1417"" w:header=""708"" w:footer=""708"" w:gutter=""0""/><w:cols w:space=""708""/><w:docGrid w:linePitch=""360""/></w:sectPr>", False)
-'   ag.apph PKennz("<w:sectPr><w:type w:val=""nextPage""/><w:headerReference w:type=""default""r:id=""rId7""/><w:pgSz w:w=""12240""w:h=""15840""/><w:pgMar w:left=""1417""w:right=""850""w:top=""567""w:bottom=""850""w:header=""720""w:footer=""720""w:gutter=""0""/><w:pgNumType w:fmt=""decimal""/><w:formProt w:val=""false""/><w:textDirection w:val=""lrTb""/><w:docGrid w:type=""default""w:linePitch=""100""w:charSpace=""0""/><w:cols w:space=""720""/><w:titlePg/></w:sectPr>", False)
+'   ag.Append PKennz("<w:sectPr><w:pgSz w:w=""11906"" w:h=""16838""/><w:pgMar w:top=""1417"" w:right=""850"" w:bottom=""1134"" w:left=""1417"" w:header=""708"" w:footer=""708"" w:gutter=""0""/><w:cols w:space=""708""/><w:docGrid w:linePitch=""360""/></w:sectPr>", False)
+''   ag.apph PKennz("<w:sectPr><w:type w:val=""nextPage""/><w:headerReference w:type=""default""r:id=""rId7""/><w:pgSz w:w=""12240""w:h=""15840""/><w:pgMar w:left=""1417""w:right=""850""w:top=""567""w:bottom=""850""w:header=""720""w:footer=""720""w:gutter=""0""/><w:pgNumType w:fmt=""decimal""/><w:formProt w:val=""false""/><w:textDirection w:val=""lrTb""/><w:docGrid w:type=""default""w:linePitch=""100""w:charSpace=""0""/><w:cols w:space=""720""/><w:titlePg/></w:sectPr>", False)
+   ag.Append PKennz("</w:p><w:sectPr w:rsidR=""00EB40B3"" w:rsidSect=""00EB40B3""><w:headerReference w:type=""default"" r:id=""rId7""/><w:pgSz w:w=""11907"" w:h=""16840""/><w:pgMar w:top=""567"" w:right=""851"" w:bottom=""851"" w:left=""1418"" w:header=""720"" w:footer=""720"" w:gutter=""0""/><w:cols w:space=""720""/><w:titlePg/></w:sectPr>")
    ag.Append "</w:body></w:document>"
+   syscmd acSysCmdSetStatus, "Erstelle Brief für " & gesName & ": 10) Korrekturen..."
+    Call ag.REPLACE("IDA", "Insulindosisanpassung")
+    Call ag.REPLACE("ID-Anpassung", "Insulindosisanpassung")
+    Call ag.REPLACE("Hypo`s", "Hypoglykämien")
+    Call ag.REPLACE("GPD", "Gesundheitspass Diabetes")
+    Call ag.REPLACE("DFS", "Diabetisches Fußsyndrom")
+    Call ag.REPLACE("n.u.", "nicht untersucht")
+   syscmd acSysCmdSetStatus, "Erstelle Brief für " & gesName & ": 11) Speichern..."
    
    Open zvz & "word\document.xml" For Output As #51
    Print #51, ag.Value ' zuh(zsuh(ag.Value))
@@ -8585,9 +8614,10 @@ On Error GoTo fehler
    Close #51
    ag.Clear
    ag.Append "<w:hdr xmlns:o=""urn:schemas-microsoft-com:office:office"" xmlns:r=""http://schemas.openxmlformats.org/officeDocument/2006/relationships"" xmlns:v=""urn:schemas-microsoft-com:vml"" xmlns:w=""http://schemas.openxmlformats.org/wordprocessingml/2006/main"" xmlns:w10=""urn:schemas-microsoft-com:office:word"" xmlns:wp=""http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing"" xmlns:pic=""http://schemas.openxmlformats.org/drawingml/2006/picture"" xmlns:wps=""" & smc & "office/word/2010/wordprocessingShape"" xmlns:wpg=""" & smc & "office/word/2010/wordprocessingGroup"" xmlns:mc=""http://schemas.openxmlformats.org/markup-compatibility/2006"" xmlns:wp14=""" & smc & "office/word/2010/wordprocessingDrawing"" xmlns:w14=""" & smc & "office/word/2010/wordml"" xmlns:w15=""" & smc & "office/word/2012/wordml"" mc:Ignorable=""w14 wp14 w15"">"
+   '  & Format(Now(), "d.m.YY")
    ag.Append "" & _
-"<w:p><w:pPr><w:pStyle w:val=""Header""/><w:rPr/></w:pPr><w:r><w:rPr><w:sz w:val=""16""/><w:szCs w:val=""16""/></w:rPr><w:t>Arztbrief zu " & gesnameg & ", vom " & Format(Now(), "d.m.YY") & "</w:t>" & _
-"</w:r><w:r><w:rPr/><w:t xml:space=""preserve"">m </w:t></w:r><w:r><w:rPr/><w:fldChar w:fldCharType=""begin""/></w:r><w:r><w:rPr/><w:instrText xml:space=""preserve""> SAVEDATE \@""dd.MM.yy"" </w:instrText></w:r>" & _
+"<w:p><w:pPr><w:pStyle w:val=""Header""/><w:rPr/></w:pPr><w:r><w:rPr><w:sz w:val=""16""/><w:szCs w:val=""16""/></w:rPr><w:t>Arztbrief zu " & gesnameg & ", vom " & "</w:t>" & _
+"</w:r><w:r><w:rPr/><w:fldChar w:fldCharType=""begin""/></w:r><w:r><w:rPr/><w:instrText xml:space=""preserve""> SAVEDATE \@""dd.MM.yy"" </w:instrText></w:r>" & _
 "<w:r><w:rPr/><w:fldChar w:fldCharType=""separate""/></w:r><w:r><w:rPr/><w:t>04.09.25</w:t></w:r><w:r><w:rPr/><w:fldChar w:fldCharType=""end""/></w:r><w:r><w:rPr/><w:tab/><w:t>-</w:t></w:r>" & _
 "<w:r><w:rPr><w:sz w:val=""16""/><w:szCs w:val=""16""/></w:rPr><w:t xml:space=""preserve"">Seite </w:t></w:r><w:r><w:rPr><w:rStyle w:val=""PageNumber""/><w:sz w:val=""16""/><w:szCs w:val=""16""/></w:rPr>" & _
 "<w:fldChar w:fldCharType=""begin""/></w:r><w:r><w:rPr><w:rStyle w:val=""PageNumber""/><w:sz w:val=""16""/><w:szCs w:val=""16""/></w:rPr><w:instrText xml:space=""preserve""> PAGE </w:instrText></w:r>" & _
@@ -8611,13 +8641,13 @@ On Error GoTo fehler
   oSh.rUn "cmd /c """"c:\program files\7-zip\7z"" a -tzip -mm=deflate -mx9 -aoa -xr!*.swp """ & dname & """ " & zvz & "*""", 0, True
 ' oSh.run "cmd /c """"c:\program files (x86)\microsoft office\root\office16\winword"" """ & sverz & aname & "x""""", 0, True
   Select Case ProgInd
-   Case 0
+   Case 0 ' LibreOffice
     OOOpen dname
-   Case 1
+   Case 1 ' Word 2000
     oSh.rUn "cmd /c """"C:\Program Files (x86)\MSOff\Office\winword"" """ & sverz & aname & "x""""", 0, False
-   Case 2
+   Case 2 ' neues Word
     oSh.rUn "cmd /c """"c:\program files\microsoft office\root\office16\winword"" """ & sverz & aname & "x""""", 0, False
-   Case 3
+   Case 3 ' Standardprogramm
     oSh.rUn "cmd /c """"" & sverz & aname & "x""""", 0, False
   End Select
  Else ' briefneu
@@ -9177,53 +9207,64 @@ Function GetVorDat(Pat_ID$, obStumm%, Optional obschließ%, Optional ohneÖffnen%,
    If BRz!ct > 0 Then
 '    lBrNam = Dtb.OpenRecordset("SELECT pfad FROM `" + QMdbAkt + "`.`tmbrie relevant` WHERE pat_id = " & CStr(Pat_id))!Pfad
 '    sql = "SELECT pfad, zeitpunkt, name FROM `tmbrie` WHERE (name LIKE '%Brief an %Dr%' OR (name LIKE '%Arztbrief%' AND NOT name LIKE '%: Arztbrief%') OR name LIKE 'Brief an HA%' OR name LIKE 'Brief an HAe%') AND NOT pfad LIKE '%.pdf' AND name NOT LIKE '%Entwurf%' AND pat_id = " & Pat_ID & " ORDER BY zeitpunkt DESC"
-    sql = _
-    "SELECT * FROM " & vbCrLf & _
-    "(SELECT pfad, zeitpunkt, name FROM `tmbrie` WHERE pat_id=" & Pat_ID & ")i" & vbCrLf & _
-    "WHERE (name LIKE '%Brief an %Dr%' OR (name LIKE '%Arztbrief%' AND NOT name LIKE '%: Arztbrief%') OR name LIKE 'Brief an HA%' OR name LIKE 'Brief an HAe%') " & vbCrLf & _
-    "AND NOT pfad LIKE '%.pdf' AND name NOT LIKE '%Entwurf%' " & vbCrLf & _
-    "ORDER BY zeitpunkt DESC" ' 8.4.25
-    Set BRz = Nothing
-    myFrag BRz, sql
-    zeitp1 = BRz!Zeitpunkt
-    GetVorDat = zeitp1
-    name = BRz!name
     If ohneÖffnen <> 0 Then
 '      GetVorDat = BRz!Zeitpunkt
     Else
-     lBrNam = BRz!Pfad
-     lBrNam = REPLACE$(REPLACE$(lBrNam, "$\TurboMed\Dokumente", getDokPfad), "^", "")
-     On Error Resume Next
-'     If Wapp.Version = 0 Then Debug.Print Wapp.Version
-     If Err.Number <> 0 Then GetWord
-     On Error GoTo fehler
-     Select Case Wapp.Version
-      Case "7.0", "8.0", "9.0"
+     sql = _
+     "SELECT * FROM " & vbCrLf & _
+     "(SELECT pfad, zeitpunkt, name FROM `tmbrie` WHERE pat_id=" & Pat_ID & ")i" & vbCrLf & _
+     "WHERE (name LIKE '%Brief an %Dr%' OR (name LIKE '%Arztbrief%' AND NOT name LIKE '%: Arztbrief%') OR name LIKE 'Brief an HA%' OR name LIKE 'Brief an HAe%') " & vbCrLf & _
+     "AND NOT pfad LIKE '%.pdf' AND name NOT LIKE '%Entwurf%' " & vbCrLf & _
+     "ORDER BY zeitpunkt DESC" ' 8.4.25
+     Set BRz = Nothing
+     myFrag BRz, sql
+     If Not BRz.BOF Then
+      Do While Not BRz.EOF
+       name = BRz!name
+       lBrNam = BRz!Pfad
+       lBrNam = REPLACE$(REPLACE$(lBrNam, "$\TurboMed\Dokumente", getDokPfad), "^", "")
+       If FSO.FileExists(lBrNam) Then
+        If FSO.GetFile(lBrNam).size <> 0 And FileDateTime(lBrNam) Then Exit Do
+       End If
+       BRz.MoveNext
+      Loop ' While Not BRz.EOF
+      If BRz.EOF Then Exit Function
+      zeitp1 = BRz!Zeitpunkt
+      GetVorDat = zeitp1
       On Error Resume Next
- ' 24.8.12: Hier COM-Schwierigkeit bei Frau Koller
-      Set WAlt = Wapp.documents.Open(lBrNam, ReadOnly:=-1, Visible:=obSichtbar) ', -1, -1, -1, , , 0, , , , , obsichtbar)
+ '     If Wapp.Version = 0 Then Debug.Print Wapp.Version
+      If Err.Number <> 0 Then GetWord
       On Error GoTo fehler
-      Case "10.0", "11.0", "12.0" ' ab XP
+      Select Case Wapp.Version
+       Case "7.0", "8.0", "9.0"
        On Error Resume Next
- ' Ausdruck.Open(FileName, ConfirmConversions, ReadOnly, AddToRecentFiles, PasswordDocument, PasswordTemplate, Revert, WritePasswordDocument, WritePasswordTemplate, Format, Encoding, Visible, OpenConflictDocument, OpenAndRepair , DocumentDirection, NoEncodingDialog)
-       Set WAlt = Wapp.documents.Open(lBrNam, 0, -1, -1, , , 0, , , , -1, obSichtbar, -1, -1)
-       If Err.Number > 0 Then
-        Call meld("Fehler beim Öffnen des Vorbefundes: " & lBrNam, obStumm)
-       End If
+ ' 24.8.12: Hier COM-Schwierigkeit bei Frau Koller
+       Set WAlt = Wapp.documents.Open(lBrNam, ReadOnly:=-1, Visible:=obSichtbar) ', -1, -1, -1, , , 0, , , , , obsichtbar)
+       If Err.Number Then Shell lBrNam, vbMaximizedFocus
+       If Err.Number Then OOOpen lBrNam
        On Error GoTo fehler
-     End Select
-     If Not WAlt Is Nothing Then
-      US$ = REPLACE$(REPLACE$(REPLACE$(WAlt.Range, vbTab, Chr$(32)), vbCr, Chr$(32)), vbVerticalTab, Chr$(32))
-      Spl = Split(US)
-      For j = 1 To UBound(Spl)
-       If IsDate(Spl(j)) Then
-        GetVorDat = CDate(Spl(j))
-        Exit For
-       End If
-      Next j
- '     Wapp.documents(Wapp.documents.Count).Close
-      If obschließ Then Wapp.documents(1).Close
-     End If ' not WAlt is nothing
+       Case "10.0", "11.0", "12.0" ' ab XP
+        On Error Resume Next
+ ' Ausdruck.Open(FileName, ConfirmConversions, ReadOnly, AddToRecentFiles, PasswordDocument, PasswordTemplate, Revert, WritePasswordDocument, WritePasswordTemplate, Format, Encoding, Visible, OpenConflictDocument, OpenAndRepair , DocumentDirection, NoEncodingDialog)
+        Set WAlt = Wapp.documents.Open(lBrNam, 0, -1, -1, , , 0, , , , -1, obSichtbar, -1, -1)
+        If Err.Number > 0 Then
+         Call meld("Fehler beim Öffnen des Vorbefundes: " & lBrNam, obStumm)
+        End If
+        On Error GoTo fehler
+      End Select
+      If Not WAlt Is Nothing Then
+       US$ = REPLACE$(REPLACE$(REPLACE$(WAlt.Range, vbTab, Chr$(32)), vbCr, Chr$(32)), vbVerticalTab, Chr$(32))
+       Spl = Split(US)
+       For j = 1 To UBound(Spl)
+        If IsDate(Spl(j)) Then
+         GetVorDat = CDate(Spl(j))
+         Exit For
+        End If
+       Next j
+'     Wapp.documents(Wapp.documents.Count).Close
+       If obschließ Then Wapp.documents(1).Close
+      End If ' not WAlt is nothing
+     End If ' not BRz.bof
     End If ' not isempty(walt)
    End If ' BRz!ct > 0 Then
   End If ' ohneÖffnen <> 0 Or Not Wapp Is Nothing Then
@@ -14665,7 +14706,7 @@ Function LabKopf(breite$, Inh$, Optional bookm$, Optional bookid$, Optional zeil
 ' ag.Append "<w:tc><w:tcPr><w:tcW w:w=""" & breite & """ w:type=""dxa""/>" & IIf(zeile = 0, "<w:textDirection w:val=""" & IIf(spalte > 2, "tbRl", "RltbV") & """/>", "") & "</w:tcPr><w:p><w:pPr>" & IIf(zeile = 0, "<w:ind w:left=""56""/>", "") & "<w:rPr><w:b/><w:sz w:val=""14""/></w:rPr></w:pPr>" & IIf(bookm = "", "", "<w:bookmarkStart w:id=""" & bookid & """ w:name=""" & bookm & """/><w:bookmarkEnd w:id=""" & bookid & """/>") & "<w:r><w:rPr><w:b/><w:sz w:val=""14""/></w:rPr><w:t>" & Inh & "</w:t></w:r></w:p></w:tc>"
 '  If obschräg Then Stop
 '  If obfett Then Stop
-  ag.Append "<w:tc><w:tcPr><w:tcW w:w=""" & breite & """ w:type=""dxa""/>" & IIf(zeile = 0, "<w:textDirection w:val=""" & IIf(spalte > 2, "tbRl", "RltbV") & """/>", "") & "</w:tcPr><w:p><w:pPr>" & IIf(zeile = 0, "<w:ind w:left=""56""/>", "") & "</w:pPr>" & IIf(bookm = "", "", "<w:bookmarkStart w:id=""" & bookid & """ w:name=""" & bookm & """/><w:bookmarkEnd w:id=""" & bookid & """/>") & "<w:r><w:rPr>" & IIf(obschräg, "<w:i/>", "") & IIf(obfett, "<w:b/>", "") & "<w:sz w:val=""16""/></w:rPr><w:t>" & Inh & "</w:t></w:r></w:p></w:tc>"
+  ag.Append "<w:tc><w:tcPr><w:tcW w:w=""" & breite & """ w:type=""dxa""/><w:tcBorders/>" & IIf(zeile = 0 And spalte > 2, "<w:textDirection w:val=""" & IIf(spalte > 2, "tbRl", "RltbV") & """/>", "") & "</w:tcPr><w:p><w:pPr><w:pStyle w:val=""Normal""/>" & IIf(zeile = 0, "<w:ind w:left=""56""/>", "") & "<w:rPr/></w:pPr>" & IIf(bookm = "", "", "<w:bookmarkStart w:id=""" & bookid & """ w:name=""" & bookm & """/><w:bookmarkEnd w:id=""" & bookid & """/>") & "<w:r><w:rPr>" & IIf(obschräg, "<w:i/>", "") & IIf(obfett, "<w:b/>", "") & "<w:sz w:val=""16""/></w:rPr><w:t>" & Inh & "</w:t></w:r></w:p></w:tc>"
 End Function ' LabKopf(breite$, inh$)
 
 #If True Then
@@ -14762,12 +14803,19 @@ Sub LaborIns1(ByRef dc As Object, Pat_ID$, nurLabor%, briefNeu%) ' nur in tuBrie
  If briefNeu Then
  ' Tabellenanfang
 '   ag.Append "<w:tbl><w:tblPr><w:tblStyle w:val=""Tabellenraster""/><w:tblW w:w=""10771"" w:type=""dxa""/><w:tblInd w:w=""-1134"" w:type=""dxa""/><w:tblLayout w:type=""fixed""/><w:tblCellMar><w:top w:w=""0"" w:type=""dxa""/><w:left w:w=""57"" w:type=""dxa""/><w:bottom w:w=""0"" w:type=""dxa""/><w:right w:w=""57"" w:type=""dxa""/></w:tblCellMar><w:tblLook w:val=""05E0"" w:firstRow=""1"" w:lastRow=""1"" w:firstColumn=""1"" w:lastColumn=""1"" w:noHBand=""0"" w:noVBand=""1""/></w:tblPr>"
-   ag.Append "<w:tbl><w:tblPr><w:tblStyle w:val=""Tabellenraster""/><w:tblW w:w=""10771"" w:type=""dxa""/><w:tblInd w:w=""-1134"" w:type=""dxa""/><w:tblCellMar><w:top w:w=""0"" w:type=""dxa""/><w:left w:w=""29"" w:type=""dxa""/><w:bottom w:w=""0"" w:type=""dxa""/><w:right w:w=""29"" w:type=""dxa""/></w:tblCellMar><w:tblLook w:val=""05E0"" w:firstRow=""1"" w:lastRow=""1"" w:firstColumn=""1"" w:lastColumn=""1"" w:noHBand=""0"" w:noVBand=""1""/></w:tblPr>" ' "<w:tblGrid><w:gridCol w:w=""1590""/><w:gridCol w:w=""705""/><w:gridCol w:w=""855""/><w:gridCol w:w=""555""/><w:gridCol w:w=""555""/><w:gridCol w:w=""555""/><w:gridCol w:w=""555""/><w:gridCol w:w=""555""/><w:gridCol w:w=""555""/><w:gridCol w:w=""555""/><w:gridCol w:w=""555""/><w:gridCol w:w=""555""/><w:gridCol w:w=""555""/><w:gridCol w:w=""555""/><w:gridCol w:w=""555""/></w:tblGrid>"
+'   ag.Append "<w:tblGrid><w:gridCol w:w=""1568""/><w:gridCol w:w=""694""/><w:gridCol w:w=""844""/><w:gridCol w:w=""547""/><w:gridCol w:w=""548""/><w:gridCol w:w=""547""/><w:gridCol w:w=""548""/><w:gridCol w:w=""547""/><w:gridCol w:w=""548""/><w:gridCol w:w=""547""/><w:gridCol w:w=""547""/><w:gridCol w:w=""548""/><w:gridCol w:w=""548""/><w:gridCol w:w=""547""/><w:gridCol w:w=""547""/><w:gridCol w:w=""547""/><w:gridCol w:w=""549""/></w:tblGrid>"
  ' Kopfzeile, Header
+   
+'   ag.Append "<w:tbl><w:tblPr><w:tblStyle w:val=""Tabellenraster""/><w:tblW w:w=""10771"" w:type=""dxa""/><w:jc w:val=""left""/><w:tblInd w:w=""-1134"" w:type=""dxa""/><w:tblLayout w:type=""fixed""/><w:tblCellMar><w:top w:w=""0"" w:type=""dxa""/><w:left w:w=""29"" w:type=""dxa""/><w:bottom w:w=""0"" w:type=""dxa""/><w:right w:w=""29"" w:type=""dxa""/></w:tblCellMar><w:tblLook w:val=""05E0"" w:firstRow=""1"" w:lastRow=""1"" w:firstColumn=""1"" w:lastColumn=""1"" w:noHBand=""0"" w:noVBand=""1""/></w:tblPr>" ' "<w:tblGrid><w:gridCol w:w=""1590""/><w:gridCol w:w=""705""/><w:gridCol w:w=""855""/><w:gridCol w:w=""555""/><w:gridCol w:w=""555""/><w:gridCol w:w=""555""/><w:gridCol w:w=""555""/><w:gridCol w:w=""555""/><w:gridCol w:w=""555""/><w:gridCol w:w=""555""/><w:gridCol w:w=""555""/><w:gridCol w:w=""555""/><w:gridCol w:w=""555""/><w:gridCol w:w=""555""/><w:gridCol w:w=""555""/></w:tblGrid>"
+'   ag.Append "<w:tbl><w:tblPr><w:tblStyle w:val=""Tabellenraster""/><w:tblW w:w=""0"" w:type="" auto""/><w:tblInd w:w="" -1134"" w:type=""dxa""/><w:tblCellMar><w:left w:w=""29"" w:type="" dxa""/><w:right w:w=""29"" w:type=""dxa""/></w:tblCellMar><w:tblLook w:val=""05E0"" w:firstRow=""1"" w:lastRow=""1"" w:firstColumn=""1"" w:lastColumn=""1"" w:noHBand=""0"" w:noVBand=""1""/></w:tblPr>" ' "<w:tblGrid><w:gridCol w:w=""1590""/><w:gridCol w:w=""705""/><w:gridCol w:w=""855""/><w:gridCol w:w=""555""/><w:gridCol w:w=""555""/><w:gridCol w:w=""555""/><w:gridCol w:w=""555""/><w:gridCol w:w=""555""/><w:gridCol w:w=""555""/><w:gridCol w:w=""555""/><w:gridCol w:w=""555""/><w:gridCol w:w=""555""/><w:gridCol w:w=""555""/><w:gridCol w:w=""555""/><w:gridCol w:w=""555""/></w:tblGrid>"
+   ag.Append "<w:tbl><w:tblPr><w:tblStyle w:val=""Tabellenraster""/><w:tblInd w:w="" -1134"" w:type=""dxa""/><w:tblCellMar><w:left w:w=""29"" w:type="" dxa""/><w:right w:w=""29"" w:type=""dxa""/></w:tblCellMar><w:tblLook w:val=""05E0"" w:firstRow=""1"" w:lastRow=""1"" w:firstColumn=""1"" w:lastColumn=""1"" w:noHBand=""0"" w:noVBand=""1""/></w:tblPr>" ' "<w:tblGrid><w:gridCol w:w=""1590""/><w:gridCol w:w=""705""/><w:gridCol w:w=""855""/><w:gridCol w:w=""555""/><w:gridCol w:w=""555""/><w:gridCol w:w=""555""/><w:gridCol w:w=""555""/><w:gridCol w:w=""555""/><w:gridCol w:w=""555""/><w:gridCol w:w=""555""/><w:gridCol w:w=""555""/><w:gridCol w:w=""555""/><w:gridCol w:w=""555""/><w:gridCol w:w=""555""/><w:gridCol w:w=""555""/></w:tblGrid>"
+   ag.Append "<w:tblGrid><w:gridCol w:w=""1679""/><w:gridCol w:w=""1128""/><w:gridCol w:w=""769""/><w:gridCol w:w=""469""/><w:gridCol w:w=""622""/><w:gridCol w:w=""469""/><w:gridCol w:w=""469""/><w:gridCol w:w=""598""/><w:gridCol w:w=""598""/><w:gridCol w:w=""598""/><w:gridCol w:w=""598""/><w:gridCol w:w=""598""/><w:gridCol w:w=""598""/><w:gridCol w:w=""370""/><w:gridCol w:w=""370""/><w:gridCol w:w=""459""/><w:gridCol w:w=""370""/></w:tblGrid>"
  
  
    For j = 0 To UBound(Matr2, 3) - gelZeilen
-    ag.Append "<w:tr>" & IIf(j = 0, "<w:trPr><w:cantSplit/><w:trHeight w:val=""1134""/></w:trPr>", "")
+'    ag.Append "<w:tr>" & IIf(j = 0, "<w:trPr><w:cantSplit/><w:trHeight w:val=""1134""/></w:trPr>", "")
+'    ag.Append "<w:tr><w:trHeight w:val=""1134"" w:hRule=""atLeast""/>" & IIf(j = 0, "<w:trPr><w:cantSplit  w:val=""true""/></w:trPr>", "")
+    ag.Append "<w:tr>" & IIf(j = 0, "<w:trPr><w:trHeight w:val=""986""/></w:trPr>", "")
     Call LabKopf("1590", zsuh(Matr2(0, 3, j)), IIf(j = 0, "LaborTab", ""), IIf(j = 0, "47", ""), 0, 0) ' Parameter
     Call LabKopf("705", zsuh(Matr2(0, 4, j)), , , 0, 1) ' Einheit
     Call LabKopf("855", Matr2(0, 5, j), , , 0, 2) ' Normbereich
@@ -14797,9 +14845,9 @@ Sub LaborIns1(ByRef dc As Object, Pat_ID$, nurLabor%, briefNeu%) ' nur in tuBrie
 ' dc.Range(Tabl.Range.End, Tabl.Range.End) = "Vor dem " & Matr2(0, 6, 0) & " wurden noch bestimmt: " & ZusText
  If LenB(ZusText) > 2 Then
   ZusText = Left$(ZusText, Len(ZusText) - 2)
-  ZusText = "Vor dem " & Matr2(0, 6, 0) & " wurden noch bestimmt: " & ZusText & nzw
+  ZusText = "Vor dem " & Matr2(0, 6, 0) & " wurden noch bestimmt: " & ZusText
   If briefNeu Then
-   ag.Append "<w:p><w:pPr><w:pStyle w:val=""Normal""/><w:ind w:hanging=""0"" w:left=""-1077"" w:right=""0""/></w:pPr><w:r><w:rPr><w:sz w:val=""18""/></w:rPr><w:br/><w:t>" & zsuh(ZusText) & "</w:t></w:r></w:p><w:p><w:pPr><w:pStyle w:val=""Normal""/></w:pPr></w:p>"
+   ag.Append "<w:p><w:pPr><w:pStyle w:val=""Normal""/><w:ind w:hanging=""0"" w:left=""-1077"" w:right=""0""/></w:pPr><w:r><w:rPr><w:sz w:val=""18""/></w:rPr><w:br/><w:t>" & zsuh(ZusText) & "</w:t></w:r>"
    Exit Sub
   Else
    dc.bookmarks!LaborZusatz.Range = ZusText
@@ -15923,7 +15971,7 @@ End Sub ' Tabelle
 ' Verlauf = eintraege(Pat_id, """notiz"",""telef"",""med""")
 'End FUNCTION ' Verlauf$(Pat_id&)
 
-' in tuBriefStandalone und (auskommentiert) machWertString
+' in tuBriefStandalone, einzeintr und (auskommentiert) machWertString
 Function kkeintraege$(Pat_ID$, krit$, Optional VorDat As Date)
 ' #Const obAlte = True
  Dim raVL As New ADODB.Recordset, lzp As Date, aktdat As Date
@@ -15957,7 +16005,7 @@ End If ' #End If ' if Vordat else
     kkeintraege = kkeintraege + Format$(aktdat, "DD.MM.YY")
    End If
    If LCase$(krit) <> """rr""" And (art = "usdm2" Or art = "usdm1" Or art = "usdm" Or art = "usd") Then
-    kkeintraege = kkeintraege + vbTab + REPLACE$(REPLACE$(Inhalt, "^", vNS) & vbCrLf, "aktuellen Blutdruck und ggf. Puls bitte extra eingeben", vNS)
+    kkeintraege = kkeintraege & vbTab & REPLACE$(REPLACE$(Inhalt, "^", vNS) & vbCrLf, "aktuellen Blutdruck und ggf. Puls bitte extra eingeben", vNS)
    Else
     Übs = ""
     Select Case raVL!art

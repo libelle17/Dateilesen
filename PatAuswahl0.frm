@@ -680,6 +680,7 @@ Private Sub Form_Load()
     Me.Programm.AddItem "Word 2000"
     Me.Programm.AddItem "Word neu"
     Me.Programm.AddItem "Standardprogramm"
+    Me.Programm.AddItem "alte Methode"
     RegPos = RegWurzel & App.EXEName & "\PatAuswahl"
     Me.Verfasser = cR.ReadKey("Verfasser", RegPos, HKEY_CURRENT_USER)
     Me.Programm = cR.ReadKey("Programm", RegPos, HKEY_CURRENT_USER)

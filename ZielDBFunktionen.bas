@@ -514,7 +514,7 @@ Public Type DMPClass
  SE(2) As Date ' Schulungen empfohlen
  kSE As Date ' bei letzter Doku keine Schulung empfohlen
  SW(5) As String ' As Date ' Schulungen wahrgenommen ' (0) = D.m., (1) = Hypertonie, (2) = keine
- DS(2) As Date ' DiabSchulung
+ Ds(2) As Date ' DiabSchulung
  HS(2) As Date ' HyperSchulung
  VorM(13) As Integer
  obmetf As AntidiabMedType
@@ -1019,7 +1019,7 @@ Do While Not raAna.EOF ' kommt alle bei uns in Turbomed nicht vor 2.3.25
   Case "SchulWahrgenommen" ' Schulungen bereits vor Einschreibung wahrgenommen: 0 = Diabetes, 1 = Hypertonie, 2 = keine
    aktDC.SW(raAna!FeldNr) = raAna!Zeitpunkt
   Case "DiabSchulung" ' empfohlene Schulungen wahrgenommen, Diabetes: 0 = ja, 1 = nein, 2 = war aktuell nicht möglich
-   aktDC.DS(raAna!FeldNr) = raAna!Zeitpunkt
+   aktDC.Ds(raAna!FeldNr) = raAna!Zeitpunkt
   Case "HyperSchulung" ' empfohlene Schulungen wahrgenommen, Hypertonie: 0 = ja, 1 = nein, 2 = war aktuell nicht möglich
    aktDC.HS(raAna!FeldNr) = raAna!Zeitpunkt
   Case "LetzteSchulung" ' bei letzter Doku war keine Schulung empfohlen
@@ -2515,7 +2515,7 @@ If aktDC.dtyp = "2" Then If mitStr Then TabPr "Lasertherapie:", IIf(aktDC.oblase
   End If ' obPosi(![Jahr letzte Diabetesschulung]) Then else
   If mitStr Then
    TabPr "D.m.-Schul.empfohl:", IIf(aktDC.SE(0) > 0, " D.m. " & Format$(aktDC.SE(0), "d.m.yy"), "") & IIf(aktDC.SE(1) > 0, " Hypert: " & Format$(aktDC.SE(1), "d.m.yy"), "") & IIf(aktDC.SE(2) > 0, " keine: " & Format$(aktDC.SE(2), "d.m.yy"), "")
-   TabPr "DMP-Schulung D.m.:", IIf(aktDC.DS(0) > 0, " ja: " & Format$(aktDC.DS(0), "d.m.yy"), "") & IIf(aktDC.DS(1) > 0, " nein: " & Format$(aktDC.DS(1), "d.m.yy"), "") & IIf(aktDC.DS(2) > 0, " nicht mögl: " & Format$(aktDC.DS(2), "d.m.yy"), "")
+   TabPr "DMP-Schulung D.m.:", IIf(aktDC.Ds(0) > 0, " ja: " & Format$(aktDC.Ds(0), "d.m.yy"), "") & IIf(aktDC.Ds(1) > 0, " nein: " & Format$(aktDC.Ds(1), "d.m.yy"), "") & IIf(aktDC.Ds(2) > 0, " nicht mögl: " & Format$(aktDC.Ds(2), "d.m.yy"), "")
    TabPr "DMP-Schulung Hypt:", IIf(aktDC.HS(0) > 0, " ja: " & Format$(aktDC.HS(0), "d.m.yy"), "") & IIf(aktDC.HS(1) > 0, " nein: " & Format$(aktDC.HS(1), "d.m.yy"), "") & IIf(aktDC.HS(2) > 0, " nicht mögl: " & Format$(aktDC.HS(2), "d.m.yy"), "")
    If aktDC.kSE <> 0 Then TabPr " Zuletzt k.Sch.empf:", Format$(aktDC.kSE, "d.m.yy")
    TabPr "Schulung vor Zuweisung:", aktDC.x_SchulStr
@@ -3555,15 +3555,15 @@ End Function ' min
 #If zutesten Then
 ' kommt nirgends vor
 Sub tobhier()
- Dim dmpk&, dmpkhkk&, dmpcopdk&, dmpabk&, HzV&, DS&, hzvab As Date, dsab As Date
+ Dim dmpk&, dmpkhkk&, dmpcopdk&, dmpabk&, HzV&, Ds&, hzvab As Date, dsab As Date
  Dim dmpb As Date, dmpkhkb As Date, dmpcopdb As Date, dmpabb As Date, NZNr&
- Call obhierdmpfn("DMP COPD MVZ 12.10.19", NZNr, dmpk, dmpb, dmpkhkk, dmpkhkb, dmpcopdk, dmpcopdb, dmpabk, dmpabb, HzV, hzvab, DS, dsab)
+ Call obhierdmpfn("DMP COPD MVZ 12.10.19", NZNr, dmpk, dmpb, dmpkhkk, dmpkhkb, dmpcopdk, dmpcopdb, dmpabk, dmpabb, HzV, hzvab, Ds, dsab)
 ' Debug.Print dmpk, dmpb, dmpcopdk, dmpcopdb, HzV, hzvab, DS, dsab
 End Sub ' tobhier
 #End If
 
 ' in alleSpeichern() und tob()
-Sub obhierdmpfn(notiz$, NZNr&, dmpklass As DMPEnum, dmpbeg As Date, Optional dmpkhkklass&, Optional dmpkhkbeg As Date, Optional dmpcopdklass&, Optional dmpcopdbeg As Date, Optional dmpabklass&, Optional dmpabbeg As Date, Optional HzV&, Optional HzVbeg As Date, Optional DS&, Optional DSbeg As Date)
+Sub obhierdmpfn(notiz$, NZNr&, dmpklass As DMPEnum, dmpbeg As Date, Optional dmpkhkklass&, Optional dmpkhkbeg As Date, Optional dmpcopdklass&, Optional dmpcopdbeg As Date, Optional dmpabklass&, Optional dmpabbeg As Date, Optional HzV&, Optional HzVbeg As Date, Optional Ds&, Optional DSbeg As Date)
  Dim buch$, pos%, testd As Date, i%, notdat$(), ndRichtig%() ' letztes wahr, wenn notdat-Zeile für DMP verwertbar oder irrelevant
  Dim maxdHier(3) As Date, maxdHA(3) As Date, maxdNein(3) As Date, maxdAus(3) As Date
  Dim DMPArt% ' 0 = Diabetes, 1 = KHK, 2 = COPD, 3 = Asthma bronchiale
@@ -3607,7 +3607,7 @@ Sub obhierdmpfn(notiz$, NZNr&, dmpklass As DMPEnum, dmpbeg As Date, Optional dmp
        HzV = 1
        HzVbeg = testd
       ElseIf InStrB(notdat(i), "DS") = 1 Then
-       DS = 1
+       Ds = 1
        DSbeg = testd
 '      IF InStrB(notdat(i), "DMP") = 0 THEN
 '       ndRichtig(i) = True ' a) für DMP irrelevant
@@ -5884,21 +5884,29 @@ Public Function pttest$(ByRef quel$)
 End Function
 
  
-' in tuBriefStandalone, Epikrise
-Public Function zuh$(ByRef Quelle$)
- Dim i&, bqb$, bq%
+' in tuBriefStandalone, einzeintr, Epikrise
+Public Function zuh$(ByRef Quelle$, Optional mitabs%, Optional obgross%)
+ Dim i&, bqb$, bq%, zul13%
 ' zuh = ""
  For i = 1 To Len(Quelle)
   bqb = Mid$(Quelle, i, 1)
   bq = Asc(bqb)
+  If bq = 10 And zul13 Then GoTo weiter
+  zul13 = 0
   Select Case bq
    Case 13
-    If i < Len(Quelle) Then zuh = zuh & "</w:t><w:br/><w:t>" ' das letzte Zeilenumbruchszeichen wird durch Absatzformatierung erfüllt
+    If i < Len(Quelle) Then
+'     zuh = zuh & "</w:t><w:br/><w:t>" ' das letzte Zeilenumbruchszeichen wird durch Absatzformatierung erfüllt
+'     zuh = zuh & "</w:t>" & IIf(mitabs, "</w:r></w:p><w:p><w:pPr><w:tabs><w:tab w:val=""left"" w:pos=""1134""/></w:tabs><w:ind w:left=""1134"" w:hanging=""1134""/></w:pPr><w:r><w:rPr><w:rStyle w:val=""s" & IIf(obgross, "24", "18") & "s""/></w:rPr><w:tab/>", "<w:br/>") & "<w:t>" ' das letzte Zeilenumbruchszeichen wird durch Absatzformatierung erfüllt
+     zuh = zuh & "</w:t>" & IIf(mitabs, "</w:r></w:p><w:p><w:pPr><w:pStyle w:val=""hang""/></w:pPr><w:r><w:rPr><w:rStyle w:val=""s" & IIf(obgross, "24", "18") & "s""/></w:rPr>", "<w:br/>") & "<w:t>" ' das letzte Zeilenumbruchszeichen wird durch Absatzformatierung erfüllt
+    End If
+    zul13 = True
    Case 60, 62, Is >= 128
     zuh = zuh & "&#" & bq & ";"
    Case Else
     zuh = zuh & bqb
   End Select ' bq
+weiter:
  Next i
 End Function ' zuh
 
