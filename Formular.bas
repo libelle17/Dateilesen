@@ -560,10 +560,10 @@ Sub EliminierWortplusZahl(ByRef SqlU As CString, ByRef Wort$)
   p2 = pos + Len(Wort)
   p2anf = p2
   Do
-   If Not IsNumeric(SqlU.Mid(p2, 1)) Then Exit Do
+   If Not IsNumeric(SqlU.cMid(p2, 1)) Then Exit Do
    p2 = p2 + 1
   Loop
-  If p2anf <> p2 Then SqlU = SqlU.Left(pos - 1) & SqlU.Mid(p2)
+  If p2anf <> p2 Then SqlU = SqlU.Left(pos - 1) & SqlU.cMid(p2)
  End If
 End Sub ' EliminierWortplusZahl(ByRef SqlU As CString, ByRef Wort$)
 
@@ -5990,7 +5990,7 @@ Function tha12()
 End Function ' tha12
 
 ' in einDMP, dodoFollowUp, doUngeschriebenebriefe, PatAuswahl.do_Pat_ID_Change, tha12
-Function getHausarzt(Pid&, infos$()) ' Bildet aus den Infos in `namen` und `hareal` die alte gleichnamige Funktion nach, die jetzt noch unter getHausarztAlt zur Verfügung steht
+Function getHausarzt(pid&, infos$()) ' Bildet aus den Infos in `namen` und `hareal` die alte gleichnamige Funktion nach, die jetzt noch unter getHausarztAlt zur Verfügung steht
 ' 5.12.12: 15. Feld briefmail
 
 ' SELECT pat_id pid, if(h.anrede,"Herr","Frau"), Adressat, h.Straße, PLZOrt, Fax, Überschrift, if(dmp2,'X','') dmp2,
@@ -6004,7 +6004,7 @@ Function getHausarzt(Pid&, infos$()) ' Bildet aus den Infos in `namen` und `hare
  Dim rs As New ADODB.Recordset, rs1 As New ADODB.Recordset, i&, j&
  Dim HA&(2), fnHA$(2)
  On Error GoTo fehler
- myFrag rs, "SELECT getHA0, fnHA0, getHA1, fnHA1, getHA2, fnHA2 FROM `namen` WHERE pat_id = " & Pid
+ myFrag rs, "SELECT getHA0, fnHA0, getHA1, fnHA1, getHA2, fnHA2 FROM `namen` WHERE pat_id = " & pid
  If Not rs.EOF Then
   If Not IsNull(rs!getHA0) Then HA(0) = rs!getHA0: fnHA(0) = rs!fnHA0
   If Not IsNull(rs!getHA1) Then HA(1) = rs!getHA1: fnHA(1) = rs!fnHA1
@@ -7201,7 +7201,7 @@ End Function ' gethausarzt1
 
 ' aufgerufen in Vorhandenebriefe_Click
 Function doVorhandene&()
- Dim Fil As File, Pid&, pos&, p2&, BriefZiel$
+ Dim Fil As File, pid&, pos&, p2&, BriefZiel$
  Dim VorMüll$, FilName$, FilPath$
  On Error GoTo fehler
  BriefZiel = InputBox("Verzeichnis:", "wo sollen vorhandene Briefe korrigiert werden?", AutoBriefZiel)
@@ -7213,14 +7213,14 @@ Function doVorhandene&()
    If pos > 0 Then
     p2 = InStr(pos, FilPath, ",")
     If p2 > 0 Then
-     Pid = CLng(Mid$(FilPath, pos + 4, p2 - pos - 4))
-     If Pid > 0 Then
+     pid = CLng(Mid$(FilPath, pos + 4, p2 - pos - 4))
+     If pid > 0 Then
       VorMüll = FilPath & "zulöschen"
       FilName = Fil.name
       Name Fil.path As VorMüll
       Forms(0).Ausgeb "Erneuere: " & FilName, True
       Lese.Aktion = Briefschreiben
-      Call tuBriefStandalone(Pid, True, BriefZiel, , , , , True)
+      Call tuBriefStandalone(pid, True, BriefZiel, , , , , , , True)
       If BrichAb Then Exit For
       Kill VorMüll
       doVorhandene = doVorhandene + 1
@@ -7351,7 +7351,7 @@ Function doBriefeBerichtspflicht()
 '        Call LeistungsExport1(BDT, rNa!Pat_id, "01601", CDate(leid), CDate("18:00"))
         Call LeistungsExport1(BDT, rNa!Pat_ID, "40110", CDate(leid), CDate("18:00"), , 0)
         Lese.Aktion = Briefschreiben
-        Call tuBriefStandalone(rNa!Pat_ID, True, , , , , , True)
+        Call tuBriefStandalone(rNa!Pat_ID, True, , , , , , , , True)
        End If
      End If
    ElseIf Not IsNull(rEx.Fields(0)) And Not IsNull(rEx.Fields(1)) And Not IsNull(rEx.Fields(2)) Then
@@ -7788,27 +7788,27 @@ Public Function PKennz$(ByRef abz$, Optional reset%)
 #Else
   Const Vollz& = 16 ^ 7 - 1
   Static rsidD$
-  Dim Pid$, tid$, rsid$
+  Dim pid$, tid$, rsid$
   If InStrB(abz, "<w:p>") Then
    If reset <> 0 Or rsidD = "" Then
     Randomize
     rsidD = Right$("00000000" & Hex(Rnd * Vollz), 7)
    End If
    Randomize
-   Pid = Right$("00000000" & Hex(Rnd * Vollz), 8)
+   pid = Right$("00000000" & Hex(Rnd * Vollz), 8)
    tid = Right$("00000000" & Hex(Rnd * Vollz), 8)
    rsid = Right$("00000000" & Hex(Rnd * Vollz), 8)
-   PKennz = REPLACE$(abz, "<w:p>", "<w:p w14:paraId=""" & Pid & """ w14:textId=""" & tid & """ w:rsidR=""" & rsid & """ w:rsidRDefault=""" & rsidD & """>")
+   PKennz = REPLACE$(abz, "<w:p>", "<w:p w14:paraId=""" & pid & """ w14:textId=""" & tid & """ w:rsidR=""" & rsid & """ w:rsidRDefault=""" & rsidD & """>")
   Else
    PKennz = abz
   End If ' InStrB(abz, "<w:p>") Then else
 #End If ' ohneIDs
 End Function ' Function PKennz
 
-Sub Dzus(ByRef Ds() As CString, DSneu As CString)
+Sub Dzus(ByRef DS() As CString, DSneu As CString)
  Dim i%
- For i = 0 To UBound(Ds) - 1
-  DSneu.AppVar Array("<w:t>", Ds(i), "</w:t><w:br/>")
+ For i = 0 To UBound(DS) - 1
+  DSneu.AppVar Array("<w:t>", DS(i), "</w:t><w:br/>")
  Next i
 End Sub ' Dzus
 
@@ -7821,7 +7821,7 @@ Function einzEintr(Pat_ID$, ÜS$, erlaeut$, arten$, Optional VorDat As Date, Opti
   inhlt = kkeintraege(Pat_ID, arten, VorDat)
  End If ' if arten
  If inhlt <> "" Then
-  ag.Append PKennz("<w:p><w:r><w:rPr><w:b/><w:rStyle w:val=""s24s""/></w:rPr><w:t xml:space=""preserve"">" & ÜS & "</w:t></w:r><w:r><w:rPr><w:rStyle w:val=""s16s""/></w:rPr><w:t>" & erlaeut & ":</w:t></w:r></w:p>", False)
+  ag.Append PKennz("<w:p><w:r><w:rPr><w:b/><w:rStyle w:val=""s24s""/></w:rPr><w:t xml:space=""preserve"">" & zsuh(ÜS) & "</w:t></w:r><w:r><w:rPr><w:rStyle w:val=""s16s""/></w:rPr><w:t>" & erlaeut & ":</w:t></w:r></w:p>", False)
   ag.Append PKennz("<w:p><w:pPr><w:pStyle w:val=""hang""/></w:pPr><w:r><w:rPr><w:rStyle w:val=""s" & IIf(obgross, "24", "18") & "s""/></w:rPr><w:t>" & REPLACE$(zuh(inhlt), vbCrLf, "</w:t></w:r></w:p><w:p><w:pPr><w:pStyle w:val=""hang""/></w:pPr><w:r><w:rPr><w:rStyle w:val=""s" & IIf(obgross, "24", "18") & "s""/></w:rPr><w:t>") & "</w:t></w:r></w:p>", False)
  End If ' inhlt <> ""
 End Function ' einzEintr
@@ -7829,7 +7829,7 @@ End Function ' einzEintr
 ' in Datei.Lese.los und BriefImport_Click, Briefnochmal_Click, dodoFollowUp, doUngeschriebeneBriefe,
 ' MDIForm.MDIForm_Activate, doRestlicheBriefe, PatAuswahl.Abr_Click, Lade.DateiBearbeiten_Click, doVorhandene
 ' doBriefeBerichtspflicht, tu_brief
-Public Sub tuBriefStandalone(Pid&, obStumm%, Optional Zielverz$, Optional Vorlage$, Optional nurLabor% = False, Optional briefNeu% = False, Optional nichtherricht%, Optional sammel%) ' Brief schreiben
+Public Sub tuBriefStandalone(pid&, obStumm%, Optional Zielverz$, Optional Verfasser$, Optional Vorlage$, Optional ProgInd%, Optional nurLabor% = False, Optional briefNeu% = False, Optional nichtherricht%, Optional sammel%) ' Brief schreiben
 ' sammel soll bei Mehrfachaufrufen <>0 sein, um Rückfragen für jeden Brief zu vermeiden
  Dim Pat_ID$, myRange, Docu, Inh, dc As Object ' Word.Document, wegen unbekannter Wordversion als Object
  Dim raHa As New ADODB.Recordset
@@ -7837,7 +7837,8 @@ Public Sub tuBriefStandalone(Pid&, obStumm%, Optional Zielverz$, Optional Vorlag
  Dim raHae As New ADODB.Recordset
  Dim rsNa As New ADODB.Recordset
  Dim obHAimDMP%
- Dim j&, pos%, VBuch$, ii%, Index%
+ Dim j&, pos%, ii%, Index%
+' Dim VBuch$
 ' dim fs
  Dim runde%, KVNr$
  Dim VorDat0 As Date, VorDat As Date
@@ -7848,7 +7849,7 @@ Public Sub tuBriefStandalone(Pid&, obStumm%, Optional Zielverz$, Optional Vorlag
   
  On Error GoTo fehler
  If Date = #11/20/2011# Then nurLabor = True
- Pat_ID = CStr(Pid)
+ Pat_ID = CStr(pid)
  VorDat0 = GetVorDat(Pat_ID, obStumm)
  If sammel = 0 Then
   On Error Resume Next
@@ -7856,7 +7857,7 @@ Public Sub tuBriefStandalone(Pid&, obStumm%, Optional Zielverz$, Optional Vorlag
   If Err.Number Then Exit Sub
   On Error GoTo fehler
  End If ' sammel = 0
- If Lese.MOBetr And Not Lese.pataw.ohneÜbertr Then doPatvonMO Pid, , obpruef:=True, obtransp:=True
+ If Lese.MOBetr And Not Lese.pataw.ohneÜbertr Then doPatvonMO pid, , obpruef:=True, obtransp:=True
 '  sverz = pverz
  If Zielverz = vNS Then
   sverz = BriefZiel
@@ -7869,7 +7870,12 @@ Public Sub tuBriefStandalone(Pid&, obStumm%, Optional Zielverz$, Optional Vorlag
  End If ' Zielverz = vNS Then else
 '  lies.obmysql = False
 '  Call Zinit(Lies.obMySQL)
- nzw = vbCr
+
+' If briefNeu Then
+  nzw = vbCr ' "</w:t><w:br/><w:t>"
+' Else
+'  nzw = vbCr
+' End If
   
 '  SET rsNa = TabÖff("Namen", "pat_ID")
 '  rsNa.Seek "=", raAn!Pat_id
@@ -7889,9 +7895,10 @@ Public Sub tuBriefStandalone(Pid&, obStumm%, Optional Zielverz$, Optional Vorlag
  bhb = rsNa!bhb
  behs = rsNa!behs
 ' G1Name = rsNa!G1Name
- myFrag raAn, "SELECT COALESCE(GesName(Pat_id),'') GesName, COALESCE(`diabetes seit`,0) dmseit FROM `anamnesebogen` a WHERE pat_id = " & Pat_ID, adOpenStatic
- Dim gesName$, dmseit$
+ myFrag raAn, "SELECT COALESCE(GesName(Pat_id),'') GesName, REPLACE(gesnameg(" & Pat_ID & "),'*','geb.') gg, COALESCE(`diabetes seit`,0) dmseit FROM `anamnesebogen` a WHERE pat_id = " & Pat_ID, adOpenStatic
+ Dim gesName$, gesnameg$, dmseit$
  gesName = raAn!gesName
+ gesnameg = raAn!gg
  dmseit = raAn!dmseit
  syscmd acSysCmdSetStatus, "Erstelle Brief für " & gesName & ": 1) Hausarzt ..."
 ' Dim rFa() As Faelle ' auskommentiert 28.4.25
@@ -7907,7 +7914,7 @@ Public Sub tuBriefStandalone(Pid&, obStumm%, Optional Zielverz$, Optional Vorlag
   
 '  SET rHa = TabÖff("Hausaerzte", "KVNR")
  If LenB(Vorlage) = 0 Then Vorlage = "AccessBrief.dot"
- If Right$(LCase$(Vorlage), 4) = ".dot" Then If Left$(LCase$(Vorlage), 11) = "accessbrief" Then VBuch = Mid$(Vorlage, 12, Len(Vorlage) - 15)
+' If Right$(LCase$(Vorlage), 4) = ".dot" Then If Left$(LCase$(Vorlage), 11) = "accessbrief" Then VBuch = Mid$(Vorlage, 12, Len(Vorlage) - 15)
  syscmd acSysCmdSetStatus, "Erstelle Brief für " & gesName & ": 2) Diagnosen..."
  Dim DiagTab() As CString, DString$
  DString = DiagString(Pat_ID, DiagTab, VorDat, obBrief:=True, dmseit:=dmseit)
@@ -7921,10 +7928,22 @@ Public Sub tuBriefStandalone(Pid&, obStumm%, Optional Zielverz$, Optional Vorlag
    syscmd acSysCmdSetStatus, "Erstelle Brief für " & gesName & ": 3) Briefrahmen..."
    Dim oSh As New IWshShell_Class, docProps$, qvz$, zvz$
    qvz = vVerz & "exp8\"
-   zvz = vVerz & "exp9\"
+   zvz = Environ("temp") & "\" & Int(Rnd * 10000000) & "\"
+   If Not FSO.FolderExists(zvz) Then FSO.CreateFolder (zvz)
    docProps = zvz & "docProps"
 '  SET oSh = New IWshShell_Class
-   oSh.rUn "cmd /c ""xcopy " & qvz & " " & zvz & " /s /y /h /r /k /c /exclude:" & qvz & "ausschluss.txt && move " & zvz & "word\media\image" & VBuch & ".jpeg " & zvz & "word\media\1.jpeg && del " & zvz & "word\media\image*.jpeg && move " & zvz & "word\media\1.jpeg " & zvz & "word\media\image1.jpeg""", 0, True
+'   oSh.rUn "cmd /c ""xcopy " & qvz & " " & zvz & " /s /y /h /r /k /c /exclude:" & qvz & "ausschluss.txt && move " & zvz & "word\media\image" & VBuch & ".jpeg " & zvz & "word\media\1.jpeg && del " & zvz & "word\media\image*.jpeg && move " & zvz & "word\media\1.jpeg " & zvz & "word\media\image1.jpeg""", 0, True
+   On Error Resume Next
+   FSO.CreateFolder zvz
+   On Error GoTo fehler
+   oSh.rUn "cmd /c ""xcopy " & qvz & " " & zvz & " /s /y /h /r /k /c /exclude:" & qvz & "ausschluss.txt """, 0, True
+   On Error Resume Next
+   FSO.CreateFolder zvz & "word"
+   FSO.CreateFolder zvz & "word\media"
+   On Error GoTo fehler
+' copy erkennt kein Netzlaufwerk, xcopy stellt die hier unabwendbare Rückfrage, ob Datei oder Verzeichnis, und robocopy benennt nicht um
+'   oSh.rUn "copy " & qvz & "word\media\" & Verfasser & ".jpeg " & zvz & "word\media\image1" & ".jpeg"
+   Call FSO.CopyFile(qvz & "word\media\" & Verfasser & ".jpeg", zvz & "word\media\image1" & ".jpeg")
    If Not FSO.FolderExists(docProps) Then FSO.CreateFolder (docProps)
    Open zvz & "docProps\app.xml" For Output As #51
    Print #51, app1 & Vorlage & app2
@@ -7967,15 +7986,15 @@ Public Sub tuBriefStandalone(Pid&, obStumm%, Optional Zielverz$, Optional Vorlag
 #Const abAug25 = True
 #If abAug25 Then
   ag.Append PKennz("", True)
-  ag.AppVar Array(vgb1, "<w:body>")
-  ag.Append PKennz("<w:p><w:pPr><w:pStyle w:val=""Kopf""/></w:pPr><w:r><w:rPr><w:rStyle w:val=""s28s""/></w:rPr><w:t>D</w:t></w:r><w:r><w:t>iabetologische </w:t></w:r><w:r><w:rPr><w:rStyle w:val=""s28s""/></w:rPr><w:t>G</w:t></w:r><w:r><w:t>emeinschaftspraxis </w:t></w:r></w:p>", True)
-  ag.Append PKennz("<w:p><w:pPr><w:pStyle w:val=""Kopf""/></w:pPr><w:r><w:rPr><w:position w:val=""-6""/><w:b w:val=""0""/></w:rPr><w:t>Dr. Thomas Kothny - Gerald Schade</w:t><w:tab/><w:t>Tel.:</w:t><w:tab/><w:t>08131 616380</w:t></w:r></w:p>", False)
+  ag.AppVrH Array(vgb1, "<w:body>")
+  ag.appH PKennz("<w:p><w:pPr><w:pStyle w:val=""Kopf""/></w:pPr><w:r><w:rPr><w:rStyle w:val=""s28s""/></w:rPr><w:t>D</w:t></w:r><w:r><w:t>iabetologische </w:t></w:r><w:r><w:rPr><w:rStyle w:val=""s28s""/></w:rPr><w:t>G</w:t></w:r><w:r><w:t>emeinschaftspraxis </w:t></w:r></w:p>", True)
+  ag.appH PKennz("<w:p><w:pPr><w:pStyle w:val=""Kopf""/></w:pPr><w:r><w:rPr><w:position w:val=""-6""/><w:b w:val=""0""/></w:rPr><w:t>Dr. Thomas Kothny - Gerald Schade</w:t><w:tab/><w:t>Tel.:</w:t><w:tab/><w:t>08131 616380</w:t></w:r></w:p>", False)
 ' 2 Absätze
-  ag.Append PKennz("<w:p><w:pPr><w:pStyle w:val=""Kopf""/></w:pPr><w:r><w:rPr><w:position w:val=""8""/><w:rStyle w:val=""s16s""/></w:rPr><w:t>Internisten - Diabetologen - Angiologe </w:t><w:tab/></w:r><w:r><w:rPr><w:position w:val=""4""/><w:b w:val=""0""/></w:rPr><w:t>Fax:</w:t><w:tab/><w:t>08131 616381</w:t></w:r><w:r><w:rPr><w:b w:val=""0""/></w:rPr><w:br/><w:t>Mittermayerstraße 13</w:t><w:tab/><w:t>Email:</w:t><w:tab/><w:t>diabetologie@dachau-mail.de</w:t><w:br/><w:t>85221 Dachau</w:t><w:tab/><w:t>Web:</w:t><w:tab/><w:t>www.diabdachau.de</w:t></w:r></w:p><w:p><w:pPr><w:widowControl w:val=""0""/><w:tabs><w:tab w:val=""left"" w:leader=""underscore"" w:pos=""9072""/></w:tabs><w:autoSpaceDE w:val=""0""/><w:autoSpaceDN w:val=""0""/><w:adjustRightInd w:val=""0""/></w:pPr><w:r><w:tab/></w:r></w:p>", False)
+  ag.appH PKennz("<w:p><w:pPr><w:pStyle w:val=""Kopf""/></w:pPr><w:r><w:rPr><w:position w:val=""8""/><w:rStyle w:val=""s16s""/></w:rPr><w:t>Internisten - Diabetologen - Angiologe </w:t><w:tab/></w:r><w:r><w:rPr><w:position w:val=""4""/><w:b w:val=""0""/></w:rPr><w:t>Fax:</w:t><w:tab/><w:t>08131 616381</w:t></w:r><w:r><w:rPr><w:b w:val=""0""/></w:rPr><w:br/><w:t>Mittermayerstraße 13</w:t><w:tab/><w:t>Email:</w:t><w:tab/><w:t>diabetologie@dachau-mail.de</w:t><w:br/><w:t>85221 Dachau</w:t><w:tab/><w:t>Web:</w:t><w:tab/><w:t>www.diabdachau.de</w:t></w:r></w:p><w:p><w:pPr><w:widowControl w:val=""0""/><w:tabs><w:tab w:val=""left"" w:leader=""underscore"" w:pos=""9072""/></w:tabs><w:autoSpaceDE w:val=""0""/><w:autoSpaceDN w:val=""0""/><w:adjustRightInd w:val=""0""/></w:pPr><w:r><w:tab/></w:r></w:p>", False)
 ' Format(Now(), "dd.mm.yyyy")
-  ag.Append PKennz("<w:p><w:pPr><w:widowControl w:val=""0""/><w:tabs><w:tab w:val=""right"" w:pos=""8789""/></w:tabs><w:autoSpaceDE w:val=""0""/><w:autoSpaceDN w:val=""0""/><w:adjustRightInd w:val=""0""/><w:spacing w:before=""120""/></w:pPr><w:r><w:tab/></w:r><w:r><w:fldChar w:fldCharType=""begin""/></w:r><w:r><w:instrText> CREATEDATE  \@ ""dd.MM.yyyy"" \* MERGEFORMAT </w:instrText></w:r><w:r><w:fldChar w:fldCharType=""separate""/></w:r><w:r><w:rPr><w:noProof/></w:rPr><w:t>" & Format(Now(), "dd.mm.yyyy") & "</w:t></w:r><w:r><w:fldChar w:fldCharType=""end""/></w:r></w:p>", False)
+  ag.appH PKennz("<w:p><w:pPr><w:widowControl w:val=""0""/><w:tabs><w:tab w:val=""right"" w:pos=""8789""/></w:tabs><w:autoSpaceDE w:val=""0""/><w:autoSpaceDN w:val=""0""/><w:adjustRightInd w:val=""0""/><w:spacing w:before=""120""/></w:pPr><w:r><w:tab/></w:r><w:r><w:fldChar w:fldCharType=""begin""/></w:r><w:r><w:instrText> CREATEDATE  \@ ""dd.MM.yyyy"" \* MERGEFORMAT </w:instrText></w:r><w:r><w:fldChar w:fldCharType=""separate""/></w:r><w:r><w:rPr><w:noProof/></w:rPr><w:t>" & Format(Now(), "dd.mm.yyyy") & "</w:t></w:r><w:r><w:fldChar w:fldCharType=""end""/></w:r></w:p>", False)
 ' 2 Absätze
-  ag.Append PKennz("<w:p><w:pPr><w:spacing w:before=""80""/><w:ind w:firstLine=""709""/><w:rPr><w:rStyle w:val=""s24s""/></w:rPr></w:pPr></w:p><w:p><w:pPr><w:spacing w:before=""80""/><w:rPr><w:i/><w:iCs/><w:rStyle w:val=""s16s""/><w:u w:val=""single""/></w:rPr></w:pPr><w:r><w:rPr><w:rStyle w:val=""brieffenster""/></w:rPr><w:t>Diabetolog. Gem'praxis</w:t></w:r><w:r><w:rPr><w:rStyle w:val=""brieffenster""/></w:rPr><w:sym w:font=""Symbol"" w:char=""F0B7""/></w:r><w:r><w:rPr><w:rStyle w:val=""brieffenster""/></w:rPr><w:t> Mittermayerstraße 13 </w:t></w:r><w:r><w:rPr><w:rStyle w:val=""brieffenster""/></w:rPr><w:sym w:font=""Symbol"" w:char=""F0B7""/></w:r><w:r><w:rPr><w:rStyle w:val=""brieffenster""/></w:rPr><w:t> 85221 Dachau</w:t><w:br/></w:r></w:p>", False)
+  ag.appH PKennz("<w:p><w:pPr><w:spacing w:before=""80""/><w:ind w:firstLine=""709""/><w:rPr><w:rStyle w:val=""s24s""/></w:rPr></w:pPr></w:p><w:p><w:pPr><w:spacing w:before=""80""/><w:rPr><w:i/><w:iCs/><w:rStyle w:val=""s16s""/><w:u w:val=""single""/></w:rPr></w:pPr><w:r><w:rPr><w:rStyle w:val=""brieffenster""/></w:rPr><w:t>Diabetolog. Gem'praxis</w:t></w:r><w:r><w:rPr><w:rStyle w:val=""brieffenster""/></w:rPr><w:sym w:font=""Symbol"" w:char=""F0B7""/></w:r><w:r><w:rPr><w:rStyle w:val=""brieffenster""/></w:rPr><w:t> Mittermayerstraße 13 </w:t></w:r><w:r><w:rPr><w:rStyle w:val=""brieffenster""/></w:rPr><w:sym w:font=""Symbol"" w:char=""F0B7""/></w:r><w:r><w:rPr><w:rStyle w:val=""brieffenster""/></w:rPr><w:t> 85221 Dachau</w:t><w:br/></w:r></w:p>", False)
   If nurLabor = 0 Then
 ' ermitteln, ob ein oder zwei Adressaten
    Index = 0
@@ -7987,31 +8006,31 @@ Public Sub tuBriefStandalone(Pid&, obStumm%, Optional Zielverz$, Optional Vorlag
    Next ii
 ' die nächsten beiden bilden zusammen einen Absatz
 ' Anrede, Funktion (a): IIf(infos(0, 0) = "Herr", "Herrn", infos(0, 0)), zuh(infos(10, 0))
-   ag.Append PKennz("<w:p><w:pPr><w:tabs><w:tab w:val=""left"" w:pos=""5387""/></w:tabs><w:spacing w:before=""140""/></w:pPr><w:bookmarkStart w:id=""0"" w:name=""ha1a""/><w:r><w:rPr><w:rStyle w:val=""s24s""/></w:rPr><w:t>" & IIf(infos(0, 0) = "Herr", "Herrn", infos(0, 0)) & "</w:t></w:r><w:bookmarkEnd w:id=""0""/><w:r><w:rPr><w:rStyle w:val=""s24s""/></w:rPr><w:t> </w:t></w:r><w:bookmarkStart w:id=""1"" w:name=""ha10a""/><w:r><w:rPr><w:rStyle w:val=""s24vs""/></w:rPr><w:t>" & zuh(infos(10, 0)) & "</w:t></w:r><w:bookmarkEnd w:id=""1""/>")
+   ag.appH PKennz("<w:p><w:pPr><w:tabs><w:tab w:val=""left"" w:pos=""5387""/></w:tabs><w:spacing w:before=""140""/></w:pPr><w:bookmarkStart w:id=""0"" w:name=""ha1a""/><w:r><w:rPr><w:rStyle w:val=""s24s""/></w:rPr><w:t>" & IIf(infos(0, 0) = "Herr", "Herrn", infos(0, 0)) & "</w:t></w:r><w:bookmarkEnd w:id=""0""/><w:r><w:rPr><w:rStyle w:val=""s24s""/></w:rPr><w:t> </w:t></w:r><w:bookmarkStart w:id=""1"" w:name=""ha10a""/><w:r><w:rPr><w:rStyle w:val=""s24vs""/></w:rPr><w:t>" & zuh(infos(10, 0)) & "</w:t></w:r><w:bookmarkEnd w:id=""1""/>")
 ' Anrede, Funktion (b): , IIf(Index <> 0 And UBound(infos, 2) > 0, "<w:r><w:rPr><w:rStyle w:val=""s24s""/></w:rPr><w:t>" & IIf(infos(0, Index) = "Herr", "Herrn", infos(0, Index)) & "</w:t></w:r>", ""), IIf(Index <> 0 And UBound(infos, 2) > 0, "<w:r><w:rPr><w:rStyle w:val=""s24vs""/></w:rPr><w:t>" & infos(10, Index) & "</w:t></w:r>", "")
-   ag.Append PKennz("<w:r><w:rPr><w:rStyle w:val=""s24s""/></w:rPr><w:tab/></w:r><w:bookmarkStart w:id=""2"" w:name=""ha1b""/>" & IIf(Index <> 0 And UBound(infos, 2) > 0, "<w:r><w:rPr><w:rStyle w:val=""s24s""/></w:rPr><w:t>" & IIf(infos(0, Index) = "Herr", "Herrn", infos(0, Index)) & "</w:t></w:r>", "") & "<w:bookmarkEnd w:id=""2""/><w:bookmarkStart w:id=""3"" w:name=""ha10b""/>" & IIf(Index <> 0 And UBound(infos, 2) > 0, "<w:r><w:rPr><w:rStyle w:val=""s24vs""/></w:rPr><w:t>" & infos(10, Index) & "</w:t></w:r>", "") & "<w:bookmarkEnd w:id=""3""/></w:p>", False)
+   ag.appH PKennz("<w:r><w:rPr><w:rStyle w:val=""s24s""/></w:rPr><w:tab/></w:r><w:bookmarkStart w:id=""2"" w:name=""ha1b""/>" & IIf(Index <> 0 And UBound(infos, 2) > 0, "<w:r><w:rPr><w:rStyle w:val=""s24s""/></w:rPr><w:t>" & IIf(infos(0, Index) = "Herr", "Herrn", infos(0, Index)) & "</w:t></w:r>", "") & "<w:bookmarkEnd w:id=""2""/><w:bookmarkStart w:id=""3"" w:name=""ha10b""/>" & IIf(Index <> 0 And UBound(infos, 2) > 0, "<w:r><w:rPr><w:rStyle w:val=""s24vs""/></w:rPr><w:t>" & infos(10, Index) & "</w:t></w:r>", "") & "<w:bookmarkEnd w:id=""3""/></w:p>", False)
 ' Name: zuh(infos(1, 0)), zuh(IIf(Index <> 0 And UBound(infos, 2) > 0, "<w:r><w:t>" & infos(1, Index) & "</w:t></w:r>", ""))
-   ag.Append PKennz("<w:p><w:pPr><w:tabs><w:tab w:val=""left"" w:pos=""5387""/></w:tabs><w:pStyle w:val=""sp24s""/></w:pPr><w:bookmarkStart w:id=""4"" w:name=""ha2a""/><w:r><w:t>" & zuh(infos(1, 0)) & "</w:t></w:r><w:bookmarkEnd w:id=""4""/><w:r><w:tab/></w:r><w:bookmarkStart w:id=""5"" w:name=""ha2b""/>" & zuh(IIf(Index <> 0 And UBound(infos, 2) > 0, "<w:r><w:t>" & infos(1, Index) & "</w:t></w:r>", "")) & "<w:bookmarkEnd w:id=""5""/></w:p>", False)
+   ag.appH PKennz("<w:p><w:pPr><w:tabs><w:tab w:val=""left"" w:pos=""5387""/></w:tabs><w:pStyle w:val=""sp24s""/></w:pPr><w:bookmarkStart w:id=""4"" w:name=""ha2a""/><w:r><w:t>" & zuh(infos(1, 0)) & "</w:t></w:r><w:bookmarkEnd w:id=""4""/><w:r><w:tab/></w:r><w:bookmarkStart w:id=""5"" w:name=""ha2b""/>" & zuh(IIf(Index <> 0 And UBound(infos, 2) > 0, "<w:r><w:t>" & infos(1, Index) & "</w:t></w:r>", "")) & "<w:bookmarkEnd w:id=""5""/></w:p>", False)
 ' Straße: zuh(infos(2, 0)), zuh(IIf(Index <> 0 And UBound(infos, 2) > 0, "<w:r><w:rPr><w:rStyle w:val=""s24s""/></w:rPr><w:t>" & infos(2, Index) & "</w:t></w:r>", ""))
-   ag.Append PKennz("<w:p><w:pPr><w:tabs><w:tab w:val=""left"" w:pos=""5387""/></w:tabs><w:rPr><w:rStyle w:val=""s24s""/></w:rPr></w:pPr><w:bookmarkStart w:id=""6"" w:name=""ha3a""/><w:r><w:rPr><w:rStyle w:val=""s24s""/></w:rPr><w:t>" & zuh(infos(2, 0)) & "</w:t></w:r><w:bookmarkEnd w:id=""6""/><w:r><w:rPr><w:rStyle w:val=""s24s""/></w:rPr><w:tab/></w:r><w:bookmarkStart w:id=""7"" w:name=""ha3b""/>" & zuh(IIf(Index <> 0 And UBound(infos, 2) > 0, "<w:r><w:rPr><w:rStyle w:val=""s24s""/></w:rPr><w:t>" & infos(2, Index) & "</w:t></w:r>", "")) & "<w:bookmarkEnd w:id=""7""/></w:p>", False)
-   ag.Append PKennz("<w:p><w:pPr><w:framePr w:w=""340"" w:h=""550"" w:hSpace=""181"" w:wrap=""around"" w:vAnchor=""page"" w:hAnchor=""page"" w:x=""642"" w:y=""5671""/><w:tabs><w:tab w:val=""left"" w:pos=""5387""/></w:tabs><w:rPr><w:rStyle w:val=""s16s""/></w:rPr></w:pPr><w:r><w:rPr><w:sz w:val=""32""/></w:rPr><w:t>-</w:t></w:r></w:p>", False)
+   ag.appH PKennz("<w:p><w:pPr><w:tabs><w:tab w:val=""left"" w:pos=""5387""/></w:tabs><w:rPr><w:rStyle w:val=""s24s""/></w:rPr></w:pPr><w:bookmarkStart w:id=""6"" w:name=""ha3a""/><w:r><w:rPr><w:rStyle w:val=""s24s""/></w:rPr><w:t>" & zuh(infos(2, 0)) & "</w:t></w:r><w:bookmarkEnd w:id=""6""/><w:r><w:rPr><w:rStyle w:val=""s24s""/></w:rPr><w:tab/></w:r><w:bookmarkStart w:id=""7"" w:name=""ha3b""/>" & zuh(IIf(Index <> 0 And UBound(infos, 2) > 0, "<w:r><w:rPr><w:rStyle w:val=""s24s""/></w:rPr><w:t>" & infos(2, Index) & "</w:t></w:r>", "")) & "<w:bookmarkEnd w:id=""7""/></w:p>", False)
+   ag.appH PKennz("<w:p><w:pPr><w:framePr w:w=""340"" w:h=""550"" w:hSpace=""181"" w:wrap=""around"" w:vAnchor=""page"" w:hAnchor=""page"" w:x=""642"" w:y=""5671""/><w:tabs><w:tab w:val=""left"" w:pos=""5387""/></w:tabs><w:rPr><w:rStyle w:val=""s16s""/></w:rPr></w:pPr><w:r><w:rPr><w:sz w:val=""32""/></w:rPr><w:t>-</w:t></w:r></w:p>", False)
 ' Ort: zuh(infos(3, 0)), zuh(IIf(Index <> 0 And UBound(infos, 2) > 0, "<w:r><w:rPr><w:b/><w:bCs/><w:rStyle w:val=""s24s""/></w:rPr><w:t>" & infos(3, Index) & "</w:t></w:r>", ""))
-   ag.Append PKennz("<w:p><w:pPr><w:tabs><w:tab w:val=""left"" w:pos=""5387""/></w:tabs></w:pPr><w:bookmarkStart w:id=""8"" w:name=""ha4a""/><w:r><w:rPr><w:b/><w:bCs/><w:rStyle w:val=""s24s""/></w:rPr><w:t>" & zuh(infos(3, 0)) & "</w:t></w:r><w:bookmarkEnd w:id=""8""/><w:r><w:rPr><w:b/><w:bCs/><w:rStyle w:val=""s24s""/></w:rPr><w:tab/></w:r><w:bookmarkStart w:id=""9"" w:name=""ha4b""/>" & zuh(IIf(Index <> 0 And UBound(infos, 2) > 0, "<w:r><w:rPr><w:b/><w:bCs/><w:rStyle w:val=""s24s""/></w:rPr><w:t>" & infos(3, Index) & "</w:t></w:r>", "")) & "<w:bookmarkEnd w:id=""9""/></w:p>", False)
+   ag.appH PKennz("<w:p><w:pPr><w:tabs><w:tab w:val=""left"" w:pos=""5387""/></w:tabs></w:pPr><w:bookmarkStart w:id=""8"" w:name=""ha4a""/><w:r><w:rPr><w:b/><w:bCs/><w:rStyle w:val=""s24s""/></w:rPr><w:t>" & zuh(infos(3, 0)) & "</w:t></w:r><w:bookmarkEnd w:id=""8""/><w:r><w:rPr><w:b/><w:bCs/><w:rStyle w:val=""s24s""/></w:rPr><w:tab/></w:r><w:bookmarkStart w:id=""9"" w:name=""ha4b""/>" & zuh(IIf(Index <> 0 And UBound(infos, 2) > 0, "<w:r><w:rPr><w:b/><w:bCs/><w:rStyle w:val=""s24s""/></w:rPr><w:t>" & infos(3, Index) & "</w:t></w:r>", "")) & "<w:bookmarkEnd w:id=""9""/></w:p>", False)
 ' Fax: zuh(infos(4, 0)), zuh(IIf(Index <> 0 And UBound(infos, 2) > 0, "<w:r><w:rPr><w:rStyle w:val=""s24s""/></w:rPr><w:t>" & infos(4, Index) & "</w:t></w:r>", ""))
-   ag.Append PKennz("<w:p><w:pPr><w:tabs><w:tab w:val=""left"" w:pos=""5387""/></w:tabs><w:pStyle w:val=""sp24vs""/></w:pPr><w:bookmarkStart w:id=""10"" w:name=""ha5a""/><w:r><w:t>" & zuh(infos(4, 0)) & "</w:t></w:r><w:bookmarkEnd w:id=""10""/><w:r><w:tab/></w:r><w:bookmarkStart w:id=""11"" w:name=""ha5b""/>" & zuh(IIf(Index <> 0 And UBound(infos, 2) > 0, "<w:r><w:t>" & infos(4, Index) & "</w:t></w:r>", "")) & "<w:bookmarkEnd w:id=""11""/></w:p>", False)
-   ag.Append PKennz("<w:p><w:pPr><w:tabs><w:tab w:val=""left"" w:pos=""6946""/><w:tab w:val=""left"" w:pos=""9214""/></w:tabs><w:ind w:right=""-1""/><w:rPr><w:b/><w:sz w:val=""24""/><w:u w:val=""single""/></w:rPr></w:pPr><w:br/><w:br/></w:p>", False)
+   ag.appH PKennz("<w:p><w:pPr><w:tabs><w:tab w:val=""left"" w:pos=""5387""/></w:tabs><w:pStyle w:val=""sp24vs""/></w:pPr><w:bookmarkStart w:id=""10"" w:name=""ha5a""/><w:r><w:t>" & zuh(infos(4, 0)) & "</w:t></w:r><w:bookmarkEnd w:id=""10""/><w:r><w:tab/></w:r><w:bookmarkStart w:id=""11"" w:name=""ha5b""/>" & zuh(IIf(Index <> 0 And UBound(infos, 2) > 0, "<w:r><w:t>" & infos(4, Index) & "</w:t></w:r>", "")) & "<w:bookmarkEnd w:id=""11""/></w:p>", False)
+   ag.appH PKennz("<w:p><w:pPr><w:tabs><w:tab w:val=""left"" w:pos=""6946""/><w:tab w:val=""left"" w:pos=""9214""/></w:tabs><w:ind w:right=""-1""/><w:rPr><w:b/><w:sz w:val=""24""/><w:u w:val=""single""/></w:rPr></w:pPr><w:br/><w:br/></w:p>", False)
 ' Anrede: zuh(infos(5, 0)), zuh(IIf(Index <> 0 And UBound(infos, 2) > 0, "<w:r><w:t>" & infos(5, Index) & "</w:t></w:r>", ""))
-   ag.Append PKennz("<w:p><w:pPr><w:pStyle w:val=""sp24s""/></w:pPr><w:bookmarkStart w:id=""12"" w:name=""ha6a""/><w:r><w:t>" & zuh(infos(5, 0)) & ",</w:t></w:r><w:bookmarkEnd w:id=""12""/><w:bookmarkStart w:id=""13"" w:name=""ha6b""/>" & zuh(IIf(Index <> 0 And infos(5, Index) <> "", "<w:r><w:t> " & infos(5, Index) & ",</w:t></w:r>", "")) & "<w:bookmarkEnd w:id=""13""/></w:p>", False)
+   ag.appH PKennz("<w:p><w:pPr><w:pStyle w:val=""sp24s""/></w:pPr><w:bookmarkStart w:id=""12"" w:name=""ha6a""/><w:r><w:t>" & zuh(infos(5, 0)) & ",</w:t></w:r><w:bookmarkEnd w:id=""12""/><w:bookmarkStart w:id=""13"" w:name=""ha6b""/>" & zuh(IIf(Index <> 0 And infos(5, Index) <> "", "<w:r><w:t> " & infos(5, Index) & ",</w:t></w:r>", "")) & "<w:bookmarkEnd w:id=""13""/></w:p>", False)
 ' Einleitung: zuh(replace$(GName, ", *", ", geb. ")), dieder, behd
-   ag.Append PKennz("<w:p><w:pPr><w:spacing w:before=""120""/><w:pStyle w:val=""sp24s""/></w:pPr><w:r><w:t>besten Dank für die freundliche Überweisung von </w:t></w:r><w:r><w:rPr><w:b/></w:rPr><w:t>" & zuh(REPLACE$(GName, ", *", ", geb. ")) & ",</w:t></w:r><w:r><w:t> " & dieder & " sich </w:t></w:r><w:bookmarkStart w:id=""14"" w:name=""Zeitraum""/><w:r><w:t>" & behs & "</w:t></w:r><w:bookmarkEnd w:id=""14""/><w:r><w:t> bei uns vorstellte.</w:t><w:br/></w:r></w:p>", False)
-   ag.Append PKennz("<w:p><w:pPr><w:pStyle w:val=""sp24s""/><w:tabs><w:tab w:val=""left"" w:pos=""7938""/></w:tabs><w:pStyle w:val=""hang""/></w:pPr><w:bookmarkStart w:id=""15"" w:name=""Kompr""/><w:r><w:rStyle w:val=""s24s""/><w:rPr><w:b/><w:u w:val=""single""/></w:rPr><w:t>Diagnosen</w:t></w:r><w:r><w:t>:</w:t><w:tab/></w:r></w:p>", False)
+   ag.appH PKennz("<w:p><w:pPr><w:spacing w:before=""120""/><w:pStyle w:val=""sp24s""/></w:pPr><w:r><w:t>besten Dank für die freundliche Überweisung von </w:t></w:r><w:r><w:rPr><w:b/></w:rPr><w:t>" & zuh(REPLACE$(GName, ", *", ", geb. ")) & ",</w:t></w:r><w:r><w:t> " & dieder & " sich </w:t></w:r><w:bookmarkStart w:id=""14"" w:name=""Zeitraum""/><w:r><w:t>" & behs & "</w:t></w:r><w:bookmarkEnd w:id=""14""/><w:r><w:t> bei uns vorstellte.</w:t><w:br/></w:r></w:p>", False)
+   ag.appH PKennz("<w:p><w:pPr><w:pStyle w:val=""sp24s""/><w:tabs><w:tab w:val=""left"" w:pos=""7938""/></w:tabs><w:pStyle w:val=""hang""/></w:pPr><w:bookmarkStart w:id=""15"" w:name=""Kompr""/><w:r><w:rStyle w:val=""s24s""/><w:rPr><w:b/><w:u w:val=""single""/></w:rPr><w:t>Diagnosen</w:t></w:r><w:r><w:t>:</w:t><w:tab/></w:r></w:p>", False)
 ' DSneu (Diagnosen)
-   ag.Append PKennz("<w:p><w:pPr><w:tabs><w:tab w:val=""left"" w:pos=""7938""/></w:tabs><w:pStyle w:val=""sp24s""/></w:pPr><w:r>" & DSneu.Value & "</w:r></w:p>", False)
+   ag.appH PKennz("<w:p><w:pPr><w:tabs><w:tab w:val=""left"" w:pos=""7938""/></w:tabs><w:pStyle w:val=""sp24s""/></w:pPr><w:r>" & DSneu.Value & "</w:r></w:p>", False)
    syscmd acSysCmdSetStatus, "Erstelle Brief für " & gesName & ": 4a) Anamnese..."
    If VorDat <= bhb Then
     Call einzEintr(Pat_ID, "Angaben auf dem Anamnese- und Untersuchungsbogen", " (nur zur Dokumentation)", "")
    ElseIf VorDat0 Then ' VorDat <= bhb Then
-    ag.Append PKennz("<w:p><w:pPr><w:tabs><w:tab w:val=""left"" w:pos=""7938""/></w:tabs><w:pStyle w:val=""sp24s""/></w:pPr><w:r><w:t>Zur Vorgeschichte siehe Bericht vom " & Format$(VorDat, "dd/mm/yy") & ".</w:t></w:r></w:p><w:p><w:pPr><w:pStyle w:val=""hang""/><w:rPr><w:rStyle w:val=""s16s""/></w:rPr></w:pPr></w:p>", False)
+    ag.appH PKennz("<w:p><w:pPr><w:tabs><w:tab w:val=""left"" w:pos=""7938""/></w:tabs><w:pStyle w:val=""sp24s""/></w:pPr><w:r><w:t>Zur Vorgeschichte siehe Bericht vom " & Format$(VorDat, "dd/mm/yy") & ".</w:t></w:r></w:p><w:p><w:pPr><w:pStyle w:val=""hang""/><w:rPr><w:rStyle w:val=""s16s""/></w:rPr></w:pPr></w:p>", False)
    End If ' VorDat <= bhb Then else
    syscmd acSysCmdSetStatus, "Erstelle Brief für " & gesName & ": 4b) Befunde..."
    Call einzEintr(Pat_ID, "Verlaufsnotizen (Auszug)", " (nur zur Dokumentation)", artVerlauf, VorDat)
@@ -8036,13 +8055,13 @@ Public Sub tuBriefStandalone(Pid&, obStumm%, Optional Zielverz$, Optional Vorlag
    Call einzEintr(Pat_ID, "Spirometrie", "", "'lufu'", VorDat, True)
    Call einzEintr(Pat_ID, "Sonstige Befunde", "", "'bks','bsg','lactoset','trop','temp','ukg'", VorDat)
 '   Call einzeintr(pat_id, "", "", "", VorDat)
-'   ag.Append PKennz("", False)
-   ag.Append PKennz("", False)
-   ag.Append PKennz("", False)
+'   ag.apph PKennz("", False)
+   ag.appH PKennz("", False)
+   ag.appH PKennz("", False)
   End If ' nurLabor
 #Else
-   ag.AppVar Array(doc1, kopf0, "<w:body>", agabsa, vors, doc2, agabsa, vors, doc3, agabsa, vors, doc4, agabsa, vors, zuh(doc5), agabsa, doc6, agabsa, doc7, agabsa, doc8, Format(Now(), "dd.mm.yyyy"), doc9, agabsa, doc10, agabsa, zuh(doc11), agabsa, doc12, agabsa)
-   ag.Append "<w:pPr><w:tabs><w:tab w:val=""left"" w:pos=""5387""/></w:tabs><w:spacing w:before=""140""/><w:rPr><w:rFonts w:ascii=""Arial"" w:hAnsi=""Arial""/><w:sz w:val=""24""/><w:lang w:val=""en-GB""/></w:rPr></w:pPr>"
+   ag.appvh Array(doc1, kopf0, "<w:body>", agabsa, vors, doc2, agabsa, vors, doc3, agabsa, vors, doc4, agabsa, vors, zuh(doc5), agabsa, doc6, agabsa, doc7, agabsa, doc8, Format(Now(), "dd.mm.yyyy"), doc9, agabsa, doc10, agabsa, zuh(doc11), agabsa, doc12, agabsa)
+   ag.appH "<w:pPr><w:tabs><w:tab w:val=""left"" w:pos=""5387""/></w:tabs><w:spacing w:before=""140""/><w:rPr><w:rFonts w:ascii=""Arial"" w:hAnsi=""Arial""/><w:sz w:val=""24""/><w:lang w:val=""en-GB""/></w:rPr></w:pPr>"
    bookm "ha1a", IIf(infos(0, 0) = "Herr", "Herrn", infos(0, 0)), False
    agpreserve
    bookm "ha10a", zuh(infos(10, 0)), True
@@ -8056,72 +8075,72 @@ Public Sub tuBriefStandalone(Pid&, obStumm%, Optional Zielverz$, Optional Vorlag
    bookm "ha1b", IIf(Index <> 0 And UBound(infos, 2) > 0, IIf(infos(0, Index) = "Herr", "Herrn", infos(0, Index)), "$1210$"), IIf(Index <> 0 And UBound(infos, 2) > 0, False, True)
    agpreserve
    bookm "ha10b", IIf(Index <> 0 And UBound(infos, 2) > 0, infos(10, Index), " "), IIf(Index <> 0 And UBound(infos, 2) > 0, False, True)
-   ag.Append "</w:p>"
-   ag.Append agabsa
+   ag.appH "</w:p>"
+   ag.appH agabsa
    agtab2
    bookm "ha2a", zuh(infos(1, 0))
    agtabu ' Name:
    bookm "ha2b", zuh(IIf(Index <> 0 And UBound(infos, 2) > 0, infos(1, Index), "$1203$ $1202$ $1201$")), IIf(Index <> 0 And UBound(infos, 2) > 0, False, True)
-   ag.Append "</w:p>"
-   ag.Append agabsa
+   ag.appH "</w:p>"
+   ag.appH agabsa
    agtab2
    bookm "ha3a", zuh(infos(2, 0))
    agtabu ' Straße:
    bookm "ha3b", zuh(IIf(Index <> 0 And UBound(infos, 2) > 0, infos(2, Index), "$1205$ $1206$")), IIf(Index <> 0 And UBound(infos, 2) > 0, False, True)
-   ag.Append "</w:p>"
-   ag.Append agabsa
-   ag.AppVar Array("<w:pPr><w:framePr w:w=""340"" w:h=""550"" w:hSpace=""181"" w:wrap=""around"" w:vAnchor=""page"" w:hAnchor=""page"" w:x=""642"" w:y=""5671""/><w:tabs><w:tab w:val=""left"" w:pos=""5387""/></w:tabs><w:rPr><w:rFonts w:ascii=""Arial"" w:hAnsi=""Arial""/><w:sz w:val=""16""/></w:rPr></w:pPr><w:r><w:rPr><w:rFonts w:ascii=""Arial"" w:hAnsi=""Arial""/><w:sz w:val=""32""/></w:rPr><w:t>", zuh("-"), "</w:t></w:r></w:p>")
-   ag.Append agabsa
+   ag.appH "</w:p>"
+   ag.appH agabsa
+   ag.appvh Array("<w:pPr><w:framePr w:w=""340"" w:h=""550"" w:hSpace=""181"" w:wrap=""around"" w:vAnchor=""page"" w:hAnchor=""page"" w:x=""642"" w:y=""5671""/><w:tabs><w:tab w:val=""left"" w:pos=""5387""/></w:tabs><w:rPr><w:rFonts w:ascii=""Arial"" w:hAnsi=""Arial""/><w:sz w:val=""16""/></w:rPr></w:pPr><w:r><w:rPr><w:rFonts w:ascii=""Arial"" w:hAnsi=""Arial""/><w:sz w:val=""32""/></w:rPr><w:t>", zuh("-"), "</w:t></w:r></w:p>")
+   ag.appH agabsa
    agtab2
    bookm "ha4a", zuh(infos(3, 0)), , True
    agtabu ' Ort:
    bookm "ha4b", zuh(IIf(Index <> 0 And UBound(infos, 2) > 0, infos(3, Index), "$1207$ $1208$")), IIf(Index <> 0 And UBound(infos, 2) > 0, False, True), IIf(Index <> 0 And UBound(infos, 2) > 0, False, True)
-   ag.Append "</w:p>"
-   ag.Append agabsa
-   ag.Append doagtab & stil(, , 1, 2, , 1) & "</w:pPr>"
-   ag.AppVar Array(bookmS("ha5a"), "<w:r>", stil(, , 1, 2, , 1), htxt(infos(4, 0)), "</w:r>", bookmE) ' FaxNr
-   ag.AppVar Array("<w:r>", stil(, , 1, 2, , IIf(UBound(infos, 2) > 0, 0, 1)), "</w:r>")
-   ag.AppVar Array(bookmS("ha5b"), "<w:r>", stil(, , 1, 2, , IIf(UBound(infos, 2) > 0, 0, 1)), htxt(IIf(Index <> 0 And UBound(infos, 2) > 0, infos(4, Index), "Fax $1216$:")), "</w:r>", bookmE) ' FaxNr
-   ag.Append "</w:p>"
+   ag.appH "</w:p>"
+   ag.appH agabsa
+   ag.appH doagtab & stil(, , 1, 2, , 1) & "</w:pPr>"
+   ag.appvh Array(bookmS("ha5a"), "<w:r>", stil(, , 1, 2, , 1), htxt(infos(4, 0)), "</w:r>", bookmE) ' FaxNr
+   ag.appvh Array("<w:r>", stil(, , 1, 2, , IIf(UBound(infos, 2) > 0, 0, 1)), "</w:r>")
+   ag.appvh Array(bookmS("ha5b"), "<w:r>", stil(, , 1, 2, , IIf(UBound(infos, 2) > 0, 0, 1)), htxt(IIf(Index <> 0 And UBound(infos, 2) > 0, infos(4, Index), "Fax $1216$:")), "</w:r>", bookmE) ' FaxNr
+   ag.appH "</w:p>"
    Dim iru%
    For iru = 0 To 2
-    ag.Append agabsa
-    ag.Append "<w:pPr><w:tabs><w:tab w:val=""left"" w:pos=""6946""/><w:tab w:val=""left"" w:pos=""9214""/></w:tabs><w:ind w:right=""-1""/><w:rPr><w:rFonts w:ascii=""Arial"" w:hAnsi=""Arial""/><w:b/><w:sz w:val=""24""/><w:u w:val=""single""/></w:rPr></w:pPr></w:p>"
+    ag.appH agabsa
+    ag.appH "<w:pPr><w:tabs><w:tab w:val=""left"" w:pos=""6946""/><w:tab w:val=""left"" w:pos=""9214""/></w:tabs><w:ind w:right=""-1""/><w:rPr><w:rFonts w:ascii=""Arial"" w:hAnsi=""Arial""/><w:b/><w:sz w:val=""24""/><w:u w:val=""single""/></w:rPr></w:pPr></w:p>"
    Next iru
-   ag.Append agabsa
-   ag.Append stil()
+   ag.appH agabsa
+   ag.appH stil()
    bookm "ha6a", zuh(infos(5, 0)) & ","
    agpreserve
-   ag.AppVar Array(bookmS("ha6b"), "<w:r>", stil(, , 1, 2, , IIf(UBound(infos, 2) > 0, 0, 1)), htxt(IIf(Index <> 0 And UBound(infos, 2) > 0, infos(5, Index), "$1213$")), "</w:r>", bookmE)
+   ag.appvh Array(bookmS("ha6b"), "<w:r>", stil(, , 1, 2, , IIf(UBound(infos, 2) > 0, 0, 1)), htxt(IIf(Index <> 0 And UBound(infos, 2) > 0, infos(5, Index), "$1213$")), "</w:r>", bookmE)
    agpreserve
-   ag.Append "</w:p>"
-   ag.Append agabsa
-   ag.AppVar Array("<w:pPr><w:spacing w:before=""120""/>", stil(, , , 1), "</w:pPr>")
-   ag.Append stiltxt("besten Dank für die freundliche Überweisung von ")
-   ag.Append stiltxt(REPLACE$(GName, ", *", ", geb. ") & ", ", True)
-   ag.Append stiltxt(dieder & " sich " & behs & " bei uns vorstellte.")
-   ag.Append "</w:p>"
-   ag.Append agabsa
-   ag.Append stil()
-   ag.Append "</w:p>"
-   ag.Append agabsa
-   ag.Append doagtab("7938") & "<w:ind w:left=""1276"" w:hanging=""1276""/>" & stil(, , 1) & "</w:pPr>"
-   ag.Append bookmS("Kompr") & stiltxt("Diagnosen", True, , True)
-   ag.Append stiltxt(":" & Chr(9))
-   ag.Append "</w:p>"
-   ag.Append agabsa
-   ag.Append doagtab("7938") & stil(, , 1) & "</w:pPr>"
+   ag.appH "</w:p>"
+   ag.appH agabsa
+   ag.appvh Array("<w:pPr><w:spacing w:before=""120""/>", stil(, , , 1), "</w:pPr>")
+   ag.appH stiltxt("besten Dank für die freundliche Überweisung von ")
+   ag.appH stiltxt(REPLACE$(GName, ", *", ", geb. ") & ", ", True)
+   ag.appH stiltxt(dieder & " sich " & behs & " bei uns vorstellte.")
+   ag.appH "</w:p>"
+   ag.appH agabsa
+   ag.appH stil()
+   ag.appH "</w:p>"
+   ag.appH agabsa
+   ag.appH doagtab("7938") & "<w:ind w:left=""1276"" w:hanging=""1276""/>" & stil(, , 1) & "</w:pPr>"
+   ag.appH bookmS("Kompr") & stiltxt("Diagnosen", True, , True)
+   ag.appH stiltxt(":" & Chr(9))
+   ag.appH "</w:p>"
+   ag.appH agabsa
+   ag.appH doagtab("7938") & stil(, , 1) & "</w:pPr>"
    Dim dj%
    For dj = 0 To UBound(DiagTab)
-    ag.Append IIf(dj > 0, "<w:br/>", "") & stiltxt(DiagTab(dj).Value)
+    ag.appH IIf(dj > 0, "<w:br/>", "") & stiltxt(DiagTab(dj).Value)
    Next dj
-   ag.Append bookmE
-   ag.Append "</w:p>"
-'  ag.Append agabsa
-'  ag.AppVar Array("<w:pPr>", stil(, , 1), "<w:pPr/>")
+   ag.appH bookmE
+   ag.appH "</w:p>"
+'  ag.apph agabsa
+'  ag.appvh Array("<w:pPr>", stil(, , 1), "<w:pPr/>")
   
-'  ag.Append "<w:r>"
-'  ag.Append "</w:r>"
+'  ag.apph "<w:r>"
+'  ag.apph "</w:r>"
 #End If
   End If ' not nichtherricht
  Else ' briefneu
@@ -8482,28 +8501,41 @@ On Error GoTo fehler
     End If ' Now - lddat > 90 Then else
       
     If briefNeu Then ' Unterschrift
-     ag.Append "<w:p><w:r><w:rPr><w:sz w:val=""24""/></w:rPr></w:r></w:p><w:p><w:r><w:rPr><w:sz w:val=""24""/></w:rPr><w:t>" & verspt & "</w:t></w:r></w:p><w:p><w:r><w:rPr><w:sz w:val=""24""/></w:rPr><w:t>Mit bestem Dank für das Vertrauen und freundlichen Grüßen,</w:t></w:r></w:p>"
-     Select Case Vorlage
-      Case "Accessbriefa.dot" ' Schade
-         ag.Append "<w:p><w:r><w:rPr><w:rStyle w:val=""s24s""/></w:rPr><w:pict w14:anchorId=""4016BD08""> <v:shapetype id=""_x0000_t75"" coordsize=""21600,21600"" o:spt=""75"" o:preferrelative=""t"" path=""m@4@5l@4@11@9@11@9@5xe"" filled=""f"" stroked=""f""> <v:stroke joinstyle=""miter""/><v:formulas><v:f eqn=""if lineDrawn pixelLineWidth 0""/><v:f eqn=""sum @0 1 0""/><v:f eqn=""sum 0 0 @1""/><v:f eqn=""prod @2 1 2""/><v:f eqn=""prod @3 21600 pixelWidth""/><v:f eqn=""prod @3 21600 pixelHeight""/><v:f eqn=""sum @0 0 1""/><v:f eqn=""prod @6 1 2""/><v:f eqn=""prod @7 21600 pixelWidth""/><v:f eqn=""sum @8 21600 0""/><v:f eqn=""prod @7 21600 pixelHeight""/><v:f eqn=""sum @10 21600 0""/></v:formulas><v:path o:extrusionok=""f"" gradientshapeok=""t"" o:connecttype=""rect""/><o:lock v:ext=""edit"" aspectratio=""t""/></v:shapetype><v:shape id=""_x0000_i1025"" type=""#_x0000_t75"" style=""width:81pt;height:55.5pt""> <v:imagedata r:id=""rId6"" o:title=""Unterschrift 2""/></v:shape></w:pict>" & _
-                   "</w:r></w:p><w:p><w:r><w:rPr><w:rStyle w:val=""s24s""/></w:rPr><w:t>Gerald Schade</w:t></w:r></w:p>"
-      Case "AccessBriefK.dot" ' Kothny
-        ag.Append "<w:p></w:p><w:p><w:r><w:rPr><w:sz w:val=""24""/></w:rPr><w:pict w14:anchorId=""5B2E22AC""> <v:shapetype id=""_x0000_t75"" coordsize=""21600,21600"" o:spt=""75"" o:preferrelative=""t"" path=""m@4@5l@4@11@9@11@9@5xe"" filled=""f"" stroked=""f""> <v:stroke joinstyle=""miter""/><v:formulas><v:f eqn=""if lineDrawn pixelLineWidth 0""/><v:f eqn=""sum @0 1 0""/><v:f eqn=""sum 0 0 @1""/><v:f eqn=""prod @2 1 2""/><v:f eqn=""prod @3 21600 pixelWidth""/><v:f eqn=""prod @3 21600 pixelHeight""/><v:f eqn=""sum @0 0 1""/><v:f eqn=""prod @6 1 2""/><v:f eqn=""prod @7 21600 pixelWidth""/><v:f eqn=""sum @8 21600 0""/><v:f eqn=""prod @7 21600 pixelHeight""/><v:f eqn=""sum @10 21600 0""/></v:formulas><v:path o:extrusionok=""f"" gradientshapeok=""t"" o:connecttype=""rect""/><o:lock v:ext=""edit"" aspectratio=""t""/></v:shapetype><v:shape id=""_x0000_i1025"" type=""#_x0000_t75"" style=""width:108.75pt;height:58.5pt""> <v:imagedata r:id=""rId6"" o:title=""kothny Unterschrift""/></v:shape></w:pict>" & _
-                   "</w:r></w:p><w:p><w:pPr><w:rPr><w:sz w:val=""24""/></w:rPr></w:pPr><w:r><w:rPr><w:sz w:val=""24""/></w:rPr><w:t>Dr. Thomas Kothny</w:t></w:r></w:p>"
-      Case "accessbriefh.dot" ' Hammerschmidt
-        ag.Append "<w:p><w:r><w:rPr><w:sz w:val=""24""/></w:rPr><w:pict w14:anchorId=""2AF1C81F""> <v:shapetype id=""_x0000_t75"" coordsize=""21600,21600"" o:spt=""75"" o:preferrelative=""t"" path=""m@4@5l@4@11@9@11@9@5xe"" filled=""f"" stroked=""f""> <v:stroke joinstyle=""miter""/><v:formulas><v:f eqn=""if lineDrawn pixelLineWidth 0""/><v:f eqn=""sum @0 1 0""/><v:f eqn=""sum 0 0 @1""/><v:f eqn=""prod @2 1 2""/><v:f eqn=""prod @3 21600 pixelWidth""/><v:f eqn=""prod @3 21600 pixelHeight""/><v:f eqn=""sum @0 0 1""/><v:f eqn=""prod @6 1 2""/><v:f eqn=""prod @7 21600 pixelWidth""/><v:f eqn=""sum @8 21600 0""/><v:f eqn=""prod @7 21600 pixelHeight""/><v:f eqn=""sum @10 21600 0""/></v:formulas><v:path o:extrusionok=""f"" gradientshapeok=""t"" o:connecttype=""rect""/><o:lock v:ext=""edit"" aspectratio=""t""/></v:shapetype><v:shape id=""_x0000_i1025"" type=""#_x0000_t75"" style=""width:165.75pt;height:30.75pt""> <v:imagedata r:id=""rId6"" o:title=""""/></v:shape></w:pict>" & _
-                  "</w:r></w:p><w:p><w:pPr><w:rPr><w:sz w:val=""24""/></w:rPr></w:pPr></w:p><w:p><w:pPr><w:rPr><w:sz w:val=""24""/></w:rPr></w:pPr><w:r><w:rPr><w:sz w:val=""24""/></w:rPr><w:t>Dr. Anna Hammerschmidt</w:t></w:r><w:r><w:rPr><w:sz w:val=""24""/></w:rPr><w:br/><w:t>Internistin, Diabetologin</w:t></w:r></w:p>"
+     ag.appH "<w:p><w:r><w:rPr><w:sz w:val=""24""/></w:rPr></w:r></w:p><w:p><w:r><w:rPr><w:sz w:val=""24""/></w:rPr><w:t>" & verspt & "</w:t></w:r></w:p><w:p><w:r><w:rPr><w:sz w:val=""24""/></w:rPr><w:t>Mit bestem Dank für das Vertrauen und freundlichen Grüßen,</w:t></w:r></w:p>"
+     Dim weite$, höhe$, name$, nachzeile$
+     Select Case Verfasser
+       Case "Schade"
+            weite = "81": höhe = "55.5": name = "G.Schade": nachzeile = ""
+       Case "Kothny"
+            weite = "108.75": höhe = "58.5": name = "Dr. med. Th. Kothny": nachzeile = ""
+       Case "Hammerschmidt"
+            weite = "165.75": höhe = "30.7": name = "Dr. med. Anna Hammerschmidt": nachzeile = "Internistin, Diabetologin"
      End Select
+     ag.appH "<w:p></w:p><w:p><w:r><w:rPr><w:sz w:val=""24""/></w:rPr><w:pict w14:anchorId=""5B2E22AC""> <v:shapetype id=""_x0000_t75"" coordsize=""21600,21600"" o:spt=""75"" o:preferrelative=""t"" path=""m@4@5l@4@11@9@11@9@5xe"" filled=""f"" stroked=""f""> <v:stroke joinstyle=""miter""/><v:formulas><v:f eqn=""if lineDrawn pixelLineWidth 0""/><v:f eqn=""sum @0 1 0""/><v:f eqn=""sum 0 0 @1""/><v:f eqn=""prod @2 1 2""/><v:f eqn=""prod @3 21600 pixelWidth""/><v:f eqn=""prod @3 21600 pixelHeight""/><v:f eqn=""sum @0 0 1""/><v:f eqn=""prod @6 1 2""/><v:f eqn=""prod @7 21600 pixelWidth""/><v:f eqn=""sum @8 21600 0""/><v:f eqn=""prod @7 21600 pixelHeight""/><v:f eqn=""sum @10 21600 0""/></v:formulas><v:path o:extrusionok=""f"" gradientshapeok=""t"" o:connecttype=""rect""/><o:lock v:ext=""edit"" aspectratio=""t""/></v:shapetype><v:shape id=""_x0000_i1025"" type=""#_x0000_t75"" style=""width:" & weite & "pt;height:" & höhe & "pt""> <v:imagedata r:id=""rId6"" o:title=""Unterschrift""/></v:shape></w:pict>" & _
+               "</w:r></w:p><w:p><w:pPr><w:rPr><w:sz w:val=""24""/></w:rPr></w:pPr><w:r><w:rPr><w:sz w:val=""24""/></w:rPr><w:t>" & name & "</w:t></w:r></w:p>" & IIf(nachzeile = "", "", "<w:p><w:r><w:rPr><w:sz w:val=""24""/></w:rPr><w:t>" & nachzeile & "</w:t></w:r></w:p>")
+'     Select Case Verfasser
+'      Case "Schade" ' Schade
+'         ag.apph "<w:p><w:r><w:rPr><w:rStyle w:val=""s24s""/></w:rPr><w:pict w14:anchorId=""4016BD08""> <v:shapetype id=""_x0000_t75"" coordsize=""21600,21600"" o:spt=""75"" o:preferrelative=""t"" path=""m@4@5l@4@11@9@11@9@5xe"" filled=""f"" stroked=""f""> <v:stroke joinstyle=""miter""/><v:formulas><v:f eqn=""if lineDrawn pixelLineWidth 0""/><v:f eqn=""sum @0 1 0""/><v:f eqn=""sum 0 0 @1""/><v:f eqn=""prod @2 1 2""/><v:f eqn=""prod @3 21600 pixelWidth""/><v:f eqn=""prod @3 21600 pixelHeight""/><v:f eqn=""sum @0 0 1""/><v:f eqn=""prod @6 1 2""/><v:f eqn=""prod @7 21600 pixelWidth""/><v:f eqn=""sum @8 21600 0""/><v:f eqn=""prod @7 21600 pixelHeight""/><v:f eqn=""sum @10 21600 0""/></v:formulas><v:path o:extrusionok=""f"" gradientshapeok=""t"" o:connecttype=""rect""/><o:lock v:ext=""edit"" aspectratio=""t""/></v:shapetype><v:shape id=""_x0000_i1025"" type=""#_x0000_t75"" style=""width:81pt;height:55.5pt""> <v:imagedata r:id=""rId6"" o:title=""Unterschrift 2""/></v:shape></w:pict>" & _
+'                   "</w:r></w:p><w:p><w:r><w:rPr><w:rStyle w:val=""s24s""/></w:rPr><w:t>Gerald Schade</w:t></w:r></w:p>"
+'      Case "Kothny" ' Kothny
+'        ag.apph "<w:p></w:p><w:p><w:r><w:rPr><w:sz w:val=""24""/></w:rPr><w:pict w14:anchorId=""5B2E22AC""> <v:shapetype id=""_x0000_t75"" coordsize=""21600,21600"" o:spt=""75"" o:preferrelative=""t"" path=""m@4@5l@4@11@9@11@9@5xe"" filled=""f"" stroked=""f""> <v:stroke joinstyle=""miter""/><v:formulas><v:f eqn=""if lineDrawn pixelLineWidth 0""/><v:f eqn=""sum @0 1 0""/><v:f eqn=""sum 0 0 @1""/><v:f eqn=""prod @2 1 2""/><v:f eqn=""prod @3 21600 pixelWidth""/><v:f eqn=""prod @3 21600 pixelHeight""/><v:f eqn=""sum @0 0 1""/><v:f eqn=""prod @6 1 2""/><v:f eqn=""prod @7 21600 pixelWidth""/><v:f eqn=""sum @8 21600 0""/><v:f eqn=""prod @7 21600 pixelHeight""/><v:f eqn=""sum @10 21600 0""/></v:formulas><v:path o:extrusionok=""f"" gradientshapeok=""t"" o:connecttype=""rect""/><o:lock v:ext=""edit"" aspectratio=""t""/></v:shapetype><v:shape id=""_x0000_i1025"" type=""#_x0000_t75"" style=""width:108.75pt;height:58.5pt""> <v:imagedata r:id=""rId6"" o:title=""kothny Unterschrift""/></v:shape></w:pict>" & _
+'                   "</w:r></w:p><w:p><w:pPr><w:rPr><w:sz w:val=""24""/></w:rPr></w:pPr><w:r><w:rPr><w:sz w:val=""24""/></w:rPr><w:t>Dr. Thomas Kothny</w:t></w:r></w:p>"
+'      Case "Hammerschmidt" ' Hammerschmidt
+'        ag.apph "<w:p></w:p><w:p><w:r><w:rPr><w:sz w:val=""24""/></w:rPr><w:pict w14:anchorId=""5B2E22AC""> <v:shapetype id=""_x0000_t75"" coordsize=""21600,21600"" o:spt=""75"" o:preferrelative=""t"" path=""m@4@5l@4@11@9@11@9@5xe"" filled=""f"" stroked=""f""> <v:stroke joinstyle=""miter""/><v:formulas><v:f eqn=""if lineDrawn pixelLineWidth 0""/><v:f eqn=""sum @0 1 0""/><v:f eqn=""sum 0 0 @1""/><v:f eqn=""prod @2 1 2""/><v:f eqn=""prod @3 21600 pixelWidth""/><v:f eqn=""prod @3 21600 pixelHeight""/><v:f eqn=""sum @0 0 1""/><v:f eqn=""prod @6 1 2""/><v:f eqn=""prod @7 21600 pixelWidth""/><v:f eqn=""sum @8 21600 0""/><v:f eqn=""prod @7 21600 pixelHeight""/><v:f eqn=""sum @10 21600 0""/></v:formulas><v:path o:extrusionok=""f"" gradientshapeok=""t"" o:connecttype=""rect""/><o:lock v:ext=""edit"" aspectratio=""t""/></v:shapetype><v:shape id=""_x0000_i1025"" type=""#_x0000_t75"" style=""width:165.75pt;height:30.7pt""> <v:imagedata r:id=""rId6"" o:title=""kothny Unterschrift""/></v:shape></w:pict>" & _
+'                   "</w:r></w:p><w:p><w:r><w:rPr><w:sz w:val=""24""/></w:rPr><w:t>Dr. med. Anna Hammerschmidt</w:t></w:r></w:p><w:p><w:r><w:rPr><w:sz w:val=""24""/></w:rPr><w:t>Internistin, Diabetologin</w:t></w:r></w:p>"
+''        ag.apph "<w:p><w:r><w:rPr><w:sz w:val=""24""/><w:szCs w:val=""24""/></w:rPr><w:pict><v:shapetype id=""_x0000_t75"" coordsize=""21600,21600"" o:spt=""75"" o:preferrelative=""t"" path=""m@4@5l@4@11@9@11@9@5xe"" filled=""f"" stroked=""f""> <v:stroke joinstyle=""miter""/><v:formulas><v:f eqn=""if lineDrawn pixelLineWidth 0""/><v:f eqn=""sum @0 1 0""/><v:f eqn=""sum 0 0 @1""/><v:f eqn=""prod @2 1 2""/><v:f eqn=""prod @3 21600 pixelWidth""/><v:f eqn=""prod @3 21600 pixelHeight""/><v:f eqn=""sum @0 0 1""/><v:f eqn=""prod @6 1 2""/><v:f eqn=""prod @7 21600 pixelWidth""/><v:f eqn=""sum @8 21600 0""/><v:f eqn=""prod @7 21600 pixelHeight""/><v:f eqn=""sum @10 21600 0""/></v:formulas><v:path o:extrusionok=""f"" gradientshapeok=""t"" o:connecttype=""rect""/><o:lock v:ext=""edit"" aspectratio=""t""/></v:shapetype><v:shape id=""_x0000_i1025"" type=""#_x0000_t75"" style=""width:165.75pt;height:30.75pt""> <v:imagedata r:id=""rId6"" o:title=""Hammerschmidt""/></v:shape></w:pict>" & _
+'                  "</w:r></w:p><w:p><w:pPr><w:rPr><w:sz w:val=""""24""""/></w:rPr></w:pPr></w:p><w:p><w:pPr><w:rPr><w:sz w:val=""""24""""/></w:rPr></w:pPr><w:r><w:rPr><w:sz w:val=""""24""""/></w:rPr><w:t>Dr. Anna Hammerschmidt</w:t></w:r><w:r><w:rPr><w:sz w:val=""""24""""/></w:rPr><w:br/><w:t>Internistin, Diabetologin</w:t></w:r></w:p>"
+'     End Select
     Else
      dc.bookmarks("DMPText").Range = verspt
     End If ' briefneu
  End If ' nurLabor = 0
  
- If briefNeu Then
- Else
+' If briefNeu Then
+' Else
   syscmd acSysCmdSetStatus, "Erstelle Brief für " & gesName & ": 7) Labor..."
   Call LaborIns1(dc, Pat_ID, nurLabor, briefNeu)
- End If
+' End If
  
  If nurLabor = 0 Then
   If briefNeu Then
@@ -8544,20 +8576,50 @@ On Error GoTo fehler
   If Not nichtherricht Then
 ' Seitenformatierung
    ag.Append PKennz("<w:sectPr><w:pgSz w:w=""11906"" w:h=""16838""/><w:pgMar w:top=""1417"" w:right=""850"" w:bottom=""1134"" w:left=""1417"" w:header=""708"" w:footer=""708"" w:gutter=""0""/><w:cols w:space=""708""/><w:docGrid w:linePitch=""360""/></w:sectPr>", False)
-'   ag.Append PKennz("<w:sectPr><w:type w:val=""nextPage""/><w:headerReference w:type=""default""r:id=""rId7""/><w:pgSz w:w=""12240""w:h=""15840""/><w:pgMar w:left=""1417""w:right=""850""w:top=""567""w:bottom=""850""w:header=""720""w:footer=""720""w:gutter=""0""/><w:pgNumType w:fmt=""decimal""/><w:formProt w:val=""false""/><w:textDirection w:val=""lrTb""/><w:docGrid w:type=""default""w:linePitch=""100""w:charSpace=""0""/><w:cols w:space=""720""/><w:titlePg/></w:sectPr>", False)
+'   ag.apph PKennz("<w:sectPr><w:type w:val=""nextPage""/><w:headerReference w:type=""default""r:id=""rId7""/><w:pgSz w:w=""12240""w:h=""15840""/><w:pgMar w:left=""1417""w:right=""850""w:top=""567""w:bottom=""850""w:header=""720""w:footer=""720""w:gutter=""0""/><w:pgNumType w:fmt=""decimal""/><w:formProt w:val=""false""/><w:textDirection w:val=""lrTb""/><w:docGrid w:type=""default""w:linePitch=""100""w:charSpace=""0""/><w:cols w:space=""720""/><w:titlePg/></w:sectPr>", False)
    ag.Append "</w:body></w:document>"
    
    Open zvz & "word\document.xml" For Output As #51
-   Print #51, zsuh(ag.Value)
+   Print #51, ag.Value ' zuh(zsuh(ag.Value))
 '   Print #51, ConvertToUTF8(ag.Value)
    Close #51
    ag.Clear
+   ag.Append "<w:hdr xmlns:o=""urn:schemas-microsoft-com:office:office"" xmlns:r=""http://schemas.openxmlformats.org/officeDocument/2006/relationships"" xmlns:v=""urn:schemas-microsoft-com:vml"" xmlns:w=""http://schemas.openxmlformats.org/wordprocessingml/2006/main"" xmlns:w10=""urn:schemas-microsoft-com:office:word"" xmlns:wp=""http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing"" xmlns:pic=""http://schemas.openxmlformats.org/drawingml/2006/picture"" xmlns:wps=""" & smc & "office/word/2010/wordprocessingShape"" xmlns:wpg=""" & smc & "office/word/2010/wordprocessingGroup"" xmlns:mc=""http://schemas.openxmlformats.org/markup-compatibility/2006"" xmlns:wp14=""" & smc & "office/word/2010/wordprocessingDrawing"" xmlns:w14=""" & smc & "office/word/2010/wordml"" xmlns:w15=""" & smc & "office/word/2012/wordml"" mc:Ignorable=""w14 wp14 w15"">"
+   ag.Append "" & _
+"<w:p><w:pPr><w:pStyle w:val=""Header""/><w:rPr/></w:pPr><w:r><w:rPr><w:sz w:val=""16""/><w:szCs w:val=""16""/></w:rPr><w:t>Arztbrief zu " & gesnameg & ", vom " & Format(Now(), "d.m.YY") & "</w:t>" & _
+"</w:r><w:r><w:rPr/><w:t xml:space=""preserve"">m </w:t></w:r><w:r><w:rPr/><w:fldChar w:fldCharType=""begin""/></w:r><w:r><w:rPr/><w:instrText xml:space=""preserve""> SAVEDATE \@""dd.MM.yy"" </w:instrText></w:r>" & _
+"<w:r><w:rPr/><w:fldChar w:fldCharType=""separate""/></w:r><w:r><w:rPr/><w:t>04.09.25</w:t></w:r><w:r><w:rPr/><w:fldChar w:fldCharType=""end""/></w:r><w:r><w:rPr/><w:tab/><w:t>-</w:t></w:r>" & _
+"<w:r><w:rPr><w:sz w:val=""16""/><w:szCs w:val=""16""/></w:rPr><w:t xml:space=""preserve"">Seite </w:t></w:r><w:r><w:rPr><w:rStyle w:val=""PageNumber""/><w:sz w:val=""16""/><w:szCs w:val=""16""/></w:rPr>" & _
+"<w:fldChar w:fldCharType=""begin""/></w:r><w:r><w:rPr><w:rStyle w:val=""PageNumber""/><w:sz w:val=""16""/><w:szCs w:val=""16""/></w:rPr><w:instrText xml:space=""preserve""> PAGE </w:instrText></w:r>" & _
+"<w:r><w:rPr><w:rStyle w:val=""PageNumber""/>" & _
+"<w:sz w:val=""16""/><w:szCs w:val=""16""/></w:rPr><w:fldChar w:fldCharType=""separate""/></w:r><w:r><w:rPr><w:rStyle w:val=""PageNumber""/><w:sz w:val=""16""/><w:szCs w:val=""16""/></w:rPr><w:t>5</w:t></w:r>" & _
+"<w:r><w:rPr><w:rStyle w:val=""PageNumber""/><w:sz w:val=""16""/><w:szCs w:val=""16""/></w:rPr><w:fldChar w:fldCharType=""end""/></w:r><w:r><w:rPr><w:rStyle w:val=""PageNumber""/><w:sz w:val=""16""/>" & _
+"<w:szCs w:val=""16""/></w:rPr><w:t>/</w:t></w:r><w:r><w:rPr><w:rStyle w:val=""PageNumber""/><w:sz w:val=""16""/><w:szCs w:val=""16""/></w:rPr><w:fldChar w:fldCharType=""begin""/></w:r><w:r><w:rPr>" & _
+"<w:rStyle w:val=""PageNumber""/><w:sz w:val=""16""/><w:szCs w:val=""16""/><w:rFonts w:cs=""Arial"" w:ascii=""Arial"" w:hAnsi=""Arial""/></w:rPr><w:instrText xml:space=""preserve""> NUMPAGES \* ARABIC </w:instrText></w:r>" & _
+"<w:r><w:rPr><w:rStyle w:val=""PageNumber""/><w:sz w:val=""16""/><w:szCs w:val=""16""/><w:rFonts w:cs=""Arial"" w:ascii=""Arial"" w:hAnsi=""Arial""/></w:rPr><w:fldChar w:fldCharType=""separate""/></w:r>" & _
+"<w:r><w:rPr><w:rStyle w:val=""PageNumber""/><w:sz w:val=""16""/><w:szCs w:val=""16""/><w:rFonts w:cs=""Arial"" w:ascii=""Arial"" w:hAnsi=""Arial""/></w:rPr><w:t>5</w:t></w:r><w:r><w:rPr><w:rStyle w:val=""PageNumber""/><w:sz w:val=""16""/><w:szCs w:val=""16""/><w:rFonts w:cs=""Arial"" w:ascii=""Arial"" w:hAnsi=""Arial""/></w:rPr><w:fldChar w:fldCharType=""end""/></w:r><w:r><w:rPr><w:rStyle w:val=""PageNumber""/><w:rFonts w:cs=""Arial"" w:ascii=""Arial"" w:hAnsi=""Arial""/><w:sz w:val=""16""/><w:szCs w:val=""16""/></w:rPr><w:t>-</w:t></w:r></w:p><w:p><w:pPr><w:pStyle w:val=""Header""/><w:rPr><w:rStyle w:val=""PageNumber""/><w:rFonts w:ascii=""Arial"" w:hAnsi=""Arial"" w:cs=""Arial""/><w:sz w:val=""16""/><w:szCs w:val=""16""/></w:rPr></w:pPr><w:r><w:rPr/></w:r></w:p></w:hdr>"
+   Open zvz & "word\header1.xml" For Output As #51
+   Print #51, ag.Value ' zuh(zsuh(ag.Value))
+   Close #51
+   ag.Clear
+   
    If False Then FSO.CopyFile vVerz & "h\word\document.xml", zvz & "word\document.xml"
    oSh.rUn "powershell ""$vz=\""" & zvz & "word\\\"";$dt=@($vz+\""endnotes.xml\"";$vz+\""footnotes.xml\"";$vz+\""document.xml\"";$vz+\""settings.xml\"");$anr=[string](get-content -path $dt[0]) -replace '.*w:rsidRDefault=\""([0-9A-F]*)\"".*','$1';$nrd=\""" & dzahl & "\"";$nr=[int](get-content -path $nrd)+1;set-content -path $nrd $nr;$nrs='{0:X8}' -f $nr;foreach ($dta in $dt){(get-content -path $dta) -replace $anr, $nrs|set-content -path $dta;};""", 0, True
   End If ' nichtherricht
-  oSh.rUn "cmd /c """"c:\program files\7-zip\7z"" a -tzip -mm=deflate -mx9 -aoa -xr!*.swp """ & sverz & "\" & aname & "x"" " & zvz & "*""", 0, True
+  Dim dname$
+  dname = sverz & IIf(Right$(sverz, 1) = "\", "", "\") & aname & "x"
+  oSh.rUn "cmd /c """"c:\program files\7-zip\7z"" a -tzip -mm=deflate -mx9 -aoa -xr!*.swp """ & dname & """ " & zvz & "*""", 0, True
 ' oSh.run "cmd /c """"c:\program files (x86)\microsoft office\root\office16\winword"" """ & sverz & aname & "x""""", 0, True
-  oSh.rUn "cmd /c """"c:\program files\microsoft office\root\office16\winword"" """ & sverz & aname & "x""""", 0, True
+  Select Case ProgInd
+   Case 0
+    OOOpen dname
+   Case 1
+    oSh.rUn "cmd /c """"C:\Program Files (x86)\MSOff\Office\winword"" """ & sverz & aname & "x""""", 0, False
+   Case 2
+    oSh.rUn "cmd /c """"c:\program files\microsoft office\root\office16\winword"" """ & sverz & aname & "x""""", 0, False
+   Case 3
+    oSh.rUn "cmd /c """"" & sverz & aname & "x""""", 0, False
+  End Select
  Else ' briefneu
   With Wapp
    If Not obStumm Then .Visible = True
@@ -8574,7 +8636,7 @@ On Error GoTo fehler
    End If ' obStumm
   End With ' wapp
  End If ' briefneu else
- Lese.Ausgeb "Fertig mit Arztbrief für " & Pid & "(" & gesName & ")", True, True
+ Lese.Ausgeb "Fertig mit Arztbrief für " & pid & "(" & gesName & ")", True, True
  syscmd acSysCmdClearStatus
  Exit Sub
 fehler:
@@ -8595,25 +8657,7 @@ fehler:
   Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
   Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
  End Select
-End Sub ' tuBriefStandalone(frm AS Form)
-
-' in tuBriefStandalone, Epikrise
-Public Function zuh$(ByRef q$)
- Dim i&, a%, b$
- zuh = ""
- For i = 1 To Len(q)
-  b = Mid$(q, i, 1)
-  a = Asc(b)
-  Select Case a
-   Case 13
-    If i < Len(q) Then zuh = zuh & "<w:br/>" ' das letzte Zeilenumbruchszeichen wird durch Absatzformatierung erfüllt
-   Case 60, 62, Is >= 128
-    zuh = zuh & "&#" & a & ";"
-   Case Else
-    zuh = zuh & b
-  End Select
- Next i
-End Function ' zuh
+End Sub ' tuBriefStandalone
 
 #If zutesten Then
 ' aufgerufen nirgends
@@ -9432,7 +9476,7 @@ Function letzteMed(dc, Pat_ID$, briefNeu%)
  If briefNeu Then
   ag.Append "<w:p><w:pPr><w:pStyle w:val=""hang""/></w:pPr><w:r><w:rPr><w:b/><w:rStyle w:val=""s24s""/></w:rPr><w:t>Therapie am</w:t></w:r><w:r><w:rPr><w:rStyle w:val=""s24s""/></w:rPr><w:t>:</w:t><w:tab/><w:t>" & Format$(lTherZP, "dd.mm.yy") & ":</w:t></w:r></w:p>"
 ' Tabellenkopfzeile
-  ag.Append "<w:tbl><w:tblPr><w:tblStyle w:val=""Tabellenraster""/><w:tblW w:w=""0"" w:type=""auto""/><w:tblLook w:val=""04A0"" w:firstRow=""1"" w:lastRow=""0"" w:firstColumn=""1"" w:lastColumn=""0"" w:noHBand=""0"" w:noVBand=""1""/></w:tblPr><w:tblGrid><w:gridCol w:w=""4674""/><w:gridCol w:w=""683""/><w:gridCol w:w=""1070""/><w:gridCol w:w=""990""/><w:gridCol w:w=""1057""/><w:gridCol w:w=""710""/><w:gridCol w:w=""670""/></w:tblGrid><w:tr><w:tc><w:tcPr><w:tcW w:w=""0"" w:type=""auto""/></w:tcPr><w:p><w:r><w:rPr><w:b/><w:rStyle w:val=""s24s""/></w:rPr><w:t>Medikament</w:t></w:r></w:p></w:tc><w:tc><w:tcPr><w:tcW w:w=""0"" w:type=""auto""/></w:tcPr><w:p><w:r><w:rPr><w:b/><w:rStyle w:val=""s24s""/></w:rPr><w:t>früh</w:t></w:r></w:p></w:tc><w:tc><w:tcPr><w:tcW w:w=""0"" w:type=""auto""/></w:tcPr><w:p><w:r><w:rPr><w:b/><w:rStyle w:val=""s24s""/></w:rPr><w:t>mittags</w:t></w:r></w:p></w:tc><w:tc><w:tcPr><w:tcW w:w=""0"" w:type=""auto""/>" & _
+  ag.appH "<w:tbl><w:tblPr><w:tblStyle w:val=""Tabellenraster""/><w:tblW w:w=""0"" w:type=""auto""/><w:tblLook w:val=""04A0"" w:firstRow=""1"" w:lastRow=""0"" w:firstColumn=""1"" w:lastColumn=""0"" w:noHBand=""0"" w:noVBand=""1""/></w:tblPr><w:tblGrid><w:gridCol w:w=""4674""/><w:gridCol w:w=""683""/><w:gridCol w:w=""1070""/><w:gridCol w:w=""990""/><w:gridCol w:w=""1057""/><w:gridCol w:w=""710""/><w:gridCol w:w=""670""/></w:tblGrid><w:tr><w:tc><w:tcPr><w:tcW w:w=""0"" w:type=""auto""/></w:tcPr><w:p><w:r><w:rPr><w:b/><w:rStyle w:val=""s24s""/></w:rPr><w:t>Medikament</w:t></w:r></w:p></w:tc><w:tc><w:tcPr><w:tcW w:w=""0"" w:type=""auto""/></w:tcPr><w:p><w:r><w:rPr><w:b/><w:rStyle w:val=""s24s""/></w:rPr><w:t>früh</w:t></w:r></w:p></w:tc><w:tc><w:tcPr><w:tcW w:w=""0"" w:type=""auto""/></w:tcPr><w:p><w:r><w:rPr><w:b/><w:rStyle w:val=""s24s""/></w:rPr><w:t>mittags</w:t></w:r></w:p></w:tc><w:tc><w:tcPr><w:tcW w:w=""0"" w:type=""auto""/>" & _
             "</w:tcPr><w:p><w:r><w:rPr><w:b/><w:rStyle w:val=""s24s""/></w:rPr><w:t>nachm</w:t></w:r></w:p></w:tc><w:tc><w:tcPr><w:tcW w:w=""0"" w:type=""auto""/></w:tcPr><w:p><w:r><w:rPr><w:b/><w:rStyle w:val=""s24s""/></w:rPr><w:t>abends</w:t></w:r></w:p></w:tc><w:tc><w:tcPr><w:tcW w:w=""0"" w:type=""auto""/></w:tcPr><w:p><w:r><w:rPr><w:b/><w:rStyle w:val=""s24s""/></w:rPr><w:t>spät</w:t></w:r></w:p></w:tc><w:tc><w:tcPr><w:tcW w:w=""0"" w:type=""auto""/></w:tcPr><w:p><w:r><w:rPr><w:b/><w:rStyle w:val=""s24s""/></w:rPr><w:t>b.B.</w:t></w:r></w:p></w:tc></w:tr>"
  Else
   dc.bookmarks("Therapiedat").Range = Format$(lTherZP, "dd.mm.yy") & ":"
@@ -9475,9 +9519,9 @@ Function letzteMed(dc, Pat_ID$, briefNeu%)
 '    dc.Range(Tabl.Range.END, dc.bookmarks!DMPText.Start).Font.size = 8
 '    dc.Range(Tabl.Range.END, Tabl.Range.END) = replace$(bemerk, Chr(171), "½") + Chr(13) + Chr(10)
   End If ' bemerk <> vNS
-  Dim med$, mo$, mi$, nm$, ab$, Zn$, bBed$
-  If IsNull(raDat!mmedikament.Value) Then med = "" Else med = raDat!mmedikament.Value & bemerk
-  If Asc(med) = 10 Then med = Mid$(med, 1)
+  Dim Med$, mo$, mi$, nm$, ab$, Zn$, bBed$
+  If IsNull(raDat!mmedikament.Value) Then Med = "" Else Med = raDat!mmedikament.Value & bemerk
+  If Asc(Med) = 10 Then Med = Mid$(Med, 1)
   If IsNull(raDat!mo) Then mo = "" Else mo = REPLACE$(REPLACE$(raDat!mo, "«", "½"), "¬", "¼")
   If IsNull(raDat!mo) Then mi = "" Else mi = REPLACE$(REPLACE$(raDat!mi, "«", "½"), "¬", "¼")
   If IsNull(raDat!mo) Then nm = "" Else nm = REPLACE$(REPLACE$(raDat!nm, "«", "½"), "¬", "¼")
@@ -9486,7 +9530,7 @@ Function letzteMed(dc, Pat_ID$, briefNeu%)
   If raDat!j_bBed = 0 Then bBed = "" Else bBed = "X"
   If briefNeu <> 0 Then
    ag.Append "<w:tr>"
-   ag.Append "<w:tc><w:tcPr><w:tcW w:w=""0"" w:type=""auto""/></w:tcPr>" & IIf(med = "", "<w:p/>", "<w:p><w:r><w:rPr><w:rStyle w:val=""s24s""/></w:rPr><w:t>" & med & "</w:t></w:r></w:p>") & "</w:tc>"
+   ag.Append "<w:tc><w:tcPr><w:tcW w:w=""0"" w:type=""auto""/></w:tcPr>" & IIf(Med = "", "<w:p/>", "<w:p><w:r><w:rPr><w:rStyle w:val=""s24s""/></w:rPr><w:t>" & zsuh(Med) & "</w:t></w:r></w:p>") & "</w:tc>"
    ag.Append "<w:tc><w:tcPr><w:tcW w:w=""0"" w:type=""auto""/></w:tcPr>" & IIf(mo = "", "<w:p/>", "<w:p><w:r><w:rPr><w:rStyle w:val=""s24s""/></w:rPr><w:t>" & mo & "</w:t></w:r></w:p>") & "</w:tc>"
    ag.Append "<w:tc><w:tcPr><w:tcW w:w=""0"" w:type=""auto""/></w:tcPr>" & IIf(mi = "", "<w:p/>", "<w:p><w:r><w:rPr><w:rStyle w:val=""s24s""/></w:rPr><w:t>" & mi & "</w:t></w:r></w:p>") & "</w:tc>"
    ag.Append "<w:tc><w:tcPr><w:tcW w:w=""0"" w:type=""auto""/></w:tcPr>" & IIf(nm = "", "<w:p/>", "<w:p><w:r><w:rPr><w:rStyle w:val=""s24s""/></w:rPr><w:t>" & nm & "</w:t></w:r></w:p>") & "</w:tc>"
@@ -9495,7 +9539,7 @@ Function letzteMed(dc, Pat_ID$, briefNeu%)
    ag.Append "<w:tc><w:tcPr><w:tcW w:w=""0"" w:type=""auto""/></w:tcPr>" & IIf(bBed = "", "<w:p/>", "<w:p><w:r><w:rPr><w:rStyle w:val=""s24s""/></w:rPr><w:t>" & bBed & "</w:t></w:r></w:p>") & "</w:tc>"
    ag.Append "</w:tr>"
   Else ' briefneu <> 0 Then
-   Tabl.cell(runde, 1) = med
+   Tabl.cell(runde, 1) = Med
    Tabl.cell(runde, 2) = mo
    Tabl.cell(runde, 3) = mi
    Tabl.cell(runde, 4) = nm
@@ -9641,7 +9685,7 @@ End Function ' FlagInit
 Sub Epikrise(dc, Pat_ID$, VorDat As Date, lddat As Date, obStumm%, briefNeu%)
   Dim i%
   On Error GoTo fehler
-  nzw = vbCr
+'  nzw = vbCr
   Dim Epi$, Titel$, DT$, Folge$, FZ%, Begl$, bglz%, Akkusat$, Akklang$, Nominat$
   Dim rnam As New ADODB.Recordset, rsAnam As New ADODB.Recordset, rDT As New ADODB.Recordset, rDT0 As New ADODB.Recordset
   Dim obkomma%
@@ -10544,8 +10588,8 @@ keineGFR:
    Epi = Epi + AntibText
   End If
   
-  If dmtyp <> "-" And dmtyp <> "g" Then Epi = Epi + nzw + "Kontrolluntersuchungen gemäß dem Gesundheitspass Diabetes werden empfohlen."
-  Epi = Epi + nzw
+  If dmtyp <> "-" And dmtyp <> "g" Then Epi = Epi & nzw & "Kontrolluntersuchungen gemäß dem Gesundheitspass Diabetes werden empfohlen." & nzw
+  Epi = Epi & nzw
   
   If briefNeu Then
    If Epi <> "" Then
@@ -13515,6 +13559,28 @@ sql = _
 "END;"
 myEFrag (sql)
 
+sql = "DROP PROCEDURE IF EXISTS `quelle`.`geslabdpohnebr`"
+myEFrag sql
+sql = _
+"CREATE DEFINER=`praxis`@`%` PROCEDURE `geslabdpohnebr`(IN pid INT(6),IN esql VARCHAR(1000)) " & vbCrLf & _
+"    READS SQL DATA " & vbCrLf & _
+"    COMMENT 'Labor zu einem Patienten' " & vbCrLf & _
+"BEGIN " & vbCrLf & _
+"DECLARE rest VARCHAR(100) DEFAULT ',nb,gruppe,reihe,uNg,oNg,Pfad,Kommentar,Labor,Langtext,pat_id,DatID ';" & vbCrLf & _
+"SET @frag = CONCAT(""" & vbCrLf & _
+"SELECT * FROM (" & vbCrLf & _
+"SELECT COALESCE(GROUP_CONCAT(DISTINCT CASE WHEN wt<>'' THEN wt END SEPARATOR ' '),'') Wert, abkü, einheit,Zeitpunkt,COUNT(DISTINCT abkü,einheit,zeitpunkt) Zl"",rest,"",COUNT(0) OVER() dszahl FROM " & vbCrLf & _
+" (SELECT wert wt,abkü,einheit,zeitpunkt"",rest,"" FROM labor2a WHERE pat_id="",pid,""" & vbCrLf & _
+"  UNION " & vbCrLf & _
+"  SELECT wert wt,abkü,einheit,zeitpunkt"",rest,"" FROM labor1a l1 WHERE pat_id="",pid,"") i " & vbCrLf & _
+" "",IF(esql='','GROUP BY zeitpunkt DESC,abkü,einheit)i',esql)/*,')i;'*/);" & vbCrLf & _
+"PREPARE sc1 FROM @frag; " & vbCrLf & _
+"EXECUTE sc1;" & vbCrLf & _
+"DEALLOCATE PREPARE sc1; " & vbCrLf & _
+"-- SELECT @frag; " & vbCrLf & _
+"END;"
+myEFrag (sql)
+
 sql = "DROP PROCEDURE IF EXISTS `quelle`.`getfeldinhvw`"
 myEFrag sql
 sql = _
@@ -14592,13 +14658,23 @@ Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "Last
 End Select
 End Sub ' dbViewsErstellen
 
+' in tuBriefStandAlone
+Function LabKopf(breite$, Inh$, Optional bookm$, Optional bookid$, Optional zeile&, Optional spalte%, Optional obschräg%, Optional obfett%)
+' ag.Append "<w:tc><w:tcPr><w:tcW w:w=""" & breite & """ w:type=""dxa""/>" & IIf(zeile0 Or spalte0, "<w:textDirection w:val=""" & IIf(zeile0, "Rltb", "tbRl") & "V""/>", "") & "<w:cellMar><w:left w:w=""1"" w:type=""dxa""/><w:right w:w=""1"" w:type=""dxa""/><w:top w:w=""1"" w:type=""dxa""/><w:bottom w:w=""1"" w:type=""dxa""/></w:cellMar></w:tcPr><w:p><w:pPr><w:tabs><w:tab w:val=""left"" w:pos=""2835""/></w:tabs><w:ind w:left=""113"" w:right=""113""/><w:rPr><w:b/><w:sz w:val=""12""/></w:rPr></w:pPr>" & IIf(bookm = "", "", "<w:bookmarkStart w:id=""" & bookid & """ w:name=""" & bookm & """/><w:bookmarkEnd w:id=""" & bookid & """/>") & "<w:r><w:rPr><w:b/><w:sz w:val=""12""/></w:rPr><w:t>" & Inh & "</w:t></w:r></w:p></w:tc>"
+' ag.Append "<w:tc><w:tcPr><w:tcW w:w=""" & breite & """ w:type=""dxa""/>" & IIf(zeile0 Or spalte0, "<w:textDirection w:val=""" & IIf(zeile0, "Rltb", "tbRl") & "V""/>", "") & "</w:tcPr><w:p><w:pPr><w:tabs><w:tab w:val=""left"" w:pos=""2835""/></w:tabs><w:ind w:left=""0"" w:right=""0""/><w:spacing w:before=""12"" w:after=""0""/><w:rPr><w:b/><w:sz w:val=""14""/></w:rPr></w:pPr>" & IIf(bookm = "", "", "<w:bookmarkStart w:id=""" & bookid & """ w:name=""" & bookm & """/><w:bookmarkEnd w:id=""" & bookid & """/>") & "<w:r><w:rPr><w:b/><w:sz w:val=""14""/></w:rPr><w:t>" & Inh & "</w:t></w:r></w:p></w:tc>"
+' ag.Append "<w:tc><w:tcPr><w:tcW w:w=""" & breite & """ w:type=""dxa""/>" & IIf(zeile = 0, "<w:textDirection w:val=""" & IIf(spalte > 2, "tbRl", "RltbV") & """/>", "") & "</w:tcPr><w:p><w:pPr>" & IIf(zeile = 0, "<w:ind w:left=""56""/>", "") & "<w:rPr><w:b/><w:sz w:val=""14""/></w:rPr></w:pPr>" & IIf(bookm = "", "", "<w:bookmarkStart w:id=""" & bookid & """ w:name=""" & bookm & """/><w:bookmarkEnd w:id=""" & bookid & """/>") & "<w:r><w:rPr><w:b/><w:sz w:val=""14""/></w:rPr><w:t>" & Inh & "</w:t></w:r></w:p></w:tc>"
+'  If obschräg Then Stop
+'  If obfett Then Stop
+  ag.Append "<w:tc><w:tcPr><w:tcW w:w=""" & breite & """ w:type=""dxa""/>" & IIf(zeile = 0, "<w:textDirection w:val=""" & IIf(spalte > 2, "tbRl", "RltbV") & """/>", "") & "</w:tcPr><w:p><w:pPr>" & IIf(zeile = 0, "<w:ind w:left=""56""/>", "") & "</w:pPr>" & IIf(bookm = "", "", "<w:bookmarkStart w:id=""" & bookid & """ w:name=""" & bookm & """/><w:bookmarkEnd w:id=""" & bookid & """/>") & "<w:r><w:rPr>" & IIf(obschräg, "<w:i/>", "") & IIf(obfett, "<w:b/>", "") & "<w:sz w:val=""16""/></w:rPr><w:t>" & Inh & "</w:t></w:r></w:p></w:tc>"
+End Function ' LabKopf(breite$, inh$)
+
 #If True Then
 Sub LaborIns1(ByRef dc As Object, Pat_ID$, nurLabor%, briefNeu%) ' nur in tuBriefStandalone
  Dim SelbstStatus%, raDatBOF%
  Dim Matr$(), MForm%(), mBreiten$(), DiffBr%, i&, j&, k&, im&
  
  On Error GoTo fehler
- Call LaborInsPLZ(Pat_ID, SelbstStatus, raDatBOF, Matr, MForm, mBreiten)
+ Call LaborInsPLZ(Pat_ID, SelbstStatus, raDatBOF, Matr, MForm, mBreiten, briefNeu)
  
  Const maxbreite% = 14
  DiffBr = 0
@@ -14647,43 +14723,92 @@ Sub LaborIns1(ByRef dc As Object, Pat_ID$, nurLabor%, briefNeu%) ' nur in tuBrie
   End If
  Next j
  
+' Select Case SelbstStatus
+'  Case 0
+'   Dim rH
+'   Set rH = dc.Range(dc.bookmarks("LaborÜS").Range.Start - 1, dc.bookmarks("LaborÜS").Range.Start - 1)
+'   dc.bookmarks("LaborÜS").Range = vNS
+'   dc.bookmarks.Add name:="LaborÜS", Range:=dc.Range(rH.Start + 1, rH.Start + 1)
+'  Case 1
+'   dc.bookmarks("LaborÜS").Range = "Laborbefunde (nur mitgeteilte, woanders bestimmte Werte):"
+'  Case 2
+'   dc.bookmarks("LaborÜS").Range = "Bei uns erhobene Laborbefunde:"
+' End Select
+ Dim LaborÜS$
  Select Case SelbstStatus
-  Case 0
-   Dim rH
-   Set rH = dc.Range(dc.bookmarks("LaborÜS").Range.Start - 1, dc.bookmarks("LaborÜS").Range.Start - 1)
-   dc.bookmarks("LaborÜS").Range = vNS
-   dc.bookmarks.Add name:="LaborÜS", Range:=dc.Range(rH.Start + 1, rH.Start + 1)
+  Case 0, 3
+   LaborÜS = "Laborwerte (" & IIf(briefNeu, "</w:t></w:r><w:r><w:rPr><w:i/><w:iCs/><w:sz w:val=""24""/></w:rPr><w:t>", "") & "kursiv = nicht bei uns bestimmt, von Hand eingetragen" & IIf(briefNeu, "</w:t></w:r><w:r><w:rPr><w:sz w:val=""24""/></w:rPr><w:t>):", "")
   Case 1
-   dc.bookmarks("LaborÜS").Range = "Laborbefunde (nur mitgeteilte, woanders bestimmte Werte):"
+   LaborÜS = "Laborbefunde (nur mitgeteilte, woanders bestimmte Werte):"
   Case 2
-   dc.bookmarks("LaborÜS").Range = "Bei uns erhobene Laborbefunde:"
+   LaborÜS = "Bei uns erhobene Laborbefunde:"
  End Select
- syscmd 4, "Labor (2) nach Zeilenzahlbestimmung"
- 
- 
- If raDatBOF Then
+ If briefNeu Then
+  ag.Append "<w:p><w:r><w:rPr><w:sz w:val=""24""/></w:rPr><w:br w:type=""column""/></w:r><w:r><w:rPr><w:sz w:val=""24""/></w:rPr><w:lastRenderedPageBreak/><w:t>" & LaborÜS & "</w:t></w:r></w:p>"
+ Else ' briefNeu Then
+  dc.bookmarks("LaborÜS").Range = LaborÜS
+  If raDatBOF Then
     dc.bookmarks!LaborÜS.Range = vNS
     dc.bookmarks!labhinw.Range = vNS
+  End If ' raDatBOF Then
+ End If ' briefNeu Then
+ syscmd 4, "Labor (2) nach Zeilenzahlbestimmung"
+ 
+ If raDatBOF Then
     Exit Sub
  End If
  syscmd 4, "Labor (2) nach Überschrift"
  
+ If briefNeu Then
+ ' Tabellenanfang
+'   ag.Append "<w:tbl><w:tblPr><w:tblStyle w:val=""Tabellenraster""/><w:tblW w:w=""10771"" w:type=""dxa""/><w:tblInd w:w=""-1134"" w:type=""dxa""/><w:tblLayout w:type=""fixed""/><w:tblCellMar><w:top w:w=""0"" w:type=""dxa""/><w:left w:w=""57"" w:type=""dxa""/><w:bottom w:w=""0"" w:type=""dxa""/><w:right w:w=""57"" w:type=""dxa""/></w:tblCellMar><w:tblLook w:val=""05E0"" w:firstRow=""1"" w:lastRow=""1"" w:firstColumn=""1"" w:lastColumn=""1"" w:noHBand=""0"" w:noVBand=""1""/></w:tblPr>"
+   ag.Append "<w:tbl><w:tblPr><w:tblStyle w:val=""Tabellenraster""/><w:tblW w:w=""10771"" w:type=""dxa""/><w:tblInd w:w=""-1134"" w:type=""dxa""/><w:tblCellMar><w:top w:w=""0"" w:type=""dxa""/><w:left w:w=""29"" w:type=""dxa""/><w:bottom w:w=""0"" w:type=""dxa""/><w:right w:w=""29"" w:type=""dxa""/></w:tblCellMar><w:tblLook w:val=""05E0"" w:firstRow=""1"" w:lastRow=""1"" w:firstColumn=""1"" w:lastColumn=""1"" w:noHBand=""0"" w:noVBand=""1""/></w:tblPr>" ' "<w:tblGrid><w:gridCol w:w=""1590""/><w:gridCol w:w=""705""/><w:gridCol w:w=""855""/><w:gridCol w:w=""555""/><w:gridCol w:w=""555""/><w:gridCol w:w=""555""/><w:gridCol w:w=""555""/><w:gridCol w:w=""555""/><w:gridCol w:w=""555""/><w:gridCol w:w=""555""/><w:gridCol w:w=""555""/><w:gridCol w:w=""555""/><w:gridCol w:w=""555""/><w:gridCol w:w=""555""/><w:gridCol w:w=""555""/></w:tblGrid>"
+ ' Kopfzeile, Header
+ 
+ 
+   For j = 0 To UBound(Matr2, 3) - gelZeilen
+    ag.Append "<w:tr>" & IIf(j = 0, "<w:trPr><w:cantSplit/><w:trHeight w:val=""1134""/></w:trPr>", "")
+    Call LabKopf("1590", zsuh(Matr2(0, 3, j)), IIf(j = 0, "LaborTab", ""), IIf(j = 0, "47", ""), 0, 0) ' Parameter
+    Call LabKopf("705", zsuh(Matr2(0, 4, j)), , , 0, 1) ' Einheit
+    Call LabKopf("855", Matr2(0, 5, j), , , 0, 2) ' Normbereich
+    For i = 6 To UBound(Matr2, 2)
+     Dim zellaus$
+     If Len(Matr2(0, i, j)) < 11 Or i < 6 Then
+      zellaus = Matr2(0, i, j)
+     Else
+      zellaus = Left$(Matr2(0, i, j), 8) & ".."
+     End If
+     Call LabKopf("555", zsuh(zuh(zellaus)), , , j, i - 3, MForm(i, j) Mod 2 = 1, MForm(i, j) > 1) ' Daten
+    Next i
+    ag.Append "</w:tr>"
+   Next j
+   ag.Append "</w:tbl>"
+ Else ' briefNeu Then
 ' dc.Application.Visible = True
- If nurLabor = 0 Then Wapp.ScreenUpdating = False
+  If nurLabor = 0 Then Wapp.ScreenUpdating = False
+ End If ' briefNeu Then Else
 ' ZZ+1 ; rz+3
-If UBound(Matr, 3) - gelZeilen + 1 > 0 Then
- Set Tabl = dc.Tables.Add(Range:=dc.bookmarks!laborTab.Range, NumRows:=UBound(Matr, 3) - gelZeilen + 1, NumColumns:=UBound(Matr, 2) - 2 - DiffBr, _
+ If UBound(Matr, 3) - gelZeilen + 1 > 0 Then
+  If briefNeu = 0 Then
+   Set Tabl = dc.Tables.Add(Range:=dc.bookmarks!laborTab.Range, NumRows:=UBound(Matr, 3) - gelZeilen + 1, NumColumns:=UBound(Matr, 2) - 2 - DiffBr, _
                DefaultTableBehavior:=wdWord9TableBehavior, AutoFitBehavior:=wdAutoFitContent)
- dc.bookmarks.Add name:="LaborZusatz", Range:=dc.Range(Tabl.Range.END, Tabl.Range.END)
+   dc.bookmarks.Add name:="LaborZusatz", Range:=dc.Range(Tabl.Range.END, Tabl.Range.END)
+  End If
 ' dc.Range(Tabl.Range.End, Tabl.Range.End) = "Vor dem " & Matr2(0, 6, 0) & " wurden noch bestimmt: " & ZusText
  If LenB(ZusText) > 2 Then
   ZusText = Left$(ZusText, Len(ZusText) - 2)
-  dc.bookmarks!LaborZusatz.Range = "Vor dem " & Matr2(0, 6, 0) & " wurden noch bestimmt: " & ZusText & Chr(13)
-  dc.Range(dc.bookmarks("LaborZusatz").Range.paragraphs(1).Range.Start, dc.bookmarks("LaborZusatz").Range.paragraphs(1).Range.END).Font.size = 9
-  With dc.Range(Tabl.Range.END, Tabl.Range.END).ParagraphFormat
-   .LeftIndent = CentimetersToPoints(IIf(UBound(Matr, 2) - 5 > 14, -1.9, 0))
-   .FirstLineIndent = CentimetersToPoints(0)
-  End With
+  ZusText = "Vor dem " & Matr2(0, 6, 0) & " wurden noch bestimmt: " & ZusText & nzw
+  If briefNeu Then
+   ag.Append "<w:p><w:pPr><w:pStyle w:val=""Normal""/><w:ind w:hanging=""0"" w:left=""-1077"" w:right=""0""/></w:pPr><w:r><w:rPr><w:sz w:val=""18""/></w:rPr><w:br/><w:t>" & zsuh(ZusText) & "</w:t></w:r></w:p><w:p><w:pPr><w:pStyle w:val=""Normal""/></w:pPr></w:p>"
+   Exit Sub
+  Else
+   dc.bookmarks!LaborZusatz.Range = ZusText
+   dc.Range(dc.bookmarks("LaborZusatz").Range.paragraphs(1).Range.Start, dc.bookmarks("LaborZusatz").Range.paragraphs(1).Range.END).Font.size = 9
+   With dc.Range(Tabl.Range.END, Tabl.Range.END).ParagraphFormat
+    .LeftIndent = CentimetersToPoints(IIf(UBound(Matr, 2) - 5 > 14, -1.9, 0))
+    .FirstLineIndent = CentimetersToPoints(0)
+   End With
+  End If ' briefNeu
  End If
  syscmd 4, "Labor (2) nach Tabellen-Addition"
  

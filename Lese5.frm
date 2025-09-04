@@ -2456,9 +2456,9 @@ End Sub ' PLZeinzeln_Click
 
 ' Funktionen für Arzthelferin und Arzt -> Patientenlaufzettel aus zuplz.txt
 Private Sub Patientenlaufzettel_aus_zuplz_Click()
-Const dname$ = "Abrechnung\zuplz.txt"
+Const DName$ = "Abrechnung\zuplz.txt"
 Dim sLine$, pid$
-Open pVerz & dname For Input As #1
+Open pVerz & DName For Input As #1
 While Not EOF(1)
   Line Input #1, sLine
   pid = LTrim$(sLine)
@@ -3153,7 +3153,7 @@ End Sub ' RestlicheBriefe_Click
 
 ' ...für Arzt -> Briefe zu Patienten mit Berichtspflicht schreiben
 Private Sub BriefeBerichtspflicht_Click()
- Call dobriefeBerichtspflicht
+ Call doBriefeBerichtspflicht
 End Sub ' BriefeBerichtspflicht_Click
 
 ' ...für Arzt -> "Briefe zu Pat_ID-Liste aus Datei schreiben
@@ -3168,7 +3168,7 @@ Private Sub BriefSchreiben_Click() ' Brief schreiben
  Call ProgStart
  Aktion = Briefschreiben
  Set pataw.hlese = Me
- pataw.briefneu = False
+ pataw.briefNeu = False
  pataw.Show
 ' Aktion = nix
  Call ProgEnde
@@ -3179,7 +3179,7 @@ Public Sub Briefschreibenneu_Click()
  Call ProgStart
  Aktion = Briefschreiben
  Set pataw.hlese = Me
- pataw.briefneu = True
+ pataw.briefNeu = True
  pataw.Show
 ' Aktion = nix
  Call ProgEnde
@@ -3190,7 +3190,7 @@ Private Sub Briefnochmal_Click()
  Call ProgStart
  If Me.pataw.Pat_ID = "" Then Me.pataw.Pat_ID = 681
  Lese.Aktion = Briefschreiben
- Call tuBriefStandalone(Me.pataw.Pat_ID, 0, "", "", 0, True, True)
+ Call tuBriefStandalone(Me.pataw.Pat_ID, 0, "", "", "", , 0, True, True)
 ' Aktion = nix
  Call ProgEnde
 End Sub ' Briefnochmal_Click
@@ -3198,7 +3198,7 @@ End Sub ' Briefnochmal_Click
 ' ...für Arzt -> Brief zu letztem Import schreiben
 Private Sub BriefImport_Click()
  Lese.Aktion = Briefschreiben
- Call tuBriefStandalone(CStr(lzPID), 0, , Me.pataw.Vorlage)
+ Call tuBriefStandalone(CStr(lzPID), 0, , Me.pataw.Verfasser, Me.pataw.Vorlage, Me.pataw.Programm.Index)
 End Sub ' Sub BriefImport_Click
 
 ' ...für Arzt -> Brief ohne Maske schreiben
@@ -5378,7 +5378,7 @@ Private Sub MDIForm_Activate()
  ElseIf Command = "ab" Then
    ProgStart
    Lese.Aktion = Briefschreiben
-   Call tuBriefStandalone(getbdtpid(), 0, , Lese.pataw.Vorlage)
+   Call tuBriefStandalone(getbdtpid(), 0, , Lese.pataw.Verfasser, Lese.pataw.Vorlage, Me.pataw.Programm.Index)
    Unload Me
  ElseIf Command = "labor" Then
   ProgStart
@@ -5499,7 +5499,7 @@ Public Sub los()
    Case GefaxteAnzeigen
     Call ZeigGefaxteAn(Me.pataw.PatID, Me.pataw.PatName)
    Case Briefschreiben
-    Call tuBriefStandalone(Me.pataw.PatID, False, , Me.pataw.Vorlage, , Me.pataw.briefneu, Me.pataw.nichtherricht)
+    Call tuBriefStandalone(Me.pataw.PatID, False, , Me.pataw.Verfasser, Me.pataw.Vorlage, Me.pataw.Programm.ListIndex, , Me.pataw.briefNeu, Me.pataw.nichtherricht)
    Case RestlicheBriefe
     Call doRestlicheBriefe(Me, Me.pataw.PatID)
    Case Patientenlaufzetteleinzeln

@@ -69,6 +69,8 @@ End Sub ' werteAnzeig()
 Sub wAusgeb()
 werteAusGeb True
 End Sub ' wAusgeb()
+
+' nur in wAusgeb
 Sub werteAusGeb(Optional obStumm As Boolean = False)
 'Dim ID$
 'Dim tbl
@@ -293,6 +295,7 @@ fehler:
  End Select
 End Function ' lebe
 
+' in werteAusgeb
 Sub LaborAusgeb(Optional id&)
  Dim ErgebDatei$
  ErgebDatei$ = aVerz + "Labor.txt"
@@ -323,6 +326,7 @@ fehler:
  End Select
 End Sub ' LaborAusgeb
  
+' in LaborAusgeb
 Function LaborString$(Pat_ID&)
  Dim raLw As New ADODB.Recordset, raDat As New ADODB.Recordset, ls$, raLU As New ADODB.Recordset
 ' zeilenzahl bestimmen

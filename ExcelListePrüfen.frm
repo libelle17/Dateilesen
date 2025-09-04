@@ -303,7 +303,7 @@ Private Sub DateiBearbeiten_Click()
     Input #394, pat_idS
     If IsNumeric(pat_idS) Then
      Lese.Aktion = Briefschreiben
-     Call tuBriefStandalone(CLng(pat_idS), True, pVerz & "unkorrigiert\", , , , , True)
+     Call tuBriefStandalone(CLng(pat_idS), True, pVerz & "unkorrigiert\", , , , , , , True)
     End If
    Loop
    Close #394
@@ -360,7 +360,7 @@ Private Sub DateiBearbeiten_Click()
 '           Call LeistungsExport0
            angefangen = True
           End If
-          Call PatTeste(rs!Pat_ID)
+          Call PatTeste(rs!Pat_id)
          End If ' rs.EOF Then
         End If ' ka > 0 And ke > 0 Then
        End If ' InStrB(rEx.Fields(2), "Es ist kein Bericht vorhanden") > 0 Then
@@ -400,16 +400,16 @@ End Select
 End Sub ' DateiBearbeiten_Click()
 
 ' aufgerufen in DateiBearbeiten_Click()
-Public Sub PatTeste(Pat_ID&)
+Public Sub PatTeste(Pat_id&)
  Dim rs As New ADODB.Recordset, rl As New ADODB.Recordset
  Dim BDT As New BDTSchreib
 ' Static obstart%
- myFrag rs, "SELECT 0 FROM `faelle` f LEFT JOIN `leistungen` l ON f.fid = l.fid WHERE f.pat_id = " & Pat_ID & " AND leistung IN (01600,01601) AND quartal = '42007';"
+ myFrag rs, "SELECT 0 FROM `faelle` f LEFT JOIN `leistungen` l ON f.fid = l.fid WHERE f.pat_id = " & Pat_id & " AND leistung IN (01600,01601) AND quartal = '42007';"
  If rs.EOF Then
   Set rs = Nothing
-  myFrag rs, "SELECT SchGr,FID FROM `faelle` f WHERE f.pat_id = " & Pat_ID & " AND quartal = '42007'"
+  myFrag rs, "SELECT SchGr,FID FROM `faelle` f WHERE f.pat_id = " & Pat_id & " AND quartal = '42007'"
   If rs.EOF Then
-   MsgBox "Stop in PatTeste: " & vbCrLf & "rs.EOF" & vbCrLf & "sql: " & sql & vbCrLf & "Pat_id: " & Pat_ID
+   MsgBox "Stop in PatTeste: " & vbCrLf & "rs.EOF" & vbCrLf & "sql: " & sql & vbCrLf & "Pat_id: " & Pat_id
    Stop
   ElseIf rs!SchGr <> "00" Then
 '   Debug.Print Pat_id
@@ -425,11 +425,11 @@ Public Sub PatTeste(Pat_ID&)
    End If
    Call BDT.BDTKopf
    Open pVerz & "unkorrigiert\Nochzuschreiben.txt" For Append As #334
-   Print #334, Pat_ID
+   Print #334, Pat_id
    Close #334
 '   IF obstart THEN
 '    Call LeistungsExport1(BDT, Pat_id, "01601", Datum, CDate("18:00"))
-    Call LeistungsExport1(BDT, Pat_ID, "40110", Datum, CDate("18:00"), , 0)
+    Call LeistungsExport1(BDT, Pat_id, "40110", Datum, CDate("18:00"), , 0)
     '   END IF
   End If
  End If

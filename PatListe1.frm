@@ -1770,9 +1770,9 @@ Private Sub Command2_Click()
       ElseIf pos <> 0 And p2 <> 0 Then
        bog = typ2alt
       End If
-       Dim pid&
-       pid = CLng(Pat_id)
-       Select Case pid
+       Dim Pid&
+       Pid = CLng(Pat_id)
+       Select Case Pid
         Case 184, 349, 1445, 1259, 1510, 1954, 59884, 53126, 53381, 7822, 31850, 38909, 59693, 59649, 51594, 59492, 59487, 53617, 53619, 53895, 54045, 59347, 59347, 1530
         Case Else
          domachDMPBogen CLng(Pat_id), bog, CDate(Now() - 1), True, True, True, Datei
@@ -3248,7 +3248,7 @@ End Sub ' ExcelLesen
 ' in Form_Load
 Sub LabordateiAnzeig(Datei$)
  Dim rs As New ADODB.Recordset, i&, vorDp$, pos&, rs1 As New ADODB.Recordset, j&, DateiDatStr$, sql$
- Dim pid&, vorPID&, gschl$, DateiDat As Date, vorFarbe&, Sp1Farbe&, vorDPneu$, vorEinh$
+ Dim Pid&, vorPID&, gschl$, DateiDat As Date, vorFarbe&, Sp1Farbe&, vorDPneu$, vorEinh$
  Dim fdt$, buch$, altPatient$ ' FileDateTime
  Dim rs2 As New ADODB.Recordset
  Dim pide$  ' PID von Pat. gleichen Namens
@@ -3571,7 +3571,7 @@ sql = sql & _
    .TextMatrix(i, terminsp) = .TextMatrix(i - 1, terminsp)
    GoTo andSp
   Else ' altPatient = rs!patient THEN
-   pid = 0
+   Pid = 0
    .TextMatrix(i, namsp) = rs!Patient
    Set rs1 = Nothing
    sql = "FROM `namen` WHERE TRIM(CONCAT(titel,' ',vorname,' ',nvors, IF(nvors='','',' '),nachname)) = '" & UmwfSQL(rs!Patient) & "'"
@@ -3602,16 +3602,16 @@ sql = sql & _
     End If
 '    .TextMatrix(i, namsp) = .TextMatrix(i, namsp) & " (" & ROUND((NOW() - rs2!GebDat) * 2.73792574745373E-03, 0) & " a)" ' 1/365,24
     .TextMatrix(i, namsp) = .TextMatrix(i, namsp) & " (" & AlterBei(Now(), rs2!GebDat) & " a)"
-    pid = rs2!Pat_id
+    Pid = rs2!Pat_id
     gschl = rs2!geschlecht
-    .TextMatrix(i, Pat_IDSp) = pid
+    .TextMatrix(i, Pat_IDSp) = Pid
     Dim rTerm As ADODB.Recordset
     myFrag rTerm, "SELECT COALESCE(TRIM(GROUP_CONCAT(CONCAT(DATE_FORMAT(zp,'%d.%m.%y'),' ',LEFT(raum,3)) ORDER BY zp SEPARATOR '  ')),'') term " & vbCrLf & _
-                  "FROM termine t WHERE zp >= DATE(NOW()) AND pid = " & CStr(pid) & ";", adOpenStatic
+                  "FROM termine t WHERE zp >= DATE(NOW()) AND pid = " & CStr(Pid) & ";", adOpenStatic
     If Not rTerm.BOF And Not IsNull(rTerm!term) Then
      .TextMatrix(i, terminsp) = rTerm!term
     End If ' not rTerm.bof
-    If pid <> vorPID Then vorFarbe = IIf(vorFarbe = vbWhite, vbGräulich, vbWhite) '&H8000000F&=vbgelblichgrau
+    If Pid <> vorPID Then vorFarbe = IIf(vorFarbe = vbWhite, vbGräulich, vbWhite) '&H8000000F&=vbgelblichgrau
 andSp:
     .Row = i
     .col = Pat_IDSp
@@ -3620,7 +3620,7 @@ andSp:
     .CellBackColor = vorFarbe
     .col = nbsp
     .CellBackColor = vorFarbe
-    vorPID = pid
+    vorPID = Pid
  ' Vorwerte: 10.7.11: abkü nochmal korrigieren, sonst fehlen welche
 '    myFrag rsgl, "SELECT IF(ISNULL(n2.abkü),neu.abkü,n2.abkü) abkü, IF(ISNULL(n2.abkü),neu.einheit,n2.einheit) einheit FROM laborypneu neu " & _
 '             "LEFT JOIN laborypgl gl ON neu.id = gl.idypneu " & _
@@ -3639,14 +3639,14 @@ andSp:
     aktw = 0
    ' "SELECT * FROM `labor2a` WHERE pat_id = " & Pid & " UNION SELECT * FROM `labor1a` WHERE pat_id = " & Pid
 '   IF Pat_id = 52823 AND vorDp = "K" THEN Stop
-    If pid <> 0 Then
+    If Pid <> 0 Then
 '     myFrag rs1, "SELECT zeitpunkt,wert FROM (SELECT zeitpunkt,wert,pat_id,abkü,einheit,nb FROM `labor2a` WHERE pat_id = " & cstr(PID) & " AND abkü = '" & vorDPneu & "' AND einheit ='" & vorEinh & "' " & IIf(DateiDat = 0, vNS, "and zeitpunkt < " & DatFor_k(DateiDat - vorTage)) & " UNION SELECT zeitpunkt,wert,pat_id,abkü,einheit,nb FROM `labor1a` WHERE pat_id = " & cstr(Pid) & " AND abkü = '" & vorDPneu & "' AND einheit ='" & vorEinh & "' " & IIf(DateiDat = 0, vNS, "and zeitpunkt < " & DatFor_k(DateiDat - vorTage)) & ") i GROUP BY pat_id,zeitpunkt ORDER BY zeitpunkt DESC"
 'If LEFT(vorDPneu, 1) = "K" AND Pat_id = 36833 THEN Stop
 '     myFrag rs1, "SELECT zeitpunkt,wert FROM (SELECT zeitpunkt,wert,pat_id,abkü,einheit,nb FROM `labor2a` WHERE pat_id = " & cstr(PID) & " AND abkü = '" & vorDPneu & "' " & IIf(DateiDat = 0, vNS, "and zeitpunkt < " & DatFor_k(DateiDat - vorTage)) & " UNION SELECT zeitpunkt,wert,pat_id,abkü,einheit,nb FROM `labor1a` WHERE pat_id = " & Pat_id & " AND abkü = '" & vorDPneu & "' " & IIf(DateiDat = 0, vNS, "and zeitpunkt < " & DatFor_k(DateiDat - vorTage)) & ") i GROUP BY pat_id,zeitpunkt ORDER BY zeitpunkt DESC"
 '#Const sqllangsam = True
 #If sqllangsam Then ' Vergleich bei "Labor 4.5.20 lg tst.csv": 22s vs 8s
      Dim LErg As labtyp
-     LErg = LetztLab(pid, rs!Abkü, rs!Einheit, IIf(DateiDat = 0, Now(), DateiDat - vorTage))
+     LErg = LetztLab(Pid, rs!Abkü, rs!Einheit, IIf(DateiDat = 0, Now(), DateiDat - vorTage))
      If LErg.WertSg <> vNS And LErg.Zp <> -1 Then
       .TextMatrix(i, vorwsp1) = LErg.WertSg & " (" & Format(LErg.Zp, "d.m.yy") & ")"
       If LErg.WertSg = "" Then
@@ -3660,7 +3660,7 @@ andSp:
         vw1 = 0
        End If
       End If
-      LErg = LetztLab(pid, rs!Abkü, rs!Einheit, LErg.Zp)
+      LErg = LetztLab(Pid, rs!Abkü, rs!Einheit, LErg.Zp)
       If LErg.WertSg <> vNS And LErg.Zp <> -1 Then
        .TextMatrix(i, vorwsp2) = LErg.WertSg & " (" & Format(LErg.Zp, "d.m.yy") & ")"
        vw2s = REPLACE$(LErg.WertSg, ".", ",")
@@ -3668,7 +3668,7 @@ andSp:
       End If
      End If
 #Else
-     Set rs1 = hollabor(pid, vorDp, IIf(DateiDat = 0, Now(), DateiDat - vorTage), 0, 0, -1, vorEinh)
+     Set rs1 = hollabor(Pid, vorDp, IIf(DateiDat = 0, Now(), DateiDat - vorTage), 0, 0, -1, vorEinh)
      If Not rs1.BOF Then
       .TextMatrix(i, vorwsp1) = rs1!Wert & " (" & Format(rs1!Zeitpunkt, "d.m.yy") & ")"
       If rs1!Wert = vNS Then
@@ -3697,7 +3697,7 @@ andSp:
     If IsNumeric(.TextMatrix(i, wertsp)) Then aktw = CDbl(REPLACE$(.TextMatrix(i, wertsp), ".", ",")) Else aktw = 0
     If InStr(1, vorDp, "GFR", vbTextCompare) <> 0 Or InStr(1, vorDp, "GFC", vbTextCompare) <> 0 Or InStr(1, vorDp, "MDRD", vbTextCompare) <> 0 Then
      If aktw < 45 Then
-      Call TherAuskunft(CStr(pid), 0, aktDC.insz, VorDat, aktDC.obIns, aktDC.obAnal, aktDC.obGlib, aktDC.obmetf, aktDC.obGlucI, aktDC.obSHGlin, aktDC.obGlit, aktDC.obDpp4, aktDC.obGlp1, aktDC.obSglt2, aktDC.obSonstAD, aktDC.obHMG, aktDC.obAntihyp, aktDC.obACEH, aktDC.obBetabl, aktDC.obThro, aktDC.obOAK, , , , aktDC.obDiur, aktDC.obAT1)
+      Call TherAuskunft(CStr(Pid), 0, aktDC.insz, VorDat, aktDC.obIns, aktDC.obAnal, aktDC.obGlib, aktDC.obmetf, aktDC.obGlucI, aktDC.obSHGlin, aktDC.obGlit, aktDC.obDpp4, aktDC.obGlp1, aktDC.obSglt2, aktDC.obSonstAD, aktDC.obHMG, aktDC.obAntihyp, aktDC.obACEH, aktDC.obBetabl, aktDC.obThro, aktDC.obOAK, , , , aktDC.obDiur, aktDC.obAT1)
       If aktDC.obmetf Then
        Dim zuwarnen%
        zuwarnen = 0
@@ -3718,7 +3718,7 @@ andSp:
          "WHERE mp.pat_id=" & CStr(pid) & " AND " & vbCrLf & _
          "zeitpunkt=(SELECT MAX(zeitpunkt) FROM wmedplan WHERE pat_id=" & CStr(pid) & ") AND metf" & vbCrLf & _
          ";").Fields(0) & vbCrLf
-         metdos = myEFrag("SELECT metfdosis(" & CStr(pid) & ")").Fields(0)
+         metdos = myEFrag("SELECT metfdosis(" & CStr(Pid) & ")").Fields(0)
         On Error GoTo fehler
         If metdos > 1000 Then zuwarnen = True
        End If ' aktw<30 else
@@ -3773,7 +3773,7 @@ andSp:
     Tkz = 0: gsz = 0: wdz = 0: ahz = 0
     Set rs1 = Nothing
     ' Diane
-    myFrag rs1, "SELECT zeitpunkt,art,inhalt FROM `eintraege` WHERE (art IN ('tk','gs','wd','ah') OR (art='tb' AND ersteller IN ('tk','gs','wd','ah')) OR inhalt LIKE '%(gs)%' OR inhalt LIKE '%(tk)%' OR inhalt LIKE '%(wd)%' OR inhalt LIKE '%(ah)%') AND pat_id = " & CStr(pid) & " ORDER BY zeitpunkt DESC LIMIT 7"
+    myFrag rs1, "SELECT zeitpunkt,art,inhalt FROM `eintraege` WHERE (art IN ('tk','gs','wd','ah') OR (art='tb' AND ersteller IN ('tk','gs','wd','ah')) OR inhalt LIKE '%(gs)%' OR inhalt LIKE '%(tk)%' OR inhalt LIKE '%(wd)%' OR inhalt LIKE '%(ah)%') AND pat_id = " & CStr(Pid) & " ORDER BY zeitpunkt DESC LIMIT 7"
     If Not rs1.BOF Then
      Do While Not rs1.EOF
       Select Case rs1!art
@@ -3927,7 +3927,7 @@ End Sub ' invis
 
 ' DMPhierListe_Click
 Private Sub Form_Load()
- Dim sql$, i%, erg$, j&, gehezu&, rAf&, pid$, BhFB As Date, dmpklass As DMPEnum, Tkz%
+ Dim sql$, i%, erg$, j&, gehezu&, rAf&, Pid$, BhFB As Date, dmpklass As DMPEnum, Tkz%
 ' #Const obpcol = True
  Dim d$, dokus$()
 '#If obpcol Then
@@ -4338,7 +4338,7 @@ Private Sub Form_Load()
      myFrag rDPat, sql, adOpenStatic, DBCn, adLockReadOnly, 18 * opt.Dokuzahl ' Maximale Buchstabenzahl
      .Rows = rDPat!Zahl + 2
      Do While Not rDPat.EOF
-      pid = rDPat!Pat_id
+      Pid = rDPat!Pat_id
 '      If pid = 64488 Then Stop
       BhFB = rDPat!BhFB
       dmpklass = rDPat.Fields("dmp" & klassa & "klass")
@@ -4373,7 +4373,7 @@ Private Sub Form_Load()
 '      Next k
 '#Else
       Set pstr = New SortierString
-      pstr.Stri = pid
+      pstr.Stri = Pid
       If psl.SuchItem(pstr) Then
         .CellBackColor = DunkelRosa
         If cbcol = DunkelRosa Then gehezu = .Row
@@ -4384,7 +4384,7 @@ Private Sub Form_Load()
       lfdnr = lfdnr + 1
       .col = .col + 1
       If PIDSp = 0 Then PIDSp = .col
-      .Text = pid
+      .Text = Pid
       .CellBackColor = cbcol ' 10790143 = dunkelrosa
       .col = .col + 1
       If NachNameSp = 0 Then NachNameSp = .col
@@ -4911,6 +4911,7 @@ Public Function waehleinMO(Pat_id&)
     If hnd = 0 Then
      MsgBox "Aktivierung von MO nicht möglich, hnd=0"
     Else
+     On Error GoTo mofehler
      AppActivate MOZ, True
      If Err.Number <> 0 Then Exit Function
      Pausenlänge = 10
@@ -4942,6 +4943,12 @@ Public Function waehleinMO(Pat_id&)
      Sendkeys "{ENTER}", False
     End If
  Exit Function
+mofehler:
+ Select Case MsgBox("Fehler beim Aufruf von " & Pat_id & " in Medical Office. Bitte diese Anwendung überprüfen!", vbAbortRetryIgnore, "Aufgefangener Fehler in waehleinMO/" + App.path)
+  Case vbAbort: Call MsgBox("Höre auf"): ProgEnde
+  Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
+  Case vbIgnore: Call MsgBox("Setze fort"): Exit Function
+ End Select
 fehler:
  Dim AnwPfad$
 #If VBA6 Then
@@ -4949,7 +4956,7 @@ fehler:
 #Else
  AnwPfad = App.path
 #End If
- Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in waehleinMO/" + AnwPfad)
+ Select Case MsgBox("Fehler beim Aufruf von Medical Office. Bitte diese Anwendung überprüfen!", vbAbortRetryIgnore, "Aufgefangener Fehler in waehleinMO/" + App.path)
   Case vbAbort: Call MsgBox("Höre auf"): ProgEnde
   Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
   Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
@@ -5138,11 +5145,11 @@ vorher:
        End If
       End If
      Case parsp
-      Dim pid$, hsql$
-      pid = .TextMatrix(MFG.MouseRow, Pat_IDSp)
+      Dim Pid$, hsql$
+      Pid = .TextMatrix(MFG.MouseRow, Pat_IDSp)
       hsql = "SELECT CONCAT_WS(' ',DATE_FORMAT(zeitpunkt,'%d.%m.%y'),DATE_FORMAT(datum,'%d.%m.%y'),GROUP_CONCAT(medikament)) med FROM `wmedplan` " & vbCrLf & _
-      "WHERE pat_id = " & pid & " AND zeitpunkt = " & vbCrLf & _
-      "(SELECT MAX(zeitpunkt) FROM `wmedplan` WHERE pat_id = " & pid & ")"
+      "WHERE pat_id = " & Pid & " AND zeitpunkt = " & vbCrLf & _
+      "(SELECT MAX(zeitpunkt) FROM `wmedplan` WHERE pat_id = " & Pid & ")"
       myFrag rs, hsql
       If Not rs.BOF Then
        .toolTipText = rs.Fields(0)
@@ -5406,7 +5413,7 @@ Private Sub LaborFüll(Optional nachLangtext%)
   Me.MFG.TextMatrix(i, 6) = rs0!Langtext
   Me.MFG.TextMatrix(i, 7) = rs0!Labor
   Me.MFG.TextMatrix(i, 8) = rs0!herk
-  If Not IsNull(rs0!pid) Then IDS(0, i) = rs0!pid
+  If Not IsNull(rs0!Pid) Then IDS(0, i) = rs0!Pid
   IDS(1, i) = rs0!oid
   Me.MFG.Row = i
   Me.MFG.col = 0
