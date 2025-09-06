@@ -354,7 +354,8 @@ Public hlese As Lese
 Public PatID&
 Const HADBName$ = "haerzte"
 Private haGewählt%, VorlageGewählt%, PatGewählt%, PatZuWählen%, Pat_IDGewählt%
-Dim RegPos$, cR As New Registry
+Public RegPos$
+Dim cR As New Registry
 #Const EinmalDB = True
 Dim Zulp As Date ' zuletzt - letzter Zeitpunkt
 Dim lbeh% ' letzter Behandler: 1 = Kothny, 0 = unentschieden, 1 = Schade
@@ -652,6 +653,25 @@ End Sub ' OKButton_KeyDown
 Private Sub Pat_id_KeyDown(KeyCode As Integer, Shift As Integer)
  Call Key(KeyCode, Shift, Me)
 End Sub ' Pat_ID_KeyDown
+
+' aufgerufen in Form_load und Lese.MDIForm_Activate
+Public Sub vorbeleg()
+    RegPos = RegWurzel & App.EXEName & "\PatAuswahl"
+    Me.Verfasser = cR.ReadKey("Verfasser", RegPos, HKEY_CURRENT_USER)
+    Me.Programm = cR.ReadKey("Programm", RegPos, HKEY_CURRENT_USER)
+    If Me.Verfasser = "" Then
+     Me.Vorlage = cR.ReadKey("Vorlage", RegPos, HKEY_CURRENT_USER)
+     Select Case Me.Vorlage
+      Case "AccessBriefK.dot"
+       Me.Verfasser = "Kothny"
+      Case "Accessbriefh.dot"
+       Me.Verfasser = "Hammerschmidt"
+      Case Else ' "Accessbriefa.dot"
+       Me.Verfasser = "Schade"
+     End Select
+    Else ' Me.Verfasser = "" Then
+    End If ' Me.Verfasser = "" Then Else
+End Sub ' vorbeleg()
         
 Private Sub Form_Load()
  geladen = True
@@ -681,21 +701,7 @@ Private Sub Form_Load()
     Me.Programm.AddItem "Word neu"
     Me.Programm.AddItem "Standardprogramm"
     Me.Programm.AddItem "alte Methode"
-    RegPos = RegWurzel & App.EXEName & "\PatAuswahl"
-    Me.Verfasser = cR.ReadKey("Verfasser", RegPos, HKEY_CURRENT_USER)
-    Me.Programm = cR.ReadKey("Programm", RegPos, HKEY_CURRENT_USER)
-    If Me.Verfasser = "" Then
-     Me.Vorlage = cR.ReadKey("Vorlage", RegPos, HKEY_CURRENT_USER)
-     Select Case Me.Vorlage
-      Case "AccessBriefK.dot"
-       Me.Verfasser = "Kothny"
-      Case "Accessbriefh.dot"
-       Me.Verfasser = "Hammerschmidt"
-      Case Else ' "Accessbriefa.dot"
-       Me.Verfasser = "Schade"
-     End Select
-    Else ' Me.Verfasser = "" Then
-    End If ' Me.Verfasser = "" Then Else
+    Call vorbeleg
   Select Case hlese.Aktion
    Case Briefschreiben
     Me.Angeforderte(1).Visible = True

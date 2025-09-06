@@ -552,12 +552,12 @@ Function SqlU(sql$, obmy%) As CString
  End If
 End Function ' SqlUmw
 
-Sub EliminierWortplusZahl(ByRef SqlU As CString, ByRef wort$)
+Sub EliminierWortplusZahl(ByRef SqlU As CString, ByRef Wort$)
  Dim pos&, p2&, sp$, p2anf&
- pos = SqlU.Instr(wort)
+ pos = SqlU.Instr(Wort)
  If pos <> 0 Then
   sp = SqlU.Left(pos - 1)
-  p2 = pos + Len(wort)
+  p2 = pos + Len(Wort)
   p2anf = p2
   Do
    If Not IsNumeric(SqlU.cMid(p2, 1)) Then Exit Do
@@ -7812,33 +7812,39 @@ Sub Dzus(ByRef Ds() As CString, DSneu As CString)
  Next i
 End Sub ' Dzus
 
-' in tuBriefStandalone
-Function einzEintr(Pat_ID$, ÜS$, erlaeut$, arten$, Optional VorDat As Date, Optional obgross%)
+' in tuBriefStandalone, nur mit briefneu = True
+Function einzEintr(Pat_ID$, ÜS$, erlaeut$, arten$, Optional VorDat As Date, Optional obgross%, Optional fett$)
  Dim inhlt$
+#If False Then
  Dim pos&, wlen%
  Static warr
- Dim wort
- If IsEmpty(warr) Then warr = Array("Halsschlagadern", "Schilddrüse", "Doppler", "Duplex", "Sonogramm")
+ Dim Wort
+ If IsEmpty(warr) Then warr = Array("Halsschlagadern", "Schilddrüse", "Nierenarterien", "Abdomen", "Beinarterien", "Beinarterien mit Belastung", "Beinvenen")
+#End If
  If arten = "" Then
-  inhlt = machwertString(Pat_ID)
+  inhlt = machwertString(Pat_ID, , True) ' obgross immer 0
  Else
-  inhlt = kkeintraege(Pat_ID, arten, VorDat)
+  inhlt = kkeintraege(Pat_ID, arten, True, VorDat, fett, obgross)
  End If ' if arten
  If inhlt <> "" Then
 ' ag.Append PKennz("<w:p><w:r><w:rPr><w:b/><w:rStyle w:val=""s24s""/></w:rPr><w:t xml:space=""preserve"">" & zsuh(ÜS) & "</w:t></w:r><w:r><w:rPr><w:rStyle w:val=""s16s""/></w:rPr><w:t>" & erlaeut & ":</w:t></w:r></w:p>", False)
   ag.Append PKennz("<w:p><w:r><w:rPr><w:b/><w:rStyle w:val=""s24s""/></w:rPr><w:t>" & zsuh(ÜS) & "</w:t></w:r><w:r><w:rPr><w:rStyle w:val=""s16s""/></w:rPr><w:t>" & erlaeut & ":</w:t></w:r></w:p>", False)
-  For Each wort In warr
-   wlen = Len(wort)
-   pos = InStr(inhlt, vbTab & wort & ":")
+#If False Then
+  For Each Wort In warr
+   wlen = Len(Wort)
+   pos = InStr(inhlt, vbTab & Wort & ":")
    If pos Then
     Dim worts$
-    worts = wort
-    inhlt = Left$(inhlt, pos) & "</w:t><w:rPr><w:rStyle w:val=""s24s""/><w:b/><w:bCs/></w:rPr><w:t>" & zsuh(worts) & "</w:t></w:r><w:r><w:rPr><w:rStyle w:val=""s24s""/><w:b w:val=""false""/><w:bCs w:val=""false""/></w:rPr><w:t>" & _
-            zuh(Mid$(inhlt, pos + Len(wort) + 1), True, obgross)
+    worts = Wort
+    inhlt = zsuh(Left$(inhlt, pos)) & "</w:t><w:rPr><w:rStyle w:val=""s24s""/><w:b/><w:bCs/></w:rPr><w:t>" & zsuh(worts) & "</w:t></w:r><w:r><w:rPr><w:rStyle w:val=""s24s""/><w:b w:val=""false""/><w:bCs w:val=""false""/></w:rPr><w:t>" & _
+            zuh(zsuh(Mid$(inhlt, pos + Len(Wort) + 1)), True, obgross)
     GoTo Fertig
    End If ' pos
-  Next wort
-  inhlt = zuh(inhlt, True, obgross)
+  Next Wort
+#End If
+  If fett = "" Then
+'   inhlt = zuh(inhlt, mitabsatz:=True, obgross:=obgross)
+  End If
 Fertig:
   ag.Append PKennz("<w:p><w:pPr><w:pStyle w:val=""hang""/></w:pPr><w:r><w:rPr><w:rStyle w:val=""s" & IIf(obgross, "24", "18") & "s""/></w:rPr><w:t>" & REPLACE$(inhlt, vbCrLf, "</w:t></w:r></w:p><w:p><w:pPr><w:pStyle w:val=""hang""/></w:pPr><w:r><w:rPr><w:rStyle w:val=""s" & IIf(obgross, "24", "18") & "s""/></w:rPr><w:t>") & "</w:t></w:r></w:p>", False)
 '  ag.Append PKennz("<w:p><w:pPr><w:pStyle w:val=""hang""/></w:pPr><w:r><w:rPr><w:rStyle w:val=""s" & IIf(obgross, "24", "18") & "s""/></w:rPr><w:t>" & REPLACE$(zuh(inhlt, True, obgross), vbCrLf, "</w:t></w:r></w:p><w:p><w:pPr><w:pStyle w:val=""hang""/></w:pPr><w:r><w:rPr><w:rStyle w:val=""s" & IIf(obgross, "24", "18") & "s""/></w:rPr><w:t>") & "</w:t></w:r></w:p>", False)
@@ -7848,7 +7854,7 @@ End Function ' einzEintr
 ' in Datei.Lese.los und BriefImport_Click, Briefnochmal_Click, dodoFollowUp, doUngeschriebeneBriefe,
 ' MDIForm.MDIForm_Activate, doRestlicheBriefe, PatAuswahl.Abr_Click, Lade.DateiBearbeiten_Click, doVorhandene
 ' doBriefeBerichtspflicht, tu_brief
-Public Sub tuBriefStandalone(pid&, obStumm%, Optional Zielverz$, Optional Verfasser$, Optional Vorlage$, Optional ProgInd%, Optional nurLabor% = False, Optional briefNeu% = False, Optional nichtherricht%, Optional sammel%) ' Brief schreiben
+Public Sub tuBriefStandalone(pid&, obStumm%, Optional Zielverz$, Optional Verfasser$, Optional Vorlage$, Optional ProgInd%, Optional nurLabor% = False, Optional briefneu% = False, Optional nichtherricht%, Optional sammel%) ' Brief schreiben
 ' sammel soll bei Mehrfachaufrufen <>0 sein, um Rückfragen für jeden Brief zu vermeiden
  Dim Pat_ID$, myRange, Docu, Inh, dc As Object ' Word.Document, wegen unbekannter Wordversion als Object
  Dim raHa As New ADODB.Recordset
@@ -7868,10 +7874,10 @@ Public Sub tuBriefStandalone(pid&, obStumm%, Optional Zielverz$, Optional Verfas
   
  On Error GoTo fehler
  If Date = #11/20/2011# Then nurLabor = True
- If ProgInd = 4 Then briefNeu = 0 ' alte Methode
+ If ProgInd = 4 Then briefneu = 0 ' alte Methode
  Pat_ID = CStr(pid)
  VorDat0 = GetVorDat(Pat_ID, obStumm)
- If sammel = 0 Then
+ If sammel = 0 And VorDat0 Then
   On Error Resume Next
   VorDat = InputBox("Arztbrief mit Daten ab:", "Rückfrage Daten ab", VorDat0)
   If Err.Number Then Exit Sub
@@ -7941,7 +7947,19 @@ Public Sub tuBriefStandalone(pid&, obStumm%, Optional Zielverz$, Optional Verfas
  Dim DSneu As New CString
  DSneu.Clear
  Dzus DiagTab, DSneu
- If briefNeu Then
+ 
+     Dim raFa As New ADODB.Recordset
+     Dim lddat As Date
+     myFrag raFa, "SELECT MAX(bhfb) lddat, MAX(fanf) fanf, MAX(ausgst) ausgst FROM `faelle` WHERE pat_id = " & Pat_ID
+     If Not raFa.BOF Then
+      If Not IsNull(raFa!lddat) Then
+       lddat = raFa!lddat
+      End If ' Not IsNull(raFa!lddat) Then
+      If raFa!Fanf > lddat Then lddat = raFa!Fanf
+      If raFa!ausgst > lddat Then lddat = raFa!ausgst
+     End If ' Not raFa.BOF Then
+ 
+ If briefneu Then
   Dim aname$
   aname = ArBName$(sverz, NachNa, VorNa, Pat_ID$, infos$())
   If Not nichtherricht Then
@@ -8067,9 +8085,9 @@ Public Sub tuBriefStandalone(pid&, obStumm%, Optional Zielverz$, Optional Verfas
    Call einzEintr(Pat_ID, "Blutdruckvergleichsmessung", "", "'rrvgl'", VorDat)
    Call einzEintr(Pat_ID, "Urinuntersuchung", "", "'urin'", VorDat)
    Call einzEintr(Pat_ID, "Fußbefund, ggf. Ulcusbeschreibungen", "", "'fuß','fuss','usd','usdm','usdm1','usdm2','wv','ulc','ulcus','kv','debr'", VorDat)
-   Call einzEintr(Pat_ID, "Doppleruntersuchung", "", "'dop','doppler'", VorDat, True)
-   Call einzEintr(Pat_ID, "Duplexuntersuchung", "", "'dup','duplex'", VorDat, True)
-   Call einzEintr(Pat_ID, "Sonogramm", "", "'sono','sd'", VorDat, True)
+   Call einzEintr(Pat_ID, "Doppleruntersuchung", "", "'dop','doppler'", VorDat, True, "Beinarterien|Beinarterien mit Belastung|Beinvenen")
+   Call einzEintr(Pat_ID, "Duplexuntersuchung", "", "'dup','duplex'", VorDat, True, "Halsschlagadern|Nierenarterien|Beinarterien|Beinarterien mit Belastung|Beinvenen")
+   Call einzEintr(Pat_ID, "Sonogramm", "", "'sono','sd'", VorDat, True, "Abdomen|Schilddrüse|Weichteile")
    Call einzEintr(Pat_ID, "EKG", "", "'ekg'", VorDat, True)
    Call einzEintr(Pat_ID, "Langzeitblutdruckmessung", "", "'lzrr'", VorDat, True)
    Call einzEintr(Pat_ID, "Spirometrie", "", "'lufu'", VorDat, True)
@@ -8078,7 +8096,7 @@ Public Sub tuBriefStandalone(pid&, obStumm%, Optional Zielverz$, Optional Verfas
 '   ag.apph PKennz("", False)
    ag.appH PKennz("", False)
    ag.appH PKennz("", False)
-  End If ' nurLabor
+  End If ' not nurLabor
 #Else
    ag.appvh Array(doc1, kopf0, "<w:body>", agabsa, vors, doc2, agabsa, vors, doc3, agabsa, vors, doc4, agabsa, vors, zuh(doc5), agabsa, doc6, agabsa, doc7, agabsa, doc8, Format(Now(), "dd.mm.yyyy"), doc9, agabsa, doc10, agabsa, zuh(doc11), agabsa, doc12, agabsa)
    ag.appH "<w:pPr><w:tabs><w:tab w:val=""left"" w:pos=""5387""/></w:tabs><w:spacing w:before=""140""/><w:rPr><w:rFonts w:ascii=""Arial"" w:hAnsi=""Arial""/><w:sz w:val=""24""/><w:lang w:val=""en-GB""/></w:rPr></w:pPr>"
@@ -8251,16 +8269,6 @@ On Error GoTo fehler
     
      syscmd acSysCmdSetStatus, "Erstelle Brief für " & gesName & ": 2)a) Diagnosen prüfen ..."
      obkNeph = obKeineNephropathie(Pat_ID, obMakroAlb)
-     Dim raFa As New ADODB.Recordset
-     Dim lddat As Date
-     myFrag raFa, "SELECT MAX(bhfb) lddat, MAX(fanf) fanf, MAX(ausgst) ausgst FROM `faelle` WHERE pat_id = " & Pat_ID
-     If Not raFa.BOF Then
-      If Not IsNull(raFa!lddat) Then
-       lddat = raFa!lddat
-      End If ' Not IsNull(raFa!lddat) Then
-      If raFa!Fanf > lddat Then lddat = raFa!Fanf
-      If raFa!ausgst > lddat Then lddat = raFa!ausgst
-     End If ' Not raFa.BOF Then
      Dim iDiag As New ADODB.Recordset, licd$, ldiag$, lSicher$, iDDiagText$, iDICD$, iDDiagSich$
 '    iDiag.Open "SELECT ICD, DiagText, DiagSicherheit FROM `diagnosen` d WHERE d.pat_id = " & Pat_id & " AND (d.obdauer <> 0 OR d.diagdatum > " & DatFor_k(lddat) & ") AND COALESCE(d.Dggel,0)=0 ORDER BY icd, DiagSicherheit", DBCn, adOpenDynamic, adLockReadOnly
      myFrag iDiag, "SELECT ICD, DiagText, DiagSicherheit FROM `diagnosen` d WHERE d.pat_id = " & Pat_ID & " AND (d.obdauer <> 0 OR d.diagdatum > " & DatFor_k(lddat) & ") ORDER BY icd, DiagSicherheit"
@@ -8297,7 +8305,7 @@ On Error GoTo fehler
       On Error GoTo fehler
      End If ' InStrB(behs, "am") <> 0
      syscmd acSysCmdSetStatus, "Erstelle Brief für " & gesName & ": 3) Anamnese ..."
-     !Anamnese.Range = machwertString$(Pat_ID) '+ nzw + vblf
+     !Anamnese.Range = machwertString$(Pat_ID, , briefneu) '+ nzw + vblf
 '    !Verlauf.Range = Verlauf(pat_id)
     End If ' nurlabor<>0
     End With ' dc.bookmarks
@@ -8342,7 +8350,7 @@ On Error GoTo fehler
       Else
        krit = Left$(krit, Len(krit) - 1) '+ """"
       End If
-      Inhalt = kkeintraege(Pat_ID, krit) ' , VorDat)
+      Inhalt = kkeintraege(Pat_ID, krit, False) ' , VorDat)
      End If
      Select Case Ereih
       Case bmTaille ' Bauchumfang / Taille
@@ -8504,10 +8512,10 @@ On Error GoTo fehler
   
  If nurLabor = 0 Then
     syscmd acSysCmdSetStatus, "Erstelle Brief für " & gesName & ": 5) Epikrise..."
-    Call Epikrise(dc, Pat_ID, VorDat, lddat, obStumm, briefNeu)
+    Call Epikrise(dc, Pat_ID, VorDat, lddat, obStumm, briefneu)
     syscmd acSysCmdSetStatus, "Erstelle Brief für " & gesName & ": 6) Medikation..."
 '    Wapp.Visible = True
-    Call letzteMed(dc, Pat_ID, briefNeu)
+    Call letzteMed(dc, Pat_ID, briefneu)
     
     Dim verspt$
     If Now - lddat > 90 Then
@@ -8520,7 +8528,7 @@ On Error GoTo fehler
      verspt = vNS
     End If ' Now - lddat > 90 Then else
       
-    If briefNeu Then ' Unterschrift
+    If briefneu Then ' Unterschrift
      ag.appH "<w:p><w:r><w:rPr><w:sz w:val=""24""/></w:rPr></w:r></w:p><w:p><w:r><w:rPr><w:sz w:val=""24""/></w:rPr><w:t>" & verspt & "</w:t></w:r></w:p><w:p><w:r><w:rPr><w:sz w:val=""24""/></w:rPr><w:t>Mit bestem Dank für das Vertrauen und freundlichen Grüßen,</w:t></w:r></w:p>"
      Dim weite$, höhe$, name$, nachzeile$
      Select Case Verfasser
@@ -8554,11 +8562,11 @@ On Error GoTo fehler
 ' If briefNeu Then
 ' Else
   syscmd acSysCmdSetStatus, "Erstelle Brief für " & gesName & ": 7) Labor..."
-  Call LaborIns1(dc, Pat_ID, nurLabor, briefNeu)
+  Call LaborIns1(dc, Pat_ID, nurLabor, briefneu)
 ' End If
  
  If nurLabor = 0 Then
-  If briefNeu Then
+  If briefneu Then
   Else
     On Error GoTo fehler
 ' bei Wiederholungsbriefen
@@ -8592,12 +8600,12 @@ On Error GoTo fehler
  End If ' NurLabor
  
 ' abschließen und aufrufen
- If briefNeu Then
+ If briefneu Then
   If Not nichtherricht Then
 ' Seitenformatierung
 '   ag.Append PKennz("<w:sectPr><w:pgSz w:w=""11906"" w:h=""16838""/><w:pgMar w:top=""1417"" w:right=""850"" w:bottom=""1134"" w:left=""1417"" w:header=""708"" w:footer=""708"" w:gutter=""0""/><w:cols w:space=""708""/><w:docGrid w:linePitch=""360""/></w:sectPr>", False)
 ''   ag.apph PKennz("<w:sectPr><w:type w:val=""nextPage""/><w:headerReference w:type=""default""r:id=""rId7""/><w:pgSz w:w=""12240""w:h=""15840""/><w:pgMar w:left=""1417""w:right=""850""w:top=""567""w:bottom=""850""w:header=""720""w:footer=""720""w:gutter=""0""/><w:pgNumType w:fmt=""decimal""/><w:formProt w:val=""false""/><w:textDirection w:val=""lrTb""/><w:docGrid w:type=""default""w:linePitch=""100""w:charSpace=""0""/><w:cols w:space=""720""/><w:titlePg/></w:sectPr>", False)
-   ag.Append PKennz("</w:p><w:sectPr w:rsidR=""00EB40B3"" w:rsidSect=""00EB40B3""><w:headerReference w:type=""default"" r:id=""rId7""/><w:pgSz w:w=""11907"" w:h=""16840""/><w:pgMar w:top=""567"" w:right=""851"" w:bottom=""851"" w:left=""1418"" w:header=""720"" w:footer=""720"" w:gutter=""0""/><w:cols w:space=""720""/><w:titlePg/></w:sectPr>")
+   ag.Append PKennz("<w:sectPr w:rsidR=""00EB40B3"" w:rsidSect=""00EB40B3""><w:headerReference w:type=""default"" r:id=""rId7""/><w:pgSz w:w=""11907"" w:h=""16840""/><w:pgMar w:top=""567"" w:right=""851"" w:bottom=""851"" w:left=""1418"" w:header=""720"" w:footer=""720"" w:gutter=""0""/><w:cols w:space=""720""/><w:titlePg/></w:sectPr>")
    ag.Append "</w:body></w:document>"
    syscmd acSysCmdSetStatus, "Erstelle Brief für " & gesName & ": 10) Korrekturen..."
     Call ag.REPLACE("IDA", "Insulindosisanpassung")
@@ -9497,14 +9505,14 @@ End Select
 End Function ' ZwischenSpeichern
 
 ' in tuBriefStandalone
-Function letzteMed(dc, Pat_ID$, briefNeu%)
+Function letzteMed(dc, Pat_ID$, briefneu%)
  Dim raDat As New ADODB.Recordset, sql$, ZZ&, aktz&, runde%
  On Error GoTo fehler
  sql = "SELECT  MAX(zeitpunkt) AS zp FROM `medplan` WHERE pat_id = " + Pat_ID
 ' raDat.Open sql, DBCn, adOpenDynamic, adLockReadOnly
  myFrag raDat, sql
  If IsNull(raDat!Zp) Then
-  If briefNeu = 0 Then
+  If briefneu = 0 Then
    dc.bookmarks("Therapiedat").Range = vNS
   End If
   Exit Function
@@ -9514,7 +9522,7 @@ Function letzteMed(dc, Pat_ID$, briefNeu%)
  Dim Bemerkung
 ' dc.bookmarks.Add Name:="MedBemerkung", Range:=dc.Range(dc.bookmarks!Therapie.End + 1, dc.bookmarks!Therapie.End + 1)
 ' dc.bookmarks.Add Name:="MedBemerkung", Range:=dc.Range(dc.bookmarks!DMPText.Start, dc.bookmarks!DMPText.Start)
- If briefNeu Then
+ If briefneu Then
   ag.Append "<w:p><w:pPr><w:pStyle w:val=""hang""/></w:pPr><w:r><w:rPr><w:b/><w:rStyle w:val=""s24s""/></w:rPr><w:t>Therapie am</w:t></w:r><w:r><w:rPr><w:rStyle w:val=""s24s""/></w:rPr><w:t>:</w:t><w:tab/><w:t>" & Format$(lTherZP, "dd.mm.yy") & ":</w:t></w:r></w:p>"
 ' Tabellenkopfzeile
   ag.appH "<w:tbl><w:tblPr><w:tblStyle w:val=""Tabellenraster""/><w:tblW w:w=""0"" w:type=""auto""/><w:tblLook w:val=""04A0"" w:firstRow=""1"" w:lastRow=""0"" w:firstColumn=""1"" w:lastColumn=""0"" w:noHBand=""0"" w:noVBand=""1""/></w:tblPr><w:tblGrid><w:gridCol w:w=""4674""/><w:gridCol w:w=""683""/><w:gridCol w:w=""1070""/><w:gridCol w:w=""990""/><w:gridCol w:w=""1057""/><w:gridCol w:w=""710""/><w:gridCol w:w=""670""/></w:tblGrid><w:tr><w:tc><w:tcPr><w:tcW w:w=""0"" w:type=""auto""/></w:tcPr><w:p><w:r><w:rPr><w:b/><w:rStyle w:val=""s24s""/></w:rPr><w:t>Medikament</w:t></w:r></w:p></w:tc><w:tc><w:tcPr><w:tcW w:w=""0"" w:type=""auto""/></w:tcPr><w:p><w:r><w:rPr><w:b/><w:rStyle w:val=""s24s""/></w:rPr><w:t>früh</w:t></w:r></w:p></w:tc><w:tc><w:tcPr><w:tcW w:w=""0"" w:type=""auto""/></w:tcPr><w:p><w:r><w:rPr><w:b/><w:rStyle w:val=""s24s""/></w:rPr><w:t>mittags</w:t></w:r></w:p></w:tc><w:tc><w:tcPr><w:tcW w:w=""0"" w:type=""auto""/>" & _
@@ -9539,7 +9547,7 @@ Function letzteMed(dc, Pat_ID$, briefNeu%)
  myFrag raDat, sql, adOpenStatic
  
  Dim Tabl
- If briefNeu = 0 Then
+ If briefneu = 0 Then
   Set Tabl = dc.Tables.Add(Range:=dc.bookmarks!Therapie.Range, NumRows:=ZZ + 1, NumColumns:=7, _
                DefaultTableBehavior:=wdWord9TableBehavior, AutoFitBehavior:=wdAutoFitContent)
  End If ' briefneu = 0 Then
@@ -9562,14 +9570,14 @@ Function letzteMed(dc, Pat_ID$, briefNeu%)
   End If ' bemerk <> vNS
   Dim Med$, mo$, mi$, nm$, ab$, Zn$, bBed$
   If IsNull(raDat!mmedikament.Value) Then Med = "" Else Med = raDat!mmedikament.Value & bemerk
-  If Asc(Med) = 10 Then Med = Mid$(Med, 1)
+  If Med <> "" Then If Asc(Med) = 10 Then Med = Mid$(Med, 1)
   If IsNull(raDat!mo) Then mo = "" Else mo = REPLACE$(REPLACE$(raDat!mo, "«", "½"), "¬", "¼")
   If IsNull(raDat!mo) Then mi = "" Else mi = REPLACE$(REPLACE$(raDat!mi, "«", "½"), "¬", "¼")
   If IsNull(raDat!mo) Then nm = "" Else nm = REPLACE$(REPLACE$(raDat!nm, "«", "½"), "¬", "¼")
   If IsNull(raDat!mo) Then ab = "" Else ab = REPLACE$(REPLACE$(raDat!ab, "«", "½"), "¬", "¼")
   If IsNull(raDat!mo) Then Zn = "" Else Zn = REPLACE$(REPLACE$(raDat!Zn, "«", "½"), "¬", "¼")
   If raDat!j_bBed = 0 Then bBed = "" Else bBed = "X"
-  If briefNeu <> 0 Then
+  If briefneu <> 0 Then
    ag.Append "<w:tr>"
    ag.Append "<w:tc><w:tcPr><w:tcW w:w=""0"" w:type=""auto""/></w:tcPr>" & IIf(Med = "", "<w:p/>", "<w:p><w:r><w:rPr><w:rStyle w:val=""s24s""/></w:rPr><w:t>" & zsuh(Med) & "</w:t></w:r></w:p>") & "</w:tc>"
    ag.Append "<w:tc><w:tcPr><w:tcW w:w=""0"" w:type=""auto""/></w:tcPr>" & IIf(mo = "", "<w:p/>", "<w:p><w:r><w:rPr><w:rStyle w:val=""s24s""/></w:rPr><w:t>" & mo & "</w:t></w:r></w:p>") & "</w:tc>"
@@ -9591,7 +9599,7 @@ Function letzteMed(dc, Pat_ID$, briefNeu%)
   runde = runde + 1
   raDat.Move 1
  Loop ' While Not raDat.EOF
- If briefNeu = 0 Then
+ If briefneu = 0 Then
   Tabl.cell(1, 1) = "Medikament"
   Tabl.cell(1, 2) = "früh"
   Tabl.cell(1, 3) = "mittags"
@@ -9723,7 +9731,7 @@ End Function ' FlagInit
 ' IF rs.BOF THEN testth = "" ELSE testth = rs.Fields(0)
 'End Function
 
-Sub Epikrise(dc, Pat_ID$, VorDat As Date, lddat As Date, obStumm%, briefNeu%)
+Sub Epikrise(dc, Pat_ID$, VorDat As Date, lddat As Date, obStumm%, briefneu%)
   Dim i%
   On Error GoTo fehler
 '  nzw = vbCr
@@ -10129,7 +10137,7 @@ w2:
    Epi = Epi + nzw
   End If
   
-  If briefNeu Then
+  If briefneu Then
    ag.Append "<w:p><w:r><w:rPr><w:b/><w:rStyle w:val=""s24s""/></w:rPr><w:t>Epikrise</w:t></w:r><w:r><w:rPr><w:rStyle w:val=""s24s""/></w:rPr><w:t>: " & zuh(Epi) & "</w:t></w:r></w:p>"
    Epi = ""
   End If ' briefneu
@@ -10145,7 +10153,7 @@ w2:
    If VorDat <> CDate(0) And flag(flLiph) Then Epi = Epi + "Liphypertrophien als Folge zu häufigen Spritzens in dieselben Stellen sollten wegen der dort ungleichmäßigen Insulinwirkung vermieden werden." + nzw
   End If ' dmtyp <> "-" Then
   
-  If briefNeu Then
+  If briefneu Then
    If Epi <> "" Then
     ag.Append "<w:p><w:r><w:rPr><w:rStyle w:val=""s18s""/></w:rPr><w:t>" & zuh(Epi) & "</w:t></w:r></w:p>"
     Epi = ""
@@ -10174,7 +10182,7 @@ w2:
    End If
   End If ' dmtyp = "g" THEN
   
-  If briefNeu Then
+  If briefneu Then
    If Epi <> "" Then
     ag.Append "<w:p><w:r><w:rPr><w:rStyle w:val=""s24s""/></w:rPr><w:t>" & zuh(Epi) & "</w:t></w:r></w:p>"
     Epi = ""
@@ -10188,7 +10196,7 @@ w2:
    Epi = Epi + Nominat + " nahm bei uns zwischen " + zp1 + " und " + zpl + " an " + CStr(schulz) + " Schulungen teil." + nzw
   End If
   
-  If briefNeu Then
+  If briefneu Then
    If Epi <> "" Then
     ag.Append "<w:p><w:r><w:rPr><w:rStyle w:val=""s24s""/></w:rPr><w:t>" & zuh(Epi) & "</w:t></w:r></w:p>"
     Epi = ""
@@ -10225,7 +10233,7 @@ w2:
   Loop
   If Not rlar.BOF Then Epi = Epi + "." + nzw
   
-  If briefNeu Then
+  If briefneu Then
    If Epi <> "" Then
     ag.Append "<w:p><w:r><w:rPr><w:rStyle w:val=""s18s""/></w:rPr><w:t>" & zuh(Epi) & "</w:t></w:r></w:p>"
     Epi = ""
@@ -10282,7 +10290,7 @@ w2:
    End If
   End If
   
-  If briefNeu Then
+  If briefneu Then
    If Epi <> "" Then
     ag.Append "<w:p><w:r><w:rPr><w:rStyle w:val=""s18s""/></w:rPr><w:t>" & zuh(Epi) & "</w:t></w:r></w:p>"
     Epi = ""
@@ -10319,7 +10327,7 @@ w2:
    Epi = Epi + nzw
   End If ' rsAnam!obMBlAusgeh <> 0 Or Not mbl.BOF Then
   
-  If briefNeu Then
+  If briefneu Then
    If Epi <> "" Then
     ag.Append "<w:p><w:r><w:rPr><w:rStyle w:val=""s24s""/></w:rPr><w:t>" & zuh(Epi) & "</w:t></w:r></w:p>"
     Epi = ""
@@ -10382,7 +10390,7 @@ w2:
    Epi = Epi + "LDL-Zielwert nach Leitlinien: 100 mg/dl (Untergrenze nicht belegbar)." + nzw
   End If
 
-  If briefNeu Then
+  If briefneu Then
    If Epi <> "" Then
     ag.Append "<w:p><w:r><w:rPr><w:rStyle w:val=""s18s""/></w:rPr><w:t>" & zuh(Epi) & "</w:t></w:r></w:p>"
     Epi = ""
@@ -10425,7 +10433,7 @@ w2:
    End If ' AssA Then else
   End If ' keinAss = 0 Then
   
-  If briefNeu Then
+  If briefneu Then
    If Epi <> "" Then
     ag.Append "<w:p><w:r><w:rPr><w:rStyle w:val=""s24s""/></w:rPr><w:t>" & zuh(Epi) & "</w:t></w:r></w:p>"
     Epi = ""
@@ -10502,7 +10510,7 @@ w2:
    Epi = Epi + nzw
   End If ' flag(flNiI) Then
   
-  If briefNeu Then
+  If briefneu Then
    If Epi <> "" Then
     ag.Append "<w:p><w:r><w:rPr><w:rStyle w:val=""s18s""/></w:rPr><w:t>" & zuh(Epi) & "</w:t></w:r></w:p>"
     Epi = ""
@@ -10532,7 +10540,7 @@ keineGFR:
          "FROM termine WHERE DATE(zp)>DATE(NOW()) AND Pid=" & Pat_ID
   Epi = Epi + myFrag(rs, sql1, adOpenUnspecified, Nothing, adLockReadOnly, 1000000).Fields(0)
     
-  If briefNeu Then
+  If briefneu Then
    If Epi <> "" Then
     ag.Append "<w:p><w:r><w:rPr><w:rStyle w:val=""s24s""/></w:rPr><w:t>" & zuh(Epi) & "</w:t></w:r></w:p>"
     Epi = ""
@@ -10632,7 +10640,7 @@ keineGFR:
   If dmtyp <> "-" And dmtyp <> "g" Then Epi = Epi & nzw & "Kontrolluntersuchungen gemäß dem Gesundheitspass Diabetes werden empfohlen." & nzw
   Epi = Epi & nzw
   
-  If briefNeu Then
+  If briefneu Then
    If Epi <> "" Then
     ag.Append "<w:p><w:r><w:rPr><w:rStyle w:val=""s24s""/></w:rPr><w:t>" & zuh(Epi) & "<w:br/><w:br/></w:t></w:r></w:p>"
     Epi = ""
@@ -11978,7 +11986,48 @@ If LVobMySQL Then
 
  Call DtbCreateQueryDef(VN, Vsql)
  vz = vz + 1
-    
+ 
+ sql = "DROP FUNCTION IF EXISTS `zuht`"
+ myEFrag (sql)
+
+' "-- SET buch=CONVERT(MID(ursp,pos,1)USING LATIN1);" & vbCrLf &
+sql = "CREATE DEFINER=`praxis`@`%` FUNCTION `zuht`(" & vbCrLf & _
+"    `ursp` TEXT," & vbCrLf & _
+"    `mitabsatz` BIT," & vbCrLf & _
+"    `obgross` BIT" & vbCrLf & _
+")" & vbCrLf & _
+"RETURNS varchar(10000) CHARSET utf8mb3 COLLATE utf8mb3_unicode_ci" & vbCrLf & _
+"Language sql" & vbCrLf & _
+"DETERMINISTIC" & vbCrLf & _
+"CONTAINS sql" & vbCrLf & _
+"SQL SECURITY DEFINER" & vbCrLf & _
+"Comment 'wandelt Text in Hexadezimal um; zu koordinieren zuh() in ZielDBFunktionen.bas'" & vbCrLf & _
+"Begin" & vbCrLf & _
+"DECLARE erg VARCHAR(10000) DEFAULT '';" & vbCrLf & _
+"DECLARE pos INTEGER(11) DEFAULT 1;" & vbCrLf & _
+"DECLARE buch VARCHAR(1) CHARSET latin1;" & vbCrLf & _
+"DECLARE ASCi INTEGER(2);" & vbCrLf & _
+"DECLARE zul13 BIT;" & vbCrLf & _
+"DECLARE maxp INTEGER(11) DEFAULT LENGTH(ursp);" & vbCrLf & _
+"parse: WHILE pos <= maxp DO" & vbCrLf & _
+" SET buch=MID(ursp,pos,1);" & vbCrLf & _
+" SET ASCi=ASCII(buch);" & vbCrLf & _
+" SET erg=CONCAT(erg,"
+sql = sql & _
+"  CASE" & vbCrLf & _
+"   WHEN ASCI=13 AND pos=maxp then ''" & vbCrLf & _
+"   WHEN ASCi=13 THEN CONCAT('</w:t>',IF(mitabsatz,CONCAT('</w:r></w:p><w:p><w:pPr><w:pStyle w:val=""""hang""""/></w:pPr><w:r><w:rPr><w:rStyle w:val=""""s',IF(obgross,'18','24'),'s""""/></w:rPr>'),'<w:br/>'),'<w:t>')" & vbCrLf & _
+"   WHEN ASCI=10 AND zul13 THEN ''" & vbCrLf & _
+"   WHEN ASCI IN (38,60,62) OR ASCI>=128 THEN CONCAT('&#',ASCI,';')" & vbCrLf & _
+"   Else buch" & vbCrLf & _
+" END);" & vbCrLf & _
+" IF ASCi=13 then SET zul13=1; ELSE SET zul13=0;END IF;" & vbCrLf & _
+" SET pos=pos+1;" & vbCrLf & _
+"END WHILE;" & vbCrLf & _
+"RETURN erg;" & vbCrLf & _
+"End"
+ myEFrag (sql)
+
     sql = "DROP FUNCTION IF EXISTS `qanf`"
     myEFrag (sql)
     sql = "CREATE DEFINER=`praxis`@`%` FUNCTION `qanf`() RETURNS DATE" & Chr$(13) & _
@@ -14710,12 +14759,12 @@ Function LabKopf(breite$, Inh$, Optional bookm$, Optional bookid$, Optional zeil
 End Function ' LabKopf(breite$, inh$)
 
 #If True Then
-Sub LaborIns1(ByRef dc As Object, Pat_ID$, nurLabor%, briefNeu%) ' nur in tuBriefStandalone
+Sub LaborIns1(ByRef dc As Object, Pat_ID$, nurLabor%, briefneu%) ' nur in tuBriefStandalone
  Dim SelbstStatus%, raDatBOF%
  Dim Matr$(), MForm%(), mBreiten$(), DiffBr%, i&, j&, k&, im&
  
  On Error GoTo fehler
- Call LaborInsPLZ(Pat_ID, SelbstStatus, raDatBOF, Matr, MForm, mBreiten, briefNeu)
+ Call LaborInsPLZ(Pat_ID, SelbstStatus, raDatBOF, Matr, MForm, mBreiten, briefneu)
  
  Const maxbreite% = 14
  DiffBr = 0
@@ -14778,13 +14827,13 @@ Sub LaborIns1(ByRef dc As Object, Pat_ID$, nurLabor%, briefNeu%) ' nur in tuBrie
  Dim LaborÜS$
  Select Case SelbstStatus
   Case 0, 3
-   LaborÜS = "Laborwerte (" & IIf(briefNeu, "</w:t></w:r><w:r><w:rPr><w:i/><w:iCs/><w:sz w:val=""24""/></w:rPr><w:t>", "") & "kursiv = nicht bei uns bestimmt, von Hand eingetragen" & IIf(briefNeu, "</w:t></w:r><w:r><w:rPr><w:sz w:val=""24""/></w:rPr><w:t>):", "")
+   LaborÜS = "Laborwerte (" & IIf(briefneu, "</w:t></w:r><w:r><w:rPr><w:i/><w:iCs/><w:sz w:val=""24""/></w:rPr><w:t>", "") & "kursiv = nicht bei uns bestimmt, von Hand eingetragen" & IIf(briefneu, "</w:t></w:r><w:r><w:rPr><w:sz w:val=""24""/></w:rPr><w:t>):", ")")
   Case 1
    LaborÜS = "Laborbefunde (nur mitgeteilte, woanders bestimmte Werte):"
   Case 2
    LaborÜS = "Bei uns erhobene Laborbefunde:"
  End Select
- If briefNeu Then
+ If briefneu Then
   ag.Append "<w:p><w:r><w:rPr><w:sz w:val=""24""/></w:rPr><w:br w:type=""column""/></w:r><w:r><w:rPr><w:sz w:val=""24""/></w:rPr><w:lastRenderedPageBreak/><w:t>" & LaborÜS & "</w:t></w:r></w:p>"
  Else ' briefNeu Then
   dc.bookmarks("LaborÜS").Range = LaborÜS
@@ -14800,7 +14849,7 @@ Sub LaborIns1(ByRef dc As Object, Pat_ID$, nurLabor%, briefNeu%) ' nur in tuBrie
  End If
  syscmd 4, "Labor (2) nach Überschrift"
  
- If briefNeu Then
+ If briefneu Then
  ' Tabellenanfang
 '   ag.Append "<w:tbl><w:tblPr><w:tblStyle w:val=""Tabellenraster""/><w:tblW w:w=""10771"" w:type=""dxa""/><w:tblInd w:w=""-1134"" w:type=""dxa""/><w:tblLayout w:type=""fixed""/><w:tblCellMar><w:top w:w=""0"" w:type=""dxa""/><w:left w:w=""57"" w:type=""dxa""/><w:bottom w:w=""0"" w:type=""dxa""/><w:right w:w=""57"" w:type=""dxa""/></w:tblCellMar><w:tblLook w:val=""05E0"" w:firstRow=""1"" w:lastRow=""1"" w:firstColumn=""1"" w:lastColumn=""1"" w:noHBand=""0"" w:noVBand=""1""/></w:tblPr>"
 '   ag.Append "<w:tblGrid><w:gridCol w:w=""1568""/><w:gridCol w:w=""694""/><w:gridCol w:w=""844""/><w:gridCol w:w=""547""/><w:gridCol w:w=""548""/><w:gridCol w:w=""547""/><w:gridCol w:w=""548""/><w:gridCol w:w=""547""/><w:gridCol w:w=""548""/><w:gridCol w:w=""547""/><w:gridCol w:w=""547""/><w:gridCol w:w=""548""/><w:gridCol w:w=""548""/><w:gridCol w:w=""547""/><w:gridCol w:w=""547""/><w:gridCol w:w=""547""/><w:gridCol w:w=""549""/></w:tblGrid>"
@@ -14837,7 +14886,7 @@ Sub LaborIns1(ByRef dc As Object, Pat_ID$, nurLabor%, briefNeu%) ' nur in tuBrie
  End If ' briefNeu Then Else
 ' ZZ+1 ; rz+3
  If UBound(Matr, 3) - gelZeilen + 1 > 0 Then
-  If briefNeu = 0 Then
+  If briefneu = 0 Then
    Set Tabl = dc.Tables.Add(Range:=dc.bookmarks!laborTab.Range, NumRows:=UBound(Matr, 3) - gelZeilen + 1, NumColumns:=UBound(Matr, 2) - 2 - DiffBr, _
                DefaultTableBehavior:=wdWord9TableBehavior, AutoFitBehavior:=wdAutoFitContent)
    dc.bookmarks.Add name:="LaborZusatz", Range:=dc.Range(Tabl.Range.END, Tabl.Range.END)
@@ -14846,9 +14895,8 @@ Sub LaborIns1(ByRef dc As Object, Pat_ID$, nurLabor%, briefNeu%) ' nur in tuBrie
  If LenB(ZusText) > 2 Then
   ZusText = Left$(ZusText, Len(ZusText) - 2)
   ZusText = "Vor dem " & Matr2(0, 6, 0) & " wurden noch bestimmt: " & ZusText
-  If briefNeu Then
-   ag.Append "<w:p><w:pPr><w:pStyle w:val=""Normal""/><w:ind w:hanging=""0"" w:left=""-1077"" w:right=""0""/></w:pPr><w:r><w:rPr><w:sz w:val=""18""/></w:rPr><w:br/><w:t>" & zsuh(ZusText) & "</w:t></w:r>"
-   Exit Sub
+  If briefneu Then
+   ag.Append "<w:p><w:pPr><w:pStyle w:val=""Normal""/><w:ind w:hanging=""0"" w:left=""-1077"" w:right=""0""/></w:pPr><w:r><w:rPr><w:sz w:val=""18""/></w:rPr><w:br/><w:t>" & zsuh(ZusText) & "</w:t></w:r></w:p>"
   Else
    dc.bookmarks!LaborZusatz.Range = ZusText
    dc.Range(dc.bookmarks("LaborZusatz").Range.paragraphs(1).Range.Start, dc.bookmarks("LaborZusatz").Range.paragraphs(1).Range.END).Font.size = 9
@@ -14857,8 +14905,11 @@ Sub LaborIns1(ByRef dc As Object, Pat_ID$, nurLabor%, briefNeu%) ' nur in tuBrie
     .FirstLineIndent = CentimetersToPoints(0)
    End With
   End If ' briefNeu
+ Else
+   ag.Append "<w:p><w:pPr><w:pStyle w:val=""Normal""/><w:ind w:hanging=""0"" w:left=""-1077"" w:right=""0""/></w:pPr><w:r><w:rPr><w:sz w:val=""24""/></w:rPr><w:br/></w:r></w:p>"
  End If
  syscmd 4, "Labor (2) nach Tabellen-Addition"
+ If briefneu Then Exit Sub
  
  dc.bookmarks.Add name:="DMP", Range:=dc.Range(Tabl.Range.END, dc.bookmarks!DMP.Range.END)
  syscmd 4, "Labor (2) nach DMP-Markenlöschung"
@@ -15972,28 +16023,46 @@ End Sub ' Tabelle
 'End FUNCTION ' Verlauf$(Pat_id&)
 
 ' in tuBriefStandalone, einzeintr und (auskommentiert) machWertString
-Function kkeintraege$(Pat_ID$, krit$, Optional VorDat As Date)
+' bn = briefneu
+Function kkeintraege$(Pat_ID$, krit$, bn%, Optional VorDat As Date, Optional fett$, Optional obgross%)
 ' #Const obAlte = True
  Dim raVL As New ADODB.Recordset, lzp As Date, aktdat As Date
+ Dim sq1$, sq2$, sqg$
  On Error GoTo fehler
 ' Call dtbInit
  Select Case LCase$(krit)
   Case """rr"""
 '   SET raVL = Dtb.OpenRecordset("SELECT zeitpunkt,rr AS inhalt FROM `" + QMdbAkt + "`.rr WHERE pat_id = " & pat_id + " ORDER BY zeitpunkt")
 '   raVL.Open "SELECT zeitpunkt,""rr"" art, IF(ISNULL(bemerkung) OR bemerkung='',rr,CONCAT(rr,' (',bemerkung,')')) inhalt FROM rr WHERE pat_id = " & Pat_id + " ORDER BY zeitpunkt", DBCn, adOpenDynamic, adLockReadOnly
-   myFrag raVL, "SELECT zeitpunkt,""rr"" art, REPLACE(REPLACE(IF(ISNULL(bemerkung) OR bemerkung='' OR bemerkung=rr,rr,CONCAT(rr,' (',bemerkung,')')),'\n',' '),'\r',' ') inhalt FROM rr WHERE pat_id = " & Pat_ID + " ORDER BY zeitpunkt"
+   sqg = "SELECT zeitpunkt,""rr"" art," & IIf(bn, "zuht(", "") & "REPLACE(REPLACE(IF(ISNULL(bemerkung) OR bemerkung='' OR bemerkung=rr,rr,CONCAT(rr,' (',bemerkung,')')),'\n',' '),'\r',' ')" & IIf(bn, ",0," & IIf(obgross, "1", "0") & ")", "") & " inhalt FROM rr WHERE pat_id = " & Pat_ID + " ORDER BY zeitpunkt"
   Case """rr"",""puls"""
 '   raVL.Open "SELECT * FROM (SELECT zeitpunkt, 'rr' art, IF(ISNULL(bemerkung) OR bemerkung='',rr, CONCAT(rr,' (',bemerkung,')')) inhalt FROM rr WHERE pat_id = " & Pat_id & " UNION SELECT zeitpunkt,art,inhalt FROM `eintraege` WHERE pat_id = " & Pat_id & " AND art IN (""rr"",""puls"")) innen ORDER BY zeitpunkt", DBCn, adOpenDynamic, adLockReadOnly
-   myFrag raVL, "SELECT * FROM (SELECT zeitpunkt, 'rr' art, REPLACE(REPLACE(IF(ISNULL(bemerkung) OR bemerkung='' OR bemerkung=rr,rr, CONCAT(rr,' (',bemerkung,')')),'\n',' '),'\r',' ') inhalt FROM rr WHERE pat_id = " & Pat_ID & " UNION SELECT zeitpunkt,art,inhalt FROM `eintraege` WHERE pat_id = " & Pat_ID & " AND art IN (""rr"",""puls"")) innen ORDER BY zeitpunkt"
-Case Else
+   sqg = "SELECT * FROM (SELECT zeitpunkt, 'rr' art," & IIf(bn, "zuht(", "") & "REPLACE(REPLACE(IF(ISNULL(bemerkung) OR bemerkung='' OR bemerkung=rr,rr, CONCAT(rr,' (',bemerkung,')')),'\n',' '),'\r',' ')" & IIf(bn, ",0," & IIf(obgross, "1", "0") & ")", "") & " inhalt FROM rr WHERE pat_id = " & Pat_ID & " UNION SELECT zeitpunkt,art," & IIf(bn, "zuht(", "") & "inhalt" & IIf(bn, ",0," & IIf(obgross, "1", "0") & ")", "") & " inhalt FROM `eintraege` WHERE pat_id = " & Pat_ID & " AND art IN (""rr"",""puls""))i ORDER BY zeitpunkt"
+  Case Else
 '   SET raVL = Dtb.OpenRecordset("SELECT zeitpunkt,inhalt,art FROM `" + QMdbAkt + "`.`eintraege` WHERE pat_id = " & pat_id + " AND art IN (" & Krit & ") ORDER BY zeitpunkt")
-If VorDat Then ' #If Not obAlte Then
+   If fett = "" Then
+    sq1 = "SELECT zeitpunkt," & IIf(bn, "zuht(", "") & "REPLACE(REPLACE(REPLACE(inhalt,'\n',' '),'\r',' '),'\t',' ')" & IIf(bn, ",0," & IIf(obgross, "1", "0") & ")", "") & " inhalt," & IIf(bn, "zuht(", "") & "art" & IIf(bn, ",0," & IIf(obgross, "1", "0") & ")", "") & " art FROM `eintraege` WHERE pat_id = " & Pat_ID & " AND art IN (" & krit & ")"
+   Else
+' " & IIf(bn, "zuht(", "") & "
+' " & IIf(bn, ",0," & IIf(obgross, "1", "0") & ")", "") & "
+    sq1 = "SELECT zeitpunkt,REPLACE(REPLACE(REPLACE(IF(inhalt RLIKE '^(" & fett & "):'," & vbCrLf & _
+    "CONCAT('</w:t><w:rPr><w:rStyle w:val=""s24s""/><w:b/><w:bCs/></w:rPr><w:t>'," & vbCrLf & _
+    IIf(bn, "zuht(", "") & "MID(inhalt,1,INSTR(inhalt,':')-1)" & IIf(bn, ",0," & IIf(obgross, "1", "0") & ")", "") & "," & vbCrLf & _
+    "'</w:t></w:r><w:r><w:rPr><w:rStyle w:val=""s24s""/><w:b w:val=""false""/><w:bCs w:val=""false""/></w:rPr><w:t>'," & vbCrLf & _
+    IIf(bn, "zuht(", "") & "MID(inhalt,INSTR(inhalt,':'))" & IIf(bn, ",0," & IIf(obgross, "1", "0") & ")", "") & vbCrLf & _
+    ")," & IIf(bn, "zuht(", "") & "inhalt" & IIf(bn, ",0," & IIf(obgross, "1", "0") & ")", "") & "),'\n',' '),'\r',' '),'\t',' ')inhalt," & vbCrLf & _
+    IIf(bn, "zuht(", "") & "art" & IIf(bn, ",0," & IIf(obgross, "1", "0") & ")", "") & " art" & vbCrLf & _
+    "FROM `eintraege` WHERE pat_id = " & Pat_ID & " AND art IN (" & krit & ")"
+   End If ' fett = "" else
+   sq2 = IIf(InStrB(krit, "'rr'") <> 0, " UNION SELECT zeitpunkt," & IIf(bn, "zuht(", "") & "rr" & IIf(bn, ",0," & IIf(obgross, "1", "0") & ")", "") & " rr, 'rr' art FROM rr WHERE pat_id = " & Pat_ID, "") & " ORDER BY zeitpunkt"
+   If VorDat Then ' #If Not obAlte Then
 '   raVL.Open "SELECT zeitpunkt,inhalt,art FROM `eintraege` WHERE pat_id = " & Pat_id + " AND art IN (" & krit & ") AND zeitpunkt > " & DatFor_k(VorDat) & " ORDER BY zeitpunkt", DBCn, adOpenDynamic, adLockReadOnly
-   myFrag raVL, "SELECT zeitpunkt,REPLACE(REPLACE(REPLACE(inhalt,'\n',' '),'\r',' '),'\t',' ') inhalt,art FROM `eintraege` WHERE pat_id = " & Pat_ID & " AND art IN (" & krit & ") AND zeitpunkt > " & DatFor_k(VorDat) & IIf(InStrB(krit, "'rr'") <> 0, " UNION SELECT zeitpunkt, rr, 'rr' art FROM rr WHERE pat_id = " & Pat_ID + " AND zeitpunkt  > " & DatFor_k(VorDat), "") & " ORDER BY zeitpunkt"
-Else ' #Else ' if Vordat
-   myFrag raVL, "SELECT zeitpunkt,REPLACE(REPLACE(REPLACE(inhalt,'\n',' '),'\r',' '),'\t',' ') inhalt,art FROM `eintraege` WHERE pat_id = " & Pat_ID & " AND art IN (" & krit & ")" & IIf(InStrB(krit, "'rr'") <> 0, " UNION SELECT zeitpunkt, rr, 'rr' art FROM rr WHERE pat_id = " & Pat_ID, "") & " ORDER BY zeitpunkt"
-End If ' #End If ' if Vordat else
- End Select
+    sqg = sq1 & " AND zeitpunkt > " & DatFor_k(VorDat) & sq2
+   Else ' #Else ' if Vordat
+    sqg = sq1 & sq2
+   End If ' #End If ' if Vordat else
+ End Select ' LCase$(krit)
+ myFrag raVL, sqg
  Do While Not raVL.EOF
   Dim art$, Inhalt$, Zp$, Übs$
   art = raVL!art
@@ -16045,7 +16114,7 @@ Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "Last
  Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
  Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
 End Select
-End Function ' kkeintraege$(Pat_id&, Krit$)
+End Function ' kkeintraege
 
 'Function haakt() ' Hausärzte aus dem Internet ergänzen (Knopf)
 ' Dim rHa AS DAO.Recordset, geht%
