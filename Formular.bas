@@ -7805,9 +7805,11 @@ Public Function PKennz$(ByRef abz$, Optional reset%)
 #End If ' ohneIDs
 End Function ' Function PKennz
 
+' in tubriefStandalone
 Sub Dzus(ByRef Ds() As CString, DSneu As CString)
  Dim i%
- For i = 0 To UBound(Ds) - 1
+ DSneu.Clear
+ For i = 0 To UBound(Ds)
   DSneu.AppVar Array("<w:t>", Ds(i), "</w:t><w:br/>")
  Next i
 End Sub ' Dzus
@@ -7921,10 +7923,9 @@ Public Sub tuBriefStandalone(pid&, obStumm%, Optional Zielverz$, Optional Verfas
  bhb = rsNa!bhb
  behs = rsNa!behs
 ' G1Name = rsNa!G1Name
- myFrag raAn, "SELECT COALESCE(GesName(Pat_id),'') GesName, REPLACE(gesnameg(" & Pat_ID & "),'*','geb.') gg, COALESCE(`diabetes seit`,0) dmseit FROM `anamnesebogen` a WHERE pat_id = " & Pat_ID, adOpenStatic
- Dim gesName$, gesnameg$, dmseit$
+ myFrag raAn, "SELECT COALESCE(GesName(Pat_id),'') GesName, COALESCE(`diabetes seit`,0) dmseit FROM `anamnesebogen` a WHERE pat_id = " & Pat_ID, adOpenStatic
+ Dim gesName$, dmseit$
  gesName = raAn!gesName
- gesnameg = raAn!gg
  dmseit = raAn!dmseit
  syscmd acSysCmdSetStatus, "Erstelle Brief für " & gesName & ": 1) Hausarzt ..."
 ' Dim rFa() As Faelle ' auskommentiert 28.4.25
@@ -7944,9 +7945,6 @@ Public Sub tuBriefStandalone(pid&, obStumm%, Optional Zielverz$, Optional Verfas
  syscmd acSysCmdSetStatus, "Erstelle Brief für " & gesName & ": 2) Diagnosen..."
  Dim DiagTab() As CString, DString$
  DString = DiagString(Pat_ID, DiagTab, VorDat, obBrief:=True, dmseit:=dmseit)
- Dim DSneu As New CString
- DSneu.Clear
- Dzus DiagTab, DSneu
  
      Dim raFa As New ADODB.Recordset
      Dim lddat As Date
@@ -8010,6 +8008,28 @@ Public Sub tuBriefStandalone(pid&, obStumm%, Optional Zielverz$, Optional Verfas
    docid = docid & Right$("0000000" & Hex(Rnd * (16 ^ 7 - 1)), 4)
    oSh.rUn "powershell ""$dt=\""" & zvz & "word\settings.xml\"";$repl='${1}'+'" & docid & "'+'$2';$qla='(.*{)[0-9A-F-]*(}.*)';(get-content -path $dt) -replace $qla,$repl|set-content -path $dt;""", 0, True
   
+  #If spaeter Then
+   ag.Clear
+   ag.Append "<w:hdr xmlns:o=""urn:schemas-microsoft-com:office:office"" xmlns:r=""http://schemas.openxmlformats.org/officeDocument/2006/relationships"" xmlns:v=""urn:schemas-microsoft-com:vml"" xmlns:w=""http://schemas.openxmlformats.org/wordprocessingml/2006/main"" xmlns:w10=""urn:schemas-microsoft-com:office:word"" xmlns:wp=""http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing"" xmlns:pic=""http://schemas.openxmlformats.org/drawingml/2006/picture"" xmlns:wps=""" & smc & "office/word/2010/wordprocessingShape"" xmlns:wpg=""" & smc & "office/word/2010/wordprocessingGroup"" xmlns:mc=""http://schemas.openxmlformats.org/markup-compatibility/2006"" xmlns:wp14=""" & smc & "office/word/2010/wordprocessingDrawing"" xmlns:w14=""" & smc & "office/word/2010/wordml"" xmlns:w15=""" & smc & "office/word/2012/wordml"" mc:Ignorable=""w14 wp14 w15"">"
+   '  & Format(Now(), "d.m.YY")
+   ag.Append "" & _
+"<w:p><w:pPr><w:pStyle w:val=""Header""/><w:rPr/></w:pPr><w:r><w:rPr><w:sz w:val=""16""/><w:szCs w:val=""16""/></w:rPr><w:t>Arztbrief zu " & zuh(GName) & ", vom " & "</w:t>" & _
+"</w:r><w:r><w:rPr/><w:fldChar w:fldCharType=""begin""/></w:r><w:r><w:rPr/><w:instrText xml:space=""preserve""> SAVEDATE \@""dd.MM.yy"" </w:instrText></w:r>" & _
+"<w:r><w:rPr/><w:fldChar w:fldCharType=""separate""/></w:r><w:r><w:rPr/><w:t>04.09.25</w:t></w:r><w:r><w:rPr/><w:fldChar w:fldCharType=""end""/></w:r><w:r><w:rPr/><w:tab/><w:t>-</w:t></w:r>" & _
+"<w:r><w:rPr><w:sz w:val=""16""/><w:szCs w:val=""16""/></w:rPr><w:t xml:space=""preserve"">Seite </w:t></w:r><w:r><w:rPr><w:rStyle w:val=""PageNumber""/><w:sz w:val=""16""/><w:szCs w:val=""16""/></w:rPr>" & _
+"<w:fldChar w:fldCharType=""begin""/></w:r><w:r><w:rPr><w:rStyle w:val=""PageNumber""/><w:sz w:val=""16""/><w:szCs w:val=""16""/></w:rPr><w:instrText xml:space=""preserve""> PAGE </w:instrText></w:r>" & _
+"<w:r><w:rPr><w:rStyle w:val=""PageNumber""/>" & _
+"<w:sz w:val=""16""/><w:szCs w:val=""16""/></w:rPr><w:fldChar w:fldCharType=""separate""/></w:r><w:r><w:rPr><w:rStyle w:val=""PageNumber""/><w:sz w:val=""16""/><w:szCs w:val=""16""/></w:rPr><w:t>5</w:t></w:r>" & _
+"<w:r><w:rPr><w:rStyle w:val=""PageNumber""/><w:sz w:val=""16""/><w:szCs w:val=""16""/></w:rPr><w:fldChar w:fldCharType=""end""/></w:r><w:r><w:rPr><w:rStyle w:val=""PageNumber""/><w:sz w:val=""16""/>" & _
+"<w:szCs w:val=""16""/></w:rPr><w:t>/</w:t></w:r><w:r><w:rPr><w:rStyle w:val=""PageNumber""/><w:sz w:val=""16""/><w:szCs w:val=""16""/></w:rPr><w:fldChar w:fldCharType=""begin""/></w:r><w:r><w:rPr>" & _
+"<w:rStyle w:val=""PageNumber""/><w:sz w:val=""16""/><w:szCs w:val=""16""/><w:rFonts w:cs=""Arial"" w:ascii=""Arial"" w:hAnsi=""Arial""/></w:rPr><w:instrText xml:space=""preserve""> NUMPAGES \* ARABIC </w:instrText></w:r>" & _
+"<w:r><w:rPr><w:rStyle w:val=""PageNumber""/><w:sz w:val=""16""/><w:szCs w:val=""16""/><w:rFonts w:cs=""Arial"" w:ascii=""Arial"" w:hAnsi=""Arial""/></w:rPr><w:fldChar w:fldCharType=""separate""/></w:r>" & _
+"<w:r><w:rPr><w:rStyle w:val=""PageNumber""/><w:sz w:val=""16""/><w:szCs w:val=""16""/><w:rFonts w:cs=""Arial"" w:ascii=""Arial"" w:hAnsi=""Arial""/></w:rPr><w:t>5</w:t></w:r><w:r><w:rPr><w:rStyle w:val=""PageNumber""/><w:sz w:val=""16""/><w:szCs w:val=""16""/><w:rFonts w:cs=""Arial"" w:ascii=""Arial"" w:hAnsi=""Arial""/></w:rPr><w:fldChar w:fldCharType=""end""/></w:r><w:r><w:rPr><w:rStyle w:val=""PageNumber""/><w:rFonts w:cs=""Arial"" w:ascii=""Arial"" w:hAnsi=""Arial""/><w:sz w:val=""16""/><w:szCs w:val=""16""/></w:rPr><w:t>-</w:t></w:r></w:p><w:p><w:pPr><w:pStyle w:val=""Header""/><w:rPr><w:rStyle w:val=""PageNumber""/><w:rFonts w:ascii=""Arial"" w:hAnsi=""Arial"" w:cs=""Arial""/><w:sz w:val=""16""/><w:szCs w:val=""16""/></w:rPr></w:pPr><w:r><w:rPr/></w:r></w:p></w:hdr>"
+   Open zvz & "word\header1.xml" For Output As #51
+   Print #51, ag.Value ' zuh(zsuh(ag.Value))
+   Close #51
+   #End If
+   
    donr = Right$("00000000" & Hex(ReadFile(dzahl)), 8)
    Open zvz & "word\header1.xml" For Output As #51
    Print #51, header1 & donr & header2 & zuh(GName) & header3 & Format(Now(), "dd.mm.yy") & header4 & donr & header5
@@ -8062,7 +8082,8 @@ Public Sub tuBriefStandalone(pid&, obStumm%, Optional Zielverz$, Optional Verfas
 ' Einleitung: zuh(replace$(GName, ", *", ", geb. ")), dieder, behd
    ag.appH PKennz("<w:p><w:pPr><w:spacing w:before=""120""/><w:pStyle w:val=""sp24s""/></w:pPr><w:r><w:t>besten Dank für die freundliche Überweisung von </w:t></w:r><w:r><w:rPr><w:b/></w:rPr><w:t>" & zuh(REPLACE$(GName, ", *", ", geb. ")) & ",</w:t></w:r><w:r><w:t> " & dieder & " sich </w:t></w:r><w:bookmarkStart w:id=""14"" w:name=""Zeitraum""/><w:r><w:t>" & behs & "</w:t></w:r><w:bookmarkEnd w:id=""14""/><w:r><w:t> bei uns vorstellte.</w:t><w:br/></w:r></w:p>", False)
    ag.appH PKennz("<w:p><w:pPr><w:pStyle w:val=""sp24s""/><w:tabs><w:tab w:val=""left"" w:pos=""7938""/></w:tabs><w:pStyle w:val=""hang""/></w:pPr><w:bookmarkStart w:id=""15"" w:name=""Kompr""/><w:r><w:rStyle w:val=""s24s""/><w:rPr><w:b/><w:u w:val=""single""/></w:rPr><w:t>Diagnosen</w:t></w:r><w:r><w:t>:</w:t><w:tab/></w:r></w:p>", False)
-' DSneu (Diagnosen)
+   Dim DSneu As New CString
+   Call Dzus(DiagTab, DSneu)
    ag.appH PKennz("<w:p><w:pPr><w:tabs><w:tab w:val=""left"" w:pos=""7938""/></w:tabs><w:pStyle w:val=""sp24s""/></w:pPr><w:r>" & DSneu.Value & "</w:r></w:p>", False)
    syscmd acSysCmdSetStatus, "Erstelle Brief für " & gesName & ": 4a) Anamnese..."
    If VorDat <= bhb Then
@@ -8619,25 +8640,6 @@ On Error GoTo fehler
    Open zvz & "word\document.xml" For Output As #51
    Print #51, ag.Value ' zuh(zsuh(ag.Value))
 '   Print #51, ConvertToUTF8(ag.Value)
-   Close #51
-   ag.Clear
-   ag.Append "<w:hdr xmlns:o=""urn:schemas-microsoft-com:office:office"" xmlns:r=""http://schemas.openxmlformats.org/officeDocument/2006/relationships"" xmlns:v=""urn:schemas-microsoft-com:vml"" xmlns:w=""http://schemas.openxmlformats.org/wordprocessingml/2006/main"" xmlns:w10=""urn:schemas-microsoft-com:office:word"" xmlns:wp=""http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing"" xmlns:pic=""http://schemas.openxmlformats.org/drawingml/2006/picture"" xmlns:wps=""" & smc & "office/word/2010/wordprocessingShape"" xmlns:wpg=""" & smc & "office/word/2010/wordprocessingGroup"" xmlns:mc=""http://schemas.openxmlformats.org/markup-compatibility/2006"" xmlns:wp14=""" & smc & "office/word/2010/wordprocessingDrawing"" xmlns:w14=""" & smc & "office/word/2010/wordml"" xmlns:w15=""" & smc & "office/word/2012/wordml"" mc:Ignorable=""w14 wp14 w15"">"
-   '  & Format(Now(), "d.m.YY")
-   ag.Append "" & _
-"<w:p><w:pPr><w:pStyle w:val=""Header""/><w:rPr/></w:pPr><w:r><w:rPr><w:sz w:val=""16""/><w:szCs w:val=""16""/></w:rPr><w:t>Arztbrief zu " & gesnameg & ", vom " & "</w:t>" & _
-"</w:r><w:r><w:rPr/><w:fldChar w:fldCharType=""begin""/></w:r><w:r><w:rPr/><w:instrText xml:space=""preserve""> SAVEDATE \@""dd.MM.yy"" </w:instrText></w:r>" & _
-"<w:r><w:rPr/><w:fldChar w:fldCharType=""separate""/></w:r><w:r><w:rPr/><w:t>04.09.25</w:t></w:r><w:r><w:rPr/><w:fldChar w:fldCharType=""end""/></w:r><w:r><w:rPr/><w:tab/><w:t>-</w:t></w:r>" & _
-"<w:r><w:rPr><w:sz w:val=""16""/><w:szCs w:val=""16""/></w:rPr><w:t xml:space=""preserve"">Seite </w:t></w:r><w:r><w:rPr><w:rStyle w:val=""PageNumber""/><w:sz w:val=""16""/><w:szCs w:val=""16""/></w:rPr>" & _
-"<w:fldChar w:fldCharType=""begin""/></w:r><w:r><w:rPr><w:rStyle w:val=""PageNumber""/><w:sz w:val=""16""/><w:szCs w:val=""16""/></w:rPr><w:instrText xml:space=""preserve""> PAGE </w:instrText></w:r>" & _
-"<w:r><w:rPr><w:rStyle w:val=""PageNumber""/>" & _
-"<w:sz w:val=""16""/><w:szCs w:val=""16""/></w:rPr><w:fldChar w:fldCharType=""separate""/></w:r><w:r><w:rPr><w:rStyle w:val=""PageNumber""/><w:sz w:val=""16""/><w:szCs w:val=""16""/></w:rPr><w:t>5</w:t></w:r>" & _
-"<w:r><w:rPr><w:rStyle w:val=""PageNumber""/><w:sz w:val=""16""/><w:szCs w:val=""16""/></w:rPr><w:fldChar w:fldCharType=""end""/></w:r><w:r><w:rPr><w:rStyle w:val=""PageNumber""/><w:sz w:val=""16""/>" & _
-"<w:szCs w:val=""16""/></w:rPr><w:t>/</w:t></w:r><w:r><w:rPr><w:rStyle w:val=""PageNumber""/><w:sz w:val=""16""/><w:szCs w:val=""16""/></w:rPr><w:fldChar w:fldCharType=""begin""/></w:r><w:r><w:rPr>" & _
-"<w:rStyle w:val=""PageNumber""/><w:sz w:val=""16""/><w:szCs w:val=""16""/><w:rFonts w:cs=""Arial"" w:ascii=""Arial"" w:hAnsi=""Arial""/></w:rPr><w:instrText xml:space=""preserve""> NUMPAGES \* ARABIC </w:instrText></w:r>" & _
-"<w:r><w:rPr><w:rStyle w:val=""PageNumber""/><w:sz w:val=""16""/><w:szCs w:val=""16""/><w:rFonts w:cs=""Arial"" w:ascii=""Arial"" w:hAnsi=""Arial""/></w:rPr><w:fldChar w:fldCharType=""separate""/></w:r>" & _
-"<w:r><w:rPr><w:rStyle w:val=""PageNumber""/><w:sz w:val=""16""/><w:szCs w:val=""16""/><w:rFonts w:cs=""Arial"" w:ascii=""Arial"" w:hAnsi=""Arial""/></w:rPr><w:t>5</w:t></w:r><w:r><w:rPr><w:rStyle w:val=""PageNumber""/><w:sz w:val=""16""/><w:szCs w:val=""16""/><w:rFonts w:cs=""Arial"" w:ascii=""Arial"" w:hAnsi=""Arial""/></w:rPr><w:fldChar w:fldCharType=""end""/></w:r><w:r><w:rPr><w:rStyle w:val=""PageNumber""/><w:rFonts w:cs=""Arial"" w:ascii=""Arial"" w:hAnsi=""Arial""/><w:sz w:val=""16""/><w:szCs w:val=""16""/></w:rPr><w:t>-</w:t></w:r></w:p><w:p><w:pPr><w:pStyle w:val=""Header""/><w:rPr><w:rStyle w:val=""PageNumber""/><w:rFonts w:ascii=""Arial"" w:hAnsi=""Arial"" w:cs=""Arial""/><w:sz w:val=""16""/><w:szCs w:val=""16""/></w:rPr></w:pPr><w:r><w:rPr/></w:r></w:p></w:hdr>"
-   Open zvz & "word\header1.xml" For Output As #51
-   Print #51, ag.Value ' zuh(zsuh(ag.Value))
    Close #51
    ag.Clear
    
@@ -10592,22 +10594,12 @@ keineGFR:
   Dim rKh As New ADODB.Recordset
 '  SET rKH = TabÖff("KHEinweis", "Auswahl")
 '  rKh.Open "SELECT * FROM kheinweis WHERE pat_id = " & Pat_id, DBCn, adOpenDynamic, adLockReadOnly
-  myFrag rKh, "SELECT * FROM kheinweis WHERE pat_id = " & Pat_ID
+  myFrag rKh, "SELECT GROUP_CONCAT(CONCAT(DATE_FORMAT(zeitpunkt,'%e.%c.%y'),': Ziel: ',ziel,', Diagnose: ',Diagnose,', Fgst.: ',FraStel)  ORDER BY zeitpunkt SEPARATOR ', ' ) ges FROM kheinweis WHERE pat_id= " & Pat_ID
 '  rKH.Seek "=", Pat_ID
   If Not rKh.BOF Then
-   obkomma = 0
-   Do While Not rKh.EOF
-    If rKh!Pat_ID <> CLng(Pat_ID) Then Exit Do
-    If rKh!Zeitpunkt > VorDat Then
-     If Not obkomma Then Epi = Epi + "Folgende Einweisungen wurden von mir ausgestellt: "
-     If obkomma Then Epi = Epi + ", "
-     Epi = Epi + Format$(rKh!Zeitpunkt, "dd/mm/yy") & " " & IIf(InStrB(rKh!Ziel, "einweisung") = 0, rKh!Ziel + " ", "") + _
-           IIf(IsNull(rKh!Diagnose), vNS, "(" + rKh!Diagnose + ")")
-     obkomma = -1
-    End If ' rkh!ZeitPunkt > VorDat THEN
-    rKh.Move 1
-   Loop
-   If obkomma Then Epi = Epi + nzw
+   If Not IsNull(rKh!ges) Then
+    Epi = Epi & "Folgende Einweisungen wurden von mir ausgestellt: " & rKh!ges & nzw
+   End If
   End If ' Not rkh.NoMatch THEN
   
   Dim rAu As New ADODB.Recordset
@@ -10619,7 +10611,6 @@ keineGFR:
    obkomma = 0
    Do
     If rAu.EOF Then Exit Do
-    If rAu!Pat_ID <> CLng(Pat_ID) Then Exit Do
     If rAu!Pat_ID <> CLng(Pat_ID) Then Exit Do
     If rAu!Zeitpunkt > VorDat Then
      If Not obkomma Then Epi = Epi + "Für folgende Zeiträume wurden Arbeitsunfähigkeitsbescheinigungen ausgestellt: "
@@ -14755,7 +14746,7 @@ Function LabKopf(breite$, Inh$, Optional bookm$, Optional bookid$, Optional zeil
 ' ag.Append "<w:tc><w:tcPr><w:tcW w:w=""" & breite & """ w:type=""dxa""/>" & IIf(zeile = 0, "<w:textDirection w:val=""" & IIf(spalte > 2, "tbRl", "RltbV") & """/>", "") & "</w:tcPr><w:p><w:pPr>" & IIf(zeile = 0, "<w:ind w:left=""56""/>", "") & "<w:rPr><w:b/><w:sz w:val=""14""/></w:rPr></w:pPr>" & IIf(bookm = "", "", "<w:bookmarkStart w:id=""" & bookid & """ w:name=""" & bookm & """/><w:bookmarkEnd w:id=""" & bookid & """/>") & "<w:r><w:rPr><w:b/><w:sz w:val=""14""/></w:rPr><w:t>" & Inh & "</w:t></w:r></w:p></w:tc>"
 '  If obschräg Then Stop
 '  If obfett Then Stop
-  ag.Append "<w:tc><w:tcPr><w:tcW w:w=""" & breite & """ w:type=""dxa""/><w:tcBorders/>" & IIf(zeile = 0 And spalte > 2, "<w:textDirection w:val=""" & IIf(spalte > 2, "tbRl", "RltbV") & """/>", "") & "</w:tcPr><w:p><w:pPr><w:pStyle w:val=""Normal""/>" & IIf(zeile = 0, "<w:ind w:left=""56""/>", "") & "<w:rPr/></w:pPr>" & IIf(bookm = "", "", "<w:bookmarkStart w:id=""" & bookid & """ w:name=""" & bookm & """/><w:bookmarkEnd w:id=""" & bookid & """/>") & "<w:r><w:rPr>" & IIf(obschräg, "<w:i/>", "") & IIf(obfett, "<w:b/>", "") & "<w:sz w:val=""16""/></w:rPr><w:t>" & Inh & "</w:t></w:r></w:p></w:tc>"
+  ag.Append "<w:tc><w:tcPr><w:tcW w:w=""" & breite & """ w:type=""dxa""/><w:tcBorders/>" & IIf(zeile = 0 And spalte > 2, "<w:textDirection w:val=""" & IIf(spalte > 2, "tbRl", "RltbV") & """/>", "") & "</w:tcPr><w:p><w:pPr><w:pStyle w:val=""Normal""/>" & IIf(zeile = 0, "<w:ind w:left=""56""/>", "") & "<w:rPr/></w:pPr>" & IIf(bookm = "", "", "<w:bookmarkStart w:id=""" & bookid & """ w:name=""" & bookm & """/><w:bookmarkEnd w:id=""" & bookid & """/>") & "<w:r><w:rPr>" & IIf(obschräg, "<w:i/>", "") & IIf(obfett, "<w:b w:val=""1""/>", "") & "<w:sz w:val=""16""/></w:rPr><w:t>" & Inh & "</w:t></w:r></w:p></w:tc>"
 End Function ' LabKopf(breite$, inh$)
 
 #If True Then
@@ -14766,7 +14757,7 @@ Sub LaborIns1(ByRef dc As Object, Pat_ID$, nurLabor%, briefneu%) ' nur in tuBrie
  On Error GoTo fehler
  Call LaborInsPLZ(Pat_ID, SelbstStatus, raDatBOF, Matr, MForm, mBreiten, briefneu)
  
- Const maxbreite% = 14
+ Const maxbreite% = 13
  DiffBr = 0
  If UBound(Matr, 2) - 5 > maxbreite Then
    DiffBr = UBound(Matr, 2) - 5 - maxbreite
@@ -14875,7 +14866,8 @@ Sub LaborIns1(ByRef dc As Object, Pat_ID$, nurLabor%, briefneu%) ' nur in tuBrie
      Else
       zellaus = Left$(Matr2(0, i, j), 8) & ".."
      End If
-     Call LabKopf("555", zsuh(zuh(zellaus)), , , j, i - 3, MForm(i, j) Mod 2 = 1, MForm(i, j) > 1) ' Daten
+'     If zellaus = "55.2" Then Stop
+     Call LabKopf("555", zsuh(zuh(zellaus)), , , j, i - 3, MForm2(i, j) Mod 2 = 1, MForm2(i, j) > 1) ' Daten
     Next i
     ag.Append "</w:tr>"
    Next j
@@ -16027,22 +16019,25 @@ End Sub ' Tabelle
 Function kkeintraege$(Pat_ID$, krit$, bn%, Optional VorDat As Date, Optional fett$, Optional obgross%)
 ' #Const obAlte = True
  Dim raVL As New ADODB.Recordset, lzp As Date, aktdat As Date
- Dim sq1$, sq2$, sqg$
+ Dim sq1$, sq2$, sqg$, vdeinschr$
  On Error GoTo fehler
+ If VorDat Then vdeinschr = " AND zeitpunkt>" & DatFor_k(VorDat)
 ' Call dtbInit
+#If False Then
  Select Case LCase$(krit)
   Case """rr"""
 '   SET raVL = Dtb.OpenRecordset("SELECT zeitpunkt,rr AS inhalt FROM `" + QMdbAkt + "`.rr WHERE pat_id = " & pat_id + " ORDER BY zeitpunkt")
 '   raVL.Open "SELECT zeitpunkt,""rr"" art, IF(ISNULL(bemerkung) OR bemerkung='',rr,CONCAT(rr,' (',bemerkung,')')) inhalt FROM rr WHERE pat_id = " & Pat_id + " ORDER BY zeitpunkt", DBCn, adOpenDynamic, adLockReadOnly
-   sqg = "SELECT zeitpunkt,""rr"" art," & IIf(bn, "zuht(", "") & "REPLACE(REPLACE(IF(ISNULL(bemerkung) OR bemerkung='' OR bemerkung=rr,rr,CONCAT(rr,' (',bemerkung,')')),'\n',' '),'\r',' ')" & IIf(bn, ",0," & IIf(obgross, "1", "0") & ")", "") & " inhalt FROM rr WHERE pat_id = " & Pat_ID + " ORDER BY zeitpunkt"
+   sqg = "SELECT zeitpunkt,""rr"" art," & IIf(bn, "zuht(", "") & "REPLACE(REPLACE(IF(ISNULL(bemerkung) OR bemerkung='' OR bemerkung=rr,rr,CONCAT(rr,' (',bemerkung,')')),'\n',' '),'\r',' ')" & IIf(bn, ",0," & IIf(obgross, "1", "0") & ")", "") & " inhalt FROM rr WHERE pat_id = " & Pat_ID & vordeinschr & " ORDER BY zeitpunkt"
   Case """rr"",""puls"""
 '   raVL.Open "SELECT * FROM (SELECT zeitpunkt, 'rr' art, IF(ISNULL(bemerkung) OR bemerkung='',rr, CONCAT(rr,' (',bemerkung,')')) inhalt FROM rr WHERE pat_id = " & Pat_id & " UNION SELECT zeitpunkt,art,inhalt FROM `eintraege` WHERE pat_id = " & Pat_id & " AND art IN (""rr"",""puls"")) innen ORDER BY zeitpunkt", DBCn, adOpenDynamic, adLockReadOnly
-   sqg = "SELECT * FROM (SELECT zeitpunkt, 'rr' art," & IIf(bn, "zuht(", "") & "REPLACE(REPLACE(IF(ISNULL(bemerkung) OR bemerkung='' OR bemerkung=rr,rr, CONCAT(rr,' (',bemerkung,')')),'\n',' '),'\r',' ')" & IIf(bn, ",0," & IIf(obgross, "1", "0") & ")", "") & " inhalt FROM rr WHERE pat_id = " & Pat_ID & " UNION SELECT zeitpunkt,art," & IIf(bn, "zuht(", "") & "inhalt" & IIf(bn, ",0," & IIf(obgross, "1", "0") & ")", "") & " inhalt FROM `eintraege` WHERE pat_id = " & Pat_ID & " AND art IN (""rr"",""puls""))i ORDER BY zeitpunkt"
+   sqg = "SELECT * FROM (SELECT zeitpunkt, 'rr' art," & IIf(bn, "zuht(", "") & "REPLACE(REPLACE(IF(ISNULL(bemerkung) OR bemerkung='' OR bemerkung=rr,rr, CONCAT(rr,' (',bemerkung,')')),'\n',' '),'\r',' ')" & IIf(bn, ",0," & IIf(obgross, "1", "0") & ")", "") & " inhalt FROM rr WHERE pat_id = " & Pat_ID & vdeinschr & " UNION SELECT zeitpunkt,art," & IIf(bn, "zuht(", "") & "inhalt" & IIf(bn, ",0," & IIf(obgross, "1", "0") & ")", "") & " inhalt FROM `eintraege` WHERE pat_id = " & Pat_ID & " AND art IN (""rr"",""puls"")" & vdeinschr & ")i ORDER BY zeitpunkt"
   Case Else
 '   SET raVL = Dtb.OpenRecordset("SELECT zeitpunkt,inhalt,art FROM `" + QMdbAkt + "`.`eintraege` WHERE pat_id = " & pat_id + " AND art IN (" & Krit & ") ORDER BY zeitpunkt")
+#End If
    If fett = "" Then
-    sq1 = "SELECT zeitpunkt," & IIf(bn, "zuht(", "") & "REPLACE(REPLACE(REPLACE(inhalt,'\n',' '),'\r',' '),'\t',' ')" & IIf(bn, ",0," & IIf(obgross, "1", "0") & ")", "") & " inhalt," & IIf(bn, "zuht(", "") & "art" & IIf(bn, ",0," & IIf(obgross, "1", "0") & ")", "") & " art FROM `eintraege` WHERE pat_id = " & Pat_ID & " AND art IN (" & krit & ")"
-   Else
+    sq1 = "SELECT zeitpunkt," & IIf(bn, "zuht(", "") & "REPLACE(REPLACE(REPLACE(inhalt,'\n',' '),'\r',' '),'\t',' ')" & IIf(bn, ",0," & IIf(obgross, "1", "0") & ")", "") & " inhalt," & IIf(bn, "zuht(", "") & "art" & IIf(bn, ",0," & IIf(obgross, "1", "0") & ")", "") & " art"
+   Else ' fett = ""
 ' " & IIf(bn, "zuht(", "") & "
 ' " & IIf(bn, ",0," & IIf(obgross, "1", "0") & ")", "") & "
     sq1 = "SELECT zeitpunkt,REPLACE(REPLACE(REPLACE(IF(inhalt RLIKE '^(" & fett & "):'," & vbCrLf & _
@@ -16051,17 +16046,16 @@ Function kkeintraege$(Pat_ID$, krit$, bn%, Optional VorDat As Date, Optional fet
     "'</w:t></w:r><w:r><w:rPr><w:rStyle w:val=""s24s""/><w:b w:val=""false""/><w:bCs w:val=""false""/></w:rPr><w:t>'," & vbCrLf & _
     IIf(bn, "zuht(", "") & "MID(inhalt,INSTR(inhalt,':'))" & IIf(bn, ",0," & IIf(obgross, "1", "0") & ")", "") & vbCrLf & _
     ")," & IIf(bn, "zuht(", "") & "inhalt" & IIf(bn, ",0," & IIf(obgross, "1", "0") & ")", "") & "),'\n',' '),'\r',' '),'\t',' ')inhalt," & vbCrLf & _
-    IIf(bn, "zuht(", "") & "art" & IIf(bn, ",0," & IIf(obgross, "1", "0") & ")", "") & " art" & vbCrLf & _
-    "FROM `eintraege` WHERE pat_id = " & Pat_ID & " AND art IN (" & krit & ")"
+    IIf(bn, "zuht(", "") & "art" & IIf(bn, ",0," & IIf(obgross, "1", "0") & ")", "") & " art"
    End If ' fett = "" else
-   sq2 = IIf(InStrB(krit, "'rr'") <> 0, " UNION SELECT zeitpunkt," & IIf(bn, "zuht(", "") & "rr" & IIf(bn, ",0," & IIf(obgross, "1", "0") & ")", "") & " rr, 'rr' art FROM rr WHERE pat_id = " & Pat_ID, "") & " ORDER BY zeitpunkt"
-   If VorDat Then ' #If Not obAlte Then
+   ' & IIf(bn, "zuht(", "") & "REPLACE(REPLACE(IF(ISNULL(bemerkung) OR bemerkung='' OR bemerkung=rr,rr, CONCAT(rr,' (',bemerkung,')')),'\n',' '),'\r',' ')" & IIf(bn, ",0," & IIf(obgross, "1", "0") & ")", "") & " inhalt FROM
+   ' & IIf(bn, "zuht(", "") &                                                                                                                          "rr" & IIf(bn, ",0," & IIf(obgross, "1", "0") & ")", "") & " rr
+   sq2 = IIf(InStrB(krit, "'rr'") <> 0, " UNION SELECT zeitpunkt," & IIf(bn, "zuht(", "") & "REPLACE(REPLACE(IF(ISNULL(bemerkung) OR bemerkung='' OR bemerkung=rr,rr, CONCAT(rr,' (',bemerkung,')')),'\n',' '),'\r',' ')" & IIf(bn, ",0," & IIf(obgross, "1", "0") & ")", "") & " inhalt, 'rr' art FROM rr WHERE pat_id = " & Pat_ID & vdeinschr, "") & " ORDER BY zeitpunkt"
 '   raVL.Open "SELECT zeitpunkt,inhalt,art FROM `eintraege` WHERE pat_id = " & Pat_id + " AND art IN (" & krit & ") AND zeitpunkt > " & DatFor_k(VorDat) & " ORDER BY zeitpunkt", DBCn, adOpenDynamic, adLockReadOnly
-    sqg = sq1 & " AND zeitpunkt > " & DatFor_k(VorDat) & sq2
-   Else ' #Else ' if Vordat
-    sqg = sq1 & sq2
-   End If ' #End If ' if Vordat else
+   sqg = sq1 & " FROM `eintraege` WHERE pat_id = " & Pat_ID & " AND art IN (" & krit & ")" & vdeinschr & sq2
+#If False Then
  End Select ' LCase$(krit)
+#End If
  myFrag raVL, sqg
  Do While Not raVL.EOF
   Dim art$, Inhalt$, Zp$, Übs$
