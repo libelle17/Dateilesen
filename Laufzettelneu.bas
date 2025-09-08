@@ -643,7 +643,7 @@ Public Function mplan(pid&)
    Do While Not rTh.EOF
     mdpl(ru).m.ab = rTh!ab
     mdpl(ru).m.absPos = rTh!absPos
-    mdpl(ru).m.AktZeit = rTh!AktZeit
+    mdpl(ru).m.aktZeit = rTh!aktZeit
     mdpl(ru).m.bBed = rTh!bBed
     mdpl(ru).m.Bemerkung = rTh!Bemerkung
     mdpl(ru).m.Datum = rTh!Datum
@@ -1128,7 +1128,7 @@ On Error GoTo fehler
 '  While True
   ReDim rFa(0)
   ReDim rKv(0)
-  Call getHausarzt1(üwerg, rFa, rKv, , CLng(Pat_ID), auchwir:=True)
+  Call getHausarzt1(üwerg, rFa, rKv, , CLng(Pat_ID), auchwir:=True, vonwo:="Erstelle Patientenlaufzettel")
   m = 25: TI(m) = Timer: For p = 0 To m - 1: TI(m) = TI(m) - TI(p): Next p
 '  Wend
   obpath(0) = -1
@@ -1264,12 +1264,21 @@ weiter:
  obLeist = True
  If obdm Then obDMPPrüf = True Else obDMPPrüf = False
 ' myFrag rFl, "SELECT k.name KrKasse, k.*, f.* FROM (SELECT f.* FROM faelle f WHERE f.pat_id = " & Pat_id & " AND qanf = (SELECT MAX(qanf) FROM faelle WHERE pat_id = " & Pat_id & ")) f LEFT JOIN `kassenliste` k ON f.VKNr=k.vknr AND f.IK=k.IK ORDER BY MID(qanf,2) DESC, qanf DESC" ' schgr 21.6.16
- myFrag rFl, "SELECT schgr,kateg,k.name krkasse" & vbCrLf & _
+' myFrag rFl, "SELECT schgr,kateg,k.name krkasse" & vbCrLf & _
           ",(SELECT voret FROM sws WHERE pat_id=f.pat_id AND voret>qanf LIMIT 1) voret" & vbCrLf & _
           "FROM faelle f" & vbCrLf & _
           "LEFT JOIN kassenliste k ON f.VKNr=k.vknr AND f.ik = k.ik" & vbCrLf & _
-          "WHERE f.pat_id=" & Pat_ID & " AND qanf=(SELECT MAX(qanf) FROM faelle WHERE pat_id=f.pat_id)" & vbCrLf & _
+          "WHERE f.pat_id=" & Pat_id & " AND qanf=(SELECT MAX(qanf) FROM faelle WHERE pat_id=f.pat_id)" & vbCrLf & _
           "ORDER BY MID(qanf,2) DESC, qanf DESC", adOpenStatic, DBCn, adLockReadOnly ' 11.4.22
+Dim sql0$
+sql0 = _
+"SELECT schgr,kateg,k.name krkasse" & vbCrLf & _
+",(SELECT voret FROM sws WHERE pat_id=f.pat_id AND voret>bhfb LIMIT 1) voret" & vbCrLf & _
+"FROM faelle f" & vbCrLf & _
+"LEFT JOIN kassenliste k ON f.VKNr=k.vknr AND f.ik = k.ik" & vbCrLf & _
+"Where f.Pat_id =" & Pat_ID & vbCrLf & _
+"ORDER BY bhfb DESC LIMIT 1;"
+ myFrag rFl, sql0, adOpenStatic, DBCn, adLockReadOnly
  If rFl.State <> 0 Then
   If Not rFl.BOF Then
    rFlSchGr = rFl!SchGr

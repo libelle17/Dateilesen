@@ -6066,13 +6066,14 @@ Public Function labtest()
 End Function ' labtest
 #End If
 
+' aufgerufen nirgends
 Function getHatest(pid&)
  Dim infos$()
  Lese.ProgStart
 ' getHausarztAlt 52022, Infos
  Dim rFa() As Faelle
  Dim rKv1() As kvnrue
- getHausarzt1 infos, rFa, rKv1, , pid
+ Call getHausarzt1(infos, rFa, rKv1, , pid, , , "geHatest")
  Stop
 End Function ' getHatest
 

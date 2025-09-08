@@ -11,6 +11,14 @@ Begin VB.Form PatAuswahl
    ScaleHeight     =   14370
    ScaleWidth      =   14415
    ShowInTaskbar   =   0   'False
+   Begin VB.CheckBox obVordatFrag 
+      Caption         =   "Beginndatum &ändern"
+      Height          =   495
+      Left            =   12360
+      TabIndex        =   41
+      Top             =   2160
+      Width           =   1455
+   End
    Begin VB.ListBox Programm 
       Height          =   1035
       Left            =   12240
@@ -167,7 +175,7 @@ Begin VB.Form PatAuswahl
       Height          =   315
       Left            =   12240
       TabIndex        =   16
-      Top             =   2640
+      Top             =   3120
       Width           =   1695
    End
    Begin VB.ListBox FaellepHA 
@@ -293,7 +301,7 @@ Begin VB.Form PatAuswahl
       Height          =   255
       Left            =   12360
       TabIndex        =   4
-      Top             =   2400
+      Top             =   2760
       Width           =   615
    End
    Begin VB.Label Anzahl 
@@ -362,7 +370,7 @@ Dim lbeh% ' letzter Behandler: 1 = Kothny, 0 = unentschieden, 1 = Schade
 Public VorBriefID& ' letzte Pat_id, zu der ein Vorbrief rausgesucht wurde
 Public obRueck%
 Public geladen%
-Public briefNeu%
+Public briefneu%
 Public nichtherricht%
 Const machgleich% = 0
 Public obF4%
@@ -635,6 +643,7 @@ Private Sub Vorlage_KeyDown(KeyCode As Integer, Shift As Integer)
 End Sub ' Vorlage_KeyDown(KeyCode As Integer, Shift As Integer)
 
 Public Sub OKButton_Click()
+ syscmd acSysCmdSetStatus, "OK Button gedrückt, Moment ..."
  If obF4 Then
   obF4 = False
  Else ' obF4 Then

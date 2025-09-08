@@ -1178,9 +1178,6 @@ For k = IIf(obAnzeig, 0, 7) To rAn.Fields.COUNT - 1
  If obkomma Then Descr = ", " + Descr
 
  If Not IsNull(fld) Then
-'  IF instrb(fldname, "chwanger") > 0 THEN
-'    msgbox "Achtung: Feld Schwanger: " + fld
-'  END IF
   If fld <> "False" And fld <> "" And Not ((fld.Type = adUnsignedTinyInt Or fld.Type = adTinyInt) And fld = "0") Then
    Add = vNS
    fldv = REPLACE$(fld.Value, "j ", "ja ")
@@ -1191,6 +1188,10 @@ For k = IIf(obAnzeig, 0, 7) To rAn.Fields.COUNT - 1
    
    Dim fldName$
    fldName = LCase$(fld.name)
+' If InStrB(fldName, "chwanger") > 0 Then Stop
+'  IF instrb(fldname, "chwanger") > 0 THEN
+'    msgbox "Achtung: Feld Schwanger: " + fld
+'  END IF
    Select Case fldName
     Case "aufschreiben", "bluthochdruck"
      fldv = REPLACE$(REPLACE$(fldv, "n ", "nein "), "n,", "nein,")
@@ -1220,7 +1221,7 @@ For k = IIf(obAnzeig, 0, 7) To rAn.Fields.COUNT - 1
       If Left$(fldv, 2) = "n " Then
        Add = REPLACE$(fldv, "n ", "nein ", , 1)
       Else
-       Add = CStr(fldv)
+       If Not fldName = "schwanger" And fldv = "entfällt" Then Add = CStr(fldv)
       End If
      End If
      fldv = Add
@@ -1549,23 +1550,26 @@ For k = IIf(obAnzeig, 0, 7) To rAn.Fields.COUNT - 1
      Add = CStr(fldv)
    End Select
    If obnadp Then Add = "nach Angabe d.Pat. " + Add
-   If obNz And Add = vNS And fldName <> "j_insulinpumpe" And fldName <> "insulinpumpe" Then Add = "-"
+   If obNz And Add = vNS And fldName <> "j_insulinpumpe" And fldName <> "insulinpumpe" And fldName <> "schwanger" Then _
+     Add = "-"
 ' 2. zeile Ende gestrichen: 'IIf(Descr = ":", fldname, "") +
    If Add <> vNS Then _
     te = te + IIf(Right$(te, 1) = vbLf Or LenB(te) = 0, vNS, IIf(Left$(Descr, 1) = ",", vNS, " ")) + _
          Trim$(IIf(Right$(te, 1) = vbLf Or LenB(te) = 0, IIf(Left$(Descr, 2) = ", ", Mid$(Descr, 3), Descr), Descr)) + IIf(LenB(te) = 0, vNS, " ") + Add
   End If ' fld <> "False" AND fld <> "" THEN
  End If ' NOT ISNULL(fld)
-Next
+Next ' For k = IIf(obAnzeig, 0, 7) To rAn.Fields.COUNT - 1
 te = UCase$(Left$(te, 1)) + Mid$(te, 2)
 If te <> "" Then
  If Right$(te, 3) <> "." & vbCrLf Then te = Left$(te, Len(te) - 2) + "." & vbCrLf
-End If
-te = te + myEFrag("SELECT COALESCE(GROUP_CONCAT(CONCAT(CASE WHEN art LIKE 'Alk%' THEN 'Alkhol' WHEN art LIKE 'fa%' AND art<>'fams' THEN 'Familienanamnese' WHEN art LIKE 'rauch%' OR art LIKE 'nik%' THEN 'Tabak' END,' (',DATE_FORMAT(zeitpunkt,'%d.%m.%y'),'):','\t', Inhalt,'\n') SEPARATOR ''),'') FROM eintraege WHERE pat_id =" & Pat_ID & "").Fields(0)
+End If ' te <> "" Then
+te = te + myEFrag("SELECT COALESCE(GROUP_CONCAT(CONCAT(CASE WHEN art LIKE 'Alk%' THEN 'Alkhol' WHEN art LIKE 'fa%' AND art<>'fams' THEN 'Familienanamnese' WHEN art IN ('anam','ana') THEN 'Anamnese' WHEN art LIKE 'rauch%' OR art LIKE 'nik%' THEN 'Tabak' END,' (',DATE_FORMAT(zeitpunkt,'%d.%m.%y'),'):','\t', zuht(Inhalt,0,0),'\n') SEPARATOR ''),'') FROM eintraege WHERE pat_id =" & Pat_ID & "").Fields(0)
 '  AND (art LIKE 'fa%' OR art LIKE 'rauch%' OR art LIKE 'nik%' OR art LIKE 'alk%') AND art<>'fams' ' braucht's offenbar nicht
-If te <> "Diabetes Typ 2.\nGröße:  cm, Gewicht:  kg  0 kg/m²." Then machwertString = te
-If InStrB(te, "Größe:  cm, Gewicht:  kg  0 kg/m².") = 0 Then machwertString = te
-machwertString = machwertString & IIf(machwertString = "", "", vbCrLf) & kkeintraege(Pat_ID, "'anam','fa','fam','familie','alko','alkohol','rauch','rauchen','raucht'", briefneu)
+If te <> "Diabetes Typ 2.\nGröße:  cm, Gewicht:  kg  0 kg/m²." Or _
+   InStrB(te, "Größe:  cm, Gewicht:  kg  0 kg/m².") = 0 Then
+ machwertString = te
+End If
+'machwertString = machwertString & IIf(machwertString = "", "", vbCrLf) & kkeintraege(Pat_ID, "'anam','fa','fam','familie','alko','alkohol','rauch','rauchen','raucht'", briefneu)
 ' auskommentiert 31.8.25:
 ' machwertString = machwertString & IIf(machwertString = "", "", vbCrLf) & kkeintraege(Pat_ID, "'ana','anal','angd','andm','andm2','usal','usd','usdm','usdm1','usdm2','fa','alko','alkohol','rauch','rauchen','raucht'")
 schluss:

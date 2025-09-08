@@ -1086,6 +1086,7 @@ Private Sub Con_Datei_einlesen_Click()
 End Sub ' Con_Datei_einlesen_Click()
 
 ' EDV -> &DMP in MO importieren Click
+' Korrekturliste
 Private Sub DMP_in_MO_importieren_1_Click()
    Dim archn$ ' Archiv neu (nach Umbenennen zum Archiv-Archiv
    Dim dpf$ ' Datenpflegeprogramm
@@ -3165,7 +3166,7 @@ Private Sub BriefSchreiben_Click() ' Brief schreiben
  Call ProgStart
  Aktion = Briefschreiben
  Set pataw.hlese = Me
- pataw.briefNeu = True ' False
+ pataw.briefneu = True ' False
  pataw.Show
 ' Aktion = nix
  Call ProgEnde
@@ -4586,7 +4587,7 @@ Private Sub harealNeu_Click() ' `hareal` neu aufbauen
 '  Call getHausarztAlt(rs!pat_id, Infos, True)
   Dim rFa() As Faelle
   Dim rKv1() As kvnrue
-  getHausarzt1 infos, rFa, rKv1, , rs!Pat_ID
+  Call getHausarzt1(infos, rFa, rKv1, , rs!Pat_ID, , , "harealNeu")
   If LenB(infos(12, 0)) <> 0 Then
    For i = 0 To UBound(infos, 2)
 '    IF Infos(4, i) = "08131-85028" THEN Stop
@@ -5296,7 +5297,7 @@ Private Sub falscheBriefelöschen_Click()
 '     Call getHausarztAlt(Pid, Infos())
      Dim rFa() As Faelle
      Dim rKv1() As kvnrue
-     getHausarzt1 infos(), rFa, rKv1, , pid
+     Call getHausarzt1(infos(), rFa, rKv1, , pid, , , "falscheBriefelöschen_Click")
      If LenB(infos(1, 0)) = 0 Then
       FSO.DeleteFile Fil.path
      ElseIf infos(1, 0) Like "*Schade" Then
@@ -5497,7 +5498,7 @@ Public Sub los()
    Case GefaxteAnzeigen
     Call ZeigGefaxteAn(Me.pataw.PatID, Me.pataw.PatName)
    Case Briefschreiben
-    Call tuBriefStandalone(Me.pataw.PatID, False, , Me.pataw.Verfasser, Me.pataw.Vorlage, Me.pataw.Programm.ListIndex, , Me.pataw.briefNeu, Me.pataw.nichtherricht)
+    Call tuBriefStandalone(Me.pataw.PatID, False, , Me.pataw.Verfasser, Me.pataw.Vorlage, Me.pataw.Programm.ListIndex, , Me.pataw.briefneu, Me.pataw.nichtherricht)
    Case RestlicheBriefe
     Call doRestlicheBriefe(Me, Me.pataw.PatID)
    Case Patientenlaufzetteleinzeln
