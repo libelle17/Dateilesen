@@ -5404,7 +5404,7 @@ nachformulare:
    End If ' Infos12(12, i) <> vNS Then
   Next i
  End If ' not vonMO
- Call kassenSpeichern(frm, CStr(rNa(0).Pat_ID))
+ Call kassenSpeichern(CStr(rNa(0).Pat_ID))
 ' Call kvnrpruef
 ' On Error Resume Next
 ' If obTrans <> 0 Then Call DBCn.CommitTrans: obTrans = 0
@@ -5720,24 +5720,127 @@ End Function ' testmedarten
 'Loop
 'End FUNCTION ' testa
 
+#Const einmal = True
+#If einmal Then
+' wird nirgends aufgerufen
+Function alleKassenSpeichern()
+ Dim rsNa As ADODB.Recordset, sql$
+ Call Lese.ProgStart
+ ReDim rNa(0)
+ sql = "SELECT pat_id FROM namen n JOIN faelle f USING (pat_id)" & vbCrLf & _
+       "LEFT JOIN kassenliste k ON k.id=f.KID WHERE k.id IS NULL" & vbCrLf & _
+       "GROUP BY n.pat_id"
+  Set rsNa = myEFrag(sql)
+ Do While Not rsNa.EOF
+  rNa(0).Pat_ID = rsNa!Pat_ID
+  Call faelleLaden
+  rFa = roFa
+  DoEvents
+  Call kassenSpeichern(CStr(rNa(0).Pat_ID), gleich:=True)
+  DoEvents
+  Debug.Print "Pat_id: " & rNa(0).Pat_ID & ", " & UBound(rFa) & " Fälle"
+  rsNa.MoveNext
+ Loop
+End Function ' alleKassenSpeichern
+#End If ' einmal
+
+' in kassenSpeichern, faelleSpeichern, macheTypen
+Public Function holKat$(ByVal uKas$)
+    If InStrB(uKas, "SOZIAL") <> 0 Or InStrB(uKas, "BUNDESAMT") <> 0 Or InStrB(uKas, "SVA") <> 0 Or InStrB(uKas, "SHV") <> 0 Then
+     holKat = "SHV"
+    ElseIf InStrB(uKas, "AOK") <> 0 Then ' instrb(ukas,"AOK")<>0
+     holKat = "AOK"
+    ElseIf InStrB(uKas, "BKK") <> 0 Or InStrB(uKas, "BETRIEBSK") <> 0 Or InStrB(uKas, "MKK") <> 0 Then ' Or InStrB(uKas, "ACTIMONDA") <> 0
+     holKat = "BKK"
+    ElseIf InStrB(uKas, "IKK") <> 0 Or InStrB(uKas, "BIG DIREKT") <> 0 Then
+     holKat = "IKK"
+    ElseIf InStrB(uKas, "LKK") <> 0 Then
+     holKat = "LKK"
+    ElseIf InStrB(uKas, "BKN") <> 0 Or InStrB(uKas, "KNAPP") <> 0 Then
+     holKat = "BKN"
+    ElseIf InStrB(uKas, "BARMER") <> 0 Or InStrB(uKas, "DAK") <> 0 Or InStrB(uKas, "TKK") <> 0 Or InStrB(uKas, "KKH") <> 0 Or InStrB(uKas, "HEK") <> 0 Or InStrB(uKas, "HMK") <> 0 Or InStrB(uKas, "HKK") <> 0 Or InStrB(uKas, "GEK") <> 0 Or InStrB(uKas, "HZK") <> 0 Or InStrB(uKas, "KEH") <> 0 Or InStrB(uKas, "HAMBURG-MÜNCHENER") <> 0 Or InStrB(uKas, "HANDELSKRANKENKASSE") <> 0 Or InStrB(uKas, "TECHNIKER") <> 0 Or InStrB(uKas, "HANSEATISCHE") <> 0 Or InStrB(uKas, "AUS ") <> 0 Or InStrB(uKas, "EK") <> 0 Or InStrB(uKas, "KAUFM") <> 0 Or InStrB(uKas, "ERSATZ") <> 0 Then
+     holKat = "EK"
+    ElseIf InStrB(uKas, "POST") <> 0 Or InStrB(uKas, "PBEA") <> 0 Then
+     holKat = "PBe"
+    End If ' InStrB(UKAS, "Sozialhilfe")
+End Function ' bestimmKat$(ByVal ukas$)
+
 ' in alleSpeichern
-Function kassenSpeichern(frm As Lese, pid$)
- Dim i%, rs As New ADODB.Recordset, Kat$, keinetrans%, UKAS$, dokat%
+Function kassenSpeichern(pid$, Optional gleich%)
+ Dim i%, j%, k%, rs As New ADODB.Recordset, keinetrans%, uKas$, kat$, sql$ ' , dokat%
  keinetrans = True
- Dim j%
  On Error GoTo fehler
  For i = 1 To UBound(rFa)
-  dokat = 0
+'  dokat = 0
   Set rs = Nothing
-  Kat = vNS
+  kat = vNS
   If rFa(i).Kasse = "" Then
    For j = 1 To UBound(rFa)
     If rFa(j).VKNr = rFa(i).VKNr And rFa(j).IK = rFa(i).IK And rFa(j).Kasse <> "" Then
      rFa(i).Kasse = rFa(j).Kasse
      Exit For
     End If
-   Next
-  End If
+   Next j
+  End If ' rFa(i).Kasse = "" Then
+' Abschnitt 10.9.25:
+  rFa(i).Kasse = Trim(rFa(i).Kasse)
+  rFa(i).KKasse_2 = Trim(rFa(i).KKasse_2)
+  rFa(i).VKNr = Trim(rFa(i).VKNr)
+  rFa(i).IK = Trim(rFa(i).IK)
+#Const neu = True
+#If neu Then
+  For k = 0 To 1
+   myFrag rs, "SELECT id,name,kateg FROM kassenliste WHERE vknr='" & rFa(i).VKNr & "' AND ik='" & rFa(i).IK & "'", adOpenStatic, DBCn, adLockReadOnly
+' name='" & rFa(i).Kasse & "' AND
+   If rs.EOF Then
+    uKas = UCase$(Trim$(rFa(i).Kasse))
+    If Len(uKas) < 4 Then uKas = UCase$(Trim$(rFa(i).KKasse_2))
+    If Len(uKas) < 4 Then If Not rs.EOF Then uKas = UCase$(rs!name)  ' dann nicht eof ' 14.11.21
+    If Len(uKas) < 4 Then If Not rs.EOF Then uKas = UCase$(rs!kurzname)
+    If rFa(i).SchGr = 90 Then kat = "PRI" Else kat = holKat$(uKas)
+    If kat = "" Then
+     On Error Resume Next
+     kat = holKat$(DBCn.Execute("SELECT UPPER(name)uKas FROM IKs WHERE ik=" & rFa(i).IK)!uKas)
+     On Error GoTo fehler
+    End If ' kat = "" Then
+    InsKorr DBCn, "INSERT INTO `kassenliste`(vknr,ik,name,kurzname,go,kateg,eingef,pid)VALUES('" & rFa(i).VKNr & "','" & rFa(i).IK & "','" & rFa(i).Kasse & "','" & rFa(i).KKasse_2 & "','" & rFa(i).GebOr & "','" & kat & "'," & Format(Now(), "yyyymmddHHMMSS") & "," & pid & ")", rAf
+    DBCn.Execute ("COMMIT") ' sicher ist sicher
+    Set rs = Nothing ' sonst wird in MyFrag nichts mehr gefragt, da gleiche Source
+'    DBCnS = DBCn.Properties("Extended Properties")
+'    DBCn.Close
+'    DBCn.Open DBCnS
+   Else ' rs.EOF Then
+    Dim id$, rsname$, kateg$
+    id = rs!id
+    rsname = rs!name
+    kateg = rs!kateg
+    Set rs = Nothing
+#If einmal Then
+    If gleich Then
+     If DBCn.Execute("SELECT KID FROM faelle WHERE fid=" & rFa(i).FID)!KID <> id Then
+      Call DBCn.Execute("UPDATE faelle SET KID=" & id & " WHERE fid=" & rFa(i).FID, rAf)
+      If rAf = 0 Then Stop
+     End If
+    Else ' gleich Then
+#End If ' einmal
+     rFa(i).KID = id
+#If einmal Then
+    End If ' gleich Then Else
+#End If
+    If rsname <> rFa(i).Kasse And Len(rsname) < Len(rFa(i).Kasse) Then
+     sql = "UPDATE kassenliste SET name='" & rFa(i).Kasse & "'"
+     If kateg = "" And uKas <> "" Then
+      If rFa(i).SchGr = 90 Then kat = "PRI" Else kat = holKat$(uKas)
+      sql = sql & ",kateg='" & kat & "',"
+     End If ' kateg = "" And uKas <> "" Then
+     sql = sql & " WHERE id=" & id
+     Call DBCn.Execute(sql, rAf)
+     If rAf <> 1 Then Stop
+    End If ' rsname <> rFa(i).Kasse And Len(rsname) < Len(rFa(i).Kasse) Then
+    Exit For
+   End If ' rs.EOF Then Else
+  Next k
+#Else ' neu
   myFrag rs, "SELECT kurzname,id,name,kateg FROM `kassenliste` WHERE vknr = '" & rFa(i).VKNr & "' AND ik = '" & rFa(i).IK & "'"  ' & IIf(rFa(i).Kasse = "", IIf(rFa(i).KKasse_2 = "", "", " AND name = '" & rFa(i).KKasse_2 & "'"), " AND name = '" & rFa(i).Kasse & "'")
   If rs.EOF Then ' 14.11.21
    Set rs = Nothing
@@ -5745,32 +5848,11 @@ Function kassenSpeichern(frm As Lese, pid$)
   End If
 '  IF rFa(i).KID = 0 THEN Stop
   If rs.EOF Then
-   dokat = True
-  ElseIf (rs!Kateg = "" And (rs!name <> "" Or rs!kurzname <> "" Or rFa(i).Kasse <> "" Or rFa(i).KKasse_2 <> "")) Then
-   dokat = True
+'   dokat = True
+  ElseIf (rs!kateg = "" And (rs!name <> "" Or rs!kurzname <> "" Or rFa(i).Kasse <> "" Or rFa(i).KKasse_2 <> "")) Then
+'   dokat = True
    rFa(i).KID = rs!id
-  End If
-  If dokat Then
-   UKAS = UCase$(rFa(i).Kasse)
-   If UKAS = "" Then UKAS = UCase$(rFa(i).KKasse_2)
-   If UKAS = "" Then If Not rs.EOF Then UKAS = UCase$(rs!name) ' dann nicht eof ' 14.11.21
-   If UKAS = "" Then If Not rs.EOF Then UKAS = UCase$(rs!kurzname)
-   If InStrB(UKAS, "Sozialhilfe") <> 0 Or InStrB(UKAS, "Sozialamt") <> 0 Or InStrB(UKAS, "SVA") <> 0 Or InStrB(UKAS, "SHV") <> 0 Then
-    Kat = "SHV"
-   ElseIf InStrB(UKAS, "AOK") <> 0 Then ' instrb(ukas,"AOK")<>0
-    Kat = "AOK"
-   ElseIf InStrB(UKAS, "BKK") <> 0 Or InStrB(UKAS, "BETRIEBSK") <> 0 Then
-    Kat = "BKK"
-   ElseIf InStrB(UKAS, "IKK") <> 0 Then
-    Kat = "IKK"
-   ElseIf InStrB(UKAS, "LKK") <> 0 Then
-    Kat = "LKK"
-   ElseIf InStrB(UKAS, "BKN") <> 0 Or InStrB(UKAS, "KNAPP") <> 0 Then
-    Kat = "BKN"
-   ElseIf InStrB(UKAS, "BARMKER") <> 0 Or InStrB(UKAS, "DAK") <> 0 Or InStrB(UKAS, "TKK") <> 0 Or InStrB(UKAS, "KKH") <> 0 Or InStrB(UKAS, "HEK") <> 0 Or InStrB(UKAS, "HMK") <> 0 Or InStrB(UKAS, "HKK") <> 0 Or InStrB(UKAS, "GEK") <> 0 Or InStrB(UKAS, "HZK") <> 0 Or InStrB(UKAS, "KEH") <> 0 Or InStrB(UKAS, "HAMBURG-MÜNCHENER") <> 0 Or InStrB(UKAS, "HANDELSKRANKENKASSE") <> 0 Or InStrB(UKAS, "TECHNIKER") <> 0 Or InStrB(UKAS, "HANSEATISCHE") <> 0 Or InStrB(UKAS, "AUS ") <> 0 Or InStrB(UKAS, "EK") <> 0 Then
-    Kat = "EK"
-   End If
-  End If
+  End If ' rs.EOF Then else
   If rs.EOF Then
 '   Stop ' aus 6299 übernehmen
 '   On Error Resume Next
@@ -5787,7 +5869,12 @@ Function kassenSpeichern(frm As Lese, pid$)
     Case "2"
      GebOr = "2"
    End Select
-   InsKorr DBCn, "INSERT INTO `kassenliste`(vknr,ik,name,kurzname,go,kateg,eingef,pid) VALUES('" & rFa(i).VKNr & "','" & rFa(i).IK & "','" & rFa(i).Kasse & "','" & rFa(i).KKasse_2 & "','" & GebOr & "','" & Kat & "'," & Format(Now(), "yyyymmddHHMMSS") & "," & pid & ")", rAf
+   uKas = UCase$(Trim$(rFa(i).Kasse))
+   If Len(uKas) < 4 Then uKas = UCase$(Trim$(rFa(i).KKasse_2))
+   If Len(uKas) < 4 Then If Not rs.EOF Then uKas = UCase$(rs!name) ' dann nicht eof ' 14.11.21
+   If Len(uKas) < 4 Then If Not rs.EOF Then uKas = UCase$(rs!kurzname)
+   If rFa(i).SchGr = 90 Then kat = "PRI" Else kat = holKat$(uKas)
+   InsKorr DBCn, "INSERT INTO `kassenliste`(vknr,ik,name,kurzname,go,kateg,eingef,pid) VALUES('" & rFa(i).VKNr & "','" & rFa(i).IK & "','" & rFa(i).Kasse & "','" & rFa(i).KKasse_2 & "','" & GebOr & "','" & kat & "'," & Format(Now(), "yyyymmddHHMMSS") & "," & pid & ")", rAf
    rFa(i).KID = myEFrag("SELECT last_insert_id()").Fields(0)
    If rFa(i).KID = 0 Then MsgBox "Fehler in kassenspeichern: last_insert_id()=0"
    Ausgeb rAf & " Kassen hinzugefügt (VK: " & rFa(i).VKNr & ", IK: " & rFa(i).IK & " => kkasse_2: " & rFa(i).KKasse_2 & "/kasse: " & rFa(i).Kasse & ")", -1
@@ -5796,7 +5883,7 @@ Function kassenSpeichern(frm As Lese, pid$)
 '    DBCn.BeginTrans: obTrans = 1
     BegTrans
    End If
-  ElseIf (rs!name = "" And rFa(i).Kasse <> "") Or (rs!kurzname = "" And rFa(i).KKasse_2 <> "") Or (rs!Kateg = "" And Kat <> "") Then
+  ElseIf (rs!name = "" And rFa(i).Kasse <> "") Or (rs!kurzname = "" And rFa(i).KKasse_2 <> "") Or (rs!kateg = "" And kat <> "") Then
 '   Stop
 '   On Error Resume Next
 '   If obTrans <> 0 Then DBCn.CommitTrans: obTrans = 0
@@ -5804,16 +5891,17 @@ Function kassenSpeichern(frm As Lese, pid$)
    Call ComTrans(DBCn, , keinetrans)
    On Error GoTo fehler
    rAf = 0
-   sql = "UPDATE `kassenliste` SET name = '" & rFa(i).Kasse & "', kurzname = '" & rFa(i).KKasse_2 & "', kateg = '" & Kat & "',geaen=" & Format(Now(), "yyyymmddHHMMSS") & " WHERE vknr = '" & rFa(i).VKNr & "' AND ik = '" & rFa(i).IK & "'"
+   sql = "UPDATE `kassenliste` SET name = '" & rFa(i).Kasse & "', kurzname = '" & rFa(i).KKasse_2 & "', kateg = '" & kat & "',geaen=" & Format(Now(), "yyyymmddHHMMSS") & " WHERE vknr = '" & rFa(i).VKNr & "' AND ik = '" & rFa(i).IK & "'"
 '   Debug.Print sql
    Call myEFrag(sql, rAf)
-   Ausgeb rAf & " Kassen mit Namen/Kategorie versehen (" & rFa(i).VKNr & ", IK: " & rFa(i).IK & " => kkasse_2: " & rFa(i).KKasse_2 & " /kasse: " & rFa(i).Kasse & " /Kateg: " & Kat & ")", -1
+   Ausgeb rAf & " Kassen mit Namen/Kategorie versehen (" & rFa(i).VKNr & ", IK: " & rFa(i).IK & " => kkasse_2: " & rFa(i).KKasse_2 & " /kasse: " & rFa(i).Kasse & " /Kateg: " & kat & ")", -1
    Kassengeändert = True
    If keinetrans = 0 Then
 '    DBCn.BeginTrans: obTrans = 1
      BegTrans
    End If
   End If
+#End If
  Next i
  Exit Function
 fehler:

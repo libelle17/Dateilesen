@@ -1898,9 +1898,9 @@ sql(AWlf) = "" & vbCrLf & _
  sql(AWlf) = _
 " SELECT Pat_id,PatName,Ik,VKNr,KategZahl,KategN FROM ( " & vbCrLf & _
 " SELECT f.Pat_id, gesname(f.pat_id) Patname, Ik,Vknr, Kateg " & vbCrLf & _
-"  , (SELECT COUNT(DISTINCT kateg) FROM kassenliste kal WHERE kal.vknr=f.vknr AND kal.ik=f.ik) KategZahl " & vbCrLf & _
+"  , (SELECT COUNT(DISTINCT kateg) FROM kassenliste kal WHERE kal.id=f.kid) KategZahl " & vbCrLf & _
 "  , (SELECT GROUP_CONCAT(CONCAT(kateg,IF(ISNULL(pid),'',CONCAT('(',pid,')')))) " & vbCrLf & _
-" FROM kassenliste kal WHERE kal.vknr=f.vknr AND kal.ik=f.ik) Kategn " & vbCrLf & _
+" FROM kassenliste kal WHERE kal.id=f.kid) Kategn " & vbCrLf & _
 " FROM aktfv f " & vbCrLf & _
 ") i " & vbCrLf & _
 "WHERE i.KategZahl<>1 OR i.kateg='' OR ISNULL(i.kateg);"
@@ -1933,7 +1933,7 @@ AwN(AWlf) = "Fehlende 99300 für NI oder RI"
 sql(AWlf) = "" & vbCrLf & _
 "SELECT f.pat_id, gesname(f.pat_id),dm.icd Dm,ni.icd NI,ne.icd Nephr, copd.icd COPD, ri.icd RI, k.name Kasse " & vbCrLf & _
 "FROM aktfvs f " & vbCrLf & _
-"LEFT JOIN kassenliste k ON f.vknr=k.vknr AND f.ik=k.ik " & vbCrLf & _
+"LEFT JOIN kassenliste k ON k.id=f.kid" & vbCrLf & _
 "LEFT JOIN diagview dm ON f.pat_id = dm.pat_id AND dm.gicd RLIKE '^E1[013]\.2[01]|^E1[013]\.7[23]' " & vbCrLf & _
 "LEFT JOIN diagview ni ON f.pat_id = ni.pat_id AND ni.gicd RLIKE '^N18\.[12]' " & vbCrLf & _
 "LEFT JOIN diagview ne ON f.pat_id = ne.pat_id AND ne.gicd = 'N08.3'" & vbCrLf & _
@@ -2134,9 +2134,10 @@ sql(AWlf) = sql(AWlf) & _
  ' 54
  AwN(AWlf) = "falsch aufgebaute Datensätze aus Kassenliste (vorher 122)"
  sql(AWlf) = vbCrLf & _
- "SELECT k1.vknr,k1.ik,k2.ik,k1.name,k1.kurzname,k1.kateg,k2.name,k2.kurzname,k2.kateg FROM kassenliste k1 " & vbCrLf & _
-"LEFT JOIN kassenliste k2 USING (ik,vknr) " & vbCrLf & _
-"WHERE k1.vknr<>k2.vknr;"
+ "SELECT k1.vknr,k1.ik,k2.ik,k1.name,k1.kurzname,k1.kateg,k2.name,k2.kurzname,k2.kateg " & vbCrLf & _
+ "FROM kassenliste k1 " & vbCrLf & _
+ "LEFT JOIN kassenliste k2 USING (ik,vknr) " & vbCrLf & _
+ "WHERE k1.vknr<>k2.vknr;"
  mins(AWlf) = 10
  maxs(AWlf) = 80
  AWlf = AWlf + 1
@@ -2328,12 +2329,12 @@ sql(AWlf) = _
 "(SELECT f.pat_id AS pat_id, gesnameg(f.pat_id) Name, DATEDIFF(" & qtAnf(FristS) & ", n.gebdat) DIV 365.24 `Alter[a]`, l.leistung AS Leistung, icd, dmpklass, REPLACE(REPLACE(notiz,char(13),''),char(10),'') Notiz, kateg, kl.name klname, schgr, Therakt, Ther1  FROM " & aktf & " " & vbCrLf & _
 "LEFT JOIN (SELECT pat_id,leistung,zeitpunkt FROM `leistungen` WHERE leistung IN (" & BetrPausch & ")) AS l ON l.pat_id=f.pat_id AND l.zeitpunkt BETWEEN qanf() AND qend()" & vbCrLf & _
 "LEFT JOIN `diagview` d ON (f.pat_id = d.pat_id AND d.obdauer <> 0) AND gicd RLIKE '^E1[0-4]\.' " & vbCrLf & _
-"LEFT JOIN `kassenliste` kl ON f.vknr = kl.vknr AND f.ik=kl.ik" & vbCrLf & _
-"LEFT JOIN `namen` n ON f.pat_id = n.pat_id " & vbCrLf & _
-"LEFT JOIN `anamnesebogen` a ON f.pat_id = a.pat_id " & vbCrLf & _
-"WHERE  n.nachname<>'Bereitschaftsdienst' " & vbCrLf & _
-"ORDER BY leistung DESC) AS innen GROUP BY pat_id) AS innen " & vbCrLf & _
-"WHERE dmpklass NOT IN (2,3,4) " & vbCrLf & _
+"LEFT JOIN `kassenliste` kl ON kl.id=f.kid" & vbCrLf & _
+"LEFT JOIN `namen` n ON f.pat_id = n.pat_id" & vbCrLf & _
+"LEFT JOIN `anamnesebogen` a ON f.pat_id = a.pat_id" & vbCrLf & _
+"WHERE  n.nachname<>'Bereitschaftsdienst'" & vbCrLf & _
+"ORDER BY leistung DESC) AS innen GROUP BY pat_id) AS innen" & vbCrLf & _
+"WHERE dmpklass NOT IN (2,3,4)" & vbCrLf & _
 "AND NOT kateg IN ('PBe', 'SHV', '') " & vbCrLf & _
 "AND klname NOT RLIKE 'BKK SCHEUFELEN'" & vbCrLf & _
 "AND NOT ISNULL(icd)"
@@ -2418,10 +2419,10 @@ sql(AWlf) = _
 "(SELECT CASE WHEN !oberw THEN '97312' ELSE '97310' END `Soll`, " & vbCrLf & _
 "        i.* FROM " & vbCrLf & _
 "     (SELECT ADDDATE(n.gebdat,INTERVAL 18 YEAR)<" & qtAnf(FristS) & " oberw, l.leistung, d.icd, f.* " & vbCrLf & _
-"       FROM aktfvs f " & vbCrLf & _
+"       FROM aktfvs f" & vbCrLf & _
 "       LEFT JOIN namen n USING (pat_id) " & vbCrLf & _
-"       LEFT JOIN kassenliste kl ON f.vknr=kl.vknr AND f.ik=kl.ik " & vbCrLf & _
-"       LEFT JOIN diagview d USING (pat_id) " & vbCrLf & _
+"       LEFT JOIN diagview d USING (pat_id)" & vbCrLf & _
+"       LEFT JOIN kassenliste kl ON kl.id=f.kid" & vbCrLf & _
 "       LEFT JOIN leistungen l ON l.pat_id=f.pat_id AND l.leistung IN (" & BetrPausch & ") AND l.zeitpunkt BETWEEN qanf() and qend()" & vbCrLf & _
 "       WHERE d.obdauer <> 0 AND d.gicd LIKE 'E10%' " & vbCrLf & _
 "         AND (((dmpklass=2 OR (dmpklass=3 AND dmpbeg<=qend()))) OR kl.kateg IN ('PBe','SHV','')) " & vbCrLf & _
@@ -2584,7 +2585,7 @@ sql(AWlf) = _
  "LEFT JOIN (SELECT pat_id,leistung,DATE(zeitpunkt) ldat FROM `leistungen` WHERE leistung IN ('97314','97324')) AS l ON f.pat_id = l.pat_id and l.ldat BETWEEN qbegs(f.quartal) AND qends(f.quartal) " & vbCrLf & _
  "LEFT JOIN (SELECT pat_id,leistung,DATE(zeitpunkt) l1dat FROM `leistungen` WHERE leistung IN ('02311')) AS l1 ON f.pat_id = l1.pat_id and l1.l1dat BETWEEN qbegs(f.quartal) AND qends(f.quartal) " & vbCrLf & _
  "LEFT JOIN diagview diab ON f.pat_id = diab.pat_id AND (diab.gicd REGEXP '^E1[0-4]\.|^R73' OR (diab.icd='O24.4' AND diab.Dggel=0 AND diab.diagsicherheit IN ('G',' ') AND diab.diagdatum BETWEEN qbegs(f.quartal) AND qends(f.quartal)))" & vbCrLf & _
- "LEFT JOIN `kassenliste` kl ON f.vknr = kl.vknr AND f.ik=kl.ik " & vbCrLf & _
+ "LEFT JOIN `kassenliste` kl ON kl.id=f.kid" & vbCrLf & _
  "LEFT JOIN `namen` n ON f.pat_id = n.pat_id " & vbCrLf & _
  "WHERE (NOT ISNULL(l.leistung) AND NOT ISNULL(l1.leistung)) AND ldat=l1dat " & vbCrLf & _
  "ORDER BY leistung DESC) i GROUP BY pat_id"
@@ -3050,9 +3051,9 @@ sql(AWlf) = _
 "  ,IF((g.dmp1=1 OR g.dmp2=1) AND NOT ((dmpklass=2 OR (n.dmpklass=3 AND n.dmpbeg<=qend()))) AND NOT ((k.kateg IN (/*'LKK',*/'PBe','SHV','') AND l.leistung IN ('97310','973212','97313','97314','97320','97321','97322','97323','97324')) OR (k.kateg='PBe' AND l.leistung IN ('97268','92298D','92698P','92698C','92698S','92698B','92698A','92277','92278','92267A','97267B','92268A','97268B','92266A','97266B','92265A','97265B','92269A','97269B','92264A','97264B','92263A','97263B','92262A','97262B','92261A','97261B','92281','92282','92292S','97267B','92292E','97268B','92292D','97266B','92292C','97265B','92292B','97274','92292A','97268','92711G','92710G','92711S','92710S','92710A','92711A','92710B','97269','97280','97271','97274','97267B','97280S','97276','97277','97270','92278','92281','92282','97312','97310','97320','97321','97322','97313','97323','97333'))),'fDMP','') fDMP " & vbCrLf
 sql(AWlf) = sql(AWlf) & _
 "  ,mitüw,schgr,k.kateg,n.kvnr,dmpklass" & vbCrLf & _
-"FROM `aktfvs` f " & vbCrLf & _
-"LEFT JOIN `namen` n ON f.pat_id = n.pat_id " & vbCrLf & _
-"LEFT JOIN `kassenliste` k ON f.vknr = k.vknr AND f.ik = k.ik " & vbCrLf & _
+"FROM `aktfvs` f" & vbCrLf & _
+"LEFT JOIN `namen` n ON f.pat_id = n.pat_id" & vbCrLf & _
+"LEFT JOIN `kassenliste` k ON k.id=f.kid" & vbCrLf & _
 "LEFT JOIN `leistungen` l ON l.pat_id = f.pat_id AND l.zeitpunkt BETWEEN qanf() AND qend() " & vbCrLf & _
 "LEFT JOIN `diagview` d ON d.pat_id = f.pat_id AND d.diagsicherheit IN (' ','G') AND COALESCE(Dggel,0)=0 AND icd RLIKE '^E1[0-4]|^O24\.4' AND ((icd rlike '^E1[0-4]' AND obdauer<>0) OR (obdauer=0 AND icd='O24.4' AND diagdatum BETWEEN qanf() AND qend())) " & vbCrLf & _
 "LEFT JOIN `anamnesebogen` an ON f.pat_id = an.pat_id " & vbCrLf & _
@@ -3076,10 +3077,10 @@ sql(AWlf) = "" & _
 ",dt.DmTyp DmTyp" & vbCrLf & _
 ",(SELECT COUNT(0) FROM leistungen WHERE pat_id=f.pat_id AND zeitpunkt BETWEEN qanf() AND qend() AND leistung=97155) Zahl_d_97155" & vbCrLf & _
 "FROM aktfv f" & vbCrLf & _
-"LEFT JOIN kassen k USING (vknr)" & vbCrLf & _
+"LEFT JOIN kassenliste k ON k.ID=f.kid" & vbCrLf & _
 "LEFT JOIN dtypview dt ON dt.pat_id=f.pat_id" & vbCrLf & _
-"WHERE kateg='LKK' AND k.kurzname NOT RLIKE 'Bundeswehr'" & vbCrLf & _
-"HAVING Zahl_d_97155<>1 AND dmtyp<>'-'"
+"WHERE f.kateg='LKK' AND k.kurzname NOT RLIKE 'Bundeswehr' AND dt.DmTyp<>'-'" & vbCrLf & _
+"HAVING Zahl_d_97155<>1"
  mins(AWlf) = 10
  maxs(AWlf) = 60
  AWlf = AWlf + 1
@@ -3840,7 +3841,7 @@ sql(AWlf) = "SELECT Pat_ID, Name, Messzeitpunkt, `01812`,`Vor-01812`,Soll, `0177
 ",gesname(f.pat_id) Name, DATE(e.zeitpunkt) Messzeitpunkt, e.inhalt einh, e.fid fid, e.pat_id pat_id" & vbCrLf & _
 ",COALESCE((SELECT SUM(lzahl) FROM leistungen WHERE pat_id= e.pat_id AND DATE(zeitpunkt)<DATE(e.zeitpunkt) AND DATE(zeitpunkt)> et.letzteRegel AND leistung='01777'),0) `Vor-01777`" & vbCrLf & _
 ",et.voret, (SELECT COUNT(0) FROM eintraege WHERE pat_id=e.pat_id AND DATE(zeitpunkt)=DATE(e.zeitpunkt) AND art IN ('bzvgl','bz')) + CASE WHEN e.inhalt LIKE '%mg%mg%mg%' AND NOT e.inhalt LIKE '%mg%mg%~%mg%' THEN 3 WHEN e.inhalt LIKE '%mg%mg%' AND NOT e.inhalt LIKE '%mg%~%mg%' THEN 2 WHEN e.inhalt LIKE '%mg%' THEN 1 ELSE 0 END Soll" & vbCrLf & _
-",f.vknr, f.ik" & vbCrLf & _
+",f.kid" & vbCrLf & _
 "FROM aktfv v JOIN faelle f USING (fid) LEFT JOIN namen n ON n.pat_id=v.pat_id" & vbCrLf & _
 "LEFT JOIN eintraege e ON e.Pat_ID=v.pat_id AND e.art='ogtt' AND e.zeitpunkt BETWEEN qanf()AND qend()" & vbCrLf & _
 "LEFT JOIN (SELECT IF(LR=18991230,IF(efLR=18991230,IF(erLR=18991230,IF(voret<19500101,voret+INTERVAL 100 YEAR,voret)-INTERVAL 280 day,erlr),efLR),IF(LR<19500101,LR+INTERVAL 100 YEAR,LR)) letzteRegel, voret,pat_id FROM sws)et ON et.Pat_ID=f.pat_id AND et.voret>qanf() AND et.voret-INTERVAL 280 DAY<e.zeitpunkt" & vbCrLf & _
@@ -3848,7 +3849,7 @@ sql(AWlf) = "SELECT Pat_ID, Name, Messzeitpunkt, `01812`,`Vor-01812`,Soll, `0177
 "LEFT JOIN leistungen gluc ON f.pat_id = gluc.pat_id AND gluc.leistung = '01812' AND DATE(gluc.zeitpunkt) = DATE(e.zeitpunkt)" & vbCrLf & _
 "WHERE EXISTS (SELECT 0 FROM sws WHERE pat_id=f.pat_id AND e.zeitpunkt BETWEEN voret - INTERVAL 280 day AND voret)" & vbCrLf & _
 "GROUP BY e.pat_id,e.zeitpunkt)i" & vbCrLf & _
-"WHERE ((SELECT MAX(kateg) FROM kassenliste WHERE vknr=i.vknr AND ik=i.ik)<>'SHV' AND" & vbCrLf & _
+"WHERE ((SELECT MAX(kateg) FROM kassenliste WHERE id=i.kid)<>'SHV' AND" & vbCrLf & _
 "        `01777`<>(IF(`Vor-01777`=0 AND ob50 IN(1,'u'),1,0)))" & vbCrLf & _
 "   OR `01812` < LEAST(Soll,8-`Vor-01812`)" & vbCrLf & _
 ";"
@@ -4020,7 +4021,7 @@ sql(AWlf) = vbCrLf & _
  "SELECT f.pat_id AS Pat_ID,gesnameG(f.pat_id) Name, dd.ICD DiabICD, ds.icd SchwICD, DATE(ds.diagdatum) SchwICDZp, DATE(e.zeitpunkt) EintrZp, e.art EintrArt, e.inhalt EintrInhalt " & vbCrLf & _
       "FROM `aktf` f " & vbCrLf & _
       "LEFT JOIN `namen` n USING (pat_id) " & vbCrLf & _
-      "LEFT JOIN `kassenliste` kl ON f.vknr=kl.vknr AND f.ik=kl.ik " & vbCrLf & _
+      "LEFT JOIN `kassenliste` kl ON kl.id=f.kid" & vbCrLf & _
       "LEFT JOIN `diagnosen` dd ON f.pat_id = dd.pat_id AND dd.icd REGEXP '^E1[0-4]' AND dd.diagsicherheit NOT IN ('A','Z','V') " & vbCrLf & _
       "LEFT JOIN `diagnosen` ds ON f.pat_id = ds.pat_id AND ds.icd LIKE 'O24.%' AND ds.diagdatum BETWEEN " & lQAnfuEnd(FristS) & " AND ds.diagsicherheit NOT IN ('A','Z','V') AND ds.Dggel=0" & vbCrLf & _
       "LEFT JOIN `eintraege` e ON f.pat_id = e.pat_id AND (e.art IN ('andm','andm2'" & artSpezBerat & ")) " & vbCrLf & _
@@ -4661,7 +4662,7 @@ sql(AWlf) = _
        ", GROUP_CONCAT(DISTINCT jd.icd) COPDicd, GROUP_CONCAT(DISTINCT dd.icd) RIicd, GROUP_CONCAT(DISTINCT LEFT(dd.diagtext,17)) `Resp.Ins.`,DATE(e.zeitpunkt) zpt, e.inhalt Eintrag, LEFT(k.name,20) Kasse  " & vbCrLf & _
        "FROM aktfvs v " & vbCrLf & _
        "JOIN faelle f USING (fid)" & vbCrLf & _
-       "LEFT JOIN kassenliste k ON v.vknr = k.vknr AND v.ik=k.ik " & vbCrLf & _
+       "LEFT JOIN kassenliste k ON k.id=f.kid" & vbCrLf & _
        "LEFT JOIN diagview jd ON f.pat_id = jd.pat_id AND jd.gicd LIKE 'J44%' " & vbCrLf & _
        "LEFT JOIN diagview dd ON f.pat_id = dd.pat_id AND dd.diagsicherheit NOT IN ('A','Z') AND (dd.icd LIKE 'R06%' OR dd.icd LIKE 'J96%' OR dd.diagtext LIKE '%dyspnoe%' OR dd.diagtext LIKE '%luftnot%' OR dd.diagtext LIKE '%atemnot%') " & vbCrLf & _
        "LEFT JOIN eintraege e ON f.pat_id = e.pat_id AND (e.zeitpunkt > SUBDATE(" & qtAnf(FristS) & ",INTERVAL 2 YEAR) AND (e.inhalt LIKE '%dyspnoe%' OR (e.inhalt LIKE '%luftnot%' AND e.art NOT IN ('andm','andm2')) OR (e.inhalt LIKE '%atemnot%' AND e.art NOT IN ('andm','andm2')))) " & vbCrLf & _
@@ -5767,7 +5768,7 @@ sql(AWlf) = "" & vbCrLf & _
 "LEFT JOIN eintraege e ON pid = e.pat_id AND (art= 'dak') " & vbCrLf & _
 "WHERE docname RLIKE '6971042276004|7433967297004|51180684684|40656961201|404606626279' " & vbCrLf & _
 "AND NOT docname RLIKE 'Attest' AND ISNULL(art) AND pid<>0 " & vbCrLf & _
-"AND EXISTS(SELECT 1 FROM `faelle` f WHERE pat_id=pid AND qbeg(fanf)=qbeg(submt) AND ((SELECT MAX(kateg) FROM kassenliste WHERE vknr=f.vknr AND ik=f.ik)) IN ('','BKK','BKN','EK','IKK'))" & vbCrLf & _
+"AND EXISTS(SELECT 1 FROM `faelle` f WHERE pat_id=pid AND qbeg(fanf)=qbeg(submt) AND ((SELECT kateg FROM kassenliste WHERE id=f.kid)) IN ('','BKK','BKN','EK','IKK'))" & vbCrLf & _
 "ORDER BY docname;"
  mins(AWlf) = 10
  maxs(AWlf) = 60
@@ -6652,19 +6653,19 @@ Public Sub SQLvorZeigSQL()
   For AWlf = 1 To AWz
    If (MFG.TextMatrix(AWlf, 1) = "X" And sql(AWlf - 1) <> "-") Then
     If InStr(MFG.TextMatrix(AWlf, 2), "Nicht zugeordnete DAK-Faxe /KKH-Faxe") <> 0 Then
-     myEFrag ("UPDATE faxeinp.outa o SET pid = (" & _
-      "SELECT GROUP_CONCAT(n.pat_id) FROM namen n " & _
-      "LEFT JOIN faelle f ON f.pat_id = n.pat_id " & _
-      "WHERE o.docname LIKE CONCAT('%',n.nachname,'%',n.vorname,'%') " & _
-      "AND f.bhfb=qbeg(o.submt) AND (f.kasse LIKE '%DAK%' OR f.kasse LIKE '%KKH%' OR f.kasse LIKE '%Kaufmännische K%')" & _
-      ") WHERE pid=0 AND (docname LIKE '%6971042276004%' OR docname LIKE '%51180684684%') AND NOT ISNULL(" & _
-      "(SELECT GROUP_CONCAT(n.pat_id) FROM namen n " & _
-      "LEFT JOIN faelle f ON f.pat_id = n.pat_id " & _
-      "WHERE o.docname LIKE CONCAT('%',n.nachname,'%',n.vorname,'%') " & _
+     myEFrag ("UPDATE faxeinp.outa o SET pid = (" & vbCrLf & _
+      "SELECT GROUP_CONCAT(n.pat_id) FROM namen n " & vbCrLf & _
+      "LEFT JOIN faelle f ON f.pat_id = n.pat_id " & vbCrLf & _
+      "WHERE o.docname LIKE CONCAT('%',n.nachname,'%',n.vorname,'%') " & vbCrLf & _
+      "AND f.bhfb=qbeg(o.submt) AND (f.kasse LIKE '%DAK%' OR f.kasse LIKE '%KKH%' OR f.kasse LIKE '%Kaufmännische K%')" & vbCrLf & _
+      ") WHERE pid=0 AND (docname LIKE '%6971042276004%' OR docname LIKE '%51180684684%') AND NOT ISNULL(" & vbCrLf & _
+      "(SELECT GROUP_CONCAT(n.pat_id) FROM namen n " & vbCrLf & _
+      "LEFT JOIN faelle f ON f.pat_id = n.pat_id " & vbCrLf & _
+      "WHERE o.docname LIKE CONCAT('%',n.nachname,'%',n.vorname,'%') " & vbCrLf & _
       "AND f.bhfb=qbeg(o.submt) AND (f.kasse LIKE '%DAK%' OR f.kasse LIKE '%KKH%' OR f.kasse LIKE '%Kaufmännische K%')))")
-     myEFrag ("UPDATE faxeinp.outa SET pid = (SELECT MAX(n.pat_id) FROM namen n " & _
-     "LEFT JOIN faelle f ON f.pat_id = n.pat_id AND fanf = (SELECT MAX(fanf) FROM faelle WHERE pat_id = n.pat_id) " & _
-     "LEFT JOIN kassenliste k USING (ik,vknr) " & _
+     myEFrag ("UPDATE faxeinp.outa SET pid = (SELECT MAX(n.pat_id) FROM namen n " & vbCrLf & _
+     "LEFT JOIN faelle f ON f.pat_id = n.pat_id AND fanf = (SELECT MAX(fanf) FROM faelle WHERE pat_id = n.pat_id) " & vbCrLf & _
+     "LEFT JOIN kassenliste k ON k.id=f.kid" & vbCrLf & _
      "WHERE REPLACE(REPLACE(docname,' ',''),'-','') LIKE CONCAT(REPLACE(REPLACE(CONCAT(n.nachname,n.vorname),' ',''),'-',''),'%') " & _
      "and (k.name LIKE 'DAK%' OR k.name LIKE 'KKH%' OR k.name LIKE '%Kaufmännische K%')" & _
      ") WHERE docname LIKE '%971042276004%' AND pid=0;")
@@ -6817,13 +6818,13 @@ End Sub ' Start_Click()
 
 Private Sub tuStart_click(obauto%)
  Dim lfSQL$, i&, StartZeit As Date, überschrift As New CString
- Static rc As New ADODB.Connection
- Dim rLF As ADODB.Recordset, rIn As ADODB.Recordset
+ Static rc As New adodb.Connection
+ Dim rLF As adodb.Recordset, rIn As adodb.Recordset
  StartZeit = Now()
  If rc.State <> 1 Then
    Set rc = Lese.dbv.wCn
  End If
- Set rLF = New ADODB.Recordset
+ Set rLF = New adodb.Recordset
  Call EinstSpeichern
  Call SQLvorZeigSQL
  Dim AbrFlrDt$, AbrAutDt$
@@ -7010,8 +7011,8 @@ Public Function AbrFausg(name$, sql$, obmo%, Datei$, mins%, ByVal maxs%, übersch
  ÜberschrAkt = überschrift
  On Error GoTo fehler
  Dim T1!
- Static rc As New ADODB.Connection
- Static rE As ADODB.Recordset
+ Static rc As New adodb.Connection
+ Static rE As adodb.Recordset
 #If obmitalterform Then
  Dim rD As DAO.Recordset
  If Me.AbrF.DAO Then
@@ -7023,7 +7024,7 @@ Public Function AbrFausg(name$, sql$, obmo%, Datei$, mins%, ByVal maxs%, übersch
  If True Then
 #End If
 '  If rE Is Nothing Then' auskommentiert 26.3.23
-  Set rE = New ADODB.Recordset
+  Set rE = New adodb.Recordset
   If obmo Then
    MOConInit
    Set rc = MOCon

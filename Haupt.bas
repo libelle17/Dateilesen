@@ -119,7 +119,7 @@ End Function ' qtEnd$(frist$)
 ' 12.10.19: steht auch im Postbeamtenvertrag https://www.kvb.de/praxis/alternative-versorgungsformen/dmp/rechtsgrundlagen/: "KVB-RQ-Diabetesvereinbarung-Postbeamtenkrankenkasse.pdf"
 Public Function motsql() ' 13.4.21 ktag liefert falsche Ergebnisse, wenn auch inhalt gewählt
  motsql = "SELECT f.Pat_ID,gesname(f.pat_id)PName, PatAlter(f.pat_id) PAlter, ICD, DATE(e.zeitpunkt) Zeitpunkt, e.art AS Art, e.inhalt Inhalt FROM `aktfv` f " & vbCrLf & _
-       "LEFT JOIN `kassenliste` kl ON f.vknr = kl.vknr AND f.ik=kl.ik " & vbCrLf & _
+       "LEFT JOIN `kassenliste` kl ON f.kid=kl.id " & vbCrLf & _
        "LEFT JOIN `diagnosen` d ON f.pat_id = d.pat_id AND icd REGEXP '^E1[0-4]' AND diagsicherheit IN ('G',' ') " & vbCrLf & _
        "LEFT JOIN `leistungen` l ON f.pat_id = l.pat_id AND l.leistung IN (SELECT leistung FROM genehmigungen g WHERE obschulung<>0 AND wert >19) " & vbCrLf & _
                         "AND qbeg(l.zeitpunkt) + INTERVAL 350 day > qanf() " & vbCrLf & _
@@ -1849,8 +1849,11 @@ End If ' aktTbn = "faelle" Then
   Print #257, "END IF ' ErrNumber = "
   If aktTbn = "faelle" Then
    Print #257, "IF ErrNumber = -2147467259 THEN"
-   Print #257, " Dim sqlquer$"
-   Print #257, " sqlquer = ""INSERT INTO `kassenliste`(name,kurzname,`GO`,`VKNR`,`IK`,`eingef`,pid) VALUES ("" & ""'"" & rFa(I).kasse & ""', '"" & rFa(I).kkasse_2 & ""', '"" & rFa(I).GOÄKatName & ""', '"" & rFa(I).VKNr & ""', '"" & rFa(I).IK & ""',"" & Format(NOW(), ""yyyymmddHHMMSS"") & "","" & rFa(I).Pat_id & "")"""
+   Print #257, " Dim sqlquer$, ukas$, kat$"
+   Print #257, " ukas = UCase$(Trim$(rFa(i).Kasse))"
+   Print #257, " If len(ukas) < 4 Then ukas = UCase$(Trim$(rFa(i).KKasse_2))"
+   Print #257, " If rFa(i).SchGr = 90 Then kat = ""PRI"" Else kat = holKat(uKas)"
+   Print #257, " sqlquer = ""INSERT INTO `kassenliste`(name,kurzname,`GO`,`VKNR`,`IK`,`eingef`,pid,kateg) VALUES ("" & ""'"" & rFa(I).kasse & ""', '"" & rFa(I).kkasse_2 & ""', '"" & rFa(I).GOÄKatName & ""', '"" & rFa(I).VKNr & ""', '"" & rFa(I).IK & ""',"" & Format(NOW(), ""yyyymmddHHMMSS"") & "","" & rFa(I).Pat_id & "","" & kat & "")"""
    Print #257, " InsKorr DBCn, sqlquer, rAF"
    Print #257, " Resume"
    Print #257, "END IF ' ErrNumber = -2147467259 THEN"
@@ -3124,7 +3127,7 @@ End Function ' sucheinVerz
 
 ' nur in Sub HausärzteBKK_Click()
 Function doHABKK(frm As Lese)
- Const sql$ = "SELECT COUNT(0) Zahl, CONCAT(l.name,' ',l.vorname,' ',l.fachgruppe,' ',l.zulg,' ',l.ort) Hausarzt, l.telefon, l.fax, übwr üw FROM `aktf` a LEFT JOIN `faelle` f ON a.fid = f.fid LEFT JOIN `kassenliste` k ON f.ik = k.ik AND f.vknr = k.vknr LEFT JOIN `aktlue` l ON übwr = l.kvnro WHERE kateg = 'BKK' AND übwr <> '' AND l.name <> 'Schade' GROUP BY üw ORDER BY Zahl DESC;"
+ Const sql$ = "SELECT COUNT(0) Zahl, CONCAT(l.name,' ',l.vorname,' ',l.fachgruppe,' ',l.zulg,' ',l.ort) Hausarzt, l.telefon, l.fax, übwr üw FROM `aktf` a LEFT JOIN `faelle` f ON a.fid = f.fid LEFT JOIN `kassenliste` k ON f.kid=k.id LEFT JOIN `aktlue` l ON übwr = l.kvnro WHERE kateg = 'BKK' AND übwr <> '' AND l.name <> 'Schade' GROUP BY üw ORDER BY Zahl DESC;"
  Dim rab As New ADODB.Recordset
  Open uVerz & "Hausärzte BKK.txt" For Output As #322
 ' rAb.Open sql, DBCn, adOpenDynamic, adLockReadOnly
@@ -6425,9 +6428,9 @@ Public Sub DoKassenkategorienBestimmen()
 ' Debug.Print "Fertig mit Kassenkategorienbestimmen"
 End Sub ' DoKassenkategorienBestimmen
 
-Sub doKassKat(Kateg$, namen$(), Optional isn%)
+Sub doKassKat(kateg$, namen$(), Optional isn%)
  Dim rs As ADODB.Recordset, rAf&, sql$, i%
- sql = "UPDATE `kassenliste` SET geaen=" & Format(Now(), "yyyymmddHHMMSS") & ",Kateg='" & Kateg & "' WHERE ("
+ sql = "UPDATE `kassenliste` SET geaen=" & Format(Now(), "yyyymmddHHMMSS") & ",Kateg='" & kateg & "' WHERE ("
  i = 0
  Do
   If LenB(namen(i)) = 0 Then Exit Do
@@ -6438,13 +6441,13 @@ Sub doKassKat(Kateg$, namen$(), Optional isn%)
    sql = sql & "OR "
   End If
  Loop
- sql = sql & ") AND (Kateg <> '" & Kateg & "' OR Kateg='' OR ISNULL(Kateg))"
+ sql = sql & ") AND (Kateg <> '" & kateg & "' OR Kateg='' OR ISNULL(Kateg))"
  If isn <> 0 Then
   sql = sql & " AND (ISNULL(Kateg) OR Kateg='')"
  End If
  Set rs = myEFrag(sql, rAf)
  If rAf <> 0 Then
-  Lese.Ausgabe = Lese.Ausgabe & "In die Kategorie '" & Kateg & "' wurden " & rAf & " Kassen eingeteilt." & vbCrLf
+  Lese.Ausgabe = Lese.Ausgabe & "In die Kategorie '" & kateg & "' wurden " & rAf & " Kassen eingeteilt." & vbCrLf
   altAusgabe = Lese.Ausgabe
  End If
 End Sub ' doKassKat
@@ -6580,7 +6583,7 @@ Public Function umlweg$(ByRef q$)
  umlweg = REPLACE$(REPLACE$(REPLACE$(REPLACE$(REPLACE$(REPLACE$(REPLACE$(q, "ä", "\'e4"), "Ä", "\'c4"), "ö", "\'f6"), "Ö", "\'d6"), "ü", "\'fc"), "Ü", "\'dc"), "ß", "\'df")
 End Function ' umlweg$
 
-' wird noch nirgends aufgerufen
+'' s. Liste 43
 Public Function liste_43()
 Dim sql$, rs As ADODB.Recordset, ErrNr&, ErrDes$
 ' für die erste Auflistung:
@@ -6601,7 +6604,7 @@ sql = "SELECT" & vbCrLf & _
 ", kl.Kurzname=i.kkasse_2 obklgleich, kl.*" & vbCrLf & _
 "FROM (" & vbCrLf & _
 "    SELECT f.Pat_id, gesname(f.pat_id) Patname, Ik,Vknr, Kateg ,KKasse_2" & vbCrLf & _
-"   , (SELECT COUNT(DISTINCT kateg) FROM kassenliste kal WHERE kal.vknr=f.vknr AND kal.ik=f.ik) KategZahl" & vbCrLf & _
+"   , (SELECT COUNT(DISTINCT kateg) FROM kassenliste kal WHERE kal.id=f.kid) KategZahl" & vbCrLf & _
 "--   , (SELECT GROUP_CONCAT(DISTINCT kurzname) FROM kassenliste WHERE vknr=f.vknr AND kurzname<>'') kurznn" & vbCrLf & _
 "    FROM aktfv f LEFT JOIN (SELECT KKasse_2,fid from faelle) fk USING (fid)" & vbCrLf & _
 "    GROUP BY vknr,IK" & vbCrLf & _
@@ -6616,7 +6619,7 @@ If Not rs.BOF Then
  Do While Not rs.EOF
   Debug.Print rs!VKNr, rs!IK, rs!name, rs!AnzahlIK
   sql = "INSERT INTO kassenliste(VKNR,IK,NAME,Kateg,AnzahlIK,AnzahlKTUG,GültigVon,GültigBis,GO,Kurzname,rName,Lantus2,Levemir2,Humalog,Liprolog,Novorapid,Apidra,eingef,geaen,pid)VALUES('" & _
-  rs!VKNr & "','" & rs!IK & "','" & rs!name & "','" & rs!Kateg & "','" & rs!AnzahlIK & "','" & rs!AnzahlKTUG & "','" & rs!GültigVon & "','" & rs!GültigBis & "','" & rs!GO & "','" & rs!kurzname & "','" & rs!rname & "','" & rs!Lantus2 & "','" & rs!Levemir2 & "','" & rs!Humalog & "','" & rs!Liprolog & "','" & rs!Novorapid & "','" & rs!Apidra & "','" & rs!eingef & "','" & rs!geaen & "','" & rs!pid & _
+  rs!VKNr & "','" & rs!IK & "','" & rs!name & "','" & rs!kateg & "','" & rs!AnzahlIK & "','" & rs!AnzahlKTUG & "','" & rs!GültigVon & "','" & rs!GültigBis & "','" & rs!GO & "','" & rs!kurzname & "','" & rs!rname & "','" & rs!Lantus2 & "','" & rs!Levemir2 & "','" & rs!Humalog & "','" & rs!Liprolog & "','" & rs!Novorapid & "','" & rs!Apidra & "','" & rs!eingef & "','" & rs!geaen & "','" & rs!pid & _
   "')"
   myEFrag sql, rAf, , , ErrNr, ErrDes
   If rAf <> 1 Then
@@ -6626,5 +6629,4 @@ If Not rs.BOF Then
  Loop
 End If
 Debug.Print "Fertig"
-End Function
-
+End Function ' Liste_43

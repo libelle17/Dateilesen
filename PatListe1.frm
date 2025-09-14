@@ -407,7 +407,7 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
 Option Explicit
-Public pRs As ADODB.Recordset ' zugewiesen in Tabausgeb, verwendet in TabAusFüll
+Public pRs As adodb.Recordset ' zugewiesen in Tabausgeb, verwendet in TabAusFüll
 Public hlese As Lese
 Public AnfCode%
 Public labxtb$
@@ -566,7 +566,7 @@ Const MFGLabCols% = 9
 Dim MFGCW&(), MFGTopRow&, MFGRow&, MFGLeftCol&, MFGCol&, MFGLabSort%
 Public obMitZähler% ' 0 = ohne Zähler, 1 = mit Zähler
 Dim obPidSp%
-Dim rDPat As New ADODB.Recordset
+Dim rDPat As New adodb.Recordset
 Private Declare Function ShellExecute Lib "shell32.dll" _
         Alias "ShellExecuteA" (ByVal hwnd As Long, ByVal _
         lpOperation As String, ByVal lpFile As String, ByVal _
@@ -687,7 +687,7 @@ End Sub ' TabAusFüll()
 
 ' in Form_Load
 Private Sub DMPFüll() ' für: Alle &DMP-Dokumente an Hausärzte faxen ' s. DMP_Dokumente_an_HA_Nachweis_Click
- Dim rs0 As New ADODB.Recordset, i& ' rs1 As New ADODB.Recordset, i$ ', sql1$
+ Dim rs0 As New adodb.Recordset, i& ' rs1 As New ADODB.Recordset, i$ ', sql1$
  
  Static gafehler%
  On Error GoTo fehler
@@ -1129,7 +1129,7 @@ End Sub ' FertigStellenBeliebig()
 ' in Command1_Click (artPat)
 Private Sub DokuBeliebig() ' Doku zu beliebigem Patienten
  Dim erg As Variant, VorDoku$, NachN$, VorN$, ICD$
- Dim rNa As ADODB.Recordset
+ Dim rNa As adodb.Recordset
  Select Case PLArt
  
   Case artDMP
@@ -1275,7 +1275,7 @@ Public Sub FertigStellen(zeile&, Optional nuranzeigen%, Optional PatID&) ' nachd
  Dim VorDoku$, Pat_id&, dtyp%, rs As New Recordset
 ' Dim aktDC AS DMPClass
  Dim j%
- Dim rTyp As New ADODB.Recordset
+ Dim rTyp As New adodb.Recordset
  On Error GoTo fehler
  With MFG
   .SetFocus
@@ -1614,7 +1614,7 @@ Public Sub callMachDMPBogen(Pat_id&, NachN$, VorN$, obtot%, obneu%, ICD$, Option
  dtyp = Mid(ICD, 3, 1) + 1
 #If False Then
  If VorDoku = "" Then
-      Dim rDok As New ADODB.Recordset
+      Dim rDok As New adodb.Recordset
       Dim begcol%, j%, AktCol%, obraus%
 '      rDok.Open "SELECT `DokuDatum`, `Art`, `ausgedruckt`, `OK`, `exportiert` FROM `dmpreihe` dr WHERE pat_id = " & Pat_id & "  AND (dr.Abk LIKE 'eDMPDM%' OR dr.Abk LIKE 'DMPDTYP%') ORDER BY `DokuDatum` DESC", DBCn, adOpenDynamic, adLockReadOnly
       myFrag rDok, "SELECT `DokuDatum`, `Art`, `ausgedruckt`, `OK`, `exportiert` FROM `dmpreihe` dr WHERE pat_id = " & Pat_id & " AND dr.Abk RLIKE '^eDMPDM|^DMPDTYP|Dokumentation Diabetes' ORDER BY `DokuDatum` DESC"
@@ -1795,8 +1795,8 @@ Public Sub domachDMPBogen(Pat_id&, BogArtlV As BogArtTyp, DokuDat As Date, Optio
  Const DokuVersion$ = "201410"
 ' Dim rsAnam As New ADODB.Recordset
 ' Dim rnam As New ADODB.Recordset
- Dim rfal As New ADODB.Recordset
- Dim rform As New ADODB.Recordset
+ Dim rfal As New adodb.Recordset
+ Dim rform As New adodb.Recordset
  Dim hnd&
  Dim aktDC As DMPClass, j%, pos%
 ' Dim RRsyst%, RRdiast%
@@ -1843,7 +1843,7 @@ Public Sub domachDMPBogen(Pat_id&, BogArtlV As BogArtTyp, DokuDat As Date, Optio
  End If ' LenB(erg) <> 0 Then
  Dim auswlanr As New LANRauswahl
  
- Dim rlanr As New ADODB.Recordset
+ Dim rlanr As New adodb.Recordset
  If autolanr Then
   myFrag rlanr, "SELECT p.lanr,Nachname,Vorname,Titel,Strasse,Hausnummer,PLZ,Stadt,Telefon FROM lanrpraxis p WHERE id = IF((SELECT MIN(lanrid) FROM faelle WHERE pat_id = " & Pat_id & " AND qanf = (SELECT MAX(qanf) FROM faelle WHERE pat_id = " & Pat_id & "))>0,(SELECT MIN(lanrid) FROM faelle WHERE pat_id = " & Pat_id & " AND qanf = (SELECT MAX(qanf) FROM faelle WHERE pat_id = " & Pat_id & ")),1)"
   If Not rlanr.BOF Then
@@ -1881,7 +1881,7 @@ Public Sub domachDMPBogen(Pat_id&, BogArtlV As BogArtTyp, DokuDat As Date, Optio
   Kasse = rform!FeldInh ' Trim$(replace$(rform!FeldInh, aktdc.vknr, ""))
  Else
   Set rform = Nothing
-  myFrag rform, "SELECT kurzname, rname FROM `kassenliste` WHERE vknr = '" & rfal!VKNr & "' AND ik = '" & rfal!IK & "'", adOpenStatic, DBCn, adLockReadOnly 'aktDC.VKNr
+  myFrag rform, "SELECT kurzname, rname FROM `kassenliste` WHERE id=" & rfal!KID, adOpenStatic, DBCn, adLockReadOnly 'aktDC.VKNr
   If Not rform.BOF Then
    Kasse = rform!kurzname
    If InStrB(Kasse, " ") <> 0 Then
@@ -2421,7 +2421,7 @@ Public Sub domachDMPBogen(Pat_id&, BogArtlV As BogArtTyp, DokuDat As Date, Optio
    Dim publicID$
    Dim Zusatzdaten$, SuchStr$
    
-   Dim rDMP As New ADODB.Recordset
+   Dim rDMP As New adodb.Recordset
    myFrag rDMP, "SELECT zusatzdaten z FROM dmpreihe WHERE pat_id = " & Pat_id & " AND Abk RLIKE '^eDMPDM|^DMPDTYP|Dokumentation Diabetes' ORDER BY karteidatum"
    If Not rDMP.BOF Then
     Zusatzdaten = rDMP!z
@@ -3087,7 +3087,7 @@ End Sub ' domachDMPBogen
 Private Sub MFGrefresh()
  Dim i&
  Dim aicd$
- Dim rs As New ADODB.Recordset
+ Dim rs As New adodb.Recordset
  FNr = 18
  On Error GoTo fehler
  GruSp = 1
@@ -3203,8 +3203,8 @@ Public Sub ExcelLesen(Datei$) ' für PatListe Load (Laborwerte)
  Const XStra = "Provider=Microsoft.Jet.OLEDB.4.0;Data Source="
  Const XStrb = ";Extended Properties=""Excel 8.0;HDR=no;IMEX=1"""
  Dim rX As New ADOX.Catalog, sql$, ka%, ke%, runde%, angefangen%, obAnfang%, i&, rAf&
- Dim XCon As New ADODB.Connection
- Dim rEx As New ADODB.Recordset, rs As New ADODB.Recordset
+ Dim XCon As New adodb.Connection
+ Dim rEx As New adodb.Recordset, rs As New adodb.Recordset
  FNr = 19
  On Error GoTo fehler
  DBCnS = DBCn
@@ -3247,12 +3247,12 @@ End Sub ' ExcelLesen
 
 ' in Form_Load
 Sub LabordateiAnzeig(Datei$)
- Dim rs As New ADODB.Recordset, i&, vorDp$, pos&, rs1 As New ADODB.Recordset, j&, DateiDatStr$, sql$
+ Dim rs As New adodb.Recordset, i&, vorDp$, pos&, rs1 As New adodb.Recordset, j&, DateiDatStr$, sql$
  Dim pid&, vorPID&, gschl$, DateiDat As Date, vorFarbe&, Sp1Farbe&, vorDPneu$, vorEinh$
  Dim fdt$, buch$, altPatient$ ' FileDateTime
- Dim rs2 As New ADODB.Recordset
+ Dim rs2 As New adodb.Recordset
  Dim pide$  ' PID von Pat. gleichen Namens
- Dim rsgl As New ADODB.Recordset
+ Dim rsgl As New adodb.Recordset
 
  FNr = 20
  On Error GoTo fehler
@@ -3272,7 +3272,7 @@ Sub LabordateiAnzeig(Datei$)
  .TextMatrix(0, ficdsp) = "ICD"
  .TextMatrix(0, terminsp) = "Termine"
  .TextMatrix(0, labhwsp) = "Laborhinweise"
- Dim rc As New ADODB.Recordset
+ Dim rc As New adodb.Recordset
  Dim Datum As Date
  If True Then
 ' sql = "SELECT" & vbCrLf & _
@@ -3605,7 +3605,7 @@ sql = sql & _
     pid = rs2!Pat_id
     gschl = rs2!geschlecht
     .TextMatrix(i, Pat_IDSp) = pid
-    Dim rTerm As ADODB.Recordset
+    Dim rTerm As adodb.Recordset
     myFrag rTerm, "SELECT COALESCE(TRIM(GROUP_CONCAT(CONCAT(DATE_FORMAT(zp,'%d.%m.%y'),' ',LEFT(raum,3)) ORDER BY zp SEPARATOR '  ')),'') term " & vbCrLf & _
                   "FROM termine t WHERE zp >= DATE(NOW()) AND pid = " & CStr(pid) & ";", adOpenStatic
     If Not rTerm.BOF And Not IsNull(rTerm!term) Then
@@ -3751,7 +3751,7 @@ andSp:
          .col = medsp
          .TextMatrix(i, medsp) = "Anämie!"
          If .TextMatrix(i, 0) <> "" Then
-         Dim radg As New ADODB.Recordset
+         Dim radg As New adodb.Recordset
          ' falls Anämie diagnostiziert
          Set radg = myEFrag("SELECT icd FROM `diagnosen` d WHERE d.pat_id = " & .TextMatrix(i, 0) & " AND d.diagtext LIKE '%anämie%' AND d.diagsicherheit NOT IN ('A','Z') AND d.obdauer<>0") ' AND COALESCE(d.Dggel,0)=0
  '        myEFrag "SET GROUP_CONCAT_MAX_LEN = 255"
@@ -4111,12 +4111,12 @@ Private Sub Form_Load()
      Me.MFG.Visible = True
      
     Case artHA ' Hausärzte korrigieren
-     Dim rHa As New ADODB.Recordset
+     Dim rHa As New adodb.Recordset
      sql = "SELECT"
      
     Case artpat ' DMP hier Liste
      Dim lfdnr&, cbcol&, k&
-     Dim rDok As New ADODB.Recordset
+     Dim rDok As New adodb.Recordset
      Static opt As New DMPListenAuswahl
      opt.Show vbModal
      If opt.Abbruch Then Unload Me: Exit Sub
@@ -4138,7 +4138,7 @@ Private Sub Form_Load()
       "LEFT JOIN `diagview` d ON n.pat_id = d.pat_id AND gicd RLIKE '^E1[0-4]' " & vbCrLf & _
       "LEFT JOIN `faelle` f ON f.pat_id = n.pat_id AND bhfb = (SELECT MAX(bhfb) FROM `faelle` WHERE pat_id = n.pat_id AND bhfb < " & DatFor_k(MINvb(Now(), fctQEnd(ZQuart(Now() - Verspätung)))) & ") " & vbCrLf & _
       "LEFT JOIN `anamnesebogen` a ON n.pat_id = a.pat_id " & vbCrLf & _
-      "LEFT JOIN `kassenliste` k ON k.ik = f.ik AND k.vknr = f.vknr " & vbCrLf
+      "LEFT JOIN `kassenliste` k ON k.id = f.kid & vbCrLf"
       If Me.ohneTermine Then sql = sql & "LEFT JOIN termine t ON t.pid = n.pat_id AND DATE(t.zp) BETWEEN NOW() AND qende(NOW()) " & vbCrLf
       sql = sql & "WHERE (notiz LIKE '%DMP hier%' OR dmpklass = 3) AND NOT ISNULL (f.bhfb) AND (SDatum IS NULL OR SDatum=18993012 OR SDatum>qbeg(NOW() - INTERVAL " & Verspätung & " DAY))" & vbCrLf
       If Me.ohneTermine Then sql = sql & "and ISNULL(t.zp)" & vbCrLf ' AND a.tkz = 0 "
@@ -4160,7 +4160,7 @@ Private Sub Form_Load()
       "   FROM `namen` n" & vbCrLf & _
       "   LEFT JOIN `diagview` d ON n.pat_id = d.pat_id AND gicd RLIKE '^E1[0-4]'" & vbCrLf & _
       "   LEFT JOIN `faelle` f ON f.pat_id = n.pat_id AND bhfb = (SELECT MAX(bhfb) FROM `faelle` WHERE pat_id = n.pat_id AND bhfb < qende(NOW() - INTERVAL " & Verspätung & " DAY))" & vbCrLf & _
-      "   LEFT JOIN `kassenliste` k ON k.ik = f.ik AND k.vknr = f.vknr" & vbCrLf
+      "   LEFT JOIN `kassenliste` k ON k.id = f.kid" & vbCrLf
       If Me.ohneTermine Then sql = sql & "   LEFT JOIN termine t ON t.pid = n.pat_id AND DATE(t.zp) BETWEEN NOW() AND qende(NOW()) " & vbCrLf
       sql = sql & _
       "   LEFT JOIN dmpreihe dr ON dr.Pat_id=n.pat_id AND dr.dmpart IN(1,2) -- dr.Abk  RLIKE '^(eDMPDM|DMPD(TYP|M2)|(Erst|Verlaufs)-Dokumentation Diabetes)'" & vbCrLf & _
@@ -4258,10 +4258,10 @@ Private Sub Form_Load()
    " ,dr.art,dr.ok,dr.exportiert,n.SDatum, dr.dmpart" & vbCrLf & _
    " ,f.pat_id, schgr" & vbCrLf & _
    "-- witzigerweise die nä drei 28"" i.Vgl. zu 48"" bei: LEFT JOIN `kassenliste` k ON k.ik = f.ik AND k.vknr = f.vknr AND id=(SELECT MIN(id) FROM kassenliste WHERE ik=f.ik AND vknr=f.vknr)" & vbCrLf & _
-   " ,(SELECT kurzname FROM kassenliste WHERE ik=f.ik AND vknr=f.vknr ORDER BY id LIMIT 1/*AND id=(SELECT MIN(id) FROM kassenliste WHERE ik=f.IK AND vknr=f.VKNr)*/) kurzname" & vbCrLf
+   " ,(SELECT kurzname FROM kassenliste WHERE id=f.kid /*ORDER BY id LIMIT 1*//*AND id=(SELECT MIN(id) FROM kassenliste WHERE ik=f.IK AND vknr=f.VKNr)*/) kurzname" & vbCrLf
    sql = sql & _
-   " ,(SELECT kateg FROM kassenliste WHERE ik=f.ik AND vknr=f.vknr ORDER BY id LIMIT 1/*AND id=(SELECT MIN(id) FROM kassenliste WHERE ik=f.IK AND vknr=f.VKNr)*/) kateg" & vbCrLf & _
-   " ,(SELECT name FROM kassenliste WHERE ik=f.ik AND vknr=f.vknr ORDER BY id LIMIT 1/*AND id=(SELECT MIN(id) FROM kassenliste WHERE ik=f.IK AND vknr=f.VKNr)*/) kname" & vbCrLf & _
+   " ,(SELECT kateg FROM kassenliste WHERE id=f.kid)kateg" & vbCrLf & _
+   " ,(SELECT name FROM kassenliste WHERE id=f.kid)kname" & vbCrLf & _
    " FROM faelle f" & vbCrLf & _
    " LEFT JOIN namen n USING (pat_id)" & vbCrLf & _
    " LEFT JOIN dmpreihe dr ON dr.Pat_id=f.pat_id AND dr.dmpart IN(1,2) AND dokudatum=(SELECT MAX(dokudatum) FROM dmpreihe WHERE pat_id=f.pat_id AND dmpart IN (1,2)) -- dr.Abk  RLIKE '^(eDMPDM|DMPD(TYP|M2)|(Erst|Verlaufs)-Dokumentation Diabetes)'" & vbCrLf & _
@@ -4302,7 +4302,7 @@ Private Sub Form_Load()
    " FROM faelle f" & vbCrLf & _
    " LEFT JOIN namen n USING (pat_id)" & vbCrLf & _
    " LEFT JOIN dmpreihe dr ON dr.Pat_id=f.pat_id AND dr." & dmpasp & "AND dokudatum=(SELECT MAX(dokudatum) FROM dmpreihe WHERE pat_id=dr.pat_id AND " & dmpasp & ") -- dr.Abk  RLIKE '^(eDMPDM|DMPD(TYP|M2)|(Erst|Verlaufs)-Dokumentation Diabetes)'" & vbCrLf & _
-   " LEFT JOIN kassenliste kl ON kl.ik=f.IK AND kl.VKNR=f.vknr AND id=(SELECT MIN(id) FROM kassenliste WHERE ik=kl.ik AND vknr=kl.VKNR /*ORDER BY id LIMIT 1*/)" & vbCrLf & _
+   " LEFT JOIN kassenliste kl ON k.id=f.kid" & vbCrLf & _
    " LEFT JOIN diagview dv ON dv.pat_id=n.pat_id AND dv.gicd RLIKE '" & dmpicd & "' AND id1=(SELECT MIN(id1) FROM diagview WHERE pat_id=dv.pat_id AND gicd RLIKE '" & dmpicd & "')" & vbCrLf
    sql = sql & _
    " WHERE f.fid=(SELECT MIN(fid) FROM faelle WHERE pat_id=f.pat_id and schgr<>90 and bhfb=(SELECT MAX(bhfb)FROM faelle WHERE pat_id=f.pat_id AND bhfb BETWEEN NOW() - INTERVAL (366+" & Verspätung & ") DAY AND qende(NOW()-INTERVAL " & Verspätung & " DAY) AND schgr<>90))" & vbCrLf & _
@@ -4624,7 +4624,7 @@ End Sub ' zähleDMPPat()
 Sub AlleMark(ob%) ' Alle Markieren, alle Demarkieren
  Dim i&, sum&, j&, k&, übrig%, HaslZl&, rAf&
  Dim diffs$, diff&
- Dim rfax As New ADODB.Recordset
+ Dim rfax As New adodb.Recordset
  On Error GoTo fehler
  If ob < 2 Then
   For i = 1 To PatZuHASL.COUNT
@@ -4697,7 +4697,7 @@ fehler:
 End Sub ' AlleMark(ob%)
 
 Public Sub MFG_Click()
- Dim ctrl As Control, Fd0$, Fd1$, i%, rs As New ADODB.Recordset, j&, k&
+ Dim ctrl As Control, Fd0$, Fd1$, i%, rs As New adodb.Recordset, j&, k&
  FNr = 22
  On Error GoTo fehler
  If cRow(MFGTyp) = cRowSel(MFGTyp) Then
@@ -5061,7 +5061,7 @@ Private Sub Command1_KeyDown(Index As Integer, KeyCode As Integer, Shift As Inte
 End Sub ' Command1_KeyDown
 
 Private Sub MFG_MouseMove(Button As Integer, Shift As Integer, x As Single, Y As Single)
- Dim rs As New ADODB.Recordset, obbez%, altr&, altC&
+ Dim rs As New adodb.Recordset, obbez%, altr&, altC&
  Static altMCol&, altMRow&
  On Error GoTo fehler
  With Me.MFG
@@ -5260,7 +5260,7 @@ End Sub ' MFG_MouseDown
 'SET FOREIGN_KEY_CHECKS=1;
 
 Private Sub MFG_MouseUp(Button As Integer, Shift As Integer, x As Single, Y As Single)
- Dim sqls$, sqld$, sqli$, MR&, rs As New ADODB.Recordset, i&, rAf&
+ Dim sqls$, sqld$, sqli$, MR&, rs As New adodb.Recordset, i&, rAf&
  Me.MFG.MousePointer = 0 ' flexDefault, in C:\Windows\SysWow64\MSHFLXGD.oca
  If x <> altX Or Y <> altY Then
  Select Case Me.PLArt
@@ -5364,7 +5364,7 @@ End Sub ' mouseup
 
 
 Private Sub LaborFüll(Optional nachLangtext%)
- Dim rs0 As New ADODB.Recordset, sql0$, sql1$, i&
+ Dim rs0 As New adodb.Recordset, sql0$, sql1$, i&
  FNr = 2
  sql0 = "SELECT * FROM " & vbCrLf & _
         "(SELECT CONCAT(lp.abkü, ' [', lp.einheit,']') bezug, i.abkü,i.einheit,i.nb," & vbCrLf & _
@@ -5446,7 +5446,7 @@ Private Sub LaborFüll(Optional nachLangtext%)
 End Sub ' LaborFüll
 
 Private Function ZeigeZahl(zeile&)
- Dim rs1 As New ADODB.Recordset
+ Dim rs1 As New adodb.Recordset
     Set rs1 = Nothing
     myFrag rs1, "SELECT COUNT(0) zl, `idypneu`,`idpara` FROM `laborypgl` WHERE `idypbez` = " & IDS(1, zeile)
     If Not rs1.BOF Then

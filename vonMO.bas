@@ -1216,6 +1216,7 @@ abermals:
   End If ' not rab.eof
  End If ' obpruef
  aktZeit = Now()
+ syscmd acSysCmdSetStatus, "‹bertrage Daten aus MO zu Pat. " & fPtNr
 ' BegTrans
  Call Tinit
  Call doTabVorb(Lese, 0, 0) ' obVorber, obmitFormularen)
@@ -1322,7 +1323,7 @@ abermals:
   rNa(0).Pat_ID = pid ' = fPtNr
   rNa(0).TM_Pat_ID = TMPid(pid) ' 6.4.25
   rNa(0).lfdnr = -1 ' Import aus MO
-  rNa(0).Nachname = doUmwfSQL(rsNa!FNachname, True)
+  rNa(0).Nachname = doUmwfSQL(rsNa!fnachname, True)
   rNa(0).NVorsatz = doUmwfSQL(rsNa!FNamensvorsatz, True)
   rNa(0).NVors = doUmwfSQL(rsNa!FNamenszusatz, True)
   rNa(0).Titel = rsNa!FTitel
@@ -1483,7 +1484,7 @@ abermals:
     
 '    rFa(UBound(rFa)).lanrid = IIf(rsFa!FLstgerbnr = 3, 2, 1) ' 2 = Schade, 3 = Kothny
 '    rFa(UBound(rFa)).lanrid = IIf(InStrB(rsFa!fnachname, "Kothny") <> 0, 2, IIf(InStrB(rsFa!fnachname, "Schade") <> 0, 2, 5)) ' 2 = Schade, 3 = Kothny, 5 = Hammerschmidt
-    Select Case rsFa!FNachname
+    Select Case rsFa!fnachname
      Case "Schade": rFa(UBound(rFa)).lanrid = 1
      Case "Kothny": rFa(UBound(rFa)).lanrid = 2
      Case "Hammerschmidt": rFa(UBound(rFa)).lanrid = 5
@@ -3020,8 +3021,8 @@ Function setzPid(fPtNr&)
 End Function ' setzPid(fPtNr&)
 
 ' in doPatvonMO und GetHausarzt1
-Function holHAausMO(inf As InfoTyp, fPtNr&)
- Const obDebug% = True
+Function holHAausMO(inf As InfoTyp, fPtNr&, Optional satznr%)
+  Const obDebug% = True
   Dim rsHa As New ADODB.Recordset, rslue  As New ADODB.Recordset, j&, rAf&
   Dim rHa As ADODB.Recordset
   Dim Fd$
@@ -3029,18 +3030,30 @@ Function holHAausMO(inf As InfoTyp, fPtNr&)
   Dim FMem() As memoType ', Kat() As memoType, tKat() As memoType, Abl() As memoType, fAuft() As memoType
   On Error GoTo fehler
   ' -34 ‹berweiser, -40 Hausarzt, -32 Arzt
-  sql = "SELECT COALESCE(FArztnralt,'')FArztnralt,COALESCE(FAdresse,'')FAdresse,COALESCE(FArztgruppe,'')FArztgruppe, " & vbCrLf & _
-  "     COALESCE(a.FAnrede,'')FAnrede, COALESCE(FTitel,'')FTitel, " & vbCrLf & _
-  "     COALESCE(FArztnr,'')FArztnr, COALESCE(FNachname,'')FNachname, COALESCE(FVorname,'')FVorname, " & vbCrLf & _
-  "     COALESCE(FRelationtyp,'')FRelationtyp,COALESCE(CONVERT(FAdresse USING latin1),'')Adr," & vbCrLf & _
-  "     COALESCE(IF(a.FAnrede='\N','',a.FAnrede),'')anrk " & vbCrLf & _
-      "FROM patrelation r " & vbCrLf & _
-      "JOIN earzt a ON a.fsurogat = r.freferenzid AND r.freferenztyp=2 " & vbCrLf & _
-      "LEFT JOIN epraxis p ON a.FExtpraxisnr = p.FSurogat " & vbCrLf & _
+  sql = "SELECT COALESCE(p.FArztnralt,'')FArztnralt,COALESCE(p.FAdresse,'')FAdresse,COALESCE(a.FArztgruppe,'')FArztgruppe," & vbCrLf & _
+  "     COALESCE(a.FAnrede,'')FAnrede, COALESCE(a.FTitel,'')FTitel," & vbCrLf & _
+  "     COALESCE(a.FArztnr,'')FArztnr, COALESCE(a.FNachname,'')FNachname, COALESCE(a.FVorname,'')FVorname," & vbCrLf & _
+  "     COALESCE(r.FRelationtyp,'')FRelationtyp,COALESCE(CONVERT(p.FAdresse USING latin1),'')Adr," & vbCrLf & _
+  "     COALESCE(IF(a.FAnrede='\N','',a.FAnrede),'')anrk" & vbCrLf & _
+      "FROM patrelation r" & vbCrLf & _
+      "JOIN earzt a ON r.FReferenztyp=2 AND (a.FSurogat = r.FReferenzid" & vbCrLf & _
+      "OR (a.FSurogat <> r.FReferenzid" & vbCrLf & _
+      "AND a.FNachname=REGEXP_REPLACE(fdata,'^.*Nachname ""([^""]*)"".*$','\1')" & vbCrLf & _
+      "AND a.FVorname =REGEXP_REPLACE(fdata,'^.*Vorname ""([^""]*)"".*$','\1')" & vbCrLf & _
+      "AND a.FArztgruppe =REGEXP_REPLACE(fdata,'^.*Namenszusatz ""([^""]*)"".*$','\1')" & vbCrLf & _
+      "   ))" & vbCrLf & _
+      "LEFT JOIN epraxis p ON a.FExtpraxisnr = p.FSurogat" & vbCrLf & _
       "WHERE fpatid=" & fPtNr & " AND r.FRelationtyp IN (-34,-40,-32)" & _
-      "ORDER BY r.FRelationtyp=-40 DESC"
+      "ORDER BY r.FRelationtyp=-40 DESC LIMIT " & (satznr + 1)
   rsHa.Open sql, MOCon, adOpenStatic, adLockReadOnly
-  If rsHa.BOF Then
+  Do While satznr <> 0
+   If rsHa.BOF Or rsHa.EOF Then Exit Do
+   rsHa.MoveNext
+   satznr = satznr - 1
+  Loop
+  ' wenn nichts gefunden
+  If rsHa.BOF Or rsHa.EOF Then
+#If altbezieh Then
   ' aus Beziehungspuffer nehmen
    myFrag rHa, "SELECT FData FROM patrelation pr WHERE pr.fpatid=" & fPtNr, adOpenStatic, MOCon
    If Not rHa.BOF Then
@@ -3092,6 +3105,7 @@ Function holHAausMO(inf As InfoTyp, fPtNr&)
      If inf.‹berschr = "" Then inf.‹berschr = "Sehr geehrte/r Frau/Herr Kollege/in"
     End If ' Fd <> "{}" Then
    End If ' Not rHa.bof Then
+#End If ' altbezieh
   Else ' rHa.BOF Then -> not
    Dim haru%
    haru = 0
@@ -3117,7 +3131,7 @@ Function holHAausMO(inf As InfoTyp, fPtNr&)
     haru = haru + 1
     Dim Adr$, Lkz$
     On Error Resume Next
-    inf.Nachname = rsHa!FNachname
+    inf.Nachname = rsHa!fnachname
     inf.Vorname = rsHa!FVorname
     inf.Fachrtg = rsHa!FArztgruppe
     inf.gesName = "Dr.med. " & inf.Vorname & " " & inf.Nachname
@@ -3138,16 +3152,22 @@ Function holHAausMO(inf As InfoTyp, fPtNr&)
        Select Case FMem(j).ENr
         Case "3": inf.Straﬂe = Trim$(FMem(j).Text) ' Straﬂe
         Case "4": inf.Straﬂe = inf.Straﬂe & " " & FMem(j).Text ' Hausnummer
-        Case "5": inf.plz = FMem(j).Text ' Postleitzahl
-        Case "6": inf.ort = FMem(j).Text ' Ort
+        Case "5":
+            inf.plz = FMem(j).Text ' Postleitzahl
+        Case "6":
+            inf.ort = FMem(j).Text ' Ort
         Case "8": ' "5" ?
         Case "9.1": ' unbekannte ascii-Ziffer
-        Case "9.2": inf.TelNr = FMem(j).Text ' Telefonnummer
+        Case "9.2":
+            inf.TelNr = FMem(j).Text ' Telefonnummer
         Case "10.1": ' unbekannte ascii-Ziffer
-        Case "10.2": inf.Faxnr = FMem(j).Text ' Faxnummer
+        Case "10.2":
+            inf.Faxnr = FMem(j).Text ' Faxnummer
         Case "12": Lkz = FMem(j).Text ' L‰nderkennzeichen
         Case "6.2.3"
 '          rRe(UBound(rRe)).anzl = Asc(FMem(j).Text)
+        Case Else
+'          Debug.Print FMem(j).ENr, FMem(j).Text
        End Select
       Next j ' j = 0 To UBound(FMem)
      End If ' rsHa!Adr <> "" Then
@@ -3158,13 +3178,16 @@ Function holHAausMO(inf As InfoTyp, fPtNr&)
            inf.KVNr & "','" & inf.Nachname & "','" & inf.Vorname & "','" & rsHa!FTitel & "','" & rsHa!FArztgruppe & "','" & inf.Straﬂe & "','" & inf.plz & "','" & inf.ort & "','" & inf.TelNr & "','" & inf.Faxnr & "','" & IIf(InStrB(rsHa!fanrede, "Frau") <> 0, "Frau", "Herr") & "','" & rsHa!farztnr & "','" & "MO" & "'," & DatFor_k(aktZeit) & ")"
       InsKorr DBCn, sql, rAf
      Else ' rslue.BOF Then
+       Dim rsluezahl&
      ' Update
+       rsluezahl = rslue!Zahl
        If rslue!name <> inf.Nachname Or rslue!Vorname <> inf.Vorname Or rslue!titelt <> rsHa!FTitel Or rslue!fachgruppe <> rsHa!FArztgruppe Or rslue!strasse <> inf.Straﬂe Or rslue!plz <> inf.plz Or rslue!ort <> inf.ort Or rslue!telefon <> inf.TelNr Or rslue!fax <> inf.Faxnr Or rslue!anrede <> IIf(InStrB(rsHa!fanrede, "Frau") <> 0, "Frau", "Herr") Or rslue!Lanr <> rsHa!farztnr Then
         sql = "UPDATE liuez SET name='" & inf.Nachname & "',vorname='" & inf.Vorname & "',titelt='" & rsHa!FTitel & "',fachgruppe='" & rsHa!FArztgruppe & "',strasse='" & inf.Straﬂe & "',plz='" & inf.plz & "',ort='" & inf.ort & "',telefon='" & inf.TelNr & "',fax='" & inf.Faxnr & "',anrede='" & IIf(InStrB(rsHa!fanrede, "Frau") <> 0, "Frau", "Herr") & "',lanr='" & rsHa!farztnr & "',ursp='MO',aktzeit=" & DatFor_k(aktZeit) & "" & vbCrLf & _
        "WHERE kvnr='" & inf.KVNr & "'"
+       Set rslue = Nothing
        Call myEFrag(sql, rAf, DBCn)
       End If ' rs!name <> inf.NachName
-      If rslue!Zahl > 1 Then
+      If rsluezahl > 1 Then
        sql = "DELETE d from liuez d INNER JOIN (SELECT kvnr, id, RANK() OVER(PARTITION BY kvnr ORDER BY id) rang FROM liuez) b ON d.kvnr=b.kvnr AND b.rang=1 AND d.id>b.id WHERE d.kvnr=" & inf.KVNr
        Call myEFrag(sql, rAf, DBCn)
       End If ' rslue!Zahl > 1 Then
