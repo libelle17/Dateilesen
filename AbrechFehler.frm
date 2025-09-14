@@ -6818,13 +6818,13 @@ End Sub ' Start_Click()
 
 Private Sub tuStart_click(obauto%)
  Dim lfSQL$, i&, StartZeit As Date, überschrift As New CString
- Static rc As New adodb.Connection
- Dim rLF As adodb.Recordset, rIn As adodb.Recordset
+ Static rc As New ADODB.Connection
+ Dim rLF As ADODB.Recordset, rIn As ADODB.Recordset
  StartZeit = Now()
  If rc.State <> 1 Then
    Set rc = Lese.dbv.wCn
  End If
- Set rLF = New adodb.Recordset
+ Set rLF = New ADODB.Recordset
  Call EinstSpeichern
  Call SQLvorZeigSQL
  Dim AbrFlrDt$, AbrAutDt$
@@ -7011,8 +7011,8 @@ Public Function AbrFausg(name$, sql$, obmo%, Datei$, mins%, ByVal maxs%, übersch
  ÜberschrAkt = überschrift
  On Error GoTo fehler
  Dim T1!
- Static rc As New adodb.Connection
- Static rE As adodb.Recordset
+ Static rc As New ADODB.Connection
+ Static rE As ADODB.Recordset
 #If obmitalterform Then
  Dim rD As DAO.Recordset
  If Me.AbrF.DAO Then
@@ -7024,9 +7024,9 @@ Public Function AbrFausg(name$, sql$, obmo%, Datei$, mins%, ByVal maxs%, übersch
  If True Then
 #End If
 '  If rE Is Nothing Then' auskommentiert 26.3.23
-  Set rE = New adodb.Recordset
+  Set rE = New ADODB.Recordset
   If obmo Then
-   MOConInit
+   Call MOConInit(, "Abfrageausgeb: " & name)
    Set rc = MOCon
   Else '  If rc.State <> 1 Then
    Set rc = Lese.dbv.wCn

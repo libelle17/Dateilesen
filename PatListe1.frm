@@ -3279,7 +3279,8 @@ Sub LabordateiAnzeig(Datei$)
 ' "COUNT(0) OVER() zahl, w.*,u.*
 sql = _
 "SELECT" & vbCrLf & _
-"COUNT(0) OVER() zahl, w.*,IF(ficd<>''AND di.icd IS NOT NULL AND ficdsp=255,33023,fICDsp)ICDsp,u.ID,u.UsLfd,u.DatID,u.SatzID,u.Satzart,u.Satzlänge,u.Auftragsnummer,u.Auftragsschlüssel,u.Eingang,u.Berichtsdatum,u.Pat_ID,u.Nachname,u.Vorname,u.GebDat,u.Titel,u.NVorsatz,u.NVors2,u.BefArt,u.Abrechnungstyp,u.GebüOrd,u.Auftraggeber,u.Patienteninformation,u.Geschlecht,u.Pat_id_0,u.Pat_id_1,u.Pat_id_2,u.Pat_id_3,u.Pat_id_4,u.Pat_id_5,u.Pat_id_6,u.Pat_id_7,u.ZeitpunktLaborneu,u.Pat_id_Laborneu,u.verglichen,u.AfN,u.z7,u.SQL7,u.termsp,u.Termine,u.TM_Pat_id,u.ID,u.UsLfd,u.DatID,u.SatzID,u.Satzart,u.Satzlänge,u.Auftragsnummer,u.Auftragsschlüssel,u.Eingang,u.Berichtsdatum,u.Pat_ID,u.TM_Pat_ID,u.Nachname,u.Vorname,u.GebDat,u.Titel,u.NVorsatz,u.NVors2,u.BefArt,u.Abrechnungstyp,u.GebüOrd,u.Auftraggeber,u.Patienteninformation,u.Geschlecht,u.Pat_id_0,u.Pat_id_1,u.Pat_id_2,u.Pat_id_3,u.Pat_id_4,u.Pat_id_5,u.Pat_id_6,u.Pat_id_7,u.ZeitpunktLaborneu,u.Pat_id_Laborneu,u.verglichen,u.AfN,u.z7,u.SQL7," & vbCrLf & _
+"COUNT(0)OVER()zahl,w.*,IF(ficd<>''AND(SELECT MAX(icd)FROM diagview WHERE pat_id=u.pat_id AND diagsicherheit IN('G',' ')AND(diagdatum>qanf()OR obdauer<>0)AND(LEFT(icd,5)=LEFT(w.fICD,5)OR(IF(LEFT(w.ficd,3)='N18',LEFT(icd,3)=LEFT(w.ficd,3)AND icd>=w.fICD,TRUE)))AND w.ficd<>''LIMIT 1)IS NOT NULL AND ficdsp=255,33023,fICDsp)ICDsp" & vbCrLf & _
+",u.ID,u.UsLfd,u.DatID,u.SatzID,u.Satzart,u.Satzlänge,u.Auftragsnummer,u.Auftragsschlüssel,u.Eingang,u.Berichtsdatum,u.Pat_ID,u.Nachname,u.Vorname,u.GebDat,u.Titel,u.NVorsatz,u.NVors2,u.BefArt,u.Abrechnungstyp,u.GebüOrd,u.Auftraggeber,u.Patienteninformation,u.Geschlecht,u.Pat_id_0,u.Pat_id_1,u.Pat_id_2,u.Pat_id_3,u.Pat_id_4,u.Pat_id_5,u.Pat_id_6,u.Pat_id_7,u.ZeitpunktLaborneu,u.Pat_id_Laborneu,u.verglichen,u.AfN,u.z7,u.SQL7,u.termsp,u.Termine,u.TM_Pat_id,u.ID,u.UsLfd,u.DatID,u.SatzID,u.Satzart,u.Satzlänge,u.Auftragsnummer,u.Auftragsschlüssel,u.Eingang,u.Berichtsdatum,u.Pat_ID,u.TM_Pat_ID,u.Nachname,u.Vorname,u.GebDat,u.Titel,u.NVorsatz,u.NVors2,u.BefArt,u.Abrechnungstyp,u.GebüOrd,u.Auftraggeber,u.Patienteninformation,u.Geschlecht,u.Pat_id_0,u.Pat_id_1,u.Pat_id_2,u.Pat_id_3,u.Pat_id_4,u.Pat_id_5,u.Pat_id_6,u.Pat_id_7,u.ZeitpunktLaborneu,u.Pat_id_Laborneu,u.verglichen,u.AfN,u.z7,u.SQL7," & vbCrLf & _
 "  CASE" & vbCrLf & _
 "        WHEN obk<>0 AND obs=0 AND false=0 AND obh=0 THEN 14772545 -- //vbmittelblau, RGB(65, 105, 225) ' http://www.am.uni-duesseldorf.de/de/Links/Tools/farbtabelle.html' & vbCrLf & _" & vbCrLf & _
 "        WHEN obk=0 AND obs<>0 AND false=0 AND obh=0 THEN 65535 -- // gelb, &HFFFF& & vbCrLf & _" & vbCrLf & _
@@ -3332,10 +3333,10 @@ sql = sql & _
 "      AND p.id = (SELECT id FROM laborparameter WHERE abkü=w.`Abkü` AND einheit=IF(w.einheit IN ('','\'kA\''),'kA',w.Einheit) ORDER BY gruppe DESC, reihe DESC LIMIT 1)" & vbCrLf & _
 "LEFT JOIN sws sw ON sw.pat_id=u.pat_id AND sw.voret>qanf() AND sw.voret>now()" & vbCrLf
 sql = sql & _
-"LEFT JOIN (SELECT icd,pat_id FROM diagview di WHERE diagsicherheit IN ('G',' ') AND (diagdatum>qanf() OR obdauer<>0)) di ON di.pat_id=u.pat_id AND di.icd=w.fICD" & vbCrLf & _
 "LEFT JOIN dtypen dt ON dt.pat_id=u.pat_id" & vbCrLf & _
 "WHERE ((wert<>'' AND wert IS NOT NULL) OR (e.text<>'' AND e.text IS NOT NULL))" & vbCrLf & _
 "AND grenzwerti<>'' AND dateidat=" & Format(LabDatum, "YYYYmmdd")
+' "-- LEFT JOIN (SELECT icd,pat_id FROM diagview di WHERE diagsicherheit IN ('G',' ') AND (diagdatum>qanf() OR obdauer<>0)) di ON di.pat_id=u.pat_id AND di.icd=w.fICD" & vbCrLf & _
 
  ElseIf True Then
   sql = _
