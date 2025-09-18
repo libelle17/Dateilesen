@@ -5723,34 +5723,52 @@ End Function ' testmedarten
 #Const einmal = True
 #If einmal Then
 ' wird nirgends aufgerufen
-Function alleKassenSpeichern(Optional pid&)
- Dim rsNa As ADODB.Recordset, sql$
+Function alleKassenSpeichern(Optional pid&, Optional pbis&)
+ Dim rsNa As ADODB.Recordset, sql$, pids&(), iii&
  Call Lese.ProgStart
- If pid = 0 Then myEFrag "TRUNCATE kassenliste": myEFrag "UPDATE faelle SET KID=0"
+ If pid = 0 Then
+   myEFrag "TRUNCATE kassenliste"
+    Debug.Print "Alle Kassen gelöscht"
+ Else
+'    myEFrag "DELETE FROM kassenliste WHERE id IN(SELECT KID FROM faelle WHERE Pat_id=" & CStr(pid) & " OR pat_id BETWEEN " & CStr(pid) & " AND " & CStr(pbis) & ")", rAf
+'    Debug.Print rAf & " Kassen gelöscht"
+ End If
+ myEFrag "UPDATE faelle SET KID=0" & IIf(pid = 0, "", " WHERE pat_id=" & CStr(pid) & " OR pat_id BETWEEN " & CStr(pid) & " AND " & CStr(pbis))
  ReDim rNa(0)
  ' nur pat_id verwenden, die auch Fälle haben und nicht zugewiesene Kategorien
- sql = "SELECT pat_id FROM namen n JOIN faelle f USING (pat_id)" & vbCrLf & _
+ sql = "SELECT COUNT(0)OVER()zahl,i.* FROM (" & vbCrLf & _
+       "SELECT n.pat_id,COUNT(fid)OVER(PARTITION BY f.pat_id)fzl FROM namen n JOIN faelle f USING (pat_id)" & vbCrLf & _
        "LEFT JOIN kassenliste k ON k.id=f.KID WHERE k.id IS NULL" & vbCrLf & _
-       IIf(pid, "AND n.pat_id=" & pid, "") & vbCrLf & _
-       "GROUP BY n.pat_id"
-  Set rsNa = myEFrag(sql)
+       ")i" & vbCrLf & _
+       "GROUP BY pat_id" & vbCrLf & _
+       "ORDER BY pat_id"
+' sql = sql & vbCrLf & "ORDER BY pat_id<100 OR pat_id=54125 DESC,pat_id"
+ Set rsNa = myEFrag(sql)
+ ReDim pids(rsNa!Zahl)
+ iii = 0
  Do While Not rsNa.EOF
-  rNa(0).Pat_id = rsNa!Pat_id
+  pids(iii) = rsNa!Pat_id
+  iii = iii + 1
+  rsNa.MoveNext
+ Loop
+ Set rsNa = Nothing
+ For iii = 0 To UBound(pids) - 1
+  rNa(0).Pat_id = pids(iii)
+'  If rNa(0).Pat_id = 22 Then Stop
   Call faelleLaden
   rFa = roFa
   DoEvents
-  Call kassenSpeichern(CStr(rNa(0).Pat_id), gleich:=True)
+  Call kassenSpeichern(CStr(rNa(0).Pat_id), gleichdb:=True)
   DoEvents
-  Debug.Print "Pat_id: " & rNa(0).Pat_id & ", " & UBound(rFa) & " Fälle"
-  rsNa.MoveNext
- Loop
+  Debug.Print iii & "/" & CStr(UBound(pids) - 1) & ", Pat_id: " & rNa(0).Pat_id & ", " & UBound(rFa) & " Fälle"
+ Next iii ' For iii = 0 To UBound(pids)
  Debug.Print "Fertig mit alleKassenSpeichern" & IIf(pid, " bei " & CStr(pid), "")
 End Function ' alleKassenSpeichern
 #End If ' einmal
 
 ' in kassenSpeichern, faelleSpeichern, macheTypen
 Public Function holKat$(ByVal uKas$)
-    If InStrB(uKas, "SOZIAL") <> 0 Or InStrB(uKas, "BUNDESAMT") <> 0 Or InStrB(uKas, "SVA") <> 0 Or InStrB(uKas, "SHV") <> 0 Then
+    If InStrB(uKas, "SOZIAL") <> 0 Or InStrB(uKas, "BUNDESAMT") <> 0 Or InStrB(uKas, "LANDESINSTITUT") Or InStrB(uKas, "SVA") <> 0 Or InStrB(uKas, "SHV") <> 0 Then
      holKat = "SHV"
     ElseIf InStrB(uKas, "AOK") <> 0 Then ' instrb(ukas,"AOK")<>0
      holKat = "AOK"
@@ -5770,9 +5788,21 @@ Public Function holKat$(ByVal uKas$)
 End Function ' bestimmKat$(ByVal ukas$)
 
 ' in alleSpeichern
-Function kassenSpeichern(pid$, Optional gleich%)
+Function kassenSpeichern(pid$, Optional gleichdb%)
  Dim i%, j%, k%, rs As New ADODB.Recordset, keinetrans%, uKas$, kat$, sql$ ' , dokat%
+ Dim cnstr$
  keinetrans = True
+ On Error Resume Next
+#If einmal Then
+ If gleichdb Then DBCn.Execute "BEGIN"
+#End If
+ If Err.Number Then
+  cnstr = DBCn.Properties("extended properties")
+  Err.Clear
+  DBCn.Close
+  DBCn.Open cnstr
+  If gleichdb Then DBCn.Execute "BEGIN"
+ End If
  On Error GoTo fehler
  For i = 1 To UBound(rFa)
 '  dokat = 0
@@ -5783,7 +5813,7 @@ Function kassenSpeichern(pid$, Optional gleich%)
     If rFa(j).VKNr = rFa(i).VKNr And rFa(j).IK = rFa(i).IK And rFa(j).Kasse <> "" Then
      rFa(i).Kasse = rFa(j).Kasse
      Exit For
-    End If
+    End If ' rFa(j).VKNr = rFa(i).VKNr And rFa(j).IK = rFa(i).IK And rFa(j).Kasse <> "" Then
    Next j
   End If ' rFa(i).Kasse = "" Then
 ' Abschnitt 10.9.25:
@@ -5793,52 +5823,64 @@ Function kassenSpeichern(pid$, Optional gleich%)
   rFa(i).IK = Trim(rFa(i).IK)
 #Const neu = True
 #If neu Then
-  For k = 0 To 1
-   sql = "SELECT id,name,kateg FROM kassenliste" & vbCrLf & _
-   "WHERE vknr='" & rFa(i).VKNr & "' AND ik='" & rFa(i).IK & "' AND" & vbCrLf & _
-   "(LENGTH(name)<4 OR name='" & rFa(i).Kasse & "')"
-   myFrag rs, sql, adOpenStatic, DBCn, adLockReadOnly
-' name='" & rFa(i).Kasse & "' AND
-   If rs.EOF Then
     uKas = UCase$(Trim$(rFa(i).Kasse))
     If Len(uKas) < 4 Then uKas = UCase$(Trim$(rFa(i).KKasse_2))
-    If Len(uKas) < 4 Then If Not rs.EOF Then uKas = UCase$(rs!name)  ' dann nicht eof ' 14.11.21
-    If Len(uKas) < 4 Then If Not rs.EOF Then uKas = UCase$(rs!kurzname)
+'    If Len(uKas) < 4 Then If Not rs.EOF Then uKas = UCase$(rs!name)  ' dann nicht eof ' 14.11.21
+'    If Len(uKas) < 4 Then If Not rs.EOF Then uKas = UCase$(rs!kurzname)
     If rFa(i).SchGr = 90 Then kat = "PRI" Else kat = holKat$(uKas)
     If kat = "" Then
-     On Error Resume Next
-     kat = holKat$(DBCn.Execute("SELECT UPPER(name)uKas FROM IKs WHERE ik=" & rFa(i).IK)!uKas)
-     On Error GoTo fehler
+'     kat = holKat$(DBCn.Execute("SELECT UPPER(name)uKas FROM IKs WHERE ik=" & rFa(i).IK)!uKas)
+     Set rs = myEFrag("SELECT UPPER(name)uKas,name FROM IKs WHERE ik='" & Trim$(rFa(i).IK) & "'")
+     If Not rs.BOF Then
+      kat = holKat(rs!uKas)
+      rFa(i).Kasse = Trim$(rs!name)
+     End If ' not rs.BOF
     End If ' kat = "" Then
+  For k = 0 To 1
+   sql = "SELECT id,name,kateg FROM kassenliste" & vbCrLf & _
+   "WHERE vknr='" & rFa(i).VKNr & "' AND ik='" & rFa(i).IK & "'" & vbCrLf & _
+   IIf(kat = "", "", "AND kateg='" & kat & "'" & vbCrLf) & _
+   "AND (LENGTH(name)<4 OR name='" & rFa(i).Kasse & "')"
+   myFrag rs, sql, adOpenStatic, DBCn, adLockReadOnly
+' name='" & rFa(i).Kasse & "' AND
+   If rs.EOF Then ' Kasse mit der VKNr, IK, dem Namen (falls valide) und der Kategorie (falls vorhanden) gibt es noch nicht
+    If Len(kat) > 3 Then Stop
     InsKorr DBCn, "INSERT INTO `kassenliste`(vknr,ik,name,kurzname,go,kateg,eingef,pid)VALUES('" & rFa(i).VKNr & "','" & rFa(i).IK & "','" & rFa(i).Kasse & "','" & rFa(i).KKasse_2 & "','" & rFa(i).GebOr & "','" & kat & "'," & Format(Now(), "yyyymmddHHMMSS") & "," & pid & ")", rAf
-    DBCn.Execute ("COMMIT") ' sicher ist sicher
+    If rAf = 0 Then Stop
+#If einmal Then
+    If gleichdb Then
+     DBCn.Execute "COMMIT" ' sicher ist sicher
+     DBCn.Execute "BEGIN"
+    End If ' gleichdb
+#End If
     Set rs = Nothing ' sonst wird in MyFrag nichts mehr gefragt, da gleiche Source
 '    DBCnS = DBCn.Properties("Extended Properties")
 '    DBCn.Close
 '    DBCn.Open DBCnS
-   Else ' rs.EOF Then
+   Else ' rs.EOF Then, falls doch, dann ID, Name und Kategorie merken ...
     Dim id$, rsname$, kateg$
     id = rs!id
     rsname = rs!name
     kateg = rs!kateg
     Set rs = Nothing
 #If einmal Then
-    If gleich Then
+    If gleichdb Then
      If DBCn.Execute("SELECT KID FROM faelle WHERE fid=" & rFa(i).FID)!KID <> id Then
-      Call DBCn.Execute("UPDATE faelle SET KID=" & id & " WHERE fid=" & rFa(i).FID, rAf)
+      Call DBCn.Execute("UPDATE faelle SET KID=" & id & " WHERE fid=" & rFa(i).FID, rAf) ' ... und bei Fall eintragen
       If rAf = 0 Then Stop
      End If
-    Else ' gleich Then
+    Else ' gleichdb Then
 #End If ' einmal
-     rFa(i).KID = id
+     rFa(i).KID = id ' ... und bei Fall eintragen
 #If einmal Then
-    End If ' gleich Then Else
+    End If ' gleichdb Then Else
 #End If
     If rsname <> rFa(i).Kasse And Len(rsname) < Len(rFa(i).Kasse) Then
+' und falls die Kasse noch keinen gescheiten Namen hatte und hier einer wäre, dann nachtragen
      sql = "UPDATE kassenliste SET name='" & rFa(i).Kasse & "'"
      If kateg = "" And uKas <> "" Then
       If rFa(i).SchGr = 90 Then kat = "PRI" Else kat = holKat$(uKas)
-      sql = sql & ",kateg='" & kat & "',"
+      If kat <> "" Then sql = sql & ",kateg='" & kat & "'"
      End If ' kateg = "" And uKas <> "" Then
      sql = sql & " WHERE id=" & id
      Call DBCn.Execute(sql, rAf)
@@ -5910,6 +5952,9 @@ Function kassenSpeichern(pid$, Optional gleich%)
   End If
 #End If
  Next i
+#If einmal Then
+ If gleichdb Then DBCn.Execute "COMMIT"
+#End If
  Exit Function
 fehler:
   Dim AnwPfad$
@@ -6841,9 +6886,9 @@ Function MachDiagnosen(Pat_id$, DiagTab() As CString, Optional dmseit$, Optional
 '       MachDiagnosen = MachDiagnosen + IIf(runde > 0 AND runde < 4, " ", vNS) + Diag(j) + vbTab + "[" + ICD(j) + "]" + vbVerticalTab
         Set aktD = New CString
         If Sort Then
-         aktD.AppVar Array(IIf(runde > 0 And runde < 4, " ", vNS), Diag(j), vbTab, "[", ICD(j), "]")
+         aktD.AppVar Array(IIf(runde > 0 And runde < 4, " ", vNS), Diag(j), vbTab, "[", ICD(j), IIf(DSic(j) = "V" Or DSic(j) = "Z", DSic(j), ""), "]")
         Else
-         aktD.AppVar Array(IIf(G1(j) = 1 And G2(j) > 50 And G2(j) < 97, " ", ""), Diag(j), vbTab, "[", ICD(j), "]")
+         aktD.AppVar Array(IIf(G1(j) = 1 And G2(j) > 50 And G2(j) < 97, " ", ""), Diag(j), vbTab, "[", ICD(j), IIf(DSic(j) = "V" Or DSic(j) = "Z", DSic(j), ""), "]")
 '         aktD.AppVar Array(IIf(InStrB("N08.3 H28.0 H36.0 G63.2 G99.0 I79.2 K77.8 K76.0 K76.9 K71.7 K71.6", Left$(ICD(j), 5)) > 0 OR InStrB("N17. N18. N19. L89. I70.", Left$(ICD(j), 4)) > 0, " ", vNS), Diag(j), vbTab, "[", ICD(j), "]")
         End If
         MachDiagnosen.AppVar Array(aktD, vbVerticalTab)

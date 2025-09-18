@@ -544,7 +544,7 @@ End Sub      ' DMPAusgeb0
 
 #If False Then
 Function TherapieArtEinzelnFestlegen(Pat_ID&, Optional rsAna As ADODB.Recordset) ' in TherapieArtenFestlegen und alleSpeichern
-Dim nTher$, rAf&, rAnPatID&, Anzeige$, Fanf As Date
+Dim nTher$, rAf&, rAnPatID&, anzeige$, Fanf As Date
 On Error Resume Next
 Fanf = rsAna!Fanf
 On Error GoTo fehler
@@ -563,23 +563,23 @@ On Error GoTo fehler
 If Not rsAna.EOF Then
  nTher = TherUmw(therart_erm(Pat_ID, -1, rsAna))
  If nTher <> rsAna!Ther1 Or IsNull(rsAna!Ther1) Then
-  Anzeige = Pat_ID & ": Ther1: " & rsAna!Ther1 & " -> " & nTher
-  Call syscmd(acSysCmdSetStatus, Anzeige)
+  anzeige = Pat_ID & ": Ther1: " & rsAna!Ther1 & " -> " & nTher
+  Call syscmd(acSysCmdSetStatus, anzeige)
   Call myEFrag("UPDATE `anamnesebogen` SET ther1 = '" & nTher & "' WHERE pat_id = " & Pat_ID, rAf)
   If rAf <> 1 Then
-   Anzeige = "   Fehler beim Update von Ther1 bei " & Pat_ID & ": rAF = " & rAf
-   Call syscmd(acSysCmdSetStatus, Anzeige)
+   anzeige = "   Fehler beim Update von Ther1 bei " & Pat_ID & ": rAF = " & rAf
+   Call syscmd(acSysCmdSetStatus, anzeige)
   End If
  End If
  nTher = TherUmw(therart_erm(Pat_ID, 0, rsAna))
  If nTher <> rsAna!TherAkt Or IsNull(rsAna!TherAkt) Then
 '  Anzeige = Pat_id & " " & rsAna!NachName & " " & rsAna!VorName & ": TherAkt: " & rsAna!TherAkt & " -> " & nTher
-  Anzeige = Pat_ID & " " & ": TherAkt: " & rsAna!TherAkt & " -> " & nTher
-  Call syscmd(acSysCmdSetStatus, Anzeige)
+  anzeige = Pat_ID & " " & ": TherAkt: " & rsAna!TherAkt & " -> " & nTher
+  Call syscmd(acSysCmdSetStatus, anzeige)
   Call myEFrag("UPDATE `anamnesebogen` SET therakt = '" & nTher & "' WHERE pat_id = " & Pat_ID, rAf)
   If rAf <> 1 Then
-   Anzeige = "   Fehler beim Update von TherAkt bei " & Pat_ID & ": rAF = " & rAf
-   Call syscmd(acSysCmdSetStatus, Anzeige)
+   anzeige = "   Fehler beim Update von TherAkt bei " & Pat_ID & ": rAF = " & rAf
+   Call syscmd(acSysCmdSetStatus, anzeige)
   End If
  End If
 ' IF rsana!Pat_id = 0 THEN
@@ -1324,8 +1324,8 @@ For k = IIf(obAnzeig, 0, 7) To rAn.Fields.COUNT - 1
        bmival = bmival * 10
       Loop
       If bmival <> 0 Then
-       Add = Add + ", BMI = " + Format$(bmival, "###.#") + " kg/m²"
-      End If
+       Add = Add & ", BMI = " & Format$(bmival, "###.#") & " kg/m²"
+      End If ' bmival <> 0 Then
       On Error GoTo fehler
      Else ' fldname = "Größe"
       Add = Add + " cm"
@@ -1553,9 +1553,11 @@ For k = IIf(obAnzeig, 0, 7) To rAn.Fields.COUNT - 1
    If obNz And Add = vNS And fldName <> "j_insulinpumpe" And fldName <> "insulinpumpe" And fldName <> "schwanger" Then _
      Add = "-"
 ' 2. zeile Ende gestrichen: 'IIf(Descr = ":", fldname, "") +
-   If Add <> vNS Then _
+   If Add <> vNS Then
+    If briefneu Then Add = zuh(Add): Descr = zuh(Descr)
     te = te + IIf(Right$(te, 1) = vbLf Or LenB(te) = 0, vNS, IIf(Left$(Descr, 1) = ",", vNS, " ")) + _
          Trim$(IIf(Right$(te, 1) = vbLf Or LenB(te) = 0, IIf(Left$(Descr, 2) = ", ", Mid$(Descr, 3), Descr), Descr)) + IIf(LenB(te) = 0, vNS, " ") + Add
+   End If ' Add <> vNS
   End If ' fld <> "False" AND fld <> "" THEN
  End If ' NOT ISNULL(fld)
 Next ' For k = IIf(obAnzeig, 0, 7) To rAn.Fields.COUNT - 1
@@ -1563,12 +1565,19 @@ te = UCase$(Left$(te, 1)) + Mid$(te, 2)
 If te <> "" Then
  If Right$(te, 3) <> "." & vbCrLf Then te = Left$(te, Len(te) - 2) + "." & vbCrLf
 End If ' te <> "" Then
-te = te + myEFrag("SELECT COALESCE(GROUP_CONCAT(CONCAT(CASE WHEN art LIKE 'Alk%' THEN 'Alkhol' WHEN art LIKE 'fa%' AND art<>'fams' THEN 'Familienanamnese' WHEN art IN ('anam','ana') THEN 'Anamnese' WHEN art LIKE 'rauch%' OR art LIKE 'nik%' THEN 'Tabak' END,' (',DATE_FORMAT(zeitpunkt,'%d.%m.%y'),'):','\t', zuht(Inhalt,0,0),'\n') SEPARATOR ''),'') FROM eintraege WHERE pat_id =" & Pat_ID & "").Fields(0)
+te = te + myEFrag("SELECT COALESCE(GROUP_CONCAT(CONCAT(CASE WHEN art LIKE 'Alk%' THEN 'Alkhol' WHEN art LIKE 'fa%' AND art<>'fams' THEN 'Familienanamnese' WHEN art IN ('anam') THEN 'Anamnese' WHEN art LIKE 'rauch%' OR art LIKE 'nik%' THEN 'Tabak' END,' (',DATE_FORMAT(zeitpunkt,'%d.%m.%y'),'):','\t', " & IIf(briefneu, "zuht(", "") & "Inhalt" & IIf(briefneu, ",0,0)", "") & ",'\n') SEPARATOR ''),'') FROM eintraege WHERE pat_id =" & Pat_ID).Fields(0)
 '  AND (art LIKE 'fa%' OR art LIKE 'rauch%' OR art LIKE 'nik%' OR art LIKE 'alk%') AND art<>'fams' ' braucht's offenbar nicht
-If te <> "Diabetes Typ 2.\nGröße:  cm, Gewicht:  kg  0 kg/m²." Or _
+If briefneu Then
+ If te <> zuh("Diabetes Typ 2.\nGröße:  cm, Gewicht:  kg  0 kg/m².") Or _
+   InStrB(te, zuh("Größe:  cm, Gewicht:  kg  0 kg/m².")) = 0 Then
+   machwertString = te
+  End If
+Else
+ If te <> "Diabetes Typ 2.\nGröße:  cm, Gewicht:  kg  0 kg/m²." Or _
    InStrB(te, "Größe:  cm, Gewicht:  kg  0 kg/m².") = 0 Then
- machwertString = te
-End If
+   machwertString = te
+ End If
+End If ' briefneu
 'machwertString = machwertString & IIf(machwertString = "", "", vbCrLf) & kkeintraege(Pat_ID, "'anam','fa','fam','familie','alko','alkohol','rauch','rauchen','raucht'", briefneu)
 ' auskommentiert 31.8.25:
 ' machwertString = machwertString & IIf(machwertString = "", "", vbCrLf) & kkeintraege(Pat_ID, "'ana','anal','angd','andm','andm2','usal','usd','usdm','usdm1','usdm2','fa','alko','alkohol','rauch','rauchen','raucht'")

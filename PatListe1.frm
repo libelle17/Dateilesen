@@ -975,7 +975,7 @@ Sub GesZF()
    .Row = i
    altC = .col
    .col = NachNameSp
-   callMachDMPBogen GesColl(i), NachN, VorN, .CellBackColor = vbWhite, .CellBackColor = DunkelRot, .TextMatrix(i, ICDSp), False, immeranhaeng, True, Datei
+   callMachDMPBogen GesColl(i), NachN, VorN, .CellBackColor = vbWhite, .CellBackColor = DunkelRot Or .CellBackColor = HellRot, .TextMatrix(i, ICDSp), False, immeranhaeng, True, Datei
    .col = altC
    .Row = altr
   End With ' MFG
@@ -1161,7 +1161,7 @@ Private Sub DokuBeliebig() ' Doku zu beliebigem Patienten
      End If ' erg <> Me.MFG.TextMatrix(Me.MFG.Row, dpatidsp) Then
      altC = .col
      .col = NachNameSp
-     Call callMachDMPBogen(CLng(erg), NachN, VorN, .CellBackColor = vbWhite, .CellBackColor = DunkelRot, ICD, True)
+     Call callMachDMPBogen(CLng(erg), NachN, VorN, .CellBackColor = vbWhite, .CellBackColor = HellRot, ICD, True)
      .col = altC
      FNr = 9
      .SetFocus
@@ -1169,10 +1169,13 @@ Private Sub DokuBeliebig() ' Doku zu beliebigem Patienten
       .Row = aktr
       .col = NachNameSp
       If .CellBackColor = DunkelRot Or .CellBackColor = HellRot Then ' Hellrot eingefügt 3.10.24
-       Call TopAusricht
-       Call mfg_entercell
-       .col = .col - 1
-       Exit For
+       .col = ICDSp + 1
+       If .CellBackColor <> vbWhite Then ' wenn Versicherungskarte vorlag
+        Call TopAusricht
+        Call mfg_entercell
+        .col = NachNameSp
+        Exit For
+       End If ' .CellBackColor <> vbWhite
       End If ' .CellBackColor = DunkelRot Then
      Next ' aktr = altr + 1 To .Rows - 1
     End With ' MFG
@@ -1613,43 +1616,43 @@ Public Sub callMachDMPBogen(Pat_id&, NachN$, VorN$, obtot%, obneu%, ICD$, Option
 ' If Not rTyp.EOF Then dtyp = Mid$(rTyp!ICD, 3, 1) + 1
  dtyp = Mid(ICD, 3, 1) + 1
 #If False Then
- If VorDoku = "" Then
-      Dim rDok As New ADODB.Recordset
-      Dim begcol%, j%, AktCol%, obraus%
-'      rDok.Open "SELECT `DokuDatum`, `Art`, `ausgedruckt`, `OK`, `exportiert` FROM `dmpreihe` dr WHERE pat_id = " & Pat_id & "  AND (dr.Abk LIKE 'eDMPDM%' OR dr.Abk LIKE 'DMPDTYP%') ORDER BY `DokuDatum` DESC", DBCn, adOpenDynamic, adLockReadOnly
-      myFrag rDok, "SELECT `DokuDatum`, `Art`, `ausgedruckt`, `OK`, `exportiert` FROM `dmpreihe` dr WHERE pat_id = " & Pat_id & " AND dr.Abk RLIKE '^eDMPDM|^DMPDTYP|Dokumentation Diabetes' ORDER BY `DokuDatum` DESC"
-      If Not rDok.BOF Then
-       begcol = VorDokuSp - 1
-'       IF ZQSort(NOW() - 120) > ZQSort(rDok!DokuDatum) THEN ' Now() - rDok!DokuDatum > 120 THEN ' 21. des übernä Monats
-'  7.3.16: Eine Doku darf ausgelassen werden
-       If ZQSort(Now() - 211) > ZQSort(rDok!DokuDatum) Then ' Now() - rDok!DokuDatum > 120 THEN ' 21. des übernä Monats
-        obraus = True
-        begcol = begcol + 1
-       End If
-       If ZQuart(Now() - Verspätung) <> ZQuart(rDok!DokuDatum) Then
-        begcol = begcol + 1
-       For j = begcol To VorDokuSp ' MFG.Cols - 1
-        If rDok.EOF Then Exit For
-        AktCol = j
-'        IF VorDokuSp = 0 THEN VorDokuSp = AktCol
-        VorDoku = rDok!art & " " & Format(rDok!DokuDatum, "dd.mm.yy")
-        If rDok!Ok And rDok!ausgedruckt Then
-         VorDoku = VorDoku & " ok"
-        ElseIf j = begcol And Not obraus Then
-'         obrot = True ' Wenn Pat. rausgeflogen, dann fehlt auch aktuelle Erstdoku
-        End If
-        If rDok!exportiert <> 0 Then
-         VorDoku = VorDoku & " ex"
-'         IF rDok!Art = "ED" THEN .CellBackColor = blau ELSE .CellBackColor = vbgelblichgrau ' blau / grau
-        Else
-'         IF rDok!Art = "ED" THEN .CellBackColor = hellblau
-        End If
-'        IF rDok!Art = "ED" THEN oberst = True
-        rDok.Move 1
-       Next j
-      End If
-     End If ' Not rDok.BOF Then
- End If ' VorDoku = "" Then
+' If VorDoku = "" Then
+'      Dim rDok As New ADODB.Recordset
+'      Dim begcol%, j%, AktCol%, obraus%
+''      rDok.Open "SELECT `DokuDatum`, `Art`, `ausgedruckt`, `OK`, `exportiert` FROM `dmpreihe` dr WHERE pat_id = " & Pat_id & "  AND (dr.Abk LIKE 'eDMPDM%' OR dr.Abk LIKE 'DMPDTYP%') ORDER BY `DokuDatum` DESC", DBCn, adOpenDynamic, adLockReadOnly
+'      myFrag rDok, "SELECT `DokuDatum`, `Art`, `ausgedruckt`, `OK`, `exportiert` FROM `dmpreihe` dr WHERE pat_id = " & Pat_id & " AND dr.Abk RLIKE '^eDMPDM|^DMPDTYP|Dokumentation Diabetes' ORDER BY `DokuDatum` DESC"
+'      If Not rDok.BOF Then
+'       begcol = VorDokuSp - 1
+''       IF ZQSort(NOW() - 120) > ZQSort(rDok!DokuDatum) THEN ' Now() - rDok!DokuDatum > 120 THEN ' 21. des übernä Monats
+''  7.3.16: Eine Doku darf ausgelassen werden
+'       If ZQSort(Now() - 211) > ZQSort(rDok!DokuDatum) Then ' Now() - rDok!DokuDatum > 120 THEN ' 21. des übernä Monats
+'        obraus = True
+'        begcol = begcol + 1
+'       End If
+'       If ZQuart(Now() - Verspätung) <> ZQuart(rDok!DokuDatum) Then
+'        begcol = begcol + 1
+'       For j = begcol To VorDokuSp ' MFG.Cols - 1
+'        If rDok.EOF Then Exit For
+'        AktCol = j
+''        IF VorDokuSp = 0 THEN VorDokuSp = AktCol
+'        VorDoku = rDok!art & " " & Format(rDok!DokuDatum, "dd.mm.yy")
+'        If rDok!Ok And rDok!ausgedruckt Then
+'         VorDoku = VorDoku & " ok"
+'        ElseIf j = begcol And Not obraus Then
+''         obrot = True ' Wenn Pat. rausgeflogen, dann fehlt auch aktuelle Erstdoku
+'        End If
+'        If rDok!exportiert <> 0 Then
+'         VorDoku = VorDoku & " ex"
+''         IF rDok!Art = "ED" THEN .CellBackColor = blau ELSE .CellBackColor = vbgelblichgrau ' blau / grau
+'        Else
+''         IF rDok!Art = "ED" THEN .CellBackColor = hellblau
+'        End If
+''        IF rDok!Art = "ED" THEN oberst = True
+'        rDok.Move 1
+'       Next j
+'      End If
+'     End If ' Not rDok.BOF Then
+' End If ' VorDoku = "" Then
 #End If
  If dtyp = 2 Then If obneu Then BogArtVar = typ2neu Else BogArtVar = typ2alt Else If obneu Then BogArtVar = typ1neu Else BogArtVar = typ1alt
  If obtot Then DokuDat = fctQAnf(ZQuart(Now() - Verspätung)) Else DokuDat = fctQEnd(ZQuart(Now() - Verspätung))
@@ -4281,6 +4284,7 @@ Private Sub Form_Load()
    "AND ICD IS NOT NULL" & vbCrLf & _
    "ORDER BY pat_id"
 #Else
+' DMP hier Liste, SQL:
    sql = "" & _
    " SELECT" & vbCrLf & _
    " COUNT(0)OVER()zahl" & vbCrLf & _
@@ -4414,13 +4418,16 @@ Private Sub Form_Load()
 '        .Text = Format(rDPat!notiz, "dd.mm.yy")
 '      End If
 '      If ZQuart(BhFB) <> ZQuart(Now() - Verspätung) Then .CellBackColor = vbCyan Else .CellBackColor = cbcol
-      If ZQuart(BhFB) = ZQuart(Now() - Verspätung) Then .CellBackColor = DunkelRosa Else .CellBackColor = vbWhite
+      Dim vkda% ' Versicherungskarte da
+      vkda = 0
+      If ZQuart(BhFB) = ZQuart(Now() - Verspätung) Then .CellBackColor = DunkelRosa: vkda = True Else .CellBackColor = vbWhite
 '      .col = .col + 1
 '      .Text = ZQuart(BhFB)
-      Dim begcol%, obraus%, obrot%, obhellrot%, oberst%
+      Dim begcol%, obraus%, fdflt%, edflt%, oberst%
+      ' erste Quartalsspalte, ob Pat.wohl aus DMP geflogen ist, Folgedoku fehlt, Erstdoku fehlt,
       obraus = 0 ' Patient rausgeflogen
-      obrot = 0
-      obhellrot = 0
+      fdflt = 0
+      edflt = 0
       oberst = 0
 ' GoTo weiter
 '#If aufzwei Then
@@ -4435,7 +4442,7 @@ Private Sub Form_Load()
 '       If ZQuart(Now() - Verspätung) <> ZQuart(rDok!DokuDatum) Then
 '        begcol = begcol + 1
 '        If Not obraus And ZQuart(BhFB) = ZQuart(Now() - Verspätung) Then ' 2.Bedingung eingefügt: 31.12.15
-'         obrot = True
+'         fdflt = True
 ''         .toolTipText = ZQuart(rDok!DokuDatum) & " <> " & ZQuart(Now() - Verspätung) & " (falsches Quartal)"
 '        End If
 '       End If
@@ -4448,7 +4455,7 @@ Private Sub Form_Load()
 '         .Text = .Text & " ok"
 '        ElseIf j = begcol And Not obraus And ZQuart(BhFB) = ZQuart(Now() - Verspätung) Then ' letzte Bedingungen eingefügt 31.12.15
 ''         .toolTipText = "Doku fehlt"
-'         obrot = True ' Wenn Pat. rausgeflogen, dann fehlt auch aktuelle Erstdoku
+'         fdflt = True ' Wenn Pat. rausgeflogen, dann fehlt auch aktuelle Erstdoku
 '        End If
 '        If rDok!exportiert <> 0 Then
 '         .Text = .Text & " ex"
@@ -4471,7 +4478,12 @@ Private Sub Form_Load()
       On Error Resume Next ' 67366
       obraus = (rDPat!DMPArt = ausg)
       On Error GoTo fehler
-      If dokus(0) = "" Then If dokus(1) = "" Then If dokus(2) = "" Then obraus = True ' 10.12.24: erweitert um dokus(2), da Pat. erst im übernächsten Quartal rausfliegen
+'      If dokus(0) = "" Then If dokus(1) = "" Then If dokus(2) = "" Then obraus = True ' 10.12.24: erweitert um dokus(2), da Pat. erst im übernächsten Quartal rausfliegen
+' If pid = 69367 Then Stop
+      If InStrB(dokus(0), "ok") = 0 Then
+        If InStrB(dokus(1), "ok") = 0 Then If InStrB(dokus(2), "ok") = 0 Then obraus = True ' 10.12.24: erweitert um dokus(2), da Pat. erst im übernächsten Quartal rausfliegen
+        If Not obraus Then fdflt = True
+      End If ' InStrB(dokus(0), "ok") = 0 Then
       begcol = .col + 1
 '      If pid = 2169 Then Stop ' 926 Or pid = 2652 Then Stop
       For j = begcol To begcol + UBound(dokus)
@@ -4481,14 +4493,14 @@ Private Sub Form_Load()
        .Text = dokus(j - begcol)
        If j = begcol Then
         If InStrB(.Text, "ok") = 0 Then
-         obrot = True ' Wenn Pat. rausgeflogen, dann fehlt auch aktuelle Erstdoku
-         If ZQuart(BhFB) = ZQuart(Now() - Verspätung) Then ' letzte Bedingungen eingefügt 31.12.15
-         End If ' j = begcol And Not obraus And ZQuart(BhFB) = ZQuart(Now() - Verspätung) Then
+'         fdflt = True ' Wenn Pat. rausgeflogen, dann fehlt auch aktuelle Erstdoku
+'         If ZQuart(BhFB) = ZQuart(Now() - Verspätung) Then ' letzte Bedingungen eingefügt 31.12.15
+'         End If ' j = begcol And Not obraus And ZQuart(BhFB) = ZQuart(Now() - Verspätung) Then
         End If ' InStrB(.Text, "ok") = 0 Then
        End If ' j = begcol Then
-       If InStrB(.Text, "ok") = 0 Then
+'       If InStrB(.Text, "ok") = 0 Then
        ' Not obraus and
-       End If ' InStrB(.Text, "ok") = 0 Then
+'       End If ' InStrB(.Text, "ok") = 0 Then
        Dim obed%
        obed = InStrB(.Text, "ED")
        If InStrB(.Text, "ex") <> 0 Then
@@ -4503,16 +4515,22 @@ Private Sub Form_Load()
 '      Or (oberst = 0 And ZQuart(BhFB) = ZQuart(Now() - Verspätung)) Then ' letzte Bedingung eingefügt 31.12.15
        .col = begcol
        .CellBackColor = DunkelRot
-       obhellrot = True
-       obrot = False
+       edflt = True
+       fdflt = False
       End If ' obraus then
 'GoTo weiter
-      If (obrot Or obhellrot) And (Tkz = 0 Or ZQuart(BhFB) >= ZQuart(Now() - Verspätung)) Then '  And dmpklass = hier And Tkz = 0 Then
-       For j = NachNameSp To NachNameSp + 2 * -(ZQuart(BhFB) >= ZQuart(Now() - Verspätung)) ' Nachname, Vorname, Kasse
+      If (fdflt Or edflt) And (Tkz = 0 Or vkda) Then '  And dmpklass = hier And Tkz = 0 Then
+       For j = NachNameSp To NachNameSp + 2 * -vkda ' Nachname, Vorname, Kasse
         .col = j
-        If obrot Then .CellBackColor = DunkelRot Else .CellBackColor = HellRot
+        If fdflt Then .CellBackColor = DunkelRot Else .CellBackColor = HellRot
        Next j
-      End If ' (obrot Or obhellrot) And
+      End If ' (fdflt Or edflt) And
+      If oberst Then
+       .col = 0
+'       .CellBackColor = 16773055  ' RGB(191, 239, 255) ' lightblue1
+'       .CellBackColor = 16775408 ' rgb(240,248,255) ' aliceblue
+       .CellBackColor = 16773850 ' rgb(218,242,255)
+      End If
 weiter:
       .Row = .Row + 1
       rDPat.Move 1

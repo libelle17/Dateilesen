@@ -487,7 +487,7 @@ End Function ' kernusd
 #End If 'false
 
 Function rUsRest(j&)
-   rUs(UBound(rUs)).Pat_id = rEi(j).Pat_id
+   rUs(UBound(rUs)).Pat_ID = rEi(j).Pat_ID
    rUs(UBound(rUs)).FID = rEi(j).FID
    rUs(UBound(rUs)).Zeitpunkt = rEi(j).Zeitpunkt
    rUs(UBound(rUs)).art = rEi(j).art
@@ -499,7 +499,7 @@ Function rUsRest(j&)
 End Function ' rUsRest
 
 Function rFuRest(j&)
-   rFu(UBound(rFu)).Pat_id = rEi(j).Pat_id
+   rFu(UBound(rFu)).Pat_ID = rEi(j).Pat_ID
    rFu(UBound(rFu)).FID = rEi(j).FID
    rFu(UBound(rFu)).Zeitpunkt = rEi(j).Zeitpunkt
    rFu(UBound(rFu)).art = rEi(j).art
@@ -511,7 +511,7 @@ Function rFuRest(j&)
 End Function ' rUsRest
 
 Function rVkRest(j&)
-   rVk(UBound(rVk)).Pat_id = rEi(j).Pat_id
+   rVk(UBound(rVk)).Pat_ID = rEi(j).Pat_ID
    rVk(UBound(rVk)).FID = rEi(j).FID
    rVk(UBound(rVk)).Zeitpunkt = rEi(j).Zeitpunkt
 '   rvk(UBound(rvk)).Art = rEi(j).Art
@@ -523,7 +523,7 @@ Function rVkRest(j&)
 End Function ' rUsRest
 
 Function rUlRest(j&)
-   rUl(UBound(rUl)).Pat_id = rEi(j).Pat_id
+   rUl(UBound(rUl)).Pat_ID = rEi(j).Pat_ID
    rUl(UBound(rUl)).FID = rEi(j).FID
    rUl(UBound(rUl)).Zeitpunkt = rEi(j).Zeitpunkt
 '   rUl(UBound(rUl)).Art = rEi(j).Art
@@ -1454,7 +1454,7 @@ Function AnDmFieseln()
  Fd(112) = "DMP"
  tr(113) = "Hausarzt (insbes. bei Gemeinschaftspraxen und abweichendem ÜW-Schein):"
  Fd(113) = "Hausarzt"
- Call do_anImp(imin, imax, tr(), Fd(), "andm")
+ Call do_anImp(imin, imax, tr(), Fd(), "|andm|")
  Exit Function
 fehler:
  Dim AnwPfad$
@@ -1631,7 +1631,7 @@ Function AnDm2Fieseln()
  Fd(73) = "DMP"
  tr(74) = "Hausarzt (insbes. bei Gemeinschaftspraxen und abweichendem ÜW-Schein):"
  Fd(74) = "Hausarzt"
- Call do_anImp(imin, imax, tr(), Fd(), "andm2")
+ Call do_anImp(imin, imax, tr(), Fd(), "|andm2|")
  Exit Function
 fehler:
  Dim AnwPfad$
@@ -1677,7 +1677,7 @@ Function anal()
  Fd(6) = "Weitere Anamnese"
  tr(7) = "Grund für Vorstellung in der Praxis:"
  Fd(7) = "Grund für Vorstellung"
- Call do_anImp(imin, imax, tr(), Fd(), "anal")
+ Call do_anImp(imin, imax, tr(), Fd(), "|anal|ana|")
  Exit Function
 fehler:
  Dim AnwPfad$
@@ -1694,7 +1694,8 @@ End Select
 End Function 'AnAl
 
 '4.9.06: wird aufgerufen in: AnAl, UsAl, UsDm und AlDm
-Function do_anImp(imin%, imax%, tr$(), Fd$(), makro$, Optional tfd1, Optional tfd2, Optional kDB%)  ' Testfeld, kein Datenbankeintrag
+' arten: z.B. "|anal|ana|"
+Function do_anImp(imin%, imax%, tr$(), Fd$(), arten$, Optional tfd1, Optional tfd2, Optional kDB%)  ' Testfeld, kein Datenbankeintrag
 ' Dim rsAnm AS DAO.Recordset, _
      rEi AS DAO.Recordset
  Dim neuinh$, fld$
@@ -1715,7 +1716,7 @@ Function do_anImp(imin%, imax%, tr$(), Fd$(), makro$, Optional tfd1, Optional tf
 ' rEi.Seek "=", Pat_id, makro
  If Not kDB Then
   For i = 1 To UBound(rEi)
-   If rEi(i).art = makro Then
+   If InStrB(arten, "|" & rEi(i).art & "|") Then
     im = i
     Exit For
    End If
@@ -1738,7 +1739,7 @@ Function do_anImp(imin%, imax%, tr$(), Fd$(), makro$, Optional tfd1, Optional tf
     End If
    End If
 '  rsAnm.Edit
-   If makro = "andm" Then
+   If InStrB(arten, "|andm|") Then
     For k = 1 To 3
      rsAnm.Fields("DiabetesMedikament " & k & " Menge") = vNS
     Next k
@@ -1750,7 +1751,7 @@ Function do_anImp(imin%, imax%, tr$(), Fd$(), makro$, Optional tfd1, Optional tf
    sp(0) = rEi(im).Inhalt
   Else
    Dim rEin As New ADODB.Recordset
-   myFrag rEin, "SELECT zeitpunkt,inhalt FROM `eintraege` WHERE art = """ & makro & """ AND pat_id = " & rNa(0).Pat_id & " ORDER BY zeitpunkt DESC;"
+   myFrag rEin, "SELECT zeitpunkt,inhalt FROM `eintraege` WHERE art RLIKE '^(" & Mid$(arten, 2, Len(arten) - 2) & ")$' AND pat_id = " & rNa(0).Pat_ID & " ORDER BY zeitpunkt DESC;"
    If Not rEin.BOF Then
     sp(0) = rEin!Inhalt
     AbIDate = rEin!Zeitpunkt
@@ -1877,7 +1878,7 @@ doppelt:
     End If
    Else ' AbN(i - imin) = vns THEN
     If fld = vNS Then
-     If Not i = -1 And makro = "usdm" Then Err.Raise 999, , "Fehler bei AnAnpassen bei USDM mit Fld = """" und i <> -1"
+     If Not i = -1 And InStrB(arten, "|usdm|") Then Err.Raise 999, , "Fehler bei AnAnpassen bei USDM mit Fld = """" und i <> -1"
      GoTo weiter
     End If
 '    IF rsAnm.Fields(fld).Type = adUNSIGNEDTinyInt THEN
@@ -1968,7 +1969,7 @@ doppelt:
            If InStrB(fld, "Menge") <> 0 Then
             neuinh = IIf(AbI(i - imin) = "-", "0", AbI(i - imin)) 'replace$(AbI(i - imin), "-", "0")
             GoSub neuinh
-           ElseIf makro = "anal" And fld = "Grund für Vorstellung" Then
+           ElseIf InStrB(arten, "|anal|") And fld = "Grund für Vorstellung" Then
             If IsNull(rsAnm.Fields(fld)) Then
               neuinh = AbI(i - imin)
               GoSub neuinh
@@ -1988,7 +1989,7 @@ doppelt:
               End If
              End If
             End If
-           ElseIf makro <> "anal" Then
+           ElseIf InStrB(arten, "|anal|") = 0 Then
             Select Case rsAnm.Fields(fld).Type
              Case adBoolean, adUnsignedTinyInt, _
                   adTinyInt, adSmallInt, adInteger, adSingle, adDouble, adBigInt, adUnsignedBigInt, _
@@ -2048,7 +2049,7 @@ weiter:
    End If ' abn(i-imin)<> ""
    izuvor = i
   Next i
-  If makro = "andm" Then
+  If InStrB(arten, "|andm|") Then
    For k = 4 To 2 Step -1
     If IsNull(rsAnm.Fields("DiabetesMedikament " + CStr(k) + " Menge")) Or (rsAnm.Fields("DiabetesMedikament " + CStr(k) + " Menge") = "0 - 0 - 0 - ") Then 'And rsAnm.Fields("DiabetesMedikament " + CStr(K)) = "") THEN
      neuinh = vNS
@@ -2140,7 +2141,7 @@ If Err.Number = -2147217887 Then ' Das Feld ist zu klein für die Datenmenge, die
 '    Call myEFrag("UPDATE `anamnesebogen` SET " & "`" & SpName & "`" & " = """ & replace$(NeuInh, """", """""") & """ WHERE pat_id = " & rNa(0).Pat_id, AfN)
 '   END IF
    If Not SpMod(Len(neuinh), "anamnesebogen", rsc, neuinh) Then ' dann Memo-Feld
-    Call myEFrag("UPDATE `anamnesebogen` SET `" & SpName & "` = """ & REPLACE$(neuinh, """", """""") & """ WHERE pat_id = " & rNa(0).Pat_id, AfN)
+    Call myEFrag("UPDATE `anamnesebogen` SET `" & SpName & "` = """ & REPLACE$(neuinh, """", """""") & """ WHERE pat_id = " & rNa(0).Pat_ID, AfN)
    End If
    If rsAnm.State = 0 Then myFrag rsAnm, ZCStr, adOpenStatic, DBCn, adLockOptimistic
    MerkNeuInh = neuinh
@@ -2150,7 +2151,7 @@ If Err.Number = -2147217887 Then ' Das Feld ist zu klein für die Datenmenge, die
  Loop
 End If
 If rsAnm.State = 0 Then
- myFrag rsAnm, "SELECT * FROM `anamnesebogen` WHERE pat_id = " & rNa(0).Pat_id, adOpenStatic, DBCn, adLockOptimistic
+ myFrag rsAnm, "SELECT * FROM `anamnesebogen` WHERE pat_id = " & rNa(0).Pat_ID, adOpenStatic, DBCn, adLockOptimistic
  Resume
 End If
 Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in do_anImp/" + AnwPfad)
@@ -2249,7 +2250,7 @@ Function MachNumerisch#(ByVal ST$, Optional erstDatum%)
         Case "87, im Dezember 93"
          ST = "87"
         Case Else
-         Err.Raise 999, , "Unbehandelter Fall in machnumerisch: " & stor & " bei Pat.: " & rNa(0).Pat_id
+         Err.Raise 999, , "Unbehandelter Fall in machnumerisch: " & stor & " bei Pat.: " & rNa(0).Pat_ID
          MsgBox stneu & " nicht numerisch zu bekommen (machmumerisch)"
          ST = "0"
        End Select
@@ -2325,7 +2326,7 @@ Function usAl()
  Fd(15) = "Carotiden"
  tr(16) = "Cor:"
  Fd(16) = "Herz"
- Call do_anImp(imin, imax, tr(), Fd(), "usal")
+ Call do_anImp(imin, imax, tr(), Fd(), "|usal|")
  Exit Function
 fehler:
  Dim AnwPfad$
@@ -2422,7 +2423,7 @@ Function usdmAlt(Optional fürDMP%)
  Fd(34) = "Liphypertrophien Abdomen"
  tr(35) = "Liphypertrophien: re:"
  Fd(35) = "Liphypertrophien Abdomen"
- Call do_anImp(imin, imax, tr(), Fd(), "usdm", "Kraft Zehenbeuger", "Vibration IK", fürDMP) ' wenn für DMP, dann kein Datenbankeintrag
+ Call do_anImp(imin, imax, tr(), Fd(), "|usd|usdm|usdm1|", "Kraft Zehenbeuger", "Vibration IK", fürDMP) ' wenn für DMP, dann kein Datenbankeintrag
  Exit Function
 fehler:
  Dim AnwPfad$

@@ -3475,8 +3475,9 @@ Sub MODiagnosen(fPtNr&, Optional pid&)
     rDi(UBound(rDi)).DiagSeite = rsDi!Seite
     rDi(UBound(rDi)).DiagAttr = doUmwfSQL(rsDi!Zus, True)
     rDi(UBound(rDi)).ICD = rsDi!ICD
+'    If rDi(UBound(rDi)).ICD = "E11.41" Then Stop
     rDi(UBound(rDi)).obDauer = IIf(rsDi!Stat = "ak", 0, 1)
-    If rsDi!ea = 2 Or rsDi!Stat = 3 Or rsDi!Stat = 4 Then rDi(UBound(rDi)).DiagSicherheit = "Z" ' 11.4.25 ' 20.7.25: abgeschlossene Diagnosen sind auch die Inaktivierten
+    If rsDi!ea = 2 Or rsDi!Stat = "hi" Or rsDi!Stat = "ab" Then rDi(UBound(rDi)).DiagSicherheit = "Z" ' 11.4.25 ' 20.7.25: abgeschlossene Diagnosen sind auch die Inaktivierten
     rDi(UBound(rDi)).obKasse = IIf(rsDi!Stat = "ak" Or rsDi!Stat = "da", 1, 0)
     rsDi.MoveNext
    Loop
