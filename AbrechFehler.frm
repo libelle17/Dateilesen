@@ -813,17 +813,17 @@ Else ' me.private = 0 => Kassenpatienten
  Else
   aktf = "(SELECT pat_id,nachname,vorname, quartal,fid,schgr,goäkatnr,ik,vknr FROM `faelle` WHERE schgr <> '90' AND NOT goäkatnr IN ('40','41') AND nachname <> 'Bereitschaftsdienst' AND quartal = (SELECTmy CONCAT(intacc(((month(SUBDATE(NOW(),INTERVAL " & FristS & " DAY))-1) divmy 3) + 1) ¡ YEAR(SUBDATE(NOW(),INTERVAL " & FristS & " DAY)))) " & vbCrLf & _
          "ORDER BY pat_id, fid DESC, schgr) AS f "
-  aktf = cmd(aktf, InStrB(Lese.dbv.cnstr, "MySQL") = 0) ' .wCn.ConnectionString ' 28.12.08
+  aktf = cmd(aktf, InStrB(Lese.dbv.CnStr, "MySQL") = 0) ' .wCn.ConnectionString ' 28.12.08
  End If
  
- If aktfDirekt <> 0 Or InStrB(Lese.dbv.cnstr, "MySQL") = 0 Then ' .wCn.ConnectionString ' 28.12.08
+ If aktfDirekt <> 0 Or InStrB(Lese.dbv.CnStr, "MySQL") = 0 Then ' .wCn.ConnectionString ' 28.12.08
   qanfS = DatFor_k(fctQAnf(AktQ))
   qendS = DatFor_k(fctQEnd(AktQ) + 1)
  Else
   qanfS = "TIMESTAMP((CONCAT(YEAR((NOW() - INTERVAL " & FristS & " DAY))¡ '-'¡ (intacc(((month((NOW() - INTERVAL " & FristS & " DAY)) - 1) divmy 3) * 3) + 1), '-01'))) "
   qendS = "TIMESTAMP((CONCAT(YEAR((NOW() - INTERVAL " & FristS & " DAY))¡'-'¡(intacc(((month((NOW() - INTERVAL " & FristS & " DAY)) - 1) divmy 3) * 3) + 1),'-01') + INTERVAL 3 MONTH)) "
-  qanfS = cmd(qanfS, InStrB(Lese.dbv.cnstr, "MySQL") = 0) ' .wCn.ConnectionString ' 28.12.08
-  qendS = cmd(qendS, InStrB(Lese.dbv.cnstr, "MySQL") = 0) ' .wCn.ConnectionString ' 28.12.08
+  qanfS = cmd(qanfS, InStrB(Lese.dbv.CnStr, "MySQL") = 0) ' .wCn.ConnectionString ' 28.12.08
+  qendS = cmd(qendS, InStrB(Lese.dbv.CnStr, "MySQL") = 0) ' .wCn.ConnectionString ' 28.12.08
  End If ' aktfDirekt <> 0 OR  else
   
   ' für Ärzte:
@@ -2652,7 +2652,7 @@ sql(AWlf) = _
  "SELECT f.pat_id, dmtyp(f.pat_id) dt, gesname(f.pat_id) PName, DATE_FORMAT(e.zeitpunkt,'%e.%c.%y') Zp, GROUP_CONCAT(ndl.leistung) ndl, GROUP_CONCAT(dil.leistung) dil, e.art, e.inhalt " & vbCrLf & _
  "FROM aktfvs f " & vbCrLf & _
  "LEFT JOIN namen USING (pat_id) " & vbCrLf & _
- "LEFT JOIN eintraege e ON e.pat_id=f.pat_id AND e.zeitpunkt BETWEEN " & lQAnfuEnd(FristS) & " AND (inhalt LIKE '%ebrid%' OR art LIKE 'debr%' OR (inhalt LIKE '%resekt%' AND NOT inhalt RLIKE 'Leber.*rese[ck]t|Resektionshöhle|Resektion der Schild|Pan[ck]reas.*resekt|Resektion Leberzyste|Resektionsbereich|Re[ck]tumrese[ck]t|Rese[ck]tion Lunge|(darm|magen|milz|acg-|ICC-|schilddrüsen|struma|sd-|nieren|teil|links|total|gebärmutter|mu[ck]osa|gallenblasen|elektro|wurzel|truma|igma|pan[ck]reaskopf|olon|olon-|olypen)resekt|Hypoph.*resekt')) " & vbCrLf & _
+ "LEFT JOIN eintraege e ON e.pat_id=f.pat_id AND e.zeitpunkt BETWEEN " & lQAnfuEnd(FristS) & " AND (inhalt LIKE '%ebrid%' OR art LIKE 'debr%' OR (inhalt LIKE '%resekt%' AND NOT inhalt RLIKE 'Leber.*rese[ck]t|Resektionshöhle|Resektion der Schild|Resektionsrand Pankreas|Pan[ck]rea(titi|)s.*resekt|Resektion Leberzyste|Resektionsbereich|Re[ck]tumrese[ck]t|Rese[ck]tion Lunge|(darm|magen|milz|acg-|ICC-|schilddrüsen|struma|sd-|nieren|teil|links|total|gebärmutter|mu[ck]osa|gallenblasen|elektro|wurzel|truma|igma|pan[ck]reaskopf|olon|olon-|olypen|operative )resekt|Hypoph.*resekt')) " & vbCrLf & _
  "LEFT JOIN leistungen ndl ON ndl.pat_id = f.pat_id AND ndl.leistung IN ('02300') AND DATE(ndl.zeitpunkt)=DATE(e.zeitpunkt)" & vbCrLf & _
  "LEFT JOIN leistungen dil ON dil.pat_id = f.pat_id AND dil.leistung IN ('02311') AND DATE(dil.zeitpunkt)=DATE(e.zeitpunkt)" & vbCrLf & _
  "LEFT JOIN leistungen dix ON dix.pat_id = f.pat_id AND dix.leistung IN ('02312') AND DATE(dix.zeitpunkt)=DATE(e.zeitpunkt)" & vbCrLf & _

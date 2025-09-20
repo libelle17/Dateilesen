@@ -1115,6 +1115,8 @@ On Error GoTo fehler
  Dim ru% ' Runde
  Dim dmseit$, icdh$ ' ICD-Hauptteil
  Dim NName$, VName$, Vorgestellt As Date
+ Dim sql0$
+ Dim obfalsch%, wiefalar$
  
 ' DMPString soll vor getHausarzt1 aufgerufen werden, da rNa(0) dort benötigt wird
   Dim üdt As DMPClass
@@ -1147,30 +1149,32 @@ On Error GoTo fehler
  
  On Error GoTo fehler
  If LenB(DBCn) = 0 Or LenB(DBCnS) = 0 Then Call acon(quelleT) ' DBCn.ConnectionString
- myFrag rAn, "SELECT COALESCE(`diabetes seit`,'') dmseit,COALESCE(vorgestellt,(SELECT MIN(bhfb) FROM faelle WHERE pat_id=" & Pat_id & ")) vorg,Diabetestyp FROM `anamnesebogen` WHERE pat_id = " & Pat_id
- If rAn.State <> 0 Then
-  If Not rAn.BOF Then
-   dmseit = rAn!dmseit
-'   Vorgestellt = rAn!vorg
-   If Not IsNull(rAn!vorg) Then Vorgestellt = rAn!vorg
-  End If
- End If
+ Call doPatvonMO(CStr(Pat_id), obmitFormularen:=True, obpruef:=True) ' 20.9.25
  Dim rnamBOF%, iru%
  Dim dmpbeg#, dmpklass As DMPEnum, dmpkhkklass As DMPEnum, dmpcopdklass As DMPEnum, dmpabklass As DMPEnum, dmpkhkbeg#, dmpcopdbeg#, dmpabbeg#
  For iru = 1 To 2
   Set rnam = Nothing
-  myFrag rnam, "SELECT * FROM `namen` n WHERE pat_id = " & Pat_id, adOpenStatic, DBCn, adLockReadOnly
+  sql0 = "SELECT n.*" & vbCrLf & _
+  ",(obs AND lanrid<>1) OR (obk AND lanrid<>2) OR (obh AND lanrid<>5) obfalsch" & vbCrLf & _
+  ",CONCAT('Desktop: ', IF(obs,'gelb,',''),IF(obk,'blau,',''),IF(obh,'gruen,',''),' Arztzuord.: ',IF(lanrid=1,'Schade',IF(lanrid=5,'Hammerschmidt','Kothny'))) wiefalar" & vbCrLf & _
+  "FROM namen n LEFT JOIN faelle f USING(pat_id)" & vbCrLf & _
+  "WHERE pat_id = " & Pat_id & " ORDER BY bhfb DESC LIMIT 1"
+  myFrag rnam, sql0, adOpenStatic, DBCn, adLockReadOnly
   rnamBOF = rnam.BOF
   If rnamBOF Then
    If iru = 1 Then
     Call doPatvonMO(CStr(Pat_id), True)
-   Else
+   Else ' iru = 1 Then
 '  MsgBox ("Keinen Patienten zu " & Pat_id & " gefunden!")
     Lese.Ausgeb "Keinen Patienten zu " & Pat_id & " gefunden!", True
     Exit Function
-   End If
+   End If ' iru = 1 Then Else
+  Else
+   Exit For
   End If ' rnamBOF
  Next iru
+ obfalsch = rnam!obfalsch
+ wiefalar = rnam!wiefalar
  dmpklass = rnam!dmpklass
  dmpkhkklass = rnam!dmpkhkklass
  dmpcopdklass = rnam!dmpcopdklass
@@ -1190,9 +1194,22 @@ On Error GoTo fehler
  DienstTel = rnam!DienstTel
  email = rnam!email
  HzV = rnam!HzV
+ rNa(0).obk = rnam!obk
+ rNa(0).obs = rnam!obs
+ rNa(0).obh = rnam!obh
  PAlter = AlterBei(Now(), rnam!GebDat)
+ 
+ myFrag rAn, "SELECT COALESCE(`diabetes seit`,'') dmseit,COALESCE(vorgestellt,(SELECT MIN(bhfb) FROM faelle WHERE pat_id=" & Pat_id & ")) vorg,Diabetestyp FROM `anamnesebogen` WHERE pat_id = " & Pat_id
+ If rAn.State <> 0 Then
+  If Not rAn.BOF Then
+   dmseit = rAn!dmseit
+'   Vorgestellt = rAn!vorg
+   If Not IsNull(rAn!vorg) Then Vorgestellt = rAn!vorg
+  End If
+ End If
+ 
  Dim DiagTab() As CString
-anfang:
+'anfang:
  m = 2: TI(m) = Timer: For p = 0 To m - 1: TI(m) = TI(m) - TI(p): Next p
  Call DiagString(Pat_id, DiagTab, , , dmseit) ' 0,35s
  Call UKPDS(aRisk, Pat_id, GebDat, dmseit, falDiabDau, obweibl)
@@ -1270,7 +1287,6 @@ weiter:
           "LEFT JOIN kassenliste k ON f.VKNr=k.vknr AND f.ik = k.ik" & vbCrLf & _
           "WHERE f.pat_id=" & Pat_id & " AND qanf=(SELECT MAX(qanf) FROM faelle WHERE pat_id=f.pat_id)" & vbCrLf & _
           "ORDER BY MID(qanf,2) DESC, qanf DESC", adOpenStatic, DBCn, adLockReadOnly ' 11.4.22
-Dim sql0$
 sql0 = _
 "SELECT schgr,kateg,k.name krkasse" & vbCrLf & _
 ",(SELECT voret FROM sws WHERE pat_id=f.pat_id AND voret>bhfb LIMIT 1) voret" & vbCrLf & _
@@ -1718,7 +1734,8 @@ keinuzu:
   i = i + 1
   
   Schuli = -1
-  If obdm Then
+' 20.9.25: Doch auch ohne Diabetes die Parameter anzeigen (Fall 68841, Meldung lf)
+  If obdm Or True Then
    ÜS(i) = "Schul"
    Schuli = i
    Titel(i) = "(Gruppen-)Schulungen, Nachschulungen"
@@ -2347,9 +2364,10 @@ keinuzu:
    End If
   End If
 #End If
+  ' Farbe je nach Diabetestyp
   ' 255,204,229 = #ffcce5 rötlich; 229,204,255 = #E5CCFF bläulich; #ffffcc gelblich
-  doMarkierungen CLng(Pat_id), True
-  AusS.AppVar (Array(" ", IIf(dmtyp = "1" Or dmtyp = "2" Or dmtyp = "g", "<span style='background-color:" & IIf(dmtyp = "1", "#ffd9e8", IIf(dmtyp = "g", "#ffffde", "#efe0ff")) & "'", ""), "<B><span title='", VName, " ", NName, ", ", rnam!strasse, ", ", rnam!plz, " ", rnam!ort, ", Tel1: ", PrivatTel, ", Tel2: ", PrivatTel_2, ", Mobil:", PrivatMobil, ", Fax: ", PrivatFax, ", Diensttel: ", DienstTel & ", Email: ", email, "'>", IIf(vorET > Now(), "<span class='schwanger'>", ""), _
+'  doMarkierungen CLng(Pat_id), True ' in doPatvonMO verschoben 20.9.25
+  AusS.AppVar (Array(" ", IIf(dmtyp = "1" Or dmtyp = "2" Or dmtyp = "g", "<span style='background-color:" & IIf(dmtyp = "1", "#ff8fc7", IIf(dmtyp = "g", "#ffffde", "#efe0ff")) & "'", ""), "<B><span title='", VName, " ", NName, ", ", rnam!strasse, ", ", rnam!plz, " ", rnam!ort, ", Tel1: ", PrivatTel, ", Tel2: ", PrivatTel_2, ", Mobil:", PrivatMobil, ", Fax: ", PrivatFax, ", Diensttel: ", DienstTel & ", Email: ", email, "'>", IIf(vorET > Now(), "<span class='schwanger'>", ""), _
   GesNamFn(rnam), "</span></B>, *", Format(rnam!GebDat, "d.m.yy"), " (", PAlter, "a), <span style='color:blue'><span class='unauff'>&nbsp;&nbsp;Pat_id: </span>", Pat_id, "</span><span id = 'unauff'>,", IIf(obdm, "&nbsp;&nbsp;D.m.seit: ", ""), IIf(obdm, dmseit, ""), ",&nbsp;&nbsp;vorgestellt: ", Format(Vorgestellt, "d.m.yy"), ",&nbsp;&nbsp;für: </span>", Format(Datum, "d.m.yy"), " <span style='font-size:smaller'>", Format(Uhrzeit, "hh:mm"), ",</span>&nbsp;&nbsp;&nbsp;<span class='unauff'>", rnam!notiz, ",&nbsp;&nbsp;&nbsp;", IIf(obdm, "Therapie zuletzt: ", ""), "</span>", IIf(obdm, therart, ""), "<span " & dmpfarbe & ">", DmPStr, IIf(rNa(0).obk <> 0, " &#x1F7E6;", ""), IIf(rNa(0).obs <> 0, "&#x1F7E8;", ""), IIf(rNa(0).obh <> 0, "&#x1F7E9;", ""), "</span></h1>", vbCrLf))
 ' TherapieArtEinzelnFestlegen(CLng(Pat_ID), rAn) & "</span></h1>" ' VName, " ", NName
   ' * 2.73792574745373E-03 ' 1/365,24
@@ -2387,9 +2405,9 @@ keinuzu:
     End If
     If obGU = True Then
      AusS.AppVar (Array("<div class='cave'>Gesundheitsuntersuchung fällig</div>", vbCrLf))
-    End If
-   End If
-  End If
+    End If ' obGU = True Then
+   End If ' pKVNR = KVNr And PAlter > 35 Then
+  End If ' if obLeist
   m = 26: TI(m) = Timer: For p = 0 To m - 1: TI(m) = TI(m) - TI(p): Next p
 '  IF Not rFl.BOF THEN ' 5.3.09
 '   IF rFl!Kateg = "AOK" AND (pKVNr = kvnr OR obpath(0) = -1) THEN
@@ -2439,20 +2457,20 @@ keinuzu:
   Next i
   AusS.AppVar Array(" $_SESSION['obtelnr']=1;", vbCrLf)
   If iob(3) Then iStri(3).AppVar Array(" $_SESSION['obtelnr']=0;", vbCrLf)
-  Dim razu As New ADODB.Recordset
-  myFrag razu, "SELECT (obs AND lanrid<>1) OR (obk AND lanrid<>2) OR (obh AND lanrid<>5) obfalsch," & vbCrLf & _
+'  Dim razu As New ADODB.Recordset ' 20.9.25: nach oben verschoben
+'  myFrag razu, "SELECT (obs AND lanrid<>1) OR (obk AND lanrid<>2) OR (obh AND lanrid<>5) obfalsch," & vbCrLf & _
      "CONCAT('Desktop: ', IF(obs,'gelb,',''),IF(obk,'blau,',''),IF(obh,'gruen,',''),' Arztzuord.: ',IF(lanrid=1,'Schade',IF(lanrid=5,'Hammerschmidt','Kothny'))) wiefalar FROM (" & vbCrLf & _
-     "SELECT " & vbCrLf & _
-     "COALESCE((SELECT 1 FROM desktop WHERE pat_id = f.pat_id AND iconpath RLIKE '4eckblau' AND showasnote=0 LIMIT 1),0) obk," & vbCrLf & _
+     "SELECT lanrid,f.pat_id,obk,obs,obh FROM namen n JOIN faelle f USING (pat_id) WHERE pat_id=" & Pat_ID & " ORDER BY  bhfb DESC LIMIT 1)i"
+''     "COALESCE((SELECT 1 FROM desktop WHERE pat_id = f.pat_id AND iconpath RLIKE '4eckblau' AND showasnote=0 LIMIT 1),0) obk," & vbCrLf & _
      "COALESCE((SELECT 1 FROM desktop WHERE pat_id = f.pat_id AND iconpath RLIKE '4eckgelb' AND showasnote=0 LIMIT 1),0) obs," & vbCrLf & _
      "COALESCE((SELECT 1 FROM desktop WHERE pat_id = f.pat_id AND iconpath RLIKE '4EckHellgruen' AND showasnote=0 LIMIT 1),0) obh," & vbCrLf & _
-     "lanrid,f.pat_id FROM faelle f  WHERE pat_id=" & Pat_id & " ORDER BY bhfb DESC LIMIT 1) i"
-  If Not razu.EOF Then
-   AusS.AppVar Array(" $_SESSION['falarzt']=", IIf(razu!obfalsch, "1", "0"), ";", vbCrLf)
-   If razu!obfalsch <> 0 Then
-    AusS.AppVar Array(" $_SESSION['wiefalar']='", razu!wiefalar, "';", vbCrLf)
-   End If
-  End If
+     "lanrid,f.pat_id FROM faelle f  WHERE pat_id=" & Pat_ID & " ORDER BY bhfb DESC LIMIT 1) i"
+'  If Not razu.EOF Then
+   AusS.AppVar Array(" $_SESSION['falarzt']=", IIf(obfalsch, "1", "0"), ";", vbCrLf)
+   If obfalsch <> 0 Then
+    AusS.AppVar Array(" $_SESSION['wiefalar']='", wiefalar, "';", vbCrLf)
+   End If ' obfalsch <> 0 Then
+'  End If ' not razu.EOF
   For i = 0 To pzl
    If ÜS(i) <> "" Then
     AusS.AppVar Array(" $_SESSION['ob", ÜS(i), "']=")

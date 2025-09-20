@@ -831,7 +831,7 @@ Public Function zeigmosystem(Optional obszn4%)
  Debug.Print "Fertig mit zeigmosystem"
 End Function ' zeigmosystem()
 
-' in Markierungen_Click
+' in Markierungen_Click, doPatvonMO
 Public Function doMarkierungen(Optional FPatNr&, Optional nurfrag%)
  Dim rMo As ADODB.Recordset, rDl As ADODB.Recordset, rAf&, mZl&, altPNr&
  Dim meld$
@@ -940,58 +940,58 @@ sql = sql & _
  
  Exit Function
 #If False Then
- If SafeArrayGetDim(rNa) = 0 Then ReDim rNa(0)
+' If SafeArrayGetDim(rNa) = 0 Then ReDim rNa(0)
+'' sql = _
+' "SELECT pm.FPatnr, ROW_NUMBER() OVER(ORDER BY fpatnr DESC,FMarkiernr) rg, COUNT(0) OVER() zl, LAST_VALUE(FMarkiernr) OVER(PARTITION BY FPatnr)=FMarkiernr speichern, pm.FMarkiernr,m.FText " & vbCrLf & _
+' "FROM patmark pm " & vbCrLf & _
+' "JOIN markier m ON pm.FMarkiernr=m.FSurogat" & vbCrLf
+'' If FPatNr <> 0 Then
+''  sql = sql & _
+''  "WHERE fpatnr=" & FPatNr & vbCrLf
+'' End If ' fpatnr <> 0 Then
 ' sql = _
- "SELECT pm.FPatnr, ROW_NUMBER() OVER(ORDER BY fpatnr DESC,FMarkiernr) rg, COUNT(0) OVER() zl, LAST_VALUE(FMarkiernr) OVER(PARTITION BY FPatnr)=FMarkiernr speichern, pm.FMarkiernr,m.FText " & vbCrLf & _
- "FROM patmark pm " & vbCrLf & _
- "JOIN markier m ON pm.FMarkiernr=m.FSurogat" & vbCrLf
-' If FPatNr <> 0 Then
-'  sql = sql & _
-'  "WHERE fpatnr=" & FPatNr & vbCrLf
-' End If ' fpatnr <> 0 Then
- sql = _
- "SELECT FPatnr,zp,FUserID,FText,FFarbe FROM (" & vbCrLf & _
- "SELECT ROW_NUMBER()OVER(PARTITION BY d.FPatnr,d.FTablename,d.FPrimarykey ORDER BY zp DESC) rn," & vbCrLf & _
- "       18900101+INTERVAL d.FDatum DAY+INTERVAL d.FUhrzeit SECOND zp,FPatnr,FUserID,FTyp,FPrimarykey" & vbCrLf & _
- "         FROM dbsprot d" & vbCrLf & _
- "         WHERE " & IIf(FPatNr = 0, "", "FPatnr=" & FPatNr & " AND ") & "d.FTablename='patmark'" & vbCrLf & _
- ")i" & vbCrLf & _
- "LEFT JOIN markier m ON i.fprimarykey=CONCAT('""',i.fpatnr,'""""',m.fsurogat,'""')" & vbCrLf & _
- "WHERE i.rn=1 AND i.ftyp=0" & vbCrLf & _
- "ORDER BY fpatnr DESC;"
- Set rMo = myEFrag(sql, rAf, MOCon)
- If Not rMo.BOF Then
-  Do While Not rMo.EOF
-   If rMo!FPatNr <> altPNr Then ReDim rNa(0)
-   rNa(0).Pat_id = rMo!FPatNr
-   markAuswert rNa, rMo!FText
-   If nurfrag Then Exit Function
-    sql = ""
-    sql = sql & ",obk=" & IIf(rNa(0).obk = 0, "0", "1")
-    sql = sql & ",obs=" & IIf(rNa(0).obs = 0, "0", "1")
-    sql = sql & ",obh=" & IIf(rNa(0).obh = 0, "0", "1")
-    sql = sql & ",antikoag=" & IIf(rNa(0).antikoag = 0, "0", "1")
-    sql = sql & ",dmt1=" & IIf(rNa(0).dmt1 = 0, "0", "1")
-    sql = sql & ",gdm=" & IIf(rNa(0).gdm = 0, "0", "1")
-    sql = sql & ",kdm=" & IIf(rNa(0).kdm = 0, "0", "1")
-    sql = sql & ",cgm=" & IIf(rNa(0).cgm = 0, "0", rNa(0).cgm)
-    If rNa(0).insanw <> 0 Then sql = sql & ",insdat=" & Format(rMo!Zp, "yymmddhhmmss")
-    sql = sql & ",insAnw=" & IIf(rNa(0).insanw = 0, "0", rNa(0).insanw)
-    If sql <> "" Then
-     sql = "UPDATE namen SET " & Mid$(sql, 2) & " WHERE pat_id=" & rNa(0).Pat_id
-     myEFrag sql, rAf, DBCn
-     syscmd 4, "Markierung " & rMo!rg & " von " & rMo!zl & " eingetragen (geänderte Sätze: " & rAf & ")"
-     mZl = mZl + rAf
-    End If ' sql <> "" Then
-    ReDim rNa(0)
-   End If ' rMo!speichern <> 0 Then
-   altPNr = rMo!FPatNr
-   rMo.MoveNext
-  Loop
-  meld = "Markierungen bei " & mZl & " Patienten durch Übertragung von MO auf PraxisDB geändert."
-  syscmd 4, meld
-  Debug.Print meld
- End If ' Not rMo.BOF Then
+' "SELECT FPatnr,zp,FUserID,FText,FFarbe FROM (" & vbCrLf & _
+' "SELECT ROW_NUMBER()OVER(PARTITION BY d.FPatnr,d.FTablename,d.FPrimarykey ORDER BY zp DESC) rn," & vbCrLf & _
+' "       18900101+INTERVAL d.FDatum DAY+INTERVAL d.FUhrzeit SECOND zp,FPatnr,FUserID,FTyp,FPrimarykey" & vbCrLf & _
+' "         FROM dbsprot d" & vbCrLf & _
+' "         WHERE " & IIf(FPatNr = 0, "", "FPatnr=" & FPatNr & " AND ") & "d.FTablename='patmark'" & vbCrLf & _
+' ")i" & vbCrLf & _
+' "LEFT JOIN markier m ON i.fprimarykey=CONCAT('""',i.fpatnr,'""""',m.fsurogat,'""')" & vbCrLf & _
+' "WHERE i.rn=1 AND i.ftyp=0" & vbCrLf & _
+' "ORDER BY fpatnr DESC;"
+' Set rMo = myEFrag(sql, rAf, MOCon)
+' If Not rMo.BOF Then
+'  Do While Not rMo.EOF
+'   If rMo!FPatNr <> altPNr Then ReDim rNa(0)
+'   rNa(0).Pat_id = rMo!FPatNr
+'   markAuswert rNa, rMo!FText
+'   If nurfrag Then Exit Function
+'    sql = ""
+'    sql = sql & ",obk=" & IIf(rNa(0).obk = 0, "0", "1")
+'    sql = sql & ",obs=" & IIf(rNa(0).obs = 0, "0", "1")
+'    sql = sql & ",obh=" & IIf(rNa(0).obh = 0, "0", "1")
+'    sql = sql & ",antikoag=" & IIf(rNa(0).antikoag = 0, "0", "1")
+'    sql = sql & ",dmt1=" & IIf(rNa(0).dmt1 = 0, "0", "1")
+'    sql = sql & ",gdm=" & IIf(rNa(0).gdm = 0, "0", "1")
+'    sql = sql & ",kdm=" & IIf(rNa(0).kdm = 0, "0", "1")
+'    sql = sql & ",cgm=" & IIf(rNa(0).cgm = 0, "0", rNa(0).cgm)
+'    If rNa(0).insanw <> 0 Then sql = sql & ",insdat=" & Format(rMo!Zp, "yymmddhhmmss")
+'    sql = sql & ",insAnw=" & IIf(rNa(0).insanw = 0, "0", rNa(0).insanw)
+'    If sql <> "" Then
+'     sql = "UPDATE namen SET " & Mid$(sql, 2) & " WHERE pat_id=" & rNa(0).Pat_id
+'     myEFrag sql, rAf, DBCn
+'     syscmd 4, "Markierung " & rMo!rg & " von " & rMo!zl & " eingetragen (geänderte Sätze: " & rAf & ")"
+'     mZl = mZl + rAf
+'    End If ' sql <> "" Then
+'    ReDim rNa(0)
+'   End If ' rMo!speichern <> 0 Then
+'   altPNr = rMo!FPatNr
+'   rMo.MoveNext
+'  Loop
+'  meld = "Markierungen bei " & mZl & " Patienten durch Übertragung von MO auf PraxisDB geändert."
+'  syscmd 4, meld
+'  Debug.Print meld
+' End If ' Not rMo.BOF Then
  #End If
 End Function ' doMarkierungen()
 
@@ -1165,7 +1165,7 @@ End Function ' hatrans
 'End Function
 
 ' in PatvonMO_Click
-Public Function doPatvonMO(fPtNr&, Optional obmitFormularen%, Optional obpruef%, Optional ohneLabor%, Optional obtransp%)
+Public Function doPatvonMO(fPtNr&, Optional obmitFormularen%, Optional obpruef%, Optional ohneLabor%, Optional obtranspa%)
  Const obDebug% = False
  Dim pid&, pos&, pneu&, SchGr%, j&, jj%, rAf&, Puls$, Bem$, ErrNr&, ErrDes$ ' , rInh$, aktZeit As Date
  Dim meldTxt$
@@ -1203,13 +1203,14 @@ abermals:
     myFrag raz, "SELECT COALESCE(aktzeit,18990101) aktzeit FROM namen WHERE pat_id=" & fPtNr, , DBCn, adLockReadOnly, , rAf
     If Not raz.EOF Then
      If raz!aktZeit > rab!laend Then
-'      If obtransp Then
+'      If obtranspa Then
 '       MsgBox sql & vbCrLf & "Patient wurde in MO zuletzt geändert: " & Format(rab!laend, "dd.mm.yyyy HH:MM:SS") & "," & vbCrLf & _
        "zuletzt importiert: " & Format(raz!aktZeit, "dd.mm.yyyy HH:MM:SS") & " => braucht nicht übertragen zu werden"
 '      End If
+      syscmd 4, "die Überprüfung ergab: keine Übertragung bei PtNr." & fPtNr & " notwendig!"
       Exit Function
 '     Else ' raz!aktZeit > rab!laend Then
-'      If obtransp Then
+'      If obtranspa Then
 '       MsgBox sql & vbCrLf & "Patient wurde in MO zuletzt geändert: " & Format(rab!laend, "dd.mm.yyyy HH:MM:SS") & "," & vbCrLf & _
        "zuletzt importiert: " & Format(raz!aktZeit, "dd.mm.yyyy HH:MM:SS") & " => wird übertragen"
 '      End If
@@ -2430,7 +2431,7 @@ fgefunden:
   "FROM (" & vbCrLf & _
   " SELECT REPLACE(IF(INSTR(FDetails,'text ""'),MID(FDetails,LOCATE('text',FDetails)+LENGTH('text')+2,LOCATE('""',REPLACE(FDetails,'\""','\'''),LOCATE('text',FDetails)+LENGTH('text')+2)-LOCATE('text',FDetails)-LENGTH('text')-2),FText),'''','\''') FDet" & vbCrLf & _
   ", ltag.*" & vbCrLf & _
-  ",REGEXP_REPLACE(FDetails,'^.*?(?:Ewert ""?(?:Dieser Eintrag wurde manuell erzeugt.|([\d,]+(?:\b|\.?\d+?))\.?0*\b(?:\\n[^""]*)?)""?(?#<- hintere 0er löschen).*(?:Einheit( )""([^""]*)"")?|\((?:T|Et)ext ""([^""]*)"").*$','\1\2\3\4') rWert" & vbCrLf & _
+  ",REGEXP_REPLACE(FDetails,'^.*?(?:Ewert ""?(?:Dieser Eintrag wurde manuell erzeugt.|([\d,]+(?:\b|\.?\d+?))\.?0*\b(?:\\n(?:\\""|\\|[^""])*)?)""?(?#<- hintere 0er löschen).*(?:Einheit( )""((?:\\""|\\|[^""])*)"")?|\((?:T|Et)ext ""((?:\\""|\\|[^""])*)"").*$','\1\2\3\4') rWert" & vbCrLf & _
   " FROM ltag) l" & vbCrLf & _
   "LEFT JOIN nutzerneu na ON FAnordnutzernr = na.FSurogat" & vbCrLf & _
   "LEFT JOIN nutzerneu nb ON FAusfnutzernr = nb.FSurogat" & vbCrLf & _
@@ -2888,7 +2889,8 @@ End If ' laborlangsam
   End If
  Next i
  Call alleSpeichern(lies, vonMo:=True, ohneAktDat:=True, ohneLabor:=ohneLabor)
-  
+ Call doMarkierungen(fPtNr) ' 20.9.25, statt in PLZ
+ 
 '#If Not laborlangsam Then
 If Not laborlangsam Then
  If Not ohneLabor Then
