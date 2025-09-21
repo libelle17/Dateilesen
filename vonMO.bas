@@ -1814,6 +1814,7 @@ abermals:
 ' Eintragsarten: 1=Diagnose akut,
 '                2=Diagnose inaktiv,
 '                5: bei FStatus 0 meist Eintrag (außer FICDC..: "PATNRALPHA": Patientennummer numerisch, "LAR", "PLAR", "UTXT" (Überweisungstext), "MHNG" (Mahnung), "MED" (Medikamenteneintrag, wohl eMP-Eintrag, FDetails: "((EText ..."); wenn FStatus 2: dann Laborwert
+'                   bei Gewicht Eintrag als Formular
 '                8=Freitext (tf), Verwandtschaftsverhältnisse und Notizen,
 '                9=Anamnese,
 '                10=Text-Befund (tb)
@@ -2420,7 +2421,8 @@ fgefunden:
 ' Notizen
 '  doNotizen fPtNr, False ' kommen in allespeichern
 
-' andere Einträge, Desktop-Notizen, RR, DMP-Reihe (2)
+' andere Einträge, Desktop-Notizen, RR, DMP-Reihe (2) (Schluss ist ca. nach 275 Zeilen)
+' zuvor (hat Bruchteile verschluckt): '^.*?(?:Ewert ""?(?:Dieser Eintrag wurde manuell erzeugt.|([\d,]+(?:\b|\.?\d+?))\.?0*\b(?:\\n(?:\\""|\\|[^""])*)?)""?(?#<- hintere 0er löschen).*(?:Einheit( )""((?:\\""|\\|[^""])*)"")?|\((?:T|Et)ext ""((?:\\""|\\|[^""])*)"").*$'
   sql = "SELECT 18900101+INTERVAL FDatum DAY+INTERVAL FZeit SECOND Zp" & vbCrLf & _
   ", IF (FText RLIKE '^(\w+)#\1:', REGEXP_REPLACE(FText,'(\w+)#\1:.*','\1'),REGEXP_REPLACE(FICdcode,'(\w+)#\1','\1')) Art" & vbCrLf & _
   ", REPLACE(REPLACE(REPLACE(IF(rWert=FDetails OR rWert IS NULL,FDet,rWert),'\t',''),'\r',''),'\n',' ') Wert, FDet, FICDCode, FEintragsart, 18900101+INTERVAL FAnorddatum DAY+INTERVAL FAnordzeit SECOND AnZp" & vbCrLf & _
@@ -2431,7 +2433,7 @@ fgefunden:
   "FROM (" & vbCrLf & _
   " SELECT REPLACE(IF(INSTR(FDetails,'text ""'),MID(FDetails,LOCATE('text',FDetails)+LENGTH('text')+2,LOCATE('""',REPLACE(FDetails,'\""','\'''),LOCATE('text',FDetails)+LENGTH('text')+2)-LOCATE('text',FDetails)-LENGTH('text')-2),FText),'''','\''') FDet" & vbCrLf & _
   ", ltag.*" & vbCrLf & _
-  ",REGEXP_REPLACE(FDetails,'^.*?(?:Ewert ""?(?:Dieser Eintrag wurde manuell erzeugt.|([\d,]+(?:\b|\.?\d+?))\.?0*\b(?:\\n(?:\\""|\\|[^""])*)?)""?(?#<- hintere 0er löschen).*(?:Einheit( )""((?:\\""|\\|[^""])*)"")?|\((?:T|Et)ext ""((?:\\""|\\|[^""])*)"").*$','\1\2\3\4') rWert" & vbCrLf & _
+  ",REGEXP_REPLACE(FDetails,'^.*?(?:Ewert ""?(?:Dieser Eintrag wurde manuell erzeugt.|(\d+(?:[^0-9,.]|[.,]\d+?))0*\b(?:\\n(?:\\""|\\|[^""])*)?)""?(?#<- hintere 0er löschen).*(?:Einheit( )""((?:\\""|\\|[^""])*)"")?|\((?:T|Et)ext ""((?:\\""|\\|[^""])*)"").*$','\1\2\3\4') rWert" & vbCrLf & _
   " FROM ltag) l" & vbCrLf & _
   "LEFT JOIN nutzerneu na ON FAnordnutzernr = na.FSurogat" & vbCrLf & _
   "LEFT JOIN nutzerneu nb ON FAusfnutzernr = nb.FSurogat" & vbCrLf & _
@@ -2460,11 +2462,11 @@ fgefunden:
      If Not EintS Is Nothing Then
       art = EintS.art
       If art = "dak" Then
-       If rsEi!Wert Like "Wie oft am Tag müssen Sie Wasser lassen*" Then
+       If rsEi!FDet Like "Wie oft am Tag müssen Sie Wasser lassen*" Then
         art = "dakluts"
-       ElseIf rsEi!Wert Like "Bekommen Sie regelmäßig nach bestimmten Gehstrecken*" Then
+       ElseIf rsEi!FDet Like "Bekommen Sie regelmäßig nach bestimmten Gehstrecken*" Then
         art = "dakap"
-       ElseIf rsEi!Wert Like "Schweißtest: *" Then
+       ElseIf rsEi!FDet Like "Schweißtest: *" Then
         art = "daknp"
        End If ' rsEi!FDet Like "Wie
       End If ' art = "dak" Then
@@ -2473,7 +2475,7 @@ fgefunden:
 '      art = "ütxt"
 '     ElseIf rsEi!FEintragsart = 1105 Then ' Infos
 '      art = "info"
-     Else
+     Else ' Not EintS Is Nothing Then
       Set EintS = New SortierEintr
       EintS.TypNr = rsEi!FEintragsart ' Fehler bei: 1138
       Set EintS = EinK.GetItem(EintS)
@@ -2481,13 +2483,13 @@ fgefunden:
 '      On Error Resume Next ' , Fehler bei 70328
       If EintS Is Nothing Then
        Debug.Print "Eintragsart nicht gefunden: " & rsEi!FEintragsart
-      Else
-      Select Case EintS.TypNr
-       Case 1138
-       Case Else
-        art = EintS.Kürz
-      End Select
-      End If
+      Else ' EintS Is Nothing Then
+       Select Case EintS.TypNr
+        Case 1138
+        Case Else
+         art = EintS.Kürz
+       End Select
+      End If ' EintS Is Nothing Then Else
 '      On Error GoTo fehler
      End If ' Not EintS Is Nothing Then
     End If ' rEi(UBound(rEi)).Art = "" Then
@@ -2532,7 +2534,7 @@ fgefunden:
      Case "RR", "RRVGL"
       Call aufSplit(rsEi!FArray, "‡")
       Call RREintr
-      rRr(UBound(rRr)).RR = doUmwfSQL(rsEi!Wert, True) ' REPLACE$(rsEi!FArray, "‡", " ")
+      rRr(UBound(rRr)).RR = doUmwfSQL(rsEi!FDet, True) ' REPLACE$(rsEi!FArray, "‡", " ")
       If IsNumeric(Arra(0)) Then rRr(UBound(rRr)).RRsyst = Arra(0)
       If ArraInd > 0 Then If IsNumeric(Arra(1)) Then rRr(UBound(rRr)).RRdiast = Arra(1)
       On Error Resume Next
@@ -2542,7 +2544,7 @@ fgefunden:
       rRr(UBound(rRr)).Quelle = "MO"
       If rsEi!Zahl <> "" Then rRr(UBound(rRr)).RRzahl = rsEi!Zahl
 '      rInh = rsEi!Wert
-      rRr(UBound(rRr)).Bemerkung = doUmwfSQL(rsEi!Wert, True)
+'      rRr(UBound(rRr)).Bemerkung = doUmwfSQL(rsEi!FDet, True); Kommentar 21.9.25, s. .RR
       
 '      Debug.Print ""
 '      Debug.Print "FDet: " & rsEi!FDet
@@ -2568,7 +2570,7 @@ fgefunden:
      'dmpreihe (2); Doppeleinträge gemäß Index "eindeutig" vermeiden
       DMPArt = 0
       If (rsEi!FIcdcode Like "*dmp*" And rsEi!FIcdcode <> "DMPERG") Or _
-      (UCase$(art) = "TEXT" And InStrB(rsEi!Wert, "dokumentation") <> 0 And InStrB(rsEi!FText, "dmp") <> 0) Then
+      (UCase$(art) = "TEXT" And InStrB(rsEi!FDet, "dokumentation") <> 0 And InStrB(rsEi!FText, "dmp") <> 0) Then
        Select Case rsEi!art
         Case "DMPDTYP1", "EDMPDM1": DMPArt = 1
         Case "DMPDTYP2", "EDMPDM2": DMPArt = 2
@@ -2597,13 +2599,13 @@ gef2:
        If rsEi!FIcdcode Like "*dmp*" And rsEi!FIcdcode <> "DMPERG" Then
 '        Debug.Print rsEi!ficdcode, rsEi!Wert
         rDm(rj).Abk = art
-        If InStrB(rsEi!Wert, "Erst") Then rDm(rj).art = "ED" Else rDm(rj).art = "FD"
+        If InStrB(rsEi!FDet, "Erst") Then rDm(rj).art = "ED" Else rDm(rj).art = "FD"
         rDm(rj).exportiert = CDate(rsEi!Exp)
 '        rDm(rj).DokuDatum = messDatum ' ist schon oben
         rDm(rj).KarteiDatum = messDatum
-        rDm(rj).Ok = InStrB(rsEi!Wert, "(ok")
-        rDm(rj).ausgedruckt = InStrB(rsEi!Wert, "ausgedruckt")
-       ElseIf UCase$(art) = "TEXT" And InStrB(rsEi!Wert, "dokumentation") <> 0 And InStrB(rsEi!FText, "dmp") <> 0 Then
+        rDm(rj).Ok = InStrB(rsEi!FDet, "(ok")
+        rDm(rj).ausgedruckt = InStrB(rsEi!FDet, "ausgedruckt")
+       ElseIf UCase$(art) = "TEXT" And InStrB(rsEi!FDet, "dokumentation") <> 0 And InStrB(rsEi!FText, "dmp") <> 0 Then
         pos = InStr(rsEi!FArray, "#")
         If pos > 0 Then rDm(rj).Abk = Left$(rsEi!FArray, pos - 1)
         rDm(rj).art = IIf(InStrB(rsEi!FDet, "Erst"), "ED", "FD")
@@ -2630,7 +2632,7 @@ gef2:
        End If ' rsEi!FIcdcode Like "*dmp*" And rsEi!FIcdcode <> "DMPERG" Then else
        
       Else ' (rsEi!FIcdcode Like "*dmp*" And rsEi!FIcdcode <> "DMPERG") Or _
-      (UCase$(art) = "TEXT" And InStrB(rsEi!Wert, "dokumentation") <> 0 And InStrB(rsEi!FText, "dmp") <> 0) Then
+      (UCase$(art) = "TEXT" And InStrB(rsEi!FDet, "dokumentation") <> 0 And InStrB(rsEi!FText, "dmp") <> 0) Then
       ' Einträge
        ReDim Preserve rEi(UBound(rEi) + 1)
        rEi(UBound(rEi)).aktZeit = aktZeit
@@ -2641,9 +2643,9 @@ gef2:
        rEi(UBound(rEi)).Ersteller = rsEi!ua
        rEi(UBound(rEi)).Änderer = rsEi!ub
 '      If InStrB(rsEi!fdet, "Lexotanil und") <> 0 Then Stop
-'       rEi(UBound(rEi)).Inhalt = doUmwfSQL(REPLACE$(REPLACE$(rsEi!Wert, "\n", " "), "\r", ""), True)
+'       rEi(UBound(rEi)).Inhalt = doUmwfSQL(REPLACE$(REPLACE$(rsEi!FDet, "\n", " "), "\r", ""), True)
        Debug.Print rsEi!Wert
-       rEi(UBound(rEi)).Inhalt = doUmwfSQL(rsEi!Wert, True)
+       rEi(UBound(rEi)).Inhalt = doUmwfSQL(IIf(rsEi!Wert = "", rsEi!FDet, rsEi!Wert), True)
        rEi(UBound(rEi)).absPos = IIf(neuart <> 0, -1, 1)
 '      If art = "usdm2" Then Stop
        If art <> "" Then

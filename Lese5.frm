@@ -555,6 +555,9 @@ Begin VB.MDIForm Lese
          Caption         =   "Pa&thologische Laborwerte anschauen"
          Shortcut        =   ^L
       End
+      Begin VB.Menu PathLaborwerteNeu 
+         Caption         =   "&Path.Laborwerte neu"
+      End
       Begin VB.Menu VorhandeneBriefe 
          Caption         =   "&Vorhandene Briefe korrigieren"
       End
@@ -1775,6 +1778,7 @@ End Sub ' MOBetr_Click()
 Private Sub Optionen_Click()
  opt.Show
 End Sub ' Optionen_Click()
+
 
 ' Testfunktionen -> PatvonMo
 Private Sub PatvonMO_Click()
@@ -3057,7 +3061,7 @@ Private Sub DMPhierListe_Click()
  Me.Hide
  On Error Resume Next ' falls in Form_load mit unload me abgebrochen
  pal.Show
- If Err.Number <> 0 Then Lese.Show
+ If Err.Number <> 0 Then lese.Show
  Call ProgEnde
 End Sub ' DMPhierListe_Click
 
@@ -3140,6 +3144,12 @@ Private Sub PathLabAnschau_Click() ' -> LabordateiAnzeig(Me.LabDat)
  Set ePL.eLese = Me
  ePL.Show
 End Sub ' PathLabAnschau_Click
+
+' für Arzt -> Path.Laborwerte neu
+Private Sub PathLaborwerteNeu_Click()
+ Dim pl As New PatListe
+End Sub
+
 
 ' ...für Arzt -> Vorhandene Briefe korrigieren
 Private Sub VorhandeneBriefe_Click()
@@ -3225,7 +3235,7 @@ End Sub ' BriefSchreiben_Click
 Private Sub Briefnochmal_Click()
  Call ProgStart
  If Me.pataw.Pat_id = "" Then Me.pataw.Pat_id = 681
- Lese.Aktion = Briefschreiben
+ lese.Aktion = Briefschreiben
  Call tuBriefStandalone(Me.pataw.Pat_id, 0, "", "", "", , 0, True, True)
 ' Aktion = nix
  Call ProgEnde
@@ -3233,7 +3243,7 @@ End Sub ' Briefnochmal_Click
 
 ' ...für Arzt -> Brief zu letztem Import schreiben
 Private Sub BriefImport_Click()
- Lese.Aktion = Briefschreiben
+ lese.Aktion = Briefschreiben
  Call tuBriefStandalone(CStr(lzPID), 0, , Me.pataw.Verfasser, Me.pataw.Vorlage, Me.pataw.Programm.Index)
 End Sub ' Sub BriefImport_Click
 
@@ -3242,7 +3252,7 @@ Private Sub BriefOhneMaske_Click()
  Dim erg$
  erg = InputBox("Bitte Pat_ID eingeben:")
  If IsNumeric(erg) Then
-  Lese.Aktion = Briefschreiben
+  lese.Aktion = Briefschreiben
   Call tuBriefStandalone(CLng(erg), 0)
  End If
 End Sub  ' BriefOhneMaske_Click
@@ -4644,12 +4654,12 @@ Private Sub harealNeu_Click() ' `hareal` neu aufbauen
       End If
 '     END IF
     End If
-    Lese.Ausgeb "Pat_id: " & rs!Pat_id & ": geändert: " & rAf, False, True
+    lese.Ausgeb "Pat_id: " & rs!Pat_id & ": geändert: " & rAf, False, True
    Next i
   End If
   rs.Move 1
  Loop
- Lese.Ausgeb "Fertig mit Neuaufbau von `hareal`!", True, True
+ lese.Ausgeb "Fertig mit Neuaufbau von `hareal`!", True, True
  Exit Sub
 fehler:
 Dim AnwPfad$
@@ -4865,7 +4875,7 @@ Private Sub Gewichte_Click()
   myEFrag sql, rAf
   rs.Move 1
  Loop
- Lese.Ausgeb "Fertig mit Gewichte_Click!", True
+ lese.Ausgeb "Fertig mit Gewichte_Click!", True
 End Sub ' Gewichte_Click
 
 ' Testfunktionen -> Gewichtsabnahmekandidaten
@@ -4913,7 +4923,7 @@ End Sub ' Sub calldoGenMachDB_Click
 ' Testfunktionen -> testlqanf
 Private Sub testlqanf_Click()
  Dim sql$, rs As New ADODB.Recordset
- Lese.ProgStart
+ lese.ProgStart
  Dim rv As New ADODB.Recordset
  Dim FristS$
  myFrag rv, "SHOW CREATE VIEW `aktf`"
@@ -5413,17 +5423,17 @@ Private Sub MDIForm_Activate()
 '   Call ProgEnde
  ElseIf Command = "ab" Then
    ProgStart
-   Lese.Aktion = Briefschreiben
-   Call Lese.pataw.vorbeleg
-   Call tuBriefStandalone(getbdtpid(), 0, , Lese.pataw.Verfasser, Lese.pataw.Vorlage, Me.pataw.Programm.ListIndex, , True)
+   lese.Aktion = Briefschreiben
+   Call lese.pataw.vorbeleg
+   Call tuBriefStandalone(getbdtpid(), 0, , lese.pataw.Verfasser, lese.pataw.Vorlage, Me.pataw.Programm.ListIndex, , True)
    Unload Me
  ElseIf Command = "labor" Then
   ProgStart
-  Lese.obMySQL = True
-  LVobMySQL = Lese.obMySQL
+  lese.obMySQL = True
+  LVobMySQL = lese.obMySQL
   BezFeh = pVerz & "BezFehler_" & DefDB(DBCn) & "_" & Format(Now(), "YYYYMMDD_hhmmss") & ".txt"
   obMitAlterTab = True
-  Call LaborDirektImport(Lese, 0, True, 0, xVerz & "Labor\backup\", 0)
+  Call LaborDirektImport(lese, 0, True, 0, xVerz & "Labor\backup\", 0)
   Call ProgEnde
  End If
  On Error Resume Next
@@ -5567,6 +5577,18 @@ Private Sub DMPForts_Click()
   Call doCallDMP(Ausw!Pat_id)
  End If
 End Sub ' DMPForts_Click
+
+' in DiagString_Click
+Public Sub doCallDigSring(ByVal pid&)
+ Dim erg$, DiagTab() As CString, DiagStD$
+ erg = DiagString$(CStr(pid), DiagTab)
+ erg = REPLACE(erg, Chr$(11), vbCrLf)
+ DiagStD = Environ("temp") & "\DiagStr_" & pid & "_" & Format$(Date, "dd.mm.yy") & ".txt"
+ Open DiagStD For Output As #390
+ Print #390, erg
+ Close #390
+ zeigan DiagStD
+End Sub ' doCallDigSring(ByVal pid&)
 
 ' in Ausgabe_KeyDown, DMPForts_Click, DMPString_Click
 Public Sub doCallDMP(ByVal pid&)
@@ -6287,7 +6309,7 @@ End Select
 End Sub ' MDIForm_Load()
 
 ' in MDIForm_Load
-Public Function AbbrechDisable(frm As Lese)
+Public Function AbbrechDisable(frm As lese)
  Dim i%
  For i = 0 To frm.Controls.COUNT - 1
   If frm.Controls(i).name = "Abbrechen" Then
@@ -6379,7 +6401,7 @@ Private Sub mdiform_unload(Cancel As Integer) ' geht nur beim Anklicken des Kreu
 End Sub ' MDIForm_Unload
 
 #If False Then
-Public Function ConstrFestleg(ByVal art As ConDtb, Optional hlese As Lese)   ' dlg ist für art= 0 und 1 nötig
+Public Function ConstrFestleg(ByVal art As ConDtb, Optional hlese As lese)   ' dlg ist für art= 0 und 1 nötig
  On Error GoTo fehler
 'ConStr$ = "DRIVER={MySQL ODBC 3.51 Driver};server=" & LiName & ";uid=...;pwd=...;option=" & opti
  Select Case art

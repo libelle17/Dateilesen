@@ -55,7 +55,7 @@ Begin VB.Form Medarten
       Width           =   260
    End
    Begin VB.CommandButton inTM 
-      Caption         =   "in TM an&z"
+      Caption         =   "in MO an&z"
       Height          =   255
       Left            =   1800
       TabIndex        =   7
@@ -1360,8 +1360,8 @@ Private Sub anaRS_MoveComplete(ByVal adReason As ADODB.EventReasonEnum, ByVal pE
    lblStatus.Caption = CStr(anaRS.AbsolutePosition)
    Call do_Form_Current_Medarten(Me)
    Dim rs As New ADODB.Recordset
-   If IsNumeric(anaRS!Pat_ID) Then
-    myFrag rs, "SELECT CONCAT(IF(n.titel='','',CONCAT(n.titel,' ')), IF(n.nvorsatz='','',CONCAT(n.nvorsatz,' ')), n.nachname,',',n.vorname) Name FROM `namen` n WHERE pat_id = " & anaRS!Pat_ID
+   If IsNumeric(anaRS!Pat_id) Then
+    myFrag rs, "SELECT CONCAT(IF(n.titel='','',CONCAT(n.titel,' ')), IF(n.nvorsatz='','',CONCAT(n.nvorsatz,' ')), n.nachname,',',n.vorname) Name FROM `namen` n WHERE pat_id = " & anaRS!Pat_id
     If Not rs.BOF Then
      Me.PName = rs!name
     End If ' Not rs.BOF Then
@@ -1370,7 +1370,7 @@ Private Sub anaRS_MoveComplete(ByVal adReason As ADODB.EventReasonEnum, ByVal pE
     If anaRS!Falsch <> 0 Then
      Me.BackColor = "&H0080C0FF"
     ElseIf anaRS!glib <> 0 Or anaRS!metf <> 0 Or anaRS!gluci <> 0 Or anaRS!shglin <> 0 _
-     Or anaRS!glit <> 0 Or anaRS!dpp4 Or anaRS!glp1 Or anaRS!sglt2 Or anaRS!sonstad <> 0 Or anaRS!InS <> 0 Or anaRS!anal <> 0 Or anaRS!insart <> "0" Or anaRS!hmg <> 0 Or anaRS!hypt <> 0 Or anaRS!Thro <> 0 Or anaRS!Antib <> 0 Or anaRS!And <> 0 Or anaRS!tStr <> 0 Or anaRS!puzu <> 0 Or anaRS!VMat <> 0 Or anaRS!PenN <> 0 Or anaRS!neurp <> 0 Or anaRS!autnp <> 0 Or anaRS!fetts <> 0 Or anaRS!Hsre <> 0 Or anaRS!antimyk <> 0 Or anaRS!glauk <> 0 Or anaRS!cold <> 0 Or anaRS!pros <> 0 Or anaRS!urä <> 0 Or anaRS!hythy <> 0 Or anaRS!ostp <> 0 Or anaRS!khk <> 0 Or anaRS!HerzI <> 0 Or anaRS!stru <> 0 Or anaRS!avk <> 0 Or anaRS!pani <> 0 Or anaRS!vari <> 0 Or anaRS!östr <> 0 Or anaRS!antidep <> 0 Or anaRS!antidem <> 0 Or anaRS!antiep <> 0 Or anaRS!park <> 0 Or anaRS!antipern <> 0 Or anaRS!Appet <> 0 Or anaRS!Anäm <> 0 Or anaRS!antiherp <> 0 Or anaRS!NSAR <> 0 Or anaRS!Antikoag <> 0 Or anaRS!Betabl <> 0 Or anaRS!ACEH <> 0 Or anaRS!AT1 <> 0 Or anaRS!CalcA <> 0 Or anaRS!Diur <> 0 Then
+     Or anaRS!glit <> 0 Or anaRS!dpp4 Or anaRS!glp1 Or anaRS!sglt2 Or anaRS!sonstad <> 0 Or anaRS!InS <> 0 Or anaRS!anal <> 0 Or anaRS!insart <> "0" Or anaRS!hmg <> 0 Or anaRS!hypt <> 0 Or anaRS!Thro <> 0 Or anaRS!Antib <> 0 Or anaRS!And <> 0 Or anaRS!tStr <> 0 Or anaRS!puzu <> 0 Or anaRS!VMat <> 0 Or anaRS!PenN <> 0 Or anaRS!neurp <> 0 Or anaRS!autnp <> 0 Or anaRS!fetts <> 0 Or anaRS!Hsre <> 0 Or anaRS!antimyk <> 0 Or anaRS!glauk <> 0 Or anaRS!cold <> 0 Or anaRS!pros <> 0 Or anaRS!urä <> 0 Or anaRS!hythy <> 0 Or anaRS!ostp <> 0 Or anaRS!khk <> 0 Or anaRS!HerzI <> 0 Or anaRS!stru <> 0 Or anaRS!avk <> 0 Or anaRS!pani <> 0 Or anaRS!vari <> 0 Or anaRS!östr <> 0 Or anaRS!antidep <> 0 Or anaRS!antidem <> 0 Or anaRS!antiep <> 0 Or anaRS!park <> 0 Or anaRS!antipern <> 0 Or anaRS!Appet <> 0 Or anaRS!Anäm <> 0 Or anaRS!antiherp <> 0 Or anaRS!NSAR <> 0 Or anaRS!antikoag <> 0 Or anaRS!Betabl <> 0 Or anaRS!ACEH <> 0 Or anaRS!AT1 <> 0 Or anaRS!CalcA <> 0 Or anaRS!Diur <> 0 Then
      Me.BackColor = "&H0080FFFF"
     Else
      Me.BackColor = "&H8000000F" ' gelblichgrau
@@ -1526,7 +1526,7 @@ End Sub ' cmdUpdate_Click()
 
 Private Sub cmdClose_Click()
   Unload Me
-End Sub
+End Sub ' cmdClose_Click()
 
 Public Sub cmdFirst_Click()
   On Error GoTo fehler
@@ -1629,6 +1629,7 @@ Public Sub SetButtons(bVal As Boolean)
   cmdLast.Enabled = bVal
   cmdPrevious.Enabled = bVal
 End Sub ' SetButtons
+
 Private Sub Form_KeyDown(KeyCode As Integer, Shift As Integer)
  Call doKeyDown(Me, KeyCode, Shift)
 End Sub ' Form_KeyDown(KeyCode As Integer, Shift As Integer)
@@ -1636,10 +1637,10 @@ End Sub ' Form_KeyDown(KeyCode As Integer, Shift As Integer)
 Private Sub Googeln_Click()
  Dim Result&
   Result = ShellExecute(Me.hwnd, "Open", "https://www.google.com/search?client=firefox-b-d&q=" + vTextB(1), "", App.path, 1)
-End Sub
+End Sub ' Googeln_Click()
 
 Private Sub inTM_Click()
- inTMAnz (vTextB(3))
+  inTMAnz (vTextB(3))
 End Sub ' inTM_Click()
 
 Public Sub Suchen_Click()

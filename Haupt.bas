@@ -2749,7 +2749,7 @@ If KeyCode = 27 Then
    If frm.PLArt = artDiag Then
     Call frm.MFG_Click
    End If
-  End If
+  End If ' frm.name = "PatAuswahl" And (frm .. Else
  ElseIf KeyCode = 70 And ((Shift And vbCtrlMask) > 0) And frm.name = "PatListe" Then
   Call frm.Command1_Click(3) ' Suchen
   KeyCode = 0
