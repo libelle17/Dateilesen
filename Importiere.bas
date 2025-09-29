@@ -5768,7 +5768,7 @@ End Function ' alleKassenSpeichern
 
 ' in kassenSpeichern, faelleSpeichern, macheTypen
 Public Function holKat$(ByVal uKas$)
-    If InStrB(uKas, "SOZIAL") <> 0 Or InStrB(uKas, "BUNDESAMT") <> 0 Or InStrB(uKas, "LANDESINSTITUT") Or InStrB(uKas, "SVA") <> 0 Or InStrB(uKas, "SHV") <> 0 Then
+    If InStrB(uKas, "SOZIAL") <> 0 Or InStrB(uKas, "BUNDESAMT") <> 0 Or InStrB(uKas, "LANDESINSTITUT") Or InStrB(uKas, "SHV") <> 0 Then  ' Or InStrB(uKas, "SVA") <> 0 Then ' ' 29.9.25: revidiert
      holKat = "SHV"
     ElseIf InStrB(uKas, "AOK") <> 0 Then ' instrb(ukas,"AOK")<>0
      holKat = "AOK"
@@ -5790,17 +5790,17 @@ End Function ' bestimmKat$(ByVal ukas$)
 ' in alleSpeichern
 Function kassenSpeichern(pid$, Optional gleichdb%)
  Dim i%, j%, k%, rs As New ADODB.Recordset, keinetrans%, uKas$, kat$, sql$ ' , dokat%
- Dim cnstr$
+ Dim CnStr$
  keinetrans = True
  On Error Resume Next
 #If einmal Then
  If gleichdb Then DBCn.Execute "BEGIN"
 #End If
  If Err.Number Then
-  cnstr = DBCn.Properties("extended properties")
+  CnStr = DBCn.Properties("extended properties")
   Err.Clear
   DBCn.Close
-  DBCn.Open cnstr
+  DBCn.Open CnStr
   If gleichdb Then DBCn.Execute "BEGIN"
  End If
  On Error GoTo fehler

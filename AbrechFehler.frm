@@ -809,9 +809,9 @@ Else ' me.private = 0 => Kassenpatienten
 ' BetrPausch = "'97350A','97360A','97350B','97360B','97370B','97371B', '97310','97320','97321','97312','97322','97313','97323','97333'"
  Const BetrPausch$ = "'97310','97312','97320','97321','97322','97333'"
  If aktfDirekt <> 0 Then
-  aktf = "(SELECT pat_id,nachname,vorname,quartal,fid,schgr,goäkatnr,ik,vknr FROM `faelle` WHERE schgr <> '90' AND NOT goäkatnr IN ('40','41') AND nachname <> 'Bereitschaftsdienst' AND quartal = '" & AktQ & "') AS f "
+  aktf = "(SELECT pat_id,nachname,vorname,quartal,fid,schgr,goäkatnr,ik,vknr,kid FROM `faelle` WHERE schgr <> '90' AND NOT goäkatnr IN ('40','41') AND nachname <> 'Bereitschaftsdienst' AND quartal = '" & AktQ & "') AS f "
  Else
-  aktf = "(SELECT pat_id,nachname,vorname, quartal,fid,schgr,goäkatnr,ik,vknr FROM `faelle` WHERE schgr <> '90' AND NOT goäkatnr IN ('40','41') AND nachname <> 'Bereitschaftsdienst' AND quartal = (SELECTmy CONCAT(intacc(((month(SUBDATE(NOW(),INTERVAL " & FristS & " DAY))-1) divmy 3) + 1) ¡ YEAR(SUBDATE(NOW(),INTERVAL " & FristS & " DAY)))) " & vbCrLf & _
+  aktf = "(SELECT pat_id,nachname,vorname, quartal,fid,schgr,goäkatnr,ik,vknr,kid FROM `faelle` WHERE schgr <> '90' AND NOT goäkatnr IN ('40','41') AND nachname <> 'Bereitschaftsdienst' AND quartal = (SELECTmy CONCAT(intacc(((month(SUBDATE(NOW(),INTERVAL " & FristS & " DAY))-1) divmy 3) + 1) ¡ YEAR(SUBDATE(NOW(),INTERVAL " & FristS & " DAY)))) " & vbCrLf & _
          "ORDER BY pat_id, fid DESC, schgr) AS f "
   aktf = cmd(aktf, InStrB(Lese.dbv.CnStr, "MySQL") = 0) ' .wCn.ConnectionString ' 28.12.08
  End If
@@ -1665,11 +1665,11 @@ sql(AWlf) = "" & _
 ' LPAD(MID(adl.inhalt,17),3,' '),' P') Tests " & vbCrLf & _
 
  AwN(AWlf) = "Patienten mit Barthel- und TUG-Test, die als gesund eingestuft sind (keine icd in ('Z74.9','G20.10','G20.20','R26.8','R29.6','R42','R32','R15','R13.9','R26.3','R41.0','R41.3','R41.8','R52.2','F45.41','G30.9','F29','F32.9','F69','F79.9','R41.0','R41.3','R41.8','R63.4','R53','M62.50','R26.8','R68.8') OR pfld.icd RLIKE '^F0[012]') (vorher 72)"
- sql(AWlf) = "SELECT v.pat_id, gesname(v.pat_id) Name, patalter(v.pat_id) PAlter " & vbCrLf & _
-            ",(SELECT COUNT(art) FROM eintraege WHERE pat_id = v.pat_id AND (art = 'tk'OR(art='tb'And ersteller='tk'))) tk " & vbCrLf & _
-            ",(SELECT COUNT(art) FROM eintraege WHERE pat_id = v.pat_id AND (art = 'gs'OR(art='tb'And ersteller='gs'))) gs " & vbCrLf & _
-            ",(SELECT COUNT(art) FROM eintraege WHERE pat_id = v.pat_id AND (art = 'ah'OR(art='tb'And ersteller='ah'))) ah " & vbCrLf & _
-            ",CONCAT(LPAD(REGEXP_REPLACE(tug.inhalt,'.*benötigte Zeit\: *([0-9]+) Sek.*','\\1'),3,' '),'s/ ', LPAD(REGEXP_REPLACE(adl.inhalt,'.*Gesamtpunktzahl [(]max. 100[)] *([0-9]+) *','\\1'),3,' ')) Tests" & vbCrLf & _
+' sql(AWlf) = "SELECT v.pat_id, gesname(v.pat_id) Name, patalter(v.pat_id) PAlter " & vbCrLf & _
+            ",(SELECT COUNT(art) FROM eintraege WHERE pat_id = v.pat_id AND (art = 'tk'OR(art='tb'And ersteller='tk'))) tk" & vbCrLf & _
+            ",(SELECT COUNT(art) FROM eintraege WHERE pat_id = v.pat_id AND (art = 'gs'OR(art='tb'And ersteller='gs'))) gs" & vbCrLf & _
+            ",(SELECT COUNT(art) FROM eintraege WHERE pat_id = v.pat_id AND (art = 'ah'OR(art='tb'And ersteller='ah'))) ah" & vbCrLf & _
+            ",CONCAT(LPAD(REGEXP_REPLACE(tug.inhalt,'.*enötigte Zeit\: *([0-9]+) [sS].*','\\1'),3,' '),'s/ ', LPAD(REGEXP_REPLACE(adl.inhalt,'.*Gesamtpunktzahl [(]max. 100[)] *([0-9]+) *','\\1'),3,' ')) Tests" & vbCrLf & _
             "FROM aktfvs v " & vbCrLf & _
             "JOIN faelle f USING (fid)" & vbCrLf & _
             "LEFT JOIN namen n ON v.pat_id = n.pat_id " & vbCrLf & _
@@ -1680,6 +1680,49 @@ sql(AWlf) = "" & _
             "WHERE (DATEDIFF(" & qtAnf(FristS) & ", n.GebDat) > 70 * 365 OR NOT ISNULL(dd.ICD)) AND ISNULL(pfld.icd) " & vbCrLf & _
             "AND NOT ISNULL(tug.inhalt) AND NOT ISNULL(adl.inhalt) " & vbCrLf & _
             "GROUP BY pat_id;"
+            
+sql(AWlf) = _
+"WITH bar AS" & vbCrLf & _
+"(SELECT" & vbCrLf & _
+"  CASE WHEN art='bar' THEN SUM(CAST(REGEXP_REPLACE(SUBSTRING_INDEX(inhalt, ')', n),'^.*[(]([0-9]*)$','\\1') AS UNSIGNED)) WHEN art='adl' THEN LPAD(REGEXP_REPLACE(inhalt,'.*Gesamtpunktzahl [(]max. 100[)] *([0-9]+) *','\\1'),3,' ')ELSE'Bar'END bis," & vbCrLf & _
+"  sub.*" & vbCrLf & _
+" FROM (" & vbCrLf & _
+"  SELECT e.*, n" & vbCrLf & _
+"   FROM (" & vbCrLf & _
+"    SELECT ROW_NUMBER() OVER(PARTITION BY pat_id ORDER BY zeitpunkt desc) rn, e.* FROM eintraege e" & vbCrLf & _
+"    WHERE e.art IN ('ADL','284','bar')" & vbCrLf & _
+"    AND pat_id IN (SELECT pat_id FROM aktfv)" & vbCrLf & _
+"     ORDER BY pat_id, zeitpunkt DESC" & vbCrLf & _
+"    )e" & vbCrLf & _
+"   JOIN (" & vbCrLf & _
+"    WITH RECURSIVE cte AS (SELECT 1 N UNION ALL SELECT N + 1 FROM cte WHERE N < 16)" & vbCrLf & _
+"    SELECT n FROM cte" & vbCrLf & _
+"   ) nrn" & vbCrLf & _
+"   WHERE inhalt IS NOT NULL" & vbCrLf & _
+"   AND e.rn=1" & vbCrLf & _
+"   GROUP BY id,n" & vbCrLf & _
+"  ) sub" & vbCrLf & _
+"  GROUP BY id" & vbCrLf & _
+"  )," & vbCrLf & _
+" tug AS (SELECT * FROM eintraege WHERE art IN ('TUG','247'))" & vbCrLf
+
+sql(AWlf) = sql(AWlf) & _
+" SELECT v.pat_id, gesname(v.pat_id) Name, patalter(v.pat_id) PAlter" & vbCrLf & _
+" ,(SELECT COUNT(art) FROM eintraege WHERE pat_id = v.pat_id AND (art = 'tk'OR(art='tb'And ersteller='tk'))) tk" & vbCrLf & _
+" ,(SELECT COUNT(art) FROM eintraege WHERE pat_id = v.pat_id AND (art = 'gs'OR(art='tb'And ersteller='gs'))) gs" & vbCrLf & _
+" ,(SELECT COUNT(art) FROM eintraege WHERE pat_id = v.pat_id AND (art = 'ah'OR(art='tb'And ersteller='ah'))) ah" & vbCrLf & _
+" ,CONCAT(LPAD(REGEXP_REPLACE(tug.inhalt,'.*enötigte Zeit\: *([0-9]+) [sS].*','\\1'),3,' '),'s/ ', adl.bis) Tests" & vbCrLf & _
+", DATE_FORMAT(GREATEST(tug.zeitpunkt,adl.zeitpunkt),'%d.%m.%Y') zuletzt" & vbCrLf & _
+"FROM aktfvs v" & vbCrLf & _
+" JOIN `faelle` f USING (fid)" & vbCrLf & _
+" LEFT JOIN namen n ON v.pat_id = n.pat_id" & vbCrLf & _
+" LEFT JOIN tug ON v.pat_id = tug.pat_id AND tug.zeitpunkt = (SELECT MAX(zeitpunkt) FROM tug WHERE pat_id = v.pat_id)" & vbCrLf & _
+" LEFT JOIN bar adl ON v.pat_id = adl.pat_id AND adl.zeitpunkt = (SELECT MAX(zeitpunkt) FROM bar WHERE pat_id = v.pat_id)" & vbCrLf & _
+" LEFT JOIN diagview dd ON v.pat_id = dd.pat_id AND dd.gicd RLIKE '^F0[0-3]|^G20'" & vbCrLf & _
+" LEFT JOIN diagview pfld ON v.pat_id = pfld.pat_id AND (pfld.gicd IN ('Z74.9','G20.10','G20.20','R26.8','R29.6','R42','R32','R15','R13.9','R26.3','R41.0','R41.3','R41.8','R52.2','F45.41','G30.9','F29','F32.9','F69','F79.9','R63.4','R53','M62.50','R26.8','R68.8') OR pfld.gicd RLIKE '^F0[012]')" & vbCrLf & _
+" WHERE (DATEDIFF(20250701, n.GebDat) > 70 * 365 OR NOT ISNULL(dd.ICD)) AND ISNULL(pfld.icd)" & vbCrLf & _
+" AND NOT ISNULL(tug.inhalt) AND NOT ISNULL(adl.inhalt)" & vbCrLf & _
+" GROUP BY pat_id"
  mins(AWlf) = 10
  maxs(AWlf) = 60
  AWlf = AWlf + 1
@@ -1877,6 +1920,7 @@ sql(AWlf) = _
              "AND NOT (notiz LIKE 'DMP KHK%' AND n.dmpkhkklass) " & vbCrLf & _
              "AND NOT (notiz LIKE 'DMP COPD%' AND n.dmpcopdklass) " & vbCrLf & _
              "AND NOT (notiz LIKE 'DMP AB%' AND n.dmpabklass) " & vbCrLf & _
+             "AND NOT notiz RLIKE 'DMP[ -](?:halbjährlich|(?:beim )?HA abgeklärt|Regress)'" & vbCrLf & _
              "GROUP BY n.pat_id " & vbCrLf & _
              "ORDER BY pat_id DESC"
  mins(AWlf) = 7
@@ -2589,7 +2633,7 @@ sql(AWlf) = _
  ' AND COALESCE(diab.Dggel,0)=0
  sql(AWlf) = _
  "SELECT * FROM " & vbCrLf & _
- "(SELECT f.pat_id AS pat_id, gesname(f.pat_id) Name, l.leistung AS Leistung, kateg, ldat Tag, diab.icd AS DTyp " & vbCrLf & _
+ "(SELECT f.pat_id AS pat_id,gesname(f.pat_id) Name,l.leistung AS Leistung,kateg,ldat Tag,diab.icd,kid AS DTyp " & vbCrLf & _
  "FROM " & aktf & " " & vbCrLf & _
  "LEFT JOIN (SELECT pat_id,leistung,DATE(zeitpunkt) ldat FROM `leistungen` WHERE leistung IN ('97314','97324')) AS l ON f.pat_id = l.pat_id and l.ldat BETWEEN qbegs(f.quartal) AND qends(f.quartal) " & vbCrLf & _
  "LEFT JOIN (SELECT pat_id,leistung,DATE(zeitpunkt) l1dat FROM `leistungen` WHERE leistung IN ('02311')) AS l1 ON f.pat_id = l1.pat_id and l1.l1dat BETWEEN qbegs(f.quartal) AND qends(f.quartal) " & vbCrLf & _
@@ -3243,7 +3287,7 @@ AwN(AWlf) = "Fehlende 32025 für Blutzuckermessungen (bz, bzvgl, ogtt) außerhalb 
 "      AND e.zeitpunkt BETWEEN " & lQAnfuEnd(FristS) & vbCrLf & _
 "AND NOT EXISTS (SELECT 0 FROM sws WHERE pat_id=f.pat_id AND e.zeitpunkt BETWEEN voret - INTERVAL 280 DAY AND voret) " & vbCrLf & _
 "LEFT JOIN (SELECT pat_id, SUM(lzahl) lz, DATE(zeitpunkt) lzp FROM leistungen WHERE leistung = '32025' GROUP BY pat_id,DATE(zeitpunkt)) l ON f.pat_id = l.pat_id AND lzp = DATE(e.zeitpunkt) " & vbCrLf & _
-"WHERE NOT ISNULL(e.Zeitpunkt) " & vbCrLf & _
+"WHERE e.inhalt NOT LIKE '%Biosen: - %' AND NOT ISNULL(e.Zeitpunkt) " & vbCrLf & _
 "GROUP BY e.id " & vbCrLf & _
 ") i WHERE artz>lzz " & vbCrLf & _
 "ORDER BY PID "

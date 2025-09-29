@@ -3149,8 +3149,8 @@ Function holHAausMO(inf As InfoTyp, fPtNr&, Optional satznr%)
     End If
     inf.Funktion = "HA"
     Adr = REPLACE$(REPLACE$(doUmwfSQL(rsHa!Adr, True), "\n", ""), "\r", "")
-    If rsHa!FArztnralt <> "" Or rsHa!farztnr <> "" Then
-     inf.KVNr = rsHa!FArztnralt
+    If rsHa!farztnralt <> "" Or rsHa!farztnr <> "" Or rsHa!Adr <> "" Then ' 29.9.25
+     inf.KVNr = rsHa!farztnralt
      If inf.KVNr = "" Then inf.KVNr = rsHa!farztnr
      If rsHa!Adr <> "" Then
       Lkz = ""
@@ -3169,7 +3169,7 @@ Function holHAausMO(inf As InfoTyp, fPtNr&, Optional satznr%)
             inf.TelNr = FMem(j).Text ' Telefonnummer
         Case "10.1": ' unbekannte ascii-Ziffer
         Case "10.2":
-            inf.Faxnr = FMem(j).Text ' Faxnummer
+            inf.Faxnr = REPLACE$(FMem(j).Text, "/", "") ' Faxnummer
         Case "12": Lkz = FMem(j).Text ' Länderkennzeichen
         Case "6.2.3"
 '          rRe(UBound(rRe)).anzl = Asc(FMem(j).Text)
@@ -3199,7 +3199,7 @@ Function holHAausMO(inf As InfoTyp, fPtNr&, Optional satznr%)
        Call myEFrag(sql, rAf, DBCn)
       End If ' rslue!Zahl > 1 Then
      End If ' rslue.BOF Then
-    ElseIf Not IsNull(rsHa!FAdresse) Then ' mit COALESCE kommt trotzdem eine Fehlermeldung raus
+    ElseIf Not IsNull(rsHa!fadresse) Then ' mit COALESCE kommt trotzdem eine Fehlermeldung raus
 '    Set rslue = myEFrag(, , DBCn)
      On Error Resume Next
      Set rslue = myEFrag("SELECT kvnr FROM aktlue a WHERE ((nameo ='" & inf.Nachname & "' AND vno='" & inf.Nachname & "') OR (name ='" & inf.Nachname & "' AND vorname='" & inf.Nachname & "')) AND '" & Adr & "' LIKE CONCAT('%',a.strasse,'%')", , DBCn)
