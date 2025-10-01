@@ -3856,8 +3856,9 @@ sql(AWlf) = sql(AWlf) & _
 "COALESCE((SELECT SUM(lzahl) FROM leistungen l WHERE l.pat_id=f.pat_id AND l.leistung='97274E' AND l.zeitpunkt BETWEEN 20000101 AND IF(" & qtEnd(FristS) & "<et.voret," & qtEnd(FristS) & ",et.voret))),0) `97274E`, " & vbCrLf & _
 "CAST(COALESCE((SELECT SUM(lzahl) FROM leistungen l WHERE l.pat_id=f.pat_id AND l.leistung='97267B' AND l.zeitpunkt BETWEEN 20000101 AND IF(" & qtEnd(FristS) & "<et.voret," & qtEnd(FristS) & ",et.voret)),0) AS char CHARACTER SET utf8) `97267B` " & vbCrLf & _
 "FROM aktfvs f " & vbCrLf & _
-"LEFT JOIN (SELECT IF(LR=18991230,IF(efLR=18991230,IF(erLR=18991230,voret-INTERVAL 280 day,erlr),efLR),LR) letzteRegel, voret,pat_id FROM sws) et ON et.Pat_ID=f.pat_id AND et.voret>qanf()" & vbCrLf & _
+"LEFT JOIN (SELECT IF(LR=18991230,IF(efLR=18991230,IF(erLR=18991230,voret-INTERVAL 280 day,erlr),efLR),LR) letzteRegel, voret,pat_id FROM sws where voret>qanf() AND voret=(SELECT MAX(voret) FROM sws WHERE pat_id=sws.pat_id)) et ON et.Pat_ID=f.pat_id" & vbCrLf & _
 "LEFT JOIN diagview d ON f.pat_id=d.pat_id AND (d.icd='O24.4' AND d.Dggel=0 AND d.diagsicherheit IN ('G',' ') AND d.diagdatum BETWEEN qbegs(f.quartal) AND qends(f.quartal))" & vbCrLf & _
+"  AND d.id1=(SELECT MAX(id1) FROM diagview WHERE pat_id=d.pat_id AND (d.icd='O24.4' AND d.Dggel=0 AND d.diagsicherheit IN ('G',' ') AND d.diagdatum BETWEEN qbegs(f.quartal) AND qends(f.quartal)))" & vbCrLf & _
 "WHERE NOT ISNULL(d.icd)) i " & vbCrLf & _
 "ORDER BY (SELECT IF(MAX(insart)AND NOT ISNULL(MAX(insart)),'x','') FROM therarten t WHERE t.pat_id=i.pat_id AND t.zp BETWEEN qbeg(i.letzteRegel) AND " & qtEnd(FristS) & "), TherArt, pat_id;"
 ' "(SELECT IF(instr(GROUP_CONCAT(DISTINCT insart),'1')<>0 OR instr(GROUP_CONCAT(DISTINCT insart),'4')<>0,'ICT',IF(instr(GROUP_CONCAT(DISTINCT insart),'2')<>0,'Basal','Diät'))  FROM therarten t WHERE t.pat_id=f.pat_id AND t.zp BETWEEN qbeg(STR_TO_DATE(et.letzteRegel,'%d.%m.%Y')) AND " & qtEnd(FristS) & ") TherArt, " & vbCrLf & _
