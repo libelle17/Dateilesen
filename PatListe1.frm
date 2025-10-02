@@ -2,14 +2,14 @@ VERSION 5.00
 Object = "{0ECD9B60-23AA-11D0-B351-00A0C9055D8E}#6.0#0"; "MSHFLXGD.OCX"
 Begin VB.Form PatListe 
    Caption         =   "Patientenliste"
-   ClientHeight    =   14625
+   ClientHeight    =   12375
    ClientLeft      =   510
    ClientTop       =   1245
    ClientWidth     =   15120
    FillColor       =   &H80000005&
    Icon            =   "PatListe1.frx":0000
    LinkTopic       =   "PatListe"
-   ScaleHeight     =   14625
+   ScaleHeight     =   12375
    ScaleWidth      =   15120
    Begin VB.CommandButton Command1 
       Caption         =   "Command1"
@@ -579,13 +579,21 @@ Public DMPsql$
 Public Function DMPsqlFuell()
  If DMPsql = "" Then
 DMPsql$ = "" & _
+"WITH pra AS (SELECT" & vbCrLf & _
+"              (SELECT TRIM(TEXT)FROM tmpmepraxis WHERE fsur=p.fsurogat AND enr =10.2 LIMIT 1)fax" & vbCrLf & _
+"             ,(SELECT TRIM(TEXT)FROM tmpmepraxis WHERE fsur=p.fsurogat AND enr =6 LIMIT 1)ort, p.*" & vbCrLf & _
+"             FROM epraxis p GROUP BY FBetriebsnr)" & vbCrLf
+
+DMPsql$ = DMPsql & _
 "SELECT -- diagzahl,andZahl,rangü," & vbCrLf & _
 " Pat_id,Name,Schgr,IF(übwvbsnr='',COALESCE(BSNRÜ,BSNRH),übwvbsnr)ÜWNNR,übwvbsnr,IF(übwvlanr='',COALESCE(LANRÜ,LANRH),übwvlanr)ÜWLAN,dmpklass,DMTyp" & vbCrLf & _
 ",COUNT(0) OVER(PARTITION BY ÜWNNR)Zahl" & vbCrLf & _
-",ROW_NUMBER() OVER(PARTITION BY IF(faxü IS NULL,BezH,Bezü) ORDER BY pat_id)pRang" & vbCrLf & _
-",DENSE_RANK() OVER(ORDER BY IF(faxü IS NULL,BezH,Bezü))pReihe" & vbCrLf & _
+"-- ,ROW_NUMBER() OVER(PARTITION BY IF(faxü IS NULL,BezH,Bezü) ORDER BY pat_id)pRang" & vbCrLf & _
+"-- ,DENSE_RANK() OVER(ORDER BY IF(faxü IS NULL,BezH,Bezü))pReihe" & vbCrLf & _
+",ROW_NUMBER()OVER(PARTITION BY Adressat ORDER BY Name,pat_id)pRang" & vbCrLf & _
+",ROW_NUMBER()OVER(ORDER BY Adressat,NAME,pat_id)pReihe" & vbCrLf & _
 ",REPLACE(REPLACE(COALESCE(COALESCE(faxü,faxh),''),CHR(0),''),'/','')Fax -- ,TRIM(TRAILING CHR(0) FROM COALESCE(COALESCE(faxü,faxh),''))Fax" & vbCrLf & _
-",CONCAT(LEFT(TRIM(REPLACE(COALESCE(IF(faxü IS NULL,orth,ortü),''),CHR(0),'')),200),': ',COALESCE(IF(faxü IS NULL,BezH,Bezü),''))Adressat" & vbCrLf & _
+",REPLACE(CONCAT(LEFT(TRIM(REPLACE(COALESCE(IF(faxü IS NULL,orth,ortü),''),CHR(0),'')),200),': ',COALESCE(IF(faxü IS NULL,BezH,Bezü),'')),'/',' ')Adressat" & vbCrLf & _
 ",IF(faxü IS NULL,AnrH,Anrü)Anr,COALESCE(BSNRH,BSNRÜ)BSNR,IF(faxü IS NULL,LANRH,LANRÜ)LANR" & vbCrLf & _
 ",faxü,faxH,Bezü,BezH" & vbCrLf & _
 "-- ,AdrÜ,AnrÜ,EmailÜ,BSNRÜ,LANRÜ,KIMü,rFSurH" & vbCrLf & _
@@ -596,14 +604,14 @@ DMPsql$ = "" & _
 "SELECT" & vbCrLf & _
 "  COUNT(0) OVER(PARTITION BY f.pat_id,f.fid) diagzahl" & vbCrLf & _
 " ,COUNT(0) OVER(PARTITION BY f.pat_id) andZahl" & vbCrLf & _
-" ,ROW_NUMBER() OVER(PARTITION BY f.pat_id,f.fid ORDER BY pü.faxü DESC) rangü" & vbCrLf & _
+" ,ROW_NUMBER() OVER(PARTITION BY f.pat_id,f.fid ORDER BY pü.fax DESC) rangü" & vbCrLf & _
 " ,f.pat_id,COALESCE(gesname(f.pat_id),'')Name, f.schgr, f.übwvbsnr, f.übwvlanr, n.dmpklass,t.ityp DMTyp" & vbCrLf & _
-" ,pü.FSurogat,pü.FBezeichnung BezÜ/*,pü.FArztnralt KVNrÜ*/,pü.ortü,pü.faxü,pü.FAdresse Adrü,pü.FEmail EmailÜ,pü.FBetriebsnr BSNRÜ,pü.FKvConnect KIMü" & vbCrLf & _
-" -- ,ea.rfsur rFSurH,ea.fsurogat eafsH" & vbCrLf & _
-" ,ph.FBezeichnung BezH, ph.FBetriebsnr BSNRH, ph.orth,ph.faxH" & vbCrLf & _
-"/*,ea.fnachname NachnH, ea.fvorname VornH*/,ea.FArztnr LANRH,ea.FAnrede AnrH" & vbCrLf & _
-" , ISNULL(hk.kvnr) obdmpinfo" & vbCrLf
+" ,pü.FSurogat,pü.FBezeichnung BezÜ/*,pü.FArztnralt KVNrÜ*/,pü.ort ortü,pü.fax faxü,pü.FAdresse Adrü,pü.FEmail EmailÜ,pü.FBetriebsnr BSNRÜ,pü.FKvConnect KIMü" & vbCrLf & _
+" -- ,ea.rfsur rFSurH,ea.fsurogat eafsH" & vbCrLf
 DMPsql = DMPsql & _
+" ,ph.FBezeichnung BezH, ph.FBetriebsnr BSNRH, ph.ort orth,ph.fax faxh" & vbCrLf & _
+"/*,ea.fnachname NachnH, ea.fvorname VornH*/,ea.FArztnr LANRH,ea.FAnrede AnrH" & vbCrLf & _
+" , ISNULL(hk.kvnr) obdmpinfo" & vbCrLf & _
 "-- Überweiser-Arzt:" & vbCrLf & _
 " ,COALESCE((SELECT FAnrede FROM earzt ea WHERE ea.FExtpraxisnr=pü.FSurogat ORDER BY((ea.FArztnr =f.`ÜbWVLANR` AND f.übwvlanr<>'')OR(ea.FArztnr<>f.`ÜbWVLANR` AND f.übwvlanr=''))DESC,ea.FArztnr LIMIT 1),pü.FAnrede)AnrÜ" & vbCrLf & _
 " ,         (SELECT FArztnr FROM earzt ea WHERE ea.FExtpraxisnr=pü.FSurogat ORDER BY((ea.FArztnr =f.`ÜbWVLANR` AND f.übwvlanr<>'')OR(ea.FArztnr<>f.`ÜbWVLANR` AND f.übwvlanr=''))DESC,ea.FArztnr LIMIT 1)LANRÜ" & vbCrLf & _
@@ -611,26 +619,24 @@ DMPsql = DMPsql & _
 " LEFT JOIN namen n USING (pat_id)" & vbCrLf & _
 " JOIN faelle f USING (fid)" & vbCrLf & _
 "-- Überweiser-Praxis:" & vbCrLf & _
-" LEFT JOIN (SELECT" & vbCrLf & _
-"         (SELECT TRIM(TEXT)FROM tmpmepraxis WHERE fsur=p.fsurogat AND enr =10.2 LIMIT 1)faxü" & vbCrLf & _
-"         ,(SELECT TRIM(TEXT)FROM tmpmepraxis WHERE fsur=p.fsurogat AND enr =6 LIMIT 1)ortü, p.*" & vbCrLf & _
-"            FROM epraxis p) pü ON pü.FBetriebsnr=f.übwvbsnr" & vbCrLf & _
+" LEFT JOIN pra pü ON pü.FBetriebsnr=f.übwvbsnr" & vbCrLf & _
 "-- Hausärzte:" & vbCrLf & _
 " LEFT JOIN" & vbCrLf & _
 " (SELECT fpatid,freferenzid,r.fsurogat rfsur,ea.* from patrelation r JOIN earzt ea ON ea.fsurogat = r.freferenzid AND r.FReferenztyp=2 GROUP BY fpatid) ea" & vbCrLf & _
 " ON ea.FPatid=a.pat_id" & vbCrLf & _
-" LEFT JOIN (SELECT (SELECT TRIM(TEXT) FROM tmpmepraxis WHERE fsur=p.fsurogat AND enr =10.2 LIMIT 1)faxh,(SELECT TRIM(TEXT) FROM tmpmepraxis WHERE fsur=p.fsurogat AND enr =6 LIMIT 1)orth, p.* from epraxis p) ph ON ea.FExtpraxisnr = ph.fsurogat" & vbCrLf & _
+" LEFT JOIN pra ph ON ea.FExtpraxisnr = ph.fsurogat" & vbCrLf & _
 " LEFT JOIN dtypen t ON t.pat_id=a.pat_id" & vbCrLf & _
-" LEFT JOIN `hakeinedmpinfo` hk ON  f.übwvbsnr=hk.kvnr" & vbCrLf & _
+" LEFT JOIN `hakeinedmpinfo` hk ON  f.übwvbsnr=hk.kvnr" & vbCrLf
+DMPsql = DMPsql & _
 " WHERE" & vbCrLf & _
 " -- f.schgr=24 AND" & vbCrLf & _
 " dmpklass IN (0,1,2)" & vbCrLf & _
 " AND ityp IN (1,2)" & vbCrLf & _
 " -- AND pü.FBetriebsnr IS NULL AND NOT übwvbsnr IS NULL AND übwvbsnr<>''" & vbCrLf & _
-" -- AND andzahl<>1 -- and diagzahl<>1" & vbCrLf
-DMPsql = DMPsql & _
+" -- AND andzahl<>1 -- and diagzahl<>1" & vbCrLf & _
 ") i" & vbCrLf & _
-"ORDER BY Adressat,preihe,prang" & vbCrLf & _
+"GROUP BY pat_id,fax" & vbCrLf & _
+"ORDER BY Adressat,Name,Pat_id,preihe,prang" & vbCrLf & _
 "" & vbCrLf & _
 "" & vbCrLf
  End If ' If DMPsql = "" Then

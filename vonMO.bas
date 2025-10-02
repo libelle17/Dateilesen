@@ -1107,6 +1107,7 @@ Public Function HATrans()
  Call MOConInit(, "HATrans()")
  If MsgBox("soll procmepraxis(0) aufgerufen werden (dauert mind. 7 min)?", vbYesNo, "Rückfrage") = vbYes Then
   syscmd 4, "HATrans: Extrahierte FAdresse (kann mindestens 7 Minuten dauern)"
+  myEFrag "TRUNCATE tmpmepraxis", rAf, MOCon, , ErrNr, ErrDes, 10000000
   myEFrag "call procmepraxis(0)", rAf, MOCon, , ErrNr, ErrDes, 10000000
   If ErrNr Then
    syscmd 4, "Fehler " & ErrNr & ": " & ErrDes
