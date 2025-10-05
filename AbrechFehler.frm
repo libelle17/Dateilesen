@@ -3827,40 +3827,44 @@ AwN(AWlf) = "GDM Schulungsübersicht aktuell/gesamt (vorher 107)"
 ' "(SELECT IF(MAX(insart)AND NOT ISNULL(MAX(insart)),'x','') FROM therarten t WHERE t.pat_id=f.pat_id AND t.zp BETWEEN qbeg(SUBDATE(et.voret,274)) AND " & qtEnd(FristS) & ") Ins, " & vbCrLf & _
 ""
 ' AND COALESCE(d.Dggel,0)=0
-sql(AWlf) = vbCrLf & _
-"SELECT * FROM ( " & vbCrLf & _
-"SELECT f.pat_id, LEFT(gesname(f.pat_id),20) Nam, et.letzteRegel, et.voret, " & vbCrLf & _
+sql(AWlf) = "" & _
+"SELECT f.pat_id, LEFT(gesname(f.pat_id),20) Nam, lr, voret, MAX(icd) icd," & vbCrLf & _
 "COALESCE((SELECT therart FROM therarten WHERE pat_id=f.pat_id AND zp=(SELECT MAX(zp) FROM therarten WHERE pat_id=f.pat_id AND zp<qend())),'Diät') TherArt," & vbCrLf & _
-"(SELECT COUNT(DISTINCT DATE(zeitpunkt)) FROM eintraege e WHERE e.pat_id=f.pat_id AND e.art IN (" & artSpezBerat & ") AND zeitpunkt BETWEEN " & qtAnf(FristS) & " AND IF(" & qtEnd(FristS) & "<et.voret," & qtEnd(FristS) & ",et.voret)) KoZ, " & vbCrLf & _
-"CONCAT( " & vbCrLf & _
-"CAST(COALESCE((SELECT SUM(lzahl) FROM leistungen l WHERE l.pat_id=f.pat_id AND l.leistung='97276' AND l.zeitpunkt BETWEEN " & qtAnf(FristS) & " AND IF(" & qtEnd(FristS) & "<et.voret," & qtEnd(FristS) & ",et.voret)),0) AS char CHARACTER SET utf8),'/', " & vbCrLf & _
-"COALESCE((SELECT SUM(lzahl) FROM leistungen l WHERE l.pat_id=f.pat_id AND l.leistung='97276' AND l.zeitpunkt BETWEEN 20000101 AND IF(" & qtEnd(FristS) & "<et.voret," & qtEnd(FristS) & ",et.voret))),0) `97276`, " & vbCrLf & _
-"CONCAT( " & vbCrLf & _
-"CAST(COALESCE((SELECT SUM(lzahl) FROM leistungen l WHERE l.pat_id=f.pat_id AND l.leistung='97271' AND l.zeitpunkt BETWEEN " & qtAnf(FristS) & " AND IF(" & qtEnd(FristS) & "<et.voret," & qtEnd(FristS) & ",et.voret)),0) AS char CHARACTER SET utf8),'/', " & vbCrLf & _
-"COALESCE((SELECT SUM(lzahl) FROM leistungen l WHERE l.pat_id=f.pat_id AND l.leistung='97271' AND l.zeitpunkt BETWEEN 20000101 AND IF(" & qtEnd(FristS) & "<et.voret," & qtEnd(FristS) & ",et.voret))),0) `97271`, " & vbCrLf & _
-"CONCAT( " & vbCrLf & _
-"CAST(COALESCE((SELECT SUM(lzahl) FROM leistungen l WHERE l.pat_id=f.pat_id AND l.leistung='97271E' AND l.zeitpunkt BETWEEN " & qtAnf(FristS) & " AND IF(" & qtEnd(FristS) & "<et.voret," & qtEnd(FristS) & ",et.voret)),0) AS char CHARACTER SET utf8),'/', " & vbCrLf & _
-"COALESCE((SELECT SUM(lzahl) FROM leistungen l WHERE l.pat_id=f.pat_id AND l.leistung='97271E' AND l.zeitpunkt BETWEEN 20000101 AND IF(" & qtEnd(FristS) & "<et.voret," & qtEnd(FristS) & ",et.voret))),0) `97271E`, " & vbCrLf & _
-"CONCAT( " & vbCrLf & _
-"CAST(COALESCE((SELECT SUM(lzahl) FROM leistungen l WHERE l.pat_id=f.pat_id AND l.leistung='97268' AND l.zeitpunkt BETWEEN " & qtAnf(FristS) & " AND IF(" & qtEnd(FristS) & "<et.voret," & qtEnd(FristS) & ",et.voret)),0) AS char CHARACTER SET utf8),'/', " & vbCrLf & _
-"COALESCE((SELECT SUM(lzahl) FROM leistungen l WHERE l.pat_id=f.pat_id AND l.leistung='97268' AND l.zeitpunkt BETWEEN 20000101 AND IF(" & qtEnd(FristS) & "<et.voret," & qtEnd(FristS) & ",et.voret))),0) `97268`, " & vbCrLf & _
-"CONCAT( " & vbCrLf & _
-"CAST(COALESCE((SELECT SUM(lzahl) FROM leistungen l WHERE l.pat_id=f.pat_id AND l.leistung='97368E' AND l.zeitpunkt BETWEEN " & qtAnf(FristS) & " AND IF(" & qtEnd(FristS) & "<et.voret," & qtEnd(FristS) & ",et.voret)),0) AS char CHARACTER SET utf8),'/', " & vbCrLf & _
-"COALESCE((SELECT SUM(lzahl) FROM leistungen l WHERE l.pat_id=f.pat_id AND l.leistung='97368E' AND l.zeitpunkt BETWEEN 20000101 AND IF(" & qtEnd(FristS) & "<et.voret," & qtEnd(FristS) & ",et.voret))),0) `97368E`, " & vbCrLf & _
-"CONCAT( " & vbCrLf & _
-"CAST(COALESCE((SELECT SUM(lzahl) FROM leistungen l WHERE l.pat_id=f.pat_id AND l.leistung='97274' AND l.zeitpunkt BETWEEN " & qtAnf(FristS) & " AND IF(" & qtEnd(FristS) & "<et.voret," & qtEnd(FristS) & ",et.voret)),0) AS char CHARACTER SET utf8),'/', " & vbCrLf & _
-"COALESCE((SELECT SUM(lzahl) FROM leistungen l WHERE l.pat_id=f.pat_id AND l.leistung='97274' AND l.zeitpunkt BETWEEN 20000101 AND IF(" & qtEnd(FristS) & "<et.voret," & qtEnd(FristS) & ",et.voret))),0) `97274`, " & vbCrLf
+"(SELECT COUNT(DISTINCT DATE(zeitpunkt)) FROM eintraege e WHERE e.pat_id=f.pat_id AND e.art IN ('ni','gstel','gs','rz','ep','bga','tk','APK','wd','ah','ta','tb','tt','tn','wr','jl','ga','ih','cr','tn','be','lf','kb','mn','lt','sk') AND zeitpunkt BETWEEN qanf() AND IF(qend()<sws.voret,qend(),sws.voret)) KoZ," & vbCrLf & _
+"CONCAT(" & vbCrLf & _
+"CAST(COALESCE((SELECT SUM(lzahl) FROM leistungen WHERE pat_id=f.pat_id AND leistung='97276' AND zeitpunkt BETWEEN qanf() AND IF(qend()<sws.voret,qend(),sws.voret)),0) AS char CHARACTER SET utf8),'/'," & vbCrLf & _
+"COALESCE((SELECT SUM(lzahl) FROM leistungen WHERE pat_id=f.pat_id AND leistung='97276' AND zeitpunkt BETWEEN qanf()-INTERVAL 2 YEAR AND IF(qend()<sws.voret,qend(),sws.voret)),0)) `97276`," & vbCrLf & _
+"CONCAT(" & vbCrLf & _
+"CAST(COALESCE((SELECT SUM(lzahl) FROM leistungen WHERE pat_id=f.pat_id AND leistung='97271' AND zeitpunkt BETWEEN qanf() AND IF(qend()<sws.voret,qend(),sws.voret)),0) AS char CHARACTER SET utf8),'/'," & vbCrLf & _
+"COALESCE((SELECT SUM(lzahl) FROM leistungen WHERE pat_id=f.pat_id AND leistung='97271' AND zeitpunkt BETWEEN qanf()-INTERVAL 2 YEAR AND IF(qend()<sws.voret,qend(),sws.voret)),0)) `97271`," & vbCrLf & _
+"CONCAT(" & vbCrLf & _
+"CAST(COALESCE((SELECT SUM(lzahl) FROM leistungen WHERE pat_id=f.pat_id AND leistung='97271E' AND zeitpunkt BETWEEN qanf() AND IF(qend()<sws.voret,qend(),sws.voret)),0) AS char CHARACTER SET utf8),'/'," & vbCrLf & _
+"COALESCE((SELECT SUM(lzahl) FROM leistungen WHERE pat_id=f.pat_id AND leistung='97271E' AND zeitpunkt BETWEEN qanf()-INTERVAL 2 YEAR AND IF(qend()<sws.voret,qend(),sws.voret)),0)) `97271E`," & vbCrLf & _
+"CONCAT(" & vbCrLf & _
+"CAST(COALESCE((SELECT SUM(lzahl) FROM leistungen WHERE pat_id=f.pat_id AND leistung='97268' AND zeitpunkt BETWEEN qanf() AND IF(qend()<sws.voret,qend(),sws.voret)),0) AS char CHARACTER SET utf8),'/'," & vbCrLf & _
+"COALESCE((SELECT SUM(lzahl) FROM leistungen WHERE pat_id=f.pat_id AND leistung='97268' AND zeitpunkt BETWEEN qanf()-INTERVAL 2 YEAR AND IF(qend()<sws.voret,qend(),sws.voret)),0)) `97268`," & vbCrLf & _
+"CONCAT(" & vbCrLf & _
+"CAST(COALESCE((SELECT SUM(lzahl) FROM leistungen WHERE pat_id=f.pat_id AND leistung='97368E' AND zeitpunkt BETWEEN qanf() AND IF(qend()<sws.voret,qend(),sws.voret)),0) AS char CHARACTER SET utf8),'/'," & vbCrLf & _
+"COALESCE((SELECT SUM(lzahl) FROM leistungen WHERE pat_id=f.pat_id AND leistung='97368E' AND zeitpunkt BETWEEN qanf()-INTERVAL 2 YEAR AND IF(qend()<sws.voret,qend(),sws.voret)),0)) `97368E`," & vbCrLf & _
+"CONCAT(" & vbCrLf
 sql(AWlf) = sql(AWlf) & _
-"CONCAT( " & vbCrLf & _
-"CAST(COALESCE((SELECT SUM(lzahl) FROM leistungen l WHERE l.pat_id=f.pat_id AND l.leistung='97274E' AND l.zeitpunkt BETWEEN " & qtAnf(FristS) & " AND IF(" & qtEnd(FristS) & "<et.voret," & qtEnd(FristS) & ",et.voret)),0) AS char CHARACTER SET utf8),'/', " & vbCrLf & _
-"COALESCE((SELECT SUM(lzahl) FROM leistungen l WHERE l.pat_id=f.pat_id AND l.leistung='97274E' AND l.zeitpunkt BETWEEN 20000101 AND IF(" & qtEnd(FristS) & "<et.voret," & qtEnd(FristS) & ",et.voret))),0) `97274E`, " & vbCrLf & _
-"CAST(COALESCE((SELECT SUM(lzahl) FROM leistungen l WHERE l.pat_id=f.pat_id AND l.leistung='97267B' AND l.zeitpunkt BETWEEN 20000101 AND IF(" & qtEnd(FristS) & "<et.voret," & qtEnd(FristS) & ",et.voret)),0) AS char CHARACTER SET utf8) `97267B` " & vbCrLf & _
-"FROM aktfvs f " & vbCrLf & _
-"LEFT JOIN (SELECT IF(LR=18991230,IF(efLR=18991230,IF(erLR=18991230,voret-INTERVAL 280 day,erlr),efLR),LR) letzteRegel, voret,pat_id FROM sws where voret>qanf() AND voret=(SELECT MAX(voret) FROM sws WHERE pat_id=sws.pat_id)) et ON et.Pat_ID=f.pat_id" & vbCrLf & _
-"LEFT JOIN diagview d ON f.pat_id=d.pat_id AND (d.icd='O24.4' AND d.Dggel=0 AND d.diagsicherheit IN ('G',' ') AND d.diagdatum BETWEEN qbegs(f.quartal) AND qends(f.quartal))" & vbCrLf & _
-"  AND d.id1=(SELECT MAX(id1) FROM diagview WHERE pat_id=d.pat_id AND (d.icd='O24.4' AND d.Dggel=0 AND d.diagsicherheit IN ('G',' ') AND d.diagdatum BETWEEN qbegs(f.quartal) AND qends(f.quartal)))" & vbCrLf & _
-"WHERE NOT ISNULL(d.icd)) i " & vbCrLf & _
-"ORDER BY (SELECT IF(MAX(insart)AND NOT ISNULL(MAX(insart)),'x','') FROM therarten t WHERE t.pat_id=i.pat_id AND t.zp BETWEEN qbeg(i.letzteRegel) AND " & qtEnd(FristS) & "), TherArt, pat_id;"
+"CAST(COALESCE((SELECT SUM(lzahl) FROM leistungen WHERE pat_id=f.pat_id AND leistung='97274' AND zeitpunkt BETWEEN qanf() AND IF(qend()<sws.voret,qend(),sws.voret)),0) AS char CHARACTER SET utf8),'/'," & vbCrLf & _
+"COALESCE((SELECT SUM(lzahl) FROM leistungen WHERE pat_id=f.pat_id AND leistung='97274' AND zeitpunkt BETWEEN qanf()-INTERVAL 2 YEAR AND IF(qend()<sws.voret,qend(),sws.voret)),0)) `97274`," & vbCrLf & _
+"CONCAT(" & vbCrLf & _
+"CAST(COALESCE((SELECT SUM(lzahl) FROM leistungen WHERE pat_id=f.pat_id AND leistung='97274E' AND zeitpunkt BETWEEN qanf() AND IF(qend()<sws.voret,qend(),sws.voret)),0) AS char CHARACTER SET utf8),'/'," & vbCrLf & _
+"COALESCE((SELECT SUM(lzahl) FROM leistungen WHERE pat_id=f.pat_id AND leistung='97274E' AND zeitpunkt BETWEEN qanf()-INTERVAL 2 YEAR AND IF(qend()<sws.voret,qend(),sws.voret)),0)) `97274E`," & vbCrLf & _
+"CONCAT(" & vbCrLf & _
+"CAST(COALESCE((SELECT SUM(lzahl) FROM leistungen WHERE pat_id=f.pat_id AND leistung='97267B' AND zeitpunkt BETWEEN qanf()-INTERVAL 2 YEAR AND IF(qend()<sws.voret,qend(),sws.voret)),0) AS char CHARACTER SET utf8),'/'," & vbCrLf & _
+"COALESCE((SELECT SUM(lzahl) FROM leistungen WHERE pat_id=f.pat_id AND leistung='97267B' AND zeitpunkt BETWEEN qanf()-INTERVAL 2 YEAR AND IF(qend()<sws.voret,qend(),sws.voret)),0)) `97267B`" & vbCrLf & _
+"FROM aktfv f" & vbCrLf & _
+"JOIN sws USING (pat_id)" & vbCrLf & _
+"JOIN diagview dd ON dd.pat_id=f.pat_id AND (dd.icd RLIKE '^O24' AND dd.Dggel=0 AND dd.diagsicherheit IN ('G',' ') AND (dd.icd RLIKE '^E1[0-4]' OR dd.diagdatum BETWEEN qanf() AND qend()))" & vbCrLf & _
+"  AND dd.id1=(SELECT MAX(id1) FROM diagview WHERE pat_id=f.pat_id AND (icd RLIKE '^O24' AND Dggel=0 AND diagsicherheit IN ('G',' ') AND (icd RLIKE '^E1[0-4]' OR diagdatum BETWEEN qanf() AND qend())))" & vbCrLf & _
+"WHERE lr+INTERVAL 280 DAY>=qanf()" & vbCrLf & _
+"AND dd.icd IS NOT NULL" & vbCrLf & _
+"GROUP BY f.pat_id" & vbCrLf & _
+"ORDER BY (SELECT IF(MAX(insart)AND NOT ISNULL(MAX(insart)),'x','') FROM therarten t WHERE t.pat_id=f.pat_id AND t.zp BETWEEN qbeg(sws.lR) AND qend()), therart, f.pat_id" & vbCrLf
+
 ' "(SELECT IF(instr(GROUP_CONCAT(DISTINCT insart),'1')<>0 OR instr(GROUP_CONCAT(DISTINCT insart),'4')<>0,'ICT',IF(instr(GROUP_CONCAT(DISTINCT insart),'2')<>0,'Basal','Diät'))  FROM therarten t WHERE t.pat_id=f.pat_id AND t.zp BETWEEN qbeg(STR_TO_DATE(et.letzteRegel,'%d.%m.%Y')) AND " & qtEnd(FristS) & ") TherArt, " & vbCrLf & _
 ''"LEFT JOIN faelle et ON f.pat_id=et.pat_id AND et.voret BETWEEN " & KhtsflZuk() & vbCrLf & _
 mins(AWlf) = 10

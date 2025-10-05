@@ -11,6 +11,14 @@ Begin VB.Form PatAuswahl
    ScaleHeight     =   14370
    ScaleWidth      =   14415
    ShowInTaskbar   =   0   'False
+   Begin VB.CommandButton Therartenfestlegen 
+      Caption         =   "&festlegen"
+      Height          =   270
+      Left            =   4950
+      TabIndex        =   43
+      Top             =   800
+      Width           =   1215
+   End
    Begin VB.CommandButton DiagString 
       Caption         =   "D&iagString"
       Height          =   315
@@ -112,11 +120,11 @@ Begin VB.Form PatAuswahl
       Width           =   975
    End
    Begin VB.CommandButton Therapiearten 
-      Caption         =   "&Therartenanz."
+      Caption         =   "&Therarten anz."
       Height          =   315
-      Left            =   4920
+      Left            =   4950
       TabIndex        =   31
-      Top             =   720
+      Top             =   480
       Width           =   1215
    End
    Begin VB.TextBox Zeilenzahl 
@@ -366,7 +374,7 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
 Option Explicit
-Public hlese As lese
+Public hlese As Lese
 Public PatID&
 Const HADBName$ = "haerzte"
 Private haGewählt%, VorlageGewählt%, PatGewählt%, PatZuWählen%, Pat_IDGewählt%
@@ -405,7 +413,7 @@ Private Sub Angeforderte_Click(Index As Integer)
         "f.auftrag, f.verdacht, f.befund FROM faelle f LEFT JOIN namen n ON f.pat_id = n.pat_id LEFT JOIN tmbrie b ON f.pat_id = b.pat_id AND name LIKE '%brief%' AND b.zeitpunkt > f.bhfb LEFT JOIN `faxeinp`.`outa` o ON o.pid = f.pat_id AND o.transe > f.bhfb AND o.docname LIKE '%brief% ' WHERE (auftrag LIKE '%beten%' OR auftrag LIKE '%bitte%' OR verdacht LIKE '%beten%' OR verdacht LIKE '%bitte%' OR befund LIKE '%beten%' OR befund LIKE '%bitte%') AND ISNULL(b.name) AND ISNULL(o.transe) GROUP BY f.pat_id) i WHERE " & IIf(Index = 0, "tkz", "gsz") & "<>0 ORDER BY pat_id"
  If Not rs.BOF Then
   Do While Not rs.EOF
-   VorBr = VorBr & IIf(VorBr = "", "", vbCrLf) & Left$(rs!Pat_ID & Space$(1.7 * (6 - Len(rs!Pat_ID))) & " " & Left$(rs!name, 20) & Space$(IIf(Len(rs!name) >= 20, 1, 1.5 * (20 - Len(rs!name)))) & "   (" & IIf(rs!gsz <> 0, IIf(rs!gsl > rs!tkl Or (rs!gsz > (3 * rs!Tkz)), " GS: ", " gs: ") & rs!gsz & " K.,zul.: " & Format(rs!gsl, "Dd.mm.yy") & IIf(rs!Tkz <> 0, ", ", ""), Space$(40)) & IIf(rs!Tkz <> 0, IIf(rs!tkl > rs!gsl Or (rs!Tkz > (3 * rs!gsz)), "  TK: ", "  tk: ") & rs!Tkz & " K.,zul.: " & Format(rs!tkl, "Dd.mm.yy"), Space$(40)) & ")     " & rs!BhFB & "          " & rs!Auftrag & " " & rs!Verdacht & " " & rs!Befund, 175)
+   VorBr = VorBr & IIf(VorBr = "", "", vbCrLf) & Left$(rs!Pat_id & Space$(1.7 * (6 - Len(rs!Pat_id))) & " " & Left$(rs!name, 20) & Space$(IIf(Len(rs!name) >= 20, 1, 1.5 * (20 - Len(rs!name)))) & "   (" & IIf(rs!gsz <> 0, IIf(rs!gsl > rs!tkl Or (rs!gsz > (3 * rs!Tkz)), " GS: ", " gs: ") & rs!gsz & " K.,zul.: " & Format(rs!gsl, "Dd.mm.yy") & IIf(rs!Tkz <> 0, ", ", ""), Space$(40)) & IIf(rs!Tkz <> 0, IIf(rs!tkl > rs!gsl Or (rs!Tkz > (3 * rs!gsz)), "  TK: ", "  tk: ") & rs!Tkz & " K.,zul.: " & Format(rs!tkl, "Dd.mm.yy"), Space$(40)) & ")     " & rs!BhFB & "          " & rs!Auftrag & " " & rs!Verdacht & " " & rs!Befund, 175)
    rs.MoveNext
   Loop
  End If ' Not rs.BOF
@@ -422,11 +430,11 @@ End Sub ' CancelButton_KeyDown
 
 
 Private Sub DiagString_Click()
- lese.doCallDigSring (Me.Pat_ID)
+ Lese.doCallDigSring (Me.Pat_id)
 End Sub
 
 Private Sub DMPString_Click()
- lese.doCallDMP (Me.Pat_ID)
+ Lese.doCallDMP (Me.Pat_id)
 End Sub ' DMPString_Click()
 
 Private Sub Faelle_KeyDown(KeyCode As Integer, Shift As Integer)
@@ -439,7 +447,7 @@ If Me.FaellepHA.ListCount > 0 Then
  Inx = Me.FaellepHA.ListIndex
  If Inx < 0 Then Inx = 0
  If Inx > Me.FaellepHA.ListCount Then Inx = Me.FaellepHA.ListCount
- Me.Pat_ID = Left$(Me.FaellepHA.List(Inx), InStr(Me.FaellepHA.List(Inx), " ") - 1)
+ Me.Pat_id = Left$(Me.FaellepHA.List(Inx), InStr(Me.FaellepHA.List(Inx), " ") - 1)
 End If
 End Sub ' FaellepHA_Click
 
@@ -448,8 +456,8 @@ Private Sub FaellepHA_KeyDown(KeyCode As Integer, Shift As Integer)
 End Sub ' FaellepHA_KeyDown
 
 Private Sub Form_Activate()
- Me.Caption = "Patientenauswahl " & Switch(hlese.Aktion = Anwalt, "Anwalt", hlese.Aktion = Briefschreiben, "Briefschreiben", hlese.Aktion = DMPZettel, "DMPZettel", hlese.Aktion = GefaxteAnzeigen, "GefaxteAnzeigen", hlese.Aktion = Patientenlaufzetteleinzeln, "Patientenlaufzetteleinzeln", hlese.Aktion = PatvonMO, "PatvonMO", hlese.Aktion = RestlicheBriefe, "Restliche Briefe", True, "nix") & IIf(lies.obMySQL, ", MySQL: " & lese.MyDB, lese.dlg.MdB)
- Me.Pat_ID.SetFocus
+ Me.Caption = "Patientenauswahl " & Switch(hlese.Aktion = Anwalt, "Anwalt", hlese.Aktion = Briefschreiben, "Briefschreiben", hlese.Aktion = DMPZettel, "DMPZettel", hlese.Aktion = GefaxteAnzeigen, "GefaxteAnzeigen", hlese.Aktion = Patientenlaufzetteleinzeln, "Patientenlaufzetteleinzeln", hlese.Aktion = PatvonMO, "PatvonMO", hlese.Aktion = RestlicheBriefe, "Restliche Briefe", True, "nix") & IIf(lies.obMySQL, ", MySQL: " & Lese.MyDB, Lese.dlg.MdB)
+ Me.Pat_id.SetFocus
  If Me.obRueck Then Me.Patientenlaufzettel.FontItalic = True Else Me.Patientenlaufzettel.FontItalic = False
  On Error Resume Next
 ' IF Me.hlese.Visible THEN Me.hlese.Hide
@@ -461,7 +469,7 @@ Private Sub Form_Deactivate()
 End Sub ' Form_Deactivate()
 
 Private Sub Form_GotFocus()
- Me.Pat_ID.SetFocus
+ Me.Pat_id.SetFocus
 End Sub ' Form_GotFocus()
 
 Private Sub Form_KeyDown(KeyCode%, Shift%)
@@ -490,23 +498,24 @@ Private Sub Programm_Validate(Cancel As Boolean)
  End If ' Me.Programm = "alte Methode" Then Else
 End Sub ' Programm_Validate
 
+
 Private Sub Übertragung_Click()
- If IsNumeric(Me.Pat_ID) Then
-  Call doPatvonMO(Me.Pat_ID)
+ If IsNumeric(Me.Pat_id) Then
+  Call doPatvonMO(Me.Pat_id)
  End If ' IsNumeric(Me.Pat_id) Then
 End Sub ' Import_Click()
 
 Private Sub inTM_Click()
- If IsNumeric(Me.Pat_ID) Then inTMAnz Me.Pat_ID
+ If IsNumeric(Me.Pat_id) Then inTMAnz Me.Pat_id
 End Sub 'inTM_Click()
 
 Private Sub Leistungen_Click()
  Dim rs As New ADODB.Recordset, rsa As New ADODB.Recordset, spmaxü
  spmaxü = Array(10, 5, 200)
- If Pat_ID <> 0 Then
-  myFrag rs, "SELECT l.QS, l.AktZeit, l.Zeitpunkt,l.Leistung, IF (ISNULL(e2.titel), e.Leistungstext,e2.titel) Titel,ArtdUs, LAnzl, LUhrz, LfBegr, Med, LOrgan, LArztBf, DtlKbsV, LEntlDt, Faktor, LBSNR, LANR, letzVorg, Ausn, Beme, absPos, QT, StByte, LANRid, Sachkbez, Sachkct, Zone, l.FID, l.id FROM leistungen l LEFT JOIN ebm2000plus e2 USING (leistung) LEFT JOIN EBM2010 e ON l.leistung = e.ziffer WHERE pat_id=" & CStr(Pat_ID) & " ORDER BY zeitpunkt DESC"
-  myFrag rsa, "SELECT * FROM namen WHERE pat_id=" & Pat_ID
-  TabAusgeb rs, Me, , , , , spmaxü, , "Leistungen zu Pat. " & CStr(Pat_ID) & " (" & GesNamFn(rsa) & ")           ", , True
+ If Pat_id <> 0 Then
+  myFrag rs, "SELECT l.QS, l.AktZeit, l.Zeitpunkt,l.Leistung, IF (ISNULL(e2.titel), e.Leistungstext,e2.titel) Titel,ArtdUs, LAnzl, LUhrz, LfBegr, Med, LOrgan, LArztBf, DtlKbsV, LEntlDt, Faktor, LBSNR, LANR, letzVorg, Ausn, Beme, absPos, QT, StByte, LANRid, Sachkbez, Sachkct, Zone, l.FID, l.id FROM leistungen l LEFT JOIN ebm2000plus e2 USING (leistung) LEFT JOIN EBM2010 e ON l.leistung = e.ziffer WHERE pat_id=" & CStr(Pat_id) & " ORDER BY zeitpunkt DESC"
+  myFrag rsa, "SELECT * FROM namen WHERE pat_id=" & Pat_id
+  TabAusgeb rs, Me, , , , , spmaxü, , "Leistungen zu Pat. " & CStr(Pat_id) & " (" & GesNamFn(rsa) & ")           ", , True
  End If ' pat_id <> 0 Then
 End Sub ' Leistungen_Click()
 
@@ -515,13 +524,18 @@ Private Sub Patientenlaufzettel_Click()
  Dim zzn%
  zzn = 8
  If IsNumeric(Me.Zeilenzahl) Then zzn = CInt(zzn)
- If IsNumeric(Me.Pat_ID) Then
-  Call dodoplz(Me.Pat_ID, plzVz, Now, Now - Int(Now), True, "", zzn, obRueck)
+ If IsNumeric(Me.Pat_id) Then
+  Call dodoplz(Me.Pat_id, plzVz, Now, Now - Int(Now), True, "", zzn, obRueck)
  End If ' IsNumeric(Me.Pat_id) Then
 End Sub ' Patientenlaufzettel_Click()
 
+' Knopf Abr
 Private Sub Abr_Click()
- If IsNumeric(Me.Pat_ID) Then Call tuBriefStandalone(Me.PatID, False, , Me.Verfasser, Me.Vorlage, Me.Programm.ListIndex)
+ If IsNumeric(Me.Pat_id) Then
+' Call tuBriefStandalone(Me.PatID, False, , Me.Verfasser, Me.Vorlage, Me.Programm.ListIndex)
+  Call setzBriefReg
+  Call tuBriefStandalone(Me.PatID, False, , Me.Verfasser, Me.Vorlage, Me.Programm.ListIndex, , Me.briefneu, Me.nichtherricht)
+ End If ' IsNumeric(Me.Pat_id) Then
 End Sub ' Abr_Click()
 
 Private Sub PatName_DropDown()
@@ -551,21 +565,28 @@ Private Sub patname_gotfocus()
 End Sub ' patname_gotfocus()
 
 Private Sub PlzMitImp_Click()
- If IsNumeric(Me.Pat_ID) Then
-  Call doPatvonMO(Me.Pat_ID)
+ If IsNumeric(Me.Pat_id) Then
+  Call doPatvonMO(Me.Pat_id)
  End If ' IsNumeric(Me.Pat_id) Then
  Call Patientenlaufzettel_Click
 End Sub ' PlzMitImp_Click()
 
-' Knopf Thererartenanz
+' Knopf Thererarten anz
 Private Sub Therapiearten_Click()
  Dim rs As New ADODB.Recordset, spmaxü
  spmaxü = Array(10, 5, 200)
- If Me.Pat_ID <> 0 Then
-  myFrag rs, "SELECT * FROM therarten WHERE pat_id=" & CStr(Me.Pat_ID) & " ORDER BY zp DESC, mpnr DESC"
-  TabAusgeb rs, Me, , , , , spmaxü, , "Therapiearten von Pat. " & CStr(Me.Pat_ID) '& " (" & gesname(PID) & ")"
+ If Me.Pat_id <> 0 Then
+  myFrag rs, "SELECT * FROM therarten WHERE pat_id=" & CStr(Me.Pat_id) & " ORDER BY zp DESC, mpnr DESC"
+  TabAusgeb rs, Me, , , , , spmaxü, , "Therapiearten von Pat. " & CStr(Me.Pat_id) '& " (" & gesname(PID) & ")"
  End If ' If Me.Pat_id <> 0 Then
 End Sub ' Therapiearten_Click()
+
+' Knopf festlegen
+Private Sub Therartenfestlegen_Click()
+ Dim rs As ADODB.Recordset
+ myEFrag ("SELECT fuellTha(" & Me.Pat_id & ")")
+ Call Therapiearten_Click
+End Sub ' Therartenfestlegen_Click()
 
 Private Sub Verfasser_Click()
  Select Case Verfasser
@@ -650,7 +671,7 @@ Private Sub HAAusw_KeyDown(KeyCode As Integer, Shift As Integer)
     Me.Zahl = 0
     Do While Not rNaA.EOF
      Me.Zahl = Me.Zahl + 1
-     Me.FaellepHA.AddItem rNaA!Pat_ID & " " & rNaA!Quartal & " " & rNaA!Nachname & " " & rNaA!Vorname & " " & rNaA!GebDat
+     Me.FaellepHA.AddItem rNaA!Pat_id & " " & rNaA!Quartal & " " & rNaA!Nachname & " " & rNaA!Vorname & " " & rNaA!GebDat
      rNaA.Move 1
     Loop
     Call Me.FaellepHA_Click
@@ -673,13 +694,18 @@ Public Sub OKButton_Click()
  If obF4 Then
   obF4 = False
  Else ' obF4 Then
+  Call setzBriefReg
+  Me.hlese.los
+ End If ' obF4 Then Else
+End Sub ' OKButton_Click
+
+' in OKButton_Click und Abr_Click
+Private Sub setzBriefReg()
   Me.Visible = False
   cR.WriteKey Me.Vorlage, "Vorlage", RegPos, HKEY_CURRENT_USER, REG_SZ
   cR.WriteKey Me.Verfasser, "Verfasser", RegPos, HKEY_CURRENT_USER, REG_SZ
   cR.WriteKey Me.Programm, "Programm", RegPos, HKEY_CURRENT_USER, REG_SZ
-  Me.hlese.los
- End If ' obF4 Then Else
-End Sub ' OKButton_Click
+End Sub ' setzBriefReg()
 
 Private Sub OKButton_KeyDown(KeyCode As Integer, Shift As Integer)
  Call Key(KeyCode, Shift, Me)
@@ -716,7 +742,7 @@ Private Sub Form_Load()
   If Me.Visible Then Screen.MousePointer = vbHourglass
 '  Me.ohneÜbertr.Visible = False ' in der Hoffnung, dass man das eigentlich nicht brauche
   DoEvents
-  If hlese Is Nothing Then Set hlese = lese
+  If hlese Is Nothing Then Set hlese = Lese
 '  Call AuswName(Me)
 '  Call AuswHA(Me)
 #If EinmalDB Then
@@ -799,7 +825,7 @@ Function getPat_id&(PatName$)
 '  END IF
   myFrag rNaA, sql
   If Not rNaA.EOF Then
-   getPat_id = rNaA!Pat_ID
+   getPat_id = rNaA!Pat_id
    PatID = getPat_id
   End If
  End If
@@ -863,7 +889,7 @@ altobTrans:
   End If
   #If EinmalDB Then
   Set sEl = New SortierPat_IDText
-  sEl.Pat_ID = -rNaA!Pat_ID
+  sEl.Pat_id = -rNaA!Pat_id
   sEl.Text = rNaA!f1 'CStr(rNaA!Pat_id) & " | " & rNaA!NachName & ", " & rNaA!VorName + ",*" + format$(rNaA!GebDat, "D.M.YY")
 '  Call sLi.sCAdd(sEl)
   #End If
@@ -906,13 +932,13 @@ Function AuswPat_id(frm As PatAuswahl)
 ' END IF
  sql = "SELECT CONCAT(CAST(pat_id AS char),' | ', nachname, ', ', vorname, ',*', DATE_FORMAT(gebdat,'%e.%c.%Y')) AS f1 FROM `namen` ORDER BY pat_id DESC"
  myFrag rNaA, sql
- zwi = frm.Pat_ID
- frm.Pat_ID.Clear
- frm.Pat_ID = zwi
+ zwi = frm.Pat_id
+ frm.Pat_id.Clear
+ frm.Pat_id = zwi
  Dim t$
  Do While Not rNaA.EOF
   t = rNaA!f1 ' CStr(rNaA!Pat_id) & " | " & rNaA!NachName & ", " & rNaA!VorName + ",*" + format$(rNaA!GebDat, "D.M.YY")
-  frm.Pat_ID.AddItem t
+  frm.Pat_id.AddItem t
   i = i + 1
   If i = 10 Then
    syscmd 4, "Pat: " & rNaA!f1 'rNaA!NachName & " " & rNaA!VorName
@@ -1072,7 +1098,7 @@ Private Sub HAAusw_Change()
  Me.Zahl = 0
  Do While Not rNaA.EOF
   Me.Zahl = Me.Zahl + 1
-  Me.FaellepHA.AddItem rNaA!Pat_ID & " " & rNaA!Quartal & " " & rNaA!Nachname & " " & rNaA!Vorname & " " & rNaA!GebDat
+  Me.FaellepHA.AddItem rNaA!Pat_id & " " & rNaA!Quartal & " " & rNaA!Nachname & " " & rNaA!Vorname & " " & rNaA!GebDat
   rNaA.Move 1
  Loop
  Call Me.FaellepHA_Click
@@ -1109,28 +1135,28 @@ Private Sub do_Pat_ID_Change(Optional mitVorDat%)
  End If
 ' Call KVÄVorb
  Me.MousePointer = vbHourglass
- pos = InStr(Me.Pat_ID, " |")
+ pos = InStr(Me.Pat_id, " |")
  If pos <> 0 Then
   innen = True
-  Me.Pat_ID = Left$(Me.Pat_ID, pos - 1)
+  Me.Pat_id = Left$(Me.Pat_id, pos - 1)
   innen = False
  End If
- If Me.Pat_ID <> vNS And Me.Pat_ID <> "-1" Then
+ If Me.Pat_id <> vNS And Me.Pat_id <> "-1" Then
   On Error Resume Next
-  If Not IsNumeric(Me.Pat_ID) Then
+  If Not IsNumeric(Me.Pat_id) Then
    innen = True
-   Me.PatName = Me.Pat_ID
-   Me.Pat_ID = vNS
+   Me.PatName = Me.Pat_id
+   Me.Pat_id = vNS
    Me.PatName.SetFocus
    innen = False
    GoTo schluss
   End If
-  Me.PatID = getPid(Me.Pat_ID)
+  Me.PatID = getPid(Me.Pat_id)
   On Error GoTo fehler
   If Me.PatID = 0 Then
    GoTo schluss
   End If ' Me.PatID = 0 Then
-  If Me.Pat_ID <> Me.VorBriefID Or InStrB(Me.PatName, "|") <> 0 Then ' aufwändiges Raussuchen des Vorbriefdatums nur+immer bei Auswahl aus der Patientenliste mit der Maus
+  If Me.Pat_id <> Me.VorBriefID Or InStrB(Me.PatName, "|") <> 0 Then ' aufwändiges Raussuchen des Vorbriefdatums nur+immer bei Auswahl aus der Patientenliste mit der Maus
 '   Call acon(HaT)
    If LenB(DBCn) = 0 Or DBCn = "" Then Call acon(quelleT)
 '   Me.Faelle.Clear
@@ -1156,7 +1182,7 @@ vorabfra1:
     Me.pat_idDaten = vNS
    Else
     On Error GoTo fehler
-    Me.pat_idDaten = rNaA!Nachname & ", " & rNaA!Vorname + ",*" + Format$(rNaA!GebDat, "D.M.YY") + " | " + CStr(rNaA!Pat_ID)
+    Me.pat_idDaten = rNaA!Nachname & ", " & rNaA!Vorname + ",*" + Format$(rNaA!GebDat, "D.M.YY") + " | " + CStr(rNaA!Pat_id)
     sql = _
     "SELECT" & vbCrLf & _
     "COALESCE(GROUP_CONCAT(" & vbCrLf & _
@@ -1167,7 +1193,7 @@ vorabfra1:
     "FROM faelle f" & vbCrLf & _
     "LEFT JOIN" & vbCrLf & _
     "kassenliste kl ON f.kid = kl.id" & vbCrLf & _
-    "WHERE Pat_id = " & Me.Pat_ID
+    "WHERE Pat_id = " & Me.Pat_id
 '    Me.Faelle.AddItem myEFrag(sql)!fael
     Me.Faelle = myEFrag(sql)!fael
 '    Me.Text1 = myEFrag(sql)!fael
@@ -1224,7 +1250,7 @@ vorabfra1:
     " SEPARATOR '\r\n'" & vbCrLf & _
     "),'') diag" & vbCrLf & _
     "From diagview" & vbCrLf & _
-    "WHERE Pat_id = " & Me.Pat_ID ' & vbCrLf & _
+    "WHERE Pat_id = " & Me.Pat_id ' & vbCrLf & _
 '    "GROUP BY diagsicherheit, icd, diagtext, obdauer"
     Me.Diagnosen = myEFrag(sql)!Diag
 '    sql = "SELECT diagsicherheit, icd, diagtext, DATE_FORMAT(diagdatum,'%d.%m.%y') diagdatum, obdauer " & vbCrLf & _
@@ -1242,7 +1268,7 @@ vorabfra1:
     lbeh = 0
     Me.Arzt.BackColor = &H80FF&
     Me.nötig.BackColor = &HFF& ' rot
-    myFrag rEin, "SELECT COUNT(0) tk, DATE_FORMAT(MAX(zeitpunkt),'%e.%c.%y') zp FROM `eintraege` WHERE (art IN('tk','ARCHIE2','APK')OR(art='tb' AND ersteller='tk') OR inhalt LIKE '%(tk)%') AND pat_id = " & Me.Pat_ID
+    myFrag rEin, "SELECT COUNT(0) tk, DATE_FORMAT(MAX(zeitpunkt),'%e.%c.%y') zp FROM `eintraege` WHERE (art IN('tk','ARCHIE2','APK')OR(art='tb' AND ersteller='tk') OR inhalt LIKE '%(tk)%') AND pat_id = " & Me.Pat_id
     If rEin.State <> 0 Then
      If Not rEin.BOF Then
       If rEin!tk <> 0 Then
@@ -1254,7 +1280,7 @@ vorabfra1:
      End If ' Not rEin.BOF Then
     End If ' rEin.State <> 0 Then
     Set rEin = Nothing
-    myFrag rEin, "SELECT COUNT(0) gs, DATE_FORMAT(MAX(zeitpunkt),'%e.%c.%y') zp FROM `eintraege` WHERE (((art IN ('gs','doppler','dop','duplex','dup') OR (art='tb' AND ersteller='gs')) AND NOT inhalt LIKE '%(tk)%') OR inhalt LIKE '%(gs)%') AND pat_id = " & Me.Pat_ID
+    myFrag rEin, "SELECT COUNT(0) gs, DATE_FORMAT(MAX(zeitpunkt),'%e.%c.%y') zp FROM `eintraege` WHERE (((art IN ('gs','doppler','dop','duplex','dup') OR (art='tb' AND ersteller='gs')) AND NOT inhalt LIKE '%(tk)%') OR inhalt LIKE '%(gs)%') AND pat_id = " & Me.Pat_id
     If rEin.State <> 0 Then
      If Not rEin.BOF Then
       If rEin!gs <> 0 Then
@@ -1280,7 +1306,7 @@ vorabfra1:
     "ORDER BY transe DESC" & vbCrLf & _
     "SEPARATOR '\r\n'" & vbCrLf & _
     "),'') gef" & vbCrLf & _
-    "FROM `faxeinp`.`outa` o WHERE pid=" & Me.Pat_ID
+    "FROM `faxeinp`.`outa` o WHERE pid=" & Me.Pat_id
     Me.Vorbriefe = myEFrag(sql)!gef
 
 '     Dim rs As New ADODB.Recordset
@@ -1311,7 +1337,7 @@ vorabfra1:
   '   END IF ' LenB(Me.HAAusw) = 0 THEN
    End If ' rNaA.EOF
    Dim rdesk As New ADODB.Recordset
-   sql = "SELECT (0) FROM desktop WHERE pat_id = " & Me.Pat_ID & " AND titel LIKE '%kein%Bericht%'"
+   sql = "SELECT (0) FROM desktop WHERE pat_id = " & Me.Pat_id & " AND titel LIKE '%kein%Bericht%'"
    Set rdesk = Nothing
    myFrag rdesk, sql
    If Not rdesk.BOF Then
@@ -1319,7 +1345,7 @@ vorabfra1:
    Else
     Me.keinBericht = ""
    End If
-   Me.VorBriefID = Me.Pat_ID
+   Me.VorBriefID = Me.Pat_id
   End If ' me.vorbriefid <> me.pat_id
  End If ' Me.Pat_id <> vNS THEN
 schluss:
@@ -1347,9 +1373,9 @@ Public Function getPid(Text$)
  Dim pos&
  pos = InStr(Text, " ")
  If pos > 0 Then
-  getPid = Left$(Me.Pat_ID, pos - 1)
+  getPid = Left$(Me.Pat_id, pos - 1)
  Else
-  getPid = Me.Pat_ID
+  getPid = Me.Pat_id
  End If
 End Function ' getPid(Text$)
 
@@ -1361,14 +1387,14 @@ Private Sub PatName_Click()
  Static altPatID&
 ' erst wenn Leerzeichen oder Komma enthalten, Infos raussuchen
  If InStrB(Me.PatName, ",") <> 0 Or InStrB(Me.PatName, " ") <> 0 Then
-  Me.Pat_ID = getPat_id(Me.PatName)
+  Me.Pat_id = getPat_id(Me.PatName)
  End If
  If InStrB(Me.PatName, "|") <> 0 Then ' aufwändiges Raussuchen des Vorbriefdatums nur+immer bei Auswahl aus der Patientenliste mit der Maus
   Call Pat_ID_Change
   If machgleich Then
-   If Me.Pat_ID <> altPatID Then
+   If Me.Pat_id <> altPatID Then
     Me.hlese.los
-    altPatID = Me.Pat_ID
+    altPatID = Me.Pat_id
    End If ' Me.Pat_ID <> altPatID Then
   End If ' machgleich Then
  End If ' InStrB(Me.PatName, "|") <> 0 Then
@@ -1387,9 +1413,9 @@ Private Sub PatName_Change()
   If Not rs.EOF Then
    Me.Anzahl = rs!ct
    If Me.Anzahl > 0 Then
-    Me.Pat_ID = rs!pid
+    Me.Pat_id = rs!pid
    Else
-    Me.Pat_ID = -1
+    Me.Pat_id = -1
    End If
   End If ' Not rs.EOF Then
  End If ' Not rs.EOF Then
