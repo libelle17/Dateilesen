@@ -42,33 +42,33 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
 Option Explicit
+Public Abbruch%
 Public aufRufer As Lese
 
+Private Sub Form_Activate()
+ Abbruch = 0
+ Me.List1.SetFocus
+End Sub ' Form_Activate()
+
 Private Sub Form_Load()
- Dim rs As ADODB.Recordset
- myFrag rs, "SELECT * FROM namen n WHERE nachname LIKE 'zutun%' OR straße LIKE 'mittermayer%13%'"
- If Not rs.BOF Then
-  Do While Not rs.EOF
-   Me.List1.AddItem rs!Nachname & ", " & rs!Vorname & "  (" & rs!Pat_id & ")"
-   rs.MoveNext
-  Loop
- End If ' Not rs.BOF Then
 End Sub  ' Form_Load
 
+Private Sub List1_KeyDown(KeyCode As Integer, Shift As Integer)
+ Select Case KeyCode
+  Case 13
+   Call OKButton_Click
+  Case 27
+   Call CancelButton_Click
+ End Select
+End Sub ' DMPArt_KeyDown(KeyCode As Integer, Shift As Integer)
+
 Private Sub OKButton_Click()
- Dim spneu$(), spnk$
- SplitNeu Me.List1.Text, "(", spneu
- If UBound(spneu) > 0 Then
-  spnk = REPLACE$(spneu(1), ")", vNS)
-  If IsNumeric(spnk) Then
-   aufRufer.SpPat_id = CLng(spnk)
-   aufRufer.SpName = spneu(0)
-  End If ' IsNumeric(spnk) Then
- End If ' UBound(spneu) > 0 Then
  Me.Visible = False
 End Sub ' OKButton_Click()
 
 Private Sub CancelButton_Click()
+ Abbruch = True
  Me.Visible = False
 End Sub ' CancelButton_Click()
+
 

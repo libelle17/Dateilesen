@@ -11,10 +11,18 @@ Begin VB.Form AnBog
    ScaleHeight     =   16635
    ScaleWidth      =   23115
    WindowState     =   2  'Maximiert
+   Begin VB.TextBox Alter 
+      BackColor       =   &H00C0C0C0&
+      Height          =   285
+      Left            =   3480
+      TabIndex        =   478
+      Top             =   690
+      Width           =   735
+   End
    Begin VB.TextBox MA3Zahl 
       Enabled         =   0   'False
       Height          =   285
-      Left            =   6600
+      Left            =   5280
       TabIndex        =   476
       Top             =   1400
       Width           =   495
@@ -22,7 +30,7 @@ Begin VB.Form AnBog
    Begin VB.TextBox MA2Zahl 
       Enabled         =   0   'False
       Height          =   285
-      Left            =   5280
+      Left            =   6480
       TabIndex        =   457
       Top             =   1400
       Width           =   495
@@ -31,7 +39,7 @@ Begin VB.Form AnBog
       BackColor       =   &H00C0C0C0&
       Height          =   226
       Index           =   188
-      Left            =   1320
+      Left            =   1200
       TabIndex        =   472
       Top             =   720
       Width           =   1190
@@ -307,12 +315,12 @@ Begin VB.Form AnBog
       Width           =   6015
    End
    Begin VB.CommandButton inTM 
-      Caption         =   "in &TM anz"
-      Height          =   255
-      Left            =   7560
+      Caption         =   "in MO &anz"
+      Height          =   375
+      Left            =   6960
       TabIndex        =   464
-      Top             =   11640
-      Width           =   855
+      Top             =   11520
+      Width           =   975
    End
    Begin VB.TextBox vTextB 
       BackColor       =   &H00C0C0C0&
@@ -2669,7 +2677,7 @@ Begin VB.Form AnBog
       Left            =   5499
       TabIndex        =   401
       Top             =   11565
-      Width           =   2031
+      Width           =   1425
    End
    Begin VB.CommandButton vCommandB 
       Caption         =   "DokDown"
@@ -2823,10 +2831,26 @@ Begin VB.Form AnBog
       Top             =   11040
       Width           =   1185
    End
+   Begin VB.Label Markierung 
+      BackColor       =   &H00C0C0C0&
+      Height          =   255
+      Left            =   7440
+      TabIndex        =   479
+      Top             =   600
+      Width           =   255
+   End
+   Begin VB.Label AlterLbl 
+      Caption         =   "Alter [a]:"
+      Height          =   255
+      Left            =   2640
+      TabIndex        =   477
+      Top             =   720
+      Width           =   735
+   End
    Begin VB.Label MA3Lab 
       Caption         =   "Hammer"
       Height          =   255
-      Left            =   5880
+      Left            =   4680
       TabIndex        =   475
       Top             =   1440
       Width           =   615
@@ -2834,7 +2858,7 @@ Begin VB.Form AnBog
    Begin VB.Label MA2Lab 
       Caption         =   "Wagner"
       Height          =   255
-      Left            =   4680
+      Left            =   5880
       TabIndex        =   474
       Top             =   1440
       Width           =   615
@@ -2846,7 +2870,7 @@ Begin VB.Form AnBog
       Left            =   120
       TabIndex        =   473
       Top             =   720
-      Width           =   1125
+      Width           =   1005
    End
    Begin VB.Label BefundLab 
       Caption         =   "Befund"
@@ -4605,8 +4629,6 @@ Dim cat As New ADOX.Catalog
 Public obStumm%
 Public anBogCS$ ' ConnectionString von anaRS
 Public PidRange$
-Dim DQStr$()
-Dim DQSQL$()
 
 Private Sub anaRS_EndOfRecordset(fMoreData As Boolean, adStatus As ADODB.EventStatusEnum, ByVal pRecordset As ADODB.Recordset)
 '
@@ -5033,6 +5055,7 @@ Private Sub inTM_Click()
  inTMAnz (vTextB(1))
 End Sub 'inTM_Click
 
+
 Private Sub Patientenlaufzettel_Click()
  Call dodoplz(vTextB(1), plzVz, Now, Now - Int(Now), True)
 End Sub ' Patientenlaufzettel_Click
@@ -5119,7 +5142,8 @@ Private Sub Form_Open(Cancel%)
  Call do_Form_Open(Cancel, Me)
 End Sub ' Form_Open(Cancel%)
 
-Private Sub AbfragenLad()
+' in Form_Load
+Public Sub AbfragenLad()
  Dim i%, Az%
  Az = 100
  ReDim DQStr(Az)
@@ -5128,13 +5152,28 @@ Private Sub AbfragenLad()
 "WHERE quartal(vorgestellt)<>quartal((SELECT fanf FROM faelle WHERE pat_id = a.pat_id ORDER BY fanf LIMIT 1))" & vbCrLf & _
 "AND (SELECT fanf FROM faelle WHERE pat_id = a.pat_id ORDER BY fanf LIMIT 1) NOT IN (19991230,18991230);")
  i = 0
- DQStr(i) = "Kassenfälle, aktuelle (nach Erstvorstellungsdatum absteigend sortiert)"
- DQSQL(i) = "SELECT n.pat_id FROM namen n ORDER BY vorgestellt desc" ' INNER JOIN aktfv af ON n.pat_id = af.pat_id" ' WHERE pat_id IN (SELECT pat_id FROM aktfv)" ' ORDER BY vorgestellt DESC"
- i = i + 1
-
- DQStr(i) = "Kothny"
+ 
+ DQStr(i) = "Hammerschmidt, Kassenfälle"
 ' DQSQL(i) = "SELECT n.pat_id FROM namen n INNER JOIN (SELECT f.pat_id, (SELECT MAX(zeitpunkt) FROM `eintraege` WHERE (art IN ('tk','ARCHIE2','APK') OR inhalt LIKE '%(tk)%') AND pat_id = f.pat_id) mtk, (SELECT COUNT(0) FROM `eintraege` WHERE (art IN ('tk','ARCHIE2','APK') OR inhalt LIKE '%(tk)%') AND pat_id = f.pat_id) ztk, (SELECT MAX(zeitpunkt) FROM `eintraege` WHERE (art IN ('gs','doppler','dop','duplex') OR inhalt LIKE '%(gs)%') AND pat_id = f.pat_id) mgs, (SELECT COUNT(0) FROM `eintraege` WHERE (art IN ('gs','doppler','dop','duplex') OR inhalt LIKE '%(gs)%') AND pat_id = f.pat_id) zgs FROM `aktfv` f GROUP BY pat_id) i   ON n.pat_id = i.pat_id WHERE zgs <> 0 ORDER BY vorgestellt DESC"
  DQSQL(i) = _
+    "SELECT f.pat_id -- ,gesname(f.pat_id),vorgestellt" & vbCrLf & _
+    "FROM aktfv f" & vbCrLf & _
+    "LEFT JOIN faelle fa USING (fid)" & vbCrLf & _
+    "JOIN namen n ON n.pat_id=f.pat_id AND obh=1" & vbCrLf & _
+    "LEFT JOIN anamnesebogen a ON a.pat_ID=f.pat_id" & vbCrLf & _
+    "ORDER BY vorgestellt DESC"
+ i = i + 1
+
+ DQStr(i) = "Kothny, Kassenfälle"
+' DQSQL(i) = "SELECT n.pat_id FROM namen n INNER JOIN (SELECT f.pat_id, (SELECT MAX(zeitpunkt) FROM `eintraege` WHERE (art IN ('tk','ARCHIE2','APK') OR inhalt LIKE '%(tk)%') AND pat_id = f.pat_id) mtk, (SELECT COUNT(0) FROM `eintraege` WHERE (art IN ('tk','ARCHIE2','APK') OR inhalt LIKE '%(tk)%') AND pat_id = f.pat_id) ztk, (SELECT MAX(zeitpunkt) FROM `eintraege` WHERE (art IN ('gs','doppler','dop','duplex') OR inhalt LIKE '%(gs)%') AND pat_id = f.pat_id) mgs, (SELECT COUNT(0) FROM `eintraege` WHERE (art IN ('gs','doppler','dop','duplex') OR inhalt LIKE '%(gs)%') AND pat_id = f.pat_id) zgs FROM `aktfv` f GROUP BY pat_id) i   ON n.pat_id = i.pat_id WHERE zgs <> 0 ORDER BY vorgestellt DESC"
+ DQSQL(i) = _
+    "SELECT f.pat_id -- ,gesname(f.pat_id),vorgestellt" & vbCrLf & _
+    "FROM aktfv f" & vbCrLf & _
+    "LEFT JOIN faelle fa USING (fid)" & vbCrLf & _
+    "JOIN namen n ON n.pat_id=f.pat_id AND obk=1" & vbCrLf & _
+    "LEFT JOIN anamnesebogen a ON a.pat_ID=f.pat_id" & vbCrLf & _
+    "ORDER BY vorgestellt DESC"
+' DQSQL(i) = _
  "SELECT pat_id FROM (" & vbCrLf & _
  "SELECT f.pat_id,quartal,aufndat,COUNT(es.art) esz,COUNT(ek.Art) ekz" & vbCrLf & _
  ", COALESCE((SELECT 1 FROM desktop WHERE pat_id = n.pat_id AND iconpath RLIKE '4eckgelb' AND showasnote=0 LIMIT 1),0) obs" & vbCrLf & _
@@ -5147,9 +5186,16 @@ Private Sub AbfragenLad()
  "WHERE ekz OR obk OR esz + ekz + obs + obk = 0"
  i = i + 1
   
- DQStr(i) = "Schade"
+ DQStr(i) = "Schade, Kassenfälle"
 ' DQSQL(i) = "SELECT n.pat_id FROM namen n INNER JOIN (SELECT f.pat_id, (SELECT MAX(zeitpunkt) FROM `eintraege` WHERE (art IN ('tk','ARCHIE2','APK') OR inhalt LIKE '%(tk)%') AND pat_id = f.pat_id) mtk, (SELECT COUNT(0) FROM `eintraege` WHERE (art IN ('tk','ARCHIE2','APK') OR inhalt LIKE '%(tk)%') AND pat_id = f.pat_id) ztk, (SELECT MAX(zeitpunkt) FROM `eintraege` WHERE (art IN ('gs','doppler','dop','duplex') OR inhalt LIKE '%(gs)%') AND pat_id = f.pat_id) mgs, (SELECT COUNT(0) FROM `eintraege` WHERE (art IN ('gs','doppler','dop','duplex') OR inhalt LIKE '%(gs)%') AND pat_id = f.pat_id) zgs FROM `aktfv` f GROUP BY pat_id) i   ON n.pat_id = i.pat_id WHERE zgs <> 0 ORDER BY vorgestellt DESC"
  DQSQL(i) = _
+    "SELECT f.pat_id -- ,gesname(f.pat_id),vorgestellt" & vbCrLf & _
+    "FROM aktfv f" & vbCrLf & _
+    "LEFT JOIN faelle fa USING (fid)" & vbCrLf & _
+    "JOIN namen n ON n.pat_id=f.pat_id AND obs=1" & vbCrLf & _
+    "LEFT JOIN anamnesebogen a ON a.pat_ID=f.pat_id" & vbCrLf & _
+    "ORDER BY vorgestellt DESC"
+ ' DQSQL(i) = _
  "SELECT pat_id FROM (" & vbCrLf & _
  "SELECT f.pat_id,quartal,aufndat,COUNT(es.art) esz,COUNT(ek.Art) ekz" & vbCrLf & _
  ", COALESCE((SELECT 1 FROM desktop WHERE pat_id = n.pat_id AND iconpath RLIKE '4eckgelb' AND showasnote=0 LIMIT 1),0) obs" & vbCrLf & _
@@ -5162,16 +5208,55 @@ Private Sub AbfragenLad()
  "WHERE esz OR obs OR esz + ekz + obs + obk = 0"
  i = i + 1
  
- 
- DQStr(i) = "Kassenfälle, aktuelle, ohne Diabetesdiagnose"
+ DQStr(i) = "Hammerschmidt, Kassenfälle ohne Diabetesdiagnose"
  ' AND COALESCE(Dggel,0)=0
- DQSQL(i) = "SELECT n.pat_id FROM namen n " & vbCrLf & _
-            "INNER JOIN `aktfv` af ON n.pat_id = af.pat_id WHERE NOT EXISTS (" & vbCrLf & _
-             "SELECT * FROM `diagview` d " & vbCrLf & _
-             "WHERE d.pat_id = af.pat_id AND (d.gicd REGEXP '^E1[0-4]\.|^R73' OR (d.icd LIKE 'O24%' AND d.Dggel=0 AND d.diagsicherheit IN ('G',' ') AND d.diagdatum BETWEEN qbegs(af.quartal) AND qends(af.quartal)))" & vbCrLf & _
-            ") ORDER BY vorgestellt DESC"
+ DQSQL(i) = _
+    "SELECT f.pat_id -- ,gesname(f.pat_id),vorgestellt" & vbCrLf & _
+    "FROM aktfv f" & vbCrLf & _
+    "LEFT JOIN faelle fa USING (fid)" & vbCrLf & _
+    "JOIN namen n ON n.pat_id=f.pat_id AND obh=1" & vbCrLf & _
+    "LEFT JOIN anamnesebogen a ON a.pat_ID=f.pat_id" & vbCrLf & _
+            "WHERE NOT EXISTS (" & vbCrLf & _
+             "SELECT 1 FROM `diagview` d " & vbCrLf & _
+             "WHERE d.pat_id = f.pat_id AND (d.gicd REGEXP '^E1[0-4]\.|^R73' OR (d.icd LIKE 'O24%' AND d.Dggel=0 AND d.diagsicherheit IN ('G',' ') AND d.diagdatum BETWEEN qbegs(f.quartal) AND qends(f.quartal)))" & vbCrLf & _
+            ")" & vbCrLf & _
+    "ORDER BY vorgestellt DESC"
  i = i + 1
 
+ DQStr(i) = "Kothny, Kassenfälle ohne Diabetesdiagnose"
+ ' AND COALESCE(Dggel,0)=0
+ DQSQL(i) = _
+    "SELECT f.pat_id -- ,gesname(f.pat_id),vorgestellt" & vbCrLf & _
+    "FROM aktfv f" & vbCrLf & _
+    "LEFT JOIN faelle fa USING (fid)" & vbCrLf & _
+    "JOIN namen n ON n.pat_id=f.pat_id AND obk=1" & vbCrLf & _
+    "LEFT JOIN anamnesebogen a ON a.pat_ID=f.pat_id" & vbCrLf & _
+            "WHERE NOT EXISTS (" & vbCrLf & _
+             "SELECT 1 FROM `diagview` d " & vbCrLf & _
+             "WHERE d.pat_id = f.pat_id AND (d.gicd REGEXP '^E1[0-4]\.|^R73' OR (d.icd LIKE 'O24%' AND d.Dggel=0 AND d.diagsicherheit IN ('G',' ') AND d.diagdatum BETWEEN qbegs(f.quartal) AND qends(f.quartal)))" & vbCrLf & _
+            ")" & vbCrLf & _
+    "ORDER BY vorgestellt DESC"
+ i = i + 1
+
+ DQStr(i) = "Schade, Kassenfälle ohne Diabetesdiagnose"
+ ' AND COALESCE(Dggel,0)=0
+ DQSQL(i) = _
+    "SELECT f.pat_id -- ,gesname(f.pat_id),vorgestellt" & vbCrLf & _
+    "FROM aktfv f" & vbCrLf & _
+    "LEFT JOIN faelle fa USING (fid)" & vbCrLf & _
+    "JOIN namen n ON n.pat_id=f.pat_id AND obs=1" & vbCrLf & _
+    "LEFT JOIN anamnesebogen a ON a.pat_ID=f.pat_id" & vbCrLf & _
+            "WHERE NOT EXISTS (" & vbCrLf & _
+             "SELECT 1 FROM `diagview` d " & vbCrLf & _
+             "WHERE d.pat_id = f.pat_id AND (d.gicd REGEXP '^E1[0-4]\.|^R73' OR (d.icd LIKE 'O24%' AND d.Dggel=0 AND d.diagsicherheit IN ('G',' ') AND d.diagdatum BETWEEN qbegs(f.quartal) AND qends(f.quartal)))" & vbCrLf & _
+            ")" & vbCrLf & _
+    "ORDER BY vorgestellt DESC"
+ i = i + 1
+
+ DQStr(i) = "Kassenfälle"
+ DQSQL(i) = "SELECT n.pat_id FROM namen n ORDER BY vorgestellt desc" ' INNER JOIN aktfv af ON n.pat_id = af.pat_id" ' WHERE pat_id IN (SELECT pat_id FROM aktfv)" ' ORDER BY vorgestellt DESC"
+ i = i + 1
+ 
 ' DQStr(i) = "Kassenfälle, nach vorgestellt sortiert"
 ' DQSQL(i) = "SELECT pat_id FROM `aktfv` ORDER BY vorgestellt DESC"
  DQStr(i) = "Privatfälle, nicht abgerechnete"
@@ -5203,25 +5288,27 @@ Private Sub AbfragenLad()
 ' DQSQL(i) = "SELECT n.pat_id FROM namen n INNER JOIN (SELECT f.pat_id, (SELECT MAX(zeitpunkt) FROM `eintraege` WHERE (art IN ('tk','ARCHIE2','APK') OR inhalt LIKE '%(tk)%') AND pat_id = f.pat_id) mtk, (SELECT COUNT(0) FROM `eintraege` WHERE (art IN ('tk','ARCHIE2','APK') OR inhalt LIKE '%(tk)%') AND pat_id = f.pat_id) ztk, (SELECT MAX(zeitpunkt) FROM `eintraege` WHERE (art IN ('gs','doppler','dop','duplex') OR inhalt LIKE '%(gs)%') AND pat_id = f.pat_id) mgs, (SELECT COUNT(0) FROM `eintraege` WHERE (art IN ('gs','doppler','dop','duplex') OR inhalt LIKE '%(gs)%') AND pat_id = f.pat_id) zgs FROM `faelle` f GROUP BY pat_id) i   ON n.pat_id = i.pat_id WHERE zgs <> 0 ORDER BY vorgestellt DESC"
 ' i = i + 1
  
- DQStr(i) = "Kein Diabetestyp Schade"
- DQSQL(i) = "SELECT n.pat_id FROM namen n INNER JOIN (SELECT f.pat_id, (SELECT COUNT(0) FROM `eintraege` WHERE ((art IN ('gs','doppler','dop','duplex','dup')OR(art='tb'AND ersteller='gs')) OR inhalt LIKE '%(gs)%') AND pat_id = f.pat_id) ztk FROM `faelle` f LEFT JOIN `anamnesebogen` a ON f.pat_id = a.pat_id WHERE a.diabetestyp = '' GROUP BY f.pat_id) i  ON n.pat_id = i.pat_id  WHERE ztk <> 0 ORDER BY vorgestellt DESC"
- i = i + 1
- 
- DQStr(i) = "Kein Diabetestyp Schade aktuelle"
- DQSQL(i) = "SELECT pat_id FROM (SELECT f.pat_id, (SELECT COUNT(0) FROM `eintraege` WHERE ((art IN ('gs','doppler','dop','duplex','dup')OR(art='tb'AND ersteller='gs')) OR inhalt LIKE '%(gs)%') AND pat_id = f.pat_id) ztk FROM `aktfv` f LEFT JOIN `anamnesebogen` a ON f.pat_id = a.pat_id WHERE a.diabetestyp = '' GROUP BY f.pat_id) i WHERE ztk <> 0 ORDER BY vorgestellt DESC"
- i = i + 1
+' DQStr(i) = "Kein Diabetestyp Schade"
+' DQSQL(i) = "SELECT n.pat_id FROM namen n INNER JOIN (SELECT f.pat_id, (SELECT COUNT(0) FROM `eintraege` WHERE ((art IN ('gs','doppler','dop','duplex','dup')OR(art='tb'AND ersteller='gs')) OR inhalt LIKE '%(gs)%') AND pat_id = f.pat_id) ztk FROM `faelle` f LEFT JOIN `anamnesebogen` a ON f.pat_id = a.pat_id WHERE a.diabetestyp = '' GROUP BY f.pat_id) i  ON n.pat_id = i.pat_id  WHERE ztk <> 0 ORDER BY vorgestellt DESC"
+' i = i + 1
+'
+' DQStr(i) = "Kein Diabetestyp Schade aktuelle"
+' DQSQL(i) = "SELECT pat_id FROM (SELECT f.pat_id, (SELECT COUNT(0) FROM `eintraege` WHERE ((art IN ('gs','doppler','dop','duplex','dup')OR(art='tb'AND ersteller='gs')) OR inhalt LIKE '%(gs)%') AND pat_id = f.pat_id) ztk FROM `aktfv` f LEFT JOIN `anamnesebogen` a ON f.pat_id = a.pat_id WHERE a.diabetestyp = '' GROUP BY f.pat_id) i WHERE ztk <> 0 ORDER BY vorgestellt DESC"
+' i = i + 1
  
  Az = i - 1
  ReDim Preserve DQStr(Az)
  ReDim Preserve DQSQL(Az)
+End Sub ' Abfragenlad
+
+Public Sub FragAb(gewaehlt%)
 ' SELECT COUNT(0) AS ct, MAX(zeitpunkt) AS mzp FROM `eintraege` WHERE (art IN ('tk','ARCHIE2','APK') OR inhalt LIKE '%(tk)%') AND pat_id = " & CStr(Pat_id)
- For i = 0 To Az: Me.vComboB(3).AddItem DQStr(i): Next i
- Me.vComboB(3).ListIndex = 0
+ For i = 0 To UBound(DQStr): Me.vComboB(3).AddItem DQStr(i): Next i
+ Me.vComboB(3).ListIndex = gewaehlt
  Call vComboB_Change(3)
 End Sub ' AbfragenLad
 
 Private Sub Form_Load()
-  Call AbfragenLad
 '  Call doForm_Load(Me)
 '  SET cat.ActiveConnection = anaRS.ActiveConnection
 ' 'Me.Controls!Diagnosen.ControlSource = "=replace$(replace$(recordset!Diagnosen,vbverticaltab,vbcr+vblf),vbtab,"" "")"

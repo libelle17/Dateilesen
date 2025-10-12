@@ -2740,7 +2740,11 @@ If KeyCode = 27 Then
      Case Else: ' Call HolReg(frm.hlese)
     End Select
     frm.Hide
-    lies.Show
+    If frm.LVatr Is Nothing Then
+     lies.Show
+    Else
+     frm.LVatr.Show
+    End If
  ElseIf KeyCode = 13 Then
   If frm.name = "PatAuswahl" And (frm.ActiveControl.name = "PatAuswahl" Or frm.ActiveControl.name = "Pat_id" Or frm.ActiveControl.name = "PatName") Then
    frm.OKButton_Click
@@ -2748,6 +2752,8 @@ If KeyCode = 27 Then
   ElseIf frm.name = "PatListe" Then
    If frm.PLArt = artDiag Then
     Call frm.MFG_Click
+   ElseIf frm.PLArt = artLAus Then
+    Call frm.auswaehl(frm.MFG.Row)
    End If
   End If ' frm.name = "PatAuswahl" And (frm .. Else
  ElseIf KeyCode = 70 And ((Shift And vbCtrlMask) > 0) And frm.name = "PatListe" Then

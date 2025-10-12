@@ -62,6 +62,8 @@ Dim NKrStr$(), Nflag$(), DSi() As DSiTyp ' für KRAdd
 #If mitab Then
 'Public Const CStrMy$ = "DRIVER={MySQL ODBC 5.1 Driver};server=" & LiName & ";user=...;pwd=...;database="
 Private CStrMy$
+Public DQStr$() ' für SQL-Auswahl im Anamnesebogen (AnBog, Sonderpatienten)
+Public DQSQL$()
 #End If
 #Const debu = 0 ' noch in Importiert
 #If debu <> 0 Then
@@ -1678,6 +1680,8 @@ Function do_Form_Current_AnBog(frm As AnBog)
 '  TütSoundkarte
   GoTo kurzvorEnde
  End If
+ frm.Alter = Round((Now() - frm.anaRS!GebDat) / 365.24, 1)
+ If frm.anaRS!obk <> 0 Then frm.Markierung.BackColor = vbBlue Else If frm.anaRS!obs Then frm.Markierung.BackColor = vbYellow Else If frm.anaRS!obh Then frm.Markierung.BackColor = vbRed Else frm.Markierung.BackColor = 12632256 ' hellgrau
 #If debu <> 0 Then
        Tvor = Takt: Takt = Timer
        dnr = dnr + 1
@@ -1725,7 +1729,6 @@ Function do_Form_Current_AnBog(frm As AnBog)
        dnr = dnr + 1
        Print #313, Format(Takt - Tvor, "0.00") & "      " & Format(Takt - T0, "0.00") & " (" & dnr & ", nach Diagnosen)"
 #End If
- frm.vTextB(188) = frm.anaRS!vorET
 ' IF (ISNULL(frm.anaRS!Ther1) OR frm.anaRS!Ther1 = vns) AND frm.anaRS!Diabetestyp <> "-" THEN
 '  frm.vTextB(166) = TherUmw(TherArt(Pat_id, -1))
 '  Debug.Print "frm.anaRS!Ther1:", frm.anaRS!Ther1
@@ -1867,8 +1870,20 @@ Function do_Form_Current_AnBog(frm As AnBog)
        dnr = dnr + 1
        Print #313, Format(Takt - Tvor, "0.00") & "      " & Format(Takt - T0, "0.00") & " (" & dnr & ")"
 #End If
- frm.vTextB(160).BackColor = farbe ' NachName
- frm.vTextB(2).BackColor = farbe ' Vorname
+ If frm.anaRS!vorET = "" Then
+  frm.vLab(0).Visible = False
+  frm.vTextB(188).Visible = False
+  frm.vTextB(160).BackColor = farbe ' NachName
+  frm.vTextB(2).BackColor = farbe ' Vorname
+ Else ' frm.anaRS!vorET = "" Then
+  frm.vLab(0).Visible = True
+  frm.vTextB(188).Visible = True
+  frm.vTextB(188) = frm.anaRS!vorET
+  frm.vTextB(188).BackColor = vbYellow
+  frm.vTextB(160).BackColor = vbYellow ' NachName
+  frm.vTextB(2).BackColor = vbYellow ' Vorname
+ End If ' frm.anaRS!vorET = "" Then Else
+
  frm.vTextB(152).BackColor = farbe ' Titel
  frm.vTextB(153).BackColor = farbe ' Anrede
  
@@ -6493,7 +6508,7 @@ Function getHausarzt1(infos$(), rFa() As Faelle, rKv() As kvnrue, Optional obHAP
  ' 15: Email
  
  Dim infi%, ebsnr$, elanr$, mru&, nru&, FMem() As memoType, FMi() As memoType
- Dim arztnrn$(), psur$, asur$, spli
+ Dim arztnrn$(), psur$, asur$, Spli
  Dim üqu$, ob71010% ' 5.9.25 aktuell nur bei Pat. 71010
  Call MOConInit(, vonwo & " -> getHausarzt1")
  ebsnr = "": elanr = "": psur = "": asur = "": ReDim arztnrn(0)
@@ -6527,9 +6542,9 @@ l104:
      Case "10.5", "1.10.5"
 l105:
       If ebsnr = "" Or elanr = "" Then
-       spli = Split(FMem(mru).Text, "#")
-       If ebsnr = "" Then ebsnr = spli(0)
-       If elanr = "" Then elanr = spli(1)
+       Spli = Split(FMem(mru).Text, "#")
+       If ebsnr = "" Then ebsnr = Spli(0)
+       If elanr = "" Then elanr = Spli(1)
       End If ' ebsnr = "" Or elanr = "" Then
     End Select
    Next mru
@@ -8075,6 +8090,9 @@ Public Sub tuBriefStandalone(pid&, obStumm%, Optional Zielverz$, Optional Verfas
    Print #51, core1 & Environ("username") & core2 & Environ("username") & core3 & Format(Now(), "YYYY-mm-ddThh:MM:ssZ") & core4 & Format(Now(), "YYYY-mm-ddThh:MM:ssZ") & core5
    Close #51
    syscmd acSysCmdSetStatus, "Erstelle Brief für " & gesName & ": 3) Briefrahmen, erstelle settings ..."
+   On Error Resume Next
+   FSO.CreateFolder (zvz & "word\_rels\")
+   On Error GoTo fehler
    Open zvz & "word\_rels\settings.xml.rels" For Output As #51
    Print #51, settings1 & "c:\turbomed\vorlagen\" & Vorlage & settings2
    Close #51
@@ -12736,7 +12754,8 @@ Vsql = "" & _
 ", COALESCE((SELECT 1 FROM desktop WHERE pat_id = a.pat_id AND iconpath RLIKE '4eckgelb' AND showasnote=0 LIMIT 1),0) obgs " & vbCrLf & _
 ", COALESCE((SELECT 1 FROM desktop WHERE pat_id = a.pat_id AND iconpath RLIKE '4eckmagneta' AND showasnote=0 LIMIT 1),0) obdw " & vbCrLf & _
 ", COALESCE((SELECT 1 FROM desktop WHERE pat_id = a.pat_id AND iconpath RLIKE '4EckHellgruen' AND showasnote=0 LIMIT 1),0) obah " & vbCrLf & _
-"FROM (`anamnesebogen` a LEFT JOIN `usdm` u ON (((a.`Pat_id` = u.`Pat_ID`) AND (u.`ZeitPunkt` = (SELECT MAX(`usdm`.`ZeitPunkt`) FROM `usdm` WHERE (`usdm`.`Pat_ID` = a.`Pat_id`))))));"
+",obk,obs,obh" & vbCrLf & _
+"FROM (`anamnesebogen` a JOIN namen n USING (pat_id) LEFT JOIN `usdm` u ON (((a.`Pat_id` = u.`Pat_ID`) AND (u.`ZeitPunkt` = (SELECT MAX(`usdm`.`ZeitPunkt`) FROM `usdm` WHERE (`usdm`.`Pat_ID` = a.`Pat_id`))))));"
 Call DtbCreateQueryDef(VN, Vsql)
 vz = vz + 1
 

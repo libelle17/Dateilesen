@@ -4,7 +4,7 @@ Public obForK%
 Dim sql$, T1!, T2!, maxL%
 
 Public Type namen
- Pat_ID As Long 'Pat_ID int '3000
+ Pat_id As Long 'Pat_ID int '3000
  TM_Pat_ID As Long 'TM_Pat_ID int 'Pat_ID aus Turbomed, wenn abweichend
  lfdnr As Long 'lfdnr int 'laufende Patientennummer
  NVorsatz As String 'NVorsatz varchar '3100
@@ -119,7 +119,7 @@ End Type
 
 Public Type Faelle
  FID As Long 'FID int '
- Pat_ID As Long 'Pat_ID int '3000 Pat_id
+ Pat_id As Long 'Pat_ID int '3000 Pat_id
  Quartal As String 'Quartal varchar '4101 Quartal der Ausstellung
  Nachname As String 'Nachname varchar '3101 Nachname
  Vorname As String 'Vorname varchar '3102 Vorname
@@ -247,7 +247,7 @@ End Type
 
 Public Type au
  FID As Long 'FID int 'Fall-Bezug
- Pat_ID As Long 'Pat_ID int '3000
+ Pat_id As Long 'Pat_ID int '3000
  Zeitpunkt As Date 'ZeitPunkt datetime '6200 + 6201
  Ersteller As String 'Ersteller varchar 'aus Medical Office
  Änderer As String 'Änderer varchar 'aus Medical Office
@@ -262,7 +262,7 @@ End Type
 
 Public Type briefe
  FID As Long 'FID int 'Fall-Bezug
- Pat_ID As Long 'Pat_ID int '
+ Pat_id As Long 'Pat_ID int '
  Zeitpunkt As Date 'ZeitPunkt datetime '
  Pfad As String 'Pfad varchar '
  art As String 'Art varchar '
@@ -283,7 +283,7 @@ End Type
 Public Type Diagnosen
  ID1 As Long 'ID1 int '
  FID As Long 'FID int 'Fall-Bezug
- Pat_ID As Long 'Pat_id int 'Bezug auf Anamneseblattt
+ Pat_id As Long 'Pat_id int 'Bezug auf Anamneseblattt
  DiagDatum As Date 'DiagDatum datetime '5999 Datum, 6301 Uhrzeit
  DiagSicherheit As String 'DiagSicherheit varchar '3674, 6003 akut
  DiagText As String 'DiagText longtext '3650 Dauer, 6000 akut
@@ -304,7 +304,7 @@ End Type
 
 Public Type dokumente
  FID As Long 'FID int 'Fall-Bezug
- Pat_ID As Long 'Pat_ID int '
+ Pat_id As Long 'Pat_ID int '
  Zeitpunkt As Date 'ZeitPunkt datetime '
  DokPfad As String 'DokPfad varchar '
  DokArt As String 'DokArt varchar '
@@ -321,7 +321,7 @@ End Type
 
 Public Type eintraege
  FID As Long 'FID int 'Fall-Bezug
- Pat_ID As Long 'Pat_ID int '3000
+ Pat_id As Long 'Pat_ID int '3000
  Zeitpunkt As Date 'ZeitPunkt datetime '
  art As String 'Art varchar '6330
  Ersteller As String 'Ersteller varchar 'aus Medical Office
@@ -349,7 +349,7 @@ End Type
 Public Type forminhkopf
  Foid As Long 'FoID int 'Primär-Index für Formulare
  FID As Long 'FID int '-> faelle.fid
- Pat_ID As Long 'Pat_ID int '-> namen.pat_id
+ Pat_id As Long 'Pat_ID int '-> namen.pat_id
  Form_ID As Long 'Form_ID int '-> formulare.FormID
  Zeitpunkt As Date 'ZeitPunkt datetime '
  absPos As Long 'AbsPos int 'Zeile in der BDT-Datei
@@ -372,7 +372,7 @@ End Type
 
 Public Type kheinweis
  FID As Long 'FID int 'Fall-Bezug
- Pat_ID As Long 'Pat_ID int '3000
+ Pat_id As Long 'Pat_ID int '3000
  Zeitpunkt As Date 'ZeitPunkt datetime '
  Ziel As String 'Ziel varchar '6291
  obNot As Integer 'obNot bit 'ob Notfall
@@ -389,7 +389,7 @@ End Type
 
 Public Type lbanforderungen
  FID As Long 'FID int 'Fall-Bezug
- Pat_ID As Long 'Pat_ID int '3000
+ Pat_id As Long 'Pat_ID int '3000
  Zeitpunkt As Date 'ZeitPunkt datetime '6200 + 6201
  AnfText As String 'AnfText longtext '6280
  absPos As Long 'absPos int 'Zeile in der BDT-Datei
@@ -399,7 +399,7 @@ End Type
 
 Public Type laborneu
  FID As Long 'FID int 'Fall-Bezug
- Pat_ID As Long 'Pat_ID int '3000
+ Pat_id As Long 'Pat_ID int '3000
  Zeitpunkt As Date 'ZeitPunkt datetime '
  FertigStGrad As String 'FertigStGrad varchar '8401
  Abkü As String 'Abkü varchar '8410
@@ -428,7 +428,7 @@ End Type
 Public Type Leistungen
  id As Long 'id int 'eindeutige ID, hinzugefügt 26.3.11
  FID As Long 'FID int 'Fall-Bezug
- Pat_ID As Long 'Pat_ID int '3000
+ Pat_id As Long 'Pat_ID int '3000
  Zeitpunkt As Date 'ZeitPunkt datetime '5000 + 6201
  Leistung As String 'Leistung varchar '5001 Leistungsziffer
  ArtdUs As String 'ArtdUs varchar '5002 Art der Untersuchung
@@ -478,7 +478,7 @@ End Type
 
 Public Type medplan
  FID As Long 'FID int 'Fall-Bezug
- Pat_ID As Long 'Pat_ID int '3000
+ Pat_id As Long 'Pat_ID int '3000
  MPNr As Long 'MPNr int 'Ordnungsziffer für Medikamentenplan
  Zeitpunkt As Date 'ZeitPunkt datetime 'Zeitpunkt, der Speicherung im Turbomed
  Datum As Date 'Datum datetime 'Zeitpunkt aus dem Kopf des Medikamentenplans
@@ -509,7 +509,7 @@ End Type
 
 Public Type rezepteintraege
  FID As Long 'FID int 'Fall-Bezug
- Pat_ID As Long 'Pat_ID int '3000
+ Pat_id As Long 'Pat_ID int '3000
  Zeitpunkt As Date 'ZeitPunkt datetime '6200 + 6201
  Rezept As String 'Rezept varchar '6210, 3652(1), 6218(1)
  RKlnm As String 'RKlnm varchar 'Anfang des Rezeptklassennamens bei Langrezepten (HeilHilfsmittel, LangRezeptEintrag)
@@ -534,7 +534,7 @@ End Type
 
 Public Type RR
  FID As Long 'FID int 'Fall-Bezug
- Pat_ID As Long 'Pat_ID int '3000
+ Pat_id As Long 'Pat_ID int '3000
  Zeitpunkt As Date 'ZeitPunkt datetime '6200 + 6201
  FormTitel As String 'FormTitel varchar '8409 Formulartitel
  RR As String 'RR longtext '6230
@@ -551,7 +551,7 @@ End Type
 
 Public Type kvnrue
  lfdnr As Long 'lfdnr int '
- Pat_ID As Long 'Pat_ID int '
+ Pat_id As Long 'Pat_ID int '
  KVNr As String 'KVNr varchar '
  absPos As Long 'absPos int 'Zeile in BDT-Datei
  aktZeit As Date 'AktZeit datetime 'Zeit der Aktualisuerung aus der BDT-Datei
@@ -562,7 +562,7 @@ Public Type unbek_kenn
  Kennung As String 'Kennung varchar '
  absPos As Long 'absPos int '
  StByte As Long 'StByte int '
- Pat_ID As Long 'Pat_id int 'zugehöriger Patient für spätere Ermittlungen
+ Pat_id As Long 'Pat_id int 'zugehöriger Patient für spätere Ermittlungen
  Inhalt As String 'Inhalt varchar 'Inhalt Zeile zum Wiederauffinden
  Zeitpunkt As Date 'Zeitpunkt datetime '
 End Type
@@ -580,7 +580,7 @@ Public Type dmpreihe
  Nachname As String 'NachName varchar '
  Vorname As String 'VorName varchar '
  GebDat As Date 'GebDat date '
- Pat_ID As Long 'Pat_id int '
+ Pat_id As Long 'Pat_id int '
  StByte As Long 'StByte int 'Ordnungsnummer der Datenübertragung
  aktZeit As Date 'AktZeit datetime 'Aktualisierungzeit
  lanrid As Long 'lanrid int 'Bezug auf lanrpraxis.id
@@ -593,7 +593,7 @@ End Type
 Public Type desktop
  id As Long 'id int 'Primärschlüssel
  IDS As String 'IDS varchar 'id=
- Pat_ID As Long 'Pat_ID int '3000
+ Pat_id As Long 'Pat_ID int '3000
  erstZP As Date 'erstZP datetime 'erstellungsZeitpunkt
  exoL As String 'exoL varchar 'executeonLoad
  hideT As Byte 'hideT tinyint 'hideTitel
@@ -616,7 +616,7 @@ End Type
 
 Public Type usdm
  FID As Long 'FID int 'Fall-Bezug
- Pat_ID As Long 'Pat_ID int '3000
+ Pat_id As Long 'Pat_ID int '3000
  Zeitpunkt As Date 'ZeitPunkt datetime '
  art As String 'Art varchar '6330
  Spritzst As String 'Spritzst text 'Spritzstellen/Liphyper./~atr.
@@ -665,7 +665,7 @@ End Type
 
 Public Type fuss
  FID As Long 'FID int 'Fall-Bezug
- Pat_ID As Long 'Pat_ID int '3000
+ Pat_id As Long 'Pat_ID int '3000
  Zeitpunkt As Date 'ZeitPunkt datetime '
  art As String 'Art varchar '6330
  Fußdeform As String 'Fußdeform varchar 'Fußdeformität re/li
@@ -688,7 +688,7 @@ End Type
 
 Public Type ulcus
  FID As Long 'FID int 'Fall-Bezug
- Pat_ID As Long 'Pat_ID int '3000
+ Pat_id As Long 'Pat_ID int '3000
  Zeitpunkt As Date 'ZeitPunkt datetime '6200 + 6201
  Lokalisation As String 'Lokalisation varchar 'Lokalisation des Ulcus am Fuß, ohne Seite
  Seite As String 'Seite varchar 're oder li
@@ -709,7 +709,7 @@ End Type
 
 Public Type vkgd
  FID As Long 'FID int 'Fall-Bezug
- Pat_ID As Long 'Pat_ID int '3000
+ Pat_id As Long 'Pat_ID int '3000
  Zeitpunkt As Date 'ZeitPunkt datetime '6200 + 6201
  Wohlempfinden As String 'Wohlempfinden varchar 'Wohlempfinden
  Saettigung As String 'Saettigung varchar 'Sättigung
@@ -730,7 +730,7 @@ End Type
 
 Public Type sws
  FID As Long 'FID int 'Fall-Bezug
- Pat_ID As Long 'Pat_ID int '3000
+ Pat_id As Long 'Pat_ID int '3000
  Zeitpunkt As Date 'ZeitPunkt datetime '6200 + 6201
  FormTitel As String 'FormTitel varchar '8409 Formulartitel
  lR As Date 'LR date 'anzeigeText:>LR:
@@ -749,7 +749,7 @@ End Type
 
 Public Type vopl
  FID As Long 'FID int 'Fall-Bezug
- Pat_ID As Long 'Pat_ID int '3000
+ Pat_id As Long 'Pat_ID int '3000
  Zeitpunkt As Date 'ZeitPunkt datetime '6200 + 6201
  FormTitel As String 'FormTitel varchar '8409 Formulartitel
  Inhalt As String 'Inhalt longtext 'Inhalt der Verordnung
@@ -801,7 +801,7 @@ Public Type laborxus
  Auftragsschlüssel As String 'Auftragsschlüssel varchar '8311 Anforderungsnr d Labors (Turbomed)
  Eingang As Date 'Eingang datetime '8301 Eingangsdatum in Datumsform
  Berichtsdatum As String 'Berichtsdatum varchar '8302 Berichtsdatum
- Pat_ID As Long 'Pat_ID int '
+ Pat_id As Long 'Pat_ID int '
  TM_Pat_ID As Long 'TM_Pat_id int '
  Nachname As String 'Nachname varchar '3101
  Vorname As String 'Vorname varchar '3102
@@ -909,7 +909,7 @@ End Type
 
 Public Type Anamnesebogen
  Prim As Long 'Prim int 'Primärschlüssel
- Pat_ID As Long 'Pat_ID int '
+ Pat_id As Long 'Pat_ID int '
  TM_Pat_ID As Long 'TM_Pat_ID int '
  Nachname As String 'Nachname varchar '-
  Vorname As String 'Vorname varchar '
@@ -1479,7 +1479,7 @@ Fuweiter:
 End Function ' FIDsetz
 
 Public Function roNaZuw(i&, j&)
- roNa(i).Pat_ID = rNa(j).Pat_ID
+ roNa(i).Pat_id = rNa(j).Pat_id
  roNa(i).TM_Pat_ID = rNa(j).TM_Pat_ID
  roNa(i).lfdnr = rNa(j).lfdnr
  roNa(i).NVorsatz = rNa(j).NVorsatz
@@ -1593,7 +1593,7 @@ Public Function roNaZuw(i&, j&)
 End Function ' roNaZuw
 
 Public Function NaZUnt%(i&, j&)
- If roNa(i).Pat_ID <> rNa(j).Pat_ID Then GoSub unter
+ If roNa(i).Pat_id <> rNa(j).Pat_id Then GoSub unter
  If roNa(i).TM_Pat_ID <> rNa(j).TM_Pat_ID Then GoSub unter
  If roNa(i).lfdnr <> rNa(j).lfdnr Then GoSub unter
  If roNa(i).NVorsatz <> rNa(j).NVorsatz Then GoSub unter
@@ -1713,7 +1713,7 @@ End Function ' NaZUnt
 Public Function namenLaden()
  Dim pid$, rs As New Recordset, akt&
  On Error GoTo fehler
- pid = rNa(0).Pat_ID
+ pid = rNa(0).Pat_id
  sql = "SELECT COALESCE(Pat_ID,0) Pat_ID,COALESCE(TM_Pat_ID,0) TM_Pat_ID,COALESCE(lfdnr,0) lfdnr,COALESCE(NVorsatz,'') NVorsatz" & _
 ",COALESCE(Nachname,'') Nachname,COALESCE(Vorname,'') Vorname,COALESCE(GebDat - INTERVAL 0 DAY,CONVERT('18991230',DATE)) GebDat,COALESCE(KarGen,'') KarGen" & _
 ",COALESCE(eGKSchVer,'') eGKSchVer,COALESCE(Straße,'') Straße,COALESCE(KVKStatus,'') KVKStatus,COALESCE(Hausnr,'') Hausnr" & _
@@ -1747,7 +1747,7 @@ sql = sql & ",COALESCE(ZdeK,0) ZdeK,COALESCE(obk,0) obk,COALESCE(obs,0) obs,COAL
  If Not rs.EOF Then
   Do While Not rs.EOF
    akt = UBound(roNa)
-   roNa(akt).Pat_ID = rs!Pat_ID
+   roNa(akt).Pat_id = rs!Pat_id
    roNa(akt).TM_Pat_ID = rs!TM_Pat_ID
    roNa(akt).lfdnr = rs!lfdnr
    roNa(akt).NVorsatz = doUmwfSQL(rs!NVorsatz, lies.obMySQL, False)
@@ -1924,7 +1924,7 @@ Public Function rNaDump()
  Open ffadat For Output As #200
  For i = 1 To UBound(rNa)
   Print #200, vbCrLf & "i: " & i
-  Print #200, Left$("rNa(" & i & ").Pat_ID:" & String$(33, "."), 33) & rNa(i).Pat_ID
+  Print #200, Left$("rNa(" & i & ").Pat_ID:" & String$(33, "."), 33) & rNa(i).Pat_id
   Print #200, Left$("rNa(" & i & ").TM_Pat_ID:" & String$(33, "."), 33) & rNa(i).TM_Pat_ID
   Print #200, Left$("rNa(" & i & ").lfdnr:" & String$(33, "."), 33) & rNa(i).lfdnr
   Print #200, Left$("rNa(" & i & ").NVorsatz:" & String$(33, "."), 33) & "'" & rNa(i).NVorsatz & "'"
@@ -2046,7 +2046,7 @@ Public Function namenSpeichern(SammelInsert%, BezfSp%, Optional rAf&, Optional s
  Dim rs As New ADODB.Recordset
  T1 = Timer
  On Error Resume Next
- pid = rNa(0).Pat_ID
+ pid = rNa(0).Pat_id
  On Error GoTo fehler
  syscmd 4, pid & ": Speichere " & UBound(rNa) + 1 & " Sätze in `" & Tbnm & "`"
  Call csql0.AppVar(Array(" INSERT ", sqlIGNORE, "INTO `" & LCase$(Tbnm) & "` (Pat_ID,TM_Pat_ID,lfdnr," & _
@@ -2062,7 +2062,7 @@ Public Function namenSpeichern(SammelInsert%, BezfSp%, Optional rAf&, Optional s
      "SDatum,inaktiv,lAktTM,Mitarbeiter,Swz,Gbz,Kiz,ZdeK,obk,obs," & _
      "obh,antikoag,dmt1,gdm,kdm,cgm,insdat,insanw)       VALUES"))
  If Not AllePat Then
-   sql = "DELETE FROM `" & LCase$(Tbnm) & "` WHERE Pat_ID = " & CStr(rNa(0).Pat_ID)
+   sql = "DELETE FROM `" & LCase$(Tbnm) & "` WHERE Pat_ID = " & CStr(rNa(0).Pat_id)
    Call myEFrag(sql)
  End If ' not AllePat
 sql:
@@ -2073,7 +2073,7 @@ setz:
   If SammelInsert = 0 Or i = 0 Then
    csql.Append csql0
   End If ' SammelInsert = 0 Or i = 0 Then
-  csql.AppVar Array("(", rNa(i).Pat_ID, ",", rNa(i).TM_Pat_ID, ",", rNa(i).lfdnr, ",'", rNa(i).NVorsatz, "','", rNa(i).Nachname, "','", rNa(i).Vorname, "',", DatFor_k(rNa(i).GebDat), ",'", rNa(i).KarGen, "','", _
+  csql.AppVar Array("(", rNa(i).Pat_id, ",", rNa(i).TM_Pat_ID, ",", rNa(i).lfdnr, ",'", rNa(i).NVorsatz, "','", rNa(i).Nachname, "','", rNa(i).Vorname, "',", DatFor_k(rNa(i).GebDat), ",'", rNa(i).KarGen, "','", _
    rNa(i).eGKSchVer, "','", rNa(i).Straße, "','", rNa(i).KVKStatus, "','", rNa(i).Hausnr, "','", rNa(i).geschlecht, "','", rNa(i).plz, "','", rNa(i).ort, "','", rNa(i).Lkz, "','", _
    rNa(i).Anschrzus, "','", rNa(i).NVors, "','", rNa(i).PFPlz, "','", rNa(i).PFOrt, "','", rNa(i).PFNr, "','", rNa(i).PFWsLC, "','", rNa(i).AnschrZus_2, "','", rNa(i).Postfach_2, "','", _
    rNa(i).LK_2, "','", rNa(i).Postfach, "','", rNa(i).Beruf, "','", rNa(i).Weggeldzone, "',", rNa(i).WeggzZahl, ",", DatFor_k(rNa(i).AufnDat), ",", DatFor_k(rNa(i).kAufDat), ",'", rNa(i).Lanr, "','", _
@@ -2098,7 +2098,7 @@ setz:
       SammelInsert = 0
       GoTo sql
      ElseIf InStrB(ErrD, "Duplicate") <> 0 Then
-      rNa(i).Pat_ID = myEFrag("SELECT MAX(Pat_ID)+1 FROM `" & LCase$(Tbnm) & "`", , DBCn).Fields(0)
+      rNa(i).Pat_id = myEFrag("SELECT MAX(Pat_ID)+1 FROM `" & LCase$(Tbnm) & "`", , DBCn).Fields(0)
       csql.m_Len = 0
       GoTo setz
      Else ' SammelInsert = 1 And ErrN = -2147217900 Then elseif
@@ -2126,7 +2126,7 @@ End If ' ErrN = 0 Then else
 syscmd 4, "rNa(" & i & "/" & UBound(rNa) & "):   " & ErrDescr
 sfnr = sfnr + 1
 If sfnr > 10 Then
- Lese.Ausgeb sfnr & " Fehler in ""namenSpeichern()"" bei Pat. " & rNa(0).Pat_ID & ", gebe auf (ErrDes: " & ErrDescr & ")", True
+ Lese.Ausgeb sfnr & " Fehler in ""namenSpeichern()"" bei Pat. " & rNa(0).Pat_id & ", gebe auf (ErrDes: " & ErrDescr & ")", True
  sfnr = 0
  Resume Next
 End If ' sfnr > 10
@@ -2295,7 +2295,7 @@ End Function ' namenSpeichern
 
 Public Function roFaZuw(i&, j&)
  roFa(i).FID = rFa(j).FID
- roFa(i).Pat_ID = rFa(j).Pat_ID
+ roFa(i).Pat_id = rFa(j).Pat_id
  roFa(i).Quartal = rFa(j).Quartal
  roFa(i).Nachname = rFa(j).Nachname
  roFa(i).Vorname = rFa(j).Vorname
@@ -2422,7 +2422,7 @@ End Function ' roFaZuw
 
 Public Function FaZUnt%(i&, j&)
  If roFa(i).FID <> rFa(j).FID Then GoSub unter
- If roFa(i).Pat_ID <> rFa(j).Pat_ID Then GoSub unter
+ If roFa(i).Pat_id <> rFa(j).Pat_id Then GoSub unter
  If roFa(i).Quartal <> rFa(j).Quartal Then GoSub unter
  If roFa(i).Nachname <> rFa(j).Nachname Then GoSub unter
  If roFa(i).Vorname <> rFa(j).Vorname Then GoSub unter
@@ -2554,7 +2554,7 @@ End Function ' FaZUnt
 Public Function faelleLaden()
  Dim pid$, rs As New Recordset, akt&
  On Error GoTo fehler
- pid = rNa(0).Pat_ID
+ pid = rNa(0).Pat_id
  sql = "SELECT COALESCE(FID,0) FID,COALESCE(Pat_ID,0) Pat_ID,COALESCE(Quartal,'') Quartal,COALESCE(Nachname,'') Nachname" & _
 ",COALESCE(Vorname,'') Vorname,COALESCE(DtlOnlPfg - INTERVAL 0 DAY,CONVERT('18991230',DATE)) DtlOnlPfg,COALESCE(ErgbdOnlP,0) ErgbdOnlP,COALESCE(ErrorCode,0) ErrorCode" & _
 ",COALESCE(PrüfZdFd,'') PrüfZdFd,COALESCE(lfdnr,0) lfdnr,COALESCE(TMFNr,'') TMFNr,COALESCE(VKNr,'') VKNr" & _
@@ -2595,7 +2595,7 @@ sql = sql & ",COALESCE(QT,'') QT,COALESCE(StByte,0) StByte,COALESCE(absPos,0) ab
   Do While Not rs.EOF
    akt = UBound(roFa)
    roFa(akt).FID = rs!FID
-   roFa(akt).Pat_ID = rs!Pat_ID
+   roFa(akt).Pat_id = rs!Pat_id
    roFa(akt).Quartal = doUmwfSQL(rs!Quartal, lies.obMySQL, False)
    roFa(akt).Nachname = doUmwfSQL(rs!Nachname, lies.obMySQL, False)
    roFa(akt).Vorname = doUmwfSQL(rs!Vorname, lies.obMySQL, False)
@@ -2844,7 +2844,7 @@ Fertig:
  Next ri
  For ri = UBound(roFa) To 1 Step -1 ' dann die künftigen Fallnummern statt den aktuellen verwenden
   If roFa(ri).FID <> fzu(ri).falt Then
-   MsgBox "Fehler bei " & rNa(0).Pat_ID & ", ri: " & ri & ", " & roFa(ri).FID & " <> " & fzu(ri).falt
+   MsgBox "Fehler bei " & rNa(0).Pat_id & ", ri: " & ri & ", " & roFa(ri).FID & " <> " & fzu(ri).falt
   End If ' roFa(ri).FID <> fzu(ri).falt Then
   For jj = 1 To UBound(roAu)
    If roAu(jj).FID = roFa(ri).FID Then roAu(jj).FID = fzu(ri).fneu
@@ -2928,7 +2928,7 @@ Public Function rFaDump()
  For i = 1 To UBound(rFa)
   Print #200, vbCrLf & "i: " & i
   Print #200, Left$("rFa(" & i & ").FID:" & String$(33, "."), 33) & rFa(i).FID
-  Print #200, Left$("rFa(" & i & ").Pat_ID:" & String$(33, "."), 33) & rFa(i).Pat_ID
+  Print #200, Left$("rFa(" & i & ").Pat_ID:" & String$(33, "."), 33) & rFa(i).Pat_id
   Print #200, Left$("rFa(" & i & ").Quartal:" & String$(33, "."), 33) & "'" & rFa(i).Quartal & "'"
   Print #200, Left$("rFa(" & i & ").Nachname:" & String$(33, "."), 33) & "'" & rFa(i).Nachname & "'"
   Print #200, Left$("rFa(" & i & ").Vorname:" & String$(33, "."), 33) & "'" & rFa(i).Vorname & "'"
@@ -3063,7 +3063,7 @@ Dim j%
  Dim rs As New ADODB.Recordset
  T1 = Timer
  On Error Resume Next
- pid = rNa(0).Pat_ID
+ pid = rNa(0).Pat_id
  On Error GoTo fehler
  syscmd 4, pid & ": Speichere " & UBound(rFa) + 0 & " Sätze in `" & Tbnm & "`"
  Call csql0.AppVar(Array(" INSERT ", sqlIGNORE, "INTO `" & LCase$(Tbnm) & "` (Pat_ID,Quartal,Nachname," & _
@@ -3080,7 +3080,7 @@ Dim j%
      "ZnrMLes,BGFallNr,lGewicht,vorET,dmpVertret,dmpArztw,dmpHypos,dmpKhsA,dmpDMSchulEmpf,dmpDMSchulWahrg," & _
      "dmpHypertSchulEmpf,dmpHypertSchulWahrg,dmpKKTabakEmpf,dmpKKErnEmpf,dmpKKkTrainEmpf,dmpHbA1cZiel,dmpUewFuss,dmpEinwDM,dmphalbj,dmpMA)   VALUES"))
  If Not AllePat Then
-   sql = "DELETE FROM `" & LCase$(Tbnm) & "` WHERE Pat_ID = " & CStr(rNa(0).Pat_ID)
+   sql = "DELETE FROM `" & LCase$(Tbnm) & "` WHERE Pat_ID = " & CStr(rNa(0).Pat_id)
    Call myEFrag(sql)
  End If ' not AllePat
 sql:
@@ -3091,7 +3091,7 @@ setz:
   If SammelInsert = 0 Or i = 1 Then
    csql.Append csql0
   End If ' SammelInsert = 0 Or i = 1 Then
-  csql.AppVar Array("(", rFa(i).Pat_ID, ",'", rFa(i).Quartal, "','", rFa(i).Nachname, "','", rFa(i).Vorname, "',", DatFor_k(rFa(i).DtlOnlPfg), ",", rFa(i).ErgbdOnlP, ",", rFa(i).ErrorCode, ",'", rFa(i).PrüfZdFd, "',", _
+  csql.AppVar Array("(", rFa(i).Pat_id, ",'", rFa(i).Quartal, "','", rFa(i).Nachname, "','", rFa(i).Vorname, "',", DatFor_k(rFa(i).DtlOnlPfg), ",", rFa(i).ErgbdOnlP, ",", rFa(i).ErrorCode, ",'", rFa(i).PrüfZdFd, "',", _
    rFa(i).lfdnr, ",'", rFa(i).TMFNr, "','", rFa(i).VKNr, "','", rFa(i).bPerG, "','", rFa(i).DMPKnZ, "',", DatFor_k(rFa(i).VschBeg), ",", DatFor_k(rFa(i).VschEnd), ",'", _
    rFa(i).KKasse_2, "',", REPLACE$(rFa(i).FaktPers, ",", "."), ",", REPLACE$(rFa(i).FaktTechn, ",", "."), ",", REPLACE$(rFa(i).FaktLabor, ",", "."), ",", DatFor_k(rFa(i).BhFB), ",", DatFor_k(rFa(i).BhFE1), ",", DatFor_k( _
    rFa(i).BhFE2), ",'", rFa(i).UnfFlg, "',", DatFor_k(rFa(i).ausgst), ",'", rFa(i).KtrAbrB, "','", rFa(i).AbrAr, "',", DatFor_k(rFa(i).lVorl), ",", rFa(i).KartBes, ",'", _
@@ -3128,7 +3128,7 @@ setz:
    csql.Clear
 '   IF Not obFork THEN ForeignYes0
    If rAf = 0 Then
-    Err.Raise 998, , "Fehler in faelleSpeichern b.Pat. " & rFa(i).Pat_ID & ", Err.Number " & Err.Number & ", err.description: " & Err.Description
+    Err.Raise 998, , "Fehler in faelleSpeichern b.Pat. " & rFa(i).Pat_id & ", Err.Number " & Err.Number & ", err.description: " & Err.Description
    End If ' rAF = 0 THEN
    If obForK Then
     Call ForeignYes0
@@ -3141,12 +3141,12 @@ setz:
 '     If j = 1 Then
 '      Set rs = myEFrag("SELECT LAST_INSERT_ID() FID") ' session-spezifisch '27.8.23: liefert in Schleife immer die erste Zahl, auch mit Commit zwischendrin
 '     Else ' j = 1 Then
-      Set rs = myEFrag("SELECT COALESCE((SELECT MAX(fid) FID FROM `faelle` WHERE pat_id = " & rFa(i).Pat_ID & " AND quartal = '" & rFa(i).Quartal & "' AND bhfb = " & DatFor_k(rFa(i).BhFB) & " AND bhfe1 = " & DatFor_k(rFa(i).BhFE1) & " AND ausgst = " & DatFor_k(rFa(i).ausgst) & "),(SELECT MAX(fid)+1 FID FROM `faelle`)) FID")
+      Set rs = myEFrag("SELECT COALESCE((SELECT MAX(fid) FID FROM `faelle` WHERE pat_id = " & rFa(i).Pat_id & " AND quartal = '" & rFa(i).Quartal & "' AND bhfb = " & DatFor_k(rFa(i).BhFB) & " AND bhfe1 = " & DatFor_k(rFa(i).BhFE1) & " AND ausgst = " & DatFor_k(rFa(i).ausgst) & "),(SELECT MAX(fid)+1 FID FROM `faelle`)) FID")
 '     End If
 '     If Not rs.BOF Then If rs.Fields(0) <> 0 Then Exit For
 '    Next j
     If rs.BOF Then
-     Err.Raise 999, , "Fehler bei der Fallaktualisierung b.Pat. " & rFa(i).Pat_ID & ", FID " & rFa(i).FID
+     Err.Raise 999, , "Fehler bei der Fallaktualisierung b.Pat. " & rFa(i).Pat_id & ", FID " & rFa(i).FID
     ElseIf rs!FID = 0 Then
      MsgBox "Fehler in faellespeichern:" & vbCrLf & rs.source
      GoTo sql
@@ -3154,7 +3154,7 @@ setz:
      neufid = rs!FID
      If neufid <> rFa(i).FID Then
       If rFa(i).FID <> 0 Then
-       Lese.Ausgeb "Änderung bei der FallID  bei Pat. " & rFa(i).Pat_ID & ", FID " & rFa(i).FID & " -> " & neufid & " in zu speichernden Tabellen mit fallid", True
+       Lese.Ausgeb "Änderung bei der FallID  bei Pat. " & rFa(i).Pat_id & ", FID " & rFa(i).FID & " -> " & neufid & " in zu speichernden Tabellen mit fallid", True
       End If ' rFa(i).FID <> 0 Then
       Dim jjj&
       For jjj = 1 To UBound(rAu)
@@ -3273,7 +3273,7 @@ End If ' ErrN = 0 Then else
 syscmd 4, "rFa(" & i & "/" & UBound(rFa) & "):   " & ErrDescr
 sfnr = sfnr + 1
 If sfnr > 10 Then
- Lese.Ausgeb sfnr & " Fehler in ""faelleSpeichern()"" bei Pat. " & rNa(0).Pat_ID & ", gebe auf (ErrDes: " & ErrDescr & ")", True
+ Lese.Ausgeb sfnr & " Fehler in ""faelleSpeichern()"" bei Pat. " & rNa(0).Pat_id & ", gebe auf (ErrDes: " & ErrDescr & ")", True
  sfnr = 0
  Resume Next
 End If ' sfnr > 10
@@ -3496,7 +3496,7 @@ If ErrNumber = -2147467259 Then
  uKas = UCase$(Trim$(rFa(i).Kasse))
  If Len(uKas) < 4 Then uKas = UCase$(Trim$(rFa(i).KKasse_2))
  If rFa(i).SchGr = 90 Then kat = "PRI" Else kat = holKat(uKas)
- sqlquer = "INSERT INTO `kassenliste`(name,kurzname,`GO`,`VKNR`,`IK`,`eingef`,pid,kateg) VALUES (" & "'" & rFa(i).Kasse & "', '" & rFa(i).KKasse_2 & "', '" & rFa(i).GOÄKatName & "', '" & rFa(i).VKNr & "', '" & rFa(i).IK & "'," & Format(Now(), "yyyymmddHHMMSS") & "," & rFa(i).Pat_ID & "," & kat & ")"
+ sqlquer = "INSERT INTO `kassenliste`(name,kurzname,`GO`,`VKNR`,`IK`,`eingef`,pid,kateg) VALUES (" & "'" & rFa(i).Kasse & "', '" & rFa(i).KKasse_2 & "', '" & rFa(i).GOÄKatName & "', '" & rFa(i).VKNr & "', '" & rFa(i).IK & "'," & Format(Now(), "yyyymmddHHMMSS") & "," & rFa(i).Pat_id & "," & kat & ")"
  InsKorr DBCn, sqlquer, rAf
  Resume
 End If ' ErrNumber = -2147467259 THEN
@@ -3515,7 +3515,7 @@ End Function ' faelleSpeichern
 
 Public Function roAuZuw(i&, j&)
  roAu(i).FID = rAu(j).FID
- roAu(i).Pat_ID = rAu(j).Pat_ID
+ roAu(i).Pat_id = rAu(j).Pat_id
  roAu(i).Zeitpunkt = rAu(j).Zeitpunkt
  roAu(i).Ersteller = rAu(j).Ersteller
  roAu(i).Änderer = rAu(j).Änderer
@@ -3530,7 +3530,7 @@ End Function ' roAuZuw
 
 Public Function AuZUnt%(i&, j&)
  If roAu(i).FID <> rAu(j).FID Then GoSub unter
- If roAu(i).Pat_ID <> rAu(j).Pat_ID Then GoSub unter
+ If roAu(i).Pat_id <> rAu(j).Pat_id Then GoSub unter
  If roAu(i).Zeitpunkt <> rAu(j).Zeitpunkt Then GoSub unter
  If roAu(i).Ersteller <> rAu(j).Ersteller Then GoSub unter
  If roAu(i).Änderer <> rAu(j).Änderer Then GoSub unter
@@ -3550,7 +3550,7 @@ End Function ' AuZUnt
 Public Function auLaden()
  Dim pid$, rs As New Recordset, akt&
  On Error GoTo fehler
- pid = rNa(0).Pat_ID
+ pid = rNa(0).Pat_id
  sql = "SELECT COALESCE(FID,0) FID,COALESCE(Pat_ID,0) Pat_ID,COALESCE(ZeitPunkt - INTERVAL 0 DAY,CONVERT('18991230',DATE)) ZeitPunkt,COALESCE(Ersteller,'') Ersteller" & _
 ",COALESCE(Änderer,'') Änderer,COALESCE(Art,'') Art,COALESCE(Beginn,'') Beginn,COALESCE(Ende,'') Ende" & _
 ",COALESCE(ICDs,'') ICDs,COALESCE(absPos,0) absPos,COALESCE(AktZeit - INTERVAL 0 DAY,CONVERT('18991230',DATE)) AktZeit,COALESCE(StByte,0) StByte" & _
@@ -3563,7 +3563,7 @@ Public Function auLaden()
   Do While Not rs.EOF
    akt = UBound(roAu)
    roAu(akt).FID = rs!FID
-   roAu(akt).Pat_ID = rs!Pat_ID
+   roAu(akt).Pat_id = rs!Pat_id
    roAu(akt).Zeitpunkt = rs!Zeitpunkt
    roAu(akt).Ersteller = doUmwfSQL(rs!Ersteller, lies.obMySQL, False)
    roAu(akt).Änderer = doUmwfSQL(rs!Änderer, lies.obMySQL, False)
@@ -3641,7 +3641,7 @@ Public Function rAuDump()
  For i = 1 To UBound(rAu)
   Print #200, vbCrLf & "i: " & i
   Print #200, Left$("rAu(" & i & ").FID:" & String$(33, "."), 33) & rAu(i).FID
-  Print #200, Left$("rAu(" & i & ").Pat_ID:" & String$(33, "."), 33) & rAu(i).Pat_ID
+  Print #200, Left$("rAu(" & i & ").Pat_ID:" & String$(33, "."), 33) & rAu(i).Pat_id
   Print #200, Left$("rAu(" & i & ").ZeitPunkt:" & String$(33, "."), 33) & rAu(i).Zeitpunkt
   Print #200, Left$("rAu(" & i & ").Ersteller:" & String$(33, "."), 33) & "'" & rAu(i).Ersteller & "'"
   Print #200, Left$("rAu(" & i & ").Änderer:" & String$(33, "."), 33) & "'" & rAu(i).Änderer & "'"
@@ -3663,13 +3663,13 @@ Public Function auSpeichern(SammelInsert%, BezfSp%, Optional rAf&, Optional sfkc
  Dim rs As New ADODB.Recordset
  T1 = Timer
  On Error Resume Next
- pid = rNa(0).Pat_ID
+ pid = rNa(0).Pat_id
  On Error GoTo fehler
  syscmd 4, pid & ": Speichere " & UBound(rAu) + 0 & " Sätze in `" & Tbnm & "`"
  Call csql0.AppVar(Array(" INSERT ", sqlIGNORE, "INTO `" & LCase$(Tbnm) & "` (FID,Pat_ID,ZeitPunkt," & _
      "Ersteller,Änderer,Art,Beginn,Ende,ICDs,absPos,AktZeit,StByte)    VALUES"))
  If Not AllePat Then
-   sql = "DELETE FROM `" & LCase$(Tbnm) & "` WHERE Pat_ID = " & CStr(rNa(0).Pat_ID)
+   sql = "DELETE FROM `" & LCase$(Tbnm) & "` WHERE Pat_ID = " & CStr(rNa(0).Pat_id)
    Call myEFrag(sql)
  End If ' not AllePat
 sql:
@@ -3680,7 +3680,7 @@ setz:
   If SammelInsert = 0 Or i = 1 Then
    csql.Append csql0
   End If ' SammelInsert = 0 Or i = 1 Then
-  csql.AppVar Array("(", rAu(i).FID, ",", rAu(i).Pat_ID, ",", DatFor_k(rAu(i).Zeitpunkt), ",'", rAu(i).Ersteller, "','", rAu(i).Änderer, "','", rAu(i).art, "','", rAu(i).Beginn, "','", rAu(i).Ende, "','", _
+  csql.AppVar Array("(", rAu(i).FID, ",", rAu(i).Pat_id, ",", DatFor_k(rAu(i).Zeitpunkt), ",'", rAu(i).Ersteller, "','", rAu(i).Änderer, "','", rAu(i).art, "','", rAu(i).Beginn, "','", rAu(i).Ende, "','", _
    rAu(i).ICDs, "',", rAu(i).absPos, ",", DatFor_k(rAu(i).aktZeit), ",", rAu(i).StByte, ")")
   If SammelInsert <> 0 And i < UBound(rAu) Then csql.Append ","
   If SammelInsert = 0 Or i = UBound(rAu) Then
@@ -3716,7 +3716,7 @@ End If ' ErrN = 0 Then else
 syscmd 4, "rAu(" & i & "/" & UBound(rAu) & "):   " & ErrDescr
 sfnr = sfnr + 1
 If sfnr > 10 Then
- Lese.Ausgeb sfnr & " Fehler in ""auSpeichern()"" bei Pat. " & rNa(0).Pat_ID & ", gebe auf (ErrDes: " & ErrDescr & ")", True
+ Lese.Ausgeb sfnr & " Fehler in ""auSpeichern()"" bei Pat. " & rNa(0).Pat_id & ", gebe auf (ErrDes: " & ErrDescr & ")", True
  sfnr = 0
  Resume Next
 End If ' sfnr > 10
@@ -3791,7 +3791,7 @@ End Function ' auSpeichern
 
 Public Function roBrZuw(i&, j&)
  roBr(i).FID = rBr(j).FID
- roBr(i).Pat_ID = rBr(j).Pat_ID
+ roBr(i).Pat_id = rBr(j).Pat_id
  roBr(i).Zeitpunkt = rBr(j).Zeitpunkt
  roBr(i).Pfad = rBr(j).Pfad
  roBr(i).art = rBr(j).art
@@ -3811,7 +3811,7 @@ End Function ' roBrZuw
 
 Public Function BrZUnt%(i&, j&)
  If roBr(i).FID <> rBr(j).FID Then GoSub unter
- If roBr(i).Pat_ID <> rBr(j).Pat_ID Then GoSub unter
+ If roBr(i).Pat_id <> rBr(j).Pat_id Then GoSub unter
  If roBr(i).Zeitpunkt <> rBr(j).Zeitpunkt Then GoSub unter
  If roBr(i).Pfad <> rBr(j).Pfad Then GoSub unter
  If roBr(i).art <> rBr(j).art Then GoSub unter
@@ -3836,7 +3836,7 @@ End Function ' BrZUnt
 Public Function briefeLaden()
  Dim pid$, rs As New Recordset, akt&
  On Error GoTo fehler
- pid = rNa(0).Pat_ID
+ pid = rNa(0).Pat_id
  sql = "SELECT COALESCE(FID,0) FID,COALESCE(Pat_ID,0) Pat_ID,COALESCE(ZeitPunkt - INTERVAL 0 DAY,CONVERT('18991230',DATE)) ZeitPunkt,COALESCE(Pfad,'') Pfad" & _
 ",COALESCE(Art,'') Art,COALESCE(Name,'') Name,COALESCE(autor,'') autor,COALESCE(Quelldatum - INTERVAL 0 DAY,CONVERT('18991230',DATE)) Quelldatum" & _
 ",COALESCE(Typ,'') Typ,COALESCE(AktZeit - INTERVAL 0 DAY,CONVERT('18991230',DATE)) AktZeit,COALESCE(DokGroe,0) DokGroe,COALESCE(DokAenD - INTERVAL 0 DAY,CONVERT('18991230',DATE)) DokAenD" & _
@@ -3850,7 +3850,7 @@ Public Function briefeLaden()
   Do While Not rs.EOF
    akt = UBound(roBr)
    roBr(akt).FID = rs!FID
-   roBr(akt).Pat_ID = rs!Pat_ID
+   roBr(akt).Pat_id = rs!Pat_id
    roBr(akt).Zeitpunkt = rs!Zeitpunkt
    roBr(akt).Pfad = doUmwfSQL(rs!Pfad, lies.obMySQL, False)
    roBr(akt).art = doUmwfSQL(rs!art, lies.obMySQL, False)
@@ -3933,7 +3933,7 @@ Public Function rBrDump()
  For i = 1 To UBound(rBr)
   Print #200, vbCrLf & "i: " & i
   Print #200, Left$("rBr(" & i & ").FID:" & String$(33, "."), 33) & rBr(i).FID
-  Print #200, Left$("rBr(" & i & ").Pat_ID:" & String$(33, "."), 33) & rBr(i).Pat_ID
+  Print #200, Left$("rBr(" & i & ").Pat_ID:" & String$(33, "."), 33) & rBr(i).Pat_id
   Print #200, Left$("rBr(" & i & ").ZeitPunkt:" & String$(33, "."), 33) & rBr(i).Zeitpunkt
   Print #200, Left$("rBr(" & i & ").Pfad:" & String$(33, "."), 33) & "'" & rBr(i).Pfad & "'"
   Print #200, Left$("rBr(" & i & ").Art:" & String$(33, "."), 33) & "'" & rBr(i).art & "'"
@@ -3960,14 +3960,14 @@ Public Function briefeSpeichern(SammelInsert%, BezfSp%, Optional rAf&, Optional 
  Dim rs As New ADODB.Recordset
  T1 = Timer
  On Error Resume Next
- pid = rNa(0).Pat_ID
+ pid = rNa(0).Pat_id
  On Error GoTo fehler
  syscmd 4, pid & ": Speichere " & UBound(rBr) + 0 & " Sätze in `" & Tbnm & "`"
  Call csql0.AppVar(Array(" INSERT ", sqlIGNORE, "INTO `" & LCase$(Tbnm) & "` (FID,Pat_ID,ZeitPunkt," & _
      "Pfad,Art,Name,autor,Quelldatum,Typ,AktZeit,DokGroe,DokAenD,QS," & _
      "QT,absPos,StByte)      VALUES"))
  If Not AllePat Then
-   sql = "DELETE FROM `" & LCase$(Tbnm) & "` WHERE Pat_ID = " & CStr(rNa(0).Pat_ID)
+   sql = "DELETE FROM `" & LCase$(Tbnm) & "` WHERE Pat_ID = " & CStr(rNa(0).Pat_id)
    Call myEFrag(sql)
  End If ' not AllePat
 sql:
@@ -3978,7 +3978,7 @@ setz:
   If SammelInsert = 0 Or i = 1 Then
    csql.Append csql0
   End If ' SammelInsert = 0 Or i = 1 Then
-  csql.AppVar Array("(", rBr(i).FID, ",", rBr(i).Pat_ID, ",", DatFor_k(rBr(i).Zeitpunkt), ",'", rBr(i).Pfad, "','", rBr(i).art, "','", rBr(i).name, "','", rBr(i).autor, "',", DatFor_k(rBr(i).Quelldatum), ",'", _
+  csql.AppVar Array("(", rBr(i).FID, ",", rBr(i).Pat_id, ",", DatFor_k(rBr(i).Zeitpunkt), ",'", rBr(i).Pfad, "','", rBr(i).art, "','", rBr(i).name, "','", rBr(i).autor, "',", DatFor_k(rBr(i).Quelldatum), ",'", _
    rBr(i).Typ, "',", DatFor_k(rBr(i).aktZeit), ",", rBr(i).DokGroe, ",", DatFor_k(rBr(i).DokAenD), ",'", rBr(i).QS, "','", rBr(i).QT, "',", rBr(i).absPos, ",", rBr(i).StByte, ")")
   If SammelInsert <> 0 And i < UBound(rBr) Then csql.Append ","
   If SammelInsert = 0 Or i = UBound(rBr) Then
@@ -4018,7 +4018,7 @@ End If ' ErrN = 0 Then else
 syscmd 4, "rBr(" & i & "/" & UBound(rBr) & "):   " & ErrDescr
 sfnr = sfnr + 1
 If sfnr > 10 Then
- Lese.Ausgeb sfnr & " Fehler in ""briefeSpeichern()"" bei Pat. " & rNa(0).Pat_ID & ", gebe auf (ErrDes: " & ErrDescr & ")", True
+ Lese.Ausgeb sfnr & " Fehler in ""briefeSpeichern()"" bei Pat. " & rNa(0).Pat_id & ", gebe auf (ErrDes: " & ErrDescr & ")", True
  sfnr = 0
  Resume Next
 End If ' sfnr > 10
@@ -4096,7 +4096,7 @@ End Function ' briefeSpeichern
 Public Function roDiZuw(i&, j&)
  roDi(i).ID1 = rDi(j).ID1
  roDi(i).FID = rDi(j).FID
- roDi(i).Pat_ID = rDi(j).Pat_ID
+ roDi(i).Pat_id = rDi(j).Pat_id
  roDi(i).DiagDatum = rDi(j).DiagDatum
  roDi(i).DiagSicherheit = rDi(j).DiagSicherheit
  roDi(i).DiagText = rDi(j).DiagText
@@ -4118,7 +4118,7 @@ End Function ' roDiZuw
 Public Function DiZUnt%(i&, j&)
  If roDi(i).ID1 <> rDi(j).ID1 Then GoSub unter
  If roDi(i).FID <> rDi(j).FID Then GoSub unter
- If roDi(i).Pat_ID <> rDi(j).Pat_ID Then GoSub unter
+ If roDi(i).Pat_id <> rDi(j).Pat_id Then GoSub unter
  If roDi(i).DiagDatum <> rDi(j).DiagDatum Then GoSub unter
  If roDi(i).DiagSicherheit <> rDi(j).DiagSicherheit Then GoSub unter
  If roDi(i).DiagText <> rDi(j).DiagText Then GoSub unter
@@ -4144,7 +4144,7 @@ End Function ' DiZUnt
 Public Function diagnosenLaden()
  Dim pid$, rs As New Recordset, akt&
  On Error GoTo fehler
- pid = rNa(0).Pat_ID
+ pid = rNa(0).Pat_id
  sql = "SELECT COALESCE(ID1,0) ID1,COALESCE(FID,0) FID,COALESCE(Pat_id,0) Pat_id,COALESCE(DiagDatum - INTERVAL 0 DAY,CONVERT('18991230',DATE)) DiagDatum" & _
 ",COALESCE(DiagSicherheit,'') DiagSicherheit,COALESCE(DiagText,'') DiagText,COALESCE(DiagSeite,'') DiagSeite,COALESCE(DiagAttr,'') DiagAttr" & _
 ",COALESCE(ICD,'') ICD,COALESCE(obDauer,0) obDauer,COALESCE(intBemerk,'') intBemerk,COALESCE(absPos,0) absPos" & _
@@ -4159,7 +4159,7 @@ Public Function diagnosenLaden()
    akt = UBound(roDi)
    roDi(akt).ID1 = rs!ID1
    roDi(akt).FID = rs!FID
-   roDi(akt).Pat_ID = rs!Pat_ID
+   roDi(akt).Pat_id = rs!Pat_id
    roDi(akt).DiagDatum = rs!DiagDatum
    roDi(akt).DiagSicherheit = doUmwfSQL(rs!DiagSicherheit, lies.obMySQL, False)
    roDi(akt).DiagText = doUmwfSQL(rs!DiagText, lies.obMySQL, False)
@@ -4244,7 +4244,7 @@ Public Function rDiDump()
   Print #200, vbCrLf & "i: " & i
   Print #200, Left$("rDi(" & i & ").ID1:" & String$(33, "."), 33) & rDi(i).ID1
   Print #200, Left$("rDi(" & i & ").FID:" & String$(33, "."), 33) & rDi(i).FID
-  Print #200, Left$("rDi(" & i & ").Pat_id:" & String$(33, "."), 33) & rDi(i).Pat_ID
+  Print #200, Left$("rDi(" & i & ").Pat_id:" & String$(33, "."), 33) & rDi(i).Pat_id
   Print #200, Left$("rDi(" & i & ").DiagDatum:" & String$(33, "."), 33) & rDi(i).DiagDatum
   Print #200, Left$("rDi(" & i & ").DiagSicherheit:" & String$(33, "."), 33) & "'" & rDi(i).DiagSicherheit & "'"
   Print #200, Left$("rDi(" & i & ").DiagText:" & String$(33, "."), 33) & "'" & rDi(i).DiagText & "'"
@@ -4272,14 +4272,14 @@ Public Function diagnosenSpeichern(SammelInsert%, BezfSp%, Optional rAf&, Option
  Dim rs As New ADODB.Recordset
  T1 = Timer
  On Error Resume Next
- pid = rNa(0).Pat_ID
+ pid = rNa(0).Pat_id
  On Error GoTo fehler
  syscmd 4, pid & ": Speichere " & UBound(rDi) + 0 & " Sätze in `" & Tbnm & "`"
  Call csql0.AppVar(Array(" INSERT ", sqlIGNORE, "INTO `" & LCase$(Tbnm) & "` (FID,Pat_id,DiagDatum," & _
      "DiagSicherheit,DiagText,DiagSeite,DiagAttr,ICD,obDauer,intBemerk,absPos,AktZeit,StByte," & _
      "AusnBegr,Dggel,obKasse,lKasse,KFdFA)               VALUES"))
  If Not AllePat Then
-   sql = "DELETE FROM `" & LCase$(Tbnm) & "` WHERE Pat_ID = " & CStr(rNa(0).Pat_ID)
+   sql = "DELETE FROM `" & LCase$(Tbnm) & "` WHERE Pat_ID = " & CStr(rNa(0).Pat_id)
    Call myEFrag(sql)
  End If ' not AllePat
 sql:
@@ -4290,7 +4290,7 @@ setz:
   If SammelInsert = 0 Or i = 1 Then
    csql.Append csql0
   End If ' SammelInsert = 0 Or i = 1 Then
-  csql.AppVar Array("(", rDi(i).FID, ",", rDi(i).Pat_ID, ",", DatFor_k(rDi(i).DiagDatum), ",'", rDi(i).DiagSicherheit, "','", rDi(i).DiagText, "','", rDi(i).DiagSeite, "','", rDi(i).DiagAttr, "','", _
+  csql.AppVar Array("(", rDi(i).FID, ",", rDi(i).Pat_id, ",", DatFor_k(rDi(i).DiagDatum), ",'", rDi(i).DiagSicherheit, "','", rDi(i).DiagText, "','", rDi(i).DiagSeite, "','", rDi(i).DiagAttr, "','", _
    rDi(i).ICD, "',", rDi(i).obDauer, ",'", rDi(i).intBemerk, "',", rDi(i).absPos, ",", DatFor_k(rDi(i).aktZeit), ",", rDi(i).StByte, ",'", rDi(i).AusnBegr, "',", rDi(i).Dggel, ",", rDi(i).obKasse, ",", DatFor_k( _
    rDi(i).lKasse), ",'", rDi(i).KFdFA, "')")
   If SammelInsert <> 0 And i < UBound(rDi) Then csql.Append ","
@@ -4331,7 +4331,7 @@ End If ' ErrN = 0 Then else
 syscmd 4, "rDi(" & i & "/" & UBound(rDi) & "):   " & ErrDescr
 sfnr = sfnr + 1
 If sfnr > 10 Then
- Lese.Ausgeb sfnr & " Fehler in ""diagnosenSpeichern()"" bei Pat. " & rNa(0).Pat_ID & ", gebe auf (ErrDes: " & ErrDescr & ")", True
+ Lese.Ausgeb sfnr & " Fehler in ""diagnosenSpeichern()"" bei Pat. " & rNa(0).Pat_id & ", gebe auf (ErrDes: " & ErrDescr & ")", True
  sfnr = 0
  Resume Next
 End If ' sfnr > 10
@@ -4410,7 +4410,7 @@ End Function ' diagnosenSpeichern
 
 Public Function roDoZuw(i&, j&)
  roDo(i).FID = rDo(j).FID
- roDo(i).Pat_ID = rDo(j).Pat_ID
+ roDo(i).Pat_id = rDo(j).Pat_id
  roDo(i).Zeitpunkt = rDo(j).Zeitpunkt
  roDo(i).DokPfad = rDo(j).DokPfad
  roDo(i).DokArt = rDo(j).DokArt
@@ -4427,7 +4427,7 @@ End Function ' roDoZuw
 
 Public Function DoZUnt%(i&, j&)
  If roDo(i).FID <> rDo(j).FID Then GoSub unter
- If roDo(i).Pat_ID <> rDo(j).Pat_ID Then GoSub unter
+ If roDo(i).Pat_id <> rDo(j).Pat_id Then GoSub unter
  If roDo(i).Zeitpunkt <> rDo(j).Zeitpunkt Then GoSub unter
  If roDo(i).DokPfad <> rDo(j).DokPfad Then GoSub unter
  If roDo(i).DokArt <> rDo(j).DokArt Then GoSub unter
@@ -4449,7 +4449,7 @@ End Function ' DoZUnt
 Public Function dokumenteLaden()
  Dim pid$, rs As New Recordset, akt&
  On Error GoTo fehler
- pid = rNa(0).Pat_ID
+ pid = rNa(0).Pat_id
  sql = "SELECT COALESCE(FID,0) FID,COALESCE(Pat_ID,0) Pat_ID,COALESCE(ZeitPunkt - INTERVAL 0 DAY,CONVERT('18991230',DATE)) ZeitPunkt,COALESCE(DokPfad,'') DokPfad" & _
 ",COALESCE(DokArt,'') DokArt,COALESCE(DokName,'') DokName,COALESCE(Quelldatum - INTERVAL 0 DAY,CONVERT('18991230',DATE)) Quelldatum,COALESCE(absPos,0) absPos" & _
 ",COALESCE(AktZeit - INTERVAL 0 DAY,CONVERT('18991230',DATE)) AktZeit,COALESCE(DokGroe,0) DokGroe,COALESCE(DokAenD - INTERVAL 0 DAY,CONVERT('18991230',DATE)) DokAenD,COALESCE(QS,'') QS" & _
@@ -4462,7 +4462,7 @@ Public Function dokumenteLaden()
   Do While Not rs.EOF
    akt = UBound(roDo)
    roDo(akt).FID = rs!FID
-   roDo(akt).Pat_ID = rs!Pat_ID
+   roDo(akt).Pat_id = rs!Pat_id
    roDo(akt).Zeitpunkt = rs!Zeitpunkt
    roDo(akt).DokPfad = doUmwfSQL(rs!DokPfad, lies.obMySQL, False)
    roDo(akt).DokArt = doUmwfSQL(rs!DokArt, lies.obMySQL, False)
@@ -4542,7 +4542,7 @@ Public Function rDoDump()
  For i = 1 To UBound(rDo)
   Print #200, vbCrLf & "i: " & i
   Print #200, Left$("rDo(" & i & ").FID:" & String$(33, "."), 33) & rDo(i).FID
-  Print #200, Left$("rDo(" & i & ").Pat_ID:" & String$(33, "."), 33) & rDo(i).Pat_ID
+  Print #200, Left$("rDo(" & i & ").Pat_ID:" & String$(33, "."), 33) & rDo(i).Pat_id
   Print #200, Left$("rDo(" & i & ").ZeitPunkt:" & String$(33, "."), 33) & rDo(i).Zeitpunkt
   Print #200, Left$("rDo(" & i & ").DokPfad:" & String$(33, "."), 33) & "'" & rDo(i).DokPfad & "'"
   Print #200, Left$("rDo(" & i & ").DokArt:" & String$(33, "."), 33) & "'" & rDo(i).DokArt & "'"
@@ -4566,14 +4566,14 @@ Public Function dokumenteSpeichern(SammelInsert%, BezfSp%, Optional rAf&, Option
  Dim rs As New ADODB.Recordset
  T1 = Timer
  On Error Resume Next
- pid = rNa(0).Pat_ID
+ pid = rNa(0).Pat_id
  On Error GoTo fehler
  syscmd 4, pid & ": Speichere " & UBound(rDo) + 0 & " Sätze in `" & Tbnm & "`"
  Call csql0.AppVar(Array(" INSERT ", sqlIGNORE, "INTO `" & LCase$(Tbnm) & "` (FID,Pat_ID,ZeitPunkt," & _
      "DokPfad,DokArt,DokName,Quelldatum,absPos,AktZeit,DokGroe,DokAenD,QS,QT," & _
      "StByte)  VALUES"))
  If Not AllePat Then
-   sql = "DELETE FROM `" & LCase$(Tbnm) & "` WHERE Pat_ID = " & CStr(rNa(0).Pat_ID)
+   sql = "DELETE FROM `" & LCase$(Tbnm) & "` WHERE Pat_ID = " & CStr(rNa(0).Pat_id)
    Call myEFrag(sql)
  End If ' not AllePat
 sql:
@@ -4584,7 +4584,7 @@ setz:
   If SammelInsert = 0 Or i = 1 Then
    csql.Append csql0
   End If ' SammelInsert = 0 Or i = 1 Then
-  csql.AppVar Array("(", rDo(i).FID, ",", rDo(i).Pat_ID, ",", DatFor_k(rDo(i).Zeitpunkt), ",'", rDo(i).DokPfad, "','", rDo(i).DokArt, "','", rDo(i).DokName, "',", DatFor_k(rDo(i).Quelldatum), ",", _
+  csql.AppVar Array("(", rDo(i).FID, ",", rDo(i).Pat_id, ",", DatFor_k(rDo(i).Zeitpunkt), ",'", rDo(i).DokPfad, "','", rDo(i).DokArt, "','", rDo(i).DokName, "',", DatFor_k(rDo(i).Quelldatum), ",", _
    rDo(i).absPos, ",", DatFor_k(rDo(i).aktZeit), ",", rDo(i).DokGroe, ",", DatFor_k(rDo(i).DokAenD), ",'", rDo(i).QS, "','", rDo(i).QT, "',", rDo(i).StByte, ")")
   If SammelInsert <> 0 And i < UBound(rDo) Then csql.Append ","
   If SammelInsert = 0 Or i = UBound(rDo) Then
@@ -4620,7 +4620,7 @@ End If ' ErrN = 0 Then else
 syscmd 4, "rDo(" & i & "/" & UBound(rDo) & "):   " & ErrDescr
 sfnr = sfnr + 1
 If sfnr > 10 Then
- Lese.Ausgeb sfnr & " Fehler in ""dokumenteSpeichern()"" bei Pat. " & rNa(0).Pat_ID & ", gebe auf (ErrDes: " & ErrDescr & ")", True
+ Lese.Ausgeb sfnr & " Fehler in ""dokumenteSpeichern()"" bei Pat. " & rNa(0).Pat_id & ", gebe auf (ErrDes: " & ErrDescr & ")", True
  sfnr = 0
  Resume Next
 End If ' sfnr > 10
@@ -4693,7 +4693,7 @@ End Function ' dokumenteSpeichern
 
 Public Function roEiZuw(i&, j&)
  roEi(i).FID = rEi(j).FID
- roEi(i).Pat_ID = rEi(j).Pat_ID
+ roEi(i).Pat_id = rEi(j).Pat_id
  roEi(i).Zeitpunkt = rEi(j).Zeitpunkt
  roEi(i).art = rEi(j).art
  roEi(i).Ersteller = rEi(j).Ersteller
@@ -4710,7 +4710,7 @@ End Function ' roEiZuw
 
 Public Function EiZUnt%(i&, j&)
  If roEi(i).FID <> rEi(j).FID Then GoSub unter
- If roEi(i).Pat_ID <> rEi(j).Pat_ID Then GoSub unter
+ If roEi(i).Pat_id <> rEi(j).Pat_id Then GoSub unter
  If roEi(i).Zeitpunkt <> rEi(j).Zeitpunkt Then GoSub unter
  If roEi(i).art <> rEi(j).art Then GoSub unter
  If roEi(i).Ersteller <> rEi(j).Ersteller Then GoSub unter
@@ -4732,7 +4732,7 @@ End Function ' EiZUnt
 Public Function eintraegeLaden()
  Dim pid$, rs As New Recordset, akt&
  On Error GoTo fehler
- pid = rNa(0).Pat_ID
+ pid = rNa(0).Pat_id
  sql = "SELECT COALESCE(FID,0) FID,COALESCE(Pat_ID,0) Pat_ID,COALESCE(ZeitPunkt - INTERVAL 0 DAY,CONVERT('18991230',DATE)) ZeitPunkt,COALESCE(Art,'') Art" & _
 ",COALESCE(Ersteller,'') Ersteller,COALESCE(Änderer,'') Änderer,COALESCE(Inhalt,'') Inhalt,COALESCE(absPos,0) absPos" & _
 ",COALESCE(AktZeit - INTERVAL 0 DAY,CONVERT('18991230',DATE)) AktZeit,COALESCE(QS,'') QS,COALESCE(QT,'') QT,COALESCE(StByte,0) StByte" & _
@@ -4745,7 +4745,7 @@ Public Function eintraegeLaden()
   Do While Not rs.EOF
    akt = UBound(roEi)
    roEi(akt).FID = rs!FID
-   roEi(akt).Pat_ID = rs!Pat_ID
+   roEi(akt).Pat_id = rs!Pat_id
    roEi(akt).Zeitpunkt = rs!Zeitpunkt
    roEi(akt).art = doUmwfSQL(rs!art, lies.obMySQL, False)
    roEi(akt).Ersteller = doUmwfSQL(rs!Ersteller, lies.obMySQL, False)
@@ -4825,7 +4825,7 @@ Public Function rEiDump()
  For i = 1 To UBound(rEi)
   Print #200, vbCrLf & "i: " & i
   Print #200, Left$("rEi(" & i & ").FID:" & String$(33, "."), 33) & rEi(i).FID
-  Print #200, Left$("rEi(" & i & ").Pat_ID:" & String$(33, "."), 33) & rEi(i).Pat_ID
+  Print #200, Left$("rEi(" & i & ").Pat_ID:" & String$(33, "."), 33) & rEi(i).Pat_id
   Print #200, Left$("rEi(" & i & ").ZeitPunkt:" & String$(33, "."), 33) & rEi(i).Zeitpunkt
   Print #200, Left$("rEi(" & i & ").Art:" & String$(33, "."), 33) & "'" & rEi(i).art & "'"
   Print #200, Left$("rEi(" & i & ").Ersteller:" & String$(33, "."), 33) & "'" & rEi(i).Ersteller & "'"
@@ -4849,13 +4849,13 @@ Public Function eintraegeSpeichern(SammelInsert%, BezfSp%, Optional rAf&, Option
  Dim rs As New ADODB.Recordset
  T1 = Timer
  On Error Resume Next
- pid = rNa(0).Pat_ID
+ pid = rNa(0).Pat_id
  On Error GoTo fehler
  syscmd 4, pid & ": Speichere " & UBound(rEi) + 0 & " Sätze in `" & Tbnm & "`"
  Call csql0.AppVar(Array(" INSERT ", sqlIGNORE, "INTO `" & LCase$(Tbnm) & "` (FID,Pat_ID,ZeitPunkt," & _
      "Art,Ersteller,Änderer,Inhalt,absPos,AktZeit,QS,QT,StByte,inhNum)               VALUES"))
  If Not AllePat Then
-   sql = "DELETE FROM `" & LCase$(Tbnm) & "` WHERE Pat_ID = " & CStr(rNa(0).Pat_ID)
+   sql = "DELETE FROM `" & LCase$(Tbnm) & "` WHERE Pat_ID = " & CStr(rNa(0).Pat_id)
    Call myEFrag(sql)
  End If ' not AllePat
 sql:
@@ -4866,7 +4866,7 @@ setz:
   If SammelInsert = 0 Or i = 1 Then
    csql.Append csql0
   End If ' SammelInsert = 0 Or i = 1 Then
-  csql.AppVar Array("(", rEi(i).FID, ",", rEi(i).Pat_ID, ",", DatFor_k(rEi(i).Zeitpunkt), ",'", rEi(i).art, "','", rEi(i).Ersteller, "','", rEi(i).Änderer, "','", rEi(i).Inhalt, "',", rEi(i).absPos, ",", DatFor_k( _
+  csql.AppVar Array("(", rEi(i).FID, ",", rEi(i).Pat_id, ",", DatFor_k(rEi(i).Zeitpunkt), ",'", rEi(i).art, "','", rEi(i).Ersteller, "','", rEi(i).Änderer, "','", rEi(i).Inhalt, "',", rEi(i).absPos, ",", DatFor_k( _
    rEi(i).aktZeit), ",'", rEi(i).QS, "','", rEi(i).QT, "',", rEi(i).StByte, ",", REPLACE$(rEi(i).inhNum, ",", "."), ")")
   If SammelInsert <> 0 And i < UBound(rEi) Then csql.Append ","
   If SammelInsert = 0 Or i = UBound(rEi) Then
@@ -4906,7 +4906,7 @@ End If ' ErrN = 0 Then else
 syscmd 4, "rEi(" & i & "/" & UBound(rEi) & "):   " & ErrDescr
 sfnr = sfnr + 1
 If sfnr > 10 Then
- Lese.Ausgeb sfnr & " Fehler in ""eintraegeSpeichern()"" bei Pat. " & rNa(0).Pat_ID & ", gebe auf (ErrDes: " & ErrDescr & ")", True
+ Lese.Ausgeb sfnr & " Fehler in ""eintraegeSpeichern()"" bei Pat. " & rNa(0).Pat_id & ", gebe auf (ErrDes: " & ErrDescr & ")", True
  sfnr = 0
  Resume Next
 End If ' sfnr > 10
@@ -5004,7 +5004,7 @@ Public Function formulareSpeichern(SammelInsert%, BezfSp%, Optional rAf&, Option
  Dim neuFormID&, j&
  T1 = Timer
  On Error Resume Next
- pid = rNa(0).Pat_ID
+ pid = rNa(0).Pat_id
  On Error GoTo fehler
  syscmd 4, pid & ": Speichere " & UBound(rFo) + 0 & " Sätze in `" & Tbnm & "`"
  Call csql0.AppVar(Array(" INSERT ", sqlIGNORE, "INTO `" & LCase$(Tbnm) & "` (Form_Abk,FormBez,FormVorl," & _
@@ -5057,7 +5057,7 @@ End If ' ErrN = 0 Then else
 syscmd 4, "rFo(" & i & "/" & UBound(rFo) & "):   " & ErrDescr
 sfnr = sfnr + 1
 If sfnr > 10 Then
- Lese.Ausgeb sfnr & " Fehler in ""formulareSpeichern()"" bei Pat. " & rNa(0).Pat_ID & ", gebe auf (ErrDes: " & ErrDescr & ")", True
+ Lese.Ausgeb sfnr & " Fehler in ""formulareSpeichern()"" bei Pat. " & rNa(0).Pat_id & ", gebe auf (ErrDes: " & ErrDescr & ")", True
  sfnr = 0
  Resume Next
 End If ' sfnr > 10
@@ -5127,7 +5127,7 @@ End Function ' formulareSpeichern
 Public Function roFrZuw(i&, j&)
  roFr(i).Foid = rFr(j).Foid
  roFr(i).FID = rFr(j).FID
- roFr(i).Pat_ID = rFr(j).Pat_ID
+ roFr(i).Pat_id = rFr(j).Pat_id
  roFr(i).Form_ID = rFr(j).Form_ID
  roFr(i).Zeitpunkt = rFr(j).Zeitpunkt
  roFr(i).absPos = rFr(j).absPos
@@ -5141,7 +5141,7 @@ End Function ' roFrZuw
 Public Function FrZUnt%(i&, j&)
  If roFr(i).Foid <> rFr(j).Foid Then GoSub unter
  If roFr(i).FID <> rFr(j).FID Then GoSub unter
- If roFr(i).Pat_ID <> rFr(j).Pat_ID Then GoSub unter
+ If roFr(i).Pat_id <> rFr(j).Pat_id Then GoSub unter
  If roFr(i).Form_ID <> rFr(j).Form_ID Then GoSub unter
  If roFr(i).Zeitpunkt <> rFr(j).Zeitpunkt Then GoSub unter
  If roFr(i).absPos <> rFr(j).absPos Then GoSub unter
@@ -5159,7 +5159,7 @@ End Function ' FrZUnt
 Public Function forminhkopfLaden()
  Dim pid$, rs As New Recordset, akt&
  On Error GoTo fehler
- pid = rNa(0).Pat_ID
+ pid = rNa(0).Pat_id
  sql = "SELECT COALESCE(FoID,0) FoID,COALESCE(FID,0) FID,COALESCE(Pat_ID,0) Pat_ID,COALESCE(Form_ID,0) Form_ID" & _
 ",COALESCE(ZeitPunkt - INTERVAL 0 DAY,CONVERT('18991230',DATE)) ZeitPunkt,COALESCE(AbsPos,0) AbsPos,COALESCE(AktZeit - INTERVAL 0 DAY,CONVERT('18991230',DATE)) AktZeit,COALESCE(StByte,0) StByte" & _
 ",COALESCE(Satzart,'') Satzart,COALESCE(Satzlänge,'') Satzlänge,COALESCE(LANRid,0) LANRid FROM `forminhkopf` WHERE Pat_ID=" & pid & " ORDER BY `ZeitPunkt`"
@@ -5172,7 +5172,7 @@ Public Function forminhkopfLaden()
    akt = UBound(roFr)
    roFr(akt).Foid = rs!Foid
    roFr(akt).FID = rs!FID
-   roFr(akt).Pat_ID = rs!Pat_ID
+   roFr(akt).Pat_id = rs!Pat_id
    roFr(akt).Form_ID = rs!Form_ID
    roFr(akt).Zeitpunkt = rs!Zeitpunkt
    roFr(akt).absPos = rs!absPos
@@ -5249,7 +5249,7 @@ Public Function rFrDump()
   Print #200, vbCrLf & "i: " & i
   Print #200, Left$("rFr(" & i & ").FoID:" & String$(33, "."), 33) & rFr(i).Foid
   Print #200, Left$("rFr(" & i & ").FID:" & String$(33, "."), 33) & rFr(i).FID
-  Print #200, Left$("rFr(" & i & ").Pat_ID:" & String$(33, "."), 33) & rFr(i).Pat_ID
+  Print #200, Left$("rFr(" & i & ").Pat_ID:" & String$(33, "."), 33) & rFr(i).Pat_id
   Print #200, Left$("rFr(" & i & ").Form_ID:" & String$(33, "."), 33) & rFr(i).Form_ID
   Print #200, Left$("rFr(" & i & ").ZeitPunkt:" & String$(33, "."), 33) & rFr(i).Zeitpunkt
   Print #200, Left$("rFr(" & i & ").AbsPos:" & String$(33, "."), 33) & rFr(i).absPos
@@ -5269,7 +5269,7 @@ Public Function forminhkopfSpeichern(SammelInsert%, BezfSp%, Optional rAf&, Opti
  Dim rs As New ADODB.Recordset
  T1 = Timer
  On Error Resume Next
- pid = rNa(0).Pat_ID
+ pid = rNa(0).Pat_id
  On Error GoTo fehler
  syscmd 4, pid & ": Speichere " & UBound(rFr) + 0 & " Sätze in `" & Tbnm & "`"
  Call csql0.AppVar(Array(" INSERT ", sqlIGNORE, "INTO `" & LCase$(Tbnm) & "` (FoID,FID,Pat_ID," & _
@@ -5277,8 +5277,8 @@ Public Function forminhkopfSpeichern(SammelInsert%, BezfSp%, Optional rAf&, Opti
  FoIDv = 0
 erneut:
  If Not AllePat Then
-   myEFrag "DELETE fif FROM forminhfeld fif LEFT JOIN forminhkopf fk USING (foid) WHERE pat_ID=" & CStr(rNa(0).Pat_ID), rAFi
-   sql = "DELETE FROM `" & LCase$(Tbnm) & "` WHERE Pat_ID = " & CStr(rNa(0).Pat_ID)
+   myEFrag "DELETE fif FROM forminhfeld fif LEFT JOIN forminhkopf fk USING (foid) WHERE pat_ID=" & CStr(rNa(0).Pat_id), rAFi
+   sql = "DELETE FROM `" & LCase$(Tbnm) & "` WHERE Pat_ID = " & CStr(rNa(0).Pat_id)
    Call myEFrag(sql)
  End If ' not AllePat
 sql:
@@ -5289,7 +5289,7 @@ setz:
   If SammelInsert = 0 Or i = 1 Then
    csql.Append csql0
   End If ' SammelInsert = 0 Or i = 1 Then
-  csql.AppVar Array("(", rFr(i).Foid, ",", rFr(i).FID, ",", rFr(i).Pat_ID, ",", rFr(i).Form_ID, ",", DatFor_k(rFr(i).Zeitpunkt), ",", rFr(i).absPos, ",", DatFor_k(rFr(i).aktZeit), ",", rFr(i).StByte, ",'", _
+  csql.AppVar Array("(", rFr(i).Foid, ",", rFr(i).FID, ",", rFr(i).Pat_id, ",", rFr(i).Form_ID, ",", DatFor_k(rFr(i).Zeitpunkt), ",", rFr(i).absPos, ",", DatFor_k(rFr(i).aktZeit), ",", rFr(i).StByte, ",'", _
    rFr(i).Satzart, "','", rFr(i).Satzlänge, "',", rFr(i).lanrid, ")")
   If SammelInsert <> 0 And i < UBound(rFr) Then csql.Append ","
   If SammelInsert = 0 Or i = UBound(rFr) Then
@@ -5347,7 +5347,7 @@ If ErrNumber = -2147217900 And ErrDescr Like "*Duplicate entry * for key 'PRIMAR
 End If ' ErrNumber = -2147217900 And ErrDescr Like "*Duplicate entry * for key 'PRIMARY'" Then
 sfnr = sfnr + 1
 If sfnr > 10 Then
- Lese.Ausgeb sfnr & " Fehler in ""forminhkopfSpeichern()"" bei Pat. " & rNa(0).Pat_ID & ", gebe auf (ErrDes: " & ErrDescr & ")", True
+ Lese.Ausgeb sfnr & " Fehler in ""forminhkopfSpeichern()"" bei Pat. " & rNa(0).Pat_id & ", gebe auf (ErrDes: " & ErrDescr & ")", True
  sfnr = 0
  Resume Next
 End If ' sfnr > 10
@@ -5434,7 +5434,7 @@ Public Function forminhfeldSpeichern(SammelInsert%, BezfSp%, Optional rAf&, Opti
  Dim rs As New ADODB.Recordset
  T1 = Timer
  On Error Resume Next
- pid = rNa(0).Pat_ID
+ pid = rNa(0).Pat_id
  On Error GoTo fehler
  syscmd 4, pid & ": Speichere " & UBound(rFm) + 0 & " Sätze in `" & Tbnm & "`"
  Call csql0.AppVar(Array(" INSERT ", sqlIGNORE, "INTO `" & LCase$(Tbnm) & "` (FoID,Nr,FeldNr," & _
@@ -5483,7 +5483,7 @@ End If ' ErrN = 0 Then else
 syscmd 4, "rFm(" & i & "/" & UBound(rFm) & "):   " & ErrDescr
 sfnr = sfnr + 1
 If sfnr > 10 Then
- Lese.Ausgeb sfnr & " Fehler in ""forminhfeldSpeichern()"" bei Pat. " & rNa(0).Pat_ID & ", gebe auf (ErrDes: " & ErrDescr & ")", True
+ Lese.Ausgeb sfnr & " Fehler in ""forminhfeldSpeichern()"" bei Pat. " & rNa(0).Pat_id & ", gebe auf (ErrDes: " & ErrDescr & ")", True
  sfnr = 0
  Resume Next
 End If ' sfnr > 10
@@ -5546,7 +5546,7 @@ End Function ' forminhfeldSpeichern
 
 Public Function roKhZuw(i&, j&)
  roKh(i).FID = rKh(j).FID
- roKh(i).Pat_ID = rKh(j).Pat_ID
+ roKh(i).Pat_id = rKh(j).Pat_id
  roKh(i).Zeitpunkt = rKh(j).Zeitpunkt
  roKh(i).Ziel = rKh(j).Ziel
  roKh(i).obNot = rKh(j).obNot
@@ -5563,7 +5563,7 @@ End Function ' roKhZuw
 
 Public Function KhZUnt%(i&, j&)
  If roKh(i).FID <> rKh(j).FID Then GoSub unter
- If roKh(i).Pat_ID <> rKh(j).Pat_ID Then GoSub unter
+ If roKh(i).Pat_id <> rKh(j).Pat_id Then GoSub unter
  If roKh(i).Zeitpunkt <> rKh(j).Zeitpunkt Then GoSub unter
  If roKh(i).Ziel <> rKh(j).Ziel Then GoSub unter
  If roKh(i).obNot <> rKh(j).obNot Then GoSub unter
@@ -5585,7 +5585,7 @@ End Function ' KhZUnt
 Public Function kheinweisLaden()
  Dim pid$, rs As New Recordset, akt&
  On Error GoTo fehler
- pid = rNa(0).Pat_ID
+ pid = rNa(0).Pat_id
  sql = "SELECT COALESCE(FID,0) FID,COALESCE(Pat_ID,0) Pat_ID,COALESCE(ZeitPunkt - INTERVAL 0 DAY,CONVERT('18991230',DATE)) ZeitPunkt,COALESCE(Ziel,'') Ziel" & _
 ",COALESCE(obNot,0) obNot,COALESCE(obBeleg,0) obBeleg,COALESCE(Diagnose,'') Diagnose,COALESCE(Befund,'') Befund" & _
 ",COALESCE(BisMas,'') BisMas,COALESCE(FraStel,'') FraStel,COALESCE(MitBef,'') MitBef,COALESCE(absPos,0) absPos" & _
@@ -5598,7 +5598,7 @@ Public Function kheinweisLaden()
   Do While Not rs.EOF
    akt = UBound(roKh)
    roKh(akt).FID = rs!FID
-   roKh(akt).Pat_ID = rs!Pat_ID
+   roKh(akt).Pat_id = rs!Pat_id
    roKh(akt).Zeitpunkt = rs!Zeitpunkt
    roKh(akt).Ziel = doUmwfSQL(rs!Ziel, lies.obMySQL, False)
    roKh(akt).obNot = rs!obNot
@@ -5678,7 +5678,7 @@ Public Function rKhDump()
  For i = 1 To UBound(rKh)
   Print #200, vbCrLf & "i: " & i
   Print #200, Left$("rKh(" & i & ").FID:" & String$(33, "."), 33) & rKh(i).FID
-  Print #200, Left$("rKh(" & i & ").Pat_ID:" & String$(33, "."), 33) & rKh(i).Pat_ID
+  Print #200, Left$("rKh(" & i & ").Pat_ID:" & String$(33, "."), 33) & rKh(i).Pat_id
   Print #200, Left$("rKh(" & i & ").ZeitPunkt:" & String$(33, "."), 33) & rKh(i).Zeitpunkt
   Print #200, Left$("rKh(" & i & ").Ziel:" & String$(33, "."), 33) & "'" & rKh(i).Ziel & "'"
   Print #200, Left$("rKh(" & i & ").obNot:" & String$(33, "."), 33) & rKh(i).obNot
@@ -5702,14 +5702,14 @@ Public Function kheinweisSpeichern(SammelInsert%, BezfSp%, Optional rAf&, Option
  Dim rs As New ADODB.Recordset
  T1 = Timer
  On Error Resume Next
- pid = rNa(0).Pat_ID
+ pid = rNa(0).Pat_id
  On Error GoTo fehler
  syscmd 4, pid & ": Speichere " & UBound(rKh) + 0 & " Sätze in `" & Tbnm & "`"
  Call csql0.AppVar(Array(" INSERT ", sqlIGNORE, "INTO `" & LCase$(Tbnm) & "` (FID,Pat_ID,ZeitPunkt," & _
      "Ziel,obNot,obBeleg,Diagnose,Befund,BisMas,FraStel,MitBef,absPos,AktZeit," & _
      "StByte)  VALUES"))
  If Not AllePat Then
-   sql = "DELETE FROM `" & LCase$(Tbnm) & "` WHERE Pat_ID = " & CStr(rNa(0).Pat_ID)
+   sql = "DELETE FROM `" & LCase$(Tbnm) & "` WHERE Pat_ID = " & CStr(rNa(0).Pat_id)
    Call myEFrag(sql)
  End If ' not AllePat
 sql:
@@ -5720,7 +5720,7 @@ setz:
   If SammelInsert = 0 Or i = 1 Then
    csql.Append csql0
   End If ' SammelInsert = 0 Or i = 1 Then
-  csql.AppVar Array("(", rKh(i).FID, ",", rKh(i).Pat_ID, ",", DatFor_k(rKh(i).Zeitpunkt), ",'", rKh(i).Ziel, "',", CStr(-(rKh(i).obNot <> 0)), ",", CStr(-(rKh(i).obBeleg <> 0)), ",'", rKh(i).Diagnose, "','", _
+  csql.AppVar Array("(", rKh(i).FID, ",", rKh(i).Pat_id, ",", DatFor_k(rKh(i).Zeitpunkt), ",'", rKh(i).Ziel, "',", CStr(-(rKh(i).obNot <> 0)), ",", CStr(-(rKh(i).obBeleg <> 0)), ",'", rKh(i).Diagnose, "','", _
    rKh(i).Befund, "','", rKh(i).BisMas, "','", rKh(i).FraStel, "','", rKh(i).MitBef, "',", rKh(i).absPos, ",", DatFor_k(rKh(i).aktZeit), ",", rKh(i).StByte, ")")
   If SammelInsert <> 0 And i < UBound(rKh) Then csql.Append ","
   If SammelInsert = 0 Or i = UBound(rKh) Then
@@ -5756,7 +5756,7 @@ End If ' ErrN = 0 Then else
 syscmd 4, "rKh(" & i & "/" & UBound(rKh) & "):   " & ErrDescr
 sfnr = sfnr + 1
 If sfnr > 10 Then
- Lese.Ausgeb sfnr & " Fehler in ""kheinweisSpeichern()"" bei Pat. " & rNa(0).Pat_ID & ", gebe auf (ErrDes: " & ErrDescr & ")", True
+ Lese.Ausgeb sfnr & " Fehler in ""kheinweisSpeichern()"" bei Pat. " & rNa(0).Pat_id & ", gebe auf (ErrDes: " & ErrDescr & ")", True
  sfnr = 0
  Resume Next
 End If ' sfnr > 10
@@ -5831,7 +5831,7 @@ End Function ' kheinweisSpeichern
 
 Public Function roLbZuw(i&, j&)
  roLb(i).FID = rLb(j).FID
- roLb(i).Pat_ID = rLb(j).Pat_ID
+ roLb(i).Pat_id = rLb(j).Pat_id
  roLb(i).Zeitpunkt = rLb(j).Zeitpunkt
  roLb(i).AnfText = rLb(j).AnfText
  roLb(i).absPos = rLb(j).absPos
@@ -5841,7 +5841,7 @@ End Function ' roLbZuw
 
 Public Function LbZUnt%(i&, j&)
  If roLb(i).FID <> rLb(j).FID Then GoSub unter
- If roLb(i).Pat_ID <> rLb(j).Pat_ID Then GoSub unter
+ If roLb(i).Pat_id <> rLb(j).Pat_id Then GoSub unter
  If roLb(i).Zeitpunkt <> rLb(j).Zeitpunkt Then GoSub unter
  If roLb(i).AnfText <> rLb(j).AnfText Then GoSub unter
  If roLb(i).absPos <> rLb(j).absPos Then GoSub unter
@@ -5856,7 +5856,7 @@ End Function ' LbZUnt
 Public Function lbanforderungenLaden()
  Dim pid$, rs As New Recordset, akt&
  On Error GoTo fehler
- pid = rNa(0).Pat_ID
+ pid = rNa(0).Pat_id
  sql = "SELECT COALESCE(FID,0) FID,COALESCE(Pat_ID,0) Pat_ID,COALESCE(ZeitPunkt - INTERVAL 0 DAY,CONVERT('18991230',DATE)) ZeitPunkt,COALESCE(AnfText,'') AnfText" & _
 ",COALESCE(absPos,0) absPos,COALESCE(AktZeit - INTERVAL 0 DAY,CONVERT('18991230',DATE)) AktZeit,COALESCE(StByte,0) StByte FROM `lbanforderungen` WHERE Pat_ID=" & pid & " ORDER BY `ZeitPunkt`"
  myFrag rs, sql
@@ -5867,7 +5867,7 @@ Public Function lbanforderungenLaden()
   Do While Not rs.EOF
    akt = UBound(roLb)
    roLb(akt).FID = rs!FID
-   roLb(akt).Pat_ID = rs!Pat_ID
+   roLb(akt).Pat_id = rs!Pat_id
    roLb(akt).Zeitpunkt = rs!Zeitpunkt
    roLb(akt).AnfText = doUmwfSQL(rs!AnfText, lies.obMySQL, False)
    roLb(akt).absPos = rs!absPos
@@ -5940,7 +5940,7 @@ Public Function rLbDump()
  For i = 1 To UBound(rLb)
   Print #200, vbCrLf & "i: " & i
   Print #200, Left$("rLb(" & i & ").FID:" & String$(33, "."), 33) & rLb(i).FID
-  Print #200, Left$("rLb(" & i & ").Pat_ID:" & String$(33, "."), 33) & rLb(i).Pat_ID
+  Print #200, Left$("rLb(" & i & ").Pat_ID:" & String$(33, "."), 33) & rLb(i).Pat_id
   Print #200, Left$("rLb(" & i & ").ZeitPunkt:" & String$(33, "."), 33) & rLb(i).Zeitpunkt
   Print #200, Left$("rLb(" & i & ").AnfText:" & String$(33, "."), 33) & "'" & rLb(i).AnfText & "'"
   Print #200, Left$("rLb(" & i & ").absPos:" & String$(33, "."), 33) & rLb(i).absPos
@@ -5957,13 +5957,13 @@ Public Function lbanforderungenSpeichern(SammelInsert%, BezfSp%, Optional rAf&, 
  Dim rs As New ADODB.Recordset
  T1 = Timer
  On Error Resume Next
- pid = rNa(0).Pat_ID
+ pid = rNa(0).Pat_id
  On Error GoTo fehler
  syscmd 4, pid & ": Speichere " & UBound(rLb) + 0 & " Sätze in `" & Tbnm & "`"
  Call csql0.AppVar(Array(" INSERT ", sqlIGNORE, "INTO `" & LCase$(Tbnm) & "` (FID,Pat_ID,ZeitPunkt," & _
      "AnfText,absPos,AktZeit,StByte)       VALUES"))
  If Not AllePat Then
-   sql = "DELETE FROM `" & LCase$(Tbnm) & "` WHERE Pat_ID = " & CStr(rNa(0).Pat_ID)
+   sql = "DELETE FROM `" & LCase$(Tbnm) & "` WHERE Pat_ID = " & CStr(rNa(0).Pat_id)
    Call myEFrag(sql)
  End If ' not AllePat
 sql:
@@ -5974,7 +5974,7 @@ setz:
   If SammelInsert = 0 Or i = 1 Then
    csql.Append csql0
   End If ' SammelInsert = 0 Or i = 1 Then
-  csql.AppVar Array("(", rLb(i).FID, ",", rLb(i).Pat_ID, ",", DatFor_k(rLb(i).Zeitpunkt), ",'", rLb(i).AnfText, "',", rLb(i).absPos, ",", DatFor_k(rLb(i).aktZeit), ",", rLb(i).StByte, ")")
+  csql.AppVar Array("(", rLb(i).FID, ",", rLb(i).Pat_id, ",", DatFor_k(rLb(i).Zeitpunkt), ",'", rLb(i).AnfText, "',", rLb(i).absPos, ",", DatFor_k(rLb(i).aktZeit), ",", rLb(i).StByte, ")")
   If SammelInsert <> 0 And i < UBound(rLb) Then csql.Append ","
   If SammelInsert = 0 Or i = UBound(rLb) Then
     altmode = myEFrag("SELECT @@global.sql_mode", , DBCn).Fields(0)
@@ -6009,7 +6009,7 @@ End If ' ErrN = 0 Then else
 syscmd 4, "rLb(" & i & "/" & UBound(rLb) & "):   " & ErrDescr
 sfnr = sfnr + 1
 If sfnr > 10 Then
- Lese.Ausgeb sfnr & " Fehler in ""lbanforderungenSpeichern()"" bei Pat. " & rNa(0).Pat_ID & ", gebe auf (ErrDes: " & ErrDescr & ")", True
+ Lese.Ausgeb sfnr & " Fehler in ""lbanforderungenSpeichern()"" bei Pat. " & rNa(0).Pat_id & ", gebe auf (ErrDes: " & ErrDescr & ")", True
  sfnr = 0
  Resume Next
 End If ' sfnr > 10
@@ -6074,7 +6074,7 @@ End Function ' lbanforderungenSpeichern
 
 Public Function roLaZuw(i&, j&)
  roLa(i).FID = rLa(j).FID
- roLa(i).Pat_ID = rLa(j).Pat_ID
+ roLa(i).Pat_id = rLa(j).Pat_id
  roLa(i).Zeitpunkt = rLa(j).Zeitpunkt
  roLa(i).FertigStGrad = rLa(j).FertigStGrad
  roLa(i).Abkü = rLa(j).Abkü
@@ -6095,7 +6095,7 @@ End Function ' roLaZuw
 
 Public Function LaZUnt%(i&, j&)
  If roLa(i).FID <> rLa(j).FID Then GoSub unter
- If roLa(i).Pat_ID <> rLa(j).Pat_ID Then GoSub unter
+ If roLa(i).Pat_id <> rLa(j).Pat_id Then GoSub unter
  If roLa(i).Zeitpunkt <> rLa(j).Zeitpunkt Then GoSub unter
  If roLa(i).FertigStGrad <> rLa(j).FertigStGrad Then GoSub unter
  If roLa(i).Abkü <> rLa(j).Abkü Then GoSub unter
@@ -6121,7 +6121,7 @@ End Function ' LaZUnt
 Public Function laborneuLaden()
  Dim pid$, rs As New Recordset, akt&
  On Error GoTo fehler
- pid = rNa(0).Pat_ID
+ pid = rNa(0).Pat_id
  sql = "SELECT COALESCE(FID,0) FID,COALESCE(Pat_ID,0) Pat_ID,COALESCE(ZeitPunkt - INTERVAL 0 DAY,CONVERT('18991230',DATE)) ZeitPunkt,COALESCE(FertigStGrad,'') FertigStGrad" & _
 ",COALESCE(Abkü,'') Abkü,COALESCE(LangtextVW,0) LangtextVW,COALESCE(Wert,'') Wert,COALESCE(Einheit,'') Einheit" & _
 ",COALESCE(obpath,'') obpath,COALESCE(AnmkgVW,0) AnmkgVW,COALESCE(KommentarVW,0) KommentarVW,COALESCE(AbsPos,0) AbsPos" & _
@@ -6135,7 +6135,7 @@ Public Function laborneuLaden()
   Do While Not rs.EOF
    akt = UBound(roLa)
    roLa(akt).FID = rs!FID
-   roLa(akt).Pat_ID = rs!Pat_ID
+   roLa(akt).Pat_id = rs!Pat_id
    roLa(akt).Zeitpunkt = rs!Zeitpunkt
    roLa(akt).FertigStGrad = doUmwfSQL(rs!FertigStGrad, lies.obMySQL, False)
    roLa(akt).Abkü = doUmwfSQL(rs!Abkü, lies.obMySQL, False)
@@ -6219,7 +6219,7 @@ Public Function rLaDump()
  For i = 1 To UBound(rLa)
   Print #200, vbCrLf & "i: " & i
   Print #200, Left$("rLa(" & i & ").FID:" & String$(33, "."), 33) & rLa(i).FID
-  Print #200, Left$("rLa(" & i & ").Pat_ID:" & String$(33, "."), 33) & rLa(i).Pat_ID
+  Print #200, Left$("rLa(" & i & ").Pat_ID:" & String$(33, "."), 33) & rLa(i).Pat_id
   Print #200, Left$("rLa(" & i & ").ZeitPunkt:" & String$(33, "."), 33) & rLa(i).Zeitpunkt
   Print #200, Left$("rLa(" & i & ").FertigStGrad:" & String$(33, "."), 33) & "'" & rLa(i).FertigStGrad & "'"
   Print #200, Left$("rLa(" & i & ").Abkü:" & String$(33, "."), 33) & "'" & rLa(i).Abkü & "'"
@@ -6247,14 +6247,14 @@ Public Function laborneuSpeichern(SammelInsert%, BezfSp%, Optional rAf&, Optiona
  Dim rs As New ADODB.Recordset
  T1 = Timer
  On Error Resume Next
- pid = rNa(0).Pat_ID
+ pid = rNa(0).Pat_id
  On Error GoTo fehler
  syscmd 4, pid & ": Speichere " & UBound(rLa) + 0 & " Sätze in `" & Tbnm & "`"
  Call csql0.AppVar(Array(" INSERT ", sqlIGNORE, "INTO `" & LCase$(Tbnm) & "` (FID,Pat_ID,ZeitPunkt," & _
      "FertigStGrad,Abkü,LangtextVW,Wert,Einheit,obpath,AnmkgVW,KommentarVW,AbsPos,AktZeit," & _
      "Refnr,StByte,AbschlZlVW,NormberVW)   VALUES"))
  If Not AllePat Then
-   sql = "DELETE FROM `" & LCase$(Tbnm) & "` WHERE Pat_ID = " & CStr(rNa(0).Pat_ID)
+   sql = "DELETE FROM `" & LCase$(Tbnm) & "` WHERE Pat_ID = " & CStr(rNa(0).Pat_id)
    Call myEFrag(sql)
  End If ' not AllePat
 sql:
@@ -6265,7 +6265,7 @@ setz:
   If SammelInsert = 0 Or i = 1 Then
    csql.Append csql0
   End If ' SammelInsert = 0 Or i = 1 Then
-  csql.AppVar Array("(", rLa(i).FID, ",", rLa(i).Pat_ID, ",", DatFor_k(rLa(i).Zeitpunkt), ",'", rLa(i).FertigStGrad, "','", rLa(i).Abkü, "',", rLa(i).LangtextVW, ",'", rLa(i).Wert, "','", rLa(i).Einheit, "','", _
+  csql.AppVar Array("(", rLa(i).FID, ",", rLa(i).Pat_id, ",", DatFor_k(rLa(i).Zeitpunkt), ",'", rLa(i).FertigStGrad, "','", rLa(i).Abkü, "',", rLa(i).LangtextVW, ",'", rLa(i).Wert, "','", rLa(i).Einheit, "','", _
    rLa(i).obpath, "',", rLa(i).AnmkgVW, ",", rLa(i).KommentarVW, ",", rLa(i).absPos, ",", DatFor_k(rLa(i).aktZeit), ",", rLa(i).RefNr, ",", rLa(i).StByte, ",", rLa(i).AbschlZlVW, ",", _
    rLa(i).NormberVW, ")")
   If SammelInsert <> 0 And i < UBound(rLa) Then csql.Append ","
@@ -6306,7 +6306,7 @@ End If ' ErrN = 0 Then else
 syscmd 4, "rLa(" & i & "/" & UBound(rLa) & "):   " & ErrDescr
 sfnr = sfnr + 1
 If sfnr > 10 Then
- Lese.Ausgeb sfnr & " Fehler in ""laborneuSpeichern()"" bei Pat. " & rNa(0).Pat_ID & ", gebe auf (ErrDes: " & ErrDescr & ")", True
+ Lese.Ausgeb sfnr & " Fehler in ""laborneuSpeichern()"" bei Pat. " & rNa(0).Pat_id & ", gebe auf (ErrDes: " & ErrDescr & ")", True
  sfnr = 0
  Resume Next
 End If ' sfnr > 10
@@ -6380,7 +6380,7 @@ End Function ' laborneuSpeichern
 Public Function roLeZuw(i&, j&)
  roLe(i).id = rLe(j).id
  roLe(i).FID = rLe(j).FID
- roLe(i).Pat_ID = rLe(j).Pat_ID
+ roLe(i).Pat_id = rLe(j).Pat_id
  roLe(i).Zeitpunkt = rLe(j).Zeitpunkt
  roLe(i).Leistung = rLe(j).Leistung
  roLe(i).ArtdUs = rLe(j).ArtdUs
@@ -6431,7 +6431,7 @@ End Function ' roLeZuw
 Public Function LeZUnt%(i&, j&)
  If roLe(i).id <> rLe(j).id Then GoSub unter
  If roLe(i).FID <> rLe(j).FID Then GoSub unter
- If roLe(i).Pat_ID <> rLe(j).Pat_ID Then GoSub unter
+ If roLe(i).Pat_id <> rLe(j).Pat_id Then GoSub unter
  If roLe(i).Zeitpunkt <> rLe(j).Zeitpunkt Then GoSub unter
  If roLe(i).Leistung <> rLe(j).Leistung Then GoSub unter
  If roLe(i).ArtdUs <> rLe(j).ArtdUs Then GoSub unter
@@ -6486,7 +6486,7 @@ End Function ' LeZUnt
 Public Function leistungenLaden()
  Dim pid$, rs As New Recordset, akt&
  On Error GoTo fehler
- pid = rNa(0).Pat_ID
+ pid = rNa(0).Pat_id
  sql = "SELECT COALESCE(id,0) id,COALESCE(FID,0) FID,COALESCE(Pat_ID,0) Pat_ID,COALESCE(ZeitPunkt - INTERVAL 0 DAY,CONVERT('18991230',DATE)) ZeitPunkt" & _
 ",COALESCE(Leistung,'') Leistung,COALESCE(ArtdUs,'') ArtdUs,COALESCE(LAnzl,'') LAnzl,COALESCE(LUhrz,'') LUhrz" & _
 ",COALESCE(LfBegr,'') LfBegr,COALESCE(Med,'') Med,COALESCE(LOrgan,'') LOrgan,COALESCE(LArztBf,'') LArztBf" & _
@@ -6509,7 +6509,7 @@ Public Function leistungenLaden()
    akt = UBound(roLe)
    roLe(akt).id = rs!id
    roLe(akt).FID = rs!FID
-   roLe(akt).Pat_ID = rs!Pat_ID
+   roLe(akt).Pat_id = rs!Pat_id
    roLe(akt).Zeitpunkt = rs!Zeitpunkt
    roLe(akt).Leistung = doUmwfSQL(rs!Leistung, lies.obMySQL, False)
    roLe(akt).ArtdUs = doUmwfSQL(rs!ArtdUs, lies.obMySQL, False)
@@ -6623,7 +6623,7 @@ Public Function rLeDump()
   Print #200, vbCrLf & "i: " & i
   Print #200, Left$("rLe(" & i & ").id:" & String$(33, "."), 33) & rLe(i).id
   Print #200, Left$("rLe(" & i & ").FID:" & String$(33, "."), 33) & rLe(i).FID
-  Print #200, Left$("rLe(" & i & ").Pat_ID:" & String$(33, "."), 33) & rLe(i).Pat_ID
+  Print #200, Left$("rLe(" & i & ").Pat_ID:" & String$(33, "."), 33) & rLe(i).Pat_id
   Print #200, Left$("rLe(" & i & ").ZeitPunkt:" & String$(33, "."), 33) & rLe(i).Zeitpunkt
   Print #200, Left$("rLe(" & i & ").Leistung:" & String$(33, "."), 33) & "'" & rLe(i).Leistung & "'"
   Print #200, Left$("rLe(" & i & ").ArtdUs:" & String$(33, "."), 33) & "'" & rLe(i).ArtdUs & "'"
@@ -6680,7 +6680,7 @@ Public Function leistungenSpeichern(SammelInsert%, BezfSp%, Optional rAf&, Optio
  Dim rs As New ADODB.Recordset
  T1 = Timer
  On Error Resume Next
- pid = rNa(0).Pat_ID
+ pid = rNa(0).Pat_id
  On Error GoTo fehler
  syscmd 4, pid & ": Speichere " & UBound(rLe) + 0 & " Sätze in `" & Tbnm & "`"
  Call csql0.AppVar(Array(" INSERT ", sqlIGNORE, "INTO `" & LCase$(Tbnm) & "` (FID,Pat_ID,ZeitPunkt," & _
@@ -6690,7 +6690,7 @@ Public Function leistungenSpeichern(SammelInsert%, BezfSp%, Optional rAf&, Optio
      "Pruefzeit,Kalkzeit,Bsnr,Abrechnungssperre,Medikanr,Laborkosten,Sachkostentyp,Usegebordtext,Arztliste,Ersteller," & _
      "Änderer,Kennzeichen_arzt_technik,Auftragsschluessel,Auftragstext)              VALUES"))
  If Not AllePat Then
-   sql = "DELETE FROM `" & LCase$(Tbnm) & "` WHERE Pat_ID = " & CStr(rNa(0).Pat_ID)
+   sql = "DELETE FROM `" & LCase$(Tbnm) & "` WHERE Pat_ID = " & CStr(rNa(0).Pat_id)
    Call myEFrag(sql)
  End If ' not AllePat
 sql:
@@ -6701,7 +6701,7 @@ setz:
   If SammelInsert = 0 Or i = 1 Then
    csql.Append csql0
   End If ' SammelInsert = 0 Or i = 1 Then
-  csql.AppVar Array("(", rLe(i).FID, ",", rLe(i).Pat_ID, ",", DatFor_k(rLe(i).Zeitpunkt), ",'", rLe(i).Leistung, "','", rLe(i).ArtdUs, "','", rLe(i).LAnzl, "','", rLe(i).LUhrz, "','", rLe(i).LfBegr, "','", _
+  csql.AppVar Array("(", rLe(i).FID, ",", rLe(i).Pat_id, ",", DatFor_k(rLe(i).Zeitpunkt), ",'", rLe(i).Leistung, "','", rLe(i).ArtdUs, "','", rLe(i).LAnzl, "','", rLe(i).LUhrz, "','", rLe(i).LfBegr, "','", _
    rLe(i).Med, "','", rLe(i).LOrgan, "','", rLe(i).LArztBf, "','", rLe(i).DtlKbsV, "','", rLe(i).LEntlDt, "','", rLe(i).Faktor, "','", rLe(i).LBSNR, "','", rLe(i).Charge, "','", rLe(i).Lanr, "',", DatFor_k( _
    rLe(i).letzVorg), ",'", rLe(i).Ausn, "','", rLe(i).beme, "',", rLe(i).absPos, ",", DatFor_k(rLe(i).aktZeit), ",'", rLe(i).QS, "','", rLe(i).QT, "',", rLe(i).StByte, ",", _
    rLe(i).lanrid, ",'", rLe(i).Sachkbez, "',", rLe(i).Sachkct, ",'", rLe(i).Zone, "',", rLe(i).Punkte, ",", rLe(i).Lstgerbnr, ",", rLe(i).Position, ",", rLe(i).Eignung, ",", _
@@ -6745,7 +6745,7 @@ End If ' ErrN = 0 Then else
 syscmd 4, "rLe(" & i & "/" & UBound(rLe) & "):   " & ErrDescr
 sfnr = sfnr + 1
 If sfnr > 10 Then
- Lese.Ausgeb sfnr & " Fehler in ""leistungenSpeichern()"" bei Pat. " & rNa(0).Pat_ID & ", gebe auf (ErrDes: " & ErrDescr & ")", True
+ Lese.Ausgeb sfnr & " Fehler in ""leistungenSpeichern()"" bei Pat. " & rNa(0).Pat_id & ", gebe auf (ErrDes: " & ErrDescr & ")", True
  sfnr = 0
  Resume Next
 End If ' sfnr > 10
@@ -6862,7 +6862,7 @@ End Function ' leistungenSpeichern
 
 Public Function roMeZuw(i&, j&)
  roMe(i).FID = rMe(j).FID
- roMe(i).Pat_ID = rMe(j).Pat_ID
+ roMe(i).Pat_id = rMe(j).Pat_id
  roMe(i).MPNr = rMe(j).MPNr
  roMe(i).Zeitpunkt = rMe(j).Zeitpunkt
  roMe(i).Datum = rMe(j).Datum
@@ -6893,7 +6893,7 @@ End Function ' roMeZuw
 
 Public Function MeZUnt%(i&, j&)
  If roMe(i).FID <> rMe(j).FID Then GoSub unter
- If roMe(i).Pat_ID <> rMe(j).Pat_ID Then GoSub unter
+ If roMe(i).Pat_id <> rMe(j).Pat_id Then GoSub unter
  If roMe(i).MPNr <> rMe(j).MPNr Then GoSub unter
  If roMe(i).Zeitpunkt <> rMe(j).Zeitpunkt Then GoSub unter
  If roMe(i).Datum <> rMe(j).Datum Then GoSub unter
@@ -6929,7 +6929,7 @@ End Function ' MeZUnt
 Public Function medplanLaden()
  Dim pid$, rs As New Recordset, akt&
  On Error GoTo fehler
- pid = rNa(0).Pat_ID
+ pid = rNa(0).Pat_id
  sql = "SELECT COALESCE(FID,0) FID,COALESCE(Pat_ID,0) Pat_ID,COALESCE(MPNr,0) MPNr,COALESCE(ZeitPunkt - INTERVAL 0 DAY,CONVERT('18991230',DATE)) ZeitPunkt" & _
 ",COALESCE(Datum - INTERVAL 0 DAY,CONVERT('18991230',DATE)) Datum,COALESCE(Medikament,'') Medikament,COALESCE(MedAnfang,'') MedAnfang,COALESCE(Wirkstoff,'') Wirkstoff" & _
 ",COALESCE(PZN,0) PZN,COALESCE(FeldNr,0) FeldNr,COALESCE(mo,'') mo,COALESCE(mi,'') mi" & _
@@ -6946,7 +6946,7 @@ Public Function medplanLaden()
   Do While Not rs.EOF
    akt = UBound(roMe)
    roMe(akt).FID = rs!FID
-   roMe(akt).Pat_ID = rs!Pat_ID
+   roMe(akt).Pat_id = rs!Pat_id
    roMe(akt).MPNr = rs!MPNr
    roMe(akt).Zeitpunkt = rs!Zeitpunkt
    roMe(akt).Datum = rs!Datum
@@ -7040,7 +7040,7 @@ Public Function rMeDump()
  For i = 1 To UBound(rMe)
   Print #200, vbCrLf & "i: " & i
   Print #200, Left$("rMe(" & i & ").FID:" & String$(33, "."), 33) & rMe(i).FID
-  Print #200, Left$("rMe(" & i & ").Pat_ID:" & String$(33, "."), 33) & rMe(i).Pat_ID
+  Print #200, Left$("rMe(" & i & ").Pat_ID:" & String$(33, "."), 33) & rMe(i).Pat_id
   Print #200, Left$("rMe(" & i & ").MPNr:" & String$(33, "."), 33) & rMe(i).MPNr
   Print #200, Left$("rMe(" & i & ").ZeitPunkt:" & String$(33, "."), 33) & rMe(i).Zeitpunkt
   Print #200, Left$("rMe(" & i & ").Datum:" & String$(33, "."), 33) & rMe(i).Datum
@@ -7078,7 +7078,7 @@ Public Function medplanSpeichern(SammelInsert%, BezfSp%, Optional rAf&, Optional
  Dim rs As New ADODB.Recordset
  T1 = Timer
  On Error Resume Next
- pid = rNa(0).Pat_ID
+ pid = rNa(0).Pat_id
  On Error GoTo fehler
  syscmd 4, pid & ": Speichere " & UBound(rMe) + 0 & " Sätze in `" & Tbnm & "`"
  Call csql0.AppVar(Array(" INSERT ", sqlIGNORE, "INTO `" & LCase$(Tbnm) & "` (FID,Pat_ID,MPNr," & _
@@ -7086,7 +7086,7 @@ Public Function medplanSpeichern(SammelInsert%, BezfSp%, Optional rAf&, Optional
      "ab,zn,bBed,Bemerkung,Grund,Stärke,Einheit,Form,Menge,Nutzer," & _
      "AbsPos,AktZeit,StByte,ergaenzt,mpart)              VALUES"))
  If Not AllePat Then
-   sql = "DELETE FROM `" & LCase$(Tbnm) & "` WHERE Pat_ID = " & CStr(rNa(0).Pat_ID)
+   sql = "DELETE FROM `" & LCase$(Tbnm) & "` WHERE Pat_ID = " & CStr(rNa(0).Pat_id)
    Call myEFrag(sql)
  End If ' not AllePat
 sql:
@@ -7097,7 +7097,7 @@ setz:
   If SammelInsert = 0 Or i = 1 Then
    csql.Append csql0
   End If ' SammelInsert = 0 Or i = 1 Then
-  csql.AppVar Array("(", rMe(i).FID, ",", rMe(i).Pat_ID, ",", rMe(i).MPNr, ",", DatFor_k(rMe(i).Zeitpunkt), ",", DatFor_k(rMe(i).Datum), ",'", rMe(i).Medikament, "','", rMe(i).MedAnfang, "','", rMe(i).Wirkstoff, "',", _
+  csql.AppVar Array("(", rMe(i).FID, ",", rMe(i).Pat_id, ",", rMe(i).MPNr, ",", DatFor_k(rMe(i).Zeitpunkt), ",", DatFor_k(rMe(i).Datum), ",'", rMe(i).Medikament, "','", rMe(i).MedAnfang, "','", rMe(i).Wirkstoff, "',", _
    rMe(i).PZN, ",", rMe(i).FeldNr, ",'", rMe(i).mo, "','", rMe(i).mi, "','", rMe(i).nm, "','", rMe(i).ab, "','", rMe(i).Zn, "',", CStr(-(rMe(i).bBed <> 0)), ",'", rMe(i).Bemerkung, "','", _
    rMe(i).Grund, "','", rMe(i).Stärke, "','", rMe(i).Einheit, "','", rMe(i).Form, "',", rMe(i).Menge, ",'", rMe(i).Nutzer, "',", rMe(i).absPos, ",", DatFor_k(rMe(i).aktZeit), ",", _
    rMe(i).StByte, ",", CStr(-(rMe(i).ergaenzt <> 0)), ",", rMe(i).mpart, ")")
@@ -7135,7 +7135,7 @@ End If ' ErrN = 0 Then else
 syscmd 4, "rMe(" & i & "/" & UBound(rMe) & "):   " & ErrDescr
 sfnr = sfnr + 1
 If sfnr > 10 Then
- Lese.Ausgeb sfnr & " Fehler in ""medplanSpeichern()"" bei Pat. " & rNa(0).Pat_ID & ", gebe auf (ErrDes: " & ErrDescr & ")", True
+ Lese.Ausgeb sfnr & " Fehler in ""medplanSpeichern()"" bei Pat. " & rNa(0).Pat_id & ", gebe auf (ErrDes: " & ErrDescr & ")", True
  sfnr = 0
  Resume Next
 End If ' sfnr > 10
@@ -7226,7 +7226,7 @@ End Function ' medplanSpeichern
 
 Public Function roReZuw(i&, j&)
  roRe(i).FID = rRe(j).FID
- roRe(i).Pat_ID = rRe(j).Pat_ID
+ roRe(i).Pat_id = rRe(j).Pat_id
  roRe(i).Zeitpunkt = rRe(j).Zeitpunkt
  roRe(i).Rezept = rRe(j).Rezept
  roRe(i).RKlnm = rRe(j).RKlnm
@@ -7251,7 +7251,7 @@ End Function ' roReZuw
 
 Public Function ReZUnt%(i&, j&)
  If roRe(i).FID <> rRe(j).FID Then GoSub unter
- If roRe(i).Pat_ID <> rRe(j).Pat_ID Then GoSub unter
+ If roRe(i).Pat_id <> rRe(j).Pat_id Then GoSub unter
  If roRe(i).Zeitpunkt <> rRe(j).Zeitpunkt Then GoSub unter
  If roRe(i).Rezept <> rRe(j).Rezept Then GoSub unter
  If roRe(i).RKlnm <> rRe(j).RKlnm Then GoSub unter
@@ -7281,7 +7281,7 @@ End Function ' ReZUnt
 Public Function rezepteintraegeLaden()
  Dim pid$, rs As New Recordset, akt&
  On Error GoTo fehler
- pid = rNa(0).Pat_ID
+ pid = rNa(0).Pat_id
  sql = "SELECT COALESCE(FID,0) FID,COALESCE(Pat_ID,0) Pat_ID,COALESCE(ZeitPunkt - INTERVAL 0 DAY,CONVERT('18991230',DATE)) ZeitPunkt,COALESCE(Rezept,'') Rezept" & _
 ",COALESCE(RKlnm,'') RKlnm,COALESCE(Rezeptklasse,'') Rezeptklasse,COALESCE(Rezklkurz,'') Rezklkurz,COALESCE(Rezkllang,'') Rezkllang" & _
 ",COALESCE(kbez,'') kbez,COALESCE(Medikament,'') Medikament,COALESCE(auti,0) auti,COALESCE(anzl,0) anzl" & _
@@ -7296,7 +7296,7 @@ Public Function rezepteintraegeLaden()
   Do While Not rs.EOF
    akt = UBound(roRe)
    roRe(akt).FID = rs!FID
-   roRe(akt).Pat_ID = rs!Pat_ID
+   roRe(akt).Pat_id = rs!Pat_id
    roRe(akt).Zeitpunkt = rs!Zeitpunkt
    roRe(akt).Rezept = doUmwfSQL(rs!Rezept, lies.obMySQL, False)
    roRe(akt).RKlnm = doUmwfSQL(rs!RKlnm, lies.obMySQL, False)
@@ -7384,7 +7384,7 @@ Public Function rReDump()
  For i = 1 To UBound(rRe)
   Print #200, vbCrLf & "i: " & i
   Print #200, Left$("rRe(" & i & ").FID:" & String$(33, "."), 33) & rRe(i).FID
-  Print #200, Left$("rRe(" & i & ").Pat_ID:" & String$(33, "."), 33) & rRe(i).Pat_ID
+  Print #200, Left$("rRe(" & i & ").Pat_ID:" & String$(33, "."), 33) & rRe(i).Pat_id
   Print #200, Left$("rRe(" & i & ").ZeitPunkt:" & String$(33, "."), 33) & rRe(i).Zeitpunkt
   Print #200, Left$("rRe(" & i & ").Rezept:" & String$(33, "."), 33) & "'" & rRe(i).Rezept & "'"
   Print #200, Left$("rRe(" & i & ").RKlnm:" & String$(33, "."), 33) & "'" & rRe(i).RKlnm & "'"
@@ -7416,14 +7416,14 @@ Public Function rezepteintraegeSpeichern(SammelInsert%, BezfSp%, Optional rAf&, 
  Dim rs As New ADODB.Recordset
  T1 = Timer
  On Error Resume Next
- pid = rNa(0).Pat_ID
+ pid = rNa(0).Pat_id
  On Error GoTo fehler
  syscmd 4, pid & ": Speichere " & UBound(rRe) + 0 & " Sätze in `" & Tbnm & "`"
  Call csql0.AppVar(Array(" INSERT ", sqlIGNORE, "INTO `" & LCase$(Tbnm) & "` (FID,Pat_ID,ZeitPunkt," & _
      "Rezept,RKlnm,Rezeptklasse,Rezklkurz,Rezkllang,kbez,Medikament,auti,anzl,PZN," & _
      "absPos,AktZeit,QS,QT,StByte,LANRid,FEintragsart,Rezeptart)       VALUES"))
  If Not AllePat Then
-   sql = "DELETE FROM `" & LCase$(Tbnm) & "` WHERE Pat_ID = " & CStr(rNa(0).Pat_ID)
+   sql = "DELETE FROM `" & LCase$(Tbnm) & "` WHERE Pat_ID = " & CStr(rNa(0).Pat_id)
    Call myEFrag(sql)
  End If ' not AllePat
 sql:
@@ -7434,7 +7434,7 @@ setz:
   If SammelInsert = 0 Or i = 1 Then
    csql.Append csql0
   End If ' SammelInsert = 0 Or i = 1 Then
-  csql.AppVar Array("(", rRe(i).FID, ",", rRe(i).Pat_ID, ",", DatFor_k(rRe(i).Zeitpunkt), ",'", rRe(i).Rezept, "','", rRe(i).RKlnm, "','", rRe(i).Rezeptklasse, "','", rRe(i).Rezklkurz, "','", rRe(i).Rezkllang, "','", _
+  csql.AppVar Array("(", rRe(i).FID, ",", rRe(i).Pat_id, ",", DatFor_k(rRe(i).Zeitpunkt), ",'", rRe(i).Rezept, "','", rRe(i).RKlnm, "','", rRe(i).Rezeptklasse, "','", rRe(i).Rezklkurz, "','", rRe(i).Rezkllang, "','", _
    rRe(i).kbez, "','", rRe(i).Medikament, "',", rRe(i).auti, ",", rRe(i).anzl, ",'", rRe(i).PZN, "',", rRe(i).absPos, ",", DatFor_k(rRe(i).aktZeit), ",'", rRe(i).QS, "','", _
    rRe(i).QT, "',", rRe(i).StByte, ",", rRe(i).lanrid, ",'", rRe(i).FEintragsart, "',", rRe(i).Rezeptart, ")")
   If SammelInsert <> 0 And i < UBound(rRe) Then csql.Append ","
@@ -7475,7 +7475,7 @@ End If ' ErrN = 0 Then else
 syscmd 4, "rRe(" & i & "/" & UBound(rRe) & "):   " & ErrDescr
 sfnr = sfnr + 1
 If sfnr > 10 Then
- Lese.Ausgeb sfnr & " Fehler in ""rezepteintraegeSpeichern()"" bei Pat. " & rNa(0).Pat_ID & ", gebe auf (ErrDes: " & ErrDescr & ")", True
+ Lese.Ausgeb sfnr & " Fehler in ""rezepteintraegeSpeichern()"" bei Pat. " & rNa(0).Pat_id & ", gebe auf (ErrDes: " & ErrDescr & ")", True
  sfnr = 0
  Resume Next
 End If ' sfnr > 10
@@ -7560,7 +7560,7 @@ End Function ' rezepteintraegeSpeichern
 
 Public Function roRrZuw(i&, j&)
  roRr(i).FID = rRr(j).FID
- roRr(i).Pat_ID = rRr(j).Pat_ID
+ roRr(i).Pat_id = rRr(j).Pat_id
  roRr(i).Zeitpunkt = rRr(j).Zeitpunkt
  roRr(i).FormTitel = rRr(j).FormTitel
  roRr(i).RR = rRr(j).RR
@@ -7577,7 +7577,7 @@ End Function ' roRrZuw
 
 Public Function RrZUnt%(i&, j&)
  If roRr(i).FID <> rRr(j).FID Then GoSub unter
- If roRr(i).Pat_ID <> rRr(j).Pat_ID Then GoSub unter
+ If roRr(i).Pat_id <> rRr(j).Pat_id Then GoSub unter
  If roRr(i).Zeitpunkt <> rRr(j).Zeitpunkt Then GoSub unter
  If roRr(i).FormTitel <> rRr(j).FormTitel Then GoSub unter
  If roRr(i).RR <> rRr(j).RR Then GoSub unter
@@ -7599,7 +7599,7 @@ End Function ' RrZUnt
 Public Function rrLaden()
  Dim pid$, rs As New Recordset, akt&
  On Error GoTo fehler
- pid = rNa(0).Pat_ID
+ pid = rNa(0).Pat_id
  sql = "SELECT COALESCE(FID,0) FID,COALESCE(Pat_ID,0) Pat_ID,COALESCE(ZeitPunkt - INTERVAL 0 DAY,CONVERT('18991230',DATE)) ZeitPunkt,COALESCE(FormTitel,'') FormTitel" & _
 ",COALESCE(RR,'') RR,COALESCE(Puls,0) Puls,COALESCE(RRsyst,0) RRsyst,COALESCE(RRdiast,0) RRdiast" & _
 ",COALESCE(RRzahl,0) RRzahl,COALESCE(Quelle,'') Quelle,COALESCE(Bemerkung,'') Bemerkung,COALESCE(absPos,0) absPos" & _
@@ -7612,7 +7612,7 @@ Public Function rrLaden()
   Do While Not rs.EOF
    akt = UBound(roRr)
    roRr(akt).FID = rs!FID
-   roRr(akt).Pat_ID = rs!Pat_ID
+   roRr(akt).Pat_id = rs!Pat_id
    roRr(akt).Zeitpunkt = rs!Zeitpunkt
    roRr(akt).FormTitel = doUmwfSQL(rs!FormTitel, lies.obMySQL, False)
    roRr(akt).RR = doUmwfSQL(rs!RR, lies.obMySQL, False)
@@ -7692,7 +7692,7 @@ Public Function rRrDump()
  For i = 1 To UBound(rRr)
   Print #200, vbCrLf & "i: " & i
   Print #200, Left$("rRr(" & i & ").FID:" & String$(33, "."), 33) & rRr(i).FID
-  Print #200, Left$("rRr(" & i & ").Pat_ID:" & String$(33, "."), 33) & rRr(i).Pat_ID
+  Print #200, Left$("rRr(" & i & ").Pat_ID:" & String$(33, "."), 33) & rRr(i).Pat_id
   Print #200, Left$("rRr(" & i & ").ZeitPunkt:" & String$(33, "."), 33) & rRr(i).Zeitpunkt
   Print #200, Left$("rRr(" & i & ").FormTitel:" & String$(33, "."), 33) & "'" & rRr(i).FormTitel & "'"
   Print #200, Left$("rRr(" & i & ").RR:" & String$(33, "."), 33) & "'" & rRr(i).RR & "'"
@@ -7716,14 +7716,14 @@ Public Function rrSpeichern(SammelInsert%, BezfSp%, Optional rAf&, Optional sfkc
  Dim rs As New ADODB.Recordset
  T1 = Timer
  On Error Resume Next
- pid = rNa(0).Pat_ID
+ pid = rNa(0).Pat_id
  On Error GoTo fehler
  syscmd 4, pid & ": Speichere " & UBound(rRr) + 0 & " Sätze in `" & Tbnm & "`"
  Call csql0.AppVar(Array(" INSERT ", sqlIGNORE, "INTO `" & LCase$(Tbnm) & "` (FID,Pat_ID,ZeitPunkt," & _
      "FormTitel,RR,Puls,RRsyst,RRdiast,RRzahl,Quelle,Bemerkung,absPos,AktZeit," & _
      "StByte)  VALUES"))
  If Not AllePat Then
-   sql = "DELETE FROM `" & LCase$(Tbnm) & "` WHERE Pat_ID = " & CStr(rNa(0).Pat_ID)
+   sql = "DELETE FROM `" & LCase$(Tbnm) & "` WHERE Pat_ID = " & CStr(rNa(0).Pat_id)
    Call myEFrag(sql)
  End If ' not AllePat
 sql:
@@ -7734,7 +7734,7 @@ setz:
   If SammelInsert = 0 Or i = 1 Then
    csql.Append csql0
   End If ' SammelInsert = 0 Or i = 1 Then
-  csql.AppVar Array("(", rRr(i).FID, ",", rRr(i).Pat_ID, ",", DatFor_k(rRr(i).Zeitpunkt), ",'", rRr(i).FormTitel, "','", rRr(i).RR, "',", rRr(i).Puls, ",", rRr(i).RRsyst, ",", rRr(i).RRdiast, ",", _
+  csql.AppVar Array("(", rRr(i).FID, ",", rRr(i).Pat_id, ",", DatFor_k(rRr(i).Zeitpunkt), ",'", rRr(i).FormTitel, "','", rRr(i).RR, "',", rRr(i).Puls, ",", rRr(i).RRsyst, ",", rRr(i).RRdiast, ",", _
    rRr(i).RRzahl, ",'", rRr(i).Quelle, "','", rRr(i).Bemerkung, "',", rRr(i).absPos, ",", DatFor_k(rRr(i).aktZeit), ",", rRr(i).StByte, ")")
   If SammelInsert <> 0 And i < UBound(rRr) Then csql.Append ","
   If SammelInsert = 0 Or i = UBound(rRr) Then
@@ -7770,7 +7770,7 @@ End If ' ErrN = 0 Then else
 syscmd 4, "rRr(" & i & "/" & UBound(rRr) & "):   " & ErrDescr
 sfnr = sfnr + 1
 If sfnr > 10 Then
- Lese.Ausgeb sfnr & " Fehler in ""rrSpeichern()"" bei Pat. " & rNa(0).Pat_ID & ", gebe auf (ErrDes: " & ErrDescr & ")", True
+ Lese.Ausgeb sfnr & " Fehler in ""rrSpeichern()"" bei Pat. " & rNa(0).Pat_id & ", gebe auf (ErrDes: " & ErrDescr & ")", True
  sfnr = 0
  Resume Next
 End If ' sfnr > 10
@@ -7846,7 +7846,7 @@ Public Function rKvDump()
  For i = 1 To UBound(rKv)
   Print #200, vbCrLf & "i: " & i
   Print #200, Left$("rKv(" & i & ").lfdnr:" & String$(33, "."), 33) & rKv(i).lfdnr
-  Print #200, Left$("rKv(" & i & ").Pat_ID:" & String$(33, "."), 33) & rKv(i).Pat_ID
+  Print #200, Left$("rKv(" & i & ").Pat_ID:" & String$(33, "."), 33) & rKv(i).Pat_id
   Print #200, Left$("rKv(" & i & ").KVNr:" & String$(33, "."), 33) & "'" & rKv(i).KVNr & "'"
   Print #200, Left$("rKv(" & i & ").absPos:" & String$(33, "."), 33) & rKv(i).absPos
   Print #200, Left$("rKv(" & i & ").AktZeit:" & String$(33, "."), 33) & rKv(i).aktZeit
@@ -7862,13 +7862,13 @@ Public Function kvnrueSpeichern(SammelInsert%, BezfSp%, Optional rAf&, Optional 
  Dim rs As New ADODB.Recordset
  T1 = Timer
  On Error Resume Next
- pid = rNa(0).Pat_ID
+ pid = rNa(0).Pat_id
  On Error GoTo fehler
  syscmd 4, pid & ": Speichere " & UBound(rKv) + 0 & " Sätze in `" & Tbnm & "`"
  Call csql0.AppVar(Array(" INSERT ", sqlIGNORE, "INTO `" & LCase$(Tbnm) & "` (Pat_ID,KVNr,absPos," & _
      "AktZeit,StByte)        VALUES"))
  If Not AllePat Then
-   sql = "DELETE FROM `" & LCase$(Tbnm) & "` WHERE Pat_ID = " & CStr(rNa(0).Pat_ID)
+   sql = "DELETE FROM `" & LCase$(Tbnm) & "` WHERE Pat_ID = " & CStr(rNa(0).Pat_id)
    Call myEFrag(sql)
  End If ' not AllePat
 sql:
@@ -7879,7 +7879,7 @@ setz:
   If SammelInsert = 0 Or i = 1 Then
    csql.Append csql0
   End If ' SammelInsert = 0 Or i = 1 Then
-  csql.AppVar Array("(", rKv(i).Pat_ID, ",'", rKv(i).KVNr, "',", rKv(i).absPos, ",", DatFor_k(rKv(i).aktZeit), ",", rKv(i).StByte, ")")
+  csql.AppVar Array("(", rKv(i).Pat_id, ",'", rKv(i).KVNr, "',", rKv(i).absPos, ",", DatFor_k(rKv(i).aktZeit), ",", rKv(i).StByte, ")")
   If SammelInsert <> 0 And i < UBound(rKv) Then csql.Append ","
   If SammelInsert = 0 Or i = UBound(rKv) Then
     altmode = myEFrag("SELECT @@global.sql_mode", , DBCn).Fields(0)
@@ -7918,7 +7918,7 @@ End If ' ErrN = 0 Then else
 syscmd 4, "rKv(" & i & "/" & UBound(rKv) & "):   " & ErrDescr
 sfnr = sfnr + 1
 If sfnr > 10 Then
- Lese.Ausgeb sfnr & " Fehler in ""kvnrueSpeichern()"" bei Pat. " & rNa(0).Pat_ID & ", gebe auf (ErrDes: " & ErrDescr & ")", True
+ Lese.Ausgeb sfnr & " Fehler in ""kvnrueSpeichern()"" bei Pat. " & rNa(0).Pat_id & ", gebe auf (ErrDes: " & ErrDescr & ")", True
  sfnr = 0
  Resume Next
 End If ' sfnr > 10
@@ -7990,7 +7990,7 @@ Public Function rUnDump()
   Print #200, Left$("rUn(" & i & ").Kennung:" & String$(33, "."), 33) & "'" & rUn(i).Kennung & "'"
   Print #200, Left$("rUn(" & i & ").absPos:" & String$(33, "."), 33) & rUn(i).absPos
   Print #200, Left$("rUn(" & i & ").StByte:" & String$(33, "."), 33) & rUn(i).StByte
-  Print #200, Left$("rUn(" & i & ").Pat_id:" & String$(33, "."), 33) & rUn(i).Pat_ID
+  Print #200, Left$("rUn(" & i & ").Pat_id:" & String$(33, "."), 33) & rUn(i).Pat_id
   Print #200, Left$("rUn(" & i & ").Inhalt:" & String$(33, "."), 33) & "'" & rUn(i).Inhalt & "'"
   Print #200, Left$("rUn(" & i & ").Zeitpunkt:" & String$(33, "."), 33) & rUn(i).Zeitpunkt
  Next i
@@ -8004,7 +8004,7 @@ Public Function unbek_kennSpeichern(SammelInsert%, BezfSp%, Optional rAf&, Optio
  Dim rs As New ADODB.Recordset
  T1 = Timer
  On Error Resume Next
- pid = rNa(0).Pat_ID
+ pid = rNa(0).Pat_id
  syscmd 4, pid & ": Speichere " & UBound(rUn) + 0 & " Sätze in `" & Tbnm & "`"
  Call csql0.AppVar(Array(" INSERT ", sqlIGNORE, "INTO `" & LCase$(Tbnm) & "` (Kennung,absPos,StByte," & _
      "Pat_id,Inhalt,Zeitpunkt)             VALUES"))
@@ -8018,7 +8018,7 @@ setz:
   If SammelInsert = 0 Or i = rUn1 + 1 Then
    csql.Append csql0
   End If ' SammelInsert = 0 Or i = rUn1 + 1 Then
-  csql.AppVar Array("('", rUn(i).Kennung, "',", rUn(i).absPos, ",", rUn(i).StByte, ",", rUn(i).Pat_ID, ",'", rUn(i).Inhalt, "',", DatFor_k(rUn(i).Zeitpunkt), ")")
+  csql.AppVar Array("('", rUn(i).Kennung, "',", rUn(i).absPos, ",", rUn(i).StByte, ",", rUn(i).Pat_id, ",'", rUn(i).Inhalt, "',", DatFor_k(rUn(i).Zeitpunkt), ")")
   If SammelInsert <> 0 And i < UBound(rUn) Then csql.Append ","
   If SammelInsert = 0 Or i = UBound(rUn) Then
     altmode = myEFrag("SELECT @@global.sql_mode", , DBCn).Fields(0)
@@ -8054,7 +8054,7 @@ End If ' ErrN = 0 Then else
 syscmd 4, "rUn(" & i & "/" & UBound(rUn) & "):   " & ErrDescr
 sfnr = sfnr + 1
 If sfnr > 10 Then
- Lese.Ausgeb sfnr & " Fehler in ""unbek_kennSpeichern()"" bei Pat. " & rNa(0).Pat_ID & ", gebe auf (ErrDes: " & ErrDescr & ")", True
+ Lese.Ausgeb sfnr & " Fehler in ""unbek_kennSpeichern()"" bei Pat. " & rNa(0).Pat_id & ", gebe auf (ErrDes: " & ErrDescr & ")", True
  sfnr = 0
  Resume Next
 End If ' sfnr > 10
@@ -8132,7 +8132,7 @@ Public Function roDmZuw(i&, j&)
  roDm(i).Nachname = rDm(j).Nachname
  roDm(i).Vorname = rDm(j).Vorname
  roDm(i).GebDat = rDm(j).GebDat
- roDm(i).Pat_ID = rDm(j).Pat_ID
+ roDm(i).Pat_id = rDm(j).Pat_id
  roDm(i).StByte = rDm(j).StByte
  roDm(i).aktZeit = rDm(j).aktZeit
  roDm(i).lanrid = rDm(j).lanrid
@@ -8155,7 +8155,7 @@ Public Function DmZUnt%(i&, j&)
  If roDm(i).Nachname <> rDm(j).Nachname Then GoSub unter
  If roDm(i).Vorname <> rDm(j).Vorname Then GoSub unter
  If roDm(i).GebDat <> rDm(j).GebDat Then GoSub unter
- If roDm(i).Pat_ID <> rDm(j).Pat_ID Then GoSub unter
+ If roDm(i).Pat_id <> rDm(j).Pat_id Then GoSub unter
  If roDm(i).StByte <> rDm(j).StByte Then GoSub unter
  If roDm(i).aktZeit <> rDm(j).aktZeit Then GoSub unter
  If roDm(i).lanrid <> rDm(j).lanrid Then GoSub unter
@@ -8172,7 +8172,7 @@ End Function ' DmZUnt
 Public Function dmpreiheLaden()
  Dim pid$, rs As New Recordset, akt&
  On Error GoTo fehler
- pid = rNa(0).Pat_ID
+ pid = rNa(0).Pat_id
  sql = "SELECT COALESCE(Abk,'') Abk,COALESCE(DMPArt,0) DMPArt,COALESCE(Art,'') Art,COALESCE(KarteiDatum - INTERVAL 0 DAY,CONVERT('18991230',DATE)) KarteiDatum" & _
 ",COALESCE(exportiert - INTERVAL 0 DAY,CONVERT('18991230',DATE)) exportiert,COALESCE(DokuDatum - INTERVAL 0 DAY,CONVERT('18991230',DATE)) DokuDatum,COALESCE(obvoll,0) obvoll,COALESCE(ok,0) ok" & _
 ",COALESCE(ausgedruckt,0) ausgedruckt,COALESCE(NachName,'') NachName,COALESCE(VorName,'') VorName,COALESCE(GebDat - INTERVAL 0 DAY,CONVERT('18991230',DATE)) GebDat" & _
@@ -8198,7 +8198,7 @@ Public Function dmpreiheLaden()
    roDm(akt).Nachname = doUmwfSQL(rs!Nachname, lies.obMySQL, False)
    roDm(akt).Vorname = doUmwfSQL(rs!Vorname, lies.obMySQL, False)
    roDm(akt).GebDat = rs!GebDat
-   roDm(akt).Pat_ID = rs!Pat_ID
+   roDm(akt).Pat_id = rs!Pat_id
    roDm(akt).StByte = rs!StByte
    roDm(akt).aktZeit = rs!aktZeit
    roDm(akt).lanrid = rs!lanrid
@@ -8284,7 +8284,7 @@ Public Function rDmDump()
   Print #200, Left$("rDm(" & i & ").NachName:" & String$(33, "."), 33) & "'" & rDm(i).Nachname & "'"
   Print #200, Left$("rDm(" & i & ").VorName:" & String$(33, "."), 33) & "'" & rDm(i).Vorname & "'"
   Print #200, Left$("rDm(" & i & ").GebDat:" & String$(33, "."), 33) & rDm(i).GebDat
-  Print #200, Left$("rDm(" & i & ").Pat_id:" & String$(33, "."), 33) & rDm(i).Pat_ID
+  Print #200, Left$("rDm(" & i & ").Pat_id:" & String$(33, "."), 33) & rDm(i).Pat_id
   Print #200, Left$("rDm(" & i & ").StByte:" & String$(33, "."), 33) & rDm(i).StByte
   Print #200, Left$("rDm(" & i & ").AktZeit:" & String$(33, "."), 33) & rDm(i).aktZeit
   Print #200, Left$("rDm(" & i & ").lanrid:" & String$(33, "."), 33) & rDm(i).lanrid
@@ -8303,14 +8303,14 @@ Public Function dmpreiheSpeichern(SammelInsert%, BezfSp%, Optional rAf&, Optiona
  Dim rs As New ADODB.Recordset
  T1 = Timer
  On Error Resume Next
- pid = rNa(0).Pat_ID
+ pid = rNa(0).Pat_id
  On Error GoTo fehler
  syscmd 4, pid & ": Speichere " & UBound(rDm) + 0 & " Sätze in `" & Tbnm & "`"
  Call csql0.AppVar(Array(" INSERT ", sqlIGNORE, "INTO `" & LCase$(Tbnm) & "` (Abk,DMPArt,Art," & _
      "KarteiDatum,exportiert,DokuDatum,obvoll,ok,ausgedruckt,NachName,VorName,GebDat,Pat_id," & _
      "StByte,AktZeit,lanrid,Zusatzdaten,Druckdatum,uDat,eGFR)          VALUES"))
  If Not AllePat Then
-   sql = "DELETE FROM `" & LCase$(Tbnm) & "` WHERE Pat_ID = " & CStr(rNa(0).Pat_ID)
+   sql = "DELETE FROM `" & LCase$(Tbnm) & "` WHERE Pat_ID = " & CStr(rNa(0).Pat_id)
    Call myEFrag(sql)
  End If ' not AllePat
 sql:
@@ -8322,7 +8322,7 @@ setz:
    csql.Append csql0
   End If ' SammelInsert = 0 Or i = 1 Then
   csql.AppVar Array("('", rDm(i).Abk, "',", rDm(i).DMPArt, ",'", rDm(i).art, "',", DatFor_k(rDm(i).KarteiDatum), ",", DatFor_k(rDm(i).exportiert), ",", DatFor_k(rDm(i).DokuDatum), ",", CStr(-(rDm(i).obvoll <> 0)), ",", CStr(-( _
-   rDm(i).Ok <> 0)), ",", CStr(-(rDm(i).ausgedruckt <> 0)), ",'", rDm(i).Nachname, "','", rDm(i).Vorname, "',", DatFor_k(rDm(i).GebDat), ",", rDm(i).Pat_ID, ",", rDm(i).StByte, ",", DatFor_k( _
+   rDm(i).Ok <> 0)), ",", CStr(-(rDm(i).ausgedruckt <> 0)), ",'", rDm(i).Nachname, "','", rDm(i).Vorname, "',", DatFor_k(rDm(i).GebDat), ",", rDm(i).Pat_id, ",", rDm(i).StByte, ",", DatFor_k( _
    rDm(i).aktZeit), ",", rDm(i).lanrid, ",'", rDm(i).Zusatzdaten, "',", DatFor_k(rDm(i).Druckdatum), ",", DatFor_k(rDm(i).uDat), ",", rDm(i).eGFR, ")")
   If SammelInsert <> 0 And i < UBound(rDm) Then csql.Append ","
   If SammelInsert = 0 Or i = UBound(rDm) Then
@@ -8334,7 +8334,7 @@ setz:
       SammelInsert = 0
       GoTo sql
      ElseIf InStrB(ErrD, "Duplicate") <> 0 Then
-      rDm(i).Pat_ID = myEFrag("SELECT MAX(Pat_id)+1 FROM `" & LCase$(Tbnm) & "`", , DBCn).Fields(0)
+      rDm(i).Pat_id = myEFrag("SELECT MAX(Pat_id)+1 FROM `" & LCase$(Tbnm) & "`", , DBCn).Fields(0)
       csql.m_Len = 0
       GoTo setz
      Else ' SammelInsert = 1 And ErrN = -2147217900 Then elseif
@@ -8362,7 +8362,7 @@ End If ' ErrN = 0 Then else
 syscmd 4, "rDm(" & i & "/" & UBound(rDm) & "):   " & ErrDescr
 sfnr = sfnr + 1
 If sfnr > 10 Then
- Lese.Ausgeb sfnr & " Fehler in ""dmpreiheSpeichern()"" bei Pat. " & rNa(0).Pat_ID & ", gebe auf (ErrDes: " & ErrDescr & ")", True
+ Lese.Ausgeb sfnr & " Fehler in ""dmpreiheSpeichern()"" bei Pat. " & rNa(0).Pat_id & ", gebe auf (ErrDes: " & ErrDescr & ")", True
  sfnr = 0
  Resume Next
 End If ' sfnr > 10
@@ -8436,7 +8436,7 @@ End Function ' dmpreiheSpeichern
 Public Function roDeZuw(i&, j&)
  roDe(i).id = rDe(j).id
  roDe(i).IDS = rDe(j).IDS
- roDe(i).Pat_ID = rDe(j).Pat_ID
+ roDe(i).Pat_id = rDe(j).Pat_id
  roDe(i).erstZP = rDe(j).erstZP
  roDe(i).exoL = rDe(j).exoL
  roDe(i).hideT = rDe(j).hideT
@@ -8460,7 +8460,7 @@ End Function ' roDeZuw
 Public Function DeZUnt%(i&, j&)
  If roDe(i).id <> rDe(j).id Then GoSub unter
  If roDe(i).IDS <> rDe(j).IDS Then GoSub unter
- If roDe(i).Pat_ID <> rDe(j).Pat_ID Then GoSub unter
+ If roDe(i).Pat_id <> rDe(j).Pat_id Then GoSub unter
  If roDe(i).erstZP <> rDe(j).erstZP Then GoSub unter
  If roDe(i).exoL <> rDe(j).exoL Then GoSub unter
  If roDe(i).hideT <> rDe(j).hideT Then GoSub unter
@@ -8488,7 +8488,7 @@ End Function ' DeZUnt
 Public Function desktopLaden()
  Dim pid$, rs As New Recordset, akt&
  On Error GoTo fehler
- pid = rNa(0).Pat_ID
+ pid = rNa(0).Pat_id
  sql = "SELECT COALESCE(id,0) id,COALESCE(IDS,'') IDS,COALESCE(Pat_ID,0) Pat_ID,COALESCE(erstZP - INTERVAL 0 DAY,CONVERT('18991230',DATE)) erstZP" & _
 ",COALESCE(exoL,'') exoL,COALESCE(hideT,0) hideT,COALESCE(iconPath,'') iconPath,COALESCE(noteBkColor,0) noteBkColor" & _
 ",COALESCE(noteFgColor,0) noteFgColor,COALESCE(positionBottom,0) positionBottom,COALESCE(positionLeft,0) positionLeft,COALESCE(positionRight,0) positionRight" & _
@@ -8504,7 +8504,7 @@ Public Function desktopLaden()
    akt = UBound(roDe)
    roDe(akt).id = rs!id
    roDe(akt).IDS = doUmwfSQL(rs!IDS, lies.obMySQL, False)
-   roDe(akt).Pat_ID = rs!Pat_ID
+   roDe(akt).Pat_id = rs!Pat_id
    roDe(akt).erstZP = rs!erstZP
    roDe(akt).exoL = doUmwfSQL(rs!exoL, lies.obMySQL, False)
    roDe(akt).hideT = rs!hideT
@@ -8591,7 +8591,7 @@ Public Function rDeDump()
   Print #200, vbCrLf & "i: " & i
   Print #200, Left$("rDe(" & i & ").id:" & String$(33, "."), 33) & rDe(i).id
   Print #200, Left$("rDe(" & i & ").IDS:" & String$(33, "."), 33) & "'" & rDe(i).IDS & "'"
-  Print #200, Left$("rDe(" & i & ").Pat_ID:" & String$(33, "."), 33) & rDe(i).Pat_ID
+  Print #200, Left$("rDe(" & i & ").Pat_ID:" & String$(33, "."), 33) & rDe(i).Pat_id
   Print #200, Left$("rDe(" & i & ").erstZP:" & String$(33, "."), 33) & rDe(i).erstZP
   Print #200, Left$("rDe(" & i & ").exoL:" & String$(33, "."), 33) & "'" & rDe(i).exoL & "'"
   Print #200, Left$("rDe(" & i & ").hideT:" & String$(33, "."), 33) & rDe(i).hideT
@@ -8621,14 +8621,14 @@ Public Function desktopSpeichern(SammelInsert%, BezfSp%, Optional rAf&, Optional
  Dim rs As New ADODB.Recordset
  T1 = Timer
  On Error Resume Next
- pid = rNa(0).Pat_ID
+ pid = rNa(0).Pat_id
  On Error GoTo fehler
  syscmd 4, pid & ": Speichere " & UBound(rDe) + 0 & " Sätze in `" & Tbnm & "`"
  Call csql0.AppVar(Array(" INSERT ", sqlIGNORE, "INTO `" & LCase$(Tbnm) & "` (IDS,Pat_ID,erstZP," & _
      "exoL,hideT,iconPath,noteBkColor,noteFgColor,positionBottom,positionLeft,positionRight,positionTop,showAsNote," & _
      "syncInfoList,titel,toolTipText,verankert,absPos,AktZeit,StByte)  VALUES"))
  If Not AllePat Then
-   sql = "DELETE FROM `" & LCase$(Tbnm) & "` WHERE Pat_ID = " & CStr(rNa(0).Pat_ID)
+   sql = "DELETE FROM `" & LCase$(Tbnm) & "` WHERE Pat_ID = " & CStr(rNa(0).Pat_id)
    Call myEFrag(sql)
  End If ' not AllePat
 sql:
@@ -8639,7 +8639,7 @@ setz:
   If SammelInsert = 0 Or i = 1 Then
    csql.Append csql0
   End If ' SammelInsert = 0 Or i = 1 Then
-  csql.AppVar Array("('", rDe(i).IDS, "',", rDe(i).Pat_ID, ",", DatFor_k(rDe(i).erstZP), ",'", rDe(i).exoL, "',", rDe(i).hideT, ",'", rDe(i).iconPath, "',", rDe(i).noteBkColor, ",", rDe(i).noteFgColor, ",", _
+  csql.AppVar Array("('", rDe(i).IDS, "',", rDe(i).Pat_id, ",", DatFor_k(rDe(i).erstZP), ",'", rDe(i).exoL, "',", rDe(i).hideT, ",'", rDe(i).iconPath, "',", rDe(i).noteBkColor, ",", rDe(i).noteFgColor, ",", _
    rDe(i).positionBottom, ",", rDe(i).positionLeft, ",", rDe(i).positionRight, ",", rDe(i).positionTop, ",", rDe(i).showAsNote, ",'", rDe(i).syncInfoList, "','", rDe(i).Titel, "','", _
    rDe(i).toolTipText, "',", rDe(i).verankert, ",", rDe(i).absPos, ",", DatFor_k(rDe(i).aktZeit), ",", rDe(i).StByte, ")")
   If SammelInsert <> 0 And i < UBound(rDe) Then csql.Append ","
@@ -8680,7 +8680,7 @@ End If ' ErrN = 0 Then else
 syscmd 4, "rDe(" & i & "/" & UBound(rDe) & "):   " & ErrDescr
 sfnr = sfnr + 1
 If sfnr > 10 Then
- Lese.Ausgeb sfnr & " Fehler in ""desktopSpeichern()"" bei Pat. " & rNa(0).Pat_ID & ", gebe auf (ErrDes: " & ErrDescr & ")", True
+ Lese.Ausgeb sfnr & " Fehler in ""desktopSpeichern()"" bei Pat. " & rNa(0).Pat_id & ", gebe auf (ErrDes: " & ErrDescr & ")", True
  sfnr = 0
  Resume Next
 End If ' sfnr > 10
@@ -8755,7 +8755,7 @@ End Function ' desktopSpeichern
 
 Public Function roUsZuw(i&, j&)
  roUs(i).FID = rUs(j).FID
- roUs(i).Pat_ID = rUs(j).Pat_ID
+ roUs(i).Pat_id = rUs(j).Pat_id
  roUs(i).Zeitpunkt = rUs(j).Zeitpunkt
  roUs(i).art = rUs(j).art
  roUs(i).Spritzst = rUs(j).Spritzst
@@ -8804,7 +8804,7 @@ End Function ' roUsZuw
 
 Public Function UsZUnt%(i&, j&)
  If roUs(i).FID <> rUs(j).FID Then GoSub unter
- If roUs(i).Pat_ID <> rUs(j).Pat_ID Then GoSub unter
+ If roUs(i).Pat_id <> rUs(j).Pat_id Then GoSub unter
  If roUs(i).Zeitpunkt <> rUs(j).Zeitpunkt Then GoSub unter
  If roUs(i).art <> rUs(j).art Then GoSub unter
  If roUs(i).Spritzst <> rUs(j).Spritzst Then GoSub unter
@@ -8858,7 +8858,7 @@ End Function ' UsZUnt
 Public Function usdmLaden()
  Dim pid$, rs As New Recordset, akt&
  On Error GoTo fehler
- pid = rNa(0).Pat_ID
+ pid = rNa(0).Pat_id
  sql = "SELECT COALESCE(FID,0) FID,COALESCE(Pat_ID,0) Pat_ID,COALESCE(ZeitPunkt - INTERVAL 0 DAY,CONVERT('18991230',DATE)) ZeitPunkt,COALESCE(Art,'') Art" & _
 ",COALESCE(Spritzst,0) Spritzst,COALESCE(Fußbef_re,0) Fußbef_re,COALESCE(Fußbef_li,0) Fußbef_li,COALESCE(Hyperk_re,0) Hyperk_re" & _
 ",COALESCE(Hyperk_li,0) Hyperk_li,COALESCE(Ulcera_re,0) Ulcera_re,COALESCE(Ulcera_li,0) Ulcera_li,COALESCE(Kraft_Zh_re,0) Kraft_Zh_re" & _
@@ -8879,7 +8879,7 @@ Public Function usdmLaden()
   Do While Not rs.EOF
    akt = UBound(roUs)
    roUs(akt).FID = rs!FID
-   roUs(akt).Pat_ID = rs!Pat_ID
+   roUs(akt).Pat_id = rs!Pat_id
    roUs(akt).Zeitpunkt = rs!Zeitpunkt
    roUs(akt).art = doUmwfSQL(rs!art, lies.obMySQL, False)
    roUs(akt).Spritzst = doUmwfSQL(rs!Spritzst, lies.obMySQL, False)
@@ -8991,7 +8991,7 @@ Public Function rUsDump()
  For i = 1 To UBound(rUs)
   Print #200, vbCrLf & "i: " & i
   Print #200, Left$("rUs(" & i & ").FID:" & String$(33, "."), 33) & rUs(i).FID
-  Print #200, Left$("rUs(" & i & ").Pat_ID:" & String$(33, "."), 33) & rUs(i).Pat_ID
+  Print #200, Left$("rUs(" & i & ").Pat_ID:" & String$(33, "."), 33) & rUs(i).Pat_id
   Print #200, Left$("rUs(" & i & ").ZeitPunkt:" & String$(33, "."), 33) & rUs(i).Zeitpunkt
   Print #200, Left$("rUs(" & i & ").Art:" & String$(33, "."), 33) & "'" & rUs(i).art & "'"
   Print #200, Left$("rUs(" & i & ").Spritzst:" & String$(33, "."), 33) & "'" & rUs(i).Spritzst & "'"
@@ -9047,7 +9047,7 @@ Public Function usdmSpeichern(SammelInsert%, BezfSp%, Optional rAf&, Optional sf
  Dim rs As New ADODB.Recordset
  T1 = Timer
  On Error Resume Next
- pid = rNa(0).Pat_ID
+ pid = rNa(0).Pat_id
  On Error GoTo fehler
  syscmd 4, pid & ": Speichere " & UBound(rUs) + 0 & " Sätze in `" & Tbnm & "`"
  Call csql0.AppVar(Array(" INSERT ", sqlIGNORE, "INTO `" & LCase$(Tbnm) & "` (FID,Pat_ID,ZeitPunkt," & _
@@ -9057,7 +9057,7 @@ Public Function usdmSpeichern(SammelInsert%, BezfSp%, Optional rAf&, Optional sf
      "PulsKK_re,PulsKK_li,PulsAtp_re,PulsAtp_li,PulsAdp_re,PulsAdp_li,Mitarbeiter,absPos,AktZeit,QS," & _
      "QT,StByte)             VALUES"))
  If Not AllePat Then
-   sql = "DELETE FROM `" & LCase$(Tbnm) & "` WHERE Pat_ID = " & CStr(rNa(0).Pat_ID)
+   sql = "DELETE FROM `" & LCase$(Tbnm) & "` WHERE Pat_ID = " & CStr(rNa(0).Pat_id)
    Call myEFrag(sql)
  End If ' not AllePat
 sql:
@@ -9068,7 +9068,7 @@ setz:
   If SammelInsert = 0 Or i = 1 Then
    csql.Append csql0
   End If ' SammelInsert = 0 Or i = 1 Then
-  csql.AppVar Array("(", rUs(i).FID, ",", rUs(i).Pat_ID, ",", DatFor_k(rUs(i).Zeitpunkt), ",'", rUs(i).art, "','", rUs(i).Spritzst, "','", rUs(i).Fußbef_re, "','", rUs(i).Fußbef_li, "','", rUs(i).Hyperk_re, "','", _
+  csql.AppVar Array("(", rUs(i).FID, ",", rUs(i).Pat_id, ",", DatFor_k(rUs(i).Zeitpunkt), ",'", rUs(i).art, "','", rUs(i).Spritzst, "','", rUs(i).Fußbef_re, "','", rUs(i).Fußbef_li, "','", rUs(i).Hyperk_re, "','", _
    rUs(i).Hyperk_li, "','", rUs(i).Ulcera_re, "','", rUs(i).Ulcera_li, "','", rUs(i).Kraft_Zh_re, "','", rUs(i).Kraft_Zh_li, "','", rUs(i).Kraft_Zb_re, "','", rUs(i).Kraft_Zb_li, "','", _
    rUs(i).Kraft_Knie_re, "','", rUs(i).Kraft_Knie_li, "','", rUs(i).ASR_re, "','", rUs(i).ASR_li, "','", rUs(i).PSR_re, "','", rUs(i).PSR_li, "','", rUs(i).Oberfl_re, "','", rUs(i).Oberfl_li, "','", _
    rUs(i).MF_re, "','", rUs(i).MF_li, "','", rUs(i).KW_re, "','", rUs(i).KW_li, "','", rUs(i).Vibr_IK_re, "','", rUs(i).Vibr_IK_li, "','", rUs(i).Vibr_GZ_re, "','", _
@@ -9112,7 +9112,7 @@ End If ' ErrN = 0 Then else
 syscmd 4, "rUs(" & i & "/" & UBound(rUs) & "):   " & ErrDescr
 sfnr = sfnr + 1
 If sfnr > 10 Then
- Lese.Ausgeb sfnr & " Fehler in ""usdmSpeichern()"" bei Pat. " & rNa(0).Pat_ID & ", gebe auf (ErrDes: " & ErrDescr & ")", True
+ Lese.Ausgeb sfnr & " Fehler in ""usdmSpeichern()"" bei Pat. " & rNa(0).Pat_id & ", gebe auf (ErrDes: " & ErrDescr & ")", True
  sfnr = 0
  Resume Next
 End If ' sfnr > 10
@@ -9253,7 +9253,7 @@ End Function ' usdmSpeichern
 
 Public Function roFuZuw(i&, j&)
  roFu(i).FID = rFu(j).FID
- roFu(i).Pat_ID = rFu(j).Pat_ID
+ roFu(i).Pat_id = rFu(j).Pat_id
  roFu(i).Zeitpunkt = rFu(j).Zeitpunkt
  roFu(i).art = rFu(j).art
  roFu(i).Fußdeform = rFu(j).Fußdeform
@@ -9276,7 +9276,7 @@ End Function ' roFuZuw
 
 Public Function FuZUnt%(i&, j&)
  If roFu(i).FID <> rFu(j).FID Then GoSub unter
- If roFu(i).Pat_ID <> rFu(j).Pat_ID Then GoSub unter
+ If roFu(i).Pat_id <> rFu(j).Pat_id Then GoSub unter
  If roFu(i).Zeitpunkt <> rFu(j).Zeitpunkt Then GoSub unter
  If roFu(i).art <> rFu(j).art Then GoSub unter
  If roFu(i).Fußdeform <> rFu(j).Fußdeform Then GoSub unter
@@ -9304,7 +9304,7 @@ End Function ' FuZUnt
 Public Function fussLaden()
  Dim pid$, rs As New Recordset, akt&
  On Error GoTo fehler
- pid = rNa(0).Pat_ID
+ pid = rNa(0).Pat_id
  sql = "SELECT COALESCE(FID,0) FID,COALESCE(Pat_ID,0) Pat_ID,COALESCE(ZeitPunkt - INTERVAL 0 DAY,CONVERT('18991230',DATE)) ZeitPunkt,COALESCE(Art,'') Art" & _
 ",COALESCE(Fußdeform,'') Fußdeform,COALESCE(Hyper_mEin,'') Hyper_mEin,COALESCE(Weiteres,'') Weiteres,COALESCE(Zn_Ulcus,'') Zn_Ulcus" & _
 ",COALESCE(Zn_Amput,'') Zn_Amput,COALESCE(Fuß_ang,'') Fuß_ang,COALESCE(Ulcera,'') Ulcera,COALESCE(Wundinfektion,'') Wundinfektion" & _
@@ -9319,7 +9319,7 @@ Public Function fussLaden()
   Do While Not rs.EOF
    akt = UBound(roFu)
    roFu(akt).FID = rs!FID
-   roFu(akt).Pat_ID = rs!Pat_ID
+   roFu(akt).Pat_id = rs!Pat_id
    roFu(akt).Zeitpunkt = rs!Zeitpunkt
    roFu(akt).art = doUmwfSQL(rs!art, lies.obMySQL, False)
    roFu(akt).Fußdeform = doUmwfSQL(rs!Fußdeform, lies.obMySQL, False)
@@ -9405,7 +9405,7 @@ Public Function rFuDump()
  For i = 1 To UBound(rFu)
   Print #200, vbCrLf & "i: " & i
   Print #200, Left$("rFu(" & i & ").FID:" & String$(33, "."), 33) & rFu(i).FID
-  Print #200, Left$("rFu(" & i & ").Pat_ID:" & String$(33, "."), 33) & rFu(i).Pat_ID
+  Print #200, Left$("rFu(" & i & ").Pat_ID:" & String$(33, "."), 33) & rFu(i).Pat_id
   Print #200, Left$("rFu(" & i & ").ZeitPunkt:" & String$(33, "."), 33) & rFu(i).Zeitpunkt
   Print #200, Left$("rFu(" & i & ").Art:" & String$(33, "."), 33) & "'" & rFu(i).art & "'"
   Print #200, Left$("rFu(" & i & ").Fußdeform:" & String$(33, "."), 33) & "'" & rFu(i).Fußdeform & "'"
@@ -9435,14 +9435,14 @@ Public Function fussSpeichern(SammelInsert%, BezfSp%, Optional rAf&, Optional sf
  Dim rs As New ADODB.Recordset
  T1 = Timer
  On Error Resume Next
- pid = rNa(0).Pat_ID
+ pid = rNa(0).Pat_id
  On Error GoTo fehler
  syscmd 4, pid & ": Speichere " & UBound(rFu) + 0 & " Sätze in `" & Tbnm & "`"
  Call csql0.AppVar(Array(" INSERT ", sqlIGNORE, "INTO `" & LCase$(Tbnm) & "` (FID,Pat_ID,ZeitPunkt," & _
      "Art,Fußdeform,Hyper_mEin,Weiteres,Zn_Ulcus,Zn_Amput,Fuß_ang,Ulcera,Wundinfektion,nae_US," & _
      "Mitarbeiter,absPos,AktZeit,QS,QT,StByte)           VALUES"))
  If Not AllePat Then
-   sql = "DELETE FROM `" & LCase$(Tbnm) & "` WHERE Pat_ID = " & CStr(rNa(0).Pat_ID)
+   sql = "DELETE FROM `" & LCase$(Tbnm) & "` WHERE Pat_ID = " & CStr(rNa(0).Pat_id)
    Call myEFrag(sql)
  End If ' not AllePat
 sql:
@@ -9453,7 +9453,7 @@ setz:
   If SammelInsert = 0 Or i = 1 Then
    csql.Append csql0
   End If ' SammelInsert = 0 Or i = 1 Then
-  csql.AppVar Array("(", rFu(i).FID, ",", rFu(i).Pat_ID, ",", DatFor_k(rFu(i).Zeitpunkt), ",'", rFu(i).art, "','", rFu(i).Fußdeform, "','", rFu(i).Hyper_mEin, "','", rFu(i).Weiteres, "','", rFu(i).Zn_Ulcus, "','", _
+  csql.AppVar Array("(", rFu(i).FID, ",", rFu(i).Pat_id, ",", DatFor_k(rFu(i).Zeitpunkt), ",'", rFu(i).art, "','", rFu(i).Fußdeform, "','", rFu(i).Hyper_mEin, "','", rFu(i).Weiteres, "','", rFu(i).Zn_Ulcus, "','", _
    rFu(i).Zn_Amput, "','", rFu(i).Fuß_ang, "','", rFu(i).Ulcera, "','", rFu(i).Wundinfektion, "','", rFu(i).nae_US, "','", rFu(i).Mitarbeiter, "',", rFu(i).absPos, ",", DatFor_k(rFu(i).aktZeit), ",'", _
    rFu(i).QS, "','", rFu(i).QT, "',", rFu(i).StByte, ")")
   If SammelInsert <> 0 And i < UBound(rFu) Then csql.Append ","
@@ -9494,7 +9494,7 @@ End If ' ErrN = 0 Then else
 syscmd 4, "rFu(" & i & "/" & UBound(rFu) & "):   " & ErrDescr
 sfnr = sfnr + 1
 If sfnr > 10 Then
- Lese.Ausgeb sfnr & " Fehler in ""fussSpeichern()"" bei Pat. " & rNa(0).Pat_ID & ", gebe auf (ErrDes: " & ErrDescr & ")", True
+ Lese.Ausgeb sfnr & " Fehler in ""fussSpeichern()"" bei Pat. " & rNa(0).Pat_id & ", gebe auf (ErrDes: " & ErrDescr & ")", True
  sfnr = 0
  Resume Next
 End If ' sfnr > 10
@@ -9583,7 +9583,7 @@ End Function ' fussSpeichern
 
 Public Function roUlZuw(i&, j&)
  roUl(i).FID = rUl(j).FID
- roUl(i).Pat_ID = rUl(j).Pat_ID
+ roUl(i).Pat_id = rUl(j).Pat_id
  roUl(i).Zeitpunkt = rUl(j).Zeitpunkt
  roUl(i).Lokalisation = rUl(j).Lokalisation
  roUl(i).Seite = rUl(j).Seite
@@ -9604,7 +9604,7 @@ End Function ' roUlZuw
 
 Public Function UlZUnt%(i&, j&)
  If roUl(i).FID <> rUl(j).FID Then GoSub unter
- If roUl(i).Pat_ID <> rUl(j).Pat_ID Then GoSub unter
+ If roUl(i).Pat_id <> rUl(j).Pat_id Then GoSub unter
  If roUl(i).Zeitpunkt <> rUl(j).Zeitpunkt Then GoSub unter
  If roUl(i).Lokalisation <> rUl(j).Lokalisation Then GoSub unter
  If roUl(i).Seite <> rUl(j).Seite Then GoSub unter
@@ -9630,7 +9630,7 @@ End Function ' UlZUnt
 Public Function ulcusLaden()
  Dim pid$, rs As New Recordset, akt&
  On Error GoTo fehler
- pid = rNa(0).Pat_ID
+ pid = rNa(0).Pat_id
  sql = "SELECT COALESCE(FID,0) FID,COALESCE(Pat_ID,0) Pat_ID,COALESCE(ZeitPunkt - INTERVAL 0 DAY,CONVERT('18991230',DATE)) ZeitPunkt,COALESCE(Lokalisation,'') Lokalisation" & _
 ",COALESCE(Seite,'') Seite,COALESCE(Größe,'') Größe,COALESCE(Beläge,'') Beläge,COALESCE(Exsudat,'') Exsudat" & _
 ",COALESCE(Geruch,'') Geruch,COALESCE(Wundrand,'') Wundrand,COALESCE(Wundumgebung,'') Wundumgebung,COALESCE(Temperatur,'') Temperatur" & _
@@ -9644,7 +9644,7 @@ Public Function ulcusLaden()
   Do While Not rs.EOF
    akt = UBound(roUl)
    roUl(akt).FID = rs!FID
-   roUl(akt).Pat_ID = rs!Pat_ID
+   roUl(akt).Pat_id = rs!Pat_id
    roUl(akt).Zeitpunkt = rs!Zeitpunkt
    roUl(akt).Lokalisation = doUmwfSQL(rs!Lokalisation, lies.obMySQL, False)
    roUl(akt).Seite = doUmwfSQL(rs!Seite, lies.obMySQL, False)
@@ -9728,7 +9728,7 @@ Public Function rUlDump()
  For i = 1 To UBound(rUl)
   Print #200, vbCrLf & "i: " & i
   Print #200, Left$("rUl(" & i & ").FID:" & String$(33, "."), 33) & rUl(i).FID
-  Print #200, Left$("rUl(" & i & ").Pat_ID:" & String$(33, "."), 33) & rUl(i).Pat_ID
+  Print #200, Left$("rUl(" & i & ").Pat_ID:" & String$(33, "."), 33) & rUl(i).Pat_id
   Print #200, Left$("rUl(" & i & ").ZeitPunkt:" & String$(33, "."), 33) & rUl(i).Zeitpunkt
   Print #200, Left$("rUl(" & i & ").Lokalisation:" & String$(33, "."), 33) & "'" & rUl(i).Lokalisation & "'"
   Print #200, Left$("rUl(" & i & ").Seite:" & String$(33, "."), 33) & "'" & rUl(i).Seite & "'"
@@ -9756,14 +9756,14 @@ Public Function ulcusSpeichern(SammelInsert%, BezfSp%, Optional rAf&, Optional s
  Dim rs As New ADODB.Recordset
  T1 = Timer
  On Error Resume Next
- pid = rNa(0).Pat_ID
+ pid = rNa(0).Pat_id
  On Error GoTo fehler
  syscmd 4, pid & ": Speichere " & UBound(rUl) + 0 & " Sätze in `" & Tbnm & "`"
  Call csql0.AppVar(Array(" INSERT ", sqlIGNORE, "INTO `" & LCase$(Tbnm) & "` (FID,Pat_ID,ZeitPunkt," & _
      "Lokalisation,Seite,Größe,Beläge,Exsudat,Geruch,Wundrand,Wundumgebung,Temperatur,Fotodoku," & _
      "Wundversorgung,Mitarbeiter,absPos,AktZeit,StByte)  VALUES"))
  If Not AllePat Then
-   sql = "DELETE FROM `" & LCase$(Tbnm) & "` WHERE Pat_ID = " & CStr(rNa(0).Pat_ID)
+   sql = "DELETE FROM `" & LCase$(Tbnm) & "` WHERE Pat_ID = " & CStr(rNa(0).Pat_id)
    Call myEFrag(sql)
  End If ' not AllePat
 sql:
@@ -9774,7 +9774,7 @@ setz:
   If SammelInsert = 0 Or i = 1 Then
    csql.Append csql0
   End If ' SammelInsert = 0 Or i = 1 Then
-  csql.AppVar Array("(", rUl(i).FID, ",", rUl(i).Pat_ID, ",", DatFor_k(rUl(i).Zeitpunkt), ",'", rUl(i).Lokalisation, "','", rUl(i).Seite, "','", rUl(i).Größe, "','", rUl(i).Beläge, "','", rUl(i).Exsudat, "','", _
+  csql.AppVar Array("(", rUl(i).FID, ",", rUl(i).Pat_id, ",", DatFor_k(rUl(i).Zeitpunkt), ",'", rUl(i).Lokalisation, "','", rUl(i).Seite, "','", rUl(i).Größe, "','", rUl(i).Beläge, "','", rUl(i).Exsudat, "','", _
    rUl(i).Geruch, "','", rUl(i).Wundrand, "','", rUl(i).Wundumgebung, "','", rUl(i).Temperatur, "','", rUl(i).Fotodoku, "','", rUl(i).Wundversorgung, "','", rUl(i).Mitarbeiter, "',", _
    rUl(i).absPos, ",", DatFor_k(rUl(i).aktZeit), ",", rUl(i).StByte, ")")
   If SammelInsert <> 0 And i < UBound(rUl) Then csql.Append ","
@@ -9811,7 +9811,7 @@ End If ' ErrN = 0 Then else
 syscmd 4, "rUl(" & i & "/" & UBound(rUl) & "):   " & ErrDescr
 sfnr = sfnr + 1
 If sfnr > 10 Then
- Lese.Ausgeb sfnr & " Fehler in ""ulcusSpeichern()"" bei Pat. " & rNa(0).Pat_ID & ", gebe auf (ErrDes: " & ErrDescr & ")", True
+ Lese.Ausgeb sfnr & " Fehler in ""ulcusSpeichern()"" bei Pat. " & rNa(0).Pat_id & ", gebe auf (ErrDes: " & ErrDescr & ")", True
  sfnr = 0
  Resume Next
 End If ' sfnr > 10
@@ -9898,7 +9898,7 @@ End Function ' ulcusSpeichern
 
 Public Function roVkZuw(i&, j&)
  roVk(i).FID = rVk(j).FID
- roVk(i).Pat_ID = rVk(j).Pat_ID
+ roVk(i).Pat_id = rVk(j).Pat_id
  roVk(i).Zeitpunkt = rVk(j).Zeitpunkt
  roVk(i).Wohlempfinden = rVk(j).Wohlempfinden
  roVk(i).Saettigung = rVk(j).Saettigung
@@ -9919,7 +9919,7 @@ End Function ' roVkZuw
 
 Public Function VkZUnt%(i&, j&)
  If roVk(i).FID <> rVk(j).FID Then GoSub unter
- If roVk(i).Pat_ID <> rVk(j).Pat_ID Then GoSub unter
+ If roVk(i).Pat_id <> rVk(j).Pat_id Then GoSub unter
  If roVk(i).Zeitpunkt <> rVk(j).Zeitpunkt Then GoSub unter
  If roVk(i).Wohlempfinden <> rVk(j).Wohlempfinden Then GoSub unter
  If roVk(i).Saettigung <> rVk(j).Saettigung Then GoSub unter
@@ -9945,7 +9945,7 @@ End Function ' VkZUnt
 Public Function vkgdLaden()
  Dim pid$, rs As New Recordset, akt&
  On Error GoTo fehler
- pid = rNa(0).Pat_ID
+ pid = rNa(0).Pat_id
  sql = "SELECT COALESCE(FID,0) FID,COALESCE(Pat_ID,0) Pat_ID,COALESCE(ZeitPunkt - INTERVAL 0 DAY,CONVERT('18991230',DATE)) ZeitPunkt,COALESCE(Wohlempfinden,'') Wohlempfinden" & _
 ",COALESCE(Saettigung,'') Saettigung,COALESCE(Zielwerterreichung,'') Zielwerterreichung,COALESCE(Ketonkörper,'') Ketonkörper,COALESCE(Gynaekologenbefund,'') Gynaekologenbefund" & _
 ",COALESCE(Gewichtsentwicklung,'') Gewichtsentwicklung,COALESCE(HbA1c,'') HbA1c,COALESCE(Bewegung,'') Bewegung,COALESCE(Minuten,'') Minuten" & _
@@ -9959,7 +9959,7 @@ Public Function vkgdLaden()
   Do While Not rs.EOF
    akt = UBound(roVk)
    roVk(akt).FID = rs!FID
-   roVk(akt).Pat_ID = rs!Pat_ID
+   roVk(akt).Pat_id = rs!Pat_id
    roVk(akt).Zeitpunkt = rs!Zeitpunkt
    roVk(akt).Wohlempfinden = doUmwfSQL(rs!Wohlempfinden, lies.obMySQL, False)
    roVk(akt).Saettigung = doUmwfSQL(rs!Saettigung, lies.obMySQL, False)
@@ -10043,7 +10043,7 @@ Public Function rVkDump()
  For i = 1 To UBound(rVk)
   Print #200, vbCrLf & "i: " & i
   Print #200, Left$("rVk(" & i & ").FID:" & String$(33, "."), 33) & rVk(i).FID
-  Print #200, Left$("rVk(" & i & ").Pat_ID:" & String$(33, "."), 33) & rVk(i).Pat_ID
+  Print #200, Left$("rVk(" & i & ").Pat_ID:" & String$(33, "."), 33) & rVk(i).Pat_id
   Print #200, Left$("rVk(" & i & ").ZeitPunkt:" & String$(33, "."), 33) & rVk(i).Zeitpunkt
   Print #200, Left$("rVk(" & i & ").Wohlempfinden:" & String$(33, "."), 33) & "'" & rVk(i).Wohlempfinden & "'"
   Print #200, Left$("rVk(" & i & ").Saettigung:" & String$(33, "."), 33) & "'" & rVk(i).Saettigung & "'"
@@ -10071,14 +10071,14 @@ Public Function vkgdSpeichern(SammelInsert%, BezfSp%, Optional rAf&, Optional sf
  Dim rs As New ADODB.Recordset
  T1 = Timer
  On Error Resume Next
- pid = rNa(0).Pat_ID
+ pid = rNa(0).Pat_id
  On Error GoTo fehler
  syscmd 4, pid & ": Speichere " & UBound(rVk) + 0 & " Sätze in `" & Tbnm & "`"
  Call csql0.AppVar(Array(" INSERT ", sqlIGNORE, "INTO `" & LCase$(Tbnm) & "` (FID,Pat_ID,ZeitPunkt," & _
      "Wohlempfinden,Saettigung,Zielwerterreichung,Ketonkörper,Gynaekologenbefund,Gewichtsentwicklung,HbA1c,Bewegung,Minuten,Blutdruck," & _
      "Puls,Mitarbeiter,absPos,AktZeit,StByte)            VALUES"))
  If Not AllePat Then
-   sql = "DELETE FROM `" & LCase$(Tbnm) & "` WHERE Pat_ID = " & CStr(rNa(0).Pat_ID)
+   sql = "DELETE FROM `" & LCase$(Tbnm) & "` WHERE Pat_ID = " & CStr(rNa(0).Pat_id)
    Call myEFrag(sql)
  End If ' not AllePat
 sql:
@@ -10089,7 +10089,7 @@ setz:
   If SammelInsert = 0 Or i = 1 Then
    csql.Append csql0
   End If ' SammelInsert = 0 Or i = 1 Then
-  csql.AppVar Array("(", rVk(i).FID, ",", rVk(i).Pat_ID, ",", DatFor_k(rVk(i).Zeitpunkt), ",'", rVk(i).Wohlempfinden, "','", rVk(i).Saettigung, "','", rVk(i).Zielwerterreichung, "','", rVk(i).Ketonkörper, "','", _
+  csql.AppVar Array("(", rVk(i).FID, ",", rVk(i).Pat_id, ",", DatFor_k(rVk(i).Zeitpunkt), ",'", rVk(i).Wohlempfinden, "','", rVk(i).Saettigung, "','", rVk(i).Zielwerterreichung, "','", rVk(i).Ketonkörper, "','", _
    rVk(i).Gynaekologenbefund, "','", rVk(i).Gewichtsentwicklung, "','", rVk(i).HbA1c, "','", rVk(i).Bewegung, "','", rVk(i).Minuten, "','", rVk(i).Blutdruck, "','", rVk(i).Puls, "','", _
    rVk(i).Mitarbeiter, "',", rVk(i).absPos, ",", DatFor_k(rVk(i).aktZeit), ",", rVk(i).StByte, ")")
   If SammelInsert <> 0 And i < UBound(rVk) Then csql.Append ","
@@ -10126,7 +10126,7 @@ End If ' ErrN = 0 Then else
 syscmd 4, "rVk(" & i & "/" & UBound(rVk) & "):   " & ErrDescr
 sfnr = sfnr + 1
 If sfnr > 10 Then
- Lese.Ausgeb sfnr & " Fehler in ""vkgdSpeichern()"" bei Pat. " & rNa(0).Pat_ID & ", gebe auf (ErrDes: " & ErrDescr & ")", True
+ Lese.Ausgeb sfnr & " Fehler in ""vkgdSpeichern()"" bei Pat. " & rNa(0).Pat_id & ", gebe auf (ErrDes: " & ErrDescr & ")", True
  sfnr = 0
  Resume Next
 End If ' sfnr > 10
@@ -10213,7 +10213,7 @@ End Function ' vkgdSpeichern
 
 Public Function roSwZuw(i&, j&)
  roSw(i).FID = rSw(j).FID
- roSw(i).Pat_ID = rSw(j).Pat_ID
+ roSw(i).Pat_id = rSw(j).Pat_id
  roSw(i).Zeitpunkt = rSw(j).Zeitpunkt
  roSw(i).FormTitel = rSw(j).FormTitel
  roSw(i).lR = rSw(j).lR
@@ -10232,7 +10232,7 @@ End Function ' roSwZuw
 
 Public Function SwZUnt%(i&, j&)
  If roSw(i).FID <> rSw(j).FID Then GoSub unter
- If roSw(i).Pat_ID <> rSw(j).Pat_ID Then GoSub unter
+ If roSw(i).Pat_id <> rSw(j).Pat_id Then GoSub unter
  If roSw(i).Zeitpunkt <> rSw(j).Zeitpunkt Then GoSub unter
  If roSw(i).FormTitel <> rSw(j).FormTitel Then GoSub unter
  If roSw(i).lR <> rSw(j).lR Then GoSub unter
@@ -10256,7 +10256,7 @@ End Function ' SwZUnt
 Public Function swsLaden()
  Dim pid$, rs As New Recordset, akt&
  On Error GoTo fehler
- pid = rNa(0).Pat_ID
+ pid = rNa(0).Pat_id
  sql = "SELECT COALESCE(FID,0) FID,COALESCE(Pat_ID,0) Pat_ID,COALESCE(ZeitPunkt - INTERVAL 0 DAY,CONVERT('18991230',DATE)) ZeitPunkt,COALESCE(FormTitel,'') FormTitel" & _
 ",COALESCE(LR - INTERVAL 0 DAY,CONVERT('18991230',DATE)) LR,COALESCE(vorET - INTERVAL 0 DAY,CONVERT('18991230',DATE)) vorET,COALESCE(ET - INTERVAL 0 DAY,CONVERT('18991230',DATE)) ET,COALESCE(efLR - INTERVAL 0 DAY,CONVERT('18991230',DATE)) efLR" & _
 ",COALESCE(erLR - INTERVAL 0 DAY,CONVERT('18991230',DATE)) erLR,COALESCE(kGT - INTERVAL 0 DAY,CONVERT('18991230',DATE)) kGT,COALESCE(MB - INTERVAL 0 DAY,CONVERT('18991230',DATE)) MB,COALESCE(EndeArt,'') EndeArt" & _
@@ -10270,7 +10270,7 @@ Public Function swsLaden()
   Do While Not rs.EOF
    akt = UBound(roSw)
    roSw(akt).FID = rs!FID
-   roSw(akt).Pat_ID = rs!Pat_ID
+   roSw(akt).Pat_id = rs!Pat_id
    roSw(akt).Zeitpunkt = rs!Zeitpunkt
    roSw(akt).FormTitel = doUmwfSQL(rs!FormTitel, lies.obMySQL, False)
    roSw(akt).lR = rs!lR
@@ -10352,7 +10352,7 @@ Public Function rSwDump()
  For i = 1 To UBound(rSw)
   Print #200, vbCrLf & "i: " & i
   Print #200, Left$("rSw(" & i & ").FID:" & String$(33, "."), 33) & rSw(i).FID
-  Print #200, Left$("rSw(" & i & ").Pat_ID:" & String$(33, "."), 33) & rSw(i).Pat_ID
+  Print #200, Left$("rSw(" & i & ").Pat_ID:" & String$(33, "."), 33) & rSw(i).Pat_id
   Print #200, Left$("rSw(" & i & ").ZeitPunkt:" & String$(33, "."), 33) & rSw(i).Zeitpunkt
   Print #200, Left$("rSw(" & i & ").FormTitel:" & String$(33, "."), 33) & "'" & rSw(i).FormTitel & "'"
   Print #200, Left$("rSw(" & i & ").LR:" & String$(33, "."), 33) & rSw(i).lR
@@ -10378,14 +10378,14 @@ Public Function swsSpeichern(SammelInsert%, BezfSp%, Optional rAf&, Optional sfk
  Dim rs As New ADODB.Recordset
  T1 = Timer
  On Error Resume Next
- pid = rNa(0).Pat_ID
+ pid = rNa(0).Pat_id
  On Error GoTo fehler
  syscmd 4, pid & ": Speichere " & UBound(rSw) + 0 & " Sätze in `" & Tbnm & "`"
  Call csql0.AppVar(Array(" INSERT ", sqlIGNORE, "INTO `" & LCase$(Tbnm) & "` (FID,Pat_ID,ZeitPunkt," & _
      "FormTitel,LR,vorET,ET,efLR,erLR,kGT,MB,EndeArt,ED," & _
      "absPos,AktZeit,StByte)               VALUES"))
  If Not AllePat Then
-   sql = "DELETE FROM `" & LCase$(Tbnm) & "` WHERE Pat_ID = " & CStr(rNa(0).Pat_ID)
+   sql = "DELETE FROM `" & LCase$(Tbnm) & "` WHERE Pat_ID = " & CStr(rNa(0).Pat_id)
    Call myEFrag(sql)
  End If ' not AllePat
 sql:
@@ -10396,7 +10396,7 @@ setz:
   If SammelInsert = 0 Or i = 1 Then
    csql.Append csql0
   End If ' SammelInsert = 0 Or i = 1 Then
-  csql.AppVar Array("(", rSw(i).FID, ",", rSw(i).Pat_ID, ",", DatFor_k(rSw(i).Zeitpunkt), ",'", rSw(i).FormTitel, "',", DatFor_k(rSw(i).lR), ",", DatFor_k(rSw(i).vorET), ",", DatFor_k(rSw(i).ET), ",", DatFor_k( _
+  csql.AppVar Array("(", rSw(i).FID, ",", rSw(i).Pat_id, ",", DatFor_k(rSw(i).Zeitpunkt), ",'", rSw(i).FormTitel, "',", DatFor_k(rSw(i).lR), ",", DatFor_k(rSw(i).vorET), ",", DatFor_k(rSw(i).ET), ",", DatFor_k( _
    rSw(i).efLR), ",", DatFor_k(rSw(i).erLR), ",", DatFor_k(rSw(i).kGT), ",", DatFor_k(rSw(i).MB), ",'", rSw(i).EndeArt, "',", DatFor_k(rSw(i).ED), ",", rSw(i).absPos, ",", DatFor_k(rSw(i).aktZeit), ",", _
    rSw(i).StByte, ")")
   If SammelInsert <> 0 And i < UBound(rSw) Then csql.Append ","
@@ -10409,7 +10409,7 @@ setz:
       SammelInsert = 0
       GoTo sql
      ElseIf InStrB(ErrD, "Duplicate") <> 0 Then
-      rSw(i).Pat_ID = myEFrag("SELECT MAX(Pat_ID)+1 FROM `" & LCase$(Tbnm) & "`", , DBCn).Fields(0)
+      rSw(i).Pat_id = myEFrag("SELECT MAX(Pat_ID)+1 FROM `" & LCase$(Tbnm) & "`", , DBCn).Fields(0)
       csql.m_Len = 0
       GoTo setz
      Else ' SammelInsert = 1 And ErrN = -2147217900 Then elseif
@@ -10437,7 +10437,7 @@ End If ' ErrN = 0 Then else
 syscmd 4, "rSw(" & i & "/" & UBound(rSw) & "):   " & ErrDescr
 sfnr = sfnr + 1
 If sfnr > 10 Then
- Lese.Ausgeb sfnr & " Fehler in ""swsSpeichern()"" bei Pat. " & rNa(0).Pat_ID & ", gebe auf (ErrDes: " & ErrDescr & ")", True
+ Lese.Ausgeb sfnr & " Fehler in ""swsSpeichern()"" bei Pat. " & rNa(0).Pat_id & ", gebe auf (ErrDes: " & ErrDescr & ")", True
  sfnr = 0
  Resume Next
 End If ' sfnr > 10
@@ -10504,7 +10504,7 @@ End Function ' swsSpeichern
 
 Public Function roVoZuw(i&, j&)
  roVo(i).FID = rVo(j).FID
- roVo(i).Pat_ID = rVo(j).Pat_ID
+ roVo(i).Pat_id = rVo(j).Pat_id
  roVo(i).Zeitpunkt = rVo(j).Zeitpunkt
  roVo(i).FormTitel = rVo(j).FormTitel
  roVo(i).Inhalt = rVo(j).Inhalt
@@ -10515,7 +10515,7 @@ End Function ' roVoZuw
 
 Public Function VoZUnt%(i&, j&)
  If roVo(i).FID <> rVo(j).FID Then GoSub unter
- If roVo(i).Pat_ID <> rVo(j).Pat_ID Then GoSub unter
+ If roVo(i).Pat_id <> rVo(j).Pat_id Then GoSub unter
  If roVo(i).Zeitpunkt <> rVo(j).Zeitpunkt Then GoSub unter
  If roVo(i).FormTitel <> rVo(j).FormTitel Then GoSub unter
  If roVo(i).Inhalt <> rVo(j).Inhalt Then GoSub unter
@@ -10531,7 +10531,7 @@ End Function ' VoZUnt
 Public Function voplLaden()
  Dim pid$, rs As New Recordset, akt&
  On Error GoTo fehler
- pid = rNa(0).Pat_ID
+ pid = rNa(0).Pat_id
  sql = "SELECT COALESCE(FID,0) FID,COALESCE(Pat_ID,0) Pat_ID,COALESCE(ZeitPunkt - INTERVAL 0 DAY,CONVERT('18991230',DATE)) ZeitPunkt,COALESCE(FormTitel,'') FormTitel" & _
 ",COALESCE(Inhalt,'') Inhalt,COALESCE(absPos,0) absPos,COALESCE(AktZeit - INTERVAL 0 DAY,CONVERT('18991230',DATE)) AktZeit,COALESCE(StByte,0) StByte" & _
 " FROM `vopl` WHERE Pat_ID=" & pid & " ORDER BY `ZeitPunkt`"
@@ -10543,7 +10543,7 @@ Public Function voplLaden()
   Do While Not rs.EOF
    akt = UBound(roVo)
    roVo(akt).FID = rs!FID
-   roVo(akt).Pat_ID = rs!Pat_ID
+   roVo(akt).Pat_id = rs!Pat_id
    roVo(akt).Zeitpunkt = rs!Zeitpunkt
    roVo(akt).FormTitel = doUmwfSQL(rs!FormTitel, lies.obMySQL, False)
    roVo(akt).Inhalt = doUmwfSQL(rs!Inhalt, lies.obMySQL, False)
@@ -10617,7 +10617,7 @@ Public Function rVoDump()
  For i = 1 To UBound(rVo)
   Print #200, vbCrLf & "i: " & i
   Print #200, Left$("rVo(" & i & ").FID:" & String$(33, "."), 33) & rVo(i).FID
-  Print #200, Left$("rVo(" & i & ").Pat_ID:" & String$(33, "."), 33) & rVo(i).Pat_ID
+  Print #200, Left$("rVo(" & i & ").Pat_ID:" & String$(33, "."), 33) & rVo(i).Pat_id
   Print #200, Left$("rVo(" & i & ").ZeitPunkt:" & String$(33, "."), 33) & rVo(i).Zeitpunkt
   Print #200, Left$("rVo(" & i & ").FormTitel:" & String$(33, "."), 33) & "'" & rVo(i).FormTitel & "'"
   Print #200, Left$("rVo(" & i & ").Inhalt:" & String$(33, "."), 33) & "'" & rVo(i).Inhalt & "'"
@@ -10635,13 +10635,13 @@ Public Function voplSpeichern(SammelInsert%, BezfSp%, Optional rAf&, Optional sf
  Dim rs As New ADODB.Recordset
  T1 = Timer
  On Error Resume Next
- pid = rNa(0).Pat_ID
+ pid = rNa(0).Pat_id
  On Error GoTo fehler
  syscmd 4, pid & ": Speichere " & UBound(rVo) + 0 & " Sätze in `" & Tbnm & "`"
  Call csql0.AppVar(Array(" INSERT ", sqlIGNORE, "INTO `" & LCase$(Tbnm) & "` (FID,Pat_ID,ZeitPunkt," & _
      "FormTitel,Inhalt,absPos,AktZeit,StByte)            VALUES"))
  If Not AllePat Then
-   sql = "DELETE FROM `" & LCase$(Tbnm) & "` WHERE Pat_ID = " & CStr(rNa(0).Pat_ID)
+   sql = "DELETE FROM `" & LCase$(Tbnm) & "` WHERE Pat_ID = " & CStr(rNa(0).Pat_id)
    Call myEFrag(sql)
  End If ' not AllePat
 sql:
@@ -10652,7 +10652,7 @@ setz:
   If SammelInsert = 0 Or i = 1 Then
    csql.Append csql0
   End If ' SammelInsert = 0 Or i = 1 Then
-  csql.AppVar Array("(", rVo(i).FID, ",", rVo(i).Pat_ID, ",", DatFor_k(rVo(i).Zeitpunkt), ",'", rVo(i).FormTitel, "','", rVo(i).Inhalt, "',", rVo(i).absPos, ",", DatFor_k(rVo(i).aktZeit), ",", rVo(i).StByte, ")")
+  csql.AppVar Array("(", rVo(i).FID, ",", rVo(i).Pat_id, ",", DatFor_k(rVo(i).Zeitpunkt), ",'", rVo(i).FormTitel, "','", rVo(i).Inhalt, "',", rVo(i).absPos, ",", DatFor_k(rVo(i).aktZeit), ",", rVo(i).StByte, ")")
   If SammelInsert <> 0 And i < UBound(rVo) Then csql.Append ","
   If SammelInsert = 0 Or i = UBound(rVo) Then
     altmode = myEFrag("SELECT @@global.sql_mode", , DBCn).Fields(0)
@@ -10687,7 +10687,7 @@ End If ' ErrN = 0 Then else
 syscmd 4, "rVo(" & i & "/" & UBound(rVo) & "):   " & ErrDescr
 sfnr = sfnr + 1
 If sfnr > 10 Then
- Lese.Ausgeb sfnr & " Fehler in ""voplSpeichern()"" bei Pat. " & rNa(0).Pat_ID & ", gebe auf (ErrDes: " & ErrDescr & ")", True
+ Lese.Ausgeb sfnr & " Fehler in ""voplSpeichern()"" bei Pat. " & rNa(0).Pat_id & ", gebe auf (ErrDes: " & ErrDescr & ")", True
  sfnr = 0
  Resume Next
 End If ' sfnr > 10
@@ -10791,7 +10791,7 @@ Public Function laborxsaetzeSpeichern(SammelInsert%, BezfSp%, Optional rAf&, Opt
  Dim rs As New ADODB.Recordset
  T1 = Timer
  On Error Resume Next
- pid = rNa(0).Pat_ID
+ pid = rNa(0).Pat_id
  On Error GoTo fehler
  syscmd 4, pid & ": Speichere " & UBound(rLs) + 0 & " Sätze in `" & Tbnm & "`"
  Call csql0.AppVar(Array(" INSERT ", sqlIGNORE, "INTO `" & LCase$(Tbnm) & "` (DatID,Satzart,Satzlänge," & _
@@ -10845,7 +10845,7 @@ End If ' ErrN = 0 Then else
 syscmd 4, "rLs(" & i & "/" & UBound(rLs) & "):   " & ErrDescr
 sfnr = sfnr + 1
 If sfnr > 10 Then
- Lese.Ausgeb sfnr & " Fehler in ""laborxsaetzeSpeichern()"" bei Pat. " & rNa(0).Pat_ID & ", gebe auf (ErrDes: " & ErrDescr & ")", True
+ Lese.Ausgeb sfnr & " Fehler in ""laborxsaetzeSpeichern()"" bei Pat. " & rNa(0).Pat_id & ", gebe auf (ErrDes: " & ErrDescr & ")", True
  sfnr = 0
  Resume Next
 End If ' sfnr > 10
@@ -10967,7 +10967,7 @@ Public Function laborxeingelSpeichern(SammelInsert%, BezfSp%, Optional rAf&, Opt
  Dim rs As New ADODB.Recordset
  T1 = Timer
  On Error Resume Next
- pid = rNa(0).Pat_ID
+ pid = rNa(0).Pat_id
  On Error GoTo fehler
  syscmd 4, pid & ": Speichere " & UBound(rLg) + 0 & " Sätze in `" & Tbnm & "`"
  Call csql0.AppVar(Array(" INSERT ", sqlIGNORE, "INTO `" & LCase$(Tbnm) & "` (Pfad,Name,Zp," & _
@@ -11018,7 +11018,7 @@ End If ' ErrN = 0 Then else
 syscmd 4, "rLg(" & i & "/" & UBound(rLg) & "):   " & ErrDescr
 sfnr = sfnr + 1
 If sfnr > 10 Then
- Lese.Ausgeb sfnr & " Fehler in ""laborxeingelSpeichern()"" bei Pat. " & rNa(0).Pat_ID & ", gebe auf (ErrDes: " & ErrDescr & ")", True
+ Lese.Ausgeb sfnr & " Fehler in ""laborxeingelSpeichern()"" bei Pat. " & rNa(0).Pat_id & ", gebe auf (ErrDes: " & ErrDescr & ")", True
  sfnr = 0
  Resume Next
 End If ' sfnr > 10
@@ -11097,7 +11097,7 @@ Public Function rLuDump()
   Print #200, Left$("rLu(" & i & ").Auftragsschlüssel:" & String$(33, "."), 33) & "'" & rLu(i).Auftragsschlüssel & "'"
   Print #200, Left$("rLu(" & i & ").Eingang:" & String$(33, "."), 33) & rLu(i).Eingang
   Print #200, Left$("rLu(" & i & ").Berichtsdatum:" & String$(33, "."), 33) & "'" & rLu(i).Berichtsdatum & "'"
-  Print #200, Left$("rLu(" & i & ").Pat_ID:" & String$(33, "."), 33) & rLu(i).Pat_ID
+  Print #200, Left$("rLu(" & i & ").Pat_ID:" & String$(33, "."), 33) & rLu(i).Pat_id
   Print #200, Left$("rLu(" & i & ").TM_Pat_id:" & String$(33, "."), 33) & rLu(i).TM_Pat_ID
   Print #200, Left$("rLu(" & i & ").Nachname:" & String$(33, "."), 33) & "'" & rLu(i).Nachname & "'"
   Print #200, Left$("rLu(" & i & ").Vorname:" & String$(33, "."), 33) & "'" & rLu(i).Vorname & "'"
@@ -11135,7 +11135,7 @@ Public Function laborxusSpeichern(SammelInsert%, BezfSp%, j&, Optional rAf&, Opt
  Dim rs As New ADODB.Recordset
  T1 = Timer
  On Error Resume Next
- pid = rNa(0).Pat_ID
+ pid = rNa(0).Pat_id
  On Error GoTo fehler
  syscmd 4, pid & ": Speichere " & UBound(rLu) + 0 & " Sätze in `" & Tbnm & "`"
  Call csql0.AppVar(Array(" INSERT ", sqlIGNORE, "INTO `" & LCase$(Tbnm) & "` (DatID,SatzID,Satzart," & _
@@ -11151,7 +11151,7 @@ setz:
    csql.Append csql0
   End If ' SammelInsert = 0 Or i = j Then
   csql.AppVar Array("(", rLu(i).DatID, ",", rLu(i).SatzID, ",'", rLu(i).Satzart, "','", rLu(i).Satzlänge, "','", rLu(i).Auftragsnummer, "','", rLu(i).Auftragsschlüssel, "',", DatFor_k(rLu(i).Eingang), ",'", _
-   rLu(i).Berichtsdatum, "',", rLu(i).Pat_ID, ",", rLu(i).TM_Pat_ID, ",'", rLu(i).Nachname, "','", rLu(i).Vorname, "','", rLu(i).GebDat, "','", rLu(i).Titel, "','", rLu(i).NVorsatz, "','", _
+   rLu(i).Berichtsdatum, "',", rLu(i).Pat_id, ",", rLu(i).TM_Pat_ID, ",'", rLu(i).Nachname, "','", rLu(i).Vorname, "','", rLu(i).GebDat, "','", rLu(i).Titel, "','", rLu(i).NVorsatz, "','", _
    rLu(i).BefArt, "','", rLu(i).Abrechnungstyp, "','", rLu(i).GebüOrd, "','", rLu(i).Auftraggeber, "','", rLu(i).Patienteninformation, "','", rLu(i).geschlecht, "','", rLu(i).AuftrHinw, "','", _
    rLu(i).Pat_idUrsp, "','", rLu(i).Pat_idErwVNG, "','", rLu(i).Pat_idErwVN, "','", rLu(i).Pat_idErwG, "','", rLu(i).Pat_idErwGB, "','", rLu(i).Pat_idErwGL, "','", rLu(i).Pat_idLaborNeu, "',", DatFor_k( _
    rLu(i).ZeitpunktLaborneu), ",", rLu(i).ZdüP, ",", rLu(i).ZdiP, ",'", rLu(i).LWerte, "',", DatFor_k(rLu(i).verglichen), ",", rLu(i).AfN, ")")
@@ -11193,7 +11193,7 @@ End If ' ErrN = 0 Then else
 syscmd 4, "rLu(" & i & "/" & UBound(rLu) & "):   " & ErrDescr
 sfnr = sfnr + 1
 If sfnr > 10 Then
- Lese.Ausgeb sfnr & " Fehler in ""laborxusSpeichern()"" bei Pat. " & rNa(0).Pat_ID & ", gebe auf (ErrDes: " & ErrDescr & ")", True
+ Lese.Ausgeb sfnr & " Fehler in ""laborxusSpeichern()"" bei Pat. " & rNa(0).Pat_id & ", gebe auf (ErrDes: " & ErrDescr & ")", True
  sfnr = 0
  Resume Next
 End If ' sfnr > 10
@@ -11329,7 +11329,7 @@ Public Function laborxbaktSpeichern(SammelInsert%, BezfSp%, Optional rAf&, Optio
  Dim rs As New ADODB.Recordset
  T1 = Timer
  On Error Resume Next
- pid = rNa(0).Pat_ID
+ pid = rNa(0).Pat_id
  On Error GoTo fehler
  syscmd 4, pid & ": Speichere " & UBound(rLo) + 0 & " Sätze in `" & Tbnm & "`"
  Call csql0.AppVar(Array(" INSERT ", sqlIGNORE, "INTO `" & LCase$(Tbnm) & "` (RefNr,Verf,KuQu," & _
@@ -11377,7 +11377,7 @@ End If ' ErrN = 0 Then else
 syscmd 4, "rLo(" & i & "/" & UBound(rLo) & "):   " & ErrDescr
 sfnr = sfnr + 1
 If sfnr > 10 Then
- Lese.Ausgeb sfnr & " Fehler in ""laborxbaktSpeichern()"" bei Pat. " & rNa(0).Pat_ID & ", gebe auf (ErrDes: " & ErrDescr & ")", True
+ Lese.Ausgeb sfnr & " Fehler in ""laborxbaktSpeichern()"" bei Pat. " & rNa(0).Pat_id & ", gebe auf (ErrDes: " & ErrDescr & ")", True
  sfnr = 0
  Resume Next
 End If ' sfnr > 10
@@ -11482,7 +11482,7 @@ Public Function laborxwertSpeichern(SammelInsert%, BezfSp%, Optional rAf&, Optio
  Dim rs As New ADODB.Recordset
  T1 = Timer
  On Error Resume Next
- pid = rNa(0).Pat_ID
+ pid = rNa(0).Pat_id
  On Error GoTo fehler
  syscmd 4, pid & ": Speichere " & UBound(rLw) + 0 & " Sätze in `" & Tbnm & "`"
  Call csql0.AppVar(Array(" INSERT ", sqlIGNORE, "INTO `" & LCase$(Tbnm) & "` (RefNr,Abkü,Langname," & _
@@ -11559,7 +11559,7 @@ End If ' ErrN = 0 Then else
 syscmd 4, "rLw(" & i & "/" & UBound(rLw) & "):   " & ErrDescr
 sfnr = sfnr + 1
 If sfnr > 10 Then
- Lese.Ausgeb sfnr & " Fehler in ""laborxwertSpeichern()"" bei Pat. " & rNa(0).Pat_ID & ", gebe auf (ErrDes: " & ErrDescr & ")", True
+ Lese.Ausgeb sfnr & " Fehler in ""laborxwertSpeichern()"" bei Pat. " & rNa(0).Pat_id & ", gebe auf (ErrDes: " & ErrDescr & ")", True
  sfnr = 0
  Resume Next
 End If ' sfnr > 10
@@ -11665,7 +11665,7 @@ Public Function laborxleistSpeichern(SammelInsert%, BezfSp%, Optional rAf&, Opti
  Dim rs As New ADODB.Recordset
  T1 = Timer
  On Error Resume Next
- pid = rNa(0).Pat_ID
+ pid = rNa(0).Pat_id
  On Error GoTo fehler
  syscmd 4, pid & ": Speichere " & UBound(rLL) + 0 & " Sätze in `" & Tbnm & "`"
  Call csql0.AppVar(Array(" INSERT ", sqlIGNORE, "INTO `" & LCase$(Tbnm) & "` (RefNr,Abkü,Verf," & _
@@ -11712,7 +11712,7 @@ End If ' ErrN = 0 Then else
 syscmd 4, "rLL(" & i & "/" & UBound(rLL) & "):   " & ErrDescr
 sfnr = sfnr + 1
 If sfnr > 10 Then
- Lese.Ausgeb sfnr & " Fehler in ""laborxleistSpeichern()"" bei Pat. " & rNa(0).Pat_ID & ", gebe auf (ErrDes: " & ErrDescr & ")", True
+ Lese.Ausgeb sfnr & " Fehler in ""laborxleistSpeichern()"" bei Pat. " & rNa(0).Pat_id & ", gebe auf (ErrDes: " & ErrDescr & ")", True
  sfnr = 0
  Resume Next
 End If ' sfnr > 10
@@ -11836,7 +11836,7 @@ Public Function liuezSpeichern(SammelInsert%, BezfSp%, Optional rAf&, Optional s
  Dim rs As New ADODB.Recordset
  T1 = Timer
  On Error Resume Next
- pid = rNa(0).Pat_ID
+ pid = rNa(0).Pat_id
  On Error GoTo fehler
  syscmd 4, pid & ": Speichere " & UBound(rLi) + 0 & " Sätze in `" & Tbnm & "`"
  Call csql0.AppVar(Array(" INSERT ", sqlIGNORE, "INTO `" & LCase$(Tbnm) & "` (name,vorname,titelt," & _
@@ -11893,7 +11893,7 @@ End If ' ErrN = 0 Then else
 syscmd 4, "rLi(" & i & "/" & UBound(rLi) & "):   " & ErrDescr
 sfnr = sfnr + 1
 If sfnr > 10 Then
- Lese.Ausgeb sfnr & " Fehler in ""liuezSpeichern()"" bei Pat. " & rNa(0).Pat_ID & ", gebe auf (ErrDes: " & ErrDescr & ")", True
+ Lese.Ausgeb sfnr & " Fehler in ""liuezSpeichern()"" bei Pat. " & rNa(0).Pat_id & ", gebe auf (ErrDes: " & ErrDescr & ")", True
  sfnr = 0
  Resume Next
 End If ' sfnr > 10
@@ -12095,9 +12095,9 @@ Public Function tuSpeichern(frm As Lese, SI%, BfS%, Optional ohneAktDat%, Option
  Call swsSpeichern(SI, BfS)
  Call voplSpeichern(SI, BfS)
  If Not ohneAktDat Then
-  Call myEFrag("UPDATE `namen` SET aktZeit = " & DatFor_k(rNa(0).aktZeit) & " WHERE pat_id = " & rNa(0).Pat_ID, rAf)
+  Call myEFrag("UPDATE `namen` SET aktZeit = " & DatFor_k(rNa(0).aktZeit) & " WHERE pat_id = " & rNa(0).Pat_id, rAf)
   If rAf <> 1 Then
-   frm.Ausgeb "Fehler bei der Setzung des Aktualisierungsdatum bei " & rNa(0).Pat_ID & " " & rNa(0).Nachname & " " & rNa(0).Vorname, True
+   frm.Ausgeb "Fehler bei der Setzung des Aktualisierungsdatum bei " & rNa(0).Pat_id & " " & rNa(0).Nachname & " " & rNa(0).Vorname, True
   End If ' rAf <> 0
  End If ' not ohneAktDat
  sqlIGNORE = altsi

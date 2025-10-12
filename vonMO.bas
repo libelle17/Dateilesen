@@ -1559,7 +1559,7 @@ abermals:
 '   If Not IsNumeric(rFa(jj).Quartal) Or Len(rFa(jj).Quartal) <> 5 Then Stop
 '  Next jj
 '    If rsfaru = 0 Then
-     Dim buch$, ob71010%, spli ' 5.9.25 aktuell nur bei Pat. 71010
+     Dim buch$, ob71010%, Spli ' 5.9.25 aktuell nur bei Pat. 71010
      ob71010 = 0
      For j = 0 To UBound(FaStr)
 '      If lfdfl = 1 Then
@@ -1716,9 +1716,9 @@ m104:
        Case "10.5", "1.10.5" ' <BSNR>#<LANR>#<epraxis.fsurogat>#<earzt.fsurogat>
 m105:
             If rFa(UBound(rFa)).ÜbWVBSNR = "" Or rFa(UBound(rFa)).ÜbwLANR = "" Then
-             spli = Split(FaStr(j).Text, "#")
-             If rFa(UBound(rFa)).ÜbWVBSNR = "" Then rFa(UBound(rFa)).ÜbWVBSNR = spli(0)
-             If rFa(UBound(rFa)).ÜbwLANR = "" Then rFa(UBound(rFa)).ÜbwLANR = spli(1)
+             Spli = Split(FaStr(j).Text, "#")
+             If rFa(UBound(rFa)).ÜbWVBSNR = "" Then rFa(UBound(rFa)).ÜbWVBSNR = Spli(0)
+             If rFa(UBound(rFa)).ÜbwLANR = "" Then rFa(UBound(rFa)).ÜbwLANR = Spli(1)
             End If ' ebsnr = "" Or elanr = "" Then
              ' Feld kommt aber auf wser nur einmal vor und auf szn4 nur viermal
        Case "10.6", "1.10.6"
@@ -2282,7 +2282,7 @@ fgefunden:
   "INNER JOIN datafile d ON l.FSurogat=d.FReferenznr " & vbCrLf & _
   "LEFT JOIN nutzerneu na ON FAnordnutzernr= na.FSurogat " & vbCrLf & _
   "LEFT JOIN nutzerneu nb ON FAusfnutzernr= nb.FSurogat " & vbCrLf & _
-  "WHERE l.fpatnr=" & fPtNr & " /*AND feintragsart IN (5,50,51,148,151,166,169,501,598)*/ " & vbCrLf & _
+  "WHERE l.fpatnr=" & fPtNr & " AND feintragsart IN (5,50,51,52,148,151,166,169,501,598,1033) " & vbCrLf & _
   "ORDER BY l.FSurogat, Zp"
   myFrag rsEi, sql, adOpenStatic, MOCon
   If Not rsEi.BOF Then

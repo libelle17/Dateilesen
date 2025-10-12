@@ -2869,10 +2869,28 @@ End Sub ' Anwaltsunterlagen_für_Pat_zusammenstellen_Click
 
 ' Funktionen für Arzthelferin und Arzt -> Sonderpatienten anzeigen
 Private Sub SonderpatientenAnzeigen_Click()
- Dim rs As New ADODB.Recordset
+ Dim ars As ADODB.Recordset, rs As New ADODB.Recordset
  Static spa As New Sonderpatientauswahl
  Set spa.aufRufer = Me
- spa.Show 1
+ myFrag ars, "SELECT Nachname,Vorname,Pat_id FROM namen n WHERE nachname LIKE 'zutun%' OR straße LIKE 'mittermayer%13%' AND nachname<>'Kreitmeier' ORDER BY nachname,vorname"
+ If Not ars.BOF Then
+  Do While Not ars.EOF
+   spa.List1.AddItem ars!Nachname & ", " & ars!Vorname & "  (" & ars!Pat_id & ")"
+   ars.MoveNext
+  Loop
+ End If ' Not rs.BOF Then
+ spa.Show vbModal
+ If spa.Abbruch Then Exit Sub
+ 
+ Dim spneu$(), spnk$
+ SplitNeu spa.List1.Text, "(", spneu
+ If UBound(spneu) > 0 Then
+  spnk = REPLACE$(spneu(1), ")", vNS)
+  If IsNumeric(spnk) Then
+   SpPat_id = CLng(spnk)
+   SpName = spneu(0)
+  End If ' IsNumeric(spnk) Then
+ End If ' UBound(spneu) > 0 Then
  myFrag rs, "SELECT Zeitpunkt,Art,Inhalt FROM `eintraege` WHERE pat_id = " & SpPat_id & " ORDER BY zeitpunkt DESC"
  TabAusgeb rs, Me, , , , , , , "Einträge für " & SpName
 End Sub ' SonderpatientenAnzeigen_Click
@@ -2888,8 +2906,22 @@ End Sub ' Hausarzt_anzeigen_Click
 ' ... für &Arzt
 
 #If mitab Then
+
 ' ...für Arzt -> Anamnesebogen (Diagnosen eingeben)
-Private Sub ÜbertragenenAnamnesebogen_Click()
+Private Sub ÜbertragenenAnamnesebogen_Click() ' Code aus form_load herausgezogen, damit Cancel funktioniert
+ Dim i%
+ Static so As New Sonderpatientauswahl
+ Set so.aufRufer = lies
+ so.Caption = "Abfrageauswahl (alle nach Erstvorstellungsdatum absteigend sortiert)"
+ Call anBogÜ.AbfragenLad
+ so.Width = 6500
+ For i = 0 To UBound(DQStr)
+  so.List1.AddItem DQStr(i)
+ Next i
+ so.Show vbModal
+ If so.Abbruch Then Unload so: Exit Sub
+ anBogÜ.Caption = "Anamnesebogen: " & so.List1
+ Call anBogÜ.FragAb(so.List1.ListIndex)
  anBogÜ.Show
 End Sub ' ÜbertragenenAnamnesebogen_Click
 #End If
@@ -3061,7 +3093,7 @@ Private Sub DMPhierListe_Click()
  Me.Hide
  On Error Resume Next ' falls in Form_load mit unload me abgebrochen
  pal.Show
- If Err.Number <> 0 Then lese.Show
+ If Err.Number <> 0 Then Lese.Show
  Call ProgEnde
 End Sub ' DMPhierListe_Click
 
@@ -3140,9 +3172,13 @@ End Sub ' BriefeLeiDok_Click
 
 ' ...für Arzt -> Pathologische Laborwerte anschauen
 Private Sub PathLabAnschau_Click() ' -> LabordateiAnzeig(Me.LabDat)
- Dim ePL As New PathLabForm
- Set ePL.eLese = Me
- ePL.Show
+' Dim ePL As New PathLabForm
+' Set ePL.eLese = Me
+' ePL.Show
+ Dim eLA As New PatListe
+ eLA.PLArt = artLAus
+ Set eLA.hlese = Me
+ eLA.Show
 End Sub ' PathLabAnschau_Click
 
 ' für Arzt -> Path.Laborwerte neu
@@ -3235,7 +3271,7 @@ End Sub ' BriefSchreiben_Click
 Private Sub Briefnochmal_Click()
  Call ProgStart
  If Me.pataw.Pat_id = "" Then Me.pataw.Pat_id = 681
- lese.Aktion = Briefschreiben
+ Lese.Aktion = Briefschreiben
  Call tuBriefStandalone(Me.pataw.Pat_id, 0, "", "", "", , 0, True, True)
 ' Aktion = nix
  Call ProgEnde
@@ -3243,7 +3279,7 @@ End Sub ' Briefnochmal_Click
 
 ' ...für Arzt -> Brief zu letztem Import schreiben
 Private Sub BriefImport_Click()
- lese.Aktion = Briefschreiben
+ Lese.Aktion = Briefschreiben
  Call tuBriefStandalone(CStr(lzPID), 0, , Me.pataw.Verfasser, Me.pataw.Vorlage, Me.pataw.Programm.Index)
 End Sub ' Sub BriefImport_Click
 
@@ -3252,7 +3288,7 @@ Private Sub BriefOhneMaske_Click()
  Dim erg$
  erg = InputBox("Bitte Pat_ID eingeben:")
  If IsNumeric(erg) Then
-  lese.Aktion = Briefschreiben
+  Lese.Aktion = Briefschreiben
   Call tuBriefStandalone(CLng(erg), 0)
  End If
 End Sub  ' BriefOhneMaske_Click
@@ -4654,12 +4690,12 @@ Private Sub harealNeu_Click() ' `hareal` neu aufbauen
       End If
 '     END IF
     End If
-    lese.Ausgeb "Pat_id: " & rs!Pat_id & ": geändert: " & rAf, False, True
+    Lese.Ausgeb "Pat_id: " & rs!Pat_id & ": geändert: " & rAf, False, True
    Next i
   End If
   rs.Move 1
  Loop
- lese.Ausgeb "Fertig mit Neuaufbau von `hareal`!", True, True
+ Lese.Ausgeb "Fertig mit Neuaufbau von `hareal`!", True, True
  Exit Sub
 fehler:
 Dim AnwPfad$
@@ -4875,7 +4911,7 @@ Private Sub Gewichte_Click()
   myEFrag sql, rAf
   rs.Move 1
  Loop
- lese.Ausgeb "Fertig mit Gewichte_Click!", True
+ Lese.Ausgeb "Fertig mit Gewichte_Click!", True
 End Sub ' Gewichte_Click
 
 ' Testfunktionen -> Gewichtsabnahmekandidaten
@@ -4923,7 +4959,7 @@ End Sub ' Sub calldoGenMachDB_Click
 ' Testfunktionen -> testlqanf
 Private Sub testlqanf_Click()
  Dim sql$, rs As New ADODB.Recordset
- lese.ProgStart
+ Lese.ProgStart
  Dim rv As New ADODB.Recordset
  Dim FristS$
  myFrag rv, "SHOW CREATE VIEW `aktf`"
@@ -5423,17 +5459,17 @@ Private Sub MDIForm_Activate()
 '   Call ProgEnde
  ElseIf Command = "ab" Then
    ProgStart
-   lese.Aktion = Briefschreiben
-   Call lese.pataw.vorbeleg
-   Call tuBriefStandalone(getbdtpid(), 0, , lese.pataw.Verfasser, lese.pataw.Vorlage, Me.pataw.Programm.ListIndex, , True)
+   Lese.Aktion = Briefschreiben
+   Call Lese.pataw.vorbeleg
+   Call tuBriefStandalone(getbdtpid(), 0, , Lese.pataw.Verfasser, Lese.pataw.Vorlage, Me.pataw.Programm.ListIndex, , True)
    Unload Me
  ElseIf Command = "labor" Then
   ProgStart
-  lese.obMySQL = True
-  LVobMySQL = lese.obMySQL
+  Lese.obMySQL = True
+  LVobMySQL = Lese.obMySQL
   BezFeh = pVerz & "BezFehler_" & DefDB(DBCn) & "_" & Format(Now(), "YYYYMMDD_hhmmss") & ".txt"
   obMitAlterTab = True
-  Call LaborDirektImport(lese, 0, True, 0, xVerz & "Labor\backup\", 0)
+  Call LaborDirektImport(Lese, 0, True, 0, xVerz & "Labor\backup\", 0)
   Call ProgEnde
  End If
  On Error Resume Next
@@ -5860,6 +5896,7 @@ Private Sub Ausgabe_KeyDown(KeyCode As Integer, Shift As Integer)
      pa = pa - 1
     Loop
     Zahl = Mid$(Me.Ausgabe.Text, pa + 1, pe - pa - 1)
+    Clipboard.Clear
     Clipboard.SetText Zahl
     Call doCallDMP(ByVal Zahl)
    End If
@@ -6309,7 +6346,7 @@ End Select
 End Sub ' MDIForm_Load()
 
 ' in MDIForm_Load
-Public Function AbbrechDisable(frm As lese)
+Public Function AbbrechDisable(frm As Lese)
  Dim i%
  For i = 0 To frm.Controls.COUNT - 1
   If frm.Controls(i).name = "Abbrechen" Then
@@ -6401,7 +6438,7 @@ Private Sub mdiform_unload(Cancel As Integer) ' geht nur beim Anklicken des Kreu
 End Sub ' MDIForm_Unload
 
 #If False Then
-Public Function ConstrFestleg(ByVal art As ConDtb, Optional hlese As lese)   ' dlg ist für art= 0 und 1 nötig
+Public Function ConstrFestleg(ByVal art As ConDtb, Optional hlese As Lese)   ' dlg ist für art= 0 und 1 nötig
  On Error GoTo fehler
 'ConStr$ = "DRIVER={MySQL ODBC 3.51 Driver};server=" & LiName & ";uid=...;pwd=...;option=" & opti
  Select Case art
