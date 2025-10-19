@@ -3829,8 +3829,8 @@ AwN(AWlf) = "GDM Schulungsübersicht aktuell/gesamt (vorher 107)"
 ' AND COALESCE(d.Dggel,0)=0
 sql(AWlf) = "" & _
 "SELECT f.pat_id, LEFT(gesname(f.pat_id),20) Nam, lr, voret, MAX(icd) icd," & vbCrLf & _
-"COALESCE((SELECT therart FROM therarten WHERE pat_id=f.pat_id AND zp=(SELECT MAX(zp) FROM therarten WHERE pat_id=f.pat_id AND zp<qend())),'Diät') TherArt," & vbCrLf & _
-"(SELECT COUNT(DISTINCT DATE(zeitpunkt)) FROM eintraege e WHERE e.pat_id=f.pat_id AND e.art IN ('ni','gstel','gs','rz','ep','bga','tk','APK','wd','ah','ta','tb','tt','tn','wr','jl','ga','ih','cr','tn','be','lf','kb','mn','lt','sk') AND zeitpunkt BETWEEN qanf() AND IF(qend()<sws.voret,qend(),sws.voret)) KoZ," & vbCrLf & _
+"COALESCE((SELECT therart FROM therarten WHERE pat_id=f.pat_id AND zp=(SELECT MAX(zp) FROM therarten WHERE pat_id=f.pat_id AND zp<qend())ORDER BY zp DESC LIMIT 1),'Diät') TherArt," & vbCrLf & _
+"(SELECT COUNT(DISTINCT DATE(zeitpunkt)) FROM eintraege e WHERE e.pat_id=f.pat_id AND e.art IN ('ni','gstel','gs','rz','ep','bga','tk','APK','wd','ah','ta','tb','tt','tn','wr','jl','ga','ih','cr','tn','be','lf','kb','mn','lt','sk','th') AND zeitpunkt BETWEEN qanf() AND IF(qend()<sws.voret,qend(),sws.voret)) KoZ," & vbCrLf & _
 "CONCAT(" & vbCrLf & _
 "CAST(COALESCE((SELECT SUM(lzahl) FROM leistungen WHERE pat_id=f.pat_id AND leistung='97276' AND zeitpunkt BETWEEN qanf() AND IF(qend()<sws.voret,qend(),sws.voret)),0) AS char CHARACTER SET utf8),'/'," & vbCrLf & _
 "COALESCE((SELECT SUM(lzahl) FROM leistungen WHERE pat_id=f.pat_id AND leistung='97276' AND zeitpunkt BETWEEN qanf()-INTERVAL 2 YEAR AND IF(qend()<sws.voret,qend(),sws.voret)),0)) `97276`," & vbCrLf & _

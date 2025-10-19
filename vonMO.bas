@@ -3164,7 +3164,7 @@ Function holHAausMO(inf As InfoTyp, fPtNr&, Optional satznr%)
     On Error GoTo fehler
     inf.anrede = rsHa!anrk
     If inf.anrede <> "" Then
-     If inf.anrede = "Frau" Then inf.Überschr = "Sehr geehrte Frau Kollegin" Else inf.Überschr = "Sehr geehrter Herr Kollege"
+     inf.Überschr = Switch(inf.anrede Like "Liebe*", inf.anrede, inf.anrede = "Frau", "Sehr geehrte Frau Kollegin", True, "Sehr geehrter Herr Kollege")
     End If
     inf.Funktion = "HA"
     Adr = REPLACE$(REPLACE$(doUmwfSQL(rsHa!Adr, True), "\n", ""), "\r", "")
@@ -3181,6 +3181,7 @@ Function holHAausMO(inf As InfoTyp, fPtNr&, Optional satznr%)
         Case "5":
             inf.plz = FMem(j).Text ' Postleitzahl
         Case "6":
+        
             inf.ort = FMem(j).Text ' Ort
         Case "8": ' "5" ?
         Case "9.1": ' unbekannte ascii-Ziffer

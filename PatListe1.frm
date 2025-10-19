@@ -1330,7 +1330,7 @@ Public Sub FertigStellen(zeile&, Optional nuranzeigen%, Optional PatID&) ' nachd
  End With
 ' Call DMPAusgeb0(aktDC, Pat_id, Not obstumm)
 ' zwiFS Pat_ID, nuranzeigen
- inTMAnz Pat_id
+ inMOAnz Pat_id
  Exit Sub
 fehler:
  Dim AnwPfad$
@@ -3285,21 +3285,28 @@ fehler:
  End Select
 End Sub ' ExcelLesen
 
+' in PatListe.Form_Load mit artLAus
 Sub LaborTagAnzeig()
  Dim rs As New ADODB.Recordset, sql$, i%
- Const tiefe% = 366
- sql = "SELECT date_format(zp,'%W, %d.%m.%Y','de_DE') tag,IF(hang,' ','X')hang,IF(kang,' ','X')kang,IF(sang,' ','X')sang FROM laborydat GROUP BY DATE(zp) DESC LIMIT " & tiefe
+' sql = "SELECT date_format(zp,'%W, %d.%m.%Y','de_DE') tag,IF(hang,' ','X')hang,IF(kang,' ','X')kang,IF(sang,' ','X')sang FROM laborydat GROUP BY DATE(zp) DESC LIMIT " & tiefe
+sql = _
+"SELECT COUNT(0)OVER()zahl,tag,hang,kang,sang FROM (" & vbCrLf & _
+"SELECT zp,DATE_FORMAT(zp,'%W, %d.%m.%Y','de_DE')tag,IF(hang,' ','X')hang,IF(kang,' ','X')kang,IF(sang,' ','X')sang" & vbCrLf & _
+" FROM laborydat" & vbCrLf & _
+" WHERE zp>20250318" & vbCrLf & _
+" GROUP BY DATE(zp)" & vbCrLf & _
+")i ORDER BY zp DESC"
  On Error GoTo fehler
  With Me.MFG
  .Visible = False
- .cols = 5
- .Rows = tiefe + 1
- .TextMatrix(0, 0) = "Tag"
- .TextMatrix(0, 1) = "Dr.H"
- .TextMatrix(0, 2) = "Dr.K"
- .TextMatrix(0, 3) = "G.S."
  myFrag rs, sql
  If Not rs.BOF And True Then
+  .Rows = rs!Zahl + 1
+  .cols = 5
+  .TextMatrix(0, 0) = "Tag"
+  .TextMatrix(0, 1) = "Dr.H"
+  .TextMatrix(0, 2) = "Dr.K"
+  .TextMatrix(0, 3) = "G.S."
   i = 1
   Do While Not rs.EOF
    .TextMatrix(i, 0) = rs!Tag
@@ -5004,7 +5011,7 @@ End Sub ' MFG_Click
 ' "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System"
 ' => Doppelklicken Sie auf den Eintrag "EnableLUA". Ändern Sie den Wert auf "0". Starten Sie Ihren PC neu.
 Public Function waehleinMO(Pat_id&)
-    Call inTMAnz(Pat_id&)
+    Call inMOAnz(Pat_id&)
 End Function ' waehleinmo
 
 #If gehtnichtgut Then

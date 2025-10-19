@@ -555,9 +555,6 @@ Begin VB.MDIForm Lese
          Caption         =   "Pa&thologische Laborwerte anschauen"
          Shortcut        =   ^L
       End
-      Begin VB.Menu PathLaborwerteNeu 
-         Caption         =   "&Path.Laborwerte neu"
-      End
       Begin VB.Menu VorhandeneBriefe 
          Caption         =   "&Vorhandene Briefe korrigieren"
       End
@@ -3181,12 +3178,6 @@ Private Sub PathLabAnschau_Click() ' -> LabordateiAnzeig(Me.LabDat)
  eLA.Show
 End Sub ' PathLabAnschau_Click
 
-' für Arzt -> Path.Laborwerte neu
-Private Sub PathLaborwerteNeu_Click()
- Dim pl As New PatListe
-End Sub
-
-
 ' ...für Arzt -> Vorhandene Briefe korrigieren
 Private Sub VorhandeneBriefe_Click()
  Dim ergZ&
@@ -3519,7 +3510,7 @@ End Sub ' MedartenEditieren_Click()
 Private Sub LaborparameterZusammenfassen_Click()
  Call ProgStart
  Set pal = Nothing
- pal.PLArt = artLPar
+ pal.PLArt = artlpar
  Set pal.hlese = Me
  Me.Hide
  pal.Show

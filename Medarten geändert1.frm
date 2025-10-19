@@ -1640,7 +1640,7 @@ Private Sub Googeln_Click()
 End Sub ' Googeln_Click()
 
 Private Sub inTM_Click()
-  inTMAnz (vTextB(3))
+  inMOAnz (vTextB(3))
 End Sub ' inTM_Click()
 
 Public Sub Suchen_Click()
