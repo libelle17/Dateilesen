@@ -8722,7 +8722,7 @@ On Error GoTo fehler
     Call dc.Range.Find.Execute("IDA", True, , , , , , , , "Insulindosisanpassung", wdReplaceAll)
     Call dc.Range.Find.Execute("ID-Anpassung", True, , , , , , , , "Insulindosisanpassung", wdReplaceAll)
     Call dc.Range.Find.Execute("Hypo`s", True, , , , , , , , "Hypoglyk‰mien", wdReplaceAll)
-    Call dc.Range.Find.Execute("GPD", True, , , , , , , , "Gesundheitspaﬂ Diabetes", wdReplaceAll)
+    Call dc.Range.Find.Execute("GPD", True, , , , , , , , "Gesundheitspass Diabetes", wdReplaceAll)
     Call dc.Range.Find.Execute("DFS", True, , , , , , , , "Diabetisches Fuﬂsyndrom", wdReplaceAll)
     Call dc.Range.Find.Execute("bettunge,", True, , , , , , , , "bettungen,", wdReplaceAll)
     Call dc.Range.Find.Execute("bettunge.", True, , , , , , , , "bettungen.", wdReplaceAll)
@@ -8757,7 +8757,7 @@ On Error GoTo fehler
     Call ag.REPLACE("ID-Anpassung", "Insulindosisanpassung")
     Call ag.REPLACE("Hypo`s", "Hypoglyk‰mien")
     Call ag.REPLACE("GPD", "Gesundheitspass Diabetes")
-    Call ag.REPLACE("DFS", "Diabetisches Fuﬂsyndrom")
+    Call ag.REPLACE("DFS", "Diabetisches Fu&#223;syndrom")
     Call ag.REPLACE("n.u.", "nicht untersucht")
    syscmd acSysCmdSetStatus, "Erstelle Brief f¸r " & gesName & ": 11) Speichern..."
    
@@ -8769,7 +8769,7 @@ On Error GoTo fehler
    
    If False Then FSO.CopyFile vVerz & "h\word\document.xml", zvz & "word\document.xml"
    oSh.rUn "powershell ""$vz=\""" & zvz & "word\\\"";$dt=@($vz+\""endnotes.xml\"";$vz+\""footnotes.xml\"";$vz+\""document.xml\"";$vz+\""settings.xml\"");$anr=[string](get-content -path $dt[0]) -replace '.*w:rsidRDefault=\""([0-9A-F]*)\"".*','$1';$nrd=\""" & dzahl & "\"";$nr=[int](get-content -path $nrd)+1;set-content -path $nrd $nr;$nrs='{0:X8}' -f $nr;foreach ($dta in $dt){(get-content -path $dta) -replace $anr, $nrs|set-content -path $dta;};""", 0, True
-  End If ' nichtherricht
+  End If ' not nichtherricht
   Dim dname$
   dname = sverz & IIf(Right$(sverz, 1) = "\", "", "\") & aname & "x"
   oSh.rUn "cmd /c """"c:\program files\7-zip\7z"" a -tzip -mm=deflate -mx9 -aoa -xr!*.swp """ & dname & """ " & zvz & "*""", 0, True
@@ -10688,17 +10688,25 @@ w2:
 keineGFR:
   End If ' flag(flNiI) THEN
   
+  If briefneu Then
+   If dstring <> "" Then
+    If InStrB(dstring, "[F17.1]") Then
+     ag.Append "<w:p><w:r><w:rPr><w:b/><w:rStyle w:val=""s24s""/></w:rPr><w:t>Das Rauchen sollte dringend eingestellt werden.</w:t></w:r></w:p>"
+    End If ' InStrB(dstring, "[F17.1]")
+   End If
+  End If ' briefneu
+  
   Dim rUebw As New ADODB.Recordset
   sql1 = "SELECT CASE WHEN COUNT(0) THEN ue ELSE '' END FROM (" & vbCrLf & _
          "SELECT CONCAT(CHR(13),'Weitere ‹berweisungen wurden von mir ausgestellt: '" & vbCrLf & _
          ",GROUP_CONCAT(uetxt ORDER BY zeitpunkt SEPARATOR '; '))ue FROM (" & vbCrLf & _
          "SELECT pat_id,zeitpunkt," & vbCrLf & _
-         "CONCAT(DATE_FORMAT(zeitpunkt,'%e.%c.%y'),GROUP_CONCAT(CASE feldnr WHEN 0 THEN CASE feld WHEN 'Ueberweisung_an' THEN CONCAT(feldinh,' (',DATE_FORMAT(zeitpunkt,'%e.%c.%y')) WHEN 'Diagnose' THEN CONCAT(': ',feldinh) ELSE CONCAT('; ',feldinh) END" & vbCrLf & _
-         "       ELSE CONCAT(' ',feldinh,IF(feld='3',': ','')) END ORDER BY /*feld DESC,*/feldnr SEPARATOR ''),')') Uetxt" & vbCrLf & _
+         "REGEXP_REPLACE(REPLACE(CONCAT(CHR(10),CHR(13),DATE_FORMAT(zeitpunkt,'%e.%c.%y'),GROUP_CONCAT(CASE feldnr WHEN 0 THEN CASE feld WHEN 'Ueberweisung_an' THEN CONCAT(feldinh,' (',DATE_FORMAT(zeitpunkt,'%e.%c.%y')) WHEN 'Diagnose' THEN CONCAT(': ',feldinh) ELSE CONCAT('; ',feldinh) END" & vbCrLf & _
+         "       ELSE CONCAT(' ',REPLACE(REPLACE(feldinh,CHR(10),''),CHR(13),''),IF(feld='3',' (','')) END ORDER BY /*feld DESC,*/feldnr SEPARATOR ''),')'),'( ','('),' +',' ') Uetxt" & vbCrLf & _
          "FROM formular" & vbCrLf & _
          "WHERE feld IN ('Ueberweisung_an', 'Diagnose','DfAuftrag',3,7,8,29,30)" & vbCrLf & _
          "AND((form_abk='uew' AND formvorl RLIKE '‹berweisung gezielt')OR(form_abk=20 AND formvorl=''))" & vbCrLf & _
-         "AND pat_id=" & Pat_ID & " AND zeitpunkt>" & DatFor_k(VorDat) & vbCrLf & _
+         "AND pat_id=" & Pat_ID & " AND zeitpunkt>" & DatFor_k(VorDat) & " AND feldnr " & vbCrLf & _
          "GROUP BY pat_id,form_id,zeitpunkt " & vbCrLf & _
          ")i GROUP BY pat_id)i"
 '  myEFrag "SET GROUP_CONCAT_MAX_LEN = 1000000;"
@@ -10723,14 +10731,6 @@ keineGFR:
     ag.Append "<w:p><w:r><w:rPr><w:rStyle w:val=""s18s""/></w:rPr><w:t>" & zuh(Epi) & "</w:t></w:r></w:p>"
     Epi = ""
    End If ' if Epi
-  End If ' briefneu
-  
-  If briefneu Then
-   If dstring <> "" Then
-    If InStrB(dstring, "[F17.1]") Then
-     ag.Append "<w:p><w:r><w:rPr><w:b/><w:rStyle w:val=""s24s""/></w:rPr><w:t>Das Rauchen sollte dringend eingestellt werden.</w:t></w:r></w:p>"
-    End If ' InStrB(dstring, "[F17.1]")
-   End If
   End If ' briefneu
   
   sql1 = "SELECT IF(COUNT(0)=0,'',CONCAT(CHR(13),'Weitere Termine haben wir noch vereinbart, Ihr freundliches Einverst‰ndnis voraussetzend: '," & vbCrLf & _
