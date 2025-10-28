@@ -2740,11 +2740,13 @@ If KeyCode = 27 Then
      Case Else: ' Call HolReg(frm.hlese)
     End Select
     frm.Hide
+    On Error Resume Next
     If frm.LVatr Is Nothing Then
      lies.Show
     Else
      frm.LVatr.Show
     End If
+    On Error GoTo fehler
  ElseIf KeyCode = 13 Then
   If frm.name = "PatAuswahl" And (frm.ActiveControl.name = "PatAuswahl" Or frm.ActiveControl.name = "Pat_id" Or frm.ActiveControl.name = "PatName") Then
    frm.OKButton_Click

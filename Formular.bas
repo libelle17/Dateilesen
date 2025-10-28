@@ -6541,23 +6541,23 @@ l104:
       elanr = FMem(mru).Text
      Case "10.5", "1.10.5"
 l105:
-      If ebsnr = "" Or elanr = "" Then
-       Spli = Split(FMem(mru).Text, "#")
-       If ebsnr = "" Then ebsnr = Spli(0)
-       If elanr = "" Then elanr = Spli(1)
-      End If ' ebsnr = "" Or elanr = "" Then
+     Spli = Split(FMem(mru).Text, "#")
+     If ebsnr = "" Then ebsnr = Spli(0)
+     If elanr = "" Then elanr = Spli(1)
+     If UBound(Spli) > 1 Then psur = Spli(2)
+     If UBound(Spli) > 2 Then asur = Spli(3)
     End Select
    Next mru
+   If ebsnr <> "" Then Exit Do
 naefall:
    rHa.MoveNext
-  Loop
-Fertig:
-     infos(10, infi) = "Üw " & üqu
-     arztnrn = Split(elanr, "#")
-     If UBound(arztnrn) > 0 Then If arztnrn(0) <> "" Then ebsnr = arztnrn(0): elanr = arztnrn(1)
-     If UBound(arztnrn) > 1 Then psur = arztnrn(2)
-     If UBound(arztnrn) > 2 Then asur = arztnrn(3)
-     If Not IsNumeric(ebsnr) Then If rHa.EOF Then GoTo Hausarzt Else GoTo naefall
+  Loop ' While Not rHa.EOF
+  infos(10, infi) = "Üw " & üqu
+'     arztnrn = Split(elanr, "#")
+'     If UBound(arztnrn) > 0 Then If arztnrn(0) <> "" Then ebsnr = arztnrn(0): elanr = arztnrn(1)
+'     If UBound(arztnrn) > 1 Then psur = arztnrn(2)
+'     If UBound(arztnrn) > 2 Then asur = arztnrn(3)
+  If Not IsNumeric(ebsnr) Then If rHa.EOF Then GoTo Hausarzt Else GoTo naefall
  '  0: Frau/Herrn
  '  1: Titel+Vorn+Nachn,
  '  2: Straße,
@@ -6574,7 +6574,7 @@ Fertig:
  ' 13: Tel'nr.
  ' 14: Nachname,
  ' 15: Email
- sql = _
+  sql = _
      "SELECT" & vbCrLf & _
      "  IF(a.FAnrede RLIKE 'Lieber|Herr','Herrn','Frau') anrk" & vbCrLf & _
      ",  CONCAT(trim(IF(a.FTitel RLIKE 'PD|Prof|Dr.*Dr',a.FTitel,'Dr.med.')),' ', a.FVorname,' ',a.FNachname) FBez" & vbCrLf & _
@@ -6632,7 +6632,7 @@ Hausarzt:
  For iinf = infi To 1
   Call holHAausMO(inf, CLng(Pat_ID), satznr)
   If inf.KVNr <> "" Or inf.Faxnr <> "" Then ' fax 29.9.25
-   infos(0, iinf) = IIf(InStrB(inf.Überschr, "Herr") <> 0, "Herrn", "Frau") ' inf.anrede
+   infos(0, iinf) = IIf(InStrB(inf.Überschr, "Herr") <> 0 Or InStrB(inf.Überschr, "Lieber") <> 0, "Herrn", "Frau") ' inf.anrede
    infos(1, iinf) = inf.gesName
    infos(2, iinf) = inf.Straße
    infos(3, iinf) = inf.plz & " " & inf.ort
@@ -7964,12 +7964,12 @@ Public Sub tuBriefStandalone(pid&, obStumm%, Optional Zielverz$, Optional Verfas
  sql = "SELECT n.*,COALESCE(GesName(Pat_id),'') GesName, COALESCE(titel,'') tit," & vbCrLf & _
  "CONCAT(IF(geschlecht='m','Herrn','Frau'),' ',gesname(pat_id),', *',DATE_FORMAT(gebdat,'%e.%c.%y')) gname," & vbCrLf & _
  "IF(geschlecht='m','der','die') dieder," & vbCrLf & _
- "DATE(IF(qad=0,(SELECT fanf FROM faelle WHERE pat_id=n.pat_id AND fanf>20040701 ORDER BY fanf LIMIT 1),qad))bhb," & vbCrLf & _
+ "DATE(IF(qad=0,COALESCE((SELECT fanf FROM faelle WHERE pat_id=n.pat_id AND fanf>20040701 ORDER BY fanf LIMIT 1),qad),0))bhb," & vbCrLf & _
  "IF(DATE(IF(qad=0,(SELECT fanf FROM faelle WHERE pat_id=n.pat_id AND fanf>20040701 ORDER BY fanf LIMIT 1),qad))=DATE(lbeh)," & vbCrLf & _
   "CONCAT('am ',DATE_FORMAT(lbeh,'%e.%c.%y'))," & vbCrLf & _
   "CONCAT('vom ',DATE_FORMAT(IF(qad=0,(SELECT fanf FROM faelle WHERE pat_id=n.pat_id AND fanf>20040701 ORDER BY fanf LIMIT 1),qad),'%e.%c.%y'),' bis zum ',DATE_FORMAT(lbeh,'%e.%c.%y'),' mehrmals'))behs" & vbCrLf & _
   ",(SELECT COALESCE(`diabetes seit`,0) FROM anamnesebogen WHERE pat_id=n.pat_id) dmseit" & vbCrLf & _
-  ",gesnameg(n.pat_id) gesnameg" & vbCrLf & _
+  ",gesnameg(n.pat_id)gesnameg" & vbCrLf & _
   "FROM namenlb n WHERE pat_id = " & Pat_ID
  myFrag rsNa, sql, adOpenStatic
  If rsNa.State = 0 Then
@@ -8037,7 +8037,6 @@ Public Sub tuBriefStandalone(pid&, obStumm%, Optional Zielverz$, Optional Verfas
   ReDim rFa(0)
  End If ' SafeArrayGetDim(rNa) = 0 Then
  Call getHausarzt1(infos(), rFa, rKv, 1, Pat_ID, 0, 2, "Erstelle Brief: 1) Hausarzt") ', True)
-  
 '  SET rHa = TabÖff("Hausaerzte", "KVNR")
  syscmd acSysCmdSetStatus, "Erstelle Brief für " & gesName & ": 2) Diagnosen..."
  Dim DiagTab() As CString, dstring$
@@ -10114,11 +10113,11 @@ w2:
   If Ep0 <> "" Then Epi = "Bei " & Akkusat & Ep0 & "." & nzw
   Dim swsql$
   swsql = _
-  "SELECT COALESCE(MAX(CONCAT(t1,IF(w1<92 AND w2<180 AND w3<153,CONCAT('Dabei wurden die Grenzwerte nicht überschritten. Somit liegt aktuell kein Gestationsdiabetes vor.',CHR(13)" & vbCrLf & _
+  "SELECT COALESCE(MAX(CONVERT(CONCAT(t1,IF(w1<92 AND w2<180 AND w3<153,CONCAT('Dabei wurden die Grenzwerte nicht überschritten. Somit liegt aktuell kein Gestationsdiabetes vor.',CHR(13)" & vbCrLf & _
   ",CASE WHEN voret-INTERVAL 40*7 DAY<=zp-INTERVAL 24*7 DAY THEN 'In dieser Schwangerschaft ist normalerweise kein erneuter OGTT nötig.'" & vbCrLf & _
   " ELSE CONCAT(IF(voret-INTERVAL 40*7 DAY<=zp-INTERVAL 14*7 DAY,'Nach einer evtl. zwischenzeitlichen Nüchternglucose nach Laborstandard sollte ein erneuter OGTT','Ein erneuter OGTT sollte'),'in der 24.-28. Schwangerschaftwoche erfolgen.')" & vbCrLf & _
   "END)" & vbCrLf & _
-  ",CONCAT('Der ',CASE WHEN w1>92 THEN CONCAT('1.',CASE WHEN w2>=180 THEN CONCAT('2.',IF(w3>=153,'und 3.',''))ELSE''END) WHEN w3>=153 THEN '3.'ELSE''END ,CONCAT('Wert war zu hoch, deshalb musste ein Gestationsdiabetes festgestellt werden.',CHR(13),'Wir besprachen mit der Patientin die Umstände der Erkrankung, die Gegenmaßnahmen Ernährung und körperliche Aktivität und wiesen sie in Blutzuckermessungen ein.'))))),'')" & vbCrLf & _
+  ",CONCAT('Der ',CASE WHEN w1>92 THEN CONCAT('1.',CASE WHEN w2>=180 THEN CONCAT('2.',IF(w3>=153,'und 3.',''))ELSE''END) WHEN w3>=153 THEN '3.'ELSE''END ,CONCAT('Wert war zu hoch, deshalb musste ein Gestationsdiabetes festgestellt werden.',CHR(13),'Wir besprachen mit der Patientin die Umstände der Erkrankung, die Gegenmaßnahmen Ernährung und körperliche Aktivität und wiesen sie in Blutzuckermessungen ein.'))))USING utf8mb3)),'')" & vbCrLf & _
   "erg" & vbCrLf & _
   "FROM (" & vbCrLf & _
   "SELECT" & vbCrLf & _
@@ -10129,8 +10128,8 @@ w2:
   "   ,''" & vbCrLf & _
   "  )" & vbCrLf & _
   " )t1" & vbCrLf & _
-  ",REPLACE(REGEXP_REPLACE(inhalt,'^.*Uhr, ([0-9,.]*).*$','\\1'),',','.')w1" & vbCrLf & _
-  ",REPLACE(REGEXP_REPLACE(inhalt,'^.*Uhr, [^2]*Uhr ([0-9,.]*).*$','\\1'),',','.')w2" & vbCrLf & _
+  ",REPLACE(REGEXP_REPLACE(inhalt,'^.*?Uhr, ([0-9,.]*).*$','\\1'),',','.')w1" & vbCrLf & _
+  ",REPLACE(REGEXP_REPLACE(inhalt,'^.*?Uhr, .*?Uhr ([0-9,.]*).*$','\\1'),',','.')w2" & vbCrLf & _
   ",REPLACE(REGEXP_REPLACE(inhalt,'^.*Uhr ([0-9,.]*).*$','\\1'),',','.')w3" & vbCrLf & _
   ",e.*" & vbCrLf & _
   "FROM sws s" & vbCrLf & _
@@ -10701,8 +10700,8 @@ keineGFR:
          "SELECT CONCAT(CHR(13),'Weitere Überweisungen wurden von mir ausgestellt: '" & vbCrLf & _
          ",GROUP_CONCAT(uetxt ORDER BY zeitpunkt SEPARATOR '; '))ue FROM (" & vbCrLf & _
          "SELECT pat_id,zeitpunkt," & vbCrLf & _
-         "REGEXP_REPLACE(REPLACE(CONCAT(CHR(10),CHR(13),DATE_FORMAT(zeitpunkt,'%e.%c.%y'),GROUP_CONCAT(CASE feldnr WHEN 0 THEN CASE feld WHEN 'Ueberweisung_an' THEN CONCAT(feldinh,' (',DATE_FORMAT(zeitpunkt,'%e.%c.%y')) WHEN 'Diagnose' THEN CONCAT(': ',feldinh) ELSE CONCAT('; ',feldinh) END" & vbCrLf & _
-         "       ELSE CONCAT(' ',REPLACE(REPLACE(feldinh,CHR(10),''),CHR(13),''),IF(feld='3',' (','')) END ORDER BY /*feld DESC,*/feldnr SEPARATOR ''),')'),'( ','('),' +',' ') Uetxt" & vbCrLf & _
+         "REGEXP_REPLACE(REPLACE(CONVERT(CONCAT(CHR(10),CHR(13),DATE_FORMAT(zeitpunkt,'%e.%c.%y'),GROUP_CONCAT(CASE feldnr WHEN 0 THEN CASE feld WHEN 'Ueberweisung_an' THEN CONCAT(feldinh,' (',DATE_FORMAT(zeitpunkt,'%e.%c.%y')) WHEN 'Diagnose' THEN CONCAT(': ',feldinh) ELSE CONCAT('; ',feldinh) END" & vbCrLf & _
+         "       ELSE CONCAT(' ',REPLACE(REPLACE(feldinh,CHR(10),''),CHR(13),''),IF(feld='3',' (','')) END ORDER BY /*feld DESC,*/feldnr SEPARATOR ''),')')USING utf8mb3),'( ','('),' +',' ') Uetxt" & vbCrLf & _
          "FROM formular" & vbCrLf & _
          "WHERE feld IN ('Ueberweisung_an', 'Diagnose','DfAuftrag',3,7,8,29,30)" & vbCrLf & _
          "AND((form_abk='uew' AND formvorl RLIKE 'Überweisung gezielt')OR(form_abk=20 AND formvorl=''))" & vbCrLf & _
@@ -13825,6 +13824,7 @@ sql = _
 "DEALLOCATE PREPARE sc1; " & vbCrLf & _
 "-- SELECT @frag; " & vbCrLf & _
 "END;"
+' Debuggen: SELECT @frag
 myEFrag (sql)
 
 sql = "DROP PROCEDURE IF EXISTS `quelle`.`geslabdpohnebr`"
@@ -16243,29 +16243,29 @@ Function kkeintraege$(Pat_ID$, krit$, bn%, Optional VorDat As Date, Optional fet
     If neuz <> "" Then sq1 = sq1 & "REPLACE("
     sq1 = sq1 & "REPLACE(REPLACE(REPLACE("
     If fett = "" Then
-     If bn Then sq1 = sq1 & "zuht("
+     If bn Then sq1 = sq1 & "CONVERT(zuht("
      sq1 = sq1 & "inhalt"
-     If bn Then sq1 = sq1 & ",0," & IIf(obgross, "1", "0") & ")"
+     If bn Then sq1 = sq1 & ",0," & IIf(obgross, "1", "0") & ")USING utf8mb3)"
     Else ' fett = "" Then
      sq1 = sq1 & "IF(inhalt RLIKE '^(" & fett & "):'," & vbCrLf & _
       "CONCAT('</w:t><w:rPr><w:rStyle w:val=""s24s""/><w:b/><w:bCs/></w:rPr><w:t>'," & vbCrLf
-     If bn Then sq1 = sq1 & "zuht("
+     If bn Then sq1 = sq1 & "CONVERT(zuht("
      sq1 = sq1 & "MID(inhalt,1,INSTR(inhalt,':')-1)"
-     If bn Then sq1 = sq1 & ",0," & IIf(obgross, "1", "0") & ")"
+     If bn Then sq1 = sq1 & ",0," & IIf(obgross, "1", "0") & ")USING utf8mb3)"
      sq1 = sq1 & vbCrLf & ",'</w:t></w:r><w:r><w:rPr><w:rStyle w:val=""s24s""/><w:b w:val=""false""/><w:bCs w:val=""false""/></w:rPr><w:t>'," & vbCrLf
-     If bn Then sq1 = sq1 & "zuht("
+     If bn Then sq1 = sq1 & "CONVERT(zuht("
      sq1 = sq1 & "MID(inhalt,INSTR(inhalt,':'))"
-     If bn Then sq1 = sq1 & ",0," & IIf(obgross, "1", "0") & ")"
+     If bn Then sq1 = sq1 & ",0," & IIf(obgross, "1", "0") & ")USING utf8mb3)"
      sq1 = sq1 & vbCrLf & "),"
-     If bn Then sq1 = sq1 & "zuht("
+     If bn Then sq1 = sq1 & "CONVERT(zuht("
      sq1 = sq1 & "inhalt"
-     If bn Then sq1 = sq1 & ",0," & IIf(obgross, "1", "0") & ")"
+     If bn Then sq1 = sq1 & ",0," & IIf(obgross, "1", "0") & ")USING utf8mb3)"
      sq1 = sq1 & ")"
     End If ' fett = "" Then
     sq1 = sq1 & ",'<w:br/>',' '),'\r',' '),'\t',' ')"
     If neuz <> "" Then sq1 = sq1 & ",'" & neuz & "',CONCAT('</w:t><w:br/><w:t>','" & neuz & "'))"
     sq1 = sq1 & "inhalt," & vbCrLf
-    If bn Then sq1 = sq1 & "zuht(art,0," & IIf(obgross, "1", "0") & ")"
+    If bn Then sq1 = sq1 & "CONVERT(zuht(art,0," & IIf(obgross, "1", "0") & ")USING utf8mb3)"
     sq1 = sq1 & " art" & vbCrLf
 #End If
 #If False Then
@@ -16273,12 +16273,13 @@ Function kkeintraege$(Pat_ID$, krit$, bn%, Optional VorDat As Date, Optional fet
 #End If
    ' & IIf(bn, "zuht(", "") & "REPLACE(REPLACE(IF(ISNULL(bemerkung) OR bemerkung='' OR bemerkung=rr,rr, CONCAT(rr,' (',bemerkung,')')),'\n',' '),'\r',' ')" & IIf(bn, ",0," & IIf(obgross, "1", "0") & ")", "") & " inhalt FROM
    ' & IIf(bn, "zuht(", "") &                                                                                                                          "rr" & IIf(bn, ",0," & IIf(obgross, "1", "0") & ")", "") & " rr
-   sq2 = IIf(InStrB(krit, "'rr'") <> 0, " UNION SELECT zeitpunkt," & IIf(bn, "zuht(", "") & "REPLACE(REPLACE(IF(ISNULL(bemerkung) OR bemerkung='' OR bemerkung=rr,rr, CONCAT(rr,' (',bemerkung,')')),'\n',' '),'\r',' ')" & IIf(bn, ",0," & IIf(obgross, "1", "0") & ")", "") & " inhalt, 'rr' art FROM rr WHERE pat_id = " & Pat_ID & vdeinschr, "") & " ORDER BY zeitpunkt"
+   sq2 = IIf(InStrB(krit, "'rr'") <> 0, " UNION SELECT zeitpunkt," & IIf(bn, "CONVERT(zuht(", "") & "REPLACE(REPLACE(IF(ISNULL(bemerkung) OR bemerkung='' OR bemerkung=rr,rr, CONCAT(rr,' (',bemerkung,')')),'\n',' '),'\r',' ')" & IIf(bn, ",0," & IIf(obgross, "1", "0") & ")USING utf8mb3)", "") & " inhalt, 'rr' art FROM rr WHERE pat_id = " & Pat_ID & vdeinschr, "") & " ORDER BY zeitpunkt"
 '   raVL.Open "SELECT zeitpunkt,inhalt,art FROM `eintraege` WHERE pat_id = " & Pat_id + " AND art IN (" & krit & ") AND zeitpunkt > " & DatFor_k(VorDat) & " ORDER BY zeitpunkt", DBCn, adOpenDynamic, adLockReadOnly
    sqg = sq1 & "FROM `eintraege` WHERE pat_id = " & Pat_ID & " AND art IN (" & krit & ")" & vdeinschr & sq2
 #If False Then
  End Select ' LCase$(krit)
 #End If
+' sqg = "select replace(convert(zuht(inhalt,0,0) using utf8mb3_general_ci),'<w:br/>',' ') from eintraege where pat_id=70557 limit 1"
  myFrag raVL, sqg
  Do While Not raVL.EOF
   Dim art$, Inhalt$, Zp$, Übs$

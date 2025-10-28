@@ -12,6 +12,14 @@ Begin VB.Form Übertragungsoptionen
    ScaleHeight     =   2460
    ScaleWidth      =   5010
    ShowInTaskbar   =   0   'False
+   Begin VB.CommandButton zuletzt 
+      Caption         =   "&zuletzt übertragenen Pat. raussuchen"
+      Height          =   255
+      Left            =   240
+      TabIndex        =   11
+      Top             =   1320
+      Width           =   2895
+   End
    Begin VB.TextBox Tage 
       Height          =   285
       Left            =   2400
@@ -20,12 +28,12 @@ Begin VB.Form Übertragungsoptionen
       Width           =   855
    End
    Begin VB.CheckBox mitLabor 
-      Caption         =   "&mit Labor"
+      Caption         =   "&mit Labor, falls nicht aktuell oder erzwinge"
       Height          =   375
       Left            =   120
       TabIndex        =   6
       Top             =   1920
-      Width           =   1935
+      Width           =   3855
    End
    Begin VB.CheckBox erzwinge 
       Caption         =   "&erzwinge Übertragung, auch wenn schon aktuell"
@@ -50,7 +58,7 @@ Begin VB.Form Übertragungsoptionen
       Index           =   0
       Left            =   120
       TabIndex        =   2
-      Top             =   600
+      Top             =   720
       Width           =   1815
    End
    Begin VB.TextBox Pat_id 
@@ -75,6 +83,13 @@ Begin VB.Form Übertragungsoptionen
       TabIndex        =   7
       Top             =   120
       Width           =   1215
+   End
+   Begin VB.Label PatName 
+      Height          =   260
+      Left            =   120
+      TabIndex        =   10
+      Top             =   440
+      Width           =   3375
    End
    Begin VB.Label Tagezurück 
       Caption         =   "Tage zurück"
@@ -124,7 +139,14 @@ Private Sub CancelButton_Click()
  Me.Hide
 End Sub ' CancelButton_Click()
 
-Private Sub Pat_id_KeyDown(KeyCode As Integer, Shift As Integer)
+Private Sub Pat_id_Change()
+ Call MOConInit(, "Pat_id_change()")
+ If IsNumeric(Me.Pat_id) Then
+  Me.PatName = myEFrag("SELECT COALESCE((SELECT " & gesnamegmo & " FROM patstamm WHERE FSurogat=" & Me.Pat_id & "),'')", , MOCon).Fields(0)
+ End If
+End Sub ' Pat_id_Change()
+
+Private Sub Pat_ID_KeyDown(KeyCode As Integer, Shift As Integer)
  Select Case KeyCode
   Case 13
    Call OKButton_Click
@@ -196,4 +218,7 @@ Private Sub CancelButton_KeyDown(KeyCode As Integer, Shift As Integer)
  End Select
 End Sub
 
-
+Private Sub zuletzt_Click()
+ On Error Resume Next
+ Me.Pat_id = myEFrag("SELECT pat_id FROM namen ORDER BY aktzeit DESC LIMIT 1").Fields(0)
+End Sub
