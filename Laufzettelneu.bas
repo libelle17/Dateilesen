@@ -1716,7 +1716,7 @@ keinuzu:
   ÜS(i) = "RR-Vgl"
   Titel(i) = "Vergleich des Blutdruckgerätes mit unserem Oberarmmanschettengerät"
   RRVgli = i
-  sql(i) = "SELECT zeitpunkt zp, inhalt wert FROM `eintraege` WHERE art LIKE 'rrvgl%' AND pat_id = " & Pat_id & " ORDER BY zp DESC"
+  sql(i) = "SELECT zeitpunkt zp, rr wert FROM `rr` WHERE art LIKE 'rrvgl%' AND pat_id = " & Pat_id & " ORDER BY zp DESC"
   Fqmin(i) = 1
   zmax(i) = 3
   weite(i) = "7em"
