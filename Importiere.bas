@@ -4895,7 +4895,7 @@ Function MedArtenPruef()
  End If ' UBound(rMe) > 0 Then
  If Trim(InS) <> "" Then
   myFrag rs, "INSERT IGNORE INTO medarten (langname,medikament,hinzugefügt,pat_id) VALUES" & InS, , , , , rAf
- End If ' Trim(InS) <> "" Then
+ End If ' TRIM(InS) <> "" Then
  syscmd 5
  Exit Function
 fehler:

@@ -6379,6 +6379,7 @@ Public Function hollabor(Optional PatID& = 0, Optional Abkü$ = "", Optional zpkl
  Dim par$
  ' 4.7.20: wert statt einheit eingesetzt, da in labor1 und labor2 offenbar verschiedene Einheiten verwendet werden, z.B. ml/min = ml/mn/1.73 m²
  par = IIf(obnachgruppe, " WHERE (reihe <> 999 OR ISNULL(reihe)) GROUP BY gruppe, reihe, abkü, einheit,ung,ong)i ORDER BY gruppe,reihe", IIf(Abkü <> "", "WHERE abkü=""" & Abkü & """" & IIf(Einheit <> "", " AND einheit =""" & Einheit & """", "") & IIf(zpkl <> 0, " AND zeitpunkt<" & Format(zpkl, "yyyymmdd"), ""), "") & " GROUP BY zeitpunkt DESC,abkü,wt)i ORDER BY zeitpunkt DESC")
+ par = IIf(obnachgruppe, " WHERE (reihe <> 999 OR ISNULL(reihe)) GROUP BY gruppe, reihe, abkü, einheit)i ORDER BY gruppe,reihe", IIf(Abkü <> "", "WHERE abkü=""" & Abkü & """" & IIf(Einheit <> "", " AND einheit =""" & Einheit & """", "") & IIf(zpkl <> 0, " AND zeitpunkt<" & Format(zpkl, "yyyymmdd"), ""), "") & " GROUP BY zeitpunkt DESC,abkü,wt)i ORDER BY zeitpunkt DESC")
 
 ' myEFrag("flush tables")
 '  rs.Open "call geslabdp(" & CStr(PatID) & ",'" & par & "')", DBCn, adOpenStatic, adLockReadOnly

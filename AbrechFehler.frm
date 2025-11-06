@@ -5998,7 +5998,11 @@ sql(AWlf) = "" & _
  maxs(AWlf) = 60
  AWlf = AWlf + 1
  
+#If mitcovid Then
+' 174
+#Else
 ' 166
+#End If
  AwN(AWlf) = "Möglicherweise fehlende 99055 (Schulungsabschluss)"
 sql(AWlf) = _
 "SELECT Pat_id,PName,DTyp,Leistung,Zeitpunkt,Bereich,Geszahl,Schulungsdaten `Daten vorausgegangener Leistungen`,Termine `Termine nach heute` FROM (" & vbCrLf & _
@@ -6023,6 +6027,69 @@ sql(AWlf) = _
  obmo(AWlf) = False
  mins(AWlf) = 10
  maxs(AWlf) = 120
+ AWlf = AWlf + 1
+
+#If mitcovid Then
+' 175
+#Else
+' 167
+#End If
+ AwN(AWlf) = "weitere Diagnosen"
+sql(AWlf) = "ü"
+ mins(AWlf) = 10
+ maxs(AWlf) = 60
+ AWlf = AWlf + 1
+
+#If mitcovid Then
+' 176
+#Else
+' 168
+#End If
+ AwN(AWlf) = "Inkretinmimetika ohne schwere Niereninsuffizienz, ohne Metformin und ohne Metforminunverträglichkeit (T88.7 mit ""Metformin"" in Diagnosentext oder Zusatztext oder N18.4 oder N18.5 dazu)"
+sql(AWlf) = _
+"SELECT CASE WHEN n.obh THEN 'H' WHEN n.obk THEN 'K' WHEN n.obs THEN 'S' END Arzt" & vbCrLf & _
+",ityp `DM-Typ`,f.pat_id,gesname(f.pat_id)PName,glp.zeitpunkt,glp.medikament" & vbCrLf & _
+",COALESCE((SELECT GROUP_CONCAT(concat(zeitpunkt,': ',inhalt)SEPARATOR '; ') FROM eintraege WHERE pat_id=f.pat_id AND inhalt LIKE '%Metformin%'),'') `Einträge mit ""Metformin""`" & vbCrLf & _
+"/* , n.obk,n.obs,n.obh, d.ICD,d.DiagText,d.DiagAttr,  f.*,glp.* ,gma.* */" & vbCrLf & _
+"FROM aktfv f" & vbCrLf & _
+"JOIN namen n USING (pat_id)" & vbCrLf & _
+"LEFT JOIN dtypen USING (pat_id)" & vbCrLf & _
+"JOIN lmp glp on glp.pat_id=f.pat_id JOIN medarten gma ON gma.medikament=glp.medanfang AND gma.glp1<>0 AND glp.medikament NOT LIKE '%Wegovy%' AND CONCAT(bemerkung,' ',Grund) NOT RLIKE 'selbst|privat'" & vbCrLf & _
+"LEFT JOIN " & vbCrLf & _
+"(SELECT metf.pat_id from lmp metf JOIN medarten mma ON mma.medikament=metf.medanfang AND mma.metf<>0)i" & vbCrLf & _
+"ON i.pat_id=f.pat_id" & vbCrLf & _
+"LEFT JOIN diagview d ON d.pat_id=f.pat_id AND d.ICD='T88.7' AND d.DiagSicherheit IN (' ','G') AND d.obdauer<>0" & vbCrLf & _
+"AND (d.diagtext LIKE '%Metformin%' OR d.DiagAttr LIKE '%Metformin%')" & vbCrLf & _
+"LEFT JOIN diagview ni ON ni.pat_id=f.pat_id AND ni.ICD RLIKE 'N18.[45]' AND ni.DiagSicherheit IN (' ','G') AND ni.obdauer<>0" & vbCrLf & _
+" WHERE i.pat_id IS NULL AND d.ICD IS NULL AND ni.ICD IS NULL" & vbCrLf & _
+" ORDER BY Arzt,ityp,f.pat_id"
+ mins(AWlf) = 10
+ maxs(AWlf) = 6000
+ AWlf = AWlf + 1
+
+#If mitcovid Then
+' 177
+#Else
+' 169
+#End If
+ AwN(AWlf) = "Bempedoinsäure ohne Statin und ohne Statinunverträglichkeit (T88.7 mit ""Statin"" in Diagnosentext oder Zusatztext)"
+sql(AWlf) = _
+"SELECT CASE WHEN n.obh THEN 'H' WHEN n.obk THEN 'K' WHEN n.obs THEN 'S' END Arzt" & vbCrLf & _
+" ,f.pat_id,gesname(f.pat_id)PName,glp.zeitpunkt,glp.medikament" & vbCrLf & _
+" ,COALESCE((SELECT GROUP_CONCAT(concat(zeitpunkt,': ',inhalt)SEPARATOR '; ') FROM eintraege WHERE pat_id=f.pat_id AND inhalt LIKE '%Statin%'),'') `Einträge mit ""Statin""`" & vbCrLf & _
+"/* , n.obk,n.obs,n.obh, d.ICD,d.DiagText,d.DiagAttr,  f.*,glp.* ,gma.* */" & vbCrLf & _
+"FROM aktfv f" & vbCrLf & _
+"JOIN namen n USING (pat_id)" & vbCrLf & _
+" JOIN lmp glp on glp.pat_id=f.pat_id JOIN medarten gma ON gma.medikament=glp.medanfang AND gma.medikament RLIKE 'Nilemdo|Nustendi'" & vbCrLf & _
+"LEFT JOIN " & vbCrLf & _
+" (SELECT metf.pat_id,metf.medikament from lmp metf JOIN medarten mma ON mma.medikament=metf.medanfang AND mma.HMG<>0)i" & vbCrLf & _
+"  ON i.pat_id=f.pat_id" & vbCrLf & _
+" LEFT JOIN diagview d ON d.pat_id=f.pat_id AND d.ICD='T88.7' AND d.DiagSicherheit IN (' ','G') AND d.obdauer<>0" & vbCrLf & _
+"  AND CONCAT(d.diagtext,' ',d.diagattr) LIKE '%statin%'" & vbCrLf & _
+" WHERE i.pat_id IS NULL AND d.ICD IS NULL" & vbCrLf & _
+"  ORDER BY Arzt,f.pat_id"
+ mins(AWlf) = 10
+ maxs(AWlf) = 6000
  AWlf = AWlf + 1
 
 ' neuView
@@ -6351,7 +6418,7 @@ sql(AWlf) = _
 '", COALESCE(DATE(aktl.zeitpunkt),'') aktleitag,COALESCE(LEFT(aktl.leistung,5),'') aktlei " & vbCrLf & _
 '", (SELECT COUNT(0) FROM leistungen WHERE pat_id=f.pat_id AND leistung IN ('97580','97581','97582') AND YEAR(zeitpunkt)=YEAR(" & qtAnf(FristS) & ") AND zeitpunkt<" & qtAnf(FristS) & ") vorlzl " & vbCrLf & _
 '", IF(e.inhalt IS NULL,'-','ja') Eintr " & vbCrLf & _
-'", (trim(MID(inhalt,instr(inhalt,'zwingen?')+8)) LIKE 'j%' AND NOT TRIM(MID(inhalt,instr(inhalt,'genauso auf?')+12)) LIKE 'j%' " & vbCrLf & _
+'", (TRIM(MID(inhalt,instr(inhalt,'zwingen?')+8)) LIKE 'j%' AND NOT TRIM(MID(inhalt,instr(inhalt,'genauso auf?')+12)) LIKE 'j%' " & vbCrLf & _
 '"   AND TRIM(MID(inhalt,instr(inhalt,'genauso?')+8)) LIKE 'j%') OR " & vbCrLf & _
 '"   (CONVERT(MID(inhalt,instr(inhalt,'Rötung re:')+10),integer)>5)+ " & vbCrLf & _
 '"   (CONVERT(MID(inhalt,instr(inhalt,'li:')+3),integer)>5)+ " & vbCrLf & _
@@ -6876,7 +6943,7 @@ Private Sub Start_Click()
 End Sub ' Start_Click()
 
 Private Sub tuStart_click(obauto%)
- Dim lfSQL$, i&, StartZeit As Date, überschrift As New CString
+ Dim lfSQL$, i&, StartZeit As Date, Überschrift As New CString
  Static rc As New ADODB.Connection
  Dim rLF As ADODB.Recordset, rIn As ADODB.Recordset
  StartZeit = Now()
@@ -6891,7 +6958,7 @@ Private Sub tuStart_click(obauto%)
  
  AbrFlrDt = tAusgSg + "_" & AktQ & "_" & Format(Now, "yyyy-mm-dd.hh.mm.ss") & ".txt"
  AbrAutDt = AbrVerz & "\Abrechnungsprotokoll_" & AktQ & "_" & Format(Now, "yyyy-mm-dd.hh.mm.ss") & ".txt"
- überschrift.AppVar Array("Abrechnungsfehler für Quartal ", AktQ, ", ODBC-Verbindung:", Lese.dbv.Constr, vbCrLf)
+ Überschrift.AppVar Array("Abrechnungsfehler für Quartal ", AktQ, ", ODBC-Verbindung:", Lese.dbv.Constr, vbCrLf)
 ' Open AbrFlrDt For Output AS #359
 ' Print #359, "Abrechnungsfehler für Quartal " & aktQ
 
@@ -6917,7 +6984,7 @@ Private Sub tuStart_click(obauto%)
  For AWlf = 1 To .Rows - 1
   If sql(AWlf - 1) = "ü" Then ' Zwischenüberschrift
   ElseIf .TextMatrix(AWlf, 1) = "X" And sql(AWlf - 1) <> "-" Then
-    Do While Not AbrFausg(Str(AWlf - 1) & ". " & AwN(AWlf - 1), REPLACE$(dowr(sql(AWlf - 1)), vbLf, " "), obmo(AWlf - 1), AbrFlrDt, mins(AWlf - 1), maxs(AWlf - 1), überschrift, obappend, AWlf - 1, obauto, angefangen, BDT)
+    Do While Not AbrFausg(Str(AWlf - 1) & ". " & AwN(AWlf - 1), REPLACE$(dowr(sql(AWlf - 1)), vbLf, " "), obmo(AWlf - 1), AbrFlrDt, mins(AWlf - 1), maxs(AWlf - 1), Überschrift, obappend, AWlf - 1, obauto, angefangen, BDT)
      Dim altAWlf%
      altAWlf = AWlf
      MsgBox "Stop in Start_Click" & vbCrLf & "AWlf: " & AWlf
@@ -6925,7 +6992,7 @@ Private Sub tuStart_click(obauto%)
      Call ZeigSQL(obauto)
      AWlf = altAWlf
     Loop
-    überschrift = vNS
+    Überschrift = vNS
     obappend = True
   End If
   DoEvents
@@ -7064,10 +7131,10 @@ fehler:
 End Sub ' SizeColumns
 
 ' aufgerufen in tuStart_Click
-Public Function AbrFausg(name$, sql$, obmo%, Datei$, mins%, ByVal maxs%, überschrift As CString, obappend%, sqlnr%, obauto%, ByRef angefangen%, ByRef BDT As BDTSchreib) ' Abrechnungsfehler ausgeben
+Public Function AbrFausg(name$, sql$, obmo%, Datei$, mins%, ByVal maxs%, Überschrift As CString, obappend%, sqlnr%, obauto%, ByRef angefangen%, ByRef BDT As BDTSchreib) ' Abrechnungsfehler ausgeben
  Dim ÜberschrAkt As New CString
  Dim ErrNr&, ErrDes$
- ÜberschrAkt = überschrift
+ ÜberschrAkt = Überschrift
  On Error GoTo fehler
  Dim T1!
  Static rc As New ADODB.Connection
