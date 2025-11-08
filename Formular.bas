@@ -7647,6 +7647,7 @@ Function OOOpen(DT$)
     Dim oSM                   'Root object for accessing OpenOffice from VB
     Dim oDesk, oDoc As Object 'First objects from the API
     Dim OpenParam(3)                  As Object    'Parameters to open the doc
+    On Error GoTo fehler
     'Instanciate OOo : this line is mandatory with VB for OOo API
     Set oSM = CreateObject("com.sun.star.ServiceManager")
     Set OpenParam(0) = mAkePropertyValue2(oSM, "ReadOnly", False)
@@ -7721,7 +7722,26 @@ Function OOOpen(DT$)
 '
 '    Set oSM = Nothing
 '
-  End Function
+ Exit Function
+fehler:
+ Dim FNr&, FLastDLLError&, FSource$, FDescr$
+ FNr = Err.Number
+ FLastDLLError = Err.LastDllError
+ FSource = Err.source
+ FDescr = Err.Description
+ PiepKurz
+ Dim AnwPfad$
+#If VBA6 Then
+ AnwPfad = CurrentDb.name
+#Else
+ AnwPfad = App.path
+#End If
+ Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(FNr) + vbCrLf + "LastDLLError: " + CStr(FLastDLLError) + vbCrLf + "Source: " + IIf(IsNull(FSource), vNS, CStr(FSource)) + vbCrLf + "Description: " + FDescr, vbAbortRetryIgnore, "Aufgefangener Fehler in OOopen/" + AnwPfad)
+  Case vbAbort: Call MsgBox("Höre auf"): ProgEnde
+  Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
+  Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
+ End Select
+  End Function ' OOOpen
   
 'Sub InsertImage(ByRef oDoc As Object, ByRef oCurs As Object, sURL As String, ByRef oProvider As Object)
 '         ' Init variables and instance object
@@ -8653,7 +8673,6 @@ On Error GoTo fehler
 '  End With ' dc.bookmarks
  End If ' briefneu else
 
-  
  If nurLabor = 0 Then
     syscmd acSysCmdSetStatus, "Erstelle Brief für " & gesName & ": 5) Epikrise..."
     Call Epikrise(dc, Pat_ID, VorDat, lddat, obStumm, briefneu, dstring)
@@ -11908,18 +11927,20 @@ Vsql = _
 "n.Abkü," & vbCrLf & _
 "l.Langtext, " & vbCrLf & _
 "TRIM(IF(n.Abkü='ALBUM' AND n.Wert='' AND k.Kommentar LIKE 'nicht berechenb%','< 20',IF(TRIM(n.Wert) REGEXP '^[0-9]+\\,?[0-9]*$', REPLACE(n.Wert,',','.'),n.Wert))) Wert" & vbCrLf & _
-", n.Einheit, n.obpath/*, CASE WHEN n.Wert<IF(nb.uNm IS NULL OR nb.uNm='' OR (nb.uNm='0' AND p.uNm<>''),p.uNm,nb.uNm) THEN '-' WHEN n.Wert>IF(nb.oNm IS NULL OR nb.oNm='' OR (nb.oNm='0' AND p.oNm<>''),p.oNm,nb.oNm) THEN '+' ELSE '' END Grenzwerti*/" & vbCrLf & _
-", IF(ISNULL(k.Kommentar),'',k.Kommentar) Kommentar,/*nb.normbervw,*/" & vbCrLf & _
-"NBm NB," & vbCrLf & _
-"CAST(IF(nb.uNm IS NULL OR nb.uNm='' OR (nb.uNm='0' AND p.uNm<>''),p.uNm,nb.uNm) AS DOUBLE) uNg," & vbCrLf & _
-"CAST(IF(nb.oNm IS NULL OR nb.oNm='' OR (nb.oNm='0' AND p.oNm<>''),p.oNm,nb.oNm) AS DOUBLE) oNg," & vbCrLf & _
-"_utf8mb4'TM' COLLATE utf8mb4_german2_ci Labor, _utf8mb4'' COLLATE utf8mb4_german2_ci Pfad, 0 DatID " & vbCrLf & _
-", Gruppe, Reihe,1 Qu " & vbCrLf & _
+",n.Einheit, n.obpath/*, CASE WHEN n.Wert<IF(nb.uNm IS NULL OR nb.uNm='' OR (nb.uNm='0' AND p.uNm<>''),p.uNm,nb.uNm) THEN '-' WHEN n.Wert>IF(nb.oNm IS NULL OR nb.oNm='' OR (nb.oNm='0' AND p.oNm<>''),p.oNm,nb.oNm) THEN '+' ELSE '' END Grenzwerti*/" & vbCrLf & _
+",CONCAT(IF(a.abschlzl<>''AND a.abschlzl<>n.wert,CONCAT(a.abschlzl,'\\n'),''),IF(ISNULL(k.Kommentar),'',k.Kommentar))Kommentar/*,nb.normbervw*/" & vbCrLf & _
+",IF(ISNULL(a.abschlzl),'',a.abschlzl) Abschl" & vbCrLf & _
+",NBm NB" & vbCrLf & _
+",CAST(REPLACE(IF(nb.uNm IS NULL OR nb.uNm='' OR (nb.uNm='0' AND p.uNm<>''),p.uNm,nb.uNm),',','.') AS DOUBLE) uNg" & vbCrLf & _
+",CAST(REPLACE(IF(nb.oNm IS NULL OR nb.oNm='' OR (nb.oNm='0' AND p.oNm<>''),p.oNm,nb.oNm),',','.') AS DOUBLE) oNg" & vbCrLf & _
+",_utf8mb4'TM' COLLATE utf8mb4_german2_ci Labor, _utf8mb4'' COLLATE utf8mb4_german2_ci Pfad, 0 DatID " & vbCrLf & _
+",Gruppe, Reihe,1 Qu " & vbCrLf & _
 "FROM `laborneu` `n` " & vbCrLf & _
 "LEFT JOIN labornormber nb USING (normbervw)" & vbCrLf & _
 "              LEFT JOIN `namen` `na` ON `n`.`Pat_ID` = `na`.`Pat_ID` " & vbCrLf & _
 "              LEFT JOIN `laborlangtext` `l` ON `l`.`LangtextVW` = `n`.`LangtextVW` " & vbCrLf & _
 "              LEFT JOIN `laborkommentar` `k` ON `k`.`KommentarVW` = `n`.`KommentarVW` " & vbCrLf & _
+"              LEFT JOIN `laborabschlzl` `a` ON `a`.`AbschlzlVW` = `n`.`AbschlZlVW` " & vbCrLf & _
 "              LEFT JOIN laborparameter p ON p.Abkü = n.Abkü AND IF(p.einheit IN ('','\'kA\''),'kA',p.Einheit) = IF(n.einheit IN ('','\'kA\''),'kA',n.Einheit)" & vbCrLf & _
 "                    AND p.id = (SELECT id FROM laborparameter WHERE abkü=n.`Abkü` AND IF(einheit IN ('','\'kA\''),'kA',Einheit)=IF(n.einheit IN ('','\'kA\''),'kA',n.Einheit) ORDER BY gruppe DESC, reihe DESC, aktzeit DESC LIMIT 1)" & vbCrLf & _
 " WHERE ((n.Wert <> '' AND n.Wert IS NOT NULL) OR (k.Kommentar<>'' AND k.Kommentar IS NOT NULL))"
@@ -13803,7 +13824,7 @@ myEFrag (sql)
 #End If ' problematisch
 
 ' Umbenennung von wert auf wt, da sonst viele "Warnung: (1292) Truncated incorrect DOUBLE value: 'Referenzbereich = Empfohlener Bereich'"
-' äußeres Select, da sonst mit COUNT(0) OVER() dszahl die Sortierung ignoriert wird
+' äußeres Select, da sonst mit COUNT(0)OVER()dszahl die Sortierung ignoriert wird
 sql = "DROP PROCEDURE IF EXISTS `quelle`.`geslabdp`"
 myEFrag sql
 sql = _
@@ -13851,37 +13872,49 @@ sql = _
 myEFrag (sql)
 
 ' Umbenennung von wert auf wt, da sonst viele "Warnung: (1292) Truncated incorrect DOUBLE value: 'Referenzbereich = Empfohlener Bereich'"
-' äußeres Select, da sonst mit COUNT(0) OVER() dszahl die Sortierung ignoriert wird
+' äußeres Select, da sonst mit COUNT(0)OVER()dszahl die Sortierung ignoriert wird
+' Alternative Zählung (genauso schnell, äußeres Select dann unnötig, aber mehrere Variableneinsetzungen erfordernd:
+'   sd AS (SELECT zeitpunkt FROM labor2a WHERE pat_id=53503 UNION SELECT zeitpunkt FROM labor1a WHERE pat_id=53503),
+'   ,(SELECT COUNT(0)FROM sd)zpz
+' falls wie zuvor in "geslabdp(" 'GROUP BY zeitpunkt,abkü,einheit)i ORDER BY gruppe DESC,reihe DESC,abkü DESC,einheit DESC'
+' durch Parametereingabe (esql) veränderbar gemacht würde, dann dürft auch abknr der ersten Zeile nicht mehr zur Zählung
+' der verschiedenen Parameter/Einheits-Zeilen verwendet werden, da sonst "ORDER BY" auch entsprechend angepasst werden müßte
 sql = "DROP PROCEDURE IF EXISTS `quelle`.`geslabneu`"
 myEFrag sql
 sql = _
-"CREATE DEFINER=`praxis`@`%` PROCEDURE `geslabneu`(IN pid INT(6),IN esql VARCHAR(1000),IN sep VARCHAR(5)) " & vbCrLf & _
+"CREATE DEFINER=`praxis`@`%` PROCEDURE `geslabneu`(IN pid INT(6),IN sep VARCHAR(8)) " & vbCrLf & _
 "    READS SQL DATA " & vbCrLf & _
 "    COMMENT 'Labor zu einem Patienten' " & vbCrLf & _
 "BEGIN " & vbCrLf & _
-"DECLARE zsql VARCHAR(1300/*786*/);" & vbCrLf & _
-"DECLARE rest VARCHAR(68) DEFAULT ',nb,gruppe,reihe,uNg,oNg,Pfad,Kommentar,Labor,Langtext,pat_id,DatID ';" & vbCrLf & _
-"DECLARE ord VARCHAR(56) DEFAULT ' ORDER BY gruppe DESC,reihe DESC,abkü DESC,einheit DESC';" & vbCrLf & _
-"DECLARE kern VARCHAR(600/*340*/) DEFAULT CONCAT(" & vbCrLf & _
-"'((SELECT wert wt,abkü,einheit,obpath,zeitpunkt',rest,'FROM labor2a WHERE pat_id=',pid,')UNION" & vbCrLf & _
-"(SELECT wert wt,abkü,einheit,obpath,zeitpunkt',rest,'FROM labor1a l1 WHERE pat_id=',pid," & vbCrLf & _
-"'))i WHERE reihe<>999 ',IF(esql='','GROUP BY zeitpunkt,abkü,einheit)i',esql));" & vbCrLf & _
-"DECLARE kernz VARCHAR(1000) DEFAULT CONCAT('SELECT COUNT(0)zahl INTO @zahl ',CHR(13)," & vbCrLf & _
-"'FROM(SELECT 0 FROM (SELECT zeitpunkt,abkü,einheit,gruppe,reihe FROM',kern);" & vbCrLf & _
-"-- SET zsql=CONCAT(kernz,' GROUP BY zeitpunkt)i;');" & vbCrLf & _
-"-- EXECUTE IMMEDIATE zsql;" & vbCrLf & _
-"-- SET @spz=@zahl;" & vbCrLf & _
-"-- SET zsql=CONCAT(kernz,' GROUP BY gruppe,reihe,abkü,einheit)i;');" & vbCrLf & _
-"-- EXECUTE IMMEDIATE zsql;" & vbCrLf & _
-"-- SET @zz=@zahl;" & vbCrLf
+"DECLARE rest VARCHAR(97) DEFAULT ',abkü,einheit,obpath,zeitpunkt,nb,gruppe,reihe,uNg,oNg,Pfad,Kommentar,Labor,Langtext,pat_id,DatID';" & vbCrLf & _
+"DECLARE zsql VARCHAR(1300/*786*/) DEFAULT CONCAT(" & vbCrLf & _
+"'WITH',CHR(13)," & vbCrLf & _
+"'se AS',CHR(13)," & vbCrLf & _
+"' (SELECT wert wt',rest,CHR(13)," & vbCrLf & _
+"'   FROM labor2a WHERE pat_id=',pid,CHR(13)," & vbCrLf & _
+"' UNION',CHR(13)," & vbCrLf & _
+"'  SELECT wert wt',rest,CHR(13)," & vbCrLf & _
+"'   FROM labor1a WHERE pat_id=',pid,CHR(13)," & vbCrLf & _
+"' )',CHR(13)," & vbCrLf
 sql = sql & _
-"SET zsql=CONCAT('SELECT /*MAX(abknr)OVER()abkzl,MAX(zpnr)OVER()zpzl,*//*@spz,@zz,*/',CHR(13)," & vbCrLf & _
-"'(SELECT COUNT(0)FROM(SELECT zeitpunkt FROM labor1a WHERE pat_id=',pid,' UNION SELECT zeitpunkt FROM labor2a WHERE pat_id=',pid,')i)zz,'" & vbCrLf & _
-"""i.*FROM(SELECT COALESCE(GROUP_CONCAT(DISTINCT CASE WHEN wt<>''THEN wt END SEPARATOR'"",IF(sep='','<br>',sep),""'),'')Wert,""," & vbCrLf & _
-"'abkü, einheit,ROW_NUMBER()OVER(PARTITION BY gruppe,reihe,abkü,einheit',ord,')=1 ez,DENSE_RANK()OVER(ORDER BY gruppe,reihe,abkü,einheit)abknr" & vbCrLf & _
-",Zeitpunkt,ROW_NUMBER()OVER(PARTITION BY zeitpunkt',ord,')=1 esp,DENSE_RANK()OVER(ORDER BY zeitpunkt DESC)zpnr" & vbCrLf & _
-",nb,gruppe,reihe,uNg,oNg,Pfad,Kommentar,Labor,Langtext,pat_id,DatID" & vbCrLf & _
-",COUNT(0)OVER()dszahl FROM',kern,ord);" & vbCrLf & _
+"'SELECT SUM(ezp)OVER()zpz,SUM(eab)OVER()zab,SUM(egr)OVER()zgr,i.*',CHR(13)," & vbCrLf & _
+"'FROM(',CHR(13)," & vbCrLf & _
+"' SELECT',CHR(13)," & vbCrLf & _
+"'  DENSE_RANK()OVER(ORDER BY zeitpunkt)zpnr',CHR(13)," & vbCrLf & _
+"' ,ROW_NUMBER()OVER(PARTITION BY zeitpunkt)=1 ezp',CHR(13)," & vbCrLf & _
+"' ,DENSE_RANK()OVER(ORDER BY gruppe,reihe,abkü,einheit)abknr',CHR(13)," & vbCrLf & _
+"' ,ROW_NUMBER()OVER(PARTITION BY gruppe,reihe,abkü,einheit)=1 eab',CHR(13)," & vbCrLf & _
+"' ,DENSE_RANK()OVER(ORDER BY gruppe)grnr',CHR(13)," & vbCrLf & _
+"' ,ROW_NUMBER()OVER(PARTITION BY gruppe)=1 egr',CHR(13)," & vbCrLf & _
+"' ,COUNT(0)OVER()dszahl',CHR(13)," & vbCrLf & _
+""" ,COALESCE(GROUP_CONCAT(DISTINCT CASE WHEN wt<>''THEN wt END SEPARATOR'"",IF(LENGTH(sep)=0,'<br>',sep),""'),'') Wert"",CHR(13)," & vbCrLf & _
+""" ,abkü,einheit,obpath,Zeitpunkt,COALESCE(nb,'')nb,gruppe,reihe,TRIM(COALESCE(uNg,''))uNg,TRIM(COALESCE(oNg,''))oNg,Pfad,REGEXP_REPLACE(COALESCE(Kommentar,''),'/+','/')Kom,Labor,COALESCE(Langtext,'')Langtext,pat_id,DatID"",CHR(13)," & vbCrLf & _
+"' FROM se',CHR(13)," & vbCrLf & _
+"' WHERE gruppe<>999',CHR(13)," & vbCrLf & _
+"' GROUP BY zeitpunkt,abkü,einheit',CHR(13)," & vbCrLf & _
+"')i',CHR(13)," & vbCrLf & _
+"'ORDER BY gruppe,reihe,abkü,einheit');" & vbCrLf & _
+"-- SELECT zsql;" & vbCrLf & _
 "EXECUTE IMMEDIATE zsql;" & vbCrLf & _
 "END"
 myEFrag (sql)
@@ -15084,9 +15117,9 @@ Sub LaborIns1(ByRef dc As Object, Pat_ID$, nurLabor%, briefneu%) ' nur in tuBrie
 '    ag.Append "<w:tr>" & IIf(j = 0, "<w:trPr><w:cantSplit/><w:trHeight w:val=""1134""/></w:trPr>", "")
 '    ag.Append "<w:tr><w:trHeight w:val=""1134"" w:hRule=""atLeast""/>" & IIf(j = 0, "<w:trPr><w:cantSplit  w:val=""true""/></w:trPr>", "")
     ag.Append "<w:tr>" & IIf(j = 0, "<w:trPr><w:trHeight w:val=""986""/></w:trPr>", "")
-    Call LabKopf("1590", zsuh(Matr2(0, 3, j)), IIf(j = 0, "LaborTab", ""), IIf(j = 0, "47", ""), 0, 0) ' Parameter
-    Call LabKopf("705", zsuh(Matr2(0, 4, j)), , , 0, 1) ' Einheit
-    Call LabKopf("855", Matr2(0, 5, j), , , 0, 2) ' Normbereich
+    Call LabKopf("1590", zuh(Matr2(0, 3, j)), IIf(j = 0, "LaborTab", ""), IIf(j = 0, "47", ""), 0, 0) ' Parameter
+    Call LabKopf("705", zuh(Matr2(0, 4, j)), , , 0, 1) ' Einheit
+    Call LabKopf("855", zuh(Matr2(0, 5, j)), , , 0, 2) ' Normbereich
     For i = 6 To UBound(Matr2, 2)
      Dim zellaus$
      If Len(Matr2(0, i, j)) < 11 Or i < 6 Then

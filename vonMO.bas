@@ -1178,7 +1178,7 @@ Public Function doPatvonMO(fPtNr&, Optional obmitFormularen%, Optional obpruef%,
       Dim DMPArt%, uDat As Date, DokuDatum As Date, Druckdatum As Date, exportiert As Date
       Dim testdat As Date
  LaborLangsam = oblabla
-' LaborLangsam = true
+' LaborLangsam = True
 abermals:
 '  fPtNr& = 68393  ' 69618 ' 63635 ' 67180 ' 63635 ' 64800 ' 69333 ' 68316 ' 65405 ' 45 ' 64659 ' 45 ' 69367 ' 69377 ' 53119 ' 51630 ' 105 ' 18 ' 246 ' 59152 ' 1394 ' 2112 ' 151 ' 225 '
  pid = setzPid(fPtNr)
@@ -1193,12 +1193,17 @@ abermals:
   Dim rab As ADODB.Recordset, raz As ADODB.Recordset
 ' dbsprot.fPrimaryKey ist varchar(35), ltag.FSurogat int(11), somit laesst sich kein vorhandere Index verwenden
 ' vorlaeufig wird ein Index dd_fpatnr erstellt für FPatnr, FTablename
-  sql = "SELECT " & vbCrLf & _
-        "MAX(18900101 + INTERVAL FDatum DAY + INTERVAL FUhrzeit SECOND) laend" & vbCrLf & _
+'        "-- AND 18900101 + INTERVAL d.FDatum DAY + INTERVAL d.FUhrzeit SECOND<NOW()-INTERVAL 30 SECOND" & vbCrLf
+  sql = "SELECT" & vbCrLf & _
+        "18900101 + INTERVAL d.FDatum DAY + INTERVAL d.FUhrzeit SECOND laend/*, d.*,p.**/" & vbCrLf & _
         "FROM dbsprot d" & vbCrLf & _
+        "LEFT JOIN dbsprot p ON d.FTablename='ltag' AND p.FTablename='extauftr' AND d.FPrimarykey=p.FPrimarykey" & vbCrLf & _
         "WHERE d.FPatnr=" & fPtNr & vbCrLf & _
-        "AND FTablename IN ('ltag','termin')" & vbCrLf & _
-        "AND (fxmlinhalt IS NULL OR FXmlinhalt NOT RLIKE 'arztbrief|Erledigtdatum')"
+        "AND d.FTablename IN ('ltag','termin')" & vbCrLf & _
+        "AND p.FSurogat IS NULL" & vbCrLf & _
+        "AND (d.FXmlinhalt IS NULL OR d.FXmlinhalt NOT RLIKE 'arztbrief|Erledigtdatum')" & vbCrLf & _
+        "ORDER BY d.FDatum DESC,d.FUhrzeit DESC" & vbCrLf & _
+        "LIMIT 1"
 ' AND ftablename NOT IN ('datafile','d2dmail','med95ini','mail','nutzerneu','markier','earzt','epraxis','tzone','ldtarc','globalitems','zertifikat','nutzerzugriff','patfall','patrelation')
   myFrag rab, sql, adOpenStatic, MOCon, adLockReadOnly
   If Not rab.EOF Then
@@ -2881,12 +2886,15 @@ LaborLangsam:
 '     rLa(ls).Wert = Left$(rLa(ls).Wert, Len(rLa(ls).Wert) - 1)
 '    Wend
     Dim ewert$, ewz$, komz%
+'    If IsNumeric(rsEi!ewert) Then
+'      rLa(UBound(rLa)).Wert = CDbl(REPLACE$(rsEi!ewert, ".", ",", , 1))
     ewert = rsEi!ewert
+'    If InStrB(ewert, "1:10") <> 0 Then Stop
     ewz = ""
     komz = 0
     For i = 1 To Len(ewert)
      buch = Mid(ewert, i, 1)
-     If InStrB("0123456789", buch) Then
+     If InStrB("0123456789<>:", buch) Then
         ewz = ewz & buch
      ElseIf buch = "," Or buch = "." Then
         komz = komz + 1
@@ -2898,10 +2906,12 @@ LaborLangsam:
     Next i
 '    If IsNumeric(rsEi!ewert) Then
 '      rLa(UBound(rLa)).Wert = CDbl(REPLACE$(rsEi!ewert, ".", ",", , 1))
-    If ewz <> "" And ewz <> "," Then
+'    If ewz <> "" And ewz <> "," Then
+    If IsNumeric(ewz) Then
      rLa(UBound(rLa)).Wert = CDbl(ewz)
     Else
-      rLa(UBound(rLa)).Wert = rsEi!ewert
+     rLa(UBound(rLa)).Wert = rsEi!ewert
+'     rLa(UBound(rLa)).Wert = ewz
     End If
     rsEi.MoveNext
    Loop ' while not rsEi.EOF
@@ -2947,7 +2957,7 @@ sql = _
 "   CONCAT('(''',IF(testid='',FICdcode,testid),''',''',Testname,''',''',Einheit,''',''',normwertug,''',''',normwertog,''',''',normtext,''',''',DATE_FORMAT(NOW(),'%y-%m-%d %H:%i:%S'),''')') part," & vbCrLf & _
 "   CONCAT('(''',Testname,''')') langt," & vbCrLf & _
 "   CONCAT('((SELECT fid FROM faelle WHERE pat_id=',FPatNr,' AND ''',zp,'''>bhfb ORDER BY bhfb DESC LIMIT 1),',FPatNr,',''',COALESCE(zp,'NULL'),''',''E'',''',IF(testid='',FICdcode,testid)," & vbCrLf & _
-"    ''',(SELECT LangtextVW FROM laborlangtext WHERE Langtext=''',Testname,''' LIMIT 1),''',IF(CAST(EWert AS DOUBLE)=0,CONCAT('',EWert,''),CAST(EWert AS DOUBLE)),''',''',Einheit,''',''',Gwi," & vbCrLf & _
+"    ''',(SELECT LangtextVW FROM laborlangtext WHERE Langtext=''',Testname,''' LIMIT 1),''',IF(CAST(EWert AS DOUBLE)=0 OR EWert RLIKE '[<>:]',CONCAT('',EWert,''),CAST(EWert AS DOUBLE)),''',''',Einheit,''',''',Gwi," & vbCrLf & _
 "    ''',(SELECT KommentarVW FROM laborkommentar WHERE Kommentar=''',Kommentar,''' LIMIT 1),'''," & vbCrLf & _
 "    DATE_FORMAT(NOW(),'%y-%m-%d %H:%i:%S'),''',(SELECT AbschlZlVW FROM laborabschlzl WHERE AbschlZl=''',etext,''' LIMIT 1),'" & vbCrLf & _
 "    '(SELECT NormberVW FROM labornormber WHERE uNm=''',Normwertug,''' AND oNm=''',normwertog,''' AND Normber=''',normtext,''' LIMIT 1)'," & vbCrLf & _
