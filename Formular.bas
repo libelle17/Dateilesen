@@ -7049,7 +7049,7 @@ Const sql0$ = "SELECT " & _
        If InfRoh(9, runde) = vNS Then If Not IsNull(rhae!Vorname) Then InfRoh(9, runde) = rhae!Vorname
        If InfRoh(14, runde) = vNS Then If Not IsNull(rhae!name) Then InfRoh(14, runde) = rhae!name
        If InfRoh(4, runde) = vNS And Not IsNull(rhae!telefax) Then InfRoh(4, runde) = rhae!telefax
-        Select Case rhae!Überschrift
+        Select Case rhae!überschrift
          Case "L": InfRoh(5, runde) = IIf(InfRoh(0, runde) = "Frau", "Liebe", "Lieber") & " " & InfRoh(9, runde) ' nicht: rHae!Geschlecht = "w"
          Case "H": InfRoh(5, runde) = "Hallo " + InfRoh(9, runde)
          Case Else: InfRoh(5, runde) = IIf(InfRoh(0, runde) = "Frau", "Sehr geehrte Frau Kollegin", "Sehr geehrter Herr Kollege")
@@ -10134,7 +10134,7 @@ w2:
   swsql = _
   "SELECT COALESCE(MAX(CONVERT(CONCAT(t1,IF(w1<92 AND w2<180 AND w3<153,CONCAT('Dabei wurden die Grenzwerte nicht überschritten. Somit liegt aktuell kein Gestationsdiabetes vor.',CHR(13)" & vbCrLf & _
   ",CASE WHEN voret-INTERVAL 40*7 DAY<=zp-INTERVAL 24*7 DAY THEN 'In dieser Schwangerschaft ist normalerweise kein erneuter OGTT nötig.'" & vbCrLf & _
-  " ELSE CONCAT(IF(voret-INTERVAL 40*7 DAY<=zp-INTERVAL 14*7 DAY,'Nach einer evtl. zwischenzeitlichen Nüchternglucose nach Laborstandard sollte ein erneuter OGTT','Ein erneuter OGTT sollte'),'in der 24.-28. Schwangerschaftwoche erfolgen.')" & vbCrLf & _
+  " ELSE CONCAT(IF(voret-INTERVAL 40*7 DAY<=zp-INTERVAL 14*7 DAY,'Nach einer evtl. zwischenzeitlichen Nüchternglucose nach Laborstandard sollte ein erneuter OGTT','Ein erneuter OGTT sollte'),'in der 24.-28. Schwangerschaftswoche erfolgen.')" & vbCrLf & _
   "END)" & vbCrLf & _
   ",CONCAT('Der ',CASE WHEN w1>92 THEN CONCAT('1.',CASE WHEN w2>=180 THEN CONCAT('2.',IF(w3>=153,'und 3.',''))ELSE''END) WHEN w3>=153 THEN '3.'ELSE''END ,CONCAT('Wert war zu hoch, deshalb musste ein Gestationsdiabetes festgestellt werden.',CHR(13),'Wir besprachen mit der Patientin die Umstände der Erkrankung, die Gegenmaßnahmen Ernährung und körperliche Aktivität und wiesen sie in Blutzuckermessungen ein.'))))USING utf8mb3)),'')" & vbCrLf & _
   "erg" & vbCrLf & _
@@ -10143,7 +10143,7 @@ w2:
   " s.voret,e.zeitpunkt zp," & vbCrLf & _
   " IF((SELECT voret FROM sws WHERE pat_id=s.pat_id ORDER BY zeitpunkt DESC LIMIT 1) IS NULL,''," & vbCrLf & _
   "  IF(e.zeitpunkt<voret," & vbCrLf & _
-  "   CONCAT('In der Schwangerschaftwoche ',DATEDIFF(DATE(e.zeitpunkt),voret-INTERVAL 40*7 DAY)DIV 7,'+',DATEDIFF(DATE(e.zeitpunkt),voret-INTERVAL 40*7 DAY)MOD 7,' wurde ein oraler Glucosetoleranztest nach Laborstandard durchgeführt.',CHR(13))" & vbCrLf & _
+  "   CONCAT('In der Schwangerschaftswoche ',DATEDIFF(DATE(e.zeitpunkt),voret-INTERVAL 40*7 DAY)DIV 7,'+',DATEDIFF(DATE(e.zeitpunkt),voret-INTERVAL 40*7 DAY)MOD 7,' wurde ein oraler Glucosetoleranztest nach Laborstandard durchgeführt.',CHR(13))" & vbCrLf & _
   "   ,''" & vbCrLf & _
   "  )" & vbCrLf & _
   " )t1" & vbCrLf & _
@@ -11784,7 +11784,7 @@ vz = vz + 1
 '#ELSE
 ' identisch in labimp/turbomed.cpp
 
-' das Folgende muss koordiniert werden mit labbimp/labimp.cpp!
+' das Folgende muss koordiniert werden mit labbimp/labimp.cpp, dortige backslashes hier halbieren!
 VN = "labor2a"
 Vsql = _
 "SELECT Pat_id, eingang Zeitpunkt, befart FertigStGrad, w.Abkü, w.langtext Langtext" & vbCrLf & _
@@ -11792,6 +11792,7 @@ Vsql = _
 ",IF(w.Einheit IN ('','\'kA\'')AND Wert=''AND k.text RLIKE'^[<>][^ ]+ .*$',MID(k.text,INSTR(k.text,' ')+1),w.Einheit)Einheit,w.Grenzwerti obpath" & vbCrLf & _
 ",CONCAT(IF(e.text IS NULL OR e.text RLIKE '^:[ /\\*:]*$','',IF(e.text RLIKE '^:[ /\\*]*:'" & vbCrLf & _
 " ,CONCAT(MID(e.text,LOCATE(':',e.text,2)+1),';'),IF(e.text='.','',IF(e.text='','',CONCAT(e.text,';'))))),IF(k.text IS NULL,'',k.text)) Kommentar/*, n.id*/ " & vbCrLf & _
+",COALESCE(k.text,'')Abschl" & vbCrLf & _
 ",n.NB, n.uNg" & vbCrLf & _
 ",IF(w.abkü='LDL' AND w.einheit='mg/dl','100',n.oNg) oNg" & vbCrLf & _
 ",l.Labor, Pfad, d.DatID " & vbCrLf & _
@@ -11930,11 +11931,13 @@ Vsql = _
 ",n.Einheit, n.obpath/*, CASE WHEN n.Wert<IF(nb.uNm IS NULL OR nb.uNm='' OR (nb.uNm='0' AND p.uNm<>''),p.uNm,nb.uNm) THEN '-' WHEN n.Wert>IF(nb.oNm IS NULL OR nb.oNm='' OR (nb.oNm='0' AND p.oNm<>''),p.oNm,nb.oNm) THEN '+' ELSE '' END Grenzwerti*/" & vbCrLf & _
 ",CONCAT(IF(a.abschlzl<>''AND a.abschlzl<>n.wert,CONCAT(a.abschlzl,'\\n'),''),IF(ISNULL(k.Kommentar),'',k.Kommentar))Kommentar/*,nb.normbervw*/" & vbCrLf & _
 ",IF(ISNULL(a.abschlzl),'',a.abschlzl) Abschl" & vbCrLf & _
-",NBm NB" & vbCrLf & _
-",CAST(REPLACE(IF(nb.uNm IS NULL OR nb.uNm='' OR (nb.uNm='0' AND p.uNm<>''),p.uNm,nb.uNm),',','.') AS DOUBLE) uNg" & vbCrLf & _
-",CAST(REPLACE(IF(nb.oNm IS NULL OR nb.oNm='' OR (nb.oNm='0' AND p.oNm<>''),p.oNm,nb.oNm),',','.') AS DOUBLE) oNg" & vbCrLf & _
+",nb.Normber NB" & vbCrLf & _
+"/*,CAST(REPLACE(IF(nb.uNm IS NULL OR nb.uNm='' OR (nb.uNm='0' AND p.uNm<>''),p.uNm,nb.uNm),',','.') AS DOUBLE) uNg" & vbCrLf & _
+",CAST(REPLACE(IF(nb.oNm IS NULL OR nb.oNm='' OR (nb.oNm='0' AND p.oNm<>''),p.oNm,nb.oNm),',','.') AS DOUBLE) oNg*/" & vbCrLf & _
+",CAST(REPLACE(nb.uNm,',','.')AS DOUBLE)uNg" & vbCrLf & _
+",CAST(REPLACE(nb.oNm,',','.')AS DOUBLE)oNg" & vbCrLf & _
 ",_utf8mb4'TM' COLLATE utf8mb4_german2_ci Labor, _utf8mb4'' COLLATE utf8mb4_german2_ci Pfad, 0 DatID " & vbCrLf & _
-",Gruppe, Reihe,1 Qu " & vbCrLf & _
+",Gruppe,Reihe,1 Qu " & vbCrLf & _
 "FROM `laborneu` `n` " & vbCrLf & _
 "LEFT JOIN labornormber nb USING (normbervw)" & vbCrLf & _
 "              LEFT JOIN `namen` `na` ON `n`.`Pat_ID` = `na`.`Pat_ID` " & vbCrLf & _
@@ -11942,7 +11945,7 @@ Vsql = _
 "              LEFT JOIN `laborkommentar` `k` ON `k`.`KommentarVW` = `n`.`KommentarVW` " & vbCrLf & _
 "              LEFT JOIN `laborabschlzl` `a` ON `a`.`AbschlzlVW` = `n`.`AbschlZlVW` " & vbCrLf & _
 "              LEFT JOIN laborparameter p ON p.Abkü = n.Abkü AND IF(p.einheit IN ('','\'kA\''),'kA',p.Einheit) = IF(n.einheit IN ('','\'kA\''),'kA',n.Einheit)" & vbCrLf & _
-"                    AND p.id = (SELECT id FROM laborparameter WHERE abkü=n.`Abkü` AND IF(einheit IN ('','\'kA\''),'kA',Einheit)=IF(n.einheit IN ('','\'kA\''),'kA',n.Einheit) ORDER BY gruppe DESC, reihe DESC, aktzeit DESC LIMIT 1)" & vbCrLf & _
+"                    AND p.id = (SELECT id FROM laborparameter WHERE abkü=n.`Abkü` AND IF(einheit IN ('','\'kA\''),'kA',Einheit)=IF(n.einheit IN ('','\'kA\''),'kA',n.Einheit) ORDER BY nbm=nb.Normber DESC,gruppe DESC,reihe DESC,aktzeit DESC LIMIT 1)" & vbCrLf & _
 " WHERE ((n.Wert <> '' AND n.Wert IS NOT NULL) OR (k.Kommentar<>'' AND k.Kommentar IS NOT NULL))"
 '  OR nb.normber IS NULL OR nb.normber=0
 
@@ -13903,7 +13906,7 @@ sql = sql & _
 "'  DENSE_RANK()OVER(ORDER BY zeitpunkt)zpnr',CHR(13)," & vbCrLf & _
 "' ,ROW_NUMBER()OVER(PARTITION BY zeitpunkt)=1 ezp',CHR(13)," & vbCrLf & _
 "' ,DENSE_RANK()OVER(ORDER BY gruppe,reihe,abkü,einheit)abknr',CHR(13)," & vbCrLf & _
-"' ,ROW_NUMBER()OVER(PARTITION BY gruppe,reihe,abkü,einheit)=1 eab',CHR(13)," & vbCrLf & _
+"' ,ROW_NUMBER()OVER(PARTITION BY gruppe,reihe,abkü,einheit ORDER BY zeitpunkt DESC)=1 eab',CHR(13)," & vbCrLf & _
 "' ,DENSE_RANK()OVER(ORDER BY gruppe)grnr',CHR(13)," & vbCrLf & _
 "' ,ROW_NUMBER()OVER(PARTITION BY gruppe)=1 egr',CHR(13)," & vbCrLf & _
 "' ,COUNT(0)OVER()dszahl',CHR(13)," & vbCrLf & _
@@ -15017,6 +15020,7 @@ Sub LaborIns1(ByRef dc As Object, Pat_ID$, nurLabor%, briefneu%) ' nur in tuBrie
  
  Const maxbreite% = 13
  DiffBr = 0
+ If SafeArrayGetDim(Matr) = 0 Then Exit Sub ' 12.11.25: falls kein Labor da
  If UBound(Matr, 2) - 5 > maxbreite Then
    DiffBr = UBound(Matr, 2) - 5 - maxbreite
  End If
@@ -15128,7 +15132,9 @@ Sub LaborIns1(ByRef dc As Object, Pat_ID$, nurLabor%, briefneu%) ' nur in tuBrie
       zellaus = Left$(Matr2(0, i, j), 8) & ".."
      End If
 '     If zellaus = "55.2" Then Stop
+     On Error Resume Next ' 12.11.25: bei Pat. 64562 i=17, ubound=16 (?)
      Call LabKopf("555", zsuh(zuh(zellaus)), , , j, i - 3, MForm2(i, j) Mod 2 = 1, MForm2(i, j) > 1) ' Daten
+     On Error GoTo fehler
     Next i
     ag.Append "</w:tr>"
    Next j
