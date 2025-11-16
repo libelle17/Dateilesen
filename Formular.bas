@@ -11787,9 +11787,9 @@ vz = vz + 1
 ' das Folgende muss koordiniert werden mit labbimp/labimp.cpp, dortige backslashes hier halbieren!
 VN = "labor2a"
 Vsql = _
-"SELECT Pat_id, eingang Zeitpunkt, befart FertigStGrad, w.Abkü, w.langtext Langtext" & vbCrLf & _
+"SELECT Pat_id, eingang Zeitpunkt, befart FertigStGrad, COALESCE(au.abküstand,w.Abkü)Abkü, w.langtext Langtext" & vbCrLf & _
 ",TRIM(IF(w.Abkü='ALBUM' AND Wert='' AND k.Text LIKE 'nicht berechenb%','<20',IF(TRIM(Wert)REGEXP'^[0-9]+\\,?[0-9]*$',REPLACE(Wert,',','.'),IF(Wert=''AND k.text RLIKE'^[<>][^ ]+ .*$',LEFT(k.text,INSTR(k.text,' ')-1),Wert)))) Wert" & vbCrLf & _
-",IF(w.Einheit IN ('','\'kA\'')AND Wert=''AND k.text RLIKE'^[<>][^ ]+ .*$',MID(k.text,INSTR(k.text,' ')+1),w.Einheit)Einheit,w.Grenzwerti obpath" & vbCrLf & _
+",IF(w.Einheit IN ('','\'kA\'')AND Wert=''AND k.text RLIKE'^[<>][^ ]+ .*$',MID(k.text,INSTR(k.text,' ')+1),COALESCE(um.Einhstand,w.Einheit))Einheit,w.Grenzwerti obpath" & vbCrLf & _
 ",CONCAT(IF(e.text IS NULL OR e.text RLIKE '^:[ /\\*:]*$','',IF(e.text RLIKE '^:[ /\\*]*:'" & vbCrLf & _
 " ,CONCAT(MID(e.text,LOCATE(':',e.text,2)+1),';'),IF(e.text='.','',IF(e.text='','',CONCAT(e.text,';'))))),IF(k.text IS NULL,'',k.text)) Kommentar/*, n.id*/ " & vbCrLf & _
 ",COALESCE(k.text,'')Abschl" & vbCrLf & _
@@ -11799,6 +11799,8 @@ Vsql = _
 ",p.Gruppe, p.Reihe,2 Qu " & vbCrLf & _
 "FROM laboryus u " & vbCrLf & _
 "LEFT JOIN laborywert w ON w.usid=u.id " & vbCrLf & _
+"LEFT JOIN laborabkum au USING(abkü)" & vbCrLf & _
+"LEFT JOIN laboreinhum um USING(einheit)" & vbCrLf & _
 "LEFT JOIN laboryhinw e ON e.id=w.erklid " & vbCrLf & _
 "LEFT JOIN laboryhinw k ON k.id=w.kommid " & vbCrLf & _
 "LEFT JOIN laborypnb n ON n.id=w.nbid " & vbCrLf & _
@@ -11923,12 +11925,10 @@ VN = "labor1a"
 "  AND ISNULL(l2.pat_id)"
 
 Vsql = _
-"SELECT n.Pat_ID Pat_ID,CAST(n.ZeitPunkt As Date) ZeitPunkt, " & vbCrLf & _
-"n.FertigStGrad, " & vbCrLf & _
-"n.Abkü," & vbCrLf & _
-"l.Langtext, " & vbCrLf & _
-"TRIM(IF(n.Abkü='ALBUM' AND n.Wert='' AND k.Kommentar LIKE 'nicht berechenb%','< 20',IF(TRIM(n.Wert) REGEXP '^[0-9]+\\,?[0-9]*$', REPLACE(n.Wert,',','.'),n.Wert))) Wert" & vbCrLf & _
-",n.Einheit, n.obpath/*, CASE WHEN n.Wert<IF(nb.uNm IS NULL OR nb.uNm='' OR (nb.uNm='0' AND p.uNm<>''),p.uNm,nb.uNm) THEN '-' WHEN n.Wert>IF(nb.oNm IS NULL OR nb.oNm='' OR (nb.oNm='0' AND p.oNm<>''),p.oNm,nb.oNm) THEN '+' ELSE '' END Grenzwerti*/" & vbCrLf & _
+"SELECT n.Pat_ID Pat_ID, CAST(n.ZeitPunkt As Date)ZeitPunkt, n.FertigStGrad" & vbCrLf & _
+",COALESCE(au.abküstand,n.Abkü)Abkü, l.Langtext" & vbCrLf & _
+",TRIM(IF(n.Abkü='ALBUM' AND n.Wert='' AND k.Kommentar LIKE 'nicht berechenb%','< 20',IF(TRIM(n.Wert) REGEXP '^[0-9]+\\,?[0-9]*$', REPLACE(n.Wert,',','.'),n.Wert))) Wert" & vbCrLf & _
+",COALESCE(um.Einhstand,n.Einheit)Einheit, n.obpath/*, CASE WHEN n.Wert<IF(nb.uNm IS NULL OR nb.uNm='' OR (nb.uNm='0' AND p.uNm<>''),p.uNm,nb.uNm) THEN '-' WHEN n.Wert>IF(nb.oNm IS NULL OR nb.oNm='' OR (nb.oNm='0' AND p.oNm<>''),p.oNm,nb.oNm) THEN '+' ELSE '' END Grenzwerti*/" & vbCrLf & _
 ",CONCAT(IF(a.abschlzl<>''AND a.abschlzl<>n.wert,CONCAT(a.abschlzl,'\\n'),''),IF(ISNULL(k.Kommentar),'',k.Kommentar))Kommentar/*,nb.normbervw*/" & vbCrLf & _
 ",IF(ISNULL(a.abschlzl),'',a.abschlzl) Abschl" & vbCrLf & _
 ",nb.Normber NB" & vbCrLf & _
@@ -11939,6 +11939,8 @@ Vsql = _
 ",_utf8mb4'TM' COLLATE utf8mb4_german2_ci Labor, _utf8mb4'' COLLATE utf8mb4_german2_ci Pfad, 0 DatID " & vbCrLf & _
 ",Gruppe,Reihe,1 Qu " & vbCrLf & _
 "FROM `laborneu` `n` " & vbCrLf & _
+"LEFT JOIN laborabkum au USING(abkü)" & vbCrLf & _
+"LEFT JOIN laboreinhum um USING(einheit)" & vbCrLf & _
 "LEFT JOIN labornormber nb USING (normbervw)" & vbCrLf & _
 "              LEFT JOIN `namen` `na` ON `n`.`Pat_ID` = `na`.`Pat_ID` " & vbCrLf & _
 "              LEFT JOIN `laborlangtext` `l` ON `l`.`LangtextVW` = `n`.`LangtextVW` " & vbCrLf & _
@@ -13893,10 +13895,10 @@ sql = _
 "DECLARE zsql VARCHAR(1300/*786*/) DEFAULT CONCAT(" & vbCrLf & _
 "'WITH',CHR(13)," & vbCrLf & _
 "'se AS',CHR(13)," & vbCrLf & _
-"' (SELECT wert wt',rest,CHR(13)," & vbCrLf & _
+""" (SELECT REGEXP_REPLACE(REGEXP_REPLACE(wert,'\\\\.0+$',''),'(\\\\.[^0]+)0+$','\\\\1')wt"",rest,CHR(13)," & vbCrLf & _
 "'   FROM labor2a WHERE pat_id=',pid,CHR(13)," & vbCrLf & _
 "' UNION',CHR(13)," & vbCrLf & _
-"'  SELECT wert wt',rest,CHR(13)," & vbCrLf & _
+"""  SELECT REGEXP_REPLACE(REGEXP_REPLACE(wert,'\\\\.0+$',''),'(\\\\.[^0]+)0+$','\\\\1')wt"",rest,CHR(13)," & vbCrLf & _
 "'   FROM labor1a WHERE pat_id=',pid,CHR(13)," & vbCrLf & _
 "' )',CHR(13)," & vbCrLf
 sql = sql & _
