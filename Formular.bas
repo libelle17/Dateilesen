@@ -7980,6 +7980,10 @@ Public Sub tuBriefStandalone(pid&, obStumm%, Optional Zielverz$, Optional Verfas
  If Date = #11/20/2011# Then nurLabor = True
  If ProgInd = 4 Then briefneu = 0 ' alte Methode
  Pat_ID = CStr(pid)
+ If Lese.MOBetr And Not Lese.pataw.ohneÜbertr Then
+  syscmd acSysCmdSetStatus, "Erstelle Brief; 0) Prüfe die Übertragungsnotwendigkeit von Patientendaten aus Medical Office ..."
+  doPatvonMO pid, , obpruef:=True, obtranspa:=True
+ End If
  Dim NachNa$, VorNa$, GName$, G1Name$, tit$, GebDat As Date, dieder$, bhb As Date, behs$, gesName$, dmseit$, gesNameG$
  sql = "SELECT n.*,COALESCE(GesName(Pat_id),'') GesName, COALESCE(titel,'') tit," & vbCrLf & _
  "CONCAT(IF(geschlecht='m','Herrn','Frau'),' ',gesname(pat_id),', *',DATE_FORMAT(gebdat,'%e.%c.%y')) gname," & vbCrLf & _
@@ -8004,7 +8008,9 @@ Public Sub tuBriefStandalone(pid&, obStumm%, Optional Zielverz$, Optional Verfas
  tit = rsNa!tit
  dieder = rsNa!dieder
  bhb = IIf(IsNull(rsNa!bhb), 0, rsNa!bhb)
+ On Error Resume Next ' 18.11.25, Pat. 33211
  behs = rsNa!behs
+ On Error GoTo fehler
  gesName = rsNa!gesName
  gesNameG = rsNa!gesNameG
  dmseit = rsNa!dmseit
@@ -8018,10 +8024,6 @@ Public Sub tuBriefStandalone(pid&, obStumm%, Optional Zielverz$, Optional Verfas
  Else
   VorDat = VorDat0
  End If ' sammel = 0
- If Lese.MOBetr And Not Lese.pataw.ohneÜbertr Then
-  syscmd acSysCmdSetStatus, "Erstelle Brief; 0) Prüfe die Übertragungsnotwendigkeit von Patientendaten aus Medical Office ..."
-  doPatvonMO pid, , obpruef:=True, obtranspa:=True
- End If
 '  sverz = pverz
  If Zielverz = vNS Then
   sverz = BriefZiel
@@ -11791,12 +11793,13 @@ Vsql = _
 ",TRIM(IF(w.Abkü='ALBUM' AND Wert='' AND k.Text LIKE 'nicht berechenb%','<20',IF(TRIM(Wert)REGEXP'^[0-9]+\\,?[0-9]*$',REPLACE(Wert,',','.'),IF(Wert=''AND k.text RLIKE'^[<>][^ ]+ .*$',LEFT(k.text,INSTR(k.text,' ')-1),Wert)))) Wert" & vbCrLf & _
 ",IF(w.Einheit IN ('','\'kA\'')AND Wert=''AND k.text RLIKE'^[<>][^ ]+ .*$',MID(k.text,INSTR(k.text,' ')+1),COALESCE(um.Einhstand,w.Einheit))Einheit,w.Grenzwerti obpath" & vbCrLf & _
 ",CONCAT(IF(e.text IS NULL OR e.text RLIKE '^:[ /\\*:]*$','',IF(e.text RLIKE '^:[ /\\*]*:'" & vbCrLf & _
-" ,CONCAT(MID(e.text,LOCATE(':',e.text,2)+1),';'),IF(e.text='.','',IF(e.text='','',CONCAT(e.text,';'))))),IF(k.text IS NULL,'',k.text)) Kommentar/*, n.id*/ " & vbCrLf & _
+" ,CONCAT(MID(e.text,LOCATE(':',e.text,2)+1),';'),IF(e.text='.','',IF(e.text='','',CONCAT(e.text,';'))))),COALESCE(k.text,'')) Kommentar/*, n.id*/ " & vbCrLf & _
 ",COALESCE(k.text,'')Abschl" & vbCrLf & _
 ",n.NB, n.uNg" & vbCrLf & _
 ",IF(w.abkü='LDL' AND w.einheit='mg/dl','100',n.oNg) oNg" & vbCrLf & _
 ",l.Labor, Pfad, d.DatID " & vbCrLf & _
 ",p.Gruppe, p.Reihe,2 Qu " & vbCrLf & _
+",CONCAT('2:',DATE_FORMAT(eingang,'%e.%c.%y'),'|',w.Abkü,'|',w.Langtext,'|',Wert,IF(w.grenzwerti='','',CONCAT('(',w.Grenzwerti,')')),'|',w.Einheit,'|[',NB,'](',uNg,'-',oNg,')|',l.Labor,'|',COALESCE(e.text,''),'|',COALESCE(k.text,''))COLLATE utf8mb4_german2_ci info" & vbCrLf & _
 "FROM laboryus u " & vbCrLf & _
 "LEFT JOIN laborywert w ON w.usid=u.id " & vbCrLf & _
 "LEFT JOIN laborabkum au USING(abkü)" & vbCrLf & _
@@ -11930,14 +11933,14 @@ Vsql = _
 ",TRIM(IF(n.Abkü='ALBUM' AND n.Wert='' AND k.Kommentar LIKE 'nicht berechenb%','< 20',IF(TRIM(n.Wert) REGEXP '^[0-9]+\\,?[0-9]*$', REPLACE(n.Wert,',','.'),n.Wert))) Wert" & vbCrLf & _
 ",COALESCE(um.Einhstand,n.Einheit)Einheit, n.obpath/*, CASE WHEN n.Wert<IF(nb.uNm IS NULL OR nb.uNm='' OR (nb.uNm='0' AND p.uNm<>''),p.uNm,nb.uNm) THEN '-' WHEN n.Wert>IF(nb.oNm IS NULL OR nb.oNm='' OR (nb.oNm='0' AND p.oNm<>''),p.oNm,nb.oNm) THEN '+' ELSE '' END Grenzwerti*/" & vbCrLf & _
 ",CONCAT(IF(a.abschlzl<>''AND a.abschlzl<>n.wert,CONCAT(a.abschlzl,'\\n'),''),IF(ISNULL(k.Kommentar),'',k.Kommentar))Kommentar/*,nb.normbervw*/" & vbCrLf & _
-",IF(ISNULL(a.abschlzl),'',a.abschlzl) Abschl" & vbCrLf & _
-",nb.Normber NB" & vbCrLf & _
+",COALESCE(a.abschlzl,'')Abschl,nb.Normber NB" & vbCrLf & _
 "/*,CAST(REPLACE(IF(nb.uNm IS NULL OR nb.uNm='' OR (nb.uNm='0' AND p.uNm<>''),p.uNm,nb.uNm),',','.') AS DOUBLE) uNg" & vbCrLf & _
 ",CAST(REPLACE(IF(nb.oNm IS NULL OR nb.oNm='' OR (nb.oNm='0' AND p.oNm<>''),p.oNm,nb.oNm),',','.') AS DOUBLE) oNg*/" & vbCrLf & _
 ",CAST(REPLACE(nb.uNm,',','.')AS DOUBLE)uNg" & vbCrLf & _
 ",CAST(REPLACE(nb.oNm,',','.')AS DOUBLE)oNg" & vbCrLf & _
 ",_utf8mb4'TM' COLLATE utf8mb4_german2_ci Labor, _utf8mb4'' COLLATE utf8mb4_german2_ci Pfad, 0 DatID " & vbCrLf & _
 ",Gruppe,Reihe,1 Qu " & vbCrLf & _
+",CONCAT('1:',DATE_FORMAT(n.Zeitpunkt,'%e.%c.%y'),'|',n.Abkü,'|',l.Langtext,'|',n.Wert,IF(n.obpath='','',CONCAT('(',n.obpath,')')),'|',n.Einheit,'|[',nb.Normber,'](',nb.uNm,'-',nb.oNm,')|',Labor,'|',COALESCE(k.Kommentar,''),'|',COALESCE(a.abschlzl,''))info" & vbCrLf & _
 "FROM `laborneu` `n` " & vbCrLf & _
 "LEFT JOIN laborabkum au USING(abkü)" & vbCrLf & _
 "LEFT JOIN laboreinhum um USING(einheit)" & vbCrLf & _
@@ -13891,7 +13894,7 @@ sql = _
 "    READS SQL DATA " & vbCrLf & _
 "    COMMENT 'Labor zu einem Patienten' " & vbCrLf & _
 "BEGIN " & vbCrLf & _
-"DECLARE rest VARCHAR(97) DEFAULT ',abkü,einheit,obpath,zeitpunkt,nb,gruppe,reihe,uNg,oNg,Pfad,Kommentar,Labor,Langtext,pat_id,DatID';" & vbCrLf & _
+"DECLARE rest VARCHAR(102) DEFAULT ',abkü,einheit,obpath,zeitpunkt,nb,gruppe,reihe,uNg,oNg,Pfad,Kommentar,Labor,Langtext,pat_id,DatID,info';" & vbCrLf & _
 "DECLARE zsql VARCHAR(1300/*786*/) DEFAULT CONCAT(" & vbCrLf & _
 "'WITH',CHR(13)," & vbCrLf & _
 "'se AS',CHR(13)," & vbCrLf & _
@@ -13913,7 +13916,7 @@ sql = sql & _
 "' ,ROW_NUMBER()OVER(PARTITION BY gruppe)=1 egr',CHR(13)," & vbCrLf & _
 "' ,COUNT(0)OVER()dszahl',CHR(13)," & vbCrLf & _
 """ ,COALESCE(GROUP_CONCAT(DISTINCT CASE WHEN wt<>''THEN wt END SEPARATOR'"",IF(LENGTH(sep)=0,'<br>',sep),""'),'') Wert"",CHR(13)," & vbCrLf & _
-""" ,abkü,einheit,obpath,Zeitpunkt,COALESCE(nb,'')nb,gruppe,reihe,TRIM(COALESCE(uNg,''))uNg,TRIM(COALESCE(oNg,''))oNg,Pfad,REGEXP_REPLACE(COALESCE(Kommentar,''),'/+','/')Kom,Labor,COALESCE(Langtext,'')Langtext,pat_id,DatID"",CHR(13)," & vbCrLf & _
+""" ,abkü,einheit,obpath,Zeitpunkt,COALESCE(nb,'')nb,gruppe,reihe,TRIM(COALESCE(uNg,''))uNg,TRIM(COALESCE(oNg,''))oNg,Pfad,REGEXP_REPLACE(COALESCE(Kommentar,''),'/+','/')Kom,Labor,COALESCE(Langtext,'')Langtext,pat_id,DatID,info"",CHR(13)," & vbCrLf & _
 "' FROM se',CHR(13)," & vbCrLf & _
 "' WHERE gruppe<>999',CHR(13)," & vbCrLf & _
 "' GROUP BY zeitpunkt,abkü,einheit',CHR(13)," & vbCrLf & _
@@ -15029,8 +15032,9 @@ Sub LaborIns1(ByRef dc As Object, Pat_ID$, nurLabor%, briefneu%) ' nur in tuBrie
  syscmd 4, "Labor (2) nach Diffbr-Bestimmung"
  
  Dim Matr2$(), MForm2$(), obZeile%, obaltZeile%, gelZeilen&, ZusText$
+ ' 18.11.25: einzige Stelle, an der Matr2 und MForm2 dimensioniert werden
  ReDim Matr2(UBound(Matr, 1), UBound(Matr, 2) - DiffBr, UBound(Matr, 3))
- ReDim MForm2(MAXvb(UBound(MForm, 2) - DiffBr, 1), UBound(Matr, 3)) ' erst: 26.7.11
+ ReDim MForm2(MAXvb(UBound(Matr, 2) - DiffBr, 1), UBound(Matr, 3)) ' erst: 26.7.11
  For j = 0 To UBound(Matr, 3)
 '  IF j = 3 THEN Stop
   obZeile = 0
@@ -15134,9 +15138,9 @@ Sub LaborIns1(ByRef dc As Object, Pat_ID$, nurLabor%, briefneu%) ' nur in tuBrie
       zellaus = Left$(Matr2(0, i, j), 8) & ".."
      End If
 '     If zellaus = "55.2" Then Stop
-     On Error Resume Next ' 12.11.25: bei Pat. 64562 i=17, ubound=16 (?)
-     Call LabKopf("555", zsuh(zuh(zellaus)), , , j, i - 3, MForm2(i, j) Mod 2 = 1, MForm2(i, j) > 1) ' Daten
-     On Error GoTo fehler
+'     On Error Resume Next ' 12.11.25: bei Pat. 64562 i=17, ubound=16 (?)
+     Call LabKopf("555", zuh(zellaus), , , j, i - 3, MForm2(i, j) Mod 2 = 1, MForm2(i, j) > 1) ' Daten
+'     On Error GoTo fehler
     Next i
     ag.Append "</w:tr>"
    Next j

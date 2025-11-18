@@ -3472,7 +3472,7 @@ Sub LaborInsPLZ(Pat_ID$, SelbstStatus%, raDatBOF%, ByRef Matr$(), ByRef MForm%()
    Kommentar = raL!Kom
    ' Hier wird der Wert eingetragen:
    Matr(0, raL!zpnr + 5, raL!abknr) = raL!Wert
-   Matr(1, raL!zpnr + 5, raL!abknr) = raL!Labor
+   Matr(1, raL!zpnr + 5, raL!abknr) = raL!info ' raL!Labor
    
 'einf8
 '#If später Then

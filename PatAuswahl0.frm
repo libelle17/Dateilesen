@@ -712,7 +712,7 @@ Private Sub OKButton_KeyDown(KeyCode As Integer, Shift As Integer)
  Call Key(KeyCode, Shift, Me)
 End Sub ' OKButton_KeyDown
 
-Private Sub Pat_id_KeyDown(KeyCode As Integer, Shift As Integer)
+Private Sub Pat_ID_KeyDown(KeyCode As Integer, Shift As Integer)
  Call Key(KeyCode, Shift, Me)
 End Sub ' Pat_ID_KeyDown
 
@@ -1115,7 +1115,7 @@ End Select
 End Sub ' haausw_change
 
 ' auch in Pat_id_Click
-Private Sub Pat_ID_Change()
+Private Sub Pat_id_Change()
  Call do_Pat_ID_Change
 End Sub ' Pat_ID_Change()
 
@@ -1381,7 +1381,7 @@ Public Function getPid(Text$)
 End Function ' getPid(Text$)
 
 Private Sub Pat_id_Click()
- Call Pat_ID_Change
+ Call Pat_id_Change
 End Sub ' Pat_id_Click()
 
 Private Sub PatName_Click()
@@ -1391,7 +1391,7 @@ Private Sub PatName_Click()
   Me.Pat_ID = getPat_id(Me.PatName)
  End If
  If InStrB(Me.PatName, "|") <> 0 Then ' aufwändiges Raussuchen des Vorbriefdatums nur+immer bei Auswahl aus der Patientenliste mit der Maus
-  Call Pat_ID_Change
+  Call Pat_id_Change
   If machgleich Then
    If Me.Pat_ID <> altPatID Then
     Me.hlese.los
