@@ -3626,7 +3626,7 @@ Sub MOLeistungen(fPtNr&, Optional pid& = -1)
   "FROM ltag l " & vbCrLf & _
   "LEFT JOIN nutzerneu na ON FAnordnutzernr= na.FSurogat " & vbCrLf & _
   "LEFT JOIN nutzerneu nb ON FAusfnutzernr= nb.FSurogat " & vbCrLf & _
-  "LEFT JOIN patfall pf ON l.fscheinnr=pf.FSurogat" & vbCrLf & _
+  "LEFT JOIN patfall pf ON l.FScheinnr=pf.FSurogat" & vbCrLf & _
   "WHERE l.FPatnr = " & fPtNr & vbCrLf & _
   " AND FEintragsart=12" & vbCrLf & _
   " AND FAbgerechnet<>3652" ' gesperrt

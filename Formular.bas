@@ -8015,7 +8015,9 @@ Public Sub tuBriefStandalone(pid&, obStumm%, Optional Zielverz$, Optional Verfas
  gesNameG = rsNa!gesNameG
  dmseit = rsNa!dmseit
  
+ syscmd 4, "Ermittle letztes Briefdatum"
  VorDat0 = GetVorDat(Pat_ID, obStumm)
+ syscmd 4, "letztes Briefdatum: " & Format(VorDat0, "dd.mm.YYYY hh:MM:ssZ")
  If sammel = 0 And VorDat0 And Lese.pataw.obVordatFrag <> 0 Then
   On Error Resume Next
   VorDat = InputBox("Arztbrief zu Pat. " & Pat_ID & ":" & vbCrLf & gesNameG & "," & vbCrLf & "mit Daten ab:", "Rückfrage Daten ab", VorDat0)

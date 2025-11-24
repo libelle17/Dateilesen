@@ -1033,7 +1033,7 @@ sql(AWlf) = _
 "WHERE f.FSurogat=(SELECT MAX(fsurogat) FROM patfall WHERE fpatnr=f.fpatnr AND 18900101+INTERVAL Fbis DAY>=STR_TO_DATE(CONCAT(YEAR(NOW()-INTERVAL " & Verspätung & " DAY),LPAD((MONTH(NOW()-INTERVAL " & Verspätung & " DAY)-1)DIV 3*3+1,2,'0'),'01'),'%Y%m%d'))" & vbCrLf & _
 "AND b.FStatus<>3 AND b.FStatus<>4 AND lt.FICDCode=b.FIcdcode" & vbCrLf & _
 "AND lt.FICDCode RLIKE '^E1[0-4]\.'" & vbCrLf & _
-"AND 18900101 + INTERVAL b.FDatum DAY + INTERVAL b.FZeit SECOND >=STR_TO_DATE(CONCAT(YEAR(NOW()-INTERVAL " & Verspätung & " DAY),LPAD((MONTH(NOW()-INTERVAL " & Verspätung & " DAY)-1)DIV 3*3+1,2,'0'),'01'),'%Y%m%d')" & vbCrLf & _
+"AND 18900101+INTERVAL b.FDatum DAY + INTERVAL b.FZeit SECOND >=STR_TO_DATE(CONCAT(YEAR(NOW()-INTERVAL " & Verspätung & " DAY),LPAD((MONTH(NOW()-INTERVAL " & Verspätung & " DAY)-1)DIV 3*3+1,2,'0'),'01'),'%Y%m%d')" & vbCrLf & _
 "AND CASE (FKlasse MOD 15)MOD 10 WHEN 1 THEN 'V' WHEN 2 THEN 'G' WHEN 3 THEN 'Z' WHEN 4 THEN 'A' ELSE ' ' END IN ('G',' ')" & vbCrLf & _
 "GROUP BY FPatnr" & vbCrLf & _
 "HAVING icds RLIKE '\|'" & vbCrLf & _
@@ -6034,6 +6034,27 @@ sql(AWlf) = _
 #Else
 ' 167
 #End If
+
+AwN(AWlf) = "Zu viele 01647 oder 01648"
+sql(AWlf) = _
+"SELECT SUM(IF(leistung=01647,lzahl,0))`01647-Zahl`,SUM(IF(leistung=01648,lzahl,0))`01648-Zahl`," & vbCrLf & _
+" GROUP_CONCAT(zeitpunkt SEPARATOR ',  ')Zeitpunkte," & vbCrLf & _
+" l.Pat_id, gesnameg(l.pat_id)PName" & vbCrLf & _
+" FROM aktfv f" & vbCrLf & _
+" JOIN  leistungen l" & vbCrLf & _
+" ON l.Pat_ID=f.pat_id AND l.ZeitPunkt BETWEEN qanf() AND qend() AND l.Leistung IN(01647,01648)" & vbCrLf & _
+" GROUP BY l.pat_id" & vbCrLf & _
+" HAVING `01647-Zahl`+`01648-Zahl`>1"
+ obmo(AWlf) = False
+ mins(AWlf) = 10
+ maxs(AWlf) = 120
+ AWlf = AWlf + 1
+
+#If mitcovid Then
+' 176
+#Else
+' 168
+#End If
  AwN(AWlf) = "weitere Diagnosen"
 sql(AWlf) = "ü"
  mins(AWlf) = 10
@@ -6041,9 +6062,9 @@ sql(AWlf) = "ü"
  AWlf = AWlf + 1
 
 #If mitcovid Then
-' 176
+' 177
 #Else
-' 168
+' 169
 #End If
  AwN(AWlf) = "Inkretinmimetika ohne schwere Niereninsuffizienz, ohne Metformin und ohne Metforminunverträglichkeit (T88.7 mit ""Metformin"" in Diagnosentext oder Zusatztext oder N18.4 oder N18.5 dazu)"
 sql(AWlf) = _
@@ -6068,9 +6089,9 @@ sql(AWlf) = _
  AWlf = AWlf + 1
 
 #If mitcovid Then
-' 177
+' 178
 #Else
-' 169
+' 170
 #End If
  AwN(AWlf) = "Bempedoinsäure ohne Statin und ohne Statinunverträglichkeit (T88.7 mit ""Statin"" in Diagnosentext oder Zusatztext)"
 sql(AWlf) = _
@@ -6943,7 +6964,7 @@ Private Sub Start_Click()
 End Sub ' Start_Click()
 
 Private Sub tuStart_click(obauto%)
- Dim lfSQL$, i&, StartZeit As Date, Überschrift As New CString
+ Dim lfSQL$, i&, StartZeit As Date, überschrift As New CString
  Static rc As New ADODB.Connection
  Dim rLF As ADODB.Recordset, rIn As ADODB.Recordset
  StartZeit = Now()
@@ -6958,7 +6979,7 @@ Private Sub tuStart_click(obauto%)
  
  AbrFlrDt = tAusgSg + "_" & AktQ & "_" & Format(Now, "yyyy-mm-dd.hh.mm.ss") & ".txt"
  AbrAutDt = AbrVerz & "\Abrechnungsprotokoll_" & AktQ & "_" & Format(Now, "yyyy-mm-dd.hh.mm.ss") & ".txt"
- Überschrift.AppVar Array("Abrechnungsfehler für Quartal ", AktQ, ", ODBC-Verbindung:", Lese.dbv.Constr, vbCrLf)
+ überschrift.AppVar Array("Abrechnungsfehler für Quartal ", AktQ, ", ODBC-Verbindung:", Lese.dbv.Constr, vbCrLf)
 ' Open AbrFlrDt For Output AS #359
 ' Print #359, "Abrechnungsfehler für Quartal " & aktQ
 
@@ -6984,7 +7005,7 @@ Private Sub tuStart_click(obauto%)
  For AWlf = 1 To .Rows - 1
   If sql(AWlf - 1) = "ü" Then ' Zwischenüberschrift
   ElseIf .TextMatrix(AWlf, 1) = "X" And sql(AWlf - 1) <> "-" Then
-    Do While Not AbrFausg(Str(AWlf - 1) & ". " & AwN(AWlf - 1), REPLACE$(dowr(sql(AWlf - 1)), vbLf, " "), obmo(AWlf - 1), AbrFlrDt, mins(AWlf - 1), maxs(AWlf - 1), Überschrift, obappend, AWlf - 1, obauto, angefangen, BDT)
+    Do While Not AbrFausg(Str(AWlf - 1) & ". " & AwN(AWlf - 1), REPLACE$(dowr(sql(AWlf - 1)), vbLf, " "), obmo(AWlf - 1), AbrFlrDt, mins(AWlf - 1), maxs(AWlf - 1), überschrift, obappend, AWlf - 1, obauto, angefangen, BDT)
      Dim altAWlf%
      altAWlf = AWlf
      MsgBox "Stop in Start_Click" & vbCrLf & "AWlf: " & AWlf
@@ -6992,7 +7013,7 @@ Private Sub tuStart_click(obauto%)
      Call ZeigSQL(obauto)
      AWlf = altAWlf
     Loop
-    Überschrift = vNS
+    überschrift = vNS
     obappend = True
   End If
   DoEvents
@@ -7131,10 +7152,10 @@ fehler:
 End Sub ' SizeColumns
 
 ' aufgerufen in tuStart_Click
-Public Function AbrFausg(name$, sql$, obmo%, Datei$, mins%, ByVal maxs%, Überschrift As CString, obappend%, sqlnr%, obauto%, ByRef angefangen%, ByRef BDT As BDTSchreib) ' Abrechnungsfehler ausgeben
+Public Function AbrFausg(name$, sql$, obmo%, Datei$, mins%, ByVal maxs%, überschrift As CString, obappend%, sqlnr%, obauto%, ByRef angefangen%, ByRef BDT As BDTSchreib) ' Abrechnungsfehler ausgeben
  Dim ÜberschrAkt As New CString
  Dim ErrNr&, ErrDes$
- ÜberschrAkt = Überschrift
+ ÜberschrAkt = überschrift
  On Error GoTo fehler
  Dim T1!
  Static rc As New ADODB.Connection
