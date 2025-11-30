@@ -11,19 +11,27 @@ Begin VB.Form PatAuswahl
    ScaleHeight     =   14370
    ScaleWidth      =   14415
    ShowInTaskbar   =   0   'False
+   Begin VB.TextBox Geb 
+      Height          =   285
+      Left            =   7920
+      TabIndex        =   4
+      Text            =   "Geb"
+      Top             =   120
+      Width           =   855
+   End
    Begin VB.CommandButton Therartenfestlegen 
       Caption         =   "&festlegen"
-      Height          =   270
-      Left            =   4950
-      TabIndex        =   43
-      Top             =   800
+      Height          =   315
+      Left            =   6360
+      TabIndex        =   44
+      Top             =   720
       Width           =   1215
    End
    Begin VB.CommandButton DiagString 
       Caption         =   "D&iagString"
       Height          =   315
-      Left            =   7080
-      TabIndex        =   42
+      Left            =   7560
+      TabIndex        =   43
       Top             =   420
       Width           =   975
    End
@@ -31,37 +39,37 @@ Begin VB.Form PatAuswahl
       Caption         =   "Beginndatum &ändern"
       Height          =   495
       Left            =   12240
-      TabIndex        =   41
+      TabIndex        =   42
       Top             =   2160
       Width           =   1455
    End
    Begin VB.ListBox Programm 
       Height          =   1035
       Left            =   12240
-      TabIndex        =   40
+      TabIndex        =   41
       Top             =   1080
       Width           =   1575
    End
    Begin VB.ListBox Verfasser 
       Height          =   645
       Left            =   10800
-      TabIndex        =   38
+      TabIndex        =   39
       Top             =   720
       Width           =   1335
    End
    Begin VB.CommandButton Übertragung 
       Caption         =   "&Übertr."
       Height          =   315
-      Left            =   8040
-      TabIndex        =   36
+      Left            =   8520
+      TabIndex        =   37
       Top             =   720
       Width           =   735
    End
    Begin VB.CommandButton PlzMitImp 
       Caption         =   "Ü.u PL&Z"
       Height          =   315
-      Left            =   8760
-      TabIndex        =   35
+      Left            =   9240
+      TabIndex        =   36
       Top             =   720
       Width           =   855
    End
@@ -69,15 +77,15 @@ Begin VB.Form PatAuswahl
       Caption         =   "oh&ne Übertragung"
       Height          =   195
       Left            =   12240
-      TabIndex        =   34
+      TabIndex        =   35
       Top             =   2760
       Width           =   2175
    End
    Begin VB.CommandButton DMPString 
       Caption         =   "&DMP-String"
       Height          =   315
-      Left            =   7080
-      TabIndex        =   33
+      Left            =   7560
+      TabIndex        =   34
       Top             =   720
       Width           =   975
    End
@@ -86,7 +94,7 @@ Begin VB.Form PatAuswahl
       Left            =   120
       MultiLine       =   -1  'True
       ScrollBars      =   2  'Vertikal
-      TabIndex        =   24
+      TabIndex        =   25
       Text            =   "PatAuswahl0.frx":0000
       Top             =   4680
       Width           =   12015
@@ -96,7 +104,7 @@ Begin VB.Form PatAuswahl
       Left            =   7560
       MultiLine       =   -1  'True
       ScrollBars      =   2  'Vertikal
-      TabIndex        =   17
+      TabIndex        =   18
       Text            =   "PatAuswahl0.frx":000A
       Top             =   1680
       Width           =   4695
@@ -106,7 +114,7 @@ Begin VB.Form PatAuswahl
       Left            =   120
       MultiLine       =   -1  'True
       ScrollBars      =   2  'Vertikal
-      TabIndex        =   9
+      TabIndex        =   10
       Text            =   "PatAuswahl0.frx":0014
       Top             =   1440
       Width           =   7335
@@ -114,23 +122,23 @@ Begin VB.Form PatAuswahl
    Begin VB.CommandButton Leistungen 
       Caption         =   "&Leistungen"
       Height          =   315
-      Left            =   6120
-      TabIndex        =   32
-      Top             =   720
+      Left            =   8520
+      TabIndex        =   33
+      Top             =   420
       Width           =   975
    End
    Begin VB.CommandButton Therapiearten 
       Caption         =   "&Therarten anz."
       Height          =   315
-      Left            =   4950
-      TabIndex        =   31
-      Top             =   480
+      Left            =   6360
+      TabIndex        =   32
+      Top             =   420
       Width           =   1215
    End
    Begin VB.TextBox Zeilenzahl 
       Height          =   285
-      Left            =   7920
-      TabIndex        =   30
+      Left            =   9480
+      TabIndex        =   31
       Text            =   "8"
       Top             =   120
       Visible         =   0   'False
@@ -138,43 +146,43 @@ Begin VB.Form PatAuswahl
    End
    Begin VB.CommandButton VorDat 
       Caption         =   "Vor&Dat.ermit"
-      Height          =   255
-      Left            =   4920
-      TabIndex        =   28
-      Top             =   480
+      Height          =   315
+      Left            =   5280
+      TabIndex        =   29
+      Top             =   420
       Visible         =   0   'False
       Width           =   1095
    End
    Begin VB.CommandButton Abr 
-      Caption         =   "A&br"
+      Caption         =   "Arzt&br"
       Height          =   375
-      Left            =   4440
-      TabIndex        =   26
-      Top             =   600
-      Width           =   495
+      Left            =   5760
+      TabIndex        =   27
+      Top             =   720
+      Width           =   615
    End
    Begin VB.CommandButton Patientenlaufzettel 
       Caption         =   "&PLZ"
       Height          =   375
-      Left            =   3840
-      TabIndex        =   23
-      Top             =   600
-      Width           =   615
+      Left            =   5280
+      TabIndex        =   24
+      Top             =   720
+      Width           =   495
    End
    Begin VB.CommandButton inMO 
       Caption         =   "&MO"
       Height          =   375
-      Left            =   3360
-      TabIndex        =   22
-      Top             =   600
+      Left            =   4800
+      TabIndex        =   23
+      Top             =   720
       Width           =   495
    End
    Begin VB.CommandButton Angeforderte 
       Caption         =   "Angeforderte Briefe &gs"
       Height          =   255
       Index           =   1
-      Left            =   8640
-      TabIndex        =   21
+      Left            =   10200
+      TabIndex        =   22
       Top             =   240
       Width           =   2295
    End
@@ -182,29 +190,29 @@ Begin VB.Form PatAuswahl
       Caption         =   "Angeforderte Briefe &tk"
       Height          =   255
       Index           =   0
-      Left            =   8640
-      TabIndex        =   20
+      Left            =   10200
+      TabIndex        =   21
       Top             =   0
       Width           =   2295
    End
    Begin VB.ComboBox Vorlage 
       Height          =   315
       Left            =   12240
-      TabIndex        =   16
+      TabIndex        =   17
       Top             =   3600
       Width           =   1695
    End
    Begin VB.ListBox FaellepHA 
       Height          =   6495
       Left            =   120
-      TabIndex        =   13
+      TabIndex        =   14
       Top             =   7800
       Width           =   12135
    End
    Begin VB.ComboBox HAAusw 
       Height          =   315
       Left            =   360
-      TabIndex        =   12
+      TabIndex        =   13
       Top             =   7440
       Width           =   11055
    End
@@ -213,7 +221,7 @@ Begin VB.Form PatAuswahl
       Enabled         =   0   'False
       Height          =   285
       Left            =   360
-      TabIndex        =   10
+      TabIndex        =   11
       Top             =   7125
       Width           =   11775
    End
@@ -222,13 +230,13 @@ Begin VB.Form PatAuswahl
       Left            =   1440
       TabIndex        =   3
       Top             =   600
-      Width           =   1935
+      Width           =   3375
    End
    Begin VB.TextBox pat_idDaten 
       Enabled         =   0   'False
       Height          =   285
       Left            =   1440
-      TabIndex        =   5
+      TabIndex        =   6
       Top             =   1080
       Width           =   9135
    End
@@ -237,21 +245,21 @@ Begin VB.Form PatAuswahl
       Left            =   1440
       TabIndex        =   1
       Top             =   120
-      Width           =   5655
+      Width           =   6375
    End
    Begin VB.CommandButton CancelButton 
       Caption         =   "Abbre&chen"
       Height          =   375
-      Left            =   11330
-      TabIndex        =   7
+      Left            =   12885
+      TabIndex        =   8
       Top             =   120
       Width           =   975
    End
    Begin VB.CommandButton OKButton 
       Caption         =   "&OK"
       Height          =   375
-      Left            =   10920
-      TabIndex        =   6
+      Left            =   12480
+      TabIndex        =   7
       Top             =   120
       Width           =   375
    End
@@ -259,7 +267,7 @@ Begin VB.Form PatAuswahl
       Caption         =   "P&rogramm:"
       Height          =   255
       Left            =   12240
-      TabIndex        =   39
+      TabIndex        =   40
       Top             =   720
       Width           =   1575
    End
@@ -267,24 +275,24 @@ Begin VB.Form PatAuswahl
       Caption         =   "&Verfasser:"
       Height          =   255
       Left            =   10080
-      TabIndex        =   37
+      TabIndex        =   38
       Top             =   720
       Width           =   735
    End
    Begin VB.Label ZeilenzahlL 
       Caption         =   "Zeilen"
       Height          =   255
-      Left            =   7200
-      TabIndex        =   29
+      Left            =   8880
+      TabIndex        =   30
       Top             =   120
       Visible         =   0   'False
-      Width           =   615
+      Width           =   495
    End
    Begin VB.Label keinBericht 
       ForeColor       =   &H000000FF&
       Height          =   255
       Left            =   11040
-      TabIndex        =   27
+      TabIndex        =   28
       Top             =   600
       Width           =   975
    End
@@ -292,7 +300,7 @@ Begin VB.Form PatAuswahl
       BackColor       =   &H00FF0000&
       Height          =   615
       Left            =   0
-      TabIndex        =   25
+      TabIndex        =   26
       Top             =   4680
       Width           =   135
    End
@@ -300,7 +308,7 @@ Begin VB.Form PatAuswahl
       BackColor       =   &H8000000B&
       Height          =   255
       Left            =   8040
-      TabIndex        =   19
+      TabIndex        =   20
       Top             =   1440
       Width           =   4215
    End
@@ -308,7 +316,7 @@ Begin VB.Form PatAuswahl
       Caption         =   "Arzt:"
       Height          =   255
       Left            =   7560
-      TabIndex        =   18
+      TabIndex        =   19
       Top             =   1440
       Width           =   300
    End
@@ -316,21 +324,21 @@ Begin VB.Form PatAuswahl
       Caption         =   "&Vorlage:"
       Height          =   255
       Left            =   12240
-      TabIndex        =   4
+      TabIndex        =   5
       Top             =   3360
       Width           =   615
    End
    Begin VB.Label Anzahl 
       Height          =   255
       Left            =   7560
-      TabIndex        =   15
+      TabIndex        =   16
       Top             =   120
       Width           =   975
    End
    Begin VB.Label Zahl 
       Height          =   255
       Left            =   11640
-      TabIndex        =   14
+      TabIndex        =   15
       Top             =   5280
       Width           =   615
    End
@@ -338,7 +346,7 @@ Begin VB.Form PatAuswahl
       Caption         =   "&HA:"
       Height          =   255
       Left            =   0
-      TabIndex        =   11
+      TabIndex        =   12
       Top             =   7200
       Width           =   375
    End
@@ -347,7 +355,7 @@ Begin VB.Form PatAuswahl
       Enabled         =   0   'False
       Height          =   255
       Left            =   120
-      TabIndex        =   8
+      TabIndex        =   9
       Top             =   1080
       Width           =   1215
    End
@@ -377,7 +385,7 @@ Option Explicit
 Public hlese As Lese
 Public PatID&
 Const HADBName$ = "haerzte"
-Private haGewählt%, VorlageGewählt%, PatGewählt%, PatZuWählen%, Pat_IDGewählt%
+Private haGewählt%, VorlageGewählt%, PatGewählt%, PatZuWählen%, Pat_IDGewählt%, gebGewählt%
 Public RegPos$
 Dim cR As New Registry
 #Const EinmalDB = True
@@ -431,7 +439,7 @@ End Sub ' CancelButton_KeyDown
 
 Private Sub DiagString_Click()
  Lese.doCallDigSring (Me.Pat_ID)
-End Sub
+End Sub ' DiagString_Click()
 
 Private Sub DMPString_Click()
  Lese.doCallDMP (Me.Pat_ID)
@@ -480,6 +488,30 @@ Private Sub Form_Unload(Cancel%)
  geladen = False
 End Sub ' Form_Unload
 
+Private Sub Geb_Change()
+ Dim rs As ADODB.Recordset
+ If IsDate(Me.Geb) Then
+  myFrag rs, "SELECT COUNT(0)OVER(PARTITION BY gebdat)z,CONCAT(CAST(pat_id AS char),' | ',nachname,', ',vorname,',*',DATE_FORMAT(gebdat,'%e.%c.%Y'))g FROM namen n WHERE gebdat=" & Format(Me.Geb, "yyyymmdd")
+  If Not rs.EOF Then
+   If rs!z > 1 Then
+    Me.Pat_ID.Clear
+    Do While Not rs.EOF
+     Me.Pat_ID.AddItem rs!g
+     rs.MoveNext
+    Loop
+    Pat_IDGewählt = False
+    gebGewählt = True
+   End If
+   rs.MoveFirst
+   Me.Pat_ID = rs!g
+  End If
+ End If
+End Sub
+
+Private Sub Geb_GotFocus()
+ Me.Geb.SelStart = Len(Me.Geb)
+End Sub
+
 Private Sub HAAusw_GotFocus()
  If Not haGewählt Then Call AuswHA(Me)
 End Sub ' HAAusw_GotFocus()
@@ -500,14 +532,14 @@ Private Sub Programm_Validate(Cancel As Boolean)
 End Sub ' Programm_Validate
 
 Private Sub Übertragung_Click()
- If IsNumeric(Me.Pat_ID) Then
-  Call doPatvonMO(Me.Pat_ID)
- End If ' IsNumeric(Me.Pat_id) Then
+ If IsNumeric(Me.PatID) Then
+  Call doPatvonMO(Me.PatID)
+ End If ' IsNumeric(Me.Patid) Then
 End Sub ' Import_Click()
 
 ' Knopf "&MO"
 Private Sub inMO_Click()
- If IsNumeric(Me.Pat_ID) Then inMOAnz Me.Pat_ID
+ If IsNumeric(Me.PatID) Then Call inMOAnz(Me.PatID)
 End Sub 'inTM_Click()
 
 Private Sub Leistungen_Click()
@@ -525,18 +557,18 @@ Private Sub Patientenlaufzettel_Click()
  Dim zzn%
  zzn = 8
  If IsNumeric(Me.Zeilenzahl) Then zzn = CInt(zzn)
- If IsNumeric(Me.Pat_ID) Then
-  Call dodoplz(Me.Pat_ID, plzVz, Now, Now - Int(Now), True, "", zzn, obRueck)
- End If ' IsNumeric(Me.Pat_id) Then
+ If IsNumeric(Me.PatID) Then
+  Call dodoplz(Me.PatID, plzVz, Now, Now - Int(Now), True, "", zzn, obRueck)
+ End If ' IsNumeric(Me.Patid) Then
 End Sub ' Patientenlaufzettel_Click()
 
 ' Knopf Abr
 Private Sub Abr_Click()
- If IsNumeric(Me.Pat_ID) Then
+ If IsNumeric(Me.PatID) Then
 ' Call tuBriefStandalone(Me.PatID, False, , Me.Verfasser, Me.Vorlage, Me.Programm.ListIndex)
   Call setzBriefReg
   Call tuBriefStandalone(Me.PatID, False, , Me.Verfasser, Me.Vorlage, Me.Programm.ListIndex, , Me.briefneu, Me.nichtherricht)
- End If ' IsNumeric(Me.Pat_id) Then
+ End If ' IsNumeric(Me.Patid) Then
 End Sub ' Abr_Click()
 
 Private Sub PatName_DropDown()
@@ -544,7 +576,7 @@ Private Sub PatName_DropDown()
 End Sub ' PatName_DropDown
 
 Private Sub pat_id_dropdown()
- If hlese.Aktion <> PatvonMO And Not Pat_IDGewählt Then
+ If hlese.Aktion <> PatvonMO And Not Pat_IDGewählt And Not gebGewählt Then
   Call Me.AuswPat_id(Me)
   Pat_IDGewählt = True
  End If
@@ -563,12 +595,13 @@ Private Sub patname_gotfocus()
  End If ' PatZuWählen Then
  Me.PatName.SelStart = Len(Me.PatName)
  Me.PatName.SelLength = 0
+ gebGewählt = 0
 End Sub ' patname_gotfocus()
 
 Private Sub PlzMitImp_Click()
- If IsNumeric(Me.Pat_ID) Then
-  Call doPatvonMO(Me.Pat_ID)
- End If ' IsNumeric(Me.Pat_id) Then
+ If IsNumeric(Me.PatID) Then
+  Call doPatvonMO(Me.PatID)
+ End If ' IsNumeric(Me.Patid) Then
  Call Patientenlaufzettel_Click
 End Sub ' PlzMitImp_Click()
 
@@ -585,7 +618,7 @@ End Sub ' Therapiearten_Click()
 ' Knopf festlegen
 Private Sub Therartenfestlegen_Click()
  Dim rs As ADODB.Recordset
- myEFrag ("SELECT fuellTha(" & Me.Pat_ID & ")")
+ myEFrag ("SELECT fuellTha(" & Me.PatID & ")")
  Call Therapiearten_Click
 End Sub ' Therartenfestlegen_Click()
 
@@ -1139,16 +1172,26 @@ Private Sub do_Pat_ID_Change(Optional mitVorDat%)
  pos = InStr(Me.Pat_ID, " |")
  If pos <> 0 Then
   innen = True
-  Me.Pat_ID = Left$(Me.Pat_ID, pos - 1)
+'  Me.Pat_id = Left$(Me.Pat_id, pos - 1) ' 30.11.25
   innen = False
  End If
  If Me.Pat_ID <> vNS And Me.Pat_ID <> "-1" Then
   On Error Resume Next
-  If Not IsNumeric(Me.Pat_ID) Then
+  Dim tstr$
+  tstr = Me.Pat_ID
+  If InStrB(tstr, " |") Then tstr = Left(tstr, InStr(tstr, " |"))
+  If Not IsNumeric(tstr) Then
    innen = True
    Me.PatName = Me.Pat_ID
    Me.Pat_ID = vNS
    Me.PatName.SetFocus
+   innen = False
+   GoTo schluss
+  ElseIf InStrB(tstr, ".") <> 0 Then
+   innen = True
+   Me.Geb = Me.Pat_ID
+   Me.Pat_ID = vNS
+   Me.Geb.SetFocus
    innen = False
    GoTo schluss
   End If
@@ -1157,7 +1200,7 @@ Private Sub do_Pat_ID_Change(Optional mitVorDat%)
   If Me.PatID = 0 Then
    GoTo schluss
   End If ' Me.PatID = 0 Then
-  If Me.Pat_ID <> Me.VorBriefID Or InStrB(Me.PatName, "|") <> 0 Then ' aufwändiges Raussuchen des Vorbriefdatums nur+immer bei Auswahl aus der Patientenliste mit der Maus
+  If Me.PatID <> CStr(Me.VorBriefID) Or InStrB(Me.PatName, "|") <> 0 Then ' aufwändiges Raussuchen des Vorbriefdatums nur+immer bei Auswahl aus der Patientenliste mit der Maus
 '   Call acon(HaT)
    If LenB(DBCn) = 0 Or DBCn = "" Then Call acon(quelleT)
 '   Me.Faelle.Clear
@@ -1194,7 +1237,7 @@ vorabfra1:
     "FROM faelle f" & vbCrLf & _
     "LEFT JOIN" & vbCrLf & _
     "kassenliste kl ON f.kid = kl.id" & vbCrLf & _
-    "WHERE Pat_id = " & Me.Pat_ID
+    "WHERE Pat_id = " & Me.PatID
 '    Me.Faelle.AddItem myEFrag(sql)!fael
     Me.Faelle = myEFrag(sql)!fael
 '    Me.Text1 = myEFrag(sql)!fael
@@ -1251,7 +1294,7 @@ vorabfra1:
     " SEPARATOR '\r\n'" & vbCrLf & _
     "),'') diag" & vbCrLf & _
     "From diagview" & vbCrLf & _
-    "WHERE Pat_id = " & Me.Pat_ID ' & vbCrLf & _
+    "WHERE Pat_id = " & Me.PatID ' & vbCrLf & _
 '    "GROUP BY diagsicherheit, icd, diagtext, obdauer"
     Me.Diagnosen = myEFrag(sql)!Diag
 '    sql = "SELECT diagsicherheit, icd, diagtext, DATE_FORMAT(diagdatum,'%d.%m.%y') diagdatum, obdauer " & vbCrLf & _
@@ -1269,7 +1312,7 @@ vorabfra1:
     lbeh = 0
     Me.Arzt.BackColor = &H80FF&
     Me.nötig.BackColor = &HFF& ' rot
-    myFrag rEin, "SELECT COUNT(0) tk, DATE_FORMAT(MAX(zeitpunkt),'%e.%c.%y') zp FROM `eintraege` WHERE (art IN('tk','ARCHIE2','APK')OR(art='tb' AND ersteller='tk') OR inhalt LIKE '%(tk)%') AND pat_id = " & Me.Pat_ID
+    myFrag rEin, "SELECT COUNT(0) tk, DATE_FORMAT(MAX(zeitpunkt),'%e.%c.%y') zp FROM `eintraege` WHERE (art IN('tk','ARCHIE2','APK')OR(art='tb' AND ersteller='tk') OR inhalt LIKE '%(tk)%') AND pat_id = " & Me.PatID
     If rEin.State <> 0 Then
      If Not rEin.BOF Then
       If rEin!tk <> 0 Then
@@ -1281,7 +1324,7 @@ vorabfra1:
      End If ' Not rEin.BOF Then
     End If ' rEin.State <> 0 Then
     Set rEin = Nothing
-    myFrag rEin, "SELECT COUNT(0) gs, DATE_FORMAT(MAX(zeitpunkt),'%e.%c.%y') zp FROM `eintraege` WHERE (((art IN ('gs','doppler','dop','duplex','dup') OR (art='tb' AND ersteller='gs')) AND NOT inhalt LIKE '%(tk)%') OR inhalt LIKE '%(gs)%') AND pat_id = " & Me.Pat_ID
+    myFrag rEin, "SELECT COUNT(0) gs, DATE_FORMAT(MAX(zeitpunkt),'%e.%c.%y') zp FROM `eintraege` WHERE (((art IN ('gs','doppler','dop','duplex','dup') OR (art='tb' AND ersteller='gs')) AND NOT inhalt LIKE '%(tk)%') OR inhalt LIKE '%(gs)%') AND pat_id = " & Me.PatID
     If rEin.State <> 0 Then
      If Not rEin.BOF Then
       If rEin!gs <> 0 Then
@@ -1307,7 +1350,7 @@ vorabfra1:
     "ORDER BY transe DESC" & vbCrLf & _
     "SEPARATOR '\r\n'" & vbCrLf & _
     "),'') gef" & vbCrLf & _
-    "FROM `faxeinp`.`outa` o WHERE pid=" & Me.Pat_ID
+    "FROM `faxeinp`.`outa` o WHERE pid=" & Me.PatID
     Me.Vorbriefe = myEFrag(sql)!gef
 
 '     Dim rs As New ADODB.Recordset
@@ -1338,7 +1381,7 @@ vorabfra1:
   '   END IF ' LenB(Me.HAAusw) = 0 THEN
    End If ' rNaA.EOF
    Dim rdesk As New ADODB.Recordset
-   sql = "SELECT (0) FROM desktop WHERE pat_id = " & Me.Pat_ID & " AND titel LIKE '%kein%Bericht%'"
+   sql = "SELECT (0) FROM desktop WHERE pat_id = " & Me.PatID & " AND titel LIKE '%kein%Bericht%'"
    Set rdesk = Nothing
    myFrag rdesk, sql
    If Not rdesk.BOF Then
@@ -1346,7 +1389,7 @@ vorabfra1:
    Else
     Me.keinBericht = ""
    End If
-   Me.VorBriefID = Me.Pat_ID
+   Me.VorBriefID = Me.PatID
   End If ' me.vorbriefid <> me.pat_id
  End If ' Me.Pat_id <> vNS THEN
 schluss:

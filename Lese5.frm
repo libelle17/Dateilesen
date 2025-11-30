@@ -2532,7 +2532,7 @@ While Not EOF(1)
   If (InStr(pid, ",")) Then pid = Left$(pid, InStr(pid, ",") - 1)
 '  Debug.Print pid
   If IsNumeric(pid) Then
-    dodoplz pid, plzVz, Now, Now - Int(Now), True, ""
+    Call dodoplz(pid, plzVz, Now, Now - Int(Now), True, "")
   End If ' IsNumeric(pid) Then
 Wend ' Not EOF(1)
 Close #1

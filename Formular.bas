@@ -1610,7 +1610,7 @@ End Function ' do_Form_Current_Medarten(frm As Medarten)
 ' aufgerufen in anaRS_MoveComplete
 Function do_Form_Current_AnBog(frm As AnBog)
  Dim rsNa As New ADODB.Recordset
- Dim farbe&, i&, tStr$
+ Dim farbe&, i&, tstr$
 ' Static rsAnam As Adodb.Recordset
 ' SET rsAnamlt = frm.Recordset
 ' altPat_id = frm.Recordset!Pat_id
@@ -8802,7 +8802,13 @@ On Error GoTo fehler
    Case 1 ' Word 2000
     oSh.rUn "cmd /c """"C:\Program Files (x86)\MSOff\Office\winword"" """ & sverz & aname & "x""""", 0, False
    Case 2 ' neues Word
-    oSh.rUn "cmd /c """"c:\program files\microsoft office\root\office16\winword"" """ & sverz & aname & "x""""", 0, False
+    Dim wpfad$
+    wpfad = "c:\program files\microsoft office\root\office16\winword"
+    If Not FSO.FileExists(wpfad) Then
+     wpfad = "c:\program files (x86)\microsoft office\root\office16\winword"
+    End If
+    oSh.rUn "cmd /c """"" & wpfad & """ """ & sverz & aname & "x""""", 0, False
+'    wpfad = getReg(2, "SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths", "WinWord.exe")
    Case 3 ' Standardprogramm
     oSh.rUn "cmd /c """"" & sverz & aname & "x""""", 0, False
   End Select
@@ -11792,13 +11798,13 @@ vz = vz + 1
 VN = "labor2a"
 Vsql = _
 "SELECT Pat_id, eingang Zeitpunkt, befart FertigStGrad, COALESCE(au.abküstand,w.Abkü)Abkü, w.langtext Langtext" & vbCrLf & _
-",TRIM(IF(w.Abkü='ALBUM' AND Wert='' AND k.Text LIKE 'nicht berechenb%','<20',IF(TRIM(Wert)REGEXP'^[0-9]+\\,?[0-9]*$',REPLACE(Wert,',','.'),IF(Wert=''AND k.text RLIKE'^[<>][^ ]+ .*$',LEFT(k.text,INSTR(k.text,' ')-1),Wert)))) Wert" & vbCrLf & _
-",IF(w.Einheit IN ('','\'kA\'')AND Wert=''AND k.text RLIKE'^[<>][^ ]+ .*$',MID(k.text,INSTR(k.text,' ')+1),COALESCE(um.Einhstand,w.Einheit))Einheit,w.Grenzwerti obpath" & vbCrLf & _
+",TRIM(IF(w.Abkü='ALBUM' AND Wert='' AND k.Text LIKE 'nicht berechenb%','<20',IF(TRIM(Wert)REGEXP'^[0-9]+\\,?[0-9]*$',REPLACE(Wert,',','.'),IF(Wert=''AND k.text RLIKE'^[<>][^ ]+ .*$',LEFT(k.text,INSTR(k.text,' ')-1),Wert))))Wert" & vbCrLf & _
+",IF(w.Einheit IN('','\'kA\'')AND Wert=''AND k.text RLIKE'^[<>][^ ]+ .*$',MID(k.text,INSTR(k.text,' ')+1),COALESCE(um.Einhstand,w.Einheit))Einheit,w.Grenzwerti obpath" & vbCrLf & _
 ",CONCAT(IF(e.text IS NULL OR e.text RLIKE '^:[ /\\*:]*$','',IF(e.text RLIKE '^:[ /\\*]*:'" & vbCrLf & _
 " ,CONCAT(MID(e.text,LOCATE(':',e.text,2)+1),';'),IF(e.text='.','',IF(e.text='','',CONCAT(e.text,';'))))),COALESCE(k.text,'')) Kommentar/*, n.id*/ " & vbCrLf & _
 ",COALESCE(k.text,'')Abschl" & vbCrLf & _
-",n.NB, n.uNg" & vbCrLf & _
-",IF(w.abkü='LDL' AND w.einheit='mg/dl','100',n.oNg) oNg" & vbCrLf & _
+",CAST(n.NB AS CHAR)NB, n.uNg" & vbCrLf & _
+",REGEXP_REPLACE(n.oNg,'^([<>0-9,.-]*).*$','\\1')oNg" & vbCrLf & _
 ",l.Labor, Pfad, d.DatID " & vbCrLf & _
 ",p.Gruppe, p.Reihe,2 Qu " & vbCrLf & _
 ",CONCAT('2:',DATE_FORMAT(eingang,'%e.%c.%y'),'|',w.Abkü,'|',w.Langtext,'|',Wert,IF(w.grenzwerti='','',CONCAT('(',w.Grenzwerti,')')),'|',w.Einheit,'|[',NB,'](',uNg,'-',oNg,')|',l.Labor,'|',COALESCE(e.text,''),'|',COALESCE(k.text,''))COLLATE utf8mb4_german2_ci info" & vbCrLf & _
@@ -11935,11 +11941,11 @@ Vsql = _
 ",TRIM(IF(n.Abkü='ALBUM' AND n.Wert='' AND k.Kommentar LIKE 'nicht berechenb%','< 20',IF(TRIM(n.Wert) REGEXP '^[0-9]+\\,?[0-9]*$', REPLACE(n.Wert,',','.'),n.Wert))) Wert" & vbCrLf & _
 ",COALESCE(um.Einhstand,n.Einheit)Einheit, n.obpath/*, CASE WHEN n.Wert<IF(nb.uNm IS NULL OR nb.uNm='' OR (nb.uNm='0' AND p.uNm<>''),p.uNm,nb.uNm) THEN '-' WHEN n.Wert>IF(nb.oNm IS NULL OR nb.oNm='' OR (nb.oNm='0' AND p.oNm<>''),p.oNm,nb.oNm) THEN '+' ELSE '' END Grenzwerti*/" & vbCrLf & _
 ",CONCAT(IF(a.abschlzl<>''AND a.abschlzl<>n.wert,CONCAT(a.abschlzl,'\\n'),''),IF(ISNULL(k.Kommentar),'',k.Kommentar))Kommentar/*,nb.normbervw*/" & vbCrLf & _
-",COALESCE(a.abschlzl,'')Abschl,nb.Normber NB" & vbCrLf & _
+",COALESCE(a.abschlzl,'')Abschl,CAST(nb.Normber AS CHAR)NB" & vbCrLf & _
 "/*,CAST(REPLACE(IF(nb.uNm IS NULL OR nb.uNm='' OR (nb.uNm='0' AND p.uNm<>''),p.uNm,nb.uNm),',','.') AS DOUBLE) uNg" & vbCrLf & _
 ",CAST(REPLACE(IF(nb.oNm IS NULL OR nb.oNm='' OR (nb.oNm='0' AND p.oNm<>''),p.oNm,nb.oNm),',','.') AS DOUBLE) oNg*/" & vbCrLf & _
-",CAST(REPLACE(nb.uNm,',','.')AS DOUBLE)uNg" & vbCrLf & _
-",CAST(REPLACE(nb.oNm,',','.')AS DOUBLE)oNg" & vbCrLf & _
+",CAST(IF(nb.uNm='',0,REPLACE(COALESCE(nb.uNm,'0'),',','.'))AS DOUBLE)uNg" & vbCrLf & _
+",REGEXP_REPLACE(IF(nb.oNm='',0,REPLACE(COALESCE(nb.oNm,'0'),',','.')),'^([<>0-9,.-]*).*$','\\1')oNg" & vbCrLf & _
 ",_utf8mb4'TM' COLLATE utf8mb4_german2_ci Labor, _utf8mb4'' COLLATE utf8mb4_german2_ci Pfad, 0 DatID " & vbCrLf & _
 ",Gruppe,Reihe,1 Qu " & vbCrLf & _
 ",CONCAT('1:',DATE_FORMAT(n.Zeitpunkt,'%e.%c.%y'),'|',n.Abkü,'|',l.Langtext,'|',n.Wert,IF(n.obpath='','',CONCAT('(',n.obpath,')')),'|',n.Einheit,'|[',nb.Normber,'](',nb.uNm,'-',nb.oNm,')|',Labor,'|',COALESCE(k.Kommentar,''),'|',COALESCE(a.abschlzl,''))info" & vbCrLf & _
@@ -12209,7 +12215,7 @@ sql = "CREATE DEFINER=`praxis`@`%` FUNCTION `zuht`(" & vbCrLf & _
 "CONTAINS sql" & vbCrLf & _
 "SQL SECURITY DEFINER" & vbCrLf & _
 "Comment 'wandelt Text in Hexadezimal um; zu koordinieren zuh() in ZielDBFunktionen.bas'" & vbCrLf & _
-"Begin" & vbCrLf & _
+"BEGIN" & vbCrLf & _
 "DECLARE erg VARCHAR(10000) DEFAULT '';" & vbCrLf & _
 "DECLARE pos INTEGER(11) DEFAULT 1;" & vbCrLf & _
 "DECLARE buch VARCHAR(1) CHARSET latin1;" & vbCrLf & _
@@ -13832,11 +13838,11 @@ myEFrag (sql)
     "END;"
     myEFrag (sql)
 #End If ' problematisch
-
 ' Umbenennung von wert auf wt, da sonst viele "Warnung: (1292) Truncated incorrect DOUBLE value: 'Referenzbereich = Empfohlener Bereich'"
 ' äußeres Select, da sonst mit COUNT(0)OVER()dszahl die Sortierung ignoriert wird
 sql = "DROP PROCEDURE IF EXISTS `quelle`.`geslabdp`"
 myEFrag sql
+#If nichtersetzt Then
 sql = _
 "CREATE DEFINER=`praxis`@`%` PROCEDURE `geslabdp`(IN pid INT(6),IN esql VARCHAR(1000)) " & vbCrLf & _
 "    READS SQL DATA " & vbCrLf & _
@@ -13858,9 +13864,10 @@ sql = _
 ' Debuggen: SELECT @frag
 myEFrag (sql)
 
-
+#End If
 sql = "DROP PROCEDURE IF EXISTS `quelle`.`geslabdpohnebr`"
 myEFrag sql
+#If nichtersetzt Then
 sql = _
 "CREATE DEFINER=`praxis`@`%` PROCEDURE `geslabdpohnebr`(IN pid INT(6),IN esql VARCHAR(1000)) " & vbCrLf & _
 "    READS SQL DATA " & vbCrLf & _
@@ -13880,7 +13887,7 @@ sql = _
 "-- SELECT @frag; " & vbCrLf & _
 "END;"
 myEFrag (sql)
-
+#End If
 ' Umbenennung von wert auf wt, da sonst viele "Warnung: (1292) Truncated incorrect DOUBLE value: 'Referenzbereich = Empfohlener Bereich'"
 ' äußeres Select, da sonst mit COUNT(0)OVER()dszahl die Sortierung ignoriert wird
 ' Alternative Zählung (genauso schnell, äußeres Select dann unnötig, aber mehrere Variableneinsetzungen erfordernd:
@@ -13892,20 +13899,20 @@ myEFrag (sql)
 sql = "DROP PROCEDURE IF EXISTS `quelle`.`geslabneu`"
 myEFrag sql
 sql = _
-"CREATE DEFINER=`praxis`@`%` PROCEDURE `geslabneu`(IN pid INT(6),IN sep VARCHAR(8)) " & vbCrLf & _
+"CREATE DEFINER=`praxis`@`%` PROCEDURE `geslabneu`(IN pid INT(6),IN sep VARCHAR(8),IN esql VARCHAR(1000)) " & vbCrLf & _
 "    READS SQL DATA " & vbCrLf & _
 "    COMMENT 'Labor zu einem Patienten' " & vbCrLf & _
 "BEGIN " & vbCrLf & _
-"DECLARE rest VARCHAR(102) DEFAULT ',abkü,einheit,obpath,zeitpunkt,nb,gruppe,reihe,uNg,oNg,Pfad,Kommentar,Labor,Langtext,pat_id,DatID,info';" & vbCrLf & _
-"DECLARE zsql VARCHAR(1300/*786*/) DEFAULT CONCAT(" & vbCrLf & _
+"DECLARE rest VARCHAR(365) DEFAULT ""  SELECT REPLACE(REGEXP_REPLACE(REGEXP_REPLACE(wert,'\\\\.0+$',''),'(\\\\.[^0]+)0+$','\\\\1'),'nicht berechenba','<20')wt,abkü,IF(abkü='album'AND einheit='keine Einheit','mg/g Krea',einheit)einheit,obpath,zeitpunkt,nb,gruppe,reihe,uNg,oNg,Pfad,Kommentar,Labor,Langtext,pat_id,DatID,info"";" & vbCrLf & _
+"DECLARE zsql VARCHAR(1600/*786*/) DEFAULT CONCAT(" & vbCrLf & _
 "'WITH',CHR(13)," & vbCrLf & _
-"'se AS',CHR(13)," & vbCrLf & _
-""" (SELECT REGEXP_REPLACE(REGEXP_REPLACE(wert,'\\\\.0+$',''),'(\\\\.[^0]+)0+$','\\\\1')wt"",rest,CHR(13)," & vbCrLf & _
+"'se AS(',CHR(13)," & vbCrLf & _
+"rest,CHR(13)," & vbCrLf & _
 "'   FROM labor2a WHERE pat_id=',pid,CHR(13)," & vbCrLf & _
 "' UNION',CHR(13)," & vbCrLf & _
-"""  SELECT REGEXP_REPLACE(REGEXP_REPLACE(wert,'\\\\.0+$',''),'(\\\\.[^0]+)0+$','\\\\1')wt"",rest,CHR(13)," & vbCrLf & _
+"rest,CHR(13)," & vbCrLf & _
 "'   FROM labor1a WHERE pat_id=',pid,CHR(13)," & vbCrLf & _
-"' )',CHR(13)," & vbCrLf
+"')',CHR(13)," & vbCrLf
 sql = sql & _
 "'SELECT SUM(ezp)OVER()zpz,SUM(eab)OVER()zab,SUM(egr)OVER()zgr,i.*',CHR(13)," & vbCrLf & _
 "'FROM(',CHR(13)," & vbCrLf & _
@@ -13917,13 +13924,13 @@ sql = sql & _
 "' ,DENSE_RANK()OVER(ORDER BY gruppe)grnr',CHR(13)," & vbCrLf & _
 "' ,ROW_NUMBER()OVER(PARTITION BY gruppe)=1 egr',CHR(13)," & vbCrLf & _
 "' ,COUNT(0)OVER()dszahl',CHR(13)," & vbCrLf & _
-""" ,COALESCE(GROUP_CONCAT(DISTINCT CASE WHEN wt<>''THEN wt END SEPARATOR'"",IF(LENGTH(sep)=0,'<br>',sep),""'),'') Wert"",CHR(13)," & vbCrLf & _
+""" ,COALESCE(GROUP_CONCAT(DISTINCT CASE WHEN wt<>''THEN wt END SEPARATOR'"",sep,""'),'') Wert"",CHR(13)," & vbCrLf & _
 """ ,abkü,einheit,obpath,Zeitpunkt,COALESCE(nb,'')nb,gruppe,reihe,TRIM(COALESCE(uNg,''))uNg,TRIM(COALESCE(oNg,''))oNg,Pfad,REGEXP_REPLACE(COALESCE(Kommentar,''),'/+','/')Kom,Labor,COALESCE(Langtext,'')Langtext,pat_id,DatID,info"",CHR(13)," & vbCrLf & _
 "' FROM se',CHR(13)," & vbCrLf & _
-"' WHERE gruppe<>999',CHR(13)," & vbCrLf & _
-"' GROUP BY zeitpunkt,abkü,einheit',CHR(13)," & vbCrLf & _
-"')i',CHR(13)," & vbCrLf & _
-"'ORDER BY gruppe,reihe,abkü,einheit');" & vbCrLf & _
+"' WHERE COALESCE(reihe,0)<>999',CHR(13)," & vbCrLf & _
+" IF(esql='',CONCAT(' GROUP BY zeitpunkt,abkü,einheit',CHR(13)," & vbCrLf & _
+" ')i',CHR(13)," & vbCrLf & _
+" 'ORDER BY gruppe,reihe,abkü,einheit'),esql));" & vbCrLf & _
 "-- SELECT zsql;" & vbCrLf & _
 "EXECUTE IMMEDIATE zsql;" & vbCrLf & _
 "END"

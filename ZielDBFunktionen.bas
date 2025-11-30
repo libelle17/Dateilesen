@@ -838,7 +838,7 @@ Function obLabI%(LA As LabArt, LT As labtyp) ' ob Labor interessant
    obLabI = ((LT.Abkü = "CREAT" Or LT.Abkü = "KRE02" Or LT.Abkü = "KREA" Or LT.Abkü = "KREA02" Or LT.Abkü = "KRES") And LT.Einheit = "mg/dl")
   Case LA_AlbCre:
   ' zu koordinieren mit doViewserstellen: obnephrop und labpath.cpp pVirtfuehraus
-   obLabI = ((LT.Abkü = "ALBCRE" Or LT.Abkü = "ALBKRE" Or LT.Abkü = "ALBQ" Or LT.Abkü = "ALBUM" Or LT.Abkü = "ALBUP") And (LT.Einheit Like "mg/g *" Or LT.Einheit = "" Or LT.Einheit = "kA" Or LT.Einheit = "'kA'")) Or ((LT.Abkü = "ALBU" Or LT.Abkü = "ALBUMU") And LT.Einheit = "mg/l")
+   obLabI = ((LT.Abkü = "ALBCRE" Or LT.Abkü = "ALBKRE" Or LT.Abkü = "ALBQ" Or LT.Abkü = "ALBUM" Or LT.Abkü = "ALBUP") And (LT.Einheit Like "mg/g *" Or LT.Einheit = "keine Einheit" Or LT.Einheit = "" Or LT.Einheit = "kA" Or LT.Einheit = "'kA'")) Or ((LT.Abkü = "ALBU" Or LT.Abkü = "ALBUMU") And LT.Einheit = "mg/l")
   Case LA_Kali:
    obLabI = (LT.Abkü = "K" Or LT.Abkü = "KALI" Or LT.Abkü = "XK")
   Case LA_Chol:
@@ -5631,7 +5631,7 @@ Function testvergleicheT()
 End Function ' testvergleicheT
 
  Function doTabakSt(Pat_ID&) As ZigSt
-  Dim rs As New ADODB.Recordset, tStr$
+  Dim rs As New ADODB.Recordset, tstr$
   On Error GoTo fehler
   Call Lese.ProgStart
   myFrag rs, "SELECT vorgestellt, tabakex,tabakakt,tabakbis,tabakmenge FROM `anamnesebogen` WHERE pat_id = " & Pat_ID, adOpenStatic
@@ -5646,37 +5646,37 @@ nie:
   Else
    doTabakSt = früher
    If Not IsNull(rs!tabakbis) Then
-    tStr = LTrim$(rs!tabakbis)
-    If Left$(tStr, 3) = "bis" Then tStr = LTrim$(Mid$(tStr, 4))
-    If Left$(tStr, 3) = "ca." Then tStr = LTrim$(Mid$(tStr, 4))
-    If InStrB(tStr, "-") <> 0 Then
-     tStr = LTrim$(Mid$(tStr, InStr(tStr, "-") + 1))
+    tstr = LTrim$(rs!tabakbis)
+    If Left$(tstr, 3) = "bis" Then tstr = LTrim$(Mid$(tstr, 4))
+    If Left$(tstr, 3) = "ca." Then tstr = LTrim$(Mid$(tstr, 4))
+    If InStrB(tstr, "-") <> 0 Then
+     tstr = LTrim$(Mid$(tstr, InStr(tstr, "-") + 1))
     End If
-    If IsDate(tStr) Then
-     If Now() - CDate(tStr) > 12 * 365 Then
+    If IsDate(tstr) Then
+     If Now() - CDate(tstr) > 12 * 365 Then
       doTabakSt = vorlangem
      End If
     Else
-     If IsNumeric(Left$(tStr, 4)) Then tStr = Left$(tStr, 4)
-     If IsNumeric(tStr) Then
+     If IsNumeric(Left$(tstr, 4)) Then tstr = Left$(tstr, 4)
+     If IsNumeric(tstr) Then
       If Not IsNull(rs!Vorgestellt) Then
-       If Year(rs!Vorgestellt) - tStr >= 12 Then
+       If Year(rs!Vorgestellt) - tstr >= 12 Then
         doTabakSt = vorlangem
        End If
       End If
-     ElseIf tStr Like "*vor *" Then
-      tStr = Mid$(tStr, InStr(tStr, "vor ") + 4)
-      If tStr Like "*J*" Then
-       tStr = Left$(tStr, InStr(tStr, "J") - 1)
-      ElseIf tStr Like "*a*" Then
-       tStr = Left$(tStr, InStr(tStr, "a") - 1)
+     ElseIf tstr Like "*vor *" Then
+      tstr = Mid$(tstr, InStr(tstr, "vor ") + 4)
+      If tstr Like "*J*" Then
+       tstr = Left$(tstr, InStr(tstr, "J") - 1)
+      ElseIf tstr Like "*a*" Then
+       tstr = Left$(tstr, InStr(tstr, "a") - 1)
       End If
-      If IsNumeric(tStr) Then
-       If CDbl(tStr) >= 12 Then
+      If IsNumeric(tstr) Then
+       If CDbl(tstr) >= 12 Then
         doTabakSt = vorlangem
        End If
       End If
-     ElseIf InStrB(tStr, "80er J") <> 0 Then
+     ElseIf InStrB(tstr, "80er J") <> 0 Then
       doTabakSt = vorlangem
      End If
     End If
@@ -6378,12 +6378,13 @@ Public Function hollabor(Optional PatID& = 0, Optional Abkü$ = "", Optional zpkl
 #Else
  Dim par$
  ' 4.7.20: wert statt einheit eingesetzt, da in labor1 und labor2 offenbar verschiedene Einheiten verwendet werden, z.B. ml/min = ml/mn/1.73 m²
- par = IIf(obnachgruppe, " WHERE (reihe <> 999 OR ISNULL(reihe)) GROUP BY gruppe, reihe, abkü, einheit,ung,ong)i ORDER BY gruppe,reihe", IIf(Abkü <> "", "WHERE abkü=""" & Abkü & """" & IIf(Einheit <> "", " AND einheit =""" & Einheit & """", "") & IIf(zpkl <> 0, " AND zeitpunkt<" & Format(zpkl, "yyyymmdd"), ""), "") & " GROUP BY zeitpunkt DESC,abkü,wt)i ORDER BY zeitpunkt DESC")
- par = IIf(obnachgruppe, " WHERE (reihe <> 999 OR ISNULL(reihe)) GROUP BY gruppe, reihe, abkü, einheit)i ORDER BY gruppe,reihe", IIf(Abkü <> "", "WHERE abkü=""" & Abkü & """" & IIf(Einheit <> "", " AND einheit =""" & Einheit & """", "") & IIf(zpkl <> 0, " AND zeitpunkt<" & Format(zpkl, "yyyymmdd"), ""), "") & " GROUP BY zeitpunkt DESC,abkü,wt)i ORDER BY zeitpunkt DESC")
+' par = IIf(obnachgruppe, " WHERE (reihe <> 999 OR ISNULL(reihe)) GROUP BY gruppe, reihe, abkü, einheit,ung,ong)i ORDER BY gruppe,reihe", IIf(Abkü <> "", "WHERE abkü=""" & Abkü & """" & IIf(Einheit <> "", " AND einheit =""" & Einheit & """", "") & IIf(zpkl <> 0, " AND zeitpunkt<" & Format(zpkl, "yyyymmdd"), ""), "") & " GROUP BY zeitpunkt DESC,abkü,wt)i ORDER BY zeitpunkt DESC")
+ par = IIf(obnachgruppe, " GROUP BY gruppe,reihe,abkü,einheit)i ORDER BY gruppe,reihe", IIf(Abkü <> "", "AND abkü=""" & Abkü & """" & IIf(Einheit <> "", " AND einheit =""" & Einheit & """", "") & IIf(zpkl <> 0, " AND zeitpunkt<" & Format(zpkl, "yyyymmdd"), ""), "") & " GROUP BY zeitpunkt DESC,abkü,wt)i ORDER BY zeitpunkt DESC")
 
 ' myEFrag("flush tables")
 '  rs.Open "call geslabdp(" & CStr(PatID) & ",'" & par & "')", DBCn, adOpenStatic, adLockReadOnly
- myFrag rs, "CALL geslabdp" & IIf(ohnebr, "ohnebr", "") & "(" & CStr(PatID) & ",'" & par & "')", CursorTp, DBCn, LockTp
+' myFrag rs, "CALL geslabdp" & IIf(ohnebr, "ohnebr", "") & "(" & CStr(PatID) & ",'" & par & "')", CursorTp, DBCn, LockTp
+ myFrag rs, "CALL geslabneu(" & CStr(PatID) & ",'" & IIf(ohnebr, "", "<br>") & "','" & par & "')", CursorTp, DBCn, LockTp
 ' Dim satzzahl&
  If Not rs.BOF Then
 '  Do While Not rs.EOF
@@ -6467,8 +6468,10 @@ Public Function testlab(pid&)
 ' myFrag rs, "SELECT * FROM geslab"
 Const obnachgruppe% = 1
 Dim par$
-par = IIf(obnachgruppe, " WHERE (reihe <> 999 OR ISNULL(reihe)) GROUP BY gruppe, reihe, abkü, einheit,ung,ong)i ORDER BY gruppe,reihe", " GROUP BY zeitpunkt DESC,abkü,einheit)i ORDER BY zeitpunkt DESC")
-myFrag rs, "CALL geslabdp(" & pid & ",'" & par & "')"
+'par = IIf(obnachgruppe, " WHERE (reihe <> 999 OR ISNULL(reihe)) GROUP BY gruppe, reihe, abkü, einheit,ung,ong)i ORDER BY gruppe,reihe", " GROUP BY zeitpunkt DESC,abkü,einheit)i ORDER BY zeitpunkt DESC")
+par = IIf(obnachgruppe, " GROUP BY gruppe,reihe,abkü,einheit,ung,ong)i ORDER BY gruppe,reihe", " GROUP BY zeitpunkt DESC,abkü,einheit)i ORDER BY zeitpunkt DESC")
+'myFrag rs, "CALL geslabdp(" & pid & ",'" & par & "')"
+myFrag rs, "CALL geslabneu(" & pid & ",'<br>','" & par & "')"
  TabAusgeb rs, Lese, True, , , , , , "Labor " & pid
 End Function ' testlab(pid&)
 
