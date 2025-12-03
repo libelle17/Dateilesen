@@ -3382,7 +3382,7 @@ AwN(AWlf) = "Möglicherweise fehlende 03355 (lauto) (vorher 98)"
  " SELECT PID, LEIDAT, was" & vbCrLf & _
  " , CONCAT('03355 ',IF(ISNULL(Einles) AND ISNULL(langrz),'fehlt evtl.','dazu')) LEIFEHLER" & vbCrLf & _
  " , bisher, Einles, Langrz, Eintr, LANRID" & vbCrLf & _
- " , RANK() OVER (PARTITION BY i.PID ORDER BY i.zp) rng " & vbCrLf
+ " , ROW_NUMBER()OVER(PARTITION BY i.PID ORDER BY i.zp)rng" & vbCrLf
  sql(AWlf) = sql(AWlf) & _
  " FROM (" & vbCrLf & _
  "  SELECT *" & vbCrLf & _
@@ -3398,7 +3398,7 @@ AwN(AWlf) = "Möglicherweise fehlende 03355 (lauto) (vorher 98)"
  "  ) i WHERE (NOT ISNULL(Einles) OR NOT ISNULL(Langrz) OR NOT ISNULL(eintr)) AND bish=0 AND NOT ISNULL(LEIDAT)" & vbCrLf & _
  " ) i" & vbCrLf & _
  ") i LEFT JOIN namen n ON n.pat_id=PID " & vbCrLf & _
- "WHERE rng+bisher<=10" & vbCrLf & _
+ "WHERE rng+bisher<=7" & vbCrLf & _
  " AND EXISTS (SELECT 0 FROM diagview WHERE pat_id=PID AND (gicd REGEXP '^E1[0-4]' OR (icd='O24.4' AND Dggel=0 AND diagsicherheit IN ('G',' ') AND diagdatum BETWEEN qanf()AND qend())))" & vbCrLf & _
  "ORDER BY pid,leidat"
  ' mit HAVING geht's 5% langsamer als mit stärker geschachtelter Abfrage! 13.7.22
@@ -3481,7 +3481,7 @@ AwN(AWlf) = "Möglicherweise fehlende 03355 (lauto) (vorher 98)"
  "LEFT JOIN leistungen l ON l.pat_id=i.pid AND l.leistung='03355' AND DATE(l.zeitpunkt)=DATE(i.zp) " & vbCrLf & _
  "LEFT JOIN eintraege ec ON ec.pat_id=i.pid AND ec.art RLIKE 'cgm' AND ec.inhalt RLIKE 'eversen' AND DATE(ec.zeitpunkt)<=i.zp " & vbCrLf & _
  "LEFT JOIN `diagnosen` dd ON i.pid = dd.pat_id AND dd.icd REGEXP '^E1[0-4]' AND dd.diagsicherheit NOT IN ('A','Z','V') " & vbCrLf & _
- "WHERE NOT ISNULL(dd.icd) AND NOT ISNULL(zp) AND (ISNULL(l.leistung) OR ISNULL(ec.pat_id)) GROUP BY pid,DATE(zp) HAVING Geszahl<10"
+ "WHERE NOT ISNULL(dd.icd) AND NOT ISNULL(zp) AND (ISNULL(l.leistung) OR ISNULL(ec.pat_id)) GROUP BY pid,DATE(zp) HAVING Geszahl<7"
  
 ' halb so schnell:
 '  " SELECT f.pat_id PID, e.zeitpunkt zp, CONCAT(e.art,': ',e.inhalt) inh,f.LANRID " & vbCrLf & _
@@ -3538,14 +3538,14 @@ AwN(AWlf) = "Möglicherweise fehlende 03355 (lauto) (vorher 98)"
 ' AWlf = AWlf + 1
  
 ' 93
- AwN(AWlf) = "Mehr als 10 Leistungen 03355 im Krankheitsfall (vorher 113)"
+ AwN(AWlf) = "Mehr als 7 Leistungen 03355 im Krankheitsfall (vorher 113)"
  sql(AWlf) = vbCrLf & _
 "SELECT * FROM (SELECT " & vbCrLf & _
 "COALESCE((SELECT SUM(lzahl) FROM leistungen l WHERE pat_id=f.pat_id AND l.zeitpunkt BETWEEN " & Khtsfl & " AND l.leistung='03355'),0) Geszahl, " & vbCrLf & _
 "COALESCE((SELECT SUM(lzahl) FROM leistungen l WHERE pat_id=f.pat_id AND l.leistung='03355' AND l.zeitpunkt BETWEEN " & lQAnfuEnd(FristS) & "),0) Aktzahl, " & vbCrLf & _
 "gesname(f.pat_id), f.pat_id " & vbCrLf & _
 ", (SELECT GROUP_CONCAT(zeitpunkt SEPARATOR ', ') FROM leistungen l WHERE pat_id=f.pat_id AND l.leistung='03355' AND l.zeitpunkt BETWEEN " & lQAnfuEnd(FristS) & ") Zpkte " & vbCrLf & _
-"FROM aktfvs f) i WHERE geszahl>10 AND aktzahl>0;"
+"FROM aktfvs f) i WHERE geszahl>7 AND aktzahl>0;"
  mins(AWlf) = 10
  maxs(AWlf) = 80
  AWlf = AWlf + 1

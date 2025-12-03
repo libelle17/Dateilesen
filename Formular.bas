@@ -1610,7 +1610,7 @@ End Function ' do_Form_Current_Medarten(frm As Medarten)
 ' aufgerufen in anaRS_MoveComplete
 Function do_Form_Current_AnBog(frm As AnBog)
  Dim rsNa As New ADODB.Recordset
- Dim farbe&, i&, tstr$
+ Dim farbe&, i&, tStr$
 ' Static rsAnam As Adodb.Recordset
 ' SET rsAnamlt = frm.Recordset
 ' altPat_id = frm.Recordset!Pat_id
@@ -13840,9 +13840,9 @@ myEFrag (sql)
 #End If ' problematisch
 ' Umbenennung von wert auf wt, da sonst viele "Warnung: (1292) Truncated incorrect DOUBLE value: 'Referenzbereich = Empfohlener Bereich'"
 ' äußeres Select, da sonst mit COUNT(0)OVER()dszahl die Sortierung ignoriert wird
+#If nichtersetzt Then
 sql = "DROP PROCEDURE IF EXISTS `quelle`.`geslabdp`"
 myEFrag sql
-#If nichtersetzt Then
 sql = _
 "CREATE DEFINER=`praxis`@`%` PROCEDURE `geslabdp`(IN pid INT(6),IN esql VARCHAR(1000)) " & vbCrLf & _
 "    READS SQL DATA " & vbCrLf & _
@@ -13864,10 +13864,10 @@ sql = _
 ' Debuggen: SELECT @frag
 myEFrag (sql)
 
-#End If
+#End If ' nichtersetzt
+#If nichtersetzt Then
 sql = "DROP PROCEDURE IF EXISTS `quelle`.`geslabdpohnebr`"
 myEFrag sql
-#If nichtersetzt Then
 sql = _
 "CREATE DEFINER=`praxis`@`%` PROCEDURE `geslabdpohnebr`(IN pid INT(6),IN esql VARCHAR(1000)) " & vbCrLf & _
 "    READS SQL DATA " & vbCrLf & _
@@ -13887,7 +13887,7 @@ sql = _
 "-- SELECT @frag; " & vbCrLf & _
 "END;"
 myEFrag (sql)
-#End If
+#End If ' nichtersetzt
 ' Umbenennung von wert auf wt, da sonst viele "Warnung: (1292) Truncated incorrect DOUBLE value: 'Referenzbereich = Empfohlener Bereich'"
 ' äußeres Select, da sonst mit COUNT(0)OVER()dszahl die Sortierung ignoriert wird
 ' Alternative Zählung (genauso schnell, äußeres Select dann unnötig, aber mehrere Variableneinsetzungen erfordernd:
@@ -13896,6 +13896,7 @@ myEFrag (sql)
 ' falls wie zuvor in "geslabdp(" 'GROUP BY zeitpunkt,abkü,einheit)i ORDER BY gruppe DESC,reihe DESC,abkü DESC,einheit DESC'
 ' durch Parametereingabe (esql) veränderbar gemacht würde, dann dürft auch abknr der ersten Zeile nicht mehr zur Zählung
 ' der verschiedenen Parameter/Einheits-Zeilen verwendet werden, da sonst "ORDER BY" auch entsprechend angepasst werden müßte
+' wird auch verwendet in /root/labimp/labimp.cpp
 sql = "DROP PROCEDURE IF EXISTS `quelle`.`geslabneu`"
 myEFrag sql
 sql = _
