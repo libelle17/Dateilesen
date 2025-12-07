@@ -771,19 +771,19 @@ Public Function ZeigSprivat(FristS$)
  " , DATE(qdm) QD " & vbCrLf & _
  " , LEFT(b.name,40) tx " & vbCrLf & _
  " FROM (SELECT pat_id,bhfe1,bhfb FROM faelle WHERE schgr=90 AND bhfe1=18991230 AND bhfb>SUBDATE(NOW(),500) GROUP BY pat_id) f0 " & vbCrLf & _
- " LEFT JOIN tmbrie b ON b.pat_id=f0.pat_id AND b.name RLIKE 'libre|dexcom|cgm|clarity|medtronic|care link|eversen' AND NOT b.name RLIKE 'cgm bmp' AND b.qdm>" & qtAnf(FristS) & " " & vbCrLf & _
+ " LEFT JOIN tmbrie b ON b.pat_id=f0.pat_id AND b.name RLIKE 'Omnipod ?5|Simplera|Guardian|Enlite|Dexc?om|Eversen|CGM|Libre|clarity|glooko|care ?link' AND NOT b.name RLIKE 'cgm bmp' AND b.qdm>" & qtAnf(FristS) & " " & vbCrLf & _
  " UNION ALL " & vbCrLf & _
  " SELECT f1.pat_id " & vbCrLf & _
  " , DATE(fr.zeitpunkt) QD " & vbCrLf & _
  " , fr.feldinh tx " & vbCrLf & _
  " FROM (SELECT pat_id,bhfe1,bhfb FROM faelle WHERE schgr=90 AND bhfe1=18991230 AND bhfb>SUBDATE(NOW(),500) GROUP BY pat_id) f1 " & vbCrLf & _
- " LEFT JOIN formular fr ON fr.pat_id=f1.pat_id AND fr.form_abk IN ('prp','plar') AND fr.feld RLIKE 'medikament|verordnungszeile|txtMedKey' AND fr.feldinh RLIKE 'Guardian|CGM StartSet|Enlite|Dexcom|Dexom|Eversen|CGM|Libre' AND fr.zeitpunkt>" & qtAnf(FristS) & " " & vbCrLf & _
+ " LEFT JOIN formular fr ON fr.pat_id=f1.pat_id AND fr.form_abk IN ('prp','plar') AND fr.feld RLIKE 'medikament|verordnungszeile|txtMedKey' AND fr.feldinh RLIKE 'Omnipod ?5|Simplera|Guardian|Enlite|Dexc?om|Eversen|CGM|Libre|clarity|glooko|care ?link' AND fr.zeitpunkt>" & qtAnf(FristS) & " " & vbCrLf & _
  " UNION ALL " & vbCrLf & _
  " SELECT f2.pat_id " & vbCrLf & _
  " , DATE(e.zeitpunkt) QD " & vbCrLf & _
  " , e.inhalt tx " & vbCrLf & _
  " FROM (SELECT pat_id,bhfe1,bhfb FROM faelle WHERE schgr=90 AND bhfe1=18991230 AND bhfb>SUBDATE(NOW(),500) GROUP BY pat_id) f2 " & vbCrLf & _
- " LEFT JOIN eintraege e ON e.pat_id=f2.pat_id AND e.inhalt RLIKE 'cgm|eversen|guardian|enlite|dexcom|libre' AND NOT e.inhalt LIKE '%vorgestellt%will%nicht%' AND e.zeitpunkt>" & qtAnf(FristS) & " " & vbCrLf & _
+ " LEFT JOIN eintraege e ON e.pat_id=f2.pat_id AND e.inhalt RLIKE 'Omnipod ?5|Simplera|Guardian|Enlite|Dexc?om|Eversen|CGM|Libre|clarity|glooko|care ?link' AND NOT e.inhalt LIKE '%vorgestellt%will%nicht%' AND e.zeitpunkt>" & qtAnf(FristS) & " " & vbCrLf & _
  ") i " & vbCrLf & _
  " LEFT JOIN leistungen l ON  l.pat_id=i.pat_id AND DATE(l.zeitpunkt)=i.qd AND leistung='A659' " & vbCrLf & _
  "WHERE NOT ISNULL(qd) AND ISNULL(leistung) ORDER BY pat_id,qd;"
@@ -2234,8 +2234,8 @@ AwN(AWlf) = "Möglicherweise fehlende Libre- bzw. CGM-Icons auf dem Patientendesk
 ";"
 sql(AWlf) = "" & _
 "SELECT n.pat_id PID, gesname(n.pat_id) PName" & vbCrLf & _
-", COALESCE((SELECT CONCAT(DATE(zeitpunkt),' ',LEFT(name,80)) FROM tmbrie WHERE pat_id=n.pat_id AND name RLIKE 'libre|dexcom|cgm|clarity|medtronic|care link|eversen' AND NOT name RLIKE 'Ablehnung|Antrag|Gutachten|Widerspruch|Schreiben MD|barmer|cgm bmp' AND zeitpunkt> qanf() - INTERVAL 3 month ORDER BY qdm DESC LIMIT 1),'') Einles " & vbCrLf & _
-", COALESCE((SELECT CONCAT(DATE(zeitpunkt),' ',LEFT(feldinh,80)) FROM formular WHERE pat_id=n.pat_id AND form_abk='lar' AND feld='medikament' AND feldinh RLIKE 'Guardian|CGM StartSet|Enlite|Dexcom|Dexom|Eversen|CGM|Libre' AND zeitpunkt>qanf()-INTERVAL 3 MONTH ORDER BY zeitpunkt desc LIMIT 1),'') Rezept " & vbCrLf & _
+", COALESCE((SELECT CONCAT(DATE(zeitpunkt),' ',LEFT(name,80)) FROM tmbrie WHERE pat_id=n.pat_id AND name RLIKE 'Omnipod ?5|Simplera|Guardian|Enlite|Dexc?om|Eversen|CGM|Libre|clarity|glooko|care ?link' AND NOT name RLIKE 'Ablehnung|Antrag|Gutachten|Widerspruch|Schreiben MD|barmer|cgm bmp' AND zeitpunkt> qanf() - INTERVAL 3 month ORDER BY qdm DESC LIMIT 1),'') Einles " & vbCrLf & _
+", COALESCE((SELECT CONCAT(DATE(zeitpunkt),' ',LEFT(feldinh,80)) FROM formular WHERE pat_id=n.pat_id AND form_abk='lar' AND feld='medikament' AND feldinh RLIKE 'Omnipod ?5|Simplera|Guardian|Enlite|Dexc?om|Eversen|CGM|Libre|clarity|glooko|care ?link' AND zeitpunkt>qanf()-INTERVAL 3 MONTH ORDER BY zeitpunkt desc LIMIT 1),'') Rezept " & vbCrLf & _
 "FROM namen n" & vbCrLf & _
 "WHERE cgm=0 AND COALESCE(sdatum>19000101,0)=0 AND n.pat_id<>0" & vbCrLf & _
 "HAVING (einles<>'' OR Rezept<>'')" & vbCrLf & _
@@ -3372,37 +3372,41 @@ sql(AWlf) = "SELECT f.pat_id, gesname(f.pat_id) Gesname, DATE(l.zeitpunkt) Tag1,
 ' 6.7.25: hier aktuell die einzige Verwendung von kstreng
 AwN(AWlf) = "Möglicherweise fehlende 03355 (lauto) (vorher 98)"
  sql(AWlf) = "" & _
- "SELECT PID, LEFT(gesname(PID),15) PName,bisher,bisher+rng " & vbCrLf & _
- ",COALESCE((SELECT LEFT(titel,6) FROM desktop WHERE pat_id=PID AND iconPath LIKE '%CGM.ico%' LIMIT 1),'-') Icon " & vbCrLf & _
- ",COALESCE((SELECT DATE(MAX(dokaend)) FROM tmbrie WHERE pat_id=PID AND name LIKE '%.pdf' " & vbCrLf & _
- "  AND name LIKE CONCAT('%',n.Nachname,'%') AND name NOT RLIKE ' DS | DS+| ÜW |Arztb|labor|Ergebnis|Bericht|Mutterpass|Seminar|Notfall| BZ |OGT|Radiologie|plan|DMP|befund|ausstell|verord|Aufkl|schein|covid|fvk|quarant|ber.| rr|gravid|rezept|nachsorg|ausweis|amcl|iief|protokoll|liste|anamnese|ekg|impf|zbfs|versorg|schreiben|programm|erklär|abdomen|BZ-Werte|endosk|gutachten|klinik|bestät|unterschr|behandl|doku|rechtsanw|attest|füw|mdk|frage|modul|entbind|wunsch|änder|kh ffb|ausgef|maßnahm|studie|metrie|kardiol|rechnu| kd |dachau|zentrum|enddarm|befrei|neuro|neurpad|rechnung|erlaubn|formul|ausgef.|lmu |ögd|colo|entlass|reha|blutdr|schema|mrt|thorax|angio| au |sono|szinti|radiol rp |knochen|skopie|gpd|augen|zuzahl|arteri| ct |wund|zeugn|an fax|zusatz|symptom|verläng|brief|praxis|pflege|rezept|anford|zettel|kranken|ernährung|vertrag|eigen|kompress|kassenä|paß|orthopäd|röntg|teiln|ablehn|pathol|training|contour|einschreib'),'-') `ltz.Einles`" & vbCrLf & _
- ",COALESCE((SELECT DATE(MAX(dokaend)) FROM tmbrie WHERE pat_id=PID AND name LIKE '%libre%.pdf'),'-') `ltz.'Libre'`" & vbCrLf & _
- ",LEIDAT, LEIFEHLER, was, Einles, Langrz, Eintr, bisher, rng, LANRID " & vbCrLf & _
+ "SELECT PID, LEFT(gesname(PID),15)PName,L3`Q-3`,L2`Q-2`,L1`Q-1`,L0`akt.Q`,bisher`=bisher`,bisher+rng`+rng`" & vbCrLf & _
+ ",CASE cgm WHEN 1 THEN'Libre Handy'WHEN 2 THEN'Libre Gerät'WHEN 3 THEN'Dexcom Hdy'WHEN 4 THEN'Dexcom G.'WHEN 5 THEN'Simplera'WHEN 6 THEN'Eversense'WHEN 0 THEN CASE insanw WHEN 3 THEN'Combo'WHEN 4 THEN'Kaleido'WHEN 5 THEN 'Medtronic'WHEN 6 THEN'Omnipod 5'WHEN 8 THEN'T:slim'WHEN 9 THEN'Ypso'ELSE'-'END ELSE'sonst.'END Icon" & vbCrLf & _
+ ",LEIDAT, LEIFEHLER, was, Einles, Langrz, Eintr, LANRID" & vbCrLf & _
  "FROM (" & vbCrLf & _
  " SELECT PID, LEIDAT, was" & vbCrLf & _
  " , CONCAT('03355 ',IF(ISNULL(Einles) AND ISNULL(langrz),'fehlt evtl.','dazu')) LEIFEHLER" & vbCrLf & _
- " , bisher, Einles, Langrz, Eintr, LANRID" & vbCrLf & _
+ " ,  L3,L2,L1,L0,L3+L2+L1+L0 bisher, Einles, Langrz, Eintr, LANRID,Nachname,cgm,insanw" & vbCrLf & _
  " , ROW_NUMBER()OVER(PARTITION BY i.PID ORDER BY i.zp)rng" & vbCrLf
  sql(AWlf) = sql(AWlf) & _
  " FROM (" & vbCrLf & _
  "  SELECT *" & vbCrLf & _
  "  FROM (" & vbCrLf & _
- "   SELECT pat_id PID, DATE(zp) LEIDAT, was" & vbCrLf & _
- "   , COALESCE((SELECT SUM(lzahl) FROM leistungen WHERE pat_id=f.pat_id AND leistung='03355' AND zeitpunkt BETWEEN " & Khtsfl & "),0) bisher" & vbCrLf & _
- "   , (SELECT CONCAT(DATE(zeitpunkt),' ',LEFT(name,40)) FROM tmbrie WHERE pat_id=f.pat_id AND name RLIKE 'libre|dexcom|cgm|clarity|medtronic|care link|eversen' AND NOT name RLIKE 'cgm bmp' AND qdm>SUBDATE(" & qtAnf(FristS) & ",INTERVAL 6 MONTH) LIMIT 1) Einles" & vbCrLf & _
- "   , (SELECT CONCAT(DATE(fr.zeitpunkt),' ',LEFT(fr.feldinh,40)) FROM formular fr WHERE fr.pat_id=f.pat_id AND fr.form_abk='lar' AND fr.feld='medikament' AND fr.feldinh RLIKE 'Guardian|CGM StartSet|Enlite|Dexcom|Dexom|Eversen|CGM|Libre' AND fr.zeitpunkt>SUBDATE(" & qtAnf(FristS) & ",INTERVAL 12 MONTH) LIMIT 1) Langrz" & vbCrLf & _
- "   , (SELECT CONCAT(art,' ',inhalt) FROM eintraege e WHERE e.pat_id=f.pat_id AND e.inhalt RLIKE 'cgm|eversen|guardian|enlite|dexcom|libre' AND NOT e.inhalt LIKE '%vorgestellt%will%nicht%' AND e.zeitpunkt BETWEEN qanf()- INTERVAL 3 MONTH AND qend() ORDER BY zeitpunkt DESC LIMIT 1) Eintr" & vbCrLf & _
- "   , COALESCE((SELECT lzahl FROM leistungen WHERE pat_id=f.pat_id AND leistung='03355' AND DATE(zeitpunkt)=DATE(f.zp) GROUP BY pat_id, DATE(zeitpunkt)),0) bish " & vbCrLf & _
- "   , LANRID, zp" & vbCrLf & _
+ "   SELECT f.pat_id PID, DATE(zp) LEIDAT, was" & vbCrLf & _
+ "   ,COALESCE((SELECT SUM(lzahl)FROM leistungen WHERE pat_id=f.pat_id AND leistung=03355 AND zeitpunkt BETWEEN qanf()-INTERVAL 9 MONTH AND qend()-INTERVAL 9 MONTH),0)L3" & vbCrLf & _
+ "   ,COALESCE((SELECT SUM(lzahl)FROM leistungen WHERE pat_id=f.pat_id AND leistung=03355 AND zeitpunkt BETWEEN qanf()-INTERVAL 6 MONTH AND qend()-INTERVAL 6 MONTH),0)L2" & vbCrLf & _
+ "   ,COALESCE((SELECT SUM(lzahl)FROM leistungen WHERE pat_id=f.pat_id AND leistung=03355 AND zeitpunkt BETWEEN qanf()-INTERVAL 3 MONTH AND qend()-INTERVAL 3 MONTH),0)L1" & vbCrLf & _
+ "   ,COALESCE((SELECT SUM(lzahl)FROM leistungen WHERE pat_id=f.pat_id AND leistung=03355 AND zeitpunkt BETWEEN qanf()-INTERVAL 0 MONTH AND qend()-INTERVAL 0 MONTH),0)L0" & vbCrLf & _
+ "   ,(SELECT CONCAT(DATE_FORMAT(zeitpunkt,'%d.%m.%y'),' ',GROUP_CONCAT(DISTINCT LEFT(name,40)ORDER BY zeitpunkt DESC SEPARATOR'; ')) FROM tmbrie WHERE pat_id=f.pat_id AND name RLIKE 'Omnipod ?5|Simplera|Guardian|Enlite|Dexc?om|Eversen|CGM|Libre|clarity|glooko|care ?link' AND NOT name RLIKE 'cgm bmp' AND qdm>SUBDATE(" & qtAnf(FristS) & ",INTERVAL 6 MONTH)) Einles" & vbCrLf & _
+ "   ,(SELECT CONCAT(DATE_FORMAT(zeitpunkt,'%d.%m.%y'),' ',GROUP_CONCAT(DISTINCT LEFT(medikament,20)ORDER BY zeitpunkt DESC SEPARATOR'; ')) FROM rezepteintraege WHERE pat_id=f.pat_id AND medikament RLIKE 'Omnipod ?5|Simplera|Guardian|Enlite|Dexcom|Eversen|CGM|Libre')Langrz" & vbCrLf & _
+ "   ,(SELECT CONCAT(DATE_FORMAT(zeitpunkt,'%d.%m.%y'),' ',GROUP_CONCAT(DISTINCT CONCAT(art,' ',LEFT(inhalt,40))ORDER BY zeitpunkt DESC SEPARATOR'; ')) FROM eintraege e WHERE pat_id=f.pat_id AND inhalt RLIKE 'Omnipod ?5|Simplera|Guardian|Enlite|Dexc?om|Eversen|CGM|Libre|clarity|glooko|care ?link' AND NOT e.inhalt LIKE '%vorgestellt%will%nicht%' AND zeitpunkt BETWEEN qanf()-INTERVAL 3 MONTH AND qend() ORDER BY zeitpunkt DESC) Eintr" & vbCrLf & _
+ "   ,COALESCE((SELECT lzahl FROM leistungen WHERE pat_id=f.pat_id AND leistung='03355' AND DATE(zeitpunkt)=DATE(f.zp) GROUP BY pat_id, DATE(zeitpunkt)),0) bish " & vbCrLf & _
+ "   ,LANRID,zp,cgm,insanw,Nachname" & vbCrLf & _
  "   FROM kstreng f" & vbCrLf & _
- "  ) i WHERE (NOT ISNULL(Einles) OR NOT ISNULL(Langrz) OR NOT ISNULL(eintr)) AND bish=0 AND NOT ISNULL(LEIDAT)" & vbCrLf & _
+ "   LEFT JOIN namen n ON n.pat_id=f.pat_id" & vbCrLf & _
+ "  ) i WHERE (einles IS NOT NULL OR langrz IS NOT NULL OR eintr IS NOT NULL OR cgm<>0) AND bish=0 AND NOT ISNULL(LEIDAT)" & vbCrLf & _
  " ) i" & vbCrLf & _
- ") i LEFT JOIN namen n ON n.pat_id=PID " & vbCrLf & _
+ ") i" & vbCrLf & _
  "WHERE rng+bisher<=7" & vbCrLf & _
  " AND EXISTS (SELECT 0 FROM diagview WHERE pat_id=PID AND (gicd REGEXP '^E1[0-4]' OR (icd='O24.4' AND Dggel=0 AND diagsicherheit IN ('G',' ') AND diagdatum BETWEEN qanf()AND qend())))" & vbCrLf & _
  "ORDER BY pid,leidat"
  ' mit HAVING geht's 5% langsamer als mit stärker geschachtelter Abfrage! 13.7.22
- 
+' ",COALESCE((SELECT DATE(MAX(dokaend)) FROM tmbrie WHERE pat_id=PID AND name LIKE '%.pdf' " & vbCrLf & _
+ "  AND name LIKE CONCAT('%',Nachname,'%') AND name NOT RLIKE ' DS | DS+| ÜW |Arztb|labor|Ergebnis|Bericht|Mutterpass|Seminar|Notfall| BZ |OGT|Radiologie|plan|DMP|befund|ausstell|verord|Aufkl|schein|covid|fvk|quarant|ber.| rr|gravid|rezept|nachsorg|ausweis|amcl|iief|protokoll|liste|anamnese|ekg|impf|zbfs|versorg|schreiben|programm|erklär|abdomen|BZ-Werte|endosk|gutachten|klinik|bestät|unterschr|behandl|doku|rechtsanw|attest|füw|mdk|frage|modul|entbind|wunsch|änder|kh ffb|ausgef|maßnahm|studie|metrie|kardiol|rechnu| kd |dachau|zentrum|enddarm|befrei|neuro|neurpad|rechnung|erlaubn|formul|ausgef.|lmu |ögd|colo|entlass|reha|blutdr|schema|mrt|thorax|angio| au |sono|szinti|radiol rp |knochen|skopie|gpd|augen|zuzahl|arteri| ct |wund|zeugn|an fax|zusatz|symptom|verläng|brief|praxis|pflege|rezept|anford|zettel|kranken|ernährung|vertrag|eigen|kompress|kassenä|paß|orthopäd|röntg|teiln|ablehn|pathol|training|contour|einschreib'),'-') `ltz.Einles`" & vbCrLf & _
+ ",COALESCE((SELECT DATE(MAX(dokaend)) FROM tmbrie WHERE pat_id=PID AND name LIKE '%libre%.pdf'),'-') `ltz.'Libre'`" & vbCrLf & _
+
 ' @ geht mit dem ADO nicht richtig
 ' sql(AWlf) = "" & _
  "SELECT PID, LEFT(gesname(PID),15) PName,bisher,bisher+rng " & vbCrLf & _
@@ -3453,7 +3457,7 @@ AwN(AWlf) = "Möglicherweise fehlende 03355 (lauto) (vorher 98)"
 '"LEFT JOIN rezepteintraege r ON r.pat_id=f.pat_id AND r.medikament LIKE '%libre%' AND r.zeitpunkt>SUBDATE(" & qtAnf(FristS) & ",INTERVAL 12 MONTH) "
 'OR NOT ISNULL(r.medikament)
  mins(AWlf) = 10
- maxs(AWlf) = 80
+ maxs(AWlf) = 400
  AWlf = AWlf + 1
 
 ' 92

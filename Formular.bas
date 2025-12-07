@@ -8514,7 +8514,7 @@ On Error GoTo fehler
        End If
       Next j
       If InStr(krit, "notiz") Then
-       krit = "'notiz','telef'," & artSpezBerat & "," & artSpezMA & ",'colo','coloauf','aug','augen','beruf','rauch','tv'"
+       krit = "'notiz','telef','tb','tn','th'," & artSpezBerat & "," & artSpezMA & ",'colo','coloauf','aug','augen','beruf','rauch','tv'"
       Else
        krit = Left$(krit, Len(krit) - 1) '+ """"
       End If
@@ -12150,7 +12150,7 @@ If LVobMySQL Then
         "FROM `faelle` " & vbCrLf & _
         "WHERE schgr <> '90' AND NOT goäkatnr IN ('40','41') " & vbCrLf & _
         "AND nachname <> 'Bereitschaftsdienst' " & vbCrLf & _
-        "AND quartal = (SELECTmy  CONCAT(intacc(((month(SUBDATE(NOW(),INTERVAL " & frist & " DAY))-1) divmy 3) + 1) ¡ YEAR(SUBDATE(NOW(),INTERVAL " & frist & " DAY)) ) AS `lq`) " & _
+        "AND quartal = (SELECTmy  CONCAT(intacc(((MONTH(SUBDATE(NOW(),INTERVAL " & frist & " DAY))-1) divmy 3) + 1) ¡ YEAR(SUBDATE(NOW(),INTERVAL " & frist & " DAY)) ) AS `lq`) " & _
            "ORDER BY pat_id, fid DESC, schgr;"
  Call DtbCreateQueryDef(VN, Vsql)
  vz = vz + 1
@@ -12167,6 +12167,7 @@ If LVobMySQL Then
         "AND quartal = (SELECTmy  CONCAT(intacc(((month(SUBDATE(NOW(),INTERVAL " & frist & " DAY))-1) divmy 3) + 1) ¡ YEAR(SUBDATE(NOW(),INTERVAL " & frist & " DAY))  COLLATE utf8mb4_german2_ci) AS `lq`) " & _
         "GROUP BY pat_id " & vbCrLf & _
         "ORDER BY pat_id, fid DESC, schgr;"
+' 71800 = Bayer. Landesinstitut für Gesu in kassenliste
  Vsql = "SELECT * FROM aktf f " & vbCrLf & _
         "WHERE vknr<>71800" & vbCrLf & _
         "GROUP BY pat_id " & vbCrLf & _
@@ -13601,7 +13602,7 @@ sql = sql & _
     "   FROM aktfvs f " & vbCrLf & _
     "   JOIN eintraege e ON e.pat_id = f.pat_id " & vbCrLf & _
     "   AND e.zeitpunkt " & DiesQ() & vbCrLf & _
-    "   AND art IN (" & artSpezBerat & "," & artSpezEintr & "," & artSpezUS1 & ") AND NOT art IN ('re','ba','doppler','dop','duplex','dup','impf','inj','kva','tv','ufrag','wv','caro','colo','debr','fa','EKG','GPD','kv','LZRR','OAU','pa','pros','puls','rp','sono','ulcus','vac','ADL'," & artSpezMA & ") AND art<>'tv'" & vbCrLf & _
+    "   AND art IN ('tb','tn','th'," & artSpezBerat & "," & artSpezEintr & "," & artSpezUS1 & ") AND NOT art IN ('re','ba','doppler','dop','duplex','dup','impf','inj','kva','tv','ufrag','wv','caro','colo','debr','fa','EKG','GPD','kv','LZRR','OAU','pa','pros','puls','rp','sono','ulcus','vac','ADL'," & artSpezMA & ") AND art<>'tv'" & vbCrLf & _
     "   GROUP BY pat_id,DATE(e.zeitpunkt) " & vbCrLf & _
     "  ) i GROUP BY pat_id,dt " & vbCrLf
     ' quartal(..) = DiesQ() 29s ggü 55s mit .. zeitpunkt BETWEEN qanf() AND qend()
@@ -13639,11 +13640,13 @@ sql = sql & _
     "   GROUP BY pat_id,DATE(m.zeitpunkt) " & vbCrLf & _
     "  UNION ALL " & vbCrLf & _
     "*/" & vbCrLf & _
-    "  SELECT e.zeitpunkt zp, GROUP_CONCAT(CONCAT(art,' ',inhalt) SEPARATOR '; ') was, f.*" & vbCrLf & _
+    "  SELECT e.zeitpunkt zp, GROUP_CONCAT(CONCAT(DATE_FORMAT(zeitpunkt,'%d.%m.%y'),' ',art,' ',inhalt) ORDER BY zeitpunkt DESC SEPARATOR '; ') was, f.*" & vbCrLf & _
     "   FROM aktfvs f" & vbCrLf & _
     "   LEFT JOIN eintraege e ON e.pat_id = f.pat_id " & vbCrLf & _
     "   AND e.zeitpunkt BETWEEN DATE(CONCAT(YEAR(NOW()-INTERVAL " & frist & " DAY),'-',(QUARTER(NOW()-INTERVAL " & frist & " DAY)-1)*3+1,'-01')) AND CONCAT(YEAR(NOW()-INTERVAL " & frist & " DAY)+ quarter(NOW()-INTERVAL " & frist & " DAY) DIV 4 ,'-',((QUARTER(NOW()-INTERVAL " & frist & " DAY)-1)*3+4) MOD 12,'-01')-INTERVAL 1 SECOND " & vbCrLf & _
-    "   AND art IN (" & artSpezBerat & "," & artSpezEintr & "," & artSpezUS1 & ")" & vbCrLf & _
+    "   AND ((art IN (" & artSpezBerat & "," & artSpezEintr & "," & artSpezUS1 & "))" & vbCrLf & _
+    "     OR (art IN('tb','th','tn')AND(ersteller IN(" & artSpezBerat & ")OR änderer IN (" & artSpezBerat & ")))" & vbCrLf & _
+    "     OR (inhalt LIKE '%eversen%' AND inhalt RLIKE 'plant|einges|setz|entf|gelegt|gsetz|wechs'))" & vbCrLf & _
     "   AND NOT art IN ('BMI','GEW','GR',342,345,'bd','bla','re','ba','doppler','dop','duplex','dup','impf','inj','kva','tv','ufrag','wv','caro','colo','debr','fa','EKG','GPD','kv','LZRR','OAU','pa','pros','puls','rp','sono','ulcus','vac','ADL'," & artSpezMA & ")" & vbCrLf & _
     "   GROUP BY pat_id,DATE(e.zeitpunkt) " & vbCrLf & _
     "  ) i GROUP BY pat_id,DATE(zp) " & vbCrLf

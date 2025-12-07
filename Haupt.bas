@@ -5560,7 +5560,7 @@ Function fzsfuell(frm As Lese, abstand&, Optional obgestern) ' Abstand: 999 => u
     ",COALESCE((SELECT COUNT(0) FROM `eintraege` e WHERE e.art = 'sono' AND zeitpunkt BETWEEN " & qbg & " AND " & qed & "),0) Sonos" & vbCrLf & _
     ",COALESCE((SELECT COUNT(0) FROM `eintraege` e WHERE e.art = 'schul' AND zeitpunkt BETWEEN " & qbg & " AND " & qed & "),0) Schul" & vbCrLf
     sql = sql & _
-    ",COALESCE((SELECT COUNT(0) FROM (SELECT COUNT(0) zahl FROM eintraege WHERE art IN (" & artSpezBerat & "," & artSpezMA & ") AND zeitpunkt BETWEEN " & qbg & " AND " & qed & " GROUP BY DATE(zeitpunkt)) i WHERE zahl>10),0) arbt" & vbCrLf & _
+    ",COALESCE((SELECT COUNT(0) FROM (SELECT COUNT(0) zahl FROM eintraege WHERE art IN ('tb','tn','th'," & artSpezBerat & "," & artSpezMA & ") AND zeitpunkt BETWEEN " & qbg & " AND " & qed & " GROUP BY DATE(zeitpunkt)) i WHERE zahl>10),0) arbt" & vbCrLf & _
     ",COALESCE((SELECT COUNT(0) FROM (SELECT COUNT(0) zahl FROM eintraege WHERE (art='tk' OR (art='tb' AND ersteller='tk')) AND zeitpunkt BETWEEN " & qbg & " AND " & qed & " GROUP BY DATE(zeitpunkt)) i WHERE zahl>5),0) arbtKothny" & vbCrLf & _
     ",COALESCE((SELECT COUNT(0) FROM (SELECT COUNT(0) zahl FROM eintraege WHERE (art='gs' OR (art='tb' AND ersteller='gs')) AND zeitpunkt BETWEEN " & qbg & " AND " & qed & " GROUP BY DATE(zeitpunkt)) i WHERE zahl>5),0) arbtSchade" & vbCrLf & _
     ",COALESCE((SELECT COUNT(0) FROM tmbrie WHERE autor='gs' AND (name LIKE '%brief%' OR name LIKE '%nachricht%') AND quelldatum BETWEEN " & qbg & " AND " & qed & "),0) briefeSchade" & vbCrLf & _

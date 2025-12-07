@@ -93,7 +93,7 @@ Public Const artSpezBerat$ = artSpezÄrzte & ",'wr','jl','ga','ih','cr','tn','be'
 ' lt = Luisa Tepe
 ' sk = Sarah Kreis
 
-Public Const artSpezMA$ = "'tst','ke','hz','ns','mh','ag','ph','pq','er','ds','st','eb','us','sn','vb','mip','mm','rc','ik','ks','sb','cb','th','sp','ir','as','sa','sta','eg','ans','mc','rb','mi','gr','bs','sf','fs','eo','cd','mk','nb','sas','mf','bt','ab','sh','an','tb','lo'"
+Public Const artSpezMA$ = "'tst','ke','hz','ns','mh','ag','ph','pq','er','ds','st','eb','us','sn','vb','mip','mm','rc','ik','ks','sb','cb','sp','ir','as','sa','sta','eg','ans','mc','rb','mi','gr','bs','sf','fs','eo','cd','mk','nb','sas','mf','bt','ab','sh','an','lo'"
 ' tst = Tamara Sturm
 ' cr = Cornelia Reindl
 '' eb = Elmas Balkan / Gürbüz
@@ -147,7 +147,7 @@ Public Const artSpezMA$ = "'tst','ke','hz','ns','mh','ag','ph','pq','er','ds','s
 
 ' was im Arztbrief unter Verlaufsnotizen stehen soll
 Public Const artVerlauf$ = "'notiz','mbf','telef'," & artSpezBerat & "," & artSpezMA & _
-",'pa','beruf','sem','seminar','kind','haut','kard','aug','auge','augen'" & _
+",'tb','th','tn','pa','beruf','sem','seminar','kind','haut','kard','aug','auge','augen'" & _
 ",'mess','ictauf','auto','insgd','vkgd','vkgd2'" & _
 ",'impf','imp','gyn','caro','carotis'" & _
 ",'schula','ass','kra','proc','aufgd','HbA1cfre'" & _
@@ -5631,7 +5631,7 @@ Function testvergleicheT()
 End Function ' testvergleicheT
 
  Function doTabakSt(Pat_ID&) As ZigSt
-  Dim rs As New ADODB.Recordset, tstr$
+  Dim rs As New ADODB.Recordset, tStr$
   On Error GoTo fehler
   Call Lese.ProgStart
   myFrag rs, "SELECT vorgestellt, tabakex,tabakakt,tabakbis,tabakmenge FROM `anamnesebogen` WHERE pat_id = " & Pat_ID, adOpenStatic
@@ -5646,37 +5646,37 @@ nie:
   Else
    doTabakSt = früher
    If Not IsNull(rs!tabakbis) Then
-    tstr = LTrim$(rs!tabakbis)
-    If Left$(tstr, 3) = "bis" Then tstr = LTrim$(Mid$(tstr, 4))
-    If Left$(tstr, 3) = "ca." Then tstr = LTrim$(Mid$(tstr, 4))
-    If InStrB(tstr, "-") <> 0 Then
-     tstr = LTrim$(Mid$(tstr, InStr(tstr, "-") + 1))
+    tStr = LTrim$(rs!tabakbis)
+    If Left$(tStr, 3) = "bis" Then tStr = LTrim$(Mid$(tStr, 4))
+    If Left$(tStr, 3) = "ca." Then tStr = LTrim$(Mid$(tStr, 4))
+    If InStrB(tStr, "-") <> 0 Then
+     tStr = LTrim$(Mid$(tStr, InStr(tStr, "-") + 1))
     End If
-    If IsDate(tstr) Then
-     If Now() - CDate(tstr) > 12 * 365 Then
+    If IsDate(tStr) Then
+     If Now() - CDate(tStr) > 12 * 365 Then
       doTabakSt = vorlangem
      End If
     Else
-     If IsNumeric(Left$(tstr, 4)) Then tstr = Left$(tstr, 4)
-     If IsNumeric(tstr) Then
+     If IsNumeric(Left$(tStr, 4)) Then tStr = Left$(tStr, 4)
+     If IsNumeric(tStr) Then
       If Not IsNull(rs!Vorgestellt) Then
-       If Year(rs!Vorgestellt) - tstr >= 12 Then
+       If Year(rs!Vorgestellt) - tStr >= 12 Then
         doTabakSt = vorlangem
        End If
       End If
-     ElseIf tstr Like "*vor *" Then
-      tstr = Mid$(tstr, InStr(tstr, "vor ") + 4)
-      If tstr Like "*J*" Then
-       tstr = Left$(tstr, InStr(tstr, "J") - 1)
-      ElseIf tstr Like "*a*" Then
-       tstr = Left$(tstr, InStr(tstr, "a") - 1)
+     ElseIf tStr Like "*vor *" Then
+      tStr = Mid$(tStr, InStr(tStr, "vor ") + 4)
+      If tStr Like "*J*" Then
+       tStr = Left$(tStr, InStr(tStr, "J") - 1)
+      ElseIf tStr Like "*a*" Then
+       tStr = Left$(tStr, InStr(tStr, "a") - 1)
       End If
-      If IsNumeric(tstr) Then
-       If CDbl(tstr) >= 12 Then
+      If IsNumeric(tStr) Then
+       If CDbl(tStr) >= 12 Then
         doTabakSt = vorlangem
        End If
       End If
-     ElseIf InStrB(tstr, "80er J") <> 0 Then
+     ElseIf InStrB(tStr, "80er J") <> 0 Then
       doTabakSt = vorlangem
      End If
     End If
