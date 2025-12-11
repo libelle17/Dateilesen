@@ -1004,7 +1004,7 @@ Public Sub doNotizen(Optional fPtNr& = 0, Optional mitSpeichern% = True)
  Dim ErrNr&, ErrDes$
  If SafeArrayGetDim(rNa) = 0 Then
   ReDim rNa(0)
-  rNa(0).Pat_ID = fPtNr
+  rNa(0).Pat_id = fPtNr
  End If
  Call MOConInit(, "doNotzizen(" & fPtNr & "," & CStr(mitSpeichern) & ")")
 ' Dim rNa() As namen
@@ -1253,7 +1253,7 @@ abermals:
   aDesk(UBound(aDesk)).IDS = rdesk!IDS
   aDesk(UBound(aDesk)).noteBkColor = rdesk!noteBkColor
   aDesk(UBound(aDesk)).noteFgColor = rdesk!noteFgColor
-  aDesk(UBound(aDesk)).Pat_ID = pid
+  aDesk(UBound(aDesk)).Pat_id = pid
   aDesk(UBound(aDesk)).positionBottom = rdesk!positionBottom
   aDesk(UBound(aDesk)).positionLeft = rdesk!positionLeft
   aDesk(UBound(aDesk)).positionRight = rdesk!positionRight
@@ -1298,10 +1298,23 @@ abermals:
      EintS.name = FMem(j).Text
     ElseIf FMem(j).ENr Like "*.10" And FMem(j).ENr <> "1.10" Then
      EintS.Kürz = FMem(j).Text
+'     Select Case EintS.TypNr
+'      Case 1085,2004,2005,2006,2007,2014,2029
+'       Debug.Print EintS.name
+'     End Select
      EinL.sCAdd EintS
     End If
    Next j
   End If ' FmS <> "" Then
+'  Dim zahl&
+'  Open "p:\artenMO.txt" For Output As #100
+'  Open "p:\artenMOFehlt.txt" For Output As #101
+'  For j = 1 To EinL.COUNT
+'   zahl = myEFrag("select count(0)from ltag where feintragsart=" & EinL.Item(j).TypNr, , MOCon).Fields(0)
+'   Print #(IIf(zahl, 100, 101)), "' " & EinL.Item(j).TypNr & ": " & EinL.Item(j).art & ": " & zahl & ": " & EinL.Item(j).name
+'  Next j
+'  Close #100
+'  Close #101
   On Error Resume Next
   FmS = rsMO!ftk
   On Error GoTo fehler
@@ -1333,7 +1346,7 @@ abermals:
  rsNa.Open sql, MOCon, adOpenStatic, adLockReadOnly
  If Not rsNa.BOF Then
   rNa(0).aktZeit = 0 ' aktZeit ' erst am Schluss, s.u.
-  rNa(0).Pat_ID = pid ' = fPtNr
+  rNa(0).Pat_id = pid ' = fPtNr
   rNa(0).TM_Pat_ID = TMPid(pid) ' 6.4.25
   rNa(0).lfdnr = -1 ' Import aus MO
   rNa(0).Nachname = doUmwfSQL(rsNa!fnachname, True)
@@ -1447,7 +1460,7 @@ abermals:
     ReDim Preserve rFa(UBound(rFa) + 1)
     rFa(UBound(rFa)).aktZeit = aktZeit
     rFa(UBound(rFa)).lfdnr = lfdfl
-    rFa(UBound(rFa)).Pat_ID = pid
+    rFa(UBound(rFa)).Pat_id = pid
     rFa(UBound(rFa)).AbrAr = ""
     rFa(UBound(rFa)).VermiArt = 0
     rFa(UBound(rFa)).bPerG = "0"
@@ -1788,7 +1801,7 @@ m105:
    For j = 0 To UBound(NaStr)
     If NaStr(j).ENr Like "21.*" And NaStr(j).ENr <> "21.1" Then
      ReDim Preserve rSw(UBound(rSw) + 1)
-     rSw(UBound(rSw)).Pat_ID = pid
+     rSw(UBound(rSw)).Pat_id = pid
      rSw(UBound(rSw)).FormTitel = "ssd"
      rSw(UBound(rSw)).vorET = stzk(NaStr(j).Text)
      rSw(UBound(rSw)).lR = rSw(UBound(rSw)).vorET - 280
@@ -1848,11 +1861,11 @@ m105:
 '                9=Anamnese,
 '                10=Text-Befund (tb)
 '                11 kommt nicht vor
-'                12=Leistungen (FDetails: {(Gnrliste [{( ..."),
-'                13=Medikamente (mit PZN in FICD..) und Hilfsmittel (FDetails: "{(Handelsname ..."
-'                14=Med., ohne PZN,
-'                15=Medikament (md)
-'                16: Medikament (mh) mit Dosierung
+'                12: Leistungen (FDetails: {(Gnrliste [{( ..."),
+'                13: Medikament aktiv (mit PZN in FICD..) und Hilfsmittel (FDetails: "{(Handelsname ..."
+'                14: Medikament inaktiv
+'                15: Medikament Dauer- (md)
+'                16: Medikament historisch (mh) mit Dosierung
 '                17: Hilfsmittel (FDetails: {(Bezeichnung .."
 '                18: Heilmittel (hp)
 '                19: AU,
@@ -1870,7 +1883,7 @@ m105:
 '                1045: tk (tk)
 '                1046: Text - tn (tn)
 '                1053: Überweisungstexte
-'                1085: Langrezept aus Turbomed
+'                1085: "Text - lar": Langrezept aus Turbomed
 '                1099: Text - Cave (tc)
 '                1105: Notiz ("Infos") (ti)
 '                1110: Text-Notiz (tn)
@@ -1878,29 +1891,475 @@ m105:
 '                1144: taille (taille)
 '                1148: Taille (tai)
 '                1119: Trop-Test (trop)
+'                2004: "Verordnung - Kassenrezept (Muster16)"
+'                2005: "Verordnung - Privatrezept (Muster16)"
+'                2006: "Verordnung - BTM-Rezept (Muster16)"
+'                2007: "Verordnung - Grünes Rezept (Muster16)"
 '                2013: Markierung gesetzt
 '                2017: Diagnosen Dauer
+'                2029: "Verordnung - DiGA"
 ' Labor: FEintragsart 5 oder 7, FStatus immer 2, FStatusergaenzung immer 0, FBehgrundnr immer 0,
 '        FDurchfNutzernr immer -2147483647, FEintragsnr immer -2147483647
 '        FLstGerbNr 1,2 oder 4
 ' Feintragsart: (diesbezüglich in ltag und beschein gleich)
 ' 27143: DMP-Doku COPD
 ' 27144: DMP-Doku Typ 1
-' 27188: DMP-Doku Typ 2
+' 27188: "Dokumentation - Diabetes mellitus Typ 2": DMP-Doku Typ 2
 ' 27193: Asthma bronchiale
 ' 27216: Herzinsuffizienz
 ' 27217: chronischer Rückenschmerz
+' 30541: "Bescheinigung - Empfehlung zur verhaltensbezogenen Primärprävention (Muster36)"
 
+' 1: da: 1543: Diagnose - Aktive Diagnose
+' 5: au: 5923010: Auftrag - Auftrag
+' 8: tf: 32243: Text - Freitext
+' 9: ana: 7470: Text - Anamnese
+' 10: tb: 40541: Text - Befund
+' 12: z: 674511: Gebühr - Gebührenziffer
+' 17: hi: 30182: Verordnung - Hilfsmittel (Muster16)
+' 18: hp: 1274: Verordnung - Heilmittelverordnung (Muster13)
+' 19: ba: 3113: Bescheinigung - Arbeitsunfähigkeitsbescheinigung (Muster01)
+' 20: bü: 42883: Bescheinigung - Überweisung an Arzt (Muster06)
+' 21: bkh: 3108: Bescheinigung - Krankenhauseinweisung (Muster02)
+' 22: bb: 33: Bescheinigung - Krankenbeförderung (Muster04)
+' 23: bp: 194: Verordnung - Häusliche Krankenpflege (Muster12)
+' 28: tr: 297: Text - Risikofaktor
+' 29: tl: 1: Text - Allergie
+' 32: to: 3: Text - Operationstext
+' 41: ud: 7: Bericht - D-Arztbericht
+' 49: mp: 462980: Medikament - Dosierplan
+' 50: xx: 21629: Externe Datei  - Externe Datei
+' 51: xd: 10: Externe Datei - DICOM
+' 52: eAB: 579: Externe Datei - eArztbrief
+' 151: pdf: 425666: Externe Datei - PDF Dokumente
+' 501: s1: 1: Bildarchiv - D
+' 1001: sono: 18573: Text - Sono
+' 1002: gpd: 102285: Text - GPD
+' 1003: OAU: 25008: Text - OAU
+' 1004: Text: 3602: Text - Text
+' 1005: UEBLABOR: 129601: Text - UEBLABOR
+' 1006: adl: 18615: Text - Barthel
+' 1007: ans: 7531: Text - ans
+' 1008: aug: 108870: Text - augen
+' 1009: ba: 109953: Text - ba
+' 1010: be: 11294: Text - be
+' 1011: bew: 138401: Text - Beweg
+' 1012: uro: 13: Text - uro
+' 1013: bga: 2687: Text - bga
+' 1014: bz: 8309: Text - Blutzucker
+' 1015: bzm: 2927: Text - BZ mitgeteilt
+' 1016: bzvgl: 41876: Text - bzvgl
+' 1017: caro: 16689: Text - caro
+' 1018: colo: 29660: Text - colo
+' 1019: cr: 26756: Text - cr
+' 1020: ddg: 5763: Text - Diagnose inaktiv
+' 1021: dop: 5023: Text - doppler
+' 1022: ds: 4964: Text - ds
+' 1023: dup: 22460: Text - duplex
+' 1025: gs: 147993: Text - gs
+' 1026: gyn: 18273: Text - gyn
+' 1027: htxt: 13226: Text - htxt
+' 1028: icon: 20598: Text - icon
+' 1029: ih: 31308: Text - ih
+' 1030: inj: 3323: Text - inj
+' 1031: iplan: 2660: Text - iplan
+' 1032: lf: 13313: Text - lf
+' 1033: link: 1450: Text - link
+' 1034: mc: 8071: Text - mc
+' 1035: med: 35333: Text - med
+' 1036: mip: 9842: Text - mip
+' 1037: plar: 5617: Text - plar
+' 1038: pros: 18067: Text - pros
+' 1039: re: 111531: Text - Rezepte erstellt
+' 1040: schul: 34188: Text - schul
+' 1041: sem: 34613: Text - sem
+' 1042: sp: 12017: Text - sp
+' 1043: sta: 7792: Text - sta
+' 1044: taille: 37719: Text - Taille
+' 1045: tk: 85332: Text - tk
+' 1046: tn: 16178: Text - Notiz
+' 1047: tst: 28935: Text - tst
+' 1048: tv: 13375: Text - tv
+' 1049: txt: 13577: Text - txt
+' 1050: ufrag: 31960: Text - ufrag
+' 1051: usd: 13692: Text - usdm
+' 1052: usdm: 24262: Text - usdm2
+' 1053: utxt: 148089: Text - utxt
+' 1054: uzu: 152718: Text - uzu
+' 1056: pkon: 28706: Text - Pkon
+' 1057: anal: 16282: Text - anal
+' 1058: andm2: 8164: Text - andm2
+' 1059: angd: 2074: Text - angd
+' 1060: aufgd: 1498: Text - aufgd
+' 1061: dmph: 3837: Text - DMPh
+' 1062: auto: 402: Text - auto
+' 1064: groe: 1: Text - groe
+' 1065: cd: 5469: Text - cd
+' 1066: dak: 2621: Text - dak
+' 1067: debr: 3073: Text - debr
+' 1068: dg: 725: Text - Diagnose
+' 1069: eo: 4267: Text - eo
+' 1071: fa: 7700: Text - Familienanamnese
+' 1074: fuss: 5013: Text - fuss
+' 1075: gstel: 112: Text - gstel
+' 1076: haut: 331: Text - haut
+' 1077: hypo: 504: Text - hypo
+' 1078: ictauf: 303: Text - ictauf
+' 1079: ik: 3613: Text - ik
+' 1080: kb: 1480: Text - kb
+' 1081: kgp: 202: Text - kgp
+' 1082: ks: 9148: Text - ks
+' 1083: kv: 2433: Text - kv
+' 1084: kva: 311: Text - kva
+' 1085: lar: 77383: Text - lar
+' 1086: lt: 121: Text - lt
+' 1087: mf: 1601: Text - mf
+' 1088: mhng: 119: Text - mhng
+' 1089: mimp: 5532: Text - mimp
+' 1090: mk: 753: Text - mk
+' 1091: mm: 2349: Text - mm
+' 1092: mn: 965: Text - mn
+' 1093: mp: 33266: Text - mp
+' 1094: mus: 1815: Text - Muster
+' 1095: nb: 3409: Text - nb
+' 1096: ni: 1341: Text - Notiz intern
+' 1097: ogtt: 5708: Text - ogtt
+' 1098: pa: 4769: Text - Patientenannahme
+' 1099: tc: 798: Text - Cave
+' 1102: puls: 603: Text - puls
+' 1103: rauch: 1136: Text - rauch
+' 1105: ti: 9966: Text - Info
+' 1106: rb: 1651: Text - rb
+' 1107: rrvgl: 21959: Text - rrvgl
+' 1108: sas: 1698: Text - sas
+' 1109: impf: 28800: Text - Impfung
+' 1111: sf: 4025: Text - sf
+' 1112: tp: 4: Text - Procedere
+' 1113: sh: 169: Text - sh
+' 1114: sk: 351: Text - sk
+' 1115: ksä: 1: Text - Kein SGLT-2-Hemmer ärztlich empfohlen
+' 1116: tt: 4: Text - Therapie
+' 1117: sn: 7477: Text - sn
+' 1118: th: 9238: Text - Hinweis
+' 1119: trop: 224: Text - trop
+' 1120: tug: 18571: Text - tug
+' 1121: ulcus: 6160: Text - ulcus
+' 1122: urin: 49584: Text - urin
+' 1123: usal: 690: Text - usal
+' 1124: usdm: 4185: Text - usdm1
+' 1125: vkgd: 4616: Text - vkgd
+' 1126: vkgd: 2193: Text - vkgd
+' 1128: wv: 7095: Text - wv
+' 1129: rr: 228806: Text - Blutdruck
+' 1132: us: 41877: Text - us
+' 1134: bar: 756: Text - Barthel-Index
+' 1141: gew: 87689: Text - Gewicht
+' 1145: ekg: 1732: Text - EKG
+' 1146: lzrr: 468: Text - Langzeitblutdruckmessung
+' 1147: lufu: 175: Text - Spirometrie
+' 1149: sob: 634: Text - Sonstige Befunde
+' 1151: 50g: 487: Text - 50g
+' 1152: N: 117: Text - Nicht erschienen
+' 1153: abstr: 378: Text - abstr
+' 1154: an: 411: Text - an
+' 1155: as: 871: Text - as
+' 1156: beruf: 4135: Text - beruf
+' 1157: bla: 7544: Text - Blutabnahme
+' 1158: bt: 2632: Text - bt
+' 1159: c19i: 7400: Text - c19i
+' 1160: cgma: 105: Text - cgma
+' 1161: cib: 393: Text - cib
+' 1162: covze: 2981: Text - covze
+' 1163: eg: 3103: Text - eg
+' 1165: ssd: 2278: Text - Schwangerschaftstag
+' 1166: vac: 12214: Text - vac
+' 2004: vk: 4285: Verordnung - Kassenrezept (Muster16)
+' 2005: vp: 2947: Verordnung - Privatrezept (Muster16)
+' 2006: vb: 28: Verordnung - BTM-Rezept (Muster16)
+' 2007: vg: 12: Verordnung - Grünes Rezept (Muster16)
+' 2013: ts: 57536: Text - Statustext
+' 2017: dd: 142633: Diagnose - Dauerdiagnose
+' 20002: mw: 4771: Praxisformular - Messwerte
+' 20004: br: 720: Praxisformular - Barthel Index
+' 20007: bo: 1: Praxisformular - OP-Vorbereitung
+' 20009: test: 2: Praxisformular - test
+' 20011: ip2: 200: Praxisformular - Insulinplan
+' 20012: ter: 2122: Praxisformular - Terminzettel A5 hoch
+' 20166: xtu: 690: Praxisformular - Time up and go
+' 27143: b7: 2: Dokumentation - COPD
+' 27144: b8: 1180: Dokumentation - Diabetes mellitus Typ 1
+' 27187: bc: 14: Dokumentation - Koronare Her&zkrankheit
+' 27188: bd: 7070: Dokumentation - Diabetes mellitus Typ 2
+' 27193: bi: 14: Dokumentation - Asthma bronch&iale
+' 27216: jn: 1: Dokumentation - Chronische Herzinsuffizienz
+' 27217: jo: 2: Dokumentation - Chronischer Rückenschmerz
+' 27219: jq: 1: Dokumentation - Osteoporose
+' 29955: m3: 1: Verordnung - spezial. ambul. Palliativversorgung (Muster63)
+' 29957: m5: 79: Bescheinigung - Antrag auf Kostenübernahme (Muster56)
+' 29958: m6: 5: Verordnung - medizinische Rehabilitation (Muster61)
+' 30002: mb: 2: Bescheinigung - Begleitschreiben an den behandelnden Facharzt/PT/KJPT
+' 30465: o1: 32: Bescheinigung - Bescheinigung schwerwieg. chr. Erkrankung (Muster55)
+' 30517: oe: 1: Dokumentation - Perkutane Koronarintervention und Koronarangiographie
+' 30535: ow: 1: Bescheinigung - Checkliste Somatik
+' 30540: ja: 1: Bescheinigung - Stellungnahme des Gutachters (PTV5)
+' 30542: jc: 15: Dokumentation - DMP Teilnahmeerklärung
+' 30543: jd: 1: Verordnung - medizinische Vorsorge für Mütter oder Väter gemäß §24 SGB V (Muster64)
+
+' 11: tx: 0: Text - Messwerttext
+' 24: bt: 0: Bescheinigung - Mutmaßl. Entbindungstag (Muster03)
+' 25: bm: 0: Bescheinigung - Mutterschaftsgeld (Muster09)
+' 26: bk: 0: Bescheinigung - Kinderkrankengeld (Muster21)
+' 30: ers: 0: Text - Erststatus
+' 31: t1: 0: Text - Unfalltext
+' 33: bo: 0: Dokumentation - Ambulantes Operieren
+' 34: bn: 0: Bescheinigung - Konsiliarbericht vor Aufn. einer Psychotherapie (Muster22)
+' 35: pv: 0: Bescheinigung - Versichertenantrag auf Psychotherapie (PTV1)
+' 36: pt: 0: Bescheinigung - Angaben des Therapeuten zum Versichertenantrag (PTV2)
+' 37: pb: 0: Bescheinigung - Bericht an den Gutachter (PT3)
+' 38: pü: 0: Bescheinigung - Psychotherapeutische Überweisung (Muster07)
+' 39: ph: 0: Bescheinigung - Bericht an den Gutachter/Verhaltenstherapie (PT3)
+' 40: bri: 0: Verordnung - Brillenverordnung (Muster08)
+' 42: un: 0: Bericht - Nachschaubericht
+' 43: uk: 0: Bericht - Mitteilung Arbeitsfähigkeit/Abschluss besondere Heilbehandlung (F2222)
+' 45: he: 0: Verordnung - Ergo-/Ernährungstherapie (Muster18)
+' 46: hs: 0: Verordnung - Stimm-,Sprech-, Sprachtherapie (Muster14)
+' 47: pe: 0: Prozedur
+' 502: s2: 0: Bildarchiv - HAV
+' 503: s3: 0: Bildarchiv - KG Fandry
+' 504: s4: 0: Bildarchiv - OCG Manching
+' 505: s5: 0: Bildarchiv - TherapieZ REIH
+' 506: s6: 0: Bildarchiv - Therapiezentrum Reic
+' 599: sc: 0: Bildarchiv - Scanner
+' 605: si: 0: Bildarchiv - Import
+' 615: ss: 0: Bildarchiv - Sono
+' 1055: ksp: 0: Text - ksp
+' 1063: kgä: 0: Text - kgä
+' 1133: epi: 0: Text - Epikrise
+' 2001: zn: 0: Dokumentation - Notfalldaten (NFD)
+' 2003: pa: 0: Bericht - Therapiebericht
+' 2008: oa: 0: Dokumentation - Brillenwerte
+' 2009: oc: 0: Dokumentation - CTG-Aufnahme
+' 2011: or: 0: Dokumentation - Röntgenbuch
+' 2012: on: 0: Dokumentation - Nuklearbuch
+' 2014: vt: 0: Verordnung - T-Rezept (Muster16)
+' 2015: mwa: 0: Dokumentation - Messwerte
+' 2018: ku: 0: Dokumentation - Kindervorsorge
+' 2019: yb: 0: Dokumentation - Dialysebehandlung
+' 2020: yh: 0: Dokumentation - Dialyseregime-Hämodialyse
+' 2021: yl: 0: Dokumentation - Dialyseregime-LDL-Apherese
+' 2022: yp: 0: Dokumentation - Dialyseregime-Peritonealdialyse-CxPD
+' 2023: yi: 0: Dokumentation - Dialyseregime-Peritonealdialyse-IPD
+' 2024: bf: 0: Bescheinigung - Notfall-/Vertreterschein (Muster19)
+' 2025: mm: 0: Dokumentation - Antikoagulanzien-Planer
+' 2026: zp: 0: Dokumentation - Pers. Erklärungen (DPE)
+' 2029: hd: 0: Verordnung - DiGA
+' 20001: bap: 0: Praxisformular - Privat AU
+' 20003: mwx: 0: Praxisformular - Messwerte neu
+' 20005: bs0051: 0: Praxisformular - S0051 - Rentenversicherung
+' 20006: bj: 0: Praxisformular - Jugendgesundheitsuntersuchung
+' 20010: Insulin: 0: Praxisformular - Insulinplan3
+' 20112: : 0: Praxisformular - Patient->Vorsorgeuntersuchungsplan
+' 20158: ml: 0: Praxisformular - Marcumarplan
+' 20167: xbart: 0: Praxisformular - DemTect
+' 20174: xbart: 0: Praxisformular - MMST
+' 20175: j1: 0: Praxisformular - JArbsch I
+' 20176: j2: 0: Praxisformular - JArbsch II
+' 20197: fök: 0: Praxisformular - Förder Behandlung Komplex
+' 20198: fök: 0: Praxisformular - Frühförder Behandlungsplan
+' 20199: ht: 0: Praxisformular - Hörtest
+' 20200: ba: 0: Praxisformular - AU Privat - alt
+' 20201: wb: 0: Praxisformular - Wundbogen I
+' 20202: wb: 0: Praxisformular - Wunddoku II
+' 20203: fs: 0: Praxisformular - Führerschein Untersuchung
+' 20204: tz: 0: Praxisformular - Terminzettel A6 quer
+' 20206: tz: 0: Praxisformular - Terminzettel A6 hoch
+' 20221: drv: 0: Praxisformular - DRV
+' 27137: b1: 0: KiZ LU SPZ/FF - Anmeldung
+' 27138: b2: 0: KiZ LU SPZ/FF - Kontaktformular
+' 27139: b3: 0: KiZ LU SPZ/FF - Behandlungsplanung
+' 27140: b4: 0: KiZ LU SPZ/FF -TFB
+' 27141: b5: 0: KiZ LU SPZ/FF - Basisdokumentation
+' 27142: b6: 0: Verordnung - Hörhilfe (Muster15)
+' 27145: b9: 0: Dokumentation - QS Zervix Zyto
+' 27191: bg: 0: Dokumentation - &Gesundheitsuntersuchung (Muster30)
+' 27192: bh: 0: Dokumentation - Frü&herkennung von Darmkrebs Koloskopie
+' 27194: bj: 0: Dokumentation - &Jugendgesundheitsuntersuchung
+' 27196: bl: 0: Dokumentation - Prüfung auf multimorbide Krankheitsbilder
+' 27201: bq: 0: Dokumentation - QS Hörgeräteversorgung
+' 27203: bs: 0: Dokumentation - Kreb&sfrüherkennung - Männer (Muster40)
+' 27205: bu: 0: Dokumentation - Br&ustkrebs
+' 27206: bv: 0: Bescheinigung - Anregung einer amb. Vorsorgeleistung in anerk. Kurorten (Muster25)
+' 27207: bw: 0: Bescheinigung - &Wiedereingliederungsplan (Muster20)
+' 27208: bx: 0: Verordnung - Rehabilitation (Muster60)
+' 27209: by: 0: Dokumentation - Basisdokumentation Ps&ychotherapie
+' 27210: bz: 0: Dokumentation - Krebsfrüherkennung Zervix-Karzinom (Muster39)
+' 27211: ji: 0: Dokumentation - Früherkennung von Darmkrebs i-FOB-Test
+' 27212: jj: 0: Dokumentation - Früherkennung von Zervixkarzinomen Abklärungskolposkopie
+' 27213: jk: 0: Dokumentation - Früherkennung von Zervixkarzinomen HPV-Test
+' 27214: jl: 0: Dokumentation - Früherkennung von Zervixkarzinomen Primärscreening/Abklärungsuntersuchung
+' 27215: jm: 0: Dokumentation - Früherkennung von Zervixkarzinomen Zytologietest
+' 27218: jp: 0: Dokumentation - Depression
+' 29954: m2: 0: Dokumentation - Basisdokumentation 22 Forensik
+' 29959: m7: 0: Dokumentation - Hautkrebs-Screening (HKS)
+' 29960: m8: 0: Bescheinigung - Bericht bei Fortbestehen der AU (Muster52)
+' 30006: mf: 0: Bescheinigung - Hilfsmittel Fragebogen
+' 30007: mg: 0: Dokumentation - Gesundheitsstatus/-modul/Zielvereinbarung
+' 30466: o2: 0: Dokumentation - Behandlungsanspruch von im Ausland Versicherten (Muster80)
+' 30467: o3: 0: Verordnung - Soziotherapie (Muster26)
+' 30468: o4: 0: Verordnung - Kurarzt
+' 30469: o5: 0: Bescheinigung - Schnellinformation zur Patientenbegleitung
+' 30470: o6: 0: Verordnung - Soziotherapeutischer Betreuungsplan (Muster27)
+' 30471: o7: 0: Bescheinigung - Überleitungsmanagement
+' 30472: o8: 0: Dokumentation - AMTHO
+' 30473: o9: 0: Dokumentation - Befundbogen
+' 30514: ob: 0: Verordnung - Bei Überweisung zur Indikationsstellung für Soziotherapie (Muster28)
+' 30516: od: 0: Dokumentation - Meldung Krebsregister
+' 30518: of: 0: Bescheinigung - Beratungsbogen zur Einbindung des Sozialen Dienstes
+' 30519: og: 0: Bescheinigung - Antrag auf Genehmigung durch Krankenkasse
+' 30520: oh: 0: Bescheinigung - Präventionsverordnung
+' 30521: oi: 0: Bescheinigung - Rückmeldung an Patientenbegleitung/Sozialen Dienst
+' 30522: oj: 0: Bescheinigung - Bericht für den MDK (Muster11)
+' 30525: om: 0: Bescheinigung - Anfrage zur Zuständigkeit einer anderen Krankenkasse (Muster50)
+' 30527: oo: 0: Bescheinigung - Anfrage zur Zuständigkeit eines sonstigen Kostenträgers (Muster51)
+' 30528: op: 0: Bescheinigung - BP für Maßnahmen zur künstlichen Befruchtung (Muster70)
+' 30529: oq: 0: Bescheinigung - Anfrage zum Zusammenhang von Arbeitsunfähigkeitszeiten (Muster53)
+' 30532: ot: 0: Bescheinigung - Empfehlung stationäre OP
+' 30533: ou: 0: Bescheinigung - Antrag auf HZV-Kinderreha
+' 30534: ov: 0: Bescheinigung - Checkliste Psychosomatik
+' 30536: ox: 0: Bescheinigung - Übertragung Honorar Anästhesist
+' 30537: hl: 0: Bescheinigung - Genehmigung des langfristigen Heilmittelbedarfs
+' 30538: oy: 0: Bescheinigung - Information zur Psychotherapeutischen Sprechstunde (PTV11)
+' 30539: oz: 0: Bescheinigung - Anzeige der Akutbehandlung (PTV12)
+' 30541: jb: 0: Bescheinigung - Empfehlung zur verhaltensbezogenen Primärprävention (Muster36)
+' 30544: je: 0: Bescheinigung - Ärztliches Attest Kind (Muster65)
+' 30545: jf: 0: Bescheinigung - Ausschreibeformular
+' 30546: jg: 0: Bericht - Hausarzt Psychiater
+' 30547: jh: 0: Bescheinigung - Notfallplan Geriatrischer Patient
+' 30548: zi: 0: Bescheinigung - Impfzertifikat
+' 30549: p1: 0: Bescheinigung - Ergebnis der Erhebung des Beatmungsentwöhnungs- bzw. Dekanülierungspotenzials (Muster62A)
+' 30550: p2: 0: Bescheinigung - Verordnung außerklinischer Intensivpflege (Muster62B)
+' 30551: p3: 0: Bescheinigung - Behandlungsplan (Muster62C)
+' 30552: ip: 0: elektronischer Impfpass (KBV MIO)
+' 32001: $1: 0: Dokumentation - Indikationsübergreifende DMP-Angaben
+' 32050: ub: 0: Verordnung - Durchführung einer BGSW (F2150)
+' 32051: uc: 0: Bericht - &Schulter-Ergänzungsbericht (F1006)
+' 32053: ue: 0: Bescheinigung - Üb&erweisung des D-/H-Arztes (F2902)
+' 32054: uf: 0: Bericht - Hautarztbericht (F6050)
+' 32055: ug: 0: Bericht - Neurologischer Befund (F1120)
+' 32056: uh: 0: Bericht - Verlaufsbericht &H-Arzt (F2108)
+' 32057: ui: 0: Bericht - Stufenweise Wiedereingliederung (F3110)
+' 32058: uj: 0: Bericht - Hautarztbericht Behandlungsverlauf (F6052)
+' 32060: ul: 0: Verordnung - Verordnung zur Durchführung einer ABMR (F2162)
+' 32063: uo: 0: Bericht - K&opf-Ergänzungsbericht (F1002)
+' 32064: up: 0: Verordnung - EA&P
+' 32067: us: 0: Verordnung - orthopädische Schuhe und Einlagen (F2404)
+' 32068: ut: 0: Verordnung - Rehabilitationssport und Funktionstraining (F2406)
+' 32069: uu: 0: Bescheinigung - Überweisung an D-Arzt (F2900)
+' 32070: uv: 0: Bericht - &Verbrennung-Ergänzungsbericht (F1008)
+' 32072: ux: 0: Bericht - Kn&ie-Ergänzungsbericht (F1004)
+' 32074: uz: 0: Bericht - &Verlaufsbericht (F2100)
+' 32075: um: 0: Bericht - Hautkrebs BK-Nr. 5103 (F6120)
+' 32076: uq: 0: Bericht - Nachsorgebericht Hautkrebs BK-Nr. 5103 (F6122)
+' 64501: : 0: eTerminservice
+' 64502: : 0: Markierung setzen/löschen
+' 64503: : 0: Gebühr - Fall drucken
+' 64504: : 0: Gebühr - Neuer Fall
+' 64505: : 0: Bescheinigung - Überweisung - Auftrag für SARS-CoV-2 Testung (Muster OEGD)
+' 64506: : 0: Bescheinigung - Überweisung - Auftrag für SARS-CoV-2 Testung (Muster10c)
+' 64507: : 0: Bericht - Unfallmeldung
+' 64510: : 0: Gebühr - Barkasse
+' 64513: : 0: Medikament - BMP Barcode scannen
+' 64514: : 0: Medikament - Letzter Dosierplan
+' 64515: : 0: Erinnerung
+' 64516: : 0: Hervorhebung - gelb
+' 64517: : 0: Hervorhebung - grün
+' 64518: : 0: Hervorhebung - blau
+' 64519: : 0: Hervorhebung - rot
+' 64520: : 0: Hervorhebung - grau
+' 64521: : 0: Hervorhebung - weiß
+' 64522: : 0: Wiederholung
+' 64523: : 0: Markierung
+' 64524: : 0: Information
+' 64525: : 0: Brief
+' 64526: : 0: Auftrag - Auftragsblatt
+' 64527: : 0: Dokumentationsassistent
+' 64528: : 0: Auftrag - Favoriten
+' 64529: : 0: Auftrag - Grundleistungen
+' 64530: : 0: Gebühr - Abrechnungsschein
+' 64531: : 0: Gebühr - Tagtrennung
+' 64532: : 0: Bescheinigung - Überweisung an Laborgemeinschaft (Muster10a)
+' 64533: : 0: Bescheinigung - Überweisung - Überweisungsschein für in-vitro-diagnostische Auftragsleistungen (Muster10)
+' 64534: : 0: Medikament - Eigenes Medikament
+' 64535: : 0: Medikament - Hausapotheke
+' 64536: : 0: Medikament - Abdata
+
+
+' obdr => dmpreihe (1); rDm
+' obRezE => rezepteintraege; rRe
+' sonst: lFE 21 => Krankenhauseinweisung rKh
+'        sonst: => Formular rFo, rFr, rFm
+
+' BTM: Medart "2"
+' aut idem-Ausschluss: Nonoutidem "1"
+' noctu = Rezeptoptionen "2"
+' Ersatzverordnung 1
+' Ausdruck ERezept = Erezept_Druck 1
+' Einzeldruck = Einzeldruck 1
   sql = _
-"SELECT 18900101+INTERVAL l.FDatum DAY+INTERVAL l.FZeit SECOND Zp, na.FUsername ua, nb.FUsername ub, l.*, IF(INSTR(FText,':') BETWEEN 1 AND 6,LEFT(FText,INSTR(FText,':')-1),'') art, IF(INSTR(FText,':') BETWEEN 1 AND 6,TRIM(MID(FText,INSTR(FText,':')+1)),FText) ename" & vbCrLf & _
+"SELECT" & vbCrLf & _
+"CASE" & vbCrLf & _
+"        WHEN l.FEintragsart=1085 THEN 'K'" & vbCrLf & _
+"        WHEN fdetails RLIKE 'Rezeptoptionen ""(4|1028)""' THEN 'G'" & vbCrLf & _
+"        WHEN FDetails RLIKE'^.*Rezeptoptionen ""512"".*$' THEN 'SM'" & vbCrLf & _
+"        WHEN FDetails RLIKE'^.*Rezeptart ([0-9]).*$' THEN" & vbCrLf & _
+"            CASE REGEXP_REPLACE(FDetails,'^.*Rezeptart ([0-9]).*$','\1')" & vbCrLf & _
+"                WHEN 1 THEN'K'" & vbCrLf & _
+"                WHEN 2 THEN'P'" & vbCrLf & _
+"                WHEN 3 THEN'M'" & vbCrLf & _
+"                WHEN 4 THEN'S'" & vbCrLf & _
+"                WHEN 5 THEN'F'" & vbCrLf & _
+"                ELSE" & vbCrLf & _
+"                    CASE" & vbCrLf & _
+"                        WHEN l.FEintragsart=17 THEN" & vbCrLf & _
+"                            CASE WHEN FStatusergaenzung=2 THEN'P'" & vbCrLf & _
+"                                ELSE'K'" & vbCrLf & _
+"                            END" & vbCrLf & _
+"                        ELSE ''" & vbCrLf & _
+"                    END" & vbCrLf & _
+"                END" & vbCrLf & _
+"        ELSE" & vbCrLf & _
+"            CASE" & vbCrLf
+sql = sql & _
+"                WHEN l.FEintragsart=17 THEN" & vbCrLf & _
+"                    CASE WHEN FStatusergaenzung=2 THEN'P'" & vbCrLf & _
+"                        ELSE'K'" & vbCrLf & _
+"                    END" & vbCrLf & _
+"                ELSE ''" & vbCrLf & _
+"            END" & vbCrLf & _
+"    END RArt" & vbCrLf & _
+"/*,IF(ftext RLIKE'^(?:[ ]*[0-9]+[ ]*x[ ]*)?.*\([^0-9]{1,2}\)[ ]*$',REGEXP_REPLACE(FText,'^(?:[ ]*[0-9]+[ ]*x[ ]*)?.*\(([^0-9]{1,2})\)[ ]*$','\1'),'') Rezkl */" & vbCrLf & _
+", FDetails LIKE '%Erezept 1%' obE" & vbCrLf & _
+", FDetails LIKE '%Erezept_storniert 1%' obst" & vbCrLf & _
+", CASE l.FEintragsart WHEN 13 THEN 'akt'WHEN 14 THEN'ina'WHEN 15 THEN'dau'WHEN 16 THEN'his'WHEN 17 THEN'hil'WHEN 18 THEN'hei'WHEN 1085 THEN'lar'END rea" & vbCrLf & _
+", FDetails LIKE '%Medart ""2""%'obBtm" & vbCrLf & _
+", FDetails LIKE '%Rezeptoptionen ""2""%'noctu" & vbCrLf & _
+", FDetails LIKE '%Ersatzverordnung 1%'obers" & vbCrLf & _
+", nb.FUsername IS NOT NULL freig" & vbCrLf & _
+", FDetails LIKE '%Erezept_Druck 1%' edru" & vbCrLf & _
+", FDetails LIKE '%Einzeldruck 1%' eind" & vbCrLf & _
+", FText" & vbCrLf & _
+", FDetails" & vbCrLf
+
+sql = sql & _
+", 18900101+INTERVAL l.FDatum DAY+INTERVAL l.FZeit SECOND Zp, na.FUsername ua, nb.FUsername ub, l.*, IF(INSTR(FText,':') BETWEEN 1 AND 6,LEFT(FText,INSTR(FText,':')-1),'') art, IF(INSTR(FText,':') BETWEEN 1 AND 6,TRIM(MID(FText,INSTR(FText,':')+1)),FText) ename" & vbCrLf & _
 ", l.FStatus lFSt, FText" & vbCrLf & _
+", COALESCE(REGEXP_REPLACE(FDetails,'^.*Pharmazentralnr *([0-9]*).*$|.','\1'),'')PZN" & vbCrLf & _
 ", COALESCE(CONVERT(b.FMemo USING latin1),'') BFMemo, l.FEintragsart lFE, b.FEintragsart bFE, b.FSurogat bFSu, b.*" & vbCrLf & _
-", l.FEintragsart IN(13,14,16,17,18,1085,2004,2005,2006,2007,2029) obRezE" & vbCrLf & _
+", l.FEintragsart IN(13,14,15,16,17,18,23,40,45,46,1085,2004,2005,2006,2007,2014,2029,27142,27208,29955,29958,30467,30468,30470,30514,30520,32050,32060,32064,32067,32068,30543)obRezE" & vbCrLf & _
 ", IF(FText RLIKE '^[ ]*[0-9]+[ ]*x.*',SUBSTRING_INDEX(FText,'x',1),1) Anz" & vbCrLf & _
 ", REGEXP_REPLACE(REGEXP_REPLACE(FText,'^([ ]*[0-9]+[ ]*x[ ]*)?(.*)[ ]*$','\2'),'([ ]*\(.*\)[ ]*)*$','') Med" & vbCrLf & _
-", REGEXP_REPLACE(FText,'^([ ]*[0-9]+[ ]*x[ ]*)?.*\((.*)\)[ ]*$','\2') Rezkl" & vbCrLf & _
 ", REGEXP_REPLACE(REGEXP_REPLACE(REGEXP_REPLACE(FText,'^[^(]*',''),'[ ]*\([^)]*\)[ ]*$',''),'\(([^)]*)\)','\1') Rkl0" & vbCrLf & _
-", IF(INSTR(l.FDetails,'(Nonoutidem ""'),MID(l.FDetails,INSTR(l.FDetails,'(Nonoutidem ""')+LENGTH('(Nonoutidem ""'),INSTR(SUBSTRING_INDEX(l.FDetails,'(Nonoutidem ""',-1),'"")')-1),'') nonoi" & vbCrLf & _
+", FDetails LIKE '%Nonoutidem ""1""%'nonoi/*, IF(INSTR(l.FDetails,'(Nonoutidem ""'),MID(l.FDetails,INSTR(l.FDetails,'(Nonoutidem ""')+LENGTH('(Nonoutidem ""'),INSTR(SUBSTRING_INDEX(l.FDetails,'(Nonoutidem ""',-1),'"")')-1),'') nonoi*/" & vbCrLf & _
 ", IF(INSTR(l.FDetails,'(Anzahl '),MID(l.FDetails,INSTR(l.FDetails,'(Anzahl ')+LENGTH('(Anzahl '),INSTR(SUBSTRING_INDEX(l.FDetails,'(Anzahl ',-1),')')-1),'') Anzahl" & vbCrLf & _
 ", IF(INSTR(l.FDetails,'(Packungszahl '),MID(l.FDetails,INSTR(l.FDetails,'(Packungszahl ')+LENGTH('(Packungszahl '),INSTR(SUBSTRING_INDEX(l.FDetails,'(Packungszahl ',-1),')')-1),'') Packungszahl" & vbCrLf & _
 ", IF(INSTR(l.FDetails,'(Rezeptart '),MID(l.FDetails,INSTR(l.FDetails,'(Rezeptart ')+LENGTH('(Rezeptart '),INSTR(SUBSTRING_INDEX(l.FDetails,'(Rezeptart ',-1),')')-1),'') Rezeptart" & vbCrLf & _
@@ -1925,7 +2384,15 @@ sql = sql & _
 ' ", IF(FText RLIKE '^[ ]*[0-9]+[ ]*x.*',MID(FText,INSTR(FText,'x')+1),FText) Med" & vbCrLf & _
 ", IF(FText RLIKE '.*(.)',LEFT(SUBSTRING_INDEX(FText,'(',-1),INSTR(SUBSTRING_INDEX(FText,'(',-1),')')-1),0) Rezkl" & vbCrLf & _
 
-  myFrag rsEi, sql, adOpenStatic, MOCon
+ myFrag rsEi, sql, adOpenStatic, MOCon
+  Dim Anzahl&
+  If Not rsEi.BOF Then
+   Do While Not rsEi.EOF
+    Anzahl = Anzahl + 1
+    rsEi.MoveNext
+   Loop
+   rsEi.MoveFirst
+  End If ' Not rsEi.BOF Then
   If Not rsEi.BOF Then
   ' das BTM in "... (BTM) (K)" noch verwerten
    Dim rseiru&
@@ -2067,14 +2534,14 @@ sql = sql & _
        DokuDatum = CDate(rsEi!Zp)
     
        For ij = 1 To UBound(rDm) ' um dem eindeutigen Index gerecht zu werden
-        If rDm(ij).Pat_ID = pid And rDm(ij).DMPArt = DMPArt And rDm(ij).DokuDatum = DokuDatum Then
+        If rDm(ij).Pat_id = pid And rDm(ij).DMPArt = DMPArt And rDm(ij).DokuDatum = DokuDatum Then
          rj = ij
          GoTo gefunden
         End If
        Next ij
        rj = UBound(rDm) + 1
        ReDim Preserve rDm(rj)
-       rDm(rj).Pat_ID = pid
+       rDm(rj).Pat_id = pid
        rDm(rj).DMPArt = DMPArt
        rDm(rj).DokuDatum = DokuDatum
 gefunden:
@@ -2109,10 +2576,10 @@ gefunden:
     ElseIf rsEi!obRezE Then ' Rezepteintrag
      ReDim Preserve rRe(UBound(rRe) + 1)
      rRe(UBound(rRe)).aktZeit = aktZeit
-     rRe(UBound(rRe)).Pat_ID = pid
+     rRe(UBound(rRe)).Pat_id = pid
      rRe(UBound(rRe)).Zeitpunkt = rsEi!Zp
      rRe(UBound(rRe)).Medikament = doUmwfSQL(rsEi!Med, True)
-     rRe(UBound(rRe)).PZN = rsEi!FIcdcode
+     rRe(UBound(rRe)).PZN = rsEi!PZN
 '     rRe(UBound(rRe)).lanrid = rsEi!farztnr
      Select Case rsEi!FLstgerbnr
       Case 2: rRe(UBound(rRe)).lanrid = 1 ' Schade
@@ -2123,18 +2590,32 @@ gefunden:
      rRe(UBound(rRe)).anzl = Switch(rsEi!anz <> "" And IsNumeric(rsEi!anz), rsEi!anz, rsEi!Anzahl <> "", rsEi!Anzahl, rsEi!packungszahl <> "", rsEi!packungszahl, True, 0)
      rRe(UBound(rRe)).FEintragsart = rsEi!lFE
      rRe(UBound(rRe)).kbez = rsEi!rkl0
-     Select Case rsEi!RezKl
+'     rRe(UBound(rRe)).Rezept = rsEi!rezkl
+     Select Case rsEi!RArt ' rsEi!rezkl
       Case "K": rRe(UBound(rRe)).Rezklkurz = "rp": rRe(UBound(rRe)).Rezkllang = "Kassenrp"
+'      Case "eK": rRe(UBound(rRe)).Rezklkurz = "erp": rRe(UBound(rRe)).Rezkllang = "eKassenrp"
       Case "P": rRe(UBound(rRe)).Rezklkurz = "prp": rRe(UBound(rRe)).Rezkllang = "Privatrp"
+      Case "G": rRe(UBound(rRe)).Rezklkurz = "gr": rRe(UBound(rRe)).Rezkllang = "grünes Rp."
+      Case "F": rRe(UBound(rRe)).Rezklkurz = "fr": rRe(UBound(rRe)).Rezkllang = "Fremd"
       Case "S": rRe(UBound(rRe)).Rezklkurz = "sp": rRe(UBound(rRe)).Rezkllang = "Sprechstundenbedarf"
       Case "M": rRe(UBound(rRe)).Rezklkurz = "mu": rRe(UBound(rRe)).Rezkllang = "Muster"
-      Case "F": rRe(UBound(rRe)).Rezklkurz = "fr": rRe(UBound(rRe)).Rezkllang = "Fremd"
-      Case "V": rRe(UBound(rRe)).Rezklkurz = "vk": rRe(UBound(rRe)).Rezkllang = "Verkauf"
+ '     Case "V": rRe(UBound(rRe)).Rezklkurz = "vk": rRe(UBound(rRe)).Rezkllang = "Verkauf"
       Case "SM": rRe(UBound(rRe)).Rezklkurz = "sm": rRe(UBound(rRe)).Rezkllang = "Sebstmedikation"
-      Case "BTM": rRe(UBound(rRe)).Rezklkurz = "btm": rRe(UBound(rRe)).Rezkllang = "BTM-Rezept"
+'      Case "BTM": rRe(UBound(rRe)).Rezklkurz = "btm": rRe(UBound(rRe)).Rezkllang = "BTM-Rezept"
      End Select
+     If Not IsNull(rsEi!fdetails) Then
+      rRe(UBound(rRe)).erez = rsEi!obe
+      rRe(UBound(rRe)).obst = rsEi!obst
+      rRe(UBound(rRe)).rea = rsEi!rea
+      rRe(UBound(rRe)).obBTM = rsEi!obBTM
+      rRe(UBound(rRe)).noctu = rsEi!noctu
+      rRe(UBound(rRe)).ersatzv = rsEi!obers
+      rRe(UBound(rRe)).ered = rsEi!edru
+      rRe(UBound(rRe)).einzdr = rsEi!eind
+      rRe(UBound(rRe)).auti = rsEi!nonoi
+     End If ' rsEi!FDetails Is Not Null Then
+     rRe(UBound(rRe)).freig = rsEi!freig
      If IsNumeric(rsEi!Rezeptart) Then rRe(UBound(rRe)).Rezeptart = rsEi!Rezeptart
-     If rsEi!nonoi <> "" Then rRe(UBound(rRe)).auti = rsEi!nonoi
     
      If rsEi!bfmemo <> "" Then
 '      rRe(UBound(rRe)).auti = 1 ' manchmal in Turbomed auch 2
@@ -2155,7 +2636,7 @@ gefunden:
     Select Case rsEi!lFE
      Case 21 ' Krankenhauseinweisung
       ReDim Preserve rKh(UBound(rKh) + 1)
-      rKh(UBound(rKh)).Pat_ID = pid
+      rKh(UBound(rKh)).Pat_id = pid
       rKh(UBound(rKh)).Zeitpunkt = rsEi!Zp
       rKh(UBound(rKh)).aktZeit = aktZeit
       For j = 0 To UBound(FMem)
@@ -2236,7 +2717,7 @@ fgefunden:
       ReDim Preserve rFr(UBound(rFr) + 1)
       rFr(UBound(rFr)).aktZeit = aktZeit
       rFr(UBound(rFr)).Form_ID = lFormID '-lFormID ' negative Speicherung, da der Wert noch nach der Datenbankspeicherung von rFo angepaßt werden muss
-      rFr(UBound(rFr)).Pat_ID = pid
+      rFr(UBound(rFr)).Pat_id = pid
       rFr(UBound(rFr)).Zeitpunkt = rsEi!Zp
 '      rFr(UBound(rFr)).lanrid = IIf(rsEi!FLstgerbnr = 3, 2, 1) ' 2 = Schade, 3 = Kothny
       Select Case rsEi!FLstgerbnr
@@ -2292,14 +2773,14 @@ fgefunden:
   "INNER JOIN datafile d ON l.FSurogat=d.FReferenznr " & vbCrLf & _
   "LEFT JOIN nutzerneu na ON FAnordnutzernr= na.FSurogat " & vbCrLf & _
   "LEFT JOIN nutzerneu nb ON FAusfnutzernr= nb.FSurogat " & vbCrLf & _
-  "WHERE l.fpatnr=" & fPtNr & " AND feintragsart IN (5,50,51,52,148,151,166,169,501,598,1033) " & vbCrLf & _
+  "WHERE l.fpatnr=" & fPtNr & " AND FEintragsart IN (5,50,51,52,148,151,166,169,501,598,1033) " & vbCrLf & _
   "ORDER BY l.FSurogat, Zp"
   myFrag rsEi, sql, adOpenStatic, MOCon
   If Not rsEi.BOF Then
    Do While Not rsEi.EOF
 ' Typ As String 'Typ varchar '
     ReDim Preserve rBr(UBound(rBr) + 1)
-    rBr(UBound(rBr)).Pat_ID = pid
+    rBr(UBound(rBr)).Pat_id = pid
     rBr(UBound(rBr)).aktZeit = aktZeit
     rBr(UBound(rBr)).Zeitpunkt = rsEi!Zp
     rBr(UBound(rBr)).name = doUmwfSQL(rsEi!EName, True)
@@ -2329,7 +2810,7 @@ fgefunden:
    Do While Not rsEi.EOF
     If altlFSur <> rsEi!FDosierplannr Then MPNr = MPNr + 1: Fldnr = 1 Else Fldnr = Fldnr + 1
     ReDim Preserve rMe(UBound(rMe) + 1)
-    rMe(UBound(rMe)).Pat_ID = pid
+    rMe(UBound(rMe)).Pat_id = pid
     rMe(UBound(rMe)).Nutzer = rsEi!ua
     rMe(UBound(rMe)).aktZeit = aktZeit
     rMe(UBound(rMe)).Zeitpunkt = rsEi!Zp
@@ -2401,7 +2882,7 @@ fgefunden:
    Do While Not rsEi.EOF
     ReDim Preserve rAu(UBound(rAu) + 1)
     rAu(UBound(rAu)).aktZeit = aktZeit
-    rAu(UBound(rAu)).Pat_ID = pid
+    rAu(UBound(rAu)).Pat_id = pid
     rAu(UBound(rAu)).Zeitpunkt = rsEi!Zp ' rsEi!anzp ' 29.6.25 korrigiert
     rAu(UBound(rAu)).Ersteller = rsEi!ua
     rAu(UBound(rAu)).Änderer = rsEi!ub
@@ -2529,14 +3010,14 @@ fgefunden:
        rNa(0).notiz = IIf(rNa(0).notiz = "", "", rNa(0).notiz & vbCrLf) & UmwfSQL(REPLACE$(REPLACE$(rsEi!FDet, "\n", ""), "\r", vbCrLf))
      Case "ICON" ' Desktop-Notiz
       ReDim Preserve rDe(UBound(rDe) + 1)
-      rDe(UBound(rDe)).Pat_ID = pid
+      rDe(UBound(rDe)).Pat_id = pid
       rDe(UBound(rDe)).aktZeit = aktZeit
       rDe(UBound(rDe)).Titel = UmwfSQL(rsEi!FDet)
       rDe(UBound(rDe)).erstZP = rsEi!Zp
       If SafeArrayGetDim(aDesk) <> 0 Then
        Dim k&
        For k = 0 To UBound(aDesk)
-        If pid = aDesk(k).Pat_ID And Format$(rDe(UBound(rDe)).erstZP, "yyyymmddhhmm") = Format$(aDesk(k).erstZP, "yyyymmddhhmm") Then
+        If pid = aDesk(k).Pat_id And Format$(rDe(UBound(rDe)).erstZP, "yyyymmddhhmm") = Format$(aDesk(k).erstZP, "yyyymmddhhmm") Then
 '        And InStrB(rDe(UBound(rDe)).Titel, aDesk(k).Titel) <> 0 Then
          rDe(UBound(rDe)).absPos = aDesk(k).absPos
          rDe(UBound(rDe)).erstZP = aDesk(k).erstZP
@@ -2611,19 +3092,19 @@ fgefunden:
        End Select
        
        For ij = 1 To UBound(rDm) ' um dem eindeutigen Index gerecht zu werden
-        If rDm(ij).Pat_ID = pid And rDm(ij).DMPArt = DMPArt And rDm(ij).DokuDatum = messDatum Then
+        If rDm(ij).Pat_id = pid And rDm(ij).DMPArt = DMPArt And rDm(ij).DokuDatum = messDatum Then
          rj = ij
          GoTo gef2
         End If
        Next ij
        rj = UBound(rDm) + 1
        ReDim Preserve rDm(rj)
-       rDm(rj).Pat_ID = pid
+       rDm(rj).Pat_id = pid
        rDm(rj).DMPArt = DMPArt
        rDm(rj).DokuDatum = messDatum
 gef2:
        rDm(rj).aktZeit = aktZeit
-       rDm(rj).Pat_ID = pid
+       rDm(rj).Pat_id = pid
        
        If rsEi!FIcdcode Like "*dmp*" And rsEi!FIcdcode <> "DMPERG" Then
 '        Debug.Print rsEi!ficdcode, rsEi!Wert
@@ -2665,7 +3146,7 @@ gef2:
       ' Einträge
        ReDim Preserve rEi(UBound(rEi) + 1)
        rEi(UBound(rEi)).aktZeit = aktZeit
-       rEi(UBound(rEi)).Pat_ID = pid
+       rEi(UBound(rEi)).Pat_id = pid
        rEi(UBound(rEi)).Zeitpunkt = messDatum
        rEi(UBound(rEi)).QS = ZQSort(rEi(UBound(rEi)).Zeitpunkt)
        rEi(UBound(rEi)).QT = ZQuart(rEi(UBound(rEi)).Zeitpunkt)
@@ -2738,7 +3219,7 @@ gef2:
   If Not rsEi.BOF Then
    Do While Not rsEi.EOF
     ReDim Preserve rDe(UBound(rDe) + 1)
-    rDe(UBound(rDe)).Pat_ID = pid
+    rDe(UBound(rDe)).Pat_id = pid
     rDe(UBound(rDe)).erstZP = rsEi!Datum
     rDe(UBound(rDe)).Titel = doUmwfSQL(rsEi!FText, True)
     If rsEi!fm <> "" Then
@@ -2854,7 +3335,7 @@ LaborLangsam:
    Do While Not rsEi.EOF
     Dim ls&
     ReDim Preserve rLa(UBound(rLa) + 1): ls = UBound(rLa)
-    rLa(ls).Pat_ID = pid
+    rLa(ls).Pat_id = pid
     rLa(ls).Zeitpunkt = rsEi!Zp
 '    If Int(rLa(ls).Zeitpunkt) = #12/3/2024# Then Stop
     rLa(ls).FertigStGrad = "E" ' ergänzt 26.3.25
@@ -3015,7 +3496,7 @@ sql = sql & labsql & _
   End If ' not ohneLabor
  End If ' not laborlangsam
 '#End If ' not laborlangsam
-  myEFrag "UPDATE namen SET aktzeit=" & Format(aktZeit, "yyyymmddHHMMSS") & " WHERE pat_id=" & rNa(0).Pat_ID, rAf, DBCn, , ErrNr, ErrDes
+  myEFrag "UPDATE namen SET aktzeit=" & Format(aktZeit, "yyyymmddHHMMSS") & " WHERE pat_id=" & rNa(0).Pat_id, rAf, DBCn, , ErrNr, ErrDes
   If rAf = 1 Then
    syscmd 4, "Fertig mit doPatvonMO " & fPtNr & " auf '" & MOCon.Properties("Server Name") & "'"
   Else
@@ -3368,20 +3849,20 @@ Public Sub turichtdiag()
  myFrag rPt, "SELECT COUNT(0) OVER() zahl, FPatnr FROM behgrund/* WHERE FStatus<>3*/ GROUP BY FPatnr ORDER BY FPatnr DESC LIMIT " & limit, adOpenStatic, MOCon
  If Not rPt.BOF Then
   Do While Not rPt.EOF
-   rNa(0).Pat_ID = rPt!FPatNr
+   rNa(0).Pat_id = rPt!FPatNr
    aktz = aktz + 1
 '   myFrag rPid, "SELECT 0 FROM faelle WHERE pat_id=" & rNa(0).Pat_ID & " LIMIT 1", adOpenStatic
 '   If Not rPid.BOF() Then
-    myFrag rPid, "DELETE from diagnosen WHERE pat_id =" & rNa(0).Pat_ID, adOpenStatic, DBCn, adLockReadOnly, , rAf, , ErrNr, ErrDes
-    MODiagnosen rNa(0).Pat_ID
+    myFrag rPid, "DELETE from diagnosen WHERE pat_id =" & rNa(0).Pat_id, adOpenStatic, DBCn, adLockReadOnly, , rAf, , ErrNr, ErrDes
+    MODiagnosen rNa(0).Pat_id
     If UBound(rDi) <> 0 Then
      diagnosenSpeichern True, Lese.dlg.BeziehungsfehlerSpeichern, rAf, True
-     sql = "UPDATE diagnosen d FORCE INDEX (auswahl) LEFT JOIN faelle f FORCE INDEX (auswahl) ON d.Pat_ID=f.pat_id AND d.diagdatum BETWEEN bhfb AND bhfe1 SET d.fid=f.fid WHERE d.pat_id= " & rNa(0).Pat_ID & " ORDER BY diagdatum DESC;"
+     sql = "UPDATE diagnosen d FORCE INDEX (auswahl) LEFT JOIN faelle f FORCE INDEX (auswahl) ON d.Pat_ID=f.pat_id AND d.diagdatum BETWEEN bhfb AND bhfe1 SET d.fid=f.fid WHERE d.pat_id= " & rNa(0).Pat_id & " ORDER BY diagdatum DESC;"
      myEFrag sql, rAf2, DBCn, , ErrNr, ErrDes
      ReDim rDi(0)
     End If
 '    Debug.Print aktz & "/" & rPt!Zahl, rNa(0).Pat_ID, rAf, rAf2
-    Lese.Ausgeb "-> " & aktz & "/" & rPt!Zahl & " " & rNa(0).Pat_ID & " " & rAf & " " & rAf2, 0
+    Lese.Ausgeb "-> " & aktz & "/" & rPt!Zahl & " " & rNa(0).Pat_id & " " & rAf & " " & rAf2, 0
     dzahl = dzahl + rAf2
 '   End If
    rPt.MoveNext
@@ -3499,7 +3980,7 @@ Sub MODiagnosen(fPtNr&, Optional pid&)
    Do While Not rsDi.EOF
     ReDim Preserve rDi(UBound(rDi) + 1)
     rDi(UBound(rDi)).aktZeit = aktZeit
-    rDi(UBound(rDi)).Pat_ID = pid
+    rDi(UBound(rDi)).Pat_id = pid
     rDi(UBound(rDi)).DiagDatum = rsDi!diagdat
     rDi(UBound(rDi)).DiagSicherheit = rsDi!sich
     rDi(UBound(rDi)).DiagText = doUmwfSQL(rsDi!FText, True)
@@ -3546,18 +4027,18 @@ Sub richtleist()
  myFrag rPt, "SELECT COUNT(0) OVER() zahl, FPatnr FROM ltag WHERE FEintragsart=12 GROUP BY FPatnr ORDER BY FPatnr DESC", adOpenStatic, MOCon
  If Not rPt.BOF Then
   Do While Not rPt.EOF
-   rNa(0).Pat_ID = rPt!FPatNr ' 139 ' 59284 ' rPt!fPatNr
+   rNa(0).Pat_id = rPt!FPatNr ' 139 ' 59284 ' rPt!fPatNr
    aktz = aktz + 1
-   myFrag rPid, "SELECT 0 FROM faelle WHERE pat_id=" & rNa(0).Pat_ID & " LIMIT 1", adOpenStatic
+   myFrag rPid, "SELECT 0 FROM faelle WHERE pat_id=" & rNa(0).Pat_id & " LIMIT 1", adOpenStatic
    If Not rPid.BOF() Then
-    MOLeistungen (rNa(0).Pat_ID)
+    MOLeistungen (rNa(0).Pat_id)
      If UBound(rLe) <> 0 Then
       leistungenSpeichern True, Lese.dlg.BeziehungsfehlerSpeichern, rAf
-      sql = "UPDATE leistungen l FORCE INDEX (pid_zp) LEFT JOIN faelle f FORCE INDEX (auswahl) ON l.Pat_ID=f.pat_id AND l.ZeitPunkt BETWEEN bhfb AND bhfe1 SET l.fid=f.fid WHERE l.pat_id= " & rNa(0).Pat_ID & " ORDER BY zeitpunkt DESC;"
+      sql = "UPDATE leistungen l FORCE INDEX (pid_zp) LEFT JOIN faelle f FORCE INDEX (auswahl) ON l.Pat_ID=f.pat_id AND l.ZeitPunkt BETWEEN bhfb AND bhfe1 SET l.fid=f.fid WHERE l.pat_id= " & rNa(0).Pat_id & " ORDER BY zeitpunkt DESC;"
       myEFrag sql, rAf, DBCn, , ErrNr, ErrDes
       ReDim rLe(0)
      End If
-    Debug.Print aktz & "/" & rPt!Zahl, rNa(0).Pat_ID, rAf
+    Debug.Print aktz & "/" & rPt!Zahl, rNa(0).Pat_id, rAf
    End If
    rPt.MoveNext
   Loop
@@ -3651,7 +4132,7 @@ Sub MOLeistungen(fPtNr&, Optional pid& = -1)
          GKT = GKT + 1
          If GKT = 1 Then
           ReDim Preserve rLe(UBound(rLe) + 1)
-          rLe(UBound(rLe)).Pat_ID = pid
+          rLe(UBound(rLe)).Pat_id = pid
           rLe(UBound(rLe)).aktZeit = aktZeit
           rLe(UBound(rLe)).Zeitpunkt = rsEi!Zp
           rLe(UBound(rLe)).QS = ZQSort(rLe(UBound(rLe)).Zeitpunkt)

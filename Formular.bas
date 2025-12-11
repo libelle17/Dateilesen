@@ -12186,7 +12186,7 @@ If LVobMySQL Then
         "GROUP BY pat_id ORDER BY pat_id;"
  Vsql = "SELECT f.*,(SELECT MAX(kateg) FROM kassenliste WHERE id=f.kid) kateg" & vbCrLf & _
         "FROM aktf f" & vbCrLf & _
-        "WHERE quartal = quartal(SUBDATE(NOW(), INTERVAL " & FristS & " DAY)) " & vbCrLf & _
+        "WHERE quartal = quartal(SUBDATE(NOW(), INTERVAL " & FristS & " DAY))" & vbCrLf & _
         "GROUP BY pat_id ORDER BY pat_id;"
  Call DtbCreateQueryDef(VN, Vsql)
  vz = vz + 1
@@ -12198,6 +12198,31 @@ If LVobMySQL Then
  Vsql = "SELECT * FROM aktfvmi WHERE vknr<>71800;"
 '         "AND quartal = quartal(SUBDATE(NOW(), INTERVAL " & fristS & " DAY)) " & _
 
+ Call DtbCreateQueryDef(VN, Vsql)
+ vz = vz + 1
+ 
+ VN = "aktfvz" ' aktuelle Fälle verschieden mit (Quartals-)Zukunft
+ Vsql = _
+ "SELECT * FROM (" & vbCrLf & _
+ " SELECT pat_id,fid,schgr,vknr,ik,goäkatnr,lanrid,quartal,kid" & vbCrLf & _
+ " ,(SELECT MAX(kateg) FROM kassenliste WHERE id=f.kid) kateg" & vbCrLf & _
+ " FROM faelle f" & vbCrLf & _
+ " WHERE" & vbCrLf & _
+ "  bhfb BETWEEN qanf()AND qend()" & vbCrLf & _
+ "  AND schgr<>'90'AND goäkatnr NOT IN ('40','41')" & vbCrLf & _
+ "  AND nachname<>'Bereitschaftsdienst'" & vbCrLf & _
+ "  AND vknr<>71800" & vbCrLf & _
+ " UNION" & vbCrLf & _
+ " SELECT pid,0,COALESCE(schgr,0),COALESCE(vknr,0),COALESCE(ik,0),COALESCE(goäkatnr,0)" & vbCrLf & _
+ " ,COALESCE(lanrid,0),quartal(NOW()),COALESCE(kid,0)" & vbCrLf & _
+ " ,(SELECT MAX(kateg)FROM kassenliste WHERE id=f.kid)kateg" & vbCrLf & _
+ " FROM termine t" & vbCrLf & _
+ " LEFT JOIN faelle f ON f.Pat_ID=t.pid AND fid=(SELECT fid FROM faelle WHERE pat_id=t.pid ORDER BY bhfb DESC,schgr LIMIT 1)" & vbCrLf & _
+ " WHERE zp BETWEEN qanf()AND qend() AND zp BETWEEN NOW()AND qend() AND pid" & vbCrLf & _
+ ")i" & vbCrLf & _
+ "GROUP BY pat_id" & vbCrLf & _
+ "ORDER BY pat_id,fid DESC,schgr" & vbCrLf & _
+ ";"
  Call DtbCreateQueryDef(VN, Vsql)
  vz = vz + 1
  
