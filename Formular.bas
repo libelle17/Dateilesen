@@ -14409,28 +14409,34 @@ sql = "CREATE DEFINER=`praxis`@`%` PROCEDURE `quelle`.`fuellThaP`(IN inpid TEXT)
  For iru = 1 To 5
   Select Case iru
    Case 1, 3, 5
-    sql = sql & " SET sqlt = CONCAT('" & REPLACE$(REPLACE$(REPLACE$(psql(iru), "'", "''"), "inpid=", "',inpid,'="), "(inpid)", "(',inpid,')") & "');" & vbCrLf
+    sql = sql & " SET sqlt = CONCAT('" & REPLACE$(REPLACE$(REPLACE$(REPLACE$(psql(iru), "'", "''"), "\\", "\\\\"), "inpid=", "',inpid,'="), "(inpid)", "(',inpid,')") & "');" & vbCrLf
 '   Case 1
 '    sql = sql & " SET sqlt = CONCAT('" & replace$(replace$(replace$(psql(iru), "'", "''"), "FIND_IN_SET(pat_id,inpid)>0", "pat_id IN (',inpid,')"), " inpid ", " ''',inpid,''' ") & "');" & vbCrLf
 ''    sql = REPLACE(replace$(psql(iru), "FIND_IN_SET(pat_id,inpid)>0", "pat_id IN (" & pids & ")"), "inpid", pids)
 '   Case 3, 5
 '    sql = sql & " SET sqlt = CONCAT('" & replace$(replace$(psql(iru), "'", "''"), "inpid IN('''',''0'') OR FIND_IN_SET(x.pat_id,inpid)>0", " ''',inpid,''' IN ('''',''0'') OR x.pat_id IN (', inpid ,')") & "');" & vbCrLf
-   Case Else
-    sql = sql & " " & REPLACE$(psql(iru), "'", "''") & vbCrLf
+' auskommentiert 28.12.25:
+'   Case Else
+'    sql = sql & " " & REPLACE$(psql(iru), "'", "''") & vbCrLf
   End Select ' case iru
  Select Case iru
   Case 1, 3, 5
-   sql = sql & _
-   " PREPARE stmt FROM sqlt;" & vbCrLf & _
-   " SELECT sqlt;" & vbCrLf & _
-   " EXECUTE stmt;" & vbCrLf
+' auskommentiert 28.12.25:
+'   sql = sql & _
+'   " PREPARE stmt FROM sqlt;" & vbCrLf & _
+'   " SELECT sqlt;" & vbCrLf & _
+'   " EXECUTE stmt;" & vbCrLf
+   sql = sql & " EXECUTE IMMEDIATE sqlt;" & vbCrLf
  End Select ' case iru
  Select Case iru
   Case 2, 4, 5
-   sql = sql & _
-   " DEALLOCATE PREPARE stmt;" & vbCrLf
+' auskommentiert 28.12.25:
+'   sql = sql & _
+'   " DEALLOCATE PREPARE stmt;" & vbCrLf
  End Select ' case iru
 Next iru
+sql = sql & " SET sqlt = CONCAT('SELECT * FROM therarten WHERE(',inpid,'=0 OR pat_id IN (',inpid,'))ORDER BY zp DESC;');" & vbCrLf
+sql = sql & " EXECUTE IMMEDIATE sqlt;" & vbCrLf
  
 #If alt Then
 sql = sql & _

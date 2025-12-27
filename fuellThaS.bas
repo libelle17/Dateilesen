@@ -31,9 +31,29 @@ SELECT RANK() OVER (PARTITION BY pid ORDER BY zp,MPNr) rang, i.* FROM (
  UNION 
   SELECT DISTINCT pat_id pid, zeitpunkt zp, -5 MPNr, zeitpunkt + INTERVAL 180 DAY bis, 'ICT' Thar, CONCAT('/Insulinplan ',zeitpunkt) gru, -2 ia, 1 absPos,1 StByte, 0
   FROM eintraege x WHERE ((@inpid='0' OR x.pat_id IN (@inpid)) AND (art='iplan' AND inhalt LIKE 'Insulinplan Stand: %'))
+ UNION (
+	SELECT i.pat_id pid,i.zeitpunkt zp,-6 MPNr,i.zeitpunkt+INTERVAL 6 MONTH bis
+	,CASE WHEN ian=3 OR ian=1 THEN 'ICT' ELSE 'CT' END Thar
+	,CONCAT('/',GROUP_CONCAT(inh))gru
+	,ian ia,1 absPos,1 StByte,0
+	FROM(
+	SELECT SUM(COALESCE(insart,0))OVER(PARTITION BY eid)ian,i.* FROM(
+	SELECT x.pat_id,zeitpunkt,TRIM(REGEXP_REPLACE(inhalt,'^.*Esss?ensinsulin: *([^B]*)Basalinsulin:.*$','\\1'))inh,x.id eid,ma.insart
+	FROM eintraege x
+	LEFT JOIN medarten ma ON REGEXP_REPLACE(inhalt,'^.*Esss?ensinsulin: *([^ ]*).*$','\\1')=ma.medikament
+	WHERE art='iplan' AND (@inpid='0' OR x.pat_id IN (@inpid)) AND inhalt LIKE 'Insulinplan für%'
+	GROUP BY x.id,insart
+	UNION all
+	SELECT x.pat_id,zeitpunkt,TRIM(REGEXP_REPLACE(inhalt,'^.*Basalinsulin: *([^I]*)Insulin [[]iE.*$','\\1')),x.id,ma.insart
+	FROM eintraege x
+	LEFT JOIN medarten ma ON REGEXP_REPLACE(inhalt,'^.*Basalinsulin: *([^ ]*).*$','\\1')=ma.medikament
+	WHERE art='iplan' AND (@inpid='0' OR x.pat_id IN (@inpid)) AND inhalt LIKE 'Insulinplan für%'
+	GROUP BY x.id,insart
+	)i 
+	)i GROUP BY eid )
  UNION 
-  SELECT DISTINCT pat_id pid, zeitpunkt zp, -6 MPNr, zeitpunkt + INTERVAL 180 DAY bis, 'ICT' Thar, CONCAT('/Insulinplan ',zeitpunkt) gru, -2 ia, 1 absPos,1 StByte, 0
-  FROM eintraege x FORCE INDEX (patid_inhalt) WHERE ((@inpid='0' OR x.pat_id IN (@inpid)) AND ( inhalt='Insulinplan'))
+  SELECT DISTINCT pat_id pid, zeitpunkt zp, -7 MPNr, zeitpunkt + INTERVAL 180 DAY bis, 'ICT' Thar, CONCAT('/Insulinplan ',zeitpunkt) gru, -2 ia, 1 absPos,1 StByte, 0
+  FROM eintraege x FORCE INDEX (patid_inhalt) WHERE (@inpid='0' OR x.pat_id IN (@inpid)) AND inhalt RLIKE '^Insulinplan(?! für)'
   GROUP BY pid, zp) 
  UNION 
 
@@ -68,7 +88,7 @@ SELECT RANK() OVER (PARTITION BY pid ORDER BY zp,MPNr) rang, i.* FROM (
    ,GROUP_CONCAT(DISTINCT gru SEPARATOR '') gru,MAX(ia) ia
   
 	,abspos,stbyte
-	,group_concat(feldnr) feldnr 
+	,GROUP_CONCAT(feldnr) feldnr 
 	
    FROM ( 
     SELECT  Pid,Zp,MPNr,Med
@@ -89,8 +109,8 @@ SELECT RANK() OVER (PARTITION BY pid ORDER BY zp,MPNr) rang, i.* FROM (
       ,IF(ez,ez,wglp&&ohneE) eztm 
      FROM ( 
       SELECT x.Pat_id pid,x.Zeitpunkt Zp,x.MPNr MPNr,x.Medikament Med,ma.puzu<>0 pu 
-       ,MAX((COALESCE(x.mo,'')<>'')+(COALESCE(x.mi,'')<>'')+(COALESCE(x.nm,'')<>'')+(COALESCE(x.ab,'')<>'')+(COALESCE(x.zn,'')<>'')+IF(glp1<>0 AND x.Medanfang RLIKE 'OZEMPIC|TRULICITY|bydureon|victoza|mounjaro',1,0)) ez 
-       ,glp1<>0 AND x.MedAnfang RLIKE 'OZEMPIC|TRULICITY|bydureon|victoza|mounjaro' wglp 
+       ,MAX((COALESCE(x.mo,'')<>'')+(COALESCE(x.mi,'')<>'')+(COALESCE(x.nm,'')<>'')+(COALESCE(x.ab,'')<>'')+(COALESCE(x.zn,'')<>'')+IF(glp1<>0 AND x.Medanfang RLIKE 'OZEMPIC|TRULICITY|bydureon|Byetta|victoza|Liraglutid|mounjaro',1,0)) ez 
+       ,glp1<>0 AND x.MedAnfang RLIKE 'OZEMPIC|TRULICITY|bydureon|Byetta|victoza|Liraglutid|mounjaro' wglp 
        ,pzn<>0 AND concat(x.Bemerkung,' ',x.Grund) NOT RLIKE 'Pause|abgesetzt|beendet|zur Zeit nicht' ohneE 
        ,ma.glib<>0 OR ma.metf<>0 OR ma.gluci<>0 OR ma.shglin<>0 OR ma.dpp4<>0 OR ma.sglt2<>0 OR ma.sonstad<>0 oad 
        ,glp1<>0 glp 
