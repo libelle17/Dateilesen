@@ -273,6 +273,7 @@ Dim Cn As ADODB.Connection
 ' alte löschen
  
 ' Prüfen, ob Termine gespeichert wurden und mit dem C-Programm "termine" (auf <LiName>) ausgelesen wurden
+ plzVerz = phpV
  If Lese.MOBetr <> 0 Then
   obausdb = True
  Else
@@ -685,10 +686,14 @@ Public Function mplan(pid&)
    ru = 0
    ReDim mdpl(mpz - 1)
 '            "WHERE mp.pat_id = " & PID & ""
-   myFrag rTh, "SELECT mp.*,ma.metf,ma.sglt2 FROM wmedplan mp " & _
+'   myFrag rTh, "SELECT mp.*,ma.metf,ma.sglt2 FROM wmedplan mp " & _
             "LEFT JOIN medarten ma ON ma.medikament=mp.medanfang " & _
             "WHERE mp.pat_id = " & pid & " AND mp.zeitpunkt=(SELECT MAX(zeitpunkt) FROM wmedplan WHERE pat_id=" & pid & ")"
 '           "WHERE mp.pat_id = " & Pid & " AND mpnr=(SELECT MAX(mpnr) FROM medplan mpi WHERE pat_id=mp.pat_id AND zeitpunkt=(SELECT MAX(zeitpunkt) FROM medplan WHERE pat_id=mp.pat_id))"
+' 27.12.25:
+   myFrag rTh, "SELECT mp.*,ma.metf,ma.sglt2 FROM lmp mp " & _
+            "LEFT JOIN medarten ma ON ma.medikament=mp.medanfang " & _
+            "WHERE mp.pat_id = " & pid
    Do While Not rTh.EOF
     mdpl(ru).m.ab = rTh!ab
     mdpl(ru).m.absPos = rTh!absPos
@@ -2200,9 +2205,9 @@ sql0 = _
      Else
       AusS.AppVar Array("  <th></th><th></th>", vbCrLf)
      End If
-    Else
+    Else ' obDiagnosen Then
      AusS.AppVar Array("  <th></th><th></th>", vbCrLf)
-    End If
+    End If ' obDiagnosen Then Else
     AusS.AppVar Array("  <th bgcolor=""#DDDDDD""></th>", vbCrLf)
     
     If obmed Then
@@ -2319,6 +2324,7 @@ sql0 = _
     Open DateiNameAkt For Output As #355
    End If
    If Err.Number = 0 Then Exit For
+   If i = 100 Then MsgBox "Fehler beim Erstrellen der Datei " & DateiNameAkt
   Next i
   On Error GoTo fehler
   m = 39: TI(m) = Timer: For p = 0 To m - 1: TI(m) = TI(m) - TI(p): Next p

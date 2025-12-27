@@ -304,8 +304,8 @@ Private Sub DateiBearbeiten_Click()
     If IsNumeric(pat_idS) Then
      Lese.Aktion = Briefschreiben
      Call tuBriefStandalone(CLng(pat_idS), True, pVerz & "unkorrigiert\", , , , , , , True)
-    End If
-   Loop
+    End If ' IsNumeric(pat_idS) Then
+   Loop ' While Not EOF(394)
    Close #394
   Case 0, 2
 ' Do While Conn = ""

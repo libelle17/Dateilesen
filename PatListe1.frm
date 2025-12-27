@@ -969,7 +969,7 @@ End Sub ' Command1_Click(Index As Integer)
 Sub farberklärung()
 'Shell uverz & "programmierung\Dateilesen\LaborFarblegende.htm", vbNormalFocus
 Dim Result&
-Result = ShellExecute(Me.hwnd, "Open", uVerz & "Programmierung\Dateilesen\LaborFarblegende.htm", "", App.path, 1)
+Result = ShellExecute(Me.hwnd, "Open", QuellVerz & "LaborFarblegende.htm", "", App.path, 1)
 #If False Then
  Dim fI As New FürIcon
  fI.Height = 16000
@@ -3289,12 +3289,19 @@ End Sub ' ExcelLesen
 Sub LaborTagAnzeig()
  Dim rs As New ADODB.Recordset, sql$, i%
 ' sql = "SELECT date_format(zp,'%W, %d.%m.%Y','de_DE') tag,IF(hang,' ','X')hang,IF(kang,' ','X')kang,IF(sang,' ','X')sang FROM laborydat GROUP BY DATE(zp) DESC LIMIT " & tiefe
-sql = _
+'sql = _
 "SELECT COUNT(0)OVER()zahl,tag,hang,kang,sang FROM (" & vbCrLf & _
 "SELECT zp,DATE_FORMAT(zp,'%W, %d.%m.%Y','de_DE')tag,IF(hang,' ','X')hang,IF(kang,' ','X')kang,IF(sang,' ','X')sang" & vbCrLf & _
 " FROM laborydat" & vbCrLf & _
 " WHERE zp>20250318" & vbCrLf & _
 " GROUP BY DATE(zp)" & vbCrLf & _
+")i ORDER BY zp DESC"
+sql = _
+"SELECT COUNT(0)OVER()zahl,tag,hang,kang,sang FROM (" & vbCrLf & _
+"SELECT IF(dateidat=0,zp,dateidat)zp,DATE_FORMAT(IF(dateidat=0,zp,dateidat),'%W, %d.%m.%Y','de_DE')tag,IF(hang,' ','X')hang,IF(kang,' ','X')kang,IF(sang,' ','X')sang" & vbCrLf & _
+" FROM laborydat" & vbCrLf & _
+" WHERE IF(dateidat=0,zp,dateidat)>20250318" & vbCrLf & _
+" GROUP BY DATE(IF(dateidat=0,zp,dateidat))" & vbCrLf & _
 ")i ORDER BY zp DESC"
  On Error GoTo fehler
  With Me.MFG

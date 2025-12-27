@@ -1619,6 +1619,7 @@ If True Then ' lwZahl
 '  END IF
   Dim lG As labtyp
   lG = letztGFR(pid, PAlter, IIf(aktDC.geschlecht = "w", -1, 0))
+  lG.WertSg = REPLACE$(lG.WertSg, "<", "")
   aktDC.eGFR = IIf(lG.WertSg = "", 200, lG.WertSg)
   aktDC.x_DMPeGFR = IIf(aktDC.eGFR, aktDC.eGFR & " " & lG.Einheit & " (" + Format$(lG.Zp, "dd/mm/yy") + ")", "nicht vorliegend") ', oberer Normwert: 1,3 mg/dl"
  End If ' aktdc.ab315 THEN
@@ -4263,7 +4264,7 @@ Public Function do_DMPAusgebStandAlone(Pat_ID&, Optional fax1$, Optional Adressa
  Call DMPString$(Pat_ID, DT, , True, , False)
 ' robocopy geht nicht, stellt nicht alle Unterverzeichnisse her, behauptet dann, sie seien schon da
 ' oSh.rUn "robocopy """ & uVerz & "programmierung\dateilesen\zudocx\\"" """ & pVerz & "zufaxen\" & uvz & "neu"" /s /copy:dat /r:3 /w:2", 0, True
- oSh.rUn "xcopy """ & uVerz & "programmierung\dateilesen\zudocx\*.*"" """ & pVerz & "zufaxen\" & uvz & "neu\"" /s /d /k /y /h /r /c", 0, True
+ oSh.rUn "xcopy """ & QuellVerz & "zudocx\*.*"" """ & pVerz & "zufaxen\" & uvz & "neu\"" /s /d /k /y /h /r /c", 0, True
  If FSO.FileExists(dxml) Then Kill dxml
  ag.Append "<w:document xmlns:o=""urn:schemas-microsoft-com:office:office"" xmlns:r=""http://schemas.openxmlformats.org/officeDocument/2006/relationships"" xmlns:v=""urn:schemas-microsoft-com:vml"" xmlns:w=""http://schemas.openxmlformats.org/wordprocessingml/2006/main"" xmlns:w10=""urn:schemas-microsoft-com:office:word"" xmlns:wp=""http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing"" xmlns:wps=""http://schemas.microsoft.com/office/word/2010/wordprocessingShape"" xmlns:wpg=""http://schemas.microsoft.com/office/word/2010/wordprocessingGroup"" xmlns:mc=""http://schemas.openxmlformats.org/markup-compatibility/2006"" xmlns:wp14=""http://schemas.microsoft.com/office/word/2010/wordprocessingDrawing"" xmlns:w14=""http://schemas.microsoft.com/office/word/2010/wordml"" xmlns:w15=""http://schemas.microsoft.com/office/word/2012/wordml"" mc:Ignorable=""w14 wp14 w15""><w:body><w:p><w:pPr><w:pStyle w:val=""Heading1""/><w:tabs><w:tab w:val=""clear"" w:pos=""1701""/>"
  ag.Append "<w:tab w:val=""left"" w:pos=""3118"" w:leader=""dot""/></w:tabs><w:ind w:hanging=""400"" w:left=""400"" w:right=""0""/><w:rPr/></w:pPr><w:r><w:rPr><w:rFonts w:cs=""Arial"" w:ascii=""Arial"" w:hAnsi=""Arial""/><w:sz w:val=""20""/></w:rPr><w:t>Diabetol. Gemeins'praxis Dachau</w:t></w:r><w:r><w:rPr><w:rFonts w:cs=""Arial"" w:ascii=""Arial"" w:hAnsi=""Arial""/><w:b w:val=""false""/><w:sz w:val=""20""/></w:rPr><w:t>, G.Schade, Dr.T.Kothny</w:t><w:tab/><w:t>Tel. 08131 616380, Fax 616381"

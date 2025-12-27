@@ -747,7 +747,10 @@ End Function ' stzk
 ' in Übertragung_aus_MO_Click, zeigmosystem, doPatvonMO
 Public Function MOConInit(Optional MServ$, Optional anzeige$)
   On Error GoTo fehler
-  If MServ = "" Then MServ = Lese.MOServer
+  If MServ = "" Then
+    If Lese.MOServer = "" Then Lese.MOServer = InputBox("Bitte geben Sie den MOServer ein:", "MoServereingabe")
+    MServ = Lese.MOServer
+  End If
   syscmd 4, anzeige & IIf(anzeige = "", "", ", ") & "öffne Verbindung zur Medical Office-Datenbank ..."
   If MOCon Is Nothing Or MOCon = "" Then MOCon.Open MOAnfStr & MServ
   syscmd 4, anzeige & " ..."
@@ -1004,7 +1007,7 @@ Public Sub doNotizen(Optional fPtNr& = 0, Optional mitSpeichern% = True)
  Dim ErrNr&, ErrDes$
  If SafeArrayGetDim(rNa) = 0 Then
   ReDim rNa(0)
-  rNa(0).Pat_id = fPtNr
+  rNa(0).Pat_ID = fPtNr
  End If
  Call MOConInit(, "doNotzizen(" & fPtNr & "," & CStr(mitSpeichern) & ")")
 ' Dim rNa() As namen
@@ -1253,7 +1256,7 @@ abermals:
   aDesk(UBound(aDesk)).IDS = rdesk!IDS
   aDesk(UBound(aDesk)).noteBkColor = rdesk!noteBkColor
   aDesk(UBound(aDesk)).noteFgColor = rdesk!noteFgColor
-  aDesk(UBound(aDesk)).Pat_id = pid
+  aDesk(UBound(aDesk)).Pat_ID = pid
   aDesk(UBound(aDesk)).positionBottom = rdesk!positionBottom
   aDesk(UBound(aDesk)).positionLeft = rdesk!positionLeft
   aDesk(UBound(aDesk)).positionRight = rdesk!positionRight
@@ -1346,7 +1349,7 @@ abermals:
  rsNa.Open sql, MOCon, adOpenStatic, adLockReadOnly
  If Not rsNa.BOF Then
   rNa(0).aktZeit = 0 ' aktZeit ' erst am Schluss, s.u.
-  rNa(0).Pat_id = pid ' = fPtNr
+  rNa(0).Pat_ID = pid ' = fPtNr
   rNa(0).TM_Pat_ID = TMPid(pid) ' 6.4.25
   rNa(0).lfdnr = -1 ' Import aus MO
   rNa(0).Nachname = doUmwfSQL(rsNa!fnachname, True)
@@ -1460,7 +1463,7 @@ abermals:
     ReDim Preserve rFa(UBound(rFa) + 1)
     rFa(UBound(rFa)).aktZeit = aktZeit
     rFa(UBound(rFa)).lfdnr = lfdfl
-    rFa(UBound(rFa)).Pat_id = pid
+    rFa(UBound(rFa)).Pat_ID = pid
     rFa(UBound(rFa)).AbrAr = ""
     rFa(UBound(rFa)).VermiArt = 0
     rFa(UBound(rFa)).bPerG = "0"
@@ -1801,7 +1804,7 @@ m105:
    For j = 0 To UBound(NaStr)
     If NaStr(j).ENr Like "21.*" And NaStr(j).ENr <> "21.1" Then
      ReDim Preserve rSw(UBound(rSw) + 1)
-     rSw(UBound(rSw)).Pat_id = pid
+     rSw(UBound(rSw)).Pat_ID = pid
      rSw(UBound(rSw)).FormTitel = "ssd"
      rSw(UBound(rSw)).vorET = stzk(NaStr(j).Text)
      rSw(UBound(rSw)).lR = rSw(UBound(rSw)).vorET - 280
@@ -2534,14 +2537,14 @@ sql = sql & _
        DokuDatum = CDate(rsEi!Zp)
     
        For ij = 1 To UBound(rDm) ' um dem eindeutigen Index gerecht zu werden
-        If rDm(ij).Pat_id = pid And rDm(ij).DMPArt = DMPArt And rDm(ij).DokuDatum = DokuDatum Then
+        If rDm(ij).Pat_ID = pid And rDm(ij).DMPArt = DMPArt And rDm(ij).DokuDatum = DokuDatum Then
          rj = ij
          GoTo gefunden
         End If
        Next ij
        rj = UBound(rDm) + 1
        ReDim Preserve rDm(rj)
-       rDm(rj).Pat_id = pid
+       rDm(rj).Pat_ID = pid
        rDm(rj).DMPArt = DMPArt
        rDm(rj).DokuDatum = DokuDatum
 gefunden:
@@ -2576,7 +2579,7 @@ gefunden:
     ElseIf rsEi!obRezE Then ' Rezepteintrag
      ReDim Preserve rRe(UBound(rRe) + 1)
      rRe(UBound(rRe)).aktZeit = aktZeit
-     rRe(UBound(rRe)).Pat_id = pid
+     rRe(UBound(rRe)).Pat_ID = pid
      rRe(UBound(rRe)).Zeitpunkt = rsEi!Zp
      rRe(UBound(rRe)).Medikament = doUmwfSQL(rsEi!Med, True)
      rRe(UBound(rRe)).PZN = rsEi!PZN
@@ -2636,7 +2639,7 @@ gefunden:
     Select Case rsEi!lFE
      Case 21 ' Krankenhauseinweisung
       ReDim Preserve rKh(UBound(rKh) + 1)
-      rKh(UBound(rKh)).Pat_id = pid
+      rKh(UBound(rKh)).Pat_ID = pid
       rKh(UBound(rKh)).Zeitpunkt = rsEi!Zp
       rKh(UBound(rKh)).aktZeit = aktZeit
       For j = 0 To UBound(FMem)
@@ -2717,7 +2720,7 @@ fgefunden:
       ReDim Preserve rFr(UBound(rFr) + 1)
       rFr(UBound(rFr)).aktZeit = aktZeit
       rFr(UBound(rFr)).Form_ID = lFormID '-lFormID ' negative Speicherung, da der Wert noch nach der Datenbankspeicherung von rFo angepaßt werden muss
-      rFr(UBound(rFr)).Pat_id = pid
+      rFr(UBound(rFr)).Pat_ID = pid
       rFr(UBound(rFr)).Zeitpunkt = rsEi!Zp
 '      rFr(UBound(rFr)).lanrid = IIf(rsEi!FLstgerbnr = 3, 2, 1) ' 2 = Schade, 3 = Kothny
       Select Case rsEi!FLstgerbnr
@@ -2780,7 +2783,7 @@ fgefunden:
    Do While Not rsEi.EOF
 ' Typ As String 'Typ varchar '
     ReDim Preserve rBr(UBound(rBr) + 1)
-    rBr(UBound(rBr)).Pat_id = pid
+    rBr(UBound(rBr)).Pat_ID = pid
     rBr(UBound(rBr)).aktZeit = aktZeit
     rBr(UBound(rBr)).Zeitpunkt = rsEi!Zp
     rBr(UBound(rBr)).name = doUmwfSQL(rsEi!EName, True)
@@ -2810,7 +2813,7 @@ fgefunden:
    Do While Not rsEi.EOF
     If altlFSur <> rsEi!FDosierplannr Then MPNr = MPNr + 1: Fldnr = 1 Else Fldnr = Fldnr + 1
     ReDim Preserve rMe(UBound(rMe) + 1)
-    rMe(UBound(rMe)).Pat_id = pid
+    rMe(UBound(rMe)).Pat_ID = pid
     rMe(UBound(rMe)).Nutzer = rsEi!ua
     rMe(UBound(rMe)).aktZeit = aktZeit
     rMe(UBound(rMe)).Zeitpunkt = rsEi!Zp
@@ -2882,7 +2885,7 @@ fgefunden:
    Do While Not rsEi.EOF
     ReDim Preserve rAu(UBound(rAu) + 1)
     rAu(UBound(rAu)).aktZeit = aktZeit
-    rAu(UBound(rAu)).Pat_id = pid
+    rAu(UBound(rAu)).Pat_ID = pid
     rAu(UBound(rAu)).Zeitpunkt = rsEi!Zp ' rsEi!anzp ' 29.6.25 korrigiert
     rAu(UBound(rAu)).Ersteller = rsEi!ua
     rAu(UBound(rAu)).Änderer = rsEi!ub
@@ -2949,7 +2952,7 @@ fgefunden:
   "LEFT JOIN nutzerneu nb ON FAusfnutzernr = nb.FSurogat" & vbCrLf & _
   "WHERE FPatnr = " & fPtNr & vbCrLf & _
   " AND ((FEintragsart=5 AND FStatus=0) OR FEintragsart IN (8,9,10,11,151) OR FEintragsart>1000)" & vbCrLf & _
-  "-- AND REGEXP_REPLACE(FICdcode,'(\w+)#\1','\1') IN ('RR','RRVGL')" & vbCrLf & _
+  "/* AND REGEXP_REPLACE(FICdcode,'(\w+)#\1','\1') IN ('RR','RRVGL')*/" & vbCrLf & _
   " AND FBehgrundnr<=0"
 ' FEintragsart>1000 sind die selbst definierten Kategorien in mosystem
   myFrag rsEi, sql, adOpenStatic, MOCon ' Einträge
@@ -2962,11 +2965,12 @@ fgefunden:
     art = rsEi!art
     neuart = 0
 '    If rsEi!FEintragsart = 1129 Then Stop
-'    If rsEi!FEintragsart = 1105 Then Stop
+'    If rsEi!FEintragsart = 1105 Then Stop => art ti => kommt in namen.notiz
 '    If rsEi!FEintragsart = 1058 Then Stop ' andm2
     If art = "" Then ' bei Kategorien die art aus mosystem holen
      Set EintS = New SortierEintr
      EintS.TypNr = rsEi!FEintragsart
+'     If rsEi!FDet Like "Schilddrüse: re Lappen 2,5 ml,*" Then Stop
      Set EintS = EinL.GetItem(EintS)
      If Not EintS Is Nothing Then
       art = EintS.art
@@ -3010,14 +3014,14 @@ fgefunden:
        rNa(0).notiz = IIf(rNa(0).notiz = "", "", rNa(0).notiz & vbCrLf) & UmwfSQL(REPLACE$(REPLACE$(rsEi!FDet, "\n", ""), "\r", vbCrLf))
      Case "ICON" ' Desktop-Notiz
       ReDim Preserve rDe(UBound(rDe) + 1)
-      rDe(UBound(rDe)).Pat_id = pid
+      rDe(UBound(rDe)).Pat_ID = pid
       rDe(UBound(rDe)).aktZeit = aktZeit
       rDe(UBound(rDe)).Titel = UmwfSQL(rsEi!FDet)
       rDe(UBound(rDe)).erstZP = rsEi!Zp
       If SafeArrayGetDim(aDesk) <> 0 Then
        Dim k&
        For k = 0 To UBound(aDesk)
-        If pid = aDesk(k).Pat_id And Format$(rDe(UBound(rDe)).erstZP, "yyyymmddhhmm") = Format$(aDesk(k).erstZP, "yyyymmddhhmm") Then
+        If pid = aDesk(k).Pat_ID And Format$(rDe(UBound(rDe)).erstZP, "yyyymmddhhmm") = Format$(aDesk(k).erstZP, "yyyymmddhhmm") Then
 '        And InStrB(rDe(UBound(rDe)).Titel, aDesk(k).Titel) <> 0 Then
          rDe(UBound(rDe)).absPos = aDesk(k).absPos
          rDe(UBound(rDe)).erstZP = aDesk(k).erstZP
@@ -3092,19 +3096,19 @@ fgefunden:
        End Select
        
        For ij = 1 To UBound(rDm) ' um dem eindeutigen Index gerecht zu werden
-        If rDm(ij).Pat_id = pid And rDm(ij).DMPArt = DMPArt And rDm(ij).DokuDatum = messDatum Then
+        If rDm(ij).Pat_ID = pid And rDm(ij).DMPArt = DMPArt And rDm(ij).DokuDatum = messDatum Then
          rj = ij
          GoTo gef2
         End If
        Next ij
        rj = UBound(rDm) + 1
        ReDim Preserve rDm(rj)
-       rDm(rj).Pat_id = pid
+       rDm(rj).Pat_ID = pid
        rDm(rj).DMPArt = DMPArt
        rDm(rj).DokuDatum = messDatum
 gef2:
        rDm(rj).aktZeit = aktZeit
-       rDm(rj).Pat_id = pid
+       rDm(rj).Pat_ID = pid
        
        If rsEi!FIcdcode Like "*dmp*" And rsEi!FIcdcode <> "DMPERG" Then
 '        Debug.Print rsEi!ficdcode, rsEi!Wert
@@ -3146,7 +3150,7 @@ gef2:
       ' Einträge
        ReDim Preserve rEi(UBound(rEi) + 1)
        rEi(UBound(rEi)).aktZeit = aktZeit
-       rEi(UBound(rEi)).Pat_id = pid
+       rEi(UBound(rEi)).Pat_ID = pid
        rEi(UBound(rEi)).Zeitpunkt = messDatum
        rEi(UBound(rEi)).QS = ZQSort(rEi(UBound(rEi)).Zeitpunkt)
        rEi(UBound(rEi)).QT = ZQuart(rEi(UBound(rEi)).Zeitpunkt)
@@ -3219,7 +3223,7 @@ gef2:
   If Not rsEi.BOF Then
    Do While Not rsEi.EOF
     ReDim Preserve rDe(UBound(rDe) + 1)
-    rDe(UBound(rDe)).Pat_id = pid
+    rDe(UBound(rDe)).Pat_ID = pid
     rDe(UBound(rDe)).erstZP = rsEi!Datum
     rDe(UBound(rDe)).Titel = doUmwfSQL(rsEi!FText, True)
     If rsEi!fm <> "" Then
@@ -3335,7 +3339,7 @@ LaborLangsam:
    Do While Not rsEi.EOF
     Dim ls&
     ReDim Preserve rLa(UBound(rLa) + 1): ls = UBound(rLa)
-    rLa(ls).Pat_id = pid
+    rLa(ls).Pat_ID = pid
     rLa(ls).Zeitpunkt = rsEi!Zp
 '    If Int(rLa(ls).Zeitpunkt) = #12/3/2024# Then Stop
     rLa(ls).FertigStGrad = "E" ' ergänzt 26.3.25
@@ -3496,7 +3500,7 @@ sql = sql & labsql & _
   End If ' not ohneLabor
  End If ' not laborlangsam
 '#End If ' not laborlangsam
-  myEFrag "UPDATE namen SET aktzeit=" & Format(aktZeit, "yyyymmddHHMMSS") & " WHERE pat_id=" & rNa(0).Pat_id, rAf, DBCn, , ErrNr, ErrDes
+  myEFrag "UPDATE namen SET aktzeit=" & Format(aktZeit, "yyyymmddHHMMSS") & " WHERE pat_id=" & rNa(0).Pat_ID, rAf, DBCn, , ErrNr, ErrDes
   If rAf = 1 Then
    syscmd 4, "Fertig mit doPatvonMO " & fPtNr & " auf '" & MOCon.Properties("Server Name") & "'"
   Else
@@ -3849,20 +3853,20 @@ Public Sub turichtdiag()
  myFrag rPt, "SELECT COUNT(0) OVER() zahl, FPatnr FROM behgrund/* WHERE FStatus<>3*/ GROUP BY FPatnr ORDER BY FPatnr DESC LIMIT " & limit, adOpenStatic, MOCon
  If Not rPt.BOF Then
   Do While Not rPt.EOF
-   rNa(0).Pat_id = rPt!FPatNr
+   rNa(0).Pat_ID = rPt!FPatNr
    aktz = aktz + 1
 '   myFrag rPid, "SELECT 0 FROM faelle WHERE pat_id=" & rNa(0).Pat_ID & " LIMIT 1", adOpenStatic
 '   If Not rPid.BOF() Then
-    myFrag rPid, "DELETE from diagnosen WHERE pat_id =" & rNa(0).Pat_id, adOpenStatic, DBCn, adLockReadOnly, , rAf, , ErrNr, ErrDes
-    MODiagnosen rNa(0).Pat_id
+    myFrag rPid, "DELETE from diagnosen WHERE pat_id =" & rNa(0).Pat_ID, adOpenStatic, DBCn, adLockReadOnly, , rAf, , ErrNr, ErrDes
+    MODiagnosen rNa(0).Pat_ID
     If UBound(rDi) <> 0 Then
      diagnosenSpeichern True, Lese.dlg.BeziehungsfehlerSpeichern, rAf, True
-     sql = "UPDATE diagnosen d FORCE INDEX (auswahl) LEFT JOIN faelle f FORCE INDEX (auswahl) ON d.Pat_ID=f.pat_id AND d.diagdatum BETWEEN bhfb AND bhfe1 SET d.fid=f.fid WHERE d.pat_id= " & rNa(0).Pat_id & " ORDER BY diagdatum DESC;"
+     sql = "UPDATE diagnosen d FORCE INDEX (auswahl) LEFT JOIN faelle f FORCE INDEX (auswahl) ON d.Pat_ID=f.pat_id AND d.diagdatum BETWEEN bhfb AND bhfe1 SET d.fid=f.fid WHERE d.pat_id= " & rNa(0).Pat_ID & " ORDER BY diagdatum DESC;"
      myEFrag sql, rAf2, DBCn, , ErrNr, ErrDes
      ReDim rDi(0)
     End If
 '    Debug.Print aktz & "/" & rPt!Zahl, rNa(0).Pat_ID, rAf, rAf2
-    Lese.Ausgeb "-> " & aktz & "/" & rPt!Zahl & " " & rNa(0).Pat_id & " " & rAf & " " & rAf2, 0
+    Lese.Ausgeb "-> " & aktz & "/" & rPt!Zahl & " " & rNa(0).Pat_ID & " " & rAf & " " & rAf2, 0
     dzahl = dzahl + rAf2
 '   End If
    rPt.MoveNext
@@ -3980,7 +3984,7 @@ Sub MODiagnosen(fPtNr&, Optional pid&)
    Do While Not rsDi.EOF
     ReDim Preserve rDi(UBound(rDi) + 1)
     rDi(UBound(rDi)).aktZeit = aktZeit
-    rDi(UBound(rDi)).Pat_id = pid
+    rDi(UBound(rDi)).Pat_ID = pid
     rDi(UBound(rDi)).DiagDatum = rsDi!diagdat
     rDi(UBound(rDi)).DiagSicherheit = rsDi!sich
     rDi(UBound(rDi)).DiagText = doUmwfSQL(rsDi!FText, True)
@@ -4027,18 +4031,18 @@ Sub richtleist()
  myFrag rPt, "SELECT COUNT(0) OVER() zahl, FPatnr FROM ltag WHERE FEintragsart=12 GROUP BY FPatnr ORDER BY FPatnr DESC", adOpenStatic, MOCon
  If Not rPt.BOF Then
   Do While Not rPt.EOF
-   rNa(0).Pat_id = rPt!FPatNr ' 139 ' 59284 ' rPt!fPatNr
+   rNa(0).Pat_ID = rPt!FPatNr ' 139 ' 59284 ' rPt!fPatNr
    aktz = aktz + 1
-   myFrag rPid, "SELECT 0 FROM faelle WHERE pat_id=" & rNa(0).Pat_id & " LIMIT 1", adOpenStatic
+   myFrag rPid, "SELECT 0 FROM faelle WHERE pat_id=" & rNa(0).Pat_ID & " LIMIT 1", adOpenStatic
    If Not rPid.BOF() Then
-    MOLeistungen (rNa(0).Pat_id)
+    MOLeistungen (rNa(0).Pat_ID)
      If UBound(rLe) <> 0 Then
       leistungenSpeichern True, Lese.dlg.BeziehungsfehlerSpeichern, rAf
-      sql = "UPDATE leistungen l FORCE INDEX (pid_zp) LEFT JOIN faelle f FORCE INDEX (auswahl) ON l.Pat_ID=f.pat_id AND l.ZeitPunkt BETWEEN bhfb AND bhfe1 SET l.fid=f.fid WHERE l.pat_id= " & rNa(0).Pat_id & " ORDER BY zeitpunkt DESC;"
+      sql = "UPDATE leistungen l FORCE INDEX (pid_zp) LEFT JOIN faelle f FORCE INDEX (auswahl) ON l.Pat_ID=f.pat_id AND l.ZeitPunkt BETWEEN bhfb AND bhfe1 SET l.fid=f.fid WHERE l.pat_id= " & rNa(0).Pat_ID & " ORDER BY zeitpunkt DESC;"
       myEFrag sql, rAf, DBCn, , ErrNr, ErrDes
       ReDim rLe(0)
      End If
-    Debug.Print aktz & "/" & rPt!Zahl, rNa(0).Pat_id, rAf
+    Debug.Print aktz & "/" & rPt!Zahl, rNa(0).Pat_ID, rAf
    End If
    rPt.MoveNext
   Loop
@@ -4132,7 +4136,7 @@ Sub MOLeistungen(fPtNr&, Optional pid& = -1)
          GKT = GKT + 1
          If GKT = 1 Then
           ReDim Preserve rLe(UBound(rLe) + 1)
-          rLe(UBound(rLe)).Pat_id = pid
+          rLe(UBound(rLe)).Pat_ID = pid
           rLe(UBound(rLe)).aktZeit = aktZeit
           rLe(UBound(rLe)).Zeitpunkt = rsEi!Zp
           rLe(UBound(rLe)).QS = ZQSort(rLe(UBound(rLe)).Zeitpunkt)
@@ -4402,6 +4406,7 @@ Public Function suchfi(pNr&, fI$, notObRlike%, MServ$)
  
  rst.Open "SELECT c.TABLE_NAME tn, c.COLUMN_NAME cn -- , a.column_name cn" & vbCrLf & _
           "FROM information_schema.columns c" & vbCrLf & _
+          "JOIN information_schema.tables t ON t.table_catalog=c.table_catalog AND t.table_schema=c.table_schema AND t.table_name=c.table_name AND t.table_type='BASE TABLE'" & vbCrLf & _
           "-- LEFT JOIN information_schema.columns a ON c.TABLE_CATALOG=a.TABLE_CATALOG AND c.TABLE_SCHEMA=a.TABLE_SCHEMA AND c.table_name=a.TABLE_NAME" & vbCrLf & _
           "WHERE c.table_catalog='def' AND c.table_schema='medoff' AND (c.COLUMN_NAME IN ('fpatnr','patnr','fpatid') OR (c.TABLE_NAME='patstamm' AND c.COLUMN_NAME='fsurogat')) GROUP BY c.table_name ORDER BY c.table_name", MOCon, adOpenStatic, adLockReadOnly
  Do While Not rst.EOF
@@ -4420,12 +4425,16 @@ Public Function suchfi(pNr&, fI$, notObRlike%, MServ$)
 '      If CStr(rsu.Fields(i)) = fI Then
       If (notObRlike <> 0 And LCase$(CStr(rsu.Fields(i))) = LCase$(fI)) Or (notObRlike = 0 And InStrB(LCase$(rsu.Fields(i)), LCase$(fI))) <> 0 Then
        ausgTNr = ausgTNr + 1
-       ausgStr = "Tb.: " & rst!tn & ", " & fn & ": " & rsu.Fields(fn) & ", " & rsu.Fields(i).name & ": " & REPLACE$(REPLACE$(rsu.Fields(i), Chr(10), ""), Chr(13), "<nl>")
+       ausgStr = "Tb.: " & rst!tn & ", " & fn & ": "
+       If fn <> "" Then ausgStr = ausgStr & rsu.Fields(fn) & ", " & rsu.Fields(i).name & ": " & REPLACE$(REPLACE$(rsu.Fields(i), Chr(10), ""), Chr(13), "<nl>")
        Debug.Print ausgStr
 '       Print #220, IIf(ausgTNr <> 1, vbCrLf, "") & ausgStr
         Print #220, ausgStr
 '       Call moausgeb(MOCon, rst!Tn, False, "`" & rst!Cn & "`=" & pNr)
-       Call moausgeb(MOCon, rst!tn, False, "`" & fn & "`=" & rsu.Fields(fn))
+       Dim moausg$
+       moausg = "`" & fn & "`="
+       If fn <> "" Then moausg = moausg & rsu.Fields(fn)
+       Call moausgeb(MOCon, rst!tn, False, moausg)
        gefu = True
        GoTo weiter
       End If ' InStrB(LCase$(rsu.Fields(i)), LCase$(fI)) <> 0 Then

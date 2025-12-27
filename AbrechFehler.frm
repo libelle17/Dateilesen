@@ -1952,7 +1952,7 @@ sql(AWlf) = "" & vbCrLf & _
 "  , (SELECT COUNT(DISTINCT kateg) FROM kassenliste kal WHERE kal.id=f.kid) KategZahl " & vbCrLf & _
 "  , (SELECT GROUP_CONCAT(CONCAT(kateg,IF(ISNULL(pid),'',CONCAT('(',pid,')')))) " & vbCrLf & _
 " FROM kassenliste kal WHERE kal.id=f.kid) Kategn " & vbCrLf & _
-" FROM aktfvz f " & vbCrLf & _
+" FROM aktfv f " & vbCrLf & _
 ") i " & vbCrLf & _
 "WHERE i.KategZahl<>1 OR i.kateg='' OR ISNULL(i.kateg);"
  mins(AWlf) = 7
@@ -2234,8 +2234,8 @@ AwN(AWlf) = "Möglicherweise fehlende Libre- bzw. CGM-Icons auf dem Patientendesk
 ";"
 sql(AWlf) = "" & _
 "SELECT n.pat_id PID, gesname(n.pat_id) PName" & vbCrLf & _
-", COALESCE((SELECT CONCAT(DATE(zeitpunkt),' ',LEFT(name,80)) FROM tmbrie WHERE pat_id=n.pat_id AND name RLIKE 'Omnipod ?5|Simplera|Guardian|Enlite|Dexc?om|Eversen|CGM|Libre|clarity|glooko|care ?link' AND NOT name RLIKE 'Ablehnung|Antrag|Gutachten|Widerspruch|Schreiben MD|barmer|cgm bmp' AND zeitpunkt> qanf() - INTERVAL 3 month ORDER BY qdm DESC LIMIT 1),'') Einles " & vbCrLf & _
-", COALESCE((SELECT CONCAT(DATE(zeitpunkt),' ',LEFT(feldinh,80)) FROM formular WHERE pat_id=n.pat_id AND form_abk='lar' AND feld='medikament' AND feldinh RLIKE 'Omnipod ?5|Simplera|Guardian|Enlite|Dexc?om|Eversen|CGM|Libre|clarity|glooko|care ?link' AND zeitpunkt>qanf()-INTERVAL 3 MONTH ORDER BY zeitpunkt desc LIMIT 1),'') Rezept " & vbCrLf & _
+", COALESCE((SELECT CONCAT(DATE(zeitpunkt),' ',LEFT(name,80)) FROM tmbrie WHERE pat_id=n.pat_id AND name RLIKE 'Omnipod ?5|Simplera|Guardian|Enlite|Dexc?om|Eversen|CGM|Libre|clarity|glooko|care ?link' AND NOT name RLIKE 'Privat|Leih|Ablehnung|Antrag|Gutachten|Widerspruch|Schreiben MD|barmer|cgm bmp' AND zeitpunkt> qanf() - INTERVAL 3 month ORDER BY qdm DESC LIMIT 1),'') Einles " & vbCrLf & _
+", COALESCE((SELECT CONCAT(DATE(zeitpunkt),' ',LEFT(feldinh,80)) FROM formular WHERE pat_id=n.pat_id AND form_abk='lar' AND feld='medikament' AND feldinh RLIKE 'Omnipod ?5|Simplera|Guardian|Enlite|Dexc?om|Eversen|CGM|Libre|clarity|glooko|care ?link' AND zeitpunkt>qanf()-INTERVAL 3 MONTH ORDER BY zeitpunkt DESC LIMIT 1),'') Rezept " & vbCrLf & _
 "FROM namen n" & vbCrLf & _
 "WHERE cgm=0 AND COALESCE(sdatum>19000101,0)=0 AND n.pat_id<>0" & vbCrLf & _
 "HAVING (einles<>'' OR Rezept<>'')" & vbCrLf & _
