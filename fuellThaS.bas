@@ -38,15 +38,15 @@ SELECT RANK() OVER (PARTITION BY pid ORDER BY zp,MPNr) rang, i.* FROM (
 	,ian ia,1 absPos,1 StByte,0
 	FROM(
 	SELECT SUM(COALESCE(insart,0))OVER(PARTITION BY eid)ian,i.* FROM(
-	SELECT x.pat_id,zeitpunkt,TRIM(REGEXP_REPLACE(inhalt,'^.*Esss?ensinsulin: *([^B]*)Basalinsulin:.*$','\\1'))inh,x.id eid,ma.insart
+	SELECT x.pat_id,zeitpunkt,TRIM(REGEXP_REPLACE(inhalt,'^.*Esss?ensinsulin: *(.*)Basalinsulin:.*$','\\1'))inh,x.id eid,ma.insart
 	FROM eintraege x
-	LEFT JOIN medarten ma ON REGEXP_REPLACE(inhalt,'^.*Esss?ensinsulin: *([^ ]*).*$','\\1')=ma.medikament
+	LEFT JOIN medarten ma ON REGEXP_REPLACE(inhalt,'^.*Esss?ensinsulin: *(.*)Basalinsulin:.*$','\\1')=ma.medikament
 	WHERE art='iplan' AND (@inpid='0' OR x.pat_id IN (@inpid)) AND inhalt LIKE 'Insulinplan für%'
 	GROUP BY x.id,insart
 	UNION all
-	SELECT x.pat_id,zeitpunkt,TRIM(REGEXP_REPLACE(inhalt,'^.*Basalinsulin: *([^I]*)Insulin [[]iE.*$','\\1')),x.id,ma.insart
+	SELECT x.pat_id,zeitpunkt,TRIM(REGEXP_REPLACE(inhalt,'^.*Basalinsulin: *(.*)Insulin [[]iE.*$','\\1')),x.id,ma.insart
 	FROM eintraege x
-	LEFT JOIN medarten ma ON REGEXP_REPLACE(inhalt,'^.*Basalinsulin: *([^ ]*).*$','\\1')=ma.medikament
+	LEFT JOIN medarten ma ON REGEXP_REPLACE(inhalt,'^.*Basalinsulin: *(.*)Insulin [[]iE.*$','\\1')=ma.medikament
 	WHERE art='iplan' AND (@inpid='0' OR x.pat_id IN (@inpid)) AND inhalt LIKE 'Insulinplan für%'
 	GROUP BY x.id,insart
 	)i 
