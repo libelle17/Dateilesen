@@ -5149,8 +5149,8 @@ Private Sub Form_KeyDown(KeyC%, Shift%)
    pid = Me.MFG.TextMatrix(Me.MFG.Row, IIf(Me.PLArt = artlab, 0, 1))
    Select Case Me.MFG.col
     Case 0, 1:
-        waehleinMO (pid)
         Call explor(pid)
+        waehleinMO (pid)
     Case 2:
      If Me.PLArt = artpat Then Call DokuBeliebig
     Case 3:
