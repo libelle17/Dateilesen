@@ -2713,10 +2713,9 @@ End Function ' getDokPfad
 
 Public Function Key(KeyCode%, Shift%, frm As Form, Optional ctrl$)
  Static keyzl%
- Dim frmart As ArtTyp
  On Error GoTo fehler
 ' IF KeyCode = 18 AND Shift = 4 THEN Exit Function
-If KeyCode = 27 Then
+ If KeyCode = 27 Then
 ' Änderungen verwerfen, indem Ursprungswerte aus der Registry geholt werden,
 ' bevor die aktuellen Werte über form_unload wieder zurückgespeichert werden
     Select Case frm.name
@@ -2751,33 +2750,12 @@ If KeyCode = 27 Then
   If frm.name = "PatAuswahl" And (frm.ActiveControl.name = "PatAuswahl" Or frm.ActiveControl.name = "Pat_id" Or frm.ActiveControl.name = "PatName") Then
    frm.OKButton_Click
 '  frm.Pat_id = frm.getPat_id(frm.PatName)
-  ElseIf frm.name = "PatListe" Then
-   If frm.PLArt = artDiag Then
-    Call frm.MFG_Click
-   ElseIf frm.PLArt = artLAus Then
-    Call frm.auswaehl(frm.MFG.Row)
-   End If
   End If ' frm.name = "PatAuswahl" And (frm .. Else
- ElseIf KeyCode = 70 And ((Shift And vbCtrlMask) > 0) And frm.name = "PatListe" Then
-  Call frm.Command1_Click(3) ' Suchen
-  KeyCode = 0
- ElseIf KeyCode = 71 And ((Shift And vbCtrlMask) > 0) And frm.name = "PatListe" Then
-  Call frm.Command1_Click(4) ' Weitersuchen
-' ElseIf KeyCode = 67 THEN ' Ctrl+C, in MFG bei Patliste bereits bearbeitet
- ElseIf (KeyCode = 113 Or KeyCode >= Asc("a") And KeyCode <= Asc("z")) Or (KeyCode >= Asc("A") And KeyCode <= Asc("Z") Or (KeyCode >= Asc("0") And KeyCode <= Asc("9"))) And ((Shift And vbCtrlMask) = 0) And frm.name = "PatListe" And frm.ActiveControl.name <> "Li1" And frm.ActiveControl.name <> "Text1" Then
-  On Error Resume Next
-  frmart = frm.PLArt
-  On Error GoTo fehler
-  If frmart = artDiag Then
-   If KeyCode <> 113 Then frm.AnfCode = Asc(LCase$(Chr$(KeyCode)))
-   Call frm.MFG_Click
-   KeyCode = 0
-  End If
  ElseIf KeyCode = 32 Then
   If frm.name = "AbrechFehler" Then
    Call frm.MFG_Click
   ElseIf frm.name = "PatListe" Then
-  If frm.PLArt = artpat And frm.MFG.col = zahlcol Then
+   If frm.PLArt = artpat And frm.MFG.col = zahlcol Then
     If keyzl = 0 Then keyzl = 1 Else keyzl = 0
     If keyzl = 1 Then
      frm.MFG.CellFontBold = Not frm.MFG.CellFontBold

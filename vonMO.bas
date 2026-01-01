@@ -43,28 +43,34 @@ End Type
 Declare Sub CopyMemoryPtr Lib "kernel32" Alias "RtlMoveMemory" (ByVal Destination&, ByVal Sourc&, ByVal length&)
 Dim aru&
 
-Public Function explor()
-Const Filename$ = "P:\dok\69926\"
+Public Function explor(pid&)
 Const wart& = 100
+Dim uvz$
+uvz$ = "P:\dok\" & pid & "\"
 Dim cmd$
 On Error GoTo fehler
-cmd = "C:\Windows\explorer.exe /select,""" & Filename & """"
-cmd = "C:\Windows\explorer.exe """ & Filename & """"
-Dim objShell As Object
-Set objShell = CreateObject("WScript.Shell")
-With objShell
-    .rUn cmd, 1, False
-    Sleep 1000
-'    .Sendkeys "% x"
-'    Sleep wart
-    DoEvents
-    .Sendkeys "%"
-    Sleep wart
-    DoEvents
-    .Sendkeys "a"
-'    Sleep wart
-    .Sendkeys "o{Down}{Enter}"
-End With
+   If Dir(uvz) = "" Then
+    MsgBox "Archivordner '" & uvz & "' für Pat. " & pid & " (noch) nicht gefunden."
+   Else
+'    Shell "c:\windows\explorer.exe " & uvz, vbMaximizedFocus
+    'cmd = "C:\Windows\explorer.exe /select,""" & uvz & """"
+    cmd = "C:\Windows\explorer.exe """ & uvz & """"
+    Dim objShell As Object
+    Set objShell = CreateObject("WScript.Shell")
+    With objShell
+        .rUn cmd, 1, False
+        Sleep 1000
+    '    .Sendkeys "% x"
+    '    Sleep wart
+        DoEvents
+        .Sendkeys "%"
+        Sleep wart
+        DoEvents
+        .Sendkeys "a"
+    '    Sleep wart
+        .Sendkeys "o{Down}{Enter}"
+    End With
+ End If
  Exit Function
 fehler:
  Dim AnwPfad$

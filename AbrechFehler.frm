@@ -1892,7 +1892,7 @@ sql(AWlf) = "ü"
 ' 40
 ' ktag fehlerhaft
 AwN(AWlf) = "Sono, Doppler oder Duplex ohne Befund (vorher 7)"
-sql(AWlf) = _
+' sql(AWlf) = _
 "SELECT innen.*, ezp, LEFT(art,7) AS art, inhalt from" & vbCrLf & _
  "(SELECT f.`pid` AS Pat_ID, name, " & vbCrLf & _
          "MID(name,locate(' ',name,locate('SonoBild ',name)+9),9) AS udatroh, " & vbCrLf & _
@@ -1906,8 +1906,33 @@ sql(AWlf) = _
           "WHERE (art IN ('doppler','dop','duplex','dup','sono')OR(art='tb'AND ersteller='gs')) AND zeitpunkt BETWEEN " & lQAnfuEnd(FristS) & ") AS eint " & vbCrLf & _
           "ON innen.pat_id = eint.pid AND DATE(ezp) = innen.udat " & vbCrLf & _
     "WHERE udat BETWEEN " & lQAnfuEnd(FristS) & " AND ISNULL(ezp)" ' , 1)
+ sql(AWlf) = _
+ "SELECT i.*" & vbCrLf & _
+ " FROM (" & vbCrLf & _
+ "  SELECT /*COUNT(0)zahl,*/" & vbCrLf & _
+ "   b.pat_id,gesnameg(b.Pat_id)PName,CASE WHEN name RLIKE'_Schade_'THEN'Sch'WHEN name RLIKE '_Dr. Kothny_'THEN'Kot'WHEN name RLIKE'_Hammerschmidt_'THEN'Ham'ELSE''END Arzt" & vbCrLf & _
+ "   ,udat,uag,name" & vbCrLf & _
+ "   ,CASE WHEN uag IN('abd_general','Vasc_superficial')THEN'^(dup|sono)' WHEN uag LIKE'vasc%'THEN'^d[uo]p'ELSE'sono'END Muster" & vbCrLf & _
+ "  FROM " & vbCrLf & _
+ "  (SELECT" & vbCrLf & _
+ "   STR_TO_DATE(REGEXP_REPLACE(NAME,'^.*_([0-9]{8})_?([0-9]{6})([_a]| [0-9]{1,2}| - Kopie( \\([0-9]{1,3}\\))?)?\.png.*$','\\1 \\2'),'%Y%m%d')udat" & vbCrLf & _
+ "   ,REGEXP_REPLACE(NAME,'^.*_(?:(?:(?:Schade_li)?L12-[35]|[CS]5-2)|(?:[FMO]|[MW]?__(?:C5_2|L11_3))?|_)_([a-zA-Z ]*(?:_[a-z]+)?)_.*$','\\1')uag" & vbCrLf & _
+ "   ,b.* FROM" & vbCrLf & _
+ "   tmbrie b" & vbCrLf & _
+ "  )b" & vbCrLf & _
+ "  WHERE b.NAME LIKE '%.png'" & vbCrLf & _
+ "  AND b.NAME RLIKE '_[0-9]{8}_?[0-9]{6}([_a]| [0-9]{1,2}| - Kopie( \\([0-9]{1,3}\\))?)?\.png'" & vbCrLf & _
+ "  GROUP BY b.pat_id,b.udat,b.uag)i" & vbCrLf & _
+ "  WHERE (SELECT inhalt FROM eintraege" & vbCrLf & _
+ "   WHERE pat_id=i.pat_id " & vbCrLf & _
+ "   AND inhalt RLIKE '^(Abdomen|(Hals(schlagadern|venen|arterien|weichteile|sono)|Wei?chteile|Pleura|(Sono )?Schid?l?l?dd?d?r?r?s?ür?s?s?e?|(Bein|Arm)(venen|arterien)( (re|li(nks)?|bds.))?)|Nierenarterien?|Restharn|SD|Darmarterien|Abdomen|Belastung(suntersuchung)?).*:'" & vbCrLf & _
+ "   AND art RLIKE muster" & vbCrLf & _
+ "   AND DATE(zeitpunkt)=i.udat LIMIT 1" & vbCrLf & _
+ "  ) IS NULL" & vbCrLf
+ sql(AWlf) = sql(AWlf) & _
+ "ORDER BY udat DESC"
  mins(AWlf) = 10
- maxs(AWlf) = 60
+ maxs(AWlf) = 180
  AWlf = AWlf + 1
 
  ' 41
@@ -6121,10 +6146,28 @@ sql(AWlf) = _
  maxs(AWlf) = 6000
  AWlf = AWlf + 1
 
+#If mitcovid Then
+' 179
+#Else
+' 171
+#End If
+ AwN(AWlf) = "Sonobefunde mit falscher Art"
+sql(AWlf) = _
+"SELECT pat_id,gesname(pat_id)PName,Zeitpunkt,Art,Ersteller,Änderer,Inhalt FROM eintraege e WHERE inhalt RLIKE ':'" & vbCrLf & _
+"AND inhalt RLIKE '^(Abdomen|(Hals(schlagadern|venen|arterien|weichteile|sono)|Wei?chteile|Pleura|(Sono )?Schid?l?l?dd?d?r?r?s?ür?s?s?e?|(Bein|Arm)(venen|arterien)( (re|li(nks)?|bds.))?)|Nierenarterien?|Restharn|SD|Darmarterien|Abdomen|Belastung(suntersuchung)?).*:'" & vbCrLf & _
+"AND NOT inhalt RLIKE '(^Belastungsdyspnoe|szinti|ekg|-ct|^sd-(ex|unterfunktion)|sd -?(op|wurde)|sd code|untersuchung|lmu|mvz|nicht|ko in|sd-werte|sds-|Dr.|empfohlen).*:|(.*Antikörper abnehmen| vor langer Zeit| Verdächtiger Befund|Abdomen-Sono 7/25:)'" & vbCrLf & _
+"AND NOT art IN ('Sono','dup','dop','doppler','duplex','ana','utxt','caro','anal','lar','plar')" & vbCrLf & _
+"ORDER BY pat_id"
+ mins(AWlf) = 10
+ maxs(AWlf) = 6000
+ AWlf = AWlf + 1
+
 ' neuView
  AwN(AWlf) = "- Ende -"
  sql(AWlf) = "ü"
  AWlf = AWlf + 1
+ 
+ 
  
 ' 19.2.11
 ' AwN(AWlf) = "97350A, 97360A, 97370B, 92282, 92278, 92281, 92277 für LKK-Patienten:"
