@@ -2143,10 +2143,12 @@ sql(AWlf) = sql(AWlf) & _
  ' 50
  AwN(AWlf) = "Träger von Vornamen mit verschiedenen Geschlechtern (vorher 109)"
  sql(AWlf) = vbCrLf & _
- "SELECT vorname, geschlecht, pat_id, gesname(pat_id) Gesname FROM namen n " & vbCrLf & _
- "WHERE (SELECT COUNT(DISTINCT geschlecht) FROM namen ref WHERE ref.vorname=n.vorname)<>1 " & vbCrLf & _
- " AND n.vorname NOT IN ('Aliye','Andrea','Areti','Ayhan','Eike','Gabriele','Michele','Milan','Nikola','Nuran','Rong','Wei','Yüksel') " & vbCrLf & _
- "ORDER BY vorname, geschlecht;"
+ "WITH n AS(SELECT n.* FROM namen n JOIN faelle USING(pat_id))" & vbCrLf & _
+ "SELECT n.vorname,n.geschlecht,n.pat_id,gesname(n.pat_id)Gesname" & vbCrLf & _
+ "FROM n" & vbCrLf & _
+ "WHERE (SELECT COUNT(DISTINCT geschlecht) FROM n ref WHERE ref.vorname=n.vorname)<>1 " & vbCrLf & _
+ " AND n.vorname NOT IN('Aliye','Andrea','Areti','Ayhan','Eike','Gabriele','Michele','Milan','Nikola','Nuran','Rong','Wei','Yüksel')" & vbCrLf & _
+ "ORDER BY n.vorname,n.geschlecht;"
  mins(AWlf) = 10
  maxs(AWlf) = 80
  AWlf = AWlf + 1
@@ -7034,7 +7036,7 @@ Private Sub Start_Click()
 End Sub ' Start_Click()
 
 Private Sub tuStart_click(obauto%)
- Dim lfSQL$, i&, StartZeit As Date, überschrift As New CString
+ Dim lfSQL$, i&, StartZeit As Date, Überschrift As New CString
  Static rc As New ADODB.Connection
  Dim rLF As ADODB.Recordset, rIn As ADODB.Recordset
  StartZeit = Now()
@@ -7049,7 +7051,7 @@ Private Sub tuStart_click(obauto%)
  
  AbrFlrDt = tAusgSg + "_" & AktQ & "_" & Format(Now, "yyyy-mm-dd.hh.mm.ss") & ".txt"
  AbrAutDt = AbrVerz & "\Abrechnungsprotokoll_" & AktQ & "_" & Format(Now, "yyyy-mm-dd.hh.mm.ss") & ".txt"
- überschrift.AppVar Array("Abrechnungsfehler für Quartal ", AktQ, ", ODBC-Verbindung:", Lese.dbv.Constr, vbCrLf)
+ Überschrift.AppVar Array("Abrechnungsfehler für Quartal ", AktQ, ", ODBC-Verbindung:", Lese.dbv.Constr, vbCrLf)
 ' Open AbrFlrDt For Output AS #359
 ' Print #359, "Abrechnungsfehler für Quartal " & aktQ
 
@@ -7075,7 +7077,7 @@ Private Sub tuStart_click(obauto%)
  For AWlf = 1 To .Rows - 1
   If sql(AWlf - 1) = "ü" Then ' Zwischenüberschrift
   ElseIf .TextMatrix(AWlf, 1) = "X" And sql(AWlf - 1) <> "-" Then
-    Do While Not AbrFausg(Str(AWlf - 1) & ". " & AwN(AWlf - 1), REPLACE$(dowr(sql(AWlf - 1)), vbLf, " "), obmo(AWlf - 1), AbrFlrDt, mins(AWlf - 1), maxs(AWlf - 1), überschrift, obappend, AWlf - 1, obauto, angefangen, BDT)
+    Do While Not AbrFausg(Str(AWlf - 1) & ". " & AwN(AWlf - 1), REPLACE$(dowr(sql(AWlf - 1)), vbLf, " "), obmo(AWlf - 1), AbrFlrDt, mins(AWlf - 1), maxs(AWlf - 1), Überschrift, obappend, AWlf - 1, obauto, angefangen, BDT)
      Dim altAWlf%
      altAWlf = AWlf
      MsgBox "Stop in Start_Click" & vbCrLf & "AWlf: " & AWlf
@@ -7083,7 +7085,7 @@ Private Sub tuStart_click(obauto%)
      Call ZeigSQL(obauto)
      AWlf = altAWlf
     Loop
-    überschrift = vNS
+    Überschrift = vNS
     obappend = True
   End If
   DoEvents
@@ -7222,10 +7224,10 @@ fehler:
 End Sub ' SizeColumns
 
 ' aufgerufen in tuStart_Click
-Public Function AbrFausg(name$, sql$, obmo%, Datei$, mins%, ByVal maxs%, überschrift As CString, obappend%, sqlnr%, obauto%, ByRef angefangen%, ByRef BDT As BDTSchreib) ' Abrechnungsfehler ausgeben
+Public Function AbrFausg(name$, sql$, obmo%, Datei$, mins%, ByVal maxs%, Überschrift As CString, obappend%, sqlnr%, obauto%, ByRef angefangen%, ByRef BDT As BDTSchreib) ' Abrechnungsfehler ausgeben
  Dim ÜberschrAkt As New CString
  Dim ErrNr&, ErrDes$
- ÜberschrAkt = überschrift
+ ÜberschrAkt = Überschrift
  On Error GoTo fehler
  Dim T1!
  Static rc As New ADODB.Connection
