@@ -1908,6 +1908,7 @@ AwN(AWlf) = "Sono, Doppler oder Duplex ohne Befund (vorher 7)"
     "WHERE udat BETWEEN " & lQAnfuEnd(FristS) & " AND ISNULL(ezp)" ' , 1)
  sql(AWlf) = _
  "SELECT i.*" & vbCrLf & _
+ ",CONCAT('SELECT * FROM eintraege WHERE pat_id=',i.pat_id,/*CHR(10),*/' AND inhalt RLIKE \'^(Abdomen|(Hals(schlagadern|venen|arterien|weichteile|sono)|Wei?chteile|Pleura|(Sono )?Schid?l?l?dd?d?r?r?s?ür?s?s?e?|(Bein|Arm)(venen|arterien)( (re|li(nks)?|bds.))?)|Nierenarterien?|Restharn|SD|Darmarterien|Abdomen|Belastung(suntersuchung)?).*:\' ',/*CHR(10),*/'AND art RLIKE\'',muster,'\' AND DATE(zeitpunkt)=',DATE_FORMAT(i.udat,'%Y%m%d'),/*CHR(10),*/' LIMIT 1')esql" & vbCrLf & _
  " FROM (" & vbCrLf & _
  "  SELECT /*COUNT(0)zahl,*/" & vbCrLf & _
  "   b.pat_id,gesnameg(b.Pat_id)PName,CASE WHEN name RLIKE'_Schade_'THEN'Sch'WHEN name RLIKE '_Dr. Kothny_'THEN'Kot'WHEN name RLIKE'_Hammerschmidt_'THEN'Ham'ELSE''END Arzt" & vbCrLf & _
@@ -3409,7 +3410,7 @@ AwN(AWlf) = "Möglicherweise fehlende 03355 (lauto) (vorher 98)"
  " FROM (" & vbCrLf & _
  "  SELECT *" & vbCrLf & _
  "  FROM (" & vbCrLf & _
- "   SELECT f.pat_id PID, DATE(zp) LEIDAT, was" & vbCrLf & _
+ "   SELECT f.pat_id PID, DATE(zp) LEIDAT,was" & vbCrLf & _
  "   ,COALESCE((SELECT SUM(lzahl)FROM leistungen WHERE pat_id=f.pat_id AND leistung=03355 AND zeitpunkt BETWEEN qanf()-INTERVAL 9 MONTH AND qend()-INTERVAL 9 MONTH),0)L3" & vbCrLf & _
  "   ,COALESCE((SELECT SUM(lzahl)FROM leistungen WHERE pat_id=f.pat_id AND leistung=03355 AND zeitpunkt BETWEEN qanf()-INTERVAL 6 MONTH AND qend()-INTERVAL 6 MONTH),0)L2" & vbCrLf & _
  "   ,COALESCE((SELECT SUM(lzahl)FROM leistungen WHERE pat_id=f.pat_id AND leistung=03355 AND zeitpunkt BETWEEN qanf()-INTERVAL 3 MONTH AND qend()-INTERVAL 3 MONTH),0)L1" & vbCrLf & _
@@ -3628,16 +3629,19 @@ AWlf = AWlf + 1
  AwN(AWlf) = "Übersicht Einzelschulungen (vorher 117)"
  sql(AWlf) = _
 "SELECT l.pat_id" & vbCrLf & _
-",IF(RANK() OVER(PARTITION BY l.pat_id ORDER BY l.pat_id,l.zeitpunkt)=1,gesname(l.pat_id),'') PName" & vbCrLf & _
-",l.zeitpunkt,l.leistung,IF(NOT ISNULL(sws.voret),1,0) obschwanger, n.obneu,d.dmtyp,IF(lanr LIKE '9%','tk','gs') Arzt" & vbCrLf & _
-",IF(ISNULL(sws.voret) AND NOT (obneu AND d.dmtyp=1),CAST(COUNT(0) OVER(PARTITION BY lanr,IF(NOT ISNULL(sws.voret),1,0)) AS CHAR),'-') Arztzahl" & vbCrLf & _
+",IF(ROW_NUMBER()OVER(PARTITION BY l.pat_id ORDER BY l.pat_id,l.zeitpunkt)=1,gesname(l.pat_id),'') PName" & vbCrLf & _
+",l.zeitpunkt,l.leistung,IF(ISNULL(sws.voret),0,1)obschwanger,n.obneu,d.dmtyp" & vbCrLf & _
+",CONCAT(CASE lanr WHEN'177828303'THEN'ah'WHEN'889690003'THEN'gs'WHEN'933284903'THEN'tk'END,'('" & vbCrLf & _
+" ,IF(ISNULL(sws.voret)AND NOT(obneu AND d.dmtyp=1),CAST(ROW_NUMBER()OVER(PARTITION BY lanr,IF(NOT ISNULL(sws.voret),1,0)ORDER BY l.pat_id,l.zeitpunkt)AS CHAR),'-')" & vbCrLf & _
+" ,')')Arzt" & vbCrLf & _
+",IF(ISNULL(sws.voret)AND NOT(obneu AND d.dmtyp=1),CAST(COUNT(0)OVER(PARTITION BY lanr,IF(NOT ISNULL(sws.voret),1,0))AS CHAR),'-')Arztzahl" & vbCrLf & _
 "FROM leistungen l" & vbCrLf & _
-"INNER JOIN (SELECT leistung FROM genehmigungen WHERE obschulung=2 GROUP BY leistung) g ON l.leistung=g.leistung" & vbCrLf & _
+"INNER JOIN(SELECT leistung FROM genehmigungen WHERE obschulung=2 GROUP BY leistung)g ON l.leistung=g.leistung" & vbCrLf & _
 "LEFT JOIN sws on sws.pat_id=l.pat_id AND sws.voret>l.zeitpunkt" & vbCrLf & _
 "LEFT JOIN anb_neuman n ON n.pat_id=l.pat_id" & vbCrLf & _
-"LEFT JOIN (SELECT pat_id,IF(icd RLIKE '^E',MID(icd,3,1)+1,'g') dmtyp FROM diagview d WHERE (d.gicd REGEXP '^E1[0-4]\.|^R73' OR (d.icd='O24.4' AND d.Dggel=0 AND d.diagsicherheit IN ('G',' ') AND d.diagdatum BETWEEN qanf() AND qend())) GROUP BY pat_id) d ON d.pat_id=l.pat_id" & vbCrLf & _
-"WHERE l.zeitpunkt BETWEEN qanf() AND qend()" & vbCrLf & _
-"ORDER BY l.pat_id, l.zeitpunkt;"
+"LEFT JOIN(SELECT pat_id,IF(icd RLIKE '^E',MID(icd,3,1)+1,'g')dmtyp FROM diagview d WHERE(d.gicd REGEXP'^E1[0-4]\.|^R73'OR(d.icd='O24.4'AND d.Dggel=0 AND d.diagsicherheit IN('G',' ')AND d.diagdatum BETWEEN qanf()AND qend()))GROUP BY pat_id)d ON d.pat_id=l.pat_id" & vbCrLf & _
+"WHERE l.zeitpunkt BETWEEN qanf()AND qend()" & vbCrLf & _
+"ORDER BY l.pat_id,l.zeitpunkt;"
  
  ' "Mehr als 1 Leistung 03221/03221H im Behandlungsfall"
 ' sql(AWlf) = "" ' vbCrLf & _
@@ -5513,7 +5517,7 @@ sql(AWlf) = sql(AWlf) & _
 " OR (iart IN (126) AND leistung RLIKE '^88336[ABVWGH]') " & vbCrLf & _
 ") " & vbCrLf & _
 "WHERE NOT ISNULL(inhalt) AND (schgr<>90 OR impfart(e.inhalt)=8) AND ISNULL(leistung) " & vbCrLf & _
-"AND NOT inhalt RLIKE 'Twinrix|havrix|Engerix|strova|Bexsero|Nimenrix'" & vbCrLf & _
+"AND NOT inhalt RLIKE 'Twinrix|havrix|Engerix|strova|Bexsero|Nimenrix|Priorix|Rabipur'" & vbCrLf & _
 "AND NOT (inhalt RLIKE 'tetagam' AND NOT inhalt RLIKE 'tetanol|boostrix|grundimm')" & vbCrLf & _
 "GROUP BY f.pat_id, iart, leistung" & vbCrLf & _
 ";"
@@ -5775,7 +5779,7 @@ AwN(AWlf) = "Covid-Impfabrechnung ohne Angabe der Ordnungsnummer der Impfung zur
 sql(AWlf) = "" & vbCrLf & _
 "SELECT f.pat_id, gesname(f.pat_id) PName, Zeitpunkt, leistung, lfbegr " & vbCrLf & _
 "FROM aktfv f LEFT JOIN leistungen l USING (pat_id) " & vbCrLf & _
-"WHERE leistung LIKE '88%' AND zeitpunkt>qanf() AND lfbegr NOT RLIKE '^[0-9]+\.'" & vbCrLf & _
+"WHERE leistung LIKE '88%' AND zeitpunkt>qanf() AND lfbegr NOT RLIKE '^[0-9]+(?:\.|$)'" & vbCrLf & _
 "ORDER BY f.pat_id DESC;" & vbCrLf & _
 ""
 mins(AWlf) = 10
@@ -6015,13 +6019,28 @@ sql(AWlf) = "" & _
 ' 165
 #End If
  AwN(AWlf) = "Überweisungen mit unbekannten Betriebsstättennummern"
-sql(AWlf) = "" & _
-"SELECT p.fpatnr, 18900101+INTERVAL fvon DAY von, 18900101+INTERVAL fbis DAY bis, REGEXP_REPLACE(CONVERT(p.FMemo USING latin1), '[[:cntrl:]]+', ' ') patfall_FMemo, p.fsurogat " & vbCrLf & _
+'sql(AWlf) = "" & _
+"SELECT p.fpatnr, 18900101+INTERVAL fvon DAY von, 18900101+INTERVAL fbis DAY bis, REGEXP_REPLACE(CONVERT(p.FMemo USING latin1),'[[:cntrl:]]+', ' ') patfall_FMemo, p.fsurogat " & vbCrLf & _
 "FROM patfall p" & vbCrLf & _
 "LEFT JOIN epraxis b ON p.FMemo RLIKE b.FBetriebsnr" & vbCrLf & _
 "WHERE p.FScheintyp=0 AND p.FTarif=2" & vbCrLf & _
 "AND b.FBezeichnung IS NULL AND 18900101+INTERVAL fvon DAY >= STR_TO_DATE(CONCAT(YEAR(NOW()-INTERVAL " & Verspätung & " DAY),'-',((MONTH(NOW()-INTERVAL " & Verspätung & " DAY)-1) DIV 3)*3+1,'-1'),'%Y-%m-%e')" & vbCrLf & _
 "ORDER BY fpatnr;"
+sql(AWlf) = "SELECT f.*" & _
+",(SELECT CONCAT(FVorname,',',FNachname,',',COALESCE(FBezeichnung,'-'))FROM earzt a LEFT JOIN epraxis p ON p.FSurogat=a.FExtpraxisnr WHERE a.FArztnr=lanr LIMIT 1)Arzt" & vbCrLf & _
+",(SELECT fBezeichnung FROM epraxis WHERE FBetriebsnr=bsnr LIMIT 1)Praxis" & vbCrLf & _
+"FROM (" & vbCrLf & _
+"SELECT CONCAT(DATE_FORMAT(18900101+INTERVAL fvon DAY,'%d.%m.%y'),'-',DATE_FORMAT(18900101+INTERVAL fbis DAY,'%d.%m.%y'))Quartal" & vbCrLf & _
+" ,f.FSurogat,f.FPatnr" & vbCrLf & _
+" ,REGEXP_REPLACE(REGEXP_REPLACE(CONVERT(FMemo USING LATIN1),'[[:cntrl:]]+', ' '),'^.*[0-9]{9}#([0-9]{9})#.*$','\1')COLLATE latin1_swedish_ci lanr" & vbCrLf & _
+" ,REGEXP_REPLACE(REGEXP_REPLACE(CONVERT(FMemo USING LATIN1),'[[:cntrl:]]+', ' '),'^.*([0-9]{9})#[0-9]{9}#.*$','\1')COLLATE latin1_swedish_ci bsnr" & vbCrLf & _
+" FROM patfall f" & vbCrLf & _
+" WHERE 18900101+INTERVAL fvon DAY >= STR_TO_DATE(CONCAT(YEAR(NOW()-INTERVAL " & Verspätung & " DAY),'-',((MONTH(NOW()-INTERVAL " & Verspätung & " DAY)-1) DIV 3)*3+1,'-1'),'%Y-%m-%e')" & vbCrLf & _
+" AND f.FScheintyp=0 AND f.FTarif=2" & vbCrLf & _
+" AND REGEXP_REPLACE(CONVERT(FMemo USING LATIN1),'[[:cntrl:]]+', ' ') RLIKE '^.*[0-9]{9}#[0-9]{9}#.*$'" & vbCrLf & _
+")f" & vbCrLf & _
+"HAVING arzt IS NULL OR praxis IS NULL" & vbCrLf & _
+"ORDER BY bsnr"
  obmo(AWlf) = True
  mins(AWlf) = 10
  maxs(AWlf) = 60

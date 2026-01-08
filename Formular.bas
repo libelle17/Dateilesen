@@ -7771,7 +7771,10 @@ End Function ' WordDateiOeffnen
 
 ' aufgerufen nirgends
 Public Function dozus(Optional zdt$, Optional qvz$)
-  Const DT$ = "p:\test\B.docx", vz$ = "p:\test\doc"
+  Dim DT$, vz$
+  DT = pVerz & "test\B.docx"
+  vz = pVerz & "test\doc"
+'  Const DT$ = "p:\test\B.docx", vz$ = "p:\test\doc"
   If qvz = "" Then qvz = vz
   If zdt = "" Then zdt = DT
   Dim oSh As New IWshShell_Class
@@ -13628,21 +13631,21 @@ sql = sql & _
     VN = "kstreng" ' aktive Fälle mit Kontakten, auch 0 Kontakte, schnell (ohne kateg und goäkatnr)
     ' 6.7.25: wird nur verwendet in Liste 91: "Möglicherweise fehlende 03355 (lauto)"
     Vsql = _
-    " SELECT zp, GROUP_CONCAT(was SEPARATOR '; ') was, pat_id,fid,schgr,vknr,ik,lanrid  FROM ( " & vbCrLf & _
+    " SELECT zp, GROUP_CONCAT(was SEPARATOR '; ') was, pat_id,fid,schgr,vknr,ik,lanrid,COALESCE(ersteller,'')ersteller,COALESCE(änderer,'')änderer FROM ( " & vbCrLf & _
     "/* auskommentiert 6.7.25 für Liste 91" & vbCrLf & _
-    "  SELECT m.zeitpunkt zp, 'Medplan erstellt' was, f.* " & vbCrLf & _
+    "  SELECT m.zeitpunkt zp, 'Medplan erstellt' was, f.*,'mp'ersteller,'mp'änderer " & vbCrLf & _
     "   FROM aktfvs f " & vbCrLf & _
     "   LEFT JOIN medplan m ON m.pat_id = f.pat_id " & vbCrLf & _
     "   WHERE m.zeitpunkt BETWEEN DATE(CONCAT(YEAR(NOW()-INTERVAL " & frist & " DAY),'-',(QUARTER(NOW()-INTERVAL " & frist & " DAY)-1)*3+1,'-01')) AND CONCAT(YEAR(NOW()-INTERVAL " & frist & " DAY)+ quarter(NOW()-INTERVAL " & frist & " DAY) div 4 ,'-',((QUARTER(NOW()-INTERVAL " & frist & " DAY)-1)*3+4) mod 12,'-01')-INTERVAL 1 SECOND " & vbCrLf & _
     "   GROUP BY pat_id,DATE(m.zeitpunkt) " & vbCrLf & _
     "  UNION ALL " & vbCrLf & _
     "*/" & vbCrLf & _
-    "  SELECT e.zeitpunkt zp, GROUP_CONCAT(CONCAT(DATE_FORMAT(zeitpunkt,'%d.%m.%y'),' ',art,' ',inhalt) ORDER BY zeitpunkt DESC SEPARATOR '; ') was, f.*" & vbCrLf & _
+    "  SELECT e.zeitpunkt zp, GROUP_CONCAT(CONCAT(DATE_FORMAT(zeitpunkt,'%d.%m.%y'),' ',art,' ',inhalt) ORDER BY zeitpunkt DESC SEPARATOR '; ') was, f.*,e.ersteller,e.änderer" & vbCrLf & _
     "   FROM aktfvs f" & vbCrLf & _
     "   LEFT JOIN eintraege e ON e.pat_id = f.pat_id " & vbCrLf & _
     "   AND e.zeitpunkt BETWEEN DATE(CONCAT(YEAR(NOW()-INTERVAL " & frist & " DAY),'-',(QUARTER(NOW()-INTERVAL " & frist & " DAY)-1)*3+1,'-01')) AND CONCAT(YEAR(NOW()-INTERVAL " & frist & " DAY)+ quarter(NOW()-INTERVAL " & frist & " DAY) DIV 4 ,'-',((QUARTER(NOW()-INTERVAL " & frist & " DAY)-1)*3+4) MOD 12,'-01')-INTERVAL 1 SECOND " & vbCrLf & _
-    "   AND ((art IN (" & artSpezBerat & "," & artSpezEintr & "," & artSpezUS1 & "))" & vbCrLf & _
-    "     OR (art IN('tb','th','tn')AND(ersteller IN(" & artSpezBerat & ")OR änderer IN (" & artSpezBerat & ")))" & vbCrLf & _
+    "   AND ((art IN(" & artSpezBerat & "," & artSpezEintr & "," & artSpezUS1 & ")AND NOT art IN ('tb','th','tn'))" & vbCrLf & _
+    "     OR (art IN('tb','th','tn')AND(ersteller IN(" & artSpezBerat & ")OR änderer IN(" & artSpezBerat & ")))" & vbCrLf & _
     "     OR (inhalt LIKE '%eversen%' AND inhalt RLIKE 'plant|einges|setz|entf|gelegt|gsetz|wechs'))" & vbCrLf & _
     "   AND NOT art IN ('BMI','GEW','GR',342,345,'bd','bla','re','ba','doppler','dop','duplex','dup','impf','inj','kva','tv','ufrag','wv','caro','colo','debr','fa','EKG','GPD','kv','LZRR','OAU','pa','pros','puls','rp','sono','ulcus','vac','ADL'," & artSpezMA & ")" & vbCrLf & _
     "   GROUP BY pat_id,DATE(e.zeitpunkt) " & vbCrLf & _
