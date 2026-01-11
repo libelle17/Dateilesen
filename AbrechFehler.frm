@@ -1073,7 +1073,7 @@ sql(AWlf) = _
  " LEFT JOIN `namen` n ON f.pat_id = n.pat_id" & vbCrLf & _
  " LEFT JOIN (SELECT pat_id,GROUP_CONCAT(DISTINCT CONCAT(DATE_FORMAT(ZeitPunkt,'%d.%m.%y'),': ',leistung) SEPARATOR ', ') Leistn FROM leistungen WHERE leistung IN ('97314','97324','02311') AND zeitpunkt BETWEEN qanf() AND qend() GROUP BY pat_id) l ON l.pat_id = f.pat_id" & vbCrLf & _
  " LEFT JOIN tmbrie b ON f.pat_id = b.pat_id AND b.quelldatum BETWEEN fa.qanf AND fa.qend AND b.name RLIKE 'WA [0-5]'" & vbCrLf & _
- " LEFT JOIN `eintraege` e ON f.pat_id = e.pat_id AND DATE(e.zeitpunkt) BETWEEN fa.qanf AND fa.qend AND (e.art RLIKE 'debr|ulcus' OR (e.inhalt RLIKE 'ebrid|resekt' AND NOT inhalt RLIKE 'Leber.*rese[ck]t|Resektionshöhle|Resektion der Schild|Pan[ck]reas.*resekt|Resektion Leberzyste|Resektionsbereich|Re[ck]tumrese[ck]t|Rese[ck]tion Lunge|(darm|magen|milz|acg-|schilddrüsen|struma|sd-|nieren|teil|links|total|gebärmutter|mu[ck]osa|gallenblasen|elektro|wurzel|truma|igma|pan[ck]reaskopf)resekt|Hypoph.*resekt'))" & vbCrLf & _
+ " LEFT JOIN `eintraege` e ON f.pat_id = e.pat_id AND DATE(e.zeitpunkt) BETWEEN fa.qanf AND fa.qend AND (e.art RLIKE 'debr|ulcus' OR (e.inhalt RLIKE 'ebrid|resekt' AND NOT inhalt RLIKE '(polyp|Leber).*rese[ck]t|Resektionshöhle|Resektion der Schild|Pan[ck]reas.*resekt|Resektion Leberzyste|Resektionsbereich|Re[ck]tumrese[ck]t|Rese[ck]tion Lunge|(darm|magen|milz|acg-|schilddrüsen|struma|sd-|nieren|teil|links|total|gebärmutter|mu[ck]osa|gallenblasen|elektro|wurzel|truma|igma|pan[ck]reaskopf)resekt|Hypoph.*resekt'))" & vbCrLf & _
  " LEFT JOIN `diagview` di ON f.pat_id = di.pat_id AND di.ICD RLIKE '^L89\.[1-5]' AND (obdauer<>0 OR DATE(di.diagdatum) BETWEEN qbeg(b.quelldatum) AND qende(b.quelldatum))" & vbCrLf & _
  " WHERE not ISNULL(Leistn)" & vbCrLf & _
  " GROUP BY f.pat_id,e.art, e.inhalt, b.name" & vbCrLf & _
@@ -1792,7 +1792,7 @@ sql(AWlf) = "SELECT n.Pat_id, gesnameg(n.pat_id) Name,f.Schgr,f.VKNr,ICD" & vbCr
             "JOIN faelle fa USING (fid)" & vbCrLf & _
             "LEFT JOIN epraxis p ON p.FBetriebsnr=fa.ÜBWVBSNR" & vbCrLf & _
             "LEFT JOIN `diagview` d ON d.pat_id = n.pat_id AND (d.gicd REGEXP '^E1[0-4]\.|^R73' OR (d.icd='O24.4' AND d.Dggel=0 AND d.diagsicherheit IN ('G',' ') AND d.diagdatum BETWEEN qbegs(f.quartal) AND qends(f.quartal))) " & vbCrLf & _
-            "WHERE n.kvnr IN ('') AND NOT ISNULL(f.pat_id) " & vbCrLf & _
+            "WHERE n.kvnr=''AND n.BStNR='' AND NOT ISNULL(f.pat_id) " & vbCrLf & _
             " AND f.SchGr NOT IN (41,44) AND f.VKNr <> 71800 " & vbCrLf & _
              "AND (" & vbCrLf & _
               "NOT EXISTS (SELECT 0 FROM diagview WHERE pat_id=n.pat_id AND gicd = 'Z26.9')" & vbCrLf & _
@@ -2348,7 +2348,7 @@ sql(AWlf) = "ü"
 
 ' 61
  AwN(AWlf) = "Fehlende Arzt-Markierungen"
-sql(AWlf) = _
+'sql(AWlf) = _
 "SELECT pat_id,PName" & vbCrLf & _
 ",LPAD(REGEXP_REPLACE(COALESCE(CONVERT(SUM(obtk),CHAR),''),'^0$',''),7,' ') EintrTKz, COALESCE(IF(SUM(obtk)=0,'',tkzp),'') tkzp" & vbCrLf & _
 ",LPAD(REGEXP_REPLACE(COALESCE(CONVERT(SUM(obgs),CHAR),''),'^0$',''),7,' ') EintrGSz ,COALESCE(IF(SUM(obgs)=0,'',gszp),'') gszp" & vbCrLf & _
@@ -2360,23 +2360,38 @@ sql(AWlf) = _
 ",COALESCE((SELECT CONCAT(CASE WHEN raum='Schade' THEN 'gs' WHEN raum='Kothny' THEN 'tk' WHEN raum='Wagner' THEN 'wd' WHEN raum LIKE 'Hamm%' THEN 'ah' ELSE '' END,' ', DATE_FORMAT(zp,'%e.%c.%y'),' ',REPLACE(REPLACE(LEFT(zusatz,IF(LENGTH(zusatz)-1<25,LENGTH(zusatz)-1,25)),chr(10),''),chr(13),'')) FROM termine t WHERE pid = n.pat_id AND raum<>'Labor' AND zp =(SELECT MIN(zp) FROM termine WHERE zp>=CURRENT_TIMESTAMP() AND pid=t.pid AND raum RLIKE 'Kothny|Schade|Wagner|^Hamm' AND NOT zusatz RLIKE 'doppler|duplex|dup|carotis|belastung|SD Sono|SD-Sono|Arterien|Venen') AND aktzeit=(SELECT MAX(aktzeit) FROM termine WHERE pid=t.pid AND raum<>'Labor' AND zp=t.zp) LIMIT 1),'') Termin" & vbCrLf & _
 "FROM (" & vbCrLf & _
 "SELECT n.pat_id, gesname(n.pat_id) PName,ersteller,obk,obs,obh" & vbCrLf & _
-",FIRST_VALUE(e.zeitpunkt) OVER(PARTITION BY e.pat_id ORDER BY obtk DESC,zeitpunkt DESC) tkzp" & vbCrLf & _
-",FIRST_VALUE(e.zeitpunkt) OVER(PARTITION BY e.pat_id ORDER BY obgs DESC,zeitpunkt DESC) gszp" & vbCrLf & _
-",FIRST_VALUE(e.zeitpunkt) OVER(PARTITION BY e.pat_id ORDER BY obah DESC,zeitpunkt DESC) ahzp" & vbCrLf & _
-",RANK() OVER(PARTITION BY pat_id ORDER BY zeitpunkt DESC) rang, e.art, e.zeitpunkt, e.inhalt,obtk,obgs,obah" & vbCrLf & _
+",FIRST_VALUE(e.zeitpunkt)OVER(PARTITION BY e.pat_id ORDER BY obtk DESC,zeitpunkt DESC)tkzp" & vbCrLf & _
+",FIRST_VALUE(e.zeitpunkt)OVER(PARTITION BY e.pat_id ORDER BY obgs DESC,zeitpunkt DESC)gszp" & vbCrLf & _
+",FIRST_VALUE(e.zeitpunkt)OVER(PARTITION BY e.pat_id ORDER BY obah DESC,zeitpunkt DESC)ahzp" & vbCrLf & _
+",RANK()OVER(PARTITION BY pat_id ORDER BY zeitpunkt DESC) rang, e.art, e.zeitpunkt, e.inhalt,obtk,obgs,obah" & vbCrLf & _
 "FROM namen n " & vbCrLf & _
 "LEFT JOIN (SELECT e.*" & vbCrLf & _
-",art ='tk' OR (art='tb' AND ersteller ='tk') OR inhalt LIKE '%(tk)%' obtk" & vbCrLf & _
-",art ='gs' OR (art='tb' AND ersteller ='gs') OR inhalt LIKE '%(gs)%' obgs" & vbCrLf & _
-",art ='ah' OR (art='tb' AND ersteller ='ah') OR inhalt LIKE '%(ah)%' obah" & vbCrLf & _
+",art='tk'OR(art='tb'AND ersteller='tk')OR inhalt LIKE'%(tk)%'obtk" & vbCrLf & _
+",art='gs'OR(art='tb'AND ersteller='gs')OR inhalt LIKE'%(gs)%'obgs" & vbCrLf & _
+",art='ah'OR(art='tb'AND ersteller='ah')OR inhalt LIKE'%(ah)%'obah" & vbCrLf & _
 "FROM eintraege e" & vbCrLf
-sql(AWlf) = sql(AWlf) & _
+'sql(AWlf) = sql(AWlf) & _
 ") e ON e.pat_id=n.Pat_ID AND (art IN ('tk','gs','wd','ah') OR (art='tb' AND ersteller IN ('tk','gs','wd','ah')) OR inhalt RLIKE '\\((gs|tk|wd|ah)\\)')" & vbCrLf & _
-"WHERE EXISTS(SELECT 0 FROM faelle WHERE pat_id=n.pat_id AND bhfb>20240101 LIMIT 1)" & vbCrLf & _
+"WHERE EXISTS(SELECT 0 FROM faelle WHERE pat_id=n.pat_id AND bhfb>20250701 LIMIT 1)" & vbCrLf & _
 "AND obk=0 AND obs=0 AND obh=0" & vbCrLf & _
 ") n" & vbCrLf & _
 "WHERE rang<16" & vbCrLf & _
 "GROUP BY pat_id"
+sql(AWlf) = "SELECT Fpatnr," & GesNamegMO & vbCrLf & _
+",(SELECT IF(COUNT(0)=0,'',CAST(COUNT(0)AS CHAR))FROM ltag l LEFT JOIN nutzerneu na ON FAnordnutzernr = na.FSurogat WHERE fpatnr=f.FPatnr AND (na.fbeschreibung RLIKE 'Kothny'OR FEintragsart=1045))`Einträge tk`" & vbCrLf & _
+",(SELECT IF(COUNT(0)=0,'',CAST(COUNT(0)AS CHAR))FROM ltag l LEFT JOIN nutzerneu na ON FAnordnutzernr = na.FSurogat WHERE fpatnr=f.FPatnr AND (na.fbeschreibung RLIKE 'Schade'OR FEintragsart=1025))`gs`" & vbCrLf & _
+",(SELECT IF(COUNT(0)=0,'',CAST(COUNT(0)AS CHAR))FROM ltag l LEFT JOIN nutzerneu na ON FAnordnutzernr = na.FSurogat WHERE fpatnr=f.FPatnr AND (na.fbeschreibung RLIKE 'Hammerschmidt'OR FEintragsart=1070))`ah`" & vbCrLf & _
+",(SELECT IF(COUNT(0)=0,'',CAST(COUNT(0)AS CHAR))FROM termin t JOIN tzone tz ON t.FZonenid=tz.FSurogat WHERE fpatnr=f.FPatnr AND tz.FName='Kothny')`Termine tk`" & vbCrLf & _
+",(SELECT IF(COUNT(0)=0,'',CAST(COUNT(0)AS CHAR))FROM termin t JOIN tzone tz ON t.FZonenid=tz.FSurogat WHERE fpatnr=f.FPatnr AND tz.FName='Schade')`gs`" & vbCrLf & _
+",(SELECT IF(COUNT(0)=0,'',CAST(COUNT(0)AS CHAR))FROM termin t JOIN tzone tz ON t.FZonenid=tz.FSurogat WHERE fpatnr=f.FPatnr AND tz.FName='Hammerschmidt')`ah`" & vbCrLf & _
+"FROM patfall f JOIN patstamm p ON p.FSurogat=f.FPatnr" & vbCrLf & _
+"WHERE/*fbis>=DATEDIFF(20250101,18900101) AND*/" & vbCrLf & _
+" NOT EXISTS (SELECT 0 FROM patmark pm JOIN markier m ON pm.FMarkiernr=m.FSurogat WHERE fpatnr=f.FPatnr AND FText RLIKE 'Arzt (Schade|Kothny|Hammerschmidt)')" & vbCrLf & _
+"AND(EXISTS(SELECT 0 FROM ltag l LEFT JOIN nutzerneu na ON FAnordnutzernr = na.FSurogat WHERE fpatnr=f.FPatnr AND (na.fbeschreibung RLIKE 'Kothny|Schade|Hammerschmidt'OR FEintragsart IN (1025,1045,1070)))" & vbCrLf & _
+" OR EXISTS(SELECT 0 FROM termin t JOIN tzone tz ON t.FZonenid=tz.FSurogat WHERE fpatnr=f.FPatnr AND tz.FName RLIKE 'Kothny|Schade|Hammerschmidt'))" & vbCrLf & _
+"GROUP BY fpatnr" & vbCrLf & _
+"ORDER BY fpatnr" & vbCrLf & _
+";"
 ' "-- and n.pat_id=47" & vbCrLf & _
 
 
@@ -2390,19 +2405,34 @@ sql(AWlf) = sql(AWlf) & _
 "ORDER BY f.pat_id, zeitpunkt " & vbCrLf & _
 ";"
 ' AND f.bhfb BETWEEN qanf() AND qend()
+ obmo(AWlf) = True
  mins(AWlf) = 10
  maxs(AWlf) = 60
  AWlf = AWlf + 1
 
 ' 62
- AwN(AWlf) = "Leistungsdatum außerhalb Quartal (vorher 37)"
- sql(AWlf) = _
+ AwN(AWlf) = "Leistungsdatum außerhalb Quartal"
+' sql(AWlf) = _
  "SELECT gf.pat_id, gesname(gf.pat_id) Name, l.zeitpunkt, l.leistung,gf.schgr,gf.goäkatnr, gf.quartal,gf.qanf,gf.qend " & vbCrLf & _
  "FROM faelle gf " & vbCrLf & _
  "LEFT JOIN leistungen l USING(fid) " & vbCrLf & _
  "WHERE ((l.zeitpunkt BETWEEN " & qtAnf(FristS) & " AND " & qtEnd(FristS) & " AND (gf.qanf> " & qtEnd(FristS) & " OR qend < " & qtAnf(FristS) & "))" & vbCrLf & _
  "OR NOT l.zeitpunkt BETWEEN " & qtAnf(FristS) & " AND " & qtEnd(FristS) & " AND (gf.qanf<=" & qtEnd(FristS) & " AND qend>" & qtAnf(FristS) & ")) " & vbCrLf & _
  "AND gf.schgr<>90 AND goäkatnr<>'40'"
+ sql(AWlf) = _
+ "SELECT pf.fpatnr," & GesNamegMO & vbCrLf & _
+ ",CONCAT(DATE_FORMAT(18900101+INTERVAL pf.fvon DAY,'%e.%c.%y'),'-',DATE_FORMAT(18900101+INTERVAL pf.FBis DAY,'%e.%c.%y'))Fall" & vbCrLf & _
+ ",DATE_FORMAT(18900101+INTERVAL pf.FAbgerechnet DAY,'%e.%c.%y')`Fl.abgr.`" & vbCrLf & _
+ ",DATE_FORMAT(18900101+INTERVAL l.fdatum DAY+INTERVAL l.FZeit SECOND,'%e.%c.%y')Leidat" & vbCrLf & _
+ ",DATE_FORMAT(18900101+INTERVAL l.FAnorddatum DAY+INTERVAL l.FAnordzeit SECOND,'%e.%c.%y')Anorddt" & vbCrLf & _
+ ",l.FText Leistungen" & vbCrLf & _
+ "FROM patfall pf" & vbCrLf & _
+ "JOIN patstamm p ON pf.FPatnr=p.FSurogat" & vbCrLf & _
+ "JOIN ltag l ON l.FScheinnr=pf.FSurogat" & vbCrLf & _
+ "WHERE pf.fbis>DATEDIFF(DATE(CONCAT(YEAR(NOW()-INTERVAL " & FristS & " DAY),'-',(QUARTER(NOW()-INTERVAL " & FristS & " DAY)-1)*3+1,'-01')),18900101)" & vbCrLf & _
+ "AND (l.FDatum<pf.FVon OR l.FDatum>pf.FBis)" & vbCrLf & _
+ "AND l.FEintragsart=12"
+ obmo(AWlf) = True
  mins(AWlf) = 7
  maxs(AWlf) = 120
  AWlf = AWlf + 1
@@ -2733,7 +2763,7 @@ sql(AWlf) = _
  " ,COALESCE(GROUP_CONCAT(DISTINCT CONCAT(fu.art,':',LEFT(fu.Inhalt,4)) SEPARATOR ', '),'') Fuß_akt, e.Art eArt, u.Art uArt, r.Medikament rRz, ra.Medikament raRz, d.ICD dICD, dmpKlass,dmpbeg,Kateg" & vbCrLf & _
  " ,COALESCE(GROUP_CONCAT(DISTINCT CONCAT(e.art,':',e.Inhalt)),'') Debr_akt" & vbCrLf & _
  " FROM aktfv f LEFT JOIN namen USING (pat_id)" & vbCrLf & _
- " LEFT JOIN eintraege e ON e.pat_id=f.pat_id AND e.zeitpunkt BETWEEN qanf() AND qend() AND (e.inhalt LIKE '%ebrid%' OR e.art LIKE 'debr%' OR (e.inhalt LIKE '%resekt%' AND NOT e.inhalt RLIKE 'Leber.*rese[ck]t|Resektionshöhle|Gebärmutterrese|Segmentresekt|Teilresekt|Linksresekt|Totalresekt|Prostataresekt|SD-resekt|Mucosaresektion|Nachresektion|Resektion der Schild|Strumaresekt|Schilddrüsenresekt|Gallenblase[n]{0,1}resektion|Elektroresektion|wurzelresektion|Nierenresektion|Pan[ck]reas.*resektion|trumektomie|igmaresektion|Resektion Leberzyste|Resektionsbereich|Pan[ck]reaskopfresektion|Re[ck]tumrese[ck]t|darmresekt|olonresekt|olon-resekt|milzresekt|Rese[ck]tion Lunge'))" & vbCrLf & _
+ " LEFT JOIN eintraege e ON e.pat_id=f.pat_id AND e.zeitpunkt BETWEEN qanf() AND qend() AND (e.inhalt LIKE '%ebrid%' OR e.art LIKE 'debr%' OR (e.inhalt LIKE '%resekt%' AND NOT e.inhalt RLIKE '(polyp|Leber).*rese[ck]t|Resektionshöhle|Gebärmutterrese|Segmentresekt|Teilresekt|Linksresekt|Totalresekt|Prostataresekt|SD-resekt|Mucosaresektion|Nachresektion|Resektion der Schild|Strumaresekt|Schilddrüsenresekt|Gallenblase[n]{0,1}resektion|Elektroresektion|wurzelresektion|Nierenresektion|Pan[ck]reas.*resektion|trumektomie|igmaresektion|Resektion Leberzyste|Resektionsbereich|Pan[ck]reaskopfresektion|Re[ck]tumrese[ck]t|darmresekt|olonresekt|olon-resekt|milzresekt|Rese[ck]tion Lunge'))" & vbCrLf & _
  " LEFT JOIN eintraege fu ON fu.pat_id=f.pat_id AND fu.zeitpunkt BETWEEN qanf() AND qend() AND fu.Art RLIKE 'fuss|fuß|usd|ulcus'" & vbCrLf & _
  " LEFT JOIN eintraege u ON u.pat_id=f.pat_id AND u.zeitpunkt BETWEEN qanf() AND qend() AND u.Art = 'ulcus'" & vbCrLf & _
  " LEFT JOIN diagview d ON d.pat_id=f.pat_id AND d.obdauer<>0 AND d.gICD REGEXP '^E1[0-4]\.'" & vbCrLf & _
@@ -2767,7 +2797,7 @@ sql(AWlf) = _
  "SELECT f.pat_id, dmtyp(f.pat_id) dt, gesname(f.pat_id) PName, DATE_FORMAT(e.zeitpunkt,'%e.%c.%y') Zp, GROUP_CONCAT(ndl.leistung) ndl, GROUP_CONCAT(dil.leistung) dil, e.art, e.inhalt " & vbCrLf & _
  "FROM aktfvs f " & vbCrLf & _
  "LEFT JOIN namen USING (pat_id) " & vbCrLf & _
- "LEFT JOIN eintraege e ON e.pat_id=f.pat_id AND e.zeitpunkt BETWEEN " & lQAnfuEnd(FristS) & " AND (inhalt LIKE '%ebrid%' OR art LIKE 'debr%' OR (inhalt LIKE '%resekt%' AND NOT inhalt RLIKE 'Leber.*rese[ck]t|Resektionshöhle|Resektion der Schild|Resektionsrand Pankreas|Pan[ck]rea(titi|)s.*resekt|Resektion Leberzyste|Resektionsbereich|Re[ck]tumrese[ck]t|Rese[ck]tion Lunge|(darm|magen|milz|acg-|ICC-|schilddrüsen|struma|sd-|nieren|teil|links|total|gebärmutter|mu[ck]osa|gallenblasen|elektro|wurzel|truma|igma|pan[ck]reaskopf|olon|olon-|olypen|operative )resekt|Hypoph.*resekt')) " & vbCrLf & _
+ "LEFT JOIN eintraege e ON e.pat_id=f.pat_id AND e.zeitpunkt BETWEEN " & lQAnfuEnd(FristS) & " AND (inhalt LIKE '%ebrid%' OR art LIKE 'debr%' OR (inhalt LIKE '%resekt%' AND NOT inhalt RLIKE '(polyp|Leber).*rese[ck]t|Resektionshöhle|Resektion der Schild|Resektionsrand Pankreas|Pan[ck]rea(titi|)s.*resekt|Resektion Leberzyste|Resektionsbereich|Re[ck]tumrese[ck]t|Rese[ck]tion Lunge|(darm|magen|milz|acg-|ICC-|schilddrüsen|struma|sd-|nieren|teil|links|total|gebärmutter|mu[ck]osa|gallenblasen|elektro|wurzel|truma|igma|pan[ck]reaskopf|olon|olon-|olypen|operative )resekt|Hypoph.*resekt')) " & vbCrLf & _
  "LEFT JOIN leistungen ndl ON ndl.pat_id = f.pat_id AND ndl.leistung IN ('02300') AND DATE(ndl.zeitpunkt)=DATE(e.zeitpunkt)" & vbCrLf & _
  "LEFT JOIN leistungen dil ON dil.pat_id = f.pat_id AND dil.leistung IN ('02311') AND DATE(dil.zeitpunkt)=DATE(e.zeitpunkt)" & vbCrLf & _
  "LEFT JOIN leistungen dix ON dix.pat_id = f.pat_id AND dix.leistung IN ('02312') AND DATE(dix.zeitpunkt)=DATE(e.zeitpunkt)" & vbCrLf & _

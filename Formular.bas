@@ -4,7 +4,7 @@ Dim ag As New CString
 Dim donr$
 Dim bmnr&
 Public Const KVNr = "6419153"
-Public Const BSNR = KVNr & "00"
+Public Const BSNr = KVNr & "00"
 Const fTDatei$ = "fuellThaS.bas"
 
 Const HADBName$ = "haerzte"
@@ -46,6 +46,8 @@ Public Type InfoTyp
  Nachname As String  ' 14: Nachname,
  email As String ' 15: Email
  ort As String ' 16: Ort
+ BSNr As String ' 17: Betriebsst‰ttennummer
+ LANR As String ' 18: LANR
 End Type
 
 'Const DMPVorlage$ = uVerz & "DMP-Vorlage.dot"
@@ -6388,7 +6390,7 @@ Function getHausarzt1(infos$(), rFa() As Faelle, rKv() As kvnrue, Optional obHAP
  On Error GoTo fehler
 #Const mo = 1
 #If mo Then
- ReDim infos(15, 2)
+ ReDim infos(18, 2)
  '  0: Frau/Herrn
  '  1: Titel+Vorn+Nachn,
  '  2: Straﬂe,
@@ -6405,6 +6407,9 @@ Function getHausarzt1(infos$(), rFa() As Faelle, rKv() As kvnrue, Optional obHAP
  ' 13: Tel'nr.
  ' 14: Nachname,
  ' 15: Email
+ ' 16: Ort
+ ' 17: BStnr
+ ' 18: LANR
  
  Dim infi%, ebsnr$, elanr$, mru&, nru&, FMem() As memoType, FMi() As memoType
  Dim arztnrn$(), psur$, asur$, Spli
@@ -6548,6 +6553,9 @@ Hausarzt:
    infos(13, iinf) = inf.TelNr
    infos(14, iinf) = inf.Nachname
    infos(15, iinf) = inf.email
+   infos(16, iinf) = inf.ort
+   infos(17, iinf) = inf.BSNr
+   infos(18, iinf) = inf.LANR
   End If ' inf.KVNr <> "" Then
   satznr = satznr + 1
  Next iinf
@@ -8965,7 +8973,7 @@ vonvorne:
          Exit For
         End If
        Next i
-       If Not obalt And Feld <> KVNr And Feld <> BSNR And Feld <> "889690003" And Feld <> "933284903" Then
+       If Not obalt And Feld <> KVNr And Feld <> BSNr And Feld <> "889690003" And Feld <> "933284903" Then
         stand = stand + 1
         ReDim Preserve ‹w1(4, stand) ' 0 = KV-Nr, 1 = Nachname, 2 = Vorname, 3 = Position
         ‹w1ini = True
@@ -9014,7 +9022,7 @@ vonvorne:
     Next i
    End If ' (0 / 1) + (Not Not rKv) = 0 Then Else
    If (0 / 1) + (Not Not rKv) = 0 Or obrKvzugew = 0 Then
-    myFrag rK, "SELECT kvnr FROM `kvnrue` WHERE pat_id = " & rFa(1).Pat_ID & IIf(auchwir, "", " AND kvnr NOT IN ('','" & KVNr & "','" & BSNR & "','889690003','933284903')") & " ORDER BY lfdnr"
+    myFrag rK, "SELECT kvnr FROM `kvnrue` WHERE pat_id = " & rFa(1).Pat_ID & IIf(auchwir, "", " AND kvnr NOT IN ('','" & KVNr & "','" & BSNr & "','889690003','933284903')") & " ORDER BY lfdnr"
     If Not rK.BOF Then
      Do While Not rK.EOF()
        obalt = 0
@@ -17367,7 +17375,7 @@ End Function ' testthap(pids$)
 ' #end if ' zutesten
 
 Function doDiagnosenexport(Optional obTest%)
- Dim Lanr&
+ Dim LANR&
  On Error GoTo fehler
  Dim Quartal$, erg$, dzahl&, BDT As New BDTSchreib
  
@@ -17452,7 +17460,7 @@ Function doDiagnosenexport(Optional obTest%)
      myFrag rFa, "SELECT * FROM `faelle` f LEFT JOIN `lanrpraxis` l ON f.lanrid = l.id WHERE pat_id = " & Pat_ID & " ORDER BY bhfb DESC"
     End If
     If Not rFa.BOF Then
-     Call FallExport(BDT, Pat_ID, aktdat, Lanr)
+     Call FallExport(BDT, Pat_ID, aktdat, LANR)
     End If
    End If ' Pat_id <> Pat_id THEN
    If Not rFa.BOF Then
@@ -17472,8 +17480,8 @@ Function doDiagnosenexport(Optional obTest%)
         BDT.DAdd IIf(obDauer = 0, "5999", "3649"), aktdat
         BDT.TAdd "6201", aktdat
         BDT.SAdd "6203", "TM#?##"
-        BDT.SAdd "3635", "TM#" & rFa!Lanr
-        BDT.SAdd "3636", "TM#" & BSNR
+        BDT.SAdd "3635", "TM#" & rFa!LANR
+        BDT.SAdd "3636", "TM#" & BSNr
         Dim DiagSi$ ', DiagText$
 '        ICD = ICD
         DiagSi = "G"
