@@ -2,9 +2,9 @@ Attribute VB_Name = "Laufzettel"
 Option Explicit
 ' alle Variablen, die (nur) für tabelleinplz und plz gebraucht werden
 #If mitcovid Then
- Const pzl% = 51     ' Zahl der Parameter
+ Const pzl% = 52     ' Zahl der Parameter
 #Else
- Const pzl% = 50 ' Zahl der Parameter
+ Const pzl% = 51 ' Zahl der Parameter
 #End If
 ' überprüft notwendig
  Dim MerkblattText$
@@ -716,7 +716,7 @@ Public Function mplan(pid&)
     mdpl(ru).m.mo = rTh!mo
     mdpl(ru).m.MPNr = rTh!MPNr
     mdpl(ru).m.nm = rTh!nm
-    mdpl(ru).m.Pat_id = rTh!Pat_id
+    mdpl(ru).m.Pat_ID = rTh!Pat_ID
     mdpl(ru).m.PZN = rTh!PZN
     mdpl(ru).m.Stärke = rTh!Stärke
     mdpl(ru).m.StByte = rTh!StByte
@@ -1044,7 +1044,7 @@ End Sub      ' tukopf
 
 
 ' in: doPLZeinzeln, PLZausListe_Click, los (Lese), Command1_Click (PatListe, 2x), PatListe.plz, MFG_Click (Patliste), doPatientenlaufzettel, Patientenlaufzettel_Click (PatAuswahl und AnBog)
-Function dodoplz(Pat_id$, plzVerz$, Optional Datum As Date, Optional Uhrzeit$, Optional mitanzeig%, Optional Arzt$, Optional zmaxges% = 8, Optional obphp% = 0) ' Patientenlaufzettel
+Function dodoplz(Pat_ID$, plzVerz$, Optional Datum As Date, Optional Uhrzeit$, Optional mitanzeig%, Optional Arzt$, Optional zmaxges% = 8, Optional obphp% = 0) ' Patientenlaufzettel
  Dim DN$, DatNr&
  Dim Pause%(pzl) ' Zahl der noch zu pausierenden Zeilen für die aktuelle Spalte wegen Rowspan vorher
  Dim üwerg$()
@@ -1062,7 +1062,7 @@ Function dodoplz(Pat_id$, plzVerz$, Optional Datum As Date, Optional Uhrzeit$, O
  Dim falDiabDau% ' falsche Diabetesdauer (`Diabetes seit` in der der Anamnese)
  
  m = 0: TI(m) = Timer: For p = 0 To m - 1: TI(m) = TI(m) - TI(p): Next
- syscmd 4, "Erstelle gleich Patientenlaufzettel zu Pat_id: " & Pat_id
+ syscmd 4, "Erstelle gleich Patientenlaufzettel zu Pat_id: " & Pat_ID
 #If printtest Then
  DN = LiServer & "php\plz\uml5.html"
  DatNr = UTFOpen(DN)
@@ -1083,7 +1083,7 @@ On Error GoTo fehler
   loestr(3) = phpVbehand
   For Each aktzls In loestr()
    For Each Fil In FSO.GetFolder(aktzls).Files
-    If InStrB(Fil, ",Pid_" & Pat_id & ",") <> 0 Or InStrB(Fil, ",Pid " & Pat_id & ", Patientenlaufzettel") <> 0 Then
+    If InStrB(Fil, ",Pid_" & Pat_ID & ",") <> 0 Or InStrB(Fil, ",Pid " & Pat_ID & ", Patientenlaufzettel") <> 0 Then
      On Error Resume Next
      FSO.DeleteFile (Fil)
      On Error GoTo fehler
@@ -1093,7 +1093,7 @@ On Error GoTo fehler
  Else ' obphp
   Dim erg$
   For Each Fil In FSO.GetFolder(plzVerz).Files
-   If InStrB(Fil, ",Pid_" & Pat_id & ",") <> 0 Or InStrB(Fil, ",Pid " & Pat_id & ", Patientenlaufzettel") <> 0 Then
+   If InStrB(Fil, ",Pid_" & Pat_ID & ",") <> 0 Or InStrB(Fil, ",Pid " & Pat_ID & ", Patientenlaufzettel") <> 0 Then
     On Error Resume Next
     Kill Fil
     On Error GoTo fehler
@@ -1139,7 +1139,7 @@ On Error GoTo fehler
  
 ' DMPString soll vor getHausarzt1 aufgerufen werden, da rNa(0) dort benötigt wird
   m = 14: TI(m) = Timer: For p = 0 To m - 1: TI(m) = TI(m) - TI(p): Next p
-  Call DMPString(CLng(Pat_id), üdt, True)
+  Call DMPString(CLng(Pat_ID), üdt, True)
 
 ' Hausärzte sollen vor myFrag rs(i) aufgerufen werden, da DBCn bei InsKorr unterbrochen werden kann
 '  Call getHausarzt(CLng(Pat_ID), üwerg)
@@ -1148,7 +1148,7 @@ On Error GoTo fehler
 '  While True
   ReDim rFa(0)
   ReDim rKv(0)
-  Call getHausarzt1(üwerg, rFa, rKv, , CLng(Pat_id), auchwir:=True, vonwo:="Erstelle Patientenlaufzettel")
+  Call getHausarzt1(üwerg, rFa, rKv, , CLng(Pat_ID), auchwir:=True, vonwo:="Erstelle Patientenlaufzettel")
   m = 25: TI(m) = Timer: For p = 0 To m - 1: TI(m) = TI(m) - TI(p): Next p
 '  Wend
   obpath(0) = -1
@@ -1167,7 +1167,7 @@ On Error GoTo fehler
  
  On Error GoTo fehler
  If LenB(DBCn) = 0 Or LenB(DBCnS) = 0 Then Call acon(quelleT) ' DBCn.ConnectionString
- Call doPatvonMO(CStr(Pat_id), obmitFormularen:=True, obpruef:=True) ' 20.9.25
+ Call doPatvonMO(CStr(Pat_ID), obmitFormularen:=True, obpruef:=True) ' 20.9.25
  Dim rnamBOF%, iru%
  Dim dmpbeg#, dmpklass As DMPEnum, dmpkhkklass As DMPEnum, dmpcopdklass As DMPEnum, dmpabklass As DMPEnum, dmpkhkbeg#, dmpcopdbeg#, dmpabbeg#
  For iru = 1 To 2
@@ -1176,15 +1176,15 @@ On Error GoTo fehler
   ",(obs AND lanrid<>1) OR (obk AND lanrid<>2) OR (obh AND lanrid<>5) obfalsch" & vbCrLf & _
   ",CONCAT('Desktop: ', IF(obs,'gelb,',''),IF(obk,'blau,',''),IF(obh,'gruen,',''),' Arztzuord.: ',IF(lanrid=1,'Schade',IF(lanrid=5,'Hammerschmidt','Kothny'))) wiefalar" & vbCrLf & _
   "FROM namen n LEFT JOIN faelle f USING(pat_id)" & vbCrLf & _
-  "WHERE pat_id = " & Pat_id & " ORDER BY bhfb DESC LIMIT 1"
+  "WHERE pat_id = " & Pat_ID & " ORDER BY bhfb DESC LIMIT 1"
   myFrag rnam, sql0, adOpenStatic, DBCn, adLockReadOnly
   rnamBOF = rnam.BOF
   If rnamBOF Then
    If iru = 1 Then
-    Call doPatvonMO(CStr(Pat_id), True)
+    Call doPatvonMO(CStr(Pat_ID), True)
    Else ' iru = 1 Then
 '  MsgBox ("Keinen Patienten zu " & Pat_id & " gefunden!")
-    Lese.Ausgeb "Keinen Patienten zu " & Pat_id & " gefunden!", True
+    Lese.Ausgeb "Keinen Patienten zu " & Pat_ID & " gefunden!", True
     Exit Function
    End If ' iru = 1 Then Else
   Else
@@ -1219,7 +1219,7 @@ On Error GoTo fehler
  rNa(0).obh = rnam!obh
  PAlter = AlterBei(Now(), rnam!GebDat)
  
- myFrag rAn, "SELECT COALESCE(`diabetes seit`,'') dmseit,COALESCE(vorgestellt,(SELECT MIN(bhfb) FROM faelle WHERE pat_id=" & Pat_id & ")) vorg,Diabetestyp FROM `anamnesebogen` WHERE pat_id = " & Pat_id
+ myFrag rAn, "SELECT COALESCE(`diabetes seit`,'') dmseit,COALESCE(vorgestellt,(SELECT MIN(bhfb) FROM faelle WHERE pat_id=" & Pat_ID & ")) vorg,Diabetestyp FROM `anamnesebogen` WHERE pat_id = " & Pat_ID
  If rAn.State <> 0 Then
   If Not rAn.BOF Then
    dmseit = rAn!dmseit
@@ -1231,8 +1231,8 @@ On Error GoTo fehler
  Dim DiagTab() As CString
 'anfang:
  m = 2: TI(m) = Timer: For p = 0 To m - 1: TI(m) = TI(m) - TI(p): Next p
- Call DiagString(Pat_id, DiagTab, , , dmseit) ' 0,35s
- Call UKPDS(aRisk, Pat_id, GebDat, dmseit, falDiabDau, obweibl)
+ Call DiagString(Pat_ID, DiagTab, , , dmseit) ' 0,35s
+ Call UKPDS(aRisk, Pat_ID, GebDat, dmseit, falDiabDau, obweibl)
  m = 3: TI(m) = Timer: For p = 0 To m - 1: TI(m) = TI(m) - TI(p): Next p
  
  dmtyp = "-"
@@ -1288,9 +1288,9 @@ weiter:
 ' dmtyp = myEFrag("SELECT dmtyp(" & Pat_ID & ")").Fields(0)
  If dmtyp = "1" Or dmtyp = "2" Or dmtyp = "s" Or dmtyp = "u" Then obdm = -1 Else obdm = 0
  If Not rnamBOF Then
-  syscmd 4, "Erstelle Patientenlaufzettel für: " & NName & ", " & VName & " (Pat_id: " & Pat_id & ")"
+  syscmd 4, "Erstelle Patientenlaufzettel für: " & NName & ", " & VName & " (Pat_id: " & Pat_ID & ")"
  Else
-  syscmd 4, "Patient mit Pat_id " & Pat_id & " nicht in Datenbank: " & DefDB(DBCn) & "gefunden, Patientenlaufzettel daher nicht erstellbar!"
+  syscmd 4, "Patient mit Pat_id " & Pat_ID & " nicht in Datenbank: " & DefDB(DBCn) & "gefunden, Patientenlaufzettel daher nicht erstellbar!"
  End If
 ' IF Pat_ID = 2183 THEN Stop
  'myFrag rFl, "SELECT k.*, f.* FROM `faelle` f LEFT JOIN `kassenliste` k on(((f.VKNr = k.vknr) AND (f.IK = k.IK))) WHERE f.pat_id = " & Pat_ID & " GROUP BY f.pat_id ORDER BY qanf DESC"
@@ -1312,7 +1312,7 @@ sql0 = _
 ",(SELECT voret FROM sws WHERE pat_id=f.pat_id AND voret>bhfb LIMIT 1) voret" & vbCrLf & _
 "FROM faelle f" & vbCrLf & _
 "LEFT JOIN kassenliste k ON k.id=f.kid" & vbCrLf & _
-"WHERE f.Pat_id =" & Pat_id & vbCrLf & _
+"WHERE f.Pat_id =" & Pat_ID & vbCrLf & _
 "ORDER BY bhfb DESC LIMIT 1;"
  myFrag rFl, sql0, adOpenStatic, DBCn, adLockReadOnly
  If rFl.State <> 0 Then
@@ -1329,14 +1329,14 @@ sql0 = _
  End If ' Not rFl.BOF Then
  m = 5: TI(m) = Timer: For p = 0 To m - 1: TI(m) = TI(m) - TI(p): Next p
   
-  myFrag rTha, "SELECT therart,zp FROM therarten tha WHERE pat_id=" & Pat_id & " ORDER BY zp DESC,mpnr DESC LIMIT 1"
+  myFrag rTha, "SELECT therart,zp FROM therarten tha WHERE pat_id=" & Pat_ID & " ORDER BY zp DESC,mpnr DESC LIMIT 1"
   If Not rTha.BOF Then therart = rTha!therart
   If Datum = 0 Then Datum = Now
   If obphp Then
-   DateiNameRoh = NName & "_" & VName & ",Pid_" & Pat_id & IIf(LenB(Arzt) <> 0, "," & Arzt, vNS) ' replace$(CDate(Uhrzeit), ":", ".") & "_" & Format(Datum, "dd.mm.yyyy") &
+   DateiNameRoh = NName & "_" & VName & ",Pid_" & Pat_ID & IIf(LenB(Arzt) <> 0, "," & Arzt, vNS) ' replace$(CDate(Uhrzeit), ":", ".") & "_" & Format(Datum, "dd.mm.yyyy") &
    DateiNameRoh = REPLACE$(REPLACE$(REPLACE$(REPLACE$(REPLACE$(REPLACE$(REPLACE$(REPLACE$(DateiNameRoh, "ä", "ae"), "ö", "oe"), "ü", "ue"), "Ä", "Ae"), "Ö", "Oe"), "Ü", "Ue"), "ß", "ss"), "'", "")
   Else
-   DateiNameRoh = NName & " " & VName & ",   Pid " & Pat_id & IIf(LenB(Arzt) <> 0, ", " & Arzt, vNS) & ", Patientenlaufzettel" ' replace$(CDate(Uhrzeit), ":", ".") & " " & Format(Datum, "dd.mm.yyyy") &
+   DateiNameRoh = NName & " " & VName & ",   Pid " & Pat_ID & IIf(LenB(Arzt) <> 0, ", " & Arzt, vNS) & ", Patientenlaufzettel" ' replace$(CDate(Uhrzeit), ":", ".") & " " & Format(Datum, "dd.mm.yyyy") &
   End If
  m = 6: TI(m) = Timer: For p = 0 To m - 1: TI(m) = TI(m) - TI(p): Next p
 '  Dim i%
@@ -1349,7 +1349,7 @@ sql0 = _
   If obphp Then
    AusS.AppVar (Array("<HEAD>", vbCrLf))
    AusS.AppVar (Array("    <META HTTP-EQUIV='CONTENT-TYPE' CONTENT='text/html; charset=windows-1252'>", vbCrLf))
-   AusS.AppVar (Array("    <TITLE>" & NName & " " & VName & " (Pat_id:" & Pat_id & "): Patientenlaufzettel vom " & Now & "</TITLE>", vbCrLf))
+   AusS.AppVar (Array("    <TITLE>" & NName & " " & VName & " (Pat_id:" & Pat_ID & "): Patientenlaufzettel vom " & Now & "</TITLE>", vbCrLf))
    AusS.AppVar (Array("    <META NAME='AUTHOR' CONTENT='Gerald Schade'>", vbCrLf))
    AusS.AppVar (Array("    <META NAME='CREATED' CONTENT=" & Format(Now, "yyyymmdd") & ";" & Format(Now, "hhmmss") & "00'>", vbCrLf))
    AusS.AppVar (Array("    <META NAME='CHANGEDBY' CONTENT='Gerald Schade'>", vbCrLf))
@@ -1363,7 +1363,7 @@ sql0 = _
   ' Wenn keine Diagnose Hypertonie und Blutdruckwerte normal, dann keinen RR-Vergleich
  m = 7: TI(m) = Timer: For p = 0 To m - 1: TI(m) = TI(m) - TI(p): Next p
  
- Call tabelleInplz(Pat_id, zmaxges)
+ Call tabelleInplz(Pat_ID, zmaxges, rFlSchGr)
   
   m = 18: TI(m) = Timer: For p = 0 To m - 1: TI(m) = TI(m) - TI(p): Next p
 ' nurpath und Fqmin werden hier oberhalb nur festgelegt, unterhalb nur abgefragt
@@ -1457,7 +1457,7 @@ sql0 = _
   Dim notiz$
   notiz = Trim$(REPLACE$(REPLACE$(rnam!notiz, Chr(13), ""), Chr(10), ""))
   AusS.AppVar (Array(" ", IIf(dmtyp = "1" Or dmtyp = "2" Or dmtyp = "g", "<span style='background-color:" & IIf(dmtyp = "1", "#ff8fc7", IIf(dmtyp = "g", "#ffffde", "#efe0ff")) & "'", ""), "<B><span title='", VName, " ", NName, ", ", rnam!strasse, ", ", rnam!plz, " ", rnam!ort, ", Tel1: ", PrivatTel, ", Tel2: ", PrivatTel_2, ", Mobil:", PrivatMobil, ", Fax: ", PrivatFax, ", Diensttel: ", DienstTel & ", Email: ", email, "'>", IIf(vorET > Now(), "<span class='schwanger'>", ""), _
-  GesNamFn(rnam), "</span></B>, *", Format(rnam!GebDat, "d.m.yy"), " (", PAlter, "a,&" & IIf(rnam!geschlecht = "w", "fe", "") & "male;), <span style='color:blue'><span class='unauff'>&nbsp;&nbsp;Pat_id: </span>", Pat_id, "</span><span id = 'unauff'>,", IIf(obdm, "&nbsp;&nbsp;D.m.: ", ""), IIf(obdm, dmseit, ""), ",&nbsp;&nbsp;<span style=""font-weight:normal"">vorgestellt: </span>", Format(Vorgestellt, "d.m.yy"), ",&nbsp;&nbsp;</span><span style='font-size:smaller;font-weight:normal'>für: ", Format(Datum, "d.m.yy"), " ", Format(Uhrzeit, "hh:mm"), ",</span>&nbsp;<span class='unauff'>", IIf(notiz = "", "", notiz & ",&nbsp;&nbsp;"), IIf(obdm, "Ther.zul: ", ""), "</span>", IIf(obdm, therart, ""), "<span " & dmpfarbe & ">", DmPStr, " </span><span style='background-color:black'>", IIf(rNa(0).obk <> 0, " &#x1F7E6;", ""), IIf(rNa(0).obs <> 0, "&#x1F7E8;", ""), IIf(rNa(0).obh <> 0, "&#x1F7E9;", ""), "<button type=""button"" onclick=location.href=""oeffneverz:" & Pat_id & _
+  GesNamFn(rnam), "</span></B>, *", Format(rnam!GebDat, "d.m.yy"), " (", PAlter, "a,&" & IIf(rnam!geschlecht = "w", "fe", "") & "male;), <span style='color:blue'><span class='unauff'>&nbsp;&nbsp;Pat_id: </span>", Pat_ID, "</span><span id = 'unauff'>,", IIf(obdm, "&nbsp;&nbsp;D.m.: ", ""), IIf(obdm, dmseit, ""), ",&nbsp;&nbsp;<span style=""font-weight:normal"">vorgestellt: </span>", Format(Vorgestellt, "d.m.yy"), ",&nbsp;&nbsp;</span><span style='font-size:smaller;font-weight:normal'>für: ", Format(Datum, "d.m.yy"), " ", Format(Uhrzeit, "hh:mm"), ",</span>&nbsp;<span class='unauff'>", IIf(notiz = "", "", notiz & ",&nbsp;&nbsp;"), IIf(obdm, "Ther.zul: ", ""), "</span>", IIf(obdm, therart, ""), "<span " & dmpfarbe & ">", DmPStr, " </span><span style='background-color:black'>", IIf(rNa(0).obk <> 0, " &#x1F7E6;", ""), IIf(rNa(0).obs <> 0, "&#x1F7E8;", ""), IIf(rNa(0).obh <> 0, "&#x1F7E9;", ""), "<button type=""button"" onclick=location.href=""oeffneverz:" & Pat_ID & _
   """>Da<u>t</u>eien</button></span></h1>", vbCrLf))
 ' TherapieArtEinzelnFestlegen(CLng(Pat_ID), rAn) & "</span></h1>" ' VName, " ", NName
   ' * 2.73792574745373E-03 ' 1/365,24
@@ -1487,7 +1487,7 @@ sql0 = _
   
   If obLeist Then
    If pKVNR = KVNr And PAlter > 35 Then
-    myFrag rLei, "SELECT zeitpunkt FROM `leistungen` WHERE pat_id = " & Pat_id & " AND leistung = '01732' ORDER BY zeitpunkt DESC"
+    myFrag rLei, "SELECT zeitpunkt FROM `leistungen` WHERE pat_id = " & Pat_ID & " AND leistung = '01732' ORDER BY zeitpunkt DESC"
     If rLei.BOF Then
      obGU = True
     ElseIf fctQAnf(ZQuart(Now())) - fctQAnf(ZQuart(rLei!Zeitpunkt)) >= 2 * 365 Then
@@ -1526,7 +1526,7 @@ sql0 = _
   Auftrag = vNS
   Verdacht = vNS
   Befund = vNS
-  myFrag rsauf, "SELECT quartal, DATE_FORMAT(bhfb,'%d.%m.%y') bhfb, auftrag, verdacht, befund FROM `faelle` WHERE pat_id = " & Pat_id & " AND ((NOT ISNULL(auftrag) AND auftrag <> '') OR (NOT ISNULL(verdacht) AND verdacht <> '') OR (NOT ISNULL(befund) AND befund <> '')) ORDER BY bhfb DESC"
+  myFrag rsauf, "SELECT quartal, DATE_FORMAT(bhfb,'%d.%m.%y') bhfb, auftrag, verdacht, befund FROM `faelle` WHERE pat_id = " & Pat_ID & " AND ((NOT ISNULL(auftrag) AND auftrag <> '') OR (NOT ISNULL(verdacht) AND verdacht <> '') OR (NOT ISNULL(befund) AND befund <> '')) ORDER BY bhfb DESC"
   If Not rsauf.BOF Then
    BhFB = rsauf!BhFB
    Auftrag = rsauf!Auftrag
@@ -1537,7 +1537,7 @@ sql0 = _
   AusS.AppVar (Array("<div class='lila'>" & BhFB & ": Auftrag:<span class='gruen'> " & Auftrag & "</span>" & " Verdacht:<span class='gruen'> " & Verdacht & "</span>" & " Befund:<span class='gruen'> " & Befund & "</span>" & "</div>", vbCrLf))
   If (obphp <> 0) Then
    AusS.AppVar (Array("<?php ", vbCrLf))
-   AusS.AppVar (Array(" $pat_id=", Pat_id, ";", vbCrLf))
+   AusS.AppVar (Array(" $pat_id=", Pat_ID, ";", vbCrLf))
    AusS.AppVar Array(" $_SESSION['tel']=""T:", PrivatTel, ",T2:", PrivatTel_2, ",M:", PrivatMobil, ",Fx:", PrivatFax, ",D:", DienstTel, ",E:", email, """;", vbCrLf)
    AusS.AppVar Array(" $telnr=1;", vbCrLf)
 
@@ -1611,7 +1611,7 @@ sql0 = _
   Set rFlb = Nothing
 ' rFlb.Open "SELECT `dokumente`.pat_id, `dokumente`.zeitpunkt AS zp, `dokumente`.dokpfad, `dokumente`.dokname, `dokumente`.quelldatum, `dokumente`.dokgroe, kvnr, LEFT(IF(übwvbsnr='',IF(übwvkvnr = '', andüw, übwvkvnr),übwvbsnr),7) übwv, IF(`br_abgehakt`.abgehakt,'X',' ') AS abgeh FROM ((`dokumente` LEFT JOIN `br_abgehakt` ON `dokumente`.DokPfad = `br_abgehakt`.DokPfad) LEFT JOIN `namen` ON `dokumente`.pat_id = `namen`.pat_id) LEFT JOIN `lfaelle` ON `dokumente`.pat_id = `lfaelle`.pat_id WHERE (((`dokumente`.DokName) LIKE '%Fremdlabor%')) AND (ISNULL(abgehakt) OR abgehakt = 0) AND `dokumente`.pat_id = " & Pat_ID & " ORDER BY `dokumente`.pat_id DESC, zp DESC", DBCn, adOpenDynamic, adLockReadOnly
 '  rFlb.Open "SELECT `dokumente`.pat_id, `dokumente`.zeitpunkt AS zp, `dokumente`.dokpfad, `dokumente`.dokname, `dokumente`.quelldatum, `dokumente`.dokgroe, kvnr, übwr, IF(`br_abgehakt`.abgehakt,'X',' ') AS abgeh FROM ((`dokumente` LEFT JOIN `br_abgehakt` ON `dokumente`.DokPfad = `br_abgehakt`.DokPfad) LEFT JOIN `namen` ON `dokumente`.pat_id = `namen`.pat_id) LEFT JOIN `lfaelle` ON `dokumente`.pat_id = `lfaelle`.pat_id WHERE (((`dokumente`.DokName) LIKE '%Fremdlabor%')) AND (ISNULL(abgehakt) OR abgehakt = 0) AND `dokumente`.pat_id = " & Pat_id & " ORDER BY `dokumente`.pat_id DESC, zp DESC", DBCn, adOpenDynamic, adLockReadOnly
-  myFrag rFlb, "SELECT b.pat_id, b.zeitpunkt zp, b.pfad, b.name, b.quelldatum, b.dokgroe, kvnr, übwr, IF(ba.abgehakt,'X',' ') abgeh FROM ((tmbrie b LEFT JOIN `br_abgehakt` ba ON b.Pfad = ba.DokPfad) LEFT JOIN `namen` n ON b.pat_id = n.pat_id) LEFT JOIN `lfaelle` lf ON b.pat_id = lf.pat_id WHERE (((b.Name) LIKE '%Fremdlabor%')) AND (ISNULL(abgehakt) OR abgehakt = 0) AND b.pat_id = " & Pat_id & " ORDER BY b.pat_id DESC, zp DESC"
+  myFrag rFlb, "SELECT b.pat_id, b.zeitpunkt zp, b.pfad, b.name, b.quelldatum, b.dokgroe, kvnr, übwr, IF(ba.abgehakt,'X',' ') abgeh FROM ((tmbrie b LEFT JOIN `br_abgehakt` ba ON b.Pfad = ba.DokPfad) LEFT JOIN `namen` n ON b.pat_id = n.pat_id) LEFT JOIN `lfaelle` lf ON b.pat_id = lf.pat_id WHERE (((b.Name) LIKE '%Fremdlabor%')) AND (ISNULL(abgehakt) OR abgehakt = 0) AND b.pat_id = " & Pat_ID & " ORDER BY b.pat_id DESC, zp DESC"
   If Not rFlb.BOF Then
    AusS.AppVar (Array("<table>", vbCrLf))
    AusS.AppVar (Array("  <tr>", vbCrLf))
@@ -1651,17 +1651,17 @@ sql0 = _
   If falDiabDau Then AusS.AppVar (Array("    <span class='cave'>&nbsp;bitte `Diabetes seit` im Anamnesemakro überprüfen: soll Jahreszahl oder Datum sein,&nbsp;&nbsp;</span>", vbCrLf))
 ' Barthel-Index
   Dim rsdd As New ADODB.Recordset
-  myFrag rsdd, "SELECT icd FROM diagview d WHERE d.pat_id = " & Pat_id & " AND (d.gICD RLIKE '^F0[0-3]|^G20')"
+  myFrag rsdd, "SELECT icd FROM diagview pfld WHERE pat_id = " & Pat_ID & " AND (pfld.gicd IN ('Z74.9','G20.10','G20.20','R26.8','R29.6','R42','R32','R15','R13.9','R26.3','R41.0','R41.3','R41.8','R52.2','F45.41','G30.9','F29','F32.9','F69','F79.9','R63.4','R53','M62.50','R26.8','R68.8') OR pfld.gicd RLIKE '^F0[012]'))"
   Dim rse As ADODB.Recordset
   If rFlSchGr <> 90 And (PAlter >= 70 Or Not rsdd.BOF) Then
    Set rse = Nothing ' 13.4.21: wenn im Folgenden nicht _latin1 bei inhalt steht, kommt bei der virtuallen Spalte Unsinn raus
-   myFrag rse, "SELECT DATE(zeitpunkt) datum, art, inhalt FROM `eintraege` WHERE zeitpunkt > DATE_SUB(NOW(), INTERVAL 150 DAY) AND Art IN('ADL','284') AND pat_id = " & Pat_id & " ORDER BY zeitpunkt DESC"
+   myFrag rse, "SELECT DATE(zeitpunkt) datum, art, inhalt FROM `eintraege` WHERE zeitpunkt > DATE_SUB(NOW(), INTERVAL 150 DAY) AND Art IN('ADL','284','bar') AND pat_id = " & Pat_ID & " ORDER BY zeitpunkt DESC"
    If rse.BOF Then
     AusS.AppVar (Array("    <span class='cave'>&nbsp;ADL(Barthel),&nbsp;&nbsp;</span>", vbCrLf))
    End If
    Set rse = Nothing
    ' ktag fehlerhaft
-   myFrag rse, "SELECT DATE(zeitpunkt) datum, art, inhalt FROM `eintraege` WHERE zeitpunkt > DATE_SUB(NOW(), INTERVAL 150 DAY) AND Art IN('TUG','247') AND pat_id = " & Pat_id & " ORDER BY zeitpunkt DESC"
+   myFrag rse, "SELECT DATE(zeitpunkt) datum, art, inhalt FROM `eintraege` WHERE zeitpunkt > DATE_SUB(NOW(), INTERVAL 150 DAY) AND Art IN('TUG','247') AND pat_id = " & Pat_ID & " ORDER BY zeitpunkt DESC"
    If rse.BOF Then
     AusS.AppVar (Array("    <span class='cave'>&nbsp;TUG(Time up AND go),&nbsp;&nbsp;</span>", vbCrLf))
    End If
@@ -1676,7 +1676,7 @@ sql0 = _
     myFrag rDF, "SELECT CASE substr(inhalt,6,2) WHEN 'HA' THEN 'HA' WHEN 'hi' THEN 'hier' WHEN 'ne' THEN 'nein' ELSE '?' END wo," & _
      "DATE_FORMAT(zeitpunkt,'%d.%m.%y'), e.* FROM eintraege e WHERE art='dak' " & _
      "and zeitpunkt= (SELECT MAX(zeitpunkt) FROM eintraege ei WHERE pat_id = e.pat_id AND art='dak') " & _
-     "and pat_id = " & Pat_id & _
+     "and pat_id = " & Pat_ID & _
      " ORDER BY inhalt"
     AusS.AppVar Array("<p class='abstand'> </p>", vbCrLf)
     
@@ -1690,57 +1690,57 @@ sql0 = _
 ' #Const aufzwei = 1
 #If einzeln Then
 #If aufzwei Then
-     NPmd = myEFrag("SELECT 1 FROM diagview WHERE pat_id = " & Pat_id & " AND gICD RLIKE '^E1[0-4]\.4|^G59\.0|^G63\.2|^G99\.0'").EOF
-     If NPmd Then NPmd = myEFrag("SELECT zeitpunkt FROM eintraege WHERE art='daknp' AND pat_id = " & Pat_id & " AND zeitpunkt >= SUBDATE(qanf(),INTERVAL 9 MONTH)").EOF
+     NPmd = myEFrag("SELECT 1 FROM diagview WHERE pat_id = " & Pat_ID & " AND gICD RLIKE '^E1[0-4]\.4|^G59\.0|^G63\.2|^G99\.0'").EOF
+     If NPmd Then NPmd = myEFrag("SELECT zeitpunkt FROM eintraege WHERE art='daknp' AND pat_id = " & Pat_ID & " AND zeitpunkt >= SUBDATE(qanf(),INTERVAL 9 MONTH)").EOF
 #Else
-     NPmd = myEFrag("SELECT 1 FROM diagview WHERE pat_id = " & Pat_id & " AND gICD RLIKE '^E1[0-4]\.4|^G59\.0|^G63\.2|^G99\.0'" & vbCrLf & _
+     NPmd = myEFrag("SELECT 1 FROM diagview WHERE pat_id = " & Pat_ID & " AND gICD RLIKE '^E1[0-4]\.4|^G59\.0|^G63\.2|^G99\.0'" & vbCrLf & _
      "UNION" & vbCrLf & _
-     "SELECT 1 FROM eintraege WHERE art='daknp' AND pat_id = " & Pat_id & " AND zeitpunkt >= SUBDATE(qanf(),INTERVAL 9 MONTH)").EOF
+     "SELECT 1 FROM eintraege WHERE art='daknp' AND pat_id = " & Pat_ID & " AND zeitpunkt >= SUBDATE(qanf(),INTERVAL 9 MONTH)").EOF
 #End If
 #If aufzwei Then
-     LUTSmd = myEFrag("SELECT 0 FROM diagview WHERE pat_id = " & Pat_id & " AND gicd RLIKE '^N31\.[12]'").BOF
-     If LUTSmd Then LUTSmd = myEFrag("SELECT zeitpunkt FROM eintraege WHERE art='dakluts' AND pat_id = " & Pat_id & " AND zeitpunkt >= SUBDATE(qanf(),INTERVAL 9 MONTH)").EOF
+     LUTSmd = myEFrag("SELECT 0 FROM diagview WHERE pat_id = " & Pat_ID & " AND gicd RLIKE '^N31\.[12]'").BOF
+     If LUTSmd Then LUTSmd = myEFrag("SELECT zeitpunkt FROM eintraege WHERE art='dakluts' AND pat_id = " & Pat_ID & " AND zeitpunkt >= SUBDATE(qanf(),INTERVAL 9 MONTH)").EOF
 #Else
-     LUTSmd = myEFrag("SELECT 1 FROM diagview WHERE pat_id = " & Pat_id & " AND gicd RLIKE '^N31\.[12]'" & vbCrLf & _
+     LUTSmd = myEFrag("SELECT 1 FROM diagview WHERE pat_id = " & Pat_ID & " AND gicd RLIKE '^N31\.[12]'" & vbCrLf & _
      "UNION" & vbCrLf & _
-     "SELECT 1 FROM eintraege WHERE art='dakluts' AND pat_id = " & Pat_id & " AND zeitpunkt >= SUBDATE(qanf(),INTERVAL 9 MONTH)").EOF
+     "SELECT 1 FROM eintraege WHERE art='dakluts' AND pat_id = " & Pat_ID & " AND zeitpunkt >= SUBDATE(qanf(),INTERVAL 9 MONTH)").EOF
 #End If
      If PAlter > 50 Then
 #If aufzwei Then
-     Apmd = myEFrag("SELECT 0 FROM diagview WHERE pat_id = " & Pat_id & " AND gicd RLIKE '^E1.\.5|^I79.2|^I73.'").BOF
-     If Apmd Then Apmd = myEFrag("SELECT zeitpunkt FROM eintraege WHERE art='dakap' AND pat_id = " & Pat_id & " AND zeitpunkt >= SUBDATE(qanf(),INTERVAL 9 MONTH)").EOF
+     Apmd = myEFrag("SELECT 0 FROM diagview WHERE pat_id = " & Pat_ID & " AND gicd RLIKE '^E1.\.5|^I79.2|^I73.'").BOF
+     If Apmd Then Apmd = myEFrag("SELECT zeitpunkt FROM eintraege WHERE art='dakap' AND pat_id = " & Pat_ID & " AND zeitpunkt >= SUBDATE(qanf(),INTERVAL 9 MONTH)").EOF
 #Else
-      Apmd = myEFrag("SELECT 1 FROM diagview WHERE pat_id = " & Pat_id & " AND gicd RLIKE '^E1.\.5|^I79.2|^I73.'" & vbCrLf & _
+      Apmd = myEFrag("SELECT 1 FROM diagview WHERE pat_id = " & Pat_ID & " AND gicd RLIKE '^E1.\.5|^I79.2|^I73.'" & vbCrLf & _
       "UNION" & vbCrLf & _
-      "SELECT 1 FROM eintraege WHERE art='dakap' AND pat_id = " & Pat_id & " AND zeitpunkt >= SUBDATE(qanf(),INTERVAL 9 MONTH)").EOF
+      "SELECT 1 FROM eintraege WHERE art='dakap' AND pat_id = " & Pat_ID & " AND zeitpunkt >= SUBDATE(qanf(),INTERVAL 9 MONTH)").EOF
      Else ' PAlter > 50 Then
       Apmd = 0
 #End If
      End If ' PAlter > 50 Then Else
 #If aufzwei Then
-     LebMd = myEFrag("SELECT 0 FROM diagview WHERE pat_id = " & Pat_id & " AND gicd = 'K77.8'").BOF ' COALESCE(Dggel,0)=0 AND
-     If LebMd Then LebMd = myEFrag("SELECT zeitpunkt FROM eintraege WHERE art='sono' AND (inhalt LIKE '%Abdomen%' OR inhalt LIKE '%Bauch%') AND pat_id = " & Pat_id & " AND zeitpunkt >= SUBDATE(qanf(),INTERVAL 9 MONTH)").EOF
+     LebMd = myEFrag("SELECT 0 FROM diagview WHERE pat_id = " & Pat_ID & " AND gicd = 'K77.8'").BOF ' COALESCE(Dggel,0)=0 AND
+     If LebMd Then LebMd = myEFrag("SELECT zeitpunkt FROM eintraege WHERE art='sono' AND (inhalt LIKE '%Abdomen%' OR inhalt LIKE '%Bauch%') AND pat_id = " & Pat_ID & " AND zeitpunkt >= SUBDATE(qanf(),INTERVAL 9 MONTH)").EOF
 #Else
-     LebMd = myEFrag("SELECT 0 FROM diagview WHERE pat_id = " & Pat_id & " AND gicd = 'K77.8'" & vbCrLf & _
+     LebMd = myEFrag("SELECT 0 FROM diagview WHERE pat_id = " & Pat_ID & " AND gicd = 'K77.8'" & vbCrLf & _
      "UNION" & vbCrLf & _
-     "SELECT zeitpunkt FROM eintraege WHERE art='sono' AND (inhalt LIKE '%Abdomen%' OR inhalt LIKE '%Bauch%') AND pat_id = " & Pat_id & " AND zeitpunkt >= SUBDATE(qanf(),INTERVAL 9 MONTH)").EOF
+     "SELECT zeitpunkt FROM eintraege WHERE art='sono' AND (inhalt LIKE '%Abdomen%' OR inhalt LIKE '%Bauch%') AND pat_id = " & Pat_ID & " AND zeitpunkt >= SUBDATE(qanf(),INTERVAL 9 MONTH)").EOF
 #End If
-     NiMd = myEFrag("SELECT 0 FROM diagview WHERE pat_id = " & Pat_id & " AND gicd RLIKE '^E1.*\.2|^N18|^N19|^I12\.0|^I13\.1|^I13\.2|^Z49\.[012]|^Z99\.2'").BOF ' COALESCE(Dggel,0)=0 AND
+     NiMd = myEFrag("SELECT 0 FROM diagview WHERE pat_id = " & Pat_ID & " AND gicd RLIKE '^E1.*\.2|^N18|^N19|^I12\.0|^I13\.1|^I13\.2|^Z49\.[012]|^Z99\.2'").BOF ' COALESCE(Dggel,0)=0 AND
 #Else
      sql0 = "SELECT" & vbCrLf & _
-     "COALESCE((SELECT 0 FROM diagview WHERE pat_id = " & Pat_id & " AND gICD RLIKE '^G59\.0|^G63\.2|^G99\.0'" & vbCrLf & _
+     "COALESCE((SELECT 0 FROM diagview WHERE pat_id = " & Pat_ID & " AND gICD RLIKE '^G59\.0|^G63\.2|^G99\.0'" & vbCrLf & _
      "UNION" & vbCrLf & _
-     "SELECT 0 FROM eintraege WHERE art='daknp' AND pat_id = " & Pat_id & " AND zeitpunkt >= SUBDATE(qanf(),INTERVAL 9 MONTH)LIMIT 1),-1)NPmd," & vbCrLf & _
-     "COALESCE((SELECT 0 FROM diagview WHERE pat_id = " & Pat_id & " AND gICD RLIKE '^N31\.[12]'" & vbCrLf & _
+     "SELECT 0 FROM eintraege WHERE art='daknp' AND pat_id = " & Pat_ID & " AND zeitpunkt >= SUBDATE(qanf(),INTERVAL 9 MONTH)LIMIT 1),-1)NPmd," & vbCrLf & _
+     "COALESCE((SELECT 0 FROM diagview WHERE pat_id = " & Pat_ID & " AND gICD RLIKE '^N31\.[12]'" & vbCrLf & _
      "UNION" & vbCrLf & _
-     "SELECT 0 FROM eintraege WHERE art='dakluts' AND pat_id = " & Pat_id & " AND zeitpunkt >= SUBDATE(qanf(),INTERVAL 9 MONTH)LIMIT 1),-1)LUTSmd," & vbCrLf & _
-     "(PATALTER(" & Pat_id & ")>50)*COALESCE((SELECT 0 FROM diagview WHERE pat_id = " & Pat_id & " AND gICD RLIKE '^I79.2|^I73.'" & vbCrLf & _
+     "SELECT 0 FROM eintraege WHERE art='dakluts' AND pat_id = " & Pat_ID & " AND zeitpunkt >= SUBDATE(qanf(),INTERVAL 9 MONTH)LIMIT 1),-1)LUTSmd," & vbCrLf & _
+     "(PATALTER(" & Pat_ID & ")>50)*COALESCE((SELECT 0 FROM diagview WHERE pat_id = " & Pat_ID & " AND gICD RLIKE '^I79.2|^I73.'" & vbCrLf & _
      "UNION" & vbCrLf & _
-     "SELECT 0 FROM eintraege WHERE art='dakap' AND pat_id = " & Pat_id & " AND zeitpunkt >= SUBDATE(qanf(),INTERVAL 9 MONTH)LIMIT 1),-1)APmd," & vbCrLf & _
-     "COALESCE((SELECT 0 FROM diagview WHERE pat_id = " & Pat_id & " AND gICD RLIKE '^K77.8'" & vbCrLf & _
+     "SELECT 0 FROM eintraege WHERE art='dakap' AND pat_id = " & Pat_ID & " AND zeitpunkt >= SUBDATE(qanf(),INTERVAL 9 MONTH)LIMIT 1),-1)APmd," & vbCrLf & _
+     "COALESCE((SELECT 0 FROM diagview WHERE pat_id = " & Pat_ID & " AND gICD RLIKE '^K77.8'" & vbCrLf & _
      "UNION" & vbCrLf & _
-     "SELECT 0 FROM eintraege WHERE art='sono' AND (inhalt LIKE '%Abdomen%' OR inhalt LIKE '%Bauch%') AND pat_id = " & Pat_id & " AND zeitpunkt >= SUBDATE(qanf(),INTERVAL 9 MONTH)LIMIT 1),-1)LebMd," & vbCrLf & _
-     "COALESCE((SELECT 0 FROM diagview WHERE pat_id = " & Pat_id & " AND gicd RLIKE '^N1[89]|^I12\.0|^I13\.1|^I13\.2|^Z49\.[012]|^Z99\.2'LIMIT 1),-1)NiMD"
+     "SELECT 0 FROM eintraege WHERE art='sono' AND (inhalt LIKE '%Abdomen%' OR inhalt LIKE '%Bauch%') AND pat_id = " & Pat_ID & " AND zeitpunkt >= SUBDATE(qanf(),INTERVAL 9 MONTH)LIMIT 1),-1)LebMd," & vbCrLf & _
+     "COALESCE((SELECT 0 FROM diagview WHERE pat_id = " & Pat_ID & " AND gicd RLIKE '^N1[89]|^I12\.0|^I13\.1|^I13\.2|^Z49\.[012]|^Z99\.2'LIMIT 1),-1)NiMD"
      Set rse = myEFrag(sql0, rAf)
      NPmd = rse!NPmd
      LUTSmd = rse!LUTSmd
@@ -1760,7 +1760,7 @@ sql0 = _
   ' Therapiehinweise
   Dim thh$(), metdos%, obsglt%, obamio%
   m = 31: TI(m) = Timer: For p = 0 To m - 1: TI(m) = TI(m) - TI(p): Next p
-  Call mplan(CLng(Pat_id))
+  Call mplan(CLng(Pat_ID))
   m = 32: TI(m) = Timer: For p = 0 To m - 1: TI(m) = TI(m) - TI(p): Next p
   
   m = 33: TI(m) = Timer: For p = 0 To m - 1: TI(m) = TI(m) - TI(p): Next p
@@ -1782,7 +1782,7 @@ sql0 = _
            ") i;")
 '  IF Not rTh.BOF THEN metdos = rTh!mg
   Dim lGFR As labtyp
-  lGFR = letztGFR(CLng(Pat_id), PAlter, obweibl, aRisk.EthnicGroup)
+  lGFR = letztGFR(CLng(Pat_ID), PAlter, obweibl, aRisk.EthnicGroup)
   If lGFR.Abkü = "" And lGFR.WertSg = "" Then lGFR.WertSg = "500"
   ' beim längsten Pat. 0,015 - 0,023 s
 '  obmetf = myEFrag("SELECT COUNT(0) zl FROM medplan mp LEFT JOIN medarten ma ON mp.medanfang = ma.medikament WHERE mp.pat_id=" & Pat_ID & " AND metf")!zl
@@ -1794,7 +1794,7 @@ sql0 = _
     ' ' convert(mp.medanfang, char CHARSET utf8 collate utf8_german2_ci) = convert(ma.medikament, char CHARSET utf8 COLLATE utf8_german2_ci) " & vbCrLf & _
 
     obmetf = myEFrag("SELECT COALESCE(-(SELECT 1 FROM medplan mp LEFT JOIN medarten ma ON mp.medanfang = ma.medikament " & vbCrLf & _
-     " WHERE mp.pat_id=" & Pat_id & " AND metf LIMIT 1),0) zl")!zl
+     " WHERE mp.pat_id=" & Pat_ID & " AND metf LIMIT 1),0) zl")!zl
     If Not obmetf Then
      If SafeArrayGetDim(thh) = 0 Then ReDim thh(0) Else ReDim Preserve thh(UBound(thh) + 1)
      thh(UBound(thh)) = "Typ 2-Diabetes, Therapie " & therart & ", lGFR " & lGFR.WertSg & ", bisher noch kein Metformin => evtl. versuchen"
@@ -1806,8 +1806,8 @@ sql0 = _
     sglt = myEFrag("SELECT COALESCE(" & vbCrLf & _
      "-(SELECT 1 FROM medplan mp LEFT JOIN medarten ma ON mp.medanfang = ma.medikament " & vbCrLf & _
      "LEFT JOIN eintraege e ON e.pat_id=mp.pat_id AND art IN ('KSP','KSÄ')" & vbCrLf & _
-     "WHERE ISNULL(e.id) AND mp.pat_id=" & Pat_id & " AND sglt2 " & vbCrLf & _
-     "AND mp.zeitpunkt=(SELECT MAX(zeitpunkt) FROM medplan WHERE pat_id=" & Pat_id & ") LIMIT 1) " & vbCrLf & _
+     "WHERE ISNULL(e.id) AND mp.pat_id=" & Pat_ID & " AND sglt2 " & vbCrLf & _
+     "AND mp.zeitpunkt=(SELECT MAX(zeitpunkt) FROM medplan WHERE pat_id=" & Pat_ID & ") LIMIT 1) " & vbCrLf & _
      ",0) zl")!zl
     If Not sglt Then
      If SafeArrayGetDim(thh) = 0 Then ReDim thh(0) Else ReDim Preserve thh(UBound(thh) + 1)
@@ -1820,8 +1820,8 @@ sql0 = _
     glp = myEFrag("SELECT COALESCE(" & vbCrLf & _
      "-(SELECT 1 FROM medplan mp LEFT JOIN medarten ma ON mp.medanfang = ma.medikament " & vbCrLf & _
      "LEFT JOIN eintraege e ON e.pat_id=mp.pat_id AND art IN ('KGP','KGÄ')" & vbCrLf & _
-     "WHERE ISNULL(e.id) AND mp.pat_id=" & Pat_id & " AND glp1 " & vbCrLf & _
-     "AND mp.zeitpunkt=(SELECT MAX(zeitpunkt) FROM medplan WHERE pat_id=" & Pat_id & ") LIMIT 1) " & vbCrLf & _
+     "WHERE ISNULL(e.id) AND mp.pat_id=" & Pat_ID & " AND glp1 " & vbCrLf & _
+     "AND mp.zeitpunkt=(SELECT MAX(zeitpunkt) FROM medplan WHERE pat_id=" & Pat_ID & ") LIMIT 1) " & vbCrLf & _
      ",0) zl")!zl
     If Not glp Then
      If SafeArrayGetDim(thh) = 0 Then ReDim thh(0) Else ReDim Preserve thh(UBound(thh) + 1)
@@ -1837,7 +1837,7 @@ sql0 = _
    "LEFT JOIN therarten th ON f.pat_id=th.pat_id AND mpnr=(SELECT mpnr FROM therarten WHERE pat_id=f.pat_id ORDER BY zp DESC,mpnr DESC LIMIT 1) " & vbCrLf & _
    "LEFT JOIN lmp mp ON f.pat_id = mp.pat_id " & vbCrLf & _
    "LEFT JOIN medarten ma ON mp.medanfang=ma.medikament " & vbCrLf & _
-   "WHERE (therart IN ('ICT','CSII','CT','GLP1Ins','GLP1ICT','GLP1') OR metf) AND DPP4 AND f.pat_id=" & Pat_id
+   "WHERE (therart IN ('ICT','CSII','CT','GLP1Ins','GLP1ICT','GLP1') OR metf) AND DPP4 AND f.pat_id=" & Pat_ID
    If Not rdpp4.BOF Then
     If SafeArrayGetDim(thh) = 0 Then ReDim thh(0) Else ReDim Preserve thh(UBound(thh) + 1)
     thh(UBound(thh)) = rdpp4!Anw
@@ -1847,7 +1847,7 @@ sql0 = _
    myFrag rdpp4, "SELECT f.pat_id, CONCAT(mp.medikament,' bitte ab- oder umsetzen!') Anw FROM namen f " & vbCrLf & _
    "LEFT JOIN therarten th ON f.pat_id=th.pat_id AND mpnr=(SELECT mpnr FROM therarten WHERE pat_id=f.pat_id ORDER BY zp DESC,mpnr DESC LIMIT 1) " & vbCrLf & _
    "LEFT JOIN lmp mp ON f.pat_id = mp.pat_id " & vbCrLf & _
-   "WHERE mp.medikament LIKE '%glyz%' AND f.pat_id=" & Pat_id
+   "WHERE mp.medikament LIKE '%glyz%' AND f.pat_id=" & Pat_ID
    If Not rdpp4.BOF Then
     If SafeArrayGetDim(thh) = 0 Then ReDim thh(0) Else ReDim Preserve thh(UBound(thh) + 1)
     thh(UBound(thh)) = rdpp4!Anw
@@ -1858,21 +1858,21 @@ sql0 = _
    "LEFT JOIN therarten th ON f.pat_id=th.pat_id AND mpnr=(SELECT mpnr FROM therarten WHERE pat_id=f.pat_id ORDER BY zp DESC,mpnr DESC LIMIT 1) " & vbCrLf & _
    "LEFT JOIN lmp mp ON f.pat_id = mp.pat_id " & vbCrLf & _
    "LEFT JOIN medarten ma ON mp.medanfang = ma.medikament " & vbCrLf & _
-   "WHERE fetts AND hmg AND f.pat_id=" & Pat_id
+   "WHERE fetts AND hmg AND f.pat_id=" & Pat_ID
    If Not rdpp4.BOF Then
     If SafeArrayGetDim(thh) = 0 Then ReDim thh(0) Else ReDim Preserve thh(UBound(thh) + 1)
     thh(UBound(thh)) = rdpp4!Anw
    End If
 ' TH:kürzlich aut-idem-Kreuz
    Set rdpp4 = Nothing
-   myFrag rdpp4, "SELECT pat_id, CONCAT('cave: kürzlich aut-idem-Kreuz bei: ',GROUP_CONCAT(LEFT(medikament,instr(medikament,' ')) SEPARATOR ',')) Anw FROM rezepteintraege WHERE auti=0 AND rezklkurz<>'prp' AND zeitpunkt> SUBDATE(NOW(),90) AND pat_id=" & Pat_id, adOpenStatic
+   myFrag rdpp4, "SELECT pat_id, CONCAT('cave: kürzlich aut-idem-Kreuz bei: ',GROUP_CONCAT(LEFT(medikament,instr(medikament,' ')) SEPARATOR ',')) Anw FROM rezepteintraege WHERE auti=0 AND rezklkurz<>'prp' AND zeitpunkt> SUBDATE(NOW(),90) AND pat_id=" & Pat_ID, adOpenStatic
    If Not rdpp4.BOF And Not IsNull(rdpp4!Anw) Then
     If SafeArrayGetDim(thh) = 0 Then ReDim thh(0) Else ReDim Preserve thh(UBound(thh) + 1)
     thh(UBound(thh)) = rdpp4!Anw ' .fields(1)
    End If
 ' TH:Brilique 60 mg
    Set rdpp4 = Nothing
-   myFrag rdpp4, "SELECT pat_id, CONCAT('cave: ',medikament,' darf von uns nicht verordnet werden (nur 90 mg), bitte diesbezüglich zum Kardiologen gehen!') Anw FROM rezepteintraege rz WHERE medikament LIKE 'Brilique 60%' AND rezklkurz<>'prp' AND zeitpunkt> SUBDATE(NOW(),180) AND pat_id=" & Pat_id & " LIMIT 1"
+   myFrag rdpp4, "SELECT pat_id, CONCAT('cave: ',medikament,' darf von uns nicht verordnet werden (nur 90 mg), bitte diesbezüglich zum Kardiologen gehen!') Anw FROM rezepteintraege rz WHERE medikament LIKE 'Brilique 60%' AND rezklkurz<>'prp' AND zeitpunkt> SUBDATE(NOW(),180) AND pat_id=" & Pat_ID & " LIMIT 1"
    If Not rdpp4.BOF Then
     If SafeArrayGetDim(thh) = 0 Then ReDim thh(0) Else ReDim Preserve thh(UBound(thh) + 1)
     thh(UBound(thh)) = rdpp4!Anw ' .fields(1)
@@ -1896,7 +1896,7 @@ sql0 = _
 ' TH:HCT
   If obHCT Then
    Set rsMB = Nothing
-   myFrag rsMB, "SELECT 0 FROM `eintraege` WHERE pat_id = " & Pat_id & " AND art = 'notiz' AND zeitpunkt > SUBDATE(NOW(), INTERVAL 730 DAY) AND inhalt LIKE 'Aufklärung über erhöhtes Risiko für Spinaliom und Basaliom unter HCT%'"
+   myFrag rsMB, "SELECT 0 FROM `eintraege` WHERE pat_id = " & Pat_ID & " AND art = 'notiz' AND zeitpunkt > SUBDATE(NOW(), INTERVAL 730 DAY) AND inhalt LIKE 'Aufklärung über erhöhtes Risiko für Spinaliom und Basaliom unter HCT%'"
    If rsMB.BOF Then
     If SafeArrayGetDim(thh) = 0 Then ReDim thh(0) Else ReDim Preserve thh(UBound(thh) + 1)
     thh(UBound(thh)) = "HCT (" & hctMed & ") ohne Makro HCT, evtl. aufklären, evtl. umsetzen"
@@ -1907,7 +1907,7 @@ sql0 = _
 ' TH:Blutdruck
   Const frist% = 215 ' 7 Monate, damit bei den halbjährlichen Patienten nicht gleich jedesmal eine Messlücke gemeldet wird
   Dim lRRÄnd As Date, lRRs%, lRRd%, lRRz%, RRMedAktZ%, RRtxt$
-  myFrag rsMB, "SELECT SUM(rrsyst*rrzahl)/SUM(rrzahl) Rs, SUM(rrdiast*rrzahl)/SUM(rrzahl) Rd, SUM(rrzahl) Rz FROM rr WHERE pat_id=" & Pat_id & " AND zeitpunkt> SUBDATE(NOW()," & frist & ")"
+  myFrag rsMB, "SELECT SUM(rrsyst*rrzahl)/SUM(rrzahl) Rs, SUM(rrdiast*rrzahl)/SUM(rrzahl) Rd, SUM(rrzahl) Rz FROM rr WHERE pat_id=" & Pat_ID & " AND zeitpunkt> SUBDATE(NOW()," & frist & ")"
 ' BOF kann hier nicht auftreten
   If Not IsNull(rsMB!rs) Then lRRs = rsMB!rs
   If Not IsNull(rsMB!rD) Then lRRd = rsMB!rD
@@ -1927,22 +1927,22 @@ sql0 = _
     myFrag rsMB, "SELECT IF(COUNT(0)<>0,IF(MAX(mizp)>MAX(mazp),MAX(mizp),MAX(mazp)),0) lÄnd FROM (" & vbCrLf & _
     "SELECT mp.Medikament Med" & vbCrLf & _
     ", (SELECT MIN(zeitpunkt) FROM medplan WHERE pat_id=mp.pat_id AND medikament=mp.Medikament AND mo=mp.mo AND mi=mp.mi AND nm=mp.nm AND ab=mp.ab AND zn=mp.zn AND bbed=mp.bbed) mizp " & vbCrLf & _
-    ", (IF((SELECT MAX(zeitpunkt) FROM medplan WHERE pat_id=mp.pat_id AND medikament=mp.Medikament AND mo=mp.mo AND mi=mp.mi AND nm=mp.nm AND ab=mp.ab AND zn=mp.zn AND bbed=mp.bbed)=(SELECT MAX(zeitpunkt) FROM medplan WHERE pat_id=" & Pat_id & "),0,(SELECT MAX(zeitpunkt) FROM medplan WHERE pat_id=mp.pat_id AND medikament=mp.Medikament AND mo=mp.mo AND mi=mp.mi AND nm=mp.nm AND ab=mp.ab AND zn=mp.zn AND bbed=mp.bbed))) mazp" & vbCrLf & _
+    ", (IF((SELECT MAX(zeitpunkt) FROM medplan WHERE pat_id=mp.pat_id AND medikament=mp.Medikament AND mo=mp.mo AND mi=mp.mi AND nm=mp.nm AND ab=mp.ab AND zn=mp.zn AND bbed=mp.bbed)=(SELECT MAX(zeitpunkt) FROM medplan WHERE pat_id=" & Pat_ID & "),0,(SELECT MAX(zeitpunkt) FROM medplan WHERE pat_id=mp.pat_id AND medikament=mp.Medikament AND mo=mp.mo AND mi=mp.mi AND nm=mp.nm AND ab=mp.ab AND zn=mp.zn AND bbed=mp.bbed))) mazp" & vbCrLf & _
     ", mp.mo, mp.pat_id Pat_ID" & vbCrLf & _
     "FROM medplan mp LEFT JOIN medarten ma ON mp.medanfang = ma.medikament " & vbCrLf & _
     "WHERE hypt" & vbCrLf & _
     "GROUP BY mp.pat_id, mp.medikament,mo,mi,nm,ab,zn,bBed" & vbCrLf & _
-    ") i WHERE pat_id=" & Pat_id
+    ") i WHERE pat_id=" & Pat_ID
     lRRÄnd = rsMB!länd
     RRMedAktZ = myEFrag("SELECT COALESCE(" & vbCrLf & _
      "-(SELECT 1 FROM medplan mp " & vbCrLf & _
      "LEFT JOIN medarten ma ON mp.medanfang = ma.medikament " & vbCrLf & _
-     "WHERE mp.pat_id=" & Pat_id & " AND hypt AND mp.zeitpunkt=(SELECT MAX(zeitpunkt) FROM medplan WHERE pat_id=" & Pat_id & ") LIMIT 1) " & vbCrLf & _
+     "WHERE mp.pat_id=" & Pat_ID & " AND hypt AND mp.zeitpunkt=(SELECT MAX(zeitpunkt) FROM medplan WHERE pat_id=" & Pat_ID & ") LIMIT 1) " & vbCrLf & _
      ",0) zl")!zl
     Set rsMB = Nothing
 ' wenn die letzte Änderung jünger als frist, dann Durchnitt neu berechnen
     If lRRÄnd > Now() - frist Then
-     myFrag rsMB, "SELECT SUM(rrsyst*rrzahl)/SUM(rrzahl) Rs, SUM(rrdiast*rrzahl)/SUM(rrzahl) Rd, SUM(rrzahl) Rz FROM rr WHERE pat_id=" & Pat_id & " AND zeitpunkt> " & Format(lRRÄnd, "yyyymmdd")
+     myFrag rsMB, "SELECT SUM(rrsyst*rrzahl)/SUM(rrzahl) Rs, SUM(rrdiast*rrzahl)/SUM(rrzahl) Rd, SUM(rrzahl) Rz FROM rr WHERE pat_id=" & Pat_ID & " AND zeitpunkt> " & Format(lRRÄnd, "yyyymmdd")
 ' BOF kann hier nicht auftreten
      If Not IsNull(rsMB!rs) Then lRRs = rsMB!rs Else lRRs = 0
      If Not IsNull(rsMB!rD) Then lRRd = rsMB!rD Else lRRd = 0
@@ -2184,7 +2184,7 @@ sql0 = _
   ' myFrag rTerm, "SELECT COUNT(0)-1 zahl FROM termine t WHERE zp >= DATE(NOW()) AND pid = " & Pat_id
   ' TabZ = MAX(TabZ, rTerm!Zahl)
   ' SET rTerm = Nothing
-  myFrag rTerm, "SELECT COUNT(0) OVER()-1 zahl, DATE(zp) datum, zp uhrzeit, raum, zusatz FROM termine t WHERE zp >= DATE(NOW()) AND pid = " & Pat_id
+  myFrag rTerm, "SELECT COUNT(0) OVER()-1 zahl, DATE(zp) datum, zp uhrzeit, raum, zusatz FROM termine t WHERE zp >= DATE(NOW()) AND pid = " & Pat_ID
   If Not rTerm.BOF Then TabZ = MAXvb(TabZ, rTerm!Zahl)
   
 ' Fettleberindices
@@ -2260,7 +2260,7 @@ sql0 = _
   Dim SelbstStatus%, raDatBOF%, Matr$() ' Matrix: 3. Dimension: 0 = Wert, 1 = Tip-Tool, 28.3.10
   Dim MForm%(), mBreiten$(), LDLZiel%
   LDLZiel = grenze(LDLi)
-  Call LaborInsPLZ(Pat_id, SelbstStatus, raDatBOF, Matr, MForm, mBreiten, , LDLZiel)
+  Call LaborInsPLZ(Pat_ID, SelbstStatus, raDatBOF, Matr, MForm, mBreiten, , LDLZiel)
   m = 37: TI(m) = Timer: For p = 0 To m - 1: TI(m) = TI(m) - TI(p): Next p
 '  Open "v:\matr.txt" For Append AS #336
 '  For j = 0 To UBound(Matr, 3)
@@ -2311,7 +2311,7 @@ sql0 = _
    AusS.AppVar (Array("</Table>", vbCrLf))
   End If ' SafeArrayGetDim
   m = 38: TI(m) = Timer: For p = 0 To m - 1: TI(m) = TI(m) - TI(p): Next p
-  Call plzeintraege(Pat_id, AusS)
+  Call plzeintraege(Pat_ID, AusS)
   
   On Error Resume Next
   For i = 0 To 100
@@ -2347,8 +2347,8 @@ sql0 = _
   End If
   m = 40: TI(m) = Timer: For p = 0 To m - 1: TI(m) = TI(m) - TI(p): Next p
 '  DoEvents
-  Lese.Ausgeb "Patientenlaufzettel für " & NName & ", " & VName & " (Pat_id: " & Pat_id & ") erstellt.", True
-  syscmd 4, "Fertig mit dem Patientenlaufzettel für: " & NName & ", " & VName & " (Pat_id: " & Pat_id & ")"
+  Lese.Ausgeb "Patientenlaufzettel für " & NName & ", " & VName & " (Pat_id: " & Pat_ID & ") erstellt.", True
+  syscmd 4, "Fertig mit dem Patientenlaufzettel für: " & NName & ", " & VName & " (Pat_id: " & Pat_ID & ")"
 '  Call Shell("firefox.exe " & DateiName)
 '  Dim reg0$, reg1$
  ' reg0 = getReg(HLM, "software\mozilla\Mozilla Firefox", "CurrentVersion")
@@ -2408,7 +2408,7 @@ End Function ' dodoPLZ
 
 ' wegen Prozedurgröße zwangsweise aufgeteilt
 ' in dodoplz
-Function tabelleInplz(Pat_id$, zmaxges%)
+Function tabelleInplz(Pat_ID$, zmaxges%, rFlSchGr%)
  Dim i%, j&, WertNum!, gefunden%, Wert$
  Dim normoton%, angefx&
  Dim pathAlbZ%, AlbZ%, pathKreaZ%, KreaZ%
@@ -2443,7 +2443,7 @@ Function tabelleInplz(Pat_id$, zmaxges%)
 hyperton:
 #Else
   Set rsDia = Nothing
-  myFrag rsDia, "SELECT 0 FROM diagview d WHERE d.pat_id = " & Pat_id & " AND d.gICD LIKE 'i10%' LIMIT 1" '  AND COALESCE(d.Dggel,0)=0
+  myFrag rsDia, "SELECT 0 FROM diagview d WHERE d.pat_id = " & Pat_ID & " AND d.gICD LIKE 'i10%' LIMIT 1" '  AND COALESCE(d.Dggel,0)=0
   If rsDia.EOF Then
    If pathz(RRi) < 1 Or (npathz(RRi) > 2 And pathz(RRi) < 2) Then
     normoton = True
@@ -2461,7 +2461,7 @@ hyperton:
   Dim lwZahl&
   Dim lab() As labtyp
   Dim obLabzugew%
-  Set rsl = hollabor(CLng(Pat_id), "", 0, 0, 0, lwZahl)
+  Set rsl = hollabor(CLng(Pat_ID), "", 0, 0, 0, lwZahl)
   If Not rsl.BOF And lwZahl Then
    ReDim lab(rsl!dszahl)
    i = 0
@@ -2489,7 +2489,7 @@ hyperton:
   Fqmin(i) = 4
   Titel(i) = "Körpergewicht [kg], Fqmin(" & i & ")=" & Fqmin(i) & "/a"
   Gwi = i
-  sql(i) = "SELECT zeitpunkt zp, inhalt wert FROM `eintraege` WHERE art RLIKE '^gew$|^gw$|^gewi' AND pat_id = " & Pat_id & " ORDER BY zp DESC"
+  sql(i) = "SELECT zeitpunkt zp, inhalt wert FROM `eintraege` WHERE art RLIKE '^gew$|^gw$|^gewi' AND pat_id = " & Pat_ID & " ORDER BY zp DESC"
   i = i + 1
   
   ÜS(i) = "Taille"
@@ -2500,14 +2500,14 @@ hyperton:
    grenze(i) = 102
   End If
   Titel(i) = "Taille (Mitte zwischen Hüfte und Beckenkamm) [cm], NB &#x2640;(-80)-88, &#x2642;(-94)-102,hier:" & grenze(i) & ",Fqmin(" & i & ")=" & Fqmin(i) & "/a"
-  sql(i) = "SELECT zeitpunkt zp,IF(INSTR(inhalt,' '),LEFT(inhalt,INSTR(inhalt,' ')),inhalt) wert FROM `eintraege` WHERE art LIKE 'taille%' AND pat_id = " & Pat_id & " ORDER BY zp DESC"
+  sql(i) = "SELECT zeitpunkt zp,IF(INSTR(inhalt,' '),LEFT(inhalt,INSTR(inhalt,' ')),inhalt) wert FROM `eintraege` WHERE art LIKE 'taille%' AND pat_id = " & Pat_ID & " ORDER BY zp DESC"
   Tailli = i
   i = i + 1
   
   ÜS(i) = "Bewegung"
   Fqmin(i) = 4
   Titel(i) = "Bewegung pro Woche (mit leichter Luftnot, NB > 2,5-5h/Wo), Fqmin(" & i & ")=" & Fqmin(i) & "/a"
-  sql(i) = "SELECT zeitpunkt zp, inhalt wert FROM `eintraege` WHERE (art LIKE 'beweg%' OR art IN ('bew','bewg','bewe')) AND pat_id = " & Pat_id & " ORDER BY zp DESC"
+  sql(i) = "SELECT zeitpunkt zp, inhalt wert FROM `eintraege` WHERE (art LIKE 'beweg%' OR art IN ('bew','bewg','bewe')) AND pat_id = " & Pat_ID & " ORDER BY zp DESC"
   i = i + 1
 
   ÜS(i) = "RR"
@@ -2515,7 +2515,7 @@ hyperton:
   grenze(i) = 130
   Titel(i) = "Blutdruck [mm Hg]<br>Ziel bei Nephropathie niedriger, grenze(" & i & ")=" & grenze(i) & ",Fqmin(" & i & ")=" & Fqmin(i) & "/a"
   RRi = i
-  sql(i) = "SELECT zeitpunkt zp, rr wert FROM rr WHERE pat_id = " & Pat_id & " ORDER BY zeitpunkt DESC"
+  sql(i) = "SELECT zeitpunkt zp, rr wert FROM rr WHERE pat_id = " & Pat_ID & " ORDER BY zeitpunkt DESC"
   i = i + 1
   
 '  IF Not normoton THEN ' s.o.
@@ -2523,7 +2523,7 @@ hyperton:
     Fqmin(i) = 1
     grenze(i) = 32
     Titel(i) = "Oberarmumfang [cm], grenze(" & i & ")=" & grenze(i) & ",Fqmin(" & i & ")=" & Fqmin(i) & "/a"
-    sql(i) = "SELECT zeitpunkt zp, IF(instr(inhalt,' '),LEFT(inhalt,instr(inhalt,' ')),inhalt) wert FROM `eintraege` WHERE art LIKE 'oau%' AND pat_id = " & Pat_id & " ORDER BY zp DESC"
+    sql(i) = "SELECT zeitpunkt zp, IF(instr(inhalt,' '),LEFT(inhalt,instr(inhalt,' ')),inhalt) wert FROM `eintraege` WHERE art LIKE 'oau%' AND pat_id = " & Pat_ID & " ORDER BY zp DESC"
     nurpath(i) = 1
     i = i + 1
 '  END IF
@@ -2547,7 +2547,7 @@ hyperton:
     If therart = "OAD" Or therart = "GLP1" Then
     
      myFrag OADUzu, "SELECT mp.medikament FROM medplan mp LEFT JOIN medarten ma ON mp.medanfang=ma.medikament " & _
-     "WHERE mp.pat_id = " & Pat_id & " AND (glib<>0 OR shglin<>0) AND zeitpunkt>DATE_SUB((SELECT MAX(zeitpunkt) FROM medplan WHERE pat_id = " & Pat_id & "),INTERVAL 90 DAY)"
+     "WHERE mp.pat_id = " & Pat_ID & " AND (glib<>0 OR shglin<>0) AND zeitpunkt>DATE_SUB((SELECT MAX(zeitpunkt) FROM medplan WHERE pat_id = " & Pat_ID & "),INTERVAL 90 DAY)"
      If OADUzu.EOF Then
       nurpath(i) = 3
 '      GoTo keinuzu
@@ -2556,13 +2556,13 @@ hyperton:
     ÜS(i) = "Uzu, Fqmin(" & i & ")=" & Fqmin(i) & "/a"
     Fqmin(i) = 4
     Titel(i) = "Unterzucker seit letztem Besuch"
-    sql(i) = "SELECT zeitpunkt zp, inhalt wert FROM `eintraege` WHERE (art LIKE 'uzu%' OR art LIKE 'hypo%') AND pat_id = " & Pat_id & " ORDER BY zp DESC"
+    sql(i) = "SELECT zeitpunkt zp, inhalt wert FROM `eintraege` WHERE (art LIKE 'uzu%' OR art LIKE 'hypo%') AND pat_id = " & Pat_ID & " ORDER BY zp DESC"
     i = i + 1
     
     ÜS(i) = "Hypo"
     Fqmin(i) = 0
     Titel(i) = "Schwere Hypoglykämie, Fqmin(" & i & ")=" & Fqmin(i) & "/a"
-    sql(i) = "SELECT zeitpunkt zp, inhalt wert FROM `eintraege` WHERE (art LIKE 'hypo%') AND pat_id = " & Pat_id & " ORDER BY zp DESC"
+    sql(i) = "SELECT zeitpunkt zp, inhalt wert FROM `eintraege` WHERE (art LIKE 'hypo%') AND pat_id = " & Pat_ID & " ORDER BY zp DESC"
     nurpath(i) = 3
     i = i + 1
     
@@ -2575,7 +2575,7 @@ hyperton:
   ÜS(i) = "Hyper"
   Fqmin(i) = 0
   Titel(i) = "Hyerglykämische Entgleisung, Fqmin(" & i & ")=" & Fqmin(i) & "/a"
-  sql(i) = "SELECT zeitpunkt zp, inhalt wert FROM `eintraege` WHERE (art LIKE 'hyper%') AND pat_id = " & Pat_id & " ORDER BY zp DESC"
+  sql(i) = "SELECT zeitpunkt zp, inhalt wert FROM `eintraege` WHERE (art LIKE 'hyper%') AND pat_id = " & Pat_ID & " ORDER BY zp DESC"
 '  If Left$(rAn!Diabetestyp, 1) = "1*" Then
    nurpath(i) = 3 '1
 '  Else
@@ -2587,7 +2587,7 @@ hyperton:
   Fqmin(i) = 1
   Titel(i) = "Neuro-Status, Fqmin(" & i & ")=" & Fqmin(i) & "/a"
   Neuri = i
-  sql(i) = "SELECT zeitpunkt zp, inhalt wert FROM `eintraege` WHERE art LIKE 'usd%' AND pat_id = " & Pat_id & " ORDER BY zp DESC"
+  sql(i) = "SELECT zeitpunkt zp, inhalt wert FROM `eintraege` WHERE art LIKE 'usd%' AND pat_id = " & Pat_ID & " ORDER BY zp DESC"
   zmax(i) = 1
   weite(i) = "20%"
   RowSp(i) = 8
@@ -2598,7 +2598,7 @@ hyperton:
   Fqmin(i) = 0
   Titel(i) = "Fußuntersuchung, Fqmin(" & i & ")=" & Fqmin(i) & "/a"
   Fußi = i
-  sql(i) = "SELECT zeitpunkt zp, inhalt wert FROM `eintraege` WHERE (art LIKE 'fuß%' OR art like 'fuss%') AND pat_id = " & Pat_id & " ORDER BY zp DESC"
+  sql(i) = "SELECT zeitpunkt zp, inhalt wert FROM `eintraege` WHERE (art LIKE 'fuß%' OR art like 'fuss%') AND pat_id = " & Pat_ID & " ORDER BY zp DESC"
   zmax(i) = 4
   RowSp(i) = 2
   If Not obdm Then nurpath(i) = 3
@@ -2607,20 +2607,20 @@ hyperton:
   ÜS(i) = "Beruf"
   Fqmin(i) = 0
   Titel(i) = "Berufsanamnese, Fqmin(" & i & ")=" & Fqmin(i) & "/a"
-  sql(i) = "SELECT zeitpunkt zp, inhalt wert FROM `eintraege` WHERE (art LIKE 'beruf%') AND pat_id = " & Pat_id & " ORDER BY zp DESC"
+  sql(i) = "SELECT zeitpunkt zp, inhalt wert FROM `eintraege` WHERE (art LIKE 'beruf%') AND pat_id = " & Pat_ID & " ORDER BY zp DESC"
   i = i + 1
   
   ÜS(i) = "Auto"
   Fqmin(i) = 0
   Titel(i) = "Aufklärung über Autofahrverbot ,Fqmin(" & i & ")=" & Fqmin(i) & "/a"
-  sql(i) = "SELECT zeitpunkt zp, inhalt wert FROM `eintraege` WHERE (art LIKE 'auto%') AND pat_id = " & Pat_id & " ORDER BY zp DESC"
+  sql(i) = "SELECT zeitpunkt zp, inhalt wert FROM `eintraege` WHERE (art LIKE 'auto%') AND pat_id = " & Pat_ID & " ORDER BY zp DESC"
   If Not obdm Then nurpath(i) = 3
   i = i + 1
   
   ÜS(i) = "Keto"
   Fqmin(i) = 0
   Titel(i) = "Aufklärung über Ketonkörpermessung ,Fqmin(" & i & ")=" & Fqmin(i) & "/a"
-  sql(i) = "SELECT zeitpunkt zp, inhalt wert FROM `eintraege` WHERE (art LIKE 'keto%') AND pat_id = " & Pat_id & " ORDER BY zp DESC"
+  sql(i) = "SELECT zeitpunkt zp, inhalt wert FROM `eintraege` WHERE (art LIKE 'keto%') AND pat_id = " & Pat_ID & " ORDER BY zp DESC"
   If Not obdm Then nurpath(i) = 3
   i = i + 1
   
@@ -2712,7 +2712,7 @@ hyperton:
  End If ' SafeArrayGetDim(ICD) <> 0 Then
 #Else
   Set rsDia = Nothing
-  myFrag rsDia, "SELECT 0 FROM diagview d WHERE d.pat_id = " & Pat_id & vbCrLf & _
+  myFrag rsDia, "SELECT 0 FROM diagview d WHERE d.pat_id = " & Pat_ID & vbCrLf & _
   "AND d.gICD RLIKE '^i(20.0|2[15]|46|6[3-6]|67.[89]|69|70.[1289]|73.[189]|7[479]|99)' LIMIT 1" '  AND COALESCE(d.Dggel,0)=0
   If Not rsDia.EOF Then
    If grenze(i) > 55 Then
@@ -2816,7 +2816,7 @@ hyperton:
   ' natural JOIN verknüpft laborybakt.id mit laboyus.id
   'sql(i) = "SELECT * FROM (SELECT zeitpunkt zp, inhalt wert FROM `eintraege` WHERE pat_id = " & Pat_ID & " AND art LIKE 'urin%') u1 UNION SELECT * FROM (SELECT eingang zp, keimzahl wert FROM `laborybakt` natural JOIN `laboryus` WHERE pat_id = " & Pat_ID & " AND keimzahl<> '') u2 ORDER BY zp DESC"
 '  sql(i) = "SELECT * FROM (SELECT zeitpunkt zp, CAST(inhalt AS char(100)) wert FROM `eintraege` WHERE pat_id = " & Pat_ID & " AND art LIKE 'urin%' UNION SELECT eingang zp, CAST(keimzahl AS char(16)) wert FROM `laboryus` us LEFT JOIN `laborybakt` b ON us.id=b.usid WHERE pat_id = " & Pat_ID & " AND keimzahl<> '')  u2 ORDER BY zp DESC"
-  sql(i) = "SELECT * FROM (SELECT zeitpunkt zp, CAST(inhalt AS char(100)) wert FROM `eintraege` WHERE pat_id = " & Pat_id & " AND art LIKE 'urin%' UNION SELECT eingang zp, CAST(keimzahl AS char(16)) wert FROM labor2bakt WHERE pat_id = " & Pat_id & " AND keimzahl<> '')  u2 ORDER BY zp DESC"
+  sql(i) = "SELECT * FROM (SELECT zeitpunkt zp, CAST(inhalt AS char(100)) wert FROM `eintraege` WHERE pat_id = " & Pat_ID & " AND art LIKE 'urin%' UNION SELECT eingang zp, CAST(keimzahl AS char(16)) wert FROM labor2bakt WHERE pat_id = " & Pat_ID & " AND keimzahl<> '')  u2 ORDER BY zp DESC"
   weite(i) = "7%"
   i = i + 1
   
@@ -2865,15 +2865,15 @@ hyperton:
   ",COALESCE(SUM(if(RRzahl=0,1,RRzahl)*RRdiast)/SUM(if(RRdiast=0,0,if(RRzahl=0,1,RRzahl))),0)dd" & vbCrLf & _
   "FROM rr" & vbCrLf & _
   "WHERE zeitpunkt>NOW()-INTERVAL 10 YEAR" & vbCrLf & _
-  "AND pat_id=" & Pat_id
+  "AND pat_id=" & Pat_ID
   RRS = rsr!Ds
   rrd = rsr!dd
   Set rsr = Nothing
   Fqmin(i) = IIf(RRS > 135 Or rrd > 85 Or obreti Or aRisk.HbA1c > 7.5, 1, 0.5) ' geändert 30.1.23 von 1
   Titel(i) = "Augenuntersuchung, Fqmin(" & i & ")=" & Fqmin(i) & "/a (rrs=" & RRS & IIf(RRS > 135, "(!)", "") & ",rrd=" & rrd & IIf(rrd > 85, "(!)", "") & ",obreti=" & obreti & IIf(obreti, "(!)", "") & ",aRisk.HbA1c=" & aRisk.HbA1c & IIf(aRisk.HbA1c > 7.5, "(!)", "") & ")"
-  sql(i) = "SELECT * FROM (SELECT zeitpunkt zp, inhalt wert FROM `eintraege` WHERE pat_id = " & Pat_id & " AND ((art IN (" & artspezG & ") AND ((inhalt LIKE '%augenb%' AND NOT inhalt LIKE '%augenbl%' AND NOT inhalt LIKE '%augen') OR (inhalt LIKE '%augenarzt%' OR inhalt LIKE '%augenärzt%') OR (inhalt LIKE '% aa%' AND NOT inhalt LIKE '% aag%' AND NOT inhalt LIKE '% aa.%') OR art = 'aug')) OR (art = 'aa' OR art = 'augen'))" & "/* AND zeitpunkt > " & DatFor_k(Now() - 550) & " */" & ") u1 " & _
-     "UNION SELECT * FROM (SELECT zeitpunkt zp, name wert FROM `tmbrie` WHERE pat_id = " & Pat_id & " AND name LIKE '%augen%' /* AND zeitpunkt > " & DatFor_k(Now() - 550) & " */" & ") u2 " & _
-     "UNION SELECT * FROM (SELECT COALESCE(vorgestellt,(SELECT MIN(bhfb) FROM faelle WHERE pat_id=" & Pat_id & ")) zp, CONCAT(`Augensp zuletzt`,': ',`Augensp Befund`) wert FROM `anamnesebogen` WHERE pat_id = " & Pat_id & " AND NOT ISNULL(`Augensp zuletzt`)) u3 " & _
+  sql(i) = "SELECT * FROM (SELECT zeitpunkt zp, inhalt wert FROM `eintraege` WHERE pat_id = " & Pat_ID & " AND ((art IN (" & artspezG & ") AND ((inhalt LIKE '%augenb%' AND NOT inhalt LIKE '%augenbl%' AND NOT inhalt LIKE '%augen') OR (inhalt LIKE '%augenarzt%' OR inhalt LIKE '%augenärzt%') OR (inhalt LIKE '% aa%' AND NOT inhalt LIKE '% aag%' AND NOT inhalt LIKE '% aa.%') OR art = 'aug')) OR (art = 'aa' OR art = 'augen'))" & "/* AND zeitpunkt > " & DatFor_k(Now() - 550) & " */" & ") u1 " & _
+     "UNION SELECT * FROM (SELECT zeitpunkt zp, name wert FROM `tmbrie` WHERE pat_id = " & Pat_ID & " AND name LIKE '%augen%' /* AND zeitpunkt > " & DatFor_k(Now() - 550) & " */" & ") u2 " & _
+     "UNION SELECT * FROM (SELECT COALESCE(vorgestellt,(SELECT MIN(bhfb) FROM faelle WHERE pat_id=" & Pat_ID & ")) zp, CONCAT(`Augensp zuletzt`,': ',`Augensp Befund`) wert FROM `anamnesebogen` WHERE pat_id = " & Pat_ID & " AND NOT ISNULL(`Augensp zuletzt`)) u3 " & _
      "ORDER BY zp DESC"
   weite(i) = "7%"
   If Not obdm Then nurpath(i) = 3
@@ -2883,7 +2883,7 @@ hyperton:
   Fqmin(i) = 1
   Titel(i) = "Vergleich des Blutdruckgerätes mit unserem Oberarmmanschettengerät,Fqmin(" & i & ")=" & Fqmin(i) & "/a"
   RRVgli = i
-  sql(i) = "SELECT zeitpunkt zp, rr wert FROM `rr` WHERE art LIKE 'rrvgl%' AND pat_id = " & Pat_id & " ORDER BY zp DESC"
+  sql(i) = "SELECT zeitpunkt zp, rr wert FROM `rr` WHERE art LIKE 'rrvgl%' AND pat_id = " & Pat_ID & " ORDER BY zp DESC"
   zmax(i) = 3
   weite(i) = "7em"
   RowSp(i) = 2
@@ -2892,7 +2892,7 @@ hyperton:
   ÜS(i) = "BZ-Vgl"
   Fqmin(i) = 1
   Titel(i) = "Vergleich des Blutzuckergerätes mit Naßchemiegerät, Fqmin(" & i & ")=" & Fqmin(i) & "/a"
-  sql(i) = "SELECT zeitpunkt zp, inhalt wert FROM `eintraege` WHERE art LIKE 'bzvgl%' AND pat_id = " & Pat_id & " ORDER BY zp DESC"
+  sql(i) = "SELECT zeitpunkt zp, inhalt wert FROM `eintraege` WHERE art LIKE 'bzvgl%' AND pat_id = " & Pat_ID & " ORDER BY zp DESC"
   zmax(i) = 3
   weite(i) = "7em"
   RowSp(i) = 2
@@ -2906,7 +2906,7 @@ hyperton:
    Schuli = i
    Fqmin(i) = 1
    Titel(i) = "(Gruppen-)Schulungen, Nachschulungen, Fqmin(" & i & ")=" & Fqmin(i) & "/a"
-   sql(i) = "SELECT zeitpunkt zp, inhalt wert FROM `eintraege` WHERE (art LIKE 'schul%' OR art LIKE 'sem%') AND pat_id = " & Pat_id & " ORDER BY zp DESC"
+   sql(i) = "SELECT zeitpunkt zp, inhalt wert FROM `eintraege` WHERE (art LIKE 'schul%' OR art LIKE 'sem%') AND pat_id = " & Pat_ID & " ORDER BY zp DESC"
    weite(i) = "7%"
    i = i + 1
   End If
@@ -3036,14 +3036,14 @@ hyperton:
   ÜS(i) = "A.P."
   Fqmin(i) = 0
   Titel(i) = "Bericht über Angina pectoris, Fqmin(" & i & ")=" & Fqmin(i) & "/a"
-  sql(i) = "SELECT zeitpunkt zp, inhalt wert FROM `eintraege` WHERE (art = 'ap') AND pat_id = " & Pat_id & " ORDER BY zp DESC"
+  sql(i) = "SELECT zeitpunkt zp, inhalt wert FROM `eintraege` WHERE (art = 'ap') AND pat_id = " & Pat_ID & " ORDER BY zp DESC"
   i = i + 1
   
   ÜS(i) = "Carotis"
   Caroi = i
   Fqmin(i) = 0.5
   Titel(i) = "Duplexsonographie der Halsschlagadern, Fqmin(" & i & ")=" & Fqmin(i) & "/a"
-  sql(i) = "SELECT zeitpunkt zp, inhalt wert FROM `eintraege` WHERE pat_id = " & Pat_id & " AND (art LIKE 'caro%' OR (art RLIKE '^(caro|duplex|dup$)' AND (inhalt LIKE '%Halsschlag%' OR inhalt LIKE '%Halsart%' OR inhalt LIKE '%Carotis%' OR inhalt LIKE '%ACC%' OR inhalt LIKE '%ACI%' OR inhalt LIKE '%subcl%'))) ORDER BY zp DESC"
+  sql(i) = "SELECT zeitpunkt zp, inhalt wert FROM `eintraege` WHERE pat_id = " & Pat_ID & " AND (art LIKE 'caro%' OR (art RLIKE '^(caro|duplex|dup$)' AND (inhalt LIKE '%Halsschlag%' OR inhalt LIKE '%Halsart%' OR inhalt LIKE '%Carotis%' OR inhalt LIKE '%ACC%' OR inhalt LIKE '%ACI%' OR inhalt LIKE '%subcl%'))) ORDER BY zp DESC"
   RowSp(i) = 2
   zmax(i) = 4
   i = i + 1
@@ -3052,7 +3052,7 @@ hyperton:
   Caroai = i
   Fqmin(i) = 0
   Titel(i) = "Duplexsonographie der Halsschlagadern alle Textstellen, Fqmin(" & i & ")=" & Fqmin(i) & "/a"
-  sql(i) = "SELECT zeitpunkt zp, inhalt wert FROM `eintraege` WHERE pat_id = " & Pat_id & " AND (inhalt LIKE '%Halsschlag%' OR inhalt LIKE '%Halsart%' OR inhalt LIKE '%Carotis%') ORDER BY zp DESC"
+  sql(i) = "SELECT zeitpunkt zp, inhalt wert FROM `eintraege` WHERE pat_id = " & Pat_ID & " AND (inhalt LIKE '%Halsschlag%' OR inhalt LIKE '%Halsart%' OR inhalt LIKE '%Carotis%') ORDER BY zp DESC"
   nurpath(i) = 2
   i = i + 1
     
@@ -3064,14 +3064,14 @@ hyperton:
     Fqmin(i) = 0
   End Select
   Titel(i) = "Impfaufklärung (Grippe, Pneumonie), Fqmin(" & i & ")=" & Fqmin(i) & "/a"
-  sql(i) = "SELECT zeitpunkt zp, inhalt wert FROM `eintraege` WHERE (art LIKE 'impf%') AND pat_id = " & Pat_id & " ORDER BY zp DESC"
+  sql(i) = "SELECT zeitpunkt zp, inhalt wert FROM `eintraege` WHERE (art LIKE 'impf%') AND pat_id = " & Pat_ID & " ORDER BY zp DESC"
   i = i + 1
     
 #If mitcovid Then
   ÜS(i) = "ImpfCovid"
   Fqmin(i) = 1
   Titel(i) = "Impfaufklärung Covid, Fqmin(" & i & ")=" & Fqmin(i) & "/a"
-  sql(i) = "SELECT zeitpunkt zp, inhalt wert FROM `eintraege` WHERE pat_id = " & Pat_id & " AND (" & vbCrLf & _
+  sql(i) = "SELECT zeitpunkt zp, inhalt wert FROM `eintraege` WHERE pat_id = " & Pat_ID & " AND (" & vbCrLf & _
    " art IN ('cia','cib','c19i') OR " & vbCrLf & _
    "(art='vac' AND inhalt RLIKE 'covid|astra|biontech|comi') OR " & vbCrLf & _
    "(inhalt RLIKE 'covid|corona' AND inhalt RLIKE 'impf')) " & vbCrLf & _
@@ -3086,7 +3086,7 @@ hyperton:
    Fqmin(i) = 0
   End If
   Titel(i) = "Aufklärung über Darmkrebsfrüherkennung, Fqmin(" & i & ")=" & Fqmin(i) & "/a"
-  sql(i) = "SELECT zeitpunkt zp, inhalt wert FROM `eintraege` WHERE (art LIKE 'colo%') AND pat_id = " & Pat_id & " ORDER BY zp DESC"
+  sql(i) = "SELECT zeitpunkt zp, inhalt wert FROM `eintraege` WHERE (art LIKE 'colo%') AND pat_id = " & Pat_ID & " ORDER BY zp DESC"
   i = i + 1
     
   ÜS(i) = "Pros"
@@ -3096,7 +3096,7 @@ hyperton:
    Fqmin(i) = 1
   End If
   Titel(i) = "Aufklärung über Urologische Früherkennung, Fqmin(" & i & ")=" & Fqmin(i) & "/a"
-  sql(i) = "SELECT zeitpunkt zp, inhalt wert FROM `eintraege` WHERE (art LIKE 'pros%') AND pat_id = " & Pat_id & " ORDER BY zp DESC"
+  sql(i) = "SELECT zeitpunkt zp, inhalt wert FROM `eintraege` WHERE (art LIKE 'pros%') AND pat_id = " & Pat_ID & " ORDER BY zp DESC"
   i = i + 1
     
   ÜS(i) = "Gyn"
@@ -3106,13 +3106,27 @@ hyperton:
    Fqmin(i) = 0
   End If
   Titel(i) = "Aufklärung über gynäkologische Untersuchung, Fqmin(" & i & ")=" & Fqmin(i) & "/a"
-  sql(i) = "SELECT zeitpunkt zp, inhalt wert FROM `eintraege` WHERE (art LIKE 'gyn%') AND pat_id = " & Pat_id & " ORDER BY zp DESC"
+  sql(i) = "SELECT zeitpunkt zp, inhalt wert FROM `eintraege` WHERE (art LIKE 'gyn%') AND pat_id = " & Pat_ID & " ORDER BY zp DESC"
+  i = i + 1
+    
+  ÜS(i) = "ADL"
+  If rFlSchGr <> 90 And PAlter >= 70 Then
+   If myEFrag("SELECT IF(EXISTS(SELECT 0 FROM diagview pfld WHERE (pfld.gicd IN ('Z74.9','G20.10','G20.20','R26.8','R29.6','R42','R32','R15','R13.9','R26.3','R41.0','R41.3','R41.8','R52.2','F45.41','G30.9','F29','F32.9','F69','F79.9','R63.4','R53','M62.50','R26.8','R68.8') OR pfld.gicd RLIKE '^F0[012]') AND pat_id=" & Pat_ID & " LIMIT 1),1,0)").Fields(0) = 1 Then
+    Fqmin(i) = 2
+   Else
+    Fqmin(i) = 0
+   End If
+  Else
+   Fqmin(i) = 0
+  End If
+  Titel(i) = "Barthel-Index (ADL), Fqmin(" & i & ")=" & Fqmin(i) & "/a"
+  sql(i) = "SELECT zeitpunkt zp, inhalt wert FROM `eintraege` WHERE art IN('ADL','284','bar') AND pat_id = " & Pat_ID & " ORDER BY zp DESC"
   i = i + 1
     
   ÜS(i) = "gar:" ' Spaltenüberschrift
   Titel(i) = "Fqmin(" & i & ")=" & Fqmin(i) & "/a"
   Fqmin(i) = 1
-  sql(i) = "SELECT zeitpunkt zp, inhalt wert FROM `eintraege` WHERE art IN (" & artSpezÄrzte & ") AND pat_id = " & Pat_id & " ORDER BY zp DESC"
+  sql(i) = "SELECT zeitpunkt zp, inhalt wert FROM `eintraege` WHERE art IN (" & artSpezÄrzte & ") AND pat_id = " & Pat_ID & " ORDER BY zp DESC"
   i = i + 1
     
   ÜS(i) = "Arzteintrag" ' Spaltenüberschrift
@@ -3123,7 +3137,7 @@ hyperton:
     Fqmin(RRi) = 4 ' => Blutdruck muss nur vierteljährlich gemessen werden
   End If
   Titel(i) = "Fqmin(" & i & ")=" & Fqmin(i) & "/a"
-  sql(i) = "SELECT zeitpunkt zp, inhalt wert FROM `eintraege` WHERE art IN (" & artSpezÄrzte & ") AND zeitpunkt >= qanf() AND pat_id = " & Pat_id & " ORDER BY zp DESC"
+  sql(i) = "SELECT zeitpunkt zp, inhalt wert FROM `eintraege` WHERE art IN (" & artSpezÄrzte & ") AND zeitpunkt >= qanf() AND pat_id = " & Pat_ID & " ORDER BY zp DESC"
   i = i + 1
   m = 11: TI(m) = Timer: For p = 0 To m - 1: TI(m) = TI(m) - TI(p): Next p
  
@@ -3254,7 +3268,7 @@ hyperton:
   End If ' obGPT And obGOT And obTHR Then
   If obGPT And obGOT And obTHR And obAlb And üdt.bmi <> 0 Then
    Dim obDMoPG%
-   obDMoPG = myEFrag("SELECT IF(EXISTS(SELECT 0 FROM diagview WHERE gICD RLIKE '^E1[0-4]\.|^R73\.9' AND pat_id=" & Pat_id & " LIMIT 1),1,0)").Fields(0)
+   obDMoPG = myEFrag("SELECT IF(EXISTS(SELECT 0 FROM diagview WHERE gICD RLIKE '^E1[0-4]\.|^R73\.9' AND pat_id=" & Pat_ID & " LIMIT 1),1,0)").Fields(0)
    NFS = Round(-1.675 + 0.037 * PAlter + 0.094 * üdt.bmi + 1.13 * obDMoPG + 0.99 * GOT / GPT - 0.013 * Thr - 0.66 * Alb * 0.1, 3)
   End If ' obGPT And obGOT And obTHR And obAlb And üdt.bmi <> 0 Then
   
@@ -3300,7 +3314,7 @@ hyperton:
     End If
    End If
    ' vielleicht alle 2 Jahre
-   myFrag rsMB, "SELECT 0 FROM `eintraege` WHERE pat_id = " & Pat_id & " AND zeitpunkt > SUBDATE(NOW(), INTERVAL 730 DAY) AND art = 'notiz' AND inhalt LIKE 'Merkblatt Fußsyndrom%'"
+   myFrag rsMB, "SELECT 0 FROM `eintraege` WHERE pat_id = " & Pat_ID & " AND zeitpunkt > SUBDATE(NOW(), INTERVAL 730 DAY) AND art = 'notiz' AND inhalt LIKE 'Merkblatt Fußsyndrom%'"
    If rsMB.BOF Then
     obMB = True
     MerkblattText = "Mbl.Fußsy("
@@ -3309,7 +3323,7 @@ hyperton:
     If üdt.FEn(12) = True Or üdt.sens = pathdok Then
      MerkblattText = MerkblattText & "ICD("
      Set rsDia = Nothing
-     myFrag rsDia, "SELECT DISTINCT icd FROM diagview d WHERE pat_id = " & Pat_id & " AND (d.gicd LIKE 'L89%' OR d.gicd LIKE 'M14.6%' OR d.gicd = 'G63.2') "
+     myFrag rsDia, "SELECT DISTINCT icd FROM diagview d WHERE pat_id = " & Pat_ID & " AND (d.gicd LIKE 'L89%' OR d.gicd LIKE 'M14.6%' OR d.gicd = 'G63.2') "
      Do While Not rsDia.EOF
       MerkblattText = MerkblattText & rsDia!ICD & ","
       rsDia.Move 1
@@ -3463,13 +3477,13 @@ End Function ' tabelleinplz
 
 
 ' in dodoPlz (ausgelagert)
-Function plzeintraege(ByVal Pat_id$, ByRef AusS As CString)
+Function plzeintraege(ByVal Pat_ID$, ByRef AusS As CString)
 ' Einträge
   Dim rse As ADODB.Recordset
   Dim i&, DatNr&, p%
   On Error GoTo fehler
   ' ktag wieder korrumpiert
-  myFrag rse, "SELECT DATE(zeitpunkt) datum, art, inhalt FROM `eintraege` WHERE Art IN (" & artSpezUS1 & ") AND pat_id = " & Pat_id & " ORDER BY zeitpunkt DESC"
+  myFrag rse, "SELECT DATE(zeitpunkt) datum, art, inhalt FROM `eintraege` WHERE Art IN (" & artSpezUS1 & ") AND pat_id = " & Pat_ID & " ORDER BY zeitpunkt DESC"
   If Not rse.BOF Then
    AusS.AppVar Array("<p class='abstand'>" & vbCrLf & "</p>" & vbCrLf & "<b style=""color:blue;"">Untersuchungen:</b>" & vbCrLf & "<Table>" & vbCrLf & " <colgroup>" & vbCrLf & "  <col width=""10"">" & vbCrLf & "  <col width=""10"">" & vbCrLf & "  <col width=""1000"">" & vbCrLf & " </colgroup>", vbCrLf)
    AusS.AppVar (Array("<a name='AnkerUnters' href='#AnkerUnters' accesskey='u'></a>", vbCrLf))
@@ -3485,7 +3499,7 @@ Function plzeintraege(ByVal Pat_id$, ByRef AusS As CString)
   End If ' Not rse.BOF THEN
 ' Einträge
   Set rse = Nothing
-  myFrag rse, "SELECT DATE(zeitpunkt) datum, art, inhalt FROM `eintraege` WHERE Art IN (" & artSpezEintr & ") AND pat_id = " & Pat_id & " ORDER BY zeitpunkt DESC"
+  myFrag rse, "SELECT DATE(zeitpunkt) datum, art, inhalt FROM `eintraege` WHERE Art IN (" & artSpezEintr & ") AND pat_id = " & Pat_ID & " ORDER BY zeitpunkt DESC"
   If Not rse.BOF Then
    AusS.AppVar Array("<p class='abstand'>" & vbCrLf & "</p>" & vbCrLf & "<b style=""color:blue;"">Einträge:</b>" & vbCrLf & "<Table>" & vbCrLf & " <colgroup>" & vbCrLf & "  <col width=""10"">" & vbCrLf & "  <col width=""10"">" & vbCrLf & "  <col width=""1000"">" & vbCrLf & " </colgroup>", vbCrLf)
    Do While Not rse.EOF
@@ -3538,7 +3552,7 @@ End Select
 End Function ' eintraege
 
 ' for dodoPLZ und LaborIns1 <- tuBriefStandalone
-Sub LaborInsPLZ(Pat_id$, SelbstStatus%, raDatBOF%, ByRef Matr$(), ByRef MForm%(), ByRef mBreiten$(), Optional ohnebr%, Optional ByVal LDLZiel%) 'Word.Document, Pat_id&)
+Sub LaborInsPLZ(Pat_ID$, SelbstStatus%, raDatBOF%, ByRef Matr$(), ByRef MForm%(), ByRef mBreiten$(), Optional ohnebr%, Optional ByVal LDLZiel%) 'Word.Document, Pat_id&)
  Dim raL As New ADODB.Recordset, raDat As New ADODB.Recordset, rLaU As New ADODB.Recordset, ls$
  Dim dSL As SortierListe
 ' Zeilenzahl bestimmen
@@ -3564,7 +3578,7 @@ Sub LaborInsPLZ(Pat_id$, SelbstStatus%, raDatBOF%, ByRef Matr$(), ByRef MForm%()
  
 #Const abnov = 1
 #If abnov Then
- myFrag raL, "CALL geslabneu(" & CStr(Pat_id) & ",'" & IIf(ohnebr, "", "<br>") & "','')", adOpenStatic
+ myFrag raL, "CALL geslabneu(" & CStr(Pat_ID) & ",'" & IIf(ohnebr, "", "<br>") & "','')", adOpenStatic
  If Not raL.BOF Then
   ReDim Matr(1, raL!Zpz + 5, raL!zab + 2) ' Spaltenzahl, Zeilenzahl, matr(x,y)= Wert ' (1, = für Tooltip, 27.3.10, Umkehrung 6.4.11 ' 8.2.23 +6 statt +5 ' 9.2.23 wieder +5
   ReDim MForm(raL!Zpz + 5, raL!zab + 2) ' Formatierung (1 = schräg, 2 = fett) ' 8.2.23 +6 statt +5 ' 9.2. wieder +5
@@ -3723,7 +3737,7 @@ nochmal:
  'm = 1: Tj(m) = Timer: For p = 0 To m - 1: Tj(m) = Tj(m) - Tj(p): Next p
  Dim lz&, gz&, dz&
  ' wenn hollabor vorher einmal mit dem selben Pat. ohne obnachgruppe aufgerufen wurde, geht diese Funktion 0,3s schneller
- Set raL = hollabor(CLng(Pat_id), "", 0, 0, obnachgruppe:=True, Zahl:=lz, Einheit:="", gz:=gz, dzz:=dz, dSL:=dSL, obneu:=True) ' , obUpdate:=True)
+ Set raL = hollabor(CLng(Pat_ID), "", 0, 0, obnachgruppe:=True, Zahl:=lz, Einheit:="", gz:=gz, dzz:=dz, dSL:=dSL, obneu:=True) ' , obUpdate:=True)
  'm = 2: Tj(m) = Timer: For p = 0 To m - 1: Tj(m) = Tj(m) - Tj(p): Next p
  ZZ = lz + gz
 ' ZZ = myEFrag("SELECT COUNT(0)+COUNT(DISTINCT gruppe) Zahl FROM (SELECT * FROM geslaba WHERE (reihe <> 999 OR ISNULL(reihe)) GROUP BY Gruppe, Reihe, Abkü, Einheit,uNg,oNg ORDER BY gruppe, reihe) i")!Zahl
@@ -3756,7 +3770,7 @@ nochmal1:
  sqldat = "SELECT DATE(zeitpunkt) Datum FROM geslaba GROUP BY DATE(zeitpunkt) ORDER BY zeitpunkt"
  If dz = 0 Then dz = myEFrag("SELECT COUNT(0) ct FROM (" & sqldat & ") innen")!ct
 #ElseIf False Then
- If dz = 0 Then dz = myEFrag("call geslabkatz(" & CStr(Pat_id) & ",'zeitpunkt')")!Zahl
+ If dz = 0 Then dz = myEFrag("call geslabkatz(" & CStr(Pat_ID) & ",'zeitpunkt')")!Zahl
 #End If
 ' IF lies.obMySQL THEN
 '  sql1 = replace$(replace$(sql1, "datevalue(", "date("), "iif(", "if(")
@@ -3780,7 +3794,7 @@ nochmal1:
 ' raDat.Open "CALL geslabkatg(" & CStr(Pat_id) & ",'Zeitpunkt')", DBCn, adOpenDynamic, adLockReadOnly
 ' myFrag raDat, "CALL geslabkatg(" & CStr(Pat_ID) & ",'Zeitpunkt')"
 ' myFrag raDat, "CALL geslabdp" & IIf(ohnebr, "ohnebr", "") & "(" & CStr(Pat_ID) & ",'')", adOpenStatic
- myFrag raDat, "CALL geslabneu(" & CStr(Pat_id) & ",'" & IIf(ohnebr, "", "<br>") & "','')", adOpenStatic
+ myFrag raDat, "CALL geslabneu(" & CStr(Pat_ID) & ",'" & IIf(ohnebr, "", "<br>") & "','')", adOpenStatic
 #End If
   If raDat.BOF Then raDatBOF = True
   Dim SD As SortierDatum
@@ -3890,7 +3904,7 @@ nochmal1:
  myFrag raL, "SELECT * FROM geslaba", adOpenStatic
 #Else
 ' myFrag raL, "CALL geslabdp" & IIf(ohnebr, "ohnebr", "") & "(" & CStr(Pat_ID) & ",'')", adOpenStatic
- myFrag raDat, "CALL geslabneu(" & CStr(Pat_id) & ",'" & IIf(ohnebr, "", "<br>") & "','')", adOpenStatic
+ myFrag raDat, "CALL geslabneu(" & CStr(Pat_ID) & ",'" & IIf(ohnebr, "", "<br>") & "','')", adOpenStatic
 ' myFrag ral, "CALL geslabdp(" & CStr(Pat_ID) & ",'WHERE (reihe <> 999 OR ISNULL(reihe)) GROUP BY zeitpunkt DESC,abkü,einheit')", adOpenStatic
 #End If
  'm = 6: Tj(m) = Timer: For p = 0 To m - 1: Tj(m) = Tj(m) - Tj(p): Next p
