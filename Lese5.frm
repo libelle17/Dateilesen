@@ -1832,7 +1832,7 @@ Private Sub do_Medpläne_alt_für_MO_exportieren_Click(Optional xmlneu%)
     syscmd 4, "Exportiere Medpläne von Pat. " & rMP!Pat_ID & " (" & rMP!Nachname & ", " & rMP!Vorname & ") in " & BDT.DMPImp
     Call BDT.SAdd("8000", "0020", True) ' Satzart
     Call BDT.SAdd("8100", rMP!MPzl * 12 + 50) ' Satzlänge
-    Call BDT.SAdd("9100", rMP!BSNr) ' Arztnummer des Absenders
+    Call BDT.SAdd("9100", rMP!BSNR) ' Arztnummer des Absenders
     Call BDT.SAdd("9103", Format(Now(), "yyyymmdd")) ' Erstellungsdatum
     Call BDT.SAdd("9105", "001") ' Ordnungsnummer Datenträger (Header) des DP
     Call BDT.SAdd("9106", "4") ' verwendeter Zeichensatz 4 = ISO 8859-15-Code
@@ -1847,8 +1847,8 @@ Private Sub do_Medpläne_alt_für_MO_exportieren_Click(Optional xmlneu%)
     
     Call BDT.SAdd("8000", "0102", True) ' Satzart
     Call BDT.SAdd("8100", rMP!MPzl * 12 + 6) ' Satzlänge
-    Call BDT.SAdd("5098", rMP!BSNr)
-    Call BDT.SAdd("5099", rMP!LANR)
+    Call BDT.SAdd("5098", rMP!BSNR)
+    Call BDT.SAdd("5099", rMP!Lanr)
     Call BDT.SAdd("9901", "ArztNr.:" & rMP!lanrid)
     Call BDT.SAdd("9901", "Kuerzel:" & rMP!lanrid)
     Call BDT.SAdd("3000", rMP!FPatNr) ' Pat_ID)
@@ -1869,7 +1869,7 @@ Private Sub do_Medpläne_alt_für_MO_exportieren_Click(Optional xmlneu%)
      csmp.Clear
      csmp.Append "<MP v=""026"" a=""1"" z=""1"" l=""de-DE"">"
      csmp.Append "<P g=""" & rMP!Vorname & """ f=""" & rMP!Nachname & """ egk=""" & rMP!VN & """ b=""" & rMP!Geb & """/>"
-     csmp.Append "<A lanr=""" & rMP!LANR & """ n=""" & rMP!lnam & """ s=""Mittermayerstrasse 13"" z=""85221"" c=""Dachau"" p=""08131 / 616 380"" e=""diabetologie@dachau-mail.de"" t=""0001-01-01T00:00:00""/>"
+     csmp.Append "<A lanr=""" & rMP!Lanr & """ n=""" & rMP!lnam & """ s=""Mittermayerstrasse 13"" z=""85221"" c=""Dachau"" p=""08131 / 616 380"" e=""diabetologie@dachau-mail.de"" t=""0001-01-01T00:00:00""/>"
      csmp.Append "<O/>"
      csmp.Append "<S c=""412"">"
     End If ' machxml Then
@@ -1878,8 +1878,8 @@ Private Sub do_Medpläne_alt_für_MO_exportieren_Click(Optional xmlneu%)
     Call BDT.SAdd("9901", "CreateUser:" & "sturm")
     Call BDT.SAdd("9901", "UpdateTime:" & Format(rMP!Datum, "yyyy-mm-dd HH:MM:SS"))
     Call BDT.SAdd("9901", "UpdateUser:" & "sturm")
-    Call BDT.SAdd("5098", rMP!BSNr)
-    Call BDT.SAdd("5099", rMP!LANR)
+    Call BDT.SAdd("5098", rMP!BSNR)
+    Call BDT.SAdd("5099", rMP!Lanr)
     Call BDT.SAdd("9901", "ArztNr.:" & rMP!lanrid)
     Call BDT.SAdd("9901", "Kuerzel:" & rMP!lanrid)
     Call BDT.SAdd("6310", "Patient")
@@ -2121,14 +2121,14 @@ Private Sub Übertragung_aus_MO_Click()
 #Else
  unts = IIf(opt.nurdiesen(0) = 0, "<=", "=") & opt.Pat_ID
   sql = "SELECT i.* FROM (" & vbCrLf & _
-        "SELECT COUNT(0)OVER()zahl, FPatnr," & gesnamegmo & vbCrLf & _
+        "SELECT COUNT(0)OVER()zahl, FPatnr," & GesNamegMO & vbCrLf & _
         ",MAX(18900101+INTERVAL FDatum DAY+INTERVAL FUhrzeit SECOND)laend" & vbCrLf & _
         ",ROW_NUMBER()OVER(ORDER BY fpatnr DESC) rang" & vbCrLf & _
         "FROM dbsprot d" & vbCrLf & _
         "LEFT JOIN patstamm p ON p.FSurogat = d.FPatnr" & vbCrLf & _
         "WHERE 18900101 + INTERVAL FDatum DAY + INTERVAL FUhrzeit SECOND > NOW() - INTERVAL " & CStr(CDbl(REPLACE$(opt.Tage, ",", "."))) & " DAY" & vbCrLf & _
         "AND FPatnr" & unts & vbCrLf
-        If opt.alleVor(0) = 0 Then
+        If opt.alleVor(0) = 0 And opt.erzwinge = 0 Then
          sql = sql & _
          "AND ftablename IN ('ltag','termin','patstamm')" & vbCrLf
         End If
@@ -3581,7 +3581,7 @@ Private Sub Überweiserstatistik_Click()
    "UNION SELECT COUNT(0) AS ct, LEFT(andüw,7) AS kvnu FROM `faelle` WHERE bhfb > " & DatFor_k(Now - 365) & " AND andüw <> '' GROUP BY andüw) AS i LEFT JOIN `kvaerzte`.`hae` USING (kvnu) WHERE not gelöscht AND NOT ISNULL(kvnu) AND kvnu <> '" & kvnr & "' ORDER BY ct DESC"
 ' myFrag rs, "SELECT kvnu,anrede, haname,plz,ort,tel1,tel2,fax1,fax2,zulg,arzttyp,dmpt2,dmpt1 FROM (SELECT COUNT(0) AS ct, LEFT(übwv,7) AS kvnu FROM `faelle` WHERE bhfb > " & DatFor_k(Now - 365) & " AND übwv <> '' GROUP BY übwv " & _
    "UNION SELECT COUNT(0) AS ct, LEFT(andüw,7) AS kvnu FROM `faelle` WHERE bhfb > " & DatFor_k(Now - 365) & " AND andüw <> '' GROUP BY andüw) AS i LEFT JOIN `kvaerzte`.`hae` USING (kvnu) WHERE not gelöscht AND NOT ISNULL(kvnu) AND kvnu <> '" & kvnr & "' ORDER BY ct DESC"
- sql = "SELECT ct,haname,ort,dmpt2,dmpt1,i.kvnu,lname,pat_id,bhfb FROM (SELECT COUNT(0) AS ct, übwr kvnu, GROUP_CONCAT(DISTINCT CAST(pat_id AS char)) pat_id, bhfb FROM quelle.faelle f WHERE bhfb > '2008-12-05 21:39:20' AND übwr <> '' AND übwr <> '" & BSNr & "' GROUP BY kvnu) i LEFT JOIN " & HADBName & ".`hae` hae ON i.kvnu = hae.kvnu LEFT JOIN (SELECT GROUP_CONCAT(DISTINCT name) lname,kvnr FROM `aktlue` l WHERE kvnro<>'' GROUP BY kvnr) l ON i.kvnu = l.kvnr ORDER BY ct DESC;"
+ sql = "SELECT ct,haname,ort,dmpt2,dmpt1,i.kvnu,lname,pat_id,bhfb FROM (SELECT COUNT(0) AS ct, übwr kvnu, GROUP_CONCAT(DISTINCT CAST(pat_id AS char)) pat_id, bhfb FROM quelle.faelle f WHERE bhfb > '2008-12-05 21:39:20' AND übwr <> '' AND übwr <> '" & BSNR & "' GROUP BY kvnu) i LEFT JOIN " & HADBName & ".`hae` hae ON i.kvnu = hae.kvnu LEFT JOIN (SELECT GROUP_CONCAT(DISTINCT name) lname,kvnr FROM `aktlue` l WHERE kvnro<>'' GROUP BY kvnr) l ON i.kvnu = l.kvnr ORDER BY ct DESC;"
  myFrag rs, sql
  For i = 0 To rs.Fields.COUNT - 1
   ausg = ausg & """" & rs.Fields(i).name & """;"
