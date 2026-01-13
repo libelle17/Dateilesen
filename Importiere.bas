@@ -2405,7 +2405,7 @@ Public Function lesallevein()
  Dim ErrNr&, ErrDes$
  sql = "SELECT CONCAT(TABLE_SCHEMA,'.`',TABLE_NAME,'`') tn FROM information_schema.columns c left join information_schema.TABLES t USING (table_schema,TABLE_NAME) " & vbCrLf & _
  "WHERE COLUMN_NAME='pat_id' AND table_type='Base table'" & vbCrLf & _
- "AND c.table_name NOT IN ('Namen','Faelle','AU','briefe','Diagnosen','Dokumente','eintraege','Formulare','FormInhKopf','FormInhFeld','KHEinweis','LBAnforderungen','laborneu', 'Leistungen', 'MedPlan', 'Rezepteintraege', 'RR','KVNrUe','unbek_kenn', 'dmpreihe','desktop','usdm','fuss','ulcus','vkgd','sws','vopl');"
+ "AND c.table_name NOT IN ('Namen','Faelle','AU','briefe','Diagnosen','Dokumente','eintraege','Formulare','FormInhKopf','FormInhFeld','KHEinweis','LBAnforderungen','laborneu','Leistungen','MedPlan','Rezepteintraege','RR','KVNrUe','unbek_kenn','dmpreihe','desktop','usdm','fuss','ulcus','vkg','vkgd','vkgd2','sws','vopl');"
  On Error Resume Next
  Call Lese.ProgStart
  On Error GoTo fehler

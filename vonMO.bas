@@ -2066,7 +2066,7 @@ m105:
 ' 1122: urin: 49584: Text - urin
 ' 1123: usal: 690: Text - usal
 ' 1124: usdm: 4185: Text - usdm1
-' 1125: vkgd: 4616: Text - vkgd
+' 1125: vkg:  4616: Text - vkg
 ' 1126: vkgd: 2193: Text - vkgd
 ' 1128: wv: 7095: Text - wv
 ' 1129: rr: 228806: Text - Blutdruck

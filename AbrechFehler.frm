@@ -916,13 +916,13 @@ sql(AWlf) = "ü"
  AWlf = AWlf + 1
  
 ' 3
- AwN(AWlf) = "Fehlende Gestationsdiabetes-ICD nach Makroeintrag 'vkgd' (vorher 4)"
+ AwN(AWlf) = "Fehlende Gestationsdiabetes-ICD nach Makroeintrag 'vkgd'/'vkg' (vorher 4)"
  sql(AWlf) = "SELECT f.pat_id, gesname(f.pat_id) PName, wer " & vbCrLf & _
              "FROM `aktfvz` f " & vbCrLf & _
              "LEFT JOIN anaktk az ON az.pid=f.pat_id" & vbCrLf & _
              "LEFT JOIN `eintraege` e ON f.pat_id = e.pat_id AND e.zeitpunkt BETWEEN qanf() AND qend() " & vbCrLf & _
              "LEFT JOIN diagview d ON ((d.icd='O24.4' AND d.Dggel=0 AND d.diagsicherheit IN ('G',' ') AND d.diagdatum BETWEEN qbegs(f.quartal) AND qends(f.quartal)) OR (f.pat_id = d.pat_id AND (d.icd RLIKE '^E1[0-4]') AND d.diagsicherheit NOT IN ('A','Z','V'))) " & vbCrLf & _
-             "LEFT JOIN namen n ON f.pat_id = n.pat_id WHERE e.art IN ('vkgd','vkgd2') AND ISNULL(icd) GROUP BY f.pat_id" '  AND COALESCE(d.Dggel,0)=0
+             "LEFT JOIN namen n ON f.pat_id = n.pat_id WHERE e.art IN ('vkg','vkgd','vkgd2') AND ISNULL(icd) GROUP BY f.pat_id" '  AND COALESCE(d.Dggel,0)=0
  mins(AWlf) = 7
  maxs(AWlf) = 30
  AWlf = AWlf + 1
@@ -1188,7 +1188,7 @@ sql(AWlf) = vbCrLf & _
 "FROM (" & vbCrLf & _
 "SELECT pat_id, gesname(pat_id) PName, wer " & vbCrLf & _
 ", COALESCE((SELECT MAX(voret) FROM sws WHERE voret>" & qtAnf(FristS) & " AND pat_id=v.pat_id),'') voret " & vbCrLf & _
-", COALESCE((SELECT GROUP_CONCAT(art) FROM eintraege e WHERE v.pat_id=e.pat_id AND e.art RLIKE '^vkgd|^aufgd' AND e.zeitpunkt BETWEEN " & lQAnfuEnd(FristS) & "),'') Eintr " & vbCrLf & _
+", COALESCE((SELECT GROUP_CONCAT(art) FROM eintraege e WHERE v.pat_id=e.pat_id AND e.art RLIKE '^vkgd?|^aufgd' AND e.zeitpunkt BETWEEN " & lQAnfuEnd(FristS) & "),'') Eintr " & vbCrLf & _
 ", COALESCE((SELECT GROUP_CONCAT(icd) FROM diagview d WHERE v.pat_id=d.pat_id AND d.gicd RLIKE '^E1[0-4]' AND obdauer<>0 ),'') dicd " & vbCrLf & _
 ", COALESCE((SELECT GROUP_CONCAT(icd) FROM diagview d WHERE v.pat_id=d.pat_id AND (d.icd LIKE 'O24.%' AND d.Dggel=0 AND d.diagsicherheit IN ('G',' ') AND d.diagdatum BETWEEN qbegs(v.quartal) AND qends(v.quartal))),'') sicd " & vbCrLf & _
 ", COALESCE((SELECT GROUP_CONCAT(icd) FROM diagview d WHERE v.pat_id=d.pat_id AND (d.icd LIKE 'O24.%' AND d.Dggel=0 AND d.diagsicherheit IN ('G',' ') AND d.diagdatum BETWEEN qbegs(v.quartal) AND qends(v.quartal)) AND obdauer<>0),'') sdicd " & vbCrLf & _
