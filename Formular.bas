@@ -4,7 +4,7 @@ Dim ag As New CString
 Dim donr$
 Dim bmnr&
 Public Const KVNr = "6419153"
-Public Const BSNr = KVNr & "00"
+Public Const BSNR = KVNr & "00"
 Const fTDatei$ = "fuellThaS.bas"
 
 Const HADBName$ = "haerzte"
@@ -46,8 +46,8 @@ Public Type InfoTyp
  Nachname As String  ' 14: Nachname,
  email As String ' 15: Email
  ort As String ' 16: Ort
- BSNr As String ' 17: Betriebsstättennummer
- LANR As String ' 18: LANR
+ BSNR As String ' 17: Betriebsstättennummer
+ Lanr As String ' 18: LANR
 End Type
 
 'Const DMPVorlage$ = uVerz & "DMP-Vorlage.dot"
@@ -6554,8 +6554,8 @@ Hausarzt:
    infos(14, iinf) = inf.Nachname
    infos(15, iinf) = inf.email
    infos(16, iinf) = inf.ort
-   infos(17, iinf) = inf.BSNr
-   infos(18, iinf) = inf.LANR
+   infos(17, iinf) = inf.BSNR
+   infos(18, iinf) = inf.Lanr
   End If ' inf.KVNr <> "" Then
   satznr = satznr + 1
  Next iinf
@@ -7895,16 +7895,23 @@ Public Sub tuBriefStandalone(pid&, obStumm%, Optional Zielverz$, Optional Verfas
   doPatvonMO pid, , obpruef:=True, obtranspa:=True
  End If
  Dim NachNa$, VorNa$, GName$, G1Name$, tit$, GebDat As Date, dieder$, bhb As Date, behs$, gesName$, dmseit$, gesNameG$
- sql = "SELECT n.*,COALESCE(GesName(Pat_id),'') GesName, COALESCE(titel,'') tit," & vbCrLf & _
- "CONCAT(IF(geschlecht='m','Herrn','Frau'),' ',gesname(pat_id),', *',DATE_FORMAT(gebdat,'%e.%c.%y')) gname," & vbCrLf & _
- "IF(geschlecht='m','der','die') dieder," & vbCrLf & _
- "DATE(IF(qad=0,COALESCE((SELECT fanf FROM faelle WHERE pat_id=n.pat_id AND fanf>20040701 ORDER BY fanf LIMIT 1),qad),0))bhb," & vbCrLf & _
- "IF(DATE(IF(qad=0,(SELECT fanf FROM faelle WHERE pat_id=n.pat_id AND fanf>20040701 ORDER BY fanf LIMIT 1),qad))=DATE(lbeh)," & vbCrLf & _
-  "CONCAT('am ',DATE_FORMAT(lbeh,'%e.%c.%y'))," & vbCrLf & _
-  "CONCAT('vom ',DATE_FORMAT(IF(qad=0,(SELECT fanf FROM faelle WHERE pat_id=n.pat_id AND fanf>20040701 ORDER BY fanf LIMIT 1),qad),'%e.%c.%y'),' bis zum ',DATE_FORMAT(lbeh,'%e.%c.%y'),' mehrmals'))behs" & vbCrLf & _
-  ",(SELECT COALESCE(`diabetes seit`,0) FROM anamnesebogen WHERE pat_id=n.pat_id) dmseit" & vbCrLf & _
-  ",gesnameg(n.pat_id)gesnameg" & vbCrLf & _
-  "FROM namenlb n WHERE pat_id = " & Pat_ID
+ sql = "SELECT n.*,COALESCE(GesName(Pat_id),'')gesname ,COALESCE(titel,'')tit," & vbCrLf & _
+ "CONCAT(IF(geschlecht='m','Herrn','Frau'),' ',gesname(pat_id),', *',DATE_FORMAT(gebdat,'%e.%c.%y'))gname," & vbCrLf & _
+ "IF(geschlecht='m','der','die')dieder," & vbCrLf & _
+ "IF(bhb=DATE(lbeh)," & vbCrLf & _
+ " CONCAT('am ',DATE_FORMAT(lbeh,'%e.%c.%y'))," & vbCrLf & _
+ " CONCAT('vom ',DATE_FORMAT(IF(qad=0,(SELECT fanf FROM faelle WHERE pat_id=n.pat_id AND fanf>20040701 ORDER BY fanf LIMIT 1),qad),'%e.%c.%y'),' bis zum ',DATE_FORMAT(lbeh,'%e.%c.%y'),' mehrmals')" & vbCrLf & _
+ " )behs" & vbCrLf & _
+ " ,(SELECT COALESCE(`diabetes seit`,0) FROM anamnesebogen WHERE pat_id=n.pat_id)dmseit" & vbCrLf & _
+ ",gesnameg(n.pat_id)gesnameg" & vbCrLf & _
+ ",COALESCE((SELECT MIN(zeitpunkt)FROM eintraege WHERE pat_id=" & pid & " AND art IN('anal','andm','andm2','angd')),bhb)bhbn" & vbCrLf & _
+ "FROM (" & vbCrLf & _
+ " SELECT" & vbCrLf & _
+ " DATE(IF(qad=0,COALESCE((SELECT fanf FROM faelle WHERE pat_id=n.pat_id AND fanf>20040701 ORDER BY fanf LIMIT 1),qad),qad))bhb" & vbCrLf & _
+ " ,n.*" & vbCrLf & _
+ " FROM namenlb n" & vbCrLf & _
+ " WHERE pat_id=" & pid & vbCrLf & _
+ ")n"
  myFrag rsNa, sql, adOpenStatic
  If rsNa.State = 0 Then
   MsgBox "Namen-Tabelle nicht abfragbar. Es könnten z.B. die Indices von einlesen korrupt sein."
@@ -7917,7 +7924,7 @@ Public Sub tuBriefStandalone(pid&, obStumm%, Optional Zielverz$, Optional Verfas
  GebDat = rsNa!GebDat
  tit = rsNa!tit
  dieder = rsNa!dieder
- bhb = IIf(IsNull(rsNa!bhb), 0, rsNa!bhb)
+ bhb = IIf(IsNull(rsNa!bhbn), 0, rsNa!bhbn)
  On Error Resume Next ' 18.11.25, Pat. 33211
  behs = rsNa!behs
  On Error GoTo fehler
@@ -8973,7 +8980,7 @@ vonvorne:
          Exit For
         End If
        Next i
-       If Not obalt And Feld <> KVNr And Feld <> BSNr And Feld <> "889690003" And Feld <> "933284903" Then
+       If Not obalt And Feld <> KVNr And Feld <> BSNR And Feld <> "889690003" And Feld <> "933284903" Then
         stand = stand + 1
         ReDim Preserve Üw1(4, stand) ' 0 = KV-Nr, 1 = Nachname, 2 = Vorname, 3 = Position
         Üw1ini = True
@@ -9022,7 +9029,7 @@ vonvorne:
     Next i
    End If ' (0 / 1) + (Not Not rKv) = 0 Then Else
    If (0 / 1) + (Not Not rKv) = 0 Or obrKvzugew = 0 Then
-    myFrag rK, "SELECT kvnr FROM `kvnrue` WHERE pat_id = " & rFa(1).Pat_ID & IIf(auchwir, "", " AND kvnr NOT IN ('','" & KVNr & "','" & BSNr & "','889690003','933284903')") & " ORDER BY lfdnr"
+    myFrag rK, "SELECT kvnr FROM `kvnrue` WHERE pat_id = " & rFa(1).Pat_ID & IIf(auchwir, "", " AND kvnr NOT IN ('','" & KVNr & "','" & BSNR & "','889690003','933284903')") & " ORDER BY lfdnr"
     If Not rK.BOF Then
      Do While Not rK.EOF()
        obalt = 0
@@ -17375,7 +17382,7 @@ End Function ' testthap(pids$)
 ' #end if ' zutesten
 
 Function doDiagnosenexport(Optional obTest%)
- Dim LANR&
+ Dim Lanr&
  On Error GoTo fehler
  Dim Quartal$, erg$, dzahl&, BDT As New BDTSchreib
  
@@ -17460,7 +17467,7 @@ Function doDiagnosenexport(Optional obTest%)
      myFrag rFa, "SELECT * FROM `faelle` f LEFT JOIN `lanrpraxis` l ON f.lanrid = l.id WHERE pat_id = " & Pat_ID & " ORDER BY bhfb DESC"
     End If
     If Not rFa.BOF Then
-     Call FallExport(BDT, Pat_ID, aktdat, LANR)
+     Call FallExport(BDT, Pat_ID, aktdat, Lanr)
     End If
    End If ' Pat_id <> Pat_id THEN
    If Not rFa.BOF Then
@@ -17480,8 +17487,8 @@ Function doDiagnosenexport(Optional obTest%)
         BDT.DAdd IIf(obDauer = 0, "5999", "3649"), aktdat
         BDT.TAdd "6201", aktdat
         BDT.SAdd "6203", "TM#?##"
-        BDT.SAdd "3635", "TM#" & rFa!LANR
-        BDT.SAdd "3636", "TM#" & BSNr
+        BDT.SAdd "3635", "TM#" & rFa!Lanr
+        BDT.SAdd "3636", "TM#" & BSNR
         Dim DiagSi$ ', DiagText$
 '        ICD = ICD
         DiagSi = "G"
