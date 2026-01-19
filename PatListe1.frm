@@ -4280,7 +4280,6 @@ Private Sub Form_Load()
       "     AND f.schgr<>90 " & vbCrLf & _
       "     AND k.kateg NOT IN (/*'LKK',*/'SHV')" & vbCrLf & _
       "     AND k.name NOT RLIKE 'BKK SCHEUFELEN'" & vbCrLf & _
-      "     AND n.kdm=0" & vbCrLf & _
       "  ) i" & vbCrLf & _
       "  WHERE rn<" & Dokuzahl + 1 & vbCrLf & _
       "    AND qb<>99990101" & vbCrLf & _
@@ -4289,6 +4288,7 @@ Private Sub Form_Load()
       ") i" & vbCrLf & _
       "ORDER BY pat_id"
       ' 99990101: Faelle 70247 usw.
+'     "     AND n.kdm=0" & vbCrLf
 #Else
    
    Const Dokuzahl% = 6 ' 12
@@ -4314,7 +4314,7 @@ Private Sub Form_Load()
        klassa = "copd"
     Case "Asthma brochiale"
        dmpasp = "dmpart=5 "
-       dmpicd = "^J(4[3-6]|84|8(8|9))"
+       dmpicd = "^J(4[3-6]|5|8[489])"
        klassa = "ab"
     Case "Osteoporose"
        dmpasp = "dmpart=7 "
@@ -4377,7 +4377,6 @@ Private Sub Form_Load()
    "     AND (SDatum IS NULL OR SDatum=18991230 OR SDatum>qbeg(qbeg(NOW()-INTERVAL " & Verspätung & " DAY)- INTERVAL 1 DAY))" & vbCrLf & _
    "     AND NOT (f.bhfb<qbeg(qbeg(NOW() - INTERVAL " & Verspätung & " DAY)-INTERVAL 1 DAY) AND inaktiv=1)" & vbCrLf & _
    "     AND (" & CStr(Lese.pidoffs) & "=0 OR n.pat_id<" & Lese.pidoffs & ")" & vbCrLf & _
-   "     AND n.kdm=0" & vbCrLf & _
    "     AND n.dmp" & klassa & "klass<>2" & vbCrLf & _
    "--     AND n.pat_id=1340" & vbCrLf & _
    ")i" & vbCrLf & _
@@ -4387,6 +4386,7 @@ Private Sub Form_Load()
    "-- AND qb<>99990101" & vbCrLf & _
    "AND ICD IS NOT NULL" & vbCrLf & _
    "ORDER BY pat_id"
+'   "     AND n.kdm=0" & vbCrLf
 #Else
 ' DMP hier Liste, SQL:
    sql = "" & _
@@ -4418,7 +4418,6 @@ Private Sub Form_Load()
    "     AND (SDatum IS NULL OR SDatum=18991230 OR SDatum>qbeg(qbeg(NOW()-INTERVAL " & Verspätung & " DAY)- INTERVAL 1 DAY))" & vbCrLf & _
    "   AND NOT (f.bhfb<qbeg(qbeg(NOW() - INTERVAL " & Verspätung & " DAY)-INTERVAL 1 DAY) AND inaktiv=1)" & vbCrLf & _
    "   AND (" & CStr(Lese.pidoffs) & "=0 OR n.pat_id<" & Lese.pidoffs & ")" & vbCrLf & _
-   "   AND n.kdm=0" & vbCrLf & _
    "   AND n.dmp" & klassa & "klass<>2" & vbCrLf & _
    "--     AND n.pat_id=1340" & vbCrLf & _
    "   AND kateg NOT IN ('SHV','PBe')" & vbCrLf & _
@@ -4429,6 +4428,7 @@ Private Sub Form_Load()
    "ORDER BY f.pat_id" & vbCrLf & _
    "" & vbCrLf & _
    "" & vbCrLf
+'   "   AND n.kdm=0" & vbCrLf
 #End If
 #End If
 ' 11.5.25: bei dmpreihe bleiben noch: abk RLIKE '^(DMP Teilnahmeerklärung|DMP(KHK)|EDMP(AB|COPD|KHK)|(Erst|Verlaufs)-Dokumentation (COPD|koronare|Asthma|Brustkrebs|Chronische(r Rückenschmerz| Herzinsuffizienz)))'

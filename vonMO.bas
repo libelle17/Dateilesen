@@ -1189,9 +1189,9 @@ Public Function doPatvonMO(fPtNr&, Optional obmitFormularen%, Optional obpruef%,
  Dim meldTxt$
  Dim LaborLangsam%
  Dim ij&, rj& ' Laufvariable und zu befüllender Satz in rDM
- '    Veriablen für die rDm-Befüllung:
-      Dim DMPArt%, uDat As Date, DokuDatum As Date, Druckdatum As Date, exportiert As Date
-      Dim testdat As Date
+ ' Veriablen für die rDm-Befüllung:
+ Dim DMPArt%, uDat As Date, DokuDatum As Date, Druckdatum As Date, exportiert As Date
+ Dim testdat As Date ' für Druckdatum oder exportiert
  LaborLangsam = oblabla
 ' LaborLangsam = True
 abermals:
@@ -2530,6 +2530,16 @@ sql = sql & _
            Case "13":
                 If Not Len(FMem(j).Text) = 1 And Asc(FMem(j).Text) = 1 Then
                    DokuDatum = stzk(FMem(j).Text)
+                End If
+           Case "67":
+                testdat = stzk(FMem(j).Text)
+                If testdat Then
+                  Druckdatum = testdat
+                End If
+           Case "79":
+                testdat = stzk(FMem(j).Text)
+                If testdat Then
+                  exportiert = testdat
                 End If
 ' Rest muss noch überprüft werden
           End Select

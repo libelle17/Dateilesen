@@ -679,7 +679,7 @@ Public Function mplan(pid&)
   obHCT = 0
   hctMed = ""
 '  mpz = myEFrag("SELECT COUNT(0) Zahl FROM medplan mp WHERE pat_id = " & PID & "")!Zahl
-  mpz = myEFrag("SELECT COUNT(0) Zahl FROM wmedplan mp WHERE pat_id = " & pid & " AND zeitpunkt=(SELECT MAX(zeitpunkt) FROM wmedplan WHERE pat_id=" & pid & ")")!Zahl
+  mpz = myEFrag("SELECT COUNT(0)Zahl FROM wmedplan mp WHERE pat_id = " & pid & " AND zeitpunkt=(SELECT MAX(zeitpunkt) FROM wmedplan WHERE pat_id=" & pid & ")")!Zahl
 ' mpz = myEFrag("SELECT COUNT(0) Zahl FROM medplan mp WHERE pat_id = " & Pid & " AND mpnr=(SELECT MAX(mpnr) FROM medplan mpi WHERE pat_id=mp.pat_id AND zeitpunkt=(SELECT MAX(zeitpunkt) FROM medplan WHERE pat_id=mp.pat_id))")!Zahl
   Erase mdpl ' 30.5.20
   If mpz > 0 Then
@@ -695,6 +695,7 @@ Public Function mplan(pid&)
             "LEFT JOIN medarten ma ON ma.medikament=mp.medanfang " & _
             "WHERE mp.pat_id = " & pid
    Do While Not rTh.EOF
+    If ru > UBound(mdpl) Then ReDim Preserve mdpl(ru)
     mdpl(ru).m.ab = rTh!ab
     mdpl(ru).m.absPos = rTh!absPos
     mdpl(ru).m.aktZeit = rTh!aktZeit
