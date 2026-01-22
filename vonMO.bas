@@ -2390,7 +2390,8 @@ sql = sql & _
 ",(FIcdcode LIKE'%dmp%'OR FIcdcode='')AND b.FSurogat IS NOT NULL AND FText RLIKE '(Erst|Verlaufs)-Dokumentation Asthma' obasr" & vbCrLf & _
 ",(FIcdcode LIKE'%dmp%'OR FIcdcode='')AND b.FSurogat IS NOT NULL AND FText RLIKE '(Erst|Verlaufs)-Dokumentation chronische H' obhir" & vbCrLf & _
 ",(FIcdcode LIKE'%dmp%'OR FIcdcode='')AND b.FSurogat IS NOT NULL AND FText RLIKE '(Erst|Verlaufs)-Dokumentation chronischer R' obrsr" & vbCrLf & _
-",(FIcdcode LIKE'%dmp%'OR FIcdcode='')AND b.FSurogat IS NOT NULL AND FText RLIKE '(Erst|Verlaufs)-Dokumentation Brustkrebs' obbkr" & vbCrLf
+",(FIcdcode LIKE'%dmp%'OR FIcdcode='')AND b.FSurogat IS NOT NULL AND FText RLIKE '(Erst|Verlaufs)-Dokumentation Brustkrebs' obbkr" & vbCrLf & _
+",(FIcdcode LIKE'%dmp%'OR FIcdcode='')AND b.FSurogat IS NOT NULL AND FText RLIKE '(Erst|Verlaufs)-Dokumentation Rheumatoide' obrh" & vbCrLf
 sql = sql & _
 "FROM (SELECT l.*" & vbCrLf & _
 "FROM ltag l) l" & vbCrLf & _
@@ -2518,6 +2519,15 @@ sql = sql & _
                 If Not Len(FMem(j).Text) = 1 And Asc(FMem(j).Text) = 1 Then
                    DokuDatum = stzk(FMem(j).Text)
                 End If
+           Case "61"
+'                If IsDate(stzk(FMem(j).Text)) Then
+                  Druckdatum = stzk(FMem(j).Text)
+'                End If
+           Case "69":
+                testdat = stzk(FMem(j).Text)
+                If testdat Then
+                  exportiert = testdat
+                End If
 ' Rest muss noch überprüft werden
           End Select
          Next j
@@ -2544,14 +2554,26 @@ sql = sql & _
 ' Rest muss noch überprüft werden
           End Select
          Next j
-        ElseIf rsEi!obhir Then ' Herzinsuffizienz
+        ElseIf rsEi!obbkr Then ' Brustkrebs
          DMPArt = 6
+'        ElseIf rsEi!obbkr Then ' Osteoporose
+'         DMPArt = 7
+        ElseIf rsEi!obrh Then ' Rheuma
+         DMPArt = 8
+         For j = 0 To UBound(FMem)
+          Select Case FMem(j).ENr
+            Case "26"
+                testdat = stzk(FMem(j).Text)
+                If testdat Then Druckdatum = testdat
+          End Select
+         Next j
+        
+        ElseIf rsEi!obhir Then ' Herzinsuffizienz
+         DMPArt = 9
 ' muss noch überprüft werden
         ElseIf rsEi!obrsr Then ' Rückenschmerz
-         DMPArt = 7
+         DMPArt = 10
 ' muss noch überprüft werden
-        ElseIf rsEi!obbkr Then ' Brustkrebs
-         DMPArt = 8
 ' muss noch überprüft werden (4 gibts)
         Else
          Debug.Print "noch was anderes"
