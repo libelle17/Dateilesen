@@ -1966,8 +1966,9 @@ AwN(AWlf) = "Sono, Doppler oder Duplex ohne Befund (vorher 7)"
  "  )b" & vbCrLf & _
  "  WHERE b.NAME LIKE '%.png'" & vbCrLf & _
  "  AND b.NAME RLIKE '_[0-9]{8}_?[0-9]{6}([_a]| [0-9]{1,2}| - Kopie( \\([0-9]{1,3}\\))?)?\.png'" & vbCrLf & _
+ "  AND b.NAME NOT LIKE '%_GRN-%'" & vbCrLf & _
  "  GROUP BY b.pat_id,b.udat,b.uag)i" & vbCrLf & _
- "  WHERE (SELECT inhalt FROM eintraege" & vbCrLf & _
+ "  WHERE (SELECT 0 FROM eintraege" & vbCrLf & _
  "   WHERE pat_id=i.pat_id " & vbCrLf & _
  "   AND inhalt RLIKE '^(Abdomen|(Hals(schlagadern|venen|arterien|weichteile|sono)|Wei?chteile|Pleura|(Sono )?Schid?l?l?dd?d?r?r?s?ür?s?s?e?|(Bein|Arm)(venen|arterien)( (re|li(nks)?|bds.))?)|Nierenarterien?|Restharn|SD|Darmarterien|Abdomen|Belastung(suntersuchung)?).*:'" & vbCrLf & _
  "   AND art RLIKE muster" & vbCrLf & _
