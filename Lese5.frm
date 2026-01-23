@@ -1059,6 +1059,7 @@ Enum AktionTyp
  DMPZettel
  Anwalt
  PatvonMO
+ zielpatient
 End Enum
 Public Aktion As AktionTyp
 Public SpPat_id&, SpName$ ' Sonderpatient Pat_id
@@ -3645,12 +3646,12 @@ End Sub ' Überweiserstatistik2_Click
 
 ' Statistik -> Schulungsstatistik nach Schulungsart
 Private Sub Schulungsstatistik_Click()
- Dim col As New Collection, el, rs As New ADODB.Recordset, ausg$, TA1$, spmax%(5), rAf&
+ Dim Col As New Collection, el, rs As New ADODB.Recordset, ausg$, TA1$, spmax%(5), rAf&
  myEFrag "INSERT INTO `ebm2000plus`(leistung,titel,euro) SELECT g.leistung, g.erklärung, g.wert FROM `genehmigungen` g LEFT JOIN `ebm2000plus` e ON g.leistung=e.leistung WHERE ISNULL(e.leistung)", rAf
  myFrag rs, "SELECT leistung FROM `genehmigungen` WHERE obschulung<>0"
  Do While Not rs.EOF
   ausg = rs!Leistung
-  col.Add ausg
+  Col.Add ausg
   rs.MoveNext
  Loop
  Set rs = Nothing
@@ -3687,7 +3688,7 @@ Private Sub Schulungsstatistik_Click()
  
 #If True Then
   Dim sql As New CString, lst As New CString
-  For Each el In col:  lst.AppVar Array("'", el, "',"): Next el
+  For Each el In Col:  lst.AppVar Array("'", el, "',"): Next el
   lst.Cut (lst.length - 1)
   sql.AppVar Array("SELECT e.Leistung,Titel,COUNT(pat_id) Zahl,CAST(GROUP_CONCAT(pat_id) AS char) Pat_IDs FROM `ebm2000plus` e LEFT JOIN `leistungen` l ON l.leistung = e.leistung AND YEAR(SUBDATE(NOW(),INTERVAL 15 DAY)) = YEAR(l.zeitpunkt) WHERE e.leistung IN (", lst.Value, ") GROUP BY e.leistung")
   myFrag rs, sql.Value

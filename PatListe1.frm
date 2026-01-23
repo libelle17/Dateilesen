@@ -416,6 +416,8 @@ Public LabDatum As Date ' 23.3.25
 Public LVatr As PatListe
 Public vZeile&
 Public ePLi As New PatListe
+Public Pat_id& ' für arttmbr
+Public PName$
 Public obh%, obk%, obs%
 ' für LabordateiAnzeig und mfg_mousemove
 ' Const Pat_IDSp% = 0
@@ -544,6 +546,7 @@ Enum ArtTyp
  artTabAus  ' Tabausgeb
  artHA      ' Hausärzte (HAreal)
  artLAus     ' Labordatei auswählen
+ arttmbr  ' Tabelle tmbrie pflegen
 End Enum ' ArtTyp
 Public PLArt As ArtTyp
 Public Typisierung$ ' um die Zeilenhöhe für Motivationsgesprächskandidaten steuern zu können
@@ -563,7 +566,7 @@ Enum DMPCol
  PlusCol
  gew2col = PlusCol + 2
 End Enum
-Dim altrow&, altCol&, altX&, altY&
+Dim altRow&, altCol&, altX&, altY&
 Dim cb&, QuellZ&, IDS&()
 ' Konstante für Laboranzeige
 Const MFGLabCols% = 9
@@ -668,7 +671,7 @@ Private Sub TabAusFüll()
  Next i
  
 '
-If Me.MFG.cols < 6 Then Me.MFG.col = Me.MFG.cols - 1 Else Me.MFG.col = 5
+If Me.MFG.cols < 6 Then Me.MFG.Col = Me.MFG.cols - 1 Else Me.MFG.Col = 5
 ' Me.Label1.Width = Me.MFG.CellWidth
 ' Me.Label1.AutoSize = True
  Do While Not pRs.EOF
@@ -958,13 +961,60 @@ Public Sub Command1_Click(Index As Integer)
     Case 12: Call alleFS
     Case 13: Call aktFS
     Case 14: Call GesZF  ' Gesamtzusammenstellung-Funktion
-   End Select
+   End Select ' Index
+  Case arttmbr
+   Select Case Index
+    Case 0: ' Call tmbrversch
+     Call tmbrverschieb
+    Case 1: ' Call tmbrloe
+    Case 2: ' Call tmbrabbr
+   End Select ' Index
   Case artlpar
   Case artHA
   Case artDiag
    If Index = 3 Then Call Suchen(alleSp:=True) Else If Index = 4 Then Call Suchen(weiter:=True, alleSp:=True)
  End Select
 End Sub ' Command1_Click(Index As Integer)
+
+Sub tmbrverschieb()
+ Dim altakt As AktionTyp
+ Static paus As New PatAuswahl
+ paus.Zeilenzahl.Visible = False
+ paus.VorDat.Visible = False
+ paus.Therapiearten.Visible = False
+ paus.Abr.Visible = False
+ paus.Therartenfestlegen.Visible = False
+ paus.Vorlage.Visible = False
+ paus.Angeforderte(0).Visible = False
+ paus.Angeforderte(1).Visible = False
+ paus.inMO.Visible = False
+ paus.Patientenlaufzettel.Visible = False
+ paus.keinBericht.Visible = False
+ paus.Zeilenzahl.Visible = False
+ paus.Therapiearten.Visible = False
+ paus.Leistungen.Visible = False
+ paus.Dokumente.Visible = False
+ paus.DMPString.Visible = False
+ paus.ohneÜbertr.Visible = False
+ paus.PlzMitImp.Visible = False
+ paus.Übertragung.Visible = False
+ paus.VerfasserLbl.Visible = False
+ paus.Verfasser.Visible = False
+ paus.ProgrammLbl.Visible = False
+ paus.Programm.Visible = False
+ paus.obVordatFrag.Visible = False
+ paus.DiagString.Visible = False
+ paus.Therartenfestlegen.Visible = False
+ paus.VorlageLab.Visible = False
+ paus.FaellepHA.Visible = False
+ paus.Height = 8400
+ altakt = hlese.Aktion
+ hlese.Aktion = zielpatient
+ paus.Show vbModal
+ hlese.Aktion = altakt
+ If paus.abgebrochen Then Me.Show: Exit Sub
+ 
+End Sub ' tmbrverschieb
 
 Sub farberklärung()
 'Shell uverz & "programmierung\Dateilesen\LaborFarblegende.htm", vbNormalFocus
@@ -1007,10 +1057,10 @@ Sub GesZF()
    NachN = .TextMatrix(i, NachNameSp)
    VorN = .TextMatrix(i, NachNameSp + 1)
    .Row = i
-   altC = .col
-   .col = NachNameSp
+   altC = .Col
+   .Col = NachNameSp
    callMachDMPBogen GesColl(i), NachN, VorN, .CellBackColor = vbWhite, .CellBackColor = DunkelRot Or .CellBackColor = HellRot, .TextMatrix(i, ICDSp), False, immeranhaeng, True, Datei
-   .col = altC
+   .Col = altC
    .Row = altr
   End With ' MFG
   immeranhaeng = True
@@ -1031,15 +1081,15 @@ Sub alleFS()
   Case artpat ' DMP hier Liste
    FNr = 6
    With Me.MFG
-    .col = 0
+    .Col = 0
     For i = .Row To .Rows - 1
      .Row = i
      If .CellBackColor = DunkelRosa Then
       pCol.Add i
      End If
     Next i
-    .Row = altrow
-    .col = altCol
+    .Row = altRow
+    .Col = altCol
    End With
    For Each zeile In pCol
     Call FertigStellen((zeile))
@@ -1073,6 +1123,10 @@ Private Sub Form_Deactivate()
  If Not Me.hlese.Visible Then Me.hlese.Show
 End Sub ' Form_Deactivate()
 
+Private Sub Form_MouseDown(Button As Integer, Shift As Integer, x As Single, y As Single)
+
+End Sub
+
 Private Sub Form_Unload(Cancel As Integer)
  RegSpeichern
  On Error Resume Next
@@ -1087,13 +1141,13 @@ Public Sub li1_Click()
   Li1.Visible = False
   If Li1 <> "" Then
    For i = cRow(MFGTyp) To cRowSel(MFGTyp)
-    MFG.col = 0
+    MFG.Col = 0
     MFG.Row = i
     Call myEFrag("UPDATE `diagreihe` SET gi1 = (SELECT MIN(lfdnr) FROM diagg1 WHERE gruppe='" & Li1 & "') WHERE icd = '" & MFG.TextMatrix(i, 0) & "'", rAf)
     If rAf <> 1 Then
      MsgBox ("Fehler beim Diagnosenupdate: " & Li1 & " " & MFG.TextMatrix(i, 0))
     End If
-    MFG.col = GruSp
+    MFG.Col = GruSp
     MFG.Text = Li1
    Next
   End If
@@ -1118,13 +1172,13 @@ Public Sub Text1_Fertig()
   Text1.Visible = False
   If Text1 <> "" Then
    For i = cRow(MFGTyp) To cRowSel(MFGTyp)
-    MFG.col = 0
+    MFG.Col = 0
     MFG.Row = i
     Call myEFrag("UPDATE diagreihe SET gi2 = '" & Text1 & "' WHERE icd = '" & MFG.TextMatrix(i, 0) & "'", rAf)
     If rAf <> 1 Then
      MsgBox ("Fehler beim Diagnosenupdate: " & Text1 & " " & MFG.TextMatrix(i, 0))
     End If
-    MFG.col = GruSp + 1
+    MFG.Col = GruSp + 1
     MFG.Text = Text1
    Next
   End If ' text1<>""
@@ -1193,21 +1247,21 @@ Private Sub DokuBeliebig() ' Doku zu beliebigem Patienten
        ICD = rNa!gicd
       End If ' Not rna.BOF Then
      End If ' erg <> Me.MFG.TextMatrix(Me.MFG.Row, dpatidsp) Then
-     altC = .col
-     .col = NachNameSp
+     altC = .Col
+     .Col = NachNameSp
      Call callMachDMPBogen(CLng(erg), NachN, VorN, .CellBackColor = vbWhite, .CellBackColor = HellRot, ICD, True)
-     .col = altC
+     .Col = altC
      FNr = 9
      .SetFocus
      For aktr = altr + 1 To .Rows - 1
       .Row = aktr
-      .col = NachNameSp
+      .Col = NachNameSp
       If .CellBackColor = DunkelRot Or .CellBackColor = HellRot Then ' Hellrot eingefügt 3.10.24
-       .col = ICDSp + 1
+       .Col = ICDSp + 1
        If .CellBackColor <> vbWhite Then ' wenn Versicherungskarte vorlag
         Call TopAusricht
         Call mfg_entercell
-        .col = NachNameSp
+        .Col = NachNameSp
         Exit For
        End If ' .CellBackColor <> vbWhite
       End If ' .CellBackColor = DunkelRot Then
@@ -1281,8 +1335,8 @@ Public Sub Suchen(Optional weiter%, Optional alleSp%) ' Suchen
  If Not weiter Then SuchStr = LCase$(InputBox("Bitte Suchstring eingeben:", "Zeilensuche"))
  With MFG
   alttop = .TopRow
-  VonSp = IIf(alleSp, 0, .col)
-  BisSp = IIf(alleSp, .cols - 1, .col)
+  VonSp = IIf(alleSp, 0, .Col)
+  BisSp = IIf(alleSp, .cols - 1, .Col)
 '  altr = .Row
 '  altC = .col
   Call MFG_leavecell
@@ -1293,7 +1347,7 @@ Public Sub Suchen(Optional weiter%, Optional alleSp%) ' Suchen
     If alleSp And .TextMatrix(aktr, aktc) = "" Then Exit For
     If (alleSp And InStrB(LCase$(.TextMatrix(aktr, aktc)), SuchStr)) Or (Not alleSp And LCase$(.TextMatrix(aktr, aktc)) Like SuchStr & "*") Then
      .Row = aktr
-     .col = aktc
+     .Col = aktc
      Call TopAusricht
      GoTo Ende
     End If
@@ -1634,10 +1688,10 @@ Public Sub dokuErstelle() ' Erstelle
     Pat_id = .TextMatrix(.Row, PidSp)
     NachN = .TextMatrix(.Row, NachNameSp)
     VorN = .TextMatrix(.Row, NachNameSp + 1)
-    altC = .col
-    .col = NachNameSp
+    altC = .Col
+    .Col = NachNameSp
     Call callMachDMPBogen(Pat_id, NachN, VorN, .CellBackColor = vbWhite, .CellBackColor = DunkelRot, .TextMatrix(.Row, ICDSp))
-    .col = altC
+    .Col = altC
    End With ' MFG
  End Select
 End Sub ' dokuErstelle
@@ -1784,14 +1838,14 @@ Private Sub Command2_Click()
      With MFG
       alttop = .TopRow
       altr = .Row
-      altC = .col
+      altC = .Col
       VorDoku = .TextMatrix(.Row, VorDokuSp)
       Pat_id = .TextMatrix(.Row, PidSp)
       NachN = .TextMatrix(.Row, NachNameSp)
       VorN = .TextMatrix(.Row, NachNameSp + 1)
-      .col = NachNameSp
+      .Col = NachNameSp
       callMachDMPBogen CLng(Pat_id), NachN, VorN, .CellBackColor = vbWhite, .CellBackColor = DunkelRot, .TextMatrix(.Row, ICDSp), 0, True, True, Datei
-      .col = altC
+      .Col = altC
      End With ' MFG
      
 #Else
@@ -3149,8 +3203,8 @@ Private Sub MFGrefresh()
  aicd = vNS
  MFG.Row = 1
  Do While Not rs.EOF
-  If rs!ICD <> aicd Then MFG.Row = MFG.Row + 1: MFG.col = 0: MFG = rs!ICD: MFG.col = GruSp: MFG = rs!dg1: MFG.col = MFG.col + 1: MFG = rs!gi2: aicd = rs!ICD
-  MFG.col = MFG.col + 1
+  If rs!ICD <> aicd Then MFG.Row = MFG.Row + 1: MFG.Col = 0: MFG = rs!ICD: MFG.Col = GruSp: MFG = rs!dg1: MFG.Col = MFG.Col + 1: MFG = rs!gi2: aicd = rs!ICD
+  MFG.Col = MFG.Col + 1
   MFG = rs!DiagText
   rs.Move 1
  Loop
@@ -3284,6 +3338,53 @@ fehler:
   Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
  End Select
 End Sub ' ExcelLesen
+
+Sub tmbrieAnzeig()
+ Dim rs As New ADODB.Recordset, sql$, i%
+ sql = "SELECT COUNT(0)OVER()zahl,zeitpunkt,Name,IF(quelldatum=18991230,'',quelldatum)quelldatum,dokgroe,dokaend" & vbCrLf & _
+ "FROM tmbrie WHERE pat_id=" & Pat_id & vbCrLf & _
+ "ORDER BY zeitpunkt DESC"
+ On Error GoTo fehler
+ With Me.MFG
+ .Visible = False
+ myFrag rs, sql
+ If Not rs.BOF And True Then
+  .Rows = rs!Zahl + 1
+  .cols = 6
+  .TextMatrix(0, 0) = "Zeitpunkt"
+  .TextMatrix(0, 1) = "Name"
+  .TextMatrix(0, 2) = "Quelldatum"
+  .TextMatrix(0, 3) = "DokGroe"
+  .TextMatrix(0, 4) = "DokAend"
+  .TextMatrix(0, 5) = "Datei in p:\dok\" & Pat_id & "\ da"
+  i = 1
+  Do While Not rs.EOF
+   .TextMatrix(i, 0) = rs!Zeitpunkt
+   .TextMatrix(i, 1) = rs!name
+   .TextMatrix(i, 2) = rs!Quelldatum
+   .TextMatrix(i, 3) = rs!DokGroe
+   .TextMatrix(i, 4) = rs!DokAenD
+   If FSO.FileExists("p:\dok\" & Pat_id & "\" & rs!name) Then .TextMatrix(i, 5) = "X"
+   i = i + 1
+   rs.MoveNext
+  Loop
+ End If ' Not rc.BOF And True Then
+ .Visible = True
+ End With
+ Exit Sub
+fehler:
+ Dim AnwPfad$
+#If VBA6 Then
+ AnwPfad = CurrentDb.name
+#Else
+ AnwPfad = App.path
+#End If
+ Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in tmbrieAnzeig/" + AnwPfad)
+  Case vbAbort: Call MsgBox("Höre auf"): ProgEnde
+  Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
+  Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
+ End Select
+End Sub ' tmbrieAnzeig()
 
 ' in PatListe.Form_Load mit artLAus
 Sub LaborTagAnzeig()
@@ -3553,18 +3654,18 @@ sql = sql & _
      If Not IsNull(rc!obsws) Then Sp1Farbe = vbGoldenRod
      vorPID = Pat_id
      .Row = i
-     .col = Pat_IDSp:    .Text = rc!Pat_id:      .CellBackColor = Abs(Sp1Farbe)
-     .col = namsp:       On Error Resume Next: .Text = rc!name: On Error GoTo fehler: .CellBackColor = IIf(rc!namsp = 0, Abs(Sp1Farbe), rc!namsp)
-     .col = parsp:       .Text = rc!LT:          .CellBackColor = IIf(rc!wertsp = 0, Abs(Sp1Farbe), rc!wertsp)
-     .col = wertsp:      .Text = rc!Wert:        .CellBackColor = IIf(rc!wertsp = 0, Abs(Sp1Farbe), rc!wertsp)
-     .col = einhsp:       .Text = rc!Einheit:     .CellBackColor = vorFarbe
-     .col = vorwsp1:     .Text = rc!vorwert_1:   .CellBackColor = vorFarbe
-     .col = vorwsp2:     .Text = rc!vorwert_2:   .CellBackColor = vorFarbe
-     .col = nbsp:        .Text = Left$(rc!Nb, 25): .CellBackColor = vorFarbe
-     .col = medsp:       .Text = rc!Hinweise:    .CellBackColor = IIf(rc!hinwsp = vbWhite Or rc!hinwsp = 0, vorFarbe, rc!hinwsp)
-     .col = ficdsp:      .Text = rc!ficd:        .CellBackColor = IIf(rc!ICDSp = vbWhite Or rc!ICDSp = 0, vorFarbe, rc!ICDSp)
-     .col = terminsp:    .Text = rc!Termine:     .CellBackColor = IIf(rc!termsp = 0, vbWhite, rc!termsp)
-     .col = labhwsp:     .Text = rc!Kommentar:   .CellBackColor = vorFarbe
+     .Col = Pat_IDSp:    .Text = rc!Pat_id:      .CellBackColor = Abs(Sp1Farbe)
+     .Col = namsp:       On Error Resume Next: .Text = rc!name: On Error GoTo fehler: .CellBackColor = IIf(rc!namsp = 0, Abs(Sp1Farbe), rc!namsp)
+     .Col = parsp:       .Text = rc!LT:          .CellBackColor = IIf(rc!wertsp = 0, Abs(Sp1Farbe), rc!wertsp)
+     .Col = wertsp:      .Text = rc!Wert:        .CellBackColor = IIf(rc!wertsp = 0, Abs(Sp1Farbe), rc!wertsp)
+     .Col = einhsp:       .Text = rc!Einheit:     .CellBackColor = vorFarbe
+     .Col = vorwsp1:     .Text = rc!vorwert_1:   .CellBackColor = vorFarbe
+     .Col = vorwsp2:     .Text = rc!vorwert_2:   .CellBackColor = vorFarbe
+     .Col = nbsp:        .Text = Left$(rc!Nb, 25): .CellBackColor = vorFarbe
+     .Col = medsp:       .Text = rc!Hinweise:    .CellBackColor = IIf(rc!hinwsp = vbWhite Or rc!hinwsp = 0, vorFarbe, rc!hinwsp)
+     .Col = ficdsp:      .Text = rc!ficd:        .CellBackColor = IIf(rc!ICDSp = vbWhite Or rc!ICDSp = 0, vorFarbe, rc!ICDSp)
+     .Col = terminsp:    .Text = rc!Termine:     .CellBackColor = IIf(rc!termsp = 0, vbWhite, rc!termsp)
+     .Col = labhwsp:     .Text = rc!Kommentar:   .CellBackColor = vorFarbe
      i = i + 1
     End If
     rc.MoveNext
@@ -3646,7 +3747,7 @@ sql = sql & _
     vorDp = IIf(IsNull(rs!Abkü), "", rs!Abkü)
     .TextMatrix(i, wertsp) = rs!Wert ' Mid$(rs!fehlerart, pos + 1)
     .Row = i
-    .col = nbsp
+    .Col = nbsp
     .CellAlignment = 0 'flexAlignLeftTop
 '   END IF
 '  END IF
@@ -3714,11 +3815,11 @@ sql = sql & _
     If pid <> vorPID Then vorFarbe = IIf(vorFarbe = vbWhite, vbGräulich, vbWhite) '&H8000000F&=vbgelblichgrau
 andSp:
     .Row = i
-    .col = Pat_IDSp
+    .Col = Pat_IDSp
     .CellBackColor = vorFarbe
-    .col = einhsp
+    .Col = einhsp
     .CellBackColor = vorFarbe
-    .col = nbsp
+    .Col = nbsp
     .CellBackColor = vorFarbe
     vorPID = pid
  ' Vorwerte: 10.7.11: abkü nochmal korrigieren, sonst fehlen welche
@@ -3825,11 +3926,11 @@ andSp:
        If zuwarnen Then
         .TextMatrix(i, medsp) = "Metformin" & IIf(metdos, "(" & metdos & " mg)", "") & "!"
         .Row = i
-        .col = medsp
+        .Col = medsp
         .CellBackColor = vbRed
        End If ' zuwarnen
       End If ' aktdc.obmetf
-     ElseIf aktw < 60 And aktw < vw1 * 0.9 Then .TextMatrix(i, medsp) = "GFR-Abfall!": .Row = i: .col = medsp: .CellBackColor = vbRed
+     ElseIf aktw < 60 And aktw < vw1 * 0.9 Then .TextMatrix(i, medsp) = "GFR-Abfall!": .Row = i: .Col = medsp: .CellBackColor = vbRed
      End If ' aktw<45
     Else ' GFR
      Select Case vorDp
@@ -3837,18 +3938,18 @@ andSp:
        If aktw > 1.3 Then
        End If
       Case "CK"
-       If aktw > 999 Then .TextMatrix(i, medsp) = "CK hoch": .Row = i: .col = medsp: .CellBackColor = vbRed
+       If aktw > 999 Then .TextMatrix(i, medsp) = "CK hoch": .Row = i: .Col = medsp: .CellBackColor = vbRed
       Case "TSH", "TSBF", "TSBL"
-       If aktw > 5 Then .TextMatrix(i, medsp) = "V.a. unzur.SD-Hormon-Substitution": .Row = i: .col = medsp: .CellBackColor = vbRed
-       If aktw < 0.25 Then .TextMatrix(i, medsp) = "V.a. zu viel SD-Hormon": .Row = i: .col = medsp: .CellBackColor = vbRed
+       If aktw > 5 Then .TextMatrix(i, medsp) = "V.a. unzur.SD-Hormon-Substitution": .Row = i: .Col = medsp: .CellBackColor = vbRed
+       If aktw < 0.25 Then .TextMatrix(i, medsp) = "V.a. zu viel SD-Hormon": .Row = i: .Col = medsp: .CellBackColor = vbRed
       Case "FT4"
-       If aktw > 20 Then .TextMatrix(i, medsp) = "V.a. zu viel SD-Hormon": .Row = i: .col = medsp: .CellBackColor = vbRed
+       If aktw > 20 Then .TextMatrix(i, medsp) = "V.a. zu viel SD-Hormon": .Row = i: .Col = medsp: .CellBackColor = vbRed
       Case "K"
-       If aktw > 5.5 Or aktw < 3.5 Then .TextMatrix(i, medsp) = "V.a. Dyskaliämie": .Row = i: .col = medsp: .CellBackColor = vbRed
+       If aktw > 5.5 Or aktw < 3.5 Then .TextMatrix(i, medsp) = "V.a. Dyskaliämie": .Row = i: .Col = medsp: .CellBackColor = vbRed
       Case "HB"
        If aktw < IIf(gschl = "w", 12, 14) Then
          .Row = i
-         .col = medsp
+         .Col = medsp
          .TextMatrix(i, medsp) = "Anämie!"
          If .TextMatrix(i, 0) <> "" Then
          Dim radg As New ADODB.Recordset
@@ -3864,7 +3965,7 @@ andSp:
          End If
          End If
        End If
-       If aktw < vw1 - 1.5 Then .TextMatrix(i, medsp) = "Hb-Abfall!": .Row = i: .col = medsp: .CellBackColor = vbRed
+       If aktw < vw1 - 1.5 Then .TextMatrix(i, medsp) = "Hb-Abfall!": .Row = i: .Col = medsp: .CellBackColor = vbRed
       Case Else
 '       Debug.Print vorDp, i
      End Select ' vorDp
@@ -3888,7 +3989,7 @@ andSp:
     End If
     If Tkz <> 0 Or gsz <> 0 Or wdz <> 0 Or ahz <> 0 Then
      For j = namsp To wertsp
-      .col = j
+      .Col = j
       If Tkz <> 0 And wdz = 0 And ahz = 0 And gsz = 0 Then
         .CellBackColor = IIf(j = namsp, vbWagnerBlau, HellBlau) ' vbmittelblau, hellblau) ' hellrot, mittigrosa)        ' rötlich
       ElseIf Tkz = 0 And wdz = 0 And ahz = 0 And gsz <> 0 Then
@@ -3941,7 +4042,7 @@ mehrdeutig:
  Loop
  myEFrag "DROP TABLE IF EXISTS `" & labxtb & "`"
  End If
- .col = 1
+ .Col = 1
  .Row = 1
  .Visible = True
  End With
@@ -4007,7 +4108,7 @@ Public Sub RegSpeichern()
  cR.WriteKey Me.MFG.TopRow, "TopRow", RegPos, HKEY_CURRENT_USER, REG_DWORD
  cR.WriteKey Me.MFG.LeftCol, "LeftCol", RegPos, HKEY_CURRENT_USER, REG_DWORD
  cR.WriteKey Me.MFG.Row, "Row", RegPos, HKEY_CURRENT_USER, REG_DWORD
- cR.WriteKey Me.MFG.col, "Col", RegPos, HKEY_CURRENT_USER, REG_DWORD
+ cR.WriteKey Me.MFG.Col, "Col", RegPos, HKEY_CURRENT_USER, REG_DWORD
  cR.WriteKey MFGLabSort, "LabSort", RegPos, HKEY_CURRENT_USER
  Exit Sub
 fehler:
@@ -4081,7 +4182,7 @@ Private Sub Form_Load()
    If MFGTopRow <> 0 Then Me.MFG.TopRow = MFGTopRow
    If MFGRow <> 0 Then Me.MFG.Row = MFGRow
    If MFGLeftCol <> 0 Then Me.MFG.LeftCol = MFGLeftCol
-   If MFGCol <> 0 Then Me.MFG.col = MFGCol
+   If MFGCol <> 0 Then Me.MFG.Col = MFGCol
    
   Case artDMP ' DMP-Infos an Hausärzte faxen
    Me.Caption = "DMP-Infos an Hausärzte faxen"
@@ -4132,6 +4233,18 @@ Private Sub Form_Load()
    Call invis(0)
    Me.Label1.Visible = False
    Call LaborTagAnzeig
+   Call SizeColumns(MFG, Me, True, 3200)
+   Screen.MousePointer = vbNormal
+  Case arttmbr
+   Me.MFG.FillStyle = flexFillRepeat
+   Screen.MousePointer = vbHourglass
+   Me.Caption = "Dokumenteinträge in `tbrie` und 'P:\dok\" & Pat_id & "\' für Patient/in " & PName & " editieren"
+   Me.Command1(0).Caption = "&Verschieben"
+   Me.Command1(1).Caption = "&Löschen"
+   Me.Command1(2).Caption = "&Umbenennen"
+   invis 3
+   Me.Label1.Visible = False
+Call tmbrieAnzeig
    Call SizeColumns(MFG, Me, True, 3200)
    Screen.MousePointer = vbNormal
   Case Else ' artPat, artDiag
@@ -4194,27 +4307,27 @@ Private Sub Form_Load()
      For i = 2 To MFG.Rows
       Me.MFG.Row = i
       If z2 = 0 Then
-       Me.MFG.col = 2
+       Me.MFG.Col = 2
        If Me.MFG.Text = "0" Then
         z2 = Me.MFG.Row
        End If
-       Me.MFG.col = 1
+       Me.MFG.Col = 1
       End If
       If LenB(Me.MFG.Text) = 0 Then
-       Me.MFG.col = 0
+       Me.MFG.Col = 0
        If Me.MFG.Text <> "" Then
         Me.MFG.TopRow = Me.MFG.Row - 1
         gesetzt = True
        End If
        Me.MFG.LeftCol = 1
-       Me.MFG.col = 1
+       Me.MFG.Col = 1
        Exit For
       End If
      Next i
      If Not gesetzt Then
       Me.MFG.Row = MAXvb(z2, 1)
       Me.MFG.TopRow = MAXvb(Me.MFG.Row - 10, 1)
-      Me.MFG.col = 2
+      Me.MFG.Col = 2
      End If
      Me.MFG.Visible = True
      
@@ -4455,7 +4568,7 @@ Private Sub Form_Load()
 '      On Error Resume Next
       Tkz = rDPat!Tkz
 '      On Error GoTo fehler
-      .col = DNrSp
+      .Col = DNrSp
   '   IF rDPat!Pat_id = 2901 THEN Stop
 '      IF obhierdmp(rDPat!Notiz) AND rDPat!Tkz = 0 THEN cbcol = dunkelrosa ELSE cbcol = vbWhite
       cbcol = 0
@@ -4489,31 +4602,31 @@ Private Sub Form_Load()
         If cbcol = DunkelRosa Then gehezu = .Row
       End If
 '#End If
-      If GruSp = 0 Then GruSp = .col
+      If GruSp = 0 Then GruSp = .Col
    '   .CellBackColor = cbcol
       lfdnr = lfdnr + 1
-      .col = .col + 1
-      If PidSp = 0 Then PidSp = .col
+      .Col = .Col + 1
+      If PidSp = 0 Then PidSp = .Col
       .Text = pid
       .CellBackColor = cbcol ' 10790143 = dunkelrosa
-      .col = .col + 1
-      If NachNameSp = 0 Then NachNameSp = .col
+      .Col = .Col + 1
+      If NachNameSp = 0 Then NachNameSp = .Col
       If Tkz Then .Text = rDPat!Nachname & " (+ " & Format(rDPat!SDatum, "d.m.yy") & ")" Else .Text = rDPat!Nachname
 '      If cbcol <> vbWhite And cbcol <> DunkelRosa And cbcol <> vbCyan Then Stop
       .CellBackColor = cbcol ' 10790143 = dunkelrosa
-      .col = .col + 1
+      .Col = .Col + 1
       .Text = rDPat!Vorname
       .CellBackColor = cbcol
-      .col = .col + 1
+      .Col = .Col + 1
       .Text = IIf(IsNull(rDPat!kurzname), vNS, rDPat!kurzname)
       .CellBackColor = cbcol ' 10790143 = dunkelrosa
       
-      .col = .col + 1
-      If ICDSp = 0 Then ICDSp = .col
+      .Col = .Col + 1
+      If ICDSp = 0 Then ICDSp = .Col
       .Text = IIf(IsNull(rDPat!ICD), "!-!", rDPat!ICD)
       .CellBackColor = IIf(rDPat!ICD Like "E11*", cbcol, vbYellow)
 'GoTo weiter
-      .col = .col + 1
+      .Col = .Col + 1
 '      If IsNull(rDPat!notiz) Then
 '       .Text = vNS
 '      Else
@@ -4588,12 +4701,12 @@ Private Sub Form_Load()
         If InStrB(dokus(1), "ok") = 0 Then If InStrB(dokus(2), "ok") = 0 Then obraus = True ' 10.12.24: erweitert um dokus(2), da Pat. erst im übernächsten Quartal rausfliegen
         If Not obraus Then fdflt = True
       End If ' InStrB(dokus(0), "ok") = 0 Then
-      begcol = .col + 1
+      begcol = .Col + 1
 '      If pid = 2169 Then Stop ' 926 Or pid = 2652 Then Stop
       For j = begcol To begcol + UBound(dokus)
        If j = .cols Then Exit For
-       .col = j
-       If VorDokuSp = 0 Then VorDokuSp = .col
+       .Col = j
+       If VorDokuSp = 0 Then VorDokuSp = .Col
        .Text = dokus(j - begcol)
        If j = begcol Then
         If InStrB(.Text, "ok") = 0 Then
@@ -4617,7 +4730,7 @@ Private Sub Form_Load()
       ' not obraus and
       If obraus Then ' wieder reduziert 4.10.24
 '      Or (oberst = 0 And ZQuart(BhFB) = ZQuart(Now() - Verspätung)) Then ' letzte Bedingung eingefügt 31.12.15
-       .col = begcol
+       .Col = begcol
        .CellBackColor = DunkelRot
        edflt = True
        fdflt = False
@@ -4625,12 +4738,12 @@ Private Sub Form_Load()
 'GoTo weiter
       If (fdflt Or edflt) And (Tkz = 0 Or vkda) Then '  And dmpklass = hier And Tkz = 0 Then
        For j = NachNameSp To NachNameSp + 2 * -vkda ' Nachname, Vorname, Kasse
-        .col = j
+        .Col = j
         If fdflt Then .CellBackColor = DunkelRot Else .CellBackColor = HellRot
        Next j
       End If ' (fdflt Or edflt) And
       If oberst Then
-       .col = 0
+       .Col = 0
 '       .CellBackColor = 16773055  ' RGB(191, 239, 255) ' lightblue1
 '       .CellBackColor = 16775408 ' rgb(240,248,255) ' aliceblue
        .CellBackColor = 16773850 ' rgb(218,242,255)
@@ -4651,7 +4764,7 @@ weiter:
     .TextMatrix(0, VorDokuSp) = "lDoku"
     Call SizeColumns(MFG, Me)
     .ColWidth(4) = 1200
-    .col = NachNameSp
+    .Col = NachNameSp
     .Row = gehezu
     End With
     Call mfg_entercell
@@ -4819,6 +4932,17 @@ fehler:
  Exit Sub
 End Sub ' AlleMark(ob%)
 
+Private Sub togglemark()
+ With Me.MFG
+    .RowSel = .Row
+    altCol = .Col
+    .Col = 0
+    .ColSel = .cols - 1
+    If .CellBackColor <> HellRot Then .CellBackColor = HellRot Else .CellBackColor = vbWhite
+    .Col = altCol
+ End With
+End Sub ' togglemark()
+
 Public Sub MFG_Click()
  Dim ctrl As Control, Fd0$, Fd1$, i%, rs As New ADODB.Recordset, j&, k&
  FNr = 22
@@ -4827,8 +4951,19 @@ Public Sub MFG_Click()
   cRow(MFGTyp) = Me.MFG.Row
   cRowSel(MFGTyp) = Me.MFG.RowSel
  End If
- ccol(MFGTyp) = Me.MFG.col
+ ccol(MFGTyp) = Me.MFG.Col
  Select Case Me.PLArt
+  Case arttmbr
+   With Me.MFG
+   Dim rowIdx&
+   rowIdx = .MouseRow
+   If rowIdx > .FixedRows Then
+    altRow = .Row
+    .Row = .MouseRow
+    togglemark
+    .Row = altRow
+   End If ' rowIdx>.fixedrows
+   End With
   Case artDMP
 '   Stop
    Select Case ccol(MFGTyp)
@@ -4891,15 +5026,15 @@ Public Sub MFG_Click()
         j = j + 1
        Loop
        Me.MFG.Text = "-"
-       altrow = Me.MFG.Row
-       altCol = Me.MFG.col
-       Me.MFG.col = nrcol
-       For j = 1 To Me.MFG.TextMatrix(altrow, zahlcol)
-        Me.MFG.Row = altrow + j
+       altRow = Me.MFG.Row
+       altCol = Me.MFG.Col
+       Me.MFG.Col = nrcol
+       For j = 1 To Me.MFG.TextMatrix(altRow, zahlcol)
+        Me.MFG.Row = altRow + j
         Me.MFG.CellBackColor = vbWhite
        Next j
-       Me.MFG.Row = altrow
-       Me.MFG.col = altCol
+       Me.MFG.Row = altRow
+       Me.MFG.Col = altCol
       Case "-"
        For j = 1 To Me.MFG.TextMatrix(Me.MFG.Row, zahlcol)
         Me.MFG.RemoveItem Me.MFG.Row + 1
@@ -4909,11 +5044,11 @@ Public Sub MFG_Click()
      Call SizeColumns(MFG, Me, True, 5000, PlusCol + 1)
    End Select
   Case artDiag
-   If MFG.col = GruSp Or MFG.col = GruSp + 1 Then
+   If MFG.Col = GruSp Or MFG.Col = GruSp + 1 Then
      obtb = 0
    End If
   Case artpat ' DMP hier Liste
-   If Me.MFG.col = zahlcol Then
+   If Me.MFG.Col = zahlcol Then
     Me.MFG.CellFontBold = Not Me.MFG.CellFontBold
     If MFG.CellBackColor = vbYellow Then
        MFG.CellBackColor = vbWhite
@@ -4932,9 +5067,9 @@ Public Sub MFG_Click()
     End If
     Me.Command1(14).Caption = Me.GesZl & " &Ges"
     waehleinMO (Me.MFG.TextMatrix(cRowSel(MFGTyp), ccol(MFGTyp)))
-   ElseIf Me.MFG.col = zahlcol + 1 Then
+   ElseIf Me.MFG.Col = zahlcol + 1 Then
     Call DokuBeliebig
-   ElseIf Me.MFG.col = zahlcol + 2 Then
+   ElseIf Me.MFG.Col = zahlcol + 2 Then
         Call dodoplz(Me.MFG.TextMatrix(cRowSel(MFGTyp), ccol(MFGTyp) - 2), plzVz, Now, Now - Int(Now), True, , , True)
    End If ' Me.MFG.col = zahlcol Then
   Case artlab, artTabAus
@@ -4962,7 +5097,7 @@ Public Sub MFG_Click()
   cRow(MFGTyp) = Me.MFG.Row
   cRowSel(MFGTyp) = Me.MFG.RowSel
  Else ' IF obtb = 0 THEN
-  If MFG.col = GruSp Then
+  If MFG.Col = GruSp Then
    Set ctrl = Me.Li1
    ctrl.Clear
    myFrag rs, "SELECT * FROM `diagg1` ORDER BY rf", adOpenStatic, DBCn, adLockOptimistic
@@ -4987,7 +5122,7 @@ Public Sub MFG_Click()
    Cstumm = True
    ctrl.Text = Me.MFG.Text
    Cstumm = False
-  ElseIf MFG.col = GruSp + 1 Then
+  ElseIf MFG.Col = GruSp + 1 Then
    If KeyC_M = 13 Then
     Call Text1_Fertig
     Exit Sub
@@ -5045,14 +5180,14 @@ Public Sub mfg_entercell()
  On Error GoTo fehler
  Select Case Me.PLArt
   Case artlpar
-   If Me.MFG.col = 2 Then
+   If Me.MFG.Col = 2 Then
     altnoenter = noenter
     noenter = True
    End If
  End Select
  If noenter = 0 Then
   If fgespei(MFGTyp) = 0 Then
-   If Not (Me.PLArt = artpat And Me.MFG.col = zahlcol) Then
+   If Not (Me.PLArt = artpat And Me.MFG.Col = zahlcol) Then
     altFarbe(MFGTyp) = Me.MFG.CellBackColor
     Me.MFG.CellBackColor = vbYellow
    End If
@@ -5061,7 +5196,7 @@ Public Sub mfg_entercell()
  End If
  Select Case Me.PLArt
   Case artlpar
-   If Me.MFG.col = 2 Then
+   If Me.MFG.Col = 2 Then
     noenter = altnoenter
    End If
  End Select
@@ -5085,23 +5220,27 @@ Private Sub MFG_leavecell()
  FNr = 25
  Select Case Me.PLArt
   Case artlpar
-   If Me.MFG.col = 2 Then
+   If Me.MFG.Col = 2 Then
     altnoenter = noenter
     noenter = True
    End If
  End Select
- If noenter = 0 Then
-  If altFarbe(MFGTyp) <> 0 Then ' am Anfang
-   If Not (PLArt = artpat And Me.MFG.col = zahlcol) Then
-    Me.MFG.CellBackColor = IIf(Me.MFG.Row = 0, vbActiveBorder, altFarbe(MFGTyp))
+ Select Case Me.PLArt
+  Case arttmbr
+  Case Else
+   If noenter = 0 Then
+    If altFarbe(MFGTyp) <> 0 Then ' am Anfang
+     If Not (PLArt = artpat And Me.MFG.Col = zahlcol) Then
+      Me.MFG.CellBackColor = IIf(Me.MFG.Row = 0, vbActiveBorder, altFarbe(MFGTyp))
+     End If
+    End If
+  '  IF MFG.CellBackColor = 0 THEN
+    fgespei(MFGTyp) = 0
    End If
-  End If
-'  IF MFG.CellBackColor = 0 THEN
-  fgespei(MFGTyp) = 0
- End If
+ End Select
  Select Case Me.PLArt
   Case artlpar
-   If Me.MFG.col = 2 Then
+   If Me.MFG.Col = 2 Then
     noenter = altnoenter
    End If
  End Select
@@ -5146,19 +5285,25 @@ Private Sub Form_KeyDown(KeyC%, Shift%)
     Call Me.MFG_Click
     KeyC = 0
    End If
-  ElseIf KeyC = 32 And Me.MFG.col <= 3 And Me.PLArt <> artLAus Then
+  ElseIf KeyC = 32 And Me.PLArt = arttmbr Then
+   Call togglemark
+  ElseIf KeyC = 32 And Me.MFG.Col <= 3 And Me.PLArt <> artLAus Then
    Dim pid&
+   On Error Resume Next
    pid = Me.MFG.TextMatrix(Me.MFG.Row, IIf(Me.PLArt = artlab, 0, 1))
-   Select Case Me.MFG.col
-    Case 0, 1:
+   On Error GoTo fehler
+   If pid Then
+    Select Case Me.MFG.Col
+     Case 0, 1:
         Call explor(pid)
         waehleinMO (pid)
-    Case 2:
-     If Me.PLArt = artpat Then Call DokuBeliebig
-    Case 3:
+     Case 2:
+      If Me.PLArt = artpat Then Call DokuBeliebig
+     Case 3:
 '       Call FertigStellen(Me.MFG.MouseRow, True) ' in Turbomed anzeigen
       Call dodoplz(CStr(pid), plzVz, Now, Now - Int(Now), True, , , True)
     End Select
+   End If ' pid Then
   ElseIf KeyC = 32 And Me.PLArt = artLAus Then
    Call auswaehl(Me.MFG.Row)
   Else
@@ -5180,7 +5325,7 @@ Private Sub Command1_KeyDown(Index As Integer, KeyCode As Integer, Shift As Inte
  Call Key(KeyCode, Shift, Me, Me.hlese.MyDB.name)
 End Sub ' Command1_KeyDown
 
-Private Sub MFG_MouseMove(Button As Integer, Shift As Integer, x As Single, Y As Single)
+Private Sub MFG_MouseMove(Button As Integer, Shift As Integer, x As Single, y As Single)
  Dim rs As New ADODB.Recordset, obbez%, altr&, altC&
  Static altMCol&, altMRow&
  On Error GoTo fehler
@@ -5192,9 +5337,9 @@ Private Sub MFG_MouseMove(Button As Integer, Shift As Integer, x As Single, Y As
  Select Case Me.PLArt
   Case artpat
    If .MouseCol > 0 And .MouseCol <= .cols And .MouseRow > 0 And .MouseRow <= .Rows Then
-    altC = .col
+    altC = .Col
     altr = .Row
-    .col = NachNameSp
+    .Col = NachNameSp
     .Row = .MouseRow
     If .CellBackColor = HellRot Then
      .toolTipText = "wohl ausgeschrieben"
@@ -5202,7 +5347,7 @@ Private Sub MFG_MouseMove(Button As Integer, Shift As Integer, x As Single, Y As
      .toolTipText = "Doku fehlt"
     ElseIf .CellBackColor = vbWhite Then
      rDPat.MoveFirst
-     .col = PidSp
+     .Col = PidSp
 '     If rDPat.Supports(adSeek) Then
 '      rDPat.Index = "pat_id"
 '      rDPat.Seek .Text, adSeekFirstEQ
@@ -5220,12 +5365,12 @@ Private Sub MFG_MouseMove(Button As Integer, Shift As Integer, x As Single, Y As
       Loop ' While Not rDPat.EOF
 '     End If ' rDPat.Supports(adSeek) Then
     End If ' .CellBackColor
-    .col = altC
+    .Col = altC
     .Row = altr
    End If ' .MouseCol > 0 And .MouseCol <= .cols And .MouseRow > 0 And .MouseRow <= .Rows Then
   Case artlpar
-   altrow = .Row
-   altCol = .col
+   altRow = .Row
+   altCol = .Col
    obbez = 0
    Select Case .MouseCol
     Case parsp
@@ -5328,17 +5473,17 @@ fehler:
  End Select
 End Sub ' MFG_MouseMove
 
-Private Sub MFG_MouseDown(Button As Integer, Shift As Integer, x As Single, Y As Single)
+Private Sub MFG_MouseDown(Button As Integer, Shift As Integer, x As Single, y As Single)
  Dim MR&, MC&, altids&, altherk$, i&
  altX = x
- altY = Y
+ altY = y
  Select Case Me.PLArt
   Case artlpar
    MR = Me.MFG.MouseRow
    MC = Me.MFG.MouseCol
    If MR = 0 Then
-    altids = IDS(1, altrow)
-    altherk = Me.MFG.TextMatrix(altrow, 8)
+    altids = IDS(1, altRow)
+    altherk = Me.MFG.TextMatrix(altRow, 8)
     Select Case MC
      Case 6
       MFGLabSort = True
@@ -5350,7 +5495,7 @@ Private Sub MFG_MouseDown(Button As Integer, Shift As Integer, x As Single, Y As
      If IDS(1, i) = altids Then
       If Me.MFG.TextMatrix(i, 8) = altherk Then
        Me.MFG.Row = i
-       Me.MFG.col = 2
+       Me.MFG.Col = 2
        Me.MFG.TopRow = MAXvb(i - 10, 1)
        Exit For
       End If
@@ -5379,10 +5524,10 @@ End Sub ' MFG_MouseDown
 '(NOT ISNULL(xpneuzuypneu(x.idypbez)) OR ISNULL(idypbez));
 'SET FOREIGN_KEY_CHECKS=1;
 
-Private Sub MFG_MouseUp(Button As Integer, Shift As Integer, x As Single, Y As Single)
+Private Sub MFG_MouseUp(Button As Integer, Shift As Integer, x As Single, y As Single)
  Dim sqls$, sqld$, sqli$, MR&, rs As New ADODB.Recordset, i&, rAf&
  Me.MFG.MousePointer = 0 ' flexDefault, in C:\Windows\SysWow64\MSHFLXGD.oca
- If x <> altX Or Y <> altY Then
+ If x <> altX Or y <> altY Then
  Select Case Me.PLArt
   Case artlpar
 ' Wird Parameter Pkind mit Parameter Pelter verknüpft, so muß
@@ -5390,9 +5535,9 @@ Private Sub MFG_MouseUp(Button As Integer, Shift As Integer, x As Single, Y As S
 ' 2) vorherige Verknüfung Pelterelter zu Pelter gelöscht werden
 ' 3) vorherige Verknüfung Pkindelter zu Pkindkind überbrückt werden
    MR = Me.MFG.MouseRow
-   If Me.MFG.col <> 2 Or Me.MFG.TextMatrix(MR, 8) <> "x" Then Me.MFG.CellBackColor = vbWhite
+   If Me.MFG.Col <> 2 Or Me.MFG.TextMatrix(MR, 8) <> "x" Then Me.MFG.CellBackColor = vbWhite
    Me.MFG.Row = Me.MFG.MouseRow
-   Me.MFG.col = Me.MFG.MouseCol
+   Me.MFG.Col = Me.MFG.MouseCol
    Select Case Me.MFG.TextMatrix(MR, 8)
     Case "x" 'laborxpneu
      sqls = "SELECT `idypbez` FROM `laborypgl` WHERE `idypneu` = " & IDS(1, MR)
@@ -5463,7 +5608,7 @@ Private Sub MFG_MouseUp(Button As Integer, Shift As Integer, x As Single, Y As S
       End If
 ' Verknüpfung markieren
       Me.MFG.TextMatrix(MR, 1) = rs!Wert
-      Me.MFG.col = 2
+      Me.MFG.Col = 2
       Me.MFG.Row = MR
       Me.MFG.CellBackColor = vbHellGrau
       IDS(0, MR) = cb
@@ -5506,15 +5651,15 @@ Private Sub LaborFüll(Optional nachLangtext%)
  Me.MFG.Row = 0
  If nachLangtext Then
   sql0 = sql0 & "ORDER BY langtext,abkü,einheit DESC,nb DESC"
-  Me.MFG.col = 2
+  Me.MFG.Col = 2
   Me.MFG.CellBackColor = vbGelblichGrau
-  Me.MFG.col = 6
+  Me.MFG.Col = 6
   Me.MFG.CellBackColor = GelblichRosa
  Else
   sql0 = sql0 & "ORDER BY abkü,einheit DESC,nb DESC"
-  Me.MFG.col = 6
+  Me.MFG.Col = 6
   Me.MFG.CellBackColor = vbGelblichGrau
-  Me.MFG.col = 2
+  Me.MFG.Col = 2
   Me.MFG.CellBackColor = GelblichRosa
  End If
  myFrag rs0, "SELECT COUNT(0) ct FROM (" & sql0 & ") i"
@@ -5537,7 +5682,7 @@ Private Sub LaborFüll(Optional nachLangtext%)
   If Not IsNull(rs0!pid) Then IDS(0, i) = rs0!pid
   IDS(1, i) = rs0!oid
   Me.MFG.Row = i
-  Me.MFG.col = 0
+  Me.MFG.Col = 0
   Select Case rs0!herk
    Case "x"
     Me.MFG.CellBackColor = vbYellow
@@ -5545,7 +5690,7 @@ Private Sub LaborFüll(Optional nachLangtext%)
 '   Case Else
 '    Me.MFG.CellBackColor = vbgelblichgrau
   End Select
-  Me.MFG.col = 2
+  Me.MFG.Col = 2
   If LenB(Me.MFG.TextMatrix(i, 1)) <> 0 Then
    If rs0!herk <> "x" Or Me.MFG.CellBackColor = vbWhite Then Me.MFG.CellBackColor = vbHellGrau
   End If
@@ -5562,7 +5707,7 @@ Private Sub LaborFüll(Optional nachLangtext%)
  Me.MFG.TextMatrix(0, 8) = "Herk"
 ' Me.MFG.TopRow = 80
  Me.MFG.Row = 1
- Me.MFG.col = 2
+ Me.MFG.Col = 2
 End Sub ' LaborFüll
 
 Private Function ZeigeZahl(zeile&)
@@ -5571,7 +5716,7 @@ Private Function ZeigeZahl(zeile&)
     myFrag rs1, "SELECT COUNT(0) zl, `idypneu`,`idpara` FROM `laborypgl` WHERE `idypbez` = " & IDS(1, zeile)
     If Not rs1.BOF Then
      If zeile <> 0 Then Me.MFG.Row = zeile
-     Me.MFG.col = 2
+     Me.MFG.Col = 2
      Select Case rs1!zl
       Case 0
        Me.MFG.CellBackColor = vbWhite
