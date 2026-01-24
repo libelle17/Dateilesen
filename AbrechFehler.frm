@@ -234,7 +234,7 @@ End Sub ' Private Sub Abbruch_Click()
 Private Sub alleMarkieren_Click(Index As Integer)
  With MFG
  noenter = True
- .col = 1
+ .Col = 1
  For AWlf = 1 To AWz
   .Row = AWlf
   If Index = 0 Then
@@ -1950,13 +1950,13 @@ AwN(AWlf) = "Sono, Doppler oder Duplex ohne Befund (vorher 7)"
           "ON innen.pat_id = eint.pid AND DATE(ezp) = innen.udat " & vbCrLf & _
     "WHERE udat BETWEEN " & lQAnfuEnd(FristS) & " AND ISNULL(ezp)" ' , 1)
  sql(AWlf) = _
- "SELECT i.*" & vbCrLf & _
- ",CONCAT('SELECT * FROM eintraege WHERE pat_id=',i.pat_id,/*CHR(10),*/' AND inhalt RLIKE \'^(Abdomen|(Hals(schlagadern|venen|arterien|weichteile|sono)|Wei?chteile|Pleura|(Sono )?Schid?l?l?dd?d?r?r?s?ür?s?s?e?|(Bein|Arm)(venen|arterien)( (re|li(nks)?|bds.))?)|Nierenarterien?|Restharn|SD|Darmarterien|Abdomen|Belastung(suntersuchung)?).*:\' ',/*CHR(10),*/'AND art RLIKE\'',muster,'\' AND DATE(zeitpunkt)=',DATE_FORMAT(i.udat,'%Y%m%d'),/*CHR(10),*/' LIMIT 1')esql" & vbCrLf & _
+ "SELECT i.*,CONCAT('SELECT * FROM eintraege WHERE pat_id=',i.pat_id,/*CHR(10),*/' AND inhalt RLIKE \'^(Abdomen|(Hals(schlagadern|venen|arterien|weichteile|sono)|Wei?chteile|Pleura|(Sono )?Schid?l?l?dd?d?r?r?s?ür?s?s?e?|(Bein|Arm)(venen|arterien)( (re|li(nks)?|bds.))?)|Nierenarterien?|Restharn|SD|Darmarterien|Abdomen|Belastung(suntersuchung)?).*:\' ',/*CHR(10),*/'AND art RLIKE\'',muster,'\' AND DATE(zeitpunkt)=',DATE_FORMAT(i.udat,'%Y%m%d'),/*CHR(10),*/' LIMIT 1')esql" & vbCrLf & _
  " FROM (" & vbCrLf & _
+ "  SELECT Pat_id,PName,Arzt,UDat,Muster,BldZl,NAME,GROUP_CONCAT(id)ids FROM (" & vbCrLf & _
  "  SELECT /*COUNT(0)zahl,*/" & vbCrLf & _
  "   b.pat_id,gesnameg(b.Pat_id)PName,CASE WHEN name RLIKE'_Schade_'THEN'Sch'WHEN name RLIKE '_Dr. Kothny_'THEN'Kot'WHEN name RLIKE'_Hammerschmidt_'THEN'Ham'ELSE''END Arzt" & vbCrLf & _
- "   ,udat,uag,name" & vbCrLf & _
- "   ,CASE WHEN uag IN('abd_general','Vasc_superficial')THEN'^(dup|sono)' WHEN uag LIKE'vasc%'THEN'^d[uo]p'ELSE'^sono'END Muster" & vbCrLf & _
+ "   ,udat,COUNT(0)OVER(PARTITION BY pat_id,udat,uag)BldZl,uag,Name,id" & vbCrLf & _
+ "   ,CASE WHEN uag RLIKE'^abd_general|^Vasc_superf'THEN'^(dup|sono)'WHEN uag RLIKE'^Vasc|Abd_renal'THEN'^d[uo]p'ELSE'^sono'END Muster" & vbCrLf & _
  "  FROM " & vbCrLf & _
  "  (SELECT" & vbCrLf & _
  "   STR_TO_DATE(REGEXP_REPLACE(NAME,'^.*_([0-9]{8})_?([0-9]{6})([_a]| [0-9]{1,2}| - Kopie( \\([0-9]{1,3}\\))?)?\.png.*$','\\1 \\2'),'%Y%m%d')udat" & vbCrLf & _
@@ -1966,14 +1966,14 @@ AwN(AWlf) = "Sono, Doppler oder Duplex ohne Befund (vorher 7)"
  "  )b" & vbCrLf & _
  "  WHERE b.NAME LIKE '%.png'" & vbCrLf & _
  "  AND b.NAME RLIKE '_[0-9]{8}_?[0-9]{6}([_a]| [0-9]{1,2}| - Kopie( \\([0-9]{1,3}\\))?)?\.png'" & vbCrLf & _
- "  AND b.NAME NOT LIKE '%_GRN-%'" & vbCrLf & _
- "  GROUP BY b.pat_id,b.udat,b.uag)i" & vbCrLf & _
+ "  AND b.NAME NOT LIKE '%_GRN-%')i" & vbCrLf & _
+ "  GROUP BY pat_id,udat,uag)i" & vbCrLf & _
  "  WHERE (SELECT 0 FROM eintraege" & vbCrLf & _
  "   WHERE pat_id=i.pat_id " & vbCrLf & _
  "   AND inhalt RLIKE '^(Abdomen|(Hals(schlagadern|venen|arterien|weichteile|sono)|Wei?chteile|Pleura|(Sono )?Schid?l?l?dd?d?r?r?s?ür?s?s?e?|(Bein|Arm)(venen|arterien)( (re|li(nks)?|bds.))?)|Nierenarterien?|Restharn|SD|Darmarterien|Abdomen|Belastung(suntersuchung)?).*:'" & vbCrLf & _
  "   AND art RLIKE muster" & vbCrLf & _
  "   AND DATE(zeitpunkt)=i.udat LIMIT 1" & vbCrLf & _
- "  ) IS NULL" & vbCrLf
+ "   )IS NULL" & vbCrLf
  sql(AWlf) = sql(AWlf) & _
  "ORDER BY udat DESC"
  mins(AWlf) = 10
@@ -6820,16 +6820,16 @@ End If ' Private / Kassenpatienten
  With MFG
   .cols = 6
   .Rows = AWz + 1
-  .col = 1
+  .Col = 1
   .FormatString = "|*|<Erklärung"
   Dim Zahl As Variant, Länge&
    Zahl = fWertLesen(HCU, RegWurzel & App.EXEName, "Wert", Länge)
   For AWlf = 1 To AWz
    If sql(AWlf - 1) = "ü" Then
     .Row = AWlf
-    .col = 2
+    .Col = 2
     .CellFontBold = True
-    .col = 1
+    .Col = 1
     .CellBackColor = vbBlack
    End If
    .TextMatrix(AWlf, 2) = IIf(sql(AWlf - 1) = "ü", "", (AWlf - 1) & ". ") & AwN(AWlf - 1)
@@ -6856,7 +6856,7 @@ End If ' Private / Kassenpatienten
 '   .text = dowr(sql(i - 1))
   Next AWlf
   .Row = 1
-  .col = 1
+  .Col = 1
   altFarbe = vbWhite
  End With
  sqlgezeigt = True
@@ -7011,7 +7011,7 @@ End Sub ' Private Sub Form_Unload(Cancel As Integer)
 Public Sub MFG_Click()
  If noenter = 0 Then
   If True Or fgespei = 0 Then
-   If Me.MFG.col = 1 And Me.MFG.CellBackColor <> vbBlack Then ' Zwischenüberschriften
+   If Me.MFG.Col = 1 And Me.MFG.CellBackColor <> vbBlack Then ' Zwischenüberschriften
     If Me.MFG.Text = "X" Then
      Me.MFG.Text = vNS
      Me.MFG.CellBackColor = altFarbe

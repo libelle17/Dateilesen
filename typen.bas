@@ -302,7 +302,7 @@ Public Type Diagnosen
  KFdFA As String 'KFdFA varchar 'Krankheitsfall d. Fallakte 6011 8.12.10: bisher nur """"""""TM#?""""""""
 End Type
 
-Public Type dokumente
+Public Type Dokumente
  FID As Long 'FID int 'Fall-Bezug
  Pat_id As Long 'Pat_ID int '
  Zeitpunkt As Date 'ZeitPunkt datetime '
@@ -1134,7 +1134,7 @@ Public rFa() As Faelle
 Public rAu() As au
 Public rBr() As briefe
 Public rDi() As Diagnosen
-Public rDo() As dokumente
+Public rDo() As Dokumente
 Public rEi() As eintraege
 Public rFo() As formulare ' kommt vor in: formulareSpeichern, doTabVorb, dolies
 Public rFr() As forminhkopf
@@ -1170,7 +1170,7 @@ Public roFa() As Faelle
 Public roAu() As au
 Public roBr() As briefe
 Public roDi() As Diagnosen
-Public roDo() As dokumente
+Public roDo() As Dokumente
 Public roEi() As eintraege
 Public roFo() As formulare
 Public roFr() As forminhkopf
@@ -1265,7 +1265,7 @@ Public Sub LöschePat(pid&, Optional obAnzeig%, Optional ohneLabor%)
  Dim Tb, tbn, rAf&, ergeb$
  syscmd 4, "Lösche Pat. " & pid
  On Error GoTo fehler
- tbn = Array("namen", "faelle", "au", "briefe", "diagnosen", "dokumente", "eintraege", "forminhkopf", "kheinweis", "lbanforderungen", "leistungen", "medplan", "rezepteintraege", "rr", "kvnrue", "dmpreihe", "desktop", "usdm", "fuss", "ulcus", "vkg", "vkgd", "vkgd2", "sws", "vopl")
+ tbn = Array("namen", "faelle", "au", "briefe", "diagnosen", "dokumente", "eintraege", "forminhkopf", "kheinweis", "lbanforderungen", "leistungen", "medplan", "rezepteintraege", "rr", "kvnrue", "dmpreihe", "desktop", "usdm", "fuss", "ulcus", "vkgd", "sws", "vopl")
  If Not ohneLabor Then
   ReDim Preserve tbn(UBound(tbn) + 1)
   tbn(UBound(tbn)) = "laborneu"
