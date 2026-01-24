@@ -1,6 +1,6 @@
 Attribute VB_Name = "Maus"
 ' zunächst die benötigten API-Deklarationen
-Private Declare Sub mouse_event Lib "User32" ( _
+Private Declare Sub mouse_event Lib "user32" ( _
   ByVal dwFlags As Long, _
   ByVal dx As Long, _
   ByVal dy As Long, _
@@ -69,17 +69,17 @@ ByVal ByteLen As Long)
 'API-Deklarationen
 
 Option Explicit
-Private Declare Sub keybd_event Lib "User32" ( _
+Private Declare Sub keybd_event Lib "user32" ( _
   ByVal bVk As Byte, _
   ByVal bScan As Byte, _
   ByVal dwFlags As Long, _
   ByVal dwExtraInfo As Long)
  
-Private Declare Function VkKeyScan Lib "User32" _
+Private Declare Function VkKeyScan Lib "user32" _
   Alias "VkKeyScanA" ( _
   ByVal cChar As Byte) As Integer
  
-Private Declare Function MapVirtualKey Lib "User32" _
+Private Declare Function MapVirtualKey Lib "user32" _
   Alias "MapVirtualKeyA" ( _
   ByVal wCode As Long, _
   ByVal wMapType As Long) As Long
@@ -92,7 +92,7 @@ Public Enum eVirtualKeyCode
   VK_BAK = &H8
   VK_TAB = &H9
   VK_CLEAR = &HC
-  vk_return = &HD
+  VK_RETURN = &HD
   VK_SHIFT = &H10
   VK_CONTROL = &H11
   VK_MENU = &H12
@@ -235,9 +235,6 @@ End Sub
 'End Sub
 '
 
-
-
-
 Public Sub SendKeysEx(ByVal sText As String)
   Dim VK As eVirtualKeyCode
   Dim sChar As String
@@ -292,7 +289,7 @@ Public Sub SendKeysEx(ByVal sText As String)
         VK = VK_END
         i = i + 4
       ElseIf UCase$(Mid$(sText, i + 1, 5)) = "ENTER" Then
-        VK = vk_return
+        VK = VK_RETURN
         i = i + 6
       ElseIf UCase$(Mid$(sText, i + 1, 4)) = "HOME" Then
         VK = VK_HOME

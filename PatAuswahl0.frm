@@ -407,6 +407,7 @@ Public nichtherricht%
 Const machgleich% = 0
 Public obF4%
 Public abgebrochen%
+Public Capt$ ' für die Überschrift
 
 Private Sub Angeforderte_Click(Index As Integer)
  Dim rs As New ADODB.Recordset
@@ -457,10 +458,15 @@ End Sub ' DMPString_Click()
 
 Private Sub Dokumente_Click()
  Dim pad As New PatListe
- pad.PLArt = arttmbr
- pad.Pat_id = Me.Pat_id
- pad.PName = Me.pat_idDaten
- pad.Show
+ If Me.Pat_id <> "" Then
+  explor Me.Pat_id
+  pad.PLArt = arttmbr
+  pad.Pat_id = Me.Pat_id
+  pad.PName = Me.pat_idDaten
+  pad.Show
+ Else
+  MsgBox "Bitte erst einen Patienten auswählen!"
+ End If
 End Sub ' Dokumente_Click()
 
 Private Sub Faelle_KeyDown(KeyCode As Integer, Shift As Integer)
@@ -482,7 +488,7 @@ Private Sub FaellepHA_KeyDown(KeyCode As Integer, Shift As Integer)
 End Sub ' FaellepHA_KeyDown
 
 Private Sub Form_Activate()
- Me.Caption = "Patientenauswahl " & Switch(hlese.Aktion = Anwalt, "Anwalt", hlese.Aktion = Briefschreiben, "Briefschreiben", hlese.Aktion = DMPZettel, "DMPZettel", hlese.Aktion = GefaxteAnzeigen, "GefaxteAnzeigen", hlese.Aktion = Patientenlaufzetteleinzeln, "Patientenlaufzettel einzeln", hlese.Aktion = PatvonMO, "PatvonMO", hlese.Aktion = RestlicheBriefe, "Restliche Briefe", hlese.Aktion = zielpatient, "Zielpatient für Verschiebung", True, "nix") & IIf(lies.obMySQL, ", MySQL: " & Lese.MyDB, Lese.dlg.MdB)
+ Me.Caption = "Patientenauswahl " & Switch(hlese.Aktion = Anwalt, "Anwalt", hlese.Aktion = Briefschreiben, "Briefschreiben", hlese.Aktion = DMPZettel, "DMPZettel", hlese.Aktion = GefaxteAnzeigen, "GefaxteAnzeigen", hlese.Aktion = Patientenlaufzetteleinzeln, "Patientenlaufzettel einzeln", hlese.Aktion = PatvonMO, "PatvonMO", hlese.Aktion = RestlicheBriefe, "Restliche Briefe", hlese.Aktion = zielpatient, Capt, True, "nix") & IIf(lies.obMySQL, ", MySQL: " & Lese.MyDB, Lese.dlg.MdB)
  Me.abgebrochen = False
  Me.Pat_id.SetFocus
  If Me.obRueck Then Me.Patientenlaufzettel.FontItalic = True Else Me.Patientenlaufzettel.FontItalic = False
@@ -502,10 +508,6 @@ End Sub ' Form_GotFocus()
 Private Sub Form_KeyDown(KeyCode%, Shift%)
  Call Key(KeyCode, Shift, Me)
 End Sub ' Form_KeyDown
-
-Private Sub Form_KeyPress(KeyAscii As Integer)
-
-End Sub
 
 Private Sub Form_Unload(Cancel%)
  geladen = False
