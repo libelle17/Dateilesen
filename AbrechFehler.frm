@@ -1952,7 +1952,7 @@ AwN(AWlf) = "Sono, Doppler oder Duplex ohne Befund (vorher 7)"
  sql(AWlf) = _
  "SELECT i.*,CONCAT('SELECT * FROM eintraege WHERE pat_id=',i.pat_id,/*CHR(10),*/' AND inhalt RLIKE \'^(Abdomen|(Hals(schlagadern|venen|arterien|weichteile|sono)|Wei?chteile|Pleura|(Sono )?Schid?l?l?dd?d?r?r?s?ür?s?s?e?|(Bein|Arm)(venen|arterien)( (re|li(nks)?|bds.))?)|Nierenarterien?|Restharn|SD|Darmarterien|Abdomen|Belastung(suntersuchung)?).*:\' ',/*CHR(10),*/'AND art RLIKE\'',muster,'\' AND DATE(zeitpunkt)=',DATE_FORMAT(i.udat,'%Y%m%d'),/*CHR(10),*/' LIMIT 1')esql" & vbCrLf & _
  " FROM (" & vbCrLf & _
- "  SELECT Pat_id,PName,Arzt,UDat,Muster,BldZl,NAME,GROUP_CONCAT(id)ids FROM (" & vbCrLf & _
+ "  SELECT Pat_id,PName,Arzt,UDat,Muster,BldZl,NAME,GROUP_CONCAT(id)ids,uag FROM (" & vbCrLf & _
  "  SELECT /*COUNT(0)zahl,*/" & vbCrLf & _
  "   b.pat_id,gesnameg(b.Pat_id)PName,CASE WHEN name RLIKE'_Schade_'THEN'Sch'WHEN name RLIKE '_Dr. Kothny_'THEN'Kot'WHEN name RLIKE'_Hammerschmidt_'THEN'Ham'ELSE''END Arzt" & vbCrLf & _
  "   ,udat,COUNT(0)OVER(PARTITION BY pat_id,udat,uag)BldZl,uag,Name,id" & vbCrLf & _
@@ -1960,7 +1960,7 @@ AwN(AWlf) = "Sono, Doppler oder Duplex ohne Befund (vorher 7)"
  "  FROM " & vbCrLf & _
  "  (SELECT" & vbCrLf & _
  "   STR_TO_DATE(REGEXP_REPLACE(NAME,'^.*_([0-9]{8})_?([0-9]{6})([_a]| [0-9]{1,2}| - Kopie( \\([0-9]{1,3}\\))?)?\.png.*$','\\1 \\2'),'%Y%m%d')udat" & vbCrLf & _
- "   ,REGEXP_REPLACE(NAME,'^.*_(?:(?:(?:Schade_li)?L12-[35]|[CS]5-2)|(?:[FMO]|[MW]?__(?:C5_2|L11_3))?|_)_([a-zA-Z ]*(?:_[a-z]+)?)_.*$','\\1')uag" & vbCrLf & _
+ "   ,REGEXP_REPLACE(NAME,'^.*_(?:(?:(?:Schade_li)?L1[12][-_][35]|[CS]5-2)|(?:[FMO]|[MW]?__(?:C5_2|L11_3))?|_)_([a-zA-Z ]*(?:_[a-z]+)?)_.*$','\\1')uag" & vbCrLf & _
  "   ,b.* FROM" & vbCrLf & _
  "   tmbrie b" & vbCrLf & _
  "  )b" & vbCrLf & _

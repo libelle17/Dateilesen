@@ -5559,17 +5559,6 @@ nachformulare:
 '  pidsftha = pidsftha & CStr(rNa(0).Pat_id)
 ' End If ' pidsftha <> "''" Then
 ' syscmd 4, "Bestimme Therapiearten für " & IIf(pidsftha = "''", "alle Patienten", pidsftha)
-syscmd 4, "Bestimme Therapiearten für " & CStr(rNa(0).Pat_id)
-#Const mitfensterges = False
-#If mitfensterges Then
-' 29.8.23: würde gehen
-' hier kann nötig sein:  innodb_lock_wait_timeout=200 in my.cnf
-  rufauf "ssh", "root@" & LiName & " mariadb --defaults-extra-file=~/.mysqlpwd quelle -e'CALL fuellThaP(" & CStr(rNa(0).Pat_id) & ")'", 2, "c:\windows\system32\openssh\", -1, 0
-#Else
-  Call TheraErmitt(CStr(rNa(0).Pat_id))
-#End If
-' myEFrag "CALL fuellThaP(" & CStr(rNa(0).Pat_id) & ")"
-syscmd 5
 
  If Kassengeändert Then
   syscmd 4, "Update kassenliste"
@@ -5583,6 +5572,23 @@ syscmd 5
   Kassengeändert = 0
   syscmd 5
  End If ' Kassengeändert
+ 
+syscmd 4, "Bestimme Therapiearten für " & CStr(rNa(0).Pat_id)
+' Dim Tm1!, Tm2!
+' Tm1 = Timer
+#Const mitfensterges = False
+#If mitfensterges Then
+' 29.8.23: würde gehen
+' hier kann nötig sein:  innodb_lock_wait_timeout=200 in my.cnf
+  rufauf "ssh", "root@" & LiName & " mariadb --defaults-extra-file=~/.mysqlpwd quelle -e'CALL fuellThaP(" & CStr(rNa(0).Pat_id) & ")'", 2, "c:\windows\system32\openssh\", -1, 0
+#Else
+'  Call TheraErmitt(CStr(rNa(0).Pat_id))
+  myEFrag "CALL fuellThaP(" & CStr(rNa(0).Pat_id) & ")"
+#End If
+' Tm2 = Timer
+' syscmd 4, Tm2 - Tm1 & " Sekunden"
+syscmd 5
+
 ' Call myEFrag("SET autocommit = 1")
  frm.SBez.BackColor = &HE0E0E0 ' hellgrau, vbgräulich&
  DoEvents
