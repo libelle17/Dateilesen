@@ -15,8 +15,17 @@ Begin VB.Form Arztwahl
    Begin VB.CommandButton CancelButton 
       Caption         =   "Abbre&chen"
       Height          =   375
+      Index           =   2
+      Left            =   11760
+      TabIndex        =   6
+      Top             =   8160
+      Width           =   1215
+   End
+   Begin VB.CommandButton CancelButton 
+      Caption         =   "n&ä Mitarbeiter"
+      Height          =   375
       Index           =   1
-      Left            =   11880
+      Left            =   10560
       TabIndex        =   5
       Top             =   8160
       Width           =   1215
@@ -25,7 +34,7 @@ Begin VB.Form Arztwahl
       Caption         =   "&Schade"
       Height          =   375
       Index           =   2
-      Left            =   9360
+      Left            =   8040
       TabIndex        =   2
       Top             =   8160
       Width           =   1335
@@ -34,7 +43,7 @@ Begin VB.Form Arztwahl
       Caption         =   "&Kothny"
       Height          =   375
       Index           =   1
-      Left            =   8040
+      Left            =   6720
       TabIndex        =   1
       Top             =   8160
       Width           =   1335
@@ -43,7 +52,7 @@ Begin VB.Form Arztwahl
       Caption         =   "&Überspringen"
       Height          =   375
       Index           =   0
-      Left            =   10680
+      Left            =   9360
       TabIndex        =   3
       Top             =   8160
       Width           =   1215
@@ -52,7 +61,7 @@ Begin VB.Form Arztwahl
       Caption         =   "&Hammerschmidt"
       Height          =   375
       Index           =   0
-      Left            =   6720
+      Left            =   5400
       TabIndex        =   0
       Top             =   8160
       Width           =   1335
@@ -119,12 +128,12 @@ End Sub ' CancelButton_KeyDown(KeyCode As Integer, Shift As Integer)
 Private Sub Form_Resize()
  Dim i%, top&, left&
  top = Me.Height - 9090 + 8160 + 100
- left = Me.Width - (13455 - 8040) - 1345
+ left = Me.Width - (13455 - 8040) - 2 * 1345
  For i = 0 To 2
   Me.OKButton(i).top = top
   Me.OKButton(i).left = left + i * 1345
  Next i
- For i = 0 To 1
+ For i = 0 To 2
   Me.CancelButton(i).top = top
   Me.CancelButton(i).left = left + (3 + i) * 1345
  Next i

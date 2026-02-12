@@ -1461,11 +1461,11 @@ End Sub ' Doppelzeilen_in_Notizen_auflisten_Click()
 Private Sub Falsche_Benutzer_korrigieren_Click()
  Dim rsm As ADODB.Recordset, rMo As ADODB.Recordset
  Dim neunu%, Str$, j&, k%, sqlh$, pid&
- Dim fb$(30)
- fb(0) = "tst"
- fb(1) = "us"
- fb(2) = "sp"
- fb(3) = "mip"
+ Dim fb$(30), ob(30)
+ fb(0) = "tst": ob(0) = 1
+ fb(1) = "us": ob(0) = 1
+ fb(2) = "sp": ob(0) = 1
+ fb(3) = "mip": ob(0) = 1
  fb(4) = "sta"
  fb(5) = "ans"
  fb(6) = "mc"
@@ -1497,20 +1497,22 @@ Private Sub Falsche_Benutzer_korrigieren_Click()
  ",(SELECT CONCAT(',          Term ',DATE_FORMAT(e.zeitpunkt,'%e.%c.%y'),': ah:',CONVERT((SELECT COUNT(0)FROM termine WHERE DATE(zp)=DATE(e.zeitpunkt)AND raum like'Hammer%'),CHAR),',tk:',CONVERT((SELECT COUNT(0)FROM termine WHERE date(zp)=DATE(e.zeitpunkt)AND raum like'Kothn%'),CHAR),',gs:',CONVERT((SELECT COUNT(0)FROM termine WHERE date(zp)=DATE(e.zeitpunkt)AND raum like'Schad%'),CHAR)))tz" & vbCrLf & _
  ",(SELECT CONCAT(',          Eintr.P.',e.pat_id,DATE_FORMAT(e.zeitpunkt,' %e.%c.%y'),': ah:',CONVERT((SELECT COUNT(0)FROM eintraege WHERE pat_id=e.pat_id AND DATE(zeitpunkt)=DATE(e.zeitpunkt)AND ersteller='ah'),CHAR),',tk:',CONVERT((SELECT COUNT(0)FROM eintraege WHERE pat_id=e.pat_id AND DATE(zeitpunkt)=DATE(e.zeitpunkt)AND ersteller='tk'),CHAR),',gs:',CONVERT((SELECT COUNT(0)FROM eintraege WHERE pat_id=e.pat_id AND DATE(zeitpunkt)=DATE(e.zeitpunkt)AND ersteller='gs'),CHAR)))ez" & vbCrLf & _
  "FROM eintraege e JOIN namen n USING(pat_id) WHERE" & vbCrLf & _
- "ersteller='" & fb(k) & "' AND art IN (" & IIf(k = 0 Or k = 1 Or k = 17, "", "'tb',") & "'dup','sono')" & vbCrLf & _
+ "ersteller='" & fb(k) & "' AND art IN (" & IIf(ob(k) = 1, "", "'tb',") & "'dup','sono')" & vbCrLf & _
  "ORDER BY e.pat_id,ersteller,zeitpunkt;"
+ syscmd 4, "Suche bei Benutzer " & fb(k) & " ..."
  myFrag rsm, sql, adOpenStatic
  If Not rsm.BOF Then
   Do While Not rsm.EOF
    If rsm!rn = 1 Then
     pid = rsm!Pat_id
-    ausw.abbruch = 0
+    ausw.Abbruch = 0
     ausw.Caption = pid & ": " & rsm!PName & " (" & rsm!Arzt & "), " & rsm!Zeitpunkt & " - " & rsm!mzp & ", Art: " & rsm!art & ", Ersteller/ƒnderer: " & rsm!erstl & ",T: " & rsm!term & " " & rsm!Tz & " " & rsm!ez
     ausw.Texte = rsm!gesinh
     ausw.Arzt = Switch(rsm!Arzt = "ah", 0, rsm!Arzt = "tk", 1, True, 2) ' rsm!Arzt = "gs"
     ausw.Show vbModal
-    If ausw.abbruch = 2 Then Exit Do
-    If ausw.abbruch = 0 Then
+    If ausw.Abbruch = 3 Then GoTo Abbruch
+    If ausw.Abbruch = 2 Then GoTo n‰mi
+    If ausw.Abbruch = 0 Then
 '     Select Case ausw.Arzt: Case 0: neunu = 34: Case 1: neunu = 33: Case 2: neuneu = 32: End Select
      neunu = Switch(ausw.Arzt = 0, 34, ausw.Arzt = 1, 33, ausw.Arzt = 2, 32)
      sqlh = _
@@ -1535,15 +1537,14 @@ Private Sub Falsche_Benutzer_korrigieren_Click()
        myEFrag sql, rAf, MOCon
        Call doPatvonMO(pid, , False, True)
       End If ' Not rMo.EOF Then
-    Else
-     GoTo abbruch
     End If ' Not ausw.Abbruch
    End If ' rsm!rn = 1 Then
    rsm.MoveNext
   Loop ' While Not rsm.EOF
  End If ' Not rsm.BOF Then
+n‰mi:
  Next k
-abbruch:
+Abbruch:
  syscmd 5
  Exit Sub
 fehler:
@@ -2204,7 +2205,7 @@ Private Sub ‹bertragung_aus_MO_Click()
  Dim VorDat As Date
  Static opt As New ‹bertragungsoptionen
  opt.Show vbModal
- If opt.abbruch Then Exit Sub
+ If opt.Abbruch Then Exit Sub
  If opt.vorDatum <> "" Then VorDat = DateFromString(opt.vorDatum, de_DE)
 #If False Then
  sql = _
@@ -3006,7 +3007,7 @@ Private Sub SonderpatientenAnzeigen_Click()
   Loop
  End If ' Not rs.BOF Then
  spa.Show vbModal
- If spa.abbruch Then Exit Sub
+ If spa.Abbruch Then Exit Sub
  
  Dim spneu$(), spnk$
  SplitNeu spa.List1.Text, "(", spneu
@@ -3045,7 +3046,7 @@ Private Sub ‹bertragenenAnamnesebogen_Click() ' Code aus form_load herausgezogen
   so.List1.AddItem DQStr(i)
  Next i
  so.Show vbModal
- If so.abbruch Then Unload so: Exit Sub
+ If so.Abbruch Then Unload so: Exit Sub
  anBog‹.Caption = "Anamnesebogen: " & so.List1
  Call anBog‹.FragAb(so.List1.ListIndex)
  anBog‹.Show
