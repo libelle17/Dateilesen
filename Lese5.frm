@@ -1463,9 +1463,9 @@ Private Sub Falsche_Benutzer_korrigieren_Click()
  Dim neunu%, Str$, j&, k%, sqlh$, pid&
  Dim fb$(30), ob(30)
  fb(0) = "tst": ob(0) = 1
- fb(1) = "us": ob(0) = 1
- fb(2) = "sp": ob(0) = 1
- fb(3) = "mip": ob(0) = 1
+ fb(1) = "us": ob(1) = 1
+ fb(2) = "sp": ob(2) = 1
+ fb(3) = "mip": ob(3) = 1
  fb(4) = "sta"
  fb(5) = "ans"
  fb(6) = "mc"
