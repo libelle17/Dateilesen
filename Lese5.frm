@@ -1466,13 +1466,13 @@ Private Sub Falsche_Benutzer_korrigieren_Click()
  fb(1) = "us": ob(1) = 1
  fb(2) = "sp": ob(2) = 1
  fb(3) = "mip": ob(3) = 1
- fb(4) = "sta"
+ fb(4) = "sta": ob(4) = 1
  fb(5) = "ans"
  fb(6) = "mc"
  fb(7) = "eo"
  fb(8) = "sf"
- fb(9) = "cd"
- fb(10) = "nb"
+ fb(9) = "cd"  ' 12.2.26: hier weiter
+ fb(10) = "nb" ' 14.2.26: hier weiter
  fb(11) = "sas"
  fb(12) = "bt"
  fb(13) = "mf"
@@ -1485,8 +1485,10 @@ Private Sub Falsche_Benutzer_korrigieren_Click()
  syscmd 4, "Bereite Korrektur falscher Benutzer vor"
  Call ProgStart
  Call MOConInit(, "Falsche Benutzer korrigieren")
- For k = 0 To 17
+ For k = 10 To 17 ' 17
+ If k < 0 Then k = 0
  sql = _
+ "SELECT * FROM(" & vbCrLf & _
  "SELECT e.pat_id,zeitpunkt,art,CONCAT(ersteller,' ',änderer)erstl,inhalt" & vbCrLf & _
  ",(SELECT DATE_FORMAT(MAX(zeitpunkt),'%H:%i:%s')FROM eintraege WHERE pat_id=e.pat_id AND DATE(zeitpunkt)=DATE(e.zeitpunkt) AND art IN ('tb','dup','sono')AND ersteller=e.ersteller)mzp" & vbCrLf & _
  ",(SELECT GROUP_CONCAT(inhalt ORDER BY zeitpunkt SEPARATOR '\n')FROM eintraege WHERE pat_id=e.pat_id AND ersteller=e.ersteller AND DATE(zeitpunkt)=DATE(e.zeitpunkt) AND art IN ('tb','dup','sono')AND ersteller=e.ersteller)gesinh" & vbCrLf & _
@@ -1494,15 +1496,16 @@ Private Sub Falsche_Benutzer_korrigieren_Click()
  ",COUNT(0)OVER(PARTITION BY pat_id,ersteller,DATE(zeitpunkt))zl" & vbCrLf & _
  ",gesname(e.pat_id)PName,case when obk then'tk'when obs then'gs'when obh then'ah'END arzt" & vbCrLf & _
  ",ersteller,änderer,(SELECT GROUP_CONCAT(DISTINCT CONCAT(raum,' ',zusatz)) FROM termine WHERE pid=e.Pat_ID AND raum NOT RLIKE 'To-Do|labor' AND DATE(zp)=DATE(e.zeitpunkt))term" & vbCrLf & _
- ",(SELECT CONCAT(',          Term ',DATE_FORMAT(e.zeitpunkt,'%e.%c.%y'),': ah:',CONVERT((SELECT COUNT(0)FROM termine WHERE DATE(zp)=DATE(e.zeitpunkt)AND raum like'Hammer%'),CHAR),',tk:',CONVERT((SELECT COUNT(0)FROM termine WHERE date(zp)=DATE(e.zeitpunkt)AND raum like'Kothn%'),CHAR),',gs:',CONVERT((SELECT COUNT(0)FROM termine WHERE date(zp)=DATE(e.zeitpunkt)AND raum like'Schad%'),CHAR)))tz" & vbCrLf & _
- ",(SELECT CONCAT(',          Eintr.P.',e.pat_id,DATE_FORMAT(e.zeitpunkt,' %e.%c.%y'),': ah:',CONVERT((SELECT COUNT(0)FROM eintraege WHERE pat_id=e.pat_id AND DATE(zeitpunkt)=DATE(e.zeitpunkt)AND ersteller='ah'),CHAR),',tk:',CONVERT((SELECT COUNT(0)FROM eintraege WHERE pat_id=e.pat_id AND DATE(zeitpunkt)=DATE(e.zeitpunkt)AND ersteller='tk'),CHAR),',gs:',CONVERT((SELECT COUNT(0)FROM eintraege WHERE pat_id=e.pat_id AND DATE(zeitpunkt)=DATE(e.zeitpunkt)AND ersteller='gs'),CHAR)))ez" & vbCrLf & _
+ ",(SELECT CONCAT(',       Term ',DATE_FORMAT(e.zeitpunkt,'%e.%c.%y'),': ah:',CONVERT((SELECT COUNT(0)FROM termine WHERE DATE(zp)=DATE(e.zeitpunkt)AND raum like'Hammer%'),CHAR),',tk:',CONVERT((SELECT COUNT(0)FROM termine WHERE date(zp)=DATE(e.zeitpunkt)AND raum like'Kothn%'),CHAR),',gs:',CONVERT((SELECT COUNT(0)FROM termine WHERE date(zp)=DATE(e.zeitpunkt)AND raum like'Schad%'),CHAR)))tz" & vbCrLf & _
+ ",(SELECT CONCAT(',       Eintr.P.',e.pat_id,DATE_FORMAT(e.zeitpunkt,' %e.%c.%y'),': ah:',CONVERT((SELECT COUNT(0)FROM eintraege WHERE pat_id=e.pat_id AND DATE(zeitpunkt)=DATE(e.zeitpunkt)AND ersteller='ah'),CHAR),',tk:',CONVERT((SELECT COUNT(0)FROM eintraege WHERE pat_id=e.pat_id AND DATE(zeitpunkt)=DATE(e.zeitpunkt)AND ersteller='tk'),CHAR),',gs:',CONVERT((SELECT COUNT(0)FROM eintraege WHERE pat_id=e.pat_id AND DATE(zeitpunkt)=DATE(e.zeitpunkt)AND ersteller='gs'),CHAR)))ez" & vbCrLf & _
  "FROM eintraege e JOIN namen n USING(pat_id) WHERE" & vbCrLf & _
  "ersteller='" & fb(k) & "' AND art IN (" & IIf(ob(k) = 1, "", "'tb',") & "'dup','sono')" & vbCrLf & _
- "ORDER BY e.pat_id,ersteller,zeitpunkt;"
+ ")i WHERE rn=1" & vbCrLf & _
+ "ORDER BY pat_id,ersteller,zeitpunkt;"
  syscmd 4, "Suche bei Benutzer " & fb(k) & " ..."
  myFrag rsm, sql, adOpenStatic
  If Not rsm.BOF Then
-  Do While Not rsm.EOF
+  Do While True
    If rsm!rn = 1 Then
     pid = rsm!Pat_id
     ausw.Abbruch = 0
@@ -1513,8 +1516,9 @@ Private Sub Falsche_Benutzer_korrigieren_Click()
     If ausw.Abbruch = 3 Then GoTo Abbruch
     If ausw.Abbruch = 2 Then GoTo nämi
     If ausw.Abbruch = 0 Then
+' Hammerschmidt,Kothny,Schade,Bender,Fuchs,Hoffmann,Kreis,Nuber
 '     Select Case ausw.Arzt: Case 0: neunu = 34: Case 1: neunu = 33: Case 2: neuneu = 32: End Select
-     neunu = Switch(ausw.Arzt = 0, 34, ausw.Arzt = 1, 33, ausw.Arzt = 2, 32)
+     neunu = Switch(ausw.Arzt = 0, 34, ausw.Arzt = 1, 33, ausw.Arzt = 2, 32, ausw.Arzt = 3, 38, ausw.Arzt = 4, 13, ausw.Arzt = 5, 11, ausw.Arzt = 6, 14, ausw.Arzt = 7, 12)
      sqlh = _
      "WHERE FPatnr=" & pid & " AND FAnordnutzernr=(SELECT MIN(FSurogat) FROM nutzerneu WHERE FInitialen='" & rsm!Ersteller & "')" & vbCrLf & _
      "AND 18900101+INTERVAL FDatum DAY+INTERVAL FZeit SECOND BETWEEN " & Format(rsm!Zeitpunkt, "yyyymmddHHMMSS") & " AND " & Format(rsm!Zeitpunkt, "yyyymmdd") & Format(rsm!mzp, "HHMMSS") & " ORDER BY FDatum,FZeit"
@@ -1536,16 +1540,21 @@ Private Sub Falsche_Benutzer_korrigieren_Click()
        sql = "UPDATE ltag SET FAnordnutzernr=" & neunu & ",FAusfnutzernr=" & neunu & vbCrLf & sqlh
        myEFrag sql, rAf, MOCon
        Call doPatvonMO(pid, , False, True)
+       rsm.MoveNext
       End If ' Not rMo.EOF Then
     End If ' Not ausw.Abbruch
    End If ' rsm!rn = 1 Then
-   rsm.MoveNext
-  Loop ' While Not rsm.EOF
+'   On Error Resume Next
+   rsm.Move ausw.Abbruch
+'   On Error GoTo fehler
+   If rsm.BOF Then k = k - 2: Exit Do
+   If rsm.EOF Then Exit Do
+  Loop ' While True ' Not rsm.EOF
  End If ' Not rsm.BOF Then
 nämi:
  Next k
 Abbruch:
- syscmd 5
+ syscmd 4, "Fertig mit der Korrektur falscher Benutzer"
  Exit Sub
 fehler:
  Dim AnwPfad$
@@ -2195,8 +2204,6 @@ Private Sub Barthelindexliste_Click()
  myFrag rs, sql, adOpenStatic, MOCon, adLockReadOnly, , rAf, , ErrNr, ErrDes
  Call TabAusgeb(rs, Me, , , , , , True, "Liste der Barthel-Indices in diesem Quartal")
 End Sub ' Barthelindexliste_Click()
-
-
 
 ' Funktion für Arzthelferin und Arzt -> Übertragung aus MO
 Private Sub Übertragung_aus_MO_Click()
