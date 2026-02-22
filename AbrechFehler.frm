@@ -170,7 +170,7 @@ Dim sLine$
 Open dname For Input As #1
 While Not EOF(1)
   Line Input #1, sLine
-  If Left$(sLine, 2) <> "--" Then LiesDatei = LiesDatei & " " & sLine & vbCrLf
+  If left$(sLine, 2) <> "--" Then LiesDatei = LiesDatei & " " & sLine & vbCrLf
 Wend
 Close #1
 End Function ' LiesDatei$(ByVal dname$)
@@ -234,7 +234,7 @@ End Sub ' Private Sub Abbruch_Click()
 Private Sub alleMarkieren_Click(Index As Integer)
  With MFG
  noenter = True
- .Col = 1
+ .col = 1
  For AWlf = 1 To AWz
   .Row = AWlf
   If Index = 0 Then
@@ -894,7 +894,7 @@ sql(AWlf) = "ü"
 
  'sql(AWlf) = _
  "SELECT * FROM (" & vbCrLf & _
- "SELECT a.pat_id, " & qtAnf(FristS) & ", GesName(a.pat_id), xH.wert maxHbA1c, xG.wert maxGluc, REPLACE(REPLACE(n.notiz,char(13),''),char(10),'') Notiz, IF(f.letzteregel<>'',DATE_FORMAT(ADDDATE(f.letzteRegel,274),'%e.%c.%y'),'') TdE, " & vbCrLf & _
+ "SELECT a.pat_id, " & qtAnf(FristS) & ", GesName(a.pat_id), xH.wert maxHbA1c, xG.wert maxGluc, REPLACE(REPLACE(n.info,char(13),''),char(10),'')Info, IF(f.letzteregel<>'',DATE_FORMAT(ADDDATE(f.letzteRegel,274),'%e.%c.%y'),'') TdE, " & vbCrLf & _
  "(SELECT GROUP_CONCAT(DISTINCT g.leistung) FROM leistungen l LEFT JOIN genehmigungen g ON l.leistung = g.leistung AND g.leistung NOT IN (33060,33061,33076) AND l.zeitpunkt > SUBDATE(NOW(),INTERVAL 120 DAY) WHERE l.pat_id = a.pat_id) leistung," & vbCrLf & _
  "GROUP_CONCAT(CONCAT(info.diagdatum,' ',info.diagsicherheit,' ',info.diagtext)) diagtext, MAX(info.diagdatum) diagdat FROM aktfvs a " & vbCrLf & _
  "LEFT JOIN faelle f ON a.fid = f.fid " & vbCrLf & _
@@ -1811,7 +1811,7 @@ sql(AWlf) = "SELECT n.Pat_id, gesnameg(n.pat_id) Name,f.Schgr,f.VKNr,ICD" & vbCr
  
  ' 36
  ' diagsicherheit in aktfaellev schon eingebaut
- AwN(AWlf) = "'DMP HA'-Einträge in Notiz bei fehlendem Nachweis der DMP-Teilnahme seitens des Hausarztes im Internet für akt. Diabetestyp (vorher 20)"
+ AwN(AWlf) = "'DMP HA'-Einträge in Info bei fehlendem Nachweis der DMP-Teilnahme seitens des Hausarztes im Internet für akt. Diabetestyp (vorher 20)"
  sql(AWlf) = _
  "SELECT n.pat_id, gesname(n.pat_id) Name, ICD, n.getha0 ÜWNNr, CONCAT(IF(h.anrede,'Herr','Frau'), ' ', h.adressat) Hausarzt " & vbCrLf & _
  "FROM `aktfaellev` f " & vbCrLf & _
@@ -1981,18 +1981,38 @@ AwN(AWlf) = "Sono, Doppler oder Duplex ohne Befund (vorher 7)"
  AWlf = AWlf + 1
 
  ' 41
- AwN(AWlf) = "Unverwertbare DMP-Einteilung im Notiz-Feld (vorher 10)"
- sql(AWlf) = "SELECT n.pat_id, gesname(n.pat_id) Name, n.dmpklass, n.dmpbeg,n.dmpkhkklass, n.DMPKHKBeg, n.DMPCopdKlass, n.DmpCOPDBeg, n.DMPABKlass, n.DMPABBeg, REPLACE(n.notiz,CONCAT(char(13),char(10)),'') Notiz " & vbCrLf & _
+ AwN(AWlf) = "Unverwertbare DMP-Einteilung im Info-Feld (vorher 10)"
+' sql(AWlf) = "SELECT n.pat_id, gesname(n.pat_id) Name, n.dmpklass, n.dmpbeg,n.dmpkhkklass, n.DMPKHKBeg, n.DMPCopdKlass, n.DmpCOPDBeg, n.DMPABKlass, n.DMPABBeg, REPLACE(n.info,CONCAT(char(13),char(10)),'')Info " & vbCrLf & _
              ",(SELECT GROUP_CONCAT(CONCAT(MID(abk,INSTR(abk,'DMP')+3),'_',art,'(',IF(ok,'1','0'),'/',IF(ausgedruckt,'1','0'),'/',IF(exportiert=18991230,'-',DATE_FORMAT(exportiert,'%d.%m.%y')),')') ORDER BY exportiert DESC) FROM dmpreihe d WHERE karteidatum > NOW()-INTERVAL 2 YEAR AND pat_id=n.pat_id) DMPzuletzt" & vbCrLf & _
              "FROM aktfvz f " & vbCrLf & _
              "LEFT JOIN namen n USING (pat_id) " & vbCrLf & _
-             "WHERE notiz LIKE '%dmp%' AND NOT notiz = CONCAT('DMP NEIN',char(13),char(10)) AND NOT notiz = CONCAT('DMP AUSGESCHRIEBEN',char(13),char(10)) AND NZNr=0 " & vbCrLf & _
-             "AND NOT (notiz LIKE 'DMP KHK%' AND n.dmpkhkklass) " & vbCrLf & _
-             "AND NOT (notiz LIKE 'DMP COPD%' AND n.dmpcopdklass) " & vbCrLf & _
-             "AND NOT (notiz LIKE 'DMP AB%' AND n.dmpabklass) " & vbCrLf & _
-             "AND NOT notiz RLIKE 'DMP[ -](?:halbjährlich|(?:beim )?HA abgeklärt|Regress)'" & vbCrLf & _
+             "WHERE info LIKE '%dmp%' AND NOT info = CONCAT('DMP NEIN',char(13),char(10)) AND NOT info = CONCAT('DMP AUSGESCHRIEBEN',char(13),char(10)) AND NZNr=0 " & vbCrLf & _
+             "AND NOT (info LIKE 'DMP KHK%' AND n.dmpkhkklass) " & vbCrLf & _
+             "AND NOT (info LIKE 'DMP COPD%' AND n.dmpcopdklass) " & vbCrLf & _
+             "AND NOT (info LIKE 'DMP AB%' AND n.dmpabklass) " & vbCrLf & _
+             "AND NOT info RLIKE 'DMP[ -](?:halbjährlich|(?:beim )?HA abgeklärt|Regress)'" & vbCrLf & _
              "GROUP BY n.pat_id " & vbCrLf & _
              "ORDER BY pat_id DESC"
+ sql(AWlf) = _
+ "SELECT * FROM (" & vbCrLf & _
+ " SELECT n.pat_id, gesname(n.pat_id) Name, n.dmpklass, n.dmpbeg,n.dmpkhkklass, n.DMPKHKBeg, n.DMPCopdKlass, n.DmpCOPDBeg, n.DMPABKlass, n.DMPABBeg" & vbCrLf & _
+ "  ,IF(info RLIKE 'DMP(?! [ACK])',REPLACE(REGEXP_REPLACE(info,'^(?:.*\\r\\n)*?(?:[ !]*)(DMP +h[^\\r\\n]*)(?:\\r\\n.*)*$','\\1'),'\r\n',' | '),'')info" & vbCrLf & _
+ " ,(SELECT GROUP_CONCAT(CONCAT(MID(abk,INSTR(abk,'DMP')+3),'_',art,'(',IF(ok,'1','0'),'/',IF(ausgedruckt,'1','0'),'/',IF(exportiert=18991230,'-',DATE_FORMAT(exportiert,'%d.%m.%y')),')') ORDER BY exportiert DESC) FROM dmpreihe d WHERE karteidatum > NOW()-INTERVAL 2 YEAR AND pat_id=n.pat_id) DMPzuletzt" & vbCrLf & _
+ " ,nznr" & vbCrLf & _
+ " FROM aktfvz f" & vbCrLf & _
+ " LEFT JOIN namen n USING(pat_id)" & vbCrLf & _
+ ")i" & vbCrLf & _
+ "WHERE info LIKE '%dmp%' AND NOT (info RLIKE '^DMP NEIN' and dmpklass=1) AND NOT (info RLIKE '^DMP AUSGESCHRIEBEN' and dmpklass=4) AND NZNr=0" & vbCrLf & _
+ "AND NOT (info RLIKE '^dmp +hier +[0-9]{1,2}\.[0-9]{1,2}\.{2,4}' AND dmpklass=3)" & vbCrLf & _
+ "AND NOT (info RLIKE '^dmp asthma hier [0-9]{1,2}\.[0-9]{1,2}\.{2,4}' AND dmpabklass=3)" & vbCrLf & _
+ "AND NOT (info RLIKE '^dmp +ha +[0-9]{1,2}\.[0-9]{1,2}\.{2,4}' AND dmpklass=2)" & vbCrLf & _
+ "AND NOT (info LIKE 'DMP KHK%' AND dmpkhkklass)" & vbCrLf & _
+ "AND NOT (info LIKE 'DMP COPD%' AND dmpcopdklass)" & vbCrLf & _
+ "AND NOT (info LIKE 'DMP AB%' AND dmpabklass)" & vbCrLf & _
+ "AND NOT info RLIKE 'DMP[ -](?:halbjährlich|(?:beim )?HA abgeklärt|Regress)'" & vbCrLf & _
+ "GROUP BY pat_id" & vbCrLf & _
+ "ORDER BY pat_id DESC" & vbCrLf & _
+ ";"
  mins(AWlf) = 7
  maxs(AWlf) = 120
  AWlf = AWlf + 1
@@ -2039,7 +2059,7 @@ AwN(AWlf) = "Nicht nachweisbar eingescannte und importierte Überweisungsscheine 
  "FROM `aktfvs` a" & vbCrLf & _
  "JOIN faelle f USING (fid)" & vbCrLf & _
  "LEFT JOIN (SELECT pat_id, pfad, zeitpunkt, name FROM `tmbrie`) b " & vbCrLf & _
- "  ON b.pat_ID = a.pat_id AND (b.name LIKE '%Üw%" & Left$(AktQ, 1) & "%" & Right$(AktQ, 2) & "%' OR name LIKE '%Uew%" & Left$(AktQ, 1) & "%" & Right$(AktQ, 2) & "%')" & vbCrLf & _
+ "  ON b.pat_ID = a.pat_id AND (b.name LIKE '%Üw%" & left$(AktQ, 1) & "%" & Right$(AktQ, 2) & "%' OR name LIKE '%Uew%" & left$(AktQ, 1) & "%" & Right$(AktQ, 2) & "%')" & vbCrLf & _
  "LEFT JOIN `namen` n ON a.pat_id = n.pat_id " & vbCrLf & _
  "WHERE ISNULL(name) AND a.schgr = 24 " & vbCrLf & _
  "    AND NOT EXISTS (SELECT pat_id FROM `aktf` WHERE pat_id = a.pat_id AND schgr = 0 AND NOT f.goäkatnr IN ('40','41')) " & vbCrLf & _
@@ -2271,7 +2291,7 @@ sql(AWlf) = "" & _
 "SELECT (SELECT MAX(bhfb) FROM faelle WHERE pat_id=n.pat_id) lfall, n.pat_id, gesname(n.pat_id) pname, patalter(n.pat_id) PAlter " & vbCrLf & _
 "FROM namen n LEFT JOIN anamnesebogen USING (pat_id) " & vbCrLf & _
 "LEFT JOIN desktop dt ON dt.pat_id=n.pat_id AND dt.titel LIKE '%DMP%' " & vbCrLf & _
-"WHERE dmpklass=4 AND tkz=0 AND notiz LIKE '%ausge%' AND ISNULL(dt.titel) " & vbCrLf & _
+"WHERE dmpklass=4 AND tkz=0 AND info LIKE '%ausge%' AND ISNULL(dt.titel) " & vbCrLf & _
 "HAVING lfall > qanf() - INTERVAL 5 YEAR AND palter<90 "
  mins(AWlf) = 10
  maxs(AWlf) = 60
@@ -2280,11 +2300,11 @@ sql(AWlf) = "" & _
 ' 56
 AwN(AWlf) = "Pat. mit 'DMP ausgeschrieben', die trotzdem " & AktQ & " einen neuen Fall haben (vorher 146)"
 sql(AWlf) = "" & _
-"SELECT i.pat_id, gesname(i.pat_id) NAME, i.notiz, i.LetzteDoku, GROUP_CONCAT(f.Quartal ORDER BY bhfb DESC) FallDanach FROM (" & vbCrLf & _
-"SELECT n.pat_id,notiz,MAX(STR_TO_DATE(feldinh,'%d.%m.%y')) letztedoku, qende(MAX(STR_TO_DATE(feldinh,'%d.%m.%y'))) qen " & vbCrLf & _
+"SELECT i.pat_id, gesname(i.pat_id) NAME, i.info, i.LetzteDoku, GROUP_CONCAT(f.Quartal ORDER BY bhfb DESC) FallDanach FROM (" & vbCrLf & _
+"SELECT n.pat_id,info,MAX(STR_TO_DATE(feldinh,'%d.%m.%y')) letztedoku, qende(MAX(STR_TO_DATE(feldinh,'%d.%m.%y'))) qen " & vbCrLf & _
 "FROM namen n " & vbCrLf & _
 "LEFT JOIN formular fo ON n.pat_id=fo.pat_id " & vbCrLf & _
-"WHERE notiz RLIKE 'dmp ausge' AND formvorl RLIKE 'DMP' AND feld='Datum' " & vbCrLf & _
+"WHERE info RLIKE 'dmp ausge' AND formvorl RLIKE 'DMP' AND feld='Datum' " & vbCrLf & _
 "GROUP BY n.pat_id " & vbCrLf & _
 ") i LEFT JOIN faelle f ON f.pat_id=i.pat_id AND f.bhfb>qen " & vbCrLf & _
 "WHERE NOT ISNULL(f.pat_id) " & vbCrLf & _
@@ -2477,9 +2497,9 @@ sql(AWlf) = "ü"
   ' 65
 AwN(AWlf) = "Unzufriedenstellende DMP-Klassifikation bei D.m. (vorher 17)"
 sql(AWlf) = _
-"SELECT Pat_ID,gesnameg(pat_id) Name,`Alter[a]`,Leistung,ICD, CASE WHEN dmpklass = 1 THEN 'nein' WHEN dmpklass = 2 THEN 'HA' WHEN dmpklass = 3 THEN 'hier' WHEN dmpklass = 4 THEN 'ausgeschrieben' ELSE '?' END `DMP`, Notiz,Kateg,SchGr,maxtha(pat_id)`max.Ther`,TherAkt,Ther1 FROM " & vbCrLf & _
+"SELECT Pat_ID,gesnameg(pat_id) Name,`Alter[a]`,Leistung,ICD, CASE WHEN dmpklass = 1 THEN 'nein' WHEN dmpklass = 2 THEN 'HA' WHEN dmpklass = 3 THEN 'hier' WHEN dmpklass = 4 THEN 'ausgeschrieben' ELSE '?' END `DMP`, info,Kateg,SchGr,maxtha(pat_id)`max.Ther`,TherAkt,Ther1 FROM " & vbCrLf & _
 "(SELECT * FROM " & vbCrLf & _
-"(SELECT f.pat_id AS pat_id, gesnameg(f.pat_id) Name, DATEDIFF(" & qtAnf(FristS) & ", n.gebdat) DIV 365.24 `Alter[a]`, l.leistung AS Leistung, icd, dmpklass, REPLACE(REPLACE(notiz,char(13),''),char(10),'') Notiz, kateg, kl.name klname, schgr, Therakt, Ther1  FROM " & aktf & " " & vbCrLf & _
+"(SELECT f.pat_id AS pat_id, gesnameg(f.pat_id) Name, DATEDIFF(" & qtAnf(FristS) & ", n.gebdat) DIV 365.24 `Alter[a]`, l.leistung AS Leistung, icd, dmpklass, REPLACE(REPLACE(info,char(13),''),char(10),'') info, kateg, kl.name klname, schgr, Therakt, Ther1  FROM " & aktf & " " & vbCrLf & _
 "LEFT JOIN (SELECT pat_id,leistung,zeitpunkt FROM `leistungen` WHERE leistung IN (" & BetrPausch & ")) AS l ON l.pat_id=f.pat_id AND l.zeitpunkt BETWEEN qanf() AND qend()" & vbCrLf & _
 "LEFT JOIN `diagview` d ON (f.pat_id = d.pat_id AND d.obdauer <> 0) AND gicd RLIKE '^E1[0-4]\.' " & vbCrLf & _
 "LEFT JOIN `kassenliste` kl ON kl.id=f.kid" & vbCrLf & _
@@ -2538,7 +2558,7 @@ sql(AWlf) = _
 ' sql(AWlf) = _
  "SELECT * FROM " & vbCrLf & _
  "(SELECT * FROM " & vbCrLf & _
- "(SELECT f.pat_id pat_id, gesnameg(f.pat_id) Name, DATEDIFF(" & qtAnf(FristS) & ", n.gebdat) div 365.24 `Alter[a]`, maxtha(f.pat_id) `max.Therapie`, l.leistung AS Leistung, icd, dmpklass, REPLACE(REPLACE(notiz,char(13),''),char(10),'') Notiz, kateg, fa.schgr, IF(fa.letzteregel<>'',DATE_FORMAT(ADDDATE(STR_TO_DATE(fa.letzteregel,'%d.%m.%Y'),274),'%e.%c.%y'),'') TdE, n.gebdat " & vbCrLf & _
+ "(SELECT f.pat_id pat_id, gesnameg(f.pat_id) Name, DATEDIFF(" & qtAnf(FristS) & ", n.gebdat) div 365.24 `Alter[a]`, maxtha(f.pat_id) `max.Therapie`, l.leistung AS Leistung, icd, dmpklass, REPLACE(REPLACE(info,char(13),''),char(10),'') info, kateg, fa.schgr, IF(fa.letzteregel<>'',DATE_FORMAT(ADDDATE(STR_TO_DATE(fa.letzteregel,'%d.%m.%Y'),274),'%e.%c.%y'),'') TdE, n.gebdat " & vbCrLf & _
  "FROM aktfvs f " & vbCrLf & _
  "LEFT JOIN faelle fa USING (fid) " & vbCrLf & _
  "LEFT JOIN `namen` n ON n.pat_id=f.pat_id " & vbCrLf & _
@@ -2555,8 +2575,8 @@ sql(AWlf) = _
  " ) " & vbCrLf & _
  "AND NOT ISNULL(icd) " & vbCrLf & _
  "AND (dmpklass IN (2,3) OR kateg IN ('LKK','PBe'))"
-' "AND notiz LIKE '%DMP%' " & vbCrLf & _
-' "AND NOT ISNULL(notiz) " & vbCrLf & _
+' "AND info LIKE '%DMP%' " & vbCrLf & _
+' "AND NOT ISNULL(info) " & vbCrLf & _
  mins(AWlf) = 7
 ' "    (((NOT ((ther1 LIKE '%Diät%' OR ther1 LIKE 'OAD%' OR ther1 LIKE 'Komb%' OR ther1 LIKE 'CT%') AND (therakt LIKE '%Diät%' OR therakt LIKE 'OAD%' OR therakt LIKE 'Komb%' OR therakt LIKE 'CT%')) ) AND leistung <> '97320') OR " & vbCrLf & _
 ' "     ((    ((ther1 LIKE '%Diät%' OR ther1 LIKE 'OAD%' OR ther1 LIKE 'Komb%' OR ther1 LIKE 'CT%') AND (therakt LIKE '%Diät%' OR therakt LIKE 'OAD%' OR therakt LIKE 'Komb%' OR therakt LIKE 'CT%')) ) AND leistung <> '97321'))) " & vbCrLf & _
@@ -2589,7 +2609,7 @@ sql(AWlf) = _
 ' 'SHV'
 
 ' sql(AWlf) = _
-"SELECT f.pat_id pat_id, gesnameg(f.pat_id) Name, PatAlter(f.pat_id) `Alter[a]`, l.leistung Leistung, obmednetz, icd, dmpklass, REPLACE(REPLACE(notiz,char(13),''),char(10),'') Notiz, kateg, schgr, maxtha(f.pat_id) `max.Therapie`, Therakt, Ther1 " & vbCrLf & _
+"SELECT f.pat_id pat_id, gesnameg(f.pat_id) Name, PatAlter(f.pat_id) `Alter[a]`, l.leistung Leistung, obmednetz, icd, dmpklass, REPLACE(REPLACE(info,char(13),''),char(10),'') info, kateg, schgr, maxtha(f.pat_id) `max.Therapie`, Therakt, Ther1 " & vbCrLf & _
 "FROM aktfvs f " & vbCrLf & _
 "LEFT JOIN leistungen l ON f.fid=l.fid AND l.leistung IN (" & BetrPausch & ") " & vbCrLf & _
 "LEFT JOIN `diagnosen` d ON (f.pat_id = d.pat_id AND d.obdauer <> 0 AND d.diagsicherheit IN ('G',' ') AND COALESCE(d.Dggel,0)=0) AND icd LIKE 'E10%' " & vbCrLf & _
@@ -2615,7 +2635,7 @@ sql(AWlf) = _
 ' sql(AWlf) = _
 ' "SELECT * FROM " & vbCrLf & _
 ' "(SELECT * FROM " & vbCrLf & _
-' "(SELECT f.pat_id AS pat_id, gesname(f.pat_id) Name, l.leistung AS Leistung, obMedNetz, icd, REPLACE(notiz,char(13),'') AS notiz, kateg, schgr  FROM " & aktf & " " & vbCrLf & _
+' "(SELECT f.pat_id AS pat_id, gesname(f.pat_id) Name, l.leistung AS Leistung, obMedNetz, icd, REPLACE(info,char(13),'') AS info, kateg, schgr  FROM " & aktf & " " & vbCrLf & _
 ' "LEFT JOIN (SELECT fid,leistung FROM `leistungen` WHERE leistung IN (" & BetrPausch & ")) AS l ON f.fid = l.fid " & vbCrLf & _
 ' "LEFT JOIN `diagnosen` d ON (f.pat_id = d.pat_id AND obdauer <> 0 AND diagsicherheit<> 'A' AND COALESCE(Dggel,0)=0) AND icd LIKE 'E10%' " & vbCrLf & _
 ' "LEFT JOIN `kassenliste` kl ON f.vknr = kl.vknr " & vbCrLf & _
@@ -2637,7 +2657,7 @@ sql(AWlf) = _
 ' sql(AWlf) = _
 ' "SELECT * FROM " & vbCrLf & _
 ' "(SELECT * FROM " & vbCrLf & _
-' "(SELECT f.pat_id AS pat_id, gesname(f.pat_id) Name, l.leistung AS Leistung, obMedNetz, icd, REPLACE(notiz,char(13),'') AS notiz, kateg, schgr  FROM " & aktf & " " & vbCrLf & _
+' "(SELECT f.pat_id AS pat_id, gesname(f.pat_id) Name, l.leistung AS Leistung, obMedNetz, icd, REPLACE(info,char(13),'') AS info, kateg, schgr  FROM " & aktf & " " & vbCrLf & _
 ' "LEFT JOIN (SELECT fid,leistung FROM `leistungen` WHERE leistung IN (" & BetrPausch & ")) AS l ON f.fid = l.fid " & vbCrLf & _
 ' "LEFT JOIN `diagnosen` d ON (f.pat_id = d.pat_id AND obdauer <> 0 AND diagsicherheit<> 'A' AND COALESCE(Dggel,0)=0) AND icd LIKE 'E11%' " & vbCrLf & _
 ' "LEFT JOIN `kassenliste` kl ON f.vknr = kl.vknr " & vbCrLf & _
@@ -2658,7 +2678,7 @@ sql(AWlf) = _
 ' sql(AWlf) = _
 ' "SELECT * FROM " & vbCrLf & _
 ' "(SELECT * FROM " & vbCrLf & _
-' "(SELECT f.pat_id AS pat_id, gesname(f.pat_id) Name, l.leistung AS Leistung, obMedNetz, icd, REPLACE(notiz,char(13),'') AS notiz, ther1, therakt, kateg, schgr  FROM " & aktf & " " & vbCrLf & _
+' "(SELECT f.pat_id AS pat_id, gesname(f.pat_id) Name, l.leistung AS Leistung, obMedNetz, icd, REPLACE(info,char(13),'') AS info, ther1, therakt, kateg, schgr  FROM " & aktf & " " & vbCrLf & _
 ' "LEFT JOIN (SELECT fid,leistung FROM `leistungen` WHERE leistung IN (" & BetrPausch & ")) AS l ON f.fid = l.fid " & vbCrLf & _
 ' "LEFT JOIN `diagnosen` d ON (f.pat_id = d.pat_id AND obdauer <> 0 AND diagsicherheit<> 'A' AND COALESCE(Dggel,0)=0) AND icd LIKE 'E11%' " & vbCrLf & _
 ' "LEFT JOIN `kassenliste` kl ON f.vknr = kl.vknr " & vbCrLf & _
@@ -2670,15 +2690,15 @@ sql(AWlf) = _
 ' "AND NOT ((ther1 LIKE '%Diät%' OR ther1 LIKE 'OAD%') AND (therakt LIKE '%Diät%' OR therakt LIKE 'OAD%')) " & vbCrLf & _
 ' "AND NOT ISNULL(icd) " & vbCrLf & _
 ' "AND obmednetz = 0 " & vbCrLf & _
-' "AND notiz REGEXP 'DMP *nein'"
-'' "AND notiz LIKE '%DMP%' " & vbCrLf & _
+' "AND info REGEXP 'DMP *nein'"
+'' "AND info LIKE '%DMP%' " & vbCrLf & _
 ' mins(AWlf) = 7
 ' maxs(AWlf) = 30
 ' AWlf = AWlf + 1
 
  ' 69
  ' diagsicherheit in aktfaellev schon eingebaut
-' AwN(AWlf) = "'DMP HA'-Einträge in Notiz bei Patienten ohne Diabetesdiagnose, bereits IN 5) eingebaut"
+' AwN(AWlf) = "'DMP HA'-Einträge in Info bei Patienten ohne Diabetesdiagnose, bereits IN 5) eingebaut"
 ' sql(AWlf) = "SELECT n.pat_id, LEFT(CONCAT(IF(n.titel='','',CONCAT(n.titel,' ')),IF(n.nvorsatz='','',CONCAT(n.nvorsatz,' ')),n.nachname,', ',n.vorname),25) Name  FROM `aktfaellev` f LEFT JOIN `namen` n ON f.pat_id = n.pat_id LEFT JOIN `hareal` h ON n.getha0 = h.kvnr WHERE n.dmpklass = 2 AND ISNULL(f.icd)"
  AwN(AWlf) = "Motivationskandidaten ('92278','92282') (vorher 21)"
  sql(AWlf) = motsql()
@@ -6820,16 +6840,16 @@ End If ' Private / Kassenpatienten
  With MFG
   .cols = 6
   .Rows = AWz + 1
-  .Col = 1
+  .col = 1
   .FormatString = "|*|<Erklärung"
   Dim Zahl As Variant, Länge&
    Zahl = fWertLesen(HCU, RegWurzel & App.EXEName, "Wert", Länge)
   For AWlf = 1 To AWz
    If sql(AWlf - 1) = "ü" Then
     .Row = AWlf
-    .Col = 2
+    .col = 2
     .CellFontBold = True
-    .Col = 1
+    .col = 1
     .CellBackColor = vbBlack
    End If
    .TextMatrix(AWlf, 2) = IIf(sql(AWlf - 1) = "ü", "", (AWlf - 1) & ". ") & AwN(AWlf - 1)
@@ -6856,7 +6876,7 @@ End If ' Private / Kassenpatienten
 '   .text = dowr(sql(i - 1))
   Next AWlf
   .Row = 1
-  .Col = 1
+  .col = 1
   altFarbe = vbWhite
  End With
  sqlgezeigt = True
@@ -6885,7 +6905,7 @@ Public Function dowr$(ByVal txt$)
    dowr = dowr & txt
    txt = vNS
   Else
-   dowr = dowr & Left$(txt, pos - 1)
+   dowr = dowr & left$(txt, pos - 1)
    txt = Mid$(txt, pos + 1)
   End If
  Loop
@@ -6922,8 +6942,8 @@ End Sub ' ObenAusricht
 Private Sub Form_Resize()
 ' Me.Hintergrund.Top = 0
 ' Me.Hintergrund.Height = Me.Height - 700
- MFG.Height = Me.Height - MFG.Top - 400
- MFG.Width = Me.Width - MFG.Left - 400
+ MFG.Height = Me.Height - MFG.top - 400
+ MFG.Width = Me.Width - MFG.left - 400
  Call Me.ObenAusricht
 End Sub ' Private Sub Form_Resize()
 
@@ -7011,7 +7031,7 @@ End Sub ' Private Sub Form_Unload(Cancel As Integer)
 Public Sub MFG_Click()
  If noenter = 0 Then
   If True Or fgespei = 0 Then
-   If Me.MFG.Col = 1 And Me.MFG.CellBackColor <> vbBlack Then ' Zwischenüberschriften
+   If Me.MFG.col = 1 And Me.MFG.CellBackColor <> vbBlack Then ' Zwischenüberschriften
     If Me.MFG.Text = "X" Then
      Me.MFG.Text = vNS
      Me.MFG.CellBackColor = altFarbe
@@ -7383,7 +7403,7 @@ Public Function AbrFausg(name$, sql$, obmo%, Datei$, mins%, ByVal maxs%, Übersch
        Dim pos%, Lei$
        pos = InStr(rE!LEIFEHLER, " dazu")
        If pos <> 0 Then
-        Lei = Left$(rE!LEIFEHLER, pos - 1)
+        Lei = left$(rE!LEIFEHLER, pos - 1)
         If Not angefangen Then
          Set BDT = New BDTSchreib
          If Not BDT.Start(hVerz, "Leist", 0, Lei) Then ' Arztnr) THEN

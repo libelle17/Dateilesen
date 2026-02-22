@@ -59,7 +59,8 @@ Public type namen
  StByte AS long 'StByte int 'Ordnungsnummer der Datenübertragung
  StByteA AS long 'StByteA int 'Ordnungsnummer der Datenübertragung, Beginn der Übertragung
  Cave AS string 'Cave varchar '3654
- notiz AS string 'notiz varchar '
+ notiz AS string 'notiz varchar 'Notiz-Feld in MO (aus TM importiert und frei eingebbar)
+ info AS string 'info varchar 'Info-Feld in MO (Eintrag ti)
  obChk AS string 'obChk varchar 'obChroniker (Feld 3800)
  NZNr AS long 'NZNr int 'Notiz-Zeile Nr. (in welcher Zeile auf dem Desktop steht der unter 'Notiz' eingetragene Rest
  dmpklass AS long 'dmpklass int '1 = DMP nein, 2 = DMP HA, 3 = DMP hier, 4 = DMP ausgeschrieben
@@ -1545,6 +1546,7 @@ Public FUNCTION roNaZuw(i&, j&)
  roNa(i).StByteA = rNa(j).StByteA
  roNa(i).Cave = rNa(j).Cave
  roNa(i).notiz = rNa(j).notiz
+ roNa(i).info = rNa(j).info
  roNa(i).obChk = rNa(j).obChk
  roNa(i).NZNr = rNa(j).NZNr
  roNa(i).dmpklass = rNa(j).dmpklass
@@ -1659,6 +1661,7 @@ Public FUNCTION NaZUnt%(i&, j&)
  IF roNa(i).StByteA <> rNa(j).StByteA THEN gosub unter
  IF roNa(i).Cave <> rNa(j).Cave THEN gosub unter
  IF roNa(i).notiz <> rNa(j).notiz THEN gosub unter
+ IF roNa(i).info <> rNa(j).info THEN gosub unter
  IF roNa(i).obChk <> rNa(j).obChk THEN gosub unter
  IF roNa(i).NZNr <> rNa(j).NZNr THEN gosub unter
  IF roNa(i).dmpklass <> rNa(j).dmpklass THEN gosub unter
@@ -1737,20 +1740,21 @@ Public FUNCTION namenLaden()
 ",COALESCE(Email,'') Email,COALESCE(Arbeitgeber,'') Arbeitgeber,COALESCE(AnAllgda,0) AnAllgda,COALESCE(An1da,0) An1da" & _
 ",COALESCE(An2da,0) An2da,COALESCE(Checkda,0) Checkda,COALESCE(DMTypaD,'') DMTypaD,COALESCE(AktZeit - INTERVAL 0 DAY,CONVERT('18991230',DATE)) AktZeit" & _
 ",COALESCE(absPos,0) absPos,COALESCE(StByte,0) StByte,COALESCE(StByteA,0) StByteA,COALESCE(Cave,'') Cave" & _
-",COALESCE(notiz,'') notiz,COALESCE(obChk,'') obChk,COALESCE(NZNr,0) NZNr,COALESCE(dmpklass,0) dmpklass" & _
-",COALESCE(dmpbeg - INTERVAL 0 DAY,CONVERT('18991230',DATE)) dmpbeg,COALESCE(dmpkhkklass,0) dmpkhkklass,COALESCE(dmpkhkbeg - INTERVAL 0 DAY,CONVERT('18991230',DATE)) dmpkhkbeg,COALESCE(dmpcopdklass,0) dmpcopdklass" & _
-",COALESCE(dmpcopdbeg - INTERVAL 0 DAY,CONVERT('18991230',DATE)) dmpcopdbeg,COALESCE(dmpabklass,0) dmpabklass,COALESCE(dmpabbeg - INTERVAL 0 DAY,CONVERT('18991230',DATE)) dmpabbeg,COALESCE(dmposteoklass,0) dmposteoklass" & _
-",COALESCE(dmposteobeg - INTERVAL 0 DAY,CONVERT('18991230',DATE)) dmposteobeg,COALESCE(dmpraklass,0) dmpraklass,COALESCE(dmprabeg - INTERVAL 0 DAY,CONVERT('18991230',DATE)) dmprabeg,COALESCE(dmpchiklass,0) dmpchiklass" & _
-",COALESCE(dmpchibeg - INTERVAL 0 DAY,CONVERT('18991230',DATE)) dmpchibeg,COALESCE(dmprsklass,0) dmprsklass,COALESCE(dmprsbeg - INTERVAL 0 DAY,CONVERT('18991230',DATE)) dmprsbeg,COALESCE(dmpadklass,0) dmpadklass" & _
-",COALESCE(dmpadbeg - INTERVAL 0 DAY,CONVERT('18991230',DATE)) dmpadbeg,COALESCE(dmpdepklass,0) dmpdepklass,COALESCE(dmpdepbeg - INTERVAL 0 DAY,CONVERT('18991230',DATE)) dmpdepbeg,COALESCE(dakab - INTERVAL 0 DAY,CONVERT('18991230',DATE)) dakab" & _
-",COALESCE(HzV,0) HzV,COALESCE(HzVbeg - INTERVAL 0 DAY,CONVERT('18991230',DATE)) HzVbeg,COALESCE(DS,0) DS,COALESCE(DSbeg - INTERVAL 0 DAY,CONVERT('18991230',DATE)) DSbeg" & _
-",COALESCE(getHA0,0) getHA0,COALESCE(fnHA0,'') fnHA0,COALESCE(getHA1,0) getHA1,COALESCE(fnHA1,'') fnHA1" & _
-",COALESCE(getHA2,0) getHA2,COALESCE(fnHA2,'') fnHA2,COALESCE(zubenach,'') zubenach,COALESCE(Verwandt,'') Verwandt" & _
-",COALESCE(Sprache,'') Sprache,COALESCE(SDatum - INTERVAL 0 DAY,CONVERT('18991230',DATE)) SDatum,COALESCE(inaktiv,0) inaktiv,COALESCE(lAktTM - INTERVAL 0 DAY,CONVERT('18991230',DATE)) lAktTM" & _
-",COALESCE(Mitarbeiter,0) Mitarbeiter,COALESCE(Swz,0) Swz,COALESCE(Gbz,0) Gbz,COALESCE(Kiz,0) Kiz"
-sql = sql & ",COALESCE(ZdeK,0) ZdeK,COALESCE(obk,0) obk,COALESCE(obs,0) obs,COALESCE(obh,0) obh" & _
-",COALESCE(antikoag,0) antikoag,COALESCE(dmt1,0) dmt1,COALESCE(gdm,0) gdm,COALESCE(kdm,0) kdm" & _
-",COALESCE(cgm,0) cgm,COALESCE(insdat - INTERVAL 0 DAY,CONVERT('18991230',DATE)) insdat,COALESCE(insanw,0) insanw FROM `namen` WHERE Pat_ID=" & pid & " ORDER BY `kAufDat`
+",COALESCE(notiz,'') notiz,COALESCE(info,'') info,COALESCE(obChk,'') obChk,COALESCE(NZNr,0) NZNr" & _
+",COALESCE(dmpklass,0) dmpklass,COALESCE(dmpbeg - INTERVAL 0 DAY,CONVERT('18991230',DATE)) dmpbeg,COALESCE(dmpkhkklass,0) dmpkhkklass,COALESCE(dmpkhkbeg - INTERVAL 0 DAY,CONVERT('18991230',DATE)) dmpkhkbeg" & _
+",COALESCE(dmpcopdklass,0) dmpcopdklass,COALESCE(dmpcopdbeg - INTERVAL 0 DAY,CONVERT('18991230',DATE)) dmpcopdbeg,COALESCE(dmpabklass,0) dmpabklass,COALESCE(dmpabbeg - INTERVAL 0 DAY,CONVERT('18991230',DATE)) dmpabbeg" & _
+",COALESCE(dmposteoklass,0) dmposteoklass,COALESCE(dmposteobeg - INTERVAL 0 DAY,CONVERT('18991230',DATE)) dmposteobeg,COALESCE(dmpraklass,0) dmpraklass,COALESCE(dmprabeg - INTERVAL 0 DAY,CONVERT('18991230',DATE)) dmprabeg" & _
+",COALESCE(dmpchiklass,0) dmpchiklass,COALESCE(dmpchibeg - INTERVAL 0 DAY,CONVERT('18991230',DATE)) dmpchibeg,COALESCE(dmprsklass,0) dmprsklass,COALESCE(dmprsbeg - INTERVAL 0 DAY,CONVERT('18991230',DATE)) dmprsbeg" & _
+",COALESCE(dmpadklass,0) dmpadklass,COALESCE(dmpadbeg - INTERVAL 0 DAY,CONVERT('18991230',DATE)) dmpadbeg,COALESCE(dmpdepklass,0) dmpdepklass,COALESCE(dmpdepbeg - INTERVAL 0 DAY,CONVERT('18991230',DATE)) dmpdepbeg" & _
+",COALESCE(dakab - INTERVAL 0 DAY,CONVERT('18991230',DATE)) dakab,COALESCE(HzV,0) HzV,COALESCE(HzVbeg - INTERVAL 0 DAY,CONVERT('18991230',DATE)) HzVbeg,COALESCE(DS,0) DS" & _
+",COALESCE(DSbeg - INTERVAL 0 DAY,CONVERT('18991230',DATE)) DSbeg,COALESCE(getHA0,0) getHA0,COALESCE(fnHA0,'') fnHA0,COALESCE(getHA1,0) getHA1" & _
+",COALESCE(fnHA1,'') fnHA1,COALESCE(getHA2,0) getHA2,COALESCE(fnHA2,'') fnHA2,COALESCE(zubenach,'') zubenach" & _
+",COALESCE(Verwandt,'') Verwandt,COALESCE(Sprache,'') Sprache,COALESCE(SDatum - INTERVAL 0 DAY,CONVERT('18991230',DATE)) SDatum,COALESCE(inaktiv,0) inaktiv" & _
+",COALESCE(lAktTM - INTERVAL 0 DAY,CONVERT('18991230',DATE)) lAktTM,COALESCE(Mitarbeiter,0) Mitarbeiter,COALESCE(Swz,0) Swz,COALESCE(Gbz,0) Gbz"
+sql = sql & ",COALESCE(Kiz,0) Kiz,COALESCE(ZdeK,0) ZdeK,COALESCE(obk,0) obk,COALESCE(obs,0) obs" & _
+",COALESCE(obh,0) obh,COALESCE(antikoag,0) antikoag,COALESCE(dmt1,0) dmt1,COALESCE(gdm,0) gdm" & _
+",COALESCE(kdm,0) kdm,COALESCE(cgm,0) cgm,COALESCE(insdat - INTERVAL 0 DAY,CONVERT('18991230',DATE)) insdat,COALESCE(insanw,0) insanw" & _
+" FROM `namen` WHERE Pat_ID=" & pid & " ORDER BY `kAufDat`
  myFrag rs, sql
  ReDim roNa(1)
  If Not rs.EOF Then
@@ -1813,6 +1817,7 @@ sql = sql & ",COALESCE(ZdeK,0) ZdeK,COALESCE(obk,0) obk,COALESCE(obs,0) obs,COAL
    roNa(akt).StByteA = rs!StByteA
    roNa(akt).Cave = doUmwfSQL(rs!Cave, lies.obMySQL, False)
    roNa(akt).notiz = doUmwfSQL(rs!notiz, lies.obMySQL, False)
+   roNa(akt).info = doUmwfSQL(rs!info, lies.obMySQL, False)
    roNa(akt).obChk = doUmwfSQL(rs!obChk, lies.obMySQL, False)
    roNa(akt).NZNr = rs!NZNr
    roNa(akt).dmpklass = rs!dmpklass
@@ -1990,6 +1995,7 @@ Public FUNCTION rNaDump()
   Print #200, Left$("rNa(" & i & ").StByteA:" & String$(33, "."), 33) & rNa(i).StByteA
   Print #200, Left$("rNa(" & i & ").Cave:" & String$(33, "."), 33) & "'" & rNa(i).Cave & "'"
   Print #200, Left$("rNa(" & i & ").notiz:" & String$(33, "."), 33) & "'" & rNa(i).notiz & "'"
+  Print #200, Left$("rNa(" & i & ").info:" & String$(33, "."), 33) & "'" & rNa(i).info & "'"
   Print #200, Left$("rNa(" & i & ").obChk:" & String$(33, "."), 33) & "'" & rNa(i).obChk & "'"
   Print #200, Left$("rNa(" & i & ").NZNr:" & String$(33, "."), 33) & rNa(i).NZNr
   Print #200, Left$("rNa(" & i & ").dmpklass:" & String$(33, "."), 33) & rNa(i).dmpklass
@@ -2064,12 +2070,12 @@ Public FUNCTION namenSpeichern(SammelInsert%, BezfSp%, Optional rAf&, Optional s
      "Postfach_2,LK_2,Postfach,Beruf,Weggeldzone,WeggzZahl,AufnDat,kAufDat,LANR,BStNr," & _
      "Titel,Versichertennummer,PrivatTel,KVNr,KVNr2,KVNr3,KVNr4,PrivatTel_2,PrivatFax,DienstTel," & _
      "PrivatMobil,Email,Arbeitgeber,AnAllgda,An1da,An2da,Checkda,DMTypaD,AktZeit,absPos," & _
-     "StByte,StByteA,Cave,notiz,obChk,NZNr,dmpklass,dmpbeg,dmpkhkklass,dmpkhkbeg," & _
-     "dmpcopdklass,dmpcopdbeg,dmpabklass,dmpabbeg,dmposteoklass,dmposteobeg,dmpraklass,dmprabeg,dmpchiklass,dmpchibeg," & _
-     "dmprsklass,dmprsbeg,dmpadklass,dmpadbeg,dmpdepklass,dmpdepbeg,dakab,HzV,HzVbeg,DS," & _
-     "DSbeg,getHA0,fnHA0,getHA1,fnHA1,getHA2,fnHA2,zubenach,Verwandt,Sprache," & _
-     "SDatum,inaktiv,lAktTM,Mitarbeiter,Swz,Gbz,Kiz,ZdeK,obk,obs," & _
-     "obh,antikoag,dmt1,gdm,kdm,cgm,insdat,insanw)       VALUES"))
+     "StByte,StByteA,Cave,notiz,info,obChk,NZNr,dmpklass,dmpbeg,dmpkhkklass," & _
+     "dmpkhkbeg,dmpcopdklass,dmpcopdbeg,dmpabklass,dmpabbeg,dmposteoklass,dmposteobeg,dmpraklass,dmprabeg,dmpchiklass," & _
+     "dmpchibeg,dmprsklass,dmprsbeg,dmpadklass,dmpadbeg,dmpdepklass,dmpdepbeg,dakab,HzV,HzVbeg," & _
+     "DS,DSbeg,getHA0,fnHA0,getHA1,fnHA1,getHA2,fnHA2,zubenach,Verwandt," & _
+     "Sprache,SDatum,inaktiv,lAktTM,Mitarbeiter,Swz,Gbz,Kiz,ZdeK,obk," & _
+     "obs,obh,antikoag,dmt1,gdm,kdm,cgm,insdat,insanw)   VALUES"))
  IF NOT Allepat THEN
    sql = "DELETE FROM `" & LCase$(tbnm) & "` WHERE Pat_ID = " & CStr(rNa(0).Pat_ID)
    Call myEFrag(sql)
@@ -2089,14 +2095,14 @@ setz:
    rNa(i).BStNr, "','" , rNa(i).Titel, "','" , rNa(i).Versichertennummer, "','" , rNa(i).PrivatTel, "','" , rNa(i).KVNr, "','" , rNa(i).KVNr2, "','" , rNa(i).KVNr3, "','" , rNa(i).KVNr4, "','" ,  _
    rNa(i).PrivatTel_2, "','" , rNa(i).PrivatFax, "','" , rNa(i).DienstTel, "','" , rNa(i).PrivatMobil, "','" , rNa(i).Email, "','" , rNa(i).Arbeitgeber, "'," , cstr(-(rNa(i).AnAllgda<>0)) , "," , cstr(-( _
    rNa(i).An1da<>0)) , "," , cstr(-(rNa(i).An2da<>0)) , "," , cstr(-(rNa(i).Checkda<>0)) , ",'" , rNa(i).DMTypaD, "'," , DatFor_k( 0 ), "," , rNa(i).absPos, "," , rNa(i).StByte, "," ,  _
-   rNa(i).StByteA, ",'" , rNa(i).Cave, "','" , rNa(i).notiz, "','" , rNa(i).obChk, "'," , rNa(i).NZNr, "," , rNa(i).dmpklass, "," , DatFor_k(rNa(i).dmpbeg), "," , rNa(i).dmpkhkklass, "," , DatFor_k( _
-   rNa(i).dmpkhkbeg), "," , rNa(i).dmpcopdklass, "," , DatFor_k(rNa(i).dmpcopdbeg), "," , rNa(i).dmpabklass, "," , DatFor_k(rNa(i).dmpabbeg), "," , rNa(i).dmposteoklass, "," , DatFor_k(rNa(i).dmposteobeg), "," ,  _
-   rNa(i).dmpraklass, "," , DatFor_k(rNa(i).dmprabeg), "," , rNa(i).dmpchiklass, "," , DatFor_k(rNa(i).dmpchibeg), "," , rNa(i).dmprsklass, "," , DatFor_k(rNa(i).dmprsbeg), "," ,  _
-   rNa(i).dmpadklass, "," , DatFor_k(rNa(i).dmpadbeg), "," , rNa(i).dmpdepklass, "," , DatFor_k(rNa(i).dmpdepbeg), "," , DatFor_k(rNa(i).dakab), "," , rNa(i).HzV, "," , DatFor_k(rNa(i).HzVbeg), "," ,  _
-   rNa(i).DS, "," , DatFor_k(rNa(i).DSbeg), "," , rNa(i).getHA0, ",'" , rNa(i).fnHA0, "'," , rNa(i).getHA1, ",'" , rNa(i).fnHA1, "'," , rNa(i).getHA2, ",'" , rNa(i).fnHA2, "','" , rNa(i).zubenach, "','" ,  _
-   rNa(i).Verwandt, "','" , rNa(i).Sprache, "'," , DatFor_k(rNa(i).SDatum), "," , rNa(i).inaktiv, "," , DatFor_k(rNa(i).lAktTM), "," , rNa(i).Mitarbeiter, "," , rNa(i).Swz, "," ,  _
-   rNa(i).Gbz, "," , rNa(i).Kiz, "," , rNa(i).ZdeK, "," , cstr(-(rNa(i).obk<>0)) , "," , cstr(-(rNa(i).obs<>0)) , "," , cstr(-(rNa(i).obh<>0)) , "," , cstr(-(rNa(i).antikoag<>0)) , "," , cstr(-(rNa(i).dmt1<>0)) , "," , cstr(-( _
-   rNa(i).gdm<>0)) , "," , cstr(-(rNa(i).kdm<>0)) , "," , rNa(i).cgm, "," , DatFor_k(rNa(i).insdat), "," , rNa(i).insanw, ")")
+   rNa(i).StByteA, ",'" , rNa(i).Cave, "','" , rNa(i).notiz, "','" , rNa(i).info, "','" , rNa(i).obChk, "'," , rNa(i).NZNr, "," , rNa(i).dmpklass, "," , DatFor_k(rNa(i).dmpbeg), "," , rNa(i).dmpkhkklass, "," , DatFor_k( _
+   rNa(i).dmpkhkbeg), "," , rNa(i).dmpcopdklass, "," , DatFor_k(rNa(i).dmpcopdbeg), "," , rNa(i).dmpabklass, "," , DatFor_k(rNa(i).dmpabbeg), "," , rNa(i).dmposteoklass, "," , DatFor_k( _
+   rNa(i).dmposteobeg), "," , rNa(i).dmpraklass, "," , DatFor_k(rNa(i).dmprabeg), "," , rNa(i).dmpchiklass, "," , DatFor_k(rNa(i).dmpchibeg), "," , rNa(i).dmprsklass, "," , DatFor_k( _
+   rNa(i).dmprsbeg), "," , rNa(i).dmpadklass, "," , DatFor_k(rNa(i).dmpadbeg), "," , rNa(i).dmpdepklass, "," , DatFor_k(rNa(i).dmpdepbeg), "," , DatFor_k(rNa(i).dakab), "," , rNa(i).HzV, "," , DatFor_k( _
+   rNa(i).HzVbeg), "," , rNa(i).DS, "," , DatFor_k(rNa(i).DSbeg), "," , rNa(i).getHA0, ",'" , rNa(i).fnHA0, "'," , rNa(i).getHA1, ",'" , rNa(i).fnHA1, "'," , rNa(i).getHA2, ",'" , rNa(i).fnHA2, "','" ,  _
+   rNa(i).zubenach, "','" , rNa(i).Verwandt, "','" , rNa(i).Sprache, "'," , DatFor_k(rNa(i).SDatum), "," , rNa(i).inaktiv, "," , DatFor_k(rNa(i).lAktTM), "," , rNa(i).Mitarbeiter, "," ,  _
+   rNa(i).Swz, "," , rNa(i).Gbz, "," , rNa(i).Kiz, "," , rNa(i).ZdeK, "," , cstr(-(rNa(i).obk<>0)) , "," , cstr(-(rNa(i).obs<>0)) , "," , cstr(-(rNa(i).obh<>0)) , "," , cstr(-(rNa(i).antikoag<>0)) , "," , cstr(-( _
+   rNa(i).dmt1<>0)) , "," , cstr(-(rNa(i).gdm<>0)) , "," , cstr(-(rNa(i).kdm<>0)) , "," , rNa(i).cgm, "," , DatFor_k(rNa(i).insdat), "," , rNa(i).insanw, ")")
   IF SammelInsert <> 0 AND i < ubound(rNa) Then csql.Append ","
   IF SammelInsert = 0 OR i = ubound(rNa) Then
     altmode = myEFrag("SELECT @@global.sql_mode", , DBCn).Fields(0)
@@ -2151,7 +2157,7 @@ ElseIf ErrNumber = -2147467259 AND InStrB(ErrDescr, "Daten zu lang") = 0 AND InS
  Resume
 ElseIf ErrNumber = -2147217833 OR InStrB(ErrDescr, "Daten zu lang") <> 0 OR InStrB(ErrDescr, "Data too long") <> 0 THEN
  Dim rsc As Adodb.Recordset, maxi%(), k%
- redim maxi(48)
+ redim maxi(49)
  for k = iif(SammelInsert<>0,0,i) to iif(SammelInsert<>0,ubound(rNa),i)
   IF Len(rNa(k).NVorsatz) > maxi(0) THEN maxi(0) = Len(rNa(k).NVorsatz)
   IF Len(rNa(k).Nachname) > maxi(1) THEN maxi(1) = Len(rNa(k).Nachname)
@@ -2195,13 +2201,14 @@ ElseIf ErrNumber = -2147217833 OR InStrB(ErrDescr, "Daten zu lang") <> 0 OR InSt
   IF Len(rNa(k).DMTypaD) > maxi(39) THEN maxi(39) = Len(rNa(k).DMTypaD)
   IF Len(rNa(k).Cave) > maxi(40) THEN maxi(40) = Len(rNa(k).Cave)
   IF Len(rNa(k).notiz) > maxi(41) THEN maxi(41) = Len(rNa(k).notiz)
-  IF Len(rNa(k).obChk) > maxi(42) THEN maxi(42) = Len(rNa(k).obChk)
-  IF Len(rNa(k).fnHA0) > maxi(43) THEN maxi(43) = Len(rNa(k).fnHA0)
-  IF Len(rNa(k).fnHA1) > maxi(44) THEN maxi(44) = Len(rNa(k).fnHA1)
-  IF Len(rNa(k).fnHA2) > maxi(45) THEN maxi(45) = Len(rNa(k).fnHA2)
-  IF Len(rNa(k).zubenach) > maxi(46) THEN maxi(46) = Len(rNa(k).zubenach)
-  IF Len(rNa(k).Verwandt) > maxi(47) THEN maxi(47) = Len(rNa(k).Verwandt)
-  IF Len(rNa(k).Sprache) > maxi(48) THEN maxi(48) = Len(rNa(k).Sprache)
+  IF Len(rNa(k).info) > maxi(42) THEN maxi(42) = Len(rNa(k).info)
+  IF Len(rNa(k).obChk) > maxi(43) THEN maxi(43) = Len(rNa(k).obChk)
+  IF Len(rNa(k).fnHA0) > maxi(44) THEN maxi(44) = Len(rNa(k).fnHA0)
+  IF Len(rNa(k).fnHA1) > maxi(45) THEN maxi(45) = Len(rNa(k).fnHA1)
+  IF Len(rNa(k).fnHA2) > maxi(46) THEN maxi(46) = Len(rNa(k).fnHA2)
+  IF Len(rNa(k).zubenach) > maxi(47) THEN maxi(47) = Len(rNa(k).zubenach)
+  IF Len(rNa(k).Verwandt) > maxi(48) THEN maxi(48) = Len(rNa(k).Verwandt)
+  IF Len(rNa(k).Sprache) > maxi(49) THEN maxi(49) = Len(rNa(k).Sprache)
  next k
  If obTrans <> 0 Then If myEFrag("SELECT COUNT(1) FROM information_schema.innodb_trx WHERE trx_mysql_thread_id = CONNECTION_ID()", , DBCn).Fields(0) <> 0 Then ComTrans ' DBCn.CommitTrans: obtrans = 0
  nochmal:
@@ -2257,13 +2264,14 @@ ElseIf ErrNumber = -2147217833 OR InStrB(ErrDescr, "Daten zu lang") <> 0 OR InSt
        Case 39: Lese.Ausgeb "   Verkürze Inhalt von rNa.DMTypaD: '" & rNa(k).DMTypaD & "' -> '" & Left$(rNa(k).DMTypaD, maxL)  & "'",true : rNa(k).DMTypaD = Left$(rNa(k).DMTypaD, maxL)
        Case 40: Lese.Ausgeb "   Verkürze Inhalt von rNa.Cave: '" & rNa(k).Cave & "' -> '" & Left$(rNa(k).Cave, maxL)  & "'",true : rNa(k).Cave = Left$(rNa(k).Cave, maxL)
        Case 41: Lese.Ausgeb "   Verkürze Inhalt von rNa.notiz: '" & rNa(k).notiz & "' -> '" & Left$(rNa(k).notiz, maxL)  & "'",true : rNa(k).notiz = Left$(rNa(k).notiz, maxL)
-       Case 42: Lese.Ausgeb "   Verkürze Inhalt von rNa.obChk: '" & rNa(k).obChk & "' -> '" & Left$(rNa(k).obChk, maxL)  & "'",true : rNa(k).obChk = Left$(rNa(k).obChk, maxL)
-       Case 43: Lese.Ausgeb "   Verkürze Inhalt von rNa.fnHA0: '" & rNa(k).fnHA0 & "' -> '" & Left$(rNa(k).fnHA0, maxL)  & "'",true : rNa(k).fnHA0 = Left$(rNa(k).fnHA0, maxL)
-       Case 44: Lese.Ausgeb "   Verkürze Inhalt von rNa.fnHA1: '" & rNa(k).fnHA1 & "' -> '" & Left$(rNa(k).fnHA1, maxL)  & "'",true : rNa(k).fnHA1 = Left$(rNa(k).fnHA1, maxL)
-       Case 45: Lese.Ausgeb "   Verkürze Inhalt von rNa.fnHA2: '" & rNa(k).fnHA2 & "' -> '" & Left$(rNa(k).fnHA2, maxL)  & "'",true : rNa(k).fnHA2 = Left$(rNa(k).fnHA2, maxL)
-       Case 46: Lese.Ausgeb "   Verkürze Inhalt von rNa.zubenach: '" & rNa(k).zubenach & "' -> '" & Left$(rNa(k).zubenach, maxL)  & "'",true : rNa(k).zubenach = Left$(rNa(k).zubenach, maxL)
-       Case 47: Lese.Ausgeb "   Verkürze Inhalt von rNa.Verwandt: '" & rNa(k).Verwandt & "' -> '" & Left$(rNa(k).Verwandt, maxL)  & "'",true : rNa(k).Verwandt = Left$(rNa(k).Verwandt, maxL)
-       Case 48: Lese.Ausgeb "   Verkürze Inhalt von rNa.Sprache: '" & rNa(k).Sprache & "' -> '" & Left$(rNa(k).Sprache, maxL)  & "'",true : rNa(k).Sprache = Left$(rNa(k).Sprache, maxL)
+       Case 42: Lese.Ausgeb "   Verkürze Inhalt von rNa.info: '" & rNa(k).info & "' -> '" & Left$(rNa(k).info, maxL)  & "'",true : rNa(k).info = Left$(rNa(k).info, maxL)
+       Case 43: Lese.Ausgeb "   Verkürze Inhalt von rNa.obChk: '" & rNa(k).obChk & "' -> '" & Left$(rNa(k).obChk, maxL)  & "'",true : rNa(k).obChk = Left$(rNa(k).obChk, maxL)
+       Case 44: Lese.Ausgeb "   Verkürze Inhalt von rNa.fnHA0: '" & rNa(k).fnHA0 & "' -> '" & Left$(rNa(k).fnHA0, maxL)  & "'",true : rNa(k).fnHA0 = Left$(rNa(k).fnHA0, maxL)
+       Case 45: Lese.Ausgeb "   Verkürze Inhalt von rNa.fnHA1: '" & rNa(k).fnHA1 & "' -> '" & Left$(rNa(k).fnHA1, maxL)  & "'",true : rNa(k).fnHA1 = Left$(rNa(k).fnHA1, maxL)
+       Case 46: Lese.Ausgeb "   Verkürze Inhalt von rNa.fnHA2: '" & rNa(k).fnHA2 & "' -> '" & Left$(rNa(k).fnHA2, maxL)  & "'",true : rNa(k).fnHA2 = Left$(rNa(k).fnHA2, maxL)
+       Case 47: Lese.Ausgeb "   Verkürze Inhalt von rNa.zubenach: '" & rNa(k).zubenach & "' -> '" & Left$(rNa(k).zubenach, maxL)  & "'",true : rNa(k).zubenach = Left$(rNa(k).zubenach, maxL)
+       Case 48: Lese.Ausgeb "   Verkürze Inhalt von rNa.Verwandt: '" & rNa(k).Verwandt & "' -> '" & Left$(rNa(k).Verwandt, maxL)  & "'",true : rNa(k).Verwandt = Left$(rNa(k).Verwandt, maxL)
+       Case 49: Lese.Ausgeb "   Verkürze Inhalt von rNa.Sprache: '" & rNa(k).Sprache & "' -> '" & Left$(rNa(k).Sprache, maxL)  & "'",true : rNa(k).Sprache = Left$(rNa(k).Sprache, maxL)
       END SELECT
      Next
     elseif maxl < 0 THEN

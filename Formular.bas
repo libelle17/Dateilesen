@@ -237,7 +237,7 @@ Function therinit()
  End If ' Len(psql(3)) > 4000 Then ' 27.12.25: 8035 else
 '    psql(3) = REPLACE$(REPLACE$(psql(3), "'", "''"), "@inpid", "',inpid,'")
  psql(3) = REPLACE$(psql(3), "@inpid", "inpid")
- psql(3) = Left$(psql(3), InStr(psql(3), "WHERE thart<>lthart") + 18)
+ psql(3) = left$(psql(3), InStr(psql(3), "WHERE thart<>lthart") + 18)
  psql(3) = Mid$(psql(3), InStr(psql(3), "ROW_COUNT();") + 13)
 '    sql = sql & " SET sqlt = CONCAT('" & abf & "');" & vbCrLf
 ' "inpid=", "''',inpid,'''="), "(inpid)", "(',inpid,')"
@@ -460,14 +460,14 @@ Sub EliminierWortplusZahl(ByRef SqlU As CString, ByRef Wort$)
  Dim pos&, p2&, sp$, p2anf&
  pos = SqlU.Instr(Wort)
  If pos <> 0 Then
-  sp = SqlU.Left(pos - 1)
+  sp = SqlU.left(pos - 1)
   p2 = pos + Len(Wort)
   p2anf = p2
   Do
    If Not IsNumeric(SqlU.cMid(p2, 1)) Then Exit Do
    p2 = p2 + 1
   Loop
-  If p2anf <> p2 Then SqlU = SqlU.Left(pos - 1) & SqlU.cMid(p2)
+  If p2anf <> p2 Then SqlU = SqlU.left(pos - 1) & SqlU.cMid(p2)
  End If
 End Sub ' EliminierWortplusZahl(ByRef SqlU As CString, ByRef Wort$)
 
@@ -759,12 +759,12 @@ Function dodo_u_Click(frm As AnBog, nr)
  Dim icdlike$
  If MDIICD(nr) <> vNS Then
   If MDIICD(nr) Like "E1*" Or MDIICD(nr) Like "L89*" Then
-   icdlike = Left$(MDIICD(nr), InStr(MDIICD(nr), ".")) & ".*"
+   icdlike = left$(MDIICD(nr), InStr(MDIICD(nr), ".")) & ".*"
   Else
    icdlike = MDIICD(nr)
    For i = 1 To 2
-    If Right$(icdlike, 1) = "V" Then icdlike = Left$(icdlike, Len(icdlike) - 1)
-    If Right$(icdlike, 1) = "Z" Then icdlike = Left$(icdlike, Len(icdlike) - 1)
+    If Right$(icdlike, 1) = "V" Then icdlike = left$(icdlike, Len(icdlike) - 1)
+    If Right$(icdlike, 1) = "Z" Then icdlike = left$(icdlike, Len(icdlike) - 1)
    Next i
    icdlike = icdlike & "[VZ]?"
   End If
@@ -2174,7 +2174,7 @@ If Pat_ID <> 0 Then
  Dim obBewEinsch%, obverform%
  obverform = 0
  obBewEinsch = 0
- If Left$(verform, 1) = "j" Then
+ If left$(verform, 1) = "j" Then
   obverform = -1
   Call doGilbE(frm, "M14", "vTextB", 92) ' Bewegungseinschränkungen
  End If
@@ -2234,18 +2234,18 @@ If Pat_ID <> 0 Then
  obAutNP = 0
  HarnB = 0
  EntlSt = IIf(IsNull(frm.anaRS![Entleerungsstörungen Magen]), vNS, LCase$(frm.anaRS![Entleerungsstörungen Magen]))
- If Left$(EntlSt, 1) = "j" Then
+ If left$(EntlSt, 1) = "j" Then
   obAutNP = obAutNP - 1
   Call doGilbE(frm, "G99", "vTextB", 95) ' Entleerungsstörungen Magen
  End If
  EntlSt = IIf(IsNull(frm.anaRS![Entleerungsstörungen Harnblase]), vNS, LCase$(frm.anaRS![Entleerungsstörungen Harnblase]))
- If Left$(EntlSt, 1) = "j" Then
+ If left$(EntlSt, 1) = "j" Then
   obAutNP = obAutNP - 1
   Call doGilbE(frm, "G99", "vTextB", 96) ' Entleerungsstörungen Harnblase
   HarnB = -1
  End If
  EntlSt = IIf(IsNull(frm.anaRS!Sexualstörung), vNS, LCase$(frm.anaRS!Sexualstörung))
- If Left$(EntlSt, 1) = "j" Then
+ If left$(EntlSt, 1) = "j" Then
   Call doGilbE(frm, "G99", "vTextB", 100) ' Sexualstörung
   obAutNP = obAutNP - 1
  End If
@@ -3012,7 +3012,7 @@ Function do_Form_Current2(frm As AnBog, Hsre$, lcAB$, PStatPath%, pnpflNeu%, KZa
 '  END IF
 ' END IF
  
- If InStrB(frm.vTextB(168), "Hypertonie") = 0 And Left$(frm.anaRS!Bluthochdruck, 1) = "j" Then ' MDi
+ If InStrB(frm.vTextB(168), "Hypertonie") = 0 And left$(frm.anaRS!Bluthochdruck, 1) = "j" Then ' MDi
   Call KRAdd(frm, "Ankreuzfeld", "Arterielle Hypertonie", "I10.90", gesi, "I10", , , , "vTextB", 58) ' Bluthochdruck
  End If
  
@@ -3088,7 +3088,7 @@ Function do_Form_Current2(frm As AnBog, Hsre$, lcAB$, PStatPath%, pnpflNeu%, KZa
  obMI = 0
  obPTCA = 0
  Anginap = IIf(IsNull(frm.anaRS![Angina pectoris]), vNS, LCase$(frm.anaRS![Angina pectoris]))
- If Left$(Anginap, 1) = "j" Then
+ If left$(Anginap, 1) = "j" Then
   Call doGilbE(frm, "I25.9", "vTextB", 75) ' Angina pectoris
   obKHK = 1
  ElseIf InStrB(Anginap, "leicht") <> 0 Or InStrB(Anginap, "z.n.") <> 0 Or InStrB(Anginap, "evtl") <> 0 Or InStrB(Anginap, "manchmal") <> 0 Then
@@ -3096,7 +3096,7 @@ Function do_Form_Current2(frm As AnBog, Hsre$, lcAB$, PStatPath%, pnpflNeu%, KZa
   obKHK = 1
  End If
  mi = IIf(IsNull(frm.anaRS!Herzinfarkt), vNS, LCase$(frm.anaRS!Herzinfarkt))
- If Left$(mi, 1) = "j" Or InStrB(mi, "stummer") <> 0 Or InStrB(mi, "vwi") <> 0 Or InStrB(mi, "hwi") <> 0 Then
+ If left$(mi, 1) = "j" Or InStrB(mi, "stummer") <> 0 Or InStrB(mi, "vwi") <> 0 Or InStrB(mi, "hwi") <> 0 Then
   Call doGilbE(frm, "I21.9", "vTextB", 76) ' Herzinfarkt
   obMI = 1
   obKHK = 2
@@ -3157,11 +3157,11 @@ Function do_Form_Current2(frm As AnBog, Hsre$, lcAB$, PStatPath%, pnpflNeu%, KZa
  Dim BDBSt%, SFKht%
  BDBSt = 0
  SFKht = 0
- If Left$(LCase$(frm.anaRS!Beindurchblutungsstörung), 1) = "j" Then
+ If left$(LCase$(frm.anaRS!Beindurchblutungsstörung), 1) = "j" Then
   BDBSt = -1
   Call doGilb(frm, "I73.9", "vTextB", 84) ' Beindurchblutungsstörung
  End If
- If Left$(LCase$(frm.anaRS!Schaufensterkrankheit), 1) = "j" Then
+ If left$(LCase$(frm.anaRS!Schaufensterkrankheit), 1) = "j" Then
   SFKht = -1
   Call doGilb(frm, "I73.9", "vTextB", 85) ' Schaufensterkrankheit
  End If
@@ -3511,7 +3511,7 @@ End Function ' do_Form_Current2
  syscmd 4, "Formularvorbereitung 9 " & frm.anaRS!Nachname & ", " & frm.anaRS!Vorname
  DICDg = DICD
  DICDj = vNS
- If Left$(DICD, 2) = "E1" Then
+ If left$(DICD, 2) = "E1" Then
   DICDg = DICDg + "."
   Select Case KZahl
    Case Is > 1
@@ -3549,7 +3549,7 @@ End Function ' do_Form_Current2
 
  syscmd 4, "Formularvorbereitung 10 " & frm.anaRS!Nachname & ", " & frm.anaRS!Vorname
  DICDh = DICD
- If Left$(DICD, 2) = "E1" Then
+ If left$(DICD, 2) = "E1" Then
   DICDh = DICDh + "."
   Select Case KZahl + KZahlNeu
    Case Is > 1
@@ -3937,7 +3937,7 @@ End Function ' obLH
  
  Dim ameis$
  ameis = IIf(IsNull(frm.anaRS!Ameisenlaufen), vNS, LCase$(frm.anaRS!Ameisenlaufen))
- If Left$(ameis, 1) = "j" Then
+ If left$(ameis, 1) = "j" Then
   obNeurop = True
   NPGrund = NPGrund + IIf(LenB(NPGrund) = 0, vNS, ",") + "Ameis"
   Call doGilbE(frm, "G63.2", "vTextB", 89) 'Ameisenlaufen")
@@ -4019,7 +4019,7 @@ End Function ' obLH
  Else
   Monf = ""
  End If
- If Left$(Monf, 1) = "0" Or InStrB(Monf, " 0") <> 0 Or InStrB(Monf, "1") <> 0 Or InStrB(Monf, "2") <> 0 Or (InStrB(Monf, "3") <> 0 And InStrB(Monf, "/3") = 0) Or InStrB(Monf, "4") <> 0 Or InStrB(Monf, "6/8") <> 0 Or InStrB(Monf, "5/8") <> 0 Or InStrB(Monf, "gestört") <> 0 Or InStrB(Monf, "5/10") <> 0 Or InStrB(Monf, "6/10") <> 0 Or InStrB(Monf, "7/10") <> 0 Or InStrB(Monf, "8/10") <> 0 Or InStrB(Monf, "neg") <> 0 Or InStrB(Monf, "path") <> 0 Or InStrB(Monf, " -") <> 0 Or InStrB(Monf, "zufäl") <> 0 Or InStrB(Monf, "erat") <> 0 Then
+ If left$(Monf, 1) = "0" Or InStrB(Monf, " 0") <> 0 Or InStrB(Monf, "1") <> 0 Or InStrB(Monf, "2") <> 0 Or (InStrB(Monf, "3") <> 0 And InStrB(Monf, "/3") = 0) Or InStrB(Monf, "4") <> 0 Or InStrB(Monf, "6/8") <> 0 Or InStrB(Monf, "5/8") <> 0 Or InStrB(Monf, "gestört") <> 0 Or InStrB(Monf, "5/10") <> 0 Or InStrB(Monf, "6/10") <> 0 Or InStrB(Monf, "7/10") <> 0 Or InStrB(Monf, "8/10") <> 0 Or InStrB(Monf, "neg") <> 0 Or InStrB(Monf, "path") <> 0 Or InStrB(Monf, " -") <> 0 Or InStrB(Monf, "zufäl") <> 0 Or InStrB(Monf, "erat") <> 0 Then
   obNeurop = True
   NPGrund = NPGrund + IIf(LenB(NPGrund) = 0, vNS, ",") + "MF"
   Call doGilbE(frm, "G63.2", "vTextB", 117) 'Monofilamenttest")
@@ -4031,7 +4031,7 @@ End Function ' obLH
  Else
   KW = ""
  End If
- If Left$(KW, 1) = "0" Or InStrB(KW, " 0") <> 0 Or InStrB(KW, "1") <> 0 Or InStrB(KW, "2") <> 0 Then
+ If left$(KW, 1) = "0" Or InStrB(KW, " 0") <> 0 Or InStrB(KW, "1") <> 0 Or InStrB(KW, "2") <> 0 Then
 ' OR instrb(Monf, "6/8") <> 0 OR instrb(Monf, "5/8") <> 0 OR instrb(Monf, "6/8") <> 0 OR instrb(Monf, "5/10") <> 0 OR instrb(Monf, "6/10") <> 0 OR instrb(Monf, "7/10") <> 0 OR instrb(KW, "gestört") <> 0 OR instrb(KW, "neg") <> 0 OR instrb(KW, "path") <> 0 OR instrb(KW, " -") <> 0 OR instrb(KW, "zufäl") <> 0 OR instrb(KW, "erat") <> 0 THEN ' OR instrb(KW, "4") <> 0 OR instrb(Monf, "8/10") <> 0
   obVNeurop = True
   NPGrund = NPGrund + IIf(LenB(NPGrund) = 0, vNS, ",") + "KW"
@@ -4079,7 +4079,7 @@ End Function ' LegNPFest
    druckst = IIf(IsNull(rsNa!Druckstellen), vNS, LCase$(rsNa!Druckstellen))
    hyperkerat = IIf(IsNull(rsNa!Hyperkeratosen), vNS, LCase$(rsNa!Hyperkeratosen))
    hyperkerat = Trim$(hyperkerat)
-   If Left$(druckst, 1) = "j" Then
+   If left$(druckst, 1) = "j" Then
     obDst = -1
     hkGrund = "Frgbg."
    End If
@@ -4309,7 +4309,7 @@ Function doXtra_Click(frm As AnBog)
  On Error GoTo fehler
  If UStumm Then Exit Function
  If frm.Xtra <> vNS Then
- Call myEFrag("UPDATE `fuerdiagexp` SET icd = CONCAT(LEFT(icd,instr(icd,'.')-1),'" & Left$(frm.Xtra, 3) & "'), zeitpunkt = " & DatFor_k(Now()) & " WHERE pat_id = " & frm.anaRS!Pat_ID & " ORDER BY id DESC LIMIT 1", rAf)  ' rfDE = TabÖff("fuerDiagExp", "Suche") ' pat_id, icd
+ Call myEFrag("UPDATE `fuerdiagexp` SET icd = CONCAT(LEFT(icd,instr(icd,'.')-1),'" & left$(frm.Xtra, 3) & "'), zeitpunkt = " & DatFor_k(Now()) & " WHERE pat_id = " & frm.anaRS!Pat_ID & " ORDER BY id DESC LIMIT 1", rAf)  ' rfDE = TabÖff("fuerDiagExp", "Suche") ' pat_id, icd
   Call myEFrag("UPDATE `fuerdiagexp` SET diagnose = MID(diagnose,6), zeitpunkt = " & DatFor_k(Now()) & " WHERE pat_id = " & frm.anaRS!Pat_ID & " AND (diagnose LIKE 'Z.n.%' OR diagnose LIKE 'Z.n.%V.a.%')  ORDER BY id DESC LIMIT 1", rAf) ' rfDE = TabÖff("fuerDiagExp", "Suche") ' pat_id, icd
   Call myEFrag("UPDATE `fuerdiagexp` SET diagnose = MID(diagnose,6), zeitpunkt = " & DatFor_k(Now()) & " WHERE pat_id = " & frm.anaRS!Pat_ID & " AND (diagnose LIKE 'V.a.%' OR diagnose LIKE 'V.a.%Z.n.%')  ORDER BY id DESC LIMIT 1", rAf) ' rfDE = TabÖff("fuerDiagExp", "Suche") ' pat_id, icd
   Call myEFrag("UPDATE `fuerdiagexp` SET diagnose = MID(diagnose,6), zeitpunkt = " & DatFor_k(Now()) & " WHERE pat_id = " & frm.anaRS!Pat_ID & " AND (diagnose LIKE 'Z.n.%' OR diagnose LIKE 'Z.n.%V.a.%')  ORDER BY id DESC LIMIT 1", rAf) ' rfDE = TabÖff("fuerDiagExp", "Suche") ' pat_id, icd
@@ -4401,12 +4401,12 @@ Function knöpfeanpassen(frm As AnBog)
    If frm.Controls("vOptionB")(nr).Value <> 0 Then frm.Controls("vOptionB")(nr).Value = False      ' "u"
   Else
    If MDIICD(nr) Like "E1*" Or MDIICD(nr) Like "L89*" Then
-    icdlike = Left$(MDIICD(nr), InStr(MDIICD(nr), ".")) & ".*"
+    icdlike = left$(MDIICD(nr), InStr(MDIICD(nr), ".")) & ".*"
    Else
     icdlike = MDIICD(nr)
     For i = 1 To 2
-     If Right$(icdlike, 1) = "V" Then icdlike = Left$(icdlike, Len(icdlike) - 1)
-     If Right$(icdlike, 1) = "Z" Then icdlike = Left$(icdlike, Len(icdlike) - 1)
+     If Right$(icdlike, 1) = "V" Then icdlike = left$(icdlike, Len(icdlike) - 1)
+     If Right$(icdlike, 1) = "Z" Then icdlike = left$(icdlike, Len(icdlike) - 1)
     Next i
     icdlike = icdlike & "[VZ]?"
    End If
@@ -4437,7 +4437,7 @@ Function knöpfeanpassen(frm As AnBog)
  If diabzahl > 1 Then
   For nr = 1 To 23
    If MDIICD(nr) Like "E1*" Then
-    icdlike = Left$(MDIICD(nr), 6) & "%"
+    icdlike = left$(MDIICD(nr), 6) & "%"
     Set rfDE = Nothing
 '    Call rfDE.Open("SELECT * FROM `fuerdiagexp` WHERE pat_id = " & frm.anaRS!Pat_id & " AND icd LIKE '" & icdlike & "'", DBCn, adOpenDynamic, adLockReadOnly) ' rfDE = TabÖff("fuerDiagExp", "Suche") ' pat_id, icd
     myFrag rfDE, "SELECT * FROM `fuerdiagexp` WHERE pat_id = " & frm.anaRS!Pat_ID & " AND icd LIKE '" & icdlike & "'"
@@ -4597,11 +4597,11 @@ Function dodoRRParse(ByVal erg$, RRsyst%, RRdiast%, Optional Zp As Date, Optiona
    Zp = 0
    pos = InStr(erg, "/")
    If pos > 1 Then
-    RR1 = Left$(erg, pos - 1)
+    RR1 = left$(erg, pos - 1)
     If Len(RR1) > 2 Then
 '     IF Mid$(RR1, Len(RR1) - 2, 1) = "," AND InStrB("0123456789", Mid$(RR1, Len(RR1) - 1, 1)) <> 0 THEN RR1 = LEFT(RR1, Len(RR1) - 2)
      pko = InStr(RR1, ",")
-     If pko > 1 And IsNumeric(Mid$(RR1, pko + 1, 1)) Then RR1 = Left$(RR1, pko - 1)
+     If pko > 1 And IsNumeric(Mid$(RR1, pko + 1, 1)) Then RR1 = left$(RR1, pko - 1)
     End If
     RR1a = Right$(RR1, 3)
     If IsNumeric(RR1a) Then
@@ -4613,12 +4613,12 @@ Function dodoRRParse(ByVal erg$, RRsyst%, RRdiast%, Optional Zp As Date, Optiona
      End If
     End If
     erg = Mid$(erg, pos + 1)
-    RR1a = Left$(erg, 3)
+    RR1a = left$(erg, 3)
     If IsNumeric(RR1a) Then
      RRdiast = Val(RR1a)
      erg = Mid$(erg, 4)
     Else
-     RR1a = Left$(RR1a, 2)
+     RR1a = left$(RR1a, 2)
      If IsNumeric(RR1a) Then
       RRdiast = Val(RR1a)
       erg = Mid$(erg, 2)
@@ -4627,21 +4627,21 @@ Function dodoRRParse(ByVal erg$, RRsyst%, RRdiast%, Optional Zp As Date, Optiona
     If InStr(erg, "(") > InStr(erg, "/") Then
      RR1a = Mid$(erg, InStr(erg, "("))
      If InStr(RR1a, ")") > 1 Then
-      RR1a = Left$(RR1a, InStr(RR1a, ")") - 1)
+      RR1a = left$(RR1a, InStr(RR1a, ")") - 1)
       If IsDate(RR1a) Then Zp = CDate(RR1a)
      End If
     End If
    Else ' pos > 1
     pos = InStr(erg, "syst")
     If pos > 1 Then
-     RR1 = Left$(erg, pos - 1)
+     RR1 = left$(erg, pos - 1)
      For i = Len(RR1) To 0 Step -1
       If InStrB("0123456789", Mid$(RR1, i, 1)) <> 0 And LenB(Mid$(RR1, i, 1)) <> 0 Then Exit For
-      RR1 = Left$(RR1, Len(RR1) - 1)
+      RR1 = left$(RR1, Len(RR1) - 1)
       If RR1 = vNS Then Exit For
      Next
      If Len(RR1) > 2 Then
-      If Mid$(RR1, Len(RR1) - 2, 1) = "," And InStrB("0123456789", Mid$(RR1, Len(RR1) - 1, 1)) <> 0 And Mid$(RR1, Len(RR1) - 1, 1) <> vNS Then RR1 = Left$(RR1, Len(RR1) - 2)
+      If Mid$(RR1, Len(RR1) - 2, 1) = "," And InStrB("0123456789", Mid$(RR1, Len(RR1) - 1, 1)) <> 0 And Mid$(RR1, Len(RR1) - 1, 1) <> vNS Then RR1 = left$(RR1, Len(RR1) - 2)
      End If
      If RR1 = vNS Then GoTo nix
      RR1a = Right$(RR1, 3)
@@ -4653,13 +4653,13 @@ Function dodoRRParse(ByVal erg$, RRsyst%, RRdiast%, Optional Zp As Date, Optiona
        RRsyst = Val(RR1a)
       End If
       If RRsyst < 50 Then
-       RR1a = Left$(RR1a, Len(RR1a) - 2)
+       RR1a = left$(RR1a, Len(RR1a) - 2)
        For i = Len(RR1a) To 1 Step -1
         If InStrB("0123456789", Mid$(RR1a, i, 1)) <> 0 And Mid$(RR1a, i, 1) <> vNS Then Exit For
-        RR1 = Left$(RR1a, Len(RR1a) - 1)
+        RR1 = left$(RR1a, Len(RR1a) - 1)
        Next
        If Len(RR1a) > 2 Then
-        If Mid$(RR1a, Len(RR1a) - 2, 1) = "," And InStrB("0123456789", Mid$(RR1a, Len(RR1a) - 1, 1)) <> 0 And Mid$(RR1a, Len(RR1a) - 1, 1) <> vNS Then RR1a = Left$(RR1a, Len(RR1a) - 2)
+        If Mid$(RR1a, Len(RR1a) - 2, 1) = "," And InStrB("0123456789", Mid$(RR1a, Len(RR1a) - 1, 1)) <> 0 And Mid$(RR1a, Len(RR1a) - 1, 1) <> vNS Then RR1a = left$(RR1a, Len(RR1a) - 2)
        End If
        RR1a = Right$(RR1a, 3)
        If IsNumeric(RR1a) Then
@@ -4700,9 +4700,9 @@ Function mdTest(md As ADODB.Recordset, Feld$, Optional ByRef bisher$)
  If Not IsNull(md.Fields(Feld).Value) Then
   If md.Fields(Feld).Value Then
    If LVobMySQL Then
-    medi = Left$(md!Medikament, 15)
+    medi = left$(md!Medikament, 15)
    Else
-    medi = Left$(md![mp.Medikament], 15)
+    medi = left$(md![mp.Medikament], 15)
    End If
    If IsNull(bisher) Or bisher = vNS Then
      bisher = medi
@@ -4835,7 +4835,7 @@ End Function ' do_CheckAufruf_click(frm As Form)
 
 Function do_do_Aufruf(frm As Form, DPfad$)
  On Error GoTo fehler
- If (InStrB("$\", Left$(DPfad, 1)) <> 0 And Left$(DPfad, 1) <> vNS) Or Mid$(DPfad, 2, 1) = ":" Then
+ If (InStrB("$\", left$(DPfad, 1)) <> 0 And left$(DPfad, 1) <> vNS) Or Mid$(DPfad, 2, 1) = ":" Then
    If LenB(PcDokPfad) = 0 Then getDokPfad
    DatPfad = getIViewPfad & " " & vNS & Stutz(REPLACE$(LCase$(DPfad), "$\turbomed\dokumente", PcDokPfad)) + vNS ' Environ("ProgramFiles") & "\irfanview\i_view32.exe
    Call Shell(DatPfad, vbMaximizedFocus)
@@ -4935,7 +4935,7 @@ Function doGilb(frm As Object, ZielICD$, gilbFeld$, gilbNr%)   ' AS Form_Anamnes
       Dim icdlike$ ' replace$(ZielICD, "V", vns) & "[V]?"
       icdlike = REPLACE$(ZielICD, "V", vNS) & "[V]?"
       If icdlike Like "E1*" Or icdlike Like "L89*" Then
-       icdlike = Left$(icdlike, InStr(icdlike, ".")) & ".*"
+       icdlike = left$(icdlike, InStr(icdlike, ".")) & ".*"
       Else
        icdlike = REPLACE$(ZielICD, "V", vNS) & IIf(LVobMySQL, "[V]?", vNS)
       End If
@@ -5050,7 +5050,7 @@ Function KrSchluß(frm As AnBog)
    If DSi(i) <> gesi Then
    Select Case DSi(i)
     Case Va: frm.vTextB(168) = frm.vTextB(168) & "V.a.":      MDIICD(i) = MDIICD(i) & "V"
-    Case Zn: frm.vTextB(168) = frm.vTextB(168) & "Z.n.": If Left$(MDIICD(i), 1) <> "Z" Then MDIICD(i) = MDIICD(i) & "Z"
+    Case Zn: frm.vTextB(168) = frm.vTextB(168) & "Z.n.": If left$(MDIICD(i), 1) <> "Z" Then MDIICD(i) = MDIICD(i) & "Z"
     Case AuS: frm.vTextB(168) = frm.vTextB(168) & "Ausschl.": MDIICD(i) = MDIICD(i) & "A"
    End Select
    End If 'LenB(DSi(i)) <> 0 THEN
@@ -5331,7 +5331,7 @@ End Function ' do_Fremdlabor_Form_Current(frm As Form)
 
 Function makeDatPfad(frm As Form)
  On Error GoTo fehler
- If (InStrB("$\", Left$(frm!DokPfad, 1)) <> 0 And Left$(frm!DokPfad, 1) <> vNS) Or Mid$(frm!DokPfad, 2, 1) = ":" Then
+ If (InStrB("$\", left$(frm!DokPfad, 1)) <> 0 And left$(frm!DokPfad, 1) <> vNS) Or Mid$(frm!DokPfad, 2, 1) = ":" Then
    RDatPfad = REPLACE$(REPLACE$(LCase$(IIf(IsNull(frm!DokPfad), vNS, frm!DokPfad)), "$\turbomed\dokumente", getDokPfad), "^", vNS)
    DatPfad = vNS + RDatPfad + vNS
    Dim cat As New ADOX.Catalog
@@ -5515,7 +5515,7 @@ Function do_anzeigen_click(frm As Form)
  If InStrB(DatPfad, ".exe") <> 0 Then
   Call Shell(DatPfad, vbMaximizedFocus)
  Else
-  If Left$(DatPfad, InStr(DatPfad, " ")) = "winword" Then
+  If left$(DatPfad, InStr(DatPfad, " ")) = "winword" Then
    GetWord
    Wapp.Visible = True
    Wapp.WindowState = wdWindowStateMaximize
@@ -5544,7 +5544,7 @@ Function do_PhotoImpact_Click(frm As Form)
  If InStrB(DatPfadPI, ".exe") <> 0 Then
   Call Shell(DatPfadPI, vbMaximizedFocus)
  Else
-  If Left$(DatPfadPI, InStr(DatPfadPI, " ") - 1) = "winword" Then
+  If left$(DatPfadPI, InStr(DatPfadPI, " ") - 1) = "winword" Then
    GetWord
    Wapp.Visible = True
    Wapp.WindowState = wdWindowStateMaximize
@@ -5648,7 +5648,7 @@ Function ReadRegistryGetSubkey$(ByVal Group&, ByVal Section$, idx&)
  If lResult = 0 Then
   lResult = RegEnumKey(lKeyValue, idx, sValue, lValueLength)
   If (lResult = 0) And (Err.Number = 0) Then
-   sValue = Left$(sValue, InStr(sValue, vbNullChar) - 1)
+   sValue = left$(sValue, InStr(sValue, vbNullChar) - 1)
   End If
   ReadRegistryGetSubkey = sValue
   lResult = RegCloseKey(lKeyValue)
@@ -6580,7 +6580,7 @@ Hausarzt:
      For iru = 0 To UBound(datf)
       pr = Split(datf(iru), " """)
       If UBound(pr) > 0 Then
-       pr(1) = Left$(pr(1), Len(pr(1)) - 1)
+       pr(1) = left$(pr(1), Len(pr(1)) - 1)
        Select Case pr(0)
         Case "Nachname": infos(1, infi) = pr(1): infos(14, infi) = pr(1)
         Case "Vorname": infos(1, infi) = "Dr. med. " & pr(1) & " " & infos(1, infi): infos(9, infi) = pr(1)
@@ -6755,7 +6755,7 @@ Hausarzt:
            "LEFT JOIN " & HADBName & ".nlart ON a.nlart_id = nlart.idnlart " & _
            "LEFT JOIN " & HADBName & ".titel t ON t.idtitel = a.titel_id " & _
            "LEFT JOIN " & HADBName & ".ort o ON o.idort = bs.ort_id " & _
-           "WHERE LEFT(bsnr,7) = '" & Left$(übwerg(0, runde), 7) & "'"
+           "WHERE LEFT(bsnr,7) = '" & left$(übwerg(0, runde), 7) & "'"
        myFrag rListena, sql
        If Not rListena.BOF Then gefunden = True
       End If
@@ -6769,7 +6769,7 @@ Hausarzt:
         If IsNull(rListena!fax) Then
          Dim rfax As New ADODB.Recordset
          Set rfax = Nothing
-         myFrag rfax, "SELECT faxzahl FROM " & HADBName & ".bs bsr LEFT JOIN " & HADBName & ".arzt_has_bs ahbr ON bsr.idbs = ahbr.bs_id LEFT JOIN " & HADBName & ".arzt a ON a.idarzt = ahbr.arzt_id LEFT JOIN " & HADBName & ".arzt_has_bs ahb ON a.idarzt = ahb.arzt_id LEFT JOIN " & HADBName & ".bs ON bs.idbs = ahb.bs_id LEFT JOIN " & HADBName & ".fax ON fax.bs_id = bsr.idbs WHERE LEFT(bs.bsnr,7) = '" & Left$(übwerg(0, runde), 7) & "'  AND a.obehem=0 AND NOT ISNULL(faxzahl)"
+         myFrag rfax, "SELECT faxzahl FROM " & HADBName & ".bs bsr LEFT JOIN " & HADBName & ".arzt_has_bs ahbr ON bsr.idbs = ahbr.bs_id LEFT JOIN " & HADBName & ".arzt a ON a.idarzt = ahbr.arzt_id LEFT JOIN " & HADBName & ".arzt_has_bs ahb ON a.idarzt = ahb.arzt_id LEFT JOIN " & HADBName & ".bs ON bs.idbs = ahb.bs_id LEFT JOIN " & HADBName & ".fax ON fax.bs_id = bsr.idbs WHERE LEFT(bs.bsnr,7) = '" & left$(übwerg(0, runde), 7) & "'  AND a.obehem=0 AND NOT ISNULL(faxzahl)"
          If Not rfax.BOF Then
           InfRoh(4, runde) = rfax!faxzahl
          End If
@@ -6818,11 +6818,11 @@ Hausarzt:
 '      rDMP.Open "SELECT genehmigung FROM (" & hadbname & ".arzt a LEFT JOIN " & hadbname & ".arzt_has_bs ahb ON ahb.arzt_id = a.idarzt)  LEFT JOIN " & hadbname & ".bs ON ahb.bs_id = bs.idbs LEFT JOIN " & hadbname & ".arzt_has_bs ahb2 ON bs.idbs = ahb2.bs_id LEFT JOIN " & hadbname & ".arzt a2 ON ahb2.arzt_id = a2.idarzt LEFT JOIN " & hadbname & ".arzt_has_genehmigung ahg ON ahg.arzt_id = a2.idarzt LEFT JOIN " & hadbname & ".genehmigung g ON ahg.genehmigung_id = g.idgenehmigung WHERE bs.bsnr = '" & left$(übwerg(0, runde),7) & "' AND genehmigung IN ('DMP-DM2_Koordinierender Arzt','DMP-DM2_FA_Diab.bes.qualif.Arzt(SPP)+Koordin. Arzt')", HAECn, adOpenStatic, adLockReadOnly
 '      Call acon(HaT) ' z.B. für Genehmigung
       If LenB(DBCn) = 0 Or DBCn = "" Then Call acon(quelleT)
-      myFrag rDMP, "SELECT genehmigung FROM " & HADBName & ".bs LEFT JOIN " & HADBName & ".arzt_has_bs ahb2 ON bs.idbs = ahb2.bs_id LEFT JOIN " & HADBName & ".arzt a2 ON ahb2.arzt_id = a2.idarzt LEFT JOIN " & HADBName & ".arzt_has_genehmigung ahg ON ahg.arzt_id = a2.idarzt LEFT JOIN " & HADBName & ".genehmigung g ON ahg.genehmigung_id = g.idgenehmigung WHERE LEFT(bs.bsnr,7) = '" & Left$(übwerg(0, runde), 7) & "' AND genehmigung IN ('DMP-DM2_Koordinierender Arzt','DMP-DM2_FA_Diab.bes.qualif.Arzt(SPP)+Koordin. Arzt')  AND a2.obehem=0" 'haecn
+      myFrag rDMP, "SELECT genehmigung FROM " & HADBName & ".bs LEFT JOIN " & HADBName & ".arzt_has_bs ahb2 ON bs.idbs = ahb2.bs_id LEFT JOIN " & HADBName & ".arzt a2 ON ahb2.arzt_id = a2.idarzt LEFT JOIN " & HADBName & ".arzt_has_genehmigung ahg ON ahg.arzt_id = a2.idarzt LEFT JOIN " & HADBName & ".genehmigung g ON ahg.genehmigung_id = g.idgenehmigung WHERE LEFT(bs.bsnr,7) = '" & left$(übwerg(0, runde), 7) & "' AND genehmigung IN ('DMP-DM2_Koordinierender Arzt','DMP-DM2_FA_Diab.bes.qualif.Arzt(SPP)+Koordin. Arzt')  AND a2.obehem=0" 'haecn
       InfRoh(6, runde) = IIf(rDMP.BOF, vNS, "X")
       Set rDMP = Nothing
 '      rDMP.Open "SELECT genehmigung FROM (" & hadbname & ".arzt a LEFT JOIN " & hadbname & ".arzt_has_bs ahb ON ahb.arzt_id = a.idarzt)  LEFT JOIN " & hadbname & ".bs ON ahb.bs_id = bs.idbs LEFT JOIN " & hadbname & ".arzt_has_bs ahb2 ON bs.idbs = ahb2.bs_id LEFT JOIN " & hadbname & ".arzt a2 ON ahb2.arzt_id = a2.idarzt LEFT JOIN " & hadbname & ".arzt_has_genehmigung ahg ON ahg.arzt_id = a2.idarzt LEFT JOIN " & hadbname & ".genehmigung g ON ahg.genehmigung_id = g.idgenehmigung WHERE bs.bsnr = '" & left$(übwerg(0, runde),7) & "' AND genehmigung IN ('DMP-DM1_Koordinierender Arzt(SPP)_Erwachsene','DMP-DM1_Koordinierender Arzt(SPP)_Kinder/Jugendliche','DMP-DM1_Koordinierender Arzt_Hausarzt')", HAECn, adOpenStatic, adLockReadOnly
-      myFrag rDMP, "SELECT genehmigung FROM " & HADBName & ".bs LEFT JOIN " & HADBName & ".arzt_has_bs ahb2 ON bs.idbs = ahb2.bs_id LEFT JOIN " & HADBName & ".arzt a2 ON ahb2.arzt_id = a2.idarzt LEFT JOIN " & HADBName & ".arzt_has_genehmigung ahg ON ahg.arzt_id = a2.idarzt LEFT JOIN " & HADBName & ".genehmigung g ON ahg.genehmigung_id = g.idgenehmigung WHERE LEFT(bs.bsnr,7) = '" & Left$(übwerg(0, runde), 7) & "' AND genehmigung IN ('DMP-DM1_Koordinierender Arzt(SPP)_Erwachsene','DMP-DM1_Koordinierender Arzt(SPP)_Kinder/Jugendliche','DMP-DM1_Koordinierender Arzt_Hausarzt') AND a2.obehem=0" ' HAECn
+      myFrag rDMP, "SELECT genehmigung FROM " & HADBName & ".bs LEFT JOIN " & HADBName & ".arzt_has_bs ahb2 ON bs.idbs = ahb2.bs_id LEFT JOIN " & HADBName & ".arzt a2 ON ahb2.arzt_id = a2.idarzt LEFT JOIN " & HADBName & ".arzt_has_genehmigung ahg ON ahg.arzt_id = a2.idarzt LEFT JOIN " & HADBName & ".genehmigung g ON ahg.genehmigung_id = g.idgenehmigung WHERE LEFT(bs.bsnr,7) = '" & left$(übwerg(0, runde), 7) & "' AND genehmigung IN ('DMP-DM1_Koordinierender Arzt(SPP)_Erwachsene','DMP-DM1_Koordinierender Arzt(SPP)_Kinder/Jugendliche','DMP-DM1_Koordinierender Arzt_Hausarzt') AND a2.obehem=0" ' HAECn
       InfRoh(7, runde) = IIf(rDMP.BOF, vNS, "X")
       Set rDMP = Nothing
       
@@ -6863,9 +6863,9 @@ Const sql0$ = "SELECT " & _
         If irunde = -1 Then
 '         rHa.Open sql0 & "WHERE LEFT(bsnr,7) = " & Left$(übwerg(0, runde), 7) & " AND a.nachname = '" & übwerg(1, runde) & "' AND a.vorname = '" & übwerg(2, runde) & "' AND a.obehem=0", _
                   DBCn, adOpenStatic, adLockReadOnly 'haecn
-         myFrag rHa, sql0 & "WHERE LEFT(bsnr,7) = " & Left$(übwerg(0, runde), 7) & " AND a.nachname = '" & übwerg(1, runde) & "' AND a.vorname = '" & übwerg(2, runde) & "' AND a.obehem=0", adOpenStatic
+         myFrag rHa, sql0 & "WHERE LEFT(bsnr,7) = " & left$(übwerg(0, runde), 7) & " AND a.nachname = '" & übwerg(1, runde) & "' AND a.vorname = '" & übwerg(2, runde) & "' AND a.obehem=0", adOpenStatic
         Else
-         myFrag rHa, "SELECT h.* FROM `kvaerzte`.`hae" & IIf(irunde = 1, "alt`", "`") & " h WHERE kvnr = '" & Left$(übwerg(0, runde), 2) & "/" & Right$(übwerg(0, runde), 5) & "' AND nachname = '" & übwerg(1, runde) & "' AND vorname = '" & übwerg(2, runde) & "'", adOpenStatic '  -dmpt1 AS j_dmpt1, -dmpt2 AS j_dmpt2, 'haecn
+         myFrag rHa, "SELECT h.* FROM `kvaerzte`.`hae" & IIf(irunde = 1, "alt`", "`") & " h WHERE kvnr = '" & left$(übwerg(0, runde), 2) & "/" & Right$(übwerg(0, runde), 5) & "' AND nachname = '" & übwerg(1, runde) & "' AND vorname = '" & übwerg(2, runde) & "'", adOpenStatic '  -dmpt1 AS j_dmpt1, -dmpt2 AS j_dmpt2, 'haecn
         End If
         rHaBOF = rHa.BOF
         If Not rHaBOF Then If Not IsNull(rHa!kvnu) Then HACngef = True: Exit For
@@ -6875,9 +6875,9 @@ Const sql0$ = "SELECT " & _
         If irunde = -1 Then
 '         rHa.Open sql0 & "WHERE LEFT(bsnr,7) = " & Left$(übwerg(0, runde), 7) & " AND a.nachname = '" & übwerg(1, runde) & "' AND a.obehem=0", _
                   DBCn, adOpenStatic, adLockReadOnly 'haecn
-         myFrag rHa, sql0 & "WHERE LEFT(bsnr,7) = " & Left$(übwerg(0, runde), 7) & " AND a.nachname = '" & übwerg(1, runde) & "' AND a.obehem=0", adOpenStatic
+         myFrag rHa, sql0 & "WHERE LEFT(bsnr,7) = " & left$(übwerg(0, runde), 7) & " AND a.nachname = '" & übwerg(1, runde) & "' AND a.obehem=0", adOpenStatic
         Else
-         myFrag rHa, "SELECT h.* FROM `kvaerzte`.`hae" & IIf(irunde = 1, "alt`", "`") & " h WHERE kvnr = '" & Left$(übwerg(0, runde), 2) & "/" & Right$(übwerg(0, runde), 5) & "' AND nachname = '" & übwerg(1, runde) & "'", adOpenStatic ' -dmpt1 AS j_dmpt1, -dmpt2 AS j_dmpt2, 'haecn
+         myFrag rHa, "SELECT h.* FROM `kvaerzte`.`hae" & IIf(irunde = 1, "alt`", "`") & " h WHERE kvnr = '" & left$(übwerg(0, runde), 2) & "/" & Right$(übwerg(0, runde), 5) & "' AND nachname = '" & übwerg(1, runde) & "'", adOpenStatic ' -dmpt1 AS j_dmpt1, -dmpt2 AS j_dmpt2, 'haecn
         End If
         rHaBOF = rHa.BOF
         If Not rHaBOF Then If Not IsNull(rHa!kvnu) Then HACngef = True: Exit For
@@ -6887,9 +6887,9 @@ Const sql0$ = "SELECT " & _
         If irunde = -1 Then
 '         rHa.Open sql0 & "WHERE LEFT(bsnr,7) = " & Left$(übwerg(0, runde), 7) & " AND obehem=0", _
                   DBCn, adOpenStatic, adLockReadOnly 'haecn
-         myFrag rHa, sql0 & "WHERE LEFT(bsnr,7) = " & Left$(übwerg(0, runde), 7) & " AND obehem=0", adOpenStatic
+         myFrag rHa, sql0 & "WHERE LEFT(bsnr,7) = " & left$(übwerg(0, runde), 7) & " AND obehem=0", adOpenStatic
         Else
-         myFrag rHa, "SELECT h.* FROM `kvaerzte`.`hae" & IIf(irunde = 1, "alt`", "`") & " h WHERE kvnr = '" & Left$(übwerg(0, runde), 2) & "/" & Right$(übwerg(0, runde), 5) & "'", adOpenStatic ' -dmpt1 AS j_dmpt1, -dmpt2 AS j_dmpt2,
+         myFrag rHa, "SELECT h.* FROM `kvaerzte`.`hae" & IIf(irunde = 1, "alt`", "`") & " h WHERE kvnr = '" & left$(übwerg(0, runde), 2) & "/" & Right$(übwerg(0, runde), 5) & "'", adOpenStatic ' -dmpt1 AS j_dmpt1, -dmpt2 AS j_dmpt2,
         End If
         rHaBOF = rHa.BOF
         If Not rHaBOF Then If Not IsNull(rHa!kvnu) Then HACngef = True: Exit For
@@ -6932,17 +6932,17 @@ Const sql0$ = "SELECT " & _
       gefunden = 0
       If übwerg(1, runde) <> vNS And übwerg(2, runde) <> vNS Then
        Set rhae = Nothing
-       myFrag rhae, "SELECT * FROM `hausaerzte` WHERE LEFT(kvnr,7) = '" & Left$(übwerg(0, runde), 7) & "' AND nachname = '" & übwerg(1, runde) & "' AND vorname = '" & übwerg(2, runde) & "'"
+       myFrag rhae, "SELECT * FROM `hausaerzte` WHERE LEFT(kvnr,7) = '" & left$(übwerg(0, runde), 7) & "' AND nachname = '" & übwerg(1, runde) & "' AND vorname = '" & übwerg(2, runde) & "'"
        If Not rhae.BOF Then gefunden = True
       End If
       If Not gefunden And übwerg(1, runde) <> vNS Then
        Set rhae = Nothing
-       myFrag rhae, "SELECT * FROM `hausaerzte` WHERE LEFT(kvnr,7) = '" & Left$(übwerg(0, runde), 7) & "' AND nachname = '" & übwerg(1, runde) & "'"
+       myFrag rhae, "SELECT * FROM `hausaerzte` WHERE LEFT(kvnr,7) = '" & left$(übwerg(0, runde), 7) & "' AND nachname = '" & übwerg(1, runde) & "'"
        If Not rhae.BOF Then gefunden = True
       End If
       If Not gefunden Then
        Set rhae = Nothing
-       myFrag rhae, "SELECT * FROM `hausaerzte` WHERE LEFT(kvnr,7) = '" & Left$(übwerg(0, runde), 7) & "'"
+       myFrag rhae, "SELECT * FROM `hausaerzte` WHERE LEFT(kvnr,7) = '" & left$(übwerg(0, runde), 7) & "'"
        If Not rhae.BOF Then gefunden = True
       End If
       If gefunden Then
@@ -7307,8 +7307,8 @@ Function doBriefeBerichtspflicht()
        p1 = InStr(pRoh, " ")
        p2 = InStr(pRoh, "(")
        p3 = InStr(pRoh, " - ")
-       VN = Left$(pRoh, p1 - 1)
-       gesn = REPLACE$(Left$(pRoh, p2 - 2), "zzz", vNS)
+       VN = left$(pRoh, p1 - 1)
+       gesn = REPLACE$(left$(pRoh, p2 - 2), "zzz", vNS)
        NN = Mid$(pRoh, p1 + 1, InStr(p1 + 1, pRoh, " ") - p1 - 1)
        gd = Mid$(pRoh, p2 + 1, InStr(pRoh, ")") - p2 - 1)
        leid = Mid$(pRoh, p3 + 3, InStr(pRoh, ";") - 3 - p3)
@@ -7837,7 +7837,7 @@ Function einzEintr(Pat_ID$, ÜS$, erlaeut$, arten$, Optional VorDat As Date, Opti
  If IsEmpty(warr) Then warr = Array("Halsschlagadern", "Schilddrüse", "Nierenarterien", "Abdomen", "Beinarterien", "Beinarterien mit Belastung", "Beinvenen")
 #End If
  If arten = "" Then
-  inhlt = machwertString(Pat_ID, , True) ' obgross immer 0
+  inhlt = machwertString(Pat_ID, , True, True) ' obgross immer 0
  Else ' if arten
   inhlt = kkeintraege(Pat_ID, arten, True, VorDat, fett, obgross, neuz)
  End If ' if arten
@@ -7851,7 +7851,7 @@ Function einzEintr(Pat_ID$, ÜS$, erlaeut$, arten$, Optional VorDat As Date, Opti
    If pos Then
     Dim worts$
     worts = Wort
-    inhlt = zsuh(Left$(inhlt, pos)) & "</w:t><w:rPr><w:rStyle w:val=""s24s""/><w:b/><w:bCs/></w:rPr><w:t>" & zsuh(worts) & "</w:t></w:r><w:r><w:rPr><w:rStyle w:val=""s24s""/><w:b w:val=""false""/><w:bCs w:val=""false""/></w:rPr><w:t>" & _
+    inhlt = zsuh(left$(inhlt, pos)) & "</w:t><w:rPr><w:rStyle w:val=""s24s""/><w:b/><w:bCs/></w:rPr><w:t>" & zsuh(worts) & "</w:t></w:r><w:r><w:rPr><w:rStyle w:val=""s24s""/><w:b w:val=""false""/><w:bCs w:val=""false""/></w:rPr><w:t>" & _
             zuh(zsuh(Mid$(inhlt, pos + Len(Wort) + 1)), True, obgross)
     GoTo Fertig
    End If ' pos
@@ -8135,7 +8135,7 @@ Public Sub tuBriefStandalone(pid&, obStumm%, Optional Zielverz$, Optional Verfas
    ag.appH PKennz("<w:p><w:pPr><w:tabs><w:tab w:val=""left"" w:pos=""5387""/></w:tabs><w:pStyle w:val=""sp24vs""/></w:pPr><w:bookmarkStart w:id=""10"" w:name=""ha5a""/><w:r><w:t>" & zuh(infos(4, 0)) & "</w:t></w:r><w:bookmarkEnd w:id=""10""/><w:r><w:tab/></w:r><w:bookmarkStart w:id=""11"" w:name=""ha5b""/>" & IIf(Index <> 0 And UBound(infos, 2) > 0, "<w:r><w:t>" & zuh(infos(4, Index)) & "</w:t></w:r>", "") & "<w:bookmarkEnd w:id=""11""/></w:p>", False)
    ag.appH PKennz("<w:p><w:pPr><w:tabs><w:tab w:val=""left"" w:pos=""6946""/><w:tab w:val=""left"" w:pos=""9214""/></w:tabs><w:ind w:right=""-1""/><w:rPr><w:b/><w:sz w:val=""24""/><w:u w:val=""single""/></w:rPr></w:pPr><w:br/><w:br/></w:p>", False)
 ' Anrede: zuh(infos(5, 0)), zuh(IIf(Index <> 0 And UBound(infos, 2) > 0, "<w:r><w:t>" & infos(5, Index) & "</w:t></w:r>", ""))
-   If Index <> 0 Then infos(5, Index) = LCase$(Left$(infos(5, Index), 1)) & Mid$(infos(5, Index), 2)
+   If Index <> 0 Then infos(5, Index) = LCase$(left$(infos(5, Index), 1)) & Mid$(infos(5, Index), 2)
    ag.appH PKennz("<w:p><w:pPr><w:pStyle w:val=""sp24s""/></w:pPr><w:bookmarkStart w:id=""12"" w:name=""ha6a""/><w:r><w:t>" & zuh(infos(5, 0)) & ",</w:t></w:r><w:bookmarkEnd w:id=""12""/><w:bookmarkStart w:id=""13"" w:name=""ha6b""/>" & IIf(Index <> 0 And infos(5, Index) <> "", "<w:r><w:t> " & zuh(infos(5, Index)) & ",</w:t></w:r>", "") & "<w:bookmarkEnd w:id=""13""/></w:p>", False)
 ' Einleitung: zuh(replace$(GName, ", *", ", geb. ")), dieder, behd
    Dim satzanf$
@@ -8391,7 +8391,7 @@ On Error GoTo fehler
       On Error GoTo fehler
      End If ' InStrB(behs, "am") <> 0
      syscmd acSysCmdSetStatus, "Erstelle Brief für " & gesName & ": 3) Anamnese ..."
-     !Anamnese.Range = machwertString$(Pat_ID, , briefneu) '+ nzw + vblf
+     !Anamnese.Range = machwertString$(Pat_ID, , briefneu, True) '+ nzw + vblf
 '    !Verlauf.Range = Verlauf(pat_id)
     End If ' nurlabor<>0
     End With ' dc.bookmarks
@@ -8434,7 +8434,7 @@ On Error GoTo fehler
       If InStr(krit, "notiz") Then
        krit = "'notiz','telef','tb','tn','th'," & artSpezBerat & "," & artSpezMA & ",'colo','coloauf','aug','augen','beruf','rauch','tv'"
       Else
-       krit = Left$(krit, Len(krit) - 1) '+ """"
+       krit = left$(krit, Len(krit) - 1) '+ """"
       End If
       Inhalt = kkeintraege(Pat_ID, krit, False) ' , VorDat)
      End If
@@ -8473,7 +8473,7 @@ On Error GoTo fehler
           Next lauf
           For lauf = 0 To UBound(KSpl) - 1
            If Right$(KSpl(lauf), 1) = ":" Then
-             KSpl(lauf) = KSpl(lauf) + IIf(Asc(Left$(KSpl(lauf + 1), 1)) < 32, Mid$(KSpl(lauf + 1), 2), KSpl(lauf + 1))
+             KSpl(lauf) = KSpl(lauf) + IIf(Asc(left$(KSpl(lauf + 1), 1)) < 32, Mid$(KSpl(lauf + 1), 2), KSpl(lauf + 1))
              KSpl(lauf + 1) = vNS
            End If
           Next lauf
@@ -8533,7 +8533,7 @@ On Error GoTo fehler
           FeldInh = nfi
          End If
         Loop
-        FeldInh = Left$(FeldInh, Len(FeldInh) - IIf(Right$(FeldInh, 1) = ",", 1, 0))
+        FeldInh = left$(FeldInh, Len(FeldInh) - IIf(Right$(FeldInh, 1) = ",", 1, 0))
 '          Inhalt = Inhalt & ", " & FeldInh
         If FeldInh Like "ST_*" Or FeldInh Like "Untersuchung vom*" Or FeldInh = "Ruhe-EKG Messwerte" Then
         Else
@@ -8831,7 +8831,7 @@ Function fobHAimDMP%(HANr$)
 ' Call acon(HaT)
  If LenB(DBCn) = 0 Or DBCn = "" Then Call acon(quelleT)
 ' rKVA.Open "SELECT -dmpt1 AS j_dmpt1, -dmpt2 AS j_dmpt2, hae.* FROM `kvaerzte`.`hae` WHERE kvnr = '" & Left$(HANr, 2) & "/" & Right$(HANr, 5) & "'", DBCn, adOpenDynamic, adLockReadOnly ' HAECn
- myFrag rKVA, "SELECT -dmpt1 AS j_dmpt1, -dmpt2 AS j_dmpt2, hae.* FROM `kvaerzte`.`hae` WHERE kvnr = '" & Left$(HANr, 2) & "/" & Right$(HANr, 5) & "'"
+ myFrag rKVA, "SELECT -dmpt1 AS j_dmpt1, -dmpt2 AS j_dmpt2, hae.* FROM `kvaerzte`.`hae` WHERE kvnr = '" & left$(HANr, 2) & "/" & Right$(HANr, 5) & "'"
  If Not rKVA.BOF Then
   Do While Not rKVA.EOF
    If rKVA!j_dmpt2 <> 0 Then obDMP2 = True
@@ -8864,21 +8864,21 @@ Sub HAlokal(rHa As ADODB.Recordset, KVNr$, Optional NaN, Optional VoN)
   On Error GoTo fehler
        Set rKv = TabÖff("HAE")
        If Not IsMissing(NaN) And Not IsMissing(VoN) Then
-        myFrag rKv, "SELECT * FROM `hae` WHERE kvnr = '" & Left$(KVNr, 2) & "/" & Right$(KVNr, 5) & "' AND nachname = '" & NaN & "' AND vorname = '" & VoN & "'", adOpenStatic, HAECn, adLockReadOnly
+        myFrag rKv, "SELECT * FROM `hae` WHERE kvnr = '" & left$(KVNr, 2) & "/" & Right$(KVNr, 5) & "' AND nachname = '" & NaN & "' AND vorname = '" & VoN & "'", adOpenStatic, HAECn, adLockReadOnly
        End If
        If rKv Is Nothing Or rKv.BOF Then
         Set rKv = Nothing
-        myFrag rKv, "SELECT * FROM `hae` WHERE kvnr = '" & Left$(KVNr, 2) & "/" & Right$(KVNr, 5) & "' AND nachname = '" & NaN & "'", adOpenStatic, HAECn, adLockReadOnly
+        myFrag rKv, "SELECT * FROM `hae` WHERE kvnr = '" & left$(KVNr, 2) & "/" & Right$(KVNr, 5) & "' AND nachname = '" & NaN & "'", adOpenStatic, HAECn, adLockReadOnly
        End If
        If rKv Is Nothing Or rKv.BOF Then
         Set rKv = Nothing
-        myFrag rKv, "SELECT * FROM `hae` WHERE kvnr = '" & Left$(KVNr, 2) & "/" & Right$(KVNr, 5) & "'", adOpenStatic, HAECn, adLockReadOnly
+        myFrag rKv, "SELECT * FROM `hae` WHERE kvnr = '" & left$(KVNr, 2) & "/" & Right$(KVNr, 5) & "'", adOpenStatic, HAECn, adLockReadOnly
        End If
        If Not rKv.BOF Then
         rHa.AddNew
         rHa!Nachname = rKv!Nachname
         rHa!Vorname = rKv!Vorname
-        rHa!KVNr = Left$(REPLACE$(rKv!KVNr, "/", vNS), 7)
+        rHa!KVNr = left$(REPLACE$(rKv!KVNr, "/", vNS), 7)
         rHa!anschrift = rKv!Straße & ", " & rKv!plz & " " & rKv!ort
         rHa!plz = rKv!plz
         rHa!ort = rKv!ort
@@ -8995,7 +8995,7 @@ vonvorne:
           End If
          Next iii
         End If
-        Üw1(3, stand) = "Üw " & Left$(rFa(j).Quartal, 1) & Right$(rFa(j).Quartal, 2)
+        Üw1(3, stand) = "Üw " & left$(rFa(j).Quartal, 1) & Right$(rFa(j).Quartal, 2)
         If runde = 1 Then
          Üw1(1, stand) = rFa(j).ÜWNaN
          Üw1(2, stand) = rFa(j).ÜWVor
@@ -9175,12 +9175,12 @@ Function Üw12$(Pat_ID&, Üw1$()) ' Saubere Funktion zum Ermitteln der Überweisern
          For iii = Len(Üw1(0, stand)) To 0 Step -1
           If Not IsNumeric(Mid$(Üw1(0, stand), iii, 1)) Then
            Üw1(0, stand) = Mid$(Üw1(0, stand), iii + 1)
-           If Len(Üw1(0, stand)) > 7 Then Üw1(0, stand) = Left$(Üw1(0, stand), 7)
+           If Len(Üw1(0, stand)) > 7 Then Üw1(0, stand) = left$(Üw1(0, stand), 7)
            Exit For
           End If
          Next iii
         End If
-        Üw1(3, stand) = "Üw " & Left$(raFa!Quartal, 1) & Right$(raFa!Quartal, 2)
+        Üw1(3, stand) = "Üw " & left$(raFa!Quartal, 1) & Right$(raFa!Quartal, 2)
         If runde > 1 Then
          Üw1(1, stand) = raFa!ÜWNaN
          Üw1(2, stand) = raFa!ÜWVor
@@ -9207,7 +9207,7 @@ Function Üw12$(Pat_ID&, Üw1$()) ' Saubere Funktion zum Ermitteln der Überweisern
     If rsNa!KVNr <> "0000000" And LenB(rsNa!KVNr) <> 0 Then
      obalt = 0
      For i = 0 To stand
-      If Left$(Üw1(0, i), 7) = rsNa!KVNr Then
+      If left$(Üw1(0, i), 7) = rsNa!KVNr Then
        Üw1(3, i) = Üw1(3, i) & ", HA"
        obalt = True
        Exit For
@@ -9484,9 +9484,9 @@ habDC:
      RestDa = 0
      Set pakt = r2.Range.paragraphs(1).Next
      Do While pakt.Range.Text <> vbCr
-      If Left$(pakt.Range, 1) <> vbTab And Not IsDate(Left$(pakt.Range, 8)) Then GoTo Fertig
-      If IsDate(Left$(pakt.Range, 8)) And IsNumeric(Left$(pakt.Range, 8)) Then ' Ergänzung isnumeric 27.4.08 Jörger
-       If CDate(Left$(pakt.Range, 8)) > VorDat Then
+      If left$(pakt.Range, 1) <> vbTab And Not IsDate(left$(pakt.Range, 8)) Then GoTo Fertig
+      If IsDate(left$(pakt.Range, 8)) And IsNumeric(left$(pakt.Range, 8)) Then ' Ergänzung isnumeric 27.4.08 Jörger
+       If CDate(left$(pakt.Range, 8)) > VorDat Then
          RestDa = True
          GoTo Fertig
        End If
@@ -9550,7 +9550,7 @@ Function ArBName$(sverz, Nachname$, Vorname$, Pat_ID$, infos$())
   Next
   If ident = 0 Then
    If infos(14, i) <> vNS Then
-    ArBName = ArBName & IIf(i = 0, " an ", " und ") & "Dr." & IIf(Len(infos(9, i)) > 0, Left$(infos(9, i), 1) & ".", "") & infos(14, i)
+    ArBName = ArBName & IIf(i = 0, " an ", " und ") & "Dr." & IIf(Len(infos(9, i)) > 0, left$(infos(9, i), 1) & ".", "") & infos(14, i)
    End If
   End If
  Next i
@@ -9578,7 +9578,7 @@ Function ArBName$(sverz, Nachname$, Vorname$, Pat_ID$, infos$())
    End If
   End If
  Next i
- ArBName = Left$(ArBName, 255 - Len(sverz) - Len(Faxnr) - 4) & REPLACE$(Faxnr, "\N", "") & ".doc"
+ ArBName = left$(ArBName, 255 - Len(sverz) - Len(Faxnr) - 4) & REPLACE$(Faxnr, "\N", "") & ".doc"
  Exit Function
 fehler:
  Dim AnwPfad$
@@ -9684,7 +9684,7 @@ Function letzteMed(dc, Pat_ID$, briefneu%)
 '    beme = vNS
 '  Else
 ' 25.3.23: Klammern weggelassen
-   If Left$(bemerk, 2) = Chr(13) & Chr(10) Then bemerk = Mid$(bemerk, 3)
+   If left$(bemerk, 2) = Chr(13) & Chr(10) Then bemerk = Mid$(bemerk, 3)
 '   dc.bookmarks!MedBemerkung.Range = raDat!Bmkg
 '    dc.Range(Tabl.Range.END, dc.bookmarks!DMPText.Start).Font.size = 8
 '    dc.Range(Tabl.Range.END, Tabl.Range.END) = replace$(bemerk, Chr(171), "½") + Chr(13) + Chr(10)
@@ -10383,7 +10383,7 @@ w2:
    VeroI = REPLACE$(VeroI, "diabetes adapie", "diabetesadaptie")
    VeroI = REPLACE$(VeroI, "undAbsatzrolle", "und Absatzrolle")
    If InStrB(VeroI, "D:") > 0 Then
-    Vero = Left$(VeroI, InStr(rlar!Inhalt, "D:") - 1)
+    Vero = left$(VeroI, InStr(rlar!Inhalt, "D:") - 1)
    Else
     Vero = VeroI
    End If
@@ -10795,7 +10795,7 @@ keineGFR:
 '    If rAu!Zeitpunkt > VorDat Then
      If Not obkomma Then Epi = Epi + "Für folgende Zeiträume wurden Arbeitsunfähigkeitsbescheinigungen ausgestellt: "
      If obkomma Then Epi = Epi + ", "
-     Epi = Epi + IIf(rAu!Beginn = "00000000", vNS, Format$(Left$(rAu!Beginn, 4) + Right$(rAu!Beginn, 2), "##\.##\.##")) + "-" + Format$(Left$(rAu!Ende, 4) + Right$(rAu!Ende, 2), "##\.##\.##")
+     Epi = Epi + IIf(rAu!Beginn = "00000000", vNS, Format$(left$(rAu!Beginn, 4) + Right$(rAu!Beginn, 2), "##\.##\.##")) + "-" + Format$(left$(rAu!Ende, 4) + Right$(rAu!Ende, 2), "##\.##\.##")
      obkomma = -1
 '    End If
     rAu.Move 1
@@ -12089,7 +12089,7 @@ Call DtbCreateQueryDef(VN, Vsql)
 
 If LVobMySQL Then
  VN = "aktfaelle"
-  Vsql = "SELECT f.pat_id pid, notiz, stru.leistung stru, chron.leistung chron, kt.ct kt, ebm.leistung verspau " & vbCrLf & _
+  Vsql = "SELECT f.pat_id pid, info, notiz, stru.leistung stru, chron.leistung chron, kt.ct kt, ebm.leistung verspau " & vbCrLf & _
  ",(SELECT icd FROM diagview d WHERE d.pat_id=f.pat_id AND (d.gicd REGEXP '^E1[0-4]\.|^R73' OR (d.icd LIKE 'O24%' AND d.Dggel=0 AND d.diagsicherheit IN ('G',' ') AND d.diagdatum BETWEEN qbegs(f.quartal) AND qends(f.quartal))) ORDER BY icd LIMIT 1) icd " & vbCrLf & _
  ", f.*, k.id, k.name kname, kateg, anzahlik, anzahlktug, gültigvon, gültigbis, go, kurzname " & vbCrLf & _
  "FROM ((`faelle` f " & vbCrLf & _
@@ -15146,7 +15146,7 @@ Sub LaborIns1(ByRef dc As Object, Pat_ID$, nurLabor%, briefneu%) ' nur in tuBrie
      If Len(Matr2(0, i, j)) < 11 Or i < 6 Then
       zellaus = Matr2(0, i, j)
      Else
-      zellaus = Left$(Matr2(0, i, j), 8) & ".."
+      zellaus = left$(Matr2(0, i, j), 8) & ".."
      End If
 '     If zellaus = "55.2" Then Stop
 '     On Error Resume Next ' 12.11.25: bei Pat. 64562 i=17, ubound=16 (?)
@@ -15169,7 +15169,7 @@ Sub LaborIns1(ByRef dc As Object, Pat_ID$, nurLabor%, briefneu%) ' nur in tuBrie
   End If
 ' dc.Range(Tabl.Range.End, Tabl.Range.End) = "Vor dem " & Matr2(0, 6, 0) & " wurden noch bestimmt: " & ZusText
  If LenB(ZusText) > 2 Then
-  ZusText = Left$(ZusText, Len(ZusText) - 2)
+  ZusText = left$(ZusText, Len(ZusText) - 2)
   ZusText = "Vor dem " & Matr2(0, 6, 0) & " wurden noch bestimmt: " & ZusText
   If briefneu Then
    ag.Append "<w:p><w:pPr><w:pStyle w:val=""Normal""/><w:ind w:hanging=""0"" w:left=""-1077"" w:right=""0""/></w:pPr><w:r><w:rPr><w:sz w:val=""18""/></w:rPr><w:br/><w:t>" & zsuh(ZusText) & "</w:t></w:r></w:p>"
@@ -15254,7 +15254,7 @@ Sub LaborIns1(ByRef dc As Object, Pat_ID$, nurLabor%, briefneu%) ' nur in tuBrie
    If Len(Matr2(0, i, j)) < 11 Or i < 6 Then
     Tabl.cell(j + 1, i - 2) = Matr2(0, i, j)
    Else
-    Tabl.cell(j + 1, i - 2) = Left$(Matr2(0, i, j), 8) & ".."
+    Tabl.cell(j + 1, i - 2) = left$(Matr2(0, i, j), 8) & ".."
    End If
   Next j
  Next
@@ -16107,7 +16107,7 @@ With Wapp.activedocument
       End If
       For i = 1 To rz ' Datum
        Line Input #16, ct
-       .cell(1, 3 + i).Range = Left$(ct, 10) ' mit ganzem Jahr
+       .cell(1, 3 + i).Range = left$(ct, 10) ' mit ganzem Jahr
       Next
       Line Input #16, zZStr
       ZZ = Val(zZStr)
@@ -16150,7 +16150,7 @@ With Wapp.activedocument
        .cell(aktz, 2).Range = Einh
        Line Input #16, Datu
        For i = 4 To .Columns.COUNT
-        If Left$(.cell(1, i).Range, 10) = Datu Then
+        If left$(.cell(1, i).Range, 10) = Datu Then
          Exit For
         End If
        Next i
@@ -16175,7 +16175,7 @@ With Wapp.activedocument
         .Columns(2).Width = 47
         .Columns(3).Width = 42
         For i = 4 To .Columns.COUNT
-         .cell(1, i).Range = Format$(Left$(.cell(1, i).Range, 10), "dd.mm.yyyy")
+         .cell(1, i).Range = Format$(left$(.cell(1, i).Range, 10), "dd.mm.yyyy")
          .Columns(i).Width = 30
         Next i
         For i = 2 To .Rows.COUNT
@@ -16467,7 +16467,7 @@ Function do_ha_click(ByVal HANr)
  teile = Split(HANr, "_")
  If UBound(teile) > -1 Then
   If InStrB(teile(0), "/") = 0 Then
-   teile(0) = Left$(teile(0), 2) + "/" + Mid$(teile(0), 3) 'replace$(teile(0), "/", vns)
+   teile(0) = left$(teile(0), 2) + "/" + Mid$(teile(0), 3) 'replace$(teile(0), "/", vns)
   End If
  End If
  If UBound(teile) = 2 Then rHa.Seek "=", teile(0), Trim$(teile(1)), Trim$(teile(2))
@@ -16580,7 +16580,7 @@ Function do_haakt(rHa As ADODB.Recordset)
      rHa!ort = ars!ort
      rHa!plz = ars!plz
      rHa!Straße = ars!Straße
-     rHa!KVNr = Left$(REPLACE$(ars!KVNr, "/", vNS), 7)
+     rHa!KVNr = left$(REPLACE$(ars!KVNr, "/", vNS), 7)
      rHa.Update
  End If
  Exit Function
@@ -16706,7 +16706,7 @@ Function z$(rHa, FeName$, ByVal q, DBNr&)
  On Error GoTo fehler
  Select Case rHa.Fields(FeName).Type
   Case 10
-   z = Left$(q, rHa.Fields(FeName).size)
+   z = left$(q, rHa.Fields(FeName).size)
   Case Else ' 12 = Memo
    z = q
  End Select
@@ -17498,7 +17498,7 @@ Function doDiagnosenexport(Optional obTest%)
          If ICD <> vNS Then
           If InStrB("VGZA", Right$(ICD, 1)) > 0 And Right$(ICD, 1) <> vNS Then
            DiagSi = Right$(ICD, 1)
-           ICD = Left$(ICD, Len(ICD) - 1)
+           ICD = left$(ICD, Len(ICD) - 1)
            Select Case DiagSi
             Case "V": DiagText = LTrim$(REPLACE$(DiagText, "V.a.", vNS))
             Case "Z": DiagText = LTrim$(REPLACE$(DiagText, "Z.n.", vNS))

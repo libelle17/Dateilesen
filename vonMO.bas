@@ -384,7 +384,7 @@ Public Function ParseMemo(FMemo$, MeStr() As memoType, Optional obDebug%, Option
       For i = 0 To UBound(eb)
        ebS = ebS & eb(i).Wert & "."
       Next i
-      If Right$(ebS, 1) = "." Then ebS = Left$(ebS, Len(ebS) - 1)
+      If Right$(ebS, 1) = "." Then ebS = left$(ebS, Len(ebS) - 1)
      End If ' SafeArrayGetDim(eb) <> 0 Then
      If SafeArrayGetDim(MeStr) = 0 Then
        ReDim MeStr(0)
@@ -401,7 +401,7 @@ Public Function ParseMemo(FMemo$, MeStr() As memoType, Optional obDebug%, Option
      MeStr(UBound(MeStr)).mx = MAX
      MeStr(UBound(MeStr)).ebn = ie
      MeStr(UBound(MeStr)).ENr = ebS
-     If Asc(Right$(txt, 1)) = 0 Then txt = Left$(txt, Len(txt) - 1)
+     If Asc(Right$(txt, 1)) = 0 Then txt = left$(txt, Len(txt) - 1)
      MeStr(UBound(MeStr)).Text = txt
 '     If obDebug Then
 '      Print #255, pos & "|" & MAX & "|" & ie & "|" & ebS & "|" & Mid$(FMemo, pos, 1) & "|" & Asc(Mid$(FMemo, pos, 1)) & "|" & Asc(Mid$(FMemo, pos + 1, 1)) * 256& + Asc(Mid$(FMemo, pos, 1)) & "| aktMax: " & aktmax & "| altMax: " & altmax & "| Laenge: " & Len(txt) & "| EndByte: " & Asc(Mid$(FMemo, aktmax, 1)) & "|" & txt & vbCrLf
@@ -433,7 +433,7 @@ Public Function ParseMemo(FMemo$, MeStr() As memoType, Optional obDebug%, Option
      MeStr(i).endsz = "!: " & MeStr(i).znr - 1 & ">" & Len(FMemo)
     End If
     If obDebug Then
-     Print #255, MeStr(i).znr & "|" & MeStr(i).mx & "|" & MeStr(i).ebn & "|" & MeStr(i).ENr & "|" & IIf(MeStr(i).endse <> "10", Mid$(FMemo, MeStr(i).znr, 1), "") & "|" & MeStr(i).endse & "|" & MeStr(i).endsz & "| Laenge: " & Len(MeStr(i).Text) & "|" & IIf(Right$(MeStr(i).Text, 1) = Chr$(10), Left$(MeStr(i).Text, IIf(Len(MeStr(i).Text) = 0, 1, Len(MeStr(i).Text)) - 1), MeStr(i).Text)
+     Print #255, MeStr(i).znr & "|" & MeStr(i).mx & "|" & MeStr(i).ebn & "|" & MeStr(i).ENr & "|" & IIf(MeStr(i).endse <> "10", Mid$(FMemo, MeStr(i).znr, 1), "") & "|" & MeStr(i).endse & "|" & MeStr(i).endsz & "| Laenge: " & Len(MeStr(i).Text) & "|" & IIf(Right$(MeStr(i).Text, 1) = Chr$(10), left$(MeStr(i).Text, IIf(Len(MeStr(i).Text) = 0, 1, Len(MeStr(i).Text)) - 1), MeStr(i).Text)
     End If ' obDebug
    Next i
   End If ' SafeArrayGetDim(MeStr)
@@ -586,14 +586,14 @@ Public Function WechsMemo(TabName$, snr&, mfeld$, anENr$, neu$, art$, MeStr() As
       For i = 0 To UBound(eb)
        aktenr = aktenr & eb(i).Wert & "."
       Next i
-      If Right$(aktenr, 1) = "." Then aktenr = Left$(aktenr, Len(aktenr) - 1)
+      If Right$(aktenr, 1) = "." Then aktenr = left$(aktenr, Len(aktenr) - 1)
      End If ' SafeArrayGetDim(eb) <> 0 Then
      If aktenr = anENr Then
-      Debug.Print "txt: '" & Left$(txt, 8) & "'"
+      Debug.Print "txt: '" & left$(txt, 8) & "'"
       reppos = pos
       If obUmdreh Then
         If Mid$(txt, 5, 1) = "2" Or Mid$(txt, 5, 2) = "19" Then
-         neus = Mid$(txt, 5, 4) & Left$(txt, 4)
+         neus = Mid$(txt, 5, 4) & left$(txt, 4)
 '         Debug.Print neu
         Else ' Mid$(
          neus = txt
@@ -615,7 +615,7 @@ Public Function WechsMemo(TabName$, snr&, mfeld$, anENr$, neu$, art$, MeStr() As
             WechsMemo = 1
        End Select
       End If ' obUmdreh Then Else
-      If Left$(neus, nlen) <> Left$(txt, nlen) Then
+      If left$(neus, nlen) <> left$(txt, nlen) Then
        sqls = "UPDATE `" & TabName & "` SET `" & mfeld & "`=CONCAT(LEFT(`" & mfeld & "`," & reppos & "+1)," & neus & ",MID(`" & mfeld & "`," & reppos & "+2+" & nlen & ")) WHERE fsurogat=" & snr
        Debug.Print sqls
        Call MOCon.Execute(sqls, rAf)
@@ -638,7 +638,7 @@ Public Function WechsMemo(TabName$, snr&, mfeld$, anENr$, neu$, art$, MeStr() As
      MeStr(UBound(MeStr)).mx = MAX
      MeStr(UBound(MeStr)).ebn = ie
      MeStr(UBound(MeStr)).ENr = aktenr
-     If Asc(Right$(txt, 1)) = 0 Then txt = Left$(txt, Len(txt) - 1)
+     If Asc(Right$(txt, 1)) = 0 Then txt = left$(txt, Len(txt) - 1)
      MeStr(UBound(MeStr)).Text = txt
 '     If obDebug Then
 '      Print #255, pos & "|" & MAX & "|" & ie & "|" & aktenr & "|" & Mid$(FMemo, pos, 1) & "|" & Asc(Mid$(FMemo, pos, 1)) & "|" & Asc(Mid$(FMemo, pos + 1, 1)) * 256& + Asc(Mid$(FMemo, pos, 1)) & "| aktMax: " & aktmax & "| altMax: " & altmax & "| Laenge: " & Len(txt) & "| EndByte: " & Asc(Mid$(FMemo, aktmax, 1)) & "|" & txt & vbCrLf
@@ -670,7 +670,7 @@ Public Function WechsMemo(TabName$, snr&, mfeld$, anENr$, neu$, art$, MeStr() As
      MeStr(i).endsz = "!: " & MeStr(i).znr - 1 & ">" & Len(FMemo)
     End If
     If obDebug Then
-     Print #255, MeStr(i).znr & "|" & MeStr(i).mx & "|" & MeStr(i).ebn & "|" & MeStr(i).ENr & "|" & IIf(MeStr(i).endse <> "10", Mid$(FMemo, MeStr(i).znr, 1), "") & "|" & MeStr(i).endse & "|" & MeStr(i).endsz & "| Laenge: " & Len(MeStr(i).Text) & "|" & IIf(Right$(MeStr(i).Text, 1) = Chr$(10), Left$(MeStr(i).Text, IIf(Len(MeStr(i).Text) = 0, 1, Len(MeStr(i).Text)) - 1), MeStr(i).Text)
+     Print #255, MeStr(i).znr & "|" & MeStr(i).mx & "|" & MeStr(i).ebn & "|" & MeStr(i).ENr & "|" & IIf(MeStr(i).endse <> "10", Mid$(FMemo, MeStr(i).znr, 1), "") & "|" & MeStr(i).endse & "|" & MeStr(i).endsz & "| Laenge: " & Len(MeStr(i).Text) & "|" & IIf(Right$(MeStr(i).Text, 1) = Chr$(10), left$(MeStr(i).Text, IIf(Len(MeStr(i).Text) = 0, 1, Len(MeStr(i).Text)) - 1), MeStr(i).Text)
     End If ' obDebug
    Next i
   End If ' SafeArrayGetDim(MeStr)
@@ -1014,7 +1014,7 @@ Public Sub doNotizen(Optional fPtNr& = 0, Optional mitSpeichern% = True)
  Dim ErrNr&, ErrDes$
  If SafeArrayGetDim(rNa) = 0 Then
   ReDim rNa(0)
-  rNa(0).Pat_id = fPtNr
+  rNa(0).Pat_ID = fPtNr
  End If
  Call MOConInit(, "doNotzizen(" & fPtNr & "," & CStr(mitSpeichern) & ")")
 ' Dim rNa() As namen
@@ -1284,7 +1284,7 @@ abermals:
   aDesk(UBound(aDesk)).IDS = rdesk!IDS
   aDesk(UBound(aDesk)).noteBkColor = rdesk!noteBkColor
   aDesk(UBound(aDesk)).noteFgColor = rdesk!noteFgColor
-  aDesk(UBound(aDesk)).Pat_id = pid
+  aDesk(UBound(aDesk)).Pat_ID = pid
   aDesk(UBound(aDesk)).positionBottom = rdesk!positionBottom
   aDesk(UBound(aDesk)).positionLeft = rdesk!positionLeft
   aDesk(UBound(aDesk)).positionRight = rdesk!positionRight
@@ -1377,7 +1377,7 @@ abermals:
  rsNa.Open sql, MOCon, adOpenStatic, adLockReadOnly
  If Not rsNa.BOF Then
   rNa(0).aktZeit = 0 ' aktZeit ' erst am Schluss, s.u.
-  rNa(0).Pat_id = pid ' = fPtNr
+  rNa(0).Pat_ID = pid ' = fPtNr
   rNa(0).TM_Pat_ID = TMPid(pid) ' 6.4.25
   rNa(0).lfdnr = -1 ' Import aus MO
   rNa(0).Nachname = doUmwfSQL(rsNa!fnachname, True)
@@ -1410,35 +1410,35 @@ abermals:
  
   rNa(0).PrivatTel = rsNa!FTelefonprivat
   pos = InStr(rNa(0).PrivatTel, " (")
-  If pos <> 0 Then rNa(0).PrivatTel = Left$(rNa(0).PrivatTel, pos - 1)
+  If pos <> 0 Then rNa(0).PrivatTel = left$(rNa(0).PrivatTel, pos - 1)
  
   If InStrB(rsNa!ftelefonmobil, "dienstlich") <> 0 Then
    rNa(0).DienstTel = rsNa!ftelefonmobil
    pos = InStr(rNa(0).DienstTel, " (")
-   If pos <> 0 Then rNa(0).DienstTel = Left$(rNa(0).DienstTel, pos - 1)
+   If pos <> 0 Then rNa(0).DienstTel = left$(rNa(0).DienstTel, pos - 1)
   ElseIf InStrB(rsNa!ftelefonmobil, "Funktelefon") <> 0 Then
    rNa(0).PrivatMobil = rsNa!ftelefonmobil
    pos = InStr(rNa(0).PrivatMobil, " (")
-   If pos <> 0 Then rNa(0).PrivatMobil = Left$(rNa(0).PrivatMobil, pos - 1)
+   If pos <> 0 Then rNa(0).PrivatMobil = left$(rNa(0).PrivatMobil, pos - 1)
   Else
    rNa(0).PrivatTel_2 = rsNa!ftelefonmobil
    pos = InStr(rNa(0).PrivatTel_2, " (")
-   If pos <> 0 Then rNa(0).PrivatTel_2 = Left$(rNa(0).PrivatTel_2, pos - 1)
+   If pos <> 0 Then rNa(0).PrivatTel_2 = left$(rNa(0).PrivatTel_2, pos - 1)
   End If
  
   If rsNa!ftelefondienst <> "" Then
    rNa(0).PrivatMobil = rsNa!ftelefondienst
    pos = InStr(rNa(0).PrivatMobil, " (")
-   If pos <> 0 Then rNa(0).PrivatMobil = Left$(rNa(0).PrivatMobil, pos - 1)
+   If pos <> 0 Then rNa(0).PrivatMobil = left$(rNa(0).PrivatMobil, pos - 1)
   End If
  
   rNa(0).PrivatFax = rsNa!ffax
   pos = InStr(rNa(0).PrivatFax, " (")
-  If pos <> 0 Then rNa(0).PrivatFax = Left$(rNa(0).PrivatFax, pos - 1)
+  If pos <> 0 Then rNa(0).PrivatFax = left$(rNa(0).PrivatFax, pos - 1)
  
   rNa(0).email = rsNa!femail
   pos = InStr(rNa(0).email, " (")
-  If pos <> 0 Then rNa(0).email = Left$(rNa(0).email, pos - 1)
+  If pos <> 0 Then rNa(0).email = left$(rNa(0).email, pos - 1)
   
   
   On Error Resume Next
@@ -1457,7 +1457,7 @@ abermals:
       Case "2" ' Notiz in der Patientenbearbeitung
          rNa(0).notiz = UmwfSQL(NaStr(j).Text)
       Case "18" ' Notiz im dynamic view
-         rNa(0).notiz = UmwfSQL(REPLACE$(REPLACE$(LTrim$(IIf(Left$(LTrim$(NaStr(j).Text), 6) = "Notiz:", Mid$(LTrim$(NaStr(j).Text), 7), NaStr(j).Text)), vbCrLf, Chr$(10)), Chr$(10), vbCrLf) & IIf(rNa(0).notiz = "", "", vbCrLf & rNa(0).notiz))
+         rNa(0).notiz = UmwfSQL(REPLACE$(REPLACE$(LTrim$(IIf(left$(LTrim$(NaStr(j).Text), 6) = "Notiz:", Mid$(LTrim$(NaStr(j).Text), 7), NaStr(j).Text)), vbCrLf, Chr$(10)), Chr$(10), vbCrLf) & IIf(rNa(0).notiz = "", "", vbCrLf & rNa(0).notiz))
       Case "21.1": ' asc( Zahl der eingetragenen Kinder
          rNa(0).ZdeK = Asc(NaStr(j).Text)
 '     case "22": ' 71101, 02602, 68415, , 72601, 95301
@@ -1491,7 +1491,7 @@ abermals:
     ReDim Preserve rFa(UBound(rFa) + 1)
     rFa(UBound(rFa)).aktZeit = aktZeit
     rFa(UBound(rFa)).lfdnr = lfdfl
-    rFa(UBound(rFa)).Pat_id = pid
+    rFa(UBound(rFa)).Pat_ID = pid
     rFa(UBound(rFa)).AbrAr = ""
     rFa(UBound(rFa)).VermiArt = 0
     rFa(UBound(rFa)).bPerG = "0"
@@ -1664,8 +1664,8 @@ abermals:
            rFa(UBound(rFa)).DMPKnZ = Right$(FaStr(j).Text, 2) ' DMP-Klass: 00=-, 1=T2Dm, 2=Brustkr, 3=KHK, 4=T1Dm, 5=Asthma, 6=COPD, 7=Herzins, 8=Depr, 9=Rückensz, 10=Rheuma, 11=Osteoporose,
        Case "3.2.4", "1.3.2.4":
             rNa(0).eGKSchVer = FaStr(j).Text ' CDM-Version, z.B. 5.1.0, 5.2.0
-       Case "3.2.5.2", "1.3.2.5.2": rFa(UBound(rFa)).DtlOnlPfg = BDTtoDateTime(Left$(FaStr(j).Text, 14))
-       Case "3.2.5.3", "1.3.2.5.3": rFa(UBound(rFa)).ErgbdOnlP = Asc(Left$(FaStr(j).Text, 1))
+       Case "3.2.5.2", "1.3.2.5.2": rFa(UBound(rFa)).DtlOnlPfg = BDTtoDateTime(left$(FaStr(j).Text, 14))
+       Case "3.2.5.3", "1.3.2.5.3": rFa(UBound(rFa)).ErgbdOnlP = Asc(left$(FaStr(j).Text, 1))
        Case "3.2.5.4":
                               buch = Mid$(FaStr(j).Text, 2)
                               If buch = "" Then buch = Chr$(0)
@@ -1678,8 +1678,8 @@ abermals:
 '            Call VorstellSetz(rFa(UBound(rFa)).lVorl)
        Case "4.2", "1.4.2":   rFa(UBound(rFa)).VKNr = FaStr(j).Text ' letzeres Pat. 70326
 '       Case "4.3", "1.4.3": ' Kostenträgergruppe BDT 2018, in Turbomed nicht in der Falldatei
-       Case "4.4", "1.4.4":   rFa(UBound(rFa)).KtrAbrB = Trim$(Left$(FaStr(j).Text, 2)) ' BDT 4106 unter 80000 Fällen fast immer 00, sonst 0, 00, 01, 06, 08, 1 und 2
-       Case "4.5", "1.4.5":   rFa(UBound(rFa)).Kasse = Left$(FaStr(j).Text & Space$(27), 27) & " " & rFa(UBound(rFa)).Kasse ' letzters bei Pat. 70326
+       Case "4.4", "1.4.4":   rFa(UBound(rFa)).KtrAbrB = Trim$(left$(FaStr(j).Text, 2)) ' BDT 4106 unter 80000 Fällen fast immer 00, sonst 0, 00, 01, 06, 08, 1 und 2
+       Case "4.5", "1.4.5":   rFa(UBound(rFa)).Kasse = left$(FaStr(j).Text & Space$(27), 27) & " " & rFa(UBound(rFa)).Kasse ' letzters bei Pat. 70326
        Case "4.6":            If Trim$(FaStr(j).Text) = "1" Then rFa(UBound(rFa)).UnfFlg = "1"
        Case "4.7":            rFa(UBound(rFa)).AbrGb = Format$(FaStr(j).Text, String(2, "0"))
 '                   If FaStr(j).Text <> "7" Then Stop
@@ -1688,7 +1688,7 @@ abermals:
        Case "4.13":          ' gültig von, stzk( ' BDT 4150
        Case "4.14":          ' gültig bis, stzk( ' BDT 4151 = 4152
        Case "4.15":          rFa(UBound(rFa)).SktBem = FaStr(j).Text ' Skt-Bemerkung, BDT 4126
-       Case "4.21": rFa(UBound(rFa)).VermiArt = Left$(FaStr(j).Text, 1) ' 4.22: Zusatzinfo, 4.23: Vermittlungscode, 4.24: Datum d. Terminvermittulung
+       Case "4.21": rFa(UBound(rFa)).VermiArt = left$(FaStr(j).Text, 1) ' 4.22: Zusatzinfo, 4.23: Vermittlungscode, 4.24: Datum d. Terminvermittulung
            ' dabei (Vermittlungsart 6) auch noch FAmbulStat auf 1 gesetzt (?)
        Case "4.22":          rFa(UBound(rFa)).VermiZusatz = Trim$(FaStr(j).Text)
        Case "4.23":
@@ -1754,9 +1754,9 @@ m105:
        Case "10.6", "1.10.6"
             Dim han$, hav$, hatit$, hapos%
             hapos = InStr(FaStr(j).Text, "med.")
-            If hapos <> 0 Then han = Trim$(Mid$(FaStr(j).Text, hapos + 4)): hatit = Left$(FaStr(j).Text, hapos + 4) Else han = FaStr(j).Text: hatit = ""
+            If hapos <> 0 Then han = Trim$(Mid$(FaStr(j).Text, hapos + 4)): hatit = left$(FaStr(j).Text, hapos + 4) Else han = FaStr(j).Text: hatit = ""
             hapos = InStr(han, ",")
-            If hapos <> 0 Then hav = Mid$(han, hapos + 1): han = Left$(han, hapos - 1)
+            If hapos <> 0 Then hav = Mid$(han, hapos + 1): han = left$(han, hapos - 1)
             rFa(UBound(rFa)).ÜWNaN = han
             rFa(UBound(rFa)).ÜWTit = hatit
             rFa(UBound(rFa)).ÜWVor = hav
@@ -1836,7 +1836,7 @@ m105:
    For j = 0 To UBound(NaStr)
     If NaStr(j).ENr Like "21.*" And NaStr(j).ENr <> "21.1" Then
      ReDim Preserve rSw(UBound(rSw) + 1)
-     rSw(UBound(rSw)).Pat_id = pid
+     rSw(UBound(rSw)).Pat_ID = pid
      rSw(UBound(rSw)).FormTitel = "ssd"
      rSw(UBound(rSw)).vorET = stzk(NaStr(j).Text)
      rSw(UBound(rSw)).lR = rSw(UBound(rSw)).vorET - 280
@@ -1912,7 +1912,8 @@ m105:
 '                166: "link: ...", 169: "brief: ...", "wbr: ..."; 501 u. 598: jpg und tif, ohne Vorsilben, z.T. mit "link: " bei Sono-Bildern
 '                1001: Eintrag (auch, aber nicht nur: sono) Zeile abgeschnitten, 1002: Eintrag aug, 1003: Blutabnahme, 1004: Einträge
 '                1004: Text (Text)
-'                1005: Desktop-Notizen, 1006: Einträge
+'                1005: Desktop-Notizen
+'                1006: Einträge
 '                1019: cr
 '                1028: Icon aus Turbomed
 '                1045: tk (tk)
@@ -2601,14 +2602,14 @@ sql = sql & _
        DokuDatum = CDate(rsEi!Zp)
     
        For ij = 1 To UBound(rDm) ' um dem eindeutigen Index gerecht zu werden
-        If rDm(ij).Pat_id = pid And rDm(ij).DMPArt = DMPArt And rDm(ij).DokuDatum = DokuDatum Then
+        If rDm(ij).Pat_ID = pid And rDm(ij).DMPArt = DMPArt And rDm(ij).DokuDatum = DokuDatum Then
          rj = ij
          GoTo gefunden
         End If
        Next ij
        rj = UBound(rDm) + 1
        ReDim Preserve rDm(rj)
-       rDm(rj).Pat_id = pid
+       rDm(rj).Pat_ID = pid
        rDm(rj).DMPArt = DMPArt
        rDm(rj).DokuDatum = DokuDatum
 gefunden:
@@ -2643,7 +2644,7 @@ gefunden:
     ElseIf rsEi!obRezE Then ' Rezepteintrag
      ReDim Preserve rRe(UBound(rRe) + 1)
      rRe(UBound(rRe)).aktZeit = aktZeit
-     rRe(UBound(rRe)).Pat_id = pid
+     rRe(UBound(rRe)).Pat_ID = pid
      rRe(UBound(rRe)).Zeitpunkt = rsEi!Zp
      rRe(UBound(rRe)).Medikament = doUmwfSQL(rsEi!Med, True)
      rRe(UBound(rRe)).PZN = rsEi!PZN
@@ -2703,7 +2704,7 @@ gefunden:
     Select Case rsEi!lFE
      Case 21 ' Krankenhauseinweisung
       ReDim Preserve rKh(UBound(rKh) + 1)
-      rKh(UBound(rKh)).Pat_id = pid
+      rKh(UBound(rKh)).Pat_ID = pid
       rKh(UBound(rKh)).Zeitpunkt = rsEi!Zp
       rKh(UBound(rKh)).aktZeit = aktZeit
       For j = 0 To UBound(FMem)
@@ -2712,12 +2713,12 @@ gefunden:
        If IsDate(mdat) Then
         mt = mdat
        Else
-        mt = Left$(mt, Len(mt) - 4)
+        mt = left$(mt, Len(mt) - 4)
         Do
          If LenB(mt) = 0 Then Exit Do
-         If Asc(Right$(mt, 1)) < 10 Then mt = Left$(mt, Len(mt) - 1) Else Exit Do ' 3 kommt auch vor
+         If Asc(Right$(mt, 1)) < 10 Then mt = left$(mt, Len(mt) - 1) Else Exit Do ' 3 kommt auch vor
         Loop
-        If Right$(mt, 1) = Chr$(10) Then mt = Left$(mt, Len(mt) - 1)
+        If Right$(mt, 1) = Chr$(10) Then mt = left$(mt, Len(mt) - 1)
         mt = doUmwfSQL(mt, True)
        End If ' IsDate(mdat) Then else
        Select Case FMem(j).ENr
@@ -2784,7 +2785,7 @@ fgefunden:
       ReDim Preserve rFr(UBound(rFr) + 1)
       rFr(UBound(rFr)).aktZeit = aktZeit
       rFr(UBound(rFr)).Form_ID = lFormID '-lFormID ' negative Speicherung, da der Wert noch nach der Datenbankspeicherung von rFo angepaßt werden muss
-      rFr(UBound(rFr)).Pat_id = pid
+      rFr(UBound(rFr)).Pat_ID = pid
       rFr(UBound(rFr)).Zeitpunkt = rsEi!Zp
 '      rFr(UBound(rFr)).lanrid = IIf(rsEi!FLstgerbnr = 3, 2, 1) ' 2 = Schade, 3 = Kothny
       Select Case rsEi!FLstgerbnr
@@ -2812,13 +2813,13 @@ fgefunden:
         If IsDate(mdat) Then
          mt = mdat
         Else
-         mt = Left$(mt, Len(mt) - 4)
+         mt = left$(mt, Len(mt) - 4)
          Do
           If LenB(mt) = 0 Then Exit Do
 '          If Asc(Right$(mt, 1)) < 10 Then mt = Left$(mt, Len(mt) - 1) Else Exit Do ' 3 kommt auch vor
-          If Asc(Right$(mt, 1)) = 0 Then mt = Left$(mt, Len(mt) - 1) Else Exit Do ' 3 kommt auch vor
+          If Asc(Right$(mt, 1)) = 0 Then mt = left$(mt, Len(mt) - 1) Else Exit Do ' 3 kommt auch vor
          Loop
-         If Right$(mt, 1) = Chr$(10) Then mt = Left$(mt, Len(mt) - 1)
+         If Right$(mt, 1) = Chr$(10) Then mt = left$(mt, Len(mt) - 1)
         End If
         rFm(UBound(rFm)).FeldInh = mt
         rFm(UBound(rFm)).FeldNr = j
@@ -2847,7 +2848,7 @@ fgefunden:
    Do While Not rsEi.EOF
 ' Typ As String 'Typ varchar '
     ReDim Preserve rBr(UBound(rBr) + 1)
-    rBr(UBound(rBr)).Pat_id = pid
+    rBr(UBound(rBr)).Pat_ID = pid
     rBr(UBound(rBr)).aktZeit = aktZeit
     rBr(UBound(rBr)).Zeitpunkt = rsEi!Zp
     rBr(UBound(rBr)).name = doUmwfSQL(rsEi!EName, True)
@@ -2877,7 +2878,7 @@ fgefunden:
    Do While Not rsEi.EOF
     If altlFSur <> rsEi!FDosierplannr Then MPNr = MPNr + 1: Fldnr = 1 Else Fldnr = Fldnr + 1
     ReDim Preserve rMe(UBound(rMe) + 1)
-    rMe(UBound(rMe)).Pat_id = pid
+    rMe(UBound(rMe)).Pat_ID = pid
     rMe(UBound(rMe)).Nutzer = rsEi!ua
     rMe(UBound(rMe)).aktZeit = aktZeit
     rMe(UBound(rMe)).Zeitpunkt = rsEi!Zp
@@ -2949,13 +2950,13 @@ fgefunden:
    Do While Not rsEi.EOF
     ReDim Preserve rAu(UBound(rAu) + 1)
     rAu(UBound(rAu)).aktZeit = aktZeit
-    rAu(UBound(rAu)).Pat_id = pid
+    rAu(UBound(rAu)).Pat_ID = pid
     rAu(UBound(rAu)).Zeitpunkt = rsEi!Zp ' rsEi!anzp ' 29.6.25 korrigiert
     rAu(UBound(rAu)).Ersteller = rsEi!ua
     rAu(UBound(rAu)).Änderer = rsEi!ub
     rAu(UBound(rAu)).art = rsEi!art
-    rAu(UBound(rAu)).Beginn = Left$(rsEi!VoN, 2) & Mid(rsEi!VoN, 4, 2) & "20" & Mid$(rsEi!VoN, 7, 2)
-    rAu(UBound(rAu)).Ende = Left$(rsEi!Bis, 2) & Mid(rsEi!Bis, 4, 2) & "20" & Mid$(rsEi!Bis, 7, 2)
+    rAu(UBound(rAu)).Beginn = left$(rsEi!VoN, 2) & Mid(rsEi!VoN, 4, 2) & "20" & Mid$(rsEi!VoN, 7, 2)
+    rAu(UBound(rAu)).Ende = left$(rsEi!Bis, 2) & Mid(rsEi!Bis, 4, 2) & "20" & Mid$(rsEi!Bis, 7, 2)
     rAu(UBound(rAu)).ICDs = rsEi!Diag
     rsEi.MoveNext
    Loop ' while not rsEi.EOF
@@ -3029,7 +3030,7 @@ fgefunden:
     art = rsEi!art
     neuart = 0
 '    If rsEi!FEintragsart = 1129 Then Stop
-'    If rsEi!FEintragsart = 1105 Then Stop => art ti => kommt in namen.notiz
+'    If rsEi!FEintragsart = 1105 Then Stop => art ti => kommt in namen.info
 '    If rsEi!FEintragsart = 1058 Then Stop ' andm2
     If art = "" Then ' bei Kategorien die art aus mosystem holen
      Set EintS = New SortierEintr
@@ -3075,17 +3076,17 @@ fgefunden:
 '    Else
     Select Case UCase$(art)
      Case "ti"
-       rNa(0).notiz = IIf(rNa(0).notiz = "", "", rNa(0).notiz & vbCrLf) & UmwfSQL(REPLACE$(REPLACE$(rsEi!FDet, "\n", ""), "\r", vbCrLf))
+       rNa(0).info = IIf(rNa(0).info = "", "", rNa(0).info & vbCrLf) & UmwfSQL(REPLACE$(REPLACE$(rsEi!FDet, "\n", ""), "\r", vbCrLf))
      Case "ICON" ' Desktop-Notiz
       ReDim Preserve rDe(UBound(rDe) + 1)
-      rDe(UBound(rDe)).Pat_id = pid
+      rDe(UBound(rDe)).Pat_ID = pid
       rDe(UBound(rDe)).aktZeit = aktZeit
       rDe(UBound(rDe)).Titel = UmwfSQL(rsEi!FDet)
       rDe(UBound(rDe)).erstZP = rsEi!Zp
       If SafeArrayGetDim(aDesk) <> 0 Then
        Dim k&
        For k = 0 To UBound(aDesk)
-        If pid = aDesk(k).Pat_id And Format$(rDe(UBound(rDe)).erstZP, "yyyymmddhhmm") = Format$(aDesk(k).erstZP, "yyyymmddhhmm") Then
+        If pid = aDesk(k).Pat_ID And Format$(rDe(UBound(rDe)).erstZP, "yyyymmddhhmm") = Format$(aDesk(k).erstZP, "yyyymmddhhmm") Then
 '        And InStrB(rDe(UBound(rDe)).Titel, aDesk(k).Titel) <> 0 Then
          rDe(UBound(rDe)).absPos = aDesk(k).absPos
          rDe(UBound(rDe)).erstZP = aDesk(k).erstZP
@@ -3160,19 +3161,19 @@ fgefunden:
        End Select
        
        For ij = 1 To UBound(rDm) ' um dem eindeutigen Index gerecht zu werden
-        If rDm(ij).Pat_id = pid And rDm(ij).DMPArt = DMPArt And rDm(ij).DokuDatum = messDatum Then
+        If rDm(ij).Pat_ID = pid And rDm(ij).DMPArt = DMPArt And rDm(ij).DokuDatum = messDatum Then
          rj = ij
          GoTo gef2
         End If
        Next ij
        rj = UBound(rDm) + 1
        ReDim Preserve rDm(rj)
-       rDm(rj).Pat_id = pid
+       rDm(rj).Pat_ID = pid
        rDm(rj).DMPArt = DMPArt
        rDm(rj).DokuDatum = messDatum
 gef2:
        rDm(rj).aktZeit = aktZeit
-       rDm(rj).Pat_id = pid
+       rDm(rj).Pat_ID = pid
        
        If rsEi!FIcdcode Like "*dmp*" And rsEi!FIcdcode <> "DMPERG" Then
 '        Debug.Print rsEi!ficdcode, rsEi!Wert
@@ -3185,7 +3186,7 @@ gef2:
         rDm(rj).ausgedruckt = InStrB(rsEi!FDet, "ausgedruckt")
        ElseIf UCase$(art) = "TEXT" And InStrB(rsEi!FDet, "dokumentation") <> 0 And InStrB(rsEi!FText, "dmp") <> 0 Then
         pos = InStr(rsEi!FArray, "#")
-        If pos > 0 Then rDm(rj).Abk = Left$(rsEi!FArray, pos - 1)
+        If pos > 0 Then rDm(rj).Abk = left$(rsEi!FArray, pos - 1)
         rDm(rj).art = IIf(InStrB(rsEi!FDet, "Erst"), "ED", "FD")
         rDm(rj).ausgedruckt = IIf(InStrB(rsEi!FDet, "ausgedruckt"), 1, 0)
         pos = 1
@@ -3214,7 +3215,7 @@ gef2:
       ' Einträge
        ReDim Preserve rEi(UBound(rEi) + 1)
        rEi(UBound(rEi)).aktZeit = aktZeit
-       rEi(UBound(rEi)).Pat_id = pid
+       rEi(UBound(rEi)).Pat_ID = pid
        rEi(UBound(rEi)).Zeitpunkt = messDatum
        rEi(UBound(rEi)).QS = ZQSort(rEi(UBound(rEi)).Zeitpunkt)
        rEi(UBound(rEi)).QT = ZQuart(rEi(UBound(rEi)).Zeitpunkt)
@@ -3231,7 +3232,7 @@ gef2:
          If rEi(UBound(rEi)).Inhalt Like "*[#]*:*" Then
           apos = InStr(rEi(UBound(rEi)).Inhalt, "#")
           If apos > 1 Then ' z.B. LF#LF nach Datenübertragung
-           a1 = Left$(rEi(UBound(rEi)).Inhalt, apos - 1)
+           a1 = left$(rEi(UBound(rEi)).Inhalt, apos - 1)
            a2 = Mid$(rEi(UBound(rEi)).Inhalt, apos + 1, InStr(apos + 1, rEi(UBound(rEi)).Inhalt, ":") - apos - 1)
            If a1 = a2 Then
             rEi(UBound(rEi)).art = a1
@@ -3244,7 +3245,7 @@ gef2:
         Else ' art = "TEXT" Then
          apos = InStr(art, "#")
          If apos > 1 Then ' z.B. LF#LF nach Datenübertragung
-          a1 = Left$(art, apos - 1)
+          a1 = left$(art, apos - 1)
           a2 = Mid$(art, apos + 1)
           If a1 = a2 Then rEi(UBound(rEi)).art = a1
          End If ' pos > 1 Then
@@ -3287,7 +3288,7 @@ gef2:
   If Not rsEi.BOF Then
    Do While Not rsEi.EOF
     ReDim Preserve rDe(UBound(rDe) + 1)
-    rDe(UBound(rDe)).Pat_id = pid
+    rDe(UBound(rDe)).Pat_ID = pid
     rDe(UBound(rDe)).erstZP = rsEi!Datum
     rDe(UBound(rDe)).Titel = doUmwfSQL(rsEi!FText, True)
     If rsEi!fm <> "" Then
@@ -3403,7 +3404,7 @@ LaborLangsam:
    Do While Not rsEi.EOF
     Dim ls&
     ReDim Preserve rLa(UBound(rLa) + 1): ls = UBound(rLa)
-    rLa(ls).Pat_id = pid
+    rLa(ls).Pat_ID = pid
     rLa(ls).Zeitpunkt = rsEi!Zp
 '    If Int(rLa(ls).Zeitpunkt) = #12/3/2024# Then Stop
     rLa(ls).FertigStGrad = "E" ' ergänzt 26.3.25
@@ -3564,7 +3565,7 @@ sql = sql & labsql & _
   End If ' not ohneLabor
  End If ' not laborlangsam
 '#End If ' not laborlangsam
-  myEFrag "UPDATE namen SET aktzeit=" & Format(aktZeit, "yyyymmddHHMMSS") & " WHERE pat_id=" & rNa(0).Pat_id, rAf, DBCn, , ErrNr, ErrDes
+  myEFrag "UPDATE namen SET aktzeit=" & Format(aktZeit, "yyyymmddHHMMSS") & " WHERE pat_id=" & rNa(0).Pat_ID, rAf, DBCn, , ErrNr, ErrDes
   If rAf = 1 Then
    syscmd 4, "Fertig mit doPatvonMO " & fPtNr & " auf '" & MOCon.Properties("Server Name") & "'"
   Else
@@ -3650,7 +3651,7 @@ Function holHAausMO(inf As InfoTyp, fPtNr&, Optional satznr%, Optional ByRef obg
       For iru = 0 To UBound(datf)
        pr = Split(datf(iru), " """)
        If UBound(pr) > 0 Then
-        pr(1) = Left$(pr(1), Len(pr(1)) - 1)
+        pr(1) = left$(pr(1), Len(pr(1)) - 1)
         Select Case pr(0)
          Case "Nachname": inf.Nachname = pr(1)
          Case "Vorname":  inf.Vorname = pr(1)
@@ -3805,7 +3806,7 @@ Function holHAausMO(inf As InfoTyp, fPtNr&, Optional satznr%, Optional ByRef obg
      Case 1: rNa(0).KVNr = inf.KVNr
         rNa(0).getHA0 = IIf(inf.KVNr = "", 0, inf.KVNr)
         rNa(0).fnHA0 = "(" & IIf(rsHa!FRelationtyp = -40 Or rsHa!FRelationtyp = -32, "HA", "Üw")
-        If UBound(rFa) <> 0 Then rNa(0).fnHA0 = rNa(0).fnHA0 & " " & Left$(rFa(1).Quartal, 1) & Right$(rFa(1).Quartal, 2)
+        If UBound(rFa) <> 0 Then rNa(0).fnHA0 = rNa(0).fnHA0 & " " & left$(rFa(1).Quartal, 1) & Right$(rFa(1).Quartal, 2)
         rNa(0).fnHA0 = rNa(0).fnHA0 & ")"
         rNa(0).BStNr = inf.BSNR
         rNa(0).Lanr = inf.Lanr
@@ -3814,12 +3815,12 @@ Function holHAausMO(inf As InfoTyp, fPtNr&, Optional satznr%, Optional ByRef obg
         rNa(0).getHA1 = inf.KVNr
         On Error GoTo fehler
         rNa(0).fnHA1 = "(" & IIf(rsHa!FRelationtyp = -40 Or rsHa!FRelationtyp = -32, "HA", "Üw")
-        If UBound(rFa) <> 0 Then rNa(0).fnHA1 = rNa(0).fnHA1 & " " & Left$(rFa(1).Quartal, 1) & Right$(rFa(1).Quartal, 2)
+        If UBound(rFa) <> 0 Then rNa(0).fnHA1 = rNa(0).fnHA1 & " " & left$(rFa(1).Quartal, 1) & Right$(rFa(1).Quartal, 2)
         rNa(0).fnHA1 = rNa(0).fnHA1 & ")"
      Case 3: rNa(0).KVNr3 = inf.KVNr
         If IsNumeric(KVNr) Then rNa(0).getHA2 = inf.KVNr
         rNa(0).fnHA2 = "(" & IIf(rsHa!FRelationtyp = -40 Or rsHa!FRelationtyp = -32, "HA", "Üw")
-        If UBound(rFa) <> 0 Then rNa(0).fnHA2 = rNa(0).fnHA2 & " " & Left$(rFa(1).Quartal, 1) & Right$(rFa(1).Quartal, 2)
+        If UBound(rFa) <> 0 Then rNa(0).fnHA2 = rNa(0).fnHA2 & " " & left$(rFa(1).Quartal, 1) & Right$(rFa(1).Quartal, 2)
         rNa(0).fnHA2 = rNa(0).fnHA2 & ")"
      Case 4: rNa(0).KVNr4 = inf.KVNr
     End Select
@@ -3925,20 +3926,20 @@ Public Sub turichtdiag()
  myFrag rPt, "SELECT COUNT(0) OVER() zahl, FPatnr FROM behgrund/* WHERE FStatus<>3*/ GROUP BY FPatnr ORDER BY FPatnr DESC LIMIT " & limit, adOpenStatic, MOCon
  If Not rPt.BOF Then
   Do While Not rPt.EOF
-   rNa(0).Pat_id = rPt!FPatNr
+   rNa(0).Pat_ID = rPt!FPatNr
    aktz = aktz + 1
 '   myFrag rPid, "SELECT 0 FROM faelle WHERE pat_id=" & rNa(0).Pat_ID & " LIMIT 1", adOpenStatic
 '   If Not rPid.BOF() Then
-    myFrag rPid, "DELETE from diagnosen WHERE pat_id =" & rNa(0).Pat_id, adOpenStatic, DBCn, adLockReadOnly, , rAf, , ErrNr, ErrDes
-    MODiagnosen rNa(0).Pat_id
+    myFrag rPid, "DELETE from diagnosen WHERE pat_id =" & rNa(0).Pat_ID, adOpenStatic, DBCn, adLockReadOnly, , rAf, , ErrNr, ErrDes
+    MODiagnosen rNa(0).Pat_ID
     If UBound(rDi) <> 0 Then
      diagnosenSpeichern True, Lese.dlg.BeziehungsfehlerSpeichern, rAf, True
-     sql = "UPDATE diagnosen d FORCE INDEX (auswahl) LEFT JOIN faelle f FORCE INDEX (auswahl) ON d.Pat_ID=f.pat_id AND d.diagdatum BETWEEN bhfb AND bhfe1 SET d.fid=f.fid WHERE d.pat_id= " & rNa(0).Pat_id & " ORDER BY diagdatum DESC;"
+     sql = "UPDATE diagnosen d FORCE INDEX (auswahl) LEFT JOIN faelle f FORCE INDEX (auswahl) ON d.Pat_ID=f.pat_id AND d.diagdatum BETWEEN bhfb AND bhfe1 SET d.fid=f.fid WHERE d.pat_id= " & rNa(0).Pat_ID & " ORDER BY diagdatum DESC;"
      myEFrag sql, rAf2, DBCn, , ErrNr, ErrDes
      ReDim rDi(0)
     End If
 '    Debug.Print aktz & "/" & rPt!Zahl, rNa(0).Pat_ID, rAf, rAf2
-    Lese.Ausgeb "-> " & aktz & "/" & rPt!Zahl & " " & rNa(0).Pat_id & " " & rAf & " " & rAf2, 0
+    Lese.Ausgeb "-> " & aktz & "/" & rPt!Zahl & " " & rNa(0).Pat_ID & " " & rAf & " " & rAf2, 0
     dzahl = dzahl + rAf2
 '   End If
    rPt.MoveNext
@@ -4056,7 +4057,7 @@ Sub MODiagnosen(fPtNr&, Optional pid&)
    Do While Not rsDi.EOF
     ReDim Preserve rDi(UBound(rDi) + 1)
     rDi(UBound(rDi)).aktZeit = aktZeit
-    rDi(UBound(rDi)).Pat_id = pid
+    rDi(UBound(rDi)).Pat_ID = pid
     rDi(UBound(rDi)).DiagDatum = rsDi!diagdat
     rDi(UBound(rDi)).DiagSicherheit = rsDi!sich
     rDi(UBound(rDi)).DiagText = doUmwfSQL(rsDi!FText, True)
@@ -4104,18 +4105,18 @@ Sub richtleist()
  myFrag rPt, "SELECT COUNT(0)OVER()zahl, FPatnr FROM ltag WHERE FEintragsart=12 GROUP BY FPatnr ORDER BY FPatnr DESC", adOpenStatic, MOCon
  If Not rPt.BOF Then
   Do While Not rPt.EOF
-   rNa(0).Pat_id = rPt!FPatNr ' 139 ' 59284 ' rPt!fPatNr
+   rNa(0).Pat_ID = rPt!FPatNr ' 139 ' 59284 ' rPt!fPatNr
    aktz = aktz + 1
-   myFrag rPid, "SELECT 0 FROM faelle WHERE pat_id=" & rNa(0).Pat_id & " LIMIT 1", adOpenStatic
+   myFrag rPid, "SELECT 0 FROM faelle WHERE pat_id=" & rNa(0).Pat_ID & " LIMIT 1", adOpenStatic
    If Not rPid.BOF() Then
-    MOLeistungen (rNa(0).Pat_id)
+    MOLeistungen (rNa(0).Pat_ID)
      If UBound(rLe) <> 0 Then
       leistungenSpeichern True, Lese.dlg.BeziehungsfehlerSpeichern, rAf, -1
-      sql = "UPDATE leistungen l FORCE INDEX (pid_zp) LEFT JOIN faelle f FORCE INDEX (auswahl) ON l.Pat_ID=f.pat_id AND l.ZeitPunkt BETWEEN bhfb AND bhfe1 SET l.fid=f.fid WHERE l.pat_id= " & rNa(0).Pat_id & " ORDER BY zeitpunkt DESC;"
+      sql = "UPDATE leistungen l FORCE INDEX (pid_zp) LEFT JOIN faelle f FORCE INDEX (auswahl) ON l.Pat_ID=f.pat_id AND l.ZeitPunkt BETWEEN bhfb AND bhfe1 SET l.fid=f.fid WHERE l.pat_id= " & rNa(0).Pat_ID & " ORDER BY zeitpunkt DESC;"
       myEFrag sql, rAf, DBCn, , ErrNr, ErrDes
       ReDim rLe(0)
      End If
-    Debug.Print aktz & "/" & rPt!Zahl, rNa(0).Pat_id, rAf
+    Debug.Print aktz & "/" & rPt!Zahl, rNa(0).Pat_ID, rAf
    End If
    rPt.MoveNext
   Loop
@@ -4270,7 +4271,7 @@ Sub MOLeistungen(fPtNr&, Optional pid& = -1)
          GKT = GKT + 1
          If GKT = 1 Then
           ReDim Preserve rLe(UBound(rLe) + 1)
-          rLe(UBound(rLe)).Pat_id = pid
+          rLe(UBound(rLe)).Pat_ID = pid
           rLe(UBound(rLe)).aktZeit = aktZeit
           rLe(UBound(rLe)).Zeitpunkt = rsEi!Zp
           rLe(UBound(rLe)).QS = ZQSort(rLe(UBound(rLe)).Zeitpunkt)
@@ -4483,7 +4484,7 @@ Public Function moausgeb(MOCon As ADODB.Connection, tn$, obsyst%, Bedg$)
           Print #220, "Znr.|mx|Ebn|ENr|wtcolz|endse|endsz|Länge|mt|Datum(mt)"
           For i = 0 To UBound(MeStr)
            mt = MeStr(i).Text & String(4, Chr(0))
-           Print #220, MeStr(i).znr & "|" & MeStr(i).mx & "|" & MeStr(i).ebn & "|" & MeStr(i).ENr & "|" & IIf(MeStr(i).endse <> "10", Mid$(wtcolz, MeStr(i).znr, 1), "") & "|" & MeStr(i).endse & "|" & MeStr(i).endsz & "| Laenge: " & Len(mt) & "|" & IIf(Right$(mt, 1) = Chr$(10), Left$(mt, IIf(Len(mt) = 0, 1, Len(mt)) - 1), mt), _
+           Print #220, MeStr(i).znr & "|" & MeStr(i).mx & "|" & MeStr(i).ebn & "|" & MeStr(i).ENr & "|" & IIf(MeStr(i).endse <> "10", Mid$(wtcolz, MeStr(i).znr, 1), "") & "|" & MeStr(i).endse & "|" & MeStr(i).endsz & "| Laenge: " & Len(mt) & "|" & IIf(Right$(mt, 1) = Chr$(10), left$(mt, IIf(Len(mt) = 0, 1, Len(mt)) - 1), mt), _
            Asc(mt), Asc(Mid(mt, 2)), Asc(Mid(mt, 3)), Asc(Mid(mt, 4)), _
            Asc(Mid(mt, 4, 1)) & "." & Asc(Mid(mt, 3, 1)) & "." & Asc(Mid(mt, 2, 1)) * 256& + Asc(mt)
           Next i

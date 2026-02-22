@@ -111,7 +111,7 @@ WITH dsort AS(
       SELECT x.Pat_id pid,x.Zeitpunkt Zp,x.MPNr MPNr,x.Medikament Med,ma.puzu<>0 pu 
        ,MAX((COALESCE(x.mo,'')<>'')+(COALESCE(x.mi,'')<>'')+(COALESCE(x.nm,'')<>'')+(COALESCE(x.ab,'')<>'')+(COALESCE(x.zn,'')<>'')+IF(glp1<>0 AND x.Medanfang RLIKE 'OZEMPIC|TRULICITY|bydureon|Byetta|victoza|Liraglutid|mounjaro',1,0)) ez 
        ,glp1<>0 AND x.MedAnfang RLIKE 'OZEMPIC|TRULICITY|bydureon|Byetta|victoza|Liraglutid|mounjaro' wglp 
-       ,pzn<>0 AND concat(x.Bemerkung,' ',x.Grund) NOT RLIKE 'Pause|abgesetzt|beendet|zur Zeit nicht' ohneE 
+       ,pzn<>0 AND concat(x.Bemerkung,' ',x.Grund) NOT RLIKE 'Paus|abges|beendet|zur Zeit nicht' ohneE 
        ,ma.glib<>0 OR ma.metf<>0 OR ma.gluci<>0 OR ma.shglin<>0 OR ma.dpp4<>0 OR ma.sglt2<>0 OR ma.sonstad<>0 oad 
        ,glp1<>0 glp 
        ,ma.ins<>0 OR ma.anal<>0 obin 
