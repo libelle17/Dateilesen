@@ -5401,7 +5401,7 @@ Function doWirt()
 End Function ' doWirt
 
 Function doHilfsmittelklassifikationen(frm As Lese)
- Dim sql$, rs As New ADODB.Recordset, i%, FNr&, Zahl&(3), summe&, DatumS$, Datum As Date
+ Dim sql$, rs As New ADODB.Recordset, i%, FNr&, cZahl&(3), summe&, DatumS$, Datum As Date
  DatumS = "1.6.08"
  Do
   DatumS = InputBox("Bitte Ab-Datum eingeben:", "Datumseingabe", DatumS)
@@ -5417,20 +5417,20 @@ Function doHilfsmittelklassifikationen(frm As Lese)
  altAusgabe = vbCrLf & altAusgabe
  Do While Not rs.EOF
   Select Case rs!art
-   Case ".": Zahl(0) = rs!Zahl
-   Case ",": Zahl(1) = rs!Zahl
-   Case ";": Zahl(2) = rs!Zahl
-   Case "-": Zahl(3) = rs!Zahl
+   Case ".": cZahl(0) = rs!Zahl
+   Case ",": cZahl(1) = rs!Zahl
+   Case ";": cZahl(2) = rs!Zahl
+   Case "-": cZahl(3) = rs!Zahl
   End Select
   summe = summe + rs!Zahl
   rs.Move 1
  Loop
  DoEvents
  frm.Ausgabe = "Lanzetten, Nadeln seit " & Format$(Datum, "short date") & ":" & vbCrLf & _
-               "DiaReal      :" & Right$(Space$(6) & Zahl(0), 6) & " = " & Right$(Space$(2) & Round(Zahl(0) / summe * 100, 0), 2) & "%" & vbCrLf & _
-               "DiaExpress   :" & Right$(Space$(6) & Zahl(1), 6) & " = " & Right$(Space$(2) & Round(Zahl(1) / summe * 100, 0), 2) & "%" & vbCrLf & _
-               "Ratsapotheke :" & Right$(Space$(6) & Zahl(2), 6) & " = " & Right$(Space$(2) & Round(Zahl(2) / summe * 100, 0), 2) & "%" & vbCrLf & _
-               "kein Anbieter:" & Right$(Space$(6) & Zahl(3), 6) & " = " & Right$(Space$(2) & Round(Zahl(3) / summe * 100, 0), 2) & "%" & vbCrLf & altAusgabe
+               "DiaReal      :" & Right$(Space$(6) & cZahl(0), 6) & " = " & Right$(Space$(2) & Round(cZahl(0) / summe * 100, 0), 2) & "%" & vbCrLf & _
+               "DiaExpress   :" & Right$(Space$(6) & cZahl(1), 6) & " = " & Right$(Space$(2) & Round(cZahl(1) / summe * 100, 0), 2) & "%" & vbCrLf & _
+               "Ratsapotheke :" & Right$(Space$(6) & cZahl(2), 6) & " = " & Right$(Space$(2) & Round(cZahl(2) / summe * 100, 0), 2) & "%" & vbCrLf & _
+               "kein Anbieter:" & Right$(Space$(6) & cZahl(3), 6) & " = " & Right$(Space$(2) & Round(cZahl(3) / summe * 100, 0), 2) & "%" & vbCrLf & altAusgabe
  altAusgabe = frm.Ausgabe
  Set rs = Nothing
  summe = 0
@@ -5438,20 +5438,20 @@ Function doHilfsmittelklassifikationen(frm As Lese)
  altAusgabe = vbCrLf & altAusgabe
  Do While Not rs.EOF
   Select Case rs!art
-   Case ".": Zahl(0) = rs!Zahl
-   Case ",": Zahl(1) = rs!Zahl
-   Case ";": Zahl(2) = rs!Zahl
-   Case "-": Zahl(3) = rs!Zahl
+   Case ".": cZahl(0) = rs!Zahl
+   Case ",": cZahl(1) = rs!Zahl
+   Case ";": cZahl(2) = rs!Zahl
+   Case "-": cZahl(3) = rs!Zahl
   End Select
   summe = summe + rs!Zahl
   rs.Move 1
  Loop
  DoEvents
  frm.Ausgabe = "Teststreifen seit " & Format$(Datum, "short date") & ":" & vbCrLf & _
-               "DiaReal      :" & Right$(Space$(6) & Zahl(0), 6) & " = " & Right$(Space$(2) & Round(Zahl(0) / summe * 100, 0), 2) & "%" & vbCrLf & _
-               "DiaExpress   :" & Right$(Space$(6) & Zahl(1), 6) & " = " & Right$(Space$(2) & Round(Zahl(1) / summe * 100, 0), 2) & "%" & vbCrLf & _
-               "Ratsapotheke :" & Right$(Space$(6) & Zahl(2), 6) & " = " & Right$(Space$(2) & Round(Zahl(2) / summe * 100, 0), 2) & "%" & vbCrLf & _
-               "kein Anbieter:" & Right$(Space$(6) & Zahl(3), 6) & " = " & Right$(Space$(2) & Round(Zahl(3) / summe * 100, 0), 2) & "%" & vbCrLf & altAusgabe
+               "DiaReal      :" & Right$(Space$(6) & cZahl(0), 6) & " = " & Right$(Space$(2) & Round(cZahl(0) / summe * 100, 0), 2) & "%" & vbCrLf & _
+               "DiaExpress   :" & Right$(Space$(6) & cZahl(1), 6) & " = " & Right$(Space$(2) & Round(cZahl(1) / summe * 100, 0), 2) & "%" & vbCrLf & _
+               "Ratsapotheke :" & Right$(Space$(6) & cZahl(2), 6) & " = " & Right$(Space$(2) & Round(cZahl(2) / summe * 100, 0), 2) & "%" & vbCrLf & _
+               "kein Anbieter:" & Right$(Space$(6) & cZahl(3), 6) & " = " & Right$(Space$(2) & Round(cZahl(3) / summe * 100, 0), 2) & "%" & vbCrLf & altAusgabe
  altAusgabe = frm.Ausgabe
  Set rs = Nothing
  myFrag rs, "SELECT f.pat_id, n.nachname, n.vorname, n.gebdat, f.feldinh, f.zeitpunkt FROM (SELECT pat_id, foid, feldinh, zeitpunkt FROM `formular` f WHERE zeitpunkt > " & DatFor_k(Datum) & " AND feld = 'Medikamente' AND (feldinh LIKE '%TTR%' OR feldinh LIKE '%Fine%' OR feldinh LIKE '%Sensor%' OR (feldinh LIKE '%Nad%' AND NOT feldinh LIKE '%enadu%') OR feldinh LIKE '%Lancet%' OR feldinh LIKE '%Lanzet%' OR feldinh LIKE '%teststr%')) f LEFT JOIN (SELECT * FROM `formular` WHERE feld = 'KVDTVerordnenderArzt') kvdt USING (foid) LEFT JOIN `namen` n ON f.pat_id = n.pat_id WHERE kvdt.feldinh = 'Gerald Schade'"

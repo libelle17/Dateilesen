@@ -341,7 +341,7 @@ Private Sub DateiBearbeiten_Click()
         ka = InStr(pRoh, "(")
         ke = InStr(pRoh, ")")
         If ka > 0 And ke > 0 Then
-         sql = "SELECT pat_id FROM `namen` WHERE CONCAT(vorname¡' '¡nvorsatz¡if(nvorsatz<>'',' ','')¡nachname¡' ('¡DATE_FORMAT(gebdat,'%d.%m.%Y')) = '" & Left$(pRoh, ke - 1) & "'"
+         sql = "SELECT pat_id FROM `namen` WHERE CONCAT(vorname¡' '¡nvorsatz¡if(nvorsatz<>'',' ','')¡nachname¡' ('¡DATE_FORMAT(gebdat,'%d.%m.%Y')) = '" & left$(pRoh, ke - 1) & "'"
          If InStrB(UCase$(dbv.ODBC), "MYSQL") > 0 Then
           sql = REPLACE$(sql, "¡", ",")
          Else
@@ -459,6 +459,7 @@ fehler:
  End Select
 End Sub
 
+' in Datenbankverbindung_Click
 Public Sub RegSpeichern()
  On Error GoTo fehler
  Select Case FenArt

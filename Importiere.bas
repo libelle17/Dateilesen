@@ -1744,7 +1744,7 @@ Function rufThFestleg(Pat_ID&, Optional Position$)
 ' 22.10.22: führt bei Aufruf über Ado zumindest bis zur Mariadb-Version 10.9 immer wieder zum Server-Crash, s.ähnliche Bug-Hinweise früherer Versionen
 #Const mitfensterr = False
 #If mitfensterr Then
- rufauf "ssh", "root@" & LiName & " mysql --defaults-extra-file=~/.mysqlpwd quelle -e'CALL fuellThaP(" & CStr(Pat_ID) & ")'", 2, "c:\windows\system32\openssh\", -1, 0
+ rufauf "ssh", "root@" & LiName & " mysql --defaults-extra-file=~/.mysqlpwd quelle -e'CALL fuellTha_einzeln(" & CStr(Pat_ID) & ")'", 2, "c:\windows\system32\openssh\", -1, 0
 #Else
  Call TheraErmitt(CStr(Pat_ID), , Position)
 #End If

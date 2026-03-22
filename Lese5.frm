@@ -706,7 +706,7 @@ Begin VB.MDIForm Lese
          Caption         =   "&Therapiearten festlegen"
          Index           =   1
          Begin VB.Menu TherapieartenfürallePatientenzusammenfestlegen 
-            Caption         =   "&Therapiearten für alle Pat. zusammen über call fuellThaP(0) festlegen (40 Minuten)"
+            Caption         =   "&Therapiearten für alle Pat. zusammen über call fuellThaP(0) festlegen (15 Minuten)"
          End
          Begin VB.Menu Therapieartenfürallefestlegeneinernachdemanderen 
             Caption         =   "&Therapiearten für alle festlegen (alle gleichzeitig über vb6)"
@@ -3954,7 +3954,7 @@ Private Sub DiabetikerOhneSchulungLetztesJahr_Click()
 End Sub ' DiabetikerOhneSchulungLetztesJahr_Click
 
 'Private Sub Therapieartenwechsel_Click() ' s. therart_erm
-' für Arzt -> Therapiearten festlegen -> für alle zusammen (40 Minuten)
+' für Arzt -> Therapiearten festlegen -> für alle zusammen (15 Minuten)
 Private Sub TherapieartenfürallePatientenzusammenfestlegen_Click()
   rufauf "ssh", "root@" & LiName & " mysql --defaults-extra-file=~/.mysqlpwd quelle -e'CALL fuellThaP(0)'", 2, "c:\windows\system32\openssh\", -1, 0
 End Sub ' TherapieartenfürallePatientenzusammenfestlegen_Click()
@@ -4358,7 +4358,11 @@ Private Sub TherapieartenEinzelübervb6Festlegen_Click() ' Therapiearten festlege
  Dim patzahl&, aktzahl&
  patzahl = myEFrag("SELECT COUNT(0) FROM namen", , DBCn).Fields(0)
  aktzahl = 0
- myFrag rsAna, "SELECT n.pat_id, gesname(n.pat_id), MIN(f.fanf) FROM namen n LEFT JOIN faelle f ON n.pat_id = f.pat_id WHERE f.pat_id>000 AND f.pat_id <= 70000 GROUP BY n.pat_id ORDER BY fanf DESC"
+' myFrag rsAna, "SELECT n.pat_id, gesname(n.pat_id), MIN(f.fanf) FROM namen n LEFT JOIN faelle f ON n.pat_id = f.pat_id WHERE f.pat_id>000 AND f.pat_id <= 70000 GROUP BY n.pat_id ORDER BY fanf DESC"
+ myFrag rsAna, "SELECT n.pat_id,fanf FROM namen n JOIN faelle f " & vbCrLf & _
+ "USING (pat_id)WHERE fanf=(SELECT MAX(fanf)FROM faelle WHERE pat_id=n.pat_id)" & vbCrLf & _
+ "GROUP BY n.pat_id" & vbCrLf & _
+ "ORDER BY fanf DESC;"
  Do While Not rsAna.EOF
   aktzahl = aktzahl + 1
 '  Call TherapieArtEinzelnFestlegen(rsAna!Pat_id, rsAna)
