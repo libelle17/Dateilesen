@@ -1759,7 +1759,29 @@ sql(AWlf) = sql(AWlf) & _
 "GROUP BY e.id /*,nr.n*/" & vbCrLf & _
 "ORDER BY zeitpunkt DESC" & vbCrLf & _
 "LIMIT 1" & vbCrLf & _
-")adl" & vbCrLf & _
+")adl" & vbCrLf
+sql(AWlf) = sql(AWlf) & _
+",(SELECT" & vbCrLf & _
+" CASE WHEN inhalt LIKE 'Akt%' THEN" & vbCrLf & _
+"  IF(LPAD(REGEXP_REPLACE(inhalt,'.*Gesamtpunktzahl [(]max. 100[)] *([0-9]+) *','\\1'),3,' ')='100','','<altes Formular>')" & vbCrLf & _
+" WHEN inhalt LIKE 'Barthel-Index bei%' THEN" & vbCrLf & _
+"(SELECT REGEXP_REPLACE(" & vbCrLf & _
+"  CONCAT(" & vbCrLf & _
+" IF(REGEXP_REPLACE(e.inhalt,CONCAT('^(?:.*?\\([0-9]+\\)){',0,'}.*?\\(([0-9]+)\\).*$'),'\\1')<>'10','Essen,','')" & vbCrLf & _
+" ,IF(REGEXP_REPLACE(e.inhalt,CONCAT('^(?:.*?\\([0-9]+\\)){',1,'}.*?\\(([0-9]+)\\).*$'),'\\1')<>'15','Aufsetzen+Umsetzen,','')" & vbCrLf & _
+" ,IF(REGEXP_REPLACE(e.inhalt,CONCAT('^(?:.*?\\([0-9]+\\)){',2,'}.*?\\(([0-9]+)\\).*$'),'\\1')<>'5','Waschen,','')" & vbCrLf & _
+" ,IF(REGEXP_REPLACE(e.inhalt,CONCAT('^(?:.*?\\([0-9]+\\)){',3,'}.*?\\(([0-9]+)\\).*$'),'\\1')<>'10','Toilette,','')" & vbCrLf & _
+" ,IF(REGEXP_REPLACE(e.inhalt,CONCAT('^(?:.*?\\([0-9]+\\)){',4,'}.*?\\(([0-9]+)\\).*$'),'\\1')<>'5','Baden/Duschen,','')" & vbCrLf & _
+" ,IF(REGEXP_REPLACE(e.inhalt,CONCAT('^(?:.*?\\([0-9]+\\)){',5,'}.*?\\(([0-9]+)\\).*$'),'\\1')<>'15','Aufst.+Gehen,','')" & vbCrLf & _
+" ,IF(REGEXP_REPLACE(e.inhalt,CONCAT('^(?:.*?\\([0-9]+\\)){',6,'}.*?\\(([0-9]+)\\).*$'),'\\1')<>'10','Treppe,','')" & vbCrLf & _
+" ,IF(REGEXP_REPLACE(e.inhalt,CONCAT('^(?:.*?\\([0-9]+\\)){',7,'}.*?\\(([0-9]+)\\).*$'),'\\1')<>'10','An-Auskleiden,','')" & vbCrLf & _
+" ,IF(REGEXP_REPLACE(e.inhalt,CONCAT('^(?:.*?\\([0-9]+\\)){',8,'}.*?\\(([0-9]+)\\).*$'),'\\1')<>'10','Stuhlinkont.','')" & vbCrLf & _
+" ,IF(REGEXP_REPLACE(e.inhalt,CONCAT('^(?:.*?\\([0-9]+\\)){',9,'}.*?\\(([0-9]+)\\).*$'),'\\1')<>'10','Harninkont.,','')" & vbCrLf & _
+" ),',$',''))" & vbCrLf & _
+"  END" & vbCrLf & _
+" FROM eintraege e WHERE art IN ('adl','284','bar') AND pat_id=f.pat_id AND (inhalt LIKE 'Barthel-Index bei%' or inhalt LIKE 'Akt%') GROUP BY e.id ORDER BY zeitpunkt DESC LIMIT 1" & vbCrLf & _
+" )Grund" & vbCrLf
+sql(AWlf) = sql(AWlf) & _
 "FROM aktfvz v" & vbCrLf & _
 " JOIN `faelle` f USING (fid)" & vbCrLf & _
 " LEFT JOIN diagview dd ON v.pat_id = dd.pat_id AND dd.gicd RLIKE '^F0[0-3]|^G20'" & vbCrLf & _
@@ -1769,7 +1791,7 @@ sql(AWlf) = sql(AWlf) & _
 " HAVING tug is NOT NULL OR adl is NOT NULL" & vbCrLf & _
 ";"
 #End If
-mins(AWlf) = 10
+ mins(AWlf) = 10
  maxs(AWlf) = 60
  AWlf = AWlf + 1
 
