@@ -420,14 +420,15 @@ DoEvents
   For hinzu = 0 To 45
    Datum = CDate(s2(0)) + hinzu
    If Lese.MOBetr = 0 Then
+ohnemo:
     Set Cn = DBCn
     sql = "SELECT PID, DATE(zp) Datum, MIN(TIME(zp)) Uhrzeit, GROUP_CONCAT(DISTINCT raum SEPARATOR ' ') Arzt,GROUP_CONCAT(DISTINCT Zusatz SEPARATOR ' ') Zusatz FROM termine t WHERE " & SelDatum("zp", Datum) & " AND pid<>0 GROUP BY pid"
    Else ' Lese.MOBetr = 0 Then
-    Call MOConInit(, "Erstelle Patientenlaufzettel")
+    If MOConInit(, "Erstelle Patientenlaufzettel") Then GoTo ohnemo
     Set Cn = MOCon
-    sql = "SELECT fpatnr pid, DATE(18900101 + INTERVAL t.FDatumvon DAY + INTERVAL t.FZeitvon SECOND) datum, CONVERT(SEC_TO_TIME(t.fzeitvon),CHAR) uhrzeit, t.fbemerkung zusatz, tz.fname arzt FROM termin t LEFT JOIN tzone tz ON t.FZonenid=tz.FSurogat WHERE DATE(18900101 + INTERVAL t.FDatumvon DAY + INTERVAL t.FZeitvon SECOND)=date(" & Format(Datum, "yyyymmdd") & ") AND fpatnr>0 GROUP BY fpatnr ORDER BY fpatnr"
+    sql = "SELECT FPatnr pid, DATE(18900101 + INTERVAL t.FDatumvon DAY + INTERVAL t.FZeitvon SECOND)datum, CONVERT(SEC_TO_TIME(t.fzeitvon),CHAR)uhrzeit, t.fbemerkung zusatz, tz.fname arzt FROM termin t LEFT JOIN tzone tz ON t.FZonenid=tz.FSurogat WHERE DATE(18900101 + INTERVAL t.FDatumvon DAY + INTERVAL t.FZeitvon SECOND)=DATE(" & Format(Datum, "yyyymmdd") & ") AND fpatnr>0 GROUP BY fpatnr ORDER BY fpatnr"
    End If ' Lese.MOBetr = 0 Then Else
-   myFrag rTerm, "SELECT COUNT(0) zl FROM (" & sql & ") i", adOpenStatic, Cn
+   myFrag rTerm, "SELECT COUNT(0)zl FROM (" & sql & ") i", adOpenStatic, Cn
    If Not rTerm.BOF Then
     noch = rTerm!zl
     unoch = noch
@@ -1256,7 +1257,7 @@ On Error GoTo fehler
      ElseIf ICD(ru) = "O24.4" Then
       dmtyp = "g"
       GoTo weiter
-     ElseIf ICD(ru) = "R73.0" Then
+     ElseIf ICD(ru) Like "R73.0*" Then
       dmtyp = "p"
       GoTo weiter
      End If ' Left$(icd(ru),2) elseif elseif
@@ -1482,7 +1483,11 @@ sql0 = _
    End If ' üwerg(10, i) <> vNS Then
   Next i
   AusS.AppVar (Array("</div>", vbCrLf))
-  If obpath(0) Then AusS.AppVar (Array("<div class='cave'>Hausarzt nicht richtig in Medical Office eingetragen</div>", vbCrLf))
+  If MOtot Then
+   AusS.AppVar (Array("<div class='cave'>Dieser Laufzettel wurde ohne Echtzeit-Verbindung zur MO-Datenbank erstellt!</div>", vbCrLf))
+  Else ' MOtot Then Else
+   If obpath(0) Then AusS.AppVar (Array("<div class='cave'>Hausarzt nicht richtig in Medical Office eingetragen</div>", vbCrLf))
+  End If ' MOtot Then
   
   Dim obGU%
   Dim rLei As New ADODB.Recordset
@@ -3316,7 +3321,7 @@ hyperton:
   End If ' obGPT And obGOT And obTHR Then
   If obGPT And obGOT And obTHR And obAlb And üdt.bmi <> 0 Then
    Dim obDMoPG%
-   obDMoPG = myEFrag("SELECT IF(EXISTS(SELECT 0 FROM diagview WHERE gICD RLIKE '^E1[0-4]\.|^R73\.9' AND pat_id=" & Pat_id & " LIMIT 1),1,0)").Fields(0)
+   obDMoPG = myEFrag("SELECT IF(EXISTS(SELECT 0 FROM diagview WHERE gICD RLIKE '^E1[0-4]\.|^R73\.' AND pat_id=" & Pat_id & " LIMIT 1),1,0)").Fields(0)
    NFS = Round(-1.675 + 0.037 * PAlter + 0.094 * üdt.bmi + 1.13 * obDMoPG + 0.99 * GOT / GPT - 0.013 * Thr - 0.66 * Alb * 0.1, 3)
   End If ' obGPT And obGOT And obTHR And obAlb And üdt.bmi <> 0 Then
   

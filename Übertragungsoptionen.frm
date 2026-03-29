@@ -12,6 +12,14 @@ Begin VB.Form Übertragungsoptionen
    ScaleHeight     =   3390
    ScaleWidth      =   5010
    ShowInTaskbar   =   0   'False
+   Begin VB.CommandButton aktQ 
+      Caption         =   "alle akt. &Quartal"
+      Height          =   375
+      Left            =   3600
+      TabIndex        =   14
+      Top             =   840
+      Width           =   1455
+   End
    Begin VB.TextBox vorDatum 
       Height          =   285
       Left            =   1200
@@ -131,16 +139,22 @@ Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
 Option Explicit
 Public Abbruch%
+Public alleaktQ%
+
+Private Sub aktQ_Click()
+ alleaktQ = True
+ Me.Hide
+End Sub
 
 Private Sub Form_Activate()
  Abbruch = 0
- Me.Pat_ID.SetFocus
- Pat_ID.SelStart = 0
- Pat_ID.SelLength = Len(Pat_ID.Text)
+ Me.Pat_id.SetFocus
+ Pat_id.SelStart = 0
+ Pat_id.SelLength = Len(Pat_id.Text)
 End Sub
 
 Private Sub Form_Load()
- If Me.Pat_ID = "" Then Me.Pat_ID = 99999
+ If Me.Pat_id = "" Then Me.Pat_id = 99999
  If Me.Tage = "" Then Me.Tage = 99999
  Me.nurdiesen(0) = 1
  Me.mitLabor = 1
@@ -156,9 +170,9 @@ Private Sub CancelButton_Click()
 End Sub ' CancelButton_Click()
 
 Private Sub Pat_id_Change()
- Call MOConInit(, "Pat_id_change()")
- If IsNumeric(Me.Pat_ID) Then
-  Me.PatName = myEFrag("SELECT COALESCE((SELECT " & gesnamegmo & " FROM patstamm WHERE FSurogat=" & Me.Pat_ID & "),'')", , MOCon).Fields(0)
+ If MOConInit(, "Pat_id_change()") Then Exit Sub
+ If IsNumeric(Me.Pat_id) Then
+  Me.PatName = myEFrag("SELECT COALESCE((SELECT " & GesNamegMO & " FROM patstamm WHERE FSurogat=" & Me.Pat_id & "),'')", , MOCon).Fields(0)
  End If
 End Sub ' Pat_id_Change()
 
@@ -236,5 +250,5 @@ End Sub
 
 Private Sub zuletzt_Click()
  On Error Resume Next
- Me.Pat_ID = myEFrag("SELECT pat_id FROM namen ORDER BY aktzeit DESC LIMIT 1").Fields(0)
+ Me.Pat_id = myEFrag("SELECT pat_id FROM namen ORDER BY aktzeit DESC LIMIT 1").Fields(0)
 End Sub

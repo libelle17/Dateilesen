@@ -11,6 +11,7 @@ Public Const GesNamegMO$ = "COALESCE(CONCAT(FTitel,IF(FTitel<>'',' ',''),FVornam
 ' "COALESCE((SELECT CONCAT(FTitel,IF(FTitel<>'',' ',''),FVorname,IF(FVorname<>'',' ',''),FNamenszusatz,IF(FNamenszusatz<>'',' ',''),IF(FNamensvorsatz<>FNamenszusatz,FNamensvorsatz,''),IF(IF(FNamensvorsatz<>FNamenszusatz,FNamensvorsatz,'')<>'',' ',''),FNachname,', *',DATE_FORMAT(FGeburtsdatum,'%e.%c.%Y')) gesnameg"
 Public MOCon As New ADODB.Connection
 ' Const parsemotxt$ = "v:\Parsememo31.txt"
+Public MOtot% ' keine Verbindung zu MO möglich
 #If mitmestdruck Then
 Const mestausg$ = "v:\mestr.txt"
 #End If
@@ -466,7 +467,7 @@ End Function ' testwm()
 Public Function fbumdreh() ' Fallbeginnumdreh
  Dim sql$, rsMO As New ADODB.Recordset
  Dim MeStr() As memoType
- Call MOConInit(, "Fallbeginnumdreh")
+ If MOConInit(, "Fallbeginnumdreh") Then Exit Function
  sql = "SELECT fsurogat f FROM patfall WHERE fpatnr=68012"
  rsMO.Open sql, MOCon, adOpenStatic, adLockReadOnly
  If Not rsMO.BOF Then
@@ -489,7 +490,7 @@ Public Function WechsMemo(TabName$, snr&, mfeld$, anENr$, neu$, art$, MeStr() As
  On Error GoTo fehler
  aru = aru + 1
  Erase MeStr ' entspricht tmpmwechs
- If rsMO Is Nothing Then Call MOConInit(, "WechsMemo(" & TabName & "," & snr & "," & mfeld & "," & anENr & "," & neu & "," & art)
+ If rsMO Is Nothing Then If MOConInit(, "WechsMemo(" & TabName & "," & snr & "," & mfeld & "," & anENr & "," & neu & "," & art) Then Exit Function
  sqls = "SELECT CONVERT(`" & mfeld & "` USING latin1)M FROM `" & TabName & "` WHERE fsurogat=" & snr
  rsMO.Open sqls, MOCon, adOpenStatic, adLockReadOnly
  If Not rsMO.BOF Then
@@ -752,13 +753,39 @@ End Function ' stzk
 
 ' in Übertragung_aus_MO_Click, zeigmosystem, doPatvonMO
 Public Function MOConInit(Optional MServ$, Optional anzeige$)
+  Static bishServ$
   On Error GoTo fehler
   If MServ = "" Then
     If Lese.MOServer = "" Then Lese.MOServer = InputBox("Bitte geben Sie den MOServer ein:", "MoServereingabe")
     MServ = Lese.MOServer
-  End If
+  End If ' MServ = "" Then
+  
   syscmd 4, anzeige & IIf(anzeige = "", "", ", ") & "öffne Verbindung zur Medical Office-Datenbank ..."
-  If MOCon Is Nothing Or MOCon = "" Then MOCon.Open MOAnfStr & MServ
+  If MOCon Is Nothing Or MOCon = "" Or bishServ <> MServ Then
+   bishServ = MServ
+   On Error Resume Next
+    MOCon.Open MOAnfStr & MServ
+    If Err.Number Then
+     Err.Clear
+     If Lese.MORes = "" Then Lese.MORes = InputBox("Bitte geben Sie MORes ein:", "Mo-ReserveServer-Eingabe")
+     MServ = Lese.MORes
+     MOCon.Open MOAnfStr & MServ
+     MOtot = Not (Err.Number = 0)
+     If MOtot Then
+      anzeige = "Funktion mangels Verbindung zu MO nicht ausgeführt"
+      MsgBox "Verbindung zur Medical Office-Datenbank weder auf " & Lese.MOServer & " noch auf " & Lese.MORes & " gelungen."
+      Lese.MOServer.BackColor = vbRed
+      Lese.MORes.BackColor = vbRed
+     Else
+      Lese.MOServer.BackColor = vbWhite
+      Lese.MORes.BackColor = vbCyan
+     End If ' MOtot
+    Else
+     Lese.MOServer.BackColor = vbCyan
+     Lese.MORes.BackColor = vbWhite
+    End If ' Err.Number Then
+   On Error GoTo fehler
+  End If ' MOCon Is Nothing Or MOCon = "" Then
   syscmd 4, anzeige & " ..."
 '  If MOCon = "" Then
 '   If obszn4 Then
@@ -767,6 +794,8 @@ Public Function MOConInit(Optional MServ$, Optional anzeige$)
 '    MOCon.Open MOAnfStr & MoWServ
 '   End If ' obszn4 else
 '  End If ' MOCon = "" Then
+ If Not MOCon Is Nothing Then If MOCon.State <> 0 Then MOtot = 0
+ MOConInit = MOtot
  Exit Function
 fehler:
  Dim AnwPfad$
@@ -775,7 +804,7 @@ fehler:
 #Else
  AnwPfad = App.path
 #End If
- Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in moconinit/" + AnwPfad)
+ Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in MOConInit/" + AnwPfad)
   Case vbAbort: Call MsgBox("Höre auf"): ProgEnde
   Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
   Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
@@ -787,14 +816,15 @@ Public Function zeigmosystem(Optional obszn4%)
  Const obDebug% = False
  Dim kat() As memoType, tKat() As memoType, Abl() As memoType, fAuft() As memoType, FMem() As memoType
  Dim rsMO As New ADODB.Recordset
- Dim MOCon As New ADODB.Connection
+' Dim MOCon As New ADODB.Connection
  Dim j&
  Dim EintS As SortierEintr
  Dim EinL As New SortierListe
-' MOConInit
- Dim MServ$
- MServ = Lese.MOServer
- If MOCon Is Nothing Or MOCon = "" Then MOCon.Open MOAnfStr & MServ
+ If MOConInit(IIf(obszn4, "szn4", ""), "zeigmosystem(obszn4:=" & obszn4 & ")") Then Exit Function
+' Dim MServ$
+' MServ = Lese.MOServer
+' If MOCon Is Nothing Or MOCon = "" Then MOCon.Open MOAnfStr & MServ
+ 
  sql = "SELECT COALESCE(CONVERT(FKategorieliste USING latin1),'') FKat, COALESCE(CONVERT(Ftextkategorieliste USING latin1),'') Ftk, COALESCE(CONVERT(fAblageliste USING latin1),'') FAb, COALESCE(CONVERT(fAuftragstypenliste USING latin1),'') FAuf, COALESCE(CONVERT(FMemo USING latin1),'') Fm FROM mosystem"
  rsMO.Open sql, MOCon, adOpenStatic, adLockReadOnly
  If Not rsMO.BOF Then
@@ -805,10 +835,10 @@ Public Function zeigmosystem(Optional obszn4%)
    Call ParseMemo(rsMO!ftk, tKat(), obDebug, "FMemo von fTextKategorieliste aus mosystem")
   End If
   If rsMO!fAb <> "" Then
-   Call ParseMemo(rsMO!fAb, Abl(), obDebug, "FMemo von fAblageliste aus mosystem")
+   Call ParseMemo(rsMO!fAb, Abl(), obDebug, "FMemo von FAblageliste aus mosystem")
   End If
   If rsMO!fAuf <> "" Then
-   Call ParseMemo(rsMO!fAuf, fAuft(), obDebug, "FMemo von fAuftragstypenliste aus mosystem")
+   Call ParseMemo(rsMO!fAuf, fAuft(), obDebug, "FMemo von FAuftragstypenliste aus mosystem")
   End If
   If rsMO!fm <> "" Then
    Call ParseMemo(rsMO!fm, FMem(), obDebug, "FMemo von fMemo aus mosystem")
@@ -846,7 +876,7 @@ End Function ' zeigmosystem()
 Public Function doMarkierungen(Optional FPatNr&, Optional nurfrag%)
  Dim rMo As ADODB.Recordset, rDl As ADODB.Recordset, rAf&, mZl&, altPNr&
  Dim meld$
- Call MOConInit(, "doMarkierungen(" & FPatNr & "," & CStr(nurfrag) & ")")
+ If MOConInit(, "doMarkierungen(" & FPatNr & "," & CStr(nurfrag) & ")") Then Exit Function
 ' Dim rNa() As namen
 ' ReDim rNa(0)
 'sql = _
@@ -1016,7 +1046,7 @@ Public Sub doNotizen(Optional fPtNr& = 0, Optional mitSpeichern% = True)
   ReDim rNa(0)
   rNa(0).Pat_ID = fPtNr
  End If
- Call MOConInit(, "doNotzizen(" & fPtNr & "," & CStr(mitSpeichern) & ")")
+ If MOConInit(, "doNotzizen(" & fPtNr & "," & CStr(mitSpeichern) & ")") Then Exit Sub
 ' Dim rNa() As namen
 ' ReDim rNa(0)
  sql = _
@@ -1067,7 +1097,7 @@ Public Function tbtrans(Tbl$)
 #Else
   Dim rMo As ADODB.Recordset, rq As ADODB.Recordset, ErrNr&, ErrDes$, einzeln%, sp0$, sp1$, iru%
   Call Lese.ProgStart
-  Call MOConInit(, "tbtrans(" & Tbl & ")")
+  If MOConInit(, "tbtrans(" & Tbl & ")") Then Exit Function
  ' '''' statt CHR(32) geht auch, macht die Zeile aber in der Zieltabelle einen Buchstaben kürzer
  sql = "SELECT GROUP_CONCAT(COLUMN_NAME),GROUP_CONCAT(CONCAT('COALESCE(',CASE column_type WHEN'longblob'OR'longtext'THEN CONCAT('REPLACE(REPLACE(REPLACE(LEFT(CONVERT(',COLUMN_NAME,' USING latin1),10000000),''\'',''\\''),'''''''',''''''''''''),CHR(0),CHR(32))')WHEN 'text' THEN CONCAT('REPLACE(',COLUMN_NAME,',CHR(0),CHR(32))') ELSE COLUMN_NAME END,','''')')) FROM information_schema.columns WHERE table_schema='medoff' and TABLE_NAME='" & Tbl & "' ORDER BY ordinal_position"
 ' sql = "SELECT GROUP_CONCAT(COLUMN_NAME), GROUP_CONCAT(CONCAT('COALESCE(REPLACE(REPLACE(',COLUMN_NAME,',''\n'',''''),''\r'',''''),'''')')) FROM information_schema.columns WHERE table_schema='medoff' and TABLE_NAME='" & tbl & "' ORDER BY ordinal_position"
@@ -1130,7 +1160,7 @@ Public Function HATrans()
 #If obhatrans Then
  syscmd 4, "HATrans(), werfe die Datenbankverbindungen an"
  Lese.ProgStart
- Call MOConInit(, "HATrans()")
+ If MOConInit(, "HATrans()") Then Exit Function
  If MsgBox("soll procmepraxis(0) aufgerufen werden (dauert mind. 7 min)?", vbYesNo, "Rückfrage") = vbYes Then
   syscmd 4, "HATrans: Extrahierte FAdresse (kann mindestens 7 Minuten dauern)"
   myEFrag "TRUNCATE tmpmepraxis", rAf, MOCon, , ErrNr, ErrDes, 10000000
@@ -1219,7 +1249,7 @@ abermals:
  Dim NaStr() As memoType, FaStr() As memoType, rsfaru%
  Dim EintS As SortierEintr
  Static EinL As New SortierListe, EinK As New SortierListe
- Call MOConInit(, "Übertragung aus MO von Pat. " & fPtNr)
+ If MOConInit(, "Übertragung aus MO von Pat. " & fPtNr) Then Exit Function
  If obpruef Then ' prüft, ob Import Neues brächte
   Dim rab As ADODB.Recordset, raz As ADODB.Recordset
 ' dbsprot.fPrimaryKey ist varchar(35), ltag.FSurogat int(11), somit laesst sich kein vorhandere Index verwenden
@@ -1412,16 +1442,16 @@ abermals:
   pos = InStr(rNa(0).PrivatTel, " (")
   If pos <> 0 Then rNa(0).PrivatTel = left$(rNa(0).PrivatTel, pos - 1)
  
-  If InStrB(rsNa!ftelefonmobil, "dienstlich") <> 0 Then
-   rNa(0).DienstTel = rsNa!ftelefonmobil
+  If InStrB(rsNa!FTelefonmobil, "dienstlich") <> 0 Then
+   rNa(0).DienstTel = rsNa!FTelefonmobil
    pos = InStr(rNa(0).DienstTel, " (")
    If pos <> 0 Then rNa(0).DienstTel = left$(rNa(0).DienstTel, pos - 1)
-  ElseIf InStrB(rsNa!ftelefonmobil, "Funktelefon") <> 0 Then
-   rNa(0).PrivatMobil = rsNa!ftelefonmobil
+  ElseIf InStrB(rsNa!FTelefonmobil, "Funktelefon") <> 0 Then
+   rNa(0).PrivatMobil = rsNa!FTelefonmobil
    pos = InStr(rNa(0).PrivatMobil, " (")
    If pos <> 0 Then rNa(0).PrivatMobil = left$(rNa(0).PrivatMobil, pos - 1)
   Else
-   rNa(0).PrivatTel_2 = rsNa!ftelefonmobil
+   rNa(0).PrivatTel_2 = rsNa!FTelefonmobil
    pos = InStr(rNa(0).PrivatTel_2, " (")
    If pos <> 0 Then rNa(0).PrivatTel_2 = left$(rNa(0).PrivatTel_2, pos - 1)
   End If
@@ -3572,7 +3602,7 @@ sql = sql & labsql & _
    syscmd 4, "! Fehler bei doPatvonMO " & fPtNr & " auf '" & MOCon.Properties("Server Name") & "' !"
   End If
  Else
-  syscmd 4, "doPatvonMO: auf Server '" & Lese.MOServer & "' " & fPtNr & " nicht in patstamm auf '" & MOCon.Properties("Server Name") & "' gefunden!"
+  syscmd 4, "doPatvonMO: " & fPtNr & " nicht in patstamm auf '" & MOCon.Properties("Server Name") & "' gefunden!"
  End If '  If Not rsNa.BOF Then
  Exit Function
 fehler:
@@ -3628,6 +3658,7 @@ Function holHAausMO(inf As InfoTyp, fPtNr&, Optional satznr%, Optional ByRef obg
       "LEFT JOIN epraxis p ON a.FExtpraxisnr = p.FSurogat" & vbCrLf & _
       "WHERE fpatid=" & fPtNr & " AND r.FRelationtyp IN (-34,-40,-32)" & _
       "ORDER BY r.FRelationtyp=-40 DESC LIMIT " & (satznr + 1)
+  If MOtot Then Exit Function ' sollte eigentlich schon in aufrufenden Funktionen abgefangen sein
   rsHa.Open sql, MOCon, adOpenStatic, adLockReadOnly
   Do While satznr <> 0
    If rsHa.BOF Or rsHa.EOF Then Exit Do
@@ -3906,7 +3937,7 @@ Public Sub turichtdiag()
  Dim ErrNr&, ErrDes$, altsi$
  On Error GoTo fehler
  Call Lese.ProgStart
- Call MOConInit(, "turichtdiag()")
+ If MOConInit(, "turichtdiag()") Then Exit Sub
  altsi = sqlIGNORE
  sqlIGNORE = ""
  ReDim rNa(0)
@@ -3969,6 +4000,7 @@ End Sub ' richtleist
 ' in doPatvonMO und richtdiag
 Sub MODiagnosen(fPtNr&, Optional pid&)
   On Error GoTo fehler
+  If MOtot Then Exit Sub ' sollte eigentlich schon in aufrufenden Funktionen abgefangen sein
   If pid = 0 Then pid = fPtNr
 ' Diagnosen
 ' FStatus: 1=akut, 5=Dauer, 2=anamnest, 3=historisch, 4=abgeschlossen
@@ -4093,7 +4125,7 @@ Sub richtleist()
  On Error GoTo fehler
  syscmd 4, "richtleist, Lese.ProgStart()"
  Call Lese.ProgStart
- Call MOConInit(, "richtleist()")
+ If MOConInit(, "richtleist()") Then Exit Sub
  sqlIGNORE = ""
  ReDim rNa(0)
  ReDim rLe(0)
@@ -4149,7 +4181,7 @@ Sub richtHA()
  On Error GoTo fehler
  syscmd 4, "richtHA, Lese.ProgStart()"
  Call Lese.ProgStart
- Call MOConInit(, "richtHA()")
+ If MOConInit(, "richtHA()") Then Exit Sub
  sqlIGNORE = ""
   
 ' Call ForeignNo0
@@ -4205,7 +4237,7 @@ End Sub ' richtHA()
 ' wird nirgends aufgerufen
 Sub callMOLei()
  Dim rsl As New ADODB.Recordset, i&
- Call MOConInit(, "callMOLei()")
+ If MOConInit(, "callMOLei()") Then Exit Sub
 ' rsL.Open "select count(0) over() zahl, fpatnr from ltag where feintragsart=12 and fpatnr<68608 group by fpatnr order by fpatnr desc", MOCon, adOpenStatic, adLockReadOnly
  rsl.Open "select count(0) over() zahl, fpatnr from ltag where feintragsart=12 and fpatnr<53194 group by fpatnr order by fpatnr desc", MOCon, adOpenStatic, adLockReadOnly
  Do While Not rsl.EOF
@@ -4228,6 +4260,7 @@ Sub MOLeistungen(fPtNr&, Optional pid& = -1)
   
   Dim rab() As Abrtyp
   Dim rAbr As ADODB.Recordset
+  If MOtot Then Exit Sub ' sollte eigentlich schon in aufrufenden Funktionen abgefangen sein
   myFrag rAbr, "SELECT FSurogat,FBetriebsnr FROM abrechner", adOpenStatic, MOCon ' AU
   Do While Not rAbr.EOF
    If SafeArrayGetDim(rab) = 0 Then ReDim rab(0) Else ReDim Preserve rab(UBound(rab) + 1)
@@ -4419,6 +4452,7 @@ Public Function moausgeb(MOCon As ADODB.Connection, tn$, obsyst%, Bedg$)
 '  Dim obvers% ' wird beim Aufruf schon beachtet
 '  obvers = MOCon.Execute("SELECT table_type='SYSTEM VERSIONED' FROM information_schema.tables WHERE table_schema='medoff' AND TABLE_NAME='" & Tn & "'").Fields(0)
 '  If obvers = 0 And obsyst <> 0 Then Exit Function
+  If MOtot Then Exit Function ' sollte eigentlich schon in aufrufenden Funktionen abgefangen sein
   Prim = MOCon.Execute("SELECT GROUP_CONCAT(DISTINCT COLUMN_NAME) sp FROM information_schema.key_column_usage i WHERE CONSTRAINT_NAME='PRIMARY' AND table_schema='medoff' AND table_name='" & tn & "' AND column_name NOT IN ('row_start','row_end') GROUP BY table_catalog,table_schema,TABLE_NAME ORDER BY table_catalog,table_schema,table_name,ordinal_position").Fields(0)
   rcol.Open "SELECT GROUP_CONCAT(column_name) cns,COUNT(0) zl,GROUP_CONCAT(CONCAT('CONCAT(''',column_name,':'',CONVERT(COALESCE(LEFT(',column_name,',40),'''') USING latin1))') SEPARATOR ','' '',') cols,GROUP_CONCAT(CONCAT(IF(data_type='longblob',CONCAT('COALESCE(CONVERT(',COLUMN_NAME,' USING latin1),'''') ',column_name),column_name)) ORDER BY ordinal_position SEPARATOR ',') c2s FROM information_schema.columns WHERE table_schema = 'medoff' AND TABLE_NAME='" & tn & "' ORDER BY ordinal_position", MOCon, adOpenStatic, adLockReadOnly
 '  GROUP_CONCAT(CONCAT('CONCAT(''',column_name,':'',CONVERT(COALESCE(LEFT(',column_name,',20),'''') USING ''utf8mb4''))') SEPARATOR ','' '',')
@@ -4535,9 +4569,9 @@ Public Function suchfi(pNr&, fI$, notObRlike%, MServ$)
  Dim rst As New ADODB.Recordset, rsu As New ADODB.Recordset, RsI As New ADODB.Recordset
  Dim MOCon As New ADODB.Connection
  Dim D1$, fn$, ausgStr$, ausgTNr%
+ If MOConInit(MServ, "suchif(" & pNr & "," & fI & "," & CStr(notObRlike) & "," & MServ & ")") Then Exit Function
  D1 = "\\linux1\daten\down\suchfi_" & pNr & "_" & fI & "_" & MServ
  Open D1 For Output As #220
- MOCon.Open MOAnfStr & MServ
  
  rst.Open "SELECT c.TABLE_NAME tn, c.COLUMN_NAME cn -- , a.column_name cn" & vbCrLf & _
           "FROM information_schema.columns c" & vbCrLf & _
@@ -4595,9 +4629,9 @@ Public Function suchal(fI$, Optional notObRlike%, Optional MServ$)
  Dim rst As New ADODB.Recordset, rsu As New ADODB.Recordset
 ' Dim MOCon As New ADODB.Connection
  Dim D1$
+ If MOConInit(MServ, "suchal(" & fI & "," & CStr(notObRlike) & "," & MServ & ")") Then Exit Function
  D1 = "\\linux1\daten\down\suchal_" & fI & "_" & notObRlike & "_" & MServ
  Open D1 For Output As #318
- Call MOConInit(MServ, "suchal(" & fI & "," & CStr(notObRlike) & "," & MServ & ")")
 ' MOCon.Open MOAnfStr & MServ
 #If True Then
 ' rst.Open "SELECT TABLE_NAME tn, GROUP_CONCAT(CONCAT('CAST(',column_name,' AS CHAR)" & IIf(Not notObRlike, " RLIKE ", "=") & "''" & fI & "''') SEPARATOR ' OR ') cn FROM information_schema.columns c WHERE table_catalog='def' AND table_schema='medoff' AND TABLE_TYPE<>'SEQUENCE' GROUP BY table_name" _
