@@ -2247,7 +2247,7 @@ Private Sub Übertragung_aus_MO_Click()
 '#Else
  If opt.alleaktQ Then
   sql = "SELECT COUNT(0)OVER()zahl,FPatnr," & GesNamegMO & ",18900101+INTERVAL fbis DAY laend,ROW_NUMBER()OVER(ORDER BY fpatnr DESC)rang" & vbCrLf & _
-  "FROM patfall f JOIN patstamm p ON f.FPatnr=p.FSurogat WHERE 18900101+INTERVAL fvon DAY BETWEEN " & lQAnfuEnd(FristS) & " AND fpatnr<>75830" & vbCrLf & _
+  "FROM patfall f JOIN patstamm p ON f.FPatnr=p.FSurogat WHERE f.fpatnr<2747 AND 18900101+INTERVAL fvon DAY BETWEEN " & lQAnfuEnd(FristS) & " AND fpatnr<>75830" & vbCrLf & _
   "ORDER BY fpatnr DESC;"
   opt.erzwinge = 1
   opt.alleaktQ = False

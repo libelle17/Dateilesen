@@ -6536,7 +6536,7 @@ Hausarzt:
  Dim iinf%, satznr%
  For iinf = infi To 1
   Call holHAausMO(inf, CLng(Pat_id), satznr)
-  If inf.KVNr <> "" Or inf.Faxnr <> "" Then ' fax 29.9.25
+  If inf.KVNr <> "" Or inf.BSNR <> "" Or inf.Faxnr <> "" Then ' fax 29.9.25 ' BSNR 3.4.26
    infos(0, iinf) = IIf(InStrB(inf.‹berschr, "Herr") <> 0 Or InStrB(inf.‹berschr, "Lieber") <> 0, "Herrn", "Frau") ' inf.anrede
    infos(1, iinf) = inf.gesName
    infos(2, iinf) = inf.Straﬂe
@@ -7877,7 +7877,7 @@ Public Sub tuBriefStandalone(pid&, obStumm%, Optional Zielverz$, Optional Verfas
  Dim raHae As New ADODB.Recordset
  Dim rsNa As New ADODB.Recordset
  Dim obHAimDMP%
- Dim j&, pos%, ii%, Index%
+ Dim j&, pos%, ii%, obNachr%
 ' Dim VBuch$
 ' dim fs
  Dim runde%, KVNr$
@@ -8104,39 +8104,37 @@ Public Sub tuBriefStandalone(pid&, obStumm%, Optional Zielverz$, Optional Verfas
   ag.appH PKennz("<w:p><w:pPr><w:spacing w:before=""80""/><w:ind w:firstLine=""709""/><w:rPr><w:rStyle w:val=""s24s""/></w:rPr></w:pPr></w:p><w:p><w:pPr><w:spacing w:before=""80""/><w:rPr><w:i/><w:iCs/><w:rStyle w:val=""s16s""/><w:u w:val=""single""/></w:rPr></w:pPr><w:r><w:rPr><w:rStyle w:val=""brieffenster""/></w:rPr><w:t>Diabetolog. Gem'praxis</w:t></w:r><w:r><w:rPr><w:rStyle w:val=""brieffenster""/></w:rPr><w:sym w:font=""Symbol"" w:char=""F0B7""/></w:r><w:r><w:rPr><w:rStyle w:val=""brieffenster""/></w:rPr><w:t> Mittermayerstraﬂe 13 </w:t></w:r><w:r><w:rPr><w:rStyle w:val=""brieffenster""/></w:rPr><w:sym w:font=""Symbol"" w:char=""F0B7""/></w:r><w:r><w:rPr><w:rStyle w:val=""brieffenster""/></w:rPr><w:t> 85221 Dachau</w:t><w:br/></w:r></w:p>", False)
   If nurLabor = 0 Then
 ' ermitteln, ob ein oder zwei Adressaten
-   Index = 0
+   obNachr = 0
    For ii = 1 To UBound(infos, 2)
-    If infos(4, ii) <> "" Then
-     If infos(4, ii) = infos(4, 0) Then ' wenn die Faxnummern gleich sind
+     If infos(4, ii) = infos(4, 0) And infos(4, ii) <> "" Then ' wenn die Faxnummern gleich sind ' 3.4.26: und nicht leer vorziehen, damit
       Dim jj%
       For jj = 0 To UBound(infos, 1) ' dann lieber den manuell eingegebenen Arzt nehmen
        infos(jj, 0) = infos(jj, ii)
        infos(jj, ii) = ""
       Next jj
      Else ' wenn sie verschieden sind, dann den zweiten Arzt extra im Brief auff¸hren
-      Index = ii
+      obNachr = ii
       Exit For
      End If ' infos(4, ii) <> infos(4, 0) Then
-    End If ' infos(4, ii) <> "" Then
    Next ii
 ' die n‰chsten beiden bilden zusammen einen Absatz
 ' Anrede, Funktion (a): IIf(infos(0, 0) = "Herr", "Herrn", infos(0, 0)), zuh(infos(10, 0))
    ag.appH PKennz("<w:p><w:pPr><w:tabs><w:tab w:val=""left"" w:pos=""5387""/></w:tabs><w:spacing w:before=""140""/></w:pPr><w:bookmarkStart w:id=""0"" w:name=""ha1a""/><w:r><w:rPr><w:rStyle w:val=""s24s""/></w:rPr><w:t>" & IIf(infos(0, 0) = "Herr", "Herrn", infos(0, 0)) & "</w:t></w:r><w:bookmarkEnd w:id=""0""/><w:r><w:rPr><w:rStyle w:val=""s24s""/></w:rPr><w:t> </w:t></w:r><w:bookmarkStart w:id=""1"" w:name=""ha10a""/><w:r><w:rPr><w:rStyle w:val=""s24vs""/></w:rPr><w:t>" & zuh(infos(10, 0)) & "</w:t></w:r><w:bookmarkEnd w:id=""1""/>")
-' Anrede, Funktion (b): , IIf(Index <> 0 And UBound(infos, 2) > 0, "<w:r><w:rPr><w:rStyle w:val=""s24s""/></w:rPr><w:t>" & IIf(infos(0, Index) = "Herr", "Herrn", infos(0, Index)) & "</w:t></w:r>", ""), IIf(Index <> 0 And UBound(infos, 2) > 0, "<w:r><w:rPr><w:rStyle w:val=""s24vs""/></w:rPr><w:t>" & infos(10, Index) & "</w:t></w:r>", "")
-   ag.appH PKennz("<w:r><w:rPr><w:rStyle w:val=""s24s""/></w:rPr><w:tab/></w:r><w:bookmarkStart w:id=""2"" w:name=""ha1b""/>" & IIf(Index <> 0 And UBound(infos, 2) > 0, "<w:r><w:rPr><w:rStyle w:val=""s24s""/></w:rPr><w:t>" & IIf(infos(0, Index) = "Herr", "Herrn", infos(0, Index)) & "</w:t></w:r>", "") & "<w:bookmarkEnd w:id=""2""/><w:bookmarkStart w:id=""3"" w:name=""ha10b""/>" & IIf(Index <> 0 And UBound(infos, 2) > 0, "<w:r><w:rPr><w:rStyle w:val=""s24vs""/></w:rPr><w:t>" & infos(10, Index) & "</w:t></w:r>", "") & "<w:bookmarkEnd w:id=""3""/></w:p>", False)
-' Name: zuh(infos(1, 0)), zuh(IIf(Index <> 0 And UBound(infos, 2) > 0, "<w:r><w:t>" & infos(1, Index) & "</w:t></w:r>", ""))
-   ag.appH PKennz("<w:p><w:pPr><w:tabs><w:tab w:val=""left"" w:pos=""5387""/></w:tabs><w:pStyle w:val=""sp24s""/></w:pPr><w:bookmarkStart w:id=""4"" w:name=""ha2a""/><w:r><w:t>" & zuh(infos(1, 0)) & "</w:t></w:r><w:bookmarkEnd w:id=""4""/><w:r><w:tab/></w:r><w:bookmarkStart w:id=""5"" w:name=""ha2b""/>" & IIf(Index <> 0 And UBound(infos, 2) > 0, "<w:r><w:t>" & zuh(infos(1, Index)) & "</w:t></w:r>", "") & "<w:bookmarkEnd w:id=""5""/></w:p>", False)
-' Straﬂe: zuh(infos(2, 0)), zuh(IIf(Index <> 0 And UBound(infos, 2) > 0, "<w:r><w:rPr><w:rStyle w:val=""s24s""/></w:rPr><w:t>" & infos(2, Index) & "</w:t></w:r>", ""))
-   ag.appH PKennz("<w:p><w:pPr><w:tabs><w:tab w:val=""left"" w:pos=""5387""/></w:tabs><w:rPr><w:rStyle w:val=""s24s""/></w:rPr></w:pPr><w:bookmarkStart w:id=""6"" w:name=""ha3a""/><w:r><w:rPr><w:rStyle w:val=""s24s""/></w:rPr><w:t>" & zuh(infos(2, 0)) & "</w:t></w:r><w:bookmarkEnd w:id=""6""/><w:r><w:rPr><w:rStyle w:val=""s24s""/></w:rPr><w:tab/></w:r><w:bookmarkStart w:id=""7"" w:name=""ha3b""/>" & IIf(Index <> 0 And UBound(infos, 2) > 0, "<w:r><w:rPr><w:rStyle w:val=""s24s""/></w:rPr><w:t>" & zuh(infos(2, Index)) & "</w:t></w:r>", "") & "<w:bookmarkEnd w:id=""7""/></w:p>", False)
+' Anrede, Funktion (b): , IIf(obNachr <> 0 And UBound(infos, 2) > 0, "<w:r><w:rPr><w:rStyle w:val=""s24s""/></w:rPr><w:t>" & IIf(infos(0, obNachr) = "Herr", "Herrn", infos(0, obNachr)) & "</w:t></w:r>", ""), IIf(obNachr <> 0 And UBound(infos, 2) > 0, "<w:r><w:rPr><w:rStyle w:val=""s24vs""/></w:rPr><w:t>" & infos(10, obNachr) & "</w:t></w:r>", "")
+   ag.appH PKennz("<w:r><w:rPr><w:rStyle w:val=""s24s""/></w:rPr><w:tab/></w:r><w:bookmarkStart w:id=""2"" w:name=""ha1b""/>" & IIf(obNachr <> 0 And UBound(infos, 2) > 0, "<w:r><w:rPr><w:rStyle w:val=""s24s""/></w:rPr><w:t>" & IIf(infos(0, obNachr) = "Herr", "Herrn", infos(0, obNachr)) & "</w:t></w:r>", "") & "<w:bookmarkEnd w:id=""2""/><w:bookmarkStart w:id=""3"" w:name=""ha10b""/>" & IIf(obNachr <> 0 And UBound(infos, 2) > 0, "<w:r><w:rPr><w:rStyle w:val=""s24vs""/></w:rPr><w:t>" & infos(10, obNachr) & "</w:t></w:r>", "") & "<w:bookmarkEnd w:id=""3""/></w:p>", False)
+' Name: zuh(infos(1, 0)), zuh(IIf(obNachr <> 0 And UBound(infos, 2) > 0, "<w:r><w:t>" & infos(1, obNachr) & "</w:t></w:r>", ""))
+   ag.appH PKennz("<w:p><w:pPr><w:tabs><w:tab w:val=""left"" w:pos=""5387""/></w:tabs><w:pStyle w:val=""sp24s""/></w:pPr><w:bookmarkStart w:id=""4"" w:name=""ha2a""/><w:r><w:t>" & zuh(infos(1, 0)) & "</w:t></w:r><w:bookmarkEnd w:id=""4""/><w:r><w:tab/></w:r><w:bookmarkStart w:id=""5"" w:name=""ha2b""/>" & IIf(obNachr <> 0 And UBound(infos, 2) > 0, "<w:r><w:t>" & zuh(infos(1, obNachr)) & "</w:t></w:r>", "") & "<w:bookmarkEnd w:id=""5""/></w:p>", False)
+' Straﬂe: zuh(infos(2, 0)), zuh(IIf(obNachr <> 0 And UBound(infos, 2) > 0, "<w:r><w:rPr><w:rStyle w:val=""s24s""/></w:rPr><w:t>" & infos(2, obNachr) & "</w:t></w:r>", ""))
+   ag.appH PKennz("<w:p><w:pPr><w:tabs><w:tab w:val=""left"" w:pos=""5387""/></w:tabs><w:rPr><w:rStyle w:val=""s24s""/></w:rPr></w:pPr><w:bookmarkStart w:id=""6"" w:name=""ha3a""/><w:r><w:rPr><w:rStyle w:val=""s24s""/></w:rPr><w:t>" & zuh(infos(2, 0)) & "</w:t></w:r><w:bookmarkEnd w:id=""6""/><w:r><w:rPr><w:rStyle w:val=""s24s""/></w:rPr><w:tab/></w:r><w:bookmarkStart w:id=""7"" w:name=""ha3b""/>" & IIf(obNachr <> 0 And UBound(infos, 2) > 0, "<w:r><w:rPr><w:rStyle w:val=""s24s""/></w:rPr><w:t>" & zuh(infos(2, obNachr)) & "</w:t></w:r>", "") & "<w:bookmarkEnd w:id=""7""/></w:p>", False)
    ag.appH PKennz("<w:p><w:pPr><w:framePr w:w=""340"" w:h=""550"" w:hSpace=""181"" w:wrap=""around"" w:vAnchor=""page"" w:hAnchor=""page"" w:x=""642"" w:y=""5671""/><w:tabs><w:tab w:val=""left"" w:pos=""5387""/></w:tabs><w:rPr><w:rStyle w:val=""s16s""/></w:rPr></w:pPr><w:r><w:rPr><w:sz w:val=""32""/></w:rPr><w:t>-</w:t></w:r></w:p>", False)
-' Ort: zuh(infos(3, 0)), zuh(IIf(Index <> 0 And UBound(infos, 2) > 0, "<w:r><w:rPr><w:b/><w:bCs/><w:rStyle w:val=""s24s""/></w:rPr><w:t>" & infos(3, Index) & "</w:t></w:r>", ""))
-   ag.appH PKennz("<w:p><w:pPr><w:tabs><w:tab w:val=""left"" w:pos=""5387""/></w:tabs></w:pPr><w:bookmarkStart w:id=""8"" w:name=""ha4a""/><w:r><w:rPr><w:b/><w:bCs/><w:rStyle w:val=""s24s""/></w:rPr><w:t>" & zuh(infos(3, 0)) & "</w:t></w:r><w:bookmarkEnd w:id=""8""/><w:r><w:rPr><w:b/><w:bCs/><w:rStyle w:val=""s24s""/></w:rPr><w:tab/></w:r><w:bookmarkStart w:id=""9"" w:name=""ha4b""/>" & IIf(Index <> 0 And UBound(infos, 2) > 0, "<w:r><w:rPr><w:b/><w:bCs/><w:rStyle w:val=""s24s""/></w:rPr><w:t>" & zuh(infos(3, Index)) & "</w:t></w:r>", "") & "<w:bookmarkEnd w:id=""9""/></w:p>", False)
-' Fax: zuh(infos(4, 0)), zuh(IIf(Index <> 0 And UBound(infos, 2) > 0, "<w:r><w:rPr><w:rStyle w:val=""s24s""/></w:rPr><w:t>" & infos(4, Index) & "</w:t></w:r>", ""))
-   ag.appH PKennz("<w:p><w:pPr><w:tabs><w:tab w:val=""left"" w:pos=""5387""/></w:tabs><w:pStyle w:val=""sp24vs""/></w:pPr><w:bookmarkStart w:id=""10"" w:name=""ha5a""/><w:r><w:t>" & zuh(infos(4, 0)) & "</w:t></w:r><w:bookmarkEnd w:id=""10""/><w:r><w:tab/></w:r><w:bookmarkStart w:id=""11"" w:name=""ha5b""/>" & IIf(Index <> 0 And UBound(infos, 2) > 0, "<w:r><w:t>" & zuh(infos(4, Index)) & "</w:t></w:r>", "") & "<w:bookmarkEnd w:id=""11""/></w:p>", False)
+' Ort: zuh(infos(3, 0)), zuh(IIf(obNachr <> 0 And UBound(infos, 2) > 0, "<w:r><w:rPr><w:b/><w:bCs/><w:rStyle w:val=""s24s""/></w:rPr><w:t>" & infos(3, obNachr) & "</w:t></w:r>", ""))
+   ag.appH PKennz("<w:p><w:pPr><w:tabs><w:tab w:val=""left"" w:pos=""5387""/></w:tabs></w:pPr><w:bookmarkStart w:id=""8"" w:name=""ha4a""/><w:r><w:rPr><w:b/><w:bCs/><w:rStyle w:val=""s24s""/></w:rPr><w:t>" & zuh(infos(3, 0)) & "</w:t></w:r><w:bookmarkEnd w:id=""8""/><w:r><w:rPr><w:b/><w:bCs/><w:rStyle w:val=""s24s""/></w:rPr><w:tab/></w:r><w:bookmarkStart w:id=""9"" w:name=""ha4b""/>" & IIf(obNachr <> 0 And UBound(infos, 2) > 0, "<w:r><w:rPr><w:b/><w:bCs/><w:rStyle w:val=""s24s""/></w:rPr><w:t>" & zuh(infos(3, obNachr)) & "</w:t></w:r>", "") & "<w:bookmarkEnd w:id=""9""/></w:p>", False)
+' Fax: zuh(infos(4, 0)), zuh(IIf(obNachr <> 0 And UBound(infos, 2) > 0, "<w:r><w:rPr><w:rStyle w:val=""s24s""/></w:rPr><w:t>" & infos(4, obNachr) & "</w:t></w:r>", ""))
+   ag.appH PKennz("<w:p><w:pPr><w:tabs><w:tab w:val=""left"" w:pos=""5387""/></w:tabs><w:pStyle w:val=""sp24vs""/></w:pPr><w:bookmarkStart w:id=""10"" w:name=""ha5a""/><w:r><w:t>" & zuh(infos(4, 0)) & "</w:t></w:r><w:bookmarkEnd w:id=""10""/><w:r><w:tab/></w:r><w:bookmarkStart w:id=""11"" w:name=""ha5b""/>" & IIf(obNachr <> 0 And UBound(infos, 2) > 0, "<w:r><w:t>" & zuh(infos(4, obNachr)) & "</w:t></w:r>", "") & "<w:bookmarkEnd w:id=""11""/></w:p>", False)
    ag.appH PKennz("<w:p><w:pPr><w:tabs><w:tab w:val=""left"" w:pos=""6946""/><w:tab w:val=""left"" w:pos=""9214""/></w:tabs><w:ind w:right=""-1""/><w:rPr><w:b/><w:sz w:val=""24""/><w:u w:val=""single""/></w:rPr></w:pPr><w:br/><w:br/></w:p>", False)
-' Anrede: zuh(infos(5, 0)), zuh(IIf(Index <> 0 And UBound(infos, 2) > 0, "<w:r><w:t>" & infos(5, Index) & "</w:t></w:r>", ""))
-   If Index <> 0 Then infos(5, Index) = LCase$(left$(infos(5, Index), 1)) & Mid$(infos(5, Index), 2)
-   ag.appH PKennz("<w:p><w:pPr><w:pStyle w:val=""sp24s""/></w:pPr><w:bookmarkStart w:id=""12"" w:name=""ha6a""/><w:r><w:t>" & zuh(infos(5, 0)) & ",</w:t></w:r><w:bookmarkEnd w:id=""12""/><w:bookmarkStart w:id=""13"" w:name=""ha6b""/>" & IIf(Index <> 0 And infos(5, Index) <> "", "<w:r><w:t> " & zuh(infos(5, Index)) & ",</w:t></w:r>", "") & "<w:bookmarkEnd w:id=""13""/></w:p>", False)
+' Anrede: zuh(infos(5, 0)), zuh(IIf(obNachr <> 0 And UBound(infos, 2) > 0, "<w:r><w:t>" & infos(5, obNachr) & "</w:t></w:r>", ""))
+   If obNachr <> 0 Then infos(5, obNachr) = LCase$(left$(infos(5, obNachr), 1)) & Mid$(infos(5, obNachr), 2)
+   ag.appH PKennz("<w:p><w:pPr><w:pStyle w:val=""sp24s""/></w:pPr><w:bookmarkStart w:id=""12"" w:name=""ha6a""/><w:r><w:t>" & zuh(infos(5, 0)) & ",</w:t></w:r><w:bookmarkEnd w:id=""12""/><w:bookmarkStart w:id=""13"" w:name=""ha6b""/>" & IIf(obNachr <> 0 And infos(5, obNachr) <> "", "<w:r><w:t> " & zuh(infos(5, obNachr)) & ",</w:t></w:r>", "") & "<w:bookmarkEnd w:id=""13""/></w:p>", False)
 ' Einleitung: zuh(replace$(GName, ", *", ", geb. ")), dieder, behd
    Dim satzanf$
    If (VorDat0 And (VorDat0 > Now() - 30)) Or myEFrag("SELECT COALESCE((SELECT schgr FROM faelle WHERE pat_id=" & Pat_id & " ORDER BY bhfb DESC LIMIT 1),'24')schgr", rAf)!SchGr = 0 Then
@@ -8192,25 +8190,25 @@ Public Sub tuBriefStandalone(pid&, obStumm%, Optional Zielverz$, Optional Verfas
 '   agtabu
 '   For ii = 1 To UBound(infos, 2)
 '    If infos(4, ii) <> infos(4, 0) Then
-'     Index = ii
+'     obNachr = ii
 '     Exit For
 '    End If ' infos(4, ii) <> infos(4, 0) Then
 '   Next ii ' ii = 1 To UBound(infos, 2)
-'   bookm "ha1b", IIf(Index <> 0 And UBound(infos, 2) > 0, IIf(infos(0, Index) = "Herr", "Herrn", infos(0, Index)), "$1210$"), IIf(Index <> 0 And UBound(infos, 2) > 0, False, True)
+'   bookm "ha1b", IIf(obNachr <> 0 And UBound(infos, 2) > 0, IIf(infos(0, obNachr) = "Herr", "Herrn", infos(0, obNachr)), "$1210$"), IIf(obNachr <> 0 And UBound(infos, 2) > 0, False, True)
 '   agpreserve
-'   bookm "ha10b", IIf(Index <> 0 And UBound(infos, 2) > 0, infos(10, Index), " "), IIf(Index <> 0 And UBound(infos, 2) > 0, False, True)
+'   bookm "ha10b", IIf(obNachr <> 0 And UBound(infos, 2) > 0, infos(10, obNachr), " "), IIf(obNachr <> 0 And UBound(infos, 2) > 0, False, True)
 '   ag.appH "</w:p>"
 '   ag.appH agabsa
 '   agtab2
 '   bookm "ha2a", zuh(infos(1, 0))
 '   agtabu ' Name:
-'   bookm "ha2b", zuh(IIf(Index <> 0 And UBound(infos, 2) > 0, infos(1, Index), "$1203$ $1202$ $1201$")), IIf(Index <> 0 And UBound(infos, 2) > 0, False, True)
+'   bookm "ha2b", zuh(IIf(obNachr <> 0 And UBound(infos, 2) > 0, infos(1, obNachr), "$1203$ $1202$ $1201$")), IIf(obNachr <> 0 And UBound(infos, 2) > 0, False, True)
 '   ag.appH "</w:p>"
 '   ag.appH agabsa
 '   agtab2
 '   bookm "ha3a", zuh(infos(2, 0))
 '   agtabu ' Straﬂe:
-'   bookm "ha3b", zuh(IIf(Index <> 0 And UBound(infos, 2) > 0, infos(2, Index), "$1205$ $1206$")), IIf(Index <> 0 And UBound(infos, 2) > 0, False, True)
+'   bookm "ha3b", zuh(IIf(obNachr <> 0 And UBound(infos, 2) > 0, infos(2, obNachr), "$1205$ $1206$")), IIf(obNachr <> 0 And UBound(infos, 2) > 0, False, True)
 '   ag.appH "</w:p>"
 '   ag.appH agabsa
 '   ag.appvh Array("<w:pPr><w:framePr w:w=""340"" w:h=""550"" w:hSpace=""181"" w:wrap=""around"" w:vAnchor=""page"" w:hAnchor=""page"" w:x=""642"" w:y=""5671""/><w:tabs><w:tab w:val=""left"" w:pos=""5387""/></w:tabs><w:rPr><w:rFonts w:ascii=""Arial"" w:hAnsi=""Arial""/><w:sz w:val=""16""/></w:rPr></w:pPr><w:r><w:rPr><w:rFonts w:ascii=""Arial"" w:hAnsi=""Arial""/><w:sz w:val=""32""/></w:rPr><w:t>", zuh("-"), "</w:t></w:r></w:p>")
@@ -8218,13 +8216,13 @@ Public Sub tuBriefStandalone(pid&, obStumm%, Optional Zielverz$, Optional Verfas
 '   agtab2
 '   bookm "ha4a", zuh(infos(3, 0)), , True
 '   agtabu ' Ort:
-'   bookm "ha4b", zuh(IIf(Index <> 0 And UBound(infos, 2) > 0, infos(3, Index), "$1207$ $1208$")), IIf(Index <> 0 And UBound(infos, 2) > 0, False, True), IIf(Index <> 0 And UBound(infos, 2) > 0, False, True)
+'   bookm "ha4b", zuh(IIf(obNachr <> 0 And UBound(infos, 2) > 0, infos(3, obNachr), "$1207$ $1208$")), IIf(obNachr <> 0 And UBound(infos, 2) > 0, False, True), IIf(obNachr <> 0 And UBound(infos, 2) > 0, False, True)
 '   ag.appH "</w:p>"
 '   ag.appH agabsa
 '   ag.appH doagtab & stil(, , 1, 2, , 1) & "</w:pPr>"
 '   ag.appvh Array(bookmS("ha5a"), "<w:r>", stil(, , 1, 2, , 1), htxt(infos(4, 0)), "</w:r>", bookmE) ' FaxNr
 '   ag.appvh Array("<w:r>", stil(, , 1, 2, , IIf(UBound(infos, 2) > 0, 0, 1)), "</w:r>")
-'   ag.appvh Array(bookmS("ha5b"), "<w:r>", stil(, , 1, 2, , IIf(UBound(infos, 2) > 0, 0, 1)), htxt(IIf(Index <> 0 And UBound(infos, 2) > 0, infos(4, Index), "Fax $1216$:")), "</w:r>", bookmE) ' FaxNr
+'   ag.appvh Array(bookmS("ha5b"), "<w:r>", stil(, , 1, 2, , IIf(UBound(infos, 2) > 0, 0, 1)), htxt(IIf(obNachr <> 0 And UBound(infos, 2) > 0, infos(4, obNachr), "Fax $1216$:")), "</w:r>", bookmE) ' FaxNr
 '   ag.appH "</w:p>"
 '   Dim iru%
 '   For iru = 0 To 2
@@ -8235,7 +8233,7 @@ Public Sub tuBriefStandalone(pid&, obStumm%, Optional Zielverz$, Optional Verfas
 '   ag.appH stil()
 '   bookm "ha6a", zuh(infos(5, 0)) & ","
 '   agpreserve
-'   ag.appvh Array(bookmS("ha6b"), "<w:r>", stil(, , 1, 2, , IIf(UBound(infos, 2) > 0, 0, 1)), htxt(IIf(Index <> 0 And UBound(infos, 2) > 0, infos(5, Index), "$1213$")), "</w:r>", bookmE)
+'   ag.appvh Array(bookmS("ha6b"), "<w:r>", stil(, , 1, 2, , IIf(UBound(infos, 2) > 0, 0, 1)), htxt(IIf(obNachr <> 0 And UBound(infos, 2) > 0, infos(5, obNachr), "$1213$")), "</w:r>", bookmE)
 '   agpreserve
 '   ag.appH "</w:p>"
 '   ag.appH agabsa
@@ -8311,24 +8309,24 @@ On Error GoTo fehler
      Call BMRd(dc, !ha5a, infos(4, 0)) ' Faxnummer
      Call BMRd(dc, !ha6a, infos(5, 0)) ' Anrede
      Call BMRd(dc, !ha10a, infos(10, 0)) ' ‹berweiserinfos
-'     Dim ii%, Index%
+'     Dim ii%, obNachr%
      For ii = 1 To UBound(infos, 2)
       If infos(4, ii) <> infos(4, 0) Then
-       Index = ii
+       obNachr = ii
        Exit For
       End If
      Next ii
-     If Index <> 0 And UBound(infos, 2) > 0 Then
-      Call BMRd(dc, !ha1b, IIf(infos(0, Index) = "Herr", "Herrn", infos(0, Index)), True) '  IIF(raHacall bmrd(dc,!Geschlecht = "w", "Frau", "Herrn")) '+ vblf) + nzw
-      Call BMRd(dc, !ha2b, infos(1, Index), True) ' "Dr.med. " + raHacall bmrd(dc,!VorName & " " & raHacall bmrd(dc,!NachName
-      Call BMRd(dc, !ha3b, infos(2, Index), True) ' raHacall bmrd(dc,!Straﬂe
-      Call BMRd(dc, !ha4b, infos(3, Index), True) ' raHacall bmrd(dc,!Plz & " " & raHacall bmrd(dc,!Ort
-      Call BMRd(dc, !ha5b, infos(4, Index)) ' Faxnummer
-      If Not InStr(infos(10, 0), infos(10, Index)) And Not InStr(infos(10, Index), infos(10, 0)) Then
-       Call BMRd(dc, !ha6b, REPLACE(infos(5, Index), "Sehr", " sehr") & ",", True) ' Anrede
+     If obNachr <> 0 And UBound(infos, 2) > 0 Then
+      Call BMRd(dc, !ha1b, IIf(infos(0, obNachr) = "Herr", "Herrn", infos(0, obNachr)), True) '  IIF(raHacall bmrd(dc,!Geschlecht = "w", "Frau", "Herrn")) '+ vblf) + nzw
+      Call BMRd(dc, !ha2b, infos(1, obNachr), True) ' "Dr.med. " + raHacall bmrd(dc,!VorName & " " & raHacall bmrd(dc,!NachName
+      Call BMRd(dc, !ha3b, infos(2, obNachr), True) ' raHacall bmrd(dc,!Straﬂe
+      Call BMRd(dc, !ha4b, infos(3, obNachr), True) ' raHacall bmrd(dc,!Plz & " " & raHacall bmrd(dc,!Ort
+      Call BMRd(dc, !ha5b, infos(4, obNachr)) ' Faxnummer
+      If Not InStr(infos(10, 0), infos(10, obNachr)) And Not InStr(infos(10, obNachr), infos(10, 0)) Then
+       Call BMRd(dc, !ha6b, REPLACE(infos(5, obNachr), "Sehr", " sehr") & ",", True) ' Anrede
       End If
-      Call BMRd(dc, !ha10b, infos(10, Index)) ' ‹berweiserinfos
-     End If ' Index <> 0 And UBound(infos, 2) > 0 Then
+      Call BMRd(dc, !ha10b, infos(10, obNachr)) ' ‹berweiserinfos
+     End If ' obNachr <> 0 And UBound(infos, 2) > 0 Then
 'weiter:
 '    Next i
      !PVorn.Range = tit & VorNa
