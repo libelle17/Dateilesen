@@ -3,6 +3,7 @@ Option Explicit
 Option Compare Text
 Private Declare Function GetTickCount Lib "kernel32" () As Long
 Const Fakt& = 256
+Public tg0&, tg1&, tg2& ' für Profiling mit GetTickCount
 Dim meldTxt$ ' für syscmd
 
 ' Public Const pidoffs& = 100000
@@ -1255,19 +1256,19 @@ End Function
 
 
 Private Sub LaborStagingFuellenOutfile(labsql$, pid&, ByRef erfolg%)
-  Dim ErrNr&, ErrDes$, rAf&
-  Dim t0 As Single, t1 As Single
+  Dim ErrNr&, ErrDes$, rAf&, csvd$
+  Dim t0!, t1!
+  csvd = "labor" & pid & "_" & Environ("COMPUTERNAME")
   erfolg = 0
-
   ' Pfade:
-  Dim csvLokal$, csvLinux$
+  Dim csvLokal$, csvLinux$, csvSamba$
   If UCase$(Environ("COMPUTERNAME")) = "WSER" Then
-    csvLokal = "E:\tmexport\labor_staging.csv"
+    csvLokal = "E:\tmexport\" & csvd
   Else
-    csvLokal = "\\wser\tmexport\labor_staging.csv"
+    csvLokal = "\\wser\tmexport\" & csvd
   End If
-  csvLinux = "/DATA/mariatrans/labor_staging.csv"
-
+  csvLinux = "/DATA/mariatrans/" & csvd
+  csvSamba = "\\linux1\mariatrans\" & csvd
   ' Alte Datei löschen (OUTFILE scheitert wenn Datei existiert):
   On Error Resume Next
   Kill csvLokal
@@ -1312,7 +1313,7 @@ sqlOut = _
   End If
 
   t1 = Timer
-  Debug.Print ">>> OUTFILE: " & Format((t1 - t0) * 1000, "0") & "ms"
+  Debug.Print ">>> OUTFILE: " & Format((tg1 - tg0) * 1000, "0") & "ms"
   t0 = Timer
 
   ' Datei prüfen:
@@ -1321,17 +1322,11 @@ sqlOut = _
     Exit Sub
   End If
 
-  ' Spaltencheck:
-  ' (nur im Debug-Modus – kann später entfernt werden)
-  Dim sqlChk$
-  sqlChk = "SELECT COUNT(*) FROM labor_staging WHERE 1=0"  ' Dummy
-  ' Echter Check via Shell wäre ideal aber nicht nötig wenn LOAD DATA klappt
-
   ' Nach linux1 kopieren:
-  FileCopy csvLokal, "\\linux1\mariatrans\labor_staging.csv"
+  FileCopy csvLokal, csvSamba
 
   t1 = Timer
-  Debug.Print ">>> FileCopy: " & Format((t1 - t0) * 1000, "0") & "ms"
+  Debug.Print ">>> FileCopy: " & Format((tg1 - tg0) * 1000, "0") & "ms"
   t0 = Timer
 
   ' LOAD DATA:
@@ -1355,8 +1350,7 @@ sqlOut = _
   End If
 
   t1 = Timer
-  Debug.Print ">>> LOAD DATA: " & rAf & " Zeilen, " & _
-              Format((t1 - t0) * 1000, "0") & "ms"
+  Debug.Print ">>> LOAD DATA: " & rAf & " Zeilen, " & Format((tg1 - tg0) * 1000, "0") & "ms"
 
   On Error Resume Next
   Kill csvLokal
@@ -1381,20 +1375,20 @@ Private Sub LaborStagingFuellen(labsql$, pid&)
     Exit Sub
   End If
 
-If True Then
+If False Then
   ' Versuch 1: SELECT INTO OUTFILE (schnell):
   LaborStagingFuellenOutfile labsql, pid, erfolg
   If erfolg Then Exit Sub
-End If
   ' Versuch 2: VB6 CSV-Schreiben (robust):
   Debug.Print ">>> Fallback auf VB6-CSV"
   LaborStagingFuellenVB6 labsql, pid, erfolg
   If erfolg Then Exit Sub
+End If
 
   ' Versuch 3: Chunk-Insert (langsamster aber sicherster Weg):
   Debug.Print ">>> Fallback auf Chunk-Insert"
   LaborStagingFuellenChunk labsql, pid
-End Sub
+End Sub ' LaborStagingFuellen(labsql$, pid&)
 
 ' -- Angepasstes LaborStagingFuellen --------------------------
 
@@ -1483,14 +1477,13 @@ Private Sub LaborStagingFuellenVB6(labsql$, pid&, ByRef erfolg%)
   rsSrc.Close
 
   t1 = Timer
-  Debug.Print ">>> CSV geschrieben: " & zeilenCount & " Zeilen, " & _
-              Format((t1 - t0) * 1000, "0") & "ms"
+  Debug.Print ">>> CSV geschrieben: " & zeilenCount & " Zeilen, " & Format((tg1 - tg0) * 1000, "0") & "ms"
   t0 = Timer
 
   FileCopy csvLokal, "\\linux1\mariatrans\labor_staging.csv"
 
   t1 = Timer
-  Debug.Print ">>> FileCopy: " & Format((t1 - t0) * 1000, "0") & "ms"
+  Debug.Print ">>> FileCopy: " & Format((tg1 - tg0) * 1000, "0") & "ms"
   t0 = Timer
 
   Dim sqlLoad$
@@ -1513,8 +1506,7 @@ Private Sub LaborStagingFuellenVB6(labsql$, pid&, ByRef erfolg%)
   End If
 
   t1 = Timer
-  Debug.Print ">>> LOAD DATA: " & rAf & " Zeilen, " & _
-              Format((t1 - t0) * 1000, "0") & "ms"
+  Debug.Print ">>> LOAD DATA: " & rAf & " Zeilen, " & Format((tg1 - tg0) * 1000, "0") & "ms"
 
   On Error Resume Next
   Kill csvLokal
@@ -1567,15 +1559,12 @@ Private Sub LaborStagingFuellenChunk(labsql$, pid&)
   Dim retry%
   Const chunkSize& = 200
   Const maxRetry% = 3
-  
   On Error GoTo fehler
-  
   myEFrag "DELETE FROM labor_staging WHERE FPatNr=" & pid, , DBCn, , ErrNr, ErrDes
   If ErrNr Then
     Debug.Print "LaborStagingFuellen: DELETE-Fehler " & ErrNr & " " & ErrDes
     Exit Sub
-  End If
-  
+  End If ' ErrNr Then
   Set rsSrc = Nothing
   myFrag rsSrc, labsql, adOpenStatic, MOCon, adLockReadOnly, "700"
   If rsSrc Is Nothing Then Exit Sub
@@ -1584,14 +1573,11 @@ Private Sub LaborStagingFuellenChunk(labsql$, pid&)
     syscmd 4, meldTxt
     Exit Sub
   End If
-  
   rsSrc.MoveFirst
   chunkNr = 0
-  
   Do While Not rsSrc.EOF
-  
-  Dim tChunk&
-  tChunk = GetTickCount
+    Dim tChunk&
+    tChunk = GetTickCount
     ' ----- Chunk aufbauen -----
     sqlIns.Clear
     sqlIns.Append _
@@ -1599,12 +1585,10 @@ Private Sub LaborStagingFuellenChunk(labsql$, pid&)
       " (FPatNr,zp,testid,FICdcode,Testname,EWert," & vbCrLf & _
       "  Einheit,Gwi,Kommentar,etext,Normwertug,normwertog,normtext)" & vbCrLf & _
       "VALUES "
-    
     chunk = 0
     ' Cursor-Position merken für Retry
     Dim posVorChunk&
     posVorChunk = rsSrc.AbsolutePosition
-    
     Do While Not rsSrc.EOF And chunk < chunkSize
       If chunk > 0 Then sqlIns.Append ","
       sqlIns.AppVar Array( _
@@ -1623,14 +1607,13 @@ Private Sub LaborStagingFuellenChunk(labsql$, pid&)
         fUmwfSQL(nz(rsSrc!normtext, "")), "')")
       chunk = chunk + 1
       rsSrc.MoveNext
-    Loop
+    Loop ' While Not rsSrc.EOF And chunk < chunkSize
     chunkNr = chunkNr + 1
-    
     ' ----- Chunk einfügen, bei Fehler Retry mit Cursor-Reset -----
     retry = 0
 nochmalChunk:
-Debug.Print ">>> Chunk " & chunkNr & ": " & (GetTickCount - tChunk) & "ms " & _
-            chunk & " Zeilen, SQL-Länge=" & Len(sqlIns.Value)
+    meldTxt = ">>> Chunk " & chunkNr & ": " & (GetTickCount - tChunk) & "ms " & chunk & " Zeilen, SQL-Länge=" & Len(sqlIns.Value)
+    Debug.Print meldTxt
     myEFrag sqlIns.Value, rAf, DBCn, , ErrNr, ErrDes
     If ErrNr Then
       InsKorr DBCn, sqlIns.Value, rAf, ErrDes, , ErrNr
@@ -1639,22 +1622,16 @@ Debug.Print ">>> Chunk " & chunkNr & ": " & (GetTickCount - tChunk) & "ms " & _
         retry = retry + 1
         GoTo nochmalChunk
       ElseIf ErrNr <> 0 Then
-        Debug.Print "LaborStagingFuellen: Chunk " & chunkNr & _
-                    " Fehler nach InsKorr: " & ErrNr & " " & ErrDes
+        Debug.Print "LaborStagingFuellen: Chunk " & chunkNr & " Fehler nach InsKorr: " & ErrNr & " " & ErrDes
         ' hier NICHT abbrechen – nächsten Chunk versuchen
       End If
-    End If
-    
-    meldTxt = "Labor Staging: Chunk " & chunkNr & " – " & rAf & _
-              " Sätze (retry=" & retry & ")"
+    End If ' ErrNr
+    meldTxt = "Labor Staging: Chunk " & chunkNr & " – " & rAf & " Sätze (retry=" & retry & ")"
     Debug.Print meldTxt
     syscmd 4, meldTxt
-    
   Loop
-  
   rsSrc.Close
   Exit Sub
-  
 fehler:
   Debug.Print "Fehler in LaborStagingFuellen: " & Err.Number & " " & Err.Description
 End Sub
@@ -1700,7 +1677,7 @@ Private Function SqlLaborneu(pid&) As String
   s = s & "                           AND ln.Normber    = s.normtext" & vbCrLf
   s = s & "WHERE s.FPatNr=" & pid & ";"
   SqlLaborneu = s
-End Function
+End Function ' SqlLaborneu(pid&) As String
 
 Private Sub LaborAusStaging(pid&, ByRef rAfGes&)
   Dim ErrNr&, ErrDes$, rAf&
@@ -1762,8 +1739,7 @@ Dim tSq&
 tSq = GetTickCount
     myEFrag sq(i), rAf, DBCn, , ErrNr, ErrDes
     
-Debug.Print ">>> sq(" & i & ") " & sName(i) & ": " & _
-            (GetTickCount - tSq) & "ms rAf=" & rAf
+Debug.Print ">>> sq(" & i & ") " & sName(i) & ": " & (GetTickCount - tSq) & "ms rAf=" & rAf
     If ErrNr Then
       InsKorr DBCn, sq(i), rAf, ErrDes, , ErrNr
     End If
@@ -4003,6 +3979,7 @@ labsql = labsql & _
 If LaborLangsam Then
 LaborLangsam:
  If Not ohneLabor Then
+  tg0 = GetTickCount
   syscmd 4, "bearbeite Labor einzeln"
 ' Änderungen des folgenden SQL-Textes koordinieren mit "bearbeite Labor gesammelt"
 
@@ -4083,6 +4060,7 @@ LaborLangsam:
     rsEi.MoveNext
    Loop ' while not rsEi.EOF
   End If ' Not rsEi.BOF Then
+  tg1 = GetTickCount
  End If ' not ohnelabor then
  If Not LaborLangsam Then
   Return
@@ -4102,19 +4080,18 @@ End If ' laborlangsam
 '#If Not laborlangsam Then
 If Not LaborLangsam Then
  If Not ohneLabor Then
+  tg0 = GetTickCount
   syscmd 4, "bearbeite Labor gesammelt"
 #If mitclaude Then
 
    meldTxt = "Labor: Übertrage Rohdaten nach Staging..."
     syscmd 4, meldTxt
     
-Dim t0&, t1&, t2&
-t0 = GetTickCount
 
     LaborStagingFuellen labsql, pid
     
-t1 = GetTickCount
-Debug.Print ">>> LaborStagingFuellen: " & (t1 - t0) & "ms"
+    tg1 = GetTickCount
+    Debug.Print ">>> Export: " & (tg1 - tg0) & "ms"
 
     meldTxt = "Labor: Verarbeite Staging-Daten..."
     syscmd 4, meldTxt
@@ -4127,9 +4104,6 @@ Debug.Print ">>> LaborStagingFuellen: " & (t1 - t0) & "ms"
 
     Dim rAfGes&
     LaborAusStaging pid, rAfGes
-t2 = GetTickCount
-Debug.Print ">>> LaborAusStaging: " & (t2 - t1) & "ms"
-Debug.Print ">>> Gesamt: " & (t2 - t0) & "ms"
 
     ' Isolation Level zurücksetzen
     myEFrag "SET SESSION TRANSACTION ISOLATION LEVEL REPEATABLE READ", _
@@ -4188,6 +4162,7 @@ sql = sql & labsql & _
   Set rsEi = Nothing
   myFrag rsEi, sql, adOpenStatic, MOCon, adLockReadOnly, "9992147483647", rAf
   If Not rsEi.BOF Then
+   tg1 = GetTickCount
    For i = 0 To 6
     If Not IsNull(rsEi.Fields(i)) Then
      If Right$(rsEi.Fields(i), 7) <> "VALUES " Then
@@ -4209,20 +4184,20 @@ sql = sql & labsql & _
         Set rsMO = Nothing ' eher überflüssig
         Erase aDesk
         GoTo abermals
-#If gehtnicht Then
-'        MsgBox (ErrNr & " " & ErrDes & vbCrLf & vbCrLf & "vermutlich reicht Group-concat nicht bei Pat." & pid)
-        Open "v:\sqllaborimport.txt" For Output As #250
-        Print #250, rsEi.Fields(i)
-        Close #250
-        If SafeArrayGetDim(roLa) = 0 Then
-         Call faelleLaden
-         Call laborneuLaden
-        End If
-        GoSub LaborLangsam
-        Call laborparameterSpeichern
-        Call laborneuEinf
-        Call laborneuSpeichern(lies.dlg.SammelInsert, lies.dlg.BeziehungsfehlerSpeichern)
-#End If
+'#If gehtnicht Then
+''        MsgBox (ErrNr & " " & ErrDes & vbCrLf & vbCrLf & "vermutlich reicht Group-concat nicht bei Pat." & pid)
+'        Open "v:\sqllaborimport.txt" For Output As #250
+'        Print #250, rsEi.Fields(i)
+'        Close #250
+'        If SafeArrayGetDim(roLa) = 0 Then
+'         Call faelleLaden
+'         Call laborneuLaden
+'        End If
+'        GoSub LaborLangsam
+'        Call laborparameterSpeichern
+'        Call laborneuEinf
+'        Call laborneuSpeichern(lies.dlg.SammelInsert, lies.dlg.BeziehungsfehlerSpeichern)
+'#End If
 '        Stop
       End If
      End If
@@ -4232,6 +4207,18 @@ sql = sql & labsql & _
 #End If ' mitclaude
   End If ' not ohneLabor
  End If ' not laborlangsam
+ If Not ohneLabor Then
+  tg2 = GetTickCount
+' für Pat. 14 5.4.26:
+' LaborLangsam:               5562 ms
+' ges:                        3500 ms
+' LaborStagingFuellenOutfile: 1688 ms
+' LaborStagingFuellenVB6      5360 ms, 5141 ms
+' LaborStagingFuellenChunk:  10640 ms
+  Debug.Print ">>> Export: " & (tg1 - tg0) & "ms"
+  Debug.Print ">>> Import: " & (tg2 - tg1) & "ms"
+  Debug.Print ">>> Gesamt: " & (tg2 - tg0) & "ms"
+ End If ' not ohneLabor
 '#End If ' not laborlangsam
   myEFrag "UPDATE namen SET aktzeit=" & Format(aktZeit, "yyyymmddHHMMSS") & " WHERE pat_id=" & rNa(0).Pat_ID, rAf, DBCn, , ErrNr, ErrDes
   If rAf = 1 Then

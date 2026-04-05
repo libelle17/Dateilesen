@@ -235,49 +235,49 @@ Function ASMod(ParamArray tokens()) As String()
     ASMod = arr
 End Function ' ASMod
 
-'' in doTabVorb
-'Function laborparvorladen()
-' On Error GoTo fehler
-' Dim rs As New ADODB.Recordset, rAf&
-' If sListLpar.COUNT = 0 Then
-'  syscmd 4, "Lade Laborparameter vor"
-'  Set rs = myEFrag("SELECT COALESCE(abkü,'')abkü,COALESCE(labor,'')labor,COALESCE(langtext,'')langtext,COALESCE(einheit,'')einheit,COALESCE(nBm,'')nBm,COALESCE(uNm,'')uNm,COALESCE(oNm,'')oNm FROM `laborparameter`", rAf)
-'  Do While Not rs.EOF
-'   Set sLbp = New sLpar
-'   sLbp.Abkü = rs!Abkü ' IIf(IsNull(rs.Fields(0)), vNS, rs.Fields(0)) ' Abkü 6.3.13
-'   sLbp.Labor = rs!Labor ' IIf(IsNull(rs!Labor), vNS, rs!Labor)
-'   sLbp.Langtext = rs!Langtext ' IIf(IsNull(rs!Langtext), vNS, rs!Langtext)
-'   sLbp.Einheit = rs!Einheit ' IIf(IsNull(rs!Einheit), vNS, rs!Einheit)
-'   sLbp.NBm = rs!NBm ' IIf(IsNull(rs!NBm), vNS, rs!NBm)
-'   sLbp.oNm = rs!oNm ' IIf(IsNull(rs!oNm), vNS, rs!oNm)
-'   sLbp.uNm = rs!uNm ' IIf(IsNull(rs!uNm), vNS, rs!uNm)
-'   Call sListLpar.sCAdd(sLbp, -1)
-'   rs.Move 1
-'  Loop ' While Not rs.EOF
-'  rs.Close
-'  syscmd 5
-' End If ' sListLpar.count = 0
-' Exit Function
-'fehler:
-' Dim AnwPfad$
-'#If VBA6 Then
-' AnwPfad = CurrentDb.name
-'#Else
-' AnwPfad = App.path
-'#End If
-'Select Case MsgBox("FNr: " & FNr & ", ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in laborparvorladen/" + AnwPfad)
-' Case vbAbort: Call MsgBox("Höre auf"): ProgEnde
-' Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
-' Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
-'End Select
-'End Function ' laborparvorladen
+' in doTabVorb
+Function laborparvorladen()
+ On Error GoTo fehler
+ Dim rs As New ADODB.Recordset, rAf&
+ If sListLpar.COUNT = 0 Then
+  syscmd 4, "Lade Laborparameter vor"
+  Set rs = myEFrag("SELECT COALESCE(abkü,'')abkü,COALESCE(labor,'')labor,COALESCE(langtext,'')langtext,COALESCE(einheit,'')einheit,COALESCE(nBm,'')nBm,COALESCE(uNm,'')uNm,COALESCE(oNm,'')oNm FROM `laborparameter`", rAf)
+  Do While Not rs.EOF
+   Set sLbp = New sLpar
+   sLbp.Abkü = rs!Abkü ' IIf(IsNull(rs.Fields(0)), vNS, rs.Fields(0)) ' Abkü 6.3.13
+   sLbp.Labor = rs!Labor ' IIf(IsNull(rs!Labor), vNS, rs!Labor)
+   sLbp.Langtext = rs!Langtext ' IIf(IsNull(rs!Langtext), vNS, rs!Langtext)
+   sLbp.Einheit = rs!Einheit ' IIf(IsNull(rs!Einheit), vNS, rs!Einheit)
+   sLbp.NBm = rs!NBm ' IIf(IsNull(rs!NBm), vNS, rs!NBm)
+   sLbp.oNm = rs!oNm ' IIf(IsNull(rs!oNm), vNS, rs!oNm)
+   sLbp.uNm = rs!uNm ' IIf(IsNull(rs!uNm), vNS, rs!uNm)
+   Call sListLpar.sCAdd(sLbp, -1)
+   rs.Move 1
+  Loop ' While Not rs.EOF
+  rs.Close
+  syscmd 5
+ End If ' sListLpar.count = 0
+ Exit Function
+fehler:
+ Dim AnwPfad$
+#If VBA6 Then
+ AnwPfad = CurrentDb.name
+#Else
+ AnwPfad = App.path
+#End If
+Select Case MsgBox("FNr: " & FNr & ", ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in laborparvorladen/" + AnwPfad)
+ Case vbAbort: Call MsgBox("Höre auf"): ProgEnde
+ Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
+ Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
+End Select
+End Function ' laborparvorladen
 
 ' Tabellen vorbereiten für BDT-Import
 ' in Geslies, doPatvonMO
 Function doTabVorb(frm As Lese, obInhalt%, obmitFormularen%)
  Const MaxLauf& = 100
  Dim lauf&
- Dim i&, T2#
+ Dim i&, t2#
  On Error GoTo fehler
  Dim rs As New ADODB.Recordset, rAf&
 ' Dim cn As New ADODB.Connection,
@@ -334,7 +334,7 @@ vorabfrag:
    End If
   Loop
   frm.Bytes = 0
-  T2 = Now
+  t2 = Now
  ' For i = 1 To sListFldInh.Count
  '  Debug.Print sListFldInh.Item(i).FeldInh
  ' Next i
@@ -856,12 +856,12 @@ Function GesLies(frm As Lese, BDTDatei$, BDTName$, EinlAb&, EinlBis&, obLaborDir
    If Zeilen Mod 1000 = 0 Then
     frm.Zeilen = Zeilen
     frm.Bytes = Format$(Bytes, "###,###,###,###,###,###,###,##0")
-    frm.Sekunden = Format$((Now - T1) * 60 * 60 * 24, "###,###,###,###,###,###,##0")
+    frm.Sekunden = Format$((Now - t1) * 60 * 60 * 24, "###,###,###,###,###,###,##0")
     If GesBytes <> 0 Then frm.Prozent = Format$(frm.Bytes / GesBytes * 100, "0.00")
-    frm.Beginn = Format$(T1, "hh:mm:ss")
+    frm.Beginn = Format$(t1, "hh:mm:ss")
     If GesBytes <> 0 Then
-     frm.GesDauer = Format$((T1a - T1 + GesBytes / frm.Bytes * (Now - T1a)), "hh:mm:ss")
-     frm.EndZp = Format$(T1 + (T1a - T1 + GesBytes / frm.Bytes * (Now - T1a)), "hh:mm:ss")
+     frm.GesDauer = Format$((T1a - t1 + GesBytes / frm.Bytes * (Now - T1a)), "hh:mm:ss")
+     frm.EndZp = Format$(t1 + (T1a - t1 + GesBytes / frm.Bytes * (Now - T1a)), "hh:mm:ss")
     End If
     DoEvents
    End If ' Zeilen Mod 100 = 0 THEN
@@ -1192,7 +1192,7 @@ Function GesLies(frm As Lese, BDTDatei$, BDTName$, EinlAb&, EinlBis&, obLaborDir
   T1a = Now
 '   IF Not mitLab THEN MsgBox (t1a - t1) * 60 * 60 * 24 ' dauert hingegen nur 9" für die ganze Datei und hat den richtigen Zeichensatz, mit Berechnung von LAktZeit 32"
  
-  Call Eintragszl(2, fallzahl, (Now - T1) * 60 * 60 * 24) ' Eintragsschleife verlassen
+  Call Eintragszl(2, fallzahl, (Now - t1) * 60 * 60 * 24) ' Eintragsschleife verlassen
   If obSchluss Then
    Call Eintragszl(3) ' ... und zwar an der vorgesehenen Stelle
   End If
@@ -1552,7 +1552,7 @@ End Function ' EintragZusatz
 
 Function testload()
  Dim rs As New ADODB.Recordset, rdn As New ADODB.Recordset, erg$
- Dim T1!, T2!
+ Dim t1!, t2!
  Call Lese.ProgStart
  Call myFrag(rdn, "SELECT stbyte, datei FROM `namen` LEFT JOIN `eintragszahlen` USING (stbyte) GROUP BY stbyte", DBCn)
  Call getAktByte
@@ -1560,10 +1560,10 @@ Function testload()
   erg = Dir(rdn!Datei)
   If LenB(erg) <> 0 Then
 '   myEFrag "LOAD DATA INFILE '/DATA/eigene Dateien/TMExport/" & erg & "' INTO TABLE `inlk` fields terminated by '' enclosed by '' lines terminated by '\r\n'  (breite,kennung,inhalt) SET StByte = " & AktByte & ", pat_id = IF(kennung=3000,inhalt,0)", rAF
-   T1 = Timer
+   t1 = Timer
    myEFrag "LOAD DATA INFILE '/DATA/eigene Dateien/TMExport/" & erg & "' INTO TABLE `inlk` fields terminated by '' enclosed by '' lines terminated by '\r\n'  (breite,kennung,inhalt) SET StByte = " & AktByte, rAf
 '  myEFrag "LOAD DATA INFILE '/DATA/eigene Dateien/TMExport/Temiz x0119153.BDT' INTO TABLE `inlk` fields terminated by '' enclosed by '' lines terminated by '\r\n'  (breite,kennung,inhalt) SET StByte = " & AktByte & ", pat_id = IF(kennung=3000,inhalt,0)", rAF
-   T2 = Timer
+   t2 = Timer
    DoEvents
 '   Debug.Print (T2 - T1) & " 's' für Datei " & erg
    DoEvents
@@ -1688,10 +1688,10 @@ Function StatischInit()
 End Function ' StatischInit
 
 Public Function medartenhier(SL As SortierListe)
- Dim rs As New ADODB.Recordset, SM As SortierMedi, T1!, T2!
+ Dim rs As New ADODB.Recordset, SM As SortierMedi, t1!, t2!
  On Error GoTo fehler
  syscmd 4, "medartenhier"
- T1 = Timer
+ t1 = Timer
  Set mSL = New SortierListe
  myFrag rs, "SELECT medikament,glib, metf, gluci, shglin, glit, dpp4, glp1, sglt2, sonstad, insart, ins, anal, puzu FROM `medarten` WHERE glib<>0 OR metf<>0 OR gluci<>0 OR shglin<>0 OR glit<>0 OR dpp4<>0 OR glp1<>0 OR sglt2<>0 OR sonstad<>0 OR insart<>0 OR ins<>0 OR anal<>0 OR puzu<>0"
  Do While Not rs.EOF
@@ -1713,9 +1713,9 @@ Public Function medartenhier(SL As SortierListe)
   SL.sCAdd SM
   rs.MoveNext
  Loop ' While Not rs.EOF
- T2 = Timer
+ t2 = Timer
 ' Debug.Print T2 - T1 & " Sekunden"
- syscmd 4, T2 - T1 & " Sekunden"
+ syscmd 4, t2 - t1 & " Sekunden"
  Exit Function
 fehler:
  Dim AnwPfad$
@@ -4963,6 +4963,9 @@ Function laborparameterSpeichern()
 '   sL1.oNw = rLa(i).oNG
 '   sL1.unW = rLa(i).uNG
 '  End If
+  If sListLpar.COUNT = 0 Then
+   Call laborparvorladen
+  End If
   Set sL2 = sListLpar.GetItem(sL1)
   If sL2 Is Nothing Then
 ' /* & IIf(rNa(0).geschlecht = "m", "NBm,oNBm,uNBm", "NBw,oNBw,uNBw") */
@@ -5449,7 +5452,11 @@ nachformulare:
   Call forminhkopfEinf
   Call kheinweisEinf
   Call lbanforderungenEinf
+  tg2 = GetTickCount
+  tg0 = tg0 + tg2 - tg1
+  tg1 = tg2
   Call laborneuEinf
+  tg2 = GetTickCount
   Call leistungenEinf
   Call medplanEinf
   Call rezepteintraegeEinf
@@ -5696,12 +5703,12 @@ End Function ' function getfeldinhvw
 #If testen Then
 ' wird nirgends verwendet
 Function testmedarten()
- Dim rs As New ADODB.Recordset, rs1 As New ADODB.Recordset, T1!, T2!
+ Dim rs As New ADODB.Recordset, rs1 As New ADODB.Recordset, t1!, t2!
  Dim SL As New SortierListe, SM As SortierMedi
  Lese.ProgStart
  medartenhier SL
  myFrag rs, "SELECT Medikament FROM `medarten`"
- T1 = Timer
+ t1 = Timer
  Do While Not rs.EOF
   Set SM = New SortierMedi
   SM.medi = rs!Medikament
@@ -5713,9 +5720,9 @@ Function testmedarten()
 '  myFrag rs1, "SELECT * FROM `medarten` WHERE medikament = '" & rs!Medikament & "'"
   rs.Move 1
  Loop
- T2 = Timer
+ t2 = Timer
 ' Debug.Print T2 - T1 & " Sekunden" ' bei 4000 Einträgen 0,48" vs. 20,6" mit medartenhier vs SELECT
- syscmd 4, T2 - T1 & " Sekunden"
+ syscmd 4, t2 - t1 & " Sekunden"
 End Function ' testmedarten
 #End If ' testen
 
@@ -6692,14 +6699,14 @@ Function DiagString$(Pat_ID$, DiagTab() As CString, Optional VorDat As Date, Opt
 #If debu <> 0 Then
        Tvor = Takt: Takt = Timer
        dnr = dnr + 1
-       Print #313, Format(Takt - Tvor, "0.00") & "      " & Format(Takt - T0, "0.00") & " (" & dnr & ", in DiagString)"
+       Print #313, Format(Takt - Tvor, "0.00") & "      " & Format(Takt - t0, "0.00") & " (" & dnr & ", in DiagString)"
 #End If
  DiagNr = runde
  DiagString = MachDiagnosen(Pat_ID, DiagTab, dmseit)
 #If debu <> 0 Then
        Tvor = Takt: Takt = Timer
        dnr = dnr + 1
-       Print #313, Format(Takt - Tvor, "0.00") & "      " & Format(Takt - T0, "0.00") & " (" & dnr & ", in DiagString 2)"
+       Print #313, Format(Takt - Tvor, "0.00") & "      " & Format(Takt - t0, "0.00") & " (" & dnr & ", in DiagString 2)"
 #End If
 ' DiagString = MachDiagnosen(Pat_id, DiagTab, dmseit)
  Exit Function
