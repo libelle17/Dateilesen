@@ -1941,6 +1941,7 @@ sql(AWlf) = "SELECT n.Pat_id, gesnameg(n.pat_id) Name,f.Schgr,f.VKNr,ICD" & vbCr
  ' 103 (37)
  AwN(AWlf) = "Auffällige Arztzuordnung"
 #If True Then
+#If True Then
 ' sql(AWlf) = _
 " SELECT pat_id, gesname(pat_id) PName, Azu, Eintr,dt `Dt'farbe`,Termin " & vbCrLf & _
 " , CASE WHEN (eintr RLIKE dt AND NOT Azu RLIKE dt) OR (eintr='' AND NOT Azu RLIKE dt) THEN 'Azu falsch?' " & vbCrLf & _
@@ -1965,7 +1966,69 @@ sql(AWlf) = "SELECT n.Pat_id, gesnameg(n.pat_id) Name,f.Schgr,f.VKNr,ICD" & vbCr
 " ) i " & vbCrLf & _
 " WHERE (eintr<>'' AND dt RLIKE 'tk|gs' AND INSTR(dt,eintr)=0) OR (Azu<>'' AND dt RLIKE 'tk|gs' AND INSTR(dt,Azu)=0) OR (((eintr<>'' AND Termin<>'' AND eintr<>LEFT(Termin,2)) OR (dt<>'' AND Termin<>'' AND LEFT(termin,2)<>dt AND NOT termin LIKE 'ah%' AND NOT dt RLIKE 'ah|wd' AND NOT LEFT(termin,2) RLIKE 'ah|wd')) AND NOT (termin RLIKE 'Impf|Moderna|Biontech|Carotis|Halssch' OR (termin LIKE 'ah%' AND aktq()=_latin1'22022')))" & vbCrLf & _
 " ORDER BY `mögl.Fehler`,Termin;"
+sql(AWlf) = "SELECT i.Pat_ID PID,i.PName,i.LeErb,i.VQZl,i.VQeint,i.Zl,i.eint`Einträge`,i.dt Desktop," & vbCrLf & _
+" COALESCE(CASE WHEN (LeErb RLIKE eint AND eint<>'' AND dt<>'' AND dt NOT RLIKE eint AND termin=''AND NOT(vqeint<>''AND dt RLIKE vqeint)) THEN CONCAT('Desktop vielleicht falsch, Vorschlag: ''',eint,'''')" & vbCrLf & _
+"  WHEN (dt='' AND (LeErb RLIKE eint AND (termin='' OR termin RLIKE eint))) THEN CONCAT('Desktop fehlt, Vorschlag ''',LeErb,'''')" & vbCrLf & _
+"  WHEN (dt='' AND NOT(LeErb RLIKE eint AND (termin='' OR termin RLIKE eint))) THEN CONCAT('Dektop fehlt, Vorschlag ''',LEFT(termin,2),'''')" & vbCrLf & _
+"  WHEN (eint<>'' AND dt<>'' AND eint RLIKE dt AND LEFT(termin,2)NOT RLIKE dt AND LeErb RLIKE eint) THEN CONCAT('Termin vielleicht falsch, Vorschlag: ''',dt,'''')" & vbCrLf & _
+"  WHEN (eint<>'' AND dt<>'' AND eint RLIKE dt AND LEFT(termin,2)NOT RLIKE dt AND LeErb NOT RLIKE eint) THEN CONCAT('LErbr. falsch und Termin vielleicht falsch, Vorschlag ''',eint,'''')" & vbCrLf & _
+"  WHEN (eint<>''AND dt<>'' /*AND eint NOT RLIKE dt */AND LeErb NOT RLIKE eint AND LeErb NOT RLIKE dt) THEN CONCAT('LErbr. falsch, Vorschlag: ''',eint,'''')" & vbCrLf & _
+"  ELSE'?'END,'?') Zutun,i.Termin" & vbCrLf & _
+" FROM(" & vbCrLf & _
+"SELECT" & vbCrLf & _
+"  i.pat_id,gesnameg(i.pat_id)PName" & vbCrLf & _
+"  ,GROUP_CONCAT(DISTINCT COALESCE((CASE WHEN lanrid=1 THEN'gs'WHEN lanrid=2 THEN'tk'WHEN lanrid=5 THEN'ah'ELSE'?'END),'')SEPARATOR'|')LeErb" & vbCrLf & _
+"  ,COALESCE(GROUP_CONCAT(CONCAT(IF(qe.ersteller IS NULL,'',qe.anzahl), COALESCE(qe.ersteller,''))ORDER BY qe.ersteller SEPARATOR'|'),'')vqzl" & vbCrLf & _
+"  ,COALESCE(GROUP_CONCAT(COALESCE(qe.ersteller,'')ORDER BY qe.ersteller SEPARATOR'|'),'')vqeint" & vbCrLf & _
+"  ,i.zl,i.erst eint" & vbCrLf & _
+"  ,REPLACE(TRIM(CONCAT(IF(obk,'tk ',''),IF(obs,'gs ',''),IF(obh,'ah',''))),' ','|')dt" & vbCrLf & _
+"  ,COALESCE((SELECT GROUP_CONCAT(CONCAT(CASE WHEN raum='Schade'THEN'gs'WHEN raum='Kothny'THEN'tk'WHEN raum LIKE'Hamm%'THEN'ah'END,' ',DATE_FORMAT(zp,'%e.%c.%y'),' ',REPLACE(REPLACE(LEFT(zusatz,IF(LENGTH(zusatz)<25,LENGTH(zusatz),25)),CHR(10),''),CHR(13),''))SEPARATOR'|')FROM termine t WHERE pid = i.pat_id AND raum RLIKE'^(Kothny|Schade|Hamm)'AND zusatz NOT RLIKE'car|dup|dop|son'AND zp>=NOW()AND aktzeit=(SELECT MAX(aktzeit) FROM termine WHERE pid=t.pid AND raum RLIKE'^(Kothny|Schade|Hamm)'AND zusatz NOT LIKE'%car%'AND zp=t.zp)),'')Termin" & vbCrLf & _
+"FROM (" & vbCrLf & _
+"  SELECT i.pat_id, i.lanrid" & vbCrLf & _
+"  ,GROUP_CONCAT(zl ORDER BY erst SEPARATOR'|')zl,GROUP_CONCAT(erst ORDER BY erst SEPARATOR'|')erst" & vbCrLf & _
+"  FROM (" & vbCrLf & _
+"    SELECT i.* FROM (" & vbCrLf & _
+"      SELECT f.pat_id, f.lanrid," & vbCrLf & _
+"        CONCAT(IF(e.Ersteller IS NULL,'',COUNT(0)OVER(PARTITION BY e.pat_id,e.ersteller)),COALESCE(e.ersteller,''))zl," & vbCrLf
+sql(AWlf) = sql(AWlf) & _
+"        COALESCE(e.ersteller,'')erst" & vbCrLf & _
+"      FROM aktfv f" & vbCrLf & _
+"      LEFT JOIN eintraege e" & vbCrLf & _
+"        ON e.pat_id = f.pat_id" & vbCrLf & _
+"        AND e.zeitpunkt BETWEEN SUBDATE(NOW(),92) AND NOW()" & vbCrLf & _
+"        AND e.ersteller IN('ah','gs','tk')" & vbCrLf & _
+"    ) i GROUP BY pat_id, erst" & vbCrLf & _
+"  ) i GROUP BY pat_id" & vbCrLf & _
+") i" & vbCrLf & _
+"LEFT JOIN (" & vbCrLf & _
+"  SELECT pat_id, ersteller, COUNT(*) AS anzahl" & vbCrLf & _
+"  FROM eintraege" & vbCrLf & _
+"  WHERE zeitpunkt BETWEEN SUBDATE(NOW(),183) AND SUBDATE(NOW(),93)" & vbCrLf & _
+"    AND ersteller IN('ah','gs','tk')" & vbCrLf & _
+"  GROUP BY pat_id, ersteller" & vbCrLf & _
+")qe ON qe.pat_id = i.pat_id" & vbCrLf & _
+"JOIN namen n ON n.pat_id=i.pat_id" & vbCrLf & _
+"GROUP BY i.pat_id" & vbCrLf & _
+")i" & vbCrLf & _
+"WHERE NOT(LeErb RLIKE eint AND (termin=''OR LEFT(termin,2)RLIKE eint) AND (dt<>''AND dt RLIKE eint)) /*alle richtig*/" & vbCrLf & _
+"  AND NOT(LeErb NOT RLIKE eint and LeErb rlike dt AND eint<>'' AND dt<>'' AND dt NOT RLIKE eint AND termin<>''AND LEFT(termin,2)=dt) /* LE entspricht zwar nicht Eintrag, aber Dt und Termin, kein Änderungsbedarf*/" & vbCrLf & _
+"  AND NOT(LeErb NOT RLIKE eint and LeErb rlike dt AND eint<>'' AND dt<>'' AND dt NOT RLIKE eint AND termin='') /* LE entspricht zwar nicht Eintrag, aber Dt bei leerem Termin, kein Änderungsbedarf*/" & vbCrLf & _
+"  AND NOT(LeErb RLIKE eint AND eint<>'' AND dt<>'' AND dt NOT RLIKE eint AND termin<>''AND LEFT(termin,2)=dt) /* Pat. vielleicht ein Quartal woanders oder Arztwechsel, kein Änderungsbedarf*/" & vbCrLf
+sql(AWlf) = sql(AWlf) & _
+"  AND NOT(LeErb RLIKE eint AND eint<>'' AND dt<>'' AND dt NOT RLIKE eint AND termin=''AND (vqeint<>''AND dt RLIKE vqeint)) /*dt entspricht dem Vorquartal*/" & vbCrLf & _
+" ORDER BY zutun, Termin" & vbCrLf & _
+";"
 
+' "/*" & vbCrLf & _
+"  AND NOT(LeErb RLIKE eint AND eint<>'' AND dt<>'' AND dt NOT RLIKE eint AND termin='') -- dt vielleicht falsch, Vorschlag eint" & vbCrLf & _
+"  AND NOT(dt='' AND (LeErb RLIKE eint AND (termin='' OR termin RLIKE eint))) -- dt fehlt, Vorschlag LeErb" & vbCrLf & _
+"  AND NOT(dt='' AND NOT(LeErb RLIKE eint AND (termin='' OR termin RLIKE eint))) -- dt fehlt, Vorschlag left(Termin,2)" & vbCrLf & _
+"  AND NOT(eint<>'' AND dt<>'' AND eint RLIKE dt AND LEFT(termin,2)NOT RLIKE dt AND LeErb RLIKE eint) -- Termin vielleicht falsch, Vorschlag dt" & vbCrLf & _
+"  AND NOT(eint<>'' AND dt<>'' AND eint RLIKE dt AND LEFT(termin,2)NOT RLIKE dt AND LeErb NOT RLIKE eint) -- LE falsch und Termin vielleicht falsch, Vorschlag eint" & vbCrLf & _
+"  AND NOT(eint<>''and dt<>'' AND LeErb NOT RLIKE eint AND LeErb NOT RLIKE dt) -- LE falsch, Vorschlag eint" & vbCrLf & _
+"  -- Rest unklar */" & vbCrLf & _
+
+#Else
 Const eab% = 182
 sql(AWlf) = _
 " SELECT RANK() OVER(ORDER BY `mögl.Fehler`,Termin,pat_id) rang, pat_id, gesname(pat_id) PName, Azu, Eintr,dt `Dt'farbe`,Termin " & vbCrLf & _
@@ -2014,7 +2077,7 @@ sql(AWlf) = sql(AWlf) & _
 "  WHERE e_d OR a_d OR ((e_t OR (d_t))/* AND NOT ungt*/)" & vbCrLf & _
 "  ORDER BY `mögl.Fehler`,Termin" & vbCrLf & _
 ";"
-
+#End If
 #Else
 ' sql(AWlf) = "SELECT Pat_id,Name, CASE WHEN lanrid=1 THEN 'gs' WHEN lanrid=2 THEN 'tk' WHEN lanrid=5 THEN 'ah' ELSE '?' END LANRid,IF(Eintrag=1,'gs','tk') Eintrag " & vbCrLf & _
              ", (SELECT IF(COUNT(0)=0,'-',CONCAT(CAST(LPAD(COUNT(0),03,' ') AS char), ',zul.',DATE_FORMAT(MAX(zeitpunkt),'%e.%c.%y'))) FROM `eintraege` WHERE (((art IN ('gs','doppler','dop','duplex') OR (art='tb' AND ersteller='gs')) AND NOT inhalt LIKE '%(tk)%') OR inhalt LIKE '%(gs)%') AND pat_id = i.pat_id) Schade " & vbCrLf & _
@@ -7501,7 +7564,7 @@ Public Function AbrFausg(name$, sql$, obmo%, Datei$, mins%, ByVal maxs%, Übersch
  Dim ErrNr&, ErrDes$
  ÜberschrAkt = Überschrift
  On Error GoTo fehler
- Dim T1!
+ Dim t1!
  Static rc As New ADODB.Connection
  Static rE As ADODB.Recordset
 #If obmitalterform Then
@@ -7534,7 +7597,7 @@ Public Function AbrFausg(name$, sql$, obmo%, Datei$, mins%, ByVal maxs%, Übersch
    sql = REPLACE$(sql, "||", " & ")
    sql = REPLACE$(sql, "concat", "")
   End If
-  T1 = Timer
+  t1 = Timer
   On Error GoTo fehler
   FNr = 999
   Dim rcsql$

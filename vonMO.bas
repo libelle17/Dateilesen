@@ -1230,52 +1230,20 @@ End Function ' hatrans
 '  End If
 ' Loop
 'End Function
+
 #Const mitclaude = True
 #If mitclaude Then
 
-' -- Pfad-Hilfsfunktionen -------------------------------------
-
-Private Function CsvPfadWindows() As String
-  ' Lokaler Pfad auf wser (für Kill, FileCopy, Dir):
-  If UCase$(Environ("COMPUTERNAME")) = "WSER" Then
-    CsvPfadWindows = "E:\tmexport\labor_staging.csv"
-  Else
-    CsvPfadWindows = "\\wser\tmexport\labor_staging.csv"
-  End If
-End Function
-
-Private Function CsvPfadMO() As String
-  ' Pfad für SELECT INTO OUTFILE auf MOCon (immer lokaler Pfad auf wser):
-  CsvPfadMO = "E:/tmexport/labor_staging.csv"  ' Schrägstriche für MariaDB
-End Function
-
-Private Function CsvPfadLinux() As String
-  ' Pfad für LOAD DATA INFILE auf linux1:
-  CsvPfadLinux = "/DATA/mariatrans/labor_staging.csv"
-End Function
-
-
-Private Sub LaborStagingFuellenOutfile(labsql$, pid&, ByRef erfolg%)
-  Dim ErrNr&, ErrDes$, rAf&, csvd$
+' in LaborStagingFuellen
+Private Sub LaborStagingFuellenOutfile(labsql$, pid&, ByRef erfolg%, csvLokal$, csvLinux$, csvSamba$, ByRef rAfGes&)
+  Dim ErrNr&, ErrDes$
   Dim t0!, t1!
-  csvd = "labor" & pid & "_" & Environ("COMPUTERNAME")
   erfolg = 0
-  ' Pfade:
-  Dim csvLokal$, csvLinux$, csvSamba$
-  If UCase$(Environ("COMPUTERNAME")) = "WSER" Then
-    csvLokal = "E:\tmexport\" & csvd
-  Else
-    csvLokal = "\\wser\tmexport\" & csvd
-  End If
-  csvLinux = "/DATA/mariatrans/" & csvd
-  csvSamba = "\\linux1\mariatrans\" & csvd
   ' Alte Datei löschen (OUTFILE scheitert wenn Datei existiert):
   On Error Resume Next
   Kill csvLokal
   On Error GoTo fehler
-
   t0 = Timer
-
   ' SELECT INTO OUTFILE – Felder explizit per Position:
   ' Feldpositionen in labsql:
   ' 0=Normwertug, 1=Normwertog, 2=Kommentar, 3=Zp, 4=testid,
@@ -1301,98 +1269,94 @@ sqlOut = _
   "FROM (" & vbCrLf & _
   labsql & vbCrLf & _
   ") i" & vbCrLf & _
-  "INTO OUTFILE '" & REPLACE(csvLokal, "\", "/") & "'" & vbCrLf & _
+  "INTO OUTFILE '" & csvLokal & "'" & vbCrLf & _
   "FIELDS TERMINATED BY '|~|'" & vbCrLf & _
   "ENCLOSED BY 0x02" & vbCrLf & _
   "ESCAPED BY '`'" & vbCrLf & _
   "LINES TERMINATED BY '|#|'"
-  myEFrag sqlOut, rAf, MOCon, , ErrNr, ErrDes
+  myEFrag sqlOut, rAfGes, MOCon, , ErrNr, ErrDes
   If ErrNr Then
     Debug.Print "OUTFILE Fehler: " & ErrNr & " " & ErrDes
-    Exit Sub
-  End If
-
-  t1 = Timer
-  Debug.Print ">>> OUTFILE: " & Format((tg1 - tg0) * 1000, "0") & "ms"
-  t0 = Timer
-
-  ' Datei prüfen:
-  If Dir(csvLokal) = "" Then
-    Debug.Print ">>> CSV nicht gefunden nach OUTFILE"
-    Exit Sub
-  End If
-
-  ' Nach linux1 kopieren:
-  FileCopy csvLokal, csvSamba
-
-  t1 = Timer
-  Debug.Print ">>> FileCopy: " & Format((tg1 - tg0) * 1000, "0") & "ms"
-  t0 = Timer
-
-  ' LOAD DATA:
-  Dim sqlLoad$
-  sqlLoad = _
-    "LOAD DATA INFILE '" & csvLinux & "'" & vbCrLf & _
-    "INTO TABLE labor_staging" & vbCrLf & _
-    "CHARACTER SET latin1" & vbCrLf & _
-    "FIELDS TERMINATED BY '|~|'" & vbCrLf & _
-    "ENCLOSED BY 0x02" & vbCrLf & _
-    "ESCAPED BY '`'" & vbCrLf & _
-    "LINES TERMINATED BY '|#|'" & vbCrLf & _
-    "(@FPatNr,zp,testid,FICdcode,Testname,EWert," & vbCrLf & _
-    " Einheit,Gwi,Kommentar,etext,Normwertug,normwertog,normtext)" & vbCrLf & _
-    "SET FPatNr = CAST(@FPatNr AS UNSIGNED)"
-
-  myEFrag sqlLoad, rAf, DBCn, , ErrNr, ErrDes
-  If ErrNr Then
-    Debug.Print "LOAD DATA Fehler: " & ErrNr & " " & ErrDes
-    Exit Sub
-  End If
-
-  t1 = Timer
-  Debug.Print ">>> LOAD DATA: " & rAf & " Zeilen, " & Format((tg1 - tg0) * 1000, "0") & "ms"
-
-  On Error Resume Next
-  Kill csvLokal
-  On Error GoTo fehler
-
-  erfolg = 1
+  Else ' ErrNr
+    t1 = Timer
+    Debug.Print ">>> OUTFILE: " & Format((tg1 - tg0) * 1000, "0") & "ms"
+    t0 = Timer
+    If rAfGes Then
+      ' Datei prüfen:
+      If Dir(csvLokal) = "" Then
+        Debug.Print ">>> CSV nicht gefunden nach OUTFILE"
+        Exit Sub
+      End If
+      ' Nach linux1 kopieren:
+      FileCopy csvLokal, csvSamba
+      t1 = Timer
+      Debug.Print ">>> FileCopy: " & Format((tg1 - tg0) * 1000, "0") & "ms"
+      t0 = Timer
+      ' LOAD DATA:
+      Dim sqlLoad$
+      sqlLoad = _
+        "LOAD DATA INFILE '" & csvLinux & "'" & vbCrLf & _
+        "INTO TABLE labor_staging" & vbCrLf & _
+        "CHARACTER SET latin1" & vbCrLf & _
+        "FIELDS TERMINATED BY '|~|'" & vbCrLf & _
+        "ENCLOSED BY 0x02" & vbCrLf & _
+        "ESCAPED BY '`'" & vbCrLf & _
+        "LINES TERMINATED BY '|#|'" & vbCrLf & _
+        "(@FPatNr,zp,testid,FICdcode,Testname,EWert," & vbCrLf & _
+        " Einheit,Gwi,Kommentar,etext,Normwertug,normwertog,normtext)" & vbCrLf & _
+        "SET FPatNr = CAST(@FPatNr AS UNSIGNED)"
+      myEFrag sqlLoad, rAfGes, DBCn, , ErrNr, ErrDes
+      If ErrNr Then
+        Debug.Print "LOAD DATA Fehler: " & ErrNr & " " & ErrDes
+        Exit Sub
+      End If ' ErrNr
+      t1 = Timer
+      Debug.Print ">>> LOAD DATA: " & rAfGes & " Zeilen, " & Format((tg1 - tg0) * 1000, "0") & "ms"
+    End If ' rAfGes
+    On Error Resume Next
+    Kill csvLokal
+    On Error GoTo fehler
+    erfolg = 1
+  End If ' ErrNr
   Exit Sub
-
 fehler:
-  Debug.Print "Fehler in LaborStagingFuellenOutfile: " & _
-              Err.Number & " " & Err.Description
-End Sub
+  Debug.Print "Fehler in LaborStagingFuellenOutfile: " & Err.Number & " " & Err.Description
+End Sub ' LaborStagingFuellenOutfile
 
-Private Sub LaborStagingFuellen(labsql$, pid&)
-  Dim ErrNr&, ErrDes$, rAf&
-  Dim erfolg%
-
+' in doPatvonMO
+Private Sub LaborStagingFuellen(labsql$, pid&, ByRef erfolg%, ByRef rAfGes&)
+  Dim ErrNr&, ErrDes$
+  ' Pfade:
+  Dim csvd$, csvLokal$, csvLinux$, csvSamba$
+  csvd = "labor" & pid & "_" & Environ("COMPUTERNAME") & ".csv"
+  If UCase$(Environ("COMPUTERNAME")) = "WSER" Then
+    csvLokal = "E:\tmexport\" & csvd
+  Else
+    csvLokal = "\\wser\tmexport\" & csvd
+  End If
+  csvLinux = "/DATA/mariatrans/" & csvd
+  csvSamba = "\\linux1\mariatrans\" & csvd
   ' Alten Staging-Inhalt entfernen:
   myEFrag "DELETE FROM labor_staging WHERE FPatNr=" & pid, , DBCn, , ErrNr, ErrDes
   If ErrNr Then
     Debug.Print "LaborStagingFuellen: DELETE-Fehler " & ErrNr & " " & ErrDes
     Exit Sub
   End If
-
-If False Then
+'  If False Then
   ' Versuch 1: SELECT INTO OUTFILE (schnell):
-  LaborStagingFuellenOutfile labsql, pid, erfolg
-  If erfolg Then Exit Sub
+  LaborStagingFuellenOutfile labsql, pid, erfolg, csvLokal, csvLinux, csvSamba, rAfGes
+  If erfolg <> 0 Then Exit Sub
+  ' Versuch 2: ges
+  laborges labsql, rAfGes, erfolg
+  If erfolg <> 0 Then Exit Sub
   ' Versuch 2: VB6 CSV-Schreiben (robust):
   Debug.Print ">>> Fallback auf VB6-CSV"
-  LaborStagingFuellenVB6 labsql, pid, erfolg
-  If erfolg Then Exit Sub
-End If
-
-  ' Versuch 3: Chunk-Insert (langsamster aber sicherster Weg):
-  Debug.Print ">>> Fallback auf Chunk-Insert"
-  LaborStagingFuellenChunk labsql, pid
+  LaborStagingFuellenVB6 labsql, pid, erfolg, csvLokal, csvLinux, csvSamba, rAfGes
+'  End If
 End Sub ' LaborStagingFuellen(labsql$, pid&)
 
-' -- Angepasstes LaborStagingFuellen --------------------------
-
-Private Sub LaborStagingFuellenVB6(labsql$, pid&, ByRef erfolg%)
+' in LaborStagingFuellen
+Private Sub LaborStagingFuellenVB6(labsql$, pid&, ByRef erfolg%, csvLokal$, csvLinux$, csvSamba$, ByRef rAfGes&)
   ' -- Feldpositionen in labsql (fest definiert) -------------
   Const posNWug = 0       ' Normwertug
   Const posNWog = 1       ' Normwertog
@@ -1409,40 +1373,27 @@ Private Sub LaborStagingFuellenVB6(labsql$, pid&, ByRef erfolg%)
   ' 12=FDetails, 13=FText, 14=FSurogat, 15=FPatnr, 16=FIcdcode
   Const posFIcd = 16      ' FIcdcode
   Dim rsSrc     As ADODB.Recordset
-  Dim ErrNr&, ErrDes$, rAf&
+  Dim ErrNr&, ErrDes$
   Dim t0 As Single, t1 As Single
   erfolg = 0
-
   On Error GoTo fehler
   t0 = Timer
-
   Set rsSrc = Nothing
   myFrag rsSrc, labsql, adOpenStatic, MOCon, adLockReadOnly, "700"
   If rsSrc Is Nothing Then Exit Sub
   If rsSrc.BOF And rsSrc.EOF Then Exit Sub
-
-  Dim csvLokal$
-  If UCase$(Environ("COMPUTERNAME")) = "WSER" Then
-    csvLokal = "E:\tmexport\labor_staging.csv"
-  Else
-    csvLokal = "\\wser\tmexport\labor_staging.csv"
-  End If
-
   On Error Resume Next
   Kill csvLokal
   On Error GoTo fehler
-
   ' -- Alle Zeilen in Chunks sammeln und gebündelt schreiben --
   Dim fileNr%
   fileNr = FreeFile
   Open csvLokal For Binary As #fileNr
-
   rsSrc.MoveFirst
   Dim zeilenCount&
   Dim bufChunk$
   Dim chunkLines&
   Const linesPerChunk& = 500  ' Zeilen pro Schreibvorgang
-
   Do While Not rsSrc.EOF
     bufChunk = bufChunk & _
       CStr(pid) & Chr(9) & _
@@ -1458,11 +1409,9 @@ Private Sub LaborStagingFuellenVB6(labsql$, pid&, ByRef erfolg%)
       TsvFeld(nz(rsSrc.Fields(posNWug).Value, "")) & Chr(9) & _
       TsvFeld(nz(rsSrc.Fields(posNWog).Value, "")) & Chr(9) & _
       TsvFeld(nz(rsSrc.Fields(posNText).Value, "")) & Chr(10)
-
     zeilenCount = zeilenCount + 1
     chunkLines = chunkLines + 1
     rsSrc.MoveNext
-
     ' Chunk schreiben wenn voll oder EOF:
     If chunkLines >= linesPerChunk Or rsSrc.EOF Then
       Dim Bytes() As Byte
@@ -1470,25 +1419,20 @@ Private Sub LaborStagingFuellenVB6(labsql$, pid&, ByRef erfolg%)
       Put #fileNr, , Bytes
       bufChunk = ""
       chunkLines = 0
-    End If
+    End If ' chunkLines >= linesPerChunk Or rsSrc.EOF Then
   Loop
-
   Close #fileNr
   rsSrc.Close
-
   t1 = Timer
   Debug.Print ">>> CSV geschrieben: " & zeilenCount & " Zeilen, " & Format((tg1 - tg0) * 1000, "0") & "ms"
   t0 = Timer
-
-  FileCopy csvLokal, "\\linux1\mariatrans\labor_staging.csv"
-
+  FileCopy csvLokal, csvSamba
   t1 = Timer
   Debug.Print ">>> FileCopy: " & Format((tg1 - tg0) * 1000, "0") & "ms"
   t0 = Timer
-
   Dim sqlLoad$
   sqlLoad = _
-    "LOAD DATA INFILE '/DATA/mariatrans/labor_staging.csv'" & vbCrLf & _
+    "LOAD DATA INFILE '" & csvLinux & "'" & vbCrLf & _
     "INTO TABLE labor_staging" & vbCrLf & _
     "CHARACTER SET latin1" & vbCrLf & _
     "FIELDS TERMINATED BY '\t'" & vbCrLf & _
@@ -1499,34 +1443,29 @@ Private Sub LaborStagingFuellenVB6(labsql$, pid&, ByRef erfolg%)
     " Einheit,Gwi,Kommentar,etext,Normwertug,normwertog,normtext)" & vbCrLf & _
     "SET FPatNr = CAST(@FPatNr AS UNSIGNED)"
 
-  myEFrag sqlLoad, rAf, DBCn, , ErrNr, ErrDes
+  myEFrag sqlLoad, rAfGes, DBCn, , ErrNr, ErrDes
   If ErrNr Then
     Debug.Print "LOAD DATA Fehler: " & ErrNr & " " & ErrDes
     GoTo fallback
   End If
-
   t1 = Timer
-  Debug.Print ">>> LOAD DATA: " & rAf & " Zeilen, " & Format((tg1 - tg0) * 1000, "0") & "ms"
-
+  Debug.Print ">>> LOAD DATA: " & rAfGes & " Zeilen, " & Format((tg1 - tg0) * 1000, "0") & "ms"
   On Error Resume Next
   Kill csvLokal
   On Error GoTo fehler
-
-  erfolg = 1
+  erfolg = 3
   Exit Sub
-
 fallback:
   erfolg = 0
   Exit Sub
-
 fehler:
-  Debug.Print "Fehler in LaborStagingFuellenVB6: " & _
-              Err.Number & " " & Err.Description
+  Debug.Print "Fehler in LaborStagingFuellenVB6: " & Err.Number & " " & Err.Description
   Resume fallback
-End Sub
+End Sub ' LaborStagingFuellenVb6
 
 ' -- Hilfsfunktion: Feld für TSV formatieren ------------------
-Private Function TsvFeld(s$) As String
+' in LaborStagingFuellenVb6
+Private Function TsvFeld$(s$)
   Dim r$
   r = s
   ' Steuerzeichen durch Leerzeichen ersetzen:
@@ -1544,98 +1483,9 @@ Private Function TsvFeld(s$) As String
   ' In Anführungszeichen einschließen:
   r = """" & r & """"
   TsvFeld = r
-End Function
-' ============================================================
-' Die zwei neuen Subroutinen – am besten in ein eigenes Modul
-' ============================================================
+End Function ' TsvFeld(s$) As String
 
-
-' -- Fallback: bisheriger Chunk-Insert (umbenannt) ------------
-Private Sub LaborStagingFuellenChunk(labsql$, pid&)
-  Dim rsSrc     As ADODB.Recordset
-  Dim sqlIns    As New CString
-  Dim chunk&, chunkNr&
-  Dim ErrNr&, ErrDes$, rAf&
-  Dim retry%
-  Const chunkSize& = 200
-  Const maxRetry% = 3
-  On Error GoTo fehler
-  myEFrag "DELETE FROM labor_staging WHERE FPatNr=" & pid, , DBCn, , ErrNr, ErrDes
-  If ErrNr Then
-    Debug.Print "LaborStagingFuellen: DELETE-Fehler " & ErrNr & " " & ErrDes
-    Exit Sub
-  End If ' ErrNr Then
-  Set rsSrc = Nothing
-  myFrag rsSrc, labsql, adOpenStatic, MOCon, adLockReadOnly, "700"
-  If rsSrc Is Nothing Then Exit Sub
-  If rsSrc.BOF And rsSrc.EOF Then
-    meldTxt = "Labor Staging: Keine Quelldaten für Pat. " & pid
-    syscmd 4, meldTxt
-    Exit Sub
-  End If
-  rsSrc.MoveFirst
-  chunkNr = 0
-  Do While Not rsSrc.EOF
-    Dim tChunk&
-    tChunk = GetTickCount
-    ' ----- Chunk aufbauen -----
-    sqlIns.Clear
-    sqlIns.Append _
-      "INSERT INTO labor_staging" & vbCrLf & _
-      " (FPatNr,zp,testid,FICdcode,Testname,EWert," & vbCrLf & _
-      "  Einheit,Gwi,Kommentar,etext,Normwertug,normwertog,normtext)" & vbCrLf & _
-      "VALUES "
-    chunk = 0
-    ' Cursor-Position merken für Retry
-    Dim posVorChunk&
-    posVorChunk = rsSrc.AbsolutePosition
-    Do While Not rsSrc.EOF And chunk < chunkSize
-      If chunk > 0 Then sqlIns.Append ","
-      sqlIns.AppVar Array( _
-        "(", pid, ",'", _
-        fUmwfSQL(nz(rsSrc!Zp, "")), "','", _
-        fUmwfSQL(nz(rsSrc!testid, "")), "','", _
-        fUmwfSQL(nz(rsSrc!FICdcode, "")), "','", _
-        fUmwfSQL(nz(rsSrc!testname, "")), "','", _
-        fUmwfSQL(nz(rsSrc!ewert, "")), "','", _
-        fUmwfSQL(nz(rsSrc!Einheit, "")), "','", _
-        fUmwfSQL(nz(rsSrc!Gwi, "")), "','", _
-        fUmwfSQL(nz(rsSrc!Kommentar, "")), "','", _
-        fUmwfSQL(nz(rsSrc!etext, "")), "','", _
-        fUmwfSQL(nz(rsSrc!Normwertug, "")), "','", _
-        fUmwfSQL(nz(rsSrc!normwertog, "")), "','", _
-        fUmwfSQL(nz(rsSrc!normtext, "")), "')")
-      chunk = chunk + 1
-      rsSrc.MoveNext
-    Loop ' While Not rsSrc.EOF And chunk < chunkSize
-    chunkNr = chunkNr + 1
-    ' ----- Chunk einfügen, bei Fehler Retry mit Cursor-Reset -----
-    retry = 0
-nochmalChunk:
-    meldTxt = ">>> Chunk " & chunkNr & ": " & (GetTickCount - tChunk) & "ms " & chunk & " Zeilen, SQL-Länge=" & Len(sqlIns.Value)
-    Debug.Print meldTxt
-    myEFrag sqlIns.Value, rAf, DBCn, , ErrNr, ErrDes
-    If ErrNr Then
-      InsKorr DBCn, sqlIns.Value, rAf, ErrDes, , ErrNr
-      ' InsKorr hat Feld verlängert – nochmal versuchen
-      If ErrNr = 0 And retry < maxRetry Then
-        retry = retry + 1
-        GoTo nochmalChunk
-      ElseIf ErrNr <> 0 Then
-        Debug.Print "LaborStagingFuellen: Chunk " & chunkNr & " Fehler nach InsKorr: " & ErrNr & " " & ErrDes
-        ' hier NICHT abbrechen – nächsten Chunk versuchen
-      End If
-    End If ' ErrNr
-    meldTxt = "Labor Staging: Chunk " & chunkNr & " – " & rAf & " Sätze (retry=" & retry & ")"
-    Debug.Print meldTxt
-    syscmd 4, meldTxt
-  Loop
-  rsSrc.Close
-  Exit Sub
-fehler:
-  Debug.Print "Fehler in LaborStagingFuellen: " & Err.Number & " " & Err.Description
-End Sub
-
+' in LaborAusStaging
 Private Function SqlLaborneu(pid&) As String
   Dim s$
   s = "INSERT IGNORE INTO laborneu" & vbCrLf
@@ -1679,39 +1529,40 @@ Private Function SqlLaborneu(pid&) As String
   SqlLaborneu = s
 End Function ' SqlLaborneu(pid&) As String
 
+' in doPatvonMO, für Not ohneLabor, not laborlangsam und # mitClaude
 Private Sub LaborAusStaging(pid&, ByRef rAfGes&)
   Dim ErrNr&, ErrDes$, rAf&
+    Dim ErrNrIso&, ErrDesIso$, rAfIso&
   Dim sq$(5), sName$(5)
+  Dim tSq&
   Dim i%
   Dim retry%
   rAfGes = 0
-
   On Error GoTo fehler
-
+    syscmd 4, "Labor: Verarbeite Staging-Daten..."
+    ' Auf READ COMMITTED wechseln damit sq(5) die von sq(0..4)
+    ' eingefügten Lookup-Werte garantiert sieht
+    myEFrag "SET SESSION TRANSACTION ISOLATION LEVEL READ COMMITTED", rAfIso, DBCn, True, ErrNrIso, ErrDesIso
   sq(0) = _
     "INSERT IGNORE INTO laborkommentar(kommentar)" & vbCrLf & _
     "SELECT DISTINCT Kommentar" & vbCrLf & _
     "FROM labor_staging" & vbCrLf & _
     "WHERE FPatNr=" & pid & " AND Kommentar<>''"
-
   sq(1) = _
     "INSERT IGNORE INTO laborabschlzl(AbschlZl)" & vbCrLf & _
     "SELECT DISTINCT etext" & vbCrLf & _
     "FROM labor_staging" & vbCrLf & _
     "WHERE FPatNr=" & pid & " AND etext<>''"
-
   sq(2) = _
     "INSERT IGNORE INTO labornormber(uNm,oNm,Normber)" & vbCrLf & _
     "SELECT DISTINCT Normwertug,normwertog,normtext" & vbCrLf & _
     "FROM labor_staging" & vbCrLf & _
     "WHERE FPatNr=" & pid
-
   sq(3) = _
     "INSERT IGNORE INTO laborlangtext(Langtext)" & vbCrLf & _
     "SELECT DISTINCT Testname" & vbCrLf & _
     "FROM labor_staging" & vbCrLf & _
     "WHERE FPatNr=" & pid & " AND Testname<>''"
-
   sq(4) = _
     "INSERT IGNORE INTO laborparameter(Abkü,Langtext,Einheit,uNm,oNm,NBm,AktZeit)" & vbCrLf & _
     "SELECT DISTINCT" & vbCrLf & _
@@ -1721,73 +1572,57 @@ Private Sub LaborAusStaging(pid&, ByRef rAfGes&)
     "  DATE_FORMAT(NOW(),'%y-%m-%d %H:%i:%S')" & vbCrLf & _
     "FROM labor_staging" & vbCrLf & _
     "WHERE FPatNr=" & pid
-
   sq(5) = SqlLaborneu(pid)
-
   sName(0) = "laborkommentar"
   sName(1) = "laborabschlzl"
   sName(2) = "labornormber"
   sName(3) = "laborlangtext"
   sName(4) = "laborparameter"
   sName(5) = "laborneu"
-
 nochmal:
   For i = 0 To 5
     meldTxt = "Labor Staging?DB: Füge in " & sName(i) & " ein..."
     syscmd 4, meldTxt
-Dim tSq&
-tSq = GetTickCount
+    tSq = GetTickCount
     myEFrag sq(i), rAf, DBCn, , ErrNr, ErrDes
-    
-Debug.Print ">>> sq(" & i & ") " & sName(i) & ": " & (GetTickCount - tSq) & "ms rAf=" & rAf
+    Debug.Print ">>> sq(" & i & ") " & sName(i) & ": " & (GetTickCount - tSq) & "ms rAf=" & rAf
     If ErrNr Then
       InsKorr DBCn, sq(i), rAf, ErrDes, , ErrNr
     End If
-
     ' Nach jedem Lookup-Insert committen
     If i < 5 Then
       myEFrag "COMMIT", rAf, DBCn, True, ErrNr, ErrDes
-    End If
-
-    meldTxt = "Labor Staging?DB: " & rAf & " Sätze in " & sName(i) & _
-              IIf(ErrNr <> 0, " – Fehler " & ErrNr & " " & ErrDes, " – OK")
+    End If ' i < 5 Then
+    meldTxt = "Labor Staging?DB: " & rAf & " Sätze in " & sName(i) & IIf(ErrNr <> 0, " – Fehler " & ErrNr & " " & ErrDes, " – OK")
     Debug.Print meldTxt
     syscmd 4, meldTxt
-
     If i = 5 Then rAfGes = rAf
   Next i
-
   ' -- Sicherheitsnetz: sq(5) hat 0 geliefert obwohl Staging gefüllt --
   If rAfGes = 0 And retry = 0 Then
     retry = 1
     ' Prüfen ob Staging überhaupt Daten hat
     Dim rsChk As ADODB.Recordset
     Set rsChk = Nothing
-    myFrag rsChk, _
-      "SELECT COUNT(*) FROM labor_staging WHERE FPatNr=" & pid, _
-      adOpenStatic, DBCn, adLockReadOnly
+    myFrag rsChk, "SELECT COUNT(*) FROM labor_staging WHERE FPatNr=" & pid, adOpenStatic, DBCn, adLockReadOnly
     Dim stagingCount&
     stagingCount = IIf(rsChk.BOF, 0, rsChk.Fields(0))
     Debug.Print ">>> Retry: Staging-Count=" & stagingCount
-
     If stagingCount > 0 Then
       ' Isolation Level explizit neu setzen und nochmal versuchen
-      myEFrag "SET SESSION TRANSACTION ISOLATION LEVEL READ COMMITTED", _
-        rAf, DBCn, True, ErrNr, ErrDes
+      myEFrag "SET SESSION TRANSACTION ISOLATION LEVEL READ COMMITTED", rAf, DBCn, True, ErrNr, ErrDes
       Debug.Print ">>> Retry: Isolation READ COMMITTED gesetzt"
       GoTo nochmal
-    End If
-  End If
-
+    End If ' stagingCount > 0 Then
+  End If ' rAfGes = 0 And retry = 0 Then
   If rAfGes = 0 Then
     Debug.Print "LaborAusStaging: laborneu leer nach Retry – Pat." & pid
   End If
-
+  myEFrag "SET SESSION TRANSACTION ISOLATION LEVEL REPEATABLE READ", rAfIso, DBCn, True, ErrNrIso, ErrDesIso
   Exit Sub
-
 fehler:
   Debug.Print "Fehler in LaborAusStaging: " & Err.Number & " " & Err.Description
-End Sub
+End Sub ' LaborAusStaging(pid&, ByRef rAfGes&)
 #End If
 
 ' in PatvonMO_Click
@@ -3942,6 +3777,7 @@ gef2:
    InsKorr DBCn, sql, rAf
   End If ' Not rsEi.BOF Then
 
+Dim rAfGes&, erfolg%
 Dim labsql$
 ' ", REPLACE(IF(IF(INSTR(l.FDetails,'Testname ""'),MID(l.FDetails,INSTR(l.FDetails,'Testname ""')+LENGTH('Testname ""'),INSTR(SUBSTRING_INDEX(l.FDetails,'Testname ""',-1),'""')-1),'')<>'',IF(INSTR(l.FDetails,'Testname ""')<>0,MID(l.FDetails,INSTR(l.FDetails,'Testname ""')+LENGTH('Testname ""'),INSTR(SUBSTRING_INDEX(l.FDetails,'Testname ""',-1),'""')-1),''),IF(INSTR(l.FDetails,'(Text ""')<>0,MID(l.FDetails,INSTR(l.FDetails,'(Text ""')+LENGTH('(Text ""'),INSTR(SUBSTRING_INDEX(l.FDetails,'(Text ""',-1),'""')-1),'')),'''','\''') Testname" & vbCrLf
 labsql = _
@@ -4059,12 +3895,16 @@ LaborLangsam:
     End If
     rsEi.MoveNext
    Loop ' while not rsEi.EOF
+   rAfGes = UBound(rLa)
+   erfolg = 4
   End If ' Not rsEi.BOF Then
   tg1 = GetTickCount
  End If ' not ohnelabor then
- If Not LaborLangsam Then
-  Return
- End If ' not laborlangsam
+'#If gehtnicht Then
+' If Not LaborLangsam Then
+'  Return
+' End If ' not laborlangsam
+'#End If
 End If ' laborlangsam
  
  Call VorstellSetz(rAna(0).Vorgestellt)
@@ -4078,136 +3918,39 @@ End If ' laborlangsam
  
  
 '#If Not laborlangsam Then
-If Not LaborLangsam Then
- If Not ohneLabor Then
+If Not ohneLabor Then
+ If Not LaborLangsam Then
   tg0 = GetTickCount
   syscmd 4, "bearbeite Labor gesammelt"
 #If mitclaude Then
-
-   meldTxt = "Labor: Übertrage Rohdaten nach Staging..."
-    syscmd 4, meldTxt
-    
-
-    LaborStagingFuellen labsql, pid
-    
+    syscmd 4, "Labor: Übertrage Rohdaten nach Staging..."
+    LaborStagingFuellen labsql, pid, erfolg, rAfGes
     tg1 = GetTickCount
     Debug.Print ">>> Export: " & (tg1 - tg0) & "ms"
-
-    meldTxt = "Labor: Verarbeite Staging-Daten..."
-    syscmd 4, meldTxt
-
-    ' Auf READ COMMITTED wechseln damit sq(5) die von sq(0..4)
-    ' eingefügten Lookup-Werte garantiert sieht
-    Dim ErrNrIso&, ErrDesIso$, rAfIso&
-    myEFrag "SET SESSION TRANSACTION ISOLATION LEVEL READ COMMITTED", _
-    rAfIso, DBCn, True, ErrNrIso, ErrDesIso
-
-    Dim rAfGes&
-    LaborAusStaging pid, rAfGes
-
+    If rAfGes And (erfolg = 1 Or erfolg = 3) Then
+     LaborAusStaging pid, rAfGes
+    End If ' erfolg<>0
     ' Isolation Level zurücksetzen
-    myEFrag "SET SESSION TRANSACTION ISOLATION LEVEL REPEATABLE READ", _
-    rAfIso, DBCn, True, ErrNrIso, ErrDesIso
-
-    If rAfGes = 0 Then
-      meldTxt = "Labor: 0 Sätze in laborneu – starte Fallback..."
-      syscmd 4, meldTxt
-      Debug.Print meldTxt
-      LaborLangsam = True
-      Set rsNa = Nothing
-      Set rsFa = Nothing
-      Set rsMO = Nothing
-      Erase aDesk
-      GoTo abermals
-    End If
-
-    meldTxt = "Labor: " & rAfGes & " Sätze in laborneu eingefügt."
-    syscmd 4, meldTxt
-    Debug.Print meldTxt
-
 #Else
+   Call laborges(labsql, rAfGes, erfolg)
+#End If
 ' Änderungen des folgenden SQL-Textes koordinieren mit "bearbeite Labor einzeln"
 ' 26.10.25: bei Normwertug und Normwertog wurde jeweils in den zweiten Zeilen die Bedingung eingebaut,
 ' dass nur bei Passen zu einer der Ersetzungen von Normwertog die Ersetzung vorgenommen wird, sonst '' eingesetzt wird
 ' weiterhin wurde \r\n bei Normtext, Testhinweis und EText durch '' ersetzt
-sql = _
-"SELECT " & vbCrLf & _
-"CONCAT('INSERT IGNORE INTO laborkommentar(kommentar) VALUES ',TRIM(LEADING ',' FROM GROUP_CONCAT(DISTINCT tn))) tn, " & vbCrLf & _
-"CONCAT('INSERT IGNORE INTO laborkommentar(kommentar) VALUES ',TRIM(LEADING ',' FROM GROUP_CONCAT(DISTINCT kom))) kom, " & vbCrLf & _
-"CONCAT('INSERT IGNORE INTO laborabschlzl(AbschlZl) VALUES ',TRIM(LEADING ',' FROM GROUP_CONCAT(DISTINCT AbschlZl))) AbschlZl," & vbCrLf & _
-"CONCAT('INSERT IGNORE INTO labornormber(uNm,oNm,Normber) VALUES ',TRIM(LEADING ',' FROM GROUP_CONCAT(DISTINCT normt))) normt," & vbCrLf & _
-"CONCAT('INSERT IGNORE INTO laborparameter(Abkü,Langtext,Einheit,uNm,oNm,NBm,AktZeit) VALUES ',TRIM(LEADING ',' FROM GROUP_CONCAT(DISTINCT part))) part," & vbCrLf & _
-"CONCAT('INSERT IGNORE INTO laborlangtext(Langtext) VALUES ',TRIM(LEADING ',' FROM GROUP_CONCAT(DISTINCT langt))) langt," & vbCrLf & _
-"CONCAT('INSERT IGNORE INTO laborneu(FID,Pat_ID,ZeitPunkt,FertigStGrad,Abkü,LangtextVW,Wert,Einheit,obpath,KommentarVW,AktZeit,AbschlZlVW,NormberVW) VALUES ',TRIM(LEADING ',' FROM GROUP_CONCAT(ges))) ges " & vbCrLf & _
-"FROM (" & vbCrLf & _
-"SELECT " & vbCrLf & _
-"   IF(testname<>'',CONCAT('(''',testname,''')'),'') tn," & vbCrLf & _
-"   IF(kommentar<>'',CONCAT('(''',Kommentar,''')'),'') kom," & vbCrLf & _
-"   IF(etext<>'',CONCAT('(''',etext,''')'),'') AbschlZl," & vbCrLf & _
-"   CONCAT('(''',normwertug,''',''',normwertog,''',''',normtext,''')') Normt," & vbCrLf & _
-"   CONCAT('(''',IF(testid='',FICdcode,testid),''',''',Testname,''',''',Einheit,''',''',normwertug,''',''',normwertog,''',''',normtext,''',''',DATE_FORMAT(NOW(),'%y-%m-%d %H:%i:%S'),''')') part," & vbCrLf & _
-"   CONCAT('(''',Testname,''')') langt," & vbCrLf & _
-"   CONCAT('((SELECT fid FROM faelle WHERE pat_id=',FPatNr,' AND ''',zp,'''>bhfb ORDER BY bhfb DESC LIMIT 1),',FPatNr,',''',COALESCE(zp,'NULL'),''',''E'',''',IF(testid='',FICdcode,testid)," & vbCrLf & _
-"    ''',(SELECT LangtextVW FROM laborlangtext WHERE Langtext=''',Testname,''' LIMIT 1),''',IF(CAST(EWert AS DOUBLE)=0 OR EWert RLIKE '[<>:]',CONCAT('',EWert,''),CAST(EWert AS DOUBLE)),''',''',Einheit,''',''',Gwi," & vbCrLf & _
-"    ''',(SELECT KommentarVW FROM laborkommentar WHERE Kommentar=''',Kommentar,''' LIMIT 1),'''," & vbCrLf & _
-"    DATE_FORMAT(NOW(),'%y-%m-%d %H:%i:%S'),''',(SELECT AbschlZlVW FROM laborabschlzl WHERE AbschlZl=''',etext,''' LIMIT 1),'" & vbCrLf & _
-"    '(SELECT NormberVW FROM labornormber WHERE uNm=''',Normwertug,''' AND oNm=''',normwertog,''' AND Normber=''',normtext,''' LIMIT 1)'," & vbCrLf & _
-"    ')') ges" & vbCrLf & _
-", i.*" & vbCrLf & _
-"FROM(" & vbCrLf
-sql = sql & labsql & _
-") i" & vbCrLf & _
-") i" & vbCrLf & _
-";"
-  Set rsEi = Nothing
-  myFrag rsEi, sql, adOpenStatic, MOCon, adLockReadOnly, "9992147483647", rAf
-  If Not rsEi.BOF Then
-   tg1 = GetTickCount
-   For i = 0 To 6
-    If Not IsNull(rsEi.Fields(i)) Then
-     If Right$(rsEi.Fields(i), 7) <> "VALUES " Then
-      meldTxt = "Labor gesammelt: Füge Sätze aus " & rsEi.Fields(i).name & " ein ...."
-      syscmd 4, meldTxt
-      myEFrag rsEi.Fields(i), rAf, DBCn, , ErrNr, ErrDes
-      If ErrNr Then
-       InsKorr DBCn, rsEi.Fields(i), rAf, ErrDes, , ErrNr
-      End If
-      meldTxt = "Labor gesammelt: " & rAf & " Sätze aus " & rsEi.Fields(i).name & " eingefügt mit Fehler Nr. " & ErrNr & IIf(ErrNr <> 0, " " & ErrDes, "")
-      Debug.Print meldTxt
-      syscmd 4, meldTxt
-      If rAf = 0 And i = 6 Then
-'        doPatvonMO = 3
-'        Exit Function
-        LaborLangsam = True
-        Set rsNa = Nothing ' essentiell
-        Set rsFa = Nothing
-        Set rsMO = Nothing ' eher überflüssig
-        Erase aDesk
-        GoTo abermals
-'#If gehtnicht Then
-''        MsgBox (ErrNr & " " & ErrDes & vbCrLf & vbCrLf & "vermutlich reicht Group-concat nicht bei Pat." & pid)
-'        Open "v:\sqllaborimport.txt" For Output As #250
-'        Print #250, rsEi.Fields(i)
-'        Close #250
-'        If SafeArrayGetDim(roLa) = 0 Then
-'         Call faelleLaden
-'         Call laborneuLaden
-'        End If
-'        GoSub LaborLangsam
-'        Call laborparameterSpeichern
-'        Call laborneuEinf
-'        Call laborneuSpeichern(lies.dlg.SammelInsert, lies.dlg.BeziehungsfehlerSpeichern)
-'#End If
-'        Stop
-      End If
-     End If
-    End If
-   Next i
-  End If ' Not rsEi.BOF Then
-#End If ' mitclaude
-  End If ' not ohneLabor
- End If ' not laborlangsam
- If Not ohneLabor Then
+   If erfolg = 0 Then
+    LaborLangsam = True
+    Set rsNa = Nothing ' essentiell
+    Set rsFa = Nothing
+    Set rsMO = Nothing ' eher überflüssig
+    Erase aDesk
+    GoTo abermals
+   Else ' Erfolg = 0 => <>0
+    meldTxt = "Labor: " & rAfGes & " Sätze in laborneu über " & Switch(erfolg = 1, "SELECT INTO OUTFILE", erfolg = 2, "SQLinSQL", erfolg = 3, "csv", True, "laborlangsam") & " eingefügt."
+    syscmd 4, meldTxt
+    Debug.Print meldTxt
+   End If ' erfolg <>0
+  End If ' not laborlangsam
   tg2 = GetTickCount
 ' für Pat. 14 5.4.26:
 ' LaborLangsam:               5562 ms
@@ -4243,6 +3986,80 @@ fehler:
   Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
  End Select
 End Function      ' doPatvonMO(pNr&, pid&)
+
+' in doPatvonMO und
+Function laborges(ByRef labsql$, rAfGes&, erfolg%)
+ Dim rsLb As ADODB.Recordset, i%, ErrNr&, ErrDes$
+sql = _
+"SELECT " & vbCrLf & _
+"CONCAT('INSERT IGNORE INTO laborkommentar(kommentar) VALUES ',TRIM(LEADING ',' FROM GROUP_CONCAT(DISTINCT tn))) tn, " & vbCrLf & _
+"CONCAT('INSERT IGNORE INTO laborkommentar(kommentar) VALUES ',TRIM(LEADING ',' FROM GROUP_CONCAT(DISTINCT kom))) kom, " & vbCrLf & _
+"CONCAT('INSERT IGNORE INTO laborabschlzl(AbschlZl) VALUES ',TRIM(LEADING ',' FROM GROUP_CONCAT(DISTINCT AbschlZl))) AbschlZl," & vbCrLf & _
+"CONCAT('INSERT IGNORE INTO labornormber(uNm,oNm,Normber) VALUES ',TRIM(LEADING ',' FROM GROUP_CONCAT(DISTINCT normt))) normt," & vbCrLf & _
+"CONCAT('INSERT IGNORE INTO laborparameter(Abkü,Langtext,Einheit,uNm,oNm,NBm,AktZeit) VALUES ',TRIM(LEADING ',' FROM GROUP_CONCAT(DISTINCT part))) part," & vbCrLf & _
+"CONCAT('INSERT IGNORE INTO laborlangtext(Langtext) VALUES ',TRIM(LEADING ',' FROM GROUP_CONCAT(DISTINCT langt))) langt," & vbCrLf & _
+"CONCAT('INSERT IGNORE INTO laborneu(FID,Pat_ID,ZeitPunkt,FertigStGrad,Abkü,LangtextVW,Wert,Einheit,obpath,KommentarVW,AktZeit,AbschlZlVW,NormberVW) VALUES ',TRIM(LEADING ',' FROM GROUP_CONCAT(ges))) ges " & vbCrLf & _
+"FROM (" & vbCrLf & _
+"SELECT " & vbCrLf & _
+"   IF(testname<>'',CONCAT('(''',testname,''')'),'') tn," & vbCrLf & _
+"   IF(kommentar<>'',CONCAT('(''',Kommentar,''')'),'') kom," & vbCrLf & _
+"   IF(etext<>'',CONCAT('(''',etext,''')'),'') AbschlZl," & vbCrLf & _
+"   CONCAT('(''',normwertug,''',''',normwertog,''',''',normtext,''')') Normt," & vbCrLf & _
+"   CONCAT('(''',IF(testid='',FICdcode,testid),''',''',Testname,''',''',Einheit,''',''',normwertug,''',''',normwertog,''',''',normtext,''',''',DATE_FORMAT(NOW(),'%y-%m-%d %H:%i:%S'),''')') part," & vbCrLf & _
+"   CONCAT('(''',Testname,''')') langt," & vbCrLf & _
+"   CONCAT('((SELECT fid FROM faelle WHERE pat_id=',FPatNr,' AND ''',zp,'''>bhfb ORDER BY bhfb DESC LIMIT 1),',FPatNr,',''',COALESCE(zp,'NULL'),''',''E'',''',IF(testid='',FICdcode,testid)," & vbCrLf & _
+"    ''',(SELECT LangtextVW FROM laborlangtext WHERE Langtext=''',Testname,''' LIMIT 1),''',IF(CAST(EWert AS DOUBLE)=0 OR EWert RLIKE '[<>:]',CONCAT('',EWert,''),CAST(EWert AS DOUBLE)),''',''',Einheit,''',''',Gwi," & vbCrLf & _
+"    ''',(SELECT KommentarVW FROM laborkommentar WHERE Kommentar=''',Kommentar,''' LIMIT 1),'''," & vbCrLf & _
+"    DATE_FORMAT(NOW(),'%y-%m-%d %H:%i:%S'),''',(SELECT AbschlZlVW FROM laborabschlzl WHERE AbschlZl=''',etext,''' LIMIT 1),'" & vbCrLf & _
+"    '(SELECT NormberVW FROM labornormber WHERE uNm=''',Normwertug,''' AND oNm=''',normwertog,''' AND Normber=''',normtext,''' LIMIT 1)'," & vbCrLf & _
+"    ')') ges" & vbCrLf & _
+", i.*" & vbCrLf & _
+"FROM(" & vbCrLf
+sql = sql & labsql & _
+") i" & vbCrLf & _
+") i" & vbCrLf & _
+";"
+  Set rsLb = Nothing
+  myFrag rsLb, sql, adOpenStatic, MOCon, adLockReadOnly, "9992147483647", rAf
+  If Not rsLb.BOF Then
+   tg1 = GetTickCount
+   For i = 0 To 6
+    If Not IsNull(rsLb.Fields(i)) Then
+     If Right$(rsLb.Fields(i), 7) <> "VALUES " Then
+      meldTxt = "Labor gesammelt: Füge Sätze aus " & rsLb.Fields(i).name & " ein ...."
+      syscmd 4, meldTxt
+      myEFrag rsLb.Fields(i), rAfGes, DBCn, , ErrNr, ErrDes
+      If ErrNr Then
+       InsKorr DBCn, rsLb.Fields(i), rAfGes, ErrDes, , ErrNr
+      End If
+      meldTxt = "Labor gesammelt: " & rAfGes & " Sätze aus " & rsLb.Fields(i).name & " eingefügt mit Fehler Nr. " & ErrNr & IIf(ErrNr <> 0, " " & ErrDes, "")
+      Debug.Print meldTxt
+      syscmd 4, meldTxt
+      If i = 6 Then
+       If rAfGes = 0 Then erfolg = 0 Else erfolg = 2
+      End If
+'        doPatvonMO = 3
+'        Exit Function
+'#If gehtnicht Then
+''        MsgBox (ErrNr & " " & ErrDes & vbCrLf & vbCrLf & "vermutlich reicht Group-concat nicht bei Pat." & pid)
+'        Open "v:\sqllaborimport.txt" For Output As #250
+'        Print #250, rslb.Fields(i)
+'        Close #250
+'        If SafeArrayGetDim(roLa) = 0 Then
+'         Call faelleLaden
+'         Call laborneuLaden
+'        End If
+'        GoSub LaborLangsam
+'        Call laborparameterSpeichern
+'        Call laborneuEinf
+'        Call laborneuSpeichern(lies.dlg.SammelInsert, lies.dlg.BeziehungsfehlerSpeichern)
+'#End If
+'        Stop
+      End If
+     End If
+   Next i
+  End If ' Not rslb.BOF Then
+End Function ' laborges(labsql$, rAfGes&, erfolg%)
 
 ' in doPatvonMO, holHAausMO
 Function setzPid(fPtNr&)
