@@ -4370,7 +4370,7 @@ sql(AWlf) = "SELECT Pat_ID, Name, Messzeitpunkt, `01812`,`Vor-01812`,Soll, `0177
 ",et.letzteRegel" & vbCrLf & _
 ",gesname(f.pat_id) Name, DATE(e.zeitpunkt) Messzeitpunkt, e.inhalt einh, e.fid fid, e.pat_id pat_id" & vbCrLf & _
 ",COALESCE((SELECT SUM(lzahl) FROM leistungen WHERE pat_id= e.pat_id AND DATE(zeitpunkt)<DATE(e.zeitpunkt) AND DATE(zeitpunkt)> et.letzteRegel AND leistung='01777'),0) `Vor-01777`" & vbCrLf & _
-",et.voret, (SELECT COUNT(0) FROM eintraege WHERE pat_id=e.pat_id AND DATE(zeitpunkt)=DATE(e.zeitpunkt) AND art IN ('bzvgl','bz')) + CASE WHEN e.inhalt LIKE '%mg%mg%mg%' AND NOT e.inhalt LIKE '%mg%mg%~%mg%' THEN 3 WHEN e.inhalt LIKE '%mg%mg%' AND NOT e.inhalt LIKE '%mg%~%mg%' THEN 2 WHEN e.inhalt LIKE '%mg%' THEN 1 ELSE 0 END Soll" & vbCrLf & _
+",et.voret, (SELECT COUNT(0) FROM eintraege WHERE pat_id=e.pat_id AND DATE(zeitpunkt)=DATE(e.zeitpunkt) AND art IN ('bzvgl','bz')) +(CHAR_LENGTH(REGEXP_SUBSTR(SUBSTRING_INDEX(SUBSTRING_INDEX(e.inhalt, '~', 1),'Kontroll',1),'[0-9]+ *mg'))>0)+(CHAR_LENGTH(REGEXP_SUBSTR(REGEXP_REPLACE(SUBSTRING_INDEX(SUBSTRING_INDEX(e.inhalt,'~',1),'Kontroll',1),'^.*?[0-9]+ *mg',''),'[0-9]+ *mg'))>0)+(CHAR_LENGTH(REGEXP_SUBSTR(REGEXP_REPLACE(REGEXP_REPLACE(SUBSTRING_INDEX(SUBSTRING_INDEX(e.inhalt,'~',1),'Kontroll',1),'^.*?[0-9]+ *mg', ''),'^.*?[0-9]+ *mg',''),'[0-9]+ *mg'))>0)Soll" & vbCrLf & _
 ",f.kid" & vbCrLf & _
 "FROM aktfv v JOIN faelle f USING (fid) LEFT JOIN namen n ON n.pat_id=v.pat_id" & vbCrLf & _
 "LEFT JOIN eintraege e ON e.Pat_ID=v.pat_id AND e.art='ogtt' AND e.zeitpunkt BETWEEN qanf()AND qend()" & vbCrLf & _
@@ -4389,13 +4389,13 @@ sql(AWlf) = "SELECT Pat_ID, Name, Messzeitpunkt, `01812`,`Vor-01812`,Soll, `0177
 '       "letzteRegel<>'' AND ADDDATE(STR_TO_DATE(f.letzteRegel,'TM#%d%m%Y'),274) > e.zeitpunkt " & vbCrLf & _
 '             ",COALESCE((SELECT SUM(lzahl) FROM leistungen WHERE pat_id= e.pat_id AND DATE(zeitpunkt)<DATE(e.zeitpunkt) AND DATE(zeitpunkt)> STR_TO_DATE(f.letzteRegel,'%d.%m.%Y') AND leistung='01777'),0) `Vor-01777` " & vbCrLf & _
 
- ' 103
+ ' 702 (103)
 AwN(AWlf) = "01777 ohne dokumentierten, auswärtigen 50g-Vortest (vorher 103)"
 sql(AWlf) = vbCrLf & _
 "SELECT l.pat_id, gesname(l.pat_id), l.zeitpunkt,LfBegr " & vbCrLf & _
 "FROM aktfvs f " & vbCrLf & _
 "LEFT JOIN leistungen l ON f.pat_id = l.pat_id AND leistung = 01777 AND l.zeitpunkt BETWEEN " & lQAnfuEnd(FristS) & " " & vbCrLf & _
-"WHERE NOT ISNULL(leistung) AND LfBegr NOT RLIKE '50g(r.?)?( (OGTT|Test|oraler Glucosetoleranztest))? bei(m)? (Gyn|Frauenarzt)( bereits)? erfolgt'"
+"WHERE NOT ISNULL(leistung) AND LfBegr NOT RLIKE '50g(r.?)?( (OGTT|Test|oraler Glucosetoleranztest))?( bereits)? bei(m)? (Gyn|Frauenarzt)( bereits)? erfolgt'"
  mins(AWlf) = 10
  maxs(AWlf) = 80
  AWlf = AWlf + 1
