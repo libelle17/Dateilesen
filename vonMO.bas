@@ -929,7 +929,7 @@ sql = _
 "FROM (" & vbCrLf & _
 " SELECT FPatnr,zp,FUserID,FText,FFarbe, CONCAT(i.setz,IF(setz LIKE',insanw=%',CONCAT(',insdat=''',i.zp,''''),''))setz" & vbCrLf & _
 " FROM (" & vbCrLf & _
-"  SELECT FPatnr,zp,FUserID,FText,FFarbe" & vbCrLf & _
+"  SELECT pm.FPatnr,COALESCE(18900101+INTERVAL d.FDatum DAY+INTERVAL d.FUhrzeit SECOND,0)zp,FUserID,FText,FFarbe" & vbCrLf & _
 "  , CASE FText" & vbCrLf & _
 "  WHEN 'Arzt Kothny' THEN ',obk=1'" & vbCrLf & _
 "  WHEN 'Arzt Schade' THEN ',obs=1'" & vbCrLf & _
@@ -957,14 +957,9 @@ sql = sql & _
 "  WHEN 'Dana' THEN ',insAnw=10'" & vbCrLf & _
 "  ELSE ''" & vbCrLf & _
 "  END setz" & vbCrLf & _
-"  FROM (" & vbCrLf & _
-"   SELECT ROW_NUMBER()OVER(PARTITION BY d.FPatnr,d.FTablename,d.FPrimarykey ORDER BY zp DESC) rn," & vbCrLf & _
-"      18900101+INTERVAL d.FDatum DAY+INTERVAL d.FUhrzeit SECOND zp,FPatnr,FUserID,FTyp,FPrimarykey" & vbCrLf & _
-"     FROM dbsprot d" & vbCrLf & _
-"     WHERE (" & FPatNr & "=0 OR fpatnr=" & FPatNr & ") AND d.FTablename='patmark'" & vbCrLf & _
-"  )i" & vbCrLf & _
-"  LEFT JOIN markier m ON i.fprimarykey=CONCAT('""',i.fpatnr,'""""',m.fsurogat,'""')" & vbCrLf & _
-"  WHERE i.rn=1 AND i.ftyp=0" & vbCrLf & _
+"  FROM patmark pm JOIN markier m ON pm.fmarkiernr=m.FSurogat" & vbCrLf & _
+"  LEFT JOIN dbsprot d ON d.FPrimarykey=CONCAT('""',pm.FPatnr,'""""',m.fsurogat,'""')" & vbCrLf & _
+"  WHERE " & FPatNr & "=0 OR pm.FPatnr=" & FPatNr & vbCrLf & _
 "  )i" & vbCrLf & _
 " )i" & vbCrLf & _
 "GROUP BY fpatnr" & vbCrLf & _
