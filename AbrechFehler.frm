@@ -4062,7 +4062,7 @@ AWlf = AWlf + 1
  maxs(AWlf) = 80
  AWlf = AWlf + 1
  
-' 98
+' 604 (98)
  AwN(AWlf) = "Prüfung auf Einzelschulungen bei T1D (ICT DMP 92392A, DV 97368E, Linda DMP 92392B, DV 97274E, Primas DMP 92392F, DV 97281E, Kinder DMP 92390A, DV 97278E, Jug DMP 92391A, DV 97279E, Hypert DMP 92392C, DV 97265E, HPSB DMP 92392D, DV 97266E, IMP DMP 92392E, DV 97268E, BGAT DV 97269E, Hypos DV 97280E) (vorher 150)"
 'sql(AWlf) = "" & _
 " SELECT f.pat_id " & vbCrLf & _
@@ -4084,6 +4084,7 @@ sql(AWlf) = "SELECT f.pat_id " & vbCrLf & _
 ", IF(ROW_NUMBER()OVER(PARTITION BY f.pat_id ORDER BY e.zeitpunkt)=1,CONCAT(gesname(f.pat_id),' (',patalter(f.pat_id),')'),'') PName " & vbCrLf & _
 ", IF(ROW_NUMBER()OVER(PARTITION BY f.pat_id ORDER BY e.zeitpunkt)=1,CONCAT(dt.ityp,' ',COALESCE(IF(s.voret=18991230,'',DATE_FORMAT(s.voret,'(%e.%c.%y)')),'')),'') dtyp " & vbCrLf & _
 ", IF(ROW_NUMBER()OVER(PARTITION BY f.pat_id ORDER BY e.zeitpunkt)=1,REPLACE(maxtha(f.pat_id),_utf8mb4'GLP',_utf8mb4''),'') maxtha " & vbCrLf & _
+", CONCAT(IF(obh,'ah',''),IF(obh AND(obk OR obs),'|',''),IF(obk,'tk',''),IF((obh OR obk)AND obs,'|',''),IF(obs,'gs',''))Deskt" & vbCrLf & _
 ", DATE_FORMAT(e.zeitpunkt,'%d.%m.%y %H:%i') zp, e.art, e.inhalt" & vbCrLf & _
 ", (SELECT COUNT(0) FROM leistungen l LEFT JOIN genehmigungen g USING (leistung) WHERE l.pat_id=f.pat_id AND l.zeitpunkt BETWEEN qbeg(e.zeitpunkt) - INTERVAL 1 YEAR AND e.zeitpunkt AND g.obschulung=1 AND l.leistung NOT IN ('92282','92278') AND g.Erklärung NOT RLIKE 'Sachkosten') gsz" & vbCrLf & _
 ", COALESCE((SELECT CONCAT(COUNT(0),':',GROUP_CONCAT(DISTINCT leistung)) FROM leistungen l LEFT JOIN genehmigungen g USING (leistung) WHERE l.pat_id=f.pat_id AND l.zeitpunkt BETWEEN qbeg(e.zeitpunkt) - INTERVAL 1 YEAR AND e.zeitpunkt AND g.obschulung=2 AND l.leistung NOT IN ('92282','92278') AND g.Erklärung NOT RLIKE 'Sachkosten'),'') `bish.ES`" & vbCrLf & _
@@ -4373,7 +4374,7 @@ sql(AWlf) = "SELECT Pat_ID, Name, Messzeitpunkt, `01812`,`Vor-01812`,Soll, `0177
 ",f.kid" & vbCrLf & _
 "FROM aktfv v JOIN faelle f USING (fid) LEFT JOIN namen n ON n.pat_id=v.pat_id" & vbCrLf & _
 "LEFT JOIN eintraege e ON e.Pat_ID=v.pat_id AND e.art='ogtt' AND e.zeitpunkt BETWEEN qanf()AND qend()" & vbCrLf & _
-"LEFT JOIN (SELECT IF(LR=18991230,IF(efLR=18991230,IF(erLR=18991230,IF(voret<19500101,voret+INTERVAL 100 YEAR,voret)-INTERVAL 280 day,erlr),efLR),IF(LR<19500101,LR+INTERVAL 100 YEAR,LR)) letzteRegel, voret,pat_id FROM sws ORDER BY letzteRegel DESC LIMIT 1)et ON et.Pat_ID=f.pat_id AND et.voret>qanf() AND et.voret-INTERVAL 280 DAY<e.zeitpunkt" & vbCrLf & _
+"LEFT JOIN (SELECT IF(LR=18991230,IF(efLR=18991230,IF(erLR=18991230,IF(voret<19500101,voret+INTERVAL 100 YEAR,voret)-INTERVAL 280 day,erlr),efLR),IF(LR<19500101,LR+INTERVAL 100 YEAR,LR))letzteRegel,voret,pat_id FROM sws WHERE lr=(SELECT MAX(lr)FROM sws swi WHERE pat_id=sws.pat_id))et ON et.Pat_ID=f.pat_id AND et.letzteregel+INTERVAL 280 DAY>qanf() AND et.letzteregel<e.zeitpunkt" & vbCrLf & _
 "LEFT JOIN leistungen ogtt ON f.pat_id = ogtt.pat_id AND ogtt.leistung = '01777' AND DATE(ogtt.zeitpunkt) = DATE(e.zeitpunkt)" & vbCrLf & _
 "LEFT JOIN leistungen gluc ON f.pat_id = gluc.pat_id AND gluc.leistung = '01812' AND DATE(gluc.zeitpunkt) = DATE(e.zeitpunkt)" & vbCrLf & _
 "WHERE EXISTS (SELECT 0 FROM sws WHERE pat_id=f.pat_id AND e.zeitpunkt BETWEEN voret - INTERVAL 280 day AND voret)" & vbCrLf & _
@@ -5983,7 +5984,7 @@ sql(AWlf) = sql(AWlf) & _
 " OR (iart IN (17,117) AND leistung IN ('89138','89137'))" & vbCrLf
 sql(AWlf) = sql(AWlf) & _
 " OR (iart IN (127) AND leistung RLIKE '^88337[ABRVWXGHK]') " & vbCrLf & _
-" OR (iart IN (121) AND leistung RLIKE '^88331[ABRVWXGHK]|88345[RX]') " & vbCrLf & _
+" OR (iart IN (121) AND leistung RLIKE '^88331[ABRVWXGHK]|88345[RX]|88349[RX]') " & vbCrLf & _
 " OR (iart IN (128) AND leistung RLIKE '^88338[ABRVWXGHK]') " & vbCrLf & _
 " OR (iart IN (122) AND leistung RLIKE '^88332[ABRVWXGHK]') " & vbCrLf & _
 " OR (iart IN (124) AND leistung RLIKE '^88334[ABRVWXGHK]') " & vbCrLf & _
