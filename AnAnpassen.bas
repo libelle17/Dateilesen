@@ -120,7 +120,7 @@ Function AnTrennZeichen()
   End Select
   Select Case rEi(i).art
    Case "anal", "andm", "usal", "usd", "usdm", "usdm1", "usdm2"
-    If Left$(rEi(i).art, 3) <> "usd" Or h1 = "" Then h1.Append H0.cMid(midakt) ' OR h1="" 10.11.19 wg. PID 52832
+    If left$(rEi(i).art, 3) <> "usd" Or h1 = "" Then h1.Append H0.cMid(midakt) ' OR h1="" 10.11.19 wg. PID 52832
     rEi(i).Inhalt = h1
   End Select
  Next i
@@ -300,7 +300,7 @@ Function Kusd(ByRef trz, ByRef Wert$(), j&)
     For kk = 0 To 2 ' vorne(kk) oder hinten(jj) verstümmelte Trennzeichen versuchen zu erkennen
      akttrz = Mid$(trz(k), kk + 1)
      For jj = Len(akttrz) To 4 Step -1
-      akttrz = Left$(akttrz, Len(akttrz) - 1)
+      akttrz = left$(akttrz, Len(akttrz) - 1)
       Offs(k) = InStr(p0, rEi(j).Inhalt, akttrz)
       If Offs(k) >= d0 Then Offs(k) = 0
       If Offs(k) <> 0 Then Exit For
@@ -321,14 +321,14 @@ Function Kusd(ByRef trz, ByRef Wert$(), j&)
    If d0 > p0ende Then
     Wert(k) = Trim$(Mid$(rEi(j).Inhalt, p0ende, d0 - p0ende))
     Do While True
-     Select Case Left$(Wert(k), 1)
+     Select Case left$(Wert(k), 1)
       Case ":", ",", ";": Wert(k) = Trim$(Mid$(Wert(k), 2))
       Case Else: Exit Do
      End Select
     Loop
     Do While True
      Select Case Right$(Wert(k), 1)
-      Case ":", ",", ";": Wert(k) = Trim$(Left$(Wert(k), Len(Wert(k)) - 1)) ' "." nicht wg. "n.u."
+      Case ":", ",", ";": Wert(k) = Trim$(left$(Wert(k), Len(Wert(k)) - 1)) ' "." nicht wg. "n.u."
       Case Else: Exit Do
      End Select
     Loop
@@ -394,7 +394,7 @@ Function KernUsd(ByRef trz, ByRef Wert$(), j&)
       For kk = 0 To 2
        akttrz = Mid$(trz(npe1k), kk + 1)
        For jj = Len(akttrz) To 4 Step -1
-        akttrz = Left$(akttrz, Len(akttrz) - 1)
+        akttrz = left$(akttrz, Len(akttrz) - 1)
         p2 = InStr(lpe1, rEi(j).Inhalt, akttrz)
         If p2 <> 0 Then
          Exit For
@@ -447,7 +447,7 @@ Function KernUsd(ByRef trz, ByRef Wert$(), j&)
      If LenB(trz(npe1k + 1)) <> 0 Then
       Dim ünäpos&
       ünäpos = InStr(Wert(k), trz(npe1k + 1))
-      If ünäpos > 0 Then Wert(k) = Left$(Wert(k), ünäpos - 1): lenge(k) = ünäpos - 1
+      If ünäpos > 0 Then Wert(k) = left$(Wert(k), ünäpos - 1): lenge(k) = ünäpos - 1
      End If
     End If
     If npe1k = k + 2 Then
@@ -463,12 +463,12 @@ Function KernUsd(ByRef trz, ByRef Wert$(), j&)
      End If
     Else
      If Offs(k - 1) + lenge(k - 1) + trzlen(k) > Offs(k) And Offs(k) - trzlen(k) > 0 Then
-      Wert(k - 1) = Left$(Wert(k - 1), Offs(k) - trzlen(k))
+      Wert(k - 1) = left$(Wert(k - 1), Offs(k) - trzlen(k))
      End If
     End If
    Next k
    For k = UBound(Wert) To 0 Step -1
-    If Right$(Wert(k), 1) = ";" Then Wert(k) = Trim$(Left$(Wert(k), Len(Wert(k)) - 1))
+    If Right$(Wert(k), 1) = ";" Then Wert(k) = Trim$(left$(Wert(k), Len(Wert(k)) - 1))
    Next k
  Exit Function
 fehler:
@@ -487,7 +487,7 @@ End Function ' kernusd
 #End If 'false
 
 Function rUsRest(j&)
-   rUs(UBound(rUs)).Pat_ID = rEi(j).Pat_ID
+   rUs(UBound(rUs)).Pat_id = rEi(j).Pat_id
    rUs(UBound(rUs)).FID = rEi(j).FID
    rUs(UBound(rUs)).Zeitpunkt = rEi(j).Zeitpunkt
    rUs(UBound(rUs)).art = rEi(j).art
@@ -499,7 +499,7 @@ Function rUsRest(j&)
 End Function ' rUsRest
 
 Function rFuRest(j&)
-   rFu(UBound(rFu)).Pat_ID = rEi(j).Pat_ID
+   rFu(UBound(rFu)).Pat_id = rEi(j).Pat_id
    rFu(UBound(rFu)).FID = rEi(j).FID
    rFu(UBound(rFu)).Zeitpunkt = rEi(j).Zeitpunkt
    rFu(UBound(rFu)).art = rEi(j).art
@@ -511,7 +511,7 @@ Function rFuRest(j&)
 End Function ' rUsRest
 
 Function rVkRest(j&)
-   rVk(UBound(rVk)).Pat_ID = rEi(j).Pat_ID
+   rVk(UBound(rVk)).Pat_id = rEi(j).Pat_id
    rVk(UBound(rVk)).FID = rEi(j).FID
    rVk(UBound(rVk)).Zeitpunkt = rEi(j).Zeitpunkt
 '   rvk(UBound(rvk)).Art = rEi(j).Art
@@ -523,7 +523,7 @@ Function rVkRest(j&)
 End Function ' rUsRest
 
 Function rUlRest(j&)
-   rUl(UBound(rUl)).Pat_ID = rEi(j).Pat_ID
+   rUl(UBound(rUl)).Pat_id = rEi(j).Pat_id
    rUl(UBound(rUl)).FID = rEi(j).FID
    rUl(UBound(rUl)).Zeitpunkt = rEi(j).Zeitpunkt
 '   rUl(UBound(rUl)).Art = rEi(j).Art
@@ -964,7 +964,7 @@ Function usVKGD()
    If (Wert(7) <> "u" Or rVk(UBound(rVk)).Blutdruck = "") And InStr(Wert(7), "~") = 0 Then rVk(UBound(rVk)).Blutdruck = Wert(7)
    If (Wert(8) <> "u" Or rVk(UBound(rVk)).Puls = "") And InStr(Wert(8), "~") = 0 Then rVk(UBound(rVk)).Puls = Wert(8)
    If (Wert(9) <> "u" Or rVk(UBound(rVk)).Mitarbeiter = "") And InStr(Wert(9), "~") = 0 Then rVk(UBound(rVk)).Mitarbeiter = Wert(9)
-   If Right$(rVk(UBound(rVk)).Mitarbeiter, 1) = ")" Then rVk(UBound(rVk)).Mitarbeiter = Left$(rVk(UBound(rVk)).Mitarbeiter, Len(rVk(UBound(rVk)).Mitarbeiter) - 1)
+   If Right$(rVk(UBound(rVk)).Mitarbeiter, 1) = ")" Then rVk(UBound(rVk)).Mitarbeiter = left$(rVk(UBound(rVk)).Mitarbeiter, Len(rVk(UBound(rVk)).Mitarbeiter) - 1)
    If rEi(j).Zeitpunkt > #3/18/2025# Then rUs(UBound(rUs)).Mitarbeiter = rEi(j).Ersteller
    Dim k&
    For k = UBound(trz) - 1 To 1 Step -1
@@ -1012,7 +1012,7 @@ Function usVKGD2()
    If (Wert(7) <> "u" Or rVk(UBound(rVk)).Blutdruck = "") And InStr(Wert(7), "~") = 0 Then rVk(UBound(rVk)).Blutdruck = Wert(7)
    If (Wert(8) <> "u" Or rVk(UBound(rVk)).Puls = "") And InStr(Wert(8), "~") = 0 Then rVk(UBound(rVk)).Puls = Wert(8)
    If (Wert(9) <> "u" Or rVk(UBound(rVk)).Mitarbeiter = "") And InStr(Wert(9), "~") = 0 Then rVk(UBound(rVk)).Mitarbeiter = Wert(9)
-   If Right$(rVk(UBound(rVk)).Mitarbeiter, 1) = ")" Then rVk(UBound(rVk)).Mitarbeiter = Left$(rVk(UBound(rVk)).Mitarbeiter, Len(rVk(UBound(rVk)).Mitarbeiter) - 1)
+   If Right$(rVk(UBound(rVk)).Mitarbeiter, 1) = ")" Then rVk(UBound(rVk)).Mitarbeiter = left$(rVk(UBound(rVk)).Mitarbeiter, Len(rVk(UBound(rVk)).Mitarbeiter) - 1)
    If rEi(j).Zeitpunkt > #3/18/2025# Then rUs(UBound(rUs)).Mitarbeiter = rEi(j).Ersteller
    Dim k&
    For k = UBound(trz) - 1 To 1 Step -1
@@ -1751,7 +1751,7 @@ Function do_anImp(imin%, imax%, tr$(), Fd$(), arten$, Optional tfd1, Optional tf
    sp(0) = rEi(im).Inhalt
   Else
    Dim rEin As New ADODB.Recordset
-   myFrag rEin, "SELECT zeitpunkt,inhalt FROM `eintraege` WHERE art RLIKE '^(" & Mid$(arten, 2, Len(arten) - 2) & ")$' AND pat_id = " & rNa(0).Pat_ID & " ORDER BY zeitpunkt DESC;"
+   myFrag rEin, "SELECT zeitpunkt,inhalt FROM `eintraege` WHERE art RLIKE '^(" & Mid$(arten, 2, Len(arten) - 2) & ")$' AND pat_id = " & rNa(0).Pat_id & " ORDER BY zeitpunkt DESC;"
    If Not rEin.BOF Then
     sp(0) = rEin!Inhalt
     AbIDate = rEin!Zeitpunkt
@@ -1775,7 +1775,7 @@ Function do_anImp(imin%, imax%, tr$(), Fd$(), arten$, Optional tfd1, Optional tf
      If ZifPos.Beg > 0 Then
       sp(1) = Mid$(sp(0), ZifPos.END + 1)
 '      Debug.Print sp(1)
-      sp(0) = Left$(sp(0), ZifPos.Beg - 1)
+      sp(0) = left$(sp(0), ZifPos.Beg - 1)
 #If False Then
      sp = Split(sp(0), trennz)
      If UBound(sp) > 0 Then
@@ -1797,7 +1797,7 @@ Function do_anImp(imin%, imax%, tr$(), Fd$(), arten$, Optional tfd1, Optional tf
           GoTo w2 ' falsches Fragment
          End If
          If InStrB(":) ", Right$(tz2, 1)) <> 0 And Right$(tz2, 1) <> vNS Then
-          tz2 = Left$(tz2, Len(tz2) - 1)
+          tz2 = left$(tz2, Len(tz2) - 1)
          Else
           Exit Do ' keine falschen Fragmente
          End If
@@ -1807,7 +1807,7 @@ Function do_anImp(imin%, imax%, tr$(), Fd$(), arten$, Optional tfd1, Optional tf
       Do
        If sp(1) = vNS Then Exit Do
        If InStrB(EndStr, Right$(sp(1), 1)) <> 0 Then
-        sp(1) = Left$(sp(1), Len(sp(1)) - 1)
+        sp(1) = left$(sp(1), Len(sp(1)) - 1)
        Else
         Exit Do
        End If
@@ -1824,7 +1824,7 @@ Function do_anImp(imin%, imax%, tr$(), Fd$(), arten$, Optional tfd1, Optional tf
      End If ' IF UBound(sp) > 0 THEN
 ' hier kommt er nur an, wenn trennz nichts trennte
      If InStrB(":)? ", Right$(trennz, 1)) > 0 And Right$(trennz, 1) <> vNS Then
-      trennz = Left$(trennz, Len(trennz) - 1)
+      trennz = left$(trennz, Len(trennz) - 1)
      Else
 '      Debug.Print trennz + ":: ", "-----------------"
       AbN(i - imin) = vNS
@@ -1955,7 +1955,7 @@ doppelt:
         Else ' instrb(fd(i-imin), "Essenszeit") <> 0 OR instrb(fd(i-imin), "Broteinheiten") <> 0 THEN
          Select Case fld
           Case "Tendenz"
-           AbI(i - imin) = Left$(AbI(i - imin), 1)
+           AbI(i - imin) = left$(AbI(i - imin), 1)
           Case "Diabetestyp"
            Select Case AbI(i - imin)
             Case "path.Glucosetoleranz"
@@ -2013,7 +2013,7 @@ doppelt:
               adVarBinary, adLongVarBinary, adError, adArray
 '            Case 8, 129, 130, 200, 201, 202, 203, 0, 9, 12, 13, 72, 128, 132, 138, 204, 205, 10, 8192
               neuinh = AbI(i - imin)
-              rsAnm.Fields(fld).Value = Left$(neuinh, rsAnm.Fields(fld).DefinedSize)
+              rsAnm.Fields(fld).Value = left$(neuinh, rsAnm.Fields(fld).DefinedSize)
             End Select
            Else
             FproZielFeld = 2
@@ -2047,6 +2047,11 @@ weiter:
 '    vorwertnull = 0
 '    IF AbI(i - imin) = vns THEN vorwertnull = -1
    End If ' abn(i-imin)<> ""
+   If fld <> "" Then
+     Debug.Print fld, arten, rsAnm.Fields(fld)
+   Else
+     Debug.Print fld, arten
+   End If
    izuvor = i
   Next i
   If InStrB(arten, "|andm|") Then
@@ -2102,9 +2107,9 @@ End If ' not kdm
 Exit Function
 neuinh:
 If Right$(neuinh, 5) = "\r \r" Then
- neuinh = Left$(neuinh, Len(neuinh) - 5)
+ neuinh = left$(neuinh, Len(neuinh) - 5)
 ElseIf Right$(neuinh, 2) = "\r" Then
- neuinh = Left$(neuinh, Len(neuinh) - 2)
+ neuinh = left$(neuinh, Len(neuinh) - 2)
 End If
 rsAnm.Fields(fld) = neuinh
 Return
@@ -2130,7 +2135,7 @@ If Err.Number = -2147217887 Then ' Das Feld ist zu klein für die Datenmenge, die
  Versuch = Versuch + 1
  If MerkNeuInh <> neuinh Then Versuch = 0
  If Versuch > 5 Then
-  If neuinh > vNS Then neuinh = Left$(neuinh, Len(neuinh) - 1)
+  If neuinh > vNS Then neuinh = left$(neuinh, Len(neuinh) - 1)
  End If
  If fld = vNS Then fld = Fd(i)
  Do
@@ -2141,7 +2146,7 @@ If Err.Number = -2147217887 Then ' Das Feld ist zu klein für die Datenmenge, die
 '    Call myEFrag("UPDATE `anamnesebogen` SET " & "`" & SpName & "`" & " = """ & replace$(NeuInh, """", """""") & """ WHERE pat_id = " & rNa(0).Pat_id, AfN)
 '   END IF
    If Not SpMod(Len(neuinh), "anamnesebogen", rsc, neuinh) Then ' dann Memo-Feld
-    Call myEFrag("UPDATE `anamnesebogen` SET `" & SpName & "` = """ & REPLACE$(neuinh, """", """""") & """ WHERE pat_id = " & rNa(0).Pat_ID, AfN)
+    Call myEFrag("UPDATE `anamnesebogen` SET `" & SpName & "` = """ & REPLACE$(neuinh, """", """""") & """ WHERE pat_id = " & rNa(0).Pat_id, AfN)
    End If
    If rsAnm.State = 0 Then myFrag rsAnm, ZCStr, adOpenStatic, DBCn, adLockOptimistic
    MerkNeuInh = neuinh
@@ -2151,7 +2156,7 @@ If Err.Number = -2147217887 Then ' Das Feld ist zu klein für die Datenmenge, die
  Loop
 End If
 If rsAnm.State = 0 Then
- myFrag rsAnm, "SELECT * FROM `anamnesebogen` WHERE pat_id = " & rNa(0).Pat_ID, adOpenStatic, DBCn, adLockOptimistic
+ myFrag rsAnm, "SELECT * FROM `anamnesebogen` WHERE pat_id = " & rNa(0).Pat_id, adOpenStatic, DBCn, adLockOptimistic
  Resume
 End If
 Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in do_anImp/" + AnwPfad)
@@ -2174,7 +2179,7 @@ Function MachNumerisch#(ByVal ST$, Optional erstDatum%)
   nachziffer = 0
   For pos = 1 To Len(ST)
    If InStrB("0123456789" + IIf(nachziffer, " ,.", ""), Mid$(ST, pos, 1)) = 0 And Mid$(ST, pos, 1) <> vNS Then
-    ST = Left$(ST, pos - 1) & " " & Mid$(ST, pos + 1)
+    ST = left$(ST, pos - 1) & " " & Mid$(ST, pos + 1)
    Else
     nachziffer = True
    End If
@@ -2185,15 +2190,15 @@ Function MachNumerisch#(ByVal ST$, Optional erstDatum%)
   ST = 0
  Else ' ST = vNS THEN
   pos = InStr(ST, "  ")
-  If pos > 0 And IsNumeric(Left$(ST, pos)) Then
-   ST = Left$(ST, pos)
+  If pos > 0 And IsNumeric(left$(ST, pos)) Then
+   ST = left$(ST, pos)
   End If
   For runde = 1 To 2
    If (erstDatum And (runde = 1)) Or (Not erstDatum And (runde = 2)) Then
     If IsDate(ST) Then
      MachNumerisch = CDate(ST): Exit For
-    ElseIf IsDate(Left$(REPLACE$(ST, ",", "."), 10)) Then
-     MachNumerisch = CDate(Left$(REPLACE$(ST, ",", "."), 10)): Exit For
+    ElseIf IsDate(left$(REPLACE$(ST, ",", "."), 10)) Then
+     MachNumerisch = CDate(left$(REPLACE$(ST, ",", "."), 10)): Exit For
     ElseIf IsDate("1.1." & REPLACE(REPLACE$(ST, ",", "."), "/", ".")) Then
      MachNumerisch = CDate("1.1." & REPLACE(REPLACE$(ST, ",", "."), "/", ".")): Exit For
     ElseIf IsDate("1." & REPLACE(REPLACE$(ST, ",", "."), "/", ".")) Then
@@ -2228,7 +2233,7 @@ Function MachNumerisch#(ByVal ST$, Optional erstDatum%)
      Posi = InStr(stneu, ",") ' 16.7.09
      If Posi > 0 Then
       Posi = InStr(Posi + 1, stneu, ",")
-      If Posi <> 0 Then stneu = Left$(stneu, Posi - 1)
+      If Posi <> 0 Then stneu = left$(stneu, Posi - 1)
      End If
      If IsNumeric(stneu) Then
       ST = stneu
@@ -2250,7 +2255,7 @@ Function MachNumerisch#(ByVal ST$, Optional erstDatum%)
         Case "87, im Dezember 93"
          ST = "87"
         Case Else
-         Err.Raise 999, , "Unbehandelter Fall in machnumerisch: " & stor & " bei Pat.: " & rNa(0).Pat_ID
+         Err.Raise 999, , "Unbehandelter Fall in machnumerisch: " & stor & " bei Pat.: " & rNa(0).Pat_id
          MsgBox stneu & " nicht numerisch zu bekommen (machmumerisch)"
          ST = "0"
        End Select
@@ -2260,7 +2265,7 @@ Function MachNumerisch#(ByVal ST$, Optional erstDatum%)
  '    Debug.Print ST
  '    Debug.Print ST
      If InStrB(ST, " ") <> 0 Then
-      ST = Left$(ST, InStr(ST, " ") - 1)
+      ST = left$(ST, InStr(ST, " ") - 1)
      End If
      If IsNumeric(ST) Then ' OR Not IsDate(replace$(ST, ",", ".")) THEN
       MachNumerisch = ST: Exit For
@@ -2522,14 +2527,14 @@ Function gKw$(ST$, Optional Typ)
  gKw = ST
  p1 = InStr(gKw, "~{")
  If p1 > 0 Then
-  gKw = Trim$(Left$(gKw, p1 - 1))
+  gKw = Trim$(left$(gKw, p1 - 1))
  Else
   Do
    p1 = InStr(gKw, "{")
    pe = InStr(p1 + 1, gKw, "}")
    If pe = 0 Then pe = Len(gKw)
    If p1 > 0 And pe > p1 Then
-    gKw = Left$(gKw, p1 - 1) + Mid$(gKw, pe + 1)
+    gKw = left$(gKw, p1 - 1) + Mid$(gKw, pe + 1)
    End If
    If gKw = "{" Then gKw = vNS: p1 = 0
   Loop Until p1 = 0

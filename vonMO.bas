@@ -1325,9 +1325,9 @@ Private Sub LaborStagingFuellen(labsql$, pid&, ByRef erfolg%, ByRef rAfGes&)
   Dim csvd$, csvLokal$, csvLinux$, csvSamba$
   csvd = "labor" & pid & "_" & Environ("COMPUTERNAME") & ".csv"
   If UCase$(Environ("COMPUTERNAME")) = "WSER" Then
-    csvLokal = "E:\tmexport\" & csvd
+    csvLokal = "E:\tmexport\labor\" & csvd
   Else
-    csvLokal = "\\wser\tmexport\" & csvd
+    csvLokal = "\\wser\tmexport\labor\" & csvd
   End If
   csvLinux = "/DATA/mariatrans/" & csvd
   csvSamba = "\\linux1\mariatrans\" & csvd

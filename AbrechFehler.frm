@@ -846,7 +846,7 @@ sql(AWlf) = "ü"
  AWlf = AWlf + 1
 
 ' 1
- AwN(AWlf) = "Widersprüchlicher Diabetestyp Anamnese/ ICD (quartalsübergreifende Abfrage!) (vorher 0)"
+ AwN(AWlf) = "Widersprüchlicher Diabetestyp Anamnese/ ICD (quartalsübergreifende Abfrage!)"
  ' AND COALESCE(d.Dggel,0)=0
  ' SELECT pat_id, gesname(pat_id), diabetestyp, a.* FROM anamnesebogen a WHERE pat_id IN
  ' <dann in notepad die Spalte markieren mit Alt+Shift+Maus> usw.
@@ -880,7 +880,7 @@ sql(AWlf) = "ü"
  ' vorher: lfaellev statt aktfvs
 
 ' 2
- AwN(AWlf) = "Möglicherweise fehlende Diabetes/Gestationsdiabetes-Diagnosen (vorher 1)"
+ AwN(AWlf) = "Möglicherweise fehlende Diabetes/Gestationsdiabetes-Diagnosen"
  sql(AWlf) = _
 "SELECT f.pat_id, gesname(f.pat_id) PName, wer, xH.Wert HbA1cMax, xG.Wert GlucMax, dd.icd `DM-ICD`, gd.icd `GDM-ICD` " & vbCrLf & _
 "FROM aktfvz f " & vbCrLf & _
@@ -919,7 +919,7 @@ sql(AWlf) = "ü"
  AWlf = AWlf + 1
  
 ' 3
- AwN(AWlf) = "Fehlende Gestationsdiabetes-ICD nach Makroeintrag 'vkgd'/'vkg' (vorher 4)"
+ AwN(AWlf) = "Fehlende Gestationsdiabetes-ICD nach Makroeintrag 'vkgd'/'vkg'"
  sql(AWlf) = "SELECT f.pat_id, gesname(f.pat_id) PName, wer " & vbCrLf & _
              "FROM `aktfvz` f " & vbCrLf & _
              "LEFT JOIN anaktk az ON az.pid=f.pat_id" & vbCrLf & _
@@ -954,7 +954,7 @@ sql(AWlf) = vbCrLf & _
 '" LEFT JOIN faelle et ON f.pat_id=et.pat_id AND et.voret BETWEEN " & KhtsflZuk() & " " & vbCrLf & _
 
  ' 5
- AwN(AWlf) = "Diabetestypen E13 und E14 (vorher 2)"
+ AwN(AWlf) = "Diabetestypen E13 und E14"
  sql(AWlf) = "SELECT d.pat_id,GesNameg(d.pat_id) PName,wer,d.diagdatum Datum,d.diagsicherheit Si, d.DiagText,d.ICD " & vbCrLf & _
              "FROM `diagview` d" & vbCrLf & _
              "LEFT JOIN anaktk az ON az.pid=d.pat_id" & vbCrLf & _
@@ -966,7 +966,7 @@ sql(AWlf) = vbCrLf & _
  AWlf = AWlf + 1
  
 ' 6
- AwN(AWlf) = "DMP-Diabetes-Patienten ohne Diabetes-ICD (vorher 5)"
+ AwN(AWlf) = "DMP-Diabetes-Patienten ohne Diabetes-ICD"
  sql(AWlf) = "SELECT f.pat_id, gesname(f.pat_id) PName, wer " & vbCrLf & _
              "FROM aktfvz f " & vbCrLf & _
              "LEFT JOIN anaktk az ON az.pid=f.pat_id" & vbCrLf & _
@@ -978,7 +978,7 @@ sql(AWlf) = vbCrLf & _
 
 
 ' 7
-AwN(AWlf) = "Möglicherweise doppelte Diabetesdiagnosen (vorher 8)"
+AwN(AWlf) = "Möglicherweise doppelte Diabetesdiagnosen"
 'Dggel=1 => 'ddg' steht in der Art-Spalte
 'bestimmte Simultandiagnosen nötig für Nephropathiepauschale
 'sql(AWlf) = "SELECT a.Pat_ID, d.GesName, COUNT(0) Zahl, GROUP_CONCAT(CONCAT(icd,diagsicherheit,diagattr)) ICDs FROM `aktfvz` a LEFT JOIN `diagnosen` d ON d.pat_id = a.pat_id AND diagsicherheit IN (' ','G','V') AND COALESCE(Dggel,0)=0 AND icd RLIKE '^E1[0-4]|^O24' AND (obdauer<>0 OR d.fid = a.fid OR d.fid=0 OR ISNULL(d.fid)) GROUP BY a.pat_id HAVING zahl<>1"
@@ -1050,7 +1050,7 @@ sql(AWlf) = _
  
  ' 8
  ' diagsicherheit und Dggel in aktfaelle.icd schon eingebaut
- AwN(AWlf) = "Unverwertbare Diabetes-Klassifikation (E12, E13, E14, O24.4) bei 'DMP hier ...' oder 'DMP HA ...' -> Korrektur z.B. 'D.m.(sekundär)' + ICD E10.91 (vorher 3)"
+ AwN(AWlf) = "Unverwertbare Diabetes-Klassifikation (E12, E13, E14, O24.4) bei 'DMP hier ...' oder 'DMP HA ...' -> Korrektur z.B. 'D.m.(sekundär)' + ICD E10.91"
  sql(AWlf) = "SELECT f.pat_id, gesname(f.pat_id) PName, wer, dmpklass, f.icd icd " & vbCrLf & _
     "FROM `aktfaellev` f LEFT JOIN `namen` n ON f.pat_id = n.pat_id  " & vbCrLf & _
     "LEFT JOIN anaktk az ON az.pid=f.pat_id" & vbCrLf & _
@@ -1060,7 +1060,7 @@ sql(AWlf) = _
  AWlf = AWlf + 1
 
  ' 9
- AwN(AWlf) = "Fehlende Fußdiagnose trotz Leistung 97314, 97324 oder 02311 (vorher 6)"
+ AwN(AWlf) = "Fehlende Fußdiagnose trotz Leistung 97314, 97324 oder 02311"
  sql(AWlf) = _
  "SELECT eid, Pat_id, Patient, wer, ICD, Quelldatum, FotoStadium, FotoSeite, Eintr_Seite, Eintr_Zeitpunkt, Art, Eintr_Inhalt, Leistn, name FROM (" & vbCrLf & _
  " SELECT e.id eid, f.pat_id, gesname(f.pat_id) Patient, wer, MAX(di.icd) ICD, Quelldatum" & vbCrLf & _
@@ -1096,7 +1096,7 @@ sql(AWlf) = _
  AWlf = AWlf + 1
 
  ' 10
-AwN(AWlf) = "Podologierezepte u.ä. ohne Neuropathiediagnose G63.2 u.ä. (vorher 24)"
+AwN(AWlf) = "Podologierezepte u.ä. ohne Neuropathiediagnose G63.2 u.ä."
 sql(AWlf) = "" & _
 "SELECT f.pat_id, gesname(f.pat_id) PName, wer" & vbCrLf & _
 ",GROUP_CONCAT(DISTINCT CASE WHEN ra.Medikament RLIKE 'podo' THEN 'Pod' WHEN ra.Medikament RLIKE 'Orthon' THEN 'Nagel' WHEN ra.Medikament RLIKE 'orthop|therapies' THEN 'Schuh' WHEN ra.Medikament RLIKE 'bettu' THEN 'Bett' ELSE '' END) Rp_akt" & vbCrLf & _
@@ -1133,7 +1133,7 @@ sql(AWlf) = "" & _
  
   
  ' 11
- AwN(AWlf) = "Untertriebene Niereninsuffizienz => N18.3 oder N18.4 (vorher 85)"
+ AwN(AWlf) = "Untertriebene Niereninsuffizienz => N18.3 oder N18.4"
  sql(AWlf) = "SELECT f.pat_id, gesname(f.pat_id) PName, wer, _lGFR(f.pat_id) eGFR, d.ICD " & vbCrLf & _
  "FROM aktfvz f " & vbCrLf & _
  "LEFT JOIN anaktk az ON az.pid=f.pat_id" & vbCrLf & _
@@ -1144,7 +1144,7 @@ sql(AWlf) = "" & _
  AWlf = AWlf + 1
  
 ' 12
- AwN(AWlf) = "Fehlende Ulcus-Diagnose nach Fuß-Makro (vorher 96)"
+ AwN(AWlf) = "Fehlende Ulcus-Diagnose nach Fuß-Makro "
  '  AND COALESCE(ni.Dggel,0)=0
  sql(AWlf) = "" & vbCrLf & _
  "SELECT u.pat_id, gesnameg(u.pat_id) PName, wer, u.zeitpunkt Makrozt, u.ulcera, di.icd, u.mitarbeiter " & vbCrLf & _
@@ -1182,7 +1182,7 @@ ulcusicd = "'^L89\.[123]|T14.9|L02.9'"
  AWlf = AWlf + 1
 
 ' 14
-AwN(AWlf) = "Fehler bei ICD oder Schwangerschaftseintrag bei Schwangeren mit D.m. oder GDM (vorher 101)"
+AwN(AWlf) = "Fehler bei ICD oder Schwangerschaftseintrag bei Schwangeren mit D.m. oder GDM"
 ' AND COALESCE(d.Dggel,0)=0
 sql(AWlf) = vbCrLf & _
 "SELECT i.pat_id PID, PName,wer, voret Entbindung,Eintr Eintrag,dicd `Diabetes-ICD`,sicd `Sws-ICD(s)`, sdicd `Sws-Dauer-ICD` " & vbCrLf & _
@@ -1219,7 +1219,7 @@ sql(AWlf) = vbCrLf & _
  AWlf = AWlf + 1
  
 ' 15
- AwN(AWlf) = "Fehlende Diabetes-Entgleisung im ICD-Code (vorher 129)"
+ AwN(AWlf) = "Fehlende Diabetes-Entgleisung im ICD-Code"
  ' AND COALESCE(Dggel,0)=0
 sql(AWlf) = _
 "SELECT f.Pat_id,gesname(f.pat_id) PName,wer,h.lzp HbA1cZp, h.letzter lHbA1c,d.icd " & vbCrLf & _
@@ -1233,7 +1233,7 @@ sql(AWlf) = _
  AWlf = AWlf + 1
  
  ' 16
- AwN(AWlf) = "nicht mehr aktuelle Nieren-ICDs und/oder herabzustufende EBM-Ziffern (vorher 130)"
+ AwN(AWlf) = "nicht mehr aktuelle Nieren-ICDs und/oder herabzustufende EBM-Ziffern"
  ' AND COALESCE(Dggel,0)=0
  sql(AWlf) = _
  "SELECT pat_id, gesname(pat_id) PName, wer, max1, eGFR" & vbCrLf & _
@@ -1258,7 +1258,7 @@ sql(AWlf) = _
  AWlf = AWlf + 1
 
 ' 17
- AwN(AWlf) = "Pat. mit 'DMP HA' ohne Diabetes-ICD oder ohne nachweisbaren Überweiser (vorher 132)"
+ AwN(AWlf) = "Pat. mit 'DMP HA' ohne Diabetes-ICD oder ohne nachweisbaren Überweiser"
  ' AND COALESCE(Dggel,0)=0
  ' n.getha0
  
@@ -1302,7 +1302,7 @@ sql(AWlf) = sql(AWlf) & _
  AWlf = AWlf + 1
 
 ' 18
-AwN(AWlf) = "Fehlende Diagnosen bei Impflingen (vorher 142)"
+AwN(AWlf) = "Fehlende Diagnosen bei Impflingen"
 sql(AWlf) = "" & _
 "  SELECT pat_id, gesname(pat_id) PName, rr, DATE(rr.zeitpunkt) Datum " & vbCrLf & _
 "  , case when RRsyst<140 AND RRdiast<95 THEN 'Ausschluß arter.Hypertonie (I10.90A)' ELSE 'V.a. art. Hypertonie (I10.90A)' END Diagnose " & vbCrLf & _
@@ -1317,7 +1317,7 @@ sql(AWlf) = "" & _
  AWlf = AWlf + 1
  
 ' 19
- AwN(AWlf) = "Kernschatten ohne CLL oder Ausschluss CLL (vorher 156)"
+ AwN(AWlf) = "Kernschatten ohne CLL oder Ausschluss CLL"
 sql(AWlf) = "" & _
 "SELECT IF(lwer=wer AND NOT ISNULL(lwer),'',CONCAT(CHR(13),CHR(10))) ``" & vbCrLf & _
 " , i.pat_id,IF(wer='-','?',wer) Arzt,Name,Patalter,Zp,`%`,lbeh" & vbCrLf & _
@@ -1407,7 +1407,7 @@ sql(AWlf) = sql(AWlf) & _
  AWlf = AWlf + 1
 
 ' 22
- AwN(AWlf) = "Nicht mit R32 kodierte, im ADL eingetragene Harninkontinenz (vorher 151)"
+ AwN(AWlf) = "Nicht mit R32 kodierte, im ADL eingetragene Harninkontinenz"
  ' AND COALESCE(Dggel,0)=0
 sql(AWlf) = "" & _
 "SELECT f.pat_id, gesname(f.pat_id) PName " & vbCrLf & _
@@ -1421,7 +1421,7 @@ sql(AWlf) = "" & _
 '",(SELECT icd FROM diagnosen d WHERE pat_id=f.pat_id AND icd LIKE 'N31%' AND diagsicherheit IN ('G',' ') AND COALESCE(Dggel,0)=0 LIMIT 1) N31 " & vbCrLf & _
 
 ' 23
- AwN(AWlf) = "Möglicherweise nachzutragende Pflegestufendiagnose Z74.9 (vorher 62)"
+ AwN(AWlf) = "Möglicherweise nachzutragende Pflegestufendiagnose Z74.9"
 ' AND COALESCE(dd.Dggel,0)=0
  sql(AWlf) = "SELECT v.pat_id, gesname(v.pat_id) Name, patAlter(v.pat_id) PAlter " & vbCrLf & _
             ",(SELECT COUNT(art) FROM eintraege WHERE pat_id = v.pat_id AND (art = 'tk'OR(art='tb'And ersteller='tk'))) tk " & vbCrLf & _
@@ -1444,7 +1444,7 @@ sql(AWlf) = "" & _
  
 ' 24
 ' kann man mit nur 'schwindel' und .. AND schw.art NOT IN ('andm','andm2') auch zum Finden falsch kategorisierter Diabetesanamnesen verwenden
- AwN(AWlf) = "Möglicherweise nachzutragender Altersschwindel R42 (vorher 63)"
+ AwN(AWlf) = "Möglicherweise nachzutragender Altersschwindel R42"
  sql(AWlf) = "SELECT v.pat_id, gesname(v.pat_id) Name, patAlter(v.pat_id) PAlter " & vbCrLf & _
             ",(SELECT COUNT(art) FROM eintraege WHERE pat_id = v.pat_id AND (art = 'tk'OR(art='tb'And ersteller='tk'))) tk " & vbCrLf & _
             ",(SELECT COUNT(art) FROM eintraege WHERE pat_id = v.pat_id AND (art = 'gs'OR(art='tb'And ersteller='gs'))) gs " & vbCrLf & _
@@ -1470,7 +1470,7 @@ sql(AWlf) = "" & _
  
 ' 25
 ' Achtung: jedes Regexp_replace kommt nochmal bei Where vor
- AwN(AWlf) = "Möglicherweise nachzutragende Stuhlinkontinenz R15 oder Harninkontinenz R32 (vorher 64)"
+ AwN(AWlf) = "Möglicherweise nachzutragende Stuhlinkontinenz R15 oder Harninkontinenz R32"
  sql(AWlf) = "SELECT v.pat_id, gesname(v.pat_id) Name " & vbCrLf & _
             ",(SELECT COUNT(art) FROM eintraege WHERE pat_id = v.pat_id AND (art = 'tk'OR(art='tb'And ersteller='tk'))) tk " & vbCrLf & _
             ",(SELECT COUNT(art) FROM eintraege WHERE pat_id = v.pat_id AND (art = 'gs'OR(art='tb'And ersteller='gs'))) gs " & vbCrLf & _
@@ -1500,7 +1500,7 @@ sql(AWlf) = "" & _
  AWlf = AWlf + 1
  
 ' 26
- AwN(AWlf) = "Möglicherweise nachzutragender Demenz F01-F03 oder Verwirrtheit R41.0 (vorher 65)"
+ AwN(AWlf) = "Möglicherweise nachzutragender Demenz F01-F03 oder Verwirrtheit R41.0"
  sql(AWlf) = "SELECT v.pat_id, gesname(v.pat_id) Name, patalter(v.pat_id) PAlter " & vbCrLf & _
             ",IF((SELECT MAX(art) FROM eintraege WHERE pat_id = v.pat_id AND (art='tk'OR(art='tb'AND ersteller='tk')))IS NULL,'',(SELECT CONCAT(LPAD(CAST(COUNT(art) AS char),4,' '),DATE_FORMAT(MAX(zeitpunkt),'(-%d.%m.%y)')) FROM eintraege WHERE pat_id = v.pat_id AND (art = 'tk'OR(art='tb'AND ersteller='tk')))) tk " & vbCrLf & _
             ",IF((SELECT MAX(art) FROM eintraege WHERE pat_id = v.pat_id AND (art='gs'OR(art='tb'AND ersteller='gs')))IS NULL,'',(SELECT CONCAT(LPAD(CAST(COUNT(art) AS char),4,' '),DATE_FORMAT(MAX(zeitpunkt),'(-%d.%m.%y)')) FROM eintraege WHERE pat_id = v.pat_id AND (art = 'gs'OR(art='tb'AND ersteller='gs')))) gs " & vbCrLf & _
@@ -1525,7 +1525,7 @@ sql(AWlf) = "" & _
  AWlf = AWlf + 1
  
 ' 27
- AwN(AWlf) = "Möglicherweise nachzutragendes chronisches Schmerzsyndrom R52.2 oder F45.51 (psych) (vorher 66)"
+ AwN(AWlf) = "Möglicherweise nachzutragendes chronisches Schmerzsyndrom R52.2 oder F45.51 (psych)"
  sql(AWlf) = "SELECT v.pat_id, gesname(v.pat_id) Name " & vbCrLf & _
             ",IF((SELECT MAX(art) FROM eintraege WHERE pat_id = v.pat_id AND (art='tk'OR(art='tb'AND ersteller='tk')))IS NULL,'',(SELECT CONCAT(LPAD(CAST(COUNT(art) AS char),4,' '),DATE_FORMAT(MAX(zeitpunkt),'(-%d.%m.%y)')) FROM eintraege WHERE pat_id = v.pat_id AND (art = 'tk'OR(art='tb'AND ersteller='tk')))) tk " & vbCrLf & _
             ",IF((SELECT MAX(art) FROM eintraege WHERE pat_id = v.pat_id AND (art='gs'OR(art='tb'AND ersteller='gs')))IS NULL,'',(SELECT CONCAT(LPAD(CAST(COUNT(art) AS char),4,' '),DATE_FORMAT(MAX(zeitpunkt),'(-%d.%m.%y)')) FROM eintraege WHERE pat_id = v.pat_id AND (art = 'gs'OR(art='tb'AND ersteller='gs')))) gs " & vbCrLf & _
@@ -1548,7 +1548,7 @@ sql(AWlf) = "" & _
  AWlf = AWlf + 1
  
 ' 28
- AwN(AWlf) = "Möglicherweise nachzutragende Fallneigung R29.6 (vorher 67)"
+ AwN(AWlf) = "Möglicherweise nachzutragende Fallneigung R29.6"
  sql(AWlf) = "SELECT v.pat_id, gesname(v.pat_id) Name, patAlter(v.pat_id) PAlter " & vbCrLf & _
             ",IF((SELECT MAX(art) FROM eintraege WHERE pat_id = v.pat_id AND (art='tk'OR(art='tb'AND ersteller='tk')))IS NULL,'',(SELECT CONCAT(LPAD(CAST(COUNT(art) AS char),4,' '),DATE_FORMAT(MAX(zeitpunkt),'(-%d.%m.%y)')) FROM eintraege WHERE pat_id = v.pat_id AND (art = 'tk'OR(art='tb'AND ersteller='tk')))) tk " & vbCrLf & _
             ",IF((SELECT MAX(art) FROM eintraege WHERE pat_id = v.pat_id AND (art='gs'OR(art='tb'AND ersteller='gs')))IS NULL,'',(SELECT CONCAT(LPAD(CAST(COUNT(art) AS char),4,' '),DATE_FORMAT(MAX(zeitpunkt),'(-%d.%m.%y)')) FROM eintraege WHERE pat_id = v.pat_id AND (art = 'gs'OR(art='tb'AND ersteller='gs')))) gs " & vbCrLf & _
@@ -1571,7 +1571,7 @@ sql(AWlf) = "" & _
  AWlf = AWlf + 1
  
 ' 29
- AwN(AWlf) = "Möglicherweise nachzutragende Bettlägrigkeit R26.3 (vorher 68)"
+ AwN(AWlf) = "Möglicherweise nachzutragende Bettlägrigkeit R26.3"
  sql(AWlf) = "SELECT v.pat_id, gesname(v.pat_id) Name, patalter(v.pat_id) PAlter " & vbCrLf & _
             ",(SELECT COUNT(art) FROM eintraege WHERE pat_id = v.pat_id AND (art = 'tk'OR(art='tb'And ersteller='tk'))) tk " & vbCrLf & _
             ",(SELECT COUNT(art) FROM eintraege WHERE pat_id = v.pat_id AND (art = 'gs'OR(art='tb'And ersteller='gs'))) gs " & vbCrLf & _
@@ -1594,7 +1594,7 @@ sql(AWlf) = "" & _
  AWlf = AWlf + 1
 
  ' 30
- AwN(AWlf) = "Möglicherweise nachzutragende verminderte körperliche Aktivität R68.8 (vorher 69)"
+ AwN(AWlf) = "Möglicherweise nachzutragende verminderte körperliche Aktivität R68.8"
  sql(AWlf) = "SELECT v.pat_id, gesname(v.pat_id) Name, patalter(v.pat_id) PAlter " & vbCrLf & _
             ",(SELECT COUNT(art) FROM eintraege WHERE pat_id = v.pat_id AND (art = 'tk'OR(art='tb'And ersteller='tk'))) tk " & vbCrLf & _
             ",(SELECT COUNT(art) FROM eintraege WHERE pat_id = v.pat_id AND (art = 'gs'OR(art='tb'And ersteller='gs'))) gs " & vbCrLf & _
@@ -1617,7 +1617,7 @@ sql(AWlf) = "" & _
  AWlf = AWlf + 1
 
  ' 31
- AwN(AWlf) = "Möglicherweise nachzutragende multifaktorielle Mobilitätsstörung R26.8 (vorher 70)"
+ AwN(AWlf) = "Möglicherweise nachzutragende multifaktorielle Mobilitätsstörung R26.8"
  sql(AWlf) = "SELECT v.pat_id, gesname(v.pat_id) Name, patalter(v.pat_id) PAlter " & vbCrLf & _
             ",IF((SELECT MAX(art) FROM eintraege WHERE pat_id = v.pat_id AND (art='tk'OR(art='tb'AND ersteller='tk')))IS NULL,'',(SELECT CONCAT(LPAD(CAST(COUNT(art) AS char),4,' '),DATE_FORMAT(MAX(zeitpunkt),'(-%d.%m.%y)')) FROM eintraege WHERE pat_id = v.pat_id AND (art = 'tk'OR(art='tb'AND ersteller='tk')))) tk " & vbCrLf & _
             ",IF((SELECT MAX(art) FROM eintraege WHERE pat_id = v.pat_id AND (art='gs'OR(art='tb'AND ersteller='gs')))IS NULL,'',(SELECT CONCAT(LPAD(CAST(COUNT(art) AS char),4,' '),DATE_FORMAT(MAX(zeitpunkt),'(-%d.%m.%y)')) FROM eintraege WHERE pat_id = v.pat_id AND (art = 'gs'OR(art='tb'AND ersteller='gs')))) gs " & vbCrLf & _
@@ -1641,7 +1641,7 @@ sql(AWlf) = "" & _
  AWlf = AWlf + 1
  
 ' 32
- AwN(AWlf) = "Möglicherweise nachzutragende Dysphagie R13.9 (vorher 71)"
+ AwN(AWlf) = "Möglicherweise nachzutragende Dysphagie R13.9"
  sql(AWlf) = "SELECT v.pat_id, gesname(v.pat_id) Name, patalter(v.pat_id) PAlter " & vbCrLf & _
             ",IF((SELECT MAX(art) FROM eintraege WHERE pat_id = v.pat_id AND (art='tk'OR(art='tb'AND ersteller='tk')))IS NULL,'',(SELECT CONCAT(LPAD(CAST(COUNT(art) AS char),4,' '),DATE_FORMAT(MAX(zeitpunkt),'(-%d.%m.%y)')) FROM eintraege WHERE pat_id = v.pat_id AND (art = 'tk'OR(art='tb'AND ersteller='tk')))) tk " & vbCrLf & _
             ",IF((SELECT MAX(art) FROM eintraege WHERE pat_id = v.pat_id AND (art='gs'OR(art='tb'AND ersteller='gs')))IS NULL,'',(SELECT CONCAT(LPAD(CAST(COUNT(art) AS char),4,' '),DATE_FORMAT(MAX(zeitpunkt),'(-%d.%m.%y)')) FROM eintraege WHERE pat_id = v.pat_id AND (art = 'gs'OR(art='tb'AND ersteller='gs')))) gs " & vbCrLf & _
@@ -1667,7 +1667,7 @@ sql(AWlf) = "" & _
 ' LPAD(MID(tug.inhalt,1,INSTR(tug.inhalt,' ')),4,' '), 's/ '
 ' LPAD(MID(adl.inhalt,17),3,' '),' P') Tests " & vbCrLf & _
 
- AwN(AWlf) = "Patienten mit Barthel- und TUG-Test, die als gesund eingestuft sind (keine icd in ('Z74.9','G20.10','G20.20','R26.8','R29.6','R42','R32','R15','R13.9','R26.3','R41.0','R41.3','R41.8','R52.2','F45.41','G30.9','F29','F32.9','F69','F79.9','R41.0','R41.3','R41.8','R63.4','R53','M62.50','R26.8','R68.8') OR pfld.icd RLIKE '^F0[012]') (vorher 72)"
+ AwN(AWlf) = "Patienten mit Barthel- und TUG-Test, die als gesund eingestuft sind (keine icd in ('Z74.9','G20.10','G20.20','R26.8','R29.6','R42','R32','R15','R13.9','R26.3','R41.0','R41.3','R41.8','R52.2','F45.41','G30.9','F29','F32.9','F69','F79.9','R41.0','R41.3','R41.8','R63.4','R53','M62.50','R26.8','R68.8') OR pfld.icd RLIKE '^F0[012]')"
 '#Const ddalt = True
 #If ddalt Then
  sql(AWlf) = "SELECT v.pat_id, gesname(v.pat_id) Name, patalter(v.pat_id) PAlter " & vbCrLf & _
@@ -1873,7 +1873,7 @@ sql(AWlf) = _
  AWlf = AWlf + 1
 
 ' 37
-AwN(AWlf) = "Sonobefunde mit falscher Art"
+AwN(AWlf) = "Sonobefunde mit falscher Art (danach kommt 101)"
 sql(AWlf) = _
 "SELECT pat_id,gesname(pat_id)PName,Zeitpunkt,Art,Ersteller,Änderer,Inhalt FROM eintraege e WHERE inhalt RLIKE ':'" & vbCrLf & _
 "AND inhalt RLIKE '^(Abdomen|(Hals(schlagadern|venen|arterien|weichteile|sono)|Wei?chteile|Pleura|(Sono )?Schid?l?l?dd?d?r?r?s?ür?s?s?e?|(Bein|Arm)(venen|arterien)( (re|li(nks)?|bds.))?)|Nierenarterien?|Restharn|SD|Darmarterien|Abdomen|Belastung(suntersuchung)?).*:'" & vbCrLf & _
@@ -1893,8 +1893,8 @@ sql(AWlf) = "ü"
  maxs(AWlf) = 60
  AWlf = AWlf + 1
  
-' 35
-AwN(AWlf) = "Liste der möglicherweise fehlenden Hausärzte (vorher 9)"
+' 101 (35)
+AwN(AWlf) = "Liste der möglicherweise fehlenden Hausärzte"
 ' AND COALESCE(d.Dggel,0)=0
 sql(AWlf) = "SELECT n.Pat_id, gesnameg(n.pat_id) Name,f.Schgr,f.VKNr,ICD" & vbCrLf & _
             ",CASE WHEN dmpklass = 1 THEN 'nein' WHEN dmpklass = 2 THEN 'HA' WHEN dmpklass = 3 THEN 'hier' WHEN dmpklass = 4 THEN 'ausgeschrieben' ELSE '?' END `DMP` " & vbCrLf & _
@@ -1924,9 +1924,9 @@ sql(AWlf) = "SELECT n.Pat_id, gesnameg(n.pat_id) Name,f.Schgr,f.VKNr,ICD" & vbCr
  maxs(AWlf) = 60
  AWlf = AWlf + 1
  
- ' 36
+ ' 102 (36)
  ' diagsicherheit in aktfaellev schon eingebaut
- AwN(AWlf) = "'DMP HA'-Einträge in Info bei fehlendem Nachweis der DMP-Teilnahme seitens des Hausarztes im Internet für akt. Diabetestyp (vorher 20)"
+ AwN(AWlf) = "'DMP HA'-Einträge in Info bei fehlendem Nachweis der DMP-Teilnahme seitens des Hausarztes im Internet für akt. Diabetestyp"
  sql(AWlf) = _
  "SELECT n.pat_id, gesname(n.pat_id) Name, ICD, n.getha0 ÜWNNr, CONCAT(IF(h.anrede,'Herr','Frau'), ' ', h.adressat) Hausarzt " & vbCrLf & _
  "FROM `aktfaellev` f " & vbCrLf & _
@@ -1939,7 +1939,7 @@ sql(AWlf) = "SELECT n.Pat_id, gesnameg(n.pat_id) Name,f.Schgr,f.VKNr,ICD" & vbCr
  AWlf = AWlf + 1
 
  ' 103 (37)
- AwN(AWlf) = "Auffällige Arztzuordnung"
+ AwN(AWlf) = "Auffällige Arztzuordnung (danach kommt 201)"
 #If True Then
 #If True Then
 ' sql(AWlf) = _
@@ -2111,7 +2111,7 @@ sql(AWlf) = sql(AWlf) & _
   
 ' 201
 ' noch zu tun!!!!!!!
- AwN(AWlf) = "Unleserliche Diabetesdauer (vorher 35)"
+ AwN(AWlf) = "Unleserliche Diabetesdauer"
  sql(AWlf) = _
  "SELECT Pat_id, Name, i.dseit " & vbCrLf & _
  "FROM ( " & vbCrLf & _
@@ -2127,7 +2127,7 @@ sql(AWlf) = sql(AWlf) & _
 
 ' 202 (40)
 ' ktag fehlerhaft
-AwN(AWlf) = "Sono, Doppler oder Duplex ohne Befund (vorher 7)"
+AwN(AWlf) = "Sono, Doppler oder Duplex ohne Befund"
 ' sql(AWlf) = _
 "SELECT innen.*, ezp, LEFT(art,7) AS art, inhalt from" & vbCrLf & _
  "(SELECT f.`pid` AS Pat_ID, name, " & vbCrLf & _
@@ -2174,7 +2174,7 @@ AwN(AWlf) = "Sono, Doppler oder Duplex ohne Befund (vorher 7)"
  AWlf = AWlf + 1
 
  ' 203
- AwN(AWlf) = "Unverwertbare DMP-Einteilung im Info-Feld (vorher 10)"
+ AwN(AWlf) = "Unverwertbare DMP-Einteilung im Info-Feld"
 ' sql(AWlf) = "SELECT n.pat_id, gesname(n.pat_id) Name, n.dmpklass, n.dmpbeg,n.dmpkhkklass, n.DMPKHKBeg, n.DMPCopdKlass, n.DmpCOPDBeg, n.DMPABKlass, n.DMPABBeg, REPLACE(n.info,CONCAT(char(13),char(10)),'')Info " & vbCrLf & _
              ",(SELECT GROUP_CONCAT(CONCAT(MID(abk,INSTR(abk,'DMP')+3),'_',art,'(',IF(ok,'1','0'),'/',IF(ausgedruckt,'1','0'),'/',IF(exportiert=18991230,'-',DATE_FORMAT(exportiert,'%d.%m.%y')),')') ORDER BY exportiert DESC) FROM dmpreihe d WHERE karteidatum > NOW()-INTERVAL 2 YEAR AND pat_id=n.pat_id) DMPzuletzt" & vbCrLf & _
              "FROM aktfvz f " & vbCrLf & _
@@ -2210,20 +2210,27 @@ AwN(AWlf) = "Sono, Doppler oder Duplex ohne Befund (vorher 7)"
  maxs(AWlf) = 120
  AWlf = AWlf + 1
   
-' 42
-AwN(AWlf) = "Fehlende oder zu alte DMP-(Teilnahme)bestätigung in der Karteikarte (vorher 93)"
+' 204 (42)
+AwN(AWlf) = "Fehlende oder zu alte DMP-(Teilnahme)bestätigung in der Karteikarte"
 sql(AWlf) = "" & vbCrLf & _
-"SELECT v.pat_id, gesnameg(v.pat_id) Name, b.zeitpunkt, b.name " & vbCrLf & _
+"SELECT v.pat_id,gesnameg(v.pat_id)PNAME,b.Zeitpunkt,LEFT(b.name,40)Dokument,LEFT(p.FBezeichnung,30)Praxis,REPLACE(tt.text,CHR(0),'')Tel,REPLACE(tf.text,CHR(0),'')Fax" & vbCrLf & _
 "FROM aktfvz v " & vbCrLf & _
 "LEFT JOIN namen n ON v.pat_id = n.pat_id " & vbCrLf & _
 "LEFT JOIN tmbrie b ON v.pat_id = b.pat_id " & vbCrLf & _
 " AND ((name LIKE '%dmp-%' AND NOT name LIKE '%dmp-daten%') OR name LIKE '%dmp%teilnahme%' OR name LIKE '%dmp%bestätigung%' OR name LIKE '%teilnahme%dmp%' OR name LIKE '%bestätigung%dmp%') " & vbCrLf & _
 " AND zeitpunkt = (SELECT MAX(zeitpunkt) FROM tmbrie WHERE pat_id = b.pat_id " & vbCrLf & _
 " AND ((name LIKE '%dmp-%' AND NOT name LIKE '%dmp-daten%') OR name LIKE '%dmp%teilnahme%' OR name LIKE '%dmp%bestätigung%' OR name LIKE '%dmp%bestätigung%' OR name LIKE '%teilnahme%dmp%' OR name LIKE '%bestätigung%dmp%')) " & vbCrLf & _
-"WHERE dmpklass = 2 AND (ISNULL(b.Zeitpunkt) OR DATEDIFF(" & qtAnf(FristS) & ", b.Zeitpunkt) > 0) " & vbCrLf & _
-"GROUP BY v.pat_id;"
+"LEFT JOIN epraxis p ON p.FBetriebsnr=n.BStNr" & vbCrLf & _
+"LEFT JOIN tmpmepraxis tt ON tt.fsur=p.FSurogat AND tt.enr='9.2'" & vbCrLf & _
+"LEFT JOIN tmpmepraxis tf ON tf.fsur=p.FSurogat AND tf.enr='10.2'" & vbCrLf & _
+"/*LEFT JOIN earzt a ON a.FArztnr=lanr*/" & vbCrLf & _
+"/*LEFT JOIN epraxis pa ON pa.FSurogat=a.FExtpraxisnr*/" & vbCrLf & _
+"" & vbCrLf & _
+"WHERE dmpklass = 2 AND(ISNULL(b.Zeitpunkt)OR DATEDIFF(" & qtAnf(FristS) & ",b.Zeitpunkt)>0)" & vbCrLf & _
+"GROUP BY v.pat_id" & vbCrLf & _
+"ORDER BY n.BSTNR,b.name"
  mins(AWlf) = 10
- maxs(AWlf) = 60
+ maxs(AWlf) = 40
  AWlf = AWlf + 1
 
  ' 205 (' 43)
@@ -2242,12 +2249,12 @@ sql(AWlf) = "" & vbCrLf & _
  maxs(AWlf) = 30
  AWlf = AWlf + 1
   
-' 44
+' 206 (44)
 'Briefe umfassen alle Dokumente und dann noch die mit pdf und doc usw.
 '(SELECT pfad, zeitpunkt, name FROM `tmbrie` WHERE pat_id=" & Pat_ID & " UNION " & vbCrLf & _
 '    " SELECT datname, laend, datname FROM `dokprotlist` WHERE pat_id=" & Pat_ID & ") i" & vbCrLf &
 
-AwN(AWlf) = "Nicht nachweisbar eingescannte und importierte Überweisungsscheine (vorher 47)"
+AwN(AWlf) = "Nicht nachweisbar eingescannte und importierte Überweisungsscheine"
  sql(AWlf) = "SELECT  a.pat_id,gesnameg(a.pat_id) Name, ausgst, lvorl" & vbCrLf & _
  "FROM `aktfvs` a" & vbCrLf & _
  "JOIN faelle f USING (fid)" & vbCrLf & _
@@ -2283,8 +2290,8 @@ sql(AWlf) = "" & vbCrLf & _
  AWlf = AWlf + 1
 #End If
 
-' 45
- AwN(AWlf) = "Atypisch klassifizierte Doppler/Duplex-Untersuchungen (Halsschlagadern, Halsvenen, Thoraxvenen, Darmarterien, Beinarterien, Beinvenen, Nierenarterien, Temporalarterien, Abdomen, Armvenen, Armarterien, Belastung) (vorher 87, vorher 113)"
+' 207 (45)
+ AwN(AWlf) = "Atypisch klassifizierte Doppler/Duplex-Untersuchungen (Halsschlagadern, Halsvenen, Thoraxvenen, Darmarterien, Beinarterien, Beinvenen, Nierenarterien, Temporalarterien, Abdomen, Armvenen, Armarterien, Belastung)"
  sql(AWlf) = vbCrLf & _
  "SELECT DISTINCT pat_id, gesname(pat_id) PName, COUNT(0) zahl, MIN(zeitpunkt) Zt1,MAX(zeitpunkt) Zt2, GROUP_CONCAT(LEFT(inhalt,20) SEPARATOR ' | ') Inhalt " & vbCrLf & _
  "FROM eintraege WHERE art IN ('doppler','dop','duplex','dup') " & vbCrLf & _
@@ -2308,8 +2315,8 @@ sql(AWlf) = "" & vbCrLf & _
  AWlf = AWlf + 1
 ' Abdomen: Bauchaorta:
 
-' 46
-AwN(AWlf) = "falscher Eintrag 'vacc' (vorher 92)" ' : [Mögliche DAK/KKH/HEK/TK-Ziffern Niereninsuffizienz (97600,97601,97603)]"
+' 208 (46)
+AwN(AWlf) = "falscher Eintrag 'vacc'" ' : [Mögliche DAK/KKH/HEK/TK-Ziffern Niereninsuffizienz (97600,97601,97603)]"
 sql(AWlf) = "select pat_id, gesname(pat_id) PName, Zeitpunkt, art, Inhalt FROM eintraege WHERE art='vacc'"
 'sql(AWlf) = "" & vbCrLf & _
 "SELECT * FROM ( " & vbCrLf & _
@@ -2338,8 +2345,8 @@ sql(AWlf) = "select pat_id, gesname(pat_id) PName, Zeitpunkt, art, Inhalt FROM e
  maxs(AWlf) = 60
  AWlf = AWlf + 1
  
-' 47
-AwN(AWlf) = "Tippfehler beim Blutdruck ('7' statt '/', vorher 94)"
+' 209 (47)
+AwN(AWlf) = "Tippfehler beim Blutdruck ('7' statt '/')"
 sql(AWlf) = "" & vbCrLf & _
 "SELECT pat_id, gesnameg(pat_id) Name, zeitpunkt, rr " & vbCrLf & _
 "FROM rr " & vbCrLf & _
@@ -2349,8 +2356,8 @@ sql(AWlf) = "" & vbCrLf & _
  maxs(AWlf) = 60
  AWlf = AWlf + 1
 
-' 48
-AwN(AWlf) = "Mißgestaltetes Fuß-Makro (vorher 95)"
+' 210 (48)
+AwN(AWlf) = "Mißgestaltetes Fuß-Makro"
 sql(AWlf) = "" & vbCrLf & _
 "SELECT u.pat_id, gesnameg(u.pat_id) Name, u.Zeitpunkt, ulcera, Zn_Amput, Fußdeform, Mitarbeiter " & vbCrLf & _
 "FROM aktfvz f LEFT JOIN fuss u " & vbCrLf & _
@@ -2362,8 +2369,8 @@ sql(AWlf) = "" & vbCrLf & _
  maxs(AWlf) = 60
  AWlf = AWlf + 1
  
- ' 49
- AwN(AWlf) = "als schnell wirksame Insuline Gekennzeichnete mit Namen von langsam wirkenden (vorher 110)"
+ ' 211 (49)
+ AwN(AWlf) = "als schnell wirksame Insuline Gekennzeichnete mit Namen von langsam wirkenden"
  sql(AWlf) = vbCrLf & _
  "SELECT insart,medikament,langname,pat_id FROM medarten mp WHERE insart=1 AND ( " & vbCrLf & _
 "((langname REGEXP 'basal[^r]' OR langname LIKE '%basal') AND NOT langname LIKE '%rapid%') OR " & vbCrLf & _
@@ -2397,8 +2404,8 @@ sql(AWlf) = sql(AWlf) & _
  maxs(AWlf) = 80
  AWlf = AWlf + 1
 
- ' 50
- AwN(AWlf) = "Träger von Vornamen mit verschiedenen Geschlechtern (vorher 109)"
+ ' 212 (50)
+ AwN(AWlf) = "Träger von Vornamen mit verschiedenen Geschlechtern"
  sql(AWlf) = vbCrLf & _
  "WITH n AS(SELECT n.* FROM namen n JOIN faelle USING(pat_id))" & vbCrLf & _
  "SELECT n.vorname,n.geschlecht,n.pat_id,gesname(n.pat_id)Gesname" & vbCrLf & _
@@ -2410,9 +2417,9 @@ sql(AWlf) = sql(AWlf) & _
  maxs(AWlf) = 80
  AWlf = AWlf + 1
  
- ' 51
+ ' 213 (51)
  ' mit PCRE, ab Mariadb 10.0.5
- AwN(AWlf) = "Als Verzögerungsinsulin klassifiziertes Insulin, das nicht als solches bekannt ist (vorher 111)"
+ AwN(AWlf) = "Als Verzögerungsinsulin klassifiziertes Insulin, das nicht als solches bekannt ist"
  sql(AWlf) = vbCrLf & _
  "SELECT insart,medikament,langname,pat_id FROM medarten mp WHERE insart=2 AND NOT ( " & vbCrLf & _
 "(medikament = 'Insulin 10' OR (langname REGEXP 'basal[^r]' OR langname LIKE '%basal') AND NOT langname LIKE '%rapid%') OR " & vbCrLf & _
@@ -2443,8 +2450,8 @@ sql(AWlf) = sql(AWlf) & _
 "langname LIKE '%tuj%' OR " & vbCrLf & _
 "langname LIKE '%abasa%' " & vbCrLf & _
 
-' 52
- AwN(AWlf) = "Auffällige Arteinträge (vorher 112)"
+' 214 (52)
+ AwN(AWlf) = "Auffällige Arteinträge"
  sql(AWlf) = AuffArtSql
 ' "SELECT art, gesname(pat_id) Name, COUNT(0) Zahl, GROUP_CONCAT(DISTINCT Pat_id) FROM eintraege " & vbCrLf & _
 ' "WHERE NOT art IN (" & artspezG & "," & artSpezSonst & ") " & vbCrLf & _
@@ -2453,8 +2460,8 @@ sql(AWlf) = sql(AWlf) & _
  maxs(AWlf) = 80
  AWlf = AWlf + 1
 
-' 53
- AwN(AWlf) = "Möglicherweise ausstehende Blutabnahmedokumentationen ('ba' oder 'bla') (vorher 121)"
+' 215 (53)
+ AwN(AWlf) = "Möglicherweise ausstehende Blutabnahmedokumentationen ('ba' oder 'bla')"
  sql(AWlf) = vbCrLf & _
 "SELECT f.pat_id, gesname(f.pat_id) Name, DATE(kva.zeitpunkt) kva, kva.inhalt " & vbCrLf & _
 ",COALESCE((SELECT DATE_FORMAT(MAX(zeitpunkt),'%d.%m.%y') FROM eintraege WHERE pat_id=f.pat_id AND art='ba' AND DATE(zeitpunkt) BETWEEN DATE(kva.zeitpunkt - INTERVAL 8 DAY) AND DATE(kva.zeitpunkt)),'-') `Vor-ba`" & vbCrLf & _
@@ -2467,8 +2474,8 @@ sql(AWlf) = sql(AWlf) & _
  maxs(AWlf) = 80
  AWlf = AWlf + 1
  
- ' 54
- AwN(AWlf) = "falsch aufgebaute Datensätze aus Kassenliste (vorher 122)"
+ ' 216 (54)
+ AwN(AWlf) = "falsch aufgebaute Datensätze aus Kassenliste"
  sql(AWlf) = vbCrLf & _
  "SELECT k1.vknr,k1.ik,k2.ik,k1.name,k1.kurzname,k1.kateg,k2.name,k2.kurzname,k2.kateg " & vbCrLf & _
  "FROM kassenliste k1 " & vbCrLf & _
@@ -2478,8 +2485,8 @@ sql(AWlf) = sql(AWlf) & _
  maxs(AWlf) = 80
  AWlf = AWlf + 1
  
-' 55
-AwN(AWlf) = "Pat. mit 'DMP ausgeschrieben', die in den letzten 5a da waren, unter 90a alt sind und noch keinen Hinweis auf DMP-Wiedereinschreibung auf dem dem Desktop haben (vorher 145)"
+' 217 (55)
+AwN(AWlf) = "Pat. mit 'DMP ausgeschrieben', die in den letzten 5a da waren, unter 90a alt sind und noch keinen Hinweis auf DMP-Wiedereinschreibung auf dem dem Desktop haben"
 sql(AWlf) = "" & _
 "SELECT (SELECT MAX(bhfb) FROM faelle WHERE pat_id=n.pat_id) lfall, n.pat_id, gesname(n.pat_id) pname, patalter(n.pat_id) PAlter " & vbCrLf & _
 "FROM namen n LEFT JOIN anamnesebogen USING (pat_id) " & vbCrLf & _
@@ -2490,8 +2497,8 @@ sql(AWlf) = "" & _
  maxs(AWlf) = 60
  AWlf = AWlf + 1
  
-' 56
-AwN(AWlf) = "Pat. mit 'DMP ausgeschrieben', die trotzdem " & aktQ & " einen neuen Fall haben (vorher 146)"
+' 218 (56)
+AwN(AWlf) = "Pat. mit 'DMP ausgeschrieben', die trotzdem " & aktQ & " einen neuen Fall haben"
 sql(AWlf) = "" & _
 "SELECT i.pat_id, gesname(i.pat_id) NAME, i.info, i.LetzteDoku, GROUP_CONCAT(f.Quartal ORDER BY bhfb DESC) FallDanach FROM (" & vbCrLf & _
 "SELECT n.pat_id,info,MAX(STR_TO_DATE(feldinh,'%d.%m.%y')) letztedoku, qende(MAX(STR_TO_DATE(feldinh,'%d.%m.%y'))) qen " & vbCrLf & _
@@ -2507,8 +2514,8 @@ sql(AWlf) = "" & _
  maxs(AWlf) = 60
  AWlf = AWlf + 1
  
-' 57
-AwN(AWlf) = "Möglicherweise fehlende Libre- bzw. CGM-Icons auf dem Patientendesktop (vorher 147)"
+' 219 (57)
+AwN(AWlf) = "Möglicherweise fehlende Libre- bzw. CGM-Icons auf dem Patientendesktop"
 'sql(AWlf) = "" & _
 "SELECT n.pat_id PID, gesname(n.pat_id) PName " & vbCrLf & _
 ",COALESCE((SELECT LEFT(titel,6) FROM desktop WHERE pat_id=n.pat_id AND iconPath LIKE '%CGM.ico%' LIMIT 1),'-') Icon " & vbCrLf & _
@@ -2530,8 +2537,8 @@ sql(AWlf) = "" & _
  maxs(AWlf) = 100
  AWlf = AWlf + 1
 
-' 58
-AwN(AWlf) = "Auffälliges Geschlecht bei schwangerschaftsbez. Leistungen '92277','92281','97313','97323','97277' (vorher 148)"
+' 220 (58)
+AwN(AWlf) = "Auffälliges Geschlecht bei schwangerschaftsbez. Leistungen '92277','92281','97313','97323','97277'"
 sql(AWlf) = "" & _
 "SELECT f.pat_id, gesname(f.pat_id) PName, n.Geschlecht, l.zeitpunkt, l.leistung FROM aktfv f " & vbCrLf & _
 "LEFT JOIN leistungen l ON l.pat_id=f.pat_id AND l.Leistung IN ('92277','92281','97313','97323','97277') AND l.ZeitPunkt BETWEEN qanf() AND qend() " & vbCrLf & _
@@ -2541,9 +2548,9 @@ sql(AWlf) = "" & _
  maxs(AWlf) = 60
  AWlf = AWlf + 1
 
-' 59
+' 221 (59)
 ' s. 58 und 59
- AwN(AWlf) = "Falsche Arteinträge (nicht: 'bzvgl' oder 'bz') bei Blutzuckermessungen mit dem Biosen (vorher 155)"
+ AwN(AWlf) = "Falsche Arteinträge (nicht: 'bzvgl' oder 'bz') bei Blutzuckermessungen mit dem Biosen, danach 301"
 sql(AWlf) = "" & _
 "SELECT pat_id,gesname(pat_id) PName, zeitpunkt,art,inhalt" & vbCrLf & _
 ", (SELECT group_concat(concat(art,': ',inhalt)) FROM eintraege WHERE pat_id=e.pat_id AND DATE(zeitpunkt)=DATE(e.zeitpunkt) AND art IN ('bzvgl','bz','ogtt')) Zweiteintrag" & vbCrLf & _
@@ -2561,7 +2568,7 @@ AwN(AWlf) = "Fehler bei der Fallzuordnung"
 sql(AWlf) = "ü"
  AWlf = AWlf + 1
 
-' 61
+' 301 (61)
  AwN(AWlf) = "Fehlende Arzt-Markierungen"
 'sql(AWlf) = _
 "SELECT pat_id,PName" & vbCrLf & _
@@ -2610,7 +2617,7 @@ sql(AWlf) = "SELECT Fpatnr," & GesNamegMO & vbCrLf & _
 ' "-- and n.pat_id=47" & vbCrLf & _
 
 
-'AwN(AWlf) = "Möglicherweise zu Unrecht dem Bayerischen Landesinstitut für Gesundheit zugeordnete Leistungen (vorher 139)"
+'AwN(AWlf) = "Möglicherweise zu Unrecht dem Bayerischen Landesinstitut für Gesundheit zugeordnete Leistungen"
 ' sql(AWlf) = "" & _
 "SELECT f.Pat_ID, gesname(f.pat_id) PName, f.Schgr, f.BhFB, l.Zeitpunkt,l.leistung,COALESCE(l.LZahl,0) LZahl,l.LfBegr Begründung,l.LOrgan Organ,l.Faktor " & vbCrLf & _
 "FROM faelle f " & vbCrLf & _
@@ -2625,7 +2632,7 @@ sql(AWlf) = "SELECT Fpatnr," & GesNamegMO & vbCrLf & _
  maxs(AWlf) = 60
  AWlf = AWlf + 1
 
-' 62
+' 302 (62)
  AwN(AWlf) = "Leistungsdatum außerhalb Quartal"
 ' sql(AWlf) = _
  "SELECT gf.pat_id, gesname(gf.pat_id) Name, l.zeitpunkt, l.leistung,gf.schgr,gf.goäkatnr, gf.quartal,gf.qanf,gf.qend " & vbCrLf & _
@@ -2669,7 +2676,7 @@ sql(AWlf) = "SELECT Fpatnr," & GesNamegMO & vbCrLf & _
 ' AWlf = AWlf + 1
 
 ' 63
-AwN(AWlf) = "Vermutlich durch fehlerhaften Leistungsimport generierte Doppelfälle (vorher 144)"
+AwN(AWlf) = "Vermutlich durch fehlerhaften Leistungsimport generierte Doppelfälle, danach 401"
 sql(AWlf) = "" & _
 "SELECT f.pat_id, gesname(f.pat_id) PName, l.Leistung, l.Zeitpunkt " & vbCrLf & _
 "FROM aktfv f" & vbCrLf & _
@@ -2689,8 +2696,8 @@ AwN(AWlf) = "DMP"
 sql(AWlf) = "ü"
  AWlf = AWlf + 1
   
-  ' 65
-AwN(AWlf) = "Unzufriedenstellende DMP-Klassifikation bei D.m. (vorher 17)"
+  ' 401 (65)
+AwN(AWlf) = "Unzufriedenstellende DMP-Klassifikation bei D.m., danach 501"
 sql(AWlf) = _
 "SELECT Pat_ID,gesnameg(pat_id) Name,`Alter[a]`,Leistung,ICD, CASE WHEN dmpklass = 1 THEN 'nein' WHEN dmpklass = 2 THEN 'HA' WHEN dmpklass = 3 THEN 'hier' WHEN dmpklass = 4 THEN 'ausgeschrieben' ELSE '?' END `DMP`, info,Kateg,SchGr,maxtha(pat_id)`max.Ther`,TherAkt,Ther1 FROM " & vbCrLf & _
 "(SELECT * FROM " & vbCrLf & _
@@ -2720,7 +2727,7 @@ sql(AWlf) = "ü"
  ' 501 (67)
  ' 15.10.14: Komb und CT noch nicht bewertet, da unsicher und z.T. falsch ausgewertet
  ' 12.10.19: maxtha braucht lang, soll nur in Auswahl von namen berechnet werden
- AwN(AWlf) = "Fehlende oder falsche Betreuungspauschale 97320/97310 (ICT oder CSII), 97321 (and.Therapie), 97322/97312 (Kinder) im DMP (vorher 18)"
+ AwN(AWlf) = "Fehlende oder falsche Betreuungspauschale 97320/97310 (ICT oder CSII), 97321 (and.Therapie), 97322/97312 (Kinder) im DMP"
 sql(AWlf) = _
 "SELECT * FROM ( " & vbCrLf & _
 "SELECT f.pat_id PID, gesnameg(f.pat_id) Name, DTyp, n.dmpklass DMP,f.Kateg " & vbCrLf & _
@@ -2781,7 +2788,7 @@ sql(AWlf) = _
  AWlf = AWlf + 1
  
  ' 502
- AwN(AWlf) = "Fehlende oder falsche Betreuungspauschale 97310 (ICT oder CSII), 97312 (Kinder) für D.m.1 mit DMP (vorher 19)"
+ AwN(AWlf) = "Fehlende oder falsche Betreuungspauschale 97310 (ICT oder CSII), 97312 (Kinder) für D.m.1 mit DMP"
  ' AND COALESCE(d.Dggel,0)=0
 sql(AWlf) = _
 " SELECT Pat_id, gesnameg(pat_id),ICD,Leistung,Soll,kateg,kasse FROM " & vbCrLf & _
@@ -2896,7 +2903,7 @@ sql(AWlf) = _
  ' diagsicherheit in aktfaellev schon eingebaut
 ' AwN(AWlf) = "'DMP HA'-Einträge in Info bei Patienten ohne Diabetesdiagnose, bereits IN 5) eingebaut"
 ' sql(AWlf) = "SELECT n.pat_id, LEFT(CONCAT(IF(n.titel='','',CONCAT(n.titel,' ')),IF(n.nvorsatz='','',CONCAT(n.nvorsatz,' ')),n.nachname,', ',n.vorname),25) Name  FROM `aktfaellev` f LEFT JOIN `namen` n ON f.pat_id = n.pat_id LEFT JOIN `hareal` h ON n.getha0 = h.kvnr WHERE n.dmpklass = 2 AND ISNULL(f.icd)"
- AwN(AWlf) = "Motivationskandidaten ('92278','92282') (vorher 21)"
+ AwN(AWlf) = "Motivationskandidaten ('92278','92282')"
  sql(AWlf) = motsql()
  mins(AWlf) = 7
  maxs(AWlf) = 30
@@ -2924,7 +2931,7 @@ sql(AWlf) = _
 
  ' 504
 ' QUARTAL(lei.zeitpunkt)=aktq() hier (zumindest bei 0 Einträgen) auch nicht langsamer
- AwN(AWlf) = "Potentiell falsche Pauschalenzahl (" & BetrPausch & ") (vorher 22)"
+ AwN(AWlf) = "Potentiell falsche Pauschalenzahl (" & BetrPausch & ")"
 ' sql(AWlf) = _
 "SELECT f.pat_id AS PatID, f.nachname AS Nachname, f.vorname AS Vorname, lei.ct Pauschalenzahl, IF(MinL='97333' AND MaxL='97333',2,1) Soll, MinL `Pauschale 1`, IF(MaxL=MinL,'',MaxL) `ggf. Pauschale 2` " & vbCrLf & _
 "FROM (SELECT f.pat_id, nachname, vorname, fid,schgr,goäkatnr,ik,vknr FROM `aktfv` f LEFT JOIN `namen` n ON f.pat_id = n.pat_id ORDER BY pat_id, fid DESC, schgr) AS f " & vbCrLf & _
@@ -2947,7 +2954,7 @@ sql(AWlf) = _
 
  ' 505
  ' ktag fehlerhaft
- AwN(AWlf) = "Leistungen 97324 oder 97314 und 02311 am selben Tag (vorher 23)"
+ AwN(AWlf) = "Leistungen 97324 oder 97314 und 02311 am selben Tag"
  ' AND COALESCE(diab.Dggel,0)=0
  sql(AWlf) = _
  "SELECT * FROM " & vbCrLf & _
@@ -2966,7 +2973,7 @@ sql(AWlf) = _
 
  
 ' 506
- AwN(AWlf) = "Fehlende 97314,97324 für Fußsyndrom nach Einträgen, Fotos und Diagnosen (vorher 25)"
+ AwN(AWlf) = "Fehlende 97314,97324 für Fußsyndrom nach Einträgen, Fotos und Diagnosen"
  ' NOT ISNULL(eArt) e1, Fuß_akt<>'' e2, NOT ISNULL(uArt) e3, WFc RLIKE '^0D|^[12][BCD]|^[3-5]' e4, Wchron RLIKE '\\.[2-5]' e5,
  '  AND COALESCE(wc.Dggel,0)=0
  sql(AWlf) = _
@@ -3009,7 +3016,7 @@ sql(AWlf) = _
  "AND zeitpunkt < ADDDATE(CONCAT(YEAR(SUBDATE(NOW(),INTERVAL 14 DAY)),'-',(((month(SUBDATE(NOW(),INTERVAL 14 DAY))-1) div 3) * 3)+1,'-1'),INTERVAL 3 MONTH) " & vbCrLf & _
 
 ' 507
- AwN(AWlf) = "Fehlende 02312, 02311 bzw. 02300 für Fußsyndrom nach Einträgen (vorher 27)"
+ AwN(AWlf) = "Fehlende 02312, 02311 bzw. 02300 für Fußsyndrom nach Einträgen"
  sql(AWlf) = _
  "SELECT f.pat_id, dmtyp(f.pat_id) dt, gesname(f.pat_id) PName, DATE_FORMAT(e.zeitpunkt,'%e.%c.%y') Zp, GROUP_CONCAT(ndl.leistung) ndl, GROUP_CONCAT(dil.leistung) dil, e.art, e.inhalt " & vbCrLf & _
  "FROM aktfvs f " & vbCrLf & _
@@ -3038,7 +3045,7 @@ sql(AWlf) = _
  AWlf = AWlf + 1
  
 ' 508
- AwN(AWlf) = "Fehlende 02311 usw. für Fußsyndrom nach Fotostadium (vorher 28)"
+ AwN(AWlf) = "Fehlende 02311 usw. für Fußsyndrom nach Fotostadium"
  'sql(AWlf) = _
  "SELECT * FROM " & vbCrLf & _
  "(SELECT * FROM " & vbCrLf & _
@@ -3116,7 +3123,7 @@ sql(AWlf) = sql(AWlf) & _
 
 ' 509 (75)
 ' ktag fehlerhaft
- AwN(AWlf) = "Fehlende 02310/ 02311/ 02312 /02300 nach Wundverband (wv) (vorher 29)"
+ AwN(AWlf) = "Fehlende 02310/ 02311/ 02312 /02300 nach Wundverband (wv)"
 sql(AWlf) = _
 "SELECT f.pat_id PID, gesname(f.pat_id) PName, DATE(e.zeitpunkt) eZP" & vbCrLf & _
 ", COALESCE((SELECT SUM(lzahl) FROM leistungen WHERE pat_id=f.pat_id AND DATE(zeitpunkt)=DATE(e.ZeitPunkt) AND leistung IN ('02310','02311','02312','02300')),0) `wv(023..)`" & vbCrLf & _
@@ -3144,9 +3151,9 @@ sql(AWlf) = _
  maxs(AWlf) = 50
  AWlf = AWlf + 1
 
- ' 76
+ ' 510 (76)
  ' ktag fehlerhaft
- AwN(AWlf) = "Fehlender Kompressionsverband: (02313) (vorher 30)"
+ AwN(AWlf) = "Fehlender Kompressionsverband: (02313)"
 sql(AWlf) = _
 "SELECT f.pat_id PID, gesname(f.pat_id) PName, DATE(e.zeitpunkt) eZP" & vbCrLf & _
 ", COALESCE((SELECT SUM(lzahl) FROM leistungen WHERE pat_id=f.pat_id AND DATE(zeitpunkt)=DATE(e.ZeitPunkt) AND leistung IN ('02313')),0) `kv(02313)`" & vbCrLf & _
@@ -3179,7 +3186,7 @@ sql(AWlf) = _
 
  ' 511 (' 78)
  ' ktag fehlerhaft
- AwN(AWlf) = "Mehrfache 02300 am selben Tag ohne T01.1-T01.9-Diagnose (vorher 31)"
+ AwN(AWlf) = "Mehrfache 02300 am selben Tag ohne T01.1-T01.9-Diagnose"
  sql(AWlf) = "SELECT f.Pat_id, gesname(f.Pat_id) PName, DATE(l.zeitpunkt) Datum, Leistung, COALESCE(SUM(lzahl)) Zahl, d.icd " & vbCrLf & _
              "FROM `aktfvs` f " & vbCrLf & _
              "LEFT JOIN `leistungen` l ON f.pat_id = l.pat_id AND l.zeitpunkt BETWEEN " & lQAnfuEnd(FristS) & " AND leistung = '02300' " & vbCrLf & _
@@ -3193,7 +3200,7 @@ sql(AWlf) = _
 #If ebmalt Then
 ' ktag fehlerhaft
 ' AND COALESCE(dg.Dggel,0)=0
- AwN(AWlf) = "Fehlende Chronikerpauschale 03212 (vorher 33)"
+ AwN(AWlf) = "Fehlende Chronikerpauschale 03212"
  sql(AWlf) = _
  "SELECT fpat_id pat_id, ffid fid, name, Kontakte, " & vbCrLf & _
  "ICD, ICDg, Kdet, Schgr, MinSchgr, LAlter `Alter`, Grundl, Chron, `Zahl(Grundleist)`, `Zahl(Chron'pausch.)` FROM " & vbCrLf & _
@@ -3229,8 +3236,9 @@ sql(AWlf) = _
 ' myEFrag "SET @qd:=vorquart(@qn,3)"
 ' myEFrag "SET @qv:=vorquart(@qn,4)"
 
+#If False Then
 ' 512 (78)
-AwN(AWlf) = "Mögliche Fehler bei Chronikerpauschale 03220, 03221 (lauto) (vorher 33)"
+AwN(AWlf) = "Mögliche Fehler bei Chronikerpauschale 03220, 03221 (lauto)"
 '  AND d.diagsicherheit NOT IN ('A','V')
 ' AND COALESCE(gd.Dggel,0)=0
  sql(AWlf) = _
@@ -3341,9 +3349,10 @@ sql(AWlf) = sql(AWlf) & vbCrLf & _
  mins(AWlf) = 8
  maxs(AWlf) = 20
  AWlf = AWlf + 1
+#End If ' false
  
  
-' 513
+' 512
  AwN(AWlf) = "Mögliche Fehler bei Chronikerpauschale 03220 (lauto)"
 '  AND d.diagsicherheit NOT IN ('A','V')
 ' AND COALESCE(gd.Dggel,0)=0
@@ -3400,7 +3409,7 @@ sql(AWlf) = sql(AWlf) & vbCrLf & _
  maxs(AWlf) = 20
  AWlf = AWlf + 1
 
-' 514
+' 513
  AwN(AWlf) = "Mögliche Fehler bei Chronikerpauschale 03221 (lauto)"
 '  AND d.diagsicherheit NOT IN ('A','V')
 ' AND COALESCE(gd.Dggel,0)=0
@@ -3459,8 +3468,8 @@ sql(AWlf) = sql(AWlf) & vbCrLf & _
 
  
 
-' 79
- AwN(AWlf) = "03221% ohne 03220% (vorher 34)"
+' 514 (79)
+ AwN(AWlf) = "03221% ohne 03220%"
 sql(AWlf) = "SELECT f.pat_id, gesname(f.pat_id), l1.leistung, l0.leistung " & vbCrLf & _
 "FROM aktfvs f " & vbCrLf & _
 "LEFT JOIN leistungen l1 ON f.pat_id=l1.pat_id AND l1.zeitpunkt BETWEEN qanf() AND qend() AND l1.leistung LIKE '%03221%' " & vbCrLf & _
@@ -3473,7 +3482,7 @@ sql(AWlf) = "SELECT f.pat_id, gesname(f.pat_id), l1.leistung, l0.leistung " & vb
 #End If
 
 ' 516 (80)
-AwN(AWlf) = "Pauschalenfehler nach Tabelle (vorher 48)"
+AwN(AWlf) = "Pauschalenfehler nach Tabelle"
 '17.10.12: Prinzip: für alle Fälle (aktfvs) werden die leistungen rausgesucht, die in der Tabelle `genehmigungen` behandelt werden
 '(WHERE l.leistung IN (SELECT leistung FROM `genehmigungen`)).
 'Dazu wird jeweils eine Zeile aus `genehmigungen` mit derselben Leistung und dem selben Diabetestyp ausgewählt
@@ -3574,7 +3583,7 @@ sql(AWlf) = "" & _
 
 ' 82
 ' ktag fehlerhaft
- AwN(AWlf) = "Falsche Anzahl Grundpauschalen (03001,03002,03003,03004,03005,03011,03012,03013,03014,03015 (lauto) (vorher 54)" '"03110, 03111, 03112, 03120, 03121, 03122)"
+ AwN(AWlf) = "Falsche Anzahl Grundpauschalen (03001,03002,03003,03004,03005,03011,03012,03013,03014,03015 (lauto)" '"03110, 03111, 03112, 03120, 03121, 03122)"
  sql(AWlf) = _
  "SELECT f.pat_id PID, gesnameg(f.pat_id) PName, f.Schgr, f.LANRID, COALESCE(SUM(lzahl),0) Zahl" & vbCrLf & _
  ", COALESCE(GROUP_CONCAT(DISTINCT DATE(l.zeitpunkt) SEPARATOR ', '),'') Zeitpunkte" & vbCrLf & _
@@ -3613,7 +3622,7 @@ sql(AWlf) = "" & _
 #End If
 
  ' 83
- AwN(AWlf) = "Mehr als 6 Insulineinweisungen 97276 (vorher 52)"
+ AwN(AWlf) = "Mehr als 6 Insulineinweisungen 97276"
  sql(AWlf) = "SELECT f.pat_id, gesnameg(f.pat_id) Name, lz.zeitpunkt " & vbCrLf & _
               "FROM aktfvs f " & vbCrLf & _
               "LEFT JOIN namen n ON f.pat_id = n.pat_id LEFT JOIN leistungen lz ON f.pat_id = lz.pat_id " & vbCrLf & _
@@ -3629,7 +3638,7 @@ sql(AWlf) = "" & _
  AWlf = AWlf + 1
 
 ' 84
- AwN(AWlf) = "Potential für 97276 (vorher 153)"
+ AwN(AWlf) = "Potential für 97276"
 sql(AWlf) = "" & _
 "SELECT Pat_id, gesname(pat_id) PName, therart, DATE_FORMAT(zp,'%e.%c.%y') ab" & vbCrLf & _
 ", InsSeit, InsSeitDatum, CGMseit, 97276_Zahl, 97276_Daten FROM (" & vbCrLf & _
@@ -3655,7 +3664,7 @@ sql(AWlf) = "" & _
  AWlf = AWlf + 1
 
 ' 85
- AwN(AWlf) = "Potential für 97270 (vorher 154)"
+ AwN(AWlf) = "Potential für 97270"
 sql(AWlf) = "" & _
 "SELECT Pat_id, gesname(pat_id) PName, therart, DATE_FORMAT(zp,'%e.%c.%y') ab, VorTher, 97270_Zahl, 97270_Daten FROM (" & vbCrLf & _
 "SELECT f.pat_id, zp, t.therart " & vbCrLf & _
@@ -3676,7 +3685,7 @@ sql(AWlf) = "" & _
  AWlf = AWlf + 1
 
 ' 86
- AwN(AWlf) = "Möglicherweise zu rasche Motivationsfolge 92278 oder 92282 (vorher 53)"
+ AwN(AWlf) = "Möglicherweise zu rasche Motivationsfolge 92278 oder 92282"
  sql(AWlf) = "SELECT f.pat_id, gesnameg(f.pat_id) Name, l.leistung, l.zeitpunkt Zp, lz.zeitpunkt lZp " & vbCrLf & _
              "FROM aktfvs f " & vbCrLf & _
              "LEFT JOIN namen n ON f.pat_id = n.pat_id " & vbCrLf & _
@@ -3700,7 +3709,7 @@ sql(AWlf) = "" & _
  ' AND NOT inhalt RLIKE 'Biosen:$|Biosenglucose,|Antibiosen|Biosen: ~ [^ 0-9]|^([^0-9]+|)Biosen([^0-9]+|)$|Biosen:[ ]{1,2}(-|,|mg/dl)|Biosen[s]?[:]?[ ]+mg/dl|Biosen:[ ]?-(-|#|.|)[ ]+mg|OGTT mit Biosen|Schuhen, Biosen|gleich nochmal mit Biosen|als unser Biosen|Biosen schon abgeschaltet|Biosen(-Gerät|) (schon aus|am )|Biosen war|Biosen zu hoch|Biosen funktioniert|Biosen Geräte hat|Biosen aus( [^E]|$)|Biosen[ ]?(heute|derzeit|) nicht|biosen[^0-9]*(kaput|defekt)|morgen.*Biosen-Gerät|Biosen unauffällig|Biosen mißt.*falsch|Biosentic|Biosen tauschen'
  ' sowohl mit den beiden NOT als auch ohne sie sollen 0 Datensätze rauskommen
 
-AwN(AWlf) = "Fehlende 32025 für Blutzuckermessungen (bz, bzvgl, ogtt) außerhalb der Schwangerschaft (lauto) (vorher 58)"
+AwN(AWlf) = "Fehlende 32025 für Blutzuckermessungen (bz, bzvgl, ogtt) außerhalb der Schwangerschaft (lauto)"
 ' sql(AWlf) = "SELECT * FROM (" & vbCrLf & _
       "SELECT f.pat_id, gesname(f.pat_id) Name," & vbCrLf & _
       "DATE(e.zeitpunkt) Tag, COUNT(art) `BZ-Zahl`, SUM(IF(ISNULL(l.LAnzl),0,IF(l.LAnzl='',1,l.LAnzl))) `Leistungs-Zahl`," & vbCrLf & _
@@ -3732,7 +3741,7 @@ AwN(AWlf) = "Fehlende 32025 für Blutzuckermessungen (bz, bzvgl, ogtt) außerhalb 
  AWlf = AWlf + 1
  
  ' 88
- AwN(AWlf) = "Eventuell fehlende 97146 (Neumanifestation mit Ernährungsberatung, BMI + ggf. Augen-Üw) (vorher 61)"
+ AwN(AWlf) = "Eventuell fehlende 97146 (Neumanifestation mit Ernährungsberatung, BMI + ggf. Augen-Üw)"
  sql(AWlf) = "SELECT v.Pat_id, gesnameg(v.pat_id) Name, DsJ, `Diabetes seit` " & vbCrLf & _
             ",d.icd " & vbCrLf & _
             ",IF((SELECT MAX(art) FROM eintraege WHERE pat_id = v.pat_id AND (art='tk'OR(art='tb'AND ersteller='tk')))IS NULL,'',(SELECT CONCAT(LPAD(CAST(COUNT(art) AS char),4,' '),DATE_FORMAT(MAX(zeitpunkt),'(-%d.%m.%y)')) FROM eintraege WHERE pat_id = v.pat_id AND (art = 'tk'OR(art='tb'AND ersteller='tk')))) tk " & vbCrLf & _
@@ -3763,7 +3772,7 @@ AwN(AWlf) = "Fehlende 32025 für Blutzuckermessungen (bz, bzvgl, ogtt) außerhalb 
  
 ' 89
 ' ktag fehlerhaft
-AwN(AWlf) = "97146 (Ersteinstellung D.m.) neben 03220, 03221, 04220 oder 04221 (vorher 80)"
+AwN(AWlf) = "97146 (Ersteinstellung D.m.) neben 03220, 03221, 04220 oder 04221"
 sql(AWlf) = "SELECT f.pat_id, gesname(f.pat_id) Gesname, DATE(l.zeitpunkt) Tag1, l.leistung Leist1, DATE(l1.zeitpunkt) Tag2, l1.leistung Leist2 " & vbCrLf & _
 "FROM aktfvs f " & vbCrLf & _
 "       LEFT JOIN leistungen l ON l.pat_id=f.pat_id AND l.zeitpunkt BETWEEN qanf() AND qend() AND l.leistung = '97146' " & vbCrLf & _
@@ -3775,7 +3784,7 @@ sql(AWlf) = "SELECT f.pat_id, gesname(f.pat_id) Gesname, DATE(l.zeitpunkt) Tag1,
 
 ' 90
 ' ktag fehlerhaft
-AwN(AWlf) = "97146 zu lange nach Erstmanifestation (vorher 81)"
+AwN(AWlf) = "97146 zu lange nach Erstmanifestation"
 sql(AWlf) = "SELECT f.pat_id, gesname(f.pat_id) Gesname, DATE(l.zeitpunkt) Tag1, l.leistung Leist1, DATE(l1.zeitpunkt) Tag2, l1.leistung Leist2 " & vbCrLf & _
 " FROM aktfvs f " & vbCrLf & _
 "       LEFT JOIN leistungen l ON l.pat_id=f.pat_id AND l.zeitpunkt BETWEEN qanf()AND qend() AND l.leistung = '97146' " & vbCrLf & _
@@ -3803,7 +3812,7 @@ sql(AWlf) = "SELECT f.pat_id, gesname(f.pat_id) Gesname, DATE(l.zeitpunkt) Tag1,
 ' 91
 ' ktag fehlerhaft
 ' 6.7.25: hier aktuell die einzige Verwendung von kstreng
-AwN(AWlf) = "Möglicherweise fehlende 03355 (lauto) (vorher 98)"
+AwN(AWlf) = "Möglicherweise fehlende 03355 (lauto)"
  sql(AWlf) = "" & _
  "SELECT PID, LEFT(gesname(PID),15)PName,L3`Q-3`,L2`Q-2`,L1`Q-1`,L0`akt.Q`,bisher`=bisher`,bisher+rng`+rng`" & vbCrLf & _
  ",CASE cgm WHEN 1 THEN'Libre Handy'WHEN 2 THEN'Libre Gerät'WHEN 3 THEN'Dexcom Hdy'WHEN 4 THEN'Dexcom G.'WHEN 5 THEN'Simplera'WHEN 6 THEN'Eversense'WHEN 0 THEN CASE insanw WHEN 3 THEN'Combo'WHEN 4 THEN'Kaleido'WHEN 5 THEN 'Medtronic'WHEN 6 THEN'Omnipod 5'WHEN 8 THEN'T:slim'WHEN 9 THEN'Ypso'ELSE'-'END ELSE'sonst.'END Icon" & vbCrLf & _
@@ -3895,7 +3904,7 @@ AwN(AWlf) = "Möglicherweise fehlende 03355 (lauto) (vorher 98)"
 
 ' 92
 ' ktag fehlerhaft
- AwN(AWlf) = "evtl. fehlende Eversense-cgma-Makro oder 03355(+Zusatz)-Leistung (lauto) (vorher 99)"
+ AwN(AWlf) = "evtl. fehlende Eversense-cgma-Makro oder 03355(+Zusatz)-Leistung (lauto)"
  ' AND COALESCE(dd.Dggel,0)=0
  sql(AWlf) = _
  "SELECT PID, gesname(pid) PName" & vbCrLf & _
@@ -3974,8 +3983,8 @@ AwN(AWlf) = "Möglicherweise fehlende 03355 (lauto) (vorher 98)"
 ' maxs(AWlf) = 80
 ' AWlf = AWlf + 1
  
-' 93
- AwN(AWlf) = "Mehr als 7 Leistungen 03355 im Krankheitsfall (vorher 113)"
+' 528 (93)
+ AwN(AWlf) = "Mehr als 7 Leistungen 03355 im Krankheitsfall, danach 601"
  sql(AWlf) = vbCrLf & _
 "SELECT * FROM (SELECT " & vbCrLf & _
 "COALESCE((SELECT SUM(lzahl) FROM leistungen l WHERE pat_id=f.pat_id AND l.zeitpunkt BETWEEN " & Khtsfl & " AND l.leistung='03355'),0) Geszahl, " & vbCrLf & _
@@ -3993,9 +4002,9 @@ AwN(AWlf) = "Schulungen"
 sql(AWlf) = "ü"
  AWlf = AWlf + 1
 
-' 95
+' 601 (95)
 ' ktag fehlerhaft
-AwN(AWlf) = "Schulungseintrag ohne erkennbare Schulungsziffer (" & myEFrag("SELECT GROUP_CONCAT(leistung) FROM genehmigungen WHERE obschulung<>0").Fields(0) & ") (vorher 49)"
+AwN(AWlf) = "Schulungseintrag ohne erkennbare Schulungsziffer (" & myEFrag("SELECT GROUP_CONCAT(leistung) FROM genehmigungen WHERE obschulung<>0").Fields(0) & ")"
 sql(AWlf) = "SELECT e.Pat_id, gesname(e.pat_id) Name, DATE(e.zeitpunkt), e.inhalt FROM `eintraege` e " & vbCrLf & _
             "INNER JOIN `aktfvs` f ON e.pat_id = f.pat_id " & vbCrLf & _
             "LEFT JOIN `leistungen` l ON l.pat_id = e.pat_id AND DATE(l.zeitpunkt)= DATE(e.zeitpunkt) AND l.leistung IN (SELECT DISTINCT leistung FROM `genehmigungen` WHERE obschulung<>0) " & vbCrLf & _
@@ -4014,8 +4023,8 @@ sql(AWlf) = "SELECT e.Pat_id, gesname(e.pat_id) Name, DATE(e.zeitpunkt), e.inhal
 "       AND l0.leistung IN ('03221','03221H')" & vbCrLf & _
 "       GROUP BY f.fid" & vbCrLf & _
 "       ) i WHERE Zahl>1"
-' 96
-AwN(AWlf) = "Mehr Leistungen seit 9 Monaten vor Quartalsanfang als in `genehmigungen` eingetragen (vorher 83)"
+' 602 (96)
+AwN(AWlf) = "Mehr Leistungen seit 9 Monaten vor Quartalsanfang als in `genehmigungen` eingetragen"
 sql(AWlf) = "SELECT i.pat_id, gesname(i.pat_id) PName,COALESCE(SUM(zl.lzahl),0) lzahl,i.maxzdue MaxZ,i.Leistung" & vbCrLf & _
 ",GROUP_CONCAT(DATE_FORMAT(zl.zeitpunkt,'%e.%c.%y')SEPARATOR'|') lzdat, i.Erklärung" & vbCrLf & _
 "FROM" & vbCrLf & _
@@ -4033,8 +4042,8 @@ mins(AWlf) = 10
 maxs(AWlf) = 60
 AWlf = AWlf + 1
   
-' 97 ' in 33
- AwN(AWlf) = "Übersicht Einzelschulungen (vorher 117)"
+' 603 (97 ' in 33)
+ AwN(AWlf) = "Übersicht Einzelschulungen"
  sql(AWlf) = _
 "SELECT l.pat_id" & vbCrLf & _
 ",IF(ROW_NUMBER()OVER(PARTITION BY l.pat_id ORDER BY l.pat_id,l.zeitpunkt)=1,gesname(l.pat_id),'') PName" & vbCrLf & _
@@ -4063,7 +4072,7 @@ AWlf = AWlf + 1
  AWlf = AWlf + 1
  
 ' 604 (98)
- AwN(AWlf) = "Prüfung auf Einzelschulungen bei T1D (ICT DMP 92392A, DV 97368E, Linda DMP 92392B, DV 97274E, Primas DMP 92392F, DV 97281E, Kinder DMP 92390A, DV 97278E, Jug DMP 92391A, DV 97279E, Hypert DMP 92392C, DV 97265E, HPSB DMP 92392D, DV 97266E, IMP DMP 92392E, DV 97268E, BGAT DV 97269E, Hypos DV 97280E) (vorher 150)"
+ AwN(AWlf) = "Prüfung auf Einzelschulungen bei T1D (ICT DMP 92392A, DV 97368E, Linda DMP 92392B, DV 97274E, Primas DMP 92392F, DV 97281E, Kinder DMP 92390A, DV 97278E, Jug DMP 92391A, DV 97279E, Hypert DMP 92392C, DV 97265E, HPSB DMP 92392D, DV 97266E, IMP DMP 92392E, DV 97268E, BGAT DV 97269E, Hypos DV 97280E)"
 'sql(AWlf) = "" & _
 " SELECT f.pat_id " & vbCrLf & _
 ", IF (ROW_NUMBER() over (PARTITION BY f.pat_id ORDER BY e.zeitpunkt)=1,gesname(f.pat_id),'') PName " & vbCrLf & _
@@ -4131,7 +4140,7 @@ sql(AWlf) = sql(AWlf) & _
  AWlf = AWlf + 1
 
  ' 99
- AwN(AWlf) = "Potential für Einzelschulungen bei Schwangerschaft (vorher 82 und 131)"
+ AwN(AWlf) = "Potential für Einzelschulungen bei Schwangerschaft"
  sql(AWlf) = "SELECT f.Pat_ID,gesname(f.pat_id) PName" & _
  ", COALESCE((SELECT dmtyp FROM dtypview WHERE pat_id=f.pat_id),'-') dtyp" & vbCrLf & _
  ", maxtha(f.pat_id) maxTha" & vbCrLf & _
@@ -4162,7 +4171,7 @@ sql(AWlf) = sql(AWlf) & _
 #If vorherig Then
 #If True Then
 ' aktfpkvs
-AwN(AWlf) = "Potential für Einzel- anstatt Gruppenschulungen ('97268','97274','97271') bei Gestationsdiabetes mit 1-3 Kontakten (vorher 82)"
+AwN(AWlf) = "Potential für Einzel- anstatt Gruppenschulungen ('97268','97274','97271') bei Gestationsdiabetes mit 1-3 Kontakten"
 sql(AWlf) = "SELECT " & vbCrLf & _
 "  IF(ROW_NUMBER() OVER (PARTITION BY f.pat_id ORDER BY l.zeitpunkt)=1,maxtha(f.pat_id),'') Tha" & vbCrLf & _
 ", IF(ROW_NUMBER() OVER (PARTITION BY f.pat_id ORDER BY l.zeitpunkt)=1,dt.ityp,'') DTyp" & vbCrLf & _
@@ -4240,7 +4249,7 @@ sql(AWlf) = "SELECT " & vbCrLf & _
 '    AwN(AWlf) = "-"
 '    sql(AWlf) = "-"
 
-AwN(AWlf) = "Übersicht Schwangere mit T1Dm oder T2Dm oder, falls >=3 Kontakte, GDM, sowie Neumanifestation Typ 1-Diabetes, mit Hinblick auf Einzelschulungen (vorher 131)"
+AwN(AWlf) = "Übersicht Schwangere mit T1Dm oder T2Dm oder, falls >=3 Kontakte, GDM, sowie Neumanifestation Typ 1-Diabetes, mit Hinblick auf Einzelschulungen"
 sql(AWlf) = _
 "SELECT f.pat_id, gesname(f.pat_id) PName,COALESCE(sws.voret,'') VorET" & vbCrLf & _
 ",IF(n.obneu=0,' ',n.obneu) obneu, dmtyp,COUNT(DISTINCT DATE(l.zeitpunkt)) lz" & vbCrLf & _
@@ -4263,7 +4272,7 @@ sql(AWlf) = _
  
 ' 100
 ' ktag fehlerhaft
-AwN(AWlf) = "GDM Schulungsübersicht aktuell/gesamt (vorher 107)"
+AwN(AWlf) = "GDM Schulungsübersicht aktuell/gesamt"
 '"(SELECT GROUP_CONCAT(DISTINCT insart) FROM therarten t WHERE t.pat_id=f.pat_id AND t.zp BETWEEN qbeg(SUBDATE(et.voret,274)) AND " & qtEnd(FristS) & ") Insarten, " & vbCrLf & _
 ""
 ' "(SELECT IF(MAX(insart)AND NOT ISNULL(MAX(insart)),'x','') FROM therarten t WHERE t.pat_id=f.pat_id AND t.zp BETWEEN qbeg(SUBDATE(et.voret,274)) AND " & qtEnd(FristS) & ") Ins, " & vbCrLf & _
@@ -4313,8 +4322,8 @@ mins(AWlf) = 10
 maxs(AWlf) = 80
 AWlf = AWlf + 1
  
-' 999
- AwN(AWlf) = "Möglicherweise fehlende 99055 (Schulungsabschluss)"
+' 607
+ AwN(AWlf) = "Möglicherweise fehlende 99055 (Schulungsabschluss), danach 701"
 sql(AWlf) = _
 "SELECT Pat_id,PName,DTyp,Leistung,Zeitpunkt,Bereich,Geszahl,Schulungsdaten `Daten vorausgegangener Leistungen`,Termine `Termine nach heute` FROM (" & vbCrLf & _
 " SELECT i.*,LAST_VALUE(geszahl)OVER(PARTITION BY pat_id)lv FROM (" & vbCrLf & _
@@ -4349,7 +4358,7 @@ sql(AWlf) = "ü"
 
 ' 701 (102)
 ' ktag fehlerhaft
- AwN(AWlf) = "Eventuell falsch abgerechnete OGTT in der Schwangerschaft (01777: 1/Schwt, 01812: 3/OGTT) (vorher 60)"
+ AwN(AWlf) = "Eventuell falsch abgerechnete OGTT in der Schwangerschaft (01777: 1/Schwt, 01812: 3/OGTT)"
 ' sql(AWlf) = "SELECT `01777`, `01812`, (SELECT SUM(IF(LAnzl='',1,LAnzl)) FROM leistungen l WHERE l.pat_id= pat_id AND DATE(l.zeitpunkt)<messzeitpunkt AND DATE(l.zeitpunkt) > `letzte Regel` AND l.leistung='01777') Vor01777, Pat_ID, Name, `letzte Regel`, Messzeitpunkt, `OGTT-Dokumentation` FROM " & vbCrLf & _
 '    "(SELECT SUM(IF(ogtt.LAnzl='',1,ogtt.LAnzl))  `01777`, SUM(IF(gluc.LAnzl='',1,gluc.LAnzl)) `01812`, e.pat_id Pat_ID, LEFT(CONCAT(IF(n.titel='','',CONCAT(n.titel,' ')),IF(n.nvorsatz='','',CONCAT(n.nvorsatz,' ')),n.nachname,', ',n.vorname),25) Name, STR_TO_DATE(f.letzteRegel,'TM#%d%m%Y') `letzte Regel`, DATE(e.zeitpunkt) Messzeitpunkt, e.inhalt `OGTT-Dokumentation`, e.fid fid " & vbCrLf & _
 '    "FROM eintraege e " & vbCrLf & _
@@ -4390,7 +4399,7 @@ sql(AWlf) = "SELECT Pat_ID, Name, Messzeitpunkt, `01812`,`Vor-01812`,Soll, `0177
 '             ",COALESCE((SELECT SUM(lzahl) FROM leistungen WHERE pat_id= e.pat_id AND DATE(zeitpunkt)<DATE(e.zeitpunkt) AND DATE(zeitpunkt)> STR_TO_DATE(f.letzteRegel,'%d.%m.%Y') AND leistung='01777'),0) `Vor-01777` " & vbCrLf & _
 
  ' 702 (103)
-AwN(AWlf) = "01777 ohne dokumentierten, auswärtigen 50g-Vortest (vorher 103)"
+AwN(AWlf) = "01777 ohne dokumentierten, auswärtigen 50g-Vortest"
 sql(AWlf) = vbCrLf & _
 "SELECT l.pat_id, gesname(l.pat_id), l.zeitpunkt,LfBegr " & vbCrLf & _
 "FROM aktfvs f " & vbCrLf & _
@@ -4400,8 +4409,8 @@ sql(AWlf) = vbCrLf & _
  maxs(AWlf) = 80
  AWlf = AWlf + 1
  
-' 104
-AwN(AWlf) = "Mehrfache 01777 (vorher 88)"
+' 703 (104)
+AwN(AWlf) = "Mehrfache 01777"
 sql(AWlf) = "" & vbCrLf & _
 "SELECT * FROM ( " & vbCrLf & _
 "SELECT f.pat_id,gesnameg(f.pat_id) Name, TRIM(GROUP_CONCAT(' ', DATE_FORMAT(l.zeitpunkt,'%d.%m.%y'))) Zeitpunkte, " & vbCrLf & _
@@ -4415,8 +4424,8 @@ sql(AWlf) = "" & vbCrLf & _
  maxs(AWlf) = 60
  AWlf = AWlf + 1
  
-' 105
- AwN(AWlf) = "Mehr als 8 Leistungen 01812 im Krankheitsfall (vorher 114)"
+' 704 (105)
+ AwN(AWlf) = "Mehr als 8 Leistungen 01812 im Krankheitsfall"
  sql(AWlf) = vbCrLf & _
 "SELECT * FROM (SELECT " & vbCrLf & _
 "COALESCE((SELECT SUM(lzahl) FROM leistungen l WHERE pat_id=f.pat_id AND l.zeitpunkt BETWEEN " & Khtsfl & " AND l.leistung='01812'),0) Geszahl, " & vbCrLf & _
@@ -4428,9 +4437,9 @@ sql(AWlf) = "" & vbCrLf & _
  maxs(AWlf) = 80
  AWlf = AWlf + 1
  
- ' 106
+ ' 705 (106)
  ' ktag fehlerhaft
- AwN(AWlf) = "Falsche Zahl 01812 oder 32025 für Blutzuckermessungen (bz, bzvgl, ogtt) ín der Schwangerschaft (vorher 59)"
+ AwN(AWlf) = "Falsche Zahl 01812 oder 32025 für Blutzuckermessungen (bz, bzvgl, ogtt) ín der Schwangerschaft"
  sql(AWlf) = "SELECT * FROM (" & vbCrLf & _
  "SELECT i.pid, gesname(i.pid) Name, i.eTag Tag, i.BZZahl `BZ-Zahl`" & vbCrLf & _
  ",COALESCE(SUM(lzahl),0) `Leistungs-Zahl`" & vbCrLf & _
@@ -4461,9 +4470,9 @@ mins(AWlf) = 10
 maxs(AWlf) = 60
 AWlf = AWlf + 1
  
-' 107
+' 706 (107)
 ' ktag fehlerhaft
-AwN(AWlf) = "01812, 01776 oder 01777 ohne Ausnahmekennziffer 32007 (lauto) (vorher 104)"
+AwN(AWlf) = "01812, 01776 oder 01777 ohne Ausnahmekennziffer 32007 (lauto)"
 sql(AWlf) = vbCrLf & _
 "SELECT DISTINCT f.pat_id PID, gesname(f.pat_id) Name " & vbCrLf & _
 ",DATE(l.zeitpunkt) LEIDAT, GROUP_CONCAT(l.leistung) Leistungen, '32007 dazu' LEIFEHLER, f.LANRID " & vbCrLf & _
@@ -4476,8 +4485,8 @@ sql(AWlf) = vbCrLf & _
  maxs(AWlf) = 80
  AWlf = AWlf + 1
 
-' 108
- AwN(AWlf) = "Fehlende 97333 für Gestationsdiabetes (vorher 12)"
+' 707 (108)
+ AwN(AWlf) = "Fehlende 97333 für Gestationsdiabetes"
  ' AND COALESCE(d.Dggel,0)=0
  sql(AWlf) = _
  "SELECT f.pat_id, gesname(f.pat_id) Name,d.icd,f.kateg " & vbCrLf & _
@@ -4506,10 +4515,10 @@ sql(AWlf) = vbCrLf & _
  maxs(AWlf) = 30
  AWlf = AWlf + 1
  
- ' 109
+ ' 708 (109)
  ' 97312=Betreuung T1DM i.d.Schwangerschaft, 97323=~T2DM~, 97333=~GDM~
  ' AND COALESCE(ddm.Dggel,0)=0
- AwN(AWlf) = "evtl. falsche oder fehlende Diagnosen oder Leistungen bei evtl. Schwangerschaft (vorher 16)"
+ AwN(AWlf) = "evtl. falsche oder fehlende Diagnosen oder Leistungen bei evtl. Schwangerschaft"
  sql(AWlf) = _
  "SELECT * FROM ( SELECT i.Pat_id, i.Name, i.voret, i.`OGTT`,i.`ICD D.m.`,i.`ICD Schw`, " & vbCrLf & _
  "      IF(`ICD Schw`=swdg,'-',swdg) `evtl.fehl.Diag.`, l.leistung, COALESCE(SUM(lzahl),0) LZahl, " & vbCrLf & _
@@ -4545,7 +4554,7 @@ sql(AWlf) = vbCrLf & _
 
 ' 110
 ' ktag fehlerhaft
- AwN(AWlf) = "Evl. fehlende Beratungsgespraeche in der oder bei geplanter Schwangerschaft (92281 bei T1DM, 92277 bei T2DM) (vorher 100)"
+ AwN(AWlf) = "Evl. fehlende Beratungsgespraeche in der oder bei geplanter Schwangerschaft (92281 bei T1DM, 92277 bei T2DM)"
  ' AND COALESCE(dd.Dggel,0)=0
  sql(AWlf) = vbCrLf & _
  "SELECT f.pat_id AS Pat_ID,gesnameG(f.pat_id) Name, dd.ICD DiabICD, ds.icd SchwICD, DATE(ds.diagdatum) SchwICDZp, DATE(e.zeitpunkt) EintrZp, e.art EintrArt, e.inhalt EintrInhalt " & vbCrLf & _
@@ -4564,8 +4573,8 @@ sql(AWlf) = vbCrLf & _
  AWlf = AWlf + 1
 
  
-' 111
-AwN(AWlf) = "GDM mit falscher Zahl an 03003 (lauto) (vorher 105)"
+' 710 (111)
+AwN(AWlf) = "GDM mit falscher Zahl an 03003 (lauto)"
 ' AND COALESCE(d.Dggel,0)=0
 sql(AWlf) = vbCrLf & _
 "SELECT i.*,IF(lz=0,'03003 dazu',CONCAT(lz-1,' 03003 weg')) LEIFEHLER FROM ( " & vbCrLf & _
@@ -4579,8 +4588,8 @@ sql(AWlf) = vbCrLf & _
  maxs(AWlf) = 80
  AWlf = AWlf + 1
  
-' 112
-AwN(AWlf) = "GDM mit verdächtiger Zahl an 97277 (vorher 106)"
+' 711 (112)
+AwN(AWlf) = "GDM mit verdächtiger Zahl an 97277, danach 801"
 '  AND COALESCE(d.Dggel,0)=0
 sql(AWlf) = vbCrLf & _
 "SELECT f.pat_id, gesname(f.pat_id) Name, s.VorET," & vbCrLf & _
@@ -4618,15 +4627,15 @@ sql(AWlf) = vbCrLf & _
 ' AWlf = AWlf + 1
 '
 
-' 113, neuView
+' 800, neuView
 AWlf = 800
 AwN(AWlf) = "Weitere Leistungen"
 sql(AWlf) = "ü"
  AWlf = AWlf + 1
 
-' 114
+' 801 (114)
 ' ktag fehlerhaft
- AwN(AWlf) = "Unvorhergesehene Inanspruchnahme 1 (01100) Mo-Fr 19-22, WE 7-19 (vorher 13)"
+ AwN(AWlf) = "Unvorhergesehene Inanspruchnahme 1 (01100) Mo-Fr 19-22, WE 7-19"
 ' sql(AWlf) = "SELECT e.Pat_ID AS pat_id,LEFT(DATE_FORMAT(e.ZeitPunkt,_utf8'%a, %d.%m.%y %H:%i'),20) AS Datum, LEFT(e.Art,5) AS art,e.Inhalt AS inhalt FROM `eintraege` e LEFT JOIN `faelle` f USING (fid) WHERE ((e.ZeitPunkt BETWEEN CONCAT(YEAR((NOW() - INTERVAL 14 DAY)),_latin1'-',((((month((NOW() - INTERVAL 14 DAY)) - 1) DIV 3) * 3) + 1),_latin1'-01') AND (CONCAT(YEAR((NOW() - INTERVAL 14 DAY)),_latin1'-',((((month((NOW() - INTERVAL 14 DAY)) - 1) DIV 3) * 3) + 1),_latin1'-01') + INTERVAL 3 MONTH)) AND (e.Art IN (_latin1'notiz',_latin1'ni',_latin1'telef',_latin1'gs',_latin1'ep',_latin1'wr',_latin1'bga',_latin1'gstel',_latin1'rz',_latin1'ga'))) AND (((time(zeitpunkt) BETWEEN '19.00' AND '22:00') AND weekday(zeitpunkt) BETWEEN 0 AND 5) OR ((weekday(zeitpunkt) BETWEEN 6 AND 7) AND (time(zeitpunkt) BETWEEN '07:00' AND '19:00'))) AND schgr <> '90' AND NOT goäkatnr IN (40,41) ORDER BY e.Pat_ID"
  sql(AWlf) = "SELECT e.Pat_id, gesname(e.pat_id)PName,LEFT(DATE_FORMAT(e.zeitpunkt,'%a, %d.%m.%y %H:%i'),20)Datum,CONCAT(RPAD(LEFT(e.Art,5),6),' ',RPAD(e.Ersteller,4),' ',e.`Änderer`)`Art/Erstel./Änd.`,e.Inhalt " & vbCrLf & _
              "FROM aktfv f LEFT JOIN eintraege e ON e.pat_id = f.pat_id AND e.art NOT IN ('vac','cia','c19i') AND e.inhalt NOT RLIKE 'impfung|armschmerzen|gefaxt|Rezepte erstellt|Urogenitalflora' " & vbCrLf & _
@@ -4644,7 +4653,7 @@ sql(AWlf) = "ü"
  
  ' 115
 ' ktag fehlerhaft
- AwN(AWlf) = "Unvorhergesehene Inanspruchnahme 2 (01101) Mo-Fr 22-7, WE 19-7 (vorher 14)"
+ AwN(AWlf) = "Unvorhergesehene Inanspruchnahme 2 (01101) Mo-Fr 22-7, WE 19-7"
 ' sql(AWlf) = "SELECT e.Pat_ID AS pat_id,LEFT(DATE_FORMAT(e.ZeitPunkt,_utf8'%a, %d.%m.%y %H:%i'),20) AS Datum, LEFT(e.Art,5) AS art,e.Inhalt AS inhalt FROM `eintraege` e LEFT JOIN `faelle` f USING (fid) WHERE ((e.ZeitPunkt BETWEEN CONCAT(YEAR((NOW() - INTERVAL 14 DAY)),_latin1'-',((((month((NOW() - INTERVAL 14 DAY)) - 1) DIV 3) * 3) + 1),_latin1'-01') AND (CONCAT(YEAR((NOW() - INTERVAL 14 DAY)),_latin1'-',((((month((NOW() - INTERVAL 14 DAY)) - 1) DIV 3) * 3) + 1),_latin1'-01') + INTERVAL 3 MONTH)) AND (e.Art IN (_latin1'notiz',_latin1'ni',_latin1'telef',_latin1'gs',_latin1'ep',_latin1'wr',_latin1'bga',_latin1'gstel',_latin1'rz',_latin1'ga'))) AND (((time(e.zeitpunkt) <'07:00' OR time(e.zeitpunkt) >'22:00') AND weekday(e.zeitpunkt) BETWEEN 0 AND 5) OR ((weekday(e.zeitpunkt) BETWEEN 6 AND 7) AND NOT (time(e.zeitpunkt) BETWEEN '07:00' AND '19:00'))) AND schgr <> '90' AND NOT goäkatnr IN (40,41) ORDER BY e.Pat_ID;"
  sql(AWlf) = "SELECT e.pat_id AS Pat_id, LEFT(DATE_FORMAT(e.zeitpunkt,'%a, %d.%m.%y %H:%i'),20) AS Datum, LEFT(e.Art,5) AS Art, e.Inhalt AS Inhalt " & vbCrLf & _
              "FROM `eintraege` e LEFT JOIN `aktfv` f ON e.pat_id = f.pat_id AND e.art NOT IN ('vac','cia','c19i') AND e.inhalt NOT RLIKE 'impfung|armschmerzen|gefaxt|Rezepte erstellt|Urogenitalflora' " & vbCrLf & _
@@ -4661,7 +4670,7 @@ sql(AWlf) = "ü"
  
  ' 116
  ' ktag fehlerhaft
- AwN(AWlf) = "Inanspruchnahme an Samstagen (01102) 7-14 Spr. (vorher 15)"
+ AwN(AWlf) = "Inanspruchnahme an Samstagen (01102) 7-14 Spr."
  sql(AWlf) = "SELECT e.Pat_ID AS pat_id,gesname(e.pat_id) Name, LEFT(DATE_FORMAT(e.ZeitPunkt,'%a, %d.%m.%y %H:%i'),20) AS Datum, LEFT(e.Art,5) AS art,e.Inhalt AS inhalt " & vbCrLf & _
              "FROM `eintraege` e LEFT JOIN aktfv USING (fid) " & vbCrLf & _
              "LEFT JOIN `leistungen` l ON l.pat_id = e.pat_id AND leistung = '01102' AND DATE(l.zeitpunkt) = DATE(e.zeitpunkt) " & vbCrLf & _
@@ -4777,7 +4786,7 @@ sql(AWlf) = "ü"
 ' AWlf = AWlf + 1
  
  ' 117
- AwN(AWlf) = "Fehlende 01740 für Beratung zur Früherkennung des kolorektalen Carcinoms nach Einträgen ab 50./55. Lebensjahr (vorher 32)"
+ AwN(AWlf) = "Fehlende 01740 für Beratung zur Früherkennung des kolorektalen Carcinoms nach Einträgen ab 50./55. Lebensjahr"
 #If ganzalt Then
  sql(AWlf) = _
  "SELECT * FROM " & vbCrLf & _
@@ -4911,7 +4920,7 @@ sql(AWlf) = _
 #End If
 
  ' 118
- AwN(AWlf) = "Fehlende Ziffer 32022 (Ausnahmeziffer Labor) (lauto) (vorher 38)"
+ AwN(AWlf) = "Fehlende Ziffer 32022 (Ausnahmeziffer Labor) (lauto)"
 sql(AWlf) = _
 "SELECT f.pat_id PID, gesname(f.pat_id) Name, GROUP_CONCAT(vorh.leistung) Laborleistung, '32022 dazu' LEIFEHLER, DATE(min(vorh.zeitpunkt)) LEIDAT, f.LANRID " & vbCrLf & _
 "FROM aktfvs f " & vbCrLf & _
@@ -4936,7 +4945,7 @@ sql(AWlf) = _
  AWlf = AWlf + 1
 
 ' 119
- AwN(AWlf) = "Fehlende Ausschlußziffer Antikoagulation 32015: (lauto) (vorher 55)"
+ AwN(AWlf) = "Fehlende Ausschlußziffer Antikoagulation 32015: (lauto)"
 ' sql(AWlf) = "SELECT pat_id PID, Name,DATE(" & qtAnf(FristS) & ") LEIDAT, '32015 dazu' LEIFEHLER, icd, medanfang, datum, LANRID FROM (" & vbCrLf & _
              " SELECT f.pat_id, gesnameg(f.pat_id) Name, SUM(lzahl) Zahl, d.icd, mp.medanfang, CAST(mp.datum As Date) Datum, f.LANRID " & vbCrLf & _
              " FROM aktfvs f " & vbCrLf & _
@@ -4969,7 +4978,7 @@ sql(AWlf) = _
 
 ' 120
 ' ktag fehlerhaft
-AwN(AWlf) = "Fehlende Leistung für cerebrale Doppler/Duplex (33060) (vorher 39)"
+AwN(AWlf) = "Fehlende Leistung für cerebrale Doppler/Duplex (33060)"
 sql(AWlf) = _
 "SELECT f.pat_id PID, gesname(f.pat_id) PName, DATE(e.zeitpunkt) eZP" & vbCrLf & _
 ", COALESCE((SELECT SUM(lzahl) FROM leistungen WHERE pat_id=f.pat_id AND DATE(zeitpunkt)=DATE(e.ZeitPunkt) AND leistung='33060'),0) `cwzl(33060)`" & vbCrLf & _
@@ -5008,7 +5017,7 @@ sql(AWlf) = _
 
 ' 121
 ' ktag fehlerhaft
-AwN(AWlf) = "Fehlende Leistung für Extremitäten-Doppler/Duplex (33061) (vorher 40)"
+AwN(AWlf) = "Fehlende Leistung für Extremitäten-Doppler/Duplex (33061)"
 sql(AWlf) = _
 "SELECT f.pat_id PID, gesname(f.pat_id) PName, DATE(e.zeitpunkt) eZP" & vbCrLf & _
 ", COALESCE((SELECT SUM(lzahl) FROM leistungen WHERE pat_id=f.pat_id AND DATE(zeitpunkt)=DATE(e.ZeitPunkt) AND leistung='33061'),0) `cwzl(33061)`" & vbCrLf & _
@@ -5055,7 +5064,7 @@ sql(AWlf) = _
 
 ' 122
 ' ktag fehlerhaft
-AwN(AWlf) = "Doppelte Leistung für arterielle Doppler/Duplex (33061) (vorher 41)"
+AwN(AWlf) = "Doppelte Leistung für arterielle Doppler/Duplex (33061)"
 sql(AWlf) = _
 "SELECT COALESCE(SUM(l.lzahl),0) zahl, f.pat_id, DATE(l.zeitpunkt) zp " & vbCrLf & _
 "FROM aktfvs f " & vbCrLf & _
@@ -5072,7 +5081,7 @@ sql(AWlf) = _
 ' 123
 ' ktag fehlerhaft
 ' imponieren
-AwN(AWlf) = "Fehlende Leistung für Nierenarterien-/Mesenterialgefäß-Doppler/Duplex: (33042) (vorher 42)"
+AwN(AWlf) = "Fehlende Leistung für Nierenarterien-/Mesenterialgefäß-Doppler/Duplex: (33042)"
 sql(AWlf) = _
 "SELECT f.pat_id PID, gesname(f.pat_id) PName, DATE(e.zeitpunkt) eZP" & vbCrLf & _
 ", COALESCE((SELECT SUM(lzahl) FROM leistungen WHERE pat_id=f.pat_id AND DATE(zeitpunkt)=DATE(e.ZeitPunkt) AND leistung IN ('33042','33042A')),0) `sonozl(33042/A)`" & vbCrLf & _
@@ -5112,7 +5121,7 @@ sql(AWlf) = _
 
 ' 124
 ' ktag fehlerhaft
-AwN(AWlf) = "Fehlende Leistung für Schilddrüsensono: (33012) (vorher 43)"
+AwN(AWlf) = "Fehlende Leistung für Schilddrüsensono: (33012)"
 sql(AWlf) = _
 "SELECT f.pat_id PID, gesname(f.pat_id) PName, DATE(e.zeitpunkt) eZP" & vbCrLf & _
 ", COALESCE((SELECT SUM(lzahl) FROM leistungen WHERE pat_id=f.pat_id AND DATE(zeitpunkt)=DATE(e.ZeitPunkt) AND leistung='33012'),0) `sdl(33012)`" & vbCrLf & _
@@ -5143,7 +5152,7 @@ sql(AWlf) = _
 
 ' 125
 ' ktag fehlerhaft
-AwN(AWlf) = "Fehlende Leistung für Abdomensono: (33042, 33042A) (vorher 44)"
+AwN(AWlf) = "Fehlende Leistung für Abdomensono: (33042, 33042A)"
 sql(AWlf) = _
 "SELECT f.pat_id PID, gesname(f.pat_id) PName, DATE(e.zeitpunkt) eZP" & vbCrLf & _
 ", COALESCE((SELECT SUM(lzahl) FROM leistungen WHERE pat_id=f.pat_id AND DATE(zeitpunkt)=DATE(e.ZeitPunkt) AND leistung IN ('33042','33042A')),0) `sonozl(33042/A)`" & vbCrLf & _
@@ -5170,7 +5179,7 @@ sql(AWlf) = _
  AWlf = AWlf + 1
 
 ' 126
- AwN(AWlf) = "Mehr als 2 Leistungen 33042/33042A im Behandlungsfall (vorher 115)"
+ AwN(AWlf) = "Mehr als 2 Leistungen 33042/33042A im Behandlungsfall"
  sql(AWlf) = vbCrLf & _
 "SELECT * FROM (SELECT " & vbCrLf & _
 "COALESCE((SELECT SUM(lzahl) FROM leistungen l WHERE pat_id=f.pat_id AND l.leistung IN ('33042','33042A') AND l.zeitpunkt BETWEEN " & lQAnfuEnd(FristS) & "),0) Aktzahl, " & vbCrLf & _
@@ -5185,7 +5194,7 @@ sql(AWlf) = _
 ' zum 31.3.18 gestrichen: 99300
 ' 127
 ' ktag fehlerhaft
- AwN(AWlf) = "Mögliche Kandidaten für Atemnotpauschale (J44.[018][01] plus J96.1[019] (vorher 86)"
+ AwN(AWlf) = "Mögliche Kandidaten für Atemnotpauschale (J44.[018][01] plus J96.1[019]"
  sql(AWlf) = "SELECT f.pat_id,gesname(f.pat_id) Name, patAlter(f.pat_id) PAlter " & vbCrLf & _
        ",IF((SELECT MAX(art) FROM eintraege WHERE pat_id = v.pat_id AND (art='tk'OR(art='tb'AND ersteller='tk')))IS NULL,'',(SELECT CONCAT(LPAD(CAST(COUNT(art) AS char),4,' '),DATE_FORMAT(MAX(zeitpunkt),'(-%d.%m.%y)')) FROM eintraege WHERE pat_id = v.pat_id AND (art = 'tk'OR(art='tb'AND ersteller='tk')))) tk " & vbCrLf & _
        ",IF((SELECT MAX(art) FROM eintraege WHERE pat_id = v.pat_id AND (art='gs'OR(art='tb'AND ersteller='gs')))IS NULL,'',(SELECT CONCAT(LPAD(CAST(COUNT(art) AS char),4,' '),DATE_FORMAT(MAX(zeitpunkt),'(-%d.%m.%y)')) FROM eintraege WHERE pat_id = v.pat_id AND (art = 'gs'OR(art='tb'AND ersteller='gs')))) gs " & vbCrLf & _
@@ -5206,7 +5215,7 @@ sql(AWlf) = _
 #End If
  
 ' 127
-AwN(AWlf) = "In 33042A umzuwandelnde 033042 (vorher 86)"
+AwN(AWlf) = "In 33042A umzuwandelnde 033042"
 sql(AWlf) = vbCrLf & _
 "SELECT f.Pat_id, gesname(f.pat_id) PName,l1.zeitpunkt Zeit_01748,l2.zeitpunkt Zeit_33042" & vbCrLf & _
 "FROM aktfvs f" & vbCrLf & _
@@ -5219,7 +5228,7 @@ sql(AWlf) = vbCrLf & _
 
 ' 128
 ' ktag fehlerhaft
-AwN(AWlf) = "Fehlende Leistung für Venen-Doppler/Duplex (33076 Kompressionssono / 33061 cw-Doppler) (vorher 45)"
+AwN(AWlf) = "Fehlende Leistung für Venen-Doppler/Duplex (33076 Kompressionssono / 33061 cw-Doppler)"
 sql(AWlf) = _
 "SELECT f.pat_id PID, gesname(f.pat_id) PName, DATE(e.zeitpunkt) eZP" & vbCrLf & _
 ", COALESCE((SELECT SUM(lzahl) FROM leistungen WHERE pat_id=f.pat_id AND DATE(zeitpunkt)=DATE(e.ZeitPunkt) AND leistung='33061'),0) `cwzl(33061)`" & vbCrLf & _
@@ -5256,7 +5265,7 @@ sql(AWlf) = _
 
 ' 129
 ' ktag fehlerhaft
-AwN(AWlf) = "Potentiell fehlende Leistung für sonstigen Doppler/Duplex (33076) (vorher 46)"
+AwN(AWlf) = "Potentiell fehlende Leistung für sonstigen Doppler/Duplex (33076)"
 sql(AWlf) = _
 "SELECT f.pat_id PID, gesname(f.pat_id) PName, DATE(e.zeitpunkt) eZP" & vbCrLf & _
 ", COALESCE((SELECT SUM(lzahl) FROM leistungen WHERE pat_id=f.pat_id AND DATE(zeitpunkt)=DATE(e.ZeitPunkt) AND leistung='33061'),0) `cwzl(33061)`" & vbCrLf & _
@@ -5298,7 +5307,7 @@ sql(AWlf) = _
 
 ' Gesundheitsuntersuchung: 01732 Glucose Cholesterin, Urin, Blutdruck ab 36.LJ mit uns als HA
 ' 130
-AwN(AWlf) = "Gesundheitsuntersuchung 01732 (lauto) (vorher 50)"
+AwN(AWlf) = "Gesundheitsuntersuchung 01732 (lauto)"
 sql(AWlf) = "SELECT n.Pat_id PID, gesname(n.pat_id) Name, patAlter(n.pat_id) PAlter, DATE(gluc.zeitpunkt) LEIDAT, '01732 dazu' LEIFEHLER, f.LANRID " & vbCrLf & _
 " FROM `aktfvs` f " & vbCrLf & _
 " LEFT JOIN `namen` n ON f.pat_id = n.pat_id " & vbCrLf & _
@@ -5316,7 +5325,7 @@ sql(AWlf) = "SELECT n.Pat_id PID, gesname(n.pat_id) Name, patAlter(n.pat_id) PAl
  AWlf = AWlf + 1
  
 ' 131
-AwN(AWlf) = "Potentiell undokumentierte Op-Vorbereitung 31011, 31012, 31013 (vorher 56)"
+AwN(AWlf) = "Potentiell undokumentierte Op-Vorbereitung 31011, 31012, 31013"
 ' Kriterien eintraege ei koordinieren mit Liste 120 Urin
  sql(AWlf) = vbCrLf & _
 "SELECT f.pat_id, gesname(f.pat_id),ei.zeitpunkt,ei.art,ei.inhalt, b.zeitpunkt, b.quelldatum, b.dokaend, b.name,ea.zeitpunkt,ea.inhalt" & vbCrLf & _
@@ -5334,7 +5343,7 @@ AWlf = AWlf + 1
  
  
 ' 132
- AwN(AWlf) = "Fehlende Leistung 03360 für Barthel- und TUG-Test (lauto) (vorher 73)"
+ AwN(AWlf) = "Fehlende Leistung 03360 für Barthel- und TUG-Test (lauto)"
  sql(AWlf) = "SELECT * FROM ( " & vbCrLf & _
  "SELECT v.pat_id PID, COALESCE(SUM(lz.lzahl),0)*COUNT(DISTINCT lz.id)/COUNT(lz.id) LZ, GROUP_CONCAT(DISTINCT lz.zeitpunkt) lzzp, gesname(v.pat_id) Name, patalter(v.pat_id) PAlter " & vbCrLf & _
             ",(SELECT COUNT(art) FROM eintraege WHERE pat_id = v.pat_id AND (art = 'tk'OR(art='tb'AND ersteller='tk'))) tk " & vbCrLf & _
@@ -5367,7 +5376,7 @@ AWlf = AWlf + 1
 '            "LEFT JOIN leistungen lz ON v.pat_id = lz.pat_id AND lz.leistung = '03360' AND YEAR(lz.zeitpunkt)=YEAR(SUBDATE(NOW(),INTERVAL " & FristS & " DAY)) "
 
 ' 133
- AwN(AWlf) = "Leistung 03360 für Barthel- und TUG-Test bei Patienten ohne Pflegediagnose (vorher 74)"
+ AwN(AWlf) = "Leistung 03360 für Barthel- und TUG-Test bei Patienten ohne Pflegediagnose"
  sql(AWlf) = "SELECT v.pat_id, gesname(v.pat_id) Name, patalter(v.pat_id) PAlter " & vbCrLf & _
             ",(SELECT COUNT(art) FROM eintraege WHERE pat_id = v.pat_id AND (art = 'tk'OR(art='tb'AND ersteller='tk'))) tk " & vbCrLf & _
             ",(SELECT COUNT(art) FROM eintraege WHERE pat_id = v.pat_id AND (art = 'gs'OR(art='tb'AND ersteller='gs'))) gs " & vbCrLf & _
@@ -5419,7 +5428,7 @@ AWlf = AWlf + 1
 ' AWlf = AWlf + 1
 '
  ' 134
- AwN(AWlf) = "Fehlende 03362 (hausärztlich-geriatrischer Betreuungskomplex) (lauto) (vorher 75)"
+ AwN(AWlf) = "Fehlende 03362 (hausärztlich-geriatrischer Betreuungskomplex) (lauto)"
  sql(AWlf) = "SELECT v.pat_id PID, gesname(v.pat_id) Name, patalter(v.pat_id) PAlter " & vbCrLf & _
             ",(SELECT COUNT(art) FROM eintraege WHERE pat_id = v.pat_id AND (art = 'tk'OR(art='tb'AND ersteller='tk'))) tk " & vbCrLf & _
             ",(SELECT COUNT(art) FROM eintraege WHERE pat_id = v.pat_id AND (art = 'gs'OR(art='tb'AND ersteller='gs'))) gs " & vbCrLf & _
@@ -5459,7 +5468,7 @@ sql(AWlf) = sql(AWlf) & _
  AWlf = AWlf + 1
  
 ' 135
- AwN(AWlf) = "möglicherweise unberechtigte 03362 (vorher 76)"
+ AwN(AWlf) = "möglicherweise unberechtigte 03362"
  sql(AWlf) = "SELECT v.pat_id, gesname(v.pat_id) Name, patalter(v.pat_id) PAlter " & vbCrLf & _
             ",(SELECT COUNT(art) FROM eintraege WHERE pat_id = v.pat_id AND (art = 'tk'OR(art='tb'AND ersteller='tk'))) tk " & vbCrLf & _
             ",(SELECT COUNT(art) FROM eintraege WHERE pat_id = v.pat_id AND (art = 'gs'OR(art='tb'AND ersteller='gs'))) gs " & vbCrLf & _
@@ -5502,7 +5511,7 @@ sql(AWlf) = sql(AWlf) & _
  AWlf = AWlf + 1
 
 ' 136
- AwN(AWlf) = "Doppelte 03362 (vorher 77)"
+ AwN(AWlf) = "Doppelte 03362"
  sql(AWlf) = "SELECT * FROM (" & vbCrLf & _
 "SELECT COALESCE(SUM(l.lzahl),0) zahl, f.pat_id, gesname(f.pat_id) Gesname, patalter(f.pat_id) PAlter, l.zeitpunkt, l.leistung " & vbCrLf & _
 "FROM aktfvs f " & vbCrLf & _
@@ -5516,7 +5525,7 @@ sql(AWlf) = sql(AWlf) & _
  
 ' 137
 ' ktag fehlerhaft
- AwN(AWlf) = "03362 gleichzeitg mit 03000, 03001, 03002, 03003, 03004, 03005 (vorher 78)"
+ AwN(AWlf) = "03362 gleichzeitg mit 03000, 03001, 03002, 03003, 03004, 03005"
  sql(AWlf) = "SELECT f.pat_id, gesname(f.pat_id) Gesname, DATE(l.zeitpunkt), l.leistung, l1.leistung " & vbCrLf & _
             ",f.koz KZahl, czp Kontakte,f.art Kontaktart " & vbCrLf & _
             "FROM aktfkvs f " & vbCrLf & _
@@ -5529,7 +5538,7 @@ sql(AWlf) = sql(AWlf) & _
  AWlf = AWlf + 1
 
 ' 138
-AwN(AWlf) = "03360 öfter als 2 x pro Krankheitsfall (vorher 79)"
+AwN(AWlf) = "03360 öfter als 2 x pro Krankheitsfall"
  sql(AWlf) = "SELECT * FROM ( " & vbCrLf & _
 "SELECT COALESCE(SUM(l.lzahl),0) zahl, f.pat_id, gesname(f.pat_id) Gesname, patalter(f.pat_id) PAlter, l.zeitpunkt, l.leistung " & vbCrLf & _
 "FROM aktfvs f " & vbCrLf & _
@@ -5546,7 +5555,7 @@ AWlf = AWlf + 1
 
 ' 139
 ' ktag fehlerhaft
-AwN(AWlf) = "Fehlende 32150 für Toponintest (lauto) (vorher 84)"
+AwN(AWlf) = "Fehlende 32150 für Toponintest (lauto)"
 sql(AWlf) = "" & vbCrLf & _
 "SELECT f.pat_id PID, gesname(f.pat_id),DATE(e.zeitpunkt) LEIDAT, '32150 dazu' LEIFEHLER, e.Art, e.Inhalt, f.LANRID " & vbCrLf & _
 "FROM aktfvs f " & vbCrLf & _
@@ -5576,7 +5585,7 @@ sql = _
 
 ' 140
 ' ktag fehlerhaft
- AwN(AWlf) = "Fehlende Leistungsziffern 01747 und 01748 Screening auf Bauchaortenaneurysmen (vorher 108)"
+ AwN(AWlf) = "Fehlende Leistungsziffern 01747 und 01748 Screening auf Bauchaortenaneurysmen"
  sql(AWlf) = vbCrLf & _
  "SELECT f.pat_id, gesname(f.pat_id) Name, DATE(e.zeitpunkt) Zp, n.gebdat, l1.leistung L1,l2.leistung L2 " & vbCrLf & _
  "FROM aktfvs f " & vbCrLf & _
@@ -5597,7 +5606,7 @@ sql = _
  AWlf = AWlf + 1
  
 ' 141
- AwN(AWlf) = "Mehr als 1 Leistung 01747 im Leben (vorher 118)"
+ AwN(AWlf) = "Mehr als 1 Leistung 01747 im Leben"
  sql(AWlf) = vbCrLf & _
 "SELECT * FROM (SELECT " & vbCrLf & _
 "COALESCE((SELECT SUM(lzahl) FROM leistungen WHERE pat_id=f.pat_id AND leistung='01747'),0) Geszahl, " & vbCrLf & _
@@ -5610,7 +5619,7 @@ sql = _
  AWlf = AWlf + 1
  
 ' 142
- AwN(AWlf) = "Mehr als 1 Leistung 01748 im Leben, darunter >0 aktuell (vorher 119)"
+ AwN(AWlf) = "Mehr als 1 Leistung 01748 im Leben, darunter >0 aktuell"
  sql(AWlf) = vbCrLf & _
 "SELECT " & vbCrLf & _
 "COALESCE((SELECT SUM(lzahl) FROM leistungen l WHERE pat_id=f.pat_id AND l.leistung='01748'),0) Geszahl, " & vbCrLf & _
@@ -5628,7 +5637,7 @@ sql = _
 '     CASE "LEIFEHLER": leida = True
 '     CASE "LEIDAT": ldda = True
 '     CASE "PID": pda = True
- AwN(AWlf) = "Fehlende 32033 oder Op-Vorb. 31010-31013 für Urinuntersuchungen (urin): (lauto) (vorher 120)"
+ AwN(AWlf) = "Fehlende 32033 oder Op-Vorb. 31010-31013 für Urinuntersuchungen (urin): (lauto)"
  ' Kriterien eintraege ei koordinieren mit Liste 56 Op-Vorbereitung
  'sql(AWlf) = "SELECT * FROM (SELECT f.pat_id, gesnameg(f.pat_id) Name, DATE(e.zeitpunit) Tag, COUNT(art) `Urin-Zahl`, SUM(IF(LAnzl='',1,LAnzl)) `Leistungs-Zahl` FROM aktfvs f LEFT JOIN namen n ON f.pat_id = n.pat_id LEFT JOIN eintraege e ON f.pat_id = e.pat_id AND DATE(e.zeitpunkt) BETWEEN " & lqanfuend(FristS) & " AND art IN ('urin')  LEFT JOIN leistungen l ON f.fid = l.fid AND leistung IN ('32033','31010','31011','31012','31013') AND DATE(l.zeitpunkt)=DATE(e.zeitpunkt) WHERE NOT ISNULL(art) GROUP BY f.pat_id, DATE(e.zeitpunkt)) i WHERE `Urin-Zahl`<>`Leistungs-Zahl`"
  sql(AWlf) = vbCrLf & _
@@ -5650,7 +5659,7 @@ AWlf = AWlf + 1
 
 ' 144
 ' ktag fehlerhaft
-AwN(AWlf) = "Möglicherweise vergessene 03230 (vorher 135)"
+AwN(AWlf) = "Möglicherweise vergessene 03230"
 sql(AWlf) = "" & _
 "SELECT IF(zeitpunkt=minzp,pat_id,'') PID, gesname(pat_id), DATE_FORMAT(zeitpunkt,'%d.%m.%y %k:%i') ZeitP, DATE_FORMAT(minzp,'%k:%i') MinZP, DATE_FORMAT(maxzp,'%k:%i') MaxZP, Minuten, Art,Inhalt FROM (" & vbCrLf & _
 "SELECT ROUND((to_seconds(maxzp) - to_seconds(minzp))/60) Minuten, i.* FROM (" & vbCrLf & _
@@ -5672,9 +5681,9 @@ sql(AWlf) = "" & _
  maxs(AWlf) = 60
  AWlf = AWlf + 1
 
-' 145
+' 832
 ' ktag fehlerhaft
-AwN(AWlf) = "PCO-Syndrom für 03230 (vorher 136)"
+AwN(AWlf) = "PCO-Syndrom für 03230"
 sql(AWlf) = "" & _
 "SELECT f.pat_id, gesname(f.pat_id), DATE(ez.zeitpunkt) FROM aktfv f " & vbCrLf & _
 "LEFT JOIN diagnosen d ON d.Pat_id=f.pat_id AND d.diagdatum > qanf()-100 AND d.icd = 'E28.2'" & vbCrLf & _
@@ -5687,7 +5696,7 @@ sql(AWlf) = "" & _
  maxs(AWlf) = 60
  AWlf = AWlf + 1
  
-' 146, neuView
+' 833, neuView
 AwN(AWlf) = "Fehlende Leistungen für 24-h-RR und Lufu"
 sql(AWlf) = "" & _
 "SELECT  f.pat_id, gesname(f.pat_id) PName, IF(e.Inhalt RLIKE '24 h','03324','03330') Soll_Leistung, e.zeitpunkt, e.art, e.inhalt" & vbCrLf & _
@@ -5700,7 +5709,7 @@ sql(AWlf) = "" & _
  maxs(AWlf) = 60
  AWlf = AWlf + 1
  
-' 791
+' 834
 Dim ob_tkeinschr$, ob_tkversandt$
 ob_tkeinschr = "'tk.*(Modul|Programm)'"
 ob_tkversandt = "'tk.*(geschickt|gefaxt)'"
@@ -5718,8 +5727,8 @@ sql(AWlf) = "" & _
  maxs(AWlf) = 60
  AWlf = AWlf + 1
  
-' 881
-AwN(AWlf) = "Zu viele 01647 oder 01648"
+' 835
+AwN(AWlf) = "Zu viele 01647 oder 01648, danach 901"
 sql(AWlf) = _
 "SELECT SUM(IF(leistung=01647,lzahl,0))`01647-Zahl`,SUM(IF(leistung=01648,lzahl,0))`01648-Zahl`," & vbCrLf & _
 " GROUP_CONCAT(zeitpunkt SEPARATOR ',  ')Zeitpunkte," & vbCrLf & _
@@ -5735,7 +5744,7 @@ sql(AWlf) = _
  AWlf = AWlf + 1
 
  
-' 147, neuView
+' 900, neuView
 AWlf = 900
 AwN(AWlf) = "Impfungen"
 sql(AWlf) = "ü"
@@ -5920,7 +5929,7 @@ sql(AWlf) = "ü"
 ' #Const mitcovid = 1
 #If mitcovid Then
 ' 148
- AwN(AWlf) = "Falsche Zahl Genesenenzertifikatabrechnungen 88371 (lauto) (vorher 36)"
+ AwN(AWlf) = "Falsche Zahl Genesenenzertifikatabrechnungen 88371 (lauto)"
 ' sql(AWlf) = _
 "  SELECT f.pat_id, gesname(f.pat_id), " & vbCrLf & _
 "  (SELECT SUM(lzahl) FROM leistungen WHERE pat_id=f.pat_id AND zeitpunkt BETWEEN qanf() AND qend() AND leistung LIKE '030%') zahl, " & vbCrLf & _
@@ -5946,7 +5955,7 @@ AWlf = AWlf + 1
 ' 901 (148)
 #End If
 ' ktag fehlerhaft
- AwN(AWlf) = "Fehlende Leistungen für Impfungen (vac) außer Hepatitis (vorher 57)"
+ AwN(AWlf) = "Fehlende Leistungen für Impfungen (vac) außer Hepatitis"
 ' sql(AWlf) = "SELECT f.pat_id, gesnameg(f.pat_id) Name, e.Tag, COUNT(art) `Impfungs-Zahl`, SUM(lzahl) `Leistungs-Zahl`, inhalt, MAX(leistung) " & vbCrLf & _
              "FROM aktfvs f " & vbCrLf & _
              "LEFT JOIN namen n ON f.pat_id = n.pat_id " & vbCrLf & _
@@ -6025,7 +6034,7 @@ sql(AWlf) = sql(AWlf) & _
 #If mitcovid Then
 ' 151
 ' ktag fehlerhaft
- AwN(AWlf) = "Covid-Impfberatungen (Makro cib) ohne Impfung mit Zahl d.Leistungen 88322 <>1 (lauto) (vorher 133)"
+ AwN(AWlf) = "Covid-Impfberatungen (Makro cib) ohne Impfung mit Zahl d.Leistungen 88322 <>1 (lauto)"
  sql(AWlf) = _
  "SELECT i.*, IF(88322_Zahl=0,'88322 dazu',CONCAT(88322_Zahl-1,' 83322 weg')) LEIFEHLER FROM (" & vbCrLf & _
  "SELECT f.pat_id PID, gesname(f.pat_id) Name, e.Zeitpunkt LEIDAT, e.art, e.Inhalt EName " & vbCrLf & _
@@ -6043,7 +6052,7 @@ sql(AWlf) = sql(AWlf) & _
 
 ' 152
 ' ktag fehlerhaft
- AwN(AWlf) = "Covid-Testzeugnisse mit Zahl d.Leistungen 88320 <>1 (lauto) (vorher 134)"
+ AwN(AWlf) = "Covid-Testzeugnisse mit Zahl d.Leistungen 88320 <>1 (lauto)"
  sql(AWlf) = _
  "SELECT i.*, IF(88320_Zahl=0,'88320 dazu',CONCAT(88320_Zahl-1,' 83320 weg')) LEIFEHLER FROM (" & vbCrLf & _
  "SELECT f.pat_id PID, gesname(f.pat_id) Name, b.Zeitpunkt LEIDAT, b.name DName " & vbCrLf & _
@@ -6061,7 +6070,7 @@ sql(AWlf) = sql(AWlf) & _
  AWlf = AWlf + 1
  
 ' 153
-AwN(AWlf) = "Zu ungenaue Covid-Impf-Abrechnung (lauto) (vorher 137)"
+AwN(AWlf) = "Zu ungenaue Covid-Impf-Abrechnung (lauto)"
 ' AND COALESCE(Dggel,0)=0
 sql(AWlf) = "" & _
 "SELECT i.pat_id PID, gesname(i.pat_id) PName, DATE(i.zeitpunkt) LEIDAT " & vbCrLf & _
@@ -6123,7 +6132,7 @@ sql(AWlf) = sql(AWlf) & _
  AWlf = AWlf + 1
  
  ' 154
- AwN(AWlf) = "Covidimpfzertifikatabrechnungsauffälligkeiten (lauto) (vorher 138)"
+ AwN(AWlf) = "Covidimpfzertifikatabrechnungsauffälligkeiten (lauto)"
  sql(AWlf) = "" & _
 "SELECT PID,gesname(pid) PName,ZP,COALESCE(impfdd,'') Impfdatum,COALESCE(slei,'') `Soll-Leistung`,COALESCE(srang,'') `Soll-Rang`,COALESCE(vaczl,'') vaczl,COALESCE(vorfzl,'') vorfzl,COALESCE(ilei,'') ilei,COALESCE(lzahl,'') lzahl,COALESCE(irang,'') irang,LANRID,LEIDAT " & vbCrLf & _
 ",CONCAT(LEIFEHLER,IF(isnull(slei),CONCAT(' (',COUNT(0),' mal)'),'')) LEIFEHLER " & vbCrLf & _
@@ -6189,7 +6198,7 @@ sql(AWlf) = sql(AWlf) & _
  AWlf = AWlf + 1
  
 ' 155
-AwN(AWlf) = "Möglicherweise unerlaubt abgerechnete Impfberatungen (88322) (vorher 140)"
+AwN(AWlf) = "Möglicherweise unerlaubt abgerechnete Impfberatungen (88322)"
  sql(AWlf) = "" & _
  "SELECT l.pat_id,gesname(l.pat_id) PName, l.Zeitpunkt,l.Leistung, n.ZeitPunkt, n.Leistung " & vbCrLf & _
  "FROM leistungen l " & vbCrLf & _
@@ -6206,7 +6215,7 @@ AwN(AWlf) = "Möglicherweise unerlaubt abgerechnete Impfberatungen (88322) (vorhe
 #Else
 ' 903 (150)
 #End If
-AwN(AWlf) = "Unbekannte Impfstoffe (vorher 141)"
+AwN(AWlf) = "Unbekannte Impfstoffe"
 sql(AWlf) = "" & _
 "SELECT pat_id, gesname(pat_id) PName, Zeitpunkt, Art, Inhalt FROM eintraege WHERE art='vac' AND impfart(inhalt)=999 AND NOT inhalt rlike 'tetagam|Bexsero|Nimenrix|Thyim';"
  mins(AWlf) = 10
@@ -6215,7 +6224,7 @@ sql(AWlf) = "" & _
  
 #If mitcovid Then
 ' 157
-AwN(AWlf) = "Abrechnung Genesenenzertifikate (lauto) (vorher 143)"
+AwN(AWlf) = "Abrechnung Genesenenzertifikate (lauto)"
 sql(AWlf) = "" & _
 "  SELECT f.pat_id PID, gesname(f.pat_id) PName,  DATE(fo.zeitpunkt) LEIDAT, '88371 dazu' LEIFEHLER, f.lanrid LANRID " & vbCrLf & _
 "  FROM aktfv f " & vbCrLf & _
@@ -6228,7 +6237,7 @@ sql(AWlf) = "" & _
  AWlf = AWlf + 1
  
 ' 158
-AwN(AWlf) = "Covid-Impfungen ohne Chargenangabe (vorher 149)"
+AwN(AWlf) = "Covid-Impfungen ohne Chargenangabe"
 sql(AWlf) = "" & _
 "SELECT f.pat_id, gesname(f.pat_id) PName, l.Zeitpunkt, l.Leistung, l.Charge " & vbCrLf & _
 "FROM aktfv f " & vbCrLf & _
@@ -6248,9 +6257,9 @@ sql(AWlf) = "" & _
 #If mitcovid Then
 ' 159
 #Else
-' 151
+' 904 (151)
 #End If
-AwN(AWlf) = "Covid-Impfabrechnung ohne Angabe der Ordnungsnummer der Impfung zur Leistung"
+AwN(AWlf) = "Covid-Impfabrechnung ohne Angabe der Ordnungsnummer der Impfung zur Leistung, danach 1001"
 sql(AWlf) = "" & vbCrLf & _
 "SELECT f.pat_id, gesname(f.pat_id) PName, Zeitpunkt, leistung, lfbegr " & vbCrLf & _
 "FROM aktfv f LEFT JOIN leistungen l USING (pat_id) " & vbCrLf & _
@@ -6262,24 +6271,14 @@ maxs(AWlf) = 60
 AWlf = AWlf + 1
 
 
-
-#If mitcovid Then
-' 160
-#Else
-' 152
-#End If
+' 1000
 AWlf = 1000
 AwN(AWlf) = "DAK-Modul"
 sql(AWlf) = "ü"
  AWlf = AWlf + 1
  
-
-#If mitcovid Then
-' 161
-#Else
-' 153
-#End If
-AwN(AWlf) = "Keinem Patienten zugeordnete DAK-Faxe /KKH-Faxe(bitte im MySQL-Query-Browser zuordnen über 'SELECT pid,docname,eind FROM faxeinp.outa WHERE eind=...') (vorher 89)"
+' 1001 (161/153)
+AwN(AWlf) = "Keinem Patienten zugeordnete DAK-Faxe /KKH-Faxe(bitte im MySQL-Query-Browser zuordnen über 'SELECT pid,docname,eind FROM faxeinp.outa WHERE eind=...')"
 sql(AWlf) = "" & vbCrLf & _
 "SELECT eind, pid, docname FROM faxeinp.outa " & _
 "WHERE (docname LIKE '%6971042276004%' OR docname LIKE '%51180684684%') AND pid=0 " & _
@@ -6288,12 +6287,8 @@ sql(AWlf) = "" & vbCrLf & _
  maxs(AWlf) = 60
  AWlf = AWlf + 1
 
-#If mitcovid Then
-' 162
-#Else
-' 154
-#End If
-AwN(AWlf) = "Evtl. nicht angekommene oder fehlerhaft benannte DAK/KKH/HEK-Einverständnis-Faxe (nicht berücksichtigbar: Techniker Kk.) (vorher 90)"
+' 1002
+AwN(AWlf) = "Evtl. nicht angekommene oder fehlerhaft benannte DAK/KKH/HEK-Einverständnis-Faxe (nicht berücksichtigbar: Techniker Kk.)"
 ' 07433967297004 = neue Nr. DAK
 ' 051180684684 = KKH
 ' 040656961201 = HEK (Hanseatische Krankenkasse)
@@ -6319,12 +6314,8 @@ sql(AWlf) = "" & vbCrLf & _
  maxs(AWlf) = 60
  AWlf = AWlf + 1
 
-#If mitcovid Then
-' 163
-#Else
-' 155
-#End If
-AwN(AWlf) = "Evtl. fehlende DAK(/KKH/HEK/TK)-Makros (vorher 91)"
+' 1003
+AwN(AWlf) = "Evtl. fehlende DAK(/KKH/HEK/TK)-Makros"
 sql(AWlf) = "" & vbCrLf & _
 "SELECT docname, pid, n.pat_id, gesname(n.pat_id) Name, DATE_FORMAT(transe,'%d.%m.%Y') gefaxt " & vbCrLf & _
 ", wia(n.pat_id) iArzt " & vbCrLf & _
@@ -6363,11 +6354,8 @@ sql(AWlf) = "" & vbCrLf & _
 '") i"
 '#END IF
 
-#If mitcovid Then
-' 164 DAK-Module
-#Else
-' 156 DAK-Module
-#End If
+
+' 1004 DAK-Module
 'UPDATE eintraege FORCE INDEX (inhfull) SET art='dakluts' WHERE inhalt LIKE 'wie oft am tag%';
 'SELECT * from eintraege FORCE INDEX (inhfull) WHERE inhalt LIKE 'Bekommen Sie regelmäßig nach bestimmten Gehstrecken%';
 'UPDATE eintraege FORCE INDEX (inhfull) SET art='dakap' WHERE inhalt LIKE 'Bekommen Sie regelmäßig nach bestimmten Gehstrecken%';
@@ -6375,77 +6363,58 @@ sql(AWlf) = "" & vbCrLf & _
 'UPDATE eintraege FORCE INDEX (inhfull) SET art='daknp' WHERE inhalt LIKE 'Schweißtest: %';
  sql(AWlf) = LiesDatei(uVerz & "dakges.qbquery")
  sql(AWlf) = Mid$(sql(AWlf), InStr(1, sql(AWlf), "SELECT", vbTextCompare))
- AwN(AWlf) = "Fehler bei DAK-Modul: Synthese (vorher 123)"
+ AwN(AWlf) = "Fehler bei DAK-Modul: Synthese"
  mins(AWlf) = 10
  maxs(AWlf) = 80
  AWlf = AWlf + 1
  
-#If mitcovid Then
- ' 165 DAK Neuropathie zur Kontrolle
-#Else
- ' 157 DAK Neuropathie zur Kontrolle
-#End If
+
+' 1005 DAK Neuropathie zur Kontrolle
  sql(AWlf) = LiesDatei(uVerz & "daknp.qbquery")
  sql(AWlf) = Mid$(sql(AWlf), InStr(1, sql(AWlf), "SELECT", vbTextCompare))
- AwN(AWlf) = "DAK-Modul-Kontrolle Neuropathie (vorher 124)"
+ AwN(AWlf) = "DAK-Modul-Kontrolle Neuropathie"
  mins(AWlf) = 10
  maxs(AWlf) = 80
  AWlf = AWlf + 1
  
-#If mitcovid Then
- ' 166 DAK LUTS zur Kontrolle
-#Else
- ' 158 DAK LUTS zur Kontrolle
-#End If
+' 1006 DAK LUTS zur Kontrolle
  sql(AWlf) = LiesDatei(uVerz & "daklu.qbquery")
  sql(AWlf) = Mid$(sql(AWlf), InStr(1, sql(AWlf), "SELECT", vbTextCompare))
- AwN(AWlf) = "DAK-Modul-Kontrolle LUTS  (vorher 125)"
+ AwN(AWlf) = "DAK-Modul-Kontrolle LUTS"
  mins(AWlf) = 10
  maxs(AWlf) = 80
  AWlf = AWlf + 1
  
-#If mitcovid Then
- ' 167 DAK Angiopathie zur Kontrolle
-#Else
- ' 159 DAK Angiopathie zur Kontrolle
-#End If
+
+' 1007 DAK Angiopathie zur Kontrolle
  sql(AWlf) = LiesDatei(uVerz & "dakap.qbquery")
  sql(AWlf) = Mid$(sql(AWlf), InStr(sql(AWlf), "select"))
- AwN(AWlf) = "DAK-Modul-Kontrolle Angiopathie (vorher 126)"
+ AwN(AWlf) = "DAK-Modul-Kontrolle Angiopathie"
  mins(AWlf) = 10
  maxs(AWlf) = 80
  AWlf = AWlf + 1
  
-#If mitcovid Then
- ' 168 DAK Hepatopathie zur Kontrolle
-#Else
- ' 160 DAK Hepatopathie zur Kontrolle
-#End If
+
+' 1008 DAK Hepatopathie zur Kontrolle
  sql(AWlf) = LiesDatei(uVerz & "dakfl.qbquery")
  sql(AWlf) = Mid$(sql(AWlf), InStr(sql(AWlf), "select"))
- AwN(AWlf) = "DAK-Modul-Kontrolle Hepatopathie (vorher 127)"
+ AwN(AWlf) = "DAK-Modul-Kontrolle Hepatopathie"
  mins(AWlf) = 10
  maxs(AWlf) = 80
  AWlf = AWlf + 1
  
-#If mitcovid Then
- ' 169 DAK Nephropathie zur Kontrolle
-#Else
- ' 161 DAK Nephropathie zur Kontrolle
-#End If
+
+' 1009 DAK Nephropathie zur Kontrolle
  sql(AWlf) = LiesDatei(uVerz & "dakne.qbquery")
  sql(AWlf) = Mid$(sql(AWlf), InStr(LCase$(sql(AWlf)), "select"))
- AwN(AWlf) = "DAK-Modul-Kontrolle Nephropathie (vorher 128)"
+ AwN(AWlf) = "DAK-Modul-Kontrolle Nephropathie"
  mins(AWlf) = 10
  maxs(AWlf) = 80
  AWlf = AWlf + 1
  
-#If mitcovid Then
-' 170
-#Else
-' 162
-#End If
- AwN(AWlf) = "TK-Modul-Einschreibungen (" & ob_tkeinschr & ") ohne Versandeintrag (" & ob_tkversandt & ") (vorher 152)"
+
+' 1010
+ AwN(AWlf) = "TK-Modul-Einschreibungen (" & ob_tkeinschr & ") ohne Versandeintrag (" & ob_tkversandt & "), danach ENDE"
 sql(AWlf) = "" & _
 "SELECT f.pat_id, gesname(f.pat_id) PName, n.gebdat, LEFT(b.Name,80) BName, IF(b.quelldatum=18991230,'',DATE_FORMAT(b.quelldatum,'%d.%m.%y')) Quelldatum, DATE_FORMAT(b.Zeitpunkt,'%d.%m.%y') Zeitpunkt " & vbCrLf & _
 "FROM aktfv f " & vbCrLf & _

@@ -70,7 +70,7 @@ Public DQSQL$()
 #End If
 #Const debu = 0 ' noch in Importiert
 #If debu <> 0 Then
-       Public T0!, Takt!, Tvor!, dnr&
+       Public t0!, Takt!, Tvor!, dnr&
 #End If
 'Public Const wdLineStyleSingle% = 1
 'Public Const wdWindowStateMaximize% = 1
@@ -1532,8 +1532,8 @@ Function do_Form_Current_AnBog(frm As AnBog)
        Open Environ("allusersprofile") & "\Application Data\chron.txt" For Output As #313
        Print #313, Now() & " " & frm.anaRS!Nachname & ", " & frm.anaRS!Vorname
        dnr = 0
-       T0 = Timer
-       Takt = T0
+       t0 = Timer
+       Takt = t0
 #End If
  frm.obStumm = True
  KZahlNeu = 0
@@ -1551,7 +1551,7 @@ Function do_Form_Current_AnBog(frm As AnBog)
 #If debu <> 0 Then
        Tvor = Takt: Takt = Timer
        dnr = dnr + 1
-       Print #313, Format(Takt - Tvor, "0.00") & "      " & Format(Takt - T0, "0.00") & " (" & dnr & ", vor Markierfarbe)"
+       Print #313, Format(Takt - Tvor, "0.00") & "      " & Format(Takt - t0, "0.00") & " (" & dnr & ", vor Markierfarbe)"
 #End If
  For Each ctrl In frm.Controls
   If ctrl.BackColor = MarkierFarbe Then ctrl.BackColor = -2147483643
@@ -1559,7 +1559,7 @@ Function do_Form_Current_AnBog(frm As AnBog)
 #If debu <> 0 Then
        Tvor = Takt: Takt = Timer
        dnr = dnr + 1
-       Print #313, Format(Takt - Tvor, "0.00") & "      " & Format(Takt - T0, "0.00") & " (" & dnr & ", nach Markierfarbe)"
+       Print #313, Format(Takt - Tvor, "0.00") & "      " & Format(Takt - t0, "0.00") & " (" & dnr & ", nach Markierfarbe)"
 #End If
  On Error GoTo fehler
 ' dtbInit
@@ -1587,7 +1587,7 @@ Function do_Form_Current_AnBog(frm As AnBog)
 #If debu <> 0 Then
        Tvor = Takt: Takt = Timer
        dnr = dnr + 1
-       Print #313, Format(Takt - Tvor, "0.00") & "      " & Format(Takt - T0, "0.00") & " (" & dnr & ")"
+       Print #313, Format(Takt - Tvor, "0.00") & "      " & Format(Takt - t0, "0.00") & " (" & dnr & ")"
 #End If
  Set rsNa = Nothing
  myFrag rsNa, "SELECT * FROM `anamnesebogen` WHERE pat_id = " & Pat_ID
@@ -1600,7 +1600,7 @@ Function do_Form_Current_AnBog(frm As AnBog)
 #If debu <> 0 Then
        Tvor = Takt: Takt = Timer
        dnr = dnr + 1
-       Print #313, Format(Takt - Tvor, "0.00") & "      " & Format(Takt - T0, "0.00") & " (" & dnr & ", vor Diagnosen)"
+       Print #313, Format(Takt - Tvor, "0.00") & "      " & Format(Takt - t0, "0.00") & " (" & dnr & ", vor Diagnosen)"
 #End If
  Err.Clear
 ' tStr = Pat_id
@@ -1621,7 +1621,7 @@ Function do_Form_Current_AnBog(frm As AnBog)
 #If debu <> 0 Then
        Tvor = Takt: Takt = Timer
        dnr = dnr + 1
-       Print #313, Format(Takt - Tvor, "0.00") & "      " & Format(Takt - T0, "0.00") & " (" & dnr & ", in Diagnosen)"
+       Print #313, Format(Takt - Tvor, "0.00") & "      " & Format(Takt - t0, "0.00") & " (" & dnr & ", in Diagnosen)"
 #End If
    frm.vTextB(147) = zwiDiag
  End If
@@ -1629,7 +1629,7 @@ Function do_Form_Current_AnBog(frm As AnBog)
 #If debu <> 0 Then
        Tvor = Takt: Takt = Timer
        dnr = dnr + 1
-       Print #313, Format(Takt - Tvor, "0.00") & "      " & Format(Takt - T0, "0.00") & " (" & dnr & ", nach Diagnosen)"
+       Print #313, Format(Takt - Tvor, "0.00") & "      " & Format(Takt - t0, "0.00") & " (" & dnr & ", nach Diagnosen)"
 #End If
 ' IF (ISNULL(frm.anaRS!Ther1) OR frm.anaRS!Ther1 = vns) AND frm.anaRS!Diabetestyp <> "-" THEN
 '  frm.vTextB(166) = TherUmw(TherArt(Pat_id, -1))
@@ -1675,7 +1675,7 @@ Function do_Form_Current_AnBog(frm As AnBog)
 #If debu <> 0 Then
        Tvor = Takt: Takt = Timer
        dnr = dnr + 1
-       Print #313, Format(Takt - Tvor, "0.00") & "      " & Format(Takt - T0, "0.00") & " (" & dnr & ")"
+       Print #313, Format(Takt - Tvor, "0.00") & "      " & Format(Takt - t0, "0.00") & " (" & dnr & ")"
 #End If
  HANrBf(1) = wHAErg ' frm.vTextB(183) ' HANr <- Ersatz schaffen
  HANrBf(2) = frm.vTextB(175) ' HANr2
@@ -1688,7 +1688,7 @@ Function do_Form_Current_AnBog(frm As AnBog)
 #If debu <> 0 Then
        Tvor = Takt: Takt = Timer
        dnr = dnr + 1
-       Print #313, Format(Takt - Tvor, "0.00") & "      " & Format(Takt - T0, "0.00") & " (" & dnr & ")"
+       Print #313, Format(Takt - Tvor, "0.00") & "      " & Format(Takt - t0, "0.00") & " (" & dnr & ")"
 #End If
  If Not IsNull(wHAErg) And LenB(wHAErg) <> 0 Then ' ISNULL(frm.vTextB(183)) AND frm.vTextB(183) <> vns THEN ' HANr
 '  HArst.FindFirst "ltrim$(KVNr) = ltrim$('" + frm.HANr + "')"
@@ -1721,7 +1721,7 @@ Function do_Form_Current_AnBog(frm As AnBog)
 #If debu <> 0 Then
        Tvor = Takt: Takt = Timer
        dnr = dnr + 1
-       Print #313, Format(Takt - Tvor, "0.00") & "      " & Format(Takt - T0, "0.00") & " (" & dnr & ")"
+       Print #313, Format(Takt - Tvor, "0.00") & "      " & Format(Takt - t0, "0.00") & " (" & dnr & ")"
 #End If
    If HArst.BOF Or IsNull(HArst!name) Then
 '    IF ISNULL(HArst!Name) THEN
@@ -1744,7 +1744,7 @@ Function do_Form_Current_AnBog(frm As AnBog)
 #If debu <> 0 Then
        Tvor = Takt: Takt = Timer
        dnr = dnr + 1
-       Print #313, Format(Takt - Tvor, "0.00") & "      " & Format(Takt - T0, "0.00") & " (" & dnr & ")"
+       Print #313, Format(Takt - Tvor, "0.00") & "      " & Format(Takt - t0, "0.00") & " (" & dnr & ")"
 #End If
 ' IF rFa Is Nothing THEN SET rFa = TabÖff("faelle", "aktF")
 ' rFa.Seek "=", pat_id
@@ -1770,7 +1770,7 @@ Function do_Form_Current_AnBog(frm As AnBog)
 #If debu <> 0 Then
        Tvor = Takt: Takt = Timer
        dnr = dnr + 1
-       Print #313, Format(Takt - Tvor, "0.00") & "      " & Format(Takt - T0, "0.00") & " (" & dnr & ")"
+       Print #313, Format(Takt - Tvor, "0.00") & "      " & Format(Takt - t0, "0.00") & " (" & dnr & ")"
 #End If
  If frm.anaRS!vorET = "" Then
   frm.vLab(0).Visible = False
@@ -1812,7 +1812,7 @@ Function do_Form_Current_AnBog(frm As AnBog)
 #If debu <> 0 Then
        Tvor = Takt: Takt = Timer
        dnr = dnr + 1
-       Print #313, Format(Takt - Tvor, "0.00") & "      " & Format(Takt - T0, "0.00") & " (" & dnr & ")"
+       Print #313, Format(Takt - Tvor, "0.00") & "      " & Format(Takt - t0, "0.00") & " (" & dnr & ")"
 #End If
    Do
     If bmi = 0 Then Exit Do ' BMI
@@ -1844,7 +1844,7 @@ Function do_Form_Current_AnBog(frm As AnBog)
 #If debu <> 0 Then
        Tvor = Takt: Takt = Timer
        dnr = dnr + 1
-       Print #313, Format(Takt - Tvor, "0.00") & "      " & Format(Takt - T0, "0.00") & " (" & dnr & ")"
+       Print #313, Format(Takt - Tvor, "0.00") & "      " & Format(Takt - t0, "0.00") & " (" & dnr & ")"
 #End If
  frm.vTextB(142).BackColor = farbe ' BMI
  frm.vTextB(10).BackColor = farbe ' Größe
@@ -1875,7 +1875,7 @@ Function do_Form_Current_AnBog(frm As AnBog)
 #If debu <> 0 Then
        Tvor = Takt: Takt = Timer
        dnr = dnr + 1
-       Print #313, Format(Takt - Tvor, "0.00") & "      " & Format(Takt - T0, "0.00") & " (" & dnr & ")"
+       Print #313, Format(Takt - Tvor, "0.00") & "      " & Format(Takt - t0, "0.00") & " (" & dnr & ")"
 #End If
 ' Dim lsql$
 ' lsql = "SELECT * FROM (SELECT * FROM `labor2a` WHERE pat_id = " & Pat_id & " UNION SELECT * FROM `labor1a` WHERE pat_id = " & Pat_id & ") i GROUP BY pat_id,zeitpunkt,abkü,wert,einheit,nb"
@@ -1928,7 +1928,7 @@ Function do_Form_Current_AnBog(frm As AnBog)
 #If debu <> 0 Then
        Tvor = Takt: Takt = Timer
        dnr = dnr + 1
-       Print #313, Format(Takt - Tvor, "0.00") & "      " & Format(Takt - T0, "0.00") & " (" & dnr & ")"
+       Print #313, Format(Takt - Tvor, "0.00") & "      " & Format(Takt - t0, "0.00") & " (" & dnr & ")"
 #End If
  If IsNull(frm.anaRS!Diabetestyp) Or frm.anaRS!Diabetestyp = vNS Then ' Diabetestyp
   farbe = 16777215 ' weiß
@@ -1951,7 +1951,7 @@ Function do_Form_Current_AnBog(frm As AnBog)
 #If debu <> 0 Then
        Tvor = Takt: Takt = Timer
        dnr = dnr + 1
-       Print #313, Format(Takt - Tvor, "0.00") & "      " & Format(Takt - T0, "0.00") & " (" & dnr & ")"
+       Print #313, Format(Takt - Tvor, "0.00") & "      " & Format(Takt - t0, "0.00") & " (" & dnr & ")"
 #End If
  frm.vTextB(4).BackColor = farbe ' Diabetestyp
  frm.vTextB(5).BackColor = farbe ' `Diabetes seit`
@@ -2002,7 +2002,7 @@ Function do_Form_Current_AnBog(frm As AnBog)
 #If debu <> 0 Then
        Tvor = Takt: Takt = Timer
        dnr = dnr + 1
-       Print #313, Format(Takt - Tvor, "0.00") & "      " & Format(Takt - T0, "0.00") & " (" & dnr & ")"
+       Print #313, Format(Takt - Tvor, "0.00") & "      " & Format(Takt - t0, "0.00") & " (" & dnr & ")"
 #End If
  If frm.anaRS!Herzkrankheit = "n" Or frm.anaRS!Herzkrankheit = "-" Then
   Call inActi(frm.vTextB(75)) ' `Angina pectoris`
@@ -2033,7 +2033,7 @@ syscmd 4, "Formularvorbereitung 2 " & frm.anaRS!Nachname & ", " & frm.anaRS!Vorn
 #If debu <> 0 Then
        Tvor = Takt: Takt = Timer
        dnr = dnr + 1
-       Print #313, Format(Takt - Tvor, "0.00") & "      " & Format(Takt - T0, "0.00") & " (" & dnr & ")"
+       Print #313, Format(Takt - Tvor, "0.00") & "      " & Format(Takt - t0, "0.00") & " (" & dnr & ")"
 #End If
 Dim rsmd As New ADODB.Recordset
 Dim hmg$, hypt$, neurp$, autnp$, fetts$, Hsre$, antimyk$, glauk$, cold$, pros$, urä$, hythy$, ostp$, _
@@ -2068,7 +2068,7 @@ If Pat_ID <> 0 Then
 #If debu <> 0 Then
        Tvor = Takt: Takt = Timer
        dnr = dnr + 1
-       Print #313, Format(Takt - Tvor, "0.00") & "      " & Format(Takt - T0, "0.00") & " (" & dnr & ")"
+       Print #313, Format(Takt - Tvor, "0.00") & "      " & Format(Takt - t0, "0.00") & " (" & dnr & ")"
 #End If
  
  ' andersrum geordnet in EigTest
@@ -2115,7 +2115,7 @@ If Pat_ID <> 0 Then
 #If debu <> 0 Then
        Tvor = Takt: Takt = Timer
        dnr = dnr + 1
-       Print #313, Format(Takt - Tvor, "0.00") & "      " & Format(Takt - T0, "0.00") & " (" & dnr & ")"
+       Print #313, Format(Takt - Tvor, "0.00") & "      " & Format(Takt - t0, "0.00") & " (" & dnr & ")"
 #End If
  syscmd 4, "Formularvorbereitung 3 " & frm.anaRS!Nachname & ", " & frm.anaRS!Vorname
  Call KRAdd(frm, neurp, "Polyneuropathie", "G63.2", gesi, "G63", "G62", , , "vTextB", 105) ' Weitere Medikation
@@ -2155,7 +2155,7 @@ If Pat_ID <> 0 Then
 #If debu <> 0 Then
        Tvor = Takt: Takt = Timer
        dnr = dnr + 1
-       Print #313, Format(Takt - Tvor, "0.00") & "      " & Format(Takt - T0, "0.00") & " (" & dnr & ")"
+       Print #313, Format(Takt - Tvor, "0.00") & "      " & Format(Takt - t0, "0.00") & " (" & dnr & ")"
 #End If
  syscmd 4, "Formularvorbereitung 4 " & frm.anaRS!Nachname & ", " & frm.anaRS!Vorname
 ' Anamnesebogen
@@ -2185,7 +2185,7 @@ If Pat_ID <> 0 Then
 #If debu <> 0 Then
        Tvor = Takt: Takt = Timer
        dnr = dnr + 1
-       Print #313, Format(Takt - Tvor, "0.00") & "      " & Format(Takt - T0, "0.00") & " (" & dnr & ")"
+       Print #313, Format(Takt - Tvor, "0.00") & "      " & Format(Takt - t0, "0.00") & " (" & dnr & ")"
 #End If
  If obverform Or obBewEinsch Then '(BewEinsch <> "" AND BewEinsch <> "n" AND BewEinsch <> "-" AND instrb(BewEinsch, "WS-Syndrom") = 0 AND (Not BewEinsch LIKE "o.B?") AND (Not BewEinsch LIKE "o. B?")) THEN
   Call KRAdd(frm, "Fragebogen", "Diab. Arthropathie", "M14.2-", Va, "M14") ' Bewegungseinschränkungen
@@ -2222,7 +2222,7 @@ If Pat_ID <> 0 Then
 #If debu <> 0 Then
        Tvor = Takt: Takt = Timer
        dnr = dnr + 1
-       Print #313, Format(Takt - Tvor, "0.00") & "      " & Format(Takt - T0, "0.00") & " (" & dnr & ")"
+       Print #313, Format(Takt - Tvor, "0.00") & "      " & Format(Takt - t0, "0.00") & " (" & dnr & ")"
 #End If
  Dim hkGr$
  hkGr = hkGrund(Pat_ID)
@@ -2270,7 +2270,7 @@ If Pat_ID <> 0 Then
 #If debu <> 0 Then
        Tvor = Takt: Takt = Timer
        dnr = dnr + 1
-       Print #313, Format(Takt - Tvor, "0.00") & "      " & Format(Takt - T0, "0.00") & " (" & dnr & ")"
+       Print #313, Format(Takt - Tvor, "0.00") & "      " & Format(Takt - t0, "0.00") & " (" & dnr & ")"
 #End If
  If Not obNein(ulcer) Then
   Call KRAdd(frm, "Unters", "Diabetisches Ulcus", "L89.18", gesi, "L89", , , , "vTextB", 110) ' "Ulcera"
@@ -2288,7 +2288,7 @@ If Pat_ID <> 0 Then
 #If debu <> 0 Then
        Tvor = Takt: Takt = Timer
        dnr = dnr + 1
-       Print #313, Format(Takt - Tvor, "0.00") & "      " & Format(Takt - T0, "0.00") & " (" & dnr & ")"
+       Print #313, Format(Takt - Tvor, "0.00") & "      " & Format(Takt - t0, "0.00") & " (" & dnr & ")"
 #End If
  syscmd 4, "Formularvorbereitung 5 " & frm.anaRS!Nachname & ", " & frm.anaRS!Vorname
  Dim PStatPath% ' Pulsstatus pathologisch
@@ -2328,7 +2328,7 @@ If Pat_ID <> 0 Then
 #If debu <> 0 Then
        Tvor = Takt: Takt = Timer
        dnr = dnr + 1
-       Print #313, Format(Takt - Tvor, "0.00") & "      " & Format(Takt - T0, "0.00") & " (" & dnr & ")"
+       Print #313, Format(Takt - Tvor, "0.00") & "      " & Format(Takt - t0, "0.00") & " (" & dnr & ")"
 #End If
  Dim Strum$
  If Not IsNull(frm.anaRS!SD) Then
@@ -2365,7 +2365,7 @@ If Pat_ID <> 0 Then
 #If debu <> 0 Then
        Tvor = Takt: Takt = Timer
        dnr = dnr + 1
-       Print #313, Format(Takt - Tvor, "0.00") & "      " & Format(Takt - T0, "0.00") & " (" & dnr & ")"
+       Print #313, Format(Takt - Tvor, "0.00") & "      " & Format(Takt - t0, "0.00") & " (" & dnr & ")"
 #End If
  If InStrB(lcWA, "osteopor") <> 0 And InStrB(LCase$(frm.vTextB(147)), "m81") = 0 Then
   Call KRAdd(frm, "Anamn", "Osteoporose", "M81.99", gesi, "M81", , , , "vTextB", 102) ' "Weitere Anamnese")
@@ -2417,7 +2417,7 @@ If Pat_ID <> 0 Then
 #If debu <> 0 Then
        Tvor = Takt: Takt = Timer
        dnr = dnr + 1
-       Print #313, Format(Takt - Tvor, "0.00") & "      " & Format(Takt - T0, "0.00") & " (" & dnr & ")"
+       Print #313, Format(Takt - Tvor, "0.00") & "      " & Format(Takt - t0, "0.00") & " (" & dnr & ")"
 #End If
  Dim catpos%, catzn%, obcatzn%
  catpos = 0
@@ -2456,7 +2456,7 @@ If Pat_ID <> 0 Then
 #If debu <> 0 Then
        Tvor = Takt: Takt = Timer
        dnr = dnr + 1
-       Print #313, Format(Takt - Tvor, "0.00") & "      " & Format(Takt - T0, "0.00") & " (" & dnr & ")"
+       Print #313, Format(Takt - Tvor, "0.00") & "      " & Format(Takt - t0, "0.00") & " (" & dnr & ")"
 #End If
  Dim zähn$
  zähn = IIf(IsNull(frm.anaRS!Zähne), vNS, LCase$(frm.anaRS!Zähne))
@@ -2497,7 +2497,7 @@ If Pat_ID <> 0 Then
 #If debu <> 0 Then
        Tvor = Takt: Takt = Timer
        dnr = dnr + 1
-       Print #313, Format(Takt - Tvor, "0.00") & "      " & Format(Takt - T0, "0.00") & " (" & dnr & ")"
+       Print #313, Format(Takt - Tvor, "0.00") & "      " & Format(Takt - t0, "0.00") & " (" & dnr & ")"
 #End If
  If InStrB(Beinbefund, "hallux valgus") <> 0 Then
   Call KRAdd(frm, "Beinbefund", "Hallux valgus", "M20.1", gesi, "M20.1", , , , "vTextB", 141)
@@ -2530,7 +2530,7 @@ If Pat_ID <> 0 Then
 #If debu <> 0 Then
        Tvor = Takt: Takt = Timer
        dnr = dnr + 1
-       Print #313, Format(Takt - Tvor, "0.00") & "      " & Format(Takt - T0, "0.00") & " (" & dnr & ")"
+       Print #313, Format(Takt - Tvor, "0.00") & "      " & Format(Takt - t0, "0.00") & " (" & dnr & ")"
 #End If
 
  syscmd 4, "Formularvorbereitung 6 " & frm.anaRS!Nachname & ", " & frm.anaRS!Vorname
@@ -2546,13 +2546,13 @@ If Pat_ID <> 0 Then
 #If debu <> 0 Then
        Tvor = Takt: Takt = Timer
        dnr = dnr + 1
-       Print #313, Format(Takt - Tvor, "0.00") & "      " & Format(Takt - T0, "0.00") & " (" & dnr & ", vor do_Form_Current2)"
+       Print #313, Format(Takt - Tvor, "0.00") & "      " & Format(Takt - t0, "0.00") & " (" & dnr & ", vor do_Form_Current2)"
 #End If
  Call do_Form_Current2(frm, Hsre, lcAB, PStatPath, pnpflNeu, KZahlNeu, anpflNeu, angflNeu, bgwflNeu, retflNeu, dfsflNeu, oblhNeu)
 #If debu <> 0 Then
        Tvor = Takt: Takt = Timer
        dnr = dnr + 1
-       Print #313, Format(Takt - Tvor, "0.00") & "      " & Format(Takt - T0, "0.00") & " (" & dnr & ", nach do_Form_Current2)"
+       Print #313, Format(Takt - Tvor, "0.00") & "      " & Format(Takt - t0, "0.00") & " (" & dnr & ", nach do_Form_Current2)"
 #End If
 End If
 Call KrSchluß(frm)
@@ -2582,13 +2582,13 @@ End If
 #If debu <> 0 Then
        Tvor = Takt: Takt = Timer
        dnr = dnr + 1
-       Print #313, Format(Takt - Tvor, "0.00") & "      " & Format(Takt - T0, "0.00") & " (" & dnr & ", vor DBCnS)"
+       Print #313, Format(Takt - Tvor, "0.00") & "      " & Format(Takt - t0, "0.00") & " (" & dnr & ", vor DBCnS)"
 #End If
 frm.vTextB(182) = DBCnS ' DBCn.ConnectionString
 #If debu <> 0 Then
        Tvor = Takt: Takt = Timer
        dnr = dnr + 1
-       Print #313, Format(Takt - Tvor, "0.00") & "      " & Format(Takt - T0, "0.00") & " (" & dnr & ", nach DBCnS)"
+       Print #313, Format(Takt - Tvor, "0.00") & "      " & Format(Takt - t0, "0.00") & " (" & dnr & ", nach DBCnS)"
 #End If
 syscmd 5
 Tüt 1740, 20
@@ -2597,7 +2597,7 @@ kurzvorEnde:
 #If debu <> 0 Then
        Tvor = Takt: Takt = Timer
        dnr = dnr + 1
-       Print #313, Format(Takt - Tvor, "0.00") & "      " & Format(Takt - T0, "0.00") & " (" & dnr & ")"
+       Print #313, Format(Takt - Tvor, "0.00") & "      " & Format(Takt - t0, "0.00") & " (" & dnr & ")"
  Close #313
 #End If
 frm.obStumm = False
@@ -2643,7 +2643,7 @@ Function do_Form_Current2(frm As AnBog, Hsre$, lcAB$, PStatPath%, pnpflNeu%, KZa
 #If debu <> 0 Then
        Tvor = Takt: Takt = Timer
        dnr = dnr + 1
-       Print #313, Format(Takt - Tvor, "0.00") & "      " & Format(Takt - T0, "0.00") & " (" & dnr & ", vor LabWert)"
+       Print #313, Format(Takt - Tvor, "0.00") & "      " & Format(Takt - t0, "0.00") & " (" & dnr & ", vor LabWert)"
 #End If
  Set raLau = Nothing
 ' raLau.Open LCase$(sql) & sql1, DBCn, adOpenDynamic, adLockReadOnly
@@ -2692,7 +2692,7 @@ Function do_Form_Current2(frm As AnBog, Hsre$, lcAB$, PStatPath%, pnpflNeu%, KZa
 #If debu <> 0 Then
        Tvor = Takt: Takt = Timer
        dnr = dnr + 1
-       Print #313, Format(Takt - Tvor, "0.00") & "      " & Format(Takt - T0, "0.00") & " (" & dnr & ", Mitte Labwert)"
+       Print #313, Format(Takt - Tvor, "0.00") & "      " & Format(Takt - t0, "0.00") & " (" & dnr & ", Mitte Labwert)"
 #End If
  Dim UZahl%
  UZahl = Urineintraege(Pat_ID)
@@ -2744,7 +2744,7 @@ Function do_Form_Current2(frm As AnBog, Hsre$, lcAB$, PStatPath%, pnpflNeu%, KZa
 #If debu <> 0 Then
        Tvor = Takt: Takt = Timer
        dnr = dnr + 1
-       Print #313, Format(Takt - Tvor, "0.00") & "      " & Format(Takt - T0, "0.00") & " (" & dnr & ", nach Labwert)"
+       Print #313, Format(Takt - Tvor, "0.00") & "      " & Format(Takt - t0, "0.00") & " (" & dnr & ", nach Labwert)"
 #End If
  syscmd 4, "Formularvorbereitung 7 " & frm.anaRS!Nachname & ", " & frm.anaRS!Vorname
 ' Debug.Print "Form_Current 4:" + format$(Now, "hh:mm:ss")
@@ -2766,7 +2766,7 @@ Function do_Form_Current2(frm As AnBog, Hsre$, lcAB$, PStatPath%, pnpflNeu%, KZa
 #If debu <> 0 Then
        Tvor = Takt: Takt = Timer
        dnr = dnr + 1
-       Print #313, Format(Takt - Tvor, "0.00") & "      " & Format(Takt - T0, "0.00") & " (" & dnr & ")"
+       Print #313, Format(Takt - Tvor, "0.00") & "      " & Format(Takt - t0, "0.00") & " (" & dnr & ")"
 #End If
  Set raLau = Nothing
 ' raLau.Open sql & " AND abkü = ""COR_S"" " & sql1, DBCn, adOpenDynamic, adLockReadOnly
@@ -2793,7 +2793,7 @@ Function do_Form_Current2(frm As AnBog, Hsre$, lcAB$, PStatPath%, pnpflNeu%, KZa
 #If debu <> 0 Then
        Tvor = Takt: Takt = Timer
        dnr = dnr + 1
-       Print #313, Format(Takt - Tvor, "0.00") & "      " & Format(Takt - T0, "0.00") & " (" & dnr & ")"
+       Print #313, Format(Takt - Tvor, "0.00") & "      " & Format(Takt - t0, "0.00") & " (" & dnr & ")"
 #End If
  'CORT2 = labwert(frm,"CORT2", ">", 3, "M.Cushing", gesi,"µg/dl")
  'CORT2 = labwert(frm,"CORT2", "<", 20, "M.Addison", gesi,"µg/dl")
@@ -2837,7 +2837,7 @@ Function do_Form_Current2(frm As AnBog, Hsre$, lcAB$, PStatPath%, pnpflNeu%, KZa
 #If debu <> 0 Then
        Tvor = Takt: Takt = Timer
        dnr = dnr + 1
-       Print #313, Format(Takt - Tvor, "0.00") & "      " & Format(Takt - T0, "0.00") & " (" & dnr & ", Mitte Labor)"
+       Print #313, Format(Takt - Tvor, "0.00") & "      " & Format(Takt - t0, "0.00") & " (" & dnr & ", Mitte Labor)"
 #End If
  Na = LabWert0(frm, "NA", "<", 133, "Hyponatriämie", "E87.1", gesi, "mmol/l", "E87.1")
  Na = LabWert(frm, "NA", ">", 146, "Hypernatriämie", "E87.1", gesi, "mmol/l", "E87.0")
@@ -2935,7 +2935,7 @@ Function do_Form_Current2(frm As AnBog, Hsre$, lcAB$, PStatPath%, pnpflNeu%, KZa
 #If debu <> 0 Then
        Tvor = Takt: Takt = Timer
        dnr = dnr + 1
-       Print #313, Format(Takt - Tvor, "0.00") & "      " & Format(Takt - T0, "0.00") & " (" & dnr & ")"
+       Print #313, Format(Takt - Tvor, "0.00") & "      " & Format(Takt - t0, "0.00") & " (" & dnr & ")"
 #End If
  ccp = False
  If CREACL <> 0 Then
@@ -2985,7 +2985,7 @@ Function do_Form_Current2(frm As AnBog, Hsre$, lcAB$, PStatPath%, pnpflNeu%, KZa
 #If debu <> 0 Then
        Tvor = Takt: Takt = Timer
        dnr = dnr + 1
-       Print #313, Format(Takt - Tvor, "0.00") & "      " & Format(Takt - T0, "0.00") & " (" & dnr & ")"
+       Print #313, Format(Takt - Tvor, "0.00") & "      " & Format(Takt - t0, "0.00") & " (" & dnr & ")"
 #End If
 ' Dim bmi#
 ' IF frm.anaRS!Gewicht < 0 THEN frm.vTextB(10) = -frm.anaRS!Gewicht
@@ -3035,7 +3035,7 @@ Function do_Form_Current2(frm As AnBog, Hsre$, lcAB$, PStatPath%, pnpflNeu%, KZa
 #If debu <> 0 Then
        Tvor = Takt: Takt = Timer
        dnr = dnr + 1
-       Print #313, Format(Takt - Tvor, "0.00") & "      " & Format(Takt - T0, "0.00") & " (" & dnr & ", Netzhaut gelasert)"
+       Print #313, Format(Takt - Tvor, "0.00") & "      " & Format(Takt - t0, "0.00") & " (" & dnr & ", Netzhaut gelasert)"
 #End If
  For i = 0 To UBound(AugFeld)
 '  aktSt = LCase$(frm.anaRS.Fields(AugFeld(i)))
@@ -3185,13 +3185,13 @@ syscmd 4, "Formularvorbereitung 11 " & frm.anaRS!Nachname & ", " & frm.anaRS!Vor
 #If debu <> 0 Then
        Tvor = Takt: Takt = Timer
        dnr = dnr + 1
-       Print #313, Format(Takt - Tvor, "0.00") & "      " & Format(Takt - T0, "0.00") & " (" & dnr & ", vor knöpfeanpassen)"
+       Print #313, Format(Takt - Tvor, "0.00") & "      " & Format(Takt - t0, "0.00") & " (" & dnr & ", vor knöpfeanpassen)"
 #End If
 Call knöpfeanpassen(frm)
 #If debu <> 0 Then
        Tvor = Takt: Takt = Timer
        dnr = dnr + 1
-       Print #313, Format(Takt - Tvor, "0.00") & "      " & Format(Takt - T0, "0.00") & " (" & dnr & ", nach knöpfeanpassen)"
+       Print #313, Format(Takt - Tvor, "0.00") & "      " & Format(Takt - t0, "0.00") & " (" & dnr & ", nach knöpfeanpassen)"
 #End If
  
 syscmd 4, "Formularvorbereitung 12 " & frm.anaRS!Nachname & ", " & frm.anaRS!Vorname
@@ -3256,7 +3256,7 @@ syscmd 4, "Formularvorbereitung 12 " & frm.anaRS!Nachname & ", " & frm.anaRS!Vor
 #If debu <> 0 Then
        Tvor = Takt: Takt = Timer
        dnr = dnr + 1
-       Print #313, Format(Takt - Tvor, "0.00") & "      " & Format(Takt - T0, "0.00") & " (" & dnr & ")"
+       Print #313, Format(Takt - Tvor, "0.00") & "      " & Format(Takt - t0, "0.00") & " (" & dnr & ")"
 #End If
  syscmd 4, "Formularvorbereitung 13d " & frm.anaRS!Nachname & ", " & frm.anaRS!Vorname
  sql = "SELECT COUNT(0) AS ct FROM `tmbrie` WHERE pat_id = " + CStr(Pat_ID)
@@ -3303,7 +3303,7 @@ syscmd 4, "Formularvorbereitung 12 " & frm.anaRS!Nachname & ", " & frm.anaRS!Vor
 #If debu <> 0 Then
        Tvor = Takt: Takt = Timer
        dnr = dnr + 1
-       Print #313, Format(Takt - Tvor, "0.00") & "      " & Format(Takt - T0, "0.00") & " (" & dnr & ")"
+       Print #313, Format(Takt - Tvor, "0.00") & "      " & Format(Takt - t0, "0.00") & " (" & dnr & ")"
 #End If
 ' und für Augenbefunde
 ' lz = Dtb.OpenRecordset("SELECT COUNT(0) AS ct FROM `" + QMdbAkt + "`.`dokumente` WHERE (dokname LIKE ""*augenb`!l`*"" OR dokname LIKE ""*augen`aä`rzt*"" OR dokname LIKE ""*aa"") AND pat_id = " + CStr(frm.Pat_id))!ct + _
@@ -3331,7 +3331,7 @@ syscmd 4, "Formularvorbereitung 12 " & frm.anaRS!Nachname & ", " & frm.anaRS!Vor
 #If debu <> 0 Then
        Tvor = Takt: Takt = Timer
        dnr = dnr + 1
-       Print #313, Format(Takt - Tvor, "0.00") & "      " & Format(Takt - T0, "0.00") & " (" & dnr & ")"
+       Print #313, Format(Takt - Tvor, "0.00") & "      " & Format(Takt - t0, "0.00") & " (" & dnr & ")"
 #End If
  frm.vCommandB(13).Caption = CStr(lz) + " Aug'b.(9), zul." & Format$(maxzp, "dd/mm/yy") ' AugenBefunde ' (&9)
  frm.vCommandB(13).Enabled = True ' AugenBefunde
@@ -3343,7 +3343,7 @@ syscmd 4, "Formularvorbereitung 12 " & frm.anaRS!Nachname & ", " & frm.anaRS!Vor
 #If debu <> 0 Then
        Tvor = Takt: Takt = Timer
        dnr = dnr + 1
-       Print #313, Format(Takt - Tvor, "0.00") & "      " & Format(Takt - T0, "0.00") & " (" & dnr & ")"
+       Print #313, Format(Takt - Tvor, "0.00") & "      " & Format(Takt - t0, "0.00") & " (" & dnr & ")"
 #End If
  Dim rMA As New ADODB.Recordset, zp0 As Date, zp1 As Date, zp2 As Date, zp3 As Date
  myFrag rMA, "SELECT COUNT(0) ct, COALESCE(MAX(zeitpunkt),0) mzp FROM `eintraege` WHERE (art IN ('tk','ARCHIE2','APK') OR (art='tb' AND ersteller='tk') OR inhalt LIKE '%(tk)%') AND pat_id = " & CStr(Pat_ID)
@@ -5068,7 +5068,7 @@ Function LabWert0!(frm As Form, name$, Optional sign, Optional grenze!, Optional
 #If debu <> 0 Then
        Tvor = Takt: Takt = Timer
        dnr = dnr + 1
-       Print #313, Format(Takt - Tvor, "0.00") & "      " & Format(Takt - T0, "0.00") & " (" & dnr & ", Labwert0: vor find)"
+       Print #313, Format(Takt - Tvor, "0.00") & "      " & Format(Takt - t0, "0.00") & " (" & dnr & ", Labwert0: vor find)"
 #End If
  If raLau.State = 0 Then ' 2.11.22
   source = raLau.source
@@ -5082,7 +5082,7 @@ Function LabWert0!(frm As Form, name$, Optional sign, Optional grenze!, Optional
 #If debu <> 0 Then
        Tvor = Takt: Takt = Timer
        dnr = dnr + 1
-       Print #313, Format(Takt - Tvor, "0.00") & "      " & Format(Takt - T0, "0.00") & " (" & dnr & ", Labwert0: nach find)"
+       Print #313, Format(Takt - Tvor, "0.00") & "      " & Format(Takt - t0, "0.00") & " (" & dnr & ", Labwert0: nach find)"
 #End If
   If Not raLau.EOF Then
    If Val(raLau!Wert) = 0 Then
@@ -5173,7 +5173,7 @@ Function LabWert!(frm As Form, name$, Optional sign, Optional ByVal grenze!, Opt
 #If debu <> 0 Then
        Tvor = Takt: Takt = Timer
        dnr = dnr + 1
-       Print #313, Format(Takt - Tvor, "0.00") & "      " & Format(Takt - T0, "0.00") & " (" & dnr & ", Labwert: vor sql)"
+       Print #313, Format(Takt - Tvor, "0.00") & "      " & Format(Takt - t0, "0.00") & " (" & dnr & ", Labwert: vor sql)"
 #End If
 ' rbLau.Open sq2, DBCn, adOpenDynamic, adLockReadOnly
  myFrag rbLau, sq2
@@ -5186,7 +5186,7 @@ Function LabWert!(frm As Form, name$, Optional sign, Optional ByVal grenze!, Opt
 #If debu <> 0 Then
        Tvor = Takt: Takt = Timer
        dnr = dnr + 1
-       Print #313, Format(Takt - Tvor, "0.00") & "      " & Format(Takt - T0, "0.00") & " (" & dnr & ", Labwert: zwischen sql)"
+       Print #313, Format(Takt - Tvor, "0.00") & "      " & Format(Takt - t0, "0.00") & " (" & dnr & ", Labwert: zwischen sql)"
 #End If
 ' rbLau.Open sq1, DBCn, adOpenDynamic, adLockReadOnly
  myFrag rbLau, sql
@@ -5202,7 +5202,7 @@ Function LabWert!(frm As Form, name$, Optional sign, Optional ByVal grenze!, Opt
 #If debu <> 0 Then
        Tvor = Takt: Takt = Timer
        dnr = dnr + 1
-       Print #313, Format(Takt - Tvor, "0.00") & "      " & Format(Takt - T0, "0.00") & " (" & dnr & ", Labwert: nach sql)"
+       Print #313, Format(Takt - Tvor, "0.00") & "      " & Format(Takt - t0, "0.00") & " (" & dnr & ", Labwert: nach sql)"
 #End If
 #End If ' true else
  LabWert = 0
@@ -11537,6 +11537,7 @@ Vsql = _
   "REPLACE(COALESCE(REPLACE(MID(FDetails,INSTR(FDetails,'ext ""')+5,LENGTH(FDetails)-2-INSTR(FDetails,'ext ""')-5),'\n','; '),FText),'''','\''') FText," & vbCrLf & _
   "FEintragsart, 18900101+INTERVAL FAnorddatum DAY+INTERVAL FAnordzeit SECOND AnZp," & vbCrLf & _
   "COALESCE(na.FInitialen,'') ua, COALESCE(nb.FInitialen,'') ub, REPLACE(REPLACE(REPLACE(FDetails,'{(Gnrliste [',''),'])}',''),'''','\''') Lei " & vbCrLf & _
+  ",l.FSurogat" & vbCrLf & _
   "FROM ltag l " & vbCrLf & _
   "LEFT JOIN nutzerneu na ON FAnordnutzernr= na.FSurogat " & vbCrLf & _
   "LEFT JOIN nutzerneu nb ON FAusfnutzernr= nb.FSurogat " & vbCrLf & _
