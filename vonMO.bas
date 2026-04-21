@@ -45,7 +45,7 @@ Type Abrtyp ' Tabelle abrechner
  BSNR As Long
 End Type
 
-Declare Sub CopyMemoryPtr Lib "kernel32" Alias "RtlMoveMemory" (ByVal Destination&, ByVal Sourc&, ByVal length&)
+Declare Sub CopyMemoryPtr Lib "kernel32" Alias "RtlMoveMemory" (ByVal Destination&, ByVal Sourc&, ByVal Length&)
 Dim aru&
 
 Public Function explor(pid&)
@@ -84,7 +84,7 @@ fehler:
 #Else
  AnwPfad = App.path
 #End If
- Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in exp/" + AnwPfad)
+ Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.Source), vNS, CStr(Err.Source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in exp/" + AnwPfad)
   Case vbAbort: Call MsgBox("Höre auf"): ProgEnde
   Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
   Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
@@ -455,7 +455,7 @@ fehler:
 #Else
  AnwPfad = App.path
 #End If
- Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in ParseMemo/" + AnwPfad)
+ Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.Source), vNS, CStr(Err.Source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in ParseMemo/" + AnwPfad)
   Case vbAbort: Call MsgBox("Höre auf"): ProgEnde
   Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
   Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
@@ -487,7 +487,7 @@ End Function ' fbumdreh()
 Public Function WechsMemo(TabName$, snr&, mfeld$, anENr$, neu$, art$, MeStr() As memoType, Optional obDebug%, Optional ÜSchr$, Optional obUmdreh%) ' pNr&, FSur&,
  Dim aktenr$, neus$, sqls$, FMemo$, rsMO As New ADODB.Recordset
  Dim jj&, iru&
- Dim gl&, pos&, MAX&, aktmax&, altmax&, tlen&, ie&, altie&, reppos&, nlen&, mznr%, i&
+ Dim gl&, pos&, MAX&, aktmax&, altmax&, tlen&, ie&, altie&, reppos&, nLen&, mznr%, i&
  Dim obDruck%, txt$
  Dim eb() As ebType
  Dim rAf&
@@ -603,25 +603,25 @@ Public Function WechsMemo(TabName$, snr&, mfeld$, anENr$, neu$, art$, MeStr() As
         Else ' Mid$(
          neus = txt
         End If ' Mid$
-        nlen = 8
+        nLen = 8
       Else ' obUmdreh Then
        Select Case art
         Case 0 ' Zahl
-            nlen = 1
-            neus = "LEFT(CHR(" & neu & ")," & nlen & ")"
+            nLen = 1
+            neus = "LEFT(CHR(" & neu & ")," & nLen & ")"
             WechsMemo = 1
         Case 1 ' String
-            nlen = Len(neu)
-            neus = "LEFT('" & neu & "'," & nlen & ")"
+            nLen = Len(neu)
+            neus = "LEFT('" & neu & "'," & nLen & ")"
             WechsMemo = 1
         Case 2 ' Datum
-            nlen = 5
+            nLen = 5
             neus = "CHAR(YEAR(" & neu & ")MOD 256,YEAR(" & neu & ")DIV 256,MONTH(" & neu & "),DAY(" & neu & "),0)"
             WechsMemo = 1
        End Select
       End If ' obUmdreh Then Else
-      If left$(neus, nlen) <> left$(txt, nlen) Then
-       sqls = "UPDATE `" & TabName & "` SET `" & mfeld & "`=CONCAT(LEFT(`" & mfeld & "`," & reppos & "+1)," & neus & ",MID(`" & mfeld & "`," & reppos & "+2+" & nlen & ")) WHERE fsurogat=" & snr
+      If left$(neus, nLen) <> left$(txt, nLen) Then
+       sqls = "UPDATE `" & TabName & "` SET `" & mfeld & "`=CONCAT(LEFT(`" & mfeld & "`," & reppos & "+1)," & neus & ",MID(`" & mfeld & "`," & reppos & "+2+" & nLen & ")) WHERE fsurogat=" & snr
        Debug.Print sqls
        Call MOCon.Execute(sqls, rAf)
        Debug.Print rAf & " Datensätze geändert"
@@ -693,7 +693,7 @@ fehler:
 #Else
  AnwPfad = App.path
 #End If
- Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in WechsMemo/" + AnwPfad)
+ Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.Source), vNS, CStr(Err.Source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in WechsMemo/" + AnwPfad)
   Case vbAbort: Call MsgBox("Höre auf"): ProgEnde
   Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
   Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
@@ -790,7 +790,7 @@ Public Function MOConInit(Optional MServ$, Optional anzeige$)
     End If ' Err.Number Then
    On Error GoTo fehler
   End If ' MOCon Is Nothing Or MOCon = "" Then
-  syscmd 4, anzeige & " ..."
+  syscmd 4, anzeige & " Verbindung zu " & MServ & " geöffnet ..."
 '  If MOCon = "" Then
 '   If obszn4 Then
 '    MOCon.Open MOAnfStr & MoSzn4
@@ -808,7 +808,7 @@ fehler:
 #Else
  AnwPfad = App.path
 #End If
- Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in MOConInit/" + AnwPfad)
+ Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.Source), vNS, CStr(Err.Source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in MOConInit/" + AnwPfad)
   Case vbAbort: Call MsgBox("Höre auf"): ProgEnde
   Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
   Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
@@ -1143,7 +1143,7 @@ fehler:
 #Else
  AnwPfad = App.path
 #End If
- Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in tbtrans/" + AnwPfad)
+ Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.Source), vNS, CStr(Err.Source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in tbtrans/" + AnwPfad)
   Case vbAbort: Call MsgBox("Höre auf"): ProgEnde
   Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
   Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
@@ -1189,7 +1189,7 @@ fehler:
 #Else
  AnwPfad = App.path
 #End If
- Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in HATrans/" + AnwPfad)
+ Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.Source), vNS, CStr(Err.Source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in HATrans/" + AnwPfad)
   Case vbAbort: Call MsgBox("Höre auf"): ProgEnde
   Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
   Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
@@ -1232,13 +1232,13 @@ End Function ' hatrans
 ' in LaborStagingFuellen
 Private Sub LaborStagingFuellenOutfile(labsql$, pid&, ByRef erfolg%, csvLokal$, csvLinux$, csvSamba$, ByRef rAfGes&)
   Dim ErrNr&, ErrDes$
-  Dim t0!, t1!
+  Dim T0!, t1!
   erfolg = 0
   ' Alte Datei löschen (OUTFILE scheitert wenn Datei existiert):
   On Error Resume Next
   Kill csvLokal
   On Error GoTo fehler
-  t0 = Timer
+  T0 = Timer
   ' SELECT INTO OUTFILE – Felder explizit per Position:
   ' Feldpositionen in labsql:
   ' 0=Normwertug, 1=Normwertog, 2=Kommentar, 3=Zp, 4=testid,
@@ -1275,7 +1275,7 @@ sqlOut = _
   Else ' ErrNr
     t1 = Timer
     Debug.Print ">>> OUTFILE: " & Format((tg1 - tg0) * 1000, "0") & "ms"
-    t0 = Timer
+    T0 = Timer
     If rAfGes Then
       ' Datei prüfen:
       If Dir(csvLokal) = "" Then
@@ -1286,7 +1286,7 @@ sqlOut = _
       FileCopy csvLokal, csvSamba
       t1 = Timer
       Debug.Print ">>> FileCopy: " & Format((tg1 - tg0) * 1000, "0") & "ms"
-      t0 = Timer
+      T0 = Timer
       ' LOAD DATA:
       Dim sqlLoad$
       sqlLoad = _
@@ -1369,10 +1369,10 @@ Private Sub LaborStagingFuellenVB6(labsql$, pid&, ByRef erfolg%, csvLokal$, csvL
   Const posFIcd = 16      ' FIcdcode
   Dim rsSrc     As ADODB.Recordset
   Dim ErrNr&, ErrDes$
-  Dim t0 As Single, t1 As Single
+  Dim T0 As Single, t1 As Single
   erfolg = 0
   On Error GoTo fehler
-  t0 = Timer
+  T0 = Timer
   Set rsSrc = Nothing
   myFrag rsSrc, labsql, adOpenStatic, MOCon, adLockReadOnly, "700"
   If rsSrc Is Nothing Then Exit Sub
@@ -1420,11 +1420,11 @@ Private Sub LaborStagingFuellenVB6(labsql$, pid&, ByRef erfolg%, csvLokal$, csvL
   rsSrc.Close
   t1 = Timer
   Debug.Print ">>> CSV geschrieben: " & zeilenCount & " Zeilen, " & Format((tg1 - tg0) * 1000, "0") & "ms"
-  t0 = Timer
+  T0 = Timer
   FileCopy csvLokal, csvSamba
   t1 = Timer
   Debug.Print ">>> FileCopy: " & Format((tg1 - tg0) * 1000, "0") & "ms"
-  t0 = Timer
+  T0 = Timer
   Dim sqlLoad$
   sqlLoad = _
     "LOAD DATA INFILE '" & csvLinux & "'" & vbCrLf & _
@@ -1733,14 +1733,115 @@ abermals:
   On Error Resume Next
   FmS = rsMO!fm
   On Error GoTo fehler
+'#Const claude = True
+#If claude Then
+Dim aFld()     As TMemoFeld
+   Dim ab()  As Byte
+   Dim nCount     As Long
+   Dim sAID       As String
+   Dim sKuerzInt  As String
+   Dim sName      As String
+   Dim sKuerzExt  As String
+   Dim sKuerzDrk  As String
+   Dim sTaste     As String
+   Dim sFarbe     As String
+   Dim bHatText   As Boolean
+   Dim bVerwendung As Boolean
+   Dim grp        As Long
+   Dim lMaxGrp    As Long
+   Dim igrp          As Long
+
+   ab = BlobFromField(FmS)
+   aFld = MemoScan(ab, nCount)
+#If mosysdruck Then
+   Open "v:\mempars.txt" For Output As #233
+#End If ' mosysdruck
+   ' Maximale Gruppennummer ermitteln
+   lMaxGrp = 0
+   For igrp = 0 To nCount - 1
+#If mosysdruck Then
+''    If aFld(iMem).sTyp <> "TYP" Then ' Texttyp-Indikatoren nicht anzeigen
+           Print #233, _
+           IIf(aFld(igrp).sTyp = "AID", vbCrLf, "") & _
+           aFld(igrp).sTyp & "  " & _
+               aFld(igrp).lGrp & "  " & _
+               aFld(igrp).sENr & "  " & _
+               aFld(igrp).lPos & "  " & _
+               aFld(igrp).sWert
+'               If aFld(igrp).lGrp = 17 Then
+'                Dim p As Long
+'                For p = 2213 To 2260
+'                    If p <= UBound(ab) Then
+'                        Print #233, p & " " & Hex(ab(p)) & " " & ab(p)
+'                    End If
+'                Next p
+'               End If
+''    End If
+#End If ' mosysdruck
+       If aFld(igrp).lGrp > lMaxGrp Then lMaxGrp = aFld(igrp).lGrp
+   Next igrp
+
+#If mosysdruck Then
+   ' Kopfzeile
+   Print #233, _
+       LeftPad("Nr", 6) & "  " & _
+       RightPad("AID", 6) & "  " & _
+       RightPad("KürzInt", 12) & "  " & _
+       RightPad("Name", 45) & "  " & _
+       RightPad("KürzExt", 8) & "  " & _
+       RightPad("KürzDrk", 8) & "  " & _
+       RightPad("Taste", 6) & "  " & _
+       RightPad("Farbe", 7) & "  " & _
+       RightPad("Text", 4) & "  " & _
+       "Verwend"
+   Print #233, String(120, "-")
+#End If ' mosysdruck
+
+   For grp = 1 To lMaxGrp
+       MemoGrpFelder aFld, nCount, grp, _
+           sAID, sKuerzInt, sName, sKuerzExt, sKuerzDrk, _
+           sTaste, sFarbe, bHatText, bVerwendung
+     Set EintS = New SortierEintr
+     EintS.TypNr = sAID
+     EintS.art = sKuerzInt
+     EintS.name = sName
+     EintS.EKür = sKuerzExt
+     EintS.Kürz = sKuerzDrk
+     EinL.sCAdd EintS
+#If mosysdruck Then
+     If sAID = "" And sName = "" And sKuerzInt = "" Then
+     Else
+       Print #233, _
+           LeftPad(CStr(grp), 6) & "  " & _
+           RightPad(sAID, 6) & "  " & _
+           RightPad(sKuerzInt, 12) & "  " & _
+           RightPad(sName, 45) & "  " & _
+           RightPad(sKuerzExt, 8) & "  " & _
+           RightPad(sKuerzDrk, 8) & "  " & _
+           RightPad(sTaste, 6) & "  " & _
+           RightPad(sFarbe, 7) & "  " & _
+           RightPad(IIf(bHatText, "ja", ""), 4) & "  " & _
+           IIf(bVerwendung, "ja", "nein")
+       End If
+#End If ' mosysdruck
+   Next grp
+#If mosysdruck Then
+   Close #233
+#End If ' mosysdruck
+#Else ' claude
+
   If FmS <> "" Then
    Call ParseMemo(FmS, FMem(), obDebug, "FMemo aus mosystem")
+#If mosysdruck Then
+   Open "v:\memoparsalt.txt" For Output As #234
+#End If ' mosysdruck
    For j = 0 To UBound(FMem)
     If FMem(j).ENr Like "*.2" And FMem(j).ENr <> "1.2" Then
      Set EintS = New SortierEintr
      EintS.TypNr = Asc(FMem(j).Text)
      If Len(FMem(j).Text) > 1 Then
       EintS.TypNr = EintS.TypNr + Fakt * Asc(Mid(FMem(j).Text, 2))
+'      If EintS.TypNr = 29957 Then Stop
      End If
     ElseIf FMem(j).ENr Like "*.3" And FMem(j).ENr <> "1.3" Then
      EintS.art = FMem(j).Text
@@ -1754,10 +1855,17 @@ abermals:
 '      Case 1085,2004,2005,2006,2007,2014,2029
 '       Debug.Print EintS.name
 '     End Select
+#If mosysdruck Then
+     Print #234, EintS.TypNr & " " & EintS.art & " " & EintS.EKür & " " & EintS.name & " " & EintS.Kürz
+#End If ' mosysdruck
      EinL.sCAdd EintS
     End If
    Next j
   End If ' FmS <> "" Then
+#If mosysdruck Then
+  Close #234
+#End If ' mosysdruck
+#End If ' claude
 '  Dim zahl&
 '  Open "p:\artenMO.txt" For Output As #100
 '  Open "p:\artenMOFehlt.txt" For Output As #101
@@ -3975,7 +4083,7 @@ fehler:
 #Else
  AnwPfad = App.path
 #End If
- Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in doPatvonMO/" + AnwPfad)
+ Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.Source), vNS, CStr(Err.Source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in doPatvonMO/" + AnwPfad)
   Case vbAbort: Call MsgBox("Höre auf"): ProgEnde
   Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
   Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
@@ -4307,7 +4415,7 @@ fehler:
 #Else
  AnwPfad = App.path
 #End If
- Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in holHAausMO/" + AnwPfad)
+ Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.Source), vNS, CStr(Err.Source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in holHAausMO/" + AnwPfad)
   Case vbAbort: Call MsgBox("Höre auf"): ProgEnde
   Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
   Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
@@ -4426,7 +4534,7 @@ fehler:
 #Else
  AnwPfad = App.path
 #End If
- Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in richtleist/" + AnwPfad)
+ Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.Source), vNS, CStr(Err.Source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in richtleist/" + AnwPfad)
   Case vbAbort: Call MsgBox("Höre auf"): ProgEnde
   Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
   Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
@@ -4548,7 +4656,7 @@ fehler:
 #Else
  AnwPfad = App.path
 #End If
- Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in MODiagnosen/" + AnwPfad)
+ Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.Source), vNS, CStr(Err.Source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in MODiagnosen/" + AnwPfad)
   Case vbAbort: Call MsgBox("Höre auf"): ProgEnde
   Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
   Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
@@ -4603,7 +4711,7 @@ fehler:
 #Else
  AnwPfad = App.path
 #End If
- Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in richtleist/" + AnwPfad)
+ Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.Source), vNS, CStr(Err.Source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in richtleist/" + AnwPfad)
   Case vbAbort: Call MsgBox("Höre auf"): ProgEnde
   Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
   Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
@@ -4664,7 +4772,7 @@ fehler:
 #Else
  AnwPfad = App.path
 #End If
- Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in richtHA/" + AnwPfad)
+ Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.Source), vNS, CStr(Err.Source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in richtHA/" + AnwPfad)
   Case vbAbort: Call MsgBox("Höre auf"): ProgEnde
   Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
   Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
@@ -4868,7 +4976,7 @@ fehler:
 #Else
  AnwPfad = App.path
 #End If
- Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in MOLeistungen/" + AnwPfad)
+ Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.Source), vNS, CStr(Err.Source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in MOLeistungen/" + AnwPfad)
   Case vbAbort: Call MsgBox("Höre auf"): ProgEnde
   Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
   Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
@@ -4991,7 +5099,7 @@ fehler:
   DBCn.Open
   Resume
  End If ' Err.Number = -2147467259 Then
- Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in moausgeb/" + AnwPfad)
+ Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.Source), vNS, CStr(Err.Source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in moausgeb/" + AnwPfad)
   Case vbAbort: Call MsgBox("Höre auf"): ProgEnde
   Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
   Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
@@ -5001,13 +5109,13 @@ End Function ' moausgeb
 
 ' nur zum Aufruf im Direktfenster
 ' und aus Start(MOSuch)
-Public Function suchfi(pNr&, fi$, notObRlike%, MServ$)
+Public Function suchfi(pNr&, fI$, notObRlike%, MServ$)
  Dim altt$, gefu%, i&
  Dim rst As New ADODB.Recordset, rsu As New ADODB.Recordset, RsI As New ADODB.Recordset
  Dim MOCon As New ADODB.Connection
  Dim D1$, fn$, ausgStr$, ausgTNr%
- If MOConInit(MServ, "suchif(" & pNr & "," & fi & "," & CStr(notObRlike) & "," & MServ & ")") Then Exit Function
- D1 = "\\linux1\daten\down\suchfi_" & pNr & "_" & fi & "_" & MServ
+ If MOConInit(MServ, "suchif(" & pNr & "," & fI & "," & CStr(notObRlike) & "," & MServ & ")") Then Exit Function
+ D1 = "\\linux1\daten\down\suchfi_" & pNr & "_" & fI & "_" & MServ
  Open D1 For Output As #220
  
  rst.Open "SELECT c.TABLE_NAME tn, c.COLUMN_NAME cn -- , a.column_name cn" & vbCrLf & _
@@ -5029,7 +5137,7 @@ Public Function suchfi(pNr&, fi$, notObRlike%, MServ$)
 '     If rsu.Fields(i).name = "FMemo" Then Stop
      If Not (IsNull(rsu.Fields(i))) Then
 '      If CStr(rsu.Fields(i)) = fI Then
-      If (notObRlike <> 0 And LCase$(CStr(rsu.Fields(i))) = LCase$(fi)) Or (notObRlike = 0 And InStrB(LCase$(rsu.Fields(i)), LCase$(fi))) <> 0 Then
+      If (notObRlike <> 0 And LCase$(CStr(rsu.Fields(i))) = LCase$(fI)) Or (notObRlike = 0 And InStrB(LCase$(rsu.Fields(i)), LCase$(fI))) <> 0 Then
        ausgTNr = ausgTNr + 1
        ausgStr = "Tb.: " & rst!tn & ", " & fn & ": "
        If fn <> "" Then ausgStr = ausgStr & rsu.Fields(fn) & ", " & rsu.Fields(i).name & ": " & REPLACE$(REPLACE$(rsu.Fields(i), Chr(10), ""), Chr(13), "<nl>")
@@ -5055,25 +5163,25 @@ weiter:
  Loop ' While Not rst.EOF
  Close #220
  zeigan D1
- syscmd 4, "Fertig mit suchfi " & pNr& & " " & fi$ & "," & MServ
- Debug.Print "Fertig mit Suchfi(" & pNr & "," & fi & "," & MServ & ")"
+ syscmd 4, "Fertig mit suchfi " & pNr& & " " & fI$ & "," & MServ
+ Debug.Print "Fertig mit Suchfi(" & pNr & "," & fI & "," & MServ & ")"
 End Function ' suchfi(pNr&, fI$)
 
 
 ' nur zum Aufruf im Direktfenster
-Public Function suchal(fi$, Optional notObRlike%, Optional MServ$)
+Public Function suchal(fI$, Optional notObRlike%, Optional MServ$)
  Dim altt$, j&
  Dim rst As New ADODB.Recordset, rsu As New ADODB.Recordset
 ' Dim MOCon As New ADODB.Connection
  Dim D1$
- If MOConInit(MServ, "suchal(" & fi & "," & CStr(notObRlike) & "," & MServ & ")") Then Exit Function
- D1 = "\\linux1\daten\down\suchal_" & fi & "_" & notObRlike & "_" & MServ
+ If MOConInit(MServ, "suchal(" & fI & "," & CStr(notObRlike) & "," & MServ & ")") Then Exit Function
+ D1 = "\\linux1\daten\down\suchal_" & fI & "_" & notObRlike & "_" & MServ
  Open D1 For Output As #318
 ' MOCon.Open MOAnfStr & MServ
 #If True Then
 ' rst.Open "SELECT TABLE_NAME tn, GROUP_CONCAT(CONCAT('CAST(',column_name,' AS CHAR)" & IIf(Not notObRlike, " RLIKE ", "=") & "''" & fI & "''') SEPARATOR ' OR ') cn FROM information_schema.columns c WHERE table_catalog='def' AND table_schema='medoff' AND TABLE_TYPE<>'SEQUENCE' GROUP BY table_name" _
  , MOCon, adOpenStatic, adLockReadOnly
- sql = "SELECT c.TABLE_NAME tn, GROUP_CONCAT(CONCAT('CAST(',COLUMN_NAME,' AS CHAR)" & IIf(Not notObRlike, " RLIKE ", "=") & "''" & fi & "''') SEPARATOR ' OR ') cn FROM information_schema.COLUMNS c" & vbCrLf & _
+ sql = "SELECT c.TABLE_NAME tn, GROUP_CONCAT(CONCAT('CAST(',COLUMN_NAME,' AS CHAR)" & IIf(Not notObRlike, " RLIKE ", "=") & "''" & fI & "''') SEPARATOR ' OR ') cn FROM information_schema.COLUMNS c" & vbCrLf & _
        "LEFT JOIN information_schema.TABLES t ON c.TABLE_CATALOG=t.TABLE_CATALOG AND c.TABLE_SCHEMA=t.TABLE_SCHEMA AND c.TABLE_NAME= t.TABLE_NAME" & vbCrLf & _
        "WHERE t.table_catalog='def' AND t.table_schema='medoff' AND t.TABLE_TYPE<>'SEQUENCE' GROUP BY t.TABLE_NAME"
  rst.Open sql, MOCon, adOpenStatic, adLockReadOnly
@@ -5108,7 +5216,7 @@ Public Function suchal(fi$, Optional notObRlike%, Optional MServ$)
 '    If j = 8374 Then Stop
     For i = 0 To rsu.Fields.COUNT - 1
      If Not (IsNull(rsu.Fields(i))) Then
-      If CStr(rsu.Fields(i)) = fi Then
+      If CStr(rsu.Fields(i)) = fI Then
        Print #318, rsu.Fields(i).name
        Debug.Print rsu.Fields(i).name
       End If
@@ -5122,8 +5230,8 @@ Public Function suchal(fi$, Optional notObRlike%, Optional MServ$)
 #End If
  Close #318
  zeigan D1
- syscmd 4, "Fertig mit suchal " & fi & " " & notObRlike% & "," & MServ
- Debug.Print "Fertig mit Suchal(" & fi & "," & notObRlike & "," & MServ & ")"
+ syscmd 4, "Fertig mit suchal " & fI & " " & notObRlike% & "," & MServ
+ Debug.Print "Fertig mit Suchal(" & fI & "," & notObRlike & "," & MServ & ")"
 End Function ' suchal
 
 
@@ -5971,3 +6079,24 @@ End
 
 #End If
 
+#If claude Then
+' ============================================================
+' Hilfsfunktionen für bündige Ausgabe
+' ============================================================
+
+Private Function RightPad(s As String, nLen As Long) As String
+    If Len(s) >= nLen Then
+        RightPad = left(s, nLen)
+    Else
+        RightPad = s & Space(nLen - Len(s))
+    End If
+End Function
+
+Private Function LeftPad(s As String, nLen As Long) As String
+    If Len(s) >= nLen Then
+        LeftPad = left(s, nLen)
+    Else
+        LeftPad = Space(nLen - Len(s)) & s
+    End If
+End Function
+#End If

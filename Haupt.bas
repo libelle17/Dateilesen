@@ -457,7 +457,7 @@ Function obAutoIncr%(Tabl$, rs As ADODB.Recordset)
  On Error GoTo fehler
  If lies.obMySQL Then
 #If True Then
- Dim rsDir As New ADODB.Recordset, fi%, pi%
+ Dim rsDir As New ADODB.Recordset, fI%, pi%
  rsDir.CursorLocation = adUseServer
 ' For fi = 0 To rsDir.Fields.Count - 1
 '  For pi = 0 To rsDir.Fields(fi).Properties.Count - 1
@@ -2055,7 +2055,7 @@ Public Function HolReg(hlese As Lese)
  Else
   hlese.dlg.obMySQL = True
  End If
- #End If
+#End If
  obStart = False
 ' Call hlese.ConstrFestleg(0, hlese)
  Dim pServ$

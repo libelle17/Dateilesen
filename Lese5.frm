@@ -24,7 +24,7 @@ Begin VB.MDIForm Lese
          ItemData        =   "Lese5.frx":0614
          Left            =   13440
          List            =   "Lese5.frx":0616
-         TabIndex        =   33
+         TabIndex        =   9
          Top             =   3960
          Width           =   1075
       End
@@ -33,7 +33,7 @@ Begin VB.MDIForm Lese
          ItemData        =   "Lese5.frx":0618
          Left            =   11880
          List            =   "Lese5.frx":061A
-         TabIndex        =   31
+         TabIndex        =   7
          Top             =   3960
          Width           =   1075
       End
@@ -41,7 +41,7 @@ Begin VB.MDIForm Lese
          Caption         =   "M&O-Betrieb:"
          Height          =   375
          Left            =   10680
-         TabIndex        =   30
+         TabIndex        =   6
          Top             =   3960
          Width           =   1150
       End
@@ -50,7 +50,7 @@ Begin VB.MDIForm Lese
          ForeColor       =   &H008080FF&
          Height          =   285
          Left            =   16920
-         TabIndex        =   28
+         TabIndex        =   32
          Top             =   3960
          Width           =   1215
       End
@@ -59,7 +59,7 @@ Begin VB.MDIForm Lese
          ItemData        =   "Lese5.frx":061C
          Left            =   9000
          List            =   "Lese5.frx":061E
-         TabIndex        =   20
+         TabIndex        =   5
          Top             =   3960
          Width           =   1575
       End
@@ -68,7 +68,7 @@ Begin VB.MDIForm Lese
          ForeColor       =   &H0000FFFF&
          Height          =   285
          Left            =   0
-         TabIndex        =   25
+         TabIndex        =   34
          Top             =   4680
          Width           =   19095
       End
@@ -76,7 +76,7 @@ Begin VB.MDIForm Lese
          Caption         =   "D&MP Fortsetzen"
          Height          =   375
          Left            =   16800
-         TabIndex        =   24
+         TabIndex        =   30
          Top             =   4320
          Width           =   1455
       End
@@ -85,7 +85,7 @@ Begin VB.MDIForm Lese
          Enabled         =   0   'False
          Height          =   285
          Left            =   7080
-         TabIndex        =   23
+         TabIndex        =   4
          Top             =   3960
          Width           =   1815
       End
@@ -93,14 +93,14 @@ Begin VB.MDIForm Lese
          Caption         =   "Übertrage"
          Height          =   275
          Left            =   0
-         TabIndex        =   18
+         TabIndex        =   2
          Top             =   3960
          Width           =   855
       End
       Begin VB.TextBox QDatei 
          Height          =   285
          Left            =   840
-         TabIndex        =   19
+         TabIndex        =   3
          Top             =   3960
          Width           =   6255
       End
@@ -109,7 +109,7 @@ Begin VB.MDIForm Lese
          Left            =   15210
          ScaleHeight     =   255
          ScaleWidth      =   255
-         TabIndex        =   21
+         TabIndex        =   10
          Top             =   4350
          Width           =   315
          Begin VB.Label SBez 
@@ -117,7 +117,7 @@ Begin VB.MDIForm Lese
             Caption         =   "S"
             Height          =   225
             Left            =   30
-            TabIndex        =   22
+            TabIndex        =   29
             Top             =   30
             Width           =   195
          End
@@ -137,7 +137,7 @@ Begin VB.MDIForm Lese
          Left            =   30
          MultiLine       =   -1  'True
          ScrollBars      =   3  'Beides
-         TabIndex        =   17
+         TabIndex        =   1
          Top             =   30
          Width           =   15495
       End
@@ -145,7 +145,7 @@ Begin VB.MDIForm Lese
          Enabled         =   0   'False
          Height          =   285
          Left            =   14160
-         TabIndex        =   16
+         TabIndex        =   26
          Top             =   4320
          Width           =   975
       End
@@ -153,7 +153,7 @@ Begin VB.MDIForm Lese
          Enabled         =   0   'False
          Height          =   285
          Left            =   12600
-         TabIndex        =   14
+         TabIndex        =   24
          Top             =   4320
          Width           =   975
       End
@@ -161,7 +161,7 @@ Begin VB.MDIForm Lese
          Enabled         =   0   'False
          Height          =   285
          Left            =   10200
-         TabIndex        =   12
+         TabIndex        =   22
          Top             =   4320
          Width           =   1215
       End
@@ -178,7 +178,7 @@ Begin VB.MDIForm Lese
          Enabled         =   0   'False
          Height          =   285
          Left            =   7920
-         TabIndex        =   10
+         TabIndex        =   20
          Top             =   4320
          Width           =   975
       End
@@ -195,7 +195,7 @@ Begin VB.MDIForm Lese
          Enabled         =   0   'False
          Height          =   285
          Left            =   6720
-         TabIndex        =   8
+         TabIndex        =   18
          Top             =   4320
          Width           =   735
       End
@@ -212,7 +212,7 @@ Begin VB.MDIForm Lese
          Enabled         =   0   'False
          Height          =   285
          Left            =   4560
-         TabIndex        =   6
+         TabIndex        =   16
          Top             =   4320
          Width           =   1695
       End
@@ -220,7 +220,7 @@ Begin VB.MDIForm Lese
          Enabled         =   0   'False
          Height          =   285
          Left            =   840
-         TabIndex        =   2
+         TabIndex        =   12
          Top             =   4320
          Width           =   1095
       End
@@ -237,7 +237,7 @@ Begin VB.MDIForm Lese
          Enabled         =   0   'False
          Height          =   285
          Left            =   2760
-         TabIndex        =   4
+         TabIndex        =   14
          Top             =   4320
          Width           =   1455
       End
@@ -248,11 +248,19 @@ Begin VB.MDIForm Lese
          _ExtentY        =   847
          _Version        =   393216
       End
+      Begin VB.Label VerbInfo 
+         Caption         =   "Verbindungsinfo_wser_wres"
+         Height          =   255
+         Left            =   0
+         TabIndex        =   28
+         Top             =   5160
+         Width           =   13695
+      End
       Begin VB.Label MORes_Lbl 
          Caption         =   "&Res:"
          Height          =   275
          Left            =   13000
-         TabIndex        =   32
+         TabIndex        =   8
          Top             =   4020
          Width           =   315
       End
@@ -260,22 +268,22 @@ Begin VB.MDIForm Lese
          Caption         =   "Durschn.Dauer[s]:"
          Height          =   255
          Left            =   15600
-         TabIndex        =   29
+         TabIndex        =   33
          Top             =   3960
          Width           =   1335
       End
       Begin VB.Label Version 
          Height          =   255
          Left            =   15600
-         TabIndex        =   27
+         TabIndex        =   31
          Top             =   4320
          Width           =   1695
       End
       Begin VB.Label ConStri 
          Caption         =   "hier könnte der Connection-String stehen"
-         Height          =   975
+         Height          =   255
          Left            =   0
-         TabIndex        =   26
+         TabIndex        =   27
          Top             =   4920
          Width           =   18975
          WordWrap        =   -1  'True
@@ -284,7 +292,7 @@ Begin VB.MDIForm Lese
          Caption         =   "Ende:"
          Height          =   275
          Left            =   13680
-         TabIndex        =   15
+         TabIndex        =   25
          Top             =   4320
          Width           =   495
       End
@@ -292,7 +300,7 @@ Begin VB.MDIForm Lese
          Caption         =   "Ges'dauer vor.:"
          Height          =   275
          Left            =   11520
-         TabIndex        =   13
+         TabIndex        =   23
          Top             =   4320
          Width           =   1095
       End
@@ -300,7 +308,7 @@ Begin VB.MDIForm Lese
          Caption         =   "s bisher; Beginn:"
          Height          =   275
          Left            =   9000
-         TabIndex        =   11
+         TabIndex        =   21
          Top             =   4320
          Width           =   1215
       End
@@ -309,7 +317,7 @@ Begin VB.MDIForm Lese
          Enabled         =   0   'False
          Height          =   275
          Left            =   7560
-         TabIndex        =   9
+         TabIndex        =   19
          Top             =   4320
          Width           =   255
       End
@@ -318,7 +326,7 @@ Begin VB.MDIForm Lese
          Enabled         =   0   'False
          Height          =   275
          Left            =   6360
-         TabIndex        =   7
+         TabIndex        =   17
          Top             =   4320
          Width           =   255
       End
@@ -327,23 +335,23 @@ Begin VB.MDIForm Lese
          Enabled         =   0   'False
          Height          =   275
          Left            =   4320
-         TabIndex        =   5
+         TabIndex        =   15
          Top             =   4320
          Width           =   255
       End
       Begin VB.Label BytesBez 
          Caption         =   "&Bytes:"
-         Height          =   275
+         Height          =   270
          Left            =   2160
-         TabIndex        =   3
+         TabIndex        =   13
          Top             =   4320
-         Width           =   855
+         Width           =   495
       End
       Begin VB.Label ZeilenBez 
          Caption         =   "&Zeilen:"
          Height          =   275
          Left            =   120
-         TabIndex        =   1
+         TabIndex        =   11
          Top             =   4320
          Width           =   615
       End
@@ -1234,7 +1242,7 @@ From
 JOIN (SELECT fmemo m FROM beschein WHERE fsurogat=(SELECT fsur FROM fs WHERE rang=1)) t1 ON TRUE -- nror Programmaufruf, mit SGLT-2-Fehler
 JOIN (SELECT fmemo m FROM beschein WHERE fsurogat=(SELECT fsur FROM fs WHERE rang=2)) t2 ON TRUE -- manuell korrigiert
 JOIN (SELECT  fmemo m FROM beschein WHERE fsurogat=(SELECT fsur FROM fs WHERE rang=3)) t3 ON TRUE -- unkorrigiert
- Where nr < length(T1.m) Or nr < length(T2.m) Or nr < length(t3.m)
+ Where nr < length(t1.m) Or nr < length(t2.m) Or nr < length(t3.m)
 -- HAVING b1<>b2 OR b1<>b3
  ;
 
@@ -1525,7 +1533,7 @@ Private Sub Falsche_Benutzer_korrigieren_Click()
  If Not rsm.BOF Then
   Do While True
    If rsm!rn = 1 Then
-    pid = rsm!Pat_id
+    pid = rsm!Pat_ID
     ausw.Abbruch = 0
     ausw.Caption = pid & ": " & rsm!PName & " (" & rsm!Arzt & "), " & rsm!Zeitpunkt & " - " & rsm!mzp & ", Art: " & rsm!art & ", Ersteller/Änderer: " & rsm!erstl & ",T: " & rsm!term & " " & rsm!Tz & " " & rsm!ez
     ausw.Texte = rsm!gesinh
@@ -1592,6 +1600,11 @@ Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "Last
  Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
 End Select
 End Sub ' Falsche_Benutzer_korrigieren_Click
+
+
+Private Sub Fuß_KeyDown(KeyCode As Integer, Shift As Integer)
+ Call Key(KeyCode, Shift, Me, Me.MyDB.name)
+End Sub
 
 ' Für Übertragungen -> Haus&ärzte von MO nach Linux übertragen
 Private Sub Hausärzte_von_MO_nach_Linux_übertragen_Click()
@@ -1916,12 +1929,12 @@ Private Sub PatvonMO_Click()
  pataw.Zeilenzahl.Visible = True
  '  pNr& = 68393  ' 69618 ' 63635 ' 67180 ' 63635 ' 64800 ' 69333 ' 68316 ' 65405 ' 45 ' 64659 ' 45 ' 69367
  ' 69377 ' 53119 ' 51630 ' 105 ' 18 ' 246 ' 59152 ' 1394 ' 2112 ' 151 ' 225 '
- pataw.Pat_id.AddItem 1797
- pataw.Pat_id.AddItem 52690
- pataw.Pat_id.AddItem 51534
- pataw.Pat_id.AddItem 68393
- pataw.Pat_id.AddItem 69618
- pataw.Pat_id.AddItem 67180
+ pataw.Pat_ID.AddItem 1797
+ pataw.Pat_ID.AddItem 52690
+ pataw.Pat_ID.AddItem 51534
+ pataw.Pat_ID.AddItem 68393
+ pataw.Pat_ID.AddItem 69618
+ pataw.Pat_ID.AddItem 67180
  pataw.Show
 ' Call doPatvonMO(pNr)
 End Sub ' PatvonMO_Click
@@ -1956,7 +1969,7 @@ Private Sub do_Medpläne_alt_für_MO_exportieren_Click(Optional xmlneu%)
   Call BDT.Start(Untervz, "MP")
   Do While Not rMP.EOF
    If rMP!pRang = 1 Then
-    syscmd 4, "Exportiere Medpläne von Pat. " & rMP!Pat_id & " (" & rMP!Nachname & ", " & rMP!Vorname & ") in " & BDT.DMPImp
+    syscmd 4, "Exportiere Medpläne von Pat. " & rMP!Pat_ID & " (" & rMP!Nachname & ", " & rMP!Vorname & ") in " & BDT.DMPImp
     Call BDT.SAdd("8000", "0020", True) ' Satzart
     Call BDT.SAdd("8100", rMP!MPzl * 12 + 50) ' Satzlänge
     Call BDT.SAdd("9100", rMP!BSNR) ' Arztnummer des Absenders
@@ -2057,26 +2070,26 @@ Private Sub PiDzuord_Click()
  Do While Not rnam.EOF
   zei = zei + 1
 '  Debug.Print zei, rNam!Pat_ID
-  sql = "SELECT fsurogat FROM patstamm WHERE FNachname='" & doUmwfSQL(rnam!Nachname, False) & "' AND FVorname='" & rnam!Vorname & "' AND FGeburtsdatum=DATE(" & Format(rnam!GebDat, "yyyymmdd") & ") AND FSurogat=" & rnam!Pat_id
+  sql = "SELECT fsurogat FROM patstamm WHERE FNachname='" & doUmwfSQL(rnam!Nachname, False) & "' AND FVorname='" & rnam!Vorname & "' AND FGeburtsdatum=DATE(" & Format(rnam!GebDat, "yyyymmdd") & ") AND FSurogat=" & rnam!Pat_ID
   Call myFrag(rPS, sql, adOpenStatic, MOCon)
   If rPS.BOF Then
    sql = "SELECT fsurogat,FNachname,FVorname,FGeburtsdatum FROM patstamm WHERE FNachname='" & doUmwfSQL(rnam!Nachname, False) & "' AND FVorname='" & rnam!Vorname & "' AND FGeburtsdatum=DATE(" & Format(rnam!GebDat, "yyyymmdd") & ")"
    Call myFrag(rPS, sql, adOpenStatic, MOCon)
    If Not rPS.BOF Then
-    If rPS!fsurogat <> rnam!Pat_id Then
-     Debug.Print "Unterschied: " & rPS!fsurogat & " " & rPS!fnachname & " "; rPS!FVorname & " " & rPS!FGeburtsdatum & " <> " & rnam!Pat_id & " " & rnam!Nachname & " " & rnam!Vorname & " " & rnam!GebDat
-     DBCn.Execute "UPDATE namen SET FPatnr=" & rPS!fsurogat & " WHERE pat_id=" & rnam!Pat_id, rAf
+    If rPS!fsurogat <> rnam!Pat_ID Then
+     Debug.Print "Unterschied: " & rPS!fsurogat & " " & rPS!fnachname & " "; rPS!FVorname & " " & rPS!FGeburtsdatum & " <> " & rnam!Pat_ID & " " & rnam!Nachname & " " & rnam!Vorname & " " & rnam!GebDat
+     DBCn.Execute "UPDATE namen SET FPatnr=" & rPS!fsurogat & " WHERE pat_id=" & rnam!Pat_ID, rAf
      If rAf = 0 Then
-      Debug.Print "rAf 0 bei " & rnam!Pat_id & " vs. " & rPS!fsurogat
+      Debug.Print "rAf 0 bei " & rnam!Pat_ID & " vs. " & rPS!fsurogat
      End If
     End If
    Else
 '   Debug.Print "nicht gefunden: " & sql
    End If
   Else
-   DBCn.Execute "UPDATE namen SET FPatnr=pat_id WHERE pat_id=" & rnam!Pat_id, rAf
+   DBCn.Execute "UPDATE namen SET FPatnr=pat_id WHERE pat_id=" & rnam!Pat_ID, rAf
    If rAf = 0 Then
-    Debug.Print "rAf 0 bei " & rnam!Pat_id
+    Debug.Print "rAf 0 bei " & rnam!Pat_ID
    End If
   End If
   rnam.MoveNext
@@ -2252,7 +2265,7 @@ Private Sub Übertragung_aus_MO_Click()
   opt.erzwinge = 1
   opt.alleaktQ = False
  Else ' opt.alleaktQ then
- unts = IIf(opt.nurdiesen(0) = 0, "<=", "=") & opt.Pat_id
+ unts = IIf(opt.nurdiesen(0) = 0, "<=", "=") & opt.Pat_ID
   sql = "SELECT i.* FROM (" & vbCrLf & _
         "SELECT COUNT(0)OVER()zahl, FPatnr," & GesNamegMO & vbCrLf & _
         ",MAX(18900101+INTERVAL FDatum DAY+INTERVAL FUhrzeit SECOND)laend" & vbCrLf & _
@@ -2397,7 +2410,7 @@ Public Sub FalschAbgehakteUngueltig_Click()
  myFrag rs, "SELECT --abgehakt ab, --ungueltig ug, pat_id, b.pfad, quelldatum qd FROM `br_abgehakt` da INNER JOIN tmbrie b ON da.dokpfad = b.pfad"
  Do While Not rs.EOF
   Set rl = Nothing
-  myFrag rl, "SELECT pat_id FROM `laborneu` WHERE pat_id = " & rs!Pat_id & " AND " & SelDatum("zeitpunkt", rs!qd)
+  myFrag rl, "SELECT pat_id FROM `laborneu` WHERE pat_id = " & rs!Pat_ID & " AND " & SelDatum("zeitpunkt", rs!qd)
   If rl.EOF And rs!ug <> 1 Then
    myEFrag "UPDATE `br_abgehakt` SET ungueltig = 1 WHERE dokpfad = '" & doUmwfSQL(rs!DokPfad, lies.obMySQL) & "'", rAf
    zug = zug + rAf
@@ -2568,7 +2581,7 @@ If Not rs.BOF Then
 '   myFrag rsa, sqla
     Dim lwZahl&, aktlwx&
     Dim lab() As labtyp
-    Set rsa = hollabor(rs!Pat_id, "", 0, 0, 0, lwZahl)
+    Set rsa = hollabor(rs!Pat_ID, "", 0, 0, 0, lwZahl)
     If Not rsa.BOF And lwZahl Then
      ReDim lab(lwZahl)
      aktlwx = 0
@@ -2601,7 +2614,7 @@ If Not rs.BOF Then
       Next aktlwx
 '  sqla = "SELECT DATE(zeitpunkt) zp, IF(ISNULL(wert),IF(ISNULL(kommentar),'',kommentar),wert) Wert FROM `laborneu` ln LEFT JOIN laborkommentar lk ON ln.kommentarvw = lk.kommentarvw WHERE ((abkü IN ('ALBCRE','ALBKRE','ALBQ','ALBUM','ALBUP') AND einheit LIKE 'mg/g %') OR (abkü IN ('ALBU','ALBUMU') AND (einheit = 'mg/l' OR einheit = ''))) AND pat_id = 262 UNION SELECT DATE(u.eingang) zp, IF(ISNULL(w.wert),IF(ISNULL(w.kommentar),'',w.kommentar),w.wert) Wert FROM `laborxus` u LEFT JOIN laborxwert w ON u.refnr = w.refnr WHERE ((abkü IN ('ALBCRE','ALBKRE','ALBQ','ALBUM','ALBUP') AND einheit LIKE 'mg/g %') OR (abkü IN ('ALBU','ALBUMU') AND (einheit = 'mg/l' OR einheit = ''))) AND pat_id = 262 GROUP BY zp ORDER BY zp DESC;"
       If obNP Then
-       myEFrag ("INSERT INTO ni_abr(pat_id,DmICD,maxHbA1c,maxGluc,eGFR,npICD,niICD,pZ,nZ,gesZ,minDat,maxAlb,kasse) VALUES(" & rs!Pat_id & ",'" & rs!DmICD & "','" & REPLACE$(IIf(IsNull(rs!maxHbA1c), 0, rs!maxHbA1c), ",", ".") & "','" & REPLACE(IIf(IsNull(rs!maxGluc), "0", rs!maxGluc), ",", ".") & "','" & REPLACE(rs!eGFR, ",", ".") & "','" & IIf(IsNull(rs!npICD), "", rs!npICD) & "','" & IIf(IsNull(rs!niICD), "", rs!niICD) & "'," & pz & "," & nz & "," & gesZ & "," & Format(Zp, "YYYYMMDD") & "," & REPLACE$(maxAlb, ",", ".") & ",'" & rs!Kasse & "')")
+       myEFrag ("INSERT INTO ni_abr(pat_id,DmICD,maxHbA1c,maxGluc,eGFR,npICD,niICD,pZ,nZ,gesZ,minDat,maxAlb,kasse) VALUES(" & rs!Pat_ID & ",'" & rs!DmICD & "','" & REPLACE$(IIf(IsNull(rs!maxHbA1c), 0, rs!maxHbA1c), ",", ".") & "','" & REPLACE(IIf(IsNull(rs!maxGluc), "0", rs!maxGluc), ",", ".") & "','" & REPLACE(rs!eGFR, ",", ".") & "','" & IIf(IsNull(rs!npICD), "", rs!npICD) & "','" & IIf(IsNull(rs!niICD), "", rs!niICD) & "'," & pz & "," & nz & "," & gesZ & "," & Format(Zp, "YYYYMMDD") & "," & REPLACE$(maxAlb, ",", ".") & ",'" & rs!Kasse & "')")
       End If ' obNP
      End If ' lwzahl
     End If ' not rsa.BOF
@@ -2753,7 +2766,7 @@ Private Sub WiedereinbestellungenDMP_Click()
    Set r2 = Nothing
    ' wegen falscher Fremdlabore gestrichen: einheit = '%'
 '   r2.Open "SELECT * FROM (SELECT * FROM `labor2a` WHERE pat_id = " & r1!Pat_id & " AND abkü RLIKE '^hba[1c]' AND CAST(wert AS decimal) < 22 UNION SELECT * FROM `labor1a` WHERE pat_id = " & r1!Pat_id & " AND abkü RLIKE '^hba[1c]' AND CAST(wert AS decimal) < 22) i GROUP BY pat_id,zeitpunkt,abkü,wert,einheit,nb ORDER BY zeitpunkt DESC LIMIT 1", dbv.wCn, adOpenStatic, adLockReadOnly
-   Set r2 = hollabor(r1!Pat_id, "HBA[1C]", 0, 22)
+   Set r2 = hollabor(r1!Pat_ID, "HBA[1C]", 0, 22)
    Zp = vNS
    obDruck = True
    If Not r2.EOF Then
@@ -2762,7 +2775,7 @@ Private Sub WiedereinbestellungenDMP_Click()
    End If
    If obDruck Then
 '    AusgStr = Right$(Space$(4) & r1!Pat_id, 4) & " " & LEFT(r1!Nachname & Space$(15), 15) & " " & LEFT(r1!Vorname & Space$(11), 11) & "   " & IIf(obhierdmp(r1!Notiz), "X", " ") & " (" & LEFT(IIf(ISNULL(r1!Notiz) OR LenB(r1!Notiz) = 0, r1!rname, replace$(replace$(r1!Notiz, vbCr, ""), vbLf, "")) & ")" & Space$(42), 42) & " " & LEFT(r1!BhFB & Space$(10), 10) & " " & Zp
-    ausgStr = Right$(Space$(4) & r1!Pat_id, 4) & " " & left$(r1!Nachname & Space$(15), 15) & " " & left$(r1!Vorname & Space$(11), 11) & "   " & IIf(r1!dmpklass = hier, "X", " ") & " (" & left$(IIf(IsNull(r1!info) Or LenB(r1!info) = 0, r1!rname, REPLACE$(REPLACE$(r1!info, vbCr, ""), vbLf, "")) & ")" & Space$(42), 42) & " " & left$(r1!BhFB & Space$(10), 10) & " " & Zp
+    ausgStr = Right$(Space$(4) & r1!Pat_ID, 4) & " " & left$(r1!Nachname & Space$(15), 15) & " " & left$(r1!Vorname & Space$(11), 11) & "   " & IIf(r1!dmpklass = hier, "X", " ") & " (" & left$(IIf(IsNull(r1!info) Or LenB(r1!info) = 0, r1!rname, REPLACE$(REPLACE$(r1!info, vbCr, ""), vbLf, "")) & ")" & Space$(42), 42) & " " & left$(r1!BhFB & Space$(10), 10) & " " & Zp
 '    Debug.Print AusgStr
     Me.Ausgeb ausgStr & vbCrLf & altAusgabe, True
     Print #339, ausgStr
@@ -2882,7 +2895,7 @@ Private Sub FalscheKarteikarteneinträge_Click()
    Print #327, String$(80, "_")
    altArt = rs!art
   End If
-  Print #327, Right$(Space$(4) & rs!Pat_id, 4) & "|" & left$(rs!Zeitpunkt & Space$(19), 19) & "|" & left$(rs!art & Space$(10), 10) & "|" & left$(rs!Inhalt, 50)
+  Print #327, Right$(Space$(4) & rs!Pat_ID, 4) & "|" & left$(rs!Zeitpunkt & Space$(19), 19) & "|" & left$(rs!art & Space$(10), 10) & "|" & left$(rs!Inhalt, 50)
   rs.Move 1
  Loop
  Close #327
@@ -3035,7 +3048,7 @@ Private Sub SonderpatientenAnzeigen_Click()
  myFrag ars, "SELECT Nachname,Vorname,Pat_id FROM namen n WHERE nachname LIKE 'zutun%' OR straße LIKE 'mittermayer%13%' AND nachname<>'Kreitmeier' ORDER BY nachname,vorname"
  If Not ars.BOF Then
   Do While Not ars.EOF
-   spa.List1.AddItem ars!Nachname & ", " & ars!Vorname & "  (" & ars!Pat_id & ")"
+   spa.List1.AddItem ars!Nachname & ", " & ars!Vorname & "  (" & ars!Pat_ID & ")"
    ars.MoveNext
   Loop
  End If ' Not rs.BOF Then
@@ -3215,10 +3228,10 @@ w1:
     StammVZ$ = pVerz & "dok\"
     Dim Name1, laend As Date, vdoku%
     vdoku = 0
-    Name1 = Dir(StammVZ & rdh!Pat_id & "\*dmp*doku*")   ' Ersten Eintrag abrufen.
+    Name1 = Dir(StammVZ & rdh!Pat_ID & "\*dmp*doku*")   ' Ersten Eintrag abrufen.
     Do While Name1 <> ""   ' Schleife beginnen.
       If InStrB(Name1, "fehlen") = 0 Then
-         laend = FileDateTime(StammVZ & rdh!Pat_id & "\" & Name1)
+         laend = FileDateTime(StammVZ & rdh!Pat_ID & "\" & Name1)
          If laend > aktQAnf(CLng(Verspätung)) Then vdoku = 1: Exit Do
       End If
       Name1 = Dir   ' Nächsten Eintrag abrufen.
@@ -3235,7 +3248,7 @@ End Sub ' Kontrolllisten_für_DMP_HA_Click
 
 ' ...für Arzt -> Unverwertbare DMP-Einträge
 Private Sub UnverwertbareDMPEinträge_Click() ' Unverwertbare DMP-Einträge
- Dim rs As New ADODB.Recordset, rez As New ADODB.Recordset, Pat_id&, ausgStr$, TA1$, STA1$(), i&
+ Dim rs As New ADODB.Recordset, rez As New ADODB.Recordset, Pat_ID&, ausgStr$, TA1$, STA1$(), i&
  Dim SpMin%(2)
  SpMin%(0) = 6
  Call ProgStart
@@ -3424,9 +3437,9 @@ End Sub ' BriefSchreiben_Click
 ' ...für Arzt -> "Bief nochmal"
 Private Sub Briefnochmal_Click()
  Call ProgStart
- If Me.pataw.Pat_id = "" Then Me.pataw.Pat_id = 681
+ If Me.pataw.Pat_ID = "" Then Me.pataw.Pat_ID = 681
  Lese.Aktion = Briefschreiben
- Call tuBriefStandalone(Me.pataw.Pat_id, 0, "", "", "", , 0, True, True)
+ Call tuBriefStandalone(Me.pataw.Pat_ID, 0, "", "", "", , 0, True, True)
 ' Aktion = nix
  Call ProgEnde
 End Sub ' Briefnochmal_Click
@@ -3463,7 +3476,7 @@ Private Sub NachzuholendeLaborimporte_Click()
  If Not rs.BOF Then
   lfdnr = 1
   Do While Not rs.EOF
-   Print #301, Right$("   " & lfdnr, 3) & ": Pat: " & Right$("   " & rs!Pat_id, 4) & " Auftrag: " & Right$("       " & rs!Auftragsnummer, 11) & " " & rs!Eingang & " " & IIf(Len(rs!Pfad) < 50, Right$(Space$(50) & rs!Pfad, 50), rs!Pfad) & " (Pat: " & rs!Nachname & ", " & rs!Vorname & " Werte: " & Trim$(rs!LWerte) & ")"
+   Print #301, Right$("   " & lfdnr, 3) & ": Pat: " & Right$("   " & rs!Pat_ID, 4) & " Auftrag: " & Right$("       " & rs!Auftragsnummer, 11) & " " & rs!Eingang & " " & IIf(Len(rs!Pfad) < 50, Right$(Space$(50) & rs!Pfad, 50), rs!Pfad) & " (Pat: " & rs!Nachname & ", " & rs!Vorname & " Werte: " & Trim$(rs!LWerte) & ")"
 '   Print #301, lfdnr & ": Pat: " & rs!Pat_id & " (" & rs!Nachname & ", " & rs!Vorname & "), für: " & rs!Eingang & ", Auftragsnummer: " & rs!Auftragsnummer & " (Werte: " & rs!LWerte & ")"
 '   Print #301, "   dann importieren: " & rs!Pfad
    lfdnr = lfdnr + 1
@@ -3575,14 +3588,14 @@ End Sub ' Faxe_gescheitert_Click
 
 ' ...für Arzt -> Pat. löschen
 Private Sub Pat_loeschen_Click()
- Dim Pat_id&, erg&
- Pat_id = InputBox("Welchen Patienten wollen Sie löschen?")
+ Dim Pat_ID&, erg&
+ Pat_ID = InputBox("Welchen Patienten wollen Sie löschen?")
  Dim rsPat As New ADODB.Recordset
- myFrag rsPat, "SELECT gesname(" & Pat_id & ")"
+ myFrag rsPat, "SELECT gesname(" & Pat_ID & ")"
  If Not rsPat.BOF() Then
-  erg = MsgBox("Wollen Sie wirklich den Patienten `" & Pat_id & " (" & rsPat.Fields(0) & ")` löschen?", vbYesNo)
+  erg = MsgBox("Wollen Sie wirklich den Patienten `" & Pat_ID & " (" & rsPat.Fields(0) & ")` löschen?", vbYesNo)
   If erg = vbYes Then
-   Call LöschePat(Pat_id, True)
+   Call LöschePat(Pat_ID, True)
   End If ' erg = vbYes
  End If ' Not rsPat.BOF() Then
 End Sub ' Pat_loeschen_Click
@@ -3608,7 +3621,7 @@ Private Sub PLZfuerMedikament_Click()
   myFrag rs, "SELECT DISTINCT pat_id FROM medplan WHERE medikament LIKE '" & Med & "%' ORDER BY pat_id DESC"
   If Not rs.BOF Then
    Do While Not rs.EOF
-    dodoplz rs!Pat_id, plzVz
+    dodoplz rs!Pat_ID, plzVz
     rs.MoveNext
    Loop
   End If
@@ -3634,7 +3647,7 @@ Private Sub DoppelteDiagnosen_Click()
  i = 0
  Do While Not rs.EOF
   i = i + 1
-  Print #327, Right$("    " & i, 4) & " " & left$(rs!ct & "  ", 2) & " " & Right$("     " & rs!Pat_id, 5) & " " & left$(rs!gesName & Space$(30), 30) & " " & left$(rs!ICD & "      ", 6) & " " & rs!SI & " " & rs!SE & " " & left$(rs!tx & Space$(50), 50)
+  Print #327, Right$("    " & i, 4) & " " & left$(rs!ct & "  ", 2) & " " & Right$("     " & rs!Pat_ID, 5) & " " & left$(rs!gesName & Space$(30), 30) & " " & left$(rs!ICD & "      ", 6) & " " & rs!SI & " " & rs!SE & " " & left$(rs!tx & Space$(50), 50)
   rs.Move 1
  Loop
  Print #327, "Fertig!"
@@ -3896,7 +3909,7 @@ End Sub ' GestationsdiabetikerinnenProQuartal_Click
 ' Statistik -> Gestationsdiabetikerinnen
 Private Sub Gestationsdiabetikerinnen_Click()
 ' SELECT f.pat_id,f.fid, LEFT(CONCAT(a.nachname,' ',a.vorname),20) AS name, DATE_FORMAT(a.gebdat,'%d.%m.%y') AS geb, d.icd, d.diagsicherheit AS dsi, diabetestyp FROM `aktfvs` f LEFT JOIN `diagnosen` d ON f.fid = d.fid AND icd = 'O24.4' AND diagsicherheit NOT IN ('A','Z') LEFT JOIN `anamnesebogen` a ON f.pat_id = a.pat_id WHERE (NOT ISNULL(icd) OR a.diabetestyp = 'g');
- Dim rs As New ADODB.Recordset, rez As New ADODB.Recordset, Pat_id&, ausgStr$, TA1$, STA1$(), i&
+ Dim rs As New ADODB.Recordset, rez As New ADODB.Recordset, Pat_ID&, ausgStr$, TA1$, STA1$(), i&
  Dim SpMin%(2)
  SpMin%(0) = 6
  Call ProgStart
@@ -3940,7 +3953,7 @@ Private Sub PLZausListe_Click()
   If Not rs.BOF Then
    Do While Not rs.EOF
     Zahl = Zahl + 1
-    dodoplz rs!Pat_id, plzVz, , , , rs!T1Zp & " - " & rs!T2Zp & " (gs " & rs!gsz & ", tk " & rs!Tkz & ")", 0
+    dodoplz rs!Pat_ID, plzVz, , , , rs!T1Zp & " - " & rs!T2Zp & " (gs " & rs!gsz & ", tk " & rs!Tkz & ")", 0
     rs.MoveNext
    Loop
   End If
@@ -3986,11 +3999,11 @@ End Sub ' TherapieartenfürallePatientenzusammenfestlegen_Click()
 
 ' für Arzt -> Therapiearten festlegen -> Therapiearten für alle festlegen (einen nach dem anderen)
 Private Sub Therapieartenfürallefestlegeneinernachdemanderen_Click()
- Dim rs As New ADODB.Recordset, sql$, altpat_id&, altTherArt$, rAf&, erg&, T1!, T2!
+ Dim rs As New ADODB.Recordset, sql$, altpat_id&, altTherArt$, rAf&, erg&, t1!, t2!
  Call ProgStart
  erg = MsgBox("Mit Neuauswertung der Therapiearten?", vbYesNo + vbQuestion + vbDefaultButton2, "Rückfrage")
  If erg = vbYes Then
-  T1 = Timer
+  t1 = Timer
   Ausgeb "Bitte warten", 0
 '  myEFrag "CREATE TABLE IF NOT EXISTS `therarten`(id integer key auto_increment,pat_id integer, zp datetime, mpnr integer, therart varchar(7), index pat_id(pat_id))", rAF
   myEFrag "CREATE TABLE IF NOT EXISTS `therarten`(id INT(11) NOT NULL KEY AUTO_INCREMENT,pat_id INT(11) NULL DEFAULT NULL,zp DATETIME NULL DEFAULT NULL,mpnr INT(11) NULL DEFAULT NULL,therart VARCHAR(7) NULL DEFAULT NULL COLLATE 'utf8mb4_german2_ci',insart INT(1) UNSIGNED NOT NULL DEFAULT '0' COMMENT '\'0=keines, 1=nur Mahlzeiten,2=nur Verzögerungs,3=nur Misch, 4=verschiedene',Grund VARCHAR(1000) NULL DEFAULT NULL COMMENT 'Grund/Gründe für Zuordnung' COLLATE 'utf8mb4_german2_ci',absPos INT(10) NULL DEFAULT NULL,AktZeit DATETIME NULL DEFAULT NULL,StByte INT(10) NULL DEFAULT NULL,INDEX pat_id (pat_id) USING BTREE,INDEX zp (zp,mpnr) USING BTREE) COLLATE='utf8mb4_german2_ci' ENGINE = MyISAM"
@@ -4012,16 +4025,16 @@ Private Sub Therapieartenfürallefestlegeneinernachdemanderen_Click()
         "FROM `medplan` mpü GROUP BY mpü.pat_id, mpü.mpnr, mpü.zeitpunkt) i"
   myFrag rs, sql
   Do While Not rs.EOF
-   If rs!Pat_id <> altpat_id Or rs!therart <> altTherArt Then
-    InsKorr DBCn, "INSERT INTO `therarten`(pat_id,zp,mpnr,therart) VALUES(" & rs!Pat_id & "," & DatFor_k(rs!Zp) & "," & rs!MPNr & ",'" & rs!therart & "')", rAf
-    altpat_id = rs!Pat_id
+   If rs!Pat_ID <> altpat_id Or rs!therart <> altTherArt Then
+    InsKorr DBCn, "INSERT INTO `therarten`(pat_id,zp,mpnr,therart) VALUES(" & rs!Pat_ID & "," & DatFor_k(rs!Zp) & "," & rs!MPNr & ",'" & rs!therart & "')", rAf
+    altpat_id = rs!Pat_ID
     altTherArt = rs!therart
    End If
    rs.Move 1
   Loop
 #End If
-  T2 = Timer
-  Ausgeb "Fertig mit Auffüllen der Tabelle Therapiearten, " & CStr(T2 - T1) & " Sekunden", True, True
+  t2 = Timer
+  Ausgeb "Fertig mit Auffüllen der Tabelle Therapiearten, " & CStr(t2 - t1) & " Sekunden", True, True
  End If ' erg=vbYes
  Set rs = Nothing
 ' ' LEFT JOIN `diagnosen` d ON f.pat_id = d.pat_id AND icd REGEXP '^E1[0-4]' AND diagsicherheit <> 'A'
@@ -4150,7 +4163,7 @@ End Sub ' Quartalsvergleich_Click
 ' künftig ähnlich:
 ' SELECT gesname(th.pat_id) Name, th.Pat_id, DATE_FORMAT(th.zp,'%d.%m.%Y') CSII_hier_seit, (SELECT DATE_FORMAT(MAX(bhfb),'%d.%m.%Y') FROM faelle f WHERE f.pat_id= th.pat_id) BhFB FROM therarten th LEFT JOIN anamnesebogen a ON th.pat_id = a.pat_id WHERE therart = 'CSII' AND zp = (SELECT MAX(zp) FROM therarten t WHERE t.pat_id = th.pat_id) AND tkz=0;
 Private Sub Pumpenträgerliste_Click() ' s. therart_erm
- Dim rs As New ADODB.Recordset, rez As New ADODB.Recordset, Pat_id&, ausgStr$, datnam$, TA1$, STA1$(), i&
+ Dim rs As New ADODB.Recordset, rez As New ADODB.Recordset, Pat_ID&, ausgStr$, datnam$, TA1$, STA1$(), i&
  Dim SpMin%(2)
  SpMin%(0) = 6
  Call ProgStart
@@ -4167,11 +4180,11 @@ Private Sub Pumpenträgerliste_Click() ' s. therart_erm
  Do While Not rs.EOF
  ' pumpentr
   Set rez = Nothing
-  Pat_id = rs!Pat_id
+  Pat_ID = rs!Pat_ID
   ' ,'txtmedKey'
   sql = forminhalt & " WHERE form_abk IN ('lar','plar') AND feld IN ('medikament','txtmedKey') AND " & _
         "(feldinh LIKE '%reservoir% OR feldinh LIKE '%Rapid D Link%' OR feldinh LIKE '%Rap D Li%' OR feldinh LIKE '%Rapid-D Li%' OR feldinh LIKE '%TenderL%' OR feldinh LIKE '%FlexL%' OR feldinh LIKE '%Check Spirit%' OR feldinh LIKE '%Insight%' OR feldinh LIKE '%Chek Spirit%' OR feldinh LIKE '%Pumpenträg%' OR feldinh LIKE '%Kunststoffampu%' OR feldinh LIKE '%Spritzampull%' OR feldinh LIKE '%batteriefachdeckel%' OR feldinh LIKE '%H-Tron%' OR feldinh LIKE '%D-Tron%' OR feldinh LIKE '%Paradigm%' OR feldinh LIKE '%CSII%' OR feldinh LIKE '%linpumpe%' OR feldinh LIKE '%omnipod%' OR feldinh LIKE '%ypso pump%' OR feldinh LIKE '%MiniMed%' OR feldinh LIKE '%640G%' OR feldinh LIKE '%CareLink%' OR Feldinh LIKE '%Mio %' OR feldinh LIKE '%Quick%set%' OR feldinh LIKE '%Silhouette%' OR feldinh LIKE '%Sure-T%' OR feldinh LIKE '%Sure T%' OR feldinh LIKE '%Paradigm%' OR feldinh LIKE '% Veo%' OR feldinh LIKE '%Animas%' OR feldinh LIKE '%Car%idge%') AND NOT feldinh LIKE  AND NOT feldinh LIKE '%menveo%'" & _
-        "AND zeitpunkt > " & DatFor_k(rs!BhFB - 640) & " AND pat_id = " & Pat_id & " ORDER BY zeitpunkt DESC LIMIT 10"
+        "AND zeitpunkt > " & DatFor_k(rs!BhFB - 640) & " AND pat_id = " & Pat_ID & " ORDER BY zeitpunkt DESC LIMIT 10"
   myFrag rez, "SELECT Pat_ID, Zeitpunkt, Feldinh FROM (" & sql & ") i"
   Print #326, STA1(i)
   Print #326, TabAusgeb(rEinl:=rez, AusgebFrm:=Me, obMitausgeb:=False, ohneKopfZ:=True, SpMinÜ:=SpMin).Value
@@ -4390,7 +4403,7 @@ Private Sub TherapieartenEinzelübervb6Festlegen_Click() ' Therapiearten festlege
  Do While Not rsAna.EOF
   aktzahl = aktzahl + 1
 '  Call TherapieArtEinzelnFestlegen(rsAna!Pat_id, rsAna)
-  Call rufThFestleg(rsAna!Pat_id, " (" & aktzahl & "/" & patzahl & ")")
+  Call rufThFestleg(rsAna!Pat_ID, " (" & aktzahl & "/" & patzahl & ")")
   rsAna.Move 1
  Loop
  Ausgeb "Fertig mit Festlegen der Therapiearten", True
@@ -4630,7 +4643,7 @@ End Sub ' ViewsErstellen_Click()
 
 ' EDV -> Falsche Dokumente
 Private Sub FalscheDokumente_Click()
- Dim sql$, rs As New ADODB.Recordset, erg$(), dokn$, dokr$, i%, rs2 As New ADODB.Recordset, Pat_id&
+ Dim sql$, rs As New ADODB.Recordset, erg$(), dokn$, dokr$, i%, rs2 As New ADODB.Recordset, Pat_ID&
  sql = "SELECT d.pat_id, name FROM tmbrie b LEFT JOIN namen n ON b.pat_id = n.pat_id LIMIT 10000"
  myFrag rs, sql
  Do While Not rs.EOF
@@ -4641,11 +4654,11 @@ Private Sub FalscheDokumente_Click()
   Next
   SplitNeu dokr, " ", erg
   If UBound(erg) > 1 Then
-   Pat_id = rs!Pat_id
+   Pat_ID = rs!Pat_ID
    Set rs2 = Nothing
-   myFrag rs2, "SELECT * FROM namen WHERE nachname = "" & erg(0) & "" AND vorname = "" & erg(1) & "" AND pat_id <> " & Pat_id
+   myFrag rs2, "SELECT * FROM namen WHERE nachname = "" & erg(0) & "" AND vorname = "" & erg(1) & "" AND pat_id <> " & Pat_ID
    If Not rs2.EOF() Then
-    Debug.Print rs2!Pat_id, erg(0), erg(1), Pat_id, rs!DokName
+    Debug.Print rs2!Pat_ID, erg(0), erg(1), Pat_ID, rs!DokName
    End If
   End If
   rs.MoveNext
@@ -4744,8 +4757,8 @@ Private Sub DokumenteAbgehaktPrüfen_Click()
    eDat = GetDatumAusString(rs!name)
 '   Debug.Print eDat & ", " & rs!DokName
    If eDat = 0 Then
-    Debug.Print n, rs!Pat_id, rs!Zeitpunkt, rs!name
-    Print #7, n, rs!Pat_id, rs!Zeitpunkt, rs!name
+    Debug.Print n, rs!Pat_ID, rs!Zeitpunkt, rs!name
+    Print #7, n, rs!Pat_ID, rs!Zeitpunkt, rs!name
     n = n + 1
    Else
     n1 = n1 + 1
@@ -4828,12 +4841,12 @@ Private Sub harealNeu_Click() ' `hareal` neu aufbauen
 '  Call getHausarztAlt(rs!pat_id, Infos, True)
   Dim rFa() As Faelle
   Dim rKv1() As kvnrue
-  Call getHausarzt1(infos, rFa, rKv1, , rs!Pat_id, , , "harealNeu")
+  Call getHausarzt1(infos, rFa, rKv1, , rs!Pat_ID, , , "harealNeu")
   If LenB(infos(12, 0)) <> 0 Then
    For i = 0 To UBound(infos, 2)
 '    IF Infos(4, i) = "08131-85028" THEN Stop
     If i < 3 Then
-     myEFrag "UPDATE `namen` SET getha" & CStr(i) & " = " & IIf(infos(12, i) = vNS, 0, infos(12, i)) & ", fnHA" & CStr(i) & " = '" & IIf(infos(10, i) = vNS, 0, infos(10, i)) & "' WHERE pat_id = " & rs!Pat_id, rAf
+     myEFrag "UPDATE `namen` SET getha" & CStr(i) & " = " & IIf(infos(12, i) = vNS, 0, infos(12, i)) & ", fnHA" & CStr(i) & " = '" & IIf(infos(10, i) = vNS, 0, infos(10, i)) & "' WHERE pat_id = " & rs!Pat_ID, rAf
     End If
 '    IF False THEN
      If infos(12, i) <> vNS Then
@@ -4847,7 +4860,7 @@ Private Sub harealNeu_Click() ' `hareal` neu aufbauen
       End If
 '     END IF
     End If
-    Lese.Ausgeb "Pat_id: " & rs!Pat_id & ": geändert: " & rAf, False, True
+    Lese.Ausgeb "Pat_id: " & rs!Pat_ID & ": geändert: " & rAf, False, True
    Next i
   End If
   rs.Move 1
@@ -4960,7 +4973,7 @@ Private Sub CallUSDM_Click()
  ReDim rNa(0)
  erg = InputBox("Bitte Patientenummer eingeben!")
  If Not IsNumeric(erg) Then Exit Sub
- rNa(0).Pat_id = erg
+ rNa(0).Pat_ID = erg
  Call usdmAlt(True)
  Call ProgEnde
 End Sub ' CallUSDM_Click
@@ -5064,7 +5077,7 @@ Private Sub Gewichte_Click()
  sql = "SELECT * FROM eintraege WHERE lower(art) = 'gewicht'"
  myFrag rs, sql
  Do While Not rs.EOF
-  sql = "INSERT INTO `gewicht`(FID,Pat_ID,ZeitPunkt,Gewicht,absPos,AktZeit,QS,QT,StByte,inhNum) VALUES(" & rs!FID & "," & rs!Pat_id & "," & Format(rs!Zeitpunkt, "yyyymmddHHMMSS") & "," & REPLACE(MachNumerisch(rs!Inhalt, 0), ",", ".") & "," & rs!absPos & "," & Format(rs!aktZeit, "yyyymmddHHMMSS") & ",'" & rs!QS & "','" & rs!QT & "'," & rs!StByte & "," & rs!inhNum & ")"
+  sql = "INSERT INTO `gewicht`(FID,Pat_ID,ZeitPunkt,Gewicht,absPos,AktZeit,QS,QT,StByte,inhNum) VALUES(" & rs!FID & "," & rs!Pat_ID & "," & Format(rs!Zeitpunkt, "yyyymmddHHMMSS") & "," & REPLACE(MachNumerisch(rs!Inhalt, 0), ",", ".") & "," & rs!absPos & "," & Format(rs!aktZeit, "yyyymmddHHMMSS") & ",'" & rs!QS & "','" & rs!QT & "'," & rs!StByte & "," & rs!inhNum & ")"
   myEFrag sql, rAf
   rs.Move 1
  Loop
@@ -5728,9 +5741,9 @@ Sub machODBCMy()
 End Sub ' machODBCMy
 
 ' in los
-Public Sub ZeigGefaxteAn(Pat_id&, Optional PatName$)
+Public Sub ZeigGefaxteAn(Pat_ID&, Optional PatName$)
  Dim rs As New ADODB.Recordset
- myFrag rs, "SELECT transe `Übertragungsende`, docname `Dokumentname`, RCFax, pages `Seiten`, fsize `Größe`,Retries FROM `faxeinp`.`outa` o WHERE docname LIKE '%PID " & Pat_id & "%' ORDER BY transe DESC"
+ myFrag rs, "SELECT transe `Übertragungsende`, docname `Dokumentname`, RCFax, pages `Seiten`, fsize `Größe`,Retries FROM `faxeinp`.`outa` o WHERE docname LIKE '%PID " & Pat_ID & "%' ORDER BY transe DESC"
  TabAusgeb rs, Me, True, , , , , , vNS
  Me.Ausgeb "Gefaxt wurden an: " & PatName, 1
 End Sub 'ZeitGefaxteAn
@@ -5738,7 +5751,7 @@ End Sub 'ZeitGefaxteAn
 ' aufgerufen in patauswahl: Sub OKButton_Click()
 Public Sub los()
  Dim zzn%
- If IsNumeric(Me.pataw.Pat_id) Then
+ If IsNumeric(Me.pataw.Pat_ID) Then
   Select Case Aktion
    Case GefaxteAnzeigen
     Call ZeigGefaxteAn(Me.pataw.PatID, Me.pataw.PatName)
@@ -5752,11 +5765,11 @@ Public Sub los()
      If IsNumeric(Me.pataw.Zeilenzahl) Then zzn = CInt(Me.pataw.Zeilenzahl)
     Call dodoplz(Me.pataw.PatID, plzVz, Now, Now - Int(Now), True, "", zzn, obRueck)
    Case DMPZettel
-    Call einDMP(Me.pataw.Pat_id)
+    Call einDMP(Me.pataw.Pat_ID)
    Case Anwalt
-    Call doAnwalt(Me.pataw.Pat_id)
+    Call doAnwalt(Me.pataw.Pat_ID)
    Case PatvonMO
-    Call doPatvonMO(Me.pataw.Pat_id)
+    Call doPatvonMO(Me.pataw.Pat_ID)
   End Select ' Case Aktion
  End If ' IsNumeric(Me.pataw.Pat_ID) Then
 End Sub ' los
@@ -5771,7 +5784,7 @@ Private Sub DMPForts_Click()
  ausw.Find "pat_id = " & lDMPPat_id, , adSearchBackward, 1
  If Not ausw.EOF Then
   ausw.Move 1
-  Call doCallDMP(ausw!Pat_id)
+  Call doCallDMP(ausw!Pat_ID)
  End If
 End Sub ' DMPForts_Click
 
@@ -5792,7 +5805,7 @@ Public Sub doCallDMP(ByVal pid&)
  Dim dmpstD$, erg$, DT As DMPClass ' Dateiname
  Dim rsNa As New ADODB.Recordset
  ReDim rNa(0)
- rNa(0).Pat_id = pid
+ rNa(0).Pat_ID = pid
  myFrag rsNa, "SELECT * FROM `namen` WHERE pat_id = " & pid
  If Not rsNa.BOF And Not IsNull(rsNa!Nachname) And Not IsNull(rsNa!Vorname) Then
   dmpstD = GesNamFn(rsNa) & " (" & pid & ") "
@@ -5800,7 +5813,7 @@ Public Sub doCallDMP(ByVal pid&)
   dmpstD = pVerz & "DmpString "
  End If
  rsNa.Close
- erg = DMPString$(rNa(0).Pat_id, DT)
+ erg = DMPString$(rNa(0).Pat_ID, DT)
  If lies.obMySQL Then
   dmpstD = dmpstD & Me.MyDB
 #If mitacc Then
@@ -5958,7 +5971,6 @@ End Sub
 Private Sub GesDauer_KeyDown(KeyCode As Integer, Shift As Integer)
  Call Key(KeyCode, Shift, Me)
 End Sub
-
 
 Private Sub nachCd_KeyDown(KeyCode As Integer, Shift As Integer)
  Call Key(KeyCode, Shift, Me)
@@ -6429,7 +6441,7 @@ Private Sub mdiForm_Load()
 ' DBCn.Execute ("commit")
 ' DBCn.Close
  
- Call mdiForm_Resize
+' Call mdiForm_Resize
  imAufbauLese = False
  Call AbbrechDisable(Me)
  With Me
@@ -6538,7 +6550,7 @@ Public Function ProgStart()
  If LenB(DBCnS) = 0 Then ' DBCn.ConnectionString
   syscmd 4, "ProgStart"
   BrichAb = 0
-  T1 = Now
+  t1 = Now
   Me.Controls!Abbrechen.Enabled = True
 ' Me.Controls!Beenden.Enabled = False
   Call BeendenBlend(False)
@@ -6572,7 +6584,7 @@ Private Sub mdiForm_Resize()
  On Error Resume Next
  With Me
  Picture1.Height = .Height - 5745 + 5055
- Ausgabe.Height = .Height - 5745 + 4250 - .Fuß.Height - .ConStri.Height
+ Ausgabe.Height = .Height - .Fuß.Height - .ConStri.Height - .VerbInfo.Height - 1670
  .ÜbertrageCd.top = .Ausgabe.top + .Ausgabe.Height + 40
  .DMPForts.top = .ÜbertrageCd.top
  .QDatei.top = .ÜbertrageCd.top
@@ -6586,7 +6598,7 @@ Private Sub mdiForm_Resize()
  .obAcc.top = .ÜbertrageCd.top
  .Ziel.top = .ÜbertrageCd.top
 #End If ' mitacc
- .ZeilenBez.top = .Height - 5745 + 4645 - .Fuß.Height - .ConStri.Height
+ .ZeilenBez.top = .ÜbertrageCd.top + .ÜbertrageCd.Height + 40 ' .Height - 5745 + 4645 - .Fuß.Height - .ConStri.Height
  .Zeilen.top = .ZeilenBez.top
  .BytesBez.top = .ZeilenBez.top + 20
  .Bytes.top = .ZeilenBez.top
@@ -6607,8 +6619,33 @@ Private Sub mdiForm_Resize()
  .MyDB.top = .ÜbertrageCd.top
  .GesamtDauerBez.top = .ZeilenBez.top + 20
  .GesDauer.top = .ZeilenBez.top
- .Fuß.top = Picture1.Height - .Fuß.Height - .ConStri.Height
- .ConStri.top = .Fuß.top + .Fuß.Height
+ .ConStri.top = .ZeilenBez.top + .ZeilenBez.Height + 40 ' Picture1.Height - .Fuß.Height - .ConStri.Height
+ .VerbInfo.top = .ConStri.top + .ConStri.Height + 20
+ .Fuß.top = .VerbInfo.top + .VerbInfo.Height + 20
+ Dim vorsys$
+ vorsys = .Fuß
+ Dim MOCor As New ADODB.Connection, mosers$, moress$
+ Dim zpms As Date, zpmr As Date, bc&
+ bc = vbInactiveBorder
+ Call MOConInit(, "(in Holreg)")
+ If MOCon.State Then
+  zpms = myEFrag("SELECT 18900101+INTERVAL fdatum DAY+INTERVAL fuhrzeit SECOND zp FROM dbsprot ORDER BY FSurogat DESC LIMIT 1", , MOCon)!Zp
+  mosers = Format(zpms, "dd.mm.yy hh:mm:ss") & ""
+ Else
+  bc = vbRed
+ End If
+ syscmd 4, "Stelle Verbindung zu " & MORes & " her ..."
+ MOCor.Open MOAnfStr & MORes
+ If MOCor.State Then
+  zpmr = myEFrag("SELECT 18900101+INTERVAL fdatum DAY+INTERVAL fuhrzeit SECOND zp FROM dbsprot ORDER BY FSurogat DESC LIMIT 1", , MOCor)!Zp
+  moress = Format(zpmr, "dd.mm.yy hh:mm:ss") & ""
+ Else
+  bc = vbRed
+ End If
+ If bc <> vbRed Then If Abs(DateDiff("s", moress, mosers)) > 600 Then bc = vbRed
+ VerbInfo = "Letzte Einträge: " & MOServer & ": " & mosers & ", " & MORes & ": " & moress
+ VerbInfo.BackColor = bc
+ .Fuß = vorsys
  End With
 End Sub ' MDIForm_Resize
 
