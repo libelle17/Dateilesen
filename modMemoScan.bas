@@ -1,6 +1,7 @@
 Attribute VB_Name = "modMemoScan"
 Option Explicit
-
+#Const claude = True ' auch in : vonMo
+#If claude Then
 Private Declare Sub CopyMemory Lib "kernel32" Alias "RtlMoveMemory" _
     (Destination As Any, Source As Any, ByVal Length As Long)
 
@@ -50,11 +51,7 @@ End Function
 ' ============================================================
 Public Sub MemoScanToList(aFld() As TMemoFeld, _
                           EinL As SortierListe, _
-                          i233 As Integer)
-    Dim nCount      As Long
-    If SafeArrayGetDim(aFld) = 0 Then Exit Sub
-    nCount = UBound(aFld) + 1
-
+                          i233 As Integer)   ' NEU
     Dim i           As Long
     Dim lCurGrp     As Long
     Dim lGrpNr      As Long
@@ -75,11 +72,17 @@ Public Sub MemoScanToList(aFld() As TMemoFeld, _
     Dim bP          As Boolean
     Dim ii          As Long
     Dim igrp        As Long
+    Dim nCount      As Long
+    Dim sPrevAID As String   ' für bAIDVorne=False
+    sPrevAID = ""
+    
+    If SafeArrayGetDim(aFld) = 0 Then Exit Sub
+    nCount = UBound(aFld) + 1
 
     lCurGrp = -1
     lGrpNr = 0
-
-    If i233 > 0 Then
+    If i233 Then
+        Open "v:\mempars " & i233 & ".txt" For Output As #i233
         For igrp = 0 To nCount - 1
             Print #i233, _
                 IIf(aFld(igrp).sTyp = "AID", vbCrLf, "") & _
@@ -114,30 +117,25 @@ Public Sub MemoScanToList(aFld() As TMemoFeld, _
     End If
 
     For i = 0 To nCount
-
         Dim lThisGrp As Long
         If i < nCount Then
             lThisGrp = aFld(i).lGrp
         Else
             lThisGrp = lCurGrp + 1
         End If
-
         If lThisGrp <> lCurGrp And lCurGrp >= 0 Then
-
             If Not bNameFound Then bVerwendung = True
-
             If sAIDNr <> "" Or sName <> "" Or sIKür <> "" Then
                 Dim EintS As SortierEintr
                 Set EintS = New SortierEintr
-                EintS.TypNr = sAIDNr
+                EintS.TypNr = sPrevAID
                 EintS.IKür = sIKür
                 EintS.EKür = sEKür
                 EintS.name = sName
                 EintS.aKür = saKür
                 EintS.TKür = sTKür
                 EinL.sCAdd EintS
-
-                If i233 > 0 Then
+                If i233 Then
                     Print #i233, _
                         LeftPad(CStr(lGrpNr), 6) & "  " & _
                         RightPad(sAIDNr, 7) & "  " & _
@@ -151,7 +149,8 @@ Public Sub MemoScanToList(aFld() As TMemoFeld, _
                         IIf(bVerwendung, "ja", "nein")
                 End If
             End If
-
+            sPrevAID = sAIDNr   ' für nächste Gruppe merken
+            ' Reset
             sAIDNr = ""
             sIKür = ""
             sEKür = ""
@@ -172,25 +171,20 @@ Public Sub MemoScanToList(aFld() As TMemoFeld, _
         lCurGrp = lThisGrp
 
         Select Case aFld(i).sTyp
-
             Case "AID"
                 sAIDNr = aFld(i).sWert
-
             Case "FLG"
                 bFlgSeen = True
-
             Case "TYP"
                 bHatText = True
                 If Not bNameFound And bFlgSeen Then
                     bTypNachFlg = True
                 End If
-
             Case "TXT"
                 Dim bIsSub  As Boolean
                 Dim bIsName As Boolean
                 bIsSub = (InStr(aFld(i).sENr, ".") > 0)
                 bIsName = IsNameTxt(aFld(i).sWert, bFlgSeen, bIsSub)
-
                 If bIsName Then
                     If Not bNameFound Then
                         sName = aFld(i).sWert
@@ -212,7 +206,6 @@ Public Sub MemoScanToList(aFld() As TMemoFeld, _
                         End Select
                     End If
                 End If
-
             Case "NUM"
                 lT = CLng(aFld(i).sWert)
                 If lT >= 32 And lT <= 127 Then
@@ -237,13 +230,11 @@ Public Sub MemoScanToList(aFld() As TMemoFeld, _
                     End If
                     If bP And sTKür = "" Then sTKür = Chr(lT)
                 End If
-
             Case "CLR"
                 If sFarbe = "" Then sFarbe = aFld(i).sWert
-
         End Select
-
     Next i
+    If i233 Then Close #i233
 End Sub ' MemoScanToList
 
 ' ============================================================
@@ -253,13 +244,6 @@ End Sub ' MemoScanToList
 ' ============================================================
 Public Function MemoScan(abBlob() As Byte, _
                          nCount As Long) As TMemoFeld()
-    '-- Ergebnis-Array --------------------------------------
-    Dim aRes()   As TMemoFeld
-    Dim nAlloc   As Long
-    ReDim aRes(15)
-    nAlloc = 16
-    nCount = 0
-
     Dim lBLen   As Long     ' Länge des BLOB
     Dim lPos    As Long     ' aktueller Scan-Zeiger (0-basiert)
     Dim lGL     As Long     ' Gesamtlänge (aus erstem LE-Word)
@@ -283,7 +267,15 @@ Public Function MemoScan(abBlob() As Byte, _
     Dim lIE     As Long     ' aktuelle Tiefenstufe
     Dim lAltIE   As Long
     Dim i        As Long
-
+    '-- Ergebnis-Array --------------------------------------
+    Dim aRes()   As TMemoFeld
+    Dim nAlloc   As Long
+    
+    On Error GoTo fehler
+    ReDim aRes(15)
+    nAlloc = 16
+    nCount = 0
+    
     lBLen = UBound(abBlob) + 1
     If lBLen < 4 Then
         ReDim aRes(0)
@@ -297,10 +289,12 @@ Public Function MemoScan(abBlob() As Byte, _
     nSTop = 0
 
     lGL = CLng(abBlob(0)) + CLng(abBlob(1)) * 256
+' Fix: 0xFFFF = "use full BLOB" (Listenfelder: fKategorieliste etc.)
+    If lGL = 65535 Then lGL = lBLen
     lMAX = lGL
     lPos = 1
 
-    Do While lPos < lBLen
+    Do While lPos + 1 < lBLen
 
         If lPos < lSkipTo Then
             lPos = lPos + 1
@@ -391,7 +385,6 @@ Public Function MemoScan(abBlob() As Byte, _
             
             lB0 = CLng(abBlob(lPS))
             lB1 = CLng(abBlob(lPS + 1))
-            lB2 = CLng(abBlob(lPS + 2))
 
             If lB0 = &H2 And lB1 = &H0 _
                And lTLen >= 6 And lTLen <= 100 Then
@@ -427,37 +420,44 @@ Public Function MemoScan(abBlob() As Byte, _
                         End If
                     End If
                 End If
+ElseIf lTLen = 4 Then
+                If lPS + 3 >= lBLen Then GoTo IncPos
+                Dim lB3 As Long
+                lB2 = CLng(abBlob(lPS + 2))
+                lB3 = CLng(abBlob(lPS + 3))
 
-            ElseIf lTLen = 4 _
-                   And lPS + 3 < lBLen _
-                   And CLng(abBlob(lPS + 3)) = 0 Then
-                Select Case lB0: Case 65 To 90, 97 To 122, 196, 214, 220, 223, 228, 246, 252: Case Else: GoTo clr: End Select
-                Select Case lB1: Case 65 To 90, 97 To 122, 196, 214, 220, 223, 228, 246, 252: Case Else: GoTo clr: End Select
-                Select Case lB2: Case 65 To 90, 97 To 122, 196, 214, 220, 223, 228, 246, 252: Case Else: GoTo clr: End Select
-                GoTo txt:
+                If lB3 = 0 Then
+                    ' CLR: letztes Byte = 0
+                    Select Case lB0
+                        Case 65 To 90, 97 To 122, 196, 214, 220, 223, 228, 246, 252
+                        Case Else: GoTo clr
+                    End Select
+                    Select Case lB1
+                        Case 65 To 90, 97 To 122, 196, 214, 220, 223, 228, 246, 252
+                        Case Else: GoTo clr
+                    End Select
+                    Select Case lB2
+                        Case 65 To 90, 97 To 122, 196, 214, 220, 223, 228, 246, 252
+                        Case Else: GoTo clr
+                    End Select
+                    GoTo txt
 clr:
-                AppendRec aRes, nCount, nAlloc, _
-                    "CLR", lPos + 1, lMAX, lRawGrp, sENr, _
-                    Right("0" & Hex(lB0), 2) & _
-                    Right("0" & Hex(lB1), 2) & _
-                    Right("0" & Hex(lB2), 2)
+                    AppendRec aRes, nCount, nAlloc, _
+                        "CLR", lPos + 1, lMAX, lRawGrp, sENr, _
+                        Right("0" & Hex(lB0), 2) & _
+                        Right("0" & Hex(lB1), 2) & _
+                        Right("0" & Hex(lB2), 2)
 
-            ElseIf lTLen = 4 And lB1 = &H7 Then
-                If lPS + 3 < lBLen Then
-                    Dim lMon As Long
-                    Dim lTag As Long
-                    lMon = CLng(abBlob(lPS + 2))
-                    lTag = CLng(abBlob(lPS + 3))
-                    If lMon >= 1 And lMon <= 12 _
-                       And lTag >= 1 And lTag <= 31 Then
-                        AppendRec aRes, nCount, nAlloc, _
-                            "DAT", lPos + 1, lMAX, lRawGrp, sENr, _
-                            Format(lTag, "00") & "." & _
-                            Format(lMon, "00") & "." & _
-                            CStr(lB0 + &H700)
-                    End If
+                ElseIf lB1 = &H7 _
+                       And lB2 >= 1 And lB2 <= 12 _
+                       And lB3 >= 1 And lB3 <= 31 Then
+                    ' DAT
+                    AppendRec aRes, nCount, nAlloc, _
+                        "DAT", lPos + 1, lMAX, lRawGrp, sENr, _
+                        Format(lB3, "00") & "." & _
+                        Format(lB2, "00") & "." & _
+                        CStr(lB0 + &H700)
                 End If
-
 ' NUM/TXT: 2 Bytes LE
             ' NUM/TXT: 2 Bytes LE
             ElseIf lTLen = 2 Then
@@ -525,9 +525,22 @@ clr:
                 End If
                 AppendRec aRes, nCount, nAlloc, _
                     "FLT", lPos + 1, lMAX, lRawGrp, sENr, sFlt
-
+            ' TXT: druckbarer Freitext
             ElseIf lTLen >= 3 And lTLen <= 2000 And lB0 >= &H20 Then
 txt:
+                ' RTF-Inhalt: als eigenen Typ speichern, nicht als TXT
+                If lTLen > 10 And lB0 = &H7B Then   ' { = RTF-Start
+                    If lPS + 5 < lBLen Then
+                        Dim sRtfHead As String
+                        sRtfHead = BytesToStr(abBlob, lPS, 6)
+                        If left(sRtfHead, 6) = "{\rtf1" Then
+                            ' RTF überspringen – lPos springt weiter
+                            lPos = lPos + lTLen
+                            GoTo CheckEnd
+                        End If
+                    End If
+                End If
+
                 Dim sTxt As String
                 sTxt = RTrim(TrimNulls(BytesToStr(abBlob, lPS, lTLen)))
                 If sTxt <> "" Then
@@ -563,8 +576,7 @@ CheckEnd:
     Dim bLongNext As Boolean
     Dim bNextSh  As Boolean
 
-For j = 0 To nCount - 1
-
+    For j = 0 To nCount - 1
         If aRes(j).sTyp <> "NUM" And aRes(j).sTyp <> "TYP" Then GoTo NextNum
 
         lVal = CLng(aRes(j).sWert)
@@ -572,13 +584,11 @@ For j = 0 To nCount - 1
         If aRes(j).sTyp = "TYP" Then
             bNextSh = False
             Dim k1 As Long
+            ' k1 (TYP-Suche nach FLG)
             k1 = j + 1
             Do While k1 < nCount
-                If aRes(k1).sTyp = "FLG" Then
-                    k1 = k1 + 1
-                Else
-                    Exit Do
-                End If
+                If aRes(k1).sTyp <> "FLG" Then Exit Do
+                k1 = k1 + 1
             Loop
             If k1 < nCount Then
                 If aRes(k1).sTyp = "TXT" _
@@ -597,7 +607,9 @@ For j = 0 To nCount - 1
         If lVal <= 127 Then
             For m = 1 To 4
                 nPaar = j + m
-                Do While nPaar < nCount And aRes(nPaar).sTyp = "FLG"
+                ' Paar-Suche vorwärts (m-Schleife)
+                Do While nPaar < nCount
+                    If aRes(nPaar).sTyp <> "FLG" Then Exit Do
                     nPaar = nPaar + 1
                 Loop
                 If nPaar >= nCount Then Exit For
@@ -611,7 +623,9 @@ For j = 0 To nCount - 1
             If Not bIsPair Then
                 For m = 1 To 4
                     nPaar = j - m
-                    Do While nPaar >= 0 And aRes(nPaar).sTyp = "FLG"
+                    ' Paar-Suche rückwärts
+                    Do While nPaar >= 0
+                        If aRes(nPaar).sTyp <> "FLG" Then Exit Do
                         nPaar = nPaar - 1
                     Loop
                     If nPaar < 0 Then Exit For
@@ -626,9 +640,15 @@ For j = 0 To nCount - 1
         Else
             Dim jM1 As Long, jP1 As Long
             jM1 = j - 1
-            Do While jM1 >= 0 And aRes(jM1).sTyp = "FLG": jM1 = jM1 - 1: Loop
+            Do While jM1 >= 0
+                If aRes(jM1).sTyp <> "FLG" Then Exit Do
+                jM1 = jM1 - 1
+            Loop
             jP1 = j + 1
-            Do While jP1 < nCount And aRes(jP1).sTyp = "FLG": jP1 = jP1 + 1: Loop
+            Do While jP1 < nCount
+                If aRes(jP1).sTyp <> "FLG" Then Exit Do
+                jP1 = jP1 + 1
+            Loop
             If jM1 >= 0 Then
                 If aRes(jM1).sTyp = "NUM" _
                    And aRes(jM1).sWert = aRes(j).sWert Then bIsPair = True
@@ -660,13 +680,13 @@ For j = 0 To nCount - 1
                 End If
             Next m
         End If
-
 ' LongNext: nächstes Nicht-FLG-Feld
         bLongNext = False
         If Not bIsPair And Not bHasSep And lVal <= 127 Then
-            Dim jNxt As Long
+            Dim jNxt&
             jNxt = j + 1
-            Do While jNxt < nCount And aRes(jNxt).sTyp = "FLG"
+            Do While jNxt < nCount
+                If aRes(jNxt).sTyp <> "FLG" Then Exit Do
                 jNxt = jNxt + 1
             Loop
             If jNxt >= nCount Then
@@ -676,9 +696,25 @@ For j = 0 To nCount - 1
                     bLongNext = True
                 End If
             ElseIf aRes(jNxt).sTyp = "TYP" Then
-                bLongNext = True   ' TYP vor Name = Texttyp-Indikator, kein AID
+                bLongNext = True   ' ? diese Zeile fehlte
             ElseIf aRes(jNxt).sTyp = "NUM" Then
                 If CLng(aRes(jNxt).sWert) > 127 Then
+                    bLongNext = True
+                End If
+            End If
+        End If
+' Zusatz: kleiner Wert (<=127) direkt gefolgt von Sub-Container
+        ' ? Trenncode (wie 48/49 in fKategorieliste), kein AID
+        If Not bIsPair And Not bHasSep And Not bLongNext _
+           And lVal <= 127 Then
+            Dim jSub As Long
+            jSub = j + 1
+            Do While jSub < nCount
+                If aRes(jSub).sTyp <> "FLG" Then Exit Do
+                jSub = jSub + 1
+            Loop
+            If jSub < nCount Then
+                If InStr(aRes(jSub).sENr, ".") > 0 Then
                     bLongNext = True
                 End If
             End If
@@ -688,7 +724,8 @@ For j = 0 To nCount - 1
         If Not bIsPair And Not bHasSep And Not bLongNext Then
             Dim jNxt2 As Long
             jNxt2 = j + 1
-            Do While jNxt2 < nCount And aRes(jNxt2).sTyp = "FLG"
+            Do While jNxt2 < nCount
+                If aRes(jNxt2).sTyp <> "FLG" Then Exit Do
                 jNxt2 = jNxt2 + 1
             Loop
             If jNxt2 >= nCount Then
@@ -697,9 +734,8 @@ For j = 0 To nCount - 1
                 aRes(j).sTyp = "AID"
             End If
         End If
-
 NextNum:
-    Next j
+    Next j ' AID-Erkennung
 
     ' Pass 2: lGrp
     Dim lCurGrp As Long
@@ -710,6 +746,19 @@ NextNum:
     Next j
     
     MemoScan = aRes
+ Exit Function
+fehler:
+ Dim AnwPfad$
+#If VBA6 Then
+ AnwPfad = CurrentDb.name
+#Else
+ AnwPfad = App.path
+#End If
+Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.Source), vNS, CStr(Err.Source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "aufgefangener Fehler in MemoScan/" + AnwPfad)
+ Case vbAbort: Call MsgBox("Höre auf"): ProgEnde
+ Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
+ Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
+End Select
 End Function
 
 
@@ -1026,3 +1075,4 @@ Private Function IsNameTxt(s As String, _
     End If
 End Function
 
+#End If ' claude

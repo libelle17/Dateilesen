@@ -285,6 +285,214 @@ Public Function ebQuickSort(ByRef pvarArray() As ebType, Optional ByVal plngLeft
     ebQuickSort = pvarArray
 End Function ' ebQuickSort
 
+Public Function ParseMemoFast(FMemo$, MeStr() As memoType, _
+                              Optional obDebug%, Optional ÜSchr$)
+    Dim ab()    As Byte
+    Dim gl&, pos&, MAX&, aktmax&, tlen&, ie&, altie&, i&
+    Dim mznr&, obDruck%
+    Dim txt$, ebS$
+    Dim nMeStr  As Long
+    Dim nMeAlloc As Long
+
+    ' -- Byte-Array statt String-Zugriff ----------------------
+    ab = StrConv(FMemo, vbFromUnicode)
+    Dim lBLen As Long
+    lBLen = UBound(ab) + 1
+    If lBLen < 2 Then Exit Function
+
+    ' -- MeStr vorallozieren (vermeidet ReDim Preserve in Loop) -
+    nMeAlloc = 256
+    ReDim MeStr(nMeAlloc - 1)
+    nMeStr = 0
+
+    ' -- eb als Fixed-Array statt dynamisch -------------------
+    Dim eb(1 To 32) As ebType
+    Dim nEb As Long
+    nEb = 0
+
+    ' -- Gesamtlänge aus Bytes (0-basiert) --------------------
+    pos = 1
+    ie = 0
+    tlen = CLng(ab(0)) + CLng(ab(1)) * 256
+    If tlen = 65535 Then tlen = lBLen
+    gl = tlen
+    MAX = gl
+
+    Do
+        obDruck = 0
+
+        If pos + 1 >= lBLen Then Exit Do
+        tlen = CLng(ab(pos - 1)) + CLng(ab(pos)) * 256   ' 0-basiert: pos-1, pos
+
+        If pos = 1 Then gl = tlen: MAX = gl
+
+        aktmax = tlen + pos + 1
+
+        ' -- Hauptbedingung -----------------------------------
+        Dim obnaechst As Boolean
+        obnaechst = False
+        If aktmax >= 0 And aktmax <= gl + 2 Then
+            If pos > MAX Then
+                obnaechst = True
+            ElseIf aktmax <= MAX Then
+                If aktmax < lBLen Then
+                    If ab(aktmax - 1) = 0 Then obnaechst = True
+                End If
+            End If
+        End If
+
+        If obnaechst Then
+            altie = ie
+            If aktmax <= MAX Then
+                ie = ie + 1
+            Else
+                ' Rückgriff: höchstes ebn mit mx >= aktmax
+                mznr = -1
+                ie = 0
+                Dim k As Long
+                For k = 0 To nMeStr - 1
+                    If MeStr(k).mx >= aktmax And MeStr(k).znr > mznr Then
+                        mznr = MeStr(k).znr
+                    End If
+                Next k
+                For k = 0 To nMeStr - 1
+                    If MeStr(k).mx >= aktmax And MeStr(k).znr = mznr Then
+                        If MeStr(k).ebn > ie Then ie = MeStr(k).ebn
+                    End If
+                Next k
+                ie = ie + 1
+            End If
+
+            ' -- eb-Stack pflegen (Fixed Array, kein ReDim) ---
+            If ie <= altie Then
+                If ie < altie Then
+                    ' Höhere Einträge löschen
+                    Dim n As Long
+                    For n = nEb To 1 Step -1
+                        If eb(n).nr > ie Then nEb = n - 1
+                    Next n
+                End If
+                For n = 1 To nEb
+                    If eb(n).nr = ie Then
+                        eb(n).Wert = eb(n).Wert + 1
+                        Exit For
+                    End If
+                Next n
+            Else
+                If nEb < 32 Then
+                    nEb = nEb + 1
+                    eb(nEb).nr = ie
+                    eb(nEb).Wert = 1
+                End If
+            End If
+
+            MAX = aktmax
+            obDruck = 1
+        End If
+
+        If obDruck Then
+            ' -- Payload direkt aus Byte-Array ----------------
+            Dim lPS As Long
+            lPS = pos + 1   ' 0-basiert
+
+            If lPS + tlen - 1 < lBLen Then
+                ' Null-Check
+                Dim bNull As Boolean
+                bNull = True
+                For k = 0 To tlen - 1
+                    If ab(lPS + k) <> 0 Then bNull = False: Exit For
+                Next k
+
+                If bNull Then
+                    pos = pos + tlen
+                Else
+                    ' ENr aufbauen
+                    ebS = ""
+                    For n = 1 To nEb
+                        If ebS <> "" Then ebS = ebS & "."
+                        ebS = ebS & CStr(eb(n).Wert)
+                    Next n
+
+                    ' Payload als String extrahieren
+                    Dim abTxt() As Byte
+                    ReDim abTxt(tlen - 1)
+                    For k = 0 To tlen - 1
+                        abTxt(k) = ab(lPS + k)
+                    Next k
+                    txt = StrConv(abTxt, vbUnicode)
+                    If Right$(txt, 1) = Chr$(0) Then
+                        txt = left$(txt, Len(txt) - 1)
+                    End If
+
+                    ' -- MeStr ohne ReDim Preserve ------------
+                    If nMeStr >= nMeAlloc Then
+                        nMeAlloc = nMeAlloc * 2
+                        ReDim Preserve MeStr(nMeAlloc - 1)
+                    End If
+                    With MeStr(nMeStr)
+                        .znr = pos
+                        .mx = MAX
+                        .ebn = ie
+                        .ENr = ebS
+                        .Text = txt
+                    End With
+                    nMeStr = nMeStr + 1
+                End If
+            End If
+        End If
+
+        pos = pos + 1
+        If pos >= gl Then Exit Do
+    Loop
+
+    ' -- Auf tatsächliche Größe kürzen ------------------------
+    If nMeStr > 0 Then
+        ReDim Preserve MeStr(nMeStr - 1)
+    Else
+        Erase MeStr
+        Exit Function
+    End If
+
+    ' -- Übergeordnete Einträge entfernen (wie memoaltloe) ----
+    Dim nOut As Long
+    nOut = 0
+    ReDim Preserve MeStr(nMeStr - 1)
+
+    Dim bKeep() As Boolean
+    ReDim bKeep(nMeStr - 1)
+    For i = 0 To nMeStr - 1
+        bKeep(i) = True
+    Next i
+    For i = 0 To nMeStr - 2
+        If bKeep(i) Then
+            Dim sChildPrefix As String
+            sChildPrefix = MeStr(i).ENr & "."
+            If InStr(MeStr(i + 1).ENr, sChildPrefix) = 1 Then
+                bKeep(i) = False
+            End If
+        End If
+    Next i
+
+    ' Kompaktieren
+    Dim aTmp() As memoType
+    ReDim aTmp(nMeStr - 1)
+    nOut = 0
+    For i = 0 To nMeStr - 1
+        If bKeep(i) Then
+            aTmp(nOut) = MeStr(i)
+            nOut = nOut + 1
+        End If
+    Next i
+    If nOut > 0 Then
+        ReDim MeStr(nOut - 1)
+        For i = 0 To nOut - 1
+            MeStr(i) = aTmp(i)
+        Next i
+    Else
+        Erase MeStr
+    End If
+End Function
+
 ' in zeigmosystem (5x), doPatvonMo (4x), MoAusgeb
 ' BLOB-Felder aus Medical Office parsen
 Public Function ParseMemo(FMemo$, MeStr() As memoType, Optional obDebug%, Optional ÜSchr$) ' pNr&, FSur&,
@@ -833,19 +1041,19 @@ Public Function zeigmosystem(Optional obszn4%)
  rsMO.Open sql, MOCon, adOpenStatic, adLockReadOnly
  If Not rsMO.BOF Then
   If rsMO!fkat <> "" Then
-   Call ParseMemo(rsMO!fkat, kat(), obDebug, "FMemo von fKategorieliste aus mosystem")
+   Call ParseMemoFast(rsMO!fkat, kat(), obDebug, "FMemo von fKategorieliste aus mosystem")
   End If
   If rsMO!ftk <> "" Then
-   Call ParseMemo(rsMO!ftk, tKat(), obDebug, "FMemo von fTextKategorieliste aus mosystem")
+   Call ParseMemoFast(rsMO!ftk, tKat(), obDebug, "FMemo von fTextKategorieliste aus mosystem")
   End If
   If rsMO!fAb <> "" Then
-   Call ParseMemo(rsMO!fAb, Abl(), obDebug, "FMemo von FAblageliste aus mosystem")
+   Call ParseMemoFast(rsMO!fAb, Abl(), obDebug, "FMemo von FAblageliste aus mosystem")
   End If
   If rsMO!fAuf <> "" Then
-   Call ParseMemo(rsMO!fAuf, fAuft(), obDebug, "FMemo von FAuftragstypenliste aus mosystem")
+   Call ParseMemoFast(rsMO!fAuf, fAuft(), obDebug, "FMemo von FAuftragstypenliste aus mosystem")
   End If
   If rsMO!fm <> "" Then
-   Call ParseMemo(rsMO!fm, FMem(), obDebug, "FMemo von fMemo aus mosystem")
+   Call ParseMemoFast(rsMO!fm, FMem(), obDebug, "FMemo von fMemo aus mosystem")
    For j = 0 To UBound(FMem)
     If FMem(j).ENr Like "*.2" And FMem(j).ENr <> "1.2" Then
      Set EintS = New SortierEintr
@@ -1737,15 +1945,23 @@ abermals:
   On Error GoTo fehler
   
     tg0 = GetTickCount
-#Const claude = True
+'#Const mosysdruck = True
+#If mosysdruck Then
+   Const i233% = 233
+   Const i235% = 235
+#Else
+   Const i233% = 0
+   Const i235% = 0
+#End If
+#Const claude = True ' auch in: modMemoScan
 #If claude Then
 Dim aFld()     As TMemoFeld
    Dim ab()  As Byte
    Dim nCount     As Long
    Dim sAID       As String
    Dim sKuerzInt  As String
-   Dim sName      As String
    Dim sKuerzExt  As String
+   Dim sName      As String
    Dim sKuerzDrk  As String
    Dim sTaste     As String
    Dim sFarbe     As String
@@ -1757,21 +1973,13 @@ Dim aFld()     As TMemoFeld
 
    ab = BlobFromField(FmS)
    aFld = MemoScan(ab, nCount)
-'#Const mosysdruck = True
-#If mosysdruck Then
-   Const i233% = 233
-   Open "v:\mempars.txt" For Output As #i233
-   MemoScanToList aFld, EinL, 233
-   Close #233
-#Else
-   MemoScanToList aFld, EinL, 0
-#End If
+ MemoScanToList aFld, EinL, i233
+ 
 #Else ' claude
-
   If FmS <> "" Then
-   Call ParseMemo(FmS, FMem(), obDebug, "FMemo aus mosystem")
+   Call ParseMemoFast(FmS, FMem(), obDebug, "FMemo aus mosystem")
 #If mosysdruck Then
-   Open "v:\memoparsalt.txt" For Output As #234
+   Open "v:\memoparsalt" & i233 & ".txt" For Output As #234
 #End If ' mosysdruck
    For j = 0 To UBound(FMem)
     If FMem(j).ENr Like "*.2" And FMem(j).ENr <> "1.2" Then
@@ -1807,7 +2015,7 @@ Dim aFld()     As TMemoFeld
 #End If ' mosysdruck
 #End If ' claude
     tg1 = GetTickCount
-    Debug.Print ">>> mosystem: " & (tg1 - tg0) & " ms"
+    Debug.Print ">>> mosystem FMemo: " & (tg1 - tg0) & " ms"
 
 '  Dim zahl&
 '  Open "p:\artenMO.txt" For Output As #100
@@ -1822,7 +2030,12 @@ Dim aFld()     As TMemoFeld
   FmS = rsMO!ftk
   On Error GoTo fehler
   If FmS <> "" Then
-   Call ParseMemo(FmS, FMem(), obDebug, "FTextkategorie aus mosystem")
+  tg0 = GetTickCount
+  
+  Call ParseMemoFast(FmS, FMem(), obDebug, "FTextkategorie aus mosystem")
+#If mosysdruck Then
+   Open "v:\memoparsalt" & i235 & ".txt" For Output As #235
+#End If ' mosysdruck
    For j = 0 To UBound(FMem)
     If FMem(j).ENr Like "*.2" Then
      Set EintS = New SortierEintr
@@ -1831,12 +2044,17 @@ Dim aFld()     As TMemoFeld
      EintS.IKür = FMem(j).Text
     ElseIf FMem(j).ENr Like "*.7" Then
      EintS.TypNr = Fakt * Asc(Mid(FMem(j).Text, 2)) + Asc(FMem(j).Text)
+#If mosysdruck Then
+     Print #235, EintS.TypNr & " " & EintS.IKür & " " & EintS.name
+#End If ' mosysdruck
      EinK.sCAdd EintS
     End If
    Next j
   End If ' FmS <> "" Then
  End If ' einl.count=0
- 
+ Close #235
+    tg1 = GetTickCount
+    Debug.Print ">>> mosystem FTextkategorie: " & (tg1 - tg0) & " ms"
 ' Call MONamen(fPtNr)
  Dim rsNa As New ADODB.Recordset
 ' On Error GoTo fehler
@@ -1920,7 +2138,7 @@ Dim aFld()     As TMemoFeld
   On Error GoTo fehler
   If rsNa!fm <> "" Then
 '   If fPtNr = 70338 Then Stop
-   Call ParseMemo(rsNa!fm, NaStr(), obDebug, "FMemo von rsNa (patstamm), Pat-id " & fPtNr)
+   Call ParseMemoFast(rsNa!fm, NaStr(), obDebug, "FMemo von rsNa (patstamm), Pat-id " & fPtNr)
 '   Call MeStDruck(CStr(fPtNr), NaStr)
    If SafeArrayGetDim(NaStr) <> 0 Then
     For j = 0 To UBound(NaStr)
@@ -2054,7 +2272,7 @@ Dim aFld()     As TMemoFeld
        rFa(UBound(rFa)).SchGr = "89" ' frei erfunden
        rFa(UBound(rFa)).GOÄKatNr = 40
      End Select ' fscheintyp
-     Call ParseMemo(rsFa!fm, FaStr(), obDebug, "FMemo von rsFa (patfall), Pat-id " & rsFa!ueschr)  ' rsFa!fpatnr, rsFa!fsurogat,
+     Call ParseMemoFast(rsFa!fm, FaStr(), obDebug, "FMemo von rsFa (patfall), Pat-id " & rsFa!ueschr)  ' rsFa!fpatnr, rsFa!fsurogat,
 '    Call MeStDruck(fPtNr & " " & rsFa!ueschr, FaStr)
 '  For jj = 1 To UBound(rFa)
 '   If Not IsNumeric(rFa(jj).Quartal) Or Len(rFa(jj).Quartal) <> 5 Then Stop
@@ -2915,7 +3133,7 @@ sql = sql & _
     If rsEi!bfmemo <> "" Then
 '     If rsEi!fsurogat = 16045 Then Stop
 '     If rseiru = 3 Then Stop
-     Call ParseMemo(rsEi!bfmemo, FMem(), obDebug, "FMemo aus beschein") ' Pat. 59535, rseiru 298: FMem kann danach auch leer bleiben!
+     Call ParseMemoFast(rsEi!bfmemo, FMem(), obDebug, "FMemo aus beschein") ' Pat. 59535, rseiru 298: FMem kann danach auch leer bleiben!
     End If ' rsEi!BFMemo <> ""
     'dmpreihe (1); Doppeleinträge gemäß Index "eindeutig" vermeiden
     If rsEi!obdr Then
@@ -3376,7 +3594,7 @@ fgefunden:
     On Error GoTo fehler
     altlFSur = rsEi!FDosierplannr
     If rsEi!fm <> "" Then
-     Call ParseMemo(rsEi!fm, FMem(), obDebug, "FMemo aus meddosis")
+     Call ParseMemoFast(rsEi!fm, FMem(), obDebug, "FMemo aus meddosis")
      For j = 0 To UBound(FMem)
       Select Case FMem(j).ENr
        Case "2": rMe(UBound(rMe)).Einheit = FMem(j).Text
@@ -3766,7 +3984,7 @@ gef2:
     rDe(UBound(rDe)).erstZP = rsEi!Datum
     rDe(UBound(rDe)).Titel = doUmwfSQL(rsEi!FText, True)
     If rsEi!fm <> "" Then
-     Call ParseMemo(rsEi!fm, FMem(), obDebug, "FMemo von fMemo aus Erinnerung")
+     Call ParseMemoFast(rsEi!fm, FMem(), obDebug, "FMemo von fMemo aus Erinnerung")
      For j = 0 To UBound(FMem)
        Select Case FMem(j).ENr
         Case "2.2.5" ' Datum
@@ -3805,7 +4023,7 @@ gef2:
     Dim behgr$
     behgr = ""
     If rsEi!memo <> "" Then
-     Call ParseMemo(rsEi!memo, FMem(), obDebug, "FMemo von Termine aus mosystem")
+     Call ParseMemoFast(rsEi!memo, FMem(), obDebug, "FMemo von Termine aus mosystem")
      For j = 0 To UBound(FMem)
       Select Case FMem(j).ENr
        Case "20": behgr = FMem(j).Text ' Straße
@@ -4255,7 +4473,7 @@ Function holHAausMO(inf As InfoTyp, fPtNr&, Optional satznr%, Optional ByRef obg
      If inf.KVNr = "" Then inf.KVNr = rsHa!FArztnr
      If rsHa!Adr <> "" Then
       Lkz = ""
-      Call ParseMemo(rsHa!Adr, FMem(), obDebug, "FAdresse aus epraxis")
+      Call ParseMemoFast(rsHa!Adr, FMem(), obDebug, "FAdresse aus epraxis")
       For j = 0 To UBound(FMem)
        Select Case FMem(j).ENr
         Case "3": inf.Straße = Trim$(FMem(j).Text) ' Straße
@@ -5001,7 +5219,7 @@ Public Function moausgeb(MOCon As ADODB.Connection, tn$, obsyst%, Bedg$)
           wtcolz = raen.Fields(colZ + Offs)
           Print #220, " -> "
          End If
-         Call ParseMemo(wtcolz, MeStr)
+         Call ParseMemoFast(wtcolz, MeStr)
          If SafeArrayGetDim(MeStr) <> 0 Then
           Print #220, "Znr.|mx|Ebn|ENr|wtcolz|endse|endsz|Länge|mt|Datum(mt)"
           For i = 0 To UBound(MeStr)
