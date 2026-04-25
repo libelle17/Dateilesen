@@ -37,6 +37,214 @@ Public Function BlobFromField(vField As Variant) As Byte()
     BlobFromField = ab
 End Function
 
+' ============================================================
+' MemoScanToList
+' Einmaliger Pass über aFld, füllt EinL und gibt optional
+' Druckausgabe aus. Ersetzt die For grp=1 To lMaxGrp-Schleife.
+'
+' Parameter:
+'   aFld()     Scan-Ergebnis aus MemoScan
+'   nCount     Anzahl Felder
+'   EinL       SortierListe (wird befüllt)
+'   i233       Dateinummer für Druckausgabe (0 = kein Druck)
+' ============================================================
+Public Sub MemoScanToList(aFld() As TMemoFeld, _
+                          EinL As SortierListe, _
+                          i233 As Integer)
+    Dim nCount      As Long
+    If SafeArrayGetDim(aFld) = 0 Then Exit Sub
+    nCount = UBound(aFld) + 1
+
+    Dim i           As Long
+    Dim lCurGrp     As Long
+    Dim lGrpNr      As Long
+    Dim sAIDNr      As String
+    Dim sIKür       As String
+    Dim sEKür       As String
+    Dim sName       As String
+    Dim saKür       As String
+    Dim sTKür       As String
+    Dim sFarbe      As String
+    Dim bHatText    As Boolean
+    Dim bVerwendung As Boolean
+    Dim bNameFound  As Boolean
+    Dim bFlgSeen    As Boolean
+    Dim bTypNachFlg As Boolean
+    Dim nPostName   As Long
+    Dim lT          As Long
+    Dim bP          As Boolean
+    Dim ii          As Long
+    Dim igrp        As Long
+
+    lCurGrp = -1
+    lGrpNr = 0
+
+    If i233 > 0 Then
+        For igrp = 0 To nCount - 1
+            Print #i233, _
+                IIf(aFld(igrp).sTyp = "AID", vbCrLf, "") & _
+                aFld(igrp).sTyp & "  " & _
+                aFld(igrp).lGrp & "  " & _
+                aFld(igrp).sENr & "  " & _
+                aFld(igrp).lPos & "  " & _
+                aFld(igrp).sWert
+'               If aFld(igrp).lGrp = 17 Then
+'                Dim p As Long
+'                For p = 2213 To 2260
+'                    If p <= UBound(ab) Then
+'                        Print #233, p & " " & Hex(ab(p)) & " " & ab(p)
+'                    End If
+'                Next p
+'               End If
+        Next igrp
+        Print #i233, vbCrLf & String(130, "=") & vbCrLf
+   ' Kopfzeile
+        Print #i233, _
+            LeftPad("Nr", 6) & "  " & _
+            RightPad("AID", 7) & "  " & _
+            RightPad("IKür", 8) & "  " & _
+            RightPad("EKür", 8) & "  " & _
+            RightPad("Name", 45) & "  " & _
+            RightPad("aKür", 8) & "  " & _
+            RightPad("TKür", 5) & "  " & _
+            RightPad("Farbe", 6) & "  " & _
+            RightPad("Text", 4) & "  " & _
+            "Verwend"
+        Print #i233, String(130, "-")
+    End If
+
+    For i = 0 To nCount
+
+        Dim lThisGrp As Long
+        If i < nCount Then
+            lThisGrp = aFld(i).lGrp
+        Else
+            lThisGrp = lCurGrp + 1
+        End If
+
+        If lThisGrp <> lCurGrp And lCurGrp >= 0 Then
+
+            If Not bNameFound Then bVerwendung = True
+
+            If sAIDNr <> "" Or sName <> "" Or sIKür <> "" Then
+                Dim EintS As SortierEintr
+                Set EintS = New SortierEintr
+                EintS.TypNr = sAIDNr
+                EintS.IKür = sIKür
+                EintS.EKür = sEKür
+                EintS.name = sName
+                EintS.aKür = saKür
+                EintS.TKür = sTKür
+                EinL.sCAdd EintS
+
+                If i233 > 0 Then
+                    Print #i233, _
+                        LeftPad(CStr(lGrpNr), 6) & "  " & _
+                        RightPad(sAIDNr, 7) & "  " & _
+                        RightPad(sIKür, 8) & "  " & _
+                        RightPad(sEKür, 8) & "  " & _
+                        RightPad(sName, 45) & "  " & _
+                        RightPad(saKür, 8) & "  " & _
+                        RightPad(sTKür, 5) & "  " & _
+                        RightPad(sFarbe, 6) & "  " & _
+                        RightPad(IIf(bHatText, "ja", ""), 4) & "  " & _
+                        IIf(bVerwendung, "ja", "nein")
+                End If
+            End If
+
+            sAIDNr = ""
+            sIKür = ""
+            sEKür = ""
+            sName = ""
+            saKür = ""
+            sTKür = ""
+            sFarbe = ""
+            bHatText = False
+            bVerwendung = True
+            bNameFound = False
+            bFlgSeen = False
+            bTypNachFlg = False
+            nPostName = 0
+            lGrpNr = lGrpNr + 1
+        End If
+
+        If i >= nCount Then Exit For
+        lCurGrp = lThisGrp
+
+        Select Case aFld(i).sTyp
+
+            Case "AID"
+                sAIDNr = aFld(i).sWert
+
+            Case "FLG"
+                bFlgSeen = True
+
+            Case "TYP"
+                bHatText = True
+                If Not bNameFound And bFlgSeen Then
+                    bTypNachFlg = True
+                End If
+
+            Case "TXT"
+                Dim bIsSub  As Boolean
+                Dim bIsName As Boolean
+                bIsSub = (InStr(aFld(i).sENr, ".") > 0)
+                bIsName = IsNameTxt(aFld(i).sWert, bFlgSeen, bIsSub)
+
+                If bIsName Then
+                    If Not bNameFound Then
+                        sName = aFld(i).sWert
+                        bNameFound = True
+                        bVerwendung = Not bTypNachFlg
+                    End If
+                Else
+                    If Not bNameFound Then
+                        If sIKür = "" Then
+                            sIKür = aFld(i).sWert
+                        ElseIf sEKür = "" Then
+                            sEKür = aFld(i).sWert
+                        End If
+                    Else
+                        nPostName = nPostName + 1
+                        Select Case nPostName
+                            Case 1: saKür = aFld(i).sWert
+                            Case 2: sTKür = aFld(i).sWert
+                        End Select
+                    End If
+                End If
+
+            Case "NUM"
+                lT = CLng(aFld(i).sWert)
+                If lT >= 32 And lT <= 127 Then
+                    bP = False
+                    For ii = i + 1 To i + 8
+                        If ii >= nCount Then Exit For
+                        If aFld(ii).lGrp <> lCurGrp Then Exit For
+                        If aFld(ii).sTyp = "NUM" Then
+                            If CLng(aFld(ii).sWert) = lT Then bP = True
+                            Exit For
+                        End If
+                    Next ii
+                    If Not bP Then
+                        For ii = i - 1 To i - 8 Step -1
+                            If ii < 0 Then Exit For
+                            If aFld(ii).lGrp <> lCurGrp Then Exit For
+                            If aFld(ii).sTyp = "NUM" Then
+                                If CLng(aFld(ii).sWert) = lT Then bP = True
+                                Exit For
+                            End If
+                        Next ii
+                    End If
+                    If bP And sTKür = "" Then sTKür = Chr(lT)
+                End If
+
+            Case "CLR"
+                If sFarbe = "" Then sFarbe = aFld(i).sWert
+
+        End Select
+
+    Next i
+End Sub ' MemoScanToList
 
 ' ============================================================
 ' MemoScan  –  Scanner + AID/Grp-Auflösung in einem Schritt
@@ -250,21 +458,52 @@ clr:
                     End If
                 End If
 
-            ' NUM: 2 Bytes LE
+' NUM/TXT: 2 Bytes LE
+            ' NUM/TXT: 2 Bytes LE
             ElseIf lTLen = 2 Then
-                Dim lNum As Long
-                lNum = lB0 + lB1 * 256
-                If lNum >= 1 And lNum <= 65535 Then
-                    ' Wert 8 = Texttyp-Indikator: als TYP speichern
-                    ' (intern für Separator-Erkennung, nicht anzeigen)
-                    Dim sNumTyp As String
-                    If lNum = 8 Then
-                        sNumTyp = "TYP"
-                    Else
-                        sNumTyp = "NUM"
+                ' Nur wenn beide Bytes Buchstaben (inkl. Umlaute) ? TXT-Kürzel
+                ' Sonderzeichen wie !, ", # ? weiter als NUM behandeln
+' Nur wenn beide Bytes Kleinbuchstaben (inkl. ä ö ü ß)
+                ' ? 2-Zeichen-Kürzel als TXT
+                ' Großbuchstabe im ersten Byte = LE-kodierte AID (z.B. Aw=30529)
+                Dim bBothLower As Boolean
+                Dim c0 As Long, C1 As Long
+                c0 = lB0: C1 = lB1
+
+                Dim bLower0 As Boolean, bLower1 As Boolean
+                bLower0 = (c0 >= 97 And c0 <= 122) Or _
+                          c0 = 228 Or c0 = 246 Or c0 = 252 Or c0 = 223
+                bLower1 = (C1 >= 97 And C1 <= 122) Or _
+                          (C1 >= 65 And C1 <= 90) Or _
+                          C1 = 196 Or C1 = 214 Or C1 = 220 Or _
+                          C1 = 228 Or C1 = 246 Or C1 = 252 Or C1 = 223
+#If alt Then
+                bBothLower = bLower0 And bLower1
+#Else
+                
+                bBothLower = (c0 >= 97 And c0 <= 122) _
+                         And (C1 >= 97 And C1 <= 122)
+#End If
+                If bBothLower Then
+                    Dim s2 As String
+                    s2 = TrimNulls(BytesToStr(abBlob, lPS, 2))
+                    If s2 <> "" Then
+                        AppendRec aRes, nCount, nAlloc, _
+                            "TXT", lPos + 1, lMAX, lRawGrp, sENr, s2
                     End If
-                    AppendRec aRes, nCount, nAlloc, _
-                        sNumTyp, lPos + 1, lMAX, lRawGrp, sENr, CStr(lNum)
+                Else
+                    Dim lNum As Long
+                    lNum = lB0 + lB1 * 256
+                    If lNum >= 1 And lNum <= 65535 Then
+                        Dim sNumTyp As String
+                        If lNum = 8 Then
+                            sNumTyp = "TYP"
+                        Else
+                            sNumTyp = "NUM"
+                        End If
+                        AppendRec aRes, nCount, nAlloc, _
+                            sNumTyp, lPos + 1, lMAX, lRawGrp, sENr, CStr(lNum)
+                    End If
                 End If
             ElseIf lTLen = 8 _
                    And lPS + 7 < lBLen _
@@ -422,7 +661,7 @@ For j = 0 To nCount - 1
             Next m
         End If
 
-        ' LongNext: nächstes Nicht-FLG-Feld
+' LongNext: nächstes Nicht-FLG-Feld
         bLongNext = False
         If Not bIsPair And Not bHasSep And lVal <= 127 Then
             Dim jNxt As Long
@@ -436,6 +675,8 @@ For j = 0 To nCount - 1
                 If left(aRes(jNxt).sWert, 7) = "Text - " Then
                     bLongNext = True
                 End If
+            ElseIf aRes(jNxt).sTyp = "TYP" Then
+                bLongNext = True   ' TYP vor Name = Texttyp-Indikator, kein AID
             ElseIf aRes(jNxt).sTyp = "NUM" Then
                 If CLng(aRes(jNxt).sWert) > 127 Then
                     bLongNext = True
@@ -659,7 +900,8 @@ Public Sub MemoGrpFelder(aFld() As TMemoFeld, _
     nPostName = 0
 
     For i = 0 To nCount - 1
-        If aFld(i).lGrp <> lGrp Then GoTo weiter
+        If lGrp Then If aFld(i).lGrp <> lGrp Then GoTo weiter
+    
         Select Case aFld(i).sTyp
             Case "AID"
                 sAIDNr = aFld(i).sWert
@@ -730,30 +972,57 @@ End Sub
 '     Länge > 8 UND Großbuchstabe ? Name
 '     (kurze Großbuchstaben-Kürzel wie "UEBLABOR" len=8 ? Kürzel)
 ' ============================================================
+' IsNameTxt: bIsSub allein reicht nicht, Inhalt muss auch passen
 Private Function IsNameTxt(s As String, _
                            bFlgSeen As Boolean, _
                            bIsSub As Boolean) As Boolean
     IsNameTxt = False
     If Len(s) = 0 Then Exit Function
 
-    ' Sub-Container ? immer Name
-    If bIsSub Then IsNameTxt = True: Exit Function
+    ' Sub-Container
+    If bIsSub Then
+        If Len(s) >= 8 Or InStr(s, " - ") > 0 Then
+            IsNameTxt = True
+        End If
+        Exit Function
+    End If
 
-    ' Enthält " - " ? immer Name (Praxisformular, Text - X, etc.)
+    ' Enthält " - " ? immer Name
     If InStr(s, " - ") > 0 Then IsNameTxt = True: Exit Function
 
+    ' Länge >= 8 ? immer Name
+    If Len(s) >= 8 Then IsNameTxt = True: Exit Function
+
+    ' Erstes Byte Großbuchstabe?
     Dim c As Long
     c = Asc(left(s, 1))
     Dim bGross As Boolean
     bGross = (c >= 65 And c <= 90) Or c = 196 Or c = 214 Or c = 220
 
-    If bFlgSeen Then
-        ' Nach FLG: Großbuchstabe oder Länge > 8
-        If bGross Or Len(s) > 8 Then IsNameTxt = True: Exit Function
-    Else
-        ' Vor FLG: NUR wenn Länge > 8 UND Großbuchstabe
-        ' (schließt "UEBLABOR" len=8, "Text" len=4 etc. aus)
-        If Len(s) > 8 And bGross Then IsNameTxt = True: Exit Function
+    If bGross Then
+        ' Gemischte Groß/Kleinschreibung prüfen
+        ' (schließt reine Großbuchstaben-Kürzel wie "UEBLABOR" aus)
+        Dim bHasLower As Boolean
+        Dim k As Long
+        bHasLower = False
+        For k = 2 To Len(s)
+            Dim ck As Long
+            ck = Asc(Mid(s, k, 1))
+            If (ck >= 97 And ck <= 122) _
+               Or ck = 228 Or ck = 246 _
+               Or ck = 252 Or ck = 223 Then
+                bHasLower = True
+                Exit For
+            End If
+        Next k
+
+        If bHasLower Then
+            ' Gemischte Schreibung ? Name (vor und nach FLG)
+            IsNameTxt = True: Exit Function
+        ElseIf bFlgSeen Then
+            ' Nach FLG: auch reine Großbuchstaben ? Name
+            IsNameTxt = True: Exit Function
+        End If
     End If
 End Function
 
