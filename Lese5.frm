@@ -658,6 +658,9 @@ Begin VB.MDIForm Lese
       Begin VB.Menu Pat_loeschen 
          Caption         =   "Pat. l&öschen"
       End
+      Begin VB.Menu AlleDopPatLöschen 
+         Caption         =   "Alle doppelten Pat. nach kompl.Abarbeitung von Liste 305 löschen"
+      End
       Begin VB.Menu GefaxteBriefeAnzeigen 
          Caption         =   "Gefa&xte Briefe anzeigen"
       End
@@ -1104,6 +1107,30 @@ Const dmparch$ = "DMPArchiv.zip" ' Import-Datei, Name von MO gefordert
 Const z7$ = """C:\Program Files\7-zip\7z""" ' Pfad zu 7z
 
 
+Private Sub AlleDopPatLöschen_Click()
+ Dim rs As ADODB.Recordset, sql$
+ ' Abrechnungsfehlerliste 305
+ syscmd 4, "Lösche alle doppelten Patienten"
+ sql = "SELECT gesname(pat_id)PName,n.Pat_id,DATE_FORMAT(Gebdat,'%d.%m.%y')Geb" & vbCrLf & _
+",(SELECT COUNT(0)FROM namen WHERE gebdat=n.gebdat AND (nachname RLIKE n.nachname OR n.nachname RLIKE nachname)AND(vorname RLIKE n.vorname OR n.vorname RLIKE vorname))Zahl" & vbCrLf & _
+",(SELECT GROUP_CONCAT(pat_id ORDER BY (SELECT MAX(zeitpunkt) FROM eintraege WHERE pat_id = ni.pat_id) DESC)FROM namen ni WHERE gebdat=n.gebdat AND(nachname RLIKE n.nachname OR n.nachname RLIKE nachname)AND(vorname RLIKE n.vorname OR n.vorname RLIKE vorname))PIDs" & vbCrLf & _
+",(SELECT pat_id FROM namen nj WHERE gebdat = n.gebdat AND(nachname RLIKE n.nachname OR n.nachname RLIKE nachname)AND(vorname RLIKE n.vorname OR n.vorname RLIKE vorname)ORDER BY(SELECT MAX(zeitpunkt)FROM eintraege WHERE pat_id=nj.pat_id)DESC LIMIT 1 OFFSET 0)Pneu" & vbCrLf & _
+",(SELECT pat_id FROM namen nk WHERE gebdat = n.gebdat AND(nachname RLIKE n.nachname OR n.nachname RLIKE nachname)AND(vorname RLIKE n.vorname OR n.vorname RLIKE vorname)ORDER BY(SELECT MAX(zeitpunkt)FROM eintraege WHERE pat_id=nk.pat_id)DESC LIMIT 1 OFFSET 1)Palt" & vbCrLf & _
+"FROM namen n" & vbCrLf & _
+"GROUP BY pids" & vbCrLf & _
+"HAVING Zahl>1" & vbCrLf & _
+"ORDER BY REPLACE(nachname,'zzz','');"
+ Set rs = myEFrag(sql)
+ If Not rs.BOF Then
+  Do While Not rs.BOF
+   Debug.Print rs!palt
+   LöschePat (rs!palt)
+   rs.MoveNext
+  Loop
+ End If ' not rs.bof
+ syscmd 4, "Fertig mit Löschen aller doppelten Patienten"
+End Sub
+
 ' Statistik -> Con-Datei einlesen
 Private Sub Con_Datei_einlesen_Click()
  CommonDialogLese.Filter = "Abrechnungsdateien (*.con)|*.con|Alle Dateien(*.*)|*.*"
@@ -1447,18 +1474,20 @@ Dim rs As New ADODB.Recordset
 "ORDER BY PName"
 
 sql = _
-"SELECT r.pat_id,gesname(r.pat_id) PName,r.Karteidatum,DATE(r.Dokudatum) DokuDatum,DATE(r.exportiert)EXP,GROUP_CONCAT(DISTINCT COALESCE(r.Art,''))Art,GROUP_CONCAT(DISTINCT r.Abk)Abk,GROUP_CONCAT(DISTINCT COALESCE(f.dokuart,''))`fehlende Dokuart`,GROUP_CONCAT(DISTINCT f.aktion)`Grund` -- ,r.Aktzeit, m.*" & vbCrLf & _
+"SELECT r.pat_id,gesname(r.pat_id) PName,r.Gebdat" & vbCrLf & _
+",(SELECT COUNT(0)FROM namen WHERE gebdat=r.gebdat AND(nachname RLIKE r.nachname OR r.nachname RLIKE nachname)AND(vorname RLIKE r.vorname OR r.vorname RLIKE vorname))Zahl" & vbCrLf & _
+",r.Karteidatum,DATE(r.Dokudatum) DokuDatum,DATE(r.exportiert)EXP,GROUP_CONCAT(DISTINCT COALESCE(r.Art,''))Art,GROUP_CONCAT(DISTINCT r.Abk)Abk,GROUP_CONCAT(DISTINCT COALESCE(f.dokuart,''))`fehlende Dokuart`,GROUP_CONCAT(DISTINCT f.aktion)`Grund` -- ,r.Aktzeit, m.*" & vbCrLf & _
 ",f.dokuart `fehlende Dokuart`, f.aktion `Grund`" & vbCrLf & _
 "FROM dmpreihe r" & vbCrLf & _
-"LEFT JOIN dmprm m ON m.npid=r.pat_id AND quartal(m.dokudat)=quartal(r.dokudatum)AND m.art=2 -- AND IF(RIGHT(abk,1) IN ('1','2'),CONCAT(r.art,RIGHT(abk,1))=m.dokuart,CONCAT(LEFT(art,1),MID(abk,5))=m.dokuart)" & vbCrLf & _
-"LEFT JOIN dmprm f ON f.npid=r.pat_id AND quartal(f.dokudat)=quartal(r.dokudatum)AND f.art<>2" & vbCrLf & _
+"LEFT JOIN dmprm m ON m.npid=r.pat_id AND quartal(m.dokudat)=quartal(r.dokudatum)AND m.art IN(1,2) -- AND IF(RIGHT(abk,1) IN ('1','2'),CONCAT(r.art,RIGHT(abk,1))=m.dokuart,CONCAT(LEFT(art,1),MID(abk,5))=m.dokuart)" & vbCrLf & _
+"LEFT JOIN dmprm f ON f.npid=r.pat_id AND quartal(f.dokudat)=quartal(r.dokudatum)AND f.art<>2 AND f.art<>1" & vbCrLf & _
 "WHERE quartal(r.dokudatum)=vorquart(quartal(NOW()),1)AND dmpart<>0" & vbCrLf & _
 "AND ISNULL(m.npid)" & vbCrLf & _
 "GROUP BY r.pat_id,karteidatum" & vbCrLf & _
 "ORDER BY PName"
 
 myFrag rs, sql
-Call TabAusgeb(rs, Me, , , , , , True, "Nicht erkannte DMP-Rückmeldungen")
+Call TabAusgeb(rs, Me, , , , , , , "Nicht erkannte DMP-Rückmeldungen")
 End Sub ' DMPRückmeldungsfehler_Click
 
 ' Funktion für Arzthelferin und Arzt -> Doppelzeilen in Notizen auflisten
@@ -3598,6 +3627,7 @@ Private Sub Pat_loeschen_Click()
   End If ' erg = vbYes
  End If ' Not rsPat.BOF() Then
 End Sub ' Pat_loeschen_Click
+
 
 ' ...für Arzt -> Gefaxte Briefe anzeigen
 Private Sub GefaxteBriefeAnzeigen_Click()
