@@ -1,6 +1,6 @@
 Attribute VB_Name = "modMemoScan"
 Option Explicit
-#Const claude = True ' auch in : vonMo
+' #Const claude = True ' auch in : vonMo
 #If claude Then
 Private Declare Sub CopyMemory Lib "kernel32" Alias "RtlMoveMemory" _
     (Destination As Any, Source As Any, ByVal Length As Long)

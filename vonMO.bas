@@ -1953,7 +1953,7 @@ abermals:
    Const i233% = 0
    Const i235% = 0
 #End If
-#Const claude = True ' auch in: modMemoScan
+' #Const claude = True ' auch in: modMemoScan
 #If claude Then
 Dim aFld()     As TMemoFeld
    Dim ab()  As Byte
@@ -2030,9 +2030,9 @@ Dim aFld()     As TMemoFeld
   FmS = rsMO!ftk
   On Error GoTo fehler
   If FmS <> "" Then
-  tg0 = GetTickCount
+'  tg0 = GetTickCount
   
-  Call ParseMemoFast(FmS, FMem(), obDebug, "FTextkategorie aus mosystem")
+   Call ParseMemoFast(FmS, FMem(), obDebug, "FTextkategorie aus mosystem")
 #If mosysdruck Then
    Open "v:\memoparsalt" & i235 & ".txt" For Output As #235
 #End If ' mosysdruck
@@ -2048,13 +2048,13 @@ Dim aFld()     As TMemoFeld
      Print #235, EintS.TypNr & " " & EintS.IKür & " " & EintS.name
 #End If ' mosysdruck
      EinK.sCAdd EintS
-    End If
+    End If ' j = 0 to UBund(FMem)
    Next j
   End If ' FmS <> "" Then
  End If ' einl.count=0
  Close #235
-    tg1 = GetTickCount
-    Debug.Print ">>> mosystem FTextkategorie: " & (tg1 - tg0) & " ms"
+'    tg1 = GetTickCount
+'    Debug.Print ">>> mosystem FTextkategorie: " & (tg1 - tg0) & " ms"
 ' Call MONamen(fPtNr)
  Dim rsNa As New ADODB.Recordset
 ' On Error GoTo fehler
@@ -3720,6 +3720,7 @@ fgefunden:
 '    Debug.Print "Eintragsart: " & rsEi!FEintragsart
     messDatum = rsEi!Zp ' rsEi!anzp ' umgestellt 29.6.25
     art = rsEi!art
+'    If InStrB(rsEi!Wert, "Hormon") Then Stop
     neuart = 0
 '    If rsEi!FEintragsart = 1129 Then Stop
 '    If rsEi!FEintragsart = 1105 Then Stop => art ti => kommt in namen.info
