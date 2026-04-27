@@ -1,6 +1,6 @@
 Attribute VB_Name = "modMemoScan"
 Option Explicit
-' #Const claude = True ' auch in : vonMo
+#Const claude = True ' auch in : vonMo
 #If claude Then
 Private Declare Sub CopyMemory Lib "kernel32" Alias "RtlMoveMemory" _
     (Destination As Any, Source As Any, ByVal Length As Long)
@@ -73,8 +73,8 @@ Public Sub MemoScanToList(aFld() As TMemoFeld, _
     Dim ii          As Long
     Dim igrp        As Long
     Dim nCount      As Long
-    Dim sPrevAID As String   ' für bAIDVorne=False
-    sPrevAID = ""
+'    Dim sPrevAID As String   ' für bAIDVorne=False
+'    sPrevAID = ""
     
     If SafeArrayGetDim(aFld) = 0 Then Exit Sub
     nCount = UBound(aFld) + 1
@@ -128,7 +128,7 @@ Public Sub MemoScanToList(aFld() As TMemoFeld, _
             If sAIDNr <> "" Or sName <> "" Or sIKür <> "" Then
                 Dim EintS As SortierEintr
                 Set EintS = New SortierEintr
-                EintS.TypNr = sPrevAID
+                EintS.TypNr = sAIDNr ' sPrevAID
                 EintS.IKür = sIKür
                 EintS.EKür = sEKür
                 EintS.name = sName
@@ -149,7 +149,7 @@ Public Sub MemoScanToList(aFld() As TMemoFeld, _
                         IIf(bVerwendung, "ja", "nein")
                 End If
             End If
-            sPrevAID = sAIDNr   ' für nächste Gruppe merken
+'            sPrevAID = sAIDNr   ' für nächste Gruppe merken
             ' Reset
             sAIDNr = ""
             sIKür = ""

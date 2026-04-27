@@ -1953,7 +1953,7 @@ abermals:
    Const i233% = 0
    Const i235% = 0
 #End If
-' #Const claude = True ' auch in: modMemoScan
+#Const claude = True ' auch in: modMemoScan
 #If claude Then
 Dim aFld()     As TMemoFeld
    Dim ab()  As Byte
