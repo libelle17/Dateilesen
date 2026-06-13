@@ -539,7 +539,7 @@ Public Type DMPClass
  obOAK As Integer
  obDiur As Integer
  Tabak As Boolean
- kgr As Integer ' Körpergröße
+ kGR As Integer ' Körpergröße
  gewi As Single ' Gewicht
  bmi As Single ' Body Mass Index
  Puls As DMPStat ' Pulsstatus
@@ -724,7 +724,7 @@ fehler:
 #Else
  AnwPfad = App.path
 #End If
-Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in LetztLab/" + AnwPfad)
+Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.Source), vNS, CStr(Err.Source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in LetztLab/" + AnwPfad)
  Case vbAbort: Call MsgBox("Höre auf"): ProgEnde
  Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
  Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
@@ -803,7 +803,7 @@ fehler:
 #Else
  AnwPfad = App.path
 #End If
-Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in LabPat/" + AnwPfad)
+Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.Source), vNS, CStr(Err.Source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in LabPat/" + AnwPfad)
  Case vbAbort: Call MsgBox("Höre auf"): ProgEnde
  Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
  Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
@@ -828,67 +828,67 @@ End Function ' LabPat(la AS LabArt, pid&) AS labtyp
 ' myFrag LabEPat, LabEPatS(la, Pat_id).Value
 'End FUNCTION ' LabEPat
 
-Function obLabI%(LA As LabArt, LT As labtyp) ' ob Labor interessant
+Function obLabI%(LA As LabArt, lT As labtyp) ' ob Labor interessant
  Select Case LA
   Case LA_HbA1c:
-   obLabI = ((LT.Abkü Like "HBA[C1]*" Or LT.Abkü = "XHBA1C") And MachNumerisch(LT.WertSg) < 22) ' 30.8.14: wegen falsch eingetragener Fremdlabore gestrichen: AND `einheit` = '%'
+   obLabI = ((lT.Abkü Like "HBA[C1]*" Or lT.Abkü = "XHBA1C") And MachNumerisch(lT.WertSg) < 22) ' 30.8.14: wegen falsch eingetragener Fremdlabore gestrichen: AND `einheit` = '%'
             ' identisch, wg.Kompatibilität nicht genommen: "RLIKE 'hba[c1]' AND einheit = '%'"
   Case LA_HbA1cmm:
-   obLabI = ((UCase$(LT.Abkü) Like "HBA[C1]*" Or LT.Abkü = "XHBA1C") And MachNumerisch(LT.WertSg) >= 22) ' 30.8.14: wegen falsch eingetragener Fremdlabore gestrichen: AND `einheit` = '%'
+   obLabI = ((UCase$(lT.Abkü) Like "HBA[C1]*" Or lT.Abkü = "XHBA1C") And MachNumerisch(lT.WertSg) >= 22) ' 30.8.14: wegen falsch eingetragener Fremdlabore gestrichen: AND `einheit` = '%'
   Case LA_Krea:
   ' abkü IN ('creat','krea02','krea','krea02','kres') AND einheit='mg/dl'
-   obLabI = ((LT.Abkü = "CREAT" Or LT.Abkü = "KRE02" Or LT.Abkü = "KREA" Or LT.Abkü = "KREA02" Or LT.Abkü = "KRES" Or LT.Abkü = "XCREA") And LT.Einheit = "mg/dl")
+   obLabI = ((lT.Abkü = "CREAT" Or lT.Abkü = "KRE02" Or lT.Abkü = "KREA" Or lT.Abkü = "KREA02" Or lT.Abkü = "KRES" Or lT.Abkü = "XCREA") And lT.Einheit = "mg/dl")
   Case LA_AlbCre:
   ' zu koordinieren mit doViewserstellen: obnephrop und labpath.cpp pVirtfuehraus
-   obLabI = ((LT.Abkü = "ALBCRE" Or LT.Abkü = "ALBKRE" Or LT.Abkü = "ALBQ" Or LT.Abkü = "ALBUM" Or LT.Abkü = "ALBUP") And (LT.Einheit Like "mg/g *" Or LT.Einheit = "keine Einheit" Or LT.Einheit = "" Or LT.Einheit = "kA" Or LT.Einheit = "'kA'")) Or ((LT.Abkü = "ALBU" Or LT.Abkü = "ALBUMU") And LT.Einheit = "mg/l")
+   obLabI = ((lT.Abkü = "ALBCRE" Or lT.Abkü = "ALBKRE" Or lT.Abkü = "ALBQ" Or lT.Abkü = "ALBUM" Or lT.Abkü = "ALBUP") And (lT.Einheit Like "mg/g *" Or lT.Einheit = "keine Einheit" Or lT.Einheit = "" Or lT.Einheit = "kA" Or lT.Einheit = "'kA'")) Or ((lT.Abkü = "ALBU" Or lT.Abkü = "ALBUMU") And lT.Einheit = "mg/l")
   Case LA_Kali:
-   obLabI = (LT.Abkü = "K" Or LT.Abkü = "KALI" Or LT.Abkü = "XK")
+   obLabI = (lT.Abkü = "K" Or lT.Abkü = "KALI" Or lT.Abkü = "XK")
   Case LA_Chol:
-   obLabI = (LT.Abkü = "CHOL" Or LT.Abkü = "XCHOL")
+   obLabI = (lT.Abkü = "CHOL" Or lT.Abkü = "XCHOL")
   Case LA_Hdl:
-   obLabI = (LT.Abkü = "HDL" Or LT.Abkü = "HDLC" Or LT.Abkü = "XHDL")
+   obLabI = (lT.Abkü = "HDL" Or lT.Abkü = "HDLC" Or lT.Abkü = "XHDL")
   Case LA_LDL:
-   obLabI = ((LT.Abkü Like "LDL*" Or LT.Abkü = "XLDL") And LT.Einheit = "mg/dl")
+   obLabI = ((lT.Abkü Like "LDL*" Or lT.Abkü = "XLDL") And lT.Einheit = "mg/dl")
   Case LA_eGFR:
-   obLabI = (LT.Abkü Like "GFR*" Or UCase$(LT.Abkü) Like "GFC*" Or LT.Abkü Like "CREACL*" Or LT.Abkü = "MDRD" Or LT.Abkü = "XGFR") ' GFCK4
+   obLabI = (lT.Abkü Like "GFR*" Or UCase$(lT.Abkü) Like "GFC*" Or lT.Abkü Like "CREACL*" Or lT.Abkü = "MDRD" Or lT.Abkü = "XGFR") ' GFCK4
    ' "GFR','GFRCYS','GFRK','GFRM','GFRT','GFRW','CREACL','GFC','GFCK1','GFCK2','GFCK3','GFCK4','GFCM1','GFCW1','GFCW2','MDRD"
   Case LA_TG:
-   obLabI = (LT.Abkü = "TRI" Or LT.Abkü = "TRIG" Or LT.Abkü = "NTFE" Or LT.Abkü = "TRIGLK" Or LT.Abkü = "XTRI")
+   obLabI = (lT.Abkü = "TRI" Or lT.Abkü = "TRIG" Or lT.Abkü = "NTFE" Or lT.Abkü = "TRIGLK" Or lT.Abkü = "XTRI")
   Case LA_GGT:
-   obLabI = (LT.Abkü = "GAGT" Or LT.Abkü = "GAGT02" Or LT.Abkü = "GGT" Or LT.Abkü = "GT" Or LT.Abkü = "YGT" Or LT.Abkü = "XGGT")
+   obLabI = (lT.Abkü = "GAGT" Or lT.Abkü = "GAGT02" Or lT.Abkü = "GGT" Or lT.Abkü = "GT" Or lT.Abkü = "YGT" Or lT.Abkü = "XGGT")
   Case LA_GPT:
-   obLabI = (LT.Abkü = "GPT" Or LT.Abkü = "GPTR02" Or LT.Abkü = "GPTR03" Or LT.Abkü = "PT" Or LT.Abkü = "XGPT") ' prognostiziert
+   obLabI = (lT.Abkü = "GPT" Or lT.Abkü = "GPTR02" Or lT.Abkü = "GPTR03" Or lT.Abkü = "PT" Or lT.Abkü = "XGPT") ' prognostiziert
   Case LA_FERR:
-   obLabI = (LT.Abkü = "FERR" Or LT.Abkü = "FERR01" Or LT.Abkü = "FERRI" Or LT.Abkü = "FERRIT" Or LT.Abkü = "FERRO" Or LT.Abkü = "XFERRI")
+   obLabI = (lT.Abkü = "FERR" Or lT.Abkü = "FERR01" Or lT.Abkü = "FERRI" Or lT.Abkü = "FERRIT" Or lT.Abkü = "FERRO" Or lT.Abkü = "XFERRI")
   Case LA_DIGO:
-   obLabI = (LT.Abkü = "DIGO" Or LT.Abkü = "DIGOX")
+   obLabI = (lT.Abkü = "DIGO" Or lT.Abkü = "DIGOX")
   Case LA_DIGI:
-   obLabI = (LT.Abkü = "DIGI" Or LT.Abkü = "DIGIT")
+   obLabI = (lT.Abkü = "DIGI" Or lT.Abkü = "DIGIT")
   Case LA_TSH:
-   obLabI = (LT.Abkü = "TSH" Or LT.Abkü = "TSHE" Or LT.Abkü = "TSH-L_K" Or LT.Abkü = "TSBL" Or LT.Abkü = "TSBF" Or LT.Abkü = "TSH2" Or LT.Abkü = "TSHTRH" Or LT.Abkü = "XTSH")
+   obLabI = (lT.Abkü = "TSH" Or lT.Abkü = "TSHE" Or lT.Abkü = "TSH-L_K" Or lT.Abkü = "TSBL" Or lT.Abkü = "TSBF" Or lT.Abkü = "TSH2" Or lT.Abkü = "TSHTRH" Or lT.Abkü = "XTSH")
   Case LA_fT4:
-   obLabI = (LT.Abkü Like "FT4*" Or LT.Abkü = "XFT4")
+   obLabI = (lT.Abkü Like "FT4*" Or lT.Abkü = "XFT4")
   Case LA_ft3:
-   obLabI = (LT.Abkü Like "FT3*" Or LT.Abkü = "XFT3")
+   obLabI = (lT.Abkü Like "FT3*" Or lT.Abkü = "XFT3")
   Case LA_Hb:
-   obLabI = (LT.Abkü = "HB" Or LT.Abkü = "XHB")
+   obLabI = (lT.Abkü = "HB" Or lT.Abkü = "XHB")
   Case LA_FOL:
-   obLabI = (LT.Abkü = "FOL" Or LT.Abkü = "FOL_S" Or LT.Abkü = "FOLS" Or LT.Abkü = "FOLS_K" Or LT.Abkü = "FOLS01" Or LT.Abkü = "FOLSN")
+   obLabI = (lT.Abkü = "FOL" Or lT.Abkü = "FOL_S" Or lT.Abkü = "FOLS" Or lT.Abkü = "FOLS_K" Or lT.Abkü = "FOLS01" Or lT.Abkü = "FOLSN")
   Case LA_LEUK:
-   obLabI = (LT.Abkü = "LEU" Or LT.Abkü = "LEUK" Or LT.Abkü = "LEUKO" Or LT.Abkü = "LEUK_H" Or LT.Abkü = "LEUK_T" Or LT.Abkü = "XLEUKO")
+   obLabI = (lT.Abkü = "LEU" Or lT.Abkü = "LEUK" Or lT.Abkü = "LEUKO" Or lT.Abkü = "LEUK_H" Or lT.Abkü = "LEUK_T" Or lT.Abkü = "XLEUKO")
   Case LA_CRP:
-   obLabI = (LT.Abkü = "CRP" Or LT.Abkü = "CRPF" Or LT.Abkü = "CRPHS" Or LT.Abkü = "CRPQ" Or LT.Abkü = "CRPQ01" Or LT.Abkü = "CRPST" Or LT.Abkü = "XCRP")
+   obLabI = (lT.Abkü = "CRP" Or lT.Abkü = "CRPF" Or lT.Abkü = "CRPHS" Or lT.Abkü = "CRPQ" Or lT.Abkü = "CRPQ01" Or lT.Abkü = "CRPST" Or lT.Abkü = "XCRP")
   Case LA_CK:
-   obLabI = (LT.Abkü = "CK" Or LT.Abkü = "CKE" Or LT.Abkü = "CKNAC")
+   obLabI = (lT.Abkü = "CK" Or lT.Abkü = "CKE" Or lT.Abkü = "CKNAC")
   Case LA_B12:
 '   obLabI = (lt.Abkü = "B12" OR lt.Abkü = "B12N" OR lt.Abkü = "B12akt" OR lt.Abkü = "VB12" OR lt.Abkü = "VITB12")
-   obLabI = (LT.Abkü = "B12" Or LT.Abkü = "VITB12" Or LT.Abkü = "B12N" Or LT.Abkü = "XVITB12")
+   obLabI = (lT.Abkü = "B12" Or lT.Abkü = "VITB12" Or lT.Abkü = "B12N" Or lT.Abkü = "XVITB12")
   Case LA_THR:
-   obLabI = (LT.Abkü = "THRB" Or LT.Abkü = "THRC" Or LT.Abkü = "THRM" Or LT.Abkü = "THRO" Or LT.Abkü = "THRO_E" Or LT.Abkü = "THRO-C" Or LT.Abkü = "THRO-THX" Or LT.Abkü = "THROC" Or LT.Abkü = "THROM" Or LT.Abkü = "THROMB" Or LT.Abkü = "TROM")
+   obLabI = (lT.Abkü = "THRB" Or lT.Abkü = "THRC" Or lT.Abkü = "THRM" Or lT.Abkü = "THRO" Or lT.Abkü = "THRO_E" Or lT.Abkü = "THRO-C" Or lT.Abkü = "THRO-THX" Or lT.Abkü = "THROC" Or lT.Abkü = "THROM" Or lT.Abkü = "THROMB" Or lT.Abkü = "TROM")
   Case LA_GOT:
-   obLabI = (LT.Abkü = "GOT" Or LT.Abkü = "GOTR02" Or LT.Abkü = "GOTR03" Or LT.Abkü = "OT" Or LT.Abkü = "XGOT")
+   obLabI = (lT.Abkü = "GOT" Or lT.Abkü = "GOTR02" Or lT.Abkü = "GOTR03" Or lT.Abkü = "OT" Or lT.Abkü = "XGOT")
   Case LA_AlbS:
-   obLabI = (LT.Abkü = "ALBS" Or LT.Abkü = "ALBUS" Or (LT.Abkü = "ALBU" And LT.Einheit = "g/l"))
+   obLabI = (lT.Abkü = "ALBS" Or lT.Abkü = "ALBUS" Or (lT.Abkü = "ALBU" And lT.Einheit = "g/l"))
  End Select
 End Function ' obLabI%(LA AS LabArt, lt AS labtyp) ' ob Labor interessant
 '' nur noch in Niereninsuffizienzpauschalendiabetiker_Click
@@ -896,7 +896,7 @@ End Function ' obLabI%(LA AS LabArt, lt AS labtyp) ' ob Labor interessant
 '#If bis0418 THEN
 ' Const s1$ = "SELECT DATE(zeitpunkt) zp, IF(ISNULL(wert),IF(ISNULL(kommentar),'',kommentar),wert) Wert FROM `laborneu` ln LEFT JOIN laborkommentar lk ON ln.kommentarvw = lk.kommentarvw WHERE "
 ' Const s2$ = " AND pat_id = "
-' Const s3$ = " UNION SELECT DATE(u.eingang) zp, IF(ISNULL(w.wert),IF(ISNULL(w.kommentar),'',w.kommentar),w.wert) Wert FROM `laborxus` u LEFT JOIN laborxwert w ON u.refnr = w.refnr WHERE "
+' Const s3$ = " UNION SELECT DATE(u.eingang) zp, IF(ISNULL(w.wert),IF(ISNULL(w.kommentar),'',w.kommentar),w.wert) Wert FROM `" & vorsil & "us` u LEFT JOIN " & vorsil & "wert w ON u.refnr = w.refnr WHERE "
 '#END IF
 ' Const s4$ = " GROUP BY zp ORDER BY zp DESC"
 ' Dim Abkü$
@@ -922,7 +922,7 @@ End Function ' obLabI%(LA AS LabArt, lt AS labtyp) ' ob Labor interessant
 '' END IF
 'Const Werte$ = "pat_id, Zeitpunkt zp, abkü, abkü, Langtext,CONVERT(REPLACE(CONCAT('0',Wert),',','.'),DECIMAL(10,1)) Wert,Einheit,Einheit_ur,Kommentar,NB,NB_ur,uNg,uNg_ur,oNg,oNg_ur,Labor,Pfad "
 ' LabEPatS.AppVar Array("SELECT * FROM (SELECT ", Werte, " FROM `labor2a` WHERE pat_id = ", Pat_id, " AND ", Abkü, " UNION SELECT ", Werte, " FROM `labor1a` WHERE pat_id = ", Pat_id, " AND ", Abkü, " ) i", s4)
-''  sql = "SELECT pat_id, zeitpunkt zp, wert FROM `laborneu` ln WHERE abkü RLIKE 'hba[c1]' AND einheit = '%' AND pat_id = " & Pat_id & " UNION SELECT u.pat_id, u.eingang zp, w.wert FROM `laborxus` u LEFT JOIN laborxwert w ON u.refnr = w.refnr WHERE abkü RLIKE 'hba[c1]' AND einheit = '%' AND pat_id = " & Pat_id & " ORDER BY pat_id,zp DESC"
+''  sql = "SELECT pat_id, zeitpunkt zp, wert FROM `laborneu` ln WHERE abkü RLIKE 'hba[c1]' AND einheit = '%' AND pat_id = " & Pat_id & " UNION SELECT u.pat_id, u.eingang zp, w.wert FROM `" & vorsil & "us` u LEFT JOIN " & vorsil & "wert w ON u.refnr = w.refnr WHERE abkü RLIKE 'hba[c1]' AND einheit = '%' AND pat_id = " & Pat_id & " ORDER BY pat_id,zp DESC"
 'End FUNCTION ' LabEPatS
 
 ' FUNCTION latinis$(artSpez$)
@@ -1214,8 +1214,8 @@ aktDC.Postleitzahl = "D " & aktDC.plz & " " & aktDC.ort ' 1.1.15 Länderkennzeich
 ''Const sqllabor$ = "SELECT Pat_ID, ZeitPunkt, FertigStGrad, Abkü, Langtext, Wert, Einheit, Kommentar, AbsPos, AktZeit FROM `laborlangtext` INNER JOIN (`laborneu`) ON `laborlangtext`.LangtextVW = `laborneu`.LangtextVW"
 'lsql = "SELECT Pat_ID, ZeitPunkt, FertigStGrad, AbKü, LangText,Wert, Einheit, Kommentar,"""" AS NB FROM (" & sqllabor & ") AS labor WHERE wert <> """" AND NOT ISNULL(wert)"
 'lsql = "SELECT Pat_ID, ZeitPunkt, FertigStGrad, AbKü, LangText,Wert, Einheit, Kommentar,"""" AS NB FROM (" & sqllabor & ") AS labor WHERE wert <> """" AND NOT ISNULL(wert) UNION SELECT Pat_ID, Eingang AS zeitpunkt, BefArt AS FertigStGrad, Abkü, langname AS Langtext, Wert, Einheit, Kommentar,Normbereich AS NB " + _
- "FROM `laborxus` LEFT JOIN laborxwert ON laborxus.RefNr=laborxwert.RefNr " + _
- "WHERE pat_id = " & aktDC.Pat_id & " AND wert <> """" AND NOT ISNULL(wert) AND NOT EXISTS (SELECT * FROM `laborneu` WHERE pat_id = " & aktDC.Pat_id & " AND abkü = laborxwert.Abkü AND wert = laborxwert.wert AND zeitpunkt > laborxus.Eingang-3 AND zeitpunkt < laborxus.Eingang+6)"
+ "FROM `" & vorsil & "us` LEFT JOIN " & vorsil & "wert ON " & vorsil & "us.RefNr=" & vorsil & "wert.RefNr " + _
+ "WHERE pat_id = " & aktDC.Pat_id & " AND wert <> """" AND NOT ISNULL(wert) AND NOT EXISTS (SELECT * FROM `laborneu` WHERE pat_id = " & aktDC.Pat_id & " AND abkü = " & vorsil & "wert.Abkü AND wert = " & vorsil & "wert.wert AND zeitpunkt > " & vorsil & "us.Eingang-3 AND zeitpunkt < " & vorsil & "us.Eingang+6)"
 'lsql = "SELECT * FROM labor1 WHERE pat_id = " & Pat_id & " UNION SELECT * FROM labor2 WHERE pat_id = " & Pat_id
 'lsql = "SELECT * FROM (SELECT * FROM `labor2a` WHERE pat_id = " & Pat_id & " UNION SELECT * FROM `labor1a` WHERE pat_id = " & Pat_id & ") i GROUP BY pat_id,zeitpunkt,abkü,wert,einheit,nb"
 'lsql = "SELECT lab.* FROM (SELECT @wertkl:=0 @zpkl=0 @abkü='' @patid:= " & Pat_id & " nix) nul, geslab lab"
@@ -1328,7 +1328,7 @@ aktDC.x_DoklangName = REPLACE$(aktDC.x_DokName, "*", "geb. ")
  If obPosi(Dialyse <> 0) Or diI("Z49", , , , , aktDC.FEi(8), aktDC.FEd(8)) Then
   aktDC.FEn(8) = True
   If aktDC.ab315 Then
-   spät.AppVar Array(IIf(spät.length = 0, "Nephropathie:", ":"), " Nierenersatztherapie")
+   spät.AppVar Array(IIf(spät.Length = 0, "Nephropathie:", ":"), " Nierenersatztherapie")
   Else
    bbk.AppVar Array(" Nierenersatztherapie", IIf(aktDC.FE(8) And Not aktDC.ab315, "( bek)", ""), ",")
   End If
@@ -1338,14 +1338,14 @@ aktDC.x_DoklangName = REPLACE$(aktDC.x_DokName, "*", "geb. ")
   If aktDC.obG632 Or diI("G59.0 G99.0") Or diT("europath") Then
    aktDC.FEn(11) = True
    If aktDC.ab315 Then
-    spät.AppVar Array(IIf(spät.length = 0, "", ", "), "Neuropathie")
+    spät.AppVar Array(IIf(spät.Length = 0, "", ", "), "Neuropathie")
    End If
   End If
   
   If diT("Retinopath") Or diI("H36") Then
    aktDC.FEn(9) = True
    If aktDC.ab315 Then
-    spät.AppVar Array(IIf(spät.length = 0, "", ", "), "Retinopathie")
+    spät.AppVar Array(IIf(spät.Length = 0, "", ", "), "Retinopathie")
    Else
     bbk.AppVar Array(" diab. Retinopathie", IIf(aktDC.FE(9) And Not aktDC.ab315, "( bek)", ""), ",")
    End If
@@ -1353,7 +1353,7 @@ aktDC.x_DoklangName = REPLACE$(aktDC.x_DokName, "*", "geb. ")
   If InStrB(LCase$(Diagnosen), "blind") <> 0 Or diI("H54 S05", , , True, , aktDC.FEi(10), aktDC.FEd(10)) Then
    aktDC.FEn(10) = True
    If aktDC.ab315 Then
-    spät.AppVar Array(IIf(aktDC.FEn(9), ", ", IIf(spät.length = 0, "", ", ") & "Retinopathie"), " (Blindheit)")
+    spät.AppVar Array(IIf(aktDC.FEn(9), ", ", IIf(spät.Length = 0, "", ", ") & "Retinopathie"), " (Blindheit)")
    Else
     bbk.AppVar Array(" Blindheit", IIf(aktDC.FE(10) And Not aktDC.ab315, "( bek)", ""), ",")
    End If
@@ -1389,10 +1389,10 @@ aktDC.x_DoklangName = REPLACE$(aktDC.x_DokName, "*", "geb. ")
    Exit For
   End If
  Next j
- If bbk.length = 0 Then bbk = " keine"
- If Right$(bbk, 1) = "," Then bbk.Cut (bbk.length - 1)
+ If bbk.Length = 0 Then bbk = " keine"
+ If Right$(bbk, 1) = "," Then bbk.Cut (bbk.Length - 1)
  Do While Asc(bbk.Right(1)) = 9 Or Asc(bbk.Right(1)) = 10 Or Asc(bbk.Right(1)) = 11 Or Asc(bbk.Right(1)) = 13
-  bbk.Cut (bbk.length - 1)
+  bbk.Cut (bbk.Length - 1)
   If Len(bbk) = 0 Then Exit Do
  Loop
  aktDC.x_Bbk = LTrim$(bbk)
@@ -1413,7 +1413,7 @@ aktDC.x_DoklangName = REPLACE$(aktDC.x_DokName, "*", "geb. ")
  aktDC.Tabak = (WieTabak(Pat_id) = aktuell)
  If mitStr Then TabPr "Raucher:", IIf(aktDC.Tabak, "  ja", "nein")
  If Not IsNull(Größe) Then
-  aktDC.kgr = Round(REPLACE$(IIf(Größe < 10, Größe * 100, Größe), ".", ","), 0)
+  aktDC.kGR = Round(REPLACE$(IIf(Größe < 10, Größe * 100, Größe), ".", ","), 0)
   If mitStr Then TabPr "Körpergröße:", CStr(Größe) + IIf(Größe < 10, " m", " cm")
  End If ' Not IsNull(!Größe) Then
  
@@ -1469,8 +1469,8 @@ aktDC.x_DoklangName = REPLACE$(aktDC.x_DokName, "*", "geb. ")
  End If ' Not raEi.EOF THEN else
  If mitStr Then TabPr "Körpergewicht:", aktDC.x_Gewi
     
- If aktDC.kgr <> 0 Then
-  aktDC.bmi = aktDC.gewi / (aktDC.kgr * 1# * aktDC.kgr)
+ If aktDC.kGR <> 0 Then
+  aktDC.bmi = aktDC.gewi / (aktDC.kGR * 1# * aktDC.kGR)
   If aktDC.bmi > 0 Then
    Do While aktDC.bmi < 10
     aktDC.bmi = aktDC.bmi * 10
@@ -1622,14 +1622,14 @@ If True Then ' lwZahl
   Dim lG As labtyp
   lG = letztGFR(pid, PAlter, IIf(aktDC.geschlecht = "w", -1, 0))
   lG.WertSg = REPLACE$(lG.WertSg, "<", "")
-  aktDC.eGFR = IIf(lG.WertSg = "", 200, lG.WertSg)
+  aktDC.eGFR = IIf(Not IsNumeric(lG.WertSg), 200, lG.WertSg)
   aktDC.x_DMPeGFR = IIf(aktDC.eGFR, aktDC.eGFR & " " & lG.Einheit & " (" + Format$(lG.Zp, "dd/mm/yy") + ")", "nicht vorliegend") ', oberer Normwert: 1,3 mg/dl"
  End If ' aktdc.ab315 THEN
  
 ' IF aktDC.dtyp = "1" THEN ' 5.10.08: jetzt auch Typ 2
 '  SET raLau = Nothing
 '  raLau.Open "SELECT * FROM (" & lsql & ") AS innen WHERE abkü IN ('ALBCRE','ALBKRE','ALBQ','ALBUM','ALBUP') AND (abkü <> 'ALBU' OR wert LIKE '%<%') ORDER BY zeitpunkt DESC", DBCn, adOpenDynamic, adLockReadOnly
-'  sql = "SELECT zeitpunkt zp, abkü, einheit, wert FROM `laborneu` WHERE abkü IN ('ALBCRE','ALBKRE','ALBQ','ALBUM','ALBUP') AND pat_id = " & Pat_id & " UNION SELECT u.eingang zp, w.abkü abkü, w.einheit einheit, w.wert wert FROM `laborxus` u LEFT JOIN laborxwert w ON u.refnr = w.refnr WHERE abkü IN ('ALBCRE','ALBKRE','ALBQ','ALBUM','ALBUP') AND pat_id = " & Pat_id & " ORDER BY pat_id,zp DESC"
+'  sql = "SELECT zeitpunkt zp, abkü, einheit, wert FROM `laborneu` WHERE abkü IN ('ALBCRE','ALBKRE','ALBQ','ALBUM','ALBUP') AND pat_id = " & Pat_id & " UNION SELECT u.eingang zp, w.abkü abkü, w.einheit einheit, w.wert wert FROM `" & vorsil & "us` u LEFT JOIN " & vorsil & "wert w ON u.refnr = w.refnr WHERE abkü IN ('ALBCRE','ALBKRE','ALBQ','ALBUM','ALBUP') AND pat_id = " & Pat_id & " ORDER BY pat_id,zp DESC"
 '  SET raLau = LabEPat(AlbCre, PID)
   alt_la = LabArt0 ' falls schon mal mit gleichen Parametern aufgerufen
   Labs = LabPat(LA_AlbCre, pid)
@@ -1700,7 +1700,7 @@ If True Then ' lwZahl
  If mitStr And Not aktDC.ab317 Then TabPr "Sensibilität: ", aktDC.x_SensText
    
  If aktDC.ab315 Then
-  If spät.length = 0 Then spät = "keine"
+  If spät.Length = 0 Then spät = "keine"
   aktDC.x_Spät = spät
   If mitStr Then TabPr "Spätfolgen: ", aktDC.x_Spät
  End If ' mitStr AND aktdc.ab315 THEN
@@ -2294,7 +2294,7 @@ If aktDC.dtyp = "2" Then If mitStr Then TabPr "Lasertherapie:", IIf(aktDC.oblase
   If aktDC.FEn(13) Then ereig.AppVar Array("Amputation", IIf(aktDC.FE(13), "(bek)", "(ICD " & aktDC.FEi(13) & " vor " & Format(aktDC.FEd(13), "d.m.yy") & ")"), ", ")
   If aktDC.FEn(4) Then ereig.AppVar Array("Herzinfarkt", IIf(aktDC.FE(4), "(bek)", "(ICD " & aktDC.FEi(4) & " vor " & Format(aktDC.FEd(4), "d.m.yy") & ")"), ", ")
   If aktDC.FEn(5) Then ereig.AppVar Array("Schlaganfall", IIf(aktDC.FE(5), "(bek)", "(ICD " & aktDC.FEi(5) & " vor " & Format(aktDC.FEd(5), "d.m.yy") & ")"), ",")
-  If ereig.length = 0 Then ereig = "keine d.gen." Else ereig.Cut (ereig.length - 2)
+  If ereig.Length = 0 Then ereig = "keine d.gen." Else ereig.Cut (ereig.Length - 2)
   aktDC.x_Ereig = ereig
   If mitStr Then TabPr "relev.Ereignisse: ", aktDC.x_Ereig
  End If ' aktdc.ab315 Then
@@ -2756,7 +2756,7 @@ If Err.Number = -2147467259 Then ' Server has gone away ' 30.8.17 ungültiger Eig
  Call DBCnOpen
  Resume nochmal
 End If
- Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in DMPString/" + AnwPfad)
+ Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.Source), vNS, CStr(Err.Source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in DMPString/" + AnwPfad)
   Case vbAbort: Call MsgBox("Höre auf"): ProgEnde
   Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
   Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
@@ -2864,7 +2864,7 @@ fehler:
 #Else
  AnwPfad = App.path
 #End If
-Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in ImportFolderHerricht/" + AnwPfad)
+Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.Source), vNS, CStr(Err.Source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in ImportFolderHerricht/" + AnwPfad)
  Case vbAbort: Call MsgBox("Höre auf"): ProgEnde
  Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
  Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
@@ -3011,7 +3011,7 @@ fehler:
 #Else
  AnwPfad = App.path
 #End If
-Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in FallExport/" + AnwPfad)
+Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.Source), vNS, CStr(Err.Source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in FallExport/" + AnwPfad)
  Case vbAbort: Call MsgBox("Höre auf"): ProgEnde
  Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
  Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
@@ -3053,7 +3053,7 @@ fehler:
 #Else
  AnwPfad = App.path
 #End If
-Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in LeistungsExport1/" + AnwPfad)
+Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.Source), vNS, CStr(Err.Source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in LeistungsExport1/" + AnwPfad)
  Case vbAbort: Call MsgBox("Höre auf"): ProgEnde
  Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
  Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
@@ -3205,7 +3205,7 @@ fehler:
 #Else
  AnwPfad = App.path
 #End If
-Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in LeistungsExport1a/" + AnwPfad)
+Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.Source), vNS, CStr(Err.Source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in LeistungsExport1a/" + AnwPfad)
  Case vbAbort: Call MsgBox("Höre auf"): ProgEnde
  Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
  Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
@@ -3332,7 +3332,7 @@ fehler:
 #Else
  AnwPfad = App.path
 #End If
-Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in doPorto/" + AnwPfad)
+Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.Source), vNS, CStr(Err.Source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in doPorto/" + AnwPfad)
  Case vbAbort: Call MsgBox("Höre auf"): ProgEnde
  Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
  Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
@@ -3385,7 +3385,7 @@ fehler:
 #Else
  AnwPfad = App.path
 #End If
-Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in tuBriefeLeiDok/" + AnwPfad)
+Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.Source), vNS, CStr(Err.Source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in tuBriefeLeiDok/" + AnwPfad)
  Case vbAbort: Call MsgBox("Höre auf"): ProgEnde
  Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
  Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
@@ -3465,7 +3465,7 @@ fehler:
 #Else
  AnwPfad = App.path
 #End If
-Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in alleDMPLeiDok/" + AnwPfad)
+Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.Source), vNS, CStr(Err.Source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in alleDMPLeiDok/" + AnwPfad)
  Case vbAbort: Call MsgBox("Höre auf"): ProgEnde
  Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
  Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
@@ -3687,7 +3687,7 @@ fehler:
 #Else
  AnwPfad = App.path
 #End If
-Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in obhierdmpfn/" + AnwPfad)
+Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.Source), vNS, CStr(Err.Source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in obhierdmpfn/" + AnwPfad)
  Case vbAbort: Call MsgBox("Höre auf"): ProgEnde
  Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
  Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
@@ -3695,10 +3695,10 @@ End Select
 End Sub      ' obhierdmpfn
 
 Function doVerdächtigeÜberweiser()
- Dim sql$, rf As New ADODB.Recordset, infos$(), taskid&, HAi%, AktQ$, obverd%
+ Dim sql$, rf As New ADODB.Recordset, infos$(), taskid&, HAi%, aktQ$, obverd%
  Dim Datei$
  Datei$ = pVerz & "VerdächtigeÜberweiser.txt"
- AktQ = left$(ZQuart(Now() - 14), 1) & Right$(ZQuart(Now() - 14), 2) ' 109
+ aktQ = left$(ZQuart(Now() - 14), 1) & Right$(ZQuart(Now() - 14), 2) ' 109
  sql = "SELECT v.pat_id,n.* FROM `aktfvs` v LEFT JOIN `namen` n ON v.pat_id = n.pat_id"
  Open Datei For Output As #355
 ' rf.Open sql, DBCn
@@ -3715,7 +3715,7 @@ Function doVerdächtigeÜberweiser()
     HAi = HAi + 1
     If HAi > UBound(infos, 2) Then obverd = True: Exit Do
    Loop
-   If Not obverd Then If HAi <> 0 And InStrB(infos(10, 0), AktQ) <> 0 And infos(1, 0) <> infos(1, HAi) Then obverd = True
+   If Not obverd Then If HAi <> 0 And InStrB(infos(10, 0), aktQ) <> 0 And infos(1, 0) <> infos(1, HAi) Then obverd = True
    If obverd Then
     Print #355, rf!Pat_id & ": " & rf!Nachname & ", " & rf!Vorname & ":"
     Print #355, "  " & left$(infos(10, 0) & Space$(10), 10) & ": " & infos(1, 0)
@@ -3863,7 +3863,7 @@ fehler:
 #Else
  AnwPfad = App.path
 #End If
-Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in einDMPs/" + AnwPfad)
+Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.Source), vNS, CStr(Err.Source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in einDMPs/" + AnwPfad)
  Case vbAbort: Call MsgBox("Höre auf"): ProgEnde
  Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
  Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
@@ -3895,7 +3895,7 @@ fehler:
 #Else
  AnwPfad = App.path
 #End If
-Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in doAnwalt/" + AnwPfad)
+Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.Source), vNS, CStr(Err.Source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in doAnwalt/" + AnwPfad)
  Case vbAbort: Call MsgBox("Höre auf"): ProgEnde
  Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
  Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
@@ -3927,7 +3927,7 @@ fehler:
 #Else
  AnwPfad = App.path
 #End If
-Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in Ausgeb/" + AnwPfad)
+Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.Source), vNS, CStr(Err.Source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in Ausgeb/" + AnwPfad)
  Case vbAbort: Call MsgBox("Höre auf"): ProgEnde
  Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
  Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
@@ -4063,7 +4063,7 @@ fehler:
 #Else
  AnwPfad = App.path
 #End If
-Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in dodoFollowUp/" + AnwPfad)
+Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.Source), vNS, CStr(Err.Source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in dodoFollowUp/" + AnwPfad)
  Case vbAbort: Call MsgBox("Höre auf"): ProgEnde
  Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
  Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
@@ -4106,7 +4106,7 @@ fehler:
 #Else
  AnwPfad = App.path
 #End If
-Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in doUngeschriebeneBriefe/" + AnwPfad)
+Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.Source), vNS, CStr(Err.Source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in doUngeschriebeneBriefe/" + AnwPfad)
  Case vbAbort: Call MsgBox("Höre auf"): ProgEnde
  Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
  Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
@@ -4144,7 +4144,7 @@ fehler:
 #Else
  AnwPfad = App.path
 #End If
-Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in doRestlicheBriefe/" + AnwPfad)
+Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.Source), vNS, CStr(Err.Source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in doRestlicheBriefe/" + AnwPfad)
  Case vbAbort: Call MsgBox("Höre auf"): ProgEnde
  Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
  Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
@@ -4216,7 +4216,7 @@ fehler:
 #Else
  AnwPfad = App.path
 #End If
-Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in FaxSend/" + AnwPfad)
+Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.Source), vNS, CStr(Err.Source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in FaxSend/" + AnwPfad)
  Case vbAbort: Call MsgBox("Höre auf"): ProgEnde
  Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
  Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
@@ -4240,6 +4240,7 @@ Public Function do_DMPAusgebStandAlone(Pat_id&, Optional fax1$, Optional Adressa
 #Else
  Const uvz$ = "2145\"
 #End If
+' wenn kein Adressat, dann in P:\ speichern
  If fax1$ = vNS Then
   sverz = pVerz
  Else
@@ -4284,7 +4285,7 @@ Public Function do_DMPAusgebStandAlone(Pat_id&, Optional fax1$, Optional Adressa
  ag.AppVar Array(AbE1, sonz(DT.x_DmTyp), AbE2, sonz(DT.daseit), AbsE)
  ag.AppVar Array(AbE5, AbE4, "Bek. Begleit-/Folgeerk.:", AbE2, sonz(DT.x_Bbk), AbsE)
  ag.AppVar Array(AbE1, "Raucher:", AbE2, IIf(DT.Tabak, "ja", "nein"), AbsE)
- ag.AppVar Array(AbE1, "Körpergröße:", AbE2, DT.kgr, " cm", AbsE)
+ ag.AppVar Array(AbE1, "Körpergröße:", AbE2, DT.kGR, " cm", AbsE)
  ag.AppVar Array(AbE1, "Körpergewicht:", AbE2, sonz(DT.x_Gewi), AbsE)
  ' <w:p><w:pPr><w:pStyle w:val=""Normal""/><w:tabs><w:tab w:val=""clear"" w:pos=""1701""/><w:tab w:val=""left"" w:pos=""3118"" w:leader=""dot""/></w:tabs><w:ind w:hanging=""400"" w:left=""400"" w:right=""0""/><w:rPr/></w:pPr><w:r><w:rPr><w:rFonts w:cs=""Arial"" w:ascii=""Arial"" w:hAnsi=""Arial""/><w:b/><w:i/><w:szCs w:val=""24""/><w:lang w:val=""en-GB""/></w:rPr><w:t>
  ag.AppVar Array(AbE1, "Blutdruck:", AbE2, sonz(DT.PrRR), AbsE)
@@ -4539,7 +4540,7 @@ fehler:
 #Else
  AnwPfad = App.path
 #End If
-Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in do_DMPAusgebStandAlone/" + AnwPfad)
+Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.Source), vNS, CStr(Err.Source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in do_DMPAusgebStandAlone/" + AnwPfad)
  Case vbAbort: Call MsgBox("Höre auf"): ProgEnde
  Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
  Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
@@ -4640,7 +4641,7 @@ fehler:
 #Else
  AnwPfad = App.path
 #End If
-Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in GesNam/" + AnwPfad)
+Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.Source), vNS, CStr(Err.Source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in GesNam/" + AnwPfad)
  Case vbAbort: Call MsgBox("Höre auf"): ProgEnde
  Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
  Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
@@ -4679,7 +4680,7 @@ fehler:
 #Else
  AnwPfad = App.path
 #End If
-Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in DSeit/" + AnwPfad)
+Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.Source), vNS, CStr(Err.Source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in DSeit/" + AnwPfad)
  Case vbAbort: Call MsgBox("Höre auf"): ProgEnde
  Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
  Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
@@ -4896,7 +4897,7 @@ Dim tonRunde%
 #Else
  AnwPfad = App.path
 #End If
- Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in TherAuskunft/" + AnwPfad)
+ Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.Source), vNS, CStr(Err.Source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in TherAuskunft/" + AnwPfad)
   Case vbAbort: Call MsgBox("Höre auf"): ProgEnde
   Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
   Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
@@ -4948,7 +4949,7 @@ fehler:
 #Else
  AnwPfad = App.path
 #End If
- Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in diI/" + AnwPfad)
+ Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.Source), vNS, CStr(Err.Source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in diI/" + AnwPfad)
   Case vbAbort: Call MsgBox("Höre auf"): ProgEnde
   Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
   Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
@@ -5004,7 +5005,7 @@ fehler:
 #Else
  AnwPfad = App.path
 #End If
- Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in diT/" + AnwPfad)
+ Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.Source), vNS, CStr(Err.Source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in diT/" + AnwPfad)
   Case vbAbort: Call MsgBox("Höre auf"): ProgEnde
   Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
   Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
@@ -5179,7 +5180,7 @@ fehler:
 #Else
  AnwPfad = App.path
 #End If
- Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in GetPrRR/" + AnwPfad)
+ Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.Source), vNS, CStr(Err.Source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in GetPrRR/" + AnwPfad)
   Case vbAbort: Call MsgBox("Höre auf"): ProgEnde
   Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
   Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
@@ -5212,7 +5213,7 @@ fehler:
 #Else
  AnwPfad = App.path
 #End If
-Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in SchutzBest/" + AnwPfad)
+Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.Source), vNS, CStr(Err.Source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in SchutzBest/" + AnwPfad)
  Case vbAbort: Call MsgBox("Höre auf"): ProgEnde
  Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
  Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
@@ -5363,7 +5364,7 @@ weiter:
  End If
  Exit Function
 fehler:
-Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description + vbCrLf + "Fehlerposition: " + CStr(FPos), vbAbortRetryIgnore, "Aufgefangener Fehler in MedPlanAusAna/" + App.path)
+Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.Source), vNS, CStr(Err.Source)) + vbCrLf + "Description: " + Err.Description + vbCrLf + "Fehlerposition: " + CStr(FPos), vbAbortRetryIgnore, "Aufgefangener Fehler in MedPlanAusAna/" + App.path)
  Case vbAbort: Call MsgBox("Höre auf"): ProgEnde
  Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
  Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
@@ -5437,7 +5438,7 @@ Function MedPlanNr&(ByVal Pat_id$, ByVal obAkt, Optional ByVal VorDat As Date, O
 ' END IF ' NOT ISNULL
  Exit Function
 fehler:
-Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description + vbCrLf + "Fehlerposition: " + CStr(FPos), vbAbortRetryIgnore, "Aufgefangener Fehler in MedPlanNr/" + App.path)
+Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.Source), vNS, CStr(Err.Source)) + vbCrLf + "Description: " + Err.Description + vbCrLf + "Fehlerposition: " + CStr(FPos), vbAbortRetryIgnore, "Aufgefangener Fehler in MedPlanNr/" + App.path)
  Case vbAbort: Call MsgBox("Höre auf"): ProgEnde
  Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
  Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
@@ -5572,7 +5573,7 @@ fehler:
 #Else
  AnwPfad = App.path
 #End If
-Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in dodoRRParse/" + AnwPfad)
+Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.Source), vNS, CStr(Err.Source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in dodoRRParse/" + AnwPfad)
  Case vbAbort: Call MsgBox("Höre auf"): ProgEnde
  Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
  Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
@@ -5694,7 +5695,7 @@ fehler:
     #Else
      AnwPfad = App.path
     #End If
-    Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in doTabakSt/" + AnwPfad)
+    Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.Source), vNS, CStr(Err.Source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in doTabakSt/" + AnwPfad)
      Case vbAbort: Call MsgBox("Höre auf"): ProgEnde
      Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
      Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
@@ -5833,7 +5834,7 @@ fehler:
 #Else
  AnwPfad = App.path
 #End If
-Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in doTabakStAlt/" + AnwPfad)
+Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.Source), vNS, CStr(Err.Source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in doTabakStAlt/" + AnwPfad)
  Case vbAbort: Call MsgBox("Höre auf"): ProgEnde
  Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
  Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
@@ -5864,7 +5865,7 @@ fehler:
 #Else
  AnwPfad = App.path
 #End If
- Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in ZSUh/" + AnwPfad)
+ Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.Source), vNS, CStr(Err.Source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in ZSUh/" + AnwPfad)
   Case vbAbort: Call MsgBox("Höre auf"): ProgEnde
   Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
   Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
@@ -5975,7 +5976,7 @@ fehler:
 #Else
  AnwPfad = App.path
 #End If
-Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in ZSUh/" + AnwPfad)
+Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.Source), vNS, CStr(Err.Source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in ZSUh/" + AnwPfad)
  Case vbAbort: Call MsgBox("Höre auf"): ProgEnde
  Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
  Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
@@ -6106,7 +6107,7 @@ fehler:
 #Else
  AnwPfad = App.path
 #End If
-Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in ZSU/" + AnwPfad)
+Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.Source), vNS, CStr(Err.Source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in ZSU/" + AnwPfad)
  Case vbAbort: Call MsgBox("Höre auf"): ProgEnde
  Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
  Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
@@ -6341,7 +6342,7 @@ Public Function hollabor(Optional PatID& = 0, Optional Abkü$ = "", Optional zpkl
  On Error GoTo fehler
  If CursorTp = adOpenDynamic And PatID = altPID And altab = Abkü And altzpkl = zpkl And altwk = wertkl And altobng = obnachgruppe And alteh = Einheit Then
   If rs.State = 0 Then
-   sql = rs.source
+   sql = rs.Source
    Set rs = Nothing
    rs.Open sql, DBCn, adOpenStatic, adLockReadOnly
   End If
@@ -6457,7 +6458,7 @@ fehler:
 #Else
  AnwPfad = App.path
 #End If
-Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in hollabor/" + AnwPfad)
+Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.Source), vNS, CStr(Err.Source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in hollabor/" + AnwPfad)
  Case vbAbort: Call MsgBox("Höre auf"): ProgEnde
  Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
  Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
@@ -6488,7 +6489,7 @@ Public Function testhl()
  Set rs = hollabor(pid, "")
 ' für HAAkt z.B. geht das nicht, da es kein Lese enthält
  TabAusgeb rs, Lese, True, , , , , , "Labor " & pid, , , "Labor " & pid & " " & myEFrag("select gesnameg(" & CStr(pid) & ")").Fields(0)
- Debug.Print rs.source
+ Debug.Print rs.Source
  rs.Close
 ' SET rs = hollabor(2, "Ery")
 ' TabAusgeb rs, Lese, True, , , , , , "Labor 2"

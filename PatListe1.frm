@@ -439,7 +439,7 @@ Public obh%, obk%, obs%
   vorwsp2
   nbsp
   medsp
-  ficdsp
+  fICDsp
   terminsp
   labhwsp
  End Enum
@@ -829,11 +829,12 @@ Public Sub TopAusricht()
   Me.Text1.left = Me.Label1.left + Me.Label1.Width + 50
 End Sub ' TopAusricht
 
+' gelesenes Labor abhaken
 Public Sub verschieb(Ziel%) ' $)
 ' Call Shell("cmd.exe /c move """ & Me.LabDat & """ """ & Ziel & "")
  Dim dVal$
  dVal = Mid(LVatr.MFG.TextMatrix(vZeile, 0), InStr(LVatr.MFG.TextMatrix(vZeile, 0), ",") + 2)
- myEFrag "UPDATE laborydat SET " & Switch(Ziel = 1, "h", Ziel = 2, "k", Ziel = 3, "s") & "ang=" & IIf(LVatr.MFG.TextMatrix(vZeile, Ziel) = "X", 1, 0) & " WHERE DATE(zp)='" & Mid(dVal, 7) & Mid(dVal, 4, 2) & Mid(dVal, 1, 2) & "'"
+ myEFrag "UPDATE " & vorsil & "dat SET " & Switch(Ziel = 1, "h", Ziel = 2, "k", Ziel = 3, "s") & "ang=" & IIf(LVatr.MFG.TextMatrix(vZeile, Ziel) = "X", 1, 0) & " WHERE dateidat/*zp*/=STR_TO_DATE('" & dVal & "','%d.%m.%Y %H:%i:%S')", rAf ' DATE(zp)='" & Mid(dVal, 7) & Mid(dVal, 4, 2) & Mid(dVal, 1, 2) & "'"
  LVatr.MFG.TextMatrix(vZeile, Ziel) = IIf(LVatr.MFG.TextMatrix(vZeile, Ziel) = "X", " ", "X")
  LVatr.Refresh
  Me.Hide
@@ -2405,7 +2406,7 @@ Public Sub domachDMPBogen(Pat_id&, BogArtlV As BogArtTyp, DokuDat As Date, Optio
      End If ' Len(ArmSt) = 1 And ...
     End If ' aktDC.fußst = auff Then
    End If ' not ab317
-   GrößeS = Format(aktDC.kgr, "000")
+   GrößeS = Format(aktDC.kGR, "000")
    For i = 3 - Len(CStr(GrößeS)) To 2
     BDT.FFAdd "Groesse#" & i
     BDT.FIAdd Mid$(GrößeS, i + 1, 1)
@@ -2866,7 +2867,7 @@ Public Sub domachDMPBogen(Pat_id&, BogArtlV As BogArtTyp, DokuDat As Date, Optio
  Print #176, "<sciphox:Ergebnistext V=""Diabetes mellitus Typ " & DmT & """/>"
  Print #176, "</sciphox:Beobachtung></sciphox:Beobachtungen></sciphox:sciphox-ssu></local_markup></content></paragraph>"
  Print #176, "<paragraph><caption><caption_cd DN=""Anamnese- und Befunddaten"" /></caption><content><local_markup descriptor=""sciphox"" ignore=""all""><sciphox:sciphox-ssu country=""de"" version=""v1"" type=""observation""><sciphox:Beobachtungen>"
- Print #176, "<sciphox:Beobachtung><sciphox:Parameter DN=""Körpergröße""/><sciphox:Ergebniswert V=""" & REPLACE$(aktDC.kgr * 0.01, ",", ".") & """ U=""m""/></sciphox:Beobachtung>"
+ Print #176, "<sciphox:Beobachtung><sciphox:Parameter DN=""Körpergröße""/><sciphox:Ergebniswert V=""" & REPLACE$(aktDC.kGR * 0.01, ",", ".") & """ U=""m""/></sciphox:Beobachtung>"
  Print #176, "<sciphox:Beobachtung><sciphox:Parameter DN=""Körpergewicht""/><sciphox:Ergebniswert V=""" & Format$(aktDC.gewi, "000") & """ U=""kg""/></sciphox:Beobachtung>"
  Print #176, "<sciphox:Beobachtung><sciphox:Parameter DN=""Raucher""/><sciphox:Ergebnistext V=""" & IIf(aktDC.Tabak, "Ja", "Nein") & """/></sciphox:Beobachtung>"
  Print #176, "<sciphox:Beobachtung><sciphox:Parameter DN=""Blutdruck systolisch"" /><sciphox:Ergebniswert V=""" & aktDC.RRsyst & """ U=""mmHg""/></sciphox:Beobachtung>"
@@ -2976,7 +2977,7 @@ Public Sub domachDMPBogen(Pat_id&, BogArtlV As BogArtTyp, DokuDat As Date, Optio
      SendStr = SendStr & IIf(aktDC.FEn(j), " ", "") & "{TAB}"
     Next j
     SendStr = SendStr & IIf(aktDC.Tabak, " {TAB 2}", "{TAB} {TAB}")
-    SendStr = SendStr & Switch(aktDC.kgr < 10, "00", aktDC.kgr < 100, "0", True, "") & aktDC.kgr
+    SendStr = SendStr & Switch(aktDC.kGR < 10, "00", aktDC.kGR < 100, "0", True, "") & aktDC.kGR
     SendStr = SendStr & Switch(aktDC.gewi < 10, "00", aktDC.gewi < 100, "0", True, "") & aktDC.gewi
 '    SendStr = SendStr & " {TAB 2}" ' altersgemäße körperliche Entwicklung
     SendStr = SendStr & IIf(aktDC.Puls = ndok, " ", "") & "{TAB}" & IIf(aktDC.Puls = unauff, " ", "") & "{TAB}" & IIf(aktDC.Puls = auff, " ", "") & "{TAB 2}"
@@ -3100,7 +3101,7 @@ Public Sub domachDMPBogen(Pat_id&, BogArtlV As BogArtTyp, DokuDat As Date, Optio
      SendStr = SendStr & IIf(aktDC.FEn(j), " ", "") & "{TAB}"
     Next j
     SendStr = SendStr & IIf(aktDC.Tabak, " {TAB 2}", "{TAB} {TAB}")
-    SendStr = SendStr & IIf(aktDC.kgr < 10, "00", IIf(aktDC.kgr < 100, "0", "")) & aktDC.kgr
+    SendStr = SendStr & IIf(aktDC.kGR < 10, "00", IIf(aktDC.kGR < 100, "0", "")) & aktDC.kGR
     SendStr = SendStr & IIf(aktDC.gewi < 10, "00", IIf(aktDC.gewi < 100, "0", "")) & aktDC.gewi
     SendStr = SendStr & " {TAB 2}" ' altersgemäße körperliche Entwicklung
     SendStr = SendStr & IIf(aktDC.Puls = ndok, " ", "") & "{TAB}" & IIf(aktDC.Puls = unauff, " ", "") & "{TAB}" & IIf(aktDC.Puls = auff, " ", "") & "{TAB 2}"
@@ -3523,20 +3524,20 @@ End Sub ' tmbrieAnzeig()
 ' in PatListe.Form_Load mit artLAus
 Sub LaborTagAnzeig()
  Dim rs As New ADODB.Recordset, sql$, i%
-' sql = "SELECT date_format(zp,'%W, %d.%m.%Y','de_DE') tag,IF(hang,' ','X')hang,IF(kang,' ','X')kang,IF(sang,' ','X')sang FROM laborydat GROUP BY DATE(zp) DESC LIMIT " & tiefe
+' sql = "SELECT date_format(zp,'%W, %d.%m.%Y','de_DE') tag,IF(hang,' ','X')hang,IF(kang,' ','X')kang,IF(sang,' ','X')sang FROM " & vorsil & "dat GROUP BY DATE(zp) DESC LIMIT " & tiefe
 'sql = _
 "SELECT COUNT(0)OVER()zahl,tag,hang,kang,sang FROM (" & vbCrLf & _
 "SELECT zp,DATE_FORMAT(zp,'%W, %d.%m.%Y','de_DE')tag,IF(hang,' ','X')hang,IF(kang,' ','X')kang,IF(sang,' ','X')sang" & vbCrLf & _
-" FROM laborydat" & vbCrLf & _
+" FROM " & vorsil & "dat" & vbCrLf & _
 " WHERE zp>20250318" & vbCrLf & _
 " GROUP BY DATE(zp)" & vbCrLf & _
 ")i ORDER BY zp DESC"
 sql = _
 "SELECT COUNT(0)OVER()zahl,tag,hang,kang,sang FROM (" & vbCrLf & _
-"SELECT IF(dateidat=0,zp,dateidat)zp,DATE_FORMAT(IF(dateidat=0,zp,dateidat),'%W, %d.%m.%Y','de_DE')tag,IF(hang,' ','X')hang,IF(kang,' ','X')kang,IF(sang,' ','X')sang" & vbCrLf & _
-" FROM laborydat" & vbCrLf & _
+"SELECT IF(dateidat=0,zp,dateidat)zp,DATE_FORMAT(IF(dateidat=0,zp,dateidat),'%W, %d.%m.%Y %H:%i:%S','de_DE')tag,IF(hang,' ','X')hang,IF(kang,' ','X')kang,IF(sang,' ','X')sang" & vbCrLf & _
+" FROM " & vorsil & "dat" & vbCrLf & _
 " WHERE IF(dateidat=0,zp,dateidat)>20250318" & vbCrLf & _
-" GROUP BY DATE(IF(dateidat=0,zp,dateidat))" & vbCrLf & _
+" GROUP BY dateidat /*DATE(IF(dateidat=0,zp,dateidat))*/" & vbCrLf & _
 ")i ORDER BY zp DESC"
  On Error GoTo fehler
  With Me.MFG
@@ -3602,7 +3603,7 @@ Sub LabordateiAnzeig(Datei$)
  .TextMatrix(0, vorwsp1) = "Vorwert 1"
  .TextMatrix(0, vorwsp2) = "Vorwert 2"
  .TextMatrix(0, medsp) = "Hinweise"
- .TextMatrix(0, ficdsp) = "ICD"
+ .TextMatrix(0, fICDsp) = "ICD"
  .TextMatrix(0, terminsp) = "Termine"
  .TextMatrix(0, labhwsp) = "Laborhinweise"
  
@@ -3651,22 +3652,22 @@ sql = sql & _
 ",l.Labor" & vbCrLf & _
 ", Pfad, d.DatID, d.Dateidat" & vbCrLf & _
 ",p.Gruppe, p.Reihe,2 Qu" & vbCrLf & _
-"FROM laboryus u" & vbCrLf & _
+"FROM " & vorsil & "us u" & vbCrLf & _
 "LEFT JOIN namen na ON na.pat_id=u.pat_id" & vbCrLf & _
-"LEFT JOIN laborywert w ON w.usid=u.id" & vbCrLf & _
-"LEFT JOIN laboryhinw e ON e.id=w.erklid" & vbCrLf & _
-"LEFT JOIN laboryhinw k ON k.id=w.kommid" & vbCrLf & _
-"LEFT JOIN laborypnb n ON n.id=w.nbid" & vbCrLf & _
-"LEFT JOIN laborysaetze s ON s.satzid=u.satzid" & vbCrLf & _
-"LEFT JOIN laborydat d ON d.datid=u.datid" & vbCrLf & _
-"LEFT JOIN laboryplab l ON l.id=s.labid" & vbCrLf & _
+"LEFT JOIN " & vorsil & "wert w ON w.usid=u.id" & vbCrLf & _
+"LEFT JOIN " & vorsil & "hinw e ON e.id=w.erklid" & vbCrLf & _
+"LEFT JOIN " & vorsil & "hinw k ON k.id=w.kommid" & vbCrLf & _
+"LEFT JOIN " & vorsil & "pnb n ON n.id=w.nbid" & vbCrLf & _
+"LEFT JOIN " & vorsil & "saetze s ON s.satzid=u.satzid" & vbCrLf & _
+"LEFT JOIN " & vorsil & "dat d ON d.datid=u.datid" & vbCrLf & _
+"LEFT JOIN " & vorsil & "plab l ON l.id=s.labid" & vbCrLf & _
 "LEFT JOIN laborparameter p ON p.abkü=w.abkü AND p.einheit=IF(w.einheit IN ('','\'kA\''),'kA',w.einheit)" & vbCrLf & _
 "      AND p.id = (SELECT id FROM laborparameter WHERE abkü=w.`Abkü` AND einheit=IF(w.einheit IN ('','\'kA\''),'kA',w.Einheit) ORDER BY gruppe DESC, reihe DESC,id LIMIT 1)" & vbCrLf & _
 "LEFT JOIN sws sw ON sw.pat_id=u.pat_id AND sw.voret>qanf() AND sw.voret>now()" & vbCrLf
 sql = sql & _
 "LEFT JOIN dtypen dt ON dt.pat_id=u.pat_id" & vbCrLf & _
 "WHERE ((wert<>'' AND wert IS NOT NULL) OR (e.text<>'' AND e.text IS NOT NULL))" & vbCrLf & _
-"AND grenzwerti<>'' AND dateidat=" & Format(LabDatum, "YYYYmmdd")
+"AND grenzwerti<>'' AND dateidat=" & Format(LabDatum, "YYYYmmddhhnnss")
 
 ' "COUNT(0)OVER()zahl,w.*,IF(ficd<>''AND(SELECT MAX(icd)FROM diagview WHERE pat_id=u.pat_id AND diagsicherheit IN('G',' ')AND(diagdatum>qanf()OR obdauer<>0)AND(LEFT(icd,5)=LEFT(w.fICD,5)OR(IF(LEFT(w.ficd,3)='N18',LEFT(icd,3)=LEFT(w.ficd,3)AND icd>=w.fICD,TRUE)))AND w.ficd<>''LIMIT 1)IS NOT NULL AND ficdsp=33023,33023,fICDsp)ICDsp" & vbCrLf
 
@@ -3793,11 +3794,11 @@ sql = sql & _
      .col = parsp:       .Text = rc!lT:          .CellBackColor = IIf(rc!wertsp = 0, Abs(Sp1Farbe), rc!wertsp)
      .col = wertsp:      .Text = rc!Wert:        .CellBackColor = IIf(rc!wertsp = 0, Abs(Sp1Farbe), rc!wertsp)
      .col = einhsp:       .Text = rc!Einheit:     .CellBackColor = vorFarbe
-     .col = vorwsp1:     .Text = rc!vorwert_1:   .CellBackColor = vorFarbe
-     .col = vorwsp2:     .Text = rc!vorwert_2:   .CellBackColor = vorFarbe
+     .col = vorwsp1:     .Text = rc!Vorwert_1:   .CellBackColor = vorFarbe
+     .col = vorwsp2:     .Text = rc!Vorwert_2:   .CellBackColor = vorFarbe
      .col = nbsp:        .Text = left$(rc!Nb, 25): .CellBackColor = vorFarbe
      .col = medsp:       .Text = rc!Hinweise:    .CellBackColor = IIf(rc!hinwsp = vbWhite Or rc!hinwsp = 0, vorFarbe, rc!hinwsp)
-     .col = ficdsp:      .Text = rc!ficd:        .CellBackColor = IIf(rc!ICDSp = vbWhite Or rc!ICDSp = 0, vorFarbe, rc!ICDSp)
+     .col = fICDsp:      .Text = rc!fICD:        .CellBackColor = IIf(rc!ICDSp = vbWhite Or rc!ICDSp = 0, vorFarbe, rc!ICDSp)
      .col = terminsp:    .Text = rc!Termine:     .CellBackColor = IIf(rc!termsp = 0, vbWhite, rc!termsp)
      .col = labhwsp:     .Text = rc!Kommentar:   .CellBackColor = vorFarbe
      i = i + 1
@@ -3957,9 +3958,9 @@ andSp:
     .CellBackColor = vorFarbe
     vorPID = pid
  ' Vorwerte: 10.7.11: abkü nochmal korrigieren, sonst fehlen welche
-'    myFrag rsgl, "SELECT IF(ISNULL(n2.abkü),neu.abkü,n2.abkü) abkü, IF(ISNULL(n2.abkü),neu.einheit,n2.einheit) einheit FROM laborypneu neu " & _
-'             "LEFT JOIN laborypgl gl ON neu.id = gl.idypneu " & _
-'             "LEFT JOIN laborypneu n2 ON gl.idypbez = n2.id " & _
+'    myFrag rsgl, "SELECT IF(ISNULL(n2.abkü),neu.abkü,n2.abkü) abkü, IF(ISNULL(n2.abkü),neu.einheit,n2.einheit) einheit FROM " & vorsil & "pneu neu " & _
+'             "LEFT JOIN " & vorsil & "pgl gl ON neu.id = gl.idypneu " & _
+'             "LEFT JOIN " & vorsil & "pneu n2 ON gl.idypbez = n2.id " & _
 '             "WHERE neu.abkü = '" & vorDp & "'"
 '    IF Not rsgl.EOF THEN
 '     vorDPneu = rsgl!Abkü
@@ -5549,9 +5550,9 @@ Private Sub MFG_MouseMove(Button As Integer, Shift As Integer, x As Single, Y As
       myFrag rs, "SELECT bez1.abkü, bez2.abkü, CONCAT(GROUP_CONCAT(' ',IF(ISNULL(bez1.abkü),''," & vbCrLf & _
                      "CONCAT(bez1.abkü, ' [',bez1.einheit, ']'))),', '," & vbCrLf & _
                      "GROUP_CONCAT(' ',IF(ISNULL(bez2.abkü),'',CONCAT(bez2.abkü, ' [',bez2.einheit, ']')))) Zuge " & vbCrLf & _
-                "FROM `laborypneu` n " & vbCrLf & _
-                "LEFT JOIN `laborypgl` gl ON n.id = gl.idypbez " & vbCrLf & _
-                "LEFT JOIN `laborypneu` bez1 ON gl.idypneu = bez1.id " & vbCrLf & _
+                "FROM `" & vorsil & "pneu` n " & vbCrLf & _
+                "LEFT JOIN `" & vorsil & "pgl` gl ON n.id = gl.idypbez " & vbCrLf & _
+                "LEFT JOIN `" & vorsil & "pneu` bez1 ON gl.idypneu = bez1.id " & vbCrLf & _
                 "LEFT JOIN `laborparameter` bez2 ON gl.idpara = bez2.id " & vbCrLf & _
                 "WHERE idypbez = " & IDS(1, MFG.MouseRow), adOpenStatic
       If Not rs.BOF Then
@@ -5593,9 +5594,9 @@ vorher:
       End If
      Case medsp
       .toolTipText = .TextMatrix(MFG.MouseRow, labhwsp) ' Zeilenumbruch statt '|' geht nicht nicht chr(10), chr(13), chr(10) & chr(13) oder chr(13) & chr(10)
-     Case ficdsp
+     Case fICDsp
      ' s. labpath
-      Select Case .TextMatrix(MFG.MouseRow, ficdsp)
+      Select Case .TextMatrix(MFG.MouseRow, fICDsp)
        Case ""
        Case "D64.9": .toolTipText = "Anämie"
        Case "E05.0": .toolTipText = "M.Basedow"
@@ -5686,9 +5687,9 @@ End Sub ' MFG_MouseDown
 
 'vorausgehend:
 'SET FOREIGN_KEY_CHECKS=0;
-'INSERT INTO laborypgl(idypneu,idpara,idypbez,ergaenzt)
+'INSERT INTO " & vorsil & "pgl(idypneu,idpara,idypbez,ergaenzt)
 'SELECT xpneuzuypneu(x.idypneu),idpara,xpneuzuypneu(x.idypbez),ergaenzt
-'from laborypgl x
+'from " & vorsil & "pgl x
 'Where
 '(NOT ISNULL(xpneuzuypneu(x.idypneu)) OR ISNULL(idypneu))
 'and
@@ -5710,14 +5711,14 @@ Private Sub MFG_MouseUp(Button As Integer, Shift As Integer, x As Single, Y As S
    Me.MFG.Row = Me.MFG.MouseRow
    Me.MFG.col = Me.MFG.MouseCol
    Select Case Me.MFG.TextMatrix(MR, 8)
-    Case "x" 'laborxpneu
-     sqls = "SELECT `idypbez` FROM `laborypgl` WHERE `idypneu` = " & IDS(1, MR)
-     sqld = "DELETE FROM `laborypgl` WHERE idypneu = " & IDS(1, MR)
-     sqli = "INSERT INTO `laborypgl`(`idypneu`,`idypbez`,`ergaenzt`) VALUES(" & IDS(1, MR) & "," & cb & "," & DatFor_k(Now) & ")"
+    Case "x" '" & vorsil & "pneu
+     sqls = "SELECT `idypbez` FROM `" & vorsil & "pgl` WHERE `idypneu` = " & IDS(1, MR)
+     sqld = "DELETE FROM `" & vorsil & "pgl` WHERE idypneu = " & IDS(1, MR)
+     sqli = "INSERT INTO `" & vorsil & "pgl`(`idypneu`,`idypbez`,`ergaenzt`) VALUES(" & IDS(1, MR) & "," & cb & "," & DatFor_k(Now) & ")"
     Case "p" ' laborparameter
-     sqls = "SELECT `idypbez` FROM `laborypgl` WHERE `idpara` = " & IDS(1, MR)
-     sqld = "DELETE FROM `laborypgl` WHERE `idpara` = " & IDS(1, MR)
-     sqli = "INSERT INTO `laborypgl`(`idpara`,`idypbez`,`ergaenzt`) VALUES(" & IDS(1, MR) & "," & cb & "," & DatFor_k(Now) & ")"
+     sqls = "SELECT `idypbez` FROM `" & vorsil & "pgl` WHERE `idpara` = " & IDS(1, MR)
+     sqld = "DELETE FROM `" & vorsil & "pgl` WHERE `idpara` = " & IDS(1, MR)
+     sqli = "INSERT INTO `" & vorsil & "pgl`(`idpara`,`idypbez`,`ergaenzt`) VALUES(" & IDS(1, MR) & "," & cb & "," & DatFor_k(Now) & ")"
     Case Else
      Exit Sub ' z.B. Kopfzeile
    End Select
@@ -5740,12 +5741,12 @@ Private Sub MFG_MouseUp(Button As Integer, Shift As Integer, x As Single, Y As S
      myEFrag "SET FOREIGN_KEY_CHECKS=1"
 ' Verküpfung nach 2) suchen
      Set rs = Nothing
-     myFrag rs, "SELECT `idypbez` FROM `laborypgl` WHERE `idypneu` = " & cb
+     myFrag rs, "SELECT `idypbez` FROM `" & vorsil & "pgl` WHERE `idypneu` = " & cb
      If Not rs.EOF Then
 ' Verknüpfung nach 2) löschen
-      myEFrag "DELETE FROM `laborypgl` WHERE `idypneu` = " & cb, rAf
+      myEFrag "DELETE FROM `" & vorsil & "pgl` WHERE `idypneu` = " & cb, rAf
       If rAf <> 1 Then
-       MsgBox "Fehler in MFG.Mouseup nach DELETE FROM `laborypgl` WHERE `idypneu` = " & cb & ", rAf: " & rAf
+       MsgBox "Fehler in MFG.Mouseup nach DELETE FROM `" & vorsil & "pgl` WHERE `idypneu` = " & cb & ", rAf: " & rAf
 '       Stop
       End If
       Me.MFG.TextMatrix(QuellZ, 1) = vNS
@@ -5759,7 +5760,7 @@ Private Sub MFG_MouseUp(Button As Integer, Shift As Integer, x As Single, Y As S
       Next i
 '      Me.MFG.TextMatrix(Cb, 1) = vNS
      End If
-     sql = "SELECT CONCAT(abkü,' [',einheit,']') wert FROM laborypneu WHERE id = " & cb
+     sql = "SELECT CONCAT(abkü,' [',einheit,']') wert FROM " & vorsil & "pneu WHERE id = " & cb
      Set rs = Nothing
      myFrag rs, sql
      If rs.BOF Then
@@ -5768,7 +5769,7 @@ Private Sub MFG_MouseUp(Button As Integer, Shift As Integer, x As Single, Y As S
      Else
 ' Verknüfung nach 3) überbrücken
       If Me.MFG.TextMatrix(MR, 8) = "x" Then
-       myEFrag "UPDATE `laborypgl` SET `idypbez` = " & cb & " WHERE `idypbez` = " & IDS(1, MR), rAf
+       myEFrag "UPDATE `" & vorsil & "pgl` SET `idypbez` = " & cb & " WHERE `idypbez` = " & IDS(1, MR), rAf
        For i = 0 To UBound(IDS, 2)
         If IDS(0, i) = IDS(1, MR) Then
          Me.MFG.TextMatrix(i, 1) = rs!Wert
@@ -5807,15 +5808,15 @@ Private Sub LaborFüll(Optional nachLangtext%)
         "DATE_FORMAT(eingang,'%d.%m.%y') Eingang,i.langtext,i.labor,herk,pid, oid " & vbCrLf & _
         "FROM (" & vbCrLf & _
         "SELECT 'x' herk, abkü,einheit, langtext,labor,ergaenzt eingang,nb, gl.idypbez pid,p.id oid " & vbCrLf & _
-        "FROM `laborypneu` p " & vbCrLf & _
-        "LEFT JOIN `laboryplab` l ON p.labid = l.id " & vbCrLf & _
-        "LEFT JOIN `laborypnb` nb ON p.id = nb.pneuid " & vbCrLf & _
-        "LEFT JOIN `laborypgl` gl ON p.id = gl.idypneu " & vbCrLf & _
+        "FROM `" & vorsil & "pneu` p " & vbCrLf & _
+        "LEFT JOIN `" & vorsil & "plab` l ON p.labid = l.id " & vbCrLf & _
+        "LEFT JOIN `" & vorsil & "pnb` nb ON p.id = nb.pneuid " & vbCrLf & _
+        "LEFT JOIN `" & vorsil & "pgl` gl ON p.id = gl.idypneu " & vbCrLf & _
         "UNION " & vbCrLf & _
         "SELECT 'p' herk, abkü,einheit, langtext,labor,aktzeit eingang, CONCAT(unw,'-',onw) nb, gl.idypbez pid, p.id oid " & vbCrLf & _
         "FROM `laborparameter` p " & vbCrLf & _
-        "LEFT JOIN `laborypgl` gl ON p.id = gl.idpara) i " & vbCrLf & _
-        "LEFT JOIN `laborypneu` lp ON i.pid = lp.id ORDER BY abkü DESC, herk, einheit,labor, eingang DESC) i " & vbCrLf & _
+        "LEFT JOIN `" & vorsil & "pgl` gl ON p.id = gl.idpara) i " & vbCrLf & _
+        "LEFT JOIN `" & vorsil & "pneu` lp ON i.pid = lp.id ORDER BY abkü DESC, herk, einheit,labor, eingang DESC) i " & vbCrLf & _
         "GROUP BY herk,labor,abkü,einheit "
  Me.MFG.Clear
  Me.MFG.cols = MFGLabCols ' 9
@@ -5884,7 +5885,7 @@ End Sub ' LaborFüll
 Private Function ZeigeZahl(zeile&)
  Dim rs1 As New ADODB.Recordset
     Set rs1 = Nothing
-    myFrag rs1, "SELECT COUNT(0) zl, `idypneu`,`idpara` FROM `laborypgl` WHERE `idypbez` = " & IDS(1, zeile)
+    myFrag rs1, "SELECT COUNT(0) zl, `idypneu`,`idpara` FROM `" & vorsil & "pgl` WHERE `idypbez` = " & IDS(1, zeile)
     If Not rs1.BOF Then
      If zeile <> 0 Then Me.MFG.Row = zeile
      Me.MFG.col = 2

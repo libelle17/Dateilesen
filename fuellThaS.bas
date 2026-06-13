@@ -1,5 +1,5 @@
 #if vomprogrammeeingelesen then
-CREATE DEFINER=`praxis`@`%` FUNCTION `fuellTha`(`inpid` INT
+CREATE DEFINER=`root`@`localhost` FUNCTION `fuellTha`(`inpid` INT
 ) RETURNS int(11)
     COMMENT 'Fuelle Therapiearten'
 BEGIN
