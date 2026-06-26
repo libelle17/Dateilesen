@@ -4098,6 +4098,7 @@ AWlf = AWlf + 1
  AWlf = AWlf + 1
  
 ' 604 (98)
+' 2026: unbegrenzte Einzelschulungen: neuman. Typ 1, Schwangere Typ 1+2, GDM
  AwN(AWlf) = "Prüfung auf Einzelschulungen bei T1D (ICT DMP 92392A, DV 97368E, Linda DMP 92392B, DV 97274E, Primas DMP 92392F, DV 97281E, Kinder DMP 92390A, DV 97278E, Jug DMP 92391A, DV 97279E, Hypert DMP 92392C, DV 97265E, HPSB DMP 92392D, DV 97266E, IMP DMP 92392E, DV 97268E, BGAT DV 97269E, Hypos DV 97280E)"
 'sql(AWlf) = "" & _
 " SELECT f.pat_id " & vbCrLf & _

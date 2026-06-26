@@ -3536,7 +3536,7 @@ sql = _
 "SELECT COUNT(0)OVER()zahl,tag,hang,kang,sang FROM (" & vbCrLf & _
 "SELECT IF(dateidat=0,zp,dateidat)zp,DATE_FORMAT(IF(dateidat=0,zp,dateidat),'%W, %d.%m.%Y %H:%i:%S','de_DE')tag,IF(hang,' ','X')hang,IF(kang,' ','X')kang,IF(sang,' ','X')sang" & vbCrLf & _
 " FROM " & vorsil & "dat" & vbCrLf & _
-" WHERE IF(dateidat=0,zp,dateidat)>20250318" & vbCrLf & _
+" WHERE IF(dateidat=0,zp,dateidat)>20250318  AND größe<>0" & vbCrLf & _
 " GROUP BY dateidat /*DATE(IF(dateidat=0,zp,dateidat))*/" & vbCrLf & _
 ")i ORDER BY zp DESC"
  On Error GoTo fehler
@@ -3667,7 +3667,7 @@ sql = sql & _
 sql = sql & _
 "LEFT JOIN dtypen dt ON dt.pat_id=u.pat_id" & vbCrLf & _
 "WHERE ((wert<>'' AND wert IS NOT NULL) OR (e.text<>'' AND e.text IS NOT NULL))" & vbCrLf & _
-"AND grenzwerti<>'' AND dateidat=" & Format(LabDatum, "YYYYmmddhhnnss")
+"AND grenzwerti NOT IN('','N') AND dateidat=" & Format(LabDatum, "YYYYmmddhhnnss")
 
 ' "COUNT(0)OVER()zahl,w.*,IF(ficd<>''AND(SELECT MAX(icd)FROM diagview WHERE pat_id=u.pat_id AND diagsicherheit IN('G',' ')AND(diagdatum>qanf()OR obdauer<>0)AND(LEFT(icd,5)=LEFT(w.fICD,5)OR(IF(LEFT(w.ficd,3)='N18',LEFT(icd,3)=LEFT(w.ficd,3)AND icd>=w.fICD,TRUE)))AND w.ficd<>''LIMIT 1)IS NOT NULL AND ficdsp=33023,33023,fICDsp)ICDsp" & vbCrLf
 
@@ -3772,6 +3772,7 @@ sql = sql & _
 ' '  ",IF(RANK() OVER(PARTITION BY pat_id ORDER BY l.pat_id,gruppe,reihe,id)=1,l.NAME,'') ueName" & vbCrLf & _
 '
  End If ' If True then
+ ' pathologische Laborwerte anzeigen, sql dafür
  myFrag rc, sql
  Dim Pat_id&, dtyp$
 
