@@ -924,25 +924,25 @@ nochmal:
       End If
       If Not obzu Then
        KVNr = REPLACE(REPLACE(rV1!KVNr, "/", vNS), " ", "")
-       anrede = IIf(IsNull(rV1!anrede), vNS, rV1!anrede)
-       tel2 = IIf(IsNull(rV1!tel2), vNS, rV1!tel2)
-       fax2 = IIf(IsNull(rV1!fax2), vNS, rV1!fax2)
+       anrede = nz(rV1!anrede,vNS)
+       tel2 = nz(rV1!tel2,vNS)
+       fax2 = nz(rV1!fax2,vNS)
        On Error Resume Next
        DBNr = rV1!DBNr
-       BStelle = IIf(IsNull(rV1!BStelle), vNS, rV1!BStelle)
-       tel3 = IIf(IsNull(rV1!tel3), vNS, rV1!tel3)
-       tel4 = IIf(IsNull(rV1!tel4), vNS, rV1!tel4)
-       fax3 = IIf(IsNull(rV1!fax3), vNS, rV1!fax3)
-       gemmit = IIf(IsNull(rV1!gemmit), vNS, rV1!gemmit)
-       beme = IIf(IsNull(rV1!beme), vNS, rV1!beme)
-       geschlecht = IIf(IsNull(rV1!geschlecht), vNS, rV1!geschlecht)
-       email = IIf(IsNull(rV1!email), vNS, rV1!email)
+       BStelle = nz(rV1!BStelle,vNS)
+       tel3 = nz(rV1!tel3,vNS)
+       tel4 = nz(rV1!tel4,vNS)
+       fax3 = nz(rV1!fax3,vNS)
+       gemmit = nz(rV1!gemmit,vNS)
+       beme = nz(rV1!beme,vNS)
+       geschlecht = nz(rV1!geschlecht,vNS)
+       email = nz(rV1!email,vNS)
        On Error GoTo fehler
-       zulg = IIf(IsNull(rV1!zulg), vNS, rV1!zulg)
-       arzttyp = IIf(IsNull(rV1!arzttyp), vNS, rV1!arzttyp)
-       dmpt2 = IIf(IsNull(rV1!dmpt2), 0, rV1!dmpt2)
-       dmpt1 = IIf(IsNull(rV1!dmpt1), 0, rV1!dmpt1)
-       Titel = IIf(IsNull(rV1!Titel), vNS, rV1!Titel)
+       zulg = nz(rV1!zulg,vNS)
+       arzttyp = nz(rV1!arzttyp,vNS)
+       dmpt2 = nz(rV1!dmpt2,0)
+       dmpt1 = nz(rV1!dmpt1,0)
+       Titel = nz(rV1!Titel,vNS)
       Else
        KVNr = vNS
        DBNr = vNS

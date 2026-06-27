@@ -244,13 +244,13 @@ Function laborparvorladen()
   Set rs = myEFrag("SELECT COALESCE(abkü,'')abkü,COALESCE(labor,'')labor,COALESCE(langtext,'')langtext,COALESCE(einheit,'')einheit,COALESCE(nBm,'')nBm,COALESCE(uNm,'')uNm,COALESCE(oNm,'')oNm FROM `laborparameter`", rAf)
   Do While Not rs.EOF
    Set sLbp = New sLpar
-   sLbp.Abkü = rs!Abkü ' IIf(IsNull(rs.Fields(0)), vNS, rs.Fields(0)) ' Abkü 6.3.13
-   sLbp.Labor = rs!Labor ' IIf(IsNull(rs!Labor), vNS, rs!Labor)
-   sLbp.Langtext = rs!Langtext ' IIf(IsNull(rs!Langtext), vNS, rs!Langtext)
-   sLbp.Einheit = rs!Einheit ' IIf(IsNull(rs!Einheit), vNS, rs!Einheit)
-   sLbp.NBm = rs!NBm ' IIf(IsNull(rs!NBm), vNS, rs!NBm)
-   sLbp.oNm = rs!oNm ' IIf(IsNull(rs!oNm), vNS, rs!oNm)
-   sLbp.uNm = rs!uNm ' IIf(IsNull(rs!uNm), vNS, rs!uNm)
+   sLbp.Abkü = rs!Abkü ' nz(rs.Fields(0),vNS) ' Abkü 6.3.13
+   sLbp.Labor = rs!Labor ' nz(rs!Labor,vNS)
+   sLbp.Langtext = rs!Langtext ' nz(rs!Langtext,vNS)
+   sLbp.Einheit = rs!Einheit ' nz(rs!Einheit,vNS)
+   sLbp.NBm = rs!NBm ' nz(rs!NBm,vNS)
+   sLbp.oNm = rs!oNm ' nz(rs!oNm,vNS)
+   sLbp.uNm = rs!uNm ' nz(rs!uNm,vNS)
    Call sListLpar.sCAdd(sLbp, -1)
    rs.Move 1
   Loop ' While Not rs.EOF
@@ -371,7 +371,7 @@ vorabfrag:
 '   rs.MoveFirst
     Do While Not rs.EOF
      ReDim Preserve rFo(UBound(rFo) + 1)
-     rFo(UBound(rFo)).Form_Abk = IIf(IsNull(rs!Form_Abk), vNS, rs!Form_Abk)
+     rFo(UBound(rFo)).Form_Abk = nz(rs!Form_Abk,vNS)
      rFo(UBound(rFo)).FormBez = rs!FormBez
      rFo(UBound(rFo)).FormVorl = rs!FormVorl
      rFo(UBound(rFo)).FormID = rs!FormID
@@ -397,7 +397,7 @@ vorabfrag:
 '   rs.MoveFirst
 '   Do While Not rs.EOF
 '    ReDim Preserve rFi(UBound(rFi) + 1)
-'    rFi(UBound(rFi)).Form_Abk = IIf(IsNull(rs!Form_Abk), vNS, rs!Form_Abk)
+'    rFi(UBound(rFi)).Form_Abk = nz(rs!Form_Abk,vNS)
 '    rFi(UBound(rFi)).FormBez = IIf(IsNull(rs!Form_Abk), vNS, rs!FormBez)
 '    rFi(UBound(rFi)).Form_AbkVW = rs!Form_AbkVW
 '    rs.MoveNext
@@ -1005,7 +1005,7 @@ Function GesLies(frm As Lese, BDTDatei$, BDTName$, EinlAb&, EinlBis&, obLaborDir
          Else
           If IsNull(rsAZ!aktZeit) Or laktZeit - rsAZ!aktZeit > 0.0000115 Or (laktZeit = 0 And rsAZ!aktZeit = 0) Or FSO.GetFile(BDTDatei).size < 1000000 Then ' FileLen zu kurz 21.8.21
            oblies = -1
-           rsaktZeit = IIf(IsNull(rsAZ!aktZeit), 0, rsAZ!aktZeit)
+           rsaktZeit = nz(rsAZ!aktZeit,0)
            rsAZS = Format$(rsaktZeit, "dd.mm.yyyy hh:mm:ss")
           End If
          End If ' rs.BOF Then else
@@ -2282,7 +2282,7 @@ Function neuQuartal(frm As Lese, rInhalt$)
       End If ' lies.obMySQL Then
 '      rFa(UBound(rFa)).FID = 1
 '     Else
-''      rFa(UBound(rFa)).FID = IIf(IsNull(rsAdo!FID), 0, rsAdo!FID) + 1
+''      rFa(UBound(rFa)).FID = nz(rsAdo!FID,0) + 1
 '      rFa(UBound(rFa)).FID = neufid + 1
      End If ' neufid = 0 Then
      If UBound(rFa) = 1 Then patanffid = neufid
@@ -3493,7 +3493,7 @@ rEiVorb:
 '      IF Not rsAdo Is Nothing THEN IF rsAdo.State = 1 THEN rsAdo.Close
 ''      myFrag rsAdo, "SELECT (MAX(mpnr) + 1) AS mpnr FROM `medplan`"
 '      SET rsAdo = myEFrag("SELECT (MAX(mpnr) + 1) AS mpnr FROM `medplan`")
-'      mpnr = IIf(ISNULL(rsAdo!mpnr), 1, rsAdo!mpnr)
+'      mpnr = nz(rsAdo!mpnr,1)
 '     Else
        pMpnr = pMpnr + 1
 '     END IF
@@ -3525,7 +3525,7 @@ fgefunden:
         ReDim Preserve rFo(UBound(rFo) + 1)
         rFo(UBound(rFo)).absPos = rsf!absPos
         rFo(UBound(rFo)).aktZeit = rsf!aktZeit
-        rFo(UBound(rFo)).Form_Abk = IIf(IsNull(rsf!Form_Abk), vNS, rsf!Form_Abk)
+        rFo(UBound(rFo)).Form_Abk = nz(rsf!Form_Abk,vNS)
         rFo(UBound(rFo)).FormBez = rsf!FormBez
 '        If rsf!FormID = 55 Then Stop
         rFo(UBound(rFo)).FormID = rsf!FormID
@@ -3613,7 +3613,7 @@ fgefunden:
        If FoIDv = 0 Then
 '       If Not rsAdo Is Nothing Then If rsAdo.State = 1 Then rsAdo.Close
 '       Set rsAdo = myEFrag("SELECT (MAX(foid) + 1) AS mfoid FROM `forminhkopf`")
-'       FoIDv = IIf(IsNull(rsAdo!mfoid), 0, rsAdo!mfoid)
+'       FoIDv = nz(rsAdo!mfoid,0)
         FoIDv = myEFrag("SELECT (COALESCE(MAX(foid))+1) mfoid FROM `forminhkopf`").Fields(0)
        End If ' FoIDv = 0
        rFr(UBound(rFr)).Foid = FoIDv ' Pseudo-Foid
@@ -6660,20 +6660,20 @@ Function DiagString$(Pat_id$, DiagTab() As CString, Optional VorDat As Date, Opt
    On Error Resume Next
    Diag(runde) = rdDi!DiagText
    On Error GoTo fehler
-   ICD(runde) = IIf(IsNull(rdDi!ICD), vNS, rdDi!ICD)
-   DSic(runde) = IIf(IsNull(rdDi!DiagSicherheit), vNS, rdDi!DiagSicherheit)
-   DiagSe(runde) = IIf(IsNull(rdDi!DiagSeite), vNS, rdDi!DiagSeite)
-   DiagAttr(runde) = IIf(IsNull(rdDi!DiagAttr), vNS, rdDi!DiagAttr)
-   DiagAus(runde) = IIf(IsNull(rdDi!AusnBegr), vNS, rdDi!AusnBegr)
-   DiagiBm(runde) = IIf(IsNull(rdDi!intBemerk), vNS, rdDi!intBemerk)
+   ICD(runde) = nz(rdDi!ICD,vNS)
+   DSic(runde) = nz(rdDi!DiagSicherheit,vNS)
+   DiagSe(runde) = nz(rdDi!DiagSeite,vNS)
+   DiagAttr(runde) = nz(rdDi!DiagAttr,vNS)
+   DiagAus(runde) = nz(rdDi!AusnBegr,vNS)
+   DiagiBm(runde) = nz(rdDi!intBemerk,vNS)
    diagdt(runde) = rdDi!DiagDatum
    obDauer(runde) = IIf(IsNull(rdDi!j_obDauer), 0, -Abs(rdDi!j_obDauer))
-   obKasse(runde) = IIf(IsNull(rdDi!obKasse), 0, rdDi!obKasse)
-   lKasse(runde) = IIf(IsNull(rdDi!lKasse), 0, rdDi!lKasse)
-   Dggel(runde) = IIf(IsNull(rdDi!Dggel), 0, rdDi!Dggel)
-   KFdFA(runde) = IIf(IsNull(rdDi!KFdFA), vNS, rdDi!KFdFA)
-   G1(runde) = IIf(IsNull(rdDi!rf), 0, rdDi!rf)
-   G2(runde) = IIf(IsNull(rdDi!gi2), 0, rdDi!gi2)
+   obKasse(runde) = nz(rdDi!obKasse,0)
+   lKasse(runde) = nz(rdDi!lKasse,0)
+   Dggel(runde) = nz(rdDi!Dggel,0)
+   KFdFA(runde) = nz(rdDi!KFdFA,vNS)
+   G1(runde) = nz(rdDi!rf,0)
+   G2(runde) = nz(rdDi!gi2,0)
    gk(runde) = False
    runde = runde + 1
    ReDim Preserve Diag(runde)
@@ -6956,8 +6956,8 @@ Function obKeineNephropathie%(Pat_id$, Optional obMakroAlb%)
 '  "WHERE pat_id = " + CStr(Pat_id) + " AND NOT EXISTS (SELECT * FROM laborneu WHERE pat_id = u.pat_id AND abkü = w.Abkü AND wert = w.wert AND zeitpunkt > u.Eingang -3 AND zeitpunkt < u.Eingang+6)"
 ' sql = "SELECT * FROM labor1 WHERE pat_id = " & Pat_id & " UNION SELECT * FROM labor2 WHERE pat_id = " & Pat_id
   
- 'lAlbS = Dtb.OpenRecordset("SELECT iif(ISNULL(wert),iif(ISNULL(kommentar),"""",kommentar),wert) AS erg FROM (" + sql + ") AS sql1 WHERE abkü IN ('ALBCRE','ALBKRE','ALBQ','ALBUM','ALBUP') ORDER BY zeitpunkt DESC")!erg
-' myFrag rsAdo, "SELECT iif(ISNULL(wert),iif(ISNULL(kommentar),"""",kommentar),wert) AS erg FROM (" + sql + ") AS sql1 WHERE abkü IN ('ALBCRE','ALBKRE','ALBQ','ALBUM','ALBUP') ORDER BY zeitpunkt DESC"
+ 'lAlbS = Dtb.OpenRecordset("SELECT nz(wert,iif(ISNULL(kommentar),"""",kommentar)) AS erg FROM (" + sql + ") AS sql1 WHERE abkü IN ('ALBCRE','ALBKRE','ALBQ','ALBUM','ALBUP') ORDER BY zeitpunkt DESC")!erg
+' myFrag rsAdo, "SELECT nz(wert,iif(ISNULL(kommentar),"""",kommentar)) AS erg FROM (" + sql + ") AS sql1 WHERE abkü IN ('ALBCRE','ALBKRE','ALBQ','ALBUM','ALBUP') ORDER BY zeitpunkt DESC"
 ' SET rsAdo = myEFrag("SELECT IF(ISNULL(wert),IF(ISNULL(kommentar),'',kommentar),wert) AS erg FROM (" & sql & ") AS sql1 WHERE abkü IN ('ALBCRE','ALBKRE','ALBQ','ALBUM','ALBUP') AND (abkü <> 'ALBU' OR wert LIKE '%<%') ORDER BY zeitpunkt DESC")
 ' SET rsAdo = LabEPat(AlbCre, Pat_id)
 ' IF Not rsAdo.EOF THEN lAlbS = rsAdo!wert
@@ -6976,14 +6976,14 @@ Function obKeineNephropathie%(Pat_id$, Optional obMakroAlb%)
  End If
  On Error Resume Next
 ' rsAdo.Close
-' myFrag rsAdo, "SELECT iif(ISNULL(wert),iif(ISNULL(kommentar),"""",kommentar),wert) AS erg FROM (" + sql + ") AS sql1 WHERE abkü = ""KREA"" ORDER BY zeitpunkt DESC"
-' SET rsAdo = myEFrag("SELECT iif(ISNULL(wert),iif(ISNULL(kommentar),"""",kommentar),wert) AS erg FROM (" + sql + ") AS sql1 WHERE abkü IN (""CREAT"",""KRE02"", ""KREA"", ""KREA02"", ""KRES"") ORDER BY zeitpunkt DESC")
+' myFrag rsAdo, "SELECT nz(wert,iif(ISNULL(kommentar),"""",kommentar)) AS erg FROM (" + sql + ") AS sql1 WHERE abkü = ""KREA"" ORDER BY zeitpunkt DESC"
+' SET rsAdo = myEFrag("SELECT nz(wert,iif(ISNULL(kommentar),"""",kommentar)) AS erg FROM (" + sql + ") AS sql1 WHERE abkü IN (""CREAT"",""KRE02"", ""KREA"", ""KREA02"", ""KRES"") ORDER BY zeitpunkt DESC")
 ' SET rsAdo = LabEPat(Krea, Pat_id)
 ' IF Not rsAdo.EOF THEN lKreS = rsAdo!wert
  alt_la = LabArt0 ' falls schon mal mit gleichen Parametern aufgerufen
  Labs = LabPat(LA_Krea, CLng(Pat_id))
  If Labs.Abkü <> "" Then lKreS = Labs.WertSg
-' lKreS = Dtb.OpenRecordset("SELECT iif(ISNULL(wert),iif(ISNULL(kommentar),"""",kommentar),wert) AS erg FROM (" + sql + ") AS sql1 WHERE abkü IN (""CREAT"",""KRE02"", ""KREA"", ""KREA02"", ""KRES"") ORDER BY zeitpunkt DESC")!erg
+' lKreS = Dtb.OpenRecordset("SELECT nz(wert,iif(ISNULL(kommentar),"""",kommentar)) AS erg FROM (" + sql + ") AS sql1 WHERE abkü IN (""CREAT"",""KRE02"", ""KREA"", ""KREA02"", ""KRES"") ORDER BY zeitpunkt DESC")!erg
  On Error GoTo fehler
  If IsNumeric(lKreS) Then
   If lKreS <> 0 Then
@@ -7355,8 +7355,8 @@ End Function ' KomEinfüg&
 Function LaborEintr0()
  On Error GoTo fehler
  Dim obneu%, obüber%, i%
-' Abkü = IIf(ISNULL(Abkü), vns, Abkü) 'If ISNULL(rLab!Abkü) THEN rLab!Abkü = vns
-' Einheit = ZeichenSatz(IIf(ISNULL(Einheit), vns, Einheit)) ' IF ISNULL(rLab!Einheit) THEN rLab!Einheit = vns
+' Abkü = nz(Abkü,vns) 'If ISNULL(rLab!Abkü) THEN rLab!Abkü = vns
+' Einheit = ZeichenSatz(nz(Einheit,vns)) ' IF ISNULL(rLab!Einheit) THEN rLab!Einheit = vns
  obneu = -1
  For i = 1 To UBound(rLa)
   If rLa(i).Zeitpunkt = messDatum And rLa(i).Abkü = Abkü Then
@@ -7486,7 +7486,7 @@ End Function ' LaborEintr0()
   'END IF
  'END IF
 'Else
-' Langtext = IIf(ISNULL(rLab!Langtext), vns, rLab!Langtext)
+' Langtext = nz(rLab!Langtext,vns)
 'END IF
 'Set rLP = TabÖff("LaborParameter", "Abkü")
 'If Abkü <> "" THEN
@@ -8109,7 +8109,7 @@ Function AnPack()
       Debug.Print SpName & ":" & DBlen & " -> " & ZLen
       rslen.Close
       On Error Resume Next
-      Call myEFrag("ALTER TABLE `" & TName & "` " & sqlALTER & " Column " & " `" & rsc!COLUMN_NAME & "` " & sqlText & "(" & ZLen & ") " & " DEFAULT " & IIf(IsNull(rsc!Default), "NULL", rsc!Default) & IIf(IsNull(rsc!collation), vNS, " COLLATE " & rsc!collation) & " COMMENT '" & rsc!Comment & "'")
+      Call myEFrag("ALTER TABLE `" & TName & "` " & sqlALTER & " Column " & " `" & rsc!COLUMN_NAME & "` " & sqlText & "(" & ZLen & ") " & " DEFAULT " & nz(rsc!Default,"NULL") & IIf(IsNull(rsc!collation), vNS, " COLLATE " & rsc!collation) & " COMMENT '" & rsc!Comment & "'")
       Debug.Print "Erfolg: " & Err.Number & " " & Err.Description
       On Error GoTo fehler
      End If
@@ -8174,7 +8174,7 @@ End Function ' AnPack
 '    IF lies.obMySQL THEN
 '     SET rsc = Nothing
 '     myFrag rsc, "SHOW FULL COLUMNS FROM `" & TName & "` WHERE field = '" & SpName & "'"
-'     Call myEFrag("ALTER TABLE `" & TName & "`" & sqlALTER & " COLUMN `" & SpName & "` " & sqlText & "(" & Len(SpVal) & ") " & IIf(ISNULL(rsc!collation), vNS, " COLLATE " & rsc!collation) & " default " & IIf(ISNULL(rsc!Default), " null", rsc!Default) & " comment '" & rsc!Comment & "'", rAF)
+'     Call myEFrag("ALTER TABLE `" & TName & "`" & sqlALTER & " COLUMN `" & SpName & "` " & sqlText & "(" & Len(SpVal) & ") " & IIf(ISNULL(rsc!collation), vNS, " COLLATE " & rsc!collation) & " default " & nz(rsc!Default," null") & " comment '" & rsc!Comment & "'", rAF)
 '    Else
 '     Call myEFrag("ALTER TABLE `" & TName & "`" & sqlALTER & " COLUMN `" & SpName & "` " & sqlText & "(" & Len(SpVal) & ")", rAF)
 '    END IF
@@ -8277,7 +8277,7 @@ End Function ' AnPack
 '  End If
 ' End If
 'Else
-' Langtext = IIf(IsNull(rlAb!Langtext), vNS, rlAb!Langtext)
+' Langtext = nz(rlAb!Langtext,vNS)
 'End If
 ''Set raLP = TabÖff("LaborParameter", "Abkü")
 'Set raLP = Nothing
@@ -8335,7 +8335,7 @@ Function nulltest()
  Lese.ProgStart
  Dim rs As ADODB.Recordset
  myFrag rs, "SELECT NULL erg"
- Debug.Print "nix " & IIf(IsNull(rs!erg), "null", rs!erg)
+ Debug.Print "nix " & nz(rs!erg,"null")
 End Function
 #End If
 

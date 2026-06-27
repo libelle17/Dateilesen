@@ -2384,7 +2384,7 @@ Private Sub Übertragung_aus_MO_Click()
 '#Else
  If opt.alleaktQ Then
   sql = "SELECT COUNT(0)OVER()zahl,FPatnr," & GesNamegMO & ",18900101+INTERVAL fbis DAY laend,ROW_NUMBER()OVER(ORDER BY fpatnr DESC)rang" & vbCrLf & _
-  "FROM patfall f JOIN patstamm p ON f.FPatnr=p.FSurogat WHERE f.fpatnr<2747 AND 18900101+INTERVAL fvon DAY BETWEEN " & lQAnfuEnd(FristS) & " AND fpatnr<>75830" & vbCrLf & _
+  "FROM patfall f JOIN patstamm p ON f.FPatnr=p.FSurogat WHERE 18900101+INTERVAL fvon DAY BETWEEN " & lQAnfuEnd(FristS) & " AND fpatnr<>75830" & vbCrLf & _
   "ORDER BY fpatnr DESC;"
   opt.erzwinge = 1
   opt.alleaktQ = False
@@ -2681,7 +2681,7 @@ End Sub ' Abrechnungsfehler_Click
 ' 24.5.14 hier zu arbeiten
 ' Funktionen für Arzthelferin und Arzt -> Niereninsuffizienzpauschalendiabetiker
 Private Sub Niereninsuffizienzpauschalendiabetiker_Click()
-Dim rs As New ADODB.Recordset, rsa As New ADODB.Recordset, sql$, sqla$, gesZ%, pz%, nz%, obNP%, maxAlb#, aktAlb#
+Dim rs As New ADODB.Recordset, rsa As New ADODB.Recordset, sql$, sqla$, gesZ%, pz%, nzz%, obNP%, maxAlb#, aktAlb#
 myEFrag ("DROP TABLE IF EXISTS `ni_abr`")
 myEFrag ("CREATE TABLE `quelle`.`ni_abr`(`id` INT(11) NOT NULL KEY AUTO_INCREMENT,`pat_id` int(10),DmICD varchar(8),maxHbA1c FLOAT, maxGluc FLOAT, eGFR FLOAT, npICD varchar(8), niICD varchar(8), pZ int(3), nZ int(3), gesZ int(3), minDat date, maxAlb DECIMAL(8,2), kasse varchar(20))")
 sql = "SELECT f.pat_id, d.icd DmICD, IF(xh.max1>xh.max2,xh.max1, xh.max2) maxHbA1c, IF(xg.max1>xg.max2,xg.max1, xg.max2) maxGluc, _lGFR(f.pat_id) eGFR, dn.icd npICD, di.icd niICD, LEFT(k.name,20) Kasse " & vbCrLf & _
@@ -2699,7 +2699,7 @@ sql = "SELECT f.pat_id, d.icd DmICD, IF(xh.max1>xh.max2,xh.max1, xh.max2) maxHbA
 myFrag rs, sql
 If Not rs.BOF Then
  Do While Not rs.EOF
-    gesZ = 0: pz = 0: nz = 0: obNP = 0: maxAlb = 0
+    gesZ = 0: pz = 0: nzz = 0: obNP = 0: maxAlb = 0
 '  sqla = LabEPatS(AlbCre, rs!Pat_id)
     Set rsa = Nothing
 '   myFrag rsa, sqla
@@ -2729,8 +2729,8 @@ If Not rs.BOF Then
         Zp = lab(aktlwx).Zp
         aktAlb = MachNumerisch(lab(aktlwx).WertSg) 'rsa!wert)
         If aktAlb > maxAlb Then maxAlb = aktAlb
-        If aktAlb >= 20 Then pz = pz + 1 Else nz = nz + 1
-        If pz > 1 And Not (nz >= pz + pz) Then obNP = 1: Exit For ' Do
+        If aktAlb >= 20 Then pz = pz + 1 Else nzz = nzz + 1
+        If pz > 1 And Not (nzz >= pz + pz) Then obNP = 1: Exit For ' Do
 '     rsa.MoveNext
 '    Loop
 '   END IF
@@ -2738,7 +2738,7 @@ If Not rs.BOF Then
       Next aktlwx
 '  sqla = "SELECT DATE(zeitpunkt) zp, IF(ISNULL(wert),IF(ISNULL(kommentar),'',kommentar),wert) Wert FROM `laborneu` ln LEFT JOIN laborkommentar lk ON ln.kommentarvw = lk.kommentarvw WHERE ((abkü IN ('ALBCRE','ALBKRE','ALBQ','ALBUM','ALBUP') AND einheit LIKE 'mg/g %') OR (abkü IN ('ALBU','ALBUMU') AND (einheit = 'mg/l' OR einheit = ''))) AND pat_id = 262 UNION SELECT DATE(u.eingang) zp, IF(ISNULL(w.wert),IF(ISNULL(w.kommentar),'',w.kommentar),w.wert) Wert FROM `" & vorsil & "us` u LEFT JOIN " & vorsil & "wert w ON u.refnr = w.refnr WHERE ((abkü IN ('ALBCRE','ALBKRE','ALBQ','ALBUM','ALBUP') AND einheit LIKE 'mg/g %') OR (abkü IN ('ALBU','ALBUMU') AND (einheit = 'mg/l' OR einheit = ''))) AND pat_id = 262 GROUP BY zp ORDER BY zp DESC;"
       If obNP Then
-       myEFrag ("INSERT INTO ni_abr(pat_id,DmICD,maxHbA1c,maxGluc,eGFR,npICD,niICD,pZ,nZ,gesZ,minDat,maxAlb,kasse) VALUES(" & rs!Pat_id & ",'" & rs!DmICD & "','" & REPLACE$(IIf(IsNull(rs!maxHbA1c), 0, rs!maxHbA1c), ",", ".") & "','" & REPLACE(IIf(IsNull(rs!maxGluc), "0", rs!maxGluc), ",", ".") & "','" & REPLACE(rs!eGFR, ",", ".") & "','" & IIf(IsNull(rs!npICD), "", rs!npICD) & "','" & IIf(IsNull(rs!niICD), "", rs!niICD) & "'," & pz & "," & nz & "," & gesZ & "," & Format(Zp, "YYYYMMDD") & "," & REPLACE$(maxAlb, ",", ".") & ",'" & rs!Kasse & "')")
+       myEFrag ("INSERT INTO ni_abr(pat_id,DmICD,maxHbA1c,maxGluc,eGFR,npICD,niICD,pZ,nZ,gesZ,minDat,maxAlb,kasse) VALUES(" & rs!Pat_id & ",'" & rs!DmICD & "','" & REPLACE$(nz(rs!maxHbA1c, 0), ",", ".") & "','" & REPLACE(nz(rs!maxGluc, "0"), ",", ".") & "','" & REPLACE(rs!eGFR, ",", ".") & "','" & nz(rs!npICD, "") & "','" & nz(rs!niICD, "") & "'," & pz & "," & nzz & "," & gesZ & "," & Format(Zp, "YYYYMMDD") & "," & REPLACE$(maxAlb, ",", ".") & ",'" & rs!Kasse & "')")
       End If ' obNP
      End If ' lwzahl
     End If ' not rsa.BOF

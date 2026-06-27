@@ -3392,8 +3392,8 @@ nochmal1:
   Matr(0, 4, j) = raLw!Einheit
 '    IF NOT ISNULL(raLw!Nb) THEN Matr(0,5, j) = raLw!Nb
   Dim ug$, og$
-  ug = Trim$(IIf(IsNull(raLw!uNG), vNS, raLw!uNG))
-  og = Trim$(IIf(IsNull(raLw!oNG), vNS, raLw!oNG))
+  ug = Trim$(nz(raLw!uNG,vNS))
+  og = Trim$(nz(raLw!oNG,vNS))
   Matr(0, 5, j) = ug & "-" & og
   ug = MachNumerisch(ug)
   If ug = "0" Then ug = ""
@@ -3402,8 +3402,8 @@ nochmal1:
   If IsNumeric(ug) Then ug = CDbl(ug)
   If IsNumeric(og) Then og = CDbl(og)
   Matr(1, 5, j) = ug & "-" & og
-  If Not IsNull(raLw!uNG) Then Matr(0, 1, j) = REPLACE$(IIf(IsNull(raLw!uNG), vNS, raLw!uNG), "1:", "")
-  If Not IsNull(raLw!oNG) Then Matr(0, 2, j) = REPLACE$(IIf(IsNull(raLw!oNG), vNS, raLw!oNG), "1:", "")
+  If Not IsNull(raLw!uNG) Then Matr(0, 1, j) = REPLACE$(nz(raLw!uNG,vNS), "1:", "")
+  If Not IsNull(raLw!oNG) Then Matr(0, 2, j) = REPLACE$(nz(raLw!oNG,vNS), "1:", "")
   Matr(0, 3, j) = raLw!Langtext
   Select Case Matr(0, 0, j)
    Case "LDL", "LDLB", "LDLH", "LDLC", "LDLH01", "LDLLG", "LDLS"
@@ -3451,9 +3451,9 @@ nochmal1:
    If Matr(0, 0, j) = raLw!Abkü Then
     If LCase$(Matr(0, 4, j)) = LCase$(raLw!Einheit) Then
      Dim NGVgl$
-     ug = Trim$(IIf(IsNull(raLw!uNG), vNS, raLw!uNG))
+     ug = Trim$(nz(raLw!uNG,vNS))
      If ug = "0" Then ug = ""
-     og = Trim$(IIf(IsNull(raLw!oNG), vNS, raLw!oNG))
+     og = Trim$(nz(raLw!oNG,vNS))
      If og = "0" Then og = ""
      ug = MachNumerisch(ug)
      If ug = "0" Then ug = ""
@@ -3486,14 +3486,14 @@ nochmal1:
 '    Matr(0, 3, j) = raLw!abkü
 '   END IF
    Matr(0, 4, j) = raLw!Einheit
-   Matr(0, 5, j) = Trim$(IIf(IsNull(raLw!uNG), vNS, raLw!uNG)) & "-" & Trim$(IIf(IsNull(raLw!oNG), vNS, raLw!oNG))
+   Matr(0, 5, j) = Trim$(nz(raLw!uNG,vNS)) & "-" & Trim$(nz(raLw!oNG,vNS))
 '    ON Error GoTo fehler
   End If ' j > UBound(Matr, 3) THEN
   If i <= dz + 5 Then
    If Matr(1, i, 0) = "" Then Matr(1, i, 0) = raLw!DatID & " " & raLw!Pfad
    Dim Kommentar$
    If IsNull(raLw!Kommentar) Then Kommentar = "" Else Kommentar = REPLACE$(raLw!Kommentar, "//", "/")
-   Matr(0, i, j) = IIf(IsNull(raLw!Wert), IIf(Not IsNull(Kommentar), Left$(Kommentar, 10), vNS), raLw!Wert)
+   Matr(0, i, j) = nz(raLw!Wert,IIf(Not IsNull(Kommentar), Left$(Kommentar, 10), vNS))
    Matr(1, i, j) = raLw!Labor
    If InStrB(Kommentar, "//") <> 0 Then
     MsgBox " Fehler in LaborInsPLZMo: InstrB(kommentar, ""//"") <> 0"

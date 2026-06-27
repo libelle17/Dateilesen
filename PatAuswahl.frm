@@ -485,7 +485,7 @@ Private Sub Pat_ID_Change()
      rKVA.Open "select * from hae where kvnr = '" & Left(rFaA!Übw, 2) & "/" & Right$(rFaA!Übw, 5) & "'", HAECn, adOpenDynamic, adLockReadOnly
      If Not rKVA.BOF And Not obHA And Not rFaA!Übw = "6419153" Then
       HAStr = rKVA!haname & ", " & rKVA!Ort & IIf(Not IsNull(rKVA!Email) And rKVA!Email <> "", " Email: " & rKVA!Email, "") & _
-              "   Tel: " & Replace$(IIf(IsNull(rKVA!tel1), "", rKVA!tel1), " ", "") & "  Fax: " & IIf(IsNull(rKVA!fax1k), "", rKVA!fax1k)
+              "   Tel: " & Replace$(nz(rKVA!tel1,""), " ", "") & "  Fax: " & nz(rKVA!fax1k,"")
       Dim obDMP2%, obDMP1%
       Do While Not rKVA.EOF
 '       If rKVA!j_dmpt2 <> 0 Then obDMP2 = True
@@ -500,7 +500,7 @@ Private Sub Pat_ID_Change()
      End If
     End If
    End If
-   Me.Faelle.AddItem (rFaA!BhFB & " - " & rFaA!BhFE1 & " " & rFaA!SchGr & "  " & Left(IIf(IsNull(rFaA!Name), "", rFaA!Name), 20) & " " & IIf(IsNull(rFaA!Kateg), "", rFaA!Kateg) & "  " & rFaA!ÜWNNr & " " & rFaA!ÜWNaN & " " & rFaA!ÜWVor)
+   Me.Faelle.AddItem (rFaA!BhFB & " - " & rFaA!BhFE1 & " " & rFaA!SchGr & "  " & Left(nz(rFaA!Name,""), 20) & " " & nz(rFaA!Kateg,"") & "  " & rFaA!ÜWNNr & " " & rFaA!ÜWNaN & " " & rFaA!ÜWVor)
    rFaA.Move 1
   Loop
  End If

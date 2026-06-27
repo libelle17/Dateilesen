@@ -3365,7 +3365,7 @@ gefunden:
      If Not IsNull(rsEi!fdetails) Then
       rRe(UBound(rRe)).erez = rsEi!obe
       rRe(UBound(rRe)).obst = rsEi!obst
-      rRe(UBound(rRe)).rea = IIf(IsNull(rsEi!rea), "", rsEi!rea)
+      rRe(UBound(rRe)).rea = nz(rsEi!rea,"")
       rRe(UBound(rRe)).obBTM = rsEi!obBTM
       rRe(UBound(rRe)).noctu = rsEi!noctu
       rRe(UBound(rRe)).ersatzv = rsEi!obers
@@ -3451,7 +3451,7 @@ fgefunden:
         ReDim Preserve rFo(UBound(rFo) + 1)
         rFo(UBound(rFo)).absPos = rsf!absPos
         rFo(UBound(rFo)).aktZeit = rsf!aktZeit
-        rFo(UBound(rFo)).Form_Abk = IIf(IsNull(rsf!Form_Abk), vNS, rsf!Form_Abk)
+        rFo(UBound(rFo)).Form_Abk = nz(rsf!Form_Abk,vNS)
         rFo(UBound(rFo)).FormBez = rsf!FormBez
         rFo(UBound(rFo)).FormID = rsf!FormID
         lFormID = rsf!FormID
@@ -5209,7 +5209,7 @@ Public Function moausgeb(MOCon As ADODB.Connection, tn$, obsyst%, Bedg$)
 '      If IsNull(raen!vrs) Then Stop
       If IsNull(raen.Fields(colZ + Offs)) Then ausgb = "NULL" Else ausgb = REPLACE$(REPLACE$(raen.Fields(colZ + Offs), Chr(10), ""), Chr(13), "<nl>")
 '      If rcol.Fields(0) = "FMemo" Then Stop
-      If Not obsyst Or runde = 0 Or CStr(Wt(colZ)) <> CStr(IIf(IsNull(raen.Fields(colZ + Offs)), "NULL", raen.Fields(colZ + Offs))) Then
+      If Not obsyst Or runde = 0 Or CStr(Wt(colZ)) <> CStr(nz(raen.Fields(colZ + Offs),"NULL")) Then
        Print #220, rcol.Fields(0) & ": " & IIf(runde = 0, "", IIf(obsyst <> 0, Wt(colZ) & vbCrLf & " -> ", "") & Space$(Len(rcol.Fields(0)) - 2)) & ausgb
        If raen.Fields(colZ + Offs).Type = adLongVarBinary Or raen.Fields(colZ + Offs).Type = adLongVarChar Then ' 205
         Dim wtcolz$, i&, pru%
@@ -5235,7 +5235,7 @@ Public Function moausgeb(MOCon As ADODB.Connection, tn$, obsyst%, Bedg$)
          End If ' pru = 1
         Next pru
        End If ' raen.Fields(colz + Offs).Type = adLongVarBinary Or raen.Fields(colz + Offs).Type = adLongVarChar Then ' 205
-      End If ' CStr(Wt(colz)) <> CStr(IIf(IsNull(raen.Fields(colz + Offs)), "NULL", raen.Fields(colz + Offs))) Then
+      End If ' CStr(Wt(colz)) <> CStr(nz(raen.Fields(colz + Offs),"NULL")) Then
      End If ' runde = 0 else
      colZ = colZ + 1
      rcol.MoveNext

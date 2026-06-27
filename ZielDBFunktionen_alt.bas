@@ -617,7 +617,7 @@ With raAna
   FSauf = "auff‰llig "
   If obUlc Then FSauf = FSauf & "(Anamnesebogen:Ulcera: " & !Ulcera & ") "
   Do While Not raDT.EOF
-   FSauf = FSauf & raDT!ICD & IIf(IsNull(raDT!DiagSeite), "", raDT!DiagSeite) & " (" & Format$(raDT!DiagDatum, "d.m.yy") & ") "
+   FSauf = FSauf & raDT!ICD & nz(raDT!DiagSeite,"") & " (" & Format$(raDT!DiagDatum, "d.m.yy") & ") "
    raDT.Move 1
   Loop
   TabPr "Fuﬂstatus: ", FSauf
@@ -1289,7 +1289,7 @@ Function LeistungsExport1(BDT As BDTSchreib, Pat_id&, Leist$, Datu As Date, Opti
      Print #310, ZSU(op)
      op = Format$(3 + 4 + 8, "000") + "3103" + Format$(n!gebdat, "ddmmyyyy")
      Print #310, ZSU(op)
-     op = Format$(3 + 4 + Len(IIf(IsNull(n!Versichertennummer), "", n!Versichertennummer)), "000") + "3105" + IIf(IsNull(n!Versichertennummer), "", n!Versichertennummer)
+     op = Format$(3 + 4 + Len(nz(n!Versichertennummer,"")), "000") + "3105" + nz(n!Versichertennummer,"")
      Print #310, ZSU(op)
 '     op = format$(3 + 4 + Len(n!Straﬂe), "000") + "3107" + n!Straﬂe
 '     Print #310, ZSU(op)
@@ -1338,17 +1338,17 @@ Function LeistungsExport1(BDT As BDTSchreib, Pat_id&, Leist$, Datu As Date, Opti
      If Not IsNull(rFa!AbrGb) Then ' bei Privaten
       BDT.SAdd "4122", rFa!AbrGb
      End If
-     BDT.SAdd "4144", "TM#" + IIf(IsNull(rFa!TMFNr), Space$(11), rFa!TMFNr)
+     BDT.SAdd "4144", "TM#" + nz(rFa!TMFNr,Space$(11))
      BDT.DAdd "4150", rFa!BhFB
      BDT.DAdd "4151", rFa!BhFE1
 '     op = format$(3 + 4 + 8, "000") + "4152" + IIf(rFa!BhFE2 = 0, "00000000", format$(rFa!BhFE2, "ddmmyyyy"))
 '     Print #310, ZSU(op)
      Dim ‹w$
-     ‹w = IIf(IsNull(rFa!‹bwV), "", rFa!‹bwV)
+     ‹w = nz(rFa!‹bwV,"")
      If ‹w <> "" Then
       BDT.SAdd "4218", ‹w
      End If
-     ‹w = IIf(IsNull(rFa!And‹w), "", rFa!And‹w)
+     ‹w = nz(rFa!And‹w,"")
      If ‹w <> "" Then
       BDT.SAdd "4219", ‹w
      End If
@@ -2117,7 +2117,7 @@ End Function ' ZQuart$(Datum As Date) ' F¸r Abfragen mit Fallzuordnung
 
 Function GesNam$(ByVal rs) ' As DAO.Recordset) ' s.a. GesName(
  On Error GoTo fehler
-   GesNam = rs!NachName & ", " & IIf(IsNull(rs!Titel), "", rs!Titel) + IIf(IsNull(rs!Titel) Or rs!Titel = "", "", ", ") + rs!Vorname
+   GesNam = rs!NachName & ", " & nz(rs!Titel,"") + IIf(IsNull(rs!Titel) Or rs!Titel = "", "", ", ") + rs!Vorname
    On Error Resume Next
    GesNam = rs!NVorsatz + IIf(rs!NVorsatz = "", "", " ") + GesNam
    On Error GoTo fehler
@@ -2206,7 +2206,7 @@ Function TabPr(s1, s2)
  If Len(s1) < 24 Then
   DmPStr = DmPStr & Space$(24 - Len(s1))
  End If
- DmPStr = DmPStr & vbTab & IIf(IsNull(s2), "", s2) ' "........................"
+ DmPStr = DmPStr & vbTab & nz(s2,"") ' "........................"
 End Function ' TabPr(S1, S2)
 
 Function obPosi(S) As Boolean
@@ -2771,11 +2771,11 @@ Function MedPlanNr&(Pat_id, obAkt, Optional vordat As Date, Optional NurNr%, Opt
     End If
     If Not IsNull(raFIM!Medikament) Then
      Med(MedNr) = raFIM!Medikament
-     Dos(0, MedNr) = IIf(IsNull(raFIM!mo), "", raFIM!mo)
-     Dos(1, MedNr) = IIf(IsNull(raFIM!mi), "", raFIM!mi)
-     Dos(2, MedNr) = IIf(IsNull(raFIM!nm), "", raFIM!nm)
-     Dos(3, MedNr) = IIf(IsNull(raFIM!ab), "", raFIM!ab)
-     Dos(4, MedNr) = IIf(IsNull(raFIM!Zn), "", raFIM!Zn)
+     Dos(0, MedNr) = nz(raFIM!mo,"")
+     Dos(1, MedNr) = nz(raFIM!mi,"")
+     Dos(2, MedNr) = nz(raFIM!nm,"")
+     Dos(3, MedNr) = nz(raFIM!ab,"")
+     Dos(4, MedNr) = nz(raFIM!Zn,"")
     End If
     raFIM.Move 1
    Loop

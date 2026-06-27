@@ -270,9 +270,9 @@ Function LaborString$(Pat_ID&)
     End If
    End If
    ls = ls + rLW.Fields("sql.LangText") + Chr(13) + Chr(10)
-   ls = ls + IIf(IsNull(rLW.Fields("sql.einheit")), "", rLW.Fields("sql.Einheit")) + Chr(13) + Chr(10)
+   ls = ls + nz(rLW.Fields("sql.einheit"),"") + Chr(13) + Chr(10)
    ls = ls + Format(rLW!Datum, "dd.mm.yyyy") + Chr(13) + Chr(10)
-   ls = ls + IIf(IsNull(rLW!Wert), "", rLW!Wert) + Chr(13) + Chr(10)
+   ls = ls + nz(rLW!Wert,"") + Chr(13) + Chr(10)
    u = -99
    o = -99
    pKz = "n" ' normal
@@ -312,11 +312,11 @@ Function LaborString$(Pat_ID&)
    NB = ""
    If uNG <> "" Or oNG <> "" Then
     If gschl = "w" And (rLW!unw <> "" Or rLW!onw <> "") Then
-     NB = IIf(IsNull(rLW!unw), "", rLW!unw) + "-" + IIf(IsNull(rLW!onw), "", rLW!onw)
+     NB = nz(rLW!unw,"") + "-" + nz(rLW!onw,"")
     End If
    End If
    If NB = "" And (rLW!unm <> "" Or rLW!onm <> "") Then
-    NB = IIf(IsNull(rLW!unm), "", rLW!unm) + "-" + IIf(IsNull(rLW!onm), "", rLW!onm)
+    NB = nz(rLW!unm,"") + "-" + nz(rLW!onm,"")
    End If
    ls = ls + NB + Chr(13) + Chr(10)
    If IsNull(rLW!gruppe) Then

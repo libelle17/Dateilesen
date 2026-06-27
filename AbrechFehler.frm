@@ -2149,7 +2149,7 @@ AwN(AWlf) = "Sono, Doppler oder Duplex ohne Befund"
  "  SELECT /*COUNT(0)zahl,*/" & vbCrLf & _
  "   b.pat_id,gesnameg(b.Pat_id)PName,CASE WHEN name RLIKE'_Schade_'THEN'Sch'WHEN name RLIKE '_Dr. Kothny_'THEN'Kot'WHEN name RLIKE'_Hammerschmidt_'THEN'Ham'ELSE''END Arzt" & vbCrLf & _
  "   ,udat,COUNT(0)OVER(PARTITION BY pat_id,udat,uag)BldZl,uag,Name,id" & vbCrLf & _
- "   ,CASE WHEN uag RLIKE'^abd_general|^Vasc_superf'THEN'^(dup|sono)'WHEN uag RLIKE'^Vasc|Abd_renal'THEN'^d[uo]p'ELSE'^sono'END Muster" & vbCrLf & _
+ "   ,CASE WHEN uag RLIKE'^abd_general|^Vasc_(superf|venous)'THEN'^(dup|sono)'WHEN uag RLIKE'^Vasc|Abd_renal'THEN'^d[uo]p'ELSE'^sono'END Muster" & vbCrLf & _
  "  FROM " & vbCrLf & _
  "  (SELECT" & vbCrLf & _
  "   STR_TO_DATE(REGEXP_REPLACE(NAME,'^.*_([0-9]{8})_?([0-9]{6})([_a]| [0-9]{1,2}| - Kopie( \\([0-9]{1,3}\\))?)?\.png.*$','\\1 \\2'),'%Y%m%d')udat" & vbCrLf & _
@@ -2303,6 +2303,7 @@ sql(AWlf) = "" & vbCrLf & _
  "AND inhalt NOT LIKE 'Beinarterien%' " & vbCrLf & _
  "AND inhalt NOT LIKE 'Beinvenen%' " & vbCrLf & _
  "AND inhalt NOT LIKE 'Nierenarterie%' " & vbCrLf & _
+ "AND inhalt NOT LIKE 'Duplex abd%' " & vbCrLf & _
  "AND inhalt NOT LIKE 'Temporalarterien%' " & vbCrLf & _
  "AND inhalt NOT LIKE 'Abdomen%' " & vbCrLf & _
  "AND inhalt NOT LIKE 'Armvenen%' " & vbCrLf & _
@@ -7733,7 +7734,7 @@ fehler:
  ErrNumber = Err.Number
  ErrLastDllError = Err.LastDllError
  ErrDescr = Err.Description
- ErrSource = IIf(IsNull(Err.Source), vNS, Err.Source)
+ ErrSource = nz(Err.Source, vNS)
 fehler2:
  Dim AnwPfad$
 #If VBA6 Then

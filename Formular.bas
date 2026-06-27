@@ -563,7 +563,7 @@ Function do_Labor_Click(frm As Form)
 
  Call DtbCreateQueryDef("LaborDokumente eP", sql)
  DoCmd.OpenForm "LaborDokumente eP"
- Forms![LaborDokumente ep].Caption = "LaborDokumente zu " & IIf(IsNull(frm!Nachname), frm!Pat_id, frm!Nachname) & " " & IIf(IsNull(frm.Vorname), vNS, frm.Vorname)
+ Forms![LaborDokumente ep].Caption = "LaborDokumente zu " & nz(frm!Nachname,frm!Pat_id) & " " & nz(frm.Vorname,vNS)
  Exit Function
 fehler:
  Dim AnwPfad$
@@ -1734,8 +1734,8 @@ Function do_Form_Current_AnBog(frm As AnBog)
     End Select
    End If
    If Not HArst.BOF And Not UBound(teile) = -1 Then ' wenn gar nicht gesucht wurde
-    frm.vTextB(148) = IIf(IsNull(HArst!name), vNS, HArst!name) + ",T:" + IIf(IsNull(HArst!telefon), vNS, HArst!telefon) & ", " & IIf(IsNull(HArst!strasse), vNS, HArst!strasse) & " " & IIf(IsNull(HArst!plz), vNS, HArst!plz) & " " & IIf(IsNull(HArst!ort), vNS, HArst!ort) + ", Z:" + IIf(IsNull(HArst!zulg), vNS, HArst!zulg)
-    frm.vTextB(176) = IIf(IsNull(HArst!fax), vNS, HArst!fax)
+    frm.vTextB(148) = nz(HArst!name,vNS) + ",T:" + nz(HArst!telefon,vNS) & ", " & nz(HArst!strasse,vNS) & " " & nz(HArst!plz,vNS) & " " & nz(HArst!ort,vNS) + ", Z:" + nz(HArst!zulg,vNS)
+    frm.vTextB(176) = nz(HArst!fax,vNS)
     obHAimDMP = fobHAimDMP(frm.vTextB(183)) ' HANr
    End If
    HArst.Find "kvNro=" & LTrim$(frm.vTextB(183))    ' HANr
@@ -2141,7 +2141,7 @@ If Pat_id <> 0 Then
  Call KRAdd(frm, pani, "Pankreasinsuffizienz", "K86.8", gesi, "K86", , , , "vTextB", 105) ' Weitere Medikation
  Call KRAdd(frm, park, "Parkinson", "G20", gesi, "G20", , , , "vTextB", 105) ' Weitere Medikation
  Call KRAdd(frm, vari, "Varikose", "I83.9", gesi, "I83", "I86", , , "vTextB", 105) ' Weitere Medikation
- GebDat = IIf(IsNull(frm.anaRS!GebDat), 0, frm.anaRS!GebDat)
+ GebDat = nz(frm.anaRS!GebDat,0)
 ' Alter = (Date - GebDat) * 2.73792574745373E-03 ' 1/365,24
  Alter = AlterBei(Date, GebDat)
  If Alter > 45 Then Call KRAdd(frm, östr, "Wechselbeschwerden", "N95.9", gesi, "N95", , , , "vTextB", 105) ' Weitere Medikation
@@ -4278,7 +4278,7 @@ Function Urineintraege%(Pat_id&)
   If Labs.Zp = -1 Or Labs.Zp = #12/29/1899# Then Exit Do
 ' IF Not raUr.BOF THEN
 '  Do While Not raUr.EOF
-''   LW = Val(replace$(replace$(IIF(ISNULL(raUr!Wert), IIF(ISNULL(raUr!Kommentar), vns, raUr!Kommentar), raUr!Wert), ",", "."), "%", vns))
+''   LW = Val(replace$(replace$(nz(raUr!Wert,IIF(ISNULL(raUr!Kommentar), vns, raUr!Kommentar)), ",", "."), "%", vns))
   LW = Val(REPLACE$(REPLACE$(Labs.WertSg, ",", "."), "%", vNS))
   If LW < 20 Then
    nZahlLab = nZahlLab + 1
@@ -4525,7 +4525,7 @@ Function RRParseF(Pat_id&)
  myFrag rsNa, "SELECT * FROM `anamnesebogen` WHERE pat_id = " & Pat_id
  If Not rsNa.EOF Then
   If Not IsNull(rsNa!Blutdruckwerte) Then
-   Call do_RRParse(rsNa!Blutdruckwerte, Pat_id, IIf(IsNull(rsNa!Vorgestellt), 0, rsNa!Vorgestellt), "An'bg.BW")
+   Call do_RRParse(rsNa!Blutdruckwerte, Pat_id, nz(rsNa!Vorgestellt,0), "An'bg.BW")
   End If
   If Not IsNull(rsNa!RR) Then
    Call do_RRParse(rsNa!RR, Pat_id, rsNa!Vorgestellt, "An'bg.RR")
@@ -5156,7 +5156,7 @@ Function LabWert!(frm As Form, name$, Optional sign, Optional ByVal grenze!, Opt
  Set rbLau = hollabor(Pat_id, "^" & name & "$", 0, 0, 0, -1, vNS)
  If Not rbLau.EOF Then
   Wert = rbLau!Wert
-  Kommentar = IIf(IsNull(rbLau!Kommentar), "", rbLau!Kommentar)
+  Kommentar = nz(rbLau!Kommentar,"")
   Zeitpunkt = rbLau!Zeitpunkt
  End If
 #Else
@@ -5179,7 +5179,7 @@ Function LabWert!(frm As Form, name$, Optional sign, Optional ByVal grenze!, Opt
  myFrag rbLau, sq2
  If Not rbLau.EOF Then
   Wert = rbLau!Wert
-  Kommentar = IIf(IsNull(rbLau!Kommentar), "", rbLau!Kommentar)
+  Kommentar = nz(rbLau!Kommentar,"")
   Zeitpunkt = rbLau!Zeitpunkt
  End If
  Set rbLau = Nothing
@@ -5193,7 +5193,7 @@ Function LabWert!(frm As Form, name$, Optional sign, Optional ByVal grenze!, Opt
  If Not rbLau.EOF Then
   If rbLau!Zeitpunkt > Zeitpunkt Then
    Wert = rbLau!Wert
-   Kommentar = IIf(IsNull(rbLau!Kommentar), "", rbLau!Kommentar)
+   Kommentar = nz(rbLau!Kommentar,"")
    Zeitpunkt = rbLau!Zeitpunkt
   End If
  End If
@@ -5209,7 +5209,7 @@ Function LabWert!(frm As Form, name$, Optional sign, Optional ByVal grenze!, Opt
  'rlau.Seek "=", CStr(Pat_id), name
 ' rblau.Find "abkü = " & "" & Name & "" & " AND wert <> """"", 0, adSearchForward, 1
  If Zeitpunkt <> 0 Then
-  LabWert = Val(REPLACE$(REPLACE$(IIf(IsNull(Wert), IIf(IsNull(Kommentar), vNS, Kommentar), Wert), ",", "."), "%", vNS))
+  LabWert = Val(REPLACE$(REPLACE$(nz(Wert,IIf(IsNull(Kommentar), vNS, Kommentar)), ",", "."), "%", vNS))
 '  IF Alter = 0 THEN Alter = (Zeitpunkt - GebDat) * 2.73792574745373E-03 ' 1/365,24
   If Alter = 0 Then Alter = AlterBei(Zeitpunkt, GebDat)
   If Not IsMissing(sign) Then
@@ -5332,7 +5332,7 @@ End Function ' do_Fremdlabor_Form_Current(frm As Form)
 Function makeDatPfad(frm As Form)
  On Error GoTo fehler
  If (InStrB("$\", left$(frm!DokPfad, 1)) <> 0 And left$(frm!DokPfad, 1) <> vNS) Or Mid$(frm!DokPfad, 2, 1) = ":" Then
-   RDatPfad = REPLACE$(REPLACE$(LCase$(IIf(IsNull(frm!DokPfad), vNS, frm!DokPfad)), "$\turbomed\dokumente", getDokPfad), "^", vNS)
+   RDatPfad = REPLACE$(REPLACE$(LCase$(nz(frm!DokPfad,vNS)), "$\turbomed\dokumente", getDokPfad), "^", vNS)
    DatPfad = vNS + RDatPfad + vNS
    Dim cat As New ADOX.Catalog
    Dim cmd As New ADODB.Command
@@ -5389,7 +5389,7 @@ Function do_LaborDokumente_Form_Current(frm As Form)
 ' IF Not rDokab.NoMatch THEN
 '   frm!abgehakt = rDokab!abgehakt
 'END IF
-' frm!DokGroe = CreateObject("Scripting.FileSystemObject").getfile(replace$(replace$(IIF(ISNULL(frm!DokPfad), vns, frm!DokPfad), "$\TurboMed\Dokumente\", getDokPfad), "^", vns)).size
+' frm!DokGroe = CreateObject("Scripting.FileSystemObject").getfile(replace$(replace$(nz(frm!DokPfad,vns), "$\TurboMed\Dokumente\", getDokPfad), "^", vns)).size
  Exit Function
 fehler:
  Dim AnwPfad$
@@ -6179,7 +6179,7 @@ End Function ' getHausarzt(Pid&, Infos$())
 ''       SET rDMP = New ADODB.Recordset
 ''       rDMP.Open "SELECT * FROM hae WHERE kvnr = '" & LEFT(üwerg(0, runde), 2) & "/" & Right$(üwerg(0, runde), 5) & "' AND dmpt1 = 1", HAECn, adOpenStatic, adLockReadOnly
 ''       InfRoh(7, runde) = IIF(rDMP.BOF, vNS, "X")
-'       IF LenB(InfRoh(8, runde)) = 0 THEN InfRoh(8, runde) = IIF(ISNULL(rHa!zulg), vNS, rHa!zulg)
+'       IF LenB(InfRoh(8, runde)) = 0 THEN InfRoh(8, runde) = nz(rHa!zulg,vNS)
 '       IF LenB(InfRoh(9, runde)) = 0 THEN InfRoh(9, runde) = rHa!vorname
 '       IF LenB(InfRoh(14, runde)) = 0 THEN InfRoh(14, runde) = rHa!nachname
 '       InfRoh(10, runde) = üwerg(3, runde)
@@ -6223,10 +6223,10 @@ End Function ' getHausarzt(Pid&, Infos$())
 '        END SELECT
 ''       infroh(6, runde) = IIF(rHae!dmpt2 = -1, "X", vns)
 ''       infroh(7, runde) = IIF(rHae!dmpt1 = -1, "X", vns)
-'       IF InfRoh(8, runde) = vNS THEN InfRoh(8, runde) = IIF(ISNULL(rHae!zulassungsgebiet), vNS, rHae!zulassungsgebiet)
+'       IF InfRoh(8, runde) = vNS THEN InfRoh(8, runde) = nz(rHae!zulassungsgebiet,vNS)
 '       InfRoh(10, runde) = üwerg(3, runde)
 '       InfRoh(12, runde) = rHae!KVNr
-'       InfRoh(13, runde) = IIF(ISNULL(rHae!telefon), vNS, rHae!telefon)
+'       InfRoh(13, runde) = nz(rHae!telefon,vNS)
 '      END IF
 '      Dim obInsert%
 '      IF Not gefunden THEN
@@ -6762,7 +6762,7 @@ Hausarzt:
   ' m = 7 + 10 * runde: Tj(m) = Timer ': for p = 0 To m - 1: Tj(m) = Tj(m) - Tj(p): Next p
      If gefunden Then
        InfRoh(1, runde) = IIf(IsNull(rListena!Titel) Or LenB(rListena!Titel) = 0, "Dr.med.", rListena!Titel) & " " & rListena!Vorname & " " & rListena!name
-       InfRoh(0, runde) = IIf(IsNull(rListena!anrede), "", rListena!anrede)
+       InfRoh(0, runde) = nz(rListena!anrede,"")
        If Not IsNull(rListena!strasse) Then
         InfRoh(2, runde) = rListena!strasse
         InfRoh(3, runde) = rListena!plz & " " & rListena!ort
@@ -7925,7 +7925,7 @@ Public Sub tuBriefStandalone(pid&, obStumm%, Optional Zielverz$, Optional Verfas
  GebDat = rsNa!GebDat
  tit = rsNa!tit
  dieder = rsNa!dieder
- bhb = IIf(IsNull(rsNa!bhbn), 0, rsNa!bhbn)
+ bhb = nz(rsNa!bhbn,0)
  On Error Resume Next ' 18.11.25, Pat. 33211
  behs = rsNa!behs
  On Error GoTo fehler
@@ -9676,7 +9676,7 @@ Function letzteMed(dc, Pat_id$, briefneu%)
  Dim bemerk$
  Do While Not raDat.EOF
 '  beme = ""
-  bemerk = IIf(IsNull(raDat!Bmkg), "", raDat!Bmkg)
+  bemerk = nz(raDat!Bmkg,"")
   If bemerk <> vNS Then
 '  If IsNull(raDat!Bmkg) Or raDat!Bmkg = vNS Then
 '    beme = vNS
@@ -9899,7 +9899,7 @@ Sub Epikrise(dc, Pat_id$, VorDat As Date, lddat As Date, obStumm%, briefneu%, Op
    Case "p": DT = "e pathologische Glucosetoleranz"
    Case "-": DT = " "
    Case "?": DT = " Diabetes mellitus" ' kommt dann nicht mehr vor
-   Case Else: DT = " Diabetes mellitus Typ " + IIf(IsNull(rsAnam!Diabetestyp), "", rsAnam!Diabetestyp) ' kommt dann nicht mehr vor
+   Case Else: DT = " Diabetes mellitus Typ " + nz(rsAnam!Diabetestyp,"") ' kommt dann nicht mehr vor
   End Select ' Case dmtyp
   Select Case dmtyp
    Case "g", "p"
@@ -10171,7 +10171,7 @@ w2:
    End Select
    Set rthera = Nothing
    Dim thLang$, DiabTyp$
-'   DiabTyp = IIf(IsNull(rsAnam!Diabetestyp), "", rsAnam!Diabetestyp)
+'   DiabTyp = nz(rsAnam!Diabetestyp,"")
    thrang(i) = ThaRang(TherapieStr, thLang, dmtyp) ' , DiabTyp)
    Therlang(i) = thLang
   Next i
@@ -10766,7 +10766,7 @@ keineGFR:
     If Not rBegrü.BOF Then
      Epi = Epi + ", """
      Do While Not rBegrü.EOF
-      Epi = Epi + IIf(IsNull(rBegrü!FeldInh), "", rBegrü!FeldInh)
+      Epi = Epi + nz(rBegrü!FeldInh,"")
       rBegrü.Move 1
       If Not rBegrü.EOF Then Epi = Epi + " "
      Loop
@@ -15582,12 +15582,12 @@ End Sub ' LaborIns1
 '  IF Not rlp.EOF THEN
 '   IF gschl = "m" OR (rlp!unw = vNS AND rlp!onw = vNS) THEN
 '    Matr(0, 5, j) = rlp!unm & "-" & rlp!onm
-'    Matr(0, 1, j) = replace$(IIF(ISNULL(rlp!unm), vNS, rlp!unm), "1:", vNS)
-'    Matr(0, 2, j) = replace$(IIF(ISNULL(rlp!onm), vNS, rlp!onm), "1:", vNS)
+'    Matr(0, 1, j) = replace$(nz(rlp!unm,vNS), "1:", vNS)
+'    Matr(0, 2, j) = replace$(nz(rlp!onm,vNS), "1:", vNS)
 '   Else
 '    Matr(0, 5, j) = rlp!unw & "-" & rlp!onw
-'    Matr(0, 1, j) = replace$(IIF(ISNULL(rlp!unw), vNS, rlp!unw), "1:", vNS)
-'    Matr(0, 2, j) = replace$(IIF(ISNULL(rlp!onw), vNS, rlp!onw), "1:", vNS)
+'    Matr(0, 1, j) = replace$(nz(rlp!unw,vNS), "1:", vNS)
+'    Matr(0, 2, j) = replace$(nz(rlp!onw,vNS), "1:", vNS)
 '   END IF
 '   IF Matr(0, 0, j) LIKE "LDL*" THEN Matr(0, 5, j) = "-100"
 '  END IF
@@ -15758,7 +15758,7 @@ End Sub ' LaborIns1
 ' Tabl.cell(1, 3).Range = "Normbereich"
 '' Exit Sub
 '' ' ls = LS + CStr(zZ) & vbcrlf
-'' sql1 = "SELECT * FROM (SELECT reihe, gruppe, unw, onw, unm, onm, sql1.*, DATE(zeitpunkt) AS Datum, sql1.abkü AS sabkü, sql1.einheit AS seinheit, sql1.langtext AS slangtext FROM (" + sql + ") AS sql1 LEFT JOIN `laborparameter` ON sql1.abkü = `laborparameter`.abkü AND iIF(ISNULL(sql1.einheit) OR sql1.einheit="""", ""kA"",sql1.einheit) = iIF(ISNULL(`laborparameter`.einheit),"""",`laborparameter`.einheit) WHERE pat_id = " + CStr(Pat_id) + " AND (NOT ISNULL(wert) OR NOT ISNULL(kommentar))) AS i0 ORDER BY gruppe,reihe,datum" ' dateserial(YEAR(zeitpunkt),month(zeitpunkt),day(zeitpunkt))
+'' sql1 = "SELECT * FROM (SELECT reihe, gruppe, unw, onw, unm, onm, sql1.*, DATE(zeitpunkt) AS Datum, sql1.abkü AS sabkü, sql1.einheit AS seinheit, sql1.langtext AS slangtext FROM (" + sql + ") AS sql1 LEFT JOIN `laborparameter` ON sql1.abkü = `laborparameter`.abkü AND iIF(ISNULL(sql1.einheit) OR sql1.einheit="""", ""kA"",sql1.einheit) = nz(`laborparameter`.einheit,"""") WHERE pat_id = " + CStr(Pat_id) + " AND (NOT ISNULL(wert) OR NOT ISNULL(kommentar))) AS i0 ORDER BY gruppe,reihe,datum" ' dateserial(YEAR(zeitpunkt),month(zeitpunkt),day(zeitpunkt))
 '' IF lies.obmysql THEN sql1 = replace$(replace$(sql1, "datevalue(", "date("), "iIF(", "IF(")
 '' SET raLW = Nothing
 ''' SET rLW = Dtb.OpenRecordset(sql1)
@@ -15770,7 +15770,7 @@ End Sub ' LaborIns1
 '''    IF rLaU Is Nothing THEN SET rLaU = Dtb.OpenRecordset("SELECT * FROM (" + sql + ") AS sql ORDER BY zeitpunkt")
 ''    SET raLau = Nothing
 ''    raLau.Open "SELECT *,sql.abkü AS sabkü, sql.langtext AS slangtext FROM (" & sql & ") AS sql ORDER BY zeitpunkt", dbcn, adOpenDynamic, adLockReadOnly
-''    Debug.Print "Kein Parametereintrag für: " + CStr(raLW!sabkü) & " " & CStr(IIF(ISNULL(raLW!slangtext), vns, raLW!slangtext)) + " `" + IIF(ISNULL(raLW!seinheit), vns, raLW!seinheit) + "`"
+''    Debug.Print "Kein Parametereintrag für: " + CStr(raLW!sabkü) & " " & CStr(nz(raLW!slangtext,vns)) + " `" + nz(raLW!seinheit,vns) + "`"
 ''    Call raLau.Find("Pat_id = " & CStr(raLW!Pat_id) & " AND zeitpunkt = cdate(""" & CStr(raLW!Zeitpunkt) & """) AND fertigstgrad = """ & CStr(raLW!FertigStGrad) & """ AND abkü = """ & CStr(raLW!sabkü) & """", 0, adSearchForward, 1)
 '
 ''    IF Not rLaU.BOF THEN
@@ -15817,17 +15817,17 @@ End Sub ' LaborIns1
 ''     Tabl.Rows.Add
 ''     zZ = zZ + 1
 ''    Loop
-''    AktGru = IIF(ISNULL(raLW.Fields("Gruppe")), vns, raLW.Fields("Gruppe"))
-''    Tabl.cell(aktZ, 1).Range = raLW.Fields("slangtext") 'IIF(ISNULL(raLW.Fields("sql.LangText")), vns, raLW.Fields("sql.LangText"))
-''    Tabl.cell(aktZ, 2).Range = raLW.Fields("seinheit") 'IIF(ISNULL(raLW.Fields("sql.Einheit")), vns, raLW.Fields("sql.Einheit"))
+''    AktGru = nz(raLW.Fields("Gruppe"),vns)
+''    Tabl.cell(aktZ, 1).Range = raLW.Fields("slangtext") 'nz(raLW.Fields("sql.LangText"),vns)
+''    Tabl.cell(aktZ, 2).Range = raLW.Fields("seinheit") 'nz(raLW.Fields("sql.Einheit"),vns)
 ''    u = -99
 ''    o = -99
 ''    uNG = vns
 ''    oNG = vns
-''    unw = IIF(ISNULL(raLW!unw), vns, raLW!unw)
-''    onw = IIF(ISNULL(raLW!onw), vns, raLW!onw)
-''    unm = IIF(ISNULL(raLW!unm), vns, raLW!unm)
-''    onm = IIF(ISNULL(raLW!onm), vns, raLW!onm)
+''    unw = nz(raLW!unw,vns)
+''    onw = nz(raLW!onw,vns)
+''    unm = nz(raLW!unm,vns)
+''    onm = nz(raLW!onm,vns)
 '''    IF instrb(raLW.Fields("sql.Langtext"), "LDL") > 0 THEN
 ''    IF instrb(raLW.Fields("slangtext"), "LDL") > 0 THEN
 ''     onm = "100"
@@ -15867,8 +15867,8 @@ End Sub ' LaborIns1
 ''    Tabl.cell(aktZ, 3) = NB
 ''    ' ls = LS + NB & vbcrlf
 ''   END IF
-'''   VorWert = IIF(ISNULL(raLW.Fields("sql.LangText")), vns, raLW.Fields("sql.LangText"))
-''   VorWert = raLW.Fields("slangtext") 'IIF(ISNULL(raLW.Fields("sql.LangText")), vns, raLW.Fields("sql.LangText"))
+'''   VorWert = nz(raLW.Fields("sql.LangText"),vns)
+''   VorWert = raLW.Fields("slangtext") 'nz(raLW.Fields("sql.LangText"),vns)
 ''   ' ls = LS + ralw.Fields("sql.LangText") & vbcrlf
 ''   ' ls = LS + ralw.Fields("sql.Einheit") & vbcrlf
 ''   ' ls = LS + format$(ralw!Datum, "dd.mm.yyyy") & vbcrlf
@@ -15885,7 +15885,7 @@ End Sub ' LaborIns1
 ''    END IF
 ''   Loop
 '
-''   Tabl.cell(aktZ, AktSp).Range = IIF(ISNULL(raLW!Wert), IIF(ISNULL(raLW!Kommentar), vns, format$(raLW!Zeitpunkt, "dd/mm/yy") + ": " + raLW!Kommentar), replace$(replace$(trim$(IIF(ISNULL(raLW!Wert), vns, raLW!Wert)), vbcr, ""), vbtab, ""))
+''   Tabl.cell(aktZ, AktSp).Range = IIF(ISNULL(raLW!Wert), IIF(ISNULL(raLW!Kommentar), vns, format$(raLW!Zeitpunkt, "dd/mm/yy") + ": " + raLW!Kommentar), replace$(replace$(trim$(nz(raLW!Wert,vns)), vbcr, ""), vbtab, ""))
 ''   IF instrb(raLW!Kommentar, "manuell") > 0 THEN Tabl.cell(aktZ, AktSp).Range.Font.Italic = True
 '
 ''  END IF ' NOT ISNULL(ralw!`sql!abkü`
@@ -16597,7 +16597,7 @@ Function do_haakt(rHa As ADODB.Recordset)
   MsgBox "Stop durch not ars.Bof: " & rHa!KVNr & " " & rHa!Nachname & " " & rHa!Vorname & vbCrLf & "sql: " & sql
   Stop
 '     rHa.Edit
-     rHa!name = IIf(IsNull(ars!anrede), vNS, ars!anrede + " ") + IIf(IsNull(ars!Titel), vNS, ars!Titel + " ") + IIf(IsNull(ars!Vorname), vNS, ars!Vorname + " ") + IIf(IsNull(ars!Nachname), vNS, ars!Nachname)
+     rHa!name = IIf(IsNull(ars!anrede), vNS, ars!anrede + " ") + IIf(IsNull(ars!Titel), vNS, ars!Titel + " ") + IIf(IsNull(ars!Vorname), vNS, ars!Vorname + " ") + nz(ars!Nachname,vNS)
      rHa!anschrift = ars!Straße & ", " & ars!plz & " " & ars!ort
      rHa!telefon = ars!tel1
      If Not IsNull(ars!fax1) And ars!fax1 <> vNS Then
@@ -16741,7 +16741,7 @@ fehler:
  AnwPfad = App.path
 #End If
 Call PiepKurz
-Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + " bei DS Nr. " + CStr(IIf(IsNull(DBNr), vNS, DBNr)) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + CStr(nz(Err.Source, "")) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in GetZA/" + AnwPfad)
+Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + " bei DS Nr. " + CStr(nz(DBNr,vNS)) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + CStr(nz(Err.Source, "")) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in GetZA/" + AnwPfad)
  Case vbAbort: Call MsgBox("Höre auf"): ProgEnde
  Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
  Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
@@ -16864,7 +16864,7 @@ Function Datenbankkontrolle()
 '  hae.Open "SELECT * FROM `kvaerzte`.`hae` WHERE kvnr = " & haz!kvnu
   myFrag hae, "SELECT * FROM `kvaerzte`.`hae` WHERE kvnr = " & haz!kvnu
   If hae.BOF Then
-   pText = CStr(haz!id) + ": " + CStr(IIf(IsNull(haz!KVNr), "KV-Nr: (Null)", haz!KVNr)) & " " & IIf(IsNull(haz!Nachname), "Nachname: (Null)", haz!Nachname) & " " & IIf(IsNull(haz!Vorname), "Vorname: (Null)", haz!Vorname) + " in HAE nicht gefunden"
+   pText = CStr(haz!id) + ": " + CStr(nz(haz!KVNr,"KV-Nr: (Null)")) & " " & nz(haz!Nachname,"Nachname: (Null)") & " " & nz(haz!Vorname,"Vorname: (Null)") + " in HAE nicht gefunden"
 '   hae1.FindFirst "instr(HAName, """ + haz!Nachname + """) > 0 AND instr(HAName, """ + haz!Vorname + """) > 0 AND ort = """ + haz!Ort + """"
    Set hae1 = Nothing
    myFrag hae1, "SELECT * FROM `kvaerzte`.`hae` WHERE haname LIKE '%" & haz!Nachname & "%' AND haname LIKE '%" & haz!Vorname & "%' AND ort LIKE '%" & haz!ort & "%'" 'haecn
@@ -16884,7 +16884,7 @@ Function Datenbankkontrolle()
     If hae!KVNr <> REPLACE$(haz!KVNr, "/", vNS) Then Exit Do
    Loop
    If Not obGleich Then
-    Print #32, CStr(haz!id) + ": " + CStr(IIf(IsNull(haz!KVNr), "KV-Nr: (Null)", haz!KVNr)) & " " & IIf(IsNull(haz!Nachname), "Nachname: (Null)", haz!Nachname) & " " & IIf(IsNull(haz!Vorname), "Vorname: (Null)", haz!Vorname) + " in HAE nicht mit gleichem Namen nicht gefunden"
+    Print #32, CStr(haz!id) + ": " + CStr(nz(haz!KVNr,"KV-Nr: (Null)")) & " " & nz(haz!Nachname,"Nachname: (Null)") & " " & nz(haz!Vorname,"Vorname: (Null)") + " in HAE nicht mit gleichem Namen nicht gefunden"
    End If
   End If
   haz.Move 1
@@ -17698,7 +17698,7 @@ Function doDiagnosenexport(Optional obTest%)
 ''          op = Format$(3 + 4 + Len(rFa!AbrGb), "000") + "4122" + rFa!AbrGb
 ''          Print #327, ZSU(op)
 ''         END IF
-''         op = Format$(3 + 4 + Len("TM#" + IIF(ISNULL(rFa!TMFNr), vns, rFa!TMFNr)), "000") + "4144" + "TM#" + IIF(ISNULL(rFa!TMFNr), vns, rFa!TMFNr)
+''         op = Format$(3 + 4 + Len("TM#" + nz(rFa!TMFNr,vns)), "000") + "4144" + "TM#" + nz(rFa!TMFNr,vns)
 ''         Print #327, ZSU(op)
 ''         op = Format$(3 + 4 + 8, "000") + "4150" + IIF(rFa!BhFB = 0, "00000000", Format$(rFa!BhFB, "ddmmyyyy"))
 ''         Print #327, ZSU(op)
@@ -17708,12 +17708,12 @@ Function doDiagnosenexport(Optional obTest%)
 ''         Print #327, ZSU(op)
 ''         IF 1 = 1 THEN
 ''          Dim Üw$
-''          Üw = IIF(ISNULL(rFa!ÜbwV), vns, rFa!ÜbwV)
+''          Üw = nz(rFa!ÜbwV,vns)
 ''          IF Üw <> vns THEN
 ''           op = Format$(3 + 4 + Len(Üw), "000") + "4218" + Üw
 ''           Print #327, ZSU(op)
 ''          END IF
-''          Üw = IIF(ISNULL(rFa!AndÜw), vns, rFa!AndÜw)
+''          Üw = nz(rFa!AndÜw,vns)
 ''          IF Üw <> vns THEN
 ''           op = Format$(3 + 4 + Len(Üw), "000") + "4219" + Üw
 ''           Print #327, ZSU(op)
@@ -17800,7 +17800,7 @@ Function doDiagnosenexport(Optional obTest%)
 ''          END IF
 ''         END IF ' 1 = 0
 ''' 3631
-''         op = Format$(3 + 4 + Len(Trim$(CStr(IIF(ISNULL(n!Weggeldzone), vns, n!Weggeldzone)))), "000") + "3631" + Trim$(CStr(IIF(ISNULL(n!Weggeldzone), vns, n!Weggeldzone)))
+''         op = Format$(3 + 4 + Len(Trim$(CStr(nz(n!Weggeldzone,vns)))), "000") + "3631" + Trim$(CStr(nz(n!Weggeldzone,vns)))
 ''         Print #327, ZSU(op)
 ''        END IF ' 1 = 0
 '       END IF ' not n.bof
@@ -17932,7 +17932,7 @@ Function doDiagnosenexport(Optional obTest%)
 ' Next tonRunde
 ' Call VerzPrüf(üVerz)
 ' Open üVerz + "Eintragsfehler" For Append AS #26
-' Print #26, CStr(rDT!pat_id) & " " & CStr(rDT!GesName) & " " & IIF(ISNULL(rDT!ICD), vNS, rDT!ICD) & " " & IIF(ISNULL(rDT!DiagText), vNS, rDT!DiagText)
+' Print #26, CStr(rDT!pat_id) & " " & CStr(rDT!GesName) & " " & nz(rDT!ICD,vNS) & " " & nz(rDT!DiagText,vNS)
 ' Close #26
 ' Resume Next
 'schluss:

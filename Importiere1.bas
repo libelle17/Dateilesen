@@ -94,9 +94,9 @@ Function doTabVorb(frm As Lese, obInhalt%)
  Set rs = DBCn.Execute("select abkü, langtext, einheit from laborparameter")
  Do While Not rs.EOF
   Set sLp = New sLpar
-  sLp.Abkü = IIf(IsNull(rs!Abkü), "", rs!Abkü)
-  sLp.Einheit = IIf(IsNull(rs!Einheit), "", rs!Einheit)
-  sLp.Langtext = IIf(IsNull(rs!Langtext), "", rs!Langtext)
+  sLp.Abkü = nz(rs!Abkü,"")
+  sLp.Einheit = nz(rs!Einheit,"")
+  sLp.Langtext = nz(rs!Langtext,"")
   Call sListLpar.sCAdd(sLp, -1)
   rs.Move 1
  Loop
@@ -104,7 +104,7 @@ Function doTabVorb(frm As Lese, obInhalt%)
  Set rs = DBCn.Execute("select feld,feldvw from forminhaltfeld")
  Do While Not rs.EOF
   Set sFld = New sFeld
-  sFld.Feld = IIf(IsNull(rs!Feld), "", rs!Feld)
+  sFld.Feld = nz(rs!Feld,"")
   sFld.FeldVW = rs!FeldVW
 ' If Not sListFeld.SuchItem(sFld) Then
   Call sListFeld.sCAdd(sFld, -1)
@@ -118,7 +118,7 @@ Function doTabVorb(frm As Lese, obInhalt%)
   frm.Bytes = "(FormInhaltFeldInh)"
   Do While Not rs.EOF
    Set sFldI = New sFeldInh
-   sFldI.FeldInh = IIf(IsNull(rs!FeldInh), "", rs!FeldInh)
+   sFldI.FeldInh = nz(rs!FeldInh,"")
    sFldI.FeldInhVW = rs!FeldInhVW
  '  If Not sListFldInh.SuchItem(sFldI) Then
     Call sListFldInh.sCAdd(sFldI, -1)
@@ -152,7 +152,7 @@ Function doTabVorb(frm As Lese, obInhalt%)
   rs.MoveFirst
   Do While Not rs.EOF
    ReDim Preserve rFo(UBound(rFo) + 1)
-   rFo(UBound(rFo)).Form_Abk = IIf(IsNull(rs!Form_Abk), "", rs!Form_Abk)
+   rFo(UBound(rFo)).Form_Abk = nz(rs!Form_Abk,"")
    rFo(UBound(rFo)).FormBez = rs!FormBez
    rFo(UBound(rFo)).FormVorl = rs!FormVorl
    rFo(UBound(rFo)).FormID = rs!FormID
@@ -167,7 +167,7 @@ Function doTabVorb(frm As Lese, obInhalt%)
   rs.MoveFirst
   Do While Not rs.EOF
    ReDim Preserve rFi(UBound(rFi) + 1)
-   rFi(UBound(rFi)).Form_Abk = IIf(IsNull(rs!Form_Abk), "", rs!Form_Abk)
+   rFi(UBound(rFi)).Form_Abk = nz(rs!Form_Abk,"")
    rFi(UBound(rFi)).Form_AbkVW = rs!Form_AbkVW
    rs.MoveNext
   Loop
@@ -535,7 +535,7 @@ Function GesLies(frm As Lese, BDTDatei$, ZS As Boolean, EinlAb&, EinlBis&, obLab
          Else
           If IsNull(rs!AktZeit) Or LAktZeit - rs!AktZeit > 0.0000115 Or (LAktZeit = 0 And rs!AktZeit = 0) Then
            oblies = -1
-           rsaktZeit = IIf(IsNull(rs!AktZeit), 0, rs!AktZeit)
+           rsaktZeit = nz(rs!AktZeit,0)
            rsAZS = Format(rsaktZeit, "dd.mm.yyyy hh:mm:ss")
           End If
          End If
@@ -1082,7 +1082,7 @@ Function dolies(frm As Lese, RKennung$, RInhalt$, obSchluss%)
       End If
       rFa(UBound(rFa)).FID = 1
      Else
-      rFa(UBound(rFa)).FID = IIf(IsNull(rsAdo!FID), 0, rsAdo!FID) + 1
+      rFa(UBound(rFa)).FID = nz(rsAdo!FID,0) + 1
      End If
     Else
      rFa(UBound(rFa)).FID = rFa(UBound(rFa) - 1).FID + 1
@@ -1307,7 +1307,7 @@ Function dolies(frm As Lese, RKennung$, RInhalt$, obSchluss%)
       If Not rsAdo Is Nothing Then If rsAdo.State = 1 Then rsAdo.Close
 '      rsAdo.Open "select (max(mpnr) + 1) as mpnr from medplan", dbcn, adOpenStatic, adLockReadOnly
       Set rsAdo = DBCn.Execute("select (max(mpnr) + 1) as mpnr from medplan")
-      MPNr = IIf(IsNull(rsAdo!MPNr), 1, rsAdo!MPNr)
+      MPNr = nz(rsAdo!MPNr,1)
      Else
       MPNr = MPNr + 1
      End If
@@ -1384,7 +1384,7 @@ Function dolies(frm As Lese, RKennung$, RInhalt$, obSchluss%)
       If FoIDv = 0 Then
        If Not rsAdo Is Nothing Then If rsAdo.State = 1 Then rsAdo.Close
        Set rsAdo = DBCn.Execute("select (max(foid) + 1) as mfoid from forminhkopf")
-       FoIDv = IIf(IsNull(rsAdo!mfoid), 0, rsAdo!mfoid)
+       FoIDv = nz(rsAdo!mfoid,0)
       End If
       rFr(UBound(rFr)).FoID = FoIDv ' Pseudo-Foid
       FoIDv = FoIDv + 1
@@ -2537,13 +2537,13 @@ Function DiagString$(Pat_ID&) ' für dynDiag und tu_brief
  ReDim obDauer(0)
  Do While Not rdDi.EOF
   If Not rdDi!ICD Like "Z25*" Then
-   ICD(runde) = IIf(IsNull(rdDi!ICD), "", rdDi!ICD)
-   Diag(runde) = IIf(IsNull(rdDi!DiagText), "", rdDi!DiagText)
-   DiagAttr(runde) = IIf(IsNull(rdDi!DiagAttr), "", rdDi!DiagAttr)
-   diagSe(runde) = IIf(IsNull(rdDi!DiagSeite), "", rdDi!DiagSeite)
-   DiagSi(runde) = IIf(IsNull(rdDi!DiagSicherheit), "", rdDi!DiagSicherheit)
+   ICD(runde) = nz(rdDi!ICD,"")
+   Diag(runde) = nz(rdDi!DiagText,"")
+   DiagAttr(runde) = nz(rdDi!DiagAttr,"")
+   diagSe(runde) = nz(rdDi!DiagSeite,"")
+   DiagSi(runde) = nz(rdDi!DiagSicherheit,"")
    gk(runde) = False
-   obDauer(runde) = IIf(IsNull(rdDi!obDauer), "", rdDi!obDauer)
+   obDauer(runde) = nz(rdDi!obDauer,"")
    runde = runde + 1
    ReDim Preserve ICD(runde)
    ReDim Preserve Diag(runde)
@@ -2735,9 +2735,9 @@ Function obKeineNephropathie%(Pat_ID&, Optional obMakroAlb%)
  sql = "select Pat_ID, ZeitPunkt, FertigStGrad, AbKü, LangText,Wert, Einheit, Kommentar,"""" as NB from labor where pat_id = " + CStr(Pat_ID) + " UNION SELECT Pat_ID, Eingang AS zeitpunkt, BefArt AS FertigStGrad, Abkü, langname AS Langtext, Wert, Einheit, Kommentar,Normbereich as NB " + _
   "FROM LaborXUS LEFT JOIN LaborXWert ON [LaborXUS].[RefNr]=[LaborXWert].[RefNr] " + _
   "WHERE pat_id = " + CStr(Pat_ID) + " and not exists (select * from laborNeu where pat_id = " + CStr(Pat_ID) + " and abkü = LaborXWert!Abkü and wert = LaborXWert.wert and zeitpunkt > LaborXUS.Eingang -3 and zeitpunkt < LaborXUS.Eingang+6)"
- 'lAlbS = Dtb.OpenRecordset("select iif(isnull(wert),iif(isnull(kommentar),"""",kommentar),wert) as erg from (" + sql + ") where abkü = ""ALBCRE"" order by zeitpunkt desc")!erg
-' rsAdo.Open "select iif(isnull(wert),iif(isnull(kommentar),"""",kommentar),wert) as erg from (" + sql + ") where abkü = ""ALBCRE"" order by zeitpunkt desc", dbcn, adOpenStatic, adLockReadOnly
- Set rsAdo = DBCn.Execute("select iif(isnull(wert),iif(isnull(kommentar),"""",kommentar),wert) as erg from (" + sql + ") where abkü = ""ALBCRE"" order by zeitpunkt desc")
+ 'lAlbS = Dtb.OpenRecordset("select nz(wert,iif(isnull(kommentar),"""",kommentar)) as erg from (" + sql + ") where abkü = ""ALBCRE"" order by zeitpunkt desc")!erg
+' rsAdo.Open "select nz(wert,iif(isnull(kommentar),"""",kommentar)) as erg from (" + sql + ") where abkü = ""ALBCRE"" order by zeitpunkt desc", dbcn, adOpenStatic, adLockReadOnly
+ Set rsAdo = DBCn.Execute("select nz(wert,iif(isnull(kommentar),"""",kommentar)) as erg from (" + sql + ") where abkü = ""ALBCRE"" order by zeitpunkt desc")
  If Not rsAdo.EOF Then lAlbS = rsAdo!erg
  On Error GoTo fehler
  If lAlbS = "" Then Exit Function
@@ -2749,10 +2749,10 @@ Function obKeineNephropathie%(Pat_ID&, Optional obMakroAlb%)
  End If
  On Error Resume Next
  rsAdo.Close
-' rsAdo.Open "select iif(isnull(wert),iif(isnull(kommentar),"""",kommentar),wert) as erg from (" + sql + ") where abkü = ""KREA"" order by zeitpunkt desc", dbcn, adOpenStatic, adLockReadOnly
- Set rsAdo = DBCn.Execute("select iif(isnull(wert),iif(isnull(kommentar),"""",kommentar),wert) as erg from (" + sql + ") where abkü = ""KREA"" order by zeitpunkt desc")
+' rsAdo.Open "select nz(wert,iif(isnull(kommentar),"""",kommentar)) as erg from (" + sql + ") where abkü = ""KREA"" order by zeitpunkt desc", dbcn, adOpenStatic, adLockReadOnly
+ Set rsAdo = DBCn.Execute("select nz(wert,iif(isnull(kommentar),"""",kommentar)) as erg from (" + sql + ") where abkü = ""KREA"" order by zeitpunkt desc")
  If Not rsAdo.EOF Then lKreS = rsAdo!erg
-' lKreS = Dtb.OpenRecordset("select iif(isnull(wert),iif(isnull(kommentar),"""",kommentar),wert) as erg from (" + sql + ") where abkü = ""KREA"" order by zeitpunkt desc")!erg
+' lKreS = Dtb.OpenRecordset("select nz(wert,iif(isnull(kommentar),"""",kommentar)) as erg from (" + sql + ") where abkü = ""KREA"" order by zeitpunkt desc")!erg
  On Error GoTo fehler
  If IsNumeric(lKreS) And lKreS <> 0 Then
   If CDbl(Replace(lKreS, ".", ",")) >= 1.3 Then
@@ -2990,8 +2990,8 @@ End Function
 Function LaborEintr0()
  On Error GoTo fehler
  Dim obneu%, obüber%, i%
-' Abkü = IIf(IsNull(Abkü), "", Abkü) 'If IsNull(rLab!Abkü) Then rLab!Abkü = ""
-' Einheit = ZeichenSatz(IIf(IsNull(Einheit), "", Einheit)) ' If IsNull(rLab!Einheit) Then rLab!Einheit = ""
+' Abkü = nz(Abkü,"") 'If IsNull(rLab!Abkü) Then rLab!Abkü = ""
+' Einheit = ZeichenSatz(nz(Einheit,"")) ' If IsNull(rLab!Einheit) Then rLab!Einheit = ""
  obneu = -1
  For i = 1 To UBound(rLa)
   If rLa(i).Zeitpunkt = messDatum And rLa(i).Abkü = Abkü Then
@@ -3116,7 +3116,7 @@ If obltvw Then
   End If
  End If
 Else
- Langtext = IIf(IsNull(rLab!Langtext), "", rLab!Langtext)
+ Langtext = nz(rLab!Langtext,"")
 End If
 Set rLP = TabÖff("LaborParameter", "Abkü")
 If Abkü <> "" Then
@@ -3530,7 +3530,7 @@ Public Function LaborDirektImport(frm As Lese, Optional oballe% = 0)
             End If
             If InStr(Inhalt, "Keimzahl") > 0 Then keimz = -1
            Else
-            rLw(UBound(rLw)).Kommentar = IIf(IsNull(rLw(UBound(rLw)).Kommentar), "", rLw(UBound(rLw)).Kommentar) + Inhalt
+            rLw(UBound(rLw)).Kommentar = nz(rLw(UBound(rLw)).Kommentar,"") + Inhalt
            End If
          Case 8490:
 '          rLU!auftrhinw = inhalt ' weiß noch nicht, auf welcher Ebene relevant
@@ -3539,7 +3539,7 @@ Public Function LaborDirektImport(frm As Lese, Optional oballe% = 0)
           If obB Then
            rLo(UBound(rLo)).Erklärung = IIf(IsNull(rLo(UBound(rLo)).Erklärung), "", rLo(UBound(rLo)).Erklärung + Chr(13) + Chr(10)) + Inhalt
           Else
-           rLw(UBound(rLw)).Erklärung = IIf(IsNull(rLw(UBound(rLw)).Erklärung), "", rLw(UBound(rLw)).Erklärung) + Inhalt
+           rLw(UBound(rLw)).Erklärung = nz(rLw(UBound(rLw)).Erklärung,"") + Inhalt
           End If
          Case 8460: rLw(UBound(rLw)).Normbereich = Inhalt
          Case 8461: rLw(UBound(rLw)).NormU = Inhalt
@@ -3575,7 +3575,7 @@ Public Function LaborDirektImport(frm As Lese, Optional oballe% = 0)
           Dim neuSatzID&
           If Not rs Is Nothing Then If rs.State = 1 Then rs.Close
           rs.Open "select max(satzid) as msatzid from laborxsaetze;"
-          neuSatzID = IIf(IsNull(rs!msatzid), 0, rs!msatzid)
+          neuSatzID = nz(rs!msatzid,0)
           For i = 1 To UBound(rLu)
            rLu(i).SatzID = neuSatzID
            If Not debugohneSpeichern Then
@@ -3859,8 +3859,8 @@ nochmal:
     End If
     
     If SLPat_id <> -1 Then ' SL.Count = 1
-     nPat_id = IIf(IsNull(rLX!Pat_ID), 0, rLX!Pat_ID)
-     nPat_idUrsp = IIf(IsNull(rLX!Pat_idUrsp), "", rLX!Pat_idUrsp)
+     nPat_id = nz(rLX!Pat_ID,0)
+     nPat_idUrsp = nz(rLX!Pat_idUrsp,"")
 '    If SL.Count = 1 Then
      If nPat_id = 0 Then
       nPat_id = SLPat_id

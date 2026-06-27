@@ -1244,12 +1244,12 @@ nochmal1:
   If Not rLP.EOF Then
    If gschl = "m" Or (rLP!unw = "" And rLP!onw = "") Then
     Matr(5, j) = rLP!unm & "-" & rLP!onm
-    Matr(1, j) = Replace$(IIf(IsNull(rLP!unm), "", rLP!unm), "1:", "")
-    Matr(2, j) = Replace$(IIf(IsNull(rLP!onm), "", rLP!onm), "1:", "")
+    Matr(1, j) = Replace$(nz(rLP!unm,""), "1:", "")
+    Matr(2, j) = Replace$(nz(rLP!onm,""), "1:", "")
    Else
     Matr(5, j) = rLP!unw & "-" & rLP!onw
-    Matr(1, j) = Replace$(IIf(IsNull(rLP!unw), "", rLP!unw), "1:", "")
-    Matr(2, j) = Replace$(IIf(IsNull(rLP!onw), "", rLP!onw), "1:", "")
+    Matr(1, j) = Replace$(nz(rLP!unw,""), "1:", "")
+    Matr(2, j) = Replace$(nz(rLP!onw,""), "1:", "")
    End If
    If Matr(0, j) Like "LDL*" Then Matr(5, j) = "-100"
   End If
@@ -1373,7 +1373,7 @@ nochmal1:
 ' Loop
 
 ' ' ls = LS + CStr(zZ) & vbcrlf
-' sql1 = "select * from (SELECT reihe, gruppe, unw, onw, unm, onm, sql1.*, datevalue(zeitpunkt) as Datum, sql1.abkü as sabkü, sql1.einheit as seinheit, sql1.langtext as slangtext from (" + sql + ") as sql1 left join laborparameter on sql1.abkü = laborparameter.abkü and iif(isnull(sql1.einheit) or sql1.einheit="""", ""kA"",sql1.einheit) = iif(isnull(laborparameter.einheit),"""",laborparameter.einheit) where pat_id = " + CStr(Pat_id) + " and (not isnull(wert) or not isnull(kommentar))) as i0 order by gruppe,reihe,datum" ' dateserial(year(zeitpunkt),month(zeitpunkt),day(zeitpunkt))
+' sql1 = "select * from (SELECT reihe, gruppe, unw, onw, unm, onm, sql1.*, datevalue(zeitpunkt) as Datum, sql1.abkü as sabkü, sql1.einheit as seinheit, sql1.langtext as slangtext from (" + sql + ") as sql1 left join laborparameter on sql1.abkü = laborparameter.abkü and iif(isnull(sql1.einheit) or sql1.einheit="""", ""kA"",sql1.einheit) = nz(laborparameter.einheit,"""") where pat_id = " + CStr(Pat_id) + " and (not isnull(wert) or not isnull(kommentar))) as i0 order by gruppe,reihe,datum" ' dateserial(year(zeitpunkt),month(zeitpunkt),day(zeitpunkt))
 ' If lies.obmysql Then sql1 = replace$(replace$(sql1, "datevalue(", "date("), "iif(", "if(")
 ' Set raLW = Nothing
 '' Set rLW = Dtb.OpenRecordset(sql1)
@@ -1385,7 +1385,7 @@ nochmal1:
 ''    If rLaU Is Nothing Then Set rLaU = Dtb.OpenRecordset("select * from (" + sql + ") as sql order by zeitpunkt")
 '    Set raLau = Nothing
 '    raLau.Open "select *,sql.abkü as sabkü, sql.langtext as slangtext from (" & sql & ") as sql order by zeitpunkt", dbcn, adOpenDynamic, adLockReadOnly
-'    Debug.Print "Kein Parametereintrag für: " + CStr(raLW!sabkü) & " " & CStr(IIf(IsNull(raLW!slangtext), "", raLW!slangtext)) + " `" + IIf(IsNull(raLW!seinheit), "", raLW!seinheit) + "`"
+'    Debug.Print "Kein Parametereintrag für: " + CStr(raLW!sabkü) & " " & CStr(nz(raLW!slangtext,"")) + " `" + nz(raLW!seinheit,"") + "`"
 '    Call raLau.Find("Pat_id = " & CStr(raLW!Pat_id) & " and zeitpunkt = cdate(""" & CStr(raLW!Zeitpunkt) & """) and fertigstgrad = """ & CStr(raLW!FertigStGrad) & """ and abkü = """ & CStr(raLW!sabkü) & """", 0, adSearchForward, 1)
     
 '    If Not rLaU.BOF Then
@@ -1432,17 +1432,17 @@ nochmal1:
 '     Tabl.Rows.Add
 '     zZ = zZ + 1
 '    Loop
-'    AktGru = IIf(IsNull(raLW.Fields("Gruppe")), "", raLW.Fields("Gruppe"))
-'    Tabl.cell(aktZ, 1).Range = raLW.Fields("slangtext") 'IIf(IsNull(raLW.Fields("sql.LangText")), "", raLW.Fields("sql.LangText"))
-'    Tabl.cell(aktZ, 2).Range = raLW.Fields("seinheit") 'IIf(IsNull(raLW.Fields("sql.Einheit")), "", raLW.Fields("sql.Einheit"))
+'    AktGru = nz(raLW.Fields("Gruppe"),"")
+'    Tabl.cell(aktZ, 1).Range = raLW.Fields("slangtext") 'nz(raLW.Fields("sql.LangText"),"")
+'    Tabl.cell(aktZ, 2).Range = raLW.Fields("seinheit") 'nz(raLW.Fields("sql.Einheit"),"")
 '    u = -99
 '    o = -99
 '    uNG = ""
 '    oNG = ""
-'    unw = IIf(IsNull(raLW!unw), "", raLW!unw)
-'    onw = IIf(IsNull(raLW!onw), "", raLW!onw)
-'    unm = IIf(IsNull(raLW!unm), "", raLW!unm)
-'    onm = IIf(IsNull(raLW!onm), "", raLW!onm)
+'    unw = nz(raLW!unw,"")
+'    onw = nz(raLW!onw,"")
+'    unm = nz(raLW!unm,"")
+'    onm = nz(raLW!onm,"")
 ''    If instrb(raLW.Fields("sql.Langtext"), "LDL") > 0 Then
 '    If instrb(raLW.Fields("slangtext"), "LDL") > 0 Then
 '     onm = "100"
@@ -1482,8 +1482,8 @@ nochmal1:
 '    Tabl.cell(aktZ, 3) = NB
 '    ' ls = LS + NB & vbcrlf
 '   End If
-''   VorWert = IIf(IsNull(raLW.Fields("sql.LangText")), "", raLW.Fields("sql.LangText"))
-'   VorWert = raLW.Fields("slangtext") 'IIf(IsNull(raLW.Fields("sql.LangText")), "", raLW.Fields("sql.LangText"))
+''   VorWert = nz(raLW.Fields("sql.LangText"),"")
+'   VorWert = raLW.Fields("slangtext") 'nz(raLW.Fields("sql.LangText"),"")
 '   ' ls = LS + ralw.Fields("sql.LangText") & vbcrlf
 '   ' ls = LS + ralw.Fields("sql.Einheit") & vbcrlf
 '   ' ls = LS + format$(ralw!Datum, "dd.mm.yyyy") & vbcrlf
@@ -1500,7 +1500,7 @@ nochmal1:
 '    End If
 '   Loop
    
-'   Tabl.cell(aktZ, AktSp).Range = IIf(IsNull(raLW!Wert), IIf(IsNull(raLW!Kommentar), "", format$(raLW!Zeitpunkt, "dd/mm/yy") + ": " + raLW!Kommentar), replace$(replace$(trim$(IIf(IsNull(raLW!Wert), "", raLW!Wert)), vbcr, ""), vbtab, ""))
+'   Tabl.cell(aktZ, AktSp).Range = IIf(IsNull(raLW!Wert), IIf(IsNull(raLW!Kommentar), "", format$(raLW!Zeitpunkt, "dd/mm/yy") + ": " + raLW!Kommentar), replace$(replace$(trim$(nz(raLW!Wert,"")), vbcr, ""), vbtab, ""))
 '   If instrb(raLW!Kommentar, "manuell") > 0 Then Tabl.cell(aktZ, AktSp).Range.Font.Italic = True
    
 '  End If ' not isnull(ralw!`sql!abkü`

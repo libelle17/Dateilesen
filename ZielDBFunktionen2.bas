@@ -814,7 +814,7 @@ Public Sub rrpruef()
  rs.Open "SELECT pat_id, gesname(pat_id) Name,(SELECT max(zeitpunkt)from rr WHERE pat_id=n.pat_id) rr1 FROM namen n ORDER BY pat_id DESC", DBCn, adOpenStatic, adLockReadOnly ' WHERE pat_id <60050
  While Not rs.EOF
   Debug.Print rs!Pat_id
-'  Call DMPString$(rs!Pat_id, ad, , , IIf(ISNULL(rs!RR1), Now(), rs!RR1), 0)
+'  Call DMPString$(rs!Pat_id, ad, , , nz(rs!RR1,Now()), 0)
   Set raAna = Nothing
   If obAdo Then
    raAna.Open "SELECT patAlter(ana.pat_id) PAlter, ana.* FROM `anamnesebogen` ana WHERE pat_id = " & rs!Pat_id, DBCn, adOpenKeyset, adLockReadOnly
@@ -2717,7 +2717,7 @@ Function FallExport(BDT As BDTSchreib, Pat_id&, Datu As Date, ByRef Lanr&, Optio
  End If ' rFa.BOF Then
  If Arztnr <> 0 And rFa!lanrid <> Arztnr Then Exit Function
  FallExport = 1
- Lanr = IIf(IsNull(rFa!Lanr), 0, rFa!Lanr)
+ Lanr = nz(rFa!Lanr,0)
  Call BDT.Satzart(IIf(rFa!SchGr = "90", "0190", "0102")) ' 80000 Satzidentifikation
  Call BDT.PatID(rFa!Pat_id)
      BDT.SAdd "3635", "TM#" & rFa!Lanr
@@ -2752,14 +2752,14 @@ Function FallExport(BDT As BDTSchreib, Pat_id&, Datu As Date, ByRef Lanr&, Optio
      If Not IsNull(rFa!AbrGb) And rFa!AbrGb <> vNS Then ' bei Privaten
       BDT.SAdd "4122", rFa!AbrGb
      End If ' Not ISNULL(rFa!GebOr) Then ' bei Privaten
-     BDT.SAdd "4144", "TM#" & IIf(IsNull(rFa!TMFNr), Space$(11), rFa!TMFNr)
+     BDT.SAdd "4144", "TM#" & nz(rFa!TMFNr,Space$(11))
      BDT.DAdd "4150", rFa!BhFB
      BDT.DAdd "4151", rFa!BhFE1
 '     op = format$(3 + 4 + 8, "000") + "4152" + IIf(rFa!BhFE2 = 0, "00000000", format$(rFa!BhFE2, "ddmmyyyy"))
 '     Print #310, ZSU(op)
      Dim ‹w$
      BDT.SAdd "4218", "TM#" & rFa!‹bWVLANR & "#" & rFa!‹bWVBSNR & "#" & rFa!‹bWVKVNR
-     ‹w = rFa!‹bwr ' IIf(ISNULL(rFa!And‹w), vNS, rFa!And‹w)
+     ‹w = rFa!‹bwr ' nz(rFa!And‹w,vNS)
 ' 24.9.11: nicht nˆtig
 '     If ‹w <> vNS Then
 '      BDT.SAdd "4219", ‹w
@@ -2872,7 +2872,7 @@ Function LeistungsExport1a(BDT As BDTSchreib, Pat_id&, Leist$, Datu As Date, Opt
 '     Print #310, ZSU(op)
 '     op = Format$(3 + 4 + 8, "000") + "3103" + Format$(n!GebDat, "ddmmyyyy")
 '     Print #310, ZSU(op)
-'     op = Format$(3 + 4 + Len(IIf(ISNULL(n!Versichertennummer), vNS, n!Versichertennummer)), "000") + "3105" + IIf(ISNULL(n!Versichertennummer), vNS, n!Versichertennummer)
+'     op = Format$(3 + 4 + Len(nz(n!Versichertennummer,vNS)), "000") + "3105" + nz(n!Versichertennummer,vNS)
 '     Print #310, ZSU(op)
 ''     op = format$(3 + 4 + Len(n!Straﬂe), "000") + "3107" + n!Straﬂe
 ''     Print #310, ZSU(op)
@@ -2932,14 +2932,14 @@ Function LeistungsExport1a(BDT As BDTSchreib, Pat_id&, Leist$, Datu As Date, Opt
      If Not IsNull(rFa!AbrGb) And rFa!AbrGb <> vNS Then ' bei Privaten
       BDT.SAdd "4122", rFa!AbrGb
      End If ' Not ISNULL(rFa!GebOr) Then ' bei Privaten
-     BDT.SAdd "4144", "TM#" & IIf(IsNull(rFa!TMFNr), Space$(11), rFa!TMFNr)
+     BDT.SAdd "4144", "TM#" & nz(rFa!TMFNr,Space$(11))
      BDT.DAdd "4150", rFa!BhFB
      BDT.DAdd "4151", rFa!BhFE1
 '     op = format$(3 + 4 + 8, "000") + "4152" + IIf(rFa!BhFE2 = 0, "00000000", format$(rFa!BhFE2, "ddmmyyyy"))
 '     Print #310, ZSU(op)
      Dim ‹w$
      BDT.SAdd "4218", "TM" & rFa!‹bWVLANR & "#" & rFa!‹bWVBSNR & "#" & rFa!‹bWVKVNR
-     ‹w = rFa!‹bwr ' IIf(ISNULL(rFa!And‹w), vNS, rFa!And‹w)
+     ‹w = rFa!‹bwr ' nz(rFa!And‹w,vNS)
      If ‹w <> vNS Then
       BDT.SAdd "4219", ‹w
      End If
@@ -4189,7 +4189,7 @@ End Function ' zqtest
 
 Function GesNamFn$(ByVal rs) ' AS DAO.Recordset) ' s.a. GesName(
  On Error GoTo fehler
-   GesNamFn = rs!Nachname & ", " & IIf(IsNull(rs!Titel), vNS, rs!Titel) + IIf(IsNull(rs!Titel) Or LenB(rs!Titel) = 0, vNS, ", ") + rs!Vorname
+   GesNamFn = rs!Nachname & ", " & nz(rs!Titel,vNS) + IIf(IsNull(rs!Titel) Or LenB(rs!Titel) = 0, vNS, ", ") + rs!Vorname
    On Error Resume Next
    GesNamFn = rs!NVorsatz + IIf(LenB(rs!NVorsatz) = 0, vNS, " ") + GesNamFn
    On Error GoTo fehler
@@ -4255,9 +4255,9 @@ Function TabPr(s1, s2)
  If Len(s1) <= BreiteSp1 Then
   DmPStrS = DmPStrS & Left$(" ........................................", BreiteSp1 - Len(s1) - 1) & " "
  End If
- DmPStrS = DmPStrS & IIf(IsNull(s2), vNS, s2) ' "........................"
+ DmPStrS = DmPStrS & nz(s2,vNS) ' "........................"
 #Else
- DmPStrS = DmPStrS & vbCrLf & s1 & Chr$(9) & IIf(IsNull(s2), vNS, s2)
+ DmPStrS = DmPStrS & vbCrLf & s1 & Chr$(9) & nz(s2,vNS)
 #End If
 End Function ' TabPr(S1, S2)
 
@@ -4488,7 +4488,7 @@ Function diI%(icd_str$, Optional pid, Optional abDat As Date, Optional auchZ As 
  Dim lddat As Date
  raFa.Open "SELECT MAX(bhfb) AS lddat FROM `faelle` WHERE pat_id = " & Pat_id, DBCn, adOpenStatic, adLockReadOnly
  If Not raFa.BOF Then
-  lddat = IIf(IsNull(raFa!lddat), 0, raFa!lddat)
+  lddat = nz(raFa!lddat,0)
   diIsql = diIsql & " AND (obdauer <> 0 Or diagdatum >= " & DatFor_k(lddat) & ")"
  End If
  If lies.obMySQL Then diIsql = diIsql & " LIMIT 1"
@@ -4967,11 +4967,11 @@ Function MedPlanNr&(ByVal Pat_id$, ByVal obAkt, Optional ByVal VorDat As Date, O
     End If
     If Not IsNull(raFIM!Medikament) Then
      Med(MedNr) = raFIM!Medikament
-     Dos(0, MedNr) = IIf(IsNull(raFIM!mo), vNS, raFIM!mo)
-     Dos(1, MedNr) = IIf(IsNull(raFIM!mi), vNS, raFIM!mi)
-     Dos(2, MedNr) = IIf(IsNull(raFIM!nm), vNS, raFIM!nm)
-     Dos(3, MedNr) = IIf(IsNull(raFIM!ab), vNS, raFIM!ab)
-     Dos(4, MedNr) = IIf(IsNull(raFIM!Zn), vNS, raFIM!Zn)
+     Dos(0, MedNr) = nz(raFIM!mo,vNS)
+     Dos(1, MedNr) = nz(raFIM!mi,vNS)
+     Dos(2, MedNr) = nz(raFIM!nm,vNS)
+     Dos(3, MedNr) = nz(raFIM!ab,vNS)
+     Dos(4, MedNr) = nz(raFIM!Zn,vNS)
     End If
     raFIM.Move 1
    Loop

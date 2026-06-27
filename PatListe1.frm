@@ -715,8 +715,8 @@ Private Sub DMPFüll() ' für: Alle &DMP-Dokumente an Hausärzte faxen ' s. DMP_Dok
    Set HAS = New SortierHA
    HAS.Zahl = rs0!Zahl
    If Not IsNull(rs0!fax) Then HAS.fax = rs0!fax
-   HAS.ÜwNm = IIf(IsNull(rs0!Adressat), "", rs0!Adressat)
-   HAS.ÜWNr = IIf(IsNull(rs0!ÜWNNr), "", rs0!ÜWNNr)
+   HAS.ÜwNm = nz(rs0!Adressat,"")
+   HAS.ÜWNr = nz(rs0!ÜWNNr,"")
    HAS.obDMPInfo = rs0!obDMPInfo
    HAS.gewählt = -rs0!obDMPInfo
    HASL.sCAdd HAS
@@ -727,8 +727,8 @@ Private Sub DMPFüll() ' für: Alle &DMP-Dokumente an Hausärzte faxen ' s. DMP_Dok
   PatZuHAS.name = rs0!name
   PatZuHAS.Pat_id = rs0!Pat_id
   PatZuHAS.sCa = HASL.sCa
-  PatZuHAS.ÜwNm = IIf(IsNull(rs0!Adressat), "", rs0!Adressat) ' das COALESCE ignoriert er
-  PatZuHAS.ÜWNr = IIf(IsNull(rs0!ÜWNNr), "", rs0!ÜWNNr)
+  PatZuHAS.ÜwNm = nz(rs0!Adressat,"") ' das COALESCE ignoriert er
+  PatZuHAS.ÜWNr = nz(rs0!ÜWNNr,"")
   PatZuHASL.sCAdd PatZuHAS
   rs0.MoveNext
  Loop ' While Not rs0.EOF
@@ -3879,8 +3879,8 @@ sql = sql & _
 '   SET rs1 = Nothing
 '   myFrag rs1, "SELECT * FROM `laborparameter` WHERE abkü = '" & vorDp & "'"
 '   IF Not rs1.EOF THEN
-    .TextMatrix(i, parsp) = IIf(IsNull(rs!Langtext), "", rs!Langtext)
-    vorDp = IIf(IsNull(rs!Abkü), "", rs!Abkü)
+    .TextMatrix(i, parsp) = nz(rs!Langtext,"")
+    vorDp = nz(rs!Abkü,"")
     .TextMatrix(i, wertsp) = rs!Wert ' Mid$(rs!fehlerart, pos + 1)
     .Row = i
     .col = nbsp
@@ -3888,8 +3888,8 @@ sql = sql & _
 '   END IF
 '  END IF
   .TextMatrix(i, nbsp) = rs!Nb
-  vorEinh = IIf(IsNull(rs!Einheit), "", rs!Einheit)
-  .TextMatrix(i, einhsp) = IIf(IsNull(rs!Einheit), "", rs!Einheit)
+  vorEinh = nz(rs!Einheit,"")
+  .TextMatrix(i, einhsp) = nz(rs!Einheit,"")
 
 '  pos = InStr(.TextMatrix(i, wertsp), "(")
 '  IF pos <> 0 THEN
@@ -4759,12 +4759,12 @@ Private Sub Form_Load()
       .Text = rDPat!Vorname
       .CellBackColor = cbcol
       .col = .col + 1
-      .Text = IIf(IsNull(rDPat!kurzname), vNS, rDPat!kurzname)
+      .Text = nz(rDPat!kurzname,vNS)
       .CellBackColor = cbcol ' 10790143 = dunkelrosa
       
       .col = .col + 1
       If ICDSp = 0 Then ICDSp = .col
-      .Text = IIf(IsNull(rDPat!ICD), "!-!", rDPat!ICD)
+      .Text = nz(rDPat!ICD,"!-!")
       .CellBackColor = IIf(rDPat!ICD Like "E11*", cbcol, vbYellow)
 'GoTo weiter
       .col = .col + 1
@@ -5844,11 +5844,11 @@ Private Sub LaborFüll(Optional nachLangtext%)
 ' MFG.FillStyle = flexFillRepeat
  Do While Not rs0.EOF
   Me.MFG.TextMatrix(i, 0) = i
-  Me.MFG.TextMatrix(i, 1) = IIf(IsNull(rs0!Bezug), vNS, rs0!Bezug)
+  Me.MFG.TextMatrix(i, 1) = nz(rs0!Bezug,vNS)
   Me.MFG.TextMatrix(i, 2) = rs0!Abkü
   Me.MFG.TextMatrix(i, 3) = rs0!Einheit
-  Me.MFG.TextMatrix(i, 4) = IIf(IsNull(rs0!Nb), vNS, rs0!Nb)
-  Me.MFG.TextMatrix(i, 5) = IIf(IsNull(rs0!Eingang), vNS, rs0!Eingang)
+  Me.MFG.TextMatrix(i, 4) = nz(rs0!Nb,vNS)
+  Me.MFG.TextMatrix(i, 5) = nz(rs0!Eingang,vNS)
   Me.MFG.TextMatrix(i, 6) = rs0!Langtext
   Me.MFG.TextMatrix(i, 7) = rs0!Labor
   Me.MFG.TextMatrix(i, 8) = rs0!herk

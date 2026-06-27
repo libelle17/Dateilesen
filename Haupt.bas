@@ -2157,7 +2157,7 @@ Function BooleanFld(frm As Lese)
    Do While Not rs1.EOF
     If rs1!Type = "tinyint(1)" Then
 '     Call myEFrag("ALTER TABLE `" & DBCn.DefaultDatabase & "`.`" & rs.Fields(0) & "` " & sqlALTER & " COLUMN `" & rs1!Field & "` Bit(1) DEFAULT NULL COMMENT '" & rs1!Comment & "', ENGINE = InnoDB;", AfN)
-     Call myEFrag("ALTER TABLE `" & rs.Fields(0) & "` " & sqlALTER & " COLUMN `" & rs1!Field & "` Bit(1) DEFAULT " & IIf(IsNull(rs1!Default), "NULL", rs1!Default) & " COMMENT '" & rs1!Comment & "', ENGINE = InnoDB;", AfN)
+     Call myEFrag("ALTER TABLE `" & rs.Fields(0) & "` " & sqlALTER & " COLUMN `" & rs1!Field & "` Bit(1) DEFAULT " & nz(rs1!Default,"NULL") & " COMMENT '" & rs1!Comment & "', ENGINE = InnoDB;", AfN)
 '     Debug.Print AfN
     End If
     rs1.Move 1
@@ -2625,7 +2625,7 @@ End Function ' ZSU1
 '  END IF ' err.number <> 0 nach connection
 ' Next i
 ' ON Error GoTo fehler
-' Cpt = IIf(ISNULL(rsA!Computer), vns, rsA!Computer)
+' Cpt = nz(rsA!Computer,vns)
 ' IF Abs(rsA!j_Abbruch) = Abs(obAbbruch) THEN
 '  ProgrammLauf = True
 ' ElseIf Not Nichtƒndern THEN
@@ -3790,7 +3790,7 @@ nochmal:
               adIDispatch, adVariant, adIUnknown, adGUID, adBinary, adUserDefined, adPropVariant, _
               adVarBinary, adLongVarBinary, adError, adArray
 '         Case 8, 129, 130, 200, 201, 202, 203, 0, 9, 12, 13, 72, 128, 132, 138, 204, 205, 10, 8192
-           Wert = "'" & doUmwfSQL(IIf(IsNull(rq.Fields(i).Value), vNS, rq.Fields(i).Value), lies.obMySQL) & "'"
+           Wert = "'" & doUmwfSQL(nz(rq.Fields(i).Value,vNS), lies.obMySQL) & "'"
 '           IF 1 = 0 THEN
            pos0 = InStr(Wert, vbNullChar)
            If pos0 > 0 Then
@@ -3812,7 +3812,7 @@ nochmal:
                Dim rsc As New ADODB.Recordset
                Set rsc = Nothing
                myFrag rsc, "SHOW FULL COLUMNS FROM `" & TName & "` WHERE field = '" & rq.Fields(i).name & "'"
-               myEFrag ("ALTER TABLE `" & TName & "` " & sqlALTER & " COLUMN `" & rq.Fields(i).name & "` " & sqlText & "(" & Len(Wert) - 2 & ")" & " DEFAULT " & IIf(IsNull(rsc!Default), "NULL", rsc!Default) & IIf(IsNull(rsc!collation), vNS, " COLLATE " & rsc!collation) & " COMMENT '" & rsc!Comment & "'")
+               myEFrag ("ALTER TABLE `" & TName & "` " & sqlALTER & " COLUMN `" & rq.Fields(i).name & "` " & sqlText & "(" & Len(Wert) - 2 & ")" & " DEFAULT " & nz(rsc!Default,"NULL") & IIf(IsNull(rsc!collation), vNS, " COLLATE " & rsc!collation) & " COMMENT '" & rsc!Comment & "'")
                Const tmp$ = "tmpMess.txt"
                Open tmp For Output As #322
                Print #322, "Vergrˆﬂere in Tabelle " & TName & " das Feld '" & rq.Fields(i).name & "' von " & Feldl‰nge & " auf " & Len(Wert) - 2 & " wegen:"
@@ -3935,7 +3935,7 @@ Public Function TUpd(TabN$, sF$, rq As Recordset)
            Wert = DatFor_k(rq.Fields(i).Value)
            If Wert = "##" Or Wert = "''" Then Err.Raise 999, , "Fehler in TUpd mit Wert = ""##"" OR wert = ""''"" in Datumsfeld"
          Case 8, 129, 130, 200, 201, 202, 203, 0, 9, 12, 13, 72, 128, 132, 138, 204, 205
-           Wert = "'" & doUmwfSQL(IIf(IsNull(rq.Fields(i).Value), vNS, rq.Fields(i).Value), lies.obMySQL) & "'"
+           Wert = "'" & doUmwfSQL(nz(rq.Fields(i).Value,vNS), lies.obMySQL) & "'"
 '           IF instrb(sF, "pfad") > 0 THEN
 '            IF lenb(PcDokPfad) = 0 THEN getDokPfad
 '            Wert = replace$(lcase(Wert), "$\\turbomed\\dokumente", PcDokPfad)
@@ -3961,7 +3961,7 @@ Public Function TUpd(TabN$, sF$, rq As Recordset)
               If Len(Wert) - 2 > Feldl‰nge Then ' Anf¸hrungszeichen
                Set rsc = Nothing
                myFrag rsc, "SHOW FULL COLUMNS FROM `" & TabN & "` WHERE field = '" & rq.Fields(i).name & "'"
-               myEFrag ("ALTER TABLE `" & TabN & "` " & sqlALTER & " COLUMN `" & rq.Fields(i).name & "` " & sqlText & "(" & Len(Wert) - 2 & ")" & " DEFAULT " & IIf(IsNull(rsc!Default), " NULL", rsc!Default) & IIf(IsNull(rsc!collation), vNS, " COLLATE " & rsc!collation) & " COMMENT '" & rsc!Comment & "'")
+               myEFrag ("ALTER TABLE `" & TabN & "` " & sqlALTER & " COLUMN `" & rq.Fields(i).name & "` " & sqlText & "(" & Len(Wert) - 2 & ")" & " DEFAULT " & nz(rsc!Default," NULL") & IIf(IsNull(rsc!collation), vNS, " COLLATE " & rsc!collation) & " COMMENT '" & rsc!Comment & "'")
                Const tmp$ = "tmpMess.txt"
                Open tmp For Output As #322
                Print #322, "Vergrˆﬂere in Tabelle `" & TabN & "` das Feld '" & rq.Fields(i).name & "' von " & Feldl‰nge & " auf " & Len(Wert) - 2 & " wegen:"
@@ -4005,7 +4005,7 @@ Public Function anaIns(rq As Recordset)
    sql1 = "INSERT INTO `" & TName & "` ("
    sql2 = "values("
    Set rs = myEFrag("SELECT MAX(prim) mprim FROM `" & TName & "`")
-   mprim = IIf(IsNull(rs!mprim), 0, rs!mprim) + 1
+   mprim = nz(rs!mprim,0) + 1
    For i = 0 To rq.Fields.COUNT - 1
     Select Case LCase$(rq.Fields(i).name)
      Case "pat_id"
@@ -4024,7 +4024,7 @@ Public Function anaIns(rq As Recordset)
            Wert = DatFor_k(rq.Fields(i).Value)
            If Wert = "##" Or Wert = "''" Then Err.Raise 999, , "Fehler in anaIns mit Wert = ""##"" OR wert = ""''"" in Datumsfeld"
          Case 8, 129, 130, 200, 201, 202, 203, 0, 9, 12, 13, 72, 128, 132, 138, 204, 205
-           Wert = "'" & doUmwfSQL(IIf(IsNull(rq.Fields(i).Value), vNS, rq.Fields(i).Value), lies.obMySQL) & "'"
+           Wert = "'" & doUmwfSQL(nz(rq.Fields(i).Value,vNS), lies.obMySQL) & "'"
            pos0 = InStr(Wert, vbNullChar)
            If pos0 > 0 Then
             Wert = left$(Wert, pos0 - 2) & "'"
@@ -4059,7 +4059,7 @@ Public Function TIns&(TabN$, sF$, obPS%, rq, Optional schonAbgehakt) ' ob Prim‰r
    sql2 = "values("
    If obPS Then
     Set rs = myEFrag("SELECT MAX(" & sF & ") mprim FROM " & "`" & TabN & "`" & ";")
-    mprim = IIf(IsNull(rs!mprim), 0, rs!mprim) + 1
+    mprim = nz(rs!mprim,0) + 1
    End If
    For i = 0 To rq.Fields.COUNT - 1
     Select Case LCase$(rq.Fields(i).name)
@@ -4068,7 +4068,7 @@ Public Function TIns&(TabN$, sF$, obPS%, rq, Optional schonAbgehakt) ' ob Prim‰r
        Wert = mprim
       Else
        Wert = rq(sF)
-       Wert = IIf(IsNull(rq(sF)), vNS, rq(sF))
+       Wert = nz(rq(sF),vNS)
 #If turbomed Then
        If InStrB(sF, "pfad") > 0 Then
         Dim ob2%, obnetz%
@@ -4128,7 +4128,7 @@ Public Function TIns&(TabN$, sF$, obPS%, rq, Optional schonAbgehakt) ' ob Prim‰r
            Wert = DatFor_k(rq.Fields(i).Value)
            If Wert = "##" Or Wert = "''" Then Err.Raise 999, , "Fehler in TIns mit Wert = ""##"" OR wert = ""''"" in Datumsfeld"
          Case 8, 129, 130, 200, 201, 202, 203, 0, 9, 12, 13, 72, 128, 132, 138, 204, 205
-           Wert = doUmwfSQL(IIf(IsNull(rq.Fields(i).Value), vNS, rq.Fields(i).Value), lies.obMySQL)
+           Wert = doUmwfSQL(nz(rq.Fields(i).Value,vNS), lies.obMySQL)
            If InStrB(sF, "pfad") > 0 Then
 '            IF lenb(PcDokPfad) = 0 THEN getDokPfad
 '            Wert = replace$(lcase(replace$(Wert, "\\", "\")), "$\turbomed\dokumente", PcDokPfad)
@@ -5560,7 +5560,7 @@ Function fzsfuell(frm As Lese, abstand&, Optional obgestern) ' Abstand: 999 => u
   If Not vrs.BOF Then
    Do While Not vrs.EOF
     If SafeArrayGetDim(rsse) = 0 Then ReDim rsse(0) Else ReDim Preserve rsse(UBound(rsse) + 1)
-    rsse(UBound(rsse)).kassenpat = IIf(IsNull(vrs!kassenpat), 0, vrs!kassenpat)
+    rsse(UBound(rsse)).kassenpat = nz(vrs!kassenpat,0)
     rsse(UBound(rsse)).Quartal = vrs!Quartal
     rsse(UBound(rsse)).Tage = vrs!Tage
     vrs.MoveNext
@@ -5980,7 +5980,7 @@ End Function ' fallzahlstand
 '      Print #310, ZSU(op)
 '     END IF
 ''     14.4.08: folgende beiden Zeilen f¸hren zur Fall-Neuanlage
-''     op = format$(3 + 4 + Len("TM#" + IIf(ISNULL(rs!TMFNr), space$(11), rs!TMFNr)), "000") + "4144" + "TM#" + IIf(ISNULL(rs!TMFNr), space$(11), rs!TMFNr)
+''     op = format$(3 + 4 + Len("TM#" + nz(rs!TMFNr,space$(11))), "000") + "4144" + "TM#" + nz(rs!TMFNr,space$(11))
 ''     Print #310, ZSU(op)
 '     op = Format$(3 + 4 + 8, "000") + "4150" + IIf(rs!BhFB = 0, "00000000", Format$(rs!BhFB, "ddmmyyyy"))
 '     Print #310, ZSU(op)
@@ -5989,12 +5989,12 @@ End Function ' fallzahlstand
 ''     op = format$(3 + 4 + 8, "000") + "4152" + IIf(rs!BhFE2 = 0, "00000000", format$(rs!BhFE2, "ddmmyyyy"))
 ''     Print #310, ZSU(op)
 '     Dim ‹w$
-'     ‹w = IIf(ISNULL(rs!‹bwV), vns, rs!‹bwV)
+'     ‹w = nz(rs!‹bwV,vns)
 '     IF ‹w <> "" THEN
 '      op = Format$(3 + 4 + Len(‹w), "000") + "4218" + ‹w
 '      Print #310, ZSU(op)
 '     END IF
-'     ‹w = IIf(ISNULL(rs!And‹w), vns, rs!And‹w)
+'     ‹w = nz(rs!And‹w,vns)
 '     IF ‹w <> "" THEN
 '      op = Format$(3 + 4 + Len(‹w), "000") + "4219" + ‹w
 '      Print #310, ZSU(op)

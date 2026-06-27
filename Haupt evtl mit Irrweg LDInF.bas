@@ -1045,7 +1045,7 @@ Public Function ProgrammLauf(obAbbruch%, Optional Cpt$, Optional NichtÄndern%) A
   End If ' err.number <> 0 nach connection
  Next i
  On Error GoTo fehler
- Cpt = IIf(IsNull(rsA!Computer), "", rsA!Computer)
+ Cpt = nz(rsA!Computer,"")
  If rsA!abbruch = obAbbruch Then
   ProgrammLauf = True
  ElseIf Not NichtÄndern Then
@@ -1206,7 +1206,7 @@ Public Function anaUpd(rq As Recordset)
            Wert = datForm(rq.Fields(i).Value)
            If Wert = "##" Or Wert = "''" Then Stop
          Case adBinary, adBSTR, adChar, adLongVarChar, adVarBinary, adVarChar, adVariant, adVarWChar, adWChar, 203
-           Wert = "'" & umw(IIf(IsNull(rq.Fields(i).Value), "", rq.Fields(i).Value)) & "'"
+           Wert = "'" & umw(nz(rq.Fields(i).Value,"")) & "'"
          Case Else
            Stop
        End Select
@@ -1236,7 +1236,7 @@ Public Function anaIns(rq As Recordset)
    sql1 = "insert into anamnesebogen ("
    sql2 = "values("
    Set rs = DBCn.Execute("select max(prim) as mprim from anamnesebogen;")
-   mprim = IIf(IsNull(rs!mprim), 0, rs!mprim) + 1
+   mprim = nz(rs!mprim,0) + 1
    For i = 0 To rq.Fields.Count - 1
     Select Case LCase(rq.Fields(i).Name)
      Case "pat_id"
@@ -1253,7 +1253,7 @@ Public Function anaIns(rq As Recordset)
            Wert = datForm(rq.Fields(i).Value)
            If Wert = "##" Or Wert = "''" Then Stop
          Case adBinary, adBSTR, adChar, adLongVarChar, adVarBinary, adVarChar, adVariant, adVarWChar, adWChar, 203
-           Wert = "'" & umw(IIf(IsNull(rq.Fields(i).Value), "", rq.Fields(i).Value)) & "'"
+           Wert = "'" & umw(nz(rq.Fields(i).Value,"")) & "'"
          Case Else
            Stop
        End Select

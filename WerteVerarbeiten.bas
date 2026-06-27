@@ -430,13 +430,13 @@ Function LaborString$(Pat_id&)
     End If
    End If
    ls = ls + raLw.Fields("LangText") & vbCrLf
-   ls = ls + IIf(IsNull(raLw.Fields("einheit")), vNS, raLw.Fields("Einheit")) & vbCrLf
+   ls = ls + nz(raLw.Fields("einheit"),vNS) & vbCrLf
 #If problematisch Then
    ls = ls + Format$(raLw!Datum, "dd.mm.yyyy") & vbCrLf
 #Else
    ls = ls + Format$(raLw!Zeitpunkt, "dd.mm.yyyy") & vbCrLf
 #End If
-   ls = ls + IIf(IsNull(raLw!Wert), vNS, raLw!Wert) & vbCrLf
+   ls = ls + nz(raLw!Wert,vNS) & vbCrLf
    u = -99
    o = -99
    pKz = "n" ' normal
@@ -481,15 +481,15 @@ Function LaborString$(Pat_id&)
    Nb = vNS
    If uNG <> "" Or oNG <> "" Then
     If gschl = "w" And (raLw!unw <> "" Or raLw!onw <> "") Then
-     Nb = IIf(IsNull(raLw!unw), vNS, raLw!unw) + "-" + IIf(IsNull(raLw!onw), vNS, raLw!onw)
+     Nb = nz(raLw!unw,vNS) + "-" + nz(raLw!onw,vNS)
     End If
    End If
    If Nb = "" And (raLw!uNm <> "" Or raLw!oNm <> "") Then
-    Nb = IIf(IsNull(raLw!uNm), vNS, raLw!uNm) + "-" + IIf(IsNull(raLw!oNm), vNS, raLw!oNm)
+    Nb = nz(raLw!uNm,vNS) + "-" + nz(raLw!oNm,vNS)
    End If
 #End If
    If Nb = "" And (raLw!uNG <> "" Or raLw!oNG <> "") Then
-    Nb = IIf(IsNull(raLw!uNG), vNS, raLw!uNG) + "-" + IIf(IsNull(raLw!oNG), vNS, raLw!oNG)
+    Nb = nz(raLw!uNG,vNS) + "-" + nz(raLw!oNG,vNS)
    End If
    ls = ls + Nb & vbCrLf
    If IsNull(raLw!Gruppe) Then
@@ -656,7 +656,7 @@ End Function ' testtherart$()
 '        SET rlar = Nothing
 '        myFrag rlar, "SELECT MAX(bhfb) AS mbhfb FROM `faelle` WHERE pat_id = " & Pat_id
 '        IF Not rlar.EOF THEN
-'         lzp = IIf(ISNULL(rlar!mbhfb), Now(), rlar!mbhfb)
+'         lzp = nz(rlar!mbhfb,Now())
 '        END IF
 '        SET rlar = Nothing '
 '        'txtmedKey'
@@ -1044,7 +1044,7 @@ Function AnReparieren() ' Ergänzt die in den mySQL-Tabellen vermutlich bei der S
 '   Call rsc.Open("SHOW FULL COLUMNS FROM `" & Forms(0).MyDB & "`.`anamnesebogen` WHERE field = '" & rAn.Fields(i).name & "'", dbm, adOpenStatic, adLockReadOnly)
    myFrag rsc, "SHOW FULL COLUMNS FROM `" & Forms(0).MyDB & "`.`anamnesebogen` WHERE field = '" & rAn.Fields(i).name & "'", adOpenStatic, dbm, adLockReadOnly
    syscmd acSysCmdSetStatus, myTable.Columns(rAn.Fields(i).name).Properties("Description")
-   Call myEFrag("ALTER TABLE `" & Forms(0).MyDB & "`.`anamnesebogen` MODIFY COLUMN `" & rAn.Fields(i).name & "` " & rsc!Type & IIf(IsNull(rsc!collation), vNS, " CHARACTER SET utf8mb4 COLLATE " & rsc!collation) & " default " & IIf(IsNull(rsc!Default), " null", rsc!Default) & " comment '" & rsc!Comment & "'", , dbm) 'myTable.Columns(rAn.Fields(i).Name).Properties("Description") & "'")
+   Call myEFrag("ALTER TABLE `" & Forms(0).MyDB & "`.`anamnesebogen` MODIFY COLUMN `" & rAn.Fields(i).name & "` " & rsc!Type & IIf(IsNull(rsc!collation), vNS, " CHARACTER SET utf8mb4 COLLATE " & rsc!collation) & " default " & nz(rsc!Default," null") & " comment '" & rsc!Comment & "'", , dbm) 'myTable.Columns(rAn.Fields(i).Name).Properties("Description") & "'")
   Next i
  Next k
 Exit Function

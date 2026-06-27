@@ -1053,11 +1053,11 @@ Function AuswHA(frm As PatAuswahl)
          "UNION SELECT id AS dbnr, """" AS bstelle, """" AS anrede, ¸berschrift, name AS haname, ort, kvnr, telefon AS tel1, """" AS tel2, """" AS tel3, """" AS tel4, telefax AS fax1, REPLACE(REPLACE(REPLACE(telefax,""/"",""""),""-"",""""),"" "","""") AS fax1k,"""" AS fax2,"""" AS fax2k, """" AS fax3, """" AS fax3k, e_mail AS email, zulassungsgebiet AS zulg, arzttyp, `gemeinschaftspraxis mit` AS gemmit, beme, dmpt2, dmpt2, geschlecht, titel, vorname, nachname, straﬂe, plz FROM `hausaerzte` WHERE kvnr = '" & rKVNr!KVNr & "' " & _
          "UNION SELECT """" AS dbnr, """" AS bstelle, """" AS anrede, """" AS ¸berschrift, name AS haname, ort, kvnr, telefon AS tel1, """" AS tel2, """" AS tel3, """" AS tel4, """" AS fax1, fax AS fax1k,"""" AS fax2,"""" AS fax2k, """" AS fax3, """" AS fax3k, """" AS email, fachgruppe AS zulg, """" AS arzttyp, """" AS gemmit, """" AS beme, -2 AS dmpt2, -2 AS dmpt1, 0 AS geschlecht, titel, vorname, name AS nachname, strasse, plz FROM `liuez` WHERE kvnr = '" & rKVNr!KVNr & "'"
      sql = "SELECT * FROM (" & _
-          "SELECT GROUP_CONCAT(DISTINCT nachname) haname, ort, CAST(LEFT(bsnr,7) AS char) kvnr, REPLACE(tel,'-','') tel1, REPLACE(fax,'-','') fax1, titel, vorname, nachname, CONCAT(straﬂe,' ',hausnr) straﬂe, plz FROM " & HADBName & ".bs LEFT JOIN " & HADBName & ".ort ON ort_id = idort LEFT JOIN " & HADBName & ".tel ON tel.bs_id = idbs LEFT JOIN " & HADBName & ".fax ON fax.bs_id = idbs LEFT JOIN " & HADBName & ".arzt_has_bs ahb ON ahb.bs_id = idbs LEFT JOIN " & HADBName & ".arzt a ON a.idarzt = ahb.arzt_id LEFT JOIN " & HADBName & ".titel t ON t.idtitel = a.titel_id WHERE bsnr = '" & IIf(IsNull(rKVNr!KVNr), "000000", rKVNr!KVNr) & "00' " & _
-          "UNION SELECT haname, ort, CAST(kvnu AS char) kvnr, tel1, fax1, titel, vorname, nachname, straﬂe, plz FROM `kvaerzte`.`hae` WHERE kvnr = '" & left$(IIf(IsNull(rKVNr!KVNr), "000000", rKVNr!KVNr), 2) & "/" & Mid$(IIf(IsNull(rKVNr!KVNr), "000000", rKVNr!KVNr), 3, 5) & "' " & _
-          "UNION SELECT haname, ort, CAST(kvnu AS char) kvnr, tel1, fax1, titel, vorname, nachname, straﬂe, plz FROM `kvaerzte`.`haealt` WHERE kvnr = '" & left$(IIf(IsNull(rKVNr!KVNr), "000000", rKVNr!KVNr), 2) & "/" & Mid$(IIf(IsNull(rKVNr!KVNr), "000000", rKVNr!KVNr), 3, 5) & "' " & _
-          "UNION SELECT name haname, ort, CAST(kvnr AS char) kvnr, telefon AS tel1, telefax AS fax1, titel, vorname, nachname, straﬂe, plz FROM `hausaerzte` WHERE kvnr = '" & IIf(IsNull(rKVNr!KVNr), "000000", rKVNr!KVNr) & "' " & _
-          "UNION SELECT name haname, ort, CAST(kvnr AS char) kvnr, telefon AS tel1, '' AS fax1, titel, vorname, name AS nachname, strasse, plz FROM `aktlue` WHERE kvnro = '" & IIf(IsNull(rKVNr!KVNr), "000000", rKVNr!KVNr) & "' " & _
+          "SELECT GROUP_CONCAT(DISTINCT nachname) haname, ort, CAST(LEFT(bsnr,7) AS char) kvnr, REPLACE(tel,'-','') tel1, REPLACE(fax,'-','') fax1, titel, vorname, nachname, CONCAT(straﬂe,' ',hausnr) straﬂe, plz FROM " & HADBName & ".bs LEFT JOIN " & HADBName & ".ort ON ort_id = idort LEFT JOIN " & HADBName & ".tel ON tel.bs_id = idbs LEFT JOIN " & HADBName & ".fax ON fax.bs_id = idbs LEFT JOIN " & HADBName & ".arzt_has_bs ahb ON ahb.bs_id = idbs LEFT JOIN " & HADBName & ".arzt a ON a.idarzt = ahb.arzt_id LEFT JOIN " & HADBName & ".titel t ON t.idtitel = a.titel_id WHERE bsnr = '" & nz(rKVNr!KVNr,"000000") & "00' " & _
+          "UNION SELECT haname, ort, CAST(kvnu AS char) kvnr, tel1, fax1, titel, vorname, nachname, straﬂe, plz FROM `kvaerzte`.`hae` WHERE kvnr = '" & left$(nz(rKVNr!KVNr,"000000"), 2) & "/" & Mid$(nz(rKVNr!KVNr,"000000"), 3, 5) & "' " & _
+          "UNION SELECT haname, ort, CAST(kvnu AS char) kvnr, tel1, fax1, titel, vorname, nachname, straﬂe, plz FROM `kvaerzte`.`haealt` WHERE kvnr = '" & left$(nz(rKVNr!KVNr,"000000"), 2) & "/" & Mid$(nz(rKVNr!KVNr,"000000"), 3, 5) & "' " & _
+          "UNION SELECT name haname, ort, CAST(kvnr AS char) kvnr, telefon AS tel1, telefax AS fax1, titel, vorname, nachname, straﬂe, plz FROM `hausaerzte` WHERE kvnr = '" & nz(rKVNr!KVNr,"000000") & "' " & _
+          "UNION SELECT name haname, ort, CAST(kvnr AS char) kvnr, telefon AS tel1, '' AS fax1, titel, vorname, name AS nachname, strasse, plz FROM `aktlue` WHERE kvnro = '" & nz(rKVNr!KVNr,"000000") & "' " & _
           ") i WHERE NOT ISNULL(nachname) ORDER BY haname DESC;"
 ' geht nicht wegen der Reihenfolge der Felder
 '    sql = "SELECT * FROM (" & _
@@ -1294,7 +1294,7 @@ vorabfra1:
 ' '      rKVA.Open "SELECT HAName, Ort, Email, Tel1, Fax1k, DMPT1, DMPT2 FROM `hae` WHERE kvnr = '" & LEFT(rFaA!‹bw, 2) & "/" & Right$(rFaA!‹bw, 5) & "'", HAECn, adOpenDynamic, adLockReadOnly
 ' '      IF Not rKVA.BOF AND NOT obHA AND NOT rFaA!‹bw = "" & KVNR & "" THEN
 ''        HAStr = rKVA!haname & ", " & rKVA!Ort & IIf(NOT ISNULL(rKVA!Email) AND LenB(rKVA!Email) <> 0, " Email: " & rKVA!Email, "") & _
-' '               "   Tel: " & replace$(IIf(ISNULL(rKVA!tel1), vNS, rKVA!tel1), " ", "") & "  Fax: " & IIf(ISNULL(rKVA!fax1k), vNS, rKVA!fax1k)
+' '               "   Tel: " & replace$(nz(rKVA!tel1,vNS), " ", "") & "  Fax: " & nz(rKVA!fax1k,vNS)
 ' '       Dim obDMP2%, obDMP1%
 ' '       Do While Not rKVA.EOF
 ' ' '      IF rKVA!j_dmpt2 <> 0 THEN obDMP2 = True
@@ -1308,7 +1308,7 @@ vorabfra1:
 '        obHA = -1
 ' '      END IF
 '      End If
-'      Me.Faelle.AddItem (rFaA!BhFB & " - " & rFaA!BhFE1 & " " & rFaA!SchGr & "  " & Left$(IIf(IsNull(rFaA!name), vNS, rFaA!name), 20) & " " & IIf(IsNull(rFaA!Kateg), vNS, rFaA!Kateg) & "  " & rFaA!‹WNNr & " " & rFaA!‹WNaN & " " & rFaA!‹WVor)
+'      Me.Faelle.AddItem (rFaA!BhFB & " - " & rFaA!BhFE1 & " " & rFaA!SchGr & "  " & Left$(nz(rFaA!name,vNS), 20) & " " & nz(rFaA!Kateg,vNS) & "  " & rFaA!‹WNNr & " " & rFaA!‹WNaN & " " & rFaA!‹WVor)
 '      rFaA.Move 1
 '     Loop
 '    End If ' Not rFaA.BOF THEN

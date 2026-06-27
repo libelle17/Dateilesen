@@ -273,7 +273,7 @@ Function do_Labor_Click(frm As Form)
 
  Call DtbCreateQueryDef("LaborDokumente eP", sql)
  DoCmd.OpenForm "LaborDokumente eP"
- Forms![LaborDokumente ep].Caption = "LaborDokumente zu " & IIf(IsNull(frm!NachName), frm!Pat_id, frm!NachName) & " " & IIf(IsNull(frm.Vorname), "", frm.Vorname)
+ Forms![LaborDokumente ep].Caption = "LaborDokumente zu " & nz(frm!NachName,frm!Pat_id) & " " & nz(frm.Vorname,"")
  Exit Function
 fehler:
  Dim AnwPfad$
@@ -1287,8 +1287,8 @@ Public Function do_Form_Current_AnBog(frm As AnBog)
     End Select
    End If
    If Not HArst.BOF And Not UBound(teile) = -1 Then ' wenn gar nicht gesucht wurde
-    frm.vTextB(148) = IIf(IsNull(HArst!Name), "", HArst!Name) + ",T:" + IIf(IsNull(HArst!Telefon), "", HArst!Telefon) & ", " & IIf(IsNull(HArst!strasse), "", HArst!strasse) & " " & IIf(IsNull(HArst!Plz), "", HArst!Plz) & " " & IIf(IsNull(HArst!Ort), "", HArst!Ort) + ", Z:" + IIf(IsNull(HArst!zulg), "", HArst!zulg)
-    frm.vTextB(176) = IIf(IsNull(HArst!Fax), "", HArst!Fax)
+    frm.vTextB(148) = nz(HArst!Name,"") + ",T:" + nz(HArst!Telefon,"") & ", " & nz(HArst!strasse,"") & " " & nz(HArst!Plz,"") & " " & nz(HArst!Ort,"") + ", Z:" + nz(HArst!zulg,"")
+    frm.vTextB(176) = nz(HArst!Fax,"")
     obHAimDMP = fobHAimDMP(frm.vTextB(183)) ' HANr
    End If
    HArst.Find "HANr =", LTrim$(frm.vTextB(183))  ' HANr
@@ -1588,7 +1588,7 @@ If Pat_id <> 0 Then
  Call KRAdd(frm, pani, "Pankreasinsuffizienz", "K86.8", "K86", , , , "vTextB", 105) ' Weitere Medikation
  Call KRAdd(frm, park, "Parkinson", "G20", "G20", , , , "vTextB", 105) ' Weitere Medikation
  Call KRAdd(frm, vari, "Varikose", "I83.9", "I83", "I86", , , "vTextB", 105) ' Weitere Medikation
- GebDat = IIf(IsNull(frm.adoRS!GebDat), 0, frm.adoRS!GebDat)
+ GebDat = nz(frm.adoRS!GebDat,0)
  Alter = (Date - GebDat) * 2.73792574745373E-03 ' 1/365,24
  If Alter > 45 Then Call KRAdd(frm, östr, "Wechselbeschwerden", "N95.9", "N95", , , , "vTextB", 105) ' Weitere Medikation
  Call KRAdd(frm, antidep, "Depression", "F32.9", "F32", , , , "vTextB", 105) ' Weitere Medikation
@@ -3179,7 +3179,7 @@ Function Urineintraege%(Pat_id&)
  Call raUr.Open("select * from laborneu left join laborkommentar using (kommentarvw) where abkü in (""ALBCRE"",""ALBKRE"",""ALBQ"") and pat_id = " & CStr(Pat_id), DBCn, adOpenDynamic, adLockReadOnly)
  If Not raUr.BOF Then
   Do While Not raUr.EOF
-   LW = Val(Replace(Replace(IIf(IsNull(raUr!Wert), IIf(IsNull(raUr!Kommentar), "", raUr!Kommentar), raUr!Wert), ",", "."), "%", ""))
+   LW = Val(Replace(Replace(nz(raUr!Wert,IIf(IsNull(raUr!Kommentar), "", raUr!Kommentar)), ",", "."), "%", ""))
    If LW < 20 Then
     nZahlLab = nZahlLab + 1
    Else
@@ -3409,7 +3409,7 @@ Function RRParse(Pat_id&)
 ' raNa.Seek "=", Pat_id
  If Not rsNa.EOF Then
   If Not IsNull(rsNa!Blutdruckwerte) Then
-   Call do_RRParse(rsNa!Blutdruckwerte, Pat_id, IIf(IsNull(rsNa!Vorgestellt), 0, rsNa!Vorgestellt), "An'bg.BW")
+   Call do_RRParse(rsNa!Blutdruckwerte, Pat_id, nz(rsNa!Vorgestellt,0), "An'bg.BW")
   End If
   If Not IsNull(rsNa!RR) Then
    Call do_RRParse(rsNa!RR, Pat_id, rsNa!Vorgestellt, "An'bg.RR")
@@ -3906,7 +3906,7 @@ Function LabWert!(frm As Form, Name$, Optional sign, Optional ByVal Grenze!, Opt
  'rlau.Seek "=", CStr(Pat_id), name
 ' rblau.Find "abkü = " & "" & Name & "" & " and wert <> """"", 0, adSearchForward, 1
  If Not rbLau.EOF Then
-  LabWert = Val(Replace$(Replace(IIf(IsNull(rbLau!Wert), IIf(IsNull(rbLau!Kommentar), "", rbLau!Kommentar), rbLau!Wert), ",", "."), "%", ""))
+  LabWert = Val(Replace$(Replace(nz(rbLau!Wert,IIf(IsNull(rbLau!Kommentar), "", rbLau!Kommentar)), ",", "."), "%", ""))
   If Alter = 0 Then Alter = (rbLau!Zeitpunkt - GebDat) * 2.73792574745373E-03 ' 1/365,24
   If Not IsMissing(sign) Then
    If Not IsMissing(WGrenze) And obWeib Then Grenze = WGrenze
@@ -4017,7 +4017,7 @@ End Function
 Public Function makeDatPfad(frm As Form)
  On Error GoTo fehler
  If (InStrB("$\", Left(frm!DokPfad, 1)) <> 0 And Left(frm!DokPfad, 1) <> "") Or Mid$(frm!DokPfad, 2, 1) = ":" Then
-   RDatPfad = Replace(Replace(LCase(IIf(IsNull(frm!DokPfad), "", frm!DokPfad)), "$\turbomed\dokumente", getDokPfad), "^", "")
+   RDatPfad = Replace(Replace(LCase(nz(frm!DokPfad,"")), "$\turbomed\dokumente", getDokPfad), "^", "")
    DatPfad = "" + RDatPfad + ""
    Dim cat As New ADOX.Catalog
    Dim Cmd As New ADODB.Command
@@ -4073,7 +4073,7 @@ Public Function do_LaborDokumente_Form_Current(frm As Form)
 ' If Not rDokab.NoMatch Then
 '   frm!abgehakt = rDokab!abgehakt
 'End If
-' frm!DokGroe = CreateObject("Scripting.FileSystemObject").getfile(Replace(Replace(IIf(IsNull(frm!DokPfad), "", frm!DokPfad), "$\TurboMed\Dokumente\", getDokPfad), "^", "")).size
+' frm!DokGroe = CreateObject("Scripting.FileSystemObject").getfile(Replace(Replace(nz(frm!DokPfad,""), "$\TurboMed\Dokumente\", getDokPfad), "^", "")).size
  Exit Function
 fehler:
  Dim AnwPfad$
@@ -6059,8 +6059,8 @@ Public Function obKeineNephropathie%(Pat_id&, Optional obMakroAlb%)
  sql = "select Pat_ID, ZeitPunkt, FertigStGrad, AbKü, LangText,Wert, Einheit, Kommentar,"""" as NB from (" & laborAbfr & " where pat_id = " & Pat_id & ") as labor UNION SELECT Pat_ID, Eingang AS zeitpunkt, BefArt AS FertigStGrad, Abkü, langname AS Langtext, Wert, Einheit, Kommentar,Normbereich as NB " + _
   "FROM laborxus LEFT JOIN laborxwert ON laborxus.RefNr= laborxwert.RefNr " & _
   "WHERE pat_id = " + CStr(Pat_id) + " and not exists (select * from laborneu where pat_id = " + CStr(Pat_id) + " and abkü = laborxwert.Abkü and wert = laborxwert.wert and zeitpunkt > laborxus.Eingang-3 and zeitpunkt < laborxus.Eingang+6)"
-' lAlbS = Dtb.OpenRecordset("select iif(isnull(wert),iif(isnull(kommentar),"""",kommentar),wert) as erg from (" + sql + ") as sql1 where abkü in (""ALBCRE"",""ALBKRE"",""ALBQ"") order by zeitpunkt desc")!erg
- sql1 = "select iif(isnull(wert),iif(isnull(kommentar),"""",kommentar),wert) as erg from (" + sql + ") as sql1 where abkü in (""ALBCRE"",""ALBKRE"",""ALBQ"") order by zeitpunkt desc"
+' lAlbS = Dtb.OpenRecordset("select nz(wert,iif(isnull(kommentar),"""",kommentar)) as erg from (" + sql + ") as sql1 where abkü in (""ALBCRE"",""ALBKRE"",""ALBQ"") order by zeitpunkt desc")!erg
+ sql1 = "select nz(wert,iif(isnull(kommentar),"""",kommentar)) as erg from (" + sql + ") as sql1 where abkü in (""ALBCRE"",""ALBKRE"",""ALBQ"") order by zeitpunkt desc"
  If lies.obMySQL Then sql1 = Replace(sql1, "iif(", "if(")
  raLab.Open sql1, DBCn, adOpenDynamic, adLockReadOnly
  If Not raLab.BOF Then
@@ -6074,8 +6074,8 @@ Public Function obKeineNephropathie%(Pat_id&, Optional obMakroAlb%)
   If CDbl(lAlbS) >= 10 Then Exit Function ' setzen wir mal 10 als Grenze an
  End If
  On Error Resume Next
-' lKreS = Dtb.OpenRecordset("select iif(isnull(wert),iif(isnull(kommentar),"""",kommentar),wert) as erg from (" + sql + ") as sql1 where abkü in (""KREA"",""KREA02"") order by zeitpunkt desc")!erg
- sql1 = "select iif(isnull(wert),iif(isnull(kommentar),"""",kommentar),wert) as erg from (" + sql + ") as sql1 where abkü in (""KREA"", ""KREA02"", ""KRE02"", ""CREAT"") order by zeitpunkt desc"
+' lKreS = Dtb.OpenRecordset("select nz(wert,iif(isnull(kommentar),"""",kommentar)) as erg from (" + sql + ") as sql1 where abkü in (""KREA"",""KREA02"") order by zeitpunkt desc")!erg
+ sql1 = "select nz(wert,iif(isnull(kommentar),"""",kommentar)) as erg from (" + sql + ") as sql1 where abkü in (""KREA"", ""KREA02"", ""KRE02"", ""CREAT"") order by zeitpunkt desc"
  If lies.obMySQL Then sql1 = Replace(sql1, "iif(", "if(")
  Set raLab = Nothing
  raLab.Open sql1, DBCn, adOpenDynamic, adLockReadOnly
@@ -6175,7 +6175,7 @@ Function letzteMed(dc, Pat_id&)
   Else
    dc.Bookmarks!MedBemerkung.Range = raDat!Bemerkung
   End If
-  Tabl.cell(runde, 1).Range = IIf(IsNull(raDat!mmedikament.Value), "", raDat!mmedikament.Value)
+  Tabl.cell(runde, 1).Range = nz(raDat!mmedikament.Value,"")
   Tabl.cell(runde, 2).Range = IIf(IsNull(raDat!mo), "", Replace(Replace(raDat!mo, "«", "½"), "¬", "¼"))
   Tabl.cell(runde, 3).Range = IIf(IsNull(raDat!mi), "", Replace(Replace(raDat!mi, "«", "½"), "¬", "¼"))
   Tabl.cell(runde, 4).Range = IIf(IsNull(raDat!nm), "", Replace(Replace(raDat!nm, "«", "½"), "¬", "¼"))
@@ -7389,12 +7389,12 @@ nochmal1:
   If Not rLP.EOF Then
    If gschl = "m" Or (rLP!unw = "" And rLP!onw = "") Then
     Matr(5, j) = rLP!unm & "-" & rLP!onm
-    Matr(1, j) = Replace(IIf(IsNull(rLP!unm), "", rLP!unm), "1:", "")
-    Matr(2, j) = Replace(IIf(IsNull(rLP!onm), "", rLP!onm), "1:", "")
+    Matr(1, j) = Replace(nz(rLP!unm,""), "1:", "")
+    Matr(2, j) = Replace(nz(rLP!onm,""), "1:", "")
    Else
     Matr(5, j) = rLP!unw & "-" & rLP!onw
-    Matr(1, j) = Replace(IIf(IsNull(rLP!unw), "", rLP!unw), "1:", "")
-    Matr(2, j) = Replace(IIf(IsNull(rLP!onw), "", rLP!onw), "1:", "")
+    Matr(1, j) = Replace(nz(rLP!unw,""), "1:", "")
+    Matr(2, j) = Replace(nz(rLP!onw,""), "1:", "")
    End If
    If Matr(0, j) Like "LDL*" Then Matr(5, j) = "-100"
   End If
@@ -7564,7 +7564,7 @@ nr:
  Tabl.cell(1, 3).Range = "Normbereich"
 ' Exit Sub
 ' ' ls = LS + CStr(zZ) & vbcrlf
-' sql1 = "select * from (SELECT reihe, gruppe, unw, onw, unm, onm, sql1.*, datevalue(zeitpunkt) as Datum, sql1.abkü as sabkü, sql1.einheit as seinheit, sql1.langtext as slangtext from (" + sql + ") as sql1 left join laborparameter on sql1.abkü = laborparameter.abkü and iif(isnull(sql1.einheit) or sql1.einheit="""", ""kA"",sql1.einheit) = iif(isnull(laborparameter.einheit),"""",laborparameter.einheit) where pat_id = " + CStr(Pat_id) + " and (not isnull(wert) or not isnull(kommentar))) as i0 order by gruppe,reihe,datum" ' dateserial(year(zeitpunkt),month(zeitpunkt),day(zeitpunkt))
+' sql1 = "select * from (SELECT reihe, gruppe, unw, onw, unm, onm, sql1.*, datevalue(zeitpunkt) as Datum, sql1.abkü as sabkü, sql1.einheit as seinheit, sql1.langtext as slangtext from (" + sql + ") as sql1 left join laborparameter on sql1.abkü = laborparameter.abkü and iif(isnull(sql1.einheit) or sql1.einheit="""", ""kA"",sql1.einheit) = nz(laborparameter.einheit,"""") where pat_id = " + CStr(Pat_id) + " and (not isnull(wert) or not isnull(kommentar))) as i0 order by gruppe,reihe,datum" ' dateserial(year(zeitpunkt),month(zeitpunkt),day(zeitpunkt))
 ' If lies.obmysql Then sql1 = Replace(Replace(sql1, "datevalue(", "date("), "iif(", "if(")
 ' Set raLW = Nothing
 '' Set rLW = Dtb.OpenRecordset(sql1)
@@ -7576,7 +7576,7 @@ nr:
 ''    If rLaU Is Nothing Then Set rLaU = Dtb.OpenRecordset("select * from (" + sql + ") as sql order by zeitpunkt")
 '    Set raLau = Nothing
 '    raLau.Open "select *,sql.abkü as sabkü, sql.langtext as slangtext from (" & sql & ") as sql order by zeitpunkt", dbcn, adOpenDynamic, adLockReadOnly
-'    Debug.Print "Kein Parametereintrag für: " + CStr(raLW!sabkü) & " " & CStr(IIf(IsNull(raLW!slangtext), "", raLW!slangtext)) + " [" + IIf(IsNull(raLW!seinheit), "", raLW!seinheit) + "]"
+'    Debug.Print "Kein Parametereintrag für: " + CStr(raLW!sabkü) & " " & CStr(nz(raLW!slangtext,"")) + " [" + nz(raLW!seinheit,"") + "]"
 '    Call raLau.Find("Pat_id = " & CStr(raLW!Pat_id) & " and zeitpunkt = cdate(""" & CStr(raLW!Zeitpunkt) & """) and fertigstgrad = """ & CStr(raLW!FertigStGrad) & """ and abkü = """ & CStr(raLW!sabkü) & """", 0, adSearchForward, 1)
     
 '    If Not rLaU.BOF Then
@@ -7623,17 +7623,17 @@ nr:
 '     Tabl.Rows.Add
 '     zZ = zZ + 1
 '    Loop
-'    AktGru = IIf(IsNull(raLW.Fields("Gruppe")), "", raLW.Fields("Gruppe"))
-'    Tabl.cell(aktZ, 1).Range = raLW.Fields("slangtext") 'IIf(IsNull(raLW.Fields("sql.LangText")), "", raLW.Fields("sql.LangText"))
-'    Tabl.cell(aktZ, 2).Range = raLW.Fields("seinheit") 'IIf(IsNull(raLW.Fields("sql.Einheit")), "", raLW.Fields("sql.Einheit"))
+'    AktGru = nz(raLW.Fields("Gruppe"),"")
+'    Tabl.cell(aktZ, 1).Range = raLW.Fields("slangtext") 'nz(raLW.Fields("sql.LangText"),"")
+'    Tabl.cell(aktZ, 2).Range = raLW.Fields("seinheit") 'nz(raLW.Fields("sql.Einheit"),"")
 '    u = -99
 '    o = -99
 '    uNG = ""
 '    oNG = ""
-'    unw = IIf(IsNull(raLW!unw), "", raLW!unw)
-'    onw = IIf(IsNull(raLW!onw), "", raLW!onw)
-'    unm = IIf(IsNull(raLW!unm), "", raLW!unm)
-'    onm = IIf(IsNull(raLW!onm), "", raLW!onm)
+'    unw = nz(raLW!unw,"")
+'    onw = nz(raLW!onw,"")
+'    unm = nz(raLW!unm,"")
+'    onm = nz(raLW!onm,"")
 ''    If instrb(raLW.Fields("sql.Langtext"), "LDL") > 0 Then
 '    If instrb(raLW.Fields("slangtext"), "LDL") > 0 Then
 '     onm = "100"
@@ -7673,8 +7673,8 @@ nr:
 '    Tabl.cell(aktZ, 3) = NB
 '    ' ls = LS + NB & vbcrlf
 '   End If
-''   VorWert = IIf(IsNull(raLW.Fields("sql.LangText")), "", raLW.Fields("sql.LangText"))
-'   VorWert = raLW.Fields("slangtext") 'IIf(IsNull(raLW.Fields("sql.LangText")), "", raLW.Fields("sql.LangText"))
+''   VorWert = nz(raLW.Fields("sql.LangText"),"")
+'   VorWert = raLW.Fields("slangtext") 'nz(raLW.Fields("sql.LangText"),"")
 '   ' ls = LS + ralw.Fields("sql.LangText") & vbcrlf
 '   ' ls = LS + ralw.Fields("sql.Einheit") & vbcrlf
 '   ' ls = LS + format$(ralw!Datum, "dd.mm.yyyy") & vbcrlf
@@ -7691,7 +7691,7 @@ nr:
 '    End If
 '   Loop
    
-'   Tabl.cell(aktZ, AktSp).Range = IIf(IsNull(raLW!Wert), IIf(IsNull(raLW!Kommentar), "", format$(raLW!Zeitpunkt, "dd/mm/yy") + ": " + raLW!Kommentar), Replace(Replace(trim$(IIf(IsNull(raLW!Wert), "", raLW!Wert)), vbcr, ""), vbtab, ""))
+'   Tabl.cell(aktZ, AktSp).Range = IIf(IsNull(raLW!Wert), IIf(IsNull(raLW!Kommentar), "", format$(raLW!Zeitpunkt, "dd/mm/yy") + ": " + raLW!Kommentar), Replace(Replace(trim$(nz(raLW!Wert,"")), vbcr, ""), vbtab, ""))
 '   If instrb(raLW!Kommentar, "manuell") > 0 Then Tabl.cell(aktZ, AktSp).Range.Font.Italic = True
    
 '  End If ' not isnull(ralw![sql!abkü]
@@ -8300,7 +8300,7 @@ Function do_haakt(rHa As ADODB.Recordset)
  Else
   Stop
 '     rHa.Edit
-     rHa!Name = IIf(IsNull(ars!Anrede), "", ars!Anrede + " ") + IIf(IsNull(ars!Titel), "", ars!Titel + " ") + IIf(IsNull(ars!Vorname), "", ars!Vorname + " ") + IIf(IsNull(ars!NachName), "", ars!NachName)
+     rHa!Name = IIf(IsNull(ars!Anrede), "", ars!Anrede + " ") + IIf(IsNull(ars!Titel), "", ars!Titel + " ") + IIf(IsNull(ars!Vorname), "", ars!Vorname + " ") + nz(ars!NachName,"")
      rHa!Anschrift = ars!Straße & ", " & ars!Plz & " " & ars!Ort
      rHa!Telefon = ars!tel1
      If Not IsNull(ars!fax1) And ars!fax1 <> "" Then
@@ -8442,7 +8442,7 @@ fehler:
  AnwPfad = App.path
 #End If
 Call PiepKurz
-Select Case MsgBox("FNr: " + CStr(Err.Number) + vbCrLf + " bei DS Nr. " + CStr(IIf(IsNull(dbnr), "", dbnr)) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vbNullString, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in GetZA/" + AnwPfad)
+Select Case MsgBox("FNr: " + CStr(Err.Number) + vbCrLf + " bei DS Nr. " + CStr(nz(dbnr,"")) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vbNullString, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in GetZA/" + AnwPfad)
  Case vbAbort: Call MsgBox("Höre auf"): End
  Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
  Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
@@ -8553,7 +8553,7 @@ Function Datenbankkontrolle()
   Set hae = Nothing
   hae.Open "select * from hae where kvnr = " & haz!kvnu
   If hae.BOF Then
-   pText = CStr(haz!id) + ": " + CStr(IIf(IsNull(haz!KVNr), "KV-Nr: (Null)", haz!KVNr)) & " " & IIf(IsNull(haz!NachName), "Nachname: (Null)", haz!NachName) & " " & IIf(IsNull(haz!Vorname), "Vorname: (Null)", haz!Vorname) + " in HAE nicht gefunden"
+   pText = CStr(haz!id) + ": " + CStr(nz(haz!KVNr,"KV-Nr: (Null)")) & " " & nz(haz!NachName,"Nachname: (Null)") & " " & nz(haz!Vorname,"Vorname: (Null)") + " in HAE nicht gefunden"
 '   hae1.FindFirst "instr(HAName, """ + haz!Nachname + """) > 0 and instr(HAName, """ + haz!Vorname + """) > 0 and ort = """ + haz!Ort + """"
    Set hae1 = Nothing
    hae1.Open "select * from hae where haname like '%" & haz!NachName & "%' and haname like '%" & haz!Vorname & "%' and ort like '%" & haz!Ort & "%'", HAECn, adOpenStatic, adLockReadOnly
@@ -8573,7 +8573,7 @@ Function Datenbankkontrolle()
     If hae!KVNr <> Replace(haz!KVNr, "/", "") Then Exit Do
    Loop
    If Not obGleich Then
-    Print #32, CStr(haz!id) + ": " + CStr(IIf(IsNull(haz!KVNr), "KV-Nr: (Null)", haz!KVNr)) & " " & IIf(IsNull(haz!NachName), "Nachname: (Null)", haz!NachName) & " " & IIf(IsNull(haz!Vorname), "Vorname: (Null)", haz!Vorname) + " in HAE nicht mit gleichem Namen nicht gefunden"
+    Print #32, CStr(haz!id) + ": " + CStr(nz(haz!KVNr,"KV-Nr: (Null)")) & " " & nz(haz!NachName,"Nachname: (Null)") & " " & nz(haz!Vorname,"Vorname: (Null)") + " in HAE nicht mit gleichem Namen nicht gefunden"
    End If
   End If
   haz.Move 1
@@ -9215,7 +9215,7 @@ Public Function doDiagnosenexport(Optional obTest%)
           op = Format$(3 + 4 + Len(rFa!AbrGb), "000") + "4122" + rFa!AbrGb
           Print #327, ZSU(op)
          End If
-         op = Format$(3 + 4 + Len("TM#" + IIf(IsNull(rFa!TMFNr), "", rFa!TMFNr)), "000") + "4144" + "TM#" + IIf(IsNull(rFa!TMFNr), "", rFa!TMFNr)
+         op = Format$(3 + 4 + Len("TM#" + nz(rFa!TMFNr,"")), "000") + "4144" + "TM#" + nz(rFa!TMFNr,"")
          Print #327, ZSU(op)
          op = Format$(3 + 4 + 8, "000") + "4150" + IIf(rFa!BhFB = 0, "00000000", Format$(rFa!BhFB, "ddmmyyyy"))
          Print #327, ZSU(op)
@@ -9225,12 +9225,12 @@ Public Function doDiagnosenexport(Optional obTest%)
          Print #327, ZSU(op)
          If 1 = 1 Then
           Dim Üw$
-          Üw = IIf(IsNull(rFa!ÜbwV), "", rFa!ÜbwV)
+          Üw = nz(rFa!ÜbwV,"")
           If Üw <> "" Then
            op = Format$(3 + 4 + Len(Üw), "000") + "4218" + Üw
            Print #327, ZSU(op)
           End If
-          Üw = IIf(IsNull(rFa!AndÜw), "", rFa!AndÜw)
+          Üw = nz(rFa!AndÜw,"")
           If Üw <> "" Then
            op = Format$(3 + 4 + Len(Üw), "000") + "4219" + Üw
            Print #327, ZSU(op)
@@ -9317,7 +9317,7 @@ Public Function doDiagnosenexport(Optional obTest%)
           End If
          End If ' 1 = 0
 ' 3631
-         op = Format$(3 + 4 + Len(Trim$(CStr(IIf(IsNull(n!Weggeldzone), "", n!Weggeldzone)))), "000") + "3631" + Trim$(CStr(IIf(IsNull(n!Weggeldzone), "", n!Weggeldzone)))
+         op = Format$(3 + 4 + Len(Trim$(CStr(nz(n!Weggeldzone,"")))), "000") + "3631" + Trim$(CStr(nz(n!Weggeldzone,"")))
          Print #327, ZSU(op)
         End If ' 1 = 0
        End If ' not n.bof
@@ -9450,7 +9450,7 @@ eintragsfehler:
  Next tonRunde
  Call VerzPrüf(üVerz)
  Open üVerz + "Eintragsfehler" For Append As #26
- Print #26, CStr(rDT!Pat_id) & " " & CStr(rDT!GesName) & " " & IIf(IsNull(rDT!ICD), "", rDT!ICD) & " " & IIf(IsNull(rDT!DiagText), "", rDT!DiagText)
+ Print #26, CStr(rDT!Pat_id) & " " & CStr(rDT!GesName) & " " & nz(rDT!ICD,"") & " " & nz(rDT!DiagText,"")
  Close #26
  Resume Next
 schluss:

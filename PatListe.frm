@@ -1797,7 +1797,7 @@ Private Sub Form_Load()
    .Text = rDPat!Vorname
    .CellBackColor = cbcol
    .col = .col + 1
-   .Text = IIf(IsNull(rDPat!kurzname), "", rDPat!kurzname)
+   .Text = nz(rDPat!kurzname,"")
    .CellBackColor = cbcol
    .col = .col + 1
    .Text = Replace$(Replace$(Replace$(rDPat!Notiz, "DMP", ""), &HA, " "), &HD, " ")

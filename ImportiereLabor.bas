@@ -537,8 +537,8 @@ Dim collXpids As Collection
           If obB Then
            rLo(UBound(rLo)).Erkl‰rung = IIf(IsNull(rLo(UBound(rLo)).Erkl‰rung), vNS, rLo(UBound(rLo)).Erkl‰rung & vbCrLf) & Inhalt
           Else ' obB Then
-           rLw(UBound(rLw)).Erkl‰rung = IIf(IsNull(rLw(UBound(rLw)).Erkl‰rung), vNS, rLw(UBound(rLw)).Erkl‰rung) & Inhalt
-           rLw2(UBound(rLw2)).e.Erkl‰rung = IIf(IsNull(rLw2(UBound(rLw2)).e.Erkl‰rung), vNS, rLw2(UBound(rLw2)).e.Erkl‰rung) & Inhalt
+           rLw(UBound(rLw)).Erkl‰rung = nz(rLw(UBound(rLw)).Erkl‰rung,vNS) & Inhalt
+           rLw2(UBound(rLw2)).e.Erkl‰rung = nz(rLw2(UBound(rLw2)).e.Erkl‰rung,vNS) & Inhalt
           End If ' obB Then
 #End If
          Case 8480
@@ -551,8 +551,8 @@ Dim collXpids As Collection
             End If
             If InStrB(Inhalt, "Keimzahl") > 0 Then keimz = -1
            Else
-            rLw(UBound(rLw)).Kommentar = IIf(IsNull(rLw(UBound(rLw)).Kommentar), vNS, rLw(UBound(rLw)).Kommentar) & Inhalt
-            rLw2(UBound(rLw)).e.Kommentar = IIf(IsNull(rLw2(UBound(rLw2)).e.Kommentar), vNS, rLw2(UBound(rLw2)).e.Kommentar) & Inhalt
+            rLw(UBound(rLw)).Kommentar = nz(rLw(UBound(rLw)).Kommentar,vNS) & Inhalt
+            rLw2(UBound(rLw)).e.Kommentar = nz(rLw2(UBound(rLw2)).e.Kommentar,vNS) & Inhalt
            End If
 #End If
          Case 8490:
@@ -606,7 +606,7 @@ Case 9202:
           Dim neuSatzID&
           If Not rs Is Nothing Then If rs.State = 1 Then rs.Close
           myFrag rs, "SELECT MAX(satzid) msatzid FROM `" & vorsil & "saetze`"
-          If Not rs.BOF Then neuSatzID = IIf(IsNull(rs!msatzid), 0, rs!msatzid)
+          If Not rs.BOF Then neuSatzID = nz(rs!msatzid,0)
 
 ' Erst ALLE " & vorsil & "us-RefNrs sichern:
 Dim arrRefNrs() As Long
@@ -1391,8 +1391,8 @@ End Function ' LaborDirektImport
 '          If obB Then
 '           rLo(UBound(rLo)).Erkl‰rung = IIf(IsNull(rLo(UBound(rLo)).Erkl‰rung), vNS, rLo(UBound(rLo)).Erkl‰rung & vbCrLf) & Inhalt
 '          Else
-'           rLw(UBound(rLw)).Erkl‰rung = IIf(IsNull(rLw(UBound(rLw)).Erkl‰rung), vNS, rLw(UBound(rLw)).Erkl‰rung) & Inhalt
-'           rLw2(UBound(rLw2)).e.Erkl‰rung = IIf(IsNull(rLw2(UBound(rLw2)).e.Erkl‰rung), vNS, rLw2(UBound(rLw2)).e.Erkl‰rung) & Inhalt
+'           rLw(UBound(rLw)).Erkl‰rung = nz(rLw(UBound(rLw)).Erkl‰rung,vNS) & Inhalt
+'           rLw2(UBound(rLw2)).e.Erkl‰rung = nz(rLw2(UBound(rLw2)).e.Erkl‰rung,vNS) & Inhalt
 '          End If
 '         Case 8480
 '           If obB Then
@@ -1403,8 +1403,8 @@ End Function ' LaborDirektImport
 '            End If
 '            If InStrB(Inhalt, "Keimzahl") > 0 Then keimz = -1
 '           Else
-'            rLw(UBound(rLw)).Kommentar = IIf(IsNull(rLw(UBound(rLw)).Kommentar), vNS, rLw(UBound(rLw)).Kommentar) & Inhalt
-'            rLw2(UBound(rLw)).e.Kommentar = IIf(IsNull(rLw2(UBound(rLw2)).e.Kommentar), vNS, rLw2(UBound(rLw2)).e.Kommentar) & Inhalt
+'            rLw(UBound(rLw)).Kommentar = nz(rLw(UBound(rLw)).Kommentar,vNS) & Inhalt
+'            rLw2(UBound(rLw)).e.Kommentar = nz(rLw2(UBound(rLw2)).e.Kommentar,vNS) & Inhalt
 '           End If
 '         Case 8490:
 ''          rLU!auftrhinw = inhalt ' weiﬂ noch nicht, auf welcher Ebene relevant
@@ -1446,7 +1446,7 @@ End Function ' LaborDirektImport
 '          Dim neuSatzID&
 '          If Not rs Is Nothing Then If rs.State = 1 Then rs.Close
 '          myFrag rs, "SELECT MAX(satzid) msatzid FROM `" & vorsil & "saetze`"
-'          If Not rs.BOF Then neuSatzID = IIf(IsNull(rs!msatzid), 0, rs!msatzid)
+'          If Not rs.BOF Then neuSatzID = nz(rs!msatzid,0)
 '          For i = 1 To UBound(rLu)
 '           rLu(i).SatzID = neuSatzID
 '           If Not debugohneSpeichern Then

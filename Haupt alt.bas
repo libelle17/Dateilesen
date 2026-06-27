@@ -1075,7 +1075,7 @@ Public Function ProgrammLauf(obAbbruch%, Optional Cpt$, Optional NichtÄndern%) A
   End If ' err.number <> 0 nach connection
  Next i
  On Error GoTo fehler
- Cpt = IIf(IsNull(rsA!Computer), "", rsA!Computer)
+ Cpt = nz(rsA!Computer,"")
  If rsA!abbruch = obAbbruch Then
   ProgrammLauf = True
  ElseIf Not NichtÄndern Then
