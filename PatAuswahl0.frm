@@ -431,7 +431,7 @@ Private Sub Angeforderte_Click(Index As Integer)
         "f.auftrag, f.verdacht, f.befund FROM faelle f LEFT JOIN namen n ON f.pat_id = n.pat_id LEFT JOIN tmbrie b ON f.pat_id = b.pat_id AND name LIKE '%brief%' AND b.zeitpunkt > f.bhfb LEFT JOIN `faxeinp`.`outa` o ON o.pid = f.pat_id AND o.transe > f.bhfb AND o.docname LIKE '%brief% ' WHERE (auftrag LIKE '%beten%' OR auftrag LIKE '%bitte%' OR verdacht LIKE '%beten%' OR verdacht LIKE '%bitte%' OR befund LIKE '%beten%' OR befund LIKE '%bitte%') AND ISNULL(b.name) AND ISNULL(o.transe) GROUP BY f.pat_id) i WHERE " & IIf(Index = 0, "tkz", "gsz") & "<>0 ORDER BY pat_id"
  If Not rs.BOF Then
   Do While Not rs.EOF
-   VorBr = VorBr & IIf(VorBr = "", "", vbCrLf) & Left$(rs!Pat_id & Space$(1.7 * (6 - Len(rs!Pat_id))) & " " & Left$(rs!name, 20) & Space$(IIf(Len(rs!name) >= 20, 1, 1.5 * (20 - Len(rs!name)))) & "   (" & IIf(rs!gsz <> 0, IIf(rs!gsl > rs!tkl Or (rs!gsz > (3 * rs!Tkz)), " GS: ", " gs: ") & rs!gsz & " K.,zul.: " & Format(rs!gsl, "Dd.mm.yy") & IIf(rs!Tkz <> 0, ", ", ""), Space$(40)) & IIf(rs!Tkz <> 0, IIf(rs!tkl > rs!gsl Or (rs!Tkz > (3 * rs!gsz)), "  TK: ", "  tk: ") & rs!Tkz & " K.,zul.: " & Format(rs!tkl, "Dd.mm.yy"), Space$(40)) & ")     " & rs!BhFB & "          " & rs!Auftrag & " " & rs!Verdacht & " " & rs!Befund, 175)
+   VorBr = VorBr & IIf(VorBr = "", "", vbCrLf) & left$(rs!Pat_id & Space$(1.7 * (6 - Len(rs!Pat_id))) & " " & left$(rs!name, 20) & Space$(IIf(Len(rs!name) >= 20, 1, 1.5 * (20 - Len(rs!name)))) & "   (" & IIf(rs!gsz <> 0, IIf(rs!gsl > rs!tkl Or (rs!gsz > (3 * rs!Tkz)), " GS: ", " gs: ") & rs!gsz & " K.,zul.: " & Format(rs!gsl, "Dd.mm.yy") & IIf(rs!Tkz <> 0, ", ", ""), Space$(40)) & IIf(rs!Tkz <> 0, IIf(rs!tkl > rs!gsl Or (rs!Tkz > (3 * rs!gsz)), "  TK: ", "  tk: ") & rs!Tkz & " K.,zul.: " & Format(rs!tkl, "Dd.mm.yy"), Space$(40)) & ")     " & rs!BhFB & "          " & rs!Auftrag & " " & rs!Verdacht & " " & rs!Befund, 175)
    rs.MoveNext
   Loop
  End If ' Not rs.BOF
@@ -479,7 +479,7 @@ If Me.FaellepHA.ListCount > 0 Then
  Inx = Me.FaellepHA.ListIndex
  If Inx < 0 Then Inx = 0
  If Inx > Me.FaellepHA.ListCount Then Inx = Me.FaellepHA.ListCount
- Me.Pat_id = Left$(Me.FaellepHA.List(Inx), InStr(Me.FaellepHA.List(Inx), " ") - 1)
+ Me.Pat_id = left$(Me.FaellepHA.List(Inx), InStr(Me.FaellepHA.List(Inx), " ") - 1)
 End If
 End Sub ' FaellepHA_Click
 
@@ -845,7 +845,7 @@ Private Sub Form_Load()
  DoEvents
  Exit Sub
 fehler:
-Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description + vbCrLf + "Fehlerposition: " + CStr(FPos), vbAbortRetryIgnore, "Aufgefangener Fehler in form_load/" + App.path)
+Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + CStr(nz(Err.Source, "")) + vbCrLf + "Description: " + Err.Description + vbCrLf + "Fehlerposition: " + CStr(FPos), vbAbortRetryIgnore, "Aufgefangener Fehler in form_load/" + App.path)
  Case vbAbort: Call MsgBox("Höre auf"): ProgEnde
  Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
  Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
@@ -894,14 +894,14 @@ fehler:
 ErrDescr = Err.Description
 ErrNumber = Err.Number
 ErrLastDllError = Err.LastDllError
-ErrSource = Err.source
+ErrSource = Err.Source
 ' Der ODBC-Treiber unterstützt die angeforderten Eigenschaften nicht.
 ' -2147217887
 If InStrB(ErrDescr, "Der ODBC-Treiber unterstützt") <> 0 Then
  Call DBCnOpen
  Resume
 End If
-Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description + vbCrLf + "Fehlerposition: " + CStr(FPos), vbAbortRetryIgnore, "Aufgefangener Fehler in getPat_id/" + App.path)
+Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + CStr(nz(Err.Source, "")) + vbCrLf + "Description: " + Err.Description + vbCrLf + "Fehlerposition: " + CStr(FPos), vbAbortRetryIgnore, "Aufgefangener Fehler in getPat_id/" + App.path)
  Case vbAbort: Call MsgBox("Höre auf"): ProgEnde
  Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
  Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
@@ -970,7 +970,7 @@ If Err.Number = -2147467259 Or Err.Number = -2147217887 Then ' Server has gone a
  Call DBCnOpen
  Resume
 End If
-Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description + vbCrLf + "Fehlerposition: " + CStr(FPos), vbAbortRetryIgnore, "Aufgefangener Fehler in AuswName/" + App.path)
+Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + CStr(nz(Err.Source, "")) + vbCrLf + "Description: " + Err.Description + vbCrLf + "Fehlerposition: " + CStr(FPos), vbAbortRetryIgnore, "Aufgefangener Fehler in AuswName/" + App.path)
  Case vbAbort: Call MsgBox("Höre auf"): ProgEnde
  Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
  Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
@@ -1009,7 +1009,7 @@ Function AuswPat_id(frm As PatAuswahl)
  Loop
  Exit Function
 fehler:
-Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description + vbCrLf + "Fehlerposition: " + CStr(FPos), vbAbortRetryIgnore, "Aufgefangener Fehler in Auswpat_id/" + App.path)
+Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + CStr(nz(Err.Source, "")) + vbCrLf + "Description: " + Err.Description + vbCrLf + "Fehlerposition: " + CStr(FPos), vbAbortRetryIgnore, "Aufgefangener Fehler in Auswpat_id/" + App.path)
  Case vbAbort: Call MsgBox("Höre auf"): ProgEnde
  Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
  Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
@@ -1054,8 +1054,8 @@ Function AuswHA(frm As PatAuswahl)
          "UNION SELECT """" AS dbnr, """" AS bstelle, """" AS anrede, """" AS überschrift, name AS haname, ort, kvnr, telefon AS tel1, """" AS tel2, """" AS tel3, """" AS tel4, """" AS fax1, fax AS fax1k,"""" AS fax2,"""" AS fax2k, """" AS fax3, """" AS fax3k, """" AS email, fachgruppe AS zulg, """" AS arzttyp, """" AS gemmit, """" AS beme, -2 AS dmpt2, -2 AS dmpt1, 0 AS geschlecht, titel, vorname, name AS nachname, strasse, plz FROM `liuez` WHERE kvnr = '" & rKVNr!KVNr & "'"
      sql = "SELECT * FROM (" & _
           "SELECT GROUP_CONCAT(DISTINCT nachname) haname, ort, CAST(LEFT(bsnr,7) AS char) kvnr, REPLACE(tel,'-','') tel1, REPLACE(fax,'-','') fax1, titel, vorname, nachname, CONCAT(straße,' ',hausnr) straße, plz FROM " & HADBName & ".bs LEFT JOIN " & HADBName & ".ort ON ort_id = idort LEFT JOIN " & HADBName & ".tel ON tel.bs_id = idbs LEFT JOIN " & HADBName & ".fax ON fax.bs_id = idbs LEFT JOIN " & HADBName & ".arzt_has_bs ahb ON ahb.bs_id = idbs LEFT JOIN " & HADBName & ".arzt a ON a.idarzt = ahb.arzt_id LEFT JOIN " & HADBName & ".titel t ON t.idtitel = a.titel_id WHERE bsnr = '" & IIf(IsNull(rKVNr!KVNr), "000000", rKVNr!KVNr) & "00' " & _
-          "UNION SELECT haname, ort, CAST(kvnu AS char) kvnr, tel1, fax1, titel, vorname, nachname, straße, plz FROM `kvaerzte`.`hae` WHERE kvnr = '" & Left$(IIf(IsNull(rKVNr!KVNr), "000000", rKVNr!KVNr), 2) & "/" & Mid$(IIf(IsNull(rKVNr!KVNr), "000000", rKVNr!KVNr), 3, 5) & "' " & _
-          "UNION SELECT haname, ort, CAST(kvnu AS char) kvnr, tel1, fax1, titel, vorname, nachname, straße, plz FROM `kvaerzte`.`haealt` WHERE kvnr = '" & Left$(IIf(IsNull(rKVNr!KVNr), "000000", rKVNr!KVNr), 2) & "/" & Mid$(IIf(IsNull(rKVNr!KVNr), "000000", rKVNr!KVNr), 3, 5) & "' " & _
+          "UNION SELECT haname, ort, CAST(kvnu AS char) kvnr, tel1, fax1, titel, vorname, nachname, straße, plz FROM `kvaerzte`.`hae` WHERE kvnr = '" & left$(IIf(IsNull(rKVNr!KVNr), "000000", rKVNr!KVNr), 2) & "/" & Mid$(IIf(IsNull(rKVNr!KVNr), "000000", rKVNr!KVNr), 3, 5) & "' " & _
+          "UNION SELECT haname, ort, CAST(kvnu AS char) kvnr, tel1, fax1, titel, vorname, nachname, straße, plz FROM `kvaerzte`.`haealt` WHERE kvnr = '" & left$(IIf(IsNull(rKVNr!KVNr), "000000", rKVNr!KVNr), 2) & "/" & Mid$(IIf(IsNull(rKVNr!KVNr), "000000", rKVNr!KVNr), 3, 5) & "' " & _
           "UNION SELECT name haname, ort, CAST(kvnr AS char) kvnr, telefon AS tel1, telefax AS fax1, titel, vorname, nachname, straße, plz FROM `hausaerzte` WHERE kvnr = '" & IIf(IsNull(rKVNr!KVNr), "000000", rKVNr!KVNr) & "' " & _
           "UNION SELECT name haname, ort, CAST(kvnr AS char) kvnr, telefon AS tel1, '' AS fax1, titel, vorname, name AS nachname, strasse, plz FROM `aktlue` WHERE kvnro = '" & IIf(IsNull(rKVNr!KVNr), "000000", rKVNr!KVNr) & "' " & _
           ") i WHERE NOT ISNULL(nachname) ORDER BY haname DESC;"
@@ -1094,7 +1094,7 @@ hamma:
  syscmd 5
  Exit Function
 fehler:
-Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description + vbCrLf + "Fehlerposition: " + CStr(FPos), vbAbortRetryIgnore, "Aufgefangener Fehler in AuswHA/" + App.path)
+Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + CStr(nz(Err.Source, "")) + vbCrLf + "Description: " + Err.Description + vbCrLf + "Fehlerposition: " + CStr(FPos), vbAbortRetryIgnore, "Aufgefangener Fehler in AuswHA/" + App.path)
  Case vbAbort: Call MsgBox("Höre auf"): ProgEnde
  Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
  Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
@@ -1129,7 +1129,7 @@ hamma:
  syscmd 5
  Exit Function
 fehler:
-Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description + vbCrLf + "Fehlerposition: " + CStr(FPos), vbAbortRetryIgnore, "Aufgefangener Fehler in AuswVorlage/" + App.path)
+Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + CStr(nz(Err.Source, "")) + vbCrLf + "Description: " + Err.Description + vbCrLf + "Fehlerposition: " + CStr(FPos), vbAbortRetryIgnore, "Aufgefangener Fehler in AuswVorlage/" + App.path)
  Case vbAbort: Call MsgBox("Höre auf"): ProgEnde
  Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
  Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
@@ -1166,7 +1166,7 @@ Private Sub HAAusw_Change()
 End If ' kvnr <> vns
 Exit Sub
 fehler:
-Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description + vbCrLf + "Fehlerposition: " + CStr(FPos), vbAbortRetryIgnore, "Aufgefangener Fehler in HAAusw_Change/" + App.path)
+Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + CStr(nz(Err.Source, "")) + vbCrLf + "Description: " + Err.Description + vbCrLf + "Fehlerposition: " + CStr(FPos), vbAbortRetryIgnore, "Aufgefangener Fehler in HAAusw_Change/" + App.path)
  Case vbAbort: Call MsgBox("Höre auf"): ProgEnde
  Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
  Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
@@ -1205,7 +1205,7 @@ Private Sub do_Pat_ID_Change(Optional mitVorDat%)
   On Error Resume Next
   Dim tStr$
   tStr = Me.Pat_id
-  If InStrB(tStr, " |") Then tStr = Left(tStr, InStr(tStr, " |"))
+  If InStrB(tStr, " |") Then tStr = left(tStr, InStr(tStr, " |"))
   If Not IsNumeric(tStr) Then
    innen = True
    Me.PatName = Me.Pat_id
@@ -1432,7 +1432,7 @@ fehler:
 #Else
  AnwPfad = App.path
 #End If
-Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in do_Pat_ID_Change()/" + AnwPfad)
+Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + CStr(nz(Err.Source, "")) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in do_Pat_ID_Change()/" + AnwPfad)
  Case vbAbort: Call MsgBox("Höre auf"): ProgEnde
  Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
  Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
@@ -1443,7 +1443,7 @@ Public Function getPid(Text$)
  Dim pos&
  pos = InStr(Text, " ")
  If pos > 0 Then
-  getPid = Left$(Me.Pat_id, pos - 1)
+  getPid = left$(Me.Pat_id, pos - 1)
  Else
   getPid = Me.Pat_id
  End If

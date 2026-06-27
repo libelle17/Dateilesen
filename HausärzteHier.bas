@@ -25,7 +25,7 @@ fehler:
 #Else
  AnwPfad = App.path
 #End If
- Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in dbtest/" + AnwPfad)
+ Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + CStr(nz(Err.Source, "")) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in dbtest/" + AnwPfad)
   Case vbAbort: Call MsgBox("Höre auf"): ProgEnde
   Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
   Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
@@ -37,7 +37,7 @@ Function HANrS$(HANr) ' wird z.Zt. nicht verwendet, 7.1.06
  If IsNull(HANr) Then
   HANrS = vNS
  ElseIf InStrB(CStr(HANr), "/") = 0 Then
-  HANrS = Left$(HANr, 2) + "/" + Right$(HANr, 5)
+  HANrS = left$(HANr, 2) + "/" + Right$(HANr, 5)
  Else
   HANrS = CStr(HANr)
  End If
@@ -72,7 +72,7 @@ Sub HAzählen()
  '  HA.FindFirst "KVNr = '" & pa!HANr & "'"
    Set HA = Nothing
 '   Call HA.Open("SELECT * FROM `hae` WHERE kvnr = '" & Left$(replace$(pa!KVNr, "/", ""), 7) & "'", DBCn, adOpenDynamic, adLockOptimistic)
-   myFrag HA, "SELECT * FROM `hae` WHERE kvnr = '" & Left$(REPLACE$(pa!KVNr, "/", ""), 7) & "'"
+   myFrag HA, "SELECT * FROM `hae` WHERE kvnr = '" & left$(REPLACE$(pa!KVNr, "/", ""), 7) & "'"
    If IsNull(pa!HANr) Or pa!HANr = vNS Then
     Na = Na + 1
    Else
@@ -83,7 +83,7 @@ Sub HAzählen()
      HA.Update
     Else
      ng = ng + 1
-     FText = FText + vbCr + "  " + GesNamFn(pa) & " " & Left$(REPLACE$(pa!HANr, "/", ""), 7)
+     FText = FText + vbCr + "  " + GesNamFn(pa) & " " & left$(REPLACE$(pa!HANr, "/", ""), 7)
     End If
    End If
    pa.MoveNext

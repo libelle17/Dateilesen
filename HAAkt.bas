@@ -87,7 +87,7 @@ Public Function SHFolder(art&)
    RetVal = SHGetFolderPath(0, art, 0&, SHGFP_TYPE_CURRENT, Buffer)
    'Fehlgeschlagen oder Falsches Betriebsystem ?
    If RetVal = S_OK Then
-     SHFolder = Left$(Buffer, InStr(1, Buffer, vbNullChar) - 1)
+     SHFolder = left$(Buffer, InStr(1, Buffer, vbNullChar) - 1)
    End If
 '   MsgBox Left$(Buffer, InStr(1, Buffer, vbNullChar) - 1)
 End Function ' SHFolder(art&)
@@ -124,7 +124,7 @@ fehler:
 #Else
  AnwPfad = App.path
 #End If
-Select Case MsgBox("FNr: " & FNr & ", ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in datFormZ/" + AnwPfad)
+Select Case MsgBox("FNr: " & FNr & ", ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + CStr(nz(Err.Source, "")) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in datFormZ/" + AnwPfad)
  Case vbAbort: Call MsgBox("Höre auf"): ProgEnde
  Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
  Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
@@ -246,7 +246,7 @@ gefunden:
        myFrag rHa, "SELECT table_name FROM information_schema.`TABLES` T WHERE table_schema = '" & fld & "' AND table_name = 'hae'", adOpenStatic, MyCn
  '      If Err.Number = 0 Then
        If Not rHa.BOF Then
-        KVÄDB = Left$(CnStr, Len(CnStr) - 1) & ";DATABASE=" & fld & ";"""
+        KVÄDB = left$(CnStr, Len(CnStr) - 1) & ";DATABASE=" & fld & ";"""
         obenthalten = True
         Exit Do
        Else
@@ -293,7 +293,7 @@ gefunden:
           obüberhaupt = True
           Set QCn(UBound(QCn)) = New ADODB.Connection
           Set HCn(UBound(HCn)) = New ADODB.Connection
-          QCns(UBound(QCns)) = Left$(CnStr, Len(CnStr) - 1) & ";DATABASE=" & fld & ";"""
+          QCns(UBound(QCns)) = left$(CnStr, Len(CnStr) - 1) & ";DATABASE=" & fld & ";"""
           HCns(UBound(HCns)) = KVÄDB
           QCn(UBound(QCn)).ConnectionString = QCns(UBound(QCns))
           HCn(UBound(HCn)).ConnectionString = KVÄDB
@@ -453,7 +453,7 @@ gefunden:
     If IsNull(rEx.Fields(7)) Then Exit Do ' 8.1.08
     If rEx.Fields(0) <> vNS And Not IsNumeric(rEx.Fields(0)) Then
      f7 = REPLACE(REPLACE(REPLACE(REPLACE(rEx.Fields(7), "-", vNS), "/", vNS), " ", vNS), "+", "00")
-     If Left$(f7, 1) <> "0" And f7 <> vNS Then
+     If left$(f7, 1) <> "0" And f7 <> vNS Then
       If Len(f7) < 7 Then
        f7 = aktVorw & f7
       Else
@@ -461,7 +461,7 @@ gefunden:
       End If
      End If
      f8 = REPLACE(REPLACE(REPLACE(REPLACE(rEx.Fields(8), "-", vNS), "/", vNS), " ", vNS), "+", "00")
-     If Left$(f8, 1) <> "0" And f8 <> vNS Then
+     If left$(f8, 1) <> "0" And f8 <> vNS Then
       If Len(f8) < 7 Then
        f8 = aktVorw & f8
       Else
@@ -494,16 +494,16 @@ gefunden:
       Dim telef$(), faxe$()
 '      tel1 = telef(0)
       tel1 = vNS: tel2 = vNS: tel3 = vNS: tel4 = vNS
-      If Not IsNull(rhae!Tel) Then
-       SplitNeu rhae!Tel, ",", telef
+      If Not IsNull(rhae!TEL) Then
+       SplitNeu rhae!TEL, ",", telef
        If UBound(telef) >= 0 Then tel1 = telef(0)
        If UBound(telef) > 0 Then tel2 = telef(1)
        If UBound(telef) > 1 Then tel3 = telef(2)
        If UBound(telef) > 2 Then tel4 = telef(3)
       End If
       fax1 = vNS: fax2 = vNS: fax3 = vNS
-      If Not IsNull(rhae!Fax) Then
-       SplitNeu rhae!Fax, ",", faxe
+      If Not IsNull(rhae!fax) Then
+       SplitNeu rhae!fax, ",", faxe
        If UBound(faxe) >= 0 Then fax1 = faxe(0)
        If UBound(faxe) > 0 Then fax2 = faxe(1)
        If UBound(faxe) > 1 Then fax3 = faxe(2)
@@ -539,7 +539,7 @@ gefunden:
      If Not rhae.BOF And Not IsNull(rhae!kvnu) Then
       If Not IsNull(rhae!zulg) Then zulg = rhae!zulg Else zulg = vNS
       anrede = rhae!anrede
-      If Not IsNull(rhae!kvnu) Then KVNr = Left$(rhae!kvnu, 7) Else KVNr = vNS
+      If Not IsNull(rhae!kvnu) Then KVNr = left$(rhae!kvnu, 7) Else KVNr = vNS
       geschlecht = rhae!geschlecht
       If Not IsNull(rhae!gemmit) Then gemmit = rhae!gemmit Else gemmit = vNS
       If Not IsNull(rhae!email) Then email = rhae!email Else email = vNS
@@ -574,17 +574,17 @@ gefunden:
       If rs.EOF Then
        sqlakt = "INSERT INTO `" & LIUET & "` (name,vorname,titelt,fachgruppe,strasse,plz,ort,telefon,fax,kvnr,DBNr, BStelle, anrede, tel1, tel2, tel3, tel4, fax1, fax2, fax3, email, zulg, arzttyp, gemmit, beme, dmpt2, dmpt1, geschlecht, titel, ursp, aktzeit) VALUES (" & "'" & rF0 & "','" & rF1 & _
                 "','" & rEx.Fields(2) & "','" & rEx.Fields(3) & "','" & rEx.Fields(4) & "','" & rEx.Fields(5) & "','" & _
-                rEx.Fields(6) & "','" & f7 & "','" & f8 & "'," & IIf(KVNr = "", "null", "'" & REPLACE$(KVNr, " ", "") & "'") & ",'" & DBNr & "','" & BStelle & "','" & anrede & "','" & tel1 & "','" & tel2 & "','" & tel3 & "','" & tel4 & "','" & fax1 & "','" & fax2 & "','" & fax3 & "','" & email & "','" & zulg & "','" & UCase$(Left$(arzttyp, 2)) & "','" & gemmit & "','" & beme & "'," & Abs(dmpt2) & "," & Abs(dmpt1) & ",'" & Left$(geschlecht, 1) & "','" & Titel & "','xls'," & Format(Now(), "yymmddHHMMSS") & ");"
+                rEx.Fields(6) & "','" & f7 & "','" & f8 & "'," & IIf(KVNr = "", "null", "'" & REPLACE$(KVNr, " ", "") & "'") & ",'" & DBNr & "','" & BStelle & "','" & anrede & "','" & tel1 & "','" & tel2 & "','" & tel3 & "','" & tel4 & "','" & fax1 & "','" & fax2 & "','" & fax3 & "','" & email & "','" & zulg & "','" & UCase$(left$(arzttyp, 2)) & "','" & gemmit & "','" & beme & "'," & Abs(dmpt2) & "," & Abs(dmpt1) & ",'" & left$(geschlecht, 1) & "','" & Titel & "','xls'," & Format(Now(), "yymmddHHMMSS") & ");"
       Else ' rs.EOF
        If pos <> 0 Then
         rF0 = rF0 & "%"
        End If
        If KVNr = vNS Then
 '        sqlakt = "UPDATE `" & liuet & "` SET titelt = '" & rEx.Fields(2) & "', fachgruppe='" & rEx.Fields(3) & "',strasse='" & rEx.Fields(4) & "',plz='" & rEx.Fields(5) & "',ort='" & rEx.Fields(6) & "',telefon='" & f7 & "',fax='" & f8 & "',aktdat=" & datformZ(Now, True) & ",DBNr='" & DBNr & "',BStelle='" & BStelle & "',Anrede='" & anrede & "',tel1='" & tel1 & "',tel2='" & tel2 & "',tel3='" & tel3 & "',tel4='" & tel4 & "',fax2='" & fax2 & "',fax3='" & fax3 & "',email='" & email & "',zulg='" & zulg & "',arzttyp='" & UCase$(Left$(arzttyp, 2)) & "',gemmit='" & gemmit & "',beme='" & beme & "',dmpt2=" & Abs(dmpt2) & ",dmpt1=" & Abs(dmpt1) & ",geschlecht='" & Left$(geschlecht, 1) & "',titel='" & Titel & "' WHERE name LIKE '" & rF0 & "' AND vorname = '" & rF1 & "'"
-         sqlakt = "UPDATE `" & LIUET & "` SET titelt = '" & rEx.Fields(2) & "', fachgruppe='" & rEx.Fields(3) & "',strasse='" & rEx.Fields(4) & "',ort='" & rEx.Fields(6) & "',fax='" & f8 & "',DBNr='" & DBNr & "',BStelle='" & BStelle & "',Anrede='" & anrede & "',tel1='" & tel1 & "',tel2='" & tel2 & "',tel3='" & tel3 & "',tel4='" & tel4 & "',fax2='" & fax2 & "',fax3='" & fax3 & "',email='" & email & "',zulg='" & zulg & "',arzttyp='" & UCase$(Left$(arzttyp, 2)) & "',gemmit='" & gemmit & "',beme='" & beme & "',dmpt2=" & Abs(dmpt2) & ",dmpt1=" & Abs(dmpt1) & ",geschlecht='" & Left$(geschlecht, 1) & "',titel='" & Titel & "',aktzeit=" & Format(Now(), "yymmddHHMMSS") & " WHERE name LIKE '" & rF0 & "' AND vorname = '" & rF1 & "' AND plz ='" & rEx.Fields(5) & "' AND telefon = '" & f7 & "'"
+         sqlakt = "UPDATE `" & LIUET & "` SET titelt = '" & rEx.Fields(2) & "', fachgruppe='" & rEx.Fields(3) & "',strasse='" & rEx.Fields(4) & "',ort='" & rEx.Fields(6) & "',fax='" & f8 & "',DBNr='" & DBNr & "',BStelle='" & BStelle & "',Anrede='" & anrede & "',tel1='" & tel1 & "',tel2='" & tel2 & "',tel3='" & tel3 & "',tel4='" & tel4 & "',fax2='" & fax2 & "',fax3='" & fax3 & "',email='" & email & "',zulg='" & zulg & "',arzttyp='" & UCase$(left$(arzttyp, 2)) & "',gemmit='" & gemmit & "',beme='" & beme & "',dmpt2=" & Abs(dmpt2) & ",dmpt1=" & Abs(dmpt1) & ",geschlecht='" & left$(geschlecht, 1) & "',titel='" & Titel & "',aktzeit=" & Format(Now(), "yymmddHHMMSS") & " WHERE name LIKE '" & rF0 & "' AND vorname = '" & rF1 & "' AND plz ='" & rEx.Fields(5) & "' AND telefon = '" & f7 & "'"
        Else
 '        sqlakt = "UPDATE `" & liuet & "` SET titelt = '" & rEx.Fields(2) & "', fachgruppe='" & rEx.Fields(3) & "',strasse='" & rEx.Fields(4) & "',plz='" & rEx.Fields(5) & "',ort='" & rEx.Fields(6) & "',telefon='" & f7 & "',fax='" & f8 & "',kvnr='" & KVNr & "',aktdat=" & datformZ(Now, True) & ",DBNr='" & DBNr & "',BStelle='" & BStelle & "',Anrede='" & anrede & "',tel1='" & tel1 & "',tel2='" & tel2 & "',tel3='" & tel3 & "',tel4='" & tel4 & "',fax2='" & fax2 & "',fax3='" & fax3 & "',email='" & email & "',zulg='" & zulg & "',arzttyp='" & UCase$(Left$(arzttyp, 2)) & "',gemmit='" & gemmit & "',beme='" & beme & "',dmpt2=" & Abs(dmpt2) & ",dmpt1=" & Abs(dmpt1) & ",geschlecht='" & Left$(geschlecht, 1) & "',titel='" & Titel & "' WHERE name LIKE '" & rF0 & "' AND vorname = '" & rF1 & "'"
-        sqlakt = "UPDATE `" & LIUET & "` SET titelt = '" & rEx.Fields(2) & "', fachgruppe='" & rEx.Fields(3) & "',strasse='" & rEx.Fields(4) & "',ort='" & rEx.Fields(6) & "',fax='" & f8 & "',kvnr=" & IIf(KVNr = vNS, "null", "'" & REPLACE$(KVNr, " ", "") & "'") & ",DBNr='" & DBNr & "',BStelle='" & BStelle & "',Anrede='" & anrede & "',tel1='" & tel1 & "',tel2='" & tel2 & "',tel3='" & tel3 & "',tel4='" & tel4 & "',fax2='" & fax2 & "',fax3='" & fax3 & "',email='" & email & "',zulg='" & zulg & "',arzttyp='" & UCase$(Left$(arzttyp, 2)) & "',gemmit='" & gemmit & "',beme='" & beme & "',dmpt2=" & Abs(dmpt2) & ",dmpt1=" & Abs(dmpt1) & ",geschlecht='" & Left$(geschlecht, 1) & "',titel='" & Titel & "'" & IIf(KVNr = vNS, "", ",ursp=CONCAT(ursp,'" & ursp & "')") & ",aktzeit=" & Format(Now(), "yymmddHHMMSS") & " WHERE name LIKE '" & rF0 & "' AND vorname = '" & rF1 & "' AND plz ='" & rEx.Fields(5) & "' AND telefon = '" & f7 & "'"
+        sqlakt = "UPDATE `" & LIUET & "` SET titelt = '" & rEx.Fields(2) & "', fachgruppe='" & rEx.Fields(3) & "',strasse='" & rEx.Fields(4) & "',ort='" & rEx.Fields(6) & "',fax='" & f8 & "',kvnr=" & IIf(KVNr = vNS, "null", "'" & REPLACE$(KVNr, " ", "") & "'") & ",DBNr='" & DBNr & "',BStelle='" & BStelle & "',Anrede='" & anrede & "',tel1='" & tel1 & "',tel2='" & tel2 & "',tel3='" & tel3 & "',tel4='" & tel4 & "',fax2='" & fax2 & "',fax3='" & fax3 & "',email='" & email & "',zulg='" & zulg & "',arzttyp='" & UCase$(left$(arzttyp, 2)) & "',gemmit='" & gemmit & "',beme='" & beme & "',dmpt2=" & Abs(dmpt2) & ",dmpt1=" & Abs(dmpt1) & ",geschlecht='" & left$(geschlecht, 1) & "',titel='" & Titel & "'" & IIf(KVNr = vNS, "", ",ursp=CONCAT(ursp,'" & ursp & "')") & ",aktzeit=" & Format(Now(), "yymmddHHMMSS") & " WHERE name LIKE '" & rF0 & "' AND vorname = '" & rF1 & "' AND plz ='" & rEx.Fields(5) & "' AND telefon = '" & f7 & "'"
        End If
       End If ' rs.eof
       
@@ -604,7 +604,7 @@ gefunden:
       If rs.State <> 0 Then
        If Not rs.BOF Then
         Do While Not rs.EOF
-         sqlakt = "INSERT INTO `" & LIUET & "` (name,vorname,titelt,fachgruppe,strasse,plz,ort,telefon,fax,kvnr,DBNr, BStelle, anrede, tel1, tel2, tel3, tel4, fax1, fax2, fax3, email, zulg, arzttyp, gemmit, beme, dmpt2, dmpt1, geschlecht, titel,ursp,aktzeit) VALUES (" & "'" & rF0 & "','" & rF1 & "','" & rEx.Fields(2) & "','" & rEx.Fields(3) & "','" & rEx.Fields(4) & "','" & rEx.Fields(5) & "','" & rEx.Fields(6) & "','" & f7 & "','" & f8 & "'," & IIf(rs!KVNr = "", "null", "'" & REPLACE$(rs!KVNr, " ", "") & "'") & ",'" & DBNr & "','" & BStelle & "','" & anrede & "','" & tel1 & "','" & tel2 & "','" & tel3 & "','" & tel4 & "','" & fax1 & "','" & fax2 & "','" & fax3 & "','" & email & "','" & zulg & "','" & UCase$(Left$(arzttyp, 2)) & "','" & gemmit & "','" & beme & "'," & Abs(dmpt2) & "," & Abs(dmpt1) & ",'" & Left$(geschlecht, 1) & "','" & Titel & "','kvaerzte.hae'," & Format(Now(), "yymmddHHMMSS") & ");"
+         sqlakt = "INSERT INTO `" & LIUET & "` (name,vorname,titelt,fachgruppe,strasse,plz,ort,telefon,fax,kvnr,DBNr, BStelle, anrede, tel1, tel2, tel3, tel4, fax1, fax2, fax3, email, zulg, arzttyp, gemmit, beme, dmpt2, dmpt1, geschlecht, titel,ursp,aktzeit) VALUES (" & "'" & rF0 & "','" & rF1 & "','" & rEx.Fields(2) & "','" & rEx.Fields(3) & "','" & rEx.Fields(4) & "','" & rEx.Fields(5) & "','" & rEx.Fields(6) & "','" & f7 & "','" & f8 & "'," & IIf(rs!KVNr = "", "null", "'" & REPLACE$(rs!KVNr, " ", "") & "'") & ",'" & DBNr & "','" & BStelle & "','" & anrede & "','" & tel1 & "','" & tel2 & "','" & tel3 & "','" & tel4 & "','" & fax1 & "','" & fax2 & "','" & fax3 & "','" & email & "','" & zulg & "','" & UCase$(left$(arzttyp, 2)) & "','" & gemmit & "','" & beme & "'," & Abs(dmpt2) & "," & Abs(dmpt1) & ",'" & left$(geschlecht, 1) & "','" & Titel & "','kvaerzte.hae'," & Format(Now(), "yymmddHHMMSS") & ");"
          Call myEFrag(sqlakt, rAf, QCn(dbknr))
          rs.Move 1
         Loop
@@ -615,7 +615,7 @@ gefunden:
       If rs.State <> 0 Then
        If Not rs.BOF Then
         Do While Not rs.EOF
-         sqlakt = "INSERT INTO `" & LIUET & "` (name,vorname,titelt,fachgruppe,strasse,plz,ort,telefon,fax,kvnr,DBNr, BStelle, anrede, tel1, tel2, tel3, tel4, fax1, fax2, fax3, email, zulg, arzttyp, gemmit, beme, dmpt2, dmpt1, geschlecht, titel,ursp,aktzeit) VALUES (" & "'" & rF0 & "','" & rF1 & "','" & rEx.Fields(2) & "','" & rEx.Fields(3) & "','" & rEx.Fields(4) & "','" & rEx.Fields(5) & "','" & rEx.Fields(6) & "','" & f7 & "','" & f8 & "'," & IIf(rs!KVNr = "", "null", "'" & REPLACE$(rs!KVNr, " ", "") & "'") & "," & ",'" & DBNr & "','" & BStelle & "','" & anrede & "','" & tel1 & "','" & tel2 & "','" & tel3 & "','" & tel4 & "','" & fax1 & "','" & fax2 & "','" & fax3 & "','" & email & "','" & zulg & "','" & UCase$(Left$(arzttyp, 2)) & "','" & gemmit & "','" & beme & "'," & Abs(dmpt2) & "," & Abs(dmpt1) & ",'" & Left$(geschlecht, 1) & "','" & Titel & "','kvaerzte.haealt'," & Format(Now(), "yymmddHHMMSS") & ");"
+         sqlakt = "INSERT INTO `" & LIUET & "` (name,vorname,titelt,fachgruppe,strasse,plz,ort,telefon,fax,kvnr,DBNr, BStelle, anrede, tel1, tel2, tel3, tel4, fax1, fax2, fax3, email, zulg, arzttyp, gemmit, beme, dmpt2, dmpt1, geschlecht, titel,ursp,aktzeit) VALUES (" & "'" & rF0 & "','" & rF1 & "','" & rEx.Fields(2) & "','" & rEx.Fields(3) & "','" & rEx.Fields(4) & "','" & rEx.Fields(5) & "','" & rEx.Fields(6) & "','" & f7 & "','" & f8 & "'," & IIf(rs!KVNr = "", "null", "'" & REPLACE$(rs!KVNr, " ", "") & "'") & "," & ",'" & DBNr & "','" & BStelle & "','" & anrede & "','" & tel1 & "','" & tel2 & "','" & tel3 & "','" & tel4 & "','" & fax1 & "','" & fax2 & "','" & fax3 & "','" & email & "','" & zulg & "','" & UCase$(left$(arzttyp, 2)) & "','" & gemmit & "','" & beme & "'," & Abs(dmpt2) & "," & Abs(dmpt1) & ",'" & left$(geschlecht, 1) & "','" & Titel & "','kvaerzte.haealt'," & Format(Now(), "yymmddHHMMSS") & ");"
          Call myEFrag(sqlakt, rAf, QCn(dbknr))
          rs.Move 1
         Loop
@@ -626,7 +626,7 @@ gefunden:
       If rs.State <> 0 Then
        If Not rs.BOF Then
         Do While Not rs.EOF
-         sqlakt = "INSERT INTO `" & LIUET & "` (name,vorname,titelt,fachgruppe,strasse,plz,ort,telefon,fax,kvnr,DBNr, BStelle, anrede, tel1, tel2, tel3, tel4, fax1, fax2, fax3, email, zulg, arzttyp, gemmit, beme, dmpt2, dmpt1, geschlecht, titel,ursp,aktzeit) VALUES (" & "'" & rF0 & "','" & rF1 & "','" & rEx.Fields(2) & "','" & rEx.Fields(3) & "','" & rEx.Fields(4) & "','" & rEx.Fields(5) & "','" & rEx.Fields(6) & "','" & f7 & "','" & f8 & "'," & IIf(KVNr = "", "null", "'" & REPLACE$(rs!KVNr, " ", "") & "'") & "," & ",'" & DBNr & "','" & BStelle & "','" & anrede & "','" & tel1 & "','" & tel2 & "','" & tel3 & "','" & tel4 & "','" & fax1 & "','" & fax2 & "','" & fax3 & "','" & email & "','" & zulg & "','" & UCase$(Left$(arzttyp, 2)) & "','" & gemmit & "','" & beme & "'," & Abs(dmpt2) & "," & Abs(dmpt1) & ",'" & Left$(geschlecht, 1) & "','" & Titel & "','hausaerzte'," & Format(Now(), "yymmddHHMMSS") & ");"
+         sqlakt = "INSERT INTO `" & LIUET & "` (name,vorname,titelt,fachgruppe,strasse,plz,ort,telefon,fax,kvnr,DBNr, BStelle, anrede, tel1, tel2, tel3, tel4, fax1, fax2, fax3, email, zulg, arzttyp, gemmit, beme, dmpt2, dmpt1, geschlecht, titel,ursp,aktzeit) VALUES (" & "'" & rF0 & "','" & rF1 & "','" & rEx.Fields(2) & "','" & rEx.Fields(3) & "','" & rEx.Fields(4) & "','" & rEx.Fields(5) & "','" & rEx.Fields(6) & "','" & f7 & "','" & f8 & "'," & IIf(KVNr = "", "null", "'" & REPLACE$(rs!KVNr, " ", "") & "'") & "," & ",'" & DBNr & "','" & BStelle & "','" & anrede & "','" & tel1 & "','" & tel2 & "','" & tel3 & "','" & tel4 & "','" & fax1 & "','" & fax2 & "','" & fax3 & "','" & email & "','" & zulg & "','" & UCase$(left$(arzttyp, 2)) & "','" & gemmit & "','" & beme & "'," & Abs(dmpt2) & "," & Abs(dmpt1) & ",'" & left$(geschlecht, 1) & "','" & Titel & "','hausaerzte'," & Format(Now(), "yymmddHHMMSS") & ");"
          Call myEFrag(sqlakt, rAf, QCn(dbknr))
          rs.Move 1
         Loop ' While Not rs.EOF
@@ -676,7 +676,7 @@ For dbknr = LBound(QCn) To UBound(QCn)
 '   Debug.Print "nicht gefunden: ", rV1!Name, rV1!vorname
    End If
    Do While Not rV2.EOF
-    If REPLACE$(REPLACE$(LCase$(rV2!anschrift), " ", vNS), "str.", "straße") <> REPLACE$(REPLACE$(LCase$(rV1!strasse & "," & rV1!PLZ & rV1!Ort), " ", vNS), "str.", "straße") Then
+    If REPLACE$(REPLACE$(LCase$(rV2!anschrift), " ", vNS), "str.", "straße") <> REPLACE$(REPLACE$(LCase$(rV1!strasse & "," & rV1!plz & rV1!ort), " ", vNS), "str.", "straße") Then
 '    Debug.Print rv2!nachname, rv2!vorname, rv2!anschrift, "<>", rV1!strasse & ", " & rV1!plz & " " & rV1!ort
     End If
    
@@ -686,7 +686,7 @@ For dbknr = LBound(QCn) To UBound(QCn)
      obT = True
     ElseIf Not IsNull(rV2!telefon) Then
      v1 = REPLACE(REPLACE(REPLACE(rV1!telefon, " ", vNS), "/", vNS), "-", vNS)
-     If Left$(v1, 1) <> "0" Then
+     If left$(v1, 1) <> "0" Then
       If Len(v1) < 7 Then
        v1 = aktVorw & v1
       Else
@@ -701,11 +701,11 @@ For dbknr = LBound(QCn) To UBound(QCn)
 '    End If
    
     obT = False
-    If IsNull(rV2!telefax) + (IsNull(rV1!Fax) Or rV1!Fax = vNS) = -1 Then
+    If IsNull(rV2!telefax) + (IsNull(rV1!fax) Or rV1!fax = vNS) = -1 Then
      obT = True
     ElseIf Not IsNull(rV2!telefax) Then
-     v1 = REPLACE(REPLACE(REPLACE(rV1!Fax, " ", vNS), "/", vNS), "-", vNS)
-     If Left$(v1, 1) <> "0" Then
+     v1 = REPLACE(REPLACE(REPLACE(rV1!fax, " ", vNS), "/", vNS), "-", vNS)
+     If left$(v1, 1) <> "0" Then
       If Len(v1) < 7 Then
        v1 = aktVorw & v1
       Else
@@ -773,7 +773,7 @@ If Err.Number = -2147467259 And lauf < 200 Then
  Sleep 1000
  Resume
 End If
-Select Case MsgBox("FNr: " + CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in main/" + AnwPfad)
+Select Case MsgBox("FNr: " + CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + CStr(nz(Err.Source, "")) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in main/" + AnwPfad)
  Case vbAbort: Call MsgBox("Höre auf"): End
  Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
  Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
@@ -813,7 +813,7 @@ End Function ' hausaerztekomprimier()
 '  Exit Sub
 'fehler:
 '  ' vermutlich ist kein WMI installiert
-' SELECT Case MsgBox("FNr: " & FNr & ", ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(ISNULL(Err.source), vbNullString, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description + vbCrLf + "Fehlerposition: " + CStr(fpos), vbAbortRetryIGNORE, "Aufgefangener Fehler in ShowAllDomains/" + App.Path)
+' SELECT Case MsgBox("FNr: " & FNr & ", ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + cstr(nz(Err.Source, vbNullString)) + vbCrLf + "Description: " + Err.Description + vbCrLf + "Fehlerposition: " + CStr(fpos), vbAbortRetryIGNORE, "Aufgefangener Fehler in ShowAllDomains/" + App.Path)
 '  Case vbAbort: Call MsgBox("Höre auf"): End
 '  Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
 '  Case vbIGNORE: Call MsgBox("Setze fort"): Resume Next
@@ -836,7 +836,7 @@ End Function ' hausaerztekomprimier()
 '
 'fehler:
 '  ' vermutlich ist kein WMI installiert
-' SELECT Case MsgBox("FNr: " & FNr & ", ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(ISNULL(Err.source), vbNullString, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description + vbCrLf + "Fehlerposition: " + CStr(fpos), vbAbortRetryIGNORE, "Aufgefangener Fehler in ShowAllComputers/" + App.Path)
+' SELECT Case MsgBox("FNr: " & FNr & ", ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + cstr(nz(Err.Source, vbNullString)) + vbCrLf + "Description: " + Err.Description + vbCrLf + "Fehlerposition: " + CStr(fpos), vbAbortRetryIGNORE, "Aufgefangener Fehler in ShowAllComputers/" + App.Path)
 '  Case vbAbort: Call MsgBox("Höre auf"): End
 '  Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
 '  Case vbIGNORE: Call MsgBox("Setze fort"): Resume Next
@@ -880,10 +880,10 @@ nochmal:
         If pos = 0 Then pos = InStr(rF0, "(")
 '        If pos = 0 Then pos = InStr(rF0, "-")
         If pos <> 0 Then
-         rF0 = Trim$(Left$(rF0, pos - 1))
+         rF0 = Trim$(left$(rF0, pos - 1))
          posv = InStr(rF1, "/")
          If posv <> 0 Then
-          rF1 = Left$(rF1, posv - 1)
+          rF1 = left$(rF1, posv - 1)
          End If
          GoTo nochmal:
         End If ' pos <> 0 Then

@@ -201,7 +201,7 @@ fehler:
 #Else
  AnwPfad = App.path
 #End If
-Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in getHAPDF/" + AnwPfad)
+Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + CStr(nz(Err.Source, "")) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in getHAPDF/" + AnwPfad)
  Case vbAbort: Call MsgBox("Höre auf"): ProgEnde
  Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
  Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
@@ -231,7 +231,7 @@ fehler:
 #Else
  AnwPfad = App.path
 #End If
-Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in ZiehDat/" + AnwPfad)
+Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + CStr(nz(Err.Source, "")) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in ZiehDat/" + AnwPfad)
  Case vbAbort: Call MsgBox("Höre auf"): ProgEnde
  Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
  Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
@@ -268,7 +268,7 @@ fehler:
 #Else
  AnwPfad = App.path
 #End If
-Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in HAVerbinde/" + AnwPfad)
+Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + CStr(nz(Err.Source, "")) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in HAVerbinde/" + AnwPfad)
  Case vbAbort: Call MsgBox("Höre auf"): ProgEnde
  Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
  Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
@@ -383,7 +383,7 @@ Sub dodoHausärzteEinlesen(Filename$, obRückfrage%, Optional db$)
 ' Abteilung für Hämatologie und Abteilung für Hämatologie und, internistische
 ' Onkologie
         If Absch(abz).Bis > 0 Then
-         If InStr(12, splitt(Absch(abz).Bis), Left$(splitt(Absch(abz).Bis), 12)) <> 0 Then
+         If InStr(12, splitt(Absch(abz).Bis), left$(splitt(Absch(abz).Bis), 12)) <> 0 Then
           Absch(abz).Bis = Absch(abz).Bis - 1
          End If
         End If
@@ -401,7 +401,7 @@ Sub dodoHausärzteEinlesen(Filename$, obRückfrage%, Optional db$)
 '     IF Left$(splitt(aktab), 4) = "LANR" THEN
      If splitt(aktab) = "Zusatzbezeichnungen:" Or splitt(aktab) = "Leistungsumfang:" Or splitt(aktab) = "Genehmigungen:" Or splitt(aktab) = "Besondere Vertragsangebote:" Then
       LANRZeile = aktab
-     ElseIf Left$(splitt(aktab), 4) = "LANR" Then
+     ElseIf left$(splitt(aktab), 4) = "LANR" Then
       LANRZeile = aktab
 '      IF splitt(aktab + 1) = "758369301 698013700" THEN Stop
      End If
@@ -409,7 +409,7 @@ Sub dodoHausärzteEinlesen(Filename$, obRückfrage%, Optional db$)
 ' Kommt doch noch später einer, so handelt es sich um einen neuen Arzt ohne Niederlassungsart -> Gerald Beier
     Else ' IF LANRZeile <> 0 THEN
      If aktName = "Dr.med. Christiane Beier" Then
-      If IsNumeric(Left$(splitt(aktab), 1)) Then ' weil "like" so lang brauchen soll
+      If IsNumeric(left$(splitt(aktab), 1)) Then ' weil "like" so lang brauchen soll
        If splitt(aktab) Like "##### *" And Not splitt(aktab) Like "* * * *" And Not InStrB(splitt(aktab), ",") <> 0 And Not InStrB(splitt(aktab), ".") <> 0 And Not InStrB(splitt(aktab), " EBM") <> 0 And Not InStrB(splitt(aktab), " und ") <> 0 And Not InStrB(splitt(aktab), "Komplex") <> 0 Then ' PLZ mit Ort
 '        MsgBox "vermutlich Fehlerhafte Verarbeitung der Zeile " & aktab & ": " & vbCrLf & splitt(aktab)
         GoSub bisfestleg
@@ -427,7 +427,7 @@ Sub dodoHausärzteEinlesen(Filename$, obRückfrage%, Optional db$)
  For aktab = 0 To abz
   Dim ausgj&
   If aktab = 0 Then ausgj = 0 Else ausgj = Absch(aktab - 1).Bis + 1
-  If Left$(splitt(ausgj), 8) = "Hinweis:" Then ausgj = ausgj + 1
+  If left$(splitt(ausgj), 8) = "Hinweis:" Then ausgj = ausgj + 1
   Print #340, aktab & " " & Absch(aktab).Bis + 1 & " " & splitt(ausgj)
  Next
  Close #340
@@ -489,7 +489,7 @@ fehler:
 #Else
  AnwPfad = App.path
 #End If
-Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in HausärzteEinlesen_Click/" + AnwPfad)
+Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + CStr(nz(Err.Source, "")) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in HausärzteEinlesen_Click/" + AnwPfad)
  Case vbAbort: Call MsgBox("Höre auf"): ProgEnde
  Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
  Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
@@ -499,7 +499,7 @@ End Sub ' HausärzteEinlesen_Click
 
 Sub proTeilnehmer(ByRef splitt$(), ByRef Absch() As AbschTyp, aktab&, ByRef HACn As ADODB.Connection)
   Dim Uab As UAbTyp, Arzt As arzttyp, BS As BSTyp, ort As New CString, SZ As New CString, s2$()
-  Dim tel$(), telz&, fax$(), faxz&, mail() As New CString, mailz&
+  Dim TEL$(), telz&, fax$(), faxz&, mail() As New CString, mailz&
   Dim OrtZeile&, LANRZeile&, szzz&  ' SprechzeitenZeilenZahl
   Dim fren&() ' Fachrichtungen des aktuellen Teilnehmers
 '  ReDim fren&(0)
@@ -511,7 +511,7 @@ Sub proTeilnehmer(ByRef splitt$(), ByRef Absch() As AbschTyp, aktab&, ByRef HACn
   Uab = uabName
   Dim ausgj&
   If aktab = 0 Then ausgj = 0 Else ausgj = Absch(aktab - 1).Bis + 1
-  If Left$(splitt(ausgj), 8) = "Hinweis:" Then ausgj = ausgj + 1
+  If left$(splitt(ausgj), 8) = "Hinweis:" Then ausgj = ausgj + 1
 '  Debug.Print splitt(ausgj)
   
   For j = ausgj To Absch(aktab).Bis
@@ -567,24 +567,24 @@ Sub proTeilnehmer(ByRef splitt$(), ByRef Absch() As AbschTyp, aktab&, ByRef HACn
             buch = Mid$(Arzt.Vorname, pos - 1, 1)
             ' "Thomas O. Cook"
             If (buch >= "A" And buch <= "Z") Or buch = "Ä" Or buch = "Ö" Or buch = "Ü" Then Exit Do
-            s2(0) = s2(0) & Left$(Arzt.Vorname, pos)
+            s2(0) = s2(0) & left$(Arzt.Vorname, pos)
             Arzt.Vorname = Mid$(Arzt.Vorname, pos + 2)
            Loop
           pos = InStr(Arzt.Vorname, ").")
           If pos <> 0 Then
-           s2(0) = s2(0) & Left$(Arzt.Vorname, pos)
+           s2(0) = s2(0) & left$(Arzt.Vorname, pos)
            Arzt.Vorname = Trim$(Mid$(Arzt.Vorname, pos + 2))
           End If
           pos = InStr(Arzt.Vorname, ")")
           If pos <> 0 Then
-           s2(0) = s2(0) & Left$(Arzt.Vorname, pos)
+           s2(0) = s2(0) & left$(Arzt.Vorname, pos)
            Arzt.Vorname = Trim$(Mid$(Arzt.Vorname, pos + 1))
           End If
           pos = InStr(Arzt.Vorname, "/")
           If pos <> 0 Then
            p2 = InStr(pos, Arzt.Vorname, " ")
            If p2 <> 0 Then
-            s2(0) = s2(0) & Left$(Arzt.Vorname, p2 - 1)
+            s2(0) = s2(0) & left$(Arzt.Vorname, p2 - 1)
             Arzt.Vorname = Mid$(Arzt.Vorname, p2 + 1)
            End If
           End If
@@ -725,7 +725,7 @@ Sub proTeilnehmer(ByRef splitt$(), ByRef Absch() As AbschTyp, aktab&, ByRef HACn
            pos = InStr(Arzt.Vorname, Wort)
           End If
           If pos <> 0 Then
-           s2(0) = s2(0) & Left$(Arzt.Vorname, pos + Len(Wort))
+           s2(0) = s2(0) & left$(Arzt.Vorname, pos + Len(Wort))
            Arzt.Vorname = Trim$(Mid$(Arzt.Vorname, pos + Len(Wort) + 1))
           End If
           
@@ -734,7 +734,7 @@ Sub proTeilnehmer(ByRef splitt$(), ByRef Absch() As AbschTyp, aktab&, ByRef HACn
           If pos = 0 Then pos = InStr(Arzt.Vorname, "Theisen")
           If pos <> 0 Then
            Arzt.Nachname = Mid$(Arzt.Vorname, pos) & " " & Arzt.Nachname
-           Arzt.Vorname = Trim$(Left$(Arzt.Vorname, pos - 1))
+           Arzt.Vorname = Trim$(left$(Arzt.Vorname, pos - 1))
           End If
           Arzt.titel_id = indIns(HACn, "titel", "titel", s2(0), "idtitel")
          End If ' rs.bof
@@ -742,7 +742,7 @@ Sub proTeilnehmer(ByRef splitt$(), ByRef Absch() As AbschTyp, aktab&, ByRef HACn
      Else ' absch(aktab).art=0 -> 1
       BS.name = splitt(j)
       For jj = 10 To Len(BS.name) ' doppelten Anfangsteil entfernen
-       If Left$(BS.name, jj - 1) = Mid$(BS.name, jj + 1, jj - 1) Then
+       If left$(BS.name, jj - 1) = Mid$(BS.name, jj + 1, jj - 1) Then
         BS.name = Mid$(BS.name, jj + 1)
         Exit For
        End If
@@ -753,7 +753,7 @@ Sub proTeilnehmer(ByRef splitt$(), ByRef Absch() As AbschTyp, aktab&, ByRef HACn
     Case NLrt
 ' die Zeile, in der PLZ und Ort stehen, enthält als erstes eine Ziffer
      For jj = j To Absch(aktab).Bis  ' j+1 gestrichen wegen Gerald Beier
-      If IsNumeric(Left$(splitt(jj), 5)) And Len(splitt(jj)) > 6 Then OrtZeile = jj: Exit For
+      If IsNumeric(left$(splitt(jj), 5)) And Len(splitt(jj)) > 6 Then OrtZeile = jj: Exit For
      Next jj
      If OrtZeile >= Absch(aktab).Bis Then MsgBox "Ortszeile > " & Absch(aktab).Bis: Stop
 '     IF OrtZeile = 1890 THEN Stop
@@ -784,18 +784,18 @@ Sub proTeilnehmer(ByRef splitt$(), ByRef Absch() As AbschTyp, aktab&, ByRef HACn
        For jjj = 0 To ez - 1
         buch = Right$(ergstr(jjj), 1)
         If buch = "(" Or buch = ")" Or buch = "," Then
-         ergstr(jjj) = Left$(ergstr(jjj), Len(ergstr(jjj)) - 1)
+         ergstr(jjj) = left$(ergstr(jjj), Len(ergstr(jjj)) - 1)
         End If
         Dim l1 As New CString
         l1 = ergstr(jjj)
         l1.LCase
-        If l1.Instr("Ärztin") <> 0 Or l1.Instr("ärztin") <> 0 Or l1.Instr("arzt") <> 0 Or l1.Instr("olog") <> 0 Or l1.Instr("medizin") <> 0 Or l1.Instr("ologie") <> 0 Or l1.Instr("psych") <> 0 Or l1.Instr("schwerpunkt") <> 0 Or l1.Instr("teilgebiet") <> 0 Or l1.Left(12) = "schwerpunkt " Then ' Ä wird mit lcase scheinbar nicht zu ä
+        If l1.Instr("Ärztin") <> 0 Or l1.Instr("ärztin") <> 0 Or l1.Instr("arzt") <> 0 Or l1.Instr("olog") <> 0 Or l1.Instr("medizin") <> 0 Or l1.Instr("ologie") <> 0 Or l1.Instr("psych") <> 0 Or l1.Instr("schwerpunkt") <> 0 Or l1.Instr("teilgebiet") <> 0 Or l1.left(12) = "schwerpunkt " Then ' Ä wird mit lcase scheinbar nicht zu ä
          If l1.Instr("mvz") = 0 And l1.Instr("versorgungszentrum") = 0 And l1.Instr("abteilung") = 0 And l1.Instr("klinik") = 0 And l1.Instr("ambulanz") = 0 And l1.Instr("gmbh") = 0 And l1.Instr("institut") <> 0 Then
           GoTo stimmt
          End If
         End If
         If BS.name <> vNS Then BS.name = BS.name & " " & splitt(jj) Else BS.name = splitt(jj)
-        If l1.Value Like "* #*" Or l1.Value Like "#*" Or IsNumeric(l1.Value) Or Len(l1.Value) < 3 Or Left$(l1.Value, 4) = "str." Or l1.Value Like "*str.*" Or InStrB(l1.Value, ",") <> 0 Then
+        If l1.Value Like "* #*" Or l1.Value Like "#*" Or IsNumeric(l1.Value) Or Len(l1.Value) < 3 Or left$(l1.Value, 4) = "str." Or l1.Value Like "*str.*" Or InStrB(l1.Value, ",") <> 0 Then
         Else
          Select Case ergstr(jjj)
 '         Case "Berufsausübungsgem. / MVZ-München, 80799", "Einsteinstr. 130", "München, Heßstr. 22", "Ofenthaler Weg 20"
@@ -821,7 +821,7 @@ stimmt:
       jj = jj + 1
       If jj > Len(splitt(OrtZeile - 1)) Then Exit Do
      Loop
-     BS.Straße = Trim$(Left$(splitt(OrtZeile - 1), jj - 1))
+     BS.Straße = Trim$(left$(splitt(OrtZeile - 1), jj - 1))
      pos = InStr(BS.Straße, "Perlasberger")
      If pos <> 0 Then
       BS.Straße = Mid$(BS.Straße, pos)
@@ -862,16 +862,16 @@ stimmt:
 '     END SELECT
      j = OrtZeile + 1
      telz = -1
-     ReDim tel(0)
-     Do While Left$(splitt(j), 5) = "Tel.:"
+     ReDim TEL(0)
+     Do While left$(splitt(j), 5) = "Tel.:"
       telz = telz + 1
-      If telz > UBound(tel) Then ReDim Preserve tel(telz)
-      tel(telz) = Mid$(splitt(j), 7)
+      If telz > UBound(TEL) Then ReDim Preserve TEL(telz)
+      TEL(telz) = Mid$(splitt(j), 7)
       j = j + 1
      Loop
      faxz = -1
      ReDim fax(0)
-     Do While Left$(splitt(j), 5) = "Fax.:"
+     Do While left$(splitt(j), 5) = "Fax.:"
       faxz = faxz + 1
       If faxz > UBound(fax) Then ReDim Preserve fax(faxz)
       fax(faxz) = Mid$(splitt(j), 7)
@@ -896,7 +896,7 @@ stimmt:
      mailz = -1
      ReDim mail(0)
      For jj = j To szz - 2
-      If Left$(splitt(jj), 8) = "E-Mail.:" Then ' in einer Zeile stand: "E-Mail.:", dann nä Zeile
+      If left$(splitt(jj), 8) = "E-Mail.:" Then ' in einer Zeile stand: "E-Mail.:", dann nä Zeile
        mailz = mailz + 1
        If mailz > UBound(mail) Then ReDim Preserve mail(mailz)
        mail(mailz).Append Mid$(splitt(jj), 10)
@@ -907,7 +907,7 @@ stimmt:
      Dim BSArt$
      BSArt = splitt(szz - 1)
 '     IF BSArt = "Angestellt in MVZ" THEN Stop
-     If Left$(BSArt, 14) = "Angestellt in " Then BS.obAng = 1: BSArt = Mid$(BSArt, 15)
+     If left$(BSArt, 14) = "Angestellt in " Then BS.obAng = 1: BSArt = Mid$(BSArt, 15)
      BS.bsart_id = indIns(HACn, "bsart", "BSArt", BSArt, "idbsart")
      j = szz
      For jj = j + 1 To Absch(aktab).Bis
@@ -980,8 +980,8 @@ stimmt:
        Case "Rollstuhlgerechte Praxis":    BS.Rollst = 1
        Case Else
         überspringen = 0
-        Do While jj <= Absch(aktab).Bis And ((Left$(splitt(jj + 1 + überspringen), 4) = "Arzt" And KennZeile(genehmigung) <> 0 And KennZeile(vertragsangebot) = 0) Or _
-        Right$(splitt(jj), 5) = "nicht" Or Right$(splitt(jj), 3) = "und" Or Right$(splitt(jj), 2) = "u." Or Right$(splitt(jj), 1) = ";" Or Left$(splitt(jj + 1 + überspringen), 4) = "bzw." Or Right$(splitt(jj), 2) = "f." Or Right$(splitt(jj), 3) = "mit" Or Left$(splitt(jj + 1 + überspringen), 1) = "(" Or Left$(splitt(jj + 1 + überspringen), 1) = "/" Or Right$(splitt(jj), 1) = "/" Or Right$(splitt(jj), 1) = "-" Or Right$(splitt(jj), 1) = "," Or Right$(splitt(jj), 5) = "sches" Or Left$(splitt(jj + 1 + überspringen), 3) = "SGB" Or Left$(splitt(jj + 1 + überspringen), 14) = "sonographisch)" Or Left$(splitt(jj + 1 + überspringen), 8) = "mammogr." Or Right$(splitt(jj), 5) = "spez." Or Left$(splitt(jj + 1 + überspringen), 3) = "IPM" Or Left$(splitt(jj + 1 + überspringen), 18) = "Kinder/Jugendliche" Or Left$(splitt(jj + 1 + überspringen), 12) = "Operationen)" Or Right$(splitt(jj), 6) = "in der" Or splitt(jj) = "DMP Brustkrebs teilnehmender Facharzt")
+        Do While jj <= Absch(aktab).Bis And ((left$(splitt(jj + 1 + überspringen), 4) = "Arzt" And KennZeile(genehmigung) <> 0 And KennZeile(vertragsangebot) = 0) Or _
+        Right$(splitt(jj), 5) = "nicht" Or Right$(splitt(jj), 3) = "und" Or Right$(splitt(jj), 2) = "u." Or Right$(splitt(jj), 1) = ";" Or left$(splitt(jj + 1 + überspringen), 4) = "bzw." Or Right$(splitt(jj), 2) = "f." Or Right$(splitt(jj), 3) = "mit" Or left$(splitt(jj + 1 + überspringen), 1) = "(" Or left$(splitt(jj + 1 + überspringen), 1) = "/" Or Right$(splitt(jj), 1) = "/" Or Right$(splitt(jj), 1) = "-" Or Right$(splitt(jj), 1) = "," Or Right$(splitt(jj), 5) = "sches" Or left$(splitt(jj + 1 + überspringen), 3) = "SGB" Or left$(splitt(jj + 1 + überspringen), 14) = "sonographisch)" Or left$(splitt(jj + 1 + überspringen), 8) = "mammogr." Or Right$(splitt(jj), 5) = "spez." Or left$(splitt(jj + 1 + überspringen), 3) = "IPM" Or left$(splitt(jj + 1 + überspringen), 18) = "Kinder/Jugendliche" Or left$(splitt(jj + 1 + überspringen), 12) = "Operationen)" Or Right$(splitt(jj), 6) = "in der" Or splitt(jj) = "DMP Brustkrebs teilnehmender Facharzt")
 '         IF Left$(splitt(jj + 1 + überspringen), 5) = "Arzt" THEN Stop
          überspringen = überspringen + 1
 '         IF Uab <> ÄrztederPraxis THEN Stop
@@ -1168,11 +1168,11 @@ stimmt:
   BegTrans HACn
   myEFrag "DELETE FROM `tel` WHERE `bs_id` = " & idIns1, rAf, HACn
   For jj = 0 To telz
-   myFrag pTrs, "SELECT idTel FROM `tel` WHERE `Tel` = '" & tel(jj) & "' AND bs_id = " & idIns1, adOpenStatic, HACn, adLockReadOnly
+   myFrag pTrs, "SELECT idTel FROM `tel` WHERE `Tel` = '" & TEL(jj) & "' AND bs_id = " & idIns1, adOpenStatic, HACn, adLockReadOnly
 '   Set rs = Nothing
 '   rs.Open "SELECT idTel FROM `tel` WHERE `Tel` = '" & tel(jj) & "' AND bs_id = " & idIns1, HACn, adOpenStatic, adLockReadOnly
    If pTrs.BOF Then
-    InsKorr HACn, "INSERT INTO `tel`(`Tel`,`bs_id`) VALUES('" & tel(jj) & "'," & idIns1 & ")", rAf
+    InsKorr HACn, "INSERT INTO `tel`(`Tel`,`bs_id`) VALUES('" & TEL(jj) & "'," & idIns1 & ")", rAf
    End If
   Next jj
   myEFrag "DELETE FROM `fax` WHERE `bs_id` = " & idIns1, rAf, HACn
@@ -1276,7 +1276,7 @@ If InStrB(Err.Description, "Transaction level 'READ-COMMITTED'") <> 0 Then
  myEFrag "SET SESSION TRANSACTION ISOLATION LEVEL REPEATABLE READ", rAf, HACn
  Resume
 End If
-Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + IIf(IsNull(Err.source), vNS, CStr(Err.source)) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in proTeilnehmer/" + AnwPfad)
+Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + CStr(nz(Err.Source, "")) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in proTeilnehmer/" + AnwPfad)
  Case vbAbort: Call MsgBox("Höre auf"): ProgEnde
  Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
  Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
