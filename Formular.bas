@@ -12133,8 +12133,8 @@ If LVobMySQL Then
  VN = "aktf"
  Vsql = "SELECT pat_id,fid,schgr,vknr,ik,goäkatnr,lanrid,quartal,kid " & vbCrLf & _
         "FROM `faelle` " & vbCrLf & _
-        "WHERE schgr <> '90' AND NOT goäkatnr IN ('40','41') " & vbCrLf & _
-        "AND nachname <> 'Bereitschaftsdienst' " & vbCrLf & _
+        "WHERE schgr <> '90' AND NOT goäkatnr IN ('40','41')" & vbCrLf & _
+        "AND nachname <> 'Bereitschaftsdienst'" & vbCrLf & _
         "AND quartal = (SELECTmy  CONCAT(intacc(((MONTH(SUBDATE(NOW(),INTERVAL " & frist & " DAY))-1) divmy 3) + 1) ¡ YEAR(SUBDATE(NOW(),INTERVAL " & frist & " DAY)) ) AS `lq`) " & _
            "ORDER BY pat_id, fid DESC, schgr;"
  Call DtbCreateQueryDef(VN, Vsql, , True)
