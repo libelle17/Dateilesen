@@ -1767,7 +1767,7 @@ sql0 = _
   m = 30: TI(m) = Timer: For p = 0 To m - 1: TI(m) = TI(m) - TI(p): Next p
   
   ' Therapiehinweise
-  Dim thh$(), metdos%, obsglt%, obamio%
+  Dim thh$(), metdos%, obsglt%, obamio%, obforx%, obmetfakt%
   m = 31: TI(m) = Timer: For p = 0 To m - 1: TI(m) = TI(m) - TI(p): Next p
   Call mplan(CLng(Pat_id))
   m = 32: TI(m) = Timer: For p = 0 To m - 1: TI(m) = TI(m) - TI(p): Next p
@@ -1777,9 +1777,11 @@ sql0 = _
    For ru = 0 To UBound(mdpl)
     If mdpl(ru).metf Then
      metdos = metdos + (medzz(mdpl(ru).m.mo) + medzz(mdpl(ru).m.mi) + medzz(mdpl(ru).m.nm) + medzz(mdpl(ru).m.ab) + medzz(mdpl(ru).m.Zn)) * MachNumerisch(mdpl(ru).m.Medikament)
+     obmetfakt = True
     End If
     If mdpl(ru).sglt Then obsglt = True
     If left$(mdpl(ru).m.MedAnfang, 5) = "CORDA" Or left$(mdpl(ru).m.MedAnfang, 6) = "AMIODA" Then obamio = True
+    If left$(mdpl(ru).m.MedAnfang, 7) = "FORXIGA" Then obforx = True
    Next ru
   End If
 '  rTh As Adodb.Recordset
@@ -1860,6 +1862,11 @@ sql0 = _
    If Not rdpp4.BOF Then
     If SafeArrayGetDim(thh) = 0 Then ReDim thh(0) Else ReDim Preserve thh(UBound(thh) + 1)
     thh(UBound(thh)) = rdpp4!Anw
+   End If
+' TH:Forxiga+Metformin -> Xigduo (AOK/Barmer)
+   If obforx And obmetfakt And (InStrB(UCase$(rFlkrkasse), "AOK") <> 0 Or InStrB(UCase$(rFlkrkasse), "BARMER") <> 0) Then
+    If SafeArrayGetDim(thh) = 0 Then ReDim thh(0) Else ReDim Preserve thh(UBound(thh) + 1)
+    thh(UBound(thh)) = "Forxiga und Metformin getrennt verordnet, Kasse: " & rFlkrkasse & " => Umstellung auf Xigduo evtl. wirtschaftlicher"
    End If
 ' TH:Kombinationstherapie Fettsenker aufspalten
    Set rdpp4 = Nothing
