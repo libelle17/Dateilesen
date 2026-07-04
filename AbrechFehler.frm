@@ -1058,6 +1058,13 @@ sql(AWlf) = _
  mins(AWlf) = 7
  maxs(AWlf) = 30
  AWlf = AWlf + 1
+ 
+ Const falscheResekt$ = "(polyp|Leber|Pan[ck]reas|Re[ck]tum|Hypoph).*rese[ck]t|" & _
+                        "(darm|magen|milz|acg-|schilddrüsen|sd-|nieren|[ck]olon[-]{0,1}|teil|links|total|gebärmutter|mu[ck]osa|gallenblase[n]{0,1}|elektro|wurzel|truma|igma|pan[ck]reaskopf|ol-)resekt|" & _
+                        "(Gebärmutter|Segment|Teil|Links|Total|Prostat(a|e )|SD-|Mucosa|Nach|operative )rese|" & _
+                        "Rese[ck]tion (der Schild|eines Aden|Leberzyste|BAA|Lunge)|" & _
+                        "Resektions(höhle|rand Pankreas|sbereich)"
+' Const falscheResekt$ = "Rese[ck]tion (der Schild|eines Aden|Leberzyste|BAA|Lunge)|Pan[ck]rea(titi|)s.*resekt|Resektionsbereich|Re[ck]tumrese[ck]t|(prostat(a|e )|darm|magen|milz|acg-|ICC-|OL-|schilddrüsen|struma|sd-|nieren|teil|links|total|gebärmutter|mu[ck]osa|gallenblasen|elektro|wurzel|truma|igma|pan[ck]reaskopf|olon|olon-|olypen|operative )resekt|Hypoph.*resekt"
 
  ' 9
  AwN(AWlf) = "Fehlende Fußdiagnose trotz Leistung 97314, 97324 oder 02311"
@@ -1076,7 +1083,7 @@ sql(AWlf) = _
  " LEFT JOIN `namen` n ON f.pat_id = n.pat_id" & vbCrLf & _
  " LEFT JOIN (SELECT pat_id,GROUP_CONCAT(DISTINCT CONCAT(DATE_FORMAT(ZeitPunkt,'%d.%m.%y'),': ',leistung) SEPARATOR ', ') Leistn FROM leistungen WHERE leistung IN ('97314','97324','02311') AND zeitpunkt BETWEEN qanf() AND qend() GROUP BY pat_id) l ON l.pat_id = f.pat_id" & vbCrLf & _
  " LEFT JOIN tmbrie b ON f.pat_id = b.pat_id AND b.quelldatum BETWEEN fa.qanf AND fa.qend AND b.name RLIKE 'WA [0-5]'" & vbCrLf & _
- " LEFT JOIN `eintraege` e ON f.pat_id = e.pat_id AND DATE(e.zeitpunkt) BETWEEN fa.qanf AND fa.qend AND (e.art RLIKE 'debr|ulcus' OR (e.inhalt RLIKE 'ebrid|resekt' AND NOT inhalt RLIKE '(polyp|Leber).*rese[ck]t|Resektionshöhle|Resektion der Schild|Pan[ck]reas.*resekt|Resektion Leberzyste|Resektionsbereich|Re[ck]tumrese[ck]t|Rese[ck]tion Lunge|(darm|magen|milz|acg-|schilddrüsen|struma|sd-|nieren|teil|links|total|gebärmutter|mu[ck]osa|gallenblasen|elektro|wurzel|truma|igma|pan[ck]reaskopf)resekt|Hypoph.*resekt'))" & vbCrLf & _
+ " LEFT JOIN `eintraege` e ON f.pat_id = e.pat_id AND DATE(e.zeitpunkt) BETWEEN fa.qanf AND fa.qend AND (e.art RLIKE 'debr|ulcus' OR (e.inhalt RLIKE 'ebrid|resekt' AND NOT inhalt RLIKE '" & falscheResekt & "'))" & vbCrLf & _
  " LEFT JOIN `diagview` di ON f.pat_id = di.pat_id AND di.ICD RLIKE '^L89\.[1-5]' AND (obdauer<>0 OR DATE(di.diagdatum) BETWEEN qbeg(b.quelldatum) AND qende(b.quelldatum))" & vbCrLf & _
  " WHERE not ISNULL(Leistn)" & vbCrLf & _
  " GROUP BY f.pat_id,e.art, e.inhalt, b.name" & vbCrLf & _
@@ -3037,7 +3044,7 @@ sql(AWlf) = _
  " ,COALESCE(GROUP_CONCAT(DISTINCT CONCAT(fu.art,':',LEFT(fu.Inhalt,4)) SEPARATOR ', '),'') Fuß_akt, e.Art eArt, u.Art uArt, r.Medikament rRz, ra.Medikament raRz, d.ICD dICD, dmpKlass,dmpbeg,Kateg" & vbCrLf & _
  " ,COALESCE(GROUP_CONCAT(DISTINCT CONCAT(e.art,':',e.Inhalt)),'') Debr_akt" & vbCrLf & _
  " FROM aktfv f LEFT JOIN namen USING (pat_id)" & vbCrLf & _
- " LEFT JOIN eintraege e ON e.pat_id=f.pat_id AND e.zeitpunkt BETWEEN qanf() AND qend() AND (e.inhalt LIKE '%ebrid%' OR e.art LIKE 'debr%' OR (e.inhalt LIKE '%resekt%' AND NOT e.inhalt RLIKE '(polyp|Leber).*rese[ck]t|Resektionshöhle|Gebärmutterrese|Segmentresekt|Teilresekt|Linksresekt|Totalresekt|Prostataresekt|SD-resekt|Mucosaresektion|Nachresektion|Resektion der Schild|Strumaresekt|Schilddrüsenresekt|Gallenblase[n]{0,1}resektion|Elektroresektion|wurzelresektion|Nierenresektion|Pan[ck]reas.*resektion|trumektomie|igmaresektion|Resektion Leberzyste|Resektionsbereich|Pan[ck]reaskopfresektion|Re[ck]tumrese[ck]t|darmresekt|olonresekt|olon-resekt|milzresekt|Rese[ck]tion Lunge'))" & vbCrLf & _
+ " LEFT JOIN eintraege e ON e.pat_id=f.pat_id AND e.zeitpunkt BETWEEN qanf() AND qend() AND (e.inhalt LIKE '%ebrid%' OR e.art LIKE 'debr%' OR (e.inhalt LIKE '%resekt%' AND NOT e.inhalt RLIKE '" & falscheResekt & "'))" & vbCrLf & _
  " LEFT JOIN eintraege fu ON fu.pat_id=f.pat_id AND fu.zeitpunkt BETWEEN qanf() AND qend() AND fu.Art RLIKE 'fuss|fuß|usd|ulcus'" & vbCrLf & _
  " LEFT JOIN eintraege u ON u.pat_id=f.pat_id AND u.zeitpunkt BETWEEN qanf() AND qend() AND u.Art = 'ulcus'" & vbCrLf & _
  " LEFT JOIN diagview d ON d.pat_id=f.pat_id AND d.obdauer<>0 AND d.gICD REGEXP '^E1[0-4]\.'" & vbCrLf & _
@@ -3071,7 +3078,7 @@ sql(AWlf) = _
  "SELECT f.pat_id, dmtyp(f.pat_id) dt, gesname(f.pat_id) PName, DATE_FORMAT(e.zeitpunkt,'%e.%c.%y') Zp, GROUP_CONCAT(ndl.leistung) ndl, GROUP_CONCAT(dil.leistung) dil, e.art, e.inhalt " & vbCrLf & _
  "FROM aktfvs f " & vbCrLf & _
  "LEFT JOIN namen USING (pat_id) " & vbCrLf & _
- "LEFT JOIN eintraege e ON e.pat_id=f.pat_id AND e.zeitpunkt BETWEEN " & lQAnfuEnd(FristS) & " AND (inhalt LIKE '%ebrid%' OR art LIKE 'debr%' OR (inhalt LIKE '%resekt%' AND NOT inhalt RLIKE '(polyp|Leber).*rese[ck]t|Resektionshöhle|Resektion der Schild|Resektionsrand Pankreas|Pan[ck]rea(titi|)s.*resekt|Resektion Leberzyste|Resektionsbereich|Re[ck]tumrese[ck]t|Rese[ck]tion Lunge|(darm|magen|milz|acg-|ICC-|schilddrüsen|struma|sd-|nieren|teil|links|total|gebärmutter|mu[ck]osa|gallenblasen|elektro|wurzel|truma|igma|pan[ck]reaskopf|olon|olon-|olypen|operative )resekt|Hypoph.*resekt')) " & vbCrLf & _
+ "LEFT JOIN eintraege e ON e.pat_id=f.pat_id AND e.zeitpunkt BETWEEN " & lQAnfuEnd(FristS) & " AND (inhalt LIKE '%ebrid%' OR art LIKE 'debr%' OR (inhalt LIKE '%resekt%' AND NOT inhalt RLIKE '" & falscheResekt & "')) " & vbCrLf & _
  "LEFT JOIN leistungen ndl ON ndl.pat_id = f.pat_id AND ndl.leistung IN ('02300') AND DATE(ndl.zeitpunkt)=DATE(e.zeitpunkt)" & vbCrLf & _
  "LEFT JOIN leistungen dil ON dil.pat_id = f.pat_id AND dil.leistung IN ('02311') AND DATE(dil.zeitpunkt)=DATE(e.zeitpunkt)" & vbCrLf & _
  "LEFT JOIN leistungen dix ON dix.pat_id = f.pat_id AND dix.leistung IN ('02312') AND DATE(dix.zeitpunkt)=DATE(e.zeitpunkt)" & vbCrLf & _
