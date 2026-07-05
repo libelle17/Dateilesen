@@ -4673,7 +4673,7 @@ sql(AWlf) = vbCrLf & _
 '"FROM aktfv f" & vbCrLf & _
 '"LEFT JOIN diagview d ON f.pat_id = d.pat_id AND (d.icd='O24.4' AND d.Dggel=0 AND d.diagsicherheit IN ('G',' ') AND d.diagdatum BETWEEN qbegs(f.quartal) AND qends(f.quartal))" & vbCrLf & _
 '"LEFT JOIN diagview h ON f.pat_id = h.pat_id AND (h.icd RLIKE '^i10' AND h.diagsicherheit IN ('G',' '))" & vbCrLf & _
-'"LEFT JOIN (SELECT mp.* from medplan mp inner JOIN medarten ma ON mp.medanfang=ma.medikament where tag between qanf() and qend() AND hypt<>0) mp ON mp.pat_id=f.pat_id" & vbCrLf & _
+'"LEFT JOIN (SELECT mp.* from medplan mp INNER JOIN medarten ma ON mp.medanfang=ma.medikament where tag between qanf() and qend() AND hypt<>0) mp ON mp.pat_id=f.pat_id" & vbCrLf & _
 '"LEFT JOIN (select COUNT(0) OVER (PARTITION BY pat_id) zdzhB, pat_id, zeitpunkt, rr from rr WHERE (rr.rrsyst>=140 OR rr.rrdiast>=90)) rr  ON rr.pat_id=f.pat_id" & vbCrLf & _
 '"Where Not IsNull(d.ICD)" & vbCrLf & _
 '"AND (NOT ISNULL(h.icd) OR NOT isnull(medikament) OR zdzhB>1" & vbCrLf & _
