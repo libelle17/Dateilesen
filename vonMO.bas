@@ -977,11 +977,13 @@ Public Function MOConInit(Optional MServ$, Optional anzeige$)
    bishServ = MServ
    On Error Resume Next
     MOCon.Open MOAnfStr & MServ
+    MOCon.CommandTimeout = 10
     If Err.Number Then
      Err.Clear
      If Lese.MORes = "" Then Lese.MORes = InputBox("Bitte geben Sie MORes ein:", "Mo-ReserveServer-Eingabe")
      MServ = Lese.MORes
      MOCon.Open MOAnfStr & MServ
+     MOCon.CommandTimeout = 10
      MOtot = Not (Err.Number = 0)
      If MOtot Then
       anzeige = "Funktion mangels Verbindung zu MO nicht ausgeführt"
