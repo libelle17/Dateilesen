@@ -2428,8 +2428,8 @@ Private Sub Übertragung_aus_MO_Click()
     abzahl = rab!Zahl
     aktz = rab!rang
     anzs = "Übertragung von MO bei Pat. Nr. " & rab!FPatNr & " (" & rab!gesNameG & ") = " & aktz & "/" & abzahl
-    myFrag raz, "SELECT COALESCE(aktzeit,18990101) aktzeit FROM namen WHERE pat_id=" & rab!FPatNr, , DBCn, adLockReadOnly, , rAf
     Dim lImp$
+    myFrag raz, "SELECT COALESCE(aktzeit,18990101) aktzeit FROM namen WHERE pat_id=" & rab!FPatNr, , DBCn, adLockReadOnly, , rAf
     If raz.EOF Then lImp = "-": vglzeit = "18900101" Else lImp = Format(raz!aktZeit, "dd.mm.yy HH:MM:SS"): vglzeit = Format(raz!aktZeit, "yyyymmddhhmmss")
     If opt.alleVor(0) <> 0 And VorDat <> 0 Then
       If Not raz.EOF Then If raz!aktZeit >= VorDat Then Ausgeb rab!FPatNr & ", importiert: " & raz!aktZeit & ", nicht vor: " & VorDat, True: GoTo weiter
