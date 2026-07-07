@@ -6059,7 +6059,7 @@ sql(AWlf) = sql(AWlf) & _
 " OR (iart IN (126) AND leistung RLIKE '^88336[ABVWGH]') " & vbCrLf & _
 ") " & vbCrLf & _
 "WHERE NOT ISNULL(inhalt) AND (schgr<>90 OR impfart(e.inhalt)=8) AND ISNULL(leistung) " & vbCrLf & _
-"AND NOT inhalt RLIKE 'Twinrix|havrix|Engerix|strova|Bexsero|Nimenrix|Priorix|Rabipur|Thyim|Typhim'" & vbCrLf & _
+"AND NOT inhalt RLIKE 'Twinrix|havrix|Engerix|strova|Bexsero|Nimenrix|Priorix|Rabipur|Thyim|Typhim|MMR Vax Pro'" & vbCrLf & _
 "AND NOT (inhalt RLIKE 'tetagam' AND NOT inhalt RLIKE 'tetanol|boostrix|grundimm')" & vbCrLf & _
 "GROUP BY f.pat_id, iart, leistung" & vbCrLf & _
 ";"
