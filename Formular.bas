@@ -9370,11 +9370,10 @@ Function GetVorDat(Pat_ID$, obStumm%, Optional obschlieﬂ%, Optional ohne÷ffnen%,
        Loop ' While Not EOF(235)
        Close #235
       End If
-      If Not obfertig Then
        On Error Resume Next
  '     If Wapp.Version = 0 Then Debug.Print Wapp.Version
        If ohne÷ffnen = 0 Then If Wapp Is Nothing Then GetWord: If Err.Number Then Set Wapp = Nothing
-       If ohne÷ffnen <> 0 And Not Wapp Is Nothing Then
+       If ohne÷ffnen = 0 And Not Wapp Is Nothing Then
         On Error GoTo fehler
         Select Case Wapp.Version
          Case "7.0", "8.0", "9.0"
@@ -9394,19 +9393,20 @@ Function GetVorDat(Pat_ID$, obStumm%, Optional obschlieﬂ%, Optional ohne÷ffnen%,
           On Error GoTo fehler
         End Select
         If Not WAlt Is Nothing Then
-         US$ = REPLACE$(REPLACE$(REPLACE$(WAlt.Range, vbTab, Chr$(32)), vbCr, Chr$(32)), vbVerticalTab, Chr$(32))
-         Spl = Split(US)
-         For j = 1 To UBound(Spl)
-          If IsDate(Spl(j)) Then
-           GetVorDat = CDate(Spl(j))
-           Exit For
-          End If
-         Next j
+         If Not obfertig Then
+          US$ = REPLACE$(REPLACE$(REPLACE$(WAlt.Range, vbTab, Chr$(32)), vbCr, Chr$(32)), vbVerticalTab, Chr$(32))
+          Spl = Split(US)
+          For j = 1 To UBound(Spl)
+           If IsDate(Spl(j)) Then
+            GetVorDat = CDate(Spl(j))
+            Exit For
+           End If
+          Next j
+         End If ' not obfertig
 '     Wapp.documents(Wapp.documents.Count).Close
          If obschlieﬂ Then Wapp.documents(1).Close
         End If ' not WAlt is nothing
        End If ' not Wapp is nothing
-      End If ' obfertig = 0
      End If ' not BRz.bof
 '    End If ' not isempty(walt)
 '   End If ' BRz!ct > 0 Then
