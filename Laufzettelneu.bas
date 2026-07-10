@@ -3345,6 +3345,7 @@ hyperton:
   If Not rs(Fußi).BOF Then
    If rs(Fußi).Fields.COUNT > 1 Then
     Dim Intervall$, pos&, p2&
+    rs(Fußi).MoveFirst
     Intervall = rs(Fußi).Fields(1)
     pos = InStr(Intervall, "nä US:")
     If pos > 0 Then
@@ -3940,8 +3941,8 @@ nochmal1:
    Matr(0, 4, j) = raL!Einheit
    Matr(1, 4, j) = zeile
 '    IF NOT ISNULL(ral!Nb) THEN Matr(0,5, j) = ral!Nb
-   ug = Trim$(nz(raL!uNG,vNS))
-   og = Trim$(nz(raL!oNG,vNS))
+   ug = Trim$(nz(raL!uNG, vNS))
+   og = Trim$(nz(raL!oNG, vNS))
    Matr(0, 5, j) = ug & "-" & og
    ug = MachNumerisch(ug)
    If ug = "0" Then ug = ""
@@ -3950,8 +3951,8 @@ nochmal1:
    If IsNumeric(ug) Then ug = CDbl(ug)
    If IsNumeric(og) Then og = CDbl(og)
    Matr(1, 5, j) = ug & "-" & og
-   If Not IsNull(raL!uNG) Then Matr(0, 1, j) = REPLACE$(nz(raL!uNG,vNS), "1:", "")
-   If Not IsNull(raL!oNG) Then Matr(0, 2, j) = REPLACE$(nz(raL!oNG,vNS), "1:", "")
+   If Not IsNull(raL!uNG) Then Matr(0, 1, j) = REPLACE$(nz(raL!uNG, vNS), "1:", "")
+   If Not IsNull(raL!oNG) Then Matr(0, 2, j) = REPLACE$(nz(raL!oNG, vNS), "1:", "")
    On Error Resume Next
    Matr(0, 3, j) = raL!Langtext
    On Error GoTo fehler
@@ -4004,9 +4005,9 @@ nochmal1:
    If Matr(0, 0, j) = raL!Abkü Then
     If LCase$(Matr(0, 4, j)) = LCase$(raL!Einheit) Then
      Dim NGVgl$
-     ug = Trim$(nz(raL!uNG,vNS))
+     ug = Trim$(nz(raL!uNG, vNS))
      If ug = "0" Then ug = ""
-     og = Trim$(nz(raL!oNG,vNS))
+     og = Trim$(nz(raL!oNG, vNS))
      If og = "0" Then og = ""
      ug = MachNumerisch(ug)
      If ug = "0" Then ug = ""
@@ -4033,13 +4034,13 @@ nochmal1:
    Matr(0, 0, j) = raL!Abkü
 '   IF Not rlpar.EOF THEN
     Matr(1, 0, j) = "Gruppe: " & raL!Gruppe & "|Reihe: " & raL!Reihe & "|Abkü: " & raL!Abkü & "|NB: " & raL!uNG & "-" & raL!oNG
-    Matr(0, 3, j) = nz(raL!Langtext,"") ' rlpar!Langtext
+    Matr(0, 3, j) = nz(raL!Langtext, "") ' rlpar!Langtext
 '   Else
 '    Matr(1, 0, j) = ral!abkü
 '    Matr(0, 3, j) = ral!abkü
 '   END IF
    Matr(0, 4, j) = raL!Einheit
-   Matr(0, 5, j) = Trim$(nz(raL!uNG,vNS)) & "-" & Trim$(nz(raL!oNG,vNS))
+   Matr(0, 5, j) = Trim$(nz(raL!uNG, vNS)) & "-" & Trim$(nz(raL!oNG, vNS))
 '    ON Error GoTo fehler
   End If ' j > UBound(Matr, 3) THEN
   If i <= dz + 5 Then
@@ -4049,7 +4050,7 @@ nochmal1:
     Kommentar = REPLACE$(Kommentar, "//", "/")
    Wend
    ' Hier wird der Wert eingetragen:
-   Matr(0, i, j) = nz(raL!Wert,IIf(Not IsNull(Kommentar), left$(Kommentar, 10), vNS))
+   Matr(0, i, j) = nz(raL!Wert, IIf(Not IsNull(Kommentar), left$(Kommentar, 10), vNS))
    Matr(1, i, j) = raL!Labor
    If InStrB(Kommentar, "//") <> 0 Then
     MsgBox " Fehler in LaborInsPLZ: InstrB(kommentar, ""//"") <> 0"
