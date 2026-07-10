@@ -9374,6 +9374,7 @@ Function GetVorDat(Pat_ID$, obStumm%, Optional obschlieﬂ%, Optional ohne÷ffnen%,
  '     If Wapp.Version = 0 Then Debug.Print Wapp.Version
        If ohne÷ffnen = 0 Then If Wapp Is Nothing Then GetWord: If Err.Number Then Set Wapp = Nothing
        If ohne÷ffnen = 0 And Not Wapp Is Nothing Then
+        Wapp.Visible = True
         On Error GoTo fehler
         Select Case Wapp.Version
          Case "7.0", "8.0", "9.0"
