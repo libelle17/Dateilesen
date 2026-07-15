@@ -376,7 +376,7 @@ End Sub ' Private Sub Form_Load()
 
 ' in ZeigSQL
 Public Function ZeigSprivat(FristS$)
-' 24.10.09: ändern in WHERE bhfe = '1899-12-30' AND schgr = 90
+' 24.10.09: ändern in WHERE bhfe = '1899-12-30' AND schgr IN(89,90)
 ' ktag fehlerhaft
  AwN(AWlf) = "Evtl. fehlende Abrechnung von Beratungen (1,3)"
  sql(AWlf) = "SELECT n.pat_id,gesnameg(n.pat_id) Name,e.zeitpunkt zp, e.art art, inhalt " & vbCrLf & _
@@ -385,7 +385,7 @@ Public Function ZeigSprivat(FristS$)
  "WHERE art IN (" & artspezG & ") " & vbCrLf & _
  "AND NOT EXISTS (SELECT pat_id FROM `eintraege` bez WHERE art = 'rech' AND pat_id = e.pat_id AND zeitpunkt > e.zeitpunkt) " & vbCrLf & _
  "AND NOT EXISTS (SELECT pat_id FROM `leistungen` WHERE pat_id = e.pat_id AND DATE(zeitpunkt) = DATE(e.zeitpunkt)) AND leistung IN ('1','3','30A','31A')) " & vbCrLf & _
- "AND n.nachname <> 'ZuTun' AND n.pat_id <> 2 AND schgr = 90 AND zeitpunkt > (SELECT MAX(zeitpunkt) FROM `eintraege` WHERE pat_id = e.pat_id AND art = 'pvs' AND NOT inhalt LIKE '%storniert%')"
+ "AND n.nachname <> 'ZuTun' AND n.pat_id <> 2 AND schgr IN(89,90) AND zeitpunkt > (SELECT MAX(zeitpunkt) FROM `eintraege` WHERE pat_id = e.pat_id AND art = 'pvs' AND NOT inhalt LIKE '%storniert%')"
  mins(AWlf) = 5
  maxs(AWlf) = 100
  AWlf = AWlf + 1
@@ -400,7 +400,7 @@ Public Function ZeigSprivat(FristS$)
  "AND NOT EXISTS (SELECT pat_id FROM `eintraege` bez WHERE art = 'rech' AND pat_id = e.pat_id AND zeitpunkt > e.zeitpunkt) " & vbCrLf & _
  "AND NOT EXISTS (SELECT pat_id FROM `leistungen` WHERE pat_id = e.pat_id AND DATE(zeitpunkt) = DATE(e.zeitpunkt)) AND leistung = 'A') " & vbCrLf & _
  "AND (day(e.zeitpunkt) IN (4,6) AND hour(e.zeitpunkt) BETWEEN 15 AND 19) " & vbCrLf & _
- "AND n.nachname <> 'ZuTun' AND n.pat_id <> 2 AND schgr = 90 AND zeitpunkt > (SELECT MAX(zeitpunkt) FROM `eintraege` WHERE pat_id = e.pat_id AND art = 'pvs' AND NOT inhalt LIKE '%storniert%')"
+ "AND n.nachname <> 'ZuTun' AND n.pat_id <> 2 AND schgr IN(89,90) AND zeitpunkt > (SELECT MAX(zeitpunkt) FROM `eintraege` WHERE pat_id = e.pat_id AND art = 'pvs' AND NOT inhalt LIKE '%storniert%')"
  mins(AWlf) = 5
  maxs(AWlf) = 100
  AWlf = AWlf + 1
@@ -414,7 +414,7 @@ Public Function ZeigSprivat(FristS$)
  "AND NOT EXISTS (SELECT pat_id FROM `eintraege` bez WHERE art = 'rech' AND pat_id = e.pat_id AND zeitpunkt > e.zeitpunkt) " & vbCrLf & _
  "AND NOT EXISTS (SELECT pat_id FROM `leistungen` WHERE pat_id = e.pat_id AND DATE(zeitpunkt) = DATE(e.zeitpunkt) AND leistung = 'B') " & vbCrLf & _
  "AND hour(e.zeitpunkt) IN (20,21,6) " & vbCrLf & _
- "AND n.nachname <> 'ZuTun' AND n.pat_id <> 2 AND schgr = 90 AND zeitpunkt > (SELECT MAX(zeitpunkt) FROM `eintraege` WHERE pat_id = e.pat_id AND art = 'pvs' AND NOT inhalt LIKE '%storniert%')"
+ "AND n.nachname <> 'ZuTun' AND n.pat_id <> 2 AND schgr IN (89,90) AND zeitpunkt > (SELECT MAX(zeitpunkt) FROM `eintraege` WHERE pat_id = e.pat_id AND art = 'pvs' AND NOT inhalt LIKE '%storniert%')"
  mins(AWlf) = 5
  maxs(AWlf) = 100
  AWlf = AWlf + 1
@@ -428,7 +428,7 @@ Public Function ZeigSprivat(FristS$)
  "AND NOT EXISTS (SELECT pat_id FROM `eintraege` bez WHERE art = 'rech' AND pat_id = e.pat_id AND zeitpunkt > e.zeitpunkt) " & vbCrLf & _
  "AND NOT EXISTS (SELECT pat_id FROM `leistungen` WHERE pat_id = e.pat_id AND DATE(zeitpunkt) = DATE(e.zeitpunkt) AND leistung = 'C') " & vbCrLf & _
  "AND NOT hour(e.zeitpunkt) BETWEEN 6 AND 22 " & vbCrLf & _
- "AND n.nachname <> 'ZuTun' AND n.pat_id <> 2 AND schgr = 90 AND zeitpunkt > (SELECT MAX(zeitpunkt) FROM `eintraege` WHERE pat_id = e.pat_id AND art = 'pvs' AND NOT inhalt LIKE '%storniert%')"
+ "AND n.nachname <> 'ZuTun' AND n.pat_id <> 2 AND schgr IN(89,90) AND zeitpunkt > (SELECT MAX(zeitpunkt) FROM `eintraege` WHERE pat_id = e.pat_id AND art = 'pvs' AND NOT inhalt LIKE '%storniert%')"
  mins(AWlf) = 5
  maxs(AWlf) = 100
  AWlf = AWlf + 1
@@ -442,7 +442,7 @@ Public Function ZeigSprivat(FristS$)
  "AND NOT EXISTS (SELECT pat_id FROM `eintraege` bez WHERE art = 'rech' AND pat_id = e.pat_id AND zeitpunkt > e.zeitpunkt) " & vbCrLf & _
  "AND NOT EXISTS (SELECT pat_id FROM `leistungen` WHERE pat_id = e.pat_id AND DATE(zeitpunkt) = DATE(e.zeitpunkt) AND leistung = 'D') " & vbCrLf & _
  "AND dayofweek(e.zeitpunkt) IN (7,1) " & vbCrLf & _
- "AND n.nachname <> 'ZuTun' AND n.pat_id <> 2 AND schgr = 90 AND zeitpunkt > (SELECT MAX(zeitpunkt) FROM `eintraege` WHERE pat_id = e.pat_id AND art = 'pvs' AND NOT inhalt LIKE '%storniert%')"
+ "AND n.nachname <> 'ZuTun' AND n.pat_id <> 2 AND schgr IN(89,90) AND zeitpunkt > (SELECT MAX(zeitpunkt) FROM `eintraege` WHERE pat_id = e.pat_id AND art = 'pvs' AND NOT inhalt LIKE '%storniert%')"
  mins(AWlf) = 5
  maxs(AWlf) = 100
  AWlf = AWlf + 1
@@ -455,7 +455,7 @@ Public Function ZeigSprivat(FristS$)
  "WHERE art IN (" & artspezG & ") " & vbCrLf & _
  "AND NOT EXISTS (SELECT pat_id FROM `eintraege` bez WHERE art = 'rech' AND pat_id = e.pat_id AND zeitpunkt > e.zeitpunkt) " & vbCrLf & _
  "AND NOT EXISTS (SELECT pat_id FROM `leistungen` WHERE pat_id = e.pat_id AND DATE(zeitpunkt)=DATE(e.zeitpunkt) AND leistung = '3') " & vbCrLf & _
- "AND n.nachname <> 'ZuTun' AND n.pat_id <> 2 AND schgr = 90 AND zeitpunkt > (SELECT MAX(zeitpunkt) FROM `eintraege` WHERE pat_id = e.pat_id AND art = 'pvs' AND NOT inhalt LIKE '%storniert%') GROUP BY pat_id ORDER BY pat_id, e.zeitpunkt"
+ "AND n.nachname <> 'ZuTun' AND n.pat_id <> 2 AND schgr IN(89,90) AND zeitpunkt > (SELECT MAX(zeitpunkt) FROM `eintraege` WHERE pat_id = e.pat_id AND art = 'pvs' AND NOT inhalt LIKE '%storniert%') GROUP BY pat_id ORDER BY pat_id, e.zeitpunkt"
  mins(AWlf) = 5
  maxs(AWlf) = 100
  AWlf = AWlf + 1
@@ -470,7 +470,7 @@ Public Function ZeigSprivat(FristS$)
  "OR (art IN (" & artSpezUS & "))) " & vbCrLf & _
  "AND NOT EXISTS (SELECT pat_id FROM `eintraege` bez WHERE art = 'rech' AND pat_id = e.pat_id AND zeitpunkt > e.zeitpunkt) " & vbCrLf & _
  "AND NOT EXISTS (SELECT pat_id FROM `leistungen` WHERE pat_id = e.pat_id AND DATE(zeitpunkt)=DATE(e.zeitpunkt) AND leistung IN ('5','6','7','8')) " & vbCrLf & _
- "AND n.nachname <> 'ZuTun' AND n.pat_id <> 2 AND schgr = 90 AND zeitpunkt > (SELECT MAX(zeitpunkt) FROM `eintraege` WHERE pat_id = e.pat_id AND art = 'pvs' AND NOT inhalt LIKE '%storniert%')"
+ "AND n.nachname <> 'ZuTun' AND n.pat_id <> 2 AND schgr IN(89,90) AND zeitpunkt > (SELECT MAX(zeitpunkt) FROM `eintraege` WHERE pat_id = e.pat_id AND art = 'pvs' AND NOT inhalt LIKE '%storniert%')"
  mins(AWlf) = 5
  maxs(AWlf) = 100
  AWlf = AWlf + 1
@@ -485,7 +485,7 @@ Public Function ZeigSprivat(FristS$)
  "OR (art IN (" & artSpezUS & "))) " & vbCrLf & _
  "AND NOT EXISTS (SELECT pat_id FROM `eintraege` bez WHERE art = 'rech' AND pat_id = e.pat_id AND zeitpunkt > e.zeitpunkt) " & vbCrLf & _
  "AND NOT EXISTS (SELECT pat_id FROM `leistungen` l WHERE pat_id = e.pat_id AND YEAR(zeitpunkt) = YEAR(e.zeitpunkt) AND leistung = '15') " & vbCrLf & _
- "AND n.nachname <> 'ZuTun' AND n.pat_id <> 2 AND schgr = 90 AND zeitpunkt > (SELECT MAX(zeitpunkt) FROM `eintraege` WHERE pat_id = e.pat_id AND art = 'pvs' AND NOT inhalt LIKE '%storniert%') GROUP BY pat_id ORDER BY pat_id, e.zeitpunkt"
+ "AND n.nachname <> 'ZuTun' AND n.pat_id <> 2 AND schgr IN(89,90) AND zeitpunkt > (SELECT MAX(zeitpunkt) FROM `eintraege` WHERE pat_id = e.pat_id AND art = 'pvs' AND NOT inhalt LIKE '%storniert%') GROUP BY pat_id ORDER BY pat_id, e.zeitpunkt"
  mins(AWlf) = 5
  maxs(AWlf) = 100
  AWlf = AWlf + 1
@@ -498,7 +498,7 @@ Public Function ZeigSprivat(FristS$)
  "WHERE art IN ('schul') " & vbCrLf & _
  "AND NOT EXISTS (SELECT pat_id FROM `eintraege` bez WHERE art = 'rech' AND pat_id = e.pat_id AND zeitpunkt > e.zeitpunkt) " & vbCrLf & _
  "AND NOT EXISTS (SELECT pat_id FROM `leistungen` WHERE pat_id = e.pat_id AND DATE(zeitpunkt)=DATE(e.zeitpunkt) AND leistung IN ('20','33')) " & vbCrLf & _
- "AND n.nachname <> 'ZuTun' AND n.pat_id <> 2 AND schgr = 90 AND zeitpunkt > (SELECT MAX(zeitpunkt) FROM `eintraege` WHERE pat_id = e.pat_id AND art = 'pvs' AND NOT inhalt LIKE '%storniert%')"
+ "AND n.nachname <> 'ZuTun' AND n.pat_id <> 2 AND schgr IN(89,90) AND zeitpunkt > (SELECT MAX(zeitpunkt) FROM `eintraege` WHERE pat_id = e.pat_id AND art = 'pvs' AND NOT inhalt LIKE '%storniert%')"
  mins(AWlf) = 5
  maxs(AWlf) = 100
  AWlf = AWlf + 1
@@ -514,7 +514,7 @@ Public Function ZeigSprivat(FristS$)
  "AND NOT EXISTS (SELECT pat_id FROM `eintraege` bez WHERE art = 'rech' AND pat_id = e.pat_id AND zeitpunkt > e.zeitpunkt) " & vbCrLf & _
  "AND NOT EXISTS (SELECT pat_id FROM `leistungen` WHERE pat_id = e.pat_id AND DATE(zeitpunkt) = DATE(e.zeitpunkt) AND leistung IN ('24')) " & vbCrLf & _
  "AND NOT ISNULL(diagdatum) AND ADDDATE(diagdatum, INTERVAL 180 DAY) > e.zeitpunkt " & vbCrLf & _
- "AND n.nachname <> 'ZuTun' AND n.pat_id <> 2 AND schgr = 90 AND zeitpunkt > (SELECT MAX(zeitpunkt) FROM `eintraege` WHERE pat_id = e.pat_id AND art = 'pvs' AND NOT inhalt LIKE '%storniert%')"
+ "AND n.nachname <> 'ZuTun' AND n.pat_id <> 2 AND schgr IN(89,90) AND zeitpunkt > (SELECT MAX(zeitpunkt) FROM `eintraege` WHERE pat_id = e.pat_id AND art = 'pvs' AND NOT inhalt LIKE '%storniert%')"
  mins(AWlf) = 5
  maxs(AWlf) = 100
  AWlf = AWlf + 1
@@ -527,7 +527,7 @@ Public Function ZeigSprivat(FristS$)
  "WHERE (b.name LIKE '%Arztbr%' OR b.name LIKE '%Nachr%') " & vbCrLf & _
  "AND NOT EXISTS (SELECT pat_id FROM `eintraege` bez WHERE art = 'rech' AND pat_id = b.pat_id AND zeitpunkt > b.zeitpunkt) " & vbCrLf & _
  "AND NOT EXISTS (SELECT pat_id FROM `leistungen` WHERE pat_id = b.pat_id AND DATE(zeitpunkt) = DATE(b.zeitpunkt) AND leistung IN ('75')) " & vbCrLf & _
- "AND n.nachname <> 'ZuTun' AND n.pat_id <> 2 AND schgr = 90 AND ADDDATE(b.zeitpunkt, INTERVAL 365 DAY) > now()"
+ "AND n.nachname <> 'ZuTun' AND n.pat_id <> 2 AND schgr IN(89,90) AND ADDDATE(b.zeitpunkt, INTERVAL 365 DAY) > now()"
  mins(AWlf) = 5
  maxs(AWlf) = 100
  AWlf = AWlf + 1
@@ -540,7 +540,7 @@ Public Function ZeigSprivat(FristS$)
  "WHERE ((inhalt LIKE '%Kompressionsv%' OR inhalt RLIKE '.*[^sHc]kv.*') OR (art LIKE '%kv%'))" & vbCrLf & _
  "AND NOT EXISTS (SELECT pat_id FROM `eintraege` bez WHERE art = 'rech' AND pat_id = e.pat_id AND zeitpunkt > e.zeitpunkt) " & vbCrLf & _
  "AND NOT EXISTS (SELECT pat_id FROM `leistungen` WHERE pat_id = e.pat_id AND DATE(zeitpunkt) = DATE(e.zeitpunkt) AND leistung IN ('204')) " & vbCrLf & _
- "AND n.nachname <> 'ZuTun' AND n.pat_id <> 2 AND schgr = 90 AND zeitpunkt > (SELECT MAX(zeitpunkt) FROM `eintraege` WHERE pat_id = e.pat_id AND art = 'pvs' AND NOT inhalt LIKE '%storniert%')"
+ "AND n.nachname <> 'ZuTun' AND n.pat_id <> 2 AND schgr IN(89,90) AND zeitpunkt > (SELECT MAX(zeitpunkt) FROM `eintraege` WHERE pat_id = e.pat_id AND art = 'pvs' AND NOT inhalt LIKE '%storniert%')"
  mins(AWlf) = 5
  maxs(AWlf) = 100
  AWlf = AWlf + 1
@@ -553,7 +553,7 @@ Public Function ZeigSprivat(FristS$)
  "WHERE ((inhalt LIKE '%blutentn%' OR inhalt LIKE '%blutabn%') OR (art LIKE 'bz%'))" & vbCrLf & _
  "AND NOT EXISTS (SELECT pat_id FROM `eintraege` bez WHERE art = 'rech' AND pat_id = e.pat_id AND zeitpunkt > e.zeitpunkt) " & vbCrLf & _
  "AND NOT EXISTS (SELECT pat_id FROM `leistungen` WHERE pat_id = e.pat_id AND DATE(zeitpunkt) = DATE(e.zeitpunkt) AND leistung IN ('250')) " & vbCrLf & _
- "AND n.nachname <> 'ZuTun' AND n.pat_id <> 2 AND schgr = 90 AND zeitpunkt > (SELECT MAX(zeitpunkt) FROM `eintraege` WHERE pat_id = e.pat_id AND art = 'pvs' AND NOT inhalt LIKE '%storniert%')"
+ "AND n.nachname <> 'ZuTun' AND n.pat_id <> 2 AND schgr IN(89,90) AND zeitpunkt > (SELECT MAX(zeitpunkt) FROM `eintraege` WHERE pat_id = e.pat_id AND art = 'pvs' AND NOT inhalt LIKE '%storniert%')"
  mins(AWlf) = 5
  maxs(AWlf) = 100
  AWlf = AWlf + 1
@@ -566,7 +566,7 @@ Public Function ZeigSprivat(FristS$)
  "WHERE (e.leistung='3585H1') " & vbCrLf & _
  "AND NOT EXISTS (SELECT pat_id FROM `eintraege` bez WHERE art = 'rech' AND pat_id = e.pat_id AND zeitpunkt > e.zeitpunkt) " & vbCrLf & _
  "AND NOT EXISTS (SELECT pat_id FROM `leistungen` WHERE pat_id = e.pat_id AND DATE(zeitpunkt) = DATE(e.zeitpunkt) AND leistung IN ('250')) " & vbCrLf & _
- "AND n.nachname <> 'ZuTun' AND n.pat_id <> 2 AND schgr = 90 AND zeitpunkt > (SELECT MAX(zeitpunkt) FROM `eintraege` WHERE pat_id = e.pat_id AND art = 'pvs' AND NOT inhalt LIKE '%storniert%')"
+ "AND n.nachname <> 'ZuTun' AND n.pat_id <> 2 AND schgr IN(89,90) AND zeitpunkt > (SELECT MAX(zeitpunkt) FROM `eintraege` WHERE pat_id = e.pat_id AND art = 'pvs' AND NOT inhalt LIKE '%storniert%')"
  mins(AWlf) = 5
  maxs(AWlf) = 100
  AWlf = AWlf + 1
@@ -579,7 +579,7 @@ Public Function ZeigSprivat(FristS$)
  "WHERE ((inhalt LIKE '%i.v%' OR inhalt LIKE '%s.c%' OR inhalt LIKE '%i.m%' OR inhalt LIKE '%quadd%'))" & vbCrLf & _
  "AND NOT EXISTS (SELECT pat_id FROM `eintraege` bez WHERE art = 'rech' AND pat_id = e.pat_id AND zeitpunkt > e.zeitpunkt) " & vbCrLf & _
  "AND NOT EXISTS (SELECT pat_id FROM `leistungen` WHERE pat_id = e.pat_id AND DATE(zeitpunkt) = DATE(e.zeitpunkt) AND leistung IN ('252','253')) " & vbCrLf & _
- "AND n.nachname <> 'ZuTun' AND n.pat_id <> 2 AND schgr = 90 AND zeitpunkt > (SELECT MAX(zeitpunkt) FROM `eintraege` WHERE pat_id = e.pat_id AND art = 'pvs' AND NOT inhalt LIKE '%storniert%')"
+ "AND n.nachname <> 'ZuTun' AND n.pat_id <> 2 AND schgr IN(89,90) AND zeitpunkt > (SELECT MAX(zeitpunkt) FROM `eintraege` WHERE pat_id = e.pat_id AND art = 'pvs' AND NOT inhalt LIKE '%storniert%')"
  mins(AWlf) = 5
  maxs(AWlf) = 100
  AWlf = AWlf + 1
@@ -592,7 +592,7 @@ Public Function ZeigSprivat(FristS$)
  "WHERE ((inhalt LIKE '%Alpha%' OR inhalt LIKE '%lipon%' OR inhalt LIKE '%thioc%' OR inhalt LIKE '%prostav%') OR false)" & vbCrLf & _
  "AND (false OR NOT EXISTS (SELECT pat_id FROM `eintraege` bez WHERE art = 'rech' AND pat_id = e.pat_id AND zeitpunkt > e.zeitpunkt)) " & vbCrLf & _
  "AND NOT EXISTS (SELECT pat_id FROM `leistungen` WHERE pat_id = e.pat_id AND DATE(zeitpunkt) = DATE(e.zeitpunkt) AND leistung IN ('271','272','277','278')) " & vbCrLf & _
- "AND n.nachname <> 'ZuTun' AND n.pat_id <> 2 AND schgr = 90 AND zeitpunkt > (SELECT MAX(zeitpunkt) FROM `eintraege` WHERE pat_id = e.pat_id AND art = 'pvs' AND NOT inhalt LIKE '%storniert%')"
+ "AND n.nachname <> 'ZuTun' AND n.pat_id <> 2 AND schgr IN(89,90) AND zeitpunkt > (SELECT MAX(zeitpunkt) FROM `eintraege` WHERE pat_id = e.pat_id AND art = 'pvs' AND NOT inhalt LIKE '%storniert%')"
  mins(AWlf) = 5
  maxs(AWlf) = 100
  AWlf = AWlf + 1
@@ -605,7 +605,7 @@ Public Function ZeigSprivat(FristS$)
  "WHERE ((inhalt LIKE '%Aderla%' ) OR false)" & vbCrLf & _
  "AND (false OR NOT EXISTS (SELECT pat_id FROM `eintraege` bez WHERE art = 'rech' AND pat_id = e.pat_id AND zeitpunkt > e.zeitpunkt)) " & vbCrLf & _
  "AND NOT EXISTS (SELECT pat_id FROM `leistungen` WHERE pat_id = e.pat_id AND DATE(zeitpunkt) = DATE(e.zeitpunkt) AND leistung IN ('285')) " & vbCrLf & _
- "AND n.nachname <> 'ZuTun' AND n.pat_id <> 2 AND schgr = 90 AND zeitpunkt > (SELECT MAX(zeitpunkt) FROM `eintraege` WHERE pat_id = e.pat_id AND art = 'pvs' AND NOT inhalt LIKE '%storniert%')"
+ "AND n.nachname <> 'ZuTun' AND n.pat_id <> 2 AND schgr IN(89,90) AND zeitpunkt > (SELECT MAX(zeitpunkt) FROM `eintraege` WHERE pat_id = e.pat_id AND art = 'pvs' AND NOT inhalt LIKE '%storniert%')"
  mins(AWlf) = 5
  maxs(AWlf) = 100
  AWlf = AWlf + 1
@@ -618,7 +618,7 @@ Public Function ZeigSprivat(FristS$)
  "WHERE art RLIKE 'duplex|dup|sono'" & vbCrLf & _
  "AND (false OR NOT EXISTS (SELECT pat_id FROM `eintraege` bez WHERE art = 'rech' AND pat_id = e.pat_id AND zeitpunkt > e.zeitpunkt)) " & vbCrLf & _
  "AND NOT EXISTS (SELECT pat_id FROM `leistungen` WHERE pat_id = e.pat_id AND DATE(zeitpunkt) = DATE(e.zeitpunkt) AND leistung IN ('401')) " & vbCrLf & _
- "AND n.nachname <> 'ZuTun' AND n.pat_id <> 2 AND schgr = 90 AND zeitpunkt > (SELECT MAX(zeitpunkt) FROM `eintraege` WHERE pat_id = n.pat_id AND art = 'pvs' AND NOT inhalt LIKE '%storniert%')"
+ "AND n.nachname <> 'ZuTun' AND n.pat_id <> 2 AND schgr IN(89,90) AND zeitpunkt > (SELECT MAX(zeitpunkt) FROM `eintraege` WHERE pat_id = n.pat_id AND art = 'pvs' AND NOT inhalt LIKE '%storniert%')"
  mins(AWlf) = 5
  maxs(AWlf) = 100
  AWlf = AWlf + 1
@@ -631,7 +631,7 @@ Public Function ZeigSprivat(FristS$)
  "WHERE ((b.name LIKE '%sonobild %'))" & vbCrLf & _
  "AND (false OR NOT EXISTS (SELECT pat_id FROM `eintraege` bez WHERE art = 'rech' AND pat_id = b.pat_id AND zeitpunkt > b.quelldatum)) " & vbCrLf & _
  "AND NOT EXISTS (SELECT pat_id FROM `leistungen` WHERE pat_id = b.pat_id AND DATE(zeitpunkt) = DATE(b.quelldatum) AND leistung IN ('401')) " & vbCrLf & _
- "AND n.nachname <> 'ZuTun' AND n.pat_id <> 2 AND schgr = 90 AND zeitpunkt > (SELECT MAX(zeitpunkt) FROM `eintraege` WHERE pat_id = n.pat_id AND art = 'pvs' AND NOT inhalt LIKE '%storniert%') GROUP BY pat_id, quelldatum"
+ "AND n.nachname <> 'ZuTun' AND n.pat_id <> 2 AND schgr IN(89,90) AND zeitpunkt > (SELECT MAX(zeitpunkt) FROM `eintraege` WHERE pat_id = n.pat_id AND art = 'pvs' AND NOT inhalt LIKE '%storniert%') GROUP BY pat_id, quelldatum"
  mins(AWlf) = 5
  maxs(AWlf) = 100
  AWlf = AWlf + 1
@@ -644,7 +644,7 @@ Public Function ZeigSprivat(FristS$)
  "WHERE art RLIKE '^dup$|duplex'" & vbCrLf & _
  "AND (false OR NOT EXISTS (SELECT pat_id FROM `eintraege` bez WHERE art = 'rech' AND pat_id = e.pat_id AND zeitpunkt > e.zeitpunkt)) " & vbCrLf & _
  "AND NOT EXISTS (SELECT pat_id FROM `leistungen` WHERE pat_id = e.pat_id AND DATE(zeitpunkt) = DATE(e.zeitpunkt) AND leistung IN ('404')) " & vbCrLf & _
- "AND n.nachname <> 'ZuTun' AND n.pat_id <> 2 AND schgr = 90 AND zeitpunkt > (SELECT MAX(zeitpunkt) FROM `eintraege` WHERE pat_id = e.pat_id AND art = 'pvs' AND NOT inhalt LIKE '%storniert%')"
+ "AND n.nachname <> 'ZuTun' AND n.pat_id <> 2 AND schgr IN(89,90) AND zeitpunkt > (SELECT MAX(zeitpunkt) FROM `eintraege` WHERE pat_id = e.pat_id AND art = 'pvs' AND NOT inhalt LIKE '%storniert%')"
  mins(AWlf) = 5
  maxs(AWlf) = 100
  AWlf = AWlf + 1
@@ -657,7 +657,7 @@ Public Function ZeigSprivat(FristS$)
  "WHERE ((name LIKE '%sonobild %'))" & vbCrLf & _
  "AND (false OR NOT EXISTS (SELECT pat_id FROM `eintraege` bez WHERE art = 'rech' AND pat_id = b.pat_id AND zeitpunkt > b.quelldatum)) " & vbCrLf & _
  "AND NOT EXISTS (SELECT pat_id FROM `leistungen` WHERE pat_id = b.pat_id AND DATE(zeitpunkt) = DATE(b.quelldatum) AND leistung IN ('404')) " & vbCrLf & _
- "AND n.nachname <> 'ZuTun' AND n.pat_id <> 2 AND schgr = 90 AND zeitpunkt > (SELECT MAX(zeitpunkt) FROM `eintraege` WHERE pat_id = n.pat_id AND art = 'pvs' AND NOT inhalt LIKE '%storniert%') GROUP BY pat_id, quelldatum"
+ "AND n.nachname <> 'ZuTun' AND n.pat_id <> 2 AND schgr IN(89,90) AND zeitpunkt > (SELECT MAX(zeitpunkt) FROM `eintraege` WHERE pat_id = n.pat_id AND art = 'pvs' AND NOT inhalt LIKE '%storniert%') GROUP BY pat_id, quelldatum"
  mins(AWlf) = 5
  maxs(AWlf) = 100
  AWlf = AWlf + 1
@@ -670,7 +670,7 @@ Public Function ZeigSprivat(FristS$)
  "WHERE ((art LIKE '%sono%') AND (inhalt LIKE '%schild%' OR inhalt LIKE '%SD:%'))" & vbCrLf & _
  "AND (false OR NOT EXISTS (SELECT pat_id FROM `eintraege` bez WHERE art = 'rech' AND pat_id = e.pat_id AND zeitpunkt > e.zeitpunkt)) " & vbCrLf & _
  "AND NOT EXISTS (SELECT pat_id FROM `leistungen` WHERE pat_id = e.pat_id AND ((DATE(zeitpunkt) > DATE(e.zeitpunkt)-7) AND (DATE(zeiptunkt) < DATE(e.zeitpunkt)+7)) AND leistung IN ('417','410')) " & vbCrLf & _
- "AND n.nachname <> 'ZuTun' AND n.pat_id <> 2 AND schgr = 90 AND zeitpunkt > (SELECT MAX(zeitpunkt) FROM `eintraege` WHERE pat_id = e.pat_id AND art = 'pvs' AND NOT inhalt LIKE '%storniert%')"
+ "AND n.nachname <> 'ZuTun' AND n.pat_id <> 2 AND schgr IN(89,90) AND zeitpunkt > (SELECT MAX(zeitpunkt) FROM `eintraege` WHERE pat_id = e.pat_id AND art = 'pvs' AND NOT inhalt LIKE '%storniert%')"
  mins(AWlf) = 5
  maxs(AWlf) = 100
  AWlf = AWlf + 1
@@ -683,7 +683,7 @@ Public Function ZeigSprivat(FristS$)
  "WHERE ((name LIKE '%wchtl.sch%'))" & vbCrLf & _
  "AND (false OR NOT EXISTS (SELECT pat_id FROM `eintraege` bez WHERE art = 'rech' AND pat_id = b.pat_id AND zeitpunkt > b.quelldatum)) " & vbCrLf & _
  "AND NOT EXISTS (SELECT pat_id FROM `leistungen` WHERE pat_id = b.pat_id AND DATE(zeitpunkt) = DATE(b.quelldatum) AND leistung IN ('417','410')) " & vbCrLf & _
- "AND n.nachname <> 'ZuTun' AND n.pat_id <> 2 AND schgr = 90 AND zeitpunkt > (SELECT MAX(zeitpunkt) FROM `eintraege` WHERE pat_id = n.pat_id AND art = 'pvs' AND NOT inhalt LIKE '%storniert%')  GROUP BY pat_id, quelldatum"
+ "AND n.nachname <> 'ZuTun' AND n.pat_id <> 2 AND schgr IN(89,90) AND zeitpunkt > (SELECT MAX(zeitpunkt) FROM `eintraege` WHERE pat_id = n.pat_id AND art = 'pvs' AND NOT inhalt LIKE '%storniert%')  GROUP BY pat_id, quelldatum"
  mins(AWlf) = 5
  maxs(AWlf) = 100
  AWlf = AWlf + 1
@@ -696,7 +696,7 @@ Public Function ZeigSprivat(FristS$)
  "WHERE ((art LIKE '%sono%') AND NOT (inhalt LIKE '%schild%' OR inhalt LIKE '%SD:%'))" & vbCrLf & _
  "AND (false OR NOT EXISTS (SELECT pat_id FROM `eintraege` bez WHERE art = 'rech' AND pat_id = e.pat_id AND zeitpunkt > e.zeitpunkt)) " & vbCrLf & _
  "AND NOT EXISTS (SELECT pat_id FROM `leistungen` WHERE pat_id = e.pat_id AND DATE(zeitpunkt) = DATE(e.zeitpunkt) AND leistung IN ('410')) " & vbCrLf & _
- "AND n.nachname <> 'ZuTun' AND n.pat_id <> 2 AND schgr = 90 AND zeitpunkt > (SELECT MAX(zeitpunkt) FROM `eintraege` WHERE pat_id = n.pat_id AND art = 'pvs' AND NOT inhalt LIKE '%storniert%')"
+ "AND n.nachname <> 'ZuTun' AND n.pat_id <> 2 AND schgr IN(89,90) AND zeitpunkt > (SELECT MAX(zeitpunkt) FROM `eintraege` WHERE pat_id = n.pat_id AND art = 'pvs' AND NOT inhalt LIKE '%storniert%')"
  mins(AWlf) = 5
  maxs(AWlf) = 100
  AWlf = AWlf + 1
@@ -709,7 +709,7 @@ Public Function ZeigSprivat(FristS$)
  "WHERE (name LIKE '%SonoBild%' AND name LIKE '% Abd%')" & vbCrLf & _
  "AND (false OR NOT EXISTS (SELECT pat_id FROM `eintraege` bez WHERE art = 'rech' AND pat_id = b.pat_id AND zeitpunkt > b.quelldatum)) " & vbCrLf & _
  "AND NOT EXISTS (SELECT pat_id FROM `leistungen` WHERE pat_id = b.pat_id AND DATE(zeitpunkt) = DATE(b.quelldatum) AND leistung IN ('410')) " & vbCrLf & _
- "AND n.nachname <> 'ZuTun' AND n.pat_id <> 2 AND schgr = 90 AND zeitpunkt > (SELECT MAX(zeitpunkt) FROM `eintraege` WHERE pat_id = n.pat_id AND art = 'pvs' AND NOT inhalt LIKE '%storniert%')"
+ "AND n.nachname <> 'ZuTun' AND n.pat_id <> 2 AND schgr IN(89,90) AND zeitpunkt > (SELECT MAX(zeitpunkt) FROM `eintraege` WHERE pat_id = n.pat_id AND art = 'pvs' AND NOT inhalt LIKE '%storniert%')"
  mins(AWlf) = 5
  maxs(AWlf) = 100
  AWlf = AWlf + 1
@@ -722,7 +722,7 @@ Public Function ZeigSprivat(FristS$)
  "WHERE ((art LIKE '%sono%') AND NOT (inhalt LIKE '%schild%' OR inhalt LIKE '%SD:%'))" & vbCrLf & _
  "AND (false OR NOT EXISTS (SELECT pat_id FROM `eintraege` bez WHERE art = 'rech' AND pat_id = e.pat_id AND zeitpunkt > e.zeitpunkt)) " & vbCrLf & _
  "AND NOT EXISTS (SELECT pat_id FROM `leistungen` WHERE pat_id = e.pat_id AND DATE(zeitpunkt) = DATE(e.zeitpunkt) AND leistung IN ('420')) " & vbCrLf & _
- "AND n.nachname <> 'ZuTun' AND n.pat_id <> 2 AND schgr = 90 AND zeitpunkt > (SELECT MAX(zeitpunkt) FROM `eintraege` WHERE pat_id = e.pat_id AND art = 'pvs' AND NOT inhalt LIKE '%storniert%')"
+ "AND n.nachname <> 'ZuTun' AND n.pat_id <> 2 AND schgr IN(89,90) AND zeitpunkt > (SELECT MAX(zeitpunkt) FROM `eintraege` WHERE pat_id = e.pat_id AND art = 'pvs' AND NOT inhalt LIKE '%storniert%')"
  mins(AWlf) = 5
  maxs(AWlf) = 100
  AWlf = AWlf + 1
@@ -736,7 +736,7 @@ Public Function ZeigSprivat(FristS$)
  "AND (false OR NOT EXISTS (SELECT pat_id FROM `eintraege` bez WHERE art = 'rech' AND pat_id = e.pat_id AND zeitpunkt > e.zeitpunkt)) " & vbCrLf & _
  "AND (NOT EXISTS (SELECT pat_id FROM `leistungen` WHERE pat_id = e.pat_id AND DATE(zeitpunkt) = DATE(e.zeitpunkt) AND leistung IN ('605')) " & vbCrLf & _
  "OR NOT EXISTS (SELECT pat_id FROM `leistungen` WHERE pat_id = e.pat_id AND DATE(zeitpunkt) = DATE(e.zeitpunkt) AND leistung IN ('605A'))) " & vbCrLf & _
- "AND n.nachname <> 'ZuTun' AND n.pat_id <> 2 AND schgr = 90 AND zeitpunkt > (SELECT MAX(zeitpunkt) FROM `eintraege` WHERE pat_id = e.pat_id AND art = 'pvs' AND NOT inhalt LIKE '%storniert%')"
+ "AND n.nachname <> 'ZuTun' AND n.pat_id <> 2 AND schgr IN(89,90) AND zeitpunkt > (SELECT MAX(zeitpunkt) FROM `eintraege` WHERE pat_id = e.pat_id AND art = 'pvs' AND NOT inhalt LIKE '%storniert%')"
  mins(AWlf) = 5
  maxs(AWlf) = 100
  AWlf = AWlf + 1
@@ -749,7 +749,7 @@ Public Function ZeigSprivat(FristS$)
  "WHERE ((art LIKE '%EKG%'))" & vbCrLf & _
  "AND (false OR NOT EXISTS (SELECT pat_id FROM `eintraege` bez WHERE art = 'rech' AND pat_id = e.pat_id AND zeitpunkt > e.zeitpunkt)) " & vbCrLf & _
  "AND NOT EXISTS (SELECT pat_id FROM `leistungen` WHERE pat_id = e.pat_id AND DATE(zeitpunkt) = DATE(e.zeitpunkt) AND leistung IN ('651')) " & vbCrLf & _
- "AND n.nachname <> 'ZuTun' AND n.pat_id <> 2 AND schgr = 90 AND zeitpunkt > (SELECT MAX(zeitpunkt) FROM `eintraege` WHERE pat_id = e.pat_id AND art = 'pvs' AND NOT inhalt LIKE '%storniert%')"
+ "AND n.nachname <> 'ZuTun' AND n.pat_id <> 2 AND schgr IN(89,90) AND zeitpunkt > (SELECT MAX(zeitpunkt) FROM `eintraege` WHERE pat_id = e.pat_id AND art = 'pvs' AND NOT inhalt LIKE '%storniert%')"
  mins(AWlf) = 5
  maxs(AWlf) = 100
  AWlf = AWlf + 1
@@ -762,7 +762,7 @@ Public Function ZeigSprivat(FristS$)
  "WHERE ((art LIKE '%usd%'))" & vbCrLf & _
  "AND (false OR NOT EXISTS (SELECT pat_id FROM `eintraege` bez WHERE art = 'rech' AND pat_id = e.pat_id AND zeitpunkt > e.zeitpunkt)) " & vbCrLf & _
  "AND NOT EXISTS (SELECT pat_id FROM `leistungen` WHERE pat_id = e.pat_id AND DATE(zeitpunkt) = DATE(e.zeitpunkt) AND leistung IN ('800')) " & vbCrLf & _
- "AND n.nachname <> 'ZuTun' AND n.pat_id <> 2 AND n.pat_id <> 2 AND schgr = 90 AND zeitpunkt > (SELECT MAX(zeitpunkt) FROM `eintraege` WHERE pat_id = e.pat_id AND art = 'pvs' AND NOT inhalt LIKE '%storniert%')"
+ "AND n.nachname <> 'ZuTun' AND n.pat_id <> 2 AND n.pat_id <> 2 AND schgr IN(89,90) AND zeitpunkt > (SELECT MAX(zeitpunkt) FROM `eintraege` WHERE pat_id = e.pat_id AND art = 'pvs' AND NOT inhalt LIKE '%storniert%')"
  mins(AWlf) = 5
  maxs(AWlf) = 100
  AWlf = AWlf + 1
@@ -773,19 +773,19 @@ Public Function ZeigSprivat(FristS$)
  " SELECT f0.pat_id " & vbCrLf & _
  " , DATE(qdm) QD " & vbCrLf & _
  " , LEFT(b.name,40) tx " & vbCrLf & _
- " FROM (SELECT pat_id,bhfe1,bhfb FROM faelle WHERE schgr=90 AND bhfe1=18991230 AND bhfb>SUBDATE(NOW(),500) GROUP BY pat_id) f0 " & vbCrLf & _
+ " FROM (SELECT pat_id,bhfe1,bhfb FROM faelle WHERE schgr IN(89,90) AND bhfe1=18991230 AND bhfb>SUBDATE(NOW(),500) GROUP BY pat_id) f0 " & vbCrLf & _
  " LEFT JOIN tmbrie b ON b.pat_id=f0.pat_id AND b.name RLIKE 'Omnipod ?5|Simplera|Guardian|Enlite|Dexc?om|Eversen|CGM|Libre|clarity|glooko|care ?link' AND NOT b.name RLIKE 'cgm bmp' AND b.qdm>" & qtAnf(FristS) & " " & vbCrLf & _
  " UNION ALL " & vbCrLf & _
  " SELECT f1.pat_id " & vbCrLf & _
  " , DATE(fr.zeitpunkt) QD " & vbCrLf & _
  " , fr.feldinh tx " & vbCrLf & _
- " FROM (SELECT pat_id,bhfe1,bhfb FROM faelle WHERE schgr=90 AND bhfe1=18991230 AND bhfb>SUBDATE(NOW(),500) GROUP BY pat_id) f1 " & vbCrLf & _
+ " FROM (SELECT pat_id,bhfe1,bhfb FROM faelle WHERE schgr IN(89,90) AND bhfe1=18991230 AND bhfb>SUBDATE(NOW(),500) GROUP BY pat_id) f1 " & vbCrLf & _
  " LEFT JOIN formular fr ON fr.pat_id=f1.pat_id AND fr.form_abk IN ('prp','plar') AND fr.feld RLIKE 'medikament|verordnungszeile|txtMedKey' AND fr.feldinh RLIKE 'Omnipod ?5|Simplera|Guardian|Enlite|Dexc?om|Eversen|CGM|Libre|clarity|glooko|care ?link' AND fr.zeitpunkt>" & qtAnf(FristS) & " " & vbCrLf & _
  " UNION ALL " & vbCrLf & _
  " SELECT f2.pat_id " & vbCrLf & _
  " , DATE(e.zeitpunkt) QD " & vbCrLf & _
  " , e.inhalt tx " & vbCrLf & _
- " FROM (SELECT pat_id,bhfe1,bhfb FROM faelle WHERE schgr=90 AND bhfe1=18991230 AND bhfb>SUBDATE(NOW(),500) GROUP BY pat_id) f2 " & vbCrLf & _
+ " FROM (SELECT pat_id,bhfe1,bhfb FROM faelle WHERE schgr IN(89,90) AND bhfe1=18991230 AND bhfb>SUBDATE(NOW(),500) GROUP BY pat_id) f2 " & vbCrLf & _
  " LEFT JOIN eintraege e ON e.pat_id=f2.pat_id AND e.inhalt RLIKE 'Omnipod ?5|Simplera|Guardian|Enlite|Dexc?om|Eversen|CGM|Libre|clarity|glooko|care ?link' AND NOT e.inhalt LIKE '%vorgestellt%will%nicht%' AND e.zeitpunkt>" & qtAnf(FristS) & " " & vbCrLf & _
  ") i " & vbCrLf & _
  " LEFT JOIN leistungen l ON  l.pat_id=i.pat_id AND DATE(l.zeitpunkt)=i.qd AND leistung='A659' " & vbCrLf & _
@@ -812,9 +812,9 @@ Else ' me.private = 0 => Kassenpatienten
 ' BetrPausch = "'97350A','97360A','97350B','97360B','97370B','97371B', '97310','97320','97321','97312','97322','97313','97323','97333'"
  Const BetrPausch$ = "'97310','97312','97320','97321','97322','97333'"
  If aktfDirekt <> 0 Then
-  aktf = "(SELECT pat_id,nachname,vorname,quartal,fid,schgr,goäkatnr,ik,vknr,kid FROM `faelle` WHERE schgr <> '90' AND NOT goäkatnr IN ('40','41') AND nachname <> 'Bereitschaftsdienst' AND quartal = '" & aktQ & "') AS f "
+  aktf = "(SELECT pat_id,nachname,vorname,quartal,fid,schgr,goäkatnr,ik,vknr,kid FROM `faelle` WHERE schgr NOT IN(89,90) AND NOT goäkatnr IN ('40','41') AND nachname <> 'Bereitschaftsdienst' AND quartal = '" & aktQ & "') AS f "
  Else
-  aktf = "(SELECT pat_id,nachname,vorname, quartal,fid,schgr,goäkatnr,ik,vknr,kid FROM `faelle` WHERE schgr <> '90' AND NOT goäkatnr IN ('40','41') AND nachname <> 'Bereitschaftsdienst' AND quartal = (SELECTmy CONCAT(intacc(((month(SUBDATE(NOW(),INTERVAL " & FristS & " DAY))-1) divmy 3) + 1) ¡ YEAR(SUBDATE(NOW(),INTERVAL " & FristS & " DAY)))) " & vbCrLf & _
+  aktf = "(SELECT pat_id,nachname,vorname, quartal,fid,schgr,goäkatnr,ik,vknr,kid FROM `faelle` WHERE schgr NOT IN(89,90) AND NOT goäkatnr IN ('40','41') AND nachname <> 'Bereitschaftsdienst' AND quartal = (SELECTmy CONCAT(intacc(((month(SUBDATE(NOW(),INTERVAL " & FristS & " DAY))-1) divmy 3) + 1) ¡ YEAR(SUBDATE(NOW(),INTERVAL " & FristS & " DAY)))) " & vbCrLf & _
          "ORDER BY pat_id, fid DESC, schgr) AS f "
   aktf = cmd(aktf, InStrB(Lese.dbv.CnStr, "MySQL") = 0) ' .wCn.ConnectionString ' 28.12.08
  End If
@@ -943,7 +943,7 @@ sql(AWlf) = vbCrLf & _
 " LEFT JOIN sws s ON s.pat_id=f.pat_id AND s.voret>qanf()" & vbCrLf & _
 " LEFT JOIN diagview dd ON dd.pat_id=f.pat_id AND dd.gicd RLIKE '^E1[0-4]\.' AND dd.obdauer<>0 " & vbCrLf & _
 " LEFT JOIN eintraege e ON f.pat_id = e.pat_id AND e.art = 'ogtt' AND e.zeitpunkt BETWEEN SUBDATE(" & qtAnf(FristS) & ",INTERVAL 180 DAY) AND " & qtEnd(FristS) & " AND e.zeitpunkt = (SELECT MAX(zeitpunkt) FROM eintraege WHERE pat_id=f.pat_id AND art='ogtt') " & vbCrLf & _
-" AND f.schgr<>90 AND NOT ISNULL(s.voret)" & vbCrLf & _
+" AND f.schgr NOT IN(89,90) AND NOT ISNULL(s.voret)" & vbCrLf & _
 " ) i " & vbCrLf & _
 " WHERE (i.g0 >= 92 OR i.G1 >= 180 OR i.G2 >= 153)" & vbCrLf & _
 " AND ISNULL(gdd) AND ISNULL(icd) " & vbCrLf & _
@@ -960,7 +960,7 @@ sql(AWlf) = vbCrLf & _
              "LEFT JOIN anaktk az ON az.pid=d.pat_id" & vbCrLf & _
              "LEFT JOIN faelle f ON f.pat_id = d.pat_id AND d.diagdatum BETWEEN qanf() AND qend() " & vbCrLf & _
              "LEFT JOIN `diagview` r ON d.pat_id = r.pat_id AND r.gicd RLIKE '^E1[01]'" & vbCrLf & _
-             "WHERE d.gzICDok RLIKE '^E1[234]' AND ISNULL(r.gicd) AND d.diagsicherheit NOT IN ('A','Z') AND schgr<> 90" ' AND COALESCE(d.Dggel,0)=0
+             "WHERE d.gzICDok RLIKE '^E1[234]' AND ISNULL(r.gicd) AND d.diagsicherheit NOT IN ('A','Z') AND schgr NOT IN(89,90)" ' AND COALESCE(d.Dggel,0)=0
  mins(AWlf) = 5
  maxs(AWlf) = 18
  AWlf = AWlf + 1
@@ -1298,7 +1298,7 @@ sql(AWlf) = sql(AWlf) & _
 "WHERE f.quartal IN ( " & vbCrLf & _
 "(SELECT CONCAT((MONTH(CURRENT_TIMESTAMP() - INTERVAL " & Verspätung & " DAY) - 1) DIV 3 + 1, YEAR(CURRENT_TIMESTAMP() - INTERVAL " & Verspätung & " DAY))), " & vbCrLf & _
 "(SELECT CONCAT((MONTH(CURRENT_TIMESTAMP() - INTERVAL " & (Verspätung + 90) & " DAY) - 1) DIV 3 + 1, YEAR(CURRENT_TIMESTAMP() - INTERVAL " & (Verspätung + 90) & " DAY)))) " & vbCrLf & _
-"AND f.schgr<>'90' AND f.`GOÄKatNr` NOT IN ('40','41') AND f.nachname<>'Bereitschaftsdienst'" & vbCrLf & _
+"AND f.schgr NOT IN(89,90) AND f.`GOÄKatNr` NOT IN ('40','41') AND f.nachname<>'Bereitschaftsdienst'" & vbCrLf & _
 "AND ISNULL(dt.titel) AND n.dmpklass=2) i WHERE (kvnr=0 OR NOT ICD REGEXP '^E1[01]')" & vbCrLf & _
 "GROUP BY pat_id" & vbCrLf & _
 "ORDER BY kvnr DESC" & vbCrLf & _
@@ -1908,7 +1908,7 @@ AwN(AWlf) = "Sonobefunde mit falscher Art (danach kommt 101)"
 sql(AWlf) = _
 "SELECT pat_id,gesname(pat_id)PName,Zeitpunkt,Art,Ersteller,Änderer,Inhalt FROM eintraege e WHERE inhalt RLIKE ':'" & vbCrLf & _
 "AND inhalt RLIKE '^(Abdomen|(Hals(schlagadern|venen|arterien|weichteile|sono)|Wei?chteile|Pleura|(Sono )?Schid?l?l?dd?d?r?r?s?ür?s?s?e?|(Bein|Arm)(venen|arterien)( (re|li(nks)?|bds.))?)|Nierenarterien?|Restharn|SD|Darmarterien|Abdomen|Belastung(suntersuchung)?).*:'" & vbCrLf & _
-"AND NOT inhalt RLIKE '(^Belastungsdyspnoe|szinti|ekg|-ct|^sd-(ex|unterfunktion)|sd -?(op|wurde)|sd code|untersuchung|lmu|mvz|nicht|ko in|sd-werte|sds-|Dr.|empfohlen).*:|(.*Antikörper abnehmen| vor langer Zeit| Verdächtiger Befund|Abdomen-Sono 7/25:|sonobefund|^sd-(sono[^:]|histologie|befunde))'" & vbCrLf & _
+"AND NOT inhalt RLIKE '(^Belastungsdyspnoe|szinti|ekg|-ct|^sd-(ex|unterfunktion)|sd -?(op|wurde)|sd code|untersuchung|lmu|mvz|nicht|ko in|sd-werte|sds-|Dr.|empfohlen).*:|(.*Antikörper abnehmen| vor langer Zeit| Verdächtiger Befund|Abdomen-Sono [0-9/]*:|sonobefund|^sd-(sono[^:]|histologie|befunde))'" & vbCrLf & _
 "AND NOT art IN ('Sono','dup','dop','doppler','duplex','ana','utxt','caro','anal','lar','plar')" & vbCrLf & _
 "ORDER BY pat_id"
  mins(AWlf) = 10
@@ -2164,7 +2164,7 @@ AwN(AWlf) = "Sono, Doppler oder Duplex ohne Befund"
          "MID(name,locate(' ',name,locate('SonoBild ',name)+9),9) AS udatroh, " & vbCrLf & _
          "STR_TO_DATE(MID(name,locate(' ',name,locate('SonoBild ',name)+9),9),'%d.%m.%y') AS udat " & vbCrLf & _
           "FROM " & vbCrLf & _
-     "(SELECT pat_id AS pid, nachname, vorname, fid,schgr,ik,vknr FROM `faelle` WHERE schgr <> '90' AND NOT goäkatnr IN ('40','41') AND quartal = '" & AktQ & "') AS f " & vbCrLf & _
+     "(SELECT pat_id AS pid, nachname, vorname, fid,schgr,ik,vknr FROM `faelle` WHERE schgr NOT IN(89,90) AND NOT goäkatnr IN ('40','41') AND quartal = '" & AktQ & "') AS f " & vbCrLf & _
        "LEFT JOIN tmbrie b ON pid = b.pat_id AND name LIKE '%sonobild %' " & vbCrLf & _
      ") AS innen " & vbCrLf & _
     "LEFT JOIN " & vbCrLf & _
@@ -2654,7 +2654,7 @@ sql(AWlf) = "SELECT Fpatnr," & GesNamegMO & vbCrLf & _
 "FROM faelle f " & vbCrLf & _
 "LEFT JOIN leistungen l ON l.fid=f.fid AND DATE(l.zeitpunkt) BETWEEN f.bhfb AND f.bhfe1 " & vbCrLf & _
 "WHERE f.VKNr = 71800 " & vbCrLf & _
-"HAVING NOT ISNULL(leistung) AND ((f.schgr = '90') = (leistung RLIKE '^88122|^8832[02345]|^8833[12578][ABRVWXGHK]|^88333[ABVWGH]|^88334[YI]{0,1}|^88336[ABVWGH]|^8835[01235]|^8831[12]|^88371|^98060')) " & vbCrLf & _
+"HAVING NOT ISNULL(leistung) AND ((f.schgr IN(89,90)) = (leistung RLIKE '^88122|^8832[02345]|^8833[12578][ABRVWXGHK]|^88333[ABVWGH]|^88334[YI]{0,1}|^88336[ABVWGH]|^8835[01235]|^8831[12]|^88371|^98060')) " & vbCrLf & _
 "ORDER BY f.pat_id, zeitpunkt " & vbCrLf & _
 ";"
 ' AND f.bhfb BETWEEN qanf() AND qend()
@@ -2671,7 +2671,7 @@ sql(AWlf) = "SELECT Fpatnr," & GesNamegMO & vbCrLf & _
  "LEFT JOIN leistungen l USING(fid) " & vbCrLf & _
  "WHERE ((l.zeitpunkt BETWEEN " & qtAnf(FristS) & " AND " & qtEnd(FristS) & " AND (gf.qanf> " & qtEnd(FristS) & " OR qend < " & qtAnf(FristS) & "))" & vbCrLf & _
  "OR NOT l.zeitpunkt BETWEEN " & qtAnf(FristS) & " AND " & qtEnd(FristS) & " AND (gf.qanf<=" & qtEnd(FristS) & " AND qend>" & qtAnf(FristS) & ")) " & vbCrLf & _
- "AND gf.schgr<>90 AND goäkatnr<>'40'"
+ "AND gf.schgr NOT IN(89,90) AND goäkatnr<>'40'"
  sql(AWlf) = _
  "SELECT pf.fpatnr," & GesNamegMO & vbCrLf & _
  ",CONCAT(DATE_FORMAT(18900101+INTERVAL pf.fvon DAY,'%e.%c.%y'),'-',DATE_FORMAT(18900101+INTERVAL pf.FBis DAY,'%e.%c.%y'))Fall" & vbCrLf & _
@@ -2713,7 +2713,7 @@ sql(AWlf) = "" & _
 "FROM aktfv f" & vbCrLf & _
 "LEFT JOIN leistungen l ON f.pat_id=l.pat_id AND l.zeitpunkt BETWEEN qanf()AND qend()" & vbCrLf & _
 " AND NOT EXISTS (SELECT 0 FROM leistungen WHERE pat_id=f.pat_id AND zeitpunkt BETWEEN qanf()AND qend() AND leistung <> l.leistung)" & vbCrLf & _
-" AND (SELECT COUNT(0) FROM faelle WHERE pat_id=f.pat_id AND schgr<>90 AND bhfb BETWEEN qanf()AND qend())>1 " & vbCrLf & _
+" AND (SELECT COUNT(0) FROM faelle WHERE pat_id=f.pat_id AND schgr NOT IN(89,90) AND bhfb BETWEEN qanf()AND qend())>1 " & vbCrLf & _
 "WHERE NOT ISNULL(l.leistung)" & vbCrLf & _
 ";"
  mins(AWlf) = 10
@@ -2997,7 +2997,7 @@ sql(AWlf) = _
 "WHERE (Minl='97333' AND Maxl='97333' AND ct<>2) OR ((Minl<>'97333' OR MaxL<>'97333') AND lei.ct <> 1)"
  sql(AWlf) = _
  "SELECT f.pat_id, gesname(f.pat_id) PName, leistung, SUM(lzahl) LZahl, IF(l.Leistung='97333',2,1) Soll" & vbCrLf & _
- ", (SELECT COUNT(0) FROM faelle WHERE pat_id=f.pat_id AND bhfb BETWEEN qanf() AND qend() AND Schgr<>90) fallzahl" & vbCrLf & _
+ ", (SELECT COUNT(0) FROM faelle WHERE pat_id=f.pat_id AND bhfb BETWEEN qanf() AND qend() AND Schgr NOT IN(89,90)) fallzahl" & vbCrLf & _
  "FROM aktfv f" & vbCrLf & _
  "LEFT JOIN leistungen l ON l.pat_id = f.pat_id AND l.leistung IN ('97310','97312','97320','97321','97322','97333')" & vbCrLf & _
  " AND l.zeitpunkt BETWEEN qanf() AND qend()" & vbCrLf & _
@@ -3672,7 +3672,7 @@ sql(AWlf) = "" & _
 ' ktag fehlerhaft
 ' AwN(AWlf) = "Falsche Anzahl Chronikerpauschalen 03212:"
 ' sql(AWlf) = "SELECT f.pat_id, gesnameg(f.pat_id) Name, COALESCE(SUM(lzahl),0) Zahl, GROUP_CONCAT(DATE(zeitpunkt) SEPARATOR ', ') Zeitpunkte, GROUP_CONCAT(leistung SEPARATOR ', ') Leistungen " & vbCrLf & _
-' "FROM aktfvs f LEFT JOIN namen n ON f.pat_id = n.pat_id LEFT JOIN leistungen l ON f.fid = l.fid AND leistung IN ('03212') AND schgr<>90 GROUP BY pat_id HAVING zahl>1"
+' "FROM aktfvs f LEFT JOIN namen n ON f.pat_id = n.pat_id LEFT JOIN leistungen l ON f.fid = l.fid AND leistung IN ('03212') AND schgr NOT IN(89,90) GROUP BY pat_id HAVING zahl>1"
 ' mins(AWlf) = 10
 ' maxs(AWlf) = 60
 ' AWlf = AWlf + 1
@@ -4431,7 +4431,7 @@ sql(AWlf) = "SELECT Pat_ID, Name, Messzeitpunkt, `01812`,`Vor-01812`,Soll, `0177
 ", einh `OGTT-Dokumentation` " & vbCrLf & _
 "FROM (" & vbCrLf & _
 "SELECT COALESCE(SUM(ogtt.lzahl),0) `01777`" & vbCrLf & _
-",COALESCE((SELECT MAX(IF(inhalt RLIKE 'ja am|t *ja|am *[0-9]' OR inhalt RLIKE 'chgeführt\?.\{0,2\}ja',1,IF(inhalt RLIKE 'nein am|- am|-,' OR inhalt RLIKE 'chgeführt\?.\{0,2\}nein',0,'?'))) FROM eintraege WHERE pat_id = f.pat_id AND art RLIKE '^angd|^50g$' AND DATE(zeitpunkt)BETWEEN qbeg(e.zeitpunkt)AND DATE(e.zeitpunkt)),'u') ob50" & vbCrLf & _
+",COALESCE((SELECT MAX(IF(inhalt RLIKE 'ja am|t *ja|am *[0-9]' OR inhalt RLIKE 'chgeführt\?.\{0,2\}ja',1,IF(inhalt RLIKE 'nein am|- am|-,' OR inhalt RLIKE 'chgeführt\?.\{0,2\}nein',0,'?'))) FROM eintraege WHERE pat_id = f.pat_id AND art RLIKE '^angd|^50g$|^$' AND DATE(zeitpunkt)BETWEEN qbeg(e.zeitpunkt)AND DATE(e.zeitpunkt)),'u') ob50" & vbCrLf & _
 ",COALESCE(SUM(gluc.lzahl),0) `01812`" & vbCrLf & _
 ",COALESCE((SELECT SUM(lzahl) FROM leistungen WHERE pat_id= e.pat_id AND DATE(zeitpunkt)<DATE(e.zeitpunkt) AND DATE(zeitpunkt)> et.letzteRegel AND leistung='01812'),0) `Vor-01812`" & vbCrLf & _
 ",et.letzteRegel" & vbCrLf & _
@@ -4462,7 +4462,7 @@ sql(AWlf) = vbCrLf & _
 "SELECT l.pat_id, gesname(l.pat_id), l.zeitpunkt,LfBegr " & vbCrLf & _
 "FROM aktfvs f " & vbCrLf & _
 "LEFT JOIN leistungen l ON f.pat_id = l.pat_id AND leistung = 01777 AND l.zeitpunkt BETWEEN " & lQAnfuEnd(FristS) & " " & vbCrLf & _
-"WHERE NOT ISNULL(leistung) AND LfBegr NOT RLIKE '50g(r.?)?( (OGTT|Test|oraler Glucosetoleranztest))?( bereits)? bei(m)? (Gyn|Frauenarzt)( bereits)? erfolgt'"
+"WHERE NOT ISNULL(leistung) AND LfBegr NOT RLIKE '50g(r.?)?( *(OGTT|Test|oraler Glucosetoleranztest))?( bereits)? bei(m)? (Gyn|Frauenarzt)( bereits)? erfolgt'"
  mins(AWlf) = 10
  maxs(AWlf) = 80
  AWlf = AWlf + 1
@@ -4503,7 +4503,7 @@ sql(AWlf) = "" & vbCrLf & _
  ",COALESCE(SUM(lzahl),0) `Leistungs-Zahl`" & vbCrLf & _
  ",COALESCE((SELECT SUM(lzahl) FROM leistungen WHERE pat_id= pid AND DATE(zeitpunkt)<=DATE(eTag) AND DATE(zeitpunkt)>et.letzteRegel AND leistung='01812'),0) `Vor-01812`" & vbCrLf & _
  ", i.Art, i.Inhalt" & vbCrLf & _
- "FROM (SELECT f.pat_id pid, DATE(e.zeitpunkt) eTag, SUM(CASE WHEN art LIKE 'bz%' THEN 1 WHEN art= 'angd' THEN CASE WHEN inhalt RLIKE 'BZ0.*[0-9][ ]*mg.*[0-9][ ]*mg.*[0-9][ ]*mg.*Grenze' THEN 3 when inhalt RLIKE 'BZ0.*[0-9][ ]*mg.*[0-9][ ]*mg.*Grenze' THEN 2 WHEN inhalt LIKE 'BZ0.*[0-9][ ]*mg.*Grenze' THEN 1 ELSE 0 END ELSE CASE WHEN inhalt RLIKE '[0-9][ ]*mg.*[0-9][ ]*mg.*[0-9][ ]*mg' THEN 3 when inhalt RLIKE '[0-9][ ]*mg.*[0-9][ ]*mg' THEN 2 WHEN inhalt LIKE '[0-9][ ]*mg' THEN 1 ELSE 0 END END) BZZahl, e.Art, e.inhalt FROM " & vbCrLf & _
+ "FROM (SELECT f.pat_id pid, DATE(e.zeitpunkt) eTag, SUM(CASE WHEN art LIKE 'bz%' THEN 1 WHEN art in ('angd','50g','') THEN CASE WHEN inhalt RLIKE 'BZ0.*[0-9][ ]*mg.*[0-9][ ]*mg.*[0-9][ ]*mg.*Grenze' THEN 3 when inhalt RLIKE 'BZ0.*[0-9][ ]*mg.*[0-9][ ]*mg.*Grenze' THEN 2 WHEN inhalt LIKE 'BZ0.*[0-9][ ]*mg.*Grenze' THEN 1 ELSE 0 END ELSE CASE WHEN inhalt RLIKE '[0-9][ ]*mg.*[0-9][ ]*mg.*[0-9][ ]*mg' THEN 3 when inhalt RLIKE '[0-9][ ]*mg.*[0-9][ ]*mg' THEN 2 WHEN inhalt LIKE '[0-9][ ]*mg' THEN 1 ELSE 0 END END) BZZahl, e.Art, e.inhalt FROM " & vbCrLf & _
  "aktfvs f " & vbCrLf & _
  "LEFT JOIN `faelle` fl USING(fid) " & vbCrLf & _
  "LEFT JOIN BiosenMessung e ON f.pat_id = e.pat_id AND e.zeitpunkt BETWEEN " & lQAnfuEnd(FristS) & vbCrLf & _
@@ -4699,7 +4699,7 @@ sql(AWlf) = "ü"
              "FROM aktfv f LEFT JOIN eintraege e ON e.pat_id = f.pat_id AND e.art NOT IN ('vac','cia','c19i') AND e.inhalt NOT RLIKE 'impfung|armschmerzen|gefaxt|Rezepte erstellt|Urogenitalflora' " & vbCrLf & _
              "LEFT JOIN `leistungen` l ON l.pat_id = e.pat_id AND leistung IN ('01100','01101') AND DATE(l.zeitpunkt) = DATE(e.zeitpunkt) " & vbCrLf & _
              "WHERE e.zeitpunkt BETWEEN " & lQAnfuEnd(FristS) & " AND (e.Art IN (" & artspezG & ")) " & vbCrLf & _
-             "AND ((WEEKDAY(e.zeitpunkt)=0 AND TIME(e.zeitpunkt) BETWEEN '19:30' AND '22:00') OR (WEEKDAY(e.zeitpunkt) IN (1,3) AND time(e.zeitpunkt) BETWEEN '20:00' AND '22:00') OR (weekday(e.zeitpunkt) IN (2,4) AND time(e.zeitpunkt) BETWEEN '19:00' AND '22:00') OR (weekday(e.zeitpunkt) IN (5,6) AND time(e.zeitpunkt) BETWEEN '07:00' AND '19:00')) AND schgr <> '90' AND NOT goäkatnr IN ('40','41') " & vbCrLf & _
+             "AND ((WEEKDAY(e.zeitpunkt)=0 AND TIME(e.zeitpunkt) BETWEEN '19:30' AND '22:00') OR (WEEKDAY(e.zeitpunkt) IN (1,3) AND time(e.zeitpunkt) BETWEEN '20:00' AND '22:00') OR (weekday(e.zeitpunkt) IN (2,4) AND time(e.zeitpunkt) BETWEEN '19:00' AND '22:00') OR (weekday(e.zeitpunkt) IN (5,6) AND time(e.zeitpunkt) BETWEEN '07:00' AND '19:00')) AND schgr NOT IN(89,90) AND NOT goäkatnr IN ('40','41') " & vbCrLf & _
              "AND e.inhalt NOT LIKE '%nachgef%' AND e.inhalt NOT LIKE '=>%' " & vbCrLf & _
              "AND NOT EXISTS (SELECT 0 FROM leistungen WHERE pat_id=e.pat_id AND leistung IN (01101,01102,01205,01207,01210,01212,01214,01216,01218,01410,01411,01412,01413,01415,01418,01949,01950,01951,01953,03373,04373,37306) AND zeitpunkt BETWEEN e.zeitpunkt AND e.zeitpunkt + INTERVAL 1 hour)" & vbCrLf & _
              "AND NOT (WEEKDAY(e.zeitpunkt)=5 AND EXISTS (SELECT 0 FROM leistungen WHERE pat_id=e.pat_id AND DATE(zeitpunkt)=DATE(e.zeitpunkt) AND leistung='01102'))" & vbCrLf & _
@@ -4717,7 +4717,7 @@ sql(AWlf) = "ü"
              "FROM `eintraege` e LEFT JOIN `aktfv` f ON e.pat_id = f.pat_id AND e.art NOT IN ('vac','cia','c19i') AND e.inhalt NOT RLIKE 'impfung|armschmerzen|gefaxt|Rezepte erstellt|Urogenitalflora' " & vbCrLf & _
              "LEFT JOIN `leistungen` l ON l.pat_id = e.pat_id AND leistung = '01101' AND DATE(l.zeitpunkt) = DATE(e.zeitpunkt) " & vbCrLf & _
              "WHERE e.zeitpunkt BETWEEN " & lQAnfuEnd(FristS) & " AND (e.Art IN (" & artspezG & ")) " & vbCrLf & _
-             "AND (((time(e.zeitpunkt) <'07:00' OR time(e.zeitpunkt) >'22:00') AND weekday(e.zeitpunkt) BETWEEN 0 AND 4) OR ((weekday(e.zeitpunkt) BETWEEN 5 AND 6) AND NOT (time(e.zeitpunkt) BETWEEN '07:00' AND '19:00'))) AND schgr <> '90' AND NOT goäkatnr IN ('40','41') " & vbCrLf & _
+             "AND (((time(e.zeitpunkt) <'07:00' OR time(e.zeitpunkt) >'22:00') AND weekday(e.zeitpunkt) BETWEEN 0 AND 4) OR ((weekday(e.zeitpunkt) BETWEEN 5 AND 6) AND NOT (time(e.zeitpunkt) BETWEEN '07:00' AND '19:00'))) AND schgr NOT IN(89,90) AND NOT goäkatnr IN ('40','41') " & vbCrLf & _
              " AND e.inhalt NOT LIKE '%nachgef%' AND e.inhalt NOT LIKE '=>%' " & vbCrLf & _
              "AND ISNULL(leistung) AND art<>'EKG' AND art<>'LZRR' AND art<>'Lufu'" & vbCrLf & _
              "AND NOT EXISTS (SELECT 0 FROM leistungen WHERE pat_id=e.pat_id AND leistung IN (01100,01101,01205,01207,01210,01212,01214,01216,01218,01410,01411,01412,01415,01418,01949,01950,01951,01953,03373,04373,04564,04565,04566,04572,04573,13610,13611,13612,13620,13621,13622,37306) AND zeitpunkt BETWEEN e.zeitpunkt AND e.zeitpunkt + INTERVAL 1 hour)" & vbCrLf & _
@@ -4738,7 +4738,7 @@ sql(AWlf) = "ü"
              " AND e.inhalt NOT LIKE '%nachgef%' " & vbCrLf & _
              "AND ISNULL(l.leistung) " & vbCrLf & _
              "AND ISNULL(besuch.leistung) " & vbCrLf & _
-             "AND schgr <> '90' AND NOT goäkatnr IN ('40','41') ORDER BY e.Pat_ID"
+             "AND schgr NOT IN(89,90) AND NOT goäkatnr IN ('40','41') ORDER BY e.Pat_ID"
  mins(AWlf) = 7
  maxs(AWlf) = 80
  AWlf = AWlf + 1
@@ -5653,7 +5653,7 @@ sql = _
  "LEFT JOIN leistungen l2 ON l2.pat_id = f.pat_id AND l2.leistung = '01748' " & vbCrLf & _
  "WHERE true " & vbCrLf & _
  "AND NOT ISNULL(e.art) " & vbCrLf & _
- "AND f.schgr<>90 " & vbCrLf & _
+ "AND f.schgr NOT IN(89,90) " & vbCrLf & _
  "AND n.geschlecht='m' " & vbCrLf & _
  "AND (ISNULL(l1.leistung) OR ISNULL(l2.leistung)) " & vbCrLf & _
  "AND ADDDATE(n.gebdat,INTERVAL 65 YEAR) < e.zeitpunkt " & vbCrLf & _
@@ -6058,7 +6058,7 @@ sql(AWlf) = sql(AWlf) & _
 " OR (iart IN (125) AND leistung RLIKE '^88335[ABRVWXGHK]') " & vbCrLf & _
 " OR (iart IN (126) AND leistung RLIKE '^88336[ABVWGH]') " & vbCrLf & _
 ") " & vbCrLf & _
-"WHERE NOT ISNULL(inhalt) AND (schgr<>90 OR impfart(e.inhalt)=8) AND ISNULL(leistung) " & vbCrLf & _
+"WHERE NOT ISNULL(inhalt) AND (schgr NOT IN(89,90) OR impfart(e.inhalt)=8) AND ISNULL(leistung) " & vbCrLf & _
 "AND NOT inhalt RLIKE 'Twinrix|havrix|Engerix|strova|Bexsero|Nimenrix|Priorix|Rabipur|Thyim|Typhim|MMR Vax Pro'" & vbCrLf & _
 "AND NOT (inhalt RLIKE 'tetagam' AND NOT inhalt RLIKE 'tetanol|boostrix|grundimm')" & vbCrLf & _
 "GROUP BY f.pat_id, iart, leistung" & vbCrLf & _
