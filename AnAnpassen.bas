@@ -3,6 +3,7 @@ Option Explicit
 Public AbN$() ' AbschnittName
 Public AbI$() ' AbschnittInhalt
 Public AbIDate As Date
+Private HAgewaehltZP As Date 'jüngster akzeptierter Kandidat für Hausarzt (kategorieübergreifend, in AnAlle zurückgesetzt)
 Public G1$(4), G2$(30), G3$(5), G4$(17)
 
 ' in alleSpeichern
@@ -1143,6 +1144,7 @@ Function AnAlle() ' -> im Menü als "Anamnesedatenblatt -> Anamnesen ergänzen"
  Dim i%, j&
  Dim zurZahl$, buch$, vglStr$
  On Error GoTo fehler
+ HAgewaehltZP = CDate(0)
  Call anal
  Call AnDmFieseln
  Call AnDm2Fieseln
@@ -1649,7 +1651,7 @@ End Function ' AnDM2
 
 Function anal()
  Const imin% = -4
- Const imax% = 7
+ Const imax% = 8
  Dim tr$(imin To imax)
  Dim Fd$(imin To imax)
  On Error GoTo fehler
@@ -1675,8 +1677,10 @@ Function anal()
  Fd(5) = "Größe"
  tr(6) = "Wichtige bisherige Krankheiten und Operationen:"
  Fd(6) = "Weitere Anamnese"
- tr(7) = "Grund für Vorstellung in der Praxis:"
- Fd(7) = "Grund für Vorstellung"
+ tr(7) = "Hausärztin/-arzt:"
+ Fd(7) = "Hausarzt"
+ tr(8) = "Grund für Vorstellung in der Praxis:"
+ Fd(8) = "Grund für Vorstellung"
  Call do_anImp(imin, imax, tr(), Fd(), "|anal|ana|")
  Exit Function
 fehler:
@@ -1714,16 +1718,36 @@ Function do_anImp(imin%, imax%, tr$(), Fd$(), arten$, Optional tfd1, Optional tf
 ' SET rEi = TabÖff("eintraege", "Auswahl")
 ' rsAnm.Seek "=", Pat_id
 ' rEi.Seek "=", Pat_id, makro
+ Dim imList() As Long, imN&, obMehrfach As Boolean, entryIdx&, obErste As Boolean, Durchlaeufe&
+ obMehrfach = InStrB(arten, "|anal|") <> 0 Or InStrB(arten, "|andm|") <> 0 Or InStrB(arten, "|andm2|") <> 0
+ imN = -1
  If Not kDB Then
   For i = 1 To UBound(rEi)
    If InStrB(arten, "|" & rEi(i).art & "|") Then
-    im = i
-    Exit For
+    imN = imN + 1
+    ReDim Preserve imList(imN)
+    imList(imN) = i
+    If Not obMehrfach Then Exit For
    End If
   Next i
+  If imN >= 0 Then
+   im = imList(0)
+   If obMehrfach And imN > 0 Then ' chronologisch (ältester zuerst), damit mehrere Exemplare geordnet zusammengefügt werden
+    Dim si&, sj&, tmpIm&
+    For si = 0 To imN - 1
+     For sj = 0 To imN - 1 - si
+      If rEi(imList(sj)).Zeitpunkt > rEi(imList(sj + 1)).Zeitpunkt Then
+       tmpIm = imList(sj)
+       imList(sj) = imList(sj + 1)
+       imList(sj + 1) = tmpIm
+      End If
+     Next sj
+    Next si
+   End If
+  End If
  End If
  
- If im <> 0 Or kDB <> 0 Then
+ If imN >= 0 Or kDB <> 0 Then
   If Not kDB Then
    If Not IsMissing(tfd1) Then
 '   Debug.Print "Test auf Vorhandensein:", rsAnm!Pat_ID, rsAnm!Nachname, rsAnm!Vorname
@@ -1746,6 +1770,10 @@ Function do_anImp(imin%, imax%, tr$(), Fd$(), arten$, Optional tfd1, Optional tf
    End If
   End If
   
+  If kDB Then Durchlaeufe = 1 Else Durchlaeufe = imN + 1
+  For entryIdx = 0 To Durchlaeufe - 1
+   obErste = (entryIdx = 0)
+   If Not kDB Then im = imList(entryIdx)
   ReDim sp(1)
   If Not kDB Then
    sp(0) = rEi(im).Inhalt
@@ -1863,15 +1891,17 @@ w2:
       End If
      Next jj
      Select Case rsAnm.Fields(fld).name
-      Case "Größe", "Gewicht", "Tendenz"
+      Case "Größe", "Gewicht", "Tendenz", "Hausarzt"
       Case Else
-       If fld <> vNS Then
-        Select Case rsAnm.Fields(fld).Type
-         Case 11, 16, 17, 2, 18, 3, 19, 4, 5, 20, 21, 131, 139, 6, 14, 7, 64, 133, 134, 135
-              rsAnm.Fields(fld) = 0
-         Case 8, 129, 130, 200, 201, 202, 203, 0, 9, 12, 13, 72, 128, 132, 138, 204, 205
-              rsAnm.Fields(fld) = vNS
-        End Select
+       If obErste Then ' erst ab dem 2. Exemplar nicht mehr blind zurücksetzen, sonst geht Bisheriges verloren
+        If fld <> vNS Then
+         Select Case rsAnm.Fields(fld).Type
+          Case 11, 16, 17, 2, 18, 3, 19, 4, 5, 20, 21, 131, 139, 6, 14, 7, 64, 133, 134, 135
+               rsAnm.Fields(fld) = 0
+          Case 8, 129, 130, 200, 201, 202, 203, 0, 9, 12, 13, 72, 128, 132, 138, 204, 205
+               rsAnm.Fields(fld) = vNS
+         End Select
+        End If
        End If
      End Select
 doppelt:
@@ -1885,6 +1915,25 @@ doppelt:
     AbI(i - imin) = gKw(AbI(i - imin), rsAnm.Fields(fld).Type)
 '    Debug.Print AbN(i - imin) + ":: ", AbI(i - imin)
     If Not IsNull(fld) And Not fld = vNS Then
+     If fld = "Hausarzt" Then
+      Dim HAWert$
+      HAWert = Trim$(AbI(i - imin))
+      If HAWert <> vNS Then
+       If HAgewaehltZP = CDate(0) Then
+        rsAnm.Fields(fld) = HAWert
+        HAgewaehltZP = rEi(im).Zeitpunkt
+       ElseIf Len(Trim$(rsAnm.Fields(fld))) < 5 And Len(HAWert) >= 5 Then
+        rsAnm.Fields(fld) = HAWert
+        HAgewaehltZP = rEi(im).Zeitpunkt
+       ElseIf Len(Trim$(rsAnm.Fields(fld))) >= 5 And Len(HAWert) < 5 Then
+        ' bestehender, ausreichend langer Wert hat Vorrang vor kurzem neuen Wert
+       ElseIf rEi(im).Zeitpunkt > HAgewaehltZP Then
+        rsAnm.Fields(fld) = HAWert
+        HAgewaehltZP = rEi(im).Zeitpunkt
+       End If
+      End If
+      GoTo weiter
+     End If
      Dim FproZielFeld% ' Felder pro ZielFeld, 1 = normal, 2 = mindestens 2
      FproZielFeld = 1
      If i > imin Then
@@ -1911,14 +1960,16 @@ doppelt:
      Else ' => FproZielFeld = 1
       If fld <> vNS Then
        Select Case rsAnm.Fields(fld).name
-       Case "Größe", "Gewicht", "Tendenz"
+       Case "Größe", "Gewicht", "Tendenz", "Hausarzt"
        Case Else
-        Select Case rsAnm.Fields(fld).Type
-         Case 11, 16, 17, 2, 18, 3, 19, 4, 5, 20, 21, 131, 139, 6, 14, 7, 64, 133, 134, 135
-              rsAnm.Fields(fld) = 0
-         Case 8, 129, 130, 200, 201, 202, 203, 0, 9, 12, 13, 72, 128, 132, 138, 204, 205
-              rsAnm.Fields(fld) = vNS
-        End Select
+        If obErste Then ' erst ab dem 2. Exemplar nicht mehr blind zurücksetzen, sonst geht Bisheriges verloren
+         Select Case rsAnm.Fields(fld).Type
+          Case 11, 16, 17, 2, 18, 3, 19, 4, 5, 20, 21, 131, 139, 6, 14, 7, 64, 133, 134, 135
+               rsAnm.Fields(fld) = 0
+          Case 8, 129, 130, 200, 201, 202, 203, 0, 9, 12, 13, 72, 128, 132, 138, 204, 205
+               rsAnm.Fields(fld) = vNS
+         End Select
+        End If
        End Select
       End If
       Select Case rsAnm.Fields(fld).Type
@@ -1970,25 +2021,8 @@ doppelt:
             neuinh = IIf(AbI(i - imin) = "-", "0", AbI(i - imin)) 'replace$(AbI(i - imin), "-", "0")
             GoSub neuinh
            ElseIf InStrB(arten, "|anal|") And fld = "Grund für Vorstellung" Then
-            If IsNull(rsAnm.Fields(fld)) Then
-              neuinh = AbI(i - imin)
-              GoSub neuinh
-            Else
-             If AbI(i - imin) <> vNS And InStrB(rsAnm.Fields(fld), AbI(i - imin)) = 0 Then
-              If tr(i - 1) = "li:" Then
-'              rsAnm.Fields(fd(i-imin)) = abn(i-imin) & " " & abi(i-imin) + "/" + rsAnm.Fields(fd(i - 1))
-               neuinh = AbI(i - imin) + " | " + rsAnm.Fields(Fd(i - 1))
-               GoSub neuinh
-              Else
-' bitte prüfen, ob die Reihenfolge stimmt, deshalb stop
-               If rsAnm.Fields(fld).name <> "Grund für Vorstellung" Then
-                MsgBox "Unerwarteter Zustand do_anImp: " & vbCrLf & "rsAnm.Fields(fld).name (<> ""Grund für Vorstellung""):" & rsAnm.Fields(fld).name
-               End If
-               neuinh = LTrim$(rsAnm.Fields(fld) & " " & AbI(i - imin))
-               GoSub neuinh
-              End If
-             End If
-            End If
+            neuinh = AbI(i - imin)
+            GoSub mergeschr
            ElseIf InStrB(arten, "|anal|") = 0 Then
             Select Case rsAnm.Fields(fld).Type
              Case adBoolean, adUnsignedTinyInt, _
@@ -2013,7 +2047,11 @@ doppelt:
               adVarBinary, adLongVarBinary, adError, adArray
 '            Case 8, 129, 130, 200, 201, 202, 203, 0, 9, 12, 13, 72, 128, 132, 138, 204, 205, 10, 8192
               neuinh = AbI(i - imin)
-              rsAnm.Fields(fld).Value = left$(neuinh, rsAnm.Fields(fld).DefinedSize)
+              If obMehrfach Then
+               GoSub mergeschr
+              Else
+               rsAnm.Fields(fld).Value = left$(neuinh, rsAnm.Fields(fld).DefinedSize)
+              End If
             End Select
            Else
             FproZielFeld = 2
@@ -2035,7 +2073,7 @@ doppelt:
                  rsAnm.Fields(fld) = Abs(neuinh)
                Case 8, 129, 130, 200, 201, 202, 203, 0, 9, 12, 13, 72, 128, 132, 138, 204, 205
                  neuinh = CStr(neuinh)
-                 GoSub neuinh
+                 If obMehrfach Then GoSub mergeschr Else GoSub neuinh
               End Select
             End If
            End If
@@ -2103,6 +2141,7 @@ weiter:
 '  IF rEi.NoMatch THEN SysCmd 4, "Pat. " + CStr(Pat_id) + " nicht in Tabelle 'eintraege' gefunden" 'MsgBox "Pat. " + CStr(Pat_id) + " nicht in den eintraegen gefunden"
   
  End If ' Not rEi.NoMatch AND NOT rsAnm.NoMatch THEN
+  Next entryIdx
 End If ' not kdm
 Exit Function
 neuinh:
@@ -2112,6 +2151,43 @@ ElseIf Right$(neuinh, 2) = "\r" Then
  neuinh = left$(neuinh, Len(neuinh) - 2)
 End If
 rsAnm.Fields(fld) = neuinh
+Return
+mergeschr:
+' fügt neuinh an rsAnm.Fields(fld) an (Trennzeichen "/"), außer der Inhalt ist (abgesehen von Leerzeichen/Groß-Kleinschreibung) schon vorhanden
+Dim vorTxt$, neuTxt$, vorNorm$, neuNorm$
+neuTxt = neuinh
+If Right$(neuTxt, 5) = "\r \r" Then
+ neuTxt = left$(neuTxt, Len(neuTxt) - 5)
+ElseIf Right$(neuTxt, 2) = "\r" Then
+ neuTxt = left$(neuTxt, Len(neuTxt) - 2)
+End If
+neuTxt = Trim$(neuTxt)
+If neuTxt = vNS Then
+ Return
+End If
+If IsNull(rsAnm.Fields(fld)) Then
+ neuinh = neuTxt
+ GoSub neuinh
+ Return
+End If
+vorTxt = Trim$(rsAnm.Fields(fld))
+If vorTxt = vNS Then
+ neuinh = neuTxt
+ GoSub neuinh
+ Return
+End If
+vorNorm = LCase$(vorTxt)
+neuNorm = LCase$(neuTxt)
+Do While InStrB(vorNorm, "  ") <> 0
+ vorNorm = REPLACE$(vorNorm, "  ", " ")
+Loop
+Do While InStrB(neuNorm, "  ") <> 0
+ neuNorm = REPLACE$(neuNorm, "  ", " ")
+Loop
+If vorNorm <> neuNorm Then
+ neuinh = vorTxt & "/" & neuTxt
+ GoSub neuinh
+End If
 Return
 Dim Feld$
 f1:
