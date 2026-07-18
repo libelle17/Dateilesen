@@ -1461,12 +1461,20 @@ sql0 = _
   ' 255,204,229 = #ffcce5 rötlich; 229,204,255 = #E5CCFF bläulich; #ffffcc gelblich
 '  doMarkierungen CLng(Pat_id), True ' in doPatvonMO verschoben 20.9.25
   Dim notiz$
-  notiz = Trim$(REPLACE$(REPLACE$(REPLACE$(rnam!info & IIf(rnam!info = "", "", " ") & rnam!notiz, vbCrLf, ", "), Chr(13), ", "), Chr(10), ", "))
+  notiz = rnam!info & IIf(rnam!info = "", "", ", ") & rnam!notiz
+ notiz = REPLACE$(REPLACE$(REPLACE$(notiz, vbCrLf, Chr(1)), Chr(13), Chr(1)), Chr(10), Chr(1))
+ Do While InStrB(notiz, Chr(1) & Chr(1)) <> 0
+  notiz = REPLACE$(notiz, Chr(1) & Chr(1), Chr(1)) ' mehrere aufeinanderfolgende Zeilenumbrueche (Leerzeilen) zu einem Trenner zusammenfassen
+ Loop
+ notiz = REPLACE$(notiz, Chr(1), ", ")
  Do While Right$(notiz, 1) = "," Or Right$(notiz, 1) = " "
   notiz = left$(notiz, Len(notiz) - 1)
  Loop
+ Do While left$(notiz, 1) = "," Or left$(notiz, 1) = " "
+  notiz = Mid$(notiz, 2)
+ Loop
   AusS.AppVar (Array(" ", IIf(dmtyp = "1" Or dmtyp = "2" Or dmtyp = "g", "<span style='background-color:" & IIf(dmtyp = "1", "#ff8fc7", IIf(dmtyp = "g", "#ffffde", "#efe0ff")) & "'", ""), "<B><span title='", VName, " ", NName, ", ", rnam!strasse, ", ", rnam!plz, " ", rnam!ort, ", Tel1: ", PrivatTel, ", Tel2: ", PrivatTel_2, ", Mobil:", PrivatMobil, ", Fax: ", PrivatFax, ", Diensttel: ", DienstTel & ", Email: ", email, "'>", IIf(vorET > Now(), "<span class='schwanger'>", ""), _
-  GesNamFn(rnam), "</span></B>, *", Format(rnam!GebDat, "d.m.yy"), " (", PAlter, "a,&" & IIf(rnam!geschlecht = "w", "fe", "") & "male;), <span style='color:blue'><span class='unauff'>&nbsp;&nbsp;Pat_id: </span>", Pat_ID, "</span><span id = 'unauff'>,", IIf(obdm, "&nbsp;&nbsp;D.m.: ", ""), IIf(obdm, dmseit, ""), ",&nbsp;&nbsp;<span style=""font-weight:normal"">vorgestellt: </span>", Format(Vorgestellt, "d.m.yy"), ",&nbsp;&nbsp;</span><span style='font-size:smaller;font-weight:normal'>für: ", Format(Datum, "d.m.yy"), " ", Format(Uhrzeit, "hh:mm"), ",</span>&nbsp;<span class='unauff'>", IIf(haAnam = "", "", ", HA(anam.): " & haAnam), IIf(notiz = "", "", notiz & ",&nbsp;&nbsp;"), IIf(obdm, "Ther.zul: ", ""), "</span>", IIf(obdm, therart, ""), "<span " & dmpfarbe & ">", DmPStr, " </span><span style='background-color:black'>", IIf(rNa(0).obk <> 0, " &#x1F7E6;", ""), IIf(rNa(0).obs <> 0, "&#x1F7E8;", ""), IIf(rNa(0).obh <> 0, "&#x1F7E9;", ""), "<button type=""button"" onclick=location.href=""oeffneverz:" & Pat_ID & _
+  GesNamFn(rnam), "</span></B>, *", Format(rnam!GebDat, "d.m.yy"), " (", PAlter, "a,&" & IIf(rnam!geschlecht = "w", "fe", "") & "male;), <span style='color:blue'><span class='unauff'>&nbsp;&nbsp;Pat_id: </span>", Pat_ID, "</span><span id = 'unauff'>,", IIf(obdm, "&nbsp;&nbsp;D.m.: ", ""), IIf(obdm, dmseit, ""), ",&nbsp;&nbsp;<span style=""font-weight:normal"">vorgestellt: </span>", Format(Vorgestellt, "d.m.yy"), ",&nbsp;&nbsp;</span><span style='font-size:smaller;font-weight:normal'>für: ", Format(Datum, "d.m.yy"), " ", Format(Uhrzeit, "hh:mm"), ",</span>&nbsp;<span class='unauff'>", IIf(haAnam = "", "", "HA(anam.): " & haAnam & ", "), IIf(notiz = "", "", notiz & ",&nbsp;&nbsp;"), IIf(obdm, "Ther.zul: ", ""), "</span>", IIf(obdm, therart, ""), "<span " & dmpfarbe & ">", DmPStr, " </span><span style='background-color:black'>", IIf(rNa(0).obk <> 0, " &#x1F7E6;", ""), IIf(rNa(0).obs <> 0, "&#x1F7E8;", ""), IIf(rNa(0).obh <> 0, "&#x1F7E9;", ""), "<button type=""button"" onclick=location.href=""oeffneverz:" & Pat_ID & _
   """>Da<u>t</u>eien</button></span></h1>", vbCrLf))
 ' TherapieArtEinzelnFestlegen(CLng(Pat_ID), rAn) & "</span></h1>" ' VName, " ", NName
   ' * 2.73792574745373E-03 ' 1/365,24
