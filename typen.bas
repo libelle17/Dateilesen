@@ -1432,7 +1432,7 @@ Function fidSetz()
    If rBr(i).FID = rFa(j).FID Then GoTo Brweiter
   Next j
   For j = 1 To UBound(rFa)
-   If Int(rBr(i).Zeitpunkt) >= Int(rFa(j).BhFB) And Int(rBr(i).Zeitpunkt) <= Int(rFa(j).BhFE1) Then
+   If Int(rBr(i).Zeitpunkt) >= Int(rFa(j).BhFB) And (rFa(j).BhFE1 = 0 Or Int(rBr(i).Zeitpunkt) <= Int(rFa(j).BhFE1)) Then ' BhFE1=0 = Fall noch offen (z.B. laufender BG-Fall ohne Quartalsende), dann keine Obergrenze
     rBr(i).FID = rFa(j).FID
     Exit For
    End If ' If int(rBr(i).Zeitpunkt)) >= int(rFa(j).BhFB) AND int(rBr(i).Zeitpunkt) <= int(rFa(j).BhFE1) Then
@@ -1444,7 +1444,7 @@ Brweiter:
    If rDi(i).FID = rFa(j).FID Then GoTo Diweiter
   Next j
   For j = 1 To UBound(rFa)
-   If Int(rDi(i).DiagDatum) >= Int(rFa(j).BhFB) And Int(rDi(i).DiagDatum) <= Int(rFa(j).BhFE1) Then
+   If Int(rDi(i).DiagDatum) >= Int(rFa(j).BhFB) And (rFa(j).BhFE1 = 0 Or Int(rDi(i).DiagDatum) <= Int(rFa(j).BhFE1)) Then ' BhFE1=0 = Fall noch offen (z.B. laufender BG-Fall ohne Quartalsende), dann keine Obergrenze
     rDi(i).FID = rFa(j).FID
     Exit For
    End If ' If int(rDi(i).DiagDatum)) >= int(rFa(j).BhFB) AND int(rDi(i).diagDatum) <= int(rFa(j).BhFE1) Then
@@ -1456,7 +1456,7 @@ Diweiter:
    If rEi(i).FID = rFa(j).FID Then GoTo Eiweiter
   Next j
   For j = 1 To UBound(rFa)
-   If Int(rEi(i).Zeitpunkt) >= Int(rFa(j).BhFB) And Int(rEi(i).Zeitpunkt) <= Int(rFa(j).BhFE1) Then
+   If Int(rEi(i).Zeitpunkt) >= Int(rFa(j).BhFB) And (rFa(j).BhFE1 = 0 Or Int(rEi(i).Zeitpunkt) <= Int(rFa(j).BhFE1)) Then ' BhFE1=0 = Fall noch offen (z.B. laufender BG-Fall ohne Quartalsende), dann keine Obergrenze
     rEi(i).FID = rFa(j).FID
     Exit For
    End If ' If int(rEi(i).Zeitpunkt)) >= int(rFa(j).BhFB) AND int(rEi(i).Zeitpunkt) <= int(rFa(j).BhFE1) Then
@@ -1468,7 +1468,7 @@ Eiweiter:
    If rFr(i).FID = rFa(j).FID Then GoTo Frweiter
   Next j
   For j = 1 To UBound(rFa)
-   If Int(rFr(i).Zeitpunkt) >= Int(rFa(j).BhFB) And Int(rFr(i).Zeitpunkt) <= Int(rFa(j).BhFE1) Then
+   If Int(rFr(i).Zeitpunkt) >= Int(rFa(j).BhFB) And (rFa(j).BhFE1 = 0 Or Int(rFr(i).Zeitpunkt) <= Int(rFa(j).BhFE1)) Then ' BhFE1=0 = Fall noch offen (z.B. laufender BG-Fall ohne Quartalsende), dann keine Obergrenze
     rFr(i).FID = rFa(j).FID
     Exit For
    End If ' If int(rFr(i).Zeitpunkt)) >= int(rFa(j).BhFB) AND int(rFr(i).Zeitpunkt) <= int(rFa(j).BhFE1) Then
@@ -1480,7 +1480,7 @@ Frweiter:
    If rLe(i).FID = rFa(j).FID Then GoTo Leweiter
   Next j
   For j = 1 To UBound(rFa)
-   If Int(rLe(i).Zeitpunkt) >= Int(rFa(j).BhFB) And Int(rLe(i).Zeitpunkt) <= Int(rFa(j).BhFE1) Then
+   If Int(rLe(i).Zeitpunkt) >= Int(rFa(j).BhFB) And (rFa(j).BhFE1 = 0 Or Int(rLe(i).Zeitpunkt) <= Int(rFa(j).BhFE1)) Then ' BhFE1=0 = Fall noch offen (z.B. laufender BG-Fall ohne Quartalsende), dann keine Obergrenze
     rLe(i).FID = rFa(j).FID
     Exit For
    End If ' If int(rLe(i).Zeitpunkt)) >= int(rFa(j).BhFB) AND int(rLe(i).Zeitpunkt) <= int(rFa(j).BhFE1) Then
@@ -1492,7 +1492,7 @@ Leweiter:
    If rMe(i).FID = rFa(j).FID Then GoTo Meweiter
   Next j
   For j = 1 To UBound(rFa)
-   If Int(rMe(i).Zeitpunkt) >= Int(rFa(j).BhFB) And Int(rMe(i).Zeitpunkt) <= Int(rFa(j).BhFE1) Then
+   If Int(rMe(i).Zeitpunkt) >= Int(rFa(j).BhFB) And (rFa(j).BhFE1 = 0 Or Int(rMe(i).Zeitpunkt) <= Int(rFa(j).BhFE1)) Then ' BhFE1=0 = Fall noch offen (z.B. laufender BG-Fall ohne Quartalsende), dann keine Obergrenze
     rMe(i).FID = rFa(j).FID
     Exit For
    End If ' If int(rMe(i).Zeitpunkt)) >= int(rFa(j).BhFB) AND int(rMe(i).Zeitpunkt) <= int(rFa(j).BhFE1) Then
@@ -1504,7 +1504,7 @@ Meweiter:
    If rRe(i).FID = rFa(j).FID Then GoTo Reweiter
   Next j
   For j = 1 To UBound(rFa)
-   If Int(rRe(i).Zeitpunkt) >= Int(rFa(j).BhFB) And Int(rRe(i).Zeitpunkt) <= Int(rFa(j).BhFE1) Then
+   If Int(rRe(i).Zeitpunkt) >= Int(rFa(j).BhFB) And (rFa(j).BhFE1 = 0 Or Int(rRe(i).Zeitpunkt) <= Int(rFa(j).BhFE1)) Then ' BhFE1=0 = Fall noch offen (z.B. laufender BG-Fall ohne Quartalsende), dann keine Obergrenze
     rRe(i).FID = rFa(j).FID
     Exit For
    End If ' If int(rRe(i).Zeitpunkt)) >= int(rFa(j).BhFB) AND int(rRe(i).Zeitpunkt) <= int(rFa(j).BhFE1) Then
@@ -1516,7 +1516,7 @@ Reweiter:
    If rFu(i).FID = rFa(j).FID Then GoTo Fuweiter
   Next j
   For j = 1 To UBound(rFa)
-   If Int(rFu(i).Zeitpunkt) >= Int(rFa(j).BhFB) And Int(rFu(i).Zeitpunkt) <= Int(rFa(j).BhFE1) Then
+   If Int(rFu(i).Zeitpunkt) >= Int(rFa(j).BhFB) And (rFa(j).BhFE1 = 0 Or Int(rFu(i).Zeitpunkt) <= Int(rFa(j).BhFE1)) Then ' BhFE1=0 = Fall noch offen (z.B. laufender BG-Fall ohne Quartalsende), dann keine Obergrenze
     rFu(i).FID = rFa(j).FID
     Exit For
    End If ' If int(rFu(i).Zeitpunkt)) >= int(rFa(j).BhFB) AND int(rFu(i).Zeitpunkt) <= int(rFa(j).BhFE1) Then
