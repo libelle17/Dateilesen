@@ -684,7 +684,7 @@ Public Function fbumdreh() ' Fallbeginnumdreh
  rsMO.Open sql, MOCon, adOpenStatic, adLockReadOnly
  If Not rsMO.BOF Then
   Do While Not rsMO.EOF
-   Call WechsMemo("patfall", rsMO!F, "FMemo", "3.2.2.4.2", "", 1, MeStr(), , , True)
+   Call WechsMemo("patfall", rsMO!f, "FMemo", "3.2.2.4.2", "", 1, MeStr(), , , True)
    rsMO.MoveNext
   Loop ' While Not rsMO.EOF
  End If ' Not rsMO.BOF Then
@@ -3367,7 +3367,7 @@ gefunden:
      If Not IsNull(rsEi!fdetails) Then
       rRe(UBound(rRe)).erez = rsEi!obe
       rRe(UBound(rRe)).obst = rsEi!obst
-      rRe(UBound(rRe)).rea = nz(rsEi!rea,"")
+      rRe(UBound(rRe)).rea = nz(rsEi!rea, "")
       rRe(UBound(rRe)).obBTM = rsEi!obBTM
       rRe(UBound(rRe)).noctu = rsEi!noctu
       rRe(UBound(rRe)).ersatzv = rsEi!obers
@@ -3453,7 +3453,7 @@ fgefunden:
         ReDim Preserve rFo(UBound(rFo) + 1)
         rFo(UBound(rFo)).absPos = rsf!absPos
         rFo(UBound(rFo)).aktZeit = rsf!aktZeit
-        rFo(UBound(rFo)).Form_Abk = nz(rsf!Form_Abk,vNS)
+        rFo(UBound(rFo)).Form_Abk = nz(rsf!Form_Abk, vNS)
         rFo(UBound(rFo)).FormBez = rsf!FormBez
         rFo(UBound(rFo)).FormID = rsf!FormID
         lFormID = rsf!FormID
@@ -3742,6 +3742,26 @@ fgefunden:
        ElseIf rsEi!FDet Like "Schweißtest: *" Then
         art = "daknp"
        End If ' rsEi!FDet Like "Wie
+      ElseIf art = "" Then
+       Dim strpos%
+       strpos = InStr(EintS.name, " - ") ' 17.7.26
+       If strpos Then
+        art = Mid(EintS.name, strpos + 3)
+        If art = "nicht erschienen" Then
+         art = "tv" ' Termin versäumt
+        End If
+       Else
+        art = EintS.name
+       End If
+'       If EintS.TypNr = 1151 Then ' EintS.name = "Text - 50g" Then ' 17.7.26
+'        art = "50g"
+'       ElseIf EintS.TypNr = 1004 And EintS.name = "Text" Then
+'        art = "Text"
+'       ElseIf EintS.TypNr = 1005 And EintS.name = "UEBLABOR" Then
+'        art = "UEBLABOR"
+'       Else
+'        Debug.Print "!!! nicht zugeordnet: " & EintS.TypNr
+'       End If
       End If ' art = "dak" Then
       neuart = True
 '     ElseIf rsEi!FEintragsart = 1053 Then ' Überweisungstext ' ist bei EinK dabei => "utxt"
@@ -5211,7 +5231,7 @@ Public Function moausgeb(MOCon As ADODB.Connection, tn$, obsyst%, Bedg$)
 '      If IsNull(raen!vrs) Then Stop
       If IsNull(raen.Fields(colZ + Offs)) Then ausgb = "NULL" Else ausgb = REPLACE$(REPLACE$(raen.Fields(colZ + Offs), Chr(10), ""), Chr(13), "<nl>")
 '      If rcol.Fields(0) = "FMemo" Then Stop
-      If Not obsyst Or runde = 0 Or CStr(Wt(colZ)) <> CStr(nz(raen.Fields(colZ + Offs),"NULL")) Then
+      If Not obsyst Or runde = 0 Or CStr(Wt(colZ)) <> CStr(nz(raen.Fields(colZ + Offs), "NULL")) Then
        Print #220, rcol.Fields(0) & ": " & IIf(runde = 0, "", IIf(obsyst <> 0, Wt(colZ) & vbCrLf & " -> ", "") & Space$(Len(rcol.Fields(0)) - 2)) & ausgb
        If raen.Fields(colZ + Offs).Type = adLongVarBinary Or raen.Fields(colZ + Offs).Type = adLongVarChar Then ' 205
         Dim wtcolz$, i&, pru%
