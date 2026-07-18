@@ -3187,7 +3187,7 @@ sql(AWlf) = _
 ", Inhalt" & vbCrLf & _
 "FROM aktfv f" & vbCrLf & _
 "LEFT JOIN eintraege e ON e.pat_id=f.pat_id AND e.art IN ('wv')" & vbCrLf & _
-"AND inhalt not RLIKE 'laborbefund|ä|ü|ö|Charge|Vax|Duplikat gedruckt|Encep|Markierung gesetzt'" & vbCrLf & _
+"AND inhalt not RLIKE 'laborbefund|ä|ü|ö|Charge|Vax|Duplikat gedruckt|Encep|Markierung gesetzt|Tonaudio'" & vbCrLf & _
 "AND e.zeitpunkt BETWEEN qanf() AND qend()" & vbCrLf & _
 "WHERE NOT ISNULL(e.Pat_id)" & vbCrLf & _
 "HAVING `wv(023..)`=0;"
