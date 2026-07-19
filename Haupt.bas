@@ -1099,7 +1099,7 @@ Function MacheTypen(frm As Lese)
    Print #257, "   If r" & Tbk(i) & "(i).FID = rFa(j).FID Then Goto " & Tbk(i) & "weiter"
    Print #257, "  Next j"
    Print #257, "  For j = 1 To UBound(rFa)"
-   Print #257, "   If int(r" & Tbk(i) & "(i)." & IIf(Tbk(i) = "Di", "DiagDatum", "Zeitpunkt") & ") >= int(rFa(j).BhFB) AND int(r" & Tbk(i) & "(i)." & IIf(Tbk(i) = "Di", "diagDatum", "Zeitpunkt") & ") <= int(rFa(j).BhFE1) Then"
+   Print #257, "   If int(r" & Tbk(i) & "(i)." & IIf(Tbk(i) = "Di", "DiagDatum", "Zeitpunkt") & ") >= int(rFa(j).BhFB) AND (rFa(j).BhFE1 = 0 Or int(r" & Tbk(i) & "(i)." & IIf(Tbk(i) = "Di", "diagDatum", "Zeitpunkt") & ") <= int(rFa(j).BhFE1)) Then"
    Print #257, "    r" & Tbk(i) & "(i).FID = rFa(j).FID"
    Print #257, "    Exit For"
    Print #257, "   End If ' If int(r" & Tbk(i) & "(i)." & IIf(Tbk(i) = "Di", "DiagDatum", "Zeitpunkt") & ")) >= int(rFa(j).BhFB) AND int(r" & Tbk(i) & "(i)." & IIf(Tbk(i) = "Di", "diagDatum", "Zeitpunkt") & ") <= int(rFa(j).BhFE1) Then"

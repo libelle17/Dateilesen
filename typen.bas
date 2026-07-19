@@ -1431,7 +1431,7 @@ Function fidSetz()
    If rBr(i).FID = rFa(j).FID Then Goto Brweiter
   Next j
   For j = 1 To UBound(rFa)
-   If int(rBr(i).Zeitpunkt) >= int(rFa(j).BhFB) AND int(rBr(i).Zeitpunkt) <= int(rFa(j).BhFE1) Then
+   If int(rBr(i).Zeitpunkt) >= int(rFa(j).BhFB) AND (rFa(j).BhFE1 = 0 Or int(rBr(i).Zeitpunkt) <= int(rFa(j).BhFE1)) Then
     rBr(i).FID = rFa(j).FID
     Exit For
    End If ' If int(rBr(i).Zeitpunkt)) >= int(rFa(j).BhFB) AND int(rBr(i).Zeitpunkt) <= int(rFa(j).BhFE1) Then
@@ -1443,7 +1443,7 @@ Brweiter:
    If rDi(i).FID = rFa(j).FID Then Goto Diweiter
   Next j
   For j = 1 To UBound(rFa)
-   If int(rDi(i).DiagDatum) >= int(rFa(j).BhFB) AND int(rDi(i).diagDatum) <= int(rFa(j).BhFE1) Then
+   If int(rDi(i).DiagDatum) >= int(rFa(j).BhFB) AND (rFa(j).BhFE1 = 0 Or int(rDi(i).diagDatum) <= int(rFa(j).BhFE1)) Then
     rDi(i).FID = rFa(j).FID
     Exit For
    End If ' If int(rDi(i).DiagDatum)) >= int(rFa(j).BhFB) AND int(rDi(i).diagDatum) <= int(rFa(j).BhFE1) Then
@@ -1455,7 +1455,7 @@ Diweiter:
    If rEi(i).FID = rFa(j).FID Then Goto Eiweiter
   Next j
   For j = 1 To UBound(rFa)
-   If int(rEi(i).Zeitpunkt) >= int(rFa(j).BhFB) AND int(rEi(i).Zeitpunkt) <= int(rFa(j).BhFE1) Then
+   If int(rEi(i).Zeitpunkt) >= int(rFa(j).BhFB) AND (rFa(j).BhFE1 = 0 Or int(rEi(i).Zeitpunkt) <= int(rFa(j).BhFE1)) Then
     rEi(i).FID = rFa(j).FID
     Exit For
    End If ' If int(rEi(i).Zeitpunkt)) >= int(rFa(j).BhFB) AND int(rEi(i).Zeitpunkt) <= int(rFa(j).BhFE1) Then
@@ -1467,7 +1467,7 @@ Eiweiter:
    If rFr(i).FID = rFa(j).FID Then Goto Frweiter
   Next j
   For j = 1 To UBound(rFa)
-   If int(rFr(i).Zeitpunkt) >= int(rFa(j).BhFB) AND int(rFr(i).Zeitpunkt) <= int(rFa(j).BhFE1) Then
+   If int(rFr(i).Zeitpunkt) >= int(rFa(j).BhFB) AND (rFa(j).BhFE1 = 0 Or int(rFr(i).Zeitpunkt) <= int(rFa(j).BhFE1)) Then
     rFr(i).FID = rFa(j).FID
     Exit For
    End If ' If int(rFr(i).Zeitpunkt)) >= int(rFa(j).BhFB) AND int(rFr(i).Zeitpunkt) <= int(rFa(j).BhFE1) Then
@@ -1479,7 +1479,7 @@ Frweiter:
    If rLe(i).FID = rFa(j).FID Then Goto Leweiter
   Next j
   For j = 1 To UBound(rFa)
-   If int(rLe(i).Zeitpunkt) >= int(rFa(j).BhFB) AND int(rLe(i).Zeitpunkt) <= int(rFa(j).BhFE1) Then
+   If int(rLe(i).Zeitpunkt) >= int(rFa(j).BhFB) AND (rFa(j).BhFE1 = 0 Or int(rLe(i).Zeitpunkt) <= int(rFa(j).BhFE1)) Then
     rLe(i).FID = rFa(j).FID
     Exit For
    End If ' If int(rLe(i).Zeitpunkt)) >= int(rFa(j).BhFB) AND int(rLe(i).Zeitpunkt) <= int(rFa(j).BhFE1) Then
@@ -1491,7 +1491,7 @@ Leweiter:
    If rMe(i).FID = rFa(j).FID Then Goto Meweiter
   Next j
   For j = 1 To UBound(rFa)
-   If int(rMe(i).Zeitpunkt) >= int(rFa(j).BhFB) AND int(rMe(i).Zeitpunkt) <= int(rFa(j).BhFE1) Then
+   If int(rMe(i).Zeitpunkt) >= int(rFa(j).BhFB) AND (rFa(j).BhFE1 = 0 Or int(rMe(i).Zeitpunkt) <= int(rFa(j).BhFE1)) Then
     rMe(i).FID = rFa(j).FID
     Exit For
    End If ' If int(rMe(i).Zeitpunkt)) >= int(rFa(j).BhFB) AND int(rMe(i).Zeitpunkt) <= int(rFa(j).BhFE1) Then
@@ -1503,7 +1503,7 @@ Meweiter:
    If rRe(i).FID = rFa(j).FID Then Goto Reweiter
   Next j
   For j = 1 To UBound(rFa)
-   If int(rRe(i).Zeitpunkt) >= int(rFa(j).BhFB) AND int(rRe(i).Zeitpunkt) <= int(rFa(j).BhFE1) Then
+   If int(rRe(i).Zeitpunkt) >= int(rFa(j).BhFB) AND (rFa(j).BhFE1 = 0 Or int(rRe(i).Zeitpunkt) <= int(rFa(j).BhFE1)) Then
     rRe(i).FID = rFa(j).FID
     Exit For
    End If ' If int(rRe(i).Zeitpunkt)) >= int(rFa(j).BhFB) AND int(rRe(i).Zeitpunkt) <= int(rFa(j).BhFE1) Then
@@ -1515,7 +1515,7 @@ Reweiter:
    If rFu(i).FID = rFa(j).FID Then Goto Fuweiter
   Next j
   For j = 1 To UBound(rFa)
-   If int(rFu(i).Zeitpunkt) >= int(rFa(j).BhFB) AND int(rFu(i).Zeitpunkt) <= int(rFa(j).BhFE1) Then
+   If int(rFu(i).Zeitpunkt) >= int(rFa(j).BhFB) AND (rFa(j).BhFE1 = 0 Or int(rFu(i).Zeitpunkt) <= int(rFa(j).BhFE1)) Then
     rFu(i).FID = rFa(j).FID
     Exit For
    End If ' If int(rFu(i).Zeitpunkt)) >= int(rFa(j).BhFB) AND int(rFu(i).Zeitpunkt) <= int(rFa(j).BhFE1) Then
