@@ -751,7 +751,7 @@ Function doMachSQL2$(TI%, ptxt$)
      ptxt = ptxt & " 0 " & tze1
     Else
      Select Case rsAdSc!data_type
-      Case "double", "float", 4, 5 ' float, double
+      Case "double", "float", "decimal", 4, 5, 14 ' float, double, decimal
        ptxt = ptxt & "replace$(" & VStr & ","","",""."")" & tze1
 ' das folgende macht noch einen falschen Umbruch und wird vielleicht nicht gebraucht
 '      Case "varchar", "char", "text", "varbinary", 8, 129, 130, 200, 201, 202, 203
@@ -835,7 +835,7 @@ Function doMachSQL3$(TI%, ptxt$)
      ptxt = ptxt & " 0 " & tze1
     Else
      Select Case rsAdSc!data_type
-      Case "double", "float", 4, 5 ' float, double
+      Case "double", "float", "decimal", 4, 5, 14 ' float, double, decimal
        ptxt = ptxt & "replace$(" & VStr & ","","",""."")" & tze1
       Case Else
        ptxt = ptxt & VStr & tze1

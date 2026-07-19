@@ -6798,7 +6798,7 @@ setz:
   csql.AppVar Array("(", rLe(i).FID, ",", rLe(i).Pat_ID, ",", DatFor_k(rLe(i).Zeitpunkt), ",'", rLe(i).Leistung, "','", rLe(i).ArtdUs, "','", rLe(i).LAnzl, "','", rLe(i).LUhrz, "','", rLe(i).LfBegr, "','", _
    rLe(i).Med, "','", rLe(i).LOrgan, "','", rLe(i).LArztBf, "','", rLe(i).DtlKbsV, "','", rLe(i).LEntlDt, "','", rLe(i).Faktor, "','", rLe(i).LBSNR, "','", rLe(i).Charge, "','", rLe(i).Lanr, "',", DatFor_k( _
    rLe(i).letzVorg), ",'", rLe(i).Ausn, "','", rLe(i).beme, "',", rLe(i).absPos, ",", DatFor_k(rLe(i).aktZeit), ",'", rLe(i).QS, "','", rLe(i).QT, "',", rLe(i).StByte, ",", _
-   rLe(i).lanrid, ",'", rLe(i).Sachkbez, "',", rLe(i).Sachkct, ",'", rLe(i).Zone, "',", rLe(i).Punkte, ",", rLe(i).Lstgerbnr, ",", rLe(i).Position, ",", rLe(i).Eignung, ",", _
+   rLe(i).lanrid, ",'", rLe(i).Sachkbez, "',", rLe(i).Sachkct, ",'", rLe(i).Zone, "',", REPLACE$(rLe(i).Punkte, ",", "."), ",", rLe(i).Lstgerbnr, ",", rLe(i).Position, ",", rLe(i).Eignung, ",", _
    rLe(i).Pruefzeit, ",", rLe(i).Kalkzeit, ",", rLe(i).BSNR, ",", rLe(i).Abrechnungssperre, ",", rLe(i).Medikanr, ",", rLe(i).Laborkosten, ",", rLe(i).Sachkostentyp, ",'", rLe(i).Usegebordtext, "','", _
    rLe(i).Arztliste, "','", rLe(i).Ersteller, "','", rLe(i).Änderer, "','", rLe(i).Kennzeichen_arzt_technik, "','", rLe(i).Auftragsschluessel, "','", rLe(i).Auftragstext, "')")
   If SammelInsert <> 0 And i < UBound(rLe) Then csql.Append ","
