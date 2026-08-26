@@ -4258,7 +4258,7 @@ Private Sub suchTel_Click()
  Call doSuchTel(Me)
 End Sub ' suchTel_Click
 
-' Statistik -> Anrufliste
+' Statistik -> Anrufliste. Doku: Anrufliste_Doku.md
 Private Sub Anrufliste_Click()
  ProgStart
  Call doAnrufliste(Me)

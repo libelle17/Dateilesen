@@ -3241,7 +3241,7 @@ Function doSuchTel(frm As Lese) ' suche Telefonnummer
  TabAusgeb rab, Lese, True, , , , , , "Suche Telefonnummer " + TEL
 End Function ' doSuchTel
 
-' in Anrufliste_Click
+' in Anrufliste_Click. Doku: Anrufliste_Doku.md
 Function doAnrufliste(frm As Lese) ' letzte Anrufe wie "anrliste -listt", aber absteigend und mit Patienten-ID/Klarname statt der SIP-/Technikspalten
  Dim anz$
  anz = InputBox("Anzahl der letzten Anrufe:", "Anrufliste", "30")
