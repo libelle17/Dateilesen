@@ -3,7 +3,7 @@ Option Explicit
 Option Compare Text
 Private Declare Function GetTickCount Lib "kernel32" () As Long
 Const Fakt& = 256
-Public tg0&, tg1&, tg2& ' für Profiling mit GetTickCount
+Public tg0#, tg1#, tg2# ' für Profiling mit GetTickCount ' 25.8.26: # statt &
 Dim meldTxt$ ' für syscmd
 
 ' Public Const pidoffs& = 100000
