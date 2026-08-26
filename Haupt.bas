@@ -3241,6 +3241,26 @@ Function doSuchTel(frm As Lese) ' suche Telefonnummer
  TabAusgeb rab, Lese, True, , , , , , "Suche Telefonnummer " + TEL
 End Function ' doSuchTel
 
+' in Anrufliste_Click
+Function doAnrufliste(frm As Lese) ' letzte Anrufe wie "anrliste -listt", aber absteigend und mit Patienten-ID/Klarname statt der SIP-/Technikspalten
+ Dim anz$
+ anz = InputBox("Anzahl der letzten Anrufe:", "Anrufliste", "30")
+ If anz = "" Then anz = "30"
+ Dim sql$
+ sql$ = "SELECT x.Datum, x.TypS `Typ`, x.Name, x.Rufnummer, x.Nebenstelle, x.Dauer, "
+ sql = sql & "COALESCE((SELECT CAST(n.Pat_id AS CHAR) FROM `namen` n WHERE x.RN<>'' AND LOCATE(x.RN, REGEXP_REPLACE(CONCAT_WS('|',n.PrivatTel,n.PrivatTel_2,n.DienstTel,n.PrivatMobil),'[^0-9]',''))>0 LIMIT 1), "
+ sql = sql & "(SELECT 'Praxis' FROM `aktlue` l WHERE x.RN<>'' AND LOCATE(x.RN, REGEXP_REPLACE(l.telefon,'[^0-9]',''))>0 LIMIT 1), "
+ sql = sql & "(SELECT 'Praxis' FROM `earzt` e WHERE x.RN<>'' AND LOCATE(x.RN, REGEXP_REPLACE(e.FTelefon,'[^0-9]',''))>0 LIMIT 1), '') `Pat-ID`, "
+ sql = sql & "COALESCE((SELECT gesname(n.Pat_id) FROM `namen` n WHERE x.RN<>'' AND LOCATE(x.RN, REGEXP_REPLACE(CONCAT_WS('|',n.PrivatTel,n.PrivatTel_2,n.DienstTel,n.PrivatMobil),'[^0-9]',''))>0 LIMIT 1), "
+ sql = sql & "(SELECT CONCAT_WS(', ', CONCAT('Dr. ', TRIM(l.name)), TRIM(l.vorname), l.ort) FROM `aktlue` l WHERE x.RN<>'' AND LOCATE(x.RN, REGEXP_REPLACE(l.telefon,'[^0-9]',''))>0 LIMIT 1), "
+ sql = sql & "(SELECT CONCAT_WS(', ', CONCAT('Dr. ', TRIM(e.FNachname)), TRIM(e.FVorname), p.FBezeichnung) FROM `earzt` e LEFT JOIN `epraxis` p ON p.FSurogat = e.FExtpraxisnr WHERE x.RN<>'' AND LOCATE(x.RN, REGEXP_REPLACE(e.FTelefon,'[^0-9]',''))>0 LIMIT 1), '') `Klarname` "
+ sql = sql & "FROM (SELECT Datum, CASE Typ WHEN 1 THEN '->' WHEN 2 THEN '->|' WHEN 3 THEN '<-' WHEN 9 THEN '->>' WHEN 11 THEN 'fx<-' ELSE Typ END TypS, Name, Rufnummer, Nebenstelle, Dauer, eind, "
+ sql = sql & "CASE WHEN Rufnummer LIKE 'SIP%' OR CHAR_LENGTH(REGEXP_REPLACE(Rufnummer,'[^0-9]',''))<6 THEN '' ELSE RIGHT(REGEXP_REPLACE(Rufnummer,'[^0-9]',''),8) END RN FROM faxeinp.anrufe ORDER BY eind DESC LIMIT " & CLng(Val(anz)) & ") x ORDER BY x.eind DESC"
+ Dim rab As New ADODB.Recordset
+ myFrag rab, sql
+ TabAusgeb rab, Lese, True, , , , , , "Anrufliste (letzte " & CLng(Val(anz)) & ")"
+End Function ' doAnrufliste
+
 Function ergEBM(frm As Lese)
  Dim QDat$, Text$, Spli$(), dszahl&, rAf&
 ' Zeilenumbrüche führen zu Fehlern, ähnlich bei ".csv" und ";" statt ".txt" und ";"

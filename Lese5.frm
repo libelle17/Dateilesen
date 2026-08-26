@@ -364,10 +364,6 @@ Begin VB.MDIForm Lese
       Begin VB.Menu Datenbankverbindung 
          Caption         =   "&Datenbankverbindung Patientendaten"
       End
-      Begin VB.Menu Zurücksetzen 
-         Caption         =   "&Zurücksetzen des Programmlaufs"
-         Visible         =   0   'False
-      End
       Begin VB.Menu Beenden 
          Caption         =   "&Beenden"
          Index           =   3
@@ -524,18 +520,8 @@ Begin VB.MDIForm Lese
       Begin VB.Menu ÜbertragenenAnamnesebogen 
          Caption         =   "&Anamnesebogen (Diagnosen eingeben)"
       End
-      Begin VB.Menu Anamnesebogen 
-         Caption         =   "&Anamnesebogen experimentell"
-         Enabled         =   0   'False
-         Visible         =   0   'False
-      End
       Begin VB.Menu DiabetesQuartalsdiagnosenInDauerdiagnosenUmwandeln 
          Caption         =   "Diabetes-&Quartalsdiagnosen in Dauerdiagnosen umwandeln (manuell)"
-      End
-      Begin VB.Menu DMPSend 
-         Caption         =   "Alle &DMP-Dokumente an Hausärzte in p:\zufaxen erstellen"
-         Enabled         =   0   'False
-         Visible         =   0   'False
       End
       Begin VB.Menu AlleDMPanHA 
          Caption         =   "Alle &DMP-Dokumente an Hausärzte faxen"
@@ -784,6 +770,9 @@ Begin VB.MDIForm Lese
       Begin VB.Menu suchTel 
          Caption         =   "&suchTel"
       End
+      Begin VB.Menu Anrufliste 
+         Caption         =   "&Anrufliste"
+      End
    End
    Begin VB.Menu EDV 
       Caption         =   "&EDV"
@@ -799,33 +788,8 @@ Begin VB.MDIForm Lese
          Begin VB.Menu AnamnesebogenPacken 
             Caption         =   "Anamnesebogen pa&cken (Stringfeldlängen optimieren)"
          End
-         Begin VB.Menu AnamnesebogenHolen 
-            Caption         =   "Anamnesebogen von u:\Anamnese\Quelle.mdb &kopieren"
-            Visible         =   0   'False
-         End
-         Begin VB.Menu DokumenteAbgehaktkopieren 
-            Caption         =   "&Dokumente abgehakt von u:\Anamnese\Quelle.mdb kopieren"
-            Visible         =   0   'False
-         End
-         Begin VB.Menu KassenlisteKopieren 
-            Caption         =   "&Kassenliste von u:\Anamnese\Quelle.mdb kopieren"
-            Visible         =   0   'False
-         End
-         Begin VB.Menu holMedArten 
-            Caption         =   "&Medarten von u:\Anamnese\Quelle.mdb kopieren"
-            Visible         =   0   'False
-         End
-         Begin VB.Menu holLaborParameter 
-            Caption         =   "&Laborparameter von u:\Anamnese\Quelle.mdb kopieren"
-            Visible         =   0   'False
-         End
          Begin VB.Menu TabKop 
             Caption         =   "&Tabellen (Datenbank) kopieren"
-         End
-         Begin VB.Menu HAUebertrag 
-            Caption         =   "Haus&ärzte übertragen"
-            Enabled         =   0   'False
-            Visible         =   0   'False
          End
          Begin VB.Menu DokPfadKorrigieren 
             Caption         =   "&Dokumentpfade zu $\turbomed\... korrigieren in briefe, dokumente, d~_abgehakt"
@@ -881,10 +845,6 @@ Begin VB.MDIForm Lese
       End
       Begin VB.Menu LaborLöschenAb 
          Caption         =   "Labor (direkt -> ""X"") l&öschen ab"
-      End
-      Begin VB.Menu DMPListe 
-         Caption         =   "DM&P-Liste erstellen"
-         Visible         =   0   'False
       End
       Begin VB.Menu DiagnosenSortieren 
          Caption         =   "D&iagnosen sortieren"
@@ -967,10 +927,6 @@ Begin VB.MDIForm Lese
       Begin VB.Menu ADOXtet 
          Caption         =   "ADO&Xtet"
       End
-      Begin VB.Menu SyncTest 
-         Caption         =   "&SyncTest"
-         Visible         =   0   'False
-      End
       Begin VB.Menu CallUSDM 
          Caption         =   "&Usdm"
       End
@@ -979,10 +935,6 @@ Begin VB.MDIForm Lese
       End
       Begin VB.Menu doppelteFAxe 
          Caption         =   "&doppelteFAxe"
-      End
-      Begin VB.Menu alteHausärzte 
-         Caption         =   "alteHausärzte"
-         Visible         =   0   'False
       End
       Begin VB.Menu MedKlassT 
          Caption         =   "&MedKlass"
@@ -2495,17 +2447,6 @@ Private Sub Ziffer30u31Ausschlüsse_Click()
  Call TabAusgeb(rs, Me, , , , , , True, "Ausschlüsse von Ziffern 15, 30 und 31")
 End Sub ' Ziffer30u31Ausschlüsse_Click()
 
-#If False Then
-Private Sub Zurücksetzen_Click() ' nicht sichtbar: "Datei -> &Zurücksetzen des Programmlaufs"
- Call ProgrammLauf(-1) ' falls es fälschlich auf 0 steht: 0 = Programm läuft, -1 = nicht
- Dim ctl As Control
- For Each ctl In Me.Controls
-  If ctl.name Like "*inlesen*" Then ctl.Enabled = True
- Next ctl
- Me.Zurücksetzen.Enabled = False
-End Sub ' Zurücksetzen_Click
-#End If
-
 ' Funktionen für Arzthelferin und Arzt -> Abbrechen (vor Speichern eines Patienten)
 Private Sub Abbrechen_Click()
 '#If False THEN
@@ -3224,11 +3165,6 @@ Private Sub ÜbertragenenAnamnesebogen_Click() ' Code aus form_load herausgezogen
 End Sub ' ÜbertragenenAnamnesebogen_Click
 #End If
 
-' nicht sichtbar: ...für Arzt -> Anamnesebogen experimentell
-'Private Sub Anamnesebogen_Click()
-' anb.Show
-'End Sub
-
 ' ...für Arzt -> Diabetes-Quartalsdiagnosen in Dauerdiagnosen umwandeln (manuell)
 Private Sub DiabetesQuartalsdiagnosenInDauerdiagnosenUmwandeln_Click()
  Dim rs As New ADODB.Recordset
@@ -3240,14 +3176,6 @@ Private Sub DiabetesQuartalsdiagnosenInDauerdiagnosenUmwandeln_Click()
             "ORDER BY d.pat_id"
  TabAusgeb rs, Me, , , , , , , "Diabetes-Quartalsdiagnosen in Dauerdiagnosen umwandeln (manuell)", 1
 End Sub ' DiabetesQuartalsdiagnosenInDauerdiagnosenUmwandeln_Click
-
-' 5.7.10: jetzt nicht mehr nötig, in PatListe integriert
-' nicht sichtbar: ...für Arzt -> Alle &DMP-Dokumente an Hausärzte in p:\zufaxen erstellen
-'Private Sub DMPSend_Click()
-' Call ProgStart
-' Call alleDMPs(Me)
-' Call ProgEnde
-'End Sub ' DMPSend_Click
 
 ' ...für Arzt -> alle DMP-Dokumente an Hausärzte faxen
 Private Sub AlleDMPanHA_Click() ' Alle DMP-Dokumente an Hausärzte faxen
@@ -4330,6 +4258,12 @@ Private Sub suchTel_Click()
  Call doSuchTel(Me)
 End Sub ' suchTel_Click
 
+' Statistik -> Anrufliste
+Private Sub Anrufliste_Click()
+ ProgStart
+ Call doAnrufliste(Me)
+End Sub ' Anrufliste_Click
+
 ' EDV
 
 ' EDV -> MachTypen (Datei Typen.bas erstellen)
@@ -4404,71 +4338,6 @@ Private Sub AnamnesebogenPacken_Click()
  Call ProgEnde
 End Sub ' AnamnesebogenPacken_Click
 
-' EDV -> Anamnesebogen von u:\Anamnese\Quelle.mdb kopieren
-' unsichtbar
-#If False Then
-Private Sub AnamnesebogenHolen_Click() ' nicht sichtbar: "Anamnesebogen von u:\Anamnese\Quelle.mdb &kopieren
- Call ProgStart
- Call holAB(Me)
- Call ProgEnde
-End Sub ' AnamnesebogenHolen_Click
-#End If
-
-' EDV -> Dokumente abgehakt von u:\Anamnese\Quelle.mdb kopieren
-' unsichtbar
-#If False Then
-Private Sub DokumenteAbgehaktkopieren_Click() ' nicht sichtbar: &Dokumente abgehakt von u:\Anamnese\Quelle.mdb kopieren"
- Call ProgStart
- Call holDA(Me)
- Call ProgEnde
-End Sub ' DokumenteAbgehaktkopieren_Click
-#End If
-
-' EDV -> Kassenliste von u:\Anamnese\Quelle.mdb kopieren
-' unsichtbar
-#If False Then
-Private Sub KassenlisteKopieren_Click() ' nicht sichtbar: &Kassenliste von u:\Anamnese\Quelle.mdb kopieren"
- Call ProgStart
- Call holAllg(Me, "kassenliste", "ID", 0)
- Call ProgEnde
-End Sub ' KassenlisteKopieren_Click
-#End If
-
-' EDV -> Medarten von u:\Anamnese\Quelle.mdb kopieren
-' unsichtbar
-#If False Then
-Private Sub holMedArten_Click() ' nicht sichtbar: &Medarten von u:\Anamnese\Quelle.mdb kopieren"
- Call ProgStart
-'Function holMA(frm AS Lese)
-' Rökan <> Roekan =>
-'ALTER TABLE `medplan` drop FOREIGN KEY MedArtenMedPlan_AccRel;
-'ALTER TABLE `medplan` MODIFY COLUMN `MedAnfang` VARCHAR(35) CHARACTER SET latin1 COLLATE latin1_german2_ci DEFAULT NULL;
-'DELETE FROM `medarten`;
-'ALTER TABLE `medarten` modify column Medikament varchar(50) CHARACTER SET latin1 COLLATE latin1_german2_ci DEFAULT NULL;
-'INSERT INTO `medarten` (medikament) SELECT DISTINCT medanfang FROM `medplan` m;
-'ALTER TABLE  `medplan` ADD CONSTRAINT `MedArtenMedPlan_AccRel` FOREIGN KEY (`MedAnfang`) REFERENCES `medarten` (`Medikament`);
-' IF lies.obmysql THEN
-'  Call myEFrag("SET foreign_key_checks = 0")
-'  Call myEFrag("DELETE FROM `medarten`")
-' END IF
- Call holAllg(Me, "medarten", "Medikament", 0)
-' IF lies.obmysql THEN
-'  Call myEFrag("SET foreign_key_checks = 1")
-' END IF
- Call ProgEnde
-End Sub ' holMedArten_Click
-#End If
-
-' EDV -> Laborparameter von u:\Anamnese\Quelle.mdb kopieren
-' unsichtbar
-'#If False Then
-'Private Sub holLaborParameter_Click() ' nicht sichtbar: "&Laborparameter von u:\Anamnese\Quelle.mdb kopieren
-' Call ProgStart
-' Call holAllg(Me, "laborparameter", vNS, 0)
-' Call ProgEnde
-'End Sub ' holLaborParameter_Click
-'#End If
-
 ' EDV -> Tabellen (Datenbank) kopieren
 Private Sub TabKop_Click() ' Tabelle kopieren
  Set Tü.F0 = Me
@@ -4535,17 +4404,6 @@ Private Sub TherapieartenEinzelübervb6Festlegen_Click() ' Therapiearten festlege
  Ausgeb "Fertig mit Festlegen der Therapiearten", True
  Call ProgEnde
 End Sub ' TherapieartenFestlegen_Click
-
-' EDV -> Hausärzte übertragen
-' unsichtbar
-#If False Then
-'Private Sub HAUebertrag_Click() ' nicht sichtbar: "Haus&ärzte übertragen
-' Call ProgStart
-' Call ergänzeliste
-' Call holAllg(Me, "hausaerzte", "ID", -1)
-' Call ProgEnde
-'End Sub ' HAUebertrag_Click
-#End If
 
 ' EDV -> Kassenkategorien aus deren Namen bestimmen
 Public Sub KassenkategorienBestimmen_Click()
@@ -4707,14 +4565,6 @@ Private Sub LaborLöschenAb_Click()
  ' myEFrag "DELETE FROM `" & vorsil & "leist` WHERE refnr IN " & krit0, rAF
  myEFrag "DELETE d FROM " & vorsil & "dat d LEFT JOIN " & vorsil & "us u ON u.datid = d.datid WHERE eingang >= " & Format(Datum, "yyyymmdd"), rAf
 End Sub ' LaborLöschenAB
-
-' EDV -> DMP-Liste erstellen
-' unsichtbar
-'Private Sub DMPListe_Click()
-' call progstart
-' Call DMPlst.init(Me)
-' DMPlst.Show
-'End Sub
 
 '' EDV -> DMP-String
 'Sub CallDMPString_Click()
@@ -5086,12 +4936,6 @@ Private Sub ADOXtet_Click()
  Call ProgEnde
 End Sub ' ADOXtet_Click
 
-' Testfunktionen -> SyncTest
-' auskommentiert 10.10.22
-'Private Sub SyncTest_Click()
-' Call formInhMach
-'End Sub ' SyncTest_Click
-
 ' Testfunktionen -> Usdm
 Private Sub CallUSDM_Click()
  Dim erg
@@ -5124,62 +4968,6 @@ Private Sub doppelteFaxe_Click()
  Close #323
  zeigan datnam
 End Sub ' doppelteFaxe_Click
-
-' Testfunktionen -> alteHausärzte
-' auskommentiert 10.10.22
-'Private Sub alteHausärzte_Click()
-' Dim ahc As New Adodb.Connection, ahr As New Adodb.Recordset, acr As New Adodb.Recordset
-' Dim runde%
-'' SET ahc = acon(haT, accDtb)
-'' Call acon(HaT, q1Dtb)
-' If LenB(DBCn) = 0 Or DBCn = "" Then Call acon(quelleT)
-'
-' Dim Fls As Files, Fl As File, lastDat#
-' Dim FSO As New FileSystemObject
-' On Error GoTo fehler
-' Set Fls = FSO.GetFolder(AnamneseVerZeichnis1).Files
-' For Each Fl In Fls
-'  If Fl.name Like "KV*rzte*.mdb" Then
-'   Set ahc = Nothing
-'   ahc.Open CStrAcc & Fl.path
-'   For runde = 1 To 2
-'    Set ahr = Nothing
-'    On Error Resume Next
-'    ahr.Open "SELECT * FROM `" & IIf(runde = 1, "`hae`", "`haealt`") & "` WHERE gelöscht", ahc, adOpenDynamic, adLockReadOnly
-'    If Err.Number <> 0 Then GoTo nrunde
-'    On Error GoTo fehler
-'    Do While Not ahr.EOF
-'     Set acr = Nothing
-'     myFrag acr, "SELECT * FROM `kvaerzte`.`hae` WHERE nachname = '" & ahr!Nachname & "' AND kvnr = '" & ahr!KVNr & "'" 'haecn
-'     If acr.EOF Then
-'      Set acr = Nothing
-'      myFrag acr, "SELECT * FROM `kvaerzte`.`haealt` WHERE nachname = '" & ahr!Nachname & "' AND kvnr = '" & ahr!KVNr & "'" 'haecn
-'      If acr.EOF Then
-'       MsgBox "Stop in alteHausärzte_Click: " & vbCrLf & "acr.EOF"
-'       Stop
-'      End If
-'     End If
-'     ahr.Move 1
-'    Loop
-'nrunde:
-'    On Error GoTo fehler
-'   Next runde
-'  End If
-' Next Fl
-' Exit Sub
-'fehler:
-'Dim AnwPfad$
-'#If VBA6 Then
-' AnwPfad = CurrentDb.name
-'#Else
-' AnwPfad = App.path
-'#End If
-'Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + cstr(nz(err.source,"")) + vbCrLf + "Description: " + Err.Description + vbCrLf + "Fehlerposition: " + CStr(FPos), vbAbortRetryIgnore, "Aufgefangener Fehler in alteHausärzte/" + AnwPfad)
-' Case vbAbort: Call MsgBox("Höre auf"): ProgEnde
-' Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
-' Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
-'End Select
-'End Sub ' alteHausärzte
 
 ' Testfunktionen -> MedKlass
 Private Sub MedklassT_Click() ' Testfunktionen
