@@ -2913,7 +2913,7 @@ hyperton:
   Fqmin(i) = 1
   Titel(i) = "Vergleich des Blutdruckgerätes mit unserem Oberarmmanschettengerät,Fqmin(" & i & ")=" & Fqmin(i) & "/a"
   RRVgli = i
-  sql(i) = "SELECT zeitpunkt zp, rr wert FROM `rr` WHERE art LIKE 'rrvgl%' AND pat_id = " & Pat_id & " ORDER BY zp DESC"
+  sql(i) = "SELECT zeitpunkt zp, rr wert FROM `rr` WHERE (art LIKE 'rrvgl%' OR (art = 'rr' AND rr LIKE 'Pat.%' AND rr LIKE '%Praxis:%')) AND pat_id = " & Pat_id & " ORDER BY zp DESC"
   zmax(i) = 3
   weite(i) = "7em"
   RowSp(i) = 2
