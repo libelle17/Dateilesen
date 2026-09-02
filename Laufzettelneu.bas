@@ -760,7 +760,8 @@ End Function ' mplan
 ' frühere Vertreter einer Medikamentenklasse (SGLT-2-Hemmer, Inkretinanaloga, Insulin, Statine) aus
 ' älteren Medikamentenplänen bzw. Rezepten, falls aktuell keiner mehr im Medikamentenplan steht
 Function FruehereMedHTML$(pid&, bedingung$, ueberschrift$)
- Dim r As New ADODB.Recordset, gesehen$, zeilen$
+ Dim r As New ADODB.Recordset, zeilen$, bedingung2$
+ bedingung2 = REPLACE$(bedingung, "ma.", "ma2.")
  myFrag r, "SELECT ma.Medikament Name, MIN(mp.zeitpunkt) von, MAX(mp.zeitpunkt) bis FROM medplan mp " & _
    "JOIN medarten ma ON ma.Medikament = mp.MedAnfang " & _
    "WHERE mp.pat_id = " & pid & " AND " & bedingung & " " & _
@@ -768,14 +769,18 @@ Function FruehereMedHTML$(pid&, bedingung$, ueberschrift$)
    "GROUP BY ma.Medikament ORDER BY bis DESC"
  Do While Not r.EOF
   zeilen = zeilen & r!Name & "&nbsp;&nbsp;" & Format(r!von, "d.m.yy") & "-" & Format(r!bis, "d.m.yy") & "<br>" & vbCrLf
-  gesehen = gesehen & "'" & REPLACE$(r!Name, "'", "''") & "',"
   r.MoveNext
  Loop
  Set r = Nothing
- If Len(gesehen) = 0 Then gesehen = "''" Else gesehen = left$(gesehen, Len(gesehen) - 1)
+' Rezepte nur zeigen, wenn ihr Datum nicht ohnehin schon in einen Zeitraum fällt,
+' in dem der Medikamentenplan bereits ein Präparat derselben Klasse auswies
+' (unabhängig vom genauen Namen, da Rezepttext und medarten-Kurzname abweichen können)
  myFrag r, "SELECT ma.Medikament Name, MAX(rz.zeitpunkt) zp FROM rezepteintraege rz " & _
    "JOIN medarten ma ON ma.Medikament = LEFT(rz.Medikament, INSTR(rz.Medikament,' ')-1) " & _
-   "WHERE rz.pat_id = " & pid & " AND " & bedingung & " AND ma.Medikament NOT IN (" & gesehen & ") " & _
+   "WHERE rz.pat_id = " & pid & " AND " & bedingung & " " & _
+   "AND NOT EXISTS (SELECT 1 FROM (SELECT MIN(mp2.zeitpunkt) von, MAX(mp2.zeitpunkt) bis FROM medplan mp2 " & _
+   "JOIN medarten ma2 ON ma2.Medikament = mp2.MedAnfang WHERE mp2.pat_id = " & pid & " AND " & bedingung2 & " " & _
+   "GROUP BY ma2.Medikament) alt WHERE rz.zeitpunkt BETWEEN alt.von AND alt.bis) " & _
    "GROUP BY ma.Medikament ORDER BY zp DESC"
  Do While Not r.EOF
   zeilen = zeilen & r!Name & " Rp. " & Format(r!zp, "d.m.yy") & "<br>" & vbCrLf
