@@ -778,7 +778,7 @@ Function FruehereMedHTML$(pid&, flagfeld$, bez$)
   r.MoveNext
  Loop
  Set r = Nothing
- If Len(zeilen) <> 0 Then FruehereMedHTML = "<br>" & vbCrLf & "<span style='color:black'>Frühere " & bez & ":<br>" & vbCrLf & zeilen & "</span>"
+ If Len(zeilen) <> 0 Then FruehereMedHTML = "<span style='color:black'>Frühere " & bez & ":<br>" & vbCrLf & zeilen & "</span>"
 End Function ' FruehereMedHTML
 
 ' Medikamentenangabe zu Zahl
@@ -2276,8 +2276,10 @@ sql0 = _
      ElseIf Not medfertig Then
       AusS.Append "  <th class='med' colspan=""7"" rowspan=""" & TabZ - k + 1 & """>"
       AusS.Append IIf(left$(mdpl(UBound(mdpl)).m.Bemerkung, 2) = vbCrLf, REPLACE$(Mid$(mdpl(UBound(mdpl)).m.Bemerkung, 2), vbCrLf, "<br>"), mdpl(UBound(mdpl)).m.Bemerkung)
-      If Not obsglt Then AusS.Append FruehereMedHTML(CLng(Pat_id), "sglt2", "SGLT-2-Hemmer")
-      If Not obglp1 Then AusS.Append FruehereMedHTML(CLng(Pat_id), "glp1", "Inkretinanaloga")
+      Dim frueherMed$
+      If Not obsglt Then frueherMed = frueherMed & FruehereMedHTML(CLng(Pat_id), "sglt2", "SGLT-2-Hemmer")
+      If Not obglp1 Then frueherMed = frueherMed & FruehereMedHTML(CLng(Pat_id), "glp1", "Inkretinanaloga")
+      If Len(frueherMed) <> 0 Then AusS.Append "<br><br>" & vbCrLf & frueherMed
       AusS.AppVar Array("</th>", vbCrLf)
       medfertig = True
      End If ' k <= UBound(mdpl) Then elseif
