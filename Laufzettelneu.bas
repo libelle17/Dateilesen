@@ -759,7 +759,7 @@ End Function ' mplan
 
 ' frühere Vertreter einer Medikamentenklasse (SGLT-2-Hemmer, Inkretinanaloga, Insulin, Statine) aus
 ' älteren Medikamentenplänen bzw. Rezepten, falls aktuell keiner mehr im Medikamentenplan steht
-Function FruehereMedHTML$(pid&, bedingung$, bez$)
+Function FruehereMedHTML$(pid&, bedingung$, ueberschrift$)
  Dim r As New ADODB.Recordset, gesehen$, zeilen$
  myFrag r, "SELECT ma.Medikament Name, MIN(mp.zeitpunkt) von, MAX(mp.zeitpunkt) bis FROM medplan mp " & _
    "JOIN medarten ma ON ma.Medikament = mp.MedAnfang " & _
@@ -782,7 +782,7 @@ Function FruehereMedHTML$(pid&, bedingung$, bez$)
   r.MoveNext
  Loop
  Set r = Nothing
- If Len(zeilen) <> 0 Then FruehereMedHTML = "<span style='color:black'>Frühere " & bez & ":<br>" & vbCrLf & zeilen & "</span>"
+ If Len(zeilen) <> 0 Then FruehereMedHTML = "<span style='color:black'>" & ueberschrift & ":<br>" & vbCrLf & zeilen & "</span>"
 End Function ' FruehereMedHTML
 
 ' Medikamentenangabe zu Zahl
@@ -2283,10 +2283,10 @@ sql0 = _
       AusS.Append "  <th class='med' colspan=""7"" rowspan=""" & TabZ - k + 1 & """>"
       AusS.Append IIf(left$(mdpl(UBound(mdpl)).m.Bemerkung, 2) = vbCrLf, REPLACE$(Mid$(mdpl(UBound(mdpl)).m.Bemerkung, 2), vbCrLf, "<br>"), mdpl(UBound(mdpl)).m.Bemerkung)
       Dim frueherMed$
-      If Not obsglt Then frueherMed = frueherMed & FruehereMedHTML(CLng(Pat_id), "ma.sglt2", "SGLT-2-Hemmer")
-      If Not obglp1 Then frueherMed = frueherMed & FruehereMedHTML(CLng(Pat_id), "ma.glp1", "Inkretinanaloga")
-      If Not obinsul Then frueherMed = frueherMed & FruehereMedHTML(CLng(Pat_id), "(ma.ins OR ma.anal)", "Insulin")
-      If Not obstatin Then frueherMed = frueherMed & FruehereMedHTML(CLng(Pat_id), "ma.hmg", "Statin")
+      If Not obsglt Then frueherMed = frueherMed & FruehereMedHTML(CLng(Pat_id), "ma.sglt2", "Frühere SGLT-2-Hemmer")
+      If Not obglp1 Then frueherMed = frueherMed & FruehereMedHTML(CLng(Pat_id), "ma.glp1", "Frühere Inkretinanaloga")
+      If Not obinsul Then frueherMed = frueherMed & FruehereMedHTML(CLng(Pat_id), "(ma.ins OR ma.anal)", "Früheres Insulin")
+      If Not obstatin Then frueherMed = frueherMed & FruehereMedHTML(CLng(Pat_id), "ma.hmg", "Früheres Statin")
       If Len(frueherMed) <> 0 Then AusS.Append "<br><br>" & vbCrLf & frueherMed
       AusS.AppVar Array("</th>", vbCrLf)
       medfertig = True
