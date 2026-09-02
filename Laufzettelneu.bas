@@ -90,6 +90,8 @@ Type mptyp
  metf As Integer
  sglt As Integer
  glp1 As Integer
+ insul As Integer
+ statin As Integer
 End Type
 Dim mdpl() As mptyp
  
@@ -695,7 +697,7 @@ Public Function mplan(pid&)
             "WHERE mp.pat_id = " & pid & " AND mp.zeitpunkt=(SELECT MAX(zeitpunkt) FROM wmedplan WHERE pat_id=" & pid & ")"
 '           "WHERE mp.pat_id = " & Pid & " AND mpnr=(SELECT MAX(mpnr) FROM medplan mpi WHERE pat_id=mp.pat_id AND zeitpunkt=(SELECT MAX(zeitpunkt) FROM medplan WHERE pat_id=mp.pat_id))"
 ' 27.12.25:
-   myFrag rTh, "SELECT mp.*,ma.metf,ma.sglt2,ma.glp1 FROM lmp mp " & _
+   myFrag rTh, "SELECT mp.*,ma.metf,ma.sglt2,ma.glp1,ma.ins,ma.anal,ma.hmg FROM lmp mp " & _
             "LEFT JOIN medarten ma ON ma.medikament=mp.medanfang " & _
             "WHERE mp.pat_id = " & pid
    Do While Not rTh.EOF
@@ -731,6 +733,8 @@ Public Function mplan(pid&)
     mdpl(ru).metf = Not IsNull(rTh!metf) And rTh!metf <> 0
     mdpl(ru).sglt = Not IsNull(rTh!sglt2) And rTh!sglt2 <> 0
     mdpl(ru).glp1 = Not IsNull(rTh!glp1) And rTh!glp1 <> 0
+    mdpl(ru).insul = (Not IsNull(rTh!ins) And rTh!ins <> 0) Or (Not IsNull(rTh!anal) And rTh!anal <> 0)
+    mdpl(ru).statin = Not IsNull(rTh!hmg) And rTh!hmg <> 0
 '    (medikament LIKE '%comp%' AND NOT medikament RLIKE 'complex|dorzocomp|tilidin')
     rTh.MoveNext
     ru = ru + 1
@@ -753,13 +757,13 @@ Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "Last
 End Select
 End Function ' mplan
 
-' frühere SGLT-2-Hemmer bzw. Inkretinanaloga (GLP1) aus älteren Medikamentenplänen bzw. Rezepten,
-' falls aktuell keine im Medikamentenplan (nur aufgerufen, wenn obsglt bzw. obglp1 = False)
-Function FruehereMedHTML$(pid&, flagfeld$, bez$)
+' frühere Vertreter einer Medikamentenklasse (SGLT-2-Hemmer, Inkretinanaloga, Insulin, Statine) aus
+' älteren Medikamentenplänen bzw. Rezepten, falls aktuell keiner mehr im Medikamentenplan steht
+Function FruehereMedHTML$(pid&, bedingung$, bez$)
  Dim r As New ADODB.Recordset, gesehen$, zeilen$
  myFrag r, "SELECT ma.Medikament Name, MIN(mp.zeitpunkt) von, MAX(mp.zeitpunkt) bis FROM medplan mp " & _
    "JOIN medarten ma ON ma.Medikament = mp.MedAnfang " & _
-   "WHERE mp.pat_id = " & pid & " AND ma." & flagfeld & " " & _
+   "WHERE mp.pat_id = " & pid & " AND " & bedingung & " " & _
    "AND mp.zeitpunkt < (SELECT MAX(zeitpunkt) FROM medplan WHERE pat_id = " & pid & ") " & _
    "GROUP BY ma.Medikament ORDER BY bis DESC"
  Do While Not r.EOF
@@ -771,7 +775,7 @@ Function FruehereMedHTML$(pid&, flagfeld$, bez$)
  If Len(gesehen) = 0 Then gesehen = "''" Else gesehen = left$(gesehen, Len(gesehen) - 1)
  myFrag r, "SELECT ma.Medikament Name, MAX(rz.zeitpunkt) zp FROM rezepteintraege rz " & _
    "JOIN medarten ma ON ma.Medikament = LEFT(rz.Medikament, INSTR(rz.Medikament,' ')-1) " & _
-   "WHERE rz.pat_id = " & pid & " AND ma." & flagfeld & " AND ma.Medikament NOT IN (" & gesehen & ") " & _
+   "WHERE rz.pat_id = " & pid & " AND " & bedingung & " AND ma.Medikament NOT IN (" & gesehen & ") " & _
    "GROUP BY ma.Medikament ORDER BY zp DESC"
  Do While Not r.EOF
   zeilen = zeilen & r!Name & " Rp. " & Format(r!zp, "d.m.yy") & "<br>" & vbCrLf
@@ -1810,7 +1814,7 @@ sql0 = _
   m = 30: TI(m) = Timer: For p = 0 To m - 1: TI(m) = TI(m) - TI(p): Next p
   
   ' Therapiehinweise
-  Dim thh$(), metdos%, obsglt%, obamio%, obforx%, obmetfakt%, obglp1%
+  Dim thh$(), metdos%, obsglt%, obamio%, obforx%, obmetfakt%, obglp1%, obinsul%, obstatin%
   m = 31: TI(m) = Timer: For p = 0 To m - 1: TI(m) = TI(m) - TI(p): Next p
   Call mplan(CLng(Pat_id))
   m = 32: TI(m) = Timer: For p = 0 To m - 1: TI(m) = TI(m) - TI(p): Next p
@@ -1824,6 +1828,8 @@ sql0 = _
     End If
     If mdpl(ru).sglt Then obsglt = True
     If mdpl(ru).glp1 Then obglp1 = True
+    If mdpl(ru).insul Then obinsul = True
+    If mdpl(ru).statin Then obstatin = True
     If left$(mdpl(ru).m.MedAnfang, 5) = "CORDA" Or left$(mdpl(ru).m.MedAnfang, 6) = "AMIODA" Then obamio = True
     If left$(mdpl(ru).m.MedAnfang, 7) = "FORXIGA" Then obforx = True
    Next ru
@@ -2277,8 +2283,10 @@ sql0 = _
       AusS.Append "  <th class='med' colspan=""7"" rowspan=""" & TabZ - k + 1 & """>"
       AusS.Append IIf(left$(mdpl(UBound(mdpl)).m.Bemerkung, 2) = vbCrLf, REPLACE$(Mid$(mdpl(UBound(mdpl)).m.Bemerkung, 2), vbCrLf, "<br>"), mdpl(UBound(mdpl)).m.Bemerkung)
       Dim frueherMed$
-      If Not obsglt Then frueherMed = frueherMed & FruehereMedHTML(CLng(Pat_id), "sglt2", "SGLT-2-Hemmer")
-      If Not obglp1 Then frueherMed = frueherMed & FruehereMedHTML(CLng(Pat_id), "glp1", "Inkretinanaloga")
+      If Not obsglt Then frueherMed = frueherMed & FruehereMedHTML(CLng(Pat_id), "ma.sglt2", "SGLT-2-Hemmer")
+      If Not obglp1 Then frueherMed = frueherMed & FruehereMedHTML(CLng(Pat_id), "ma.glp1", "Inkretinanaloga")
+      If Not obinsul Then frueherMed = frueherMed & FruehereMedHTML(CLng(Pat_id), "(ma.ins OR ma.anal)", "Insulin")
+      If Not obstatin Then frueherMed = frueherMed & FruehereMedHTML(CLng(Pat_id), "ma.hmg", "Statin")
       If Len(frueherMed) <> 0 Then AusS.Append "<br><br>" & vbCrLf & frueherMed
       AusS.AppVar Array("</th>", vbCrLf)
       medfertig = True
