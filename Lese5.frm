@@ -780,6 +780,9 @@ Begin VB.MDIForm Lese
          Caption         =   "&MachTypen (Datei Typen.bas erstellen)"
          Index           =   1
       End
+      Begin VB.Menu LaborregelnPflegen 
+         Caption         =   "Laborregeln &pflegen"
+      End
       Begin VB.Menu SeltenerGebrauchtes 
          Caption         =   "S&eltener gebrauchtes"
          Begin VB.Menu MachDB 
@@ -3735,6 +3738,12 @@ Private Sub MedartenEditieren_Click()
  Dim mda As New Medarten
  mda.Show
 End Sub ' MedartenEditieren_Click()
+
+Private Sub LaborregelnPflegen_Click()
+ Dim lr As New PatListe
+ lr.PLArt = artLaborregel
+ lr.Show
+End Sub ' LaborregelnPflegen_Click()
 
 ' ...für Arzt -> Laborparameter zusammenfassen
 Private Sub LaborparameterZusammenfassen_Click()

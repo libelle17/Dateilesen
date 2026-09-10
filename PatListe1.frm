@@ -547,6 +547,7 @@ Enum ArtTyp
  artHA      ' Hausärzte (HAreal)
  artLAus     ' Labordatei auswählen
  arttmbr  ' Tabelle tmbrie pflegen
+ artLaborregel ' Laborregeln pflegen
 End Enum ' ArtTyp
 Public PLArt As ArtTyp
 Public Typisierung$ ' um die Zeilenhöhe für Motivationsgesprächskandidaten steuern zu können
@@ -972,6 +973,14 @@ Public Sub Command1_Click(Index As Integer)
      Call tmbrloe
     Case 2: ' Call tmbrumb
      Call tmbrumb
+   End Select ' Index
+  Case artLaborregel
+   Select Case Index
+    Case 0: ' Neu
+     Dim lrdNeu As New LaborregelDetail
+     lrdNeu.ID = 0
+     lrdNeu.Show vbModal
+     Call LaborregelAnzeig
    End Select ' Index
   Case artlpar
   Case artHA
@@ -3521,6 +3530,92 @@ fehler:
  End Select
 End Sub ' tmbrieAnzeig()
 
+' in Form_Load, MFG_Click, Command1_Click bei artLaborregel
+Sub LaborregelAnzeig()
+ Dim rs As New ADODB.Recordset, sql$, i%
+ sql = "SELECT COUNT(0)OVER()zahl,Laborparameter,AbkueRegex,ICDRegex,EigenerWertVgl,BMIVgl,AlterVgl,RRVgl,Versicherung,DMP,MedikamentRegex,Kommentar,IntervallMonate,GueltigAb,GueltigBis,ID" & vbCrLf & _
+ "FROM laborregel" & vbCrLf & _
+ "ORDER BY Laborparameter, GueltigAb DESC"
+ On Error GoTo fehler
+ With Me.MFG
+ .Visible = False
+ myFrag rs, sql
+ .cols = 16
+ .TextMatrix(0, 0) = "Anfordern"
+ .TextMatrix(0, 1) = "Abkü-Regex"
+ .TextMatrix(0, 2) = "ICD-Regex"
+ .TextMatrix(0, 3) = "eigener Wert"
+ .TextMatrix(0, 4) = "BMI"
+ .TextMatrix(0, 5) = "Alter"
+ .TextMatrix(0, 6) = "RR"
+ .TextMatrix(0, 7) = "Versicherung"
+ .TextMatrix(0, 8) = "DMP"
+ .TextMatrix(0, 9) = "Medikament-Regex"
+ .TextMatrix(0, 10) = "Intervall (Mon.)"
+ .TextMatrix(0, 11) = "Kommentar"
+ .TextMatrix(0, 12) = "gueltig ab"
+ .TextMatrix(0, 13) = "gueltig bis"
+ .TextMatrix(0, 14) = "aktiv"
+ .TextMatrix(0, 15) = "ID"
+ If Not rs.BOF Then
+  .Rows = rs!Zahl + 1
+  i = 1
+  Do While Not rs.EOF
+   .TextMatrix(i, 0) = nz(rs!Laborparameter, "")
+   .TextMatrix(i, 1) = nz(rs!AbkueRegex, "")
+   .TextMatrix(i, 2) = nz(rs!ICDRegex, "")
+   .TextMatrix(i, 3) = nz(rs!EigenerWertVgl, "")
+   .TextMatrix(i, 4) = nz(rs!BMIVgl, "")
+   .TextMatrix(i, 5) = nz(rs!AlterVgl, "")
+   .TextMatrix(i, 6) = nz(rs!RRVgl, "")
+   .TextMatrix(i, 7) = nz(rs!Versicherung, "")
+   .TextMatrix(i, 8) = nz(rs!DMP, "")
+   .TextMatrix(i, 9) = nz(rs!MedikamentRegex, "")
+   .TextMatrix(i, 10) = nz(rs!IntervallMonate, "")
+   .TextMatrix(i, 11) = nz(rs!Kommentar, "")
+   .TextMatrix(i, 12) = rs!GueltigAb
+   .TextMatrix(i, 13) = nz(rs!GueltigBis, "")
+   .TextMatrix(i, 14) = IIf(IsNull(rs!GueltigBis) Or rs!GueltigBis >= Now(), "ja", "nein")
+   .TextMatrix(i, 15) = rs!ID
+   i = i + 1
+   rs.MoveNext
+  Loop
+ Else
+  .Rows = 2
+ End If ' Not rs.BOF Then
+ Call SizeColumns(MFG, Me, True, 16000)
+ .ColWidth(15) = 0
+ .Visible = True
+ End With
+ Exit Sub
+fehler:
+ Dim AnwPfad$
+#If VBA6 Then
+ AnwPfad = CurrentDb.name
+#Else
+ AnwPfad = App.path
+#End If
+ Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + CStr(nz(Err.Source, "")) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in LaborregelAnzeig/" + AnwPfad)
+  Case vbAbort: Call MsgBox("Höre auf"): ProgEnde
+  Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
+  Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
+ End Select
+End Sub ' LaborregelAnzeig()
+
+' in MFG_Click und Form_KeyDown (Enter) bei artLaborregel
+Sub LaborregelBearbeiten(zeile&)
+ If zeile >= Me.MFG.FixedRows Then
+  Dim lrID&
+  lrID = Val(Me.MFG.TextMatrix(zeile, 15))
+  If lrID <> 0 Then
+   Dim lrd As New LaborregelDetail
+   lrd.ID = lrID
+   lrd.Show vbModal
+   Call LaborregelAnzeig
+  End If
+ End If
+End Sub ' LaborregelBearbeiten
+
 ' in PatListe.Form_Load mit artLAus
 Sub LaborTagAnzeig()
  Dim rs As New ADODB.Recordset, sql$, i%
@@ -4388,6 +4483,14 @@ Private Sub Form_Load()
    Me.Label1.Visible = False
    Call tmbrieAnzeig
    Screen.MousePointer = vbNormal
+  Case artLaborregel
+   Me.Caption = "Laborregeln pflegen"
+   Me.Command1(0).Caption = "&Neu"
+   invis 1
+   Me.Label1.Visible = False
+   Me.Command2.Visible = False
+   Call LaborregelAnzeig
+   Call SizeColumns(MFG, Me, True, 5000)
   Case Else ' artPat, artDiag
    On Error GoTo fehler
    erg = Dir(hVerz & DMP_Import)
@@ -5136,6 +5239,8 @@ Public Sub MFG_Click()
     togglemark
     .Row = altRow
    End If ' rowIdx>.fixedrows
+  Case artLaborregel
+   Call LaborregelBearbeiten(.MouseRow)
   Case artDMP
 '   Stop
    Select Case ccol(MFGTyp)
@@ -5445,6 +5550,8 @@ Private Sub Form_KeyDown(KeyC%, Shift%)
     Call Me.MFG_Click
    ElseIf Me.PLArt = artLAus Then
     Call Me.auswaehl(Me.MFG.Row)
+   ElseIf Me.PLArt = artLaborregel Then
+    Call Me.LaborregelBearbeiten(Me.MFG.Row)
    End If
   ElseIf KeyC = 70 And ((Shift And vbCtrlMask) > 0) Then ' And me.name = "PatListe" Then
    Call Me.Command1_Click(3) ' Suchen

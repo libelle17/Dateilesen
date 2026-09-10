@@ -2684,12 +2684,11 @@ keinuzu:
 ' TH:Blutdruck
   Const frist% = 215 ' 7 Monate, damit bei den halbjährlichen Patienten nicht gleich jedesmal eine Messlücke gemeldet wird
   Dim lRRÄnd As Date, lRRs%, lRRd%, lRRz%, RRMedAktZ%, RRtxt$
-  myFrag rsMB, "SELECT SUM(rrsyst*rrzahl)/SUM(rrzahl) Rs, SUM(rrdiast*rrzahl)/SUM(rrzahl) Rd, SUM(rrzahl) Rz FROM rr WHERE pat_id=" & Pat_id & " AND zeitpunkt> SUBDATE(NOW()," & frist & ")"
-' BOF kann hier nicht auftreten
-  If Not IsNull(rsMB!rs) Then lRRs = rsMB!rs
-  If Not IsNull(rsMB!rD) Then lRRd = rsMB!rD
-  If Not IsNull(rsMB!rz) Then lRRz = rsMB!rz
-  Set rsMB = Nothing
+  Dim rrDurchschn As RRAvg
+  rrDurchschn = RRDurchschnitt(CLng(Pat_id), frist)
+  lRRs = rrDurchschn.Syst
+  lRRd = rrDurchschn.Diast
+  lRRz = rrDurchschn.Zahl
 ' DKG/ESC/DHL/ESH-Leitlinien 2018, wenn wir diesen Wert als Praxis-Blutdruck annehmen
   If lRRz = 0 Then
    RRtxt = "Keine RR-Messung in den letzten " & frist & " Tagen gespeichert. Bitte messen und eintragen."
