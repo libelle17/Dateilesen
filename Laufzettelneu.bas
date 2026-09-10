@@ -733,7 +733,7 @@ Public Function mplan(pid&)
     mdpl(ru).metf = Not IsNull(rTh!metf) And rTh!metf <> 0
     mdpl(ru).sglt = Not IsNull(rTh!sglt2) And rTh!sglt2 <> 0
     mdpl(ru).glp1 = Not IsNull(rTh!glp1) And rTh!glp1 <> 0
-    mdpl(ru).insul = (Not IsNull(rTh!ins) And rTh!ins <> 0) Or (Not IsNull(rTh!anal) And rTh!anal <> 0)
+    mdpl(ru).insul = (Not IsNull(rTh!InS) And rTh!InS <> 0) Or (Not IsNull(rTh!anal) And rTh!anal <> 0)
     mdpl(ru).statin = Not IsNull(rTh!hmg) And rTh!hmg <> 0
 '    (medikament LIKE '%comp%' AND NOT medikament RLIKE 'complex|dorzocomp|tilidin')
     rTh.MoveNext
@@ -760,7 +760,7 @@ End Function ' mplan
 ' frühere Vertreter einer Medikamentenklasse (SGLT-2-Hemmer, Inkretinanaloga, Insulin, Statine) aus
 ' älteren Medikamentenplänen bzw. Rezepten, falls aktuell keiner mehr im Medikamentenplan steht
 Function FruehereMedHTML$(pid&, bedingung$, ueberschrift$)
- Dim r As New ADODB.Recordset, zeilen$, bedingung2$
+ Dim r As New ADODB.Recordset, Zeilen$, bedingung2$
  bedingung2 = REPLACE$(bedingung, "ma.", "ma2.")
  myFrag r, "SELECT ma.Medikament Name, MIN(mp.zeitpunkt) von, MAX(mp.zeitpunkt) bis FROM medplan mp " & _
    "JOIN medarten ma ON ma.Medikament = mp.MedAnfang " & _
@@ -768,7 +768,7 @@ Function FruehereMedHTML$(pid&, bedingung$, ueberschrift$)
    "AND mp.zeitpunkt < (SELECT MAX(zeitpunkt) FROM medplan WHERE pat_id = " & pid & ") " & _
    "GROUP BY ma.Medikament ORDER BY bis DESC"
  Do While Not r.EOF
-  zeilen = zeilen & r!Name & "&nbsp;&nbsp;" & Format(r!von, "d.m.yy") & "-" & Format(r!bis, "d.m.yy") & "<br>" & vbCrLf
+  Zeilen = Zeilen & r!name & "&nbsp;&nbsp;" & Format(r!VoN, "d.m.yy") & "-" & Format(r!Bis, "d.m.yy") & "<br>" & vbCrLf
   r.MoveNext
  Loop
  Set r = Nothing
@@ -783,12 +783,102 @@ Function FruehereMedHTML$(pid&, bedingung$, ueberschrift$)
    "GROUP BY ma2.Medikament) alt WHERE rz.zeitpunkt BETWEEN alt.von AND alt.bis) " & _
    "GROUP BY ma.Medikament ORDER BY zp DESC"
  Do While Not r.EOF
-  zeilen = zeilen & r!Name & " Rp. " & Format(r!zp, "d.m.yy") & "<br>" & vbCrLf
+  Zeilen = Zeilen & r!name & " Rp. " & Format(r!Zp, "d.m.yy") & "<br>" & vbCrLf
   r.MoveNext
  Loop
  Set r = Nothing
- If Len(zeilen) <> 0 Then FruehereMedHTML = "<span style='color:black'>" & ueberschrift & ":<br>" & vbCrLf & zeilen & "</span>"
+ If Len(Zeilen) <> 0 Then FruehereMedHTML = "<span style='color:black'>" & ueberschrift & ":<br>" & vbCrLf & Zeilen & "</span>"
 End Function ' FruehereMedHTML
+
+' JS-String escapen (fuer Einbettung von Datenbanktext in JS-Stringliterale)
+Function JSStr$(s$)
+ Dim t$
+ t = REPLACE$(s, "\", "\\")
+ t = REPLACE$(t, Chr$(34), "\" & Chr$(34))
+ t = REPLACE$(t, vbCrLf, "\n")
+ t = REPLACE$(t, vbCr, "\n")
+ t = REPLACE$(t, vbLf, "\n")
+ JSStr = t
+End Function ' JSStr$
+
+' chronologische Liste aller alten Medikationsplaene eines Patienten als JS-Array-Literal
+' [{""zp"":""<Zeitpunkt formatiert>"",""h"":""<HTML-Tabelle mit dem Planinhalt>""}, ...], neuester zuerst
+' fuer die Knoepfe "Letzte"/"Medikation" im Patientenlaufzettel (testweise: Fenstererweiterung bzw. echtes Unterfenster)
+Function MedHistorieJS$(pid&)
+ Dim rZP As New ADODB.Recordset, rMed As New ADODB.Recordset, erg$, oberst%, q$
+ q = Chr$(34)
+ myFrag rZP, "SELECT DISTINCT Zeitpunkt, MPNr FROM medplan WHERE Pat_id = " & pid & " AND Zeitpunkt IS NOT NULL AND MPNr IS NOT NULL ORDER BY Zeitpunkt DESC, MPNr DESC"
+ erg = "["
+ oberst = True
+ Do While Not rZP.EOF
+  If Not oberst Then erg = erg & ","
+  oberst = False
+  Dim Zp As Date, Mpnr&, planHtml$, Bem$
+  Zp = rZP!Zeitpunkt
+  Mpnr = rZP!MPNr
+  Bem = ""
+  planHtml = "<table border='1'><tr><th>Medikament</th><th>fr</th><th>mi</th><th>nm</th><th>ab</th><th>zn</th><th></th></tr>"
+  myFrag rMed, "SELECT * FROM medplan WHERE Pat_id = " & pid & " AND Zeitpunkt = '" & Format(Zp, "yyyy-mm-dd hh:mm:ss") & "' AND MPNr = " & Mpnr & " ORDER BY AbsPos"
+  Do While Not rMed.EOF
+   planHtml = planHtml & "<tr><td>" & nz(rMed!Medikament, "") & "</td><td>" & nz(rMed!mo, "") & "</td><td>" & nz(rMed!mi, "") & "</td><td>" & nz(rMed!nm, "") & "</td><td>" & nz(rMed!ab, "") & "</td><td>" & nz(rMed!Zn, "") & "</td><td>" & IIf(nz(rMed!bBed, 0) <> 0, "b.Bed.", "") & "</td></tr>"
+   If Not IsNull(rMed!Bemerkung) Then If LenB(nz(rMed!Bemerkung, "")) <> 0 Then Bem = rMed!Bemerkung
+   rMed.MoveNext
+  Loop
+  planHtml = planHtml & "</table>"
+  If LenB(Bem) <> 0 Then planHtml = planHtml & "<p>" & REPLACE$(Bem, vbCrLf, "<br>") & "</p>"
+  erg = erg & "{" & q & "zp" & q & ":" & q & JSStr(Format(Zp, "dd.mm.yyyy hh:mm")) & q & "," & q & "h" & q & ":" & q & JSStr(planHtml) & q & "}"
+  rZP.MoveNext
+ Loop
+ Set rZP = Nothing: Set rMed = Nothing
+ erg = erg & "]"
+ MedHistorieJS = erg
+End Function ' MedHistorieJS$
+
+' JS-Funktionen fuer die Anzeige alter Medikationsplaene: "Letzte" = Fenstererweiterung (Overlay im selben Fenster),
+' "Medikation" = echtes Unterfenster (window.open) - testweise beide Varianten, um sie zu vergleichen
+Function pzButtonsJS$()
+
+ pzButtonsJS = _
+  "function pzMachBox(){" & _
+  "var ov=document.createElement('div');" & _
+  "ov.style.cssText='position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.5);z-index:1000;display:flex;align-items:center;justify-content:center;';" & _
+  "var box=document.createElement('div');" & _
+  "box.style.cssText='background:#fff;padding:1em;max-width:90%;max-height:90%;overflow:auto;border:2px solid #333;';" & _
+  "ov.appendChild(box);document.body.appendChild(ov);" & _
+  "var schliess=document.createElement('button');schliess.type='button';schliess.textContent='Schließen';" & _
+  "schliess.onclick=function(){document.body.removeChild(ov);};"
+ pzButtonsJS = pzButtonsJS & _
+  "return {box:box,schliess:schliess};}" & _
+  "function pzZeigeListe(box,schliess,hist,aufPlanFn){" & _
+  "box.innerHTML='';" & _
+  "var h3=document.createElement('h3');h3.textContent='Frühere Medikationspläne';box.appendChild(h3);" & _
+  "for(var i=0;i<hist.length;i++){(function(i){" & _
+  "var b=document.createElement('button');b.type='button';b.textContent=hist[i].zp;b.style.display='block';b.style.margin='2px 0';" & _
+  "b.onclick=function(){aufPlanFn(i);};box.appendChild(b);})(i);}" & _
+  "box.appendChild(document.createElement('br'));box.appendChild(schliess);}"
+ pzButtonsJS = pzButtonsJS & _
+  "function pzOverlayOeffnen(hist){" & _
+  "var bx=pzMachBox();" & _
+  "function zeigListe(){pzZeigeListe(bx.box,bx.schliess,hist,zeigPlan);}" & _
+  "function zeigPlan(i){bx.box.innerHTML='';" & _
+  "var zurueck=document.createElement('button');zurueck.type='button';zurueck.textContent='« Zurück';zurueck.onclick=zeigListe;" & _
+  "bx.box.appendChild(zurueck);bx.box.appendChild(bx.schliess);" & _
+  "var h3=document.createElement('h3');h3.textContent=hist[i].zp;bx.box.appendChild(h3);" & _
+  "var inh=document.createElement('div');inh.innerHTML=hist[i].h;bx.box.appendChild(inh);}"
+ pzButtonsJS = pzButtonsJS & _
+  "zeigListe();}" & _
+  "function pzFensterOeffnen(hist){" & _
+  "var w=window.open('','_blank','width=420,height=600,scrollbars=yes,resizable=yes');" & _
+  "w.document.write('<html><head><meta charset=utf-8><title>Frühere Medikationspläne</title></head><body></body></html>');" & _
+  "w.document.close();var b=w.document.body;" & _
+  "for(var i=0;i<hist.length;i++){(function(i){" & _
+  "var bt=w.document.createElement('button');bt.type='button';bt.textContent=hist[i].zp;bt.style.display='block';bt.style.margin='2px 0';" & _
+  "bt.onclick=function(){"
+ pzButtonsJS = pzButtonsJS & _
+  "var w2=w.open('','_blank','width=500,height=600,scrollbars=yes,resizable=yes');" & _
+  "w2.document.write('<html><head><meta charset=utf-8><title>'+hist[i].zp+'</title></head><body>'+hist[i].h+'</body></html>');" & _
+  "w2.document.close();};b.appendChild(bt);})(i);}}"
+End Function ' pzButtonsJS$
 
 ' Medikamentenangabe zu Zahl
 Function medzz!(ByVal ST$)
@@ -1067,6 +1157,7 @@ Sub tukopf(ByVal AusS As CString)
   AusS.AppVar (Array("      .lno { width:2.5em;border-left-width:1.5mm;padding:0cm;color:blue; }", vbCrLf))
   AusS.AppVar (Array("      .lpn { width:2.5em;border-left-width:1.5mm;padding:0cm;font-weight:bold;background-color:yellow;font-size:2.8mm; }", vbCrLf))
   AusS.AppVar (Array("      .lpo { width:2.5em;border-left-width:1.5mm;padding:0cm;font-weight:bold;color:blue;background-color:yellow;font-size:2.8mm; }", vbCrLf))
+  AusS.AppVar (Array("      .ausw { color:blue; }", vbCrLf))
   AusS.AppVar (Array("      body { margin:0 }", vbCrLf))
   AusS.AppVar (Array("      h1 { margin-bottom:0.1cm;font-size:4.5mm;font:normal }", vbCrLf))
   AusS.AppVar (Array("      h2 { margin-bottom:0.1cm;font-size:4.5mm;font:normal }", vbCrLf))
@@ -1819,7 +1910,7 @@ sql0 = _
   m = 30: TI(m) = Timer: For p = 0 To m - 1: TI(m) = TI(m) - TI(p): Next p
   
   ' Therapiehinweise
-  Dim thh$(), metdos%, obsglt%, obamio%, obforx%, obmetfakt%, obglp1%, obinsul%, obstatin%
+  Dim thh$(), metdos%, obsglt%, obamio%, obforx%, obmetfakt%, obGlp1%, obinsul%, obstatin%, obSteglujan%
   m = 31: TI(m) = Timer: For p = 0 To m - 1: TI(m) = TI(m) - TI(p): Next p
   Call mplan(CLng(Pat_id))
   m = 32: TI(m) = Timer: For p = 0 To m - 1: TI(m) = TI(m) - TI(p): Next p
@@ -1832,11 +1923,12 @@ sql0 = _
      obmetfakt = True
     End If
     If mdpl(ru).sglt Then obsglt = True
-    If mdpl(ru).glp1 Then obglp1 = True
+    If mdpl(ru).glp1 Then obGlp1 = True
     If mdpl(ru).insul Then obinsul = True
     If mdpl(ru).statin Then obstatin = True
     If left$(mdpl(ru).m.MedAnfang, 5) = "CORDA" Or left$(mdpl(ru).m.MedAnfang, 6) = "AMIODA" Then obamio = True
     If left$(mdpl(ru).m.MedAnfang, 7) = "FORXIGA" Then obforx = True
+    If InStrB(UCase$(mdpl(ru).m.Medikament), "STEGLUJAN") <> 0 Then obSteglujan = True
    Next ru
   End If
 '  rTh As Adodb.Recordset
@@ -1948,6 +2040,13 @@ sql0 = _
     If SafeArrayGetDim(thh) = 0 Then ReDim thh(0) Else ReDim Preserve thh(UBound(thh) + 1)
     thh(UBound(thh)) = rdpp4!Anw ' .fields(1)
    End If ' Not rdpp4.BOF THEN
+' TH:Steglujan
+   Set rdpp4 = Nothing
+   myFrag rdpp4, "SELECT pat_id FROM rezepteintraege rz WHERE medikament LIKE '%Steglujan%' AND rezklkurz<>'prp' AND zeitpunkt> SUBDATE(NOW(),180) AND pat_id=" & Pat_id & " LIMIT 1"
+   If obSteglujan Or Not rdpp4.BOF Then
+    AusS.AppVar (Array("<div class='cave'>Steglujan im aktuellen Medikamentenplan oder in Rezepten der letzten 6 Monate!</div>", vbCrLf))
+   End If ' obSteglujan Or Not rdpp4.BOF THEN
+   Set rdpp4 = Nothing
    Set rdpp4 = Nothing
   End If ' IF rFlSchGr <> 90 THEN ' nicht bei Privaten
 
@@ -2151,7 +2250,8 @@ sql0 = _
      If (Schulzufuss And ((nurpath(i) = 0 Or nurpath(i) = 3 Or pathol(i, 0)) And rsz(i) <> 0 And Titel(i) <> "")) Then
        If j <= rsz(i) * IIf(RowSp(i) = 0, 1, RowSp(i)) Then
         obpath(i) = 0
-        Dim Zp As Date, zpu As Date
+        Dim Zp As Date, zpu As Date, obWertAusw%
+        obWertAusw = 0
         If sql(i) = vNS Then
          gefunden = 0
          Do While True 'sollte am Ende fertig werden; gefunden hier nicht nötig da rsz(i)=0 schon ausgeschlossen
@@ -2165,6 +2265,7 @@ sql0 = _
          If gefunden Then
           zpu = lab(aktlz(i)).Zp
           Wert = lab(aktlz(i)).WertSg
+          obWertAusw = lab(aktlz(i)).Auswaerts
          End If
         Else ' sql(i) = vNS Then
          If rs(i).EOF Then
@@ -2198,7 +2299,7 @@ sql0 = _
          On Error Resume Next
          If gefunden Then rsiwert = Wert Else rsiwert = 0
          On Error GoTo fehler
-         AusS.AppVar (Array("    <td", IIf(RowSp(i) <> 0, " rowspan='" & MINvb(RowSp(i), rszmax - j + 1) & "' ", ""), IIf(pathol(i, j), " class='path'", ""), IIf(LenB(weite(i)) <> 0, " style='width:" & weite(i) & "'", ""), ">", IIf(RowSp(i) <> 0, vNS, "<p>"), rsiwert, IIf(RowSp(i) <> 0, vNS, "</p>"), "</td>", vbCrLf))
+         AusS.AppVar (Array("    <td", IIf(RowSp(i) <> 0, " rowspan='" & MINvb(RowSp(i), rszmax - j + 1) & "' ", ""), IIf(pathol(i, j) Or obWertAusw, " class='" & Trim$(IIf(pathol(i, j), "path ", "") & IIf(obWertAusw, "ausw ", "")) & "'", ""), IIf(LenB(weite(i)) <> 0, " style='width:" & weite(i) & "'", ""), ">", IIf(RowSp(i) <> 0, vNS, "<p>"), rsiwert, IIf(RowSp(i) <> 0, vNS, "</p>"), "</td>", vbCrLf))
          If RowSp(i) <> 0 Then
           Pause(i) = RowSp(i) - 1
          End If
@@ -2262,7 +2363,8 @@ sql0 = _
   If NFS <> -1 Then TabZ = MAXvb(TabZ, 6) Else If FIB4 <> -1 Then TabZ = MAXvb(TabZ, 5) Else If FLI <> -1 Then TabZ = MAXvb(TabZ, 4)
   
 ' Diagnosen, Medikation und UKPDS Risk
-  AusS.AppVar Array("<br><table border=""1""><thead align=""left""><tr><th>Diagnosen:</th><th>ICD</th><th bgcolor=""#CCCCCC"">_</th><th>Letzte Medikation:</th><th>fr</th><th>mi</th><th>nm</th><th>ab</th><th>zn</th><th>bBed</th><th bgcolor=""#CCCCCC"">_</th><th" & IIf(obdm, " bgcolor=""#FFFF00""", "") & ">", IIf(obdm, "<span title='" & UKtip & "'</span>UKPDS RE: </th><th>KHE</th><th>fatale KHE</th><th>Apoplex</th><th>fataler Apoplex</th><th bgcolor=""#CCCCCC"">_</th>", IIf(FLI <> -1 Or FIB4 <> -1 Or NFS <> -1, "</th><th></th><th></th><th></th><th></th><th></th>", "")), "<th>Termine</th>", vbCrLf)
+  If obmed Then AusS.AppVar Array("<script>var medHist=", MedHistorieJS(CLng(Pat_id)), ";", pzButtonsJS(), "</script>", vbCrLf)
+  AusS.AppVar Array("<br><table border=""1""><thead align=""left""><tr><th>Diagnosen:</th><th>ICD</th><th bgcolor=""#CCCCCC"">_</th><th>" & IIf(obmed, "<button type='button' onclick='pzOverlayOeffnen(medHist)'>Letzte</button> <button type='button' onclick='pzFensterOeffnen(medHist)'>Medikation</button>:", "Letzte Medikation:") & "</th><th>fr</th><th>mi</th><th>nm</th><th>ab</th><th>zn</th><th>bBed</th><th bgcolor=""#CCCCCC"">_</th><th" & IIf(obdm, " bgcolor=""#FFFF00""", "") & ">", IIf(obdm, "<span title='" & UKtip & "'</span>UKPDS RE: </th><th>KHE</th><th>fatale KHE</th><th>Apoplex</th><th>fataler Apoplex</th><th bgcolor=""#CCCCCC"">_</th>", IIf(FLI <> -1 Or FIB4 <> -1 Or NFS <> -1, "</th><th></th><th></th><th></th><th></th><th></th>", "")), "<th>Termine</th>", vbCrLf)
   Dim medfertig%
   If obDiagnosen Or obmed Then
    For k = 0 To TabZ
@@ -2289,7 +2391,7 @@ sql0 = _
       AusS.Append IIf(left$(mdpl(UBound(mdpl)).m.Bemerkung, 2) = vbCrLf, REPLACE$(Mid$(mdpl(UBound(mdpl)).m.Bemerkung, 2), vbCrLf, "<br>"), mdpl(UBound(mdpl)).m.Bemerkung)
       Dim frueherMed$
       If Not obsglt Then frueherMed = frueherMed & FruehereMedHTML(CLng(Pat_id), "ma.sglt2", "Frühere SGLT-2-Hemmer")
-      If Not obglp1 Then frueherMed = frueherMed & FruehereMedHTML(CLng(Pat_id), "ma.glp1", "Frühere Inkretinanaloga")
+      If Not obGlp1 Then frueherMed = frueherMed & FruehereMedHTML(CLng(Pat_id), "ma.glp1", "Frühere Inkretinanaloga")
       If Not obinsul Then frueherMed = frueherMed & FruehereMedHTML(CLng(Pat_id), "(ma.ins OR ma.anal)", "Früheres Insulin")
       If Not obstatin Then frueherMed = frueherMed & FruehereMedHTML(CLng(Pat_id), "ma.hmg", "Früheres Statin")
       If Len(frueherMed) <> 0 Then AusS.Append "<br><br>" & vbCrLf & frueherMed

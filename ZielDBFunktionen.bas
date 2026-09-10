@@ -667,6 +667,7 @@ Public alt_la As LabArt, altPID&, aktlwx&, lwZahl&
 Public Type labtyp
  Abkü As String
  Zp As Date
+ Auswaerts As Boolean ' Kommentar enthaelt "manuell" -> auswaerts bestimmt (wie in LaborInsPLZ/geslabneu)
  WertSg As String ' Wert-String, mit "," als Dezimaltrennzeichen;
  Einheit As String
 End Type
@@ -691,6 +692,7 @@ Public Function LetztLab(pid&, Abkü$, Einh$, Zp As Date) As labtyp
     lab(i).WertSg = REPLACE$(rsl!Wert, ".", ",")
     lab(i).Einheit = rsl!Einheit
     lab(i).Zp = rsl!Zeitpunkt
+    lab(i).Auswaerts = (InStrB(nz(rsl!Kom, ""), "manuell") <> 0)
     i = i + 1
     rsl.MoveNext
    Loop
@@ -750,6 +752,7 @@ Public Function LabPat(LA As LabArt, pid&, Optional naechster%) As labtyp
     lab(i).WertSg = REPLACE$(rsl!Wert, ".", ",")
     lab(i).Einheit = rsl!Einheit
     lab(i).Zp = rsl!Zeitpunkt
+    lab(i).Auswaerts = (InStrB(nz(rsl!Kom, ""), "manuell") <> 0)
     i = i + 1
     rsl.MoveNext
    Loop
