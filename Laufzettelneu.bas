@@ -790,6 +790,43 @@ Function FruehereMedHTML$(pid&, bedingung$, ueberschrift$)
  If Len(Zeilen) <> 0 Then FruehereMedHTML = "<span style='color:black'>" & ueberschrift & ":<br>" & vbCrLf & Zeilen & "</span>"
 End Function ' FruehereMedHTML
 
+' Manuelle Pflege von quelle.pat_email_adr direkt aus dem Patientenlaufzettel heraus
+' (nur PHP-Variante, da eine lebende DB-Verbindung noetig ist). Aendert/loescht/ergaenzt
+' ueber emailspei.php, das auch das Audit-Log in pat_email_adr_audit fuehrt.
+Sub EmailAdressenPHP(AusS As CString, ByVal PatId$)
+AusS.Append "<?php" & vbCrLf
+AusS.Append " $emconn = new mysqli(""localhost"", $user, $pwt, ""quelle"");" & vbCrLf
+AusS.Append " if (!$emconn->connect_error) {" & vbCrLf
+AusS.Append "  $emconn->set_charset(""utf8mb4"");" & vbCrLf
+AusS.Append "  $emres = $emconn->query(""SELECT email,rolle,bezug FROM pat_email_adr WHERE pat_id=" & PatId & " ORDER BY (rolle='h') DESC,(rolle='n') DESC,email"");" & vbCrLf
+AusS.Append "  echo '<div class=""unauff""><b>Email-Adressen:</b><br>';" & vbCrLf
+AusS.Append "  while ($emrow = $emres->fetch_assoc()) {" & vbCrLf
+AusS.Append "   $emrolletxt = ($emrow['rolle']=='h') ? 'Haupt' : (($emrow['rolle']=='n') ? 'weitere' : 'alt');" & vbCrLf
+AusS.Append "   echo '<form method=""post"" action=""../php/emailspei.php"" style=""display:inline"">';" & vbCrLf
+AusS.Append "   echo '<input type=""hidden"" name=""alt_email"" value=""'.htmlspecialchars($emrow['email']).'"">';" & vbCrLf
+AusS.Append "   echo '<input type=""hidden"" name=""alt_rolle"" value=""'.htmlspecialchars($emrow['rolle']).'"">';" & vbCrLf
+AusS.Append "   echo htmlspecialchars($emrow['email']).' ('.$emrolletxt.($emrow['bezug']!=''?', '.htmlspecialchars($emrow['bezug']):'').') ';" & vbCrLf
+AusS.Append "   echo '<input type=""email"" name=""email"" size=25 placeholder=""neue Adresse"" style=""color:blue"">';" & vbCrLf
+AusS.Append "   echo '<input type=""text"" name=""bezug"" size=12 placeholder=""Bezug"" style=""color:blue"">';" & vbCrLf
+AusS.Append "   echo '<button type=""submit"" name=""aktion"" value=""aendern"">Ändern</button>';" & vbCrLf
+AusS.Append "   echo '<button type=""submit"" name=""aktion"" value=""loeschen"">Löschen</button>';" & vbCrLf
+AusS.Append "   echo '</form><br>';" & vbCrLf
+AusS.Append "  }" & vbCrLf
+AusS.Append "  echo '<form method=""post"" action=""../php/emailspei.php"" style=""display:inline"">';" & vbCrLf
+AusS.Append "  echo '<input type=""hidden"" name=""aktion"" value=""hinzufuegen"">';" & vbCrLf
+AusS.Append "  echo '<input type=""email"" name=""email"" size=25 placeholder=""neue Adresse"" style=""color:blue"">';" & vbCrLf
+AusS.Append "  echo '<input type=""text"" name=""bezug"" size=12 placeholder=""Bezug (falls nicht der Patient selbst)"" style=""color:blue"">';" & vbCrLf
+AusS.Append "  echo '<button type=""submit"">Neue Adresse hinzufügen</button>';" & vbCrLf
+AusS.Append "  echo '</form>';" & vbCrLf
+AusS.Append "  echo '<form method=""post"" action=""../php/emailspei.php"" style=""display:inline"">';" & vbCrLf
+AusS.Append "  echo '<input type=""hidden"" name=""aktion"" value=""rueckgaengig"">';" & vbCrLf
+AusS.Append "  echo '<button type=""submit"">Rückgängig</button>';" & vbCrLf
+AusS.Append "  echo '</form></div>';" & vbCrLf
+AusS.Append "  $emconn->close();" & vbCrLf
+AusS.Append " }" & vbCrLf
+AusS.Append "?>" & vbCrLf
+End Sub ' EmailAdressenPHP
+
 ' JS-String escapen (fuer Einbettung von Datenbanktext in JS-Stringliterale)
 Function JSStr$(s$)
  Dim t$
@@ -1747,6 +1784,7 @@ sql0 = _
 '  Call obhierdmp(rnam!Notiz, , , , obdmp)
 '  IF Not obdmp THEN
   AusS.AppVar (Array("</h1>", vbCrLf))
+  If obphp <> 0 Then Call EmailAdressenPHP(AusS, Pat_id)
   AusS.AppVar (Array("", vbCrLf))
   m = 24: TI(m) = Timer: For p = 0 To m - 1: TI(m) = TI(m) - TI(p): Next p
   
