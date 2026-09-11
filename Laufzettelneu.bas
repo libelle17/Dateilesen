@@ -794,20 +794,35 @@ End Function ' FruehereMedHTML
 ' (nur PHP-Variante, da eine lebende DB-Verbindung noetig ist). Aendert/loescht/ergaenzt
 ' ueber emailspei.php, das auch das Audit-Log in pat_email_adr_audit fuehrt.
 Sub EmailAdressenPHP(AusS As CString, ByVal PatId$)
+AusS.Append "<script>" & vbCrLf
+AusS.Append "function emailAdrToggle() {" & vbCrLf
+AusS.Append " var b=document.getElementById('emailAdrBox');" & vbCrLf
+AusS.Append " var k=document.getElementById('emailAdrBtn');" & vbCrLf
+AusS.Append " if (b.style.display=='none'||!b.style.display) {" & vbCrLf
+AusS.Append "  b.style.display='block';" & vbCrLf
+AusS.Append "  k.style.color='crimson'; k.style.backgroundColor='cornsilk';" & vbCrLf
+AusS.Append " } else {" & vbCrLf
+AusS.Append "  b.style.display='none';" & vbCrLf
+AusS.Append "  k.style.color='black'; k.style.backgroundColor='white';" & vbCrLf
+AusS.Append " }" & vbCrLf
+AusS.Append "}" & vbCrLf
+AusS.Append "document.addEventListener('keydown',function(e){if(e.altKey&&(e.key=='e'||e.key=='E'||e.code=='KeyE')){e.preventDefault();emailAdrToggle();}},true);" & vbCrLf
+AusS.Append "</script>" & vbCrLf
 AusS.Append "<?php" & vbCrLf
+AusS.Append " include '../../phppwd.php';" & vbCrLf
 AusS.Append " $emconn = new mysqli(""localhost"", $user, $pwt, ""quelle"");" & vbCrLf
 AusS.Append " if (!$emconn->connect_error) {" & vbCrLf
 AusS.Append "  $emconn->set_charset(""utf8mb4"");" & vbCrLf
 AusS.Append "  $emres = $emconn->query(""SELECT email,rolle,bezug FROM pat_email_adr WHERE pat_id=" & PatId & " ORDER BY (rolle='h') DESC,(rolle='n') DESC,email"");" & vbCrLf
-AusS.Append "  echo '<div class=""unauff""><b>Email-Adressen:</b><br>';" & vbCrLf
+AusS.Append "  echo '<div id=""emailAdrBox"" style=""display:none;border-style:groove;border-width:thin;border-color:blue;background-color:cornsilk;padding:4px;margin:2px 0;""><b>Email-Adressen:</b><br>';" & vbCrLf
 AusS.Append "  while ($emrow = $emres->fetch_assoc()) {" & vbCrLf
 AusS.Append "   $emrolletxt = ($emrow['rolle']=='h') ? 'Haupt' : (($emrow['rolle']=='n') ? 'weitere' : 'alt');" & vbCrLf
 AusS.Append "   echo '<form method=""post"" action=""../php/emailspei.php"" style=""display:inline"">';" & vbCrLf
 AusS.Append "   echo '<input type=""hidden"" name=""alt_email"" value=""'.htmlspecialchars($emrow['email']).'"">';" & vbCrLf
 AusS.Append "   echo '<input type=""hidden"" name=""alt_rolle"" value=""'.htmlspecialchars($emrow['rolle']).'"">';" & vbCrLf
-AusS.Append "   echo htmlspecialchars($emrow['email']).' ('.$emrolletxt.($emrow['bezug']!=''?', '.htmlspecialchars($emrow['bezug']):'').') ';" & vbCrLf
-AusS.Append "   echo '<input type=""email"" name=""email"" size=25 placeholder=""neue Adresse"" style=""color:blue"">';" & vbCrLf
-AusS.Append "   echo '<input type=""text"" name=""bezug"" size=12 placeholder=""Bezug"" style=""color:blue"">';" & vbCrLf
+AusS.Append "   echo '<input type=""email"" name=""email"" size=25 value=""'.htmlspecialchars($emrow['email']).'"" style=""color:blue"">';" & vbCrLf
+AusS.Append "   echo '<input type=""text"" name=""bezug"" size=12 value=""'.htmlspecialchars($emrow['bezug']).'"" placeholder=""Bezug"" style=""color:blue"">';" & vbCrLf
+AusS.Append "   echo ' ('.$emrolletxt.') ';" & vbCrLf
 AusS.Append "   echo '<button type=""submit"" name=""aktion"" value=""aendern"">Ändern</button>';" & vbCrLf
 AusS.Append "   echo '<button type=""submit"" name=""aktion"" value=""loeschen"">Löschen</button>';" & vbCrLf
 AusS.Append "   echo '</form><br>';" & vbCrLf
@@ -821,7 +836,8 @@ AusS.Append "  echo '</form>';" & vbCrLf
 AusS.Append "  echo '<form method=""post"" action=""../php/emailspei.php"" style=""display:inline"">';" & vbCrLf
 AusS.Append "  echo '<input type=""hidden"" name=""aktion"" value=""rueckgaengig"">';" & vbCrLf
 AusS.Append "  echo '<button type=""submit"">Rückgängig</button>';" & vbCrLf
-AusS.Append "  echo '</form></div>';" & vbCrLf
+AusS.Append "  echo '</form><br><br></div>';" & vbCrLf
+AusS.Append "  echo '<script>if(location.hash==""#emailoffen""){document.getElementById(""emailAdrBox"").style.display=""block"";document.getElementById(""emailAdrBtn"").style.color=""crimson"";document.getElementById(""emailAdrBtn"").style.backgroundColor=""cornsilk"";}</script>';" & vbCrLf
 AusS.Append "  $emconn->close();" & vbCrLf
 AusS.Append " }" & vbCrLf
 AusS.Append "?>" & vbCrLf
@@ -1776,7 +1792,7 @@ sql0 = _
  Loop
   AusS.AppVar (Array(" ", IIf(dmtyp = "1" Or dmtyp = "2" Or dmtyp = "g", "<span style='background-color:" & IIf(dmtyp = "1", "#ff8fc7", IIf(dmtyp = "g", "#ffffde", "#efe0ff")) & "'", ""), "<B><span title='", VName, " ", NName, ", ", rnam!strasse, ", ", rnam!plz, " ", rnam!ort, ", Tel1: ", PrivatTel, ", Tel2: ", PrivatTel_2, ", Mobil:", PrivatMobil, ", Fax: ", PrivatFax, ", Diensttel: ", DienstTel & ", Email: ", email, "'>", IIf(vorET > Now(), "<span class='schwanger'>", ""), _
   GesNamFn(rnam), "</span></B>, *", Format(rnam!GebDat, "d.m.yy"), " (", PAlter, "a,&" & IIf(rnam!geschlecht = "w", "fe", "") & "male;), <span style='color:blue'><span class='unauff'>&nbsp;&nbsp;Pat_id: </span>", Pat_id, "</span><span id = 'unauff'>,", IIf(obdm, "&nbsp;&nbsp;D.m.: ", ""), IIf(obdm, dmseit, ""), ",&nbsp;&nbsp;<span style=""font-weight:normal"">vorgestellt: </span>", Format(Vorgestellt, "d.m.yy"), ",&nbsp;&nbsp;</span><span style='font-size:smaller;font-weight:normal'>für: ", Format(Datum, "d.m.yy"), " ", Format(Uhrzeit, "hh:mm"), ",</span>&nbsp;<span class='unauff'>", IIf(haAnam = "", "", "HA(anam.): " & haAnam & ", "), IIf(notiz = "", "", notiz & ",&nbsp;&nbsp;"), IIf(obdm, "Ther.zul: ", ""), "</span>", IIf(obdm, therart, ""), "<span " & dmpfarbe & ">", DmPStr, " </span><span style='background-color:black'>", IIf(rNa(0).obk <> 0, " &#x1F7E6;", ""), IIf(rNa(0).obs <> 0, "&#x1F7E8;", ""), IIf(rNa(0).obh <> 0, "&#x1F7E9;", ""), "<button type=""button"" onclick=location.href=""oeffneverz:" & _
-  Pat_id & """>Da<u>t</u>eien</button></span></h1>", vbCrLf))
+  Pat_id & """>Da<u>t</u>eien</button> <button type=""button"" id=""emailAdrBtn"" style=""padding-left:0;border-style:groove;border-width:thin;border-color:blue;color:black;background-color:white;"" onclick=""emailAdrToggle()""><u>E</u>mail-Adr.</button></span></h1>", vbCrLf))
 ' TherapieArtEinzelnFestlegen(CLng(Pat_ID), rAn) & "</span></h1>" ' VName, " ", NName
   ' * 2.73792574745373E-03 ' 1/365,24
   AusS.AppVar (Array("</h1>", vbCrLf))
