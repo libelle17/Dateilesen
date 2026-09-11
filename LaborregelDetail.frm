@@ -14,223 +14,223 @@ Begin VB.Form LaborregelDetail
    ScaleWidth      =   9720
    ShowInTaskbar   =   0   'False
    StartUpPosition =   1  'Fenstermitte
+   Begin VB.Label lblLaborparameter 
+      Caption         =   "&Anfordern"
+      Height          =   285
+      Left            =   150
+      TabIndex        =   0
+      Top             =   150
+      Width           =   3200
+   End
    Begin VB.TextBox txtLaborparameter 
       Height          =   285
       Left            =   3480
-      TabIndex        =   0
+      TabIndex        =   1
       Top             =   150
       Width           =   5800
    End
-   Begin VB.Label lblLaborparameter 
-      Caption         =   "Anfordern"
+   Begin VB.Label lblAbkueRegex 
+      Caption         =   "Abkü-Rege&x (Wert/Intervall; leer=wie oben)"
       Height          =   285
       Left            =   150
-      TabIndex        =   1
-      Top             =   150
+      TabIndex        =   2
+      Top             =   520
       Width           =   3200
    End
    Begin VB.TextBox txtAbkueRegex 
       Height          =   285
       Left            =   3480
-      TabIndex        =   2
+      TabIndex        =   3
       Top             =   520
       Width           =   5800
    End
-   Begin VB.Label lblAbkueRegex 
-      Caption         =   "Abkü-Regex (Wert/Intervall; leer=wie oben)"
+   Begin VB.Label lblICDRegex 
+      Caption         =   "&ICD-Regex (leer = diagnoseunabhängig)"
       Height          =   285
       Left            =   150
-      TabIndex        =   3
-      Top             =   520
+      TabIndex        =   4
+      Top             =   890
       Width           =   3200
    End
    Begin VB.TextBox txtICDRegex 
       Height          =   285
       Left            =   3480
-      TabIndex        =   4
+      TabIndex        =   5
       Top             =   890
       Width           =   5800
    End
-   Begin VB.Label lblICDRegex 
-      Caption         =   "ICD-Regex (leer = diagnoseunabhängig)"
+   Begin VB.Label lblEigenerWertVgl 
+      Caption         =   "eigener letzter &Wert (z.B. >24)"
       Height          =   285
       Left            =   150
-      TabIndex        =   5
-      Top             =   890
+      TabIndex        =   6
+      Top             =   1260
       Width           =   3200
    End
    Begin VB.TextBox txtEigenerWertVgl 
       Height          =   285
       Left            =   3480
-      TabIndex        =   6
+      TabIndex        =   7
       Top             =   1260
       Width           =   5800
    End
-   Begin VB.Label lblEigenerWertVgl 
-      Caption         =   "eigener letzter Wert (z.B. >24)"
+   Begin VB.Label lblBMIVgl 
+      Caption         =   "&BMI (z.B. <18)"
       Height          =   285
       Left            =   150
-      TabIndex        =   7
-      Top             =   1260
+      TabIndex        =   8
+      Top             =   1630
       Width           =   3200
    End
    Begin VB.TextBox txtBMIVgl 
       Height          =   285
       Left            =   3480
-      TabIndex        =   8
+      TabIndex        =   9
       Top             =   1630
       Width           =   5800
    End
-   Begin VB.Label lblBMIVgl 
-      Caption         =   "BMI (z.B. <18)"
+   Begin VB.Label lblAlterVgl 
+      Caption         =   "Al&ter (z.B. >50)"
       Height          =   285
       Left            =   150
-      TabIndex        =   9
-      Top             =   1630
+      TabIndex        =   10
+      Top             =   2000
       Width           =   3200
    End
    Begin VB.TextBox txtAlterVgl 
       Height          =   285
       Left            =   3480
-      TabIndex        =   10
+      TabIndex        =   11
       Top             =   2000
       Width           =   5800
    End
-   Begin VB.Label lblAlterVgl 
-      Caption         =   "Alter (z.B. >50)"
+   Begin VB.Label lblRRVgl 
+      Caption         =   "&RR syst. Ø letzte 6 Mon. (z.B. >140)"
       Height          =   285
       Left            =   150
-      TabIndex        =   11
-      Top             =   2000
+      TabIndex        =   12
+      Top             =   2370
       Width           =   3200
    End
    Begin VB.TextBox txtRRVgl 
       Height          =   285
       Left            =   3480
-      TabIndex        =   12
+      TabIndex        =   13
       Top             =   2370
       Width           =   5800
    End
-   Begin VB.Label lblRRVgl 
-      Caption         =   "RR syst. Ø letzte 6 Mon. (z.B. >140)"
+   Begin VB.Label lblVersicherung 
+      Caption         =   "&Versicherung"
       Height          =   285
       Left            =   150
-      TabIndex        =   13
-      Top             =   2370
+      TabIndex        =   14
+      Top             =   2740
       Width           =   3200
    End
    Begin VB.ComboBox cboVersicherung 
       Height          =   315
       Left            =   3480
       Style           =   2  'Dropdown-Liste
-      TabIndex        =   14
+      TabIndex        =   15
       Top             =   2740
       Width           =   5800
    End
-   Begin VB.Label lblVersicherung 
-      Caption         =   "Versicherung"
+   Begin VB.Label lblDMP 
+      Caption         =   "&DMP"
       Height          =   285
       Left            =   150
-      TabIndex        =   15
-      Top             =   2740
+      TabIndex        =   16
+      Top             =   3110
       Width           =   3200
    End
    Begin VB.ComboBox cboDMP 
       Height          =   315
       Left            =   3480
       Style           =   2  'Dropdown-Liste
-      TabIndex        =   16
+      TabIndex        =   17
       Top             =   3110
       Width           =   5800
    End
-   Begin VB.Label lblDMP 
-      Caption         =   "DMP"
+   Begin VB.Label lblMedikamentRegex 
+      Caption         =   "&Medikament-Regex"
       Height          =   285
       Left            =   150
-      TabIndex        =   17
-      Top             =   3110
+      TabIndex        =   18
+      Top             =   3480
       Width           =   3200
    End
    Begin VB.TextBox txtMedikamentRegex 
       Height          =   285
       Left            =   3480
-      TabIndex        =   18
+      TabIndex        =   19
       Top             =   3480
       Width           =   5800
    End
-   Begin VB.Label lblMedikamentRegex 
-      Caption         =   "Medikament-Regex"
+   Begin VB.Label lblIntervallMonate 
+      Caption         =   "I&ntervall (Mon., 0=einmalig)"
       Height          =   285
       Left            =   150
-      TabIndex        =   19
-      Top             =   3480
+      TabIndex        =   20
+      Top             =   3850
       Width           =   3200
    End
    Begin VB.TextBox txtIntervallMonate 
       Height          =   285
       Left            =   3480
-      TabIndex        =   20
+      TabIndex        =   21
       Top             =   3850
       Width           =   1500
    End
-   Begin VB.Label lblIntervallMonate 
-      Caption         =   "Intervall (Mon., 0=einmalig)"
+   Begin VB.Label lblKommentar 
+      Caption         =   "&Kommentar"
       Height          =   285
       Left            =   150
-      TabIndex        =   21
-      Top             =   3850
+      TabIndex        =   22
+      Top             =   4220
       Width           =   3200
    End
    Begin VB.TextBox txtKommentar 
       Height          =   285
       Left            =   3480
-      TabIndex        =   22
-      Top             =   4220
-      Width           =   5800
-   End
-   Begin VB.Label lblKommentar 
-      Caption         =   "Kommentar"
-      Height          =   285
-      Left            =   150
       TabIndex        =   23
       Top             =   4220
-      Width           =   3200
-   End
-   Begin VB.Label lblGueltigAb 
-      BorderStyle     =   1  'Fest Einfach
-      Height          =   285
-      Left            =   3480
-      TabIndex        =   24
-      Top             =   4590
       Width           =   5800
    End
    Begin VB.Label lblGueltigAbCap 
       Caption         =   "gültig ab"
       Height          =   285
       Left            =   150
+      TabIndex        =   24
+      Top             =   4590
+      Width           =   3200
+   End
+   Begin VB.Label lblGueltigAb 
+      BorderStyle     =   1  'Fest Einfach
+      Height          =   285
+      Left            =   3480
       TabIndex        =   25
       Top             =   4590
+      Width           =   5800
+   End
+   Begin VB.Label lblGueltigBis 
+      Caption         =   "gültig bis (leer = &unbefristet)"
+      Height          =   285
+      Left            =   150
+      TabIndex        =   26
+      Top             =   4960
       Width           =   3200
    End
    Begin VB.TextBox txtGueltigBis 
       Height          =   285
       Left            =   3480
-      TabIndex        =   26
+      TabIndex        =   27
       Top             =   4960
       Width           =   5800
    End
-   Begin VB.Label lblGueltigBis 
-      Caption         =   "gültig bis (leer = unbefristet)"
-      Height          =   285
-      Left            =   150
-      TabIndex        =   27
-      Top             =   4960
-      Width           =   3200
-   End
-   Begin VB.CommandButton cmdAbbrechen 
-      Caption         =   "Abbre&chen"
+   Begin VB.CommandButton cmdSpeichern 
+      Caption         =   "&Speichern"
       Height          =   400
-      Left            =   7880
+      Left            =   4760
       TabIndex        =   28
       Top             =   5480
       Width           =   1400
@@ -243,10 +243,10 @@ Begin VB.Form LaborregelDetail
       Top             =   5480
       Width           =   1400
    End
-   Begin VB.CommandButton cmdSpeichern 
-      Caption         =   "&Speichern"
+   Begin VB.CommandButton cmdAbbrechen 
+      Caption         =   "Abbre&chen"
       Height          =   400
-      Left            =   4760
+      Left            =   7880
       TabIndex        =   30
       Top             =   5480
       Width           =   1400
@@ -297,6 +297,63 @@ Private Sub Form_Load()
   Me.cmdLoeschen.Enabled = False
  End If
 End Sub ' Form_Load
+
+' Beim (Tab-/Alt-Zugriffstasten-)Fokuswechsel gleich den ganzen Inhalt markieren,
+' damit man fuer eine neue Eingabe sofort losschreiben kann.
+Private Sub txtLaborparameter_GotFocus()
+ Me.txtLaborparameter.SelStart = 0
+ Me.txtLaborparameter.SelLength = Len(Me.txtLaborparameter.Text)
+End Sub ' txtLaborparameter_GotFocus
+
+Private Sub txtAbkueRegex_GotFocus()
+ Me.txtAbkueRegex.SelStart = 0
+ Me.txtAbkueRegex.SelLength = Len(Me.txtAbkueRegex.Text)
+End Sub ' txtAbkueRegex_GotFocus
+
+Private Sub txtICDRegex_GotFocus()
+ Me.txtICDRegex.SelStart = 0
+ Me.txtICDRegex.SelLength = Len(Me.txtICDRegex.Text)
+End Sub ' txtICDRegex_GotFocus
+
+Private Sub txtEigenerWertVgl_GotFocus()
+ Me.txtEigenerWertVgl.SelStart = 0
+ Me.txtEigenerWertVgl.SelLength = Len(Me.txtEigenerWertVgl.Text)
+End Sub ' txtEigenerWertVgl_GotFocus
+
+Private Sub txtBMIVgl_GotFocus()
+ Me.txtBMIVgl.SelStart = 0
+ Me.txtBMIVgl.SelLength = Len(Me.txtBMIVgl.Text)
+End Sub ' txtBMIVgl_GotFocus
+
+Private Sub txtAlterVgl_GotFocus()
+ Me.txtAlterVgl.SelStart = 0
+ Me.txtAlterVgl.SelLength = Len(Me.txtAlterVgl.Text)
+End Sub ' txtAlterVgl_GotFocus
+
+Private Sub txtRRVgl_GotFocus()
+ Me.txtRRVgl.SelStart = 0
+ Me.txtRRVgl.SelLength = Len(Me.txtRRVgl.Text)
+End Sub ' txtRRVgl_GotFocus
+
+Private Sub txtMedikamentRegex_GotFocus()
+ Me.txtMedikamentRegex.SelStart = 0
+ Me.txtMedikamentRegex.SelLength = Len(Me.txtMedikamentRegex.Text)
+End Sub ' txtMedikamentRegex_GotFocus
+
+Private Sub txtIntervallMonate_GotFocus()
+ Me.txtIntervallMonate.SelStart = 0
+ Me.txtIntervallMonate.SelLength = Len(Me.txtIntervallMonate.Text)
+End Sub ' txtIntervallMonate_GotFocus
+
+Private Sub txtKommentar_GotFocus()
+ Me.txtKommentar.SelStart = 0
+ Me.txtKommentar.SelLength = Len(Me.txtKommentar.Text)
+End Sub ' txtKommentar_GotFocus
+
+Private Sub txtGueltigBis_GotFocus()
+ Me.txtGueltigBis.SelStart = 0
+ Me.txtGueltigBis.SelLength = Len(Me.txtGueltigBis.Text)
+End Sub ' txtGueltigBis_GotFocus
 
 ' baut aus einem Textfeld entweder NULL (bei leerem Text) oder einen gequoteten SQL-String-Literal
 Private Function sqlStr$(ByVal s$)
@@ -376,5 +433,11 @@ Private Sub cmdAbbrechen_Click()
 End Sub ' cmdAbbrechen_Click
 
 Private Sub Form_KeyPress(KeyAscii As Integer)
- If KeyAscii = 27 Then Unload Me
+ If KeyAscii = 27 Then
+  Unload Me
+ ElseIf KeyAscii = 13 Then
+  ' Return speichert direkt, ohne Rueckfrage (im Gegensatz zu Loeschen)
+  KeyAscii = 0
+  Call cmdSpeichern_Click
+ End If
 End Sub ' Form_KeyPress

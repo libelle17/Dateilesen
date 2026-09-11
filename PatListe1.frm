@@ -981,6 +981,8 @@ Public Sub Command1_Click(Index As Integer)
      lrdNeu.ID = 0
      lrdNeu.Show vbModal
      Call LaborregelAnzeig
+     Me.MFG.SetFocus
+     Call mfg_entercell
    End Select ' Index
   Case artlpar
   Case artHA
@@ -3612,6 +3614,12 @@ Sub LaborregelBearbeiten(zeile&)
    lrd.ID = lrID
    lrd.Show vbModal
    Call LaborregelAnzeig
+   With Me.MFG
+    .SetFocus
+    Call MFG_leavecell ' EnterCell/LeaveCell feuern nicht von selbst bei .Row-Zuweisung per Code
+    .Row = MINvb(zeile + 1, .Rows - 1)
+    Call mfg_entercell
+   End With
   End If
  End If
 End Sub ' LaborregelBearbeiten
@@ -5567,6 +5575,8 @@ Private Sub Form_KeyDown(KeyC%, Shift%)
    End If
   ElseIf KeyC = 32 And Me.PLArt = arttmbr Then
    Call togglemark
+  ElseIf KeyC = 32 And Me.PLArt = artLaborregel Then
+   Call LaborregelBearbeiten(Me.MFG.Row)
   ElseIf KeyC = 32 And Me.MFG.col <= 3 And Me.PLArt <> artLAus Then
    Dim pid&
    On Error Resume Next

@@ -834,6 +834,115 @@ Function MedHistorieJS$(pid&)
  MedHistorieJS = erg
 End Function ' MedHistorieJS$
 
+' Medikamentenhistorie als Matrix (Spalten=Zeitpunkte der Medikationsplaene, neuester
+' zuerst; Zeilen=Medikamente nach MedAnfang gruppiert; je Zeile die Spalten-Index-Spannen
+' durchgehender Einnahme) fuer den "Verlauf"-Knopf im Patientenlaufzettel.
+Function MedVerlaufJS$(pid&, kopf1$, kopf2$)
+ Dim rSp As New ADODB.Recordset, rDet As New ADODB.Recordset
+ Dim N&, M&, i&, j&, ci&, mi&, Q$
+ Q = Chr$(34)
+
+ myFrag rSp, "SELECT DISTINCT Zeitpunkt, MPNr FROM medplan WHERE Pat_id = " & pid & " AND Zeitpunkt IS NOT NULL AND MPNr IS NOT NULL ORDER BY Zeitpunkt DESC, MPNr DESC"
+ Dim spZp() As Date, spMPNr() As Long
+ N = 0
+ Do While Not rSp.EOF
+  ReDim Preserve spZp(N)
+  ReDim Preserve spMPNr(N)
+  spZp(N) = rSp!Zeitpunkt
+  spMPNr(N) = rSp!MPNr
+  N = N + 1
+  rSp.MoveNext
+ Loop
+ Set rSp = Nothing
+
+ Dim medAnfangArr$(), medNameArr$()
+ M = 0
+ myFrag rDet, "SELECT Zeitpunkt, MPNr, MedAnfang, Medikament, Wirkstoff FROM medplan WHERE Pat_id = " & pid & " AND Zeitpunkt IS NOT NULL AND MPNr IS NOT NULL AND MedAnfang IS NOT NULL AND MedAnfang<>'' ORDER BY Zeitpunkt DESC, MPNr DESC"
+ Do While Not rDet.EOF
+  Dim schonDrin%, ma$
+  ma = IIf(LenB(nz(rDet!Wirkstoff, "")) <> 0, rDet!Wirkstoff, rDet!MedAnfang) ' gleicher Wirkstoff zusammenfassen, falls bekannt
+  schonDrin = False
+  For j = 0 To M - 1
+   If medAnfangArr(j) = ma Then schonDrin = True: Exit For
+  Next j
+  If Not schonDrin Then
+   ReDim Preserve medAnfangArr(M)
+   ReDim Preserve medNameArr(M)
+   medAnfangArr(M) = ma
+   medNameArr(M) = IIf(LenB(nz(rDet!Wirkstoff, "")) <> 0, rDet!Wirkstoff, nz(rDet!Medikament, ma)) ' erste (=juengste, da DESC sortiert) Fundstelle je Gruppe
+   M = M + 1
+  End If
+  rDet.MoveNext
+ Loop
+ Set rDet = Nothing
+
+ If M = 0 Or N = 0 Then MedVerlaufJS = "{" & Q & "kopf1" & Q & ":" & Q & JSStr(kopf1) & Q & "," & Q & "kopf2" & Q & ":" & Q & JSStr(kopf2) & Q & "," & Q & "spalten" & Q & ":[]," & Q & "zeilen" & Q & ":[]}": Exit Function
+
+ Dim praesenz() As Boolean
+ ReDim praesenz(M - 1, N - 1)
+ myFrag rDet, "SELECT Zeitpunkt, MPNr, MedAnfang, Wirkstoff FROM medplan WHERE Pat_id = " & pid & " AND Zeitpunkt IS NOT NULL AND MPNr IS NOT NULL AND MedAnfang IS NOT NULL AND MedAnfang<>''"
+ Do While Not rDet.EOF
+  ci = -1
+  For i = 0 To N - 1
+   If spZp(i) = rDet!Zeitpunkt And spMPNr(i) = rDet!MPNr Then ci = i: Exit For
+  Next i
+  Dim maDet$
+  maDet = IIf(LenB(nz(rDet!Wirkstoff, "")) <> 0, rDet!Wirkstoff, rDet!MedAnfang)
+  mi = -1
+  For j = 0 To M - 1
+   If medAnfangArr(j) = maDet Then mi = j: Exit For
+  Next j
+  If ci >= 0 And mi >= 0 Then praesenz(mi, ci) = True
+  rDet.MoveNext
+ Loop
+ Set rDet = Nothing
+
+ ' alphabetisch nach Anzeigename sortieren (einfacher Auswahlsort, M i.d.R. klein)
+ Dim ord&()
+ ReDim ord(M - 1)
+ For i = 0 To M - 1: ord(i) = i: Next i
+ Dim a&, b&, tmpO&
+ For a = 0 To M - 2
+  For b = a + 1 To M - 1
+   If medNameArr(ord(b)) < medNameArr(ord(a)) Then
+    tmpO = ord(a): ord(a) = ord(b): ord(b) = tmpO
+   End If
+  Next b
+ Next a
+
+ Dim Erg$, obErst2%, obOffen%, vonC&
+ Erg = "{" & Q & "kopf1" & Q & ":" & Q & JSStr(kopf1) & Q & "," & Q & "kopf2" & Q & ":" & Q & JSStr(kopf2) & Q & "," & Q & "spalten" & Q & ":["
+ For i = 0 To N - 1
+  If i > 0 Then Erg = Erg & ","
+  Erg = Erg & Q & Format(spZp(i), "dd.mm.yy") & Q
+ Next i
+ Erg = Erg & "]," & Q & "zeilen" & Q & ":["
+ For i = 0 To M - 1
+  mi = ord(i)
+  If i > 0 Then Erg = Erg & ","
+  Erg = Erg & "{" & Q & "name" & Q & ":" & Q & JSStr(medNameArr(mi)) & Q & "," & Q & "spannen" & Q & ":["
+  obOffen = False
+  obErst2 = True
+  For j = 0 To N - 1
+   If praesenz(mi, j) And Not obOffen Then
+    vonC = j: obOffen = True
+   ElseIf Not praesenz(mi, j) And obOffen Then
+    If Not obErst2 Then Erg = Erg & ","
+    Erg = Erg & "[" & vonC & "," & (j - 1) & "]"
+    obErst2 = False
+    obOffen = False
+   End If
+  Next j
+  If obOffen Then
+   If Not obErst2 Then Erg = Erg & ","
+   Erg = Erg & "[" & vonC & "," & (N - 1) & "]"
+  End If
+  Erg = Erg & "]}"
+ Next i
+ Erg = Erg & "]}"
+ MedVerlaufJS = Erg
+End Function ' MedVerlaufJS$
+
 ' JS-Funktionen fuer die Anzeige alter Medikationsplaene: "Letzte" = Fenstererweiterung (Overlay im selben Fenster),
 ' "Medikation" = echtes Unterfenster (window.open) - testweise beide Varianten, um sie zu vergleichen
 Function pzButtonsJS$()
@@ -878,6 +987,31 @@ Function pzButtonsJS$()
   "var w2=w.open('','_blank','width=500,height=600,scrollbars=yes,resizable=yes');" & _
   "w2.document.write('<html><head><meta charset=utf-8><title>'+hist[i].zp+'</title></head><body>'+hist[i].h+'</body></html>');" & _
   "w2.document.close();};b.appendChild(bt);})(i);}}"
+ pzButtonsJS = pzButtonsJS & _
+  "function pzVerlaufOeffnen(daten){" & _
+  "var w=window.open('','_blank','width=1000,height=650,scrollbars=yes,resizable=yes');" & _
+  "var h='<html><head><meta charset=utf-8><title>Medikationsverlauf</title>';" & _
+  "h+='<style>table{border-collapse:collapse;font-size:11px}';" & _
+  "h+='th,td{border:1px solid #ccc;padding:2px 4px;white-space:nowrap}';" & _
+  "h+='th.zp{writing-mode:vertical-rl;text-orientation:mixed;height:6em;vertical-align:bottom}';" & _
+  "h+='td.bar{background:#6ab0de}td.name{text-align:left;font-weight:bold}';"
+ pzButtonsJS = pzButtonsJS & _
+  "h+='</style></head><body><table><tr><th style=color:blue;text-align:left;font-weight:normal;white-space:normal>'+daten.kopf1+'<br>'+daten.kopf2+'</th>';" & _
+  "for(var i=0;i<daten.spalten.length;i++){h+='<th class=zp>'+daten.spalten[i]+'</th>';}" & _
+  "h+='</tr>';" & _
+  "for(var r=0;r<daten.zeilen.length;r++){" & _
+  "var row=daten.zeilen[r];" & _
+  "h+='<tr><td class=name>'+row.name+'</td>';"
+ pzButtonsJS = pzButtonsJS & _
+  "for(var c=0;c<daten.spalten.length;c++){" & _
+  "var aktiv=false;" & _
+  "for(var s=0;s<row.spannen.length;s++){if(c>=row.spannen[s][0]&&c<=row.spannen[s][1]){aktiv=true;break;}}" & _
+  "h+='<td'+(aktiv?' class=bar':'')+'></td>';" & _
+  "}" & _
+  "h+='</tr>';" & _
+  "}" & _
+  "h+='</table></body></html>';" & _
+  "w.document.write(h);w.document.close();}"
 End Function ' pzButtonsJS$
 
 ' Medikamentenangabe zu Zahl
@@ -2362,8 +2496,8 @@ sql0 = _
   If NFS <> -1 Then TabZ = MAXvb(TabZ, 6) Else If FIB4 <> -1 Then TabZ = MAXvb(TabZ, 5) Else If FLI <> -1 Then TabZ = MAXvb(TabZ, 4)
   
 ' Diagnosen, Medikation und UKPDS Risk
-  If obmed Then AusS.AppVar Array("<script>var medHist=", MedHistorieJS(CLng(Pat_id)), ";", pzButtonsJS(), "</script>", vbCrLf)
-  AusS.AppVar Array("<br><table border=""1""><thead align=""left""><tr><th>Diagnosen:</th><th>ICD</th><th bgcolor=""#CCCCCC"">_</th><th>" & IIf(obmed, "<button type='button' onclick='pzOverlayOeffnen(medHist)'>Letzte</button> <button type='button' onclick='pzFensterOeffnen(medHist)'>Medikation</button>:", "Letzte Medikation:") & "</th><th>fr</th><th>mi</th><th>nm</th><th>ab</th><th>zn</th><th>bBed</th><th bgcolor=""#CCCCCC"">_</th><th" & IIf(obdm, " bgcolor=""#FFFF00""", "") & ">", IIf(obdm, "<span title='" & UKtip & "'</span>UKPDS RE: </th><th>KHE</th><th>fatale KHE</th><th>Apoplex</th><th>fataler Apoplex</th><th bgcolor=""#CCCCCC"">_</th>", IIf(FLI <> -1 Or FIB4 <> -1 Or NFS <> -1, "</th><th></th><th></th><th></th><th></th><th></th>", "")), "<th>Termine</th>", vbCrLf)
+  If obmed Then AusS.AppVar Array("<script>var medHist=", MedHistorieJS(CLng(Pat_id)), ";var medVerlauf=", MedVerlaufJS(CLng(Pat_id), GesNamFn(rnam) & ",*" & Format(rnam!GebDat, "d.m.yy") & ",PID " & Pat_id, Format(Datum, "d.m.yy") & " " & Format(Uhrzeit, "hh:mm")), ";", pzButtonsJS(), ";document.addEventListener('keydown',function(e){if(e.altKey&&(e.key=='m'||e.key=='M'||e.code=='KeyM')){e.preventDefault();pzVerlaufOeffnen(medVerlauf);}},true);", "</script>", vbCrLf)
+  AusS.AppVar Array("<br><table border=""1""><thead align=""left""><tr><th>Diagnosen:</th><th>ICD</th><th bgcolor=""#CCCCCC"">_</th><th>" & IIf(obmed, "<button type='button' onclick='pzOverlayOeffnen(medHist)'>Letzte</button> <button type='button' onclick='pzFensterOeffnen(medHist)'>Medikation</button> <button type='button' onclick='pzVerlaufOeffnen(medVerlauf)'>:</button>", "Letzte Medikation:") & "</th><th>fr</th><th>mi</th><th>nm</th><th>ab</th><th>zn</th><th>bBed</th><th bgcolor=""#CCCCCC"">_</th><th" & IIf(obdm, " bgcolor=""#FFFF00""", "") & ">", IIf(obdm, "<span title='" & UKtip & "'</span>UKPDS RE: </th><th>KHE</th><th>fatale KHE</th><th>Apoplex</th><th>fataler Apoplex</th><th bgcolor=""#CCCCCC"">_</th>", IIf(FLI <> -1 Or FIB4 <> -1 Or NFS <> -1, "</th><th></th><th></th><th></th><th></th><th></th>", "")), "<th>Termine</th>", vbCrLf)
   Dim medfertig%
   If obDiagnosen Or obmed Then
    For k = 0 To TabZ
