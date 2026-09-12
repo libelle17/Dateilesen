@@ -1801,7 +1801,7 @@ sql0 = _
   notiz = Mid$(notiz, 2)
  Loop
   AusS.AppVar (Array(" ", IIf(dmtyp = "1" Or dmtyp = "2" Or dmtyp = "g", "<span style='background-color:" & IIf(dmtyp = "1", "#ff8fc7", IIf(dmtyp = "g", "#ffffde", "#efe0ff")) & "'", ""), "<B><span title='", VName, " ", NName, ", ", rnam!strasse, ", ", rnam!plz, " ", rnam!ort, ", Tel1: ", PrivatTel, ", Tel2: ", PrivatTel_2, ", Mobil:", PrivatMobil, ", Fax: ", PrivatFax, ", Diensttel: ", DienstTel & ", Email: ", email, "'>", IIf(vorET > Now(), "<span class='schwanger'>", ""), _
-  GesNamFn(rnam), "</span></B>, *", Format(rnam!GebDat, "d.m.yy"), " (", PAlter, "a,&" & IIf(rnam!geschlecht = "w", "fe", "") & "male;), <span style='color:blue'><span class='unauff'>&nbsp;&nbsp;Pat_id: </span>", Pat_id, "</span><span id = 'unauff'>,", IIf(obdm, "&nbsp;&nbsp;D.m.: ", ""), IIf(obdm, dmseit, ""), ",&nbsp;&nbsp;<span style=""font-weight:normal"">vorgestellt: </span>", Format(Vorgestellt, "d.m.yy"), ",&nbsp;&nbsp;</span><span style='font-size:smaller;font-weight:normal'>für: ", Format(Datum, "d.m.yy"), " ", Format(Uhrzeit, "hh:mm"), ",</span>&nbsp;<span class='unauff'>", IIf(haAnam = "", "", "HA(anam.): " & haAnam & ", "), IIf(notiz = "", "", notiz & ",&nbsp;&nbsp;"), IIf(obdm, "Ther.zul: ", ""), "</span>", IIf(obdm, therart, ""), "<span " & dmpfarbe & ">", DmPStr, " </span><span style='background-color:black'>", IIf(rNa(0).obk <> 0, " &#x1F7E6;", ""), IIf(rNa(0).obs <> 0, "&#x1F7E8;", ""), IIf(rNa(0).obh <> 0, "&#x1F7E9;", ""), "<button type=""button"" onclick=location.href=""oeffneverz:" & _
+  GesNamFn(rnam), "</span></B>, *", Format(rnam!GebDat, "d.m.yy"), " (", PAlter, "a,&" & IIf(rnam!geschlecht = "w", "fe", "") & "male;), <span style='color:blue'><span class='unauff'>&nbsp;&nbsp;Pat_id: </span>", Pat_id, "</span><span id = 'unauff'>,", IIf(obdm, "&nbsp;&nbsp;D.m.: ", ""), IIf(obdm, dmseit, ""), ",&nbsp;&nbsp;<span style=""font-weight:normal"">vorgestellt: </span>", Format(Vorgestellt, "d.m.yy"), ",&nbsp;&nbsp;</span><span style='font-size:smaller;font-weight:normal'>für: ", Format(Datum, "d.m.yy"), " ", Format(Uhrzeit, "hh:mm"), ",<br></span>&nbsp;<span class='unauff'>", IIf(haAnam = "", "", "HA(anam.): " & haAnam & ", "), IIf(notiz = "", "", notiz & ",&nbsp;&nbsp;"), IIf(obdm, "Ther.zul: ", ""), "</span>", IIf(obdm, therart, ""), "<span " & dmpfarbe & ">", DmPStr, " </span><span style='background-color:black'>", IIf(rNa(0).obk <> 0, " &#x1F7E6;", ""), IIf(rNa(0).obs <> 0, "&#x1F7E8;", ""), IIf(rNa(0).obh <> 0, "&#x1F7E9;", ""), "<button type=""button"" onclick=location.href=""oeffneverz:" & _
   Pat_id & """>Da<u>t</u>eien</button> <button type=""button"" id=""emailAdrBtn"" style=""padding-left:0;border-style:groove;border-width:thin;border-color:blue;color:black;background-color:white;"" onclick=""emailAdrToggle()""><u>E</u>mail-Adr.</button></span></h1>", vbCrLf))
 ' TherapieArtEinzelnFestlegen(CLng(Pat_ID), rAn) & "</span></h1>" ' VName, " ", NName
   ' * 2.73792574745373E-03 ' 1/365,24
@@ -1815,7 +1815,7 @@ sql0 = _
   m = 24: TI(m) = Timer: For p = 0 To m - 1: TI(m) = TI(m) - TI(p): Next p
   
   
-  AusS.AppVar (Array("<div class='unauff'", IIf(obpath(0), " class='cave'", ""), ">", vbCrLf))
+  AusS.AppVar (Array("<div class='unauff'", IIf(obpath(0), " class='cave'", ""), "> ", vbCrLf))
   For i = 0 To UBound(üwerg, 2)
    If üwerg(10, i) <> vNS Then
     AusS.AppVar (Array("<span title='", üwerg(1, i), ", ", üwerg(2, i), ", ", üwerg(3, i), ", ", üwerg(8, i), ", Tel: ", üwerg(13, i), ", Fax: ", üwerg(4, i), "'>", vbCrLf))
@@ -1825,9 +1825,9 @@ sql0 = _
   Next i
   AusS.AppVar (Array("</div>", vbCrLf))
   If MOtot Then
-   AusS.AppVar (Array("<div class='cave'>Dieser Laufzettel wurde ohne Echtzeit-Verbindung zur MO-Datenbank erstellt!</div>", vbCrLf))
+   AusS.AppVar (Array("<div class='cave'> Dieser Laufzettel wurde ohne Echtzeit-Verbindung zur MO-Datenbank erstellt!</div>", vbCrLf))
   Else ' MOtot Then Else
-   If obpath(0) Then AusS.AppVar (Array("<div class='cave'>Hausarzt nicht richtig in Medical Office eingetragen</div>", vbCrLf))
+   If obpath(0) Then AusS.AppVar (Array("<div class='cave'> Hausarzt nicht richtig in Medical Office eingetragen</div>", vbCrLf))
   End If ' MOtot Then
   
   Dim obGU%
@@ -1843,7 +1843,7 @@ sql0 = _
      obGU = True
     End If
     If obGU = True Then
-     AusS.AppVar (Array("<div class='cave'>Gesundheitsuntersuchung fällig</div>", vbCrLf))
+     AusS.AppVar (Array("<div class='cave'> Gesundheitsuntersuchung fällig</div>", vbCrLf))
     End If ' obGU = True Then
    End If ' pKVNR = KVNr And PAlter > 35 Then
   End If ' if obLeist
@@ -1883,7 +1883,7 @@ sql0 = _
    Befund = rsauf!Befund
   End If
   Set rsauf = Nothing
-  AusS.AppVar (Array("<div class='lila'>" & BhFB & ": Auftrag:<span class='gruen'> " & Auftrag & "</span>" & " Verdacht:<span class='gruen'> " & Verdacht & "</span>" & " Befund:<span class='gruen'> " & Befund & "</span>" & "</div>", vbCrLf))
+  AusS.AppVar (Array("<div class='lila'> " & BhFB & ": Auftrag:<span class='gruen'> " & Auftrag & "</span>" & " Verdacht:<span class='gruen'> " & Verdacht & "</span>" & " Befund:<span class='gruen'> " & Befund & "</span>" & "</div>", vbCrLf))
   If (obphp <> 0) Then
    AusS.AppVar (Array("<?php ", vbCrLf))
    AusS.AppVar (Array(" $pat_id=", Pat_id, ";", vbCrLf))
