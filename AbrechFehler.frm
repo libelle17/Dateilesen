@@ -3253,6 +3253,84 @@ sql(AWlf) = _
  mins(AWlf) = 7
  maxs(AWlf) = 30
  AWlf = AWlf + 1
+' 512
+' Versorgungspauschale 03100 (BewA-Beschluss 828. Sitzung v. 11.3.2026, gueltig ab 1.7.2026):
+' ersetzt 03000/03220/03221/03222 bei genau einer der 4 ICD-Gruppen unten, Alter ab Beginn 19.
+' bis vollendetem 75. Lj., keine weitere lang andauernde chron. Erkrankung, Kontinuitaet wie 03220.
+' Naeherung wie bei 512/513: Arzneimittelpruefung (genau 1 Wirkstoff) wird nicht abgebildet.
+ AwN(AWlf) = "Mögliche Fehler bei Chronikerpauschale/Versorgungspauschale 03100 (lauto)"
+ sql(AWlf) = _
+"SELECT i.Pat_id PID, gesname(i.pat_id) Name, F0 LEIFEHLER, " & vbCrLf & _
+"IF(i.obEinz,'ja','nein') EinzelChr, IF(i.obvorkoz,'ja','nein') 3VorKte, " & vbCrLf & _
+"i.aktkoz aktKtzl, i.l100z 03100zl, i.l0z 03220zl, i.l1z 03221zl, " & vbCrLf & _
+"sonst Sonstige_Diagnosen, DATE(IF(F0 RLIKE '03100 dazu',erst,letzt)) LEIDAT, " & vbCrLf & _
+"LANRID, czp Kontakte, cart KontaktArt " & vbCrLf & _
+"FROM ( " & vbCrLf & _
+"SELECT i.Pat_id, i.obEinz, i.obvorkoz, i.aktkoz, i.l100z, i.l0z, i.l1z, i.sonst, " & vbCrLf & _
+"CASE " & vbCrLf & _
+"  WHEN obEinz=1 AND obvorkoz=1 THEN " & vbCrLf & _
+"   CASE " & vbCrLf & _
+"    WHEN aktkoz=0 THEN " & vbCrLf & _
+"     CASE WHEN l100z=0 THEN '' ELSE '03100 falsch' END " & vbCrLf & _
+"    ELSE "
+sql(AWlf) = sql(AWlf) & vbCrLf & _
+"     CASE " & vbCrLf & _
+"      WHEN l100z=0 AND (l0z>0 OR l1z>0) THEN '03100 statt 03220/03221' " & vbCrLf & _
+"      WHEN l100z=0 THEN '03100 dazu' " & vbCrLf & _
+"      WHEN l100z>1 THEN CONCAT('03100 zu häufig (',l100z,'x)') " & vbCrLf & _
+"      ELSE '' " & vbCrLf & _
+"     END " & vbCrLf & _
+"    END " & vbCrLf & _
+"  ELSE " & vbCrLf & _
+"   CASE WHEN l100z=0 THEN '' ELSE '03100 falsch' END " & vbCrLf & _
+"END F0, " & vbCrLf & _
+"LANRID, erst, letzt, czp, cart " & vbCrLf & _
+"FROM ( " & vbCrLf & _
+"SELECT f.pat_id, czp, f.art cart, " & vbCrLf & _
+"IF(patAlter(f.pat_id) BETWEEN 18 AND 75 AND COALESCE(fam.famzahl,0)=1 AND COALESCE(ander.anz,0)=0,1,0) obEinz, "
+sql(AWlf) = sql(AWlf) & vbCrLf & _
+"IF((SELECT IF(COUNT(0)>0,1,0) FROM faelle WHERE pat_id=f.pat_id AND quartal=@qe) " & vbCrLf & _
+" +(SELECT IF(COUNT(0)>0,1,0) FROM faelle WHERE pat_id=f.pat_id AND quartal=@qz) " & vbCrLf & _
+" +(SELECT IF(COUNT(0)>0,1,0) FROM faelle WHERE pat_id=f.pat_id AND quartal=@qd) " & vbCrLf & _
+" +(SELECT IF(COUNT(0)>0,1,0) FROM faelle WHERE pat_id=f.pat_id AND quartal=@qv) " & vbCrLf & _
+" >=3,1,0) obvorkoz, " & vbCrLf & _
+"IF(ISNULL(f.koz),0,f.koz) aktkoz, " & vbCrLf & _
+"(SELECT COUNT(leistung) FROM leistungen WHERE pat_id=f.pat_id AND leistung='03100' AND zeitpunkt BETWEEN qanf() AND qend()) l100z, " & vbCrLf & _
+"(SELECT COUNT(leistung) FROM leistungen WHERE pat_id=f.pat_id AND leistung IN ('03220','03220H') AND zeitpunkt BETWEEN qanf() AND qend()) l0z, " & vbCrLf & _
+"(SELECT COUNT(leistung) FROM leistungen WHERE pat_id=f.pat_id AND leistung IN ('03221','03221H') AND zeitpunkt BETWEEN qanf() AND qend()) l1z, " & vbCrLf & _
+"GROUP_CONCAT(DISTINCT CONCAT(sd.icd,sd.diagsicherheit,sd.Dggel,sd.obdauer,' ',sd.diagtext)) sonst, " & vbCrLf & _
+"f.LANRID, f.erst, f.letzt " & vbCrLf & _
+"FROM aktfkvc f " & vbCrLf & _
+"LEFT JOIN ( "
+sql(AWlf) = sql(AWlf) & vbCrLf & _
+"SELECT d.pat_id, " & vbCrLf & _
+" COUNT(DISTINCT CASE WHEN d.gicd RLIKE '^E03\.[01489]$|^E06\.3$' THEN 1 " & vbCrLf & _
+"  WHEN d.gicd RLIKE '^E78\.[024569]$|^E78\.8[0-9]?$' THEN 2 " & vbCrLf & _
+"  WHEN d.gicd RLIKE '^I10\.(00|90)$' THEN 3 " & vbCrLf & _
+"  WHEN d.gicd RLIKE '^M10\.0[0-9]?$' THEN 4 END) famzahl " & vbCrLf & _
+"FROM diagview d " & vbCrLf & _
+"WHERE d.obdauer<>0 OR d.diagdatum BETWEEN " & lQAnfuEnd(FristS) & " " & vbCrLf & _
+"GROUP BY d.pat_id " & vbCrLf & _
+") fam ON fam.pat_id=f.pat_id " & vbCrLf & _
+"LEFT JOIN ( " & vbCrLf & _
+"SELECT d.pat_id, COUNT(DISTINCT d.icd) anz " & vbCrLf & _
+"FROM diagview d " & vbCrLf & _
+"WHERE d.gicd RLIKE '^E78\.0|^E03.9|^I87.0|^F17.1|^E27\.1|^D35\.2|^L20|^E66\.9|^T78\.[134]|^K74|^I[1234567]\.|^I0[56789]\.|^E1[0-4]\.|^E[234589]\.|^E0[356]\.|^M|^N80|^K5[01]|^C|^J4|^E78\.0|^D50|^D68|^R52.2|^I89.0|^D6[34]|^F[^1]\.|^G' "
+sql(AWlf) = sql(AWlf) & vbCrLf & _
+" AND NOT d.gicd RLIKE '^M6[5-8]\.' " & vbCrLf & _
+" AND NOT (d.gicd RLIKE '^E03\.[01489]$|^E06\.3$' OR d.gicd RLIKE '^E78\.[024569]$|^E78\.8[0-9]?$' " & vbCrLf & _
+"  OR d.gicd RLIKE '^I10\.(00|90)$' OR d.gicd RLIKE '^M10\.0[0-9]?$') " & vbCrLf & _
+" AND (d.obdauer<>0 OR d.diagdatum BETWEEN " & lQAnfuEnd(FristS) & ") " & vbCrLf & _
+"GROUP BY d.pat_id " & vbCrLf & _
+") ander ON ander.pat_id=f.pat_id " & vbCrLf & _
+"LEFT JOIN diagview sd ON sd.pat_id=f.pat_id AND sd.diagsicherheit NOT IN ('A','Z') " & vbCrLf & _
+"GROUP BY f.pat_id " & vbCrLf & _
+") i " & vbCrLf & _
+") i " & vbCrLf & _
+"WHERE F0<>'';"
+ mins(AWlf) = 8
+ maxs(AWlf) = 20
+ AWlf = AWlf + 1
 
 #If ebmalt Then
 ' ktag fehlerhaft
@@ -3294,7 +3372,7 @@ sql(AWlf) = _
 ' myEFrag "SET @qv:=vorquart(@qn,4)"
 
 #If False Then
-' 512 (78)
+' 513 (78)
 AwN(AWlf) = "Mögliche Fehler bei Chronikerpauschale 03220, 03221 (lauto)"
 '  AND d.diagsicherheit NOT IN ('A','V')
 ' AND COALESCE(gd.Dggel,0)=0
@@ -3409,7 +3487,50 @@ sql(AWlf) = sql(AWlf) & vbCrLf & _
 #End If ' false
  
  
-' 512
+' 513
+' Vorschlagsliste (kein lauto!): moegliche 03110-Kandidaten. "Intensiver Betreuungsbedarf" ist
+' eine aerztliche Einschaetzung, keine ICD-Regel - daher hier nur ein Vorschlag anhand der
+' Kontaktzahl im aktuellen Quartal (Schwelle 3 Kontakte, siehe WHERE-Klausel, ggf. anpassen).
+' Voraussetzung wie bei 03110: 03100 im Vorquartal vorhanden, 03110 im aktuellen Quartal noch nicht.
+' Vor Abrechnung zusaetzlich die 8%-Quote (naechste Liste) pruefen.
+ AwN(AWlf) = "Vorschlag: mögliche 03110-Kandidaten nach Kontaktzahl"
+sql(AWlf) = "SELECT f.pat_id PID, gesname(f.pat_id) Name, f.koz Kontakte, f.czp KontaktTage, f.Art KontaktArt " & vbCrLf & _
+"FROM aktfkvc f " & vbCrLf & _
+"WHERE EXISTS (SELECT 1 FROM leistungen WHERE pat_id=f.pat_id AND leistung='03100' AND zeitpunkt BETWEEN qbegs(vorquart('" & aktQ & "',1)) AND qends(vorquart('" & aktQ & "',1))) " & vbCrLf & _
+"AND NOT EXISTS (SELECT 1 FROM leistungen WHERE pat_id=f.pat_id AND leistung='03110' AND zeitpunkt BETWEEN qanf() AND qend()) " & vbCrLf & _
+"AND COALESCE(f.koz,0)>=3 " & vbCrLf & _
+"ORDER BY f.koz DESC;"
+ mins(AWlf) = 5
+ maxs(AWlf) = 20
+ AWlf = AWlf + 1
+' 514
+' 03110-Zuschlag (BewA-Beschluss 828. Sitzung v. 11.3.2026) ist nur im Folgequartal einer
+' 03100-Abrechnung fuer denselben Patienten zulaessig. Kein lauto: "intensiver Betreuungsbedarf"
+' ist eine aerztliche Einschaetzung, keine ICD-Regel.
+ AwN(AWlf) = "03110% ohne 03100 im Vorquartal"
+sql(AWlf) = "SELECT f.pat_id, gesname(f.pat_id), l1.leistung, l0.leistung " & vbCrLf & _
+"FROM aktfvs f " & vbCrLf & _
+"LEFT JOIN leistungen l1 ON f.pat_id=l1.pat_id AND l1.zeitpunkt BETWEEN qanf() AND qend() AND l1.leistung LIKE '%03110%' " & vbCrLf & _
+"LEFT JOIN leistungen l0 ON f.pat_id=l0.pat_id AND l0.zeitpunkt BETWEEN qbegs(vorquart('" & aktQ & "',1)) AND qends(vorquart('" & aktQ & "',1)) AND l0.leistung LIKE '%03100%' " & vbCrLf & _
+"WHERE NOT ISNULL(l1.leistung) AND ISNULL(l0.leistung);"
+ mins(AWlf) = 7
+ maxs(AWlf) = 20
+ AWlf = AWlf + 1
+
+' 515
+' 03110 ist je Praxis auf 8% der im Vorquartal abgerechneten 03100-Faelle begrenzt
+' (kaufmaennisch gerundet). Kennzahl, kein Patientenbezug, kein lauto.
+ AwN(AWlf) = "03110-Quote (8% der 03100-Fälle Vorquartal)"
+sql(AWlf) = "SELECT " & vbCrLf & _
+"(SELECT COUNT(*) FROM leistungen WHERE leistung='03100' AND zeitpunkt BETWEEN qbegs(vorquart('" & aktQ & "',1)) AND qends(vorquart('" & aktQ & "',1))) `03100 Vorquartal`, " & vbCrLf & _
+"(SELECT COUNT(*) FROM leistungen WHERE leistung='03110' AND zeitpunkt BETWEEN qanf() AND qend()) `03110 aktuell`, " & vbCrLf & _
+"ROUND((SELECT COUNT(*) FROM leistungen WHERE leistung='03100' AND zeitpunkt BETWEEN qbegs(vorquart('" & aktQ & "',1)) AND qends(vorquart('" & aktQ & "',1)))*0.08,0) `Obergrenze (8%)`, " & vbCrLf & _
+"IF((SELECT COUNT(*) FROM leistungen WHERE leistung='03110' AND zeitpunkt BETWEEN qanf() AND qend())>ROUND((SELECT COUNT(*) FROM leistungen WHERE leistung='03100' AND zeitpunkt BETWEEN qbegs(vorquart('" & aktQ & "',1)) AND qends(vorquart('" & aktQ & "',1)))*0.08,0),'überschritten','ok') Status;"
+ mins(AWlf) = 1
+ maxs(AWlf) = 1
+ AWlf = AWlf + 1
+
+' 516
  AwN(AWlf) = "Mögliche Fehler bei Chronikerpauschale 03220 (lauto)"
 '  AND d.diagsicherheit NOT IN ('A','V')
 ' AND COALESCE(gd.Dggel,0)=0
@@ -3460,13 +3581,26 @@ sql(AWlf) = sql(AWlf) & vbCrLf & _
 "LEFT JOIN diagview sd ON sd.pat_id=f.pat_id AND sd.diagsicherheit NOT IN ('A','Z') " & vbCrLf & _
 "LEFT JOIN leistungen pau ON pau.pat_id=f.pat_id AND pau.leistung='97146' AND pau.zeitpunkt BETWEEN qanf() AND qend()" & vbCrLf & _
 "GROUP BY f.pat_id) i " & vbCrLf & _
-") i " & vbCrLf & _
-"WHERE F0<>'' OR F1<>'' ;"
+") i "
+sql(AWlf) = sql(AWlf) & vbCrLf & _
+"WHERE (F0<>'' OR F1<>'') AND NOT (patAlter(i.Pat_id) BETWEEN 18 AND 75 AND i.obvorkoz=1 " & vbCrLf & _
+" AND (SELECT COUNT(DISTINCT CASE WHEN d.gicd RLIKE '^E03\.[01489]$|^E06\.3$' THEN 1 " & vbCrLf & _
+"  WHEN d.gicd RLIKE '^E78\.[024569]$|^E78\.8[0-9]?$' THEN 2 " & vbCrLf & _
+"  WHEN d.gicd RLIKE '^I10\.(00|90)$' THEN 3 " & vbCrLf & _
+"  WHEN d.gicd RLIKE '^M10\.0[0-9]?$' THEN 4 END) FROM diagview d " & vbCrLf & _
+"  WHERE d.pat_id=i.Pat_id AND (d.obdauer<>0 OR d.diagdatum BETWEEN " & lQAnfuEnd(FristS) & "))=1 " & vbCrLf & _
+" AND (SELECT COUNT(DISTINCT d.icd) FROM diagview d WHERE d.pat_id=i.Pat_id " & vbCrLf & _
+"  AND d.gicd RLIKE '^E78\.0|^E03.9|^I87.0|^F17.1|^E27\.1|^D35\.2|^L20|^E66\.9|^T78\.[134]|^K74|^I[1234567]\.|^I0[56789]\.|^E1[0-4]\.|^E[234589]\.|^E0[356]\.|^M|^N80|^K5[01]|^C|^J4|^E78\.0|^D50|^D68|^R52.2|^I89.0|^D6[34]|^F[^1]\.|^G' "
+sql(AWlf) = sql(AWlf) & vbCrLf & _
+"  AND NOT d.gicd RLIKE '^M6[5-8]\.' " & vbCrLf & _
+"  AND NOT (d.gicd RLIKE '^E03\.[01489]$|^E06\.3$' OR d.gicd RLIKE '^E78\.[024569]$|^E78\.8[0-9]?$' " & vbCrLf & _
+"   OR d.gicd RLIKE '^I10\.(00|90)$' OR d.gicd RLIKE '^M10\.0[0-9]?$') " & vbCrLf & _
+"  AND (d.obdauer<>0 OR d.diagdatum BETWEEN " & lQAnfuEnd(FristS) & "))=0);"
  mins(AWlf) = 8
  maxs(AWlf) = 20
  AWlf = AWlf + 1
 
-' 513
+' 517
  AwN(AWlf) = "Mögliche Fehler bei Chronikerpauschale 03221 (lauto)"
 '  AND d.diagsicherheit NOT IN ('A','V')
 ' AND COALESCE(gd.Dggel,0)=0
@@ -3517,15 +3651,28 @@ sql(AWlf) = sql(AWlf) & vbCrLf & _
 "LEFT JOIN diagview sd ON sd.pat_id=f.pat_id AND sd.diagsicherheit NOT IN ('A','Z') " & vbCrLf & _
 "LEFT JOIN leistungen pau ON pau.pat_id=f.pat_id AND pau.leistung='97146' AND pau.zeitpunkt BETWEEN qanf() AND qend()" & vbCrLf & _
 "GROUP BY f.pat_id) i " & vbCrLf & _
-") i " & vbCrLf & _
-"WHERE F0<>'' OR F1<>'' ;"
+") i "
+sql(AWlf) = sql(AWlf) & vbCrLf & _
+"WHERE (F0<>'' OR F1<>'') AND NOT (patAlter(i.Pat_id) BETWEEN 18 AND 75 AND i.obvorkoz=1 " & vbCrLf & _
+" AND (SELECT COUNT(DISTINCT CASE WHEN d.gicd RLIKE '^E03\.[01489]$|^E06\.3$' THEN 1 " & vbCrLf & _
+"  WHEN d.gicd RLIKE '^E78\.[024569]$|^E78\.8[0-9]?$' THEN 2 " & vbCrLf & _
+"  WHEN d.gicd RLIKE '^I10\.(00|90)$' THEN 3 " & vbCrLf & _
+"  WHEN d.gicd RLIKE '^M10\.0[0-9]?$' THEN 4 END) FROM diagview d " & vbCrLf & _
+"  WHERE d.pat_id=i.Pat_id AND (d.obdauer<>0 OR d.diagdatum BETWEEN " & lQAnfuEnd(FristS) & "))=1 " & vbCrLf & _
+" AND (SELECT COUNT(DISTINCT d.icd) FROM diagview d WHERE d.pat_id=i.Pat_id " & vbCrLf & _
+"  AND d.gicd RLIKE '^E78\.0|^E03.9|^I87.0|^F17.1|^E27\.1|^D35\.2|^L20|^E66\.9|^T78\.[134]|^K74|^I[1234567]\.|^I0[56789]\.|^E1[0-4]\.|^E[234589]\.|^E0[356]\.|^M|^N80|^K5[01]|^C|^J4|^E78\.0|^D50|^D68|^R52.2|^I89.0|^D6[34]|^F[^1]\.|^G' "
+sql(AWlf) = sql(AWlf) & vbCrLf & _
+"  AND NOT d.gicd RLIKE '^M6[5-8]\.' " & vbCrLf & _
+"  AND NOT (d.gicd RLIKE '^E03\.[01489]$|^E06\.3$' OR d.gicd RLIKE '^E78\.[024569]$|^E78\.8[0-9]?$' " & vbCrLf & _
+"   OR d.gicd RLIKE '^I10\.(00|90)$' OR d.gicd RLIKE '^M10\.0[0-9]?$') " & vbCrLf & _
+"  AND (d.obdauer<>0 OR d.diagdatum BETWEEN " & lQAnfuEnd(FristS) & "))=0);"
  mins(AWlf) = 8
  maxs(AWlf) = 2000
  AWlf = AWlf + 1
 
  
 
-' 514 (79)
+' 518 (79)
  AwN(AWlf) = "03221% ohne 03220%"
 sql(AWlf) = "SELECT f.pat_id, gesname(f.pat_id), l1.leistung, l0.leistung " & vbCrLf & _
 "FROM aktfvs f " & vbCrLf & _
@@ -3538,7 +3685,7 @@ sql(AWlf) = "SELECT f.pat_id, gesname(f.pat_id), l1.leistung, l0.leistung " & vb
 
 #End If
 
-' 516 (80)
+' 519 (80)
 AwN(AWlf) = "Pauschalenfehler nach Tabelle"
 '17.10.12: Prinzip: für alle Fälle (aktfvs) werden die leistungen rausgesucht, die in der Tabelle `genehmigungen` behandelt werden
 '(WHERE l.leistung IN (SELECT leistung FROM `genehmigungen`)).
@@ -4040,7 +4187,7 @@ AwN(AWlf) = "Möglicherweise fehlende 03355 (lauto)"
 ' maxs(AWlf) = 80
 ' AWlf = AWlf + 1
  
-' 528 (93)
+' 531 (93)
  AwN(AWlf) = "Mehr als 7 Leistungen 03355 im Krankheitsfall, danach 601"
  sql(AWlf) = vbCrLf & _
 "SELECT * FROM (SELECT " & vbCrLf & _
