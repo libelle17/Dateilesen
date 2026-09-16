@@ -48,6 +48,7 @@ End Type
 Declare Sub CopyMemoryPtr Lib "kernel32" Alias "RtlMoveMemory" (ByVal Destination&, ByVal Sourc&, ByVal Length&)
 Dim aru&
 Private EinL As New SortierListe, EinK As New SortierListe ' 15.9.26: modulweit statt Static-lokal in doPatvonMO, damit MODmpreihe sie mitnutzen kann
+Public gObBackfillSilent As Boolean ' 16.9.26: waehrend callMODmp True, unterdrueckt MsgBox-Fehlerdialoge in MODmpreihe/MODmpreihe1 (unbeaufsichtigter Lauf)
 
 Public Function explor(pid&)
 Const wart& = 100
@@ -1978,6 +1979,16 @@ fehler:
 End Sub ' MOKatLaden
 
 ' in doPatvonMO (dmpreihe(2), mosystem-Kategorie-Pfad) und callMODmp (Wrapper fuer alle Patienten)
+' Hilfsfunktion (16.9.26): schreibt eine Zeitstempel-Zeile in das Protokoll des callMODmp-Backfills,
+' damit nachvollziehbar ist, welche Patienten verarbeitet wurden und wo ein Fehler auftrat.
+Public Sub BackfillLog(msg$)
+ Const ffadat$ = "\\linux1\daten\down\callMODmp_log.txt"
+ On Error Resume Next
+ Open ffadat For Append As #197
+ Print #197, Format(Now(), "yyyy-mm-dd hh:mm:ss") & vbTab & msg
+ Close #197
+End Sub ' BackfillLog
+
 Public Sub MODmpreihe(fPtNr&, Optional pid& = -1)
  Dim rsEi As New ADODB.Recordset
  Dim EintS As SortierEintr
@@ -1995,7 +2006,7 @@ Public Sub MODmpreihe(fPtNr&, Optional pid& = -1)
  sql = "SELECT 18900101+INTERVAL FDatum DAY+INTERVAL FZeit SECOND Zp" & vbCrLf & _
   ", IF (FText RLIKE '^(\w+)#\1:', REGEXP_REPLACE(FText,'(\w+)#\1:.*','\1'),REGEXP_REPLACE(FICdcode,'(\w+)#\1','\1')) Art" & vbCrLf & _
   ", REPLACE(REPLACE(REPLACE(IF(rWert=FDetails OR rWert IS NULL,FDet,rWert),'\t',''),'\r',''),'\n',' ') Wert, FDet, FICDCode, FEintragsart, 18900101+INTERVAL FAnorddatum DAY+INTERVAL FAnordzeit SECOND AnZp" & vbCrLf & _
-  ", COALESCE(na.FInitialen,'') ua, COALESCE(nb.FInitialen,'') ub, l.FLstgerbnr, FText, FDetails" & vbCrLf & _
+  ", COALESCE(na.FInitialen,'') ua, COALESCE(nb.FInitialen,'') ub, l.FLstgerbnr, l.FStatus, FText, FDetails" & vbCrLf & _
   ", REGEXP_REPLACE(FDet,'^(?>[^0-9]|[4-9](?![0-9])|[0-2](?![0-9]{2}))*\b((?:[4-9][0-9]|[0-3][0-9]{2})(?:-[0-9]{2,3}){0,2}) */? *(?:über )?((?:[3-9][0-9]|[0-2][0-9]{2})(?:-[0-9]{2,3}){0,2})?(?:(?:[^PH]|H(?!F))*(?:Puls|P(?=[0-9 :.])|HF))?:? *([0-9]{1,3}(?:-[0-9]{2,3})?)? *(.*)','\1‡\2‡\3‡\4') FArray" & vbCrLf & _
   ", REGEXP_REPLACE(FDet,'^(?:[^l]|l(?!e))*(?:let?zten *(\d{1,3}))?.*$','\1') zahl" & vbCrLf & _
   ", IF(INSTR(FDet,'exportiert')=0,0,REGEXP_REPLACE(FDet,'.*am ([^)]*)\).*','\1')) exp" & vbCrLf & _
@@ -2080,32 +2091,50 @@ Public Sub MODmpreihe(fPtNr&, Optional pid& = -1)
          DMPArt = 0
          If (rsEi!FICdcode Like "*dmp*" And rsEi!FICdcode <> "DMPERG") Or _
          (UCase$(art) = "TEXT" And InStrB(rsEi!FDet, "dokumentation") <> 0 And InStrB(rsEi!FText, "dmp") <> 0) Or _
-         (InStrB(1, rsEi!FText, "Dokumentation", vbTextCompare) <> 0 And _
+         (rsEi!FEintragsart = 27143 Or rsEi!FEintragsart = 27144 Or rsEi!FEintragsart = 27187 Or rsEi!FEintragsart = 27188 Or rsEi!FEintragsart = 27193 Or rsEi!FEintragsart = 27216 Or rsEi!FEintragsart = 27217 Or rsEi!FEintragsart = 27218 Or rsEi!FEintragsart = 27219 Or rsEi!FEintragsart = 27220 Or rsEi!FEintragsart = 27221 Or rsEi!FEintragsart = 27222) Or _
+         (InStrB(1, rsEi!FText, "Dokumentation", vbTextCompare) <> 0 And InStrB(1, rsEi!FText, "Duplikat", vbTextCompare) = 0 And _
          (InStrB(1, rsEi!FText, "Diabetes", vbTextCompare) <> 0 Or InStrB(1, rsEi!FText, "DMP", vbTextCompare) <> 0 Or _
          InStrB(1, rsEi!FText, "KHK", vbTextCompare) <> 0 Or InStrB(1, rsEi!FText, "koronare", vbTextCompare) <> 0 Or _
-         InStrB(1, rsEi!FText, "COPD", vbTextCompare) <> 0 Or InStrB(1, rsEi!FText, "Asthma", vbTextCompare) <> 0)) Then ' 16.9.26: Pat. 1722, FEintragsart 27144, leeres FICdcode
-          Select Case art ' 15.9.26: war rsEi!art, das bei per mosystem-Kategorie aufgelösten Einträgen (z.B. "b8") immer leer ist
-           Case "DMPDTYP1", "EDMPDM1": DMPArt = 1
-           Case "DMPDTYP2", "EDMPDM2": DMPArt = 2
-           Case "DMPKHK", "EDMPKHK": DMPArt = 3
-           Case "EDMPCOPD": DMPArt = 4
-           Case "EDMPAB": DMPArt = 5
-           Case Else ' unbekanntes Kürzel (z.B. mosystem-Kategorie "b8"): DMP-Art aus dem Freitext ableiten
-            Dim dmpTxt$
-            dmpTxt = UCase$(nz(rsEi!FDet, "") & " " & nz(rsEi!FText, "") & " " & nz(rsEi!FICdcode, "")) ' 16.9.26: UCase$ statt InStrB(...,vbTextCompare), das bei Pat. 1722 nicht griff
-            If InStrB(dmpTxt, "KHK") <> 0 Or InStrB(dmpTxt, "KORONARE") <> 0 Then
-             DMPArt = 3
-            ElseIf InStrB(dmpTxt, "COPD") <> 0 Then
-             DMPArt = 4
-            ElseIf InStrB(dmpTxt, "ASTHMA") <> 0 Then
-             DMPArt = 5
-            ElseIf InStrB(dmpTxt, "DIABETES") <> 0 Then
-             If InStrB(dmpTxt, "TYP II") <> 0 Or InStrB(dmpTxt, "TYP 2") <> 0 Or InStrB(dmpTxt, "TYP2") <> 0 Then
-              DMPArt = 2
-             Else
-              DMPArt = 1
-             End If
-            End If ' InStrB(dmpTxt, "KHK")
+         InStrB(1, rsEi!FText, "COPD", vbTextCompare) <> 0 Or InStrB(1, rsEi!FText, "Asthma", vbTextCompare) <> 0)) Then ' 16.9.26: Pat. 1722/42464, FEintragsart-Liste per Testeintraegen ermittelt
+          Dim sMOAbk$
+          sMOAbk = "" ' 16.9.26: sprechendes Abk-Kuerzel, per Testeintraegen bei Pat. 42464 fuer alle DMP-Formulare ermittelt
+          Select Case rsEi!FEintragsart
+           Case 27143: DMPArt = 4: sMOAbk = "eDMPCO" ' COPD
+           Case 27144: DMPArt = 1: sMOAbk = "eDMPDM1" ' Diabetes Typ I - Praefix bewusst wie historisch "eDMPDM1", s. PatListe1.frm/Lese5.frm/LANRauswahl.frm-Abk-Muster
+           Case 27187: DMPArt = 3: sMOAbk = "eDMPKH" ' koronare Herzkrankheit
+           Case 27188: DMPArt = 2: sMOAbk = "eDMPDM2" ' Diabetes Typ II - Praefix bewusst wie historisch "eDMPDM2"
+           Case 27193: DMPArt = 5: sMOAbk = "eDMPAB" ' Asthma bronchiale
+           Case 27216: DMPArt = 9: sMOAbk = "eDMPCH" ' Chronische Herzinsuffizienz
+           Case 27217: DMPArt = 10: sMOAbk = "eDMPCR" ' Chronischer Rueckenschmerz
+           Case 27218: DMPArt = 12: sMOAbk = "eDMPDP" ' Depression
+           Case 27219: DMPArt = 7: sMOAbk = "eDMPOP" ' Osteoporose
+           Case 27220: DMPArt = 8: sMOAbk = "eDMPRA" ' Rheumatoide Arthritis
+           Case 27221: DMPArt = 11: sMOAbk = "eDMPAE" ' Adipositas Erwachsene
+           Case 27222: DMPArt = 11: sMOAbk = "eDMPAK" ' Adipositas Kinder und Jugendliche
+           Case Else
+            Select Case art ' 15.9.26: war rsEi!art, das bei per mosystem-Kategorie aufgelösten Einträgen (z.B. "b8") immer leer ist
+             Case "DMPDTYP1", "EDMPDM1": DMPArt = 1
+             Case "DMPDTYP2", "EDMPDM2": DMPArt = 2
+             Case "DMPKHK", "EDMPKHK": DMPArt = 3
+             Case "EDMPCOPD": DMPArt = 4
+             Case "EDMPAB": DMPArt = 5
+             Case Else ' unbekanntes Kürzel und unbekannte FEintragsart: DMP-Art aus dem Freitext ableiten
+              Dim dmpTxt$
+              dmpTxt = UCase$(nz(rsEi!FDet, "") & " " & nz(rsEi!FText, "") & " " & nz(rsEi!FICdcode, "")) ' 16.9.26: UCase$ statt InStrB(...,vbTextCompare), das bei Pat. 1722 nicht griff
+              If InStrB(dmpTxt, "KHK") <> 0 Or InStrB(dmpTxt, "KORONARE") <> 0 Then
+               DMPArt = 3
+              ElseIf InStrB(dmpTxt, "COPD") <> 0 Then
+               DMPArt = 4
+              ElseIf InStrB(dmpTxt, "ASTHMA") <> 0 Then
+               DMPArt = 5
+              ElseIf InStrB(dmpTxt, "DIABETES") <> 0 Then
+               If InStrB(dmpTxt, "TYP II") <> 0 Or InStrB(dmpTxt, "TYP 2") <> 0 Or InStrB(dmpTxt, "TYP2") <> 0 Then
+                DMPArt = 2
+               Else
+                DMPArt = 1
+               End If
+              End If ' InStrB(dmpTxt, "KHK")
+            End Select
           End Select
        
           For ij = 1 To UBound(rDm) ' um dem eindeutigen Index gerecht zu werden
@@ -2134,7 +2163,7 @@ gef2:
            rDm(rj).ausgedruckt = InStrB(rsEi!FDet, "ausgedruckt")
           ElseIf UCase$(art) = "TEXT" And InStrB(rsEi!FDet, "dokumentation") <> 0 And InStrB(rsEi!FText, "dmp") <> 0 Then
            pos = InStr(rsEi!FArray, "#")
-           If pos > 0 Then rDm(rj).Abk = left$(rsEi!FArray, pos - 1)
+           If pos > 0 Then rDm(rj).Abk = doUmwfSQL(left$(rsEi!FArray, pos - 1), True)
            rDm(rj).art = IIf(InStrB(rsEi!FDet, "Erst"), "ED", "FD")
            rDm(rj).ausgedruckt = IIf(InStrB(rsEi!FDet, "ausgedruckt"), 1, 0)
            pos = 1
@@ -2157,10 +2186,16 @@ gef2:
            rDm(rj).Vorname = rNa(0).Vorname
            rDm(rj).GebDat = rNa(0).GebDat
           Else ' 16.9.26: nur ueber Freitext (FText) erkannte DMP-Dokumentation, z.B. FEintragsart 27144 "Verlaufs-Dokumentation..."
-           rDm(rj).Abk = art
            rDm(rj).art = IIf(InStrB(1, rsEi!FText, "Erst", vbTextCompare) <> 0, "ED", "FD")
+           rDm(rj).Abk = IIf(sMOAbk <> "", sMOAbk & "_" & rDm(rj).art, art) ' 16.9.26: eDMPxx-Praefix zuerst (alte ^-Muster in PatListe1/Lese5/LANRauswahl/AbrechFehler bleiben treffend), ED/FD als Suffix
            rDm(rj).KarteiDatum = messDatum
-   ' TODO Ok/exportiert/ausgedruckt fuer diesen Pfad noch ungeklaert, s. Rueckfrage
+           ' 16.9.26: ltag.FStatus zeigt hier zuverlaessig den Bearbeitungsstand (0=blau/nicht gedruckt,
+           ' 1=golden/gedruckt-nicht-versandt, 2=schwarz/versandt, -32767=fehlerhaft importiert ohne Fallbezug)
+           If nz(rsEi!FStatus, 0) = 2 Then
+            rDm(rj).Ok = True
+            rDm(rj).ausgedruckt = True
+            rDm(rj).exportiert = messDatum
+           End If ' nz(rsEi!FStatus, 0) = 2
            Select Case rsEi!FLstgerbnr
             Case 2: rDm(rj).lanrid = 1 ' Schade
             Case 3: rDm(rj).lanrid = 2 ' Kothny
@@ -2188,6 +2223,10 @@ fehler:
 #Else
  AnwPfad = App.path
 #End If
+ If gObBackfillSilent Then
+  Call BackfillLog("FEHLER MODmpreihe fPtNr=" & fPtNr & " ErrNr=" & Err.Number & " Beschreibung=" & Err.Description)
+  Resume Next
+ End If
  Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + CStr(nz(Err.Source, "")) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in MODmpreihe/" + AnwPfad)
   Case vbAbort: Call MsgBox("Höre auf"): ProgEnde
   Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
@@ -2469,7 +2508,7 @@ gefunden:
    '       pos = InStr(rsEi!FText, "#")
    '       If pos > 0 Then rDm(rj).Abk = Left$(rsEi!FText, pos - 1)
           rDm(rj).art = IIf(InStrB(rsEi!FText, "Erst"), "ED", "FD")
-          rDm(rj).Abk = rsEi!FText
+          rDm(rj).Abk = doUmwfSQL(rsEi!FText, True) ' 16.9.26: unescaped -> SQL-Fehler bei Apostroph im Text
           rDm(rj).Ok = rsEi!lFSt
    '       rDm(rj).ausgedruckt = IIf(InStrB(rsEi!erg, "ausgedruckt"), 1, 0)
    '       pos = 1
@@ -2504,6 +2543,10 @@ fehler:
 #Else
  AnwPfad = App.path
 #End If
+ If gObBackfillSilent Then
+  Call BackfillLog("FEHLER MODmpreihe1 fPtNr=" & fPtNr & " ErrNr=" & Err.Number & " Beschreibung=" & Err.Description)
+  Resume Next
+ End If
  Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + CStr(nz(Err.Source, "")) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in MODmpreihe1/" + AnwPfad)
   Case vbAbort: Call MsgBox("Höre auf"): ProgEnde
   Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
@@ -2516,19 +2559,24 @@ End Sub ' MODmpreihe1
 ' deckt beide Erkennungspfade ab: MODmpreihe (mosystem-Kategorie, z.B. "b8") und MODmpreihe1 (Text ueber beschein, obdr).
 ' Kandidatenkreis ist bewusst weit gefasst und daher entsprechend langsam (nur fuer den einmaligen Backfill, nicht fuer den Alltag);
 ' fuer nicht betroffene Patienten bleibt rDm() nach beiden Aufrufen leer und es wird nichts gespeichert.
-Public Sub callMODmp()
+Public Sub callMODmp(Optional NurFPatnr$ = "")
  Dim rsl As New ADODB.Recordset, rN As ADODB.Recordset, i&, rAf&, zpid&, gesp&
  If MOConInit(, "callMODmp()") Then Exit Sub
  MOCon.CommandTimeout = 300 ' 16.9.26: die Kandidaten-Query ist ein UNION-Scan ueber ltag/beschein, 10s reichen dafuer nicht
  Call MOKatLaden
  If SafeArrayGetDim(rNa) = 0 Then ReDim rNa(0)
+ gObBackfillSilent = True ' 16.9.26: unbeaufsichtigter Lauf, keine wartenden MsgBoxen mehr
+ Call BackfillLog("=== callMODmp gestartet" & IIf(NurFPatnr <> "", " (eingeschraenkt auf " & NurFPatnr & ")", "") & " ===")
+ On Error GoTo fehlerPat
+ Dim sqlZusatz$
+ If NurFPatnr <> "" Then sqlZusatz = " WHERE x.FPatnr IN (" & NurFPatnr & ")"
  myFrag rsl, "SELECT COUNT(0)OVER()zahl, FPatnr FROM (" & vbCrLf & _
   " SELECT FPatnr FROM ltag WHERE FICdcode LIKE '%dmp%' OR FEintragsart>1000" & vbCrLf & _
   " UNION" & vbCrLf & _
   " SELECT l.FPatnr FROM ltag l JOIN beschein b ON b.FSurogat=l.FEintragsnr" & vbCrLf & _
   " WHERE (l.FICdcode LIKE '%dmp%' OR l.FICdcode='') AND b.FSurogat IS NOT NULL" & vbCrLf & _
   " AND l.FText RLIKE '(Erst|Verlaufs)-Dokumentation|^dmp(dm|dtyp|khk)|^edmp(dm|khk|ab|copd)|DMP Teilnahmeerklärung'" & vbCrLf & _
-  ") x GROUP BY FPatnr ORDER BY FPatnr DESC", adOpenStatic, MOCon
+  ") x" & sqlZusatz & " GROUP BY FPatnr ORDER BY FPatnr DESC", adOpenStatic, MOCon
  Do While Not rsl.EOF
   i = i + 1
   ReDim rDm(0)
@@ -2546,12 +2594,22 @@ Public Sub callMODmp()
   If UBound(rDm) <> 0 Then
    Call dmpreiheSpeichern(True, False, rAf)
    gesp = gesp + 1
+   Call BackfillLog("verarbeitet FPatnr=" & rsl!FPatNr & " rDm=" & UBound(rDm) & " gespeichert")
+  Else
+   Call BackfillLog("verarbeitet FPatnr=" & rsl!FPatNr & " keine Eintraege")
   End If ' UBound(rDm) <> 0 Then
+weiter:
   rsl.MoveNext
  Loop
+ gObBackfillSilent = False
  MOCon.CommandTimeout = 10 ' 16.9.26: wieder auf den normalen "fail fast"-Wert zurueck (s. MOConInit)
+ Call BackfillLog("=== callMODmp fertig: " & gesp & " von " & i & " ===")
  syscmd 4, "dmpreihe-Backfill fertig: " & gesp & " von " & i & " Patienten hatten neue/aktualisierte Einträge"
- MsgBox "dmpreihe-Backfill fertig." & vbCrLf & gesp & " von " & i & " geprüften Patienten hatten neue/aktualisierte Einträge."
+ MsgBox "dmpreihe-Backfill fertig." & vbCrLf & gesp & " von " & i & " geprüften Patienten hatten neue/aktualisierte Einträge." & vbCrLf & "Protokoll: \\linux1\daten\down\callMODmp_log.txt"
+ Exit Sub
+fehlerPat:
+ Call BackfillLog("FEHLER callMODmp bei FPatnr=" & nz(rsl!FPatNr, "?") & " ErrNr=" & Err.Number & " Beschreibung=" & Err.Description)
+ Resume weiter
 End Sub ' callMODmp
 
 ' Diagnose (15.9.26): zeigt alle mosystem-kategorisierten ltag-Eintraege (FEintragsart>1000) eines Patienten
@@ -4590,10 +4648,11 @@ fgefunden:
      'dmpreihe (2): 15.9.26 nach MODmpreihe ausgelagert (mosystem-Kategorie-Pfad inkl. "b8"-artiger Kuerzel)
       If (rsEi!FICdcode Like "*dmp*" And rsEi!FICdcode <> "DMPERG") Or _
       (UCase$(art) = "TEXT" And InStrB(rsEi!FDet, "dokumentation") <> 0 And InStrB(rsEi!FText, "dmp") <> 0) Or _
-      (InStrB(1, rsEi!FText, "Dokumentation", vbTextCompare) <> 0 And _
+      (rsEi!FEintragsart = 27143 Or rsEi!FEintragsart = 27144 Or rsEi!FEintragsart = 27187 Or rsEi!FEintragsart = 27188 Or rsEi!FEintragsart = 27193 Or rsEi!FEintragsart = 27216 Or rsEi!FEintragsart = 27217 Or rsEi!FEintragsart = 27218 Or rsEi!FEintragsart = 27219 Or rsEi!FEintragsart = 27220 Or rsEi!FEintragsart = 27221 Or rsEi!FEintragsart = 27222) Or _
+      (InStrB(1, rsEi!FText, "Dokumentation", vbTextCompare) <> 0 And InStrB(1, rsEi!FText, "Duplikat", vbTextCompare) = 0 And _
       (InStrB(1, rsEi!FText, "Diabetes", vbTextCompare) <> 0 Or InStrB(1, rsEi!FText, "DMP", vbTextCompare) <> 0 Or _
       InStrB(1, rsEi!FText, "KHK", vbTextCompare) <> 0 Or InStrB(1, rsEi!FText, "koronare", vbTextCompare) <> 0 Or _
-      InStrB(1, rsEi!FText, "COPD", vbTextCompare) <> 0 Or InStrB(1, rsEi!FText, "Asthma", vbTextCompare) <> 0)) Then ' 16.9.26: Pat. 1722, FEintragsart 27144, leeres FICdcode
+      InStrB(1, rsEi!FText, "COPD", vbTextCompare) <> 0 Or InStrB(1, rsEi!FText, "Asthma", vbTextCompare) <> 0)) Then ' 16.9.26: Pat. 1722/42464, FEintragsart-Liste per Testeintraegen ermittelt
        ' wird jetzt durch MODmpreihe(fPtNr, pid) erledigt, s.u. nach Ende dieser Schleife
       Else ' (rsEi!FIcdcode Like "*dmp*" And rsEi!FIcdcode <> "DMPERG") Or _
       (UCase$(art) = "TEXT" And InStrB(rsEi!FDet, "dokumentation") <> 0 And InStrB(rsEi!FText, "dmp") <> 0) Then
