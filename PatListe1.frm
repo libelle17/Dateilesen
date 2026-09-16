@@ -4978,6 +4978,12 @@ Private Sub Form_Load()
         If obed Then .CellBackColor = HellBlau
        End If
       Next j
+      If LenB(Trim$(Join(dokus, ""))) = 0 Then ' im angezeigten Zeitraum kein Eintrag; letztes bekanntes Datum in Klammern zeigen
+       If Not IsNull(rDPat!dokudatum) Then
+        .col = begcol
+        .Text = "(" & Format(rDPat!dokudatum, "dd.mm.yy") & ")"
+       End If ' Not IsNull(rDPat!dokudatum)
+      End If ' LenB(Trim$(Join(dokus, ""))) = 0
 '#End If
       ' not obraus and
       If obraus Then ' wieder reduziert 4.10.24

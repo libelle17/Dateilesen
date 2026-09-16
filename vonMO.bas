@@ -47,6 +47,7 @@ End Type
 
 Declare Sub CopyMemoryPtr Lib "kernel32" Alias "RtlMoveMemory" (ByVal Destination&, ByVal Sourc&, ByVal Length&)
 Dim aru&
+Private EinL As New SortierListe, EinK As New SortierListe ' 15.9.26: modulweit statt Static-lokal in doPatvonMO, damit MODmpreihe sie mitnutzen kann
 
 Public Function explor(pid&)
 Const wart& = 100
@@ -1833,107 +1834,13 @@ End Sub ' LaborAusStaging(pid&, ByRef rAfGes&)
 #End If
 
 ' in PatvonMO_Click, Übertragung_Click, PlzMitImp_Click, dodoplz (2x), Falsche_Benutzer_Korrigieren_Click, Übertragung_aus_MO_Click, lesallevein
-Public Function doPatvonMO(fPtNr&, Optional obmitFormularen%, Optional obpruef%, Optional ohneLabor%, Optional obtranspa%, Optional oblabla%)
+Private Sub MOKatLaden() ' 15.9.26: aus doPatvonMO herausgezogen, damit auch MODmpreihe darauf zugreifen kann
  Const obDebug% = False
- Dim pid&, pos&, pneu&, SchGr%, j&, jj%, rAf&, Puls$, Bem$, ErrNr&, ErrDes$ ' , rInh$, aktZeit As Date
- Dim LaborLangsam%
- Dim ij&, rj& ' Laufvariable und zu befüllender Satz in rDM
- ' Veriablen für die rDm-Befüllung:
- Dim DMPArt%, uDat As Date, DokuDatum As Date, Druckdatum As Date, exportiert As Date
- Dim testdat As Date ' für Druckdatum oder exportiert
- LaborLangsam = oblabla
-' LaborLangsam = True
-abermals:
-'  fPtNr& = 68393  ' 69618 ' 63635 ' 67180 ' 63635 ' 64800 ' 69333 ' 68316 ' 65405 ' 45 ' 64659 ' 45 ' 69367 ' 69377 ' 53119 ' 51630 ' 105 ' 18 ' 246 ' 59152 ' 1394 ' 2112 ' 151 ' 225 '
- pid = setzPid(fPtNr)
- Static lfdfl&
- Dim rsFa As New ADODB.Recordset, rsMO As New ADODB.Recordset
- Dim FMem() As memoType ', Kat() As memoType, tKat() As memoType, Abl() As memoType, fAuft() As memoType
- Dim NaStr() As memoType, FaStr() As memoType, rsfaru%
+ Dim rAf&, j&
+ Dim rsMO As New ADODB.Recordset
+ Dim FMem() As memoType
  Dim EintS As SortierEintr
- Static EinL As New SortierListe, EinK As New SortierListe
- If MOConInit(, "Übertragung aus MO von Pat. " & fPtNr) Then Exit Function
- If obpruef Then ' prüft, ob Import Neues brächte
-  Dim rab As ADODB.Recordset, raz As ADODB.Recordset
-' dbsprot.fPrimaryKey ist varchar(35), ltag.FSurogat int(11), somit laesst sich kein vorhandere Index verwenden
-' vorlaeufig wird ein Index dd_fpatnr erstellt für FPatnr, FTablename
-'        "-- AND 18900101 + INTERVAL d.FDatum DAY + INTERVAL d.FUhrzeit SECOND<NOW()-INTERVAL 30 SECOND" & vbCrLf
-  sql = "SELECT" & vbCrLf & _
-        "18900101 + INTERVAL d.FDatum DAY + INTERVAL d.FUhrzeit SECOND laend/*, d.*,p.**/" & vbCrLf & _
-        "FROM dbsprot d" & vbCrLf & _
-        "LEFT JOIN dbsprot p ON d.FTablename='ltag' AND p.FTablename='extauftr' AND d.FPrimarykey=p.FPrimarykey" & vbCrLf & _
-        "WHERE d.FPatnr=" & fPtNr & vbCrLf & _
-        "AND d.FTablename IN ('ltag','termin')" & vbCrLf & _
-        "AND p.FSurogat IS NULL" & vbCrLf & _
-        "AND (d.FXmlinhalt IS NULL OR d.FXmlinhalt NOT RLIKE 'arztbrief|Erledigtdatum')" & vbCrLf & _
-        "ORDER BY d.FDatum DESC,d.FUhrzeit DESC" & vbCrLf & _
-        "LIMIT 1"
-' AND ftablename NOT IN ('datafile','d2dmail','med95ini','mail','nutzerneu','markier','earzt','epraxis','tzone','ldtarc','globalitems','zertifikat','nutzerzugriff','patfall','patrelation')
-  myFrag rab, sql, adOpenStatic, MOCon, adLockReadOnly
-  If Not rab.EOF Then
-   If Not IsNull(rab!laend) Then
-    Set raz = Nothing ' notwendig bei Pat. 3776
-    myFrag raz, "SELECT COALESCE(aktzeit,18990101) aktzeit FROM namen WHERE pat_id=" & fPtNr, , DBCn, adLockReadOnly, , rAf
-    If Not raz.EOF Then
-     If raz!aktZeit > rab!laend Then
-'      If obtranspa Then
-'       MsgBox sql & vbCrLf & "Patient wurde in MO zuletzt geändert: " & Format(rab!laend, "dd.mm.yyyy HH:MM:SS") & "," & vbCrLf & _
-       "zuletzt importiert: " & Format(raz!aktZeit, "dd.mm.yyyy HH:MM:SS") & " => braucht nicht übertragen zu werden"
-'      End If
-      syscmd 4, "die Überprüfung ergab: keine Übertragung bei PtNr." & fPtNr & " notwendig!"
-      Exit Function
-'     Else ' raz!aktZeit > rab!laend Then
-'      If obtranspa Then
-'       MsgBox sql & vbCrLf & "Patient wurde in MO zuletzt geändert: " & Format(rab!laend, "dd.mm.yyyy HH:MM:SS") & "," & vbCrLf & _
-       "zuletzt importiert: " & Format(raz!aktZeit, "dd.mm.yyyy HH:MM:SS") & " => wird übertragen"
-'      End If
-     End If ' raz!aktZeit > rab!laend Then
-    End If ' Not raz.EOF Then
-   End If ' Not IsNull(rab!laend) Then
-  End If ' not rab.eof
- End If ' obpruef
- aktZeit = Now()
- syscmd acSysCmdSetStatus, "Übertrage Daten aus MO zu Pat. " & fPtNr
-' BegTrans
- Call Tinit
- Call doTabVorb(Lese, 0, 0) ' obVorber, obmitFormularen)
-' ComTrans
- syscmd 4, "richte desktopkop her"
- myEFrag "DELETE FROM desktopkop WHERE pat_id=" & pid
- Dim spal$
- spal = myEFrag("SELECT GROUP_CONCAT(COLUMN_NAME) FROM information_schema.columns c WHERE TABLE_NAME='desktop' AND table_catalog='def' AND TABLE_schema='quelle' AND column_key<>'PRI'", , , , , , 15000).Fields(0)
- myEFrag "INSERT INTO desktopkop(" & spal & ") SELECT " & REPLACE$(spal, "Pat_ID", "Pat_ID+" & CStr(Lese.pidoffs) & "") & " FROM desktop WHERE pat_id=" & pid
- Dim rdesk As ADODB.Recordset
- Dim aDesk() As desktop
- Set rdesk = myEFrag("SELECT CONCAT(tooltiptext,'\\n',titel) tit, d.* FROM desktop d WHERE pat_id=" & pid & " ORDER BY erstZP", rAf)
- Do While Not rdesk.EOF
-  If SafeArrayGetDim(aDesk) Then ReDim Preserve aDesk(UBound(aDesk) + 1) Else ReDim aDesk(0)
-  aDesk(UBound(aDesk)).erstZP = rdesk!erstZP
-  aDesk(UBound(aDesk)).absPos = rdesk!absPos
-  aDesk(UBound(aDesk)).aktZeit = rdesk!aktZeit
-  aDesk(UBound(aDesk)).exoL = rdesk!exoL
-  aDesk(UBound(aDesk)).hideT = rdesk!hideT
-  aDesk(UBound(aDesk)).iconPath = rdesk!iconPath
-  aDesk(UBound(aDesk)).IDS = rdesk!IDS
-  aDesk(UBound(aDesk)).noteBkColor = rdesk!noteBkColor
-  aDesk(UBound(aDesk)).noteFgColor = rdesk!noteFgColor
-  aDesk(UBound(aDesk)).Pat_id = pid
-  aDesk(UBound(aDesk)).positionBottom = rdesk!positionBottom
-  aDesk(UBound(aDesk)).positionLeft = rdesk!positionLeft
-  aDesk(UBound(aDesk)).positionRight = rdesk!positionRight
-  aDesk(UBound(aDesk)).positionTop = rdesk!positionTop
-  aDesk(UBound(aDesk)).showAsNote = rdesk!showAsNote
-  aDesk(UBound(aDesk)).syncInfoList = rdesk!syncInfoList
-  aDesk(UBound(aDesk)).Titel = rdesk!tit
-  aDesk(UBound(aDesk)).toolTipText = rdesk!toolTipText
-  aDesk(UBound(aDesk)).verankert = rdesk!verankert
-  rdesk.MoveNext
- Loop
- Call LöschePat(pid, , ohneLabor:=ohneLabor)
-' On Error Resume Next
-' If obDebug Then FSO.DeleteFile parsemotxt
  On Error GoTo fehler
-' Tinit
  If EinL.COUNT = 0 Then
   syscmd 4, "Lade MOSystem"
  ' unter Ado müssen die Memo-Felder auf latin1 übersetzt werden für die Zahlen > 128 (nicht in HeidiSQL)
@@ -2055,6 +1962,825 @@ Dim aFld()     As TMemoFeld
   End If ' FmS <> "" Then
  End If ' einl.count=0
  Close #235
+ Exit Sub
+fehler:
+ Dim AnwPfad$
+#If VBA6 Then
+ AnwPfad = CurrentDb.name
+#Else
+ AnwPfad = App.path
+#End If
+ Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + CStr(nz(Err.Source, "")) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in MOKatLaden/" + AnwPfad)
+  Case vbAbort: Call MsgBox("Höre auf"): ProgEnde
+  Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
+  Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
+ End Select
+End Sub ' MOKatLaden
+
+' in doPatvonMO (dmpreihe(2), mosystem-Kategorie-Pfad) und callMODmp (Wrapper fuer alle Patienten)
+Public Sub MODmpreihe(fPtNr&, Optional pid& = -1)
+ Dim rsEi As New ADODB.Recordset
+ Dim EintS As SortierEintr
+ Dim art$, neuart%
+ Dim pos&, pneu&
+ Dim DMPArt%, messDatum As Date
+ Dim ij&, rj&
+ On Error GoTo fehler
+ If MOConInit(, "MODmpreihe(" & fPtNr & ")") Then Exit Sub
+ If SafeArrayGetDim(rDm) = 0 Then ReDim rDm(0)
+ If SafeArrayGetDim(rNa) = 0 Then ReDim rNa(0)
+ Call MOKatLaden
+ If pid = -1 Then pid = fPtNr
+ syscmd 4, "Übertrage DMP-Dokumentation für " & fPtNr
+ sql = "SELECT 18900101+INTERVAL FDatum DAY+INTERVAL FZeit SECOND Zp" & vbCrLf & _
+  ", IF (FText RLIKE '^(\w+)#\1:', REGEXP_REPLACE(FText,'(\w+)#\1:.*','\1'),REGEXP_REPLACE(FICdcode,'(\w+)#\1','\1')) Art" & vbCrLf & _
+  ", REPLACE(REPLACE(REPLACE(IF(rWert=FDetails OR rWert IS NULL,FDet,rWert),'\t',''),'\r',''),'\n',' ') Wert, FDet, FICDCode, FEintragsart, 18900101+INTERVAL FAnorddatum DAY+INTERVAL FAnordzeit SECOND AnZp" & vbCrLf & _
+  ", COALESCE(na.FInitialen,'') ua, COALESCE(nb.FInitialen,'') ub, l.FLstgerbnr, FText, FDetails" & vbCrLf & _
+  ", REGEXP_REPLACE(FDet,'^(?>[^0-9]|[4-9](?![0-9])|[0-2](?![0-9]{2}))*\b((?:[4-9][0-9]|[0-3][0-9]{2})(?:-[0-9]{2,3}){0,2}) */? *(?:über )?((?:[3-9][0-9]|[0-2][0-9]{2})(?:-[0-9]{2,3}){0,2})?(?:(?:[^PH]|H(?!F))*(?:Puls|P(?=[0-9 :.])|HF))?:? *([0-9]{1,3}(?:-[0-9]{2,3})?)? *(.*)','\1‡\2‡\3‡\4') FArray" & vbCrLf & _
+  ", REGEXP_REPLACE(FDet,'^(?:[^l]|l(?!e))*(?:let?zten *(\d{1,3}))?.*$','\1') zahl" & vbCrLf & _
+  ", IF(INSTR(FDet,'exportiert')=0,0,REGEXP_REPLACE(FDet,'.*am ([^)]*)\).*','\1')) exp" & vbCrLf & _
+  "FROM (" & vbCrLf & _
+  " SELECT REPLACE(IF(INSTR(FDetails,'text ""'),MID(FDetails,LOCATE('text',FDetails)+LENGTH('text')+2,LOCATE('""',REPLACE(FDetails,'\""','\'''),LOCATE('text',FDetails)+LENGTH('text')+2)-LOCATE('text',FDetails)-LENGTH('text')-2),FText),'''','\''') FDet" & vbCrLf & _
+  ", ltag.*" & vbCrLf & _
+  ",REGEXP_REPLACE(FDetails,'^.*?(?:Ewert ""?(?:Dieser Eintrag wurde manuell erzeugt.|(\d+(?:[^0-9,.]|[.,]\d+?))0*\b(?:\\n(?:\\""|\\|[^""])*)?)""?(?#<- hintere 0er löschen).*(?:Einheit( )""((?:\\""|\\|[^""])*)"")?|\((?:T|Et)ext ""((?:\\""|\\|[^""])*)"").*$','\1\2\3\4') rWert" & vbCrLf & _
+  " FROM ltag) l" & vbCrLf & _
+  "LEFT JOIN nutzerneu na ON FAnordnutzernr = na.FSurogat" & vbCrLf & _
+  "LEFT JOIN nutzerneu nb ON FAusfnutzernr = nb.FSurogat" & vbCrLf & _
+  "WHERE FPatnr = " & fPtNr & vbCrLf & _
+  " AND ((FEintragsart=5 AND FStatus=0) OR FEintragsart IN (8,9,10,11,151) OR FEintragsart>1000)" & vbCrLf & _
+  "/* AND REGEXP_REPLACE(FICdcode,'(\w+)#\1','\1') IN ('RR','RRVGL')*/" & vbCrLf & _
+  " AND (FBehgrundnr<=0 OR FEintragsart>1000)" ' 16.9.26: Pat. 1722, FBehgrundnr>0 bei FEintragsart 27144 (Verlaufs-Dokumentation)
+' FEintragsart>1000 sind die selbst definierten Kategorien in mosystem
+ myFrag rsEi, sql, adOpenStatic, MOCon ' dmpreihe(2)
+ If Not rsEi.BOF Then
+  Do While Not rsEi.EOF
+   messDatum = rsEi!Zp
+   art = rsEi!art
+   neuart = 0
+       If art = "" Then ' bei Kategorien die art aus mosystem holen
+        Set EintS = New SortierEintr
+        EintS.TypNr = rsEi!FEintragsart
+   '     If rsEi!FDet Like "Schilddrüse: re Lappen 2,5 ml,*" Then Stop
+        Set EintS = EinL.GetItem(EintS)
+        If Not EintS Is Nothing Then
+         art = EintS.IKür
+         If art = "dak" Then
+          If rsEi!FDet Like "Wie oft am Tag müssen Sie Wasser lassen*" Then
+           art = "dakluts"
+          ElseIf rsEi!FDet Like "Bekommen Sie regelmäßig nach bestimmten Gehstrecken*" Then
+           art = "dakap"
+          ElseIf rsEi!FDet Like "Schweißtest: *" Then
+           art = "daknp"
+          End If ' rsEi!FDet Like "Wie
+         ElseIf art = "" Then
+          Dim strpos%
+          strpos = InStr(EintS.name, " - ") ' 17.7.26
+          If strpos Then
+           art = Mid(EintS.name, strpos + 3)
+           If art = "nicht erschienen" Then
+            art = "tv" ' Termin versäumt
+           End If
+          Else
+           art = EintS.name
+          End If
+   '       If EintS.TypNr = 1151 Then ' EintS.name = "Text - 50g" Then ' 17.7.26
+   '        art = "50g"
+   '       ElseIf EintS.TypNr = 1004 And EintS.name = "Text" Then
+   '        art = "Text"
+   '       ElseIf EintS.TypNr = 1005 And EintS.name = "UEBLABOR" Then
+   '        art = "UEBLABOR"
+   '       Else
+   '        Debug.Print "!!! nicht zugeordnet: " & EintS.TypNr
+   '       End If
+         End If ' art = "dak" Then
+         neuart = True
+   '     ElseIf rsEi!FEintragsart = 1053 Then ' Überweisungstext ' ist bei EinK dabei => "utxt"
+   '      art = "ütxt"
+   '     ElseIf rsEi!FEintragsart = 1105 Then ' Infos
+   '      art = "info"
+        Else ' Not EintS Is Nothing Then
+         Set EintS = New SortierEintr
+         EintS.TypNr = rsEi!FEintragsart ' Fehler bei: 1138
+         Set EintS = EinK.GetItem(EintS)
+   '      Debug.Print EintS.Kürz
+   '      On Error Resume Next ' , Fehler bei 70328
+         If EintS Is Nothing Then
+          Debug.Print "Eintragsart nicht gefunden: " & rsEi!FEintragsart
+         Else ' EintS Is Nothing Then
+          Select Case EintS.TypNr
+           Case 1138
+           Case Else
+            art = EintS.IKür
+          End Select
+         End If ' EintS Is Nothing Then Else
+   '      On Error GoTo fehler
+        End If ' Not EintS Is Nothing Then
+       End If ' rEi(UBound(rEi)).Art = "" Then
+        'dmpreihe (2); Doppeleinträge gemäß Index "eindeutig" vermeiden
+         DMPArt = 0
+         If (rsEi!FICdcode Like "*dmp*" And rsEi!FICdcode <> "DMPERG") Or _
+         (UCase$(art) = "TEXT" And InStrB(rsEi!FDet, "dokumentation") <> 0 And InStrB(rsEi!FText, "dmp") <> 0) Or _
+         (InStrB(1, rsEi!FText, "Dokumentation", vbTextCompare) <> 0 And _
+         (InStrB(1, rsEi!FText, "Diabetes", vbTextCompare) <> 0 Or InStrB(1, rsEi!FText, "DMP", vbTextCompare) <> 0 Or _
+         InStrB(1, rsEi!FText, "KHK", vbTextCompare) <> 0 Or InStrB(1, rsEi!FText, "koronare", vbTextCompare) <> 0 Or _
+         InStrB(1, rsEi!FText, "COPD", vbTextCompare) <> 0 Or InStrB(1, rsEi!FText, "Asthma", vbTextCompare) <> 0)) Then ' 16.9.26: Pat. 1722, FEintragsart 27144, leeres FICdcode
+          Select Case art ' 15.9.26: war rsEi!art, das bei per mosystem-Kategorie aufgelösten Einträgen (z.B. "b8") immer leer ist
+           Case "DMPDTYP1", "EDMPDM1": DMPArt = 1
+           Case "DMPDTYP2", "EDMPDM2": DMPArt = 2
+           Case "DMPKHK", "EDMPKHK": DMPArt = 3
+           Case "EDMPCOPD": DMPArt = 4
+           Case "EDMPAB": DMPArt = 5
+           Case Else ' unbekanntes Kürzel (z.B. mosystem-Kategorie "b8"): DMP-Art aus dem Freitext ableiten
+            Dim dmpTxt$
+            dmpTxt = UCase$(nz(rsEi!FDet, "") & " " & nz(rsEi!FText, "") & " " & nz(rsEi!FICdcode, "")) ' 16.9.26: UCase$ statt InStrB(...,vbTextCompare), das bei Pat. 1722 nicht griff
+            If InStrB(dmpTxt, "KHK") <> 0 Or InStrB(dmpTxt, "KORONARE") <> 0 Then
+             DMPArt = 3
+            ElseIf InStrB(dmpTxt, "COPD") <> 0 Then
+             DMPArt = 4
+            ElseIf InStrB(dmpTxt, "ASTHMA") <> 0 Then
+             DMPArt = 5
+            ElseIf InStrB(dmpTxt, "DIABETES") <> 0 Then
+             If InStrB(dmpTxt, "TYP II") <> 0 Or InStrB(dmpTxt, "TYP 2") <> 0 Or InStrB(dmpTxt, "TYP2") <> 0 Then
+              DMPArt = 2
+             Else
+              DMPArt = 1
+             End If
+            End If ' InStrB(dmpTxt, "KHK")
+          End Select
+       
+          For ij = 1 To UBound(rDm) ' um dem eindeutigen Index gerecht zu werden
+           If rDm(ij).Pat_id = pid And rDm(ij).DMPArt = DMPArt And rDm(ij).DokuDatum = messDatum Then
+            rj = ij
+            GoTo gef2
+           End If
+          Next ij
+          rj = UBound(rDm) + 1
+          ReDim Preserve rDm(rj)
+          rDm(rj).Pat_id = pid
+          rDm(rj).DMPArt = DMPArt
+          rDm(rj).DokuDatum = messDatum
+gef2:
+          rDm(rj).aktZeit = aktZeit
+          rDm(rj).Pat_id = pid
+       
+          If rsEi!FICdcode Like "*dmp*" And rsEi!FICdcode <> "DMPERG" Then
+   '        Debug.Print rsEi!ficdcode, rsEi!Wert
+           rDm(rj).Abk = art
+           If InStrB(rsEi!FDet, "Erst") Then rDm(rj).art = "ED" Else rDm(rj).art = "FD"
+           rDm(rj).exportiert = CDate(rsEi!Exp)
+   '        rDm(rj).DokuDatum = messDatum ' ist schon oben
+           rDm(rj).KarteiDatum = messDatum
+           rDm(rj).Ok = InStrB(rsEi!FDet, "(ok")
+           rDm(rj).ausgedruckt = InStrB(rsEi!FDet, "ausgedruckt")
+          ElseIf UCase$(art) = "TEXT" And InStrB(rsEi!FDet, "dokumentation") <> 0 And InStrB(rsEi!FText, "dmp") <> 0 Then
+           pos = InStr(rsEi!FArray, "#")
+           If pos > 0 Then rDm(rj).Abk = left$(rsEi!FArray, pos - 1)
+           rDm(rj).art = IIf(InStrB(rsEi!FDet, "Erst"), "ED", "FD")
+           rDm(rj).ausgedruckt = IIf(InStrB(rsEi!FDet, "ausgedruckt"), 1, 0)
+           pos = 1
+           Do
+            pneu = InStr(pos + 1, rsEi!FDet, "exportiert am")
+            If pneu = 0 Then Exit Do Else pos = pneu
+           Loop
+           If pos > 1 Then rDm(rj).exportiert = CDate(Mid$(rsEi!FDet, pos + 14, 10))
+           rDm(rj).KarteiDatum = CDate(rsEi!Zp)
+           rDm(rj).obvoll = IIf(InStrB(rsEi!FDet, "vollständig"), 1, 0)
+           rDm(rj).Ok = IIf(InStrB(rsEi!FDet, "(ok"), 1, 0)
+    '       rDm(rj).lanrid = rsEi!farztnr
+           Select Case rsEi!FLstgerbnr
+            Case 2: rDm(rj).lanrid = 1 ' Schade
+            Case 3: rDm(rj).lanrid = 2 ' Kothny
+            Case 4: rDm(rj).lanrid = 5 ' Hammerschmidt
+            Case Else: rDm(rj).lanrid = 4 ' unbek
+           End Select
+           rDm(rj).Nachname = rNa(0).Nachname
+           rDm(rj).Vorname = rNa(0).Vorname
+           rDm(rj).GebDat = rNa(0).GebDat
+          Else ' 16.9.26: nur ueber Freitext (FText) erkannte DMP-Dokumentation, z.B. FEintragsart 27144 "Verlaufs-Dokumentation..."
+           rDm(rj).Abk = art
+           rDm(rj).art = IIf(InStrB(1, rsEi!FText, "Erst", vbTextCompare) <> 0, "ED", "FD")
+           rDm(rj).KarteiDatum = messDatum
+   ' TODO Ok/exportiert/ausgedruckt fuer diesen Pfad noch ungeklaert, s. Rueckfrage
+           Select Case rsEi!FLstgerbnr
+            Case 2: rDm(rj).lanrid = 1 ' Schade
+            Case 3: rDm(rj).lanrid = 2 ' Kothny
+            Case 4: rDm(rj).lanrid = 5 ' Hammerschmidt
+            Case Else: rDm(rj).lanrid = 4 ' unbek
+           End Select
+           rDm(rj).Nachname = rNa(0).Nachname
+           rDm(rj).Vorname = rNa(0).Vorname
+           rDm(rj).GebDat = rNa(0).GebDat
+          End If ' rsEi!FIcdcode Like "*dmp*" And rsEi!FIcdcode <> "DMPERG" Then else
+         End If ' 15.9.26 nachgetragen: schliesst das aeussere "If (rsEi!FICdcode Like ...) Or (...) Then"
+   rsEi.MoveNext
+  Loop
+ End If ' Not rsEi.BOF Then
+' Dim mx As Date, kr&
+' For kr = 1 To UBound(rDm)
+'  If rDm(kr).DokuDatum > mx Then mx = rDm(kr).DokuDatum
+' Next kr
+' Debug.Print mx
+ Exit Sub
+fehler:
+ Dim AnwPfad$
+#If VBA6 Then
+ AnwPfad = CurrentDb.name
+#Else
+ AnwPfad = App.path
+#End If
+ Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + CStr(nz(Err.Source, "")) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in MODmpreihe/" + AnwPfad)
+  Case vbAbort: Call MsgBox("Höre auf"): ProgEnde
+  Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
+  Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
+ End Select
+End Sub ' MODmpreihe
+
+
+' 15.9.26: eigenstaendige Extraktion des obdr-Pfads (dmpreihe(1), textbasiert ueber beschein) fuer Backfill-Zwecke.
+' Bewusst NICHT aus doPatvonMO aufgerufen: dort teilt sich die Original-Query mit Rezepten/Krankenhauseinweisungen/Formularen,
+' eine zweite, eigene Ausfuehrung dieser (teuren, multi-regex-lastigen) Query plus ParseMemoFast pro Zeile waere bei jeder
+' normalen Patientenuebertragung unnoetiger Mehraufwand. Nur fuer callMODmp1()/isolierten Backfill gedacht.
+Public Sub MODmpreihe1(fPtNr&, Optional pid& = -1)
+ Const obDebug% = False
+ Dim rsEi As New ADODB.Recordset
+ Dim FMem() As memoType
+ Dim DMPArt%, uDat As Date, DokuDatum As Date, Druckdatum As Date, exportiert As Date
+ Dim testdat As Date
+ Dim ij&, rj&, j&
+ On Error GoTo fehler
+ If MOConInit(, "MODmpreihe1(" & fPtNr & ")") Then Exit Sub
+ If SafeArrayGetDim(rDm) = 0 Then ReDim rDm(0)
+ If SafeArrayGetDim(rNa) = 0 Then ReDim rNa(0)
+ If pid = -1 Then pid = fPtNr
+ syscmd 4, "Übertrage DMP-Dokumentation (Text-Pfad) für " & fPtNr
+  sql = _
+"SELECT" & vbCrLf & _
+"CASE" & vbCrLf & _
+"        WHEN l.FEintragsart=1085 THEN 'K'" & vbCrLf & _
+"        WHEN fdetails RLIKE 'Rezeptoptionen ""(4|1028)""' THEN 'G'" & vbCrLf & _
+"        WHEN FDetails RLIKE'^.*Rezeptoptionen ""512"".*$' THEN 'SM'" & vbCrLf & _
+"        WHEN FDetails RLIKE'^.*Rezeptart ([0-9]).*$' THEN" & vbCrLf & _
+"            CASE REGEXP_REPLACE(FDetails,'^.*Rezeptart ([0-9]).*$','\1')" & vbCrLf & _
+"                WHEN 1 THEN'K'" & vbCrLf & _
+"                WHEN 2 THEN'P'" & vbCrLf & _
+"                WHEN 3 THEN'M'" & vbCrLf & _
+"                WHEN 4 THEN'S'" & vbCrLf & _
+"                WHEN 5 THEN'F'" & vbCrLf & _
+"                ELSE" & vbCrLf & _
+"                    CASE" & vbCrLf & _
+"                        WHEN l.FEintragsart=17 THEN" & vbCrLf & _
+"                            CASE WHEN FStatusergaenzung=2 THEN'P'" & vbCrLf & _
+"                                ELSE'K'" & vbCrLf & _
+"                            END" & vbCrLf & _
+"                        ELSE ''" & vbCrLf & _
+"                    END" & vbCrLf & _
+"                END" & vbCrLf & _
+"        ELSE" & vbCrLf & _
+"            CASE" & vbCrLf
+sql = sql & _
+"                WHEN l.FEintragsart=17 THEN" & vbCrLf & _
+"                    CASE WHEN FStatusergaenzung=2 THEN'P'" & vbCrLf & _
+"                        ELSE'K'" & vbCrLf & _
+"                    END" & vbCrLf & _
+"                ELSE ''" & vbCrLf & _
+"            END" & vbCrLf & _
+"    END RArt" & vbCrLf & _
+"/*,IF(ftext RLIKE'^(?:[ ]*[0-9]+[ ]*x[ ]*)?.*\([^0-9]{1,2}\)[ ]*$',REGEXP_REPLACE(FText,'^(?:[ ]*[0-9]+[ ]*x[ ]*)?.*\(([^0-9]{1,2})\)[ ]*$','\1'),'') Rezkl */" & vbCrLf & _
+", FDetails LIKE '%Erezept 1%' obE" & vbCrLf & _
+", FDetails LIKE '%Erezept_storniert 1%' obst" & vbCrLf & _
+", CASE l.FEintragsart WHEN 13 THEN 'akt'WHEN 14 THEN'ina'WHEN 15 THEN'dau'WHEN 16 THEN'his'WHEN 17 THEN'hil'WHEN 18 THEN'hei'WHEN 1085 THEN'lar'END rea" & vbCrLf & _
+", FDetails LIKE '%Medart ""2""%'obBtm" & vbCrLf & _
+", FDetails LIKE '%Rezeptoptionen ""2""%'noctu" & vbCrLf & _
+", FDetails LIKE '%Ersatzverordnung 1%'obers" & vbCrLf & _
+", nb.FUsername IS NOT NULL freig" & vbCrLf & _
+", FDetails LIKE '%Erezept_Druck 1%' edru" & vbCrLf & _
+", FDetails LIKE '%Einzeldruck 1%' eind" & vbCrLf & _
+", FText" & vbCrLf & _
+", FDetails" & vbCrLf
+
+sql = sql & _
+", 18900101+INTERVAL l.FDatum DAY+INTERVAL l.FZeit SECOND Zp, na.FUsername ua, nb.FUsername ub, l.*, IF(INSTR(FText,':') BETWEEN 1 AND 6,LEFT(FText,INSTR(FText,':')-1),'') art, IF(INSTR(FText,':') BETWEEN 1 AND 6,TRIM(MID(FText,INSTR(FText,':')+1)),FText) ename" & vbCrLf & _
+", l.FStatus lFSt, FText" & vbCrLf & _
+", COALESCE(REGEXP_REPLACE(FDetails,'^.*Pharmazentralnr *([0-9]*).*$|.','\1'),'')PZN" & vbCrLf & _
+", COALESCE(CONVERT(b.FMemo USING latin1),'') BFMemo, l.FEintragsart lFE, b.FEintragsart bFE, b.FSurogat bFSu, b.*" & vbCrLf & _
+", l.FEintragsart IN(13,14,15,16,17,18,23,40,45,46,1085,2004,2005,2006,2007,2014,2029,27142,27208,29955,29958,30467,30468,30470,30514,30520,32050,32060,32064,32067,32068,30543)obRezE" & vbCrLf & _
+", IF(FText RLIKE '^[ ]*[0-9]+[ ]*x.*',SUBSTRING_INDEX(FText,'x',1),1) Anz" & vbCrLf & _
+", REGEXP_REPLACE(REGEXP_REPLACE(FText,'^([ ]*[0-9]+[ ]*x[ ]*)?(.*)[ ]*$','\2'),'([ ]*\(.*\)[ ]*)*$','') Med" & vbCrLf & _
+", REGEXP_REPLACE(REGEXP_REPLACE(REGEXP_REPLACE(FText,'^[^(]*',''),'[ ]*\([^)]*\)[ ]*$',''),'\(([^)]*)\)','\1') Rkl0" & vbCrLf & _
+", FDetails LIKE '%Nonoutidem ""1""%'nonoi/*, IF(INSTR(l.FDetails,'(Nonoutidem ""'),MID(l.FDetails,INSTR(l.FDetails,'(Nonoutidem ""')+LENGTH('(Nonoutidem ""'),INSTR(SUBSTRING_INDEX(l.FDetails,'(Nonoutidem ""',-1),'"")')-1),'') nonoi*/" & vbCrLf & _
+", IF(INSTR(l.FDetails,'(Anzahl '),MID(l.FDetails,INSTR(l.FDetails,'(Anzahl ')+LENGTH('(Anzahl '),INSTR(SUBSTRING_INDEX(l.FDetails,'(Anzahl ',-1),')')-1),'') Anzahl" & vbCrLf & _
+", IF(INSTR(l.FDetails,'(Packungszahl '),MID(l.FDetails,INSTR(l.FDetails,'(Packungszahl ')+LENGTH('(Packungszahl '),INSTR(SUBSTRING_INDEX(l.FDetails,'(Packungszahl ',-1),')')-1),'') Packungszahl" & vbCrLf & _
+", IF(INSTR(l.FDetails,'(Rezeptart '),MID(l.FDetails,INSTR(l.FDetails,'(Rezeptart ')+LENGTH('(Rezeptart '),INSTR(SUBSTRING_INDEX(l.FDetails,'(Rezeptart ',-1),')')-1),'') Rezeptart" & vbCrLf & _
+",(FIcdcode LIKE'%dmp%'OR FIcdcode='')AND b.FSurogat IS NOT NULL AND FText RLIKE '(Erst|Verlaufs)-Dokumentation|^dmp(dm|dtyp|khk)|^edmp(dm|khk|ab|copd)|DMP Teilnahmeerklärung' obdr" & vbCrLf & _
+",(FIcdcode LIKE'%dmp%'OR FIcdcode='')AND b.FSurogat IS NOT NULL AND FText RLIKE '(Erst|Verlaufs)-Dokumentation Diabetes|^dmp(dm|dtyp)|^edmp(dm)' obdmr" & vbCrLf & _
+",(FIcdcode LIKE'%dmp%'OR FIcdcode='')AND b.FSurogat IS NOT NULL AND FText RLIKE 'Typ II' obt2r" & vbCrLf & _
+",(FIcdcode LIKE'%dmp%'OR FIcdcode='')AND b.FSurogat IS NOT NULL AND FText RLIKE '(Erst|Verlaufs)-Dokumentation koronare|^dmp(khk)|^edmp(khk)' obkhr" & vbCrLf & _
+",(FIcdcode LIKE'%dmp%'OR FIcdcode='')AND b.FSurogat IS NOT NULL AND FText RLIKE '(Erst|Verlaufs)-Dokumentation COPD' obcor" & vbCrLf & _
+",(FIcdcode LIKE'%dmp%'OR FIcdcode='')AND b.FSurogat IS NOT NULL AND FText RLIKE '(Erst|Verlaufs)-Dokumentation Asthma' obasr" & vbCrLf & _
+",(FIcdcode LIKE'%dmp%'OR FIcdcode='')AND b.FSurogat IS NOT NULL AND FText RLIKE '(Erst|Verlaufs)-Dokumentation chronische H' obhir" & vbCrLf & _
+",(FIcdcode LIKE'%dmp%'OR FIcdcode='')AND b.FSurogat IS NOT NULL AND FText RLIKE '(Erst|Verlaufs)-Dokumentation chronischer R' obrsr" & vbCrLf & _
+",(FIcdcode LIKE'%dmp%'OR FIcdcode='')AND b.FSurogat IS NOT NULL AND FText RLIKE '(Erst|Verlaufs)-Dokumentation Brustkrebs' obbkr" & vbCrLf & _
+",(FIcdcode LIKE'%dmp%'OR FIcdcode='')AND b.FSurogat IS NOT NULL AND FText RLIKE '(Erst|Verlaufs)-Dokumentation Rheumatoide' obrh" & vbCrLf
+sql = sql & _
+"FROM (SELECT l.*" & vbCrLf & _
+"FROM ltag l) l" & vbCrLf & _
+"LEFT JOIN nutzerneu na ON FAnordnutzernr= na.FSurogat" & vbCrLf & _
+"LEFT JOIN nutzerneu nb ON FAusfnutzernr= nb.FSurogat" & vbCrLf & _
+"LEFT JOIN beschein b ON b.FSurogat = l.FEintragsnr" & vbCrLf & _
+"WHERE l.fpatnr=" & fPtNr & vbCrLf & _
+"HAVING (NOT ISNULL(bFE)OR(obRezE))" & vbCrLf & _
+""
+ myFrag rsEi, sql, adOpenStatic, MOCon ' dmpreihe(1)
+ If Not rsEi.BOF Then
+  Do While Not rsEi.EOF
+   If rsEi!bfmemo <> "" Then
+    Call ParseMemoFast(rsEi!bfmemo, FMem(), obDebug, "FMemo aus beschein")
+   End If ' rsEi!BFMemo <> ""
+   If rsEi!obdr Then
+         DMPArt = 0
+         uDat = 0
+         DokuDatum = 0
+         Druckdatum = 0
+         exportiert = 0
+         testdat = 0
+   '       Debug.Print rsEi!FText
+          If SafeArrayGetDim(FMem) <> 0 Then
+           If rsEi!obdmr <> 0 Then
+            If rsEi!obt2r <> 0 Then ' Typ 2
+             DMPArt = 2
+             For j = 0 To UBound(FMem)
+              Select Case FMem(j).ENr
+               Case "75": ' vermutlich Formularversion
+                   uDat = stzk(FMem(j).Text)
+               Case "96": ' bei Typ 1: 6
+                   If Not Len(FMem(j).Text) = 1 And Asc(FMem(j).Text) = 1 Then
+                      DokuDatum = stzk(FMem(j).Text)
+                   End If
+   '           Case "121":
+   '                Stop
+               Case "115", "117", "118", "136", "137" ' bei Typ 1: 91
+                   testdat = stzk(FMem(j).Text)
+                   If testdat Then
+                    If FMem(j).ENr = "117" Then
+                      If Druckdatum = 0 Then
+                       Druckdatum = testdat
+                      Else
+                       exportiert = testdat
+                      End If
+                    Else
+                      Druckdatum = testdat
+                    End If
+                   End If
+               Case "119", "120", "138", "139" ' ' bei Typ 1: 104; 136/138 = Pat. 1339; 115/117 = 2885
+                   testdat = stzk(FMem(j).Text)
+                   If testdat Then exportiert = testdat
+              End Select
+             Next j
+            Else ' rsEi!obt2r <> 0 Then: Typ 1
+             DMPArt = 1
+             For j = 0 To UBound(FMem)
+              Select Case FMem(j).ENr
+               Case "4" ' vermutlich Formularversion, bei Typ 1: 4
+                    uDat = stzk(FMem(j).Text)
+               Case "6"
+                   If Not Len(FMem(j).Text) = 1 And Asc(FMem(j).Text) = 1 Then
+                      DokuDatum = stzk(FMem(j).Text)
+                   End If
+   '           Case "121":
+   '                Stop
+               Case "91"
+                   testdat = stzk(FMem(j).Text)
+                   If testdat Then Druckdatum = testdat
+               Case "104"
+                   testdat = stzk(FMem(j).Text)
+                   If testdat Then exportiert = testdat
+              End Select
+             Next j
+            End If ' rsEi!obt2r <> 0 Then
+           ElseIf rsEi!obKHr <> 0 Then 'koronare Herz
+            DMPArt = 3
+            For j = 0 To UBound(FMem)
+             Select Case FMem(j).ENr
+              Case "4": ' vermutlich Formularversion
+                   uDat = stzk(FMem(j).Text)
+              Case "19":
+                   If Not Len(FMem(j).Text) = 1 And Asc(FMem(j).Text) = 1 Then
+                      DokuDatum = stzk(FMem(j).Text)
+                   End If
+   '         Case "121":
+   '                Stop
+              Case "66":
+                   Druckdatum = stzk(FMem(j).Text)
+              Case "72" ' , "91":
+   '                If IsDate(stzk(FMem(j).Text)) Then
+                     exportiert = stzk(FMem(j).Text)
+   '                End If
+             End Select
+            Next j
+           ElseIf rsEi!obcor <> 0 Then ' COPD
+            DMPArt = 4
+            For j = 0 To UBound(FMem)
+             Select Case FMem(j).ENr
+              Case "4": ' vermutlich Formularversion
+                   uDat = stzk(FMem(j).Text)
+              Case "9":
+                   If Not Len(FMem(j).Text) = 1 And Asc(FMem(j).Text) = 1 Then
+                      DokuDatum = stzk(FMem(j).Text)
+                   End If
+              Case "61"
+   '                If IsDate(stzk(FMem(j).Text)) Then
+                     Druckdatum = stzk(FMem(j).Text)
+   '                End If
+              Case "69":
+                   testdat = stzk(FMem(j).Text)
+                   If testdat Then
+                     exportiert = testdat
+                   End If
+   ' Rest muss noch überprüft werden
+             End Select
+            Next j
+           ElseIf rsEi!obasr Then ' Asthma
+            DMPArt = 5
+            For j = 0 To UBound(FMem)
+             Select Case FMem(j).ENr
+              Case "4": ' vermutlich Formularversion
+                   uDat = stzk(FMem(j).Text)
+              Case "13":
+                   If Not Len(FMem(j).Text) = 1 And Asc(FMem(j).Text) = 1 Then
+                      DokuDatum = stzk(FMem(j).Text)
+                   End If
+              Case "67":
+                   testdat = stzk(FMem(j).Text)
+                   If testdat Then
+                     Druckdatum = testdat
+                   End If
+              Case "79":
+                   testdat = stzk(FMem(j).Text)
+                   If testdat Then
+                     exportiert = testdat
+                   End If
+   ' Rest muss noch überprüft werden
+             End Select
+            Next j
+           ElseIf rsEi!obbkr Then ' Brustkrebs
+            DMPArt = 6
+   '        ElseIf rsEi!obbkr Then ' Osteoporose
+   '         DMPArt = 7
+           ElseIf rsEi!obrh Then ' Rheuma
+            DMPArt = 8
+            For j = 0 To UBound(FMem)
+             Select Case FMem(j).ENr
+               Case "26"
+                   testdat = stzk(FMem(j).Text)
+                   If testdat Then Druckdatum = testdat
+             End Select
+            Next j
+        
+           ElseIf rsEi!obhir Then ' Herzinsuffizienz
+            DMPArt = 9
+   ' muss noch überprüft werden
+           ElseIf rsEi!obrsr Then ' Rückenschmerz
+            DMPArt = 10
+   ' muss noch überprüft werden
+   ' muss noch überprüft werden (4 gibts)
+           Else
+            Debug.Print "noch was anderes"
+           End If
+          End If ' SafeArryGetDim(FMem)
+          If DokuDatum <> 0 And DokuDatum <> CDate(rsEi!Zp) Then
+           Debug.Print "Unterschied bei " & pid & " im Dokudatum: " & DokuDatum & " -> " & CDate(rsEi!Zp)
+          End If
+          DokuDatum = CDate(rsEi!Zp)
+    
+          For ij = 1 To UBound(rDm) ' um dem eindeutigen Index gerecht zu werden
+           If rDm(ij).Pat_id = pid And rDm(ij).DMPArt = DMPArt And rDm(ij).DokuDatum = DokuDatum Then
+            rj = ij
+            GoTo gefunden
+           End If
+          Next ij
+          rj = UBound(rDm) + 1
+          ReDim Preserve rDm(rj)
+          rDm(rj).Pat_id = pid
+          rDm(rj).DMPArt = DMPArt
+          rDm(rj).DokuDatum = DokuDatum
+gefunden:
+          rDm(rj).exportiert = exportiert
+          rDm(rj).aktZeit = aktZeit
+   '       pos = InStr(rsEi!FText, "#")
+   '       If pos > 0 Then rDm(rj).Abk = Left$(rsEi!FText, pos - 1)
+          rDm(rj).art = IIf(InStrB(rsEi!FText, "Erst"), "ED", "FD")
+          rDm(rj).Abk = rsEi!FText
+          rDm(rj).Ok = rsEi!lFSt
+   '       rDm(rj).ausgedruckt = IIf(InStrB(rsEi!erg, "ausgedruckt"), 1, 0)
+   '       pos = 1
+   '       Do
+   '        pneu = InStr(pos + 1, rsEi!erg, "exportiert am")
+   '        If pneu = 0 Then Exit Do Else pos = pneu
+   '       Loop
+   '       If pos > 1 Then rDm(rj).exportiert = CDate(Mid$(rsEi!erg, pos + 14, 10))
+          rDm(rj).KarteiDatum = DokuDatum ' CDate(rsEi!Zp)
+   '       rDm(rj).DokuDatum = rDm(rj).KarteiDatum ' ist schon oben
+   '       rDm(rj).obvoll = IIf(InStrB(rsEi!erg, "vollständig"), 1, 0)
+   '       rDm(rj).Ok = IIf(InStrB(rsEi!erg, "(ok"), 1, 0)
+   '       rDm(rj).lanrid = rsEi!farztnr
+          Select Case rsEi!FLstgerbnr
+           Case 2: rDm(rj).lanrid = 1 ' Schade
+           Case 3: rDm(rj).lanrid = 2 ' Kothny
+           Case 4: rDm(rj).lanrid = 5 ' Hammerschmidt
+           Case Else: rDm(rj).lanrid = 4 ' unbek
+          End Select
+          rDm(rj).Nachname = rNa(0).Nachname
+          rDm(rj).Vorname = rNa(0).Vorname
+          rDm(rj).GebDat = rNa(0).GebDat
+   End If ' rsEi!obdr Then
+   rsEi.MoveNext
+  Loop
+ End If ' Not rsEi.BOF Then
+ Exit Sub
+fehler:
+ Dim AnwPfad$
+#If VBA6 Then
+ AnwPfad = CurrentDb.name
+#Else
+ AnwPfad = App.path
+#End If
+ Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + CStr(nz(Err.Source, "")) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in MODmpreihe1/" + AnwPfad)
+  Case vbAbort: Call MsgBox("Höre auf"): ProgEnde
+  Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
+  Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
+ End Select
+End Sub ' MODmpreihe1
+
+
+' isolierte dmpreihe-Uebertragung fuer alle in Frage kommenden Patienten (Backfill), analog callMOLei()/turichtdiag()
+' deckt beide Erkennungspfade ab: MODmpreihe (mosystem-Kategorie, z.B. "b8") und MODmpreihe1 (Text ueber beschein, obdr).
+' Kandidatenkreis ist bewusst weit gefasst und daher entsprechend langsam (nur fuer den einmaligen Backfill, nicht fuer den Alltag);
+' fuer nicht betroffene Patienten bleibt rDm() nach beiden Aufrufen leer und es wird nichts gespeichert.
+Public Sub callMODmp()
+ Dim rsl As New ADODB.Recordset, rN As ADODB.Recordset, i&, rAf&, zpid&, gesp&
+ If MOConInit(, "callMODmp()") Then Exit Sub
+ MOCon.CommandTimeout = 300 ' 16.9.26: die Kandidaten-Query ist ein UNION-Scan ueber ltag/beschein, 10s reichen dafuer nicht
+ Call MOKatLaden
+ If SafeArrayGetDim(rNa) = 0 Then ReDim rNa(0)
+ myFrag rsl, "SELECT COUNT(0)OVER()zahl, FPatnr FROM (" & vbCrLf & _
+  " SELECT FPatnr FROM ltag WHERE FICdcode LIKE '%dmp%' OR FEintragsart>1000" & vbCrLf & _
+  " UNION" & vbCrLf & _
+  " SELECT l.FPatnr FROM ltag l JOIN beschein b ON b.FSurogat=l.FEintragsnr" & vbCrLf & _
+  " WHERE (l.FICdcode LIKE '%dmp%' OR l.FICdcode='') AND b.FSurogat IS NOT NULL" & vbCrLf & _
+  " AND l.FText RLIKE '(Erst|Verlaufs)-Dokumentation|^dmp(dm|dtyp|khk)|^edmp(dm|khk|ab|copd)|DMP Teilnahmeerklärung'" & vbCrLf & _
+  ") x GROUP BY FPatnr ORDER BY FPatnr DESC", adOpenStatic, MOCon
+ Do While Not rsl.EOF
+  i = i + 1
+  ReDim rDm(0)
+  zpid = setzPid(rsl!FPatNr)
+  rNa(0).Pat_id = zpid
+  myFrag rN, "SELECT nachname, vorname, gebdat FROM namen WHERE pat_id=" & zpid, adOpenStatic, DBCn, adLockReadOnly
+  If Not rN.EOF Then
+   rNa(0).Nachname = doUmwfSQL(rN!Nachname, True)
+   rNa(0).Vorname = doUmwfSQL(rN!Vorname, True)
+   rNa(0).GebDat = rN!GebDat
+  End If ' Not rN.EOF Then
+  syscmd 4, "dmpreihe-Backfill: Patient " & i & "/" & rsl!Zahl & " (FPatnr " & rsl!FPatNr & ")"
+  Call MODmpreihe(rsl!FPatNr, zpid)
+  Call MODmpreihe1(rsl!FPatNr, zpid)
+  If UBound(rDm) <> 0 Then
+   Call dmpreiheSpeichern(True, False, rAf)
+   gesp = gesp + 1
+  End If ' UBound(rDm) <> 0 Then
+  rsl.MoveNext
+ Loop
+ MOCon.CommandTimeout = 10 ' 16.9.26: wieder auf den normalen "fail fast"-Wert zurueck (s. MOConInit)
+ syscmd 4, "dmpreihe-Backfill fertig: " & gesp & " von " & i & " Patienten hatten neue/aktualisierte Einträge"
+ MsgBox "dmpreihe-Backfill fertig." & vbCrLf & gesp & " von " & i & " geprüften Patienten hatten neue/aktualisierte Einträge."
+End Sub ' callMODmp
+
+' Diagnose (15.9.26): zeigt alle mosystem-kategorisierten ltag-Eintraege (FEintragsart>1000) eines Patienten
+' mit Datum/FICdcode/Textanfang, geschrieben in eine Textdatei (Direktfenster schneidet lange Ausgaben ab)
+' - u.a. um zu sehen, wie die "b8"-artigen Verlaufsdokumentationen in den Rohdaten aussehen.
+Public Sub TestMOKatEintraege(Optional fPtNr& = 1722)
+ Dim rt As New ADODB.Recordset
+ Const ffadat$ = "\\linux1\daten\down\TestMOKatEintraege.txt"
+ If MOConInit(, "TestMOKatEintraege(" & fPtNr & ")") Then Exit Sub
+ myFrag rt, "SELECT FEintragsart, FICdcode, FBehgrundnr, FStatus, LEFT(FText,80) t, COALESCE(CONVERT(FDetails USING latin1),'') d, 18900101+INTERVAL FDatum DAY zp FROM ltag WHERE FPatnr=" & fPtNr & " AND FEintragsart>1000 ORDER BY FDatum DESC", adOpenStatic, MOCon
+ Open ffadat For Output As #199
+ Do While Not rt.EOF
+  Print #199, rt!FEintragsart & vbTab & rt!FICdcode & vbTab & rt!FBehgrundnr & vbTab & rt!FStatus & vbTab & rt!Zp & vbTab & rt!t & vbTab & "[FDetails: " & rt!d & "]"
+  rt.MoveNext
+ Loop
+ Close #199
+ Debug.Print "geschrieben nach " & ffadat
+ Call zeigan(ffadat)
+End Sub ' TestMOKatEintraege
+
+' Diagnose (16.9.26): zerlegt das FDetails-Memo eines ltag-Eintrags (z.B. FEintragsart 27144) mit ParseMemoFast,
+' genauso wie der obdr-Pfad es mit beschein.FMemo tut - schreibt die ENr/Text-Paare in eine Datei zur Inspektion,
+' damit sich Datum/Ok/Exportiert-Status fuer diesen Eintragstyp erkennen lassen.
+' Hilfsfunktion (16.9.26): entpackt ein in ltag.FDetails textuell escapetes Binär-Memo der Form {(Memo "\NNN\NNN...")}
+' (Backslash + 3 Oktalziffern pro Byte, dazwischen \\ und \" als escapte Sonderzeichen) zu den rohen Bytes,
+' passend als Eingabe fuer ParseMemoFast. Bei anderem/unbekanntem Format wird der Text unveraendert zurueckgegeben.
+Public Function MOMemoEntpacken$(s$)
+ Dim i&, n&, ch$, res$, nx$
+ If Left$(s, 8) <> "{(Memo " & Chr$(34) Then
+  MOMemoEntpacken = s
+  Exit Function
+ End If
+ s = Mid$(s, 9, Len(s) - 8 - 3) ' "{(Memo "" vorn (8 Zeichen), "")}" hinten (3 Zeichen) abschneiden
+ n = Len(s)
+ i = 1
+ Do While i <= n
+  ch = Mid$(s, i, 1)
+  If ch = "\" And i + 3 <= n And Mid$(s, i + 1, 3) Like "[0-7][0-7][0-7]" Then
+   res = res & Chr$(CLng("&O" & Mid$(s, i + 1, 3)))
+   i = i + 4
+  ElseIf ch = "\" And i + 1 <= n Then
+   nx = Mid$(s, i + 1, 1)
+   If nx = "\" Or nx = Chr$(34) Or nx = "'" Then
+    res = res & nx
+    i = i + 2
+   Else
+    res = res & ch
+    i = i + 1
+   End If
+  Else
+   res = res & ch
+   i = i + 1
+  End If
+ Loop
+ MOMemoEntpacken = res
+End Function ' MOMemoEntpacken$
+
+Public Sub TestMemoZerlegen(Optional fPtNr& = 1722, Optional FEintragsartP& = 27144)
+ Dim rt As New ADODB.Recordset
+ Dim FMem() As memoType
+ Dim j&
+ Const ffadat$ = "\\linux1\daten\down\TestMemoZerlegen.txt"
+ If MOConInit(, "TestMemoZerlegen(" & fPtNr & ")") Then Exit Sub
+ myFrag rt, "SELECT COALESCE(CONVERT(FDetails USING latin1),'') fd, 18900101+INTERVAL FDatum DAY zp FROM ltag WHERE FPatnr=" & fPtNr & " AND FEintragsart=" & FEintragsartP & " ORDER BY FDatum DESC LIMIT 1", adOpenStatic, MOCon
+ If rt.EOF Then
+  Debug.Print "kein Eintrag gefunden"
+  Exit Sub
+ End If
+ Call ParseMemoFast(MOMemoEntpacken(rt!fd), FMem(), True, "TestMemoZerlegen")
+ Open ffadat For Output As #198
+ Print #198, "Eintrag vom " & rt!zp
+ For j = 0 To UBound(FMem)
+  Print #198, FMem(j).ENr & vbTab & FMem(j).Text
+ Next j
+ Close #198
+ Debug.Print "geschrieben nach " & ffadat
+ Call zeigan(ffadat)
+End Sub ' TestMemoZerlegen
+
+' Diagnose (16.9.26): zaehlt Patienten, deren neuere DMP-Verlaufsdokumentation nur ueber das neue
+' mosystem-Kuerzel (z.B. "b8"/"bd") + Freitext erkannt wird (statt der alten #-literal-Kodierung),
+' also von der Ok/Exportiert-Luecke betroffen sein duerften.
+Public Sub TestZaehleBetroffene()
+ Dim rz As New ADODB.Recordset
+ If MOConInit(, "TestZaehleBetroffene()") Then Exit Sub
+ MOCon.CommandTimeout = 300
+ myFrag rz, "SELECT COUNT(DISTINCT FPatnr) n FROM ltag" & vbCrLf & _
+  " WHERE FEintragsart>1000" & vbCrLf & _
+  " AND (FICdcode IS NULL OR FICdcode='')" & vbCrLf & _
+  " AND FText RLIKE '(Erst|Verlaufs)-Dokumentation'" & vbCrLf & _
+  " AND FText RLIKE 'Diabetes|DMP|KHK|koronare|COPD|Asthma'", adOpenStatic, MOCon
+ MOCon.CommandTimeout = 10
+ Debug.Print "betroffene Patienten (Freitext-Kuerzel-Pfad, Ok/Exportiert unbekannt): " & rz!n
+End Sub ' TestZaehleBetroffene
+
+' Test (16.9.26): kompletter Einzelpatienten-Testlauf fuer den dmpreihe-Nachimport (beide Pfade),
+' inkl. Speichern und Verifikation gegen die Datenbank - eigenstaendig lauffaehig ohne Vorarbeit im Direktbereich.
+Public Sub TestDmpreiheNachimport(Optional fPtNr& = 1722)
+ Dim pid&, rAf&
+ Dim rN As New ADODB.Recordset, rV As New ADODB.Recordset
+ If MOConInit(, "TestDmpreiheNachimport(" & fPtNr & ")") Then Exit Sub
+ Call MOKatLaden
+ pid = setzPid(fPtNr)
+ If SafeArrayGetDim(rNa) = 0 Then ReDim rNa(0)
+ rNa(0).Pat_id = pid
+ myFrag rN, "SELECT nachname, vorname, gebdat FROM namen WHERE pat_id=" & pid, adOpenStatic, DBCn, adLockReadOnly
+ If Not rN.EOF Then
+  rNa(0).Nachname = doUmwfSQL(rN!Nachname, True)
+  rNa(0).Vorname = doUmwfSQL(rN!Vorname, True)
+  rNa(0).GebDat = rN!GebDat
+ End If ' Not rN.EOF Then
+ ReDim rDm(0)
+ Call MODmpreihe(fPtNr, pid)
+ Call MODmpreihe1(fPtNr, pid)
+ Debug.Print "rDm-Eintraege gestaged: " & UBound(rDm)
+ If UBound(rDm) <> 0 Then
+  Call dmpreiheSpeichern(True, False, rAf)
+  Debug.Print "gespeichert (rAf=" & rAf & ")."
+ Else
+  Debug.Print "keine Eintraege gefunden, nichts gespeichert."
+ End If
+ myFrag rV, "SELECT COUNT(*) n, MAX(dokudatum) mx FROM dmpreihe WHERE pat_id=" & pid, adOpenStatic, DBCn, adLockReadOnly
+ If Not rV.EOF Then
+  Debug.Print "dmpreihe jetzt fuer Pat_id " & pid & ": " & rV!n & " Saetze, neuestes Dokudatum: " & rV!mx
+ End If
+End Sub ' TestDmpreiheNachimport
+
+
+Public Function doPatvonMO(fPtNr&, Optional obmitFormularen%, Optional obpruef%, Optional ohneLabor%, Optional obtranspa%, Optional oblabla%)
+ Const obDebug% = False
+ Dim pid&, pos&, pneu&, SchGr%, j&, jj%, rAf&, Puls$, Bem$, ErrNr&, ErrDes$ ' , rInh$, aktZeit As Date
+ Dim LaborLangsam%
+ Dim ij&, rj& ' Laufvariable und zu befüllender Satz in rDM
+ ' Veriablen für die rDm-Befüllung:
+ Dim DMPArt%, uDat As Date, DokuDatum As Date, Druckdatum As Date, exportiert As Date
+ Dim testdat As Date ' für Druckdatum oder exportiert
+ LaborLangsam = oblabla
+' LaborLangsam = True
+abermals:
+'  fPtNr& = 68393  ' 69618 ' 63635 ' 67180 ' 63635 ' 64800 ' 69333 ' 68316 ' 65405 ' 45 ' 64659 ' 45 ' 69367 ' 69377 ' 53119 ' 51630 ' 105 ' 18 ' 246 ' 59152 ' 1394 ' 2112 ' 151 ' 225 '
+ pid = setzPid(fPtNr)
+ Static lfdfl&
+ Dim rsFa As New ADODB.Recordset, rsMO As New ADODB.Recordset
+ Dim FMem() As memoType ', Kat() As memoType, tKat() As memoType, Abl() As memoType, fAuft() As memoType
+ Dim NaStr() As memoType, FaStr() As memoType, rsfaru%
+ Dim EintS As SortierEintr
+ If MOConInit(, "Übertragung aus MO von Pat. " & fPtNr) Then Exit Function
+ If obpruef Then ' prüft, ob Import Neues brächte
+  Dim rab As ADODB.Recordset, raz As ADODB.Recordset
+' dbsprot.fPrimaryKey ist varchar(35), ltag.FSurogat int(11), somit laesst sich kein vorhandere Index verwenden
+' vorlaeufig wird ein Index dd_fpatnr erstellt für FPatnr, FTablename
+'        "-- AND 18900101 + INTERVAL d.FDatum DAY + INTERVAL d.FUhrzeit SECOND<NOW()-INTERVAL 30 SECOND" & vbCrLf
+  sql = "SELECT" & vbCrLf & _
+        "18900101 + INTERVAL d.FDatum DAY + INTERVAL d.FUhrzeit SECOND laend/*, d.*,p.**/" & vbCrLf & _
+        "FROM dbsprot d" & vbCrLf & _
+        "LEFT JOIN dbsprot p ON d.FTablename='ltag' AND p.FTablename='extauftr' AND d.FPrimarykey=p.FPrimarykey" & vbCrLf & _
+        "WHERE d.FPatnr=" & fPtNr & vbCrLf & _
+        "AND d.FTablename IN ('ltag','termin')" & vbCrLf & _
+        "AND p.FSurogat IS NULL" & vbCrLf & _
+        "AND (d.FXmlinhalt IS NULL OR d.FXmlinhalt NOT RLIKE 'arztbrief|Erledigtdatum')" & vbCrLf & _
+        "ORDER BY d.FDatum DESC,d.FUhrzeit DESC" & vbCrLf & _
+        "LIMIT 1"
+' AND ftablename NOT IN ('datafile','d2dmail','med95ini','mail','nutzerneu','markier','earzt','epraxis','tzone','ldtarc','globalitems','zertifikat','nutzerzugriff','patfall','patrelation')
+  myFrag rab, sql, adOpenStatic, MOCon, adLockReadOnly
+  If Not rab.EOF Then
+   If Not IsNull(rab!laend) Then
+    Set raz = Nothing ' notwendig bei Pat. 3776
+    myFrag raz, "SELECT COALESCE(aktzeit,18990101) aktzeit FROM namen WHERE pat_id=" & fPtNr, , DBCn, adLockReadOnly, , rAf
+    If Not raz.EOF Then
+     If raz!aktZeit > rab!laend Then
+'      If obtranspa Then
+'       MsgBox sql & vbCrLf & "Patient wurde in MO zuletzt geändert: " & Format(rab!laend, "dd.mm.yyyy HH:MM:SS") & "," & vbCrLf & _
+       "zuletzt importiert: " & Format(raz!aktZeit, "dd.mm.yyyy HH:MM:SS") & " => braucht nicht übertragen zu werden"
+'      End If
+      syscmd 4, "die Überprüfung ergab: keine Übertragung bei PtNr." & fPtNr & " notwendig!"
+      Exit Function
+'     Else ' raz!aktZeit > rab!laend Then
+'      If obtranspa Then
+'       MsgBox sql & vbCrLf & "Patient wurde in MO zuletzt geändert: " & Format(rab!laend, "dd.mm.yyyy HH:MM:SS") & "," & vbCrLf & _
+       "zuletzt importiert: " & Format(raz!aktZeit, "dd.mm.yyyy HH:MM:SS") & " => wird übertragen"
+'      End If
+     End If ' raz!aktZeit > rab!laend Then
+    End If ' Not raz.EOF Then
+   End If ' Not IsNull(rab!laend) Then
+  End If ' not rab.eof
+ End If ' obpruef
+ aktZeit = Now()
+ syscmd acSysCmdSetStatus, "Übertrage Daten aus MO zu Pat. " & fPtNr
+' BegTrans
+ Call Tinit
+ Call doTabVorb(Lese, 0, 0) ' obVorber, obmitFormularen)
+' ComTrans
+ syscmd 4, "richte desktopkop her"
+ myEFrag "DELETE FROM desktopkop WHERE pat_id=" & pid
+ Dim spal$
+ spal = myEFrag("SELECT GROUP_CONCAT(COLUMN_NAME) FROM information_schema.columns c WHERE TABLE_NAME='desktop' AND table_catalog='def' AND TABLE_schema='quelle' AND column_key<>'PRI'", , , , , , 15000).Fields(0)
+ myEFrag "INSERT INTO desktopkop(" & spal & ") SELECT " & REPLACE$(spal, "Pat_ID", "Pat_ID+" & CStr(Lese.pidoffs) & "") & " FROM desktop WHERE pat_id=" & pid
+ Dim rdesk As ADODB.Recordset
+ Dim aDesk() As desktop
+ Set rdesk = myEFrag("SELECT CONCAT(tooltiptext,'\\n',titel) tit, d.* FROM desktop d WHERE pat_id=" & pid & " ORDER BY erstZP", rAf)
+ Do While Not rdesk.EOF
+  If SafeArrayGetDim(aDesk) Then ReDim Preserve aDesk(UBound(aDesk) + 1) Else ReDim aDesk(0)
+  aDesk(UBound(aDesk)).erstZP = rdesk!erstZP
+  aDesk(UBound(aDesk)).absPos = rdesk!absPos
+  aDesk(UBound(aDesk)).aktZeit = rdesk!aktZeit
+  aDesk(UBound(aDesk)).exoL = rdesk!exoL
+  aDesk(UBound(aDesk)).hideT = rdesk!hideT
+  aDesk(UBound(aDesk)).iconPath = rdesk!iconPath
+  aDesk(UBound(aDesk)).IDS = rdesk!IDS
+  aDesk(UBound(aDesk)).noteBkColor = rdesk!noteBkColor
+  aDesk(UBound(aDesk)).noteFgColor = rdesk!noteFgColor
+  aDesk(UBound(aDesk)).Pat_id = pid
+  aDesk(UBound(aDesk)).positionBottom = rdesk!positionBottom
+  aDesk(UBound(aDesk)).positionLeft = rdesk!positionLeft
+  aDesk(UBound(aDesk)).positionRight = rdesk!positionRight
+  aDesk(UBound(aDesk)).positionTop = rdesk!positionTop
+  aDesk(UBound(aDesk)).showAsNote = rdesk!showAsNote
+  aDesk(UBound(aDesk)).syncInfoList = rdesk!syncInfoList
+  aDesk(UBound(aDesk)).Titel = rdesk!tit
+  aDesk(UBound(aDesk)).toolTipText = rdesk!toolTipText
+  aDesk(UBound(aDesk)).verankert = rdesk!verankert
+  rdesk.MoveNext
+ Loop
+ Call LöschePat(pid, , ohneLabor:=ohneLabor)
+' On Error Resume Next
+' If obDebug Then FSO.DeleteFile parsemotxt
+ On Error GoTo fehler
+' Tinit
+ Call MOKatLaden
 '    tg1 = GetTickCount
 '    Debug.Print ">>> mosystem FTextkategorie: " & (tg1 - tg0) & " ms"
 ' Call MONamen(fPtNr)
@@ -3676,7 +4402,7 @@ fgefunden:
    Do While Not rsEi.EOF
     messDatum = rsEi!Zp ' rsEi!anzp
     art = rsEi!art
-    Call aufSplit(rsEi!erg, "‡")
+    Call aufSplit(rsEi!Erg, "‡")
     Call RREintr
     rRr(UBound(rRr)).RR = rsEi!FText ' REPLACE$(rsEi!erg, "‡", " ")
     rRr(UBound(rRr)).RRsyst = Arra(0)
@@ -3712,7 +4438,7 @@ fgefunden:
   "WHERE FPatnr = " & fPtNr & vbCrLf & _
   " AND ((FEintragsart=5 AND FStatus=0) OR FEintragsart IN (8,9,10,11,151) OR FEintragsart>1000)" & vbCrLf & _
   "/* AND REGEXP_REPLACE(FICdcode,'(\w+)#\1','\1') IN ('RR','RRVGL')*/" & vbCrLf & _
-  " AND FBehgrundnr<=0"
+  " AND (FBehgrundnr<=0 OR FEintragsart>1000)" ' 16.9.26: Pat. 1722, FBehgrundnr>0 bei FEintragsart 27144 (Verlaufs-Dokumentation)
 ' FEintragsart>1000 sind die selbst definierten Kategorien in mosystem
   myFrag rsEi, sql, adOpenStatic, MOCon ' Einträge
   If Not rsEi.BOF Then
@@ -3861,70 +4587,14 @@ fgefunden:
 '      rRr(UBound(rRr)).Bemerkung = Bem
 '      If IsNumeric(Puls) Then rRr(UBound(rRr)).Puls = Puls
      Case Else ' dmpreihe, Eintraege
-     'dmpreihe (2); Doppeleinträge gemäß Index "eindeutig" vermeiden
-      DMPArt = 0
+     'dmpreihe (2): 15.9.26 nach MODmpreihe ausgelagert (mosystem-Kategorie-Pfad inkl. "b8"-artiger Kuerzel)
       If (rsEi!FICdcode Like "*dmp*" And rsEi!FICdcode <> "DMPERG") Or _
-      (UCase$(art) = "TEXT" And InStrB(rsEi!FDet, "dokumentation") <> 0 And InStrB(rsEi!FText, "dmp") <> 0) Then
-       Select Case rsEi!art
-        Case "DMPDTYP1", "EDMPDM1": DMPArt = 1
-        Case "DMPDTYP2", "EDMPDM2": DMPArt = 2
-        Case "DMPKHK", "EDMPKHK": DMPArt = 3
-        Case "EDMPCOPD": DMPArt = 4
-        Case "EDMPAB": DMPArt = 5
-        Case "DMPKHK": DMPArt = 3
-        Case "DMPKHK": DMPArt = 3
-       End Select
-       
-       For ij = 1 To UBound(rDm) ' um dem eindeutigen Index gerecht zu werden
-        If rDm(ij).Pat_id = pid And rDm(ij).DMPArt = DMPArt And rDm(ij).DokuDatum = messDatum Then
-         rj = ij
-         GoTo gef2
-        End If
-       Next ij
-       rj = UBound(rDm) + 1
-       ReDim Preserve rDm(rj)
-       rDm(rj).Pat_id = pid
-       rDm(rj).DMPArt = DMPArt
-       rDm(rj).DokuDatum = messDatum
-gef2:
-       rDm(rj).aktZeit = aktZeit
-       rDm(rj).Pat_id = pid
-       
-       If rsEi!FICdcode Like "*dmp*" And rsEi!FICdcode <> "DMPERG" Then
-'        Debug.Print rsEi!ficdcode, rsEi!Wert
-        rDm(rj).Abk = art
-        If InStrB(rsEi!FDet, "Erst") Then rDm(rj).art = "ED" Else rDm(rj).art = "FD"
-        rDm(rj).exportiert = CDate(rsEi!Exp)
-'        rDm(rj).DokuDatum = messDatum ' ist schon oben
-        rDm(rj).KarteiDatum = messDatum
-        rDm(rj).Ok = InStrB(rsEi!FDet, "(ok")
-        rDm(rj).ausgedruckt = InStrB(rsEi!FDet, "ausgedruckt")
-       ElseIf UCase$(art) = "TEXT" And InStrB(rsEi!FDet, "dokumentation") <> 0 And InStrB(rsEi!FText, "dmp") <> 0 Then
-        pos = InStr(rsEi!FArray, "#")
-        If pos > 0 Then rDm(rj).Abk = left$(rsEi!FArray, pos - 1)
-        rDm(rj).art = IIf(InStrB(rsEi!FDet, "Erst"), "ED", "FD")
-        rDm(rj).ausgedruckt = IIf(InStrB(rsEi!FDet, "ausgedruckt"), 1, 0)
-        pos = 1
-        Do
-         pneu = InStr(pos + 1, rsEi!FDet, "exportiert am")
-         If pneu = 0 Then Exit Do Else pos = pneu
-        Loop
-        If pos > 1 Then rDm(rj).exportiert = CDate(Mid$(rsEi!FDet, pos + 14, 10))
-        rDm(rj).KarteiDatum = CDate(rsEi!Zp)
-        rDm(rj).obvoll = IIf(InStrB(rsEi!FDet, "vollständig"), 1, 0)
-        rDm(rj).Ok = IIf(InStrB(rsEi!FDet, "(ok"), 1, 0)
- '       rDm(rj).lanrid = rsEi!farztnr
-        Select Case rsEi!FLstgerbnr
-         Case 2: rDm(rj).lanrid = 1 ' Schade
-         Case 3: rDm(rj).lanrid = 2 ' Kothny
-         Case 4: rDm(rj).lanrid = 5 ' Hammerschmidt
-         Case Else: rDm(rj).lanrid = 4 ' unbek
-        End Select
-        rDm(rj).Nachname = rNa(0).Nachname
-        rDm(rj).Vorname = rNa(0).Vorname
-        rDm(rj).GebDat = rNa(0).GebDat
-       End If ' rsEi!FIcdcode Like "*dmp*" And rsEi!FIcdcode <> "DMPERG" Then else
-       
+      (UCase$(art) = "TEXT" And InStrB(rsEi!FDet, "dokumentation") <> 0 And InStrB(rsEi!FText, "dmp") <> 0) Or _
+      (InStrB(1, rsEi!FText, "Dokumentation", vbTextCompare) <> 0 And _
+      (InStrB(1, rsEi!FText, "Diabetes", vbTextCompare) <> 0 Or InStrB(1, rsEi!FText, "DMP", vbTextCompare) <> 0 Or _
+      InStrB(1, rsEi!FText, "KHK", vbTextCompare) <> 0 Or InStrB(1, rsEi!FText, "koronare", vbTextCompare) <> 0 Or _
+      InStrB(1, rsEi!FText, "COPD", vbTextCompare) <> 0 Or InStrB(1, rsEi!FText, "Asthma", vbTextCompare) <> 0)) Then ' 16.9.26: Pat. 1722, FEintragsart 27144, leeres FICdcode
+       ' wird jetzt durch MODmpreihe(fPtNr, pid) erledigt, s.u. nach Ende dieser Schleife
       Else ' (rsEi!FIcdcode Like "*dmp*" And rsEi!FIcdcode <> "DMPERG") Or _
       (UCase$(art) = "TEXT" And InStrB(rsEi!FDet, "dokumentation") <> 0 And InStrB(rsEi!FText, "dmp") <> 0) Then
       ' Einträge
@@ -3939,7 +4609,7 @@ gef2:
 '      If InStrB(rsEi!fdet, "Lexotanil und") <> 0 Then Stop
 '       rEi(UBound(rEi)).Inhalt = doUmwfSQL(REPLACE$(REPLACE$(rsEi!FDet, "\n", " "), "\r", ""), True)
        Debug.Print rsEi!Wert
-       rEi(UBound(rEi)).Inhalt = doUmwfSQL(IIf(rsEi!Wert = "", rsEi!FDet, rsEi!Wert), True)
+       rEi(UBound(rEi)).Inhalt = left$(doUmwfSQL(IIf(rsEi!Wert = "", rsEi!FDet, rsEi!Wert), True), 11025) ' Längenbegrenzung 14.9.26, sonst blieb er bei 1,9 MB trotz inskorr hängen
        rEi(UBound(rEi)).absPos = IIf(neuart <> 0, -1, 1)
 '      If art = "usdm2" Then Stop
        If art <> "" Then
@@ -4026,6 +4696,7 @@ gef2:
 ' termin in zutun bzw. termin
 
   syscmd 4, "bearbeite Diagnosen"
+  Call MODmpreihe(fPtNr, pid)
   Call MODiagnosen(fPtNr, pid)
   
   syscmd 4, "bearbeite Termine und Zutunliste"

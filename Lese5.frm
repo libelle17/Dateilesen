@@ -984,6 +984,9 @@ Begin VB.MDIForm Lese
       Begin VB.Menu Hausärzte_von_MO_nach_Linux_übertragen 
          Caption         =   "Haus&ärzte von MO nach Linux übertragen"
       End
+      Begin VB.Menu DMPDokuNachimport 
+         Caption         =   "&DMP-Dokumentation nachimportieren (Backfill)"
+      End
    End
    Begin VB.Menu Fenster 
       Caption         =   "Fe&nster"
@@ -2180,6 +2183,11 @@ End Sub ' PiDzuord_Click()
 Private Sub richtdiag_Click()
  Call turichtdiag
 End Sub ' richtdiag_Click
+
+' Übertragungen -> DMP-Dokumentation nachimportieren (Backfill)
+Private Sub DMPDokuNachimport_Click()
+ Call callMODmp
+End Sub ' DMPDokuNachimport_Click
 
 ' sucht nach einem String in den Medical Office-Datenbanken
 Private Sub SuchInSpaltenInMO_Click()
