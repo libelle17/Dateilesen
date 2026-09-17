@@ -1077,16 +1077,20 @@ End Function ' NurZiffern%
 ' in MDIForm_Activate (Lese5.frm). Selbstreferenzierend wie "oeffnedual:" fuer NVerb.exe
 ' (NetzVerbind\Haupt.bas, Sub Main): zeigt auf die gerade laufende DateiLese.exe, unabhaengig vom
 ' tatsaechlichen Installationsverzeichnis. Wird bei jedem normalen Start in mdiForm_Load
-' aufgerufen; schlaegt bei fehlenden Schreibrechten auf HKEY_LOCAL_MACHINE lautlos fehl, wie die
-' Registrierung von oeffnedual/oeffneverz dort auch.
+' aufgerufen; schlaegt bei fehlenden Schreibrechten lautlos fehl, wie die Registrierung von
+' oeffnedual/oeffneverz dort auch. Anders als dort aber unter HKEY_CURRENT_USER statt
+' HKEY_LOCAL_MACHINE: DateiLese.exe laeuft als normaler, nicht elevierter Anwendungsprozess unter
+' dem angemeldeten Benutzer, ein Schreibversuch auf HKLM wuerde also bei jedem Start scheitern.
+' Windows sucht Protokoll-Handler zuerst in HKCU\Software\Classes, erst danach in HKLM/HKCR -
+' fuer eine pro Benutzer laufende App ist das der uebliche, admin-rechte-freie Weg.
 Sub RegistriereOeffnePlz()
  Dim cReg As New Registry, Anw$
  On Error Resume Next
  Anw = App.Path & "\" & App.EXEName & ".exe"
- Call cReg.WriteKey("Open Patientenlaufzettel Protocol", "", "SOFTWARE\Classes\oeffneplz", HKEY_LOCAL_MACHINE)
- Call cReg.WriteKey(" ", "URL Protocol", "SOFTWARE\Classes\oeffneplz", HKEY_LOCAL_MACHINE)
- Call cReg.WriteKey("Open Patientenlaufzettel", "", "SOFTWARE\Classes\oeffneplz\shell\open", HKEY_LOCAL_MACHINE)
- Call cReg.WriteKey(Chr$(34) & Anw & Chr$(34) & " " & Chr$(34) & "%1" & Chr$(34), "", "SOFTWARE\Classes\oeffneplz\shell\open\command", HKEY_LOCAL_MACHINE)
+ Call cReg.WriteKey("Open Patientenlaufzettel Protocol", "", "SOFTWARE\Classes\oeffneplz", HKEY_CURRENT_USER)
+ Call cReg.WriteKey(" ", "URL Protocol", "SOFTWARE\Classes\oeffneplz", HKEY_CURRENT_USER)
+ Call cReg.WriteKey("Open Patientenlaufzettel", "", "SOFTWARE\Classes\oeffneplz\shell\open", HKEY_CURRENT_USER)
+ Call cReg.WriteKey(Chr$(34) & Anw & Chr$(34) & " " & Chr$(34) & "%1" & Chr$(34), "", "SOFTWARE\Classes\oeffneplz\shell\open\command", HKEY_CURRENT_USER)
 End Sub ' RegistriereOeffnePlz
 
 ' chronologische Liste aller alten Medikationsplaene eines Patienten als JS-Array-Literal
