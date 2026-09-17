@@ -1017,19 +1017,66 @@ Function KlartextRel$(ByVal rtyp&, ByVal gs$)
  End If
 End Function ' KlartextRel$
 
-' loest eine von relSql per GROUP_CONCAT gelieferte, kommagetrennte Liste von FRelationtyp-Codes
-' in eine kommagetrennte Klartext-Liste auf (Duplikate entfernt, unbekannte/leere Codes uebersprungen)
+' Kehrt einen FRelationtyp-Code um, wenn er aus der Gegenrichtung stammt (s. BeziehungKlartext):
+' patrelation-Eintraege werden aus Sicht des jeweils eintragenden Patienten angelegt, "FReferenzid
+' ist mein(e) <rtyp>". Kommt ein Eintrag also aus der Zeile, in der der aktuelle Patient selbst
+' FReferenzid (statt FPatid) ist, beschreibt rtyp die Rolle des AKTUELLEN Patienten gegenueber dem
+' verlinkten, nicht umgekehrt - z.B. bedeutet "-11 Tochter" dort "der aktuelle Patient ist die
+' Tochter des Verlinkten", also aus Sicht des Verlinkten muss "-12 Mutter/Vater" angezeigt werden.
+' Symmetrische Beziehungen (Geschwister, Ehe/Ex-Ehe, Lebenspartner, Cousin/e, Freund/in,
+' Schwager/Schwägerin) und rein einseitige berufliche Rollen ohne Gegenstueck in der Tabelle (Arzt,
+' Hausarzt, Kostentraeger, Ueberweiser, Arbeitgeber, Pflegedienst) bleiben unveraendert.
+Function InvertiereCode&(ByVal rtyp&)
+ Select Case rtyp
+  Case -11: InvertiereCode = -12
+  Case -12: InvertiereCode = -11
+  Case -13: InvertiereCode = -14
+  Case -14: InvertiereCode = -13
+  Case -15: InvertiereCode = -16
+  Case -16: InvertiereCode = -15
+  Case -17: InvertiereCode = -18
+  Case -18: InvertiereCode = -17
+  Case -19: InvertiereCode = -20
+  Case -20: InvertiereCode = -19
+  Case -28: InvertiereCode = -29
+  Case -29: InvertiereCode = -28
+  Case -30: InvertiereCode = -31
+  Case -31: InvertiereCode = -30
+  Case -38: InvertiereCode = -39
+  Case -39: InvertiereCode = -38
+  Case -41: InvertiereCode = -42
+  Case -42: InvertiereCode = -41
+  Case -43: InvertiereCode = -44
+  Case -44: InvertiereCode = -43
+  Case -45: InvertiereCode = -46
+  Case -46: InvertiereCode = -45
+  Case Else: InvertiereCode = rtyp
+ End Select
+End Function ' InvertiereCode&
+
+' loest eine von relSql per GROUP_CONCAT gelieferte, kommagetrennte Liste von 'dir:FRelationtyp'-
+' Tokens (s. dort) in eine kommagetrennte Klartext-Liste auf - invertiert Codes aus der
+' Gegenrichtung (s. InvertiereCode), damit dieselbe Beziehung von beiden Seiten zum gleichen
+' Wort fuehrt (z.B. 'Mutter' statt 'Mutter, Tochter'); Duplikate entfernt, unbekannte/leere Codes
+' uebersprungen.
 Function BeziehungKlartext$(ByVal rtypen$, ByVal gs$)
- Dim teile$(), i%, t$, erg$, w$
+ Dim teile$(), i%, tok$, p%, dirS$, rtypS$, rtyp&, erg$, w$
  If LenB(rtypen) = 0 Then Exit Function
  teile = Split(rtypen, ",")
  For i = LBound(teile) To UBound(teile)
-  t = Trim$(teile(i))
-  If IsNumeric(t) Then
-   w = KlartextRel(CLng(t), gs)
-   If LenB(w) <> 0 Then
-    If InStr(1, "," & erg & ",", "," & w & ",", vbTextCompare) = 0 Then ' keine doppelten Woerter
-     erg = erg & IIf(LenB(erg) = 0, vNS, ", ") & w
+  tok = Trim$(teile(i))
+  p = InStr(tok, ":")
+  If p > 0 Then
+   dirS = left$(tok, p - 1)
+   rtypS = Mid$(tok, p + 1)
+   If IsNumeric(rtypS) Then
+    rtyp = CLng(rtypS)
+    If dirS = "0" Then rtyp = InvertiereCode(rtyp) ' Eintrag stammt vom verlinkten Patienten aus dessen Sicht - umkehren
+    w = KlartextRel(rtyp, gs)
+    If LenB(w) <> 0 Then
+     If InStr(1, "," & erg & ",", "," & w & ",", vbTextCompare) = 0 Then ' keine doppelten Woerter
+      erg = erg & IIf(LenB(erg) = 0, vNS, ", ") & w
+     End If
     End If
    End If
   End If
@@ -1048,11 +1095,11 @@ Sub BezuegeTeile(ByVal PatId$, ByVal Verz$, ByVal obphpL%, ByRef knopf$, ByRef b
  relSql = _
   "SELECT rel.pid pid," & vbCrLf & _
   " COALESCE(GROUP_CONCAT(DISTINCT NULLIF(TRIM(rel.rtext),'') SEPARATOR ', '),'') rtext," & vbCrLf & _
-  " COALESCE(GROUP_CONCAT(DISTINCT rel.rtyp ORDER BY rel.rtyp SEPARATOR ','),'') rtypen" & vbCrLf & _
-  "FROM (SELECT FReferenzid pid, FRelationtyp rtyp, COALESCE(FRelationtext,'') rtext" & vbCrLf & _
+  " COALESCE(GROUP_CONCAT(DISTINCT CONCAT(rel.dir,':',rel.rtyp) ORDER BY rel.rtyp SEPARATOR ','),'') rtypen" & vbCrLf & _
+  "FROM (SELECT FReferenzid pid, FRelationtyp rtyp, 1 dir, COALESCE(FRelationtext,'') rtext" & vbCrLf & _
   "       FROM patrelation WHERE FReferenztyp = 1 AND FPatid = " & PatId & vbCrLf & _
   "      UNION ALL" & vbCrLf & _
-  "      SELECT FPatid pid, FRelationtyp rtyp, COALESCE(FRelationtext,'') rtext" & vbCrLf & _
+  "      SELECT FPatid pid, FRelationtyp rtyp, 0 dir, COALESCE(FRelationtext,'') rtext" & vbCrLf & _
   "       FROM patrelation WHERE FReferenztyp = 1 AND FReferenzid = " & PatId & ") rel" & vbCrLf & _
   "WHERE rel.pid <> " & PatId & vbCrLf & _
   "GROUP BY rel.pid"
