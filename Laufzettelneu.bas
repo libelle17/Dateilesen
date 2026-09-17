@@ -929,6 +929,114 @@ End Function ' plzDateiSuch$
 ' tbtrans nachgezogene Kopie ist; nur wenn MOCon nicht offen ist oder die Abfrage dort
 ' fehlschlaegt, wird auf quelle zurueckgefallen. Die Namen kommen immer aus quelle.namen.
 ' knopf und box bleiben "", wenn keine solche Beziehung besteht - dann erscheint kein Knopf.
+' Klartext eines einzelnen FRelationtyp-Codes, abhaengig vom Geschlecht des VERLINKTEN Patienten
+' (gs="w"/"m", aus quelle.namen) - vom Nutzer ermittelte Tabelle (2026-09-17). Codes ohne Eintrag
+' (u.a. der Altbestand-Sentinel -2147483647 ohne echten Typ, nur mit Freitext) liefern "".
+Function KlartextRel$(ByVal rtyp&, ByVal gs$)
+ If gs = "w" Then
+  Select Case rtyp
+   Case -16: KlartextRel = "Adoptiv-Mutter"
+   Case -15: KlartextRel = "Adoptiv-Tochter"
+   Case -35: KlartextRel = "Arbeitgeber"
+   Case -32: KlartextRel = "Ärztin"
+   Case -28: KlartextRel = "Betreuerin"
+   Case -29: KlartextRel = "Betreute"
+   Case -24: KlartextRel = "Cousine"
+   Case -25: KlartextRel = "Ehefrau"
+   Case -18: KlartextRel = "Enkelin"
+   Case -27: KlartextRel = "Ex-Ehefrau"
+   Case -37: KlartextRel = "Freundin"
+   Case -39: KlartextRel = "Gepflegte"
+   Case -17: KlartextRel = "Großmutter"
+   Case -22: KlartextRel = "Halbschwester"
+   Case -40: KlartextRel = "Hausärztin"
+   Case -41: KlartextRel = "Heim"
+   Case -42: KlartextRel = "Heimbewohnerin"
+   Case -33: KlartextRel = "Kostenträger"
+   Case -26: KlartextRel = "Lebenspartnerin"
+   Case -31: KlartextRel = "Mündel"
+   Case -12: KlartextRel = "Mutter"
+   Case -20: KlartextRel = "Nichte"
+   Case -47: KlartextRel = "Pflegedienst"
+   Case -46: KlartextRel = "Pflege-Mutter"
+   Case -38: KlartextRel = "Pflegerin"
+   Case -45: KlartextRel = "Pflege-Tochter"
+   Case -36: KlartextRel = "Schwägerin"
+   Case -21: KlartextRel = "Schwester"
+   Case -44: KlartextRel = "Schwieger-Mutter"
+   Case -43: KlartextRel = "Schwieger-Tochter"
+   Case -14: KlartextRel = "Stief-Mutter"
+   Case -23: KlartextRel = "Stiefschwester"
+   Case -13: KlartextRel = "Stieftochter"
+   Case -19: KlartextRel = "Tante"
+   Case -11: KlartextRel = "Tochter"
+   Case -34: KlartextRel = "Überweiser"
+   Case -30: KlartextRel = "Vormund"
+   Case Else: KlartextRel = vNS
+  End Select
+ Else ' gs = "m" oder unbekannt
+  Select Case rtyp
+   Case -15: KlartextRel = "Adoptiv-Sohn"
+   Case -16: KlartextRel = "Adoptiv-Vater"
+   Case -32: KlartextRel = "Arzt"
+   Case -28: KlartextRel = "Betreuer"
+   Case -29: KlartextRel = "Betreuter"
+   Case -21: KlartextRel = "Bruder"
+   Case -24: KlartextRel = "Cousin"
+   Case -25: KlartextRel = "Ehemann"
+   Case -18: KlartextRel = "Enkel"
+   Case -27: KlartextRel = "Ex-Ehemann"
+   Case -37: KlartextRel = "Freund"
+   Case -39: KlartextRel = "Gepflegter"
+   Case -17: KlartextRel = "Großvater"
+   Case -22: KlartextRel = "Halbbruder"
+   Case -40: KlartextRel = "Hausarzt"
+   Case -41: KlartextRel = "Heim"
+   Case -42: KlartextRel = "Heimbewohner"
+   Case -33: KlartextRel = "Kostenträger"
+   Case -26: KlartextRel = "Lebenspartner"
+   Case -31: KlartextRel = "Mündel"
+   Case -20: KlartextRel = "Neffe"
+   Case -19: KlartextRel = "Onkel"
+   Case -47: KlartextRel = "Pflegedienst"
+   Case -38: KlartextRel = "Pfleger"
+   Case -45: KlartextRel = "Pflege-Sohn"
+   Case -46: KlartextRel = "Pflege-Vater"
+   Case -36: KlartextRel = "Schwager"
+   Case -43: KlartextRel = "Schwieger-Sohn" ' vom Nutzer als "Schwiger-Sohn" geliefert - offensichtlicher Tippfehler, hier korrigiert (vgl. "Schwieger-Tochter"/"-Mutter"/"-Vater")
+   Case -44: KlartextRel = "Schwieger-Vater"
+   Case -11: KlartextRel = "Sohn"
+   Case -23: KlartextRel = "Stiefbruder"
+   Case -13: KlartextRel = "Stiefsohn"
+   Case -14: KlartextRel = "Stief-Vater"
+   Case -34: KlartextRel = "Überweiser"
+   Case -12: KlartextRel = "Vater"
+   Case -30: KlartextRel = "Vormund"
+   Case Else: KlartextRel = vNS
+  End Select
+ End If
+End Function ' KlartextRel$
+
+' loest eine von relSql per GROUP_CONCAT gelieferte, kommagetrennte Liste von FRelationtyp-Codes
+' in eine kommagetrennte Klartext-Liste auf (Duplikate entfernt, unbekannte/leere Codes uebersprungen)
+Function BeziehungKlartext$(ByVal rtypen$, ByVal gs$)
+ Dim teile$(), i%, t$, erg$, w$
+ If LenB(rtypen) = 0 Then Exit Function
+ teile = Split(rtypen, ",")
+ For i = LBound(teile) To UBound(teile)
+  t = Trim$(teile(i))
+  If IsNumeric(t) Then
+   w = KlartextRel(CLng(t), gs)
+   If LenB(w) <> 0 Then
+    If InStr(1, "," & erg & ",", "," & w & ",", vbTextCompare) = 0 Then ' keine doppelten Woerter
+     erg = erg & IIf(LenB(erg) = 0, vNS, ", ") & w
+    End If
+   End If
+  End If
+ Next i
+ BeziehungKlartext = erg
+End Function ' BeziehungKlartext$
+
 Sub BezuegeTeile(ByVal PatId$, ByVal Verz$, ByVal obphpL%, ByRef knopf$, ByRef box$)
  Dim rRel As ADODB.Recordset, rNam As New ADODB.Recordset, bx As New CString
  Dim relSql$, namSql$, pidListe$, q$, z&, i%
@@ -980,7 +1088,7 @@ Sub BezuegeTeile(ByVal PatId$, ByVal Verz$, ByVal obphpL%, ByRef knopf$, ByRef b
   "ORDER BY n.Nachname, n.Vorname"
  myFrag rNam, namSql
  If rNam.State = 0 Then Exit Sub
- bx.Append "<div id=" & q & "bezugBox" & q & " style=" & q & "display:none;border-style:groove;border-width:thin;border-color:blue;background-color:cornsilk;padding:4px;margin:2px 0;" & q & ">"
+ bx.Append "<div id=" & q & "bezugBox" & q & " style=" & q & "display:none;min-width:34em;border-style:groove;border-width:thin;border-color:blue;background-color:cornsilk;padding:4px;margin:2px 0;" & q & ">"
  bx.Append "<b>Beziehungen zu anderen Patienten der Praxis:</b><br>"
  Do While Not rNam.EOF
   pid = CStr(rNam!pid)
@@ -992,13 +1100,16 @@ Sub BezuegeTeile(ByVal PatId$, ByVal Verz$, ByVal obphpL%, ByRef knopf$, ByRef b
   tip = vNS
   For i = 0 To rz - 1
    If rpid(i) = pid Then
-    bez = HtmlEsc(rtext(i))
+    Dim bezRoh$
+    bezRoh = BeziehungKlartext(rtypen(i), gs)
+    If LenB(rtext(i)) <> 0 Then bezRoh = bezRoh & IIf(LenB(bezRoh) = 0, vNS, ", ") & rtext(i)
+    bez = HtmlEsc(bezRoh)
     tip = HtmlEsc(rtypen(i))
     rdrin(i) = True
     Exit For
    End If
   Next i
-  zeile = nam & " (" & gsz & ")" & IIf(LenB(gebd) <> 0, ", *" & gebd, vNS) & ", Pid " & pid
+  zeile = nam & " (" & gsz & IIf(LenB(bez) <> 0, ", " & bez, vNS) & ")" & IIf(LenB(gebd) <> 0, ", *" & gebd, vNS) & ", Pid " & pid
   Call BezugZeile(bx, zeile, bez, tip, pid, Verz, obphpL, q)
   z = z + 1
   rNam.MoveNext
