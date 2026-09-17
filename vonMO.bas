@@ -2638,7 +2638,7 @@ End Sub ' TestMOKatEintraege
 ' passend als Eingabe fuer ParseMemoFast. Bei anderem/unbekanntem Format wird der Text unveraendert zurueckgegeben.
 Public Function MOMemoEntpacken$(s$)
  Dim i&, n&, ch$, res$, nx$
- If Left$(s, 8) <> "{(Memo " & Chr$(34) Then
+ If left$(s, 8) <> "{(Memo " & Chr$(34) Then
   MOMemoEntpacken = s
   Exit Function
  End If
@@ -2678,9 +2678,9 @@ Public Sub TestMemoZerlegen(Optional fPtNr& = 1722, Optional FEintragsartP& = 27
   Debug.Print "kein Eintrag gefunden"
   Exit Sub
  End If
- Call ParseMemoFast(MOMemoEntpacken(rt!fd), FMem(), True, "TestMemoZerlegen")
+ Call ParseMemoFast(MOMemoEntpacken(rt!Fd), FMem(), True, "TestMemoZerlegen")
  Open ffadat For Output As #198
- Print #198, "Eintrag vom " & rt!zp
+ Print #198, "Eintrag vom " & rt!Zp
  For j = 0 To UBound(FMem)
   Print #198, FMem(j).ENr & vbTab & FMem(j).Text
  Next j
@@ -6026,7 +6026,7 @@ End Function ' moausgeb
 Public Function suchfi(pNr&, fI$, notObRlike%, MServ$)
  Dim altt$, gefu%, i&
  Dim rst As New ADODB.Recordset, rsu As New ADODB.Recordset, RsI As New ADODB.Recordset
- Dim MOCon As New ADODB.Connection
+' Dim MOCon As New ADODB.Connection
  Dim D1$, fn$, ausgStr$, ausgTNr%
  If MOConInit(MServ, "suchif(" & pNr & "," & fI & "," & CStr(notObRlike) & "," & MServ & ")") Then Exit Function
  D1 = "\\linux1\daten\down\suchfi_" & pNr & "_" & fI & "_" & MServ

@@ -864,6 +864,231 @@ Function JSStr$(s$)
  JSStr = t
 End Function ' JSStr$
 
+' HTML-Text escapen (fuer Einbettung von Datenbanktext in Text und Attributwerte)
+Function HtmlEsc$(s$)
+ Dim t$
+ t = REPLACE$(s, "&", "&amp;")
+ t = REPLACE$(t, "<", "&lt;")
+ t = REPLACE$(t, ">", "&gt;")
+ t = REPLACE$(t, Chr$(34), "&quot;")
+ t = REPLACE$(t, "'", "&#39;")
+ HtmlEsc = t
+End Function ' HtmlEsc$
+
+' Dateinamen (ohne Pfad) fuer die Verwendung in einem href percent-codieren
+Function UrlEnc$(s$)
+ Dim i&, c%, ch$, t As New CString
+ For i = 1 To Len(s)
+  ch = Mid$(s, i, 1)
+  c = Asc(ch) And 255
+  If (c >= 48 And c <= 57) Or (c >= 65 And c <= 90) Or (c >= 97 And c <= 122) Or InStrB("-._~", ch) <> 0 Then
+   t.Append ch
+  Else
+   t.Append "%" & Right$("0" & Hex$(c), 2)
+  End If
+ Next i
+ UrlEnc = t.Value
+End Function ' UrlEnc$
+
+' Schon vorhandene Patientenlaufzettel-Datei zu einer Pat_id im Verzeichnis Verz suchen.
+' Beruecksichtigt beide Namenssyntaxen aus dodoplz (s. dort "DateiNameRoh ="):
+'   php-Variante:   <Nachname>_<Vorname>,Pid_<id>[,<Arzt>][_...].html
+'   Datei-Variante: <Nachname> <Vorname>,   Pid <id>[, <Arzt>], Patientenlaufzettel[_...].html
+' Das Komma bzw. der Unterstrich direkt hinter der Nummer verhindert Treffer auf laengere Pat_ids.
+' Rueckgabe: Dateiname (ohne Pfad) der juengsten Fundstelle, sonst "".
+Function plzDateiSuch$(ByVal Verz$, ByVal PatId$)
+ Dim mu$(3), i%, gef$, best$, bestZp As Date, Zp As Date
+ On Error GoTo fehler
+ If LenB(Verz) = 0 Then Exit Function
+ If Not FSO.FolderExists(Verz) Then Exit Function
+ mu(0) = "*,Pid_" & PatId & ".html"
+ mu(1) = "*,Pid_" & PatId & ",*.html"
+ mu(2) = "*,Pid_" & PatId & "_*.html"
+ mu(3) = "*Pid " & PatId & ",*Patientenlaufzettel*.html"
+ For i = 0 To 3
+  gef = Dir$(Verz & mu(i))
+  Do While LenB(gef) <> 0
+   Zp = FileDateTime(Verz & gef)
+   If LenB(best) = 0 Or Zp > bestZp Then
+    best = gef
+    bestZp = Zp
+   End If
+   gef = Dir$()
+  Loop
+ Next i
+fehler:
+ plzDateiSuch = best
+End Function ' plzDateiSuch$
+
+' Knopf "Bezuege" am Ende der Auftragszeile des Patientenlaufzettels und der zugehoerige
+' (zunaechst versteckte) Kasten mit den Links auf die Laufzettel der verwandten Patienten.
+' Quelle: patrelation mit FReferenztyp=1 (= Beziehung zu einem anderen eigenen Patienten;
+' 2 waere der Hausarzt aus earzt, 0 eine sonstige Kontaktadresse). In beiden Richtungen
+' gesucht, da die Beziehung in Medical Office oft nur bei einem der beiden eingetragen ist.
+' Gelesen wird bevorzugt aus medoff (MOCon), da quelle.patrelation nur eine per HATrans/
+' tbtrans nachgezogene Kopie ist; nur wenn MOCon nicht offen ist oder die Abfrage dort
+' fehlschlaegt, wird auf quelle zurueckgefallen. Die Namen kommen immer aus quelle.namen.
+' knopf und box bleiben "", wenn keine solche Beziehung besteht - dann erscheint kein Knopf.
+Sub BezuegeTeile(ByVal PatId$, ByVal Verz$, ByVal obphpL%, ByRef knopf$, ByRef box$)
+ Dim rRel As ADODB.Recordset, rNam As New ADODB.Recordset, bx As New CString
+ Dim relSql$, namSql$, pidListe$, q$, z&, i%
+ Dim rAf&, ErrNr&, ErrDes$
+ Dim rpid$(), rtext$(), rtypen$(), rdrin%(), rz%
+ Dim pid$, nam$, gs$, gsz$, gebd$, bez$, tip$, zeile$
+ On Error GoTo fehler
+ q = Chr$(34)
+ relSql = _
+  "SELECT rel.pid pid," & vbCrLf & _
+  " COALESCE(GROUP_CONCAT(DISTINCT NULLIF(TRIM(rel.rtext),'') SEPARATOR ', '),'') rtext," & vbCrLf & _
+  " COALESCE(GROUP_CONCAT(DISTINCT rel.rtyp ORDER BY rel.rtyp SEPARATOR ','),'') rtypen" & vbCrLf & _
+  "FROM (SELECT FReferenzid pid, FRelationtyp rtyp, COALESCE(FRelationtext,'') rtext" & vbCrLf & _
+  "       FROM patrelation WHERE FReferenztyp = 1 AND FPatid = " & PatId & vbCrLf & _
+  "      UNION ALL" & vbCrLf & _
+  "      SELECT FPatid pid, FRelationtyp rtyp, COALESCE(FRelationtext,'') rtext" & vbCrLf & _
+  "       FROM patrelation WHERE FReferenztyp = 1 AND FReferenzid = " & PatId & ") rel" & vbCrLf & _
+  "WHERE rel.pid <> " & PatId & vbCrLf & _
+  "GROUP BY rel.pid"
+ ' bevorzugt live aus medoff, ohne dabei selbst eine Verbindung aufzubauen oder
+ ' bei Misserfolg eine Meldung zu erzeugen (keinfehler:=True)
+ If MOtot = 0 And Not MOCon Is Nothing Then
+  If MOCon.State <> 0 Then
+   myFrag rRel, relSql, adOpenStatic, MOCon, adLockReadOnly, "700", rAf, True, ErrNr, ErrDes
+   If Not rRel Is Nothing Then If ErrNr <> 0 Or rRel.State = 0 Then Set rRel = Nothing
+  End If
+ End If
+ If rRel Is Nothing Then myFrag rRel, relSql ' Rueckfall auf die Kopie in quelle
+ If rRel Is Nothing Then Exit Sub
+ If rRel.State = 0 Then Exit Sub
+ If rRel.BOF Then Exit Sub
+ ReDim rpid(199): ReDim rtext(199): ReDim rtypen(199): ReDim rdrin(199)
+ Do While Not rRel.EOF And rz <= 199
+  rpid(rz) = CStr(rRel!pid)
+  rtext(rz) = nz(rRel!rtext, vNS)
+  rtypen(rz) = nz(rRel!rtypen, vNS)
+  pidListe = pidListe & IIf(rz = 0, vNS, ",") & rpid(rz)
+  rz = rz + 1
+  rRel.MoveNext
+ Loop
+ Set rRel = Nothing
+ If rz = 0 Then Exit Sub
+ ' Namen immer aus quelle.namen - in medoff heissen die Felder anders und die
+ ' Laufzettel-Dateinamen werden ohnehin aus diesen Namen gebildet
+ namSql = _
+  "SELECT n.pat_id pid, COALESCE(n.Nachname,'') nn, COALESCE(n.Vorname,'') vn," & vbCrLf & _
+  " COALESCE(n.Geschlecht,'') gs, COALESCE(DATE_FORMAT(n.GebDat,'%d.%m.%y'),'') gebd" & vbCrLf & _
+  "FROM namen n WHERE n.pat_id IN (" & pidListe & ")" & vbCrLf & _
+  "ORDER BY n.Nachname, n.Vorname"
+ myFrag rNam, namSql
+ If rNam.State = 0 Then Exit Sub
+ bx.Append "<div id=" & q & "bezugBox" & q & " style=" & q & "display:none;border-style:groove;border-width:thin;border-color:blue;background-color:cornsilk;padding:4px;margin:2px 0;" & q & ">"
+ bx.Append "<b>Beziehungen zu anderen Patienten der Praxis:</b><br>"
+ Do While Not rNam.EOF
+  pid = CStr(rNam!pid)
+  nam = HtmlEsc(rNam!nn & IIf(LenB(rNam!vn) <> 0, ", " & rNam!vn, vNS))
+  gs = rNam!gs
+  gsz = Switch(gs = "w", "&female;", gs = "m", "&male;", True, HtmlEsc(gs))
+  gebd = rNam!gebd
+  bez = vNS
+  tip = vNS
+  For i = 0 To rz - 1
+   If rpid(i) = pid Then
+    bez = HtmlEsc(rtext(i))
+    tip = HtmlEsc(rtypen(i))
+    rdrin(i) = True
+    Exit For
+   End If
+  Next i
+  zeile = nam & " (" & gsz & ")" & IIf(LenB(gebd) <> 0, ", *" & gebd, vNS) & ", Pid " & pid
+  Call BezugZeile(bx, zeile, bez, tip, pid, Verz, obphpL, q)
+  z = z + 1
+  rNam.MoveNext
+ Loop
+ Set rNam = Nothing
+ ' in medoff schon verknuepfte, aber in quelle.namen noch nicht vorhandene Patienten
+ For i = 0 To rz - 1
+  If rdrin(i) = 0 Then
+   Call BezugZeile(bx, "Pid " & rpid(i) & " (noch nicht in quelle.namen)", HtmlEsc(rtext(i)), HtmlEsc(rtypen(i)), rpid(i), Verz, obphpL, q)
+   z = z + 1
+  End If
+ Next i
+ If z = 0 Then Exit Sub
+ bx.Append "</div>"
+ bx.Append vbCrLf & "<script>" & vbCrLf
+ bx.Append "function bezugToggle() {" & vbCrLf
+ bx.Append " var b=document.getElementById('bezugBox');" & vbCrLf
+ bx.Append " var k=document.getElementById('bezugBtn');" & vbCrLf
+ bx.Append " if (b.style.display=='none'||!b.style.display) {" & vbCrLf
+ bx.Append "  b.style.display='block';" & vbCrLf
+ bx.Append "  k.style.color='crimson'; k.style.backgroundColor='cornsilk';" & vbCrLf
+ bx.Append " } else {" & vbCrLf
+ bx.Append "  b.style.display='none';" & vbCrLf
+ bx.Append "  k.style.color='black'; k.style.backgroundColor='white';" & vbCrLf
+ bx.Append " }" & vbCrLf
+ bx.Append "}" & vbCrLf
+ bx.Append "document.addEventListener('keydown',function(e){if(e.altKey&&(e.key=='b'||e.key=='B'||e.code=='KeyB')){e.preventDefault();bezugToggle();}},true);" & vbCrLf
+ bx.Append "</script>" & vbCrLf
+ box = bx.Value
+ knopf = " <button type=" & q & "button" & q & " id=" & q & "bezugBtn" & q & " style=" & q & "padding-left:0;border-style:groove;border-width:thin;border-color:blue;color:black;background-color:white;" & q & " " & _
+   "title=" & q & z & " Beziehung" & IIf(z = 1, vNS, "en") & " zu anderen Patienten der Praxis (Alt+B)" & q & " onclick=" & q & "bezugToggle()" & q & "><u>B</u>ez&uuml;ge (" & z & ")</button>"
+ Exit Sub
+fehler:
+ knopf = vNS
+ box = vNS
+End Sub ' BezuegeTeile
+
+' eine Zeile des Bezuege-Kastens: Beziehungsbezeichnung + Link auf den Laufzettel
+Private Sub BezugZeile(ByRef bx As CString, ByVal zeile$, ByVal bez$, ByVal tip$, ByVal pid$, ByVal Verz$, ByVal obphpL%, ByVal q$)
+ Dim lnk$, dat$, tit$
+ If obphpL <> 0 Then
+  lnk = "../php/plzgo.php?pid=" & pid ' loest beide Namenssyntaxen und noetigenfalls oeffneplz: (s. dort) erst beim Klick auf,
+  tit = "Patientenlaufzettel oeffnen"                                   ' funktioniert so auch fuer erst spaeter erstellte Laufzettel
+ Else
+  dat = plzDateiSuch(Verz, pid)
+  If LenB(dat) <> 0 Then
+   lnk = UrlEnc(dat)
+   tit = "Patientenlaufzettel oeffnen"
+  Else ' noch nicht vorhanden - per oeffneplz: (s. RegistriereOeffnePlz) neu erstellen und oeffnen
+   lnk = "oeffneplz:" & pid
+   tit = "Patientenlaufzettel existiert noch nicht - jetzt erstellen und oeffnen"
+  End If
+ End If
+ bx.Append "<div style=" & q & "margin:1px 0" & q & ">"
+ bx.Append "<span class='unauff' style=" & q & "display:inline-block;min-width:12ch" & q & " title=" & q & "FRelationtyp " & tip & q & ">" & IIf(LenB(bez) <> 0, bez, "&nbsp;") & "</span>"
+ bx.Append "<a href=" & q & lnk & q & " title=" & q & tit & q & ">" & zeile & "</a>"
+ bx.Append "</div>"
+End Sub ' BezugZeile
+
+' Nur-Ziffern-Pruefung fuer Pat_id-Werte aus nicht vertrauenswuerdiger Quelle (URL-Protokoll-Aufruf,
+' s. RegistriereOeffnePlz/oeffneplz:) - verhindert SQL-Injektion ueber die vielen Stellen, an denen
+' dodoplz und die von dort aufgerufenen Funktionen Pat_id ungeprueft in SQL-Text einsetzen.
+Function NurZiffern%(ByVal s$)
+ Dim i%
+ If LenB(s) = 0 Or Len(s) > 12 Then Exit Function
+ For i = 1 To Len(s)
+  If Mid$(s, i, 1) < "0" Or Mid$(s, i, 1) > "9" Then Exit Function
+ Next i
+ NurZiffern = True
+End Function ' NurZiffern%
+
+' Registriert das URL-Protokoll "oeffneplz:", damit ein Klick auf einen im Bezuege-Kasten (s.
+' BezuegeTeile) verlinkten, noch nicht existierenden Patientenlaufzettel eine neue Instanz von
+' DateiLese.exe startet, die genau diesen einen Laufzettel erstellt und anzeigt - der Aufruf
+' erfolgt hier direkt mit der Pat_id (kein Umweg ueber eine BDT-Datei wie bei "eplz"), ausgewertet
+' in MDIForm_Activate (Lese5.frm). Selbstreferenzierend wie "oeffnedual:" fuer NVerb.exe
+' (NetzVerbind\Haupt.bas, Sub Main): zeigt auf die gerade laufende DateiLese.exe, unabhaengig vom
+' tatsaechlichen Installationsverzeichnis. Wird bei jedem normalen Start in mdiForm_Load
+' aufgerufen; schlaegt bei fehlenden Schreibrechten auf HKEY_LOCAL_MACHINE lautlos fehl, wie die
+' Registrierung von oeffnedual/oeffneverz dort auch.
+Sub RegistriereOeffnePlz()
+ Dim cReg As New Registry, Anw$
+ On Error Resume Next
+ Anw = App.Path & "\" & App.EXEName & ".exe"
+ Call cReg.WriteKey("Open Patientenlaufzettel Protocol", "", "SOFTWARE\Classes\oeffneplz", HKEY_LOCAL_MACHINE)
+ Call cReg.WriteKey(" ", "URL Protocol", "SOFTWARE\Classes\oeffneplz", HKEY_LOCAL_MACHINE)
+ Call cReg.WriteKey("Open Patientenlaufzettel", "", "SOFTWARE\Classes\oeffneplz\shell\open", HKEY_LOCAL_MACHINE)
+ Call cReg.WriteKey(Chr$(34) & Anw & Chr$(34) & " " & Chr$(34) & "%1" & Chr$(34), "", "SOFTWARE\Classes\oeffneplz\shell\open\command", HKEY_LOCAL_MACHINE)
+End Sub ' RegistriereOeffnePlz
+
 ' chronologische Liste aller alten Medikationsplaene eines Patienten als JS-Array-Literal
 ' [{""zp"":""<Zeitpunkt formatiert>"",""h"":""<HTML-Tabelle mit dem Planinhalt>""}, ...], neuester zuerst
 ' fuer die Knoepfe "Letzte"/"Medikation" im Patientenlaufzettel (testweise: Fenstererweiterung bzw. echtes Unterfenster)
@@ -1885,7 +2110,9 @@ sql0 = _
    Befund = rsauf!Befund
   End If
   Set rsauf = Nothing
-  AusS.AppVar (Array("<div class='lila' style=""margin-left:1ch"">" & BhFB & ": Auftrag:<span class='gruen'> " & Auftrag & "</span>" & " Verdacht:<span class='gruen'> " & Verdacht & "</span>" & " Befund:<span class='gruen'> " & Befund & "</span>" & "</div>", vbCrLf))
+  Dim bezKnopf$, bezBox$ ' Knopf "Bezuege" am Ende der Auftragszeile + zugehoeriger Klappkasten
+  Call BezuegeTeile(Pat_id, plzVerz, obphp, bezKnopf, bezBox)
+  AusS.AppVar (Array("<div class='lila' style=""margin-left:1ch"">" & BhFB & ": Auftrag:<span class='gruen'> " & Auftrag & "</span>" & " Verdacht:<span class='gruen'> " & Verdacht & "</span>" & " Befund:<span class='gruen'> " & Befund & "</span>" & bezKnopf & "</div>" & bezBox, vbCrLf))
   If (obphp <> 0) Then
    AusS.AppVar (Array("<?php ", vbCrLf))
    AusS.AppVar (Array(" $pat_id=", Pat_id, ";", vbCrLf))

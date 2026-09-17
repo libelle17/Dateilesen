@@ -1100,6 +1100,35 @@ Private Sub Con_Datei_einlesen_Click()
  Call doConAnal(CommonDialogLese.Filename)
 End Sub ' Con_Datei_einlesen_Click()
 
+'Zuletzt mußte ich den Versuch, die SGLT-2-Hemmer und die GLP-1-Analoga korrigieren zu lassen, aufgeben, weil sich dadurch immer alles verschieden verschiebt.
+'Jetzt habe ich aber eine trotzdem eine Methode mit hoffe ich vertretbarer Geschwindigkeit, wenn sie sich auch etwas kompliziert anhört:
+'1) mehrere DMPs aus der DMP-hier-Liste exportieren
+'     (dadurch werden auch XML-Dateien zu jedem Pat. in u:\TMImport\MO erstellt).
+'2) EDV->"DMP in MO importieren 1" aufrufen
+'    (dadurch werden die DMP-XML-Datein in DMPArchiv.zip komprimiert. Eine Liste
+'    der Patientennummern wird in notepad++ geöffnet, weiterhin das
+'    MO-Datenpflegesystem).
+'3) mit dem MO-Datenpflegesystem in System->Patientendatenimport die o.g.
+'     DMPArchiv.zip in MO importieren.
+'4) im Patientendatenprogramm EDV->"DMP in MO importieren 2a" aufrufen
+'    (dadurch werden in die zuletzt importieren DMP-Doku'n SGLT-2-Hemmer und
+'     GLP-1 Analoga richtig eingetragen, aber diese Doku'n für die
+'     Weiterverarbeitung unbrauchbar).
+'5) ein zweites Mal mit dem MO-Datenpflegesystem in
+'     System->Patientendatenimport die o.g. DMPArchiv.zip in MO importieren.
+'6) im Patientendatenprogramm EDV->"DMP in MO importieren 2b" aufrufen
+'    (dadurch werden zu den zuletzt importieren DMP-Doku'n die Verwaltungsdaten
+'     korrigiert, so dass sie verarbeit- und exportierbar werden).
+'7) aus der Liste von 2) der Reihe nach  alle Patientennummern nehmen und in MO
+'     aufrufen. Dort bei Typ-2-Diabetes die erste DMP-Doku jeweils kurz aufrufen, die
+'     Einträge bei SGLT-2-Hemmern und GLP-1-Analoga merken, dann wieder
+'     zumachen, die zweite DMP-Doku öffnen, dort die beiden Einträge vornehmen,
+'    ferner (und ab hier gilt der Satz auch wieder für Typ-1-Diabetes) das
+'    Erstellungsdatum eintragen, die Doku in PDF drucken, dann die erste
+'    DMP-Doku löschen.
+'8) jetzt sollten alle DMP-Dokus in der DMP-Abrechnungsliste fehlerfrei
+'     exportierbar sein.
+
 ' EDV -> &DMP in MO importieren Click
 ' Korrekturliste
 Private Sub DMP_in_MO_importieren_1_Click()
@@ -1614,7 +1643,7 @@ Private Sub Falsche_Benutzer_korrigieren_Click()
  myFrag rsm, sql, adOpenStatic
  If Not rsm.BOF Then
   Do While True
-   If rsm!rn = 1 Then
+   If rsm!rN = 1 Then
     pid = rsm!Pat_id
     ausw.Abbruch = 0
     ausw.Caption = pid & ": " & rsm!PName & " (" & rsm!Arzt & "), " & rsm!Zeitpunkt & " - " & rsm!mzp & ", Art: " & rsm!art & ", Ersteller/Änderer: " & rsm!erstl & ",T: " & rsm!term & " " & rsm!Tz & " " & rsm!ez
@@ -2990,7 +3019,7 @@ End Sub ' FalscheKarteikarteneinträge_Click
 
 ' Funktionen für Arzthelferin und Arzt -> verhunzte Fotos einfärben
 Private Sub VerhunzteFotosEinfärben_Click() ' zu knapp gespeicherte Fotos nochmal verbessern
-Dim rDok As New ADODB.Recordset, IViewPfad$, KStr$, FPfad$, FNam$, DokPfad$, erg$, eingefärbt&
+Dim rDok As New ADODB.Recordset, IViewPfad$, KStr$, FPfad$, FNam$, DokPfad$, Erg$, eingefärbt&
  Dim rsFiP As New ADODB.Recordset, Nam$, namspl$(), j&, sql$, nr&, altnam$, neunam$
  Dim fold As Folder, Fil As File
  Dim APfad$
@@ -3046,7 +3075,7 @@ nochmal:
        If FSO.FileExists(FPfad & "_kaputt") Then Kill FPfad & "_kaputt"
        Name FPfad As FPfad & "_kaputt"
        KStr = IViewPfad & " """ & rsFiP!tpfad & """ /convert=""" & FPfad & """ /jpgq=30 " & IIf(rsFiP!helligkeit <> 90, " /bright=" & rsFiP!helligkeit, vNS) & IIf(rsFiP!kontrast <> 90, " /contrast=" & rsFiP!kontrast, vNS)
-       erg = Shell(KStr, vbNormalFocus)
+       Erg = Shell(KStr, vbNormalFocus)
        If FSO.FileExists(FPfad) Then
         If FSO.GetFile(FPfad).size >= FSO.GetFile(FPfad & "_kaputt").size * 0.5 Then ' 21.8.21 statt FileLen
          Kill FPfad & "_kaputt"
@@ -3516,11 +3545,11 @@ End Sub ' Sub BriefImport_Click
 
 ' ...für Arzt -> Brief ohne Maske schreiben
 Private Sub BriefOhneMaske_Click()
- Dim erg$
- erg = InputBox("Bitte Pat_ID eingeben:")
- If IsNumeric(erg) Then
+ Dim Erg$
+ Erg = InputBox("Bitte Pat_ID eingeben:")
+ If IsNumeric(Erg) Then
   Lese.Aktion = Briefschreiben
-  Call tuBriefStandalone(CLng(erg), 0)
+  Call tuBriefStandalone(CLng(Erg), 0)
  End If
 End Sub  ' BriefOhneMaske_Click
 
@@ -3652,13 +3681,13 @@ End Sub ' Faxe_gescheitert_Click
 
 ' ...für Arzt -> Pat. löschen
 Private Sub Pat_loeschen_Click()
- Dim Pat_id&, erg&
+ Dim Pat_id&, Erg&
  Pat_id = InputBox("Welchen Patienten wollen Sie löschen?")
  Dim rsPat As New ADODB.Recordset
  myFrag rsPat, "SELECT gesname(" & Pat_id & ")"
  If Not rsPat.BOF() Then
-  erg = MsgBox("Wollen Sie wirklich den Patienten `" & Pat_id & " (" & rsPat.Fields(0) & ")` löschen?", vbYesNo)
-  If erg = vbYes Then
+  Erg = MsgBox("Wollen Sie wirklich den Patienten `" & Pat_id & " (" & rsPat.Fields(0) & ")` löschen?", vbYesNo)
+  If Erg = vbYes Then
    Call LöschePat(Pat_id, True)
   End If ' erg = vbYes
  End If ' Not rsPat.BOF() Then
@@ -3748,9 +3777,9 @@ Private Sub MedartenEditieren_Click()
 End Sub ' MedartenEditieren_Click()
 
 Private Sub LaborregelnPflegen_Click()
- Dim lr As New PatListe
- lr.PLArt = artLaborregel
- lr.Show
+ Dim lR As New PatListe
+ lR.PLArt = artLaborregel
+ lR.Show
 End Sub ' LaborregelnPflegen_Click()
 
 ' ...für Arzt -> Laborparameter zusammenfassen
@@ -4070,10 +4099,10 @@ End Sub ' TherapieartenfürallePatientenzusammenfestlegen_Click()
 
 ' für Arzt -> Therapiearten festlegen -> Therapiearten für alle festlegen (einen nach dem anderen)
 Private Sub Therapieartenfürallefestlegeneinernachdemanderen_Click()
- Dim rs As New ADODB.Recordset, sql$, altpat_id&, altTherArt$, rAf&, erg&, T1!, T2!
+ Dim rs As New ADODB.Recordset, sql$, altpat_id&, altTherArt$, rAf&, Erg&, T1!, T2!
  Call ProgStart
- erg = MsgBox("Mit Neuauswertung der Therapiearten?", vbYesNo + vbQuestion + vbDefaultButton2, "Rückfrage")
- If erg = vbYes Then
+ Erg = MsgBox("Mit Neuauswertung der Therapiearten?", vbYesNo + vbQuestion + vbDefaultButton2, "Rückfrage")
+ If Erg = vbYes Then
   T1 = Timer
   Ausgeb "Bitte warten", 0
 '  myEFrag "CREATE TABLE IF NOT EXISTS `therarten`(id integer key auto_increment,pat_id integer, zp datetime, mpnr integer, therart varchar(7), index pat_id(pat_id))", rAF
@@ -4209,7 +4238,7 @@ Private Sub Quartalsvergleich_Click()
   MsgBox "kein Datensatz zu " & q1 & "gefunden!"
   Exit Sub
  Else
-  ID1 = rs!id
+  ID1 = rs!ID
  End If
  Set rs = Nothing
  myFrag rs, "SELECT id FROM GNRStat WHERE qinv = '" & q2 & "'"
@@ -4217,7 +4246,7 @@ Private Sub Quartalsvergleich_Click()
   MsgBox "kein Datensatz zu " & q2 & "gefunden!"
   Exit Sub
  Else
-  id2 = rs!id
+  id2 = rs!ID
  End If
  sql = "SELECT i.*, l.leistungstext FROM (" & _
        "SELECT gnr, ROUND(wert1) _" & q1 & ",round(wert2) _" & q2 & ",round(wert1-wert2) Diff FROM (SELECT z1.gnr, z1.euro euro1, z1.uwert wert1, IF(ISNULL(z2.euro),0,z2.euro) euro2 , IF(ISNULL(z2.uwert),0,z2.uwert) wert2 FROM GNRZahl z1 LEFT JOIN GNRZahl z2 ON z1.gnr = z2.gnr AND z2.statid=" & id2 & " WHERE z1.statid=" & ID1 & ") i " & _
@@ -4299,9 +4328,9 @@ End Sub ' MachDB_Click
 
 ' Statistik -> AlleFallzahlstände
 Private Sub AlleFallzahlstände_Click()
- Dim i%, erg&
- erg = MsgBox("Sollen alle Fallzahlstände berechnet werden?", vbYesNo Or vbDefaultButton2, "Rückfrage")
- If erg = vbYes Then
+ Dim i%, Erg&
+ Erg = MsgBox("Sollen alle Fallzahlstände berechnet werden?", vbYesNo Or vbDefaultButton2, "Rückfrage")
+ If Erg = vbYes Then
   For i = 93 To 0 Step -1
    dofallzahlstand Me, CStr(i)
   Next i
@@ -4462,7 +4491,7 @@ End Sub ' Excelliste_Click
 
 ' EDV -> falschen Laboreintrag zu Pat. löschen
 Private Sub falschenLaboreintragZuPatlöschen_Click()
- Dim PIDStr$, pid&, TagStr$, Tag As Date, erg$, PName$, ltxt$, rAf&
+ Dim PIDStr$, pid&, TagStr$, Tag As Date, Erg$, PName$, ltxt$, rAf&
  Dim rs As New Recordset
  PIDStr = InputBox("Bitte Pat_ID eingeben", "1.Rückfrage", 0)
  If Not IsNumeric(PIDStr) Then Exit Sub
@@ -4474,8 +4503,8 @@ Private Sub falschenLaboreintragZuPatlöschen_Click()
  Tag = CDate(TagStr)
  myFrag rs, "SELECT gesnameg(pat_id) Name FROM namen WHERE pat_id = " & PIDStr
  If Not rs.BOF Then If Not rs.EOF Then PName = rs!name
- erg = MsgBox("Wollen Sie Labordaten von Pat. " & PIDStr & " (" & PName & ") vom " & Format(Tag, "dd.mm.yyyy") & " löschen?" & vbCrLf & "Bitte vorher prüfen, ob nicht durch Korrektur von 'pat_id' IN " & vorsil & "us eine Zuordnung zu anderem Patienten nötig", vbYesNo)
- If erg <> vbYes Then Exit Sub
+ Erg = MsgBox("Wollen Sie Labordaten von Pat. " & PIDStr & " (" & PName & ") vom " & Format(Tag, "dd.mm.yyyy") & " löschen?" & vbCrLf & "Bitte vorher prüfen, ob nicht durch Korrektur von 'pat_id' IN " & vorsil & "us eine Zuordnung zu anderem Patienten nötig", vbYesNo)
+ If Erg <> vbYes Then Exit Sub
  Set rs = Nothing
  myFrag rs, "SELECT u.id,u.datid,u.Nachname,u.vorname,u.gebdat,u.eingang,e.pfad,u.lwerte," & _
  "(SELECT COUNT(0) FROM " & vorsil & "bakt WHERE usid = u.id) bzl, " & _
@@ -4488,20 +4517,20 @@ Private Sub falschenLaboreintragZuPatlöschen_Click()
  If Not rs.BOF Then
   Open pVerz & "löschegleich " & Format(Now(), "yyyymmdd_MMHHSS") & ".txt" For Output As #59
   Do While Not rs.EOF
-   ltxt = "USID: " & rs!id & ", DatID: " & rs!DatID & ", Name: " & rs!Nachname & ", Vorname: " & rs!Vorname & ", Geb: " & rs!GebDat & ", Eingang: " & rs!Eingang & vbCrLf & "aus Datei: " & rs!Pfad & vbCrLf & rs!LWerte & vbCrLf & "Baktzahl: " & rs!bzl & ", Leistzahl: " & rs!lzl & ", USZahl: " & rs!uzl & ", Wertzahl: " & rs!bzw
-   erg = MsgBox("Löschen? " & ltxt, vbYesNo)
-   If erg = vbYes Then
+   ltxt = "USID: " & rs!ID & ", DatID: " & rs!DatID & ", Name: " & rs!Nachname & ", Vorname: " & rs!Vorname & ", Geb: " & rs!GebDat & ", Eingang: " & rs!Eingang & vbCrLf & "aus Datei: " & rs!Pfad & vbCrLf & rs!LWerte & vbCrLf & "Baktzahl: " & rs!bzl & ", Leistzahl: " & rs!lzl & ", USZahl: " & rs!uzl & ", Wertzahl: " & rs!bzw
+   Erg = MsgBox("Löschen? " & ltxt, vbYesNo)
+   If Erg = vbYes Then
     Print #59, ltxt
-    myEFrag "DELETE FROM " & vorsil & "bakt WHERE usid = " & rs!id, rAf
+    myEFrag "DELETE FROM " & vorsil & "bakt WHERE usid = " & rs!ID, rAf
     ltxt = rAf & " Sätze aus " & vorsil & "bakt gelöscht"
     Print #59, ltxt
-    myEFrag "DELETE FROM " & vorsil & "leist WHERE usid = " & rs!id, rAf
+    myEFrag "DELETE FROM " & vorsil & "leist WHERE usid = " & rs!ID, rAf
     ltxt = rAf & " Sätze aus " & vorsil & "leist gelöscht"
     Print #59, ltxt
-    myEFrag "DELETE FROM " & vorsil & "wert WHERE usid = " & rs!id, rAf
+    myEFrag "DELETE FROM " & vorsil & "wert WHERE usid = " & rs!ID, rAf
     ltxt = rAf & " Sätze aus " & vorsil & "wert gelöscht"
     Print #59, ltxt
-    myEFrag "DELETE FROM " & vorsil & "us WHERE usid = " & rs!id, rAf
+    myEFrag "DELETE FROM " & vorsil & "us WHERE usid = " & rs!ID, rAf
     ltxt = rAf & " Sätze aus " & vorsil & "us gelöscht"
     Print #59, ltxt
    End If
@@ -4520,7 +4549,7 @@ End Sub ' LabortestsZuordnen_Click
 
 ' EDV -> Laborvergleich
 Private Sub Laborvergleich_Click()
- Dim rv As New ADODB.Recordset, rs As New ADODB.Recordset, i&, ausg$, TA1$, spmax%(5), FristS$, sql$
+ Dim rV As New ADODB.Recordset, rs As New ADODB.Recordset, i&, ausg$, TA1$, spmax%(5), FristS$, sql$
  sql = "SELECT * FROM (SELECT COUNT(0) Zahl,Labor,TRIM(CONCAT(LEFT(CONCAT(abkü,'          '),10),LEFT(CONCAT(einheit,'            '),12),LEFT(nb,26))) `Verfahren/Einheit/   Normbereich`,Langtext, MAX(zeitpunkt) MaxEing, MIN(zeitpunkt) MinEing FROM labor2a GROUP BY abkü, einheit, nb, langtext, labor ORDER BY langtext, `Verfahren/Einheit/   Normbereich`) i;"
  myFrag rs, sql
  TA1 = TabAusgeb(rs, Me, , , , , , False, "Laborvergleich")
@@ -4530,7 +4559,7 @@ End Sub ' Laborvergleich_Click
 Private Sub LaborLöschenAb_Click()
  Dim sql$, rs As New ADODB.Recordset, rAf&
  Dim DatumS$, Datum As Date, nr&
- Dim krit0$, krit1$, krit2$, krit3$, erg$
+ Dim krit0$, krit1$, krit2$, krit3$, Erg$
  Do
   DatumS = InputBox("ab welchem Datum löschen?")
   If IsDate(DatumS) Then Exit Do
@@ -4575,8 +4604,8 @@ Private Sub LaborLöschenAb_Click()
  If Not rs.BOF Then nr = rs.Fields(0)
  Ausgeb "Aus " & vorsil & "dat würden gelöscht: " & nr & " Sätze", True
  
- erg = MsgBox("Wollen Sie wirklich alle LaboreINträge ab " & Datum & " löschen?", vbYesNo Or vbDefaultButton2, "Rückfrage")
- If erg = vbNo Then Exit Sub
+ Erg = MsgBox("Wollen Sie wirklich alle LaboreINträge ab " & Datum & " löschen?", vbYesNo Or vbDefaultButton2, "Rückfrage")
+ If Erg = vbNo Then Exit Sub
  ' myEFrag "DELETE FROM `" & vorsil & "wert` WHERE refnr IN " & krit0, rAF
  ' myEFrag "DELETE FROM `" & vorsil & "bakt` WHERE refnr IN " & krit0, rAF
  ' myEFrag "DELETE FROM `" & vorsil & "leist` WHERE refnr IN " & krit0, rAF
@@ -4636,7 +4665,7 @@ End Sub ' ViewsErstellen_Click()
 
 ' EDV -> Falsche Dokumente
 Private Sub FalscheDokumente_Click()
- Dim sql$, rs As New ADODB.Recordset, erg$(), dokn$, dokr$, i%, rs2 As New ADODB.Recordset, Pat_id&
+ Dim sql$, rs As New ADODB.Recordset, Erg$(), dokn$, dokr$, i%, rs2 As New ADODB.Recordset, Pat_id&
  sql = "SELECT d.pat_id, name FROM tmbrie b LEFT JOIN namen n ON b.pat_id = n.pat_id LIMIT 10000"
  myFrag rs, sql
  Do While Not rs.EOF
@@ -4645,13 +4674,13 @@ Private Sub FalscheDokumente_Click()
   For i = 1 To 10
    dokr = REPLACE$(dokr, "  ", " ")
   Next
-  SplitNeu dokr, " ", erg
-  If UBound(erg) > 1 Then
+  SplitNeu dokr, " ", Erg
+  If UBound(Erg) > 1 Then
    Pat_id = rs!Pat_id
    Set rs2 = Nothing
    myFrag rs2, "SELECT * FROM namen WHERE nachname = "" & erg(0) & "" AND vorname = "" & erg(1) & "" AND pat_id <> " & Pat_id
    If Not rs2.EOF() Then
-    Debug.Print rs2!Pat_id, erg(0), erg(1), Pat_id, rs!DokName
+    Debug.Print rs2!Pat_id, Erg(0), Erg(1), Pat_id, rs!DokName
    End If
   End If
   rs.MoveNext
@@ -4734,11 +4763,11 @@ End Sub ' EinlesungenAnzeigen_Click
 Private Sub DokumenteAbgehaktPrüfen_Click()
  Dim rs As New ADODB.Recordset, n&, n1&
  On Error GoTo fehler
- Dim ErgDat$, erg$
+ Dim ErgDat$, Erg$
  ErgDat = uVerz & "FD.txt"
  Do
-  erg = Dir(ErgDat)
-  If LenB(erg) = 0 Then Exit Do
+  Erg = Dir(ErgDat)
+  If LenB(Erg) = 0 Then Exit Do
   ErgDat = REPLACE$(ErgDat, "FD", "FD1")
  Loop
  Open ErgDat For Output As #7
@@ -4955,12 +4984,12 @@ End Sub ' ADOXtet_Click
 
 ' Testfunktionen -> Usdm
 Private Sub CallUSDM_Click()
- Dim erg
+ Dim Erg
  Call ProgStart
  ReDim rNa(0)
- erg = InputBox("Bitte Patientenummer eingeben!")
- If Not IsNumeric(erg) Then Exit Sub
- rNa(0).Pat_id = erg
+ Erg = InputBox("Bitte Patientenummer eingeben!")
+ If Not IsNumeric(Erg) Then Exit Sub
+ rNa(0).Pat_id = Erg
  Call usdmAlt(True)
  Call ProgEnde
 End Sub ' CallUSDM_Click
@@ -5061,11 +5090,11 @@ End Sub ' Sub calldoGenMachDB_Click
 Private Sub testlqanf_Click()
  Dim sql$, rs As New ADODB.Recordset
  Lese.ProgStart
- Dim rv As New ADODB.Recordset
+ Dim rV As New ADODB.Recordset
  Dim FristS$
- myFrag rv, "SHOW CREATE VIEW `aktf`"
- FristS = rv.Fields(1)
- Set rv = Nothing
+ myFrag rV, "SHOW CREATE VIEW `aktf`"
+ FristS = rV.Fields(1)
+ Set rV = Nothing
  FristS = Mid$(FristS, InStr(FristS, "inverval ") + 9) ' interval muss klein sein
  FristS = left$(FristS, InStr(FristS, " ") - 1)
  If Not IsNumeric(FristS) Then
@@ -5161,7 +5190,7 @@ Sub doGNR_Statistiken_einl_Click(Optional obneu = 0)
  Const GStat$ = "GNRStat"
  Const GZahl$ = "GNRZahl"
  Dim fgnr%, fleigru%, fpunkte%, feuro%, fm%, ff%, fr%, FZahl%, fmin%, FNr% ' Feldnummern
- Dim rX As New ADOX.Catalog, sql$, ka%, ke%, runde%, angefangen%, obAnfang%, i&, rAf&, erg$, labxtb$, DateiDat As Date
+ Dim rX As New ADOX.Catalog, sql$, ka%, ke%, runde%, angefangen%, obAnfang%, i&, rAf&, Erg$, labxtb$, DateiDat As Date
  Dim doeintr%, statid&
  Dim XCon As New ADODB.Connection
  Dim rEx As New ADODB.Recordset, rs As New ADODB.Recordset, rTest As New ADODB.Recordset
@@ -5179,16 +5208,16 @@ Sub doGNR_Statistiken_einl_Click(Optional obneu = 0)
   On Error GoTo fehler
   myEFrag "CREATE TABLE `" & GZahl & "` (id integer(10) auto_increment key, statid integer(10), gnr varchar(20), leigru varchar(10), punkte integer(5), euro DECIMAL(5,2), m integer(5), f integer(5), r integer(5), zahl integer(10), wert DECIMAL(9,2), uwert DECIMAL(9,2), min integer(10))", rAf
  End If
- erg = Dir(Verz & "\gebstat*")
+ Erg = Dir(Verz & "\gebstat*")
  Dim DatStr$
  Dim pZeitr%, Dat0 As Date, Dat1 As Date, q0$, q1$
- Do While erg <> ""
-  Debug.Print erg
-  DatStr = REPLACE$(REPLACE$(erg, "gebstat ", ""), ".csv", "")
+ Do While Erg <> ""
+  Debug.Print Erg
+  DatStr = REPLACE$(REPLACE$(Erg, "gebstat ", ""), ".csv", "")
   If IsDate(DatStr) Then
    q0 = QuartalStr$(CDate(DatStr) - 21)
-   DateiDat = FileDateTime(Verz & "\" & erg)
-   Ausgeb erg & " " & DateiDat, True
+   DateiDat = FileDateTime(Verz & "\" & Erg)
+   Ausgeb Erg & " " & DateiDat, True
 ' kopiert von unten
        Set rTest = Nothing
        myFrag rTest, "SELECT id, dateidat FROM `" & GStat & "` WHERE qinv = '" & Mid$(q0, 2) & left$(q0, 1) & "'"
@@ -5197,14 +5226,14 @@ Sub doGNR_Statistiken_einl_Click(Optional obneu = 0)
          GoTo überspring ' nur die jüngste Datei eintragen
 '         Exit Do ' nur die jüngste Datei eintragen
         Else
-         myEFrag ("DELETE FROM `" & GZahl & "` WHERE statid = " & rTest!id)
-         myEFrag ("DELETE FROM `" & GStat & "` WHERE id = " & rTest!id)
+         myEFrag ("DELETE FROM `" & GZahl & "` WHERE statid = " & rTest!ID)
+         myEFrag ("DELETE FROM `" & GStat & "` WHERE id = " & rTest!ID)
         End If
        End If
-       InsKorr DBCn, "INSERT INTO `" & GStat & "` (datei,dateidat,qinv) VALUES ('" & UmwfSQL(Verz & "\" & erg) & "'," & DatFor_k(DateiDat) & ",'" & Mid$(q0, 2) & left$(q0, 1) & "')", rAf
+       InsKorr DBCn, "INSERT INTO `" & GStat & "` (datei,dateidat,qinv) VALUES ('" & UmwfSQL(Verz & "\" & Erg) & "'," & DatFor_k(DateiDat) & ",'" & Mid$(q0, 2) & left$(q0, 1) & "')", rAf
        Set rTest = Nothing
 '       Set rTest = myEFrag("SELECT last_insert_id()")
-       Set rTest = myEFrag("SELECT id FROM `" & GStat & "` WHERE DATEI='" & UmwfSQL(Verz & "\" & erg) & "'")
+       Set rTest = myEFrag("SELECT id FROM `" & GStat & "` WHERE DATEI='" & UmwfSQL(Verz & "\" & Erg) & "'")
        statid = rTest.Fields(0)
        If statid = 0 Then MsgBox "Fehler in doGNR_Statistiken_einl_Click: last_insert_id()=0"
        doeintr = 1
@@ -5220,7 +5249,7 @@ Sub doGNR_Statistiken_einl_Click(Optional obneu = 0)
     Dim TS As TextStream
     Dim arr$()
     Set FSO = New FileSystemObject
-    Set TS = FSO.OpenTextFile(Verz & "\" & erg, ForReading) ' macht keine Zeilenabbrüche im Gegensatz zu input # ...
+    Set TS = FSO.OpenTextFile(Verz & "\" & Erg, ForReading) ' macht keine Zeilenabbrüche im Gegensatz zu input # ...
     'Use this for reading everything in one shot
     'Final = TS.ReadAll
     'OR use this if you need to process each line
@@ -5271,25 +5300,25 @@ Sub doGNR_Statistiken_einl_Click(Optional obneu = 0)
     ta = ta & "wert,uwert)"
     InsKorr DBCn, ta & Tb, rAf
   Else
-   MsgBox erg & " falsch formatiert."
+   MsgBox Erg & " falsch formatiert."
   End If
 überspring:
-  erg = Dir
+  Erg = Dir
  Loop
 
 #If turbomed Then
- erg = Dir(Verz & "\GNR-Statistik*")
- If erg = "" Then
+ Erg = Dir(Verz & "\GNR-Statistik*")
+ If Erg = "" Then
   Verz = tVerz & "kv-abrechnungen"
-  erg = Dir$(Verz & "\GNR-Statistik*")
+  Erg = Dir$(Verz & "\GNR-Statistik*")
  End If
- Do While erg <> ""
+ Do While Erg <> ""
 '  IF erg = "GNR-Statistik_12.07.2021.xls" THEN Stop
-  DateiDat = FileDateTime(Verz & "\" & erg)
-  Ausgeb erg & " " & DateiDat, True
+  DateiDat = FileDateTime(Verz & "\" & Erg)
+  Ausgeb Erg & " " & DateiDat, True
   Set XCon = Nothing
   On Error GoTo nichtoeffnen
-  XCon.Open XStra & Verz & "\" & erg & XStrb
+  XCon.Open XStra & Verz & "\" & Erg & XStrb
   On Error GoTo fehler
   Set rX = Nothing
   rX.ActiveConnection = XCon
@@ -5316,14 +5345,14 @@ Sub doGNR_Statistiken_einl_Click(Optional obneu = 0)
         If rTest!DateiDat >= DateiDat Then
          Exit Do ' nur die jüngste Datei eintragen
         Else
-         myEFrag ("DELETE FROM `" & GZahl & "` WHERE statid = " & rTest!id)
-         myEFrag ("DELETE FROM `" & GStat & "` WHERE id = " & rTest!id)
+         myEFrag ("DELETE FROM `" & GZahl & "` WHERE statid = " & rTest!ID)
+         myEFrag ("DELETE FROM `" & GStat & "` WHERE id = " & rTest!ID)
         End If
        End If
-       InsKorr DBCn, "INSERT INTO `" & GStat & "` (datei,dateidat,qinv) VALUES ('" & UmwfSQL(Verz & "\" & erg) & "'," & DatFor_k(DateiDat) & ",'" & Mid$(q0, 2) & left$(q0, 1) & "')", rAf
+       InsKorr DBCn, "INSERT INTO `" & GStat & "` (datei,dateidat,qinv) VALUES ('" & UmwfSQL(Verz & "\" & Erg) & "'," & DatFor_k(DateiDat) & ",'" & Mid$(q0, 2) & left$(q0, 1) & "')", rAf
        Set rTest = Nothing
 '       Set rTest = myEFrag("SELECT last_insert_id()")
-       Set rTest = myEFrag("SELECT id FROM `" & GStat & "` WHERE DATEI='" & UmwfSQL(Verz & "\" & erg) & "'")
+       Set rTest = myEFrag("SELECT id FROM `" & GStat & "` WHERE DATEI='" & UmwfSQL(Verz & "\" & Erg) & "'")
        statid = rTest.Fields(0)
        If statid = 0 Then MsgBox "Fehler in doGNR_Statistiken_einl_Click: last_insert_id()=0"
        doeintr = 1
@@ -5368,7 +5397,7 @@ Sub doGNR_Statistiken_einl_Click(Optional obneu = 0)
 naechstedatei:
   Set rEx = Nothing
 '  Exit Sub
-  erg = Dir
+  Erg = Dir
  Loop
 #End If ' turbomed
 
@@ -5407,13 +5436,13 @@ Private Sub dVerz(DPfad$)
 End Sub ' dverz(DPfad$)
 
 ' nur in doppelteFaxe und dodoppelteFaxe selbst
-Private Sub dodoppelteFaxe(V$)
+Private Sub dodoppelteFaxe(v$)
  Static FSO As New FileSystemObject
  Dim Fil As File, pid$, pos%, buch$
  Dim rs As New ADODB.Recordset, rs1 As New ADODB.Recordset
- Print #323, V
- Debug.Print "dodoppelteFaxe(" & V & ")"
- For Each Fil In FSO.GetFolder(V).Files
+ Print #323, v
+ Debug.Print "dodoppelteFaxe(" & v & ")"
+ For Each Fil In FSO.GetFolder(v).Files
   If Fil.name Like "*PID *" Then
    pos = InStr(Fil.name, "PID ") + 4
    pid = vNS
@@ -5452,7 +5481,7 @@ Private Sub dodoppelteFaxe(V$)
   End If
  Next Fil
  Dim fld As Folder
- For Each fld In FSO.GetFolder(V).SubFolders
+ For Each fld In FSO.GetFolder(v).SubFolders
   Call dodoppelteFaxe(fld.path)
  Next fld
 End Sub ' dodoppeltefaxe
@@ -5553,6 +5582,10 @@ End Function ' getbdtpid()
 
 Private Sub MDIForm_Activate()
  On Error GoTo fehler
+ Dim cmdA$ ' Command ohne evtl. umschliessende Anfuehrungszeichen (kommt z.B. bei "oeffneplz:" so an, s. Registrierung in RegistriereOeffnePlz)
+ cmdA = Trim$(Command)
+ If left$(cmdA, 1) = Chr$(34) Then cmdA = Mid$(cmdA, 2)
+ If Right$(cmdA, 1) = Chr$(34) Then cmdA = left$(cmdA, Len(cmdA) - 1)
  If Command = "plz" Then
    FNr = 10
    Call doPatientenlaufzettel(obohnerueckfrage:=True, obphp:=True)
@@ -5570,6 +5603,17 @@ Private Sub MDIForm_Activate()
    Unload Me
    On Error GoTo fehler
 '   Call ProgEnde
+ ElseIf LCase$(left$(cmdA, 10)) = "oeffneplz:" Then ' Klick auf einen Bezuege-Link (s. BezuegeTeile, plzgo.php) auf einen noch nicht existierenden Laufzettel
+   FNr = 25
+   Dim oeplzPid$
+   oeplzPid = Mid$(cmdA, 11)
+   If NurZiffern(oeplzPid) Then
+    Call dodoplz(oeplzPid, plzVz, Now, Now - Int(Now), True, , , True)
+   End If ' NurZiffern(oeplzPid)
+   FNr = 26
+   On Error Resume Next
+   Unload Me
+   On Error GoTo fehler
  ElseIf Command = "ab" Then
    FNr = 30
    ProgStart
@@ -5735,19 +5779,19 @@ End Sub ' DMPForts_Click
 
 ' in DiagString_Click
 Public Sub doCallDigSring(ByVal pid&)
- Dim erg$, DiagTab() As CString, DiagStD$
- erg = DiagString$(CStr(pid), DiagTab)
- erg = REPLACE(erg, Chr$(11), vbCrLf)
+ Dim Erg$, DiagTab() As CString, DiagStD$
+ Erg = DiagString$(CStr(pid), DiagTab)
+ Erg = REPLACE(Erg, Chr$(11), vbCrLf)
  DiagStD = Environ("temp") & "\DiagStr_" & pid & "_" & Format$(Date, "dd.mm.yy") & ".txt"
  Open DiagStD For Output As #390
- Print #390, erg
+ Print #390, Erg
  Close #390
  zeigan DiagStD
 End Sub ' doCallDigSring(ByVal pid&)
 
 ' in Ausgabe_KeyDown, DMPForts_Click, DMPString_Click
 Public Sub doCallDMP(ByVal pid&)
- Dim dmpstD$, erg$, DT As DMPClass ' Dateiname
+ Dim dmpstD$, Erg$, DT As DMPClass ' Dateiname
  Dim rsNa As New ADODB.Recordset
  ReDim rNa(0)
  rNa(0).Pat_id = pid
@@ -5758,7 +5802,7 @@ Public Sub doCallDMP(ByVal pid&)
   dmpstD = pVerz & "DmpString "
  End If
  rsNa.Close
- erg = DMPString$(rNa(0).Pat_id, DT)
+ Erg = DMPString$(rNa(0).Pat_id, DT)
  If lies.obMySQL Then
   dmpstD = dmpstD & Me.MyDB
 #If mitacc Then
@@ -5768,7 +5812,7 @@ Public Sub doCallDMP(ByVal pid&)
  End If
  dmpstD = Environ("userprofile") & "\documents\" & dmpstD & " " & Format$(Date, "dd.mm.yy") & ".txt"
  Open dmpstD For Output As #391
- Print #391, erg
+ Print #391, Erg
  Close #391
  zeigan dmpstD
 End Sub ' doCallDMP
@@ -6297,6 +6341,7 @@ Private Sub mdiForm_Load()
   On Error GoTo fehler
   Call WD
   Call Konstanten
+  Call RegistriereOeffnePlz ' Schluessel fuer "oeffneplz:" auffrischen (s. Laufzettelneu.bas)
   Dim a#, b#
   a = 0
   b = 50000
