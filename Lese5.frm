@@ -767,6 +767,9 @@ Begin VB.MDIForm Lese
       Begin VB.Menu Pumpenträgerliste 
          Caption         =   "&Pumpenträgerliste"
       End
+      Begin VB.Menu Omnipod5Trägerliste 
+         Caption         =   "&Omnipod-5-Trägerliste"
+      End
       Begin VB.Menu suchTel 
          Caption         =   "&suchTel"
       End
@@ -4297,6 +4300,92 @@ Private Sub Pumpenträgerliste_Click() ' s. therart_erm
  Close #326
  zeigan datnam
 End Sub ' Pumpenträgerliste_Click
+
+' Statistik -> Omnipod-5-Trägerliste
+' Kriterien (ODER-verknüpft, Beispiel für beides zugleich: Pat. 63872): Markierung 'Omnipod 5 Glooko'
+' ODER ein Rezepttext mit 'Omnipod 5'. Wer auf der Liste steht, wird bei erreichbarem medoff live von
+' dort ermittelt (patmark/markier bzw. ltag) - das ist der Teil, der aktueller sein soll als die quelle;
+' ohne MO-Verbindung aus der lokalen Kopie (namen.insAnw=6 bzw. rezepteintraege.Medikament). Alle
+' Anzeigespalten (Name/Kontakt/Termin/bhfb/letzt. Eintrag) kommen dagegen immer aus quelle: MOCon und
+' DBCn sind getrennte Serververbindungen, ein Live-Join über beide ist nicht möglich, und für diese
+' eher trägen Spalten reicht die laufend aktualisierte quelle-Kopie.
+Private Sub Omnipod5Trägerliste_Click() ' s. Pumpenträgerliste_Click
+ Const RezFE$ = "13,14,15,16,17,18,23,40,45,46,1085,2004,2005,2006,2007,2014,2029,27142,27208,29955,29958,30467,30468,30470,30514,30520,32050,32060,32064,32067,32068,30543" ' FEintragsart-Werte, die im ltag-Import (rsEi!obRezE, s. doPatvonMO/MODmpreihe1) als Rezept zählen
+ Dim rKand As New ADODB.Recordset, rs As New ADODB.Recordset
+ Dim obMO As Boolean, datnam$, TA1$, CandVal$
+ Dim rAf&, ErrNr&, ErrDes$
+ Call ProgStart
+ ' bevorzugt live aus medoff, ohne dabei selbst eine Verbindung aufzubauen oder bei
+ ' Misserfolg eine Meldung zu erzeugen (keinfehler:=True) - wie BezuegeTeile in Laufzettelneu.bas
+ If MOtot = 0 And Not MOCon Is Nothing Then
+  If MOCon.State <> 0 Then
+   sql = "SELECT Pat_id, LEFT(GROUP_CONCAT(Grund ORDER BY prio SEPARATOR '; '),80) Grund FROM (" & vbCrLf & _
+   " SELECT pm.FPatnr Pat_id, 1 prio, 'Markierung: Omnipod 5 Glooko' Grund" & vbCrLf & _
+   " FROM patmark pm JOIN markier m ON pm.FMarkiernr=m.FSurogat WHERE m.FText='Omnipod 5 Glooko'" & vbCrLf & _
+   " UNION ALL" & vbCrLf & _
+   " SELECT l.FPatnr, 2, CONCAT('Rezept: ',LEFT(l.FText,60)) FROM ltag l" & vbCrLf & _
+   " WHERE l.FText LIKE '%Omnipod 5%' AND l.FEintragsart IN (" & RezFE & ")" & vbCrLf & _
+   ") i GROUP BY Pat_id"
+   myFrag rKand, sql, adOpenStatic, MOCon, adLockReadOnly, "700", rAf, True, ErrNr, ErrDes
+   If Not rKand Is Nothing Then
+    If ErrNr = 0 And rKand.State <> 0 Then obMO = True Else Set rKand = Nothing
+   End If
+  End If
+ End If
+ If Not obMO Then ' Rueckfall auf die Kopie in quelle
+  sql = "SELECT Pat_id, LEFT(GROUP_CONCAT(Grund ORDER BY prio SEPARATOR '; '),80) Grund FROM (" & vbCrLf & _
+  " SELECT Pat_ID Pat_id, 1 prio, 'Markierung: Omnipod 5 Glooko' Grund FROM namen WHERE insAnw=6" & vbCrLf & _
+  " UNION ALL" & vbCrLf & _
+  " SELECT Pat_ID, 2, CONCAT('Rezept: ',LEFT(Medikament,60)) FROM rezepteintraege WHERE Medikament LIKE '%Omnipod 5%'" & vbCrLf & _
+  ") i GROUP BY Pat_id"
+  myFrag rKand, sql
+ End If
+ If rKand Is Nothing Then
+  Call ProgEnde
+  Exit Sub
+ End If
+ If rKand.State = 0 Then
+  Call ProgEnde
+  Exit Sub
+ End If
+ If rKand.EOF Then
+  MsgBox "Keine Patienten mit Omnipod 5 (Markierung 'Omnipod 5 Glooko' oder Rezepttext 'Omnipod 5') gefunden."
+  Call ProgEnde
+  Exit Sub
+ End If
+ CandVal = ""
+ Do While Not rKand.EOF ' Ergebnis der (MO- oder quelle-)Kandidatenabfrage als Inline-Werteliste weiterreichen,
+  CandVal = CandVal & IIf(CandVal = "", "", " UNION ALL ") & "SELECT " & rKand!Pat_id & " Pat_id, '" & doUmwfSQL(nz(rKand!Grund, ""), True) & "' Grund" ' da MOCon und DBCn getrennte Verbindungen sind
+  rKand.MoveNext
+ Loop
+
+ sql = "SELECT k.Pat_id, k.Grund," & vbCrLf & _
+ " LEFT(CONCAT(a.nachname,',',a.vorname,IF(a.titel='','',','),a.titel,IF(a.nvorsatz='','',' '),a.nvorsatz,' (',a.anrede,')'),24) Name," & vbCrLf & _
+ " DATE_FORMAT(a.gebdat,'%d.%m.%y') Geb," & vbCrLf & _
+ " LEFT(a.ther1,4) Ther1," & vbCrLf & _
+ " DATE_FORMAT(f.bhfb,'%d.%m.%y') bhfb," & vbCrLf & _
+ " DATE_FORMAT(GREATEST(COALESCE((SELECT MAX(Zeitpunkt) FROM rezepteintraege re WHERE re.Pat_ID=k.Pat_id),'1900-01-01')," & vbCrLf & _
+ "   COALESCE((SELECT MAX(ZeitPunkt) FROM (" & forminhalt & ") fi WHERE fi.Pat_ID=k.Pat_id),'1900-01-01'))," & vbCrLf & _
+ "  '%d.%m.%y') `letzt.Eintr.`," & vbCrLf & _
+ " (SELECT DATE_FORMAT(MIN(zp),'%d.%m. %H:%i') FROM termine t WHERE t.pid=k.Pat_id AND t.zp>=NOW()) Termin," & vbCrLf & _
+ " n.email Email," & vbCrLf & _
+ " LEFT(CONCAT_WS(', ',NULLIF(n.privattel,''),NULLIF(n.privatmobil,''),NULLIF(n.diensttel,''),NULLIF(n.privatfax,''),NULLIF(n.privattel_2,'')),60) Telefon" & vbCrLf & _
+ "FROM (" & CandVal & ") k" & vbCrLf & _
+ "LEFT JOIN anamnesebogen a ON a.pat_id=k.Pat_id" & vbCrLf & _
+ "LEFT JOIN namen n ON n.pat_id=k.Pat_id" & vbCrLf & _
+ "LEFT JOIN lfaellev f ON f.pat_id=k.Pat_id" & vbCrLf & _
+ "WHERE COALESCE(a.tkz,0)=0" & vbCrLf & _
+ "ORDER BY Name"
+ myFrag rs, sql
+
+ datnam = pVerz & "Omnipod-5-Träger " & Format$(Now, "dd.mm.yy hh.mm.ss") & ".txt"
+ Open datnam For Output As #328
+ TA1 = TabAusgeb(rs, Me, True).Value
+ Print #328, TA1
+ Close #328
+ zeigan datnam
+ Call ProgEnde
+End Sub ' Omnipod5Trägerliste_Click
 
 ' Statistik -> suchTel
 Private Sub suchTel_Click()
