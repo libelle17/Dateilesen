@@ -1228,11 +1228,12 @@ Function NurZiffern%(ByVal s$)
  NurZiffern = True
 End Function ' NurZiffern%
 
-' Registriert das URL-Protokoll "oeffneplz:", damit ein Klick auf einen im Bezuege-Kasten (s.
-' BezuegeTeile) verlinkten, noch nicht existierenden Patientenlaufzettel eine neue Instanz von
-' DateiLese.exe startet, die genau diesen einen Laufzettel erstellt und anzeigt - der Aufruf
-' erfolgt hier direkt mit der Pat_id (kein Umweg ueber eine BDT-Datei wie bei "eplz"), ausgewertet
-' in MDIForm_Activate (Lese5.frm). Selbstreferenzierend wie "oeffnedual:" fuer NVerb.exe
+' Registriert die URL-Protokolle "oeffneplz:" und "oeffnemo:", damit ein Klick auf einen im
+' Bezuege-Kasten (s. BezuegeTeile) verlinkten, noch nicht existierenden Patientenlaufzettel bzw.
+' auf den "M&O"-Knopf im Patientenlaufzettel eine neue Instanz von DateiLese.exe startet, die den
+' Laufzettel erstellt und anzeigt bzw. den Patienten in MO aufruft - der Aufruf erfolgt hier direkt
+' mit der Pat_id (kein Umweg ueber eine BDT-Datei wie bei "eplz"), ausgewertet in MDIForm_Activate
+' (Lese5.frm). Selbstreferenzierend wie "oeffnedual:" fuer NVerb.exe
 ' (NetzVerbind\Haupt.bas, Sub Main): zeigt auf die gerade laufende DateiLese.exe, unabhaengig vom
 ' tatsaechlichen Installationsverzeichnis. Wird bei jedem normalen Start in mdiForm_Load
 ' aufgerufen; schlaegt bei fehlenden Schreibrechten lautlos fehl, wie die Registrierung von
@@ -1249,6 +1250,10 @@ Sub RegistriereOeffnePlz()
  Call cReg.WriteKey(" ", "URL Protocol", "SOFTWARE\Classes\oeffneplz", HKEY_CURRENT_USER)
  Call cReg.WriteKey("Open Patientenlaufzettel", "", "SOFTWARE\Classes\oeffneplz\shell\open", HKEY_CURRENT_USER)
  Call cReg.WriteKey(Chr$(34) & Anw & Chr$(34) & " " & Chr$(34) & "%1" & Chr$(34), "", "SOFTWARE\Classes\oeffneplz\shell\open\command", HKEY_CURRENT_USER)
+ Call cReg.WriteKey("Open Patient in MO Protocol", "", "SOFTWARE\Classes\oeffnemo", HKEY_CURRENT_USER)
+ Call cReg.WriteKey(" ", "URL Protocol", "SOFTWARE\Classes\oeffnemo", HKEY_CURRENT_USER)
+ Call cReg.WriteKey("Open Patient in MO", "", "SOFTWARE\Classes\oeffnemo\shell\open", HKEY_CURRENT_USER)
+ Call cReg.WriteKey(Chr$(34) & Anw & Chr$(34) & " " & Chr$(34) & "%1" & Chr$(34), "", "SOFTWARE\Classes\oeffnemo\shell\open\command", HKEY_CURRENT_USER)
 End Sub ' RegistriereOeffnePlz
 
 ' chronologische Liste aller alten Medikationsplaene eines Patienten als JS-Array-Literal
@@ -2190,8 +2195,8 @@ sql0 = _
   AusS.AppVar (Array(" ", IIf(dmtyp = "1" Or dmtyp = "2" Or dmtyp = "g", "<span style='background-color:" & IIf(dmtyp = "1", "#ff8fc7", IIf(dmtyp = "g", "#ffffde", "#efe0ff")) & "'", ""), "<B><span title='", VName, " ", NName, ", ", rnam!strasse, ", ", rnam!plz, " ", rnam!ort, ", Tel1: ", PrivatTel, ", Tel2: ", PrivatTel_2, ", Mobil:", PrivatMobil, ", Fax: ", PrivatFax, ", Diensttel: ", DienstTel & ", Email: ", email, "'>", IIf(vorET > Now(), "<span class='schwanger'>", ""), _
   GesNamFn(rnam), "</span></B>, *", Format(rnam!GebDat, "d.m.yy"), " (", PAlter, "a,&" & IIf(rnam!geschlecht = "w", "fe", "") & "male;), <span style='color:blue'><span class='unauff'>&nbsp;&nbsp;Pat_id: </span>", Pat_id, "</span><span id = 'unauff'>,", IIf(obdm, "&nbsp;&nbsp;D.m.: ", ""), IIf(obdm, dmseit, ""), ",&nbsp;&nbsp;<span style=""font-weight:normal"">vorgestellt: </span>", Format(Vorgestellt, "d.m.yy"), ",&nbsp;&nbsp;</span><span style='font-size:smaller;font-weight:normal'>für: ", Format(Datum, "d.m.yy"), " ", Format(Uhrzeit, "hh:mm"), ",<br></span>", _
   IIf(dmtyp = "1" Or dmtyp = "2" Or dmtyp = "g", "</span>", ""), "&nbsp;", IIf(dmtyp = "1" Or dmtyp = "2" Or dmtyp = "g", "<span style='background-color:" & IIf(dmtyp = "1", "#ff8fc7", IIf(dmtyp = "g", "#ffffde", "#efe0ff")) & "'>", ""), "<span class='unauff'>", IIf(haAnam = "", "", "HA(anam.): " & haAnam & ", "), IIf(notiz = "", "", notiz & ",&nbsp;&nbsp;"), IIf(obdm, "Ther.zul: ", ""), "</span>", IIf(obdm, therart, ""), "<span " & dmpfarbe & ">", DmPStr, " </span><span style='background-color:black'>", IIf(rNa(0).obk <> 0, " &#x1F7E6;", ""), IIf(rNa(0).obs <> 0, "&#x1F7E8;", ""), IIf(rNa(0).obh <> 0, "&#x1F7E9;", ""), "<button type=""button"" onclick=location.href=""oeffneverz:" & _
-  Pat_id & """>Da<u>t</u>e<u>i</u>en</button> <button type=""button"" id=""emailAdrBtn"" style=""padding-left:0;border-style:groove;border-width:thin;border-color:blue;color:black;background-color:white;"" onclick=""emailAdrToggle()""><u>E</u>mail-Adr.</button></span></h1>", vbCrLf))
-  AusS.AppVar Array("<script>var pzPatId=", Pat_id, ";var pzNachname=""", JSStr(NName), """;function pzEnc(s){var r='';for(var i=0;i<s.length;i++){var c=s.charCodeAt(i)&255;var h=c.toString(16);if(h.length<2)h='0'+h;r+='%'+h;}return r;}document.addEventListener('keydown',function(e){if(e.altKey&&(e.key=='i'||e.key=='I'||e.code=='KeyI')){e.preventDefault();location.href='oeffnedual:'+pzPatId+','+pzEnc(pzNachname);}if(e.altKey&&(e.key=='t'||e.key=='T'||e.code=='KeyT')){e.preventDefault();location.href='oeffneverz:'+pzPatId;}},true);</script>", vbCrLf)
+  Pat_id & """>Da<u>t</u>e<u>i</u>en</button> <button type=""button"" id=""emailAdrBtn"" style=""padding-left:0;border-style:groove;border-width:thin;border-color:blue;color:black;background-color:white;"" onclick=""emailAdrToggle()""><u>E</u>mail-Adr.</button> <button type=""button"" id=""moBtn"" style=""padding-left:0;border-style:groove;border-width:thin;border-color:blue;color:black;background-color:white;"" onclick=location.href=""oeffnemo:" & Pat_id & """>M<u>O</u></button></span></h1>", vbCrLf))
+  AusS.AppVar Array("<script>var pzPatId=", Pat_id, ";var pzNachname=""", JSStr(NName), """;function pzEnc(s){var r='';for(var i=0;i<s.length;i++){var c=s.charCodeAt(i)&255;var h=c.toString(16);if(h.length<2)h='0'+h;r+='%'+h;}return r;}document.addEventListener('keydown',function(e){if(e.altKey&&(e.key=='i'||e.key=='I'||e.code=='KeyI')){e.preventDefault();location.href='oeffnedual:'+pzPatId+','+pzEnc(pzNachname);}if(e.altKey&&(e.key=='t'||e.key=='T'||e.code=='KeyT')){e.preventDefault();location.href='oeffneverz:'+pzPatId;}if(e.altKey&&(e.key=='o'||e.key=='O'||e.code=='KeyO')){e.preventDefault();location.href='oeffnemo:'+pzPatId;}},true);</script>", vbCrLf)
 ' TherapieArtEinzelnFestlegen(CLng(Pat_ID), rAn) & "</span></h1>" ' VName, " ", NName
   ' * 2.73792574745373E-03 ' 1/365,24
   AusS.AppVar (Array("</h1>", vbCrLf))

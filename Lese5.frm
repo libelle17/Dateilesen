@@ -5614,6 +5614,17 @@ Private Sub MDIForm_Activate()
    On Error Resume Next
    Unload Me
    On Error GoTo fehler
+ ElseIf LCase$(left$(cmdA, 9)) = "oeffnemo:" Then ' Klick auf den "M&O"-Knopf im Patientenlaufzettel: Patient in MO aufrufen (wie der Klick auf die linke Spalte der Liste der pathologischen Laborwerte in MO)
+   FNr = 27
+   Dim oemoPid$
+   oemoPid = Mid$(cmdA, 10)
+   If NurZiffern(oemoPid) Then
+    Call inMOAnz(CLng(oemoPid))
+   End If ' NurZiffern(oemoPid)
+   FNr = 28
+   On Error Resume Next
+   Unload Me
+   On Error GoTo fehler
  ElseIf Command = "ab" Then
    FNr = 30
    ProgStart
