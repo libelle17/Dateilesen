@@ -103,7 +103,7 @@ Public Lanr&, Nachname$, Vorname$, Titel$, Stra$, HNR$, ZIP$, CTY$, TEL$
 
 ' aufgerufen in doMachDMPBogen
 Public Sub PrepPatid(Pat_id&)
- Dim i&, maxTag$
+ Dim i&, maxTag$, maxFall$
  Dim rfal As New ADODB.Recordset
  Dim rnam As New ADODB.Recordset
  myFrag rnam, "SELECT nachname, vorname, titel, nvorsatz FROM `namen` WHERE pat_id =  " & Pat_id
@@ -111,7 +111,11 @@ Public Sub PrepPatid(Pat_id&)
   Me.Caption = "Bitte LANR für " & rnam!Titel & " " & rnam!Vorname & " " & rnam!NVorsatz & " " & rnam!Nachname & " (Pat_id: " & Pat_id & ") auswählen!"
  End If
  For i = 0 To Me.LKart.COUNT - 1
-  myFrag rfal, "SELECT zeitpunkt FROM `eintraege` e LEFT JOIN `eintragzulanr` ez ON e.art = ez.art LEFT JOIN `lanrpraxis` l ON ez.lanrid = l.id WHERE pat_id = " & Pat_id & " AND lanr = " & Me.Option1(i).Tag & " ORDER BY zeitpunkt DESC"
+  ' Arzteintrag: Turbomed-Zeit ueber die Eintragsart (eintragzulanr), Medical-Office-Zeit ueber das Ersteller-Kuerzel (lanrpraxis.krz)
+  myFrag rfal, "SELECT e.zeitpunkt FROM `eintraege` e WHERE e.pat_id = " & Pat_id & _
+   " AND (e.art IN (SELECT ez.art FROM `eintragzulanr` ez JOIN `lanrpraxis` l ON ez.lanrid = l.id WHERE l.lanr = " & Me.Option1(i).Tag & ")" & _
+   " OR e.Ersteller IN (SELECT krz FROM `lanrpraxis` WHERE lanr = " & Me.Option1(i).Tag & " AND COALESCE(krz,'') <> ''))" & _
+   " ORDER BY e.zeitpunkt DESC LIMIT 1"
   If Not rfal.BOF Then
    LKart(i).Caption = ZQuart(rfal!Zeitpunkt)
    LKart(i).Tag = ZQSort(rfal!Zeitpunkt)
@@ -119,19 +123,21 @@ Public Sub PrepPatid(Pat_id&)
   End If
   Set rfal = Nothing
  Next i
- For i = 0 To Me.LKart.COUNT - 1 ' Vorauswahl mangels besseren Wissens nach Fall richten
-  If LKart(i).Tag = maxTag Then
-   Option1(i) = True
-   Exit For
-  End If
- Next i
  For i = 0 To Me.LFall.COUNT - 1
   myFrag rfal, "SELECT lanr, quartal, bhfb FROM `faelle` f LEFT JOIN `lanrpraxis` l ON f.lanrid = l.id WHERE pat_id = " & Pat_id & " AND lanr = " & Me.Option1(i).Tag & " ORDER BY bhfb DESC"
   If Not rfal.BOF Then
    LFall(i).Caption = rfal!Quartal
    LFall(i).Tag = ZQSort(rfal!BhFB)
+   If LFall(i).Tag > maxFall Then maxFall = LFall(i).Tag
   End If
   Set rfal = Nothing
+ Next i
+ ' Vorauswahl nach dem neuesten Fall; nur ohne Fall nach dem letzten Karteieintrag (eintragzulanr kennt nur die alten Turbomed-Arten)
+ For i = 0 To Me.LFall.COUNT - 1
+  If IIf(LenB(maxFall) <> 0, LFall(i).Tag = maxFall, LKart(i).Tag = maxTag) Then
+   Option1(i) = True
+   Exit For
+  End If
  Next i
  For i = 0 To Me.LDMP.COUNT - 1
   myFrag rfal, "SELECT DokuDatum FROM `dmpreihe` dr LEFT JOIN `lanrpraxis` l ON dr.lanrid = l.id WHERE pat_id = " & Pat_id & " AND lanr = " & Me.Option1(i).Tag & " AND dr.abk RLIKE 'DM[12]|DTYP[12]'  AND DokuDatum <> 0 AND DokuDatum > '1899-12-30' ORDER BY DokuDatum DESC"
@@ -143,14 +149,11 @@ Public Sub PrepPatid(Pat_id&)
  Next i
 End Sub ' PrepPatid(Pat_id&)
 
-Private Sub Form_Load()
- Dim rlan As New ADODB.Recordset, sql$, i&
- sql = "SELECT a.lanr, a.nachname, a.vorname FROM `lanrpraxis` l LEFT JOIN `haerzte`.`arzt` a ON l.lanr=a.lanr WHERE NOT ISNULL(a.lanr) GROUP BY l.lanr ORDER BY l.lanr"
-' myFrag rlan, "SELECT COUNT(0) zl FROM (" & sql & ")"
- myFrag rlan, sql
- If Not rlan.BOF Then
-  i = 0
-  Do While Not rlan.EOF
+' aufgerufen in doMachDMPBogen vor PrepPatid; Liste aus LadeLanrListe (PatListe1: medoff.lstgerb bzw. quelle.lanrpraxis)
+Public Sub FuellListe(LanrNr$(), LanrNam$(), LanrZahl&)
+ Dim i&
+ On Error GoTo fehler
+  For i = 0 To LanrZahl - 1
    On Error Resume Next
    Load Me.Option1(i)
    Me.Option1(i).top = Me.Option1(i - 1).top + 300
@@ -174,12 +177,9 @@ Private Sub Form_Load()
    Me.LDMP(i).Enabled = False
    
    On Error GoTo fehler
-   Me.Option1(i).Caption = rlan!Lanr & " &" & rlan!Vorname & " " & rlan!Nachname
-   Me.Option1(i).Tag = rlan!Lanr
-   i = i + 1
-   rlan.MoveNext
-  Loop
- End If
+   Me.Option1(i).Caption = LanrNr(i) & " &" & LanrNam(i)
+   Me.Option1(i).Tag = LanrNr(i)
+  Next i
  Me.Height = MINvb(Me.Option1.COUNT * 300& + 2000, 3675)
  Me.Ok.top = Me.Height - 1000
  Me.Abbruch.top = Me.Height - 1000
@@ -192,12 +192,12 @@ fehler:
 #Else
  AnwPfad = App.path
 #End If
- Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + CStr(nz(Err.Source, "")) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in Form_Load/" + AnwPfad)
+ Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "LastDLLError: " + CStr(Err.LastDllError) + vbCrLf + "Source: " + CStr(nz(Err.Source, "")) + vbCrLf + "Description: " + Err.Description, vbAbortRetryIgnore, "Aufgefangener Fehler in FuellListe/" + AnwPfad)
   Case vbAbort: Call MsgBox("Höre auf"): ProgEnde
   Case vbRetry: Call MsgBox("Versuche nochmal"): Resume
   Case vbIgnore: Call MsgBox("Setze fort"): Resume Next
  End Select
-End Sub ' Form_Load
+End Sub ' FuellListe
 
 Private Sub OK_Click()
  Dim i&, rAf&, rserg As ADODB.Recordset

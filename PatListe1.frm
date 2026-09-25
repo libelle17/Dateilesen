@@ -576,6 +576,7 @@ Dim MFGCW&(), MFGTopRow&, MFGRow&, MFGLeftCol&, MFGCol&, MFGLabSort%
 Public obMitZähler% ' 0 = ohne Zähler, 1 = mit Zähler
 Dim obPidSp%
 Dim rDPat As New ADODB.Recordset
+Dim LanrNr$(), LanrNam$(), LanrZahl& ' Arztauswahl fuer LANRauswahl, gefuellt in LadeLanrListe
 Private Declare Function ShellExecute& Lib "shell32.dll" _
         Alias "ShellExecuteA" (ByVal hwnd&, ByVal lpOperation$, ByVal lpFile$, _
         ByVal lpParameters$, ByVal lpDirectory$, ByVal nShowCmd&)
@@ -2022,6 +2023,43 @@ Private Sub Command2_Click()
    MsgBox "Fertig mit Neuerstellung der DMP-Import-Datei"
 End Sub ' Command2_Click()
 
+' in Form_Load (DMP hier Liste) und domachDMPBogen: Arztauswahl fuer LANRauswahl, bevorzugt aus medoff.lstgerb, sonst aus quelle.lanrpraxis
+Private Sub LadeLanrListe()
+ Dim rs As ADODB.Recordset, rAf&, ErrNr&, ErrDes$, Lanr$
+ LanrZahl = 0
+ ReDim LanrNr(49): ReDim LanrNam(49)
+ If Not MOConInit(, "Arztliste für DMP-Bögen") Then
+  myFrag rs, "SELECT FArztnr lanr, COALESCE(FVorname,'') vorname, COALESCE(FNachname,'') nachname FROM lstgerb " & _
+   "WHERE COALESCE(FGeloescht,'') IN ('','0') AND NOT (FNachname='Test' AND FVorname='Titus') ORDER BY FArztnr", adOpenStatic, MOCon, adLockReadOnly, "700", rAf, True, ErrNr, ErrDes
+  If Not rs Is Nothing Then If ErrNr <> 0 Or rs.State = 0 Then Set rs = Nothing
+ End If ' Not MOConInit
+ If rs Is Nothing Then myFrag rs, "SELECT lanr, MAX(vorname) vorname, MAX(nachname) nachname FROM lanrpraxis WHERE COALESCE(nachname,'')<>'' GROUP BY lanr ORDER BY lanr" ' Rueckfall auf quelle
+ If rs Is Nothing Then Exit Sub
+ If rs.State = 0 Then Exit Sub
+ Do While Not rs.EOF And LanrZahl <= UBound(LanrNr)
+  Lanr = Trim$(nz(rs!Lanr, vNS))
+  If Lanr Like "########" Then Lanr = "0" & Lanr ' int-Spalte in lanrpraxis verliert fuehrende Null
+  If LANRok(Lanr) Then
+   LanrNr(LanrZahl) = Lanr
+   LanrNam(LanrZahl) = Trim$(rs!Vorname & " " & rs!Nachname)
+   LanrZahl = LanrZahl + 1
+  End If ' LANRok(Lanr)
+  rs.MoveNext
+ Loop
+ Set rs = Nothing
+End Sub ' LadeLanrListe
+
+' LANR plausibel: 9 Ziffern, keine Pseudo-LANR (999999...), Pruefziffer (7. Stelle): Stellen 1-6 abwechselnd *4 und *9, (10 - Summe mod 10) mod 10
+Private Function LANRok(Lanr$) As Boolean
+ Dim i%, summe%
+ If Not Lanr Like "#########" Then Exit Function
+ If Left$(Lanr, 6) = "999999" Then Exit Function
+ For i = 1 To 6
+  summe = summe + Val(Mid$(Lanr, i, 1)) * IIf(i Mod 2 = 1, 4, 9)
+ Next i
+ LANRok = ((10 - summe Mod 10) Mod 10 = Val(Mid$(Lanr, 7, 1)))
+End Function ' LANRok
+
 ' in callMachDMPBogen und auskommentiert in Command2_Click
 ' die Konstanten DokuVersion und Datenerfassung müssen jedes Quartal überprüft und ggf. geändert werden!
 Public Sub domachDMPBogen(Pat_id&, BogArtlV As BogArtTyp, DokuDat As Date, Optional immeranhaeng%, Optional autolanr%, Optional obStumm%, Optional Datei)  ' Erstelle
@@ -2094,6 +2132,8 @@ Public Sub domachDMPBogen(Pat_id&, BogArtlV As BogArtTyp, DokuDat As Date, Optio
    Set rlanr = Nothing
   End If ' Not rlanr.BOF
  Else ' autolanr Then
+  If LanrZahl = 0 Then Call LadeLanrListe
+  auswlanr.FuellListe LanrNr, LanrNam, LanrZahl
   auswlanr.PrepPatid Pat_id
   auswlanr.Show 1, Me
   auswlanr.Visible = False
@@ -4809,6 +4849,7 @@ Private Sub Form_Load()
      .Row = 1
      Set rDPat = Nothing
      lfdnr = 0
+     Call LadeLanrListe ' einmalig die Arztauswahl fuer LANRauswahl holen
 ' hier DMP hier Liste sql abgreifen
      myFrag rDPat, sql, adOpenStatic, DBCn, adLockReadOnly, 18 * opt.Dokuzahl ' Maximale Buchstabenzahl
      .Rows = rDPat!Zahl + 2
