@@ -6608,10 +6608,27 @@ Select Case MsgBox("FNr: " & FNr & ", ErrNr: " & CStr(Err.Number) + vbCrLf + "La
 End Select
 End Function 'RezEintr
 
+' 21.9.26: fuer DiagAnzeige.bas - setzt die Zeilenzahl und dimensioniert die Diagnosen-Arrays neu (DiagNr und gk sind hier privat, G1/G2 auch in AnAnpassen.bas vergeben)
+Public Sub DiagNrSetzen(ByVal n As Integer)
+ DiagNr = n
+ ReDim gk(n)
+ ReDim Diag(n): ReDim ICD(n): ReDim DSic(n): ReDim DiagSe(n): ReDim DiagAttr(n): ReDim DiagAus(n): ReDim DiagiBm(n)
+ ReDim diagdt(n): ReDim obDauer(n): ReDim obKasse(n): ReDim lKasse(n): ReDim Dggel(n): ReDim KFdFA(n): ReDim G1(n): ReDim G2(n)
+End Sub
+
 ' in dodoPLZ, do_Form_Current_AnBog, tuBriefStandalone
 Function DiagString$(Pat_ID$, DiagTab() As CString, Optional VorDat As Date, Optional obBrief%, Optional dmseit$) ' für dynDiag, tuBriefStandalone und dodoPLZ
  Dim runde%, rdDi As New ADODB.Recordset, sql$
  On Error GoTo fehler
+ Dim okNeu As Boolean, dsNeu As String
+ ' 21.9.26: Patienten mit MOStatus (neue Uebertragung aus medoff) laufen ueber DiagAnzeige.bas, alle anderen wie bisher
+ If DiagNeuAktiv(Pat_ID) Then
+  dsNeu = DiagStringNeu(Pat_ID, DiagTab, VorDat, obBrief, dmseit, okNeu)
+  If okNeu Then
+   DiagString = dsNeu
+   Exit Function
+  End If
+ End If
  sql = "SELECT DiagSicherheit, DiagText, DiagSeite, DiagAttr, d.ICD, obdauer, COALESCE(d.Dggel,0) Dggel, obDauer<>0 j_obdauer,obKasse,lKasse,KFdFA, COALESCE(diagdatum,0) DiagDatum, AusnBegr, intBemerk, g1.rf,r.gi2 " & vbCrLf & _
        "FROM diagview d " & vbCrLf & _
        "LEFT JOIN `diagreihe` r ON d.icd = r.icd " & vbCrLf & _
@@ -6799,7 +6816,7 @@ Function MachDiagnosen(Pat_ID$, DiagTab() As CString, Optional dmseit$, Optional
       If Mid$(ICD(j), 5, 1) < "9" Then _
        Diag(j) = Diag(j) + " im Stadium Wagner "
       Select Case Mid$(ICD(j), 5, 1)
-       Case "1": Diag(j) = Diag(j) + "0"
+       Case "0", "1": Diag(j) = Diag(j) + "0"
        Case "2": Diag(j) = Diag(j) + "1"
        Case "3": Diag(j) = Diag(j) + "2"
        Case "4": Diag(j) = Diag(j) + "3"
@@ -6826,7 +6843,7 @@ Function MachDiagnosen(Pat_ID$, DiagTab() As CString, Optional dmseit$, Optional
      For k = j + 1 To DiagNr - 1
       If Diag(j) = Diag(k) And ICD(j) = ICD(k) And Dggel(j) = Dggel(k) Then
        If (obDauer(k) <> 0 And obDauer(j) = 0) Then
-        If (DSic(j) = "g" Or DSic(j) = " ") And (DSic(k) = "V" Or DSic(k) = "Z") Then
+        If (DSic(j) = "G" Or DSic(j) = " ") And (DSic(k) = "V" Or DSic(k) = "Z") Then ' 21.9.26: war "g" (Kleinbuchstabe, traf nie auf G zu)
          Diag(k) = vNS
          ICD(k) = vNS
          obDauer(j) = True
@@ -6835,7 +6852,7 @@ Function MachDiagnosen(Pat_ID$, DiagTab() As CString, Optional dmseit$, Optional
          ICD(j) = vNS
         End If
        Else
-        If (DSic(k) = "g" Or DSic(k) = " ") And (DSic(j) = "V" Or DSic(j) = "Z") Then
+        If (DSic(k) = "G" Or DSic(k) = " ") And (DSic(j) = "V" Or DSic(j) = "Z") Then ' 21.9.26: war "g"
          Diag(j) = vNS
          ICD(j) = vNS
          If obDauer(j) And Not obDauer(k) Then obDauer(k) = True

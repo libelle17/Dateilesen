@@ -5391,7 +5391,8 @@ Public Sub markAuswert(ByRef rNa() As namen, txt$)
 End Sub ' markAuswert
 
 ' in richtdiag_Click
-Public Sub turichtdiag()
+Public Sub turichtdiag(Optional bisPid& = 0, Optional maxAnz& = 0)
+ ' 21.9.26: Aufruf ohne Argumente = alle Patienten; turichtdiag , 200 = nur die 200 hoechsten Patientennummern (Testlauf); turichtdiag 41234 = Wiederaufnahme mit Pat.-Nr. <= 41234
  Dim rPt As ADODB.Recordset, rPid As ADODB.Recordset, rAf&, rAf2&, aktz&, dzahl&
  Dim ErrNr&, ErrDes$, altsi$
  On Error GoTo fehler
@@ -5404,7 +5405,8 @@ Public Sub turichtdiag()
 ' Call ForeignNo0
 ' Call ForeignNo1
  Dim patn$
- Const limit& = 20000 ' 100
+ Dim limit&
+ limit = IIf(maxAnz > 0, maxAnz, 100000) ' 21.9.26: war Const 20000 (in medoff gibt es derzeit 19166 Patienten)
 ' sql = "SELECT GROUP_CONCAT(fpatnr) FROM (SELECT fpatnr FROM behgrund WHERE fstatus<>3 order by fpatnr desc LIMIT " & limit & ")i"
 ' myFrag rPt, sql, adOpenStatic, MOCon, adLockReadOnly, 1000000, rAf
 ' If Not rPt.EOF Then
@@ -5413,7 +5415,7 @@ Public Sub turichtdiag()
 '  AllePat = -1
 ' End If ' Not rPt.EOF Then
 ' DBCn.BeginTrans
- myFrag rPt, "SELECT COUNT(0) OVER() zahl, FPatnr FROM behgrund/* WHERE FStatus<>3*/ GROUP BY FPatnr ORDER BY FPatnr DESC LIMIT " & limit, adOpenStatic, MOCon
+ myFrag rPt, "SELECT COUNT(0) OVER() zahl, FPatnr FROM behgrund" & IIf(bisPid > 0, " WHERE FPatnr<=" & bisPid, "") & " GROUP BY FPatnr ORDER BY FPatnr DESC LIMIT " & limit, adOpenStatic, MOCon
  If Not rPt.BOF Then
   Do While Not rPt.EOF
    rNa(0).Pat_id = rPt!FPatNr
@@ -5428,7 +5430,7 @@ Public Sub turichtdiag()
      myEFrag sql, rAf2, DBCn, , ErrNr, ErrDes
      ReDim rDi(0)
     End If
-'    Debug.Print aktz & "/" & rPt!Zahl, rNa(0).Pat_ID, rAf, rAf2
+    Debug.Print aktz & "/" & rPt!Zahl, "Pat " & rNa(0).Pat_id & " fertig", rAf, rAf2
     Lese.Ausgeb "-> " & aktz & "/" & rPt!Zahl & " " & rNa(0).Pat_id & " " & rAf & " " & rAf2, 0
     dzahl = dzahl + rAf2
 '   End If
@@ -5529,11 +5531,13 @@ Sub MODiagnosen(fPtNr&, Optional pid&)
   "CASE FKlasse DIV 15 WHEN 0 THEN 'H' ELSE 'N' END Kard," & vbCrLf & _
   "ICD, COALESCE(IF(RIGHT(FText,1)=0,LEFT(FText,LENGTH(FText)-1),FText),'') FText," & vbCrLf & _
   "CASE FStatus WHEN 1 THEN 'ak' WHEN 2 THEN 'an' WHEN 3 THEN 'hi' WHEN 4 THEN 'ab' WHEN 5 THEN 'da' ELSE ' ' END Stat," & vbCrLf & _
-  "COALESCE(IF(RIGHT(FErlaeuterung,1)=0,LEFT(FErlaeuterung,LENGTH(FErlaeuterung)-1),FErlaeuterung),'') Zus, FNutzernr, FID, FAusnahme, ea" & vbCrLf & _
+  "COALESCE(IF(RIGHT(FErlaeuterung,1)=0,LEFT(FErlaeuterung,LENGTH(FErlaeuterung)-1),FErlaeuterung),'') Zus, FNutzernr, FID, FAusnahme, ea, FStatus" & vbCrLf & _
   "FROM sel lt INNER JOIN behgrund b ON lt.fb=b.FSurogat" & vbCrLf & _
-  "WHERE NOT ((FKlasse MOD 15)MOD 10=1 AND FStatus IN(3,4)) AND lt.ICD=b.FIcdcode" & vbCrLf & _
+  "WHERE FStatus<>3 AND NOT ((FKlasse MOD 15)MOD 10=4 AND FStatus=4) AND lt.ICD=b.FIcdcode" & vbCrLf & _
   ";"
-  ' => Z.n. V.a. lassen wir weg
+  ' 20.9.26: historische (FStatus 3) werden nicht uebertragen; abgeschlossene Ausschluss-Diagnosen (Klasse 4) erscheinen nie
+  ' (nach der Umsetzung auf Z waeren sie spaeter nicht mehr erkennbar); abgeschlossene V.a. werden mitgenommen
+  ' (als Z mit Textpraefix "V.a.", wie die migrierten Turbomed-Eintraege = Z.n. V.a.); MOStatus haelt FStatus fest
   ' akut  =      FStatus 1, stat ak, ea 1
   ' inaktiv =    FStatus 4, stat ab, ea 2
   ' dauer =      FStatus 5, stat da, ea 2017
@@ -5557,7 +5561,11 @@ Sub MODiagnosen(fPtNr&, Optional pid&)
     rDi(UBound(rDi)).ICD = rsDi!ICD
 '    If rDi(UBound(rDi)).ICD = "E11.41" Then Stop
     rDi(UBound(rDi)).obDauer = IIf(rsDi!Stat = "ak", 0, 1)
-    If rsDi!ea = 2 Or rsDi!Stat = "hi" Or rsDi!Stat = "ab" Then rDi(UBound(rDi)).DiagSicherheit = "Z" ' 11.4.25 ' 20.7.25: abgeschlossene Diagnosen sind auch die Inaktivierten
+    If rsDi!ea = 2 Or rsDi!Stat = "hi" Or rsDi!Stat = "ab" Then ' 11.4.25 ' 20.7.25: abgeschlossene Diagnosen sind auch die Inaktivierten
+     If rsDi!sich = "V" And Left$(rDi(UBound(rDi)).DiagText, 4) <> "V.a." Then rDi(UBound(rDi)).DiagText = "V.a. " & rDi(UBound(rDi)).DiagText ' 20.9.26: abgeschlossenes V.a. = Z.n. V.a.
+     rDi(UBound(rDi)).DiagSicherheit = "Z"
+    End If ' rsDi!ea = 2 Or rsDi!Stat = "hi" Or rsDi!Stat = "ab" Then
+    rDi(UBound(rDi)).MOStatus = rsDi!FStatus ' 20.9.26
     rDi(UBound(rDi)).obKasse = IIf(rsDi!Stat = "ak" Or rsDi!Stat = "da", 1, 0)
     rsDi.MoveNext
    Loop

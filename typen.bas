@@ -301,6 +301,7 @@ Public type diagnosen
  obKasse AS byte 'obKasse tinyint 'ob nach Kodierrichtlinien an Kasse zu übermitteln
  lKasse AS date 'lKasse datetime 'wann zuletzt Kassenübermittlung nach Kodierrichtlinien eingetragen (bd/bdd, f6010 Wahr)
  KFdFA AS string 'KFdFA varchar 'Krankheitsfall d. Fallakte 6011 8.12.10: bisher nur """"""""TM#?""""""""
+ MOStatus AS byte 'MOStatus tinyint 'medoff behgrund.FStatus: 1 akut, 2 anamnestisch, 4 abgeschlossen, 5 Dauer (3 historisch wird nicht uebertragen); NULL = vor Einfuehrung uebertragen
 end type
 
 Public type dokumente
@@ -4178,6 +4179,7 @@ Public FUNCTION roDiZuw(i&, j&)
  roDi(i).obKasse = rDi(j).obKasse
  roDi(i).lKasse = rDi(j).lKasse
  roDi(i).KFdFA = rDi(j).KFdFA
+ roDi(i).MOStatus = rDi(j).MOStatus
 End FUNCTION ' roDiZuw
 
 Public FUNCTION DiZUnt%(i&, j&)
@@ -4200,6 +4202,7 @@ Public FUNCTION DiZUnt%(i&, j&)
  IF roDi(i).obKasse <> rDi(j).obKasse THEN gosub unter
  IF roDi(i).lKasse <> rDi(j).lKasse THEN gosub unter
  IF roDi(i).KFdFA <> rDi(j).KFdFA THEN gosub unter
+ IF roDi(i).MOStatus <> rDi(j).MOStatus THEN gosub unter
  Exit Function
 unter:
  DiZUnt = DiZUnt + 1
@@ -4214,7 +4217,8 @@ Public FUNCTION diagnosenLaden()
 ",COALESCE(DiagSicherheit,'') DiagSicherheit,COALESCE(DiagText,'') DiagText,COALESCE(DiagSeite,'') DiagSeite,COALESCE(DiagAttr,'') DiagAttr" & _
 ",COALESCE(ICD,'') ICD,COALESCE(obDauer,0) obDauer,COALESCE(intBemerk,'') intBemerk,COALESCE(absPos,0) absPos" & _
 ",COALESCE(AktZeit - INTERVAL 0 DAY,CONVERT('18991230',DATE)) AktZeit,COALESCE(StByte,0) StByte,COALESCE(AusnBegr,'') AusnBegr,COALESCE(Dggel,0) Dggel" & _
-",COALESCE(obKasse,0) obKasse,COALESCE(lKasse - INTERVAL 0 DAY,CONVERT('18991230',DATE)) lKasse,COALESCE(KFdFA,'') KFdFA FROM `diagnosen` WHERE Pat_ID=" & pid & " ORDER BY `DiagDatum`
+",COALESCE(obKasse,0) obKasse,COALESCE(lKasse - INTERVAL 0 DAY,CONVERT('18991230',DATE)) lKasse,COALESCE(KFdFA,'') KFdFA,COALESCE(MOStatus,0) MOStatus" & _
+" FROM `diagnosen` WHERE Pat_ID=" & pid & " ORDER BY `DiagDatum`
  myFrag rs, sql
  If rs.EOF Then
   ReDim roDi(0)
@@ -4241,6 +4245,7 @@ Public FUNCTION diagnosenLaden()
    roDi(akt).obKasse = rs!obKasse
    roDi(akt).lKasse = rs!lKasse
    roDi(akt).KFdFA = doUmwfSQL(rs!KFdFA, lies.obMySQL, False)
+   roDi(akt).MOStatus = rs!MOStatus
    rs.MoveNext
    IF Not rs.EOF THEN ReDim Preserve roDi(UBound(roDi) + 1)
   Loop ' While Not rs.EOF
@@ -4327,6 +4332,7 @@ Public FUNCTION rDiDump()
   Print #200, Left$("rDi(" & i & ").obKasse:" & String$(33, "."), 33) & rDi(i).obKasse
   Print #200, Left$("rDi(" & i & ").lKasse:" & String$(33, "."), 33) & rDi(i).lKasse
   Print #200, Left$("rDi(" & i & ").KFdFA:" & String$(33, "."), 33) & "'" & rDi(i).KFdFA & "'"
+  Print #200, Left$("rDi(" & i & ").MOStatus:" & String$(33, "."), 33) & rDi(i).MOStatus
  Next i
  Close #200
  zeigan ffadat
@@ -4344,7 +4350,7 @@ Public Function diagnosenSpeichern(SammelInsert%, BezfSp%, Optional rAf&, Option
  syscmd 4, pid & ": Speichere " & Ubound(rDi)+0 & " Sätze in `" & tbnm & "`"
  Call csql0.AppVar(Array(" INSERT ", sqlIgnore, "INTO `" & LCase$(tbnm) & "` (FID,Pat_id,DiagDatum," & _
      "DiagSicherheit,DiagText,DiagSeite,DiagAttr,ICD,obDauer,intBemerk,absPos,AktZeit,StByte," & _
-     "AusnBegr,Dggel,obKasse,lKasse,KFdFA)               VALUES"))
+     "AusnBegr,Dggel,obKasse,lKasse,KFdFA,MOStatus)      VALUES"))
  IF NOT Allepat THEN
    sql = "DELETE FROM `" & LCase$(tbnm) & "` WHERE Pat_ID = " & CStr(rNa(0).Pat_ID)
    Call myEFrag(sql)
@@ -4360,7 +4366,7 @@ setz:
   End If ' SammelInsert = 0 Or i = 1 Then
   csql.AppVar Array("(" , rDi(i).FID, "," , rDi(i).Pat_id, "," , DatFor_k(rDi(i).DiagDatum), ",'" , rDi(i).DiagSicherheit, "','" , rDi(i).DiagText, "','" , rDi(i).DiagSeite, "','" , rDi(i).DiagAttr, "','" ,  _
    rDi(i).ICD, "'," , rDi(i).obDauer, ",'" , rDi(i).intBemerk, "'," , rDi(i).absPos, "," , DatFor_k(rDi(i).AktZeit), "," , rDi(i).StByte, ",'" , rDi(i).AusnBegr, "'," , rDi(i).Dggel, "," , rDi(i).obKasse, "," , DatFor_k( _
-   rDi(i).lKasse), ",'" , rDi(i).KFdFA, "')")
+   rDi(i).lKasse), ",'" , rDi(i).KFdFA, "'," , rDi(i).MOStatus, ")")
   IF SammelInsert <> 0 AND i < ubound(rDi) Then csql.Append ","
   IF SammelInsert = 0 OR i = ubound(rDi) Then
     altmode = myEFrag("SELECT @@global.sql_mode", , DBCn).Fields(0)
