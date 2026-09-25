@@ -2,3 +2,5 @@
 Referenz_Python/Erwartet_ohne_seit/
 Referenz_Python/Pat*_erwartet.txt
 __pycache__/
+# Original der Notizen mit Diagnosen zu Patientennummern; ins Repo kommt nur die _Repo-Fassung
+Offene_Punkte_Diagnosenanzeige.md
