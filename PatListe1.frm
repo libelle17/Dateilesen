@@ -716,8 +716,8 @@ Private Sub DMPFüll() ' für: Alle &DMP-Dokumente an Hausärzte faxen ' s. DMP_Dok
    Set HAS = New SortierHA
    HAS.Zahl = rs0!Zahl
    If Not IsNull(rs0!fax) Then HAS.fax = rs0!fax
-   HAS.ÜwNm = nz(rs0!Adressat,"")
-   HAS.ÜWNr = nz(rs0!ÜWNNr,"")
+   HAS.ÜwNm = nz(rs0!Adressat, "")
+   HAS.ÜWNr = nz(rs0!ÜWNNr, "")
    HAS.obDMPInfo = rs0!obDMPInfo
    HAS.gewählt = -rs0!obDMPInfo
    HASL.sCAdd HAS
@@ -728,8 +728,8 @@ Private Sub DMPFüll() ' für: Alle &DMP-Dokumente an Hausärzte faxen ' s. DMP_Dok
   PatZuHAS.name = rs0!name
   PatZuHAS.Pat_id = rs0!Pat_id
   PatZuHAS.sCa = HASL.sCa
-  PatZuHAS.ÜwNm = nz(rs0!Adressat,"") ' das COALESCE ignoriert er
-  PatZuHAS.ÜWNr = nz(rs0!ÜWNNr,"")
+  PatZuHAS.ÜwNm = nz(rs0!Adressat, "") ' das COALESCE ignoriert er
+  PatZuHAS.ÜWNr = nz(rs0!ÜWNNr, "")
   PatZuHASL.sCAdd PatZuHAS
   rs0.MoveNext
  Loop ' While Not rs0.EOF
@@ -1357,7 +1357,7 @@ End Sub ' FertigStellenBeliebig()
 
 ' in Command1_Click (artPat)
 Private Sub DokuBeliebig() ' Doku zu beliebigem Patienten
- Dim erg As Variant, VorDoku$, NachN$, VorN$, ICD$
+ Dim erg As Variant, VorDoku$, NachN$, VorN$, Icd$
  Dim rNa As ADODB.Recordset
  Select Case PLArt
  
@@ -1379,18 +1379,18 @@ Private Sub DokuBeliebig() ' Doku zu beliebigem Patienten
       VorDoku = .TextMatrix(.Row, VorDokuSp)
       NachN = .TextMatrix(.Row, NachNameSp)
       VorN = .TextMatrix(.Row, NachNameSp + 1)
-      ICD = .TextMatrix(.Row, ICDSp)
+      Icd = .TextMatrix(.Row, ICDSp)
      Else
       myFrag rNa, "SELECT nachname,vorname,gICD FROM namen n LEFT JOIN diagview d ON d.pat_id=n.pat_id AND (d.gicd REGEXP '^E1[0-4]') WHERE n.pat_id=" & erg, adOpenStatic, DBCn
       If Not rNa.BOF Then
        NachN = rNa!Nachname
        VorN = rNa!Vorname
-       ICD = rNa!gicd
+       Icd = rNa!gicd
       End If ' Not rna.BOF Then
      End If ' erg <> Me.MFG.TextMatrix(Me.MFG.Row, dpatidsp) Then
      altC = .col
      .col = NachNameSp
-     Call callMachDMPBogen(CLng(erg), NachN, VorN, .CellBackColor = vbWhite, .CellBackColor = HellRot, ICD, True)
+     Call callMachDMPBogen(CLng(erg), NachN, VorN, .CellBackColor = vbWhite, .CellBackColor = HellRot, Icd, True)
      .col = altC
      FNr = 9
      .SetFocus
@@ -1507,7 +1507,7 @@ Public Sub FertigStellen(zeile&, Optional nuranzeigen%, Optional PatID&) ' nachd
  Dim VorDoku$, Pat_id&, dtyp%, rs As New Recordset
 ' Dim aktDC AS DMPClass
  Dim j%
- Dim rTyp As New ADODB.Recordset
+ Dim rtyp As New ADODB.Recordset
  On Error GoTo fehler
  With MFG
   .SetFocus
@@ -1838,7 +1838,7 @@ Public Sub dokuErstelle() ' Erstelle
 End Sub ' dokuErstelle
 
 ' in Command2_Click, GesZF, DokuBeliebig, dokuErstelle
-Public Sub callMachDMPBogen(Pat_id&, NachN$, VorN$, obtot%, obneu%, ICD$, Optional obmitauswahl%, Optional immeranhaeng%, Optional obStumm%, Optional Datei$)  ' Erstelle
+Public Sub callMachDMPBogen(Pat_id&, NachN$, VorN$, obtot%, obneu%, Icd$, Optional obmitauswahl%, Optional immeranhaeng%, Optional obStumm%, Optional Datei$)  ' Erstelle
 ' Dim rTyp As New ADODB.Recordset
  Dim dmpba As New DMPBogenauswahl
  Dim dtyp%
@@ -1846,7 +1846,7 @@ Public Sub callMachDMPBogen(Pat_id&, NachN$, VorN$, obtot%, obneu%, ICD$, Option
  FNr = 16
 ' myFrag rTyp, "SELECT icd FROM diagnosen d WHERE d.pat_id = " & Pat_id & " AND d.diagsicherheit <> 'A' AND d.icd LIKE 'E1%' ORDER BY icd", adOpenStatic, DBCn, adLockReadOnly ' AND COALESCE(d.Dggel,0)=0
 ' If Not rTyp.EOF Then dtyp = Mid$(rTyp!ICD, 3, 1) + 1
- dtyp = Mid(ICD, 3, 1) + 1
+ dtyp = Mid(Icd, 3, 1) + 1
 #If False Then
 ' If VorDoku = "" Then
 '      Dim rDok As New ADODB.Recordset
@@ -2080,7 +2080,7 @@ Public Sub domachDMPBogen(Pat_id&, BogArtlV As BogArtTyp, DokuDat As Date, Optio
  
  Dim rlanr As New ADODB.Recordset
  If autolanr Then
-  myFrag rlanr, "SELECT p.lanr,Nachname,Vorname,Titel,Strasse,Hausnummer,PLZ,Stadt,Telefon FROM lanrpraxis p WHERE id = IF((SELECT MIN(lanrid) FROM faelle WHERE pat_id = " & Pat_id & " AND qanf = (SELECT MAX(qanf) FROM faelle WHERE pat_id = " & Pat_id & "))>0,(SELECT MIN(lanrid) FROM faelle WHERE pat_id = " & Pat_id & " AND qanf = (SELECT MAX(qanf) FROM faelle WHERE pat_id = " & Pat_id & ")),1)"
+  myFrag rlanr, "SELECT p.lanr,Nachname,Vorname,Titel,Strasse,Hausnummer,PLZ,Stadt,Telefon FROM lanrpraxis p WHERE id = IF((SELECT MIN(lanrid) FROM faelle WHERE pat_id = " & Pat_id & " AND bhfb = (SELECT MAX(bhfb) FROM faelle WHERE pat_id = " & Pat_id & "))>0,(SELECT MIN(lanrid) FROM faelle WHERE pat_id = " & Pat_id & " AND bhfb = (SELECT MAX(bhfb) FROM faelle WHERE pat_id = " & Pat_id & ")),1)"
   If Not rlanr.BOF Then
    auswlanr.Lanr = rlanr!Lanr
    auswlanr.Nachname = rlanr!Nachname
@@ -2829,7 +2829,7 @@ Public Sub domachDMPBogen(Pat_id&, BogArtlV As BogArtTyp, DokuDat As Date, Optio
  Print #176, "<id EX=""2A373B9ADD554084898B7CCE45EC0BA3"" RT=""" & BSNR & """/></related_document></document_relationship>"
 #End If
  Print #176, "<provider><provider.type_cd V=""PRF""/><person>"
- Print #176, "<id EX=""" & auswlanr.Lanr & """ RT=""Lanr""/>"
+ Print #176, "<id EX=""" & auswlanr.Lanr & """ RT=""LANR""/>"
  Print #176, "<id EX=""" & BSNR & """ RT=""BSNR""/>"
  Print #176, "<person_name><nm>"
  Print #176, "<GIV V=""" & auswlanr.Vorname & """/>"
@@ -3039,7 +3039,7 @@ Public Sub domachDMPBogen(Pat_id&, BogArtlV As BogArtTyp, DokuDat As Date, Optio
     SendStr = SendStr & IIf(aktDC.obThro, " ", "") & "{TAB}"
     SendStr = SendStr & "{TAB 2} {TAB}" & "{TAB 2} {TAB}" ' Schulungen
     SendStr = SendStr & IIf(aktDC.Tabak, " {TAB 2}", "{TAB}{TAB}") ' 'X' steht bei "nein" schon drin
-    SendStr = SendStr & IIf(aktDC.bmi >= 25, " {TAB 2}", "{TAB} {TAB}")
+    SendStr = SendStr & IIf(aktDC.BMI >= 25, " {TAB 2}", "{TAB} {TAB}")
     SendStr = SendStr & IIf(aktDC.hbEmpf = halten, " {TAB 3}", "{TAB} {TAB 2}")
     SendStr = SendStr & IIf(aktDC.rrEmpf = halten, " {TAB 2}", "{TAB} {TAB}")
     SendStr = SendStr & Switch(aktDC.aug = durchg, " {TAB 3}", aktDC.aug = ndurch, "{TAB} {TAB 2}", True, "{TAB 2} {TAB}")
@@ -3098,7 +3098,7 @@ Public Sub domachDMPBogen(Pat_id&, BogArtlV As BogArtTyp, DokuDat As Date, Optio
     SendStr2 = SendStr2 & IIf(aktDC.obThro, " ", "") & "{TAB}"
     SendStr2 = SendStr2 & "{TAB 6} {TAB 3} {TAB}" ' Schulungen
     SendStr2 = SendStr2 & IIf(aktDC.Tabak, " {TAB 2}", "{TAB}{TAB}") ' 'X' steht bei "nein" in der Folgedoku noch nicht drin
-    SendStr2 = SendStr2 & IIf(aktDC.bmi >= 25, " {TAB 2}", "{TAB} {TAB}")
+    SendStr2 = SendStr2 & IIf(aktDC.BMI >= 25, " {TAB 2}", "{TAB} {TAB}")
     SendStr2 = SendStr2 & IIf(aktDC.hbEmpf = halten, " {TAB 3}", "{TAB} {TAB 2}")
     SendStr2 = SendStr2 & IIf(aktDC.rrEmpf = halten, " {TAB 2}", "{TAB} {TAB}")
     SendStr2 = SendStr2 & IIf(aktDC.aug = durchg, " {TAB 3}", IIf(aktDC.aug = ndurch, "{TAB} {TAB 2}", "{TAB 2} {TAB}"))
@@ -3344,7 +3344,7 @@ Private Sub MFGrefresh()
  aicd = vNS
  MFG.Row = 1
  Do While Not rs.EOF
-  If rs!ICD <> aicd Then MFG.Row = MFG.Row + 1: MFG.col = 0: MFG = rs!ICD: MFG.col = GruSp: MFG = rs!dg1: MFG.col = MFG.col + 1: MFG = rs!gi2: aicd = rs!ICD
+  If rs!Icd <> aicd Then MFG.Row = MFG.Row + 1: MFG.col = 0: MFG = rs!Icd: MFG.col = GruSp: MFG = rs!dg1: MFG.col = MFG.col + 1: MFG = rs!gi2: aicd = rs!Icd
   MFG.col = MFG.col + 1
   MFG = rs!DiagText
   rs.Move 1
@@ -3508,7 +3508,7 @@ Sub tmbrieAnzeig()
    .TextMatrix(i, 3) = rs!DokGroe
    .TextMatrix(i, 4) = rs!DokAenD
    If FSO.FileExists("p:\dok\" & Pat_id & "\" & rs!name) Then .TextMatrix(i, 5) = "X"
-   .TextMatrix(i, 6) = rs!id
+   .TextMatrix(i, 6) = rs!ID
    i = i + 1
    rs.MoveNext
   Loop
@@ -3571,7 +3571,7 @@ Sub LaborregelAnzeig()
    .TextMatrix(i, 5) = nz(rs!AlterVgl, "")
    .TextMatrix(i, 6) = nz(rs!RRVgl, "")
    .TextMatrix(i, 7) = nz(rs!Versicherung, "")
-   .TextMatrix(i, 8) = nz(rs!DMP, "")
+   .TextMatrix(i, 8) = nz(rs!dmp, "")
    .TextMatrix(i, 9) = nz(rs!MedikamentRegex, "")
    .TextMatrix(i, 10) = nz(rs!IntervallMonate, "")
    .TextMatrix(i, 11) = nz(rs!Kommentar, "")
@@ -3982,8 +3982,8 @@ sql = sql & _
 '   SET rs1 = Nothing
 '   myFrag rs1, "SELECT * FROM `laborparameter` WHERE abkü = '" & vorDp & "'"
 '   IF Not rs1.EOF THEN
-    .TextMatrix(i, parsp) = nz(rs!Langtext,"")
-    vorDp = nz(rs!Abkü,"")
+    .TextMatrix(i, parsp) = nz(rs!Langtext, "")
+    vorDp = nz(rs!Abkü, "")
     .TextMatrix(i, wertsp) = rs!Wert ' Mid$(rs!fehlerart, pos + 1)
     .Row = i
     .col = nbsp
@@ -3991,8 +3991,8 @@ sql = sql & _
 '   END IF
 '  END IF
   .TextMatrix(i, nbsp) = rs!Nb
-  vorEinh = nz(rs!Einheit,"")
-  .TextMatrix(i, einhsp) = nz(rs!Einheit,"")
+  vorEinh = nz(rs!Einheit, "")
+  .TextMatrix(i, einhsp) = nz(rs!Einheit, "")
 
 '  pos = InStr(.TextMatrix(i, wertsp), "(")
 '  IF pos <> 0 THEN
@@ -4870,13 +4870,13 @@ Private Sub Form_Load()
       .Text = rDPat!Vorname
       .CellBackColor = cbcol
       .col = .col + 1
-      .Text = nz(rDPat!kurzname,vNS)
+      .Text = nz(rDPat!kurzname, vNS)
       .CellBackColor = cbcol ' 10790143 = dunkelrosa
       
       .col = .col + 1
       If ICDSp = 0 Then ICDSp = .col
-      .Text = nz(rDPat!ICD,"!-!")
-      .CellBackColor = IIf(rDPat!ICD Like "E11*", cbcol, vbYellow)
+      .Text = nz(rDPat!Icd, "!-!")
+      .CellBackColor = IIf(rDPat!Icd Like "E11*", cbcol, vbYellow)
 'GoTo weiter
       .col = .col + 1
 '      If IsNull(rDPat!notiz) Then
@@ -4979,9 +4979,9 @@ Private Sub Form_Load()
        End If
       Next j
       If LenB(Trim$(Join(dokus, ""))) = 0 Then ' im angezeigten Zeitraum kein Eintrag; letztes bekanntes Datum in Klammern zeigen
-       If Not IsNull(rDPat!dokudatum) Then
+       If Not IsNull(rDPat!DokuDatum) Then
         .col = begcol
-        .Text = "(" & Format(rDPat!dokudatum, "dd.mm.yy") & ")"
+        .Text = "(" & Format(rDPat!DokuDatum, "dd.mm.yy") & ")"
        End If ' Not IsNull(rDPat!dokudatum)
       End If ' LenB(Trim$(Join(dokus, ""))) = 0
 '#End If
@@ -5967,11 +5967,11 @@ Private Sub LaborFüll(Optional nachLangtext%)
 ' MFG.FillStyle = flexFillRepeat
  Do While Not rs0.EOF
   Me.MFG.TextMatrix(i, 0) = i
-  Me.MFG.TextMatrix(i, 1) = nz(rs0!Bezug,vNS)
+  Me.MFG.TextMatrix(i, 1) = nz(rs0!Bezug, vNS)
   Me.MFG.TextMatrix(i, 2) = rs0!Abkü
   Me.MFG.TextMatrix(i, 3) = rs0!Einheit
-  Me.MFG.TextMatrix(i, 4) = nz(rs0!Nb,vNS)
-  Me.MFG.TextMatrix(i, 5) = nz(rs0!Eingang,vNS)
+  Me.MFG.TextMatrix(i, 4) = nz(rs0!Nb, vNS)
+  Me.MFG.TextMatrix(i, 5) = nz(rs0!Eingang, vNS)
   Me.MFG.TextMatrix(i, 6) = rs0!Langtext
   Me.MFG.TextMatrix(i, 7) = rs0!Labor
   Me.MFG.TextMatrix(i, 8) = rs0!herk
