@@ -2008,14 +2008,21 @@ doppelt:
           Case "Tendenz"
            AbI(i - imin) = left$(AbI(i - imin), 1)
           Case "Diabetestyp"
-           Select Case AbI(i - imin)
-            Case "path.Glucosetoleranz"
-             AbI(i - imin) = "p"
-            Case "Gestations-"
-             AbI(i - imin) = "g"
-            Case Else
-             If InStrB(AbI(i - imin), "ekund") <> 0 Or InStrB(AbI(i - imin), "ankreopri") <> 0 Then AbI(i - imin) = "s"
-           End Select
+           ' 25.9.26: Freitexte vereinheitlichen; ein statt "[Jahr]" eingetragenes Datum ("p seit 07/2009: -") abschneiden
+           Dim dtTx$, dtPos&
+           dtTx = LCase$(Trim$(AbI(i - imin)))
+           dtPos = InStr(dtTx, " seit")
+           If dtPos > 0 Then dtTx = Trim$(left$(dtTx, dtPos - 1))
+           If InStrB(dtTx, "ekund") <> 0 Or InStrB(dtTx, "ankreopri") <> 0 Then
+            dtTx = "s"
+           ElseIf dtTx Like "path*" Or dtTx Like "pre*" Then
+            dtTx = "p"
+           ElseIf dtTx Like "gestation*" Then
+            dtTx = "g"
+           ElseIf dtTx Like "nicht bekannt*" Or dtTx Like "unbekannt*" Or dtTx Like "fraglich*" Or InStrB(dtTx, "abgekl") <> 0 Then
+            dtTx = "?"
+           End If
+           AbI(i - imin) = dtTx
          End Select ' fd(i-imin)
            If InStrB(fld, "Menge") <> 0 Then
             neuinh = IIf(AbI(i - imin) = "-", "0", AbI(i - imin)) 'replace$(AbI(i - imin), "-", "0")
