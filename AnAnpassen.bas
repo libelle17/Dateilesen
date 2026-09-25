@@ -2047,7 +2047,16 @@ doppelt:
               adVarBinary, adLongVarBinary, adError, adArray
 '            Case 8, 129, 130, 200, 201, 202, 203, 0, 9, 12, 13, 72, 128, 132, 138, 204, 205, 10, 8192
               neuinh = AbI(i - imin)
-              If obMehrfach Then
+              If obMehrfach And fld = "Diabetestyp" Then ' 25.9.26: nicht zusammenfügen, sondern das jüngste Exemplar zählt (imList ist chronologisch sortiert)
+               Dim obDTypBehalten As Boolean
+               obDTypBehalten = (Trim$(neuinh) = vNS)
+               If Not obDTypBehalten And Not obErste And Not kDB And Trim$(neuinh) = "-" Then ' bei gleichem Zeitpunkt schlägt ein konkreter Typ das "-"
+                If rEi(imList(entryIdx - 1)).Zeitpunkt = rEi(im).Zeitpunkt Then
+                 If Trim$(nz(rsAnm.Fields(fld).Value, vNS)) <> vNS And Trim$(nz(rsAnm.Fields(fld).Value, vNS)) <> "-" Then obDTypBehalten = True
+                End If
+               End If
+               If Not obDTypBehalten Then rsAnm.Fields(fld).Value = left$(Trim$(neuinh), rsAnm.Fields(fld).DefinedSize)
+              ElseIf obMehrfach Then
                GoSub mergeschr
               Else
                rsAnm.Fields(fld).Value = left$(neuinh, rsAnm.Fields(fld).DefinedSize)
