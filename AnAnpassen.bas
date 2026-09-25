@@ -1891,7 +1891,7 @@ w2:
       End If
      Next jj
      Select Case rsAnm.Fields(fld).name
-      Case "Größe", "Gewicht", "Tendenz", "Hausarzt"
+      Case "Größe", "Gewicht", "Tendenz", "Hausarzt", "Diabetestyp" ' Diabetestyp: Wert aus getDTyp (ICD) nicht vorab löschen, 25.9.26
       Case Else
        If obErste Then ' erst ab dem 2. Exemplar nicht mehr blind zurücksetzen, sonst geht Bisheriges verloren
         If fld <> vNS Then
@@ -1960,7 +1960,7 @@ doppelt:
      Else ' => FproZielFeld = 1
       If fld <> vNS Then
        Select Case rsAnm.Fields(fld).name
-       Case "Größe", "Gewicht", "Tendenz", "Hausarzt"
+       Case "Größe", "Gewicht", "Tendenz", "Hausarzt", "Diabetestyp" ' Diabetestyp: Wert aus getDTyp (ICD) nicht vorab löschen, 25.9.26
        Case Else
         If obErste Then ' erst ab dem 2. Exemplar nicht mehr blind zurücksetzen, sonst geht Bisheriges verloren
          Select Case rsAnm.Fields(fld).Type
@@ -2057,6 +2057,11 @@ doppelt:
               If obMehrfach And fld = "Diabetestyp" Then ' 25.9.26: nicht zusammenfügen, sondern das jüngste Exemplar zählt (imList ist chronologisch sortiert)
                Dim obDTypBehalten As Boolean
                obDTypBehalten = (Trim$(neuinh) = vNS)
+               If Trim$(neuinh) = "?" Then ' ein unbekannter Typ in der Anamnese lässt einen konkreten Typ (z. B. aus getDTyp/ICD) stehen
+                Select Case LCase$(Trim$(nz(rsAnm.Fields(fld).Value, vNS)))
+                 Case "1", "2", "s", "g", "p", "mody": obDTypBehalten = True
+                End Select
+               End If
                If Not obDTypBehalten And Not obErste And Not kDB And Trim$(neuinh) = "-" Then ' bei gleichem Zeitpunkt schlägt ein konkreter Typ das "-"
                 If rEi(imList(entryIdx - 1)).Zeitpunkt = rEi(im).Zeitpunkt Then
                  If Trim$(nz(rsAnm.Fields(fld).Value, vNS)) <> vNS And Trim$(nz(rsAnm.Fields(fld).Value, vNS)) <> "-" Then obDTypBehalten = True
