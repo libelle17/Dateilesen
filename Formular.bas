@@ -58,7 +58,7 @@ Public Enum DSiTyp
  gesi& = 0
  Va&
  Zn&
- AuS&
+ Aus&
 End Enum
 Dim NKrStr$(), Nflag$(), DSi() As DSiTyp ' für KRAdd
 #Const mitab = True ' auch noch in Lese
@@ -495,7 +495,7 @@ Function DtbCreateQueryDef$(QName$, sql$, Optional Conx As ADODB.Connection, Opt
  If Not LVobMySQL Then
   Dim cat As New ADOX.Catalog
 '  Dim Cmd$ ' As New ADODB.Command
-  Dim V As ADOX.view
+  Dim v As ADOX.view
 '  SET Cmd.ActiveConnection = DBCn
   Set cat.ActiveConnection = Conx
   On Error GoTo fehler
@@ -795,7 +795,7 @@ Function dodo_u_Click(frm As AnBog, nr)
    If rfDE.BOF Then
     If MDIICD(nr) Like "*V*" Then frm.Va = 1 Else If MDIICD(nr) Like "*Z*" Then frm.Zn = 1
    Else
-    If rfDE!ICD Like "*V*" Then frm.Va = 1 Else If rfDE!ICD Like "*Z*" Then frm.Zn = 1
+    If rfDE!Icd Like "*V*" Then frm.Va = 1 Else If rfDE!Icd Like "*Z*" Then frm.Zn = 1
    End If
    For i = frm.Xtra.ListCount - 1 To 0 Step -1
     frm.Xtra.RemoveItem i
@@ -880,7 +880,7 @@ End Select
 End Function ' dodo_u_Click
 
 Function do_Diagnosen_Reset(Optional frm As Form)
- Dim rfDE As New ADODB.Recordset, rfDEA As New ADODB.Recordset, F As ADODB.Field, erg&
+ Dim rfDE As New ADODB.Recordset, rfDEA As New ADODB.Recordset, f As ADODB.Field, erg&
  Dim archiviert As Date
  erg = MsgBox("Wollen Sie wirklich alle angekreuzten Diagnosen zurücksetzen?", vbYesNo, "Sicherheitsrückfrage")
  If erg <> vbYes Then Exit Function
@@ -897,11 +897,11 @@ Function do_Diagnosen_Reset(Optional frm As Form)
   Do While Not rfDE.EOF
    rfDEA.AddNew
 '   ON Error Resume Next
-   For Each F In rfDEA.Fields
-    If F.name <> "ID" And F.name <> "archiviert" Then
-     F.Value = rfDE.Fields(F.name).Value
+   For Each f In rfDEA.Fields
+    If f.name <> "ID" And f.name <> "archiviert" Then
+     f.Value = rfDE.Fields(f.name).Value
     End If
-   Next F
+   Next f
    rfDEA!archiviert = archiviert
    On Error GoTo rfdeaFehler
    rfDEA.Update
@@ -993,7 +993,7 @@ Function ÖffneFormular(FoName$)
  DoCmd.OpenForm FoName$ '"Anamnesebogen nach Name" dtb.Containers(2).Documents(0).Name
  DoCmd.Maximize
  On Error Resume Next
- Forms!Anamnesebogen.Recordset.findFirst "ID = " + CStr(AktID) ' Wieder alten Datensatz wählen
+ Forms!anamnesebogen.Recordset.findFirst "ID = " + CStr(AktID) ' Wieder alten Datensatz wählen
  On Error GoTo fehler
  Exit Function
 fehler:
@@ -1020,7 +1020,7 @@ Function ÖffneTabelle()
  AktID = Forms(Anmnb)(ABPat_ID)
  DoCmd.Close acForm, Anmnb, acSaveYes ' "Anamnesebogen nach Name"
  On Error GoTo fehler
- DoCmd.OpenTable Dtb.TableDefs!Anamnesebogen.name, acViewDesign, acEdit
+ DoCmd.OpenTable Dtb.TableDefs!anamnesebogen.name, acViewDesign, acEdit
  '(dtb.TableDefs!Anamnesebogen!Vorname).SetFocus
 ' DoCmd.GoToControl "Vorname"
  Exit Function
@@ -1809,17 +1809,17 @@ Function do_Form_Current_AnBog(frm As AnBog)
    farbe = -2147483633 ' weiß
  Else
    On Error Resume Next
-   Dim bmi!, Gewicht!, Größe!
+   Dim BMI!, Gewicht!, Größe!
    Dim runde%
    runde = 0
-   If IsNumeric(frm.vTextB(142)) Then bmi = frm.vTextB(142)
+   If IsNumeric(frm.vTextB(142)) Then BMI = frm.vTextB(142)
    If IsNumeric(frm.vTextB(11)) Then Gewicht = frm.vTextB(11)
    If IsNumeric(frm.vTextB(10)) Then Größe = frm.vTextB(10)
    Do
     runde = runde + 1
-    If bmi = 0 Then Exit Do ' BMI
-    If bmi > 8 Then Exit Do ' BMI
-    bmi = bmi * 10 ' BMI
+    If BMI = 0 Then Exit Do ' BMI
+    If BMI > 8 Then Exit Do ' BMI
+    BMI = BMI * 10 ' BMI
     If Gewicht < 10 Then
      Gewicht = Gewicht * 10
     End If
@@ -1831,8 +1831,8 @@ Function do_Form_Current_AnBog(frm As AnBog)
        Print #313, Format(Takt - Tvor, "0.00") & "      " & Format(Takt - T0, "0.00") & " (" & dnr & ")"
 #End If
    Do
-    If bmi = 0 Then Exit Do ' BMI
-    If bmi < 80 Then Exit Do ' BMI
+    If BMI = 0 Then Exit Do ' BMI
+    If BMI < 80 Then Exit Do ' BMI
 '    frm.vtextb(142) = frm.vtextb(142) * 0.1 => geht nicht ,da Berechnungsfeld
     If Gewicht > 250 Then ' Gewicht     <- Ersatz schaffen
        Gewicht = Gewicht * 0.1 ' Gewicht
@@ -1841,7 +1841,7 @@ Function do_Form_Current_AnBog(frm As AnBog)
     End If
     runde = runde + 1
    Loop Until runde >= 10
-   Select Case bmi ' BMI
+   Select Case BMI ' BMI
     Case Is < 20
      farbe = 15263952
     Case Is < 25
@@ -3017,13 +3017,13 @@ Function do_Form_Current2(frm As AnBog, Hsre$, lcAB$, PStatPath%, pnpflNeu%, KZa
 '   IF frm.anaRS!bmi >= 28 THEN
 '    Call KRAdd(frm, "BMI = " + Format$(frm.anaRS!bmi, "##,#"), "Übergewicht", "E66.99", gesi, "E66", , , , "vTextB", 11) ' Gewicht
 '   END IF
-   Select Case frm.anaRS!bmi
+   Select Case frm.anaRS!BMI
     Case Is >= 40
-    Call KRAdd(frm, "BMI = " + Format$(frm.anaRS!bmi, "##,#"), "Übergewicht BMI>=40", "E66.92", gesi, "E66", , , , "vTextB", 11) ' Gewicht
+    Call KRAdd(frm, "BMI = " + Format$(frm.anaRS!BMI, "##,#"), "Übergewicht BMI>=40", "E66.92", gesi, "E66", , , , "vTextB", 11) ' Gewicht
     Case Is >= 35
-    Call KRAdd(frm, "BMI = " + Format$(frm.anaRS!bmi, "##,#"), "Übergewicht BMI 35-<40", "E66.91", gesi, "E66", , , , "vTextB", 11) ' Gewicht
+    Call KRAdd(frm, "BMI = " + Format$(frm.anaRS!BMI, "##,#"), "Übergewicht BMI 35-<40", "E66.91", gesi, "E66", , , , "vTextB", 11) ' Gewicht
     Case Is >= 30
-    Call KRAdd(frm, "BMI = " + Format$(frm.anaRS!bmi, "##,#"), "Übergewicht BMI 30-<35", "E66.90", gesi, "E66", , , , "vTextB", 11) ' Gewicht
+    Call KRAdd(frm, "BMI = " + Format$(frm.anaRS!BMI, "##,#"), "Übergewicht BMI 30-<35", "E66.90", gesi, "E66", , , , "vTextB", 11) ' Gewicht
    End Select
 '  END IF
 ' END IF
@@ -5067,7 +5067,7 @@ Function KrSchluß(frm As AnBog)
    Select Case DSi(i)
     Case Va: frm.vTextB(168) = frm.vTextB(168) & "V.a.":      MDIICD(i) = MDIICD(i) & "V"
     Case Zn: frm.vTextB(168) = frm.vTextB(168) & "Z.n.": If left$(MDIICD(i), 1) <> "Z" Then MDIICD(i) = MDIICD(i) & "Z"
-    Case AuS: frm.vTextB(168) = frm.vTextB(168) & "Ausschl.": MDIICD(i) = MDIICD(i) & "A"
+    Case Aus: frm.vTextB(168) = frm.vTextB(168) & "Ausschl.": MDIICD(i) = MDIICD(i) & "A"
    End Select
    End If 'LenB(DSi(i)) <> 0 THEN
   End If
@@ -5397,7 +5397,7 @@ End Function ' makeDatPfad
 
 ' 4.9.06: wird nirgends aufgerufen
 Function do_LaborDokumente_Form_Current(frm As Form)
- Static fS, F
+ Static fS, f
  On Error GoTo fehler
  Call makeDatPfad(frm)
 'frm.Controls!Nachname
@@ -5532,7 +5532,7 @@ Function do_anzeigen_click(frm As Form)
   Call Shell(DatPfad, vbMaximizedFocus)
  Else
   If left$(DatPfad, InStr(DatPfad, " ")) = "winword" Then
-   GetWord
+   getWord
    Wapp.Visible = True
    Wapp.WindowState = wdWindowStateMaximize
    Wapp.documents.Open DatPfad
@@ -5561,7 +5561,7 @@ Function do_PhotoImpact_Click(frm As Form)
   Call Shell(DatPfadPI, vbMaximizedFocus)
  Else
   If left$(DatPfadPI, InStr(DatPfadPI, " ") - 1) = "winword" Then
-   GetWord
+   getWord
    Wapp.Visible = True
    Wapp.WindowState = wdWindowStateMaximize
    Wapp.documents.Open Mid$(DatPfadPI, InStrB(DatPfadPI, " "))
@@ -5809,7 +5809,7 @@ Private Sub cmdPreview_Click(myfilepath$)
 On Error GoTo fehler
 Screen.MousePointer = 11 'vbHourglass
 'Startup Word IF not started, OR switch to existing one
-GetWord
+getWord
 'Open the document, maximised, AND switch to word
 Wapp.Visible = True
 Wapp.Application.WindowState = wdWindowStateMaximize
@@ -6799,7 +6799,7 @@ Hausarzt:
         If rListena!KVNr = vNS Then
          If rFa(1).Übwr <> vNS Then
           InfRoh(12, runde) = rFa(1).Übwr
-          myEFrag "UPDATE `liuez` SET kvnr = " & rFa(1).Übwr & " WHERE id = " & rListena!id, rAf
+          myEFrag "UPDATE `liuez` SET kvnr = " & rFa(1).Übwr & " WHERE id = " & rListena!ID, rAf
 '          Debug.Print rAF
          End If
         Else ' rListena!KVNr = vNS Then
@@ -7567,14 +7567,14 @@ Dim oEnum As Object
     End If ' False
 End Function
 
-Function OOOpen(DT$)
+Function OOOpen(dt$, Optional obSchreibgeschützt%)
     Dim oSM                   'Root object for accessing OpenOffice from VB
     Dim oDesk, oDoc As Object 'First objects from the API
     Dim OpenParam(3)                  As Object    'Parameters to open the doc
     On Error GoTo fehler
     'Instanciate OOo : this line is mandatory with VB for OOo API
     Set oSM = CreateObject("com.sun.star.ServiceManager")
-    Set OpenParam(0) = mAkePropertyValue2(oSM, "ReadOnly", False)
+    Set OpenParam(0) = mAkePropertyValue2(oSM, "ReadOnly", CBool(obSchreibgeschützt))
     Set OpenParam(1) = mAkePropertyValue2(oSM, "Hidden", False)
 '   Set OpenParam(2) = mAkePropertyValue2(oSM, "FilterName", "calc8")
     Set OpenParam(3) = mAkePropertyValue2(oSM, "MacroExecutionMode", 4)
@@ -7582,7 +7582,7 @@ Function OOOpen(DT$)
     Set oDesk = oSM.createInstance("com.sun.star.frame.Desktop")
   
     'Open an existing doc (pay attention to the syntax for first argument)
-    Set oDoc = oDesk.loadComponentFromURL(ConvertToUrl(DT), "_blank", 0, OpenParam)
+    Set oDoc = oDesk.loadComponentFromURL(ConvertToUrl(dt), "_blank", 0, OpenParam)
   
 '    ' now - replace some text in the document
 '    Dim Txt
@@ -7780,7 +7780,7 @@ End Function
 
 ' in dozus
 Function WordDateiSchließen()
-    GetWord
+    getWord
     Dim i%
     For i = 1 To Wapp.documents.COUNT
      Wapp.documents(i).Close
@@ -7788,20 +7788,20 @@ Function WordDateiSchließen()
 End Function ' WordDateiSchließen
 
 ' in dozus
-Function WordDateiOeffnen(DT$) As Object
-    GetWord
-    Set WordDateiOeffnen = Wapp.documents.Open(DT, True)
+Function WordDateiOeffnen(dt$) As Object
+    getWord
+    Set WordDateiOeffnen = Wapp.documents.Open(dt, True)
     Wapp.Visible = True
 End Function ' WordDateiOeffnen
 
 ' aufgerufen nirgends
 Public Function dozus(Optional zdt$, Optional qvz$)
-  Dim DT$, vz$
-  DT = pVerz & "test\B.docx"
+  Dim dt$, vz$
+  dt = pVerz & "test\B.docx"
   vz = pVerz & "test\doc"
 '  Const DT$ = "p:\test\B.docx", vz$ = "p:\test\doc"
   If qvz = "" Then qvz = vz
-  If zdt = "" Then zdt = DT
+  If zdt = "" Then zdt = dt
   Dim oSh As New IWshShell_Class
   OOSchließen ' WordDateiSchließen
   oSh.rUn "cmd /c """"c:\program files\7-zip\7z"" a -tzip -mm=deflate -mx9 -aoa -xr!*.swp """ & zdt & """ """ & qvz & "\*""", 0, True
@@ -7833,12 +7833,12 @@ Public Function PKennz$(ByRef abz$, Optional reset%)
 End Function ' Function PKennz
 
 ' in tubriefStandalone
-Sub Dzus(ByRef Ds() As CString, DSneu As CString)
+Sub Dzus(ByRef Ds() As CString, dsNeu As CString)
  Dim i%
  If SafeArrayGetDim(Ds) Then
-  DSneu.Clear
+  dsNeu.Clear
   For i = 0 To UBound(Ds)
-   DSneu.AppVar Array("<w:t>", Ds(i), "</w:t><w:br/>")
+   dsNeu.AppVar Array("<w:t>", Ds(i), "</w:t><w:br/>")
   Next i
  End If ' SafeArrayGetDim(Ds) Then
 End Sub ' Dzus
@@ -7950,7 +7950,7 @@ Public Sub tuBriefStandalone(pid&, obStumm%, Optional Zielverz$, Optional Verfas
  dmseit = rsNa!dmseit
  
  syscmd 4, "Ermittle letztes Briefdatum"
- VorDat0 = GetVorDat(Pat_ID, obStumm)
+ VorDat0 = GetVorDat(Pat_ID, obStumm, ProgInd:=IIf(briefneu, ProgInd, 4)) ' 26.9.26: Vorbefund mit demselben Programm wie der neue Brief
  syscmd 4, "letztes Briefdatum: " & Format(VorDat0, "dd.mm.YYYY hh:MM:ssZ")
  If sammel = 0 And VorDat0 And Lese.pataw.obVordatFrag <> 0 Then
   On Error Resume Next
@@ -8012,7 +8012,7 @@ Public Sub tuBriefStandalone(pid&, obStumm%, Optional Zielverz$, Optional Verfas
  End If ' Not raFa.BOF Then
  
  If briefneu Then
-  Dim aname$
+  Dim aname$, befehl$
   aname = ArBName$(sverz, NachNa, VorNa, Pat_ID$, infos$())
   If Not nichtherricht Then
    syscmd acSysCmdSetStatus, "Erstelle Brief für " & gesName & ": 3) Briefrahmen, bereite Rahmendateien vor..."
@@ -8026,7 +8026,19 @@ Public Sub tuBriefStandalone(pid&, obStumm%, Optional Zielverz$, Optional Verfas
    On Error Resume Next
    FSO.CreateFolder zvz
    On Error GoTo fehler
-   oSh.rUn "cmd /c ""xcopy " & qvz & " " & zvz & " /s /y /h /r /k /c /exclude:" & qvz & "ausschluss.txt """, 0, True
+   befehl = "xcopy " & qvz & "* " & zvz & " /s /y /h /r /k /c /exclude:" & qvz & "ausschluss.txt "
+   oSh.rUn "cmd /c """ & befehl & """", 0, True
+   ' 26.9.26: ohne vollstaendige Vorlage entsteht ein unlesbares docx
+   If Not FSO.FileExists(zvz & "[Content_Types].xml") Or Not FSO.FileExists(zvz & "word\endnotes.xml") Then
+    Dim kopFehl$
+    kopFehl = "Briefvorlage " & qvz & " wurde nicht vollständig nach " & zvz & " kopiert ([Content_Types].xml oder word\endnotes.xml fehlt)." & vbCrLf & _
+     "Arztbrief für " & gesName & " wird nicht erstellt." & vbCrLf & _
+     "Zum Nachprüfen: " & befehl
+    Lese.Ausgeb kopFehl, True, True
+    syscmd acSysCmdClearStatus
+    If Not obStumm Then MsgBox kopFehl, vbExclamation, "tuBriefStandalone"
+    Exit Sub
+   End If ' Not FSO.FileExists
    On Error Resume Next
    syscmd acSysCmdSetStatus, "Erstelle Brief für " & gesName & ": 3) Briefrahmen, kopiere Unterschriftenbild ..."
    FSO.CreateFolder zvz & "word"
@@ -8058,7 +8070,7 @@ Public Sub tuBriefStandalone(pid&, obStumm%, Optional Zielverz$, Optional Verfas
    Dim dzahl$
    dzahl = QuellVerz & "dzahl.txt"
    syscmd acSysCmdSetStatus, "Erstelle Brief für " & gesName & ": 3) Briefrahmen, rufe die powershell auf ..."
-   oSh.rUn "powershell ""$vz=\""" & zvz & "word\\\"";$dt=@($vz+\""endnotes.xml\"";$vz+\""footnotes.xml\"";$vz+\""document.xml\"";$vz+\""settings.xml\"");$anr=[string](get-content -path $dt[0]) -replace '.*w:rsidRDefault=\""([0-9A-F]*)\"".*','$1';$nrd=\""" & dzahl & "\"";$nr=[int](get-content -path $nrd)+1;set-content -path $nrd $nr;$nrs='{0:X8}' -f $nr;foreach ($dta in $dt){(get-content -path $dta) -replace $anr, $nrs|set-content -path $dta;};""", 0, True
+   oSh.rUn "powershell ""$vz=\""" & zvz & "word\\\"";$dt=@($vz+\""endnotes.xml\"";$vz+\""footnotes.xml\"";$vz+\""document.xml\"";$vz+\""settings.xml\"");$anr=[string](get-content -path $dt[0]) -replace '.*w:rsidRDefault=\""([0-9A-F]*)\"".*','$1';$nrd=\""" & dzahl & "\"";$nr=[int](get-content -path $nrd)+1;set-content -path $nrd $nr;$nrs='{0:X8}' -f $nr;if($anr -match '^[0-9A-F]{8}$'){foreach ($dta in $dt){(get-content -path $dta) -replace $anr, $nrs|set-content -path $dta;};};""", 0, True
    Dim docid$
    Randomize
    docid = Right$("0000000" & Hex(Rnd * (16 ^ 7 - 1)), 7)
@@ -8160,9 +8172,9 @@ Public Sub tuBriefStandalone(pid&, obStumm%, Optional Zielverz$, Optional Verfas
    End If
    ag.appH PKennz("<w:p><w:pPr><w:spacing w:before=""120""/><w:pStyle w:val=""sp24s""/></w:pPr><w:r><w:t>" & satzanf & " </w:t></w:r><w:r><w:rPr><w:b/></w:rPr><w:t>" & zuh(REPLACE$(GName, ", *", ", geb. ")) & ",</w:t></w:r><w:r><w:t> " & dieder & " sich </w:t></w:r><w:bookmarkStart w:id=""14"" w:name=""Zeitraum""/><w:r><w:t>" & behs & "</w:t></w:r><w:bookmarkEnd w:id=""14""/><w:r><w:t> bei uns vorstellte.</w:t><w:br/></w:r></w:p>", False)
    ag.appH PKennz("<w:p><w:pPr><w:pStyle w:val=""sp24s""/><w:tabs><w:tab w:val=""left"" w:pos=""7938""/></w:tabs><w:pStyle w:val=""hang""/></w:pPr><w:bookmarkStart w:id=""15"" w:name=""Kompr""/><w:r><w:rStyle w:val=""s24s""/><w:rPr><w:b/><w:u w:val=""single""/></w:rPr><w:t>Diagnosen</w:t></w:r><w:r><w:t>:</w:t><w:tab/></w:r></w:p>", False)
-   Dim DSneu As New CString
-   Call Dzus(DiagTab, DSneu)
-   ag.appH PKennz("<w:p><w:pPr><w:tabs><w:tab w:val=""left"" w:pos=""7938""/></w:tabs><w:pStyle w:val=""sp24s""/></w:pPr><w:r>" & DSneu.Value & "</w:r></w:p>", False)
+   Dim dsNeu As New CString
+   Call Dzus(DiagTab, dsNeu)
+   ag.appH PKennz("<w:p><w:pPr><w:tabs><w:tab w:val=""left"" w:pos=""7938""/></w:tabs><w:pStyle w:val=""sp24s""/></w:pPr><w:r>" & dsNeu.Value & "</w:r></w:p>", False)
    syscmd acSysCmdSetStatus, "Erstelle Brief für " & gesName & ": 4a) Anamnese..."
    If VorDat <= bhb Then
     Call einzEintr(Pat_ID, "Angaben auf dem Anamnese- und Untersuchungsbogen", " (nur zur Dokumentation)", "")
@@ -8283,7 +8295,7 @@ Public Sub tuBriefStandalone(pid&, obStumm%, Optional Zielverz$, Optional Verfas
   End If ' not nichtherricht
  Else ' briefneu
 '  ON Error Resume Next
-   Call GetWord
+   Call getWord
    With Wapp
     .options.SmartCutPaste = False
     If WappBuild > 9 Then '.options("SmartParaSelection") = 0 '.Options.SmartParaSelection = False
@@ -8376,7 +8388,7 @@ On Error GoTo fehler
 '     iDiag.MoveFirst
       Do While Not iDiag.EOF
         iDDiagText = iDiag!DiagText
-        iDICD = iDiag!ICD
+        iDICD = iDiag!Icd
         iDDiagSich = iDiag!DiagSicherheit
         Dim tonRunde%
 '       MsgBox "Achtung doppelte Diagnose: " + nzw + _
@@ -8722,7 +8734,7 @@ On Error GoTo fehler
    ag.Clear
    
    If False Then FSO.CopyFile vVerz & "h\word\document.xml", zvz & "word\document.xml"
-   oSh.rUn "powershell ""$vz=\""" & zvz & "word\\\"";$dt=@($vz+\""endnotes.xml\"";$vz+\""footnotes.xml\"";$vz+\""document.xml\"";$vz+\""settings.xml\"");$anr=[string](get-content -path $dt[0]) -replace '.*w:rsidRDefault=\""([0-9A-F]*)\"".*','$1';$nrd=\""" & dzahl & "\"";$nr=[int](get-content -path $nrd)+1;set-content -path $nrd $nr;$nrs='{0:X8}' -f $nr;foreach ($dta in $dt){(get-content -path $dta) -replace $anr, $nrs|set-content -path $dta;};""", 0, True
+   oSh.rUn "powershell ""$vz=\""" & zvz & "word\\\"";$dt=@($vz+\""endnotes.xml\"";$vz+\""footnotes.xml\"";$vz+\""document.xml\"";$vz+\""settings.xml\"");$anr=[string](get-content -path $dt[0]) -replace '.*w:rsidRDefault=\""([0-9A-F]*)\"".*','$1';$nrd=\""" & dzahl & "\"";$nr=[int](get-content -path $nrd)+1;set-content -path $nrd $nr;$nrs='{0:X8}' -f $nr;if($anr -match '^[0-9A-F]{8}$'){foreach ($dta in $dt){(get-content -path $dta) -replace $anr, $nrs|set-content -path $dta;};};""", 0, True
   End If ' not nichtherricht
   Dim dname$
   dname = sverz & IIf(Right$(sverz, 1) = "\", "", "\") & aname & "x"
@@ -9264,7 +9276,7 @@ End Function ' Üw12
 Function testWied()
  Dim VorDat As Date, VorDat0 As Date, Pat_ID$
  On Error GoTo fehler
- Call GetWord
+ Call getWord
  Call AnbogVar(True)
  Pat_ID = CStr(Forms(Anmnbi)(ABPat_ID))
  VorDat0 = GetVorDat(Pat_ID, False)
@@ -9285,7 +9297,8 @@ Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "Last
 End Select
 End Function ' testWied()
 
-Function GetVorDat(Pat_ID$, obStumm%, Optional obschließ%, Optional ohneÖffnen%, Optional zeitp1 As Date, Optional name$) As Date
+' ProgInd wie in tuBriefStandalone; 4 = Vorbefund mit Word per COM öffnen (bisheriges Verhalten)
+Function GetVorDat(Pat_ID$, obStumm%, Optional obschließ%, Optional ohneÖffnen%, Optional zeitp1 As Date, Optional name$, Optional ProgInd% = 4) As Date
   Const obSichtbar = -1 ' 0 ergibt das aktuelle Datum
   Dim BRz As New ADODB.Recordset
   Dim lBrNam$, WAlt As Object, US$, Spl$(), j%
@@ -9370,12 +9383,16 @@ Function GetVorDat(Pat_ID$, obStumm%, Optional obschließ%, Optional ohneÖffnen%,
        Loop ' While Not EOF(235)
        Close #235
       End If
+       If ohneÖffnen = 0 And ProgInd <> 4 Then
+        Call VorbefundÖffnen(lBrNam, ProgInd, obStumm)
+        Exit Function
+       End If ' ohneÖffnen = 0 And ProgInd <> 4
        On Error Resume Next
  '     If Wapp.Version = 0 Then Debug.Print Wapp.Version
-       If ohneÖffnen = 0 Then If Wapp Is Nothing Then GetWord: If Err.Number Then Set Wapp = Nothing
+       If ohneÖffnen = 0 Then If Wapp Is Nothing Then getWord: If Err.Number Then Set Wapp = Nothing
        If ohneÖffnen = 0 And Not Wapp Is Nothing Then
         Wapp.Visible = True
-        On Error GoTo fehler
+        On Error GoTo getWord
         Select Case Wapp.Version
          Case "7.0", "8.0", "9.0"
           On Error Resume Next
@@ -9383,7 +9400,6 @@ Function GetVorDat(Pat_ID$, obStumm%, Optional obschließ%, Optional ohneÖffnen%,
           Set WAlt = Wapp.documents.Open(lBrNam, ReadOnly:=-1, Visible:=obSichtbar) ', -1, -1, -1, , , 0, , , , , obsichtbar)
           If Err.Number Then Shell lBrNam, vbMaximizedFocus
           If Err.Number Then OOOpen lBrNam
-          On Error GoTo fehler
          Case "10.0", "11.0", "12.0" ' ab XP
           On Error Resume Next
  ' Ausdruck.Open(FileName, ConfirmConversions, ReadOnly, AddToRecentFiles, PasswordDocument, PasswordTemplate, Revert, WritePasswordDocument, WritePasswordTemplate, Format, Encoding, Visible, OpenConflictDocument, OpenAndRepair , DocumentDirection, NoEncodingDialog)
@@ -9391,8 +9407,8 @@ Function GetVorDat(Pat_ID$, obStumm%, Optional obschließ%, Optional ohneÖffnen%,
           If Err.Number > 0 Then
            Call meld("Fehler beim Öffnen des Vorbefundes: " & lBrNam, obStumm)
           End If
-          On Error GoTo fehler
         End Select
+        On Error GoTo fehler
         If Not WAlt Is Nothing Then
          If Not obfertig Then
           US$ = REPLACE$(REPLACE$(REPLACE$(WAlt.Range, vbTab, Chr$(32)), vbCr, Chr$(32)), vbVerticalTab, Chr$(32))
@@ -9413,6 +9429,9 @@ Function GetVorDat(Pat_ID$, obStumm%, Optional obschließ%, Optional ohneÖffnen%,
 '   End If ' BRz!ct > 0 Then
 '  End If ' ohneÖffnen <> 0 Or Not Wapp Is Nothing Then
   Exit Function
+getWord:
+ getWord
+ Resume
 fehler:
  Dim AnwPfad$
 #If VBA6 Then
@@ -9427,10 +9446,43 @@ Select Case MsgBox("FNr: " & FNr & "ErrNr: " & CStr(Err.Number) + vbCrLf + "Last
 End Select
 End Function ' GetVorDat(pat_id&, Optional WApp) As Date
 
+' in GetVorDat, 26.9.26: öffnet den Vorbefund schreibgeschützt mit dem Programm, mit dem auch der neue Brief geöffnet wird
+' ProgInd: 0 = LibreOffice, 1 = Word 2000 (nur *.doc, sonst LibreOffice), 2 = neues Word, 3 = Standardprogramm
+Sub VorbefundÖffnen(datei$, ByVal ProgInd%, obStumm%)
+ Dim oSh As New IWshShell_Class, kvz$, kopie$, wpfad$
+ On Error GoTo fehler
+ If ProgInd = 1 And LCase$(FSO.GetExtensionName(datei)) <> "doc" Then ProgInd = 0
+ If ProgInd = 0 Then
+  OOOpen datei, True
+  Exit Sub
+ End If
+' Word kennt auf der Kommandozeile keinen Schreibschutz, daher eine schreibgeschützte Kopie öffnen
+ kvz = Environ("temp") & "\" & Int(Rnd * 10000000) & "\"
+ If Not FSO.FolderExists(kvz) Then FSO.CreateFolder kvz
+ kopie = kvz & FSO.GetFileName(datei)
+ FSO.CopyFile datei, kopie, True
+ FSO.GetFile(kopie).Attributes = 1 ' ReadOnly
+ Select Case ProgInd
+  Case 1 ' Word 2000
+   oSh.rUn "cmd /c """"C:\Program Files (x86)\MSOff\Office\winword"" """ & kopie & """""", 0, False
+  Case 2 ' neues Word
+   wpfad = "c:\program files\microsoft office\root\office16\winword"
+   If Not FSO.FileExists(wpfad) Then
+    wpfad = "c:\program files (x86)\microsoft office\root\office16\winword"
+   End If
+   oSh.rUn "cmd /c """"" & wpfad & """ """ & kopie & """""", 0, False
+  Case 3 ' Standardprogramm
+   oSh.rUn "cmd /c """"" & kopie & """""", 0, False
+ End Select
+ Exit Sub
+fehler:
+ Call meld("Fehler beim Öffnen des Vorbefundes: " & datei & " (" & Err.Description & ")", obStumm)
+End Sub ' VorbefundÖffnen
+
 ' in tuBriefStandalone und testWied
 Function WiederHolungsBrief(Nachname$, VorDat As Date, VorDat0 As Date, Wapp, Optional dc)
  Dim i%, lBriefDat As Date
- Dim r1, r2, rz2, rn
+ Dim r1, r2, rz2, rN
  Dim dcName$
  
  On Error GoTo fehler
@@ -9479,13 +9531,13 @@ habDC:
    End With
    If r1.Find.found And r2.Find.found Then
     Wapp.Visible = True
-    Set rn = dc.Range(r1.Start, r2.Start - 1)
-    Call dc.bookmarks.Add("Anamnese", rn)
+    Set rN = dc.Range(r1.Start, r2.Start - 1)
+    Call dc.bookmarks.Add("Anamnese", rN)
 '#Const verbergen = True
 #If verbergen Then
-    rn.Font.Hidden = True
+    rN.Font.Hidden = True
 #Else
-    rn.Delete
+    rN.Delete
 #End If
    End If
    Dim pakt ' Aktueller Absatz
@@ -9871,7 +9923,7 @@ Sub Epikrise(dc, Pat_ID$, VorDat As Date, lddat As Date, obStumm%, briefneu%, Op
   Dim i%
   On Error GoTo fehler
 '  nzw = vbCr
-  Dim Epi$, Ep0$, Titel$, DT$, Folge$, FZ%, Begl$, bglz%, Akkusat$, Akklang$, Nominat$
+  Dim Epi$, Ep0$, Titel$, dt$, Folge$, FZ%, Begl$, bglz%, Akkusat$, Akklang$, Nominat$
   Dim rnam As New ADODB.Recordset, rsAnam As New ADODB.Recordset, rDT As New ADODB.Recordset, rDT0 As New ADODB.Recordset
   Dim obkomma%
   Dim lKrea!, GFR!, Alter%, DialZt%, DialAlter%, GebDat As Date
@@ -9909,18 +9961,18 @@ Sub Epikrise(dc, Pat_ID$, VorDat As Date, lddat As Date, obStumm%, briefneu%, Op
   
 '  Epi = "Bei " + Akkusat ' 16.9.25 => kommt jetzt unten
   Select Case dmtyp
-   Case "1": DT = " Typ-1-Diabetes"
-   Case "2": DT = " Typ-2-Diabetes"
-   Case "s": DT = " sekundärer Diabetes"
-   Case "g": DT = " Gestationsdiabetes"
-   Case "p": DT = "e pathologische Glucosetoleranz"
-   Case "-": DT = " "
-   Case "?": DT = " Diabetes mellitus" ' kommt dann nicht mehr vor
-   Case Else: DT = " Diabetes mellitus Typ " + nz(rsAnam!Diabetestyp, "") ' kommt dann nicht mehr vor
+   Case "1": dt = " Typ-1-Diabetes"
+   Case "2": dt = " Typ-2-Diabetes"
+   Case "s": dt = " sekundärer Diabetes"
+   Case "g": dt = " Gestationsdiabetes"
+   Case "p": dt = "e pathologische Glucosetoleranz"
+   Case "-": dt = " "
+   Case "?": dt = " Diabetes mellitus" ' kommt dann nicht mehr vor
+   Case Else: dt = " Diabetes mellitus Typ " + nz(rsAnam!Diabetestyp, "") ' kommt dann nicht mehr vor
   End Select ' Case dmtyp
   Select Case dmtyp
    Case "g", "p"
-    Ep0 = Ep0 & " ist ein" & DT & " diagnostiziert worden"
+    Ep0 = Ep0 & " ist ein" & dt & " diagnostiziert worden"
    Case "-"
     Dim GfV$
     If IsNull(rsAnam("Grund für Vorstellung")) Then
@@ -9929,7 +9981,7 @@ Sub Epikrise(dc, Pat_ID$, VorDat As Date, lddat As Date, obStumm%, briefneu%, Op
      GfV = rsAnam("Grund für Vorstellung") '!`Grund für Vorstellung`
     End If
    Case Else
-    Ep0 = Ep0 & " ist ein" & DT & " seit " & DSeit(rsAnam) & " bekannt "
+    Ep0 = Ep0 & " ist ein" & dt & " seit " & DSeit(rsAnam) & " bekannt "
   End Select ' Case dmtyp
   FZ = 0
   Select Case dmtyp
@@ -9990,13 +10042,13 @@ Sub Epikrise(dc, Pat_ID$, VorDat As Date, lddat As Date, obStumm%, briefneu%, Op
 '      IF rDT!Pat_id <> Pat_id THEN Exit Do
       For j = 1 To FEZ
        For k = 0 To maxIcd
-        If IsNull(ic(j, k)) Or ic(j, k) = vNS Then GoTo w1:
-        If (InStrB(rDT!ICD, ic(j, k)) > 0 And ic(j, k) <> vNS) And Not (InStrB("ZA", rDT!DiagSicherheit) > 0 And un(j) = 0) Then ' bei UnterDiagnosen ist Z.n. relevant
+        If IsNull(ic(j, k)) Or ic(j, k) = vNS Then GoTo W1:
+        If (InStrB(rDT!Icd, ic(j, k)) > 0 And ic(j, k) <> vNS) And Not (InStrB("ZA", rDT!DiagSicherheit) > 0 And un(j) = 0) Then ' bei UnterDiagnosen ist Z.n. relevant
          flag(j) = -1
          If rDT!DiagSicherheit = "V" Then DiagSi(j) = True
         End If
        Next
-w1:
+W1:
       Next j
       rDT.MoveNext
      Loop
@@ -10056,7 +10108,7 @@ w1:
        For j = 1 To BEZ
         For k = 0 To bmaxIcd - 1
          If IsNull(bic(j, k)) Or bic(j, k) = vNS Then GoTo w2:
-         If rDT!ICD Like bic(j, k) Then
+         If rDT!Icd Like bic(j, k) Then
  '         IF rDt!diagsicherheit <> "Z" THEN
            bflag(j) = -1
            Select Case diags
@@ -10595,7 +10647,7 @@ w2:
      myFrag rDT, "SELECT icd, COALESCE(DiagText,'') DiagText, dg1 FROM (SELECT d.icd,DiagText,g1.gruppe dg1 FROM `diagnosen` d LEFT JOIN `diagreihe` dr ON d.icd = dr.icd LEFT JOIN diagg1 g1 ON g1.lfdnr=dr.gi1 WHERE pat_id = " & Pat_ID & " AND d.diagsicherheit <> 'A') i", adOpenStatic
      Do While Not rDT.EOF
   ' Leberkrankheiten außer Leberzirrhose, Obstipation
-      If rDT!ICD Like "C*" Or (rDT!dg1 = "Magen-Darm-Leber" And Not (rDT!ICD Like "K7*" And Not rDT!ICD Like "K74*") And Not rDT!ICD Like "K59*") Or InStrB(rDT!DiagText, "lutu") > 0 Or InStrB(rDT!DiagText, "sthma") > 0 Then
+      If rDT!Icd Like "C*" Or (rDT!dg1 = "Magen-Darm-Leber" And Not (rDT!Icd Like "K7*" And Not rDT!Icd Like "K74*") And Not rDT!Icd Like "K59*") Or InStrB(rDT!DiagText, "lutu") > 0 Or InStrB(rDT!DiagText, "sthma") > 0 Then
        keinAss = True
        Exit Do
       End If
@@ -15323,7 +15375,7 @@ Sub LaborIns1(ByRef dc As Object, Pat_ID$, nurLabor%, briefneu%) ' nur in tuBrie
  syscmd 4, "Labor (2) nach Tabellen-Addition"
  If briefneu Then Exit Sub
  
- dc.bookmarks.Add name:="DMP", Range:=dc.Range(Tabl.Range.END, dc.bookmarks!DMP.Range.END)
+ dc.bookmarks.Add name:="DMP", Range:=dc.Range(Tabl.Range.END, dc.bookmarks!dmp.Range.END)
  syscmd 4, "Labor (2) nach DMP-Markenlöschung"
  With Tabl
   If WappBuild > 9 Then
@@ -15463,13 +15515,13 @@ Sub LaborIns1(ByRef dc As Object, Pat_ID$, nurLabor%, briefneu%) ' nur in tuBrie
   Dim adn$, dcn$, tn$
   adn = Wapp.activedocument.name
   dcn = dc.name
-  Tabl.id = "Labor"
+  Tabl.ID = "Labor"
   Set Wapp = Nothing
-  GetWord
+  getWord
   Set dc = Wapp.documents(dcn)
   Dim tabli
   For Each tabli In dc.Tables
-   If tabli.id = "Labor" Then
+   If tabli.ID = "Labor" Then
     Set Tabl = tabli
     Exit For
    End If
@@ -16220,15 +16272,15 @@ Sub Tabelle88888888() ' Scheint wohl nicht vorzukommen, da Verunstaltung möglich
 Dim i%, zZStr$, ZZ%, rZStr$, rz%, diff%, ct$ ' Container
 Dim aktz% ' aktuelle Zeile
 Dim par$, Einh$, Datu$, Wert$, path$, Nb$, altPar$
-Dim F As File
+Dim f As File
 With Wapp.activedocument
  If .Tables.COUNT > 0 Then
   With .Tables(.Tables.COUNT)
     If FSO Is Nothing Then Set FSO = CreateObject("Scripting.FileSystemObject")
-    Set F = FSO.GetFile(aVerz + "\Labor.txt") ' uverz & "Anamnese"
-    If Not F Is Nothing Then
+    Set f = FSO.GetFile(aVerz + "\Labor.txt") ' uverz & "Anamnese"
+    If Not f Is Nothing Then
       Close #16
-      Open F.path For Input As #16
+      Open f.path For Input As #16
       Line Input #16, rZStr
       rz = Val(rZStr)
       diff = rz - .Columns.COUNT + 3
@@ -16953,7 +17005,7 @@ Function Datenbankkontrolle()
 '  hae.Open "SELECT * FROM `kvaerzte`.`hae` WHERE kvnr = " & haz!kvnu
   myFrag hae, "SELECT * FROM `kvaerzte`.`hae` WHERE kvnr = " & haz!kvnu
   If hae.BOF Then
-   pText = CStr(haz!id) + ": " + CStr(nz(haz!KVNr, "KV-Nr: (Null)")) & " " & nz(haz!Nachname, "Nachname: (Null)") & " " & nz(haz!Vorname, "Vorname: (Null)") + " in HAE nicht gefunden"
+   pText = CStr(haz!ID) + ": " + CStr(nz(haz!KVNr, "KV-Nr: (Null)")) & " " & nz(haz!Nachname, "Nachname: (Null)") & " " & nz(haz!Vorname, "Vorname: (Null)") + " in HAE nicht gefunden"
 '   hae1.FindFirst "instr(HAName, """ + haz!Nachname + """) > 0 AND instr(HAName, """ + haz!Vorname + """) > 0 AND ort = """ + haz!Ort + """"
    Set hae1 = Nothing
    myFrag hae1, "SELECT * FROM `kvaerzte`.`hae` WHERE haname LIKE '%" & haz!Nachname & "%' AND haname LIKE '%" & haz!Vorname & "%' AND ort LIKE '%" & haz!ort & "%'" 'haecn
@@ -16973,7 +17025,7 @@ Function Datenbankkontrolle()
     If hae!KVNr <> REPLACE$(haz!KVNr, "/", vNS) Then Exit Do
    Loop
    If Not obGleich Then
-    Print #32, CStr(haz!id) + ": " + CStr(nz(haz!KVNr, "KV-Nr: (Null)")) & " " & nz(haz!Nachname, "Nachname: (Null)") & " " & nz(haz!Vorname, "Vorname: (Null)") + " in HAE nicht mit gleichem Namen nicht gefunden"
+    Print #32, CStr(haz!ID) + ": " + CStr(nz(haz!KVNr, "KV-Nr: (Null)")) & " " & nz(haz!Nachname, "Nachname: (Null)") & " " & nz(haz!Vorname, "Vorname: (Null)") + " in HAE nicht mit gleichem Namen nicht gefunden"
    End If
   End If
   haz.Move 1
@@ -17581,15 +17633,15 @@ Function doDiagnosenexport(Optional obTest%)
 '  rDT.Open "SELECT * FROM diagnosen", DBCn, adOpenDynamic, adLockOptimistic
   Pat_ID = -1
   Dim neuDauer%, obDauer%
-  Dim nurquart%, ICD$, Zeitpunkt As Date, Diagnose$, DiagText$, id&, name$
+  Dim nurquart%, Icd$, Zeitpunkt As Date, Diagnose$, DiagText$, ID&, name$
   Do While Not q.EOF
    nurquart = q!nurquart
-   ICD = q!ICD
+   Icd = q!Icd
    Zeitpunkt = q!Zeitpunkt
    Diagnose = q!Diagnose
 '   DiagText = q!DiagText
    name = q!name
-   id = q!id
+   ID = q!ID
    If q!Pat_ID <> Pat_ID Then
     Pat_ID = q!Pat_ID ' Hier kommt er nur einmal pro Patient vorbei
     neuDauer = 0
@@ -17630,11 +17682,11 @@ Function doDiagnosenexport(Optional obTest%)
 '        ICD = ICD
         DiagSi = "G"
         DiagText = Diagnose
-        If Not IsNull(ICD) Then
-         If ICD <> vNS Then
-          If InStrB("VGZA", Right$(ICD, 1)) > 0 And Right$(ICD, 1) <> vNS Then
-           DiagSi = Right$(ICD, 1)
-           ICD = left$(ICD, Len(ICD) - 1)
+        If Not IsNull(Icd) Then
+         If Icd <> vNS Then
+          If InStrB("VGZA", Right$(Icd, 1)) > 0 And Right$(Icd, 1) <> vNS Then
+           DiagSi = Right$(Icd, 1)
+           Icd = left$(Icd, Len(Icd) - 1)
            Select Case DiagSi
             Case "V": DiagText = LTrim$(REPLACE$(DiagText, "V.a.", vNS))
             Case "Z": DiagText = LTrim$(REPLACE$(DiagText, "Z.n.", vNS))
@@ -17644,7 +17696,7 @@ Function doDiagnosenexport(Optional obTest%)
          End If ' ICD <> vNS THEN
         End If ' NOT ISNULL(ICD) THEN
         BDT.SAdd IIf(obDauer = 0, "6000", "3650"), DiagText
-        BDT.SAdd "6001", ICD
+        BDT.SAdd "6001", Icd
         BDT.SAdd "6003", DiagSi
 '        BDT.SAdd "6010", "TM#Falsch"
         BDT.SAdd "6010", "TM#False"   ' 26.10.15, offenbar im Datensatz geändert
@@ -17653,24 +17705,24 @@ Function doDiagnosenexport(Optional obTest%)
         
        If Not obTest Then
          Dim rAf&, rAfL&
-         InsKorr DBCn, "INSERT INTO `diagnosen`(pat_id, ICD,diagdatum,diagsicherheit,diagtext,obdauer,aktzeit) VALUES(" & Pat_ID & ",'" & ICD & "'," & DatFor_k(aktdat) & ",'" & DiagSi & "','" & DiagText & "'," & IIf(obDauer = 0, 0, 1) & "," & DatFor_k(BDT.üzpt) & ")", rAf
+         InsKorr DBCn, "INSERT INTO `diagnosen`(pat_id, ICD,diagdatum,diagsicherheit,diagtext,obdauer,aktzeit) VALUES(" & Pat_ID & ",'" & Icd & "'," & DatFor_k(aktdat) & ",'" & DiagSi & "','" & DiagText & "'," & IIf(obDauer = 0, 0, 1) & "," & DatFor_k(BDT.üzpt) & ")", rAf
          If rAf <> 1 Then
-          MsgBox "Fehler beim Diagnoseneeinfügen für Pat. " & Pat_ID & vbCrLf & "ICD: " & ICD & vbCrLf & "Diagtext:" & DiagText & vbCrLf & "Datum: " & DatFor_k(aktdat) & rAf & " Datensätze eingefügt"
+          MsgBox "Fehler beim Diagnoseneeinfügen für Pat. " & Pat_ID & vbCrLf & "ICD: " & Icd & vbCrLf & "Diagtext:" & DiagText & vbCrLf & "Datum: " & DatFor_k(aktdat) & rAf & " Datensätze eingefügt"
          End If
-         If LenB(ICD) <> 0 And LenB(Diagnose) <> 0 Then
-          Call myEFrag("UPDATE `diagnosenexport` SET status = '" & übertragen & "' WHERE id = " & id, rAf)
+         If LenB(Icd) <> 0 And LenB(Diagnose) <> 0 Then
+          Call myEFrag("UPDATE `diagnosenexport` SET status = '" & übertragen & "' WHERE id = " & ID, rAf)
           If rAf <> 1 Then
-           MsgBox "Fehler beim Statussetzen in `diagnosenexport` für ID: " & id & rAf & " Datensätze gesetzt"
+           MsgBox "Fehler beim Statussetzen in `diagnosenexport` für ID: " & ID & rAf & " Datensätze gesetzt"
           End If
-          InsKorr DBCn, "INSERT INTO `diagnosen exportiert`(pat_id,datum,icd,diagnose,übertragen) VALUES(" & Pat_ID & "," & DatFor_k(aktdat) & ",'" & ICD & "','" & DiagText & "'," & DatFor_k(BDT.üzpt) & ")", rAf
+          InsKorr DBCn, "INSERT INTO `diagnosen exportiert`(pat_id,datum,icd,diagnose,übertragen) VALUES(" & Pat_ID & "," & DatFor_k(aktdat) & ",'" & Icd & "','" & DiagText & "'," & DatFor_k(BDT.üzpt) & ")", rAf
           If rAf > 0 Then
-           Call myEFrag("DELETE FROM `fuerdiagexp` WHERE id = " & id, rAfL)
+           Call myEFrag("DELETE FROM `fuerdiagexp` WHERE id = " & ID, rAfL)
            If rAfL <> 1 Then
-            MsgBox "Fehler beim Löschen aus `fuerdiagexp` von " & Pat_ID & " (" & UmwfSQL(name) & ")" & vbCrLf & "ICD: " & ICD & vbCrLf & "Diagtext:" & DiagText & vbCrLf & "Datum: " & DatFor_k(aktdat) & vbCrLf & rAfL & " Datensätze gelöscht"
+            MsgBox "Fehler beim Löschen aus `fuerdiagexp` von " & Pat_ID & " (" & UmwfSQL(name) & ")" & vbCrLf & "ICD: " & Icd & vbCrLf & "Diagtext:" & DiagText & vbCrLf & "Datum: " & DatFor_k(aktdat) & vbCrLf & rAfL & " Datensätze gelöscht"
            End If
           End If
           If rAf <> 1 Then
-           MsgBox "Fehler beim Eintragen in `diagnosen exportiert` von " & Pat_ID & vbCrLf & "ICD: " & ICD & vbCrLf & "Diagtext:" & DiagText & vbCrLf & "Datum: " & DatFor_k(aktdat) & rAf & " Datensätze eingetragen"
+           MsgBox "Fehler beim Eintragen in `diagnosen exportiert` von " & Pat_ID & vbCrLf & "ICD: " & Icd & vbCrLf & "Diagtext:" & DiagText & vbCrLf & "Datum: " & DatFor_k(aktdat) & rAf & " Datensätze eingetragen"
           End If
          End If ' icd <> vns AND Diagnose <> vns THEN
          Call dynDiag(CStr(Pat_ID)) ' 12.7.08
@@ -18112,7 +18164,7 @@ Function test_fdübertrag()
  Call Lese.ProgStart
  myFrag q, "SELECT * FROM `fuerdiagexp`"
  Do While Not q.EOF
-  InsKorr z, "INSERT INTO `fuerdiagexp`(name,pat_id,icd,diagnose,nurquart,zeitpunkt) VALUES('" & UmwfSQL(q!name) & "'," & q!Pat_ID & ",'" & q!ICD & "','" & q!Diagnose & "'," & q!nurquart & "," & DatFor_k(Now()) & ")", rAf
+  InsKorr z, "INSERT INTO `fuerdiagexp`(name,pat_id,icd,diagnose,nurquart,zeitpunkt) VALUES('" & UmwfSQL(q!name) & "'," & q!Pat_ID & ",'" & q!Icd & "','" & q!Diagnose & "'," & q!nurquart & "," & DatFor_k(Now()) & ")", rAf
   q.Move 1
  Loop
 End Function ' test_fdübertrag()
